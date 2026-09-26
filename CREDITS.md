@@ -28,7 +28,8 @@ texts ship in `public/licenses/`.
 
 | Font | Designer | Licence |
 | --- | --- | --- |
-| IM Fell English, IM Fell English SC | Igino Marini | SIL Open Font License 1.1 |
+| Cinzel | Natanael Gama (The Cinzel Project Authors) | SIL Open Font License 1.1 |
+| Alegreya | Huerta Tipográfica (Juan Pablo del Peral) | SIL Open Font License 1.1 |
 | Alegreya Sans | Huerta Tipográfica (Juan Pablo del Peral) | SIL Open Font License 1.1 |
 
 ## Code shipped in the game

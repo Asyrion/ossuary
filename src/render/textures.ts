@@ -151,12 +151,21 @@ export function floorTexture(seed: number, kind: RoomType, look: FloorLook) {
   const t = canvasTex(c); floorCache.set(key, t); return t;
 }
 
+/** The controls chalked on the floor of the first room, in Cinzel capitals; arrows are drawn as strokes. */
 function drawChalk(g: Ctx, P: number) {
   g.save();
   const chalk = 'rgba(230,220,200,.5)';
-  g.fillStyle = chalk; g.strokeStyle = chalk; g.lineWidth = 3; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = chalk; g.strokeStyle = chalk; g.lineWidth = 3; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineCap = 'round';
+  const arrows: Record<string, [number, number]> = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
   const key = (x: number, y: number, s: number, label: string) => {
-    rrect(g, x - s / 2, y - s / 2, s, s, 7); g.stroke(); g.font = `${s * .55}px "IM Fell English", Georgia, serif`; g.fillText(label, x, y + 2);
+    rrect(g, x - s / 2, y - s / 2, s, s, 7); g.stroke();
+    const a = arrows[label];
+    if (a) { // shaft and head, pointing along a
+      const l = s * .26, [dx, dy] = a, px = -dy, py = dx;
+      g.beginPath(); g.moveTo(x - dx * l, y - dy * l); g.lineTo(x + dx * l, y + dy * l);
+      g.moveTo(x + dx * l - dx * l * .7 + px * l * .6, y + dy * l - dy * l * .7 + py * l * .6); g.lineTo(x + dx * l, y + dy * l);
+      g.lineTo(x + dx * l - dx * l * .7 - px * l * .6, y + dy * l - dy * l * .7 - py * l * .6); g.stroke();
+    } else { g.font = `700 ${s * .5}px "Cinzel", Georgia, serif`; g.fillText(label, x, y + 2); }
   };
   const lx = 3 * P, rx = 10 * P, cy = 3.2 * P, s = P * .62, gap = s * 1.12;
   if (isTouch) {
@@ -164,9 +173,10 @@ function drawChalk(g: Ctx, P: number) {
     g.beginPath(); g.arc(rx, cy, s * .9, 0, 7); g.stroke(); g.beginPath(); g.arc(rx, cy, s * .38, 0, 7); g.fill();
   } else {
     key(lx, cy - gap / 2, s, 'W'); key(lx - gap, cy + gap / 2, s, 'A'); key(lx, cy + gap / 2, s, 'S'); key(lx + gap, cy + gap / 2, s, 'D');
-    key(rx, cy - gap / 2, s, '↑'); key(rx - gap, cy + gap / 2, s, '←'); key(rx, cy + gap / 2, s, '↓'); key(rx + gap, cy + gap / 2, s, '→');
+    key(rx, cy - gap / 2, s, 'up'); key(rx - gap, cy + gap / 2, s, 'left'); key(rx, cy + gap / 2, s, 'down'); key(rx + gap, cy + gap / 2, s, 'right');
   }
-  g.font = `italic ${P * .42}px "IM Fell English", Georgia, serif`;
+  g.font = `600 ${P * .36}px "Cinzel", Georgia, serif`;
+  if ('letterSpacing' in g) (g as Ctx & { letterSpacing: string }).letterSpacing = `${P * .04}px`;
   g.fillText(isTouch ? STR.chalk.touchMove : STR.chalk.walk, lx, cy + gap * 1.55);
   g.fillText(isTouch ? STR.chalk.touchShoot : STR.chalk.cast, rx, cy + gap * 1.55);
   g.restore();

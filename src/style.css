@@ -2,8 +2,8 @@
   --void:#050404;
   --ink:#e8dcc2; --ink-dim:#a99b80; --panel:rgba(16,12,9,.88); --line:#5e4d39;
   --amber:#e8a64c; --amber-ink:#1d1208; --blood:#a8281d; --blood-dark:#3a1511; --verdigris:#6f8f6a;
-  --f-display:"IM Fell English SC","IM Fell English",Georgia,"Times New Roman",serif;
-  --f-serif:"IM Fell English",Georgia,"Times New Roman",serif;
+  --f-display:"Cinzel",Georgia,"Times New Roman",serif;
+  --f-serif:"Alegreya",Georgia,"Times New Roman",serif;
   --f-ui:"Alegreya Sans","Gill Sans","Trebuchet MS",system-ui,sans-serif;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px);
@@ -38,9 +38,9 @@ body{font-family:var(--f-ui);color:var(--ink);-webkit-user-select:none;user-sele
 #bossname{font-family:var(--f-serif);font-style:italic;font-size:18px;color:#f0d9b4;text-shadow:0 2px 3px #000}
 #bossbar .track{margin-top:4px;height:10px;background:rgba(0,0,0,.65);border:1px solid #6b3024;border-radius:5px;overflow:hidden}
 #bossbar .fill{height:100%;width:100%;background:linear-gradient(#c73a24,#7c1b12);transition:width .15s}
-#banner{position:absolute;left:50%;top:22%;transform:translate(-50%,-8px);text-align:center;opacity:0;transition:opacity .35s,transform .35s;width:min(90vw,640px)}
+#banner{position:absolute;left:50%;top:22%;transform:translate(-50%,-8px);text-align:center;opacity:0;transition:opacity .35s,transform .35s;width:min(94vw,860px)}
 #banner.on{opacity:1;transform:translate(-50%,0)}
-#banner .t{font-family:var(--f-display);font-size:clamp(28px,5vw,46px);color:#f3e2bf;text-shadow:0 3px 0 #000,0 0 18px rgba(0,0,0,.8);line-height:1.1}
+#banner .t{font-family:var(--f-display);font-size:clamp(26px,3.8vw,40px);letter-spacing:.02em;color:#f3e2bf;text-shadow:0 3px 0 #000,0 0 18px rgba(0,0,0,.8);line-height:1.1}
 #banner .s{font-family:var(--f-serif);font-style:italic;font-size:clamp(15px,2.2vw,20px);color:#d8c7a4;text-shadow:0 2px 2px #000;margin-top:6px}
 #pauseBtn{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 10px);pointer-events:auto;display:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(232,220,194,.35);background:rgba(10,8,6,.45);color:#e8dcc2;font:700 15px var(--f-ui);letter-spacing:1px}
 body.touch #pauseBtn{display:block}
