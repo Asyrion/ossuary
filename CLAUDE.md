@@ -7,22 +7,36 @@ and exported as GLB. The owner (Azyrion) designs; you build.
 The full game design document and the Tripo asset checklist live as living docs in the owner's claude.ai
 project "Tripo3D-GameDev". This file holds what you need to work in the repo.
 
-## Current state: prototype 0.3
+## Current state: 0.4 (M0 done)
 
-- `prototype/ossuary-0.3-source.html`: the whole game in one file (about 1,300 lines, three.js r147 UMD).
-  The hero model is injected at build time where it says `__HERO_GLB_B64__`. Read this, don't run it.
-- `prototype/ossuary-0.3-playable.html`: the same file with the hero embedded. Opens in a browser as-is
-  and is the **reference for behaviour and look** during the port.
-- `assets/hero_default.glb`: the hero (17,655 triangles, 65-bone Mixamo-style rig, textures already
-  reduced to 1,024 px JPEG). Clips: `standing_relax`, `run`, `cast_a_spell`, `hit_to_body_01`, `fall`.
-- `tools/prepare_asset_reference.py`: the Python script used so far to shrink GLB textures. Port its job to
-  Node (see M0).
+The prototype has been ported to Vite + TypeScript (strict) + three.js r186 with the layout below; it
+plays like 0.3. See `README.md` for scripts and deployment.
+
+- `src/`: the game, split as in the M0 layout. Plus `state.ts` (shared mutable state `G` and `player`,
+  and sim-time timers `after()`), `flow.ts` (game states, floor setup, room transitions, `warp`),
+  `loop.ts` (fixed 1/60 step), `strings.ts` (all player-facing text; HTML uses `data-s` keys) and
+  `types.ts`.
+- `src/actors/clipRoles.ts` and `src/actors/baseDetect.ts` hold the clip-name matching, hips-offset and
+  round-base tests with no three.js dependency; the game and `tools/prepare-asset.ts` both use them.
+- `data/floor1.json` (rooms, rocks, foes, which relic a treasure room holds) and `data/relics.json`
+  (relic stats, name, pickup line, colour).
+- `public/assets/hero_default.glb`: the hero (17,655 triangles, 65-bone Mixamo-style rig, 1,024 px JPEG
+  textures). Clips: `standing_relax`, `run`, `cast_a_spell`, `hit_to_body_01`, `fall`.
+- `prototype/`: the 0.3 single file (`-source` to read, `-playable` to run). Still the reference for look
+  and behaviour; `npm run compare` screenshots the same rooms in both.
+- Lights were re-tuned for physically based lighting: decay exponents dropped to 0.5 so the falloff
+  matches r147's legacy curve, intensities matched to the prototype within about 5% by region
+  brightness (`CFG.lights`).
+- Gameplay delays (the warden's second ring, the pause before the death screen) run on simulation time,
+  so they pause with the game and advance under `__game.sim()`.
+- Dev hooks (`window.__game`, `window.__manual`) are also in production builds, for testing on a phone.
+  `warp()` does not despawn the previous room's foes (as in 0.3).
 
 Prototype content: one hand-built floor of six rooms (start, 3 combat, treasure, boss), 3 enemy types plus
 a boss (placeholder primitive shapes), one relic, hearts, minimap, boss bar, keyboard/gamepad/touch
 twin-stick input, synthesised sound, pause/title/end screens, drag-and-drop GLB hero swapping.
 
-## Milestone M0: move to a proper project (do this first)
+## Milestone M0: move to a proper project (done)
 
 Goal: the same game, playable, in a maintainable project. No new features.
 
