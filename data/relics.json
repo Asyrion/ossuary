@@ -1,0 +1,9 @@
+[
+  {
+    "id": "ember",
+    "name": "Ember Sigil",
+    "pickup": "Your bolts burn hotter",
+    "color": "#ffb04a",
+    "effects": { "damageAdd": 1.5, "boltScale": 1.35, "boltColor": "#fff0c4" }
+  }
+]

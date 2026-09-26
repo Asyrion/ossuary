@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ossuary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<canvas id="game" aria-label="Game view"></canvas>
+<div id="vignette"></div>
+<div id="hurt"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="halfclip"><rect x="0" y="0" width="12" height="24"/></clipPath></defs></svg>
+<div id="hud">
+  <div id="hearts" aria-label="Health"></div>
+  <div id="items"></div>
+  <canvas id="minimap" width="300" height="220"></canvas>
+  <div id="bossbar"><div id="bossname"></div><div class="track"><div class="fill"></div></div></div>
+  <div id="banner"><div class="t"></div><div class="s"></div></div>
+  <button id="pauseBtn" aria-label="Pause">II</button>
+</div>
+<div id="sticks"><div class="stick" id="stickL"><i></i></div><div class="stick" id="stickR"><i></i></div></div>
+
+<!-- Text comes from src/strings.ts via data-s keys. -->
+<div class="screen" id="scrTitle">
+  <div class="card">
+    <h1 data-s="title.heading"></h1>
+    <p data-s="title.intro"></p>
+    <div class="controls" role="table" aria-label="Controls">
+      <span></span><span class="h" data-s="controls.keyboard"></span><span class="h" data-s="controls.gamepad"></span><span class="h" data-s="controls.touch"></span>
+      <span class="h" data-s="controls.move"></span><span class="k" data-s="controls.moveKeys"></span><span data-s="controls.movePad"></span><span data-s="controls.moveTouch"></span>
+      <span class="h" data-s="controls.shoot"></span><span class="k" data-s="controls.shootKeys"></span><span data-s="controls.shootPad"></span><span data-s="controls.shootTouch"></span>
+      <span class="h" data-s="controls.pause"></span><span class="k" data-s="controls.pauseKeys"></span><span data-s="controls.pausePad"></span><span data-s="controls.pauseTouch"></span>
+    </div>
+    <div class="btns"><button class="act primary" id="btnStart" data-s="title.start"></button></div>
+    <p class="small" data-s="title.note"></p>
+  </div>
+</div>
+
+<div class="screen hidden" id="scrPause">
+  <div class="card">
+    <h2 data-s="pause.heading"></h2>
+    <div class="btns">
+      <button class="act primary" id="btnResume" data-s="pause.resume"></button>
+      <button class="act" id="btnRestart" data-s="pause.restart"></button>
+      <button class="act" id="btnLoad" data-s="pause.load"></button>
+      <button class="act" id="btnSound" data-s="pause.soundOn"></button>
+    </div>
+    <p class="small" id="heroInfo"></p>
+    <input type="file" id="fileIn" accept=".glb,model/gltf-binary" hidden>
+  </div>
+</div>
+
+<div class="screen hidden" id="scrEnd">
+  <div class="card">
+    <h2 id="endTitle"></h2>
+    <p id="endText"></p>
+    <div class="btns"><button class="act primary" id="btnAgain" data-s="end.again"></button></div>
+  </div>
+</div>
+
+<div id="rotate" data-s="rotate"></div>
+<div id="drop" data-s="drop"></div>
+<div id="toast"></div>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

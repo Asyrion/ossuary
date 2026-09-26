@@ -1,0 +1,19 @@
+{
+  "comment": "Room grid: gx grows east, gy grows south. Tiles are col 0..12, row 0..6 (row 0 = north wall).",
+  "rooms": [
+    { "gx": 0, "gy": 0, "type": "start", "seed": 11 },
+    { "gx": 0, "gy": -1, "type": "normal", "seed": 23,
+      "rocks": [[2, 1], [10, 1], [2, 5], [10, 5]],
+      "foes": [["rotling", 6, 1], ["rotling", 3, 3], ["rotling", 9, 3]] },
+    { "gx": -1, "gy": -1, "type": "treasure", "seed": 37, "relic": "ember" },
+    { "gx": 1, "gy": -1, "type": "normal", "seed": 41,
+      "rocks": [[4, 2], [4, 4], [8, 2], [8, 4]],
+      "foes": [["wisp", 9, 1], ["wisp", 9, 5], ["rotling", 10, 3], ["rotling", 3, 1]] },
+    { "gx": 1, "gy": -2, "type": "normal", "seed": 53,
+      "rocks": [[2, 3], [3, 3], [9, 3], [10, 3], [4, 1], [8, 1]],
+      "foes": [["hound", 1, 1], ["hound", 11, 1], ["wisp", 6, 3], ["rotling", 3, 5]] },
+    { "gx": 1, "gy": -3, "type": "boss", "seed": 67,
+      "rocks": [[2, 1], [10, 1], [2, 5], [10, 5]],
+      "foes": [["warden", 6, 2]] }
+  ]
+}
