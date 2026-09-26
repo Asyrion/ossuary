@@ -23,7 +23,8 @@ in. For generated assets, name the tool and the plan it was made on, since right
 
 ## Fonts
 
-Loaded from Google Fonts.
+Bundled with the game from the Fontsource npm packages, so nothing is loaded from Google. The licence
+texts ship in `public/licenses/`.
 
 | Font | Designer | Licence |
 | --- | --- | --- |

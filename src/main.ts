@@ -1,4 +1,11 @@
 /* Boot: wire input and UI, build the floor, load the hero, start the loop, expose dev hooks. */
+// fonts are bundled with the game (Fontsource), so starting it makes no requests to Google
+import '@fontsource/im-fell-english/400.css';
+import '@fontsource/im-fell-english/400-italic.css';
+import '@fontsource/im-fell-english-sc/400.css';
+import '@fontsource/alegreya-sans/400.css';
+import '@fontsource/alegreya-sans/500.css';
+import '@fontsource/alegreya-sans/700.css';
 import './style.css';
 import { G, player } from './state';
 import { applyStrings } from './strings';
@@ -53,8 +60,9 @@ async function boot() {
   resize(); window.addEventListener('resize', resize);
   initKeyboard(input); initTouch(canvas, input);
   initScreens({ start: startGame, resume, toggleSound, pauseIfPlaying: () => { if (G.state === 'play') pause(); } });
-  // the chalk texture in the start room uses the IM Fell font, so give it a moment to arrive
-  try { await Promise.race([document.fonts.ready, new Promise(r => setTimeout(r, 1500))]); } catch { /* ignore */ }
+  // the chalk texture in the start room is drawn with IM Fell English, so load both styles first
+  const chalkFonts = Promise.all(['16px "IM Fell English"', 'italic 16px "IM Fell English"'].map(f => document.fonts.load(f)));
+  try { await Promise.race([chalkFonts, new Promise(r => setTimeout(r, 1500))]); } catch { /* draw with the fallback font */ }
   resetPlayer(); buildFloor();
   await loadDefaultHero();
   showScreen('title');
