@@ -484,7 +484,7 @@ Audio is designed for headphones first: every sound has a position in the room, 
 - Under one heart, the music thins out and a heartbeat joins.
 - Boss themes are separate pieces with a phase change at 50% health.
 
-**Floor biomes and their soundscapes** (proposal; the biomes themselves are a new idea and need Eda lore)
+**Floor biomes and their soundscapes** (proposal; the biomes themselves are a new idea and need Eda lore). The current scope is three floors, so floors 4 and 5 are kept as ideas for later.
 
 | Floor | Biome (placeholder) | Ambience bed | Random one-shots | Music mood |
 | --- | --- | --- | --- | --- |
@@ -528,6 +528,8 @@ Reactions (steam, shatter, overload, eclipse, blackfire) each get their own sign
 ## Asset list
 
 A full five-floor game needs roughly 85 3D models, about 300 sound files, 5 music pieces with stems, and about 80 icons. Counts are estimates for the scope in this document; each milestone only needs its own slice.
+
+**Current scope: three floors.** The counts below assume five. With three, the rows that scale with floors (floor music, ambience beds and one-shots, bosses, biome props, footstep surfaces) shrink to about three fifths.
 
 **Audio**
 
