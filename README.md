@@ -34,9 +34,10 @@ Add these to the address (locally or on the Pages site):
 - `?seed=K3F9QX` plays the floors of that seed (the seed of a run is shown in the pause menu)
 - `?floor=2` starts on floor 2
 - `?room=pit_maze` plays a single room template (ids are in `data/templates/`)
+- `?variant=ambush` plays that room as a variant: `quiet`, `champion`, `ambush` or `dark`
 - `?give=twin_staff,bone_lens` starts the run holding those artifacts (ids are in `data/artifacts.json`)
 
-Options combine, e.g. `?room=crypt_a&give=shepherds_crook`.
+Options combine, e.g. `?room=crypt_a&variant=champion&give=shepherds_crook`.
 
 ## Deploying to GitHub Pages
 

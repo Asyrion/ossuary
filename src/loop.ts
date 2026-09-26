@@ -14,7 +14,7 @@ import { pollGamepad, type InputActions } from './input';
 import { updateHud, updateVision } from './ui/hud';
 import { ease, lerp } from './util';
 import { camTarget, cameraTargetFor, draw } from './render/renderer';
-import { enterRoom } from './flow';
+import { checkAmbush, enterRoom } from './flow';
 
 export const STEP = 1 / 60;
 const MAX_FRAME = 1 / 30;
@@ -38,7 +38,7 @@ export function step(dt: number) {
       if (tr.t >= tr.dur) { G.trans = null; player.vx *= .5; player.vz *= .5; enterRoom(tr.nb); }
     } else if (G.state === 'play') {
       G.stats.time += dt;
-      updatePlayer(dt); updateEnemies(dt); updateBolts(dt); updateShots(dt); updatePickups(dt);
+      updatePlayer(dt); checkAmbush(); updateEnemies(dt); updateBolts(dt); updateShots(dt); updatePickups(dt);
       // in rooms larger than the view the camera follows the mage, stopping at the walls
       const t = cameraTargetFor(G.current, player.x, player.z), k = 1 - Math.exp(-8 * dt);
       camTarget.x += (t.x - camTarget.x) * k; camTarget.z += (t.z - camTarget.z) * k;

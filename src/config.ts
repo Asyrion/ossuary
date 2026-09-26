@@ -12,6 +12,12 @@ export const CFG = {
     hound: { hp: 12, r: 0.34, speed: 1.1, charge: 7.2 },
     warden: { hp: 120, r: 0.78, speed: 1.15 },
   },
+  // champion rooms: one enemy is bigger, tinted, tougher and a little faster, and drops a heart
+  champion: { hpMul: 2, scale: 1.3, radiusMul: 1.2, speedMul: 1.15, tint: 0x6a1a0a, aura: 0xff5a2a },
+  // quiet rooms keep at most this many weak enemies; how often a heart waits there
+  quiet: { maxEnemies: 2, heartChance: .7 },
+  // ambush rooms spring when the mage is this close to the middle, or this far from every door
+  ambush: { middle: 1.8, fromDoors: 4 },
   camTiltDeg: 45,
   heartDropChance: 0.45,
   artifacts: {

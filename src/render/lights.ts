@@ -18,8 +18,13 @@ const slots = torchLights.map(light => ({ light, torch: null as Torch | null, fa
 export const lantern = new THREE.PointLight(0xffc27a, L.lantern, L.lanternDistance, L.lanternDecay);
 scene.add(lantern);
 
-/** Torch brightness factor of the current floor (CFG.lights.torch × this). */
-export const lightState = { torchMul: 1 };
+/** Torch brightness factor of the current floor (CFG.lights.torch × this), and how dark the current room is:
+    0 normally, 1 in a dark room (torches out, fill and moonlight low, the lantern a little brighter). */
+export const lightState = { torchMul: 1, dark: 0, darkTarget: 0 };
+/** Fade towards a room's darkness; `instant` for the first room of a floor. */
+export function setDarkness(target: number, instant = false) { lightState.darkTarget = target; if (instant) lightState.dark = target; }
+/** Current light levels, for tests. */
+export const lightLevels = () => ({ hemi: hemi.intensity, moon: moon.intensity, lantern: lantern.intensity, torches: torchLights.map(l => l.intensity) });
 /** Tint the fill light, moonlight and torch lights for a floor's look. */
 export function applyFloorLook(look: FloorLook) {
   hemi.color.set(look.light.sky); hemi.groundColor.set(look.light.ground); moon.color.set(look.light.moon);
@@ -32,14 +37,16 @@ const nearest = (torches: Torch[], x: number, z: number, n: number, bias: (t: To
 
 /** Put the lights on a room's torches at once (entering a room). */
 export function resetTorchLights(torches: Torch[], x: number, z: number) {
-  const pick = nearest(torches, x, z, slots.length);
+  const pick = nearest(torches.filter(t => t.lit), x, z, slots.length);
   slots.forEach((s, i) => { s.torch = pick[i] ?? null; s.fade = s.torch ? 1 : 0; if (s.torch) s.light.position.set(s.torch.x, 1.3, s.torch.z); });
 }
 
 /** Each step: lights follow the four torches nearest the mage (with a little stickiness so they don't flicker
     between two torches), fading out before they move. `flicker` is the shared torch flicker. */
 export function updateTorchLights(torches: Torch[], x: number, z: number, dt: number, flicker: number) {
-  const want = nearest(torches, x, z, slots.length, t => slots.some(s => s.torch === t) ? -1.5 : 0);
+  const ls = lightState, dark = (ls.dark += (ls.darkTarget - ls.dark) * (1 - Math.exp(-5 * dt)));
+  hemi.intensity = L.hemi * (1 - .8 * dark); moon.intensity = L.moon * (1 - .85 * dark); lantern.intensity = L.lantern * (1 + .35 * dark);
+  const want = nearest(torches.filter(t => t.lit), x, z, slots.length, t => slots.some(s => s.torch === t) ? -1.5 : 0);
   for (const s of slots) {
     if (s.torch && !want.includes(s.torch)) s.fade = Math.max(0, s.fade - dt * 6); // leaving: fade out first
     if (!s.torch || (s.fade === 0 && !want.includes(s.torch))) {
@@ -47,6 +54,6 @@ export function updateTorchLights(torches: Torch[], x: number, z: number, dt: nu
       s.torch = free ?? null;
       if (s.torch) s.light.position.set(s.torch.x, 1.3, s.torch.z);
     } else if (want.includes(s.torch)) s.fade = Math.min(1, s.fade + dt * 6);
-    s.light.intensity = s.torch ? L.torch * lightState.torchMul * flicker * s.fade : 0;
+    s.light.intensity = s.torch ? L.torch * ls.torchMul * flicker * s.fade * (1 - dark) : 0;
   }
 }

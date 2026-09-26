@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../../src/rng';
-import { FLOORS, GRID_H, GRID_W, generateFloor, planToText, testPlan } from '../../src/world/generate';
+import { FLOORS, GRID_H, GRID_W, HARD_VARIANTS, generateFloor, planToText, testPlan } from '../../src/world/generate';
 import { OPPOSITE, SIDE_DIR, allowsSide, shapeCells } from '../../src/world/shapes';
 import { TEMPLATE_DEFS, parseTemplate, validateTemplate } from '../../src/world/templates';
 
@@ -119,6 +119,24 @@ describe('floor generator', () => {
     expect(new Set(FLOORS.map(f => f.look.name)).size).toBe(FLOORS.length);
   });
 
+  it('dresses only normal rooms in variants, harder ones more often on deeper floors', () => {
+    const hardShare = FLOORS.map((cfg, f) => {
+      let normal = 0, hard = 0;
+      for (let s = 0; s < 300; s++) {
+        const plan = generateFloor(Rng.from('V' + s, 'floor' + f), cfg, f);
+        for (const r of plan.rooms) {
+          if (r.type !== 'normal') { expect(r.variant).toBe('normal'); continue; }
+          normal++; if (HARD_VARIANTS.includes(r.variant)) hard++;
+          if (f === 0 && r.dist === 1) expect(HARD_VARIANTS).not.toContain(r.variant); // the first rooms stay gentle
+        }
+      }
+      return hard / normal;
+    });
+    expect(hardShare[0]).toBeGreaterThan(.08);
+    expect(hardShare[0]).toBeLessThan(hardShare[1]);
+    expect(hardShare[1]).toBeLessThan(hardShare[2]);
+  });
+
   it('is deterministic for a seed', () => {
     const a = generateFloor(Rng.from('ABC123', 'floor1'), FLOORS[0], 0);
     const b = generateFloor(Rng.from('ABC123', 'floor1'), FLOORS[0], 0);
@@ -134,6 +152,8 @@ describe('floor generator', () => {
   it('builds a test floor for any template', () => {
     const plan = testPlan('boss_pits');
     expect(plan.rooms.map(r => r.type)).toEqual(['start', 'boss']);
+    expect(testPlan('crypt_a', 'dark').rooms[1].variant).toBe('dark');
+    expect(testPlan('boss_pits', 'dark').rooms[1].variant).toBe('normal'); // variants are for normal rooms
     expect(() => testPlan('nope')).toThrow();
     for (const def of TEMPLATE_DEFS) {
       const p = testPlan(def.id);

@@ -190,3 +190,42 @@ test('every door of a seeded floor leads to its neighbour, onto open floor', asy
   expect(result.fails).toEqual([]);
   expect(errors).toEqual([]);
 });
+
+test('room variants: ambush, champion, dark and quiet', async ({ page }) => {
+  const errors = await start(page, '?room=crypt_b&variant=ambush');
+  const result = await page.evaluate(() => {
+    type E = { champion?: boolean; type: string; maxHp: number; x: number; z: number };
+    type Rm = { locked: boolean; ambush?: string; torches: { lit: boolean }[] };
+    const g = (window as unknown as W).__game as unknown as {
+      startGame(o: object): void; warp(id: number): void; sim(s: number): void; keys: Set<string>;
+      enemies: E[]; current: Rm; player: { x: number; z: number; invuln: number };
+      lightLevels(): { hemi: number; torches: number[] };
+    };
+    // ambush: an empty, open room until the mage walks into the middle
+    g.warp(1); g.sim(.5);
+    const armed = { foes: g.enemies.length, locked: g.current.locked };
+    g.keys.add('KeyW'); for (let t = 0; g.current.ambush === 'armed' && t < 3; t += .05) g.sim(.05); g.keys.delete('KeyW');
+    const sprung = { foes: g.enemies.length, locked: g.current.locked, nearest: Math.min(...g.enemies.map(e => Math.hypot(e.x - g.player.x, e.z - g.player.z))) };
+    // champion: one enemy with double health
+    g.startGame({ testTemplate: 'crypt_b', testVariant: 'champion' }); g.warp(1); g.sim(.2);
+    const champ = g.enemies.filter(e => e.champion), peer = g.enemies.find(e => !e.champion && e.type === champ[0]?.type);
+    // dark: torches out, the fill light low
+    g.startGame({ testTemplate: 'crypt_b', testVariant: 'dark' }); g.warp(1); g.sim(2);
+    const light = g.lightLevels();
+    // quiet: at most two weak enemies
+    g.startGame({ testTemplate: 'crypt_c', testVariant: 'quiet' }); g.warp(1); g.sim(.2);
+    return { armed, sprung, champions: champ.length, hpRatio: champ[0].maxHp / peer!.maxHp, lit: g.current.torches.length,
+      darkTorches: light.torches.reduce((a, b) => a + b, 0), hemi: light.hemi, quiet: g.enemies.map(e => e.type) };
+  });
+  expect(result.armed).toEqual({ foes: 0, locked: false });
+  expect(result.sprung.foes).toBeGreaterThan(0);
+  expect(result.sprung.locked).toBe(true);
+  expect(result.sprung.nearest).toBeGreaterThan(2);
+  expect(result.champions).toBe(1);
+  expect(result.hpRatio).toBeCloseTo(2);
+  expect(result.darkTorches).toBe(0);
+  expect(result.hemi).toBeLessThan(.6);
+  expect(result.quiet.length).toBeLessThanOrEqual(2);
+  expect(result.quiet.every(t => t === 'rotling' || t === 'wisp')).toBe(true);
+  expect(errors).toEqual([]);
+});

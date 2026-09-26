@@ -20,13 +20,15 @@ function stdMat(color: number, extra: THREE.MeshStandardMaterialParameters = {})
 }
 
 /* Placeholder primitive foes. M2 replaces these with Tripo models. */
-/** Spawn an enemy. `hpMul` scales health (deeper floors); `boss` tunes the floor's boss. */
-export function makeEnemy(type: EnemyType, x: number, z: number, hpMul = 1, boss?: BossConfig) {
-  const C = CFG.enemy[type];
-  const hp = C.hp * hpMul * (boss?.hpMul ?? 1);
+/** Spawn an enemy. `hpMul` scales health (deeper floors); `boss` tunes the floor's boss; a champion
+    (champion rooms) is bigger, glows, has more health and moves a little faster. */
+export function makeEnemy(type: EnemyType, x: number, z: number, hpMul = 1, boss?: BossConfig, opts: { champion?: boolean } = {}) {
+  const C = CFG.enemy[type], CH = CFG.champion;
+  const hp = C.hp * hpMul * (boss?.hpMul ?? 1) * (opts.champion ? CH.hpMul : 1);
   const e: Enemy = {
-    type, x, z, vx: 0, vz: 0, kx: 0, kz: 0, r: C.r, hp, maxHp: hp, bossCfg: boss, flying: false, spawn: .6, t: Math.random() * 10,
+    type, x, z, vx: 0, vz: 0, kx: 0, kz: 0, r: C.r * (opts.champion ? CH.radiusMul : 1), hp, maxHp: hp, bossCfg: boss, flying: false, spawn: .6, t: Math.random() * 10,
     flash: 0, mats: [], group: new THREE.Group(), body: new THREE.Group(), face: 0, contact: 1, state: 'idle', st: 0,
+    scale: opts.champion ? CH.scale : 1, speedMul: opts.champion ? CH.speedMul : 1, champion: opts.champion,
   };
   e.group.add(e.body);
   const add = (geo: THREE.BufferGeometry, mat: THREE.Material, px: number, py: number, pz: number, sx = 1, sy = 1, sz = 1) => {
@@ -71,6 +73,10 @@ export function makeEnemy(type: EnemyType, x: number, z: number, hpMul = 1, boss
     e.halo = glow(0xff4a1a, 2.2, .35); e.halo.position.set(0, 1.7, -.2); e.body.add(e.halo);
     e.state = 'walk'; e.st = 2.2; e.cycle = 0; e.summoned = false;
   }
+  if (opts.champion) { // an ember glow in the body and a pulsing aura around it
+    for (const m of e.mats) { m.userData.base = new THREE.Color(CH.tint); m.emissive.set(CH.tint); }
+    e.aura = glow(CH.aura, 1.6, .5); e.aura.position.y = .5; e.group.add(e.aura);
+  }
   e.group.add(blob(C.r * 3)); e.group.position.set(x, 0, z); e.group.scale.setScalar(.01); scene.add(e.group);
   G.enemies.push(e); return e;
 }
@@ -85,19 +91,20 @@ export function updateEnemies(dt: number) {
   const walls = blockers(cur, 'flyer'), solids = blockers(cur, 'walker');
   for (const e of G.enemies) {
     e.t += dt;
-    if (e.spawn > 0) { e.spawn -= dt; const s = 1 - Math.max(0, e.spawn) / .6; e.group.scale.setScalar(.2 + .8 * (1 - Math.pow(1 - s, 3))); continue; }
-    e.group.scale.setScalar(1);
+    if (e.spawn > 0) { e.spawn -= dt; const s = 1 - Math.max(0, e.spawn) / .6; e.group.scale.setScalar((.2 + .8 * (1 - Math.pow(1 - s, 3))) * e.scale); continue; }
+    e.group.scale.setScalar(e.scale);
+    if (e.aura) e.aura.material.opacity = .45 + Math.sin(e.t * 5) * .15;
     const dx = player.x - e.x, dz = player.z - e.z, dist = Math.hypot(dx, dz) || 1, ux = dx / dist, uz = dz / dist;
     let faceTo = Math.atan2(ux, uz);
     if (e.type === 'rotling') {
-      const wob = Math.sin(e.t * 3.1) * .35; const sp = CFG.enemy.rotling.speed;
+      const wob = Math.sin(e.t * 3.1) * .35; const sp = CFG.enemy.rotling.speed * e.speedMul;
       e.vx = (ux - uz * wob) * sp; e.vz = (uz + ux * wob) * sp;
       e.body.rotation.z = Math.sin(e.t * 6) * .08; e.body.position.y = Math.abs(Math.sin(e.t * 6)) * .04;
     } else if (e.type === 'wisp') {
       const C = CFG.enemy.wisp; const tg = e.target!;
       if (Math.hypot(tg.x - e.x, tg.z - e.z) < .3 || Math.random() < dt * .3) e.target = randomSpot(cur);
       const tx = e.target!.x - e.x, tz = e.target!.z - e.z, tl = Math.hypot(tx, tz) || 1;
-      e.vx = lerp(e.vx, tx / tl * C.speed, dt * 2); e.vz = lerp(e.vz, tz / tl * C.speed, dt * 2);
+      e.vx = lerp(e.vx, tx / tl * C.speed * e.speedMul, dt * 2); e.vz = lerp(e.vz, tz / tl * C.speed * e.speedMul, dt * 2);
       e.body.position.y = .8 + Math.sin(e.t * 2.4) * .1;
       e.fireT! -= dt; const ft = e.fireT!;
       const tele = ft < .45 && ft > 0;
@@ -106,7 +113,7 @@ export function updateEnemies(dt: number) {
     } else if (e.type === 'hound') {
       const C = CFG.enemy.hound; e.st -= dt; const dir = e.dir!;
       if (e.state === 'wander') {
-        e.vx = dir.x * C.speed; e.vz = dir.z * C.speed; faceTo = Math.atan2(dir.x, dir.z);
+        e.vx = dir.x * C.speed * e.speedMul; e.vz = dir.z * C.speed * e.speedMul; faceTo = Math.atan2(dir.x, dir.z);
         if (e.st <= 0) { const d = [[1, 0], [-1, 0], [0, 1], [0, -1]][Math.random() * 4 | 0]; e.dir = { x: d[0], z: d[1] }; e.st = rand(.8, 1.8); }
         const alignedX = Math.abs(dz) < .45, alignedZ = Math.abs(dx) < .45;
         if ((alignedX || alignedZ) && dist < 9) { e.state = 'tell'; e.st = .3; e.dir = alignedX ? { x: Math.sign(dx), z: 0 } : { x: 0, z: Math.sign(dz) }; Sfx.charge(); }
@@ -115,7 +122,7 @@ export function updateEnemies(dt: number) {
         e.vx = e.vz = 0; faceTo = Math.atan2(dir.x, dir.z); e.body.position.x = Math.sin(e.t * 60) * .03;
         if (e.st <= 0) { e.state = 'charge'; e.body.position.x = 0; }
       } else if (e.state === 'charge') {
-        e.vx = dir.x * C.charge; e.vz = dir.z * C.charge; faceTo = Math.atan2(dir.x, dir.z);
+        e.vx = dir.x * C.charge * e.speedMul; e.vz = dir.z * C.charge * e.speedMul; faceTo = Math.atan2(dir.x, dir.z);
         e.body.rotation.x = .15;
       } else if (e.state === 'stun') {
         e.vx = e.vz = 0; faceTo = e.face; e.body.rotation.x = 0; e.body.rotation.z = Math.sin(e.t * 20) * .1;

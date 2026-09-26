@@ -9,6 +9,8 @@ import { endGame, onBossDead } from '../flow';
 import { flashHurt, renderHearts, updateBossBar } from '../ui/hud';
 import { addDecal, burst } from './fx';
 import { spawnBurst } from './projectiles';
+import { spawnHeart } from '../items/pickups';
+import { freeSpotNear } from '../world/rooms';
 
 export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number) {
   if (e.spawn > 0 || e.dead) return;
@@ -28,6 +30,7 @@ function killEnemy(e: Enemy) {
   const stain = STAIN_COLOR[e.type];
   if (stain !== null) addDecal(e.x, e.z, stain, e.isBoss ? 1.6 : .7);
   if (player.stats.effects.has('deathBurst')) spawnBurst(e.x, e.z, 4); // Saint's Knucklebone
+  if (e.champion) { const p = freeSpotNear(G.current, e.x, e.z); spawnHeart(p.x, p.z, 2); }
   if (e.isBoss) { Sfx.boom(); G.shake = .55; onBossDead(); } else { Sfx.die(); G.shake = Math.max(G.shake, .08); }
 }
 

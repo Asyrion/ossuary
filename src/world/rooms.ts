@@ -48,6 +48,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   }));
   mergePits(room);
   room.waves = template.waves.map(wv => wv.map(f => ({ kind: f.kind, ...toWorld(room, f.c, f.r) })));
+  if (plan.variant === 'quiet') quieten(room);
   room.cleared = room.waves.length === 0;
   if (plan.type === 'treasure') addPedestal(room);
   if (plan.type === 'altar') addAltar(room);
@@ -74,6 +75,16 @@ function maskGeometry(mask: boolean[][], w: number, h: number) {
   g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
   g.setIndex(idx); g.computeVertexNormals();
   return g;
+}
+
+/** Quiet rooms keep none, one or two of the template's weak enemies (never hounds), and often a heart. */
+function quieten(room: Room) {
+  const R = mulberry(room.plan.seed ^ 0x51ee7);
+  const weak = (room.waves[0] ?? []).filter(f => f.kind === 'rotling' || f.kind === 'wisp');
+  for (let i = weak.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [weak[i], weak[j]] = [weak[j], weak[i]]; }
+  const keep = Math.min(weak.length, Math.floor(R() * (CFG.quiet.maxEnemies + 1)));
+  room.waves = keep ? [weak.slice(0, keep)] : [];
+  room.quietHeart = R() < CFG.quiet.heartChance;
 }
 
 function addRock(room: Room, c: number, r: number) {
@@ -290,7 +301,10 @@ function addTorch(room: Room, x: number, z: number, normal: [number, number], t:
   }
   const gl = glow(new THREE.Color(t.light).getHex(), glowSize, .8); gl.position.set(0, glowAt[0], glowAt[1]); holder.add(gl);
   room.group.add(holder);
-  room.torches.push({ flame, glow: gl, x: x + normal[0] * .6, z: z + normal[1] * .6 });
+  // dark rooms: the torch hangs cold, its flame out
+  const lit = room.plan.variant !== 'dark';
+  flame.visible = gl.visible = lit;
+  room.torches.push({ flame, glow: gl, x: x + normal[0] * .6, z: z + normal[1] * .6, lit });
 }
 
 /** A doorway on `side` whose middle (on the room's inside edge) is at world (x, z): posts, lintel, threshold,
@@ -370,6 +384,7 @@ export function updateRoomFx(dt: number, now: number) {
   for (const r of G.rooms) {
     for (const d of doorsOf(r)) { const target = d.open ? -d.barH - .05 : 0; d.bars.position.y += (target - d.bars.position.y) * (1 - Math.exp(-12 * dt)); }
     if (r === G.current) for (const t of r.torches) {
+      if (!t.lit) continue;
       const f = .85 + Math.sin(now * 17 + t.x) * .08 + Math.sin(now * 29 + t.x * 2) * .06;
       t.flame.scale.set(1, f, 1); t.glow.material.opacity = .6 + f * .25;
     }

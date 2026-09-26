@@ -5,6 +5,7 @@
     "altarChance": 0.55,
     "bossHallChance": 0.4,
     "shapes": {"standard": 64, "corridor_ew": 7, "corridor_ns": 5, "long": 8, "tall": 6, "great": 4, "l_shape": 6},
+    "variants": {"normal": 70, "quiet": 12, "champion": 7, "ambush": 6, "dark": 5},
     "templateWeights": {"1": 0.6, "2": 0.35, "3": 0.05},
     "boss": {"type": "warden", "hpMul": 1.0, "speedMul": 1.0, "shotSpeedMul": 1.0, "summons": 2, "volleys": 3},
     "look": {
@@ -21,6 +22,7 @@
     "altarChance": 0.55,
     "bossHallChance": 0.4,
     "shapes": {"standard": 60, "corridor_ew": 7, "corridor_ns": 6, "long": 8, "tall": 7, "great": 5, "l_shape": 7},
+    "variants": {"normal": 60, "quiet": 10, "champion": 11, "ambush": 10, "dark": 9},
     "templateWeights": {"1": 0.3, "2": 0.5, "3": 0.2},
     "boss": {"type": "warden", "hpMul": 1.35, "speedMul": 1.1, "shotSpeedMul": 1.1, "summons": 3, "volleys": 3},
     "look": {
@@ -37,6 +39,7 @@
     "altarChance": 0.55,
     "bossHallChance": 0.4,
     "shapes": {"standard": 56, "corridor_ew": 7, "corridor_ns": 6, "long": 9, "tall": 8, "great": 6, "l_shape": 8},
+    "variants": {"normal": 52, "quiet": 8, "champion": 14, "ambush": 13, "dark": 13},
     "templateWeights": {"1": 0.15, "2": 0.45, "3": 0.4},
     "boss": {"type": "warden", "hpMul": 1.7, "speedMul": 1.15, "shotSpeedMul": 1.2, "summons": 4, "volleys": 4},
     "look": {

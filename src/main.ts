@@ -23,7 +23,8 @@ import { ARTIFACTS } from './items/artifactData';
 import { clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRun, startGame, toggleSound, warp } from './flow';
 import { STEP, startLoop, step } from './loop';
 import { cleanSeed } from './rng';
-import { planToText } from './world/generate';
+import { VARIANTS, planToText, type RoomVariant } from './world/generate';
+import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
 import { isTouch } from './util';
 
@@ -51,11 +52,13 @@ async function loadDefaultHero() {
 }
 
 /** Run options from the address: ?seed=K3F9QX replays a run's floors, ?floor=2 starts deeper,
-    ?room=<template id> plays one room template (for reviewing templates), ?give=bone_lens,twin_staff
-    starts the run holding those artifacts. */
+    ?room=<template id> plays one room template (for reviewing templates), ?variant=dark dresses that room
+    in a variant (quiet, champion, ambush, dark), ?give=bone_lens,twin_staff starts the run holding those
+    artifacts. */
 function readUrlOptions() {
   const q = new URLSearchParams(location.search);
-  const seed = q.get('seed'), floor = Number(q.get('floor')), room = q.get('room');
+  const seed = q.get('seed'), floor = Number(q.get('floor')), room = q.get('room'), variant = q.get('variant') as RoomVariant | null;
+  if (variant && !VARIANTS.includes(variant)) console.warn(`?variant=${variant}: use one of ${VARIANTS.join(', ')}`);
   const give = (q.get('give') ?? '').split(',').map(s => s.trim()).filter(Boolean);
   if (room && !TEMPLATES.has(room)) console.warn(`?room=${room}: no such template. Known: ${[...TEMPLATES.keys()].join(', ')}`);
   const unknown = give.filter(id => !ARTIFACTS.has(id));
@@ -64,6 +67,7 @@ function readUrlOptions() {
     seed: seed ? cleanSeed(seed) : undefined,
     floor: floor >= 1 ? floor - 1 : undefined,
     testTemplate: room && TEMPLATES.has(room) ? room : undefined,
+    testVariant: variant && VARIANTS.includes(variant) ? variant : undefined,
     give: give.filter(id => ARTIFACTS.has(id)),
   });
 }
@@ -79,6 +83,7 @@ function installDevHooks() {
     /** Run the simulation for `sec` seconds in fixed steps; optionally render once afterwards. */
     sim(sec: number, render = false) { for (let t = 0; t < sec; t += STEP) step(STEP); if (render) { draw(); updateVision(); } },
     draw() { draw(); updateVision(); },
+    lightLevels,
     /** Give the mage artifacts by id, e.g. give('bone_lens', 'twin_staff'). */
     give: (...ids: string[]) => giveById(ids),
   };

@@ -459,15 +459,15 @@ Between two cells of the same room, the two wall tiles become floor, which is wh
 - **Which rooms can be large:** normal rooms and the boss room, which sometimes widens into a great hall. Ordeals stay one cell until they get large templates; start, treasure, bone altar, merchant, secret and vault rooms stay one cell.
 - **Mix:** most rooms stay standard; larger shapes and corridors make up a quarter to a third of a floor, a little more on deeper floors (weights per floor in `data/floors.json`).
 
-**Room variants (M1).** Normal rooms can roll a variant that makes them clearly easier or harder than the floor's baseline, so a floor has peaks and breathers.
+**Room variants (M1).** Normal rooms can roll a variant that makes them clearly easier or harder than the floor's baseline, so a floor has peaks and breathers. Chances per floor are in `data/floors.json` (floor 1: about 18% hard, floor 3: about 40%); champion, quiet and ambush tuning is in `config.ts`.
 
 | Variant | Difficulty | What changes |
 | --- | --- | --- |
 | Quiet | Easier | One or two weak enemies or none; often a heart |
 | Normal | Floor baseline | A template at the floor's difficulty |
 | Champion | Harder | One enemy is a champion: bigger, tinted, double health, a little faster; drops a heart |
-| Ambush | Harder | The room looks empty; enemies rise from the floor when the mage reaches the middle |
-| Dark | Harder | The torches are out; only the mage's lantern lights the room |
+| Ambush | Harder | The room looks empty and its doors stay open; enemies rise from the floor (never on top of the mage) and the doors lock when the mage reaches the middle, or walks four tiles away from every door in a large room |
+| Dark | Harder | The torches are out and the fill light is low; the mage's lantern burns a little brighter and lights the way |
 | Ordeal | Much harder | Two or three waves, then an artifact (a special room, see above) |
 
 **A run is three floors (M1).** Each floor is generated fresh, so no two runs share a map:

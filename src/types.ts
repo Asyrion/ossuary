@@ -29,7 +29,8 @@ export interface Door {
   side: Side; nb: Room; link?: Door; x: number; z: number;
   bars: THREE.Group; barH: number; open: boolean; style: DoorStyle; box: Box;
 }
-export interface Torch { flame: THREE.Mesh; glow: THREE.Sprite; x: number; z: number }
+/** A wall light; dark rooms have their torches out (`lit` false). (x, z) is where its light sits. */
+export interface Torch { flame: THREE.Mesh; glow: THREE.Sprite; x: number; z: number; lit: boolean }
 /** A rock collider; Mason's Chisel breaks breakable ones. Pedestals are unbreakable "rocks". */
 export interface RockBox extends Box { hp: number; breakable: boolean; mesh?: THREE.Object3D; tile?: { c: number; r: number } }
 /** An artifact on a pedestal. `pair` links the boss's two choices: taking one makes the other vanish. */
@@ -48,6 +49,8 @@ export interface Room {
   /** Enemies to spawn, wave by wave (ordeals have 2 or 3 waves, other fights 1), in world positions. */
   waves: { kind: FoeKind; x: number; z: number }[][];
   /** The wave being fought, and whether the next one is on its way. */ wave: number; wavePending: boolean;
+  /** Ambush rooms: waiting for the mage to reach the middle (armed), or already sprung. */ ambush?: 'armed' | 'sprung';
+  /** Quiet rooms: a heart waits there on the first visit. */ quietHeart?: boolean;
   cleared: boolean; visited: boolean; known: boolean; locked: boolean;
   spots: ArtifactSpot[];
 }
@@ -57,6 +60,8 @@ export interface Enemy extends Circle {
   flying: boolean; spawn: number; t: number; flash: number; mats: THREE.MeshStandardMaterial[];
   group: THREE.Group; body: THREE.Group; face: number; contact: number; state: string; st: number;
   dead?: boolean; isBoss?: boolean; bossCfg?: BossConfig;
+  /** Size and speed factors (champions are bigger and faster); the champion's glow. */ scale: number; speedMul: number;
+  champion?: boolean; aura?: THREE.Sprite;
   // type-specific parts and AI state
   core?: THREE.Mesh; halo?: THREE.Sprite; target?: Vec2; fireT?: number; dir?: Vec2;
   eye?: THREE.Mesh; ring?: THREE.Mesh; cycle?: number; summoned?: boolean; volleys?: number;

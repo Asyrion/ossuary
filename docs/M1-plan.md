@@ -53,8 +53,8 @@ build. Each step ends playable, with unit and browser tests passing, and is push
 
 ## Step 5: Room variants and difficulty
 
-- [ ] Quiet, champion, ambush and dark variants
-- [ ] Variant chances per floor from data; no hard variants next to the floor 1 start
+- [x] Quiet, champion, ambush and dark variants
+- [x] Variant chances per floor from data; no hard variants next to the floor 1 start
 
 ## Step 6: Polish and balance
 

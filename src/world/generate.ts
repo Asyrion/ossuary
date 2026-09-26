@@ -15,6 +15,11 @@ import { TEMPLATE_DEFS, type TemplateDef } from './templates';
 export const GRID_W = 9, GRID_H = 8;
 export const START_CELL = { gx: 4, gy: 3 };
 
+/** How a normal room is dressed (GDD: Room variants): quiet is easier; champion, ambush and dark are harder. */
+export type RoomVariant = 'normal' | 'quiet' | 'champion' | 'ambush' | 'dark';
+export const VARIANTS: RoomVariant[] = ['normal', 'quiet', 'champion', 'ambush', 'dark'];
+export const HARD_VARIANTS: RoomVariant[] = ['champion', 'ambush', 'dark'];
+
 export interface BossConfig { type: 'warden'; hpMul: number; speedMul: number; shotSpeedMul: number; summons: number; volleys: number }
 export interface FloorConfig {
   rooms: [number, number];
@@ -22,6 +27,7 @@ export interface FloorConfig {
   /** Chance of a bone altar when a spare dead end exists. */ altarChance: number;
   /** Chance the boss room is widened into a great hall when there is space. */ bossHallChance: number;
   /** Relative weights of room shapes for new rooms. */ shapes: Partial<Record<ShapeId, number>>;
+  /** Relative weights of the variants a normal room can roll. */ variants: Partial<Record<RoomVariant, number>>;
   templateWeights: Record<string, number>;
   boss: BossConfig;
   look: FloorLook;
@@ -38,7 +44,8 @@ export interface PlannedRoom {
   /** Grid cells the room covers; `anchor` is the top-left of their bounding box. */ cells: Cell[]; anchor: Cell;
   /** Steps from the start room. */ dist: number;
   templateId: string; mirrorX: boolean; mirrorY: boolean;
-  /** Seed for this room's cosmetic randomness (floor texture, rock shapes). */ seed: number;
+  /** Only normal rooms roll a variant; every other room is 'normal'. */ variant: RoomVariant;
+  /** Seed for this room's own randomness (floor texture, rock shapes, which enemy is the champion). */ seed: number;
   doors: PlannedDoor[];
 }
 export interface FloorPlan { index: number; rooms: PlannedRoom[]; startId: number; bossId: number; attempts: number }
@@ -149,12 +156,23 @@ export function generateFloor(rng: Rng, cfg: FloorConfig, index: number, library
       templateId: '',
       // L-shaped rooms are turned by mirroring, so their template must match; other shapes mirror freely
       mirrorX: l.shape === 'l_shape' ? l.mirrorX : rng.chance(0.5), mirrorY: l.shape === 'l_shape' ? l.mirrorY : rng.chance(0.5),
-      seed: rng.int(1, 2 ** 30), doors: doors[id],
+      variant: 'normal', seed: rng.int(1, 2 ** 30), doors: doors[id],
     }));
+    assignVariants(rng, rooms, cfg, index);
     assignTemplates(rng, rooms, cfg, index, library);
     return { index, rooms, startId: 0, bossId: boss, attempts };
   }
   throw new Error('floor generation failed after 500 attempts');
+}
+
+/** Normal rooms roll a variant from the floor's weights; the rooms next to the start on floor 1 are never hard. */
+function assignVariants(rng: Rng, rooms: PlannedRoom[], cfg: FloorConfig, index: number) {
+  for (const room of rooms) {
+    if (room.type !== 'normal') continue;
+    const weights = Object.fromEntries(VARIANTS.map(v => [v, cfg.variants[v] ?? 0])) as Record<RoomVariant, number>;
+    if (index === 0 && room.dist === 1) for (const v of HARD_VARIANTS) weights[v] = 0;
+    room.variant = rng.weighted(weights);
+  }
 }
 
 /** Normal rooms pick a difficulty from the floor's weights, preferring templates not yet used on this floor. */
@@ -177,8 +195,9 @@ function assignTemplates(rng: Rng, rooms: PlannedRoom[], cfg: FloorConfig, index
   }
 }
 
-/** A two-room floor for trying out one template: the start room with the template's room next to it. */
-export function testPlan(templateId: string, library: TemplateDef[] = TEMPLATE_DEFS): FloorPlan {
+/** A two-room floor for trying out one template (optionally in a variant): the start room with the
+    template's room next to it. */
+export function testPlan(templateId: string, variant: RoomVariant = 'normal', library: TemplateDef[] = TEMPLATE_DEFS): FloorPlan {
   const def = library.find(t => t.id === templateId);
   if (!def) throw new Error(`no template "${templateId}"`);
   const type = def.types[0] === 'start' ? 'normal' : def.types[0];
@@ -204,7 +223,8 @@ export function testPlan(templateId: string, library: TemplateDef[] = TEMPLATE_D
   const doors = computeDoors(g.rooms);
   const rooms: PlannedRoom[] = g.rooms.map((l, id) => ({
     id, type: id ? type : 'start', shape: l.shape, cells: l.cells, anchor: anchorOf(l.cells), dist: id,
-    templateId: id ? templateId : 'start', mirrorX: false, mirrorY: false, seed: 1000 + id, doors: doors[id],
+    templateId: id ? templateId : 'start', mirrorX: false, mirrorY: false,
+    variant: id && type === 'normal' ? variant : 'normal', seed: 1000 + id, doors: doors[id],
   }));
   return { index: 0, rooms, startId: 0, bossId: type === 'boss' ? 1 : -1, attempts: 1 };
 }

@@ -36,7 +36,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
 - Tests: `npm run test:unit` (Vitest: generator rules on hundreds of seeds, every template validated),
   `npm run test:e2e` (Playwright smoke tests), `npm test` runs both.
 - URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`
-  plays one template (for reviewing rooms), `?give=bone_lens,twin_staff` starts with artifacts.
+  plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
+  champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.clearRoom()`
   ends the current fight.
 - `public/assets/hero_default.glb`: the hero (17,655 triangles, 65-bone Mixamo-style rig, 1,024 px JPEG
