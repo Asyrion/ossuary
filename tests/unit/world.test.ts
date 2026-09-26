@@ -1,0 +1,93 @@
+import { describe, expect, it } from 'vitest';
+import { Rng } from '../../src/rng';
+import { FLOORS, GRID_H, GRID_W, generateFloor, planToText, testPlan } from '../../src/world/generate';
+import { TEMPLATE_DEFS, parseTemplate, validateTemplate } from '../../src/world/templates';
+
+describe('room templates', () => {
+  it.each(TEMPLATE_DEFS.map(d => [d.id, d] as const))('%s is valid', (_id, def) => {
+    expect(validateTemplate(def)).toEqual([]);
+  });
+
+  it('have unique ids', () => {
+    const ids = TEMPLATE_DEFS.map(d => d.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('cover every room type and normal difficulty the generator asks for', () => {
+    for (const type of ['start', 'treasure', 'boss'] as const) expect(TEMPLATE_DEFS.some(d => d.types.includes(type))).toBe(true);
+    for (const d of [1, 2, 3]) expect(TEMPLATE_DEFS.some(t => t.types.includes('normal') && t.difficulty === d)).toBe(true);
+  });
+
+  it('validation catches broken templates', () => {
+    const base = TEMPLATE_DEFS.find(d => d.id === 'crypt_a')!;
+    const withRow = (r: number, row: string) => ({ ...base, grid: base.grid.map((x, i) => i === r ? row : x) });
+    const errors = (def: typeof base) => validateTemplate(def).join('; ');
+    expect(errors(withRow(0, '......#......'))).toMatch(/door lane/);        // rock in the north door lane
+    expect(errors(withRow(2, '.R....R......'))).toMatch(/next to a door/);   // (1,2) is beside the west entry (0,3)
+    expect(errors({ ...base, grid: ['.............', '.ooo.........', '.o.o.........', '.ooo.........', '.............', '.........R...', '.............'] })).toMatch(/\(2,2\) can't be reached/);
+    expect(errors(withRow(3, '...R..X..R...'))).toMatch(/unknown character/);
+    expect(errors({ ...base, types: ['treasure'] })).toMatch(/can't have enemies/);
+  });
+
+  it('mirror without changing their contents', () => {
+    const def = TEMPLATE_DEFS.find(d => d.id === 'crypt_b')!;
+    const a = parseTemplate(def), b = parseTemplate(def, true, true);
+    expect(b.foes.length).toBe(a.foes.length);
+    expect(b.tiles[0][0]).toBe(a.tiles[a.h - 1][a.w - 1]);
+  });
+});
+
+describe('floor generator', () => {
+  const SEEDS = 400;
+
+  it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i follows the rules on %# seeds', (floorNo, cfg) => {
+    for (let s = 0; s < SEEDS; s++) {
+      const plan = generateFloor(Rng.from('T' + s, 'floor' + floorNo), cfg, floorNo - 1);
+      const n = plan.rooms.length;
+      expect(n).toBeGreaterThanOrEqual(cfg.rooms[0]);
+      expect(n).toBeLessThanOrEqual(cfg.rooms[1]);
+      const count = (t: string) => plan.rooms.filter(r => r.type === t).length;
+      expect([count('start'), count('boss'), count('treasure')]).toEqual([1, 1, 1]);
+
+      const at = new Map(plan.rooms.flatMap(r => r.cells.map(c => [c.gx + ',' + c.gy, r])));
+      const nbs = (r: (typeof plan.rooms)[number]) => r.cells.flatMap(c =>
+        [[0, -1], [1, 0], [0, 1], [-1, 0]].map(([dx, dy]) => at.get((c.gx + dx) + ',' + (c.gy + dy))).filter(x => x && x !== r));
+      for (const r of plan.rooms) for (const c of r.cells) {
+        expect(c.gx >= 0 && c.gx < GRID_W && c.gy >= 0 && c.gy < GRID_H).toBe(true);
+      }
+      // every room is reachable, and the special rooms are dead ends
+      const seen = new Set([plan.startId]); const queue = [plan.rooms[plan.startId]];
+      while (queue.length) for (const nb of nbs(queue.pop()!)) if (!seen.has(nb!.id)) { seen.add(nb!.id); queue.push(nb!); }
+      expect(seen.size).toBe(n);
+      const boss = plan.rooms[plan.bossId];
+      expect(nbs(boss).length).toBe(1);
+      expect(boss.dist).toBe(Math.max(...plan.rooms.map(r => r.dist)));
+      expect(boss.dist).toBeGreaterThanOrEqual(2);
+      expect(nbs(plan.rooms.find(r => r.type === 'treasure')!).length).toBe(1);
+      // templates fit their rooms; floor 1 starts gentle
+      for (const r of plan.rooms) {
+        const def = TEMPLATE_DEFS.find(d => d.id === r.templateId)!;
+        expect(def.types).toContain(r.type);
+        if (floorNo === 1 && r.type === 'normal' && r.dist === 1) expect(def.difficulty).toBe(1);
+      }
+    }
+  });
+
+  it('is deterministic for a seed', () => {
+    const a = generateFloor(Rng.from('ABC123', 'floor1'), FLOORS[0], 0);
+    const b = generateFloor(Rng.from('ABC123', 'floor1'), FLOORS[0], 0);
+    expect(planToText(a)).toBe(planToText(b));
+    expect(a.rooms.map(r => r.templateId)).toEqual(b.rooms.map(r => r.templateId));
+  });
+
+  it('gives different maps for different seeds', () => {
+    const maps = new Set(Array.from({ length: 20 }, (_, i) => planToText(generateFloor(Rng.from('S' + i, 'floor1'), FLOORS[0], 0))));
+    expect(maps.size).toBeGreaterThan(15);
+  });
+
+  it('builds a test floor for any template', () => {
+    const plan = testPlan('boss_pits');
+    expect(plan.rooms.map(r => r.type)).toEqual(['start', 'boss']);
+    expect(() => testPlan('nope')).toThrow();
+  });
+});
