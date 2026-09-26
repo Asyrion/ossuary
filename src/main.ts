@@ -20,7 +20,7 @@ import { initScreens, showScreen } from './ui/screens';
 import { setHeroInfo, updateVision } from './ui/hud';
 import { giveById } from './items/artifacts';
 import { ARTIFACTS } from './items/artifactData';
-import { descend, pause, prepareTitle, resetPlayer, resume, setNextRun, startGame, toggleSound, warp } from './flow';
+import { clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRun, startGame, toggleSound, warp } from './flow';
 import { STEP, startLoop, step } from './loop';
 import { cleanSeed } from './rng';
 import { planToText } from './world/generate';
@@ -73,7 +73,7 @@ function installDevHooks() {
   window.__game = {
     get state() { return G.state; }, player, get enemies() { return G.enemies; }, get current() { return G.current; },
     get seed() { return G.run.seed; }, get floor() { return G.run.floor; }, get run() { return G.run; }, get bolts() { return G.bolts; },
-    rooms: () => G.rooms, startGame, hero, camera, keys, arrowOrder, warp, descend,
+    rooms: () => G.rooms, startGame, hero, camera, keys, arrowOrder, warp, descend, clearRoom,
     /** The current floor as text: S start, B boss, T treasure, # normal, @ you. */
     map() { return G.run.plan ? planToText(G.run.plan, G.current.plan.id) : ''; },
     /** Run the simulation for `sec` seconds in fixed steps; optionally render once afterwards. */

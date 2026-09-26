@@ -448,14 +448,16 @@ Rooms are built from cells of 13 × 7 tiles. A standard room is one cell, with a
 | Standard | 1 × 1 | 13 × 7 | Up to 4 |
 | Narrow corridor, east–west | 1 × 1 | 13 × 3 | East and west only |
 | Narrow corridor, north–south | 1 × 1 | 5 × 7 | North and south only |
-| Long hall | 2 × 1 | 27 × 7 | Up to 6 |
-| Tall hall | 1 × 2 | 13 × 15 | Up to 6 |
-| Great hall | 2 × 2 | 27 × 15 | Up to 8 |
-| L-shaped hall | 3 cells of a 2 × 2, four rotations | 27 × 15 minus a corner | Up to 8 |
+| Long hall | 2 × 1 | 28 × 7 | Up to 6 |
+| Tall hall | 1 × 2 | 13 × 16 | Up to 6 |
+| Great hall | 2 × 2 | 28 × 16 | Up to 8 |
+| L-shaped hall | 3 cells of a 2 × 2, four rotations | 28 × 16 minus a corner | Up to 8 |
+
+Between two cells of the same room, the two wall tiles become floor, which is why two cells make 28 tiles, not 26. Doors sit in the middle of every outer cell edge, including the two edges facing an L's missing corner.
 
 - **Camera:** fixed and fitted in one-cell rooms, as now. In larger rooms it follows the mage at the same zoom and stops at the walls; the minimap shows the whole shape.
-- **Which rooms can be large:** normal rooms, ordeals and the boss room (a great hall suits a boss). Start, treasure, bone altar, merchant, secret and vault rooms stay one cell.
-- **Mix:** most rooms stay standard; larger shapes and corridors make up about a third of a floor (placeholder).
+- **Which rooms can be large:** normal rooms and the boss room, which sometimes widens into a great hall. Ordeals stay one cell until they get large templates; start, treasure, bone altar, merchant, secret and vault rooms stay one cell.
+- **Mix:** most rooms stay standard; larger shapes and corridors make up a quarter to a third of a floor, a little more on deeper floors (weights per floor in `data/floors.json`).
 
 **Room variants (M1).** Normal rooms can roll a variant that makes them clearly easier or harder than the floor's baseline, so a floor has peaks and breathers.
 

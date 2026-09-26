@@ -21,7 +21,11 @@ async function shoot(page: Page, url: string, tag: 'port' | 'proto') {
   for (const [name, template, gx, gy] of ROOMS) {
     await page.evaluate(([port, template, gx, gy]) => {
       const w = window as unknown as Hooks; w.__manual = true;
-      if (port) { w.__game.startGame({ testTemplate: template }); w.__game.warp(template === 'start' ? 0 : 1); }
+      if (port) {
+        const g = w.__game as Hooks['__game'] & { current: { cx: number; cz: number }; player: { x: number; z: number } };
+        g.startGame({ testTemplate: template }); g.warp(template === 'start' ? 0 : 1);
+        g.player.x = g.current.cx; g.player.z = g.current.cz + 2.9; // where the prototype's warp puts the hero
+      }
       else { w.__game.startGame(); w.__game.warp(gx as number, gy as number); }
       w.__game.sim(3.2, true);
     }, [tag === 'port', template, gx, gy] as const);

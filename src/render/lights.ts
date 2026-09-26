@@ -1,17 +1,20 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
-import type { FloorLook } from '../types';
+import type { FloorLook, Torch } from '../types';
 import { scene } from './renderer';
 
-// Soft fill + cold moon + two torch lights that follow the current room + the hero's lantern
+// Soft fill + cold moon + a pool of four torch lights on the torches nearest the mage + the hero's lantern.
+// The number of lights never changes, so shaders are never rebuilt when rooms change.
 const L = CFG.lights;
 const hemi = new THREE.HemisphereLight(0x8a7ea0, 0x1d150f, L.hemi); scene.add(hemi);
 const moon = new THREE.DirectionalLight(0xaab6d8, L.moon);
 moon.position.set(-4, 10, 7); scene.add(moon);
 
-export const torchLights = [0, 1].map(() => {
-  const l = new THREE.PointLight(0xff9a3c, L.torch, L.torchDistance, L.torchDecay); scene.add(l); return l;
+export const torchLights = [0, 1, 2, 3].map(() => {
+  const l = new THREE.PointLight(0xff9a3c, 0, L.torchDistance, L.torchDecay); scene.add(l); return l;
 });
+/** Which torch each light sits on, and how far it has faded in. */
+const slots = torchLights.map(light => ({ light, torch: null as Torch | null, fade: 0 }));
 export const lantern = new THREE.PointLight(0xffc27a, L.lantern, L.lanternDistance, L.lanternDecay);
 scene.add(lantern);
 
@@ -22,4 +25,28 @@ export function applyFloorLook(look: FloorLook) {
   hemi.color.set(look.light.sky); hemi.groundColor.set(look.light.ground); moon.color.set(look.light.moon);
   for (const l of torchLights) l.color.set(look.torch.light);
   lightState.torchMul = look.torch.intensity;
+}
+
+const nearest = (torches: Torch[], x: number, z: number, n: number, bias: (t: Torch) => number = () => 0) =>
+  torches.slice().sort((a, b) => Math.hypot(a.x - x, a.z - z) + bias(a) - (Math.hypot(b.x - x, b.z - z) + bias(b))).slice(0, n);
+
+/** Put the lights on a room's torches at once (entering a room). */
+export function resetTorchLights(torches: Torch[], x: number, z: number) {
+  const pick = nearest(torches, x, z, slots.length);
+  slots.forEach((s, i) => { s.torch = pick[i] ?? null; s.fade = s.torch ? 1 : 0; if (s.torch) s.light.position.set(s.torch.x, 1.3, s.torch.z); });
+}
+
+/** Each step: lights follow the four torches nearest the mage (with a little stickiness so they don't flicker
+    between two torches), fading out before they move. `flicker` is the shared torch flicker. */
+export function updateTorchLights(torches: Torch[], x: number, z: number, dt: number, flicker: number) {
+  const want = nearest(torches, x, z, slots.length, t => slots.some(s => s.torch === t) ? -1.5 : 0);
+  for (const s of slots) {
+    if (s.torch && !want.includes(s.torch)) s.fade = Math.max(0, s.fade - dt * 6); // leaving: fade out first
+    if (!s.torch || (s.fade === 0 && !want.includes(s.torch))) {
+      const free = want.find(t => !slots.some(o => o.torch === t));
+      s.torch = free ?? null;
+      if (s.torch) s.light.position.set(s.torch.x, 1.3, s.torch.z);
+    } else if (want.includes(s.torch)) s.fade = Math.min(1, s.fade + dt * 6);
+    s.light.intensity = s.torch ? L.torch * lightState.torchMul * flicker * s.fade : 0;
+  }
 }

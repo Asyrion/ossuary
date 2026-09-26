@@ -24,7 +24,11 @@ export interface FloorLook {
   light: { sky: string; ground: string; moon: string };
 }
 
-export interface Door { side: Side; nb: Room; bars: THREE.Group; barH: number; open: boolean; style: DoorStyle; box: Box }
+/** A doorway: (x, z) is its middle on this room's inside edge; `link` is the matching door in `nb`. */
+export interface Door {
+  side: Side; nb: Room; link?: Door; x: number; z: number;
+  bars: THREE.Group; barH: number; open: boolean; style: DoorStyle; box: Box;
+}
 export interface Torch { flame: THREE.Mesh; glow: THREE.Sprite; x: number; z: number }
 /** A rock collider; Mason's Chisel breaks breakable ones. Pedestals are unbreakable "rocks". */
 export interface RockBox extends Box { hp: number; breakable: boolean; mesh?: THREE.Object3D; tile?: { c: number; r: number } }
@@ -38,9 +42,9 @@ export interface ArtifactSpot {
 
 export interface Room {
   plan: PlannedRoom; template: Template; look: FloorLook; type: RoomType; gx: number; gy: number; cx: number; cz: number;
-  /** Interior in world units. */
-  bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
-  group: THREE.Group; doors: Partial<Record<Side, Door>>; walls: Box[]; rocks: RockBox[]; pits: Box[]; torches: Torch[];
+  /** The inside's bounding box in world units; `w` × `h` tiles, of which `mask` marks the inside. */
+  bounds: { minX: number; maxX: number; minZ: number; maxZ: number }; w: number; h: number; mask: boolean[][];
+  group: THREE.Group; doors: Door[]; walls: Box[]; rocks: RockBox[]; pits: Box[]; torches: Torch[];
   /** Enemies to spawn, wave by wave (ordeals have 2 or 3 waves, other fights 1), in world positions. */
   waves: { kind: FoeKind; x: number; z: number }[][];
   /** The wave being fought, and whether the next one is on its way. */ wave: number; wavePending: boolean;
@@ -70,7 +74,8 @@ export interface Particle { m: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicM
 export interface Pickup extends Circle { kind: 'heart'; value: number; g: THREE.Group; m: THREE.Mesh; t: number; drop: number }
 export interface Trapdoor { g: THREE.Group; x: number; z: number; ring: THREE.Mesh; t: number }
 
-export interface Transition { t: number; dur: number; nb: Room; fx: number; fz: number; tx: number; tz: number; cfx: number; cfz: number }
+/** The pan between rooms: the mage walks from (fx, fz) to (tx, tz), the camera from (cfx, cfz) to (ctx, ctz). */
+export interface Transition { t: number; dur: number; nb: Room; fx: number; fz: number; tx: number; tz: number; cfx: number; cfz: number; ctx: number; ctz: number }
 
 export interface Player extends Circle {
   dead: boolean; vx: number; vz: number; hp: number; maxHp: number; invuln: number; fireCd: number;

@@ -17,7 +17,6 @@ export const TILT = CFG.camTiltDeg * Math.PI / 180;
 export const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 120);
 const CAM_DIR = new THREE.Vector3(0, Math.sin(TILT), Math.cos(TILT));
 export const camTarget = new THREE.Vector3();
-export const CAM_OFFSET_Z = -0.66;
 
 export function resize() {
   const w = window.innerWidth, h = window.innerHeight;
@@ -28,6 +27,17 @@ export function resize() {
   camera.top = viewH / 2; camera.bottom = -viewH / 2;
   camera.updateProjectionMatrix();
   document.body.classList.toggle('portrait', h > w);
+}
+
+/** Where the camera should look in a room with the mage at (px, pz): the room's middle while the room fits
+    the view, otherwise following the mage but never showing past the walls. The tall north wall counts
+    as floor reaching H_TALL further north, since the camera looks down at 45°. */
+export function cameraTargetFor(room: { bounds: { minX: number; maxX: number; minZ: number; maxZ: number } }, px: number, pz: number) {
+  const halfW = camera.right, halfD = camera.top / Math.sin(TILT);
+  const x0 = room.bounds.minX - 1, x1 = room.bounds.maxX + 1;              // walls are 1 thick
+  const z0 = room.bounds.minZ - 1 - 1.32, z1 = room.bounds.maxZ + 1;       // tall north wall, low south wall
+  const fit = (lo: number, hi: number, half: number, p: number) => hi - lo <= half * 2 ? (lo + hi) / 2 : Math.min(hi - half, Math.max(lo + half, p));
+  return { x: fit(x0, x1, halfW, px), z: fit(z0, z1, halfD, pz) };
 }
 
 export function placeCamera() {

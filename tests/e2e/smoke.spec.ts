@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 /* Minimal view of window.__game for the tests. */
 interface Foe { x: number; z: number; spawn: number; dead?: boolean; isBoss?: boolean }
-interface RoomView { type: string; cleared: boolean; locked: boolean; cx: number; cz: number; plan: { id: number }; doors: Record<string, { open: boolean }> }
+interface RoomView { type: string; cleared: boolean; locked: boolean; cx: number; cz: number; plan: { id: number; shape: string }; doors: { open: boolean }[] }
 interface GameHooks {
   state: string; seed: string; floor: number; player: { x: number; z: number; hp: number; maxHp: number };
   enemies: Foe[]; current: RoomView; rooms(): RoomView[]; map(): string;
@@ -157,5 +157,36 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
   expect(floor2).toMatchObject({ state: 'play', floor: 1, current: 'start' });
   expect(floor2.rooms).toBeGreaterThanOrEqual(10);
   expect(floor2.rooms).toBeLessThanOrEqual(14);
+  expect(errors).toEqual([]);
+});
+
+test('every door of a seeded floor leads to its neighbour, onto open floor', async ({ page }) => {
+  const errors = await start(page, '?seed=DOORS1&floor=2');
+  const result = await page.evaluate(() => {
+    type D = { side: 'n' | 's' | 'e' | 'w'; x: number; z: number; nb: unknown; open: boolean };
+    type R = Omit<RoomView, 'doors'> & { doors: D[]; bounds: { minX: number; minZ: number }; mask: boolean[][] };
+    const g = (window as unknown as W).__game as unknown as {
+      rooms(): R[]; current: R; warp(id: number): void; clearRoom(): void; sim(sec: number): void; keys: Set<string>;
+      player: { x: number; z: number; vx: number; vz: number; invuln: number };
+    };
+    const KEY: Record<D['side'], string> = { n: 'KeyW', s: 'KeyS', e: 'KeyD', w: 'KeyA' };
+    const DIR: Record<D['side'], number[]> = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] };
+    const fails: string[] = []; let walked = 0; const shapes = new Set<string>();
+    for (const room of g.rooms()) for (const d of room.doors) {
+      g.warp(room.plan.id); g.clearRoom(); g.player.invuln = 99;
+      const [dx, dz] = DIR[d.side];
+      g.player.x = d.x - dx * 1.2; g.player.z = d.z - dz * 1.2; g.player.vx = g.player.vz = 0;
+      g.keys.add(KEY[d.side]);
+      for (let t = 0; g.current === room && t < 2; t += .05) g.sim(.05);
+      g.keys.delete(KEY[d.side]); g.sim(.3);
+      walked++; shapes.add(room.plan.shape);
+      const nb = g.current, c = Math.floor(g.player.x - nb.bounds.minX), r = Math.floor(g.player.z - nb.bounds.minZ);
+      if (nb !== d.nb || nb.mask[r]?.[c] !== true) fails.push(`room ${room.plan.id} (${room.plan.shape}) door ${d.side}`);
+    }
+    return { walked, shapes: shapes.size, fails };
+  });
+  console.log(`walked through ${result.walked} doors in rooms of ${result.shapes} shapes`);
+  expect(result.walked).toBeGreaterThan(20);
+  expect(result.fails).toEqual([]);
   expect(errors).toEqual([]);
 });

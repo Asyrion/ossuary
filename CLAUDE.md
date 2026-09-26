@@ -20,10 +20,14 @@ generated three-floor runs. See `README.md` for scripts and deployment.
 - `src/actors/clipRoles.ts` and `src/actors/baseDetect.ts` hold the clip-name matching, hips-offset and
   round-base tests with no three.js dependency; the game and `tools/prepare-asset.ts` both use them.
 - Runs are seeded (`src/rng.ts`: named streams per system). `src/world/generate.ts` builds each floor
-  (pure, unit-tested); `src/world/templates.ts` parses and validates room templates. Content:
+  (pure, unit-tested); `src/world/shapes.ts` defines room shapes (cells, tile mask, door slots);
+  `src/world/templates.ts` parses and validates room templates. `src/world/rooms.ts` traces walls along
+  any outline and cuts doors into them; the camera follows the mage in rooms larger than the view
+  (`cameraTargetFor`); four torch lights move to the torches nearest the mage. Content:
   `data/floors.json` (room counts, difficulty weights, enemy health, boss tuning and look per floor),
   `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `R W H` enemies, `B` boss;
-  ordeal templates list their enemies per wave in `waves`; `special.json` holds ordeals and altars) and
+  `x` outside an L's missing corner; ordeal templates list their enemies per wave in `waves`;
+  `special.json` holds ordeals and altars, `shapes.json` the larger and narrow rooms) and
   `data/artifacts.json` (foci, passive and cursed artifacts: stats, effects, pools, colours, icons).
 - Artifacts: `src/items/artifactData.ts` (pure: data, `computeStats` combining, picking) and
   `src/items/artifacts.ts` (pedestals, taking and focus swap, per-floor budget). The mage's stats are
@@ -33,7 +37,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `npm run test:e2e` (Playwright smoke tests), `npm test` runs both.
 - URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`
   plays one template (for reviewing rooms), `?give=bone_lens,twin_staff` starts with artifacts.
-  `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts.
+  `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.clearRoom()`
+  ends the current fight.
 - `public/assets/hero_default.glb`: the hero (17,655 triangles, 65-bone Mixamo-style rig, 1,024 px JPEG
   textures). Clips: `standing_relax`, `run`, `cast_a_spell`, `hit_to_body_01`, `fall`.
 - `prototype/`: the 0.3 single file (`-source` to read, `-playable` to run). Still the reference for look

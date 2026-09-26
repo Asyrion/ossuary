@@ -7,7 +7,7 @@ import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { blob, disposeTree, glow } from '../render/materials';
 import { blockers, collide } from '../world/collision';
-import { freeSpotNear } from '../world/rooms';
+import { freeSpotNear, randomSpot } from '../world/rooms';
 import type { BossConfig } from '../world/generate';
 import { spawnShot } from '../combat/projectiles';
 import { hurtPlayer } from '../combat/damage';
@@ -95,8 +95,7 @@ export function updateEnemies(dt: number) {
       e.body.rotation.z = Math.sin(e.t * 6) * .08; e.body.position.y = Math.abs(Math.sin(e.t * 6)) * .04;
     } else if (e.type === 'wisp') {
       const C = CFG.enemy.wisp; const tg = e.target!;
-      const b = cur.bounds;
-      if (Math.hypot(tg.x - e.x, tg.z - e.z) < .3 || Math.random() < dt * .3) e.target = { x: rand(b.minX + 1, b.maxX - 1), z: rand(b.minZ + 1, b.maxZ - 1) };
+      if (Math.hypot(tg.x - e.x, tg.z - e.z) < .3 || Math.random() < dt * .3) e.target = randomSpot(cur);
       const tx = e.target!.x - e.x, tz = e.target!.z - e.z, tl = Math.hypot(tx, tz) || 1;
       e.vx = lerp(e.vx, tx / tl * C.speed, dt * 2); e.vz = lerp(e.vz, tz / tl * C.speed, dt * 2);
       e.body.position.y = .8 + Math.sin(e.t * 2.4) * .1;

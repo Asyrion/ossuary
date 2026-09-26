@@ -73,41 +73,46 @@ export function pitTexture() {
 const floorCache = new Map<string, THREE.CanvasTexture>();
 /** Floor textures are cached per room seed; call between floors to free them. */
 export function clearFloorTextures() { for (const t of floorCache.values()) t.dispose(); floorCache.clear(); }
-/** Room floor for a floor's look; boss rooms lean red, treasure rooms warmer. */
-export function floorTexture(seed: number, kind: RoomType, look: FloorLook) {
-  const key = seed + kind + look.name; const hit = floorCache.get(key); if (hit) return hit;
-  const P = 72, cw = 13 * P, ch = 7 * P;
+/** Room floor for a floor's look, drawn over the room's inside `mask` (rows of tiles); boss rooms lean red,
+    treasure rooms warmer. Large rooms use fewer pixels per tile to keep textures small. */
+export function floorTexture(seed: number, kind: RoomType, look: FloorLook, mask: boolean[][]) {
+  const W = mask[0].length, H = mask.length;
+  const key = seed + kind + look.name + W + 'x' + H; const hit = floorCache.get(key); if (hit) return hit;
+  const P = W * H > 13 * 7 ? 56 : 72, S = P / 72, cw = W * P, ch = H * P;
   const [c, g] = makeCanvas(cw, ch); const R = mulberry(seed);
+  const inside = (col: number, r: number) => !!mask[r]?.[col];
+  const area = mask.flat().filter(Boolean).length / (13 * 7), n = (count: number) => Math.round(count * area);
   const [b0, b1, b2] = look.floor.base;
   const base = kind === 'boss' ? [b0 - 2, b1 - 10, b2 - 6] : kind === 'treasure' ? [b0 + 8, b1 + 6, b2] : [b0, b1, b2];
   g.fillStyle = look.floor.mortar; g.fillRect(0, 0, cw, ch);
-  for (let r = 0; r < 7; r++) for (let col = 0; col < 13; col++) {
-    const x = col * P, y = r * P, v = R() * 18 - 9, ins = 2.5 + R() * 2;
+  for (let r = 0; r < H; r++) for (let col = 0; col < W; col++) {
+    if (!inside(col, r)) continue;
+    const x = col * P, y = r * P, v = R() * 18 - 9, ins = (2.5 + R() * 2) * S;
     g.fillStyle = `rgb(${base[0] + v | 0},${base[1] + v | 0},${base[2] + v * .8 | 0})`;
-    rrect(g, x + ins, y + ins, P - ins * 2, P - ins * 2, 7); g.fill();
+    rrect(g, x + ins, y + ins, P - ins * 2, P - ins * 2, 7 * S); g.fill();
     for (let k = 0; k < 30; k++) { g.fillStyle = `rgba(0,0,0,${R() * .2})`; g.fillRect(x + R() * P, y + R() * P, 1 + R() * 3, 1 + R() * 3); }
     for (let k = 0; k < 8; k++) { g.fillStyle = `rgba(255,236,210,${R() * .07})`; g.fillRect(x + R() * P, y + R() * P, 1 + R() * 2, 1 + R() * 2); }
     if (R() < .22) {
       g.strokeStyle = 'rgba(8,6,4,.6)'; g.lineWidth = 1.3; g.beginPath();
       let px = x + R() * P, py = y + R() * P; g.moveTo(px, py);
-      for (let s = 0; s < 4; s++) { px += R() * 24 - 12; py += R() * 24 - 12; g.lineTo(px, py); }
+      for (let s = 0; s < 4; s++) { px += (R() * 24 - 12) * S; py += (R() * 24 - 12) * S; g.lineTo(px, py); }
       g.stroke();
     }
   }
-  for (let k = 0; k < 7; k++) {
-    const x = R() * cw, y = R() * ch, rad = 40 + R() * 100; const gr = g.createRadialGradient(x, y, 0, x, y, rad);
+  for (let k = 0; k < n(7); k++) {
+    const x = R() * cw, y = R() * ch, rad = (40 + R() * 100) * S; const gr = g.createRadialGradient(x, y, 0, x, y, rad);
     const moss = kind === 'boss' ? '60,14,10' : look.floor.stain;
     gr.addColorStop(0, `rgba(${moss},.3)`); gr.addColorStop(1, `rgba(${moss},0)`); g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
   }
   // bones scattered in the cracks
-  for (let k = 0; k < look.floor.bones; k++) {
-    const x = R() * cw, y = R() * ch, a = R() * Math.PI; g.save(); g.translate(x, y); g.rotate(a);
+  for (let k = 0; k < n(look.floor.bones); k++) {
+    const x = R() * cw, y = R() * ch, a = R() * Math.PI; g.save(); g.translate(x, y); g.rotate(a); g.scale(S, S);
     g.fillStyle = 'rgba(214,202,176,.5)'; rrect(g, -14, -2.5, 28, 5, 2.5); g.fill();
     g.beginPath(); g.arc(-14, -2, 3.5, 0, 7); g.arc(-14, 3, 3.5, 0, 7); g.arc(14, -2, 3.5, 0, 7); g.arc(14, 3, 3.5, 0, 7); g.fill(); g.restore();
   }
   if (look.floor.decor === 'puddles') { // standing water with a faint sheen along the rim
-    for (let k = 0; k < 6; k++) {
-      const x = R() * cw, y = R() * ch, rx = 30 + R() * 70, ry = 14 + R() * 30, a = R() * .4 - .2;
+    for (let k = 0; k < n(6); k++) {
+      const x = R() * cw, y = R() * ch, rx = (30 + R() * 70) * S, ry = (14 + R() * 30) * S, a = R() * .4 - .2;
       g.save(); g.translate(x, y); g.rotate(a);
       g.fillStyle = 'rgba(12,22,26,.55)'; g.beginPath(); g.ellipse(0, 0, rx, ry, 0, 0, 7); g.fill();
       g.strokeStyle = 'rgba(150,200,210,.2)'; g.lineWidth = 2; g.beginPath(); g.ellipse(0, 0, rx - 3, ry - 3, 0, 3.6, 5.6); g.stroke();
@@ -115,39 +120,46 @@ export function floorTexture(seed: number, kind: RoomType, look: FloorLook) {
       g.restore();
     }
   } else if (look.floor.decor === 'ash') { // ash drifts and a few glowing embers
-    for (let k = 0; k < 9; k++) {
-      const x = R() * cw, y = R() * ch, rad = 30 + R() * 70; const gr = g.createRadialGradient(x, y, 0, x, y, rad);
+    for (let k = 0; k < n(9); k++) {
+      const x = R() * cw, y = R() * ch, rad = (30 + R() * 70) * S; const gr = g.createRadialGradient(x, y, 0, x, y, rad);
       gr.addColorStop(0, 'rgba(34,30,28,.55)'); gr.addColorStop(1, 'rgba(34,30,28,0)'); g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
     }
-    for (let k = 0; k < 70; k++) { g.fillStyle = `rgba(255,${90 + R() * 60 | 0},30,${.25 + R() * .5})`; g.fillRect(R() * cw, R() * ch, 1 + R() * 2, 1 + R() * 2); }
+    for (let k = 0; k < n(70); k++) { g.fillStyle = `rgba(255,${90 + R() * 60 | 0},30,${.25 + R() * .5})`; g.fillRect(R() * cw, R() * ch, 1 + R() * 2, 1 + R() * 2); }
   }
-  // darken towards the walls
+  // darken towards the walls: the outer edges, and the inner edges of shapes like the L
   const edge = (x0: number, y0: number, x1: number, y1: number) => {
     const gr = g.createLinearGradient(x0, y0, x1, y1); gr.addColorStop(0, 'rgba(0,0,0,.55)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); return gr;
   };
-  g.fillStyle = edge(0, 0, 0, 70); g.fillRect(0, 0, cw, 70); g.fillStyle = edge(0, ch, 0, ch - 60); g.fillRect(0, ch - 60, cw, 60);
-  g.fillStyle = edge(0, 0, 70, 0); g.fillRect(0, 0, 70, ch); g.fillStyle = edge(cw, 0, cw - 70, 0); g.fillRect(cw - 70, 0, 70, ch);
+  const e1 = 70 * S, e2 = 60 * S;
+  g.fillStyle = edge(0, 0, 0, e1); g.fillRect(0, 0, cw, e1); g.fillStyle = edge(0, ch, 0, ch - e2); g.fillRect(0, ch - e2, cw, e2);
+  g.fillStyle = edge(0, 0, e1, 0); g.fillRect(0, 0, e1, ch); g.fillStyle = edge(cw, 0, cw - e1, 0); g.fillRect(cw - e1, 0, e1, ch);
+  for (let r = 0; r < H; r++) for (let col = 0; col < W; col++) {
+    if (!inside(col, r)) continue;
+    const x = col * P, y = r * P;
+    if (r > 0 && !inside(col, r - 1)) { g.fillStyle = edge(0, y, 0, y + e1); g.fillRect(x, y, P, e1); }
+    if (r < H - 1 && !inside(col, r + 1)) { g.fillStyle = edge(0, y + P, 0, y + P - e2); g.fillRect(x, y + P - e2, P, e2); }
+    if (col > 0 && !inside(col - 1, r)) { g.fillStyle = edge(x, 0, x + e1, 0); g.fillRect(x, y, e1, P); }
+    if (col < W - 1 && !inside(col + 1, r)) { g.fillStyle = edge(x + P, 0, x + P - e1, 0); g.fillRect(x + P - e1, y, e1, P); }
+  }
   if (kind === 'start') drawChalk(g, P);
+  g.save(); g.translate(cw / 2, ch / 2); g.scale(S, S);
   if (kind === 'ordeal') { // an engraved square with three notches, one per possible wave
-    g.save(); g.translate(cw / 2, ch / 2); g.strokeStyle = 'rgba(10,8,8,.55)'; g.lineWidth = 5;
+    g.strokeStyle = 'rgba(10,8,8,.55)'; g.lineWidth = 5;
     g.strokeRect(-130, -110, 260, 220); g.strokeStyle = 'rgba(200,190,170,.12)'; g.lineWidth = 2; g.strokeRect(-124, -104, 248, 208);
     for (const x of [-40, 0, 40]) { g.fillStyle = 'rgba(10,8,8,.5)'; g.fillRect(x - 6, -128, 12, 22); }
-    g.restore();
   }
   if (kind === 'altar') { // a bone-chalk circle stained dark at its heart
-    g.save(); g.translate(cw / 2, ch / 2);
     const gr = g.createRadialGradient(0, 0, 0, 0, 0, 110); gr.addColorStop(0, 'rgba(60,8,6,.5)'); gr.addColorStop(1, 'rgba(60,8,6,0)');
     g.fillStyle = gr; g.fillRect(-110, -110, 220, 220);
     g.strokeStyle = 'rgba(225,212,188,.3)'; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, 140, 0, 7); g.stroke();
     for (let i = 0; i < 6; i++) { g.rotate(Math.PI / 3); g.beginPath(); g.moveTo(0, -140); g.lineTo(0, -160); g.stroke(); }
-    g.restore();
   }
   if (kind === 'boss') {
-    g.save(); g.translate(cw / 2, ch / 2); g.strokeStyle = 'rgba(140,30,20,.35)'; g.lineWidth = 4;
+    g.strokeStyle = 'rgba(140,30,20,.35)'; g.lineWidth = 4;
     g.beginPath(); g.arc(0, 0, 150, 0, 7); g.stroke(); g.beginPath(); g.arc(0, 0, 120, 0, 7); g.stroke();
     for (let i = 0; i < 8; i++) { g.rotate(Math.PI / 4); g.beginPath(); g.moveTo(0, -120); g.lineTo(0, -150); g.stroke(); }
-    g.restore();
   }
+  g.restore();
   const t = canvasTex(c); floorCache.set(key, t); return t;
 }
 

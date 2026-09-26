@@ -68,15 +68,33 @@ export function updateVision() {
 }
 
 const mm = $<HTMLCanvasElement>('minimap'), mg = mm.getContext('2d')!;
+/** The map of known rooms around the current one. Rooms are drawn cell by cell, joined where a room spans
+    several cells; corridors are drawn narrow. */
 export function renderMinimap() {
   const W = mm.width, H = mm.height, cw = 38, ch = 24, gap = 6, cur = G.current; mg.clearRect(0, 0, W, H);
-  for (const r of G.rooms) {
-    if (!r.visited && !r.known) continue;
-    const x = W / 2 + (r.gx - cur.gx) * (cw + gap) - cw / 2, y = H / 2 + (r.gy - cur.gy) * (ch + gap) - ch / 2;
-    if (x < -cw || x > W || y < -ch || y > H) continue;
-    mg.fillStyle = 'rgba(0,0,0,.55)'; mg.fillRect(x - 3, y - 3, cw + 6, ch + 6);
-    mg.fillStyle = r === cur ? '#efe2c3' : r.visited ? '#a2937a' : '#4d443a'; mg.fillRect(x, y, cw, ch);
-    const cx = x + cw / 2, cy = y + ch / 2;
+  const mid = (r: typeof cur) => ({ gx: r.plan.cells.reduce((a, c) => a + c.gx, 0) / r.plan.cells.length, gy: r.plan.cells.reduce((a, c) => a + c.gy, 0) / r.plan.cells.length });
+  const centre = mid(cur);
+  const px = (gx: number) => W / 2 + (gx - centre.gx) * (cw + gap), py = (gy: number) => H / 2 + (gy - centre.gy) * (ch + gap);
+  const shown = G.rooms.filter(r => r.visited || r.known);
+  // rectangles for a room: its cells (corridors narrow) and the gaps between neighbouring cells
+  const rects = (r: typeof cur) => {
+    const out: [number, number, number, number][] = [];
+    const nx = r.plan.shape === 'corridor_ns' ? cw * .36 : cw, ny = r.plan.shape === 'corridor_ew' ? ch * .42 : ch;
+    const has = (gx: number, gy: number) => r.plan.cells.some(c => c.gx === gx && c.gy === gy);
+    for (const c of r.plan.cells) {
+      out.push([px(c.gx) - nx / 2, py(c.gy) - ny / 2, nx, ny]);
+      if (has(c.gx + 1, c.gy)) out.push([px(c.gx) + cw / 2 - 1, py(c.gy) - ch / 2, gap + 2, ch]);
+      if (has(c.gx, c.gy + 1)) out.push([px(c.gx) - cw / 2, py(c.gy) + ch / 2 - 1, cw, gap + 2]);
+      if (has(c.gx + 1, c.gy) && has(c.gx, c.gy + 1) && has(c.gx + 1, c.gy + 1)) out.push([px(c.gx) + cw / 2 - 1, py(c.gy) + ch / 2 - 1, gap + 2, gap + 2]);
+    }
+    return out;
+  };
+  mg.fillStyle = 'rgba(0,0,0,.55)';
+  for (const r of shown) for (const [x, y, w, h] of rects(r)) mg.fillRect(x - 3, y - 3, w + 6, h + 6);
+  for (const r of shown) {
+    mg.fillStyle = r === cur ? '#efe2c3' : r.visited ? '#a2937a' : '#4d443a';
+    for (const [x, y, w, h] of rects(r)) mg.fillRect(x, y, w, h);
+    const m = mid(r), cx = px(m.gx), cy = py(m.gy);
     if (r.type === 'boss') {
       mg.fillStyle = '#b3261a'; mg.beginPath(); mg.arc(cx, cy - 1, 7, 0, 7); mg.fill();
       mg.fillStyle = '#1a0806'; mg.fillRect(cx - 4, cy - 3, 3, 3); mg.fillRect(cx + 1, cy - 3, 3, 3);

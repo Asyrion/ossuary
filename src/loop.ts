@@ -1,8 +1,7 @@
 /* Fixed-step game loop: the simulation always advances in 1/60 s steps; a frame never feeds it more than
    1/30 s, so a long hitch slows the game down instead of teleporting it. */
 import { G, player, updateTimers } from './state';
-import { lightState, torchLights } from './render/lights';
-import { CFG } from './config';
+import { updateTorchLights } from './render/lights';
 import { updateRoomFx } from './world/rooms';
 import { heroVisual } from './actors/hero';
 import { updatePlayer } from './actors/player';
@@ -14,7 +13,7 @@ import { updateArtifacts } from './items/artifacts';
 import { pollGamepad, type InputActions } from './input';
 import { updateHud, updateVision } from './ui/hud';
 import { ease, lerp } from './util';
-import { CAM_OFFSET_Z, camTarget, draw } from './render/renderer';
+import { camTarget, cameraTargetFor, draw } from './render/renderer';
 import { enterRoom } from './flow';
 
 export const STEP = 1 / 60;
@@ -35,11 +34,14 @@ export function step(dt: number) {
     if (tr) {
       tr.t += dt; const k = ease(Math.min(1, tr.t / tr.dur));
       player.x = lerp(tr.fx, tr.tx, k); player.z = lerp(tr.fz, tr.tz, k);
-      camTarget.x = lerp(tr.cfx, tr.nb.cx, k); camTarget.z = lerp(tr.cfz, tr.nb.cz + CAM_OFFSET_Z, k);
+      camTarget.x = lerp(tr.cfx, tr.ctx, k); camTarget.z = lerp(tr.cfz, tr.ctz, k);
       if (tr.t >= tr.dur) { G.trans = null; player.vx *= .5; player.vz *= .5; enterRoom(tr.nb); }
     } else if (G.state === 'play') {
       G.stats.time += dt;
       updatePlayer(dt); updateEnemies(dt); updateBolts(dt); updateShots(dt); updatePickups(dt);
+      // in rooms larger than the view the camera follows the mage, stopping at the walls
+      const t = cameraTargetFor(G.current, player.x, player.z), k = 1 - Math.exp(-8 * dt);
+      camTarget.x += (t.x - camTarget.x) * k; camTarget.z += (t.z - camTarget.z) * k;
     } else updateEnemies(0);
   }
   updateParticles(dt); updateWorldFx(dt, now); heroVisual(dt, now);
@@ -48,7 +50,7 @@ export function step(dt: number) {
 function updateWorldFx(dt: number, now: number) {
   updateRoomFx(dt, now); updateArtifacts(now); updateTrapdoor(dt);
   const tf = .92 + Math.sin(now * 13) * .05 + Math.sin(now * 23) * .04;
-  for (const l of torchLights) l.intensity = CFG.lights.torch * lightState.torchMul * tf;
+  updateTorchLights(G.current.torches, player.x, player.z, dt, tf);
   G.shake = Math.max(0, G.shake - dt * 1.4);
   updateHud(dt);
 }

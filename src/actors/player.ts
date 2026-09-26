@@ -1,6 +1,7 @@
 import { G, player } from '../state';
 import { blockers, collide } from '../world/collision';
-import { DH, HD, HW } from '../world/dims';
+import { DH } from '../world/dims';
+import { SIDE_DIR } from '../world/shapes';
 import { moveInput, shootDir } from '../input';
 import { spawnBolt } from '../combat/projectiles';
 import { checkArtifactPickup } from '../items/artifacts';
@@ -11,11 +12,14 @@ export function updatePlayer(dt: number) {
   const cur = G.current;
   const mv = moveInput();
   // gentle pull toward an open doorway when pushing into it, so corners don't snag
-  const lx = player.x - cur.cx, lz = player.z - cur.cz, d = cur.doors;
-  if (mv.z < -.3 && lz < -HD + 1 && d.n?.open && Math.abs(lx) < DH + .45) mv.x += clamp(-lx * 2.2, -1, 1) * .8;
-  if (mv.z > .3 && lz > HD - 1 && d.s?.open && Math.abs(lx) < DH + .45) mv.x += clamp(-lx * 2.2, -1, 1) * .8;
-  if (mv.x > .3 && lx > HW - 1 && d.e?.open && Math.abs(lz) < DH + .45) mv.z += clamp(-lz * 2.2, -1, 1) * .8;
-  if (mv.x < -.3 && lx < -HW + 1 && d.w?.open && Math.abs(lz) < DH + .45) mv.z += clamp(-lz * 2.2, -1, 1) * .8;
+  for (const d of cur.doors) {
+    if (!d.open) continue;
+    const [dx, dz] = SIDE_DIR[d.side], ns = dx === 0;
+    const out = (player.x - d.x) * dx + (player.z - d.z) * dz, along = ns ? player.x - d.x : player.z - d.z;
+    if (mv.x * dx + mv.z * dz > .3 && out > -1 && Math.abs(along) < DH + .45) {
+      if (ns) mv.x += clamp(-along * 2.2, -1, 1) * .8; else mv.z += clamp(-along * 2.2, -1, 1) * .8;
+    }
+  }
   const k = 1 - Math.exp(-14 * dt);
   const st = player.stats;
   player.vx = lerp(player.vx, mv.x * st.speed, k); player.vz = lerp(player.vz, mv.z * st.speed, k);

@@ -6,13 +6,14 @@ import { G, after, clearTimers, player } from './state';
 import { STR } from './strings';
 import { Rng, newSeed } from './rng';
 import { Sfx } from './audio/sfx';
-import { CAM_OFFSET_Z, camTarget, scene } from './render/renderer';
-import { applyFloorLook, torchLights } from './render/lights';
+import { camTarget, cameraTargetFor, scene } from './render/renderer';
+import { applyFloorLook, resetTorchLights } from './render/lights';
 import { disposeTree } from './render/materials';
 import { clearFloorTextures } from './render/textures';
-import { buildRoom, buildWallsAndDoors, doorsOf, freeSpotNear, roomAt, setDoors } from './world/rooms';
+import { buildRoom, buildWallsAndDoors, doorsOf, entryPoint, freeSpotNear, linkDoors, roomAt, setDoors } from './world/rooms';
 import { FLOORS, generateFloor, testPlan } from './world/generate';
-import { HD, HW } from './world/dims';
+import { DH } from './world/dims';
+import { SIDE_DIR } from './world/shapes';
 import { clearEnemies, makeEnemy } from './actors/enemies';
 import { heroReset } from './actors/hero';
 import { clearProjectiles } from './combat/projectiles';
@@ -53,9 +54,10 @@ export function buildFloor(index: number) {
   applyFloorLook(FLOORS[index].look);
   for (const p of plan.rooms) buildRoom(p, index);
   for (const r of G.rooms) buildWallsAndDoors(r);
+  linkDoors(G.rooms);
   const start = G.rooms[plan.startId];
   G.current = start; player.x = start.cx; player.z = start.cz + .6; player.vx = player.vz = 0;
-  camTarget.set(start.cx, 0, start.cz + CAM_OFFSET_Z);
+  aimCamera(start);
   G.trans = null; hideBossBar();
   enterRoom(start);
   if (G.state === 'play') banner(...STR.floors[Math.min(index, STR.floors.length - 1)]);
@@ -116,7 +118,7 @@ export function enterRoom(room: Room) {
   const firstVisit = !room.visited;
   G.current = room; room.visited = true; room.known = true; showRooms(room);
   for (const d of doorsOf(room)) d.nb.known = true;
-  room.torches.forEach((t, i) => torchLights[i].position.set(t.x, 1.3, t.z));
+  resetTorchLights(room.torches, player.x, player.z);
   if (!room.cleared) {
     room.wave = 0; room.wavePending = false; spawnWave(room);
     room.locked = true; setDoors(room, false);
@@ -194,23 +196,43 @@ export function onBossDead() {
   banner(...(G.run.floor >= FLOORS.length - 1 ? STR.banner.lastBossDead : STR.banner.bossDead));
 }
 
-/** Start the 0.42 s pan to the next room when the hero walks through a doorway. */
+/** Point the camera straight at where it belongs in `room` (no pan). */
+function aimCamera(room: Room) { const t = cameraTargetFor(room, player.x, player.z); camTarget.set(t.x, 0, t.z); }
+
+/** Start the 0.42 s pan to the next room when the hero walks out through a doorway. */
 export function tryTransition() {
   const cur = G.current;
-  const lx = player.x - cur.cx, lz = player.z - cur.cz; let side: 'n' | 's' | 'e' | 'w' | null = null;
-  if (lz < -HD - .35) side = 'n'; else if (lz > HD + .35) side = 's'; else if (lx > HW + .35) side = 'e'; else if (lx < -HW - .35) side = 'w';
-  const door = side && cur.doors[side]; if (!side || !door) return false;
-  const nb = door.nb; const entry = { n: [0, HD - .6], s: [0, -HD + .6], e: [-HW + .6, 0], w: [HW - .6, 0] }[side];
-  showRooms(cur, nb);
-  G.trans = { t: 0, dur: .42, nb, fx: player.x, fz: player.z, tx: nb.cx + entry[0], tz: nb.cz + entry[1], cfx: camTarget.x, cfz: camTarget.z };
-  clearProjectiles();
-  return true;
+  for (const door of cur.doors) {
+    const [dx, dz] = SIDE_DIR[door.side], ns = dx === 0;
+    const out = (player.x - door.x) * dx + (player.z - door.z) * dz;   // how far past the inside edge
+    const along = ns ? player.x - door.x : player.z - door.z;
+    if (out <= .35 || Math.abs(along) > DH + .3 || !door.link) continue;
+    const nb = door.nb, to = entryPoint(door.link), cam = cameraTargetFor(nb, to.x, to.z);
+    showRooms(cur, nb);
+    G.trans = { t: 0, dur: .42, nb, fx: player.x, fz: player.z, tx: to.x, tz: to.z, cfx: camTarget.x, cfz: camTarget.z, ctx: cam.x, ctz: cam.z };
+    clearProjectiles();
+    return true;
+  }
+  return false;
 }
 
-/** Dev hook: jump straight into a room, by grid cell or by room id. */
+/** Dev hook: finish the current room's fight at once (every wave), as if the last enemy had fallen. */
+export function clearRoom() {
+  const hadBoss = G.enemies.some(e => e.isBoss);
+  clearEnemies();
+  const room = G.current;
+  if (room.locked) { room.wave = Math.max(0, room.waves.length - 1); room.wavePending = false; onWaveCleared(room); }
+  if (hadBoss) onBossDead();
+}
+
+/** Dev hook: jump straight into a room, by grid cell or by room id, as if walking in through its first
+    door (the south one if it has one). */
 export function warp(gx: number, gy?: number) {
   const r = gy === undefined ? G.rooms.find(x => x.plan.id === gx) : roomAt(gx, gy);
   if (!r) throw new Error(`No room at ${gy === undefined ? 'id ' + gx : gx + ',' + gy}`);
   G.trans = null; clearProjectiles();
-  player.x = r.cx; player.z = r.cz + HD - .6; camTarget.set(r.cx, 0, r.cz + CAM_OFFSET_Z); enterRoom(r);
+  const door = r.doors.find(d => d.side === 's') ?? r.doors[0];
+  const p = door ? entryPoint(door) : freeSpotNear(r, r.cx, r.cz);
+  player.x = p.x; player.z = p.z; player.vx = player.vz = 0;
+  aimCamera(r); enterRoom(r);
 }

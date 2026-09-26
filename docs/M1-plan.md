@@ -44,12 +44,12 @@ build. Each step ends playable, with unit and browser tests passing, and is push
 
 ## Step 4: Room shapes
 
-- [ ] Tile masks and outline walls for corridors, long, tall, great and L-shaped halls; doors on cell edges
-- [ ] Camera follows the mage in larger rooms and stops at the walls
-- [ ] Pool of four torch lights assigned to the nearest torches
-- [ ] Generator places shapes; minimap draws them
-- [ ] Templates for every shape (2+ each), random mirroring
-- [ ] GDD: correct inside sizes to 28 × 7, 13 × 16, 28 × 16
+- [x] Tile masks and outline walls for corridors, long, tall, great and L-shaped halls; doors on cell edges
+- [x] Camera follows the mage in larger rooms and stops at the walls
+- [x] Pool of four torch lights assigned to the nearest torches
+- [x] Generator places shapes; minimap draws them; the boss sometimes gets a great hall
+- [x] Templates for every shape (2+ each), random mirroring; 41 templates in all
+- [x] GDD: correct inside sizes to 28 × 7, 13 × 16, 28 × 16
 
 ## Step 5: Room variants and difficulty
 
