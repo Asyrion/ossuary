@@ -3,7 +3,7 @@ import { defineConfig } from '@playwright/test';
 const PORT = 5174;
 
 export default defineConfig({
-  testDir: 'tests',
+  testDir: 'tests/e2e',
   timeout: 90_000,
   reporter: process.env.CI ? 'github' : 'list',
   use: {

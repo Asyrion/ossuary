@@ -9,9 +9,11 @@ import { banner, renderItems, renderMinimap } from '../ui/hud';
 
 export const RELICS = new Map<string, RelicDef>((relicData as RelicDef[]).map(r => [r.id, r]));
 
-export function relicDef(id: string) {
-  const def = RELICS.get(id);
-  if (!def) throw new Error(`Unknown relic "${id}"`);
+/** An unseen relic for a pedestal, chosen with the run's loot stream; each appears at most once per run. */
+export function pickRelic(): RelicDef | null {
+  const left = [...RELICS.values()].filter(r => !G.run.seen.has(r.id));
+  if (!left.length) return null;
+  const def = G.run.loot.pick(left); G.run.seen.add(def.id);
   return def;
 }
 

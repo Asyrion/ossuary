@@ -1,5 +1,7 @@
 import type * as THREE from 'three';
 import type { EnemyType } from './config';
+import type { BossConfig, PlannedRoom } from './world/generate';
+import type { FoeKind, Template } from './world/templates';
 
 export type Side = 'n' | 's' | 'e' | 'w';
 export type RoomType = 'start' | 'normal' | 'treasure' | 'boss';
@@ -8,13 +10,6 @@ export interface Vec2 { x: number; z: number }
 /** Axis-aligned box on the floor plane: centre and half extents. */
 export interface Box { x: number; z: number; hx: number; hz: number }
 export interface Circle { x: number; z: number; r: number }
-
-export interface RoomDef {
-  gx: number; gy: number; type: RoomType; seed: number;
-  rocks?: [number, number][];
-  foes?: [EnemyType, number, number][];
-  relic?: string;
-}
 
 export interface RelicDef {
   id: string; name: string; pickup: string; color: string;
@@ -26,8 +21,12 @@ export interface Torch { flame: THREE.Mesh; glow: THREE.Sprite; x: number; z: nu
 export interface RelicSpot { def: RelicDef; group: THREE.Group; taken: boolean; x: number; z: number }
 
 export interface Room {
-  def: RoomDef; type: RoomType; gx: number; gy: number; cx: number; cz: number;
-  group: THREE.Group; doors: Partial<Record<Side, Door>>; walls: Box[]; rocks: Box[]; torches: Torch[];
+  plan: PlannedRoom; template: Template; type: RoomType; gx: number; gy: number; cx: number; cz: number;
+  /** Interior in world units. */
+  bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
+  group: THREE.Group; doors: Partial<Record<Side, Door>>; walls: Box[]; rocks: Box[]; pits: Box[]; torches: Torch[];
+  /** Enemies to spawn on first entry, in world positions. */
+  foes: { kind: FoeKind; x: number; z: number }[];
   cleared: boolean; visited: boolean; known: boolean; locked: boolean;
   relic?: RelicSpot;
 }
@@ -36,7 +35,7 @@ export interface Enemy extends Circle {
   type: EnemyType; vx: number; vz: number; kx: number; kz: number; hp: number; maxHp: number;
   flying: boolean; spawn: number; t: number; flash: number; mats: THREE.MeshStandardMaterial[];
   group: THREE.Group; body: THREE.Group; face: number; contact: number; state: string; st: number;
-  dead?: boolean; isBoss?: boolean;
+  dead?: boolean; isBoss?: boolean; bossCfg?: BossConfig;
   // type-specific parts and AI state
   core?: THREE.Mesh; halo?: THREE.Sprite; target?: Vec2; fireT?: number; dir?: Vec2;
   eye?: THREE.Mesh; ring?: THREE.Mesh; cycle?: number; summoned?: boolean; volleys?: number;
@@ -46,7 +45,7 @@ export interface Bolt extends Circle { y: number; vx: number; vz: number; dist: 
 export interface Shot extends Circle { y: number; vx: number; vz: number; color: number; mesh: THREE.Group }
 export interface Particle { m: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>; vx: number; vy: number; vz: number; life: number }
 export interface Pickup extends Circle { kind: 'heart'; value: number; g: THREE.Group; m: THREE.Mesh; t: number; drop: number }
-export interface Portal { g: THREE.Group; x: number; z: number; ring: THREE.Mesh; t: number }
+export interface Trapdoor { g: THREE.Group; x: number; z: number; ring: THREE.Mesh; t: number }
 
 export interface Transition { t: number; dur: number; nb: Room; fx: number; fz: number; tx: number; tz: number; cfx: number; cfz: number }
 

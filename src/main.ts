@@ -16,8 +16,11 @@ import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { arrowOrder, initKeyboard, initTouch, keys, type InputActions } from './input';
 import { initScreens, showScreen } from './ui/screens';
 import { setHeroInfo } from './ui/hud';
-import { buildFloor, pause, resetPlayer, resume, startGame, toggleSound, warp } from './flow';
+import { descend, pause, prepareTitle, resetPlayer, resume, setNextRun, startGame, toggleSound, warp } from './flow';
 import { STEP, startLoop, step } from './loop';
+import { cleanSeed } from './rng';
+import { planToText } from './world/generate';
+import { TEMPLATES } from './world/templates';
 import { isTouch } from './util';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
@@ -43,11 +46,27 @@ async function loadDefaultHero() {
   setHeroInfo(hero.info);
 }
 
-/** Dev and test hooks. Kept in production builds so the game can be poked at on a phone. */
+/** Run options from the address: ?seed=K3F9QX replays a run's floors, ?floor=2 starts deeper,
+    ?room=<template id> plays one room template (for reviewing templates). */
+function readUrlOptions() {
+  const q = new URLSearchParams(location.search);
+  const seed = q.get('seed'), floor = Number(q.get('floor')), room = q.get('room');
+  if (room && !TEMPLATES.has(room)) console.warn(`?room=${room}: no such template. Known: ${[...TEMPLATES.keys()].join(', ')}`);
+  setNextRun({
+    seed: seed ? cleanSeed(seed) : undefined,
+    floor: floor >= 1 ? floor - 1 : undefined,
+    testTemplate: room && TEMPLATES.has(room) ? room : undefined,
+  });
+}
+
+/** Dev and test hooks. Kept in production builds so the deployed site can be tested too. */
 function installDevHooks() {
   window.__game = {
     get state() { return G.state; }, player, get enemies() { return G.enemies; }, get current() { return G.current; },
-    rooms: () => G.rooms, startGame, hero, camera, keys, arrowOrder, warp,
+    get seed() { return G.run.seed; }, get floor() { return G.run.floor; },
+    rooms: () => G.rooms, startGame, hero, camera, keys, arrowOrder, warp, descend,
+    /** The current floor as text: S start, B boss, T treasure, # normal, @ you. */
+    map() { return G.run.plan ? planToText(G.run.plan, G.current.plan.id) : ''; },
     /** Run the simulation for `sec` seconds in fixed steps; optionally render once afterwards. */
     sim(sec: number, render = false) { for (let t = 0; t < sec; t += STEP) step(STEP); if (render) draw(); },
     draw,
@@ -63,7 +82,8 @@ async function boot() {
   // the chalk texture in the start room is drawn with IM Fell English, so load both styles first
   const chalkFonts = Promise.all(['16px "IM Fell English"', 'italic 16px "IM Fell English"'].map(f => document.fonts.load(f)));
   try { await Promise.race([chalkFonts, new Promise(r => setTimeout(r, 1500))]); } catch { /* draw with the fallback font */ }
-  resetPlayer(); buildFloor();
+  readUrlOptions();
+  resetPlayer(); prepareTitle();
   await loadDefaultHero();
   showScreen('title');
   startLoop(input);

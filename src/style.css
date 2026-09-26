@@ -66,6 +66,7 @@ body.touch.portrait #rotate{display:flex}
 #drop.on{display:flex}
 #toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 60px);transform:translateX(-50%);background:rgba(10,8,6,.85);border:1px solid #5e4d39;color:#e8dcc2;padding:10px 16px;border-radius:3px;font-size:15px;opacity:0;transition:opacity .3s;pointer-events:none;max-width:90vw;text-align:center}
 #toast.on{opacity:1}
+#fade{position:fixed;inset:0;background:var(--void);opacity:0;pointer-events:none}
 @media (max-width:700px){.card{padding:20px}.controls{font-size:14px;gap:4px 12px}#minimap{width:120px;height:88px}#hearts svg{width:24px;height:24px}}
 @media (max-height:480px){.card h1{font-size:44px}.card p{font-size:16px;margin-bottom:10px}.controls{margin-bottom:12px}}
 @media (prefers-reduced-motion: reduce){#banner,#bossbar,#hurt{transition:none}}

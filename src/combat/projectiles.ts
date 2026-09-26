@@ -4,7 +4,7 @@ import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { basicMat, blob, glowShared, sphereGeo } from '../render/materials';
-import { colliders, pointInBoxes } from '../world/collision';
+import { blockers, pointInBoxes } from '../world/collision';
 import { shootDir } from '../input';
 import { heroCast } from '../actors/hero';
 import { damageEnemy, hurtPlayer } from './damage';
@@ -40,7 +40,7 @@ export function clearProjectiles() {
 }
 
 export function updateBolts(dt: number) {
-  const solids = colliders(G.current, true);
+  const solids = blockers(G.current, 'bolt');
   for (let i = G.bolts.length - 1; i >= 0; i--) {
     const b = G.bolts[i]; const sp = Math.hypot(b.vx, b.vz);
     b.x += b.vx * dt; b.z += b.vz * dt; b.dist += sp * dt;
@@ -59,7 +59,7 @@ export function updateBolts(dt: number) {
 }
 
 export function updateShots(dt: number) {
-  const solids = colliders(G.current, true);
+  const solids = blockers(G.current, 'bolt');
   for (let i = G.shots.length - 1; i >= 0; i--) {
     const s = G.shots[i]; s.x += s.vx * dt; s.z += s.vz * dt; s.mesh.position.set(s.x, s.y, s.z);
     let kill = pointInBoxes(s.x, s.z, 0, solids);

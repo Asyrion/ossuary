@@ -70,6 +70,13 @@ export function updateHud(dt: number) {
   if (toastT > 0) { toastT -= dt; if (toastT <= 0) el.toast.classList.remove('on'); }
 }
 
+/** Cut to black and fade back in, to cover building a new floor. */
+export function fadeFromBlack() {
+  const f = $('fade'); f.style.transition = 'none'; f.style.opacity = '1';
+  void f.offsetWidth; // apply the black before starting the fade
+  f.style.transition = 'opacity .7s ease-out'; f.style.opacity = '0';
+}
+
 /** Red screen-edge flash (CSS transition, so real time is fine here). */
 export function flashHurt() { el.hurt.style.opacity = '1'; setTimeout(() => el.hurt.style.opacity = '0', 160); }
 export function setHeroInfo(text: string) { el.heroInfo.textContent = text; }

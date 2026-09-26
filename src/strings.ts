@@ -18,23 +18,31 @@ export const STR = {
   },
   chalk: { walk: 'walk', cast: 'cast', touchMove: 'left thumb moves', touchShoot: 'right thumb shoots' },
   pause: {
-    heading: 'Paused', resume: 'Resume', restart: 'Restart floor', load: 'Load hero .glb',
+    heading: 'Paused', resume: 'Resume', restart: 'Restart run', load: 'Load hero .glb',
     soundOn: 'Sound: on', soundOff: 'Sound: off',
   },
   end: {
-    won: 'The warden has fallen',
+    won: 'The descent is complete',
     lost: 'You fell in the ossuary',
-    wonText: (time: string, kills: number) => `Floor cleared in ${time}, with ${kills} foes put to rest.`,
-    lostText: (time: string, kills: number) => `You lasted ${time} and put ${kills} foes to rest.`,
+    wonText: (time: string, kills: number) => `All three floors cleared in ${time}, with ${kills} foes put to rest.`,
+    lostText: (floor: number, time: string, kills: number) => `You fell on floor ${floor} after ${time}, with ${kills} foes put to rest.`,
     again: 'Descend again',
   },
+  /** Banner when a floor begins, floor 1 first. */
+  floors: [
+    ['The Ossuary', 'Beneath the old chapel of Eda'],
+    ['The Drowned Catacombs', "Where the chapel's water gathers"],
+    ['The Burning Scriptorium', 'Where the chapel kept its books'],
+  ] as Banner[],
+  /** The boss of each floor. */
+  bossNames: ['The Hollow Warden', 'The Hollow Warden, Risen', 'The Hollow Warden, Unbound'],
   banner: {
-    floor: ['The Ossuary', 'Beneath the old chapel of Eda'] as Banner,
-    boss: ['The Hollow Warden', 'Keeper of the lower vault'] as Banner,
+    bossSub: 'Keeper of the lower vault',
     summon: ['The warden calls its dead', ''] as Banner,
     bossDead: ['The warden is still', 'A way down has opened'] as Banner,
+    lastBossDead: ['The last warden is still', 'The way out lies below'] as Banner,
   },
-  bossName: 'The Hollow Warden',
+  runInfo: (floor: number, floors: number, seed: string) => `Floor ${floor} of ${floors} · Seed ${seed}`,
   rotate: 'Turn your phone sideways to play.',
   drop: 'Release to play as this model',
   health: (hp: number, max: number) => `Health ${hp} of ${max} hearts`,

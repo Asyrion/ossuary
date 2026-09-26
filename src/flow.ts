@@ -1,23 +1,34 @@
-/* Game states (title, play, pause, dying, end), floor setup and moving between rooms. */
+/* Game states (title, play, pause, dying, end), runs and floors, and moving between rooms. */
 import type * as THREE from 'three';
 import { CFG } from './config';
 import type { Room } from './types';
 import { G, clearTimers, player } from './state';
 import { STR } from './strings';
+import { Rng, newSeed } from './rng';
 import { Sfx } from './audio/sfx';
 import { CAM_OFFSET_Z, camTarget, scene } from './render/renderer';
 import { torchLights } from './render/lights';
 import { disposeTree } from './render/materials';
-import { FLOOR1, buildRoom, buildWallsAndDoors, doorsOf, roomAt, setDoors, toWorld } from './world/rooms';
+import { clearFloorTextures } from './render/textures';
+import { buildRoom, buildWallsAndDoors, doorsOf, freeSpotNear, roomAt, setDoors } from './world/rooms';
+import { FLOORS, generateFloor, testPlan } from './world/generate';
 import { HD, HW } from './world/dims';
 import { clearEnemies, makeEnemy } from './actors/enemies';
 import { heroReset } from './actors/hero';
 import { clearProjectiles } from './combat/projectiles';
-import { makePortal, spawnHeart } from './items/pickups';
-import { banner, hideBossBar, renderHearts, renderItems, renderMinimap, resetHearts, showBossBar } from './ui/hud';
+import { makeTrapdoor, spawnHeart } from './items/pickups';
+import { banner, fadeFromBlack, hideBossBar, renderHearts, renderItems, renderMinimap, resetHearts, showBossBar } from './ui/hud';
 import { showScreen } from './ui/screens';
 import { resetClock } from './loop';
-import { $, rand } from './util';
+import { $ } from './util';
+
+/** How the next run starts. Set from the URL at boot (?seed, ?floor, ?room); used once. */
+export interface RunOptions { seed?: string; floor?: number; testTemplate?: string }
+let nextRun: RunOptions = {};
+let testTemplate: string | undefined;
+export function setNextRun(opts: RunOptions) { nextRun = opts; }
+
+const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
 
 function clearEntities() {
   clearProjectiles();
@@ -25,19 +36,26 @@ function clearEntities() {
   clearEnemies();
   for (const p of G.pickups) scene.remove(p.g); G.pickups.length = 0;
   for (const d of G.decals) { scene.remove(d); (d.material as THREE.Material).dispose(); } G.decals.length = 0;
-  if (G.portal) { scene.remove(G.portal.g); disposeTree(G.portal.g); G.portal = null; }
+  if (G.trapdoor) { scene.remove(G.trapdoor.g); disposeTree(G.trapdoor.g); G.trapdoor = null; }
 }
 
-export function buildFloor() {
+/** Tear down the current floor and generate floor `index` (0-based) of this run. */
+export function buildFloor(index: number) {
   clearEntities(); clearTimers();
   for (const r of G.rooms) { scene.remove(r.group); disposeTree(r.group); }
+  clearFloorTextures();
   G.rooms = []; G.roomMap = new Map();
-  for (const def of FLOOR1) buildRoom(def);
+  G.run.floor = index;
+  const plan = testTemplate ? testPlan(testTemplate) : generateFloor(Rng.from(G.run.seed, 'floor' + index), FLOORS[index], index);
+  G.run.plan = plan;
+  for (const p of plan.rooms) buildRoom(p, index);
   for (const r of G.rooms) buildWallsAndDoors(r);
-  const start = G.rooms.find(r => r.type === 'start')!;
+  const start = G.rooms[plan.startId];
   G.current = start; player.x = start.cx; player.z = start.cz + .6; player.vx = player.vz = 0;
   camTarget.set(start.cx, 0, start.cz + CAM_OFFSET_Z);
+  G.trans = null; hideBossBar();
   enterRoom(start);
+  if (G.state === 'play') banner(...STR.floors[Math.min(index, STR.floors.length - 1)]);
 }
 
 export function resetPlayer() {
@@ -49,18 +67,44 @@ export function resetPlayer() {
   resetHearts(); renderHearts(); renderItems();
 }
 
-export function startGame() {
-  Sfx.init(); resetPlayer(); buildFloor(); G.stats.time = 0; G.stats.kills = 0; G.trans = null;
-  hideBossBar(); showScreen(null); G.state = 'play';
-  banner(...STR.banner.floor);
+/** Start a new run: a fresh seed unless one was requested. */
+export function startGame(opts?: RunOptions) {
+  const o = opts ?? nextRun; nextRun = {};
+  const seed = o.seed || newSeed();
+  testTemplate = o.testTemplate;
+  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), seen: new Set(), plan: null };
+  Sfx.init(); resetPlayer(); G.stats.time = 0; G.stats.kills = 0;
+  showScreen(null); G.state = 'play';
+  buildFloor(Math.max(0, Math.min(FLOORS.length - 1, o.floor ?? 0)));
 }
-export function pause() { G.state = 'pause'; showScreen('pause'); $('btnResume').focus(); }
+
+/** Build the first floor of the upcoming run as the title screen's backdrop; startGame keeps its seed. */
+export function prepareTitle() {
+  const seed = nextRun.seed || newSeed(); nextRun = { ...nextRun, seed };
+  testTemplate = nextRun.testTemplate;
+  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), seen: new Set(), plan: null };
+  buildFloor(Math.max(0, Math.min(FLOORS.length - 1, nextRun.floor ?? 0)));
+}
+
+/** Take the trapdoor: the next floor, or the end of the run after the last one. */
+export function descend() {
+  if (testTemplate || G.run.floor >= FLOORS.length - 1) { Sfx.relic(); endGame(true); return; }
+  Sfx.door(true);
+  fadeFromBlack();
+  buildFloor(G.run.floor + 1);
+}
+
+export function pause() {
+  G.state = 'pause'; showScreen('pause');
+  $('runInfo').textContent = STR.runInfo(G.run.floor + 1, FLOORS.length, G.run.seed);
+  $('btnResume').focus();
+}
 export function resume() { G.state = 'play'; showScreen(null); resetClock(); }
 export function endGame(won: boolean) {
   G.state = 'end'; hideBossBar();
   const t = G.stats.time, time = `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
   $('endTitle').textContent = won ? STR.end.won : STR.end.lost;
-  $('endText').textContent = won ? STR.end.wonText(time, G.stats.kills) : STR.end.lostText(time, G.stats.kills);
+  $('endText').textContent = won ? STR.end.wonText(time, G.stats.kills) : STR.end.lostText(G.run.floor + 1, time, G.stats.kills);
   showScreen('end'); $('btnAgain').focus();
 }
 export function toggleSound() { const muted = Sfx.toggle(); $('btnSound').textContent = muted ? STR.pause.soundOff : STR.pause.soundOn; }
@@ -68,32 +112,45 @@ export function toggleSound() { const muted = Sfx.toggle(); $('btnSound').textCo
 function showRooms(...list: Room[]) { for (const r of G.rooms) r.group.visible = list.includes(r); }
 
 export function enterRoom(room: Room) {
+  const firstVisit = !room.visited;
   G.current = room; room.visited = true; room.known = true; showRooms(room);
   for (const d of doorsOf(room)) d.nb.known = true;
   room.torches.forEach((t, i) => torchLights[i].position.set(t.x, 1.3, t.z));
   if (!room.cleared) {
-    for (const [type, c, r] of room.def.foes ?? []) { const p = toWorld(room, c, r); makeEnemy(type, p.x, p.z); }
+    const cfg = floorCfg();
+    for (const f of room.foes) {
+      if (f.kind === 'boss') makeEnemy(cfg.boss.type, f.x, f.z, 1, cfg.boss);
+      else makeEnemy(f.kind, f.x, f.z, cfg.enemyHp);
+    }
     room.locked = true; setDoors(room, false);
     if (room.type === 'boss') {
       const boss = G.enemies.find(e => e.isBoss);
-      if (boss) showBossBar(STR.bossName, boss);
-      banner(...STR.banner.boss);
+      const name = STR.bossNames[Math.min(G.run.floor, STR.bossNames.length - 1)];
+      if (boss) showBossBar(name, boss);
+      banner(name, STR.banner.bossSub);
     }
   }
+  // a treasure room with nothing left to find offers a full heart instead
+  if (firstVisit && room.type === 'treasure' && !room.relic) spawnHeart(room.cx, room.cz, 2);
   renderMinimap();
 }
 
 export function onRoomCleared(room: Room) {
   room.cleared = true; room.locked = false; setDoors(room, true);
-  if (room.type === 'normal' && Math.random() < CFG.heartDropChance) spawnHeart(room.cx + rand(-1, 1), room.cz + rand(-.5, .5), Math.random() < .35 ? 2 : 1);
+  const loot = G.run.loot;
+  if (room.type === 'normal' && loot.chance(CFG.heartDropChance)) {
+    const p = freeSpotNear(room, room.cx + loot.range(-1, 1), room.cz + loot.range(-.5, .5));
+    spawnHeart(p.x, p.z, loot.chance(.35) ? 2 : 1);
+  }
 }
 
 export function onBossDead() {
   const cur = G.current;
   hideBossBar();
-  spawnHeart(cur.cx - 1.6, cur.cz, 2);
-  makePortal(cur.cx, cur.cz);
-  banner(...STR.banner.bossDead);
+  const p = freeSpotNear(cur, cur.cx - 1.6, cur.cz);
+  spawnHeart(p.x, p.z, 2);
+  makeTrapdoor(cur.cx, cur.cz);
+  banner(...(G.run.floor >= FLOORS.length - 1 ? STR.banner.lastBossDead : STR.banner.bossDead));
 }
 
 /** Start the 0.42 s pan to the next room when the hero walks through a doorway. */
@@ -109,9 +166,10 @@ export function tryTransition() {
   return true;
 }
 
-/** Dev hook: jump straight into the room at grid (gx, gy). */
-export function warp(gx: number, gy: number) {
-  const r = roomAt(gx, gy); if (!r) throw new Error(`No room at ${gx},${gy}`);
+/** Dev hook: jump straight into a room, by grid cell or by room id. */
+export function warp(gx: number, gy?: number) {
+  const r = gy === undefined ? G.rooms.find(x => x.plan.id === gx) : roomAt(gx, gy);
+  if (!r) throw new Error(`No room at ${gy === undefined ? 'id ' + gx : gx + ',' + gy}`);
   G.trans = null; clearProjectiles();
   player.x = r.cx; player.z = r.cz + HD - .6; camTarget.set(r.cx, 0, r.cz + CAM_OFFSET_Z); enterRoom(r);
 }

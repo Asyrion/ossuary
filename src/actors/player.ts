@@ -1,12 +1,11 @@
 import { CFG } from '../config';
 import { G, player } from '../state';
-import { Sfx } from '../audio/sfx';
-import { collide, colliders } from '../world/collision';
+import { blockers, collide } from '../world/collision';
 import { DH, HD, HW } from '../world/dims';
 import { moveInput, shootDir } from '../input';
 import { spawnBolt } from '../combat/projectiles';
 import { takeRelic } from '../items/relics';
-import { endGame, tryTransition } from '../flow';
+import { descend, tryTransition } from '../flow';
 import { clamp, lerp } from '../util';
 
 export function updatePlayer(dt: number) {
@@ -21,15 +20,15 @@ export function updatePlayer(dt: number) {
   const k = 1 - Math.exp(-14 * dt);
   player.vx = lerp(player.vx, mv.x * CFG.hero.speed, k); player.vz = lerp(player.vz, mv.z * CFG.hero.speed, k);
   player.x += player.vx * dt; player.z += player.vz * dt;
-  collide(player, colliders(cur, true));
+  collide(player, blockers(cur, 'player'));
   if (tryTransition()) return;
   // shooting
   player.fireCd -= dt;
   if (shootDir() && player.fireCd <= 0) { spawnBolt(); player.fireCd = CFG.hero.fireDelay; }
   if (player.invuln > 0) player.invuln -= dt;
-  // relic and exit portal
+  // relic and the trapdoor down
   const relic = cur.relic;
   if (relic && !relic.taken && Math.hypot(player.x - relic.x, player.z - relic.z) < player.r + .62) takeRelic(relic);
-  const portal = G.portal;
-  if (portal && Math.hypot(player.x - portal.x, player.z - portal.z) < .55) { Sfx.relic(); endGame(true); }
+  const trapdoor = G.trapdoor;
+  if (trapdoor && Math.hypot(player.x - trapdoor.x, player.z - trapdoor.z) < .55) descend();
 }

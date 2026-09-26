@@ -5,25 +5,25 @@ build. Each step ends playable, with unit and browser tests passing, and is push
 
 ## Groundwork (all steps)
 
-- [ ] Seeded runs: generation, artifact pools and loot use seeded random streams; seed in the pause menu;
+- [x] Seeded runs: generation, artifact pools and loot use seeded random streams; seed in the pause menu;
       `?seed=` replays a run's floors
-- [ ] Generator stores rooms as lists of cells from the start, so step 4 adds shapes without a rewrite
+- [x] Generator stores rooms as lists of cells from the start, so step 4 adds shapes without a rewrite
 - [ ] Content as data: `data/floors.json`, `data/templates/*.json`, `data/artifacts.json` (replaces
       `relics.json`); tuning in `config.ts`
-- [ ] Vitest unit tests: generator invariants, template validation, artifact combining; CI runs unit and
-      Playwright tests
-- [ ] Dev shortcuts: `?room=<template>`, `?give=<ids>`, `?floor=<n>`, `__game.map()`
+- [ ] Vitest unit tests: generator invariants and template validation (done), artifact combining (step 2);
+      CI runs unit and Playwright tests (done)
+- [ ] Dev shortcuts: `?room=<template>`, `?floor=<n>`, `__game.map()` (done); `?give=<ids>` (step 2)
 
 ## Step 1: Three generated floors (standard rooms)
 
-- [ ] Isaac-style generator on the 9 × 8 grid; room counts per floor from data; boss in the farthest dead
+- [x] Isaac-style generator on the 9 × 8 grid; room counts per floor from data; boss in the farthest dead
       end, treasure in another; retries until the rules hold
-- [ ] Room templates from data (current rooms converted, about 8 new); pits (block walking, not bolts;
-      wisps fly over)
-- [ ] Floor difficulty baseline picks templates and scales enemy health
-- [ ] Trapdoor after the boss; tougher Warden on floors 2 and 3; winning after floor 3
-- [ ] Minimap for generated floors, floor banner
-- [ ] Smoke test on a fixed seed: clear a room, descend a floor
+- [x] Room templates from data (3 prototype rooms converted, 10 new normal rooms, start, treasure and boss
+      templates); pits (block walking, not bolts; wisps fly over)
+- [x] Floor difficulty baseline picks templates and scales enemy health
+- [x] Trapdoor after the boss; tougher Warden on floors 2 and 3; winning after floor 3
+- [x] Minimap for generated floors, floor banner
+- [x] Smoke test on a fixed seed: clear a room, descend a floor
 
 ## Step 2: Artifacts
 

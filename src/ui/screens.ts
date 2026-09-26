@@ -15,12 +15,12 @@ export interface ScreenActions {
 }
 
 export function initScreens(act: ScreenActions) {
-  $('btnStart').addEventListener('click', act.start);
-  $('btnAgain').addEventListener('click', act.start);
-  $('btnResume').addEventListener('click', act.resume);
-  $('btnRestart').addEventListener('click', act.start);
-  $('btnSound').addEventListener('click', act.toggleSound);
-  $('pauseBtn').addEventListener('click', act.pauseIfPlaying);
+  $('btnStart').addEventListener('click', () => act.start());
+  $('btnAgain').addEventListener('click', () => act.start());
+  $('btnResume').addEventListener('click', () => act.resume());
+  $('btnRestart').addEventListener('click', () => act.start());
+  $('btnSound').addEventListener('click', () => act.toggleSound());
+  $('pauseBtn').addEventListener('click', () => act.pauseIfPlaying());
 
   const fileIn = $<HTMLInputElement>('fileIn');
   $('btnLoad').addEventListener('click', () => fileIn.click());

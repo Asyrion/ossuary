@@ -1,22 +1,30 @@
 /* Screenshot the same rooms in the port and in the playable 0.3 prototype, side by side.
    Needs the dev server running (npm run dev). Usage: npm run compare [-- outDir]
-   Writes <room>-port.png and <room>-proto.png. */
+   Writes <room>-port.png and <room>-proto.png. The port plays each room as a test template (?room=),
+   the prototype warps to the room in its hand-built floor. */
 import { chromium, type Page } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
 const BASE = process.env.OSSUARY_URL ?? 'http://localhost:5173/';
 const outDir = process.argv[2] ?? 'test-results/compare';
-const ROOMS: [string, number, number][] = [['start', 0, 0], ['roomA', 0, -1], ['treasure', -1, -1], ['boss', 1, -3]];
+/** name, port template, prototype grid cell */
+const ROOMS: [string, string, number, number][] = [
+  ['start', 'start', 0, 0], ['roomA', 'crypt_a', 0, -1], ['treasure', 'treasure_plain', -1, -1], ['boss', 'boss_warden', 1, -3],
+];
 
-async function shoot(page: Page, url: string, tag: string) {
+type Hooks = { __manual: boolean; __game: { startGame(o?: object): void; warp(x: number, y?: number): void; sim(s: number, d?: boolean): void } };
+
+async function shoot(page: Page, url: string, tag: 'port' | 'proto') {
   await page.goto(url);
   await page.waitForFunction(() => (window as unknown as { __game?: unknown }).__game, null, { timeout: 30000 });
-  for (const [name, gx, gy] of ROOMS) {
-    await page.evaluate(([gx, gy]) => {
-      const w = window as unknown as { __manual: boolean; __game: { startGame(): void; warp(x: number, y: number): void; sim(s: number, d?: boolean): void } };
-      w.__manual = true; w.__game.startGame(); w.__game.warp(gx, gy); w.__game.sim(3.2, true);
-    }, [gx, gy]);
+  for (const [name, template, gx, gy] of ROOMS) {
+    await page.evaluate(([port, template, gx, gy]) => {
+      const w = window as unknown as Hooks; w.__manual = true;
+      if (port) { w.__game.startGame({ testTemplate: template }); w.__game.warp(template === 'start' ? 0 : 1); }
+      else { w.__game.startGame(); w.__game.warp(gx as number, gy as number); }
+      w.__game.sim(3.2, true);
+    }, [tag === 'port', template, gx, gy] as const);
     await page.screenshot({ path: join(outDir, `${name}-${tag}.png`) });
   }
 }

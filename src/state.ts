@@ -1,5 +1,7 @@
 import { CFG } from './config';
-import type { Bolt, Enemy, Particle, Pickup, Player, Portal, Room, Shot, Transition } from './types';
+import { Rng } from './rng';
+import type { FloorPlan } from './world/generate';
+import type { Bolt, Enemy, Particle, Pickup, Player, Trapdoor, Room, Shot, Transition } from './types';
 import type * as THREE from 'three';
 
 export type GameState = 'title' | 'play' | 'pause' | 'dying' | 'end';
@@ -17,8 +19,10 @@ export const G = {
   pickups: [] as Pickup[],
   particles: [] as Particle[],
   decals: [] as THREE.Mesh[],
-  portal: null as Portal | null,
+  trapdoor: null as Trapdoor | null,
   stats: { time: 0, kills: 0 },
+  /** The current run: its seed, which floor (0-based) and the seeded loot stream. */
+  run: { seed: '', floor: 0, loot: new Rng(0), seen: new Set<string>(), plan: null as FloorPlan | null },
   shake: 0,
   simClock: 0,
 };

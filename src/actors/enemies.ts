@@ -6,8 +6,9 @@ import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { blob, disposeTree, glow } from '../render/materials';
-import { collide, colliders } from '../world/collision';
-import { HD, HW } from '../world/dims';
+import { blockers, collide } from '../world/collision';
+import { freeSpotNear } from '../world/rooms';
+import type { BossConfig } from '../world/generate';
 import { spawnShot } from '../combat/projectiles';
 import { hurtPlayer } from '../combat/damage';
 import { onRoomCleared } from '../flow';
@@ -19,10 +20,12 @@ function stdMat(color: number, extra: THREE.MeshStandardMaterialParameters = {})
 }
 
 /* Placeholder primitive foes. M2 replaces these with Tripo models. */
-export function makeEnemy(type: EnemyType, x: number, z: number) {
+/** Spawn an enemy. `hpMul` scales health (deeper floors); `boss` tunes the floor's boss. */
+export function makeEnemy(type: EnemyType, x: number, z: number, hpMul = 1, boss?: BossConfig) {
   const C = CFG.enemy[type];
+  const hp = C.hp * hpMul * (boss?.hpMul ?? 1);
   const e: Enemy = {
-    type, x, z, vx: 0, vz: 0, kx: 0, kz: 0, r: C.r, hp: C.hp, maxHp: C.hp, flying: false, spawn: .6, t: Math.random() * 10,
+    type, x, z, vx: 0, vz: 0, kx: 0, kz: 0, r: C.r, hp, maxHp: hp, bossCfg: boss, flying: false, spawn: .6, t: Math.random() * 10,
     flash: 0, mats: [], group: new THREE.Group(), body: new THREE.Group(), face: 0, contact: 1, state: 'idle', st: 0,
   };
   e.group.add(e.body);
@@ -79,7 +82,7 @@ export function clearEnemies() {
 
 export function updateEnemies(dt: number) {
   const cur = G.current;
-  const walls = colliders(cur, false), solids = colliders(cur, true);
+  const walls = blockers(cur, 'flyer'), solids = blockers(cur, 'walker');
   for (const e of G.enemies) {
     e.t += dt;
     if (e.spawn > 0) { e.spawn -= dt; const s = 1 - Math.max(0, e.spawn) / .6; e.group.scale.setScalar(.2 + .8 * (1 - Math.pow(1 - s, 3))); continue; }
@@ -92,7 +95,8 @@ export function updateEnemies(dt: number) {
       e.body.rotation.z = Math.sin(e.t * 6) * .08; e.body.position.y = Math.abs(Math.sin(e.t * 6)) * .04;
     } else if (e.type === 'wisp') {
       const C = CFG.enemy.wisp; const tg = e.target!;
-      if (Math.hypot(tg.x - e.x, tg.z - e.z) < .3 || Math.random() < dt * .3) e.target = { x: cur.cx + rand(-HW + 1, HW - 1), z: cur.cz + rand(-HD + 1, HD - 1) };
+      const b = cur.bounds;
+      if (Math.hypot(tg.x - e.x, tg.z - e.z) < .3 || Math.random() < dt * .3) e.target = { x: rand(b.minX + 1, b.maxX - 1), z: rand(b.minZ + 1, b.maxZ - 1) };
       const tx = e.target!.x - e.x, tz = e.target!.z - e.z, tl = Math.hypot(tx, tz) || 1;
       e.vx = lerp(e.vx, tx / tl * C.speed, dt * 2); e.vz = lerp(e.vz, tz / tl * C.speed, dt * 2);
       e.body.position.y = .8 + Math.sin(e.t * 2.4) * .1;
@@ -151,16 +155,21 @@ export function updateEnemies(dt: number) {
 }
 
 function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
-  const C = CFG.enemy.warden; e.st -= dt;
+  const C = CFG.enemy.warden, B = e.bossCfg; e.st -= dt;
+  const speed = C.speed * (B?.speedMul ?? 1), shotMul = B?.shotSpeedMul ?? 1;
   const hpFrac = e.hp / e.maxHp;
   const ring = e.ring!, eye = e.eye!, halo = e.halo!;
   ring.rotation.z += dt * (e.state.startsWith('wind') ? 6 : 1.2);
   if (!e.summoned && hpFrac < .5) {
     e.summoned = true; Sfx.boom(); G.shake = .25; banner(...STR.banner.summon);
-    for (const sx of [-4, 4]) makeEnemy('rotling', G.current.cx + sx, G.current.cz + 1.5);
+    const n = B?.summons ?? 2, cur = G.current;
+    for (let i = 0; i < n; i++) {
+      const p = freeSpotNear(cur, cur.cx + (n > 1 ? -4 + 8 * i / (n - 1) : 0), cur.cz + 1.5);
+      makeEnemy('rotling', p.x, p.z, e.maxHp / (C.hp * (B?.hpMul ?? 1)));
+    }
   }
   if (e.state === 'walk') {
-    e.vx = ux * C.speed * (hpFrac < .5 ? 1.25 : 1); e.vz = uz * C.speed * (hpFrac < .5 ? 1.25 : 1);
+    e.vx = ux * speed * (hpFrac < .5 ? 1.25 : 1); e.vz = uz * speed * (hpFrac < .5 ? 1.25 : 1);
     e.body.position.y = Math.abs(Math.sin(e.t * 4)) * .05; eye.scale.set(1, 1, 1); halo.material.opacity = .35;
     if (e.st <= 0) { e.cycle = e.cycle! + 1; e.state = e.cycle % 2 ? 'windBurst' : 'windAim'; e.st = e.state === 'windBurst' ? .75 : .5; }
   } else if (e.state === 'windBurst' || e.state === 'windAim') {
@@ -170,19 +179,19 @@ function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
       e.body.position.x = 0;
       if (e.state === 'windBurst') {
         const n = 12, off = Math.random() * Math.PI;
-        for (let i = 0; i < n; i++) { const a = off + i / n * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(a), Math.sin(a), 3.4, 0xff6a3a, .9, 1.25); }
+        for (let i = 0; i < n; i++) { const a = off + i / n * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(a), Math.sin(a), 3.4 * shotMul, 0xff6a3a, .9, 1.25); }
         if (hpFrac < .6) after(.32, () => {
           if (e.dead || G.state !== 'play') return;
-          for (let i = 0; i < n; i++) { const a = off + (i + .5) / n * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(a), Math.sin(a), 3, 0xff6a3a, .9, 1.25); }
+          for (let i = 0; i < n; i++) { const a = off + (i + .5) / n * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(a), Math.sin(a), 3 * shotMul, 0xff6a3a, .9, 1.25); }
         });
         Sfx.boom(); G.shake = .18; e.state = 'walk'; e.st = 2.1;
-      } else { e.state = 'volley'; e.volleys = 3; e.st = 0; }
+      } else { e.state = 'volley'; e.volleys = B?.volleys ?? 3; e.st = 0; }
     }
   } else if (e.state === 'volley') {
     e.vx = e.vz = 0;
     if (e.st <= 0) {
       const base = Math.atan2(uz, ux);
-      for (const d of [-.28, 0, .28]) spawnShot(e.x + ux * .8, e.z + uz * .8, Math.cos(base + d), Math.sin(base + d), 4.4, 0xff6a3a, 1, 1.1);
+      for (const d of [-.28, 0, .28]) spawnShot(e.x + ux * .8, e.z + uz * .8, Math.cos(base + d), Math.sin(base + d), 4.4 * shotMul, 0xff6a3a, 1, 1.1);
       Sfx.enemyShot(); e.volleys = e.volleys! - 1; e.st = .3; if (e.volleys <= 0) { e.state = 'walk'; e.st = 2.4; }
     }
   }

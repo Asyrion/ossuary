@@ -9,7 +9,7 @@ import { updatePlayer } from './actors/player';
 import { updateEnemies } from './actors/enemies';
 import { updateBolts, updateShots } from './combat/projectiles';
 import { updateParticles } from './combat/fx';
-import { updatePickups, updatePortal } from './items/pickups';
+import { updatePickups, updateTrapdoor } from './items/pickups';
 import { updateRelics } from './items/relics';
 import { pollGamepad, type InputActions } from './input';
 import { updateHud } from './ui/hud';
@@ -46,7 +46,7 @@ export function step(dt: number) {
 }
 
 function updateWorldFx(dt: number, now: number) {
-  updateRoomFx(dt, now); updateRelics(now); updatePortal(dt);
+  updateRoomFx(dt, now); updateRelics(now); updateTrapdoor(dt);
   const tf = .92 + Math.sin(now * 13) * .05 + Math.sin(now * 23) * .04;
   for (const l of torchLights) l.intensity = CFG.lights.torch * tf;
   G.shake = Math.max(0, G.shake - dt * 1.4);

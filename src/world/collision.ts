@@ -2,11 +2,16 @@ import type { Box, Circle, Room } from '../types';
 import { clamp } from '../util';
 import { doorsOf } from './rooms';
 
-/** Walls, closed doors and (optionally) rocks of a room. */
-export function colliders(room: Room, includeRocks: boolean) {
+/** Who is moving: each is stopped by different things. */
+export type Mover = 'player' | 'walker' | 'flyer' | 'bolt';
+
+/** What blocks a mover in a room: walls and closed doors always; rocks stop everything but flyers;
+    pits stop the mage and walkers, not bolts or flyers. */
+export function blockers(room: Room, who: Mover) {
   const list = room.walls.slice();
   for (const d of doorsOf(room)) if (!d.open) list.push(d.box);
-  if (includeRocks) list.push(...room.rocks);
+  if (who !== 'flyer') list.push(...room.rocks);
+  if (who === 'player' || who === 'walker') list.push(...room.pits);
   return list;
 }
 

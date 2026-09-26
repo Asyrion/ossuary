@@ -8,10 +8,10 @@ and exported as GLB. The owner (Azyrion) designs; you build.
 milestone; if this file disagrees with it on design, the GDD wins. The Tripo asset checklist lives in the
 owner's claude.ai project "Tripo3D-GameDev". This file holds what you need to work in the repo.
 
-## Current state: 0.4 (M0 done)
+## Current state: M1 in progress (see `docs/M1-plan.md`)
 
-The prototype has been ported to Vite + TypeScript (strict) + three.js r186 with the layout below; it
-plays like 0.3. See `README.md` for scripts and deployment.
+The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 is turning it into
+generated three-floor runs. See `README.md` for scripts and deployment.
 
 - `src/`: the game, split as in the M0 layout. Plus `state.ts` (shared mutable state `G` and `player`,
   and sim-time timers `after()`), `flow.ts` (game states, floor setup, room transitions, `warp`),
@@ -19,8 +19,15 @@ plays like 0.3. See `README.md` for scripts and deployment.
   `types.ts`.
 - `src/actors/clipRoles.ts` and `src/actors/baseDetect.ts` hold the clip-name matching, hips-offset and
   round-base tests with no three.js dependency; the game and `tools/prepare-asset.ts` both use them.
-- `data/floor1.json` (rooms, rocks, foes, which relic a treasure room holds) and `data/relics.json`
-  (relic stats, name, pickup line, colour).
+- Runs are seeded (`src/rng.ts`: named streams per system). `src/world/generate.ts` builds each floor
+  (pure, unit-tested); `src/world/templates.ts` parses and validates room templates. Content:
+  `data/floors.json` (room counts, difficulty weights, enemy health, boss tuning per floor),
+  `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `R W H` enemies, `B` boss) and
+  `data/relics.json` (until artifacts replace it in step 2).
+- Tests: `npm run test:unit` (Vitest: generator rules on hundreds of seeds, every template validated),
+  `npm run test:e2e` (Playwright smoke tests), `npm test` runs both.
+- URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`
+  plays one template (for reviewing rooms). `__game.map()` prints the floor.
 - `public/assets/hero_default.glb`: the hero (17,655 triangles, 65-bone Mixamo-style rig, 1,024 px JPEG
   textures). Clips: `standing_relax`, `run`, `cast_a_spell`, `hit_to_body_01`, `fall`.
 - `prototype/`: the 0.3 single file (`-source` to read, `-playable` to run). Still the reference for look
@@ -31,7 +38,7 @@ plays like 0.3. See `README.md` for scripts and deployment.
 - Gameplay delays (the warden's second ring, the pause before the death screen) run on simulation time,
   so they pause with the game and advance under `__game.sim()`.
 - Dev hooks (`window.__game`, `window.__manual`) are also in production builds, for testing the deployed site.
-  `warp()` does not despawn the previous room's foes (as in 0.3).
+  `warp(id)` or `warp(gx, gy)` does not despawn the previous room's foes (as in 0.3).
 
 Prototype content: one hand-built floor of six rooms (start, 3 combat, treasure, boss), 3 enemy types plus
 a boss (placeholder primitive shapes), one relic, hearts, minimap, boss bar, keyboard/gamepad/touch

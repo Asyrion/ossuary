@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { TILT, scene } from '../render/renderer';
-import { blob, glow } from '../render/materials';
+import { blob, glow, markShared } from '../render/materials';
 import { burst } from '../combat/fx';
 import { renderHearts } from '../ui/hud';
 
@@ -19,7 +19,7 @@ function heartShape(half: boolean) {
   return g;
 }
 const HEART_GEO = { full: heartShape(false), half: heartShape(true) };
-const heartMat = new THREE.MeshStandardMaterial({ color: 0xc02a1e, emissive: 0x4a0804, roughness: .35 });
+const heartMat = markShared(new THREE.MeshStandardMaterial({ color: 0xc02a1e, emissive: 0x4a0804, roughness: .35 }));
 
 /** Heart on the floor; value is in halves (1 = half heart, 2 = full). */
 export function spawnHeart(x: number, z: number, value: number) {
@@ -47,8 +47,8 @@ export function updatePickups(dt: number) {
   }
 }
 
-/** Exit portal that appears when the boss dies. */
-export function makePortal(x: number, z: number) {
+/** The way down that opens when the boss dies. */
+export function makeTrapdoor(x: number, z: number) {
   const g = new THREE.Group();
   const ring = new THREE.Mesh(new THREE.TorusGeometry(.7, .06, 8, 40), new THREE.MeshBasicMaterial({ color: 0xffb35a }));
   ring.rotation.x = -Math.PI / 2; ring.position.y = .05;
@@ -56,10 +56,10 @@ export function makePortal(x: number, z: number) {
   disc.rotation.x = -Math.PI / 2; disc.position.y = .02;
   const gl = glow(0xff8a30, 2.6, .55); gl.position.y = .4;
   g.add(disc, ring, gl); g.position.set(x, 0, z); scene.add(g);
-  G.portal = { g, x, z, ring, t: 0 };
+  G.trapdoor = { g, x, z, ring, t: 0 };
 }
 
-export function updatePortal(dt: number) {
-  const p = G.portal; if (!p) return;
+export function updateTrapdoor(dt: number) {
+  const p = G.trapdoor; if (!p) return;
   p.t += dt; p.ring.scale.setScalar(1 + Math.sin(p.t * 3) * .04);
 }

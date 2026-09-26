@@ -44,7 +44,21 @@ export const brickTex = (() => {
   const t = canvasTex(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
 })();
 
+/** A hole in the floor: near-black centre with a crumbled rim, drawn over the floor texture. */
+let pitTex: THREE.CanvasTexture | null = null;
+export function pitTexture() {
+  if (pitTex) return pitTex;
+  const [c, g] = makeCanvas(64, 64); const R = mulberry(77);
+  const gr = g.createRadialGradient(32, 32, 6, 32, 32, 34);
+  gr.addColorStop(0, 'rgba(2,1,1,1)'); gr.addColorStop(.72, 'rgba(6,4,3,1)'); gr.addColorStop(.9, 'rgba(20,15,11,.9)'); gr.addColorStop(1, 'rgba(30,24,18,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+  for (let k = 0; k < 40; k++) { const a = R() * Math.PI * 2, d = 24 + R() * 6; g.fillStyle = `rgba(60,52,44,${.3 + R() * .4})`; g.fillRect(32 + Math.cos(a) * d, 32 + Math.sin(a) * d, 1 + R() * 2, 1 + R() * 2); }
+  pitTex = canvasTex(c); return pitTex;
+}
+
 const floorCache = new Map<string, THREE.CanvasTexture>();
+/** Floor textures are cached per room seed; call between floors to free them. */
+export function clearFloorTextures() { for (const t of floorCache.values()) t.dispose(); floorCache.clear(); }
 export function floorTexture(seed: number, kind: RoomType) {
   const key = seed + kind; const hit = floorCache.get(key); if (hit) return hit;
   const P = 72, cw = 13 * P, ch = 7 * P;

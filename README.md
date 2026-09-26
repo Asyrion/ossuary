@@ -21,9 +21,19 @@ Isaac-style roguelike set in Eda, built with three.js and Tripo3D models.
 | `npm run dev` | Dev server with hot reload |
 | `npm run build` | Type-check and build to `dist/` (base path `/<repo>/` for GitHub Pages) |
 | `npm run preview` | Serve the built `dist/` locally at `/ossuary/` |
-| `npm test` | Playwright smoke test: starts a run, clears room A, checks for console errors |
+| `npm test` | Unit tests (Vitest) and browser smoke tests (Playwright) |
+| `npm run test:unit` | Unit tests only: floor generator rules, room template checks |
+| `npm run test:e2e` | Browser smoke tests only: clear a room, descend a floor, no console errors |
 | `npm run prepare-asset -- in.glb [name.glb]` | Shrink a Tripo GLB's textures into `public/assets/` and print a report |
 | `npm run compare` | Screenshots of four rooms in the port and in prototype 0.3, into `test-results/compare/` (needs `npm run dev` running) |
+
+## Testing a run
+
+Add these to the address (locally or on the Pages site):
+
+- `?seed=K3F9QX` plays the floors of that seed (the seed of a run is shown in the pause menu)
+- `?floor=2` starts on floor 2
+- `?room=pit_maze` plays a single room template (ids are in `data/templates/`)
 
 ## Deploying to GitHub Pages
 

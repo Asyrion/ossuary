@@ -26,9 +26,13 @@ export const M = {
 };
 export const WALL_MATS = [M.wall, M.wall, M.wallTop, M.wallTop, M.wall, M.wall];
 
+/** Flag a geometry or material as shared, so disposeTree leaves it alone. */
+export function markShared<T extends { userData: Record<string, unknown> }>(o: T) { o.userData.shared = true; return o; }
+for (const m of [M.wall, M.wallTop, M.threshold, M.rock, M.iron, M.flame, M.gate, M.hero, ...Object.values(M.frame)]) markShared(m);
+
 // Geometries flagged userData.shared are never disposed by disposeTree.
 const shadowGeo = new THREE.PlaneGeometry(1, 1); shadowGeo.rotateX(-Math.PI / 2); shadowGeo.userData.shared = true;
-const shadowMat = new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false });
+const shadowMat = markShared(new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }));
 /** Soft blob shadow on the floor. */
 export function blob(size: number) {
   const m = new THREE.Mesh(shadowGeo, shadowMat); m.scale.set(size, 1, size); m.position.y = 0.012; m.renderOrder = 1; return m;
@@ -52,10 +56,13 @@ export function glow(color: number, size: number, opacity = 1) {
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false }));
   s.scale.set(size, size, 1); return s;
 }
+/** Free the GPU resources of a removed object tree: every geometry and material not flagged shared.
+    Textures are left alone (they are shared or cached elsewhere). */
 export function disposeTree(obj: THREE.Object3D) {
   obj.traverse(o => {
-    if ((o as THREE.Sprite).isSprite) return; // sprites share one internal geometry
-    const g = (o as THREE.Mesh).geometry;
-    if (g && !g.userData.shared) g.dispose();
+    const m = o as THREE.Mesh;
+    if (!(o as THREE.Sprite).isSprite && m.geometry && !m.geometry.userData.shared) m.geometry.dispose(); // sprites share one internal geometry
+    const mats = m.material ? (Array.isArray(m.material) ? m.material : [m.material]) : [];
+    for (const mat of mats) if (!mat.userData.shared) mat.dispose();
   });
 }
