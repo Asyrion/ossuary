@@ -477,6 +477,7 @@ Rooms are built from cells of 13 × 7 tiles. A standard room is one cell, with a
 - **Difficulty:** floor 1 is easy, and each later floor raises the baseline a little (harder templates, about 15% more enemy health per floor). Within a floor, rooms vary randomly around the baseline rather than rising steadily, and variants push single rooms clearly above or below it; deeper floors roll more hard variants. The rooms next to the start on floor 1 are never hard variants. All numbers are found by play-testing.
 - **Between floors:** the boss opens a trapdoor; stepping in starts the next floor (waystones join in M6). Beating the floor 3 boss wins the run. Until Tripo bosses arrive (M4), floors 2 and 3 end with a harder Hollow Warden: more health, faster volleys, more summons.
 - **Seeds:** every run has a seed, shown in the pause menu, so a run can be replayed and bugs reproduced.
+- **Floor looks:** each floor already looks a little different, as placeholders until the biome pass (M8): floor 1 has warm stone and iron torches, floor 2 cool damp stone with moss, puddles and cage lanterns, floor 3 scorched brick with soot, ash and braziers. Colours and torch styles live in `data/floors.json`.
 
 **Room templates are data:** a character grid in the size of the room's shape (rock, pit, enemy spawn, empty; urns from M2) plus a difficulty value and the room types it suits, stored as JSON so new rooms need no code. Ordeal templates list two or three waves. M1 needs at least two templates per shape and 20 or more in total.
 

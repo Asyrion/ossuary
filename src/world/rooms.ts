@@ -1,14 +1,14 @@
 import * as THREE from 'three';
-import type { Box, Door, DoorStyle, Room, Side } from '../types';
+import type { Box, Door, DoorStyle, FloorLook, Room, Side } from '../types';
 import { G } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { floorTexture, pitTexture } from '../render/textures';
-import { M, WALL_MATS, blob, boxUV, glow, markShared } from '../render/materials';
+import { M, basicMat, blob, boxUV, glow, markShared, wallMaterials } from '../render/materials';
 import { makeRelicVisual, pickRelic } from '../items/relics';
 import { mulberry } from '../util';
 import { DH, DIR, H_LOW, H_TALL, HD, HW, PX, PZ, SIDES, WT } from './dims';
-import type { PlannedRoom } from './generate';
+import { FLOORS, type PlannedRoom } from './generate';
 import { TEMPLATES, parseTemplate } from './templates';
 
 export const roomAt = (gx: number, gy: number) => G.roomMap.get(gx + ',' + gy);
@@ -43,16 +43,17 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   const template = parseTemplate(def, plan.mirrorX, plan.mirrorY);
   const { gx, gy } = plan.cells[0];
   const cx = gx * PX, cz = gy * PZ;
+  const look = FLOORS[Math.min(floorIndex, FLOORS.length - 1)].look;
   const room: Room = {
-    plan, template, type: plan.type, gx, gy, cx, cz,
+    plan, template, look, type: plan.type, gx, gy, cx, cz,
     bounds: { minX: cx - HW, maxX: cx + HW, minZ: cz - HD, maxZ: cz + HD },
     group: new THREE.Group(), doors: {}, walls: [], rocks: [], pits: [], torches: [], foes: [],
     cleared: true, visited: false, known: false, locked: false,
   };
   room.group.position.set(cx, 0, cz); scene.add(room.group);
   // the controls are chalked on the floor of the very first room only
-  const look = plan.type === 'start' && floorIndex > 0 ? 'normal' : plan.type;
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(13, 7), new THREE.MeshStandardMaterial({ map: floorTexture(plan.seed, look), roughness: .95 }));
+  const kind = plan.type === 'start' && floorIndex > 0 ? 'normal' : plan.type;
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(13, 7), new THREE.MeshStandardMaterial({ map: floorTexture(plan.seed, kind, look), roughness: .95 }));
   floor.rotation.x = -Math.PI / 2; room.group.add(floor);
   template.tiles.forEach((row, r) => row.forEach((tile, c) => {
     if (tile === 'rock') addRock(room, c, r);
@@ -61,17 +62,42 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   mergePits(room);
   for (const f of template.foes) room.foes.push({ kind: f.kind, ...toWorld(room, f.c, f.r) });
   room.cleared = room.foes.length === 0;
-  // torches on the north wall
-  for (const tx of [-3.5, 3.5]) {
-    const br = new THREE.Mesh(new THREE.BoxGeometry(.12, .3, .16), M.iron); br.position.set(tx, .85, -HD + .06); room.group.add(br);
-    const fl = new THREE.Mesh(new THREE.ConeGeometry(.08, .26, 6), M.flame); fl.position.set(tx, 1.1, -HD + .12); room.group.add(fl);
-    const gl = glow(0xff9a3c, 1.1, .8); gl.position.set(tx, 1.12, -HD + .15); room.group.add(gl);
-    room.torches.push({ flame: fl, glow: gl, x: cx + tx, z: cz - HD + .6 });
-  }
+  for (const tx of [-3.5, 3.5]) addTorch(room, tx, look.torch);
   if (plan.type === 'treasure') addPedestal(room);
   G.rooms.push(room);
   for (const c of plan.cells) G.roomMap.set(c.gx + ',' + c.gy, room);
   return room;
+}
+
+/** A light on the north wall, in the floor's style: iron bracket (crypt), cage lantern (drowned) or brazier (burning). */
+function addTorch(room: Room, tx: number, t: FloorLook['torch']) {
+  const flameMat = basicMat(new THREE.Color(t.flame).getHex());
+  const add = (geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number) => {
+    const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); room.group.add(m); return m;
+  };
+  const w = -HD; // the inner face of the north wall
+  let flame: THREE.Mesh, glowAt: [number, number], glowSize = 1.1;
+  if (t.style === 'lantern') {
+    const z = w + .2;
+    add(new THREE.BoxGeometry(.04, .04, .22), M.iron, tx, 1.3, w + .1);                  // arm from the wall
+    add(new THREE.ConeGeometry(.13, .1, 4), M.iron, tx, 1.24, z).rotation.y = Math.PI / 4; // cap
+    add(new THREE.BoxGeometry(.18, .03, .18), M.iron, tx, .97, z);                        // base
+    for (const [dx, dz] of [[-.08, -.08], [.08, -.08], [-.08, .08], [.08, .08]]) add(new THREE.BoxGeometry(.02, .26, .02), M.iron, tx + dx, 1.1, z + dz);
+    flame = add(new THREE.SphereGeometry(.05, 8, 6), flameMat, tx, 1.08, z); flame.scale.y = 1.6;
+    glowAt = [1.1, z + .02];
+  } else if (t.style === 'brazier') {
+    const z = w + .22;
+    add(new THREE.BoxGeometry(.12, .34, .16), M.iron, tx, .66, w + .06);                  // bracket
+    add(new THREE.CylinderGeometry(.21, .1, .14, 8), M.iron, tx, .88, z);                 // bowl
+    flame = add(new THREE.ConeGeometry(.14, .42, 7), flameMat, tx, 1.14, z);
+    glowAt = [1.12, z + .03]; glowSize = 1.5;
+  } else {
+    add(new THREE.BoxGeometry(.12, .3, .16), M.iron, tx, .85, w + .06);
+    flame = add(new THREE.ConeGeometry(.08, .26, 6), flameMat, tx, 1.1, w + .12);
+    glowAt = [1.12, w + .15];
+  }
+  const gl = glow(new THREE.Color(t.light).getHex(), glowSize, .8); gl.position.set(tx, glowAt[0], glowAt[1]); room.group.add(gl);
+  room.torches.push({ flame, glow: gl, x: room.cx + tx, z: room.cz - HD + .6 });
 }
 
 function addRock(room: Room, c: number, r: number) {
@@ -143,9 +169,9 @@ export function buildWallsAndDoors(room: Room) {
   for (const side of SIDES) {
     const nb = roomAt(room.gx + DIR[side].gx, room.gy + DIR[side].gy);
     const h = wallHeight(side), [a0, a1] = wallSpan(side);
-    if (!nb) { room.walls.push(wallBox(room, side, a0, a1, h, WALL_MATS)); continue; }
-    room.walls.push(wallBox(room, side, a0, -DH, h, WALL_MATS));
-    room.walls.push(wallBox(room, side, DH, a1, h, WALL_MATS));
+    if (!nb) { room.walls.push(wallBox(room, side, a0, a1, h, wallMaterials(room.look.wall))); continue; }
+    room.walls.push(wallBox(room, side, a0, -DH, h, wallMaterials(room.look.wall)));
+    room.walls.push(wallBox(room, side, DH, a1, h, wallMaterials(room.look.wall)));
     const style: DoorStyle = (room.type === 'boss' || nb.type === 'boss') ? 'boss' : (room.type === 'treasure' || nb.type === 'treasure') ? 'treasure' : 'normal';
     const fm = M.frame[style];
     const ns = side === 'n' || side === 's';

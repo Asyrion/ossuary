@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { RoomType } from '../types';
+import type { FloorLook, RoomType } from '../types';
 import { STR } from '../strings';
 import { isTouch, mulberry } from '../util';
 import { renderer } from './renderer';
@@ -32,17 +32,31 @@ function radial(stops: [number, string][], srgb: boolean) {
 export const glowTex = radial([[0, 'rgba(255,255,255,1)'], [.35, 'rgba(255,255,255,.45)'], [1, 'rgba(255,255,255,0)']], true);
 export const shadowTex = radial([[0, 'rgba(0,0,0,.75)'], [.6, 'rgba(0,0,0,.35)'], [1, 'rgba(0,0,0,0)']], false);
 
-export const brickTex = (() => {
-  const [c, g] = makeCanvas(256, 256); const R = mulberry(5);
-  g.fillStyle = '#1e1813'; g.fillRect(0, 0, 256, 256);
+const brickCache = new Map<string, THREE.CanvasTexture>();
+/** Tiling wall bricks in a floor's colours, with moss or soot stains. Kept for the whole session (one per look). */
+export function brickTexture(wall: FloorLook['wall']) {
+  const key = JSON.stringify(wall); const hit = brickCache.get(key); if (hit) return hit;
+  const [c, g] = makeCanvas(256, 256); const R = mulberry(5); const [br, bg, bb] = wall.brick;
+  g.fillStyle = wall.mortar; g.fillRect(0, 0, 256, 256);
   for (let row = 0; row < 4; row++) for (let i = -1; i < 3; i++) {
     const off = row % 2 ? 64 : 0, x = i * 128 + off, y = row * 64; const v = R() * 22 - 11;
-    g.fillStyle = `rgb(${76 + v | 0},${68 + v | 0},${60 + v * .8 | 0})`; rrect(g, x + 3, y + 3, 122, 58, 5); g.fill();
+    g.fillStyle = `rgb(${br + v | 0},${bg + v | 0},${bb + v * .8 | 0})`; rrect(g, x + 3, y + 3, 122, 58, 5); g.fill();
     for (let k = 0; k < 40; k++) { g.fillStyle = `rgba(0,0,0,${R() * .2})`; g.fillRect(x + R() * 128, y + R() * 64, 2 + R() * 3, 1 + R() * 2); }
     g.fillStyle = 'rgba(255,240,220,.05)'; g.fillRect(x + 4, y + 4, 120, 4);
   }
-  const t = canvasTex(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
-})();
+  const S = mulberry(9);
+  const blotch = (rgb: string, a: number, r0: number, r1: number) => {
+    const x = S() * 256, y = S() * 256, rad = r0 + S() * (r1 - r0); const gr = g.createRadialGradient(x, y, 0, x, y, rad);
+    gr.addColorStop(0, `rgba(${rgb},${a})`); gr.addColorStop(1, `rgba(${rgb},0)`); g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  };
+  if (wall.stains === 'moss') { // damp: green growth and dark drip lines
+    for (let k = 0; k < 14; k++) blotch('46,84,62', .5, 10, 30);
+    for (let k = 0; k < 12; k++) { g.fillStyle = `rgba(14,26,22,${.25 + S() * .3})`; g.fillRect(S() * 256, S() * 256, 1.5 + S() * 1.5, 20 + S() * 50); }
+  } else if (wall.stains === 'soot') { // scorched: black smears
+    for (let k = 0; k < 12; k++) blotch('6,4,3', .6, 16, 44);
+  }
+  const t = canvasTex(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; brickCache.set(key, t); return t;
+}
 
 /** A hole in the floor: near-black centre with a crumbled rim, drawn over the floor texture. */
 let pitTex: THREE.CanvasTexture | null = null;
@@ -59,12 +73,14 @@ export function pitTexture() {
 const floorCache = new Map<string, THREE.CanvasTexture>();
 /** Floor textures are cached per room seed; call between floors to free them. */
 export function clearFloorTextures() { for (const t of floorCache.values()) t.dispose(); floorCache.clear(); }
-export function floorTexture(seed: number, kind: RoomType) {
-  const key = seed + kind; const hit = floorCache.get(key); if (hit) return hit;
+/** Room floor for a floor's look; boss rooms lean red, treasure rooms warmer. */
+export function floorTexture(seed: number, kind: RoomType, look: FloorLook) {
+  const key = seed + kind + look.name; const hit = floorCache.get(key); if (hit) return hit;
   const P = 72, cw = 13 * P, ch = 7 * P;
   const [c, g] = makeCanvas(cw, ch); const R = mulberry(seed);
-  const base = kind === 'boss' ? [70, 56, 52] : kind === 'treasure' ? [80, 72, 58] : [72, 66, 58];
-  g.fillStyle = '#17120e'; g.fillRect(0, 0, cw, ch);
+  const [b0, b1, b2] = look.floor.base;
+  const base = kind === 'boss' ? [b0 - 2, b1 - 10, b2 - 6] : kind === 'treasure' ? [b0 + 8, b1 + 6, b2] : [b0, b1, b2];
+  g.fillStyle = look.floor.mortar; g.fillRect(0, 0, cw, ch);
   for (let r = 0; r < 7; r++) for (let col = 0; col < 13; col++) {
     const x = col * P, y = r * P, v = R() * 18 - 9, ins = 2.5 + R() * 2;
     g.fillStyle = `rgb(${base[0] + v | 0},${base[1] + v | 0},${base[2] + v * .8 | 0})`;
@@ -80,14 +96,30 @@ export function floorTexture(seed: number, kind: RoomType) {
   }
   for (let k = 0; k < 7; k++) {
     const x = R() * cw, y = R() * ch, rad = 40 + R() * 100; const gr = g.createRadialGradient(x, y, 0, x, y, rad);
-    const moss = kind === 'boss' ? '60,14,10' : '38,54,30';
+    const moss = kind === 'boss' ? '60,14,10' : look.floor.stain;
     gr.addColorStop(0, `rgba(${moss},.3)`); gr.addColorStop(1, `rgba(${moss},0)`); g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
   }
   // bones scattered in the cracks
-  for (let k = 0; k < 5; k++) {
+  for (let k = 0; k < look.floor.bones; k++) {
     const x = R() * cw, y = R() * ch, a = R() * Math.PI; g.save(); g.translate(x, y); g.rotate(a);
     g.fillStyle = 'rgba(214,202,176,.5)'; rrect(g, -14, -2.5, 28, 5, 2.5); g.fill();
     g.beginPath(); g.arc(-14, -2, 3.5, 0, 7); g.arc(-14, 3, 3.5, 0, 7); g.arc(14, -2, 3.5, 0, 7); g.arc(14, 3, 3.5, 0, 7); g.fill(); g.restore();
+  }
+  if (look.floor.decor === 'puddles') { // standing water with a faint sheen along the rim
+    for (let k = 0; k < 6; k++) {
+      const x = R() * cw, y = R() * ch, rx = 30 + R() * 70, ry = 14 + R() * 30, a = R() * .4 - .2;
+      g.save(); g.translate(x, y); g.rotate(a);
+      g.fillStyle = 'rgba(12,22,26,.55)'; g.beginPath(); g.ellipse(0, 0, rx, ry, 0, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(150,200,210,.2)'; g.lineWidth = 2; g.beginPath(); g.ellipse(0, 0, rx - 3, ry - 3, 0, 3.6, 5.6); g.stroke();
+      g.fillStyle = 'rgba(190,230,235,.12)'; g.beginPath(); g.ellipse(-rx * .3, -ry * .3, rx * .25, ry * .15, 0, 0, 7); g.fill();
+      g.restore();
+    }
+  } else if (look.floor.decor === 'ash') { // ash drifts and a few glowing embers
+    for (let k = 0; k < 9; k++) {
+      const x = R() * cw, y = R() * ch, rad = 30 + R() * 70; const gr = g.createRadialGradient(x, y, 0, x, y, rad);
+      gr.addColorStop(0, 'rgba(34,30,28,.55)'); gr.addColorStop(1, 'rgba(34,30,28,0)'); g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+    }
+    for (let k = 0; k < 70; k++) { g.fillStyle = `rgba(255,${90 + R() * 60 | 0},30,${.25 + R() * .5})`; g.fillRect(R() * cw, R() * ch, 1 + R() * 2, 1 + R() * 2); }
   }
   // darken towards the walls
   const edge = (x0: number, y0: number, x1: number, y1: number) => {

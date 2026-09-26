@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { brickTex, glowTex, shadowTex } from './textures';
+import type { FloorLook } from '../types';
+import { brickTexture, glowTex, shadowTex } from './textures';
 
 /** Box whose UVs are scaled by face size, so the brick texture tiles at 1 repeat per unit. */
 export function boxUV(w: number, h: number, d: number) {
@@ -10,7 +11,6 @@ export function boxUV(w: number, h: number, d: number) {
 }
 
 export const M = {
-  wall: new THREE.MeshStandardMaterial({ map: brickTex, roughness: .95 }),
   wallTop: new THREE.MeshBasicMaterial({ color: 0x0d0a08 }),
   threshold: new THREE.MeshStandardMaterial({ color: 0x3a3129, roughness: 1 }),
   rock: new THREE.MeshStandardMaterial({ color: 0x6b625a, roughness: .9, flatShading: true }),
@@ -20,15 +20,23 @@ export const M = {
     treasure: new THREE.MeshStandardMaterial({ color: 0x6e5424, roughness: .45, metalness: .6, emissive: 0x2a1800 }),
     boss: new THREE.MeshStandardMaterial({ color: 0x4d1712, roughness: .7, emissive: 0x3a0804 }),
   },
-  flame: new THREE.MeshBasicMaterial({ color: 0xffc36a }),
   gate: new THREE.MeshStandardMaterial({ color: 0x6b5644, roughness: .55, metalness: .5, emissive: 0x1a0f07 }),
   hero: new THREE.MeshStandardMaterial({ color: 0xb9ae9c, roughness: .7, emissive: 0x120d08 }),
 };
-export const WALL_MATS = [M.wall, M.wall, M.wallTop, M.wallTop, M.wall, M.wall];
-
 /** Flag a geometry or material as shared, so disposeTree leaves it alone. */
 export function markShared<T extends { userData: Record<string, unknown> }>(o: T) { o.userData.shared = true; return o; }
-for (const m of [M.wall, M.wallTop, M.threshold, M.rock, M.iron, M.flame, M.gate, M.hero, ...Object.values(M.frame)]) markShared(m);
+for (const m of [M.wallTop, M.threshold, M.rock, M.iron, M.gate, M.hero, ...Object.values(M.frame)]) markShared(m);
+
+const wallCache = new Map<string, THREE.Material[]>();
+/** Box materials for walls in a floor's look (brick sides, dark tops), shared by every room of that look. */
+export function wallMaterials(wall: FloorLook['wall']) {
+  const key = JSON.stringify(wall); let mats = wallCache.get(key);
+  if (!mats) {
+    const brick = markShared(new THREE.MeshStandardMaterial({ map: brickTexture(wall), roughness: .95 }));
+    mats = [brick, brick, M.wallTop, M.wallTop, brick, brick]; wallCache.set(key, mats);
+  }
+  return mats;
+}
 
 // Geometries flagged userData.shared are never disposed by disposeTree.
 const shadowGeo = new THREE.PlaneGeometry(1, 1); shadowGeo.rotateX(-Math.PI / 2); shadowGeo.userData.shared = true;

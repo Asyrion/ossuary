@@ -73,6 +73,21 @@ describe('floor generator', () => {
     }
   });
 
+  it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i has a complete look', (_n, cfg) => {
+    const { floor, wall, torch, light } = cfg.look;
+    const hex = /^#[0-9a-f]{6}$/i, rgb = (v: number[]) => v.length === 3 && v.every(x => x >= 0 && x <= 255);
+    expect(rgb(floor.base) && rgb(wall.brick)).toBe(true);
+    for (const c of [floor.mortar, wall.mortar, torch.flame, torch.light, light.sky, light.ground, light.moon]) expect(c).toMatch(hex);
+    expect(floor.stain).toMatch(/^\d+,\d+,\d+$/);
+    expect(['bones', 'puddles', 'ash']).toContain(floor.decor);
+    expect(['none', 'moss', 'soot']).toContain(wall.stains);
+    expect(['bracket', 'lantern', 'brazier']).toContain(torch.style);
+  });
+
+  it('gives every floor its own look', () => {
+    expect(new Set(FLOORS.map(f => f.look.name)).size).toBe(FLOORS.length);
+  });
+
   it('is deterministic for a seed', () => {
     const a = generateFloor(Rng.from('ABC123', 'floor1'), FLOORS[0], 0);
     const b = generateFloor(Rng.from('ABC123', 'floor1'), FLOORS[0], 0);

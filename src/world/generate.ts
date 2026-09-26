@@ -6,7 +6,7 @@
    Rooms are stored as lists of cells so larger shapes can be added later. */
 import floorsData from '../../data/floors.json';
 import type { Rng } from '../rng';
-import type { RoomType } from '../types';
+import type { FloorLook, RoomType } from '../types';
 import { TEMPLATE_DEFS, type ShapeId, type TemplateDef } from './templates';
 
 export const GRID_W = 9, GRID_H = 8;
@@ -18,6 +18,7 @@ export interface FloorConfig {
   enemyHp: number;
   templateWeights: Record<string, number>;
   boss: BossConfig;
+  look: FloorLook;
 }
 
 /** Per-floor settings from data/floors.json, floor 1 first. */

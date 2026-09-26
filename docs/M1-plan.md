@@ -24,6 +24,8 @@ build. Each step ends playable, with unit and browser tests passing, and is push
 - [x] Trapdoor after the boss; tougher Warden on floors 2 and 3; winning after floor 3
 - [x] Minimap for generated floors, floor banner
 - [x] Smoke test on a fixed seed: clear a room, descend a floor
+- [x] After play-testing: each floor gets its own look (tile and wall colours, stains, torch style and
+      light colour) from `data/floors.json`
 
 ## Step 2: Artifacts
 

@@ -1,7 +1,7 @@
 /* Fixed-step game loop: the simulation always advances in 1/60 s steps; a frame never feeds it more than
    1/30 s, so a long hitch slows the game down instead of teleporting it. */
 import { G, player, updateTimers } from './state';
-import { torchLights } from './render/lights';
+import { lightState, torchLights } from './render/lights';
 import { CFG } from './config';
 import { updateRoomFx } from './world/rooms';
 import { heroVisual } from './actors/hero';
@@ -48,7 +48,7 @@ export function step(dt: number) {
 function updateWorldFx(dt: number, now: number) {
   updateRoomFx(dt, now); updateRelics(now); updateTrapdoor(dt);
   const tf = .92 + Math.sin(now * 13) * .05 + Math.sin(now * 23) * .04;
-  for (const l of torchLights) l.intensity = CFG.lights.torch * tf;
+  for (const l of torchLights) l.intensity = CFG.lights.torch * lightState.torchMul * tf;
   G.shake = Math.max(0, G.shake - dt * 1.4);
   updateHud(dt);
 }

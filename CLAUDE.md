@@ -21,7 +21,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   round-base tests with no three.js dependency; the game and `tools/prepare-asset.ts` both use them.
 - Runs are seeded (`src/rng.ts`: named streams per system). `src/world/generate.ts` builds each floor
   (pure, unit-tested); `src/world/templates.ts` parses and validates room templates. Content:
-  `data/floors.json` (room counts, difficulty weights, enemy health, boss tuning per floor),
+  `data/floors.json` (room counts, difficulty weights, enemy health, boss tuning and look per floor),
   `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `R W H` enemies, `B` boss) and
   `data/relics.json` (until artifacts replace it in step 2).
 - Tests: `npm run test:unit` (Vitest: generator rules on hundreds of seeds, every template validated),

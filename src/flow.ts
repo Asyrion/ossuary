@@ -7,7 +7,7 @@ import { STR } from './strings';
 import { Rng, newSeed } from './rng';
 import { Sfx } from './audio/sfx';
 import { CAM_OFFSET_Z, camTarget, scene } from './render/renderer';
-import { torchLights } from './render/lights';
+import { applyFloorLook, torchLights } from './render/lights';
 import { disposeTree } from './render/materials';
 import { clearFloorTextures } from './render/textures';
 import { buildRoom, buildWallsAndDoors, doorsOf, freeSpotNear, roomAt, setDoors } from './world/rooms';
@@ -48,6 +48,7 @@ export function buildFloor(index: number) {
   G.run.floor = index;
   const plan = testTemplate ? testPlan(testTemplate) : generateFloor(Rng.from(G.run.seed, 'floor' + index), FLOORS[index], index);
   G.run.plan = plan;
+  applyFloorLook(FLOORS[index].look);
   for (const p of plan.rooms) buildRoom(p, index);
   for (const r of G.rooms) buildWallsAndDoors(r);
   const start = G.rooms[plan.startId];

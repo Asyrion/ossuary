@@ -16,12 +16,24 @@ export interface RelicDef {
   effects: { damageAdd?: number; boltScale?: number; boltColor?: string };
 }
 
+type RGB = [number, number, number];
+/** How a floor looks: placeholder variety until the biome pass (M8). Lives in data/floors.json. */
+export interface FloorLook {
+  name: string;
+  /** Floor tiles: base colour, mortar, stain colour ("r,g,b"), scattered decoration and how many bones. */
+  floor: { base: RGB; mortar: string; stain: string; decor: 'bones' | 'puddles' | 'ash'; bones: number };
+  wall: { brick: RGB; mortar: string; stains: 'none' | 'moss' | 'soot' };
+  torch: { style: 'bracket' | 'lantern' | 'brazier'; flame: string; light: string; intensity: number };
+  /** Hemisphere sky and ground colours, and the moonlight. */
+  light: { sky: string; ground: string; moon: string };
+}
+
 export interface Door { side: Side; nb: Room; bars: THREE.Group; barH: number; open: boolean; style: DoorStyle; box: Box }
 export interface Torch { flame: THREE.Mesh; glow: THREE.Sprite; x: number; z: number }
 export interface RelicSpot { def: RelicDef; group: THREE.Group; taken: boolean; x: number; z: number }
 
 export interface Room {
-  plan: PlannedRoom; template: Template; type: RoomType; gx: number; gy: number; cx: number; cz: number;
+  plan: PlannedRoom; template: Template; look: FloorLook; type: RoomType; gx: number; gy: number; cx: number; cz: number;
   /** Interior in world units. */
   bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
   group: THREE.Group; doors: Partial<Record<Side, Door>>; walls: Box[]; rocks: Box[]; pits: Box[]; torches: Torch[];
