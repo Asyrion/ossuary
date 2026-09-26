@@ -1,6 +1,6 @@
 # Ossuary: project brief for Claude Code
 
-Ossuary is a hobby browser/mobile game: a top-down roguelike in the style of The Binding of Isaac, set in
+Ossuary is a hobby desktop-browser game: a top-down roguelike in the style of The Binding of Isaac, set in
 the owner's fantasy world **Eda** (high fantasy turned dark, medieval). Characters are made in **Tripo3D**
 and exported as GLB. The owner (Azyrion) designs; you build.
 
@@ -30,7 +30,7 @@ plays like 0.3. See `README.md` for scripts and deployment.
   brightness (`CFG.lights`).
 - Gameplay delays (the warden's second ring, the pause before the death screen) run on simulation time,
   so they pause with the game and advance under `__game.sim()`.
-- Dev hooks (`window.__game`, `window.__manual`) are also in production builds, for testing on a phone.
+- Dev hooks (`window.__game`, `window.__manual`) are also in production builds, for testing the deployed site.
   `warp()` does not despawn the previous room's foes (as in 0.3).
 
 Prototype content: one hand-built floor of six rooms (start, 3 combat, treasure, boss), 3 enemy types plus
@@ -103,9 +103,12 @@ Run clip playback speed is `CFG.hero.runAnimSpeed` (3.6 at full speed).
 
 ## Design facts to keep consistent
 
-- Room interior 13 × 7 tiles, 1 tile = 1 unit, walls 1 thick, doors centred, 1.44 wide.
-- Orthographic camera tilted 45°, fitted to the room; pans between rooms in 0.42 s; only the current room
-  is drawn. North wall tall (1.35), south wall low (0.5).
+- Room cell 13 × 7 tiles, 1 tile = 1 unit, walls 1 thick, doors centred, 1.44 wide. From M1, larger rooms
+  combine cells (GDD: Room shapes).
+- Orthographic camera tilted 45°, fitted to one-cell rooms and following the mage in larger ones; pans
+  between rooms in 0.42 s; only the current room is drawn. North wall tall (1.35), south wall low (0.5).
+- Desktop browser first (keyboard, gamepad). The 0.3 touch controls stay but are frozen: don't extend or
+  test them, and add no touch UI for new actions until a mobile port.
 - Four-direction casting, eight-direction movement, 3 hearts counted in halves, 1 s invulnerability.
 - Hearts can't be picked up at full health. Doors lock while enemies live.
 - Placeholder names (Ossuary, Rotling, Wisp, Crypt hound, Hollow Warden, Ember Sigil) will be replaced with
@@ -116,8 +119,8 @@ Run clip playback speed is `CFG.hero.runAnimSpeed` (3.6 at full speed).
 Order and scope from `docs/GDD.md` (Roadmap and milestones); details are in the GDD. Every milestone
 ships placeholder sounds for what it adds; spatial audio and the mixer arrive with M3 (GDD: Audio design).
 
-- **M1 Core loop:** three generated floors (varied maps and room counts), 15+ room templates, ordeal and
-  bone altar rooms, 3 to 5 artifacts per floor from 10 artifacts and 3 foci as data.
+- **M1 Core loop:** three generated floors (varied maps, room counts and room shapes), 20+ room templates,
+  room variants from quiet to ordeal, bone altars, 3 to 5 artifacts per floor from 10 artifacts and 3 foci.
 - **M2 Plunder:** coins, keys and bombs; merchant, secret room, locked vault, shrine cleansing; urns, chests.
 - **M3 Magic:** mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room.
 - **M4 Tripo enemies:** 3 enemies and 1 boss from Tripo, with elemental affinities.
@@ -131,6 +134,6 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
 - Plan before large changes; keep commits small with clear messages.
 - Before calling something done, verify it in the browser (Playwright screenshots are fine).
 - Tuning values live in `config.ts`; content lives in `data/`. Don't scatter magic numbers.
-- Performance target: 60 fps on a mid-range Android phone in landscape. Share geometries and materials
-  for projectiles and particles; dispose what you remove.
-- The owner is an IT professional, comfortable with PowerShell, and writes in English or German.
+- Performance target: 60 fps in desktop browsers on mid-range hardware, including integrated graphics.
+  Share geometries and materials for projectiles and particles; dispose what you remove.
+- The owner is an IT professional, comfortable with PowerShell; work on this project is in English.

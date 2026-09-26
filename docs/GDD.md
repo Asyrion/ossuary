@@ -4,7 +4,7 @@ Sep 24, 2026 · @Azyrion
 
 ## Vision and pillars
 
-Ossuary is a top-down roguelike with RPG elements, set in the high/dark fantasy world of Eda. It borrows the room-by-room structure of The Binding of Isaac, but its identity is magic: every run is a spellbook the player assembles from spells, runes, magical artifacts and potions they brew themselves. It runs in the browser and on phones, with all characters and creatures built in Tripo3D. It is a hobby project; the current goal is to prove the core loop is fun before adding content.
+Ossuary is a top-down roguelike with RPG elements, set in the high/dark fantasy world of Eda. It borrows the room-by-room structure of The Binding of Isaac, but its identity is magic: every run is a spellbook the player assembles from spells, runes, magical artifacts and potions they brew themselves. It runs in desktop browsers (a mobile version may come later), with all characters and creatures built in Tripo3D. It is a hobby project; the current goal is to prove the core loop is fun before adding content.
 
 **Pitch:** An apprentice mage descends beneath a ruined chapel of Eda, room by room, floor by floor. They learn spells from torn grimoire pages, bind cursed artifacts to their will, brew potions from what the dead leave behind, and grow stronger with every floor. Every run builds a different mage; what the mage learns is never fully lost.
 
@@ -29,7 +29,7 @@ Ossuary is a top-down roguelike with RPG elements, set in the high/dark fantasy 
 | Rooms are obstacles | Rooms react to magic: oil burns, water conducts, braziers empower |
 | Unlocks are new items | The Sanctum: a hub where knowledge persists between runs |
 
-**Scope:** hobby project, browser first, landscape phones second. No monetisation plans.
+**Scope:** hobby project for desktop browsers, played with keyboard or gamepad. A mobile version may come later and is not designed for until then. No monetisation plans.
 
 ## Core loop
 
@@ -87,14 +87,16 @@ flowchart LR
 
 The player moves in eight directions and casts in four, independently, with three hearts of health counted in halves.
 
-| Action | Keyboard | Gamepad | Touch |
-| --- | --- | --- | --- |
-| Move | W A S D | Left stick | Left-half floating stick |
-| Cast | Arrow keys (last pressed wins) | Right stick or face buttons | Right-half stick, snapped to 4 directions |
-| Pause | Esc or P | Start | II button |
-| Mute | M |  | Pause menu |
+| Action | Keyboard | Gamepad |
+| --- | --- | --- |
+| Move | W A S D | Left stick |
+| Cast | Arrow keys (last pressed wins) | Right stick or face buttons |
+| Pause | Esc or P | Start |
+| Mute | M |  |
 
-Planned inputs: bomb on Space (LT, touch bomb button) from M2; for the magic layer, spell 1 and 2 on Q and E (LB and RB, two touch buttons) and potion on F (Y, touch flask; hold to throw). See Coins, keys and bombs and Magic system.
+The touch twin-stick from prototype 0.3 stays in the code but is frozen: it isn't extended or tested, and new actions get no touch controls until a mobile port.
+
+Planned inputs: bomb on Space (LT) from M2; for the magic layer, spell 1 and 2 on Q and E (LB and RB) and potion on F (Y; hold to throw). See Coins, keys and bombs and Magic system.
 
 **Starting stats (prototype 0.3)**
 
@@ -151,8 +153,8 @@ The mage has three layers of magic: a free cantrip that is always firing, two ac
 | Layer | Input | Cost | Changed by |
 | --- | --- | --- | --- |
 | Cantrip (today's bolt) | Arrow keys, 4 directions | Free | The equipped focus artifact, boons, passive artifacts |
-| Spell 1 and 2 | Q and E / LB and RB / two touch buttons | Mana + cooldown | Runes socketed into the spell, school mastery |
-| Potion | F / Y / touch flask, hold to throw | One potion from the belt | Alchemy boons, some artifacts |
+| Spell 1 and 2 | Q and E / LB and RB | Mana + cooldown | Runes socketed into the spell, school mastery |
+| Potion | F / Y, hold to throw | One potion from the belt | Alchemy boons, some artifacts |
 
 **Mana:** a blue bar under the hearts, 100 at start. It refills 4 per second out of combat and 1 per second in combat; killing an enemy with the cantrip gives 3. Mana vials drop from rooms like hearts.
 
@@ -264,42 +266,52 @@ The generator places the three guaranteed sources first, then gives artifacts to
 
 **Foci**
 
-| Focus | Cantrip becomes |
-| --- | --- |
-| Apprentice's Wand (start) | Single bolt, as now |
-| Emberwood Wand | Bolts apply Burn, −10% range |
-| Twin-Headed Staff | Two parallel bolts, −30% damage each |
-| Drowned Orb | Bolts bounce off walls twice |
-| Tome of Whispers | Slow bolts that curve towards enemies, +40% damage |
-| Shepherd's Crook | Bolts return to the mage like a boomerang, hitting twice |
+| Focus | Cantrip becomes | Arrives |
+| --- | --- | --- |
+| Apprentice's Wand (start) | Single bolt, as now | 0.3 |
+| Twin-Headed Staff | Two parallel bolts, −30% damage each | M1 |
+| Drowned Orb | Bolts bounce off walls twice | M1 |
+| Shepherd's Crook | Bolts return to the mage like a boomerang, hitting twice | M1 |
+| Emberwood Wand | Bolts apply Burn, −10% range | M3 |
+| Tome of Whispers | Slow bolts that curve towards enemies, +40% damage | M3 |
 
 **Passive artifacts (first list)**
 
-| Artifact | Effect |
-| --- | --- |
-| Ember Sigil | Damage +1.5, bigger bolts (exists in 0.3) |
-| Pilgrim's Boots | Move speed +0.6 |
-| Rosary of Haste | Cantrip fire delay −25% |
-| Bone Lens | Cantrip pierces one enemy |
-| Mana Lantern | Max mana +40 |
-| Candle of the Vigil | Each room clear refills 25 mana |
-| Frostbitten Ring | Every 5th cantrip bolt applies Chill |
-| Stormglass Pendant | Shocked enemies take +25% cantrip damage |
-| Thurible of Ash | Burning enemies spread Burn when they die |
-| Witch's Knot | Spells cost 20% less while below half health |
-| Alchemist's Satchel | Potion belt +1 slot, reagents drop 30% more often |
-| Reliquary Shard | +1 heart container |
+| Artifact | Effect | Arrives |
+| --- | --- | --- |
+| Ember Sigil | Damage +1.5, bigger white-hot bolts (exists in 0.3) | M1 |
+| Pilgrim's Boots | Move speed +0.6; the mage can walk over pits | M1 |
+| Rosary of Haste | Cantrip fire delay −25% | M1 |
+| Bone Lens | Cantrip pierces one enemy | M1 |
+| Reliquary Shard | +1 heart container, fully healed | M1 |
+| Saint's Knucklebone | Enemies burst into four bolts (north, east, south, west) when they die | M1 |
+| Mourning Bell | When the mage is hit, a bell tolls and a ring of 8 bolts bursts outwards | M1 |
+| Mason's Chisel | Bolts crack rocks; three hits break one | M1 |
+| Mana Lantern | Max mana +40 | M3 |
+| Candle of the Vigil | Each room clear refills 25 mana | M3 |
+| Frostbitten Ring | Every 5th cantrip bolt applies Chill | M3 |
+| Stormglass Pendant | Shocked enemies take +25% cantrip damage | M3 |
+| Thurible of Ash | Burning enemies spread Burn when they die | M3 |
+| Witch's Knot | Spells cost 20% less while below half health | M3 |
+| Alchemist's Satchel | Potion belt +1 slot, reagents drop 30% more often | M5 |
 
 **Cursed artifacts**
 
-| Artifact | Gift | Price |
-| --- | --- | --- |
-| Crown of Thorns | Spell damage +50% | Max health −1 heart |
-| Hungering Tome | Every kill refills 5 mana | Mana doesn't regenerate on its own |
-| Mask of the Drowned | Cantrip damage doubled | Vision limited to a circle around the mage |
-| Chain of the Penitent | Invulnerability after a hit lasts 3 s | Move speed −25% |
+| Artifact | Gift | Price | Arrives |
+| --- | --- | --- | --- |
+| Mask of the Drowned | Cantrip damage doubled | Vision limited to a circle around the mage | M1 |
+| Chain of the Penitent | Invulnerability after a hit lasts 3 s | Move speed −25% | M1 |
+| Crown of Thorns | Spell damage +50% | Max health −1 heart | M3 |
+| Hungering Tome | Every kill refills 5 mana | Mana doesn't regenerate on its own | M3 |
 
-**Sets**
+**The M1 set** is the 10 artifacts and 3 foci marked M1 above. Rules that apply from M1 on:
+
+- **Every artifact is noticeable.** Picking one up changes something the player sees (the bolts, the mage, the HUD or the room), never only a hidden number. The pickup banner names it and says what it does in a few words.
+- **The cantrip combines automatically.** The focus sets the pattern (how many bolts, and their path); passives add modifiers (damage, size, fire rate, piercing, triggers). There are no hand-written pairings: Twin-Headed Staff with Bone Lens fires two piercing bolts, Shepherd's Crook with Bone Lens pierces on the way out and back.
+- **Taking a focus leaves the old one on the pedestal,** so the player can swap back.
+- **Each artifact appears at most once per run.** If a source's pool is empty, it falls back to any unseen artifact, then to a heart. With 13 M1 items and up to 15 offers per run, runs differ mostly in order and choice; more artifacts are the cheapest way to add variety, since they are data.
+
+**Sets** (from M3, when their pieces exist)
 
 | Set | Pieces | Bonus |
 | --- | --- | --- |
@@ -413,7 +425,7 @@ No permanent stat increases: unlocks widen the options, they don't make the mage
 
 ## Floors and rooms
 
-Every room is 13 × 7 tiles inside its walls, with a door in the middle of any wall that has a neighbour. Floors will be generated from hand-built room templates.
+Rooms are built from cells of 13 × 7 tiles. A standard room is one cell, with a door in the middle of any wall that has a neighbour; larger rooms combine cells and have a door slot on every cell edge. Floors are generated from hand-built room templates.
 
 **Room anatomy.** Walls are 1 tile thick; the north wall is tall and carries two torches, the south wall is low so the player stays visible. Doors have iron gates that rise when enemies are present. Rocks block walking and bolts; flying enemies ignore them.
 
@@ -429,16 +441,44 @@ Every room is 13 × 7 tiles inside its walls, with a door in the middle of any w
 | Secret | Hidden, opened by a bomb | None, a cracked wall | M2 |
 | Locked vault | Opened with a key | Padlocked iron | M2 |
 
+**Room shapes (M1).** The cell size stays 13 × 7; shapes combine cells on the floor grid, Isaac-style.
+
+| Shape | Cells | Inside (tiles) | Doors |
+| --- | --- | --- | --- |
+| Standard | 1 × 1 | 13 × 7 | Up to 4 |
+| Narrow corridor, east–west | 1 × 1 | 13 × 3 | East and west only |
+| Narrow corridor, north–south | 1 × 1 | 5 × 7 | North and south only |
+| Long hall | 2 × 1 | 27 × 7 | Up to 6 |
+| Tall hall | 1 × 2 | 13 × 15 | Up to 6 |
+| Great hall | 2 × 2 | 27 × 15 | Up to 8 |
+| L-shaped hall | 3 cells of a 2 × 2, four rotations | 27 × 15 minus a corner | Up to 8 |
+
+- **Camera:** fixed and fitted in one-cell rooms, as now. In larger rooms it follows the mage at the same zoom and stops at the walls; the minimap shows the whole shape.
+- **Which rooms can be large:** normal rooms, ordeals and the boss room (a great hall suits a boss). Start, treasure, bone altar, merchant, secret and vault rooms stay one cell.
+- **Mix:** most rooms stay standard; larger shapes and corridors make up about a third of a floor (placeholder).
+
+**Room variants (M1).** Normal rooms can roll a variant that makes them clearly easier or harder than the floor's baseline, so a floor has peaks and breathers.
+
+| Variant | Difficulty | What changes |
+| --- | --- | --- |
+| Quiet | Easier | One or two weak enemies or none; often a heart |
+| Normal | Floor baseline | A template at the floor's difficulty |
+| Champion | Harder | One enemy is a champion: bigger, tinted, double health, a little faster; drops a heart |
+| Ambush | Harder | The room looks empty; enemies rise from the floor when the mage reaches the middle |
+| Dark | Harder | The torches are out; only the mage's lantern lights the room |
+| Ordeal | Much harder | Two or three waves, then an artifact (a special room, see above) |
+
 **A run is three floors (M1).** Each floor is generated fresh, so no two runs share a map:
 
 - **Map:** start in the centre of a 9 × 8 grid and grow outwards by random walk until the floor has its room count, rolled per floor: 8 to 12 rooms on floor 1, 10 to 14 on floor 2, 12 to 16 on floor 3.
 - **Special rooms** go into dead ends (rooms with one neighbour): the farthest from the start is the boss room, then treasure, ordeal and (from M2) the merchant; optional rooms (bone altar, and from M2 the locked vault) only appear when a spare dead end exists. If the walk leaves too few dead ends for the required rooms, it tries again. The boss room never touches the start room.
 - **Secret room (M2):** one per floor, in an empty cell touching at least two rooms.
-- **Difficulty:** normal rooms draw harder templates the further they are from the start and the deeper the floor; enemies gain about 15% health per floor (placeholder).
+- **Shapes:** while growing the map, the walk sometimes places a larger shape when the cells it needs are free.
+- **Difficulty:** floor 1 is easy, and each later floor raises the baseline a little (harder templates, about 15% more enemy health per floor). Within a floor, rooms vary randomly around the baseline rather than rising steadily, and variants push single rooms clearly above or below it; deeper floors roll more hard variants. The rooms next to the start on floor 1 are never hard variants. All numbers are found by play-testing.
 - **Between floors:** the boss opens a trapdoor; stepping in starts the next floor (waystones join in M6). Beating the floor 3 boss wins the run. Until Tripo bosses arrive (M4), floors 2 and 3 end with a harder Hollow Warden: more health, faster volleys, more summons.
 - **Seeds:** every run has a seed, shown in the pause menu, so a run can be replayed and bugs reproduced.
 
-**Room templates are data:** a 13 × 7 character grid (rock, pit, enemy spawn, empty; urns from M2) plus a difficulty value and the room types it suits, stored as JSON so new rooms need no code. Ordeal templates list two or three waves.
+**Room templates are data:** a character grid in the size of the room's shape (rock, pit, enemy spawn, empty; urns from M2) plus a difficulty value and the room types it suits, stored as JSON so new rooms need no code. Ordeal templates list two or three waves. M1 needs at least two templates per shape and 20 or more in total.
 
 ## Pickups and room types
 
@@ -555,7 +595,7 @@ Audio is designed for headphones first: every sound has a position in the room, 
 - The listener sits just above the hero's head, not at the camera, so panning follows the mage.
 - Each floor has its own reverb (small stone crypt, flooded tunnels, wide burning hall); special rooms get their own (the library is dry and close, the shrine rings).
 - Doors are acoustic windows: the ambience of the next room is heard faintly through an open door and muffled when doors lock.
-- Speakers and phones get a simpler stereo mix; a setting chooses between headphones and speakers.
+- Speakers get a simpler stereo mix; a setting chooses between headphones and speakers.
 
 **Adaptive music**
 
@@ -598,7 +638,7 @@ Reactions (steam, shatter, overload, eclipse, blackfire) each get their own sign
 **Mixing rules**
 
 - Priority: telegraphs and player damage are never masked; music ducks under boss intros, stingers and level-ups.
-- Voice limit: at most 3 copies of the same sound at once, oldest cut first; total voice cap around 32 on phones.
+- Voice limit: at most 3 copies of the same sound at once, oldest cut first; total voice cap around 32.
 - Every frequent sound has 3 to 5 variants plus slight random pitch.
 - Volume sliders for master, music, ambience, effects and interface.
 - Accessibility: important sounds (telegraphs, off-screen spawns, low health) also have a visual cue.
@@ -671,7 +711,7 @@ The prototype is a single HTML file; the target is a Vite + TypeScript project o
 | Assets | Hero GLB embedded as base64 | GLB files in `public/assets`, loaded at runtime |
 | Asset prep | Done by hand in chat | Script: resize textures to 1024 px, check clips, report problems |
 | Content | Rooms and relic hard-coded | JSON data: rooms, enemies, spells, runes, artifacts, potions, recipes, boons |
-| Hosting | Claude artifact | GitHub Pages or itch.io, testable on phone |
+| Hosting | Claude artifact | GitHub Pages or itch.io, testable in any desktop browser |
 | History | None | Git |
 
 **Target module layout**
@@ -687,7 +727,7 @@ src/
   items/           artifacts, sets, curses, pickups, bombs, merchant stock
   alchemy/         potions, identification, reagents, brewing
   progression/     XP, levels, attributes, boons, sanctum save
-  input/           keyboard, gamepad, touch
+  input/           keyboard, gamepad (touch frozen until a mobile port)
   ui/              HUD, minimap, menus, boon picker, grimoire
   audio/           spatial effects, ambience, adaptive music, mixer
 data/              rooms, enemies, spells, runes, artifacts, potions, recipes, boons (JSON)
@@ -704,7 +744,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | Milestone | Goal | Done when |
 | --- | --- | --- |
 | M0 Move to Claude Code | Same game, proper project | Prototype 0.3 runs from the repo, deployed, playable on phone |
-| M1 Core loop | Runs feel different | Three generated floors with varied maps and room counts, 15+ room templates, ordeal and bone altar rooms, 3 to 5 artifacts per floor from 10 artifacts and 3 foci as data |
+| M1 Core loop | Runs feel different | Three generated floors with varied maps, room counts and room shapes; 20+ room templates; room variants from quiet to ordeal, and bone altars; 3 to 5 artifacts per floor from 10 artifacts and 3 foci as data |
 | M2 Plunder | Exploration pays | Coins, keys and bombs; merchant, secret room, locked vault and shrine cleansing; urns and chests |
 | M3 Magic | Magic is the build | Mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room |
 | M4 Tripo enemies | Own creatures | 3 enemies and 1 boss from Tripo, with elemental affinities |
@@ -747,4 +787,4 @@ All names in the prototype are placeholders until the Eda lore is added to this 
 - [ ] Should artifacts come from Eda's factions or gods (for example one pool per faction)?
 - [ ] Who teaches alchemy in Eda, and is it respected or forbidden?
 - [ ] Should the disciplines be separate playable characters with their own Tripo models, or one mage with different loadouts?
-- [ ] Touch controls: is four-direction casting right on phones, and do two spell buttons, a potion button and a bomb button fit on screen?
+- [ ] For a later mobile port: is four-direction casting right on phones, and do the spell, potion and bomb buttons fit on screen?
