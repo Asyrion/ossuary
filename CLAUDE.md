@@ -4,8 +4,9 @@ Ossuary is a hobby browser/mobile game: a top-down roguelike in the style of The
 the owner's fantasy world **Eda** (high fantasy turned dark, medieval). Characters are made in **Tripo3D**
 and exported as GLB. The owner (Azyrion) designs; you build.
 
-The full game design document and the Tripo asset checklist live as living docs in the owner's claude.ai
-project "Tripo3D-GameDev". This file holds what you need to work in the repo.
+**`docs/GDD.md` is the source of truth for game design.** Read the relevant section before starting a
+milestone; if this file disagrees with it on design, the GDD wins. The Tripo asset checklist lives in the
+owner's claude.ai project "Tripo3D-GameDev". This file holds what you need to work in the repo.
 
 ## Current state: 0.4 (M0 done)
 
@@ -112,12 +113,15 @@ Run clip playback speed is `CFG.hero.runAnimSpeed` (3.6 at full speed).
 
 ## After M0: roadmap
 
-- **M1 core loop:** Isaac-style floor generation (random walk on a 9 × 8 grid, dead ends become special
-  rooms, farthest is the boss), 15+ room templates as JSON (13 × 7 char grids + difficulty), 10 relics as
-  data with stat modifiers and stackable effects.
-- **M2:** three Tripo enemies and one boss replace the placeholders, using the hero's animation controller.
-- **M3:** coins, keys, bombs, shop, locked and secret rooms. **M4:** three floors and a final boss.
-  **M5:** Eda names, floor themes, sound and music.
+Order and scope from `docs/GDD.md` (Roadmap and milestones); details are in the GDD.
+
+- **M1 Core loop:** generated floors, 15+ room templates, 10 artifacts and 3 foci as data.
+- **M2 Magic:** mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room.
+- **M3 Tripo enemies:** 3 enemies and 1 boss from Tripo, with elemental affinities.
+- **M4 Alchemy:** potion belt, drink or throw, identification, 4 reagents, alchemy table.
+- **M5 RPG growth:** XP, levels, attributes, 12 boons, runes and waystones.
+- **M6 Descent and Sanctum:** 3 floors, final boss, Sanctum with grimoire, bestiary and disciplines.
+- **M7 Eda:** lore names, floor themes, sound and music.
 
 ## Working agreements
 
