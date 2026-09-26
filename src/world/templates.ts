@@ -1,23 +1,22 @@
-/* Room templates: character grids in data/templates/*.json. Pure data code (no three.js), shared by the
-   game, the floor generator and the unit tests.
+/* Room templates: character grids in data/templates/*.json, one grid the size of the shape's inside
+   (shapes.ts). Pure data code (no three.js), shared by the game, the floor generator and the unit tests.
 
-   Legend:  .  floor      #  rock      o  pit
+   Legend:  .  floor      #  rock      o  pit      x  outside the room (the L's missing corner)
             R  rotling    W  wisp      H  crypt hound      B  the floor's boss
 
    Ordeal templates keep their terrain in `grid` (no enemies) and list each wave's enemies in `waves`,
-   one grid per wave with only `.` and enemy letters. */
+   one grid per wave with only `.` and enemy letters. L-shaped templates are drawn missing the
+   bottom-right corner; mirroring turns them to the other corners. */
 import standardTemplates from '../../data/templates/standard.json';
 import specialTemplates from '../../data/templates/special.json';
+import shapedTemplates from '../../data/templates/shapes.json';
 import type { EnemyType } from '../config';
 import type { RoomType } from '../types';
+import { SHAPE_IDS, doorSlots, shapeMask, shapeSize, type ShapeId } from './shapes';
 
-export type Tile = 'floor' | 'rock' | 'pit';
-export type ShapeId = 'standard';
+export type { ShapeId } from './shapes';
+export type Tile = 'floor' | 'rock' | 'pit' | 'void';
 export type FoeKind = EnemyType | 'boss';
-
-export const SHAPES: Record<ShapeId, { w: number; h: number }> = {
-  standard: { w: 13, h: 7 },
-};
 
 export interface TemplateDef {
   id: string; shape: ShapeId; types: RoomType[]; difficulty: number; grid: string[];
@@ -31,12 +30,12 @@ export interface Template {
   /** Every enemy of every wave. */ foes: Foe[];
 }
 
-const TILE_OF: Record<string, Tile> = { '.': 'floor', '#': 'rock', 'o': 'pit' };
+const TILE_OF: Record<string, Tile> = { '.': 'floor', '#': 'rock', 'o': 'pit', 'x': 'void' };
 const FOE_OF: Record<string, FoeKind> = { R: 'rotling', W: 'wisp', H: 'hound', B: 'boss' };
 
 /** Parse a template, optionally mirrored left-right and/or top-bottom. */
 export function parseTemplate(def: TemplateDef, mirrorX = false, mirrorY = false): Template {
-  const { w, h } = SHAPES[def.shape];
+  const { w, h } = shapeSize(def.shape);
   const at = (grid: string[], c: number, r: number) => grid[mirrorY ? h - 1 - r : r]?.[mirrorX ? w - 1 - c : c];
   const tiles: Tile[][] = []; const inGrid: Foe[] = [];
   for (let r = 0; r < h; r++) {
@@ -53,26 +52,14 @@ export function parseTemplate(def: TemplateDef, mirrorX = false, mirrorY = false
   return { id: def.id, shape: def.shape, types: def.types, difficulty: def.difficulty, w, h, tiles, waves, foes: waves.flat() };
 }
 
-/** Where the player appears when entering through each door, and the tiles that must stay clear. */
-export function doorTiles(shape: ShapeId) {
-  const { w, h } = SHAPES[shape]; const mx = (w - 1) / 2, my = (h - 1) / 2;
-  return {
-    entries: [{ c: mx, r: 0 }, { c: mx, r: h - 1 }, { c: 0, r: my }, { c: w - 1, r: my }],
-    lanes: [
-      [mx - 1, 0], [mx, 0], [mx + 1, 0], [mx - 1, h - 1], [mx, h - 1], [mx + 1, h - 1],
-      [0, my - 1], [0, my], [0, my + 1], [w - 1, my - 1], [w - 1, my], [w - 1, my + 1],
-    ].map(([c, r]) => ({ c, r })),
-  };
-}
-
 /** Problems with a template definition; empty when it is valid. */
 export function validateTemplate(def: TemplateDef): string[] {
   const errs: string[] = [];
-  const shape = SHAPES[def.shape];
-  if (!shape) return [`unknown shape "${def.shape}"`];
-  if (def.grid.length !== shape.h) errs.push(`has ${def.grid.length} rows, needs ${shape.h}`);
+  if (!SHAPE_IDS.includes(def.shape)) return [`unknown shape "${def.shape}"`];
+  const size = shapeSize(def.shape);
+  if (def.grid.length !== size.h) errs.push(`has ${def.grid.length} rows, needs ${size.h}`);
   def.grid.forEach((row, r) => {
-    if (row.length !== shape.w) errs.push(`row ${r} has ${row.length} columns, needs ${shape.w}`);
+    if (row.length !== size.w) errs.push(`row ${r} has ${row.length} columns, needs ${size.w}`);
     for (const ch of row) if (!TILE_OF[ch] && !FOE_OF[ch]) errs.push(`row ${r} has unknown character "${ch}"`);
   });
   const ordeal = def.types.includes('ordeal');
@@ -81,16 +68,21 @@ export function validateTemplate(def: TemplateDef): string[] {
     if (def.waves.length < 2 || def.waves.length > 3) errs.push(`has ${def.waves.length} waves, needs 2 or 3`);
     if (def.grid.some(row => [...row].some(ch => FOE_OF[ch]))) errs.push('ordeal enemies go in the waves, not the grid');
     def.waves.forEach((grid, i) => {
-      if (grid.length !== shape.h || grid.some(row => row.length !== shape.w)) errs.push(`wave ${i + 1} is not ${shape.w} × ${shape.h}`);
-      else if (grid.some(row => [...row].some(ch => ch !== '.' && !FOE_OF[ch]))) errs.push(`wave ${i + 1} may only hold '.' and enemies`);
+      if (grid.length !== size.h || grid.some(row => row.length !== size.w)) errs.push(`wave ${i + 1} is not ${size.w} × ${size.h}`);
+      else if (grid.some(row => [...row].some(ch => ch !== '.' && ch !== 'x' && !FOE_OF[ch]))) errs.push(`wave ${i + 1} may only hold '.' and enemies`);
       else if (!grid.some(row => [...row].some(ch => FOE_OF[ch]))) errs.push(`wave ${i + 1} has no enemies`);
     });
   }
   if (errs.length) return errs;
   const t = parseTemplate(def);
-  for (const f of t.foes) if (t.tiles[f.r][f.c] !== 'floor') errs.push(`${f.kind} at (${f.c},${f.r}) stands on a ${t.tiles[f.r][f.c]}`);
-  const blocked = (c: number, r: number) => t.tiles[r][c] !== 'floor';
-  const { entries, lanes } = doorTiles(def.shape);
+  // the room's outline comes from its shape: `x` exactly where the shape has no inside
+  const mask = shapeMask(def.shape);
+  let outline = 0;
+  for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) if ((t.tiles[r][c] === 'void') === mask[r][c]) outline++;
+  if (outline) errs.push(`${outline} tiles disagree with the ${def.shape} outline (use x exactly outside the room)`);
+  for (const f of t.foes) if (t.tiles[f.r][f.c] !== 'floor') errs.push(`${f.kind} at (${f.c},${f.r}) stands on ${t.tiles[f.r][f.c]}`);
+  const blocked = (c: number, r: number) => t.tiles[r]?.[c] !== 'floor';
+  const slots = doorSlots(def.shape), lanes = slots.flatMap(s => s.lanes), entries = slots.map(s => s.entry);
   for (const { c, r } of lanes) {
     if (blocked(c, r)) errs.push(`door lane tile (${c},${r}) is blocked`);
     if (t.foes.some(f => f.c === c && f.r === r)) errs.push(`enemy on door lane tile (${c},${r})`);
@@ -110,9 +102,10 @@ export function validateTemplate(def: TemplateDef): string[] {
     }
   }
   for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) if (!blocked(c, r) && !seen.has(c + ',' + r)) errs.push(`tile (${c},${r}) can't be reached`);
-  // rooms with a centrepiece (pedestal, trapdoor) keep the centre free
-  const centre = { c: (t.w - 1) / 2, r: (t.h - 1) / 2 };
-  if (def.types.some(ty => ty !== 'normal') && (blocked(centre.c, centre.r) || t.foes.some(f => f.c === centre.c && f.r === centre.r))) errs.push('centre must be free');
+  // rooms with a centrepiece (pedestal, trapdoor) keep the centre free: one tile, or the 2 × 2 around it
+  const cs = [Math.floor((t.w - 1) / 2), Math.ceil((t.w - 1) / 2)], rs = [Math.floor((t.h - 1) / 2), Math.ceil((t.h - 1) / 2)];
+  const centre = cs.flatMap(c => rs.map(r => ({ c, r })));
+  if (def.types.some(ty => ty !== 'normal') && centre.some(({ c, r }) => blocked(c, r) || t.foes.some(f => f.c === c && f.r === r))) errs.push('centre must be free');
   const bosses = t.foes.filter(f => f.kind === 'boss').length;
   if (def.types.includes('boss') ? bosses !== 1 : bosses !== 0) errs.push('boss rooms need exactly one B, other rooms none');
   if (def.types.includes('normal') && !t.foes.length) errs.push('normal rooms need enemies');
@@ -120,5 +113,7 @@ export function validateTemplate(def: TemplateDef): string[] {
   return errs;
 }
 
-export const TEMPLATE_DEFS: TemplateDef[] = [...(standardTemplates as TemplateDef[]), ...(specialTemplates as TemplateDef[])];
+export const TEMPLATE_DEFS: TemplateDef[] = [
+  ...(standardTemplates as TemplateDef[]), ...(specialTemplates as TemplateDef[]), ...(shapedTemplates as TemplateDef[]),
+];
 export const TEMPLATES = new Map(TEMPLATE_DEFS.map(d => [d.id, d]));

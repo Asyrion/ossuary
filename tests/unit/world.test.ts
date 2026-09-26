@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../../src/rng';
 import { FLOORS, GRID_H, GRID_W, generateFloor, planToText, testPlan } from '../../src/world/generate';
+import { OPPOSITE, SIDE_DIR, allowsSide, shapeCells } from '../../src/world/shapes';
 import { TEMPLATE_DEFS, parseTemplate, validateTemplate } from '../../src/world/templates';
 
 describe('room templates', () => {
@@ -42,7 +43,7 @@ describe('floor generator', () => {
   const SEEDS = 400;
 
   it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i follows the rules on %# seeds', (floorNo, cfg) => {
-    let altars = 0;
+    let altars = 0, roomCount = 0, bigRooms = 0, bossHalls = 0;
     for (let s = 0; s < SEEDS; s++) {
       const plan = generateFloor(Rng.from('T' + s, 'floor' + floorNo), cfg, floorNo - 1);
       const n = plan.rooms.length;
@@ -53,31 +54,54 @@ describe('floor generator', () => {
       expect(count('altar')).toBeLessThanOrEqual(1);
       altars += count('altar');
 
-      const at = new Map(plan.rooms.flatMap(r => r.cells.map(c => [c.gx + ',' + c.gy, r])));
-      const nbs = (r: (typeof plan.rooms)[number]) => r.cells.flatMap(c =>
-        [[0, -1], [1, 0], [0, 1], [-1, 0]].map(([dx, dy]) => at.get((c.gx + dx) + ',' + (c.gy + dy))).filter(x => x && x !== r));
-      for (const r of plan.rooms) for (const c of r.cells) {
-        expect(c.gx >= 0 && c.gx < GRID_W && c.gy >= 0 && c.gy < GRID_H).toBe(true);
+      // cells are in bounds, never shared, and each room covers exactly its shape
+      const owner = new Map<string, number>();
+      for (const r of plan.rooms) {
+        expect(r.cells.length).toBe(shapeCells(r.shape).length);
+        for (const c of r.cells) {
+          expect(c.gx >= 0 && c.gx < GRID_W && c.gy >= 0 && c.gy < GRID_H).toBe(true);
+          expect(owner.has(c.gx + ',' + c.gy)).toBe(false);
+          owner.set(c.gx + ',' + c.gy, r.id);
+        }
+        roomCount++; if (r.shape !== 'standard') bigRooms++;
       }
-      // every room is reachable, and the special rooms are dead ends
+      // doors come in matching pairs on shared edges, on sides both shapes allow
+      for (const r of plan.rooms) for (const d of r.doors) {
+        expect(allowsSide(r.shape, d.side)).toBe(true);
+        const [dx, dy] = SIDE_DIR[d.side], other = plan.rooms[d.to];
+        expect(owner.get((d.gx + dx) + ',' + (d.gy + dy))).toBe(d.to);
+        expect(other.doors.some(o => o.to === r.id && o.gx === d.gx + dx && o.gy === d.gy + dy && o.side === OPPOSITE[d.side])).toBe(true);
+      }
+      // every room is reachable through doors, and the special rooms are one-cell dead ends
+      const nbs = (r: (typeof plan.rooms)[number]) => [...new Set(r.doors.map(d => d.to))];
       const seen = new Set([plan.startId]); const queue = [plan.rooms[plan.startId]];
-      while (queue.length) for (const nb of nbs(queue.pop()!)) if (!seen.has(nb!.id)) { seen.add(nb!.id); queue.push(nb!); }
+      while (queue.length) for (const id of nbs(queue.pop()!)) if (!seen.has(id)) { seen.add(id); queue.push(plan.rooms[id]); }
       expect(seen.size).toBe(n);
       const boss = plan.rooms[plan.bossId];
       expect(nbs(boss).length).toBe(1);
-      expect(boss.dist).toBe(Math.max(...plan.rooms.map(r => r.dist)));
+      expect(['standard', 'great']).toContain(boss.shape);
       expect(boss.dist).toBeGreaterThanOrEqual(2);
-      for (const t of ['treasure', 'ordeal', 'altar']) for (const r of plan.rooms.filter(x => x.type === t)) expect(nbs(r).length).toBe(1);
+      if (boss.shape === 'great') bossHalls++;
+      for (const t of ['start', 'treasure', 'ordeal', 'altar']) for (const r of plan.rooms.filter(x => x.type === t)) {
+        expect(r.shape).toBe('standard');
+        if (t !== 'start') expect(nbs(r).length).toBe(1);
+      }
       // templates fit their rooms; floor 1 starts gentle
       for (const r of plan.rooms) {
         const def = TEMPLATE_DEFS.find(d => d.id === r.templateId)!;
         expect(def.types).toContain(r.type);
-        if (floorNo === 1 && r.type === 'normal' && r.dist === 1) expect(def.difficulty).toBe(1);
+        expect(def.shape).toBe(r.shape);
+        if (floorNo === 1 && r.type === 'normal' && r.dist === 1 && r.shape === 'standard') expect(def.difficulty).toBe(1);
       }
     }
     // altars are optional but should turn up on a fair share of floors
     expect(altars / SEEDS).toBeGreaterThan(.2);
     expect(altars / SEEDS).toBeLessThan(cfg.altarChance + .05);
+    // about a third of the rooms take a larger or narrow shape; some bosses get a great hall
+    const share = bigRooms / roomCount;
+    expect(share).toBeGreaterThan(.12);
+    expect(share).toBeLessThan(.5);
+    expect(bossHalls).toBeGreaterThan(0);
   });
 
   it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i has a complete look', (_n, cfg) => {
@@ -111,5 +135,9 @@ describe('floor generator', () => {
     const plan = testPlan('boss_pits');
     expect(plan.rooms.map(r => r.type)).toEqual(['start', 'boss']);
     expect(() => testPlan('nope')).toThrow();
+    for (const def of TEMPLATE_DEFS) {
+      const p = testPlan(def.id);
+      expect(p.rooms[1].doors.some(d => d.to === 0)).toBe(true); // reachable from the start
+    }
   });
 });
