@@ -114,15 +114,17 @@ Run clip playback speed is `CFG.hero.runAnimSpeed` (3.6 at full speed).
 ## After M0: roadmap
 
 Order and scope from `docs/GDD.md` (Roadmap and milestones); details are in the GDD. Every milestone
-ships placeholder sounds for what it adds; spatial audio and the mixer arrive with M2 (GDD: Audio design).
+ships placeholder sounds for what it adds; spatial audio and the mixer arrive with M3 (GDD: Audio design).
 
-- **M1 Core loop:** generated floors, 15+ room templates, 10 artifacts and 3 foci as data.
-- **M2 Magic:** mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room.
-- **M3 Tripo enemies:** 3 enemies and 1 boss from Tripo, with elemental affinities.
-- **M4 Alchemy:** potion belt, drink or throw, identification, 4 reagents, alchemy table.
-- **M5 RPG growth:** XP, levels, attributes, 12 boons, runes and waystones.
-- **M6 Descent and Sanctum:** 3 floors, final boss, Sanctum with grimoire, bestiary and disciplines.
-- **M7 Eda:** lore names, floor biomes, adaptive music, ambience beds and final mix.
+- **M1 Core loop:** three generated floors (varied maps and room counts), 15+ room templates, ordeal and
+  bone altar rooms, 3 to 5 artifacts per floor from 10 artifacts and 3 foci as data.
+- **M2 Plunder:** coins, keys and bombs; merchant, secret room, locked vault, shrine cleansing; urns, chests.
+- **M3 Magic:** mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room.
+- **M4 Tripo enemies:** 3 enemies and 1 boss from Tripo, with elemental affinities.
+- **M5 Alchemy:** potion belt, drink or throw, identification, 4 reagents, alchemy table.
+- **M6 RPG growth:** XP, levels, attributes, 12 boons, runes and waystones.
+- **M7 Descent and Sanctum:** final boss, Sanctum with grimoire, bestiary and disciplines.
+- **M8 Eda:** lore names, floor biomes, adaptive music, ambience beds and final mix.
 
 ## Working agreements
 

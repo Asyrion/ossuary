@@ -51,7 +51,7 @@ flowchart LR
 
 One room at a time fills the screen. Entering a room with enemies locks its doors until every enemy is dead; clearing it opens the doors and may drop a reward. The boss room's defeat opens a trapdoor to the next floor.
 
-**Prototype 0.3 has:** one hand-built floor of six rooms, one boss, a win screen after the boss. **Target:** several generated floors with rising difficulty; a run takes 20 to 40 minutes.
+**Prototype 0.3 has:** one hand-built floor of six rooms, one boss, a win screen after the boss. **Target (M1):** three generated floors with rising difficulty, and every run differs in map, room count and room types; a run takes 20 to 40 minutes.
 
 ### Game loop changes for the magic RPG
 
@@ -76,7 +76,7 @@ flowchart LR
 | --- | --- | --- |
 | Room reward | Chance of a heart | XP always; reagents from enemies; chance of heart, mana vial or coin |
 | Growth in a run | Items only | Items plus levels: each level offers 3 boons, pick 1 |
-| Special rooms per floor | Treasure, boss | Treasure, boss, library, alchemy table or shrine (alternating), secret |
+| Special rooms per floor | Treasure, boss | Treasure, ordeal, boss, merchant, secret, library, alchemy table or shrine (alternating); sometimes a bone altar or locked vault |
 | Between floors | Trapdoor, straight on | Waystone room: full mana, socket runes into spells, sell or brew |
 | Death | Everything lost | Run items lost; Arcane Dust, discovered recipes and bestiary entries kept |
 | Run start | Same hero, same stats | Choose a discipline (starting spell and focus) unlocked in the Sanctum |
@@ -94,7 +94,7 @@ The player moves in eight directions and casts in four, independently, with thre
 | Pause | Esc or P | Start | II button |
 | Mute | M |  | Pause menu |
 
-Planned inputs for the magic layer: spell 1 and 2 on Q and E (LB and RB, two touch buttons), potion on F (Y, touch flask; hold to throw). See Magic system.
+Planned inputs: bomb on Space (LT, touch bomb button) from M2; for the magic layer, spell 1 and 2 on Q and E (LB and RB, two touch buttons) and potion on F (Y, touch flask; hold to throw). See Coins, keys and bombs and Magic system.
 
 **Starting stats (prototype 0.3)**
 
@@ -195,7 +195,7 @@ The mage has three layers of magic: a free cantrip that is always firing, two ac
 
 ## Spells
 
-Fifteen spells, three per school, are enough for M1 to M4. Spells are learned from grimoire pages (library rooms, bosses, rare drops); a new spell replaces one of the two slots, and the replaced one can be rebought at the next library. All names are placeholders until the Eda lore arrives.
+Fifteen spells, three per school, are enough for M1 to M5. Spells are learned from grimoire pages (library rooms, bosses, rare drops); a new spell replaces one of the two slots, and the replaced one can be rebought at the next library. All names are placeholders until the Eda lore arrives.
 
 | School | Spell | Mana | Cooldown | Effect |
 | --- | --- | --- | --- | --- |
@@ -246,6 +246,21 @@ Artifacts replace Isaac's items. There are four kinds: one focus that reshapes t
 | Passive | Unlimited, stack | Stats, triggers, new behaviours |
 | Cursed | Unlimited | Strong effect plus a drawback; cleansed at a shrine, which removes the drawback and halves the effect |
 | Set piece | Unlimited | 2 or 3 pieces of a set grant a bonus |
+
+**Artifacts per floor: at least 3, at most 5.** Three sources are on every floor; optional ones can add up to two more. The boss's choice of two counts as one, since only one can be taken.
+
+| Source | Artifacts | Per floor | Arrives |
+| --- | --- | --- | --- |
+| Treasure room | 1 on a pedestal | Always | 0.3 |
+| Ordeal | 1 after the last wave | Always | M1 |
+| Boss | Choice of 2, take 1 | Always | M1 |
+| Bone altar | 1 for a heart container, often cursed | Sometimes | M1 |
+| Room-clear drop | 1, rare (about 3%) | Sometimes | M1 |
+| Merchant | 1 for coins | While the budget lasts | M2 |
+| Secret room | 1, often cursed | Sometimes | M2 |
+| Locked vault | 1 behind a key | Sometimes | M2 |
+
+The generator places the three guaranteed sources first, then gives artifacts to optional sources while the floor has budget left; optional sources without one hold coins, keys, bombs or hearts instead. Room-clear drops only roll while budget is left. Each artifact lists the pools it can appear in (treasure, ordeal, boss, altar, merchant, secret, vault); cursed artifacts live mostly in the altar and secret pools.
 
 **Foci**
 
@@ -402,44 +417,109 @@ Every room is 13 × 7 tiles inside its walls, with a door in the middle of any w
 
 **Room anatomy.** Walls are 1 tile thick; the north wall is tall and carries two torches, the south wall is low so the player stays visible. Doors have iron gates that rise when enemies are present. Rocks block walking and bolts; flying enemies ignore them.
 
-| Room type | Purpose | Door style | In prototype 0.3 |
+| Room type | Purpose | Door style | Arrives |
 | --- | --- | --- | --- |
-| Start | No enemies, controls chalked on the floor | Plain | Yes |
-| Normal | Enemy encounter from a template | Plain | 3 rooms |
-| Treasure | One relic on a pedestal | Gold | Yes |
-| Boss | Boss fight, then trapdoor | Red, glowing eye | Yes |
-| Shop | Buy items with coins | Planned | No |
-| Secret | Hidden, opened by a bomb | None visible | No |
+| Start | No enemies, controls chalked on the floor | Plain | 0.3 |
+| Normal | Enemy encounter from a template | Plain | 0.3 |
+| Treasure | One artifact on a pedestal | Gold | 0.3 |
+| Boss | Boss fight, then trapdoor | Red, glowing eye | 0.3 |
+| Ordeal | Waves of enemies, then an artifact | Iron, skull above the lintel | M1 |
+| Bone altar | Artifact for a heart container | Arch of bones | M1 |
+| Merchant | Buy with coins | Lantern above the door | M2 |
+| Secret | Hidden, opened by a bomb | None, a cracked wall | M2 |
+| Locked vault | Opened with a key | Padlocked iron | M2 |
 
-**Generation plan (Isaac-style).** Start in the centre of a 9 × 8 grid and grow outwards by random walk until the floor has its room count (about 8 to 12 on floor 1, +2 per floor). Rooms with only one neighbour become candidates for special rooms; the farthest becomes the boss room, another becomes treasure. Each normal room pulls a random template from a pool filtered by the doors it needs.
+**A run is three floors (M1).** Each floor is generated fresh, so no two runs share a map:
 
-**Room templates are data:** a 13 × 7 character grid (rock, pit, enemy spawn, empty) plus a difficulty value, stored as JSON so new rooms need no code.
+- **Map:** start in the centre of a 9 × 8 grid and grow outwards by random walk until the floor has its room count, rolled per floor: 8 to 12 rooms on floor 1, 10 to 14 on floor 2, 12 to 16 on floor 3.
+- **Special rooms** go into dead ends (rooms with one neighbour): the farthest from the start is the boss room, then treasure, ordeal and (from M2) the merchant; optional rooms (bone altar, and from M2 the locked vault) only appear when a spare dead end exists. If the walk leaves too few dead ends for the required rooms, it tries again. The boss room never touches the start room.
+- **Secret room (M2):** one per floor, in an empty cell touching at least two rooms.
+- **Difficulty:** normal rooms draw harder templates the further they are from the start and the deeper the floor; enemies gain about 15% health per floor (placeholder).
+- **Between floors:** the boss opens a trapdoor; stepping in starts the next floor (waystones join in M6). Beating the floor 3 boss wins the run. Until Tripo bosses arrive (M4), floors 2 and 3 end with a harder Hollow Warden: more health, faster volleys, more summons.
+- **Seeds:** every run has a seed, shown in the pause menu, so a run can be replayed and bugs reproduced.
+
+**Room templates are data:** a 13 × 7 character grid (rock, pit, enemy spawn, empty; urns from M2) plus a difficulty value and the room types it suits, stored as JSON so new rooms need no code. Ordeal templates list two or three waves.
 
 ## Pickups and room types
 
 Pickups feed the three resources of a run (health, mana, gold) plus reagents for alchemy. New room types give the magic systems a place on the map.
 
-| Pickup | Effect | Status |
+| Pickup | Effect | Arrives |
 | --- | --- | --- |
-| Heart (half, full) | Heals; ignored at full health | In 0.3 |
-| Mana vial | +25 mana | Planned |
-| Gold coin | Spent at the merchant and shrines | Planned |
-| Reagent | Goes into the ingredient pouch | Planned |
-| Unknown potion | Goes into the potion belt | Planned |
-| Grimoire page | Learn a spell (replaces a slot) | Planned |
-| Rune | Socket into a spell at a waystone | Planned |
-| Key | Opens locked vaults and chests | Planned |
-| Bomb | Breaks rocks and gravestones, opens secret rooms | Planned |
+| Heart (half, full) | Heals; ignored at full health | 0.3 |
+| Coin (single, purse of 5) | Spent at the merchant, shrine and library | M2 |
+| Key | Opens locked vaults and reliquary chests | M2 |
+| Bomb | Breaks rocks, urns and cracked walls, opens secret rooms | M2 |
+| Mana vial | +25 mana | M3 |
+| Grimoire page | Learn a spell (replaces a slot) | M3 |
+| Reagent | Goes into the ingredient pouch | M5 |
+| Unknown potion | Goes into the potion belt | M5 |
+| Rune | Socket into a spell at a waystone | M6 |
 
-| Room type | What happens | Per floor |
+| Room type | What happens | Per floor | Arrives |
+| --- | --- | --- | --- |
+| Ordeal | Doors lock; two or three waves, harder than the floor's normal rooms; an artifact rises on a pedestal after the last wave | 1 | M1 |
+| Bone altar | An artifact from the altar pool (strong or cursed) for one heart container; can't be taken with only one container left | 0 or 1 | M1 |
+| Merchant | Artifact, hearts, keys and bombs for coins; stock grows with later milestones | 1 | M2 |
+| Secret room | Behind a cracked wall; coins, bombs and keys, or an artifact from the secret pool | 1 | M2 |
+| Locked vault | Behind a padlocked door; an artifact while the budget lasts, otherwise a hoard | 0 or 1 | M2 |
+| Shrine | Cleanse a curse for coins; bargain a heart container for a boon from M6 | 1 on floor 2 | M2 |
+| Library | Choose 1 of 3 grimoire pages; rebuy a replaced spell for coins | 1 | M3 |
+| Elemental trial | Room full of oil, water or braziers; clear it with the right school for a bonus reward | Optional, 0 or 1 | M3 |
+| Alchemy table | Brew from reagents, identify one potion for free | 1 on floors 1 and 3 | M5 |
+| Waystone | Between floors: full mana, socket runes, reorder the belt | After each boss | M6 |
+
+## Coins, keys and bombs
+
+Arrives in M2 (Plunder). Three small resources turn exploring into choices: which chest to open, whether to blow up a suspicious wall, whether to spend at the merchant now or save. They are counted in the HUD under the artifacts, capped at 99 each. A run starts with one bomb, no keys and no coins. All numbers are placeholders for play-testing.
+
+| Resource | Found in | Spent on |
 | --- | --- | --- |
-| Library | Choose 1 of 3 grimoire pages; rebuy a replaced spell for gold | 1 |
-| Alchemy table | Brew from reagents, identify one potion for free | 1 on floors 1, 3, 5 |
-| Shrine | Cleanse a curse, or bargain: trade a heart container for a boon | 1 on floors 2, 4 |
-| Merchant | Potions, runes, reagents, one artifact for gold | 1 |
-| Waystone | Between floors: full mana, socket runes, reorder the belt | After each boss |
-| Elemental trial | Room full of oil, water or braziers; clear it with the right school for a bonus reward | Optional, 0 or 1 |
-| Secret vault | Hidden behind a breakable wall; rare artifact or cursed artifact | 0 or 1 |
+| Coins | Room clears, urns, coffers, now and then an enemy | Merchant, shrine cleansing, rebuying spells at the library (M3) |
+| Keys | Room clears, coffers, the merchant | Locked vaults and reliquary chests |
+| Bombs | Room clears, coffers, the merchant | Rocks, urns, cracked walls and enemies; gravestones from M5 |
+
+**Economy target:** about 12 to 18 coins per floor, so a merchant artifact means saving or skipping hearts. From M2, a room clear drops one pickup about half the time: a heart, coins, a key or a bomb.
+
+**Bombs**
+
+- Placed at the mage's feet. The fuse burns 1.5 s, with a hiss and a flashing wick, before the blast.
+- The blast (1.5 tiles) deals 10 damage, knocks everything back, and breaks rocks, urns and cracked walls. A mage standing in it loses a full heart.
+
+**The merchant** (1 per floor, in a dead end). A hooded trader (placeholder) with 3 or 4 items per visit; the first is an artifact while the floor's budget allows.
+
+| Item | Price | Arrives |
+| --- | --- | --- |
+| Artifact (merchant pool) | 15 | M2 |
+| Heart | 3 | M2 |
+| Key or bomb | 5 | M2 |
+| Mana vial | 3 | M3 |
+| Unknown potion / reagent | 4 / 2 | M5 |
+| Rune | 10 | M6 |
+
+**Secret room** (1 per floor). Entered through a cracked wall that a bomb breaks open. The hints are a hairline crack and dust drifting from it. It holds coins, bombs and keys, or an artifact from the secret pool, where cursed artifacts are common. It isn't shown on the minimap until found.
+
+**Locked vault** (0 or 1 per floor, in a dead end). One key opens the padlocked door; inside is an artifact while the floor's budget allows, otherwise a hoard of coins and bombs.
+
+**Containers.** None of them hold artifacts, so the per-floor budget stays readable.
+
+| Container | Opened by | Holds | Found |
+| --- | --- | --- | --- |
+| Urn | Bolts or bombs | Usually nothing; sometimes a coin or half a heart | Room templates |
+| Coffer | Walking into it | 1 to 3 coins, keys, bombs or hearts | Room clears, secret rooms |
+| Reliquary chest | A key | Better loot: purses, several keys or bombs, a full heart | Room clears, secret rooms, vaults |
+
+**Shrine cleansing** (the shrine on floor 2). For 10 coins, the shrine cleanses one cursed artifact: the drawback goes and the gift is halved (see Artifacts). The heart-for-boon bargain joins in M6.
+
+**Artifacts that bend the economy** (join the pools in M2; placeholder names)
+
+| Artifact | Effect |
+| --- | --- |
+| Sexton's Keyring | +3 keys; the locked vault opens for free once per floor |
+| Miser's Purse | +0.5 cantrip damage for every 10 coins held |
+| Powder Horn | +5 bombs; blasts are 50% wider |
+
+**Ideas for later** (not scheduled): an alms box in chapel rooms where donated coins buy small blessings; sarcophagi that hold loot, or a Rotling; a bone-caster who throws the dice of the dead for coins.
 
 ## Art, camera and audio
 
@@ -451,7 +531,7 @@ The look is a candle-lit cutaway diorama: dark stone rooms, warm torchlight, and
 - **Palette:** worn stone browns, torch amber for the hero's magic, verdigris greens for the undead, violet for wisp magic, rust red for the boss.
 - **Characters:** Tripo3D models, chibi proportions, textured, rigged; see the Tripo asset checklist.
 - **Environment:** procedural in code for now (floor textures, walls, rocks). Tripo props such as urns, coffins and statues can replace rocks later.
-- **UI:** hearts top left, mana bar, spell slots with cooldowns, potion belt and artifacts below them, minimap top right, boss bar bottom centre. Typefaces IM Fell English (titles) and Alegreya Sans (UI).
+- **UI:** hearts top left, mana bar, spell slots with cooldowns, potion belt, artifacts and coin, key and bomb counters below them, minimap top right, boss bar bottom centre. Typefaces IM Fell English (titles) and Alegreya Sans (UI).
 - **Audio:** simple synthesised effects for now; the full plan is in Audio design.
 
 **Identity note.** The current hero is close to the Isaac art style. Fine for a hobby prototype; if the game is ever published, characters and art need their own look.
@@ -547,6 +627,7 @@ A full five-floor game needs roughly 85 3D models, about 300 sound files, 5 musi
 | Bosses | 5 bosses × roar, 2 to 3 attacks, phase change, death | 30 |
 | Hero | Footsteps × 4 surfaces × 3 variants, hurt, death, level-up voice | 16 |
 | World | Doors, gates, braziers, oil, water, secret walls, pickups | 20 |
+| Economy | Coins (3 variants), key, lock, bomb fuse and blast, urn break, chest open, purchase | 12 |
 | Interface | Menu, confirm, back, boon cards, grimoire pages | 10 |
 
 **3D models (Tripo)**
@@ -559,6 +640,8 @@ A full five-floor game needs roughly 85 3D models, about 300 sound files, 5 musi
 | Artifacts on pedestals | About 25 | Static |
 | Potion bottles | 3 to 4 shapes, colours shuffled in code | Static |
 | Reagents | 6 | Static |
+| Pickups and containers (coin, purse, key, bomb, urn, coffer, reliquary chest) | 7 | Static |
+| Merchant | 1 | Idle, a small gesture |
 | Props per biome (urns, coffins, statues, bookshelves, braziers) | About 5 per biome | Static |
 | Sanctum hub pieces | About 6 | Static |
 
@@ -601,7 +684,7 @@ src/
   actors/          hero, enemies, animation controller
   combat/          cantrip, enemy shots, damage, status effects, reactions
   magic/           spells, runes, mana, schools
-  items/           artifacts, sets, curses, pickups
+  items/           artifacts, sets, curses, pickups, bombs, merchant stock
   alchemy/         potions, identification, reagents, brewing
   progression/     XP, levels, attributes, boons, sanctum save
   input/           keyboard, gamepad, touch
@@ -616,20 +699,23 @@ tools/             prepare-asset script
 
 ## Roadmap and milestones
 
-Milestones 1 and 2 decide whether the loop and the magic are fun; everything after them deepens it. Milestones have no dates, since this is a hobby project.
+Milestones 1 to 3 decide whether the game is fun: the loop and its variety, exploration worth the risk, and magic as the build. Everything after them deepens it. Milestones have no dates, since this is a hobby project.
 
 | Milestone | Goal | Done when |
 | --- | --- | --- |
 | M0 Move to Claude Code | Same game, proper project | Prototype 0.3 runs from the repo, deployed, playable on phone |
-| M1 Core loop | Runs feel different | Generated floors, 15+ room templates, 10 artifacts and 3 foci as data |
-| M2 Magic | Magic is the build | Mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room |
-| M3 Tripo enemies | Own creatures | 3 enemies and 1 boss from Tripo, with elemental affinities |
-| M4 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table |
-| M5 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
-| M6 Descent and Sanctum | A full run with a reason to return | 3 floors, final boss, Sanctum with grimoire, bestiary and disciplines |
-| M7 Eda | It is Eda | Lore names, floor biomes, adaptive music, ambience beds and final mix |
+| M1 Core loop | Runs feel different | Three generated floors with varied maps and room counts, 15+ room templates, ordeal and bone altar rooms, 3 to 5 artifacts per floor from 10 artifacts and 3 foci as data |
+| M2 Plunder | Exploration pays | Coins, keys and bombs; merchant, secret room, locked vault and shrine cleansing; urns and chests |
+| M3 Magic | Magic is the build | Mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room |
+| M4 Tripo enemies | Own creatures | 3 enemies and 1 boss from Tripo, with elemental affinities |
+| M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table |
+| M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
+| M7 Descent and Sanctum | A full run with a reason to return | Final boss, Sanctum with grimoire, bestiary and disciplines |
+| M8 Eda | It is Eda | Lore names, floor biomes, adaptive music, ambience beds and final mix |
 
-**Sound in every milestone:** each milestone ships placeholder sounds for what it adds (M2 the school palettes, M3 enemy telegraphs, M4 potion sounds). Spatial audio and the mixer belong in M2, since spells need them; M7 replaces placeholders and adds music and ambience.
+**Why Plunder comes before Magic:** it builds straight on M1's floor generator and room templates, and Magic's library already sells spells back for coins.
+
+**Sound in every milestone:** each milestone ships placeholder sounds for what it adds (M2 coins and bombs, M3 the school palettes, M4 enemy telegraphs, M5 potion sounds). Spatial audio and the mixer belong in M3, since spells need them; M8 replaces placeholders and adds music and ambience.
 
 **M0 tasks**
 
@@ -651,6 +737,9 @@ All names in the prototype are placeholders until the Eda lore is added to this 
 | Rotling, Wisp, Crypt hound | Enemy types | Eda creatures |
 | The Hollow Warden | Floor 1 boss | Eda boss creature |
 | Ember Sigil | First artifact | Eda artifact |
+| Ordeal, Bone altar | M1 room types | Eda names for these rooms |
+| Coins | Currency | An Eda currency (idea: obols, the coins laid on the eyes of the dead) |
+| The merchant | Trader NPC | Who trades with the dead in Eda |
 
 - [ ] Who is the hero, and why do they descend?
 - [ ] Which region of Eda is the dungeon in, and what are floors 2 and 3?
@@ -658,4 +747,4 @@ All names in the prototype are placeholders until the Eda lore is added to this 
 - [ ] Should artifacts come from Eda's factions or gods (for example one pool per faction)?
 - [ ] Who teaches alchemy in Eda, and is it respected or forbidden?
 - [ ] Should the disciplines be separate playable characters with their own Tripo models, or one mage with different loadouts?
-- [ ] Touch controls: is four-direction casting right on phones, and do two spell buttons plus a potion button fit on screen?
+- [ ] Touch controls: is four-direction casting right on phones, and do two spell buttons, a potion button and a bomb button fit on screen?
