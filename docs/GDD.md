@@ -270,8 +270,8 @@ The generator places the three guaranteed sources first, then gives artifacts to
 | --- | --- | --- |
 | Apprentice's Wand (start) | Single bolt, as now | 0.3 |
 | Twin-Headed Staff | Two parallel bolts, −30% damage each | M1 |
-| Drowned Orb | Bolts bounce off walls twice | M1 |
-| Shepherd's Crook | Bolts return to the mage like a boomerang, hitting twice | M1 |
+| Drowned Orb | Bolts bounce off walls twice, +35% range | M1 |
+| Shepherd's Crook | Bolts fly out and back like a boomerang, passing through foes and hitting each twice, −20% damage | M1 |
 | Emberwood Wand | Bolts apply Burn, −10% range | M3 |
 | Tome of Whispers | Slow bolts that curve towards enemies, +40% damage | M3 |
 

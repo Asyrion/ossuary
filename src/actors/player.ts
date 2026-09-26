@@ -1,10 +1,9 @@
-import { CFG } from '../config';
 import { G, player } from '../state';
 import { blockers, collide } from '../world/collision';
 import { DH, HD, HW } from '../world/dims';
 import { moveInput, shootDir } from '../input';
 import { spawnBolt } from '../combat/projectiles';
-import { takeRelic } from '../items/relics';
+import { checkArtifactPickup } from '../items/artifacts';
 import { descend, tryTransition } from '../flow';
 import { clamp, lerp } from '../util';
 
@@ -18,17 +17,17 @@ export function updatePlayer(dt: number) {
   if (mv.x > .3 && lx > HW - 1 && d.e?.open && Math.abs(lz) < DH + .45) mv.z += clamp(-lz * 2.2, -1, 1) * .8;
   if (mv.x < -.3 && lx < -HW + 1 && d.w?.open && Math.abs(lz) < DH + .45) mv.z += clamp(-lz * 2.2, -1, 1) * .8;
   const k = 1 - Math.exp(-14 * dt);
-  player.vx = lerp(player.vx, mv.x * CFG.hero.speed, k); player.vz = lerp(player.vz, mv.z * CFG.hero.speed, k);
+  const st = player.stats;
+  player.vx = lerp(player.vx, mv.x * st.speed, k); player.vz = lerp(player.vz, mv.z * st.speed, k);
   player.x += player.vx * dt; player.z += player.vz * dt;
-  collide(player, blockers(cur, 'player'));
+  collide(player, blockers(cur, 'player', st.effects.has('pitWalker')));
   if (tryTransition()) return;
   // shooting
   player.fireCd -= dt;
-  if (shootDir() && player.fireCd <= 0) { spawnBolt(); player.fireCd = CFG.hero.fireDelay; }
+  if (shootDir() && player.fireCd <= 0) { spawnBolt(); player.fireCd = st.fireDelay; }
   if (player.invuln > 0) player.invuln -= dt;
-  // relic and the trapdoor down
-  const relic = cur.relic;
-  if (relic && !relic.taken && Math.hypot(player.x - relic.x, player.z - relic.z) < player.r + .62) takeRelic(relic);
+  // artifacts and the trapdoor down
+  checkArtifactPickup();
   const trapdoor = G.trapdoor;
   if (trapdoor && Math.hypot(player.x - trapdoor.x, player.z - trapdoor.z) < .55) descend();
 }

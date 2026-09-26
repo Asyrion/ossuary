@@ -1,11 +1,13 @@
 import * as THREE from 'three';
-import type { Box, Door, DoorStyle, FloorLook, Room, Side } from '../types';
+import { CFG } from '../config';
+import type { Box, Door, DoorStyle, FloorLook, RockBox, Room, Side } from '../types';
 import { G } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { floorTexture, pitTexture } from '../render/textures';
 import { M, basicMat, blob, boxUV, glow, markShared, wallMaterials } from '../render/materials';
-import { makeRelicVisual, pickRelic } from '../items/relics';
+import { offerGuaranteed, placeArtifact } from '../items/artifacts';
+import { burst } from '../combat/fx';
 import { mulberry } from '../util';
 import { DH, DIR, H_LOW, H_TALL, HD, HW, PX, PZ, SIDES, WT } from './dims';
 import { FLOORS, type PlannedRoom } from './generate';
@@ -47,7 +49,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   const room: Room = {
     plan, template, look, type: plan.type, gx, gy, cx, cz,
     bounds: { minX: cx - HW, maxX: cx + HW, minZ: cz - HD, maxZ: cz + HD },
-    group: new THREE.Group(), doors: {}, walls: [], rocks: [], pits: [], torches: [], foes: [],
+    group: new THREE.Group(), doors: {}, walls: [], rocks: [], pits: [], torches: [], foes: [], spots: [],
     cleared: true, visited: false, known: false, locked: false,
   };
   room.group.position.set(cx, 0, cz); scene.add(room.group);
@@ -106,7 +108,19 @@ function addRock(room: Room, c: number, r: number) {
   const big = new THREE.Mesh(new THREE.DodecahedronGeometry(.46, 0), M.rock); big.scale.set(1, .78 + R() * .2, 1); big.position.y = .3; big.rotation.set(R() * 3, R() * 3, R() * 3);
   const small = new THREE.Mesh(new THREE.DodecahedronGeometry(.2, 0), M.rock); small.position.set(R() * .5 - .25, .12, .3); small.rotation.set(R() * 3, R() * 3, 0);
   g.add(big, small, blob(1.3)); room.group.add(g);
-  room.rocks.push({ x: p.x, z: p.z, hx: .42, hz: .42 });
+  room.rocks.push({ x: p.x, z: p.z, hx: .42, hz: .42, hp: CFG.artifacts.rockHp, breakable: true, mesh: g, tile: { c, r } });
+}
+
+/** A bolt from a mage holding Mason's Chisel struck a rock: it cracks, and breaks on the last hit. */
+export function hitRock(room: Room, rock: RockBox) {
+  if (!rock.breakable || !rock.mesh) return;
+  rock.hp--;
+  burst(rock.x, .4, rock.z, 0x8a8078, 4, 1.4, .05);
+  if (rock.hp > 0) { rock.mesh.scale.multiplyScalar(.88); rock.mesh.position.y = -.04 * (CFG.artifacts.rockHp - rock.hp); Sfx.crack(); return; }
+  room.group.remove(rock.mesh);
+  room.rocks = room.rocks.filter(r => r !== rock);
+  if (rock.tile) room.template.tiles[rock.tile.r][rock.tile.c] = 'floor';
+  burst(rock.x, .5, rock.z, 0x6b625a, 16, 2.6, .09); Sfx.rubble(); G.shake = Math.max(G.shake, .1);
 }
 
 // Pits: a dark hole drawn over the floor. Walkers and the mage can't cross them; bolts and wisps can.
@@ -137,16 +151,8 @@ function mergePits(room: Room) {
 }
 
 function addPedestal(room: Room) {
-  const def = pickRelic();
-  if (!def) return; // nothing left to find: the room offers a heart instead (see enterRoom)
-  const g = new THREE.Group();
-  const col = new THREE.Mesh(new THREE.CylinderGeometry(.3, .38, .6, 8), M.rock); col.position.y = .3;
-  const top = new THREE.Mesh(new THREE.CylinderGeometry(.42, .42, .1, 8), M.rock); top.position.y = .64;
-  g.add(col, top, blob(1.3));
-  const relic = makeRelicVisual(def); relic.position.y = 1.05; g.add(relic);
-  room.group.add(g);
-  room.rocks.push({ x: room.cx, z: room.cz, hx: .4, hz: .4 });
-  room.relic = { def, group: relic, taken: false, x: room.cx, z: room.cz };
+  const def = offerGuaranteed('treasure');
+  if (def) placeArtifact(room, def, room.cx, room.cz); // else nothing is left to find: enterRoom offers a heart
 }
 
 /** Is the tile under (x, z) open floor, clear of rocks and pedestals? */

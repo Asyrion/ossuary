@@ -95,7 +95,7 @@ export function fallbackHero(): PreparedHero {
   const holder = new THREE.Group(); holder.add(g); return { holder, skinned: false, stripped: false, tris: 0 };
 }
 
-export function heroCast() { if (hero.anim) playCast(hero.anim); }
+export function heroCast() { if (hero.anim) playCast(hero.anim, player.stats.fireDelay); }
 export function heroHit() { if (hero.anim) playHit(hero.anim); }
 /** Returns how long the death animation takes, in seconds. */
 export function heroDie() { player.dead = true; return hero.anim ? playDeath(hero.anim) : .9; }

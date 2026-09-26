@@ -14,6 +14,13 @@ export const CFG = {
   },
   camTiltDeg: 45,
   heartDropChance: 0.45,
+  artifacts: {
+    maxPerFloor: 5,      // a floor never offers more (the boss's pair counts as one)
+    dropChance: 0.03,    // chance a cleared room drops one, while the floor's budget allows
+    rockHp: 3,           // Mason's Chisel: bolt hits to break a rock
+    visionRadius: 3.4,   // Mask of the Drowned: how far the mage sees
+    burst: { damageMul: 0.6, range: 4.5, speed: 7, scale: 0.7 }, // Knucklebone and Bell bolts
+  },
   lights: {
     hemi: 1.57, moon: 1.26,
     torch: 4.3, torchDistance: 9, torchDecay: 0.5,

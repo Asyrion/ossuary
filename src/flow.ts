@@ -17,13 +17,14 @@ import { clearEnemies, makeEnemy } from './actors/enemies';
 import { heroReset } from './actors/hero';
 import { clearProjectiles } from './combat/projectiles';
 import { makeTrapdoor, spawnHeart } from './items/pickups';
-import { banner, fadeFromBlack, hideBossBar, renderHearts, renderItems, renderMinimap, resetHearts, showBossBar } from './ui/hud';
+import { giveById, offerGuaranteed, offerOptional, offerSecondChoice, placeArtifact, resetArtifacts, resetBudget } from './items/artifacts';
+import { banner, fadeFromBlack, hideBossBar, renderMinimap, resetHearts, showBossBar } from './ui/hud';
 import { showScreen } from './ui/screens';
 import { resetClock } from './loop';
 import { $ } from './util';
 
-/** How the next run starts. Set from the URL at boot (?seed, ?floor, ?room); used once. */
-export interface RunOptions { seed?: string; floor?: number; testTemplate?: string }
+/** How the next run starts. Set from the URL at boot (?seed, ?floor, ?room, ?give); used once. */
+export interface RunOptions { seed?: string; floor?: number; testTemplate?: string; give?: string[] }
 let nextRun: RunOptions = {};
 let testTemplate: string | undefined;
 export function setNextRun(opts: RunOptions) { nextRun = opts; }
@@ -48,6 +49,7 @@ export function buildFloor(index: number) {
   G.run.floor = index;
   const plan = testTemplate ? testPlan(testTemplate) : generateFloor(Rng.from(G.run.seed, 'floor' + index), FLOORS[index], index);
   G.run.plan = plan;
+  resetBudget(2); // guaranteed artifacts on every floor: the treasure room and the boss (the ordeal joins in step 3)
   applyFloorLook(FLOORS[index].look);
   for (const p of plan.rooms) buildRoom(p, index);
   for (const r of G.rooms) buildWallsAndDoors(r);
@@ -60,12 +62,9 @@ export function buildFloor(index: number) {
 }
 
 export function resetPlayer() {
-  Object.assign(player, {
-    hp: CFG.hero.hearts * 2, maxHp: CFG.hero.hearts * 2, invuln: 0, fireCd: 0, damage: CFG.hero.damage,
-    boltScale: 1, boltColor: 0xffcf7a, items: [], yawA: 0,
-  });
+  Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0 });
   heroReset();
-  resetHearts(); renderHearts(); renderItems();
+  resetHearts(); resetArtifacts();
 }
 
 /** Start a new run: a fresh seed unless one was requested. */
@@ -73,8 +72,9 @@ export function startGame(opts?: RunOptions) {
   const o = opts ?? nextRun; nextRun = {};
   const seed = o.seed || newSeed();
   testTemplate = o.testTemplate;
-  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), seen: new Set(), plan: null };
+  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), seen: new Set(), plan: null, budget: { used: 0, reserved: 0 } };
   Sfx.init(); resetPlayer(); G.stats.time = 0; G.stats.kills = 0;
+  if (o.give?.length) giveById(o.give);
   showScreen(null); G.state = 'play';
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, o.floor ?? 0)));
 }
@@ -83,7 +83,7 @@ export function startGame(opts?: RunOptions) {
 export function prepareTitle() {
   const seed = nextRun.seed || newSeed(); nextRun = { ...nextRun, seed };
   testTemplate = nextRun.testTemplate;
-  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), seen: new Set(), plan: null };
+  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), seen: new Set(), plan: null, budget: { used: 0, reserved: 0 } };
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, nextRun.floor ?? 0)));
 }
 
@@ -132,25 +132,37 @@ export function enterRoom(room: Room) {
     }
   }
   // a treasure room with nothing left to find offers a full heart instead
-  if (firstVisit && room.type === 'treasure' && !room.relic) spawnHeart(room.cx, room.cz, 2);
+  if (firstVisit && room.type === 'treasure' && !room.spots.length) spawnHeart(room.cx, room.cz, 2);
   renderMinimap();
 }
 
 export function onRoomCleared(room: Room) {
   room.cleared = true; room.locked = false; setDoors(room, true);
   const loot = G.run.loot;
-  if (room.type === 'normal' && loot.chance(CFG.heartDropChance)) {
+  if (room.type !== 'normal') return;
+  if (loot.chance(CFG.heartDropChance)) {
     const p = freeSpotNear(room, room.cx + loot.range(-1, 1), room.cz + loot.range(-.5, .5));
     spawnHeart(p.x, p.z, loot.chance(.35) ? 2 : 1);
   }
+  // now and then an artifact rises where the fight was, while the floor's budget allows
+  const def = loot.chance(CFG.artifacts.dropChance) ? offerOptional('drop') : null;
+  if (def) { const p = freeSpotNear(room, room.cx, room.cz + 1); placeArtifact(room, def, p.x, p.z); banner(...STR.banner.artifactRises); }
 }
 
 export function onBossDead() {
   const cur = G.current;
   hideBossBar();
-  const p = freeSpotNear(cur, cur.cx - 1.6, cur.cz);
-  spawnHeart(p.x, p.z, 2);
+  const h = freeSpotNear(cur, cur.cx, cur.cz + 2);
+  spawnHeart(h.x, h.z, 2);
   makeTrapdoor(cur.cx, cur.cz);
+  // the boss leaves a choice of two artifacts: taking one makes the other vanish
+  const choice = [offerGuaranteed('boss')];
+  if (choice[0]) choice.push(offerSecondChoice('boss'));
+  const spots = choice.filter(d => d !== null).map((d, i) => {
+    const p = freeSpotNear(cur, cur.cx + (i ? 2.6 : -2.6), cur.cz);
+    return placeArtifact(cur, d, p.x, p.z);
+  });
+  if (spots.length === 2) { spots[0].pair = spots[1]; spots[1].pair = spots[0]; }
   banner(...(G.run.floor >= FLOORS.length - 1 ? STR.banner.lastBossDead : STR.banner.bossDead));
 }
 

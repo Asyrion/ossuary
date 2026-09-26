@@ -109,9 +109,10 @@ export function buildHeroAnim(holder: THREE.Object3D, clips: THREE.AnimationClip
   return A;
 }
 
-export function playCast(A: HeroAnim) {
+/** Play the cast thrust, fast enough to finish within the current fire delay. */
+export function playCast(A: HeroAnim, fireDelay: number) {
   if (!A.cast || A.dead) return;
-  const ts = Math.max(1, A.castLen / (CFG.hero.fireDelay * 1.35));
+  const ts = Math.max(1, A.castLen / (fireDelay * 1.35));
   A.cast.reset(); A.cast.timeScale = ts; A.cast.play(); A.castLeft = A.castLen / ts; A.c = Math.max(A.c, .6);
 }
 export function playHit(A: HeroAnim) {

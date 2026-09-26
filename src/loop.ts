@@ -10,9 +10,9 @@ import { updateEnemies } from './actors/enemies';
 import { updateBolts, updateShots } from './combat/projectiles';
 import { updateParticles } from './combat/fx';
 import { updatePickups, updateTrapdoor } from './items/pickups';
-import { updateRelics } from './items/relics';
+import { updateArtifacts } from './items/artifacts';
 import { pollGamepad, type InputActions } from './input';
-import { updateHud } from './ui/hud';
+import { updateHud, updateVision } from './ui/hud';
 import { ease, lerp } from './util';
 import { CAM_OFFSET_Z, camTarget, draw } from './render/renderer';
 import { enterRoom } from './flow';
@@ -46,7 +46,7 @@ export function step(dt: number) {
 }
 
 function updateWorldFx(dt: number, now: number) {
-  updateRoomFx(dt, now); updateRelics(now); updateTrapdoor(dt);
+  updateRoomFx(dt, now); updateArtifacts(now); updateTrapdoor(dt);
   const tf = .92 + Math.sin(now * 13) * .05 + Math.sin(now * 23) * .04;
   for (const l of torchLights) l.intensity = CFG.lights.torch * lightState.torchMul * tf;
   G.shake = Math.max(0, G.shake - dt * 1.4);
@@ -59,7 +59,7 @@ function frame(nowMs: number) {
   acc += Math.min(MAX_FRAME, (nowMs - last) / 1000); last = nowMs;
   // small tolerance so rAF jitter at 60 Hz doesn't alternate between 0 and 2 steps
   while (acc >= STEP - 1e-3) { step(STEP); acc -= STEP; }
-  draw();
+  draw(); updateVision();
 }
 
 export function startLoop(actions: InputActions) {

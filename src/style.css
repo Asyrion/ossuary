@@ -29,6 +29,9 @@ body{font-family:var(--f-ui);color:var(--ink);-webkit-user-select:none;user-sele
 #hearts svg{width:30px;height:30px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.6))}
 #items{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 52px);display:flex;gap:6px}
 #items svg{width:28px;height:28px;filter:drop-shadow(0 0 6px rgba(255,170,60,.6))}
+#items svg.focus{border:1px solid rgba(232,220,194,.45);border-radius:4px;padding:2px;background:rgba(10,8,6,.45)}
+#items svg.cursed{filter:drop-shadow(0 0 5px rgba(200,30,20,.9))}
+#vision{position:fixed;inset:0;pointer-events:none;display:none}
 #minimap{position:absolute;right:calc(env(safe-area-inset-right,0px) + 14px);top:calc(env(safe-area-inset-top,0px) + 12px);width:150px;height:110px;opacity:.92}
 #bossbar{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);transform:translateX(-50%);width:min(440px,60vw);text-align:center;opacity:0;transition:opacity .4s}
 #bossbar.on{opacity:1}

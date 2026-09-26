@@ -23,11 +23,16 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   (pure, unit-tested); `src/world/templates.ts` parses and validates room templates. Content:
   `data/floors.json` (room counts, difficulty weights, enemy health, boss tuning and look per floor),
   `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `R W H` enemies, `B` boss) and
-  `data/relics.json` (until artifacts replace it in step 2).
+  `data/artifacts.json` (foci, passive and cursed artifacts: stats, effects, pools, colours, icons).
+- Artifacts: `src/items/artifactData.ts` (pure: data, `computeStats` combining, picking) and
+  `src/items/artifacts.ts` (pedestals, taking and focus swap, per-floor budget). The mage's stats are
+  `player.stats`, recomputed on every pickup; read those, not `CFG.hero`, for anything artifacts change.
+  The cantrip pipeline is in `src/combat/projectiles.ts`.
 - Tests: `npm run test:unit` (Vitest: generator rules on hundreds of seeds, every template validated),
   `npm run test:e2e` (Playwright smoke tests), `npm test` runs both.
 - URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`
-  plays one template (for reviewing rooms). `__game.map()` prints the floor.
+  plays one template (for reviewing rooms), `?give=bone_lens,twin_staff` starts with artifacts.
+  `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts.
 - `public/assets/hero_default.glb`: the hero (17,655 triangles, 65-bone Mixamo-style rig, 1,024 px JPEG
   textures). Clips: `standing_relax`, `run`, `cast_a_spell`, `hit_to_body_01`, `fall`.
 - `prototype/`: the 0.3 single file (`-source` to read, `-playable` to run). Still the reference for look

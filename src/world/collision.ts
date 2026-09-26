@@ -7,11 +7,11 @@ export type Mover = 'player' | 'walker' | 'flyer' | 'bolt';
 
 /** What blocks a mover in a room: walls and closed doors always; rocks stop everything but flyers;
     pits stop the mage and walkers, not bolts or flyers. */
-export function blockers(room: Room, who: Mover) {
-  const list = room.walls.slice();
+export function blockers(room: Room, who: Mover, overPits = false) {
+  const list: Box[] = room.walls.slice();
   for (const d of doorsOf(room)) if (!d.open) list.push(d.box);
   if (who !== 'flyer') list.push(...room.rocks);
-  if (who === 'player' || who === 'walker') list.push(...room.pits);
+  if ((who === 'player' || who === 'walker') && !overPits) list.push(...room.pits);
   return list;
 }
 

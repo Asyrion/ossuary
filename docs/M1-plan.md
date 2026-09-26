@@ -8,11 +8,11 @@ build. Each step ends playable, with unit and browser tests passing, and is push
 - [x] Seeded runs: generation, artifact pools and loot use seeded random streams; seed in the pause menu;
       `?seed=` replays a run's floors
 - [x] Generator stores rooms as lists of cells from the start, so step 4 adds shapes without a rewrite
-- [ ] Content as data: `data/floors.json`, `data/templates/*.json`, `data/artifacts.json` (replaces
+- [x] Content as data: `data/floors.json`, `data/templates/*.json`, `data/artifacts.json` (replaces
       `relics.json`); tuning in `config.ts`
-- [ ] Vitest unit tests: generator invariants and template validation (done), artifact combining (step 2);
-      CI runs unit and Playwright tests (done)
-- [ ] Dev shortcuts: `?room=<template>`, `?floor=<n>`, `__game.map()` (done); `?give=<ids>` (step 2)
+- [x] Vitest unit tests: generator invariants, template validation, artifact data and combining; CI runs
+      unit and Playwright tests
+- [x] Dev shortcuts: `?room=<template>`, `?floor=<n>`, `?give=<ids>`, `__game.map()`, `__game.give()`
 
 ## Step 1: Three generated floors (standard rooms)
 
@@ -29,12 +29,13 @@ build. Each step ends playable, with unit and browser tests passing, and is push
 
 ## Step 2: Artifacts
 
-- [ ] Artifact data, stats recomputed from base plus modifiers; "relic" renamed to artifact
-- [ ] Cantrip pipeline: focus pattern (twin, bounce, boomerang) plus modifiers (pierce, size, damage, rate)
-- [ ] Triggers: on kill (Knucklebone), on hurt (Bell), rock damage (Chisel)
-- [ ] Mask of the Drowned vision, Chain of the Penitent, Pilgrim's Boots over pits, Reliquary Shard
-- [ ] Pools, 3 to 5 per floor, once per run, fallback; boss choice of 2; rare room-clear drops; focus swap
-- [ ] Pedestal visuals, cursed glow, HUD icons, pickup banner
+- [x] Artifact data, stats recomputed from base plus modifiers; "relic" renamed to artifact
+- [x] Cantrip pipeline: focus pattern (twin, bounce, boomerang) plus modifiers (pierce, size, damage, rate)
+- [x] Triggers: on kill (Knucklebone), on hurt (Bell), rock damage (Chisel)
+- [x] Mask of the Drowned vision, Chain of the Penitent, Pilgrim's Boots over pits, Reliquary Shard
+- [x] Pools, 3 to 5 per floor (2 guaranteed until the ordeal lands in step 3), once per run, fallback;
+      boss choice of 2; rare room-clear drops; focus swap
+- [x] Pedestal visuals, cursed glow, HUD icons, pickup banner
 
 ## Step 3: Ordeal and Bone Altar
 

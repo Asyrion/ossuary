@@ -1,4 +1,5 @@
 import { CFG } from './config';
+import { START_FOCUS, computeStats } from './items/artifactData';
 import { Rng } from './rng';
 import type { FloorPlan } from './world/generate';
 import type { Bolt, Enemy, Particle, Pickup, Player, Trapdoor, Room, Shot, Transition } from './types';
@@ -22,14 +23,18 @@ export const G = {
   trapdoor: null as Trapdoor | null,
   stats: { time: 0, kills: 0 },
   /** The current run: its seed, which floor (0-based) and the seeded loot stream. */
-  run: { seed: '', floor: 0, loot: new Rng(0), seen: new Set<string>(), plan: null as FloorPlan | null },
+  run: {
+    seed: '', floor: 0, loot: new Rng(0), seen: new Set<string>(), plan: null as FloorPlan | null,
+    /** Artifacts offered on this floor, and guaranteed sources still to come (see items/artifacts.ts). */
+    budget: { used: 0, reserved: 0 },
+  },
   shake: 0,
   simClock: 0,
 };
 
 export const player: Player = {
   dead: false, x: 0, z: 0, vx: 0, vz: 0, r: CFG.hero.radius, hp: 6, maxHp: 6, invuln: 0, fireCd: 0, eye: 1, yawA: 0,
-  damage: CFG.hero.damage, boltScale: 1, boltColor: 0xffcf7a, squash: 0, items: [], bob: 0,
+  squash: 0, bob: 0, focus: START_FOCUS, items: [], stats: computeStats(START_FOCUS, [], CFG.hero),
 };
 
 /* Gameplay timers run on simulation time (not setTimeout), so they pause with the game and

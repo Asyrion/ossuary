@@ -35,4 +35,7 @@ export const Sfx = {
   enemyShot() { tone('sine', 420, 180, .18, .05); },
   boom() { tone('sine', 110, 40, .45, .22); hiss(.4, .1, 'lowpass', 400); },
   charge() { tone('sawtooth', 120, 260, .25, .06); },
+  crack() { hiss(.06, .08, 'bandpass', 1400); tone('square', 160, 90, .05, .03); },
+  rubble() { hiss(.35, .12, 'lowpass', 500); tone('sine', 90, 45, .3, .1); },
+  bell() { tone('sine', 196, 196, 1.2, .12); tone('sine', 392, 392, .8, .05); tone('triangle', 588, 588, .5, .03); },
 };

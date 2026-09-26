@@ -74,6 +74,26 @@ test('clear a room without console errors', async ({ page }) => {
   expect(errors).toEqual([]);
 });
 
+test('an artifact is taken from its pedestal and changes the mage', async ({ page }) => {
+  const errors = await start(page, '?room=treasure_plain&seed=SMOKE2');
+  const result = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GameHooks & {
+      current: RoomView & { spots: { x: number; z: number; taken: boolean; def: { id: string; kind: string } }[] };
+      player: { focus: string; items: string[]; x: number; z: number };
+    };
+    g.warp(1);
+    const spot = g.current.spots[0], offered = spot.def;
+    g.player.x = spot.x; g.player.z = spot.z + .5; g.sim(0.1); // walk into it
+    const holds = offered.kind === 'focus' ? g.player.focus === offered.id : g.player.items.includes(offered.id);
+    return { offered: offered.id, holds, icons: document.querySelectorAll('#items svg').length, banner: document.querySelector('#banner .t')!.textContent };
+  });
+  console.log(`took ${result.offered}`);
+  expect(result.holds).toBe(true);
+  expect(result.icons).toBeGreaterThanOrEqual(1);
+  expect(result.banner).not.toBe('');
+  expect(errors).toEqual([]);
+});
+
 test('a seeded floor is generated and the trapdoor leads down', async ({ page }) => {
   const errors = await start(page, '?seed=SMOKE1');
   const floor1 = await page.evaluate(() => {
@@ -91,10 +111,11 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
     g.warp(g.rooms().find(r => r.type === 'boss')!.plan.id);
     const seconds = w.__fight(180);
     g.sim(0.5);
-    return { seconds, left: g.enemies.length, cleared: g.current.cleared };
+    const spots = (g.current as RoomView & { spots: { pair?: object }[] }).spots;
+    return { seconds, left: g.enemies.length, cleared: g.current.cleared, choice: spots.length, paired: spots.every(s => !!s.pair) };
   });
   console.log(`floor 1 boss beaten in ${boss.seconds.toFixed(1)} s of game time`);
-  expect(boss).toMatchObject({ left: 0, cleared: true });
+  expect(boss).toMatchObject({ left: 0, cleared: true, choice: 2, paired: true });
 
   const floor2 = await page.evaluate(() => {
     const g = (window as unknown as W).__game, room = g.current;

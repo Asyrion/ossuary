@@ -1,5 +1,5 @@
 /* Every player-facing string, so the placeholder names can be swapped for Eda lore in one place.
-   Relic names and pickup lines live with the relic data in data/relics.json. */
+   Artifact names and pickup lines live with the artifact data in data/artifacts.json. */
 type Banner = [title: string, subtitle: string];
 
 export const STR = {
@@ -41,6 +41,7 @@ export const STR = {
     summon: ['The warden calls its dead', ''] as Banner,
     bossDead: ['The warden is still', 'A way down has opened'] as Banner,
     lastBossDead: ['The last warden is still', 'The way out lies below'] as Banner,
+    artifactRises: ['Something rises from the dust', ''] as Banner,
   },
   runInfo: (floor: number, floors: number, seed: string) => `Floor ${floor} of ${floors} · Seed ${seed}`,
   rotate: 'Turn your phone sideways to play.',
@@ -49,6 +50,7 @@ export const STR = {
   toast: {
     notGlb: 'That file is not a .glb. Export the model from Tripo as GLB and try again.',
     badGlb: 'This .glb could not be read. Re-export it from Tripo as GLB and try again.',
+    focusLeft: (name: string) => `You leave the ${name} on the pedestal`,
   },
   heroInfo: (label: string, tris: number, stripped: boolean, skinned: boolean, clips: string) =>
     `${label}: ${tris.toLocaleString()} triangles${stripped ? ', base removed' : ''}` +
