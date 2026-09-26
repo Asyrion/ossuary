@@ -35,7 +35,9 @@ test('start a run and clear room A without console errors', async ({ page }) => 
     for (; t < 60 && g.enemies.length; t += 0.05) {
       g.player.hp = g.player.maxHp; // this test checks the loop, not survival (hits still knock the hero back)
       const p = g.player;
+      // a foe killed by a bolt stays in the list, marked dead, until the next step
       const e = g.enemies.filter(f => !f.dead).sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0];
+      if (!e) { hold([]); g.sim(0.05); continue; }
       const dx = e.x - p.x, dz = e.z - p.z, codes: string[] = [];
       let arrow: string;
       if (Math.hypot(dx, dz) < .9) { // too close for bolts to connect: back away
