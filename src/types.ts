@@ -5,8 +5,8 @@ import type { FoeKind, Template } from './world/templates';
 import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
 
 export type Side = 'n' | 's' | 'e' | 'w';
-export type RoomType = 'start' | 'normal' | 'treasure' | 'boss';
-export type DoorStyle = 'normal' | 'treasure' | 'boss';
+export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar';
+export type DoorStyle = 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar';
 export interface Vec2 { x: number; z: number }
 /** Axis-aligned box on the floor plane: centre and half extents. */
 export interface Box { x: number; z: number; hx: number; hz: number }
@@ -33,6 +33,7 @@ export interface ArtifactSpot {
   def: ArtifactDef; room: Room; x: number; z: number; taken: boolean;
   /** False right after swapping foci, until the mage steps away. */ armed: boolean;
   pedestal: THREE.Group; visual: THREE.Group; collider: RockBox; pair?: ArtifactSpot;
+  /** Bone altars ask a heart container; the floating price tag goes when it's taken. */ price?: { hearts: number; tag: THREE.Object3D };
 }
 
 export interface Room {
@@ -40,8 +41,9 @@ export interface Room {
   /** Interior in world units. */
   bounds: { minX: number; maxX: number; minZ: number; maxZ: number };
   group: THREE.Group; doors: Partial<Record<Side, Door>>; walls: Box[]; rocks: RockBox[]; pits: Box[]; torches: Torch[];
-  /** Enemies to spawn on first entry, in world positions. */
-  foes: { kind: FoeKind; x: number; z: number }[];
+  /** Enemies to spawn, wave by wave (ordeals have 2 or 3 waves, other fights 1), in world positions. */
+  waves: { kind: FoeKind; x: number; z: number }[][];
+  /** The wave being fought, and whether the next one is on its way. */ wave: number; wavePending: boolean;
   cleared: boolean; visited: boolean; known: boolean; locked: boolean;
   spots: ArtifactSpot[];
 }
@@ -74,5 +76,6 @@ export interface Player extends Circle {
   dead: boolean; vx: number; vz: number; hp: number; maxHp: number; invuln: number; fireCd: number;
   eye: number; yawA: number; squash: number; bob: number;
   /** The equipped focus and every other artifact held, in pickup order. */ focus: string; items: string[];
+  /** Heart containers given to bone altars this run. */ heartsPaid: number;
   /** Derived from the base stats and the artifacts held (items/artifactData.ts computeStats). */ stats: Stats;
 }

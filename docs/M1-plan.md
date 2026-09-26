@@ -33,15 +33,14 @@ build. Each step ends playable, with unit and browser tests passing, and is push
 - [x] Cantrip pipeline: focus pattern (twin, bounce, boomerang) plus modifiers (pierce, size, damage, rate)
 - [x] Triggers: on kill (Knucklebone), on hurt (Bell), rock damage (Chisel)
 - [x] Mask of the Drowned vision, Chain of the Penitent, Pilgrim's Boots over pits, Reliquary Shard
-- [x] Pools, 3 to 5 per floor (2 guaranteed until the ordeal lands in step 3), once per run, fallback;
-      boss choice of 2; rare room-clear drops; focus swap
+- [x] Pools, 3 to 5 per floor, once per run, fallback; boss choice of 2; rare room-clear drops; focus swap
 - [x] Pedestal visuals, cursed glow, HUD icons, pickup banner
 
 ## Step 3: Ordeal and Bone Altar
 
-- [ ] Ordeal: skull door, locked doors, 2 or 3 waves with banners, artifact after the last wave
-- [ ] Bone Altar: bone arch door, floating price, costs a heart container, refused at one container
-- [ ] Generator: ordeal on every floor, altar when a spare dead end exists
+- [x] Ordeal: skull door, locked doors, 2 or 3 waves with banners, artifact after the last wave
+- [x] Bone Altar: bone arch door, floating price, costs a heart container, refused at one container
+- [x] Generator: ordeal on every floor, altar when a spare dead end exists (chance per floor in data)
 
 ## Step 4: Room shapes
 

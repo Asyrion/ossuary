@@ -11,7 +11,7 @@ import { freeSpotNear } from '../world/rooms';
 import type { BossConfig } from '../world/generate';
 import { spawnShot } from '../combat/projectiles';
 import { hurtPlayer } from '../combat/damage';
-import { onRoomCleared } from '../flow';
+import { onWaveCleared } from '../flow';
 import { banner } from '../ui/hud';
 import { angleLerp, lerp, rand } from '../util';
 
@@ -151,7 +151,7 @@ export function updateEnemies(dt: number) {
   }
   const alive = G.enemies.filter(e => !e.dead);
   if (alive.length !== G.enemies.length) G.enemies = alive;
-  if (cur.locked && G.enemies.length === 0) onRoomCleared(cur);
+  if (cur.locked && G.enemies.length === 0) onWaveCleared(cur);
 }
 
 function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {

@@ -34,7 +34,7 @@ export const G = {
 
 export const player: Player = {
   dead: false, x: 0, z: 0, vx: 0, vz: 0, r: CFG.hero.radius, hp: 6, maxHp: 6, invuln: 0, fireCd: 0, eye: 1, yawA: 0,
-  squash: 0, bob: 0, focus: START_FOCUS, items: [], stats: computeStats(START_FOCUS, [], CFG.hero),
+  squash: 0, bob: 0, focus: START_FOCUS, items: [], heartsPaid: 0, stats: computeStats(START_FOCUS, [], CFG.hero),
 };
 
 /* Gameplay timers run on simulation time (not setTimeout), so they pause with the game and

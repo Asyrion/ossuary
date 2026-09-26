@@ -2,7 +2,7 @@
 import type * as THREE from 'three';
 import { CFG } from './config';
 import type { Room } from './types';
-import { G, clearTimers, player } from './state';
+import { G, after, clearTimers, player } from './state';
 import { STR } from './strings';
 import { Rng, newSeed } from './rng';
 import { Sfx } from './audio/sfx';
@@ -49,7 +49,7 @@ export function buildFloor(index: number) {
   G.run.floor = index;
   const plan = testTemplate ? testPlan(testTemplate) : generateFloor(Rng.from(G.run.seed, 'floor' + index), FLOORS[index], index);
   G.run.plan = plan;
-  resetBudget(2); // guaranteed artifacts on every floor: the treasure room and the boss (the ordeal joins in step 3)
+  resetBudget(3); // guaranteed artifacts on every floor: the treasure room, the ordeal and the boss
   applyFloorLook(FLOORS[index].look);
   for (const p of plan.rooms) buildRoom(p, index);
   for (const r of G.rooms) buildWallsAndDoors(r);
@@ -118,11 +118,7 @@ export function enterRoom(room: Room) {
   for (const d of doorsOf(room)) d.nb.known = true;
   room.torches.forEach((t, i) => torchLights[i].position.set(t.x, 1.3, t.z));
   if (!room.cleared) {
-    const cfg = floorCfg();
-    for (const f of room.foes) {
-      if (f.kind === 'boss') makeEnemy(cfg.boss.type, f.x, f.z, 1, cfg.boss);
-      else makeEnemy(f.kind, f.x, f.z, cfg.enemyHp);
-    }
+    room.wave = 0; room.wavePending = false; spawnWave(room);
     room.locked = true; setDoors(room, false);
     if (room.type === 'boss') {
       const boss = G.enemies.find(e => e.isBoss);
@@ -130,15 +126,47 @@ export function enterRoom(room: Room) {
       if (boss) showBossBar(name, boss);
       banner(name, STR.banner.bossSub);
     }
+    if (room.type === 'ordeal') banner(...STR.banner.ordeal(room.waves.length));
   }
+  if (firstVisit && room.type === 'altar' && room.spots.length) banner(...STR.banner.altar);
   // a treasure room with nothing left to find offers a full heart instead
   if (firstVisit && room.type === 'treasure' && !room.spots.length) spawnHeart(room.cx, room.cz, 2);
   renderMinimap();
 }
 
+function spawnWave(room: Room) {
+  const cfg = floorCfg();
+  for (const f of room.waves[room.wave] ?? []) {
+    if (f.kind === 'boss') makeEnemy(cfg.boss.type, f.x, f.z, 1, cfg.boss);
+    else makeEnemy(f.kind, f.x, f.z, cfg.enemyHp);
+  }
+}
+
+/** The last enemy in a locked room fell: bring the next wave after a breath, or clear the room. */
+export function onWaveCleared(room: Room) {
+  if (room.wavePending) return;
+  if (room.wave < room.waves.length - 1) {
+    room.wavePending = true;
+    after(.9, () => {
+      if (G.current !== room || !room.wavePending) return; // left (dev warp) or restarted meanwhile
+      room.wavePending = false; room.wave++;
+      banner(...STR.banner.wave(room.wave + 1, room.waves.length), 1.6);
+      spawnWave(room);
+    });
+    return;
+  }
+  onRoomCleared(room);
+}
+
 export function onRoomCleared(room: Room) {
   room.cleared = true; room.locked = false; setDoors(room, true);
   const loot = G.run.loot;
+  if (room.type === 'ordeal') { // the reward rises in the middle of the room
+    const def = offerGuaranteed('ordeal');
+    if (def) placeArtifact(room, def, room.cx, room.cz); else spawnHeart(room.cx, room.cz, 2);
+    banner(...STR.banner.ordealPassed); Sfx.relic();
+    return;
+  }
   if (room.type !== 'normal') return;
   if (loot.chance(CFG.heartDropChance)) {
     const p = freeSpotNear(room, room.cx + loot.range(-1, 1), room.cz + loot.range(-.5, .5));

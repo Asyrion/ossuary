@@ -14,8 +14,9 @@ describe('room templates', () => {
   });
 
   it('cover every room type and normal difficulty the generator asks for', () => {
-    for (const type of ['start', 'treasure', 'boss'] as const) expect(TEMPLATE_DEFS.some(d => d.types.includes(type))).toBe(true);
+    for (const type of ['start', 'treasure', 'boss', 'altar'] as const) expect(TEMPLATE_DEFS.some(d => d.types.includes(type))).toBe(true);
     for (const d of [1, 2, 3]) expect(TEMPLATE_DEFS.some(t => t.types.includes('normal') && t.difficulty === d)).toBe(true);
+    for (const d of [1, 2, 3]) expect(TEMPLATE_DEFS.some(t => t.types.includes('ordeal') && t.difficulty === d)).toBe(true);
   });
 
   it('validation catches broken templates', () => {
@@ -41,13 +42,16 @@ describe('floor generator', () => {
   const SEEDS = 400;
 
   it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i follows the rules on %# seeds', (floorNo, cfg) => {
+    let altars = 0;
     for (let s = 0; s < SEEDS; s++) {
       const plan = generateFloor(Rng.from('T' + s, 'floor' + floorNo), cfg, floorNo - 1);
       const n = plan.rooms.length;
       expect(n).toBeGreaterThanOrEqual(cfg.rooms[0]);
       expect(n).toBeLessThanOrEqual(cfg.rooms[1]);
       const count = (t: string) => plan.rooms.filter(r => r.type === t).length;
-      expect([count('start'), count('boss'), count('treasure')]).toEqual([1, 1, 1]);
+      expect([count('start'), count('boss'), count('treasure'), count('ordeal')]).toEqual([1, 1, 1, 1]);
+      expect(count('altar')).toBeLessThanOrEqual(1);
+      altars += count('altar');
 
       const at = new Map(plan.rooms.flatMap(r => r.cells.map(c => [c.gx + ',' + c.gy, r])));
       const nbs = (r: (typeof plan.rooms)[number]) => r.cells.flatMap(c =>
@@ -63,7 +67,7 @@ describe('floor generator', () => {
       expect(nbs(boss).length).toBe(1);
       expect(boss.dist).toBe(Math.max(...plan.rooms.map(r => r.dist)));
       expect(boss.dist).toBeGreaterThanOrEqual(2);
-      expect(nbs(plan.rooms.find(r => r.type === 'treasure')!).length).toBe(1);
+      for (const t of ['treasure', 'ordeal', 'altar']) for (const r of plan.rooms.filter(x => x.type === t)) expect(nbs(r).length).toBe(1);
       // templates fit their rooms; floor 1 starts gentle
       for (const r of plan.rooms) {
         const def = TEMPLATE_DEFS.find(d => d.id === r.templateId)!;
@@ -71,6 +75,9 @@ describe('floor generator', () => {
         if (floorNo === 1 && r.type === 'normal' && r.dist === 1) expect(def.difficulty).toBe(1);
       }
     }
+    // altars are optional but should turn up on a fair share of floors
+    expect(altars / SEEDS).toBeGreaterThan(.2);
+    expect(altars / SEEDS).toBeLessThan(cfg.altarChance + .05);
   });
 
   it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i has a complete look', (_n, cfg) => {

@@ -2,8 +2,12 @@
    game, the floor generator and the unit tests.
 
    Legend:  .  floor      #  rock      o  pit
-            R  rotling    W  wisp      H  crypt hound      B  the floor's boss */
+            R  rotling    W  wisp      H  crypt hound      B  the floor's boss
+
+   Ordeal templates keep their terrain in `grid` (no enemies) and list each wave's enemies in `waves`,
+   one grid per wave with only `.` and enemy letters. */
 import standardTemplates from '../../data/templates/standard.json';
+import specialTemplates from '../../data/templates/special.json';
 import type { EnemyType } from '../config';
 import type { RoomType } from '../types';
 
@@ -17,12 +21,14 @@ export const SHAPES: Record<ShapeId, { w: number; h: number }> = {
 
 export interface TemplateDef {
   id: string; shape: ShapeId; types: RoomType[]; difficulty: number; grid: string[];
+  /** Ordeal rooms: the enemies of each wave. */ waves?: string[][];
 }
 export interface Foe { kind: FoeKind; c: number; r: number }
 export interface Template {
   id: string; shape: ShapeId; types: RoomType[]; difficulty: number; w: number; h: number;
   tiles: Tile[][]; // [row][col]
-  foes: Foe[];
+  /** Enemies per wave: one wave for normal and boss rooms, none for empty rooms. */ waves: Foe[][];
+  /** Every enemy of every wave. */ foes: Foe[];
 }
 
 const TILE_OF: Record<string, Tile> = { '.': 'floor', '#': 'rock', 'o': 'pit' };
@@ -31,17 +37,20 @@ const FOE_OF: Record<string, FoeKind> = { R: 'rotling', W: 'wisp', H: 'hound', B
 /** Parse a template, optionally mirrored left-right and/or top-bottom. */
 export function parseTemplate(def: TemplateDef, mirrorX = false, mirrorY = false): Template {
   const { w, h } = SHAPES[def.shape];
-  const tiles: Tile[][] = []; const foes: Foe[] = [];
+  const at = (grid: string[], c: number, r: number) => grid[mirrorY ? h - 1 - r : r]?.[mirrorX ? w - 1 - c : c];
+  const tiles: Tile[][] = []; const inGrid: Foe[] = [];
   for (let r = 0; r < h; r++) {
     const row: Tile[] = [];
     for (let c = 0; c < w; c++) {
-      const ch = def.grid[mirrorY ? h - 1 - r : r][mirrorX ? w - 1 - c : c];
-      const foe = FOE_OF[ch];
-      if (foe) { foes.push({ kind: foe, c, r }); row.push('floor'); } else row.push(TILE_OF[ch]);
+      const ch = at(def.grid, c, r), foe = FOE_OF[ch];
+      if (foe) { inGrid.push({ kind: foe, c, r }); row.push('floor'); } else row.push(TILE_OF[ch]);
     }
     tiles.push(row);
   }
-  return { id: def.id, shape: def.shape, types: def.types, difficulty: def.difficulty, w, h, tiles, foes };
+  const waves = def.waves
+    ? def.waves.map(grid => { const list: Foe[] = []; for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) { const f = FOE_OF[at(grid, c, r)]; if (f) list.push({ kind: f, c, r }); } return list; })
+    : inGrid.length ? [inGrid] : [];
+  return { id: def.id, shape: def.shape, types: def.types, difficulty: def.difficulty, w, h, tiles, waves, foes: waves.flat() };
 }
 
 /** Where the player appears when entering through each door, and the tiles that must stay clear. */
@@ -66,8 +75,20 @@ export function validateTemplate(def: TemplateDef): string[] {
     if (row.length !== shape.w) errs.push(`row ${r} has ${row.length} columns, needs ${shape.w}`);
     for (const ch of row) if (!TILE_OF[ch] && !FOE_OF[ch]) errs.push(`row ${r} has unknown character "${ch}"`);
   });
+  const ordeal = def.types.includes('ordeal');
+  if (ordeal !== !!def.waves) errs.push(ordeal ? 'ordeal rooms need waves' : 'only ordeal rooms have waves');
+  if (def.waves) {
+    if (def.waves.length < 2 || def.waves.length > 3) errs.push(`has ${def.waves.length} waves, needs 2 or 3`);
+    if (def.grid.some(row => [...row].some(ch => FOE_OF[ch]))) errs.push('ordeal enemies go in the waves, not the grid');
+    def.waves.forEach((grid, i) => {
+      if (grid.length !== shape.h || grid.some(row => row.length !== shape.w)) errs.push(`wave ${i + 1} is not ${shape.w} × ${shape.h}`);
+      else if (grid.some(row => [...row].some(ch => ch !== '.' && !FOE_OF[ch]))) errs.push(`wave ${i + 1} may only hold '.' and enemies`);
+      else if (!grid.some(row => [...row].some(ch => FOE_OF[ch]))) errs.push(`wave ${i + 1} has no enemies`);
+    });
+  }
   if (errs.length) return errs;
   const t = parseTemplate(def);
+  for (const f of t.foes) if (t.tiles[f.r][f.c] !== 'floor') errs.push(`${f.kind} at (${f.c},${f.r}) stands on a ${t.tiles[f.r][f.c]}`);
   const blocked = (c: number, r: number) => t.tiles[r][c] !== 'floor';
   const { entries, lanes } = doorTiles(def.shape);
   for (const { c, r } of lanes) {
@@ -95,9 +116,9 @@ export function validateTemplate(def: TemplateDef): string[] {
   const bosses = t.foes.filter(f => f.kind === 'boss').length;
   if (def.types.includes('boss') ? bosses !== 1 : bosses !== 0) errs.push('boss rooms need exactly one B, other rooms none');
   if (def.types.includes('normal') && !t.foes.length) errs.push('normal rooms need enemies');
-  if (!def.types.includes('normal') && !def.types.includes('boss') && t.foes.length) errs.push(`${def.types.join('/')} rooms can't have enemies`);
+  if (!def.types.some(ty => ty === 'normal' || ty === 'boss' || ty === 'ordeal') && t.foes.length) errs.push(`${def.types.join('/')} rooms can't have enemies`);
   return errs;
 }
 
-export const TEMPLATE_DEFS: TemplateDef[] = [...(standardTemplates as TemplateDef[])];
+export const TEMPLATE_DEFS: TemplateDef[] = [...(standardTemplates as TemplateDef[]), ...(specialTemplates as TemplateDef[])];
 export const TEMPLATES = new Map(TEMPLATE_DEFS.map(d => [d.id, d]));

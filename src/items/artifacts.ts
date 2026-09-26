@@ -8,7 +8,7 @@ import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { M, blob, glow } from '../render/materials';
 import { burst } from '../combat/fx';
-import { banner, renderHearts, renderItems, renderMinimap, toast } from '../ui/hud';
+import { HEART_PATH, banner, renderHearts, renderItems, renderMinimap, toast } from '../ui/hud';
 import { START_FOCUS, artifact, computeStats, pickArtifact, type ArtifactDef, type Pool } from './artifactData';
 
 const hex = (c: string) => new THREE.Color(c).getHex();
@@ -18,7 +18,7 @@ const hex = (c: string) => new THREE.Color(c).getHex();
 /** Recompute the mage's stats from what they hold; heart containers gained come filled. */
 export function refreshStats() {
   const before = player.maxHp;
-  player.stats = computeStats(player.focus, player.items, CFG.hero);
+  player.stats = computeStats(player.focus, player.items, { ...CFG.hero, hearts: CFG.hero.hearts - player.heartsPaid });
   player.maxHp = player.stats.maxHp;
   if (player.maxHp > before) player.hp += player.maxHp - before;
   player.hp = Math.min(player.hp, player.maxHp);
@@ -26,7 +26,7 @@ export function refreshStats() {
 }
 
 /** Start a run holding only the starting focus. */
-export function resetArtifacts() { player.focus = START_FOCUS; player.items = []; refreshStats(); player.hp = player.maxHp; renderHearts(); }
+export function resetArtifacts() { player.focus = START_FOCUS; player.items = []; player.heartsPaid = 0; refreshStats(); player.hp = player.maxHp; renderHearts(); }
 
 /** Give the mage an artifact. Returns the focus it replaced, if any. */
 export function grantArtifact(def: ArtifactDef, silent = false): ArtifactDef | null {
@@ -89,17 +89,51 @@ export function makeArtifactVisual(def: ArtifactDef) {
   return g;
 }
 
-/** Put an artifact on a new pedestal at world (x, z) in a room. */
-export function placeArtifact(room: Room, def: ArtifactDef, x: number, z: number): ArtifactSpot {
+/** The altar's price, floating above it: an empty heart and "−1". */
+let priceTex: THREE.CanvasTexture | null = null;
+function priceTag() {
+  if (!priceTex) {
+    const c = document.createElement('canvas'); c.width = 128; c.height = 64; const g = c.getContext('2d')!;
+    g.translate(8, 8); g.scale(2, 2);
+    g.fillStyle = 'rgba(20,6,4,.8)'; g.strokeStyle = '#d23a2a'; g.lineWidth = 2;
+    g.fill(new Path2D(HEART_PATH)); g.stroke(new Path2D(HEART_PATH));
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.font = 'bold 40px "Alegreya Sans", sans-serif'; g.fillStyle = '#f0d9b4'; g.textBaseline = 'middle'; g.fillText('−1', 64, 34);
+    priceTex = new THREE.CanvasTexture(c); priceTex.colorSpace = THREE.SRGBColorSpace;
+  }
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: priceTex, transparent: true, depthWrite: false }));
+  s.scale.set(.9, .45, 1); return s;
+}
+
+/** Put an artifact on a new pedestal at world (x, z) in a room; `altar` builds a bone altar that asks a heart container. */
+export function placeArtifact(room: Room, def: ArtifactDef, x: number, z: number, opts: { altar?: boolean } = {}): ArtifactSpot {
   const pedestal = new THREE.Group(); pedestal.position.set(x - room.cx, 0, z - room.cz);
-  const col = new THREE.Mesh(new THREE.CylinderGeometry(.3, .38, .6, 8), M.rock); col.position.y = .3;
-  const top = new THREE.Mesh(new THREE.CylinderGeometry(.42, .42, .1, 8), M.rock); top.position.y = .64;
-  pedestal.add(col, top, blob(1.3));
+  let price: ArtifactSpot['price'];
+  if (opts.altar) {
+    const slab = new THREE.Mesh(new THREE.BoxGeometry(1, .55, .6), M.rock); slab.position.y = .28;
+    const top = new THREE.Mesh(new THREE.BoxGeometry(1.08, .08, .68), M.bone); top.position.y = .6;
+    pedestal.add(slab, top, blob(1.6));
+    for (let i = 0; i < 3; i++) { // bones heaped against the front
+      const b = new THREE.Mesh(new THREE.CylinderGeometry(.03, .03, .42, 6), M.bone);
+      b.position.set(-.3 + i * .3, .1, .36); b.rotation.set(Math.PI / 2, 0, .4 - i * .4); pedestal.add(b);
+    }
+    for (const cx of [-.4, .4]) { // two red candles
+      const candle = new THREE.Mesh(new THREE.CylinderGeometry(.04, .045, .18, 8), new THREE.MeshStandardMaterial({ color: 0x7a1410, roughness: .6 }));
+      candle.position.set(cx, .73, -.18); pedestal.add(candle);
+      const flame = glow(0xff7a3a, .35, .9); flame.position.set(cx, .88, -.18); pedestal.add(flame);
+    }
+    const tag = priceTag(); tag.position.y = 1.75; pedestal.add(tag);
+    price = { hearts: 1, tag };
+  } else {
+    const col = new THREE.Mesh(new THREE.CylinderGeometry(.3, .38, .6, 8), M.rock); col.position.y = .3;
+    const top = new THREE.Mesh(new THREE.CylinderGeometry(.42, .42, .1, 8), M.rock); top.position.y = .64;
+    pedestal.add(col, top, blob(1.3));
+  }
   const visual = makeArtifactVisual(def); visual.position.y = 1.05; pedestal.add(visual);
   room.group.add(pedestal);
-  const collider = { x, z, hx: .4, hz: .4, hp: Infinity, breakable: false };
+  const collider = opts.altar ? { x, z, hx: .5, hz: .32, hp: Infinity, breakable: false } : { x, z, hx: .4, hz: .4, hp: Infinity, breakable: false };
   room.rocks.push(collider);
-  const spot: ArtifactSpot = { def, room, x, z, taken: false, armed: true, pedestal, visual, collider };
+  const spot: ArtifactSpot = { def, room, x, z, taken: false, armed: true, pedestal, visual, collider, price };
   room.spots.push(spot);
   return spot;
 }
@@ -118,6 +152,12 @@ function vanish(spot: ArtifactSpot) {
 
 function take(spot: ArtifactSpot) {
   const def = spot.def;
+  if (spot.price) { // a bone altar: pay a heart container, but never the last one
+    if (player.maxHp - spot.price.hearts * 2 < 2) { banner(...STR.banner.altarRefuses); Sfx.door(false); spot.armed = false; return; }
+    player.heartsPaid += spot.price.hearts; refreshStats();
+    burst(player.x, .8, player.z, 0xb3261a, 18, 2.4, .07); Sfx.hurt();
+    spot.price.tag.visible = false; spot.price = undefined;
+  }
   const replaced = grantArtifact(def);
   burst(spot.x, 1, spot.z, hex(def.color), 26, 3, .07);
   if (replaced) { // a focus: the old one is left on the pedestal

@@ -7,7 +7,7 @@ import { camera } from '../render/renderer';
 import { artifact } from '../items/artifactData';
 import { $, clamp } from '../util';
 
-const HEART_PATH = 'M12 21.2s-7.6-4.7-9.7-9.3C.8 8.3 3 4.4 6.7 4.4c2.1 0 3.6 1.1 4.4 2.7.8-1.6 2.3-2.7 4.4-2.7 3.7 0 5.9 3.9 4.3 7.5-2.1 4.6-9.8 9.3-9.8 9.3z';
+export const HEART_PATH = 'M12 21.2s-7.6-4.7-9.7-9.3C.8 8.3 3 4.4 6.7 4.4c2.1 0 3.6 1.1 4.4 2.7.8-1.6 2.3-2.7 4.4-2.7 3.7 0 5.9 3.9 4.3 7.5-2.1 4.6-9.8 9.3-9.8 9.3z';
 /* Placeholder artifact icons (24 × 24, drawn in the artifact's colour) until icons are rendered from Tripo models. */
 const S = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
 const ICONS: Record<string, string> = {
@@ -80,6 +80,14 @@ export function renderMinimap() {
     if (r.type === 'boss') {
       mg.fillStyle = '#b3261a'; mg.beginPath(); mg.arc(cx, cy - 1, 7, 0, 7); mg.fill();
       mg.fillStyle = '#1a0806'; mg.fillRect(cx - 4, cy - 3, 3, 3); mg.fillRect(cx + 1, cy - 3, 3, 3);
+    }
+    if (r.type === 'ordeal') { // crossed blades, dimmed once passed
+      mg.strokeStyle = r.cleared ? '#5a5048' : '#2a2226'; mg.lineWidth = 3;
+      mg.beginPath(); mg.moveTo(cx - 6, cy - 6); mg.lineTo(cx + 6, cy + 6); mg.moveTo(cx + 6, cy - 6); mg.lineTo(cx - 6, cy + 6); mg.stroke();
+    }
+    if (r.type === 'altar') { // an arch of bone, dimmed once paid
+      mg.strokeStyle = r.spots.some(s => !s.taken) ? '#e8dcc0' : '#6a5a4a'; mg.lineWidth = 2.5;
+      mg.beginPath(); mg.arc(cx, cy + 3, 6, Math.PI, 0); mg.moveTo(cx - 6, cy + 3); mg.lineTo(cx - 6, cy + 7); mg.moveTo(cx + 6, cy + 3); mg.lineTo(cx + 6, cy + 7); mg.stroke();
     }
     if (r.type === 'treasure') {
       mg.fillStyle = r.spots.some(s => !s.taken) ? '#e8b04a' : '#6a5a3a';

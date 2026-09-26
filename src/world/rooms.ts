@@ -6,7 +6,7 @@ import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { floorTexture, pitTexture } from '../render/textures';
 import { M, basicMat, blob, boxUV, glow, markShared, wallMaterials } from '../render/materials';
-import { offerGuaranteed, placeArtifact } from '../items/artifacts';
+import { offerGuaranteed, offerOptional, placeArtifact } from '../items/artifacts';
 import { burst } from '../combat/fx';
 import { mulberry } from '../util';
 import { DH, DIR, H_LOW, H_TALL, HD, HW, PX, PZ, SIDES, WT } from './dims';
@@ -49,7 +49,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   const room: Room = {
     plan, template, look, type: plan.type, gx, gy, cx, cz,
     bounds: { minX: cx - HW, maxX: cx + HW, minZ: cz - HD, maxZ: cz + HD },
-    group: new THREE.Group(), doors: {}, walls: [], rocks: [], pits: [], torches: [], foes: [], spots: [],
+    group: new THREE.Group(), doors: {}, walls: [], rocks: [], pits: [], torches: [], waves: [], wave: 0, wavePending: false, spots: [],
     cleared: true, visited: false, known: false, locked: false,
   };
   room.group.position.set(cx, 0, cz); scene.add(room.group);
@@ -62,10 +62,11 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
     else if (tile === 'pit') addPit(room, c, r);
   }));
   mergePits(room);
-  for (const f of template.foes) room.foes.push({ kind: f.kind, ...toWorld(room, f.c, f.r) });
-  room.cleared = room.foes.length === 0;
+  room.waves = template.waves.map(w => w.map(f => ({ kind: f.kind, ...toWorld(room, f.c, f.r) })));
+  room.cleared = room.waves.length === 0;
   for (const tx of [-3.5, 3.5]) addTorch(room, tx, look.torch);
   if (plan.type === 'treasure') addPedestal(room);
+  if (plan.type === 'altar') addAltar(room);
   G.rooms.push(room);
   for (const c of plan.cells) G.roomMap.set(c.gx + ',' + c.gy, room);
   return room;
@@ -155,6 +156,13 @@ function addPedestal(room: Room) {
   if (def) placeArtifact(room, def, room.cx, room.cz); // else nothing is left to find: enterRoom offers a heart
 }
 
+/** A bone altar: an artifact from the altar pool for one heart container. Optional, so only while the
+    floor's budget allows; an altar with nothing to offer stays bare. */
+function addAltar(room: Room) {
+  const def = offerOptional('altar');
+  if (def) placeArtifact(room, def, room.cx, room.cz, { altar: true });
+}
+
 /** Is the tile under (x, z) open floor, clear of rocks and pedestals? */
 export function isFreeAt(room: Room, x: number, z: number) {
   const c = Math.floor(x - room.bounds.minX), r = Math.floor(z - room.bounds.minZ);
@@ -178,7 +186,8 @@ export function buildWallsAndDoors(room: Room) {
     if (!nb) { room.walls.push(wallBox(room, side, a0, a1, h, wallMaterials(room.look.wall))); continue; }
     room.walls.push(wallBox(room, side, a0, -DH, h, wallMaterials(room.look.wall)));
     room.walls.push(wallBox(room, side, DH, a1, h, wallMaterials(room.look.wall)));
-    const style: DoorStyle = (room.type === 'boss' || nb.type === 'boss') ? 'boss' : (room.type === 'treasure' || nb.type === 'treasure') ? 'treasure' : 'normal';
+    const either = (t: string) => room.type === t || nb.type === t;
+    const style: DoorStyle = either('boss') ? 'boss' : either('ordeal') ? 'ordeal' : either('altar') ? 'altar' : either('treasure') ? 'treasure' : 'normal';
     const fm = M.frame[style];
     const ns = side === 'n' || side === 's';
     // posts, lintel, threshold
@@ -190,10 +199,24 @@ export function buildWallsAndDoors(room: Room) {
     th.rotation.x = -Math.PI / 2; const tp = wallFrame(side, 0, 0); th.position.set(tp.x, .003, tp.z);
     if (ns) th.scale.set(DH * 2, WT, 1); else th.scale.set(WT, DH * 2, 1);
     room.group.add(th);
+    // above the door, on this room's side: the boss's glowing eye, the ordeal's skull, the altar's crossed bones
+    const ep = wallFrame(side, 0, side === 'n' ? .55 : side === 's' ? -.55 : side === 'e' ? -.55 : .55);
     if (style === 'boss') {
-      const eye = glow(0xff3a1a, .7, .9);
-      const ep = wallFrame(side, 0, side === 'n' ? .55 : side === 's' ? -.55 : side === 'e' ? -.55 : .55);
-      eye.position.set(ep.x, h + .05, ep.z); room.group.add(eye);
+      const eye = glow(0xff3a1a, .7, .9); eye.position.set(ep.x, h + .05, ep.z); room.group.add(eye);
+    } else if (style === 'ordeal') {
+      const skull = new THREE.Group();
+      const head = new THREE.Mesh(new THREE.SphereGeometry(.15, 8, 6), M.bone); head.scale.set(1, .9, .9);
+      const jaw = new THREE.Mesh(new THREE.BoxGeometry(.16, .08, .12), M.bone); jaw.position.set(0, -.13, .02);
+      const eyes = new THREE.Mesh(new THREE.BoxGeometry(.16, .04, .02), M.wallTop); eyes.position.set(0, -.01, .13);
+      skull.add(head, jaw, eyes); skull.position.set(ep.x, h + .12, ep.z);
+      skull.rotation.y = side === 'n' ? 0 : side === 's' ? Math.PI : side === 'e' ? -Math.PI / 2 : Math.PI / 2;
+      room.group.add(skull);
+    } else if (style === 'altar') {
+      for (const a of [.7, -.7]) {
+        const bone = new THREE.Mesh(new THREE.CylinderGeometry(.035, .035, .55, 6), M.bone);
+        bone.position.set(ep.x, h + .1, ep.z); bone.rotation.set(0, side === 'e' || side === 'w' ? Math.PI / 2 : 0, a);
+        room.group.add(bone);
+      }
     }
     // bars (sink into the floor when open)
     const bars = new THREE.Group(); const barH = side === 's' ? H_LOW + .1 : h - .25;

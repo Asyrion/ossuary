@@ -128,6 +128,20 @@ export function floorTexture(seed: number, kind: RoomType, look: FloorLook) {
   g.fillStyle = edge(0, 0, 0, 70); g.fillRect(0, 0, cw, 70); g.fillStyle = edge(0, ch, 0, ch - 60); g.fillRect(0, ch - 60, cw, 60);
   g.fillStyle = edge(0, 0, 70, 0); g.fillRect(0, 0, 70, ch); g.fillStyle = edge(cw, 0, cw - 70, 0); g.fillRect(cw - 70, 0, 70, ch);
   if (kind === 'start') drawChalk(g, P);
+  if (kind === 'ordeal') { // an engraved square with three notches, one per possible wave
+    g.save(); g.translate(cw / 2, ch / 2); g.strokeStyle = 'rgba(10,8,8,.55)'; g.lineWidth = 5;
+    g.strokeRect(-130, -110, 260, 220); g.strokeStyle = 'rgba(200,190,170,.12)'; g.lineWidth = 2; g.strokeRect(-124, -104, 248, 208);
+    for (const x of [-40, 0, 40]) { g.fillStyle = 'rgba(10,8,8,.5)'; g.fillRect(x - 6, -128, 12, 22); }
+    g.restore();
+  }
+  if (kind === 'altar') { // a bone-chalk circle stained dark at its heart
+    g.save(); g.translate(cw / 2, ch / 2);
+    const gr = g.createRadialGradient(0, 0, 0, 0, 0, 110); gr.addColorStop(0, 'rgba(60,8,6,.5)'); gr.addColorStop(1, 'rgba(60,8,6,0)');
+    g.fillStyle = gr; g.fillRect(-110, -110, 220, 220);
+    g.strokeStyle = 'rgba(225,212,188,.3)'; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, 140, 0, 7); g.stroke();
+    for (let i = 0; i < 6; i++) { g.rotate(Math.PI / 3); g.beginPath(); g.moveTo(0, -140); g.lineTo(0, -160); g.stroke(); }
+    g.restore();
+  }
   if (kind === 'boss') {
     g.save(); g.translate(cw / 2, ch / 2); g.strokeStyle = 'rgba(140,30,20,.35)'; g.lineWidth = 4;
     g.beginPath(); g.arc(0, 0, 150, 0, 7); g.stroke(); g.beginPath(); g.arc(0, 0, 120, 0, 7); g.stroke();

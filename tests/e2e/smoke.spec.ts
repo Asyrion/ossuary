@@ -94,6 +94,37 @@ test('an artifact is taken from its pedestal and changes the mage', async ({ pag
   expect(errors).toEqual([]);
 });
 
+test('an ordeal is fought wave by wave and rewards an artifact', async ({ page }) => {
+  const errors = await start(page, '?room=ordeal_pillars');
+  const result = await page.evaluate(() => {
+    const w = window as unknown as W;
+    const g = w.__game as GameHooks & { current: RoomView & { waves: unknown[]; wave: number; spots: unknown[] } };
+    g.warp(1);
+    const room = g.current, waves = room.waves.length, seen: number[] = [];
+    for (let i = 0; i < 6 && !room.cleared; i++) { seen.push(room.wave); w.__fight(90); g.sim(1.2); }
+    return { waves, seen: [...new Set(seen)], cleared: room.cleared, locked: room.locked, reward: room.spots.length };
+  });
+  expect(result.waves).toBe(2);
+  expect(result.seen).toEqual([0, 1]);
+  expect(result).toMatchObject({ cleared: true, locked: false, reward: 1 });
+  expect(errors).toEqual([]);
+});
+
+test('a bone altar takes a heart container for its artifact', async ({ page }) => {
+  const errors = await start(page, '?room=altar_bones');
+  const result = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GameHooks & {
+      current: RoomView & { spots: { x: number; z: number; taken: boolean }[] }; player: { maxHp: number; x: number; z: number };
+    };
+    g.warp(1);
+    const spot = g.current.spots[0], before = g.player.maxHp;
+    g.player.x = spot.x; g.player.z = spot.z + .6; g.sim(0.1);
+    return { before, after: g.player.maxHp, taken: spot.taken };
+  });
+  expect(result).toMatchObject({ before: 6, after: 4, taken: true });
+  expect(errors).toEqual([]);
+});
+
 test('a seeded floor is generated and the trapdoor leads down', async ({ page }) => {
   const errors = await start(page, '?seed=SMOKE1');
   const floor1 = await page.evaluate(() => {
@@ -104,7 +135,7 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
   expect(floor1.floor).toBe(0);
   expect(floor1.rooms).toBeGreaterThanOrEqual(8);
   expect(floor1.rooms).toBeLessThanOrEqual(12);
-  for (const t of ['start', 'boss', 'treasure']) expect(floor1.types.filter(x => x === t)).toHaveLength(1);
+  for (const t of ['start', 'boss', 'treasure', 'ordeal']) expect(floor1.types.filter(x => x === t)).toHaveLength(1);
 
   const boss = await page.evaluate(() => {
     const w = window as unknown as W, g = w.__game;

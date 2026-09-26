@@ -2,7 +2,8 @@
 
    The map grows from the centre of a GRID_W × GRID_H grid: a queue of rooms, each trying its four
    neighbours; a new room may not touch more than one existing room, which keeps the map a tree full of
-   dead ends. Special rooms take the dead ends: the farthest is the boss, then the treasure room.
+   dead ends. Special rooms take the dead ends: the farthest is the boss, then the treasure room and the
+   ordeal; a bone altar takes a spare dead end when the floor's altarChance rolls.
    Rooms are stored as lists of cells so larger shapes can be added later. */
 import floorsData from '../../data/floors.json';
 import type { Rng } from '../rng';
@@ -16,6 +17,7 @@ export interface BossConfig { type: 'warden'; hpMul: number; speedMul: number; s
 export interface FloorConfig {
   rooms: [number, number];
   enemyHp: number;
+  /** Chance of a bone altar when a spare dead end exists. */ altarChance: number;
   templateWeights: Record<string, number>;
   boss: BossConfig;
   look: FloorLook;
@@ -82,13 +84,14 @@ export function generateFloor(rng: Rng, cfg: FloorConfig, index: number, library
     const deadEnds = cells.filter(c =>
       !(c.gx === START_CELL.gx && c.gy === START_CELL.gy) &&
       DIRS.filter(([dx, dy]) => set.has(key(c.gx + dx, c.gy + dy))).length === 1);
-    if (deadEnds.length < 2) continue;
+    if (deadEnds.length < 3) continue; // boss, treasure and ordeal each need one
     deadEnds.sort((a, b) => dist.get(key(b.gx, b.gy))! - dist.get(key(a.gx, a.gy))!);
     const boss = deadEnds[0];
     if (dist.get(key(boss.gx, boss.gy))! < 2) continue; // the boss never touches the start room
-    const treasure = rng.pick(deadEnds.slice(1));
-    const typeOf = (c: Cell): RoomType =>
-      c === cells[0] ? 'start' : c === boss ? 'boss' : c === treasure ? 'treasure' : 'normal';
+    const others = rng.shuffle(deadEnds.slice(1));
+    const special = new Map<Cell, RoomType>([[boss, 'boss'], [others[0], 'treasure'], [others[1], 'ordeal']]);
+    if (others.length > 2 && rng.chance(cfg.altarChance)) special.set(others[2], 'altar');
+    const typeOf = (c: Cell): RoomType => c === cells[0] ? 'start' : special.get(c) ?? 'normal';
     const rooms: PlannedRoom[] = cells.map((c, id) => ({
       id, type: typeOf(c), shape: 'standard', cells: [c], dist: dist.get(key(c.gx, c.gy))!,
       templateId: '', mirrorX: rng.chance(0.5), mirrorY: rng.chance(0.5), seed: rng.int(1, 2 ** 30),
@@ -104,9 +107,10 @@ function assignTemplates(rng: Rng, rooms: PlannedRoom[], cfg: FloorConfig, index
   const used = new Set<string>();
   for (const room of rng.shuffle(rooms.slice())) {
     let pool = library.filter(t => t.shape === room.shape && t.types.includes(room.type));
-    if (room.type === 'normal') {
-      // the rooms next to the start on floor 1 stay gentle
-      const difficulty = index === 0 && room.dist === 1 ? 1 : Number(rng.weighted(cfg.templateWeights));
+    if (room.type === 'normal' || room.type === 'ordeal') {
+      // the rooms next to the start on floor 1 stay gentle; ordeals are a step harder than the floor
+      let difficulty = index === 0 && room.dist === 1 ? 1 : Number(rng.weighted(cfg.templateWeights));
+      if (room.type === 'ordeal') difficulty = Math.min(3, difficulty + 1);
       const atLevel = pool.filter(t => t.difficulty === difficulty);
       if (atLevel.length) pool = atLevel;
     }
@@ -128,10 +132,10 @@ export function testPlan(templateId: string, library: TemplateDef[] = TEMPLATE_D
   return { index: 0, rooms, startId: 0, bossId: type === 'boss' ? 1 : -1, attempts: 1 };
 }
 
-/** The floor as text, one character per cell: S start, B boss, T treasure, # normal. */
+/** The floor as text, one character per cell: S start, B boss, T treasure, O ordeal, A altar, # normal. */
 export function planToText(plan: FloorPlan, currentId = -1) {
   const grid = Array.from({ length: GRID_H }, () => Array(GRID_W).fill(' '));
-  const mark: Record<string, string> = { start: 'S', boss: 'B', treasure: 'T', normal: '#' };
+  const mark: Record<string, string> = { start: 'S', boss: 'B', treasure: 'T', ordeal: 'O', altar: 'A', normal: '#' };
   for (const r of plan.rooms) for (const c of r.cells) grid[c.gy][c.gx] = r.id === currentId ? '@' : mark[r.type] ?? '?';
   return grid.map(row => row.join('')).join('\n');
 }

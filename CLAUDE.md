@@ -22,7 +22,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
 - Runs are seeded (`src/rng.ts`: named streams per system). `src/world/generate.ts` builds each floor
   (pure, unit-tested); `src/world/templates.ts` parses and validates room templates. Content:
   `data/floors.json` (room counts, difficulty weights, enemy health, boss tuning and look per floor),
-  `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `R W H` enemies, `B` boss) and
+  `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `R W H` enemies, `B` boss;
+  ordeal templates list their enemies per wave in `waves`; `special.json` holds ordeals and altars) and
   `data/artifacts.json` (foci, passive and cursed artifacts: stats, effects, pools, colours, icons).
 - Artifacts: `src/items/artifactData.ts` (pure: data, `computeStats` combining, picking) and
   `src/items/artifacts.ts` (pedestals, taking and focus swap, per-floor budget). The mage's stats are
