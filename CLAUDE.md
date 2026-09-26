@@ -113,7 +113,8 @@ Run clip playback speed is `CFG.hero.runAnimSpeed` (3.6 at full speed).
 
 ## After M0: roadmap
 
-Order and scope from `docs/GDD.md` (Roadmap and milestones); details are in the GDD.
+Order and scope from `docs/GDD.md` (Roadmap and milestones); details are in the GDD. Every milestone
+ships placeholder sounds for what it adds; spatial audio and the mixer arrive with M2 (GDD: Audio design).
 
 - **M1 Core loop:** generated floors, 15+ room templates, 10 artifacts and 3 foci as data.
 - **M2 Magic:** mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room.
@@ -121,7 +122,7 @@ Order and scope from `docs/GDD.md` (Roadmap and milestones); details are in the 
 - **M4 Alchemy:** potion belt, drink or throw, identification, 4 reagents, alchemy table.
 - **M5 RPG growth:** XP, levels, attributes, 12 boons, runes and waystones.
 - **M6 Descent and Sanctum:** 3 floors, final boss, Sanctum with grimoire, bestiary and disciplines.
-- **M7 Eda:** lore names, floor themes, sound and music.
+- **M7 Eda:** lore names, floor biomes, adaptive music, ambience beds and final mix.
 
 ## Working agreements
 

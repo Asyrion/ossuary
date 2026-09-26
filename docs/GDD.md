@@ -452,9 +452,128 @@ The look is a candle-lit cutaway diorama: dark stone rooms, warm torchlight, and
 - **Characters:** Tripo3D models, chibi proportions, textured, rigged; see the Tripo asset checklist.
 - **Environment:** procedural in code for now (floor textures, walls, rocks). Tripo props such as urns, coffins and statues can replace rocks later.
 - **UI:** hearts top left, mana bar, spell slots with cooldowns, potion belt and artifacts below them, minimap top right, boss bar bottom centre. Typefaces IM Fell English (titles) and Alegreya Sans (UI).
-- **Audio:** simple synthesised effects for now. Later: a dark ambient loop per floor and recorded effects.
+- **Audio:** simple synthesised effects for now; the full plan is in Audio design.
 
 **Identity note.** The current hero is close to the Isaac art style. Fine for a hobby prototype; if the game is ever published, characters and art need their own look.
+
+## Audio design
+
+Audio is designed for headphones first: every sound has a position in the room, every floor has its own soundscape, every magic school has its own sound palette, and the music reacts to what is happening. The world should sound alive even when nothing moves.
+
+**Four layers**
+
+| Layer | What it is | Reacts to |
+| --- | --- | --- |
+| Music | Layered stems per floor: explore, combat, boss | Enemies alive in the room, boss phase, low health |
+| Ambience | A looping bed per floor biome plus random one-shots placed around the room | Floor, room type (library, shrine, alchemy) |
+| Sound effects | Spells, cantrip, potions, enemies, footsteps, doors, pickups | Every gameplay event, positioned in space |
+| Interface | Menus, level up, boon choice, artifact pickup fanfare | Player actions outside the room |
+
+**Headphone-first spatial sound**
+
+- Every sound in the room is placed in 3D with binaural (HRTF) panning, so an enemy on the left is heard on the left and a wisp charging behind the mage is heard behind.
+- The listener sits just above the hero's head, not at the camera, so panning follows the mage.
+- Each floor has its own reverb (small stone crypt, flooded tunnels, wide burning hall); special rooms get their own (the library is dry and close, the shrine rings).
+- Doors are acoustic windows: the ambience of the next room is heard faintly through an open door and muffled when doors lock.
+- Speakers and phones get a simpler stereo mix; a setting chooses between headphones and speakers.
+
+**Adaptive music**
+
+- Each floor has one piece split into 3 to 4 stems (drone, percussion, melody, choir) that fade in and out: calm drone when exploring, percussion joins when doors lock, full stems in a boss fight.
+- Short stingers: room cleared, level up, artifact found, curse taken, secret found, death.
+- Under one heart, the music thins out and a heartbeat joins.
+- Boss themes are separate pieces with a phase change at 50% health.
+
+**Floor biomes and their soundscapes** (proposal; the biomes themselves are a new idea and need Eda lore)
+
+| Floor | Biome (placeholder) | Ambience bed | Random one-shots | Music mood |
+| --- | --- | --- | --- | --- |
+| 1 | The Ossuary | Dripping water, distant wind, low stone hum | Bones settling, far-off chant, rat scurry | Sparse, low strings and drone |
+| 2 | Drowned Catacombs | Running water, deep echoes | Bubbles, sloshing, a bell under water | Slow, watery, detuned choir |
+| 3 | Burning Scriptorium | Fire crackle, wind through shelves | Pages turning, beams groaning, embers popping | Driving percussion, brass |
+| 4 | Frozen Reliquary | Howling cold wind, creaking ice | Ice cracking, chimes, distant avalanche | Glassy, bells, high voices |
+| 5 | The Umbral Depths | Heartbeat-like pulse, whispers | Reversed voices, breathing walls | Dissonant, heavy choir |
+
+**Sound palettes per magic school.** Each school has its own sonic identity, so players recognise spells, status effects and reactions by ear.
+
+| School | Palette | Cast | Travel | Impact | Status loop |
+| --- | --- | --- | --- | --- | --- |
+| Ember | Crackle, whoosh, roar | Rising whoosh | Fire hiss loop | Burst of flame | Soft crackle on burning enemies |
+| Frost | Crystal, chime, crunch | Glassy inhale | High shimmer | Ice shatter | Creaking; freeze is a sharp crack |
+| Storm | Zap, buzz, thunder | Electric charge-up | Buzzing arc | Thunder snap | Intermittent sparks |
+| Hallow | Bells, choir, warm tones | Single bell | Choir pad | Bright chord | Low hum |
+| Umbral | Whispers, reversed sounds, sub-bass | Reversed breath | Whispering trail | Deep thud | Faint whisper on hexed enemies |
+
+Reactions (steam, shatter, overload, eclipse, blackfire) each get their own signature sound, louder than a normal hit, so a combo feels like a reward.
+
+**Other effect families**
+
+- **Cantrip:** a light cast sound per focus (wand, staff, orb, tome) with 4 variants and ±5% random pitch so rapid fire never repeats.
+- **Potions:** cork pop, drinking gulp, glass shatter on throw, then a fizz or effect sound per potion type; unknown potions share one neutral sound until identified.
+- **Alchemy:** bubbling cauldron loop at the alchemy table, success chime, failed-brew hiss.
+- **Enemies:** per type an idle sound, movement, an attack telegraph, hit and death. The telegraph is the most important: every attack has a sound cue slightly before it lands.
+- **Hero:** footsteps per floor surface (stone, water, ash, ice), hurt voice, death, level-up flourish.
+- **World:** doors grinding shut and open, gates, braziers igniting, oil catching fire, water splashing, secret wall crumbling.
+
+**Mixing rules**
+
+- Priority: telegraphs and player damage are never masked; music ducks under boss intros, stingers and level-ups.
+- Voice limit: at most 3 copies of the same sound at once, oldest cut first; total voice cap around 32 on phones.
+- Every frequent sound has 3 to 5 variants plus slight random pitch.
+- Volume sliders for master, music, ambience, effects and interface.
+- Accessibility: important sounds (telegraphs, off-screen spawns, low health) also have a visual cue.
+
+**Technical notes:** Web Audio API through three.js positional audio for effects; ambience and music streamed rather than loaded up front; short effects packed into a few files to cut download size; audio unlocked on the first tap or key press, as browsers require.
+
+## Asset list
+
+A full five-floor game needs roughly 85 3D models, about 300 sound files, 5 music pieces with stems, and about 80 icons. Counts are estimates for the scope in this document; each milestone only needs its own slice.
+
+**Audio**
+
+| Category | Contents | Files (approx.) |
+| --- | --- | --- |
+| Music | 5 floor pieces × 3 to 4 stems, 3 boss themes, title, Sanctum, death | 25 to 30 |
+| Stingers | Room clear, level up, artifact, curse, secret, death, victory | 10 |
+| Ambience beds | 1 loop per floor biome + library, shrine, alchemy, Sanctum | 9 |
+| Ambience one-shots | 3 to 4 per biome | 20 |
+| Spells | 15 spells × cast, travel, impact | 45 |
+| Status and reactions | 5 status loops + apply sounds, 5 reactions | 15 |
+| Cantrip | 4 foci × 4 variants + impact | 20 |
+| Potions and alchemy | Cork, gulp, shatter, 12 effect sounds, cauldron, brew success and fail | 18 |
+| Enemies | About 12 enemy types × idle, move, telegraph, hit, death | 60 |
+| Bosses | 5 bosses × roar, 2 to 3 attacks, phase change, death | 30 |
+| Hero | Footsteps × 4 surfaces × 3 variants, hurt, death, level-up voice | 16 |
+| World | Doors, gates, braziers, oil, water, secret walls, pickups | 20 |
+| Interface | Menu, confirm, back, boon cards, grimoire pages | 10 |
+
+**3D models (Tripo)**
+
+| Category | Count | Rig and clips |
+| --- | --- | --- |
+| Hero (per discipline if separate characters) | 1 to 5 | Idle, run, cast, hit, death; later a two-handed channel |
+| Enemies | About 12 | Idle, move, attack, hit, death |
+| Bosses | 5 | As enemies + 1 to 2 extra attacks |
+| Artifacts on pedestals | About 25 | Static |
+| Potion bottles | 3 to 4 shapes, colours shuffled in code | Static |
+| Reagents | 6 | Static |
+| Props per biome (urns, coffins, statues, bookshelves, braziers) | About 5 per biome | Static |
+| Sanctum hub pieces | About 6 | Static |
+
+**Visual effects** (code and particles, no Tripo): cantrip bolts per focus, 15 spell effects, 5 status visuals, 5 reaction bursts, potion splashes, level-up glow, portal and waystone.
+
+**2D and interface:** icons for about 15 spells, 25 artifacts, 12 potions (plus unknown bottles), 6 reagents, 6 runes and 12 boons; floor and wall textures per biome (procedural now, painted later); fonts already chosen.
+
+**Sourcing options (to decide)**
+
+| Asset | Options |
+| --- | --- |
+| 3D | Tripo3D (current pipeline) |
+| Sound effects | Royalty-free libraries, AI sound effect generators, own recordings (foley is easy: glass, water, paper, fire) |
+| Music | AI music generators, royalty-free libraries, a commissioned composer later |
+| Icons | Rendered from the Tripo models, or painted |
+
+Licences differ per source and per subscription plan: for a hobby project most are fine, but if Ossuary is ever published, every asset's licence has to allow commercial use in a game. Keep a simple credits file in the repo from the start (asset, source, licence).
 
 ## Tech stack and architecture
 
@@ -485,9 +604,9 @@ src/
   progression/     XP, levels, attributes, boons, sanctum save
   input/           keyboard, gamepad, touch
   ui/              HUD, minimap, menus, boon picker, grimoire
-  audio/           sound effects
+  audio/           spatial effects, ambience, adaptive music, mixer
 data/              rooms, enemies, spells, runes, artifacts, potions, recipes, boons (JSON)
-public/assets/     hero.glb, enemies/*.glb, props/*.glb
+public/assets/     hero.glb, enemies/*.glb, props/*.glb, audio/
 tools/             prepare-asset script
 ```
 
@@ -506,7 +625,9 @@ Milestones 1 and 2 decide whether the loop and the magic are fun; everything aft
 | M4 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table |
 | M5 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
 | M6 Descent and Sanctum | A full run with a reason to return | 3 floors, final boss, Sanctum with grimoire, bestiary and disciplines |
-| M7 Eda | It is Eda | Lore names, floor themes, sound and music pass |
+| M7 Eda | It is Eda | Lore names, floor biomes, adaptive music, ambience beds and final mix |
+
+**Sound in every milestone:** each milestone ships placeholder sounds for what it adds (M2 the school palettes, M3 enemy telegraphs, M4 potion sounds). Spatial audio and the mixer belong in M2, since spells need them; M7 replaces placeholders and adds music and ambience.
 
 **M0 tasks**
 
