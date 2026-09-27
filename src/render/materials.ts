@@ -14,6 +14,8 @@ export const M = {
   wallTop: new THREE.MeshBasicMaterial({ color: 0x0d0a08 }),
   threshold: new THREE.MeshStandardMaterial({ color: 0x3a3129, roughness: 1 }),
   rock: new THREE.MeshStandardMaterial({ color: 0x6b625a, roughness: .9, flatShading: true }),
+  stone: new THREE.MeshStandardMaterial({ color: 0x7c7268, roughness: .85 }),       // pillars
+  tomb: new THREE.MeshStandardMaterial({ color: 0x5e5750, roughness: .9 }),
   iron: new THREE.MeshStandardMaterial({ color: 0x2e2c2e, roughness: .5, metalness: .7 }),
   frame: {
     normal: new THREE.MeshStandardMaterial({ color: 0x2a2019, roughness: .9 }),
@@ -28,7 +30,7 @@ export const M = {
 };
 /** Flag a geometry or material as shared, so disposeTree leaves it alone. */
 export function markShared<T extends { userData: Record<string, unknown> }>(o: T) { o.userData.shared = true; return o; }
-for (const m of [M.wallTop, M.threshold, M.rock, M.iron, M.gate, M.hero, M.bone, ...Object.values(M.frame)]) markShared(m);
+for (const m of [M.wallTop, M.threshold, M.rock, M.stone, M.tomb, M.iron, M.gate, M.hero, M.bone, ...Object.values(M.frame)]) markShared(m);
 
 const wallCache = new Map<string, THREE.Material[]>();
 /** Box materials for walls in a floor's look (brick sides, dark tops), shared by every room of that look. */

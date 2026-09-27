@@ -14,7 +14,7 @@ import { mulberry } from '../util';
 import { DH, H_LOW, H_TALL, HD, HW, PX, PZ, WT } from './dims';
 import { FLOORS, type PlannedRoom } from './generate';
 import { OPPOSITE, SHAPES, SIDE_DIR, cellHalfExtents, shapeMask, shapeSize } from './shapes';
-import { TEMPLATES, parseTemplate } from './templates';
+import { TEMPLATES, parseTemplate, tombRuns } from './templates';
 
 export const roomAt = (gx: number, gy: number) => G.roomMap.get(gx + ',' + gy);
 /** World position of the centre of template tile (c, r). */
@@ -45,7 +45,9 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   template.tiles.forEach((row, r) => row.forEach((tile, c) => {
     if (tile === 'rock') addRock(room, c, r);
     else if (tile === 'pit') addPit(room, c, r);
+    else if (tile === 'pillar') addPillar(room, c, r);
   }));
+  for (const run of tombRuns(template)) addTomb(room, run);
   mergePits(room);
   room.waves = template.waves.map(wv => wv.map(f => ({ kind: f.kind, ...toWorld(room, f.c, f.r) })));
   if (plan.variant === 'quiet') quieten(room);
@@ -94,6 +96,41 @@ function addRock(room: Room, c: number, r: number) {
   const small = new THREE.Mesh(new THREE.DodecahedronGeometry(.2, 0), M.rock); small.position.set(R() * .5 - .25, .12, .3); small.rotation.set(R() * 3, R() * 3, 0);
   g.add(big, small, blob(1.3)); room.group.add(g);
   room.rocks.push({ x: p.x, z: p.z, hx: .42, hz: .42, hp: CFG.artifacts.rockHp, breakable: true, mesh: g, tile: { c, r } });
+}
+
+/** A stone pillar: plinth, shaft and capital, or broken off partway (chosen by the room's seed). Blocks like
+    a rock but never breaks. */
+function addPillar(room: Room, c: number, r: number) {
+  const p = toWorld(room, c, r), R = mulberry(c * 131 + r * 17 + room.plan.seed);
+  const g = new THREE.Group(); g.position.set(p.x - room.cx, 0, p.z - room.cz);
+  const part = (geo: THREE.BufferGeometry, y: number, rot = 0) => { const m = new THREE.Mesh(geo, M.stone); m.position.y = y; m.rotation.y = rot; g.add(m); return m; };
+  part(new THREE.BoxGeometry(.86, .22, .86), .11);
+  const broken = R() < .35, shaft = broken ? .55 + R() * .45 : 1.3;
+  part(new THREE.CylinderGeometry(.27, .3, shaft, 8), .22 + shaft / 2, R());
+  if (broken) { // a jagged top and a fallen chunk beside it
+    part(new THREE.CylinderGeometry(.2, .27, .14, 8), .22 + shaft + .07, R()).rotation.z = .25;
+    const chunk = new THREE.Mesh(new THREE.DodecahedronGeometry(.16, 0), M.stone);
+    const a = R() * Math.PI * 2; chunk.position.set(Math.cos(a) * .42, .1, Math.sin(a) * .42); g.add(chunk);
+  } else part(new THREE.BoxGeometry(.72, .18, .72), .22 + shaft + .09);
+  g.add(blob(1.25)); room.group.add(g);
+  room.rocks.push({ x: p.x, z: p.z, hx: .4, hz: .4, hp: 0, breakable: false });
+}
+
+/** A stone tomb `len` tiles long, across (along x) or up and down: a plinth, a lid with a raised ridge and a
+    carved cross. Blocks like a rock but never breaks. */
+function addTomb(room: Room, run: { c: number; r: number; len: number; across: boolean }) {
+  const a = toWorld(room, run.c, run.r), b = toWorld(room, run.c + (run.across ? run.len - 1 : 0), run.r + (run.across ? 0 : run.len - 1));
+  const x = (a.x + b.x) / 2, z = (a.z + b.z) / 2, long = run.len - .16, wide = .78;
+  const g = new THREE.Group(); g.position.set(x - room.cx, 0, z - room.cz); if (!run.across) g.rotation.y = Math.PI / 2;
+  const part = (w: number, h: number, d: number, y: number, mat: THREE.Material = M.tomb) => { const m = new THREE.Mesh(boxUV(w, h, d), mat); m.position.y = y; g.add(m); return m; };
+  part(long, .42, wide, .21);
+  part(long + .08, .1, wide + .08, .47);
+  part(long - .2, .07, .2, .555, M.stone);                                  // ridge along the lid
+  const cx = -long / 2 + Math.min(.45, long * .3);                            // a cross at the head end
+  part(.07, .04, .38, .6, M.bone).position.x = cx;
+  part(.24, .04, .07, .6, M.bone).position.set(cx, .6, -.06);
+  const shadow = blob(1); shadow.scale.set(long + .6, 1, wide + .6); g.add(shadow); room.group.add(g);
+  room.rocks.push({ x, z, hx: (run.across ? long : wide) / 2 + .02, hz: (run.across ? wide : long) / 2 + .02, hp: 0, breakable: false });
 }
 
 /** A bolt from a mage holding Mason's Chisel struck a rock: it cracks, and breaks on the last hit. */
