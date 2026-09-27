@@ -36,7 +36,7 @@ export function grantArtifact(def: ArtifactDef, silent = false): ArtifactDef | n
   G.run.seen.add(def.id);
   refreshStats();
   if (def.effects?.includes('fullHeal')) { player.hp = player.maxHp; renderHearts(); }
-  if (!silent) { banner(def.name, def.text); Sfx.relic(); }
+  if (!silent) { banner(def.name, def.text); if (def.kind === 'cursed') Sfx.cursed(); else Sfx.relic(); }
   return replaced;
 }
 
@@ -147,15 +147,15 @@ function setVisual(spot: ArtifactSpot, def: ArtifactDef) {
 function vanish(spot: ArtifactSpot) {
   spot.taken = true; spot.room.group.remove(spot.pedestal);
   spot.room.rocks = spot.room.rocks.filter(r => r !== spot.collider);
-  burst(spot.x, .8, spot.z, 0x9a8a7a, 18, 2.4, .06); Sfx.splash();
+  burst(spot.x, .8, spot.z, 0x9a8a7a, 18, 2.4, .06); Sfx.vanish();
 }
 
 function take(spot: ArtifactSpot) {
   const def = spot.def;
   if (spot.price) { // a bone altar: pay a heart container, but never the last one
-    if (player.maxHp - spot.price.hearts * 2 < 2) { banner(...STR.banner.altarRefuses); Sfx.door(false); spot.armed = false; return; }
+    if (player.maxHp - spot.price.hearts * 2 < 2) { banner(...STR.banner.altarRefuses); Sfx.refuse(); spot.armed = false; return; }
     player.heartsPaid += spot.price.hearts; refreshStats();
-    burst(player.x, .8, player.z, 0xb3261a, 18, 2.4, .07); Sfx.hurt();
+    burst(player.x, .8, player.z, 0xb3261a, 18, 2.4, .07); Sfx.altar();
     spot.price.tag.visible = false; spot.price = undefined;
   }
   const replaced = grantArtifact(def);

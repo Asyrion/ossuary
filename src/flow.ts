@@ -20,7 +20,7 @@ import { clearProjectiles } from './combat/projectiles';
 import { makeTrapdoor, spawnHeart } from './items/pickups';
 import { giveById, offerGuaranteed, offerOptional, offerSecondChoice, placeArtifact, resetArtifacts, resetBudget } from './items/artifacts';
 import { banner, fadeFromBlack, hideBossBar, renderMinimap, resetHearts, showBossBar } from './ui/hud';
-import { showScreen } from './ui/screens';
+import { showEndScreen, showScreen } from './ui/screens';
 import { resetClock } from './loop';
 import { $, mulberry } from './util';
 import { burst } from './combat/fx';
@@ -95,8 +95,8 @@ export function prepareTitle() {
 
 /** Take the trapdoor: the next floor, or the end of the run after the last one. */
 export function descend() {
-  if (testTemplate || G.run.floor >= FLOORS.length - 1) { Sfx.relic(); endGame(true); return; }
-  Sfx.door(true);
+  if (testTemplate || G.run.floor >= FLOORS.length - 1) { endGame(true); return; }
+  Sfx.descend();
   fadeFromBlack();
   buildFloor(G.run.floor + 1);
 }
@@ -109,10 +109,11 @@ export function pause() {
 export function resume() { G.state = 'play'; showScreen(null); resetClock(); }
 export function endGame(won: boolean) {
   G.state = 'end'; hideBossBar();
-  const t = G.stats.time, time = `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
-  $('endTitle').textContent = won ? STR.end.won : STR.end.lost;
-  $('endText').textContent = won ? STR.end.wonText(time, G.stats.kills) : STR.end.lostText(G.run.floor + 1, time, G.stats.kills);
-  showScreen('end'); $('btnAgain').focus();
+  if (won) Sfx.victory(); else Sfx.fallen();
+  showEndScreen({
+    won, floor: G.run.floor + 1, floors: FLOORS.length, time: G.stats.time, kills: G.stats.kills,
+    seed: G.run.seed, artifacts: [player.focus, ...player.items],
+  });
 }
 export function toggleSound() { const muted = Sfx.toggle(); $('btnSound').textContent = muted ? STR.pause.soundOff : STR.pause.soundOn; }
 
@@ -134,8 +135,9 @@ export function enterRoom(room: Room) {
       if (boss) showBossBar(words.name, boss);
       banner(words.name, words.sub);
     }
-    if (room.type === 'ordeal') banner(...STR.banner.ordeal(room.waves.length));
+    if (room.type === 'ordeal') { banner(...STR.banner.ordeal(room.waves.length)); Sfx.gong(); }
   }
+  if (firstVisit && room.plan.variant === 'dark') Sfx.darkness();
   if (firstVisit && room.type === 'altar' && room.spots.length) banner(...STR.banner.altar);
   if (firstVisit && room.quietHeart) { const p = freeSpotNear(room, room.cx, room.cz); spawnHeart(p.x, p.z, 2); }
   // a treasure room with nothing left to find offers a full heart instead
@@ -159,6 +161,7 @@ function spawnWave(room: Room, ambush = false) {
     if (f.kind === 'boss') makeEnemy(G.run.boss, x, z, 1, cfg.boss);
     else makeEnemy(f.kind, x, z, cfg.enemyHp, undefined, { champion: f === champion });
   }
+  if (champion) Sfx.champion();
 }
 
 /** Ambush rooms spring once the mage is committed: near the middle, or well away from every door. */
@@ -182,7 +185,7 @@ export function onWaveCleared(room: Room) {
     after(.9, () => {
       if (G.current !== room || !room.wavePending) return; // left (dev warp) or restarted meanwhile
       room.wavePending = false; room.wave++;
-      banner(...STR.banner.wave(room.wave + 1, room.waves.length), 1.6);
+      banner(...STR.banner.wave(room.wave + 1, room.waves.length), 1.6); Sfx.gong();
       spawnWave(room);
     });
     return;
@@ -196,7 +199,7 @@ export function onRoomCleared(room: Room) {
   if (room.type === 'ordeal') { // the reward rises in the middle of the room
     const def = offerGuaranteed('ordeal');
     if (def) placeArtifact(room, def, room.cx, room.cz); else spawnHeart(room.cx, room.cz, 2);
-    banner(...STR.banner.ordealPassed); Sfx.relic();
+    banner(...STR.banner.ordealPassed); Sfx.rise();
     return;
   }
   if (room.type !== 'normal') return;
@@ -206,7 +209,7 @@ export function onRoomCleared(room: Room) {
   }
   // now and then an artifact rises where the fight was, while the floor's budget allows
   const def = loot.chance(CFG.artifacts.dropChance) ? offerOptional('drop') : null;
-  if (def) { const p = freeSpotNear(room, room.cx, room.cz + 1); placeArtifact(room, def, p.x, p.z); banner(...STR.banner.artifactRises); }
+  if (def) { const p = freeSpotNear(room, room.cx, room.cz + 1); placeArtifact(room, def, p.x, p.z); banner(...STR.banner.artifactRises); Sfx.rise(); }
 }
 
 export function onBossDead() {
@@ -214,7 +217,7 @@ export function onBossDead() {
   hideBossBar();
   const h = freeSpotNear(cur, cur.cx, cur.cz + 2);
   spawnHeart(h.x, h.z, 2);
-  makeTrapdoor(cur.cx, cur.cz);
+  makeTrapdoor(cur.cx, cur.cz); after(.5, () => Sfx.trapdoor());
   // the boss leaves a choice of two artifacts: taking one makes the other vanish
   const choice = [offerGuaranteed('boss')];
   if (choice[0]) choice.push(offerSecondChoice('boss'));

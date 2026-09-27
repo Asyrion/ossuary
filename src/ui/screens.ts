@@ -2,7 +2,8 @@
 import { STR } from '../strings';
 import { $ } from '../util';
 import { hero, loadHeroBuffer } from '../actors/hero';
-import { setHeroInfo, toast } from './hud';
+import { artifact } from '../items/artifactData';
+import { artifactIcon, setHeroInfo, toast } from './hud';
 
 export type ScreenName = 'title' | 'pause' | 'end';
 const screens: Record<ScreenName, HTMLElement> = { title: $('scrTitle'), pause: $('scrPause'), end: $('scrEnd') };
@@ -10,13 +11,31 @@ export function showScreen(name: ScreenName | null) {
   for (const k of Object.keys(screens) as ScreenName[]) screens[k].classList.toggle('hidden', k !== name);
 }
 
+/** How a run went, for the end screen. `floor` is 1-based; `artifacts` lists the focus first. */
+export interface RunSummary { won: boolean; floor: number; floors: number; time: number; kills: number; seed: string; artifacts: string[] }
+
+const clock = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
+
+export function showEndScreen(s: RunSummary) {
+  const floorName = STR.floors[Math.min(s.floor, STR.floors.length) - 1][0];
+  $('endTitle').textContent = s.won ? STR.end.won : STR.end.lost;
+  $('endText').textContent = s.won ? STR.end.wonText : STR.end.lostText(s.floor, floorName);
+  $('endFloor').textContent = STR.end.floorValue(s.floor, s.floors);
+  $('endTime').textContent = clock(s.time);
+  $('endKills').textContent = String(s.kills);
+  $('endSeed').textContent = s.seed;
+  $('endItems').innerHTML = s.artifacts.map((id, i) => `<li>${artifactIcon(id, i === 0)}<span>${artifact(id).name}</span></li>`).join('');
+  showScreen('end'); $('btnAgain').focus();
+}
+
 export interface ScreenActions {
-  start(): void; resume(): void; toggleSound(): void; pauseIfPlaying(): void;
+  start(): void; replay(): void; resume(): void; toggleSound(): void; pauseIfPlaying(): void;
 }
 
 export function initScreens(act: ScreenActions) {
   $('btnStart').addEventListener('click', () => act.start());
   $('btnAgain').addEventListener('click', () => act.start());
+  $('btnReplay').addEventListener('click', () => act.replay());
   $('btnResume').addEventListener('click', () => act.resume());
   $('btnRestart').addEventListener('click', () => act.start());
   $('btnSound').addEventListener('click', () => act.toggleSound());

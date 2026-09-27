@@ -98,7 +98,10 @@ async function boot() {
   applyStrings();
   resize(); window.addEventListener('resize', resize);
   initKeyboard(input); initTouch(canvas, input);
-  initScreens({ start: startGame, resume, toggleSound, pauseIfPlaying: () => { if (G.state === 'play') pause(); } });
+  initScreens({
+    start: () => startGame(), replay: () => startGame({ seed: G.run.seed }), resume, toggleSound,
+    pauseIfPlaying: () => { if (G.state === 'play') pause(); },
+  });
   // the chalk texture in the start room is drawn with Cinzel, so load its weights first
   const chalkFonts = Promise.all(['600 16px "Cinzel"', '700 16px "Cinzel"'].map(f => document.fonts.load(f)));
   try { await Promise.race([chalkFonts, new Promise(r => setTimeout(r, 1500))]); } catch { /* draw with the fallback font */ }

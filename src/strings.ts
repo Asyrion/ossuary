@@ -24,9 +24,12 @@ export const STR = {
   end: {
     won: 'The descent is complete',
     lost: 'You fell in the ossuary',
-    wonText: (time: string, kills: number) => `All three floors cleared in ${time}, with ${kills} foes put to rest.`,
-    lostText: (floor: number, time: string, kills: number) => `You fell on floor ${floor} after ${time}, with ${kills} foes put to rest.`,
+    wonText: 'Every floor cleared, and every keeper put to rest.',
+    lostText: (floor: number, name: string) => `Your descent ended on floor ${floor}, ${name}.`,
+    floor: 'Deepest floor', time: 'Time', kills: 'Foes put to rest', seed: 'Seed', artifacts: 'Artifacts carried',
+    floorValue: (floor: number, floors: number) => `${floor} of ${floors}`,
     again: 'Descend again',
+    replay: 'Replay this seed',
   },
   /** Banner when a floor begins, floor 1 first. */
   floors: [

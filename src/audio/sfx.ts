@@ -43,5 +43,18 @@ export const Sfx = {
   surface() { hiss(.4, .16, 'bandpass', 1100); tone('sine', 90, 40, .45, .2); },
   leap() { hiss(.35, .09, 'highpass', 1400); tone('sawtooth', 90, 200, .3, .05); },
   ember() { hiss(.12, .08, 'highpass', 2500); tone('square', 320, 150, .08, .03); },
+  // runs, rooms and artifacts
+  descend() { hiss(.6, .1, 'lowpass', 900); tone('sine', 220, 50, .7, .12); tone('sine', 60, 35, .35, .16, .55); },
+  trapdoor() { hiss(.8, .1, 'lowpass', 300); tone('square', 55, 42, .8, .04); },
+  victory() { [392, 523, 659, 784, 1046].forEach((f, i) => tone('triangle', f, f, .6, .08, i * .12)); tone('sine', 131, 131, 1.6, .1, .5); },
+  fallen() { tone('sine', 131, 131, 2.2, .14); tone('sine', 262, 262, 1.4, .05); tone('sine', 98, 98, 2.4, .08, .05); },
+  cursed() { tone('sawtooth', 233, 220, .6, .05); tone('sawtooth', 330, 311, .6, .04); tone('sine', 110, 70, .8, .1); },
+  rise() { [392, 523, 659].forEach((f, i) => tone('sine', f, f * 1.01, .4, .06, i * .12)); hiss(.5, .03, 'highpass', 4000); },
+  vanish() { tone('sine', 880, 220, .35, .05); hiss(.3, .04, 'highpass', 3000); },
+  altar() { tone('sine', 70, 40, .18, .2); tone('sine', 70, 40, .18, .16, .22); tone('sine', 147, 147, 1, .06, .1); },
+  refuse() { tone('square', 110, 90, .25, .05); tone('square', 104, 85, .25, .05, .16); },
+  gong() { tone('sine', 98, 98, 1.6, .14); tone('sine', 196, 194, 1, .06); tone('triangle', 263, 260, .6, .03); hiss(.4, .05, 'bandpass', 600); },
+  darkness() { hiss(1, .07, 'lowpass', 400); tone('sine', 180, 120, 1, .03); },
+  champion() { tone('sawtooth', 80, 60, .5, .08); hiss(.4, .06, 'lowpass', 300); },
   bell() { tone('sine', 196, 196, 1.2, .12); tone('sine', 392, 392, .8, .05); tone('triangle', 588, 588, .5, .03); },
 };
