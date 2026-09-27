@@ -483,7 +483,7 @@ Between two cells of the same room, the two wall tiles become floor, which is wh
 - **Seeds:** every run has a seed, shown in the pause menu, so a run can be replayed and bugs reproduced.
 - **Floor looks:** each floor already looks a little different, as placeholders until the biome pass (M8): floor 1 has warm stone and iron torches, floor 2 cool damp stone with moss, puddles and cage lanterns, floor 3 scorched brick with soot, ash and braziers. Colours and torch styles live in `data/floors.json`.
 
-**Room templates are data:** a character grid in the size of the room's shape (rock, pit, enemy spawn, empty; urns from M2) plus a difficulty value and the room types it suits, stored as JSON so new rooms need no code. Ordeal templates list two or three waves. M1 needs at least two templates per shape and 20 or more in total.
+**Room templates are data:** a character grid in the size of the room's shape (rock, pit, pillar, stone tomb, enemy spawn, empty; urns from M2) plus a difficulty value and the room types it suits, stored as JSON so new rooms need no code. Pillars and tombs block walking and bolts like rocks but never break; tomb tiles side by side make one longer tomb. Larger halls are furnished with them so they don't feel empty. Ordeal templates list two or three waves. M1 needs at least two templates per shape and 50 or more in total.
 
 ## Pickups and room types
 
@@ -575,7 +575,7 @@ The look is a candle-lit cutaway diorama: dark stone rooms, warm torchlight, and
 - **Light:** a dim fill, a cold moonlight from above, two flickering torch lights per room, and a warm lantern following the hero. Characters get a faint self-light from their colour texture so they stay readable.
 - **Palette:** worn stone browns, torch amber for the hero's magic, verdigris greens for the undead, violet for wisp magic, rust red for the boss.
 - **Characters:** Tripo3D models, chibi proportions, textured, rigged; see the Tripo asset checklist.
-- **Environment:** procedural in code for now (floor textures, walls, rocks). Tripo props such as urns, coffins and statues can replace rocks later.
+- **Environment:** procedural in code for now (floor textures, walls, rocks, pillars, stone tombs). Tripo props such as urns, coffins and statues can replace them later.
 - **UI:** hearts top left, mana bar, spell slots with cooldowns, potion belt, artifacts and coin, key and bomb counters below them, minimap top right, boss bar bottom centre. Typefaces IM Fell English (titles) and Alegreya Sans (UI).
 - **Audio:** simple synthesised effects for now; the full plan is in Audio design.
 

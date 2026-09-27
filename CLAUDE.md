@@ -26,9 +26,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   (`cameraTargetFor`) and pulls back in multi-cell halls (`viewScaleFor`, `CFG.camHallView`); four
   torch lights move to the torches nearest the mage. Content:
   `data/floors.json` (room counts, difficulty weights, enemy health, boss tuning and look per floor),
-  `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `R W H` enemies, `B` boss;
-  `x` outside an L's missing corner; ordeal templates list their enemies per wave in `waves`;
-  `special.json` holds ordeals and altars, `shapes.json` the larger and narrow rooms) and
+  `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `i` pillar, `=` stone tomb,
+  `R W H` enemies, `B` boss; `x` outside an L's missing corner; ordeal templates list their enemies per
+  wave in `waves`; `special.json` holds ordeals and altars, `shapes.json` the larger and narrow rooms) and
   `data/artifacts.json` (foci, passive and cursed artifacts: stats, effects, pools, colours, icons).
 - Artifacts: `src/items/artifactData.ts` (pure: data, `computeStats` combining, picking) and
   `src/items/artifacts.ts` (pedestals, taking and focus swap, per-floor budget). The mage's stats are

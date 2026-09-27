@@ -58,7 +58,7 @@ build. Each step ends playable, with unit and browser tests passing, and is push
 
 ## Step 6: Polish and balance
 
-- [ ] 20+ templates
+- [x] 20+ templates, raised to 50+ after play-testing: 56, with pillars and stone tombs furnishing the halls
 - [ ] End screen: floors reached, time, kills, artifacts, seed
 - [ ] Placeholder sounds for new events
 - [ ] Balance pass after play-tests; GDD and CLAUDE.md brought up to date
