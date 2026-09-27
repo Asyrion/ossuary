@@ -46,7 +46,7 @@ describe('room shapes', () => {
 describe('shaped templates', () => {
   it('exist for every shape, at least two normal ones each', () => {
     for (const id of SHAPE_IDS) expect(TEMPLATE_DEFS.filter(t => t.shape === id && t.types.includes('normal')).length).toBeGreaterThanOrEqual(2);
-    expect(TEMPLATE_DEFS.length).toBeGreaterThanOrEqual(20);
+    expect(TEMPLATE_DEFS.length).toBeGreaterThanOrEqual(50);
   });
 
   it('are checked against their shape', () => {
