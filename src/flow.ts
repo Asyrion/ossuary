@@ -17,7 +17,10 @@ import { SIDE_DIR } from './world/shapes';
 import { clearEnemies, makeEnemy } from './actors/enemies';
 import { heroReset } from './actors/hero';
 import { clearProjectiles } from './combat/projectiles';
-import { makeTrapdoor, spawnHeart } from './items/pickups';
+import { clearGlyphs } from './combat/glyphs';
+import { pressed } from './input';
+import { giveResources, makeTrapdoor, resetResources, spawnHeart, spawnPickup } from './items/pickups';
+import { rollRoomClear, type Resource } from './items/loot';
 import { giveById, offerGuaranteed, offerOptional, offerSecondChoice, placeArtifact, resetArtifacts, resetBudget } from './items/artifacts';
 import { banner, fadeFromBlack, hideBossBar, renderMinimap, resetHearts, showBossBar } from './ui/hud';
 import { showEndScreen, showScreen } from './ui/screens';
@@ -25,8 +28,11 @@ import { resetClock } from './loop';
 import { $, mulberry } from './util';
 import { burst } from './combat/fx';
 
-/** How the next run starts. Set from the URL at boot (?seed, ?floor, ?room, ?variant, ?give, ?boss); used once. */
-export interface RunOptions { seed?: string; floor?: number; testTemplate?: string; testVariant?: RoomVariant; give?: string[]; boss?: BossType }
+/** How the next run starts. Set from the URL at boot (?seed, ?floor, ?room, ?variant, ?give, ?boss, ?loot); used once. */
+export interface RunOptions {
+  seed?: string; floor?: number; testTemplate?: string; testVariant?: RoomVariant; give?: string[]; boss?: BossType;
+  /** Extra obols, keys and glyphs to start with. */ loot?: Partial<Record<Resource, number>>;
+}
 let nextRun: RunOptions = {};
 let testTemplate: string | undefined, testVariant: RoomVariant | undefined, forcedBoss: BossType | undefined;
 export function setNextRun(opts: RunOptions) { nextRun = opts; }
@@ -34,7 +40,7 @@ export function setNextRun(opts: RunOptions) { nextRun = opts; }
 const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
 
 function clearEntities() {
-  clearProjectiles();
+  clearProjectiles(); clearGlyphs(); pressed.glyph = false;
   for (const p of G.particles) { scene.remove(p.m); p.m.material.dispose(); } G.particles.length = 0;
   clearEnemies();
   for (const p of G.pickups) scene.remove(p.g); G.pickups.length = 0;
@@ -70,7 +76,7 @@ export function buildFloor(index: number) {
 export function resetPlayer() {
   Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0 });
   heroReset();
-  resetHearts(); resetArtifacts();
+  resetHearts(); resetArtifacts(); resetResources();
 }
 
 /** Start a new run: a fresh seed unless one was requested. */
@@ -78,9 +84,10 @@ export function startGame(opts?: RunOptions) {
   const o = opts ?? nextRun; nextRun = {};
   const seed = o.seed || newSeed();
   testTemplate = o.testTemplate; testVariant = o.testVariant; forcedBoss = o.boss;
-  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 } };
+  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 } };
   Sfx.init(); resetPlayer(); G.stats.time = 0; G.stats.kills = 0;
   if (o.give?.length) giveById(o.give);
+  if (o.loot) giveResources(o.loot);
   showScreen(null); G.state = 'play';
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, o.floor ?? 0)));
 }
@@ -89,7 +96,7 @@ export function startGame(opts?: RunOptions) {
 export function prepareTitle() {
   const seed = nextRun.seed || newSeed(); nextRun = { ...nextRun, seed };
   testTemplate = nextRun.testTemplate; testVariant = nextRun.testVariant; forcedBoss = nextRun.boss;
-  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 } };
+  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 } };
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, nextRun.floor ?? 0)));
 }
 
@@ -203,10 +210,8 @@ export function onRoomCleared(room: Room) {
     return;
   }
   if (room.type !== 'normal') return;
-  if (loot.chance(CFG.heartDropChance)) {
-    const p = freeSpotNear(room, room.cx + loot.range(-1, 1), room.cz + loot.range(-.5, .5));
-    spawnHeart(p.x, p.z, loot.chance(.35) ? 2 : 1);
-  }
+  const drop = rollRoomClear(G.run.drops); // a heart, obols, a bone key or a glyph stone, about half the time
+  if (drop) { const p = freeSpotNear(room, room.cx + G.run.drops.range(-1, 1), room.cz + G.run.drops.range(-.5, .5)); spawnPickup(drop, p.x, p.z); }
   // now and then an artifact rises where the fight was, while the floor's budget allows
   const def = loot.chance(CFG.artifacts.dropChance) ? offerOptional('drop') : null;
   if (def) { const p = freeSpotNear(room, room.cx, room.cz + 1); placeArtifact(room, def, p.x, p.z); banner(...STR.banner.artifactRises); Sfx.rise(); }
@@ -241,7 +246,7 @@ export function tryTransition() {
     const along = ns ? player.x - door.x : player.z - door.z;
     if (out <= .35 || Math.abs(along) > DH + .3 || !door.link) continue;
     const nb = door.nb, to = entryPoint(door.link), cam = cameraTargetFor(nb, to.x, to.z);
-    showRooms(cur, nb);
+    showRooms(cur, nb); clearGlyphs(); // a glyph left burning goes out when the mage leaves
     G.trans = { t: 0, dur: .42, nb, fx: player.x, fz: player.z, tx: to.x, tz: to.z, cfx: camTarget.x, cfz: camTarget.z, ctx: cam.x, ctz: cam.z, vf: viewScale(), vt: viewScaleFor(nb) };
     clearProjectiles();
     return true;
@@ -264,7 +269,7 @@ export function clearRoom() {
 export function warp(gx: number, gy?: number) {
   const r = gy === undefined ? G.rooms.find(x => x.plan.id === gx) : roomAt(gx, gy);
   if (!r) throw new Error(`No room at ${gy === undefined ? 'id ' + gx : gx + ',' + gy}`);
-  G.trans = null; clearProjectiles();
+  G.trans = null; clearProjectiles(); clearGlyphs();
   const door = r.doors.find(d => d.side === 's') ?? r.doors[0];
   const p = door ? entryPoint(door) : freeSpotNear(r, r.cx, r.cz);
   player.x = p.x; player.z = p.z; player.vx = player.vz = 0;

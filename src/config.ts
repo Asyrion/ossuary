@@ -23,7 +23,11 @@ export const CFG = {
   ambush: { middle: 1.8, fromDoors: 4 },
   camTiltDeg: 45,
   camHallView: 1.2,    // larger halls: the camera pulls back so the view is this much wider and deeper
-  heartDropChance: 0.45,
+  pickups: { obolDrift: 1.8 },  // obols drift to the mage from this close
+  // blast glyphs: fuse (s), reach (tiles), damage to foes, halves of hearts off the mage, knockback, time
+  // between two glyphs, how close a bolt must pass to set one off (after flying boltArm, so a bolt leaving
+  // the mage doesn't set off the glyph at their feet), and the pause before a blast sets off its neighbours
+  glyph: { fuse: 1.5, radius: 1.5, damage: 10, selfDamage: 2, knockback: 7, cooldown: .35, boltReach: .5, boltArm: .9, chainDelay: .1 },
   artifacts: {
     maxPerFloor: 5,      // a floor never offers more (the boss's pair counts as one)
     dropChance: 0.03,    // chance a cleared room drops one, while the floor's budget allows

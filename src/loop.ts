@@ -7,6 +7,7 @@ import { heroVisual } from './actors/hero';
 import { updatePlayer } from './actors/player';
 import { updateEnemies } from './actors/enemies';
 import { updateBolts, updateShots } from './combat/projectiles';
+import { updateGlyphs } from './combat/glyphs';
 import { updateParticles } from './combat/fx';
 import { updatePickups, updateTrapdoor } from './items/pickups';
 import { updateArtifacts } from './items/artifacts';
@@ -38,7 +39,7 @@ export function step(dt: number) {
       if (tr.t >= tr.dur) { G.trans = null; player.vx *= .5; player.vz *= .5; enterRoom(tr.nb); }
     } else if (G.state === 'play') {
       G.stats.time += dt;
-      updatePlayer(dt); checkAmbush(); updateEnemies(dt); updateBolts(dt); updateShots(dt); updatePickups(dt);
+      updatePlayer(dt); checkAmbush(); updateEnemies(dt); updateBolts(dt); updateShots(dt); updateGlyphs(dt); updatePickups(dt);
       // in rooms larger than the view the camera follows the mage, stopping at the walls
       const t = cameraTargetFor(G.current, player.x, player.z), k = 1 - Math.exp(-8 * dt);
       camTarget.x += (t.x - camTarget.x) * k; camTarget.z += (t.z - camTarget.z) * k;

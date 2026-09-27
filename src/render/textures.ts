@@ -32,6 +32,36 @@ function radial(stops: [number, string][], srgb: boolean) {
 export const glowTex = radial([[0, 'rgba(255,255,255,1)'], [.35, 'rgba(255,255,255,.45)'], [1, 'rgba(255,255,255,0)']], true);
 export const shadowTex = radial([[0, 'rgba(0,0,0,.75)'], [.6, 'rgba(0,0,0,.35)'], [1, 'rgba(0,0,0,0)']], false);
 
+/** The blast glyph's rune: two rings, a seven-pointed star and ticks between the rings, centred at (0, 0) and
+    `r` in radius. */
+function drawRune(g: Ctx, r: number) {
+  g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.stroke();
+  g.beginPath(); g.arc(0, 0, r * .74, 0, Math.PI * 2); g.stroke();
+  g.beginPath();
+  for (let i = 0; i <= 7; i++) { const a = -Math.PI / 2 + i * Math.PI * 6 / 7, x = Math.cos(a) * r * .74, y = Math.sin(a) * r * .74; if (i) g.lineTo(x, y); else g.moveTo(x, y); }
+  g.stroke();
+  for (let i = 0; i < 14; i++) { const a = i * Math.PI / 7 + Math.PI / 14; g.beginPath(); g.moveTo(Math.cos(a) * r * .8, Math.sin(a) * r * .8); g.lineTo(Math.cos(a) * r * .94, Math.sin(a) * r * .94); g.stroke(); }
+}
+let glyphTex: THREE.CanvasTexture | null = null, glyphStoneTex: THREE.CanvasTexture | null = null;
+/** The rune in white on transparent, tinted by the material (an inscribed glyph lying on the floor). */
+export function glyphTexture() {
+  if (glyphTex) return glyphTex;
+  const [c, g] = makeCanvas(256, 256); g.translate(128, 128);
+  g.strokeStyle = '#fff'; g.lineWidth = 7; g.lineCap = 'round'; g.lineJoin = 'round'; g.shadowColor = '#fff'; g.shadowBlur = 10;
+  drawRune(g, 112);
+  return glyphTex = canvasTex(c);
+}
+/** A glyph stone to pick up: a dark slate with the rune glowing amber. */
+export function glyphStoneTexture() {
+  if (glyphStoneTex) return glyphStoneTex;
+  const [c, g] = makeCanvas(128, 128); g.translate(64, 64);
+  g.fillStyle = '#2b2622'; g.strokeStyle = '#6b6158'; g.lineWidth = 5;
+  g.beginPath(); g.ellipse(0, 0, 54, 58, 0, 0, Math.PI * 2); g.fill(); g.stroke();
+  g.strokeStyle = '#ffb04a'; g.lineWidth = 4; g.lineCap = 'round'; g.lineJoin = 'round'; g.shadowColor = '#ff8a2a'; g.shadowBlur = 8;
+  drawRune(g, 40);
+  return glyphStoneTex = canvasTex(c);
+}
+
 const brickCache = new Map<string, THREE.CanvasTexture>();
 /** Tiling wall bricks in a floor's colours, with moss or soot stains. Kept for the whole session (one per look). */
 export function brickTexture(wall: FloorLook['wall']) {
@@ -191,5 +221,11 @@ function drawChalk(g: Ctx, P: number) {
   if ('letterSpacing' in g) (g as Ctx & { letterSpacing: string }).letterSpacing = `${P * .04}px`;
   g.fillText(isTouch ? STR.chalk.touchMove : STR.chalk.walk, lx, cy + gap * 1.55);
   g.fillText(isTouch ? STR.chalk.touchShoot : STR.chalk.cast, rx, cy + gap * 1.55);
+  if (!isTouch) { // the space bar chalks a blast glyph
+    const w = P * 2.3, sy = 5.35 * P;
+    rrect(g, 6.5 * P - w / 2, sy - s * .38, w, s * .76, 7); g.stroke();
+    g.font = `700 ${s * .34}px "Cinzel", Georgia, serif`; g.fillText(STR.chalk.space, 6.5 * P, sy + 2);
+    g.font = `600 ${P * .36}px "Cinzel", Georgia, serif`; g.fillText(STR.chalk.glyph, 6.5 * P, sy + s * .9);
+  }
   g.restore();
 }

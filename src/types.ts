@@ -3,6 +3,7 @@ import type { EnemyType } from './config';
 import type { BossConfig, PlannedRoom } from './world/generate';
 import type { FoeKind, Template } from './world/templates';
 import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
+import type { Drop } from './items/loot';
 
 export type Side = 'n' | 's' | 'e' | 'w';
 export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar';
@@ -78,7 +79,10 @@ export interface Bolt extends Circle {
 }
 export interface Shot extends Circle { y: number; vx: number; vz: number; color: number; mesh: THREE.Group }
 export interface Particle { m: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>; vx: number; vy: number; vz: number; life: number }
-export interface Pickup extends Circle { kind: 'heart'; value: number; g: THREE.Group; m: THREE.Mesh; t: number; drop: number }
+/** Something lying on the floor to pick up; `m` is the part that bobs and spins, `drop` the fall-in time left. */
+export interface Pickup extends Circle { kind: Drop; g: THREE.Group; m: THREE.Object3D; t: number; drop: number }
+/** A blast glyph chalked on the floor: it flares when `fuse` runs out or one of the mage's bolts strikes it. */
+export interface Glyph { x: number; z: number; t: number; fuse: number; color: number; g: THREE.Group; rune: THREE.Mesh; reach: THREE.Mesh; glow: THREE.Sprite; lastTick: number; spent: boolean }
 export interface Trapdoor { g: THREE.Group; x: number; z: number; ring: THREE.Mesh; t: number }
 
 /** The pan between rooms: the mage walks from (fx, fz) to (tx, tz), the camera from (cfx, cfz) to (ctx, ctz)
@@ -90,5 +94,6 @@ export interface Player extends Circle {
   eye: number; yawA: number; squash: number; bob: number;
   /** The equipped focus and every other artifact held, in pickup order. */ focus: string; items: string[];
   /** Heart containers given to bone altars this run. */ heartsPaid: number;
+  /** Obols, bone keys and blast glyphs carried (GDD: Coins, keys and blast glyphs). */ coins: number; keys: number; glyphs: number;
   /** Derived from the base stats and the artifacts held (items/artifactData.ts computeStats). */ stats: Stats;
 }

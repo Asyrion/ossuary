@@ -27,6 +27,7 @@ Ossuary is a top-down roguelike with RPG elements, set in the high/dark fantasy 
 | Items are mostly passive stat and tear changes | Artifacts include foci that reshape the cantrip, cursed artifacts and set bonuses |
 | No character growth inside a run beyond items | XP, levels, attributes and boon choices |
 | Rooms are obstacles | Rooms react to magic: oil burns, water conducts, braziers empower |
+| Bombs: placed, then wait | Blast glyphs: chalked runes the cantrip sets off from afar, chaining and burning in the bolts' colour |
 | Unlocks are new items | The Sanctum: a hub where knowledge persists between runs |
 
 **Scope:** hobby project for desktop browsers, played with keyboard or gamepad. A mobile version may come later and is not designed for until then. No monetisation plans.
@@ -91,12 +92,13 @@ The player moves in eight directions and casts in four, independently, with thre
 | --- | --- | --- |
 | Move | W A S D | Left stick |
 | Cast | Arrow keys (last pressed wins) | Right stick or face buttons |
+| Blast glyph (M2) | Space | Left trigger |
 | Pause | Esc or P | Start |
 | Mute | M |  |
 
 The touch twin-stick from prototype 0.3 stays in the code but is frozen: it isn't extended or tested, and new actions get no touch controls until a mobile port.
 
-Planned inputs: bomb on Space (LT) from M2; for the magic layer, spell 1 and 2 on Q and E (LB and RB) and potion on F (Y; hold to throw). See Coins, keys and bombs and Magic system.
+Planned inputs for the magic layer: spell 1 and 2 on Q and E (LB and RB) and potion on F (Y; hold to throw). See Magic system.
 
 **Starting stats (prototype 0.3)**
 
@@ -264,7 +266,7 @@ Artifacts replace Isaac's items. There are four kinds: one focus that reshapes t
 | Secret room | 1, often cursed | Sometimes | M2 |
 | Locked vault | 1 behind a key | Sometimes | M2 |
 
-The generator places the three guaranteed sources first, then gives artifacts to optional sources while the floor has budget left, in an order shuffled with the floor's seed so no optional source is always the one left out; optional sources without one hold coins, keys, bombs or hearts instead (the merchant sells only wares, the vault holds a hoard, the secret room coffers and a chest, and a bone altar without an artifact isn't placed). Room-clear drops only roll while budget is left. Each artifact lists the pools it can appear in (treasure, ordeal, boss, altar, merchant, secret, vault); cursed artifacts live mostly in the altar and secret pools.
+The generator places the three guaranteed sources first, then gives artifacts to optional sources while the floor has budget left, in an order shuffled with the floor's seed so no optional source is always the one left out; optional sources without one hold obols, keys, glyphs or hearts instead (the merchant sells only wares, the vault holds a hoard, the secret room coffers and a chest, and a bone altar without an artifact isn't placed). Room-clear drops only roll while budget is left. Each artifact lists the pools it can appear in (treasure, ordeal, boss, altar, merchant, secret, vault); cursed artifacts live mostly in the altar and secret pools.
 
 **Foci**
 
@@ -440,7 +442,7 @@ Rooms are built from cells of 13 × 7 tiles. A standard room is one cell, with a
 | Ordeal | Waves of enemies, then an artifact | Iron, skull above the lintel | M1 |
 | Bone altar | Artifact for a heart container | Arch of bones | M1 |
 | Merchant | Buy with coins | Lantern above the door | M2 |
-| Secret | Hidden, opened by a bomb | None, a cracked wall | M2 |
+| Secret | Hidden, opened by a glyph's blast | None, a cracked wall | M2 |
 | Locked vault | Opened with a key | Padlocked iron | M2 |
 
 **Room shapes (M1).** The cell size stays 13 × 7; shapes combine cells on the floor grid, Isaac-style.
@@ -493,9 +495,9 @@ Pickups feed the three resources of a run (health, mana, gold) plus reagents for
 | Pickup | Effect | Arrives |
 | --- | --- | --- |
 | Heart (half, full) | Heals; ignored at full health | 0.3 |
-| Coin (single, purse of 5) | Spent at the merchant, shrine and library | M2 |
-| Key | Opens locked vaults and reliquary chests | M2 |
-| Bomb | Breaks rocks, urns and cracked walls, opens secret rooms | M2 |
+| Obol (coin; single, or a purse of 5) | Spent at the merchant, shrine and library | M2 |
+| Bone key | Opens locked vaults and reliquary chests | M2 |
+| Glyph stone | One more blast glyph to chalk: its blast breaks rocks, urns and cracked walls and opens secret rooms | M2 |
 | Mana vial | +25 mana | M3 |
 | Grimoire page | Learn a spell (replaces a slot) | M3 |
 | Reagent | Goes into the ingredient pouch | M5 |
@@ -506,8 +508,8 @@ Pickups feed the three resources of a run (health, mana, gold) plus reagents for
 | --- | --- | --- | --- |
 | Ordeal | Doors lock; two or three waves, harder than the floor's normal rooms; an artifact rises on a pedestal after the last wave | 1 | M1 |
 | Bone altar | An artifact from the altar pool (strong or cursed) for one heart container; can't be taken with only one container left | 0 or 1 | M1 |
-| Merchant | Artifact, hearts, keys and bombs for coins; stock grows with later milestones | 1 | M2 |
-| Secret room | Behind a cracked wall; coins, bombs and keys, or an artifact from the secret pool | 1 | M2 |
+| Merchant | Artifact, hearts, keys and glyphs for obols; stock grows with later milestones | 1 | M2 |
+| Secret room | Behind a cracked wall; obols, glyphs and keys, or an artifact from the secret pool | 1 | M2 |
 | Locked vault | Behind a padlocked door; an artifact while the budget lasts, otherwise a hoard | 0 or 1 | M2 |
 | Shrine | Cleanse a curse for coins; bargain a heart container for a boon from M6 | 1 on floor 2 | M2 |
 | Library | Choose 1 of 3 grimoire pages; rebuy a replaced spell for coins | 1 | M3 |
@@ -515,22 +517,24 @@ Pickups feed the three resources of a run (health, mana, gold) plus reagents for
 | Alchemy table | Brew from reagents, identify one potion for free | 1 on floors 1 and 3 | M5 |
 | Waystone | Between floors: full mana, socket runes, reorder the belt | After each boss | M6 |
 
-## Coins, keys and bombs
+## Coins, keys and blast glyphs
 
-Arrives in M2 (Plunder). Three small resources turn exploring into choices: which chest to open, whether to blow up a suspicious wall, whether to spend at the merchant now or save. They are counted in the HUD under the artifacts, capped at 99 each. A run starts with one bomb, no keys and no coins. All numbers are placeholders for play-testing.
+Arrives in M2 (Plunder). Three small resources turn exploring into choices: which chest to open, whether to blast a suspicious wall, whether to spend at the merchant now or save. In Eda they are grave obols (coins), bone keys and blast glyphs: where Isaac has bombs, the mage has a spell to chalk on the floor, and the cantrip is its trigger. They are counted in the HUD under the artifacts, capped at 99 each. A run starts with one glyph, no keys and no obols. All numbers are placeholders for play-testing and live in `data/loot.json` and `config.ts`.
 
 | Resource | Found in | Spent on |
 | --- | --- | --- |
-| Coins | Room clears, urns, coffers, now and then an enemy | Merchant, shrine cleansing, rebuying spells at the library (M3) |
-| Keys | Room clears, coffers, the merchant | Locked vaults and reliquary chests |
-| Bombs | Room clears, coffers, the merchant | Rocks, urns, cracked walls and enemies; gravestones from M5 |
+| Obols (coins) | Room clears, urns, coffers, now and then an enemy | Merchant, shrine cleansing, rebuying spells at the library (M3) |
+| Bone keys | Room clears, coffers, the merchant | Locked vaults and reliquary chests |
+| Blast glyphs | Room clears (glyph stones), coffers, the merchant | Rocks, urns, cracked walls and enemies; gravestones from M5 |
 
-**Economy target:** about 12 to 18 coins per floor, so a merchant artifact means saving or skipping hearts. From M2, a room clear drops one pickup about half the time: a heart, coins, a key or a bomb.
+**Economy target:** about 12 to 18 obols per floor, so a merchant artifact means saving or skipping hearts. From M2, a room clear drops one pickup about half the time: a heart, obols, a bone key or a glyph stone. Obols are drawn to the living: from close by they drift to the mage.
 
-**Bombs**
+**Blast glyphs**
 
-- Placed at the mage's feet. The fuse burns 1.5 s, with a hiss and a flashing wick, before the blast.
-- The blast (1.5 tiles) deals 10 damage, knocks everything back, and breaks rocks, urns and cracked walls. A mage standing in it loses a full heart.
+- Chalked at the mage's feet (Space, or LT on a gamepad). The rune turns and flickers faster as its 1.5 s fuse burns down, ticking as it goes, and a faint ring shows how far the blast will reach.
+- It flares when the fuse runs out, or at once when one of the mage's own bolts crosses it (a bolt leaving the mage doesn't set off the glyph at their feet). So the focus shapes how glyphs are used: bouncing bolts set them off round corners, the crook's bolt on its way back, twin bolts two at a time.
+- The blast (1.5 tiles) deals 10 damage to every foe in reach (bosses too), knocks them back, breaks rocks (not pillars or tombs), urns and cracked walls, snuffs out enemy shots and sets off other glyphs in reach, so glyphs chain. A mage caught in it loses a full heart.
+- It burns in the colour of the mage's bolts, so artifacts that change the bolts show in the glyphs too. Idea for M3: a glyph takes the school of the mage's focus, so an Ember glyph leaves burning ground and a Frost glyph chills.
 
 **The merchant** (1 per floor, in a dead end). A hooded trader (placeholder) with 3 or 4 items per visit; the first is an artifact while the floor's budget allows.
 
@@ -538,22 +542,22 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 | --- | --- | --- |
 | Artifact (merchant pool) | 15 | M2 |
 | Heart | 3 | M2 |
-| Key or bomb | 5 | M2 |
+| Key or glyph | 5 | M2 |
 | Mana vial | 3 | M3 |
 | Unknown potion / reagent | 4 / 2 | M5 |
 | Rune | 10 | M6 |
 
-**Secret room** (1 per floor). Entered through a cracked wall that a bomb breaks open. The hints are a hairline crack and dust drifting from it. It holds coins, bombs and keys, or an artifact from the secret pool, where cursed artifacts are common. It isn't shown on the minimap until found.
+**Secret room** (1 per floor). Entered through a cracked wall that a glyph's blast breaks open. The hints are a hairline crack and dust drifting from it. It holds obols, glyphs and keys, or an artifact from the secret pool, where cursed artifacts are common. It isn't shown on the minimap until found.
 
-**Locked vault** (0 or 1 per floor, in a dead end). One key opens the padlocked door; inside is an artifact while the floor's budget allows, otherwise a hoard of coins and bombs.
+**Locked vault** (0 or 1 per floor, in a dead end). One key opens the padlocked door; inside is an artifact while the floor's budget allows, otherwise a hoard of obols and glyphs.
 
 **Containers.** None of them hold artifacts, so the per-floor budget stays readable.
 
 | Container | Opened by | Holds | Found |
 | --- | --- | --- | --- |
-| Urn | Bolts or bombs | Usually nothing; sometimes a coin or half a heart | Room templates |
-| Coffer | Walking into it | 1 to 3 coins, keys, bombs or hearts | Room clears, secret rooms |
-| Reliquary chest | A key | Better loot: purses, several keys or bombs, a full heart | Room clears, secret rooms, vaults |
+| Urn | Bolts or blasts | Usually nothing; sometimes a coin or half a heart | Room templates |
+| Coffer | Walking into it | 1 to 3 obols, keys, glyphs or hearts | Room clears, secret rooms |
+| Reliquary chest | A key | Better loot: purses, several keys or glyphs, a full heart | Room clears, secret rooms, vaults |
 
 **Shrine cleansing** (the shrine on floor 2). For 10 coins, the shrine cleanses one cursed artifact: the drawback goes and the gift is halved (see Artifacts). The heart-for-boon bargain joins in M6.
 
@@ -563,9 +567,9 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 | --- | --- |
 | Sexton's Keyring | +3 keys; the locked vault opens for free once per floor |
 | Miser's Purse | +0.5 cantrip damage for every 10 coins held |
-| Powder Horn | +5 bombs; blasts are 50% wider |
-| Ferryman's Obol | Every room clear also drops a coin |
-| Sapper's Wick | Your bombs don't hurt you, and their fuse burns 1 s |
+| Glyphwright's Chalk | +5 glyphs; blasts are 50% wider |
+| Ferryman's Obol | Every room clear also drops an obol |
+| Warding Band | Your glyphs don't hurt you, and their fuse burns 1 s |
 | Grave Lantern | Cracked walls glow when you enter a room, and secret rooms show on the minimap before they're found |
 | Pedlar's Scale | Merchant prices −30% |
 
@@ -581,7 +585,7 @@ The look is a candle-lit cutaway diorama: dark stone rooms, warm torchlight, and
 - **Palette:** worn stone browns, torch amber for the hero's magic, verdigris greens for the undead, violet for wisp magic, rust red for the boss.
 - **Characters:** Tripo3D models, chibi proportions, textured, rigged; see the Tripo asset checklist.
 - **Environment:** procedural in code for now (floor textures, walls, rocks, pillars, stone tombs). Tripo props such as urns, coffins and statues can replace them later.
-- **UI:** hearts top left, mana bar, spell slots with cooldowns, potion belt, artifacts and coin, key and bomb counters below them, minimap top right, boss bar bottom centre. Typefaces IM Fell English (titles) and Alegreya Sans (UI).
+- **UI:** hearts top left, mana bar, spell slots with cooldowns, potion belt, artifacts and obol, key and glyph counters below them, minimap top right, boss bar bottom centre. Typefaces IM Fell English (titles) and Alegreya Sans (UI).
 - **Audio:** simple synthesised effects for now; the full plan is in Audio design.
 
 **Identity note.** The current hero is close to the Isaac art style. Fine for a hobby prototype; if the game is ever published, characters and art need their own look.
@@ -677,7 +681,7 @@ A full five-floor game needs roughly 85 3D models, about 300 sound files, 5 musi
 | Bosses | 5 bosses × roar, 2 to 3 attacks, phase change, death | 30 |
 | Hero | Footsteps × 4 surfaces × 3 variants, hurt, death, level-up voice | 16 |
 | World | Doors, gates, braziers, oil, water, secret walls, pickups | 20 |
-| Economy | Coins (3 variants), key, lock, bomb fuse and blast, urn break, chest open, purchase | 12 |
+| Economy | Coins (3 variants), key, lock, glyph chalk, fuse and blast, urn break, chest open, purchase | 12 |
 | Interface | Menu, confirm, back, boon cards, grimoire pages | 10 |
 
 **3D models (Tripo)**
@@ -690,7 +694,7 @@ A full five-floor game needs roughly 85 3D models, about 300 sound files, 5 musi
 | Artifacts on pedestals | About 25 | Static |
 | Potion bottles | 3 to 4 shapes, colours shuffled in code | Static |
 | Reagents | 6 | Static |
-| Pickups and containers (coin, purse, key, bomb, urn, coffer, reliquary chest) | 7 | Static |
+| Pickups and containers (obol, purse, bone key, glyph stone, urn, coffer, reliquary chest) | 7 | Static |
 | Merchant | 1 | Idle, a small gesture |
 | Props per biome (urns, coffins, statues, bookshelves, braziers) | About 5 per biome | Static |
 | Sanctum hub pieces | About 6 | Static |
@@ -734,7 +738,7 @@ src/
   actors/          hero, enemies, animation controller
   combat/          cantrip, enemy shots, damage, status effects, reactions
   magic/           spells, runes, mana, schools
-  items/           artifacts, sets, curses, pickups, bombs, merchant stock
+  items/           artifacts, sets, curses, pickups, glyphs, merchant stock
   alchemy/         potions, identification, reagents, brewing
   progression/     XP, levels, attributes, boons, sanctum save
   input/           keyboard, gamepad (touch frozen until a mobile port)
@@ -755,7 +759,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | --- | --- | --- |
 | M0 Move to Claude Code | Same game, proper project | Prototype 0.3 runs from the repo, deployed, playable on phone |
 | M1 Core loop | Runs feel different | Three generated floors with varied maps, room counts and room shapes; a different boss on each floor; 50+ room templates; room variants from quiet to ordeal, and bone altars; 3 to 5 artifacts per floor from 10 artifacts and 3 foci as data |
-| M2 Plunder | Exploration pays | Coins, keys and bombs; merchant, secret room, locked vault and shrine cleansing; urns and chests |
+| M2 Plunder | Exploration pays | Obols, bone keys and blast glyphs; merchant, secret room, locked vault and shrine cleansing; urns and chests |
 | M3 Magic | Magic is the build | Mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room |
 | M4 Tripo enemies | Own creatures | 3 enemies and 1 boss from Tripo, with elemental affinities |
 | M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table |
@@ -765,7 +769,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 
 **Why Plunder comes before Magic:** it builds straight on M1's floor generator and room templates, and Magic's library already sells spells back for coins.
 
-**Sound in every milestone:** each milestone ships placeholder sounds for what it adds (M2 coins and bombs, M3 the school palettes, M4 enemy telegraphs, M5 potion sounds). Spatial audio and the mixer belong in M3, since spells need them; M8 replaces placeholders and adds music and ambience.
+**Sound in every milestone:** each milestone ships placeholder sounds for what it adds (M2 obols and glyphs, M3 the school palettes, M4 enemy telegraphs, M5 potion sounds). Spatial audio and the mixer belong in M3, since spells need them; M8 replaces placeholders and adds music and ambience.
 
 **M0 tasks**
 
@@ -798,4 +802,4 @@ All names in the prototype are placeholders until the Eda lore is added to this 
 - [ ] Should artifacts come from Eda's factions or gods (for example one pool per faction)?
 - [ ] Who teaches alchemy in Eda, and is it respected or forbidden?
 - [ ] Should the disciplines be separate playable characters with their own Tripo models, or one mage with different loadouts?
-- [ ] For a later mobile port: is four-direction casting right on phones, and do the spell, potion and bomb buttons fit on screen?
+- [ ] For a later mobile port: is four-direction casting right on phones, and do the spell, potion and glyph buttons fit on screen?
