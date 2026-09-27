@@ -191,7 +191,7 @@ function updateAbbess(e: Enemy, dt: number, ux: number, uz: number) {
     e.vx = e.vz = 0; const k = 1 - Math.max(0, e.st) / .7;
     e.body.position.y = -2.4 * k * k; ripple.visible = true; mat.opacity = k * .8; ripple.scale.setScalar(.8 + k * .3);
     if (k > .5 && !e.hidden) { e.hidden = true; burst(e.x, .1, e.z, 0x6fe8d8, 16, 2.4, .06); }
-    if (e.st <= 0) { e.state = 'under'; e.st = 2.2; e.flying = true; }
+    if (e.st <= 0) { e.state = 'under'; e.st = C.under; e.flying = true; }
   } else if (e.state === 'under') { // a ripple gliding after the mage, under rocks and pits alike
     const d = Math.hypot(player.x - e.x, player.z - e.z);
     e.vx = ux * C.dive * speedMul; e.vz = uz * C.dive * speedMul;

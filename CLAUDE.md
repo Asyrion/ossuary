@@ -8,9 +8,9 @@ and exported as GLB. The owner (Azyrion) designs; you build.
 milestone; if this file disagrees with it on design, the GDD wins. The Tripo asset checklist lives in the
 owner's claude.ai project "Tripo3D-GameDev". This file holds what you need to work in the repo.
 
-## Current state: M1 in progress (see `docs/M1-plan.md`)
+## Current state: M1 built, being play-tested (see `docs/M1-plan.md`)
 
-The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 is turning it into
+The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
 
 - `src/`: the game, split as in the M0 layout. Plus `state.ts` (shared mutable state `G` and `player`,
@@ -49,6 +49,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
 - Lights were re-tuned for physically based lighting: decay exponents dropped to 0.5 so the falloff
   matches r147's legacy curve, intensities matched to the prototype within about 5% by region
   brightness (`CFG.lights`).
+- The end screen (`showEndScreen` in `src/ui/screens.ts`) sums up a run; "Replay this seed" starts a new
+  run on the same seed.
 - Bosses are in `src/actors/bosses.ts` (placeholder shapes until M4): each floor draws one from its pool
   in `data/floors.json`, never one the run has met. A boss with `hidden` set (the abbess under the floor,
   the knight in mid-leap) can't be hit and doesn't hurt on contact.
