@@ -68,6 +68,7 @@ export interface Enemy extends Circle {
   eye?: THREE.Mesh; ring?: THREE.Mesh; cycle?: number; summoned?: boolean; volleys?: number;
   /** Bosses: out of reach (under the floor, in the air), so neither hurt nor hurting. */ hidden?: boolean;
   /** Floor ring (the abbess's ripple, the knight's landing mark); where a leap started. */ marker?: THREE.Mesh; from?: Vec2;
+  /** Called by a boss; falls when the boss does. */ servant?: boolean;
 }
 
 export interface Bolt extends Circle {
