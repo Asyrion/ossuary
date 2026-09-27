@@ -1,4 +1,4 @@
-import { CFG } from './config';
+import { CFG, type BossType } from './config';
 import { START_FOCUS, computeStats } from './items/artifactData';
 import { Rng } from './rng';
 import type { FloorPlan } from './world/generate';
@@ -22,9 +22,11 @@ export const G = {
   decals: [] as THREE.Mesh[],
   trapdoor: null as Trapdoor | null,
   stats: { time: 0, kills: 0 },
-  /** The current run: its seed, which floor (0-based) and the seeded loot stream. */
+  /** The current run: its seed, which floor (0-based) and the seeded loot stream; this floor's boss and the
+      bosses the run has met. */
   run: {
     seed: '', floor: 0, loot: new Rng(0), seen: new Set<string>(), plan: null as FloorPlan | null,
+    boss: 'warden' as BossType, bossesMet: [] as BossType[],
     /** Artifacts offered on this floor, and guaranteed sources still to come (see items/artifacts.ts). */
     budget: { used: 0, reserved: 0 },
   },

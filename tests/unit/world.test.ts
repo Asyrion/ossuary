@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../../src/rng';
-import { FLOORS, GRID_H, GRID_W, HARD_VARIANTS, generateFloor, planToText, testPlan } from '../../src/world/generate';
+import { FLOORS, GRID_H, GRID_W, HARD_VARIANTS, generateFloor, pickBoss, planToText, testPlan } from '../../src/world/generate';
+import { BOSS_TYPES, type BossType } from '../../src/config';
 import { OPPOSITE, SIDE_DIR, allowsSide, shapeCells } from '../../src/world/shapes';
 import { TEMPLATE_DEFS, parseTemplate, validateTemplate } from '../../src/world/templates';
 
@@ -159,5 +160,29 @@ describe('floor generator', () => {
       const p = testPlan(def.id);
       expect(p.rooms[1].doors.some(d => d.to === 0)).toBe(true); // reachable from the start
     }
+  });
+});
+
+describe('bosses', () => {
+  it('every floor draws from a pool of known bosses', () => {
+    for (const f of FLOORS) {
+      expect(f.boss.pool.length).toBeGreaterThan(0);
+      for (const b of f.boss.pool) expect(BOSS_TYPES).toContain(b);
+    }
+  });
+
+  it('a run meets a different boss on every floor, and runs differ', () => {
+    const orders = new Set<string>();
+    for (let i = 0; i < 200; i++) {
+      const met: BossType[] = [];
+      FLOORS.forEach((f, floor) => met.push(pickBoss(Rng.from('RUN' + i, 'boss' + floor), f.boss.pool, met)));
+      expect(new Set(met).size).toBe(met.length);
+      orders.add(met.join());
+    }
+    expect(orders.size).toBeGreaterThan(1);
+  });
+
+  it('falls back to the whole pool once every boss in it has been met', () => {
+    expect(pickBoss(new Rng(1), ['warden'], ['warden'])).toBe('warden');
   });
 });

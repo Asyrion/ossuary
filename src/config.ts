@@ -10,7 +10,10 @@ export const CFG = {
     rotling: { hp: 10, r: 0.32, speed: 1.35 },
     wisp: { hp: 7, r: 0.28, speed: 1.1, fireMin: 2.0, fireMax: 3.0, shotSpeed: 3.8 },
     hound: { hp: 12, r: 0.34, speed: 1.1, charge: 7.2 },
+    // bosses (each floor's boss block in data/floors.json scales them)
     warden: { hp: 120, r: 0.78, speed: 1.15 },
+    abbess: { hp: 140, r: 0.7, speed: .95, dive: 2.7 },         // dive: speed of her ripple under the floor
+    pyre: { hp: 160, r: 0.72, speed: 1.25, charge: 8.2 },
   },
   // champion rooms: one enemy is bigger, tinted, tougher and a little faster, and drops a heart
   champion: { hpMul: 2, scale: 1.3, radiusMul: 1.2, speedMul: 1.15, tint: 0x6a1a0a, aura: 0xff5a2a },
@@ -37,3 +40,6 @@ export const CFG = {
 };
 
 export type EnemyType = keyof typeof CFG.enemy;
+/** Enemy types that are bosses; each floor draws its boss from a pool of these (data/floors.json). */
+export const BOSS_TYPES = ['warden', 'abbess', 'pyre'] as const satisfies readonly EnemyType[];
+export type BossType = (typeof BOSS_TYPES)[number];

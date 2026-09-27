@@ -139,6 +139,8 @@ Combat is Isaac-style: bolts travel in straight lines, drop to the floor at the 
 | Wisp | 7 | Flies over rocks, drifts, fires an aimed orb every 2 to 3 s | Fly with shot |
 | Crypt hound | 12 | Wanders; charges when lined up with the player; stunned on impact | Charger |
 | Hollow Warden (boss) | 120 | Walks, 12-shot radial burst, three aimed 3-shot volleys; summons two Rotlings below 50% | Floor 1 boss |
+| Drowned Abbess (boss, M1) | 140 | Drifts; wails fans of aimed shots; sinks into the floor and follows the mage as a ripple that can't be hurt, then a widening ring marks where she surfaces with a ring of shots; summons Wisps below 50% | Pin |
+| Pyre Knight (boss, M1) | 160 | Stalks; leaps at where the mage stands (the landing spot glows) and lands with a shockwave ring; charges in a line until a wall stuns him; sprays cones of embers; summons Crypt hounds below 50% | Monstro |
 
 **Enemy asset needs per creature:** a run or move clip, an attack clip, a hit reaction and a death. The hero's layered animation system is reused for enemies.
 
@@ -477,7 +479,7 @@ Between two cells of the same room, the two wall tiles become floor, which is wh
 - **Secret room (M2):** one per floor, in an empty cell touching at least two rooms.
 - **Shapes:** while growing the map, the walk sometimes places a larger shape when the cells it needs are free.
 - **Difficulty:** floor 1 is easy, and each later floor raises the baseline a little (harder templates, about 15% more enemy health per floor). Within a floor, rooms vary randomly around the baseline rather than rising steadily, and variants push single rooms clearly above or below it; deeper floors roll more hard variants. The rooms next to the start on floor 1 are never hard variants. All numbers are found by play-testing.
-- **Between floors:** the boss opens a trapdoor; stepping in starts the next floor (waystones join in M6). Beating the floor 3 boss wins the run. Until Tripo bosses arrive (M4), floors 2 and 3 end with a harder Hollow Warden: more health, faster volleys, more summons.
+- **Between floors:** the boss opens a trapdoor; stepping in starts the next floor (waystones join in M6). Beating the floor 3 boss wins the run. Each floor draws its boss from a pool in `data/floors.json`, never one the run has already met, and scales it (health, speed, shot speed, summons, volleys). Until Tripo bosses arrive (M4), the bosses are placeholder shapes: the Hollow Warden on floor 1, the Drowned Abbess and the Pyre Knight on floors 2 and 3 in either order.
 - **Seeds:** every run has a seed, shown in the pause menu, so a run can be replayed and bugs reproduced.
 - **Floor looks:** each floor already looks a little different, as placeholders until the biome pass (M8): floor 1 has warm stone and iron torches, floor 2 cool damp stone with moss, puddles and cage lanterns, floor 3 scorched brick with soot, ash and braziers. Colours and torch styles live in `data/floors.json`.
 
@@ -779,6 +781,7 @@ All names in the prototype are placeholders until the Eda lore is added to this 
 | Hero (no name) | Player character | Name and short backstory |
 | Rotling, Wisp, Crypt hound | Enemy types | Eda creatures |
 | The Hollow Warden | Floor 1 boss | Eda boss creature |
+| The Drowned Abbess, the Pyre Knight | Floor 2 and 3 bosses | Eda boss creatures |
 | Ember Sigil | First artifact | Eda artifact |
 | Ordeal, Bone altar | M1 room types | Eda names for these rooms |
 | Coins | Currency | An Eda currency (idea: obols, the coins laid on the eyes of the dead) |

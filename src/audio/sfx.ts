@@ -37,5 +37,11 @@ export const Sfx = {
   charge() { tone('sawtooth', 120, 260, .25, .06); },
   crack() { hiss(.06, .08, 'bandpass', 1400); tone('square', 160, 90, .05, .03); },
   rubble() { hiss(.35, .12, 'lowpass', 500); tone('sine', 90, 45, .3, .1); },
+  // bosses
+  wail() { tone('sine', 520, 360, .7, .07); tone('triangle', 780, 540, .7, .03, .06); },
+  dive() { hiss(.5, .1, 'lowpass', 700); tone('sine', 300, 70, .5, .1); },
+  surface() { hiss(.4, .16, 'bandpass', 1100); tone('sine', 90, 40, .45, .2); },
+  leap() { hiss(.35, .09, 'highpass', 1400); tone('sawtooth', 90, 200, .3, .05); },
+  ember() { hiss(.12, .08, 'highpass', 2500); tone('square', 320, 150, .08, .03); },
   bell() { tone('sine', 196, 196, 1.2, .12); tone('sine', 392, 392, .8, .05); tone('triangle', 588, 588, .5, .03); },
 };

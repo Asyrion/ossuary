@@ -24,6 +24,7 @@ import { clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRu
 import { STEP, startLoop, step } from './loop';
 import { cleanSeed } from './rng';
 import { VARIANTS, planToText, type RoomVariant } from './world/generate';
+import { BOSS_TYPES, type BossType } from './config';
 import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
 import { isTouch } from './util';
@@ -59,6 +60,8 @@ function readUrlOptions() {
   const q = new URLSearchParams(location.search);
   const seed = q.get('seed'), floor = Number(q.get('floor')), room = q.get('room'), variant = q.get('variant') as RoomVariant | null;
   if (variant && !VARIANTS.includes(variant)) console.warn(`?variant=${variant}: use one of ${VARIANTS.join(', ')}`);
+  const boss = q.get('boss') as BossType | null, bossOk = !!boss && BOSS_TYPES.includes(boss);
+  if (boss && !bossOk) console.warn(`?boss=${boss}: use one of ${BOSS_TYPES.join(', ')}`);
   const give = (q.get('give') ?? '').split(',').map(s => s.trim()).filter(Boolean);
   if (room && !TEMPLATES.has(room)) console.warn(`?room=${room}: no such template. Known: ${[...TEMPLATES.keys()].join(', ')}`);
   const unknown = give.filter(id => !ARTIFACTS.has(id));
@@ -69,6 +72,7 @@ function readUrlOptions() {
     testTemplate: room && TEMPLATES.has(room) ? room : undefined,
     testVariant: variant && VARIANTS.includes(variant) ? variant : undefined,
     give: give.filter(id => ARTIFACTS.has(id)),
+    boss: bossOk ? boss! : undefined,
   });
 }
 

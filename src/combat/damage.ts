@@ -13,7 +13,7 @@ import { spawnHeart } from '../items/pickups';
 import { freeSpotNear } from '../world/rooms';
 
 export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number) {
-  if (e.spawn > 0 || e.dead) return;
+  if (e.spawn > 0 || e.dead || e.hidden) return;
   e.hp -= dmg; e.flash = .09;
   const kb = e.isBoss ? .6 : 2.6; e.kx += dx * kb; e.kz += dz * kb;
   Sfx.hit();
@@ -21,8 +21,8 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number) {
   if (e.hp <= 0) killEnemy(e);
 }
 
-const GIB_COLOR: Record<keyof typeof CFG.enemy, number> = { rotling: 0x7f8a60, wisp: 0xb07bff, hound: 0xd8ccb2, warden: 0xff6a3a };
-const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = { rotling: 0x1d2414, wisp: null, hound: 0x241812, warden: 0x2a0a06 };
+const GIB_COLOR: Record<keyof typeof CFG.enemy, number> = { rotling: 0x7f8a60, wisp: 0xb07bff, hound: 0xd8ccb2, warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a };
+const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = { rotling: 0x1d2414, wisp: null, hound: 0x241812, warden: 0x2a0a06, abbess: 0x0c2622, pyre: 0x1a0c06 };
 
 function killEnemy(e: Enemy) {
   e.dead = true; scene.remove(e.group); disposeTree(e.group); G.stats.kills++;

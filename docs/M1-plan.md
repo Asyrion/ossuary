@@ -63,3 +63,5 @@ build. Each step ends playable, with unit and browser tests passing, and is push
 - [ ] Placeholder sounds for new events
 - [ ] Balance pass after play-tests; GDD and CLAUDE.md brought up to date
 - [x] Play-test: larger halls felt too big; the camera pulls back 20% in them (`camHallView`)
+- [x] Play-test: every floor had the same boss. Two new placeholder bosses (Drowned Abbess, Pyre Knight);
+      boss pools per floor, never the same boss twice in a run; `?boss=`

@@ -1,6 +1,6 @@
 /* Game states (title, play, pause, dying, end), runs and floors, and moving between rooms. */
 import type * as THREE from 'three';
-import { CFG } from './config';
+import { CFG, type BossType } from './config';
 import type { Room } from './types';
 import { G, after, clearTimers, player } from './state';
 import { STR } from './strings';
@@ -11,7 +11,7 @@ import { applyFloorLook, resetTorchLights, setDarkness } from './render/lights';
 import { disposeTree } from './render/materials';
 import { clearFloorTextures } from './render/textures';
 import { buildRoom, buildWallsAndDoors, doorsOf, entryPoint, freeSpotNear, linkDoors, roomAt, setDoors } from './world/rooms';
-import { FLOORS, generateFloor, testPlan, type RoomVariant } from './world/generate';
+import { FLOORS, generateFloor, pickBoss, testPlan, type RoomVariant } from './world/generate';
 import { DH } from './world/dims';
 import { SIDE_DIR } from './world/shapes';
 import { clearEnemies, makeEnemy } from './actors/enemies';
@@ -25,10 +25,10 @@ import { resetClock } from './loop';
 import { $, mulberry } from './util';
 import { burst } from './combat/fx';
 
-/** How the next run starts. Set from the URL at boot (?seed, ?floor, ?room, ?variant, ?give); used once. */
-export interface RunOptions { seed?: string; floor?: number; testTemplate?: string; testVariant?: RoomVariant; give?: string[] }
+/** How the next run starts. Set from the URL at boot (?seed, ?floor, ?room, ?variant, ?give, ?boss); used once. */
+export interface RunOptions { seed?: string; floor?: number; testTemplate?: string; testVariant?: RoomVariant; give?: string[]; boss?: BossType }
 let nextRun: RunOptions = {};
-let testTemplate: string | undefined, testVariant: RoomVariant | undefined;
+let testTemplate: string | undefined, testVariant: RoomVariant | undefined, forcedBoss: BossType | undefined;
 export function setNextRun(opts: RunOptions) { nextRun = opts; }
 
 const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
@@ -49,6 +49,9 @@ export function buildFloor(index: number) {
   clearFloorTextures();
   G.rooms = []; G.roomMap = new Map();
   G.run.floor = index;
+  // the floor's boss: from its pool, one this run hasn't met (or the one ?boss= asked for)
+  G.run.boss = forcedBoss ?? pickBoss(Rng.from(G.run.seed, 'boss' + index), FLOORS[index].boss.pool, G.run.bossesMet);
+  G.run.bossesMet.push(G.run.boss);
   const plan = testTemplate ? testPlan(testTemplate, testVariant) : generateFloor(Rng.from(G.run.seed, 'floor' + index), FLOORS[index], index);
   G.run.plan = plan;
   resetBudget(3); // guaranteed artifacts on every floor: the treasure room, the ordeal and the boss
@@ -74,8 +77,8 @@ export function resetPlayer() {
 export function startGame(opts?: RunOptions) {
   const o = opts ?? nextRun; nextRun = {};
   const seed = o.seed || newSeed();
-  testTemplate = o.testTemplate; testVariant = o.testVariant;
-  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), seen: new Set(), plan: null, budget: { used: 0, reserved: 0 } };
+  testTemplate = o.testTemplate; testVariant = o.testVariant; forcedBoss = o.boss;
+  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 } };
   Sfx.init(); resetPlayer(); G.stats.time = 0; G.stats.kills = 0;
   if (o.give?.length) giveById(o.give);
   showScreen(null); G.state = 'play';
@@ -85,8 +88,8 @@ export function startGame(opts?: RunOptions) {
 /** Build the first floor of the upcoming run as the title screen's backdrop; startGame keeps its seed. */
 export function prepareTitle() {
   const seed = nextRun.seed || newSeed(); nextRun = { ...nextRun, seed };
-  testTemplate = nextRun.testTemplate; testVariant = nextRun.testVariant;
-  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), seen: new Set(), plan: null, budget: { used: 0, reserved: 0 } };
+  testTemplate = nextRun.testTemplate; testVariant = nextRun.testVariant; forcedBoss = nextRun.boss;
+  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 } };
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, nextRun.floor ?? 0)));
 }
 
@@ -127,9 +130,9 @@ export function enterRoom(room: Room) {
     room.locked = true; setDoors(room, false);
     if (room.type === 'boss') {
       const boss = G.enemies.find(e => e.isBoss);
-      const name = STR.bossNames[Math.min(G.run.floor, STR.bossNames.length - 1)];
-      if (boss) showBossBar(name, boss);
-      banner(name, STR.banner.bossSub);
+      const words = STR.bosses[G.run.boss];
+      if (boss) showBossBar(words.name, boss);
+      banner(words.name, words.sub);
     }
     if (room.type === 'ordeal') banner(...STR.banner.ordeal(room.waves.length));
   }
@@ -153,7 +156,7 @@ function spawnWave(room: Room, ambush = false) {
       if (d < 2.2) { const p = freeSpotNear(room, player.x + (d ? dx / d : 1) * 3, player.z + (d ? dz / d : 0) * 3); x = p.x; z = p.z; }
       burst(x, .1, z, 0x5a4a3a, 14, 2.2, .08);
     }
-    if (f.kind === 'boss') makeEnemy(cfg.boss.type, x, z, 1, cfg.boss);
+    if (f.kind === 'boss') makeEnemy(G.run.boss, x, z, 1, cfg.boss);
     else makeEnemy(f.kind, x, z, cfg.enemyHp, undefined, { champion: f === champion });
   }
 }
@@ -220,7 +223,7 @@ export function onBossDead() {
     return placeArtifact(cur, d, p.x, p.z);
   });
   if (spots.length === 2) { spots[0].pair = spots[1]; spots[1].pair = spots[0]; }
-  banner(...(G.run.floor >= FLOORS.length - 1 ? STR.banner.lastBossDead : STR.banner.bossDead));
+  banner(STR.bosses[G.run.boss].dead, G.run.floor >= FLOORS.length - 1 ? STR.banner.wayOut : STR.banner.wayDown);
 }
 
 /** Point the camera straight at where it belongs in `room` (no pan). */
