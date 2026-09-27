@@ -25,8 +25,9 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number) {
 const GIB_COLOR: Record<keyof typeof CFG.enemy, number> = { rotling: 0x7f8a60, wisp: 0xb07bff, hound: 0xd8ccb2, warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a };
 const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = { rotling: 0x1d2414, wisp: null, hound: 0x241812, warden: 0x2a0a06, abbess: 0x0c2622, pyre: 0x1a0c06 };
 
-function killEnemy(e: Enemy) {
+function killEnemy(e: Enemy, withBoss = false) {
   e.dead = true; scene.remove(e.group); disposeTree(e.group); G.stats.kills++;
+  if (withBoss) { burst(e.x, .45, e.z, GIB_COLOR[e.type], 12, 3, .08); return; } // its master fell: it crumbles, and drops nothing
   burst(e.x, e.isBoss ? 1 : .45, e.z, GIB_COLOR[e.type], e.isBoss ? 60 : 16, e.isBoss ? 6 : 3.5, e.isBoss ? .12 : .08);
   const stain = STAIN_COLOR[e.type];
   if (stain !== null) addDecal(e.x, e.z, stain, e.isBoss ? 1.6 : .7);
@@ -34,7 +35,10 @@ function killEnemy(e: Enemy) {
   if (e.champion) { const p = freeSpotNear(G.current, e.x, e.z); spawnHeart(p.x, p.z, 2); }
   const drop = e.isBoss ? null : rollEnemyDrop(G.run.drops); // now and then an obol
   if (drop) { const p = freeSpotNear(G.current, e.x, e.z); spawnPickup(drop, p.x, p.z); }
-  if (e.isBoss) { Sfx.boom(); G.shake = .55; onBossDead(); } else { Sfx.die(); G.shake = Math.max(G.shake, .08); }
+  if (e.isBoss) {
+    for (const s of G.enemies) if (s.servant && !s.dead) killEnemy(s, true);
+    Sfx.boom(); G.shake = .55; onBossDead();
+  } else { Sfx.die(); G.shake = Math.max(G.shake, .08); }
 }
 
 /** Damage the hero by `halves` half-hearts, knocking them away from (fromX, fromZ). */

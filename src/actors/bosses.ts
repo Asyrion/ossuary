@@ -2,6 +2,8 @@
    in data/floors.json, never one the run has already met; the floor's boss block scales its health,
    speed and shot speed, how many foes it calls and how often it repeats its aimed attack.
 
+   A boss's helpers fall with it, so no fight drags on while its rewards rise.
+
    Hollow Warden: walks at the mage; a ring of 12 shots (a second ring below 60%); aimed 3-shot volleys;
      calls rotlings below half health.
    Drowned Abbess: drifts; wails fans of aimed shots; sinks into the floor and follows the mage as a
@@ -96,7 +98,7 @@ function callHelp(e: Enemy) {
   const n = e.bossCfg?.summons ?? 2, cur = G.current, hpMul = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].enemyHp;
   for (let i = 0; i < n; i++) {
     const p = freeSpotNear(cur, cur.cx + (n > 1 ? -4 + 8 * i / (n - 1) : 0), cur.cz + 1.5);
-    makeEnemy(SUMMONS[e.type as BossType], p.x, p.z, hpMul);
+    makeEnemy(SUMMONS[e.type as BossType], p.x, p.z, hpMul).servant = true;
   }
 }
 
