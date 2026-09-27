@@ -63,7 +63,10 @@ build. Each step ends playable, with unit and browser tests passing, and is push
 - [x] Placeholder sounds for new events: descending, trapdoor, victory and death, cursed artifacts, an
       artifact rising or vanishing, the bone altar (paid, refused), ordeal gong, dark rooms, champions;
       boss attacks
-- [ ] Balance pass after play-tests; GDD and CLAUDE.md brought up to date
+- [x] Balance pass after play-tests; GDD and CLAUDE.md brought up to date. Measured with a bot that
+      doesn't dodge: boss fights take about 15 s on floor 1 (Warden), 20 s on floor 2 and 25 s on floor 3
+      after lowering the Abbess to 120 health (and 1.8 s under the floor) and the Knight to 135. The new
+      templates add 5 to 7% more enemies per floor, all in the halls. More tuning as play-tests come in.
 - [x] Play-test: larger halls felt too big; the camera pulls back 20% in them (`camHallView`)
 - [x] Play-test: every floor had the same boss. Two new placeholder bosses (Drowned Abbess, Pyre Knight);
       boss pools per floor, never the same boss twice in a run; `?boss=`

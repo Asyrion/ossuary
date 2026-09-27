@@ -12,8 +12,8 @@ export const CFG = {
     hound: { hp: 12, r: 0.34, speed: 1.1, charge: 7.2 },
     // bosses (each floor's boss block in data/floors.json scales them)
     warden: { hp: 120, r: 0.78, speed: 1.15 },
-    abbess: { hp: 140, r: 0.7, speed: .95, dive: 2.7 },         // dive: speed of her ripple under the floor
-    pyre: { hp: 160, r: 0.72, speed: 1.25, charge: 8.2 },
+    abbess: { hp: 120, r: 0.7, speed: .95, dive: 2.7, under: 1.8 }, // dive: speed of her ripple; under: seconds below
+    pyre: { hp: 135, r: 0.72, speed: 1.25, charge: 8.2 },
   },
   // champion rooms: one enemy is bigger, tinted, tougher and a little faster, and drops a heart
   champion: { hpMul: 2, scale: 1.3, radiusMul: 1.2, speedMul: 1.15, tint: 0x6a1a0a, aura: 0xff5a2a },

@@ -23,7 +23,7 @@ Isaac-style roguelike set in Eda, built with three.js and Tripo3D models.
 | `npm run preview` | Serve the built `dist/` locally at `/ossuary/` |
 | `npm test` | Unit tests (Vitest) and browser smoke tests (Playwright) |
 | `npm run test:unit` | Unit tests only: floor generator rules, room template checks |
-| `npm run test:e2e` | Browser smoke tests only: clear a room, descend a floor, no console errors |
+| `npm run test:e2e` | Browser smoke tests only: clear a room, descend a floor, beat each boss, the end screen, no console errors |
 | `npm run prepare-asset -- in.glb [name.glb]` | Shrink a Tripo GLB's textures into `public/assets/` and print a report |
 | `npm run compare` | Screenshots of four rooms in the port and in prototype 0.3, into `test-results/compare/` (needs `npm run dev` running) |
 
@@ -36,8 +36,10 @@ Add these to the address (locally or on the Pages site):
 - `?room=pit_maze` plays a single room template (ids are in `data/templates/`)
 - `?variant=ambush` plays that room as a variant: `quiet`, `champion`, `ambush` or `dark`
 - `?give=twin_staff,bone_lens` starts the run holding those artifacts (ids are in `data/artifacts.json`)
+- `?boss=pyre` makes every floor's boss that one: `warden`, `abbess` or `pyre`
 
-Options combine, e.g. `?room=crypt_a&variant=champion&give=shepherds_crook`.
+Options combine, e.g. `?room=crypt_a&variant=champion&give=shepherds_crook`, or `?room=boss_tombs&boss=abbess&floor=3`
+for the Drowned Abbess with floor 3 tuning. The end screen's "Replay this seed" starts the same run again.
 
 ## Deploying to GitHub Pages
 

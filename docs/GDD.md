@@ -139,8 +139,8 @@ Combat is Isaac-style: bolts travel in straight lines, drop to the floor at the 
 | Wisp | 7 | Flies over rocks, drifts, fires an aimed orb every 2 to 3 s | Fly with shot |
 | Crypt hound | 12 | Wanders; charges when lined up with the player; stunned on impact | Charger |
 | Hollow Warden (boss) | 120 | Walks, 12-shot radial burst, three aimed 3-shot volleys; summons two Rotlings below 50% | Floor 1 boss |
-| Drowned Abbess (boss, M1) | 140 | Drifts; wails fans of aimed shots; sinks into the floor and follows the mage as a ripple that can't be hurt, then a widening ring marks where she surfaces with a ring of shots; summons Wisps below 50% | Pin |
-| Pyre Knight (boss, M1) | 160 | Stalks; leaps at where the mage stands (the landing spot glows) and lands with a shockwave ring; charges in a line until a wall stuns him; sprays cones of embers; summons Crypt hounds below 50% | Monstro |
+| Drowned Abbess (boss, M1) | 120 | Drifts; wails fans of aimed shots; sinks into the floor and follows the mage as a ripple that can't be hurt, then a widening ring marks where she surfaces with a ring of shots; summons Wisps below 50% | Pin |
+| Pyre Knight (boss, M1) | 135 | Stalks; leaps at where the mage stands (the landing spot glows) and lands with a shockwave ring; charges in a line until a wall stuns him; sprays cones of embers; summons Crypt hounds below 50% | Monstro |
 
 **Enemy asset needs per creature:** a run or move clip, an attack clip, a hit reaction and a death. The hero's layered animation system is reused for enemies.
 
@@ -481,6 +481,7 @@ Between two cells of the same room, the two wall tiles become floor, which is wh
 - **Difficulty:** floor 1 is easy, and each later floor raises the baseline a little (harder templates, about 15% more enemy health per floor). Within a floor, rooms vary randomly around the baseline rather than rising steadily, and variants push single rooms clearly above or below it; deeper floors roll more hard variants. The rooms next to the start on floor 1 are never hard variants. All numbers are found by play-testing.
 - **Between floors:** the boss opens a trapdoor; stepping in starts the next floor (waystones join in M6). Beating the floor 3 boss wins the run. Each floor draws its boss from a pool in `data/floors.json`, never one the run has already met, and scales it (health, speed, shot speed, summons, volleys). Until Tripo bosses arrive (M4), the bosses are placeholder shapes: the Hollow Warden on floor 1, the Drowned Abbess and the Pyre Knight on floors 2 and 3 in either order.
 - **Seeds:** every run has a seed, shown in the pause menu, so a run can be replayed and bugs reproduced.
+- **End of a run:** won or lost, the end screen sums up the run: the deepest floor, the time, foes put to rest, every artifact carried and the seed, with a button to replay the same seed.
 - **Floor looks:** each floor already looks a little different, as placeholders until the biome pass (M8): floor 1 has warm stone and iron torches, floor 2 cool damp stone with moss, puddles and cage lanterns, floor 3 scorched brick with soot, ash and braziers. Colours and torch styles live in `data/floors.json`.
 
 **Room templates are data:** a character grid in the size of the room's shape (rock, pit, pillar, stone tomb, enemy spawn, empty; urns from M2) plus a difficulty value and the room types it suits, stored as JSON so new rooms need no code. Pillars and tombs block walking and bolts like rocks but never break; tomb tiles side by side make one longer tomb. Larger halls are furnished with them so they don't feel empty. Ordeal templates list two or three waves. M1 needs at least two templates per shape and 50 or more in total.
@@ -749,7 +750,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | Milestone | Goal | Done when |
 | --- | --- | --- |
 | M0 Move to Claude Code | Same game, proper project | Prototype 0.3 runs from the repo, deployed, playable on phone |
-| M1 Core loop | Runs feel different | Three generated floors with varied maps, room counts and room shapes; 20+ room templates; room variants from quiet to ordeal, and bone altars; 3 to 5 artifacts per floor from 10 artifacts and 3 foci as data |
+| M1 Core loop | Runs feel different | Three generated floors with varied maps, room counts and room shapes; a different boss on each floor; 50+ room templates; room variants from quiet to ordeal, and bone altars; 3 to 5 artifacts per floor from 10 artifacts and 3 foci as data |
 | M2 Plunder | Exploration pays | Coins, keys and bombs; merchant, secret room, locked vault and shrine cleansing; urns and chests |
 | M3 Magic | Magic is the build | Mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room |
 | M4 Tripo enemies | Own creatures | 3 enemies and 1 boss from Tripo, with elemental affinities |
