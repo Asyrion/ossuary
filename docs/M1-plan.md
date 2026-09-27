@@ -59,8 +59,10 @@ build. Each step ends playable, with unit and browser tests passing, and is push
 ## Step 6: Polish and balance
 
 - [x] 20+ templates, raised to 50+ after play-testing: 56, with pillars and stone tombs furnishing the halls
-- [ ] End screen: floors reached, time, kills, artifacts, seed
-- [ ] Placeholder sounds for new events
+- [x] End screen: floors reached, time, kills, artifacts, seed; "Replay this seed"
+- [x] Placeholder sounds for new events: descending, trapdoor, victory and death, cursed artifacts, an
+      artifact rising or vanishing, the bone altar (paid, refused), ordeal gong, dark rooms, champions;
+      boss attacks
 - [ ] Balance pass after play-tests; GDD and CLAUDE.md brought up to date
 - [x] Play-test: larger halls felt too big; the camera pulls back 20% in them (`camHallView`)
 - [x] Play-test: every floor had the same boss. Two new placeholder bosses (Drowned Abbess, Pyre Knight);

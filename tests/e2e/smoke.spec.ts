@@ -180,6 +180,38 @@ for (const boss of ['abbess', 'pyre']) test(`the ${boss} boss dives or leaps out
   expect(errors).toEqual([]);
 });
 
+test('the end screen sums up the run, and replays its seed', async ({ page }) => {
+  const errors = await start(page, '?room=crypt_a&seed=ENDRUN&give=twin_staff,bone_lens');
+  type G2 = GameHooks & { descend(): void; player: GameHooks['player'] & { invuln: number } };
+  const summary = () => page.evaluate(() => ({
+    shown: !document.getElementById('scrEnd')!.classList.contains('hidden'),
+    title: document.getElementById('endTitle')!.textContent, floor: document.getElementById('endFloor')!.textContent,
+    kills: document.getElementById('endKills')!.textContent, seed: document.getElementById('endSeed')!.textContent,
+    time: document.getElementById('endTime')!.textContent, carried: document.querySelectorAll('#endItems li').length,
+  }));
+  // a test room ends the run as a win when the mage takes the way down
+  await page.evaluate(() => { const w = window as unknown as W, g = w.__game as G2; g.warp(1); w.__fight(60); g.descend(); });
+  const won = await summary();
+  await page.screenshot({ path: 'test-results/smoke-end.png' });
+  expect(won).toMatchObject({ shown: true, floor: '1 of 3', kills: '3', seed: 'ENDRUN', carried: 2 }); // twin staff replaced the wand
+  expect(won.time).toMatch(/^\d+:\d\d$/);
+
+  // replay: a full run on the same seed; then fall in its first fight
+  await page.click('#btnReplay');
+  const replay = await page.evaluate(() => {
+    const w = window as unknown as W, g = w.__game as G2;
+    const state = g.state, seed = g.seed;
+    g.warp(g.rooms().find(r => r.type === 'normal' && !r.cleared)!.plan.id);
+    for (let t = 0; t < 40 && g.state !== 'end'; t += .1) { g.player.hp = Math.min(g.player.hp, 1); g.sim(.1); }
+    return { state, seed, after: g.state };
+  });
+  expect(replay).toEqual({ state: 'play', seed: 'ENDRUN', after: 'end' });
+  const lost = await summary();
+  expect(lost).toMatchObject({ shown: true, floor: '1 of 3', seed: 'ENDRUN', carried: 1 });
+  expect(lost.title).not.toBe(won.title);
+  expect(errors).toEqual([]);
+});
+
 test('every door of a seeded floor leads to its neighbour, onto open floor', async ({ page }) => {
   const errors = await start(page, '?seed=DOORS1&floor=2');
   const result = await page.evaluate(() => {

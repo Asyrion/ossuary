@@ -47,12 +47,14 @@ export function renderHearts() {
   el.hearts.setAttribute('aria-label', STR.health(player.hp / 2, player.maxHp / 2));
 }
 
-/** The focus (framed) followed by every other artifact held; cursed ones are ringed in red. */
+/** An artifact's icon as inline SVG in its colour: the focus framed, cursed ones ringed in red. */
+export function artifactIcon(id: string, isFocus: boolean) {
+  const def = artifact(id), cls = isFocus ? 'focus' : def.kind === 'cursed' ? 'cursed' : '';
+  return `<svg viewBox="0 0 24 24" class="${cls}" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${def.text}</title>${ICONS[def.icon] ?? ICONS.sigil}</svg>`;
+}
+/** The focus followed by every other artifact held. */
 export function renderItems() {
-  el.items.innerHTML = [player.focus, ...player.items].map((id, i) => {
-    const def = artifact(id), cls = i === 0 ? 'focus' : def.kind === 'cursed' ? 'cursed' : '';
-    return `<svg viewBox="0 0 24 24" class="${cls}" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${def.text}</title>${ICONS[def.icon] ?? ICONS.sigil}</svg>`;
-  }).join('');
+  el.items.innerHTML = [player.focus, ...player.items].map((id, i) => artifactIcon(id, i === 0)).join('');
 }
 
 /** Mask of the Drowned: darkness everywhere but a circle around the mage. */

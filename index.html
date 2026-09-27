@@ -56,7 +56,17 @@
   <div class="card">
     <h2 id="endTitle"></h2>
     <p id="endText"></p>
-    <div class="btns"><button class="act primary" id="btnAgain" data-s="end.again"></button></div>
+    <dl class="summary">
+      <dt data-s="end.floor"></dt><dd id="endFloor"></dd>
+      <dt data-s="end.time"></dt><dd id="endTime"></dd>
+      <dt data-s="end.kills"></dt><dd id="endKills"></dd>
+      <dt data-s="end.seed"></dt><dd id="endSeed" class="seed"></dd>
+      <dt data-s="end.artifacts"></dt><dd><ul id="endItems" class="carried"></ul></dd>
+    </dl>
+    <div class="btns">
+      <button class="act primary" id="btnAgain" data-s="end.again"></button>
+      <button class="act" id="btnReplay" data-s="end.replay"></button>
+    </div>
   </div>
 </div>
 

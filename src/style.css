@@ -59,6 +59,15 @@ body.touch #pauseBtn{display:block}
 .controls .h{color:var(--ink-dim);font-size:13px;font-weight:500}
 .controls .k{font-weight:700}
 .btns{display:flex;flex-wrap:wrap;gap:10px}
+.summary{display:grid;grid-template-columns:auto 1fr;gap:8px 22px;margin:0 0 22px;align-items:baseline}
+.summary dt{font-size:14px;font-weight:500;color:var(--ink-dim)}
+.summary dd{margin:0;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.summary .seed{letter-spacing:.12em;user-select:text;-webkit-user-select:text}
+.carried{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 16px}
+.carried li{display:inline-flex;align-items:center;gap:6px;font-size:16px;font-weight:500}
+.carried svg{width:28px;height:28px;flex:none;padding:3px;border-radius:4px;background:#17110c}
+.carried svg.focus{outline:1px solid var(--amber);outline-offset:-1px}
+.carried svg.cursed{box-shadow:0 0 0 1px #b0201a,0 0 6px rgba(200,30,20,.8)}
 button.act{font:700 17px var(--f-ui);padding:12px 22px;border-radius:2px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;min-height:44px}
 button.act.primary{background:var(--amber);border-color:#b77a2a;color:var(--amber-ink)}
 button.act:hover{filter:brightness(1.08)}
