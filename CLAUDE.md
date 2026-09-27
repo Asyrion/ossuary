@@ -8,7 +8,7 @@ and exported as GLB. The owner (Azyrion) designs; you build.
 milestone; if this file disagrees with it on design, the GDD wins. The Tripo asset checklist lives in the
 owner's claude.ai project "Tripo3D-GameDev". This file holds what you need to work in the repo.
 
-## Current state: M1 built, being play-tested (see `docs/M1-plan.md`)
+## Current state: M1 built, being play-tested (see `docs/M1-plan.md`); M2 planned in `docs/M2-plan.md`
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.

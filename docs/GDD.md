@@ -264,7 +264,7 @@ Artifacts replace Isaac's items. There are four kinds: one focus that reshapes t
 | Secret room | 1, often cursed | Sometimes | M2 |
 | Locked vault | 1 behind a key | Sometimes | M2 |
 
-The generator places the three guaranteed sources first, then gives artifacts to optional sources while the floor has budget left; optional sources without one hold coins, keys, bombs or hearts instead. Room-clear drops only roll while budget is left. Each artifact lists the pools it can appear in (treasure, ordeal, boss, altar, merchant, secret, vault); cursed artifacts live mostly in the altar and secret pools.
+The generator places the three guaranteed sources first, then gives artifacts to optional sources while the floor has budget left, in an order shuffled with the floor's seed so no optional source is always the one left out; optional sources without one hold coins, keys, bombs or hearts instead (the merchant sells only wares, the vault holds a hoard, the secret room coffers and a chest, and a bone altar without an artifact isn't placed). Room-clear drops only roll while budget is left. Each artifact lists the pools it can appear in (treasure, ordeal, boss, altar, merchant, secret, vault); cursed artifacts live mostly in the altar and secret pools.
 
 **Foci**
 
@@ -474,7 +474,7 @@ Between two cells of the same room, the two wall tiles become floor, which is wh
 
 **A run is three floors (M1).** Each floor is generated fresh, so no two runs share a map:
 
-- **Map:** start in the centre of a 9 × 8 grid and grow outwards by random walk until the floor has its room count, rolled per floor: 8 to 12 rooms on floor 1, 10 to 14 on floor 2, 12 to 16 on floor 3.
+- **Map:** start in the centre of a 9 × 8 grid and grow outwards by random walk until the floor has its room count, rolled per floor: 8 to 12 rooms on floor 1, 10 to 14 on floor 2, 12 to 16 on floor 3. From M2 each floor gets one more (9 to 13, 11 to 15, 13 to 17), since the merchant, and the shrine on floor 2, each take a dead end that would otherwise hold a fight.
 - **Special rooms** go into dead ends (rooms with one neighbour): the farthest from the start is the boss room, then treasure, ordeal and (from M2) the merchant; optional rooms (bone altar, and from M2 the locked vault) only appear when a spare dead end exists. If the walk leaves too few dead ends for the required rooms, it tries again. The boss room never touches the start room.
 - **Secret room (M2):** one per floor, in an empty cell touching at least two rooms.
 - **Shapes:** while growing the map, the walk sometimes places a larger shape when the cells it needs are free.
@@ -564,6 +564,10 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 | Sexton's Keyring | +3 keys; the locked vault opens for free once per floor |
 | Miser's Purse | +0.5 cantrip damage for every 10 coins held |
 | Powder Horn | +5 bombs; blasts are 50% wider |
+| Ferryman's Obol | Every room clear also drops a coin |
+| Sapper's Wick | Your bombs don't hurt you, and their fuse burns 1 s |
+| Grave Lantern | Cracked walls glow when you enter a room, and secret rooms show on the minimap before they're found |
+| Pedlar's Scale | Merchant prices −30% |
 
 **Ideas for later** (not scheduled): an alms box in chapel rooms where donated coins buy small blessings; sarcophagi that hold loot, or a Rotling; a bone-caster who throws the dice of the dead for coins.
 
