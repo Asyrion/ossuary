@@ -62,3 +62,4 @@ build. Each step ends playable, with unit and browser tests passing, and is push
 - [ ] End screen: floors reached, time, kills, artifacts, seed
 - [ ] Placeholder sounds for new events
 - [ ] Balance pass after play-tests; GDD and CLAUDE.md brought up to date
+- [x] Play-test: larger halls felt too big; the camera pulls back 20% in them (`camHallView`)

@@ -167,8 +167,9 @@ test('every door of a seeded floor leads to its neighbour, onto open floor', asy
     type R = Omit<RoomView, 'doors'> & { doors: D[]; bounds: { minX: number; minZ: number }; mask: boolean[][] };
     const g = (window as unknown as W).__game as unknown as {
       rooms(): R[]; current: R; warp(id: number): void; clearRoom(): void; sim(sec: number): void; keys: Set<string>;
-      player: { x: number; z: number; vx: number; vz: number; invuln: number };
+      player: { x: number; z: number; vx: number; vz: number; invuln: number }; camera: { zoom: number };
     };
+    const HALLS = ['long', 'tall', 'great', 'l_shape'];
     const KEY: Record<D['side'], string> = { n: 'KeyW', s: 'KeyS', e: 'KeyD', w: 'KeyA' };
     const DIR: Record<D['side'], number[]> = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] };
     const fails: string[] = []; let walked = 0; const shapes = new Set<string>();
@@ -182,6 +183,8 @@ test('every door of a seeded floor leads to its neighbour, onto open floor', asy
       walked++; shapes.add(room.plan.shape);
       const nb = g.current, c = Math.floor(g.player.x - nb.bounds.minX), r = Math.floor(g.player.z - nb.bounds.minZ);
       if (nb !== d.nb || nb.mask[r]?.[c] !== true) fails.push(`room ${room.plan.id} (${room.plan.shape}) door ${d.side}`);
+      // the camera is pulled back in larger halls only
+      if ((g.camera.zoom < 1) !== HALLS.includes(nb.plan.shape)) fails.push(`zoom ${g.camera.zoom} in room ${nb.plan.id} (${nb.plan.shape})`);
     }
     return { walked, shapes: shapes.size, fails };
   });

@@ -6,7 +6,7 @@ import { G, after, clearTimers, player } from './state';
 import { STR } from './strings';
 import { Rng, newSeed } from './rng';
 import { Sfx } from './audio/sfx';
-import { camTarget, cameraTargetFor, scene } from './render/renderer';
+import { camTarget, cameraTargetFor, scene, setViewScale, viewScale, viewScaleFor } from './render/renderer';
 import { applyFloorLook, resetTorchLights, setDarkness } from './render/lights';
 import { disposeTree } from './render/materials';
 import { clearFloorTextures } from './render/textures';
@@ -224,7 +224,7 @@ export function onBossDead() {
 }
 
 /** Point the camera straight at where it belongs in `room` (no pan). */
-function aimCamera(room: Room) { const t = cameraTargetFor(room, player.x, player.z); camTarget.set(t.x, 0, t.z); }
+function aimCamera(room: Room) { setViewScale(viewScaleFor(room)); const t = cameraTargetFor(room, player.x, player.z); camTarget.set(t.x, 0, t.z); }
 
 /** Start the 0.42 s pan to the next room when the hero walks out through a doorway. */
 export function tryTransition() {
@@ -236,7 +236,7 @@ export function tryTransition() {
     if (out <= .35 || Math.abs(along) > DH + .3 || !door.link) continue;
     const nb = door.nb, to = entryPoint(door.link), cam = cameraTargetFor(nb, to.x, to.z);
     showRooms(cur, nb);
-    G.trans = { t: 0, dur: .42, nb, fx: player.x, fz: player.z, tx: to.x, tz: to.z, cfx: camTarget.x, cfz: camTarget.z, ctx: cam.x, ctz: cam.z };
+    G.trans = { t: 0, dur: .42, nb, fx: player.x, fz: player.z, tx: to.x, tz: to.z, cfx: camTarget.x, cfz: camTarget.z, ctx: cam.x, ctz: cam.z, vf: viewScale(), vt: viewScaleFor(nb) };
     clearProjectiles();
     return true;
   }

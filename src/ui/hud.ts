@@ -63,7 +63,7 @@ export function updateVision() {
   if (!on) return;
   v3.set(player.x, .6, player.z).project(camera);
   const x = (v3.x + 1) / 2 * innerWidth, y = (1 - v3.y) / 2 * innerHeight;
-  const r = CFG.artifacts.visionRadius * innerHeight / (camera.top - camera.bottom);
+  const r = CFG.artifacts.visionRadius * innerHeight * camera.zoom / (camera.top - camera.bottom);
   vision.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(3,2,2,0) ${r * .55}px, rgba(3,2,2,.96) ${r}px)`;
 }
 
