@@ -160,6 +160,26 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
   expect(errors).toEqual([]);
 });
 
+for (const boss of ['abbess', 'pyre']) test(`the ${boss} boss dives or leaps out of reach and can be beaten`, async ({ page }) => {
+  const errors = await start(page, `?room=boss_open&boss=${boss}`);
+  const result = await page.evaluate(() => {
+    const w = window as unknown as W, g = w.__game;
+    g.warp(1);
+    const foe = g.enemies.find(e => e.isBoss) as Foe & { type: string; state: string; hidden?: boolean };
+    const states = new Set<string>(); let hidden = false, seconds = 0;
+    for (; seconds < 240 && g.enemies.length; seconds += .25) {
+      w.__fight(.25);
+      states.add(foe.state); hidden ||= !!foe.hidden;
+    }
+    g.sim(0.5);
+    const spots = (g.current as RoomView & { spots: unknown[] }).spots;
+    return { type: foe.type, seconds, states: [...states], hidden, left: g.enemies.length, cleared: g.current.cleared, choice: spots.length };
+  });
+  console.log(`${boss} beaten in ${result.seconds.toFixed(1)} s of game time; states seen: ${result.states.join(', ')}`);
+  expect(result).toMatchObject({ type: boss, hidden: true, left: 0, cleared: true, choice: 2 });
+  expect(errors).toEqual([]);
+});
+
 test('every door of a seeded floor leads to its neighbour, onto open floor', async ({ page }) => {
   const errors = await start(page, '?seed=DOORS1&floor=2');
   const result = await page.evaluate(() => {

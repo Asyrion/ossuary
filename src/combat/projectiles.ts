@@ -122,7 +122,7 @@ export function updateBolts(dt: number) {
     }
     // enemies: each is hit at most once per pass; piercing and boomerangs carry on
     if (!kill) for (const e of G.enemies) {
-      if (e.dead || e.spawn > 0 || b.hit.has(e)) continue;
+      if (e.dead || e.spawn > 0 || e.hidden || b.hit.has(e)) continue;
       const ey = e.flying ? .8 : .5;
       if (Math.hypot(b.x - e.x, b.z - e.z) >= e.r + b.r || Math.abs(b.y - ey) >= 1.4) continue;
       damageEnemy(e, b.damage, b.vx / b.speed, b.vz / b.speed);

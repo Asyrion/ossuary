@@ -38,7 +38,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `npm run test:e2e` (Playwright smoke tests), `npm test` runs both.
 - URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
-  champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts.
+  champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
+  every floor's boss that one (warden, abbess, pyre).
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.clearRoom()`
   ends the current fight.
 - `public/assets/hero_default.glb`: the hero (17,655 triangles, 65-bone Mixamo-style rig, 1,024 px JPEG
@@ -48,6 +49,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
 - Lights were re-tuned for physically based lighting: decay exponents dropped to 0.5 so the falloff
   matches r147's legacy curve, intensities matched to the prototype within about 5% by region
   brightness (`CFG.lights`).
+- Bosses are in `src/actors/bosses.ts` (placeholder shapes until M4): each floor draws one from its pool
+  in `data/floors.json`, never one the run has met. A boss with `hidden` set (the abbess under the floor,
+  the knight in mid-leap) can't be hit and doesn't hurt on contact.
 - Gameplay delays (the warden's second ring, the pause before the death screen) run on simulation time,
   so they pause with the game and advance under `__game.sim()`.
 - Dev hooks (`window.__game`, `window.__manual`) are also in production builds, for testing the deployed site.
@@ -132,8 +136,8 @@ Run clip playback speed is `CFG.hero.runAnimSpeed` (3.6 at full speed).
   test them, and add no touch UI for new actions until a mobile port.
 - Four-direction casting, eight-direction movement, 3 hearts counted in halves, 1 s invulnerability.
 - Hearts can't be picked up at full health. Doors lock while enemies live.
-- Placeholder names (Ossuary, Rotling, Wisp, Crypt hound, Hollow Warden, Ember Sigil) will be replaced with
-  Eda lore later; keep all player-facing strings in one place to make that easy.
+- Placeholder names (Ossuary, Rotling, Wisp, Crypt hound, Hollow Warden, Drowned Abbess, Pyre Knight,
+  Ember Sigil) will be replaced with Eda lore later; keep all player-facing strings in one place to make that easy.
 
 ## After M0: roadmap
 

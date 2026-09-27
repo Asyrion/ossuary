@@ -7,6 +7,7 @@
    a great hall), then the treasure room and the ordeal; a bone altar takes a spare dead end when the
    floor's altarChance rolls. Doors go on every cell edge two rooms share, if both shapes allow that side. */
 import floorsData from '../../data/floors.json';
+import type { BossType } from '../config';
 import type { Rng } from '../rng';
 import type { FloorLook, RoomType, Side } from '../types';
 import { OPPOSITE, SIDE_DIR, SHAPE_IDS, allowsSide, shapeCells, type ShapeId } from './shapes';
@@ -20,7 +21,10 @@ export type RoomVariant = 'normal' | 'quiet' | 'champion' | 'ambush' | 'dark';
 export const VARIANTS: RoomVariant[] = ['normal', 'quiet', 'champion', 'ambush', 'dark'];
 export const HARD_VARIANTS: RoomVariant[] = ['champion', 'ambush', 'dark'];
 
-export interface BossConfig { type: 'warden'; hpMul: number; speedMul: number; shotSpeedMul: number; summons: number; volleys: number }
+/** A floor's boss: drawn from `pool`, then tuned. `summons` is how many foes it calls below half health,
+    `volleys` how often it repeats its aimed attack (the warden's volleys, the abbess's fans, the knight's
+    ember sprays). */
+export interface BossConfig { pool: BossType[]; hpMul: number; speedMul: number; shotSpeedMul: number; summons: number; volleys: number }
 export interface FloorConfig {
   rooms: [number, number];
   enemyHp: number;
@@ -227,6 +231,12 @@ export function testPlan(templateId: string, variant: RoomVariant = 'normal', li
     variant: id && type === 'normal' ? variant : 'normal', seed: 1000 + id, doors: doors[id],
   }));
   return { index: 0, rooms, startId: 0, bossId: type === 'boss' ? 1 : -1, attempts: 1 };
+}
+
+/** The floor's boss: one from its pool that this run hasn't met yet, or any from the pool once all have. */
+export function pickBoss(rng: Rng, pool: readonly BossType[], met: readonly BossType[]): BossType {
+  const fresh = pool.filter(b => !met.includes(b));
+  return rng.pick(fresh.length ? fresh : pool);
 }
 
 /** The floor as text, one character per cell: S start, B boss, T treasure, O ordeal, A altar,

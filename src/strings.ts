@@ -34,13 +34,15 @@ export const STR = {
     ['The Drowned Catacombs', "Where the chapel's water gathers"],
     ['The Burning Scriptorium', 'Where the chapel kept its books'],
   ] as Banner[],
-  /** The boss of each floor. */
-  bossNames: ['The Hollow Warden', 'The Hollow Warden, Risen', 'The Hollow Warden, Unbound'],
+  /** The bosses: name and line on the boss bar banner, the banner when it calls help, the one when it dies. */
+  bosses: {
+    warden: { name: 'The Hollow Warden', sub: 'Keeper of the lower vault', summon: 'The warden calls its dead', dead: 'The warden is still' },
+    abbess: { name: 'The Drowned Abbess', sub: 'She still keeps the hours below', summon: 'The abbess calls the drowned lights', dead: 'The abbess sinks for good' },
+    pyre: { name: 'The Pyre Knight', sub: 'Sworn to the burning books', summon: 'The knight calls the hounds', dead: 'The knight burns out' },
+  },
   banner: {
-    bossSub: 'Keeper of the lower vault',
-    summon: ['The warden calls its dead', ''] as Banner,
-    bossDead: ['The warden is still', 'A way down has opened'] as Banner,
-    lastBossDead: ['The last warden is still', 'The way out lies below'] as Banner,
+    wayDown: 'A way down has opened',
+    wayOut: 'The way out lies below',
     artifactRises: ['Something rises from the dust', ''] as Banner,
     ordeal: (waves: number): Banner => ['The Ordeal', `Survive ${waves} waves, and be rewarded`],
     wave: (n: number, of: number): Banner => [`Wave ${n}`, `of ${of}`],

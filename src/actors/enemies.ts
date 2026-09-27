@@ -1,21 +1,20 @@
 import * as THREE from 'three';
-import { CFG, type EnemyType } from '../config';
+import { BOSS_TYPES, CFG, type EnemyType } from '../config';
 import type { Enemy } from '../types';
-import { G, after, player } from '../state';
-import { STR } from '../strings';
+import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { blob, disposeTree, glow } from '../render/materials';
 import { blockers, collide } from '../world/collision';
-import { freeSpotNear, randomSpot } from '../world/rooms';
+import { randomSpot } from '../world/rooms';
 import type { BossConfig } from '../world/generate';
 import { spawnShot } from '../combat/projectiles';
 import { hurtPlayer } from '../combat/damage';
 import { onWaveCleared } from '../flow';
-import { banner } from '../ui/hud';
 import { angleLerp, lerp, rand } from '../util';
+import { afterBossMove, buildBoss, updateBoss } from './bosses';
 
-function stdMat(color: number, extra: THREE.MeshStandardMaterialParameters = {}) {
+export function stdMat(color: number, extra: THREE.MeshStandardMaterialParameters = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: .85, flatShading: true, ...extra });
 }
 
@@ -59,20 +58,7 @@ export function makeEnemy(type: EnemyType, x: number, z: number, hpMul = 1, boss
     for (let i = 0; i < 3; i++) add(new THREE.ConeGeometry(.05, .18, 5), bone, 0, .6, -.2 + i * .18);
     for (const [lx, lz] of [[-.16, .22], [.16, .22], [-.16, -.22], [.16, -.22]]) add(new THREE.CylinderGeometry(.045, .035, .3, 5), hide, lx, .15, lz);
     e.dir = { x: 1, z: 0 }; e.state = 'wander'; e.st = rand(.5, 1.5);
-  } else if (type === 'warden') {
-    e.contact = 2; e.isBoss = true;
-    const iron = stdMat(0x3d3b42, { metalness: .6, roughness: .45 }), dark = stdMat(0x1e1c20, { metalness: .4 }), bone = stdMat(0xcfc2a6);
-    add(new THREE.CylinderGeometry(.5, .78, 1.4, 8), iron, 0, .72, 0);
-    add(new THREE.SphereGeometry(.34, 10, 8), iron, -.6, 1.35, 0, 1, .8, 1); add(new THREE.SphereGeometry(.34, 10, 8), iron, .6, 1.35, 0, 1, .8, 1);
-    add(new THREE.CylinderGeometry(.28, .34, .5, 6), dark, 0, 1.7, 0);
-    add(new THREE.ConeGeometry(.09, .45, 6), bone, -.26, 2.02, 0).rotation.z = .5;
-    add(new THREE.ConeGeometry(.09, .45, 6), bone, .26, 2.02, 0).rotation.z = -.5;
-    e.eye = add(new THREE.BoxGeometry(.36, .06, .05), new THREE.MeshBasicMaterial({ color: 0xff5a2a }), 0, 1.74, .3);
-    e.ring = new THREE.Mesh(new THREE.TorusGeometry(.55, .035, 6, 32), new THREE.MeshBasicMaterial({ color: 0xff6a3a, transparent: true, opacity: .8 }));
-    e.ring.position.set(0, 1.75, -.25); e.body.add(e.ring);
-    e.halo = glow(0xff4a1a, 2.2, .35); e.halo.position.set(0, 1.7, -.2); e.body.add(e.halo);
-    e.state = 'walk'; e.st = 2.2; e.cycle = 0; e.summoned = false;
-  }
+  } else if ((BOSS_TYPES as readonly string[]).includes(type)) buildBoss(e, add);
   if (opts.champion) { // an ember glow in the body and a pulsing aura around it
     for (const m of e.mats) { m.userData.base = new THREE.Color(CH.tint); m.emissive.set(CH.tint); }
     e.aura = glow(CH.aura, 1.6, .5); e.aura.position.y = .5; e.group.add(e.aura);
@@ -128,7 +114,7 @@ export function updateEnemies(dt: number) {
         e.vx = e.vz = 0; faceTo = e.face; e.body.rotation.x = 0; e.body.rotation.z = Math.sin(e.t * 20) * .1;
         if (e.st <= 0) { e.state = 'wander'; e.st = rand(.6, 1.2); e.body.rotation.z = 0; }
       }
-    } else if (e.type === 'warden') updateWarden(e, dt, ux, uz);
+    } else if (e.isBoss) faceTo = updateBoss(e, dt, ux, uz) ?? faceTo;
     // integrate + knockback
     e.kx *= Math.exp(-8 * dt); e.kz *= Math.exp(-8 * dt);
     e.x += (e.vx + e.kx) * dt; e.z += (e.vz + e.kz) * dt;
@@ -136,19 +122,19 @@ export function updateEnemies(dt: number) {
     if (e.type === 'hound') {
       if (e.state === 'charge' && hit) { e.state = 'stun'; e.st = .7; G.shake = Math.max(G.shake, .12); Sfx.hit(); }
       else if (e.state === 'wander' && hit) { e.dir = { x: -e.dir!.x, z: -e.dir!.z }; }
-    }
+    } else if (e.isBoss) afterBossMove(e, hit);
     e.face = angleLerp(e.face, faceTo, 1 - Math.exp(-10 * dt));
     e.group.position.set(e.x, 0, e.z); e.body.rotation.y = e.face;
     // hit flash
     if (e.flash > 0) { e.flash -= dt; for (const m of e.mats) m.emissive.setRGB(1, .95, .9); }
     else for (const m of e.mats) m.emissive.copy(m.userData.base as THREE.Color);
-    // contact damage
-    if (Math.hypot(player.x - e.x, player.z - e.z) < player.r + e.r * .9) hurtPlayer(e.contact, e.x, e.z);
+    // contact damage (not from a boss under the floor or in the air)
+    if (!e.hidden && Math.hypot(player.x - e.x, player.z - e.z) < player.r + e.r * .9) hurtPlayer(e.contact, e.x, e.z);
   }
   // keep walkers from stacking
   const es = G.enemies;
   for (let i = 0; i < es.length; i++) for (let j = i + 1; j < es.length; j++) {
-    const a = es[i], b = es[j]; if (a.flying !== b.flying) continue;
+    const a = es[i], b = es[j]; if (a.flying !== b.flying || a.hidden || b.hidden) continue;
     const dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz), min = a.r + b.r;
     if (d > 0 && d < min) {
       const p = (min - d) / 2 / d; const wa = a.isBoss ? .1 : 1, wb = b.isBoss ? .1 : 1;
@@ -158,47 +144,4 @@ export function updateEnemies(dt: number) {
   const alive = G.enemies.filter(e => !e.dead);
   if (alive.length !== G.enemies.length) G.enemies = alive;
   if (cur.locked && G.enemies.length === 0) onWaveCleared(cur);
-}
-
-function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
-  const C = CFG.enemy.warden, B = e.bossCfg; e.st -= dt;
-  const speed = C.speed * (B?.speedMul ?? 1), shotMul = B?.shotSpeedMul ?? 1;
-  const hpFrac = e.hp / e.maxHp;
-  const ring = e.ring!, eye = e.eye!, halo = e.halo!;
-  ring.rotation.z += dt * (e.state.startsWith('wind') ? 6 : 1.2);
-  if (!e.summoned && hpFrac < .5) {
-    e.summoned = true; Sfx.boom(); G.shake = .25; banner(...STR.banner.summon);
-    const n = B?.summons ?? 2, cur = G.current;
-    for (let i = 0; i < n; i++) {
-      const p = freeSpotNear(cur, cur.cx + (n > 1 ? -4 + 8 * i / (n - 1) : 0), cur.cz + 1.5);
-      makeEnemy('rotling', p.x, p.z, e.maxHp / (C.hp * (B?.hpMul ?? 1)));
-    }
-  }
-  if (e.state === 'walk') {
-    e.vx = ux * speed * (hpFrac < .5 ? 1.25 : 1); e.vz = uz * speed * (hpFrac < .5 ? 1.25 : 1);
-    e.body.position.y = Math.abs(Math.sin(e.t * 4)) * .05; eye.scale.set(1, 1, 1); halo.material.opacity = .35;
-    if (e.st <= 0) { e.cycle = e.cycle! + 1; e.state = e.cycle % 2 ? 'windBurst' : 'windAim'; e.st = e.state === 'windBurst' ? .75 : .5; }
-  } else if (e.state === 'windBurst' || e.state === 'windAim') {
-    e.vx = e.vz = 0; const k = 1 - e.st / .75; halo.material.opacity = .35 + k * .6; eye.scale.set(1 + k, 1 + k * 2, 1);
-    e.body.position.y = 0; e.body.position.x = Math.sin(e.t * 50) * .02;
-    if (e.st <= 0) {
-      e.body.position.x = 0;
-      if (e.state === 'windBurst') {
-        const n = 12, off = Math.random() * Math.PI;
-        for (let i = 0; i < n; i++) { const a = off + i / n * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(a), Math.sin(a), 3.4 * shotMul, 0xff6a3a, .9, 1.25); }
-        if (hpFrac < .6) after(.32, () => {
-          if (e.dead || G.state !== 'play') return;
-          for (let i = 0; i < n; i++) { const a = off + (i + .5) / n * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(a), Math.sin(a), 3 * shotMul, 0xff6a3a, .9, 1.25); }
-        });
-        Sfx.boom(); G.shake = .18; e.state = 'walk'; e.st = 2.1;
-      } else { e.state = 'volley'; e.volleys = B?.volleys ?? 3; e.st = 0; }
-    }
-  } else if (e.state === 'volley') {
-    e.vx = e.vz = 0;
-    if (e.st <= 0) {
-      const base = Math.atan2(uz, ux);
-      for (const d of [-.28, 0, .28]) spawnShot(e.x + ux * .8, e.z + uz * .8, Math.cos(base + d), Math.sin(base + d), 4.4 * shotMul, 0xff6a3a, 1, 1.1);
-      Sfx.enemyShot(); e.volleys = e.volleys! - 1; e.st = .3; if (e.volleys <= 0) { e.state = 'walk'; e.st = 2.4; }
-    }
-  }
 }
