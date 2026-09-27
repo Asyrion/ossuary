@@ -2,6 +2,7 @@
    (shapes.ts). Pure data code (no three.js), shared by the game, the floor generator and the unit tests.
 
    Legend:  .  floor      #  rock      o  pit      x  outside the room (the L's missing corner)
+            i  pillar     =  stone tomb (tiles side by side in a row, or else in a column, make one tomb)
             R  rotling    W  wisp      H  crypt hound      B  the floor's boss
 
    Ordeal templates keep their terrain in `grid` (no enemies) and list each wave's enemies in `waves`,
@@ -15,7 +16,7 @@ import type { RoomType } from '../types';
 import { SHAPE_IDS, doorSlots, shapeMask, shapeSize, type ShapeId } from './shapes';
 
 export type { ShapeId } from './shapes';
-export type Tile = 'floor' | 'rock' | 'pit' | 'void';
+export type Tile = 'floor' | 'rock' | 'pit' | 'void' | 'pillar' | 'tomb';
 export type FoeKind = EnemyType | 'boss';
 
 export interface TemplateDef {
@@ -30,7 +31,7 @@ export interface Template {
   /** Every enemy of every wave. */ foes: Foe[];
 }
 
-const TILE_OF: Record<string, Tile> = { '.': 'floor', '#': 'rock', 'o': 'pit', 'x': 'void' };
+const TILE_OF: Record<string, Tile> = { '.': 'floor', '#': 'rock', 'o': 'pit', 'x': 'void', 'i': 'pillar', '=': 'tomb' };
 const FOE_OF: Record<string, FoeKind> = { R: 'rotling', W: 'wisp', H: 'hound', B: 'boss' };
 
 /** Parse a template, optionally mirrored left-right and/or top-bottom. */
@@ -111,6 +112,22 @@ export function validateTemplate(def: TemplateDef): string[] {
   if (def.types.includes('normal') && !t.foes.length) errs.push('normal rooms need enemies');
   if (!def.types.some(ty => ty === 'normal' || ty === 'boss' || ty === 'ordeal') && t.foes.length) errs.push(`${def.types.join('/')} rooms can't have enemies`);
   return errs;
+}
+
+/** Tombs in a parsed template: runs of tomb tiles side by side in a row (two or more), then what is left
+    joined up and down into columns (a lone tile is a small tomb). `len` tiles long from (c, r). */
+export function tombRuns(t: Pick<Template, 'tiles' | 'w' | 'h'>) {
+  const runs: { c: number; r: number; len: number; across: boolean }[] = [], used = new Set<string>();
+  const isTomb = (c: number, r: number) => t.tiles[r]?.[c] === 'tomb' && !used.has(c + ',' + r);
+  for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w;) {
+    let len = 0; while (isTomb(c + len, r)) len++;
+    if (len >= 2) { runs.push({ c, r, len, across: true }); for (let k = 0; k < len; k++) used.add(c + k + ',' + r); c += len; } else c++;
+  }
+  for (let c = 0; c < t.w; c++) for (let r = 0; r < t.h;) {
+    let len = 0; while (isTomb(c, r + len)) len++;
+    if (len) { runs.push({ c, r, len, across: false }); for (let k = 0; k < len; k++) used.add(c + ',' + (r + k)); r += len; } else r++;
+  }
+  return runs;
 }
 
 export const TEMPLATE_DEFS: TemplateDef[] = [

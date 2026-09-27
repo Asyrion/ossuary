@@ -3,7 +3,7 @@ import { Rng } from '../../src/rng';
 import { FLOORS, GRID_H, GRID_W, HARD_VARIANTS, generateFloor, pickBoss, planToText, testPlan } from '../../src/world/generate';
 import { BOSS_TYPES, type BossType } from '../../src/config';
 import { OPPOSITE, SIDE_DIR, allowsSide, shapeCells } from '../../src/world/shapes';
-import { TEMPLATE_DEFS, parseTemplate, validateTemplate } from '../../src/world/templates';
+import { TEMPLATE_DEFS, parseTemplate, tombRuns, validateTemplate } from '../../src/world/templates';
 
 describe('room templates', () => {
   it.each(TEMPLATE_DEFS.map(d => [d.id, d] as const))('%s is valid', (_id, def) => {
@@ -30,6 +30,24 @@ describe('room templates', () => {
     expect(errors({ ...base, grid: ['.............', '.ooo.........', '.o.o.........', '.ooo.........', '.............', '.........R...', '.............'] })).toMatch(/\(2,2\) can't be reached/);
     expect(errors(withRow(3, '...R..X..R...'))).toMatch(/unknown character/);
     expect(errors({ ...base, types: ['treasure'] })).toMatch(/can't have enemies/);
+  });
+
+  it('join tomb tiles into tombs: along a row first, then up and down', () => {
+    const def = { ...TEMPLATE_DEFS.find(d => d.id === 'crypt_a')!, grid: [
+      '.............',
+      '.===....=....',
+      '........=..i.',
+      '..=..........',
+      '.............',
+      '.........==..',
+      '.............',
+    ] };
+    expect(tombRuns(parseTemplate(def))).toEqual([
+      { c: 1, r: 1, len: 3, across: true }, { c: 9, r: 5, len: 2, across: true },
+      { c: 2, r: 3, len: 1, across: false }, { c: 8, r: 1, len: 2, across: false },
+    ]);
+    // pillars and tombs block like rocks: not in door lanes, and enemies can't stand on them
+    expect(validateTemplate({ ...def, grid: def.grid.map((row, r) => r === 3 ? 'i..=.....R...' : row) }).join()).toMatch(/door lane tile \(0,3\) is blocked/);
   });
 
   it('mirror without changing their contents', () => {
