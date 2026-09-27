@@ -27,7 +27,15 @@ const ICONS: Record<string, string> = {
   chain: `<rect x="3" y="8" width="10" height="7" rx="3.5" ${S}/><rect x="11" y="9" width="10" height="7" rx="3.5" ${S}/>`,
 };
 
+/* Obol, bone key and glyph icons for the counters under the artifacts. */
+const RES_ICONS = {
+  coins: `<circle cx="12" cy="12" r="8" fill="#b8903e" stroke="#5a4418" stroke-width="1.5"/><rect x="10" y="10" width="4" height="4" fill="#3a2a10"/>`,
+  keys: `<circle cx="7" cy="12" r="3.6" fill="none" stroke="#e8dcc0" stroke-width="2.2"/><path d="M10.5 12H20M17 12v3.5M20 12v2.5" stroke="#e8dcc0" stroke-width="2.2" stroke-linecap="round"/>`,
+  glyphs: `<circle cx="12" cy="12" r="9" fill="#2b2622" stroke="#6b6158" stroke-width="1.2"/><path d="M${Array.from({ length: 8 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI * 6 / 7; return `${(12 + Math.cos(a) * 6.3).toFixed(2)} ${(12 + Math.sin(a) * 6.3).toFixed(2)}`; }).join('L')}" fill="none" stroke="#ffb04a" stroke-width="1.2" stroke-linejoin="round"/>`,
+};
+
 const el = {
+  purse: $('purse'),
   hearts: $('hearts'), items: $('items'), bossbar: $('bossbar'), bossname: $('bossname'), banner: $('banner'),
   toast: $('toast'), hurt: $('hurt'), heroInfo: $('heroInfo'),
 };
@@ -45,6 +53,15 @@ export function renderHearts() {
   }
   el.hearts.innerHTML = html;
   el.hearts.setAttribute('aria-label', STR.health(player.hp / 2, player.maxHp / 2));
+}
+
+let lastPurse = '';
+/** Obols, bone keys and blast glyphs carried, as icons and two-digit counts. */
+export function renderPurse() {
+  const key = `${player.coins}/${player.keys}/${player.glyphs}`; if (key === lastPurse) return; lastPurse = key;
+  el.purse.innerHTML = (['coins', 'keys', 'glyphs'] as const).map(k =>
+    `<span class="${k}"><svg viewBox="0 0 24 24" aria-hidden="true">${RES_ICONS[k]}</svg><b>${String(player[k]).padStart(2, '0')}</b></span>`).join('');
+  el.purse.setAttribute('aria-label', STR.purse(player.coins, player.keys, player.glyphs));
 }
 
 /** An artifact's icon as inline SVG in its colour: the focus framed, cursed ones ringed in red. */

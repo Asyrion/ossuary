@@ -39,8 +39,10 @@ generated three-floor runs. See `README.md` for scripts and deployment.
 - URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
-  every floor's boss that one (warden, abbess, pyre).
-  `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.clearRoom()`
+  every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
+  keys and glyphs.
+  `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
+  resources, `__game.drop('purse')` drops a pickup ahead of the mage, `__game.clearRoom()`
   ends the current fight.
 - `public/assets/hero_default.glb`: the hero (17,655 triangles, 65-bone Mixamo-style rig, 1,024 px JPEG
   textures). Clips: `standing_relax`, `run`, `cast_a_spell`, `hit_to_body_01`, `fall`.
@@ -51,6 +53,10 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   brightness (`CFG.lights`).
 - The end screen (`showEndScreen` in `src/ui/screens.ts`) sums up a run; "Replay this seed" starts a new
   run on the same seed.
+- M2 (Plunder) takes the magic first: obols (coins, `coins` in code), bone keys and blast glyphs instead
+  of bombs. Loot tables are in `data/loot.json` (pure `src/items/loot.ts`, economy simulated in
+  `tests/unit/loot.test.ts`); glyphs are in `src/combat/glyphs.ts` (chalked with Space or LT, set off by the
+  fuse or the mage's own bolts, chaining; tuning in `CFG.glyph`); pickups in `src/items/pickups.ts`.
 - Bosses are in `src/actors/bosses.ts` (placeholder shapes until M4): each floor draws one from its pool
   in `data/floors.json`, never one the run has met. A boss with `hidden` set (the abbess under the floor,
   the knight in mid-leap) can't be hit and doesn't hurt on contact.
@@ -148,7 +154,8 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
 
 - **M1 Core loop:** three generated floors (varied maps, room counts and room shapes), 20+ room templates,
   room variants from quiet to ordeal, bone altars, 3 to 5 artifacts per floor from 10 artifacts and 3 foci.
-- **M2 Plunder:** coins, keys and bombs; merchant, secret room, locked vault, shrine cleansing; urns, chests.
+- **M2 Plunder:** obols, bone keys and blast glyphs; merchant, secret room, locked vault, shrine cleansing;
+  urns, chests.
 - **M3 Magic:** mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room.
 - **M4 Tripo enemies:** 3 enemies and 1 boss from Tripo, with elemental affinities.
 - **M5 Alchemy:** potion belt, drink or throw, identification, 4 reagents, alchemy table.

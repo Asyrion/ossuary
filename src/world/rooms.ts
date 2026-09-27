@@ -7,7 +7,7 @@ import { G } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { floorTexture, pitTexture } from '../render/textures';
-import { M, basicMat, blob, boxUV, glow, markShared, wallMaterials } from '../render/materials';
+import { M, basicMat, blob, boxUV, disposeTree, glow, markShared, wallMaterials } from '../render/materials';
 import { offerGuaranteed, offerOptional, placeArtifact } from '../items/artifacts';
 import { burst } from '../combat/fx';
 import { mulberry } from '../util';
@@ -133,13 +133,14 @@ function addTomb(room: Room, run: { c: number; r: number; len: number; across: b
   room.rocks.push({ x, z, hx: (run.across ? long : wide) / 2 + .02, hz: (run.across ? wide : long) / 2 + .02, hp: 0, breakable: false });
 }
 
-/** A bolt from a mage holding Mason's Chisel struck a rock: it cracks, and breaks on the last hit. */
-export function hitRock(room: Room, rock: RockBox) {
+/** A bolt from a mage holding Mason's Chisel struck a rock: it cracks, and breaks on the last hit. A blast
+    (`shatter`) breaks it at once. */
+export function hitRock(room: Room, rock: RockBox, shatter = false) {
   if (!rock.breakable || !rock.mesh) return;
-  rock.hp--;
+  rock.hp = shatter ? 0 : rock.hp - 1;
   burst(rock.x, .4, rock.z, 0x8a8078, 4, 1.4, .05);
   if (rock.hp > 0) { rock.mesh.scale.multiplyScalar(.88); rock.mesh.position.y = -.04 * (CFG.artifacts.rockHp - rock.hp); Sfx.crack(); return; }
-  room.group.remove(rock.mesh);
+  room.group.remove(rock.mesh); disposeTree(rock.mesh);
   room.rocks = room.rocks.filter(r => r !== rock);
   if (rock.tile) room.template.tiles[rock.tile.r][rock.tile.c] = 'floor';
   burst(rock.x, .5, rock.z, 0x6b625a, 16, 2.6, .09); Sfx.rubble(); G.shake = Math.max(G.shake, .1);

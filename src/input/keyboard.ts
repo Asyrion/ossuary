@@ -1,4 +1,4 @@
-import type { InputActions } from './index';
+import { pressed, type InputActions } from './index';
 
 export const keys = new Set<string>();
 /** Held arrow keys in press order; the most recent one sets the shot direction. */
@@ -13,6 +13,7 @@ export function initKeyboard(act: InputActions) {
     keys.add(e.code);
     if (ARROWS[e.code]) { const i = arrowOrder.indexOf(e.code); if (i >= 0) arrowOrder.splice(i, 1); arrowOrder.push(e.code); }
     if (e.code === 'Escape' || e.code === 'KeyP') act.togglePause();
+    if (e.code === 'Space' && act.playing()) pressed.glyph = true; // chalk a blast glyph
     if (e.code === 'Enter' || e.code === 'Space') act.confirm();
     if (e.code === 'KeyM') act.toggleSound();
   });

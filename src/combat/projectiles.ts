@@ -15,6 +15,7 @@ import { hitRock } from '../world/rooms';
 import { shootDir } from '../input';
 import { heroCast } from '../actors/hero';
 import { damageEnemy, hurtPlayer } from './damage';
+import { detonateGlyph, glyphNear } from './glyphs';
 import { burst } from './fx';
 import type { BoltPath } from '../items/artifactData';
 
@@ -130,6 +131,11 @@ export function updateBolts(dt: number) {
       if (b.path === 'boomerang') continue;
       if (b.pierce > 0) { b.pierce--; continue; }
       kill = true; break;
+    }
+    // the mage's bolts set off blast glyphs they cross (not the one at the mage's feet as the bolt leaves)
+    if (!kill && b.dist > CFG.glyph.boltArm) {
+      const gl = glyphNear(b.x, b.z);
+      if (gl) { detonateGlyph(gl); if (b.path !== 'boomerang') kill = true; }
     }
     b.mesh.position.set(b.x, b.y, b.z); b.mesh.children[2].position.y = -b.y + .015;
     if (kill) removeBolt(i);

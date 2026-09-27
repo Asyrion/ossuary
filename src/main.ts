@@ -25,6 +25,8 @@ import { STEP, startLoop, step } from './loop';
 import { cleanSeed } from './rng';
 import { VARIANTS, planToText, type RoomVariant } from './world/generate';
 import { BOSS_TYPES, type BossType } from './config';
+import { DROPS, RESOURCES, type Drop, type Resource } from './items/loot';
+import { giveResources, spawnPickup } from './items/pickups';
 import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
 import { isTouch } from './util';
@@ -55,11 +57,17 @@ async function loadDefaultHero() {
 /** Run options from the address: ?seed=K3F9QX replays a run's floors, ?floor=2 starts deeper,
     ?room=<template id> plays one room template (for reviewing templates), ?variant=dark dresses that room
     in a variant (quiet, champion, ambush, dark), ?give=bone_lens,twin_staff starts the run holding those
-    artifacts. */
+    artifacts, ?boss=pyre picks every floor's boss, ?loot=coins:20,glyphs:5 hands out obols, keys and glyphs. */
 function readUrlOptions() {
   const q = new URLSearchParams(location.search);
   const seed = q.get('seed'), floor = Number(q.get('floor')), room = q.get('room'), variant = q.get('variant') as RoomVariant | null;
   if (variant && !VARIANTS.includes(variant)) console.warn(`?variant=${variant}: use one of ${VARIANTS.join(', ')}`);
+  // ?loot=coins:20,keys:2,glyphs:5
+  const loot: Partial<Record<Resource, number>> = {};
+  for (const part of (q.get('loot') ?? '').split(',').filter(Boolean)) {
+    const [k, v] = part.split(':'), n = Number(v);
+    if (RESOURCES.includes(k as Resource) && n > 0) loot[k as Resource] = n; else console.warn(`?loot: "${part}" should be one of ${RESOURCES.join(', ')} with a count, e.g. coins:20`);
+  }
   const boss = q.get('boss') as BossType | null, bossOk = !!boss && BOSS_TYPES.includes(boss);
   if (boss && !bossOk) console.warn(`?boss=${boss}: use one of ${BOSS_TYPES.join(', ')}`);
   const give = (q.get('give') ?? '').split(',').map(s => s.trim()).filter(Boolean);
@@ -73,6 +81,7 @@ function readUrlOptions() {
     testVariant: variant && VARIANTS.includes(variant) ? variant : undefined,
     give: give.filter(id => ARTIFACTS.has(id)),
     boss: bossOk ? boss! : undefined,
+    loot,
   });
 }
 
@@ -90,6 +99,14 @@ function installDevHooks() {
     lightLevels,
     /** Give the mage artifacts by id, e.g. give('bone_lens', 'twin_staff'). */
     give: (...ids: string[]) => giveById(ids),
+    /** Hand out obols, keys or glyphs, e.g. loot({ glyphs: 3 }). */
+    loot: (v: Partial<Record<Resource, number>>) => giveResources(v),
+    /** Drop a pickup (halfHeart, heart, coin, purse, key, glyph) at (x, z), or just ahead of the mage. */
+    drop(kind: Drop, x = player.x, z = player.z - 1.5) {
+      if (!DROPS.includes(kind)) throw new Error(`drop: use one of ${DROPS.join(', ')}`);
+      spawnPickup(kind, x, z);
+    },
+    get pickups() { return G.pickups; }, get glyphs() { return G.glyphs; }, get shots() { return G.shots; },
   };
 }
 

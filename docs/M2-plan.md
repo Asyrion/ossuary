@@ -1,15 +1,15 @@
 # M2 plan: Plunder
 
-Approved 2026-09-27. Design lives in `docs/GDD.md` (Coins, keys and bombs; Pickups and room types;
+Approved 2026-09-27. Design lives in `docs/GDD.md` (Coins, keys and blast glyphs; Pickups and room types;
 Artifacts); this file tracks the build. Each step ends playable, with unit and browser tests passing, and
 is pushed to GitHub Pages.
 
-**Done when** (GDD roadmap): coins, keys and bombs; merchant, secret room, locked vault and shrine
-cleansing; urns and chests.
+**Done when** (GDD roadmap): obols, bone keys and blast glyphs; merchant, secret room, locked vault and
+shrine cleansing; urns and chests.
 
 ## Decisions (2026-09-27)
 
-1. **Bomb button:** Space on the keyboard, the left trigger (LT / L2) on a gamepad, as the GDD planned;
+1. **Glyph button:** Space on the keyboard, the left trigger (LT / L2) on a gamepad, as the GDD planned;
    Q and E (LB and RB) stay for spells in M3, F for potions in M5. No touch button (touch is frozen).
 2. **One more room per floor** (9–13, 11–15, 13–17): the merchant, and the shrine on floor 2, each take a
    dead end that would otherwise hold a fight. After M1's special rooms, floor 1 has no spare dead end on
@@ -20,7 +20,7 @@ cleansing; urns and chests.
    artifact falls back: the merchant sells only wares, the vault holds a hoard, the secret room holds
    coffers and a chest, and the bone altar isn't placed.
 4. **Shrine** (proposed; can change before step 5): one offering stone per cursed artifact held; walking
-   into a stone pays 10 coins and cleanses that artifact. Too few coins, and the shrine refuses.
+   into a stone pays 10 obols and cleanses that artifact. Too few obols, and the shrine refuses.
 5. **Artifacts:** the three from the GDD (Sexton's Keyring, Miser's Purse, Powder Horn) plus four more, to
    give the merchant, vault and secret pools enough to draw from (20 artifacts in all). Today those pools
    are empty, and 13 artifacts against up to 15 offers per run means nearly every run offers nearly all
@@ -28,37 +28,48 @@ cleansing; urns and chests.
 
 | New artifact | Effect | Pools |
 | --- | --- | --- |
-| Ferryman's Obol | Every room clear also drops a coin | merchant, secret |
-| Sapper's Wick | Your bombs don't hurt you, and their fuse burns 1 s | merchant, vault |
+| Ferryman's Obol | Every room clear also drops an obol | merchant, secret |
+| Warding Band | Your glyphs don't hurt you, and their fuse burns 1 s | merchant, vault |
 | Grave Lantern | Cracked walls glow when you enter a room, and secret rooms show on the minimap before they're found | treasure, merchant, secret |
 | Pedlar's Scale | Merchant prices −30% (the price tags show it) | vault, secret |
 
+6. **Magic first, even in M2** (owner, at step 1): Isaac's bombs become blast glyphs, runes the mage chalks
+   on the floor and the cantrip sets off from afar; coins become grave obols that drift to the mage, keys
+   bone keys. Powder Horn and Sapper's Wick are renamed Glyphwright's Chalk and Warding Band. Later steps
+   keep looking for the magic take on each Isaac idea (GDD: What separates Ossuary from an Isaac clone).
+
 ## Groundwork (all steps)
 
-- [ ] Loot as data: `data/loot.json` (room-clear drop weights, enemy coin chance, urn, coffer and chest
-      tables, merchant wares and prices, shrine price, starting coins, keys and bombs), read by a pure
-      `src/items/loot.ts` with unit tests; loot rolls use the run's seeded loot stream
-- [ ] Coins, keys and bombs in the run state, capped at 99
-- [ ] Economy simulation in the unit tests: expected coins, keys and bombs per floor over hundreds of seeded
-      floors, so tuning is checked in CI (GDD target: 12 to 18 coins per floor)
-- [ ] Dev shortcuts: `?loot=coins:20,keys:2,bombs:5`, `__game.loot({ coins, keys, bombs })`, `?room=` for
-      the new room types, `?give=` for the new artifacts
+- [x] Loot as data: `data/loot.json` (starting obols, keys and glyphs, the cap, room-clear drop weights,
+      enemy obol chance), read by a pure `src/items/loot.ts` with unit tests; drops use the run's seeded
+      drop stream. Later steps add urn, coffer and chest tables, merchant wares and prices, shrine price
+- [x] Obols, keys and glyphs on the mage, capped at 99
+- [x] Economy simulation in the unit tests: obols, keys, glyphs and hearts per floor over hundreds of
+      seeded floors (step 1: room clears and enemies give 2 to 7 obols; the GDD's 12 to 18 once urns,
+      coffers, chests, the vault and the secret room join)
+- [x] Dev shortcuts: `?loot=coins:20,keys:2,glyphs:5`, `__game.loot({ coins, keys, glyphs })`,
+      `__game.drop(kind)`
+- [ ] Dev shortcuts: `?room=` for the new room types, `?give=` for the new artifacts
 
-## Step 1: Coins, keys and bombs
+## Step 1: Obols, bone keys and blast glyphs
 
-- [ ] Pickups: coin, purse of 5, key, bomb; a room clear drops one pickup about half the time (heart,
-      coins, key or bomb, weights from data); enemies now and then drop a coin; a run starts with 1 bomb
-- [ ] HUD counters with coin, key and bomb icons under the artifacts
-- [ ] Bombs: placed at the mage's feet; 1.5 s fuse with a flashing wick and a hiss; a 1.5-tile blast deals
-      10 damage to every foe (bosses too), knocks everything back, breaks rocks (not pillars or tombs) and
-      costs the mage a full heart if caught in it
-- [ ] Bomb on Space and LT (decision 1), shown in the title screen's controls; strings in `strings.ts`
-- [ ] Placeholder sounds: coin, key and bomb pickups, fuse, blast
+- [x] Pickups: obol, purse of 5, bone key, glyph stone; a room clear drops one pickup 60% of the time
+      (heart, obols, key or glyph stone, weights from data); enemies now and then drop an obol; a run
+      starts with 1 glyph; obols drift to the mage from close by
+- [x] HUD counters with obol, key and glyph icons under the artifacts
+- [x] Blast glyphs: chalked at the mage's feet; the rune turns and flickers faster as the 1.5 s fuse burns
+      down, with a ring showing the blast's reach; the mage's own bolts set it off at once; a 1.5-tile
+      blast deals 10 damage to every foe (bosses too), knocks them back, breaks rocks (not pillars or
+      tombs), snuffs out enemy shots, sets off other glyphs, burns in the bolts' colour and costs the mage a
+      full heart if caught in it
+- [x] Glyph on Space and LT (decision 1), in the title screen's controls and chalked in the first room;
+      strings in `strings.ts`
+- [x] Placeholder sounds: obol, purse, key and glyph pickups, chalking, fuse ticks, blast, "no glyph"
 
 ## Step 2: Urns, coffers and reliquary chests
 
 - [ ] Urns (`u` in templates): block walking and bolts; one bolt or a blast breaks them; usually empty,
-      sometimes a coin or half a heart
+      sometimes an obol or half a heart
 - [ ] Coffers (open when walked into) and reliquary chests (need a key) as rarer room-clear drops
 - [ ] Urns added to 20 or more existing templates
 - [ ] Placeholder sounds: urn smash, coffer and chest opening, "locked" when a chest needs a key
@@ -68,10 +79,10 @@ cleansing; urns and chests.
 - [ ] Generator: a merchant in a dead end on every floor; a locked vault in a spare dead end (chance per
       floor in `data/floors.json`); room counts from decision 2
 - [ ] Merchant room: a hooded trader (placeholder shapes) and 3 or 4 wares on stands with floating prices:
-      the first is an artifact while the budget allows, then hearts, keys and bombs; walking into a ware
-      buys it, or it refuses (too few coins, or a heart at full health)
+      the first is an artifact while the budget allows, then hearts, keys and glyphs; walking into a ware
+      buys it, or it refuses (too few obols, or a heart at full health)
 - [ ] Locked vault: a padlocked iron door that a key opens (refused without one); inside, an artifact while
-      the budget allows, otherwise a hoard of coins and bombs and a reliquary chest
+      the budget allows, otherwise a hoard of obols and glyphs and a reliquary chest
 - [ ] Door styles (a lantern above the merchant's door, padlocked iron for the vault) and minimap marks
 - [ ] Budget order for optional sources (decision 3); existing artifacts join the merchant and vault pools
 - [ ] Placeholder sounds: purchase, refusal, unlocking
@@ -81,7 +92,7 @@ cleansing; urns and chests.
 - [ ] Generator: one per floor in an empty cell touching two or more rooms (never the boss room), with a
       hidden doorway on every edge it shares with them
 - [ ] Cracked walls: a hairline crack and dust drifting from it; a blast opens the doorway on both sides
-- [ ] Hidden from the minimap until found; holds coins, coffers and a reliquary chest, or an artifact from
+- [ ] Hidden from the minimap until found; holds obols, coffers and a reliquary chest, or an artifact from
       the secret pool (often cursed)
 - [ ] Placeholder sounds: crumbling wall, a short sting when a secret room is found
 
@@ -97,8 +108,8 @@ cleansing; urns and chests.
 ## Step 6: Economy artifacts, balance and polish
 
 - [ ] Sexton's Keyring (+3 keys; the vault opens for free once per floor), Miser's Purse (+0.5 cantrip
-      damage per 10 coins held), Powder Horn (+5 bombs; blasts 50% wider), Ferryman's Obol, Sapper's
-      Wick, Grave Lantern and Pedlar's Scale (decision 5); pools and icons
-- [ ] End screen: coins found
+      damage per 10 obols held), Glyphwright's Chalk (+5 glyphs; blasts 50% wider), Ferryman's Obol,
+      Warding Band, Grave Lantern and Pedlar's Scale (decision 5); pools and icons
+- [ ] End screen: obols found
 - [ ] Balance pass after play-tests (drop weights, prices, economy numbers); GDD and CLAUDE.md brought up
       to date

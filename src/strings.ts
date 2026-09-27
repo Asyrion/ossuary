@@ -14,9 +14,10 @@ export const STR = {
     keyboard: 'Keyboard', gamepad: 'Gamepad', touch: 'Touch',
     move: 'Move', moveKeys: 'W A S D', movePad: 'Left stick', moveTouch: 'Left thumb',
     shoot: 'Shoot', shootKeys: 'Arrow keys', shootPad: 'Right stick', shootTouch: 'Right thumb',
+    glyph: 'Blast glyph', glyphKeys: 'Space', glyphPad: 'Left trigger', glyphTouch: '–',
     pause: 'Pause', pauseKeys: 'Esc or P', pausePad: 'Start', pauseTouch: 'II button',
   },
-  chalk: { walk: 'walk', cast: 'cast', touchMove: 'left thumb moves', touchShoot: 'right thumb shoots' },
+  chalk: { walk: 'walk', cast: 'cast', glyph: 'glyph', space: 'SPACE', touchMove: 'left thumb moves', touchShoot: 'right thumb shoots' },
   pause: {
     heading: 'Paused', resume: 'Resume', restart: 'Restart run', load: 'Load hero .glb',
     soundOn: 'Sound: on', soundOff: 'Sound: off',
@@ -57,6 +58,7 @@ export const STR = {
   rotate: 'Turn your phone sideways to play.',
   drop: 'Release to play as this model',
   health: (hp: number, max: number) => `Health ${hp} of ${max} hearts`,
+  purse: (coins: number, keys: number, glyphs: number) => `${coins} obols, ${keys} bone keys, ${glyphs} blast glyphs`,
   toast: {
     notGlb: 'That file is not a .glb. Export the model from Tripo as GLB and try again.',
     badGlb: 'This .glb could not be read. Re-export it from Tripo as GLB and try again.',

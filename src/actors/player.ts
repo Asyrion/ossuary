@@ -2,8 +2,9 @@ import { G, player } from '../state';
 import { blockers, collide } from '../world/collision';
 import { DH } from '../world/dims';
 import { SIDE_DIR } from '../world/shapes';
-import { moveInput, shootDir } from '../input';
+import { moveInput, pressed, shootDir } from '../input';
 import { spawnBolt } from '../combat/projectiles';
+import { placeGlyph } from '../combat/glyphs';
 import { checkArtifactPickup } from '../items/artifacts';
 import { descend, tryTransition } from '../flow';
 import { clamp, lerp } from '../util';
@@ -29,6 +30,7 @@ export function updatePlayer(dt: number) {
   // shooting
   player.fireCd -= dt;
   if (shootDir() && player.fireCd <= 0) { spawnBolt(); player.fireCd = st.fireDelay; }
+  if (pressed.glyph) { pressed.glyph = false; placeGlyph(); }
   if (player.invuln > 0) player.invuln -= dt;
   // artifacts and the trapdoor down
   checkArtifactPickup();

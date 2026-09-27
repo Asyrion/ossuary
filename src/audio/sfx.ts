@@ -43,6 +43,14 @@ export const Sfx = {
   surface() { hiss(.4, .16, 'bandpass', 1100); tone('sine', 90, 40, .45, .2); },
   leap() { hiss(.35, .09, 'highpass', 1400); tone('sawtooth', 90, 200, .3, .05); },
   ember() { hiss(.12, .08, 'highpass', 2500); tone('square', 320, 150, .08, .03); },
+  // obols, bone keys and blast glyphs
+  coin(purse = false) { tone('sine', 1320, 1320, .08, .05); tone('sine', 1760, 1760, .14, .05, .05); if (purse) tone('sine', 2093, 2093, .16, .04, .11); },
+  key() { tone('triangle', 880, 1100, .09, .05); tone('triangle', 1320, 1320, .12, .04, .08); hiss(.05, .03, 'highpass', 5000, .02); },
+  glyphPickup() { tone('sine', 440, 660, .22, .06); hiss(.12, .03, 'highpass', 3500); },
+  inscribe() { hiss(.2, .06, 'bandpass', 2600); tone('sine', 330, 390, .25, .04); },
+  fuseTick(k: number) { tone('square', 500 + k * 700, 480 + k * 700, .035, .025); },
+  blast() { tone('sine', 120, 38, .5, .24); tone('sawtooth', 240, 60, .35, .06); hiss(.45, .12, 'bandpass', 700); hiss(.2, .05, 'highpass', 3000); },
+  noGlyph() { tone('square', 180, 140, .06, .03); },
   // runs, rooms and artifacts
   descend() { hiss(.6, .1, 'lowpass', 900); tone('sine', 220, 50, .7, .12); tone('sine', 60, 35, .35, .16, .55); },
   trapdoor() { hiss(.8, .1, 'lowpass', 300); tone('square', 55, 42, .8, .04); },

@@ -212,6 +212,75 @@ test('the end screen sums up the run, and replays its seed', async ({ page }) =>
   expect(errors).toEqual([]);
 });
 
+test('obols, bone keys and glyph stones are picked up, and obols drift to the mage', async ({ page }) => {
+  const errors = await start(page, '?seed=LOOT01');
+  const result = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GameHooks & {
+      player: GameHooks['player'] & { coins: number; keys: number; glyphs: number }; pickups: unknown[];
+      drop(kind: string, x?: number, z?: number): void;
+    };
+    const p = g.player, start = { coins: p.coins, keys: p.keys, glyphs: p.glyphs };
+    g.drop('coin', p.x + 1.4, p.z); g.sim(1.5);            // out of reach, but it drifts over
+    const drifted = p.coins - start.coins;
+    g.drop('key', p.x, p.z); g.drop('glyph', p.x, p.z); g.drop('purse', p.x, p.z); g.drop('heart', p.x, p.z); g.sim(1);
+    return { start, coins: p.coins, keys: p.keys, glyphs: p.glyphs, drifted, left: g.pickups.length, hud: document.getElementById('purse')!.textContent };
+  });
+  expect(result.start).toEqual({ coins: 0, keys: 0, glyphs: 1 });
+  expect(result).toMatchObject({ drifted: 1, coins: 6, keys: 1, glyphs: 2, left: 1, hud: '060102' }); // the heart waits: health is full
+  expect(errors).toEqual([]);
+});
+
+test('a blast glyph flares, hurts foes and the mage, breaks rocks, and bolts set glyphs off', async ({ page }) => {
+  const errors = await start(page, '?room=crypt_a&loot=glyphs:4');
+  type Rock = { x: number; z: number; breakable: boolean };
+  type G3 = GameHooks & {
+    player: GameHooks['player'] & { glyphs: number; invuln: number; vx: number; vz: number };
+    glyphs: { x: number; z: number }[]; current: RoomView & { rocks: Rock[] };
+  };
+  // 1. a glyph by a rock, a rotling on top of it and the mage beside it: the fuse runs out
+  await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G3; g.warp(1); g.sim(.8);
+    const rock = g.current.rocks.find(r => r.breakable)!;
+    g.player.x = rock.x; g.player.z = rock.z + 1; g.player.invuln = 0;
+  });
+  await page.keyboard.press('Space');
+  const fused = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G3, p = g.player;
+    g.sim(.05);
+    const placed = g.glyphs.length, left = p.glyphs, rocks = g.current.rocks.length, hp = p.hp;
+    const foe = g.enemies[0]; foe.x = p.x + .6; foe.z = p.z;
+    let t = 0; for (; t < 3 && g.glyphs.length; t += .05) { foe.x = p.x + .6; foe.z = p.z; p.vx = p.vz = 0; g.sim(.05); }
+    return { placed, left, t, rocksBroken: rocks - g.current.rocks.length, hpLost: hp - p.hp, pinnedFell: !g.enemies.includes(foe) };
+  });
+  expect(fused).toMatchObject({ placed: 1, left: 4, rocksBroken: 1, hpLost: 2, pinnedFell: true });
+  expect(fused.t).toBeGreaterThan(1.3);
+
+  // 2. two glyphs in a row, the mage steps away and casts across them: the bolt sets off the first at once,
+  //    and its blast the second
+  const shot = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G3;
+    return { fx: g.current.cx, fz: g.current.cz + 2.5 }; // an open strip south of the middle
+  });
+  for (const dx of [0, 1]) {
+    await page.evaluate(({ fx, fz, dx }) => { const g = (window as unknown as W).__game as unknown as G3; g.player.x = fx + dx; g.player.z = fz; g.sim(.4); }, { ...shot, dx });
+    await page.keyboard.press('Space');
+  }
+  const chained = await page.evaluate(({ fx, fz }) => {
+    const g = (window as unknown as W).__game as unknown as G3, p = g.player;
+    g.sim(.05); const placed = g.glyphs.length;
+    p.x = fx - 3.5; p.z = fz; p.invuln = 0; const hp = p.hp;
+    g.keys.add('ArrowRight'); g.arrowOrder.push('ArrowRight');
+    let t = 0; for (; t < 1 && g.glyphs.length; t += .05) g.sim(.05);
+    g.keys.delete('ArrowRight'); g.arrowOrder.length = 0;
+    return { placed, t, left: g.glyphs.length, hpLost: hp - p.hp };
+  }, shot);
+  expect(chained).toMatchObject({ placed: 2, left: 0, hpLost: 0 });
+  expect(chained.t).toBeLessThan(.8); // well before the 1.5 s fuse
+  await page.evaluate(() => (window as unknown as W).__game.sim(.1, true));
+  await page.screenshot({ path: 'test-results/smoke-glyph.png' });
+  expect(errors).toEqual([]);
+});
+
 test('every door of a seeded floor leads to its neighbour, onto open floor', async ({ page }) => {
   const errors = await start(page, '?seed=DOORS1&floor=2');
   const result = await page.evaluate(() => {

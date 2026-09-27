@@ -22,6 +22,9 @@ export interface InputActions {
   playing(): boolean;
 }
 
+/** One-shot presses, set by the keyboard or gamepad while playing and consumed by the game. */
+export const pressed = { glyph: false };
+
 /** Movement from all devices combined, length at most 1. */
 export function moveInput(): Vec2 {
   let x = 0, z = 0;

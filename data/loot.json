@@ -1,0 +1,10 @@
+{
+  "start": { "coins": 0, "keys": 0, "glyphs": 1 },
+  "cap": 99,
+  "purse": 5,
+  "roomClear": {
+    "chance": 0.6,
+    "weights": { "halfHeart": 24, "heart": 16, "coin": 26, "purse": 6, "key": 12, "glyph": 16 }
+  },
+  "enemyCoin": 0.06
+}
