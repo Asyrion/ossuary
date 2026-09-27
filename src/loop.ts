@@ -13,7 +13,7 @@ import { updateArtifacts } from './items/artifacts';
 import { pollGamepad, type InputActions } from './input';
 import { updateHud, updateVision } from './ui/hud';
 import { ease, lerp } from './util';
-import { camTarget, cameraTargetFor, draw } from './render/renderer';
+import { camTarget, cameraTargetFor, draw, setViewScale } from './render/renderer';
 import { checkAmbush, enterRoom } from './flow';
 
 export const STEP = 1 / 60;
@@ -34,7 +34,7 @@ export function step(dt: number) {
     if (tr) {
       tr.t += dt; const k = ease(Math.min(1, tr.t / tr.dur));
       player.x = lerp(tr.fx, tr.tx, k); player.z = lerp(tr.fz, tr.tz, k);
-      camTarget.x = lerp(tr.cfx, tr.ctx, k); camTarget.z = lerp(tr.cfz, tr.ctz, k);
+      camTarget.x = lerp(tr.cfx, tr.ctx, k); camTarget.z = lerp(tr.cfz, tr.ctz, k); setViewScale(lerp(tr.vf, tr.vt, k));
       if (tr.t >= tr.dur) { G.trans = null; player.vx *= .5; player.vz *= .5; enterRoom(tr.nb); }
     } else if (G.state === 'play') {
       G.stats.time += dt;

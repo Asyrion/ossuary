@@ -79,8 +79,9 @@ export interface Particle { m: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicM
 export interface Pickup extends Circle { kind: 'heart'; value: number; g: THREE.Group; m: THREE.Mesh; t: number; drop: number }
 export interface Trapdoor { g: THREE.Group; x: number; z: number; ring: THREE.Mesh; t: number }
 
-/** The pan between rooms: the mage walks from (fx, fz) to (tx, tz), the camera from (cfx, cfz) to (ctx, ctz). */
-export interface Transition { t: number; dur: number; nb: Room; fx: number; fz: number; tx: number; tz: number; cfx: number; cfz: number; ctx: number; ctz: number }
+/** The pan between rooms: the mage walks from (fx, fz) to (tx, tz), the camera from (cfx, cfz) to (ctx, ctz)
+    and its view scale from vf to vt (larger halls are seen from further back). */
+export interface Transition { t: number; dur: number; nb: Room; fx: number; fz: number; tx: number; tz: number; cfx: number; cfz: number; ctx: number; ctz: number; vf: number; vt: number }
 
 export interface Player extends Circle {
   dead: boolean; vx: number; vz: number; hp: number; maxHp: number; invuln: number; fireCd: number;

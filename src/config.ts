@@ -19,6 +19,7 @@ export const CFG = {
   // ambush rooms spring when the mage is this close to the middle, or this far from every door
   ambush: { middle: 1.8, fromDoors: 4 },
   camTiltDeg: 45,
+  camHallView: 1.2,    // larger halls: the camera pulls back so the view is this much wider and deeper
   heartDropChance: 0.45,
   artifacts: {
     maxPerFloor: 5,      // a floor never offers more (the boss's pair counts as one)

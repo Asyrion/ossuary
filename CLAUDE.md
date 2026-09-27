@@ -23,7 +23,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   (pure, unit-tested); `src/world/shapes.ts` defines room shapes (cells, tile mask, door slots);
   `src/world/templates.ts` parses and validates room templates. `src/world/rooms.ts` traces walls along
   any outline and cuts doors into them; the camera follows the mage in rooms larger than the view
-  (`cameraTargetFor`); four torch lights move to the torches nearest the mage. Content:
+  (`cameraTargetFor`) and pulls back in multi-cell halls (`viewScaleFor`, `CFG.camHallView`); four
+  torch lights move to the torches nearest the mage. Content:
   `data/floors.json` (room counts, difficulty weights, enemy health, boss tuning and look per floor),
   `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `R W H` enemies, `B` boss;
   `x` outside an L's missing corner; ordeal templates list their enemies per wave in `waves`;
@@ -124,8 +125,9 @@ Run clip playback speed is `CFG.hero.runAnimSpeed` (3.6 at full speed).
 
 - Room cell 13 × 7 tiles, 1 tile = 1 unit, walls 1 thick, doors centred, 1.44 wide. From M1, larger rooms
   combine cells (GDD: Room shapes).
-- Orthographic camera tilted 45°, fitted to one-cell rooms and following the mage in larger ones; pans
-  between rooms in 0.42 s; only the current room is drawn. North wall tall (1.35), south wall low (0.5).
+- Orthographic camera tilted 45°, fitted to one-cell rooms and following the mage in larger ones, pulled
+  back 20% there; pans between rooms in 0.42 s, blending the zoom; only the current room is drawn. North
+  wall tall (1.35), south wall low (0.5).
 - Desktop browser first (keyboard, gamepad). The 0.3 touch controls stay but are frozen: don't extend or
   test them, and add no touch UI for new actions until a mobile port.
 - Four-direction casting, eight-direction movement, 3 hearts counted in halves, 1 s invulnerability.
