@@ -14,7 +14,7 @@ style reference in every image), budgets per kind of asset, the pipeline from im
 log. When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M2 done (see `docs/M2-plan.md`); M1 built (`docs/M1-plan.md`); M3 next
+## Current state: M3 in progress (see `docs/M3-plan.md`; step 1 done); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -52,22 +52,30 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   and `blastMul` in `combat/glyphs.ts`, `graveLantern` in `world/secret.ts` and the minimap, `pedlar` in
   `items/merchant.ts`; the Miser's Purse's `obolDamage` makes `player.stats` depend on obols held, so
   `giveResources` recomputes them when the hoard crosses a ten.
+- Magic (M3): spells are data in `data/spells.json` (school, shape, mana, cooldown, damage, statuses, params,
+  colour, icon, text, lore), read by the pure `src/magic/spellData.ts`; `src/magic/spells.ts` holds the two
+  slots (`player.spells`, Q and E, LB and RB), casting (aimed at the cast direction or `player.aim`), mana
+  (`player.mana`, `stats.maxMana`, regeneration from `CFG.mana`, 3 for each foe the cantrip puts to rest via the
+  foe's `lastHit`), and one function per `shape`. A new spell of a known shape is a new entry; a new shape is a
+  function in `CAST`. The HUD's mana bar and slots are in `hud.ts` (`renderSpells`, `spellIcon`).
 - Tests: `npm run test:unit` (Vitest: generator rules on hundreds of seeds, every template validated),
   `npm run test:e2e` (Playwright smoke tests), `npm test` runs both.
 - URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
   every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
-  keys and glyphs. `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
+  keys and glyphs, `?spells=arc` starts with spells in the slots. `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
   vault, a secret room (behind a cracked wall) or a shrine (`?room=shrine_henge`) next to the start.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
   resources, `__game.drop('purse')` drops a pickup ahead of the mage, `__game.clearRoom()`
   ends the current fight, `__game.openSecret()` breaks open the floor's secret room,
-  `__game.cleanse()` cleanses the oldest curse held at once, `__game.rite` reads the shrine's rite under way.
+  `__game.cleanse()` cleanses the oldest curse held at once, `__game.rite` reads the shrine's rite under way,
+  `__game.learn('arc', 0)`, `__game.cast(0)` and `__game.mana(50)` learn, cast and set mana.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons: heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
-  special rooms (a sealed vault leads to its warded door), test rooms, boss fights and new runs, and taking or
-  cleansing a curse. Its lists come from the data, so new artifacts,
+  special rooms (a sealed vault leads to its warded door), test rooms, boss fights and new runs, taking or
+  cleansing a curse, spells (into slot Q or E) and mana (full, endless). Its lists come from the data, so new
+  artifacts, spells,
   drops, room types and bosses show up by themselves; give a new room type a name in `STR.dev.roomNames`.
 - Lore cards (`src/ui/lore.ts`): picking something up shows its icon, name, kind, effect and lore in the
   lower right corner, soulslike but plainer. Artifacts every time (`lore` in `data/artifacts.json`, required by

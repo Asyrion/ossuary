@@ -5,6 +5,7 @@ import { STR } from '../strings';
 import { CFG } from '../config';
 import { camera } from '../render/renderer';
 import { artifact } from '../items/artifactData';
+import { spell } from '../magic/spellData';
 import { $, clamp } from '../util';
 
 export const HEART_PATH = 'M12 21.2s-7.6-4.7-9.7-9.3C.8 8.3 3 4.4 6.7 4.4c2.1 0 3.6 1.1 4.4 2.7.8-1.6 2.3-2.7 4.4-2.7 3.7 0 5.9 3.9 4.3 7.5-2.1 4.6-9.8 9.3-9.8 9.3z';
@@ -47,6 +48,50 @@ const ICONS: Record<string, string> = {
   scale: `<path d="M12 3v17M7 20h10M4 7h16" ${S}/><path d="M4 7l-2.5 6h5zM20 7l-2.5 6h5z" ${S}/>`,
 };
 
+/* Placeholder spell icons, drawn in the spell's colour. */
+const SPELL_ICONS: Record<string, string> = {
+  arc: `<path d="M13 2L5 13h6l-2 9 9-12h-6z" fill="currentColor"/>`,
+  lance: `<path d="M3 21L21 3" ${S}/><path d="M14 3h7v7" ${S}/><path d="M5 13c2 1 4 3 5 6" ${S}/>`,
+  seal: `<circle cx="12" cy="12" r="8" ${S}/><path d="M12 6c2 3 3 5 0 8-3-3-2-5 0-8z" fill="currentColor"/><path d="M8 17h8" ${S}/>`,
+  shards: `<path d="M4 20l4-9 2 5zM12 20l0-11 2 6zM20 20l-4-9-2 5z" fill="currentColor"/>`,
+  wall: `<path d="M3 20h18M4 20V9l3-4 3 4v11M10 20V7l3-4 3 4v13M16 20V10l3-3 2 3v10" ${S}/>`,
+  mantle: `<circle cx="12" cy="8" r="3" ${S}/><path d="M6 21c0-5 3-8 6-8s6 3 6 8" ${S}/><path d="M3 12l3-2-1 4 3-1M21 12l-3-2 1 4-3-1" ${S}/>`,
+};
+/** A spell's icon as inline SVG in its colour. */
+export function spellIcon(id: string) {
+  const def = spell(id);
+  return `<svg viewBox="0 0 24 24" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${def.text}\n\n${def.lore}</title>${SPELL_ICONS[def.icon] ?? SPELL_ICONS.arc}</svg>`;
+}
+
+/** The two spell slots: the spell's icon, its key and its mana cost (empty slots dimmed). */
+export function renderSpells() {
+  player.spells.forEach((id, i) => {
+    const slot = $(`slot${i}`), key = STR.controls.spellsKeys.split(' and ')[i] ?? '';
+    slot.classList.toggle('empty', !id);
+    slot.innerHTML = id ? `${spellIcon(id)}<i class="cd"></i><b>${key}</b><small>${spell(id).mana}</small>` : `<b>${key}</b>`;
+  });
+}
+let lastMana = -1;
+/** Every frame: the mana bar, and each slot's cooldown and whether mana is short. */
+function updateMagicHud() {
+  const max = player.stats.maxMana, m = Math.round(player.mana);
+  if (m !== lastMana) {
+    lastMana = m; el.manaFill.style.transform = `scaleX(${max ? player.mana / max : 0})`;
+    el.mana.setAttribute('aria-valuemax', String(max)); el.mana.setAttribute('aria-valuenow', String(m)); el.mana.setAttribute('aria-label', STR.manaLabel(m, max));
+  }
+  player.spells.forEach((id, i) => {
+    if (!id) return;
+    const slot = $(`slot${i}`), cd = slot.querySelector<HTMLElement>('.cd'), def = spell(id);
+    if (cd) cd.style.height = `${Math.min(1, player.spellCd[i] / def.cooldown) * 100}%`;
+    slot.classList.toggle('poor', player.mana < def.mana);
+  });
+}
+/** A refused cast: the slot flashes red, and the mana bar too when mana was short. */
+export function flashMana(slot: number, why: 'cooldown' | 'mana' | 'target') {
+  const s = $(`slot${slot}`); s.classList.add('flash'); setTimeout(() => s.classList.remove('flash'), 220);
+  if (why === 'mana') { el.mana.classList.add('flash'); setTimeout(() => el.mana.classList.remove('flash'), 260); }
+}
+
 /* Obol, bone key and glyph icons for the counters under the artifacts. */
 export const RES_ICONS = {
   coins: `<circle cx="12" cy="12" r="8" fill="#b8903e" stroke="#5a4418" stroke-width="1.5"/><rect x="10" y="10" width="4" height="4" fill="#3a2a10"/>`,
@@ -55,7 +100,7 @@ export const RES_ICONS = {
 };
 
 const el = {
-  purse: $('purse'),
+  purse: $('purse'), mana: $('mana'), manaFill: $('mana').querySelector('i') as HTMLElement,
   hearts: $('hearts'), items: $('items'), bossbar: $('bossbar'), bossname: $('bossname'), banner: $('banner'),
   toast: $('toast'), hurt: $('hurt'), heroInfo: $('heroInfo'),
 };
@@ -191,6 +236,7 @@ export function banner(t: string, s = '', dur = 2.6) {
 }
 export function toast(msg: string, dur = 3) { el.toast.textContent = msg; el.toast.classList.add('on'); toastT = dur; }
 export function updateHud(dt: number) {
+  updateMagicHud();
   if (bannerT > 0) { bannerT -= dt; if (bannerT <= 0) el.banner.classList.remove('on'); }
   if (toastT > 0) { toastT -= dt; if (toastT <= 0) el.toast.classList.remove('on'); }
 }

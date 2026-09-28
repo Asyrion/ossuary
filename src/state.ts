@@ -38,13 +38,14 @@ export const G = {
   simClock: 0,
 };
 
-/** Dev menu switches (ui/devMenu.ts): god mode keeps the mage from harm. */
-export const DEV = { god: false };
+/** Dev menu switches (ui/devMenu.ts): god mode keeps the mage from harm; endless mana never runs out. */
+export const DEV = { god: false, mana: false };
 
 export const player: Player = {
   dead: false, x: 0, z: 0, vx: 0, vz: 0, r: CFG.hero.radius, hp: 6, maxHp: 6, invuln: 0, fireCd: 0, eye: 1, yawA: 0,
   squash: 0, bob: 0, focus: START_FOCUS, items: [], heartsPaid: 0, cleansed: [], stats: computeStats(START_FOCUS, [], CFG.hero),
   coins: 0, keys: 0, glyphs: 0,
+  mana: CFG.hero.mana, spells: [null, null], spellCd: [0, 0], aim: { x: 0, z: -1 },
 };
 
 /* Gameplay timers run on simulation time (not setTimeout), so they pause with the game and

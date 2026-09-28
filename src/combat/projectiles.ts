@@ -157,7 +157,7 @@ export function updateBolts(dt: number) {
       if (e.dead || e.spawn > 0 || e.hidden || b.hit.has(e)) continue;
       const ey = e.flying ? .8 : .5;
       if (Math.hypot(b.x - e.x, b.z - e.z) >= e.r + b.r || Math.abs(b.y - ey) >= 1.4) continue;
-      damageEnemy(e, b.damage, b.vx / b.speed, b.vz / b.speed, player.stats.knockback);
+      damageEnemy(e, b.damage, b.vx / b.speed, b.vz / b.speed, player.stats.knockback, 'cantrip');
       b.hit.add(e);
       if (b.crit) burst(e.x, .7, e.z, CFG.artifacts.crit.color, 8, 2.4, .05);
       // the Cracked Mirror: a cast bolt splits into two halves that fly on either side of it

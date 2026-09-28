@@ -1,0 +1,7 @@
+[
+  { "id": "arc", "name": "Arc", "school": "storm", "shape": "chain", "mana": 15, "cooldown": 1,
+    "damage": 6, "status": { "shock": 1 }, "params": { "range": 6.5, "jumps": 3, "jumpRange": 3.5, "falloff": 0.85 },
+    "tags": ["chain"], "color": "#f0e890", "icon": "arc",
+    "text": "Lightning strikes the nearest foe and leaps to three more",
+    "lore": "The first spell a storm-caller learns is how to let the lightning choose. It always finds the nearest thing that breathes, and it is never satisfied with just one." }
+]

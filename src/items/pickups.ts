@@ -22,6 +22,7 @@ import { WARD_COLOR as WARD, freeSpotNear } from '../world/rooms';
 import { LOOT, RESOURCES, afterBurning, dropValue, rollTable, type Drop, type Item, type Resource } from './loot';
 import { offerBeyondBudget, placeArtifact, refreshStats } from './artifacts';
 import { itemLore, type LoreItem } from '../ui/lore';
+import { gainMana } from '../magic/spells';
 
 const GOLD = 0xffd27a;
 export const isContainer = (kind: Drop): kind is 'coffer' | 'chest' => kind === 'coffer' || kind === 'chest';
@@ -53,6 +54,9 @@ function makeParts() {
     tie: shared(new THREE.CylinderGeometry(.05, .08, .1, 8)),
     bow: shared(new THREE.TorusGeometry(.075, .026, 6, 14)), shaft: shared(new THREE.BoxGeometry(.3, .045, .045)), bit: shared(new THREE.BoxGeometry(.045, .09, .045)),
     stone: shared(new THREE.PlaneGeometry(.52, .52)),
+    vial: shared(new THREE.CylinderGeometry(.075, .09, .2, 10)), vialNeck: shared(new THREE.CylinderGeometry(.035, .045, .08, 8)), cork: shared(new THREE.CylinderGeometry(.04, .035, .05, 8)),
+    vialMat: markShared(new THREE.MeshStandardMaterial({ color: 0x9ec8ff, transparent: true, opacity: .55, roughness: .15, metalness: .1, emissive: 0x16305a })),
+    liquid: markShared(new THREE.MeshBasicMaterial({ color: 0x5aa0ff })),
     stoneMat: markShared(new THREE.MeshBasicMaterial({ map: glyphStoneTexture(), transparent: true, depthWrite: false })),
     // an offering coffer and a reliquary chest
     wood: markShared(new THREE.MeshStandardMaterial({ color: 0x6a4428, roughness: .85 })),
@@ -80,6 +84,11 @@ export function itemVisual(kind: Item): THREE.Object3D {
     const tie = new THREE.Mesh(P.tie, P.sackMat); tie.position.y = .17;
     const coin = new THREE.Mesh(P.obol, P.obolMat); coin.position.set(.02, -.02, .17); coin.scale.setScalar(.7);
     g.add(sack, tie, coin, glowShared(0xffd27a, .7, .45));
+  } else if (kind === 'mana') { // a mana vial: pale blue grave-light in a stoppered bottle
+    const glass = new THREE.Mesh(P.vial, P.vialMat), neck = new THREE.Mesh(P.vialNeck, P.vialMat); neck.position.y = .14;
+    const liquid = new THREE.Mesh(P.vial, P.liquid); liquid.scale.set(.8, .7, .8); liquid.position.y = -.025;
+    const cork = new THREE.Mesh(P.cork, P.sackMat); cork.position.y = .2;
+    g.add(liquid, glass, neck, cork, glowShared(0x6fa8ff, .8, .6));
   } else if (kind === 'key') { // a bone key: bow, shaft and bit
     const bow = new THREE.Mesh(P.bow, M.bone); bow.position.x = -.19;
     const shaft = new THREE.Mesh(P.shaft, M.bone);
@@ -176,9 +185,9 @@ export function giveResources(v: Partial<Record<Resource, number>>) {
 export function resetResources() { for (const k of RESOURCES) player[k] = LOOT.start[k]; renderPurse(); }
 
 const SOUND: Record<Item, () => void> = {
-  halfHeart: () => Sfx.pickup(), heart: () => Sfx.pickup(), coin: () => Sfx.coin(), purse: () => Sfx.coin(true), key: () => Sfx.key(), glyph: () => Sfx.glyphPickup(),
+  halfHeart: () => Sfx.pickup(), heart: () => Sfx.pickup(), coin: () => Sfx.coin(), purse: () => Sfx.coin(true), key: () => Sfx.key(), glyph: () => Sfx.glyphPickup(), mana: () => Sfx.manaVial(),
 };
-const SPARK: Record<Item, number> = { halfHeart: 0xe0473a, heart: 0xe0473a, coin: 0xffd27a, purse: 0xffd27a, key: 0xf0e6cc, glyph: 0xff9a3a };
+const SPARK: Record<Item, number> = { halfHeart: 0xe0473a, heart: 0xe0473a, coin: 0xffd27a, purse: 0xffd27a, key: 0xf0e6cc, glyph: 0xff9a3a, mana: 0x6fa8ff };
 
 /** Take an item if the mage can use it: hearts below full health, resources below the cap. */
 function take(p: Pickup, kind: Item) {
@@ -186,6 +195,9 @@ function take(p: Pickup, kind: Item) {
   if (v.hearts) {
     if (player.hp >= player.maxHp) return false;
     player.hp = Math.min(player.maxHp, player.hp + v.hearts); renderHearts(); heroDrink();
+  } else if (v.mana) { // like a heart: left lying while the mage brims with mana
+    if (player.mana >= player.stats.maxMana) return false;
+    gainMana(v.mana); heroDrink();
   } else {
     const res = RESOURCES.find(k => v[k])!;
     if (player[res] >= LOOT.cap) return false;

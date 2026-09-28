@@ -9,8 +9,8 @@ import type { Rng } from '../rng';
 export type Resource = 'coins' | 'keys' | 'glyphs';
 export const RESOURCES: Resource[] = ['coins', 'keys', 'glyphs'];
 /** Things picked up by walking over them. */
-export type Item = 'halfHeart' | 'heart' | 'coin' | 'purse' | 'key' | 'glyph';
-export const ITEMS: Item[] = ['halfHeart', 'heart', 'coin', 'purse', 'key', 'glyph'];
+export type Item = 'halfHeart' | 'heart' | 'coin' | 'purse' | 'key' | 'glyph' | 'mana';
+export const ITEMS: Item[] = ['halfHeart', 'heart', 'coin', 'purse', 'key', 'glyph', 'mana'];
 /** Containers left on the floor: a coffer opens when walked into, a reliquary chest is sealed by a ward. */
 export type Container = 'coffer' | 'chest';
 /** Anything that can lie on the floor. */
@@ -34,6 +34,7 @@ export interface LootData extends Record<TableName, LootTable> {
   /** What every run starts with. */ start: Record<Resource, number>;
   /** Most of each resource the mage can carry. */ cap: number;
   /** Obols in a purse. */ purse: number;
+  /** Mana in a mana vial. */ manaVial: number;
   /** A cleared room leaves one drop with this chance, picked by weight. */ roomClear: { chance: number; weights: Partial<Record<Drop, number>> };
   /** Chance a fallen enemy leaves an obol. */ enemyCoin: number;
   /** Chance a reliquary chest is gilded: it holds an artifact outside the floor's budget, and only a bone
@@ -46,7 +47,7 @@ export interface LootData extends Record<TableName, LootTable> {
 export const LOOT = lootData as LootData;
 
 /** What an item gives: half hearts, or resources. */
-export function dropValue(d: Item, loot: LootData = LOOT): { hearts?: number } & Partial<Record<Resource, number>> {
+export function dropValue(d: Item, loot: LootData = LOOT): { hearts?: number; mana?: number } & Partial<Record<Resource, number>> {
   switch (d) {
     case 'halfHeart': return { hearts: 1 };
     case 'heart': return { hearts: 2 };
@@ -54,6 +55,7 @@ export function dropValue(d: Item, loot: LootData = LOOT): { hearts?: number } &
     case 'purse': return { coins: loot.purse };
     case 'key': return { keys: 1 };
     case 'glyph': return { glyphs: 1 };
+    case 'mana': return { mana: loot.manaVial };
   }
 }
 
@@ -92,6 +94,7 @@ export function validateLoot(loot: LootData = LOOT): string[] {
   for (const r of RESOURCES) if (!(loot.start[r] >= 0 && loot.start[r] <= loot.cap)) errs.push(`start ${r} must be between 0 and the cap`);
   if (!(loot.cap > 0)) errs.push('the cap must be above 0');
   if (!(loot.purse > 1)) errs.push('a purse must hold more than one obol');
+  if (!(loot.manaVial > 0)) errs.push('a mana vial must hold some mana');
   const weights = (name: string, w: Record<string, number>, known: readonly string[]) => {
     for (const k of Object.keys(w)) if (!known.includes(k)) errs.push(`${name} drop "${k}" is unknown`);
     if (!Object.values(w).some(v => v > 0) || Object.values(w).some(v => v < 0)) errs.push(`${name} weights must be positive`);

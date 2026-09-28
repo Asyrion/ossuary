@@ -11,7 +11,7 @@ import { HEART_PATH, RES_ICONS, artifactIcon } from './hud';
 
 export interface LoreEntry { name: string; kind: string; effect: string; lore: string; icon: string }
 /** Things described the first time they're taken in a run: items and containers. */
-export type LoreItem = 'coin' | 'purse' | 'key' | 'glyph' | 'halfHeart' | 'heart' | 'coffer' | 'chest' | 'gilded';
+export type LoreItem = 'coin' | 'purse' | 'key' | 'glyph' | 'halfHeart' | 'heart' | 'mana' | 'coffer' | 'chest' | 'gilded';
 
 const svg = (body: string, color = 'currentColor') => `<svg viewBox="0 0 24 24" style="color:${color}" aria-hidden="true">${body}</svg>`;
 const S = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
@@ -23,6 +23,7 @@ const ITEM_ICONS: Record<LoreItem, string> = {
   glyph: svg(RES_ICONS.glyphs),
   halfHeart: svg(`<path d="${HEART_PATH}" fill="none" stroke="#e0473a" stroke-width="1.5"/><path d="${HEART_PATH}" fill="#e0473a" clip-path="url(#halfclip)"/>`),
   heart: svg(`<path d="${HEART_PATH}" fill="#e0473a"/>`),
+  mana: svg(`<path d="M9 3h6M10 3v4l-4 5v7a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7l-4-5V3" ${S}/><path d="M7 14h10v5a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1z" fill="currentColor"/>`, '#6fa8ff'),
   coffer: svg(box(''), '#b08a5a'),
   chest: svg(box(`<circle cx="12" cy="15" r="2.6" ${S}/>`), '#8ab8ff'),
   gilded: svg(box(`<circle cx="12" cy="15" r="2.6" ${S}/>`), '#e8c060'),

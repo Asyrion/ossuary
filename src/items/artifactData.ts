@@ -17,7 +17,7 @@ export type Effect = 'pitWalker' | 'fullHeal' | 'deathBurst' | 'hurtRing' | 'roc
   | 'freeVault' | 'ferryman' | 'glyphWard' | 'graveLantern' | 'pedlar';
 /** Additive unless the name ends in Mul (multiplied). `obolDamage` is cantrip damage per ten obols held. */
 export type StatKey = 'damage' | 'damageMul' | 'fireDelayMul' | 'speed' | 'speedMul' | 'boltScale' | 'hearts' | 'invuln' | 'pierce'
-  | 'shotSpeedMul' | 'rangeMul' | 'knockbackMul' | 'obolDamage' | 'blastMul';
+  | 'shotSpeedMul' | 'rangeMul' | 'knockbackMul' | 'obolDamage' | 'blastMul' | 'mana';
 export type BoltPath = 'straight' | 'bounce' | 'boomerang' | 'wave';
 
 export interface FocusPattern {
@@ -42,7 +42,7 @@ export interface ArtifactDef {
 export const POOLS: Pool[] = ['treasure', 'ordeal', 'boss', 'altar', 'drop', 'merchant', 'secret', 'vault'];
 const EFFECTS: Effect[] = ['pitWalker', 'fullHeal', 'deathBurst', 'hurtRing', 'rockBreaker', 'vision', 'crit', 'split', 'leech', 'moth', 'orbital', 'unhurtHeal', 'bloodTithe',
   'freeVault', 'ferryman', 'glyphWard', 'graveLantern', 'pedlar'];
-const STAT_KEYS: StatKey[] = ['damage', 'damageMul', 'fireDelayMul', 'speed', 'speedMul', 'boltScale', 'hearts', 'invuln', 'pierce', 'shotSpeedMul', 'rangeMul', 'knockbackMul', 'obolDamage', 'blastMul'];
+const STAT_KEYS: StatKey[] = ['damage', 'damageMul', 'fireDelayMul', 'speed', 'speedMul', 'boltScale', 'hearts', 'invuln', 'pierce', 'shotSpeedMul', 'rangeMul', 'knockbackMul', 'obolDamage', 'blastMul', 'mana'];
 const RESOURCE_KEYS: Resource[] = ['coins', 'keys', 'glyphs'];
 const PATHS: BoltPath[] = ['straight', 'bounce', 'boomerang', 'wave'];
 
@@ -61,7 +61,7 @@ export function focusPattern(def: ArtifactDef): FocusPattern {
   return { count: f.count ?? 1, spread: f.spread ?? .34, fan: f.fan ?? 0, damageMul: f.damageMul ?? 1, rangeMul: f.rangeMul ?? 1, path: f.path ?? 'straight', bounces: f.bounces ?? 0 };
 }
 
-export interface BaseStats { damage: number; fireDelay: number; speed: number; shotSpeed: number; range: number; hearts: number; invuln: number }
+export interface BaseStats { damage: number; fireDelay: number; speed: number; shotSpeed: number; range: number; hearts: number; invuln: number; mana: number }
 export interface Stats {
   damage: number; fireDelay: number; speed: number; shotSpeed: number; range: number;
   boltScale: number; boltColor: number; pierce: number;
@@ -69,6 +69,7 @@ export interface Stats {
   /** Cantrip damage per ten obols held (Miser's Purse), and how far the bolts have turned gold (0 to 1). */ obolDamage: number; gilt: number;
   /** How far glyph blasts reach, as a multiple. */ blastMul: number;
   /** Heart containers, counted in halves like hp. */ maxHp: number;
+  /** The most mana the mage can hold. */ maxMana: number;
   invuln: number; pattern: FocusPattern; effects: Set<Effect>;
 }
 export const DEFAULT_BOLT_COLOR = 0xffcf7a;
@@ -88,7 +89,7 @@ export const halveStat = (k: StatKey, v: number) => k.endsWith('Mul') ? 1 + (v -
     `cleansed` have lost their price and half their gift. `coins` (obols held) matters to the Miser's Purse. */
 export function computeStats(focusId: string, itemIds: readonly string[], base: BaseStats, cleansed: readonly string[] = [], coins = 0): Stats {
   const focus = artifact(focusId); const pattern = focusPattern(focus);
-  const add: Record<StatKey, number> = { damage: 0, damageMul: 1, fireDelayMul: 1, speed: 0, speedMul: 1, boltScale: 0, hearts: 0, invuln: 0, pierce: 0, shotSpeedMul: 1, rangeMul: 1, knockbackMul: 1, obolDamage: 0, blastMul: 1 };
+  const add: Record<StatKey, number> = { damage: 0, damageMul: 1, fireDelayMul: 1, speed: 0, speedMul: 1, boltScale: 0, hearts: 0, invuln: 0, pierce: 0, shotSpeedMul: 1, rangeMul: 1, knockbackMul: 1, obolDamage: 0, blastMul: 1, mana: 0 };
   const effects = new Set<Effect>(); let boltColor = DEFAULT_BOLT_COLOR;
   for (const id of [focusId, ...itemIds]) {
     const def = artifact(id), clean = !!def.curse && cleansed.includes(id);
@@ -115,6 +116,7 @@ export function computeStats(focusId: string, itemIds: readonly string[], base: 
     boltScale: 1 + add.boltScale, boltColor, pierce: add.pierce, knockback: add.knockbackMul,
     obolDamage: add.obolDamage, gilt, blastMul: add.blastMul,
     maxHp: Math.max(1, base.hearts + add.hearts) * 2,
+    maxMana: Math.max(0, base.mana + add.mana),
     invuln: base.invuln + add.invuln,
     pattern, effects,
   };

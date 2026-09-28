@@ -76,6 +76,11 @@ export const Sfx = {
   unlock() { tone('square', 90, 70, .12, .06); tone('triangle', 660, 990, .2, .06, .1); tone('triangle', 1320, 1320, .2, .05, .22); hiss(.15, .04, 'highpass', 5000, .1); },
   // economy artifacts
   ferryman() { tone('sine', 1047, 1040, .5, .04); tone('sine', 1568, 1560, .35, .025, .06); hiss(.3, .02, 'highpass', 5000); },
+  // spells and mana
+  learn() { [392, 523, 659, 784].forEach((f, i) => tone('triangle', f, f * 1.01, .5, .05, i * .06)); hiss(.5, .03, 'highpass', 4500, .1); },
+  spellFail() { tone('sine', 220, 160, .12, .05); hiss(.08, .03, 'lowpass', 900); },
+  manaVial() { tone('sine', 880, 1320, .18, .05); tone('sine', 1320, 1760, .22, .03, .06); },
+  arc(hits = 1) { hiss(.18 + hits * .04, .1, 'highpass', 2500); tone('square', 1600, 400, .12, .03); tone('sawtooth', 90, 60, .25, .05, .02); },
   // the shrine
   curseDrawn() { tone('sawtooth', 311, 147, .7, .05); tone('sine', 98, 62, .9, .1); hiss(.8, .06, 'bandpass', 700); },
   wispHit() { tone('triangle', 988, 740, .12, .05); hiss(.12, .05, 'highpass', 3000); },

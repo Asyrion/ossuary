@@ -15,6 +15,7 @@ export function initKeyboard(act: InputActions) {
     if (ARROWS[e.code]) { const i = arrowOrder.indexOf(e.code); if (i >= 0) arrowOrder.splice(i, 1); arrowOrder.push(e.code); }
     if (e.code === 'Escape' || e.code === 'KeyP') act.togglePause();
     if (e.code === 'Space' && act.playing()) pressed.glyph = true; // chalk a blast glyph
+    if ((e.code === 'KeyQ' || e.code === 'KeyE') && act.playing()) pressed.spells[e.code === 'KeyQ' ? 0 : 1] = true; // cast a spell
     if (e.code === 'Enter' || e.code === 'Space') act.confirm();
     if (e.code === 'KeyM') act.toggleSound();
   });

@@ -13,6 +13,8 @@
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="halfclip"><rect x="0" y="0" width="12" height="24"/></clipPath></defs></svg>
 <div id="hud">
   <div id="hearts" aria-label="Health"></div>
+  <div id="mana" role="meter" aria-valuemin="0"><i></i></div>
+  <div id="spells"><div class="slot" id="slot0"></div><div class="slot" id="slot1"></div></div>
   <div id="items"></div>
   <div id="purse" role="status"></div>
   <canvas id="minimap" width="300" height="220"></canvas>
@@ -37,6 +39,7 @@
       <span></span><span class="h" data-s="controls.keyboard"></span><span class="h" data-s="controls.gamepad"></span><span class="h" data-s="controls.touch"></span>
       <span class="h" data-s="controls.move"></span><span class="k" data-s="controls.moveKeys"></span><span data-s="controls.movePad"></span><span data-s="controls.moveTouch"></span>
       <span class="h" data-s="controls.shoot"></span><span class="k" data-s="controls.shootKeys"></span><span data-s="controls.shootPad"></span><span data-s="controls.shootTouch"></span>
+      <span class="h" data-s="controls.spells"></span><span class="k" data-s="controls.spellsKeys"></span><span data-s="controls.spellsPad"></span><span data-s="controls.spellsTouch"></span>
       <span class="h" data-s="controls.glyph"></span><span class="k" data-s="controls.glyphKeys"></span><span data-s="controls.glyphPad"></span><span data-s="controls.glyphTouch"></span>
       <span class="h" data-s="controls.pause"></span><span class="k" data-s="controls.pauseKeys"></span><span data-s="controls.pausePad"></span><span data-s="controls.pauseTouch"></span>
       <!-- play-test aid, like #devHint: remove with it when the tests are done -->

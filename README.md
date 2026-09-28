@@ -54,6 +54,7 @@ Or add these to the address (locally or on the Pages site):
 - `?give=twin_staff,bone_lens` starts the run holding those artifacts (ids are in `data/artifacts.json`)
 - `?boss=pyre` makes every floor's boss that one: `warden`, `abbess` or `pyre`
 - `?loot=coins:20,keys:2,glyphs:5` starts with extra obols, bone keys and blast glyphs
+- `?spells=arc` starts with those spells in the slots (Q, then E; ids are in `data/spells.json`)
 
 Options combine, e.g. `?room=crypt_a&variant=champion&give=shepherds_crook`, or `?room=boss_tombs&boss=abbess&floor=3`
 for the Drowned Abbess with floor 3 tuning. The end screen's "Replay this seed" starts the same run again.
