@@ -70,17 +70,23 @@ shrine cleansing; urns and chests.
 
 ## Step 2: Urns, coffers and reliquary chests
 
-- [ ] Urns (`u` in templates): block walking and bolts; one bolt or a blast breaks them; usually empty,
-      sometimes an obol or half a heart
-- [ ] Coffers (open when walked into) and reliquary chests (need a key) as rarer room-clear drops
-- [ ] Magic take: a broken urn lets out a puff of grave dust, and the soul inside rises as the obol or half
+- [x] Urns (`u` in templates): block walking and bolts; one of the mage's bolts or a blast breaks them;
+      a quarter of them hold something (an obol, half a heart or a glyph stone)
+- [x] Coffers (open when walked into, 1 to 3 things) and reliquary chests (2 to 4) as rarer room-clear
+      drops; container tables in `data/loot.json`
+- [x] Magic take: a broken urn lets out a puff of grave dust, and the soul inside rises as the obol or half
       heart it held
-- [ ] Magic take: rune-sealed urns (their own template character): bolts glance off, only a glyph's blast
-      breaks them, and they hold better (obols, a glyph stone or a bone key)
-- [ ] Magic take: a reliquary chest is sealed by a ward; a bone key unbinds it cleanly, and a glyph's blast
-      breaks it too but burns half of what's inside (a key or a glyph: the player chooses)
-- [ ] Urns and sealed urns added to 20 or more existing templates
-- [ ] Placeholder sounds: urn smash, coffer and chest opening, "locked" when a chest needs a key
+- [x] Magic take: rune-sealed urns (`$` in templates): bolts glance off, only a glyph's blast breaks them,
+      and they always hold something better (obols, a purse, a bone key or a heart; never a glyph stone,
+      since they cost one)
+- [x] Magic take: a reliquary chest is sealed by a ward; a bone key unbinds it cleanly, and a glyph's blast
+      breaks it too but burns half of what's inside (a key or a glyph: the player chooses); walking up
+      without a key says so
+- [x] Urns in the corners of 31 normal templates (110 urns, 5 of them sealed); the economy simulation now
+      counts urns and containers: 6 to 12 obols per floor so far, and more keys and glyphs than chests
+      and sealed urns ask for
+- [x] Placeholder sounds: urn smash, a bolt glancing off a ward, a ward breaking, coffer and chest
+      opening, "locked" when a chest needs a key
 
 ## Step 3: Merchant and locked vault
 

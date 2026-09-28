@@ -281,6 +281,74 @@ test('a blast glyph flares, hurts foes and the mage, breaks rocks, and bolts set
   expect(errors).toEqual([]);
 });
 
+test('urns break to bolts, sealed urns only to a blast; coffers open, warded chests take a key or burn', async ({ page }) => {
+  const errors = await start(page, '?room=crypt_c&loot=glyphs:4,keys:1&seed=URNS01');
+  type Rock = { x: number; z: number; urn?: 'plain' | 'sealed' };
+  type Pick = { kind: string; x: number; z: number; opened?: boolean; contents?: unknown[] };
+  type G4 = GameHooks & {
+    player: GameHooks['player'] & { keys: number; glyphs: number; invuln: number; vx: number; vz: number };
+    current: RoomView & { rocks: Rock[]; bounds: { minX: number; minZ: number } }; pickups: Pick[];
+    clearRoom(): void; drop(kind: string, x: number, z: number): void;
+  };
+  const urns = await page.evaluate(() => {
+    const w = window as unknown as W, g = w.__game as unknown as G4;
+    const at = (c: number, r: number) => ({ x: g.current.bounds.minX + c + .5, z: g.current.bounds.minZ + r + .5 });
+    g.warp(1); g.clearRoom(); g.player.invuln = 99;
+    const count = (k: string) => g.current.rocks.filter(r => r.urn === k).length;
+    const before = { plain: count('plain'), sealed: count('sealed') };
+    for (const row of [0, 6]) { // cast east along the top and bottom rows, at the urns in the corners
+      const p = at(7, row); g.player.x = p.x; g.player.z = p.z; g.player.vx = g.player.vz = 0;
+      g.keys.add('ArrowRight'); g.arrowOrder.push('ArrowRight'); g.sim(1.6);
+      g.keys.delete('ArrowRight'); g.arrowOrder.length = 0; g.sim(.8);
+    }
+    const p = at(11, 0); g.player.x = p.x; g.player.z = p.z; // beside the sealed urn, to chalk a glyph
+    return { before, after: { plain: count('plain'), sealed: count('sealed') } };
+  });
+  expect(urns.before).toEqual({ plain: 3, sealed: 1 });
+  expect(urns.after).toEqual({ plain: 0, sealed: 1 }); // bolts glance off the ward
+  await page.keyboard.press('Space');
+  const sealed = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G4;
+    const spot = { x: g.current.bounds.minX + 12.5, z: g.current.bounds.minZ + .5 };
+    g.sim(.05); g.player.x -= 4; g.player.z += 2; g.sim(2);
+    return { left: g.current.rocks.filter(r => r.urn).length, rose: g.pickups.filter(q => Math.hypot(q.x - spot.x, q.z - spot.z) < .1).length };
+  });
+  expect(sealed).toEqual({ left: 0, rose: 1 }); // a sealed urn always holds something
+
+  const containers = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G4, P = g.player;
+    const at = (c: number, r: number) => ({ x: g.current.bounds.minX + c + .5, z: g.current.bounds.minZ + r + .5 });
+    const spots = [at(2, 4), at(6, 4), at(10, 4)];
+    g.drop('coffer', spots[0].x, spots[0].z); g.drop('chest', spots[1].x, spots[1].z); g.drop('chest', spots[2].x, spots[2].z); g.sim(.8);
+    const [coffer, chestA, chestB] = g.pickups.slice(-3);
+    const sizes = [coffer, chestA, chestB].map(c => c.contents!.length);
+    // what a container spilled: pickups that weren't there before (the mage may pick up others meanwhile)
+    const spilledBy = (act: () => void) => { const before = new Set(g.pickups); act(); return g.pickups.filter(q => !before.has(q)).length; };
+    const walkTo = (c: Pick) => { P.x = c.x; P.z = c.z + .2; g.sim(.3); };
+    const cofferSpilled = spilledBy(() => walkTo(coffer));
+    const keys = P.keys, chestSpilled = spilledBy(() => walkTo(chestA));
+    walkTo(chestB); const refused = !chestB.opened, toast = document.getElementById('toast')!.textContent;
+    P.x = chestB.x - .8; P.z = chestB.z;
+    return { sizes, cofferSpilled, chestSpilled, keysSpent: keys - P.keys, refused, toast };
+  });
+  expect(containers.cofferSpilled).toBe(containers.sizes[0]);
+  expect(containers.chestSpilled).toBe(containers.sizes[1]);
+  expect(containers).toMatchObject({ keysSpent: 1, refused: true });
+  expect(containers.toast).toMatch(/bone key/);
+  await page.keyboard.press('Space'); // a glyph beside the second chest: its ward breaks, half burns
+  const forced = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G4, P = g.player, chest = g.pickups.filter(q => q.kind === 'chest')[1];
+    const before = new Set(g.pickups);
+    g.sim(.05); P.x = g.current.bounds.minX + 2.5; P.z = g.current.bounds.minZ + 2.5; g.sim(2); // out of the way
+    return { opened: chest.opened, spilled: g.pickups.filter(q => !before.has(q)).length };
+  });
+  expect(forced.opened).toBe(true);
+  expect(forced.spilled).toBe(Math.max(1, Math.floor(containers.sizes[2] / 2)));
+  await page.evaluate(() => (window as unknown as W).__game.sim(.1, true));
+  await page.screenshot({ path: 'test-results/smoke-containers.png' });
+  expect(errors).toEqual([]);
+});
+
 test('every door of a seeded floor leads to its neighbour, onto open floor', async ({ page }) => {
   const errors = await start(page, '?seed=DOORS1&floor=2');
   const result = await page.evaluate(() => {

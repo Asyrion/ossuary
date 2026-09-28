@@ -11,7 +11,7 @@ import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { basicMat, blob, glowShared, sphereGeo } from '../render/materials';
 import { blockers } from '../world/collision';
-import { hitRock } from '../world/rooms';
+import { hitRock, strikeUrn } from '../world/rooms';
 import { shootDir } from '../input';
 import { heroCast } from '../actors/hero';
 import { damageEnemy, hurtPlayer } from './damage';
@@ -111,7 +111,9 @@ export function updateBolts(dt: number) {
     // walls, doors and rocks
     const box = !kill && !(b.path === 'boomerang' && b.returning) ? boxAt(b.x, b.z, solids) : undefined;
     if (box) {
-      if (breaker && room.rocks.includes(box as RockBox)) hitRock(room, box as RockBox);
+      const rock = box as RockBox;
+      if (rock.urn) strikeUrn(room, rock, false);                       // any bolt breaks an urn
+      else if (breaker && room.rocks.includes(rock)) hitRock(room, rock); // Mason's Chisel cracks rocks
       if (b.path === 'bounce' && b.bounces > 0) {
         // reflect on the axis that ran into the box, from the last free position
         const hitX = !!boxAt(b.x, oz, solids), hitZ = !!boxAt(ox, b.z, solids);

@@ -11,7 +11,7 @@ system borrowed from Isaac gets a magic take (GDD: What separates Ossuary from a
 asset checklist lives in the owner's claude.ai project "Tripo3D-GameDev". This file holds what you need to
 work in the repo.
 
-## Current state: M2 in progress (see `docs/M2-plan.md`; step 1 done); M1 built (`docs/M1-plan.md`)
+## Current state: M2 in progress (see `docs/M2-plan.md`; steps 1 and 2 done); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -29,9 +29,10 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   (`cameraTargetFor`) and pulls back in multi-cell halls (`viewScaleFor`, `CFG.camHallView`); four
   torch lights move to the torches nearest the mage. Content:
   `data/floors.json` (room counts, difficulty weights, enemy health, boss tuning and look per floor),
-  `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `i` pillar, `=` stone tomb,
-  `R W H` enemies, `B` boss; `x` outside an L's missing corner; ordeal templates list their enemies per
-  wave in `waves`; `special.json` holds ordeals and altars, `shapes.json` the larger and narrow rooms) and
+  `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `i` pillar, `=` stone tomb, `u` urn,
+  `$` rune-sealed urn, `R W H` enemies, `B` boss; `x` outside an L's missing corner; ordeal templates list
+  their enemies per wave in `waves`; `special.json` holds ordeals and altars, `shapes.json` the larger and
+  narrow rooms) and
   `data/artifacts.json` (foci, passive and cursed artifacts: stats, effects, pools, colours, icons).
 - Artifacts: `src/items/artifactData.ts` (pure: data, `computeStats` combining, picking) and
   `src/items/artifacts.ts` (pedestals, taking and focus swap, per-floor budget). The mage's stats are
@@ -59,7 +60,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
 - M2 (Plunder) takes the magic first: obols (coins, `coins` in code), bone keys and blast glyphs instead
   of bombs. Loot tables are in `data/loot.json` (pure `src/items/loot.ts`, economy simulated in
   `tests/unit/loot.test.ts`); glyphs are in `src/combat/glyphs.ts` (chalked with Space or LT, set off by the
-  fuse or the mage's own bolts, chaining; tuning in `CFG.glyph`); pickups in `src/items/pickups.ts`.
+  fuse or the mage's own bolts, chaining; tuning in `CFG.glyph`); pickups, coffers and warded reliquary
+  chests in `src/items/pickups.ts`; urns (a room's "rocks" with `urn` set) in `src/world/rooms.ts`
+  (`strikeUrn`).
 - Bosses are in `src/actors/bosses.ts` (placeholder shapes until M4): each floor draws one from its pool
   in `data/floors.json`, never one the run has met. A boss with `hidden` set (the abbess under the floor,
   the knight in mid-leap) can't be hit and doesn't hurt on contact.

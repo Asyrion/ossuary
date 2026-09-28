@@ -490,7 +490,7 @@ Between two cells of the same room, the two wall tiles become floor, which is wh
 - **End of a run:** won or lost, the end screen sums up the run: the deepest floor, the time, foes put to rest, every artifact carried and the seed, with a button to replay the same seed.
 - **Floor looks:** each floor already looks a little different, as placeholders until the biome pass (M8): floor 1 has warm stone and iron torches, floor 2 cool damp stone with moss, puddles and cage lanterns, floor 3 scorched brick with soot, ash and braziers. Colours and torch styles live in `data/floors.json`.
 
-**Room templates are data:** a character grid in the size of the room's shape (rock, pit, pillar, stone tomb, enemy spawn, empty; urns from M2) plus a difficulty value and the room types it suits, stored as JSON so new rooms need no code. Pillars and tombs block walking and bolts like rocks but never break; tomb tiles side by side make one longer tomb. Larger halls are furnished with them so they don't feel empty. Ordeal templates list two or three waves. M1 needs at least two templates per shape and 50 or more in total.
+**Room templates are data:** a character grid in the size of the room's shape (rock, pit, pillar, stone tomb, enemy spawn, empty; urns and rune-sealed urns from M2) plus a difficulty value and the room types it suits, stored as JSON so new rooms need no code. Pillars and tombs block walking and bolts like rocks but never break; tomb tiles side by side make one longer tomb. Larger halls are furnished with them so they don't feel empty. Ordeal templates list two or three waves. M1 needs at least two templates per shape and 50 or more in total.
 
 ## Pickups and room types
 
@@ -531,7 +531,7 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 | Bone keys | Room clears, coffers, the merchant | Locked vaults and reliquary chests |
 | Blast glyphs | Room clears (glyph stones), coffers, the merchant | Rocks, urns, cracked walls and enemies; gravestones from M5 |
 
-**Economy target:** about 12 to 18 obols per floor, so a merchant artifact means saving or skipping hearts. From M2, a room clear drops one pickup about half the time: a heart, obols, a bone key or a glyph stone. Obols are drawn to the living: from close by they drift to the mage.
+**Economy target:** about 12 to 18 obols per floor, so a merchant artifact means saving or skipping hearts. From M2, a room clear drops one pickup about half the time: a heart, obols, a bone key or a glyph stone, now and then a coffer or a reliquary chest. Obols are drawn to the living: from close by they drift to the mage.
 
 **Blast glyphs**
 
@@ -559,8 +559,8 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 
 | Container | Opened by | Holds | Found |
 | --- | --- | --- | --- |
-| Urn | Bolts or blasts | Usually nothing; sometimes an obol or half a heart | Room templates |
-| Rune-sealed urn | Only a glyph's blast (bolts glance off) | Better: obols, a glyph stone or a bone key | Room templates |
+| Urn | Bolts or blasts | Usually nothing; sometimes an obol, half a heart or a glyph stone | Room templates |
+| Rune-sealed urn | Only a glyph's blast (bolts glance off) | Always something better: obols, a purse, a bone key or a heart (never a glyph stone, since it costs one) | Room templates |
 | Coffer | Walking into it | 1 to 3 obols, keys, glyphs or hearts | Room clears, secret rooms |
 | Reliquary chest | A bone key, or a blast that burns half of it | Better loot: purses, several keys or glyphs, a full heart | Room clears, secret rooms, vaults |
 

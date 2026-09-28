@@ -3,6 +3,7 @@
 
    Legend:  .  floor      #  rock      o  pit      x  outside the room (the L's missing corner)
             i  pillar     =  stone tomb (tiles side by side in a row, or else in a column, make one tomb)
+            u  urn        $  rune-sealed urn (only a glyph's blast breaks it)
             R  rotling    W  wisp      H  crypt hound      B  the floor's boss
 
    Ordeal templates keep their terrain in `grid` (no enemies) and list each wave's enemies in `waves`,
@@ -16,7 +17,7 @@ import type { RoomType } from '../types';
 import { SHAPE_IDS, doorSlots, shapeMask, shapeSize, type ShapeId } from './shapes';
 
 export type { ShapeId } from './shapes';
-export type Tile = 'floor' | 'rock' | 'pit' | 'void' | 'pillar' | 'tomb';
+export type Tile = 'floor' | 'rock' | 'pit' | 'void' | 'pillar' | 'tomb' | 'urn' | 'sealedUrn';
 export type FoeKind = EnemyType | 'boss';
 
 export interface TemplateDef {
@@ -31,7 +32,7 @@ export interface Template {
   /** Every enemy of every wave. */ foes: Foe[];
 }
 
-const TILE_OF: Record<string, Tile> = { '.': 'floor', '#': 'rock', 'o': 'pit', 'x': 'void', 'i': 'pillar', '=': 'tomb' };
+const TILE_OF: Record<string, Tile> = { '.': 'floor', '#': 'rock', 'o': 'pit', 'x': 'void', 'i': 'pillar', '=': 'tomb', 'u': 'urn', '$': 'sealedUrn' };
 const FOE_OF: Record<string, FoeKind> = { R: 'rotling', W: 'wisp', H: 'hound', B: 'boss' };
 
 /** Parse a template, optionally mirrored left-right and/or top-bottom. */
