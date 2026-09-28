@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../../src/rng';
-import { FLOORS, GRID_H, GRID_W, HARD_VARIANTS, generateFloor, pickBoss, planToText, testPlan } from '../../src/world/generate';
+import { FLOORS, GRID_H, GRID_W, GUARANTEED_SOURCES, HARD_VARIANTS, OPTIONAL_SOURCES, generateFloor, pickBoss, planToText, testPlan } from '../../src/world/generate';
+import { CFG } from '../../src/config';
 import { BOSS_TYPES, type BossType } from '../../src/config';
 import { OPPOSITE, SIDE_DIR, allowsSide, shapeCells } from '../../src/world/shapes';
 import { TEMPLATE_DEFS, parseTemplate, tombRuns, validateTemplate } from '../../src/world/templates';
@@ -16,7 +17,7 @@ describe('room templates', () => {
   });
 
   it('cover every room type and normal difficulty the generator asks for', () => {
-    for (const type of ['start', 'treasure', 'boss', 'altar'] as const) expect(TEMPLATE_DEFS.some(d => d.types.includes(type))).toBe(true);
+    for (const type of ['start', 'treasure', 'boss', 'altar', 'merchant', 'vault'] as const) expect(TEMPLATE_DEFS.some(d => d.types.includes(type))).toBe(true);
     for (const d of [1, 2, 3]) expect(TEMPLATE_DEFS.some(t => t.types.includes('normal') && t.difficulty === d)).toBe(true);
     for (const d of [1, 2, 3]) expect(TEMPLATE_DEFS.some(t => t.types.includes('ordeal') && t.difficulty === d)).toBe(true);
   });
@@ -62,16 +63,24 @@ describe('floor generator', () => {
   const SEEDS = 400;
 
   it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i follows the rules on %# seeds', (floorNo, cfg) => {
-    let altars = 0, roomCount = 0, bigRooms = 0, bossHalls = 0;
+    let altars = 0, vaults = 0, roomCount = 0, bigRooms = 0, bossHalls = 0;
     for (let s = 0; s < SEEDS; s++) {
       const plan = generateFloor(Rng.from('T' + s, 'floor' + floorNo), cfg, floorNo - 1);
       const n = plan.rooms.length;
       expect(n).toBeGreaterThanOrEqual(cfg.rooms[0]);
       expect(n).toBeLessThanOrEqual(cfg.rooms[1]);
       const count = (t: string) => plan.rooms.filter(r => r.type === t).length;
-      expect([count('start'), count('boss'), count('treasure'), count('ordeal')]).toEqual([1, 1, 1, 1]);
+      expect([count('start'), count('boss'), count('treasure'), count('ordeal'), count('merchant')]).toEqual([1, 1, 1, 1, 1]);
       expect(count('altar')).toBeLessThanOrEqual(1);
-      altars += count('altar');
+      expect(count('vault')).toBeLessThanOrEqual(1);
+      altars += count('altar'); vaults += count('vault');
+      // artifacts: the guaranteed sources always; optional ones share what's left of the budget, and an
+      // altar is only placed with an artifact to offer
+      for (const r of plan.rooms) {
+        if (GUARANTEED_SOURCES.includes(r.type) || r.type === 'altar') expect(r.artifact).toBe(true);
+        else if (!OPTIONAL_SOURCES.includes(r.type)) expect(r.artifact).toBe(false);
+      }
+      expect(plan.rooms.filter(r => r.artifact).length).toBeLessThanOrEqual(CFG.artifacts.maxPerFloor);
 
       // cells are in bounds, never shared, and each room covers exactly its shape
       const owner = new Map<string, number>();
@@ -101,7 +110,7 @@ describe('floor generator', () => {
       expect(['standard', 'great']).toContain(boss.shape);
       expect(boss.dist).toBeGreaterThanOrEqual(2);
       if (boss.shape === 'great') bossHalls++;
-      for (const t of ['start', 'treasure', 'ordeal', 'altar']) for (const r of plan.rooms.filter(x => x.type === t)) {
+      for (const t of ['start', 'treasure', 'ordeal', 'altar', 'merchant', 'vault']) for (const r of plan.rooms.filter(x => x.type === t)) {
         expect(r.shape).toBe('standard');
         if (t !== 'start') expect(nbs(r).length).toBe(1);
       }
@@ -113,9 +122,11 @@ describe('floor generator', () => {
         if (floorNo === 1 && r.type === 'normal' && r.dist === 1 && r.shape === 'standard') expect(def.difficulty).toBe(1);
       }
     }
-    // altars are optional but should turn up on a fair share of floors
-    expect(altars / SEEDS).toBeGreaterThan(.2);
-    expect(altars / SEEDS).toBeLessThan(cfg.altarChance + .05);
+    // altars and vaults are optional; the walk makes room for them, so they turn up about as often as the
+    // floor's chances say (an altar a little less, when the budget leaves it nothing to offer)
+    expect(altars / SEEDS).toBeGreaterThan(cfg.altarChance * .6);
+    expect(altars / SEEDS).toBeLessThan(cfg.altarChance + .06);
+    expect(Math.abs(vaults / SEEDS - cfg.vaultChance)).toBeLessThan(.08);
     // about a third of the rooms take a larger or narrow shape; some bosses get a great hall
     const share = bigRooms / roomCount;
     expect(share).toBeGreaterThan(.12);
@@ -132,6 +143,10 @@ describe('floor generator', () => {
     expect(['bones', 'puddles', 'ash']).toContain(floor.decor);
     expect(['none', 'moss', 'soot']).toContain(wall.stains);
     expect(['bracket', 'lantern', 'brazier']).toContain(torch.style);
+  });
+
+  it("names a known enemy as each floor's vault warden", () => {
+    for (const f of FLOORS) { expect(Object.keys(CFG.enemy)).toContain(f.vaultWarden); expect(BOSS_TYPES).not.toContain(f.vaultWarden as never); }
   });
 
   it('gives every floor its own look', () => {
@@ -156,6 +171,20 @@ describe('floor generator', () => {
     expect(hardShare[1]).toBeLessThan(hardShare[2]);
   });
 
+  it('shares the budget among the optional sources in a shuffled order', () => {
+    const got: Record<string, number> = { merchant: 0, vault: 0, altar: 0 }, had: Record<string, number> = { merchant: 0, vault: 0, altar: 0 };
+    for (let s = 0; s < 600; s++) {
+      const plan = generateFloor(Rng.from('B' + s, 'floor3'), FLOORS[2], 2);
+      const optional = plan.rooms.filter(r => OPTIONAL_SOURCES.includes(r.type));
+      expect(optional.filter(r => r.artifact).length).toBe(Math.min(optional.length, CFG.artifacts.maxPerFloor - GUARANTEED_SOURCES.length));
+      if (plan.rooms.some(r => r.type === 'vault')) for (const r of optional) { had[r.type]++; if (r.artifact) got[r.type]++; }
+    }
+    // with a vault on the floor, the merchant and the vault both sometimes go without
+    expect(got.merchant).toBeLessThan(had.merchant);
+    expect(got.vault).toBeLessThan(had.vault);
+    expect(got.vault).toBeGreaterThan(had.vault * .5);
+  });
+
   it('is deterministic for a seed', () => {
     const a = generateFloor(Rng.from('ABC123', 'floor1'), FLOORS[0], 0);
     const b = generateFloor(Rng.from('ABC123', 'floor1'), FLOORS[0], 0);
@@ -173,6 +202,8 @@ describe('floor generator', () => {
     expect(plan.rooms.map(r => r.type)).toEqual(['start', 'boss']);
     expect(testPlan('crypt_a', 'dark').rooms[1].variant).toBe('dark');
     expect(testPlan('boss_pits', 'dark').rooms[1].variant).toBe('normal'); // variants are for normal rooms
+    expect(testPlan('merchant_plain').rooms[1]).toMatchObject({ type: 'merchant', artifact: true });
+    expect(testPlan('crypt_a').rooms[1].artifact).toBe(false);
     expect(() => testPlan('nope')).toThrow();
     for (const def of TEMPLATE_DEFS) {
       const p = testPlan(def.id);

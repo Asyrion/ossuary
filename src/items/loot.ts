@@ -1,6 +1,6 @@
 /* Loot as data (data/loot.json): what a run starts with, what a cleared room or a fallen enemy leaves
-   behind, and what urns, coffers and reliquary chests hold. Pure (no three.js), so the economy can be
-   simulated in the unit tests.
+   behind, what urns, coffers, reliquary chests and a vault's hoard hold, and what the merchant sells.
+   Pure (no three.js), so the economy can be simulated in the unit tests.
 
    Resources (GDD: Coins, keys and blast glyphs): obols (coins), bone keys and blast glyphs, each capped. */
 import lootData from '../../data/loot.json';
@@ -19,8 +19,16 @@ export const DROPS: Drop[] = [...ITEMS, 'coffer', 'chest'];
 
 /** A loot table: with `chance` (default always), `count` items (default one), each picked by weight. */
 export interface LootTable { chance?: number; count?: [number, number]; weights: Partial<Record<Item, number>> }
-export type TableName = 'urn' | 'sealedUrn' | 'coffer' | 'chest';
-export const TABLES: TableName[] = ['urn', 'sealedUrn', 'coffer', 'chest'];
+export type TableName = 'urn' | 'sealedUrn' | 'coffer' | 'chest' | 'vaultHoard';
+export const TABLES: TableName[] = ['urn', 'sealedUrn', 'coffer', 'chest', 'vaultHoard'];
+
+/** What the merchant sells: an artifact, or an item. */
+export type Ware = 'artifact' | Item;
+/** The merchant's stock: how many wares (the artifact counts), their prices in obols, and how the wares
+    after the artifact are picked. */
+export interface MerchantData { wares: [number, number]; prices: Partial<Record<Ware, number>>; weights: Partial<Record<Item, number>> }
+/** Most wares a shop has room for. */
+export const MAX_WARES = 4;
 
 export interface LootData extends Record<TableName, LootTable> {
   /** What every run starts with. */ start: Record<Resource, number>;
@@ -28,6 +36,7 @@ export interface LootData extends Record<TableName, LootTable> {
   /** Obols in a purse. */ purse: number;
   /** A cleared room leaves one drop with this chance, picked by weight. */ roomClear: { chance: number; weights: Partial<Record<Drop, number>> };
   /** Chance a fallen enemy leaves an obol. */ enemyCoin: number;
+  merchant: MerchantData;
 }
 export const LOOT = lootData as LootData;
 
@@ -61,6 +70,17 @@ export function rollEnemyDrop(rng: Rng, loot: LootData = LOOT): Drop | null {
   return rng.chance(loot.enemyCoin) ? 'coin' : null;
 }
 
+/** The merchant's stock: the artifact first when he has one, then items by weight (the same item can come
+    twice), 3 or 4 wares in all. */
+export function rollWares(rng: Rng, withArtifact: boolean, loot: LootData = LOOT): Ware[] {
+  const m = loot.merchant, n = rng.int(m.wares[0], m.wares[1]);
+  const wares: Ware[] = withArtifact ? ['artifact'] : [];
+  while (wares.length < n) wares.push(rng.weighted(m.weights as Record<Item, number>));
+  return wares;
+}
+/** A ware's price in obols. */
+export const priceOf = (ware: Ware, loot: LootData = LOOT) => loot.merchant.prices[ware] ?? 0;
+
 /** Problems in data/loot.json; empty when valid. */
 export function validateLoot(loot: LootData = LOOT): string[] {
   const errs: string[] = [];
@@ -80,5 +100,15 @@ export function validateLoot(loot: LootData = LOOT): string[] {
     if (t.count && !(t.count[0] >= 1 && t.count[1] >= t.count[0])) errs.push(`${name} count must be [least, most], at least 1`);
   }
   for (const [name, p] of [['room clear chance', loot.roomClear.chance], ['enemy coin chance', loot.enemyCoin]] as const) if (!(p >= 0 && p <= 1)) errs.push(`${name} must be between 0 and 1`);
+  const m = loot.merchant;
+  if (!m) errs.push('the merchant is missing');
+  else {
+    weights('merchant', m.weights, ITEMS);
+    if (!(m.wares[0] >= 1 && m.wares[1] >= m.wares[0] && m.wares[1] <= MAX_WARES)) errs.push(`merchant wares must be [least, most], from 1 to ${MAX_WARES}`);
+    for (const w of ['artifact', ...Object.keys(m.weights)]) {
+      const p = m.prices[w as Ware];
+      if (!(p !== undefined && Number.isInteger(p) && p > 0)) errs.push(`merchant price for ${w} must be a whole number above 0`);
+    }
+  }
   return errs;
 }

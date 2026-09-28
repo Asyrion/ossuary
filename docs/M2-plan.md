@@ -51,7 +51,8 @@ shrine cleansing; urns and chests.
       coffers, chests, the vault and the secret room join)
 - [x] Dev shortcuts: `?loot=coins:20,keys:2,glyphs:5`, `__game.loot({ coins, keys, glyphs })`,
       `__game.drop(kind)`
-- [ ] Dev shortcuts: `?room=` for the new room types, `?give=` for the new artifacts
+- [x] Dev shortcuts: `?room=` for the new room types (`?room=merchant_plain`, `?room=vault_urns`)
+- [ ] Dev shortcuts: `?give=` for the new artifacts
 
 ## Step 1: Obols, bone keys and blast glyphs
 
@@ -90,21 +91,32 @@ shrine cleansing; urns and chests.
 
 ## Step 3: Merchant and locked vault
 
-- [ ] Generator: a merchant in a dead end on every floor; a locked vault in a spare dead end (chance per
-      floor in `data/floors.json`); room counts from decision 2
-- [ ] Merchant room: a hooded trader (placeholder shapes) and 3 or 4 wares on stands with floating prices:
-      the first is an artifact while the budget allows, then hearts, keys and glyphs; walking into a ware
-      buys it, or it refuses (too few obols, or a heart at full health)
-- [ ] Locked vault: a padlocked iron door that a key opens (refused without one); inside, an artifact while
-      the budget allows, otherwise a hoard of obols and glyphs and a reliquary chest
-- [ ] Magic take: the merchant is a bound shade who deals in the obols of the dead; his wares float in
-      ward circles that paying breaks, and his shop is warded, so bolts and glyph blasts fizzle there (no
-      fights and no robbery in the shop)
-- [ ] Magic take: the vault's door is a ward; a bone key unbinds it, and two glyph blasts can force it, but
-      forcing it wakes the vault's warden: a champion rises inside to guard the prize
-- [ ] Door styles (a lantern above the merchant's door, the vault's warded door) and minimap marks
-- [ ] Budget order for optional sources (decision 3); existing artifacts join the merchant and vault pools
-- [ ] Placeholder sounds: purchase, refusal, unlocking
+- [x] Generator: a merchant in a dead end on every floor; a locked vault in a spare dead end (chance per
+      floor in `data/floors.json`: 35%, 45%, 55%); room counts from decision 2. A floor rolls the altar and
+      the vault it wants first, and the walk tries again (up to `CFG.generator.optionalTries` times) until it
+      leaves them spare dead ends, so the chances in the data are the share of floors that get one. Floor 1
+      still has about 6 fights
+- [x] Merchant room (`src/items/merchant.ts`): a hooded shade (placeholder shapes) and 3 or 4 wares in a row
+      with floating prices: the first is an artifact while the budget allows, then hearts, keys and glyphs
+      (stock and prices in `data/loot.json`); walking into a ware buys it, or he refuses (too few obols, a
+      heart at full health, a resource at its cap). A focus bought leaves the old one in the empty circle
+- [x] Locked vault (`src/world/vault.ts`): a warded iron door with a padlock that a key opens (refused
+      without one); inside, an artifact while the budget allows, otherwise a hoard of obols and glyphs
+      (`vaultHoard` in `data/loot.json`) around a reliquary chest
+- [x] Magic take: the merchant is a bound shade who deals in the obols of the dead; his wares float in
+      ward circles that paying breaks, and his shop is warded: bolts fizzle just after leaving the mage and
+      the chalk of a glyph won't take (no glyph is spent), so there are no fights and no robbery in the shop
+- [x] Magic take: the vault's door is a ward; a bone key unbinds it, and two glyph blasts can force it (the
+      first cracks it), but forcing it wakes the vault's warden: a champion (a crypt hound, per floor in
+      `data/floors.json`) rises inside, and the prize can't be taken until it falls. Bolts glance off the ward
+- [x] Door styles (a lantern above the merchant's door, the vault's iron frame with a turning ward rune and
+      a padlock) and minimap marks (an obol; a padlock, blue while sealed)
+- [x] Budget order for optional sources (decision 3): the generator shuffles the floor's optional sources
+      and gives artifacts to as many as the budget allows (`artifact` on each planned room); a bone altar
+      left without one isn't placed. Existing artifacts joined the merchant and vault pools (6 each)
+- [x] Economy simulation: vaults cost a key and, without an artifact, give a hoard and a chest: 7, 10 and 14
+      obols per floor on floors 1 to 3, keys and glyphs still ahead of what chests, vaults and sealed urns ask
+- [x] Placeholder sounds: purchase, refusal, the shade's greeting, a ward cracking, unlocking
 
 ## Step 4: Secret rooms
 

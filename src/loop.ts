@@ -11,6 +11,8 @@ import { updateGlyphs } from './combat/glyphs';
 import { updateParticles } from './combat/fx';
 import { updatePickups, updateTrapdoor } from './items/pickups';
 import { updateArtifacts } from './items/artifacts';
+import { updateShop } from './items/merchant';
+import { updateVaultSeals } from './world/vault';
 import { pollGamepad, type InputActions } from './input';
 import { updateHud, updateVision } from './ui/hud';
 import { ease, lerp } from './util';
@@ -49,7 +51,7 @@ export function step(dt: number) {
 }
 
 function updateWorldFx(dt: number, now: number) {
-  updateRoomFx(dt, now); updateArtifacts(now); updateTrapdoor(dt);
+  updateRoomFx(dt, now); updateArtifacts(now); updateTrapdoor(dt); updateShop(now); updateVaultSeals(dt, now);
   const tf = .92 + Math.sin(now * 13) * .05 + Math.sin(now * 23) * .04;
   updateTorchLights(G.current.torches, player.x, player.z, dt, tf);
   G.shake = Math.max(0, G.shake - dt * 1.4);

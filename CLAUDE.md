@@ -11,7 +11,7 @@ system borrowed from Isaac gets a magic take (GDD: What separates Ossuary from a
 asset checklist lives in the owner's claude.ai project "Tripo3D-GameDev". This file holds what you need to
 work in the repo.
 
-## Current state: M2 in progress (see `docs/M2-plan.md`; steps 1 and 2 done); M1 built (`docs/M1-plan.md`)
+## Current state: M2 in progress (see `docs/M2-plan.md`; steps 1 to 3 done); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -28,11 +28,12 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   any outline and cuts doors into them; the camera follows the mage in rooms larger than the view
   (`cameraTargetFor`) and pulls back in multi-cell halls (`viewScaleFor`, `CFG.camHallView`); four
   torch lights move to the torches nearest the mage. Content:
-  `data/floors.json` (room counts, difficulty weights, enemy health, boss tuning and look per floor),
+  `data/floors.json` (room counts, difficulty weights, enemy health, altar and vault chances, the vault's
+  warden, boss tuning and look per floor),
   `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `i` pillar, `=` stone tomb, `u` urn,
   `$` rune-sealed urn, `R W H` enemies, `B` boss; `x` outside an L's missing corner; ordeal templates list
-  their enemies per wave in `waves`; `special.json` holds ordeals and altars, `shapes.json` the larger and
-  narrow rooms) and
+  their enemies per wave in `waves`; `special.json` holds ordeals, altars, merchants and vaults,
+  `shapes.json` the larger and narrow rooms) and
   `data/artifacts.json` (foci, passive and cursed artifacts: stats, effects, pools, colours, icons).
 - Artifacts: `src/items/artifactData.ts` (pure: data, `computeStats` combining, picking) and
   `src/items/artifacts.ts` (pedestals, taking and focus swap, per-floor budget). The mage's stats are
@@ -44,7 +45,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
   every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
-  keys and glyphs.
+  keys and glyphs. `?room=merchant_plain` and `?room=vault_urns` put a shop or a sealed vault next to the
+  start.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
   resources, `__game.drop('purse')` drops a pickup ahead of the mage, `__game.clearRoom()`
   ends the current fight.
@@ -63,7 +65,13 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `tests/unit/loot.test.ts`); glyphs are in `src/combat/glyphs.ts` (chalked with Space or LT, set off by the
   fuse or the mage's own bolts, chaining; tuning in `CFG.glyph`); pickups, coffers and warded reliquary
   chests in `src/items/pickups.ts`; urns (a room's "rocks" with `urn` set) in `src/world/rooms.ts`
-  (`strikeUrn`).
+  (`strikeUrn`). The merchant (a bound shade, wares in ward circles, a warded shop) is in
+  `src/items/merchant.ts`, the locked vault (a warded door: a key, or two blasts that wake a warden) in
+  `src/world/vault.ts`; stock, prices and the vault's hoard are in `data/loot.json`.
+- The per-floor artifact budget (at most 5): the generator marks which rooms hold one (`artifact` on each
+  planned room: always the treasure room, ordeal and boss; the merchant, vault and altar in a shuffled
+  order while the budget lasts). `buildFloor` reserves them all; room-clear drops take what is left. While
+  a room's doors are locked, its artifacts can't be taken.
 - Bosses are in `src/actors/bosses.ts` (placeholder shapes until M4): each floor draws one from its pool
   in `data/floors.json`, never one the run has met. A boss with `hidden` set (the abbess under the floor,
   the knight in mid-leap) can't be hit and doesn't hurt on contact.

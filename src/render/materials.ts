@@ -28,6 +28,8 @@ export const M = {
     boss: new THREE.MeshStandardMaterial({ color: 0x4d1712, roughness: .7, emissive: 0x3a0804 }),
     ordeal: new THREE.MeshStandardMaterial({ color: 0x2c2b30, roughness: .45, metalness: .7, emissive: 0x0c0a10 }),
     altar: new THREE.MeshStandardMaterial({ color: 0xcfc2a6, roughness: .8, emissive: 0x1a1208 }),
+    merchant: new THREE.MeshStandardMaterial({ color: 0x3a3226, roughness: .7, emissive: 0x141a14 }),
+    vault: new THREE.MeshStandardMaterial({ color: 0x3a3a40, roughness: .35, metalness: .85, emissive: 0x080a14 }),
   },
   bone: new THREE.MeshStandardMaterial({ color: 0xd8ccb2, roughness: .75, emissive: 0x15100a }),
   gate: new THREE.MeshStandardMaterial({ color: 0x6b5644, roughness: .55, metalness: .5, emissive: 0x1a0f07 }),

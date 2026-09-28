@@ -57,7 +57,8 @@ function makeParts() {
   };
 }
 
-function visual(kind: Item): THREE.Object3D {
+/** How an item looks, on the floor or floating over a merchant's ward circle. */
+export function itemVisual(kind: Item): THREE.Object3D {
   const P = parts ??= makeParts();
   if (kind === 'heart' || kind === 'halfHeart') {
     const m = new THREE.Mesh(kind === 'heart' ? P.heart.full : P.heart.half, P.heartMat); m.rotation.x = -TILT; return m;
@@ -111,7 +112,7 @@ export function spawnPickup(kind: Drop, x: number, z: number, opts: { rise?: boo
     G.pickups.push({ kind, x, z, r: .4, g, m: v.g, t: 0, drop: .5, contents: rollTable(G.run.drops, kind), lid: v.lid, ward: v.ward, armed: true });
     return;
   }
-  const m = visual(kind); m.position.y = .35; g.add(m, blob(.55));
+  const m = itemVisual(kind); m.position.y = .35; g.add(m, blob(.55));
   const p: Pickup = { kind, x, z, r: .3, g, m, t: Math.random() * 6, drop: .5 };
   if (opts.rise) { p.rise = glow(0xd8e6ff, .8, .8); p.rise.position.y = .2; g.add(p.rise); p.drop = .6; }
   G.pickups.push(p);
