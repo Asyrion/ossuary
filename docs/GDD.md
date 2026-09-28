@@ -116,15 +116,18 @@ Planned inputs for the magic layer: spell 1 and 2 on Q and E (LB and RB) and pot
 
 Hearts can't be picked up at full health. The hero faces the cast direction while casting, otherwise the move direction.
 
-**Animation mapping.** Legs play idle or run; the upper body can overlay a cast or hit reaction; death plays on the whole body.
+**Animation mapping.** Legs play idle, walk or run by speed; the upper body can overlay a cast, a hit reaction or a gesture (drinking, eating); death plays on the whole body. Extras are used when a model has them.
 
 | Game state | Clip | Body part | Notes |
 | --- | --- | --- | --- |
-| Standing | idle | Whole body | Loops |
-| Moving | run | Whole body | Plays at up to 1.8× speed to match move speed; a run beats a walk when a model has both |
+| Standing | standing\_relax | Whole body | Loops |
+| Moving | run | Whole body | Plays at up to 3× speed to match move speed |
+| Moving slowly | walk | Whole body | Below 30% of full speed (a gamepad stick barely tilted) the walk takes over from the run |
 | Casting | cast\_a\_spell | Upper body | Only the forward thrust is replayed per bolt |
 | Taking damage | hit\_to\_body\_01 | Upper body | Played at 1.6× |
-| Death | fall | Whole body | End screen waits for it; a model without a death clip topples over instead |
+| Healed by a heart | Drink Potion | Upper body | Only the draught, around the moment the flask is raised; ready for the potions of M5 |
+| Standing still a while | Eat | Upper body | A fidget after 9 to 16 s standing still; moving or casting puts it away |
+| Death | fall or defeat\_03 | Whole body | One of the two at random; the end screen waits for it; a model without a death clip topples over instead |
 
 ## Combat and enemies
 
@@ -257,7 +260,7 @@ Artifacts replace Isaac's items. There are four kinds: one focus that reshapes t
 | Cursed | Unlimited | Strong effect plus a drawback; cleansed at a shrine, which removes the drawback and halves the effect |
 | Set piece | Unlimited | 2 or 3 pieces of a set grant a bonus |
 
-**Artifacts per floor: at least 3, at most 5.** Three sources are on every floor; optional ones can add up to two more. The boss's choice of two counts as one, since only one can be taken.
+**Artifacts per floor: at least 3; a budget of 6, and now and then luck gives more.** Three sources are on every floor; optional ones can add up to three more, enough for the merchant, a vault and a bone altar on the same floor. The boss's choice of two counts as one, since only one can be taken. Some finds sit outside the budget, so a lucky floor can hold more (decided 2026-09-28): a gilded reliquary chest (see Containers), and from step 4 of M2 the secret room.
 
 | Source | Artifacts | Per floor | Arrives |
 | --- | --- | --- | --- |
@@ -555,7 +558,7 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 
 **Locked vault** (0 or 1 per floor, in a dead end). Its door is sealed by a ward that one bone key unbinds; bolts glance off it. Two glyph blasts can force the ward too (the first cracks it), but forcing it wakes the vault's warden: a champion rises inside to guard the prize, which can't be taken until it falls. Behind the door, inside is an artifact while the floor's budget allows, otherwise a hoard of obols and glyphs around a reliquary chest.
 
-**Containers.** None of them hold artifacts, so the per-floor budget stays readable. A broken urn lets out a puff of grave dust, and the soul inside rises as whatever it held. A reliquary chest is sealed by a ward: a bone key unbinds it cleanly, and a glyph's blast breaks it too but burns half of what's inside, so the player chooses between a key and a glyph.
+**Containers.** A broken urn lets out a puff of grave dust, and the soul inside rises as whatever it held. A reliquary chest is sealed by a ward: a bone key unbinds it cleanly, and a glyph's blast breaks it too but burns half of what's inside, so the player chooses between a key and a glyph. Now and then (15% of chests, in `data/loot.json`) a reliquary is gilded: gold bands and a golden ward that no blast breaks. A bone key unbinds it, and a relic rises out of it: an artifact from the vault's pool that doesn't count against the floor's budget. It is the one container that holds an artifact, and it is rare: a few floors in a hundred.
 
 | Container | Opened by | Holds | Found |
 | --- | --- | --- | --- |
@@ -563,6 +566,7 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 | Rune-sealed urn | Only a glyph's blast (bolts glance off) | Always something better: obols, a purse, a bone key or a heart (never a glyph stone, since it costs one) | Room templates |
 | Coffer | Walking into it | 1 to 3 obols, keys, glyphs or hearts | Room clears, secret rooms |
 | Reliquary chest | A bone key, or a blast that burns half of it | Better loot: purses, several keys or glyphs, a full heart | Room clears, secret rooms, vaults |
+| Gilded reliquary (rare chest) | Only a bone key | A relic: an artifact outside the floor's budget | Wherever a reliquary chest turns up |
 
 **Shrine cleansing** (the shrine on floor 2). For 10 obols, the shrine cleanses one cursed artifact: the drawback goes and the gift is halved (see Artifacts). The mage chooses which: each cursed artifact held gets an offering stone. The curse fights back: walking into its stone draws it out as a wisp that must be put down within 10 s inside the shrine's circle. Then the artifact is cleansed and the obols are paid; if the wisp escapes, the curse returns and the mage can try again. The heart-for-boon bargain joins in M6.
 

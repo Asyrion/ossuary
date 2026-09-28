@@ -77,9 +77,14 @@ describe('loot data', () => {
 describe('economy', () => {
   it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i: room clears, enemies, urns, containers and vaults', (floorNo, cfg) => {
     const N = 300, got = { coins: 0, keys: 0, glyphs: 0, hearts: 0 };
+    let relics = 0;
     const add = (d: Item) => { const v = dropValue(d); for (const k of [...RESOURCES, 'hearts'] as const) got[k] += v[k] ?? 0; };
+    // a chest takes a key; a gilded one holds a relic (an artifact beyond the budget) instead of loot
+    const chest = () => { got.keys--; if (drops.chance(LOOT.gildedChest)) relics++; else rollTable(drops, 'chest').forEach(add); };
+    let drops = new Rng(0);
     for (let s = 0; s < N; s++) {
-      const plan = generateFloor(Rng.from('ECON' + s, 'floor' + (floorNo - 1)), cfg, floorNo - 1), drops = Rng.from('ECON' + s, 'drops');
+      const plan = generateFloor(Rng.from('ECON' + s, 'floor' + (floorNo - 1)), cfg, floorNo - 1);
+      drops = Rng.from('ECON' + s, 'drops');
       for (const r of plan.rooms) {
         const t = parseTemplate(TEMPLATES.get(r.templateId)!);
         for (const row of t.tiles) for (const tile of row) {
@@ -88,13 +93,14 @@ describe('economy', () => {
         }
         if (r.type === 'vault') {
           got.keys--;
-          if (!r.artifact) { rollTable(drops, 'vaultHoard').forEach(add); got.keys--; rollTable(drops, 'chest').forEach(add); }
+          if (!r.artifact) { rollTable(drops, 'vaultHoard').forEach(add); chest(); }
         }
         if (r.type !== 'normal') continue;
         const foes = r.variant === 'quiet' ? 1 : t.foes.length;
         for (let i = 0; i < foes; i++) { const d = rollEnemyDrop(drops); if (d) add(d as Item); }
         const d = rollRoomClear(drops);
-        if (d === 'coffer' || d === 'chest') { if (d === 'chest') got.keys--; rollTable(drops, d).forEach(add); }
+        if (d === 'chest') chest();
+        else if (d === 'coffer') rollTable(drops, d).forEach(add);
         else if (d) add(d);
       }
     }
@@ -103,5 +109,8 @@ describe('economy', () => {
     expect(per.glyphs).toBeGreaterThan(0);  // net of the glyphs sealed urns ask for
     expect(per.keys).toBeGreaterThan(.2);   // net of the keys chests and vaults ask for
     expect(per.hearts).toBeGreaterThan(2);
+    // relics beyond the budget are rare: a few floors in a hundred
+    expect(relics / N).toBeGreaterThan(0);
+    expect(relics / N).toBeLessThan(.1);
   });
 });

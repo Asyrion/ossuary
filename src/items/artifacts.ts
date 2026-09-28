@@ -60,6 +60,13 @@ export function offerOptional(pool: Pool) {
   return def;
 }
 
+/** A relic outside the floor's budget (a gilded reliquary chest): now and then luck gives more. */
+export function offerBeyondBudget(pool: Pool) {
+  const def = pickArtifact(G.run.loot, pool, G.run.seen);
+  if (def) G.run.seen.add(def.id);
+  return def;
+}
+
 /** The second artifact of a choice (the boss's pair): offered, so it won't come back this run, but it
     doesn't count against the floor's budget since only one of the two can be taken. */
 export function offerSecondChoice(pool: Pool) {

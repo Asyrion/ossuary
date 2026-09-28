@@ -101,10 +101,11 @@ function installDevHooks() {
     give: (...ids: string[]) => giveById(ids),
     /** Hand out obols, keys or glyphs, e.g. loot({ glyphs: 3 }). */
     loot: (v: Partial<Record<Resource, number>>) => giveResources(v),
-    /** Drop a pickup (halfHeart, heart, coin, purse, key, glyph) at (x, z), or just ahead of the mage. */
-    drop(kind: Drop, x = player.x, z = player.z - 1.5) {
+    /** Drop a pickup (halfHeart, heart, coin, purse, key, glyph, coffer, chest) at (x, z), or just ahead of
+        the mage; a chest is plain unless `gilded` is set. */
+    drop(kind: Drop, x = player.x, z = player.z - 1.5, opts: { gilded?: boolean } = {}) {
       if (!DROPS.includes(kind)) throw new Error(`drop: use one of ${DROPS.join(', ')}`);
-      spawnPickup(kind, x, z);
+      spawnPickup(kind, x, z, { gilded: opts.gilded ?? false });
     },
     get pickups() { return G.pickups; }, get glyphs() { return G.glyphs; }, get shots() { return G.shots; },
   };

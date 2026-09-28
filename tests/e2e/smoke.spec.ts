@@ -390,6 +390,26 @@ test('the merchant sells for obols and refuses what the mage cannot pay or use; 
   expect(errors).toEqual([]);
 });
 
+test('a gilded reliquary shrugs off a blast, and a bone key finds a relic beyond the budget', async ({ page }) => {
+  const errors = await start(page, '?room=crypt_c&seed=GILD01&loot=keys:1,glyphs:1');
+  type G6 = Omit<G5, 'current'> & { current: G5['current'] & { spots: { taken: boolean }[] }; pickups: { gilded?: boolean; opened?: boolean; x: number; z: number }[]; drop(k: string, x: number, z: number, o?: { gilded?: boolean }): void };
+  await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G6, P = g.player;
+    g.warp(1); g.clearRoom(); P.invuln = 99; P.x = g.current.cx; P.z = g.current.cz;
+    g.drop('chest', P.x + 2, P.z, { gilded: true }); g.sim(.8); P.x += .85; // beside it, not touching
+  });
+  await page.keyboard.press('Space');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G6, P = g.player, c = g.pickups.find(q => q.gilded)!;
+    g.sim(.05); P.x -= 3; g.sim(2);
+    const afterBlast = !!c.opened, spots = g.current.spots.length;
+    P.x = c.x; P.z = c.z + .3; g.sim(.5);
+    return { afterBlast, opened: !!c.opened, keys: P.keys, relics: g.current.spots.length - spots };
+  });
+  expect(r).toEqual({ afterBlast: false, opened: true, keys: 0, relics: 1 });
+  expect(errors).toEqual([]);
+});
+
 /** Walk from the start room into the test vault's sealed door; returns the seal and the door. */
 const walkToVault = () => {
   const g = (window as unknown as W).__game as unknown as G5, P = g.player, d = g.current.doors.find(x => x.seal)!;

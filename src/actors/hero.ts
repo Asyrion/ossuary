@@ -11,7 +11,7 @@ import { M, blob } from '../render/materials';
 import { shootDir } from '../input';
 import { angleLerp, lerp } from '../util';
 import { findMiniatureBase } from './baseDetect';
-import { buildHeroAnim, playCast, playDeath, playHit, resetAnim, updateHeroAnim, type HeroAnim } from './heroAnim';
+import { buildHeroAnim, playCast, playDeath, playGesture, playHit, resetAnim, updateHeroAnim, type HeroAnim } from './heroAnim';
 
 export const hero = {
   root: new THREE.Group(), yaw: new THREE.Group(), lean: new THREE.Group(),
@@ -97,6 +97,8 @@ export function fallbackHero(): PreparedHero {
 
 export function heroCast() { if (hero.anim) playCast(hero.anim, player.stats.fireDelay); }
 export function heroHit() { if (hero.anim) playHit(hero.anim); }
+/** The mage drinks in a heart's warmth (healing), when the model has a drinking clip. */
+export function heroDrink() { if (hero.anim) playGesture(hero.anim, 'drink'); }
 /** Returns how long the death animation takes, in seconds. */
 export function heroDie() { player.dead = true; return hero.anim ? playDeath(hero.anim) : .9; }
 export function heroReset() {
@@ -116,7 +118,7 @@ export function heroVisual(dt: number, now: number) {
   const sp = moving / CFG.hero.speed;
   const lean = hero.lean;
   if (hero.anim) updateHeroAnim(hero.anim, dt, player.dead ? 0 : sp);
-  if (player.dead && !hero.anim?.death) { // a static model, or a rig with no death clip: just topple over
+  if (player.dead && !hero.anim?.deaths.length) { // a static model, or a rig with no death clip: just topple over
     lean.rotation.x = lerp(lean.rotation.x, 1.45, 1 - Math.exp(-6 * dt)); lean.position.y = lerp(lean.position.y, .1, 1 - Math.exp(-6 * dt));
   } else if (!hero.anim) {
     player.bob += dt * (moving > .3 ? 13 : 2.2);

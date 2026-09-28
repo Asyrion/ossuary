@@ -1,18 +1,24 @@
-/* Hero animation: base layer (idle/walk) on the whole body, one-shot overlays (cast, hit) on the upper body,
+/* Hero animation: base layer (idle, and walk or run by speed) on the whole body, one-shot overlays (cast,
+   hit, and the gestures: drinking when healed, eating now and then when standing still) on the upper body,
    death on everything. Clips are recognised by name (clipRoles.ts), so any Tripo/Mixamo export with similar
-   names works. */
+   names works; the extras (walk, a second death, drink, eat) are used when a model has them. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import { clamp, lerp } from '../util';
 import { HIPS_OFFSET_LIMIT, HIPS_RE, assignRoles, hipsOffset, type Role } from './clipRoles';
 
+export type Gesture = 'drink' | 'eat';
 export interface HeroAnim {
   mixer: THREE.AnimationMixer; roles: Partial<Record<Role, THREE.AnimationClip>>;
-  m: number; c: number; h: number; castLeft: number; hitLeft: number; dead: boolean;
-  idleL?: THREE.AnimationAction; idleU?: THREE.AnimationAction; walkL?: THREE.AnimationAction; walkU?: THREE.AnimationAction;
+  /** Blend weights: moving, casting, hit, gesture. */ m: number; c: number; h: number; g: number;
+  castLeft: number; hitLeft: number; gestLeft: number; dead: boolean;
+  idleL?: THREE.AnimationAction; idleU?: THREE.AnimationAction; runL?: THREE.AnimationAction; runU?: THREE.AnimationAction;
+  /** A slow walk, blended in below running speed when the model has one. */ walkL?: THREE.AnimationAction; walkU?: THREE.AnimationAction;
   cast?: THREE.AnimationAction; castLen: number; castWin?: [number, number];
   hit?: THREE.AnimationAction; hitLen: number;
-  death?: THREE.AnimationAction; deathLen: number;
+  /** Death clips; one is picked at random. */ deaths: { action: THREE.AnimationAction; len: number }[];
+  gestures: Partial<Record<Gesture, { action: THREE.AnimationAction; len: number; speed: number }>>; gesture?: THREE.AnimationAction;
+  /** Seconds standing still, and when the mage next eats something. */ still: number; fidgetAt: number;
 }
 
 const UPPER_RE = /spine|chest|neck|head|shoulder|clavicle|arm|hand|thumb|index|middle|ring|pinky/i;
@@ -83,29 +89,55 @@ export function castWindow(root: THREE.Object3D, clip: THREE.AnimationClip): [nu
   return [Math.max(0, bt - .22), Math.min(clip.duration, bt + .38)];
 }
 
+/** The moment a hand is raised highest (to the mouth, when drinking or eating), with `before` and `after`
+    seconds around it. */
+export function peakWindow(root: THREE.Object3D, clip: THREE.AnimationClip, before: number, after: number): [number, number] {
+  const hands: THREE.Object3D[] = []; root.traverse(o => { if ((o as THREE.Bone).isBone && /hand$/i.test(o.name)) hands.push(o); });
+  if (!hands.length) return [0, clip.duration];
+  const mx = new THREE.AnimationMixer(root); mx.clipAction(clip).play();
+  const v = new THREE.Vector3(); let best = -Infinity, bt = clip.duration / 2;
+  root.updateMatrixWorld(true); const inv = new THREE.Matrix4().copy(root.matrixWorld).invert();
+  for (let t = 0; t <= clip.duration; t += 1 / 30) {
+    mx.setTime(t); root.updateMatrixWorld(true);
+    for (const h of hands) { const y = h.getWorldPosition(v).applyMatrix4(inv).y; if (y > best) { best = y; bt = t; } }
+  }
+  mx.stopAllAction(); mx.uncacheRoot(root);
+  return [Math.max(0, bt - before), Math.min(clip.duration, bt + after)];
+}
+
+const fidgetDelay = () => CFG.hero.fidget[0] + Math.random() * (CFG.hero.fidget[1] - CFG.hero.fidget[0]);
+
 /** Build the layered animation controller for a rigged model. */
 export function buildHeroAnim(holder: THREE.Object3D, clips: THREE.AnimationClip[]): HeroAnim {
   const roles = assignRoles(clips, c => c.name);
-  for (const k of ['walk', 'cast', 'hit', 'death'] as const) {
+  for (const k of ['run', 'walk', 'cast', 'hit', 'death', 'deathAlt', 'drink', 'eat'] as const) {
     const c = roles[k]; if (c && c !== roles.idle) roles[k] = centreHips(c, holder, roles.idle);
   }
   const mixer = new THREE.AnimationMixer(holder);
   const act = (clip: THREE.AnimationClip, loop = true) => {
     const a = mixer.clipAction(clip); a.setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce, Infinity); a.clampWhenFinished = !loop; return a;
   };
-  const A: HeroAnim = { mixer, m: 0, c: 0, h: 0, castLeft: 0, hitLeft: 0, dead: false, roles, castLen: 0, hitLen: 0, deathLen: 0 };
-  if (roles.walk && roles.idle) {
+  const A: HeroAnim = { mixer, m: 0, c: 0, h: 0, g: 0, castLeft: 0, hitLeft: 0, gestLeft: 0, dead: false, roles, castLen: 0, hitLen: 0, deaths: [], gestures: {}, still: 0, fidgetAt: fidgetDelay() };
+  if (roles.run && roles.idle) {
     A.idleL = act(bodyPart(roles.idle, false)); A.idleU = act(bodyPart(roles.idle, true));
-    A.walkL = act(bodyPart(roles.walk, false)); A.walkU = act(bodyPart(roles.walk, true));
-    for (const a of [A.idleL, A.idleU, A.walkL, A.walkU]) { a.play(); a.setEffectiveWeight(0); }
+    A.runL = act(bodyPart(roles.run, false)); A.runU = act(bodyPart(roles.run, true));
+    if (roles.walk) { A.walkL = act(bodyPart(roles.walk, false)); A.walkU = act(bodyPart(roles.walk, true)); }
+    for (const a of [A.idleL, A.idleU, A.runL, A.runU, A.walkL, A.walkU]) { a?.play(); a?.setEffectiveWeight(0); }
   }
   if (roles.cast) {
     const [t0, t1] = castWindow(holder, roles.cast);
-    const sub = THREE.AnimationUtils.subclip(alignUpperToHips(roles.cast, holder, roles.walk), 'cast_release', Math.round(t0 * 30), Math.round(t1 * 30), 30);
+    const sub = THREE.AnimationUtils.subclip(alignUpperToHips(roles.cast, holder, roles.run), 'cast_release', Math.round(t0 * 30), Math.round(t1 * 30), 30);
     A.cast = act(bodyPart(sub, true, 'cast_upper'), false); A.castLen = sub.duration; A.castWin = [t0, t1];
   }
-  if (roles.hit) { A.hit = act(bodyPart(alignUpperToHips(roles.hit, holder, roles.walk), true, 'hit_upper'), false); A.hitLen = roles.hit.duration; }
-  if (roles.death) { A.death = act(roles.death, false); A.deathLen = roles.death.duration; }
+  if (roles.hit) { A.hit = act(bodyPart(alignUpperToHips(roles.hit, holder, roles.run), true, 'hit_upper'), false); A.hitLen = roles.hit.duration; }
+  for (const c of [roles.death, roles.deathAlt]) if (c) A.deaths.push({ action: act(c, false), len: c.duration });
+  // drinking: just the draught, around the moment the flask is highest; eating: the whole clip, unhurried
+  if (roles.drink) {
+    const [t0, t1] = peakWindow(holder, roles.drink, 1, .5);
+    const sub = THREE.AnimationUtils.subclip(alignUpperToHips(roles.drink, holder, roles.run), 'drink_draught', Math.round(t0 * 30), Math.round(t1 * 30), 30);
+    A.gestures.drink = { action: act(bodyPart(sub, true, 'drink_upper'), false), len: sub.duration, speed: CFG.hero.drinkSpeed };
+  }
+  if (roles.eat) A.gestures.eat = { action: act(bodyPart(alignUpperToHips(roles.eat, holder, roles.run), true, 'eat_upper'), false), len: roles.eat.duration, speed: 1 };
   return A;
 }
 
@@ -119,33 +151,56 @@ export function playHit(A: HeroAnim) {
   if (!A.hit || A.dead) return;
   A.hit.reset(); A.hit.timeScale = 1.6; A.hit.play(); A.hitLeft = A.hitLen / 1.6; A.h = Math.max(A.h, .5);
 }
-/** Returns how long the death takes, in seconds. */
+/** An upper-body gesture: drinking (when healed) or eating (a fidget when standing still). */
+export function playGesture(A: HeroAnim, which: Gesture) {
+  const gst = A.gestures[which];
+  if (!gst || A.dead) return false;
+  if (A.gesture && A.gesture !== gst.action) A.gesture.stop();
+  A.gesture = gst.action; gst.action.reset(); gst.action.timeScale = gst.speed; gst.action.play();
+  A.gestLeft = gst.len / gst.speed; A.still = 0;
+  return true;
+}
+/** Returns how long the death takes, in seconds. Models with two death clips fall one way or the other. */
 export function playDeath(A: HeroAnim) {
-  if (!A.death) return .9;
-  A.dead = true; A.death.reset(); A.death.timeScale = 1.25; A.death.play(); A.death.setEffectiveWeight(1);
-  return Math.min(2.6, A.deathLen / 1.25);
+  if (!A.deaths.length) return .9;
+  const d = A.deaths[Math.floor(Math.random() * A.deaths.length)];
+  A.dead = true; d.action.reset(); d.action.timeScale = 1.25; d.action.play(); d.action.setEffectiveWeight(1);
+  return Math.min(2.6, d.len / 1.25);
 }
 export function resetAnim(A: HeroAnim) {
-  A.dead = false; A.c = A.h = 0; A.castLeft = A.hitLeft = 0;
-  A.death?.stop(); A.cast?.stop(); A.hit?.stop();
+  A.dead = false; A.c = A.h = A.g = 0; A.castLeft = A.hitLeft = A.gestLeft = 0; A.still = 0; A.fidgetAt = fidgetDelay();
+  for (const d of A.deaths) d.action.stop();
+  A.cast?.stop(); A.hit?.stop(); A.gesture?.stop(); A.gesture = undefined;
 }
 
-/** Blend weights: lower = idle/run by speed; upper = base, cast, hit; death overrides. */
+/** Blend weights: lower = idle, walk or run by speed; upper = base, cast, hit, gesture; death overrides.
+    Standing still long enough, the mage eats something (when the model can). */
 export function updateHeroAnim(A: HeroAnim, dt: number, sp: number) {
-  const k = 1 - Math.exp(-12 * dt);
+  const k = 1 - Math.exp(-12 * dt), H = CFG.hero;
   A.m = lerp(A.m, sp > .12 ? 1 : 0, k);
-  A.castLeft -= dt; A.hitLeft -= dt;
+  A.castLeft -= dt; A.hitLeft -= dt; A.gestLeft -= dt;
+  if (sp > .12 || A.castLeft > 0) A.gestLeft = Math.min(A.gestLeft, 0); // moving or casting puts the flask or the bite away
   A.c = A.castLeft > 0 ? lerp(A.c, 1, 1 - Math.exp(-30 * dt)) : lerp(A.c, 0, 1 - Math.exp(-10 * dt));
   A.h = A.hitLeft > 0 ? lerp(A.h, 1, 1 - Math.exp(-30 * dt)) : lerp(A.h, 0, 1 - Math.exp(-8 * dt));
+  A.g = A.gestLeft > 0 ? lerp(A.g, 1, 1 - Math.exp(-14 * dt)) : lerp(A.g, 0, 1 - Math.exp(-8 * dt));
   if (A.c < .01 && A.castLeft <= 0 && A.cast) { A.cast.stop(); A.c = 0; }
   if (A.h < .01 && A.hitLeft <= 0 && A.hit) { A.hit.stop(); A.h = 0; }
+  if (A.g < .01 && A.gestLeft <= 0 && A.gesture) { A.gesture.stop(); A.gesture = undefined; A.g = 0; }
+  // the fidget: standing still, not casting or hurt, for a while
+  A.still = sp < .05 && A.castLeft <= 0 && A.hitLeft <= 0 && !A.gesture && !A.dead ? A.still + dt : 0;
+  if (A.still > A.fidgetAt) { playGesture(A, 'eat'); A.still = 0; A.fidgetAt = fidgetDelay(); }
   const live = A.dead ? 0 : 1;
-  if (A.walkL && A.walkU && A.idleL && A.idleU) {
-    const hw = A.hit ? A.h : 0, cw = A.cast ? A.c * (1 - hw) : 0, bu = (1 - cw - hw);
-    A.idleL.setEffectiveWeight((1 - A.m) * live); A.walkL.setEffectiveWeight(A.m * live);
-    A.idleU.setEffectiveWeight((1 - A.m) * bu * live); A.walkU.setEffectiveWeight(A.m * bu * live);
-    A.cast?.setEffectiveWeight(cw * live); A.hit?.setEffectiveWeight(hw * live);
-    const ts = Math.max(.8, CFG.hero.runAnimSpeed * clamp(sp, 0, 1.2)); A.walkL.timeScale = A.walkU.timeScale = ts;
+  if (A.runL && A.runU && A.idleL && A.idleU) {
+    const hw = A.hit ? A.h : 0, cw = A.cast ? A.c * (1 - hw) : 0, gw = A.gesture ? A.g * (1 - hw - cw) : 0, bu = 1 - cw - hw - gw;
+    // below running speed a walk takes over from the run, when the model has one
+    const rs = A.walkL ? clamp((sp - H.walkToRun[0]) / (H.walkToRun[1] - H.walkToRun[0]), 0, 1) : 1;
+    A.idleL.setEffectiveWeight((1 - A.m) * live); A.idleU.setEffectiveWeight((1 - A.m) * bu * live);
+    A.runL.setEffectiveWeight(A.m * rs * live); A.runU.setEffectiveWeight(A.m * rs * bu * live);
+    A.walkL?.setEffectiveWeight(A.m * (1 - rs) * live); A.walkU?.setEffectiveWeight(A.m * (1 - rs) * bu * live);
+    A.cast?.setEffectiveWeight(cw * live); A.hit?.setEffectiveWeight(hw * live); A.gesture?.setEffectiveWeight(gw * live);
+    const s = clamp(sp, 0, 1.2);
+    A.runL.timeScale = A.runU.timeScale = Math.max(.8, H.runAnimSpeed * s);
+    if (A.walkL && A.walkU) A.walkL.timeScale = A.walkU.timeScale = Math.max(.6, H.walkAnimSpeed * s);
   }
   A.mixer.update(dt);
 }

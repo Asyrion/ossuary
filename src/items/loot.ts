@@ -36,6 +36,8 @@ export interface LootData extends Record<TableName, LootTable> {
   /** Obols in a purse. */ purse: number;
   /** A cleared room leaves one drop with this chance, picked by weight. */ roomClear: { chance: number; weights: Partial<Record<Drop, number>> };
   /** Chance a fallen enemy leaves an obol. */ enemyCoin: number;
+  /** Chance a reliquary chest is gilded: it holds an artifact outside the floor's budget, and only a bone
+      key opens it. */ gildedChest: number;
   merchant: MerchantData;
 }
 export const LOOT = lootData as LootData;
@@ -99,7 +101,7 @@ export function validateLoot(loot: LootData = LOOT): string[] {
     if (t.chance !== undefined && !(t.chance >= 0 && t.chance <= 1)) errs.push(`${name} chance must be between 0 and 1`);
     if (t.count && !(t.count[0] >= 1 && t.count[1] >= t.count[0])) errs.push(`${name} count must be [least, most], at least 1`);
   }
-  for (const [name, p] of [['room clear chance', loot.roomClear.chance], ['enemy coin chance', loot.enemyCoin]] as const) if (!(p >= 0 && p <= 1)) errs.push(`${name} must be between 0 and 1`);
+  for (const [name, p] of [['room clear chance', loot.roomClear.chance], ['enemy coin chance', loot.enemyCoin], ['gilded chest chance', loot.gildedChest]] as const) if (!(p >= 0 && p <= 1)) errs.push(`${name} must be between 0 and 1`);
   const m = loot.merchant;
   if (!m) errs.push('the merchant is missing');
   else {
