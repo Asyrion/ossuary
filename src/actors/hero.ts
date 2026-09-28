@@ -115,11 +115,10 @@ export function heroVisual(dt: number, now: number) {
   hero.root.position.set(player.x, 0, player.z); hero.yaw.rotation.y = player.yawA;
   const sp = moving / CFG.hero.speed;
   const lean = hero.lean;
-  if (hero.anim) {
-    updateHeroAnim(hero.anim, dt, player.dead ? 0 : sp);
-  } else if (player.dead) { // static model: just topple over
+  if (hero.anim) updateHeroAnim(hero.anim, dt, player.dead ? 0 : sp);
+  if (player.dead && !hero.anim?.death) { // a static model, or a rig with no death clip: just topple over
     lean.rotation.x = lerp(lean.rotation.x, 1.45, 1 - Math.exp(-6 * dt)); lean.position.y = lerp(lean.position.y, .1, 1 - Math.exp(-6 * dt));
-  } else {
+  } else if (!hero.anim) {
     player.bob += dt * (moving > .3 ? 13 : 2.2);
     lean.position.y = moving > .3 ? Math.abs(Math.sin(player.bob)) * .07 : Math.sin(player.bob) * .012;
     const fwd = (player.vx * Math.sin(player.yawA) + player.vz * Math.cos(player.yawA)) / CFG.hero.speed;
