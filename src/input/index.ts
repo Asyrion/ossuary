@@ -21,6 +21,10 @@ export interface InputActions {
   autoPause(): void;
   /** The key left of 1, or F2: open or close the dev menu. */
   toggleDev(): void;
+  /** A key for the inventory (I or Tab opens it; inside, arrows choose and Q and E change tabs): true when used. */
+  inventoryKey(code: string): boolean;
+  /** A gamepad button just pressed that menus may use (B, LB, RB, View, the d-pad): true when used. */
+  padButton(i: number): boolean;
   playing(): boolean;
 }
 

@@ -1,8 +1,9 @@
-/* The lore card: picking something up shows what it is, in the corner of the screen, the way a soulslike
+/* The lore card: picking something up shows what it is, in the middle of the screen, the way a soulslike
    describes an item, if a little less cryptic: its icon, name and kind, what it does, and a few lines of lore.
    Artifacts show theirs every time (data/artifacts.json); items and containers the first time in a run
    (STR.lore.items). Later kinds of things (spells, potions) show theirs through `showLore`. The card fades
-   after a while, longer for longer lore; its time only runs while the game does. */
+   after a few seconds (the inventory keeps everything to read again); its time only runs while the game does. */
+import { CFG } from '../config';
 import { G, player } from '../state';
 import { STR } from '../strings';
 import { $ } from '../util';
@@ -29,16 +30,19 @@ const ITEM_ICONS: Record<LoreItem, string> = {
   gilded: svg(box(`<circle cx="12" cy="15" r="2.6" ${S}/>`), '#e8c060'),
 };
 
+/** An item's icon, as on its lore card (the inventory shows them too). */
+export const itemIcon = (item: LoreItem) => ITEM_ICONS[item];
+
 let el: { card: HTMLElement; icon: HTMLElement; name: HTMLElement; kind: HTMLElement; effect: HTMLElement; lore: HTMLElement } | null = null;
 let left = 0;
 const els = () => el ??= { card: $('lore'), icon: $('loreIcon'), name: $('loreName'), kind: $('loreKind'), effect: $('loreEffect'), lore: $('loreText') };
 
-/** Show a lore card, replacing any on screen: longer lore stays longer (6 to 11 s). */
+/** Show a lore card, replacing any on screen: a few seconds, a little longer for longer lore (`CFG.lore`). */
 export function showLore(e: LoreEntry) {
   const c = els();
   c.icon.innerHTML = e.icon; c.name.textContent = e.name; c.kind.textContent = e.kind;
   c.effect.textContent = e.effect; c.lore.textContent = e.lore;
-  left = Math.min(11, Math.max(6, 4 + e.lore.split(/\s+/).length * .17));
+  const L = CFG.lore; left = Math.min(L.most, L.least + e.lore.split(/\s+/).length * L.perWord);
   c.card.classList.add('on');
 }
 

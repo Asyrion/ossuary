@@ -4,6 +4,7 @@
    names works; the extras (walk, a second death, drink, eat) are used when a model has them. */
 import * as THREE from 'three';
 import { CFG } from '../config';
+import { DEV } from '../state';
 import { clamp, lerp } from '../util';
 import { HIPS_OFFSET_LIMIT, HIPS_RE, assignRoles, hipsOffset, type Role } from './clipRoles';
 
@@ -192,15 +193,16 @@ export function updateHeroAnim(A: HeroAnim, dt: number, sp: number) {
   const live = A.dead ? 0 : 1;
   if (A.runL && A.runU && A.idleL && A.idleU) {
     const hw = A.hit ? A.h : 0, cw = A.cast ? A.c * (1 - hw) : 0, gw = A.gesture ? A.g * (1 - hw - cw) : 0, bu = 1 - cw - hw - gw;
-    // below running speed a walk takes over from the run, when the model has one
-    const rs = A.walkL ? clamp((sp - H.walkToRun[0]) / (H.walkToRun[1] - H.walkToRun[0]), 0, 1) : 1;
+    // below running speed a walk takes over from the run, when the model has one (the dev menu can make it walk always)
+    const walkOnly = !!A.walkL && DEV.moveClip !== 'run';
+    const rs = walkOnly ? 0 : A.walkL ? clamp((sp - H.walkToRun[0]) / (H.walkToRun[1] - H.walkToRun[0]), 0, 1) : 1;
     A.idleL.setEffectiveWeight((1 - A.m) * live); A.idleU.setEffectiveWeight((1 - A.m) * bu * live);
     A.runL.setEffectiveWeight(A.m * rs * live); A.runU.setEffectiveWeight(A.m * rs * bu * live);
     A.walkL?.setEffectiveWeight(A.m * (1 - rs) * live); A.walkU?.setEffectiveWeight(A.m * (1 - rs) * bu * live);
     A.cast?.setEffectiveWeight(cw * live); A.hit?.setEffectiveWeight(hw * live); A.gesture?.setEffectiveWeight(gw * live);
     const s = clamp(sp, 0, 1.2);
     A.runL.timeScale = A.runU.timeScale = Math.max(.8, H.runAnimSpeed * s);
-    if (A.walkL && A.walkU) A.walkL.timeScale = A.walkU.timeScale = Math.max(.6, H.walkAnimSpeed * s);
+    if (A.walkL && A.walkU) A.walkL.timeScale = A.walkU.timeScale = Math.max(.6, (DEV.moveClip === 'walkNatural' ? H.walkNatural : H.walkAnimSpeed) * s);
   }
   A.mixer.update(dt);
 }

@@ -8,6 +8,8 @@ export const ARROWS: Record<string, [number, number]> = { ArrowUp: [0, -1], Arro
 export function initKeyboard(act: InputActions) {
   window.addEventListener('keydown', e => {
     act.unlockAudio();
+    // the inventory takes its keys first (held arrows repeat through its lists)
+    if ((!e.repeat || ARROWS[e.code]) && act.inventoryKey(e.code)) { e.preventDefault(); return; }
     if (ARROWS[e.code] || e.code === 'Space') e.preventDefault();
     if (e.repeat) return;
     if (e.code === 'Backquote' || e.code === 'F2') { e.preventDefault(); act.toggleDev(); return; }

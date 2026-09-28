@@ -7,6 +7,7 @@ export const CFG = {
     runAnimSpeed: 3.0,  // playback speed of the run clip at full speed; raise if feet slide
     walkAnimSpeed: 10.5, // playback speed the walk clip would need at full speed (it only plays when slow)
     walkToRun: [.12, .3] as [number, number], // between these fractions of full speed the walk hands over to the run
+    walkNatural: 2.2,   // dev menu comparison: the walk's playback at full speed at a natural pace (the feet slide)
     drinkSpeed: 1.4,    // playback speed of the draught when the mage is healed
     fidget: [9, 16] as [number, number], // seconds standing still before the mage eats something
   },
@@ -34,6 +35,8 @@ export const CFG = {
   // the merchant's shop (room-relative z of the shade and the row of wares, the gap between wares), how
   // close the mage must come to buy, and how far a bolt flies in the warded shop before it fizzles
   merchant: { shadeAt: -1.9, waresAt: .9, spacing: 2.3, reach: .45, boltFizzle: .6 },
+  // the lore card on pickup: seconds on screen, at least, a little more per word of lore, and at most
+  lore: { least: 4, perWord: .04, most: 6 },
   // water and oil (world/pools.ts): wading speed (the mage and walking foes), seconds oil burns and water stays
   // frozen, the burn burning oil sets on foes and how often, the half hearts it and a shocked pool take from the
   // mage, how long a shocked pool crackles, and the drowned floor's puddles (how many per fight, tiles each)
