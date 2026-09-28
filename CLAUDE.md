@@ -14,7 +14,7 @@ style reference in every image), budgets per kind of asset, the pipeline from im
 log. When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3 built (see `docs/M3-plan.md`; the balance pass waits for play-tests); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3.6 under way (`docs/M3.6-plan.md`: step 1, architecture, built); M3 built (see `docs/M3-plan.md`; the balance pass waits for play-tests); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -28,13 +28,18 @@ generated three-floor runs. See `README.md` for scripts and deployment.
 - Runs are seeded (`src/rng.ts`: named streams per system). `src/world/generate.ts` builds each floor
   (pure, unit-tested); `src/world/shapes.ts` defines room shapes (cells, tile mask, door slots);
   `src/world/templates.ts` parses and validates room templates. `src/world/rooms.ts` traces walls along
-  any outline and cuts doors into them; the camera follows the mage in rooms larger than the view
+  any outline and cuts doors into them (M3.6: the pure `src/world/walls.ts` makes the walls a grid of wall tiles,
+  tall or low by where the floor lies, merged into boxes that never overlap; `src/world/dressing.ts` puts pilasters
+  and niches on the tall walls, from `wall.dress` in each floor's look; doors move along their cell edge by
+  `shift` on the planned door, chosen in `generate.ts` where both rooms' templates leave the lane clear, per floor
+  `doorShift`, and the dev menu's door switch moves all or none in new floors); the camera follows the mage in rooms larger than the view
   (`cameraTargetFor`) and pulls back in multi-cell halls (`viewScaleFor`, `CFG.camHallView`); four
   torch lights move to the torches nearest the mage. Content:
   `data/floors.json` (room counts, difficulty weights, enemy health, altar and vault chances, which floors have
   a shrine, the vault's warden, boss tuning and look per floor),
   `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `i` pillar, `=` stone tomb, `u` urn,
-  `$` rune-sealed urn, `~` water, `%` oil, `R W H` enemies, `B` boss; `x` outside an L's missing corner; ordeal templates list
+  `$` rune-sealed urn, `~` water, `%` oil, `R W H` enemies, `B` boss; `x` wall: outside an L's missing corner, and
+  inside the shape to carve it (cut corners, bays, a pinched waist, a free-standing pier); ordeal templates list
   their enemies per wave in `waves`; `special.json` holds ordeals, altars, merchants, vaults, secret rooms and shrines,
   `shapes.json` the larger and narrow rooms) and
   `data/artifacts.json` (foci, passive and cursed artifacts: stats, effects, pools, colours, icons; a cursed

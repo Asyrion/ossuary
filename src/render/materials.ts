@@ -52,6 +52,19 @@ export function wallMaterials(wall: FloorLook['wall']) {
   return mats;
 }
 
+const cappedCache = new Map<string, THREE.Material[]>();
+/** Walls carved inside a room (a partition, a pier, a cut corner): brick sides under a cap of dressed stone, so a
+    low one reads as masonry rather than a hole in the floor. */
+export function cappedWallMaterials(wall: FloorLook['wall']) {
+  const key = JSON.stringify(wall); let mats = cappedCache.get(key);
+  if (!mats) {
+    const [brick] = wallMaterials(wall), [r, g, b] = wall.brick.map(v => Math.min(255, Math.round(v * .6)));
+    const cap = markShared(new THREE.MeshStandardMaterial({ color: new THREE.Color(`rgb(${r},${g},${b})`), roughness: .9 }));
+    mats = [brick, brick, cap, cap, brick, brick]; cappedCache.set(key, mats);
+  }
+  return mats;
+}
+
 // Geometries flagged userData.shared are never disposed by disposeTree.
 const shadowGeo = new THREE.PlaneGeometry(1, 1); shadowGeo.rotateX(-Math.PI / 2); shadowGeo.userData.shared = true;
 const shadowMat = markShared(new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }));

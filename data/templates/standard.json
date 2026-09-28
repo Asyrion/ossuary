@@ -265,5 +265,60 @@
     ".............",
     "x..W........x",
     "xx.........xx"
+  ] },
+
+  { "id": "buttressed_crypt", "shape": "standard", "types": ["normal"], "difficulty": 1, "grid": [
+    "u.x.......x..",
+    ".............",
+    "...R.....R...",
+    ".............",
+    "......W......",
+    ".............",
+    "..x.......x.u"
+  ] },
+  { "id": "cross_chapel", "shape": "standard", "types": ["normal"], "difficulty": 2, "grid": [
+    "xxx.......xxx",
+    "xx.........xx",
+    "....i...i....",
+    "..R...H...R..",
+    ".............",
+    "xx.........xx",
+    "xxx.......xxx"
+  ] },
+  { "id": "ribbed_crypt", "shape": "standard", "types": ["normal"], "difficulty": 1, "grid": [
+    "xux.x...x.x.x",
+    ".............",
+    "...W.....W...",
+    "......R......",
+    "...R.........",
+    ".............",
+    "x.x.x...x.xux"
+  ] },
+  { "id": "pier_court", "shape": "standard", "types": ["normal"], "difficulty": 2, "grid": [
+    ".............",
+    "..xx.....xxW.",
+    "..xx..R..xx..",
+    "..H..........",
+    "..xx.....xx..",
+    "..xx.....xx..",
+    "............."
+  ] },
+  { "id": "west_apse", "shape": "standard", "types": ["normal"], "difficulty": 1, "grid": [
+    "xxx........=.",
+    "xx...........",
+    "....R........",
+    ".........H...",
+    "....R........",
+    "xx...........",
+    "xxx........=."
+  ] },
+  { "id": "walled_court", "shape": "standard", "types": ["normal"], "difficulty": 2, "grid": [
+    ".............",
+    ".R.xx...xx...",
+    "...x.....x...",
+    "...x.Wo..x...",
+    "...x.....x...",
+    "...xx...xx.R.",
+    "............."
   ] }
 ]

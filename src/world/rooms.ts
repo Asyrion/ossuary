@@ -7,7 +7,7 @@ import { G } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { floorTexture, pitTexture } from '../render/textures';
-import { M, basicMat, blob, boxUV, disposeTree, glow, markShared, wallMaterials } from '../render/materials';
+import { M, basicMat, blob, boxUV, cappedWallMaterials, disposeTree, glow, markShared, wallMaterials } from '../render/materials';
 import { offerGuaranteed, placeArtifact } from '../items/artifacts';
 import { burst } from '../combat/fx';
 import { mulberry } from '../util';
@@ -24,6 +24,7 @@ import { fillVault } from './vault';
 import { buildCrackedWall, fillSecret, secretLook } from './secret';
 import { buildShrine, shrineLook } from './shrine';
 import { subtractRect, wallRects, type Rect } from './walls';
+import { dressNorthWall } from './dressing';
 
 export const roomAt = (gx: number, gy: number) => G.roomMap.get(gx + ',' + gy);
 /** World position of the centre of template tile (c, r). */
@@ -319,7 +320,7 @@ function wallBox(room: Room, x0: number, x1: number, z0: number, z1: number, h: 
 /** Walls along the outline with gaps for the doors, the doors themselves, and torches. Needs every room of
     the floor built, since a door's look depends on the room behind it. */
 export function buildWallsAndDoors(room: Room) {
-  const { minX, minZ } = room.bounds, mats = wallMaterials(room.look.wall);
+  const { minX, minZ } = room.bounds, mats = wallMaterials(room.look.wall), capped = cappedWallMaterials(room.look.wall);
   const { hx, hz } = cellHalfExtents(room.plan.shape);
   // doors first: where they are decides where the walls have gaps
   for (const pd of room.plan.doors) {
@@ -344,13 +345,20 @@ export function buildWallsAndDoors(room: Room) {
   for (const w of rects) {
     let pieces: Rect[] = [{ x0: minX + w.c0, x1: minX + w.c1, z0: minZ + w.r0, z1: minZ + w.r1 }];
     for (const g of gaps) pieces = pieces.flatMap(p => subtractRect(p, g));
-    for (const p of pieces) room.walls.push(wallBox(room, p.x0, p.x1, p.z0, p.z1, w.tall ? H_TALL : H_LOW, mats));
+    for (const p of pieces) room.walls.push(wallBox(room, p.x0, p.x1, p.z0, p.z1, w.tall ? H_TALL : H_LOW, w.inner && !w.tall ? capped : mats));
   }
   // torches along the longer stretches of tall wall facing into the room
-  for (const run of outline(room.mask, room.w, room.h)) {
+  const tallRuns = outline(room.mask, room.w, room.h).filter(run => {
     const ns = isNS(run.facing), mid = Math.floor((run.i0 + run.i1) / 2);
-    if (run.i1 - run.i0 < 3 || !(ns ? tallAt(mid, run.line) : tallAt(run.line, mid))) continue;
-    placeTorches(room, run, (ns ? minZ : minX) + run.line);
+    return run.i1 - run.i0 >= 3 && (ns ? tallAt(mid, run.line) : tallAt(run.line, mid));
+  });
+  for (const run of tallRuns) placeTorches(room, run, (isNS(run.facing) ? minZ : minX) + run.line);
+  // pilasters and niches along the tall walls facing south into the room, clear of doors and torches
+  for (const run of tallRuns) if (run.facing === 'n') {
+    const face = minZ + run.line + WT;
+    const avoid = [...room.doors.filter(d => d.side === 'n' && Math.abs(d.z - face) < .1).map(d => ({ x: d.x, room: DH + .3 })),
+      ...room.torches.filter(t => Math.abs(t.z - (face + .6)) < .1).map(t => ({ x: t.x, room: .3 }))];
+    dressNorthWall(room, face, minX + run.i0, minX + run.i1, avoid);
   }
 }
 

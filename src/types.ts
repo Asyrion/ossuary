@@ -17,11 +17,15 @@ export interface Circle { x: number; z: number; r: number }
 
 type RGB = [number, number, number];
 /** How a floor looks: placeholder variety until the biome pass (M8). Lives in data/floors.json. */
+/** What a niche in a dressed wall holds (world/dressing.ts). */
+export type NicheKind = 'skull' | 'candle' | 'urn' | 'bones' | 'empty';
+/** How a floor dresses its tall walls: a pilaster every `pilaster` tiles (0: none), and what niches hold, by weight. */
+export interface WallDress { pilaster: number; niches: Partial<Record<NicheKind, number>> }
 export interface FloorLook {
   name: string;
   /** Floor tiles: base colour, mortar, stain colour ("r,g,b"), scattered decoration and how many bones. */
   floor: { base: RGB; mortar: string; stain: string; decor: 'bones' | 'puddles' | 'ash'; bones: number };
-  wall: { brick: RGB; mortar: string; stains: 'none' | 'moss' | 'soot' };
+  wall: { brick: RGB; mortar: string; stains: 'none' | 'moss' | 'soot'; dress?: WallDress };
   torch: { style: 'bracket' | 'lantern' | 'brazier'; flame: string; light: string; intensity: number };
   /** Hemisphere sky and ground colours, and the moonlight. */
   light: { sky: string; ground: string; moon: string };
