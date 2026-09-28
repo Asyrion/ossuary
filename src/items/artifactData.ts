@@ -2,7 +2,9 @@
    and how sources pick one. Pure (no three.js), shared by the game and the unit tests.
 
    Combining rule (GDD, Artifacts): the focus sets the cantrip's pattern (how many bolts, which path);
-   passive and cursed artifacts add modifiers. Everything combines automatically, with no pairings. */
+   passive and cursed artifacts add modifiers. Everything combines automatically, with no pairings.
+   A cursed artifact's gift is its stats and effects, its price the `curse`; cleansed at a shrine, the price
+   goes and the gift is halved (GDD: Shrine cleansing). */
 import artifactsData from '../../data/artifacts.json';
 import type { Rng } from '../rng';
 
@@ -23,9 +25,12 @@ export interface FocusPattern {
   damageMul: number; rangeMul: number; path: BoltPath;
   /** Wall bounces for the bounce path. */ bounces: number;
 }
+/** A cursed artifact's price, and what it says of itself once cleansed. */
+export interface Curse { stats?: Partial<Record<StatKey, number>>; effects?: Effect[]; cleansed: string }
 export interface ArtifactDef {
   id: string; name: string; kind: ArtifactKind; text: string; pools: Pool[];
   stats?: Partial<Record<StatKey, number>>; effects?: Effect[]; boltColor?: string;
+  /** Cursed artifacts only: the price on top of the gift. */ curse?: Curse;
   focus?: Partial<FocusPattern>; start?: boolean;
   /** Pedestal gem and HUD icon colour; icon key for the HUD. */ color: string; icon: string;
 }
@@ -60,17 +65,26 @@ export interface Stats {
 }
 export const DEFAULT_BOLT_COLOR = 0xffcf7a;
 
-/** The mage's stats for a focus plus the other artifacts held (in pickup order). */
-export function computeStats(focusId: string, itemIds: readonly string[], base: BaseStats): Stats {
+/** Half a gift: half the bonus of an added stat, half the way to 1 of a multiplied one. */
+export const halveStat = (k: StatKey, v: number) => k.endsWith('Mul') ? 1 + (v - 1) / 2 : v / 2;
+
+/** The mage's stats for a focus plus the other artifacts held (in pickup order); cursed artifacts in
+    `cleansed` have lost their price and half their gift. */
+export function computeStats(focusId: string, itemIds: readonly string[], base: BaseStats, cleansed: readonly string[] = []): Stats {
   const focus = artifact(focusId); const pattern = focusPattern(focus);
   const add: Record<StatKey, number> = { damage: 0, damageMul: 1, fireDelayMul: 1, speed: 0, speedMul: 1, boltScale: 0, hearts: 0, invuln: 0, pierce: 0, shotSpeedMul: 1, rangeMul: 1, knockbackMul: 1 };
   const effects = new Set<Effect>(); let boltColor = DEFAULT_BOLT_COLOR;
   for (const id of [focusId, ...itemIds]) {
-    const def = artifact(id);
-    for (const [k, v] of Object.entries(def.stats ?? {}) as [StatKey, number][]) {
-      if (k.endsWith('Mul')) add[k] *= v; else add[k] += v;
-    }
+    const def = artifact(id), clean = !!def.curse && cleansed.includes(id);
+    const apply = (stats: Partial<Record<StatKey, number>> = {}, halve = false) => {
+      for (const [k, raw] of Object.entries(stats) as [StatKey, number][]) {
+        const v = halve ? halveStat(k, raw) : raw;
+        if (k.endsWith('Mul')) add[k] *= v; else add[k] += v;
+      }
+    };
+    apply(def.stats, clean);
     for (const e of def.effects ?? []) effects.add(e);
+    if (def.curse && !clean) { apply(def.curse.stats); for (const e of def.curse.effects ?? []) effects.add(e); }
     if (def.boltColor) boltColor = parseInt(def.boltColor.slice(1), 16);
   }
   return {
@@ -105,8 +119,10 @@ export function validateArtifacts(defs: ArtifactDef[] = ARTIFACT_DEFS): string[]
     if (!a.name || !a.text) errs.push(`${at} needs a name and a text`);
     if (!['focus', 'passive', 'cursed'].includes(a.kind)) errs.push(`${at} has unknown kind "${a.kind}"`);
     for (const p of a.pools) if (!POOLS.includes(p)) errs.push(`${at} has unknown pool "${p}"`);
-    for (const e of a.effects ?? []) if (!EFFECTS.includes(e)) errs.push(`${at} has unknown effect "${e}"`);
-    for (const k of Object.keys(a.stats ?? {})) if (!STAT_KEYS.includes(k as StatKey)) errs.push(`${at} has unknown stat "${k}"`);
+    for (const e of [...a.effects ?? [], ...a.curse?.effects ?? []]) if (!EFFECTS.includes(e)) errs.push(`${at} has unknown effect "${e}"`);
+    for (const k of Object.keys({ ...a.stats, ...a.curse?.stats })) if (!STAT_KEYS.includes(k as StatKey)) errs.push(`${at} has unknown stat "${k}"`);
+    if ((a.kind === 'cursed') !== !!a.curse) errs.push(`${at}: cursed artifacts, and only they, carry a curse`);
+    if (a.curse && (!a.curse.cleansed || !(a.curse.effects?.length || Object.keys(a.curse.stats ?? {}).length))) errs.push(`${at}: a curse needs a price and a cleansed text`);
     if ((a.kind === 'focus') !== !!a.focus) errs.push(`${at}: foci, and only foci, have a focus pattern`);
     if (a.focus?.path && !PATHS.includes(a.focus.path)) errs.push(`${at} has unknown path "${a.focus.path}"`);
     if (!/^#[0-9a-f]{6}$/i.test(a.color) || (a.boltColor && !/^#[0-9a-f]{6}$/i.test(a.boltColor))) errs.push(`${at} has a bad colour`);
