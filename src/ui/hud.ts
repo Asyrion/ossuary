@@ -58,6 +58,8 @@ const ICONS: Record<string, string> = {
   witchknot: `<path d="M5 12c0-4 4-6 7-3s7 1 7-3M5 12c0 4 4 6 7 3s7-1 7 3" ${S}/><circle cx="12" cy="12" r="2" fill="currentColor"/>`,
   thorns: `<path d="M4 16l2-8 4 5 2-7 2 7 4-5 2 8z" ${S}/><path d="M4 19h16M6 8l-2-2M18 8l2-2M12 6V3" ${S}/>`,
   hungertome: `<path d="M4 5h13l3 3v12H7l-3-3z" ${S}/><path d="M8 11l1.5 2 1.5-2 1.5 2 1.5-2 1.5 2" ${S}/><path d="M8 16h8" ${S}/>`,
+  // costumes
+  hood: `<path d="M5 20c0-7 2-15 7-16 5 1 7 9 7 16" ${S}/><path d="M9 20c0-3 1-7 3-7s3 4 3 7" ${S}/><path d="M12 4c3-1 7 1 8 6" ${S}/>`,
 };
 
 /* Placeholder spell icons, drawn in the spell's colour. */

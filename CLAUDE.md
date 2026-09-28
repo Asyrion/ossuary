@@ -46,11 +46,16 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   The cantrip pipeline is in `src/combat/projectiles.ts` (fans, the serpent's weave, the tome's homing, strong
   casts, split bolts, burning and chilling bolts); companions that artifacts bind (the Candle Moth, the Weeping Skull) in `src/combat/familiars.ts`.
   New artifacts are data plus, for a new mechanic, an `Effect` or stat key in `artifactData.ts`, and an icon
-  in `hud.ts` (43 artifacts and the starting wand; 15 more ideas in `docs/ideas.md`). The M3 ten reach into
+  in `hud.ts` (44 artifacts and the starting wand; 15 more ideas in `docs/ideas.md`). The M3 ten reach into
   magic: `spellDamageMul` and `killMana` stats (`damageEnemy`, `killEnemy`), `emberBolts`, `frostbite` and
   `stormglass` on the cantrip, `thurible` on a burning death, `vigil` in `onRoomCleared`, `witchKnot` in
   `spellCost` (`src/magic/cost.ts`), `noRegen` in `updateMagic`. An artifact's `gives`
-  hands over obols, keys or glyphs once, when it's taken. The economy artifacts (step 6 of M2) reach into the
+  hands over obols, keys or glyphs once, when it's taken. An artifact's `costume` puts a piece on the mage
+  (`src/actors/costume.ts`, the pure rules in `costumeData.ts`): one piece per slot (head, shoulders, back, hands,
+  aura; the one taken last wins), hung from a bone of the rig so it follows every clip, and fitted in the rest pose to
+  the part of the body it covers (the head and hair the head bone moves); a static model wears it on the top of its
+  silhouette. `setHero` refits (`fitCostumes`), `refreshStats` dresses (`dress`). The Pilgrim's Cowl's hood is the
+  first piece, a placeholder shape until pieces come from Tripo; `__game.costume` reads what is worn. The economy artifacts (step 6 of M2) reach into the
   systems they bend: `freeVault` in `world/vault.ts`, `ferryman` in `flow.ts` (`onRoomCleared`), `glyphWard`
   and `blastMul` in `combat/glyphs.ts`, `graveLantern` in `world/secret.ts` and the minimap, `pedlar` in
   `items/merchant.ts`; the Miser's Purse's `obolDamage` makes `player.stats` depend on obols held, so

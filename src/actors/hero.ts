@@ -11,6 +11,7 @@ import { M, blob } from '../render/materials';
 import { shootDir } from '../input';
 import { angleLerp, lerp } from '../util';
 import { findMiniatureBase } from './baseDetect';
+import { fitCostumes } from './costume';
 import { buildHeroAnim, playCast, playDeath, playGesture, playHit, resetAnim, updateHeroAnim, type HeroAnim } from './heroAnim';
 
 export const hero = {
@@ -77,6 +78,7 @@ export function setHero(prep: PreparedHero, gltf: Pick<GLTF, 'animations'>, labe
   if (hero.model) hero.lean.remove(hero.model);
   hero.model = prep.holder; hero.lean.add(hero.model);
   hero.anim = null; hero.lean.rotation.set(0, 0, 0); hero.lean.position.set(0, 0, 0);
+  fitCostumes(prep.holder); // measured in the rest pose, before a clip moves the bones
   const clips = (gltf.animations || []).slice();
   if (prep.skinned && clips.length) hero.anim = buildHeroAnim(prep.holder, clips);
   const roles = hero.anim?.roles ?? {};
