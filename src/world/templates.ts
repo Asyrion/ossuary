@@ -1,7 +1,9 @@
 /* Room templates: character grids in data/templates/*.json, one grid the size of the shape's inside
    (shapes.ts). Pure data code (no three.js), shared by the game, the floor generator and the unit tests.
 
-   Legend:  .  floor      #  rock      o  pit      x  outside the room (the L's missing corner)
+   Legend:  .  floor      #  rock      o  pit      x  wall: outside the room (the L's missing corner), and inside
+                                                      it, carved out of the shape (a cut corner, an apse, a bay)
+                                                      or standing free (a partition, a pier)
             i  pillar     =  stone tomb (tiles side by side in a row, or else in a column, make one tomb)
             u  urn        $  rune-sealed urn (only a glyph's blast breaks it)
             ~  water      %  oil (both walkable; tiles side by side make one pool, see world/pools.ts)
@@ -80,11 +82,11 @@ export function validateTemplate(def: TemplateDef): string[] {
   }
   if (errs.length) return errs;
   const t = parseTemplate(def);
-  // the room's outline comes from its shape: `x` exactly where the shape has no inside
+  // the room's outline comes from its shape: `x` wherever the shape has no inside (and inside it, to carve)
   const mask = shapeMask(def.shape);
   let outline = 0;
-  for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) if ((t.tiles[r][c] === 'void') === mask[r][c]) outline++;
-  if (outline) errs.push(`${outline} tiles disagree with the ${def.shape} outline (use x exactly outside the room)`);
+  for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) if (!mask[r][c] && t.tiles[r][c] !== 'void') outline++;
+  if (outline) errs.push(`${outline} tiles disagree with the ${def.shape} outline (use x outside the room)`);
   for (const f of t.foes) if (!WALKABLE.includes(t.tiles[f.r][f.c])) errs.push(`${f.kind} at (${f.c},${f.r}) stands on ${t.tiles[f.r][f.c]}`);
   const blocked = (c: number, r: number) => !WALKABLE.includes(t.tiles[r]?.[c]);
   const slots = doorSlots(def.shape), lanes = slots.flatMap(s => s.lanes), entries = slots.map(s => s.entry);

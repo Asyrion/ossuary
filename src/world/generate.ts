@@ -13,10 +13,10 @@
    an empty cell with hidden doorways into two or more rooms (never the boss, the vault or the merchant). */
 import floorsData from '../../data/floors.json';
 import { CFG, type BossType, type EnemyType } from '../config';
-import type { Rng } from '../rng';
+import { Rng } from '../rng';
 import type { FloorLook, RoomType, Side } from '../types';
-import { OPPOSITE, SIDE_DIR, SHAPE_IDS, allowsSide, shapeCells, type ShapeId } from './shapes';
-import { TEMPLATE_DEFS, type TemplateDef } from './templates';
+import { OPPOSITE, SIDE_DIR, SHAPE_IDS, allowsSide, doorSlots, shapeCells, type ShapeId } from './shapes';
+import { TEMPLATE_DEFS, WALKABLE, parseTemplate, type TemplateDef } from './templates';
 
 export const GRID_W = 9, GRID_H = 8;
 export const START_CELL = { gx: 4, gy: 3 };
@@ -40,6 +40,7 @@ export interface FloorConfig {
   /** Chance the secret room holds an artifact (outside the budget) rather than a hoard. */ secretArtifactChance: number;
   /** The champion that rises in a vault forced open with glyphs. */ vaultWarden: EnemyType;
   /** Chance the boss room is widened into a great hall when there is space. */ bossHallChance: number;
+  /** Chance a door moves off the middle of its edge, where both rooms leave room for it (M3.6). */ doorShift: number;
   /** Relative weights of room shapes for new rooms. */ shapes: Partial<Record<ShapeId, number>>;
   /** Relative weights of the variants a normal room can roll. */ variants: Partial<Record<RoomVariant, number>>;
   templateWeights: Record<string, number>;
@@ -51,8 +52,9 @@ export interface FloorConfig {
 export const FLOORS = floorsData as unknown as FloorConfig[];
 
 export interface Cell { gx: number; gy: number }
-/** A door on the cell edge (gx, gy, side), leading to room `to`. */
-export interface PlannedDoor { gx: number; gy: number; side: Side; to: number }
+/** A door on the cell edge (gx, gy, side), leading to room `to`; `shift` moves it along the edge from the middle,
+    in tiles (towards +x on north and south edges, +z on east and west ones), the same for both its sides. */
+export interface PlannedDoor { gx: number; gy: number; side: Side; to: number; shift?: number }
 export interface PlannedRoom {
   id: number; type: RoomType; shape: ShapeId;
   /** Grid cells the room covers; `anchor` is the top-left of their bounding box. */ cells: Cell[]; anchor: Cell;
@@ -222,6 +224,8 @@ export function generateFloor(rng: Rng, cfg: FloorConfig, index: number, library
     }));
     assignVariants(rng, rooms, cfg, index);
     assignTemplates(rng, rooms, cfg, index, library);
+    // a stream of its own, so shifting doors doesn't change anything else about the floor
+    assignDoorShifts(new Rng(rooms.reduce((a, r) => (a ^ r.seed) * 31 >>> 0, 0x5d0025)), rooms, cfg.doorShift, library);
     return { index, rooms, startId: 0, bossId: boss, attempts };
   }
   throw new Error('floor generation failed after 500 attempts');
@@ -254,6 +258,39 @@ function assignTemplates(rng: Rng, rooms: PlannedRoom[], cfg: FloorConfig, index
     const fresh = pool.filter(t => !used.has(t.id));
     const def = rng.pick(fresh.length ? fresh : pool);
     used.add(def.id); room.templateId = def.id;
+  }
+}
+
+/** Rooms whose doors may move off the middle of their edges. Shops, vaults, libraries, shrines and secret cells
+    furnish their walls around a door in the middle, so theirs stay there. */
+export const SHIFTING: RoomType[] = ['normal', 'start', 'boss', 'treasure', 'ordeal', 'altar'];
+/** How far a door may move, in tiles: along a north or south edge (13 tiles), along an east or west one (7). */
+export const DOOR_SHIFTS = { ns: [-4, -2, 2, 4], ew: [-2, 2] };
+
+/** Does a door moved `shift` tiles along its edge fit the room's template: its lane clear, no foe beside it? */
+export function doorFits(room: PlannedRoom, door: PlannedDoor, shift: number, library: TemplateDef[] = TEMPLATE_DEFS) {
+  const def = library.find(t => t.id === room.templateId); if (!def) return false;
+  const t = parseTemplate(def, room.mirrorX, room.mirrorY);
+  const slot = doorSlots(room.shape, room.mirrorX, room.mirrorY).find(s => s.side === door.side && s.i === door.gx - room.anchor.gx && s.j === door.gy - room.anchor.gy);
+  if (!slot) return false;
+  const ns = door.side === 'n' || door.side === 's', move = (p: { c: number; r: number }) => ns ? { c: p.c + shift, r: p.r } : { c: p.c, r: p.r + shift };
+  const entry = move(slot.entry);
+  return slot.lanes.map(move).every(({ c, r }) => WALKABLE.includes(t.tiles[r]?.[c]) && !t.foes.some(f => f.c === c && f.r === r))
+    && !t.foes.some(f => Math.max(Math.abs(f.c - entry.c), Math.abs(f.r - entry.r)) < 2);
+}
+
+/** Now and then a door moves along its edge (both its sides alike), to a place both rooms' templates leave free. */
+function assignDoorShifts(rng: Rng, rooms: PlannedRoom[], chance: number, library: TemplateDef[]) {
+  for (const room of rooms) for (const d of room.doors) {
+    if (d.shift !== undefined) continue; // set already, from the other side
+    const other = rooms[d.to], [dx, dy] = SIDE_DIR[d.side];
+    const back = other.doors.find(o => o.to === room.id && o.side === OPPOSITE[d.side] && o.gx === d.gx + dx && o.gy === d.gy + dy);
+    let shift = 0;
+    if (back && SHIFTING.includes(room.type) && SHIFTING.includes(other.type) && rng.chance(chance)) {
+      const ns = d.side === 'n' || d.side === 's';
+      shift = rng.shuffle(DOOR_SHIFTS[ns ? 'ns' : 'ew'].slice()).find(s => doorFits(room, d, s, library) && doorFits(other, back, s, library)) ?? 0;
+    }
+    d.shift = shift; if (back) back.shift = shift;
   }
 }
 

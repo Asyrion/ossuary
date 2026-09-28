@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../../src/rng';
-import { FLOORS, GRID_H, GRID_W, GUARANTEED_SOURCES, HARD_VARIANTS, OPTIONAL_SOURCES, SECRET_SHUNS, generateFloor, pickBoss, planToText, testPlan } from '../../src/world/generate';
+import { DOOR_SHIFTS, FLOORS, GRID_H, GRID_W, GUARANTEED_SOURCES, HARD_VARIANTS, OPTIONAL_SOURCES, SECRET_SHUNS, SHIFTING, doorFits, generateFloor, pickBoss, planToText, testPlan } from '../../src/world/generate';
 import { CFG } from '../../src/config';
 import { BOSS_TYPES, type BossType } from '../../src/config';
 import { OPPOSITE, SIDE_DIR, allowsSide, shapeCells } from '../../src/world/shapes';
@@ -266,6 +266,35 @@ describe('floor generator', () => {
       const p = testPlan(def.id);
       expect(p.rooms[1].doors.some(d => d.to === 0)).toBe(true); // reachable from the start
     }
+  });
+});
+
+describe('doors off the middle', () => {
+  it('move along their edge on both sides alike, only where both rooms leave room, and never in shops and the like', () => {
+    let doors = 0, shifted = 0;
+    for (let s = 0; s < 150; s++) for (const [i, cfg] of FLOORS.entries()) {
+      const plan = generateFloor(Rng.from('D' + s, 'floor' + (i + 1)), cfg, i);
+      for (const room of plan.rooms) for (const d of room.doors) {
+        const other = plan.rooms[d.to], [dx, dy] = SIDE_DIR[d.side];
+        const back = other.doors.find(o => o.to === room.id && o.side === OPPOSITE[d.side] && o.gx === d.gx + dx && o.gy === d.gy + dy)!;
+        expect(back.shift).toBe(d.shift);
+        doors++;
+        if (!d.shift) continue;
+        shifted++;
+        expect(SHIFTING.includes(room.type) && SHIFTING.includes(other.type)).toBe(true);
+        expect(DOOR_SHIFTS[d.side === 'n' || d.side === 's' ? 'ns' : 'ew']).toContain(d.shift);
+        expect(doorFits(room, d, d.shift)).toBe(true);
+      }
+    }
+    // about half of the doors roll to move, and most of those find somewhere to go
+    expect(shifted / doors).toBeGreaterThan(.2);
+    expect(shifted / doors).toBeLessThan(.5);
+  });
+
+  it('leave the rest of the floor as it was', () => {
+    const plan = generateFloor(Rng.from('SAME', 'floor1'), FLOORS[0], 0), still = generateFloor(Rng.from('SAME', 'floor1'), { ...FLOORS[0], doorShift: 0 }, 0);
+    expect(plan.rooms.map(r => [r.type, r.templateId, r.cells])).toEqual(still.rooms.map(r => [r.type, r.templateId, r.cells]));
+    expect(still.rooms.every(r => r.doors.every(d => d.shift === 0))).toBe(true);
   });
 });
 
