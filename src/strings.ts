@@ -21,7 +21,8 @@ export const STR = {
     inventory: 'Inventory', inventoryKeys: 'I or Tab', inventoryPad: 'View', inventoryTouch: '–',
     dev: 'Dev menu', devKeys: '` / ^ or F2', devPad: '–', devTouch: '–',
   },
-  chalk: { walk: 'walk', cast: 'cast', glyph: 'glyph', space: 'SPACE', touchMove: 'left thumb moves', touchShoot: 'right thumb shoots' },
+  chalk: { walk: 'walk', cast: 'cast', glyph: 'glyph', space: 'SPACE', touchMove: 'left thumb moves', touchShoot: 'right thumb shoots',
+    spells: 'spells', q: 'Q', e: 'E', inventory: 'inventory', i: 'I', pause: 'pause', esc: 'ESC' },
   pause: {
     heading: 'Paused', resume: 'Resume', restart: 'Restart run', load: 'Load hero .glb',
     soundOn: 'Sound: on', soundOff: 'Sound: off',
