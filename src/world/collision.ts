@@ -6,14 +6,18 @@ import { doorsOf } from './rooms';
 export type Mover = 'player' | 'walker' | 'flyer' | 'bolt';
 
 /** What blocks a mover in a room: walls and closed doors always; rocks stop everything but flyers;
-    pits stop the mage and walkers, not bolts or flyers. */
+    pits stop the mage and walkers, not bolts or flyers; a spell's ice stops all but the mage's bolts. */
 export function blockers(room: Room, who: Mover, overPits = false) {
   const list: Box[] = room.walls.slice();
   for (const d of doorsOf(room)) if (!d.open) list.push(d.box);
   if (who !== 'flyer') list.push(...room.rocks);
   if ((who === 'player' || who === 'walker') && !overPits) list.push(...room.pits);
+  if (who !== 'bolt' && room.barriers) list.push(...room.barriers);
   return list;
 }
+
+/** The box (of `boxes`) that the point (x, z) is inside, if any. */
+export const boxAt = (x: number, z: number, boxes: Box[]) => boxes.find(b => Math.abs(x - b.x) < b.hx && Math.abs(z - b.z) < b.hz);
 
 /** Circle vs AABB push-out; returns true if any contact. */
 export function collide(e: Circle, boxes: Box[]) {

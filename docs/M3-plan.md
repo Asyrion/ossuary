@@ -66,7 +66,7 @@ mage's hand; the pages of spells given up stay behind as ash-edged leaves that c
       `src/magic/spells.ts`
 - [x] Statuses and reactions as a pure module (`src/magic/status.ts`): stacks, durations, ticks, boss rules and
       which reaction two statuses make, unit-tested without three.js; tuning in `data/magic.json`
-- [ ] Spells and statuses use the existing pipelines: projectile spells through `projectiles.ts`, damage through
+- [x] Spells and statuses use the existing pipelines: projectile spells through `projectiles.ts`, damage through
       `damageEnemy`, particles and decals through `fx.ts`, shared geometries and materials
 - [ ] Lore cards for spells and grimoire pages (the M2 lore card), and a spell icon for each
 - [ ] Dev menu: spells (give to slot 1 or 2), full mana, endless mana, statuses on the foes in the room, a
@@ -112,12 +112,31 @@ mage's hand; the pages of spells given up stay behind as ash-edged leaves that c
 
 ## Step 3: The six spells
 
-- [ ] Ember: Cinder Lance (beam), Pyre Seal (placed ring, burning ground)
-- [ ] Frost: Rime Shards (shotgun), Glacial Wall (wall that blocks shots, shatters on foes)
-- [ ] Storm: Arc (chain), Static Mantle (self, shocks and throws back what touches the mage)
-- [ ] School sound palettes; icons and lore; balance against the cantrip (a spell a room should matter, not
-      replace the cantrip)
-- [ ] Browser tests: each spell hits the dummy and applies its status
+- [x] Ember: Cinder Lance (beam: from just ahead of the mage until a wall, closed door or rock stops it, 7 tiles
+      at most; 8 damage and 3 s of Burn on every foe in the line; what it ends on is struck like a bolt, so an urn
+      breaks and a cracked wall rings hollow; fire sets off the glyphs it crosses), Pyre Seal (chalked in fire at
+      the mage's feet, it brightens and turns for 1 s, then a ring of flame 1.8 tiles out strikes for 14, burns 4 s
+      and throws back; the ground burns 4 s more, setting walkers on it burning again, not flyers; glyphs in the
+      ring go off)
+- [x] Frost: Rime Shards (five ice splinters in a fan, spell bolts through the bolt pipeline: 3 damage and a Chill
+      stack each, so at close range all five land and the third freezes), Glacial Wall (ice crystals 3 tiles
+      across the cast direction, 2 ahead or nearer when something is in the way, stopping at walls and rocks: they
+      stop the mage, foes and their shots, not the mage's bolts, so the wall is a firing line; after 5 s it
+      cracks and shatters for 8 and two Chill stacks on foes within 1.3 tiles)
+- [x] Storm: Arc (chain), Static Mantle (6 s of sparks and small arcs around the mage; a foe that touches it is
+      struck for 4, shocked for 2 s and thrown back, each foe at most every half second, and doesn't hurt the
+      mage; a boss is too heavy to throw and still hurts, unless the shock stunned it)
+- [x] School sound palettes (Ember crackle and whoosh, Frost chime and shatter, Storm zap and hum); icons and lore
+      for all six; Shatter's shards are spell bolts now (ice splinters). Balance against the cantrip (about 10
+      damage a second): a full bar is three to five spells and a fight gives back 20 to 35 mana, so a fight has
+      a spell or two in it and the cantrip does the rest; a lance through a line or a seal under a crowd kills
+      floor 1's foes with the burn, a single target is still the cantrip's work. Spells are refused in the
+      merchant's warded shop. The validator checks each shape's params (`SHAPE_PARAMS`); unit tests check the
+      six spells (two per school, every shape once) and their costs
+- [x] Browser tests: the lance burns two dummies in a line; the seal waits, erupts (damage, burn, knockback) and
+      leaves burning ground; five shards freeze a dummy at close range; the ice wall holds a rotling back, stops
+      its shot, lets the cantrip through, then shatters and chills; the mantle's zaps keep two rotlings off
+      without a hit, and they hurt again when it ends. Dev hooks `__game.shoot()` and `__game.mantle`
 
 ## Step 4: The library and grimoire pages
 

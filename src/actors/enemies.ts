@@ -15,6 +15,7 @@ import { angleLerp, lerp, rand } from '../util';
 import { afterBossMove, buildBoss, updateBoss } from './bosses';
 import { canAct, speedFactor } from '../magic/status';
 import { statusTint } from '../magic/statusFx';
+import { mantleShields } from '../magic/shapes';
 
 export function stdMat(color: number, extra: THREE.MeshStandardMaterialParameters = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: .85, flatShading: true, ...extra });
@@ -143,8 +144,9 @@ export function updateEnemies(dt: number) {
     const tint = e.flash > 0 ? null : statusTint(e, G.simClock);
     if (e.flash > 0) { e.flash -= dt; for (const m of e.mats) m.emissive.setRGB(1, .95, .9); }
     else for (const m of e.mats) { m.emissive.copy(m.userData.base as THREE.Color); if (tint) m.emissive.lerp(tint[0], tint[1]); }
-    // contact damage (not from a boss under the floor or in the air, nor from a foe frozen in ice or stunned)
-    if (!e.hidden && acts && e.contact && Math.hypot(player.x - e.x, player.z - e.z) < player.r + e.r * .9) hurtPlayer(e.contact, e.x, e.z);
+    // contact damage (not from a boss under the floor or in the air, nor from a foe frozen in ice or stunned, nor
+    // through the Static Mantle)
+    if (!e.hidden && acts && e.contact && Math.hypot(player.x - e.x, player.z - e.z) < player.r + e.r * .9 && !mantleShields(e)) hurtPlayer(e.contact, e.x, e.z);
   }
   // keep walkers from stacking
   const es = G.enemies;

@@ -95,6 +95,7 @@ export const STR = {
     keyringTurns: "The sexton's keyring turns in the ward: the vault opens.",
     lanternFinds: 'The Grave Lantern finds a hollow wall.',
     noSpell: 'No spell in that slot yet: grimoire pages teach them.',
+    spellWarded: "The shop's ward smothers the spell.",
     wareBrimming: 'You brim with mana already; keep your obols.',
     curseEscaped: (name: string) => `The curse slips back into the ${name}. Walk into its stone to try again.`,
   },

@@ -13,7 +13,7 @@ import { scene } from '../render/renderer';
 import { glow, markShared } from '../render/materials';
 import { burst } from '../combat/fx';
 import { damageEnemy } from '../combat/damage';
-import { fireSecondary } from '../combat/projectiles';
+import { fireSpellBolt } from '../combat/projectiles';
 import { MAGIC, applyStatus, consumeShock, newStatus, tickStatus, type Reaction } from './status';
 import type { StatusKind } from './spellData';
 
@@ -52,7 +52,7 @@ function react(e: Enemy, r: Reaction) {
     const S = R.shatter;
     for (let i = 0; i < S.shards; i++) {
       const a = i / S.shards * Math.PI * 2 + .3, x = e.x + Math.cos(a) * (e.r + .25), z = e.z + Math.sin(a) * (e.r + .25);
-      fireSecondary(x, z, Math.cos(a), Math.sin(a), { damage: S.shardDamage, range: S.shardRange, scale: .6, color: ICE, speed: 9 });
+      fireSpellBolt(x, z, Math.cos(a), Math.sin(a), { damage: S.shardDamage, range: S.shardRange, scale: .8, color: ICE, speed: 9, shard: true });
     }
     burst(e.x, .6, e.z, ICE, 24, 3, .06); burst(e.x, .6, e.z, 0xffffff, 10, 2, .04);
     Sfx.shatter(); G.shake = Math.max(G.shake, .2);
@@ -155,7 +155,8 @@ function sparkLine(a: Enemy, b: Enemy) {
   Sfx.arc(1);
 }
 const flashes: { s: THREE.Sprite; t: number; size: number }[] = [];
-function flash(x: number, z: number, color: number, radius: number) {
+/** A bright flash on a spot, fading in a third of a second (Overload, Pyre Seal). */
+export function flash(x: number, z: number, color: number, radius: number) {
   const s = glow(color, radius * 2.4, .95); s.position.set(x, .5, z); scene.add(s); flashes.push({ s, t: 0, size: radius * 2.4 });
 }
 function updateFlashes(dt: number) {

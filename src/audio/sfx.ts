@@ -14,6 +14,10 @@ function tone(type: OscillatorType, f0: number, f1: number, dur: number, vol: nu
   o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
   g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur); o.connect(g).connect(out); o.start(t); o.stop(t + dur + .02);
 }
+/** Fire's crackle: `n` tiny pops over `over` seconds. */
+function crackles(n: number, over: number, vol: number) {
+  for (let i = 0; i < n; i++) hiss(.02 + Math.random() * .03, vol * (.5 + Math.random()), 'highpass', 2500 + Math.random() * 2500, Math.random() * over);
+}
 function hiss(dur: number, vol: number, type: BiquadFilterType, freq: number, delay = 0) {
   if (!ctx || muted) return; const t = ctx.currentTime + delay; const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
   s.buffer = noise; f.type = type; f.frequency.value = freq; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
@@ -80,7 +84,20 @@ export const Sfx = {
   learn() { [392, 523, 659, 784].forEach((f, i) => tone('triangle', f, f * 1.01, .5, .05, i * .06)); hiss(.5, .03, 'highpass', 4500, .1); },
   spellFail() { tone('sine', 220, 160, .12, .05); hiss(.08, .03, 'lowpass', 900); },
   manaVial() { tone('sine', 880, 1320, .18, .05); tone('sine', 1320, 1760, .22, .03, .06); },
+  // Ember: crackle and whoosh
+  lance() { hiss(.35, .13, 'bandpass', 1400); tone('sawtooth', 220, 70, .3, .05); hiss(.12, .06, 'highpass', 4000, .03); crackles(5, .3, .05); },
+  sealPlace() { tone('sine', 196, 294, .5, .06); tone('triangle', 392, 588, .4, .03, .05); hiss(.4, .04, 'bandpass', 900); },
+  sealErupt() { hiss(.7, .2, 'lowpass', 900); tone('sine', 100, 38, .6, .2); hiss(.3, .1, 'bandpass', 1800, .02); crackles(8, .6, .06); },
+  crackle() { crackles(3, .2, .035); },
+  // Frost: chime and shatter
+  shards() { [2349, 2793, 3136].forEach((f, i) => tone('triangle', f, f * .9, .12, .035, i * .025)); hiss(.15, .07, 'highpass', 5000); },
+  wallRise() { hiss(.4, .12, 'bandpass', 2800); tone('triangle', 660, 1320, .3, .04); tone('sine', 1760, 2637, .25, .03, .08); crackles(5, .3, .04); },
+  wallShatter() { hiss(.4, .13, 'highpass', 3500); [2637, 2093, 3136, 1760].forEach((f, i) => tone('triangle', f, f * .75, .2, .035, i * .04)); tone('sine', 220, 110, .25, .06); },
+  // Storm: zap and thunder
   arc(hits = 1) { hiss(.18 + hits * .04, .1, 'highpass', 2500); tone('square', 1600, 400, .12, .03); tone('sawtooth', 90, 60, .25, .05, .02); },
+  mantle() { tone('sawtooth', 55, 110, .5, .06); hiss(.5, .07, 'highpass', 3000); tone('square', 1200, 2400, .15, .02, .1); tone('sine', 70, 50, .6, .08, .05); },
+  mantleZap() { hiss(.08, .09, 'highpass', 3200); tone('square', 1400, 300, .07, .035); },
+  mantleEnd() { tone('sawtooth', 110, 55, .3, .03); hiss(.2, .03, 'highpass', 4000); },
   // statuses and reactions
   freeze() { tone('sine', 2637, 1760, .25, .04); tone('triangle', 1318, 988, .3, .04, .03); hiss(.2, .05, 'highpass', 5000); },
   thaw() { tone('sine', 988, 1318, .2, .02); hiss(.15, .03, 'highpass', 4000); },

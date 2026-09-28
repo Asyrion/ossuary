@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CFG } from '../../src/config';
-import { SPELL_DEFS, manaRegen, validateSpells } from '../../src/magic/spellData';
+import { SHAPES, SPELL_DEFS, manaRegen, validateSpells } from '../../src/magic/spellData';
 import { STR } from '../../src/strings';
 
 describe('spell data', () => {
@@ -17,6 +17,21 @@ describe('spell data', () => {
     expect(errs).toMatch(/lore of 60/);
     expect(errs).toMatch(/bad colour/);
     expect(validateSpells([s, s] as never[]).join('; ')).toMatch(/listed twice/);
+    expect(validateSpells([{ ...s, params: {} }] as never[]).join('; ')).toMatch(/needs param/);
+  });
+
+  it('has M3\'s six spells: an attack and a utility in each of Ember, Frost and Storm, every shape once', () => {
+    const bySchool = (school: string) => SPELL_DEFS.filter(s => s.school === school).length;
+    expect([bySchool('ember'), bySchool('frost'), bySchool('storm')]).toEqual([2, 2, 2]);
+    expect(SPELL_DEFS.map(s => s.shape).sort()).toEqual([...SHAPES].sort());
+  });
+
+  it('costs mana so that a full bar casts a handful of spells, not a room\'s worth', () => {
+    for (const s of SPELL_DEFS) {
+      expect(s.mana).toBeGreaterThanOrEqual(10);
+      expect(CFG.hero.mana / s.mana).toBeLessThanOrEqual(8);
+      expect(s.cooldown).toBeGreaterThanOrEqual(1);
+    }
   });
 
   it('names every school a spell belongs to', () => {
