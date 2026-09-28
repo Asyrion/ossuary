@@ -11,7 +11,7 @@ import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { basicMat, blob, glowShared, sphereGeo } from '../render/materials';
 import { blockers } from '../world/collision';
-import { hitRock, strikeUrn } from '../world/rooms';
+import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
 import { shootDir } from '../input';
 import { heroCast } from '../actors/hero';
 import { damageEnemy, hurtPlayer } from './damage';
@@ -108,10 +108,15 @@ export function updateBolts(dt: number) {
       b.y = .6 * (1 - fall * fall);
       kill = b.dist >= R || b.y <= .05;
     }
+    // the merchant's shop is warded: bolts fizzle just after leaving the mage
+    if (!kill && room.type === 'merchant' && b.dist > CFG.merchant.boltFizzle) {
+      burst(b.x, b.y, b.z, WARD_COLOR, 5, 1.3, .04); Sfx.wardTink(); removeBolt(i, false); continue;
+    }
     // walls, doors and rocks
     const box = !kill && !(b.path === 'boomerang' && b.returning) ? boxAt(b.x, b.z, solids) : undefined;
     if (box) {
       const rock = box as RockBox;
+      if (room.doors.some(d => d.box === box && d.seal?.sealed)) { burst(b.x, b.y, b.z, WARD_COLOR, 5, 1.6, .035); Sfx.wardTink(); } // glances off a vault's ward
       if (rock.urn) strikeUrn(room, rock, false);                       // any bolt breaks an urn
       else if (breaker && room.rocks.includes(rock)) hitRock(room, rock); // Mason's Chisel cracks rocks
       if (b.path === 'bounce' && b.bounces > 0) {

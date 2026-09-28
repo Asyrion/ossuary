@@ -11,6 +11,7 @@ import { applyFloorLook, resetTorchLights, setDarkness } from './render/lights';
 import { disposeTree } from './render/materials';
 import { clearFloorTextures } from './render/textures';
 import { buildRoom, buildWallsAndDoors, doorsOf, entryPoint, freeSpotNear, linkDoors, roomAt, setDoors } from './world/rooms';
+import { sealVaults } from './world/vault';
 import { FLOORS, generateFloor, pickBoss, testPlan, type RoomVariant } from './world/generate';
 import { DH } from './world/dims';
 import { SIDE_DIR } from './world/shapes';
@@ -60,11 +61,13 @@ export function buildFloor(index: number) {
   G.run.bossesMet.push(G.run.boss);
   const plan = testTemplate ? testPlan(testTemplate, testVariant) : generateFloor(Rng.from(G.run.seed, 'floor' + index), FLOORS[index], index);
   G.run.plan = plan;
-  resetBudget(3); // guaranteed artifacts on every floor: the treasure room, the ordeal and the boss
+  // the budget holds the guaranteed sources (treasure room, ordeal, boss) and the optional ones the
+  // generator gave an artifact (GDD: Artifacts); room-clear drops take what is left
+  resetBudget(plan.rooms.filter(r => r.artifact).length);
   applyFloorLook(FLOORS[index].look);
   for (const p of plan.rooms) buildRoom(p, index);
   for (const r of G.rooms) buildWallsAndDoors(r);
-  linkDoors(G.rooms);
+  linkDoors(G.rooms); sealVaults(G.rooms);
   const start = G.rooms[plan.startId];
   G.current = start; player.x = start.cx; player.z = start.cz + .6; player.vx = player.vz = 0;
   aimCamera(start); setDarkness(0, true);
@@ -146,6 +149,8 @@ export function enterRoom(room: Room) {
   }
   if (firstVisit && room.plan.variant === 'dark') Sfx.darkness();
   if (firstVisit && room.type === 'altar' && room.spots.length) banner(...STR.banner.altar);
+  if (firstVisit && room.type === 'merchant') { banner(...STR.banner.merchant); Sfx.shade(); }
+  if (firstVisit && room.type === 'vault') banner(...(room.warden ? STR.banner.vaultWarden : STR.banner.vault));
   if (firstVisit && room.quietHeart) { const p = freeSpotNear(room, room.cx, room.cz); spawnHeart(p.x, p.z, 2); }
   // a treasure room with nothing left to find offers a full heart instead
   if (firstVisit && room.type === 'treasure' && !room.spots.length) spawnHeart(room.cx, room.cz, 2);
@@ -157,7 +162,8 @@ export function enterRoom(room: Room) {
 function spawnWave(room: Room, ambush = false) {
   const cfg = floorCfg(), foes = room.waves[room.wave] ?? [];
   const mortal = foes.filter(f => f.kind !== 'boss');
-  const champion = room.plan.variant === 'champion' && room.wave === 0 && mortal.length ? mortal[Math.floor(mulberry(room.plan.seed)() * mortal.length)] : null;
+  const championRoom = room.plan.variant === 'champion' || room.warden; // a forced vault's warden is a champion
+  const champion = championRoom && room.wave === 0 && mortal.length ? mortal[Math.floor(mulberry(room.plan.seed)() * mortal.length)] : null;
   for (const f of foes) {
     let { x, z } = f;
     if (ambush) {

@@ -21,6 +21,13 @@ export const CFG = {
   quiet: { maxEnemies: 2, heartChance: .7 },
   // ambush rooms spring when the mage is this close to the middle, or this far from every door
   ambush: { middle: 1.8, fromDoors: 4 },
+  // floor generation: how many walks may be retried to leave spare dead ends for a wanted altar or vault
+  generator: { optionalTries: 60 },
+  // the merchant's shop (room-relative z of the shade and the row of wares, the gap between wares), how
+  // close the mage must come to buy, and how far a bolt flies in the warded shop before it fizzles
+  merchant: { shadeAt: -1.9, waresAt: .9, spacing: 2.3, reach: .45, boltFizzle: .6 },
+  // locked vaults: glyph blasts that force the ward, and where the warden rises (room-relative z)
+  vault: { blastsToForce: 2, wardenAt: -1.8 },
   camTiltDeg: 45,
   camHallView: 1.2,    // larger halls: the camera pulls back so the view is this much wider and deeper
   pickups: { obolDrift: 1.8 },  // obols drift to the mage from this close

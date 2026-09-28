@@ -126,6 +126,16 @@ export function renderMinimap() {
       mg.strokeStyle = r.spots.some(s => !s.taken) ? '#e8dcc0' : '#6a5a4a'; mg.lineWidth = 2.5;
       mg.beginPath(); mg.arc(cx, cy + 3, 6, Math.PI, 0); mg.moveTo(cx - 6, cy + 3); mg.lineTo(cx - 6, cy + 7); mg.moveTo(cx + 6, cy + 3); mg.lineTo(cx + 6, cy + 7); mg.stroke();
     }
+    if (r.type === 'merchant') { // an obol
+      mg.fillStyle = '#d8a848'; mg.beginPath(); mg.arc(cx, cy, 6, 0, 7); mg.fill();
+      mg.fillStyle = '#5a3e14'; mg.beginPath(); mg.arc(cx, cy, 2.2, 0, 7); mg.fill();
+    }
+    if (r.type === 'vault') { // a padlock, pale blue while the ward holds, dimmed once the vault is emptied
+      const sealed = r.doors.some(d => d.seal?.sealed), empty = r.visited && r.cleared && !r.spots.some(s => !s.taken);
+      mg.strokeStyle = mg.fillStyle = sealed ? '#8ab8ff' : empty ? '#5a5a62' : '#c8c8d4'; mg.lineWidth = 2;
+      mg.beginPath(); mg.arc(cx, cy - 2, 3.5, Math.PI, 0); mg.stroke();
+      mg.fillRect(cx - 5.5, cy - 2, 11, 8);
+    }
     if (r.type === 'treasure') {
       mg.fillStyle = r.spots.some(s => !s.taken) ? '#e8b04a' : '#6a5a3a';
       mg.beginPath(); mg.moveTo(cx, cy - 8); mg.lineTo(cx + 7, cy); mg.lineTo(cx, cy + 8); mg.lineTo(cx - 7, cy); mg.fill();

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Rng } from '../../src/rng';
 import { FLOORS, generateFloor } from '../../src/world/generate';
 import { TEMPLATES, parseTemplate } from '../../src/world/templates';
-import { DROPS, ITEMS, LOOT, RESOURCES, afterBurning, dropValue, rollEnemyDrop, rollRoomClear, rollTable, validateLoot, type Drop, type Item, type LootData } from '../../src/items/loot';
+import { DROPS, ITEMS, LOOT, MAX_WARES, RESOURCES, afterBurning, dropValue, priceOf, rollEnemyDrop, rollRoomClear, rollTable, rollWares, validateLoot, type Drop, type Item, type LootData } from '../../src/items/loot';
 
 describe('loot data', () => {
   it('is valid', () => expect(validateLoot()).toEqual([]));
@@ -44,6 +44,24 @@ describe('loot data', () => {
     expect(urns.filter(n => n > 0).length / urns.length).toBeCloseTo(LOOT.urn.chance!, 1);
   });
 
+  it("stocks the merchant: the artifact first when he has one, then items, 3 or 4 wares in all", () => {
+    const rng = new Rng(11), [lo, hi] = LOOT.merchant.wares;
+    for (let i = 0; i < 300; i++) {
+      const withArt = rollWares(rng, true), without = rollWares(rng, false);
+      expect(withArt[0]).toBe('artifact');
+      expect(without).not.toContain('artifact');
+      for (const w of [withArt, without]) {
+        expect(w.length).toBeGreaterThanOrEqual(lo); expect(w.length).toBeLessThanOrEqual(Math.min(hi, MAX_WARES));
+        for (const ware of w) expect(priceOf(ware)).toBeGreaterThan(0);
+        for (const ware of w.filter(x => x !== 'artifact')) expect(Object.keys(LOOT.merchant.weights)).toContain(ware);
+      }
+    }
+    expect(priceOf('artifact')).toBe(15); // GDD: Artifact (merchant pool), 15 obols
+    const bad = { ...LOOT, merchant: { wares: [2, 6], prices: { artifact: 0, heart: 3 }, weights: { heart: 1, key: 1 } } } as unknown as LootData;
+    const errs = validateLoot(bad).join('; ');
+    expect(errs).toMatch(/merchant wares/); expect(errs).toMatch(/price for artifact/); expect(errs).toMatch(/price for key/);
+  });
+
   it('burns half of a forced chest, never all of it', () => {
     expect(afterBurning(['a', 'b', 'c', 'd'])).toEqual(['a', 'b']);
     expect(afterBurning(['a', 'b', 'c'])).toEqual(['a']);
@@ -52,11 +70,12 @@ describe('loot data', () => {
 });
 
 /* The economy, simulated on generated floors: every fight cleared, every enemy killed, every urn broken,
-   every coffer opened; a chest costs a bone key and a sealed urn a glyph (counted as spent). Room clears,
-   enemies, urns and containers are the sources so far; the vault's hoard and the secret room join in
-   later steps to reach the GDD's 12 to 18 obols per floor. */
+   every coffer opened, every vault opened; a chest and a vault each cost a bone key and a sealed urn a
+   glyph (counted as spent). A vault without an artifact holds a hoard and a chest. Room clears, enemies,
+   urns, containers and vaults are the sources so far; the secret room joins in step 4 to reach the GDD's
+   12 to 18 obols per floor. */
 describe('economy', () => {
-  it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i: room clears, enemies, urns and containers', (floorNo, cfg) => {
+  it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i: room clears, enemies, urns, containers and vaults', (floorNo, cfg) => {
     const N = 300, got = { coins: 0, keys: 0, glyphs: 0, hearts: 0 };
     const add = (d: Item) => { const v = dropValue(d); for (const k of [...RESOURCES, 'hearts'] as const) got[k] += v[k] ?? 0; };
     for (let s = 0; s < N; s++) {
@@ -67,6 +86,10 @@ describe('economy', () => {
           if (tile === 'urn') rollTable(drops, 'urn').forEach(add);
           if (tile === 'sealedUrn') { got.glyphs--; rollTable(drops, 'sealedUrn').forEach(add); }
         }
+        if (r.type === 'vault') {
+          got.keys--;
+          if (!r.artifact) { rollTable(drops, 'vaultHoard').forEach(add); got.keys--; rollTable(drops, 'chest').forEach(add); }
+        }
         if (r.type !== 'normal') continue;
         const foes = r.variant === 'quiet' ? 1 : t.foes.length;
         for (let i = 0; i < foes; i++) { const d = rollEnemyDrop(drops); if (d) add(d as Item); }
@@ -76,9 +99,9 @@ describe('economy', () => {
       }
     }
     const per = Object.fromEntries(Object.entries(got).map(([k, v]) => [k, v / N]));
-    expect(per.coins).toBeGreaterThan(5); expect(per.coins).toBeLessThan(13);
+    expect(per.coins).toBeGreaterThan(5); expect(per.coins).toBeLessThan(18); // the GDD's ceiling
     expect(per.glyphs).toBeGreaterThan(0);  // net of the glyphs sealed urns ask for
-    expect(per.keys).toBeGreaterThan(.2);   // net of the keys chests ask for
+    expect(per.keys).toBeGreaterThan(.2);   // net of the keys chests and vaults ask for
     expect(per.hearts).toBeGreaterThan(2);
   });
 });

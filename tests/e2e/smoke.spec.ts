@@ -349,8 +349,94 @@ test('urns break to bolts, sealed urns only to a blast; coffers open, warded che
   expect(errors).toEqual([]);
 });
 
+/* M2 step 3: the merchant and the locked vault. */
+type Ware = { ware: string; price: number; x: number; z: number; sold: boolean; def?: { id: string } };
+type Seal = { sealed: boolean; blasts: number };
+type G5 = Omit<GameHooks, 'current' | 'enemies'> & {
+  player: GameHooks['player'] & { coins: number; keys: number; glyphs: number; items: string[]; focus: string; invuln: number; vx: number; vz: number };
+  current: Omit<RoomView, 'doors'> & { wares?: Ware[]; warden?: boolean; spots: { taken: boolean }[]; doors: { x: number; z: number; open: boolean; seal?: Seal }[] };
+  bolts: { dist: number }[]; glyphs: unknown[]; enemies: (Foe & { champion?: boolean })[]; clearRoom(): void; loot(v: Record<string, number>): void;
+};
+
+test('the merchant sells for obols and refuses what the mage cannot pay or use; his shop is warded', async ({ page }) => {
+  const errors = await start(page, '?room=merchant_plain&seed=SHOP01&loot=coins:18');
+  const shop = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G5, P = g.player;
+    g.warp(1); g.sim(.5);
+    const walkInto = (w: Ware) => { P.x = w.x; P.z = w.z + 1.6; P.vx = P.vz = 0; g.keys.add('KeyW'); g.sim(.6); g.keys.delete('KeyW'); g.sim(.2); P.z += 1.6; g.sim(.1); };
+    const wares = g.current.wares!, art = wares.find(w => w.ware === 'artifact')!, heart = wares.find(w => w.ware === 'heart');
+    const coins = P.coins, items = P.items.length + (P.focus !== 'apprentice_wand' ? 1 : 0);
+    walkInto(art);
+    const bought = { spent: coins - P.coins, sold: art.sold || art.price === 0, gained: P.items.length + (P.focus !== 'apprentice_wand' ? 1 : 0) - items };
+    let refused = null;
+    if (heart) { const c = P.coins; walkInto(heart); refused = { spent: c - P.coins, sold: heart.sold, toast: document.getElementById('toast')!.textContent }; }
+    // bolts fizzle just after leaving the mage
+    P.x = g.current.cx - 4; P.z = g.current.cz + 2.5; let far = 0;
+    g.keys.add('ArrowRight'); g.arrowOrder.push('ArrowRight');
+    for (let t = 0; t < 1; t += .05) { g.sim(.05); far = Math.max(far, ...g.bolts.map(b => b.dist)); }
+    g.keys.delete('ArrowRight'); g.arrowOrder.length = 0; g.sim(.3);
+    return { count: wares.length, first: wares[0].ware, price: art.price, bought, refused, far, glyphs: P.glyphs };
+  });
+  expect(shop.count).toBeGreaterThanOrEqual(3);
+  expect(shop.first).toBe('artifact'); // the budget reaches the merchant in a test room
+  expect(shop.bought).toEqual({ spent: 15, sold: true, gained: 1 });
+  if (shop.refused) expect(shop.refused).toMatchObject({ spent: 0, sold: false, toast: expect.stringMatching(/whole/) }); // a heart at full health
+  expect(shop.far).toBeLessThan(1);
+  await page.keyboard.press('Space'); // the chalk won't take in the shop, and no glyph is spent
+  const glyph = await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as G5; g.sim(.1); return { glyphs: g.player.glyphs, onFloor: g.glyphs.length }; });
+  expect(glyph).toEqual({ glyphs: shop.glyphs, onFloor: 0 });
+  await page.evaluate(() => (window as unknown as W).__game.sim(.1, true));
+  await page.screenshot({ path: 'test-results/smoke-merchant.png' });
+  expect(errors).toEqual([]);
+});
+
+/** Walk from the start room into the test vault's sealed door; returns the seal and the door. */
+const walkToVault = () => {
+  const g = (window as unknown as W).__game as unknown as G5, P = g.player, d = g.current.doors.find(x => x.seal)!;
+  P.x = d.x; P.z = d.z + 2; P.vx = P.vz = 0; g.sim(.2);
+  g.keys.add('KeyW'); g.sim(.8); g.keys.delete('KeyW'); g.sim(.2);
+  return { sealed: d.seal!.sealed, open: d.open, keys: P.keys, toast: document.getElementById('toast')!.textContent };
+};
+
+test('a locked vault stays shut without a key, and a bone key unbinds it', async ({ page }) => {
+  const errors = await start(page, '?room=vault_urns&seed=VAULT1');
+  const shut = await page.evaluate(walkToVault);
+  expect(shut).toMatchObject({ sealed: true, open: false, keys: 0, toast: expect.stringMatching(/bone key/) });
+  await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as G5; g.loot({ keys: 1 }); g.player.z += 2; g.sim(.3); });
+  const unbound = await page.evaluate(walkToVault);
+  expect(unbound).toMatchObject({ sealed: false, open: true, keys: 0 });
+  const inside = await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as G5; g.sim(1); return { type: g.current.type, locked: g.current.locked, spots: g.current.spots.length }; });
+  expect(inside).toEqual({ type: 'vault', locked: false, spots: 1 }); // the prize, unguarded
+  expect(errors).toEqual([]);
+});
+
+test('two glyph blasts force a vault, and its warden guards the prize', async ({ page }) => {
+  const errors = await start(page, '?room=vault_urns&seed=VAULT2&loot=glyphs:2');
+  const blasts: Seal[] = [];
+  for (let i = 0; i < 2; i++) {
+    await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as G5, d = g.current.doors.find(x => x.seal)!; g.player.x = d.x; g.player.z = d.z + .5; g.player.invuln = 99; });
+    await page.keyboard.press('Space');
+    blasts.push(await page.evaluate(() => {
+      const g = (window as unknown as W).__game as unknown as G5, d = g.current.doors.find(x => x.seal)!;
+      g.sim(.05); g.player.z += 3; g.sim(1.8); return { sealed: d.seal!.sealed, blasts: d.seal!.blasts };
+    }));
+  }
+  expect(blasts).toEqual([{ sealed: true, blasts: 1 }, { sealed: false, blasts: 2 }]);
+  const inside = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G5, P = g.player, d = g.current.doors.find(x => x.seal)!;
+    P.x = d.x; P.z = d.z + .8; P.invuln = 99; g.keys.add('KeyW'); g.sim(1.4); g.keys.delete('KeyW'); g.sim(.4);
+    const guarded = { warden: !!g.current.warden, locked: g.current.locked, champions: g.enemies.filter(e => !e.dead && e.champion).length, untaken: g.current.spots.filter(s => !s.taken).length };
+    g.clearRoom(); g.sim(.5);
+    return { guarded, after: { locked: g.current.locked, doorOpen: g.current.doors[0].open } };
+  });
+  expect(inside.guarded).toEqual({ warden: true, locked: true, champions: 1, untaken: 1 }); // the prize waits for the fight
+  expect(inside.after).toEqual({ locked: false, doorOpen: true });
+  await page.evaluate(() => (window as unknown as W).__game.sim(.1, true));
+  expect(errors).toEqual([]);
+});
+
 test('every door of a seeded floor leads to its neighbour, onto open floor', async ({ page }) => {
-  const errors = await start(page, '?seed=DOORS1&floor=2');
+  const errors = await start(page, '?seed=DOORS1&floor=2&loot=keys:9'); // keys unbind a vault's ward on the way
   const result = await page.evaluate(() => {
     type D = { side: 'n' | 's' | 'e' | 'w'; x: number; z: number; nb: unknown; open: boolean };
     type R = Omit<RoomView, 'doors'> & { doors: D[]; bounds: { minX: number; minZ: number }; mask: boolean[][] };

@@ -15,6 +15,10 @@ describe('artifact data', () => {
     expect(ARTIFACT_DEFS.filter(a => a.kind === 'cursed')).toHaveLength(2);
   });
 
+  it('stock the merchant and the vault: each pool has several to draw from', () => {
+    for (const pool of ['merchant', 'vault'] as const) expect(ARTIFACT_DEFS.filter(a => a.pools.includes(pool)).length).toBeGreaterThanOrEqual(5);
+  });
+
   it('catches mistakes', () => {
     const bad = [{ ...ARTIFACT_DEFS[4], pools: ['nowhere'], stats: { luck: 1 } }, ARTIFACT_DEFS[4]] as never[];
     const errs = validateArtifacts(bad).join('; ');

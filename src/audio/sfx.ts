@@ -58,6 +58,11 @@ export const Sfx = {
   unbind() { tone('triangle', 660, 990, .18, .06); tone('triangle', 1320, 1320, .16, .05, .12); hiss(.1, .03, 'highpass', 5000, .05); },
   coffer() { tone('sawtooth', 140, 220, .14, .04); hiss(.18, .06, 'lowpass', 900); },
   locked() { tone('square', 120, 100, .1, .05); tone('square', 110, 92, .1, .05, .13); },
+  // the merchant and the vault
+  purchase() { tone('sine', 1320, 1320, .07, .05); tone('sine', 1760, 1760, .1, .05, .05); tone('sine', 1100, 330, .4, .05, .1); hiss(.25, .04, 'highpass', 3500, .1); },
+  shade() { tone('sine', 147, 139, 1.2, .07); tone('sine', 220, 208, 1, .03, .15); hiss(.9, .04, 'bandpass', 500); },
+  wardCrack() { tone('sine', 1300, 900, .25, .06); tone('square', 180, 120, .12, .04); hiss(.2, .05, 'highpass', 3000); },
+  unlock() { tone('square', 90, 70, .12, .06); tone('triangle', 660, 990, .2, .06, .1); tone('triangle', 1320, 1320, .2, .05, .22); hiss(.15, .04, 'highpass', 5000, .1); },
   // runs, rooms and artifacts
   descend() { hiss(.6, .1, 'lowpass', 900); tone('sine', 220, 50, .7, .12); tone('sine', 60, 35, .35, .16, .55); },
   trapdoor() { hiss(.8, .1, 'lowpass', 300); tone('square', 55, 42, .8, .04); },

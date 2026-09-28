@@ -3,11 +3,11 @@ import type { EnemyType } from './config';
 import type { BossConfig, PlannedRoom } from './world/generate';
 import type { FoeKind, Template } from './world/templates';
 import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
-import type { Drop, Item } from './items/loot';
+import type { Drop, Item, Ware } from './items/loot';
 
 export type Side = 'n' | 's' | 'e' | 'w';
-export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar';
-export type DoorStyle = 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar';
+export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault';
+export type DoorStyle = 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault';
 export interface Vec2 { x: number; z: number }
 /** Axis-aligned box on the floor plane: centre and half extents. */
 export interface Box { x: number; z: number; hx: number; hz: number }
@@ -29,6 +29,20 @@ export interface FloorLook {
 export interface Door {
   side: Side; nb: Room; link?: Door; x: number; z: number;
   bars: THREE.Group; barH: number; open: boolean; style: DoorStyle; box: Box;
+  /** A locked vault's door: the ward shared by both sides of the doorway. */ seal?: VaultSeal;
+}
+/** The ward sealing a locked vault's door (GDD: Locked vault): a bone key unbinds it, or enough glyph
+    blasts force it and wake the vault's warden. `outer` is the door on the neighbour's side. */
+export interface VaultSeal {
+  sealed: boolean; blasts: number; vault: Room; inner: Door; outer: Door; outerRoom: Room;
+  /** The ward disc and padlock on the outer side. */ mark: THREE.Group;
+  /** Says it's sealed again only after the mage steps away. */ armed: boolean;
+}
+/** A merchant's ware floating in its ward circle; the price is in obols (0 for a focus left behind). */
+export interface WareSpot {
+  ware: Ware; def?: ArtifactDef; price: number; x: number; z: number;
+  g: THREE.Group; item: THREE.Object3D; circle?: THREE.Object3D; tag?: THREE.Object3D;
+  sold: boolean; /** Refuses again only after the mage steps away. */ armed: boolean;
 }
 /** A wall light; dark rooms have their torches out (`lit` false). (x, z) is where its light sits. */
 export interface Torch { flame: THREE.Mesh; glow: THREE.Sprite; x: number; z: number; lit: boolean }
@@ -55,6 +69,8 @@ export interface Room {
   /** Quiet rooms: a heart waits there on the first visit. */ quietHeart?: boolean;
   cleared: boolean; visited: boolean; known: boolean; locked: boolean;
   spots: ArtifactSpot[];
+  /** The merchant's wares and the shade himself. */ wares?: WareSpot[]; shade?: THREE.Group;
+  /** A locked vault forced open by blasts: its warden, a champion, rises when the mage comes in. */ warden?: boolean;
 }
 
 export interface Enemy extends Circle {

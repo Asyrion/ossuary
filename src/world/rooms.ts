@@ -8,7 +8,7 @@ import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { floorTexture, pitTexture } from '../render/textures';
 import { M, basicMat, blob, boxUV, disposeTree, glow, markShared, wallMaterials } from '../render/materials';
-import { offerGuaranteed, offerOptional, placeArtifact } from '../items/artifacts';
+import { offerGuaranteed, placeArtifact } from '../items/artifacts';
 import { burst } from '../combat/fx';
 import { mulberry } from '../util';
 import { DH, H_LOW, H_TALL, HD, HW, PX, PZ, WT } from './dims';
@@ -17,6 +17,8 @@ import { OPPOSITE, SHAPES, SIDE_DIR, cellHalfExtents, shapeMask, shapeSize } fro
 import { TEMPLATES, parseTemplate, tombRuns } from './templates';
 import { rollTable } from '../items/loot';
 import { spawnPickup } from '../items/pickups';
+import { buildShop } from '../items/merchant';
+import { fillVault } from './vault';
 
 export const roomAt = (gx: number, gy: number) => G.roomMap.get(gx + ',' + gy);
 /** World position of the centre of template tile (c, r). */
@@ -57,6 +59,8 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   room.cleared = room.waves.length === 0;
   if (plan.type === 'treasure') addPedestal(room);
   if (plan.type === 'altar') addAltar(room);
+  if (plan.type === 'merchant') buildShop(room);
+  if (plan.type === 'vault') fillVault(room);
   G.rooms.push(room);
   for (const c of plan.cells) G.roomMap.set(c.gx + ',' + c.gy, room);
   return room;
@@ -223,10 +227,10 @@ function addPedestal(room: Room) {
   if (def) placeArtifact(room, def, room.cx, room.cz); // else nothing is left to find: enterRoom offers a heart
 }
 
-/** A bone altar: an artifact from the altar pool for one heart container. Optional, so only while the
-    floor's budget allows; an altar with nothing to offer stays bare. */
+/** A bone altar: an artifact from the altar pool for one heart container. The generator only places one
+    the floor's budget reaches; if every artifact has been offered already, it stays bare. */
 function addAltar(room: Room) {
-  const def = offerOptional('altar');
+  const def = room.plan.artifact ? offerGuaranteed('altar') : null;
   if (def) placeArtifact(room, def, room.cx, room.cz, { altar: true });
 }
 
@@ -308,7 +312,8 @@ export function buildWallsAndDoors(room: Room) {
     const [dx, dz] = SIDE_DIR[pd.side];
     const x = pd.gx * PX + dx * hx, z = pd.gy * PZ + dz * hz; // middle of the doorway on the room's inside edge
     const either = (t: string) => room.type === t || nb.type === t;
-    const style: DoorStyle = either('boss') ? 'boss' : either('ordeal') ? 'ordeal' : either('altar') ? 'altar' : either('treasure') ? 'treasure' : 'normal';
+    const style: DoorStyle = either('boss') ? 'boss' : either('ordeal') ? 'ordeal' : either('altar') ? 'altar' : either('treasure') ? 'treasure'
+      : either('vault') ? 'vault' : either('merchant') ? 'merchant' : 'normal';
     room.doors.push(buildDoor(room, pd.side, nb, style, x, z));
   }
   const runs = outline(room.mask, room.w, room.h);
@@ -410,7 +415,8 @@ function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number
   th.rotation.x = -Math.PI / 2; const tp = at(0, 0); th.position.set(tp.x, .003, tp.z);
   if (ns) th.scale.set(DH * 2, WT, 1); else th.scale.set(WT, DH * 2, 1);
   room.group.add(th);
-  // above the door, on this room's side: the boss's glowing eye, the ordeal's skull, the altar's crossed bones
+  // above the door, on this room's side: the boss's glowing eye, the ordeal's skull, the altar's crossed bones,
+  // the merchant's lantern (a locked vault's ward and padlock are added by vault.ts)
   const ep = at(0, side === 'n' || side === 'w' ? .55 : -.55);
   if (style === 'boss') {
     const eye = glow(0xff3a1a, .7, .9); eye.position.set(ep.x, h + .05, ep.z); room.group.add(eye);
@@ -428,6 +434,13 @@ function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number
       bone.position.set(ep.x, h + .1, ep.z); bone.rotation.set(0, ns ? 0 : Math.PI / 2, a);
       room.group.add(bone);
     }
+  } else if (style === 'merchant') {
+    const lamp = new THREE.Group(); lamp.position.set(ep.x, h + .02, ep.z);
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(.12, .1, 4), M.iron); cap.position.y = .16; cap.rotation.y = Math.PI / 4;
+    const base = new THREE.Mesh(new THREE.BoxGeometry(.16, .03, .16), M.iron); base.position.y = -.1;
+    const flame = new THREE.Mesh(new THREE.SphereGeometry(.055, 8, 6), basicMat(0xffc36a)); flame.scale.y = 1.5;
+    lamp.add(cap, base, flame, glow(0xffb050, 1.1, .85));
+    room.group.add(lamp);
   }
   // bars (sink into the floor when open)
   const bars = new THREE.Group(); const barH = side === 's' ? H_LOW + .1 : h - .25;
@@ -459,7 +472,10 @@ export function linkDoors(rooms: Room[]) {
 
 export function setDoors(room: Room, open: boolean, sound = true) {
   let changed = false;
-  for (const d of doorsOf(room)) { if (d.open !== open) changed = true; d.open = open; }
+  for (const d of doorsOf(room)) {
+    if (d.seal?.sealed) continue; // a sealed vault door stays shut until its ward is broken
+    if (d.open !== open) changed = true; d.open = open;
+  }
   if (changed && sound) Sfx.door(open);
 }
 

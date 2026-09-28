@@ -14,7 +14,10 @@ import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { disposeTree, glow } from '../render/materials';
 import { glyphTexture } from '../render/textures';
-import { hitRock, strikeUrn } from '../world/rooms';
+import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
+import { blastSeal } from '../world/vault';
+import { toast } from '../ui/hud';
+import { STR } from '../strings';
 import { giveResources, isContainer, openContainer } from '../items/pickups';
 import { damageEnemy, hurtPlayer } from './damage';
 import { addDecal, burst } from './fx';
@@ -41,6 +44,10 @@ let cooldown = 0;
 export function placeGlyph() {
   if (cooldown > 0 || G.trans || G.state !== 'play') return false;
   if (player.glyphs <= 0) { Sfx.noGlyph(); cooldown = .3; return false; }
+  if (G.current.type === 'merchant') { // the shop is warded: the chalk won't take, and nothing is spent
+    burst(player.x, .1, player.z, WARD_COLOR, 8, 1.4, .04); Sfx.wardTink(); toast(STR.toast.shopWarded, 3); cooldown = .6;
+    return false;
+  }
   giveResources({ glyphs: -1 }); cooldown = C.cooldown;
   const color = player.stats.boltColor, s = shapes();
   const g = new THREE.Group(); g.position.set(player.x, 0, player.z);
@@ -84,6 +91,7 @@ function blast(x: number, z: number, color: number) {
     else if (rock.breakable) hitRock(room, rock, true);
   }
   for (const p of G.pickups) if (isContainer(p.kind) && !p.opened && Math.hypot(p.x - x, p.z - z) < R + .3) openContainer(p, true); // chests burn
+  for (const d of room.doors) if (d.seal?.sealed && touches(d.box, x, z, R)) blastSeal(d.seal);       // a vault's ward cracks
   for (let i = G.shots.length - 1; i >= 0; i--) { // enemy shots in reach unravel
     const s = G.shots[i];
     if (Math.hypot(s.x - x, s.z - z) < R) { scene.remove(s.mesh); G.shots.splice(i, 1); burst(s.x, s.y, s.z, s.color, 3, 1, .04); }

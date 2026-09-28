@@ -169,8 +169,10 @@ function take(spot: ArtifactSpot) {
   renderMinimap();
 }
 
-/** Take an artifact the mage walks into (called every step while playing). */
+/** Take an artifact the mage walks into (called every step while playing); not while a fight holds the
+    doors shut, so a forced vault's warden guards its prize. */
 export function checkArtifactPickup() {
+  if (G.current.locked) return;
   for (const spot of G.current.spots) {
     if (spot.taken) continue;
     const d = Math.hypot(player.x - spot.x, player.z - spot.z);
