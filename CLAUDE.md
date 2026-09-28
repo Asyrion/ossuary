@@ -5,10 +5,13 @@ the owner's fantasy world **Eda** (high fantasy turned dark, medieval). Characte
 and exported as GLB. The owner (Azyrion) designs; you build.
 
 **`docs/GDD.md` is the source of truth for game design.** Read the relevant section before starting a
-milestone; if this file disagrees with it on design, the GDD wins. The Tripo asset checklist lives in the
-owner's claude.ai project "Tripo3D-GameDev". This file holds what you need to work in the repo.
+milestone; if this file disagrees with it on design, the GDD wins. `docs/ideas.md` is an idea bank of
+unscheduled designs (pickup families and more); an idea only counts once it moves into the GDD. Every
+system borrowed from Isaac gets a magic take (GDD: What separates Ossuary from an Isaac clone). The Tripo
+asset checklist lives in the owner's claude.ai project "Tripo3D-GameDev". This file holds what you need to
+work in the repo.
 
-## Current state: M1 built, being play-tested (see `docs/M1-plan.md`); M2 planned in `docs/M2-plan.md`
+## Current state: M2 in progress (see `docs/M2-plan.md`; step 1 done); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
