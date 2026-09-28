@@ -48,6 +48,9 @@ body{font-family:var(--f-ui);color:var(--ink);-webkit-user-select:none;user-sele
 #banner .s{font-family:var(--f-serif);font-style:italic;font-size:clamp(15px,2.2vw,20px);color:#d8c7a4;text-shadow:0 2px 2px #000;margin-top:6px}
 #pauseBtn{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 10px);pointer-events:auto;display:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(232,220,194,.35);background:rgba(10,8,6,.45);color:#e8dcc2;font:700 15px var(--f-ui);letter-spacing:1px}
 body.touch #pauseBtn{display:block}
+/* play-test aid: the dev menu's key, bottom left (not on touch screens, which have no keyboard) */
+#devHint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);font:500 15px var(--f-ui);font-variant-numeric:lining-nums;color:#e8dcc2;opacity:.85;padding:4px 10px;background:rgba(10,8,6,.55);border:1px solid rgba(94,77,57,.8);border-radius:2px;text-shadow:0 1px 2px #000;letter-spacing:.02em}
+body.touch #devHint{display:none}
 #sticks{position:fixed;inset:0;pointer-events:none}
 .stick{position:absolute;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;border:2px solid rgba(232,220,194,.28);background:rgba(10,8,6,.2);display:none}
 .stick i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(232,200,150,.35);border:1px solid rgba(255,230,190,.5)}

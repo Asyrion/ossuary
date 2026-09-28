@@ -457,6 +457,7 @@ test('two glyph blasts force a vault, and its warden guards the prize', async ({
 
 test('the dev menu opens on its key, pauses the game, and hands out what it lists', async ({ page }) => {
   const errors = await start(page, '?seed=DEVM01');
+  await expect(page.locator('#devHint')).toContainText('F2'); // the key is shown on the HUD during play-tests
   await page.keyboard.press('Backquote');
   await expect(page.locator('#dev')).toBeVisible();
   expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('pause');

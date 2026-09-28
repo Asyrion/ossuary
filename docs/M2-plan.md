@@ -57,6 +57,8 @@ shrine cleansing; urns and chests.
       `__game.drop(kind)`
 - [x] Dev shortcuts: `?room=` for the new room types (`?room=merchant_plain`, `?room=vault_urns`)
 - [ ] Dev shortcuts: `?give=` for the new artifacts
+- [x] Dev menu (the key left of 1, or F2; shown on the HUD during play-tests): every step below adds its
+      features to it (owner, 2026-09-28)
 
 ## Step 1: Obols, bone keys and blast glyphs
 
@@ -133,6 +135,7 @@ shrine cleansing; urns and chests.
 - [ ] Hidden from the minimap until found; holds obols, coffers and a reliquary chest, or an artifact from
       the secret pool (often cursed) that doesn't count against the floor's budget (decision 7)
 - [ ] Placeholder sounds: crumbling wall, a short sting when a secret room is found
+- [ ] Dev menu: the secret room in this floor's list (found or not), reveal cracked walls, open one
 
 ## Step 5: The shrine
 
@@ -145,6 +148,7 @@ shrine cleansing; urns and chests.
       it down within 10 s inside the shrine's circle and the artifact is cleansed (the obols are paid then);
       if it escapes, the curse returns and the mage can try again
 - [ ] Placeholder sounds: cleansing, refusal
+- [ ] Dev menu: the shrine in this floor's list, cleanse a curse at once, a cursed artifact to test with
 
 ## Step 6: Economy artifacts, balance and polish
 
@@ -156,5 +160,6 @@ shrine cleansing; urns and chests.
       the mage's feet when a glyph is chalked; Grave Lantern makes cracked walls glow and their hollow ring
       heard from anywhere in the room
 - [ ] End screen: obols found
+- [ ] Dev menu: the new artifacts appear by themselves; check their effects can be tried from it
 - [ ] Balance pass after play-tests (drop weights, prices, economy numbers); GDD and CLAUDE.md brought up
       to date
