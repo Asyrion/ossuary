@@ -4,7 +4,8 @@
    cells around it. A new room may only touch the room it grew from, which keeps the map a tree full of
    dead ends. Some new rooms take a larger shape (shapes.ts) when the cells it needs are free.
    Special rooms take one-cell dead ends: the farthest from the start is the boss (sometimes widened into
-   a great hall), then the treasure room, the ordeal and the merchant; a bone altar and a locked vault each
+   a great hall), then the treasure room, the ordeal, the merchant and, on floors that have one, the shrine;
+   a bone altar and a locked vault each
    take a spare dead end when the floor's chance for them rolls (the walk tries again for a while until it
    leaves enough dead ends). The optional artifact sources (merchant,
    vault, altar) then share what the floor's budget leaves, in an order shuffled with the floor's seed.
@@ -34,6 +35,7 @@ export interface FloorConfig {
   enemyHp: number;
   /** Chance the floor has a bone altar. */ altarChance: number;
   /** Chance the floor has a locked vault. */ vaultChance: number;
+  /** Whether the floor has a shrine, where curses are cleansed (GDD: 1 on floor 2). */ shrine: boolean;
   /** Chance the secret room holds an artifact (outside the budget) rather than a hoard. */ secretArtifactChance: number;
   /** The champion that rises in a vault forced open with glyphs. */ vaultWarden: EnemyType;
   /** Chance the boss room is widened into a great hall when there is space. */ bossHallChance: number;
@@ -67,7 +69,7 @@ export interface FloorPlan { index: number; rooms: PlannedRoom[]; startId: numbe
 const key = (gx: number, gy: number) => gx + ',' + gy;
 const SIDES: Side[] = ['n', 'e', 's', 'w'];
 /** Special rooms and the shapes they may take. */
-const SHAPES_FOR: Partial<Record<RoomType, ShapeId[]>> = { start: ['standard'], treasure: ['standard'], altar: ['standard'], ordeal: ['standard'], merchant: ['standard'], vault: ['standard'], secret: ['standard'], boss: ['standard', 'great'] };
+const SHAPES_FOR: Partial<Record<RoomType, ShapeId[]>> = { start: ['standard'], treasure: ['standard'], altar: ['standard'], ordeal: ['standard'], merchant: ['standard'], vault: ['standard'], secret: ['standard'], shrine: ['standard'], boss: ['standard', 'great'] };
 /** Rooms a secret room never opens into: the boss (no way round the fight), the vault (no way round its ward)
     and the merchant (whose warded shop won't let a glyph be chalked). */
 export const SECRET_SHUNS: RoomType[] = ['boss', 'vault', 'merchant'];
@@ -182,10 +184,12 @@ export function generateFloor(rng: Rng, cfg: FloorConfig, index: number, library
     const boss = bossOk[0];
     if (boss === undefined || dist[boss] < 2) continue;
     const others = rng.shuffle(oneCell.filter(i => i !== boss));
-    // treasure, ordeal and merchant each need one; the wanted optional rooms too, for the first attempts
-    if (others.length < 3 || (attempts <= CFG.generator.optionalTries && others.length < 3 + wanted.length)) continue;
-    const type = new Map<number, RoomType>([[0, 'start'], [boss, 'boss'], [others[0], 'treasure'], [others[1], 'ordeal'], [others[2], 'merchant']]);
-    wanted.forEach((t, i) => { if (3 + i < others.length) type.set(others[3 + i], t); });
+    // treasure, ordeal, merchant (and the floor's shrine) each need one; the wanted optional rooms too, for
+    // the first attempts
+    const needed: RoomType[] = ['treasure', 'ordeal', 'merchant', ...(cfg.shrine ? ['shrine' as const] : [])];
+    if (others.length < needed.length || (attempts <= CFG.generator.optionalTries && others.length < needed.length + wanted.length)) continue;
+    const type = new Map<number, RoomType>([[0, 'start'], [boss, 'boss'], ...needed.map((t, i) => [others[i], t] as [number, RoomType])]);
+    wanted.forEach((t, i) => { if (needed.length + i < others.length) type.set(others[needed.length + i], t); });
     // the optional sources share what the guaranteed ones leave of the budget, in a shuffled order; a bone
     // altar with nothing to offer isn't placed (its dead end holds a fight instead)
     const optional = rng.shuffle([...type].filter(([, t]) => OPTIONAL_SOURCES.includes(t)).map(([id]) => id));
@@ -294,10 +298,10 @@ export function pickBoss(rng: Rng, pool: readonly BossType[], met: readonly Boss
 }
 
 /** The floor as text, one character per cell: S start, B boss, T treasure, O ordeal, A altar, M merchant,
-    V vault, ? secret, # one-cell room, + larger hall, - and | corridors, @ the current room. */
+    V vault, ? secret, * shrine, # one-cell room, + larger hall, - and | corridors, @ the current room. */
 export function planToText(plan: FloorPlan, currentId = -1) {
   const grid = Array.from({ length: GRID_H }, () => Array(GRID_W).fill(' '));
-  const mark: Record<string, string> = { start: 'S', boss: 'B', treasure: 'T', ordeal: 'O', altar: 'A', merchant: 'M', vault: 'V', secret: '?' };
+  const mark: Record<string, string> = { start: 'S', boss: 'B', treasure: 'T', ordeal: 'O', altar: 'A', merchant: 'M', vault: 'V', secret: '?', shrine: '*' };
   const shapeMark = (s: ShapeId) => s === 'standard' ? '#' : s === 'corridor_ew' ? '-' : s === 'corridor_ns' ? '|' : '+';
   for (const r of plan.rooms) for (const c of r.cells) grid[c.gy][c.gx] = r.id === currentId ? '@' : mark[r.type] ?? shapeMark(r.shape);
   return grid.map(row => row.join('')).join('\n');

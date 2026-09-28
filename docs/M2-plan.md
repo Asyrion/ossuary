@@ -19,9 +19,9 @@ shrine cleansing; urns and chests.
    floor's seed and take the budget in that order; room-clear drops use what is left. A source without an
    artifact falls back: the merchant sells only wares, the vault holds a hoard, the secret room holds
    coffers and a chest, and the bone altar isn't placed.
-4. **Shrine** (proposed; can change before step 5): one offering stone per cursed artifact held; walking
-   into a stone starts the cleansing (the curse fights back, step 5), paid with 10 obols when it's done.
-   Too few obols, and the shrine refuses.
+4. **Shrine** (built as proposed in step 5): one offering stone per cursed artifact held; walking into a stone
+   starts the cleansing (the curse fights back), paid with 10 obols when it's done. Too few obols, and the
+   shrine refuses.
 5. **Artifacts:** the three from the GDD (Sexton's Keyring, Miser's Purse, Powder Horn) plus four more, to
    give the merchant, vault and secret pools enough to draw from (20 artifacts in all). Today those pools
    are empty, and 13 artifacts against up to 15 offers per run means nearly every run offers nearly all
@@ -154,16 +154,28 @@ shrine cleansing; urns and chests.
 
 ## Step 5: The shrine
 
-- [ ] Generator: a shrine in a dead end on floor 2 (which floors in `data/floors.json`)
-- [ ] Cursed artifacts split their gift and price in `data/artifacts.json`; cleansing removes the price and
-      halves the gift (Mask of the Drowned: damage ×1.5, no darkness; Chain of the Penitent: +1 s after a
-      hit, no slowness); unit-tested in `computeStats`
-- [ ] Offering stones (decision 4); cleansed artifacts lose their red ring in the HUD and on the end screen
-- [ ] Magic take: the curse fights back. Walking into an offering stone draws the curse out as a wisp; put
-      it down within 10 s inside the shrine's circle and the artifact is cleansed (the obols are paid then);
-      if it escapes, the curse returns and the mage can try again
-- [ ] Placeholder sounds: cleansing, refusal
-- [ ] Dev menu: the shrine in this floor's list, cleanse a curse at once, a cursed artifact to test with
+- [x] Generator: a shrine in a dead end of its own on floor 2 (`shrine` per floor in `data/floors.json`).
+      It took a spare dead end from the vault and altar there (37% vaults instead of 45%), so the walk now
+      tries again up to 200 times (`CFG.generator.optionalTries`, was 60) to leave them room: 41% altars and
+      43% vaults on floor 2, still about 7 fights. Templates `shrine_henge` and `shrine_urns`
+- [x] Cursed artifacts split their gift and price in `data/artifacts.json` (`curse`: the price, and a
+      `cleansed` text); cleansing removes the price and halves the gift (Mask of the Drowned: damage ×1.5,
+      no darkness; Chain of the Penitent: +1 s after a hit, no slowness; Leaden Heart: one more heart, full
+      reach; Bloodied Covenant: +1.25 damage, no tithe); unit-tested in `computeStats`
+- [x] Offering stones (decision 4, `src/world/shrine.ts`): one per curse held, the artifact floating above it,
+      in four spots around the circle (`CFG.shrine`); 10 obols (`shrine` in `data/loot.json`), refused with
+      fewer. Cleansed artifacts lose their red ring in the HUD and on the end screen (a pale one instead)
+- [x] Magic take: the curse fights back. Walking into an offering stone draws the curse out as a wisp that
+      flits about the room, lingers in the circle now and then and spits at the mage; bolts pass through it
+      outside the circle and strike it inside (a blast strikes twice). Four strikes within 10 s put it down
+      (the motes around the circle go out as time runs; its strength is on the boss bar) and the artifact is
+      cleansed, the obols paid; if time runs out or the mage leaves, it flees back into its stone and the mage
+      can try again. Tuned with a bot: 0.2 s reactions win every time in 7 to 9 s, slower ones most times
+- [x] Door style (a pale halo above the door), a warm white light, and a minimap mark (a gold circle, dim with
+      no curse to cleanse)
+- [x] Placeholder sounds: the curse drawn out, a strike, its shots, its escape, cleansing; refusal reused
+- [x] Dev menu: the shrine in this floor's list, take a curse, cleanse a curse at once (cleansed artifacts
+      are marked in the artifact list); `__game.cleanse()`, `__game.rite`
 
 ## Step 6: Economy artifacts, balance and polish
 

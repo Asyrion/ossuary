@@ -1,6 +1,6 @@
 /* The dev menu (the key left of 1, or F2): a panel over the paused game for testing features quickly:
-   the mage, resources, drops, artifacts and foes, this floor's special rooms, and starting a test room, a
-   boss fight or a new run. A thin layer over the same calls as the dev hooks; its lists come from the data,
+   the mage (and their curses), resources, drops, artifacts and foes, this floor's special rooms, and starting
+   a test room, a boss fight or a new run. A thin layer over the same calls as the dev hooks; its lists come from the data,
    so new artifacts, drops, rooms and bosses show up by themselves. Kept in production builds, like the
    hooks, for testing the deployed site. */
 import { BOSS_TYPES, type BossType, type EnemyType } from '../config';
@@ -14,6 +14,7 @@ import { makeEnemy } from '../actors/enemies';
 import { clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
 import { freeSpotNear } from '../world/rooms';
 import { openSecretRoom, revealCracks } from '../world/secret';
+import { cleanseAtOnce } from '../world/shrine';
 import { TEMPLATE_DEFS } from '../world/templates';
 import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
 import { renderHearts, renderMinimap, toast } from './hud';
@@ -78,6 +79,12 @@ function build() {
     btn(S.container, () => { player.heartsPaid--; refreshStats(); }),
     godBtn = btn('', () => { DEV.god = !DEV.god; toast(DEV.god ? S.godOn : S.godOff, 2); }),
     btn(S.resetArtifacts, () => resetArtifacts()),
+    // curses to try the shrine with, and cleansing one at once (no fight, no obols)
+    btn(S.takeCurse, () => {
+      const free = ARTIFACT_DEFS.filter(a => a.curse && !player.items.includes(a.id));
+      if (free.length) grantArtifact(free[Math.floor(Math.random() * free.length)]); else toast(S.allCurses, 2);
+    }),
+    btn(S.cleanse, () => { if (!cleanseAtOnce()) toast(S.noCurse, 2); }),
   );
   const res = section(p, S.resources);
   for (const [r, n] of [['coins', 10], ['keys', 1], ['keys', 5], ['glyphs', 1], ['glyphs', 5]] as [Resource, number][]) {
@@ -137,7 +144,7 @@ function refresh() {
     const held = player.focus === a.id || player.items.includes(a.id);
     const b = btn(a.name, () => grantArtifact(a), `${S.kinds[a.kind]}: ${a.text}`);
     const dot = el('i'); dot.style.background = a.color; b.prepend(dot);
-    if (a.kind !== 'passive') b.append(el('small', '', S.kinds[a.kind]));
+    if (a.kind !== 'passive') b.append(el('small', '', player.cleansed.includes(a.id) ? S.cleansed : S.kinds[a.kind]));
     b.classList.toggle('on', held);
     return b;
   }));

@@ -12,7 +12,10 @@ export function showScreen(name: ScreenName | null) {
 }
 
 /** How a run went, for the end screen. `floor` is 1-based; `artifacts` lists the focus first. */
-export interface RunSummary { won: boolean; floor: number; floors: number; time: number; kills: number; seed: string; artifacts: string[] }
+export interface RunSummary {
+  won: boolean; floor: number; floors: number; time: number; kills: number; seed: string; artifacts: string[];
+  /** Cursed artifacts cleansed at a shrine (they lose their red ring). */ cleansed: string[];
+}
 
 const clock = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
@@ -24,7 +27,7 @@ export function showEndScreen(s: RunSummary) {
   $('endTime').textContent = clock(s.time);
   $('endKills').textContent = String(s.kills);
   $('endSeed').textContent = s.seed;
-  $('endItems').innerHTML = s.artifacts.map((id, i) => `<li>${artifactIcon(id, i === 0)}<span>${artifact(id).name}</span></li>`).join('');
+  $('endItems').innerHTML = s.artifacts.map((id, i) => `<li>${artifactIcon(id, i === 0, s.cleansed.includes(id))}<span>${artifact(id).name}</span></li>`).join('');
   showScreen('end'); $('btnAgain').focus();
 }
 

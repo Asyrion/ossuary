@@ -31,6 +31,7 @@ body{font-family:var(--f-ui);color:var(--ink);-webkit-user-select:none;user-sele
 #items svg{width:28px;height:28px;filter:drop-shadow(0 0 6px rgba(255,170,60,.6))}
 #items svg.focus{border:1px solid rgba(232,220,194,.45);border-radius:4px;padding:2px;background:rgba(10,8,6,.45)}
 #items svg.cursed{filter:drop-shadow(0 0 5px rgba(200,30,20,.9))}
+#items svg.cleansed{filter:drop-shadow(0 0 5px rgba(240,230,200,.75))}
 #purse{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 90px);display:flex;flex-direction:column;gap:2px;font:700 16px var(--f-ui);color:#efe2c3;text-shadow:0 2px 2px #000}
 #purse span{display:flex;align-items:center;gap:6px}
 #purse svg{width:20px;height:20px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.8))}
@@ -75,6 +76,7 @@ body.touch #devHint{display:none}
 .carried svg{width:28px;height:28px;flex:none;padding:3px;border-radius:4px;background:#17110c}
 .carried svg.focus{outline:1px solid var(--amber);outline-offset:-1px}
 .carried svg.cursed{box-shadow:0 0 0 1px #b0201a,0 0 6px rgba(200,30,20,.8)}
+.carried svg.cleansed{box-shadow:0 0 0 1px #cfc4a8,0 0 6px rgba(240,230,200,.5)}
 button.act{font:700 17px var(--f-ui);padding:12px 22px;border-radius:2px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;min-height:44px}
 button.act.primary{background:var(--amber);border-color:#b77a2a;color:var(--amber-ink)}
 button.act:hover{filter:brightness(1.08)}

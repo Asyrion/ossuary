@@ -20,6 +20,7 @@ import { spawnPickup } from '../items/pickups';
 import { buildShop } from '../items/merchant';
 import { fillVault } from './vault';
 import { buildCrackedWall, fillSecret, secretLook } from './secret';
+import { buildShrine, shrineLook } from './shrine';
 
 export const roomAt = (gx: number, gy: number) => G.roomMap.get(gx + ',' + gy);
 /** World position of the centre of template tile (c, r). */
@@ -36,7 +37,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   const minX = plan.anchor.gx * PX - HW + (inset?.c0 ?? 0), minZ = plan.anchor.gy * PZ - HD + (inset?.r0 ?? 0);
   const cx = minX + w / 2, cz = minZ + h / 2;
   const floorLook = FLOORS[Math.min(floorIndex, FLOORS.length - 1)].look;
-  const look = plan.type === 'secret' ? secretLook(floorLook) : floorLook;
+  const look = plan.type === 'secret' ? secretLook(floorLook) : plan.type === 'shrine' ? shrineLook(floorLook) : floorLook;
   const room: Room = {
     plan, template, look, type: plan.type, gx: plan.anchor.gx, gy: plan.anchor.gy, cx, cz,
     bounds: { minX, maxX: minX + w, minZ, maxZ: minZ + h }, w, h, mask: shapeMask(plan.shape, plan.mirrorX, plan.mirrorY),
@@ -64,6 +65,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   if (plan.type === 'merchant') buildShop(room);
   if (plan.type === 'vault') fillVault(room);
   if (plan.type === 'secret') fillSecret(room);
+  if (plan.type === 'shrine') buildShrine(room);
   G.rooms.push(room);
   for (const c of plan.cells) G.roomMap.set(c.gx + ',' + c.gy, room);
   return room;
@@ -316,7 +318,7 @@ export function buildWallsAndDoors(room: Room) {
     const x = pd.gx * PX + dx * hx, z = pd.gy * PZ + dz * hz; // middle of the doorway on the room's inside edge
     const either = (t: string) => room.type === t || nb.type === t;
     const style: DoorStyle = either('secret') ? 'secret' : either('boss') ? 'boss' : either('ordeal') ? 'ordeal' : either('altar') ? 'altar' : either('treasure') ? 'treasure'
-      : either('vault') ? 'vault' : either('merchant') ? 'merchant' : 'normal';
+      : either('vault') ? 'vault' : either('merchant') ? 'merchant' : either('shrine') ? 'shrine' : 'normal';
     room.doors.push(buildDoor(room, pd.side, nb, style, x, z));
   }
   const runs = outline(room.mask, room.w, room.h);
@@ -420,7 +422,7 @@ function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number
   if (ns) th.scale.set(DH * 2, WT, 1); else th.scale.set(WT, DH * 2, 1);
   room.group.add(th);
   // above the door, on this room's side: the boss's glowing eye, the ordeal's skull, the altar's crossed bones,
-  // the merchant's lantern (a locked vault's ward and padlock are added by vault.ts)
+  // the merchant's lantern, the shrine's halo (a locked vault's ward and padlock are added by vault.ts)
   const ep = at(0, side === 'n' || side === 'w' ? .55 : -.55);
   if (style === 'boss') {
     const eye = glow(0xff3a1a, .7, .9); eye.position.set(ep.x, h + .05, ep.z); room.group.add(eye);
@@ -445,6 +447,11 @@ function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number
     const flame = new THREE.Mesh(new THREE.SphereGeometry(.055, 8, 6), basicMat(0xffc36a)); flame.scale.y = 1.5;
     lamp.add(cap, base, flame, glow(0xffb050, 1.1, .85));
     room.group.add(lamp);
+  } else if (style === 'shrine') {
+    const halo = new THREE.Mesh(new THREE.TorusGeometry(.17, .022, 5, 24), basicMat(0xf4e2b0));
+    halo.position.set(ep.x, h + .14, ep.z); halo.rotation.y = ns ? 0 : Math.PI / 2;
+    const light = glow(0xffe8b0, .9, .8); light.position.copy(halo.position);
+    room.group.add(halo, light);
   }
   // bars (sink into the floor when open)
   const bars = new THREE.Group(); const barH = side === 's' ? H_LOW + .1 : h - .25;

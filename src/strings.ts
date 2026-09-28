@@ -58,6 +58,9 @@ export const STR = {
     vaultWarden: ["The vault's warden wakes", 'It will not give up the hoard'] as Banner,
     gildedRelic: ['A relic in the reliquary', 'Fortune favours the bold'] as Banner,
     secret: ['A forgotten cell', 'Someone studied the dark here, long ago'] as Banner,
+    shrine: (price: number): Banner => ['A shrine', `For ${price} obols it cleanses a curse`],
+    riteBegins: ['The curse fights back', 'Strike it down inside the circle'] as Banner,
+    cleansed: (name: string, text: string): Banner => [`The ${name} is cleansed`, text],
   },
   runInfo: (floor: number, floors: number, seed: string) => `Floor ${floor} of ${floors} · Seed ${seed}`,
   rotate: 'Turn your phone sideways to play.',
@@ -83,7 +86,13 @@ export const STR = {
     hollow: "The wall rings hollow. A glyph's blast would break it.",
     secretFound: 'A hidden way lies open.',
     oathKept: 'The oath holds: half a heart returns.',
+    shrineIdle: 'You carry no curse for the shrine to cleanse.',
+    shrinePoor: (price: number, coins: number) => `The shrine asks ${price} obols to cleanse a curse; you carry ${coins}.`,
+    outsideCircle: 'Outside the circle, your bolts pass through the curse.',
+    curseEscaped: (name: string) => `The curse slips back into the ${name}. Walk into its stone to try again.`,
   },
+  /** The boss bar while a shrine draws a curse out. */
+  curseOf: (name: string) => `The curse of the ${name}`,
   /** The dev menu (the key left of 1, or F2): for testing, not for players. */
   dev: {
     title: 'Dev menu', close: 'Close',
@@ -101,7 +110,8 @@ export const STR = {
     foeNames: { rotling: 'Rotling', wisp: 'Wisp', hound: 'Crypt hound' } as Record<string, string>,
     floor: 'This floor', sealed: 'sealed', hidden: 'hidden', clear: 'End this fight', reveal: 'Reveal the map', nextFloor: 'Next floor',
     revealCracks: 'Reveal cracked walls', openSecret: 'Open the secret room',
-    roomNames: { start: 'Start', normal: 'Normal', treasure: 'Treasure', boss: 'Boss', ordeal: 'Ordeal', altar: 'Bone altar', merchant: 'Merchant', vault: 'Vault', secret: 'Secret room' } as Record<string, string>,
+    cleanse: 'Cleanse a curse', takeCurse: 'Take a curse', noCurse: 'No curse to cleanse', allCurses: 'You hold every curse', cleansed: 'cleansed',
+    roomNames: { start: 'Start', normal: 'Normal', treasure: 'Treasure', boss: 'Boss', ordeal: 'Ordeal', altar: 'Bone altar', merchant: 'Merchant', vault: 'Vault', secret: 'Secret room', shrine: 'Shrine' } as Record<string, string>,
     test: 'Test a room', template: 'Room template', variant: 'Variant', play: 'Play it',
     variants: { normal: 'Normal', quiet: 'Quiet', champion: 'Champion', ambush: 'Ambush', dark: 'Dark' } as Record<string, string>,
     bosses: 'Fight a boss', newRun: 'New run', floorN: (n: number) => `Floor ${n}`,

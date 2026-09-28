@@ -151,10 +151,10 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
   const floor2 = await page.evaluate(() => {
     const g = (window as unknown as W).__game, room = g.current;
     g.player.x = room.cx; g.player.z = room.cz + .3; g.sim(0.2, true); // step onto the trapdoor
-    return { state: g.state, floor: g.floor, rooms: g.rooms().filter(r => r.type !== 'secret').length, current: g.current.type };
+    return { state: g.state, floor: g.floor, rooms: g.rooms().filter(r => r.type !== 'secret').length, current: g.current.type, shrines: g.rooms().filter(r => r.type === 'shrine').length };
   });
   await page.screenshot({ path: 'test-results/smoke-floor2.png' });
-  expect(floor2).toMatchObject({ state: 'play', floor: 1, current: 'start' });
+  expect(floor2).toMatchObject({ state: 'play', floor: 1, current: 'start', shrines: 1 }); // the shrine is on floor 2
   expect(floor2.rooms).toBeGreaterThanOrEqual(11);
   expect(floor2.rooms).toBeLessThanOrEqual(15);
   expect(errors).toEqual([]);
@@ -502,6 +502,64 @@ test('two glyph blasts force a vault, and its warden guards the prize', async ({
   expect(errors).toEqual([]);
 });
 
+/* M2 step 5: the shrine. */
+type Rite = { id: string; x: number; z: number; hits: number; t: number; inside: boolean; fleeing: boolean } | null;
+type G6 = G5 & {
+  rite: Rite; player: G5['player'] & { cleansed: string[]; stats: { damage: number; speed: number; effects: Set<string> } };
+  current: G5['current'] & { shrine: { stones: { id: string; x: number; z: number }[] } };
+};
+
+test('the shrine cleanses a curse put down inside its circle, refuses the poor, and lets a curse escape in time', async ({ page }) => {
+  const errors = await start(page, '?room=shrine_henge&seed=SHRN01&give=mask_of_the_drowned,chain_of_the_penitent&loot=coins:14');
+  const entered = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G6; g.warp(1); g.sim(.5);
+    return { type: g.current.type, stones: g.current.shrine.stones.map(s => s.id), banner: document.querySelector('#banner .t')!.textContent };
+  });
+  expect(entered).toEqual({ type: 'shrine', stones: ['mask_of_the_drowned', 'chain_of_the_penitent'], banner: 'A shrine' });
+  // walk into the mask's stone: its curse comes out as a wisp; a bot keeps level with it south of the circle
+  // and casts north whenever it's inside
+  const cleansed = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G6, P = g.player, r = g.current, K = g.keys, s = r.shrine.stones[0];
+    P.x = s.x + 1.2; P.z = s.z; K.add('KeyA'); g.sim(.6); K.delete('KeyA');
+    const began = g.rite?.id;
+    P.invuln = 999; let t = 0;
+    for (; g.rite && !g.rite.fleeing && t < 11; t += 1 / 60) {
+      const w = g.rite;
+      for (const k of ['KeyA', 'KeyD', 'KeyW', 'KeyS', 'ArrowUp']) K.delete(k); g.arrowOrder.length = 0;
+      if (w.x < P.x - .15) K.add('KeyA'); else if (w.x > P.x + .15) K.add('KeyD');
+      if (P.z < r.cz + 2.5) K.add('KeyS'); else if (P.z > r.cz + 2.9) K.add('KeyW');
+      if (w.inside && Math.abs(w.x - P.x) < .3) { K.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); }
+      g.sim(1 / 60);
+    }
+    for (const k of ['KeyA', 'KeyD', 'KeyW', 'KeyS', 'ArrowUp']) K.delete(k); g.arrowOrder.length = 0; g.sim(.5);
+    return {
+      began, seconds: t, rite: g.rite, coins: P.coins, cleansed: P.cleansed, dark: P.stats.effects.has('vision'), damage: P.stats.damage,
+      stones: r.shrine.stones.map(q => q.id), icon: document.querySelector('#items svg.cleansed title')?.textContent,
+    };
+  });
+  console.log(`curse put down in ${cleansed.seconds.toFixed(1)} s`);
+  expect(cleansed).toMatchObject({ began: 'mask_of_the_drowned', rite: null, coins: 4, cleansed: ['mask_of_the_drowned'], dark: false, stones: ['chain_of_the_penitent'] });
+  expect(cleansed.damage).toBeCloseTo(3.5 * 1.5); // the gift halved: ×1.5 instead of ×2
+  expect(cleansed.icon).toContain('half again');
+  await page.evaluate(() => (window as unknown as W).__game.sim(.1, true));
+  await page.screenshot({ path: 'test-results/smoke-shrine.png' });
+  // too few obols: the shrine refuses; with enough, a curse left alone slips back into its stone
+  const later = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G6, P = g.player, r = g.current, s = r.shrine.stones[0];
+    const walkInto = () => { P.x = s.x + 1.2; P.z = s.z; P.vx = P.vz = 0; g.keys.add('KeyA'); g.sim(.7); g.keys.delete('KeyA'); g.sim(.1); P.x += 1.2; g.sim(.05); }; // and step back, so the stone is ready again
+    walkInto();
+    const refused = { rite: g.rite, toast: document.getElementById('toast')!.textContent };
+    g.loot({ coins: 10 }); walkInto();
+    const began = g.rite?.id;
+    P.x = r.cx; P.z = r.cz + 2.8; g.sim(10.8);
+    return { refused, began, rite: g.rite, coins: P.coins, cleansed: P.cleansed, speed: P.stats.speed, toast: document.getElementById('toast')!.textContent };
+  });
+  expect(later.refused).toEqual({ rite: null, toast: expect.stringMatching(/asks 10 obols/) });
+  expect(later).toMatchObject({ began: 'chain_of_the_penitent', rite: null, coins: 14, cleansed: ['mask_of_the_drowned'], toast: expect.stringMatching(/slips back/) });
+  expect(later.speed).toBeCloseTo(4.3 * .75); // still cursed
+  expect(errors).toEqual([]);
+});
+
 test('the dev menu opens on its key, pauses the game, and hands out what it lists', async ({ page }) => {
   const errors = await start(page, '?seed=DEVM01');
   await expect(page.locator('#devHint')).toContainText('F2'); // the key is shown on the HUD during play-tests
@@ -526,6 +584,11 @@ test('the dev menu opens on its key, pauses the game, and hands out what it list
   await page.keyboard.press('F2'); await click('The Pyre Knight');
   const boss = await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as G5 & { run: { boss: string } }; return { boss: g.run.boss, items: g.player.items, coins: g.player.coins, rooms: g.rooms().length }; });
   expect(boss).toEqual({ boss: 'pyre', items: ['ember_sigil'], coins: 10, rooms: 2 });
+  // a curse to try the shrine with, and cleansing it at once
+  await page.keyboard.press('F2'); await click('Take a curse'); await click('Cleanse a curse');
+  const curse = await page.evaluate(() => { const P = (window as unknown as W).__game.player as unknown as { items: string[]; cleansed: string[] }; return { items: P.items.length, cleansed: P.cleansed }; });
+  expect(curse.items).toBe(2);
+  expect(curse.cleansed).toEqual([(await page.evaluate(() => ((window as unknown as W).__game.player as unknown as { items: string[] }).items[1]))]);
   expect(errors).toEqual([]);
 });
 

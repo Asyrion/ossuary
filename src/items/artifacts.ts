@@ -18,7 +18,7 @@ const hex = (c: string) => new THREE.Color(c).getHex();
 /** Recompute the mage's stats from what they hold; heart containers gained come filled. */
 export function refreshStats() {
   const before = player.maxHp;
-  player.stats = computeStats(player.focus, player.items, { ...CFG.hero, hearts: CFG.hero.hearts - player.heartsPaid });
+  player.stats = computeStats(player.focus, player.items, { ...CFG.hero, hearts: CFG.hero.hearts - player.heartsPaid }, player.cleansed);
   player.maxHp = player.stats.maxHp;
   if (player.maxHp > before) player.hp += player.maxHp - before;
   player.hp = Math.min(player.hp, player.maxHp);
@@ -26,7 +26,17 @@ export function refreshStats() {
 }
 
 /** Start a run holding only the starting focus. */
-export function resetArtifacts() { player.focus = START_FOCUS; player.items = []; player.heartsPaid = 0; refreshStats(); player.hp = player.maxHp; renderHearts(); }
+export function resetArtifacts() { player.focus = START_FOCUS; player.items = []; player.heartsPaid = 0; player.cleansed = []; refreshStats(); player.hp = player.maxHp; renderHearts(); }
+
+/** Cursed artifacts the mage holds that no shrine has cleansed yet, oldest first. */
+export const heldCurses = () => player.items.filter(id => artifact(id).curse && !player.cleansed.includes(id));
+
+/** Cleanse a cursed artifact the mage holds: its price goes and its gift is halved. */
+export function cleanseArtifact(id: string) {
+  if (!heldCurses().includes(id)) return false;
+  player.cleansed.push(id); refreshStats();
+  return true;
+}
 
 /** Give the mage an artifact. Returns the focus it replaced, if any. */
 export function grantArtifact(def: ArtifactDef, silent = false): ArtifactDef | null {

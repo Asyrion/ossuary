@@ -17,7 +17,7 @@ describe('room templates', () => {
   });
 
   it('cover every room type and normal difficulty the generator asks for', () => {
-    for (const type of ['start', 'treasure', 'boss', 'altar', 'merchant', 'vault', 'secret'] as const) expect(TEMPLATE_DEFS.some(d => d.types.includes(type))).toBe(true);
+    for (const type of ['start', 'treasure', 'boss', 'altar', 'merchant', 'vault', 'secret', 'shrine'] as const) expect(TEMPLATE_DEFS.some(d => d.types.includes(type))).toBe(true);
     for (const d of [1, 2, 3]) expect(TEMPLATE_DEFS.some(t => t.types.includes('normal') && t.difficulty === d)).toBe(true);
     for (const d of [1, 2, 3]) expect(TEMPLATE_DEFS.some(t => t.types.includes('ordeal') && t.difficulty === d)).toBe(true);
   });
@@ -74,6 +74,7 @@ describe('floor generator', () => {
       expect(count('altar')).toBeLessThanOrEqual(1);
       expect(count('vault')).toBeLessThanOrEqual(1);
       expect(count('secret')).toBeLessThanOrEqual(1);
+      expect(count('shrine')).toBe(cfg.shrine ? 1 : 0); // on floor 2, where it takes a dead end of its own
       altars += count('altar'); vaults += count('vault'); secrets += count('secret');
       // artifacts: the guaranteed sources always; optional ones share what's left of the budget, and an
       // altar is only placed with an artifact to offer
@@ -123,7 +124,7 @@ describe('floor generator', () => {
       expect(['standard', 'great']).toContain(boss.shape);
       expect(boss.dist).toBeGreaterThanOrEqual(2);
       if (boss.shape === 'great') bossHalls++;
-      for (const t of ['start', 'treasure', 'ordeal', 'altar', 'merchant', 'vault']) for (const r of plan.rooms.filter(x => x.type === t)) {
+      for (const t of ['start', 'treasure', 'ordeal', 'altar', 'merchant', 'vault', 'shrine']) for (const r of plan.rooms.filter(x => x.type === t)) {
         expect(r.shape).toBe('standard');
         if (t !== 'start') expect(nbs(r).filter(id => plan.rooms[id].type !== 'secret').length).toBe(1); // a hidden doorway may add one
       }

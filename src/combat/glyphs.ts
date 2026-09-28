@@ -17,6 +17,7 @@ import { glyphTexture } from '../render/textures';
 import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
 import { blastSeal } from '../world/vault';
 import { openSecret } from '../world/secret';
+import { blastWisp } from '../world/shrine';
 import { toast } from '../ui/hud';
 import { STR } from '../strings';
 import { giveResources, isContainer, openContainer } from '../items/pickups';
@@ -94,6 +95,7 @@ function blast(x: number, z: number, color: number) {
   for (const p of G.pickups) if (isContainer(p.kind) && !p.opened && Math.hypot(p.x - x, p.z - z) < R + .3) openContainer(p, true); // chests burn
   for (const d of room.doors) if (d.seal?.sealed && touches(d.box, x, z, R)) blastSeal(d.seal);       // a vault's ward cracks
   for (const d of room.doors) if (d.secret && !d.secret.open && touches(d.box, x, z, R)) openSecret(d); // a cracked wall breaks open
+  blastWisp(x, z, R); // a shrine's curse, inside the circle
   for (let i = G.shots.length - 1; i >= 0; i--) { // enemy shots in reach unravel
     const s = G.shots[i];
     if (Math.hypot(s.x - x, s.z - z) < R) { scene.remove(s.mesh); G.shots.splice(i, 1); burst(s.x, s.y, s.z, s.color, 3, 1, .04); }

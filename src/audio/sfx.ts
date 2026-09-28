@@ -74,6 +74,12 @@ export const Sfx = {
   crumble() { hiss(.7, .14, 'lowpass', 420); tone('sine', 70, 35, .6, .16); hiss(.3, .06, 'bandpass', 1500, .15); },
   secretFound() { [659, 831, 988, 1319].forEach((f, i) => tone('triangle', f, f, .45, .06, .25 + i * .08)); hiss(.6, .03, 'highpass', 4500, .25); },
   unlock() { tone('square', 90, 70, .12, .06); tone('triangle', 660, 990, .2, .06, .1); tone('triangle', 1320, 1320, .2, .05, .22); hiss(.15, .04, 'highpass', 5000, .1); },
+  // the shrine
+  curseDrawn() { tone('sawtooth', 311, 147, .7, .05); tone('sine', 98, 62, .9, .1); hiss(.8, .06, 'bandpass', 700); },
+  wispHit() { tone('triangle', 988, 740, .12, .05); hiss(.12, .05, 'highpass', 3000); },
+  wispShot() { tone('sawtooth', 220, 150, .18, .025); },
+  curseEscaped() { tone('sawtooth', 147, 311, .5, .05); tone('sine', 196, 98, .7, .06, .1); hiss(.5, .04, 'bandpass', 900); },
+  cleanse() { [523, 659, 784, 1046, 1318].forEach((f, i) => tone('sine', f, f, .9 - i * .08, .06, i * .09)); tone('sine', 131, 131, 1.4, .06); hiss(.9, .03, 'highpass', 5000, .3); },
   // runs, rooms and artifacts
   descend() { hiss(.6, .1, 'lowpass', 900); tone('sine', 220, 50, .7, .12); tone('sine', 60, 35, .35, .16, .55); },
   trapdoor() { hiss(.8, .1, 'lowpass', 300); tone('square', 55, 42, .8, .04); },

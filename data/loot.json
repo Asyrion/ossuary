@@ -15,6 +15,7 @@
   "vaultHoard": { "count": [4, 6], "weights": { "coin": 35, "purse": 30, "glyph": 35 } },
   "secretHoard": { "count": [3, 5], "weights": { "coin": 40, "purse": 16, "key": 16, "glyph": 28 } },
   "secretRoom": { "coffers": 2, "chests": 1 },
+  "shrine": { "price": 10 },
   "merchant": {
     "wares": [3, 4],
     "prices": { "artifact": 15, "heart": 3, "key": 5, "glyph": 5 },

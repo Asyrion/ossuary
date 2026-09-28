@@ -11,7 +11,7 @@ system borrowed from Isaac gets a magic take (GDD: What separates Ossuary from a
 asset checklist lives in the owner's claude.ai project "Tripo3D-GameDev". This file holds what you need to
 work in the repo.
 
-## Current state: M2 in progress (see `docs/M2-plan.md`; steps 1 to 4 done); M1 built (`docs/M1-plan.md`)
+## Current state: M2 in progress (see `docs/M2-plan.md`; steps 1 to 5 done); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -28,16 +28,18 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   any outline and cuts doors into them; the camera follows the mage in rooms larger than the view
   (`cameraTargetFor`) and pulls back in multi-cell halls (`viewScaleFor`, `CFG.camHallView`); four
   torch lights move to the torches nearest the mage. Content:
-  `data/floors.json` (room counts, difficulty weights, enemy health, altar and vault chances, the vault's
-  warden, boss tuning and look per floor),
+  `data/floors.json` (room counts, difficulty weights, enemy health, altar and vault chances, which floors have
+  a shrine, the vault's warden, boss tuning and look per floor),
   `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `i` pillar, `=` stone tomb, `u` urn,
   `$` rune-sealed urn, `R W H` enemies, `B` boss; `x` outside an L's missing corner; ordeal templates list
-  their enemies per wave in `waves`; `special.json` holds ordeals, altars, merchants, vaults and secret rooms,
+  their enemies per wave in `waves`; `special.json` holds ordeals, altars, merchants, vaults, secret rooms and shrines,
   `shapes.json` the larger and narrow rooms) and
-  `data/artifacts.json` (foci, passive and cursed artifacts: stats, effects, pools, colours, icons).
+  `data/artifacts.json` (foci, passive and cursed artifacts: stats, effects, pools, colours, icons; a cursed
+  artifact's price is its `curse`, which a shrine removes while halving the gift).
 - Artifacts: `src/items/artifactData.ts` (pure: data, `computeStats` combining, picking) and
   `src/items/artifacts.ts` (pedestals, taking and focus swap, per-floor budget). The mage's stats are
-  `player.stats`, recomputed on every pickup; read those, not `CFG.hero`, for anything artifacts change.
+  `player.stats`, recomputed on every pickup (and cleansing: `player.cleansed`); read those, not `CFG.hero`,
+  for anything artifacts change.
   The cantrip pipeline is in `src/combat/projectiles.ts` (fans, the serpent's weave, strong casts, split
   bolts); companions that artifacts bind (the Candle Moth, the Weeping Skull) in `src/combat/familiars.ts`.
   New artifacts are data plus, for a new mechanic, an `Effect` or stat key in `artifactData.ts`, and an icon
@@ -49,13 +51,14 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
   every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
   keys and glyphs. `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
-  vault or a secret room (behind a cracked wall) next to the start.
+  vault, a secret room (behind a cracked wall) or a shrine (`?room=shrine_henge`) next to the start.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
   resources, `__game.drop('purse')` drops a pickup ahead of the mage, `__game.clearRoom()`
-  ends the current fight, `__game.openSecret()` breaks open the floor's secret room.
+  ends the current fight, `__game.openSecret()` breaks open the floor's secret room,
+  `__game.cleanse()` cleanses the oldest curse held at once, `__game.rite` reads the shrine's rite under way.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons: heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
-  special rooms, test rooms, boss fights and new runs. Its lists come from the data, so new artifacts,
+  special rooms, test rooms, boss fights and new runs, and taking or cleansing a curse. Its lists come from the data, so new artifacts,
   drops, room types and bosses show up by themselves; give a new room type a name in `STR.dev.roomNames`.
 - `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
   1,024 px JPEG textures). Clips: `standing_relax`, `run`, `walk` (slow movement), `cast_a_spell`,
@@ -78,7 +81,11 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `src/world/vault.ts`; stock, prices and the vault's hoard are in `data/loot.json`. Secret rooms (a
   forgotten mage's cell behind cracked walls that ring hollow to bolts and break to a glyph's blast) are in
   `src/world/secret.ts`: the generator adds one per floor on top of the room count, and each hidden doorway
-  is a door with `secret` set (closed, a wall piece filling it) until `openSecret` opens both sides.
+  is a door with `secret` set (closed, a wall piece filling it) until `openSecret` opens both sides. The
+  shrine (floor 2) is in `src/world/shrine.ts`: an offering stone per curse held; walking into one (10 obols)
+  draws the curse out as a wisp that bolts only strike inside the shrine's circle (`strikeWisp`, `blastWisp`);
+  four strikes in 10 s cleanse the artifact (`cleanseArtifact` in `items/artifacts.ts`), otherwise it flees
+  back into its stone. Tuning in `CFG.shrine`, the price in `data/loot.json`.
 - The per-floor artifact budget (`CFG.artifacts.maxPerFloor`, 6): the generator marks which rooms hold one
   (`artifact` on each planned room: always the treasure room, ordeal and boss; the merchant, vault and altar
   in a shuffled order while the budget lasts). `buildFloor` reserves them all; room-clear drops take what
