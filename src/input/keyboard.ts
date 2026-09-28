@@ -10,6 +10,7 @@ export function initKeyboard(act: InputActions) {
     act.unlockAudio();
     if (ARROWS[e.code] || e.code === 'Space') e.preventDefault();
     if (e.repeat) return;
+    if (e.code === 'Backquote' || e.code === 'F2') { e.preventDefault(); act.toggleDev(); return; }
     keys.add(e.code);
     if (ARROWS[e.code]) { const i = arrowOrder.indexOf(e.code); if (i >= 0) arrowOrder.splice(i, 1); arrowOrder.push(e.code); }
     if (e.code === 'Escape' || e.code === 'KeyP') act.togglePause();

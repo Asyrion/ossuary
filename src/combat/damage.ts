@@ -1,6 +1,6 @@
 import { CFG } from '../config';
 import type { Enemy } from '../types';
-import { G, after, player } from '../state';
+import { DEV, G, after, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { disposeTree } from '../render/materials';
@@ -43,7 +43,7 @@ function killEnemy(e: Enemy, withBoss = false) {
 
 /** Damage the hero by `halves` half-hearts, knocking them away from (fromX, fromZ). */
 export function hurtPlayer(halves: number, fromX: number, fromZ: number) {
-  if (player.invuln > 0 || G.state !== 'play') return;
+  if (player.invuln > 0 || G.state !== 'play' || DEV.god) return;
   player.hp -= halves; player.invuln = player.stats.invuln; renderHearts();
   const dx = player.x - fromX, dz = player.z - fromZ, d = Math.hypot(dx, dz) || 1; player.vx += dx / d * 7; player.vz += dz / d * 7;
   G.shake = .3; Sfx.hurt(); flashHurt();

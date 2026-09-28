@@ -86,3 +86,19 @@ body.touch.portrait #rotate{display:flex}
 @media (max-width:700px){.card{padding:20px}.controls{font-size:14px;gap:4px 12px}#minimap{width:120px;height:88px}#hearts svg{width:24px;height:24px}}
 @media (max-height:480px){.card h1{font-size:44px}.card p{font-size:16px;margin-bottom:10px}.controls{margin-bottom:12px}}
 @media (prefers-reduced-motion: reduce){#banner,#bossbar,#hurt{transition:none}}
+/* dev menu (ui/devMenu.ts): a panel docked on the right, over the paused game */
+#dev{position:fixed;top:12px;right:12px;bottom:12px;width:min(430px,calc(100vw - 24px));z-index:20;overflow-y:auto;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:3px;box-shadow:0 16px 50px rgba(0,0,0,.6);padding:14px 16px 18px;font:14px/1.35 var(--f-ui);-webkit-user-select:text;user-select:text;touch-action:auto}
+#dev[hidden]{display:none}
+#dev header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#dev h2{font:400 24px/1 var(--f-display);margin:0}
+#dev .dv-info{margin:6px 0 4px;color:var(--ink-dim);font-size:13px;font-variant-numeric:tabular-nums}
+#dev .dv-s{margin-top:14px}
+#dev h3{font:600 13px var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);margin:0 0 6px;border-bottom:1px solid var(--line);padding-bottom:3px}
+#dev .dv-row{display:flex;flex-wrap:wrap;gap:6px}
+#dev .dv-b{display:inline-flex;align-items:center;gap:6px;font:500 13px var(--f-ui);padding:5px 9px;min-height:30px;border:1px solid var(--line);border-radius:2px;background:transparent;color:var(--ink);cursor:pointer}
+#dev .dv-b:hover{background:rgba(232,166,76,.14)}
+#dev .dv-b.on{border-color:var(--amber);background:rgba(232,166,76,.22)}
+#dev .dv-b i{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+#dev .dv-b small{color:var(--ink-dim);font-size:11px}
+#dev select{font:13px var(--f-ui);padding:5px 6px;min-height:30px;max-width:100%;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:2px}
+#dev .dv-check{display:flex;align-items:center;gap:6px;margin-top:8px;color:var(--ink-dim);font-size:13px;cursor:pointer}

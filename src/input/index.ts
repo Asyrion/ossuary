@@ -19,6 +19,8 @@ export interface InputActions {
   toggleSound(): void;
   /** Window lost focus or tab hidden. */
   autoPause(): void;
+  /** The key left of 1, or F2: open or close the dev menu. */
+  toggleDev(): void;
   playing(): boolean;
 }
 

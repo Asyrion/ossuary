@@ -455,6 +455,28 @@ test('two glyph blasts force a vault, and its warden guards the prize', async ({
   expect(errors).toEqual([]);
 });
 
+test('the dev menu opens on its key, pauses the game, and hands out what it lists', async ({ page }) => {
+  const errors = await start(page, '?seed=DEVM01');
+  await page.keyboard.press('Backquote');
+  await expect(page.locator('#dev')).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('pause');
+  const click = (text: string) => page.locator('#dev button', { hasText: text }).first().click();
+  await click('+10 obols'); await click('+5 keys'); await click('Ember Sigil'); await click('God mode'); await click('Gilded chest');
+  const got = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G5 & { pickups: { gilded?: boolean }[] };
+    return { coins: g.player.coins, keys: g.player.keys, items: g.player.items, gilded: g.pickups.filter(q => q.gilded).length };
+  });
+  expect(got).toEqual({ coins: 10, keys: 5, items: ['ember_sigil'], gilded: 1 });
+  await page.keyboard.press('Escape'); // closes the menu (not the pause screen) and the game goes on
+  await expect(page.locator('#dev')).toBeHidden();
+  expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('play');
+  // a boss fight from the menu keeps what the mage carries
+  await page.keyboard.press('F2'); await click('The Pyre Knight');
+  const boss = await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as G5 & { run: { boss: string } }; return { boss: g.run.boss, items: g.player.items, coins: g.player.coins, rooms: g.rooms().length }; });
+  expect(boss).toEqual({ boss: 'pyre', items: ['ember_sigil'], coins: 10, rooms: 2 });
+  expect(errors).toEqual([]);
+});
+
 test('every door of a seeded floor leads to its neighbour, onto open floor', async ({ page }) => {
   const errors = await start(page, '?seed=DOORS1&floor=2&loot=keys:9'); // keys unbind a vault's ward on the way
   const result = await page.evaluate(() => {
