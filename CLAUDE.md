@@ -49,8 +49,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   resources, `__game.drop('purse')` drops a pickup ahead of the mage, `__game.clearRoom()`
   ends the current fight.
 - `public/assets/hero_default.glb`: the hero (17,715 triangles, 65-bone Mixamo-style rig, 1,024 px JPEG
-  textures). Clips: `idle`, `run`, `cast_a_spell`, `hit_to_body_01`, and `walk` (unused: the run wins).
-  No death clip yet, so the mage topples over procedurally, as static models do.
+  textures). Clips: `idle`, `run`, `cast_a_spell`, `hit_to_body_01`, `fall`, and `walk` (unused: the run
+  wins).
 - `prototype/`: the 0.3 single file (`-source` to read, `-playable` to run). Still the reference for look
   and behaviour; `npm run compare` screenshots the same rooms in both.
 - Lights were re-tuned for physically based lighting: decay exponents dropped to 0.5 so the falloff

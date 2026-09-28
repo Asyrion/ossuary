@@ -124,7 +124,7 @@ Hearts can't be picked up at full health. The hero faces the cast direction whil
 | Moving | run | Whole body | Plays at up to 1.8× speed to match move speed; a run beats a walk when a model has both |
 | Casting | cast\_a\_spell | Upper body | Only the forward thrust is replayed per bolt |
 | Taking damage | hit\_to\_body\_01 | Upper body | Played at 1.6× |
-| Death | (none yet) | Whole body | A death clip (a name with fall, death or die) plays when there is one, and the end screen waits for it; without one, the mage topples over |
+| Death | fall | Whole body | End screen waits for it; a model without a death clip topples over instead |
 
 ## Combat and enemies
 
