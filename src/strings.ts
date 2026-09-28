@@ -227,6 +227,7 @@ export const STR = {
     info: (seed: string, floor: number, room: number, type: string) => `Seed ${seed} · floor ${floor} · room ${room} (${type})`,
     mage: 'The mage', heal: 'Full heal', container: '+1 heart container', resetArtifacts: 'Reset artifacts',
     godOn: 'God mode: on', godOff: 'God mode: off',
+    doors: { data: 'Doors: as the floor has them', shifted: 'Doors: off the middle', middle: 'Doors: in the middle' } as Record<string, string>,
     moveClip: { run: 'Moving: run clip', walkInStep: 'Moving: walk clip, feet in step', walkNatural: 'Moving: walk clip, natural pace' } as Record<string, string>,
     resources: 'Obols, keys and glyphs', emptyPurse: 'Empty the purse',
     give: (n: number, what: string) => `+${n} ${what}${n === 1 ? '' : 's'}`,

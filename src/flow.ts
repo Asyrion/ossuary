@@ -2,7 +2,7 @@
 import type * as THREE from 'three';
 import { CFG, type BossType } from './config';
 import type { Room } from './types';
-import { G, after, clearTimers, player } from './state';
+import { DEV, G, after, clearTimers, player } from './state';
 import { STR } from './strings';
 import { Rng, newSeed } from './rng';
 import { Sfx } from './audio/sfx';
@@ -66,7 +66,7 @@ export function buildFloor(index: number) {
   // the floor's boss: from its pool, one this run hasn't met (or the one ?boss= asked for)
   G.run.boss = forcedBoss ?? pickBoss(Rng.from(G.run.seed, 'boss' + index), FLOORS[index].boss.pool, G.run.bossesMet);
   G.run.bossesMet.push(G.run.boss);
-  const plan = testTemplate ? testPlan(testTemplate, testVariant) : generateFloor(Rng.from(G.run.seed, 'floor' + index), FLOORS[index], index);
+  const plan = testTemplate ? testPlan(testTemplate, testVariant) : generateFloor(Rng.from(G.run.seed, 'floor' + index), floorConfig(index), index);
   G.run.plan = plan;
   // the budget holds the guaranteed sources (treasure room, ordeal, boss) and the optional ones the
   // generator gave an artifact (GDD: Artifacts); room-clear drops take what is left
@@ -326,4 +326,10 @@ export function warp(gx: number, gy?: number) {
   const p = door ? entryPoint(door) : freeSpotNear(r, r.cx, r.cz);
   player.x = p.x; player.z = p.z; player.vx = player.vz = 0;
   aimCamera(r); enterRoom(r);
+}
+
+/** A floor's settings, with the dev menu's door switch applied. */
+function floorConfig(index: number) {
+  const cfg = FLOORS[index];
+  return DEV.doors === 'data' ? cfg : { ...cfg, doorShift: DEV.doors === 'shifted' ? 1 : 0 };
 }

@@ -23,6 +23,7 @@ import { furnishLibrary } from '../magic/pages';
 import { fillVault } from './vault';
 import { buildCrackedWall, fillSecret, secretLook } from './secret';
 import { buildShrine, shrineLook } from './shrine';
+import { subtractRect, wallRects, type Rect } from './walls';
 
 export const roomAt = (gx: number, gy: number) => G.roomMap.get(gx + ',' + gy);
 /** World position of the centre of template tile (c, r). */
@@ -42,7 +43,8 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   const look = plan.type === 'secret' ? secretLook(floorLook) : plan.type === 'shrine' ? shrineLook(floorLook) : floorLook;
   const room: Room = {
     plan, template, look, type: plan.type, gx: plan.anchor.gx, gy: plan.anchor.gy, cx, cz,
-    bounds: { minX, maxX: minX + w, minZ, maxZ: minZ + h }, w, h, mask: shapeMask(plan.shape, plan.mirrorX, plan.mirrorY),
+    // the room's inside: its shape, less the tiles the template carves into wall
+    bounds: { minX, maxX: minX + w, minZ, maxZ: minZ + h }, w, h, mask: shapeMask(plan.shape, plan.mirrorX, plan.mirrorY).map((row, r) => row.map((inShape, c) => inShape && template.tiles[r][c] !== 'void')),
     group: new THREE.Group(), doors: [], walls: [], rocks: [], pits: [], torches: [], waves: [], wave: 0, wavePending: false, spots: [],
     cleared: true, visited: false, known: false, locked: false,
   };
@@ -282,8 +284,8 @@ export function entryPoint(door: Door) {
     of the wall band, [a0, a1) the tiles it spans (over outer corners), [i0, i1) the part along the inside. */
 interface WallRun { facing: Side; line: number; a0: number; a1: number; i0: number; i1: number }
 
-/** Trace the outline of the room's mask into wall runs. Runs on the north and south are stretched over
-    outer corners so the corners are closed; inner corners are covered by the side walls. */
+/** Trace the outline of the room's mask into wall runs (where torches go; the walls themselves are built from
+    walls.ts). Runs on the north and south are stretched over outer corners. */
 function outline(mask: boolean[][], w: number, h: number): WallRun[] {
   const inside = (c: number, r: number) => r >= 0 && r < h && c >= 0 && c < w && mask[r][c];
   const runs: WallRun[] = [];
@@ -323,29 +325,32 @@ export function buildWallsAndDoors(room: Room) {
   for (const pd of room.plan.doors) {
     const nb = G.rooms.find(r => r.plan.id === pd.to)!;
     const [dx, dz] = SIDE_DIR[pd.side];
-    const x = pd.gx * PX + dx * hx, z = pd.gy * PZ + dz * hz; // middle of the doorway on the room's inside edge
+    const shift = pd.shift ?? 0; // how far the door has moved along its edge (M3.6)
+    const x = pd.gx * PX + dx * hx + (dx ? 0 : shift), z = pd.gy * PZ + dz * hz + (dz ? 0 : shift); // middle of the doorway on the room's inside edge
     const either = (t: string) => room.type === t || nb.type === t;
     const style: DoorStyle = either('secret') ? 'secret' : either('boss') ? 'boss' : either('ordeal') ? 'ordeal' : either('altar') ? 'altar' : either('treasure') ? 'treasure'
       : either('vault') ? 'vault' : either('merchant') ? 'merchant' : either('shrine') ? 'shrine' : either('library') ? 'library' : 'normal';
     room.doors.push(buildDoor(room, pd.side, nb, style, x, z));
   }
-  const runs = outline(room.mask, room.w, room.h);
-  for (const run of runs) {
-    const ns = isNS(run.facing);
-    // the run in world units: along x for north/south walls, along z for east/west ones
-    const along0 = (ns ? minX : minZ) + run.a0, along1 = (ns ? minX : minZ) + run.a1;
-    const across0 = (ns ? minZ : minX) + run.line, across1 = across0 + WT;
-    let pieces = [[along0, along1]];
-    for (const d of room.doors) {
-      if (d.side !== run.facing) continue;
-      const at = ns ? d.x : d.z, line = ns ? d.z + SIDE_DIR[d.side][1] * WT / 2 : d.x + SIDE_DIR[d.side][0] * WT / 2;
-      if (Math.abs(line - (across0 + across1) / 2) > .01 || at < along0 || at > along1) continue;
-      pieces = pieces.flatMap(([a, b]) => [[a, Math.min(b, at - DH)], [Math.max(a, at + DH), b]]).filter(([a, b]) => b - a > .02);
-    }
-    for (const [a, b] of pieces) {
-      room.walls.push(ns ? wallBox(room, a, b, across0, across1, wallHeight(run.facing), mats) : wallBox(room, across0, across1, a, b, wallHeight(run.facing), mats));
-    }
-    placeTorches(room, run, across0);
+  // the walls: rectangles of wall tiles (walls.ts), with the doorways cut out of them
+  const shape = shapeMask(room.plan.shape, room.plan.mirrorX, room.plan.mirrorY);
+  const gaps: Rect[] = room.doors.map(d => {
+    const [dx, dz] = SIDE_DIR[d.side], ns = isNS(d.side);
+    const a0 = dx > 0 || dz > 0 ? 0 : -WT, a1 = a0 + WT; // the wall band, beyond the doorway's inside edge
+    return ns ? { x0: d.x - DH, x1: d.x + DH, z0: d.z + a0, z1: d.z + a1 } : { x0: d.x + a0, x1: d.x + a1, z0: d.z - DH, z1: d.z + DH };
+  });
+  const rects = wallRects(room.mask, shape);
+  const tallAt = (c: number, r: number) => rects.some(q => q.tall && c >= q.c0 && c < q.c1 && r >= q.r0 && r < q.r1);
+  for (const w of rects) {
+    let pieces: Rect[] = [{ x0: minX + w.c0, x1: minX + w.c1, z0: minZ + w.r0, z1: minZ + w.r1 }];
+    for (const g of gaps) pieces = pieces.flatMap(p => subtractRect(p, g));
+    for (const p of pieces) room.walls.push(wallBox(room, p.x0, p.x1, p.z0, p.z1, w.tall ? H_TALL : H_LOW, mats));
+  }
+  // torches along the longer stretches of tall wall facing into the room
+  for (const run of outline(room.mask, room.w, room.h)) {
+    const ns = isNS(run.facing), mid = Math.floor((run.i0 + run.i1) / 2);
+    if (run.i1 - run.i0 < 3 || !(ns ? tallAt(mid, run.line) : tallAt(run.line, mid))) continue;
+    placeTorches(room, run, (ns ? minZ : minX) + run.line);
   }
 }
 

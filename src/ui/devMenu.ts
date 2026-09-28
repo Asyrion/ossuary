@@ -28,7 +28,7 @@ import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
 import { renderHearts, renderMinimap, toast } from './hud';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement;
 let spellSlot = 0;
 let wasPlaying = false, keepCarried = true;
 
@@ -178,6 +178,8 @@ function build() {
   const keep = el('label', 'dv-check'); const box = el('input'); box.type = 'checkbox'; box.checked = keepCarried;
   box.addEventListener('change', () => { keepCarried = box.checked; });
   keep.append(box, document.createTextNode(S.keep)); runs.parentElement!.append(keep);
+  // doors off the middle of their edges, in the floors made from now on: as the floor has it, always, or never
+  runs.append(doorBtn = btn('', () => { const order = ['data', 'shifted', 'middle'] as const; DEV.doors = order[(order.indexOf(DEV.doors) + 1) % order.length]; toast(S.doors[DEV.doors], 2); refresh(); }));
 
   document.body.append(p);
   return p;
@@ -189,6 +191,7 @@ function refresh() {
   info.textContent = S.info(G.run.seed, G.run.floor + 1, cur.plan.id, S.roomNames[cur.type] ?? cur.type);
   godBtn.textContent = DEV.god ? S.godOn : S.godOff; godBtn.classList.toggle('on', DEV.god);
   moveBtn.textContent = S.moveClip[DEV.moveClip]; moveBtn.classList.toggle('on', DEV.moveClip !== 'run');
+  doorBtn.textContent = S.doors[DEV.doors]; doorBtn.classList.toggle('on', DEV.doors !== 'data');
   manaBtn.textContent = DEV.mana ? S.manaOn : S.manaOff; manaBtn.classList.toggle('on', DEV.mana);
   spellBox.replaceChildren(...SPELL_DEFS.map(s => {
     const b = btn(s.name, () => learnSpell(s.id, spellSlot), `${STR.schools[s.school]}: ${s.text}`);

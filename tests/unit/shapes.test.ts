@@ -54,7 +54,9 @@ describe('shaped templates', () => {
     const edit = (r: number, c: number, ch: string): TemplateDef => ({ ...base, grid: base.grid.map((row, i) => i === r ? row.slice(0, c) + ch + row.slice(c + 1) : row) });
     expect(validateTemplate(edit(6, 21, '#')).join()).toMatch(/door lane tile \(21,6\)/); // the edge facing the missing corner
     expect(validateTemplate(edit(10, 20, '.')).join()).toMatch(/disagree with the l_shape outline/);
-    expect(validateTemplate(edit(0, 3, 'x')).join()).toMatch(/disagree/);
+    // x inside the shape carves it: fine in a corner, never across a door's lane
+    expect(validateTemplate(edit(0, 0, 'x'))).toEqual([]);
+    expect(validateTemplate(edit(0, 6, 'x')).join()).toMatch(/door lane tile \(6,0\) is blocked/);
     const corridor = TEMPLATE_DEFS.find(t => t.id === 'corridor_rotlings')!;
     expect(validateTemplate({ ...corridor, grid: ['.............', '.R...........', '.............'] }).join()).toMatch(/next to a door entry/);
   });
