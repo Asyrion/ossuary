@@ -1147,7 +1147,7 @@ test('every door of a seeded floor leads to its neighbour, onto open floor', asy
   const result = await page.evaluate(() => {
     const secret = ((window as unknown as W).__game as unknown as { openSecret(): boolean }).openSecret(); // its cracked walls, broken open
     type D = { side: 'n' | 's' | 'e' | 'w'; x: number; z: number; nb: unknown; open: boolean };
-    type R = Omit<RoomView, 'doors'> & { doors: D[]; bounds: { minX: number; minZ: number }; mask: boolean[][] };
+    type R = Omit<RoomView, 'doors' | 'plan'> & { doors: D[]; bounds: { minX: number; minZ: number }; mask: boolean[][]; plan: RoomView['plan'] & { doors: { shift?: number }[] } };
     const g = (window as unknown as W).__game as unknown as {
       rooms(): R[]; current: R; warp(id: number): void; clearRoom(): void; sim(sec: number): void; keys: Set<string>;
       player: { x: number; z: number; vx: number; vz: number; invuln: number }; camera: { zoom: number };
@@ -1155,8 +1155,9 @@ test('every door of a seeded floor leads to its neighbour, onto open floor', asy
     const HALLS = ['long', 'tall', 'great', 'l_shape'];
     const KEY: Record<D['side'], string> = { n: 'KeyW', s: 'KeyS', e: 'KeyD', w: 'KeyA' };
     const DIR: Record<D['side'], number[]> = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] };
-    const fails: string[] = []; let walked = 0; const shapes = new Set<string>();
-    for (const room of g.rooms()) for (const d of room.doors) {
+    const fails: string[] = []; let walked = 0, shifted = 0; const shapes = new Set<string>();
+    for (const room of g.rooms()) for (const [i, d] of room.doors.entries()) {
+      if (room.plan.doors[i].shift) shifted++; // doors moved off the middle of their edge (M3.6)
       g.warp(room.plan.id); g.clearRoom(); g.player.invuln = 99;
       const [dx, dz] = DIR[d.side];
       g.player.x = d.x - dx * 1.2; g.player.z = d.z - dz * 1.2; g.player.vx = g.player.vz = 0;
@@ -1169,12 +1170,35 @@ test('every door of a seeded floor leads to its neighbour, onto open floor', asy
       // the camera is pulled back in larger halls only
       if ((g.camera.zoom < 1) !== HALLS.includes(nb.plan.shape)) fails.push(`zoom ${g.camera.zoom} in room ${nb.plan.id} (${nb.plan.shape})`);
     }
-    return { walked, shapes: shapes.size, fails, secret };
+    return { walked, shifted, shapes: shapes.size, fails, secret };
   });
-  console.log(`walked through ${result.walked} doors in rooms of ${result.shapes} shapes${result.secret ? ', a secret room among them' : ''}`);
+  console.log(`walked through ${result.walked} doors (${result.shifted} off the middle) in rooms of ${result.shapes} shapes${result.secret ? ', a secret room among them' : ''}`);
   expect(result.secret).toBe(true);
+  expect(result.shifted).toBeGreaterThan(0);
   expect(result.walked).toBeGreaterThan(20);
   expect(result.fails).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test('carved rooms: x tiles inside the shape are wall the mage can\'t walk into', async ({ page }) => {
+  const errors = await start(page, '?room=octagon_crypt');
+  const result = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as {
+      warp(id: number): void; clearRoom(): void; sim(sec: number, draw?: boolean): void; keys: Set<string>;
+      current: { bounds: { minX: number; minZ: number }; mask: boolean[][]; walls: unknown[]; group: { children: unknown[] } };
+      player: { x: number; z: number; vx: number; vz: number };
+    };
+    g.warp(1); g.clearRoom();
+    const b = g.current.bounds;
+    // walk into the top-left corner, which the template cuts away
+    g.player.x = b.minX + 2.5; g.player.z = b.minZ + 1.5; g.keys.add('KeyW'); g.keys.add('KeyA'); g.sim(1.5, true); g.keys.clear();
+    return { corner: g.current.mask[0][0], x: g.player.x - b.minX, z: g.player.z - b.minZ, walls: g.current.walls.length };
+  });
+  expect(result.corner).toBe(false);
+  // the mage stops at the cut corner's walls: not inside tile (0,0), (1,0) or (0,1)
+  expect(result.x >= 2 || result.z >= 1).toBe(true);
+  expect(result.x >= 1 || result.z >= 2).toBe(true);
+  expect(result.walls).toBeGreaterThan(4);
   expect(errors).toEqual([]);
 });
 

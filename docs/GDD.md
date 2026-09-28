@@ -470,6 +470,8 @@ Rooms are built from cells of 13 × 7 tiles. A standard room is one cell, with a
 
 **Room anatomy.** Walls are 1 tile thick; the north wall is tall and carries two torches, the south wall is low so the player stays visible. Doors have iron gates that rise when enemies are present. Rocks block walking and bolts; flying enemies ignore them.
 
+**Architecture (M3.6).** Rooms are places, not boxes. A template can carve its outline: `x` inside the shape turns tiles into wall, for cut corners, a stepped apse, bays, a pinched waist between the cells of a hall, or a partition or pier standing free. A wall is tall only where it runs unbroken to the room's north edge (the north wall, the side walls, a spur coming down from the north); anywhere the floor lies north of it, it is low, so it never hides the mage, and low walls carved inside the room carry a cap of dark stone. The tall walls facing into the room are dressed by the floor's look: pilasters at intervals and niches between them, holding a skull, candle stubs, a small urn or a few bones. Doors move along their cell edge half the time (per floor, `doorShift`), two or four tiles along a north or south edge and two along an east or west one, where both rooms' templates leave the lane clear; shops, vaults, libraries, shrines and secret cells keep theirs in the middle.
+
 | Room type | Purpose | Door style | Arrives |
 | --- | --- | --- | --- |
 | Start | No enemies, controls chalked on the floor | Plain | 0.3 |

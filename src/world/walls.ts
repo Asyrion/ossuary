@@ -3,13 +3,14 @@
    merged into rectangles that never overlap (two faces in one plane flicker). Pure (no three.js): the room
    builder turns the rectangles into boxes and cuts the doorways out of them; the unit tests check the rules.
 
-   Heights: the camera looks north, so a wall hides what lies just north of it. A wall tile is low where the
-   floor lies one or two tiles north of it (the south wall, a carved corner at the bottom), or only diagonally
-   north of it (the south wall's corners); otherwise it is tall (the north wall, the side walls). A block of
-   wall standing free inside a hall (a partition, a pier) is low all over, so it never hides the mage. */
+   Heights: the camera looks north, so a wall hides what lies just north of it. A wall tile is tall only where the
+   wall runs unbroken from it to the room's north edge (the north wall, the side walls, a spur coming down from
+   the north wall); wherever the floor lies somewhere north of it (the south wall, a carved corner at the bottom, a
+   spur from a side or the south wall), and at the south wall's corners, it is low. A block of wall standing free
+   inside a hall (a partition, a pier) is low all over, so it never hides the mage. */
 
 /** A rectangle of wall tiles [c0, c1) × [r0, r1) in the room's tile coordinates (they reach -1 and w or h). */
-export interface WallRect { c0: number; c1: number; r0: number; r1: number; tall: boolean }
+export interface WallRect { c0: number; c1: number; r0: number; r1: number; tall: boolean; /** Carved out of the shape, inside the room. */ inner: boolean }
 
 /** `inside[r][c]`: the room's floor (its shape, less what the template carves); `shape[r][c]`: the shape. */
 export function wallRects(inside: boolean[][], shape: boolean[][]): WallRect[] {
@@ -38,21 +39,22 @@ export function wallRects(inside: boolean[][], shape: boolean[][]): WallRect[] {
   }
   const tall = (c: number, r: number) => {
     if (free[k(c, r)]) return false;
-    if (inRoom(c, r - 1) || (wall(c, r - 1) && inRoom(c, r - 2))) return false;
-    const side = inRoom(c - 1, r) || inRoom(c + 1, r);
-    if (!side && !inRoom(c, r + 1) && (inRoom(c - 1, r - 1) || inRoom(c + 1, r - 1))) return false;
-    return true;
+    // a corner of the south wall: the floor only diagonally north of it
+    if (!inRoom(c - 1, r) && !inRoom(c + 1, r) && !inRoom(c, r - 1) && (inRoom(c - 1, r - 1) || inRoom(c + 1, r - 1))) return false;
+    // tall only if the wall runs unbroken to the north edge, with no floor north of it
+    let up = r - 1; while (wall(c, up)) up--;
+    return !inRoom(c, up);
   };
   // rows first, then stack rows of the same span and height
   const strips: WallRect[] = [];
   for (let r = -1; r <= h; r++) for (let c = -1; c <= w;) {
     if (!wall(c, r)) { c++; continue; }
-    const t = tall(c, r), c0 = c; while (c <= w && wall(c, r) && tall(c, r) === t) c++;
-    strips.push({ c0, c1: c, r0: r, r1: r + 1, tall: t });
+    const t = tall(c, r), inner = carved(c, r), c0 = c; while (c <= w && wall(c, r) && tall(c, r) === t && carved(c, r) === inner) c++;
+    strips.push({ c0, c1: c, r0: r, r1: r + 1, tall: t, inner });
   }
   const rects: WallRect[] = [];
   for (const s of strips) {
-    const above = rects.find(q => q.c0 === s.c0 && q.c1 === s.c1 && q.tall === s.tall && q.r1 === s.r0);
+    const above = rects.find(q => q.c0 === s.c0 && q.c1 === s.c1 && q.tall === s.tall && q.inner === s.inner && q.r1 === s.r0);
     if (above) above.r1 = s.r1; else rects.push({ ...s });
   }
   return rects;

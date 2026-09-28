@@ -38,6 +38,13 @@ describe('walls', () => {
     for (let r = 1; r <= 3; r++) for (let c = 5; c <= 7; c++) expect(t.get(c + ',' + r)).toBe(false);
   });
 
+  it('a spur down from the north wall stands tall; one up from the south wall stays low all along', () => {
+    const rows = ['......x......', '......x......', '.............', '.............', '.............', '......x......', '......x......'];
+    const t = tiles(wallRects(maskOf(rows), full(13, 7)));
+    expect([t.get('6,0'), t.get('6,1')]).toEqual([true, true]);
+    expect([t.get('6,5'), t.get('6,6')]).toEqual([false, false]);
+  });
+
   it('never wall a tile twice, and wall every tile round every template', () => {
     for (const def of TEMPLATE_DEFS) {
       const tp = parseTemplate(def), shape = shapeMask(def.shape);
