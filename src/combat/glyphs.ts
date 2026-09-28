@@ -5,7 +5,9 @@
 
    A blast hurts every foe in reach (bosses too), knocks them back, breaks rocks, snuffs out enemy shots,
    sets off other glyphs in reach, and costs the mage a full heart if caught in it. It burns in the colour
-   of the mage's bolts, so artifacts that change the bolts show in the glyphs too. */
+   of the mage's bolts, so artifacts that change the bolts show in the glyphs too. The Glyphwright's Chalk
+   widens the reach (and the ring that shows it); with the Warding Band the fuse burns faster, a ward rings
+   the mage's feet as they chalk, and turns their own blasts aside. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Box, Glyph } from '../types';
@@ -38,8 +40,16 @@ function shapes() {
 const flat = (color: number, opacity: number, map?: THREE.Texture) =>
   new THREE.MeshBasicMaterial({ color, ...(map ? { map } : {}), transparent: true, opacity, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide });
 
-/** Shockwaves of recent blasts, spreading out to the blast's reach and fading. */
-const waves: { g: THREE.Group; ring: THREE.Mesh; flash: THREE.Sprite; t: number }[] = [];
+/** Rings spreading out and fading: blasts' shockwaves (out to the blast's reach), and the Warding Band's ward. */
+const waves: { g: THREE.Group; ring: THREE.Mesh; flash: THREE.Sprite; t: number; from: number; to: number; dur: number }[] = [];
+
+/** The Warding Band's ward: a pale blue ring at the mage's feet. */
+function wardRing(x: number, z: number) {
+  const g = new THREE.Group(); g.position.set(x, 0, z);
+  const ring = new THREE.Mesh(shapes().wave, flat(WARD_COLOR, .9)); ring.position.y = .04;
+  const flash = glow(WARD_COLOR, 1.4, .6); flash.position.y = .3;
+  g.add(ring, flash); scene.add(g); waves.push({ g, ring, flash, t: 0, from: .35, to: .85, dur: .5 });
+}
 let cooldown = 0;
 
 /** Chalk a glyph at the mage's feet, if they have one. */
@@ -51,14 +61,16 @@ export function placeGlyph() {
     return false;
   }
   giveResources({ glyphs: -1 }); cooldown = C.cooldown;
-  const color = player.stats.boltColor, s = shapes();
+  const color = player.stats.boltColor, s = shapes(), warded = player.stats.effects.has('glyphWard');
+  const fuse = warded ? CFG.artifacts.wardingBand.fuse : C.fuse, radius = C.radius * player.stats.blastMul;
   const g = new THREE.Group(); g.position.set(player.x, 0, player.z);
   const rune = new THREE.Mesh(s.rune, flat(color, .9, glyphTexture())); rune.position.y = .02;
-  const reach = new THREE.Mesh(s.reach, flat(color, .15)); reach.position.y = .015; // how far the blast will reach
+  const reach = new THREE.Mesh(s.reach, flat(color, .15)); reach.position.y = .015; reach.scale.setScalar(player.stats.blastMul); // how far the blast will reach
   const gl = glow(color, 1.4, .5); gl.position.y = .15;
   g.add(rune, reach, gl); scene.add(g);
-  G.glyphs.push({ x: player.x, z: player.z, t: 0, fuse: C.fuse, color, g, rune, reach, glow: gl, lastTick: 0, spent: false });
+  G.glyphs.push({ x: player.x, z: player.z, t: 0, fuse, fuseMax: fuse, radius, color, g, rune, reach, glow: gl, lastTick: 0, spent: false });
   burst(player.x, .1, player.z, color, 6, 1.2, .04); Sfx.inscribe();
+  if (warded) wardRing(player.x, player.z);
   return true;
 }
 
@@ -71,14 +83,14 @@ export function glyphNear(x: number, z: number, r = C.boltReach) {
 export function detonateGlyph(gl: Glyph) {
   if (gl.spent) return;
   gl.spent = true; scene.remove(gl.g); disposeTree(gl.g);
-  blast(gl.x, gl.z, gl.color);
+  blast(gl.x, gl.z, gl.color, gl.radius);
 }
 
 const touches = (b: Box, x: number, z: number, r: number) =>
   Math.hypot(x - clamp(x, b.x - b.hx, b.x + b.hx), z - clamp(z, b.z - b.hz, b.z + b.hz)) < r;
 
-function blast(x: number, z: number, color: number) {
-  const R = C.radius, room = G.current;
+function blast(x: number, z: number, color: number, R: number) {
+  const room = G.current;
   for (const e of G.enemies) {
     if (e.dead || e.spawn > 0 || e.hidden) continue;
     const dx = e.x - x, dz = e.z - z, d = Math.hypot(dx, dz);
@@ -101,12 +113,14 @@ function blast(x: number, z: number, color: number) {
     if (Math.hypot(s.x - x, s.z - z) < R) { scene.remove(s.mesh); G.shots.splice(i, 1); burst(s.x, s.y, s.z, s.color, 3, 1, .04); }
   }
   for (const o of G.glyphs) if (!o.spent && Math.hypot(o.x - x, o.z - z) <= R) o.fuse = Math.min(o.fuse, C.chainDelay);
-  if (Math.hypot(player.x - x, player.z - z) < R + player.r * .5) hurtPlayer(C.selfDamage, x, z);
+  if (Math.hypot(player.x - x, player.z - z) < R + player.r * .5) { // caught in it: the Warding Band turns it aside
+    if (player.stats.effects.has('glyphWard')) { wardRing(player.x, player.z); Sfx.wardTink(); } else hurtPlayer(C.selfDamage, x, z);
+  }
   // the look: a shockwave out to the reach, a flash, sparks in the bolt colour, dust and a scorch mark
   const s = shapes(), g = new THREE.Group(); g.position.set(x, 0, z);
   const ring = new THREE.Mesh(s.wave, flat(color, .9)); ring.position.y = .05;
   const flash = glow(color, R * 2.6, .9); flash.position.y = .4;
-  g.add(ring, flash); scene.add(g); waves.push({ g, ring, flash, t: 0 });
+  g.add(ring, flash); scene.add(g); waves.push({ g, ring, flash, t: 0, from: .3, to: R, dur: .3 });
   burst(x, .3, z, color, 22, 4.5, .07); burst(x, .2, z, 0x4a4038, 12, 3, .08);
   addDecal(x, z, 0x14100c, 1.1);
   G.shake = Math.max(G.shake, .35); Sfx.blast();
@@ -119,7 +133,7 @@ export function updateGlyphs(dt: number) {
     gl.t += dt; gl.fuse -= dt;
     if (gl.fuse <= 0) { detonateGlyph(gl); continue; }
     // the telegraph: the rune turns and flickers faster as the fuse burns down, ticking as it goes
-    const k = clamp(1 - gl.fuse / C.fuse, 0, 1), phase = gl.t * (3 + k * 11) * (1 + k);
+    const k = clamp(1 - gl.fuse / gl.fuseMax, 0, 1), phase = gl.t * (3 + k * 11) * (1 + k);
     const flicker = .5 + .5 * Math.sin(phase * Math.PI * 2);
     const tick = Math.floor(phase);
     if (tick > gl.lastTick) { gl.lastTick = tick; Sfx.fuseTick(k); }
@@ -131,9 +145,9 @@ export function updateGlyphs(dt: number) {
   }
   if (G.glyphs.some(gl => gl.spent)) G.glyphs = G.glyphs.filter(gl => !gl.spent);
   for (let i = waves.length - 1; i >= 0; i--) {
-    const w = waves[i]; w.t += dt; const k = w.t / .3;
+    const w = waves[i]; w.t += dt; const k = w.t / w.dur;
     if (k >= 1) { scene.remove(w.g); disposeTree(w.g); waves.splice(i, 1); continue; }
-    w.ring.scale.setScalar(.3 + (C.radius - .3) * Math.sqrt(k));
+    w.ring.scale.setScalar(w.from + (w.to - w.from) * Math.sqrt(k));
     (w.ring.material as THREE.MeshBasicMaterial).opacity = .9 * (1 - k);
     w.flash.material.opacity = .9 * (1 - k) * (1 - k);
   }

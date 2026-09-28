@@ -333,7 +333,7 @@ The generator places the three guaranteed sources first, then gives artifacts to
 - **Every artifact is noticeable.** Picking one up changes something the player sees (the bolts, the mage, the HUD or the room), never only a hidden number. The pickup banner names it and says what it does in a few words.
 - **The cantrip combines automatically.** The focus sets the pattern (how many bolts, and their path); passives add modifiers (damage, size, fire rate, piercing, triggers). There are no hand-written pairings: Twin-Headed Staff with Bone Lens fires two piercing bolts, Shepherd's Crook with Bone Lens pierces on the way out and back.
 - **Taking a focus leaves the old one on the pedestal,** so the player can swap back.
-- **Each artifact appears at most once per run.** If a source's pool is empty, it falls back to any unseen artifact, then to a heart. M1 had 13 items against up to 15 offers per run; 13 more joined on 2026-09-28 (26 in all, besides the starting wand) so play-tests see different runs, and more are brainstormed in `docs/ideas.md`. More artifacts are the cheapest way to add variety.
+- **Each artifact appears at most once per run.** If a source's pool is empty, it falls back to any unseen artifact, then to a heart. M1 had 13 items against up to 15 offers per run; 13 more joined on 2026-09-28 so play-tests see different runs, then the 7 economy artifacts (33 in all, besides the starting wand), and more are brainstormed in `docs/ideas.md`. More artifacts are the cheapest way to add variety.
 - **Companions** (the Candle Moth, the Weeping Skull) circle the mage and act on their own; they belong to their artifact and leave with it.
 
 **Sets** (from M3, when their pieces exist)
@@ -509,7 +509,7 @@ Between two cells of the same room, the two wall tiles become floor, which is wh
 - **Difficulty:** floor 1 is easy, and each later floor raises the baseline a little (harder templates, about 15% more enemy health per floor). Within a floor, rooms vary randomly around the baseline rather than rising steadily, and variants push single rooms clearly above or below it; deeper floors roll more hard variants. The rooms next to the start on floor 1 are never hard variants. All numbers are found by play-testing.
 - **Between floors:** the boss opens a trapdoor; stepping in starts the next floor (waystones join in M6). Beating the floor 3 boss wins the run. Each floor draws its boss from a pool in `data/floors.json`, never one the run has already met, and scales it (health, speed, shot speed, summons, volleys). Until Tripo bosses arrive (M4), the bosses are placeholder shapes: the Hollow Warden on floor 1, the Drowned Abbess and the Pyre Knight on floors 2 and 3 in either order.
 - **Seeds:** every run has a seed, shown in the pause menu, so a run can be replayed and bugs reproduced.
-- **End of a run:** won or lost, the end screen sums up the run: the deepest floor, the time, foes put to rest, every artifact carried and the seed, with a button to replay the same seed.
+- **End of a run:** won or lost, the end screen sums up the run: the deepest floor, the time, foes put to rest, obols found, every artifact carried (cursed ones ringed in red, cleansed ones in pale gold) and the seed, with a button to replay the same seed.
 - **Floor looks:** each floor already looks a little different, as placeholders until the biome pass (M8): floor 1 has warm stone and iron torches, floor 2 cool damp stone with moss, puddles and cage lanterns, floor 3 scorched brick with soot, ash and braziers. Colours and torch styles live in `data/floors.json`.
 
 **Room templates are data:** a character grid in the size of the room's shape (rock, pit, pillar, stone tomb, enemy spawn, empty; urns and rune-sealed urns from M2) plus a difficulty value and the room types it suits, stored as JSON so new rooms need no code. Pillars and tombs block walking and bolts like rocks but never break; tomb tiles side by side make one longer tomb. Larger halls are furnished with them so they don't feel empty. Ordeal templates list two or three waves. M1 needs at least two templates per shape and 50 or more in total.
@@ -589,17 +589,17 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 
 **Shrine cleansing** (the shrine on floor 2, in a dead end of its own; which floors have one is in `data/floors.json`). For 10 obols (`data/loot.json`), the shrine cleanses one cursed artifact: the drawback goes and the gift is halved (see Artifacts). The room is lit warm white, with a circle of pale runes in the middle of the floor. The mage chooses which curse: each cursed artifact held gets an offering stone, the artifact floating above it; with too few obols, walking into a stone is refused. The curse fights back: walking into its stone draws it out as a wisp that flits about the room, lingering in the circle now and then, and spits at the mage. Bolts pass through it outside the circle and strike it inside (a glyph's blast there strikes twice); four strikes within 10 s put it down, while the motes of light around the circle go out one by one and the curse's strength shows on the boss bar. Then the artifact is cleansed (its red ring in the HUD and on the end screen turns pale), the obols are paid and the stone crumbles. If time runs out, or the mage leaves the room, the wisp flees back into its stone, and the mage can try again. The heart-for-boon bargain joins in M6.
 
-**Artifacts that bend the economy** (join the pools in M2; placeholder names)
+**Artifacts that bend the economy** (joined the pools in step 6 of M2; placeholder names). Each shows in the magic, not only in the numbers.
 
-| Artifact | Effect |
-| --- | --- |
-| Sexton's Keyring | +3 keys; the locked vault opens for free once per floor |
-| Miser's Purse | +0.5 cantrip damage for every 10 coins held |
-| Glyphwright's Chalk | +5 glyphs; blasts are 50% wider |
-| Ferryman's Obol | Every room clear also drops an obol |
-| Warding Band | Your glyphs don't hurt you, and their fuse burns 1 s |
-| Grave Lantern | Cracked walls glow when you enter a room, and secret rooms show on the minimap before they're found |
-| Pedlar's Scale | Merchant prices −30% |
+| Artifact | Effect | How it shows | Pools |
+| --- | --- | --- | --- |
+| Sexton's Keyring | +3 keys; the locked vault opens for free once per floor | The keyring turns in the ward, in a flurry of bone dust | treasure, drop, merchant |
+| Miser's Purse | +0.5 cantrip damage for every 10 obols held | The bolts turn gold, a fifth of the way for every 10 obols, and gold glints off each cast | treasure, merchant, vault |
+| Glyphwright's Chalk | +5 glyphs; blasts are 50% wider | The glyph's reach ring is drawn wider | treasure, drop, secret |
+| Ferryman's Obol | Every fight won also drops an obol | It falls between the mage and the middle of the room, with a pale glint and a chime | merchant, secret |
+| Warding Band | Your glyphs don't hurt you, and their fuse burns 1 s | A ward rings the mage's feet as they chalk, and again as it turns their own blast aside | merchant, vault |
+| Grave Lantern | Cracked walls glow when you enter a room, and secret rooms show on the minimap before they're found | The walls ring hollow from anywhere in the room; the cell shows as a faint eye on the map | treasure, merchant, secret |
+| Pedlar's Scale | Merchant prices −30% (rounded, at least 1) | The price tags show the lower price, in pale green | vault, secret |
 
 **Ideas for later** (not scheduled; more in `docs/ideas.md`): an alms box in chapel rooms where donated coins buy small blessings; sarcophagi that hold loot, or a Rotling; a bone-caster who throws the dice of the dead for coins.
 

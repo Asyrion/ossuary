@@ -13,6 +13,8 @@ import { giveResources, spawnPickup } from '../items/pickups';
 import { makeEnemy } from '../actors/enemies';
 import { clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
 import { freeSpotNear } from '../world/rooms';
+import { SIDE_DIR } from '../world/shapes';
+import type { Room } from '../types';
 import { openSecretRoom, revealCracks } from '../world/secret';
 import { cleanseAtOnce } from '../world/shrine';
 import { TEMPLATE_DEFS } from '../world/templates';
@@ -56,6 +58,19 @@ function section(parent: HTMLElement, title: string) {
 }
 /** Somewhere free just ahead of the mage. */
 const ahead = (d = 1.5) => freeSpotNear(G.current, player.x, player.z - d);
+
+/** Go to a room: into it, or, for a vault still sealed, to the room outside it, a couple of steps from the
+    warded door (to try a key, a blast or the Sexton's Keyring on it). The secret room opens as the mage
+    arrives, so the way back out is there. */
+function goTo(r: Room) {
+  const seal = r.doors.find(d => d.seal?.sealed)?.seal;
+  if (r.type === 'secret') openSecretRoom(r);
+  closeDev();
+  if (!seal) { warp(r.plan.id); return; }
+  warp(seal.outerRoom.plan.id);
+  const [dx, dz] = SIDE_DIR[seal.outer.side];
+  player.x = seal.outer.x - dx * 1.8; player.z = seal.outer.z - dz * 1.8;
+}
 
 /* ---------- starting runs and test rooms ---------- */
 
@@ -153,8 +168,7 @@ function refresh() {
   floorBox.replaceChildren(
     ...rooms.map(r => {
       const note = r.doors.some(d => d.seal?.sealed) ? S.sealed : r.type === 'secret' && !r.found ? S.hidden : '';
-      // going to the secret room opens it, so the way back out is there
-      return btn(`${S.roomNames[r.type] ?? r.type}${note ? ` (${note})` : ''}${r === cur ? ' ●' : ''}`, () => { if (r.type === 'secret') openSecretRoom(r); closeDev(); warp(r.plan.id); });
+      return btn(`${S.roomNames[r.type] ?? r.type}${note ? ` (${note})` : ''}${r === cur ? ' ●' : ''}`, () => goTo(r));
     }),
     ...(secret ? [btn(S.revealCracks, () => revealCracks()), btn(S.openSecret, () => openSecretRoom(secret))] : []),
     btn(S.clear, () => clearRoom()),

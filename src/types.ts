@@ -52,6 +52,7 @@ export interface WareSpot {
   ware: Ware; def?: ArtifactDef; price: number; x: number; z: number;
   g: THREE.Group; item: THREE.Object3D; circle?: THREE.Object3D; tag?: THREE.Object3D;
   sold: boolean; /** Refuses again only after the mage steps away. */ armed: boolean;
+  /** The price its tag shows (the Pedlar's Scale lowers it). */ tagPrice?: number;
 }
 /** A wall light; dark rooms have their torches out (`lit` false). (x, z) is where its light sits. */
 export interface Torch { flame: THREE.Mesh; glow: THREE.Sprite; x: number; z: number; lit: boolean }
@@ -126,7 +127,9 @@ export interface Pickup extends Circle {
   /** A gilded reliquary chest: a relic inside (an artifact outside the floor's budget); only a key opens it. */ gilded?: boolean;
 }
 /** A blast glyph chalked on the floor: it flares when `fuse` runs out or one of the mage's bolts strikes it. */
-export interface Glyph { x: number; z: number; t: number; fuse: number; color: number; g: THREE.Group; rune: THREE.Mesh; reach: THREE.Mesh; glow: THREE.Sprite; lastTick: number; spent: boolean }
+/** A chalked glyph: its fuse and how long it was (the Warding Band's is shorter), and how far its blast reaches
+    (wider with the Glyphwright's Chalk). */
+export interface Glyph { x: number; z: number; t: number; fuse: number; fuseMax: number; radius: number; color: number; g: THREE.Group; rune: THREE.Mesh; reach: THREE.Mesh; glow: THREE.Sprite; lastTick: number; spent: boolean }
 export interface Trapdoor { g: THREE.Group; x: number; z: number; ring: THREE.Mesh; t: number }
 
 /** The pan between rooms: the mage walks from (fx, fz) to (tx, tz), the camera from (cfx, cfz) to (ctx, ctz)

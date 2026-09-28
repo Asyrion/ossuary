@@ -89,8 +89,8 @@ export function startGame(opts?: RunOptions) {
   const o = opts ?? nextRun; nextRun = {};
   const seed = o.seed || newSeed();
   testTemplate = o.testTemplate; testVariant = o.testVariant; forcedBoss = o.boss;
-  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 }, leech: 0 };
-  Sfx.init(); resetPlayer(); G.stats.time = 0; G.stats.kills = 0;
+  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1 };
+  Sfx.init(); resetPlayer(); G.stats.time = 0; G.stats.kills = 0; G.stats.obols = 0;
   if (o.give?.length) giveById(o.give);
   if (o.loot) giveResources(o.loot);
   showScreen(null); G.state = 'play';
@@ -101,7 +101,7 @@ export function startGame(opts?: RunOptions) {
 export function prepareTitle() {
   const seed = nextRun.seed || newSeed(); nextRun = { ...nextRun, seed };
   testTemplate = nextRun.testTemplate; testVariant = nextRun.testVariant; forcedBoss = nextRun.boss;
-  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 }, leech: 0 };
+  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1 };
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, nextRun.floor ?? 0)));
 }
 
@@ -124,7 +124,7 @@ export function endGame(won: boolean) {
   if (won) Sfx.victory(); else Sfx.fallen();
   showEndScreen({
     won, floor: G.run.floor + 1, floors: FLOORS.length, time: G.stats.time, kills: G.stats.kills,
-    seed: G.run.seed, artifacts: [player.focus, ...player.items], cleansed: [...player.cleansed],
+    seed: G.run.seed, artifacts: [player.focus, ...player.items], cleansed: [...player.cleansed], obols: G.stats.obols,
   });
 }
 export function toggleSound() { const muted = Sfx.toggle(); $('btnSound').textContent = muted ? STR.pause.soundOff : STR.pause.soundOn; }
@@ -220,8 +220,16 @@ export function onWaveCleared(room: Room) {
   onRoomCleared(room);
 }
 
+/** The Ferryman's Obol: every fight won, an obol falls between the mage and the middle of the room, with a
+    pale glint (the ferryman paying his due). */
+function payFerryman(room: Room) {
+  if (!player.stats.effects.has('ferryman')) return;
+  const p = freeSpotNear(room, player.x + (room.cx - player.x) * .4, player.z + (room.cz - player.z) * .4);
+  spawnPickup('coin', p.x, p.z); burst(p.x, 1.6, p.z, 0xe8e0c0, 12, 1.2, .04); Sfx.ferryman();
+}
+
 export function onRoomCleared(room: Room) {
-  room.cleared = true; room.locked = false; setDoors(room, true); keepOath(room);
+  room.cleared = true; room.locked = false; setDoors(room, true); keepOath(room); payFerryman(room);
   const loot = G.run.loot;
   if (room.type === 'ordeal') { // the reward rises in the middle of the room
     const def = offerGuaranteed('ordeal');

@@ -21,7 +21,7 @@ import { heroCast } from '../actors/hero';
 import { damageEnemy, hurtPlayer } from './damage';
 import { detonateGlyph, glyphNear } from './glyphs';
 import { burst } from './fx';
-import type { BoltPath } from '../items/artifactData';
+import { GILT_COLOR, type BoltPath } from '../items/artifactData';
 
 interface BoltSpec { x: number; z: number; vx: number; vz: number; damage: number; range: number; scale: number; color: number; path: BoltPath; pierce: number; bounces: number; secondary: boolean; crit?: boolean }
 
@@ -59,6 +59,8 @@ export function spawnBolt() {
       color: crit ? A.crit.color : st.boltColor, path: p.path, pierce: st.pierce, bounces: p.bounces, secondary: false, crit,
     });
   }
+  // the Miser's Purse: gold glints off the cast, more of them the more obols are hoarded
+  if (st.gilt > 0) burst(player.x + dir.x * .45, .75, player.z + dir.z * .45, GILT_COLOR, 1 + Math.round(st.gilt * 4), 1.4, .03);
   player.squash = 1; heroCast(); Sfx.shoot(); if (crit) Sfx.crit();
 }
 

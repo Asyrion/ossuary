@@ -22,7 +22,7 @@ export const G = {
   particles: [] as Particle[],
   decals: [] as THREE.Mesh[],
   trapdoor: null as Trapdoor | null,
-  stats: { time: 0, kills: 0 },
+  stats: { time: 0, kills: 0, obols: 0 },
   /** The current run: its seed, which floor (0-based), the seeded streams for artifacts (loot) and for what
       rooms and enemies drop (drops); this floor's boss and the bosses the run has met. */
   run: {
@@ -31,6 +31,7 @@ export const G = {
     /** Artifacts offered on this floor, and guaranteed sources still to come (see items/artifacts.ts). */
     budget: { used: 0, reserved: 0 },
     /** Foes put to rest towards the Leech Jar's next half heart. */ leech: 0,
+    /** The floor on which the Sexton's Keyring last opened a vault for free. */ freeVault: -1,
   },
   shake: 0,
   simClock: 0,

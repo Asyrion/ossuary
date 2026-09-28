@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CFG } from '../../src/config';
 import { Rng } from '../../src/rng';
-import { ARTIFACT_DEFS, START_FOCUS, computeStats, halveStat, pickArtifact, validateArtifacts } from '../../src/items/artifactData';
+import { ARTIFACT_DEFS, DEFAULT_BOLT_COLOR, GILT_COLOR, START_FOCUS, computeStats, halveStat, pickArtifact, validateArtifacts } from '../../src/items/artifactData';
 
 const base = CFG.hero;
 const stats = (items: string[], focus = START_FOCUS) => computeStats(focus, items, base);
@@ -9,8 +9,8 @@ const stats = (items: string[], focus = START_FOCUS) => computeStats(focus, item
 describe('artifact data', () => {
   it('is valid', () => expect(validateArtifacts()).toEqual([]));
 
-  it('holds the M1 set and the 13 added after M2 step 4: 20 artifacts and 6 foci besides the starting wand', () => {
-    expect(ARTIFACT_DEFS.filter(a => a.kind !== 'focus')).toHaveLength(20);
+  it('holds the M1 set, the 13 added after M2 step 4 and the 7 economy artifacts: 27 artifacts and 6 foci besides the starting wand', () => {
+    expect(ARTIFACT_DEFS.filter(a => a.kind !== 'focus')).toHaveLength(27);
     expect(ARTIFACT_DEFS.filter(a => a.kind === 'focus' && !a.start)).toHaveLength(6);
     expect(ARTIFACT_DEFS.filter(a => a.kind === 'cursed')).toHaveLength(4);
   });
@@ -28,8 +28,10 @@ describe('artifact data', () => {
 
   it('catches mistakes', () => {
     const cursed = ARTIFACT_DEFS.find(a => a.kind === 'cursed')!;
-    const bad = [{ ...ARTIFACT_DEFS[4], pools: ['nowhere'], stats: { luck: 1 } }, ARTIFACT_DEFS[4], { ...cursed, curse: undefined }, { ...cursed, id: 'x', curse: { cleansed: '' } }] as never[];
+    const bad = [{ ...ARTIFACT_DEFS[4], pools: ['nowhere'], stats: { luck: 1 }, gives: { gold: 3, keys: 1.5 } }, ARTIFACT_DEFS[4], { ...cursed, curse: undefined }, { ...cursed, id: 'x', curse: { cleansed: '' } }] as never[];
     const errs = validateArtifacts(bad).join('; ');
+    expect(errs).toMatch(/gives "gold"/);
+    expect(errs).toMatch(/gives "keys"/);
     expect(errs).toMatch(/only they, carry a curse/);
     expect(errs).toMatch(/a curse needs a price and a cleansed text/);
     expect(errs).toMatch(/unknown pool/);
@@ -113,6 +115,29 @@ describe('combining artifacts', () => {
       for (const [k, v] of Object.entries(a.stats ?? {})) expect(halveStat(k as never, v)).not.toBe(k.endsWith('Mul') ? 1 : 0);
       expect(s).not.toEqual(plain);
     }
+  });
+
+  it('weighs the hoard for the Miser\'s Purse: harder, golder bolts for every ten obols', () => {
+    const at = (coins: number) => computeStats(START_FOCUS, ['misers_purse'], base, [], coins);
+    expect(at(0).damage).toBeCloseTo(base.damage);
+    expect(at(9).damage).toBeCloseTo(base.damage);
+    expect(at(10).damage).toBeCloseTo(base.damage + .5);
+    expect(at(47).damage).toBeCloseTo(base.damage + 2);
+    expect(at(0).gilt).toBe(0); expect(at(20).gilt).toBeCloseTo(.4); expect(at(99).gilt).toBe(1);
+    expect(at(0).boltColor).toBe(DEFAULT_BOLT_COLOR);
+    expect(at(99).boltColor).toBe(GILT_COLOR);
+    expect(computeStats(START_FOCUS, [], base, [], 50).damage).toBeCloseTo(base.damage); // obols alone do nothing
+    // it scales with the rest: a multiplier multiplies the hoard's bonus too
+    expect(computeStats(START_FOCUS, ['misers_purse', 'mask_of_the_drowned'], base, [], 30).damage).toBeCloseTo((base.damage + 1.5) * 2);
+  });
+
+  it('knows the economy artifacts: wider blasts, what they hand over, and their effects', () => {
+    expect(stats(['glyphwrights_chalk']).blastMul).toBeCloseTo(1.5);
+    expect(stats([]).blastMul).toBe(1);
+    expect(ARTIFACT_DEFS.find(a => a.id === 'sextons_keyring')!.gives).toEqual({ keys: 3 });
+    expect(ARTIFACT_DEFS.find(a => a.id === 'glyphwrights_chalk')!.gives).toEqual({ glyphs: 5 });
+    const fx = stats(['sextons_keyring', 'ferrymans_obol', 'warding_band', 'grave_lantern', 'pedlars_scale']).effects;
+    expect([...fx].sort()).toEqual(['ferryman', 'freeVault', 'glyphWard', 'graveLantern', 'pedlar']);
   });
 
   it('collects effects and the last bolt colour', () => {

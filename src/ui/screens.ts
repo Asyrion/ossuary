@@ -15,6 +15,7 @@ export function showScreen(name: ScreenName | null) {
 export interface RunSummary {
   won: boolean; floor: number; floors: number; time: number; kills: number; seed: string; artifacts: string[];
   /** Cursed artifacts cleansed at a shrine (they lose their red ring). */ cleansed: string[];
+  /** Obols picked up during the run. */ obols: number;
 }
 
 const clock = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
@@ -26,6 +27,7 @@ export function showEndScreen(s: RunSummary) {
   $('endFloor').textContent = STR.end.floorValue(s.floor, s.floors);
   $('endTime').textContent = clock(s.time);
   $('endKills').textContent = String(s.kills);
+  $('endObols').textContent = String(s.obols);
   $('endSeed').textContent = s.seed;
   $('endItems').innerHTML = s.artifacts.map((id, i) => `<li>${artifactIcon(id, i === 0, s.cleansed.includes(id))}<span>${artifact(id).name}</span></li>`).join('');
   showScreen('end'); $('btnAgain').focus();
