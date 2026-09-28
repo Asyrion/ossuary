@@ -12,6 +12,7 @@ import { HEART_PATH, banner, renderHearts, renderItems, renderMinimap, toast } f
 import { START_FOCUS, artifact, computeStats, pickArtifact, type ArtifactDef, type Pool } from './artifactData';
 import { giveResources } from './pickups';
 import { artifactLore } from '../ui/lore';
+import { dress } from '../actors/costume';
 
 const hex = (c: string) => new THREE.Color(c).getHex();
 
@@ -25,7 +26,7 @@ export function refreshStats() {
   if (player.maxHp > before) player.hp += player.maxHp - before;
   player.hp = Math.min(player.hp, player.maxHp);
   player.mana = Math.min(player.mana, player.stats.maxMana);
-  renderHearts(); renderItems();
+  renderHearts(); renderItems(); dress();
 }
 
 /** Start a run holding only the starting focus. */

@@ -194,5 +194,10 @@
     "lore": "Its pages drink. Feed it the dead and it spills their last warmth back into you as magic; stop feeding it, and your own magic runs dry, because the tome is not willing to share its meal.",
     "text": "Every foe you put to rest refills mana, but mana no longer comes back on its own", "pools": ["altar", "secret", "boss"],
     "stats": { "killMana": 5 }, "curse": { "effects": ["noRegen"], "cleansed": "Every foe you put to rest refills a little mana" },
-    "color": "#5a3a6a", "icon": "hungertome" }
+    "color": "#5a3a6a", "icon": "hungertome" },
+  { "id": "pilgrims_cowl", "name": "Pilgrim's Cowl", "kind": "passive",
+    "lore": "Wool gone dark with crypt damp, the hood of a pilgrim who came down to pray and never climbed back up. It keeps the cold of the crypts off your thoughts, and keeps the thoughts in.",
+    "text": "You can hold a little more mana, and wounds spare you a moment longer", "pools": ["treasure", "drop", "merchant", "secret"],
+    "stats": { "mana": 20, "invuln": 0.25 }, "costume": "hood",
+    "color": "#a8404e", "icon": "hood" }
 ]

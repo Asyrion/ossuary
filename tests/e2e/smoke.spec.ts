@@ -907,6 +907,36 @@ test('M3 artifacts: burning and chilling bolts, homing bolts, the pendant, the t
   expect(errors).toEqual([]);
 });
 
+test('the Pilgrim\'s Cowl puts a hood on the mage, hung from the head bone, and it moves with the head', async ({ page }) => {
+  const errors = await start(page, '?seed=HOOD01');
+  type Obj = { name: string; isBone?: boolean; isMesh?: boolean; children: Obj[]; traverse(f: (o: Obj) => void): void;
+    matrixWorld: unknown; getWorldPosition(v: V3): V3; geometry: { boundingSphere: { center: V3 } | null; computeBoundingSphere(): void }; localToWorld(v: V3): V3 };
+  type V3 = { x: number; y: number; z: number; clone(): V3; distanceTo(v: V3): number };
+  const view = () => page.evaluate(() => {
+    const g = (window as unknown as W).__game as GameHooks & { costume: string[]; hero: { model: Obj }; camera: { position: V3 & { constructor: new () => V3 } } };
+    let head: Obj | null = null; g.hero.model.traverse(o => { if (!head && o.isBone && /head$/i.test(o.name)) head = o; });
+    const h = head as Obj | null; if (!h) return { worn: g.costume, onHead: -1, gap: -1 };
+    const parts = h.children.filter(c => !c.isBone);
+    // how far the hood's middle is from the head bone, in the world
+    const V = g.camera.position.constructor, at = h.getWorldPosition(new V());
+    let gap = -1;
+    parts[0]?.traverse(o => { if (gap < 0 && o.isMesh) { o.geometry.computeBoundingSphere(); gap = o.localToWorld(o.geometry.boundingSphere!.center.clone()).distanceTo(at); } });
+    return { worn: g.costume, onHead: parts.length, gap };
+  });
+  expect(await view()).toMatchObject({ worn: [], onHead: 0 });
+  await page.evaluate(() => (window as unknown as W & { __game: { give(...ids: string[]): void } }).__game.give('pilgrims_cowl'));
+  const worn = await view();
+  expect(worn).toMatchObject({ worn: ['hood'], onHead: 1 });
+  expect(worn.gap).toBeLessThan(.6);
+  // run and cast: the head bone moves, and the hood stays on it
+  for (const t of [.2, .35, .5]) {
+    await page.evaluate(t => { const g = (window as unknown as W).__game; g.keys.add('KeyD'); g.keys.add('ArrowDown'); g.arrowOrder.push('ArrowDown'); g.sim(t, true); }, t);
+    expect((await view()).gap).toBeLessThan(.6);
+  }
+  await page.screenshot({ path: 'test-results/hood.png' });
+  expect(errors).toEqual([]);
+});
+
 test('the pause menu sets the volumes, and the browser remembers them; positioned effects play without errors', async ({ page }) => {
   const errors = await start(page, '?room=crypt_a&seed=VOL1&spells=arc');
   // a fight: hits, deaths and a spell, all panned to where they happen

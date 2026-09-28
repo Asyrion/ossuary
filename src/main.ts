@@ -42,6 +42,7 @@ import { spawnShot } from './combat/projectiles';
 import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
 import { isTouch } from './util';
+import { wornNow } from './actors/costume';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
@@ -165,6 +166,8 @@ function installDevHooks() {
     /** Cleanse the oldest curse held at once (no fight, no obols); the shrine's rite under way, if any. */
     cleanse: () => cleanseAtOnce(), get rite() { return riteState(); },
     get pickups() { return G.pickups; }, get glyphs() { return G.glyphs; }, get shots() { return G.shots; },
+    /** The costume pieces the mage wears (a hood, from the Pilgrim's Cowl). */
+    get costume() { return wornNow(); },
   };
 }
 

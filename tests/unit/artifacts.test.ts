@@ -3,6 +3,7 @@ import { CFG } from '../../src/config';
 import { Rng } from '../../src/rng';
 import { ARTIFACT_DEFS, DEFAULT_BOLT_COLOR, GILT_COLOR, START_FOCUS, computeStats, halveStat, pickArtifact, validateArtifacts } from '../../src/items/artifactData';
 import { DROPS } from '../../src/items/loot';
+import { wornPieces } from '../../src/actors/costumeData';
 import { STR } from '../../src/strings';
 
 const base = CFG.hero;
@@ -23,9 +24,9 @@ describe('lore', () => {
 describe('artifact data', () => {
   it('is valid', () => expect(validateArtifacts()).toEqual([]));
 
-  it('holds the M1 set, the 13 added after M2 step 4, the 7 economy artifacts and the 10 of M3: 43 besides the starting wand', () => {
-    expect(ARTIFACT_DEFS.filter(a => !a.start)).toHaveLength(43);
-    expect(ARTIFACT_DEFS.filter(a => a.kind !== 'focus')).toHaveLength(35);
+  it('holds the M1 set, the 13 added after M2 step 4, the 7 economy artifacts, the 10 of M3 and the Pilgrim\'s Cowl: 44 besides the starting wand', () => {
+    expect(ARTIFACT_DEFS.filter(a => !a.start)).toHaveLength(44);
+    expect(ARTIFACT_DEFS.filter(a => a.kind !== 'focus')).toHaveLength(36);
     expect(ARTIFACT_DEFS.filter(a => a.kind === 'focus' && !a.start)).toHaveLength(8);
     expect(ARTIFACT_DEFS.filter(a => a.kind === 'cursed')).toHaveLength(6);
   });
@@ -55,7 +56,7 @@ describe('artifact data', () => {
 
   it('catches mistakes', () => {
     const cursed = ARTIFACT_DEFS.find(a => a.kind === 'cursed')!;
-    const bad = [{ ...ARTIFACT_DEFS[4], pools: ['nowhere'], stats: { luck: 1 }, gives: { gold: 3, keys: 1.5 } }, ARTIFACT_DEFS[4], { ...cursed, curse: undefined }, { ...cursed, id: 'x', curse: { cleansed: '' } }] as never[];
+    const bad = [{ ...ARTIFACT_DEFS[4], pools: ['nowhere'], stats: { luck: 1 }, gives: { gold: 3, keys: 1.5 }, costume: 'tiara' }, ARTIFACT_DEFS[4], { ...cursed, curse: undefined }, { ...cursed, id: 'x', curse: { cleansed: '' } }] as never[];
     const errs = validateArtifacts(bad).join('; ');
     expect(errs).toMatch(/gives "gold"/);
     expect(errs).toMatch(/gives "keys"/);
@@ -65,6 +66,20 @@ describe('artifact data', () => {
     expect(errs).toMatch(/unknown stat/);
     expect(errs).toMatch(/listed twice/);
     expect(errs).toMatch(/starting focus/);
+    expect(errs).toMatch(/unknown costume "tiara"/);
+  });
+});
+
+describe('costumes', () => {
+  it('shows one piece per slot, the one taken last winning it, and ignores what wears nothing', () => {
+    expect(wornPieces([])).toEqual([]);
+    expect(wornPieces([undefined, 'hood', undefined])).toEqual(['hood']);
+    expect(wornPieces(['hood', 'hood'])).toEqual(['hood']);
+    expect(wornPieces(['nonsense'])).toEqual([]);
+  });
+
+  it('the Pilgrim\'s Cowl puts on the hood', () => {
+    expect(wornPieces(['apprentice_wand', 'pilgrims_cowl'].map(id => ARTIFACT_DEFS.find(a => a.id === id)!.costume))).toEqual(['hood']);
   });
 });
 

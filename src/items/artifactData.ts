@@ -8,6 +8,7 @@
 import artifactsData from '../../data/artifacts.json';
 import type { Rng } from '../rng';
 import type { Resource } from './loot';
+import { isCostume } from '../actors/costumeData';
 
 export type Pool = 'treasure' | 'ordeal' | 'boss' | 'altar' | 'drop' | 'merchant' | 'secret' | 'vault';
 export type ArtifactKind = 'focus' | 'passive' | 'cursed';
@@ -38,6 +39,7 @@ export interface ArtifactDef {
   /** Cursed artifacts only: the price on top of the gift. */ curse?: Curse;
   /** Obols, keys or glyphs handed over once, when the artifact is taken. */ gives?: Partial<Record<Resource, number>>;
   focus?: Partial<FocusPattern>; start?: boolean;
+  /** A piece the mage wears while holding it (actors/costumeData.ts). */ costume?: string;
   /** Pedestal gem and HUD icon colour; icon key for the HUD. */ color: string; icon: string;
 }
 
@@ -155,6 +157,7 @@ export function validateArtifacts(defs: ArtifactDef[] = ARTIFACT_DEFS): string[]
     if (a.focus?.path && !PATHS.includes(a.focus.path)) errs.push(`${at} has unknown path "${a.focus.path}"`);
     if (!/^#[0-9a-f]{6}$/i.test(a.color) || (a.boltColor && !/^#[0-9a-f]{6}$/i.test(a.boltColor))) errs.push(`${at} has a bad colour`);
     if (!a.start && !a.pools.length) errs.push(`${at} is in no pool, so it can never appear`);
+    if (a.costume !== undefined && !isCostume(a.costume)) errs.push(`${at} wears unknown costume "${a.costume}"`);
   }
   if (defs.filter(a => a.start).length !== 1) errs.push('exactly one artifact must be the starting focus');
   return errs;
