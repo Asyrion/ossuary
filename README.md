@@ -29,7 +29,13 @@ Isaac-style roguelike set in Eda, built with three.js and Tripo3D models.
 
 ## Testing a run
 
-Add these to the address (locally or on the Pages site):
+In a run, press the key left of 1 (`` ` `` on English keyboards, `^` on German ones) or F2 for the **dev
+menu**. It pauses the game and lets you heal, turn on god mode, hand out obols, keys, glyphs and artifacts,
+drop any pickup or chest (a gilded one too), spawn foes, jump to this floor's special rooms, reveal the map,
+end a fight, go down a floor, or start a test room, a boss fight or a new run (optionally keeping what you
+carry). Esc or the same key closes it. It works on the Pages site too.
+
+Or add these to the address (locally or on the Pages site):
 
 - `?seed=K3F9QX` plays the floors of that seed (the seed of a run is shown in the pause menu)
 - `?floor=2` starts on floor 2

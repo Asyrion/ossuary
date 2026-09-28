@@ -17,6 +17,7 @@ import './render/lights';
 import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { arrowOrder, initKeyboard, initTouch, keys, type InputActions } from './input';
 import { initScreens, showScreen } from './ui/screens';
+import { closeDev, devOpen, toggleDev } from './ui/devMenu';
 import { setHeroInfo, updateVision } from './ui/hud';
 import { giveById } from './items/artifacts';
 import { ARTIFACTS } from './items/artifactData';
@@ -35,11 +36,12 @@ const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
 const input: InputActions = {
   unlockAudio: () => Sfx.init(),
-  togglePause: () => { if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
+  togglePause: () => { if (devOpen()) closeDev(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
   confirm: () => { if (G.state === 'title' || G.state === 'end') startGame(); },
-  startButton: () => { if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else startGame(); },
+  startButton: () => { if (devOpen()) closeDev(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else startGame(); },
   toggleSound,
   autoPause: () => { if (G.state === 'play') pause(); },
+  toggleDev,
   playing: () => G.state === 'play',
 };
 

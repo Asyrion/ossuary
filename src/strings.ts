@@ -80,6 +80,27 @@ export const STR = {
     vaultForced: 'The ward shatters. Something stirs inside the vault.',
     vaultUnbound: 'The bone key unbinds the ward.',
   },
+  /** The dev menu (the key left of 1, or F2): for testing, not for players. */
+  dev: {
+    title: 'Dev menu', close: 'Close',
+    info: (seed: string, floor: number, room: number, type: string) => `Seed ${seed} · floor ${floor} · room ${room} (${type})`,
+    mage: 'The mage', heal: 'Full heal', container: '+1 heart container', resetArtifacts: 'Reset artifacts',
+    godOn: 'God mode: on', godOff: 'God mode: off',
+    resources: 'Obols, keys and glyphs', emptyPurse: 'Empty the purse',
+    give: (n: number, what: string) => `+${n} ${what}${n === 1 ? '' : 's'}`,
+    names: { coins: 'obol', keys: 'key', glyphs: 'glyph' } as Record<string, string>,
+    drops: 'Drop ahead of the mage', gildedChest: 'Gilded chest',
+    dropNames: { halfHeart: 'Half heart', heart: 'Heart', coin: 'Obol', purse: 'Purse', key: 'Bone key', glyph: 'Glyph stone', coffer: 'Coffer', chest: 'Reliquary chest' } as Record<string, string>,
+    artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
+    foes: 'Foes (they leave the doors open)', champion: (name: string) => `Champion ${name.toLowerCase()}`,
+    foeNames: { rotling: 'Rotling', wisp: 'Wisp', hound: 'Crypt hound' } as Record<string, string>,
+    floor: 'This floor', sealed: 'sealed', clear: 'End this fight', reveal: 'Reveal the map', nextFloor: 'Next floor',
+    roomNames: { start: 'Start', normal: 'Normal', treasure: 'Treasure', boss: 'Boss', ordeal: 'Ordeal', altar: 'Bone altar', merchant: 'Merchant', vault: 'Vault' } as Record<string, string>,
+    test: 'Test a room', template: 'Room template', variant: 'Variant', play: 'Play it',
+    variants: { normal: 'Normal', quiet: 'Quiet', champion: 'Champion', ambush: 'Ambush', dark: 'Dark' } as Record<string, string>,
+    bosses: 'Fight a boss', newRun: 'New run', floorN: (n: number) => `Floor ${n}`,
+    keep: ' Keep artifacts, obols, keys and glyphs when starting',
+  },
   /** What a merchant's ware is called in messages. */
   wares: { heart: 'heart', halfHeart: 'half heart', key: 'bone key', glyph: 'glyph stone', coin: 'obol', purse: 'purse' } as Record<string, string>,
   heroInfo: (label: string, tris: number, stripped: boolean, skinned: boolean, clips: string) =>

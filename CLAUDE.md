@@ -50,6 +50,10 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
   resources, `__game.drop('purse')` drops a pickup ahead of the mage, `__game.clearRoom()`
   ends the current fight.
+- The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
+  buttons: heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
+  special rooms, test rooms, boss fights and new runs. Its lists come from the data, so new artifacts,
+  drops, room types and bosses show up by themselves; give a new room type a name in `STR.dev.roomNames`.
 - `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
   1,024 px JPEG textures). Clips: `standing_relax`, `run`, `walk` (slow movement), `cast_a_spell`,
   `hit_to_body_01`, `fall` and `defeat_03` (two deaths, one at random), `Drink Potion` (when healed) and
