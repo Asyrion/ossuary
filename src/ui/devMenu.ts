@@ -19,6 +19,8 @@ import { openSecretRoom, revealCracks } from '../world/secret';
 import { cleanseAtOnce } from '../world/shrine';
 import { SPELL_DEFS } from '../magic/spellData';
 import { forgetSpells, gainMana, learnSpell } from '../magic/spells';
+import { inflict } from '../magic/statusFx';
+import type { StatusKind } from '../magic/spellData';
 import { TEMPLATE_DEFS } from '../world/templates';
 import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
 import { renderHearts, renderMinimap, toast } from './hud';
@@ -135,8 +137,14 @@ function build() {
   // foes, a little further ahead (they don't lock the doors)
   const foes = section(p, S.foes);
   const floorHp = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].enemyHp;
-  for (const [kind, champion] of [['rotling', false], ['wisp', false], ['hound', false], ['hound', true]] as [EnemyType, boolean][]) {
+  for (const [kind, champion] of [['rotling', false], ['wisp', false], ['hound', false], ['hound', true], ['dummy', false]] as [EnemyType, boolean][]) {
     foes.append(btn(champion ? S.champion(S.foeNames[kind]) : S.foeNames[kind], () => { const q = ahead(3); makeEnemy(kind, q.x, q.z, floorHp(), undefined, { champion }); }));
+  }
+
+  // statuses on every foe in the room: to see them, and to set off reactions by hand
+  const sts = section(p, S.statuses);
+  for (const [kind, amount] of [['burn', 4], ['chill', 1], ['shock', 2]] as [StatusKind, number][]) {
+    sts.append(btn(S.inflictOn(STR.statusNames[kind]), () => { for (const e of G.enemies) inflict(e, { [kind]: amount }); }));
   }
 
   // this floor: its special rooms, and ways through it

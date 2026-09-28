@@ -17,6 +17,7 @@ export const CFG = {
     rotling: { hp: 10, r: 0.32, speed: 1.35 },
     wisp: { hp: 7, r: 0.28, speed: 1.1, fireMin: 2.0, fireMax: 3.0, shotSpeed: 3.8 },
     hound: { hp: 12, r: 0.34, speed: 1.1, charge: 7.2 },
+    dummy: { hp: 1000, r: 0.34, speed: 0 },  // the dev menu's training dummy: stands still, never falls
     // bosses (each floor's boss block in data/floors.json scales them)
     warden: { hp: 120, r: 0.78, speed: 1.15 },
     abbess: { hp: 120, r: 0.7, speed: .95, dive: 2.7, under: 1.8 }, // dive: speed of her ripple; under: seconds below

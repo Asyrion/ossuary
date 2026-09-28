@@ -25,12 +25,14 @@ import { clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRu
 import { STEP, startLoop, step } from './loop';
 import { cleanSeed } from './rng';
 import { VARIANTS, planToText, type RoomVariant } from './world/generate';
-import { BOSS_TYPES, type BossType } from './config';
+import { BOSS_TYPES, type BossType, type EnemyType } from './config';
 import { DROPS, RESOURCES, type Drop, type Resource } from './items/loot';
 import { giveResources, spawnPickup } from './items/pickups';
 import { openSecretRoom } from './world/secret';
 import { cleanseAtOnce, riteState } from './world/shrine';
-import { SPELLS } from './magic/spellData';
+import { SPELLS, type StatusKind } from './magic/spellData';
+import { inflict } from './magic/statusFx';
+import { makeEnemy } from './actors/enemies';
 import { castSpell, learnSpell } from './magic/spells';
 import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
@@ -124,6 +126,10 @@ function installDevHooks() {
     learn: (id: string, slot?: number) => learnSpell(id, slot, true),
     cast: (slot: number, aim?: { x: number; z: number }) => castSpell(slot, aim ?? null),
     mana(v?: number) { if (v !== undefined) player.mana = Math.min(player.stats.maxMana, Math.max(0, v)); return player.mana; },
+    /** Spawn a foe (e.g. 'dummy', the training dummy) at (x, z), or ahead of the mage; put statuses on every
+        foe in the room, e.g. inflict({ burn: 3 }). */
+    spawn(kind: EnemyType, x = player.x, z = player.z - 2.5) { return makeEnemy(kind, x, z, 1); },
+    inflict(status: Partial<Record<StatusKind, number>>) { for (const e of G.enemies) inflict(e, status); },
     /** Cleanse the oldest curse held at once (no fight, no obols); the shrine's rite under way, if any. */
     cleanse: () => cleanseAtOnce(), get rite() { return riteState(); },
     get pickups() { return G.pickups; }, get glyphs() { return G.glyphs; }, get shots() { return G.shots; },

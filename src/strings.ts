@@ -103,6 +103,9 @@ export const STR = {
   spellKind: (school: string) => `${school} spell`,
   spellEffect: (text: string, mana: number, cooldown: number) => `${text}. ${mana} mana, every ${cooldown} s`,
   manaLabel: (mana: number, max: number) => `Mana ${Math.round(mana)} of ${max}`,
+  /** Reactions name themselves in the air; statuses as the training dummy lists them. */
+  reactions: { shatter: 'Shatter', overload: 'Overload' } as Record<string, string>,
+  statusNames: { burn: 'Burn', chill: 'Chill', frozen: 'Frozen', shock: 'Shock' },
   /** The boss bar while a shrine draws a curse out. */
   curseOf: (name: string) => `The curse of the ${name}`,
   /** The lore card shown on picking something up (ui/lore.ts). Artifacts keep their lore in data/artifacts.json;
@@ -168,7 +171,8 @@ export const STR = {
     spells: 'Spells (click to learn into the slot)', slot: 'Slot', mana: 'Mana', fullMana: 'Full mana', manaOn: 'Endless mana: on', manaOff: 'Endless mana: off', forget: 'Forget spells',
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
     foes: 'Foes (they leave the doors open)', champion: (name: string) => `Champion ${name.toLowerCase()}`,
-    foeNames: { rotling: 'Rotling', wisp: 'Wisp', hound: 'Crypt hound' } as Record<string, string>,
+    foeNames: { rotling: 'Rotling', wisp: 'Wisp', hound: 'Crypt hound', dummy: 'Training dummy' } as Record<string, string>,
+    statuses: 'Statuses on the foes here', inflictOn: (name: string) => `${name} them`,
     floor: 'This floor', sealed: 'sealed', hidden: 'hidden', clear: 'End this fight', reveal: 'Reveal the map', nextFloor: 'Next floor',
     revealCracks: 'Reveal cracked walls', openSecret: 'Open the secret room',
     cleanse: 'Cleanse a curse', takeCurse: 'Take a curse', noCurse: 'No curse to cleanse', allCurses: 'You hold every curse', cleansed: 'cleansed',

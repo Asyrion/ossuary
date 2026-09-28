@@ -16,6 +16,7 @@ import { heroCast } from '../actors/hero';
 import { flashMana, renderSpells, spellIcon, toast } from '../ui/hud';
 import { showLore } from '../ui/lore';
 import { manaRegen, spell, type Shape, type SpellDef } from './spellData';
+import { inflict } from './statusFx';
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 
@@ -111,6 +112,7 @@ const chain: Cast = (def, dir) => {
     lightning(from, to, color);
     const dx = e.x - from.x, dz = e.z - from.z, d = Math.hypot(dx, dz) || 1;
     damageEnemy(e, def.damage * Math.pow(P.falloff, i), dx / d, dz / d, .4, 'spell');
+    inflict(e, def.status);
     burst(to.x, to.y, to.z, color, 8, 2.2, .04);
     from = to;
   });
