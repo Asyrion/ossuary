@@ -2,6 +2,7 @@
    and the unit tests. `shape` picks the code that casts a spell (magic/spells.ts); everything else is data, so
    a new spell of a known shape is a new entry. */
 import spellsData from '../../data/spells.json';
+import type { Rng } from '../rng';
 
 /** The schools of magic (GDD: Magic system). M3 brings Ember, Frost and Storm; Hallow and Umbral follow. */
 export type School = 'ember' | 'frost' | 'storm' | 'hallow' | 'umbral';
@@ -66,3 +67,21 @@ export function validateSpells(defs: SpellDef[] = SPELL_DEFS): string[] {
 export interface ManaTuning { calm: number; fight: number }
 /** Mana regained over `dt` seconds: faster out of a fight than in one. */
 export const manaRegen = (dt: number, fighting: boolean, t: ManaTuning) => dt * (fighting ? t.fight : t.calm);
+
+/* ---------- grimoire pages (GDD: Spells) ---------- */
+
+/** Up to `count` spells for grimoire pages: none the mage knows or `skip` lists, each of a different school while
+    the schools go round, then any. */
+export function pickPages(rng: Pick<Rng, 'shuffle'>, known: readonly (string | null)[], count: number, skip: readonly string[] = [], defs: SpellDef[] = SPELL_DEFS): string[] {
+  const pool = rng.shuffle(defs.filter(s => !known.includes(s.id) && !skip.includes(s.id)));
+  const out: SpellDef[] = [];
+  for (const s of pool) if (out.length < count && !out.some(o => o.school === s.school)) out.push(s);
+  for (const s of pool) if (out.length < count && !out.includes(s)) out.push(s);
+  return out.map(s => s.id);
+}
+
+/** A library's shelf: the spells given up earlier in the run (latest first) that the mage doesn't know again and
+    the lecterns don't already offer, at most `count`. */
+export function shelfPages(forgotten: readonly string[], known: readonly (string | null)[], lecterns: readonly string[], count: number): string[] {
+  return [...new Set([...forgotten].reverse())].filter(id => !known.includes(id) && !lecterns.includes(id)).slice(0, count);
+}

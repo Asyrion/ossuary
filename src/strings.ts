@@ -61,6 +61,8 @@ export const STR = {
     vaultWarden: ["The vault's warden wakes", 'It will not give up the hoard'] as Banner,
     gildedRelic: ['A relic in the reliquary', 'Fortune favours the bold'] as Banner,
     secret: ['A forgotten cell', 'Someone studied the dark here, long ago'] as Banner,
+    library: ['The Library', 'Torn pages whisper on their lecterns'] as Banner,
+    pageFalls: ['A torn page', 'It whispers of a spell'] as Banner,
     shrine: (price: number): Banner => ['A shrine', `For ${price} obols it cleanses a curse`],
     riteBegins: ['The curse fights back', 'Strike it down inside the circle'] as Banner,
     cleansed: (name: string, text: string): Banner => [`The ${name} is cleansed`, text],
@@ -106,6 +108,14 @@ export const STR = {
   manaLabel: (mana: number, max: number) => `Mana ${Math.round(mana)} of ${max}`,
   /** Reactions name themselves in the air; statuses as the training dummy lists them. */
   reactions: { shatter: 'Shatter', overload: 'Overload' } as Record<string, string>,
+  /** Grimoire pages: the question a page asks when both slots are full, and what's left behind. */
+  pages: {
+    ask: (name: string) => `Learn ${name} in place of`,
+    or: 'or',
+    keep: 'Step away to keep both',
+    known: (name: string) => `You already know ${name}`,
+    left: (name: string, kind: string) => kind === 'loose' ? `The page of ${name} lies where the new one was` : `The page of ${name} stays on the lectern: take it back while you are here`,
+  },
   statusNames: { burn: 'Burn', chill: 'Chill', frozen: 'Frozen', shock: 'Shock' },
   /** The boss bar while a shrine draws a curse out. */
   curseOf: (name: string) => `The curse of the ${name}`,
@@ -170,6 +180,7 @@ export const STR = {
     drops: 'Drop ahead of the mage', gildedChest: 'Gilded chest', loreAgain: 'Describe items again', loreAgainTitle: 'Items and containers show their lore card again the next time one is taken',
     dropNames: { halfHeart: 'Half heart', heart: 'Heart', coin: 'Obol', purse: 'Purse', key: 'Bone key', glyph: 'Glyph stone', mana: 'Mana vial', coffer: 'Coffer', chest: 'Reliquary chest' } as Record<string, string>,
     spells: 'Spells (click to learn into the slot)', slot: 'Slot', mana: 'Mana', fullMana: 'Full mana', manaOn: 'Endless mana: on', manaOff: 'Endless mana: off', forget: 'Forget spells',
+    page: 'Drop a grimoire page', noPage: 'No spell left to learn',
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
     foes: 'Foes (they leave the doors open)', champion: (name: string) => `Champion ${name.toLowerCase()}`,
     foeNames: { rotling: 'Rotling', wisp: 'Wisp', hound: 'Crypt hound', dummy: 'Training dummy' } as Record<string, string>,
@@ -177,7 +188,7 @@ export const STR = {
     floor: 'This floor', sealed: 'sealed', hidden: 'hidden', clear: 'End this fight', reveal: 'Reveal the map', nextFloor: 'Next floor',
     revealCracks: 'Reveal cracked walls', openSecret: 'Open the secret room',
     cleanse: 'Cleanse a curse', takeCurse: 'Take a curse', noCurse: 'No curse to cleanse', allCurses: 'You hold every curse', cleansed: 'cleansed',
-    roomNames: { start: 'Start', normal: 'Normal', treasure: 'Treasure', boss: 'Boss', ordeal: 'Ordeal', altar: 'Bone altar', merchant: 'Merchant', vault: 'Vault', secret: 'Secret room', shrine: 'Shrine' } as Record<string, string>,
+    roomNames: { start: 'Start', normal: 'Normal', treasure: 'Treasure', boss: 'Boss', ordeal: 'Ordeal', altar: 'Bone altar', merchant: 'Merchant', vault: 'Vault', secret: 'Secret room', shrine: 'Shrine', library: 'Library' } as Record<string, string>,
     test: 'Test a room', template: 'Room template', variant: 'Variant', play: 'Play it',
     variants: { normal: 'Normal', quiet: 'Quiet', champion: 'Champion', ambush: 'Ambush', dark: 'Dark' } as Record<string, string>,
     bosses: 'Fight a boss', newRun: 'New run', floorN: (n: number) => `Floor ${n}`,

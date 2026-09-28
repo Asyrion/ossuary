@@ -12,6 +12,7 @@ import { updateParticles } from './combat/fx';
 import { updatePickups, updateTrapdoor } from './items/pickups';
 import { updateArtifacts } from './items/artifacts';
 import { updateShop } from './items/merchant';
+import { updatePages } from './magic/pages';
 import { updateVaultSeals } from './world/vault';
 import { updateSecretWalls } from './world/secret';
 import { updateShrine } from './world/shrine';
@@ -57,7 +58,7 @@ export function step(dt: number) {
 }
 
 function updateWorldFx(dt: number, now: number) {
-  updateRoomFx(dt, now); updateArtifacts(now); updateTrapdoor(dt); updateShop(now); updateVaultSeals(dt, now); updateSecretWalls(dt, now);
+  updateRoomFx(dt, now); updateArtifacts(now); updateTrapdoor(dt); updateShop(now); updatePages(dt, now); updateVaultSeals(dt, now); updateSecretWalls(dt, now);
   updateFamiliars(dt, now, G.state === 'play' && !G.trans);
   updateShrine(dt, now, G.state === 'play' && !G.trans);
   updateMagic(dt, G.state === 'play' && !G.trans); updateStatusFx(dt);

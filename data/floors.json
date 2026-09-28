@@ -1,10 +1,11 @@
 [
   {
-    "rooms": [9, 13],
+    "rooms": [10, 14],
     "enemyHp": 1.0,
     "altarChance": 0.45,
     "vaultChance": 0.35,
     "shrine": false,
+    "library": true,
     "vaultWarden": "hound",
     "secretArtifactChance": 0.5,
     "bossHallChance": 0.4,
@@ -21,11 +22,12 @@
     }
   },
   {
-    "rooms": [11, 15],
+    "rooms": [13, 17],
     "enemyHp": 1.15,
     "altarChance": 0.45,
     "vaultChance": 0.45,
     "shrine": true,
+    "library": true,
     "vaultWarden": "hound",
     "secretArtifactChance": 0.5,
     "bossHallChance": 0.4,
@@ -42,11 +44,12 @@
     }
   },
   {
-    "rooms": [13, 17],
+    "rooms": [14, 18],
     "enemyHp": 1.3,
     "altarChance": 0.45,
     "vaultChance": 0.55,
     "shrine": false,
+    "library": true,
     "vaultWarden": "hound",
     "secretArtifactChance": 0.5,
     "bossHallChance": 0.4,

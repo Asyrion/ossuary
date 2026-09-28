@@ -35,6 +35,7 @@ import { inflict } from './magic/statusFx';
 import { makeEnemy } from './actors/enemies';
 import { castSpell, learnSpell } from './magic/spells';
 import { mantleLeft } from './magic/shapes';
+import { answerPage, dropPage } from './magic/pages';
 import { spawnShot } from './combat/projectiles';
 import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
@@ -126,7 +127,7 @@ function installDevHooks() {
     /** Learn a spell into a slot (0 or 1); cast the spell in a slot, as if its key were pressed (optionally
         aiming); read or set mana. */
     learn: (id: string, slot?: number) => learnSpell(id, slot, true),
-    cast: (slot: number, aim?: { x: number; z: number }) => castSpell(slot, aim ?? null),
+    cast: (slot: number, aim?: { x: number; z: number }) => answerPage(slot) || castSpell(slot, aim ?? null),
     mana(v?: number) { if (v !== undefined) player.mana = Math.min(player.stats.maxMana, Math.max(0, v)); return player.mana; },
     /** Spawn a foe (e.g. 'dummy', the training dummy) at (x, z), or ahead of the mage; put statuses on every
         foe in the room, e.g. inflict({ burn: 3 }). */
@@ -136,6 +137,10 @@ function installDevHooks() {
         Static Mantle left. */
     shoot(x: number, z: number, dx: number, dz: number) { const l = Math.hypot(dx, dz) || 1; spawnShot(x, z, dx / l, dz / l, CFG.enemy.wisp.shotSpeed, 0xb784ff, .8); },
     get mantle() { return mantleLeft(); },
+    /** Drop a grimoire page (of `id`, or a spell the mage doesn't know) at (x, z) or ahead of the mage; the pages
+        in the room; the spells given up this run. */
+    page(id?: string, x = player.x, z = player.z - 1.5) { return dropPage(G.current, x, z, id)?.spell ?? null; },
+    get pages() { return G.current.pages ?? []; }, get forgotten() { return G.run.forgotten; },
     /** Cleanse the oldest curse held at once (no fight, no obols); the shrine's rite under way, if any. */
     cleanse: () => cleanseAtOnce(), get rite() { return riteState(); },
     get pickups() { return G.pickups; }, get glyphs() { return G.glyphs; }, get shots() { return G.shots; },

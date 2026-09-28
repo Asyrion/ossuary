@@ -31,6 +31,7 @@ export const M = {
     merchant: new THREE.MeshStandardMaterial({ color: 0x3a3226, roughness: .7, emissive: 0x141a14 }),
     vault: new THREE.MeshStandardMaterial({ color: 0x3a3a40, roughness: .35, metalness: .85, emissive: 0x080a14 }),
     shrine: new THREE.MeshStandardMaterial({ color: 0x9a9282, roughness: .8, emissive: 0x16120a }),
+    library: new THREE.MeshStandardMaterial({ color: 0x4a3322, roughness: .75, emissive: 0x1c1208 }),
   },
   bone: new THREE.MeshStandardMaterial({ color: 0xd8ccb2, roughness: .75, emissive: 0x15100a }),
   gate: new THREE.MeshStandardMaterial({ color: 0x6b5644, roughness: .55, metalness: .5, emissive: 0x1a0f07 }),

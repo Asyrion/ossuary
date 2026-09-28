@@ -30,10 +30,13 @@ export const CFG = {
   // ambush rooms spring when the mage is this close to the middle, or this far from every door
   ambush: { middle: 1.8, fromDoors: 4 },
   // floor generation: how many walks may be retried to leave spare dead ends for a wanted altar or vault
-  generator: { optionalTries: 200 },
+  generator: { optionalTries: 400 },
   // the merchant's shop (room-relative z of the shade and the row of wares, the gap between wares), how
   // close the mage must come to buy, and how far a bolt flies in the warded shop before it fizzles
   merchant: { shadeAt: -1.9, waresAt: .9, spacing: 2.3, reach: .45, boltFizzle: .6 },
+  // the library: how close the mage must come to a page, the gap between lecterns, and how far into the room
+  // (from the door) their row stands, for a door on a long side and on a short one
+  library: { reach: .4, spacing: 2.3, spacingShort: 1.9, rowIn: 1.1, rowInShort: 2.6 },
   // locked vaults: glyph blasts that force the ward, and where the warden rises (room-relative z)
   vault: { blastsToForce: 2, wardenAt: -1.8 },
   // secret rooms: the pale blue light of the forgotten mage's cell (torch flame and light colours, torch

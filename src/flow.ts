@@ -30,6 +30,7 @@ import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
 import { clearSpellFx, forgetSpells, leaveRoomSpells, learnSpell } from './magic/spells';
 import { clearStatusFx } from './magic/statusFx';
+import { clearPages, dropPage, enterLibrary, maybeDropPage } from './magic/pages';
 import { resetClock } from './loop';
 import { $, mulberry } from './util';
 import { burst } from './combat/fx';
@@ -47,7 +48,7 @@ export function setNextRun(opts: RunOptions) { nextRun = opts; }
 const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
 
 function clearEntities() {
-  clearRite(); clearSpellFx(); clearStatusFx(); clearProjectiles(); clearGlyphs(); pressed.glyph = false; pressed.spells = [false, false];
+  clearRite(); clearSpellFx(); clearStatusFx(); clearPages(); clearProjectiles(); clearGlyphs(); pressed.glyph = false; pressed.spells = [false, false];
   for (const p of G.particles) { scene.remove(p.m); p.m.material.dispose(); } G.particles.length = 0;
   clearEnemies();
   for (const p of G.pickups) { scene.remove(p.g); disposeTree(p.g); } G.pickups.length = 0;
@@ -90,11 +91,19 @@ export function resetPlayer() {
 }
 
 /** Start a new run: a fresh seed unless one was requested. */
+/** A new run's state for `seed`: fresh streams for everything that must replay the same. */
+function newRun(seed: string): typeof G.run {
+  return {
+    seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [],
+    budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1, loreSeen: new Set(), pages: Rng.from(seed, 'pages'), forgotten: [],
+  };
+}
+
 export function startGame(opts?: RunOptions) {
   const o = opts ?? nextRun; nextRun = {};
   const seed = o.seed || newSeed();
   testTemplate = o.testTemplate; testVariant = o.testVariant; forcedBoss = o.boss;
-  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1, loreSeen: new Set() };
+  G.run = newRun(seed);
   Sfx.init(); resetPlayer(); hideLore(); G.stats.time = 0; G.stats.kills = 0; G.stats.obols = 0;
   if (o.give?.length) giveById(o.give);
   if (o.loot) giveResources(o.loot);
@@ -107,7 +116,7 @@ export function startGame(opts?: RunOptions) {
 export function prepareTitle() {
   const seed = nextRun.seed || newSeed(); nextRun = { ...nextRun, seed };
   testTemplate = nextRun.testTemplate; testVariant = nextRun.testVariant; forcedBoss = nextRun.boss;
-  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1, loreSeen: new Set() };
+  G.run = newRun(seed);
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, nextRun.floor ?? 0)));
 }
 
@@ -126,7 +135,7 @@ export function pause() {
 }
 export function resume() { G.state = 'play'; showScreen(null); resetClock(); }
 export function endGame(won: boolean) {
-  G.state = 'end'; hideBossBar();
+  G.state = 'end'; hideBossBar(); clearPages();
   if (won) Sfx.victory(); else Sfx.fallen();
   showEndScreen({
     won, floor: G.run.floor + 1, floors: FLOORS.length, time: G.stats.time, kills: G.stats.kills,
@@ -160,6 +169,7 @@ export function enterRoom(room: Room) {
   if (firstVisit && room.type === 'merchant') { banner(...STR.banner.merchant); Sfx.shade(); }
   if (firstVisit && room.type === 'secret') banner(...STR.banner.secret);
   if (room.type === 'shrine') enterShrine(room, firstVisit);
+  if (room.type === 'library') enterLibrary(room, firstVisit);
   if (firstVisit && room.type === 'vault') banner(...(room.warden ? STR.banner.vaultWarden : STR.banner.vault));
   if (firstVisit && room.quietHeart) { const p = freeSpotNear(room, room.cx, room.cz); spawnHeart(p.x, p.z, 2); }
   // a treasure room with nothing left to find offers a full heart instead
@@ -249,6 +259,7 @@ export function onRoomCleared(room: Room) {
   // now and then an artifact rises where the fight was, while the floor's budget allows
   const def = loot.chance(CFG.artifacts.dropChance) ? offerOptional('drop') : null;
   if (def) { const p = freeSpotNear(room, room.cx, room.cz + 1); placeArtifact(room, def, p.x, p.z); banner(...STR.banner.artifactRises); Sfx.rise(); }
+  else maybeDropPage(room); // and, rarely, a grimoire page
 }
 
 export function onBossDead() {
@@ -265,6 +276,7 @@ export function onBossDead() {
     return placeArtifact(cur, d, p.x, p.z);
   });
   if (spots.length === 2) { spots[0].pair = spots[1]; spots[1].pair = spots[0]; }
+  dropPage(cur, cur.cx, cur.cz - 2.2); // and a grimoire page beside them
   banner(STR.bosses[G.run.boss].dead, G.run.floor >= FLOORS.length - 1 ? STR.banner.wayOut : STR.banner.wayDown);
 }
 

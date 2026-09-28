@@ -14,7 +14,7 @@ style reference in every image), budgets per kind of asset, the pipeline from im
 log. When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3 in progress (see `docs/M3-plan.md`; steps 1 to 3 done); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3 in progress (see `docs/M3-plan.md`; steps 1 to 4 done); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -69,6 +69,12 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   (`inflict(foe, status)`, looks, burn damage, the shock's leap, reactions); enemies read `canAct` and
   `speedFactor`, `damageEnemy` applies `damageTakenMul` and the leap. The training dummy (`dummy` in
   `CFG.enemy`) never falls and shows its hits and statuses.
+  Grimoire pages and the library (a one-cell dead end on every floor) are in `src/magic/pages.ts`: `room.pages`
+  (lectern, shelf or loose), laid out on the library's first visit from the pure `pickPages` and `shelfPages`
+  (`spellData.ts`, the run's `pages` stream); a page with both slots full asks through `showPrompt` and a spell
+  key answers it (`answerPage`, before casting); spells given up go to `G.run.forgotten` and later libraries
+  sell them back (`grimoire` in `data/loot.json`). Bosses drop a page (`dropPage` in `onBossDead`), cleared rooms
+  rarely (`maybeDropPage`).
 - Tests: `npm run test:unit` (Vitest: generator rules on hundreds of seeds, every template validated),
   `npm run test:e2e` (Playwright smoke tests), `npm test` runs both.
 - URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`
@@ -76,18 +82,21 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
   every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
   keys and glyphs, `?spells=arc` starts with spells in the slots. `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
-  vault, a secret room (behind a cracked wall) or a shrine (`?room=shrine_henge`) next to the start.
+  vault, a secret room (behind a cracked wall), a shrine (`?room=shrine_henge`) or a library
+  (`?room=library_plain`) next to the start.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
   resources, `__game.drop('purse')` drops a pickup ahead of the mage, `__game.clearRoom()`
   ends the current fight, `__game.openSecret()` breaks open the floor's secret room,
   `__game.cleanse()` cleanses the oldest curse held at once, `__game.rite` reads the shrine's rite under way,
   `__game.learn('arc', 0)`, `__game.cast(0)` and `__game.mana(50)` learn, cast and set mana,
   `__game.spawn('dummy')` spawns a foe ahead of the mage, `__game.inflict({ chill: 1 })` statuses every foe,
-  `__game.shoot(x, z, dx, dz)` fires a foe's shot, `__game.mantle` reads the Static Mantle's seconds left.
+  `__game.shoot(x, z, dx, dz)` fires a foe's shot, `__game.mantle` reads the Static Mantle's seconds left,
+  `__game.page()` drops a grimoire page, `__game.pages` and `__game.forgotten` read the room's pages and the
+  spells given up; `__game.cast(slot)` answers a page that asks, as the key does.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons: heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
   special rooms (a sealed vault leads to its warded door), test rooms, boss fights and new runs, taking or
-  cleansing a curse, spells (into slot Q or E) and mana (full, endless). Its lists come from the data, so new
+  cleansing a curse, spells (into slot Q or E), a grimoire page and mana (full, endless). Its lists come from the data, so new
   artifacts, spells,
   drops, room types and bosses show up by themselves; give a new room type a name in `STR.dev.roomNames`.
 - Lore cards (`src/ui/lore.ts`): picking something up shows its icon, name, kind, effect and lore in the
