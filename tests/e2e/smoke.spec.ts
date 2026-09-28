@@ -666,6 +666,75 @@ test('statuses: chill freezes and stops a foe, Shatter and Overload go off, boss
   expect(errors).toEqual([]);
 });
 
+type G11 = Omit<G10, 'current' | 'enemies' | 'player'> & {
+  clearRoom(): void; shoot(x: number, z: number, dx: number, dz: number): void; readonly mantle: number;
+  shots: unknown[]; bolts: unknown[]; current: G10['current'] & { barriers?: unknown[] };
+  enemies: (G10['enemies'][number] & { lastHit?: string })[]; player: G10['player'] & { invuln: number };
+};
+
+test('spells: the lance burns a line, the seal erupts and leaves fire, shards freeze, ice walls hold, the mantle throws foes back', async ({ page }) => {
+  const errors = await start(page, '?room=treasure_plain&seed=SPL3');
+  // Cinder Lance: a beam through two dummies (clear of the pedestal in the middle), burning both
+  const lance = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G11, P = g.player; g.warp(1); g.sim(.3);
+    P.x -= 4; g.learn('cinder_lance', 0);
+    g.spawn('dummy', P.x + 2.5, P.z); g.spawn('dummy', P.x + 5, P.z + .2); g.sim(.8);
+    const cast = g.cast(0, { x: 1, z: 0 });
+    return { cast, burning: g.enemies.filter(e => (e.status?.burn ?? 0) > 0 && e.lastHit === 'spell').length };
+  });
+  expect(lance).toEqual({ cast: true, burning: 2 });
+  // Pyre Seal: nothing for a heartbeat, then the ring strikes, burns and throws back; the ground burns on
+  const seal = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G11, P = g.player; g.clearRoom(); g.sim(.3); g.mana(999); g.learn('pyre_seal', 1);
+    const foe = g.spawn('rotling', P.x + 1.2, P.z - .6); g.sim(.8); foe.hp = 60;
+    g.cast(1); g.sim(.5); const early = foe.status?.burn ?? 0, at = { x: foe.x, z: foe.z };
+    g.sim(.6); const hit = 60 - foe.hp, burn = foe.status?.burn ?? 0;
+    g.clearRoom(); const late = g.spawn('dummy', P.x, P.z); g.sim(1.5); P.hp = P.maxHp;
+    return { early, hit, burn, ground: late.status?.burn ?? 0, pushed: Math.hypot(foe.x - at.x, foe.z - at.z) };
+  });
+  expect(seal.early).toBe(0);
+  expect(seal.hit).toBeGreaterThanOrEqual(14);
+  expect(seal.burn).toBeGreaterThan(3);
+  expect(seal.ground).toBeGreaterThan(0); // walked onto burning ground after the eruption
+  // Rime Shards: at close range all five strike, and the third chill freezes
+  const shards = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G11, P = g.player; g.clearRoom(); g.sim(3); g.mana(999); P.x += 4;
+    g.learn('rime_shards', 0); const d = g.spawn('dummy', P.x, P.z - 1.1); g.sim(.8);
+    g.cast(0, { x: 0, z: -1 }); const flying = g.bolts.length; g.sim(.4);
+    return { flying, frozen: (d.status?.frozen ?? 0) > 0 };
+  });
+  expect(shards).toEqual({ flying: 5, frozen: true });
+  // Glacial Wall: it holds a foe back and stops its shots, lets the mage's bolts through, then shatters and chills
+  const wall = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G11 & { keys: Set<string>; arrowOrder: string[] }, P = g.player;
+    g.clearRoom(); g.sim(.3); g.mana(999); g.learn('glacial_wall', 1); P.x += 2.5; // clear of the pedestal
+    const cast = g.cast(1, { x: 0, z: -1 }), barriers = g.current.barriers?.length ?? 0, wallZ = P.z - 2;
+    const foe = g.spawn('rotling', P.x, P.z - 4); g.sim(.8); foe.hp = 60;
+    const hp = P.hp; g.shoot(P.x + .3, P.z - 4.5, 0, 1); g.sim(1.2);
+    const held = foe.z < wallZ, shots = g.shots.length, hurt = hp - P.hp;
+    g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); g.sim(.8); g.keys.delete('ArrowUp'); g.arrowOrder.length = 0;
+    const shotThrough = foe.hp < 60; foe.hp = 60; g.sim(3);
+    return { cast, barriers: barriers > 3, held, shots, hurt, shotThrough, after: g.current.barriers?.length ?? 0, shattered: 60 - foe.hp, chill: foe.status?.chill ?? 0 };
+  });
+  expect(wall).toMatchObject({ cast: true, barriers: true, held: true, shots: 0, hurt: 0, shotThrough: true, after: 0 });
+  expect(wall.shattered).toBeGreaterThanOrEqual(8);
+  expect(wall.chill).toBeGreaterThanOrEqual(1);
+  // Static Mantle: foes that touch the mage are shocked and thrown back and don't hurt; when it ends, they do
+  const mantle = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G11, P = g.player; g.clearRoom(); g.sim(.3); g.mana(999); g.learn('static_mantle', 0);
+    const a = g.spawn('rotling', P.x - .8, P.z - 1.2), b = g.spawn('rotling', P.x + 1, P.z - 1); g.sim(.7); a.hp = b.hp = 60;
+    g.cast(0); const hp = P.hp; g.sim(1.5);
+    const during = { hurt: hp - P.hp, left: g.mantle, zapped: g.enemies.filter(e => e.hp < 60 && e.lastHit === 'spell').length };
+    P.invuln = 0; const hp2 = P.hp; g.sim(5.5);
+    return { during, left: g.mantle, hurtAfter: hp2 - P.hp };
+  });
+  expect(mantle.during).toMatchObject({ hurt: 0, zapped: 2 });
+  expect(mantle.during.left).toBeGreaterThan(4);
+  expect(mantle.left).toBe(0);
+  expect(mantle.hurtAfter).toBeGreaterThan(0);
+  expect(errors).toEqual([]);
+});
+
 /* M2 step 6: the artifacts that bend the economy. */
 type G7 = Omit<G6, 'current'> & {
   give(...ids: string[]): void; drop(kind: string, x?: number, z?: number): void; pickups: { kind: string }[];

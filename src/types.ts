@@ -3,6 +3,7 @@ import type { EnemyType } from './config';
 import type { BossConfig, PlannedRoom } from './world/generate';
 import type { FoeKind, Template } from './world/templates';
 import type { StatusState } from './magic/status';
+import type { StatusKind } from './magic/spellData';
 import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
 import type { Drop, Item, Ware } from './items/loot';
 
@@ -77,6 +78,7 @@ export interface Room {
   /** The inside's bounding box in world units; `w` × `h` tiles, of which `mask` marks the inside. */
   bounds: { minX: number; maxX: number; minZ: number; maxZ: number }; w: number; h: number; mask: boolean[][];
   group: THREE.Group; doors: Door[]; walls: Box[]; rocks: RockBox[]; pits: Box[]; torches: Torch[];
+  /** Ice a spell raised (Glacial Wall): it stops the mage, foes and their shots, not the mage's bolts. */ barriers?: Box[];
   /** Enemies to spawn, wave by wave (ordeals have 2 or 3 waves, other fights 1), in world positions. */
   waves: { kind: FoeKind; x: number; z: number }[][];
   /** The wave being fought, and whether the next one is on its way. */ wave: number; wavePending: boolean;
@@ -118,6 +120,8 @@ export interface Bolt extends Circle {
   /** Burst bolts from artifacts (Knucklebone, Bell): straight, weaker, no focus pattern. */ secondary: boolean;
   /** Raven's Eye: this bolt strikes thrice as hard. */ crit?: boolean;
   /** Serpent Rod: the straight line the bolt weaves about, and the sideways direction it swings in. */ wave?: { ox: number; oz: number; px: number; pz: number };
+  /** A spell's bolt (Rime Shards, Shatter's shards): its hits are spell hits, with the spell's statuses. */ spell?: boolean;
+  status?: Partial<Record<StatusKind, number>>;
 }
 export interface Shot extends Circle { y: number; vx: number; vz: number; color: number; mesh: THREE.Group }
 export interface Particle { m: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>; vx: number; vy: number; vz: number; life: number }

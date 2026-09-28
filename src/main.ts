@@ -25,7 +25,7 @@ import { clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRu
 import { STEP, startLoop, step } from './loop';
 import { cleanSeed } from './rng';
 import { VARIANTS, planToText, type RoomVariant } from './world/generate';
-import { BOSS_TYPES, type BossType, type EnemyType } from './config';
+import { BOSS_TYPES, CFG, type BossType, type EnemyType } from './config';
 import { DROPS, RESOURCES, type Drop, type Resource } from './items/loot';
 import { giveResources, spawnPickup } from './items/pickups';
 import { openSecretRoom } from './world/secret';
@@ -34,6 +34,8 @@ import { SPELLS, type StatusKind } from './magic/spellData';
 import { inflict } from './magic/statusFx';
 import { makeEnemy } from './actors/enemies';
 import { castSpell, learnSpell } from './magic/spells';
+import { mantleLeft } from './magic/shapes';
+import { spawnShot } from './combat/projectiles';
 import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
 import { isTouch } from './util';
@@ -130,6 +132,10 @@ function installDevHooks() {
         foe in the room, e.g. inflict({ burn: 3 }). */
     spawn(kind: EnemyType, x = player.x, z = player.z - 2.5) { return makeEnemy(kind, x, z, 1); },
     inflict(status: Partial<Record<StatusKind, number>>) { for (const e of G.enemies) inflict(e, status); },
+    /** Fire a foe's shot from (x, z) along (dx, dz), as a wisp would (a wall of ice stops it); seconds of the
+        Static Mantle left. */
+    shoot(x: number, z: number, dx: number, dz: number) { const l = Math.hypot(dx, dz) || 1; spawnShot(x, z, dx / l, dz / l, CFG.enemy.wisp.shotSpeed, 0xb784ff, .8); },
+    get mantle() { return mantleLeft(); },
     /** Cleanse the oldest curse held at once (no fight, no obols); the shrine's rite under way, if any. */
     cleanse: () => cleanseAtOnce(), get rite() { return riteState(); },
     get pickups() { return G.pickups; }, get glyphs() { return G.glyphs; }, get shots() { return G.shots; },

@@ -28,7 +28,7 @@ import { giveById, offerGuaranteed, offerOptional, offerSecondChoice, placeArtif
 import { banner, fadeFromBlack, hideBossBar, renderHearts, renderMinimap, resetHearts, showBossBar, toast } from './ui/hud';
 import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
-import { clearSpellFx, forgetSpells, learnSpell } from './magic/spells';
+import { clearSpellFx, forgetSpells, leaveRoomSpells, learnSpell } from './magic/spells';
 import { clearStatusFx } from './magic/statusFx';
 import { resetClock } from './loop';
 import { $, mulberry } from './util';
@@ -280,7 +280,7 @@ export function tryTransition() {
     const along = ns ? player.x - door.x : player.z - door.z;
     if (out <= .35 || Math.abs(along) > DH + .3 || !door.link) continue;
     const nb = door.nb, to = entryPoint(door.link), cam = cameraTargetFor(nb, to.x, to.z);
-    showRooms(cur, nb); clearGlyphs(); // a glyph left burning goes out when the mage leaves
+    showRooms(cur, nb); clearGlyphs(); leaveRoomSpells(); // a glyph left burning goes out when the mage leaves, as do seals and walls
     G.trans = { t: 0, dur: .42, nb, fx: player.x, fz: player.z, tx: to.x, tz: to.z, cfx: camTarget.x, cfz: camTarget.z, ctx: cam.x, ctz: cam.z, vf: viewScale(), vt: viewScaleFor(nb) };
     clearProjectiles();
     return true;
@@ -303,7 +303,7 @@ export function clearRoom() {
 export function warp(gx: number, gy?: number) {
   const r = gy === undefined ? G.rooms.find(x => x.plan.id === gx) : roomAt(gx, gy);
   if (!r) throw new Error(`No room at ${gy === undefined ? 'id ' + gx : gx + ',' + gy}`);
-  G.trans = null; clearProjectiles(); clearGlyphs();
+  G.trans = null; clearProjectiles(); clearGlyphs(); leaveRoomSpells();
   const door = r.doors.find(d => d.side === 's') ?? r.doors[0];
   const p = door ? entryPoint(door) : freeSpotNear(r, r.cx, r.cz);
   player.x = p.x; player.z = p.z; player.vx = player.vz = 0;

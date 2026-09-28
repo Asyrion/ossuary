@@ -4,15 +4,16 @@
    fan, and which path they take (straight, bounce off walls, boomerang back to the mage, weave like a
    serpent); every modifier from the other artifacts (damage, size, colour, speed, range, piercing,
    knockback, rock breaking, the Raven's Eye's strong bolts, the Cracked Mirror's split) applies to every
-   bolt, whatever the path. */
+   bolt, whatever the path. Spells fire bolts through the same pipeline (Rime Shards, Shatter's shards): their
+   hits are spell hits and carry the spell's statuses. */
 import * as THREE from 'three';
 import { CFG } from '../config';
-import type { Bolt, Box, RockBox } from '../types';
+import type { Bolt, Box, RockBox, Room } from '../types';
 import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
-import { basicMat, blob, glowShared, sphereGeo } from '../render/materials';
-import { blockers } from '../world/collision';
+import { basicMat, blob, glowShared, markShared, sphereGeo } from '../render/materials';
+import { blockers, boxAt } from '../world/collision';
 import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
 import { hollowRing } from '../world/secret';
 import { strikeWisp } from '../world/shrine';
@@ -22,17 +23,29 @@ import { damageEnemy, hurtPlayer } from './damage';
 import { detonateGlyph, glyphNear } from './glyphs';
 import { burst } from './fx';
 import { GILT_COLOR, type BoltPath } from '../items/artifactData';
+import type { StatusKind } from '../magic/spellData';
+import { inflict } from '../magic/statusFx';
 
-interface BoltSpec { x: number; z: number; vx: number; vz: number; damage: number; range: number; scale: number; color: number; path: BoltPath; pierce: number; bounces: number; secondary: boolean; crit?: boolean }
+interface BoltSpec {
+  x: number; z: number; vx: number; vz: number; damage: number; range: number; scale: number; color: number; path: BoltPath; pierce: number; bounces: number; secondary: boolean; crit?: boolean;
+  /** A spell's bolt, with the spell's statuses; `shard` makes it a splinter of ice instead of an orb. */ spell?: boolean; status?: Partial<Record<StatusKind, number>>; shard?: boolean;
+}
 
+let shardGeo: THREE.OctahedronGeometry | null = null;
 function makeBolt(s: BoltSpec) {
   const mesh = new THREE.Group(); const y = .6;
   const shadow = blob(.35 * Math.min(1.4, s.scale)); shadow.position.y = -y + .015;
-  mesh.add(new THREE.Mesh(sphereGeo(.1 * s.scale), basicMat(s.color)), glowShared(s.color, .75 * s.scale, .9), shadow);
+  let core: THREE.Mesh;
+  if (s.shard) { // a splinter of ice, pointing where it flies
+    core = new THREE.Mesh(shardGeo ??= markShared(new THREE.OctahedronGeometry(1, 0)), basicMat(s.color));
+    core.scale.set(.06 * s.scale, .06 * s.scale, .24 * s.scale); mesh.rotation.y = Math.atan2(s.vx, s.vz);
+  } else core = new THREE.Mesh(sphereGeo(.1 * s.scale), basicMat(s.color));
+  mesh.add(core, glowShared(s.color, .75 * s.scale, .9), shadow);
   mesh.position.set(s.x, y, s.z); scene.add(mesh);
   const b: Bolt = {
     x: s.x, z: s.z, y, vx: s.vx, vz: s.vz, speed: Math.hypot(s.vx, s.vz), dist: 0, range: s.range, r: .12 * s.scale, mesh,
     damage: s.damage, color: s.color, path: s.path, pierce: s.pierce, bounces: s.bounces, returning: false, hit: new Set(), secondary: s.secondary, crit: s.crit,
+    spell: s.spell, status: s.status,
   };
   if (s.path === 'wave') { const v = Math.hypot(s.vx, s.vz) || 1; b.wave = { ox: s.x, oz: s.z, px: -s.vz / v, pz: s.vx / v }; }
   G.bolts.push(b);
@@ -83,6 +96,13 @@ export function fireSecondary(x: number, z: number, dx: number, dz: number, o: {
   makeBolt({ x, z, vx: dx / l * v, vz: dz / l * v, damage: o.damage, range: o.range, scale: o.scale, color: o.color, path: 'straight', pierce: 0, bounces: 0, secondary: true });
 }
 
+/** A spell's bolt from (x, z) along (dx, dz): Rime Shards' splinters, Shatter's shards. It strikes as a spell
+    (no mana back for the kill) and puts the spell's statuses on what it hits. */
+export function fireSpellBolt(x: number, z: number, dx: number, dz: number, o: { damage: number; range: number; speed: number; color: number; scale?: number; status?: Partial<Record<StatusKind, number>>; shard?: boolean }) {
+  const l = Math.hypot(dx, dz) || 1;
+  makeBolt({ x, z, vx: dx / l * o.speed, vz: dz / l * o.speed, damage: o.damage, range: o.range, scale: o.scale ?? .8, color: o.color, path: 'straight', pierce: 0, bounces: 0, secondary: true, spell: true, status: o.status, shard: o.shard });
+}
+
 /** Enemy projectile. */
 export function spawnShot(x: number, z: number, dx: number, dz: number, speed: number, color: number, y = .55, size = 1) {
   const mesh = new THREE.Group();
@@ -96,7 +116,16 @@ export function clearProjectiles() {
   for (const s of G.shots) scene.remove(s.mesh); G.shots.length = 0;
 }
 
-const boxAt = (x: number, z: number, boxes: Box[]) => boxes.find(b => Math.abs(x - b.x) < b.hx && Math.abs(z - b.z) < b.hz);
+/** Something of the mage's (a bolt, a beam) reaches a wall, door or rock at (x, y, z): a vault's ward glances it off,
+    a cracked wall rings hollow, an urn breaks. Returns the box as a rock, to check for more. */
+export function strikeSolid(room: Room, box: Box, x: number, y: number, z: number) {
+  const door = room.doors.find(d => d.box === box);
+  if (door?.seal?.sealed) { burst(x, y, z, WARD_COLOR, 5, 1.6, .035); Sfx.wardTink(); } // glances off a vault's ward
+  if (door?.secret) hollowRing(door, x, z);                                               // a cracked wall rings hollow
+  const rock = box as RockBox;
+  if (rock.urn) strikeUrn(room, rock, false);                                             // any bolt breaks an urn
+  return rock;
+}
 
 function removeBolt(i: number, fizzle = true) {
   const b = G.bolts[i]; scene.remove(b.mesh); G.bolts.splice(i, 1);
@@ -137,12 +166,8 @@ export function updateBolts(dt: number) {
     // walls, doors and rocks
     const box = !kill && !(b.path === 'boomerang' && b.returning) ? boxAt(b.x, b.z, solids) : undefined;
     if (box) {
-      const rock = box as RockBox;
-      const door = room.doors.find(d => d.box === box);
-      if (door?.seal?.sealed) { burst(b.x, b.y, b.z, WARD_COLOR, 5, 1.6, .035); Sfx.wardTink(); } // glances off a vault's ward
-      if (door?.secret) hollowRing(door, b.x, b.z);                    // a cracked wall rings hollow
-      if (rock.urn) strikeUrn(room, rock, false);                       // any bolt breaks an urn
-      else if (breaker && room.rocks.includes(rock)) hitRock(room, rock); // Mason's Chisel cracks rocks
+      const rock = strikeSolid(room, box, b.x, b.y, b.z);
+      if (!rock.urn && breaker && !b.spell && room.rocks.includes(rock)) hitRock(room, rock); // Mason's Chisel cracks rocks
       if (b.path === 'bounce' && b.bounces > 0) {
         // reflect on the axis that ran into the box, from the last free position
         const hitX = !!boxAt(b.x, oz, solids), hitZ = !!boxAt(ox, b.z, solids);
@@ -157,8 +182,9 @@ export function updateBolts(dt: number) {
       if (e.dead || e.spawn > 0 || e.hidden || b.hit.has(e)) continue;
       const ey = e.flying ? .8 : .5;
       if (Math.hypot(b.x - e.x, b.z - e.z) >= e.r + b.r || Math.abs(b.y - ey) >= 1.4) continue;
-      damageEnemy(e, b.damage, b.vx / b.speed, b.vz / b.speed, player.stats.knockback, 'cantrip');
+      damageEnemy(e, b.damage, b.vx / b.speed, b.vz / b.speed, b.spell ? .3 : player.stats.knockback, b.spell ? 'spell' : 'cantrip');
       b.hit.add(e);
+      if (b.status) inflict(e, b.status);
       if (b.crit) burst(e.x, .7, e.z, CFG.artifacts.crit.color, 8, 2.4, .05);
       // the Cracked Mirror: a cast bolt splits into two halves that fly on either side of it
       if (!b.secondary && player.stats.effects.has('split')) {
@@ -186,10 +212,11 @@ export function updateBolts(dt: number) {
 }
 
 export function updateShots(dt: number) {
-  const solids = blockers(G.current, 'bolt');
+  const room = G.current, solids = blockers(room, 'bolt'), ice = room.barriers ?? [];
   for (let i = G.shots.length - 1; i >= 0; i--) {
     const s = G.shots[i]; s.x += s.vx * dt; s.z += s.vz * dt; s.mesh.position.set(s.x, s.y, s.z);
     let kill = !!boxAt(s.x, s.z, solids);
+    if (!kill && boxAt(s.x, s.z, ice)) { kill = true; burst(s.x, s.y, s.z, 0xbfe6ff, 5, 1.4, .04); Sfx.wardTink(); } // a wall of ice stops foes' shots
     if (!kill && Math.hypot(player.x - s.x, player.z - s.z) < player.r + s.r) { hurtPlayer(1, s.x - s.vx, s.z - s.vz); kill = true; }
     if (kill) { scene.remove(s.mesh); G.shots.splice(i, 1); burst(s.x, s.y, s.z, s.color, 4, 1.2, .05); }
   }
