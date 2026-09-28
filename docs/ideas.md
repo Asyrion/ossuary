@@ -176,3 +176,115 @@ artifacts the GDD already plans for M2 (the economy seven) or M3 (Burn, Chill, S
 | Widow's Veil | Cursed | Gift: foes lose the mage often, and their shots scatter wider. Price: the hearts in the HUD are veiled; the mage no longer sees how hurt they are | Hidden from the dead, and from oneself |
 | Gravemonger's Contract | Cursed | Gift: every foe put to rest drops an obol. Price: room clears never drop hearts, and hearts cost twice as much at the merchant | A bargain with those who rob the dead; the shrine cleanses it (M2 step 5) |
 | The Last Rite | Cursed | Gift: once per floor, a killing blow is refused and the mage rises with half a heart. Price: one heart container less | A rite read too early; the mage walks with one foot in the grave |
+
+## Rooms of Eda (play-test, 2026-09-28)
+
+The first play-test's clearest finding: rooms feel and look too much like Isaac. Four things make them so: plain
+rectangular boxes, a door in the middle of every wall, rocks on a grid, and "kill everything and the doors
+open". The owner chose **A, B and C, in that order**; D and E stay ideas. Doors may move off-centre. The owner
+left the rooms and objects to us ("surprise me"); the picks below are proposals.
+
+**A. Architecture inside the cell.** The floor grid stays; what is inside a cell stops being a box.
+
+- **Alcoves** in the walls: burial shelves (loculi) with a skull or an urn in them, niches with a candle.
+- **Apses**: a rounded end to a room, where a chapel's altar stands; **cut corners** (chamfers) and
+  **buttresses** standing out from the walls.
+- **Levels**: a raised dais with steps, a sunken floor that water gathers in, a gallery along one wall.
+- **Off-centre doors**: a door anywhere along a cell's edge, not only in its middle; sometimes an archway
+  without a gate between the cells of one hall.
+
+**B. Themed rooms.** Each has its own props and one twist, so a room is remembered as a place, not a layout.
+
+| Room | What is in it | Its twist |
+| --- | --- | --- |
+| Chapel nave | Rows of pews, an altar in an apse, candle stands | Lighting the altar's candles with fire blesses the next casts |
+| Ossuary | Walls of skulls, bone heaps, a bone chandelier | Skulls in their niches glow in the school last cast; bone heaps rattle and rise if the fight drags |
+| Flooded cistern | Deep water, stepping stones, pillars | Frost makes paths; Shock runs through all of it |
+| Scriptorium | Desks, lecterns, heaps of scrolls | Scrolls burn fast; now and then a torn grimoire page lies in a heap |
+| Collapsed crypt | Rubble, roots through the ceiling, a shaft of daylight | A glyph brings more of the ceiling down (on foes, too) |
+| Fungal grotto | Glowcaps, moss, dripstones | Glowcaps burst into spores when struck; spores catch fire in a flash |
+| Bell chamber | A great bell, ropes, a gallery | A bolt rings the bell: every foe in the room reels |
+| Embalmers' hall | Stone slabs, oil jars, hooks | Oil everywhere; one spark and the room burns |
+| Pilgrims' rest | Bedrolls, sacks, a cold fire, packs | A quiet room: loot in the piles, sometimes a sleeping foe |
+| Frozen mausoleum | Rime on the floor, frozen sarcophagi | The floor is slick; fire melts the rime and wakes what was frozen |
+| Cloister garth | A dead tree, thorn briars, roots, moss | Briars burn; the tree drops seeds that sprout into thorns |
+| Reliquary gallery | Statues of pilgrims in alcoves, reliquaries | One statue is not a statue |
+
+**C. Mechanisms that answer to magic.**
+
+- **Braziers**: lit by fire; a bolt flying through the flame catches fire (Burn).
+- **Candle stands**: lit by fire; lighting every one in a room opens a reliquary or drives off the dark.
+- **Bells**: a bolt rings one; foes near it reel for a moment (a cooldown keeps it from ringing all the time).
+- **Rune stones** of a school: a spell of their school charges one, and it pulses that status round it for the
+  rest of the fight.
+- **Lodestone pillars**: Shock leaps between them; a line of them makes a fence of lightning.
+- **Hanging censers and chandeliers**: a bolt cuts the chain; it crashes down, hurts what is under it, and
+  spills burning oil.
+- **Sluices**: a blast opens one, and the room floods (or drains).
+- **Old wards on the floor**: a foe that steps on one sets it off (and so does the mage).
+
+**D. Winning a fight another way** (later): break three ward stones while the dead keep rising; hold out until a
+candle burns down; a room that slowly floods.
+
+**E. The floor as a place** (later): short passages between rooms, stairs down within a floor, a map that isn't
+a grid of cells.
+
+## Objects and piles (play-test, 2026-09-28)
+
+More objects like the rocks, pillars and tombs, magic and nature inspired, and heaps and piles. Each behaves as
+one of: **tall** (blocks walking and bolts), **low** (blocks walking; bolts fly over it), **soft** (walkable,
+slows), **breakable** (to a bolt, or only to a blast), **flammable** (fire burns it away, and may spread) or
+**reactive** (a school does something to it). Breakable piles drop loot from **their own pool, poorer than an
+urn's**: mostly nothing, sometimes an obol or a glyph stone, rarely half a heart; never keys or artifacts.
+
+| Object | Kind | What it does |
+| --- | --- | --- |
+| Bone pile | Low, breakable | Scatters to a bolt; the poorer loot pool |
+| Skull heap | Low, breakable (two hits) | A skull rolls loose; the poorer loot pool |
+| Grave sacks | Low, breakable | Spill one to three small things |
+| Oil cask | Tall, breakable | Leaks a pool of oil where it breaks |
+| Rubble | Low | A glyph's blast clears it |
+| Grave roots | Tall, flammable | Fire burns them away, slowly |
+| Thorn briar | Soft, flammable | Hurts the mage and walkers passing through; burns |
+| Glowcaps | Low, reactive | Soft light; struck, they burst into spores that catch fire |
+| Candle stand | Tall, reactive | Fire lights it; a blast knocks it over into burning wax |
+| Rune stone | Tall, reactive | Charged by its school's spell, it pulses that status |
+| Crystal cluster | Tall, reactive | Shock leaps between clusters; Chill and a hit shatter one |
+| Pews | Low | Cover in the chapel |
+| Cobwebs | Soft, flammable | Slow the mage and walkers; burn in a flash |
+| Brazier, bell | Reactive | The mechanisms of C |
+
+Scatter without collision makes rooms feel lived in: moss, loose pages, candle stubs, roots down the walls,
+rubble at the foot of a wall.
+
+## Familiars (play-test, 2026-09-28)
+
+The owner liked the Candle Moth and the Weeping Skull. Familiars become a family of their own, and artifacts are
+only one way to get them.
+
+- **A soft limit of three** at once. Artifacts, spells or boons can raise it. Binding a fourth asks which one to
+  let go (as a grimoire page asks for a slot). The artifact familiars count towards it.
+- **Ways to bind one:** caged in a rune-sealed urn (the seal broken, it follows the mage); a binding rite (weaken
+  a wild one, then trap it in a chalked glyph); a cocoon carried through a few rooms until it hatches; the shade of
+  a foe put to rest by magic (see Shades above); a true-name scroll from the merchant; the shrine, in exchange for a
+  curse; hidden in a secret room; a boss's servant that changes sides; the prize of an ordeal.
+- **Ideas:** an ink raven that steals pickups for the mage; a glass newt that chills what it bites; a lantern wisp
+  that lights dark rooms and finds cracked walls; a grave rat that digs up obols; a toad that swallows shots; a
+  bone hound pup that charges; a candle owl that marks the nearest foe.
+- **Open:** whether they can die, and whether they grow with the mage's levels (M6).
+
+## Costumes (play-test, 2026-09-28)
+
+Isaac's items change how Isaac looks; ours should too, in a medieval and magic way. **Built as a proof of
+concept:** the Pilgrim's Cowl puts a hood on the mage (`src/actors/costume.ts`). Pieces hang from the rig's
+bones, one per slot (head, shoulders, back, hands, aura; the one taken last wins the slot), and are fitted to
+whatever model is loaded.
+
+- **Pieces to come:** the Crown of Thorns on the head; the Mask of the Drowned over the face (a face slot, so it
+  can go with a hood); the Chain of the Penitent on the wrists; the Mana Lantern at the belt; the Ember Sigil
+  glowing on the back; the Frostbitten Ring rimed on one hand; the Candle Moth's light as an aura.
+- **Magic take:** a cursed artifact shows its curse (the mask weeps, the chain drags on the floor) until a
+  shrine cleanses it; then the piece changes to its cleansed look.
+- **Tripo pieces:** small props made to the budgets in `docs/assets.md`, replacing the placeholder shapes.
+- **Limits:** the hero is one mesh, so a piece can cover the hair but not hide it; a Tripo hero exported with its
+  hair as a separate part would lift that.
