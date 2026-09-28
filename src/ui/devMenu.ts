@@ -19,6 +19,7 @@ import { openSecretRoom, revealCracks } from '../world/secret';
 import { cleanseAtOnce } from '../world/shrine';
 import { SPELL_DEFS } from '../magic/spellData';
 import { forgetSpells, gainMana, learnSpell } from '../magic/spells';
+import { dropPage } from '../magic/pages';
 import { inflict } from '../magic/statusFx';
 import type { StatusKind } from '../magic/spellData';
 import { TEMPLATE_DEFS } from '../world/templates';
@@ -132,6 +133,7 @@ function build() {
     btn(S.fullMana, () => gainMana(player.stats.maxMana)),
     manaBtn = btn('', () => { DEV.mana = !DEV.mana; toast(DEV.mana ? S.manaOn : S.manaOff, 2); }),
     btn(S.forget, () => forgetSpells()),
+    btn(S.page, () => { if (!dropPage(G.current, player.x, player.z - 1.5)) toast(S.noPage, 2); }),
   );
 
   // foes, a little further ahead (they don't lock the doors)

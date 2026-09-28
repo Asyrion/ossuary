@@ -63,6 +63,11 @@ export function spellIcon(id: string) {
   return `<svg viewBox="0 0 24 24" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${def.text}\n\n${def.lore}</title>${SPELL_ICONS[def.icon] ?? SPELL_ICONS.arc}</svg>`;
 }
 
+/** A spell's icon as a standalone SVG document in `color` (for drawing onto a canvas, a grimoire page). */
+export function spellIconSvg(id: string, color: string) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="128" height="128" style="color:${color}">${SPELL_ICONS[spell(id).icon] ?? SPELL_ICONS.arc}</svg>`;
+}
+
 /** The two spell slots: the spell's icon, its key and its mana cost (empty slots dimmed). */
 export function renderSpells() {
   player.spells.forEach((id, i) => {
@@ -102,7 +107,7 @@ export const RES_ICONS = {
 const el = {
   purse: $('purse'), mana: $('mana'), manaFill: $('mana').querySelector('i') as HTMLElement,
   hearts: $('hearts'), items: $('items'), bossbar: $('bossbar'), bossname: $('bossname'), banner: $('banner'),
-  toast: $('toast'), hurt: $('hurt'), heroInfo: $('heroInfo'),
+  toast: $('toast'), prompt: $('prompt'), hurt: $('hurt'), heroInfo: $('heroInfo'),
 };
 
 let lastHearts = '';
@@ -216,6 +221,11 @@ export function renderMinimap() {
       mg.beginPath(); mg.arc(cx, cy, 6, 0, 7); mg.stroke();
       mg.beginPath(); mg.arc(cx, cy, 2, 0, 7); mg.fill();
     }
+    if (r.type === 'library') { // an open book, dimmed once its choice is made
+      mg.fillStyle = !r.visited || r.pages?.some(p => p.set && !p.gone) ? '#e8d8b0' : '#6a6050';
+      mg.beginPath(); mg.moveTo(cx, cy - 3); mg.lineTo(cx - 8, cy - 6); mg.lineTo(cx - 8, cy + 4); mg.lineTo(cx, cy + 7); mg.lineTo(cx + 8, cy + 4); mg.lineTo(cx + 8, cy - 6); mg.fill();
+      mg.strokeStyle = '#3a2a1c'; mg.lineWidth = 1.5; mg.beginPath(); mg.moveTo(cx, cy - 3); mg.lineTo(cx, cy + 7); mg.stroke();
+    }
     if (r.type === 'treasure') {
       mg.fillStyle = r.spots.some(s => !s.taken) ? '#e8b04a' : '#6a5a3a';
       mg.beginPath(); mg.moveTo(cx, cy - 8); mg.lineTo(cx + 7, cy); mg.lineTo(cx, cy + 8); mg.lineTo(cx - 7, cy); mg.fill();
@@ -234,6 +244,9 @@ export function banner(t: string, s = '', dur = 2.6) {
   el.banner.querySelector('.t')!.textContent = t; el.banner.querySelector('.s')!.textContent = s;
   el.banner.classList.add('on'); bannerT = dur;
 }
+/** A question that stays up until answered or walked away from (a grimoire page asking which spell to give up). */
+export function showPrompt(html: string) { el.prompt.innerHTML = html; el.prompt.classList.add('on'); }
+export function hidePrompt() { el.prompt.classList.remove('on'); }
 export function toast(msg: string, dur = 3) { el.toast.textContent = msg; el.toast.classList.add('on'); toastT = dur; }
 export function updateHud(dt: number) {
   updateMagicHud();

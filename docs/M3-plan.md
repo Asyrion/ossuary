@@ -68,11 +68,11 @@ mage's hand; the pages of spells given up stay behind as ash-edged leaves that c
       which reaction two statuses make, unit-tested without three.js; tuning in `data/magic.json`
 - [x] Spells and statuses use the existing pipelines: projectile spells through `projectiles.ts`, damage through
       `damageEnemy`, particles and decals through `fx.ts`, shared geometries and materials
-- [ ] Lore cards for spells and grimoire pages (the M2 lore card), and a spell icon for each
-- [ ] Dev menu: spells (give to slot 1 or 2), full mana, endless mana, statuses on the foes in the room, a
+- [x] Lore cards for spells and grimoire pages (the M2 lore card), and a spell icon for each
+- [x] Dev menu: spells (give to slot 1 or 2), full mana, endless mana, statuses on the foes in the room, a
       training dummy (a foe that stands still and never dies, showing its statuses), the library in the floor
       list; `?spells=cinder_lance,arc`, `__game.cast()`, `__game.mana()`
-- [ ] Placeholder sounds for everything added, per school palette
+- [x] Placeholder sounds for everything added, per school palette
 
 ## Step 1: Mana and spell slots
 
@@ -140,13 +140,28 @@ mage's hand; the pages of spells given up stay behind as ash-edged leaves that c
 
 ## Step 4: The library and grimoire pages
 
-- [ ] Generator: a library in a dead end on every floor (room counts +1, `data/floors.json`)
-- [ ] The library room: candle-lit lecterns with three pages of different schools; walking into a page learns it
-      (the others crumble to ash), asking for a slot when both are full; the replaced spell's page stays on its
-      lectern; pages of spells replaced on earlier floors on a shelf, for obols (price in `data/loot.json`)
-- [ ] Grimoire pages beside the boss's artifacts, and as a rare room-clear drop
-- [ ] Door style, minimap mark, the library's dry, close sound for its placeholder cues
-- [ ] Dev menu: the library in the floor list; browser tests: learn, replace, take back, rebuy
+- [x] Generator: a library in a one-cell dead end on every floor (`library` in `data/floors.json`; room counts
+      10 to 14 and 14 to 18 on floors 1 and 3, 13 to 17 on floor 2, which also carries the shrine, so that its
+      vault and altar still find dead ends; the walk now retries up to 400 times for them). Two templates,
+      `library_plain` and `library_urns`; unit tests: one library per floor, a one-cell dead end
+- [x] The library room (`src/magic/pages.ts`): bookshelves along the north wall (not across a door or an urn),
+      and on the first visit three candle-lit lecterns in a row on the far side from the door, each with a torn
+      page of a different school (`pickPages`, its own seeded stream `pages`) whispering motes in its spell's
+      colour. Walking into a page learns it into the empty slot and the other two burn to ash; with both slots
+      full the page asks which spell to give up (a prompt over the HUD: Q or LB, E or RB; stepping away keeps
+      both), and the given-up spell's page stays on that lectern, free to take back while in the library. The
+      spells given up in the run (`G.run.forgotten`) come back at later libraries: up to two scorched pages on
+      lecterns at the ends of the row, 7 obols each (`grimoire` in `data/loot.json`: lecterns, shelf, rebuy,
+      clearChance)
+- [x] Grimoire pages beside the boss's artifacts (north of the trapdoor), and as a rare room-clear drop (4%,
+      when no artifact rises), with a banner; a page lies loose and swaps like a lectern's
+- [x] Door style (dark wood, an open book glowing over the door), minimap mark (an open book, dimmed once the
+      choice is made), dry and close placeholder cues: the whisper on entering, a rustle when a page asks or
+      falls, ash crumbling
+- [x] Dev menu: the library in the floor list (and `?room=library_plain`), "Drop a grimoire page";
+      `__game.page()`, `__game.pages`, `__game.forgotten`, and `__game.cast(slot)` answers a page that asks, as the
+      key does. Browser test: learn and burn, ask and step away, rebuy from the shelf with obols (refused when
+      short), take back for free, the boss's page
 
 ## Step 5: Rooms that react to magic
 

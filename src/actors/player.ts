@@ -6,6 +6,7 @@ import { moveInput, pressed, shootDir } from '../input';
 import { spawnBolt } from '../combat/projectiles';
 import { placeGlyph } from '../combat/glyphs';
 import { castSpell } from '../magic/spells';
+import { answerPage, checkPages } from '../magic/pages';
 import { checkArtifactPickup } from '../items/artifacts';
 import { checkWares } from '../items/merchant';
 import { checkShrine } from '../world/shrine';
@@ -38,10 +39,11 @@ export function updatePlayer(dt: number) {
   player.fireCd -= dt;
   if (aim && player.fireCd <= 0) { spawnBolt(); player.fireCd = st.fireDelay; }
   if (pressed.glyph) { pressed.glyph = false; placeGlyph(); }
-  for (const i of [0, 1]) if (pressed.spells[i]) { pressed.spells[i] = false; castSpell(i, aim); }
+  // a spell key answers a grimoire page's question, if one is asking; otherwise it casts
+  for (const i of [0, 1]) if (pressed.spells[i]) { pressed.spells[i] = false; if (!answerPage(i)) castSpell(i, aim); }
   if (player.invuln > 0) player.invuln -= dt;
   // artifacts and the trapdoor down
-  checkArtifactPickup(); checkWares(); checkVaultDoors(); checkShrine();
+  checkArtifactPickup(); checkWares(); checkPages(); checkVaultDoors(); checkShrine();
   const trapdoor = G.trapdoor;
   if (trapdoor && Math.hypot(player.x - trapdoor.x, player.z - trapdoor.z) < .55) descend();
 }

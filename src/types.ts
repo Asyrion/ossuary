@@ -8,8 +8,8 @@ import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
 import type { Drop, Item, Ware } from './items/loot';
 
 export type Side = 'n' | 's' | 'e' | 'w';
-export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine';
-export type DoorStyle = 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine';
+export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine' | 'library';
+export type DoorStyle = 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine' | 'library';
 export interface Vec2 { x: number; z: number }
 /** Axis-aligned box on the floor plane: centre and half extents. */
 export interface Box { x: number; z: number; hx: number; hz: number }
@@ -92,6 +92,17 @@ export interface Room {
   /** The mage was hurt during this room's fight (Unbroken Oath). */ hurt?: boolean;
   /** A shrine: its circle's material, the motes around it and the offering stones. */
   shrine?: { mat: THREE.MeshBasicMaterial; motes: THREE.Sprite[]; stones: OfferingStone[] };
+  /** Grimoire pages: a library's lecterns and shelf (laid out on the first visit), a boss's page, a dropped one. */
+  pages?: Page[];
+}
+
+/** A grimoire page (magic/pages.ts): on a library's lectern, on its shelf for obols, or lying loose. */
+export interface Page {
+  spell: string; x: number; z: number; kind: 'lectern' | 'shelf' | 'loose';
+  /** Obols it costs (a shelf page); 0 once it's free. */ price: number;
+  /** Its stand, the leaf hovering over it (with its glow) and the price floating above. */ g: THREE.Group; hover?: THREE.Group; tag?: THREE.Object3D;
+  /** Whether the mage has stepped away since it last asked or refused. */ armed: boolean; gone: boolean;
+  /** The library's choice it belongs to: taking one burns the others. */ set?: Page[];
 }
 
 export interface Enemy extends Circle {

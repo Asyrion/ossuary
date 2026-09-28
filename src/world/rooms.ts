@@ -18,6 +18,7 @@ import { TEMPLATES, parseTemplate, tombRuns } from './templates';
 import { rollTable } from '../items/loot';
 import { spawnPickup } from '../items/pickups';
 import { buildShop } from '../items/merchant';
+import { furnishLibrary } from '../magic/pages';
 import { fillVault } from './vault';
 import { buildCrackedWall, fillSecret, secretLook } from './secret';
 import { buildShrine, shrineLook } from './shrine';
@@ -66,6 +67,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   if (plan.type === 'vault') fillVault(room);
   if (plan.type === 'secret') fillSecret(room);
   if (plan.type === 'shrine') buildShrine(room);
+  if (plan.type === 'library') furnishLibrary(room);
   G.rooms.push(room);
   for (const c of plan.cells) G.roomMap.set(c.gx + ',' + c.gy, room);
   return room;
@@ -318,7 +320,7 @@ export function buildWallsAndDoors(room: Room) {
     const x = pd.gx * PX + dx * hx, z = pd.gy * PZ + dz * hz; // middle of the doorway on the room's inside edge
     const either = (t: string) => room.type === t || nb.type === t;
     const style: DoorStyle = either('secret') ? 'secret' : either('boss') ? 'boss' : either('ordeal') ? 'ordeal' : either('altar') ? 'altar' : either('treasure') ? 'treasure'
-      : either('vault') ? 'vault' : either('merchant') ? 'merchant' : either('shrine') ? 'shrine' : 'normal';
+      : either('vault') ? 'vault' : either('merchant') ? 'merchant' : either('shrine') ? 'shrine' : either('library') ? 'library' : 'normal';
     room.doors.push(buildDoor(room, pd.side, nb, style, x, z));
   }
   const runs = outline(room.mask, room.w, room.h);
@@ -422,7 +424,8 @@ function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number
   if (ns) th.scale.set(DH * 2, WT, 1); else th.scale.set(WT, DH * 2, 1);
   room.group.add(th);
   // above the door, on this room's side: the boss's glowing eye, the ordeal's skull, the altar's crossed bones,
-  // the merchant's lantern, the shrine's halo (a locked vault's ward and padlock are added by vault.ts)
+  // the merchant's lantern, the shrine's halo, the library's open book (a locked vault's ward and padlock are added
+  // by vault.ts)
   const ep = at(0, side === 'n' || side === 'w' ? .55 : -.55);
   if (style === 'boss') {
     const eye = glow(0xff3a1a, .7, .9); eye.position.set(ep.x, h + .05, ep.z); room.group.add(eye);
@@ -452,6 +455,14 @@ function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number
     halo.position.set(ep.x, h + .14, ep.z); halo.rotation.y = ns ? 0 : Math.PI / 2;
     const light = glow(0xffe8b0, .9, .8); light.position.copy(halo.position);
     room.group.add(halo, light);
+  } else if (style === 'library') {
+    const book = new THREE.Group(); book.position.set(ep.x, h + .1, ep.z); book.rotation.y = ns ? 0 : Math.PI / 2;
+    for (const s of [-1, 1]) { // two leaves of an open book, and its spine
+      const leaf = new THREE.Mesh(new THREE.BoxGeometry(.2, .02, .26), basicMat(0xe8d8b0)); leaf.position.x = s * .1; leaf.rotation.z = s * .35; book.add(leaf);
+    }
+    const spine = new THREE.Mesh(new THREE.BoxGeometry(.05, .05, .28), M.frame.library); spine.position.y = -.04; book.add(spine);
+    const light = glow(0xffe0a0, .8, .7); light.position.y = .05; book.add(light);
+    room.group.add(book);
   }
   // bars (sink into the floor when open)
   const bars = new THREE.Group(); const barH = side === 's' ? H_LOW + .1 : h - .25;

@@ -4,7 +4,7 @@
    cells around it. A new room may only touch the room it grew from, which keeps the map a tree full of
    dead ends. Some new rooms take a larger shape (shapes.ts) when the cells it needs are free.
    Special rooms take one-cell dead ends: the farthest from the start is the boss (sometimes widened into
-   a great hall), then the treasure room, the ordeal, the merchant and, on floors that have one, the shrine;
+   a great hall), then the treasure room, the ordeal, the merchant, the library and, on floors that have one, the shrine;
    a bone altar and a locked vault each
    take a spare dead end when the floor's chance for them rolls (the walk tries again for a while until it
    leaves enough dead ends). The optional artifact sources (merchant,
@@ -36,6 +36,7 @@ export interface FloorConfig {
   /** Chance the floor has a bone altar. */ altarChance: number;
   /** Chance the floor has a locked vault. */ vaultChance: number;
   /** Whether the floor has a shrine, where curses are cleansed (GDD: 1 on floor 2). */ shrine: boolean;
+  /** Whether the floor has a library, where grimoire pages teach spells (GDD: one on every floor). */ library: boolean;
   /** Chance the secret room holds an artifact (outside the budget) rather than a hoard. */ secretArtifactChance: number;
   /** The champion that rises in a vault forced open with glyphs. */ vaultWarden: EnemyType;
   /** Chance the boss room is widened into a great hall when there is space. */ bossHallChance: number;
@@ -69,7 +70,7 @@ export interface FloorPlan { index: number; rooms: PlannedRoom[]; startId: numbe
 const key = (gx: number, gy: number) => gx + ',' + gy;
 const SIDES: Side[] = ['n', 'e', 's', 'w'];
 /** Special rooms and the shapes they may take. */
-const SHAPES_FOR: Partial<Record<RoomType, ShapeId[]>> = { start: ['standard'], treasure: ['standard'], altar: ['standard'], ordeal: ['standard'], merchant: ['standard'], vault: ['standard'], secret: ['standard'], shrine: ['standard'], boss: ['standard', 'great'] };
+const SHAPES_FOR: Partial<Record<RoomType, ShapeId[]>> = { start: ['standard'], treasure: ['standard'], altar: ['standard'], ordeal: ['standard'], merchant: ['standard'], vault: ['standard'], secret: ['standard'], shrine: ['standard'], library: ['standard'], boss: ['standard', 'great'] };
 /** Rooms a secret room never opens into: the boss (no way round the fight), the vault (no way round its ward)
     and the merchant (whose warded shop won't let a glyph be chalked). */
 export const SECRET_SHUNS: RoomType[] = ['boss', 'vault', 'merchant'];
@@ -184,9 +185,9 @@ export function generateFloor(rng: Rng, cfg: FloorConfig, index: number, library
     const boss = bossOk[0];
     if (boss === undefined || dist[boss] < 2) continue;
     const others = rng.shuffle(oneCell.filter(i => i !== boss));
-    // treasure, ordeal, merchant (and the floor's shrine) each need one; the wanted optional rooms too, for
-    // the first attempts
-    const needed: RoomType[] = ['treasure', 'ordeal', 'merchant', ...(cfg.shrine ? ['shrine' as const] : [])];
+    // treasure, ordeal, merchant (and the floor's library and shrine) each need one; the wanted optional rooms
+    // too, for the first attempts
+    const needed: RoomType[] = ['treasure', 'ordeal', 'merchant', ...(cfg.library ? ['library' as const] : []), ...(cfg.shrine ? ['shrine' as const] : [])];
     if (others.length < needed.length || (attempts <= CFG.generator.optionalTries && others.length < needed.length + wanted.length)) continue;
     const type = new Map<number, RoomType>([[0, 'start'], [boss, 'boss'], ...needed.map((t, i) => [others[i], t] as [number, RoomType])]);
     wanted.forEach((t, i) => { if (needed.length + i < others.length) type.set(others[needed.length + i], t); });
@@ -298,10 +299,10 @@ export function pickBoss(rng: Rng, pool: readonly BossType[], met: readonly Boss
 }
 
 /** The floor as text, one character per cell: S start, B boss, T treasure, O ordeal, A altar, M merchant,
-    V vault, ? secret, * shrine, # one-cell room, + larger hall, - and | corridors, @ the current room. */
+    V vault, ? secret, * shrine, L library, # one-cell room, + larger hall, - and | corridors, @ the current room. */
 export function planToText(plan: FloorPlan, currentId = -1) {
   const grid = Array.from({ length: GRID_H }, () => Array(GRID_W).fill(' '));
-  const mark: Record<string, string> = { start: 'S', boss: 'B', treasure: 'T', ordeal: 'O', altar: 'A', merchant: 'M', vault: 'V', secret: '?', shrine: '*' };
+  const mark: Record<string, string> = { start: 'S', boss: 'B', treasure: 'T', ordeal: 'O', altar: 'A', merchant: 'M', vault: 'V', secret: '?', shrine: '*', library: 'L' };
   const shapeMark = (s: ShapeId) => s === 'standard' ? '#' : s === 'corridor_ew' ? '-' : s === 'corridor_ns' ? '|' : '+';
   for (const r of plan.rooms) for (const c of r.cells) grid[c.gy][c.gx] = r.id === currentId ? '@' : mark[r.type] ?? shapeMark(r.shape);
   return grid.map(row => row.join('')).join('\n');

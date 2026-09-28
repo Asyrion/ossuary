@@ -42,6 +42,8 @@ export interface LootData extends Record<TableName, LootTable> {
   /** A secret room without an artifact: coffers and reliquary chests beside its hoard (`secretHoard`). */
   secretRoom: { coffers: number; chests: number };
   /** Obols the shrine asks to cleanse a curse, paid once the curse is put down. */ shrine: { price: number };
+  /** Grimoire pages: how many a library's lecterns offer, how many given-up spells its shelf sells back and for how
+      many obols, and the chance a cleared room leaves one. */ grimoire: { lecterns: number; shelf: number; rebuy: number; clearChance: number };
   merchant: MerchantData;
 }
 export const LOOT = lootData as LootData;
@@ -109,6 +111,14 @@ export function validateLoot(loot: LootData = LOOT): string[] {
   }
   for (const [name, p] of [['room clear chance', loot.roomClear.chance], ['enemy coin chance', loot.enemyCoin], ['gilded chest chance', loot.gildedChest]] as const) if (!(p >= 0 && p <= 1)) errs.push(`${name} must be between 0 and 1`);
   if (!(Number.isInteger(loot.shrine?.price) && loot.shrine.price > 0)) errs.push("the shrine's price must be a whole number above 0");
+  const gr = loot.grimoire;
+  if (!gr) errs.push('the grimoire is missing');
+  else {
+    if (!(Number.isInteger(gr.lecterns) && gr.lecterns >= 1 && gr.lecterns <= 3)) errs.push('a library has 1 to 3 lecterns');
+    if (!(Number.isInteger(gr.shelf) && gr.shelf >= 0 && gr.shelf <= 2)) errs.push("a library's shelf holds 0 to 2 pages");
+    if (!(Number.isInteger(gr.rebuy) && gr.rebuy > 0)) errs.push('a page on the shelf must cost a whole number of obols above 0');
+    if (!(gr.clearChance >= 0 && gr.clearChance <= 1)) errs.push("a room's page chance must be between 0 and 1");
+  }
   const m = loot.merchant;
   if (!m) errs.push('the merchant is missing');
   else {

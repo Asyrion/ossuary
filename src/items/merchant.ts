@@ -56,7 +56,7 @@ const priceNow = (w: WareSpot) => w.price && player.stats.effects.has('pedlar') 
 /** A floating price: an obol and the number, pale green when the Pedlar's Scale has lowered it. One texture per
     price, kept for the whole session. */
 const tagTex = new Map<string, THREE.CanvasTexture>();
-function coinTag(price: number, lowered = false) {
+export function coinTag(price: number, lowered = false) {
   const key = price + (lowered ? 'l' : '');
   let tex = tagTex.get(key);
   if (!tex) {

@@ -133,9 +133,9 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
   });
   expect(floor1.seed).toBe('SMOKE1');
   expect(floor1.floor).toBe(0);
-  expect(floor1.rooms).toBeGreaterThanOrEqual(9); // M2's counts (data/floors.json), the secret room on top
-  expect(floor1.rooms).toBeLessThanOrEqual(13);
-  for (const t of ['start', 'boss', 'treasure', 'ordeal', 'merchant', 'secret']) expect(floor1.types.filter(x => x === t)).toHaveLength(1);
+  expect(floor1.rooms).toBeGreaterThanOrEqual(10); // M3's counts (data/floors.json), the secret room on top
+  expect(floor1.rooms).toBeLessThanOrEqual(14);
+  for (const t of ['start', 'boss', 'treasure', 'ordeal', 'merchant', 'library', 'secret']) expect(floor1.types.filter(x => x === t)).toHaveLength(1);
 
   const boss = await page.evaluate(() => {
     const w = window as unknown as W, g = w.__game;
@@ -155,8 +155,8 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
   });
   await page.screenshot({ path: 'test-results/smoke-floor2.png' });
   expect(floor2).toMatchObject({ state: 'play', floor: 1, current: 'start', shrines: 1 }); // the shrine is on floor 2
-  expect(floor2.rooms).toBeGreaterThanOrEqual(11);
-  expect(floor2.rooms).toBeLessThanOrEqual(15);
+  expect(floor2.rooms).toBeGreaterThanOrEqual(13);
+  expect(floor2.rooms).toBeLessThanOrEqual(17);
   expect(errors).toEqual([]);
 });
 
@@ -735,6 +735,69 @@ test('spells: the lance burns a line, the seal erupts and leaves fire, shards fr
   expect(errors).toEqual([]);
 });
 
+type PageView = { spell: string; kind: string; price: number; gone: boolean; x: number; z: number };
+type G12 = Omit<G11, 'player'> & {
+  player: G11['player'] & { coins: number };
+  page(id?: string, x?: number, z?: number): string | null; readonly pages: PageView[]; readonly forgotten: string[];
+};
+
+test('the library: a page learned burns the others, a full hand is asked, given-up pages stay and sell back, bosses leave one', async ({ page }) => {
+  const errors = await start(page, '?room=library_plain&seed=LIB1&spells=arc&loot=coins:10');
+  // one slot free: walking into a lectern's page learns it, and the other two burn to ash
+  const first = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G12, P = g.player;
+    g.forgotten.push('cinder_lance', 'pyre_seal'); // given up earlier in the run: one is on a lectern, the other on the shelf
+    g.warp(1); g.sim(.5);
+    const lecterns = g.pages.filter(p => p.kind === 'lectern'), pick = lecterns[0], shelf = g.pages.filter(p => p.kind === 'shelf');
+    P.x = pick.x; P.z = pick.z + .3; g.sim(.3);
+    return { offered: lecterns.map(p => p.spell), shelf: shelf.map(p => [p.spell, p.price]), spells: [...P.spells], gone: lecterns.filter(p => p.gone).length, asked: document.querySelector('#prompt')!.classList.contains('on') };
+  });
+  expect(new Set(first.offered).size).toBe(3);
+  expect(first.offered).not.toContain('arc');
+  expect(first.shelf).toHaveLength(1);
+  expect(first.offered).not.toContain(first.shelf[0][0]);
+  expect(first.shelf[0][1]).toBe(7);
+  expect(first.spells).toEqual(['arc', first.offered[0]]);
+  expect(first.gone).toBe(3);
+  expect(first.asked).toBe(false);
+  // the shelf: both slots full, so it asks; stepping away keeps both; answering pays, and the given-up spell's
+  // page stays on the shelf, free
+  const shelf = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G12, P = g.player, s = g.pages.find(p => p.kind === 'shelf')!;
+    P.x = s.x; P.z = s.z + .3; g.sim(.3); const asked = document.querySelector('#prompt')!.classList.contains('on');
+    P.z += 2; g.sim(.3); const kept = !document.querySelector('#prompt')!.classList.contains('on') && P.spells.includes('arc');
+    P.z = s.z + .3; g.sim(.3); const answered = g.cast(0); g.sim(.2);
+    return { asked, kept, answered, spells: [...P.spells], coins: P.coins, left: [s.spell, s.price, s.gone], forgotten: [...g.forgotten] };
+  });
+  expect(shelf).toMatchObject({ asked: true, kept: true, answered: true, coins: 3, left: ['arc', 0, false] });
+  expect(shelf.spells[0]).toBe(first.shelf[0][0]);
+  expect(shelf.forgotten).toContain('arc');
+  expect(shelf.forgotten).not.toContain(first.shelf[0][0]);
+  // take it back, for nothing: the page swaps again
+  const back = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G12, P = g.player, s = g.pages.find(p => p.kind === 'shelf')!;
+    P.z += 2; g.sim(.3); P.z = s.z + .3; g.sim(.3); g.cast(0); g.sim(.2);
+    return { spells: [...P.spells], coins: P.coins, left: s.spell };
+  });
+  expect(back.spells[0]).toBe('arc');
+  expect(back.coins).toBe(3);
+  expect(back.left).toBe(first.shelf[0][0]);
+  await page.evaluate(() => (window as unknown as W).__game.sim(.05, true));
+  await page.screenshot({ path: 'test-results/smoke-library.png' });
+  expect(errors).toEqual([]);
+  // a boss leaves a grimoire page beside its artifacts
+  const errors2 = await start(page, '?room=boss_open&seed=BP1&spells=arc');
+  const boss = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G12, P = g.player; g.warp(1); g.sim(1); g.clearRoom(); g.sim(1);
+    const pg = g.pages.find(p => p.kind === 'loose')!, id = pg.spell;
+    P.x = pg.x; P.z = pg.z + .3; g.sim(.3);
+    return { id, spells: [...P.spells], gone: pg.gone };
+  });
+  expect(boss.spells).toEqual(['arc', boss.id]);
+  expect(boss.gone).toBe(true);
+  expect(errors2).toEqual([]);
+});
+
 /* M2 step 6: the artifacts that bend the economy. */
 type G7 = Omit<G6, 'current'> & {
   give(...ids: string[]): void; drop(kind: string, x?: number, z?: number): void; pickups: { kind: string }[];
@@ -862,6 +925,10 @@ test('the dev menu opens on its key, pauses the game, and hands out what it list
   await page.keyboard.press('Escape'); // back to play, where mana flows
   const magic = await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as G9; g.mana(0); g.sim(.05); return { spells: g.player.spells, mana: g.player.mana }; });
   expect(magic).toEqual({ spells: [null, 'arc'], mana: 100 });
+  // a grimoire page dropped ahead of the mage; the floor's library is listed
+  await page.keyboard.press('F2'); await click('Drop a grimoire page');
+  expect(await page.evaluate(() => ((window as unknown as W).__game as unknown as G12).pages.filter(p => p.kind === 'loose' && p.spell !== 'arc').length)).toBe(1);
+  await click('Floor 1'); await page.keyboard.press('F2'); await expect(page.locator('#dev button', { hasText: /^Library/ })).toBeVisible();
   expect(errors).toEqual([]);
 });
 

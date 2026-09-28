@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { CFG } from '../../src/config';
-import { SHAPES, SPELL_DEFS, manaRegen, validateSpells } from '../../src/magic/spellData';
+import { SHAPES, SPELL_DEFS, manaRegen, pickPages, shelfPages, spell, validateSpells } from '../../src/magic/spellData';
+import { validateLoot } from '../../src/items/loot';
+import { Rng } from '../../src/rng';
 import { STR } from '../../src/strings';
 
 describe('spell data', () => {
@@ -46,4 +48,27 @@ describe('mana', () => {
     expect(manaRegen(.5, false, CFG.mana)).toBe(2);
     expect(CFG.hero.mana).toBe(100);
   });
+});
+
+describe('grimoire pages', () => {
+  it('offer spells the mage does not know, of different schools while they go round', () => {
+    for (let seed = 1; seed <= 50; seed++) {
+      const rng = new Rng(seed), known = ['arc', null];
+      const three = pickPages(rng, known, 3);
+      expect(three).toHaveLength(3);
+      expect(three).not.toContain('arc');
+      expect(new Set(three.map(id => spell(id).school)).size).toBe(3);
+      const five = pickPages(rng, known, 5, ['static_mantle']);
+      expect(five).toHaveLength(4); // six spells, one known, one skipped: Ember's two and Frost's two
+      expect(new Set(five.slice(0, 2).map(id => spell(id).school)).size).toBe(2); // one of each school first
+    }
+  });
+
+  it('put the spells given up earlier back on the shelf, latest first, unless known again or on a lectern', () => {
+    expect(shelfPages(['arc', 'rime_shards', 'cinder_lance', 'arc'], ['cinder_lance', null], ['pyre_seal'], 2)).toEqual(['arc', 'rime_shards']);
+    expect(shelfPages(['arc'], [null, null], ['arc'], 2)).toEqual([]);
+    expect(shelfPages([], [null, null], [], 2)).toEqual([]);
+  });
+
+  it('are priced and placed by data', () => expect(validateLoot()).toEqual([]));
 });
