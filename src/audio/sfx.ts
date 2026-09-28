@@ -103,6 +103,10 @@ export const Sfx = {
   thaw() { tone('sine', 988, 1318, .2, .02); hiss(.15, .03, 'highpass', 4000); },
   shatter() { hiss(.35, .14, 'highpass', 3500); [2637, 3136, 2093, 3520].forEach((f, i) => tone('triangle', f, f * .8, .18, .04, i * .03)); tone('sine', 196, 98, .3, .08); },
   overload() { hiss(.6, .16, 'lowpass', 700); tone('sine', 110, 40, .6, .18); tone('square', 1800, 300, .2, .04); hiss(.3, .08, 'highpass', 3000, .05); },
+  // water and oil
+  ignite() { hiss(.7, .16, 'lowpass', 1100); tone('sine', 80, 160, .5, .08); crackles(10, .7, .05); },
+  sizzle() { hiss(.35, .1, 'highpass', 4200); tone('square', 2400, 500, .15, .03); crackles(6, .3, .04); },
+  wade() { hiss(.09, .035, 'bandpass', 900); },
   // grimoire pages and the library: dry, close rustles and whispers
   pageWhisper() { hiss(1.1, .05, 'bandpass', 2400); hiss(.8, .035, 'bandpass', 3400, .3); tone('sine', 330, 300, .8, .02); },
   pageAsk() { hiss(.12, .06, 'bandpass', 3000); hiss(.1, .05, 'bandpass', 2200, .08); },

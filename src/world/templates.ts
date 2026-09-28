@@ -4,6 +4,7 @@
    Legend:  .  floor      #  rock      o  pit      x  outside the room (the L's missing corner)
             i  pillar     =  stone tomb (tiles side by side in a row, or else in a column, make one tomb)
             u  urn        $  rune-sealed urn (only a glyph's blast breaks it)
+            ~  water      %  oil (both walkable; tiles side by side make one pool, see world/pools.ts)
             R  rotling    W  wisp      H  crypt hound      B  the floor's boss
 
    Ordeal templates keep their terrain in `grid` (no enemies) and list each wave's enemies in `waves`,
@@ -17,7 +18,9 @@ import type { RoomType } from '../types';
 import { SHAPE_IDS, doorSlots, shapeMask, shapeSize, type ShapeId } from './shapes';
 
 export type { ShapeId } from './shapes';
-export type Tile = 'floor' | 'rock' | 'pit' | 'void' | 'pillar' | 'tomb' | 'urn' | 'sealedUrn';
+export type Tile = 'floor' | 'rock' | 'pit' | 'void' | 'pillar' | 'tomb' | 'urn' | 'sealedUrn' | 'water' | 'oil';
+/** Tiles the mage and foes can stand on. */
+export const WALKABLE: readonly Tile[] = ['floor', 'water', 'oil'];
 export type FoeKind = EnemyType | 'boss';
 
 export interface TemplateDef {
@@ -32,7 +35,7 @@ export interface Template {
   /** Every enemy of every wave. */ foes: Foe[];
 }
 
-const TILE_OF: Record<string, Tile> = { '.': 'floor', '#': 'rock', 'o': 'pit', 'x': 'void', 'i': 'pillar', '=': 'tomb', 'u': 'urn', '$': 'sealedUrn' };
+const TILE_OF: Record<string, Tile> = { '.': 'floor', '#': 'rock', 'o': 'pit', 'x': 'void', 'i': 'pillar', '=': 'tomb', 'u': 'urn', '$': 'sealedUrn', '~': 'water', '%': 'oil' };
 const FOE_OF: Record<string, FoeKind> = { R: 'rotling', W: 'wisp', H: 'hound', B: 'boss' };
 
 /** Parse a template, optionally mirrored left-right and/or top-bottom. */
@@ -82,8 +85,8 @@ export function validateTemplate(def: TemplateDef): string[] {
   let outline = 0;
   for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) if ((t.tiles[r][c] === 'void') === mask[r][c]) outline++;
   if (outline) errs.push(`${outline} tiles disagree with the ${def.shape} outline (use x exactly outside the room)`);
-  for (const f of t.foes) if (t.tiles[f.r][f.c] !== 'floor') errs.push(`${f.kind} at (${f.c},${f.r}) stands on ${t.tiles[f.r][f.c]}`);
-  const blocked = (c: number, r: number) => t.tiles[r]?.[c] !== 'floor';
+  for (const f of t.foes) if (!WALKABLE.includes(t.tiles[f.r][f.c])) errs.push(`${f.kind} at (${f.c},${f.r}) stands on ${t.tiles[f.r][f.c]}`);
+  const blocked = (c: number, r: number) => !WALKABLE.includes(t.tiles[r]?.[c]);
   const slots = doorSlots(def.shape), lanes = slots.flatMap(s => s.lanes), entries = slots.map(s => s.entry);
   for (const { c, r } of lanes) {
     if (blocked(c, r)) errs.push(`door lane tile (${c},${r}) is blocked`);
@@ -113,6 +116,42 @@ export function validateTemplate(def: TemplateDef): string[] {
   if (def.types.includes('normal') && !t.foes.length) errs.push('normal rooms need enemies');
   if (!def.types.some(ty => ty === 'normal' || ty === 'boss' || ty === 'ordeal') && t.foes.length) errs.push(`${def.types.join('/')} rooms can't have enemies`);
   return errs;
+}
+
+/** Pools in a parsed template: water or oil tiles joined side by side (not corner to corner) into one pool. */
+export function poolsOf(t: Pick<Template, 'tiles' | 'w' | 'h'>) {
+  const pools: { kind: 'water' | 'oil'; tiles: { c: number; r: number }[] }[] = [], seen = new Set<string>();
+  for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) {
+    const kind = t.tiles[r][c];
+    if ((kind !== 'water' && kind !== 'oil') || seen.has(c + ',' + r)) continue;
+    const tiles: { c: number; r: number }[] = [], queue = [{ c, r }]; seen.add(c + ',' + r);
+    while (queue.length) {
+      const p = queue.pop()!; tiles.push(p);
+      for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nc = p.c + dc, nr = p.r + dr, k = nc + ',' + nr;
+        if (t.tiles[nr]?.[nc] === kind && !seen.has(k)) { seen.add(k); queue.push({ c: nc, r: nr }); }
+      }
+    }
+    pools.push({ kind, tiles });
+  }
+  return pools;
+}
+
+/** Grow `count` puddles of water, each `size` tiles (least, most), over a template's plain floor, from spots `rnd`
+    picks (the drowned floor's standing water made real). Changes `t.tiles`. */
+export function growPuddles(t: Pick<Template, 'tiles' | 'w' | 'h'>, rnd: () => number, count: number, size: [number, number]) {
+  for (let p = 0; p < count; p++) {
+    let at: { c: number; r: number } | null = null;
+    for (let i = 0; i < 30 && !at; i++) { const c = Math.floor(rnd() * t.w), r = Math.floor(rnd() * t.h); if (t.tiles[r][c] === 'floor') at = { c, r }; }
+    if (!at) continue;
+    const want = size[0] + Math.floor(rnd() * (size[1] - size[0] + 1)), grown = [at];
+    t.tiles[at.r][at.c] = 'water';
+    for (let i = 0; i < 40 && grown.length < want; i++) {
+      const from = grown[Math.floor(rnd() * grown.length)], [dc, dr] = [[1, 0], [-1, 0], [0, 1], [0, -1]][Math.floor(rnd() * 4)];
+      const c = from.c + dc, r = from.r + dr;
+      if (t.tiles[r]?.[c] === 'floor') { t.tiles[r][c] = 'water'; grown.push({ c, r }); }
+    }
+  }
 }
 
 /** Tombs in a parsed template: runs of tomb tiles side by side in a row (two or more), then what is left

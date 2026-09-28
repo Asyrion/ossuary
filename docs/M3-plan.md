@@ -165,11 +165,25 @@ mage's hand; the pages of spells given up stay behind as ash-edged leaves that c
 
 ## Step 5: Rooms that react to magic
 
-- [ ] Water and oil tiles in the template legend (`~` water, `%` oil) and in some templates; the drowned floor's
-      puddles become water there
-- [ ] Oil: Burn sets it alight (burning ground for a few seconds, hurting foes and the mage alike)
-- [ ] Water: Shock spreads to everything standing in it; Frost freezes it into ice for a while
-- [ ] Templates validated for the new tiles; browser test for both
+- [x] Water and oil tiles in the template legend (`~` water, `%` oil; both walkable), joined side by side into
+      pools (`poolsOf`), in five new fight templates (`oil_cellar`, `flooded_crypt`, `drowned_pools`, `oil_hall`,
+      `oil_and_water`, difficulties 1 to 3); on the drowned floor every fight grows one or two puddles of 2 to 4
+      tiles over its floor (`growPuddles`, seeded by the room). Each pool is one flat mesh with a soft, rounded
+      outline and a tiling surface of swirls and ripples (`src/world/pools.ts`)
+- [x] Oil: Burn on a foe standing in it, a burning foe walking into it, Cinder Lance along it, Pyre Seal's ring and
+      burning ground, and a glyph's blast set the whole pool alight for 5 s: patchy fire and rising flames; walking
+      foes in it burn, the mage standing in it loses half a heart (then the usual second of grace); then the oil
+      is spent, soot in its place
+- [x] Water: shallow, so the mage and walking foes wade through it at 60% speed (splashing). Shock on anything
+      standing in it runs through the whole pool: every other foe in it is struck for 2 and shocked, the mage in
+      it loses half a heart, and the pool crackles for half a second before it can carry another. Frost (Chill
+      on a foe in it, Rime Shards flying over it, Glacial Wall rising in it) freezes the pool for 8 s: crossed at
+      full speed, conducting nothing; fire melts it. Flyers are above all of it. Tuning in `CFG.surface`
+- [x] Templates validated for the new tiles (walkable for door lanes, foes and reachability); unit tests for
+      pools and puddles; dev menu: set the room's oil alight, freeze or shock its water (`__game.pool()`,
+      `__game.pools`); browser test: the lance lights one pool of oil, which burns a rotling and the mage and is
+      spent; wading is slower; a shock reaches both foes in the water and the mage, not the one on dry floor; Arc
+      carries; Rime Shards freeze the pool, crossed at full speed
 
 ## Step 6: M3 artifacts, positional sound and balance
 

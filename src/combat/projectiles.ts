@@ -25,6 +25,7 @@ import { burst } from './fx';
 import { GILT_COLOR, type BoltPath } from '../items/artifactData';
 import type { StatusKind } from '../magic/spellData';
 import { inflict } from '../magic/statusFx';
+import { frostAt } from '../world/pools';
 
 interface BoltSpec {
   x: number; z: number; vx: number; vz: number; damage: number; range: number; scale: number; color: number; path: BoltPath; pierce: number; bounces: number; secondary: boolean; crit?: boolean;
@@ -206,6 +207,7 @@ export function updateBolts(dt: number) {
       const gl = glyphNear(b.x, b.z);
       if (gl) { detonateGlyph(gl); if (b.path !== 'boomerang') kill = true; }
     }
+    if (b.status?.chill) frostAt(b.x, b.z); // a frost bolt freezes the water it flies over
     b.mesh.position.set(b.x, b.y, b.z); b.mesh.children[2].position.y = -b.y + .015;
     if (kill) removeBolt(i);
   }

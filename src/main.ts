@@ -36,6 +36,7 @@ import { makeEnemy } from './actors/enemies';
 import { castSpell, learnSpell } from './magic/spells';
 import { mantleLeft } from './magic/shapes';
 import { answerPage, dropPage } from './magic/pages';
+import { poolsDo } from './world/pools';
 import { spawnShot } from './combat/projectiles';
 import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
@@ -141,6 +142,10 @@ function installDevHooks() {
         in the room; the spells given up this run. */
     page(id?: string, x = player.x, z = player.z - 1.5) { return dropPage(G.current, x, z, id)?.spell ?? null; },
     get pages() { return G.current.pages ?? []; }, get forgotten() { return G.run.forgotten; },
+    /** The water and oil in the room: kind, state, its tiles' centres. */
+    get pools() { return (G.current.pools ?? []).map(p => ({ kind: p.kind, state: p.state, t: p.t, tiles: p.tiles.map(t => ({ x: t.x, z: t.z })) })); },
+    /** Set the room's oil alight, freeze its water, or shock it (as the dev menu does). */
+    pool: (what: 'fire' | 'frost' | 'shock') => poolsDo(what),
     /** Cleanse the oldest curse held at once (no fight, no obols); the shrine's rite under way, if any. */
     cleanse: () => cleanseAtOnce(), get rite() { return riteState(); },
     get pickups() { return G.pickups; }, get glyphs() { return G.glyphs; }, get shots() { return G.shots; },

@@ -13,6 +13,7 @@ import { updatePickups, updateTrapdoor } from './items/pickups';
 import { updateArtifacts } from './items/artifacts';
 import { updateShop } from './items/merchant';
 import { updatePages } from './magic/pages';
+import { updatePools } from './world/pools';
 import { updateVaultSeals } from './world/vault';
 import { updateSecretWalls } from './world/secret';
 import { updateShrine } from './world/shrine';
@@ -61,7 +62,7 @@ function updateWorldFx(dt: number, now: number) {
   updateRoomFx(dt, now); updateArtifacts(now); updateTrapdoor(dt); updateShop(now); updatePages(dt, now); updateVaultSeals(dt, now); updateSecretWalls(dt, now);
   updateFamiliars(dt, now, G.state === 'play' && !G.trans);
   updateShrine(dt, now, G.state === 'play' && !G.trans);
-  updateMagic(dt, G.state === 'play' && !G.trans); updateStatusFx(dt);
+  updateMagic(dt, G.state === 'play' && !G.trans); updateStatusFx(dt); updatePools(dt, now, G.state === 'play' && !G.trans);
   const tf = .92 + Math.sin(now * 13) * .05 + Math.sin(now * 23) * .04;
   updateTorchLights(G.current.torches, player.x, player.z, dt, tf);
   G.shake = Math.max(0, G.shake - dt * 1.4);

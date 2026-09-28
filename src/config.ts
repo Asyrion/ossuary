@@ -34,6 +34,10 @@ export const CFG = {
   // the merchant's shop (room-relative z of the shade and the row of wares, the gap between wares), how
   // close the mage must come to buy, and how far a bolt flies in the warded shop before it fizzles
   merchant: { shadeAt: -1.9, waresAt: .9, spacing: 2.3, reach: .45, boltFizzle: .6 },
+  // water and oil (world/pools.ts): wading speed (the mage and walking foes), seconds oil burns and water stays
+  // frozen, the burn burning oil sets on foes and how often, the half hearts it and a shocked pool take from the
+  // mage, how long a shocked pool crackles, and the drowned floor's puddles (how many per fight, tiles each)
+  surface: { wade: .6, oilBurn: 5, iceTime: 8, groundBurn: 2, tick: .25, mageHurt: 1, charged: .5, shockSpread: 1.5, shockDamage: 2, puddles: [1, 2] as [number, number], puddleSize: [2, 4] as [number, number] },
   // the library: how close the mage must come to a page, the gap between lecterns, and how far into the room
   // (from the door) their row stands, for a door on a long side and on a short one
   library: { reach: .4, spacing: 2.3, spacingShort: 1.9, rowIn: 1.1, rowInShort: 2.6 },

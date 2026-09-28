@@ -15,6 +15,7 @@ import { damageEnemy } from '../combat/damage';
 import { fireSpellBolt, strikeSolid } from '../combat/projectiles';
 import { detonateGlyph } from '../combat/glyphs';
 import { blockers, boxAt, pointInBoxes } from '../world/collision';
+import { fireAt, frostAt } from '../world/pools';
 import { canAct } from './status';
 import type { Shape, SpellDef } from './spellData';
 import { flash, inflict } from './statusFx';
@@ -107,6 +108,7 @@ const beam: Cast = (def, dir) => {
     burst(e.x, foeY(e), e.z, color, 8, 2.4, .05);
   }
   igniteGlyphs((x, z) => { const t = along(x, z); return t > 0 && t < len && side(x, z) < CFG.glyph.boltReach; }, true);
+  for (let t = 0; t < len; t += .3) fireAt(sx + dir.x * t, sz + dir.z * t); // and oil along it
   beamFx(sx, sz, dir, len, color);
   for (let t = .4; t < len; t += .6) burst(sx + dir.x * t, .6, sz + dir.z * t, t % 1.2 < .6 ? FIRE : EMBER, 2, 1.4, .045);
   Sfx.lance();
@@ -214,6 +216,7 @@ function updateSeals(dt: number) {
     if (s.tick <= 0) {
       s.tick = .25;
       for (const e of G.enemies) if (alive(e) && !e.flying && Math.hypot(e.x - s.x, e.z - s.z) < P.radius + e.r * .5) inflict(e, { burn: P.groundBurn });
+      fireAt(s.x, s.z, P.radius - .6);
       if (Math.random() < .4) Sfx.crackle();
     }
   }
@@ -230,6 +233,7 @@ function erupt(s: (typeof seals)[number]) {
     if (!e.isBoss) { e.kx += u.x * P.knockback; e.kz += u.z * P.knockback; }
   }
   igniteGlyphs((x, z) => Math.hypot(x - s.x, z - s.z) < P.radius, false);
+  fireAt(s.x, s.z, P.radius - .4);
   for (let i = 0; i < 20; i++) { // a ring of flame, and a burst in the middle
     const a = i / 20 * Math.PI * 2, x = s.x + Math.cos(a) * P.radius, z = s.z + Math.sin(a) * P.radius;
     flame(x, z, i % 2 ? FIRE : EMBER, .7); if (i % 2) burst(x, .2, z, FIRE, 2, 2.2, .06);
@@ -304,7 +308,7 @@ const wall: Cast = (def, dir) => {
       m.userData.h = h; m.scale.set(1, .02, 1); g.add(m); crystals.push(m);
     }
     boxes.push({ x: p.x, z: p.z, hx: ICE_HALF, hz: ICE_HALF });
-    burst(p.x, .3, p.z, ICE, 3, 1.8, .045);
+    burst(p.x, .3, p.z, ICE, 3, 1.8, .045); frostAt(p.x, p.z, .25); // water it stands in freezes
   }
   scene.add(g);
   room.barriers = [...(room.barriers ?? []), ...boxes];

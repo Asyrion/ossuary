@@ -138,7 +138,10 @@ export function pitTexture() {
 
 const floorCache = new Map<string, THREE.CanvasTexture>();
 /** Floor textures are cached per room seed; call between floors to free them. */
-export function clearFloorTextures() { for (const t of floorCache.values()) t.dispose(); floorCache.clear(); }
+export function clearFloorTextures() { for (const t of floorCache.values()) t.dispose(); floorCache.clear(); for (const t of floorOwned) t.dispose(); floorOwned.length = 0; }
+const floorOwned: THREE.Texture[] = [];
+/** A texture that belongs to this floor (a pool's outline): freed with the floor textures. */
+export function floorOwnedTexture<T extends THREE.Texture>(t: T) { floorOwned.push(t); return t; }
 /** Room floor for a floor's look, drawn over the room's inside `mask` (rows of tiles); boss rooms lean red,
     treasure rooms warmer. Large rooms use fewer pixels per tile to keep textures small. */
 export function floorTexture(seed: number, kind: RoomType, look: FloorLook, mask: boolean[][]) {

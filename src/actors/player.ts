@@ -10,6 +10,7 @@ import { answerPage, checkPages } from '../magic/pages';
 import { checkArtifactPickup } from '../items/artifacts';
 import { checkWares } from '../items/merchant';
 import { checkShrine } from '../world/shrine';
+import { wadeAt } from '../world/pools';
 import { checkVaultDoors } from '../world/vault';
 import { descend, tryTransition } from '../flow';
 import { clamp, lerp } from '../util';
@@ -27,8 +28,8 @@ export function updatePlayer(dt: number) {
     }
   }
   const k = 1 - Math.exp(-14 * dt);
-  const st = player.stats;
-  player.vx = lerp(player.vx, mv.x * st.speed, k); player.vz = lerp(player.vz, mv.z * st.speed, k);
+  const st = player.stats, speed = st.speed * wadeAt(player.x, player.z); // slower wading through water
+  player.vx = lerp(player.vx, mv.x * speed, k); player.vz = lerp(player.vz, mv.z * speed, k);
   player.x += player.vx * dt; player.z += player.vz * dt;
   collide(player, blockers(cur, 'player', st.effects.has('pitWalker')));
   if (tryTransition()) return;

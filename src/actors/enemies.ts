@@ -16,6 +16,7 @@ import { afterBossMove, buildBoss, updateBoss } from './bosses';
 import { canAct, speedFactor } from '../magic/status';
 import { statusTint } from '../magic/statusFx';
 import { mantleShields } from '../magic/shapes';
+import { wadeAt } from '../world/pools';
 
 export function stdMat(color: number, extra: THREE.MeshStandardMaterialParameters = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: .85, flatShading: true, ...extra });
@@ -130,6 +131,7 @@ export function updateEnemies(dt: number) {
       }
     } else if (e.isBoss) faceTo = updateBoss(e, dt, ux, uz) ?? faceTo;
     e.vx *= slow; e.vz *= slow;
+    if (!e.flying) { const w = wadeAt(e.x, e.z); e.vx *= w; e.vz *= w; } // walkers wade through water
     // integrate + knockback
     e.kx *= Math.exp(-8 * dt); e.kz *= Math.exp(-8 * dt);
     e.x += (e.vx + e.kx) * dt; e.z += (e.vz + e.kz) * dt;
