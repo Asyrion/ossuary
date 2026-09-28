@@ -52,6 +52,22 @@ export function glyphTexture() {
   return glyphTex = canvasTex(c);
 }
 /** A glyph stone to pick up: a dark slate with the rune glowing amber. */
+/** A hairline crack across a stretch of wall: white lines on clear, tinted by the material (dark for the
+    crack, pale blue for the glow once the cantrip has divined it). */
+let crackTex: THREE.CanvasTexture | null = null;
+export function crackTexture() {
+  if (crackTex) return crackTex;
+  const [c, g] = makeCanvas(256, 256), R = mulberry(7);
+  g.strokeStyle = '#fff'; g.lineCap = 'round'; g.lineJoin = 'round';
+  const branch = (x: number, y: number, a: number, len: number, w: number, depth: number) => {
+    g.lineWidth = w; g.beginPath(); g.moveTo(x, y);
+    for (let i = 0; i < len; i++) { a += (R() - .5) * .9; x += Math.cos(a) * 14; y += Math.sin(a) * 14; g.lineTo(x, y); if (depth && R() < .25) { g.stroke(); branch(x, y, a + (R() < .5 ? .8 : -.8), len / 2, w * .6, depth - 1); g.beginPath(); g.moveTo(x, y); } }
+    g.stroke();
+  };
+  branch(128, 20, Math.PI / 2, 16, 4, 2); branch(128, 128, .3, 7, 2.5, 1); branch(128, 128, Math.PI - .3, 7, 2.5, 1);
+  return crackTex = canvasTex(c);
+}
+
 export function glyphStoneTexture() {
   if (glyphStoneTex) return glyphStoneTex;
   const [c, g] = makeCanvas(128, 128); g.translate(64, 64);
@@ -113,7 +129,7 @@ export function floorTexture(seed: number, kind: RoomType, look: FloorLook, mask
   const inside = (col: number, r: number) => !!mask[r]?.[col];
   const area = mask.flat().filter(Boolean).length / (13 * 7), n = (count: number) => Math.round(count * area);
   const [b0, b1, b2] = look.floor.base;
-  const base = kind === 'boss' ? [b0 - 2, b1 - 10, b2 - 6] : kind === 'treasure' ? [b0 + 8, b1 + 6, b2] : [b0, b1, b2];
+  const base = kind === 'boss' ? [b0 - 2, b1 - 10, b2 - 6] : kind === 'treasure' ? [b0 + 8, b1 + 6, b2] : kind === 'secret' ? [b0 - 8, b1 - 4, b2 + 6] : [b0, b1, b2];
   g.fillStyle = look.floor.mortar; g.fillRect(0, 0, cw, ch);
   for (let r = 0; r < H; r++) for (let col = 0; col < W; col++) {
     if (!inside(col, r)) continue;
@@ -183,6 +199,18 @@ export function floorTexture(seed: number, kind: RoomType, look: FloorLook, mask
     g.fillStyle = gr; g.fillRect(-110, -110, 220, 220);
     g.strokeStyle = 'rgba(225,212,188,.3)'; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, 140, 0, 7); g.stroke();
     for (let i = 0; i < 6; i++) { g.rotate(Math.PI / 3); g.beginPath(); g.moveTo(0, -140); g.lineTo(0, -160); g.stroke(); }
+  }
+  if (kind === 'secret') { // a forgotten mage's work: a faded circle of runes in pale blue chalk, and loose pages
+    g.strokeStyle = 'rgba(150,190,255,.28)'; g.lineWidth = 3;
+    g.beginPath(); g.arc(0, 0, 150, 0, 7); g.stroke(); g.beginPath(); g.arc(0, 0, 128, 0, 7); g.stroke();
+    g.save(); g.scale(.5, .5); drawRune(g, 200); g.restore();
+    for (let i = 0; i < 12; i++) { g.rotate(Math.PI / 6); g.beginPath(); g.moveTo(-6, -139); g.lineTo(6, -139); g.moveTo(0, -145); g.lineTo(0, -133); g.stroke(); }
+    for (let k = 0; k < 7; k++) {
+      g.save(); g.translate((R() - .5) * 700, (R() - .5) * 380); g.rotate(R() * 6);
+      g.fillStyle = 'rgba(214,204,178,.32)'; g.fillRect(-14, -18, 28, 36);
+      g.fillStyle = 'rgba(40,34,30,.35)'; for (let l = 0; l < 5; l++) g.fillRect(-10, -12 + l * 6, 16 + R() * 4, 1.5);
+      g.restore();
+    }
   }
   if (kind === 'boss') {
     g.strokeStyle = 'rgba(140,30,20,.35)'; g.lineWidth = 4;

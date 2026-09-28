@@ -8,7 +8,8 @@
    take a spare dead end when the floor's chance for them rolls (the walk tries again for a while until it
    leaves enough dead ends). The optional artifact sources (merchant,
    vault, altar) then share what the floor's budget leaves, in an order shuffled with the floor's seed.
-   Doors go on every cell edge two rooms share, if both shapes allow that side. */
+   Doors go on every cell edge two rooms share, if both shapes allow that side. Last comes the secret room:
+   an empty cell with hidden doorways into two or more rooms (never the boss, the vault or the merchant). */
 import floorsData from '../../data/floors.json';
 import { CFG, type BossType, type EnemyType } from '../config';
 import type { Rng } from '../rng';
@@ -33,6 +34,7 @@ export interface FloorConfig {
   enemyHp: number;
   /** Chance the floor has a bone altar. */ altarChance: number;
   /** Chance the floor has a locked vault. */ vaultChance: number;
+  /** Chance the secret room holds an artifact (outside the budget) rather than a hoard. */ secretArtifactChance: number;
   /** The champion that rises in a vault forced open with glyphs. */ vaultWarden: EnemyType;
   /** Chance the boss room is widened into a great hall when there is space. */ bossHallChance: number;
   /** Relative weights of room shapes for new rooms. */ shapes: Partial<Record<ShapeId, number>>;
@@ -55,7 +57,8 @@ export interface PlannedRoom {
   templateId: string; mirrorX: boolean; mirrorY: boolean;
   /** Only normal rooms roll a variant; every other room is 'normal'. */ variant: RoomVariant;
   /** Whether the room holds an artifact: always for the treasure room, the ordeal and the boss; optional
-      sources only while the floor's budget allows (GDD: Artifacts). */ artifact: boolean;
+      sources only while the floor's budget allows (GDD: Artifacts); the secret room by chance, outside the
+      budget. */ artifact: boolean;
   /** Seed for this room's own randomness (floor texture, rock shapes, which enemy is the champion). */ seed: number;
   doors: PlannedDoor[];
 }
@@ -64,7 +67,10 @@ export interface FloorPlan { index: number; rooms: PlannedRoom[]; startId: numbe
 const key = (gx: number, gy: number) => gx + ',' + gy;
 const SIDES: Side[] = ['n', 'e', 's', 'w'];
 /** Special rooms and the shapes they may take. */
-const SHAPES_FOR: Partial<Record<RoomType, ShapeId[]>> = { start: ['standard'], treasure: ['standard'], altar: ['standard'], ordeal: ['standard'], merchant: ['standard'], vault: ['standard'], boss: ['standard', 'great'] };
+const SHAPES_FOR: Partial<Record<RoomType, ShapeId[]>> = { start: ['standard'], treasure: ['standard'], altar: ['standard'], ordeal: ['standard'], merchant: ['standard'], vault: ['standard'], secret: ['standard'], boss: ['standard', 'great'] };
+/** Rooms a secret room never opens into: the boss (no way round the fight), the vault (no way round its ward)
+    and the merchant (whose warded shop won't let a glyph be chalked). */
+export const SECRET_SHUNS: RoomType[] = ['boss', 'vault', 'merchant'];
 /** Artifact sources on every floor, and optional ones that share what the budget leaves (GDD: Artifacts). */
 export const GUARANTEED_SOURCES: RoomType[] = ['treasure', 'ordeal', 'boss'];
 export const OPTIONAL_SOURCES: RoomType[] = ['merchant', 'vault', 'altar'];
@@ -142,6 +148,23 @@ function roomDistances(doors: PlannedDoor[][]) {
 
 const anchorOf = (cells: Cell[]): Cell => ({ gx: Math.min(...cells.map(c => c.gx)), gy: Math.min(...cells.map(c => c.gy)) });
 
+/** Where the secret room goes: an empty cell that could open into the most rooms, at least two, among those a
+    secret room may open into. Null when no cell qualifies. */
+function secretCell(g: Grid, rng: Rng, type: Map<number, RoomType>): Cell | null {
+  let best: Cell[] = [], most = 1;
+  for (let gy = 0; gy < GRID_H; gy++) for (let gx = 0; gx < GRID_W; gx++) {
+    const c = { gx, gy };
+    if (g.at(c) !== undefined) continue;
+    const opens = new Set<number>();
+    for (const s of SIDES) {
+      const o = g.at(step(c, s));
+      if (o !== undefined && !SECRET_SHUNS.includes(type.get(o) ?? 'normal') && allowsSide(g.rooms[o].shape, OPPOSITE[s])) opens.add(o);
+    }
+    if (opens.size > most) { most = opens.size; best = [c]; } else if (opens.size === most && most >= 2) best.push(c);
+  }
+  return best.length ? rng.pick(best) : null;
+}
+
 export function generateFloor(rng: Rng, cfg: FloorConfig, index: number, library: TemplateDef[] = TEMPLATE_DEFS): FloorPlan {
   // the optional rooms this floor wants (in a shuffled order, so neither always gets the last dead end);
   // for a while the walk tries again until it leaves them spare dead ends, then makes do with fewer
@@ -174,9 +197,19 @@ export function generateFloor(rng: Rng, cfg: FloorConfig, index: number, library
       const hall = placements(g, rng, 'great', b.cells[0], d.side, d.to, boss)[0];
       if (hall) { g.replace(boss, hall); doors = computeDoors(g.rooms); }
     }
+    // the secret room, with hidden doorways into every room it may open into; the others keep their distances
+    const cell = secretCell(g, rng, type);
+    let secretArtifact = false;
+    if (cell) {
+      const sid = g.add({ shape: 'standard', mirrorX: false, mirrorY: false, cells: [cell], parent: -1 });
+      type.set(sid, 'secret'); secretArtifact = rng.chance(cfg.secretArtifactChance);
+      const shuns = (i: number) => SECRET_SHUNS.includes(type.get(i) ?? 'normal');
+      doors = computeDoors(g.rooms).map((list, i) => list.filter(d => !(i === sid && shuns(d.to)) && !(d.to === sid && shuns(i))));
+      dist[sid] = 1 + Math.min(...doors[sid].map(d => dist[d.to]));
+    }
     const rooms: PlannedRoom[] = g.rooms.map((l, id) => ({
       id, type: type.get(id) ?? 'normal', shape: l.shape, cells: l.cells, anchor: anchorOf(l.cells), dist: dist[id],
-      artifact: GUARANTEED_SOURCES.includes(type.get(id) ?? 'normal') || slots.has(id),
+      artifact: GUARANTEED_SOURCES.includes(type.get(id) ?? 'normal') || slots.has(id) || (type.get(id) === 'secret' && secretArtifact),
       templateId: '',
       // L-shaped rooms are turned by mirroring, so their template must match; other shapes mirror freely
       mirrorX: l.shape === 'l_shape' ? l.mirrorX : rng.chance(0.5), mirrorY: l.shape === 'l_shape' ? l.mirrorY : rng.chance(0.5),
@@ -247,7 +280,7 @@ export function testPlan(templateId: string, variant: RoomVariant = 'normal', li
   const doors = computeDoors(g.rooms);
   const rooms: PlannedRoom[] = g.rooms.map((l, id) => ({
     id, type: id ? type : 'start', shape: l.shape, cells: l.cells, anchor: anchorOf(l.cells), dist: id,
-    artifact: !!id && [...GUARANTEED_SOURCES, ...OPTIONAL_SOURCES].includes(type),
+    artifact: !!id && [...GUARANTEED_SOURCES, ...OPTIONAL_SOURCES, 'secret'].includes(type),
     templateId: id ? templateId : 'start', mirrorX: false, mirrorY: false,
     variant: id && type === 'normal' ? variant : 'normal', seed: 1000 + id, doors: doors[id],
   }));
@@ -261,10 +294,10 @@ export function pickBoss(rng: Rng, pool: readonly BossType[], met: readonly Boss
 }
 
 /** The floor as text, one character per cell: S start, B boss, T treasure, O ordeal, A altar, M merchant,
-    V vault, # one-cell room, + larger hall, - and | corridors, @ the current room. */
+    V vault, ? secret, # one-cell room, + larger hall, - and | corridors, @ the current room. */
 export function planToText(plan: FloorPlan, currentId = -1) {
   const grid = Array.from({ length: GRID_H }, () => Array(GRID_W).fill(' '));
-  const mark: Record<string, string> = { start: 'S', boss: 'B', treasure: 'T', ordeal: 'O', altar: 'A', merchant: 'M', vault: 'V' };
+  const mark: Record<string, string> = { start: 'S', boss: 'B', treasure: 'T', ordeal: 'O', altar: 'A', merchant: 'M', vault: 'V', secret: '?' };
   const shapeMark = (s: ShapeId) => s === 'standard' ? '#' : s === 'corridor_ew' ? '-' : s === 'corridor_ns' ? '|' : '+';
   for (const r of plan.rooms) for (const c of r.cells) grid[c.gy][c.gx] = r.id === currentId ? '@' : mark[r.type] ?? shapeMark(r.shape);
   return grid.map(row => row.join('')).join('\n');

@@ -36,7 +36,7 @@ shrine cleansing; urns and chests.
 
 7. **A looser artifact limit** (owner, 2026-09-28, after step 3): the budget goes from 5 to 6 artifacts per
    floor, enough for the merchant, a vault and a bone altar on the same floor, and some finds sit outside
-   it so a lucky floor holds more: a gilded reliquary chest (15% of chests: a golden ward no blast breaks,
+   it so a lucky floor holds more: a gilded reliquary chest (10% of chests: a golden ward no blast breaks,
    a bone key finds an artifact inside) and, from step 4, the secret room's artifact.
 6. **Magic first, even in M2** (owner, at step 1): Isaac's bombs become blast glyphs, runes the mage chalks
    on the floor and the cantrip sets off from afar; coins become grave obols that drift to the mage, keys
@@ -126,16 +126,26 @@ shrine cleansing; urns and chests.
 
 ## Step 4: Secret rooms
 
-- [ ] Generator: one per floor in an empty cell touching two or more rooms (never the boss room), with a
-      hidden doorway on every edge it shares with them
-- [ ] Cracked walls: a hairline crack and dust drifting from it; a blast opens the doorway on both sides
-- [ ] Magic take: the cantrip divines them: a bolt striking a cracked wall rings hollow, with a chime and a
-      puff of dust, so the cantrip finds secret rooms and a glyph opens them
-- [ ] Magic take: inside, a forgotten mage's cell in pale blue light
-- [ ] Hidden from the minimap until found; holds obols, coffers and a reliquary chest, or an artifact from
-      the secret pool (often cursed) that doesn't count against the floor's budget (decision 7)
-- [ ] Placeholder sounds: crumbling wall, a short sting when a secret room is found
-- [ ] Dev menu: the secret room in this floor's list (found or not), reveal cracked walls, open one
+- [x] Generator: one per floor in the empty cell that could open into the most rooms (two or more), with a
+      hidden doorway on every edge it shares with them; never into the boss room, a vault or the merchant.
+      It comes on top of the room count; every floor of 1,200 tested had one
+- [x] Cracked walls (`src/world/secret.ts`): the wall carries on across the doorway, with a hairline crack on
+      its inner face and top and dust drifting from it; a blast opens the doorway on both sides
+- [x] Magic take: the cantrip divines them: a bolt striking a cracked wall rings hollow, with a chime and a
+      puff of dust, and the crack keeps a faint pale-blue glow, so the cantrip finds secret rooms and a
+      glyph opens them
+- [x] Magic take: inside, a forgotten mage's cell in pale blue light (blue torches, a faded rune circle and
+      loose pages on the floor; templates `secret_cell` and `secret_study`)
+- [x] Hidden from the minimap until found (then an eye in pale blue); holds an artifact from the secret pool
+      (half the time, `secretArtifactChance` in `data/floors.json`; outside the budget, decision 7) or a
+      hoard with two coffers and a reliquary chest (`secretHoard`, `secretRoom` in `data/loot.json`). The
+      secret pool gained four artifacts, so a third of its draws are cursed
+- [x] Economy: with every secret room opened, 12.6, 15.5 and 17.6 obols per floor, inside the GDD's 12 to 18;
+      room clears drop glyph stones more often (26 of 105) so glyphs stay ahead, and gilded chests went from
+      15% to 10% now that secret rooms and vaults bring more chests (a relic about one floor in fifteen)
+- [x] Placeholder sounds: crumbling wall, a hollow ring, a short sting when a secret room is found
+- [x] Dev menu: the secret room in this floor's list (hidden or found; going there opens it), reveal cracked
+      walls, open the secret room; `__game.openSecret()`
 
 ## Step 5: The shrine
 

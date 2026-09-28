@@ -19,6 +19,7 @@ import { rollTable } from '../items/loot';
 import { spawnPickup } from '../items/pickups';
 import { buildShop } from '../items/merchant';
 import { fillVault } from './vault';
+import { buildCrackedWall, fillSecret, secretLook } from './secret';
 
 export const roomAt = (gx: number, gy: number) => G.roomMap.get(gx + ',' + gy);
 /** World position of the centre of template tile (c, r). */
@@ -34,7 +35,8 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   const { w, h } = shapeSize(plan.shape), inset = SHAPES[plan.shape].inset;
   const minX = plan.anchor.gx * PX - HW + (inset?.c0 ?? 0), minZ = plan.anchor.gy * PZ - HD + (inset?.r0 ?? 0);
   const cx = minX + w / 2, cz = minZ + h / 2;
-  const look = FLOORS[Math.min(floorIndex, FLOORS.length - 1)].look;
+  const floorLook = FLOORS[Math.min(floorIndex, FLOORS.length - 1)].look;
+  const look = plan.type === 'secret' ? secretLook(floorLook) : floorLook;
   const room: Room = {
     plan, template, look, type: plan.type, gx: plan.anchor.gx, gy: plan.anchor.gy, cx, cz,
     bounds: { minX, maxX: minX + w, minZ, maxZ: minZ + h }, w, h, mask: shapeMask(plan.shape, plan.mirrorX, plan.mirrorY),
@@ -61,6 +63,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   if (plan.type === 'altar') addAltar(room);
   if (plan.type === 'merchant') buildShop(room);
   if (plan.type === 'vault') fillVault(room);
+  if (plan.type === 'secret') fillSecret(room);
   G.rooms.push(room);
   for (const c of plan.cells) G.roomMap.set(c.gx + ',' + c.gy, room);
   return room;
@@ -312,7 +315,7 @@ export function buildWallsAndDoors(room: Room) {
     const [dx, dz] = SIDE_DIR[pd.side];
     const x = pd.gx * PX + dx * hx, z = pd.gy * PZ + dz * hz; // middle of the doorway on the room's inside edge
     const either = (t: string) => room.type === t || nb.type === t;
-    const style: DoorStyle = either('boss') ? 'boss' : either('ordeal') ? 'ordeal' : either('altar') ? 'altar' : either('treasure') ? 'treasure'
+    const style: DoorStyle = either('secret') ? 'secret' : either('boss') ? 'boss' : either('ordeal') ? 'ordeal' : either('altar') ? 'altar' : either('treasure') ? 'treasure'
       : either('vault') ? 'vault' : either('merchant') ? 'merchant' : 'normal';
     room.doors.push(buildDoor(room, pd.side, nb, style, x, z));
   }
@@ -398,6 +401,7 @@ function addTorch(room: Room, x: number, z: number, normal: [number, number], t:
 /** A doorway on `side` whose middle (on the room's inside edge) is at world (x, z): posts, lintel, threshold,
     the mark above it for special rooms, and the bars that rise while enemies live. */
 function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number, z: number): Door {
+  if (style === 'secret') return buildCrackedWall(room, side, nb, x, z); // a hidden doorway: the wall carries on
   const ns = isNS(side), [dx, dz] = SIDE_DIR[side];
   const wx = x + dx * WT / 2, wz = z + dz * WT / 2; // the door's centre on the wall's centre line
   // (along, across) around the wall centre line to room-local (x, z); across runs along +z (n/s) or +x (e/w)
@@ -473,7 +477,7 @@ export function linkDoors(rooms: Room[]) {
 export function setDoors(room: Room, open: boolean, sound = true) {
   let changed = false;
   for (const d of doorsOf(room)) {
-    if (d.seal?.sealed) continue; // a sealed vault door stays shut until its ward is broken
+    if (d.seal?.sealed || (d.secret && !d.secret.open)) continue; // sealed vault doors and cracked walls stay shut
     if (d.open !== open) changed = true; d.open = open;
   }
   if (changed && sound) Sfx.door(open);

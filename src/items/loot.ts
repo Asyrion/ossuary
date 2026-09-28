@@ -19,8 +19,8 @@ export const DROPS: Drop[] = [...ITEMS, 'coffer', 'chest'];
 
 /** A loot table: with `chance` (default always), `count` items (default one), each picked by weight. */
 export interface LootTable { chance?: number; count?: [number, number]; weights: Partial<Record<Item, number>> }
-export type TableName = 'urn' | 'sealedUrn' | 'coffer' | 'chest' | 'vaultHoard';
-export const TABLES: TableName[] = ['urn', 'sealedUrn', 'coffer', 'chest', 'vaultHoard'];
+export type TableName = 'urn' | 'sealedUrn' | 'coffer' | 'chest' | 'vaultHoard' | 'secretHoard';
+export const TABLES: TableName[] = ['urn', 'sealedUrn', 'coffer', 'chest', 'vaultHoard', 'secretHoard'];
 
 /** What the merchant sells: an artifact, or an item. */
 export type Ware = 'artifact' | Item;
@@ -38,6 +38,8 @@ export interface LootData extends Record<TableName, LootTable> {
   /** Chance a fallen enemy leaves an obol. */ enemyCoin: number;
   /** Chance a reliquary chest is gilded: it holds an artifact outside the floor's budget, and only a bone
       key opens it. */ gildedChest: number;
+  /** A secret room without an artifact: coffers and reliquary chests beside its hoard (`secretHoard`). */
+  secretRoom: { coffers: number; chests: number };
   merchant: MerchantData;
 }
 export const LOOT = lootData as LootData;

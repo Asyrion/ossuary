@@ -32,6 +32,9 @@ export const CFG = {
   merchant: { shadeAt: -1.9, waresAt: .9, spacing: 2.3, reach: .45, boltFizzle: .6 },
   // locked vaults: glyph blasts that force the ward, and where the warden rises (room-relative z)
   vault: { blastsToForce: 2, wardenAt: -1.8 },
+  // secret rooms: the pale blue light of the forgotten mage's cell (torch flame and light colours, torch
+  // brightness), and how often dust drifts from a cracked wall (seconds, least and most)
+  secret: { flame: '#d8ecff', light: '#8ab8ff', torchMul: .85, dustEvery: [1.2, 2.8] as [number, number] },
   camTiltDeg: 45,
   camHallView: 1.2,    // larger halls: the camera pulls back so the view is this much wider and deeper
   pickups: { obolDrift: 1.8 },  // obols drift to the mage from this close

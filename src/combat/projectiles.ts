@@ -12,6 +12,7 @@ import { scene } from '../render/renderer';
 import { basicMat, blob, glowShared, sphereGeo } from '../render/materials';
 import { blockers } from '../world/collision';
 import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
+import { hollowRing } from '../world/secret';
 import { shootDir } from '../input';
 import { heroCast } from '../actors/hero';
 import { damageEnemy, hurtPlayer } from './damage';
@@ -116,7 +117,9 @@ export function updateBolts(dt: number) {
     const box = !kill && !(b.path === 'boomerang' && b.returning) ? boxAt(b.x, b.z, solids) : undefined;
     if (box) {
       const rock = box as RockBox;
-      if (room.doors.some(d => d.box === box && d.seal?.sealed)) { burst(b.x, b.y, b.z, WARD_COLOR, 5, 1.6, .035); Sfx.wardTink(); } // glances off a vault's ward
+      const door = room.doors.find(d => d.box === box);
+      if (door?.seal?.sealed) { burst(b.x, b.y, b.z, WARD_COLOR, 5, 1.6, .035); Sfx.wardTink(); } // glances off a vault's ward
+      if (door?.secret) hollowRing(door, b.x, b.z);                    // a cracked wall rings hollow
       if (rock.urn) strikeUrn(room, rock, false);                       // any bolt breaks an urn
       else if (breaker && room.rocks.includes(rock)) hitRock(room, rock); // Mason's Chisel cracks rocks
       if (b.path === 'bounce' && b.bounces > 0) {

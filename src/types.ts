@@ -6,8 +6,8 @@ import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
 import type { Drop, Item, Ware } from './items/loot';
 
 export type Side = 'n' | 's' | 'e' | 'w';
-export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault';
-export type DoorStyle = 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault';
+export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret';
+export type DoorStyle = 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret';
 export interface Vec2 { x: number; z: number }
 /** Axis-aligned box on the floor plane: centre and half extents. */
 export interface Box { x: number; z: number; hx: number; hz: number }
@@ -30,6 +30,15 @@ export interface Door {
   side: Side; nb: Room; link?: Door; x: number; z: number;
   bars: THREE.Group; barH: number; open: boolean; style: DoorStyle; box: Box;
   /** A locked vault's door: the ward shared by both sides of the doorway. */ seal?: VaultSeal;
+  /** A secret room's hidden doorway: a cracked wall until a blast opens it. */ secret?: SecretWall;
+}
+/** One side of a secret room's hidden doorway (GDD: Secret room): a stretch of cracked wall filling the
+    doorway, in `room`. The cantrip divines it (it rings hollow and the crack glows); a glyph's blast opens
+    both sides at once. */
+export interface SecretWall {
+  room: Room; open: boolean; divined: boolean;
+  /** The wall piece filling the doorway, and the crack's glow (shown once divined). */ plug: THREE.Group; glow: THREE.MeshBasicMaterial[];
+  /** Seconds until dust next drifts from the crack. */ dust: number;
 }
 /** The ward sealing a locked vault's door (GDD: Locked vault): a bone key unbinds it, or enough glyph
     blasts force it and wake the vault's warden. `outer` is the door on the neighbour's side. */
@@ -71,6 +80,7 @@ export interface Room {
   spots: ArtifactSpot[];
   /** The merchant's wares and the shade himself. */ wares?: WareSpot[]; shade?: THREE.Group;
   /** A locked vault forced open by blasts: its warden, a champion, rises when the mage comes in. */ warden?: boolean;
+  /** A secret room, once one of its walls has been blasted open. */ found?: boolean;
 }
 
 export interface Enemy extends Circle {
