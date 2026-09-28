@@ -612,8 +612,9 @@ The look is a candle-lit cutaway diorama: dark stone rooms, warm torchlight, and
 - **Light:** a dim fill, a cold moonlight from above, two flickering torch lights per room, and a warm lantern following the hero. Characters get a faint self-light from their colour texture so they stay readable.
 - **Palette:** worn stone browns, torch amber for the hero's magic, verdigris greens for the undead, violet for wisp magic, rust red for the boss.
 - **Characters:** Tripo3D models, chibi proportions, textured, rigged; see the Tripo asset checklist.
-- **Environment:** procedural in code for now (floor textures, walls, rocks, pillars, stone tombs). Tripo props such as urns, coffins and statues can replace them later.
-- **UI:** hearts top left, mana bar, spell slots with cooldowns, potion belt, artifacts and obol, key and glyph counters below them, minimap top right, boss bar bottom centre. Typefaces IM Fell English (titles) and Alegreya Sans (UI).
+- **Environment:** procedural in code for now (floor textures, walls, rocks, pillars, stone tombs). Tripo props such as urns, coffins and statues can replace them later, and painted tiling textures the floors and walls; each keeps its procedural version as a fallback.
+- **How assets are made:** `docs/assets.md` holds the house style (every image made with one style reference, in any tool), the budgets per kind of asset and the pipeline from a first image in MidJourney, Tripo or another image model to a model, texture or icon in the game. Milestone M3.5 tests it on a few pilot assets (`docs/M3.5-plan.md`).
+- **UI:** hearts top left, mana bar, spell slots with cooldowns, potion belt, artifacts and obol, key and glyph counters below them, minimap top right, boss bar bottom centre, lore cards bottom right. Typefaces Cinzel (titles), Alegreya (lore and banners) and Alegreya Sans (UI).
 - **Audio:** simple synthesised effects for now; the full plan is in Audio design.
 
 **Identity note.** The current hero is close to the Isaac art style. Fine for a hobby prototype; if the game is ever published, characters and art need their own look.
@@ -735,10 +736,11 @@ A full five-floor game needs roughly 85 3D models, about 300 sound files, 5 musi
 
 | Asset | Options |
 | --- | --- |
-| 3D | Tripo3D (current pipeline) |
+| 3D | Tripo3D (Master plan), from concepts made in MidJourney, Tripo's own image models or others (`docs/assets.md`) |
+| Floor and wall textures | MidJourney seamless tiles (`--tile`) in the house style, over the procedural details |
 | Sound effects | Royalty-free libraries, AI sound effect generators, own recordings (foley is easy: glass, water, paper, fire) |
 | Music | AI music generators, royalty-free libraries, a commissioned composer later |
-| Icons | Rendered from the Tripo models, or painted |
+| Icons | Painted in MidJourney (Standard plan), or rendered from the Tripo models; M3.5 tries both |
 
 Licences differ per source and per subscription plan: for a hobby project most are fine, but if Ossuary is ever published, every asset's licence has to allow commercial use in a game. Keep a simple credits file in the repo from the start (asset, source, licence).
 
@@ -773,7 +775,7 @@ src/
   ui/              HUD, minimap, menus, boon picker, grimoire
   audio/           spatial effects, ambience, adaptive music, mixer
 data/              rooms, enemies, spells, runes, artifacts, potions, recipes, boons (JSON)
-public/assets/     hero.glb, enemies/*.glb, props/*.glb, audio/
+public/assets/     hero_default.glb, enemies/, bosses/, props/, artifacts/ (GLB), textures/, icons/, audio/
 tools/             prepare-asset script
 ```
 
@@ -789,6 +791,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M1 Core loop | Runs feel different | Three generated floors with varied maps, room counts and room shapes; a different boss on each floor; 50+ room templates; room variants from quiet to ordeal, and bone altars; 3 to 5 artifacts per floor from 10 artifacts and 3 foci as data |
 | M2 Plunder | Exploration pays | Obols, bone keys and blast glyphs; merchant, secret room, locked vault and shrine cleansing; urns and chests |
 | M3 Magic | Magic is the build | Mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room |
+| M3.5 Asset pipeline | One set of miniatures | The pipeline in `docs/assets.md` tested end to end: an urn, a pedestal, an artifact model, a floor texture and three icons in the game with fallbacks, within budget at 60 fps, in an accepted house style (`docs/M3.5-plan.md`) |
 | M4 Tripo enemies | Own creatures | 3 enemies and 1 boss from Tripo, with elemental affinities |
 | M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
