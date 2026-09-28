@@ -11,6 +11,7 @@ import { burst } from '../combat/fx';
 import { HEART_PATH, banner, renderHearts, renderItems, renderMinimap, toast } from '../ui/hud';
 import { START_FOCUS, artifact, computeStats, pickArtifact, type ArtifactDef, type Pool } from './artifactData';
 import { giveResources } from './pickups';
+import { artifactLore } from '../ui/lore';
 
 const hex = (c: string) => new THREE.Color(c).getHex();
 
@@ -48,7 +49,7 @@ export function grantArtifact(def: ArtifactDef, silent = false): ArtifactDef | n
   if (def.gives) giveResources(def.gives); // the Sexton's Keyring's keys, the Glyphwright's Chalk's glyphs
   refreshStats();
   if (def.effects?.includes('fullHeal')) { player.hp = player.maxHp; renderHearts(); }
-  if (!silent) { banner(def.name, def.text); if (def.kind === 'cursed') Sfx.cursed(); else Sfx.relic(); }
+  if (!silent) { banner(def.name, def.text); artifactLore(def); if (def.kind === 'cursed') Sfx.cursed(); else Sfx.relic(); }
   return replaced;
 }
 

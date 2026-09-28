@@ -16,6 +16,8 @@ export const STR = {
     shoot: 'Shoot', shootKeys: 'Arrow keys', shootPad: 'Right stick', shootTouch: 'Right thumb',
     glyph: 'Blast glyph', glyphKeys: 'Space', glyphPad: 'Left trigger', glyphTouch: '–',
     pause: 'Pause', pauseKeys: 'Esc or P', pausePad: 'Start', pauseTouch: 'II button',
+    /** Play-test aid, like STR.dev.hint: remove with it. */
+    dev: 'Dev menu', devKeys: '` / ^ or F2', devPad: '–', devTouch: '–',
   },
   chalk: { walk: 'walk', cast: 'cast', glyph: 'glyph', space: 'SPACE', touchMove: 'left thumb moves', touchShoot: 'right thumb shoots' },
   pause: {
@@ -95,6 +97,50 @@ export const STR = {
   },
   /** The boss bar while a shrine draws a curse out. */
   curseOf: (name: string) => `The curse of the ${name}`,
+  /** The lore card shown on picking something up (ui/lore.ts). Artifacts keep their lore in data/artifacts.json;
+      items and containers are described here, the first time in a run. Placeholder lore until the Eda lore
+      arrives. */
+  lore: {
+    kinds: { focus: 'Focus', passive: 'Artifact', cursed: 'Cursed artifact' } as Record<string, string>,
+    items: {
+      coin: {
+        name: 'Grave obol', kind: 'Coin', effect: 'Spent at the merchant and the shrine',
+        lore: 'The coin laid on the eyes of the dead to pay the Ferryman. The dead down here have no more use for theirs, and their obols drift towards the living.',
+      },
+      purse: {
+        name: 'Mourner\'s purse', kind: 'Coins', effect: 'Five obols',
+        lore: 'A purse of obols meant to pay a whole family\'s crossing. Whoever it belonged to will not be needing it now.',
+      },
+      key: {
+        name: 'Bone key', kind: 'Key', effect: 'Unbinds a warded reliquary chest, or a vault\'s ward',
+        lore: 'Carved by the sextons from a finger bone, for they knew that wards are woven by the dead and answer to the dead. One key, one ward.',
+      },
+      glyph: {
+        name: 'Glyph stone', kind: 'Blast glyph', effect: 'One more glyph to chalk on the floor (Space); your own bolt sets it off',
+        lore: 'A slate with a blast glyph scratched into it. Rub it, and the rune comes away on your fingers, ready to be chalked where the stone is weakest.',
+      },
+      halfHeart: {
+        name: 'Half a heart', kind: 'Life', effect: 'Heals half a heart',
+        lore: 'A red wisp of life, left where something living was not long ago. It is not yours, but it will do.',
+      },
+      heart: {
+        name: 'Heart', kind: 'Life', effect: 'Heals a heart',
+        lore: 'A full measure of borrowed life, warm and red. The catacombs give back, now and then, a little of what they take.',
+      },
+      coffer: {
+        name: 'Coffer', kind: 'Container', effect: 'Opens at a touch',
+        lore: 'A small box of grave goods: a ring, a coin, a lock of hair. Most were buried with their owners. This one was left behind.',
+      },
+      chest: {
+        name: 'Reliquary chest', kind: 'Container', effect: 'A bone key unbinds its ward; a blast breaks it, and burns half of what is inside',
+        lore: 'A reliquary sealed with a priest\'s ward so that no thief could open it. A bone key asks the ward politely; a blast does not, and the relics pay for it.',
+      },
+      gilded: {
+        name: 'Gilded reliquary', kind: 'Container', effect: 'Only a bone key opens it; a relic lies inside',
+        lore: 'Gilded for a relic that mattered, and sealed with a golden ward that no blast has ever broken. Whatever lies inside was worth the gold.',
+      },
+    } as Record<string, { name: string; kind: string; effect: string; lore: string }>,
+  },
   /** The dev menu (the key left of 1, or F2): for testing, not for players. */
   dev: {
     title: 'Dev menu', close: 'Close',
@@ -105,7 +151,7 @@ export const STR = {
     resources: 'Obols, keys and glyphs', emptyPurse: 'Empty the purse',
     give: (n: number, what: string) => `+${n} ${what}${n === 1 ? '' : 's'}`,
     names: { coins: 'obol', keys: 'key', glyphs: 'glyph' } as Record<string, string>,
-    drops: 'Drop ahead of the mage', gildedChest: 'Gilded chest',
+    drops: 'Drop ahead of the mage', gildedChest: 'Gilded chest', loreAgain: 'Describe items again', loreAgainTitle: 'Items and containers show their lore card again the next time one is taken',
     dropNames: { halfHeart: 'Half heart', heart: 'Heart', coin: 'Obol', purse: 'Purse', key: 'Bone key', glyph: 'Glyph stone', coffer: 'Coffer', chest: 'Reliquary chest' } as Record<string, string>,
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
     foes: 'Foes (they leave the doors open)', champion: (name: string) => `Champion ${name.toLowerCase()}`,

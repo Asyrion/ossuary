@@ -21,6 +21,7 @@ import { heroDrink } from '../actors/hero';
 import { WARD_COLOR as WARD, freeSpotNear } from '../world/rooms';
 import { LOOT, RESOURCES, afterBurning, dropValue, rollTable, type Drop, type Item, type Resource } from './loot';
 import { offerBeyondBudget, placeArtifact, refreshStats } from './artifacts';
+import { itemLore, type LoreItem } from '../ui/lore';
 
 const GOLD = 0xffd27a;
 export const isContainer = (kind: Drop): kind is 'coffer' | 'chest' => kind === 'coffer' || kind === 'chest';
@@ -137,6 +138,7 @@ export function openContainer(p: Pickup, burnt = false) {
   if (p.opened || !p.contents) return;
   if (p.gilded && burnt) { burst(p.x, .35, p.z, GOLD, 8, 1.6, .04); Sfx.wardTink(); return; } // the golden ward holds
   p.opened = true;
+  itemLore(p.gilded ? 'gilded' : p.kind as LoreItem);
   if (p.ward) { p.ward.parent?.remove(p.ward); disposeTree(p.ward); p.ward = undefined; burst(p.x, .3, p.z, p.gilded ? GOLD : WARD, 12, 2, .04); }
   if (p.gilded) { // a relic rises out of it, beyond what the floor's budget allows
     const def = offerBeyondBudget('vault');
@@ -191,6 +193,7 @@ function take(p: Pickup, kind: Item) {
     if (v.coins) G.stats.obols += v.coins; // for the end screen
   }
   SOUND[kind](); burst(p.x, .4, p.z, SPARK[kind], 8, 2, .05);
+  itemLore(kind); // what it is, the first time in a run
   return true;
 }
 

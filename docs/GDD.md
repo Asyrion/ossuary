@@ -330,7 +330,7 @@ The generator places the three guaranteed sources first, then gives artifacts to
 
 **The M1 set** is the 10 artifacts and 3 foci marked M1 above. Rules that apply from M1 on:
 
-- **Every artifact is noticeable.** Picking one up changes something the player sees (the bolts, the mage, the HUD or the room), never only a hidden number. The pickup banner names it and says what it does in a few words.
+- **Every artifact is noticeable.** Picking one up changes something the player sees (the bolts, the mage, the HUD or the room), never only a hidden number. The pickup banner names it and says what it does in a few words, and a lore card in the corner of the screen describes it, the way a soulslike describes an item but plainer: its icon, name and kind, what it does and a few lines of lore. Items and containers get the same card the first time they're taken in a run; spells and potions will too.
 - **The cantrip combines automatically.** The focus sets the pattern (how many bolts, and their path); passives add modifiers (damage, size, fire rate, piercing, triggers). There are no hand-written pairings: Twin-Headed Staff with Bone Lens fires two piercing bolts, Shepherd's Crook with Bone Lens pierces on the way out and back.
 - **Taking a focus leaves the old one on the pedestal,** so the player can swap back.
 - **Each artifact appears at most once per run.** If a source's pool is empty, it falls back to any unseen artifact, then to a heart. M1 had 13 items against up to 15 offers per run; 13 more joined on 2026-09-28 so play-tests see different runs, then the 7 economy artifacts (33 in all, besides the starting wand), and more are brainstormed in `docs/ideas.md`. More artifacts are the cheapest way to add variety.

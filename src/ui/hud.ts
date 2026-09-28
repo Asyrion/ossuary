@@ -48,7 +48,7 @@ const ICONS: Record<string, string> = {
 };
 
 /* Obol, bone key and glyph icons for the counters under the artifacts. */
-const RES_ICONS = {
+export const RES_ICONS = {
   coins: `<circle cx="12" cy="12" r="8" fill="#b8903e" stroke="#5a4418" stroke-width="1.5"/><rect x="10" y="10" width="4" height="4" fill="#3a2a10"/>`,
   keys: `<circle cx="7" cy="12" r="3.6" fill="none" stroke="#e8dcc0" stroke-width="2.2"/><path d="M10.5 12H20M17 12v3.5M20 12v2.5" stroke="#e8dcc0" stroke-width="2.2" stroke-linecap="round"/>`,
   glyphs: `<circle cx="12" cy="12" r="9" fill="#2b2622" stroke="#6b6158" stroke-width="1.2"/><path d="M${Array.from({ length: 8 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI * 6 / 7; return `${(12 + Math.cos(a) * 6.3).toFixed(2)} ${(12 + Math.sin(a) * 6.3).toFixed(2)}`; }).join('L')}" fill="none" stroke="#ffb04a" stroke-width="1.2" stroke-linejoin="round"/>`,
@@ -90,7 +90,7 @@ export function artifactIcon(id: string, isFocus: boolean, cleansed = player.cle
   const def = artifact(id), clean = cleansed && !!def.curse;
   const cls = isFocus ? 'focus' : clean ? 'cleansed' : def.kind === 'cursed' ? 'cursed' : '';
   const text = clean ? def.curse!.cleansed : def.text;
-  return `<svg viewBox="0 0 24 24" class="${cls}" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${text}</title>${ICONS[def.icon] ?? ICONS.sigil}</svg>`;
+  return `<svg viewBox="0 0 24 24" class="${cls}" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${text}\n\n${def.lore}</title>${ICONS[def.icon] ?? ICONS.sigil}</svg>`;
 }
 /** The focus followed by every other artifact held. */
 export function renderItems() {

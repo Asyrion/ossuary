@@ -2,9 +2,23 @@ import { describe, expect, it } from 'vitest';
 import { CFG } from '../../src/config';
 import { Rng } from '../../src/rng';
 import { ARTIFACT_DEFS, DEFAULT_BOLT_COLOR, GILT_COLOR, START_FOCUS, computeStats, halveStat, pickArtifact, validateArtifacts } from '../../src/items/artifactData';
+import { DROPS } from '../../src/items/loot';
+import { STR } from '../../src/strings';
 
 const base = CFG.hero;
 const stats = (items: string[], focus = START_FOCUS) => computeStats(focus, items, base);
+
+describe('lore', () => {
+  it('describes every item and container that can be picked up or opened, for the lore card', () => {
+    for (const kind of [...DROPS, 'gilded']) {
+      const t = STR.lore.items[kind];
+      expect(t, kind).toBeTruthy();
+      expect(t.name && t.kind && t.effect).toBeTruthy();
+      expect(t.lore.length).toBeGreaterThanOrEqual(60);
+    }
+    for (const k of ['focus', 'passive', 'cursed']) expect(STR.lore.kinds[k]).toBeTruthy();
+  });
+});
 
 describe('artifact data', () => {
   it('is valid', () => expect(validateArtifacts()).toEqual([]));
@@ -15,8 +29,8 @@ describe('artifact data', () => {
     expect(ARTIFACT_DEFS.filter(a => a.kind === 'cursed')).toHaveLength(4);
   });
 
-  it('gives every artifact a text, an icon and a place to appear, and every pool something to draw', () => {
-    for (const a of ARTIFACT_DEFS) { expect(a.text.length).toBeGreaterThan(10); expect(a.icon).toBeTruthy(); }
+  it('gives every artifact a text, lore, an icon and a place to appear, and every pool something to draw', () => {
+    for (const a of ARTIFACT_DEFS) { expect(a.text.length).toBeGreaterThan(10); expect(a.lore.length).toBeGreaterThanOrEqual(60); expect(a.icon).toBeTruthy(); }
     for (const pool of ['treasure', 'ordeal', 'boss', 'altar', 'drop', 'merchant', 'secret', 'vault'] as const) {
       expect(ARTIFACT_DEFS.filter(a => a.pools.includes(pool)).length).toBeGreaterThanOrEqual(4);
     }

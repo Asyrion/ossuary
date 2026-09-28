@@ -194,8 +194,18 @@ shrine cleansing; urns and chests.
 - [x] End screen: obols found (obols picked up during the run)
 - [x] Dev menu: the new artifacts appear by themselves; a sealed vault in the floor list now leads to the room
       outside it, a couple of steps from the warded door, to try a key, a blast or the keyring on it
-- [ ] Balance pass after play-tests (drop weights, prices, economy numbers). Waiting on the owner's
-      play-tests; the numbers today: 12.6, 15.5 and 17.6 obols per floor with everything opened, against a
-      merchant's 3 to 15 obols a ware and the shrine's 10; the Ferryman's Obol adds about 7, 8 and 10 a floor
-      (one per fight won); the Miser's Purse is worth +1.5 damage at 30 obols held, +4.5 at the cap of 99
+- [x] Balance pass after play-tests (drop weights, prices, economy numbers): the owner's play-tests found it
+      fine (2026-09-28), so it stays as is. The numbers: 12.6, 15.5 and 17.6 obols per floor with everything
+      opened, against a merchant's 3 to 15 obols a ware and the shrine's 10; the Ferryman's Obol adds about 7,
+      8 and 10 a floor (one per fight won); the Miser's Purse is worth +1.5 damage at 30 obols held, +4.5 at the
+      cap of 99
+
+## After M2 (2026-09-28, owner's requests)
+
+- [x] The dev menu's key is also in the controls on the title screen (a play-test aid, removed with the HUD's)
+- [x] Lore cards (`src/ui/lore.ts`): picking something up shows, in the lower right corner, its icon, name and
+      kind, what it does and a few lines of lore, soulslike but plainer. Artifacts every time (their `lore` in
+      `data/artifacts.json`), items and containers the first time in a run (`STR.lore.items`); the card fades
+      after 6 to 11 s of play. Spells (M3) and potions (M5) will show theirs through the same card. Dev menu:
+      "Describe items again". The lore is placeholder until the Eda lore arrives
 - [x] GDD and CLAUDE.md brought up to date

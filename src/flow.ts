@@ -27,6 +27,7 @@ import { rollRoomClear, type Resource } from './items/loot';
 import { giveById, offerGuaranteed, offerOptional, offerSecondChoice, placeArtifact, resetArtifacts, resetBudget } from './items/artifacts';
 import { banner, fadeFromBlack, hideBossBar, renderHearts, renderMinimap, resetHearts, showBossBar, toast } from './ui/hud';
 import { showEndScreen, showScreen } from './ui/screens';
+import { hideLore } from './ui/lore';
 import { resetClock } from './loop';
 import { $, mulberry } from './util';
 import { burst } from './combat/fx';
@@ -89,8 +90,8 @@ export function startGame(opts?: RunOptions) {
   const o = opts ?? nextRun; nextRun = {};
   const seed = o.seed || newSeed();
   testTemplate = o.testTemplate; testVariant = o.testVariant; forcedBoss = o.boss;
-  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1 };
-  Sfx.init(); resetPlayer(); G.stats.time = 0; G.stats.kills = 0; G.stats.obols = 0;
+  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1, loreSeen: new Set() };
+  Sfx.init(); resetPlayer(); hideLore(); G.stats.time = 0; G.stats.kills = 0; G.stats.obols = 0;
   if (o.give?.length) giveById(o.give);
   if (o.loot) giveResources(o.loot);
   showScreen(null); G.state = 'play';
@@ -101,7 +102,7 @@ export function startGame(opts?: RunOptions) {
 export function prepareTitle() {
   const seed = nextRun.seed || newSeed(); nextRun = { ...nextRun, seed };
   testTemplate = nextRun.testTemplate; testVariant = nextRun.testVariant; forcedBoss = nextRun.boss;
-  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1 };
+  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1, loreSeen: new Set() };
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, nextRun.floor ?? 0)));
 }
 

@@ -17,6 +17,7 @@ import { WARD_COLOR as WARD } from '../world/rooms';
 import { grantArtifact, makeArtifactVisual, offerGuaranteed } from './artifacts';
 import { giveResources, itemVisual } from './pickups';
 import { heroDrink } from '../actors/hero';
+import { itemLore, type LoreItem } from '../ui/lore';
 import { LOOT, RESOURCES, dropValue, priceOf, rollWares, type Item } from './loot';
 
 const C = CFG.merchant;
@@ -145,7 +146,7 @@ function buy(w: WareSpot) {
   } else {
     const v = dropValue(w.ware as Item);
     if (v.hearts) { player.hp = Math.min(player.maxHp, player.hp + v.hearts); renderHearts(); heroDrink(); } else giveResources(v);
-    toast(STR.toast.bought(STR.wares[w.ware]), 2.5);
+    toast(STR.toast.bought(STR.wares[w.ware]), 2.5); itemLore(w.ware as LoreItem);
   }
   w.sold = true; w.g.remove(w.item); disposeTree(w.item);
   renderMinimap();

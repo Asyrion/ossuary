@@ -11,7 +11,7 @@ system borrowed from Isaac gets a magic take (GDD: What separates Ossuary from a
 asset checklist lives in the owner's claude.ai project "Tripo3D-GameDev". This file holds what you need to
 work in the repo.
 
-## Current state: M2 built (see `docs/M2-plan.md`; steps 1 to 6 done, the balance pass waits on play-tests); M1 built (`docs/M1-plan.md`)
+## Current state: M2 done (see `docs/M2-plan.md`); M1 built (`docs/M1-plan.md`); M3 next
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -66,6 +66,12 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   special rooms (a sealed vault leads to its warded door), test rooms, boss fights and new runs, and taking or
   cleansing a curse. Its lists come from the data, so new artifacts,
   drops, room types and bosses show up by themselves; give a new room type a name in `STR.dev.roomNames`.
+- Lore cards (`src/ui/lore.ts`): picking something up shows its icon, name, kind, effect and lore in the
+  lower right corner, soulslike but plainer. Artifacts every time (`lore` in `data/artifacts.json`, required by
+  the validator), items and containers the first time in a run (`STR.lore.items`, one for every drop). Anything
+  new the mage can take (spells in M3, potions in M5) gets lore and shows it through `showLore`. The lore is a
+  placeholder until the Eda lore arrives: keep it to the dungeon (chapel, crypts, sextons, pilgrims, the
+  Ferryman) and invent no gods, factions or places.
 - `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
   1,024 px JPEG textures). Clips: `standing_relax`, `run`, `walk` (slow movement), `cast_a_spell`,
   `hit_to_body_01`, `fall` and `defeat_03` (two deaths, one at random), `Drink Potion` (when healed) and
@@ -213,8 +219,9 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
 - Plan before large changes; keep commits small with clear messages.
 - **Every new feature gets its dev menu entry in the same step** (`src/ui/devMenu.ts`): a way to spawn,
   give, reach or trigger it, so testing stays quick. Things listed from data show up by themselves; new
-  kinds of things (a room type, a mechanic, a switch) need a button or a line in `refresh()`. The HUD shows
-  the menu's key during the play-tests (`#devHint`, `STR.dev.hint`); remove it when they're over.
+  kinds of things (a room type, a mechanic, a switch) need a button or a line in `refresh()`. The HUD and the
+  title screen's controls show the menu's key during the play-tests (`#devHint`, `STR.dev.hint`,
+  `STR.controls.dev`); remove them when they're over.
 - Before calling something done, verify it in the browser (Playwright screenshots are fine).
 - Tuning values live in `config.ts`; content lives in `data/`. Don't scatter magic numbers.
 - Performance target: 60 fps in desktop browsers on mid-range hardware, including integrated graphics.

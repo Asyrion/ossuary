@@ -18,6 +18,7 @@ import { updateShrine } from './world/shrine';
 import { updateFamiliars } from './combat/familiars';
 import { pollGamepad, type InputActions } from './input';
 import { updateHud, updateVision } from './ui/hud';
+import { updateLore } from './ui/lore';
 import { ease, lerp } from './util';
 import { camTarget, cameraTargetFor, draw, setViewScale } from './render/renderer';
 import { checkAmbush, enterRoom } from './flow';
@@ -60,7 +61,7 @@ function updateWorldFx(dt: number, now: number) {
   const tf = .92 + Math.sin(now * 13) * .05 + Math.sin(now * 23) * .04;
   updateTorchLights(G.current.torches, player.x, player.z, dt, tf);
   G.shake = Math.max(0, G.shake - dt * 1.4);
-  updateHud(dt);
+  updateHud(dt); updateLore(dt);
 }
 
 function frame(nowMs: number) {
