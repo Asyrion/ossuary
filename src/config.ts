@@ -65,6 +65,8 @@ export const CFG = {
     leech: { every: 10 },                                               // Leech Jar: foes put to rest per half heart
     moth: { every: 1.1, range: 7, damageMul: 0.45, orbit: 0.85, speed: 7 }, // Candle Moth: seconds between stings, reach
     skull: { orbit: 1.15, spin: 2.6, damage: 3, every: 0.45, reach: 0.34 }, // Weeping Skull: radius, radians/s, bite and its rest
+    wardingBand: { fuse: 1 },                                           // Warding Band: the glyph's fuse (s)
+    pedlar: { priceMul: 0.7 },                                          // Pedlar's Scale: merchant prices (rounded, at least 1)
   },
   lights: {
     hemi: 1.57, moon: 1.26,

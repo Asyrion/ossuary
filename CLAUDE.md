@@ -11,7 +11,7 @@ system borrowed from Isaac gets a magic take (GDD: What separates Ossuary from a
 asset checklist lives in the owner's claude.ai project "Tripo3D-GameDev". This file holds what you need to
 work in the repo.
 
-## Current state: M2 in progress (see `docs/M2-plan.md`; steps 1 to 5 done); M1 built (`docs/M1-plan.md`)
+## Current state: M2 built (see `docs/M2-plan.md`; steps 1 to 6 done, the balance pass waits on play-tests); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -43,7 +43,12 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   The cantrip pipeline is in `src/combat/projectiles.ts` (fans, the serpent's weave, strong casts, split
   bolts); companions that artifacts bind (the Candle Moth, the Weeping Skull) in `src/combat/familiars.ts`.
   New artifacts are data plus, for a new mechanic, an `Effect` or stat key in `artifactData.ts`, and an icon
-  in `hud.ts` (26 artifacts and the starting wand; 15 more ideas in `docs/ideas.md`).
+  in `hud.ts` (33 artifacts and the starting wand; 15 more ideas in `docs/ideas.md`). An artifact's `gives`
+  hands over obols, keys or glyphs once, when it's taken. The economy artifacts (step 6 of M2) reach into the
+  systems they bend: `freeVault` in `world/vault.ts`, `ferryman` in `flow.ts` (`onRoomCleared`), `glyphWard`
+  and `blastMul` in `combat/glyphs.ts`, `graveLantern` in `world/secret.ts` and the minimap, `pedlar` in
+  `items/merchant.ts`; the Miser's Purse's `obolDamage` makes `player.stats` depend on obols held, so
+  `giveResources` recomputes them when the hoard crosses a ten.
 - Tests: `npm run test:unit` (Vitest: generator rules on hundreds of seeds, every template validated),
   `npm run test:e2e` (Playwright smoke tests), `npm test` runs both.
 - URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`
@@ -58,7 +63,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `__game.cleanse()` cleanses the oldest curse held at once, `__game.rite` reads the shrine's rite under way.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons: heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
-  special rooms, test rooms, boss fights and new runs, and taking or cleansing a curse. Its lists come from the data, so new artifacts,
+  special rooms (a sealed vault leads to its warded door), test rooms, boss fights and new runs, and taking or
+  cleansing a curse. Its lists come from the data, so new artifacts,
   drops, room types and bosses show up by themselves; give a new room type a name in `STR.dev.roomNames`.
 - `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
   1,024 px JPEG textures). Clips: `standing_relax`, `run`, `walk` (slow movement), `cast_a_spell`,
@@ -69,7 +75,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
 - Lights were re-tuned for physically based lighting: decay exponents dropped to 0.5 so the falloff
   matches r147's legacy curve, intensities matched to the prototype within about 5% by region
   brightness (`CFG.lights`).
-- The end screen (`showEndScreen` in `src/ui/screens.ts`) sums up a run; "Replay this seed" starts a new
+- The end screen (`showEndScreen` in `src/ui/screens.ts`) sums up a run (obols found are `G.stats.obols`); "Replay this seed" starts a new
   run on the same seed.
 - M2 (Plunder) takes the magic first: obols (coins, `coins` in code), bone keys and blast glyphs instead
   of bombs. Loot tables are in `data/loot.json` (pure `src/items/loot.ts`, economy simulated in

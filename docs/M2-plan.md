@@ -179,14 +179,23 @@ shrine cleansing; urns and chests.
 
 ## Step 6: Economy artifacts, balance and polish
 
-- [ ] Sexton's Keyring (+3 keys; the vault opens for free once per floor), Miser's Purse (+0.5 cantrip
+- [x] Sexton's Keyring (+3 keys; the vault opens for free once per floor), Miser's Purse (+0.5 cantrip
       damage per 10 obols held), Glyphwright's Chalk (+5 glyphs; blasts 50% wider), Ferryman's Obol,
-      Warding Band, Grave Lantern and Pedlar's Scale (decision 5); pools and icons
-- [ ] Magic take: each economy artifact shows in the magic: Miser's Purse makes the bolts glint gold,
-      brighter with every 10 obols; Glyphwright's Chalk widens the glyph's reach ring; Warding Band rings
-      the mage's feet when a glyph is chalked; Grave Lantern makes cracked walls glow and their hollow ring
-      heard from anywhere in the room
-- [ ] End screen: obols found
-- [ ] Dev menu: the new artifacts appear by themselves; check their effects can be tried from it
-- [ ] Balance pass after play-tests (drop weights, prices, economy numbers); GDD and CLAUDE.md brought up
-      to date
+      Warding Band, Grave Lantern and Pedlar's Scale (decision 5); pools and icons (33 artifacts in all
+      besides the starting wand). New in the data: `gives` (resources handed over on taking one), the stats
+      `obolDamage` and `blastMul`, and the effects `freeVault`, `ferryman`, `glyphWard`, `graveLantern` and
+      `pedlar`; tuning in `CFG.artifacts` (`wardingBand`, `pedlar`)
+- [x] Magic take: each economy artifact shows in the magic: Miser's Purse turns the bolts gold, a fifth of the
+      way for every 10 obols, with gold glints off each cast; Glyphwright's Chalk widens the glyph's reach ring;
+      Warding Band rings the mage's feet when a glyph is chalked, and when it turns their own blast aside;
+      Grave Lantern makes cracked walls glow and their hollow ring heard from anywhere in the room, and shows
+      the cell as a faint eye on the map; the Ferryman's obol falls with a pale glint and a chime; the Pedlar's
+      Scale shows its lower prices in pale green on the tags
+- [x] End screen: obols found (obols picked up during the run)
+- [x] Dev menu: the new artifacts appear by themselves; a sealed vault in the floor list now leads to the room
+      outside it, a couple of steps from the warded door, to try a key, a blast or the keyring on it
+- [ ] Balance pass after play-tests (drop weights, prices, economy numbers). Waiting on the owner's
+      play-tests; the numbers today: 12.6, 15.5 and 17.6 obols per floor with everything opened, against a
+      merchant's 3 to 15 obols a ware and the shrine's 10; the Ferryman's Obol adds about 7, 8 and 10 a floor
+      (one per fight won); the Miser's Purse is worth +1.5 damage at 30 obols held, +4.5 at the cap of 99
+- [x] GDD and CLAUDE.md brought up to date

@@ -20,7 +20,7 @@ import { banner, renderHearts, renderPurse, toast } from '../ui/hud';
 import { heroDrink } from '../actors/hero';
 import { WARD_COLOR as WARD, freeSpotNear } from '../world/rooms';
 import { LOOT, RESOURCES, afterBurning, dropValue, rollTable, type Drop, type Item, type Resource } from './loot';
-import { offerBeyondBudget, placeArtifact } from './artifacts';
+import { offerBeyondBudget, placeArtifact, refreshStats } from './artifacts';
 
 const GOLD = 0xffd27a;
 export const isContainer = (kind: Drop): kind is 'coffer' | 'chest' => kind === 'coffer' || kind === 'chest';
@@ -165,8 +165,10 @@ export function openContainer(p: Pickup, burnt = false) {
 
 /** Add (or take, with negative amounts) obols, keys or glyphs, within 0 and the cap. */
 export function giveResources(v: Partial<Record<Resource, number>>) {
+  const tens = Math.floor(player.coins / 10);
   for (const k of RESOURCES) if (v[k]) player[k] = Math.max(0, Math.min(LOOT.cap, player[k] + v[k]!));
   renderPurse();
+  if (player.stats.obolDamage && Math.floor(player.coins / 10) !== tens) refreshStats(); // the Miser's Purse weighs the hoard
 }
 /** A new run's obols, keys and glyphs. */
 export function resetResources() { for (const k of RESOURCES) player[k] = LOOT.start[k]; renderPurse(); }
@@ -186,6 +188,7 @@ function take(p: Pickup, kind: Item) {
     const res = RESOURCES.find(k => v[k])!;
     if (player[res] >= LOOT.cap) return false;
     giveResources(v);
+    if (v.coins) G.stats.obols += v.coins; // for the end screen
   }
   SOUND[kind](); burst(p.x, .4, p.z, SPARK[kind], 8, 2, .05);
   return true;

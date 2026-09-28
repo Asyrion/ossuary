@@ -48,10 +48,15 @@ function wardCircle() {
   return g;
 }
 
-/** A floating price: an obol and the number. One texture per price, kept for the whole session. */
-const tagTex = new Map<number, THREE.CanvasTexture>();
-function coinTag(price: number) {
-  let tex = tagTex.get(price);
+/** What a ware costs now: the Pedlar's Scale takes 30% off (a focus left in a broken circle stays free). */
+const priceNow = (w: WareSpot) => w.price && player.stats.effects.has('pedlar') ? Math.max(1, Math.round(w.price * CFG.artifacts.pedlar.priceMul)) : w.price;
+
+/** A floating price: an obol and the number, pale green when the Pedlar's Scale has lowered it. One texture per
+    price, kept for the whole session. */
+const tagTex = new Map<string, THREE.CanvasTexture>();
+function coinTag(price: number, lowered = false) {
+  const key = price + (lowered ? 'l' : '');
+  let tex = tagTex.get(key);
   if (!tex) {
     const c = document.createElement('canvas'); c.width = 128; c.height = 64; const g = c.getContext('2d')!;
     const grad = g.createRadialGradient(24, 28, 3, 28, 32, 22);
@@ -61,8 +66,8 @@ function coinTag(price: number) {
     g.strokeStyle = '#6a4a18'; g.lineWidth = 2; g.beginPath(); g.arc(30, 32, 12, 0, 7); g.stroke();
     g.font = 'bold 40px "Alegreya Sans", sans-serif'; g.textBaseline = 'middle'; g.lineWidth = 6;
     g.strokeStyle = 'rgba(10,8,6,.85)'; g.strokeText(String(price), 60, 34);
-    g.fillStyle = '#f0d9b4'; g.fillText(String(price), 60, 34);
-    tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tagTex.set(price, tex);
+    g.fillStyle = lowered ? '#c4ecae' : '#f0d9b4'; g.fillText(String(price), 60, 34);
+    tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tagTex.set(key, tex);
   }
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
   s.scale.set(.9, .45, 1); return s;
@@ -103,7 +108,7 @@ export function buildShop(room: Room) {
     if (ware !== 'artifact') item.scale.multiplyScalar(1.35);
     const price = priceOf(ware), tag = coinTag(price); tag.position.y = 1.85;
     g.add(circle, item, tag); room.group.add(g);
-    return { ware, def: ware === 'artifact' ? def! : undefined, price, x, z, g, item, circle, tag, sold: false, armed: true };
+    return { ware, def: ware === 'artifact' ? def! : undefined, price, x, z, g, item, circle, tag, tagPrice: price, sold: false, armed: true };
   });
   const shade = makeShade(); shade.position.set(0, 0, C.shadeAt); room.group.add(shade); room.shade = shade;
   room.rocks.push({ x: room.cx, z: room.cz + C.shadeAt, hx: .42, hz: .42, hp: Infinity, breakable: false });
@@ -123,8 +128,9 @@ function buy(w: WareSpot) {
     const res = RESOURCES.find(k => v[k]);
     if (res && player[res] >= LOOT.cap) return refuse(w, STR.toast.wareFull);
   }
-  if (player.coins < w.price) return refuse(w, STR.toast.tooPoor(w.price, player.coins));
-  if (w.price) { giveResources({ coins: -w.price }); Sfx.purchase(); }
+  const price = priceNow(w);
+  if (player.coins < price) return refuse(w, STR.toast.tooPoor(price, player.coins));
+  if (price) { giveResources({ coins: -price }); Sfx.purchase(); }
   for (const part of [w.circle, w.tag]) if (part) { w.g.remove(part); disposeTree(part); }
   if (w.circle) burst(w.x, .6, w.z, WARD, 16, 2.2, .045);
   w.circle = w.tag = undefined;
@@ -169,5 +175,10 @@ export function updateShop(now: number) {
     w.item.position.y = (w.def ? 1.05 : .75) + Math.sin(now * 2 + w.x) * .07;
     w.item.rotation.y = w.def || w.ware === 'key' ? now * 1.2 : Math.sin(now * 1.6 + w.x) * .5;
     if (w.circle) w.circle.children[0].rotation.y = now * .4;
+    const price = priceNow(w);
+    if (w.tag && w.tagPrice !== price) { // the Pedlar's Scale came or went: the tag shows what the ware costs now
+      w.g.remove(w.tag); disposeTree(w.tag);
+      w.tag = coinTag(price, price < w.price); w.tag.position.y = 1.85; w.g.add(w.tag); w.tagPrice = price;
+    }
   }
 }

@@ -81,7 +81,10 @@ export function checkVaultDoors() {
     if (dist > player.r + 1.2) { s.armed = true; continue; }
     if (dist > player.r + .45 || !s.armed) continue;
     s.armed = false;
-    if (player.keys > 0) { giveResources({ keys: -1 }); Sfx.unlock(); toast(STR.toast.vaultUnbound, 2.5); unseal(s, false); }
+    if (player.stats.effects.has('freeVault') && G.run.freeVault !== G.run.floor) { // the Sexton's Keyring, once a floor
+      G.run.freeVault = G.run.floor; burst(d.x, .9, d.z, 0xd8ccb0, 16, 2, .05);
+      Sfx.unlock(); toast(STR.toast.keyringTurns, 3); unseal(s, false);
+    } else if (player.keys > 0) { giveResources({ keys: -1 }); Sfx.unlock(); toast(STR.toast.vaultUnbound, 2.5); unseal(s, false); }
     else { Sfx.locked(); toast(STR.toast.vaultSealed, 4.5); s.mark.scale.setScalar(1.25); }
   }
 }

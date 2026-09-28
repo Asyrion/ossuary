@@ -7,15 +7,17 @@
    goes and the gift is halved (GDD: Shrine cleansing). */
 import artifactsData from '../../data/artifacts.json';
 import type { Rng } from '../rng';
+import type { Resource } from './loot';
 
 export type Pool = 'treasure' | 'ordeal' | 'boss' | 'altar' | 'drop' | 'merchant' | 'secret' | 'vault';
 export type ArtifactKind = 'focus' | 'passive' | 'cursed';
 /** Behaviours implemented in code, switched on by artifacts. */
 export type Effect = 'pitWalker' | 'fullHeal' | 'deathBurst' | 'hurtRing' | 'rockBreaker' | 'vision'
-  | 'crit' | 'split' | 'leech' | 'moth' | 'orbital' | 'unhurtHeal' | 'bloodTithe';
-/** Additive unless the name ends in Mul (multiplied). */
+  | 'crit' | 'split' | 'leech' | 'moth' | 'orbital' | 'unhurtHeal' | 'bloodTithe'
+  | 'freeVault' | 'ferryman' | 'glyphWard' | 'graveLantern' | 'pedlar';
+/** Additive unless the name ends in Mul (multiplied). `obolDamage` is cantrip damage per ten obols held. */
 export type StatKey = 'damage' | 'damageMul' | 'fireDelayMul' | 'speed' | 'speedMul' | 'boltScale' | 'hearts' | 'invuln' | 'pierce'
-  | 'shotSpeedMul' | 'rangeMul' | 'knockbackMul';
+  | 'shotSpeedMul' | 'rangeMul' | 'knockbackMul' | 'obolDamage' | 'blastMul';
 export type BoltPath = 'straight' | 'bounce' | 'boomerang' | 'wave';
 
 export interface FocusPattern {
@@ -31,13 +33,16 @@ export interface ArtifactDef {
   id: string; name: string; kind: ArtifactKind; text: string; pools: Pool[];
   stats?: Partial<Record<StatKey, number>>; effects?: Effect[]; boltColor?: string;
   /** Cursed artifacts only: the price on top of the gift. */ curse?: Curse;
+  /** Obols, keys or glyphs handed over once, when the artifact is taken. */ gives?: Partial<Record<Resource, number>>;
   focus?: Partial<FocusPattern>; start?: boolean;
   /** Pedestal gem and HUD icon colour; icon key for the HUD. */ color: string; icon: string;
 }
 
 export const POOLS: Pool[] = ['treasure', 'ordeal', 'boss', 'altar', 'drop', 'merchant', 'secret', 'vault'];
-const EFFECTS: Effect[] = ['pitWalker', 'fullHeal', 'deathBurst', 'hurtRing', 'rockBreaker', 'vision', 'crit', 'split', 'leech', 'moth', 'orbital', 'unhurtHeal', 'bloodTithe'];
-const STAT_KEYS: StatKey[] = ['damage', 'damageMul', 'fireDelayMul', 'speed', 'speedMul', 'boltScale', 'hearts', 'invuln', 'pierce', 'shotSpeedMul', 'rangeMul', 'knockbackMul'];
+const EFFECTS: Effect[] = ['pitWalker', 'fullHeal', 'deathBurst', 'hurtRing', 'rockBreaker', 'vision', 'crit', 'split', 'leech', 'moth', 'orbital', 'unhurtHeal', 'bloodTithe',
+  'freeVault', 'ferryman', 'glyphWard', 'graveLantern', 'pedlar'];
+const STAT_KEYS: StatKey[] = ['damage', 'damageMul', 'fireDelayMul', 'speed', 'speedMul', 'boltScale', 'hearts', 'invuln', 'pierce', 'shotSpeedMul', 'rangeMul', 'knockbackMul', 'obolDamage', 'blastMul'];
+const RESOURCE_KEYS: Resource[] = ['coins', 'keys', 'glyphs'];
 const PATHS: BoltPath[] = ['straight', 'bounce', 'boomerang', 'wave'];
 
 export const ARTIFACT_DEFS = artifactsData as ArtifactDef[];
@@ -60,19 +65,29 @@ export interface Stats {
   damage: number; fireDelay: number; speed: number; shotSpeed: number; range: number;
   boltScale: number; boltColor: number; pierce: number;
   /** How hard bolts knock foes back, as a multiple. */ knockback: number;
+  /** Cantrip damage per ten obols held (Miser's Purse), and how far the bolts have turned gold (0 to 1). */ obolDamage: number; gilt: number;
+  /** How far glyph blasts reach, as a multiple. */ blastMul: number;
   /** Heart containers, counted in halves like hp. */ maxHp: number;
   invuln: number; pattern: FocusPattern; effects: Set<Effect>;
 }
 export const DEFAULT_BOLT_COLOR = 0xffcf7a;
+/** The gold that the Miser's Purse turns the bolts, a fifth of the way for every ten obols held. */
+export const GILT_COLOR = 0xffd24a, GILT_PER_TEN = .2;
+
+/** Blend two 0xRRGGBB colours, `k` of the way from a to b. */
+function mix(a: number, b: number, k: number) {
+  const ch = (s: number) => Math.round(((a >> s) & 255) + (((b >> s) & 255) - ((a >> s) & 255)) * k) << s;
+  return ch(16) | ch(8) | ch(0);
+}
 
 /** Half a gift: half the bonus of an added stat, half the way to 1 of a multiplied one. */
 export const halveStat = (k: StatKey, v: number) => k.endsWith('Mul') ? 1 + (v - 1) / 2 : v / 2;
 
 /** The mage's stats for a focus plus the other artifacts held (in pickup order); cursed artifacts in
-    `cleansed` have lost their price and half their gift. */
-export function computeStats(focusId: string, itemIds: readonly string[], base: BaseStats, cleansed: readonly string[] = []): Stats {
+    `cleansed` have lost their price and half their gift. `coins` (obols held) matters to the Miser's Purse. */
+export function computeStats(focusId: string, itemIds: readonly string[], base: BaseStats, cleansed: readonly string[] = [], coins = 0): Stats {
   const focus = artifact(focusId); const pattern = focusPattern(focus);
-  const add: Record<StatKey, number> = { damage: 0, damageMul: 1, fireDelayMul: 1, speed: 0, speedMul: 1, boltScale: 0, hearts: 0, invuln: 0, pierce: 0, shotSpeedMul: 1, rangeMul: 1, knockbackMul: 1 };
+  const add: Record<StatKey, number> = { damage: 0, damageMul: 1, fireDelayMul: 1, speed: 0, speedMul: 1, boltScale: 0, hearts: 0, invuln: 0, pierce: 0, shotSpeedMul: 1, rangeMul: 1, knockbackMul: 1, obolDamage: 0, blastMul: 1 };
   const effects = new Set<Effect>(); let boltColor = DEFAULT_BOLT_COLOR;
   for (const id of [focusId, ...itemIds]) {
     const def = artifact(id), clean = !!def.curse && cleansed.includes(id);
@@ -87,13 +102,17 @@ export function computeStats(focusId: string, itemIds: readonly string[], base: 
     if (def.curse && !clean) { apply(def.curse.stats); for (const e of def.curse.effects ?? []) effects.add(e); }
     if (def.boltColor) boltColor = parseInt(def.boltColor.slice(1), 16);
   }
+  // the Miser's Purse: harder bolts, turning gold, for every ten obols held
+  const tens = Math.floor(coins / 10), gilt = add.obolDamage > 0 ? Math.min(1, tens * GILT_PER_TEN) : 0;
+  if (gilt) boltColor = mix(boltColor, GILT_COLOR, gilt);
   return {
-    damage: (base.damage + add.damage) * add.damageMul * pattern.damageMul,
+    damage: (base.damage + add.damage + add.obolDamage * tens) * add.damageMul * pattern.damageMul,
     fireDelay: Math.max(.08, base.fireDelay * add.fireDelayMul),
     speed: (base.speed + add.speed) * add.speedMul,
     shotSpeed: base.shotSpeed * add.shotSpeedMul,
     range: base.range * pattern.rangeMul * add.rangeMul,
     boltScale: 1 + add.boltScale, boltColor, pierce: add.pierce, knockback: add.knockbackMul,
+    obolDamage: add.obolDamage, gilt, blastMul: add.blastMul,
     maxHp: Math.max(1, base.hearts + add.hearts) * 2,
     invuln: base.invuln + add.invuln,
     pattern, effects,
@@ -121,6 +140,7 @@ export function validateArtifacts(defs: ArtifactDef[] = ARTIFACT_DEFS): string[]
     for (const p of a.pools) if (!POOLS.includes(p)) errs.push(`${at} has unknown pool "${p}"`);
     for (const e of [...a.effects ?? [], ...a.curse?.effects ?? []]) if (!EFFECTS.includes(e)) errs.push(`${at} has unknown effect "${e}"`);
     for (const k of Object.keys({ ...a.stats, ...a.curse?.stats })) if (!STAT_KEYS.includes(k as StatKey)) errs.push(`${at} has unknown stat "${k}"`);
+    for (const [k, v] of Object.entries(a.gives ?? {})) if (!RESOURCE_KEYS.includes(k as Resource) || !(Number.isInteger(v) && v > 0)) errs.push(`${at} gives "${k}": use obols, keys or glyphs, a whole number above 0`);
     if ((a.kind === 'cursed') !== !!a.curse) errs.push(`${at}: cursed artifacts, and only they, carry a curse`);
     if (a.curse && (!a.curse.cleansed || !(a.curse.effects?.length || Object.keys(a.curse.stats ?? {}).length))) errs.push(`${at}: a curse needs a price and a cleansed text`);
     if ((a.kind === 'focus') !== !!a.focus) errs.push(`${at}: foci, and only foci, have a focus pattern`);

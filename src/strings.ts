@@ -27,7 +27,7 @@ export const STR = {
     lost: 'You fell in the ossuary',
     wonText: 'Every floor cleared, and every keeper put to rest.',
     lostText: (floor: number, name: string) => `Your descent ended on floor ${floor}, ${name}.`,
-    floor: 'Deepest floor', time: 'Time', kills: 'Foes put to rest', seed: 'Seed', artifacts: 'Artifacts carried',
+    floor: 'Deepest floor', time: 'Time', kills: 'Foes put to rest', obols: 'Obols found', seed: 'Seed', artifacts: 'Artifacts carried',
     floorValue: (floor: number, floors: number) => `${floor} of ${floors}`,
     again: 'Descend again',
     replay: 'Replay this seed',
@@ -89,6 +89,8 @@ export const STR = {
     shrineIdle: 'You carry no curse for the shrine to cleanse.',
     shrinePoor: (price: number, coins: number) => `The shrine asks ${price} obols to cleanse a curse; you carry ${coins}.`,
     outsideCircle: 'Outside the circle, your bolts pass through the curse.',
+    keyringTurns: "The sexton's keyring turns in the ward: the vault opens.",
+    lanternFinds: 'The Grave Lantern finds a hollow wall.',
     curseEscaped: (name: string) => `The curse slips back into the ${name}. Walk into its stone to try again.`,
   },
   /** The boss bar while a shrine draws a curse out. */

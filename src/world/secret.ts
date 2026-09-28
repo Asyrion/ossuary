@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Door, FloorLook, Room, SecretWall, Side } from '../types';
-import { G } from '../state';
+import { G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { boxUV, disposeTree, markShared, wallMaterials } from '../render/materials';
@@ -106,8 +106,22 @@ export function openSecretRoom(room: Room) { for (const d of room.doors) openSec
 /** Divine every cracked wall on the floor (dev menu). */
 export function revealCracks() { for (const r of G.rooms) for (const d of r.doors) if (d.secret) d.secret.divined = true; }
 
+/** The Grave Lantern: the room's cracked walls glow at once, and ring hollow from anywhere in the room. */
+function lanternReveal(room: Room) {
+  let found = false;
+  for (const d of room.doors) {
+    const s = d.secret;
+    if (!s || s.open || s.divined) continue;
+    for (const w of [s, d.link?.secret]) if (w) w.divined = true;
+    const c = crackAt(d); burst(c.x, c.y, c.z, WARD_COLOR, 8, 1.2, .04); burst(c.x, c.y, c.z, 0x9a9080, 6, .8, .05);
+    found = true;
+  }
+  if (found) { Sfx.hollow(); toast(STR.toast.lanternFinds, 3); }
+}
+
 /** Dust drifts from the current room's cracked walls now and then; divined cracks glow, breathing slowly. */
 export function updateSecretWalls(dt: number, now: number) {
+  if (player.stats.effects.has('graveLantern') && G.state === 'play' && !G.trans) lanternReveal(G.current);
   for (const d of G.current.doors) {
     const s = d.secret;
     if (!s || s.open) continue;

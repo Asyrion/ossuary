@@ -38,6 +38,13 @@ const ICONS: Record<string, string> = {
   oath: `<path d="M12 21s-7-4.4-8.6-8.6C2.2 8 4.2 4.8 7.3 4.8c2 0 3.3 1 4.7 2.6 1.4-1.6 2.7-2.6 4.7-2.6 3.1 0 5.1 3.2 3.9 6.6C19 16.6 12 21 12 21z" ${S}/><path d="M9 12l2 2 4-4" ${S}/>`,
   leadheart: `<path d="M12 21s-7-4.4-8.6-8.6C2.2 8 4.2 4.8 7.3 4.8c2 0 3.3 1 4.7 2.6 1.4-1.6 2.7-2.6 4.7-2.6 3.1 0 5.1 3.2 3.9 6.6C19 16.6 12 21 12 21z" fill="currentColor"/><path d="M8 3h8" ${S}/>`,
   covenant: `<path d="M6 3h9l3 3v15H6z" ${S}/><path d="M9 9h6M9 12h6" ${S}/><path d="M12 15c-1.5 1.8-1.5 3 0 4 1.5-1 1.5-2.2 0-4z" fill="currentColor"/>`,
+  keyring: `<circle cx="9" cy="9" r="5.5" ${S}/><path d="M12.5 12.5L20 20M17 17l2-2M15 15l1.5-1.5" ${S}/><path d="M9 14.5V21M9 18h2.5" ${S}/>`,
+  purse: `<path d="M8 6c-3 3-4 6-4 9a8 5 0 0 0 16 0c0-3-1-6-4-9z" ${S}/><path d="M7 6h10M10 3l2 3 2-3" ${S}/><circle cx="12" cy="14" r="2.4" fill="currentColor"/>`,
+  chalk: `<path d="M4 17l9-9 3 3-9 9H4z" ${S}/><path d="M13 8l3-3 3 3-3 3" fill="currentColor"/><path d="M14 20h6" ${S}/>`,
+  obol: `<circle cx="12" cy="12" r="8" ${S}/><circle cx="12" cy="12" r="4" ${S}/><path d="M12 2v3M12 19v3" ${S}/>`,
+  band: `<ellipse cx="12" cy="13" rx="8" ry="5" ${S}/><path d="M8 7.6v2.2M12 7v2.2M16 7.6v2.2M8 16.2v2.2M12 16.8v2.2M16 16.2v2.2" ${S}/>`,
+  lantern: `<path d="M9 5h6M12 2v3M8 5l-1 4v8l2 3h6l2-3V9l-1-4" ${S}/><path d="M12 10c-1.5 1.5-1.5 3 0 4 1.5-1 1.5-2.5 0-4z" fill="currentColor"/>`,
+  scale: `<path d="M12 3v17M7 20h10M4 7h16" ${S}/><path d="M4 7l-2.5 6h5zM20 7l-2.5 6h5z" ${S}/>`,
 };
 
 /* Obol, bone key and glyph icons for the counters under the artifacts. */
@@ -110,7 +117,9 @@ export function renderMinimap() {
   const mid = (r: typeof cur) => ({ gx: r.plan.cells.reduce((a, c) => a + c.gx, 0) / r.plan.cells.length, gy: r.plan.cells.reduce((a, c) => a + c.gy, 0) / r.plan.cells.length });
   const centre = mid(cur);
   const px = (gx: number) => W / 2 + (gx - centre.gx) * (cw + gap), py = (gy: number) => H / 2 + (gy - centre.gy) * (ch + gap);
-  const shown = G.rooms.filter(r => r.visited || r.known);
+  // the Grave Lantern shows the secret room before it's found
+  const lantern = player.stats.effects.has('graveLantern');
+  const shown = G.rooms.filter(r => r.visited || r.known || (lantern && r.type === 'secret'));
   // rectangles for a room: its cells (corridors narrow) and the gaps between neighbouring cells
   const rects = (r: typeof cur) => {
     const out: [number, number, number, number][] = [];
@@ -142,10 +151,10 @@ export function renderMinimap() {
       mg.strokeStyle = r.spots.some(s => !s.taken) ? '#e8dcc0' : '#6a5a4a'; mg.lineWidth = 2.5;
       mg.beginPath(); mg.arc(cx, cy + 3, 6, Math.PI, 0); mg.moveTo(cx - 6, cy + 3); mg.lineTo(cx - 6, cy + 7); mg.moveTo(cx + 6, cy + 3); mg.lineTo(cx + 6, cy + 7); mg.stroke();
     }
-    if (r.type === 'secret') { // an eye of pale blue chalk, once found
-      mg.strokeStyle = '#8ab8ff'; mg.lineWidth = 2;
+    if (r.type === 'secret') { // an eye of pale blue chalk, once found (fainter while only the Grave Lantern knows of it)
+      mg.strokeStyle = mg.fillStyle = r.found ? '#8ab8ff' : '#5a7aa8'; mg.lineWidth = 2;
       mg.beginPath(); mg.ellipse(cx, cy, 7, 4, 0, 0, 7); mg.stroke();
-      mg.fillStyle = '#8ab8ff'; mg.beginPath(); mg.arc(cx, cy, 2, 0, 7); mg.fill();
+      mg.beginPath(); mg.arc(cx, cy, 2, 0, 7); mg.fill();
     }
     if (r.type === 'merchant') { // an obol
       mg.fillStyle = '#d8a848'; mg.beginPath(); mg.arc(cx, cy, 6, 0, 7); mg.fill();

@@ -74,6 +74,8 @@ export const Sfx = {
   crumble() { hiss(.7, .14, 'lowpass', 420); tone('sine', 70, 35, .6, .16); hiss(.3, .06, 'bandpass', 1500, .15); },
   secretFound() { [659, 831, 988, 1319].forEach((f, i) => tone('triangle', f, f, .45, .06, .25 + i * .08)); hiss(.6, .03, 'highpass', 4500, .25); },
   unlock() { tone('square', 90, 70, .12, .06); tone('triangle', 660, 990, .2, .06, .1); tone('triangle', 1320, 1320, .2, .05, .22); hiss(.15, .04, 'highpass', 5000, .1); },
+  // economy artifacts
+  ferryman() { tone('sine', 1047, 1040, .5, .04); tone('sine', 1568, 1560, .35, .025, .06); hiss(.3, .02, 'highpass', 5000); },
   // the shrine
   curseDrawn() { tone('sawtooth', 311, 147, .7, .05); tone('sine', 98, 62, .9, .1); hiss(.8, .06, 'bandpass', 700); },
   wispHit() { tone('triangle', 988, 740, .12, .05); hiss(.12, .05, 'highpass', 3000); },

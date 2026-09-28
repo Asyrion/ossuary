@@ -10,6 +10,7 @@ import { M, blob, glow } from '../render/materials';
 import { burst } from '../combat/fx';
 import { HEART_PATH, banner, renderHearts, renderItems, renderMinimap, toast } from '../ui/hud';
 import { START_FOCUS, artifact, computeStats, pickArtifact, type ArtifactDef, type Pool } from './artifactData';
+import { giveResources } from './pickups';
 
 const hex = (c: string) => new THREE.Color(c).getHex();
 
@@ -18,7 +19,7 @@ const hex = (c: string) => new THREE.Color(c).getHex();
 /** Recompute the mage's stats from what they hold; heart containers gained come filled. */
 export function refreshStats() {
   const before = player.maxHp;
-  player.stats = computeStats(player.focus, player.items, { ...CFG.hero, hearts: CFG.hero.hearts - player.heartsPaid }, player.cleansed);
+  player.stats = computeStats(player.focus, player.items, { ...CFG.hero, hearts: CFG.hero.hearts - player.heartsPaid }, player.cleansed, player.coins);
   player.maxHp = player.stats.maxHp;
   if (player.maxHp > before) player.hp += player.maxHp - before;
   player.hp = Math.min(player.hp, player.maxHp);
@@ -44,6 +45,7 @@ export function grantArtifact(def: ArtifactDef, silent = false): ArtifactDef | n
   if (def.kind === 'focus') { replaced = artifact(player.focus); player.focus = def.id; }
   else player.items.push(def.id);
   G.run.seen.add(def.id);
+  if (def.gives) giveResources(def.gives); // the Sexton's Keyring's keys, the Glyphwright's Chalk's glyphs
   refreshStats();
   if (def.effects?.includes('fullHeal')) { player.hp = player.maxHp; renderHearts(); }
   if (!silent) { banner(def.name, def.text); if (def.kind === 'cursed') Sfx.cursed(); else Sfx.relic(); }

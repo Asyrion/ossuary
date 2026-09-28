@@ -114,14 +114,14 @@ test('a bone altar takes a heart container for its artifact', async ({ page }) =
   const errors = await start(page, '?room=altar_bones');
   const result = await page.evaluate(() => {
     const g = (window as unknown as W).__game as GameHooks & {
-      current: RoomView & { spots: { x: number; z: number; taken: boolean }[] }; player: { maxHp: number; x: number; z: number };
+      current: RoomView & { spots: { x: number; z: number; taken: boolean; def: { stats?: { hearts?: number } } }[] }; player: { maxHp: number; x: number; z: number };
     };
     g.warp(1);
-    const spot = g.current.spots[0], before = g.player.maxHp;
+    const spot = g.current.spots[0], before = g.player.maxHp, gift = (spot.def.stats?.hearts ?? 0) * 2; // the Leaden Heart gives two back
     g.player.x = spot.x; g.player.z = spot.z + .6; g.sim(0.1);
-    return { before, after: g.player.maxHp, taken: spot.taken };
+    return { before, after: g.player.maxHp - gift, taken: spot.taken };
   });
-  expect(result).toMatchObject({ before: 6, after: 4, taken: true });
+  expect(result).toMatchObject({ before: 6, after: 4, taken: true }); // a container paid
   expect(errors).toEqual([]);
 });
 
@@ -182,16 +182,22 @@ for (const boss of ['abbess', 'pyre']) test(`the ${boss} boss dives or leaps out
 
 test('the end screen sums up the run, and replays its seed', async ({ page }) => {
   const errors = await start(page, '?room=crypt_a&seed=ENDRUN&give=twin_staff,bone_lens');
-  type G2 = GameHooks & { descend(): void; player: GameHooks['player'] & { invuln: number } };
+  type G2 = GameHooks & { descend(): void; drop(kind: string, x?: number, z?: number): void; player: GameHooks['player'] & { invuln: number } };
   const summary = () => page.evaluate(() => ({
     shown: !document.getElementById('scrEnd')!.classList.contains('hidden'),
     title: document.getElementById('endTitle')!.textContent, floor: document.getElementById('endFloor')!.textContent,
     kills: document.getElementById('endKills')!.textContent, seed: document.getElementById('endSeed')!.textContent,
     time: document.getElementById('endTime')!.textContent, carried: document.querySelectorAll('#endItems li').length,
+    obols: Number(document.getElementById('endObols')!.textContent),
   }));
   // a test room ends the run as a win when the mage takes the way down
-  await page.evaluate(() => { const w = window as unknown as W, g = w.__game as G2; g.warp(1); w.__fight(60); g.descend(); });
+  await page.evaluate(() => {
+    const w = window as unknown as W, g = w.__game as G2; g.warp(1); w.__fight(60);
+    g.drop('purse', g.player.x, g.player.z + .3); g.sim(1); // obols found count towards the summary
+    g.descend();
+  });
   const won = await summary();
+  expect(won.obols).toBeGreaterThanOrEqual(5);
   await page.screenshot({ path: 'test-results/smoke-end.png' });
   expect(won).toMatchObject({ shown: true, floor: '1 of 3', kills: '3', seed: 'ENDRUN', carried: 2 }); // twin staff replaced the wand
   expect(won.time).toMatch(/^\d+:\d\d$/);
@@ -557,6 +563,72 @@ test('the shrine cleanses a curse put down inside its circle, refuses the poor, 
   expect(later.refused).toEqual({ rite: null, toast: expect.stringMatching(/asks 10 obols/) });
   expect(later).toMatchObject({ began: 'chain_of_the_penitent', rite: null, coins: 14, cleansed: ['mask_of_the_drowned'], toast: expect.stringMatching(/slips back/) });
   expect(later.speed).toBeCloseTo(4.3 * .75); // still cursed
+  expect(errors).toEqual([]);
+});
+
+/* M2 step 6: the artifacts that bend the economy. */
+type G7 = Omit<G6, 'current'> & {
+  give(...ids: string[]): void; drop(kind: string, x?: number, z?: number): void; pickups: { kind: string }[];
+  glyphs: { fuseMax: number; radius: number }[];
+  run: { freeVault: number; floor: number };
+  player: G6['player'] & { stats: G6['player']['stats'] & { gilt: number; blastMul: number; boltColor: number } };
+  current: Omit<G6['current'], 'doors' | 'wares'> & { doors: { x: number; z: number; open: boolean; seal?: Seal; secret?: { divined: boolean } }[]; wares?: (Ware & { tagPrice: number })[] };
+};
+
+test('economy artifacts: the keyring opens a vault, the scale lowers prices, the purse weighs the hoard', async ({ page }) => {
+  const errors = await start(page, '?room=vault_urns&seed=ECON01&give=sextons_keyring');
+  const vault = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G7, P = g.player, d = g.current.doors.find(x => x.seal)!;
+    const keys = P.keys; P.x = d.x; P.z = d.z + 1.6; g.keys.add('KeyW'); g.sim(.6); g.keys.delete('KeyW'); g.sim(.2);
+    return { keys, after: P.keys, sealed: d.seal!.sealed, free: g.run.freeVault === g.run.floor };
+  });
+  expect(vault).toEqual({ keys: 3, after: 3, sealed: false, free: true }); // three keys on taking it, and none spent
+
+  await page.goto('/?room=merchant_plain&seed=SHOP01&give=pedlars_scale,misers_purse&loot=coins:30');
+  await page.waitForFunction(() => !!(window as unknown as W).__game);
+  await page.click('#btnStart');
+  const shop = await page.evaluate(() => {
+    const w = window as unknown as W; w.__manual = true;
+    const g = w.__game as unknown as G7, P = g.player; g.warp(1); g.sim(.5);
+    const purse = { damage: P.stats.damage, gilt: P.stats.gilt };
+    const art = g.current.wares!.find(x => x.ware === 'artifact')!, tags = g.current.wares!.map(x => [x.price, x.tagPrice]);
+    const coins = P.coins; P.x = art.x; P.z = art.z + 1.6; g.keys.add('KeyW'); g.sim(.6); g.keys.delete('KeyW'); g.sim(.2);
+    return { purse, tags, spent: coins - P.coins, after: { damage: P.stats.damage, gilt: P.stats.gilt } };
+  });
+  expect(shop.purse.damage).toBeCloseTo(3.5 + 1.5); // 30 obols: three tens, half a point each
+  expect(shop.purse.gilt).toBeGreaterThan(0);
+  for (const [price, tag] of shop.tags) expect(tag).toBe(Math.max(1, Math.round(price * .7)));
+  expect(shop.spent).toBe(11); // 15 obols, less 30%
+  expect(shop.after.damage).toBeCloseTo(3.5 + .5); // 19 obols left: one ten
+  expect(errors).toEqual([]);
+});
+
+test('economy artifacts: chalk widens blasts, the band spares the mage, the ferryman pays, the lantern finds', async ({ page }) => {
+  const errors = await start(page, '?room=secret_cell&seed=ECON02&give=glyphwrights_chalk,warding_band,ferrymans_obol,grave_lantern');
+  const found = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G7; g.sim(.2);
+    return { glyphs: g.player.glyphs, divined: g.current.doors.find(d => d.secret)?.secret?.divined, toast: document.getElementById('toast')!.textContent };
+  });
+  expect(found).toEqual({ glyphs: 6, divined: true, toast: expect.stringMatching(/Grave Lantern/) }); // one to start, five from the chalk
+  await page.keyboard.press('Space');
+  const blast = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G7, P = g.player; g.sim(.05);
+    const gl = { fuse: g.glyphs[0].fuseMax, radius: g.glyphs[0].radius }, hp = P.hp;
+    g.sim(1.2); return { ...gl, hurt: hp - P.hp, left: g.glyphs.length };
+  });
+  expect(blast).toEqual({ fuse: 1, radius: 2.25, hurt: 0, left: 0 });
+  // the ferryman: the same fight won on the same seed, with his obol and without, leaves one obol more
+  const obolsAfterFight = async (give: string) => {
+    await page.goto(`/?room=crypt_a&seed=ECON03${give}`);
+    await page.waitForFunction(() => !!(window as unknown as W).__game);
+    await page.click('#btnStart');
+    return page.evaluate(() => {
+      const w = window as unknown as W; w.__manual = true;
+      const g = w.__game as unknown as G7 & { clearRoom(): void }; g.warp(1); g.sim(.3); g.clearRoom(); g.sim(.3);
+      return g.pickups.filter(q => q.kind === 'coin').length;
+    });
+  };
+  expect(await obolsAfterFight('&give=ferrymans_obol')).toBe(await obolsAfterFight('') + 1);
   expect(errors).toEqual([]);
 });
 
