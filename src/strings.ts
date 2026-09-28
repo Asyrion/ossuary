@@ -63,6 +63,7 @@ export const STR = {
     notGlb: 'That file is not a .glb. Export the model from Tripo as GLB and try again.',
     badGlb: 'This .glb could not be read. Re-export it from Tripo as GLB and try again.',
     focusLeft: (name: string) => `You leave the ${name} on the pedestal`,
+    chestSealed: "A ward seals this chest. A bone key unbinds it; a glyph's blast breaks it, but burns half of what's inside.",
   },
   heroInfo: (label: string, tris: number, stripped: boolean, skinned: boolean, clips: string) =>
     `${label}: ${tris.toLocaleString()} triangles${stripped ? ', base removed' : ''}` +

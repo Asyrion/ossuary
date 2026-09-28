@@ -14,8 +14,8 @@ import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { disposeTree, glow } from '../render/materials';
 import { glyphTexture } from '../render/textures';
-import { hitRock } from '../world/rooms';
-import { giveResources } from '../items/pickups';
+import { hitRock, strikeUrn } from '../world/rooms';
+import { giveResources, isContainer, openContainer } from '../items/pickups';
 import { damageEnemy, hurtPlayer } from './damage';
 import { addDecal, burst } from './fx';
 import { clamp } from '../util';
@@ -78,7 +78,12 @@ function blast(x: number, z: number, color: number) {
     damageEnemy(e, C.damage, ux, uz);
     if (!e.isBoss) { e.kx += ux * C.knockback; e.kz += uz * C.knockback; }
   }
-  for (const rock of room.rocks.slice()) if (rock.breakable && touches(rock, x, z, R)) hitRock(room, rock, true);
+  for (const rock of room.rocks.slice()) {
+    if (!touches(rock, x, z, R)) continue;
+    if (rock.urn) strikeUrn(room, rock, true);          // urns, rune-sealed ones too
+    else if (rock.breakable) hitRock(room, rock, true);
+  }
+  for (const p of G.pickups) if (isContainer(p.kind) && !p.opened && Math.hypot(p.x - x, p.z - z) < R + .3) openContainer(p, true); // chests burn
   for (let i = G.shots.length - 1; i >= 0; i--) { // enemy shots in reach unravel
     const s = G.shots[i];
     if (Math.hypot(s.x - x, s.z - z) < R) { scene.remove(s.mesh); G.shots.splice(i, 1); burst(s.x, s.y, s.z, s.color, 3, 1, .04); }

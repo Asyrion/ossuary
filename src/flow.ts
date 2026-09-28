@@ -43,7 +43,7 @@ function clearEntities() {
   clearProjectiles(); clearGlyphs(); pressed.glyph = false;
   for (const p of G.particles) { scene.remove(p.m); p.m.material.dispose(); } G.particles.length = 0;
   clearEnemies();
-  for (const p of G.pickups) scene.remove(p.g); G.pickups.length = 0;
+  for (const p of G.pickups) { scene.remove(p.g); disposeTree(p.g); } G.pickups.length = 0;
   for (const d of G.decals) { scene.remove(d); (d.material as THREE.Material).dispose(); } G.decals.length = 0;
   if (G.trapdoor) { scene.remove(G.trapdoor.g); disposeTree(G.trapdoor.g); G.trapdoor = null; }
 }

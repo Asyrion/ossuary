@@ -3,7 +3,7 @@ import type { EnemyType } from './config';
 import type { BossConfig, PlannedRoom } from './world/generate';
 import type { FoeKind, Template } from './world/templates';
 import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
-import type { Drop } from './items/loot';
+import type { Drop, Item } from './items/loot';
 
 export type Side = 'n' | 's' | 'e' | 'w';
 export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar';
@@ -32,8 +32,9 @@ export interface Door {
 }
 /** A wall light; dark rooms have their torches out (`lit` false). (x, z) is where its light sits. */
 export interface Torch { flame: THREE.Mesh; glow: THREE.Sprite; x: number; z: number; lit: boolean }
-/** A rock collider; Mason's Chisel breaks breakable ones. Pedestals are unbreakable "rocks". */
-export interface RockBox extends Box { hp: number; breakable: boolean; mesh?: THREE.Object3D; tile?: { c: number; r: number } }
+/** A rock collider; Mason's Chisel breaks breakable ones. Pedestals, pillars and tombs are unbreakable "rocks";
+    urns are "rocks" any bolt breaks, and rune-sealed ones only a blast. */
+export interface RockBox extends Box { hp: number; breakable: boolean; mesh?: THREE.Object3D; tile?: { c: number; r: number }; urn?: 'plain' | 'sealed' }
 /** An artifact on a pedestal. `pair` links the boss's two choices: taking one makes the other vanish. */
 export interface ArtifactSpot {
   def: ArtifactDef; room: Room; x: number; z: number; taken: boolean;
@@ -81,7 +82,13 @@ export interface Bolt extends Circle {
 export interface Shot extends Circle { y: number; vx: number; vz: number; color: number; mesh: THREE.Group }
 export interface Particle { m: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>; vx: number; vy: number; vz: number; life: number }
 /** Something lying on the floor to pick up; `m` is the part that bobs and spins, `drop` the fall-in time left. */
-export interface Pickup extends Circle { kind: Drop; g: THREE.Group; m: THREE.Object3D; t: number; drop: number }
+export interface Pickup extends Circle {
+  kind: Drop; g: THREE.Group; m: THREE.Object3D; t: number; drop: number;
+  /** Rising out of a broken urn: the pale soul above it, until it has risen. */ rise?: THREE.Sprite;
+  /** Coffers and chests: what's inside, whether opened, the lid, the chest's ward seal, and whether it may
+      refuse the mage again (only after they step away). */
+  contents?: Item[]; opened?: boolean; lid?: THREE.Object3D; ward?: THREE.Object3D; armed?: boolean;
+}
 /** A blast glyph chalked on the floor: it flares when `fuse` runs out or one of the mage's bolts strikes it. */
 export interface Glyph { x: number; z: number; t: number; fuse: number; color: number; g: THREE.Group; rune: THREE.Mesh; reach: THREE.Mesh; glow: THREE.Sprite; lastTick: number; spent: boolean }
 export interface Trapdoor { g: THREE.Group; x: number; z: number; ring: THREE.Mesh; t: number }

@@ -15,6 +15,8 @@ import { DH, H_LOW, H_TALL, HD, HW, PX, PZ, WT } from './dims';
 import { FLOORS, type PlannedRoom } from './generate';
 import { OPPOSITE, SHAPES, SIDE_DIR, cellHalfExtents, shapeMask, shapeSize } from './shapes';
 import { TEMPLATES, parseTemplate, tombRuns } from './templates';
+import { rollTable } from '../items/loot';
+import { spawnPickup } from '../items/pickups';
 
 export const roomAt = (gx: number, gy: number) => G.roomMap.get(gx + ',' + gy);
 /** World position of the centre of template tile (c, r). */
@@ -46,6 +48,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
     if (tile === 'rock') addRock(room, c, r);
     else if (tile === 'pit') addPit(room, c, r);
     else if (tile === 'pillar') addPillar(room, c, r);
+    else if (tile === 'urn' || tile === 'sealedUrn') addUrn(room, c, r, tile === 'sealedUrn');
   }));
   for (const run of tombRuns(template)) addTomb(room, run);
   mergePits(room);
@@ -131,6 +134,48 @@ function addTomb(room: Room, run: { c: number; r: number; len: number; across: b
   part(.24, .04, .07, .6, M.bone).position.set(cx, .6, -.06);
   const shadow = blob(1); shadow.scale.set(long + .6, 1, wide + .6); g.add(shadow); room.group.add(g);
   room.rocks.push({ x, z, hx: (run.across ? long : wide) / 2 + .02, hz: (run.across ? wide : long) / 2 + .02, hp: 0, breakable: false });
+}
+
+/* Urns: funerary urns of clay, and rune-sealed ones of dark stone ringed by a ward. */
+export const WARD_COLOR = 0x8ab8ff;
+let urnGeo: { body: THREE.LatheGeometry; lid: THREE.TorusGeometry; band: THREE.TorusGeometry } | null = null;
+function urnShapes() {
+  if (urnGeo) return urnGeo;
+  const profile = [[0, 0], [.15, 0], [.2, .06], [.25, .2], [.23, .34], [.15, .44], [.11, .5], [.14, .54], [0, .55]].map(([x, y]) => new THREE.Vector2(x, y));
+  const body = new THREE.LatheGeometry(profile, 12), lid = new THREE.TorusGeometry(.12, .03, 5, 12), band = new THREE.TorusGeometry(.25, .022, 5, 20);
+  lid.rotateX(Math.PI / 2); band.rotateX(Math.PI / 2);
+  for (const g of [body, lid, band]) g.userData.shared = true;
+  return urnGeo = { body, lid, band };
+}
+function addUrn(room: Room, c: number, r: number, sealed: boolean) {
+  const p = toWorld(room, c, r), R = mulberry(c * 53 + r * 11 + room.plan.seed), s = urnShapes();
+  const g = new THREE.Group(); g.position.set(p.x - room.cx + (R() - .5) * .12, 0, p.z - room.cz + (R() - .5) * .12);
+  g.rotation.y = R() * 6; g.scale.setScalar(.9 + R() * .2);
+  const body = new THREE.Mesh(s.body, sealed ? M.urnStone : M.clay);
+  const lid = new THREE.Mesh(s.lid, M.urnLid); lid.position.y = .52;
+  g.add(body, lid, blob(.8));
+  if (sealed) {
+    const band = new THREE.Mesh(s.band, M.ward); band.position.y = .27; g.add(band);
+    const gl = glow(WARD_COLOR, .9, .45); gl.position.y = .3; g.add(gl);
+  }
+  room.group.add(g);
+  room.rocks.push({ x: p.x, z: p.z, hx: .26, hz: .26, hp: 1, breakable: false, mesh: g, tile: { c, r }, urn: sealed ? 'sealed' : 'plain' });
+}
+
+/** A bolt or a blast struck an urn. Bolts glance off a rune-sealed urn; otherwise it breaks: grave dust puffs
+    out, and the soul inside rises as whatever the urn held. Returns whether it broke. */
+export function strikeUrn(room: Room, rock: RockBox, blast: boolean) {
+  if (!rock.urn || !rock.mesh) return false;
+  if (rock.urn === 'sealed' && !blast) { burst(rock.x, .35, rock.z, WARD_COLOR, 5, 1.6, .035); Sfx.wardTink(); return false; }
+  room.group.remove(rock.mesh); disposeTree(rock.mesh);
+  room.rocks = room.rocks.filter(r => r !== rock);
+  if (rock.tile) room.template.tiles[rock.tile.r][rock.tile.c] = 'floor';
+  burst(rock.x, .3, rock.z, rock.urn === 'sealed' ? 0x4c4a54 : 0x8a5436, 10, 2.2, .06); // shards
+  burst(rock.x, .2, rock.z, 0x8a8278, 12, .9, .07);                                        // grave dust
+  if (rock.urn === 'sealed') burst(rock.x, .4, rock.z, WARD_COLOR, 10, 2, .04);
+  Sfx.urn(rock.urn === 'sealed');
+  for (const item of rollTable(G.run.drops, rock.urn === 'sealed' ? 'sealedUrn' : 'urn')) spawnPickup(item, rock.x, rock.z, { rise: true });
+  return true;
 }
 
 /** A bolt from a mage holding Mason's Chisel struck a rock: it cracks, and breaks on the last hit. A blast
