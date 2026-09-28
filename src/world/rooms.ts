@@ -423,7 +423,9 @@ function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number
   };
   const h = wallHeight(side), fm = M.frame[style];
   const pH = h + (side === 's' ? .05 : .12);
-  box(-DH - .2, -DH, pH, fm, WT + .12); box(DH, DH + .2, pH, fm, WT + .12);
+  // the posts reach a hair into the doorway, so their faces sit in front of the walls' cut ends rather than in the
+  // same plane (two faces in one plane flicker as the camera moves)
+  box(-DH - .2, -DH + .01, pH, fm, WT + .12); box(DH - .01, DH + .2, pH, fm, WT + .12);
   if (side === 'n') box(-DH, DH, .28, fm, WT + .04, h - .28);
   const th = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), M.threshold);
   th.rotation.x = -Math.PI / 2; const tp = at(0, 0); th.position.set(tp.x, .003, tp.z);
