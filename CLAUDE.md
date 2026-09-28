@@ -8,7 +8,10 @@ and exported as GLB. The owner (Azyrion) designs; you build.
 milestone; if this file disagrees with it on design, the GDD wins. `docs/ideas.md` is an idea bank of
 unscheduled designs (pickup families and more); an idea only counts once it moves into the GDD. Every
 system borrowed from Isaac gets a magic take (GDD: What separates Ossuary from an Isaac clone). The Tripo
-asset checklist lives in the owner's claude.ai project "Tripo3D-GameDev". This file holds what you need to
+asset checklist lives in the owner's claude.ai project "Tripo3D-GameDev"; `docs/assets.md` is the repo's
+side of asset making: which tool for what (MidJourney, Tripo3D and other image models), the house style (one
+style reference in every image), budgets per kind of asset, the pipeline from image to game, and the asset
+log. When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
 ## Current state: M2 done (see `docs/M2-plan.md`); M1 built (`docs/M1-plan.md`); M3 next
@@ -208,6 +211,9 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
 - **M2 Plunder:** obols, bone keys and blast glyphs; merchant, secret room, locked vault, shrine cleansing;
   urns, chests.
 - **M3 Magic:** mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room.
+- **M3.5 Asset pipeline:** the pipeline in `docs/assets.md` tested on pilot assets (an urn, a pedestal, an
+  artifact model, a floor texture, three icons) with fallbacks to the placeholders; steps and checks in
+  `docs/M3.5-plan.md`. Its style step can start during M3.
 - **M4 Tripo enemies:** 3 enemies and 1 boss from Tripo, with elemental affinities.
 - **M5 Alchemy:** potion belt, drink or throw, identification, 4 reagents, alchemy table.
 - **M6 RPG growth:** XP, levels, attributes, 12 boons, runes and waystones.

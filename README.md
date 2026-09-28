@@ -2,6 +2,16 @@
 
 Isaac-style roguelike set in Eda, built with three.js and Tripo3D models.
 
+## Documents
+
+| File | What's in it |
+| --- | --- |
+| `docs/GDD.md` | The game design: the source of truth |
+| `docs/assets.md` | Making assets: tools, house style, budgets, the pipeline from an image to the game, the asset log |
+| `docs/M1-plan.md`, `docs/M2-plan.md`, `docs/M3.5-plan.md` | Milestone plans and their progress |
+| `docs/ideas.md` | Ideas not scheduled yet |
+| `CREDITS.md` | Every shipped asset's source and licence |
+
 ## Setup on Windows
 
 1. Install Git for Windows and Node.js 24 (LTS or newer).
