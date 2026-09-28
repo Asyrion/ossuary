@@ -94,7 +94,7 @@ export function buildBoss(e: Enemy, add: Add) {
 
 /** Below half health a boss calls its helpers, once; they have the floor's enemy health. */
 function callHelp(e: Enemy) {
-  e.summoned = true; Sfx.boom(); G.shake = .25; banner(STR.bosses[e.type as BossType].summon, '');
+  e.summoned = true; Sfx.at(e.x, e.z).boom(); G.shake = .25; banner(STR.bosses[e.type as BossType].summon, '');
   const n = e.bossCfg?.summons ?? 2, cur = G.current, hpMul = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].enemyHp;
   for (let i = 0; i < n; i++) {
     const p = freeSpotNear(cur, cur.cx + (n > 1 ? -4 + 8 * i / (n - 1) : 0), cur.cz + 1.5);
@@ -136,7 +136,7 @@ export function afterBossMove(e: Enemy, hit: boolean) {
   if (mark.visible && e.target) mark.position.set(e.target.x - e.x, .03, e.target.z - e.z);
   if (!hit || e.state !== 'charge') return;
   e.state = 'stun'; e.st = 1.1; e.vx = e.vz = 0; e.body.rotation.x = 0;
-  G.shake = Math.max(G.shake, .35); Sfx.boom(); Sfx.rubble();
+  G.shake = Math.max(G.shake, .35); Sfx.at(e.x, e.z).boom(); Sfx.at(e.x, e.z).rubble();
   burst(e.x + e.dir!.x * .7, .8, e.z + e.dir!.z * .7, 0xff9a3a, 18, 3, .07);
 }
 
@@ -159,14 +159,14 @@ function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
         const off = Math.random() * Math.PI;
         ringOfShots(e, 12, 3.4 * shotMul, off);
         if (hpFrac < .6) laterRing(e, .32, 12, 3 * shotMul, off + Math.PI / 12);
-        Sfx.boom(); G.shake = .18; e.state = 'walk'; e.st = 2.1;
+        Sfx.at(e.x, e.z).boom(); G.shake = .18; e.state = 'walk'; e.st = 2.1;
       } else { e.state = 'volley'; e.volleys = B?.volleys ?? 3; e.st = 0; }
     }
   } else if (e.state === 'volley') {
     e.vx = e.vz = 0;
     if (e.st <= 0) {
       fan(e, 3, .56, 4.4 * shotMul, 0);
-      Sfx.enemyShot(); e.volleys = e.volleys! - 1; e.st = .3; if (e.volleys <= 0) { e.state = 'walk'; e.st = 2.4; }
+      Sfx.at(e.x, e.z).enemyShot(); e.volleys = e.volleys! - 1; e.st = .3; if (e.volleys <= 0) { e.state = 'walk'; e.st = 2.4; }
     }
   }
 }
@@ -178,7 +178,7 @@ function updateAbbess(e: Enemy, dt: number, ux: number, uz: number) {
   if (e.state === 'drift') {
     e.vx = ux * C.speed * speedMul; e.vz = uz * C.speed * speedMul;
     e.body.position.y = .08 + Math.sin(e.t * 2.2) * .06; e.eye!.scale.setScalar(1);
-    if (e.st <= 0) { e.cycle = e.cycle! + 1; if (e.cycle % 2) { e.state = 'wail'; e.st = .6; Sfx.wail(); } else { e.state = 'sink'; e.st = .7; Sfx.dive(); } }
+    if (e.st <= 0) { e.cycle = e.cycle! + 1; if (e.cycle % 2) { e.state = 'wail'; e.st = .6; Sfx.at(e.x, e.z).wail(); } else { e.state = 'sink'; e.st = .7; Sfx.at(e.x, e.z).dive(); } }
   } else if (e.state === 'wail') { // telegraph: the eyes flare and she trembles
     e.vx = e.vz = 0; const k = 1 - e.st / .6;
     e.eye!.scale.set(1 + k, 1 + k * 2, 1); e.halo!.material.opacity = .35 + k * .6; e.body.position.x = Math.sin(e.t * 45) * .03;
@@ -186,7 +186,7 @@ function updateAbbess(e: Enemy, dt: number, ux: number, uz: number) {
   } else if (e.state === 'fans') {
     e.vx = e.vz = 0;
     if (e.st <= 0) {
-      fan(e, 5, 1, 3.5 * shotMul, e.volleys! % 2 ? .1 : -.1, .6); Sfx.enemyShot();
+      fan(e, 5, 1, 3.5 * shotMul, e.volleys! % 2 ? .1 : -.1, .6); Sfx.at(e.x, e.z).enemyShot();
       e.volleys = e.volleys! - 1; e.st = .42; if (e.volleys <= 0) { e.state = 'drift'; e.st = 2; }
     }
   } else if (e.state === 'sink') { // down into the water under the floor
@@ -199,7 +199,7 @@ function updateAbbess(e: Enemy, dt: number, ux: number, uz: number) {
     e.vx = ux * C.dive * speedMul; e.vz = uz * C.dive * speedMul;
     mat.opacity = .55 + Math.sin(e.t * 8) * .15; ripple.scale.setScalar(1.1 + Math.sin(e.t * 6) * .08);
     if (Math.random() < dt * 10) burst(e.x + (Math.random() - .5), .05, e.z + (Math.random() - .5), 0x6fe8d8, 1, .6, .04);
-    if (e.st <= 0 || d < .4) { e.state = 'rise'; e.st = .75; Sfx.charge(); }
+    if (e.st <= 0 || d < .4) { e.state = 'rise'; e.st = .75; Sfx.at(e.x, e.z).charge(); }
   } else if (e.state === 'rise') { // the ring widens where she will come up: the mage's cue to step away
     e.vx = e.vz = 0; const k = 1 - Math.max(0, e.st) / .75;
     ripple.scale.setScalar(1.1 + k * 1.1); mat.opacity = .5 + Math.abs(Math.sin(e.t * 18)) * .5;
@@ -209,7 +209,7 @@ function updateAbbess(e: Enemy, dt: number, ux: number, uz: number) {
       const off = Math.random() * Math.PI;
       ringOfShots(e, 12, 3.2 * shotMul, off);
       if (hurt) laterRing(e, .3, 12, 2.8 * shotMul, off + Math.PI / 12);
-      burst(e.x, .3, e.z, 0x6fe8d8, 30, 4, .08); Sfx.surface(); G.shake = .3;
+      burst(e.x, .3, e.z, 0x6fe8d8, 30, 4, .08); Sfx.at(e.x, e.z).surface(); G.shake = .3;
       e.state = 'recover'; e.st = .7;
     }
   } else if (e.state === 'recover') { // a moment to strike back
@@ -231,14 +231,14 @@ function updateKnight(e: Enemy, dt: number, ux: number, uz: number): number | un
       const next = ['leap', 'spray', 'charge', 'spray'][e.cycle % 4];
       if (next === 'leap') {
         const p = freeSpotNear(G.current, player.x, player.z);
-        e.target = { x: p.x, z: p.z }; e.state = 'crouch'; e.st = .55; mark.visible = true; Sfx.charge();
-      } else if (next === 'charge') { e.state = 'aim'; e.st = .6; Sfx.charge(); }
+        e.target = { x: p.x, z: p.z }; e.state = 'crouch'; e.st = .55; mark.visible = true; Sfx.at(e.x, e.z).charge();
+      } else if (next === 'charge') { e.state = 'aim'; e.st = .6; Sfx.at(e.x, e.z).charge(); }
       else { e.state = 'windSpray'; e.st = .45; }
     }
   } else if (e.state === 'crouch') {
     e.vx = e.vz = 0; const k = 1 - Math.max(0, e.st) / .55;
     e.body.scale.y = 1 - .22 * k; mat.opacity = .3 + k * .5;
-    if (e.st <= 0) { e.state = 'air'; e.st = .85; e.from = { x: e.x, z: e.z }; e.hidden = true; e.flying = true; e.body.scale.y = 1; Sfx.leap(); }
+    if (e.st <= 0) { e.state = 'air'; e.st = .85; e.from = { x: e.x, z: e.z }; e.hidden = true; e.flying = true; e.body.scale.y = 1; Sfx.at(e.x, e.z).leap(); }
   } else if (e.state === 'air') { // an arc over everything onto the mark
     const k = 1 - Math.max(0, e.st) / .85, t = e.target!, f = e.from!;
     e.vx = e.vz = 0; e.kx = e.kz = 0;
@@ -251,7 +251,7 @@ function updateKnight(e: Enemy, dt: number, ux: number, uz: number): number | un
       ringOfShots(e, 14, 3.4 * shotMul, off);
       if (hurt) laterRing(e, .3, 14, 2.9 * shotMul, off + Math.PI / 14);
       burst(e.x, .2, e.z, 0x5a4a40, 30, 4.5, .09); burst(e.x, .4, e.z, 0xff9a3a, 14, 3, .06);
-      Sfx.boom(); Sfx.rubble(); G.shake = .45;
+      Sfx.at(e.x, e.z).boom(); Sfx.at(e.x, e.z).rubble(); G.shake = .45;
       e.state = 'recover'; e.st = .7;
     }
   } else if (e.state === 'aim') { // turns on the mage, shaking, visor flaring; the line is set at the end
@@ -275,7 +275,7 @@ function updateKnight(e: Enemy, dt: number, ux: number, uz: number): number | un
   } else if (e.state === 'spray') {
     e.vx = e.vz = 0;
     if (e.st <= 0) {
-      fan(e, 5, .9, 4.2 * shotMul, e.volleys! % 2 ? .09 : -.09); Sfx.ember();
+      fan(e, 5, .9, 4.2 * shotMul, e.volleys! % 2 ? .09 : -.09); Sfx.at(e.x, e.z).ember();
       e.volleys = e.volleys! - 1; e.st = .34; if (e.volleys <= 0) { e.state = 'stalk'; e.st = 2; }
     }
   } else if (e.state === 'recover') {

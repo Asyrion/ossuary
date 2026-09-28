@@ -24,6 +24,7 @@ export const STR = {
   pause: {
     heading: 'Paused', resume: 'Resume', restart: 'Restart run', load: 'Load hero .glb',
     soundOn: 'Sound: on', soundOff: 'Sound: off',
+    master: 'Volume', effects: 'Effects', interface: 'Interface',
   },
   end: {
     won: 'The descent is complete',

@@ -116,13 +116,13 @@ const inPool = (p: Pool, x: number, z: number) => poolAt(x, z) === p;
 export function fireAt(x: number, z: number, r = 0) {
   for (const p of poolsNear(x, z, r)) {
     if (p.kind === 'oil' && p.state === 'still') ignite(p);
-    else if (p.state === 'frozen') { p.state = 'still'; dress(p); Sfx.thaw(); for (const t of p.tiles) burst(t.x, .15, t.z, WATER, 2, 1.2, .04); }
+    else if (p.state === 'frozen') { p.state = 'still'; dress(p); Sfx.at(x, z).thaw(); for (const t of p.tiles) burst(t.x, .15, t.z, WATER, 2, 1.2, .04); }
   }
 }
 /** Frost reaches (x, z) and `r` around it: water there freezes over. */
 export function frostAt(x: number, z: number, r = 0) {
   for (const p of poolsNear(x, z, r)) if (p.kind === 'water' && p.state === 'still') {
-    p.state = 'frozen'; p.t = C.iceTime; dress(p); Sfx.freeze();
+    p.state = 'frozen'; p.t = C.iceTime; dress(p); Sfx.at(x, z).freeze();
     for (const t of p.tiles) burst(t.x, .2, t.z, ICE, 3, 1.4, .045);
   }
 }
@@ -138,7 +138,7 @@ export function shockAt(x: number, z: number, from?: Enemy) {
   }
   if (inPool(p, player.x, player.z)) hurtPlayer(C.mageHurt, player.x, player.z + .01);
   for (const t of p.tiles) burst(t.x, .2, t.z, SPARK, 3, 2.4, .03);
-  Sfx.sizzle();
+  Sfx.at(x, z).sizzle();
 }
 /** A status landed on a foe: what it does to the pool the foe stands in (Burn lights oil, Chill freezes water,
     Shock runs through it). */
@@ -152,7 +152,7 @@ export function touchPools(e: Enemy, kind: StatusKind) {
 function ignite(p: Pool) {
   p.state = 'burning'; p.t = C.oilBurn; p.tick = 0; dress(p);
   for (const t of p.tiles) { burst(t.x, .2, t.z, FIRE, 4, 2.2, .06); riseMote(t.x, .15, t.z, EMBER, .7); }
-  Sfx.ignite(); G.shake = Math.max(G.shake, .12);
+  Sfx.at(p.tiles[0].x, p.tiles[0].z).ignite(); G.shake = Math.max(G.shake, .12);
 }
 
 /* ---------- every step ---------- */
@@ -172,14 +172,14 @@ export function updatePools(dt: number, now: number, acting: boolean) {
     else if (p.kind === 'water') p.mat.emissive.copy(glow).multiplyScalar(1 + Math.sin(now * 2 + p.tiles[0].z) * .4);
     if (!acting) continue;
     p.charged = Math.max(0, p.charged - dt);
-    if (p.state === 'frozen' && (p.t -= dt) <= 0) { p.state = 'still'; dress(p); Sfx.thaw(); }
+    if (p.state === 'frozen' && (p.t -= dt) <= 0) { p.state = 'still'; dress(p); Sfx.at(p.tiles[0].x, p.tiles[0].z).thaw(); }
     if (p.state !== 'burning') continue;
     // flames lick up all over it; it sets walking foes burning, and hurts the mage standing in it
     if (Math.random() < dt * 12 * p.tiles.length) { const t = p.tiles[Math.floor(Math.random() * p.tiles.length)]; riseMote(t.x + (Math.random() - .5) * .8, .12, t.z + (Math.random() - .5) * .8, Math.random() < .6 ? FIRE : EMBER, .4 + Math.random() * .35); }
     if ((p.tick -= dt) <= 0) {
       p.tick = C.tick;
       for (const e of G.enemies) if (!e.dead && e.spawn <= 0 && !e.hidden && !e.flying && inPool(p, e.x, e.z)) inflict(e, { burn: C.groundBurn });
-      if (Math.random() < .5) Sfx.crackle();
+      if (Math.random() < .5) Sfx.at(p.tiles[0].x, p.tiles[0].z).crackle();
     }
     if (inPool(p, player.x, player.z)) hurtPlayer(C.mageHurt, player.x, player.z + .01);
     if ((p.t -= dt) <= 0) spend(room, p);

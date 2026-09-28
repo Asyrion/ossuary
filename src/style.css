@@ -79,6 +79,9 @@ body.touch #devHint{display:none}
 .controls .h{color:var(--ink-dim);font-size:13px;font-weight:500}
 .controls .k{font-weight:700}
 .btns{display:flex;flex-wrap:wrap;gap:10px}
+/* volume sliders in the pause menu */
+.vols{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:center;margin:18px 0 0;font-family:var(--f-ui);font-size:14px;color:var(--ink-dim)}
+.vols input{accent-color:#c9a86a;width:100%}
 .summary{display:grid;grid-template-columns:auto 1fr;gap:8px 22px;margin:0 0 22px;align-items:baseline}
 .summary dt{font-size:14px;font-weight:500;color:var(--ink-dim)}
 .summary dd{margin:0;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}

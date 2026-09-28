@@ -157,7 +157,7 @@ export function clearRite() { endRite(); }
 
 function strike(r: Rite, n: number) {
   r.hits = Math.max(0, r.hits - n); updateBossBar({ hp: r.hits, maxHp: C.hits });
-  burst(r.x, r.y, r.z, HOLY, 10, 2.2, .05); burst(r.x, r.y, r.z, CURSE, 6, 1.6, .05); Sfx.wispHit();
+  burst(r.x, r.y, r.z, HOLY, 10, 2.2, .05); burst(r.x, r.y, r.z, CURSE, 6, 1.6, .05); Sfx.at(r.x, r.z).wispHit();
   if (r.hits > 0) return;
   // put down: the artifact is cleansed, the obols are paid and the stone crumbles
   const room = r.room, s = r.stone, def = artifact(s.id);
@@ -246,7 +246,7 @@ export function updateShrine(dt: number, now: number, acting: boolean) {
   if (r.shotCd <= 0) {
     r.shotCd = between(C.shotEvery);
     const dx = player.x - r.x, dz = player.z - r.z, l = Math.hypot(dx, dz) || 1;
-    spawnShot(r.x, r.z, dx / l, dz / l, C.shotSpeed, CURSE, .8, .9); Sfx.wispShot();
+    spawnShot(r.x, r.z, dx / l, dz / l, C.shotSpeed, CURSE, .8, .9); Sfx.at(r.x, r.z).wispShot();
   }
 }
 

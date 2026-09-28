@@ -125,7 +125,7 @@ function blast(x: number, z: number, color: number, R: number) {
   g.add(ring, flash); scene.add(g); waves.push({ g, ring, flash, t: 0, from: .3, to: R, dur: .3 });
   burst(x, .3, z, color, 22, 4.5, .07); burst(x, .2, z, 0x4a4038, 12, 3, .08);
   addDecal(x, z, 0x14100c, 1.1);
-  G.shake = Math.max(G.shake, .35); Sfx.blast();
+  G.shake = Math.max(G.shake, .35); Sfx.at(x, z).blast();
 }
 
 export function updateGlyphs(dt: number) {

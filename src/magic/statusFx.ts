@@ -27,7 +27,7 @@ export function inflict(e: Enemy, status: Partial<Record<StatusKind, number>> | 
   for (const [kind, amount] of Object.entries(status) as [StatusKind, number][]) {
     if (e.dead) return;
     const res = applyStatus(e.status ??= newStatus(), kind, amount, !!e.isBoss);
-    if (res.froze) { Sfx.freeze(); burst(e.x, .6, e.z, ICE, 12, 1.6, .05); }
+    if (res.froze) { Sfx.at(e.x, e.z).freeze(); burst(e.x, .6, e.z, ICE, 12, 1.6, .05); }
     if (res.stunned) burst(e.x, .9, e.z, SPARK, 6, 2, .03);
     if (res.reaction) react(e, res.reaction);
     touchPools(e, kind); // oil catches fire, water freezes or carries the shock
@@ -57,7 +57,7 @@ function react(e: Enemy, r: Reaction) {
       fireSpellBolt(x, z, Math.cos(a), Math.sin(a), { damage: S.shardDamage, range: S.shardRange, scale: .8, color: ICE, speed: 9, shard: true });
     }
     burst(e.x, .6, e.z, ICE, 24, 3, .06); burst(e.x, .6, e.z, 0xffffff, 10, 2, .04);
-    Sfx.shatter(); G.shake = Math.max(G.shake, .2);
+    Sfx.at(e.x, e.z).shatter(); G.shake = Math.max(G.shake, .2);
     damageEnemy(e, S.damage, 0, 0, 0, 'spell');
   } else {
     const O = R.overload;
@@ -71,7 +71,7 @@ function react(e: Enemy, r: Reaction) {
       if (!o.isBoss && o !== e) { o.kx += ux * O.knockback; o.kz += uz * O.knockback; }
     }
     burst(e.x, .6, e.z, FIRE, 22, 4, .07); burst(e.x, .8, e.z, SPARK, 14, 3.5, .04);
-    Sfx.overload(); G.shake = Math.max(G.shake, .35);
+    Sfx.at(e.x, e.z).overload(); G.shake = Math.max(G.shake, .35);
   }
 }
 
@@ -96,10 +96,10 @@ export function updateStatuses(dt: number, now: number) {
     const s = e.status;
     if (!s || e.dead) continue;
     const { burnDamage, thawed } = tickStatus(s, dt);
-    if (burnDamage > 0) damageEnemy(e, burnDamage, 0, 0, 0, 'spell');
+    if (burnDamage > 0) damageEnemy(e, burnDamage, 0, 0, 0, e.lastHit ?? 'spell'); // the fire is whoever lit it last
     if (e.dead) continue;
     if (s.burn > 0) touchPools(e, 'burn'); // a burning foe walking into oil sets it alight
-    if (s.frozen > 0) addIce(e); else if (e.ice) { removeIce(e); if (thawed) Sfx.thaw(); }
+    if (s.frozen > 0) addIce(e); else if (e.ice) { removeIce(e); if (thawed) Sfx.at(e.x, e.z).thaw(); }
     const y = e.flying ? .85 : .5;
     if (s.burn > 0 && Math.random() < dt * 14) burst(e.x + (Math.random() - .5) * e.r, y + .2, e.z + (Math.random() - .5) * e.r, Math.random() < .5 ? FIRE : 0xffc060, 1, .7, .05);
     if ((s.shock > 0 || s.stun > 0) && Math.random() < dt * 8) burst(e.x + (Math.random() - .5) * e.r * 2, y + .3, e.z + (Math.random() - .5) * e.r * 2, SPARK, 2, 2.4, .025);
@@ -155,7 +155,7 @@ function updateFloats(dt: number) {
 function sparkLine(a: Enemy, b: Enemy) {
   const n = 5;
   for (let i = 1; i < n; i++) { const k = i / n; burst(a.x + (b.x - a.x) * k, .8, a.z + (b.z - a.z) * k, SPARK, 1, .6, .03); }
-  Sfx.arc(1);
+  Sfx.at(b.x, b.z).arc(1);
 }
 const flashes: { s: THREE.Sprite; t: number; size: number }[] = [];
 /** A bright flash on a spot, fading in a third of a second (Overload, Pyre Seal). */

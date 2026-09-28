@@ -1,5 +1,6 @@
 /* Title / pause / end screens, their buttons, and swapping the hero by file picker or drag-and-drop. */
 import { STR } from '../strings';
+import { Sfx } from '../audio/sfx';
 import { $ } from '../util';
 import { hero, loadHeroBuffer } from '../actors/hero';
 import { artifact } from '../items/artifactData';
@@ -44,6 +45,12 @@ export function initScreens(act: ScreenActions) {
   $('btnResume').addEventListener('click', () => act.resume());
   $('btnRestart').addEventListener('click', () => act.start());
   $('btnSound').addEventListener('click', () => act.toggleSound());
+  // volumes: master, effects and interface, with a sound of the kind as the slider is let go
+  for (const [id, kind, sample] of [['volMaster', 'master', () => Sfx.hit()], ['volEffects', 'effects', () => Sfx.hit()], ['volInterface', 'interface', () => Sfx.pickup()]] as const) {
+    const input = $<HTMLInputElement>(id); input.value = String(Math.round(Sfx.volumes[kind] * 100));
+    input.addEventListener('input', () => Sfx.setVolume(kind, Number(input.value) / 100));
+    input.addEventListener('change', () => { Sfx.init(); sample(); });
+  }
   $('pauseBtn').addEventListener('click', () => act.pauseIfPlaying());
 
   const fileIn = $<HTMLInputElement>('fileIn');

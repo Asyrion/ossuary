@@ -78,6 +78,13 @@ export const CFG = {
     skull: { orbit: 1.15, spin: 2.6, damage: 3, every: 0.45, reach: 0.34 }, // Weeping Skull: radius, radians/s, bite and its rest
     wardingBand: { fuse: 1 },                                           // Warding Band: the glyph's fuse (s)
     pedlar: { priceMul: 0.7 },                                          // Pedlar's Scale: merchant prices (rounded, at least 1)
+    emberwood: { burn: 1.5 },                                           // Emberwood Wand: seconds of Burn a bolt sets
+    homing: { turn: 3.2, reach: 5 },                                    // Tome of Whispers: radians a second, how far a bolt looks
+    vigil: { mana: 25 },                                                // Candle of the Vigil: mana for every fight won
+    frostbite: { every: 5, chill: 1, color: 0xbfe6ff },                 // Frostbitten Ring: which cast chills, and how much
+    stormglass: { mul: 1.25 },                                          // Stormglass Pendant: cantrip damage on shocked foes
+    thurible: { radius: 2.4, burn: 3 },                                 // Thurible of Ash: how far a burning death spreads Burn
+    witchKnot: { costMul: 0.8 },                                        // Witch's Knot: spell costs at half health or below
   },
   lights: {
     hemi: 1.57, moon: 1.26,

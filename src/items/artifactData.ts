@@ -14,11 +14,13 @@ export type ArtifactKind = 'focus' | 'passive' | 'cursed';
 /** Behaviours implemented in code, switched on by artifacts. */
 export type Effect = 'pitWalker' | 'fullHeal' | 'deathBurst' | 'hurtRing' | 'rockBreaker' | 'vision'
   | 'crit' | 'split' | 'leech' | 'moth' | 'orbital' | 'unhurtHeal' | 'bloodTithe'
-  | 'freeVault' | 'ferryman' | 'glyphWard' | 'graveLantern' | 'pedlar';
-/** Additive unless the name ends in Mul (multiplied). `obolDamage` is cantrip damage per ten obols held. */
+  | 'freeVault' | 'ferryman' | 'glyphWard' | 'graveLantern' | 'pedlar'
+  | 'emberBolts' | 'vigil' | 'frostbite' | 'stormglass' | 'thurible' | 'witchKnot' | 'noRegen';
+/** Additive unless the name ends in Mul (multiplied). `obolDamage` is cantrip damage per ten obols held;
+    `spellDamageMul` multiplies what spells do; `killMana` is mana back for every foe put to rest. */
 export type StatKey = 'damage' | 'damageMul' | 'fireDelayMul' | 'speed' | 'speedMul' | 'boltScale' | 'hearts' | 'invuln' | 'pierce'
-  | 'shotSpeedMul' | 'rangeMul' | 'knockbackMul' | 'obolDamage' | 'blastMul' | 'mana';
-export type BoltPath = 'straight' | 'bounce' | 'boomerang' | 'wave';
+  | 'shotSpeedMul' | 'rangeMul' | 'knockbackMul' | 'obolDamage' | 'blastMul' | 'mana' | 'spellDamageMul' | 'killMana';
+export type BoltPath = 'straight' | 'bounce' | 'boomerang' | 'wave' | 'homing';
 
 export interface FocusPattern {
   /** Bolts per cast, side by side. */ count: number;
@@ -41,10 +43,10 @@ export interface ArtifactDef {
 
 export const POOLS: Pool[] = ['treasure', 'ordeal', 'boss', 'altar', 'drop', 'merchant', 'secret', 'vault'];
 const EFFECTS: Effect[] = ['pitWalker', 'fullHeal', 'deathBurst', 'hurtRing', 'rockBreaker', 'vision', 'crit', 'split', 'leech', 'moth', 'orbital', 'unhurtHeal', 'bloodTithe',
-  'freeVault', 'ferryman', 'glyphWard', 'graveLantern', 'pedlar'];
-const STAT_KEYS: StatKey[] = ['damage', 'damageMul', 'fireDelayMul', 'speed', 'speedMul', 'boltScale', 'hearts', 'invuln', 'pierce', 'shotSpeedMul', 'rangeMul', 'knockbackMul', 'obolDamage', 'blastMul', 'mana'];
+  'freeVault', 'ferryman', 'glyphWard', 'graveLantern', 'pedlar', 'emberBolts', 'vigil', 'frostbite', 'stormglass', 'thurible', 'witchKnot', 'noRegen'];
+const STAT_KEYS: StatKey[] = ['damage', 'damageMul', 'fireDelayMul', 'speed', 'speedMul', 'boltScale', 'hearts', 'invuln', 'pierce', 'shotSpeedMul', 'rangeMul', 'knockbackMul', 'obolDamage', 'blastMul', 'mana', 'spellDamageMul', 'killMana'];
 const RESOURCE_KEYS: Resource[] = ['coins', 'keys', 'glyphs'];
-const PATHS: BoltPath[] = ['straight', 'bounce', 'boomerang', 'wave'];
+const PATHS: BoltPath[] = ['straight', 'bounce', 'boomerang', 'wave', 'homing'];
 
 export const ARTIFACT_DEFS = artifactsData as ArtifactDef[];
 export const ARTIFACTS = new Map(ARTIFACT_DEFS.map(a => [a.id, a]));
@@ -70,6 +72,7 @@ export interface Stats {
   /** How far glyph blasts reach, as a multiple. */ blastMul: number;
   /** Heart containers, counted in halves like hp. */ maxHp: number;
   /** The most mana the mage can hold. */ maxMana: number;
+  /** What spells do, as a multiple; mana back for every foe put to rest. */ spellDamage: number; killMana: number;
   invuln: number; pattern: FocusPattern; effects: Set<Effect>;
 }
 export const DEFAULT_BOLT_COLOR = 0xffcf7a;
@@ -89,7 +92,7 @@ export const halveStat = (k: StatKey, v: number) => k.endsWith('Mul') ? 1 + (v -
     `cleansed` have lost their price and half their gift. `coins` (obols held) matters to the Miser's Purse. */
 export function computeStats(focusId: string, itemIds: readonly string[], base: BaseStats, cleansed: readonly string[] = [], coins = 0): Stats {
   const focus = artifact(focusId); const pattern = focusPattern(focus);
-  const add: Record<StatKey, number> = { damage: 0, damageMul: 1, fireDelayMul: 1, speed: 0, speedMul: 1, boltScale: 0, hearts: 0, invuln: 0, pierce: 0, shotSpeedMul: 1, rangeMul: 1, knockbackMul: 1, obolDamage: 0, blastMul: 1, mana: 0 };
+  const add: Record<StatKey, number> = { damage: 0, damageMul: 1, fireDelayMul: 1, speed: 0, speedMul: 1, boltScale: 0, hearts: 0, invuln: 0, pierce: 0, shotSpeedMul: 1, rangeMul: 1, knockbackMul: 1, obolDamage: 0, blastMul: 1, mana: 0, spellDamageMul: 1, killMana: 0 };
   const effects = new Set<Effect>(); let boltColor = DEFAULT_BOLT_COLOR;
   for (const id of [focusId, ...itemIds]) {
     const def = artifact(id), clean = !!def.curse && cleansed.includes(id);
@@ -117,6 +120,7 @@ export function computeStats(focusId: string, itemIds: readonly string[], base: 
     obolDamage: add.obolDamage, gilt, blastMul: add.blastMul,
     maxHp: Math.max(1, base.hearts + add.hearts) * 2,
     maxMana: Math.max(0, base.mana + add.mana),
+    spellDamage: add.spellDamageMul, killMana: add.killMana,
     invuln: base.invuln + add.invuln,
     pattern, effects,
   };
