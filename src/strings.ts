@@ -82,6 +82,7 @@ export const STR = {
     vaultUnbound: 'The bone key unbinds the ward.',
     hollow: "The wall rings hollow. A glyph's blast would break it.",
     secretFound: 'A hidden way lies open.',
+    oathKept: 'The oath holds: half a heart returns.',
   },
   /** The dev menu (the key left of 1, or F2): for testing, not for players. */
   dev: {

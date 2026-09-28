@@ -151,3 +151,28 @@ something bad.
   bone altar.
 - **Skeleton key:** opens every ward on the floor once. **Hollow key:** opens a cracked wall without a glyph.
 - **Hallowed obol:** offered at the shrine for a small blessing (M6 boons).
+
+## Artifacts (brainstorm, 2026-09-28)
+
+More artifacts for later milestones, after the 13 added on 2026-09-28 (see the GDD's Artifacts). The same
+rules hold: every artifact is noticeable, the cantrip combines everything automatically, and each one
+answers to magic (the cantrip, glyphs, spells, the room) or to the dead of Eda. None of these overlap the
+artifacts the GDD already plans for M2 (the economy seven) or M3 (Burn, Chill, Shock, mana, homing bolts).
+
+| Artifact | Kind | Effect | Magic take |
+| --- | --- | --- | --- |
+| Pendulum of Hours | Focus | Bolts swing out in a curve, left on one cast and right on the next, sweeping round cover | Time swings like a pendulum: the cantrip reaches where straight bolts can't |
+| Reaper's Crescent | Focus | No bolt: a crescent of pale light sweeps a short arc in front of the mage, cutting every foe in it; strong, but only a tile and a half of reach | A sexton's scythe made of the cantrip; the only close-quarters focus |
+| Lodestar Wand | Focus | Bolts stop where their range ends and hang in the air for 2 s as small stars that hurt foes who touch them | Stars stay where they fall: the mage sows the room instead of aiming |
+| Twin Vigil Candles | Passive | Standing still, the mage's bolts are 50% stronger; two candle flames at their shoulders brighten while it lasts, and gutter when they move | A vigil stance: holding ground is a choice with a reward |
+| Ossuary Choir | Passive | Each foe put to rest in a room adds a voice (a small skull in the HUD); at five, the choir sings and every foe in the room takes 5 damage | The dead of Eda sing for the mage: the room's own fallen strike back |
+| Turning Ward | Passive | An enemy shot that only just misses the mage is turned back as a bolt of the mage's own | A ward that reads near misses; rewards dodging close |
+| Blood Moon Pendant | Passive | At half health or less, bolts turn crimson, fly 30% faster and come 25% quicker | Desperation feeds the cantrip; a reason not to heal too early |
+| Weaver's Thread | Passive | Glyphs chalked near each other are joined by a thread of ward light; foes crossing it are hurt, and enemy shots snag on it | Glyphs become a web: two chalked in a doorway close it |
+| Undertaker's Ledger | Passive | Every foe shows its health as a row of candle flames above it; a boss's weak moment glows | The mage reads the dead like a ledger; a first taste of the bestiary (M7) |
+| Salt Circle | Passive | Standing still for a second, a ring of salt forms at the mage's feet; walking foes can't cross it until the mage steps out | An old ward against the restless; hounds break their charge on it |
+| Echo Stone | Passive | A bolt that strikes a wall leaves an echo that fires once more, half a second later, back the way it came | The crypt answers the cantrip; walls become allies |
+| Mirrored Shade | Passive | A shadow of the mage mirrors their steps across the middle of the room and casts when they cast | The mage's own shade, bound from the Ferryman's side of the river |
+| Widow's Veil | Cursed | Gift: foes lose the mage often, and their shots scatter wider. Price: the hearts in the HUD are veiled; the mage no longer sees how hurt they are | Hidden from the dead, and from oneself |
+| Gravemonger's Contract | Cursed | Gift: every foe put to rest drops an obol. Price: room clears never drop hearts, and hearts cost twice as much at the merchant | A bargain with those who rob the dead; the shrine cleanses it (M2 step 5) |
+| The Last Rite | Cursed | Gift: once per floor, a killing blow is refused and the mage rises with half a heart. Price: one heart container less | A rite read too early; the mage walks with one foot in the grave |

@@ -30,6 +30,7 @@ export const G = {
     boss: 'warden' as BossType, bossesMet: [] as BossType[],
     /** Artifacts offered on this floor, and guaranteed sources still to come (see items/artifacts.ts). */
     budget: { used: 0, reserved: 0 },
+    /** Foes put to rest towards the Leech Jar's next half heart. */ leech: 0,
   },
   shake: 0,
   simClock: 0,

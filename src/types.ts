@@ -81,6 +81,7 @@ export interface Room {
   /** The merchant's wares and the shade himself. */ wares?: WareSpot[]; shade?: THREE.Group;
   /** A locked vault forced open by blasts: its warden, a champion, rises when the mage comes in. */ warden?: boolean;
   /** A secret room, once one of its walls has been blasted open. */ found?: boolean;
+  /** The mage was hurt during this room's fight (Unbroken Oath). */ hurt?: boolean;
 }
 
 export interface Enemy extends Circle {
@@ -104,6 +105,8 @@ export interface Bolt extends Circle {
   /** Enemies it may still pass through, and walls it may still bounce off. */ pierce: number; bounces: number;
   returning: boolean; /** Enemies already hit on this pass. */ hit: Set<Enemy>;
   /** Burst bolts from artifacts (Knucklebone, Bell): straight, weaker, no focus pattern. */ secondary: boolean;
+  /** Raven's Eye: this bolt strikes thrice as hard. */ crit?: boolean;
+  /** Serpent Rod: the straight line the bolt weaves about, and the sideways direction it swings in. */ wave?: { ox: number; oz: number; px: number; pz: number };
 }
 export interface Shot extends Circle { y: number; vx: number; vz: number; color: number; mesh: THREE.Group }
 export interface Particle { m: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>; vx: number; vy: number; vz: number; life: number }

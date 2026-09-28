@@ -283,6 +283,9 @@ The generator places the three guaranteed sources first, then gives artifacts to
 | Twin-Headed Staff | Two parallel bolts, −30% damage each | M1 |
 | Drowned Orb | Bolts bounce off walls twice, +35% range | M1 |
 | Shepherd's Crook | Bolts fly out and back like a boomerang, passing through foes and hitting each twice, −20% damage | M1 |
+| Mourner's Censer | Three bolts fan out, −40% damage each and −40% range | M2 (added 2026-09-28) |
+| Gravewarden's Spear | One slow, heavy, larger bolt: ×2.4 damage, passes through every foe, casts 1.9× slower | M2 (added 2026-09-28) |
+| Serpent Rod | Bolts weave from side to side like a serpent, +10% damage | M2 (added 2026-09-28) |
 | Emberwood Wand | Bolts apply Burn, −10% range | M3 |
 | Tome of Whispers | Slow bolts that curve towards enemies, +40% damage | M3 |
 
@@ -298,6 +301,14 @@ The generator places the three guaranteed sources first, then gives artifacts to
 | Saint's Knucklebone | Enemies burst into four bolts (north, east, south, west) when they die | M1 |
 | Mourning Bell | When the mage is hit, a bell tolls and a ring of 8 bolts bursts outwards | M1 |
 | Mason's Chisel | Bolts crack rocks; three hits break one | M1 |
+| Raven's Eye | One cast in five is a strong one: bigger white-hot bolts that strike thrice as hard | M2 (added 2026-09-28) |
+| Cracked Mirror | A bolt that strikes a foe splits into two halves that fly on either side of it | M2 (added 2026-09-28) |
+| Hawk-Bone Fletching | Bolts fly 35% faster and 30% farther | M2 (added 2026-09-28) |
+| Ram's Skull | Bolts knock foes back 2.6 times as far, damage +0.5 | M2 (added 2026-09-28) |
+| Leech Jar | Every tenth foe put to rest gives back half a heart, as a red mote | M2 (added 2026-09-28) |
+| Candle Moth | A pale moth flutters about the mage and stings the nearest foe with a lesser bolt every second or so | M2 (added 2026-09-28) |
+| Weeping Skull | A skull circles the mage, swallowing enemy shots it meets and biting foes it passes | M2 (added 2026-09-28) |
+| Unbroken Oath | A fight won without being hurt returns half a heart | M2 (added 2026-09-28) |
 | Mana Lantern | Max mana +40 | M3 |
 | Candle of the Vigil | Each room clear refills 25 mana | M3 |
 | Frostbitten Ring | Every 5th cantrip bolt applies Chill | M3 |
@@ -312,6 +323,8 @@ The generator places the three guaranteed sources first, then gives artifacts to
 | --- | --- | --- | --- |
 | Mask of the Drowned | Cantrip damage doubled | Vision limited to a circle around the mage | M1 |
 | Chain of the Penitent | Invulnerability after a hit lasts 3 s | Move speed −25% | M1 |
+| Leaden Heart | Two more heart containers | Bolts reach 40% less far | M2 (added 2026-09-28) |
+| Bloodied Covenant | Damage +2.5 | Every fight the mage begins takes half a heart (never the last) | M2 (added 2026-09-28) |
 | Crown of Thorns | Spell damage +50% | Max health −1 heart | M3 |
 | Hungering Tome | Every kill refills 5 mana | Mana doesn't regenerate on its own | M3 |
 
@@ -320,7 +333,8 @@ The generator places the three guaranteed sources first, then gives artifacts to
 - **Every artifact is noticeable.** Picking one up changes something the player sees (the bolts, the mage, the HUD or the room), never only a hidden number. The pickup banner names it and says what it does in a few words.
 - **The cantrip combines automatically.** The focus sets the pattern (how many bolts, and their path); passives add modifiers (damage, size, fire rate, piercing, triggers). There are no hand-written pairings: Twin-Headed Staff with Bone Lens fires two piercing bolts, Shepherd's Crook with Bone Lens pierces on the way out and back.
 - **Taking a focus leaves the old one on the pedestal,** so the player can swap back.
-- **Each artifact appears at most once per run.** If a source's pool is empty, it falls back to any unseen artifact, then to a heart. With 13 M1 items and up to 15 offers per run, runs differ mostly in order and choice; more artifacts are the cheapest way to add variety, since they are data.
+- **Each artifact appears at most once per run.** If a source's pool is empty, it falls back to any unseen artifact, then to a heart. M1 had 13 items against up to 15 offers per run; 13 more joined on 2026-09-28 (26 in all, besides the starting wand) so play-tests see different runs, and more are brainstormed in `docs/ideas.md`. More artifacts are the cheapest way to add variety.
+- **Companions** (the Candle Moth, the Weeping Skull) circle the mage and act on their own; they belong to their artifact and leave with it.
 
 **Sets** (from M3, when their pieces exist)
 

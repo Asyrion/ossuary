@@ -9,14 +9,17 @@ import type { Rng } from '../rng';
 export type Pool = 'treasure' | 'ordeal' | 'boss' | 'altar' | 'drop' | 'merchant' | 'secret' | 'vault';
 export type ArtifactKind = 'focus' | 'passive' | 'cursed';
 /** Behaviours implemented in code, switched on by artifacts. */
-export type Effect = 'pitWalker' | 'fullHeal' | 'deathBurst' | 'hurtRing' | 'rockBreaker' | 'vision';
+export type Effect = 'pitWalker' | 'fullHeal' | 'deathBurst' | 'hurtRing' | 'rockBreaker' | 'vision'
+  | 'crit' | 'split' | 'leech' | 'moth' | 'orbital' | 'unhurtHeal' | 'bloodTithe';
 /** Additive unless the name ends in Mul (multiplied). */
-export type StatKey = 'damage' | 'damageMul' | 'fireDelayMul' | 'speed' | 'speedMul' | 'boltScale' | 'hearts' | 'invuln' | 'pierce';
-export type BoltPath = 'straight' | 'bounce' | 'boomerang';
+export type StatKey = 'damage' | 'damageMul' | 'fireDelayMul' | 'speed' | 'speedMul' | 'boltScale' | 'hearts' | 'invuln' | 'pierce'
+  | 'shotSpeedMul' | 'rangeMul' | 'knockbackMul';
+export type BoltPath = 'straight' | 'bounce' | 'boomerang' | 'wave';
 
 export interface FocusPattern {
   /** Bolts per cast, side by side. */ count: number;
   /** Distance between side-by-side bolts. */ spread: number;
+  /** Angle between bolts fanning out (radians); 0 keeps them side by side. */ fan: number;
   damageMul: number; rangeMul: number; path: BoltPath;
   /** Wall bounces for the bounce path. */ bounces: number;
 }
@@ -28,8 +31,9 @@ export interface ArtifactDef {
 }
 
 export const POOLS: Pool[] = ['treasure', 'ordeal', 'boss', 'altar', 'drop', 'merchant', 'secret', 'vault'];
-const EFFECTS: Effect[] = ['pitWalker', 'fullHeal', 'deathBurst', 'hurtRing', 'rockBreaker', 'vision'];
-const STAT_KEYS: StatKey[] = ['damage', 'damageMul', 'fireDelayMul', 'speed', 'speedMul', 'boltScale', 'hearts', 'invuln', 'pierce'];
+const EFFECTS: Effect[] = ['pitWalker', 'fullHeal', 'deathBurst', 'hurtRing', 'rockBreaker', 'vision', 'crit', 'split', 'leech', 'moth', 'orbital', 'unhurtHeal', 'bloodTithe'];
+const STAT_KEYS: StatKey[] = ['damage', 'damageMul', 'fireDelayMul', 'speed', 'speedMul', 'boltScale', 'hearts', 'invuln', 'pierce', 'shotSpeedMul', 'rangeMul', 'knockbackMul'];
+const PATHS: BoltPath[] = ['straight', 'bounce', 'boomerang', 'wave'];
 
 export const ARTIFACT_DEFS = artifactsData as ArtifactDef[];
 export const ARTIFACTS = new Map(ARTIFACT_DEFS.map(a => [a.id, a]));
@@ -43,13 +47,14 @@ export function artifact(id: string) {
 
 export function focusPattern(def: ArtifactDef): FocusPattern {
   const f = def.focus ?? {};
-  return { count: f.count ?? 1, spread: f.spread ?? .34, damageMul: f.damageMul ?? 1, rangeMul: f.rangeMul ?? 1, path: f.path ?? 'straight', bounces: f.bounces ?? 0 };
+  return { count: f.count ?? 1, spread: f.spread ?? .34, fan: f.fan ?? 0, damageMul: f.damageMul ?? 1, rangeMul: f.rangeMul ?? 1, path: f.path ?? 'straight', bounces: f.bounces ?? 0 };
 }
 
 export interface BaseStats { damage: number; fireDelay: number; speed: number; shotSpeed: number; range: number; hearts: number; invuln: number }
 export interface Stats {
   damage: number; fireDelay: number; speed: number; shotSpeed: number; range: number;
   boltScale: number; boltColor: number; pierce: number;
+  /** How hard bolts knock foes back, as a multiple. */ knockback: number;
   /** Heart containers, counted in halves like hp. */ maxHp: number;
   invuln: number; pattern: FocusPattern; effects: Set<Effect>;
 }
@@ -58,7 +63,7 @@ export const DEFAULT_BOLT_COLOR = 0xffcf7a;
 /** The mage's stats for a focus plus the other artifacts held (in pickup order). */
 export function computeStats(focusId: string, itemIds: readonly string[], base: BaseStats): Stats {
   const focus = artifact(focusId); const pattern = focusPattern(focus);
-  const add: Record<StatKey, number> = { damage: 0, damageMul: 1, fireDelayMul: 1, speed: 0, speedMul: 1, boltScale: 0, hearts: 0, invuln: 0, pierce: 0 };
+  const add: Record<StatKey, number> = { damage: 0, damageMul: 1, fireDelayMul: 1, speed: 0, speedMul: 1, boltScale: 0, hearts: 0, invuln: 0, pierce: 0, shotSpeedMul: 1, rangeMul: 1, knockbackMul: 1 };
   const effects = new Set<Effect>(); let boltColor = DEFAULT_BOLT_COLOR;
   for (const id of [focusId, ...itemIds]) {
     const def = artifact(id);
@@ -72,9 +77,9 @@ export function computeStats(focusId: string, itemIds: readonly string[], base: 
     damage: (base.damage + add.damage) * add.damageMul * pattern.damageMul,
     fireDelay: Math.max(.08, base.fireDelay * add.fireDelayMul),
     speed: (base.speed + add.speed) * add.speedMul,
-    shotSpeed: base.shotSpeed,
-    range: base.range * pattern.rangeMul,
-    boltScale: 1 + add.boltScale, boltColor, pierce: add.pierce,
+    shotSpeed: base.shotSpeed * add.shotSpeedMul,
+    range: base.range * pattern.rangeMul * add.rangeMul,
+    boltScale: 1 + add.boltScale, boltColor, pierce: add.pierce, knockback: add.knockbackMul,
     maxHp: Math.max(1, base.hearts + add.hearts) * 2,
     invuln: base.invuln + add.invuln,
     pattern, effects,
@@ -103,6 +108,7 @@ export function validateArtifacts(defs: ArtifactDef[] = ARTIFACT_DEFS): string[]
     for (const e of a.effects ?? []) if (!EFFECTS.includes(e)) errs.push(`${at} has unknown effect "${e}"`);
     for (const k of Object.keys(a.stats ?? {})) if (!STAT_KEYS.includes(k as StatKey)) errs.push(`${at} has unknown stat "${k}"`);
     if ((a.kind === 'focus') !== !!a.focus) errs.push(`${at}: foci, and only foci, have a focus pattern`);
+    if (a.focus?.path && !PATHS.includes(a.focus.path)) errs.push(`${at} has unknown path "${a.focus.path}"`);
     if (!/^#[0-9a-f]{6}$/i.test(a.color) || (a.boltColor && !/^#[0-9a-f]{6}$/i.test(a.boltColor))) errs.push(`${at} has a bad colour`);
     if (!a.start && !a.pools.length) errs.push(`${at} is in no pool, so it can never appear`);
   }

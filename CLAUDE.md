@@ -38,7 +38,10 @@ generated three-floor runs. See `README.md` for scripts and deployment.
 - Artifacts: `src/items/artifactData.ts` (pure: data, `computeStats` combining, picking) and
   `src/items/artifacts.ts` (pedestals, taking and focus swap, per-floor budget). The mage's stats are
   `player.stats`, recomputed on every pickup; read those, not `CFG.hero`, for anything artifacts change.
-  The cantrip pipeline is in `src/combat/projectiles.ts`.
+  The cantrip pipeline is in `src/combat/projectiles.ts` (fans, the serpent's weave, strong casts, split
+  bolts); companions that artifacts bind (the Candle Moth, the Weeping Skull) in `src/combat/familiars.ts`.
+  New artifacts are data plus, for a new mechanic, an `Effect` or stat key in `artifactData.ts`, and an icon
+  in `hud.ts` (26 artifacts and the starting wand; 15 more ideas in `docs/ideas.md`).
 - Tests: `npm run test:unit` (Vitest: generator rules on hundreds of seeds, every template validated),
   `npm run test:e2e` (Playwright smoke tests), `npm test` runs both.
 - URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`

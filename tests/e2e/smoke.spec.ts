@@ -437,6 +437,26 @@ test('a cracked wall rings hollow to a bolt, a glyph breaks it open, and the sec
   expect(errors).toEqual([]);
 });
 
+test('new artifacts: the censer fans three bolts, the moth stings foes, and the skull circles the mage', async ({ page }) => {
+  const errors = await start(page, '?room=crypt_b&seed=ART01&give=mourners_censer,candle_moth,weeping_skull');
+  const r = await page.evaluate(() => {
+    type B = { secondary: boolean; vx: number; vz: number };
+    const g = (window as unknown as W).__game as unknown as Omit<G5, 'bolts' | 'enemies'> & { bolts: B[]; enemies: { hp: number; dead?: boolean }[] };
+    g.warp(1); g.sim(.8); g.player.x = g.current.cx; g.player.z = g.current.cz + 2;
+    g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); g.sim(.05); g.keys.delete('ArrowUp'); g.arrowOrder.length = 0;
+    const cast = g.bolts.filter(b => !b.secondary);
+    const angles = cast.map(b => Math.round(Math.atan2(b.vx, -b.vz) * 100) / 100);
+    let stings = 0; const hp0 = g.enemies.reduce((a, e) => a + e.hp, 0);
+    for (let t = 0; t < 5; t += .1) { g.player.invuln = 99; g.sim(.1); stings = Math.max(stings, g.bolts.filter(b => b.secondary).length); }
+    return { cast: cast.length, fanned: new Set(angles).size, stings, hurt: hp0 > g.enemies.filter(e => !e.dead).reduce((a, e) => a + e.hp, 0) };
+  });
+  expect(r).toEqual({ cast: 3, fanned: 3, stings: expect.any(Number), hurt: true });
+  expect(r.stings).toBeGreaterThan(0); // the moth's lesser bolts
+  await page.evaluate(() => (window as unknown as W).__game.sim(.05, true));
+  await page.screenshot({ path: 'test-results/smoke-new-artifacts.png' });
+  expect(errors).toEqual([]);
+});
+
 /** Walk from the start room into the test vault's sealed door; returns the seal and the door. */
 const walkToVault = () => {
   const g = (window as unknown as W).__game as unknown as G5, P = g.player, d = g.current.doors.find(x => x.seal)!;
