@@ -28,6 +28,8 @@ Ossuary is a top-down roguelike with RPG elements, set in the high/dark fantasy 
 | No character growth inside a run beyond items | XP, levels, attributes and boon choices |
 | Rooms are obstacles | Rooms react to magic: oil burns, water conducts, braziers empower |
 | Bombs: placed, then wait | Blast glyphs: chalked runes the cantrip sets off from afar, chaining and burning in the bolts' colour |
+
+**Rule of thumb:** when a system is borrowed from Isaac, it gets a magic take. It answers to the cantrip, glyphs, spells, schools or the room, or to the dead of Eda (souls, shades, the Ferryman), never only to walking over it and waiting. Unscheduled ideas in that spirit, such as more pickup families, are collected in `docs/ideas.md`.
 | Unlocks are new items | The Sanctum: a hub where knowledge persists between runs |
 
 **Scope:** hobby project for desktop browsers, played with keyboard or gamepad. A mobile version may come later and is not designed for until then. No monetisation plans.
@@ -492,7 +494,7 @@ Between two cells of the same room, the two wall tiles become floor, which is wh
 
 ## Pickups and room types
 
-Pickups feed the three resources of a run (health, mana, gold) plus reagents for alchemy. New room types give the magic systems a place on the map.
+Pickups feed the three resources of a run (health, mana, gold) plus reagents for alchemy. New room types give the magic systems a place on the map. More pickup families, each a magic take on something Isaac has (scrolls for cards, talismans for trinkets, soul motes, coloured chalk, shades and others), are brainstormed in `docs/ideas.md` for later milestones.
 
 | Pickup | Effect | Arrives |
 | --- | --- | --- |
@@ -538,7 +540,7 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 - The blast (1.5 tiles) deals 10 damage to every foe in reach (bosses too), knocks them back, breaks rocks (not pillars or tombs), urns and cracked walls, snuffs out enemy shots and sets off other glyphs in reach, so glyphs chain. A mage caught in it loses a full heart.
 - It burns in the colour of the mage's bolts, so artifacts that change the bolts show in the glyphs too. Idea for M3: a glyph takes the school of the mage's focus, so an Ember glyph leaves burning ground and a Frost glyph chills.
 
-**The merchant** (1 per floor, in a dead end). A hooded trader (placeholder) with 3 or 4 items per visit; the first is an artifact while the floor's budget allows.
+**The merchant** (1 per floor, in a dead end). A hooded trader (placeholder): a bound shade who deals in the obols of the dead, with 3 or 4 items per visit; the first is an artifact while the floor's budget allows. His wares float in ward circles that paying breaks, and his shop is warded: bolts and glyph blasts fizzle there, so there is no fighting or robbing him.
 
 | Item | Price | Arrives |
 | --- | --- | --- |
@@ -549,19 +551,20 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 | Unknown potion / reagent | 4 / 2 | M5 |
 | Rune | 10 | M6 |
 
-**Secret room** (1 per floor). Entered through a cracked wall that a glyph's blast breaks open. The hints are a hairline crack and dust drifting from it. It holds obols, glyphs and keys, or an artifact from the secret pool, where cursed artifacts are common. It isn't shown on the minimap until found.
+**Secret room** (1 per floor). Entered through a cracked wall that a glyph's blast breaks open. The hints are a hairline crack and dust drifting from it, and the cantrip divines them: a bolt striking a cracked wall rings hollow, with a chime and a puff of dust. Inside is a forgotten mage's cell in pale blue light. It holds obols, glyphs and keys, or an artifact from the secret pool, where cursed artifacts are common. It isn't shown on the minimap until found.
 
-**Locked vault** (0 or 1 per floor, in a dead end). One key opens the padlocked door; inside is an artifact while the floor's budget allows, otherwise a hoard of obols and glyphs.
+**Locked vault** (0 or 1 per floor, in a dead end). Its door is sealed by a ward that one bone key unbinds. Two glyph blasts can force the ward too, but forcing it wakes the vault's warden: a champion rises inside to guard the prize. Behind the door, inside is an artifact while the floor's budget allows, otherwise a hoard of obols and glyphs.
 
-**Containers.** None of them hold artifacts, so the per-floor budget stays readable.
+**Containers.** None of them hold artifacts, so the per-floor budget stays readable. A broken urn lets out a puff of grave dust, and the soul inside rises as whatever it held. A reliquary chest is sealed by a ward: a bone key unbinds it cleanly, and a glyph's blast breaks it too but burns half of what's inside, so the player chooses between a key and a glyph.
 
 | Container | Opened by | Holds | Found |
 | --- | --- | --- | --- |
-| Urn | Bolts or blasts | Usually nothing; sometimes a coin or half a heart | Room templates |
+| Urn | Bolts or blasts | Usually nothing; sometimes an obol or half a heart | Room templates |
+| Rune-sealed urn | Only a glyph's blast (bolts glance off) | Better: obols, a glyph stone or a bone key | Room templates |
 | Coffer | Walking into it | 1 to 3 obols, keys, glyphs or hearts | Room clears, secret rooms |
-| Reliquary chest | A key | Better loot: purses, several keys or glyphs, a full heart | Room clears, secret rooms, vaults |
+| Reliquary chest | A bone key, or a blast that burns half of it | Better loot: purses, several keys or glyphs, a full heart | Room clears, secret rooms, vaults |
 
-**Shrine cleansing** (the shrine on floor 2). For 10 coins, the shrine cleanses one cursed artifact: the drawback goes and the gift is halved (see Artifacts). The heart-for-boon bargain joins in M6.
+**Shrine cleansing** (the shrine on floor 2). For 10 obols, the shrine cleanses one cursed artifact: the drawback goes and the gift is halved (see Artifacts). The mage chooses which: each cursed artifact held gets an offering stone. The curse fights back: walking into its stone draws it out as a wisp that must be put down within 10 s inside the shrine's circle. Then the artifact is cleansed and the obols are paid; if the wisp escapes, the curse returns and the mage can try again. The heart-for-boon bargain joins in M6.
 
 **Artifacts that bend the economy** (join the pools in M2; placeholder names)
 
@@ -575,7 +578,7 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 | Grave Lantern | Cracked walls glow when you enter a room, and secret rooms show on the minimap before they're found |
 | Pedlar's Scale | Merchant prices −30% |
 
-**Ideas for later** (not scheduled): an alms box in chapel rooms where donated coins buy small blessings; sarcophagi that hold loot, or a Rotling; a bone-caster who throws the dice of the dead for coins.
+**Ideas for later** (not scheduled; more in `docs/ideas.md`): an alms box in chapel rooms where donated coins buy small blessings; sarcophagi that hold loot, or a Rotling; a bone-caster who throws the dice of the dead for coins.
 
 ## Art, camera and audio
 

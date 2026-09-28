@@ -20,7 +20,8 @@ shrine cleansing; urns and chests.
    artifact falls back: the merchant sells only wares, the vault holds a hoard, the secret room holds
    coffers and a chest, and the bone altar isn't placed.
 4. **Shrine** (proposed; can change before step 5): one offering stone per cursed artifact held; walking
-   into a stone pays 10 obols and cleanses that artifact. Too few obols, and the shrine refuses.
+   into a stone starts the cleansing (the curse fights back, step 5), paid with 10 obols when it's done.
+   Too few obols, and the shrine refuses.
 5. **Artifacts:** the three from the GDD (Sexton's Keyring, Miser's Purse, Powder Horn) plus four more, to
    give the merchant, vault and secret pools enough to draw from (20 artifacts in all). Today those pools
    are empty, and 13 artifacts against up to 15 offers per run means nearly every run offers nearly all
@@ -35,8 +36,9 @@ shrine cleansing; urns and chests.
 
 6. **Magic first, even in M2** (owner, at step 1): Isaac's bombs become blast glyphs, runes the mage chalks
    on the floor and the cantrip sets off from afar; coins become grave obols that drift to the mage, keys
-   bone keys. Powder Horn and Sapper's Wick are renamed Glyphwright's Chalk and Warding Band. Later steps
-   keep looking for the magic take on each Isaac idea (GDD: What separates Ossuary from an Isaac clone).
+   bone keys. Powder Horn and Sapper's Wick are renamed Glyphwright's Chalk and Warding Band. Each later
+   step has its magic takes, marked below (the owner asked to keep expanding them); future pickup families
+   are brainstormed in `docs/ideas.md`.
 
 ## Groundwork (all steps)
 
@@ -71,7 +73,13 @@ shrine cleansing; urns and chests.
 - [ ] Urns (`u` in templates): block walking and bolts; one bolt or a blast breaks them; usually empty,
       sometimes an obol or half a heart
 - [ ] Coffers (open when walked into) and reliquary chests (need a key) as rarer room-clear drops
-- [ ] Urns added to 20 or more existing templates
+- [ ] Magic take: a broken urn lets out a puff of grave dust, and the soul inside rises as the obol or half
+      heart it held
+- [ ] Magic take: rune-sealed urns (their own template character): bolts glance off, only a glyph's blast
+      breaks them, and they hold better (obols, a glyph stone or a bone key)
+- [ ] Magic take: a reliquary chest is sealed by a ward; a bone key unbinds it cleanly, and a glyph's blast
+      breaks it too but burns half of what's inside (a key or a glyph: the player chooses)
+- [ ] Urns and sealed urns added to 20 or more existing templates
 - [ ] Placeholder sounds: urn smash, coffer and chest opening, "locked" when a chest needs a key
 
 ## Step 3: Merchant and locked vault
@@ -83,7 +91,12 @@ shrine cleansing; urns and chests.
       buys it, or it refuses (too few obols, or a heart at full health)
 - [ ] Locked vault: a padlocked iron door that a key opens (refused without one); inside, an artifact while
       the budget allows, otherwise a hoard of obols and glyphs and a reliquary chest
-- [ ] Door styles (a lantern above the merchant's door, padlocked iron for the vault) and minimap marks
+- [ ] Magic take: the merchant is a bound shade who deals in the obols of the dead; his wares float in
+      ward circles that paying breaks, and his shop is warded, so bolts and glyph blasts fizzle there (no
+      fights and no robbery in the shop)
+- [ ] Magic take: the vault's door is a ward; a bone key unbinds it, and two glyph blasts can force it, but
+      forcing it wakes the vault's warden: a champion rises inside to guard the prize
+- [ ] Door styles (a lantern above the merchant's door, the vault's warded door) and minimap marks
 - [ ] Budget order for optional sources (decision 3); existing artifacts join the merchant and vault pools
 - [ ] Placeholder sounds: purchase, refusal, unlocking
 
@@ -92,6 +105,9 @@ shrine cleansing; urns and chests.
 - [ ] Generator: one per floor in an empty cell touching two or more rooms (never the boss room), with a
       hidden doorway on every edge it shares with them
 - [ ] Cracked walls: a hairline crack and dust drifting from it; a blast opens the doorway on both sides
+- [ ] Magic take: the cantrip divines them: a bolt striking a cracked wall rings hollow, with a chime and a
+      puff of dust, so the cantrip finds secret rooms and a glyph opens them
+- [ ] Magic take: inside, a forgotten mage's cell in pale blue light
 - [ ] Hidden from the minimap until found; holds obols, coffers and a reliquary chest, or an artifact from
       the secret pool (often cursed)
 - [ ] Placeholder sounds: crumbling wall, a short sting when a secret room is found
@@ -103,6 +119,9 @@ shrine cleansing; urns and chests.
       halves the gift (Mask of the Drowned: damage ×1.5, no darkness; Chain of the Penitent: +1 s after a
       hit, no slowness); unit-tested in `computeStats`
 - [ ] Offering stones (decision 4); cleansed artifacts lose their red ring in the HUD and on the end screen
+- [ ] Magic take: the curse fights back. Walking into an offering stone draws the curse out as a wisp; put
+      it down within 10 s inside the shrine's circle and the artifact is cleansed (the obols are paid then);
+      if it escapes, the curse returns and the mage can try again
 - [ ] Placeholder sounds: cleansing, refusal
 
 ## Step 6: Economy artifacts, balance and polish
@@ -110,6 +129,10 @@ shrine cleansing; urns and chests.
 - [ ] Sexton's Keyring (+3 keys; the vault opens for free once per floor), Miser's Purse (+0.5 cantrip
       damage per 10 obols held), Glyphwright's Chalk (+5 glyphs; blasts 50% wider), Ferryman's Obol,
       Warding Band, Grave Lantern and Pedlar's Scale (decision 5); pools and icons
+- [ ] Magic take: each economy artifact shows in the magic: Miser's Purse makes the bolts glint gold,
+      brighter with every 10 obols; Glyphwright's Chalk widens the glyph's reach ring; Warding Band rings
+      the mage's feet when a glyph is chalked; Grave Lantern makes cracked walls glow and their hollow ring
+      heard from anywhere in the room
 - [ ] End screen: obols found
 - [ ] Balance pass after play-tests (drop weights, prices, economy numbers); GDD and CLAUDE.md brought up
       to date
