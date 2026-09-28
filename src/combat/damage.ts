@@ -13,20 +13,25 @@ import { spawnHeart, spawnPickup } from '../items/pickups';
 import { rollEnemyDrop } from '../items/loot';
 import { freeSpotNear } from '../world/rooms';
 import { gainMana } from '../magic/spells';
+import { damageTakenMul } from '../magic/status';
+import { dummyHit, shockLeap } from '../magic/statusFx';
 
 /** Hurt a foe, knocking it along (dx, dz); `kbMul` scales the knockback (the Ram's Skull on bolts); `by` says
     what struck it (a foe the cantrip puts to rest gives mana back). */
 export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul = 1, by?: Enemy['lastHit']) {
   if (e.spawn > 0 || e.dead || e.hidden) return;
+  dmg *= damageTakenMul(e.status); // a frozen foe cracks
   e.hp -= dmg; e.flash = .09; e.lastHit = by;
+  if (e.type === 'dummy') { e.hp = e.maxHp; dummyHit(e, dmg); } // the training dummy never falls
+  shockLeap(e, dmg); // a shocked foe passes part of the hit on
   const kb = (e.isBoss ? .6 : 2.6) * kbMul; e.kx += dx * kb; e.kz += dz * kb;
   Sfx.hit();
   if (e.isBoss) updateBossBar(e);
   if (e.hp <= 0) killEnemy(e);
 }
 
-const GIB_COLOR: Record<keyof typeof CFG.enemy, number> = { rotling: 0x7f8a60, wisp: 0xb07bff, hound: 0xd8ccb2, warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a };
-const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = { rotling: 0x1d2414, wisp: null, hound: 0x241812, warden: 0x2a0a06, abbess: 0x0c2622, pyre: 0x1a0c06 };
+const GIB_COLOR: Record<keyof typeof CFG.enemy, number> = { rotling: 0x7f8a60, wisp: 0xb07bff, hound: 0xd8ccb2, dummy: 0xc8a860, warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a };
+const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = { rotling: 0x1d2414, wisp: null, hound: 0x241812, dummy: null, warden: 0x2a0a06, abbess: 0x0c2622, pyre: 0x1a0c06 };
 
 function killEnemy(e: Enemy, withBoss = false) {
   e.dead = true; scene.remove(e.group); disposeTree(e.group); G.stats.kills++;

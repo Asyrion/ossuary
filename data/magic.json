@@ -1,0 +1,9 @@
+{
+  "burn": { "dps": 2.5, "tick": 0.5 },
+  "chill": { "slowPerStack": 0.22, "minSpeed": 0.3, "stackTime": 3, "freezeAt": 3, "freezeTime": 2, "frozenDamageMul": 1.5, "refreezeGuard": 1.5, "bossMaxStacks": 2 },
+  "shock": { "stun": 0.35, "leapShare": 0.5, "leapRange": 2.8, "bossStunGuard": 3 },
+  "reactions": {
+    "shatter": { "damage": 12, "shards": 6, "shardDamage": 5, "shardRange": 2.6 },
+    "overload": { "damage": 10, "radius": 1.8, "knockback": 6 }
+  }
+}

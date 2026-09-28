@@ -16,6 +16,7 @@ import { updateVaultSeals } from './world/vault';
 import { updateSecretWalls } from './world/secret';
 import { updateShrine } from './world/shrine';
 import { updateMagic } from './magic/spells';
+import { updateStatusFx, updateStatuses } from './magic/statusFx';
 import { updateFamiliars } from './combat/familiars';
 import { pollGamepad, type InputActions } from './input';
 import { updateHud, updateVision } from './ui/hud';
@@ -46,7 +47,7 @@ export function step(dt: number) {
       if (tr.t >= tr.dur) { G.trans = null; player.vx *= .5; player.vz *= .5; enterRoom(tr.nb); }
     } else if (G.state === 'play') {
       G.stats.time += dt;
-      updatePlayer(dt); checkAmbush(); updateEnemies(dt); updateBolts(dt); updateShots(dt); updateGlyphs(dt); updatePickups(dt);
+      updatePlayer(dt); checkAmbush(); updateEnemies(dt); updateStatuses(dt, now); updateBolts(dt); updateShots(dt); updateGlyphs(dt); updatePickups(dt);
       // in rooms larger than the view the camera follows the mage, stopping at the walls
       const t = cameraTargetFor(G.current, player.x, player.z), k = 1 - Math.exp(-8 * dt);
       camTarget.x += (t.x - camTarget.x) * k; camTarget.z += (t.z - camTarget.z) * k;
@@ -59,7 +60,7 @@ function updateWorldFx(dt: number, now: number) {
   updateRoomFx(dt, now); updateArtifacts(now); updateTrapdoor(dt); updateShop(now); updateVaultSeals(dt, now); updateSecretWalls(dt, now);
   updateFamiliars(dt, now, G.state === 'play' && !G.trans);
   updateShrine(dt, now, G.state === 'play' && !G.trans);
-  updateMagic(dt, G.state === 'play' && !G.trans);
+  updateMagic(dt, G.state === 'play' && !G.trans); updateStatusFx(dt);
   const tf = .92 + Math.sin(now * 13) * .05 + Math.sin(now * 23) * .04;
   updateTorchLights(G.current.torches, player.x, player.z, dt, tf);
   G.shake = Math.max(0, G.shake - dt * 1.4);

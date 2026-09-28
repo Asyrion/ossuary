@@ -64,8 +64,8 @@ mage's hand; the pages of spells given up stay behind as ash-edged leaves that c
 - [x] Spells as data: `data/spells.json` (school, shape, mana, cooldown, damage, statuses, tags, colour, icon,
       lore) read by a pure `src/magic/spellData.ts` with validation and unit tests; `shape` picks the code in
       `src/magic/spells.ts`
-- [ ] Statuses and reactions as a pure module (`src/magic/status.ts`): stacks, durations, ticks, boss rules and
-      which reaction two statuses make, unit-tested without three.js; tuning in `data/magic.json` or `CFG`
+- [x] Statuses and reactions as a pure module (`src/magic/status.ts`): stacks, durations, ticks, boss rules and
+      which reaction two statuses make, unit-tested without three.js; tuning in `data/magic.json`
 - [ ] Spells and statuses use the existing pipelines: projectile spells through `projectiles.ts`, damage through
       `damageEnemy`, particles and decals through `fx.ts`, shared geometries and materials
 - [ ] Lore cards for spells and grimoire pages (the M2 lore card), and a spell icon for each
@@ -94,12 +94,21 @@ mage's hand; the pages of spells given up stay behind as ash-edged leaves that c
 
 ## Step 2: Status effects and reactions
 
-- [ ] Burn, Chill with freeze, Shock with stun and leap, as the pure module says; per-status looks on any enemy
-      (flames and embers, a frost tint and ice block, crackling sparks), readable on placeholder shapes and later
-      Tripo models
-- [ ] Boss rules: slowed but never frozen; stuns wear off faster
-- [ ] Shatter and Overload: the reaction, its burst, a signature sound, damage numbers from data
-- [ ] Training dummy in the dev menu; unit tests for every stack and reaction rule; browser test for both reactions
+- [x] Burn (seconds; 2.5 damage a second in half-second ticks), Chill (stacks, each 22% slower, thawing after
+      3 s; the third freezes for 2 s, a frozen foe takes ×1.5 damage, then 1.5 s before it can freeze again),
+      Shock (seconds of a mark; a 0.35 s stun; the next hit on a marked foe leaps half its damage to a
+      neighbour within 2.8 tiles) as `src/magic/status.ts` says; `src/magic/statusFx.ts` shows them on any foe
+      (embers rising from a burning one, a bluer tint with each chill stack, a block of ice round a frozen one,
+      sparks on a shocked one, all readable on placeholder shapes and later on Tripo models). Frozen and stunned
+      foes don't move, attack or hurt on contact; chilled ones move slower
+- [x] Boss rules: slowed (two stacks at most) but never frozen; stunned at most once every 3 s
+- [x] Shatter (Frost + Storm): the frozen foe takes a heavy blow and bursts into six ice shards that fly at its
+      neighbours; Overload (Ember + Storm): an explosion that hurts and throws back every foe near it. Each has a
+      burst, a flash or shards, a signature sound, and its name rising in the air so players learn them
+- [x] Training dummy in the dev menu (stands still, never falls, shows every hit and its statuses), buttons to
+      burn, chill or shock the foes in the room; `__game.spawn()`, `__game.inflict()`; unit tests for every
+      stack and reaction rule; browser test: freezing stops a foe, Shatter, Overload, a boss that won't freeze,
+      the dummy
 
 ## Step 3: The six spells
 

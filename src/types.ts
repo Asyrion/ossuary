@@ -2,6 +2,7 @@ import type * as THREE from 'three';
 import type { EnemyType } from './config';
 import type { BossConfig, PlannedRoom } from './world/generate';
 import type { FoeKind, Template } from './world/templates';
+import type { StatusState } from './magic/status';
 import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
 import type { Drop, Item, Ware } from './items/loot';
 
@@ -105,6 +106,8 @@ export interface Enemy extends Circle {
   /** Floor ring (the abbess's ripple, the knight's landing mark); where a leap started. */ marker?: THREE.Mesh; from?: Vec2;
   /** Called by a boss; falls when the boss does. */ servant?: boolean;
   /** What struck it last: the cantrip's kills give mana back. */ lastHit?: 'cantrip' | 'spell';
+  /** Status effects on it (magic/status.ts), the ice around it while frozen, and the training dummy's label. */
+  status?: StatusState; ice?: THREE.Mesh; label?: THREE.Sprite;
 }
 
 export interface Bolt extends Circle {

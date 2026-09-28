@@ -1,0 +1,91 @@
+/* Status effects and reactions (GDD: Magic system), as rules on plain numbers: pure (no three.js), shared by the
+   game and the unit tests. Tuning is in data/magic.json. The game side (magic/statusFx.ts) shows them and carries
+   out what the rules return.
+
+   Burn: damage over time; a new burn lasts at least as long as the old.
+   Chill: stacks that slow; the third freezes for a while (then a short guard against freezing again) and a frozen
+          foe takes more damage. Bosses are slowed but never frozen.
+   Shock: a mark that stuns briefly (bosses only now and then); the next hit on a marked foe leaps to a neighbour.
+   Reactions: Shatter (Frost + Storm) when a frozen foe is shocked or a shocked foe freezes; Overload (Ember + Storm)
+          when a burning foe is shocked or a shocked foe catches fire. Either uses up both statuses. */
+import magicData from '../../data/magic.json';
+import type { StatusKind } from './spellData';
+
+export const MAGIC = magicData;
+export type MagicTuning = typeof magicData;
+export type Reaction = 'shatter' | 'overload';
+
+export interface StatusState {
+  /** Seconds left burning, and until the next burn tick. */ burn: number; burnTick: number;
+  /** Chill stacks, and seconds before they thaw. */ chill: number; chillT: number;
+  /** Seconds left frozen, and of the guard against freezing again. */ frozen: number; guard: number;
+  /** Seconds left marked by Shock, left stunned, and (bosses) before a stun can land again. */ shock: number; stun: number; stunGuard: number;
+}
+export const newStatus = (): StatusState => ({ burn: 0, burnTick: 0, chill: 0, chillT: 0, frozen: 0, guard: 0, shock: 0, stun: 0, stunGuard: 0 });
+
+/** What applying a status did. */
+export interface Applied { froze?: boolean; stunned?: boolean; reaction?: Reaction }
+
+/** Apply `amount` of a status (Burn and Shock: seconds; Chill: stacks). */
+export function applyStatus(s: StatusState, kind: StatusKind, amount: number, boss: boolean, T: MagicTuning = MAGIC): Applied {
+  if (kind === 'burn') {
+    if (s.shock > 0) { s.shock = 0; return { reaction: 'overload' }; }
+    if (s.burn <= 0) s.burnTick = T.burn.tick;
+    s.burn = Math.max(s.burn, amount);
+    return {};
+  }
+  if (kind === 'chill') {
+    if (s.frozen > 0) return {};
+    s.chill += amount; s.chillT = T.chill.stackTime;
+    if (boss) { s.chill = Math.min(s.chill, T.chill.bossMaxStacks); return {}; }
+    if (s.chill < T.chill.freezeAt || s.guard > 0) { s.chill = Math.min(s.chill, T.chill.freezeAt - 1); return {}; }
+    s.chill = 0;
+    if (s.shock > 0) { s.shock = 0; return { reaction: 'shatter' }; } // frozen while shocked: it shatters at once
+    s.frozen = T.chill.freezeTime;
+    return { froze: true };
+  }
+  // shock
+  if (s.frozen > 0) { s.frozen = 0; s.guard = T.chill.refreezeGuard; return { reaction: 'shatter' }; }
+  if (s.burn > 0) { s.burn = 0; return { reaction: 'overload' }; }
+  s.shock = Math.max(s.shock, amount);
+  if (boss && s.stunGuard > 0) return {};
+  s.stun = T.shock.stun;
+  if (boss) s.stunGuard = T.shock.bossStunGuard;
+  return { stunned: true };
+}
+
+/** Run a status's clocks for `dt` seconds; returns the burn damage dealt meanwhile (in whole ticks). */
+export function tickStatus(s: StatusState, dt: number, T: MagicTuning = MAGIC): { burnDamage: number; thawed: boolean } {
+  let burnDamage = 0, thawed = false;
+  if (s.burn > 0) {
+    const live = Math.min(dt, s.burn);
+    s.burn -= dt; s.burnTick -= live;
+    while (s.burnTick <= 0 && live > 0) { burnDamage += T.burn.dps * T.burn.tick; s.burnTick += T.burn.tick; }
+    if (s.burn <= 0) { s.burn = 0; s.burnTick = 0; }
+  }
+  if (s.chill > 0) { s.chillT -= dt; if (s.chillT <= 0) { s.chill = 0; s.chillT = 0; } }
+  if (s.frozen > 0) { s.frozen -= dt; if (s.frozen <= 0) { s.frozen = 0; s.guard = T.chill.refreezeGuard; thawed = true; } }
+  else if (s.guard > 0) s.guard = Math.max(0, s.guard - dt);
+  if (s.shock > 0) s.shock = Math.max(0, s.shock - dt);
+  if (s.stun > 0) s.stun = Math.max(0, s.stun - dt);
+  if (s.stunGuard > 0) s.stunGuard = Math.max(0, s.stunGuard - dt);
+  return { burnDamage, thawed };
+}
+
+/** How fast a foe moves, as a share of its speed: not at all while frozen or stunned, slower for each chill stack. */
+export function speedFactor(s: StatusState | undefined, T: MagicTuning = MAGIC) {
+  if (!s) return 1;
+  if (s.frozen > 0 || s.stun > 0) return 0;
+  return Math.max(T.chill.minSpeed, 1 - s.chill * T.chill.slowPerStack);
+}
+/** Whether a foe can act (attack, shoot, charge): not while frozen or stunned. */
+export const canAct = (s: StatusState | undefined) => !s || (s.frozen <= 0 && s.stun <= 0);
+/** How much harder a foe is hit: a frozen one cracks. */
+export const damageTakenMul = (s: StatusState | undefined, T: MagicTuning = MAGIC) => s && s.frozen > 0 ? T.chill.frozenDamageMul : 1;
+
+/** A hit on a shocked foe uses the mark up: true when it should leap to a neighbour. */
+export function consumeShock(s: StatusState | undefined) {
+  if (!s || s.shock <= 0) return false;
+  s.shock = 0;
+  return true;
+}

@@ -29,6 +29,7 @@ import { banner, fadeFromBlack, hideBossBar, renderHearts, renderMinimap, resetH
 import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
 import { clearSpellFx, forgetSpells, learnSpell } from './magic/spells';
+import { clearStatusFx } from './magic/statusFx';
 import { resetClock } from './loop';
 import { $, mulberry } from './util';
 import { burst } from './combat/fx';
@@ -46,7 +47,7 @@ export function setNextRun(opts: RunOptions) { nextRun = opts; }
 const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
 
 function clearEntities() {
-  clearRite(); clearSpellFx(); clearProjectiles(); clearGlyphs(); pressed.glyph = false; pressed.spells = [false, false];
+  clearRite(); clearSpellFx(); clearStatusFx(); clearProjectiles(); clearGlyphs(); pressed.glyph = false; pressed.spells = [false, false];
   for (const p of G.particles) { scene.remove(p.m); p.m.material.dispose(); } G.particles.length = 0;
   clearEnemies();
   for (const p of G.pickups) { scene.remove(p.g); disposeTree(p.g); } G.pickups.length = 0;

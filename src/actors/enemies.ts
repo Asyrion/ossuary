@@ -13,6 +13,8 @@ import { hurtPlayer } from '../combat/damage';
 import { onWaveCleared } from '../flow';
 import { angleLerp, lerp, rand } from '../util';
 import { afterBossMove, buildBoss, updateBoss } from './bosses';
+import { canAct, speedFactor } from '../magic/status';
+import { statusTint } from '../magic/statusFx';
 
 export function stdMat(color: number, extra: THREE.MeshStandardMaterialParameters = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: .85, flatShading: true, ...extra });
@@ -58,6 +60,14 @@ export function makeEnemy(type: EnemyType, x: number, z: number, hpMul = 1, boss
     for (let i = 0; i < 3; i++) add(new THREE.ConeGeometry(.05, .18, 5), bone, 0, .6, -.2 + i * .18);
     for (const [lx, lz] of [[-.16, .22], [.16, .22], [-.16, -.22], [.16, -.22]]) add(new THREE.CylinderGeometry(.045, .035, .3, 5), hide, lx, .15, lz);
     e.dir = { x: 1, z: 0 }; e.state = 'wander'; e.st = rand(.5, 1.5);
+  } else if (type === 'dummy') { // a straw training dummy on a post: stands still, never falls (dev menu)
+    const wood = stdMat(0x6a4a2c), straw = stdMat(0xc8a860), sack = stdMat(0x9a8058);
+    add(new THREE.CylinderGeometry(.05, .06, 1.1, 6), wood, 0, .55, 0);
+    add(new THREE.CylinderGeometry(.04, .04, .8, 6), wood, 0, .95, 0).rotation.z = Math.PI / 2;
+    add(new THREE.CylinderGeometry(.2, .24, .5, 8), straw, 0, .78, 0);
+    add(new THREE.SphereGeometry(.17, 10, 8), sack, 0, 1.2, 0);
+    add(new THREE.CylinderGeometry(.28, .32, .08, 10), wood, 0, .04, 0);
+    e.contact = 0;
   } else if ((BOSS_TYPES as readonly string[]).includes(type)) buildBoss(e, add);
   if (opts.champion) { // an ember glow in the body and a pulsing aura around it
     for (const m of e.mats) { m.userData.base = new THREE.Color(CH.tint); m.emissive.set(CH.tint); }
@@ -76,13 +86,16 @@ export function updateEnemies(dt: number) {
   const cur = G.current;
   const walls = blockers(cur, 'flyer'), solids = blockers(cur, 'walker');
   for (const e of G.enemies) {
-    e.t += dt;
+    // frozen or stunned foes don't move or act; chilled ones move slower
+    const acts = canAct(e.status), slow = speedFactor(e.status);
+    if (acts) e.t += dt;
     if (e.spawn > 0) { e.spawn -= dt; const s = 1 - Math.max(0, e.spawn) / .6; e.group.scale.setScalar((.2 + .8 * (1 - Math.pow(1 - s, 3))) * e.scale); continue; }
     e.group.scale.setScalar(e.scale);
     if (e.aura) e.aura.material.opacity = .45 + Math.sin(e.t * 5) * .15;
     const dx = player.x - e.x, dz = player.z - e.z, dist = Math.hypot(dx, dz) || 1, ux = dx / dist, uz = dz / dist;
     let faceTo = Math.atan2(ux, uz);
-    if (e.type === 'rotling') {
+    if (!acts || e.type === 'dummy') { e.vx = e.vz = 0; faceTo = e.face; }
+    else if (e.type === 'rotling') {
       const wob = Math.sin(e.t * 3.1) * .35; const sp = CFG.enemy.rotling.speed * e.speedMul;
       e.vx = (ux - uz * wob) * sp; e.vz = (uz + ux * wob) * sp;
       e.body.rotation.z = Math.sin(e.t * 6) * .08; e.body.position.y = Math.abs(Math.sin(e.t * 6)) * .04;
@@ -115,6 +128,7 @@ export function updateEnemies(dt: number) {
         if (e.st <= 0) { e.state = 'wander'; e.st = rand(.6, 1.2); e.body.rotation.z = 0; }
       }
     } else if (e.isBoss) faceTo = updateBoss(e, dt, ux, uz) ?? faceTo;
+    e.vx *= slow; e.vz *= slow;
     // integrate + knockback
     e.kx *= Math.exp(-8 * dt); e.kz *= Math.exp(-8 * dt);
     e.x += (e.vx + e.kx) * dt; e.z += (e.vz + e.kz) * dt;
@@ -125,11 +139,12 @@ export function updateEnemies(dt: number) {
     } else if (e.isBoss) afterBossMove(e, hit);
     e.face = angleLerp(e.face, faceTo, 1 - Math.exp(-10 * dt));
     e.group.position.set(e.x, 0, e.z); e.body.rotation.y = e.face;
-    // hit flash
+    // hit flash, else the glow of its statuses
+    const tint = e.flash > 0 ? null : statusTint(e, G.simClock);
     if (e.flash > 0) { e.flash -= dt; for (const m of e.mats) m.emissive.setRGB(1, .95, .9); }
-    else for (const m of e.mats) m.emissive.copy(m.userData.base as THREE.Color);
-    // contact damage (not from a boss under the floor or in the air)
-    if (!e.hidden && Math.hypot(player.x - e.x, player.z - e.z) < player.r + e.r * .9) hurtPlayer(e.contact, e.x, e.z);
+    else for (const m of e.mats) { m.emissive.copy(m.userData.base as THREE.Color); if (tint) m.emissive.lerp(tint[0], tint[1]); }
+    // contact damage (not from a boss under the floor or in the air, nor from a foe frozen in ice or stunned)
+    if (!e.hidden && acts && e.contact && Math.hypot(player.x - e.x, player.z - e.z) < player.r + e.r * .9) hurtPlayer(e.contact, e.x, e.z);
   }
   // keep walkers from stacking
   const es = G.enemies;
