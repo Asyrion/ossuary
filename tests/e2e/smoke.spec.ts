@@ -632,9 +632,35 @@ test('economy artifacts: chalk widens blasts, the band spares the mage, the ferr
   expect(errors).toEqual([]);
 });
 
+test('picking things up shows their lore: artifacts every time, items and containers the first time in a run', async ({ page }) => {
+  const errors = await start(page, '?room=treasure_plain&seed=LORE1');
+  type G8 = G7 & { current: G7['current'] & { spots: { x: number; z: number; def: { name: string } }[] } };
+  const card = () => page.evaluate(() => ({
+    on: document.getElementById('lore')!.classList.contains('on'), name: document.getElementById('loreName')!.textContent,
+    kind: document.getElementById('loreKind')!.textContent, lore: document.getElementById('loreText')!.textContent!.length,
+  }));
+  const art = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G8; g.warp(1); g.sim(.3);
+    const s = g.current.spots[0], name = s.def.name; // a focus taken leaves the old one on the pedestal
+    g.player.x = s.x; g.player.z = s.z + .7; g.sim(.3);
+    return name;
+  });
+  expect(await card()).toMatchObject({ on: true, name: art });
+  expect((await card()).lore).toBeGreaterThan(60);
+  await page.screenshot({ path: 'test-results/smoke-lore.png' });
+  // it fades while the game runs; an obol is described the first time, not the second
+  const obol = () => page.evaluate(() => { const g = (window as unknown as W).__game as unknown as G8; g.sim(12); g.drop('coin', g.player.x + .5, g.player.z + .8); g.sim(1.2); });
+  await obol();
+  expect(await card()).toMatchObject({ on: true, name: 'Grave obol', kind: 'Coin' });
+  await obol();
+  expect((await card()).on).toBe(false);
+  expect(errors).toEqual([]);
+});
+
 test('the dev menu opens on its key, pauses the game, and hands out what it lists', async ({ page }) => {
   const errors = await start(page, '?seed=DEVM01');
   await expect(page.locator('#devHint')).toContainText('F2'); // the key is shown on the HUD during play-tests
+  await expect(page.locator('#scrTitle .controls')).toContainText('F2'); // and among the controls at the start
   await page.keyboard.press('Backquote');
   await expect(page.locator('#dev')).toBeVisible();
   expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('pause');

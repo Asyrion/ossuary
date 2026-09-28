@@ -111,6 +111,7 @@ function build() {
   const drops = section(p, S.drops);
   for (const d of DROPS) drops.append(btn(S.dropNames[d] ?? d, () => { const q = ahead(); spawnPickup(d as Drop, q.x, q.z, { gilded: false }); }));
   drops.append(btn(S.gildedChest, () => { const q = ahead(); spawnPickup('chest', q.x, q.z, { gilded: true }); }));
+  drops.append(btn(S.loreAgain, () => G.run.loreSeen.clear(), S.loreAgainTitle)); // their lore cards show again
 
   // artifacts: every one in the data, marked when held
   artBox = section(p, S.artifacts);

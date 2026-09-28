@@ -18,6 +18,10 @@
   <canvas id="minimap" width="300" height="220"></canvas>
   <div id="bossbar"><div id="bossname"></div><div class="track"><div class="fill"></div></div></div>
   <div id="banner"><div class="t"></div><div class="s"></div></div>
+  <div id="lore" role="status" aria-live="polite">
+    <div id="loreIcon"></div>
+    <div class="tx"><div id="loreName"></div><div id="loreKind"></div><div id="loreEffect"></div><p id="loreText"></p></div>
+  </div>
   <button id="pauseBtn" aria-label="Pause">II</button>
   <!-- play-test aid: how to open the dev menu (remove with STR.dev.hint and its style when the tests are done) -->
   <div id="devHint" data-s="dev.hint"></div>
@@ -35,6 +39,8 @@
       <span class="h" data-s="controls.shoot"></span><span class="k" data-s="controls.shootKeys"></span><span data-s="controls.shootPad"></span><span data-s="controls.shootTouch"></span>
       <span class="h" data-s="controls.glyph"></span><span class="k" data-s="controls.glyphKeys"></span><span data-s="controls.glyphPad"></span><span data-s="controls.glyphTouch"></span>
       <span class="h" data-s="controls.pause"></span><span class="k" data-s="controls.pauseKeys"></span><span data-s="controls.pausePad"></span><span data-s="controls.pauseTouch"></span>
+      <!-- play-test aid, like #devHint: remove with it when the tests are done -->
+      <span class="h" data-s="controls.dev"></span><span class="k" data-s="controls.devKeys"></span><span data-s="controls.devPad"></span><span data-s="controls.devTouch"></span>
     </div>
     <div class="btns"><button class="act primary" id="btnStart" data-s="title.start"></button></div>
     <p class="small" data-s="title.note"></p>

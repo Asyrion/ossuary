@@ -32,6 +32,7 @@ export const G = {
     budget: { used: 0, reserved: 0 },
     /** Foes put to rest towards the Leech Jar's next half heart. */ leech: 0,
     /** The floor on which the Sexton's Keyring last opened a vault for free. */ freeVault: -1,
+    /** Items and containers already described by a lore card this run (ui/lore.ts). */ loreSeen: new Set<string>(),
   },
   shake: 0,
   simClock: 0,

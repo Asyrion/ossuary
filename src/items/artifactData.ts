@@ -31,6 +31,7 @@ export interface FocusPattern {
 export interface Curse { stats?: Partial<Record<StatKey, number>>; effects?: Effect[]; cleansed: string }
 export interface ArtifactDef {
   id: string; name: string; kind: ArtifactKind; text: string; pools: Pool[];
+  /** A few lines of lore for the card shown when it's taken (ui/lore.ts). */ lore: string;
   stats?: Partial<Record<StatKey, number>>; effects?: Effect[]; boltColor?: string;
   /** Cursed artifacts only: the price on top of the gift. */ curse?: Curse;
   /** Obols, keys or glyphs handed over once, when the artifact is taken. */ gives?: Partial<Record<Resource, number>>;
@@ -136,6 +137,7 @@ export function validateArtifacts(defs: ArtifactDef[] = ARTIFACT_DEFS): string[]
     const at = `artifact "${a.id}"`;
     if (ids.has(a.id)) errs.push(`${at} is listed twice`); ids.add(a.id);
     if (!a.name || !a.text) errs.push(`${at} needs a name and a text`);
+    if (!(a.lore?.length >= 60 && a.lore.length <= 260)) errs.push(`${at} needs lore of 60 to 260 characters`);
     if (!['focus', 'passive', 'cursed'].includes(a.kind)) errs.push(`${at} has unknown kind "${a.kind}"`);
     for (const p of a.pools) if (!POOLS.includes(p)) errs.push(`${at} has unknown pool "${p}"`);
     for (const e of [...a.effects ?? [], ...a.curse?.effects ?? []]) if (!EFFECTS.includes(e)) errs.push(`${at} has unknown effect "${e}"`);
