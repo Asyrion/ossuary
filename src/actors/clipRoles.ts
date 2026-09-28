@@ -11,8 +11,11 @@ export const ROLE_PATTERNS: Record<Role, RegExp> = {
   idle: /idle|stand|relax|breath/i,
 };
 
-/** Assign clips to roles. Order matters: death, hit, cast, walk, then idle (falling back to the first
-    remaining clip). A missing walk or idle borrows the other. */
+/** The mage runs everywhere, so a run beats a walk for the locomotion role when a model has both. */
+const RUN_RE = /run|jog|sprint/i;
+
+/** Assign clips to roles. Order matters: death, hit, cast, walk (a run if there is one), then idle (falling
+    back to the first remaining clip). A missing walk or idle borrows the other. */
 export function assignRoles<T>(clips: readonly T[], nameOf: (c: T) => string): Partial<Record<Role, T>> {
   const rest = clips.slice();
   const take = (re: RegExp) => { const i = rest.findIndex(c => re.test(nameOf(c))); return i < 0 ? undefined : rest.splice(i, 1)[0]; };
@@ -20,7 +23,7 @@ export function assignRoles<T>(clips: readonly T[], nameOf: (c: T) => string): P
   roles.death = take(ROLE_PATTERNS.death);
   roles.hit = take(ROLE_PATTERNS.hit);
   roles.cast = take(ROLE_PATTERNS.cast);
-  roles.walk = take(ROLE_PATTERNS.walk);
+  roles.walk = take(RUN_RE) ?? take(ROLE_PATTERNS.walk);
   roles.idle = take(ROLE_PATTERNS.idle) ?? rest.shift();
   roles.walk ??= roles.idle;
   roles.idle ??= roles.walk;

@@ -48,8 +48,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
   resources, `__game.drop('purse')` drops a pickup ahead of the mage, `__game.clearRoom()`
   ends the current fight.
-- `public/assets/hero_default.glb`: the hero (17,655 triangles, 65-bone Mixamo-style rig, 1,024 px JPEG
-  textures). Clips: `standing_relax`, `run`, `cast_a_spell`, `hit_to_body_01`, `fall`.
+- `public/assets/hero_default.glb`: the hero (17,715 triangles, 65-bone Mixamo-style rig, 1,024 px JPEG
+  textures). Clips: `idle`, `run`, `cast_a_spell`, `hit_to_body_01`, and `walk` (unused: the run wins).
+  No death clip yet, so the mage topples over procedurally, as static models do.
 - `prototype/`: the 0.3 single file (`-source` to read, `-playable` to run). Still the reference for look
   and behaviour; `npm run compare` screenshots the same rooms in both.
 - Lights were re-tuned for physically based lighting: decay exponents dropped to 0.5 so the falloff
@@ -137,7 +138,9 @@ These were each found by testing real Tripo exports. Keep them, with the same be
 | `updateHeroAnim` | Blends weights: lower = idle/run by speed; upper = base, cast, hit; death overrides | Clean layering |
 | Drag-and-drop / Load hero .glb | Swap the hero at runtime and show a report in the pause menu | Quick Tripo tests |
 
-Run clip playback speed is `CFG.hero.runAnimSpeed` (3.6 at full speed).
+Run clip playback speed is `CFG.hero.runAnimSpeed` (1.8 at full speed, measured from the run clip's stride so
+the feet don't slide; the first hero's shorter-strided run played at 3.6). When a model has both a run and a walk,
+the run takes the locomotion role. A rig with no death clip topples over like a static model.
 
 ## Design facts to keep consistent
 

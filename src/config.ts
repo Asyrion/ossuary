@@ -4,7 +4,7 @@ export const CFG = {
   hero: {
     speed: 4.3, radius: 0.3, height: 1.3, hearts: 3, damage: 3.5, fireDelay: 0.36,
     shotSpeed: 8.8, range: 6.8, invuln: 1.0, shotInherit: 0.3, stripBase: true,
-    runAnimSpeed: 3.6, // playback speed of the run clip at full speed; raise if feet slide
+    runAnimSpeed: 1.8, // playback speed of the run clip at full speed; raise if feet slide
   },
   enemy: {
     rotling: { hp: 10, r: 0.32, speed: 1.35 },
