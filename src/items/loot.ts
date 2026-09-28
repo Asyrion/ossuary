@@ -40,6 +40,7 @@ export interface LootData extends Record<TableName, LootTable> {
       key opens it. */ gildedChest: number;
   /** A secret room without an artifact: coffers and reliquary chests beside its hoard (`secretHoard`). */
   secretRoom: { coffers: number; chests: number };
+  /** Obols the shrine asks to cleanse a curse, paid once the curse is put down. */ shrine: { price: number };
   merchant: MerchantData;
 }
 export const LOOT = lootData as LootData;
@@ -104,6 +105,7 @@ export function validateLoot(loot: LootData = LOOT): string[] {
     if (t.count && !(t.count[0] >= 1 && t.count[1] >= t.count[0])) errs.push(`${name} count must be [least, most], at least 1`);
   }
   for (const [name, p] of [['room clear chance', loot.roomClear.chance], ['enemy coin chance', loot.enemyCoin], ['gilded chest chance', loot.gildedChest]] as const) if (!(p >= 0 && p <= 1)) errs.push(`${name} must be between 0 and 1`);
+  if (!(Number.isInteger(loot.shrine?.price) && loot.shrine.price > 0)) errs.push("the shrine's price must be a whole number above 0");
   const m = loot.merchant;
   if (!m) errs.push('the merchant is missing');
   else {

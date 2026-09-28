@@ -360,6 +360,11 @@ The generator places the three guaranteed sources first, then gives artifacts to
 }
 ```
 
+A cursed artifact keeps its gift in `stats` and `effects` and its price in `curse`, with what it says of itself
+once a shrine has cleansed it: the Mask of the Drowned is `"stats": { "damageMul": 2 }, "curse": { "effects":
+["vision"], "cleansed": "Your bolts strike half again as hard" }`. Cleansing drops the `curse` and halves the gift:
+half of an added stat, half the way to 1 of a multiplied one (×2 becomes ×1.5).
+
 **Tripo use:** each artifact can get a small Tripo model floating on its pedestal (static, under 5,000 triangles), rendered as an icon for the HUD.
 
 ## Potions and alchemy
@@ -582,7 +587,7 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 | Reliquary chest | A bone key, or a blast that burns half of it | Better loot: purses, several keys or glyphs, a full heart | Room clears, secret rooms, vaults |
 | Gilded reliquary (rare chest) | Only a bone key | A relic: an artifact outside the floor's budget | Wherever a reliquary chest turns up |
 
-**Shrine cleansing** (the shrine on floor 2). For 10 obols, the shrine cleanses one cursed artifact: the drawback goes and the gift is halved (see Artifacts). The mage chooses which: each cursed artifact held gets an offering stone. The curse fights back: walking into its stone draws it out as a wisp that must be put down within 10 s inside the shrine's circle. Then the artifact is cleansed and the obols are paid; if the wisp escapes, the curse returns and the mage can try again. The heart-for-boon bargain joins in M6.
+**Shrine cleansing** (the shrine on floor 2, in a dead end of its own; which floors have one is in `data/floors.json`). For 10 obols (`data/loot.json`), the shrine cleanses one cursed artifact: the drawback goes and the gift is halved (see Artifacts). The room is lit warm white, with a circle of pale runes in the middle of the floor. The mage chooses which curse: each cursed artifact held gets an offering stone, the artifact floating above it; with too few obols, walking into a stone is refused. The curse fights back: walking into its stone draws it out as a wisp that flits about the room, lingering in the circle now and then, and spits at the mage. Bolts pass through it outside the circle and strike it inside (a glyph's blast there strikes twice); four strikes within 10 s put it down, while the motes of light around the circle go out one by one and the curse's strength shows on the boss bar. Then the artifact is cleansed (its red ring in the HUD and on the end screen turns pale), the obols are paid and the stone crumbles. If time runs out, or the mage leaves the room, the wisp flees back into its stone, and the mage can try again. The heart-for-boon bargain joins in M6.
 
 **Artifacts that bend the economy** (join the pools in M2; placeholder names)
 

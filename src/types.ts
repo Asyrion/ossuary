@@ -6,8 +6,8 @@ import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
 import type { Drop, Item, Ware } from './items/loot';
 
 export type Side = 'n' | 's' | 'e' | 'w';
-export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret';
-export type DoorStyle = 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret';
+export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine';
+export type DoorStyle = 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine';
 export interface Vec2 { x: number; z: number }
 /** Axis-aligned box on the floor plane: centre and half extents. */
 export interface Box { x: number; z: number; hx: number; hz: number }
@@ -66,6 +66,10 @@ export interface ArtifactSpot {
   /** Bone altars ask a heart container; the floating price tag goes when it's taken. */ price?: { hearts: number; tag: THREE.Object3D };
 }
 
+/** A shrine's offering stone: the cursed artifact it stands for, in one of the shrine's spots. False `armed`
+    right after the mage walked into it, until they step away. */
+export interface OfferingStone { id: string; slot: number; x: number; z: number; g: THREE.Group; visual: THREE.Group; collider: RockBox; armed: boolean }
+
 export interface Room {
   plan: PlannedRoom; template: Template; look: FloorLook; type: RoomType; gx: number; gy: number; cx: number; cz: number;
   /** The inside's bounding box in world units; `w` × `h` tiles, of which `mask` marks the inside. */
@@ -82,6 +86,8 @@ export interface Room {
   /** A locked vault forced open by blasts: its warden, a champion, rises when the mage comes in. */ warden?: boolean;
   /** A secret room, once one of its walls has been blasted open. */ found?: boolean;
   /** The mage was hurt during this room's fight (Unbroken Oath). */ hurt?: boolean;
+  /** A shrine: its circle's material, the motes around it and the offering stones. */
+  shrine?: { mat: THREE.MeshBasicMaterial; motes: THREE.Sprite[]; stones: OfferingStone[] };
 }
 
 export interface Enemy extends Circle {
@@ -132,6 +138,7 @@ export interface Player extends Circle {
   eye: number; yawA: number; squash: number; bob: number;
   /** The equipped focus and every other artifact held, in pickup order. */ focus: string; items: string[];
   /** Heart containers given to bone altars this run. */ heartsPaid: number;
+  /** Cursed artifacts cleansed at a shrine: their price gone, their gift halved. */ cleansed: string[];
   /** Obols, bone keys and blast glyphs carried (GDD: Coins, keys and blast glyphs). */ coins: number; keys: number; glyphs: number;
   /** Derived from the base stats and the artifacts held (items/artifactData.ts computeStats). */ stats: Stats;
 }

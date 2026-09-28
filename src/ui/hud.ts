@@ -77,10 +77,13 @@ export function renderPurse() {
   el.purse.setAttribute('aria-label', STR.purse(player.coins, player.keys, player.glyphs));
 }
 
-/** An artifact's icon as inline SVG in its colour: the focus framed, cursed ones ringed in red. */
-export function artifactIcon(id: string, isFocus: boolean) {
-  const def = artifact(id), cls = isFocus ? 'focus' : def.kind === 'cursed' ? 'cursed' : '';
-  return `<svg viewBox="0 0 24 24" class="${cls}" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${def.text}</title>${ICONS[def.icon] ?? ICONS.sigil}</svg>`;
+/** An artifact's icon as inline SVG in its colour: the focus framed, cursed ones ringed in red until a
+    shrine cleanses them (then a pale ring). */
+export function artifactIcon(id: string, isFocus: boolean, cleansed = player.cleansed.includes(id)) {
+  const def = artifact(id), clean = cleansed && !!def.curse;
+  const cls = isFocus ? 'focus' : clean ? 'cleansed' : def.kind === 'cursed' ? 'cursed' : '';
+  const text = clean ? def.curse!.cleansed : def.text;
+  return `<svg viewBox="0 0 24 24" class="${cls}" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${text}</title>${ICONS[def.icon] ?? ICONS.sigil}</svg>`;
 }
 /** The focus followed by every other artifact held. */
 export function renderItems() {
@@ -154,6 +157,11 @@ export function renderMinimap() {
       mg.beginPath(); mg.arc(cx, cy - 2, 3.5, Math.PI, 0); mg.stroke();
       mg.fillRect(cx - 5.5, cy - 2, 11, 8);
     }
+    if (r.type === 'shrine') { // a circle of pale gold, dimmed while there's no curse to cleanse
+      mg.strokeStyle = mg.fillStyle = player.items.some(id => artifact(id).curse && !player.cleansed.includes(id)) ? '#c89a3a' : '#6a6250'; mg.lineWidth = 2;
+      mg.beginPath(); mg.arc(cx, cy, 6, 0, 7); mg.stroke();
+      mg.beginPath(); mg.arc(cx, cy, 2, 0, 7); mg.fill();
+    }
     if (r.type === 'treasure') {
       mg.fillStyle = r.spots.some(s => !s.taken) ? '#e8b04a' : '#6a5a3a';
       mg.beginPath(); mg.moveTo(cx, cy - 8); mg.lineTo(cx + 7, cy); mg.lineTo(cx, cy + 8); mg.lineTo(cx - 7, cy); mg.fill();
@@ -161,9 +169,9 @@ export function renderMinimap() {
   }
 }
 
-export function showBossBar(name: string, e: Enemy) { el.bossname.textContent = name; updateBossBar(e); el.bossbar.classList.add('on'); }
+export function showBossBar(name: string, e: Pick<Enemy, 'hp' | 'maxHp'>) { el.bossname.textContent = name; updateBossBar(e); el.bossbar.classList.add('on'); }
 export function hideBossBar() { el.bossbar.classList.remove('on'); }
-export function updateBossBar(e: Enemy) {
+export function updateBossBar(e: Pick<Enemy, 'hp' | 'maxHp'>) {
   (el.bossbar.querySelector('.fill') as HTMLElement).style.width = Math.max(0, e.hp / e.maxHp * 100) + '%';
 }
 

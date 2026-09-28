@@ -7,6 +7,7 @@ import { spawnBolt } from '../combat/projectiles';
 import { placeGlyph } from '../combat/glyphs';
 import { checkArtifactPickup } from '../items/artifacts';
 import { checkWares } from '../items/merchant';
+import { checkShrine } from '../world/shrine';
 import { checkVaultDoors } from '../world/vault';
 import { descend, tryTransition } from '../flow';
 import { clamp, lerp } from '../util';
@@ -35,7 +36,7 @@ export function updatePlayer(dt: number) {
   if (pressed.glyph) { pressed.glyph = false; placeGlyph(); }
   if (player.invuln > 0) player.invuln -= dt;
   // artifacts and the trapdoor down
-  checkArtifactPickup(); checkWares(); checkVaultDoors();
+  checkArtifactPickup(); checkWares(); checkVaultDoors(); checkShrine();
   const trapdoor = G.trapdoor;
   if (trapdoor && Math.hypot(player.x - trapdoor.x, player.z - trapdoor.z) < .55) descend();
 }

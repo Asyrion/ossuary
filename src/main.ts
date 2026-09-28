@@ -29,6 +29,7 @@ import { BOSS_TYPES, type BossType } from './config';
 import { DROPS, RESOURCES, type Drop, type Resource } from './items/loot';
 import { giveResources, spawnPickup } from './items/pickups';
 import { openSecretRoom } from './world/secret';
+import { cleanseAtOnce, riteState } from './world/shrine';
 import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
 import { isTouch } from './util';
@@ -112,6 +113,8 @@ function installDevHooks() {
     },
     /** Break open every cracked wall of this floor's secret room. */
     openSecret() { const r = G.rooms.find(x => x.type === 'secret'); if (r) openSecretRoom(r); return !!r; },
+    /** Cleanse the oldest curse held at once (no fight, no obols); the shrine's rite under way, if any. */
+    cleanse: () => cleanseAtOnce(), get rite() { return riteState(); },
     get pickups() { return G.pickups; }, get glyphs() { return G.glyphs; }, get shots() { return G.shots; },
   };
 }

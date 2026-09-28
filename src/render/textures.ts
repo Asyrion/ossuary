@@ -42,7 +42,27 @@ function drawRune(g: Ctx, r: number) {
   g.stroke();
   for (let i = 0; i < 14; i++) { const a = i * Math.PI / 7 + Math.PI / 14; g.beginPath(); g.moveTo(Math.cos(a) * r * .8, Math.sin(a) * r * .8); g.lineTo(Math.cos(a) * r * .94, Math.sin(a) * r * .94); g.stroke(); }
 }
-let glyphTex: THREE.CanvasTexture | null = null, glyphStoneTex: THREE.CanvasTexture | null = null;
+let glyphTex: THREE.CanvasTexture | null = null, glyphStoneTex: THREE.CanvasTexture | null = null, shrineTex: THREE.CanvasTexture | null = null;
+/** The shrine's circle in white on transparent, tinted by the material: three rings, twelve small sigils
+    between the outer two and a six-pointed star within. */
+export function shrineCircleTexture() {
+  if (shrineTex) return shrineTex;
+  const [c, g] = makeCanvas(512, 512); g.translate(256, 256);
+  g.strokeStyle = '#fff'; g.lineCap = 'round'; g.lineJoin = 'round'; g.shadowColor = '#fff'; g.shadowBlur = 12;
+  const ring = (r: number, w: number) => { g.lineWidth = w; g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.stroke(); };
+  ring(240, 8); ring(206, 4); ring(118, 3);
+  for (let i = 0; i < 12; i++) {
+    const tilt = i % 2 ? 3 : -3; g.save(); g.rotate(i * Math.PI / 6); g.translate(0, -223); g.lineWidth = 3.5;
+    g.beginPath(); g.moveTo(0, -9); g.lineTo(0, 9); g.moveTo(-7, -tilt); g.lineTo(7, tilt); g.stroke(); g.restore();
+  }
+  g.lineWidth = 3;
+  for (const off of [0, Math.PI / 3]) {
+    g.beginPath();
+    for (let i = 0; i <= 3; i++) { const a = off - Math.PI / 2 + i * Math.PI * 2 / 3, x = Math.cos(a) * 200, y = Math.sin(a) * 200; if (i) g.lineTo(x, y); else g.moveTo(x, y); }
+    g.stroke();
+  }
+  return shrineTex = canvasTex(c);
+}
 /** The rune in white on transparent, tinted by the material (an inscribed glyph lying on the floor). */
 export function glyphTexture() {
   if (glyphTex) return glyphTex;
@@ -129,7 +149,7 @@ export function floorTexture(seed: number, kind: RoomType, look: FloorLook, mask
   const inside = (col: number, r: number) => !!mask[r]?.[col];
   const area = mask.flat().filter(Boolean).length / (13 * 7), n = (count: number) => Math.round(count * area);
   const [b0, b1, b2] = look.floor.base;
-  const base = kind === 'boss' ? [b0 - 2, b1 - 10, b2 - 6] : kind === 'treasure' ? [b0 + 8, b1 + 6, b2] : kind === 'secret' ? [b0 - 8, b1 - 4, b2 + 6] : [b0, b1, b2];
+  const base = kind === 'boss' ? [b0 - 2, b1 - 10, b2 - 6] : kind === 'treasure' ? [b0 + 8, b1 + 6, b2] : kind === 'secret' ? [b0 - 8, b1 - 4, b2 + 6] : kind === 'shrine' ? [b0 + 10, b1 + 8, b2 + 4] : [b0, b1, b2];
   g.fillStyle = look.floor.mortar; g.fillRect(0, 0, cw, ch);
   for (let r = 0; r < H; r++) for (let col = 0; col < W; col++) {
     if (!inside(col, r)) continue;

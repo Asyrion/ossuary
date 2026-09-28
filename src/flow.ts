@@ -12,6 +12,7 @@ import { disposeTree } from './render/materials';
 import { clearFloorTextures } from './render/textures';
 import { buildRoom, buildWallsAndDoors, doorsOf, entryPoint, freeSpotNear, linkDoors, roomAt, setDoors } from './world/rooms';
 import { sealVaults } from './world/vault';
+import { clearRite, enterShrine } from './world/shrine';
 import { FLOORS, generateFloor, pickBoss, testPlan, type RoomVariant } from './world/generate';
 import { DH } from './world/dims';
 import { SIDE_DIR } from './world/shapes';
@@ -42,7 +43,7 @@ export function setNextRun(opts: RunOptions) { nextRun = opts; }
 const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
 
 function clearEntities() {
-  clearProjectiles(); clearGlyphs(); pressed.glyph = false;
+  clearRite(); clearProjectiles(); clearGlyphs(); pressed.glyph = false;
   for (const p of G.particles) { scene.remove(p.m); p.m.material.dispose(); } G.particles.length = 0;
   clearEnemies();
   for (const p of G.pickups) { scene.remove(p.g); disposeTree(p.g); } G.pickups.length = 0;
@@ -123,7 +124,7 @@ export function endGame(won: boolean) {
   if (won) Sfx.victory(); else Sfx.fallen();
   showEndScreen({
     won, floor: G.run.floor + 1, floors: FLOORS.length, time: G.stats.time, kills: G.stats.kills,
-    seed: G.run.seed, artifacts: [player.focus, ...player.items],
+    seed: G.run.seed, artifacts: [player.focus, ...player.items], cleansed: [...player.cleansed],
   });
 }
 export function toggleSound() { const muted = Sfx.toggle(); $('btnSound').textContent = muted ? STR.pause.soundOff : STR.pause.soundOn; }
@@ -152,6 +153,7 @@ export function enterRoom(room: Room) {
   if (firstVisit && room.type === 'altar' && room.spots.length) banner(...STR.banner.altar);
   if (firstVisit && room.type === 'merchant') { banner(...STR.banner.merchant); Sfx.shade(); }
   if (firstVisit && room.type === 'secret') banner(...STR.banner.secret);
+  if (room.type === 'shrine') enterShrine(room, firstVisit);
   if (firstVisit && room.type === 'vault') banner(...(room.warden ? STR.banner.vaultWarden : STR.banner.vault));
   if (firstVisit && room.quietHeart) { const p = freeSpotNear(room, room.cx, room.cz); spawnHeart(p.x, p.z, 2); }
   // a treasure room with nothing left to find offers a full heart instead

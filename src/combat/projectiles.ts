@@ -15,6 +15,7 @@ import { basicMat, blob, glowShared, sphereGeo } from '../render/materials';
 import { blockers } from '../world/collision';
 import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
 import { hollowRing } from '../world/secret';
+import { strikeWisp } from '../world/shrine';
 import { shootDir } from '../input';
 import { heroCast } from '../actors/hero';
 import { damageEnemy, hurtPlayer } from './damage';
@@ -170,6 +171,8 @@ export function updateBolts(dt: number) {
       if (b.pierce > 0) { b.pierce--; continue; }
       kill = true; break;
     }
+    // a shrine's curse drawn out as a wisp: inside the circle a bolt strikes it, outside it passes through
+    if (!kill && strikeWisp(b) && b.path !== 'boomerang') { if (b.pierce > 0) b.pierce--; else kill = true; }
     // the mage's bolts set off blast glyphs they cross (not the one at the mage's feet as the bolt leaves)
     if (!kill && b.dist > CFG.glyph.boltArm) {
       const gl = glyphNear(b.x, b.z);
