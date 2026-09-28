@@ -83,6 +83,7 @@ export const STR = {
   /** The dev menu (the key left of 1, or F2): for testing, not for players. */
   dev: {
     title: 'Dev menu', close: 'Close',
+    /** On the HUD during play-tests, so the key isn't forgotten. */ hint: 'Dev menu: ` / ^ or F2',
     info: (seed: string, floor: number, room: number, type: string) => `Seed ${seed} · floor ${floor} · room ${room} (${type})`,
     mage: 'The mage', heal: 'Full heal', container: '+1 heart container', resetArtifacts: 'Reset artifacts',
     godOn: 'God mode: on', godOff: 'God mode: off',

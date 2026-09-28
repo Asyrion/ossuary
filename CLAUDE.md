@@ -192,6 +192,10 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
 ## Working agreements
 
 - Plan before large changes; keep commits small with clear messages.
+- **Every new feature gets its dev menu entry in the same step** (`src/ui/devMenu.ts`): a way to spawn,
+  give, reach or trigger it, so testing stays quick. Things listed from data show up by themselves; new
+  kinds of things (a room type, a mechanic, a switch) need a button or a line in `refresh()`. The HUD shows
+  the menu's key during the play-tests (`#devHint`, `STR.dev.hint`); remove it when they're over.
 - Before calling something done, verify it in the browser (Playwright screenshots are fine).
 - Tuning values live in `config.ts`; content lives in `data/`. Don't scatter magic numbers.
 - Performance target: 60 fps in desktop browsers on mid-range hardware, including integrated graphics.
