@@ -251,14 +251,15 @@ function drawChalk(g: Ctx, P: number) {
   g.fillStyle = chalk; g.strokeStyle = chalk; g.lineWidth = 3; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineCap = 'round';
   const arrows: Record<string, [number, number]> = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
   const key = (x: number, y: number, s: number, label: string) => {
-    rrect(g, x - s / 2, y - s / 2, s, s, 7); g.stroke();
+    const w = label.length > 1 && !arrows[label] ? s * (.55 + label.length * .32) : s; // a wider cap for ESC
+    rrect(g, x - w / 2, y - s / 2, w, s, 7); g.stroke();
     const a = arrows[label];
     if (a) { // shaft and head, pointing along a
       const l = s * .26, [dx, dy] = a, px = -dy, py = dx;
       g.beginPath(); g.moveTo(x - dx * l, y - dy * l); g.lineTo(x + dx * l, y + dy * l);
       g.moveTo(x + dx * l - dx * l * .7 + px * l * .6, y + dy * l - dy * l * .7 + py * l * .6); g.lineTo(x + dx * l, y + dy * l);
       g.lineTo(x + dx * l - dx * l * .7 - px * l * .6, y + dy * l - dy * l * .7 - py * l * .6); g.stroke();
-    } else { g.font = `700 ${s * .5}px "Cinzel", Georgia, serif`; g.fillText(label, x, y + 2); }
+    } else { g.font = `700 ${s * (label.length > 1 ? .34 : .5)}px "Cinzel", Georgia, serif`; g.fillText(label, x, y + 2); }
   };
   const lx = 3 * P, rx = 10 * P, cy = 3.2 * P, s = P * .62, gap = s * 1.12;
   if (isTouch) {
@@ -277,6 +278,11 @@ function drawChalk(g: Ctx, P: number) {
     rrect(g, 6.5 * P - w / 2, sy - s * .38, w, s * .76, 7); g.stroke();
     g.font = `700 ${s * .34}px "Cinzel", Georgia, serif`; g.fillText(STR.chalk.space, 6.5 * P, sy + 2);
     g.font = `600 ${P * .36}px "Cinzel", Georgia, serif`; g.fillText(STR.chalk.glyph, 6.5 * P, sy + s * .9);
+    // Q and E cast the spells (top middle); I opens the inventory and Esc pauses (the bottom corners)
+    const C = STR.chalk, label = (t: string, x: number, y: number) => { g.font = `600 ${P * .36}px "Cinzel", Georgia, serif`; g.fillText(t, x, y); };
+    key(6.5 * P - gap / 2, 1.45 * P, s, C.q); key(6.5 * P + gap / 2, 1.45 * P, s, C.e); label(C.spells, 6.5 * P, 1.45 * P + s * .95);
+    key(lx, sy, s, C.i); label(C.inventory, lx, sy + s * .9);
+    key(rx, sy, s, C.esc); label(C.pause, rx, sy + s * .9);
   }
   g.restore();
 }
