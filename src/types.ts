@@ -104,6 +104,7 @@ export interface Pickup extends Circle {
   /** Coffers and chests: what's inside, whether opened, the lid, the chest's ward seal, and whether it may
       refuse the mage again (only after they step away). */
   contents?: Item[]; opened?: boolean; lid?: THREE.Object3D; ward?: THREE.Object3D; armed?: boolean;
+  /** A gilded reliquary chest: a relic inside (an artifact outside the floor's budget); only a key opens it. */ gilded?: boolean;
 }
 /** A blast glyph chalked on the floor: it flares when `fuse` runs out or one of the mage's bolts strikes it. */
 export interface Glyph { x: number; z: number; t: number; fuse: number; color: number; g: THREE.Group; rune: THREE.Mesh; reach: THREE.Mesh; glow: THREE.Sprite; lastTick: number; spent: boolean }

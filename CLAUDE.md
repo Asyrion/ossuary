@@ -50,9 +50,10 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
   resources, `__game.drop('purse')` drops a pickup ahead of the mage, `__game.clearRoom()`
   ends the current fight.
-- `public/assets/hero_default.glb`: the hero (17,715 triangles, 65-bone Mixamo-style rig, 1,024 px JPEG
-  textures). Clips: `idle`, `run`, `cast_a_spell`, `hit_to_body_01`, `fall`, and `walk` (unused: the run
-  wins).
+- `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
+  1,024 px JPEG textures). Clips: `standing_relax`, `run`, `walk` (slow movement), `cast_a_spell`,
+  `hit_to_body_01`, `fall` and `defeat_03` (two deaths, one at random), `Drink Potion` (when healed) and
+  `Eat` (a fidget after standing still a while).
 - `prototype/`: the 0.3 single file (`-source` to read, `-playable` to run). Still the reference for look
   and behaviour; `npm run compare` screenshots the same rooms in both.
 - Lights were re-tuned for physically based lighting: decay exponents dropped to 0.5 so the falloff
@@ -68,10 +69,11 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   (`strikeUrn`). The merchant (a bound shade, wares in ward circles, a warded shop) is in
   `src/items/merchant.ts`, the locked vault (a warded door: a key, or two blasts that wake a warden) in
   `src/world/vault.ts`; stock, prices and the vault's hoard are in `data/loot.json`.
-- The per-floor artifact budget (at most 5): the generator marks which rooms hold one (`artifact` on each
-  planned room: always the treasure room, ordeal and boss; the merchant, vault and altar in a shuffled
-  order while the budget lasts). `buildFloor` reserves them all; room-clear drops take what is left. While
-  a room's doors are locked, its artifacts can't be taken.
+- The per-floor artifact budget (`CFG.artifacts.maxPerFloor`, 6): the generator marks which rooms hold one
+  (`artifact` on each planned room: always the treasure room, ordeal and boss; the merchant, vault and altar
+  in a shuffled order while the budget lasts). `buildFloor` reserves them all; room-clear drops take what
+  is left. A gilded reliquary chest (rare; only a key opens it) holds an artifact outside the budget
+  (`offerBeyondBudget`). While a room's doors are locked, its artifacts can't be taken.
 - Bosses are in `src/actors/bosses.ts` (placeholder shapes until M4): each floor draws one from its pool
   in `data/floors.json`, never one the run has met. A boss with `hidden` set (the abbess under the floor,
   the knight in mid-leap) can't be hit and doesn't hurt on contact.
@@ -146,9 +148,12 @@ These were each found by testing real Tripo exports. Keep them, with the same be
 | `updateHeroAnim` | Blends weights: lower = idle/run by speed; upper = base, cast, hit; death overrides | Clean layering |
 | Drag-and-drop / Load hero .glb | Swap the hero at runtime and show a report in the pause menu | Quick Tripo tests |
 
-Run clip playback speed is `CFG.hero.runAnimSpeed` (1.8 at full speed, measured from the run clip's stride so
-the feet don't slide; the first hero's shorter-strided run played at 3.6). When a model has both a run and a walk,
-the run takes the locomotion role. A rig with no death clip topples over like a static model.
+Run clip playback speed is `CFG.hero.runAnimSpeed` (3.0 at full speed, measured from the run clip's stride so
+the feet don't slide: the feet's ground speed while planted, against `CFG.hero.speed`); a
+walk, when the model has one, takes over below `CFG.hero.walkToRun` of full speed at `walkAnimSpeed`. A model
+with a walk but no run runs with its walk. Extras used when present: a second death clip (one of the two
+at random), a drink (played when healed, only the draught around the raised flask) and an eat (a fidget
+after `CFG.hero.fidget` seconds standing still). A rig with no death clip topples over like a static model.
 
 ## Design facts to keep consistent
 

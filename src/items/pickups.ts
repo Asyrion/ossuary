@@ -3,7 +3,9 @@
    the living mage from close by. What a broken urn held rises out of it like a soul.
 
    Containers (GDD: Containers): a coffer opens when walked into. A reliquary chest is sealed by a ward: a
-   bone key unbinds it cleanly; a glyph's blast breaks it too, but burns half of what's inside. */
+   bone key unbinds it cleanly; a glyph's blast breaks it too, but burns half of what's inside. Now and then
+   a chest is gilded: its golden ward holds against blasts, and a bone key finds a relic inside, an artifact
+   outside the floor's budget. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Pickup } from '../types';
@@ -14,9 +16,13 @@ import { TILT, scene } from '../render/renderer';
 import { M, blob, disposeTree, glow, glowShared, markShared } from '../render/materials';
 import { glyphStoneTexture, glyphTexture } from '../render/textures';
 import { burst } from '../combat/fx';
-import { renderHearts, renderPurse, toast } from '../ui/hud';
+import { banner, renderHearts, renderPurse, toast } from '../ui/hud';
+import { heroDrink } from '../actors/hero';
 import { WARD_COLOR as WARD, freeSpotNear } from '../world/rooms';
 import { LOOT, RESOURCES, afterBurning, dropValue, rollTable, type Drop, type Item, type Resource } from './loot';
+import { offerBeyondBudget, placeArtifact } from './artifacts';
+
+const GOLD = 0xffd27a;
 export const isContainer = (kind: Drop): kind is 'coffer' | 'chest' => kind === 'coffer' || kind === 'chest';
 
 function heartShape(half: boolean) {
@@ -54,6 +60,9 @@ function makeParts() {
     chestBox: shared(new THREE.BoxGeometry(.72, .36, .46)), chestLid, chestBand: shared(new THREE.BoxGeometry(.06, .38, .48)),
     seal: shared(new THREE.PlaneGeometry(.42, .42)),
     sealMat: markShared(new THREE.MeshBasicMaterial({ map: glyphTexture(), color: WARD, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })),
+    // a gilded reliquary: gold bands and a golden ward
+    gilt: markShared(new THREE.MeshStandardMaterial({ color: 0xc8a040, roughness: .35, metalness: .75, emissive: 0x3a2808 })),
+    goldSealMat: markShared(new THREE.MeshBasicMaterial({ map: glyphTexture(), color: GOLD, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })),
   };
 }
 
@@ -83,8 +92,9 @@ export function itemVisual(kind: Item): THREE.Object3D {
   return g;
 }
 
-/** A coffer or a chest, with its lid on a hinge at the back, and the chest's ward seal on its front. */
-function containerVisual(kind: 'coffer' | 'chest') {
+/** A coffer or a chest, with its lid on a hinge at the back, and the chest's ward seal on its front (gold on
+    a gilded one). */
+function containerVisual(kind: 'coffer' | 'chest', gilded = false) {
   const P = parts ??= makeParts(), g = new THREE.Group(), lid = new THREE.Group();
   if (kind === 'coffer') {
     const box = new THREE.Mesh(P.cofferBox, P.wood); box.position.y = .14;
@@ -94,22 +104,23 @@ function containerVisual(kind: 'coffer' | 'chest') {
     return { g, lid };
   }
   const box = new THREE.Mesh(P.chestBox, P.darkWood); box.position.y = .18;
-  for (const x of [-.24, .24]) { const b = new THREE.Mesh(P.chestBand, M.bone); b.position.set(x, .19, 0); g.add(b); }
+  for (const x of [-.24, .24]) { const b = new THREE.Mesh(P.chestBand, gilded ? P.gilt : M.bone); b.position.set(x, .19, 0); g.add(b); }
   const top = new THREE.Mesh(P.chestLid, P.darkWood); top.position.set(0, 0, .23);
   lid.position.set(0, .36, -.23); lid.add(top);
   const ward = new THREE.Group(); ward.position.set(0, .24, .25); ward.rotation.x = -.3;
-  const seal = new THREE.Mesh(P.seal, P.sealMat), gl = glow(WARD, 1, .55);
+  const seal = new THREE.Mesh(P.seal, gilded ? P.goldSealMat : P.sealMat), gl = glow(gilded ? GOLD : WARD, gilded ? 1.3 : 1, .55);
   ward.add(seal, gl); g.add(box, lid, ward, blob(1));
   return { g, lid, ward };
 }
 
 /** Drop something on the floor at (x, z): it falls in from above, or rises out of a broken urn (`rise`).
-    A coffer or a chest is filled when it appears. */
-export function spawnPickup(kind: Drop, x: number, z: number, opts: { rise?: boolean } = {}) {
+    A coffer or a chest is filled when it appears; a chest is gilded by chance unless `gilded` says. */
+export function spawnPickup(kind: Drop, x: number, z: number, opts: { rise?: boolean; gilded?: boolean } = {}) {
   const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
   if (isContainer(kind)) {
-    const v = containerVisual(kind); g.add(v.g);
-    G.pickups.push({ kind, x, z, r: .4, g, m: v.g, t: 0, drop: .5, contents: rollTable(G.run.drops, kind), lid: v.lid, ward: v.ward, armed: true });
+    const gilded = kind === 'chest' && (opts.gilded ?? G.run.drops.chance(LOOT.gildedChest));
+    const v = containerVisual(kind, gilded); g.add(v.g);
+    G.pickups.push({ kind, x, z, r: .4, g, m: v.g, t: 0, drop: .5, contents: gilded ? [] : rollTable(G.run.drops, kind), lid: v.lid, ward: v.ward, armed: true, gilded });
     return;
   }
   const m = itemVisual(kind); m.position.y = .35; g.add(m, blob(.55));
@@ -124,8 +135,19 @@ export const spawnHeart = (x: number, z: number, value: number) => spawnPickup(v
     and burns half of its contents. */
 export function openContainer(p: Pickup, burnt = false) {
   if (p.opened || !p.contents) return;
+  if (p.gilded && burnt) { burst(p.x, .35, p.z, GOLD, 8, 1.6, .04); Sfx.wardTink(); return; } // the golden ward holds
   p.opened = true;
-  if (p.ward) { p.ward.parent?.remove(p.ward); disposeTree(p.ward); p.ward = undefined; burst(p.x, .3, p.z, WARD, 12, 2, .04); }
+  if (p.ward) { p.ward.parent?.remove(p.ward); disposeTree(p.ward); p.ward = undefined; burst(p.x, .3, p.z, p.gilded ? GOLD : WARD, 12, 2, .04); }
+  if (p.gilded) { // a relic rises out of it, beyond what the floor's budget allows
+    const def = offerBeyondBudget('vault');
+    if (def) {
+      const spot = freeSpotNear(G.current, p.x, p.z + 1.3);
+      placeArtifact(G.current, def, spot.x, spot.z);
+      burst(spot.x, .8, spot.z, GOLD, 24, 2.6, .06); Sfx.unbind(); Sfx.rise(); banner(...STR.banner.gildedRelic);
+      return;
+    }
+    p.contents = rollTable(G.run.drops, 'chest'); // every artifact has been offered: an ordinary hoard, then
+  }
   let items = p.contents;
   if (burnt && p.kind === 'chest') {
     const kept = afterBurning(items);
@@ -159,7 +181,7 @@ function take(p: Pickup, kind: Item) {
   const v = dropValue(kind);
   if (v.hearts) {
     if (player.hp >= player.maxHp) return false;
-    player.hp = Math.min(player.maxHp, player.hp + v.hearts); renderHearts();
+    player.hp = Math.min(player.maxHp, player.hp + v.hearts); renderHearts(); heroDrink();
   } else {
     const res = RESOURCES.find(k => v[k])!;
     if (player[res] >= LOOT.cap) return false;
@@ -177,7 +199,7 @@ function touchContainer(p: Pickup, d: number) {
   if (!p.armed) return;
   p.armed = false;
   if (player.keys > 0) { giveResources({ keys: -1 }); openContainer(p); return; }
-  Sfx.locked(); p.ward?.scale.setScalar(1.35); toast(STR.toast.chestSealed, 4);
+  Sfx.locked(); p.ward?.scale.setScalar(1.35); toast(p.gilded ? STR.toast.gildedSealed : STR.toast.chestSealed, 4);
 }
 
 export function updatePickups(dt: number) {

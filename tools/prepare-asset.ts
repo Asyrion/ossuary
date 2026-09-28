@@ -11,7 +11,7 @@ import { textureCompress } from '@gltf-transform/functions';
 import sharp from 'sharp';
 import { mkdirSync, statSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
-import { HIPS_OFFSET_LIMIT, HIPS_RE, assignRoles, hipsOffset, type Role } from '../src/actors/clipRoles';
+import { CORE_ROLES, HIPS_OFFSET_LIMIT, HIPS_RE, assignRoles, hipsOffset, type Role } from '../src/actors/clipRoles';
 import { findMiniatureBase, type MeshData } from '../src/actors/baseDetect';
 
 const TEXTURE_SIZE = 1024;
@@ -88,7 +88,7 @@ function analyse(doc: Document): string[] {
       const role = [...Object.entries(roles)].filter(([, c]) => c === a).map(([r]) => r).join(' + ') || '(unused)';
       lines.push(`  ${a.getName().padEnd(28)} ${dur.toFixed(2).padStart(6)} s  -> ${role}`);
     }
-    for (const r of ['idle', 'walk', 'cast', 'hit', 'death'] as Role[]) if (!roles[r]) lines.push(`  (no ${r} clip)`);
+    for (const r of CORE_ROLES) if (!roles[r]) lines.push(`  (no ${r} clip)`);
     if (!rigged) lines.push('  note: the model has no skin, so the game ignores these clips');
   }
 

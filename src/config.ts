@@ -4,7 +4,11 @@ export const CFG = {
   hero: {
     speed: 4.3, radius: 0.3, height: 1.3, hearts: 3, damage: 3.5, fireDelay: 0.36,
     shotSpeed: 8.8, range: 6.8, invuln: 1.0, shotInherit: 0.3, stripBase: true,
-    runAnimSpeed: 1.8, // playback speed of the run clip at full speed; raise if feet slide
+    runAnimSpeed: 3.0,  // playback speed of the run clip at full speed; raise if feet slide
+    walkAnimSpeed: 10.5, // playback speed the walk clip would need at full speed (it only plays when slow)
+    walkToRun: [.12, .3] as [number, number], // between these fractions of full speed the walk hands over to the run
+    drinkSpeed: 1.4,    // playback speed of the draught when the mage is healed
+    fidget: [9, 16] as [number, number], // seconds standing still before the mage eats something
   },
   enemy: {
     rotling: { hp: 10, r: 0.32, speed: 1.35 },
@@ -36,7 +40,7 @@ export const CFG = {
   // the mage doesn't set off the glyph at their feet), and the pause before a blast sets off its neighbours
   glyph: { fuse: 1.5, radius: 1.5, damage: 10, selfDamage: 2, knockback: 7, cooldown: .35, boltReach: .5, boltArm: .9, chainDelay: .1 },
   artifacts: {
-    maxPerFloor: 5,      // a floor never offers more (the boss's pair counts as one)
+    maxPerFloor: 6,      // the floor's budget (the boss's pair counts as one); gilded reliquaries don't count
     dropChance: 0.03,    // chance a cleared room drops one, while the floor's budget allows
     rockHp: 3,           // Mason's Chisel: bolt hits to break a rock
     visionRadius: 3.4,   // Mask of the Drowned: how far the mage sees

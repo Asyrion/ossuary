@@ -171,18 +171,29 @@ describe('floor generator', () => {
     expect(hardShare[1]).toBeLessThan(hardShare[2]);
   });
 
-  it('shares the budget among the optional sources in a shuffled order', () => {
-    const got: Record<string, number> = { merchant: 0, vault: 0, altar: 0 }, had: Record<string, number> = { merchant: 0, vault: 0, altar: 0 };
-    for (let s = 0; s < 600; s++) {
+  it('has room in the budget for every optional source a floor has today', () => {
+    for (let s = 0; s < 300; s++) {
       const plan = generateFloor(Rng.from('B' + s, 'floor3'), FLOORS[2], 2);
-      const optional = plan.rooms.filter(r => OPTIONAL_SOURCES.includes(r.type));
-      expect(optional.filter(r => r.artifact).length).toBe(Math.min(optional.length, CFG.artifacts.maxPerFloor - GUARANTEED_SOURCES.length));
-      if (plan.rooms.some(r => r.type === 'vault')) for (const r of optional) { had[r.type]++; if (r.artifact) got[r.type]++; }
+      for (const r of plan.rooms.filter(x => OPTIONAL_SOURCES.includes(x.type))) expect(r.artifact).toBe(true);
     }
-    // with a vault on the floor, the merchant and the vault both sometimes go without
-    expect(got.merchant).toBeLessThan(had.merchant);
-    expect(got.vault).toBeLessThan(had.vault);
-    expect(got.vault).toBeGreaterThan(had.vault * .5);
+  });
+
+  it('shares a tighter budget among the optional sources in a shuffled order', () => {
+    const cap = CFG.artifacts.maxPerFloor;
+    CFG.artifacts.maxPerFloor = GUARANTEED_SOURCES.length + 2; // two optional artifacts, as before M2's loosening
+    try {
+      const got: Record<string, number> = { merchant: 0, vault: 0, altar: 0 }, had: Record<string, number> = { merchant: 0, vault: 0, altar: 0 };
+      for (let s = 0; s < 600; s++) {
+        const plan = generateFloor(Rng.from('B' + s, 'floor3'), FLOORS[2], 2);
+        const optional = plan.rooms.filter(r => OPTIONAL_SOURCES.includes(r.type));
+        expect(optional.filter(r => r.artifact).length).toBe(Math.min(optional.length, 2));
+        if (plan.rooms.some(r => r.type === 'vault')) for (const r of optional) { had[r.type]++; if (r.artifact) got[r.type]++; }
+      }
+      // with a vault on the floor, the merchant and the vault both sometimes go without
+      expect(got.merchant).toBeLessThan(had.merchant);
+      expect(got.vault).toBeLessThan(had.vault);
+      expect(got.vault).toBeGreaterThan(had.vault * .5);
+    } finally { CFG.artifacts.maxPerFloor = cap; }
   });
 
   it('is deterministic for a seed', () => {
