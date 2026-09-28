@@ -183,14 +183,14 @@ function addUrn(room: Room, c: number, r: number, sealed: boolean) {
     out, and the soul inside rises as whatever the urn held. Returns whether it broke. */
 export function strikeUrn(room: Room, rock: RockBox, blast: boolean) {
   if (!rock.urn || !rock.mesh) return false;
-  if (rock.urn === 'sealed' && !blast) { burst(rock.x, .35, rock.z, WARD_COLOR, 5, 1.6, .035); Sfx.wardTink(); return false; }
+  if (rock.urn === 'sealed' && !blast) { burst(rock.x, .35, rock.z, WARD_COLOR, 5, 1.6, .035); Sfx.at(rock.x, rock.z).wardTink(); return false; }
   room.group.remove(rock.mesh); disposeTree(rock.mesh);
   room.rocks = room.rocks.filter(r => r !== rock);
   if (rock.tile) room.template.tiles[rock.tile.r][rock.tile.c] = 'floor';
   burst(rock.x, .3, rock.z, rock.urn === 'sealed' ? 0x4c4a54 : 0x8a5436, 10, 2.2, .06); // shards
   burst(rock.x, .2, rock.z, 0x8a8278, 12, .9, .07);                                        // grave dust
   if (rock.urn === 'sealed') burst(rock.x, .4, rock.z, WARD_COLOR, 10, 2, .04);
-  Sfx.urn(rock.urn === 'sealed');
+  Sfx.at(rock.x, rock.z).urn(rock.urn === 'sealed');
   for (const item of rollTable(G.run.drops, rock.urn === 'sealed' ? 'sealedUrn' : 'urn')) spawnPickup(item, rock.x, rock.z, { rise: true });
   return true;
 }
@@ -201,11 +201,11 @@ export function hitRock(room: Room, rock: RockBox, shatter = false) {
   if (!rock.breakable || !rock.mesh) return;
   rock.hp = shatter ? 0 : rock.hp - 1;
   burst(rock.x, .4, rock.z, 0x8a8078, 4, 1.4, .05);
-  if (rock.hp > 0) { rock.mesh.scale.multiplyScalar(.88); rock.mesh.position.y = -.04 * (CFG.artifacts.rockHp - rock.hp); Sfx.crack(); return; }
+  if (rock.hp > 0) { rock.mesh.scale.multiplyScalar(.88); rock.mesh.position.y = -.04 * (CFG.artifacts.rockHp - rock.hp); Sfx.at(rock.x, rock.z).crack(); return; }
   room.group.remove(rock.mesh); disposeTree(rock.mesh);
   room.rocks = room.rocks.filter(r => r !== rock);
   if (rock.tile) room.template.tiles[rock.tile.r][rock.tile.c] = 'floor';
-  burst(rock.x, .5, rock.z, 0x6b625a, 16, 2.6, .09); Sfx.rubble(); G.shake = Math.max(G.shake, .1);
+  burst(rock.x, .5, rock.z, 0x6b625a, 16, 2.6, .09); Sfx.at(rock.x, rock.z).rubble(); G.shake = Math.max(G.shake, .1);
 }
 
 // Pits: a dark hole drawn over the floor. Walkers and the mage can't cross them; bolts and wisps can.

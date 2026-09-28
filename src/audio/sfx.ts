@@ -1,18 +1,34 @@
-/* Tiny WebAudio synth, no sound files. */
-let ctx: AudioContext | null = null, out: GainNode, noise: AudioBuffer, muted = false;
+/* Tiny WebAudio synth, no sound files. Sounds run through two buses, effects and interface, under a master
+   (GDD: Audio design), each with a volume the pause menu sets and the browser remembers. An effect that happens
+   somewhere in the room (`Sfx.at(x, z).blast()`) is panned to where it happens and a little quieter the further it
+   is, heard from just above the mage (`Sfx.listen`, every step). */
+let ctx: AudioContext | null = null, master: GainNode, fx: GainNode, ui: GainNode, noise: AudioBuffer, muted = false;
+/** Where the tones and hisses of the sound being played go: its bus, or a panner for a positioned effect. */
+let bus: AudioNode | null = null;
+const listener = { x: 0, z: 0 };
+
+export type VolumeKind = 'master' | 'effects' | 'interface';
+const VOLUME_KEY = 'ossuary.volume';
+const volumes: Record<VolumeKind, number> = { master: 1, effects: 1, interface: 1 };
+try { Object.assign(volumes, JSON.parse(localStorage.getItem(VOLUME_KEY) ?? '{}')); } catch { /* private window or blocked storage: defaults */ }
+function applyVolumes() {
+  if (!ctx) return;
+  master.gain.value = .45 * volumes.master; fx.gain.value = volumes.effects; ui.gain.value = volumes.interface;
+}
 
 function init() {
   if (ctx) { if (ctx.state === 'suspended') void ctx.resume(); return; }
   const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!AC) return;
-  ctx = new AC(); out = ctx.createGain(); out.gain.value = .45; out.connect(ctx.destination);
+  ctx = new AC(); master = ctx.createGain(); master.connect(ctx.destination);
+  fx = ctx.createGain(); fx.connect(master); ui = ctx.createGain(); ui.connect(master); applyVolumes();
   noise = ctx.createBuffer(1, ctx.sampleRate * .5, ctx.sampleRate);
   const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
 }
 function tone(type: OscillatorType, f0: number, f1: number, dur: number, vol: number, delay = 0) {
   if (!ctx || muted) return; const t = ctx.currentTime + delay; const o = ctx.createOscillator(), g = ctx.createGain();
   o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
-  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur); o.connect(g).connect(out); o.start(t); o.stop(t + dur + .02);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur); o.connect(g).connect(bus ?? fx); o.start(t); o.stop(t + dur + .02);
 }
 /** Fire's crackle: `n` tiny pops over `over` seconds. */
 function crackles(n: number, over: number, vol: number) {
@@ -21,13 +37,18 @@ function crackles(n: number, over: number, vol: number) {
 function hiss(dur: number, vol: number, type: BiquadFilterType, freq: number, delay = 0) {
   if (!ctx || muted) return; const t = ctx.currentTime + delay; const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
   s.buffer = noise; f.type = type; f.frequency.value = freq; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
-  s.connect(f).connect(g).connect(out); s.start(t); s.stop(t + dur + .02);
+  s.connect(f).connect(g).connect(bus ?? fx); s.start(t); s.stop(t + dur + .02);
+}
+/** A panner for an effect at (x, z): left or right of the mage, and quieter further away. */
+function spot(x: number, z: number) {
+  const dx = x - listener.x, d = Math.hypot(dx, z - listener.z);
+  const pan = ctx!.createStereoPanner(), g = ctx!.createGain();
+  pan.pan.value = Math.max(-1, Math.min(1, dx / 7)); g.gain.value = 1 / (1 + Math.max(0, d - 2) * .1);
+  pan.connect(g).connect(fx);
+  return pan;
 }
 
-export const Sfx = {
-  init,
-  get muted() { return muted; },
-  toggle() { muted = !muted; return muted; },
+const sounds = {
   shoot() { tone('triangle', 660, 320, .09, .09); hiss(.05, .04, 'highpass', 3000); },
   splash() { hiss(.06, .05, 'bandpass', 1800); },
   hit() { hiss(.07, .12, 'bandpass', 900); tone('square', 220, 140, .05, .04); },
@@ -132,4 +153,38 @@ export const Sfx = {
   darkness() { hiss(1, .07, 'lowpass', 400); tone('sine', 180, 120, 1, .03); },
   champion() { tone('sawtooth', 80, 60, .5, .08); hiss(.4, .06, 'lowpass', 300); },
   bell() { tone('sine', 196, 196, 1.2, .12); tone('sine', 392, 392, .8, .05); tone('triangle', 588, 588, .5, .03); },
+};
+type Sounds = typeof sounds;
+/** Sounds of the interface (picking things up, refusals, learning): their own bus, never positioned. */
+const UI_SOUNDS = new Set<keyof Sounds>(['pickup', 'relic', 'coin', 'key', 'glyphPickup', 'noGlyph', 'learn', 'spellFail', 'refuse', 'purchase', 'pageAsk']);
+/** Every sound, sending its tones to its bus, or to a panner at `place` when there is one. */
+function route(place?: { x: number; z: number; on: boolean }): Sounds {
+  const out = {} as Record<string, (...a: never[]) => void>;
+  for (const [name, fn] of Object.entries(sounds) as [keyof Sounds, (...a: never[]) => void][]) {
+    out[name] = (...a: never[]) => {
+      if (!ctx || muted) return;
+      const prev = bus, isUi = UI_SOUNDS.has(name);
+      bus = isUi ? ui : place?.on ? spot(place.x, place.z) : fx;
+      try { fn(...a); } finally { bus = prev; }
+    };
+  }
+  return out as unknown as Sounds;
+}
+const here = { x: 0, z: 0, on: true }, positioned = route(here);
+
+export const Sfx = {
+  init,
+  get muted() { return muted; },
+  toggle() { muted = !muted; return muted; },
+  /** Where the mage stands: effects are heard from just above. */
+  listen(x: number, z: number) { listener.x = x; listener.z = z; },
+  /** The sounds, played at (x, z) in the room: `Sfx.at(foe.x, foe.z).hit()`. */
+  at(x: number, z: number): Sounds { here.x = x; here.z = z; return positioned; },
+  /** Volumes, 0 to 1, remembered in this browser. */
+  get volumes(): Readonly<Record<VolumeKind, number>> { return volumes; },
+  setVolume(kind: VolumeKind, v: number) {
+    volumes[kind] = Math.max(0, Math.min(1, v)); applyVolumes();
+    try { localStorage.setItem(VOLUME_KEY, JSON.stringify(volumes)); } catch { /* not remembered, still applied */ }
+  },
+  ...route(),
 };

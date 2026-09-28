@@ -14,7 +14,7 @@ style reference in every image), budgets per kind of asset, the pipeline from im
 log. When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3 in progress (see `docs/M3-plan.md`; steps 1 to 5 done); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3 built (see `docs/M3-plan.md`; the balance pass waits for play-tests); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -43,10 +43,13 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `src/items/artifacts.ts` (pedestals, taking and focus swap, per-floor budget). The mage's stats are
   `player.stats`, recomputed on every pickup (and cleansing: `player.cleansed`); read those, not `CFG.hero`,
   for anything artifacts change.
-  The cantrip pipeline is in `src/combat/projectiles.ts` (fans, the serpent's weave, strong casts, split
-  bolts); companions that artifacts bind (the Candle Moth, the Weeping Skull) in `src/combat/familiars.ts`.
+  The cantrip pipeline is in `src/combat/projectiles.ts` (fans, the serpent's weave, the tome's homing, strong
+  casts, split bolts, burning and chilling bolts); companions that artifacts bind (the Candle Moth, the Weeping Skull) in `src/combat/familiars.ts`.
   New artifacts are data plus, for a new mechanic, an `Effect` or stat key in `artifactData.ts`, and an icon
-  in `hud.ts` (33 artifacts and the starting wand; 15 more ideas in `docs/ideas.md`). An artifact's `gives`
+  in `hud.ts` (43 artifacts and the starting wand; 15 more ideas in `docs/ideas.md`). The M3 ten reach into
+  magic: `spellDamageMul` and `killMana` stats (`damageEnemy`, `killEnemy`), `emberBolts`, `frostbite` and
+  `stormglass` on the cantrip, `thurible` on a burning death, `vigil` in `onRoomCleared`, `witchKnot` in
+  `spellCost` (`src/magic/cost.ts`), `noRegen` in `updateMagic`. An artifact's `gives`
   hands over obols, keys or glyphs once, when it's taken. The economy artifacts (step 6 of M2) reach into the
   systems they bend: `freeVault` in `world/vault.ts`, `ferryman` in `flow.ts` (`onRoomCleared`), `glyphWard`
   and `blastMul` in `combat/glyphs.ts`, `graveLantern` in `world/secret.ts` and the minimap, `pedlar` in
@@ -80,6 +83,10 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   lights oil and melts ice, `frostAt` (Chill, frost bolts, the ice wall) freezes water, `shockAt` runs a shock
   through a pool; `inflict` calls `touchPools` for every status on a foe standing in one. `wadeAt` slows the mage
   and walkers in unfrozen water. The drowned floor grows puddles in its fights (`growPuddles`).
+- Sound (`src/audio/sfx.ts`, synthesised placeholders): an effects bus and an interface bus (`UI_SOUNDS`) under a
+  master, set by the pause menu's sliders and remembered in the browser. Play an effect where it happens with
+  `Sfx.at(x, z).blast()`: panned from the mage (`Sfx.listen` every step) and quieter further off. New sounds go in
+  `sounds`, in their school's palette for magic.
 - Tests: `npm run test:unit` (Vitest: generator rules on hundreds of seeds, every template validated),
   `npm run test:e2e` (Playwright smoke tests), `npm test` runs both.
 - URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`

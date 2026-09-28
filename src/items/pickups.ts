@@ -145,7 +145,7 @@ export const spawnHeart = (x: number, z: number, value: number) => spawnPickup(v
     and burns half of its contents. */
 export function openContainer(p: Pickup, burnt = false) {
   if (p.opened || !p.contents) return;
-  if (p.gilded && burnt) { burst(p.x, .35, p.z, GOLD, 8, 1.6, .04); Sfx.wardTink(); return; } // the golden ward holds
+  if (p.gilded && burnt) { burst(p.x, .35, p.z, GOLD, 8, 1.6, .04); Sfx.at(p.x, p.z).wardTink(); return; } // the golden ward holds
   p.opened = true;
   itemLore(p.gilded ? 'gilded' : p.kind as LoreItem);
   if (p.ward) { p.ward.parent?.remove(p.ward); disposeTree(p.ward); p.ward = undefined; burst(p.x, .3, p.z, p.gilded ? GOLD : WARD, 12, 2, .04); }
@@ -164,7 +164,7 @@ export function openContainer(p: Pickup, burnt = false) {
     const kept = afterBurning(items);
     burst(p.x, .5, p.z, 0x3a3430, 8 * (items.length - kept.length), 1.6, .07); // what burned, as ash
     items = kept; Sfx.wardBreak();
-  } else if (p.kind === 'chest') Sfx.unbind(); else Sfx.coffer();
+  } else if (p.kind === 'chest') Sfx.at(p.x, p.z).unbind(); else Sfx.at(p.x, p.z).coffer();
   burst(p.x, .3, p.z, 0x8a8278, 8, 1, .06);
   items.forEach((item, i) => { // tossed out in a fan towards the camera
     const a = Math.PI / 2 + (i - (items.length - 1) / 2) * .75;

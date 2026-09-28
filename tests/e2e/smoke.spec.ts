@@ -857,6 +857,72 @@ test('water and oil: the lance lights oil that burns foes and the mage; shock ru
   expect(errors).toEqual([]);
 });
 
+type G14 = G13 & { give(...ids: string[]): void; arrowOrder: string[] };
+
+test('M3 artifacts: burning and chilling bolts, homing bolts, the pendant, the thurible, the knot, the crown, the tome, the lantern, the candle', async ({ page }) => {
+  const errors = await start(page, '?room=crypt_a&seed=ART3&spells=arc');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G14, P = g.player;
+    const shoot = () => { g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); g.sim(.05); g.keys.delete('ArrowUp'); g.arrowOrder.length = 0; g.sim(.6); };
+    const dummy = (x: number, z: number) => { const d = g.spawn('dummy', x, z); g.sim(.8); return d; };
+    g.warp(1); g.sim(.3);
+    // the Candle of the Vigil: a fight won refills mana
+    g.give('candle_of_the_vigil'); g.mana(0); g.clearRoom(); const vigil = g.mana();
+    // the Emberwood Wand: bolts set foes burning
+    g.give('emberwood_wand'); let d = dummy(P.x, P.z - 3); shoot(); const ember = d.status?.burn ?? 0; g.clearRoom(); g.sim(2.5);
+    // the Tome of Whispers: a bolt cast straight ahead curves into a dummy off to the side
+    g.give('tome_of_whispers'); dummy(P.x + 1.6, P.z - 3.5); shoot(); g.sim(.6);
+    const homing = g.enemies.find(e => e.type === 'dummy')!.lastHit; g.clearRoom(); g.sim(.3);
+    // the Frostbitten Ring: the fifth cast chills
+    g.give('apprentice_wand', 'frostbitten_ring'); d = dummy(P.x, P.z - 3);
+    const chills: number[] = []; for (let i = 0; i < 5; i++) { shoot(); chills.push(d.status?.chill ?? 0); } g.clearRoom(); g.sim(3.5);
+    // the Stormglass Pendant: a shocked foe takes more from the cantrip
+    g.give('stormglass_pendant'); const f = g.spawn('rotling', P.x, P.z - 2.5); g.sim(.8); f.hp = 100;
+    shoot(); const plain = 100 - f.hp; f.hp = 100; g.inflict({ shock: 2 }); shoot(); const glass = 100 - f.hp; g.clearRoom(); g.sim(.3);
+    // the Thurible of Ash: a foe dying in flames sets its neighbour burning
+    g.give('thurible_of_ash'); const a = g.spawn('rotling', P.x - 1, P.z - 3), b = g.spawn('rotling', P.x + .6, P.z - 3.2); g.sim(.8);
+    g.inflict({ burn: 3 }); b.status!.burn = 0; a.hp = 1; b.hp = 100; g.sim(.6); const spread = { died: !!(a as { dead?: boolean }).dead, burn: b.status?.burn ?? 0 }; g.clearRoom(); g.sim(.3);
+    // the Witch's Knot: spells cost less at half health or below
+    g.give('witchs_knot'); const cost = () => Number(document.querySelector('#slot0 small')!.textContent);
+    P.hp = P.maxHp; g.sim(.05); const full = cost(); P.hp = P.maxHp / 2; g.sim(.05); const low = cost(); P.hp = P.maxHp;
+    // the Crown of Thorns, the Hungering Tome and the Mana Lantern
+    g.give('crown_of_thorns', 'hungering_tome', 'mana_lantern');
+    const held = { maxMana: P.stats.maxMana, maxHp: P.maxHp };
+    const t = g.spawn('rotling', P.x, P.z - 2.5); g.sim(.8); t.hp = 100; g.mana(100); g.player.spellCd[0] = 0; g.cast(0, { x: 0, z: -1 }); const crown = 100 - t.hp;
+    g.mana(50); g.sim(1); const still = g.mana(); t.hp = 1; shoot(); const fed = g.mana() - still;
+    return { vigil, ember, homing, chills, plain, glass, spread, full, low, held, crown, still, fed };
+  });
+  expect(r.vigil).toBeGreaterThanOrEqual(25);
+  expect(r.ember).toBeGreaterThan(0);
+  expect(r.homing).toBe('cantrip');
+  expect(r.chills).toEqual([0, 0, 0, 0, 1]);
+  expect(r.glass).toBeCloseTo(r.plain * 1.25, 1);
+  expect(r.spread.died).toBe(true);
+  expect(r.spread.burn).toBeGreaterThan(0);
+  expect([r.full, r.low]).toEqual([15, 12]);
+  expect(r.held).toEqual({ maxMana: 140, maxHp: 4 }); // the crown's price: a heart
+  expect(r.crown).toBeGreaterThanOrEqual(9); // Arc's 6, half again
+  expect(r.still).toBe(50); // no mana back on its own
+  expect(r.fed).toBeGreaterThanOrEqual(8); // the cantrip's 3 and the tome's 5
+  expect(errors).toEqual([]);
+});
+
+test('the pause menu sets the volumes, and the browser remembers them; positioned effects play without errors', async ({ page }) => {
+  const errors = await start(page, '?room=crypt_a&seed=VOL1&spells=arc');
+  // a fight: hits, deaths and a spell, all panned to where they happen
+  await page.evaluate(() => { const w = window as unknown as W, g = w.__game as unknown as G9; g.warp(1); g.cast(0, { x: 0, z: -1 }); w.__fight(30); });
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#scrPause')).toBeVisible();
+  await page.locator('#volEffects').fill('40');
+  await page.locator('#volInterface').fill('70');
+  await page.reload();
+  await page.waitForFunction(() => !!(window as unknown as W).__game, null, { timeout: 30_000 });
+  expect(await page.locator('#volEffects').inputValue()).toBe('40');
+  expect(await page.locator('#volInterface').inputValue()).toBe('70');
+  expect(await page.locator('#volMaster').inputValue()).toBe('100');
+  expect(errors).toEqual([]);
+});
+
 /* M2 step 6: the artifacts that bend the economy. */
 type G7 = Omit<G6, 'current'> & {
   give(...ids: string[]): void; drop(kind: string, x?: number, z?: number): void; pickups: { kind: string }[];

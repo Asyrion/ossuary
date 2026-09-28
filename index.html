@@ -59,6 +59,11 @@
       <button class="act" id="btnLoad" data-s="pause.load"></button>
       <button class="act" id="btnSound" data-s="pause.soundOn"></button>
     </div>
+    <div class="vols">
+      <label for="volMaster" data-s="pause.master"></label><input type="range" id="volMaster" min="0" max="100" step="5">
+      <label for="volEffects" data-s="pause.effects"></label><input type="range" id="volEffects" min="0" max="100" step="5">
+      <label for="volInterface" data-s="pause.interface"></label><input type="range" id="volInterface" min="0" max="100" step="5">
+    </div>
     <p class="small" id="runInfo"></p>
     <p class="small" id="heroInfo"></p>
     <input type="file" id="fileIn" accept=".glb,model/gltf-binary" hidden>

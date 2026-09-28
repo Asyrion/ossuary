@@ -11,6 +11,7 @@ import { heroCast } from '../actors/hero';
 import { flashMana, renderSpells, spellIcon, toast } from '../ui/hud';
 import { showLore } from '../ui/lore';
 import { manaRegen, spell } from './spellData';
+import { spellCost } from './cost';
 import { CAST, clearShapes, leaveRoomShapes, updateShapes } from './shapes';
 
 /* ---------- mana ---------- */
@@ -47,9 +48,10 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   const def = spell(id);
   if (G.current.type === 'merchant') { toast(STR.toast.spellWarded, 2.5); Sfx.wardTink(); flashMana(slot, 'target'); return false; }
   if (player.spellCd[slot] > 0) { Sfx.spellFail(); flashMana(slot, 'cooldown'); return false; }
-  if (player.mana < def.mana && !DEV.mana) { Sfx.spellFail(); flashMana(slot, 'mana'); return false; }
+  const cost = spellCost(def);
+  if (player.mana < cost && !DEV.mana) { Sfx.spellFail(); flashMana(slot, 'mana'); return false; }
   if (!CAST[def.shape](def, aimDir(cast))) { Sfx.spellFail(); flashMana(slot, 'target'); return false; }
-  if (!DEV.mana) gainMana(-def.mana);
+  if (!DEV.mana) gainMana(-cost);
   player.spellCd[slot] = def.cooldown;
   heroCast();
   return true;
@@ -60,7 +62,7 @@ export function castSpell(slot: number, cast: Vec2 | null) {
 export function updateMagic(dt: number, acting: boolean) {
   if (acting) {
     const fighting = G.current.locked;
-    gainMana(manaRegen(dt, fighting, CFG.mana));
+    if (!player.stats.effects.has('noRegen')) gainMana(manaRegen(dt, fighting, CFG.mana)); // not with the Hungering Tome
     if (DEV.mana) player.mana = player.stats.maxMana;
     for (let i = 0; i < player.spellCd.length; i++) player.spellCd[i] = Math.max(0, player.spellCd[i] - dt);
   }

@@ -193,6 +193,21 @@ The mage has three layers of magic: a free cantrip that is always firing, two ac
 
 **Rooms react to magic.** Oil puddles ignite, water conducts shock across the whole puddle, braziers lit by Ember empower Ember spells in that room, cobwebs burn away to open shortcuts, gravestones can be shattered by Frost. This is the main systemic difference from Isaac and gives room templates a second purpose.
 
+**As built in M3** (numbers in `data/spells.json`, `data/magic.json` and `CFG`; see `docs/M3-plan.md`):
+
+- Ember, Frost and Storm, two spells each (the six in the Spells table without Phoenix Step, Winter's Breath and
+  Thundercall). The run starts with no spell; the first comes from floor 1's library or its boss.
+- Burn: 2.5 damage a second. Chill: each stack 22% slower, thawing after 3 s; the third freezes for 2 s (frozen foes
+  take ×1.5 and can't act), then 1.5 s before it can freeze again. Shock: a 0.35 s stun, and the next hit on the foe
+  leaps half its damage to a neighbour. Bosses slow (two stacks at most) but never freeze, and are stunned at most
+  once every 3 s.
+- Shatter and Overload are the two reactions; Steam waits. Reaction names rise in the air so players learn them.
+- Rooms that react: oil burns for 5 s (walking foes on it burn, the mage in it is hurt) and is then spent; water is
+  shallow (wading at 60% speed), carries a shock to everything standing in it, the mage too, and freezes over from
+  Frost into ice crossed at full speed; fire melts it. The drowned floor grows real puddles in its fights.
+- A cantrip kill gives 3 mana; kills by spells don't (burn keeps whoever lit it). Spells are refused in the
+  merchant's warded shop.
+
 **Runes** modify one spell each and are socketed at waystones. Each spell has 1 socket (2 with a boon).
 
 | Rune | Effect |
@@ -216,11 +231,11 @@ Fifteen spells, three per school, are enough for M1 to M5. Spells are learned fr
 | Ember | Pyre Seal | 35 | 8 s | Rune on the floor erupts after 1 s in a ring of flame, leaves burning ground |
 | Ember | Phoenix Step | 25 | 6 s | Short dash through enemies, leaving a fire trail; 0.3 s invulnerable |
 | Frost | Rime Shards | 15 | 1.5 s | Shotgun of 5 ice shards, each applies Chill |
-| Frost | Glacial Wall | 30 | 10 s | Wall of ice across the cast direction; blocks shots for 5 s, shatters on enemies when it ends |
+| Frost | Glacial Wall | 30 | 10 s | Wall of ice across the cast direction; for 5 s it stops enemies and their shots (not the mage's bolts), then shatters on enemies near it |
 | Frost | Winter's Breath | 40 | 12 s | Cone that freezes everything it touches for 2 s |
 | Storm | Arc | 15 | 1 s | Lightning hits the nearest enemy and chains to 3 more |
 | Storm | Thundercall | 40 | 10 s | Three strikes on random enemies; hits on water spread to the whole puddle |
-| Storm | Static Mantle | 30 | 15 s | For 6 s, shocks any enemy that touches the mage |
+| Storm | Static Mantle | 30 | 15 s | For 6 s, shocks any enemy that touches the mage and throws it back |
 | Hallow | Lantern of Vigil | 30 | 14 s | Floating lantern follows the mage and fires at enemies for 8 s |
 | Hallow | Consecrate | 35 | 12 s | Holy ground at the feet: the mage heals half a heart per 3 s inside, undead take damage |
 | Hallow | Judgement | 50 | 16 s | Beam from above on the strongest enemy after 1 s delay, huge damage |
@@ -232,20 +247,16 @@ Fifteen spells, three per school, are enough for M1 to M5. Spells are learned fr
 
 ```json
 {
-  "id": "cinder_lance",
-  "name": "Cinder Lance",
-  "school": "ember",
-  "mana": 20,
-  "cooldown": 2.0,
-  "shape": "beam",
-  "damage": 12,
-  "status": { "burn": 3 },
-  "sockets": 1,
-  "tags": ["projectile", "piercing"]
+  "id": "cinder_lance", "name": "Cinder Lance", "school": "ember", "shape": "beam",
+  "mana": 20, "cooldown": 2, "damage": 8, "status": { "burn": 3 },
+  "params": { "range": 7, "width": 0.3 },
+  "tags": ["beam", "pierce"], "color": "#ff8a3a", "icon": "lance",
+  "text": "A beam of fire pierces every foe in a line and sets them burning",
+  "lore": "The pyre-keepers lit the chapel's lamps from across the nave..."
 }
 ```
 
-`shape` picks a behaviour in code (bolt, beam, cone, area, wall, dash, summon, self-buff); everything else is data, so new spells are mostly new entries. Tags decide which runes and boons apply.
+`shape` picks a behaviour in code; M3 built beam, placed, shotgun, wall, chain and self, and cone, dash and summon come with the spells that need them. `params` holds the numbers only the shape reads (each shape's list is checked). Everything else is data, so new spells are mostly new entries. Tags decide which runes and boons apply; sockets arrive with runes (M6).
 
 **Casting animation:** the hero's `cast_a_spell` window is reused for every spell; strong spells can play a longer part of the same clip. A second Tripo clip (a two-handed channel) would help beams and cones later.
 
@@ -314,7 +325,7 @@ The generator places the three guaranteed sources first, then gives artifacts to
 | Frostbitten Ring | Every 5th cantrip bolt applies Chill | M3 |
 | Stormglass Pendant | Shocked enemies take +25% cantrip damage | M3 |
 | Thurible of Ash | Burning enemies spread Burn when they die | M3 |
-| Witch's Knot | Spells cost 20% less while below half health | M3 |
+| Witch's Knot | Spells cost 20% less at half health or below (below half alone was too rare with 3 hearts) | M3 |
 | Alchemist's Satchel | Potion belt +1 slot, reagents drop 30% more often | M5 |
 
 **Cursed artifacts**
@@ -502,7 +513,7 @@ Between two cells of the same room, the two wall tiles become floor, which is wh
 
 **A run is three floors (M1).** Each floor is generated fresh, so no two runs share a map:
 
-- **Map:** start in the centre of a 9 × 8 grid and grow outwards by random walk until the floor has its room count, rolled per floor: 8 to 12 rooms on floor 1, 10 to 14 on floor 2, 12 to 16 on floor 3. From M2 each floor gets one more (9 to 13, 11 to 15, 13 to 17), since the merchant, and the shrine on floor 2, each take a dead end that would otherwise hold a fight.
+- **Map:** start in the centre of a 9 × 8 grid and grow outwards by random walk until the floor has its room count, rolled per floor: 8 to 12 rooms on floor 1, 10 to 14 on floor 2, 12 to 16 on floor 3. From M2 each floor gets one more (9 to 13, 11 to 15, 13 to 17), since the merchant, and the shrine on floor 2, each take a dead end that would otherwise hold a fight. From M3 the library takes one more on every floor (10 to 14, 13 to 17, 14 to 18: floor 2 gets two, so its vault and altar still find dead ends beside the shrine).
 - **Special rooms** go into dead ends (rooms with one neighbour): the farthest from the start is the boss room, then treasure, ordeal and (from M2) the merchant; optional rooms (bone altar, and from M2 the locked vault) need a spare dead end. Each floor rolls the optional rooms it wants first (chances per floor in `data/floors.json`); if the walk leaves too few dead ends for the required and wanted rooms, it tries again, and after a while makes do with fewer. The boss room never touches the start room.
 - **Secret room (M2):** one per floor, in an empty cell with hidden doorways into two or more rooms (the cell that could open into the most rooms wins). It never opens into the boss room (no way round the fight), a locked vault (no way round its ward) or the merchant (whose warded shop won't let a glyph be chalked). It comes on top of the floor's room count, and the other rooms keep their distances from the start as if it weren't there.
 - **Shapes:** while growing the map, the walk sometimes places a larger shape when the cells it needs are free.
@@ -685,6 +696,11 @@ Reactions (steam, shatter, overload, eclipse, blackfire) each get their own sign
 - Every frequent sound has 3 to 5 variants plus slight random pitch.
 - Volume sliders for master, music, ambience, effects and interface.
 - Accessibility: important sounds (telegraphs, off-screen spawns, low health) also have a visual cue.
+
+**As built in M3:** the synthesised placeholders run through two buses, effects and interface, under a master, each
+with a slider in the pause menu (remembered in the browser; music and ambience sliders come with M8). Effects that
+happen somewhere in the room are panned left or right of the mage and a little quieter further away (plain stereo;
+HRTF, reverb and the headphones or speakers setting stay for M8).
 
 **Technical notes:** Web Audio API through three.js positional audio for effects; ambience and music streamed rather than loaded up front; short effects packed into a few files to cut download size; audio unlocked on the first tap or key press, as browsers require.
 

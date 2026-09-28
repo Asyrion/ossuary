@@ -187,8 +187,21 @@ mage's hand; the pages of spells given up stay behind as ash-edged leaves that c
 
 ## Step 6: M3 artifacts, positional sound and balance
 
-- [ ] The ten M3 artifacts (decision 11), with lore, icons and dev menu entries
-- [ ] Positional sound for effects (panned to where they happen, listener above the mage) and volume sliders in
-      the pause menu
-- [ ] Balance pass after play-tests (mana, costs, cooldowns, status numbers, spell damage, library prices)
-- [ ] GDD and CLAUDE.md brought up to date
+- [x] The ten M3 artifacts (decision 11), with lore, icons and dev menu entries (from the data): Emberwood Wand
+      (bolts burn 1.5 s, range ×0.9), Tome of Whispers (a new `homing` path: slow bolts that turn towards the
+      nearest foe ahead, ×1.4 damage), Mana Lantern (+40 mana), Candle of the Vigil (+25 mana every fight won),
+      Frostbitten Ring (every fifth cast chills, in ice blue), Stormglass Pendant (×1.25 cantrip damage on shocked
+      foes), Thurible of Ash (a foe dying in flames sets foes within 2.4 tiles burning, and oil), Witch's Knot
+      (spells ×0.8 at half health or below; the slot shows the price), Crown of Thorns (spells ×1.5, a heart;
+      cleansed ×1.25), Hungering Tome (5 mana for every foe put to rest, but no regeneration; cleansed 2.5). 43
+      artifacts and the starting wand. Burn now keeps whoever lit it, so the Emberwood's burning kills still give
+      mana. Unit tests for the new stats; browser test for all ten
+- [x] Positional sound for effects (panned to where they happen, listener above the mage) and volume sliders in
+      the pause menu: effects and interface buses under a master, remembered in the browser; hits, deaths, blasts,
+      urns, rocks, bosses, foes' shots, reactions, spells and pools are placed (`Sfx.at(x, z)`); browser test for
+      the sliders
+- [ ] Balance pass after play-tests (mana, costs, cooldowns, status numbers, spell damage, library prices): waits
+      for the owner's play-tests; the numbers are in `data/spells.json`, `data/magic.json`, `data/loot.json`
+      (`grimoire`) and `CFG` (`mana`, `surface`, `artifacts`)
+- [x] GDD and CLAUDE.md brought up to date (as built in M3: magic numbers, rooms that react, room counts, the spell
+      data shape, the sound mix, the Witch's Knot at half health)

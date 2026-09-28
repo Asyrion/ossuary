@@ -14,18 +14,20 @@ import { rollEnemyDrop } from '../items/loot';
 import { freeSpotNear } from '../world/rooms';
 import { gainMana } from '../magic/spells';
 import { damageTakenMul } from '../magic/status';
-import { dummyHit, shockLeap } from '../magic/statusFx';
+import { dummyHit, inflict, shockLeap } from '../magic/statusFx';
+import { fireAt } from '../world/pools';
 
 /** Hurt a foe, knocking it along (dx, dz); `kbMul` scales the knockback (the Ram's Skull on bolts); `by` says
     what struck it (a foe the cantrip puts to rest gives mana back). */
 export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul = 1, by?: Enemy['lastHit']) {
   if (e.spawn > 0 || e.dead || e.hidden) return;
   dmg *= damageTakenMul(e.status); // a frozen foe cracks
+  if (by === 'spell') dmg *= player.stats.spellDamage; // Crown of Thorns
   e.hp -= dmg; e.flash = .09; e.lastHit = by;
   if (e.type === 'dummy') { e.hp = e.maxHp; dummyHit(e, dmg); } // the training dummy never falls
   shockLeap(e, dmg); // a shocked foe passes part of the hit on
   const kb = (e.isBoss ? .6 : 2.6) * kbMul; e.kx += dx * kb; e.kz += dz * kb;
-  Sfx.hit();
+  Sfx.at(e.x, e.z).hit();
   if (e.isBoss) updateBossBar(e);
   if (e.hp <= 0) killEnemy(e);
 }
@@ -42,13 +44,26 @@ function killEnemy(e: Enemy, withBoss = false) {
   if (player.stats.effects.has('deathBurst')) spawnBurst(e.x, e.z, 4); // Saint's Knucklebone
   if (player.stats.effects.has('leech')) leech(e);                   // Leech Jar
   if (e.lastHit === 'cantrip') gainMana(CFG.mana.perKill);            // the dead give back what spells spend
+  if (player.stats.killMana) gainMana(player.stats.killMana);         // Hungering Tome
+  if (player.stats.effects.has('thurible') && (e.status?.burn ?? 0) > 0) scatterEmbers(e); // Thurible of Ash
   if (e.champion) { const p = freeSpotNear(G.current, e.x, e.z); spawnHeart(p.x, p.z, 2); }
   const drop = e.isBoss ? null : rollEnemyDrop(G.run.drops); // now and then an obol
   if (drop) { const p = freeSpotNear(G.current, e.x, e.z); spawnPickup(drop, p.x, p.z); }
   if (e.isBoss) {
     for (const s of G.enemies) if (s.servant && !s.dead) killEnemy(s, true);
-    Sfx.boom(); G.shake = .55; onBossDead();
-  } else { Sfx.die(); G.shake = Math.max(G.shake, .08); }
+    Sfx.at(e.x, e.z).boom(); G.shake = .55; onBossDead();
+  } else { Sfx.at(e.x, e.z).die(); G.shake = Math.max(G.shake, .08); }
+}
+
+/** The Thurible of Ash: a foe that dies burning scatters its embers over the foes around it, and any oil. */
+function scatterEmbers(e: Enemy) {
+  const T = CFG.artifacts.thurible;
+  for (const o of G.enemies) {
+    if (o === e || o.dead || o.spawn > 0 || o.hidden || Math.hypot(o.x - e.x, o.z - e.z) > T.radius) continue;
+    inflict(o, { burn: T.burn });
+    for (let k = 1; k <= 3; k++) burst(e.x + (o.x - e.x) * k / 4, .6, e.z + (o.z - e.z) * k / 4, 0xff8a3a, 1, .8, .04);
+  }
+  burst(e.x, .6, e.z, 0x6a5a50, 14, 2.2, .05); fireAt(e.x, e.z, .4); Sfx.at(e.x, e.z).crackle();
 }
 
 /** The Leech Jar: every so many foes put to rest, a red mote flies to the mage and heals half a heart. */

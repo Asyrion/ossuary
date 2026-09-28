@@ -5,6 +5,7 @@ import { updateTorchLights } from './render/lights';
 import { updateRoomFx } from './world/rooms';
 import { heroVisual } from './actors/hero';
 import { updatePlayer } from './actors/player';
+import { Sfx } from './audio/sfx';
 import { updateEnemies } from './actors/enemies';
 import { updateBolts, updateShots } from './combat/projectiles';
 import { updateGlyphs } from './combat/glyphs';
@@ -55,6 +56,7 @@ export function step(dt: number) {
       camTarget.x += (t.x - camTarget.x) * k; camTarget.z += (t.z - camTarget.z) * k;
     } else updateEnemies(0);
   }
+  Sfx.listen(player.x, player.z); // effects are heard from just above the mage
   updateParticles(dt); updateWorldFx(dt, now); heroVisual(dt, now);
 }
 

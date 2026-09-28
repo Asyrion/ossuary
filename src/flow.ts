@@ -28,7 +28,7 @@ import { giveById, offerGuaranteed, offerOptional, offerSecondChoice, placeArtif
 import { banner, fadeFromBlack, hideBossBar, renderHearts, renderMinimap, resetHearts, showBossBar, toast } from './ui/hud';
 import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
-import { clearSpellFx, forgetSpells, leaveRoomSpells, learnSpell } from './magic/spells';
+import { clearSpellFx, forgetSpells, gainMana, leaveRoomSpells, learnSpell } from './magic/spells';
 import { clearStatusFx } from './magic/statusFx';
 import { clearPages, dropPage, enterLibrary, maybeDropPage } from './magic/pages';
 import { resetClock } from './loop';
@@ -244,8 +244,14 @@ function payFerryman(room: Room) {
   spawnPickup('coin', p.x, p.z); burst(p.x, 1.6, p.z, 0xe8e0c0, 12, 1.2, .04); Sfx.ferryman();
 }
 
+/** The Candle of the Vigil: every fight won, its flame stands straight again and mana flows back. */
+function keepVigil() {
+  if (!player.stats.effects.has('vigil')) return;
+  gainMana(CFG.artifacts.vigil.mana); burst(player.x, 1.3, player.z, 0xf0d8a0, 12, 1.2, .04); Sfx.manaVial();
+}
+
 export function onRoomCleared(room: Room) {
-  room.cleared = true; room.locked = false; setDoors(room, true); keepOath(room); payFerryman(room);
+  room.cleared = true; room.locked = false; setDoors(room, true); keepOath(room); payFerryman(room); keepVigil();
   const loot = G.run.loot;
   if (room.type === 'ordeal') { // the reward rises in the middle of the room
     const def = offerGuaranteed('ordeal');

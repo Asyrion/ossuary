@@ -81,7 +81,7 @@ const chain: Cast = (def, dir) => {
     burst(to.x, to.y, to.z, color, 8, 2.2, .04);
     from = to;
   });
-  Sfx.arc(path.length);
+  Sfx.at(first.x, first.z).arc(path.length);
   return true;
 };
 
@@ -217,7 +217,7 @@ function updateSeals(dt: number) {
       s.tick = .25;
       for (const e of G.enemies) if (alive(e) && !e.flying && Math.hypot(e.x - s.x, e.z - s.z) < P.radius + e.r * .5) inflict(e, { burn: P.groundBurn });
       fireAt(s.x, s.z, P.radius - .6);
-      if (Math.random() < .4) Sfx.crackle();
+      if (Math.random() < .4) Sfx.at(s.x, s.z).crackle();
     }
   }
 }
@@ -240,7 +240,7 @@ function erupt(s: (typeof seals)[number]) {
   }
   burst(s.x, .3, s.z, FIRE, 14, 3.2, .08);
   flash(s.x, s.z, 0xff8a3a, P.radius);
-  Sfx.sealErupt(); G.shake = Math.max(G.shake, .25);
+  Sfx.at(s.x, s.z).sealErupt(); G.shake = Math.max(G.shake, .25);
 }
 
 /** Tongues of flame, and motes: glows rising and shrinking away (shared materials, so nothing to free). */
@@ -341,7 +341,7 @@ function dropWall(w: (typeof walls)[number], quiet = false) {
     inflict(e, def.status);
   }
   for (const b of w.boxes) { burst(b.x, .5, b.z, ICE, 6, 2.6, .06); burst(b.x, .8, b.z, 0xffffff, 2, 2, .04); }
-  Sfx.wallShatter(); G.shake = Math.max(G.shake, .12);
+  Sfx.at(w.boxes[0].x, w.boxes[0].z).wallShatter(); G.shake = Math.max(G.shake, .12);
 }
 
 /* ---------- self: Static Mantle ---------- */
@@ -390,7 +390,7 @@ function updateMantle(dt: number, now: number) {
     damageEnemy(e, m.def.damage, u.x, u.z, 0, 'spell');
     inflict(e, m.def.status);
     if (!e.isBoss) { e.kx += u.x * P.knockback; e.kz += u.z * P.knockback; }
-    burst(e.x, foeY(e), e.z, color, 8, 2.4, .035); Sfx.mantleZap();
+    burst(e.x, foeY(e), e.z, color, 8, 2.4, .035); Sfx.at(e.x, e.z).mantleZap();
   }
 }
 function endMantle(quiet: boolean) {

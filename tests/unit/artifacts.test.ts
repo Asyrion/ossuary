@@ -23,10 +23,23 @@ describe('lore', () => {
 describe('artifact data', () => {
   it('is valid', () => expect(validateArtifacts()).toEqual([]));
 
-  it('holds the M1 set, the 13 added after M2 step 4 and the 7 economy artifacts: 27 artifacts and 6 foci besides the starting wand', () => {
-    expect(ARTIFACT_DEFS.filter(a => a.kind !== 'focus')).toHaveLength(27);
-    expect(ARTIFACT_DEFS.filter(a => a.kind === 'focus' && !a.start)).toHaveLength(6);
-    expect(ARTIFACT_DEFS.filter(a => a.kind === 'cursed')).toHaveLength(4);
+  it('holds the M1 set, the 13 added after M2 step 4, the 7 economy artifacts and the 10 of M3: 43 besides the starting wand', () => {
+    expect(ARTIFACT_DEFS.filter(a => !a.start)).toHaveLength(43);
+    expect(ARTIFACT_DEFS.filter(a => a.kind !== 'focus')).toHaveLength(35);
+    expect(ARTIFACT_DEFS.filter(a => a.kind === 'focus' && !a.start)).toHaveLength(8);
+    expect(ARTIFACT_DEFS.filter(a => a.kind === 'cursed')).toHaveLength(6);
+  });
+
+  it('M3: spell damage and mana from kills combine like the other stats, and a cleansed curse halves them', () => {
+    const base = { damage: 3.5, fireDelay: .36, speed: 4.3, shotSpeed: 8.8, range: 6.8, hearts: 3, invuln: 1, mana: 100 };
+    const s = computeStats('apprentice_wand', ['crown_of_thorns', 'hungering_tome', 'mana_lantern'], base);
+    expect([s.spellDamage, s.killMana, s.maxMana, s.maxHp]).toEqual([1.5, 5, 140, 4]);
+    expect(s.effects.has('noRegen')).toBe(true);
+    const clean = computeStats('apprentice_wand', ['crown_of_thorns', 'hungering_tome'], base, ['crown_of_thorns', 'hungering_tome']);
+    expect([clean.spellDamage, clean.killMana, clean.maxHp, clean.effects.has('noRegen')]).toEqual([1.25, 2.5, 6, false]);
+    const tome = computeStats('tome_of_whispers', [], base);
+    expect(tome.pattern.path).toBe('homing');
+    expect(tome.shotSpeed).toBeCloseTo(8.8 * .6);
   });
 
   it('gives every artifact a text, lore, an icon and a place to appear, and every pool something to draw', () => {

@@ -8,7 +8,7 @@
    hits are spell hits and carry the spell's statuses. */
 import * as THREE from 'three';
 import { CFG } from '../config';
-import type { Bolt, Box, RockBox, Room } from '../types';
+import type { Bolt, Box, Enemy, RockBox, Room } from '../types';
 import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
@@ -53,6 +53,7 @@ function makeBolt(s: BoltSpec) {
   return b;
 }
 
+let casts = 0; // for the Frostbitten Ring's every fifth cast
 /** Cast the cantrip in the current shooting direction, in the focus's pattern. */
 export function spawnBolt() {
   const dir = shootDir(); if (!dir) return;
@@ -64,13 +65,16 @@ export function spawnBolt() {
   const slots = p.count === 1 ? [0] : Array.from({ length: p.count }, (_, i) => i - (p.count - 1) / 2);
   // Raven's Eye: now and then the whole cast strikes thrice as hard, bigger and white-hot
   const crit = st.effects.has('crit') && Math.random() < A.crit.chance;
+  // the Emberwood Wand sets foes burning; the Frostbitten Ring chills with every fifth cast
+  const frost = st.effects.has('frostbite') && ++casts % A.frostbite.every === 0;
+  const status = st.effects.has('emberBolts') || frost ? { ...(st.effects.has('emberBolts') ? { burn: A.emberwood.burn } : {}), ...(frost ? { chill: A.frostbite.chill } : {}) } : undefined;
   for (const k of slots) {
     const a = k * p.fan, c = Math.cos(a), s = Math.sin(a);
     const dx = dir.x * c - dir.z * s, dz = dir.z * c + dir.x * s, off = p.count === 1 ? .1 * player.eye : p.fan ? 0 : k * p.spread;
     makeBolt({
       x: player.x + dx * .3 + px * off, z: player.z + dz * .3 + pz * off, vx: dx * st.shotSpeed + ix, vz: dz * st.shotSpeed + iz,
       damage: st.damage * (crit ? A.crit.damageMul : 1), range: st.range, scale: st.boltScale * (crit ? A.crit.scale : 1),
-      color: crit ? A.crit.color : st.boltColor, path: p.path, pierce: st.pierce, bounces: p.bounces, secondary: false, crit,
+      color: crit ? A.crit.color : frost ? A.frostbite.color : st.boltColor, path: p.path, pierce: st.pierce, bounces: p.bounces, secondary: false, crit, status,
     });
   }
   // the Miser's Purse: gold glints off the cast, more of them the more obols are hoarded
@@ -121,7 +125,7 @@ export function clearProjectiles() {
     a cracked wall rings hollow, an urn breaks. Returns the box as a rock, to check for more. */
 export function strikeSolid(room: Room, box: Box, x: number, y: number, z: number) {
   const door = room.doors.find(d => d.box === box);
-  if (door?.seal?.sealed) { burst(x, y, z, WARD_COLOR, 5, 1.6, .035); Sfx.wardTink(); } // glances off a vault's ward
+  if (door?.seal?.sealed) { burst(x, y, z, WARD_COLOR, 5, 1.6, .035); Sfx.at(x, z).wardTink(); } // glances off a vault's ward
   if (door?.secret) hollowRing(door, x, z);                                               // a cracked wall rings hollow
   const rock = box as RockBox;
   if (rock.urn) strikeUrn(room, rock, false);                                             // any bolt breaks an urn
@@ -130,7 +134,7 @@ export function strikeSolid(room: Room, box: Box, x: number, y: number, z: numbe
 
 function removeBolt(i: number, fizzle = true) {
   const b = G.bolts[i]; scene.remove(b.mesh); G.bolts.splice(i, 1);
-  if (fizzle) { burst(b.x, Math.max(.1, b.y), b.z, b.color, b.secondary ? 3 : 5, 1.6, .05); Sfx.splash(); }
+  if (fizzle) { burst(b.x, Math.max(.1, b.y), b.z, b.color, b.secondary ? 3 : 5, 1.6, .05); Sfx.at(b.x, b.z).splash(); }
 }
 
 export function updateBolts(dt: number) {
@@ -143,6 +147,7 @@ export function updateBolts(dt: number) {
       if (d < .45) { removeBolt(i, false); continue; } // caught
       b.vx = dx / d * b.speed; b.vz = dz / d * b.speed;
     }
+    if (b.path === 'homing') steer(b, dt);
     const ox = b.x, oz = b.z;
     b.dist += b.speed * dt;
     if (b.wave) { // the Serpent Rod: along a straight line, swinging from side to side
@@ -162,7 +167,7 @@ export function updateBolts(dt: number) {
     }
     // the merchant's shop is warded: bolts fizzle just after leaving the mage
     if (!kill && room.type === 'merchant' && b.dist > CFG.merchant.boltFizzle) {
-      burst(b.x, b.y, b.z, WARD_COLOR, 5, 1.3, .04); Sfx.wardTink(); removeBolt(i, false); continue;
+      burst(b.x, b.y, b.z, WARD_COLOR, 5, 1.3, .04); Sfx.at(b.x, b.z).wardTink(); removeBolt(i, false); continue;
     }
     // walls, doors and rocks
     const box = !kill && !(b.path === 'boomerang' && b.returning) ? boxAt(b.x, b.z, solids) : undefined;
@@ -174,7 +179,7 @@ export function updateBolts(dt: number) {
         const hitX = !!boxAt(b.x, oz, solids), hitZ = !!boxAt(ox, b.z, solids);
         if (hitX || !hitZ) b.vx = -b.vx;
         if (hitZ || !hitX) b.vz = -b.vz;
-        b.x = ox; b.z = oz; b.bounces--; b.hit.clear(); Sfx.splash();
+        b.x = ox; b.z = oz; b.bounces--; b.hit.clear(); Sfx.at(b.x, b.z).splash();
       } else if (b.path === 'boomerang') { b.x = ox; b.z = oz; b.returning = true; b.hit.clear(); }
       else kill = true;
     }
@@ -183,7 +188,10 @@ export function updateBolts(dt: number) {
       if (e.dead || e.spawn > 0 || e.hidden || b.hit.has(e)) continue;
       const ey = e.flying ? .8 : .5;
       if (Math.hypot(b.x - e.x, b.z - e.z) >= e.r + b.r || Math.abs(b.y - ey) >= 1.4) continue;
-      damageEnemy(e, b.damage, b.vx / b.speed, b.vz / b.speed, b.spell ? .3 : player.stats.knockback, b.spell ? 'spell' : 'cantrip');
+      // the Stormglass Pendant: the cantrip strikes a shocked foe harder
+      const glass = !b.spell && player.stats.effects.has('stormglass') && (e.status?.shock ?? 0) > 0;
+      damageEnemy(e, b.damage * (glass ? CFG.artifacts.stormglass.mul : 1), b.vx / b.speed, b.vz / b.speed, b.spell ? .3 : player.stats.knockback, b.spell ? 'spell' : 'cantrip');
+      if (glass) burst(e.x, .8, e.z, 0xf0e890, 6, 2.2, .03);
       b.hit.add(e);
       if (b.status) inflict(e, b.status);
       if (b.crit) burst(e.x, .7, e.z, CFG.artifacts.crit.color, 8, 2.4, .05);
@@ -213,12 +221,27 @@ export function updateBolts(dt: number) {
   }
 }
 
+/** The Tome of Whispers: a bolt turns, a little each moment, towards the nearest foe ahead of it. */
+function steer(b: Bolt, dt: number) {
+  const H = CFG.artifacts.homing;
+  let best: Enemy | null = null, bd = H.reach;
+  for (const e of G.enemies) {
+    if (e.dead || e.spawn > 0 || e.hidden || b.hit.has(e)) continue;
+    const dx = e.x - b.x, dz = e.z - b.z, d = Math.hypot(dx, dz);
+    if (d < bd && dx * b.vx + dz * b.vz > 0) { bd = d; best = e; }
+  }
+  if (!best) return;
+  const cur = Math.atan2(b.vz, b.vx), want = Math.atan2(best.z - b.z, best.x - b.x);
+  const da = Math.atan2(Math.sin(want - cur), Math.cos(want - cur)), a = cur + Math.max(-H.turn * dt, Math.min(H.turn * dt, da));
+  b.vx = Math.cos(a) * b.speed; b.vz = Math.sin(a) * b.speed;
+}
+
 export function updateShots(dt: number) {
   const room = G.current, solids = blockers(room, 'bolt'), ice = room.barriers ?? [];
   for (let i = G.shots.length - 1; i >= 0; i--) {
     const s = G.shots[i]; s.x += s.vx * dt; s.z += s.vz * dt; s.mesh.position.set(s.x, s.y, s.z);
     let kill = !!boxAt(s.x, s.z, solids);
-    if (!kill && boxAt(s.x, s.z, ice)) { kill = true; burst(s.x, s.y, s.z, 0xbfe6ff, 5, 1.4, .04); Sfx.wardTink(); } // a wall of ice stops foes' shots
+    if (!kill && boxAt(s.x, s.z, ice)) { kill = true; burst(s.x, s.y, s.z, 0xbfe6ff, 5, 1.4, .04); Sfx.at(s.x, s.z).wardTink(); } // a wall of ice stops foes' shots
     if (!kill && Math.hypot(player.x - s.x, player.z - s.z) < player.r + s.r) { hurtPlayer(1, s.x - s.vx, s.z - s.vz); kill = true; }
     if (kill) { scene.remove(s.mesh); G.shots.splice(i, 1); burst(s.x, s.y, s.z, s.color, 4, 1.2, .05); }
   }

@@ -110,14 +110,14 @@ export function updateEnemies(dt: number) {
       e.fireT! -= dt; const ft = e.fireT!;
       const tele = ft < .45 && ft > 0;
       e.core!.scale.setScalar(tele ? 1 + (.45 - ft) * 2.2 : 1); e.halo!.material.opacity = tele ? 1 : .6 + Math.sin(e.t * 9) * .1;
-      if (ft <= 0) { spawnShot(e.x + ux * .3, e.z + uz * .3, ux, uz, C.shotSpeed, 0xb784ff, .8); Sfx.enemyShot(); e.fireT = rand(C.fireMin, C.fireMax); }
+      if (ft <= 0) { spawnShot(e.x + ux * .3, e.z + uz * .3, ux, uz, C.shotSpeed, 0xb784ff, .8); Sfx.at(e.x, e.z).enemyShot(); e.fireT = rand(C.fireMin, C.fireMax); }
     } else if (e.type === 'hound') {
       const C = CFG.enemy.hound; e.st -= dt; const dir = e.dir!;
       if (e.state === 'wander') {
         e.vx = dir.x * C.speed * e.speedMul; e.vz = dir.z * C.speed * e.speedMul; faceTo = Math.atan2(dir.x, dir.z);
         if (e.st <= 0) { const d = [[1, 0], [-1, 0], [0, 1], [0, -1]][Math.random() * 4 | 0]; e.dir = { x: d[0], z: d[1] }; e.st = rand(.8, 1.8); }
         const alignedX = Math.abs(dz) < .45, alignedZ = Math.abs(dx) < .45;
-        if ((alignedX || alignedZ) && dist < 9) { e.state = 'tell'; e.st = .3; e.dir = alignedX ? { x: Math.sign(dx), z: 0 } : { x: 0, z: Math.sign(dz) }; Sfx.charge(); }
+        if ((alignedX || alignedZ) && dist < 9) { e.state = 'tell'; e.st = .3; e.dir = alignedX ? { x: Math.sign(dx), z: 0 } : { x: 0, z: Math.sign(dz) }; Sfx.at(e.x, e.z).charge(); }
         e.body.position.y = Math.abs(Math.sin(e.t * 9)) * .03;
       } else if (e.state === 'tell') {
         e.vx = e.vz = 0; faceTo = Math.atan2(dir.x, dir.z); e.body.position.x = Math.sin(e.t * 60) * .03;
@@ -137,7 +137,7 @@ export function updateEnemies(dt: number) {
     e.x += (e.vx + e.kx) * dt; e.z += (e.vz + e.kz) * dt;
     const hit = collide(e, e.flying ? walls : solids);
     if (e.type === 'hound') {
-      if (e.state === 'charge' && hit) { e.state = 'stun'; e.st = .7; G.shake = Math.max(G.shake, .12); Sfx.hit(); }
+      if (e.state === 'charge' && hit) { e.state = 'stun'; e.st = .7; G.shake = Math.max(G.shake, .12); Sfx.at(e.x, e.z).hit(); }
       else if (e.state === 'wander' && hit) { e.dir = { x: -e.dir!.x, z: -e.dir!.z }; }
     } else if (e.isBoss) afterBossMove(e, hit);
     e.face = angleLerp(e.face, faceTo, 1 - Math.exp(-10 * dt));

@@ -6,6 +6,7 @@ import { CFG } from '../config';
 import { camera } from '../render/renderer';
 import { artifact } from '../items/artifactData';
 import { spell } from '../magic/spellData';
+import { spellCost } from '../magic/cost';
 import { $, clamp } from '../util';
 
 export const HEART_PATH = 'M12 21.2s-7.6-4.7-9.7-9.3C.8 8.3 3 4.4 6.7 4.4c2.1 0 3.6 1.1 4.4 2.7.8-1.6 2.3-2.7 4.4-2.7 3.7 0 5.9 3.9 4.3 7.5-2.1 4.6-9.8 9.3-9.8 9.3z';
@@ -46,6 +47,17 @@ const ICONS: Record<string, string> = {
   band: `<ellipse cx="12" cy="13" rx="8" ry="5" ${S}/><path d="M8 7.6v2.2M12 7v2.2M16 7.6v2.2M8 16.2v2.2M12 16.8v2.2M16 16.2v2.2" ${S}/>`,
   lantern: `<path d="M9 5h6M12 2v3M8 5l-1 4v8l2 3h6l2-3V9l-1-4" ${S}/><path d="M12 10c-1.5 1.5-1.5 3 0 4 1.5-1 1.5-2.5 0-4z" fill="currentColor"/>`,
   scale: `<path d="M12 3v17M7 20h10M4 7h16" ${S}/><path d="M4 7l-2.5 6h5zM20 7l-2.5 6h5z" ${S}/>`,
+  // M3
+  emberwood: `<path d="M4 20L15 9" ${S}/><path d="M17 3c2 2.5 2.5 4.5 0 7-2.5-2.5-2-4.5 0-7z" fill="currentColor"/><path d="M7 14l2 2" ${S}/>`,
+  tome: `<path d="M4 5c3-1 5-1 8 1 3-2 5-2 8-1v14c-3-1-5-1-8 1-3-2-5-2-8-1z" ${S}/><path d="M12 6v14" ${S}/><path d="M6.5 10c1-1 2-1 3 0M14.5 13c1 1 2 1 3 0" ${S}/>`,
+  manalantern: `<path d="M9 5h6M12 2v3M8 5l-1 4v8l2 3h6l2-3V9l-1-4" ${S}/><path d="M12 9c-2 3-2 5 0 6 2-1 2-3 0-6z" fill="currentColor"/>`,
+  vigil: `<path d="M9 10h6v10H9z" ${S}/><path d="M7 20h10" ${S}/><path d="M12 2c2 2.5 2 4.5 0 6-2-1.5-2-3.5 0-6z" fill="currentColor"/>`,
+  frostring: `<circle cx="12" cy="14" r="6" ${S}/><path d="M12 2v6M9 3.5l6 3M15 3.5l-6 3" ${S}/>`,
+  stormglass: `<path d="M8 3h8M12 3v3" ${S}/><path d="M12 6l6 7-6 8-6-8z" ${S}/><path d="M13 9l-3 4h3l-2 4" ${S}/>`,
+  thurible: `<path d="M12 2v5M8 9h8l-1 7H9z" ${S}/><path d="M10 19h4" ${S}/><path d="M16 6c2-1 3 0 3 1.5M5 7.5C5 6 6 5 8 6" ${S}/><circle cx="12" cy="12.5" r="1.3" fill="currentColor"/>`,
+  witchknot: `<path d="M5 12c0-4 4-6 7-3s7 1 7-3M5 12c0 4 4 6 7 3s7-1 7 3" ${S}/><circle cx="12" cy="12" r="2" fill="currentColor"/>`,
+  thorns: `<path d="M4 16l2-8 4 5 2-7 2 7 4-5 2 8z" ${S}/><path d="M4 19h16M6 8l-2-2M18 8l2-2M12 6V3" ${S}/>`,
+  hungertome: `<path d="M4 5h13l3 3v12H7l-3-3z" ${S}/><path d="M8 11l1.5 2 1.5-2 1.5 2 1.5-2 1.5 2" ${S}/><path d="M8 16h8" ${S}/>`,
 };
 
 /* Placeholder spell icons, drawn in the spell's colour. */
@@ -88,7 +100,9 @@ function updateMagicHud() {
     if (!id) return;
     const slot = $(`slot${i}`), cd = slot.querySelector<HTMLElement>('.cd'), def = spell(id);
     if (cd) cd.style.height = `${Math.min(1, player.spellCd[i] / def.cooldown) * 100}%`;
-    slot.classList.toggle('poor', player.mana < def.mana);
+    const cost = Math.round(spellCost(def)), small = slot.querySelector('small');
+    if (small && small.textContent !== String(cost)) small.textContent = String(cost); // the Witch's Knot changes it
+    slot.classList.toggle('poor', player.mana < spellCost(def));
   });
 }
 /** A refused cast: the slot flashes red, and the mana bar too when mana was short. */
