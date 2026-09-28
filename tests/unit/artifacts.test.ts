@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CFG } from '../../src/config';
 import { Rng } from '../../src/rng';
-import { ARTIFACT_DEFS, START_FOCUS, computeStats, pickArtifact, validateArtifacts } from '../../src/items/artifactData';
+import { ARTIFACT_DEFS, START_FOCUS, computeStats, halveStat, pickArtifact, validateArtifacts } from '../../src/items/artifactData';
 
 const base = CFG.hero;
 const stats = (items: string[], focus = START_FOCUS) => computeStats(focus, items, base);
@@ -27,8 +27,11 @@ describe('artifact data', () => {
   });
 
   it('catches mistakes', () => {
-    const bad = [{ ...ARTIFACT_DEFS[4], pools: ['nowhere'], stats: { luck: 1 } }, ARTIFACT_DEFS[4]] as never[];
+    const cursed = ARTIFACT_DEFS.find(a => a.kind === 'cursed')!;
+    const bad = [{ ...ARTIFACT_DEFS[4], pools: ['nowhere'], stats: { luck: 1 } }, ARTIFACT_DEFS[4], { ...cursed, curse: undefined }, { ...cursed, id: 'x', curse: { cleansed: '' } }] as never[];
     const errs = validateArtifacts(bad).join('; ');
+    expect(errs).toMatch(/only they, carry a curse/);
+    expect(errs).toMatch(/a curse needs a price and a cleansed text/);
     expect(errs).toMatch(/unknown pool/);
     expect(errs).toMatch(/unknown stat/);
     expect(errs).toMatch(/listed twice/);
@@ -83,6 +86,33 @@ describe('combining artifacts', () => {
     const lead = stats(['leaden_heart', 'hawkbone_fletching']);
     expect(lead.maxHp).toBe((base.hearts + 2) * 2);
     expect(lead.range).toBeCloseTo(base.range * .6 * 1.3);
+  });
+
+  it('cleanses a curse: the price goes and the gift is halved (GDD: Shrine cleansing)', () => {
+    const clean = (id: string, others: string[] = []) => computeStats(START_FOCUS, [...others, id], base, [id]);
+    // Mask of the Drowned: damage ×2 in the dark; cleansed, ×1.5 and the dark lifts
+    expect(stats(['mask_of_the_drowned']).effects.has('vision')).toBe(true);
+    expect(clean('mask_of_the_drowned').damage).toBeCloseTo(base.damage * 1.5);
+    expect(clean('mask_of_the_drowned').effects.has('vision')).toBe(false);
+    // Chain of the Penitent: +1 s after a hit, no slowness
+    expect(clean('chain_of_the_penitent').invuln).toBeCloseTo(base.invuln + 1);
+    expect(clean('chain_of_the_penitent').speed).toBeCloseTo(base.speed);
+    // Leaden Heart: one more heart, full reach
+    expect(clean('leaden_heart').maxHp).toBe((base.hearts + 1) * 2);
+    expect(clean('leaden_heart').range).toBeCloseTo(base.range);
+    // Bloodied Covenant: +1.25 damage, no tithe
+    expect(clean('bloodied_covenant').damage).toBeCloseTo(base.damage + 1.25);
+    expect(clean('bloodied_covenant').effects.has('bloodTithe')).toBe(false);
+    // it stacks with the rest as before, and the list only cleanses cursed artifacts
+    expect(clean('mask_of_the_drowned', ['ember_sigil']).damage).toBeCloseTo((base.damage + 1.5) * 1.5);
+    expect(computeStats(START_FOCUS, ['ember_sigil'], base, ['ember_sigil']).damage).toBeCloseTo(base.damage + 1.5);
+    // every curse: its price is gone once cleansed, and some gift is left
+    for (const a of ARTIFACT_DEFS.filter(x => x.curse)) {
+      const s = clean(a.id), plain = stats([]);
+      for (const e of a.curse!.effects ?? []) expect(s.effects.has(e)).toBe(false);
+      for (const [k, v] of Object.entries(a.stats ?? {})) expect(halveStat(k as never, v)).not.toBe(k.endsWith('Mul') ? 1 : 0);
+      expect(s).not.toEqual(plain);
+    }
   });
 
   it('collects effects and the last bolt colour', () => {

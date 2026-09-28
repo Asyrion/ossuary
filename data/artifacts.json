@@ -75,14 +75,18 @@
 
   { "id": "mask_of_the_drowned", "name": "Mask of the Drowned", "kind": "cursed",
     "text": "Your bolts strike twice as hard, but the dark closes in", "pools": ["altar", "secret", "boss"],
-    "stats": { "damageMul": 2 }, "effects": ["vision"], "color": "#3a6a78", "icon": "mask" },
+    "stats": { "damageMul": 2 }, "curse": { "effects": ["vision"], "cleansed": "Your bolts strike half again as hard" },
+    "color": "#3a6a78", "icon": "mask" },
   { "id": "chain_of_the_penitent", "name": "Chain of the Penitent", "kind": "cursed",
     "text": "Wounds spare you longer, but the chain drags", "pools": ["altar", "secret", "boss"],
-    "stats": { "invuln": 2, "speedMul": 0.75 }, "color": "#7a6a6a", "icon": "chain" },
+    "stats": { "invuln": 2 }, "curse": { "stats": { "speedMul": 0.75 }, "cleansed": "Wounds spare you a little longer" },
+    "color": "#7a6a6a", "icon": "chain" },
   { "id": "leaden_heart", "name": "Leaden Heart", "kind": "cursed",
     "text": "Two more hearts, but your bolts fall short", "pools": ["altar", "secret", "boss"],
-    "stats": { "hearts": 2, "rangeMul": 0.6 }, "color": "#6a6a78", "icon": "leadheart" },
+    "stats": { "hearts": 2 }, "curse": { "stats": { "rangeMul": 0.6 }, "cleansed": "One more heart" },
+    "color": "#6a6a78", "icon": "leadheart" },
   { "id": "bloodied_covenant", "name": "Bloodied Covenant", "kind": "cursed",
     "text": "Your bolts strike harder, but every fight takes a tithe of blood", "pools": ["altar", "secret", "boss"],
-    "stats": { "damage": 2.5 }, "effects": ["bloodTithe"], "color": "#8a1a1a", "icon": "covenant" }
+    "stats": { "damage": 2.5 }, "curse": { "effects": ["bloodTithe"], "cleansed": "Your bolts strike harder" },
+    "color": "#8a1a1a", "icon": "covenant" }
 ]
