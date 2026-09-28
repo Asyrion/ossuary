@@ -27,12 +27,24 @@ body{font-family:var(--f-ui);color:var(--ink);-webkit-user-select:none;user-sele
 #hud{position:fixed;inset:0;pointer-events:none}
 #hearts{position:absolute;left:calc(env(safe-area-inset-left,0px) + 16px);top:calc(env(safe-area-inset-top,0px) + 14px);display:flex;gap:4px}
 #hearts svg{width:30px;height:30px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.6))}
-#items{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 52px);display:flex;gap:6px}
+#mana{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 50px);width:150px;height:8px;border:1px solid #0b0a14;background:#10121e;border-radius:2px;box-shadow:0 2px 0 rgba(0,0,0,.5);overflow:hidden}
+#mana i{display:block;height:100%;width:100%;background:linear-gradient(#8fc0ff,#3a6fd8);transform-origin:left;transition:background .2s}
+#mana.flash i{background:linear-gradient(#ff9a8a,#c83a2a)}
+#spells{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 66px);display:flex;gap:8px}
+#spells .slot{position:relative;width:40px;height:40px;border:1px solid #5e4d39;border-radius:4px;background:rgba(10,8,6,.6);overflow:hidden}
+#spells .slot svg{position:absolute;inset:5px;width:30px;height:30px;filter:drop-shadow(0 0 5px currentColor)}
+#spells .slot .cd{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.62)}
+#spells .slot b{position:absolute;left:2px;top:0;font:700 11px var(--f-ui);color:#e8dcc2;text-shadow:0 1px 1px #000}
+#spells .slot small{position:absolute;right:2px;bottom:0;font:700 10px var(--f-ui);color:#9ec8ff;text-shadow:0 1px 1px #000}
+#spells .slot.empty{opacity:.45}
+#spells .slot.poor svg{opacity:.35}
+#spells .slot.flash{border-color:#e05a4a;box-shadow:0 0 8px rgba(224,90,74,.8)}
+#items{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 114px);display:flex;gap:6px}
 #items svg{width:28px;height:28px;filter:drop-shadow(0 0 6px rgba(255,170,60,.6))}
 #items svg.focus{border:1px solid rgba(232,220,194,.45);border-radius:4px;padding:2px;background:rgba(10,8,6,.45)}
 #items svg.cursed{filter:drop-shadow(0 0 5px rgba(200,30,20,.9))}
 #items svg.cleansed{filter:drop-shadow(0 0 5px rgba(240,230,200,.75))}
-#purse{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 90px);display:flex;flex-direction:column;gap:2px;font:700 16px var(--f-ui);color:#efe2c3;text-shadow:0 2px 2px #000}
+#purse{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 152px);display:flex;flex-direction:column;gap:2px;font:700 16px var(--f-ui);color:#efe2c3;text-shadow:0 2px 2px #000}
 #purse span{display:flex;align-items:center;gap:6px}
 #purse svg{width:20px;height:20px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.8))}
 #purse b{font-variant-numeric:tabular-nums;letter-spacing:.04em}

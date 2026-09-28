@@ -17,6 +17,7 @@ export const STR = {
     glyph: 'Blast glyph', glyphKeys: 'Space', glyphPad: 'Left trigger', glyphTouch: '–',
     pause: 'Pause', pauseKeys: 'Esc or P', pausePad: 'Start', pauseTouch: 'II button',
     /** Play-test aid, like STR.dev.hint: remove with it. */
+    spells: 'Spells', spellsKeys: 'Q and E', spellsPad: 'LB and RB', spellsTouch: '–',
     dev: 'Dev menu', devKeys: '` / ^ or F2', devPad: '–', devTouch: '–',
   },
   chalk: { walk: 'walk', cast: 'cast', glyph: 'glyph', space: 'SPACE', touchMove: 'left thumb moves', touchShoot: 'right thumb shoots' },
@@ -93,8 +94,15 @@ export const STR = {
     outsideCircle: 'Outside the circle, your bolts pass through the curse.',
     keyringTurns: "The sexton's keyring turns in the ward: the vault opens.",
     lanternFinds: 'The Grave Lantern finds a hollow wall.',
+    noSpell: 'No spell in that slot yet: grimoire pages teach them.',
+    wareBrimming: 'You brim with mana already; keep your obols.',
     curseEscaped: (name: string) => `The curse slips back into the ${name}. Walk into its stone to try again.`,
   },
+  /** The schools of magic, and how a spell's lore card names it and says what it does. */
+  schools: { ember: 'Ember', frost: 'Frost', storm: 'Storm', hallow: 'Hallow', umbral: 'Umbral' } as Record<string, string>,
+  spellKind: (school: string) => `${school} spell`,
+  spellEffect: (text: string, mana: number, cooldown: number) => `${text}. ${mana} mana, every ${cooldown} s`,
+  manaLabel: (mana: number, max: number) => `Mana ${Math.round(mana)} of ${max}`,
   /** The boss bar while a shrine draws a curse out. */
   curseOf: (name: string) => `The curse of the ${name}`,
   /** The lore card shown on picking something up (ui/lore.ts). Artifacts keep their lore in data/artifacts.json;
@@ -122,6 +130,10 @@ export const STR = {
       halfHeart: {
         name: 'Half a heart', kind: 'Life', effect: 'Heals half a heart',
         lore: 'A red wisp of life, left where something living was not long ago. It is not yours, but it will do.',
+      },
+      mana: {
+        name: 'Mana vial', kind: 'Mana', effect: 'Restores 25 mana; left lying while you brim with it',
+        lore: 'Grave-light caught in a stoppered vial: the pale glow that gathers over old bones on still nights. Drink it, and the spells it feeds come easier.',
       },
       heart: {
         name: 'Heart', kind: 'Life', effect: 'Heals a heart',
@@ -152,7 +164,8 @@ export const STR = {
     give: (n: number, what: string) => `+${n} ${what}${n === 1 ? '' : 's'}`,
     names: { coins: 'obol', keys: 'key', glyphs: 'glyph' } as Record<string, string>,
     drops: 'Drop ahead of the mage', gildedChest: 'Gilded chest', loreAgain: 'Describe items again', loreAgainTitle: 'Items and containers show their lore card again the next time one is taken',
-    dropNames: { halfHeart: 'Half heart', heart: 'Heart', coin: 'Obol', purse: 'Purse', key: 'Bone key', glyph: 'Glyph stone', coffer: 'Coffer', chest: 'Reliquary chest' } as Record<string, string>,
+    dropNames: { halfHeart: 'Half heart', heart: 'Heart', coin: 'Obol', purse: 'Purse', key: 'Bone key', glyph: 'Glyph stone', mana: 'Mana vial', coffer: 'Coffer', chest: 'Reliquary chest' } as Record<string, string>,
+    spells: 'Spells (click to learn into the slot)', slot: 'Slot', mana: 'Mana', fullMana: 'Full mana', manaOn: 'Endless mana: on', manaOff: 'Endless mana: off', forget: 'Forget spells',
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
     foes: 'Foes (they leave the doors open)', champion: (name: string) => `Champion ${name.toLowerCase()}`,
     foeNames: { rotling: 'Rotling', wisp: 'Wisp', hound: 'Crypt hound' } as Record<string, string>,
@@ -166,7 +179,7 @@ export const STR = {
     keep: ' Keep artifacts, obols, keys and glyphs when starting',
   },
   /** What a merchant's ware is called in messages. */
-  wares: { heart: 'heart', halfHeart: 'half heart', key: 'bone key', glyph: 'glyph stone', coin: 'obol', purse: 'purse' } as Record<string, string>,
+  wares: { heart: 'heart', halfHeart: 'half heart', key: 'bone key', glyph: 'glyph stone', coin: 'obol', purse: 'purse', mana: 'mana vial' } as Record<string, string>,
   heroInfo: (label: string, tris: number, stripped: boolean, skinned: boolean, clips: string) =>
     `${label}: ${tris.toLocaleString()} triangles${stripped ? ', base removed' : ''}` +
     `${skinned ? ', rigged' : ', static (procedural animation)'}${clips ? `. Clips used: ${clips}` : ''}.`,

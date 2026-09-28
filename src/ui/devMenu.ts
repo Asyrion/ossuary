@@ -17,12 +17,15 @@ import { SIDE_DIR } from '../world/shapes';
 import type { Room } from '../types';
 import { openSecretRoom, revealCracks } from '../world/secret';
 import { cleanseAtOnce } from '../world/shrine';
+import { SPELL_DEFS } from '../magic/spellData';
+import { forgetSpells, gainMana, learnSpell } from '../magic/spells';
 import { TEMPLATE_DEFS } from '../world/templates';
 import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
 import { renderHearts, renderMinimap, toast } from './hud';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement;
+let spellSlot = 0;
 let wasPlaying = false, keepCarried = true;
 
 export const devOpen = () => !!panel && !panel.hidden;
@@ -116,6 +119,19 @@ function build() {
   // artifacts: every one in the data, marked when held
   artBox = section(p, S.artifacts);
 
+  // spells: every one in the data, learned into the chosen slot; mana
+  spellBox = section(p, S.spells);
+  const slotSel = el('select'); slotSel.setAttribute('aria-label', S.slot);
+  for (const [i, k] of STR.controls.spellsKeys.split(' and ').entries()) { const o = el('option', '', `${S.slot} ${k}`); o.value = String(i); slotSel.append(o); }
+  slotSel.addEventListener('change', () => { spellSlot = Number(slotSel.value); });
+  spellBox.parentElement!.insertBefore(slotSel, spellBox);
+  const mana = section(p, S.mana);
+  mana.append(
+    btn(S.fullMana, () => gainMana(player.stats.maxMana)),
+    manaBtn = btn('', () => { DEV.mana = !DEV.mana; toast(DEV.mana ? S.manaOn : S.manaOff, 2); }),
+    btn(S.forget, () => forgetSpells()),
+  );
+
   // foes, a little further ahead (they don't lock the doors)
   const foes = section(p, S.foes);
   const floorHp = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].enemyHp;
@@ -156,6 +172,14 @@ function refresh() {
   const cur = G.current;
   info.textContent = S.info(G.run.seed, G.run.floor + 1, cur.plan.id, S.roomNames[cur.type] ?? cur.type);
   godBtn.textContent = DEV.god ? S.godOn : S.godOff; godBtn.classList.toggle('on', DEV.god);
+  manaBtn.textContent = DEV.mana ? S.manaOn : S.manaOff; manaBtn.classList.toggle('on', DEV.mana);
+  spellBox.replaceChildren(...SPELL_DEFS.map(s => {
+    const b = btn(s.name, () => learnSpell(s.id, spellSlot), `${STR.schools[s.school]}: ${s.text}`);
+    const dot = el('i'); dot.style.background = s.color; b.prepend(dot);
+    b.append(el('small', '', STR.schools[s.school]));
+    b.classList.toggle('on', player.spells.includes(s.id));
+    return b;
+  }));
   artBox.replaceChildren(...ARTIFACT_DEFS.filter(a => !a.start).map(a => {
     const held = player.focus === a.id || player.items.includes(a.id);
     const b = btn(a.name, () => grantArtifact(a), `${S.kinds[a.kind]}: ${a.text}`);

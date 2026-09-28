@@ -566,6 +566,55 @@ test('the shrine cleanses a curse put down inside its circle, refuses the poor, 
   expect(errors).toEqual([]);
 });
 
+/* M3: magic. */
+type G9 = Omit<GameHooks, 'enemies'> & {
+  enemies: (Foe & { hp: number; lastHit?: string })[];
+  player: GameHooks['player'] & { mana: number; spells: (string | null)[]; spellCd: number[]; stats: { maxMana: number } };
+  cast(slot: number, aim?: { x: number; z: number }): boolean; mana(v?: number): number; learn(id: string, slot?: number): string | null;
+  drop(kind: string, x?: number, z?: number): void;
+};
+
+test('spells: Arc strikes and leaps for mana, a cooldown holds it back, and the dead give mana back', async ({ page }) => {
+  const errors = await start(page, '?room=crypt_a&seed=MAG1&spells=arc');
+  await expect(page.locator('#scrTitle .controls')).toContainText('Q and E');
+  const arc = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G9, P = g.player; g.warp(1); g.sim(1);
+    const hp = g.enemies.reduce((s, e) => s + e.hp, 0), mana = P.mana;
+    const cast = g.cast(0, { x: 0, z: -1 }), struck = g.enemies.filter(e => e.lastHit === 'spell').length;
+    const again = g.cast(0); // still cooling down
+    return { spells: P.spells, cast, again, spent: mana - P.mana, struck, damage: hp - g.enemies.reduce((s, e) => s + e.hp, 0), cd: P.spellCd[0] };
+  });
+  expect(arc).toMatchObject({ spells: ['arc', null], cast: true, again: false });
+  expect(arc.spent).toBeCloseTo(15, 0);
+  expect(arc.struck).toBeGreaterThanOrEqual(2); // it leaps
+  expect(arc.damage).toBeGreaterThan(9);
+  expect(arc.cd).toBeGreaterThan(.9);
+  // the cantrip's kills give mana back; a cast with too little mana is refused
+  const back = await page.evaluate(() => {
+    const w = window as unknown as W, g = w.__game as unknown as G9, P = g.player;
+    g.mana(10); const refused = !g.cast(0);
+    g.mana(40); w.__fight(40);
+    return { refused, mana: P.mana, left: g.enemies.length };
+  });
+  expect(back).toMatchObject({ refused: true, left: 0 });
+  expect(back.mana).toBeGreaterThan(40 + 3); // at least one kill's worth, beyond regeneration in the fight
+  // a mana vial is left lying at full mana, and taken when mana is short
+  const vial = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G9 & { pickups: { kind: string; x: number; z: number }[] }, P = g.player;
+    g.mana(999); const full = P.mana; // as full as it goes
+    g.drop('mana', g.player.x, g.player.z + .3); g.sim(1); const lying = g.pickups.filter(q => q.kind === 'mana').length;
+    const q = g.pickups.find(x => x.kind === 'mana')!; // nudged away while refused: step onto it
+    g.mana(20); P.x = q.x; P.z = q.z; g.sim(.3);
+    return { full, max: P.stats.maxMana, lying, after: P.mana, left: g.pickups.filter(q => q.kind === 'mana').length };
+  });
+  expect(vial).toMatchObject({ lying: 1, left: 0 });
+  expect(vial.full).toBe(vial.max);
+  expect(vial.after).toBeGreaterThanOrEqual(45);
+  await page.evaluate(() => (window as unknown as W).__game.sim(.1, true));
+  await page.screenshot({ path: 'test-results/smoke-spells.png' });
+  expect(errors).toEqual([]);
+});
+
 /* M2 step 6: the artifacts that bend the economy. */
 type G7 = Omit<G6, 'current'> & {
   give(...ids: string[]): void; drop(kind: string, x?: number, z?: number): void; pickups: { kind: string }[];
@@ -687,6 +736,12 @@ test('the dev menu opens on its key, pauses the game, and hands out what it list
   const curse = await page.evaluate(() => { const P = (window as unknown as W).__game.player as unknown as { items: string[]; cleansed: string[] }; return { items: P.items.length, cleansed: P.cleansed }; });
   expect(curse.items).toBe(2);
   expect(curse.cleansed).toEqual([(await page.evaluate(() => ((window as unknown as W).__game.player as unknown as { items: string[] }).items[1]))]);
+  // a spell into slot E, and endless mana
+  await page.locator('#dev select[aria-label="Slot"]').selectOption('1');
+  await click('Arc'); await click('Endless mana');
+  await page.keyboard.press('Escape'); // back to play, where mana flows
+  const magic = await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as G9; g.mana(0); g.sim(.05); return { spells: g.player.spells, mana: g.player.mana }; });
+  expect(magic).toEqual({ spells: [null, 'arc'], mana: 100 });
   expect(errors).toEqual([]);
 });
 

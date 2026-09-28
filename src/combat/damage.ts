@@ -12,11 +12,13 @@ import { spawnBurst } from './projectiles';
 import { spawnHeart, spawnPickup } from '../items/pickups';
 import { rollEnemyDrop } from '../items/loot';
 import { freeSpotNear } from '../world/rooms';
+import { gainMana } from '../magic/spells';
 
-/** Hurt a foe, knocking it along (dx, dz); `kbMul` scales the knockback (the Ram's Skull on bolts). */
-export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul = 1) {
+/** Hurt a foe, knocking it along (dx, dz); `kbMul` scales the knockback (the Ram's Skull on bolts); `by` says
+    what struck it (a foe the cantrip puts to rest gives mana back). */
+export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul = 1, by?: Enemy['lastHit']) {
   if (e.spawn > 0 || e.dead || e.hidden) return;
-  e.hp -= dmg; e.flash = .09;
+  e.hp -= dmg; e.flash = .09; e.lastHit = by;
   const kb = (e.isBoss ? .6 : 2.6) * kbMul; e.kx += dx * kb; e.kz += dz * kb;
   Sfx.hit();
   if (e.isBoss) updateBossBar(e);
@@ -34,6 +36,7 @@ function killEnemy(e: Enemy, withBoss = false) {
   if (stain !== null) addDecal(e.x, e.z, stain, e.isBoss ? 1.6 : .7);
   if (player.stats.effects.has('deathBurst')) spawnBurst(e.x, e.z, 4); // Saint's Knucklebone
   if (player.stats.effects.has('leech')) leech(e);                   // Leech Jar
+  if (e.lastHit === 'cantrip') gainMana(CFG.mana.perKill);            // the dead give back what spells spend
   if (e.champion) { const p = freeSpotNear(G.current, e.x, e.z); spawnHeart(p.x, p.z, 2); }
   const drop = e.isBoss ? null : rollEnemyDrop(G.run.drops); // now and then an obol
   if (drop) { const p = freeSpotNear(G.current, e.x, e.z); spawnPickup(drop, p.x, p.z); }

@@ -3,13 +3,16 @@
 export const CFG = {
   hero: {
     speed: 4.3, radius: 0.3, height: 1.3, hearts: 3, damage: 3.5, fireDelay: 0.36,
-    shotSpeed: 8.8, range: 6.8, invuln: 1.0, shotInherit: 0.3, stripBase: true,
+    shotSpeed: 8.8, range: 6.8, invuln: 1.0, shotInherit: 0.3, stripBase: true, mana: 100,
     runAnimSpeed: 3.0,  // playback speed of the run clip at full speed; raise if feet slide
     walkAnimSpeed: 10.5, // playback speed the walk clip would need at full speed (it only plays when slow)
     walkToRun: [.12, .3] as [number, number], // between these fractions of full speed the walk hands over to the run
     drinkSpeed: 1.4,    // playback speed of the draught when the mage is healed
     fidget: [9, 16] as [number, number], // seconds standing still before the mage eats something
   },
+  // mana (GDD: Magic system): regained each second out of a fight and in one, and for each foe the cantrip
+  // puts to rest (a mana vial's worth is in data/loot.json)
+  mana: { calm: 4, fight: 1, perKill: 3 },
   enemy: {
     rotling: { hp: 10, r: 0.32, speed: 1.35 },
     wisp: { hp: 7, r: 0.28, speed: 1.1, fireMin: 2.0, fireMax: 3.0, shotSpeed: 3.8 },

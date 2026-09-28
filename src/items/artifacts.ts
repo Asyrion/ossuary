@@ -24,6 +24,7 @@ export function refreshStats() {
   player.maxHp = player.stats.maxHp;
   if (player.maxHp > before) player.hp += player.maxHp - before;
   player.hp = Math.min(player.hp, player.maxHp);
+  player.mana = Math.min(player.mana, player.stats.maxMana);
   renderHearts(); renderItems();
 }
 

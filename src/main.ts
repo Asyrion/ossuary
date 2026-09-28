@@ -30,6 +30,8 @@ import { DROPS, RESOURCES, type Drop, type Resource } from './items/loot';
 import { giveResources, spawnPickup } from './items/pickups';
 import { openSecretRoom } from './world/secret';
 import { cleanseAtOnce, riteState } from './world/shrine';
+import { SPELLS } from './magic/spellData';
+import { castSpell, learnSpell } from './magic/spells';
 import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
 import { isTouch } from './util';
@@ -61,7 +63,8 @@ async function loadDefaultHero() {
 /** Run options from the address: ?seed=K3F9QX replays a run's floors, ?floor=2 starts deeper,
     ?room=<template id> plays one room template (for reviewing templates), ?variant=dark dresses that room
     in a variant (quiet, champion, ambush, dark), ?give=bone_lens,twin_staff starts the run holding those
-    artifacts, ?boss=pyre picks every floor's boss, ?loot=coins:20,glyphs:5 hands out obols, keys and glyphs. */
+    artifacts, ?boss=pyre picks every floor's boss, ?loot=coins:20,glyphs:5 hands out obols, keys and glyphs,
+    ?spells=arc starts with spells in the slots. */
 function readUrlOptions() {
   const q = new URLSearchParams(location.search);
   const seed = q.get('seed'), floor = Number(q.get('floor')), room = q.get('room'), variant = q.get('variant') as RoomVariant | null;
@@ -75,6 +78,9 @@ function readUrlOptions() {
   const boss = q.get('boss') as BossType | null, bossOk = !!boss && BOSS_TYPES.includes(boss);
   if (boss && !bossOk) console.warn(`?boss=${boss}: use one of ${BOSS_TYPES.join(', ')}`);
   const give = (q.get('give') ?? '').split(',').map(s => s.trim()).filter(Boolean);
+  const spells = (q.get('spells') ?? '').split(',').map(s => s.trim()).filter(Boolean);
+  const badSpells = spells.filter(id => !SPELLS.has(id));
+  if (badSpells.length) console.warn(`?spells: unknown ${badSpells.join(', ')}. Known: ${[...SPELLS.keys()].join(', ')}`);
   if (room && !TEMPLATES.has(room)) console.warn(`?room=${room}: no such template. Known: ${[...TEMPLATES.keys()].join(', ')}`);
   const unknown = give.filter(id => !ARTIFACTS.has(id));
   if (unknown.length) console.warn(`?give: unknown ${unknown.join(', ')}. Known: ${[...ARTIFACTS.keys()].join(', ')}`);
@@ -85,7 +91,7 @@ function readUrlOptions() {
     testVariant: variant && VARIANTS.includes(variant) ? variant : undefined,
     give: give.filter(id => ARTIFACTS.has(id)),
     boss: bossOk ? boss! : undefined,
-    loot,
+    loot, spells: spells.filter(id => SPELLS.has(id)),
   });
 }
 
@@ -113,6 +119,11 @@ function installDevHooks() {
     },
     /** Break open every cracked wall of this floor's secret room. */
     openSecret() { const r = G.rooms.find(x => x.type === 'secret'); if (r) openSecretRoom(r); return !!r; },
+    /** Learn a spell into a slot (0 or 1); cast the spell in a slot, as if its key were pressed (optionally
+        aiming); read or set mana. */
+    learn: (id: string, slot?: number) => learnSpell(id, slot, true),
+    cast: (slot: number, aim?: { x: number; z: number }) => castSpell(slot, aim ?? null),
+    mana(v?: number) { if (v !== undefined) player.mana = Math.min(player.stats.maxMana, Math.max(0, v)); return player.mana; },
     /** Cleanse the oldest curse held at once (no fight, no obols); the shrine's rite under way, if any. */
     cleanse: () => cleanseAtOnce(), get rite() { return riteState(); },
     get pickups() { return G.pickups; }, get glyphs() { return G.glyphs; }, get shots() { return G.shots; },

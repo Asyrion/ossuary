@@ -28,6 +28,7 @@ import { giveById, offerGuaranteed, offerOptional, offerSecondChoice, placeArtif
 import { banner, fadeFromBlack, hideBossBar, renderHearts, renderMinimap, resetHearts, showBossBar, toast } from './ui/hud';
 import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
+import { clearSpellFx, forgetSpells, learnSpell } from './magic/spells';
 import { resetClock } from './loop';
 import { $, mulberry } from './util';
 import { burst } from './combat/fx';
@@ -36,6 +37,7 @@ import { burst } from './combat/fx';
 export interface RunOptions {
   seed?: string; floor?: number; testTemplate?: string; testVariant?: RoomVariant; give?: string[]; boss?: BossType;
   /** Extra obols, keys and glyphs to start with. */ loot?: Partial<Record<Resource, number>>;
+  /** Spells to start with, in slot order. */ spells?: string[];
 }
 let nextRun: RunOptions = {};
 let testTemplate: string | undefined, testVariant: RoomVariant | undefined, forcedBoss: BossType | undefined;
@@ -44,7 +46,7 @@ export function setNextRun(opts: RunOptions) { nextRun = opts; }
 const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
 
 function clearEntities() {
-  clearRite(); clearProjectiles(); clearGlyphs(); pressed.glyph = false;
+  clearRite(); clearSpellFx(); clearProjectiles(); clearGlyphs(); pressed.glyph = false; pressed.spells = [false, false];
   for (const p of G.particles) { scene.remove(p.m); p.m.material.dispose(); } G.particles.length = 0;
   clearEnemies();
   for (const p of G.pickups) { scene.remove(p.g); disposeTree(p.g); } G.pickups.length = 0;
@@ -83,6 +85,7 @@ export function resetPlayer() {
   Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0 });
   heroReset();
   resetHearts(); resetArtifacts(); resetResources();
+  forgetSpells(); player.mana = player.stats.maxMana;
 }
 
 /** Start a new run: a fresh seed unless one was requested. */
@@ -94,6 +97,7 @@ export function startGame(opts?: RunOptions) {
   Sfx.init(); resetPlayer(); hideLore(); G.stats.time = 0; G.stats.kills = 0; G.stats.obols = 0;
   if (o.give?.length) giveById(o.give);
   if (o.loot) giveResources(o.loot);
+  o.spells?.slice(0, 2).forEach((id, i) => learnSpell(id, i, true));
   showScreen(null); G.state = 'play';
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, o.floor ?? 0)));
 }

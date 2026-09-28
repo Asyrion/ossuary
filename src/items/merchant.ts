@@ -18,6 +18,7 @@ import { grantArtifact, makeArtifactVisual, offerGuaranteed } from './artifacts'
 import { giveResources, itemVisual } from './pickups';
 import { heroDrink } from '../actors/hero';
 import { itemLore, type LoreItem } from '../ui/lore';
+import { gainMana } from '../magic/spells';
 import { LOOT, RESOURCES, dropValue, priceOf, rollWares, type Item } from './loot';
 
 const C = CFG.merchant;
@@ -126,6 +127,7 @@ function buy(w: WareSpot) {
   if (w.ware !== 'artifact') {
     const v = dropValue(w.ware);
     if (v.hearts && player.hp >= player.maxHp) return refuse(w, STR.toast.wareWhole);
+    if (v.mana && player.mana >= player.stats.maxMana) return refuse(w, STR.toast.wareBrimming);
     const res = RESOURCES.find(k => v[k]);
     if (res && player[res] >= LOOT.cap) return refuse(w, STR.toast.wareFull);
   }
@@ -145,7 +147,8 @@ function buy(w: WareSpot) {
     }
   } else {
     const v = dropValue(w.ware as Item);
-    if (v.hearts) { player.hp = Math.min(player.maxHp, player.hp + v.hearts); renderHearts(); heroDrink(); } else giveResources(v);
+    if (v.hearts) { player.hp = Math.min(player.maxHp, player.hp + v.hearts); renderHearts(); heroDrink(); }
+    else if (v.mana) { gainMana(v.mana); heroDrink(); } else giveResources(v);
     toast(STR.toast.bought(STR.wares[w.ware]), 2.5); itemLore(w.ware as LoreItem);
   }
   w.sold = true; w.g.remove(w.item); disposeTree(w.item);

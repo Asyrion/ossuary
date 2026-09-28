@@ -104,6 +104,7 @@ export interface Enemy extends Circle {
   /** Bosses: out of reach (under the floor, in the air), so neither hurt nor hurting. */ hidden?: boolean;
   /** Floor ring (the abbess's ripple, the knight's landing mark); where a leap started. */ marker?: THREE.Mesh; from?: Vec2;
   /** Called by a boss; falls when the boss does. */ servant?: boolean;
+  /** What struck it last: the cantrip's kills give mana back. */ lastHit?: 'cantrip' | 'spell';
 }
 
 export interface Bolt extends Circle {
@@ -143,5 +144,8 @@ export interface Player extends Circle {
   /** Heart containers given to bone altars this run. */ heartsPaid: number;
   /** Cursed artifacts cleansed at a shrine: their price gone, their gift halved. */ cleansed: string[];
   /** Obols, bone keys and blast glyphs carried (GDD: Coins, keys and blast glyphs). */ coins: number; keys: number; glyphs: number;
+  /** Mana (GDD: Magic system); the spells in the two slots (Q and E) and the seconds before each can be cast
+      again; where the mage last aimed or walked (a spell cast standing still goes that way). */
+  mana: number; spells: (string | null)[]; spellCd: number[]; aim: Vec2;
   /** Derived from the base stats and the artifacts held (items/artifactData.ts computeStats). */ stats: Stats;
 }

@@ -1,6 +1,6 @@
 # M3 plan: Magic
 
-Proposed 2026-09-28; the decisions below wait for the owner's approval. Design lives in `docs/GDD.md`
+Approved 2026-09-28 with the decisions below as proposed. Design lives in `docs/GDD.md`
 (Magic system, Spells, Artifacts, Pickups and room types, Audio design); this file tracks the build. Each step
 ends playable, with unit and browser tests passing, and is pushed to GitHub Pages.
 
@@ -8,7 +8,7 @@ ends playable, with unit and browser tests passing, and is pushed to GitHub Page
 library room. M1 to M3 decide whether the game is fun; M3's question is whether magic is the build: after a
 floor or two, does the mage feel like a Frost mage or a Storm mage, and do combinations surprise?
 
-## Decisions (proposed)
+## Decisions (2026-09-28)
 
 1. **Three schools: Ember, Frost and Storm.** They're the three whose pairs make the GDD's reactions without
    needing the others, and each has a clear feel (Ember area and damage over time, Frost control, Storm burst
@@ -61,8 +61,9 @@ mage's hand; the pages of spells given up stay behind as ash-edged leaves that c
 
 ## Groundwork (all steps)
 
-- [ ] Spells as data: `data/spells.json` (school, shape, mana, cooldown, damage, statuses, tags, colour, icon,
-      lore) read by a pure `src/magic/spellData.ts` with validation and unit tests; `shape` picks the code
+- [x] Spells as data: `data/spells.json` (school, shape, mana, cooldown, damage, statuses, tags, colour, icon,
+      lore) read by a pure `src/magic/spellData.ts` with validation and unit tests; `shape` picks the code in
+      `src/magic/spells.ts`
 - [ ] Statuses and reactions as a pure module (`src/magic/status.ts`): stacks, durations, ticks, boss rules and
       which reaction two statuses make, unit-tested without three.js; tuning in `data/magic.json` or `CFG`
 - [ ] Spells and statuses use the existing pipelines: projectile spells through `projectiles.ts`, damage through
@@ -75,14 +76,21 @@ mage's hand; the pages of spells given up stay behind as ash-edged leaves that c
 
 ## Step 1: Mana and spell slots
 
-- [ ] Mana: the bar under the hearts, regeneration in and out of combat, the cantrip's kills, mana vials as
-      pickups (room clears, urns, the merchant); economy simulation updated
-- [ ] Spell slots on Q and E (LB and RB): cast in the cast direction, or the move direction when not casting;
-      mana and cooldown per spell; the HUD shows both slots with icon, cost and a cooldown sweep, dimmed when
-      mana is short; refused casts give a small sound and flash
-- [ ] The cast plays the hero's cast window (the same thrust as the cantrip)
-- [ ] One spell end to end to prove the pipeline: Arc (chain) or Rime Shards (projectiles)
-- [ ] Dev menu and URL entries from the groundwork; browser test: cast, mana spent, cooldown, refusal
+- [x] Mana: the bar under the hearts, regeneration in and out of combat (`CFG.mana`: 4 and 1 a second), 3 for
+      each foe the cantrip puts to rest (`lastHit` on the foe), mana vials (+25, `manaVial` in `data/loot.json`)
+      from room clears, urns and the merchant (3 obols), left lying at full mana like hearts at full health.
+      Economy: room clears drop a little more often (0.65) so the vial doesn't thin the rest; obols 12.5, 15.3
+      and 17.4 per floor, glyphs still ahead, about one vial a floor
+- [x] Spell slots on Q and E (LB and RB): cast in the cast direction, or where the mage last aimed or walked;
+      mana and cooldown per spell; the HUD shows both slots with icon, key, cost and a cooldown sweep, dimmed
+      when mana is short; refused casts (empty slot, cooling down, too little mana, nothing in reach) give a
+      small sound and a red flash, the mana bar's too when mana was short. The title screen lists the keys
+- [x] The cast plays the hero's cast window (the same thrust as the cantrip)
+- [x] One spell end to end: Arc (chain) strikes the foe nearest in front and leaps to three more, each strike
+      weaker (falloff 0.85), as braided, flickering lightning; learning a spell shows its lore card
+- [x] Dev menu: spells into slot Q or E, full mana, endless mana, forget spells; `?spells=arc`,
+      `__game.learn()`, `__game.cast()`, `__game.mana()`; browser test: cast, mana spent, leap, cooldown,
+      refusal, mana from the cantrip's kills, the vial
 
 ## Step 2: Status effects and reactions
 
