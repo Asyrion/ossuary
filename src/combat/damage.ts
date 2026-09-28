@@ -13,10 +13,11 @@ import { spawnHeart, spawnPickup } from '../items/pickups';
 import { rollEnemyDrop } from '../items/loot';
 import { freeSpotNear } from '../world/rooms';
 
-export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number) {
+/** Hurt a foe, knocking it along (dx, dz); `kbMul` scales the knockback (the Ram's Skull on bolts). */
+export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul = 1) {
   if (e.spawn > 0 || e.dead || e.hidden) return;
   e.hp -= dmg; e.flash = .09;
-  const kb = e.isBoss ? .6 : 2.6; e.kx += dx * kb; e.kz += dz * kb;
+  const kb = (e.isBoss ? .6 : 2.6) * kbMul; e.kx += dx * kb; e.kz += dz * kb;
   Sfx.hit();
   if (e.isBoss) updateBossBar(e);
   if (e.hp <= 0) killEnemy(e);
@@ -32,6 +33,7 @@ function killEnemy(e: Enemy, withBoss = false) {
   const stain = STAIN_COLOR[e.type];
   if (stain !== null) addDecal(e.x, e.z, stain, e.isBoss ? 1.6 : .7);
   if (player.stats.effects.has('deathBurst')) spawnBurst(e.x, e.z, 4); // Saint's Knucklebone
+  if (player.stats.effects.has('leech')) leech(e);                   // Leech Jar
   if (e.champion) { const p = freeSpotNear(G.current, e.x, e.z); spawnHeart(p.x, p.z, 2); }
   const drop = e.isBoss ? null : rollEnemyDrop(G.run.drops); // now and then an obol
   if (drop) { const p = freeSpotNear(G.current, e.x, e.z); spawnPickup(drop, p.x, p.z); }
@@ -41,10 +43,25 @@ function killEnemy(e: Enemy, withBoss = false) {
   } else { Sfx.die(); G.shake = Math.max(G.shake, .08); }
 }
 
+/** The Leech Jar: every so many foes put to rest, a red mote flies to the mage and heals half a heart. */
+function leech(e: Enemy) {
+  if (++G.run.leech < CFG.artifacts.leech.every || player.hp >= player.maxHp) return;
+  G.run.leech = 0; player.hp = Math.min(player.maxHp, player.hp + 1); renderHearts();
+  burst(e.x, .6, e.z, 0xd02a2a, 10, 1.6, .06); burst(player.x, .8, player.z, 0xe0473a, 12, 1.8, .05); Sfx.leech();
+}
+
+/** The Bloodied Covenant: every fight the mage begins takes half a heart, never the last. */
+export function payBloodTithe() {
+  if (!player.stats.effects.has('bloodTithe') || player.hp <= 1) return;
+  player.hp -= 1; renderHearts(); flashHurt(); Sfx.tithe();
+  burst(player.x, .8, player.z, 0x8a1a1a, 14, 2, .06);
+}
+
 /** Damage the hero by `halves` half-hearts, knocking them away from (fromX, fromZ). */
 export function hurtPlayer(halves: number, fromX: number, fromZ: number) {
   if (player.invuln > 0 || G.state !== 'play' || DEV.god) return;
   player.hp -= halves; player.invuln = player.stats.invuln; renderHearts();
+  if (G.current.locked) G.current.hurt = true; // no Unbroken Oath for this fight
   const dx = player.x - fromX, dz = player.z - fromZ, d = Math.hypot(dx, dz) || 1; player.vx += dx / d * 7; player.vz += dz / d * 7;
   G.shake = .3; Sfx.hurt(); flashHurt();
   burst(player.x, .6, player.z, 0xb3261a, 10, 2.5, .07);

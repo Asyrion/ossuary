@@ -48,6 +48,12 @@ export const CFG = {
     rockHp: 3,           // Mason's Chisel: bolt hits to break a rock
     visionRadius: 3.4,   // Mask of the Drowned: how far the mage sees
     burst: { damageMul: 0.6, range: 4.5, speed: 7, scale: 0.7 }, // Knucklebone and Bell bolts
+    crit: { chance: 0.2, damageMul: 3, scale: 1.4, color: 0xfff4dc },   // Raven's Eye: one bolt in five
+    split: { angle: 0.7, damageMul: 0.5, range: 3.2 },                  // Cracked Mirror: two halves, this far apart (radians)
+    wave: { amp: 0.45, freq: 3.2 },                                     // Serpent Rod: how far bolts swing, and how often (per tile)
+    leech: { every: 10 },                                               // Leech Jar: foes put to rest per half heart
+    moth: { every: 1.1, range: 7, damageMul: 0.45, orbit: 0.85, speed: 7 }, // Candle Moth: seconds between stings, reach
+    skull: { orbit: 1.15, spin: 2.6, damage: 3, every: 0.45, reach: 0.34 }, // Weeping Skull: radius, radians/s, bite and its rest
   },
   lights: {
     hemi: 1.57, moon: 1.26,

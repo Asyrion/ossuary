@@ -16,14 +16,15 @@ import { FLOORS, generateFloor, pickBoss, testPlan, type RoomVariant } from './w
 import { DH } from './world/dims';
 import { SIDE_DIR } from './world/shapes';
 import { clearEnemies, makeEnemy } from './actors/enemies';
-import { heroReset } from './actors/hero';
+import { heroDrink, heroReset } from './actors/hero';
+import { payBloodTithe } from './combat/damage';
 import { clearProjectiles } from './combat/projectiles';
 import { clearGlyphs } from './combat/glyphs';
 import { pressed } from './input';
 import { giveResources, makeTrapdoor, resetResources, spawnHeart, spawnPickup } from './items/pickups';
 import { rollRoomClear, type Resource } from './items/loot';
 import { giveById, offerGuaranteed, offerOptional, offerSecondChoice, placeArtifact, resetArtifacts, resetBudget } from './items/artifacts';
-import { banner, fadeFromBlack, hideBossBar, renderMinimap, resetHearts, showBossBar } from './ui/hud';
+import { banner, fadeFromBlack, hideBossBar, renderHearts, renderMinimap, resetHearts, showBossBar, toast } from './ui/hud';
 import { showEndScreen, showScreen } from './ui/screens';
 import { resetClock } from './loop';
 import { $, mulberry } from './util';
@@ -87,7 +88,7 @@ export function startGame(opts?: RunOptions) {
   const o = opts ?? nextRun; nextRun = {};
   const seed = o.seed || newSeed();
   testTemplate = o.testTemplate; testVariant = o.testVariant; forcedBoss = o.boss;
-  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 } };
+  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 }, leech: 0 };
   Sfx.init(); resetPlayer(); G.stats.time = 0; G.stats.kills = 0;
   if (o.give?.length) giveById(o.give);
   if (o.loot) giveResources(o.loot);
@@ -99,7 +100,7 @@ export function startGame(opts?: RunOptions) {
 export function prepareTitle() {
   const seed = nextRun.seed || newSeed(); nextRun = { ...nextRun, seed };
   testTemplate = nextRun.testTemplate; testVariant = nextRun.testVariant; forcedBoss = nextRun.boss;
-  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 } };
+  G.run = { seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [], budget: { used: 0, reserved: 0 }, leech: 0 };
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, nextRun.floor ?? 0)));
 }
 
@@ -138,7 +139,7 @@ export function enterRoom(room: Room) {
   if (!room.cleared && room.plan.variant === 'ambush' && room.ambush !== 'sprung') room.ambush = 'armed'; // looks empty, for now
   else if (!room.cleared) {
     room.wave = 0; room.wavePending = false; spawnWave(room);
-    room.locked = true; setDoors(room, false);
+    room.locked = true; setDoors(room, false); beginFight(room);
     if (room.type === 'boss') {
       const boss = G.enemies.find(e => e.isBoss);
       const words = STR.bosses[G.run.boss];
@@ -186,9 +187,19 @@ export function checkAmbush() {
   const middle = Math.hypot(player.x - room.cx, player.z - room.cz);
   if (middle > CFG.ambush.middle && fromDoors < CFG.ambush.fromDoors) return;
   room.ambush = 'sprung'; room.wave = 0; room.wavePending = false;
-  room.locked = true; setDoors(room, false);
+  room.locked = true; setDoors(room, false); beginFight(room);
   spawnWave(room, true);
   G.shake = Math.max(G.shake, .3); Sfx.rubble(); Sfx.boom();
+}
+
+/** A fight begins: the Bloodied Covenant takes its tithe, and the Unbroken Oath starts watching. */
+function beginFight(room: Room) { room.hurt = false; payBloodTithe(); }
+
+/** A fight won without a scratch: the Unbroken Oath returns half a heart. */
+function keepOath(room: Room) {
+  if (!player.stats.effects.has('unhurtHeal') || room.hurt || player.hp >= player.maxHp) return;
+  player.hp += 1; renderHearts(); heroDrink();
+  burst(player.x, 1, player.z, 0xf0d080, 16, 1.8, .05); Sfx.oath(); toast(STR.toast.oathKept, 2.5);
 }
 
 /** The last enemy in a locked room fell: bring the next wave after a breath, or clear the room. */
@@ -208,7 +219,7 @@ export function onWaveCleared(room: Room) {
 }
 
 export function onRoomCleared(room: Room) {
-  room.cleared = true; room.locked = false; setDoors(room, true);
+  room.cleared = true; room.locked = false; setDoors(room, true); keepOath(room);
   const loot = G.run.loot;
   if (room.type === 'ordeal') { // the reward rises in the middle of the room
     const def = offerGuaranteed('ordeal');

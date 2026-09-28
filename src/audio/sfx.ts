@@ -62,6 +62,13 @@ export const Sfx = {
   purchase() { tone('sine', 1320, 1320, .07, .05); tone('sine', 1760, 1760, .1, .05, .05); tone('sine', 1100, 330, .4, .05, .1); hiss(.25, .04, 'highpass', 3500, .1); },
   shade() { tone('sine', 147, 139, 1.2, .07); tone('sine', 220, 208, 1, .03, .15); hiss(.9, .04, 'bandpass', 500); },
   wardCrack() { tone('sine', 1300, 900, .25, .06); tone('square', 180, 120, .12, .04); hiss(.2, .05, 'highpass', 3000); },
+  // artifacts
+  crit() { tone('triangle', 1320, 1760, .12, .06); hiss(.1, .04, 'highpass', 4000); },
+  leech() { tone('sine', 330, 660, .3, .06); tone('sine', 495, 990, .25, .03, .05); },
+  moth() { tone('sine', 1900, 1500, .05, .015); },
+  skullBite() { tone('square', 300, 160, .06, .03); },
+  oath() { [784, 988, 1175].forEach((f, i) => tone('sine', f, f, .3, .05, i * .07)); },
+  tithe() { tone('sawtooth', 160, 90, .4, .06); tone('sine', 80, 50, .5, .08); },
   // secret rooms
   hollow() { tone('sine', 1760, 1740, .5, .05); tone('sine', 2637, 2600, .35, .025, .03); tone('square', 110, 80, .12, .05); hiss(.25, .05, 'bandpass', 900); },
   crumble() { hiss(.7, .14, 'lowpass', 420); tone('sine', 70, 35, .6, .16); hiss(.3, .06, 'bandpass', 1500, .15); },

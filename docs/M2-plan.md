@@ -34,15 +34,20 @@ shrine cleansing; urns and chests.
 | Grave Lantern | Cracked walls glow when you enter a room, and secret rooms show on the minimap before they're found | treasure, merchant, secret |
 | Pedlar's Scale | Merchant prices −30% (the price tags show it) | vault, secret |
 
-7. **A looser artifact limit** (owner, 2026-09-28, after step 3): the budget goes from 5 to 6 artifacts per
-   floor, enough for the merchant, a vault and a bone altar on the same floor, and some finds sit outside
-   it so a lucky floor holds more: a gilded reliquary chest (10% of chests: a golden ward no blast breaks,
-   a bone key finds an artifact inside) and, from step 4, the secret room's artifact.
 6. **Magic first, even in M2** (owner, at step 1): Isaac's bombs become blast glyphs, runes the mage chalks
    on the floor and the cantrip sets off from afar; coins become grave obols that drift to the mage, keys
    bone keys. Powder Horn and Sapper's Wick are renamed Glyphwright's Chalk and Warding Band. Each later
    step has its magic takes, marked below (the owner asked to keep expanding them); future pickup families
    are brainstormed in `docs/ideas.md`.
+7. **A looser artifact limit** (owner, 2026-09-28, after step 3): the budget goes from 5 to 6 artifacts per
+   floor, enough for the merchant, a vault and a bone altar on the same floor, and some finds sit outside
+   it so a lucky floor holds more: a gilded reliquary chest (10% of chests: a golden ward no blast breaks,
+   a bone key finds an artifact inside) and, from step 4, the secret room's artifact.
+8. **More artifacts for play-testing** (owner, 2026-09-28, after step 4): 13 original artifacts joined (26 in
+   all besides the starting wand), each with a new mechanic rather than a bigger number: three foci (a fan,
+   a heavy piercing spear, a weaving serpent), eight passives (strong casts, splitting bolts, speed and reach,
+   knockback, a leech, a moth and a skull that act on their own, healing for a fight won unhurt) and two
+   cursed ones; 15 more ideas went into `docs/ideas.md`. Step 6's economy seven still come on top.
 
 ## Groundwork (all steps)
 

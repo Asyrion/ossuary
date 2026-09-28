@@ -9,10 +9,17 @@ const stats = (items: string[], focus = START_FOCUS) => computeStats(focus, item
 describe('artifact data', () => {
   it('is valid', () => expect(validateArtifacts()).toEqual([]));
 
-  it('holds the M1 set: 10 artifacts and 3 foci besides the starting wand', () => {
-    expect(ARTIFACT_DEFS.filter(a => a.kind !== 'focus')).toHaveLength(10);
-    expect(ARTIFACT_DEFS.filter(a => a.kind === 'focus' && !a.start)).toHaveLength(3);
-    expect(ARTIFACT_DEFS.filter(a => a.kind === 'cursed')).toHaveLength(2);
+  it('holds the M1 set and the 13 added after M2 step 4: 20 artifacts and 6 foci besides the starting wand', () => {
+    expect(ARTIFACT_DEFS.filter(a => a.kind !== 'focus')).toHaveLength(20);
+    expect(ARTIFACT_DEFS.filter(a => a.kind === 'focus' && !a.start)).toHaveLength(6);
+    expect(ARTIFACT_DEFS.filter(a => a.kind === 'cursed')).toHaveLength(4);
+  });
+
+  it('gives every artifact a text, an icon and a place to appear, and every pool something to draw', () => {
+    for (const a of ARTIFACT_DEFS) { expect(a.text.length).toBeGreaterThan(10); expect(a.icon).toBeTruthy(); }
+    for (const pool of ['treasure', 'ordeal', 'boss', 'altar', 'drop', 'merchant', 'secret', 'vault'] as const) {
+      expect(ARTIFACT_DEFS.filter(a => a.pools.includes(pool)).length).toBeGreaterThanOrEqual(4);
+    }
   });
 
   it('stock the merchant and the vault: each pool has several to draw from', () => {
@@ -59,6 +66,25 @@ describe('combining artifacts', () => {
     expect(stats(['bone_lens'], 'shepherds_crook').pattern.path).toBe('boomerang');
   });
 
+  it('knows the new shapes and modifiers: fans, weaving, speed, range, knockback and heavy bolts', () => {
+    expect(stats([], 'mourners_censer').pattern).toMatchObject({ count: 3, fan: .3 });
+    expect(stats([], 'mourners_censer').range).toBeCloseTo(base.range * .6);
+    expect(stats([], 'serpent_rod').pattern.path).toBe('wave');
+    const spear = stats([], 'gravewarden_spear');
+    expect(spear.fireDelay).toBeCloseTo(base.fireDelay * 1.9);
+    expect(spear.pierce).toBeGreaterThan(50);
+    expect(spear.damage).toBeCloseTo(base.damage * 2.4);
+    const hawk = stats(['hawkbone_fletching']);
+    expect(hawk.shotSpeed).toBeCloseTo(base.shotSpeed * 1.35);
+    expect(hawk.range).toBeCloseTo(base.range * 1.3);
+    expect(stats(['rams_skull']).knockback).toBeCloseTo(2.6);
+    expect(stats([]).knockback).toBe(1);
+    // the Leaden Heart's gift and price stack with others: two more hearts, a shorter reach
+    const lead = stats(['leaden_heart', 'hawkbone_fletching']);
+    expect(lead.maxHp).toBe((base.hearts + 2) * 2);
+    expect(lead.range).toBeCloseTo(base.range * .6 * 1.3);
+  });
+
   it('collects effects and the last bolt colour', () => {
     const s = stats(['saints_knucklebone', 'masons_chisel', 'ember_sigil']);
     expect([...s.effects].sort()).toEqual(['deathBurst', 'rockBreaker']);
@@ -70,7 +96,7 @@ describe('picking artifacts', () => {
   it('prefers the pool, never repeats and never offers the starting wand', () => {
     const rng = new Rng(7), seen = new Set<string>();
     const picks: string[] = [];
-    for (let i = 0; i < 20; i++) { const a = pickArtifact(rng, 'treasure', seen); if (!a) break; seen.add(a.id); picks.push(a.id); }
+    for (let i = 0; i < 100; i++) { const a = pickArtifact(rng, 'treasure', seen); if (!a) break; seen.add(a.id); picks.push(a.id); }
     expect(new Set(picks).size).toBe(picks.length);
     expect(picks).not.toContain(START_FOCUS);
     expect(picks).toHaveLength(ARTIFACT_DEFS.length - 1); // falls back to other pools once treasure runs dry

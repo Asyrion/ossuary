@@ -25,6 +25,19 @@ const ICONS: Record<string, string> = {
   chisel: `<path d="M14 3l4 4-9 9-4-4z" ${S}/><path d="M5 12l-2 7 7-2" ${S}/>`,
   mask: `<path d="M4 6c5-2 11-2 16 0 0 7-3 13-8 13S4 13 4 6z" ${S}/><path d="M8 10h2.5M13.5 10H16" ${S}/>`,
   chain: `<rect x="3" y="8" width="10" height="7" rx="3.5" ${S}/><rect x="11" y="9" width="10" height="7" rx="3.5" ${S}/>`,
+  censer: `<path d="M12 2v5M7 9h10l-1.5 7h-7z" ${S}/><path d="M9 20h6M12 16v4" ${S}/><path d="M6 5c1 1 1 2 0 3M18 5c-1 1-1 2 0 3" ${S}/>`,
+  spear: `<path d="M4 20L16 8" ${S}/><path d="M20 4l-2.2 6.6-4.4-4.4z" fill="currentColor"/><path d="M6 15l3 3" ${S}/>`,
+  serpent: `<path d="M5 21c0-4 6-3 6-7s-6-3-6-7 5-5 8-3" ${S}/><circle cx="15" cy="5" r="2.2" fill="currentColor"/><path d="M17 5h3" ${S}/>`,
+  eye: `<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" ${S}/><circle cx="12" cy="12" r="3" fill="currentColor"/>`,
+  mirror: `<ellipse cx="12" cy="10" rx="6" ry="7.5" ${S}/><path d="M12 17.5V22M9 22h6M10 5l2 4-1 3 2 3" ${S}/>`,
+  feather: `<path d="M20 4C11 4 6 10 5 19l14-14" ${S}/><path d="M5 19l-2 2M9 11h5M7 15h5" ${S}/>`,
+  ram: `<path d="M8 8a4 4 0 1 0-4 5M16 8a4 4 0 1 1 4 5" ${S}/><path d="M8 8h8l-1 8-3 4-3-4z" ${S}/>`,
+  jar: `<path d="M8 3h8M9 3v3L6 9v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9l-3-3V3" ${S}/><path d="M9 14c1.5-2 4.5 2 6 0" ${S}/>`,
+  moth: `<path d="M12 6v14" ${S}/><path d="M12 9C8 4 3 5 4 10s5 4 8 2M12 9c4-5 9-4 8 1s-5 4-8 2M12 14c-3 1-5 4-3 6M12 14c3 1 5 4 3 6" ${S}/>`,
+  skull: `<path d="M5 11a7 7 0 1 1 14 0v3l-2 2v3H7v-3l-2-2z" ${S}/><circle cx="9" cy="11" r="1.6" fill="currentColor"/><circle cx="15" cy="11" r="1.6" fill="currentColor"/><path d="M15 13.5v3" ${S}/>`,
+  oath: `<path d="M12 21s-7-4.4-8.6-8.6C2.2 8 4.2 4.8 7.3 4.8c2 0 3.3 1 4.7 2.6 1.4-1.6 2.7-2.6 4.7-2.6 3.1 0 5.1 3.2 3.9 6.6C19 16.6 12 21 12 21z" ${S}/><path d="M9 12l2 2 4-4" ${S}/>`,
+  leadheart: `<path d="M12 21s-7-4.4-8.6-8.6C2.2 8 4.2 4.8 7.3 4.8c2 0 3.3 1 4.7 2.6 1.4-1.6 2.7-2.6 4.7-2.6 3.1 0 5.1 3.2 3.9 6.6C19 16.6 12 21 12 21z" fill="currentColor"/><path d="M8 3h8" ${S}/>`,
+  covenant: `<path d="M6 3h9l3 3v15H6z" ${S}/><path d="M9 9h6M9 12h6" ${S}/><path d="M12 15c-1.5 1.8-1.5 3 0 4 1.5-1 1.5-2.2 0-4z" fill="currentColor"/>`,
 };
 
 /* Obol, bone key and glyph icons for the counters under the artifacts. */

@@ -1,8 +1,10 @@
 /* Bolts (the mage's cantrip) and enemy shots.
 
-   The cantrip is a small pipeline: the focus decides how many bolts leave per cast and which path they
-   take (straight, bounce off walls, boomerang back to the mage); every modifier from the other artifacts
-   (damage, size, colour, piercing, rock breaking) applies to every bolt, whatever the path. */
+   The cantrip is a small pipeline: the focus decides how many bolts leave per cast, side by side or in a
+   fan, and which path they take (straight, bounce off walls, boomerang back to the mage, weave like a
+   serpent); every modifier from the other artifacts (damage, size, colour, speed, range, piercing,
+   knockback, rock breaking, the Raven's Eye's strong bolts, the Cracked Mirror's split) applies to every
+   bolt, whatever the path. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Bolt, Box, RockBox } from '../types';
@@ -20,7 +22,7 @@ import { detonateGlyph, glyphNear } from './glyphs';
 import { burst } from './fx';
 import type { BoltPath } from '../items/artifactData';
 
-interface BoltSpec { x: number; z: number; vx: number; vz: number; damage: number; range: number; scale: number; color: number; path: BoltPath; pierce: number; bounces: number; secondary: boolean }
+interface BoltSpec { x: number; z: number; vx: number; vz: number; damage: number; range: number; scale: number; color: number; path: BoltPath; pierce: number; bounces: number; secondary: boolean; crit?: boolean }
 
 function makeBolt(s: BoltSpec) {
   const mesh = new THREE.Group(); const y = .6;
@@ -29,8 +31,9 @@ function makeBolt(s: BoltSpec) {
   mesh.position.set(s.x, y, s.z); scene.add(mesh);
   const b: Bolt = {
     x: s.x, z: s.z, y, vx: s.vx, vz: s.vz, speed: Math.hypot(s.vx, s.vz), dist: 0, range: s.range, r: .12 * s.scale, mesh,
-    damage: s.damage, color: s.color, path: s.path, pierce: s.pierce, bounces: s.bounces, returning: false, hit: new Set(), secondary: s.secondary,
+    damage: s.damage, color: s.color, path: s.path, pierce: s.pierce, bounces: s.bounces, returning: false, hit: new Set(), secondary: s.secondary, crit: s.crit,
   };
+  if (s.path === 'wave') { const v = Math.hypot(s.vx, s.vz) || 1; b.wave = { ox: s.x, oz: s.z, px: -s.vz / v, pz: s.vx / v }; }
   G.bolts.push(b);
   return b;
 }
@@ -38,20 +41,24 @@ function makeBolt(s: BoltSpec) {
 /** Cast the cantrip in the current shooting direction, in the focus's pattern. */
 export function spawnBolt() {
   const dir = shootDir(); if (!dir) return;
-  const st = player.stats, p = st.pattern;
+  const st = player.stats, p = st.pattern, A = CFG.artifacts;
   const px = -dir.z, pz = dir.x; // sideways
-  const vx = dir.x * st.shotSpeed + player.vx * CFG.hero.shotInherit, vz = dir.z * st.shotSpeed + player.vz * CFG.hero.shotInherit;
-  // one bolt alternates between two "eyes"; several bolts fly side by side
+  const ix = player.vx * CFG.hero.shotInherit, iz = player.vz * CFG.hero.shotInherit;
+  // one bolt alternates between two "eyes"; several bolts fly side by side, or fan out
   player.eye *= -1;
-  const offsets = p.count === 1 ? [.1 * player.eye] : Array.from({ length: p.count }, (_, i) => (i - (p.count - 1) / 2) * p.spread);
-  for (const off of offsets) {
+  const slots = p.count === 1 ? [0] : Array.from({ length: p.count }, (_, i) => i - (p.count - 1) / 2);
+  // Raven's Eye: now and then the whole cast strikes thrice as hard, bigger and white-hot
+  const crit = st.effects.has('crit') && Math.random() < A.crit.chance;
+  for (const k of slots) {
+    const a = k * p.fan, c = Math.cos(a), s = Math.sin(a);
+    const dx = dir.x * c - dir.z * s, dz = dir.z * c + dir.x * s, off = p.count === 1 ? .1 * player.eye : p.fan ? 0 : k * p.spread;
     makeBolt({
-      x: player.x + dir.x * .3 + px * off, z: player.z + dir.z * .3 + pz * off, vx, vz,
-      damage: st.damage, range: st.range, scale: st.boltScale, color: st.boltColor,
-      path: p.path, pierce: st.pierce, bounces: p.bounces, secondary: false,
+      x: player.x + dx * .3 + px * off, z: player.z + dz * .3 + pz * off, vx: dx * st.shotSpeed + ix, vz: dz * st.shotSpeed + iz,
+      damage: st.damage * (crit ? A.crit.damageMul : 1), range: st.range, scale: st.boltScale * (crit ? A.crit.scale : 1),
+      color: crit ? A.crit.color : st.boltColor, path: p.path, pierce: st.pierce, bounces: p.bounces, secondary: false, crit,
     });
   }
-  player.squash = 1; heroCast(); Sfx.shoot();
+  player.squash = 1; heroCast(); Sfx.shoot(); if (crit) Sfx.crit();
 }
 
 /** A ring of small burst bolts (Saint's Knucklebone on a death, Mourning Bell when hit). */
@@ -65,6 +72,12 @@ export function spawnBurst(x: number, z: number, count: number, offsetAngle = 0)
       path: 'straight', pierce: 0, bounces: 0, secondary: true,
     });
   }
+}
+
+/** A single lesser bolt from (x, z) along (dx, dz): the Cracked Mirror's halves, the Candle Moth's sting. */
+export function fireSecondary(x: number, z: number, dx: number, dz: number, o: { damage: number; range: number; scale: number; color: number; speed?: number }) {
+  const l = Math.hypot(dx, dz) || 1, v = o.speed ?? player.stats.shotSpeed;
+  makeBolt({ x, z, vx: dx / l * v, vz: dz / l * v, damage: o.damage, range: o.range, scale: o.scale, color: o.color, path: 'straight', pierce: 0, bounces: 0, secondary: true });
 }
 
 /** Enemy projectile. */
@@ -98,13 +111,18 @@ export function updateBolts(dt: number) {
       b.vx = dx / d * b.speed; b.vz = dz / d * b.speed;
     }
     const ox = b.x, oz = b.z;
-    b.x += b.vx * dt; b.z += b.vz * dt; b.dist += b.speed * dt;
+    b.dist += b.speed * dt;
+    if (b.wave) { // the Serpent Rod: along a straight line, swinging from side to side
+      const W = CFG.artifacts.wave, w = b.wave; w.ox += b.vx * dt; w.oz += b.vz * dt;
+      const off = Math.sin(b.dist * W.freq) * W.amp * Math.min(1, b.dist * 2);
+      b.x = w.ox + w.px * off; b.z = w.oz + w.pz * off;
+    } else { b.x += b.vx * dt; b.z += b.vz * dt; }
     let kill = false;
     if (b.path === 'boomerang') {
       b.y = .6;
       if (!b.returning && b.dist >= b.range) { b.returning = true; b.hit.clear(); }
       if (b.dist > b.range * 4) kill = true; // safety: never fly forever
-    } else { // straight and bounce: drop to the floor over the last 30% of the range
+    } else { // straight, bounce and wave: drop to the floor over the last 30% of the range
       const R = b.range, fall = b.dist > R * .7 ? (b.dist - R * .7) / (R * .3) : 0;
       b.y = .6 * (1 - fall * fall);
       kill = b.dist >= R || b.y <= .05;
@@ -136,8 +154,18 @@ export function updateBolts(dt: number) {
       if (e.dead || e.spawn > 0 || e.hidden || b.hit.has(e)) continue;
       const ey = e.flying ? .8 : .5;
       if (Math.hypot(b.x - e.x, b.z - e.z) >= e.r + b.r || Math.abs(b.y - ey) >= 1.4) continue;
-      damageEnemy(e, b.damage, b.vx / b.speed, b.vz / b.speed);
+      damageEnemy(e, b.damage, b.vx / b.speed, b.vz / b.speed, player.stats.knockback);
       b.hit.add(e);
+      if (b.crit) burst(e.x, .7, e.z, CFG.artifacts.crit.color, 8, 2.4, .05);
+      // the Cracked Mirror: a cast bolt splits into two halves that fly on either side of it
+      if (!b.secondary && player.stats.effects.has('split')) {
+        const S = CFG.artifacts.split, base = Math.atan2(b.vz, b.vx);
+        for (const sgn of [-1, 1]) {
+          const a = base + sgn * S.angle, sx = e.x + Math.cos(a) * (e.r + .2), sz = e.z + Math.sin(a) * (e.r + .2);
+          fireSecondary(sx, sz, Math.cos(a), Math.sin(a), { damage: b.damage * S.damageMul, range: S.range, scale: player.stats.boltScale * .7, color: b.color });
+        }
+        burst(e.x, .6, e.z, 0xc8e0e8, 5, 1.6, .03);
+      }
       if (b.path === 'boomerang') continue;
       if (b.pierce > 0) { b.pierce--; continue; }
       kill = true; break;
