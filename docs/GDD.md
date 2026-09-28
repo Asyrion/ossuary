@@ -808,6 +808,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M2 Plunder | Exploration pays | Obols, bone keys and blast glyphs; merchant, secret room, locked vault and shrine cleansing; urns and chests |
 | M3 Magic | Magic is the build | Mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room |
 | M3.5 Asset pipeline | One set of miniatures | The pipeline in `docs/assets.md` tested end to end: an urn, a pedestal, an artifact model, a floor texture and three icons in the game with fallbacks, within budget at 60 fps, in an accepted house style (`docs/M3.5-plan.md`) |
+| M3.6 Rooms of Eda | Places, not arenas | Carved outlines, dressed walls and doors off the middle; twelve themed rooms with their own objects and twists; new objects and piles, and mechanisms that answer to magic (`docs/M3.6-plan.md`) |
 | M4 Tripo enemies | Own creatures | 3 enemies and 1 boss from Tripo, with elemental affinities |
 | M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
