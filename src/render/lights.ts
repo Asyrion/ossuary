@@ -32,6 +32,12 @@ export function applyFloorLook(look: FloorLook) {
   lightState.torchMul = look.torch.intensity;
 }
 
+/** The torch light colour and brightness of the room entered (a secret room burns pale blue). */
+export function applyRoomTorches(look: FloorLook) {
+  for (const l of torchLights) l.color.set(look.torch.light);
+  lightState.torchMul = look.torch.intensity;
+}
+
 const nearest = (torches: Torch[], x: number, z: number, n: number, bias: (t: Torch) => number = () => 0) =>
   torches.slice().sort((a, b) => Math.hypot(a.x - x, a.z - z) + bias(a) - (Math.hypot(b.x - x, b.z - z) + bias(b))).slice(0, n);
 

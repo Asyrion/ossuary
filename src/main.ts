@@ -28,6 +28,7 @@ import { VARIANTS, planToText, type RoomVariant } from './world/generate';
 import { BOSS_TYPES, type BossType } from './config';
 import { DROPS, RESOURCES, type Drop, type Resource } from './items/loot';
 import { giveResources, spawnPickup } from './items/pickups';
+import { openSecretRoom } from './world/secret';
 import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
 import { isTouch } from './util';
@@ -109,6 +110,8 @@ function installDevHooks() {
       if (!DROPS.includes(kind)) throw new Error(`drop: use one of ${DROPS.join(', ')}`);
       spawnPickup(kind, x, z, { gilded: opts.gilded ?? false });
     },
+    /** Break open every cracked wall of this floor's secret room. */
+    openSecret() { const r = G.rooms.find(x => x.type === 'secret'); if (r) openSecretRoom(r); return !!r; },
     get pickups() { return G.pickups; }, get glyphs() { return G.glyphs; }, get shots() { return G.shots; },
   };
 }

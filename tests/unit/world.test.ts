@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../../src/rng';
-import { FLOORS, GRID_H, GRID_W, GUARANTEED_SOURCES, HARD_VARIANTS, OPTIONAL_SOURCES, generateFloor, pickBoss, planToText, testPlan } from '../../src/world/generate';
+import { FLOORS, GRID_H, GRID_W, GUARANTEED_SOURCES, HARD_VARIANTS, OPTIONAL_SOURCES, SECRET_SHUNS, generateFloor, pickBoss, planToText, testPlan } from '../../src/world/generate';
 import { CFG } from '../../src/config';
 import { BOSS_TYPES, type BossType } from '../../src/config';
 import { OPPOSITE, SIDE_DIR, allowsSide, shapeCells } from '../../src/world/shapes';
@@ -17,7 +17,7 @@ describe('room templates', () => {
   });
 
   it('cover every room type and normal difficulty the generator asks for', () => {
-    for (const type of ['start', 'treasure', 'boss', 'altar', 'merchant', 'vault'] as const) expect(TEMPLATE_DEFS.some(d => d.types.includes(type))).toBe(true);
+    for (const type of ['start', 'treasure', 'boss', 'altar', 'merchant', 'vault', 'secret'] as const) expect(TEMPLATE_DEFS.some(d => d.types.includes(type))).toBe(true);
     for (const d of [1, 2, 3]) expect(TEMPLATE_DEFS.some(t => t.types.includes('normal') && t.difficulty === d)).toBe(true);
     for (const d of [1, 2, 3]) expect(TEMPLATE_DEFS.some(t => t.types.includes('ordeal') && t.difficulty === d)).toBe(true);
   });
@@ -63,24 +63,26 @@ describe('floor generator', () => {
   const SEEDS = 400;
 
   it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i follows the rules on %# seeds', (floorNo, cfg) => {
-    let altars = 0, vaults = 0, roomCount = 0, bigRooms = 0, bossHalls = 0;
+    let altars = 0, vaults = 0, secrets = 0, secretArtifacts = 0, roomCount = 0, bigRooms = 0, bossHalls = 0;
     for (let s = 0; s < SEEDS; s++) {
       const plan = generateFloor(Rng.from('T' + s, 'floor' + floorNo), cfg, floorNo - 1);
-      const n = plan.rooms.length;
+      const n = plan.rooms.filter(r => r.type !== 'secret').length; // the secret room comes on top
       expect(n).toBeGreaterThanOrEqual(cfg.rooms[0]);
       expect(n).toBeLessThanOrEqual(cfg.rooms[1]);
       const count = (t: string) => plan.rooms.filter(r => r.type === t).length;
       expect([count('start'), count('boss'), count('treasure'), count('ordeal'), count('merchant')]).toEqual([1, 1, 1, 1, 1]);
       expect(count('altar')).toBeLessThanOrEqual(1);
       expect(count('vault')).toBeLessThanOrEqual(1);
-      altars += count('altar'); vaults += count('vault');
+      expect(count('secret')).toBeLessThanOrEqual(1);
+      altars += count('altar'); vaults += count('vault'); secrets += count('secret');
       // artifacts: the guaranteed sources always; optional ones share what's left of the budget, and an
       // altar is only placed with an artifact to offer
       for (const r of plan.rooms) {
         if (GUARANTEED_SOURCES.includes(r.type) || r.type === 'altar') expect(r.artifact).toBe(true);
+        else if (r.type === 'secret') { if (r.artifact) secretArtifacts++; } // by chance, outside the budget
         else if (!OPTIONAL_SOURCES.includes(r.type)) expect(r.artifact).toBe(false);
       }
-      expect(plan.rooms.filter(r => r.artifact).length).toBeLessThanOrEqual(CFG.artifacts.maxPerFloor);
+      expect(plan.rooms.filter(r => r.artifact && r.type !== 'secret').length).toBeLessThanOrEqual(CFG.artifacts.maxPerFloor);
 
       // cells are in bounds, never shared, and each room covers exactly its shape
       const owner = new Map<string, number>();
@@ -104,7 +106,18 @@ describe('floor generator', () => {
       const nbs = (r: (typeof plan.rooms)[number]) => [...new Set(r.doors.map(d => d.to))];
       const seen = new Set([plan.startId]); const queue = [plan.rooms[plan.startId]];
       while (queue.length) for (const id of nbs(queue.pop()!)) if (!seen.has(id)) { seen.add(id); queue.push(plan.rooms[id]); }
-      expect(seen.size).toBe(n);
+      expect(seen.size).toBe(plan.rooms.length);
+      // ...and without passing through the secret room, which opens into two or more rooms, never the boss,
+      // a vault or the merchant, from a single cell
+      const hidden = plan.rooms.find(r => r.type === 'secret');
+      if (hidden) {
+        const open = new Set([plan.startId]), q = [plan.rooms[plan.startId]];
+        while (q.length) for (const id of nbs(q.pop()!)) if (id !== hidden.id && !open.has(id)) { open.add(id); q.push(plan.rooms[id]); }
+        expect(open.size).toBe(n);
+        expect(hidden.shape).toBe('standard');
+        expect(nbs(hidden).length).toBeGreaterThanOrEqual(2);
+        for (const id of nbs(hidden)) expect(SECRET_SHUNS).not.toContain(plan.rooms[id].type);
+      }
       const boss = plan.rooms[plan.bossId];
       expect(nbs(boss).length).toBe(1);
       expect(['standard', 'great']).toContain(boss.shape);
@@ -112,7 +125,7 @@ describe('floor generator', () => {
       if (boss.shape === 'great') bossHalls++;
       for (const t of ['start', 'treasure', 'ordeal', 'altar', 'merchant', 'vault']) for (const r of plan.rooms.filter(x => x.type === t)) {
         expect(r.shape).toBe('standard');
-        if (t !== 'start') expect(nbs(r).length).toBe(1);
+        if (t !== 'start') expect(nbs(r).filter(id => plan.rooms[id].type !== 'secret').length).toBe(1); // a hidden doorway may add one
       }
       // templates fit their rooms; floor 1 starts gentle
       for (const r of plan.rooms) {
@@ -127,6 +140,9 @@ describe('floor generator', () => {
     expect(altars / SEEDS).toBeGreaterThan(cfg.altarChance * .6);
     expect(altars / SEEDS).toBeLessThan(cfg.altarChance + .06);
     expect(Math.abs(vaults / SEEDS - cfg.vaultChance)).toBeLessThan(.08);
+    // nearly every floor has a secret room; about half of them hold an artifact
+    expect(secrets / SEEDS).toBeGreaterThan(.95);
+    expect(Math.abs(secretArtifacts / secrets - cfg.secretArtifactChance)).toBeLessThan(.1);
     // about a third of the rooms take a larger or narrow shape; some bosses get a great hall
     const share = bigRooms / roomCount;
     expect(share).toBeGreaterThan(.12);

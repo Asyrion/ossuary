@@ -13,6 +13,7 @@ import { giveResources, spawnPickup } from '../items/pickups';
 import { makeEnemy } from '../actors/enemies';
 import { clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
 import { freeSpotNear } from '../world/rooms';
+import { openSecretRoom, revealCracks } from '../world/secret';
 import { TEMPLATE_DEFS } from '../world/templates';
 import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
 import { renderHearts, renderMinimap, toast } from './hud';
@@ -141,11 +142,14 @@ function refresh() {
     return b;
   }));
   const rooms = G.rooms.filter(r => r.type !== 'normal').sort((a, b) => a.plan.dist - b.plan.dist);
+  const secret = G.rooms.find(r => r.type === 'secret');
   floorBox.replaceChildren(
     ...rooms.map(r => {
-      const sealed = r.doors.some(d => d.seal?.sealed);
-      return btn(`${S.roomNames[r.type] ?? r.type}${sealed ? ` (${S.sealed})` : ''}${r === cur ? ' ●' : ''}`, () => { closeDev(); warp(r.plan.id); });
+      const note = r.doors.some(d => d.seal?.sealed) ? S.sealed : r.type === 'secret' && !r.found ? S.hidden : '';
+      // going to the secret room opens it, so the way back out is there
+      return btn(`${S.roomNames[r.type] ?? r.type}${note ? ` (${note})` : ''}${r === cur ? ' ●' : ''}`, () => { if (r.type === 'secret') openSecretRoom(r); closeDev(); warp(r.plan.id); });
     }),
+    ...(secret ? [btn(S.revealCracks, () => revealCracks()), btn(S.openSecret, () => openSecretRoom(secret))] : []),
     btn(S.clear, () => clearRoom()),
     btn(S.reveal, () => { for (const r of G.rooms) r.known = true; renderMinimap(); }),
     btn(S.nextFloor, () => { closeDev(); descend(); }),

@@ -129,13 +129,13 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
   const errors = await start(page, '?seed=SMOKE1');
   const floor1 = await page.evaluate(() => {
     const g = (window as unknown as W).__game;
-    return { seed: g.seed, floor: g.floor, rooms: g.rooms().length, types: g.rooms().map(r => r.type), map: g.map() };
+    return { seed: g.seed, floor: g.floor, rooms: g.rooms().filter(r => r.type !== 'secret').length, types: g.rooms().map(r => r.type), map: g.map() };
   });
   expect(floor1.seed).toBe('SMOKE1');
   expect(floor1.floor).toBe(0);
-  expect(floor1.rooms).toBeGreaterThanOrEqual(8);
-  expect(floor1.rooms).toBeLessThanOrEqual(12);
-  for (const t of ['start', 'boss', 'treasure', 'ordeal']) expect(floor1.types.filter(x => x === t)).toHaveLength(1);
+  expect(floor1.rooms).toBeGreaterThanOrEqual(9); // M2's counts (data/floors.json), the secret room on top
+  expect(floor1.rooms).toBeLessThanOrEqual(13);
+  for (const t of ['start', 'boss', 'treasure', 'ordeal', 'merchant', 'secret']) expect(floor1.types.filter(x => x === t)).toHaveLength(1);
 
   const boss = await page.evaluate(() => {
     const w = window as unknown as W, g = w.__game;
@@ -151,12 +151,12 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
   const floor2 = await page.evaluate(() => {
     const g = (window as unknown as W).__game, room = g.current;
     g.player.x = room.cx; g.player.z = room.cz + .3; g.sim(0.2, true); // step onto the trapdoor
-    return { state: g.state, floor: g.floor, rooms: g.rooms().length, current: g.current.type };
+    return { state: g.state, floor: g.floor, rooms: g.rooms().filter(r => r.type !== 'secret').length, current: g.current.type };
   });
   await page.screenshot({ path: 'test-results/smoke-floor2.png' });
   expect(floor2).toMatchObject({ state: 'play', floor: 1, current: 'start' });
-  expect(floor2.rooms).toBeGreaterThanOrEqual(10);
-  expect(floor2.rooms).toBeLessThanOrEqual(14);
+  expect(floor2.rooms).toBeGreaterThanOrEqual(11);
+  expect(floor2.rooms).toBeLessThanOrEqual(15);
   expect(errors).toEqual([]);
 });
 
@@ -410,6 +410,33 @@ test('a gilded reliquary shrugs off a blast, and a bone key finds a relic beyond
   expect(errors).toEqual([]);
 });
 
+test('a cracked wall rings hollow to a bolt, a glyph breaks it open, and the secret room appears', async ({ page }) => {
+  const errors = await start(page, '?room=secret_cell&seed=SEC01&loot=glyphs:1');
+  type D = { x: number; z: number; open: boolean; secret?: { open: boolean; divined: boolean } };
+  type G7 = Omit<G5, 'current' | 'rooms'> & { current: Omit<G5['current'], 'doors'> & { doors: D[] }; rooms(): (RoomView & { known: boolean; found?: boolean })[] };
+  const before = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G7, P = g.player, d = g.current.doors.find(x => x.secret)!;
+    const hidden = { known: g.rooms()[1].known, open: d.open };
+    P.x = d.x; P.z = d.z + 3; g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); g.sim(.8); g.keys.delete('ArrowUp'); g.arrowOrder.length = 0; g.sim(.5);
+    const rang = { divined: d.secret!.divined, open: d.secret!.open };
+    P.x = d.x; P.z = d.z + .6; P.invuln = 99;
+    return { hidden, rang };
+  });
+  expect(before).toEqual({ hidden: { known: false, open: false }, rang: { divined: true, open: false } }); // bolts don't break it
+  await page.keyboard.press('Space');
+  const after = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G7, P = g.player, d = g.current.doors.find(x => x.secret)!;
+    g.sim(.05); P.z += 3; g.sim(2);
+    const opened = { open: d.open, found: !!g.rooms()[1].found, known: g.rooms()[1].known };
+    P.x = d.x; P.z = d.z + 1; g.keys.add('KeyW'); g.sim(1.2); g.keys.delete('KeyW'); g.sim(.5);
+    return { opened, inside: g.current.type };
+  });
+  expect(after).toEqual({ opened: { open: true, found: true, known: true }, inside: 'secret' });
+  await page.evaluate(() => (window as unknown as W).__game.sim(.1, true));
+  await page.screenshot({ path: 'test-results/smoke-secret.png' });
+  expect(errors).toEqual([]);
+});
+
 /** Walk from the start room into the test vault's sealed door; returns the seal and the door. */
 const walkToVault = () => {
   const g = (window as unknown as W).__game as unknown as G5, P = g.player, d = g.current.doors.find(x => x.seal)!;
@@ -468,6 +495,10 @@ test('the dev menu opens on its key, pauses the game, and hands out what it list
     return { coins: g.player.coins, keys: g.player.keys, items: g.player.items, gilded: g.pickups.filter(q => q.gilded).length };
   });
   expect(got).toEqual({ coins: 10, keys: 5, items: ['ember_sigil'], gilded: 1 });
+  // the floor's secret room is listed, hidden until found, and the menu can open it
+  await expect(page.locator('#dev button', { hasText: 'Secret room (hidden)' })).toBeVisible();
+  await click('Open the secret room');
+  await expect(page.locator('#dev button', { hasText: /^Secret room$/ })).toBeVisible();
   await page.keyboard.press('Escape'); // closes the menu (not the pause screen) and the game goes on
   await expect(page.locator('#dev')).toBeHidden();
   expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('play');
@@ -481,6 +512,7 @@ test('the dev menu opens on its key, pauses the game, and hands out what it list
 test('every door of a seeded floor leads to its neighbour, onto open floor', async ({ page }) => {
   const errors = await start(page, '?seed=DOORS1&floor=2&loot=keys:9'); // keys unbind a vault's ward on the way
   const result = await page.evaluate(() => {
+    const secret = ((window as unknown as W).__game as unknown as { openSecret(): boolean }).openSecret(); // its cracked walls, broken open
     type D = { side: 'n' | 's' | 'e' | 'w'; x: number; z: number; nb: unknown; open: boolean };
     type R = Omit<RoomView, 'doors'> & { doors: D[]; bounds: { minX: number; minZ: number }; mask: boolean[][] };
     const g = (window as unknown as W).__game as unknown as {
@@ -504,9 +536,10 @@ test('every door of a seeded floor leads to its neighbour, onto open floor', asy
       // the camera is pulled back in larger halls only
       if ((g.camera.zoom < 1) !== HALLS.includes(nb.plan.shape)) fails.push(`zoom ${g.camera.zoom} in room ${nb.plan.id} (${nb.plan.shape})`);
     }
-    return { walked, shapes: shapes.size, fails };
+    return { walked, shapes: shapes.size, fails, secret };
   });
-  console.log(`walked through ${result.walked} doors in rooms of ${result.shapes} shapes`);
+  console.log(`walked through ${result.walked} doors in rooms of ${result.shapes} shapes${result.secret ? ', a secret room among them' : ''}`);
+  expect(result.secret).toBe(true);
   expect(result.walked).toBeGreaterThan(20);
   expect(result.fails).toEqual([]);
   expect(errors).toEqual([]);

@@ -70,12 +70,12 @@ describe('loot data', () => {
 });
 
 /* The economy, simulated on generated floors: every fight cleared, every enemy killed, every urn broken,
-   every coffer opened, every vault opened; a chest and a vault each cost a bone key and a sealed urn a
-   glyph (counted as spent). A vault without an artifact holds a hoard and a chest. Room clears, enemies,
-   urns, containers and vaults are the sources so far; the secret room joins in step 4 to reach the GDD's
-   12 to 18 obols per floor. */
+   every coffer opened, every vault and secret room opened; a chest and a vault each cost a bone key, a
+   sealed urn and a secret room a glyph (counted as spent). A vault without an artifact holds a hoard and a
+   chest; a secret room without one a hoard, coffers and a chest. With all of them the floors reach the
+   GDD's 12 to 18 obols. */
 describe('economy', () => {
-  it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i: room clears, enemies, urns, containers and vaults', (floorNo, cfg) => {
+  it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i: room clears, enemies, urns, containers, vaults and secret rooms', (floorNo, cfg) => {
     const N = 300, got = { coins: 0, keys: 0, glyphs: 0, hearts: 0 };
     let relics = 0;
     const add = (d: Item) => { const v = dropValue(d); for (const k of [...RESOURCES, 'hearts'] as const) got[k] += v[k] ?? 0; };
@@ -95,6 +95,14 @@ describe('economy', () => {
           got.keys--;
           if (!r.artifact) { rollTable(drops, 'vaultHoard').forEach(add); chest(); }
         }
+        if (r.type === 'secret') { // a glyph opens it; without an artifact it holds a hoard, coffers and chests
+          got.glyphs--;
+          if (!r.artifact) {
+            rollTable(drops, 'secretHoard').forEach(add);
+            for (let i = 0; i < LOOT.secretRoom.coffers; i++) rollTable(drops, 'coffer').forEach(add);
+            for (let i = 0; i < LOOT.secretRoom.chests; i++) chest();
+          }
+        }
         if (r.type !== 'normal') continue;
         const foes = r.variant === 'quiet' ? 1 : t.foes.length;
         for (let i = 0; i < foes; i++) { const d = rollEnemyDrop(drops); if (d) add(d as Item); }
@@ -105,8 +113,8 @@ describe('economy', () => {
       }
     }
     const per = Object.fromEntries(Object.entries(got).map(([k, v]) => [k, v / N]));
-    expect(per.coins).toBeGreaterThan(5); expect(per.coins).toBeLessThan(18); // the GDD's ceiling
-    expect(per.glyphs).toBeGreaterThan(0);  // net of the glyphs sealed urns ask for
+    expect(per.coins).toBeGreaterThan(12); expect(per.coins).toBeLessThan(18); // the GDD's target
+    expect(per.glyphs).toBeGreaterThan(.2); // net of the glyphs sealed urns and secret rooms ask for
     expect(per.keys).toBeGreaterThan(.2);   // net of the keys chests and vaults ask for
     expect(per.hearts).toBeGreaterThan(2);
     // relics beyond the budget are rare: a few floors in a hundred

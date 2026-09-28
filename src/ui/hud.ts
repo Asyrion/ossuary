@@ -126,6 +126,11 @@ export function renderMinimap() {
       mg.strokeStyle = r.spots.some(s => !s.taken) ? '#e8dcc0' : '#6a5a4a'; mg.lineWidth = 2.5;
       mg.beginPath(); mg.arc(cx, cy + 3, 6, Math.PI, 0); mg.moveTo(cx - 6, cy + 3); mg.lineTo(cx - 6, cy + 7); mg.moveTo(cx + 6, cy + 3); mg.lineTo(cx + 6, cy + 7); mg.stroke();
     }
+    if (r.type === 'secret') { // an eye of pale blue chalk, once found
+      mg.strokeStyle = '#8ab8ff'; mg.lineWidth = 2;
+      mg.beginPath(); mg.ellipse(cx, cy, 7, 4, 0, 0, 7); mg.stroke();
+      mg.fillStyle = '#8ab8ff'; mg.beginPath(); mg.arc(cx, cy, 2, 0, 7); mg.fill();
+    }
     if (r.type === 'merchant') { // an obol
       mg.fillStyle = '#d8a848'; mg.beginPath(); mg.arc(cx, cy, 6, 0, 7); mg.fill();
       mg.fillStyle = '#5a3e14'; mg.beginPath(); mg.arc(cx, cy, 2.2, 0, 7); mg.fill();

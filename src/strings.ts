@@ -57,6 +57,7 @@ export const STR = {
     vault: ['The Vault', 'What the dead would not give up'] as Banner,
     vaultWarden: ["The vault's warden wakes", 'It will not give up the hoard'] as Banner,
     gildedRelic: ['A relic in the reliquary', 'Fortune favours the bold'] as Banner,
+    secret: ['A forgotten cell', 'Someone studied the dark here, long ago'] as Banner,
   },
   runInfo: (floor: number, floors: number, seed: string) => `Floor ${floor} of ${floors} · Seed ${seed}`,
   rotate: 'Turn your phone sideways to play.',
@@ -79,6 +80,8 @@ export const STR = {
     wardCracks: 'The ward cracks. One more blast breaks it, and wakes what guards the vault.',
     vaultForced: 'The ward shatters. Something stirs inside the vault.',
     vaultUnbound: 'The bone key unbinds the ward.',
+    hollow: "The wall rings hollow. A glyph's blast would break it.",
+    secretFound: 'A hidden way lies open.',
   },
   /** The dev menu (the key left of 1, or F2): for testing, not for players. */
   dev: {
@@ -95,8 +98,9 @@ export const STR = {
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
     foes: 'Foes (they leave the doors open)', champion: (name: string) => `Champion ${name.toLowerCase()}`,
     foeNames: { rotling: 'Rotling', wisp: 'Wisp', hound: 'Crypt hound' } as Record<string, string>,
-    floor: 'This floor', sealed: 'sealed', clear: 'End this fight', reveal: 'Reveal the map', nextFloor: 'Next floor',
-    roomNames: { start: 'Start', normal: 'Normal', treasure: 'Treasure', boss: 'Boss', ordeal: 'Ordeal', altar: 'Bone altar', merchant: 'Merchant', vault: 'Vault' } as Record<string, string>,
+    floor: 'This floor', sealed: 'sealed', hidden: 'hidden', clear: 'End this fight', reveal: 'Reveal the map', nextFloor: 'Next floor',
+    revealCracks: 'Reveal cracked walls', openSecret: 'Open the secret room',
+    roomNames: { start: 'Start', normal: 'Normal', treasure: 'Treasure', boss: 'Boss', ordeal: 'Ordeal', altar: 'Bone altar', merchant: 'Merchant', vault: 'Vault', secret: 'Secret room' } as Record<string, string>,
     test: 'Test a room', template: 'Room template', variant: 'Variant', play: 'Play it',
     variants: { normal: 'Normal', quiet: 'Quiet', champion: 'Champion', ambush: 'Ambush', dark: 'Dark' } as Record<string, string>,
     bosses: 'Fight a boss', newRun: 'New run', floorN: (n: number) => `Floor ${n}`,

@@ -7,7 +7,7 @@ import { STR } from './strings';
 import { Rng, newSeed } from './rng';
 import { Sfx } from './audio/sfx';
 import { camTarget, cameraTargetFor, scene, setViewScale, viewScale, viewScaleFor } from './render/renderer';
-import { applyFloorLook, resetTorchLights, setDarkness } from './render/lights';
+import { applyFloorLook, applyRoomTorches, resetTorchLights, setDarkness } from './render/lights';
 import { disposeTree } from './render/materials';
 import { clearFloorTextures } from './render/textures';
 import { buildRoom, buildWallsAndDoors, doorsOf, entryPoint, freeSpotNear, linkDoors, roomAt, setDoors } from './world/rooms';
@@ -63,7 +63,7 @@ export function buildFloor(index: number) {
   G.run.plan = plan;
   // the budget holds the guaranteed sources (treasure room, ordeal, boss) and the optional ones the
   // generator gave an artifact (GDD: Artifacts); room-clear drops take what is left
-  resetBudget(plan.rooms.filter(r => r.artifact).length);
+  resetBudget(plan.rooms.filter(r => r.artifact && r.type !== 'secret').length); // the secret room's is beyond it
   applyFloorLook(FLOORS[index].look);
   for (const p of plan.rooms) buildRoom(p, index);
   for (const r of G.rooms) buildWallsAndDoors(r);
@@ -132,8 +132,8 @@ function showRooms(...list: Room[]) { for (const r of G.rooms) r.group.visible =
 export function enterRoom(room: Room) {
   const firstVisit = !room.visited;
   G.current = room; room.visited = true; room.known = true; showRooms(room);
-  for (const d of doorsOf(room)) d.nb.known = true;
-  resetTorchLights(room.torches, player.x, player.z);
+  for (const d of doorsOf(room)) if (!d.secret || d.secret.open) d.nb.known = true; // not what's behind a cracked wall
+  applyRoomTorches(room.look); resetTorchLights(room.torches, player.x, player.z);
   setDarkness(room.plan.variant === 'dark' ? 1 : 0);
   if (!room.cleared && room.plan.variant === 'ambush' && room.ambush !== 'sprung') room.ambush = 'armed'; // looks empty, for now
   else if (!room.cleared) {
@@ -150,6 +150,7 @@ export function enterRoom(room: Room) {
   if (firstVisit && room.plan.variant === 'dark') Sfx.darkness();
   if (firstVisit && room.type === 'altar' && room.spots.length) banner(...STR.banner.altar);
   if (firstVisit && room.type === 'merchant') { banner(...STR.banner.merchant); Sfx.shade(); }
+  if (firstVisit && room.type === 'secret') banner(...STR.banner.secret);
   if (firstVisit && room.type === 'vault') banner(...(room.warden ? STR.banner.vaultWarden : STR.banner.vault));
   if (firstVisit && room.quietHeart) { const p = freeSpotNear(room, room.cx, room.cz); spawnHeart(p.x, p.z, 2); }
   // a treasure room with nothing left to find offers a full heart instead

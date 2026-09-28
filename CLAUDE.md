@@ -11,7 +11,7 @@ system borrowed from Isaac gets a magic take (GDD: What separates Ossuary from a
 asset checklist lives in the owner's claude.ai project "Tripo3D-GameDev". This file holds what you need to
 work in the repo.
 
-## Current state: M2 in progress (see `docs/M2-plan.md`; steps 1 to 3 done); M1 built (`docs/M1-plan.md`)
+## Current state: M2 in progress (see `docs/M2-plan.md`; steps 1 to 4 done); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -32,7 +32,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   warden, boss tuning and look per floor),
   `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `i` pillar, `=` stone tomb, `u` urn,
   `$` rune-sealed urn, `R W H` enemies, `B` boss; `x` outside an L's missing corner; ordeal templates list
-  their enemies per wave in `waves`; `special.json` holds ordeals, altars, merchants and vaults,
+  their enemies per wave in `waves`; `special.json` holds ordeals, altars, merchants, vaults and secret rooms,
   `shapes.json` the larger and narrow rooms) and
   `data/artifacts.json` (foci, passive and cursed artifacts: stats, effects, pools, colours, icons).
 - Artifacts: `src/items/artifactData.ts` (pure: data, `computeStats` combining, picking) and
@@ -45,11 +45,11 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
   every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
-  keys and glyphs. `?room=merchant_plain` and `?room=vault_urns` put a shop or a sealed vault next to the
-  start.
+  keys and glyphs. `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
+  vault or a secret room (behind a cracked wall) next to the start.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
   resources, `__game.drop('purse')` drops a pickup ahead of the mage, `__game.clearRoom()`
-  ends the current fight.
+  ends the current fight, `__game.openSecret()` breaks open the floor's secret room.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons: heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
   special rooms, test rooms, boss fights and new runs. Its lists come from the data, so new artifacts,
@@ -72,12 +72,15 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   chests in `src/items/pickups.ts`; urns (a room's "rocks" with `urn` set) in `src/world/rooms.ts`
   (`strikeUrn`). The merchant (a bound shade, wares in ward circles, a warded shop) is in
   `src/items/merchant.ts`, the locked vault (a warded door: a key, or two blasts that wake a warden) in
-  `src/world/vault.ts`; stock, prices and the vault's hoard are in `data/loot.json`.
+  `src/world/vault.ts`; stock, prices and the vault's hoard are in `data/loot.json`. Secret rooms (a
+  forgotten mage's cell behind cracked walls that ring hollow to bolts and break to a glyph's blast) are in
+  `src/world/secret.ts`: the generator adds one per floor on top of the room count, and each hidden doorway
+  is a door with `secret` set (closed, a wall piece filling it) until `openSecret` opens both sides.
 - The per-floor artifact budget (`CFG.artifacts.maxPerFloor`, 6): the generator marks which rooms hold one
   (`artifact` on each planned room: always the treasure room, ordeal and boss; the merchant, vault and altar
   in a shuffled order while the budget lasts). `buildFloor` reserves them all; room-clear drops take what
-  is left. A gilded reliquary chest (rare; only a key opens it) holds an artifact outside the budget
-  (`offerBeyondBudget`). While a room's doors are locked, its artifacts can't be taken.
+  is left. A gilded reliquary chest (rare; only a key opens it) and the secret room hold artifacts outside
+  the budget (`offerBeyondBudget`). While a room's doors are locked, its artifacts can't be taken.
 - Bosses are in `src/actors/bosses.ts` (placeholder shapes until M4): each floor draws one from its pool
   in `data/floors.json`, never one the run has met. A boss with `hidden` set (the abbess under the floor,
   the knight in mid-leap) can't be hit and doesn't hurt on contact.
