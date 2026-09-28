@@ -14,7 +14,8 @@ import { mulberry } from '../util';
 import { DH, H_LOW, H_TALL, HD, HW, PX, PZ, WT } from './dims';
 import { FLOORS, type PlannedRoom } from './generate';
 import { OPPOSITE, SHAPES, SIDE_DIR, cellHalfExtents, shapeMask, shapeSize } from './shapes';
-import { TEMPLATES, parseTemplate, tombRuns } from './templates';
+import { TEMPLATES, growPuddles, parseTemplate, tombRuns } from './templates';
+import { buildPools } from './pools';
 import { rollTable } from '../items/loot';
 import { spawnPickup } from '../items/pickups';
 import { buildShop } from '../items/merchant';
@@ -50,6 +51,11 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   const kind = plan.type === 'start' && floorIndex > 0 ? 'normal' : plan.type;
   const floor = new THREE.Mesh(maskGeometry(room.mask, w, h), new THREE.MeshStandardMaterial({ map: floorTexture(plan.seed, kind, look, room.mask), roughness: .95 }));
   room.group.add(floor);
+  // the drowned floor's standing water is real in its fights: a puddle or two to wade through
+  if (look.floor.decor === 'puddles' && plan.type === 'normal') {
+    const R = mulberry(plan.seed ^ 0xd20e), [lo, hi] = CFG.surface.puddles;
+    growPuddles(template, R, lo + Math.floor(R() * (hi - lo + 1)), CFG.surface.puddleSize);
+  }
   template.tiles.forEach((row, r) => row.forEach((tile, c) => {
     if (tile === 'rock') addRock(room, c, r);
     else if (tile === 'pit') addPit(room, c, r);
@@ -57,7 +63,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
     else if (tile === 'urn' || tile === 'sealedUrn') addUrn(room, c, r, tile === 'sealedUrn');
   }));
   for (const run of tombRuns(template)) addTomb(room, run);
-  mergePits(room);
+  mergePits(room); buildPools(room);
   room.waves = template.waves.map(wv => wv.map(f => ({ kind: f.kind, ...toWorld(room, f.c, f.r) })));
   if (plan.variant === 'quiet') quieten(room);
   room.cleared = room.waves.length === 0;

@@ -798,6 +798,65 @@ test('the library: a page learned burns the others, a full hand is asked, given-
   expect(errors2).toEqual([]);
 });
 
+type PoolView = { kind: string; state: string; tiles: { x: number; z: number }[] };
+type G13 = Omit<G12, 'keys' | 'player'> & {
+  readonly pools: PoolView[]; pool(what: 'fire' | 'frost' | 'shock'): void; keys: Set<string>; player: G12['player'] & { vx: number; vz: number };
+};
+
+test('water and oil: the lance lights oil that burns foes and the mage; shock runs through water; frost freezes it; wading is slow', async ({ page }) => {
+  const errors = await start(page, '?room=oil_and_water&seed=PW1&spells=cinder_lance,arc');
+  // oil: a rotling standing in it, the lance through it
+  const oil = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G13, P = g.player; g.warp(1); g.sim(.2); g.clearRoom(); g.sim(.3);
+    const pool = () => g.pools.find(q => q.kind === 'oil')!, t = pool().tiles[0];
+    const foe = g.spawn('rotling', t.x, t.z); g.sim(.7); foe.hp = 60; foe.x = t.x; foe.z = t.z;
+    P.x = t.x; P.z = t.z + 3; g.cast(0, { x: 0, z: -1 }); g.sim(.1);
+    const lit = pool().state, burning = foe.status?.burn ?? 0;
+    P.x = t.x; P.z = t.z; P.invuln = 0; const hp = P.hp; g.sim(.1); const hurt = hp - P.hp;
+    P.z = t.z + 3; g.sim(5.5);
+    return { lit, burning, hurt, after: pool().state, other: g.pools.filter(q => q.kind === 'oil').map(q => q.state) };
+  });
+  expect(oil).toMatchObject({ lit: 'burning', after: 'spent', other: ['spent', 'still'] }); // only the pool it touched
+  expect(oil.burning).toBeGreaterThan(0);
+  expect(oil.hurt).toBeGreaterThan(0);
+  // water: wading is slower than walking; a shock in it reaches every foe standing in it, and the mage
+  const water = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G13, P = g.player; g.clearRoom(); g.sim(.3); P.hp = P.maxHp;
+    const pool = g.pools.filter(q => q.kind === 'water').sort((a, b) => b.tiles[0].z - a.tiles[0].z)[0];
+    const xs = pool.tiles.map(t => t.x), zs = pool.tiles.map(t => t.z), x0 = Math.min(...xs), z0 = Math.min(...zs);
+    const walk = (x: number, z: number) => { P.x = x; P.z = z; P.vx = P.vz = 0; g.keys.add('KeyD'); g.sim(.5); g.keys.delete('KeyD'); const d = P.x - x; g.sim(.3); return d; };
+    const wading = walk(x0 - .3, z0), dry = walk(x0 - .3, z0 - 3.2);
+    const a = g.spawn('rotling', x0 + 2, z0), b = g.spawn('rotling', x0 + 2, z0 + 1), c = g.spawn('rotling', x0 + 4, z0 - 2.5); g.sim(.7);
+    for (const f of [a, b, c]) f.hp = 60;
+    a.x = x0 + 2; a.z = z0; b.x = x0 + 2; b.z = z0 + 1; c.x = x0 + 4; c.z = z0 - 2.5;
+    P.x = x0; P.z = z0 + 1; P.invuln = 0; const hp = P.hp;
+    g.pool('shock');
+    return { ratio: wading / dry, shocked: [a, b, c].map(f => (f.status?.shock ?? 0) > 0), hurt: hp - P.hp };
+  });
+  expect(water.ratio).toBeGreaterThan(.45);
+  expect(water.ratio).toBeLessThan(.75);
+  expect(water.shocked).toEqual([true, true, false]); // not the foe on dry floor
+  expect(water.hurt).toBeGreaterThan(0);
+  // Arc on a foe in water carries too; Rime Shards freeze the pool, which then conducts nothing and is crossed at full speed
+  const ice = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G13, P = g.player; g.clearRoom(); g.sim(2); P.hp = P.maxHp;
+    const pool = () => g.pools.filter(q => q.kind === 'water').sort((a, b) => b.tiles[0].z - a.tiles[0].z)[0];
+    const xs = pool().tiles.map(t => t.x), zs = pool().tiles.map(t => t.z), x0 = Math.min(...xs), z0 = Math.min(...zs);
+    const a = g.spawn('rotling', x0, z0), b = g.spawn('rotling', x0 + 2, z0 + 1); g.sim(.7); a.hp = b.hp = 60; a.x = x0; a.z = z0; b.x = x0 + 2; b.z = z0 + 1;
+    P.x = x0 + 5; P.z = z0; g.mana(999); g.player.spellCd[1] = 0; g.cast(1, { x: -1, z: 0 }); g.sim(.05);
+    const carried = [a, b].every(f => f.hp < 60);
+    g.clearRoom(); g.sim(1); g.learn('rime_shards', 0); P.x = x0 + 4; P.z = z0; g.player.spellCd[0] = 0; g.cast(0, { x: -1, z: 0 }); g.sim(.4);
+    const frozen = pool().state;
+    P.x = x0 - .3; P.z = z0; P.vx = P.vz = 0; g.keys.add('KeyD'); g.sim(.5); g.keys.delete('KeyD');
+    return { carried, frozen, moved: P.x - (x0 - .3) };
+  });
+  expect(ice).toMatchObject({ carried: true, frozen: 'frozen' });
+  expect(ice.moved).toBeGreaterThan(1.6); // full speed on the ice
+  await page.evaluate(() => (window as unknown as W).__game.sim(.05, true));
+  await page.screenshot({ path: 'test-results/smoke-pools.png' });
+  expect(errors).toEqual([]);
+});
+
 /* M2 step 6: the artifacts that bend the economy. */
 type G7 = Omit<G6, 'current'> & {
   give(...ids: string[]): void; drop(kind: string, x?: number, z?: number): void; pickups: { kind: string }[];

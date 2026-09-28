@@ -4,7 +4,7 @@ import { FLOORS, GRID_H, GRID_W, GUARANTEED_SOURCES, HARD_VARIANTS, OPTIONAL_SOU
 import { CFG } from '../../src/config';
 import { BOSS_TYPES, type BossType } from '../../src/config';
 import { OPPOSITE, SIDE_DIR, allowsSide, shapeCells } from '../../src/world/shapes';
-import { TEMPLATE_DEFS, parseTemplate, tombRuns, validateTemplate } from '../../src/world/templates';
+import { TEMPLATE_DEFS, growPuddles, parseTemplate, poolsOf, tombRuns, validateTemplate } from '../../src/world/templates';
 
 describe('room templates', () => {
   it.each(TEMPLATE_DEFS.map(d => [d.id, d] as const))('%s is valid', (_id, def) => {
@@ -56,6 +56,34 @@ describe('room templates', () => {
     const a = parseTemplate(def), b = parseTemplate(def, true, true);
     expect(b.foes.length).toBe(a.foes.length);
     expect(b.tiles[0][0]).toBe(a.tiles[a.h - 1][a.w - 1]);
+  });
+});
+
+describe('water and oil', () => {
+  it('join side by side into pools, never corner to corner, and oil never with water', () => {
+    const t = parseTemplate({ id: 't', shape: 'standard', types: ['normal'], difficulty: 1, grid: [
+      '~~...........', '~.%%.........', '...%.........', '....~........', '.............', '.............', '............R'] });
+    const pools = poolsOf(t).map(p => [p.kind, p.tiles.length]).sort();
+    expect(pools).toEqual([['oil', 3], ['water', 1], ['water', 3]]);
+  });
+
+  it('stand in some templates of each difficulty, and are walkable where doors and foes need them', () => {
+    const kinds = (ch: string) => TEMPLATE_DEFS.filter(d => d.grid.some(r => r.includes(ch)));
+    expect(kinds('~').length).toBeGreaterThanOrEqual(3);
+    expect(kinds('%').length).toBeGreaterThanOrEqual(3);
+    for (const d of [...kinds('~'), ...kinds('%')]) expect(validateTemplate(d)).toEqual([]);
+  });
+
+  it('grow as puddles over plain floor only, joined up', () => {
+    for (let seed = 1; seed <= 40; seed++) {
+      const def = TEMPLATE_DEFS.find(d => d.id === 'crypt_a')!, t = parseTemplate(def), before = t.tiles.map(r => [...r]);
+      const rng = new Rng(seed); growPuddles(t, () => rng.next(), 2, [2, 4]);
+      let grown = 0;
+      t.tiles.forEach((row, r) => row.forEach((tile, c) => { if (tile !== before[r][c]) { grown++; expect(before[r][c]).toBe('floor'); expect(tile).toBe('water'); } }));
+      expect(grown).toBeGreaterThanOrEqual(2);
+      expect(grown).toBeLessThanOrEqual(8);
+      for (const p of poolsOf(t)) expect(p.tiles.length).toBeGreaterThanOrEqual(1);
+    }
   });
 });
 

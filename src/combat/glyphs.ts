@@ -26,6 +26,7 @@ import { giveResources, isContainer, openContainer } from '../items/pickups';
 import { damageEnemy, hurtPlayer } from './damage';
 import { addDecal, burst } from './fx';
 import { clamp } from '../util';
+import { fireAt } from '../world/pools';
 
 const C = CFG.glyph;
 let geo: { rune: THREE.PlaneGeometry; reach: THREE.RingGeometry; wave: THREE.RingGeometry } | null = null;
@@ -84,6 +85,7 @@ export function detonateGlyph(gl: Glyph) {
   if (gl.spent) return;
   gl.spent = true; scene.remove(gl.g); disposeTree(gl.g);
   blast(gl.x, gl.z, gl.color, gl.radius);
+  fireAt(gl.x, gl.z, gl.radius * .7); // and lights the oil around it
 }
 
 const touches = (b: Box, x: number, z: number, r: number) =>

@@ -16,6 +16,7 @@ import { damageEnemy } from '../combat/damage';
 import { fireSpellBolt } from '../combat/projectiles';
 import { MAGIC, applyStatus, consumeShock, newStatus, tickStatus, type Reaction } from './status';
 import type { StatusKind } from './spellData';
+import { touchPools } from '../world/pools';
 
 const R = MAGIC.reactions;
 const ICE = 0xbfe6ff, FIRE = 0xff7a2a, SPARK = 0xf0e890;
@@ -29,6 +30,7 @@ export function inflict(e: Enemy, status: Partial<Record<StatusKind, number>> | 
     if (res.froze) { Sfx.freeze(); burst(e.x, .6, e.z, ICE, 12, 1.6, .05); }
     if (res.stunned) burst(e.x, .9, e.z, SPARK, 6, 2, .03);
     if (res.reaction) react(e, res.reaction);
+    touchPools(e, kind); // oil catches fire, water freezes or carries the shock
   }
 }
 
@@ -96,6 +98,7 @@ export function updateStatuses(dt: number, now: number) {
     const { burnDamage, thawed } = tickStatus(s, dt);
     if (burnDamage > 0) damageEnemy(e, burnDamage, 0, 0, 0, 'spell');
     if (e.dead) continue;
+    if (s.burn > 0) touchPools(e, 'burn'); // a burning foe walking into oil sets it alight
     if (s.frozen > 0) addIce(e); else if (e.ice) { removeIce(e); if (thawed) Sfx.thaw(); }
     const y = e.flying ? .85 : .5;
     if (s.burn > 0 && Math.random() < dt * 14) burst(e.x + (Math.random() - .5) * e.r, y + .2, e.z + (Math.random() - .5) * e.r, Math.random() < .5 ? FIRE : 0xffc060, 1, .7, .05);

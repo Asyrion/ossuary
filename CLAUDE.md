@@ -14,7 +14,7 @@ style reference in every image), budgets per kind of asset, the pipeline from im
 log. When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3 in progress (see `docs/M3-plan.md`; steps 1 to 4 done); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3 in progress (see `docs/M3-plan.md`; steps 1 to 5 done); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -34,7 +34,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `data/floors.json` (room counts, difficulty weights, enemy health, altar and vault chances, which floors have
   a shrine, the vault's warden, boss tuning and look per floor),
   `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `i` pillar, `=` stone tomb, `u` urn,
-  `$` rune-sealed urn, `R W H` enemies, `B` boss; `x` outside an L's missing corner; ordeal templates list
+  `$` rune-sealed urn, `~` water, `%` oil, `R W H` enemies, `B` boss; `x` outside an L's missing corner; ordeal templates list
   their enemies per wave in `waves`; `special.json` holds ordeals, altars, merchants, vaults, secret rooms and shrines,
   `shapes.json` the larger and narrow rooms) and
   `data/artifacts.json` (foci, passive and cursed artifacts: stats, effects, pools, colours, icons; a cursed
@@ -75,6 +75,11 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   key answers it (`answerPage`, before casting); spells given up go to `G.run.forgotten` and later libraries
   sell them back (`grimoire` in `data/loot.json`). Bosses drop a page (`dropPage` in `onBossDead`), cleared rooms
   rarely (`maybeDropPage`).
+  Rooms react to magic through `src/world/pools.ts`: water (`~`) and oil (`%`) tiles joined into `room.pools`
+  (`poolGrid` per tile). Anything elemental reports where it lands: `fireAt` (Burn, the lance, the seal, blasts)
+  lights oil and melts ice, `frostAt` (Chill, frost bolts, the ice wall) freezes water, `shockAt` runs a shock
+  through a pool; `inflict` calls `touchPools` for every status on a foe standing in one. `wadeAt` slows the mage
+  and walkers in unfrozen water. The drowned floor grows puddles in its fights (`growPuddles`).
 - Tests: `npm run test:unit` (Vitest: generator rules on hundreds of seeds, every template validated),
   `npm run test:e2e` (Playwright smoke tests), `npm test` runs both.
 - URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`
@@ -92,7 +97,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `__game.spawn('dummy')` spawns a foe ahead of the mage, `__game.inflict({ chill: 1 })` statuses every foe,
   `__game.shoot(x, z, dx, dz)` fires a foe's shot, `__game.mantle` reads the Static Mantle's seconds left,
   `__game.page()` drops a grimoire page, `__game.pages` and `__game.forgotten` read the room's pages and the
-  spells given up; `__game.cast(slot)` answers a page that asks, as the key does.
+  spells given up; `__game.cast(slot)` answers a page that asks, as the key does; `__game.pools` reads the room's
+  water and oil, `__game.pool('fire' | 'frost' | 'shock')` sets it alight, freezes or shocks it.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons: heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
   special rooms (a sealed vault leads to its warded door), test rooms, boss fights and new runs, taking or

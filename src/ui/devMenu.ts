@@ -20,6 +20,7 @@ import { cleanseAtOnce } from '../world/shrine';
 import { SPELL_DEFS } from '../magic/spellData';
 import { forgetSpells, gainMana, learnSpell } from '../magic/spells';
 import { dropPage } from '../magic/pages';
+import { poolsDo } from '../world/pools';
 import { inflict } from '../magic/statusFx';
 import type { StatusKind } from '../magic/spellData';
 import { TEMPLATE_DEFS } from '../world/templates';
@@ -135,6 +136,9 @@ function build() {
     btn(S.forget, () => forgetSpells()),
     btn(S.page, () => { if (!dropPage(G.current, player.x, player.z - 1.5)) toast(S.noPage, 2); }),
   );
+  // water and oil in this room (the test rooms with them are in the list above)
+  const pools = section(p, S.pools);
+  pools.append(btn(S.ignite, () => poolsDo('fire')), btn(S.freezeWater, () => poolsDo('frost')), btn(S.shockWater, () => poolsDo('shock')));
 
   // foes, a little further ahead (they don't lock the doors)
   const foes = section(p, S.foes);
