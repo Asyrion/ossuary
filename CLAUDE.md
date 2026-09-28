@@ -270,6 +270,8 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
 - **M3.5 Asset pipeline:** the pipeline in `docs/assets.md` tested on pilot assets (an urn, a pedestal, an
   artifact model, a floor texture, three icons) with fallbacks to the placeholders; steps and checks in
   `docs/M3.5-plan.md`. Its style step can start during M3.
+- **M3.6 Rooms of Eda** (from the first play-test; runs beside M3.5): carved outlines, dressed walls, doors off
+  the middle, themed rooms, new objects and piles, mechanisms that answer to magic; steps in `docs/M3.6-plan.md`.
 - **M4 Tripo enemies:** 3 enemies and 1 boss from Tripo, with elemental affinities.
 - **M5 Alchemy:** potion belt, drink or throw, identification, 4 reagents, alchemy table.
 - **M6 RPG growth:** XP, levels, attributes, 12 boons, runes and waystones.
