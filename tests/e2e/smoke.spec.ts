@@ -923,6 +923,55 @@ test('the pause menu sets the volumes, and the browser remembers them; positione
   expect(errors).toEqual([]);
 });
 
+test('the inventory lists what the mage carries and knows, in tabs, and describes the chosen entry', async ({ page }) => {
+  const errors = await start(page, '?seed=INV1&spells=arc,pyre_seal&give=twin_staff,mana_lantern,crown_of_thorns&loot=coins:12,keys:1,glyphs:3');
+  await page.evaluate(() => { ((window as unknown as W).__game as unknown as G12).forgotten.push('rime_shards'); });
+  const inv = page.locator('#scrInv'), detail = page.locator('#invDetail'), tiles = page.locator('#invList .tile');
+  // I pauses and opens it on the artifacts: the focus first, then what was taken
+  await page.keyboard.press('KeyI');
+  await expect(inv).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('pause');
+  await expect(tiles).toHaveCount(3);
+  await expect(detail).toContainText('Twin-Headed Staff');
+  await expect(detail).toContainText('2 bolts side by side');
+  await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight');
+  await expect(detail).toContainText('Crown of Thorns');
+  await expect(detail).toContainText('Spell damage ×1.5');
+  await expect(detail.locator('.chip.bad')).toContainText('Hearts -1'); // its price
+  // E turns to the spells: the two slots, and the page given up
+  await page.keyboard.press('KeyE');
+  await expect(tiles).toHaveCount(3);
+  await expect(page.locator('#invList .sec')).toHaveText(['Carried', 'Given up']);
+  await page.keyboard.press('ArrowRight');
+  await expect(detail).toContainText('Pyre Seal');
+  await expect(detail).toContainText('Ember spell');
+  await expect(detail).toContainText('35 mana');
+  await expect(detail).toContainText('Burn 4 s');
+  await page.keyboard.press('ArrowRight');
+  await expect(detail).toContainText('Rime Shards');
+  await expect(detail).toContainText('sell its page back for 7 obols');
+  // clicking a tab: the items, with their counts
+  await page.locator('#invTabs button', { hasText: 'Items' }).click();
+  await expect(tiles).toHaveCount(5);
+  await expect(page.locator('#invList .tile .n')).toHaveText(['2', '100', '12', '1', '4']); // the crown took a heart
+  await tiles.nth(2).click();
+  await expect(detail).toContainText('Grave obol');
+  // the mage's numbers
+  await page.keyboard.press('KeyE');
+  await expect(page.locator('#invList .tile', { hasText: 'Mana' }).first()).toContainText('of 140');
+  // I closes it and the game goes on; from the pause menu it comes back to the pause menu
+  await page.keyboard.press('KeyI');
+  await expect(inv).toBeHidden();
+  expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('play');
+  await page.keyboard.press('Escape'); await page.click('#btnInv');
+  await expect(inv).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#scrPause')).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('pause');
+  await page.screenshot({ path: 'test-results/smoke-inventory.png' });
+  expect(errors).toEqual([]);
+});
+
 /* M2 step 6: the artifacts that bend the economy. */
 type G7 = Omit<G6, 'current'> & {
   give(...ids: string[]): void; drop(kind: string, x?: number, z?: number): void; pickups: { kind: string }[];
@@ -1051,6 +1100,12 @@ test('the dev menu opens on its key, pauses the game, and hands out what it list
   const magic = await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as G9; g.mana(0); g.sim(.05); return { spells: g.player.spells, mana: g.player.mana }; });
   expect(magic).toEqual({ spells: [null, 'arc'], mana: 100 });
   // a grimoire page dropped ahead of the mage; the floor's library is listed
+  // the movement clip for the play-tests: run, then the walk in step, then the walk at a natural pace
+  await page.keyboard.press('F2'); await click('Moving: run clip');
+  await expect(page.locator('#dev button', { hasText: 'Moving: walk clip, feet in step' })).toBeVisible();
+  await click('Moving: walk clip, feet in step'); await click('Moving: walk clip, natural pace');
+  await expect(page.locator('#dev button', { hasText: 'Moving: run clip' })).toBeVisible();
+  await page.keyboard.press('Escape');
   await page.keyboard.press('F2'); await click('Drop a grimoire page');
   expect(await page.evaluate(() => ((window as unknown as W).__game as unknown as G12).pages.filter(p => p.kind === 'loose' && p.spell !== 'arc').length)).toBe(1);
   await click('Floor 1'); await page.keyboard.press('F2'); await expect(page.locator('#dev button', { hasText: /^Library/ })).toBeVisible();

@@ -40,8 +40,9 @@ export const G = {
   simClock: 0,
 };
 
-/** Dev menu switches (ui/devMenu.ts): god mode keeps the mage from harm; endless mana never runs out. */
-export const DEV = { god: false, mana: false };
+/** Dev menu switches (ui/devMenu.ts): god mode keeps the mage from harm; endless mana never runs out; `moveClip`
+    tries the walk clip for all movement (with its feet in step, or at a natural pace), to compare with the run. */
+export const DEV = { god: false, mana: false, moveClip: 'run' as 'run' | 'walkInStep' | 'walkNatural' };
 
 export const player: Player = {
   dead: false, x: 0, z: 0, vx: 0, vz: 0, r: CFG.hero.radius, hp: 6, maxHp: 6, invuln: 0, fireCd: 0, eye: 1, yawA: 0,

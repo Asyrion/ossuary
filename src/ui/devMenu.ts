@@ -28,7 +28,7 @@ import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
 import { renderHearts, renderMinimap, toast } from './hud';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement;
 let spellSlot = 0;
 let wasPlaying = false, keepCarried = true;
 
@@ -100,6 +100,8 @@ function build() {
     btn(S.heal, () => { player.hp = player.maxHp; renderHearts(); }),
     btn(S.container, () => { player.heartsPaid--; refreshStats(); }),
     godBtn = btn('', () => { DEV.god = !DEV.god; toast(DEV.god ? S.godOn : S.godOff, 2); }),
+    // which clip the mage moves with: the run, or the walk (in step, or at a natural pace), to compare
+    moveBtn = btn('', () => { const order = ['run', 'walkInStep', 'walkNatural'] as const; DEV.moveClip = order[(order.indexOf(DEV.moveClip) + 1) % order.length]; toast(S.moveClip[DEV.moveClip], 2); }),
     btn(S.resetArtifacts, () => resetArtifacts()),
     // curses to try the shrine with, and cleansing one at once (no fight, no obols)
     btn(S.takeCurse, () => {
@@ -186,6 +188,7 @@ function refresh() {
   const cur = G.current;
   info.textContent = S.info(G.run.seed, G.run.floor + 1, cur.plan.id, S.roomNames[cur.type] ?? cur.type);
   godBtn.textContent = DEV.god ? S.godOn : S.godOff; godBtn.classList.toggle('on', DEV.god);
+  moveBtn.textContent = S.moveClip[DEV.moveClip]; moveBtn.classList.toggle('on', DEV.moveClip !== 'run');
   manaBtn.textContent = DEV.mana ? S.manaOn : S.manaOff; manaBtn.classList.toggle('on', DEV.mana);
   spellBox.replaceChildren(...SPELL_DEFS.map(s => {
     const b = btn(s.name, () => learnSpell(s.id, spellSlot), `${STR.schools[s.school]}: ${s.text}`);

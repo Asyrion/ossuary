@@ -109,19 +109,27 @@ generated three-floor runs. See `README.md` for scripts and deployment.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons: heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
   special rooms (a sealed vault leads to its warded door), test rooms, boss fights and new runs, taking or
-  cleansing a curse, spells (into slot Q or E), a grimoire page and mana (full, endless). Its lists come from the data, so new
+  cleansing a curse, the clip the mage moves with, spells (into slot Q or E), a grimoire page and mana (full,
+  endless). Its lists come from the data, so new
   artifacts, spells,
   drops, room types and bosses show up by themselves; give a new room type a name in `STR.dev.roomNames`.
 - Lore cards (`src/ui/lore.ts`): picking something up shows its icon, name, kind, effect and lore in the
-  lower right corner, soulslike but plainer. Artifacts every time (`lore` in `data/artifacts.json`, required by
+  middle of the screen for 4 to 6 seconds (`CFG.lore`), soulslike but plainer. Artifacts every time (`lore` in `data/artifacts.json`, required by
   the validator), items and containers the first time in a run (`STR.lore.items`, one for every drop). Anything
   new the mage can take (spells in M3, potions in M5) gets lore and shows it through `showLore`. The lore is a
   placeholder until the Eda lore arrives: keep it to the dungeon (chapel, crypts, sextons, pilgrims, the
   Ferryman) and invent no gods, factions or places.
+- The inventory (`src/ui/inventory.ts`; I or Tab, the gamepad's View button, or the pause menu) pauses the game and
+  lists what the mage carries and knows in tabs: artifacts (with their stat changes and a curse's price), spells
+  (the two slots and the pages given up), items (hearts, mana, obols, keys, glyphs) and the mage's own numbers;
+  the chosen entry is described beside them. Arrows choose, Q and E (LB and RB) change tabs. Anything new the
+  mage can carry (potions in M5) gets a tab or a place in one.
 - `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
   1,024 px JPEG textures). Clips: `standing_relax`, `run`, `walk` (slow movement), `cast_a_spell`,
   `hit_to_body_01`, `fall` and `defeat_03` (two deaths, one at random), `Drink Potion` (when healed) and
-  `Eat` (a fidget after standing still a while).
+  `Eat` (a fidget after standing still a while). Its walk is a slow one (0.4 units a second of foot contact
+  against the run's 1.4), so the mage moves with the run; the dev menu's "Moving" switch (`DEV.moveClip`) tries
+  the walk for all movement, in step (10.7× faster) or at a natural pace (`CFG.hero.walkNatural`, feet sliding).
 - `prototype/`: the 0.3 single file (`-source` to read, `-playable` to run). Still the reference for look
   and behaviour; `npm run compare` screenshots the same rooms in both.
 - Lights were re-tuned for physically based lighting: decay exponents dropped to 0.5 so the falloff

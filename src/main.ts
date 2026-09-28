@@ -18,6 +18,7 @@ import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { arrowOrder, initKeyboard, initTouch, keys, type InputActions } from './input';
 import { initScreens, showScreen } from './ui/screens';
 import { closeDev, devOpen, toggleDev } from './ui/devMenu';
+import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPad, openInventory } from './ui/inventory';
 import { setHeroInfo, updateVision } from './ui/hud';
 import { giveById } from './items/artifacts';
 import { ARTIFACTS } from './items/artifactData';
@@ -46,12 +47,27 @@ const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
 const input: InputActions = {
   unlockAudio: () => Sfx.init(),
-  togglePause: () => { if (devOpen()) closeDev(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
+  togglePause: () => { if (devOpen()) closeDev(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
   confirm: () => { if (G.state === 'title' || G.state === 'end') startGame(); },
-  startButton: () => { if (devOpen()) closeDev(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else startGame(); },
+  startButton: () => { if (devOpen()) closeDev(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else startGame(); },
   toggleSound,
   autoPause: () => { if (G.state === 'play') pause(); },
-  toggleDev,
+  toggleDev: () => { if (inventoryOpen()) closeInventory(); toggleDev(); },
+  inventoryKey: code => {
+    if (devOpen()) return false;
+    const used = inventoryKey(code, G.state === 'play');
+    if (used === 'open') { pause(); openInventory('play'); return true; }
+    if (!used && code === 'KeyI' && G.state === 'pause') { openInventory('pause'); return true; } // from the pause menu
+    return used;
+  },
+  padButton: i => {
+    if (devOpen()) return false;
+    if (inventoryOpen()) return inventoryPad(i);
+    if (i !== 8) return false; // View opens the inventory, while playing or paused
+    if (G.state === 'play') { pause(); openInventory('play'); return true; }
+    if (G.state === 'pause') { openInventory('pause'); return true; }
+    return false;
+  },
   playing: () => G.state === 'play',
 };
 
@@ -161,6 +177,7 @@ async function boot() {
     start: () => startGame(), replay: () => startGame({ seed: G.run.seed }), resume, toggleSound,
     pauseIfPlaying: () => { if (G.state === 'play') pause(); },
   });
+  initInventory({ resume });
   // the chalk texture in the start room is drawn with Cinzel, so load its weights first
   const chalkFonts = Promise.all(['600 16px "Cinzel"', '700 16px "Cinzel"'].map(f => document.fonts.load(f)));
   try { await Promise.race([chalkFonts, new Promise(r => setTimeout(r, 1500))]); } catch { /* draw with the fallback font */ }

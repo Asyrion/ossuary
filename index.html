@@ -43,6 +43,7 @@
       <span class="h" data-s="controls.glyph"></span><span class="k" data-s="controls.glyphKeys"></span><span data-s="controls.glyphPad"></span><span data-s="controls.glyphTouch"></span>
       <span class="h" data-s="controls.pause"></span><span class="k" data-s="controls.pauseKeys"></span><span data-s="controls.pausePad"></span><span data-s="controls.pauseTouch"></span>
       <!-- play-test aid, like #devHint: remove with it when the tests are done -->
+      <span class="h" data-s="controls.inventory"></span><span class="k" data-s="controls.inventoryKeys"></span><span data-s="controls.inventoryPad"></span><span data-s="controls.inventoryTouch"></span>
       <span class="h" data-s="controls.dev"></span><span class="k" data-s="controls.devKeys"></span><span data-s="controls.devPad"></span><span data-s="controls.devTouch"></span>
     </div>
     <div class="btns"><button class="act primary" id="btnStart" data-s="title.start"></button></div>
@@ -55,6 +56,7 @@
     <h2 data-s="pause.heading"></h2>
     <div class="btns">
       <button class="act primary" id="btnResume" data-s="pause.resume"></button>
+      <button class="act" id="btnInv" data-s="pause.inventory"></button>
       <button class="act" id="btnRestart" data-s="pause.restart"></button>
       <button class="act" id="btnLoad" data-s="pause.load"></button>
       <button class="act" id="btnSound" data-s="pause.soundOn"></button>
@@ -67,6 +69,17 @@
     <p class="small" id="runInfo"></p>
     <p class="small" id="heroInfo"></p>
     <input type="file" id="fileIn" accept=".glb,model/gltf-binary" hidden>
+  </div>
+</div>
+
+<div class="screen hidden" id="scrInv">
+  <div class="card inv" role="dialog" aria-labelledby="invTitle">
+    <div class="invHead"><h2 id="invTitle" data-s="inv.title"></h2><div class="invTabs" id="invTabs" role="tablist"></div></div>
+    <div class="invBody">
+      <div class="invList" id="invList" role="listbox" aria-labelledby="invTitle"></div>
+      <aside class="invDetail" id="invDetail" aria-live="polite"></aside>
+    </div>
+    <p class="small invHint" data-s="inv.hint"></p>
   </div>
 </div>
 
