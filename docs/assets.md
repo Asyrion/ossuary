@@ -1,7 +1,8 @@
 # Asset creation guide
 
-How Ossuary's art gets made and gets into the game: which tool does what, the house style, the budgets
-each kind of asset has to fit, and the pipeline from a first image to a model in a room. The GDD (Art, camera
+How Ossuary's art and sound get made and get into the game: which tool does what, the house style, the budgets
+each kind of asset has to fit, and the pipeline from a first image to a model in a room. Sound has its own section
+(Sound: sources, licences, the house sound, specs and its pipeline). The GDD (Art, camera
 and audio; Asset list) says what the game needs; this file says how to make it. Tripo's export settings stay
 in the owner's Tripo asset checklist (claude.ai project "Tripo3D-GameDev"); keep the two consistent when either
 changes. The first run through this pipeline is milestone M3.5 (`docs/M3.5-plan.md`).
@@ -147,9 +148,129 @@ background, cropped square, background removed, 256 px kept and 128 px shipped. 
 28 px on the HUD and 44 px on the lore card, and with the red (cursed) and pale (cleansed) rings. An icon can
 also be rendered from the artifact's 3D model instead of painted; the pilot tries both.
 
+## Sound
+
+Where the game's sounds come from and how they get in. The GDD's Audio design says what the game needs to hear:
+the four layers (music, ambience, effects, interface), the school palettes, floor soundscapes, adaptive music and
+mixing rules. The Asset list's Audio table gives the counts. This section says how to get and make them. Written
+2026-09-29, with the licence terms as they stood that day: **check a source's current terms before downloading or
+subscribing**, since they change (AI music most of all).
+
+Today every sound is synthesised in code (`src/audio/sfx.ts`) and each one stays as its fallback. Real sounds
+replace them in M8 (music, ambience and the final mix), or earlier for single effects once the pipeline below has
+been tried.
+
+### Sources
+
+**Libraries of recorded sounds** (the backbone: real fire, ice, stone, bells, chains, water, bone):
+
+| Source | What | Licence | Credit |
+| --- | --- | --- | --- |
+| [Sonniss GDC Game Audio Bundle](https://gdc.sonniss.com/) | A free bundle every year of professional effects in WAV (2026: 7.5 GB), plus an archive of earlier years (about 200 GB) | Royalty-free, commercial use, unlimited projects | Not required |
+| [Freesound](https://freesound.org/) | The largest library of community recordings: ambience, foley, field recordings | Per sound: CC0, CC BY 4.0 or CC BY-NC (see the licence rule below) | CC BY: author, title, link and licence |
+| [Kenney](https://kenney.nl/assets?q=audio) | Small game-ready packs: interface clicks, impacts, RPG sounds | CC0 | Not required |
+| [Pixabay sound effects and music](https://pixabay.com/sound-effects/) | Effects and music | Pixabay Content License: commercial use, not sold on its own | Not required |
+| [ZapSplat](https://www.zapsplat.com/) | A large effects library | Free account: use in games allowed, credit required; Premium: no credit | "Sound effects from zapsplat.com" (free account) |
+| [OpenGameArt](https://opengameart.org/) | Game sounds and music by hobbyists | Mixed per file (CC0, CC BY, CC BY-SA, GPL): check each | Per licence |
+| [Incompetech](https://incompetech.com/) (Kevin MacLeod) | A large catalogue of placeholder-quality music, including dark and ambient pieces | CC BY 4.0 | Author, title, link |
+
+**Generating sounds with AI:**
+
+| Tool | For | Licence by plan |
+| --- | --- | --- |
+| [ElevenLabs](https://elevenlabs.io/sound-effects) | Sound effects from a text description (good for magic that no recording has: "a glassy inhale of frost magic"); voices (text to speech, voice design) | Free plan: non-commercial only, and "elevenlabs.io" in the credit. Paid plans: commercial use, no credit |
+| [Suno](https://suno.com/) | Music, including instrumental pieces | Free plan: Suno owns the songs, personal non-commercial use. Paid plans (Pro, Premier): you own what you make while subscribed, commercial use. It announced changes for 2026 under its Warner Music deal: check the terms when subscribing |
+| [Stable Audio](https://stableaudio.com/) | Music and ambience loops, short effects | Free tier: non-commercial. Paid plans: commercial use |
+| Udio | Music | **Not usable:** it closed downloads after its settlement with Universal Music (2025), and generated works belong to Udio |
+
+Only what is made **on a paid plan, while subscribed** can go into the game; subscribing later doesn't license
+what was made on a free plan. Save the date and plan with every file.
+
+**Making and editing:**
+- [Audacity](https://www.audacityteam.org/) (free) or [ocenaudio](https://www.ocenaudio.com/) (free): trim, fade,
+  layer two or three recordings into one sound, pitch and speed, make a loop, normalise.
+- For composing music yourself: [Reaper](https://www.reaper.fm/) (a cheap digital audio workstation) with free
+  orchestral sample libraries such as Spitfire LABS or BBC Symphony Orchestra Discover.
+- Recording your own: a phone in a quiet room is enough for foley (crumpled parchment, a spoon on a glass, gravel,
+  breath and whispers for Umbral), then edited as above.
+
+### The licence rule
+
+- **In the game:** CC0, CC BY (credited), Sonniss, Pixabay, Kenney, ZapSplat (credited on a free account), and AI
+  output made on a paid plan.
+- **Placeholders only,** marked in `CREDITS.md` to replace before the game is ever published: CC BY-NC and
+  Freesound's old Sampling+ licence. The game makes no money today, but they would block publishing it.
+- **Never:** CC BY-ND (no editing allowed), the BBC Sound Effects archive (its RemArc licence allows personal,
+  educational and research use only), anything ripped from other games, films or music, and free-plan AI output.
+- **Keep the paper trail:** for every file, its source link, author, licence, and for AI output the tool, plan and
+  date. It goes into `CREDITS.md`. Once a CC BY sound ships, the game gets a credits screen too.
+
+### House sound
+
+The sound equivalent of the house style: everything happens in small stone rooms lit by candles.
+- **Physical, old and close:** magic is made from real sounds (fire, ice, glass, bells, chains, breath, stone),
+  shaped a little, so it feels ancient rather than electronic. No lasers, synth whooshes, cartoon boings or
+  modern mechanics.
+- **The school palettes** in the GDD's Audio design (Ember crackles and roars, Frost chimes and crunches, Storm
+  zaps and thunders; Hallow bells and choir, Umbral whispers and reversed breath).
+- **Dry effects:** no reverb or echo baked into an effect. The game adds each floor's own reverb (M8), and baked-in
+  reverb would make the effect sound as if it were somewhere else. Ambience beds are the exception: they are the
+  space.
+- **A sound reference set**, like the image style reference: three to five accepted sounds (for example an Ember
+  impact, a Frost cast, a door, a footstep on stone) that every new sound is compared against. It's chosen with the
+  first real sounds.
+
+| Name | Sounds | Use for | Since |
+| --- | --- | --- | --- |
+| House sound | (to be chosen with the first real sounds) | Everything | |
+
+### Specs and budgets
+
+| Kind | Channels | Length | Variants | Loudness | Shipped size |
+| --- | --- | --- | --- | --- | --- |
+| Effect heard in the room (spells, hits, doors, pickups) | Mono (the game places it left or right) | Under 1 s for hits, under 2 s for casts | 3 to 5 for frequent sounds | Peaks at -1 dB; matched to the reference set | Under 100 KB |
+| Interface sound | Mono or stereo | Under 1 s | 1 to 3 | As effects, a little quieter | Under 50 KB |
+| Stinger (room cleared, level up, secret) | Stereo | 2 to 5 s | 1 | Above effects | Under 200 KB |
+| Ambience bed | Stereo | 30 to 90 s, a seamless loop | 1 per floor or room type | Well below effects | Under 1.5 MB, streamed |
+| Ambience one-shot (drip, far chant, settling bones) | Mono | 1 to 6 s | 3 to 4 per floor | Quiet | Under 150 KB |
+| Music stem | Stereo | 1 to 3 min, loop points on a bar line, every stem of a piece the same length and tempo | | Below effects | Under 3 MB, streamed |
+
+- **Sources:** WAV at 44.1 or 48 kHz, 16 or 24 bit. The owner keeps them; the repository only gets the shipped files.
+- **Shipped format:** Ogg Vorbis (Chrome, Edge and Firefox; Safari since 18.4). The first sounds through the
+  pipeline confirm Safari; an MP3 copy is added if it needs one.
+- **Every effect starts at once:** no silence before it, since a late sound feels like lag.
+- **Files:** `public/assets/sounds/<family>/<id>_<n>.ogg`, such as `sounds/frost/cast_1.ogg`, in lower case with
+  underscores.
+
+### Pipeline
+
+The same shape as the image pipeline:
+
+1. **Brief** (Claude, on request). Which synthesised sound it replaces (`Sfx.<name>` in `src/audio/sfx.ts`), where
+   and how often it plays, mono or stereo, length, variants, and its school's palette.
+2. **Find or make** (owner). From the sources above, generated on a paid plan, or recorded. Note source, author and
+   licence for every file.
+3. **Edit** (owner, or Claude on request). Trim, layer, fade, make loops.
+4. **Listening check** (owner, Claude on request). In the game, next to the placeholder it replaces and against the
+   house sound. Does it sound like the same stone rooms? Is it clear under a fight?
+5. **Hand over** (owner). The WAV or original file, with its source, author and licence (tool, plan and date for AI).
+6. **Prepare** (Claude). A `prepare-sound` script, written with the first real sounds: converts to Ogg, makes
+   effects mono, trims leading silence, matches loudness, checks a loop's seam, and reports length, size and peak.
+7. **Integrate** (Claude). A line in `data/sounds.json` names the files and variants for a sound. The game plays the
+   file, falling back to the synthesised sound if it's missing or fails to load.
+8. **Review and record** (both). Accepted sounds get a row in `CREDITS.md` and in the asset log below.
+
+**Voices and sound bites.** The mage's hurt and death sounds, and later the townspeople of the Vigil (M7), need
+voices. Full voice acting isn't planned. Instead:
+- a few short barks per character (a gasp, a laugh, a murmur);
+- townspeople talking in a murmured, wordless voice while their lines show as text.
+
+These come from ElevenLabs (voice design on a paid plan), recordings of your own voice, or libraries. Whispers,
+chants and the dead's murmurs are a good first job for your own recordings.
+
 ## Asset log
 
-Every asset made for the game, from its first image to acceptance. Placeholders stay in the game until an
+Every asset made for the game, from its first image or sound to acceptance. Placeholders stay in the game until an
 asset is accepted.
 
 | Asset | Kind | Replaces | Tools | Style reference | Status |

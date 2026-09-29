@@ -788,7 +788,7 @@ The look is a candle-lit cutaway diorama: dark stone rooms, warm torchlight, and
 - **Environment:** procedural in code for now (floor textures, walls, rocks, pillars, stone tombs). Tripo props such as urns, coffins and statues can replace them later, and painted tiling textures the floors and walls; each keeps its procedural version as a fallback.
 - **How assets are made:** `docs/assets.md` holds the house style (every image made with one style reference, in any tool), the budgets per kind of asset and the pipeline from a first image in MidJourney, Tripo or another image model to a model, texture or icon in the game. Milestone M3.5 tests it on a few pilot assets (`docs/M3.5-plan.md`).
 - **UI:** hearts top left, mana bar, spell slots with cooldowns, potion belt, artifacts and obol, key and glyph counters below them, minimap top right, boss bar bottom centre, lore cards bottom right. Typefaces Cinzel (titles), Alegreya (lore and banners) and Alegreya Sans (UI).
-- **Audio:** simple synthesised effects for now; the full plan is in Audio design.
+- **Audio:** simple synthesised effects for now; the full plan is in Audio design, and where sounds come from (sources, licences, specs, pipeline) is in `docs/assets.md` (Sound).
 
 **Identity note.** The current hero is close to the Isaac art style. Fine for a hobby prototype; if the game is ever published, characters and art need their own look.
 
@@ -864,7 +864,7 @@ with a slider in the pause menu (remembered in the browser; music and ambience s
 happen somewhere in the room are panned left or right of the mage and a little quieter further away (plain stereo;
 HRTF, reverb and the headphones or speakers setting stay for M8).
 
-**Technical notes:** Web Audio API through three.js positional audio for effects; ambience and music streamed rather than loaded up front; short effects packed into a few files to cut download size; audio unlocked on the first tap or key press, as browsers require.
+**Technical notes:** Web Audio API through three.js positional audio for effects; ambience and music streamed rather than loaded up front; short effects packed into a few files to cut download size; audio unlocked on the first tap or key press, as browsers require. Files ship as Ogg Vorbis, each synthesised sound staying as the fallback; sources, licences, budgets and the pipeline are in `docs/assets.md` (Sound).
 
 ## Asset list
 
