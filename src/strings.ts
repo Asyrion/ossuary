@@ -201,7 +201,7 @@ export const STR = {
     title: 'Inventory',
     tabs: { artifacts: 'Artifacts', spells: 'Spells', items: 'Items', mage: 'The mage' } as Record<string, string>,
     hint: 'Arrows choose · Q and E (LB and RB) change tabs · I, Tab or Esc closes',
-    carried: 'Carried', givenUp: 'Given up', givenUpNote: (price: number) => `Given up for another spell. Later libraries sell its page back for ${price} obols.`,
+    carried: 'Carried', givenUpNote: (price: number) => `Given up for another spell. Later libraries sell its page back for ${price} obols.`,
     slot: (key: string) => `Slot ${key}`,
     empty: 'Empty slot', emptyText: 'Grimoire pages teach spells: every floor has a library, bosses leave a page, and now and then a fight does.',
     none: 'Nothing yet',

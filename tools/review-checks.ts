@@ -60,8 +60,9 @@ for (const a of added.filter(src)) if (/new THREE\.\w+(Material|Geometry)\(/.tes
 const claude = existsSync('CLAUDE.md') ? readFileSync('CLAUDE.md', 'utf8') : '';
 const mainAdded = added.filter(a => a.file === 'src/main.ts');
 for (const a of mainAdded) {
-  const m = /^\s{4}(?:get\s+)?(\w+)(?:\(|:)/.exec(a.text);
-  if (m && !['get', 'set', 'return'].includes(m[1]) && !claude.includes(`__game.${m[1]}`)) flag('11', `${where(a)}: hook "${m[1]}" is not in CLAUDE.md's hooks paragraph (if it is a __game hook)`);
+  if (!/^\s{4}\S/.test(a.text)) continue; // (the hooks sit four spaces in, one or more to a line)
+  for (const m of a.text.matchAll(/(?:^|[,{]\s*)(?:get\s+)?(\w+)(?:\s*\(|\s*:)/g))
+    if (!['get', 'set', 'return', 'x', 'z', 'kind', 'spell', 'text'].includes(m[1]) && !claude.includes(`__game.${m[1]}`)) flag('11', `${where(a)}: hook "${m[1]}" is not in CLAUDE.md's hooks paragraph (if it is a __game hook)`);
 }
 for (const f of newFiles.filter(f => f.startsWith('src/') || f.startsWith('tools/'))) { const name = f.split('/').pop()!; if (!claude.includes(name)) flag('9', `${f}: new file not mentioned in CLAUDE.md`); }
 if (files.some(f => f.startsWith('src/') || f.startsWith('data/')) && !files.some(f => f.startsWith('docs/') || f === 'CLAUDE.md')) flag('9', 'code or data changed but no doc did (GDD, CLAUDE.md, the milestone plan)');

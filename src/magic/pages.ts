@@ -296,7 +296,8 @@ export function clearPages() { stopAsking(); hidePagePanel(); }
 /* ---------- the panel over a page (M3.7) ---------- */
 
 const panelAt = new THREE.Vector3();
-let shown: { page: Page; stage: string } | null = null;
+let shown: { page: Page; stage: string; w: number; h: number } | null = null, view: DOMRect | null = null;
+if (typeof window !== 'undefined') window.addEventListener('resize', () => { view = null; });
 /** The nearest page within reach gets a panel over it at the spell's stage; the first time a page is near, its spell
     is seen. Every step while playing (it follows the page on screen as the camera moves). */
 export function updatePagePanel() {
@@ -309,9 +310,12 @@ export function updatePagePanel() {
   if (!near) { hidePagePanel(); return; }
   sawSpell(near.spell);
   const st = stage(near.spell);
-  if (shown?.page !== near || shown.stage !== st) { el.innerHTML = spellSheet(spell(near.spell), st, '', castsOf(near.spell)); shown = { page: near, stage: st }; }
+  if (shown?.page !== near || shown.stage !== st) { // new content: measured once here, not every step
+    el.innerHTML = spellSheet(spell(near.spell), st, '', castsOf(near.spell)); el.classList.add('on');
+    shown = { page: near, stage: st, w: el.offsetWidth, h: el.offsetHeight };
+  }
   // over the page if there is room above it on screen, otherwise beside it (the mage comes from below: never there)
-  const r = canvas.getBoundingClientRect(), w = el.offsetWidth, h = el.offsetHeight;
+  const r = view ??= canvas.getBoundingClientRect(), { w, h } = shown;
   panelAt.set(near.x, near.kind === 'loose' ? 1.1 : 1.8, near.z).project(camera);
   const px = r.left + (panelAt.x + 1) / 2 * r.width, py = r.top + (1 - panelAt.y) / 2 * r.height;
   let x = Math.max(r.left + w / 2 + 8, Math.min(r.right - w / 2 - 8, px)), y = py - h - 6;
@@ -321,7 +325,7 @@ export function updatePagePanel() {
     x = (outerLeft ? left || !right : !right && left) ? px - 56 - w / 2 : px + 56 + w / 2;
     y = Math.max(r.top + 8, Math.min(r.bottom - h - 8, py - 24));
   }
-  el.style.left = `${x}px`; el.style.top = `${y}px`; el.classList.add('on');
+  el.style.left = `${Math.round(x)}px`; el.style.top = `${Math.round(y)}px`;
 }
 export function hidePagePanel() { shown = null; document.getElementById('pagePanel')?.classList.remove('on'); }
 /** The spell whose panel shows, if any (tests). */

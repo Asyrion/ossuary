@@ -294,4 +294,3 @@ for (const r of results) {
 const look = results.filter(r => r.flags.length || (r.diff !== undefined && r.diff > NOISE)).map(r => basename(r.file, '.png') + (r.diff !== undefined && r.diff > NOISE ? ' (-vs.png)' : ''));
 console.log(`wrote ${results.length} shots and sheet.png to ${outDir}${against ? ` (and the ${against} shots in base/)` : ''}`);
 console.log(look.length ? `worth a look: ${look.join(', ')}` : 'nothing flagged' + (against ? ' and nothing changed' : ''));
-if (existsSync(join(outDir, 'base')) && !against) { /* (a base/ folder from an earlier run is left alone) */ }
