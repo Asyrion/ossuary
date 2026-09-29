@@ -123,6 +123,9 @@ export const CFG = {
     thurible: { radius: 2.4, burn: 3 },                                 // Thurible of Ash: how far a burning death spreads Burn
     witchKnot: { costMul: 0.8 },                                        // Witch's Knot: spell costs at half health or below
   },
+  // the pixel look (render/pixelLook.ts, a style test for M3.5 step 2): the rows of pixels it offers, outlines where a
+  // nearer surface stands more than outlineGap units before a farther one (darkened by outlineDark), and light bands
+  pixelLook: { lines: [360, 270, 180], outlineGap: 0.3, outlineDark: 0.72, bands: 7 },
   lights: {
     hemi: 1.57, moon: 1.26,
     torch: 4.3, torchDistance: 9, torchDecay: 0.5,

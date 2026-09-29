@@ -46,6 +46,7 @@ import { wornNow } from './actors/costume';
 import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
 import { assetList, assetsOn, loadAssets } from './assets/models';
+import { pixelLook, setPixelLook, type PixelLook } from './render/pixelLook';
 import { elementDev } from './world/mechanisms';
 import { forgetKnowledge, knowledgeNow, setStage } from './magic/memory';
 import type { Stage } from './magic/knowledge';
@@ -144,6 +145,9 @@ function installDevHooks() {
         (this floor is built again to compare). */
     get assets() { return { on: assetsOn(), list: assetList().map(a => ({ ...a })) }; },
     useAssets: (on: boolean) => useAssets(on),
+    /** The pixel look (a style test): rows of pixels (0 off), outlines, light in bands; set any of them. */
+    get pixelLook() { return { ...pixelLook() }; },
+    setPixelLook: (change: Partial<PixelLook>) => setPixelLook(change),
     /** Ahead of the mage: a plain and a sealed urn, and an artifact on a pedestal (one with a made model if any). */
     showAssets: () => showAssetsHere(),
     renderInfo: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures }),

@@ -1,0 +1,17 @@
+import { describe, expect, it } from 'vitest';
+import { pixelGrid, snapBy } from '../../src/render/pixelLook';
+
+describe('the pixel look', () => {
+  it('blows each game pixel up to a whole number of screen pixels, near the rows asked for', () => {
+    expect(pixelGrid(1920, 1080, 270)).toEqual({ w: 480, h: 270, f: 4 });
+    expect(pixelGrid(1920, 1080, 360)).toEqual({ w: 640, h: 360, f: 3 });
+    expect(pixelGrid(1280, 720, 270)).toEqual({ w: 427, h: 240, f: 3 }); // (720 / 270 rounds to 3)
+    expect(pixelGrid(2560, 1440, 180)).toEqual({ w: 320, h: 180, f: 8 });
+    expect(pixelGrid(300, 100, 360).f).toBe(1); // (a tiny window: never below one screen pixel)
+  });
+  it('snaps a camera coordinate to the nearest whole pixel', () => {
+    expect(1.23 + snapBy(1.23, .1)).toBeCloseTo(1.2, 10);
+    expect(-0.26 + snapBy(-0.26, .1)).toBeCloseTo(-0.3, 10);
+    expect(snapBy(0.5, .25)).toBe(0);
+  });
+});
