@@ -214,6 +214,7 @@ export function removeProp(room: Room, box: PropBox) {
 /** A bolt (or, with `blast`, a glyph's blast) struck an object. Returns whether it broke. */
 export function strikeProp(room: Room, rock: RockBox, blast: boolean, status?: Partial<Record<StatusKind, number>>) {
   const box = rock as PropBox, p = box.prop; if (!p || !room.props?.includes(box)) return false;
+  if (status?.burn && PROPS[p.kind].burns && p.burning <= 0) ignite(room, box); // a burning bolt sets it alight
   if (isMechanism(p.kind)) { strikeMechanism(room, box, blast, status); return false; } // bells ring, runes charge...
   const def = PROPS[p.kind];
   if (blast ? !def.blast : !def.hits) { burst(box.x, .4, box.z, 0x8a8078, 3, 1.2, .04); return false; }
@@ -255,12 +256,13 @@ function spillOil(room: Room, at: { c: number; r: number }) {
   addPool(room, 'oil', tiles);
 }
 
-/** A glyph's blast at (x, z), reach `R`: rubble is cleared and briars and cobwebs torn away (piles, casks and
-    glowcaps among the rocks break through `strikeProp`). */
+/** A glyph's blast at (x, z), reach `R`: rubble is cleared, briars and cobwebs torn away and candle stands knocked
+    over (piles, casks and glowcaps among the rocks break through `strikeProp`). */
 export function blastProps(room: Room, x: number, z: number, R: number) {
   for (const box of [...room.lows ?? [], ...room.soft ?? []]) {
     if (!PROPS[box.prop.kind].blast) continue;
-    if (Math.abs(box.x - x) < box.hx + R && Math.abs(box.z - z) < box.hz + R && Math.hypot(box.x - x, box.z - z) < R + .6) breakProp(room, box);
+    if (!(Math.abs(box.x - x) < box.hx + R && Math.abs(box.z - z) < box.hz + R && Math.hypot(box.x - x, box.z - z) < R + .6)) continue;
+    if (isMechanism(box.prop.kind)) strikeMechanism(room, box, true); else breakProp(room, box); // a candle stand is knocked over
   }
 }
 

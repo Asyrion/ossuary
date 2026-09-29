@@ -17,8 +17,6 @@ import { blockers, boxAt } from '../world/collision';
 import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
 import { strikeProp } from '../world/props';
 import { boltThrough } from '../world/mechanisms';
-
-const BLESSED = 0xfff0b0; // a blessed cast's gold
 import { hollowRing } from '../world/secret';
 import { strikeWisp } from '../world/shrine';
 import { shootDir } from '../input';
@@ -30,6 +28,8 @@ import { GILT_COLOR, type BoltPath } from '../items/artifactData';
 import type { StatusKind } from '../magic/spellData';
 import { inflict } from '../magic/statusFx';
 import { frostAt } from '../world/pools';
+
+const BLESSED = 0xfff0b0; // a blessed cast's gold
 
 interface BoltSpec {
   x: number; z: number; vx: number; vz: number; damage: number; range: number; scale: number; color: number; path: BoltPath; pierce: number; bounces: number; secondary: boolean; crit?: boolean;
@@ -79,7 +79,7 @@ export function spawnBolt() {
     const dx = dir.x * c - dir.z * s, dz = dir.z * c + dir.x * s, off = p.count === 1 ? .1 * player.eye : p.fan ? 0 : k * p.spread;
     makeBolt({
       x: player.x + dx * .3 + px * off, z: player.z + dz * .3 + pz * off, vx: dx * st.shotSpeed + ix, vz: dz * st.shotSpeed + iz,
-      damage: st.damage * (crit ? A.crit.damageMul : 1) * (blessed ? CFG.mech.blessMul : 1), range: st.range, scale: st.boltScale * (crit ? A.crit.scale : 1) * (blessed ? 1.2 : 1),
+      damage: st.damage * (crit ? A.crit.damageMul : 1) * (blessed ? CFG.mech.blessMul : 1), range: st.range, scale: st.boltScale * (crit ? A.crit.scale : 1) * (blessed ? CFG.mech.blessScale : 1),
       color: crit ? A.crit.color : frost ? A.frostbite.color : blessed ? BLESSED : st.boltColor, path: p.path, pierce: st.pierce, bounces: p.bounces, secondary: false, crit, status,
     });
   }

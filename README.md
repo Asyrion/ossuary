@@ -36,6 +36,7 @@ Isaac-style roguelike set in Eda, built with three.js and Tripo3D models.
 | `npm run test:e2e` | Browser smoke tests only: clear a room, descend a floor, beat each boss, the end screen, no console errors |
 | `npm run prepare-asset -- in.glb [name.glb]` | Shrink a Tripo GLB's textures into `public/assets/` and print a report |
 | `npm run compare` | Screenshots of four rooms in the port and in prototype 0.3, into `test-results/compare/` (needs `npm run dev` running) |
+| `npm run inspect -- <targets>` | Screenshots of templates, themes, every object or a whole floor and a contact sheet, into `test-results/inspect/` (the room inspector's tool; needs `npm run dev` running) |
 
 ## Testing a run
 
