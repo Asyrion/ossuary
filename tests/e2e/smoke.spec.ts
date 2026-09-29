@@ -114,10 +114,11 @@ test('a bone altar takes a heart container for its artifact', async ({ page }) =
   const errors = await start(page, '?room=altar_bones');
   const result = await page.evaluate(() => {
     const g = (window as unknown as W).__game as GameHooks & {
-      current: RoomView & { spots: { x: number; z: number; taken: boolean; def: { stats?: { hearts?: number } } }[] }; player: { maxHp: number; x: number; z: number };
+      current: RoomView & { spots: { x: number; z: number; taken: boolean; def: { stats?: { hearts?: number }; curse?: { stats?: { hearts?: number } } } }[] }; player: { maxHp: number; x: number; z: number };
     };
     g.warp(1);
-    const spot = g.current.spots[0], before = g.player.maxHp, gift = (spot.def.stats?.hearts ?? 0) * 2; // the Leaden Heart gives two back
+    // what the artifact itself does to the hearts: the Leaden Heart gives two back, the Crown of Thorns' curse takes one
+    const spot = g.current.spots[0], before = g.player.maxHp, gift = ((spot.def.stats?.hearts ?? 0) + (spot.def.curse?.stats?.hearts ?? 0)) * 2;
     g.player.x = spot.x; g.player.z = spot.z + .6; g.sim(0.1);
     return { before, after: g.player.maxHp - gift, taken: spot.taken };
   });
