@@ -4,6 +4,7 @@ import { G, player, updateTimers } from './state';
 import { updateProps } from './world/props';
 import { updateThemes } from './world/themes';
 import { updateMechanisms } from './world/mechanisms';
+import { updateModelOptions } from './actors/modelOptions';
 import { updateTorchLights } from './render/lights';
 import { updateRoomFx } from './world/rooms';
 import { heroVisual } from './actors/hero';
@@ -69,7 +70,7 @@ function updateWorldFx(dt: number, now: number) {
   updateFamiliars(dt, now, G.state === 'play' && !G.trans);
   updateShrine(dt, now, G.state === 'play' && !G.trans);
   updateMagic(dt, G.state === 'play' && !G.trans); updateStatusFx(dt); updatePools(dt, now, G.state === 'play' && !G.trans);
-  if (G.state === 'play' && !G.trans) { updateProps(dt); updateThemes(dt); updateMechanisms(dt); } // burning, briars, spores; sleepers, rising bones; bells, runes, censers
+  if (G.state === 'play' && !G.trans) { updateProps(dt); updateThemes(dt); updateMechanisms(dt); updateModelOptions(dt, G.current); } // burning, briars, spores; sleepers, rising bones; bells, runes, censers
   const tf = .92 + Math.sin(now * 13) * .05 + Math.sin(now * 23) * .04;
   updateTorchLights(G.current.torches, player.x, player.z, dt, tf);
   G.shake = Math.max(0, G.shake - dt * 1.4);

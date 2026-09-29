@@ -358,6 +358,25 @@ yet: the concepts below are for choosing together. Names are placeholders within
 their reason, and ties the hub to the dungeon's dead. Add the Refuge's unfolding (5) as its magic take, the Great
 Circle's vows and gifts (3) as the choice before a run, and the Ferryman's crossing as the way down.
 
+## Enemy model options (owner's request, 2026-09-29)
+
+The owner liked the code-built placeholder models in the pixel look, and asked for more enemy models to choose
+from. Ten candidates are built in `src/actors/modelOptions.ts`, from simple shapes, each moving a little while it
+idles. They are looks only: the dev menu's "Enemy model options" stands them in a row ahead of the mage
+(`__game.modelOptions()`). The ones picked become foes, with behaviour, health, sounds and elemental affinities:
+possibly M4, built in code instead of from Tripo, if the owner decides so. Names are placeholders.
+
+1. **Bone Crawler** (crypt): a ribcage on six bone legs, a skull for a head; skitters in bursts.
+2. **Candle Wraith** (chapel): a hooded robe with a candle for a head; its flame flares before it strikes.
+3. **Sexton Ghoul** (crypt): a sexton who never left, with his shovel and lantern; slow, then a wide swing.
+4. **Drowned Mourner** (drowned floor): a veiled mourner, always dripping; weeps a spray of cold water.
+5. **Cistern Lurker** (drowned floor): an eel that rises from a pool and sinks again; bites, and spits from afar.
+6. **Ember Husk** (burning floor): a charred body split by glowing cracks; bursts into embers when it falls.
+7. **Crypt Knight** (elite): bones in rusted plate behind a tower shield; blocks bolts from the front.
+8. **Censer Bearer** (chapel): a hooded monk swinging a burning censer; its smoke hides him.
+9. **Skull Swarm** (any floor): skulls circling a violet flame; they scatter when hit and circle back.
+10. **Urn Mimic** (among the urns): an urn that is not one; waits still, then scuttles and bites.
+
 ## Costumes (play-test, 2026-09-28)
 
 Isaac's items change how Isaac looks; ours should too, in a medieval and magic way. **Built as a proof of
