@@ -154,7 +154,7 @@ export function enterRoom(room: Room) {
   G.current = room; room.visited = true; room.known = true; showRooms(room);
   for (const d of doorsOf(room)) if (!d.secret || d.secret.open) d.nb.known = true; // not what's behind a cracked wall
   applyRoomTorches(room.look); resetTorchLights(room.torches, player.x, player.z);
-  setDarkness(room.plan.variant === 'dark' ? 1 : 0);
+  setDarkness(room.plan.variant === 'dark' && !room.candlesLit ? 1 : 0); // lit candle stands keep the dark away
   if (!room.cleared && room.plan.variant === 'ambush' && room.ambush !== 'sprung') room.ambush = 'armed'; // looks empty, for now
   else if (!room.cleared) {
     room.wave = 0; room.wavePending = false; spawnWave(room);

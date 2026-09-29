@@ -35,7 +35,7 @@ const shared = <T extends THREE.BufferGeometry>(g: T) => { g.userData.shared = t
 const std = (color: number, o: THREE.MeshStandardMaterialParameters = {}) => markShared(new THREE.MeshStandardMaterial({ color, roughness: .9, ...o }));
 const MAT = {
   wax: std(0xe8dcc0, { emissive: 0x2a2010 }), flame: markShared(new THREE.MeshBasicMaterial({ color: 0xffc36a })), paper: std(0xd8cbaa, { side: THREE.DoubleSide }),
-  blanket: std(0x5a3e34, { roughness: 1 }), leaf: std(0x5a4428, { roughness: 1, side: THREE.DoubleSide }), blanket2: std(0x3e4a5a, { roughness: 1 }), ash: std(0x2a2622, { roughness: 1 }), stone: M.rock,
+  blanket: std(0x5a3e34, { roughness: 1 }), leaf: std(0x46442a, { roughness: 1, side: THREE.DoubleSide }), blanket2: std(0x3e4a5a, { roughness: 1 }), ash: std(0x2a2622, { roughness: 1 }), stone: M.rock,
 };
 const GEO = {
   candle: shared(new THREE.CylinderGeometry(.035, .04, .16, 6)), flame: shared(new THREE.ConeGeometry(.025, .07, 5)),
@@ -114,7 +114,7 @@ const DRESS: Record<ScatterKind, Dress> = {
     const disc = new THREE.Mesh(GEO.patch, patchMat(0xfff0c0, true, .16)); disc.scale.setScalar(1.6); disc.position.y = .006; g.add(disc);
     return g;
   },
-  rime(R) { const m = new THREE.Mesh(GEO.patch, patchMat(0x9fd0f0, true, .22)); m.scale.setScalar(.9 + R() * .9); m.position.y = .005; m.rotation.y = R() * 6; return m; },
+  rime(R) { const m = new THREE.Mesh(GEO.patch, patchMat(0x9fd0f0, true, .22)); m.scale.setScalar(.7 + R() * .5); m.position.y = .005; m.rotation.y = R() * 6; return m; },
   leaves(R) {
     const g = new THREE.Group();
     for (let i = 0; i < 6; i++) { const l = new THREE.Mesh(GEO.page, MAT.leaf); l.scale.setScalar(.35 + R() * .3); l.position.set((R() - .5) * .8, .006 + i * .001, (R() - .5) * .8); l.rotation.y = R() * 6; g.add(l); }

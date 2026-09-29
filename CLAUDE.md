@@ -108,8 +108,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   a blast: bells ring, candles are knocked over), `boltThrough` from `updateBolts` (a lit brazier sets a bolt
   alight, a bolt cuts a censer's chain). Every candle stand in a room lit (`room.candlesLit`) opens its reliquaries,
   lifts a dark room and, in a chapel, blesses the next casts (`player.blessed`, in `spawnBolt`). The frozen
-  mausoleum's twist (`rime`) entombs its foes in ice (`entombed` on a foe, freed by a hit or fire) and lets the mage
-  slide; an ossuary's skull niches watch (`watchers` on a theme; `skullsWatch` from `castSpell`).
+  mausoleum's twist (`rime`) entombs its foes in ice (`entombed` on a foe, freed by a hit or fire), freezes its water,
+  charges its rune stones with frost (`chargeRunes`) and lets the mage slide; an ossuary's skull niches watch (`watchers` on a theme; `skullsWatch` from `castSpell`).
   `__game.element('burn' | 'chill' | 'shock', x, z)` lands a status there, as the dev menu's Fire, Frost and Shock
   buttons do; `__game.props` reads `lit`, `school` and `cd` too.
 - Themed rooms (M3.6): themes are data in `data/themes.json` (look changes, floor scatter, a twist, rock and tomb looks),
