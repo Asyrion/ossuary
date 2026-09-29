@@ -7,7 +7,7 @@
      soft  can be walked into, and does something to whoever stands in it (slows, hurts). */
 import type { TableName } from '../items/loot';
 
-export type PropKind = 'bones' | 'skulls' | 'sacks' | 'cask' | 'rubble' | 'roots' | 'briar' | 'web' | 'glowcap' | 'pew';
+export type PropKind = 'bones' | 'skulls' | 'sacks' | 'cask' | 'rubble' | 'roots' | 'briar' | 'web' | 'glowcap' | 'pew' | 'desk' | 'scrolls';
 export type PropClass = 'tall' | 'low' | 'soft';
 
 export interface PropDef {
@@ -29,6 +29,8 @@ export const PROPS: Record<PropKind, PropDef> = {
   web: { char: ':', class: 'soft', hits: 0, blast: true, burns: true },
   glowcap: { char: 'g', class: 'low', hits: 1, blast: true, burns: false },
   pew: { char: 'p', class: 'low', hits: 0, blast: false, burns: false },
+  desk: { char: 'd', class: 'low', hits: 0, blast: false, burns: true },
+  scrolls: { char: 'e', class: 'low', hits: 1, blast: true, burns: true, loot: 'remains' },
 };
 export const PROP_KINDS = Object.keys(PROPS) as PropKind[];
 export const PROP_OF_CHAR: Record<string, PropKind> = Object.fromEntries(PROP_KINDS.map(k => [PROPS[k].char, k]));

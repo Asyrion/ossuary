@@ -23,7 +23,7 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   if (e.spawn > 0 || e.dead || e.hidden) return;
   dmg *= damageTakenMul(e.status); // a frozen foe cracks
   if (by === 'spell') dmg *= player.stats.spellDamage; // Crown of Thorns
-  e.hp -= dmg; e.flash = .09; e.lastHit = by;
+  e.hp -= dmg; e.flash = .09; e.lastHit = by; e.asleep = false; // a sleeper wakes
   if (e.type === 'dummy') { e.hp = e.maxHp; dummyHit(e, dmg); } // the training dummy never falls
   shockLeap(e, dmg); // a shocked foe passes part of the hit on
   const kb = (e.isBoss ? .6 : 2.6) * kbMul; e.kx += dx * kb; e.kz += dz * kb;

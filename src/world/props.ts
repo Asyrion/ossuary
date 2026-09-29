@@ -23,6 +23,7 @@ import { spawnPickup } from '../items/pickups';
 import { mulberry } from '../util';
 import { PROPS, type PropKind } from './propData';
 import { addPool, fireAt } from './pools';
+import { scrollsBroken } from './themes';
 
 const P = CFG.props;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, SPORE = 0x9fe8b0, BONE = 0xd8ccb2;
@@ -35,7 +36,7 @@ const MAT = {
   burlap: mat(0x6a5a44, { roughness: 1 }), rope: mat(0x4a3a26), wood: mat(0x5a3e28, { roughness: .9 }), darkWood: mat(0x3a2818),
   root: mat(0x3a2a1c, { roughness: 1 }), thorn: mat(0x2e3a22, { roughness: 1 }), stem: mat(0xcfd8c0, { emissive: 0x1a2a20 }),
   cap: mat(0x5fd8b0, { emissive: 0x2a9a78, roughness: .5 }),
-  flame: markShared(new THREE.MeshBasicMaterial({ color: 0xff9a3a, transparent: true, opacity: .85 })),
+  flame: markShared(new THREE.MeshBasicMaterial({ color: 0xff9a3a, transparent: true, opacity: .85 })), paper: mat(0xd8cbaa, { emissive: 0x1a160e }),
 };
 const GEO = {
   bone: shared(new THREE.CylinderGeometry(.03, .03, .36, 5)), knob: shared(new THREE.SphereGeometry(.045, 5, 4)),
@@ -45,7 +46,7 @@ const GEO = {
   chunk: shared(new THREE.DodecahedronGeometry(.17, 0)),
   thorn: shared(new THREE.ConeGeometry(.018, .07, 4)),
   stem: shared(new THREE.CylinderGeometry(.03, .04, 1, 6)), cap: shared(new THREE.SphereGeometry(1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2)),
-  flame: shared(new THREE.ConeGeometry(.16, .42, 6)),
+  flame: shared(new THREE.ConeGeometry(.16, .42, 6)), scroll: shared(new THREE.CylinderGeometry(.045, .045, .34, 8)),
 };
 let webMat: THREE.MeshBasicMaterial | null = null;
 /** Cobweb: threads spun out from a corner, and rings across them. */
@@ -135,6 +136,20 @@ const LOOKS: Record<PropKind, Look> = {
     const gl = glow(0x6fe8c0, 1.2, .55); gl.position.y = .3; g.add(gl);
     return g;
   },
+  desk(R) { // a scribe's sloped desk: legs, a slanted top, an inkpot and a candle stub
+    const g = new THREE.Group();
+    const top = new THREE.Mesh(boxUV(.8, .05, .5), MAT.wood); top.position.y = .62; top.rotation.x = .3;
+    for (const [x, z] of [[-.34, -.18], [.34, -.18], [-.34, .18], [.34, .18]]) { const l = new THREE.Mesh(boxUV(.06, .6, .06), MAT.darkWood); l.position.set(x, .3, z); g.add(l); }
+    const ink = new THREE.Mesh(GEO.knob, M.iron); ink.position.set(.28, .72, -.1);
+    const page = new THREE.Mesh(boxUV(.3, .01, .36), MAT.paper); page.position.set(-.05, .655, .02); page.rotation.x = .3;
+    g.add(top, ink, page, blob(1)); g.rotation.y = (R() - .5) * .3; return g;
+  },
+  scrolls(R) { // a heap of rolled scrolls and loose sheets
+    const g = new THREE.Group();
+    for (let i = 0; i < 7; i++) { const s = new THREE.Mesh(GEO.scroll, MAT.paper); s.rotation.set(0, R() * 6, Math.PI / 2); s.position.set((R() - .5) * .4, .05 + (i % 3) * .07, (R() - .5) * .4); g.add(s); }
+    const sheet = new THREE.Mesh(boxUV(.3, .01, .36), MAT.paper); sheet.position.set(.2, .01, .2); sheet.rotation.y = R() * 6; g.add(sheet, blob(.9));
+    return g;
+  },
   pew(_R, len) { // a bench facing north, towards where a chapel's altar would stand: seat, back on the south side, ends
     const g = new THREE.Group(), L = len - .12;
     const seat = new THREE.Mesh(boxUV(L, .07, .42), MAT.wood); seat.position.set(0, .34, -.05);
@@ -184,7 +199,7 @@ export function addProp(room: Room, kind: PropKind, c: number, r: number, len = 
 }
 
 /** Take an object away: its look, its box, and its tiles back to floor. */
-function removeProp(room: Room, box: PropBox) {
+export function removeProp(room: Room, box: PropBox) {
   room.group.remove(box.prop.mesh); disposeTree(box.prop.mesh);
   room.props = room.props?.filter(b => b !== box); room.lows = room.lows?.filter(b => b !== box); room.soft = room.soft?.filter(b => b !== box);
   room.rocks = room.rocks.filter(b => b !== box);
@@ -216,6 +231,7 @@ function breakProp(room: Room, box: PropBox) {
     case 'cask': burst(x, .4, z, 0x5a3e28, 12, 2.4, .06); burst(x, .1, z, 0x1a1410, 8, 1.2, .07); sfx.cask(); spillOil(room, box.prop.tiles[0]); break;
     case 'rubble': burst(x, .25, z, 0x6b625a, 14, 2.2, .08); burst(x, .15, z, 0x8a8278, 10, 1, .08); sfx.rubble(); break;
     case 'glowcap': burst(x, .3, z, SPORE, 14, 1.4, .06); sfx.spores(); addSpores(room, x, z); break;
+    case 'scrolls': burst(x, .3, z, 0xd8cbaa, 12, 1.8, .05); sfx.sack(); scrollsBroken(room, x, z); break;
     case 'briar': case 'web': burst(x, .25, z, kind === 'web' ? 0xe8e8f0 : 0x2e3a22, 8, 1.4, .04); sfx.tear(); break;
     default: burst(x, .3, z, 0x8a8078, 8, 1.6, .05);
   }

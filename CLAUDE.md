@@ -14,7 +14,7 @@ style reference in every image), budgets per kind of asset, the pipeline from im
 log. When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3.6 under way (`docs/M3.6-plan.md`: steps 1 and 2, architecture and objects, built); M3 built (see `docs/M3-plan.md`; the balance pass waits for play-tests); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3.6 under way (`docs/M3.6-plan.md`: steps 1 to 3, architecture, objects and themed rooms, built); M3 built (see `docs/M3-plan.md`; the balance pass waits for play-tests); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -38,8 +38,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `data/floors.json` (room counts, difficulty weights, enemy health, altar and vault chances, which floors have
   a shrine, the vault's warden, boss tuning and look per floor),
   `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `i` pillar, `=` stone tomb, `u` urn,
-  `$` rune-sealed urn, `~` water, `%` oil, the M3.6 objects `b k s c r t v : g p` (bone pile, skull heap, grave sacks,
-  oil cask, rubble, grave roots, thorn briar, cobwebs, glowcaps, pew), `R W H` enemies, `B` boss; `x` wall: outside an L's missing corner, and
+  `$` rune-sealed urn, `~` water, `%` oil, the M3.6 objects `b k s c r t v : g p d e` (bone pile, skull heap, grave sacks,
+  oil cask, rubble, grave roots, thorn briar, cobwebs, glowcaps, pew, desk, scroll heap), `R W H` enemies, `B` boss; `x` wall: outside an L's missing corner, and
   inside the shape to carve it (cut corners, bays, a pinched waist, a free-standing pier); ordeal templates list
   their enemies per wave in `waves`; `special.json` holds ordeals, altars, merchants, vaults, secret rooms and shrines,
   `shapes.json` the larger and narrow rooms) and
@@ -100,6 +100,13 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `addPool`, glowcap spores, `snagAt` for cobwebs, briar stings in `updateProps`), tuning in `CFG.props`, the
   poorer loot in `remains` and `bundle` (`data/loot.json`). `__game.prop('cask')` puts one down, `__game.props` and
   `__game.spores` read them, `__game.burn(x, z, r)` sets fire there; the dev menu has a row of them.
+- Themed rooms (M3.6): themes are data in `data/themes.json` (look changes, floor scatter, a twist, rock and tomb looks),
+  read by the pure `src/world/themeData.ts` (`themedLook`, `validateThemes`); a template's `theme` makes it a themed
+  room (all in `data/templates/themed.json`); floors draw on them with `themeChance` and `themes` in
+  `data/floors.json`, picked in `assignTemplates`. `src/world/themes.ts` scatters the dressing (`dressTheme`) and runs
+  the twists: sleepers (`asleep` on a foe; a hit or the mage coming close wakes it), rising bones, pages in scroll
+  heaps (`scrollsBroken`), the cave-in on a blast (`caveIn`); tuning in `CFG.themes`. `?theme=ossuary` makes every
+  fight one theme's; the dev menu lists a test room of each.
 - Sound (`src/audio/sfx.ts`, synthesised placeholders): an effects bus and an interface bus (`UI_SOUNDS`) under a
   master, set by the pause menu's sliders and remembered in the browser. Play an effect where it happens with
   `Sfx.at(x, z).blast()`: panned from the mage (`Sfx.listen` every step) and quieter further off. New sounds go in
@@ -110,7 +117,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
   every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
-  keys and glyphs, `?spells=arc` starts with spells in the slots. `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
+  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms. `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
   vault, a secret room (behind a cracked wall), a shrine (`?room=shrine_henge`) or a library
   (`?room=library_plain`) next to the start.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`

@@ -43,6 +43,7 @@ import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
 import { isTouch } from './util';
 import { wornNow } from './actors/costume';
+import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
 import type { PropKind } from './world/propData';
 
@@ -89,7 +90,7 @@ async function loadDefaultHero() {
     ?room=<template id> plays one room template (for reviewing templates), ?variant=dark dresses that room
     in a variant (quiet, champion, ambush, dark), ?give=bone_lens,twin_staff starts the run holding those
     artifacts, ?boss=pyre picks every floor's boss, ?loot=coins:20,glyphs:5 hands out obols, keys and glyphs,
-    ?spells=arc starts with spells in the slots. */
+    ?spells=arc starts with spells in the slots, ?theme=ossuary makes every fight one theme's. */
 function readUrlOptions() {
   const q = new URLSearchParams(location.search);
   const seed = q.get('seed'), floor = Number(q.get('floor')), room = q.get('room'), variant = q.get('variant') as RoomVariant | null;
@@ -102,6 +103,8 @@ function readUrlOptions() {
   }
   const boss = q.get('boss') as BossType | null, bossOk = !!boss && BOSS_TYPES.includes(boss);
   if (boss && !bossOk) console.warn(`?boss=${boss}: use one of ${BOSS_TYPES.join(', ')}`);
+  const theme = q.get('theme');
+  if (theme && !THEMES.has(theme)) console.warn(`?theme=${theme}: use one of ${[...THEMES.keys()].join(', ')}`);
   const give = (q.get('give') ?? '').split(',').map(s => s.trim()).filter(Boolean);
   const spells = (q.get('spells') ?? '').split(',').map(s => s.trim()).filter(Boolean);
   const badSpells = spells.filter(id => !SPELLS.has(id));
@@ -117,6 +120,7 @@ function readUrlOptions() {
     give: give.filter(id => ARTIFACTS.has(id)),
     boss: bossOk ? boss! : undefined,
     loot, spells: spells.filter(id => SPELLS.has(id)),
+    theme: theme && THEMES.has(theme) ? theme : undefined,
   });
 }
 

@@ -5,6 +5,7 @@ import { CFG } from '../../src/config';
 import { BOSS_TYPES, type BossType } from '../../src/config';
 import { OPPOSITE, SIDE_DIR, allowsSide, shapeCells } from '../../src/world/shapes';
 import { TEMPLATE_DEFS, growPuddles, parseTemplate, poolsOf, tombRuns, validateTemplate } from '../../src/world/templates';
+import { validateThemes } from '../../src/world/themeData';
 
 describe('room templates', () => {
   it.each(TEMPLATE_DEFS.map(d => [d.id, d] as const))('%s is valid', (_id, def) => {
@@ -295,6 +296,32 @@ describe('doors off the middle', () => {
     const plan = generateFloor(Rng.from('SAME', 'floor1'), FLOORS[0], 0), still = generateFloor(Rng.from('SAME', 'floor1'), { ...FLOORS[0], doorShift: 0 }, 0);
     expect(plan.rooms.map(r => [r.type, r.templateId, r.cells])).toEqual(still.rooms.map(r => [r.type, r.templateId, r.cells]));
     expect(still.rooms.every(r => r.doors.every(d => d.shift === 0))).toBe(true);
+  });
+});
+
+describe('themed rooms', () => {
+  it('are valid: every theme has templates, only fights are themed, floors draw on known themes', () => {
+    expect(validateThemes(TEMPLATE_DEFS, FLOORS)).toEqual([]);
+    expect(validateThemes([{ id: 'a', theme: 'nope', types: ['boss'] }], [{ themes: { nope: 1 } }]).join()).toMatch(/unknown theme "nope".*only fights.*floor 1 draws on unknown/s);
+  });
+
+  it('hold about two fights in five, from the floor\'s themes; the rest stay plain', () => {
+    for (const [i, cfg] of FLOORS.entries()) {
+      let fights = 0, themed = 0;
+      for (let s = 0; s < 150; s++) for (const r of generateFloor(Rng.from('TH' + s, 'floor' + (i + 1)), cfg, i).rooms) {
+        if (r.type !== 'normal') continue;
+        fights++;
+        const theme = TEMPLATE_DEFS.find(d => d.id === r.templateId)!.theme;
+        if (theme) { themed++; expect(Object.keys(cfg.themes)).toContain(theme); }
+      }
+      expect(themed / fights).toBeGreaterThan(.2);
+      expect(themed / fights).toBeLessThan(cfg.themeChance + .05);
+    }
+  });
+
+  it('can be forced: every one-cell fight in one theme', () => {
+    const plan = generateFloor(Rng.from('FORCE', 'floor1'), { ...FLOORS[0], themeChance: 1, themes: { ossuary: 1 } }, 0);
+    for (const r of plan.rooms) if (r.type === 'normal' && r.shape === 'standard') expect(TEMPLATE_DEFS.find(d => d.id === r.templateId)!.theme).toBe('ossuary');
   });
 });
 

@@ -1,5 +1,6 @@
 import type * as THREE from 'three';
 import type { PropKind } from './world/propData';
+import type { ThemeDef } from './world/themeData';
 import type { EnemyType } from './config';
 import type { BossConfig, PlannedRoom } from './world/generate';
 import type { FoeKind, Template } from './world/templates';
@@ -94,6 +95,7 @@ export interface Room {
   /** The room's objects (M3.6): all of them; the low ones that stop walking but not bolts; the soft ones walked into;
       glowcap spores hanging in the air. Tall objects and breakable piles are also among `rocks`. */
   props?: PropBox[]; lows?: PropBox[]; soft?: PropBox[]; spores?: SporeCloud[];
+  /** A themed room's theme (M3.6, world/themeData.ts). */ theme?: ThemeDef;
   /** Enemies to spawn, wave by wave (ordeals have 2 or 3 waves, other fights 1), in world positions. */
   waves: { kind: FoeKind; x: number; z: number }[][];
   /** The wave being fought, and whether the next one is on its way. */ wave: number; wavePending: boolean;
@@ -143,6 +145,7 @@ export interface Enemy extends Circle {
   /** Bosses: out of reach (under the floor, in the air), so neither hurt nor hurting. */ hidden?: boolean;
   /** Floor ring (the abbess's ripple, the knight's landing mark); where a leap started. */ marker?: THREE.Mesh; from?: Vec2;
   /** Called by a boss; falls when the boss does. */ servant?: boolean;
+  /** Asleep (a pilgrims' rest's foes, M3.6): does nothing until hurt or until the mage comes close. */ asleep?: boolean;
   /** What struck it last: the cantrip's kills give mana back. */ lastHit?: 'cantrip' | 'spell';
   /** Status effects on it (magic/status.ts), the ice around it while frozen, and the training dummy's label. */
   status?: StatusState; ice?: THREE.Mesh; label?: THREE.Sprite;

@@ -90,7 +90,7 @@ export function updateEnemies(dt: number) {
   const walls = blockers(cur, 'flyer'), solids = blockers(cur, 'walker');
   for (const e of G.enemies) {
     // frozen or stunned foes don't move or act; chilled ones move slower
-    const acts = canAct(e.status), slow = speedFactor(e.status);
+    const acts = canAct(e.status) && !e.asleep, slow = speedFactor(e.status);
     if (acts) e.t += dt;
     if (e.spawn > 0) { e.spawn -= dt; const s = 1 - Math.max(0, e.spawn) / .6; e.group.scale.setScalar((.2 + .8 * (1 - Math.pow(1 - s, 3))) * e.scale); continue; }
     e.group.scale.setScalar(e.scale);

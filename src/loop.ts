@@ -2,6 +2,7 @@
    1/30 s, so a long hitch slows the game down instead of teleporting it. */
 import { G, player, updateTimers } from './state';
 import { updateProps } from './world/props';
+import { updateThemes } from './world/themes';
 import { updateTorchLights } from './render/lights';
 import { updateRoomFx } from './world/rooms';
 import { heroVisual } from './actors/hero';
@@ -66,7 +67,7 @@ function updateWorldFx(dt: number, now: number) {
   updateFamiliars(dt, now, G.state === 'play' && !G.trans);
   updateShrine(dt, now, G.state === 'play' && !G.trans);
   updateMagic(dt, G.state === 'play' && !G.trans); updateStatusFx(dt); updatePools(dt, now, G.state === 'play' && !G.trans);
-  if (G.state === 'play' && !G.trans) updateProps(dt); // burning, briars' stings, spores
+  if (G.state === 'play' && !G.trans) { updateProps(dt); updateThemes(dt); } // burning, briars, spores; sleepers, rising bones
   const tf = .92 + Math.sin(now * 13) * .05 + Math.sin(now * 23) * .04;
   updateTorchLights(G.current.torches, player.x, player.z, dt, tf);
   G.shake = Math.max(0, G.shake - dt * 1.4);
