@@ -47,7 +47,8 @@ import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
 import { assetList, assetsOn, loadAssets } from './assets/models';
 import { pixelLook, setPixelLook, type PixelLook } from './render/pixelLook';
-import { showModelOptions } from './actors/modelOptions';
+import { removeModelOptions, showModelOptions } from './actors/modelOptions';
+import { removeEffectOptions, showEffectOptions } from './magic/effectOptions';
 import { elementDev } from './world/mechanisms';
 import { forgetKnowledge, knowledgeNow, setStage } from './magic/memory';
 import type { Stage } from './magic/knowledge';
@@ -148,8 +149,13 @@ function installDevHooks() {
     useAssets: (on: boolean) => useAssets(on),
     /** The pixel look (a style test): rows of pixels (0 off), outlines, light in bands; set any of them. */
     get pixelLook() { return { ...pixelLook() }; },
-    /** Enemy model options (looks only): stand them in two rows ahead of the mage; returns where each stands. */
-    modelOptions: () => showModelOptions(G.current, player.x, player.z),
+    /** Enemy model options (looks only): stand them (or those named) ahead of the mage, a row per floor; returns where
+        each stands; take them away again. */
+    modelOptions: (ids?: string[]) => showModelOptions(G.current, player.x, player.z, ids),
+    takeModelOptions: () => removeModelOptions(G.current),
+    /** Spell effect options (looks only): play them (or those named) ahead of the mage; take them away again. */
+    effectOptions: (ids?: string[]) => showEffectOptions(G.current, player.x, player.z, ids),
+    takeEffectOptions: () => removeEffectOptions(G.current),
     setPixelLook: (change: Partial<PixelLook>) => setPixelLook(change),
     /** Ahead of the mage: a plain and a sealed urn, and an artifact on a pedestal (one with a made model if any). */
     showAssets: () => showAssetsHere(),

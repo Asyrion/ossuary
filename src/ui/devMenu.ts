@@ -18,7 +18,8 @@ import { makeEnemy } from '../actors/enemies';
 import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
 import { assetList, assetsOn, setAssetsOn } from '../assets/models';
 import { pixelLook, setPixelLook } from '../render/pixelLook';
-import { MODEL_OPTIONS, showModelOptions } from '../actors/modelOptions';
+import { MODEL_OPTIONS, removeModelOptions, showModelOptions } from '../actors/modelOptions';
+import { EFFECT_OPTIONS, removeEffectOptions, showEffectOptions } from '../magic/effectOptions';
 import { CFG } from '../config';
 import { freeSpotNear, placeUrn } from '../world/rooms';
 import { SIDE_DIR } from '../world/shapes';
@@ -219,7 +220,11 @@ function build() {
 
   // enemy model options (looks only, for the owner to choose from): a row of them ahead of the mage
   const opts = section(p, S.options);
-  opts.append(el('p', 'dv-info', MODEL_OPTIONS.map((o, i) => `${i + 1}. ${STR.options[o.id].name}`).join(' · ')), btn(S.showOptions, () => { closeDev(); showModelOptions(G.current, player.x, player.z); }));
+  opts.append(el('p', 'dv-info', [1, 2, 3].map(f => S.floorOptions(f, MODEL_OPTIONS.filter(o => o.floor === f).map(o => STR.options[o.id].name).join(', '))).join(' · ')), btn(S.showOptions, () => { closeDev(); showModelOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
+
+  // spell effect options (looks only): each plays one cast over and over, ahead of the mage
+  const fx = section(p, S.effects);
+  fx.append(el('p', 'dv-info', EFFECT_OPTIONS.map(o => STR.effects[o.id].name).join(', ')), btn(S.showOptions, () => { closeDev(); showEffectOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeEffectOptions(G.current)));
 
   // start something: a test room in a variant, a boss fight, a new run
   const test = section(p, S.test);

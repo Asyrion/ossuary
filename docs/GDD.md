@@ -138,7 +138,7 @@ Combat is Isaac-style: bolts travel in straight lines, drop to the floor at the 
 - Every attack is telegraphed: a glow, a shake or a pause before it lands.
 - Contact and shots cost half a heart; touching a boss costs a full heart.
 
-**Enemies in prototype 0.3** (placeholder shapes, to be replaced by Tripo models)
+**Enemies in prototype 0.3** (placeholder shapes; M4 replaces them with the enemies built in code below)
 
 | Enemy | HP | Behaviour | Isaac equivalent |
 | --- | --- | --- | --- |
@@ -150,6 +150,28 @@ Combat is Isaac-style: bolts travel in straight lines, drop to the floor at the 
 | Pyre Knight (boss, M1) | 135 | Stalks; leaps at where the mage stands (the landing spot glows) and lands with a shockwave ring; charges in a line until a wall stuns him; sprays cones of embers; summons Crypt hounds below 50% | Monstro |
 
 When a boss falls, the foes it called fall with it, so no fight drags on while its rewards rise.
+
+**Enemies built in code** (decided with the owner 2026-09-29; M4 makes them foes). The owner liked the code-built
+models in the pixel look and chose code over Tripo for the enemies. Ten were drawn up as options
+(`src/actors/modelOptions.ts`, shown by the dev menu) and, on the owner's second look, made more high fantasy: each
+carries its school's light (runes, crystals, rune rings, motes, spirit fire). All ten are divided over the three floors:
+
+| Floor | Enemy (placeholder name) | School | The look, and how it could fight |
+| --- | --- | --- | --- |
+| 1 | Bone Crawler | Umbral | A rune-cut ribcage on six bone legs, a dark crystal for a heart; skitters in bursts |
+| 1 | Candle Wraith | Hallow | A gold-hemmed robe with a spirit-candle for a head, candles circling it; its flame flares before it strikes |
+| 1 | Sexton Ghoul | Hallow | The sexton who keeps the dead, a soul-light in his lantern; slow, then a wide swing of his shovel |
+| 1 | Urn Mimic | Storm | A brass-banded urn with a storm sealed in it; waits among the urns, then bites |
+| 2 | Drowned Mourner | Frost | A veiled mourner crowned in ice, water held in the air round her; weeps a spray of cold |
+| 2 | Cistern Lurker | Storm | An eel with lights along its flanks, rising from a rune-edged pool; bites, and spits sparks |
+| 2 | Skull Swarm | Umbral | Skulls in violet flame circling a dark crystal; they scatter when hit and circle back |
+| 3 | Ember Husk | Ember | A charred body with a molten heart and a crown of embers; bursts into embers when it falls |
+| 3 | Censer Bearer | Ember | A thurifer swinging a censer of arcane fire; its smoke hides him |
+| 3 | Crypt Knight (elite) | Frost | Bones in rime-crusted plate with a frost-lit blade; blocks bolts from the front |
+
+Behaviour, health, sounds and the affinities (Enemy affinities, below) are M4's to design; a foe's school is a
+starting point for them. The spells' effects are being redone in the same style (`src/magic/effectOptions.ts`, a
+gallery of looping effects for the owner to judge).
 
 **Enemy asset needs per creature:** a run or move clip, an attack clip, a hit reaction and a death. The hero's layered animation system is reused for enemies.
 
@@ -680,7 +702,7 @@ Between two cells of the same room, the two wall tiles become floor, which is wh
 - **Secret room (M2):** one per floor, in an empty cell with hidden doorways into two or more rooms (the cell that could open into the most rooms wins). It never opens into the boss room (no way round the fight), a locked vault (no way round its ward) or the merchant (whose warded shop won't let a glyph be chalked). It comes on top of the floor's room count, and the other rooms keep their distances from the start as if it weren't there.
 - **Shapes:** while growing the map, the walk sometimes places a larger shape when the cells it needs are free.
 - **Difficulty:** floor 1 is easy, and each later floor raises the baseline a little (harder templates, about 15% more enemy health per floor). Within a floor, rooms vary randomly around the baseline rather than rising steadily, and variants push single rooms clearly above or below it; deeper floors roll more hard variants. The rooms next to the start on floor 1 are never hard variants. All numbers are found by play-testing.
-- **Between floors:** the boss opens a trapdoor; stepping in starts the next floor (waystones join in M6). Beating the floor 3 boss wins the run. Each floor draws its boss from a pool in `data/floors.json`, never one the run has already met, and scales it (health, speed, shot speed, summons, volleys). Until Tripo bosses arrive (M4), the bosses are placeholder shapes: the Hollow Warden on floor 1, the Drowned Abbess and the Pyre Knight on floors 2 and 3 in either order.
+- **Between floors:** the boss opens a trapdoor; stepping in starts the next floor (waystones join in M6). Beating the floor 3 boss wins the run. Each floor draws its boss from a pool in `data/floors.json`, never one the run has already met, and scales it (health, speed, shot speed, summons, volleys). Until M4's bosses arrive (built in code, like its enemies), the bosses are placeholder shapes: the Hollow Warden on floor 1, the Drowned Abbess and the Pyre Knight on floors 2 and 3 in either order.
 - **Seeds:** every run has a seed, shown in the pause menu, so a run can be replayed and bugs reproduced.
 - **End of a run:** won or lost, the end screen sums up the run: the deepest floor, the time, foes put to rest, obols found, every artifact carried (cursed ones ringed in red, cleansed ones in pale gold) and the seed, with a button to replay the same seed.
 - **Floor looks:** each floor already looks a little different, as placeholders until the biome pass (M8): floor 1 has warm stone and iron torches, floor 2 cool damp stone with moss, puddles and cage lanterns, floor 3 scorched brick with soot, ash and braziers. Colours and torch styles live in `data/floors.json`.
@@ -975,7 +997,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M3.5 Asset pipeline | One set of miniatures | The pipeline in `docs/assets.md` tested end to end: an urn, a pedestal, an artifact model, a floor texture and three icons in the game with fallbacks, within budget at 60 fps, in an accepted house style (`docs/M3.5-plan.md`) |
 | M3.6 Rooms of Eda | Places, not arenas | Carved outlines, dressed walls and doors off the middle; twelve themed rooms with their own objects and twists; new objects and piles, and mechanisms that answer to magic (`docs/M3.6-plan.md`) |
 | M3.7 Spell knowledge | Know your spells | Panels over grimoire pages and in the inventory that fill in as spells are seen, learned, used and later upgraded; the spells tab by school; knowledge kept between runs (Spells: Spell knowledge) |
-| M4 Tripo enemies | Own creatures | 3 enemies and 1 boss from Tripo, with elemental affinities |
+| M4 Enemies in code | Own creatures | The ten enemies built in code (Enemies built in code: four on floor 1, three on each of the others) as foes with behaviour, health, sounds and elemental affinities, and a boss built the same way (the owner chose code over Tripo, 2026-09-29) |
 | M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
 | M7 Descent and the Vigil | A full run with a reason to return | Final boss; the Vigil (RPG progression: Between runs): freed shades as townspeople with dialogue, its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines |
