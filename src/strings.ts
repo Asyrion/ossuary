@@ -115,6 +115,9 @@ export const STR = {
     /** What a spell's panel says of what isn't known yet. */
     seenOnly: 'Take its page to learn more of it.',
     castMore: (n: number) => `Cast it ${n} more time${n === 1 ? '' : 's'} to know it well.`,
+    sealed: 'A page not yet found',
+    sealedText: (school: string) => `A ${school} spell you have not come across. Libraries, bosses and now and then a fight leave pages.`,
+    notCarried: 'Known, but not in a slot. A page of it, or a library, puts it back.',
     sets: 'What it sets off',
     /** A reaction the spell can set off, with the school whose status completes it. */
     reaction: (name: string, school: string, what: string) => `${name}, with ${school}: ${what}`,
