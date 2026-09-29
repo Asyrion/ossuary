@@ -14,7 +14,7 @@ style reference in every image), budgets per kind of asset, the pipeline from im
 log. When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close; the play-test is next), then M3.7 spell knowledge; M3 built (see `docs/M3-plan.md`; the balance pass waits for play-tests); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 built (see `docs/M3-plan.md`; the balance pass waits for play-tests); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -90,6 +90,14 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   key answers it (`answerPage`, before casting); spells given up go to `G.run.forgotten` and later libraries
   sell them back (`grimoire` in `data/loot.json`). Bosses drop a page (`dropPage` in `onBossDead`), cleared rooms
   rarely (`maybeDropPage`).
+  Spell knowledge (M3.7): how well the mage knows each spell, kept between runs. The pure rules are in
+  `src/magic/knowledge.ts` (stages seen, learned, used after `CFG.knowledge.usedCasts` casts, upgraded in M6; the
+  reactions a spell sets off, from its statuses); `src/magic/memory.ts` keeps them in `localStorage`
+  (`ossuary.knowledge`), fed by `learnSpell`, `castSpell` and a page's approach. `src/ui/spellPanel.ts` describes a
+  spell at its stage (`spellSheet`), for the panel over the nearest grimoire page (`updatePagePanel` in `pages.ts`,
+  over the page or beside it on its outer side) and the inventory's spells tab, a book by school with sealed entries
+  for spells not met. The dev menu's knowledge row knows every spell or forgets all; `__game.knowledge` reads every
+  stage, `__game.know(id, stage)` sets one, `__game.forgetKnowledge()` clears them, `__game.pagePanel` reads the panel.
   Rooms react to magic through `src/world/pools.ts`: water (`~`) and oil (`%`) tiles joined into `room.pools`
   (`poolGrid` per tile). Anything elemental reports where it lands: `fireAt` (Burn, the lance, the seal, blasts)
   lights oil and melts ice, `frostAt` (Chill, frost bolts, the ice wall) freezes water, `shockAt` runs a shock
@@ -164,7 +172,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   Ferryman) and invent no gods, factions or places.
 - The inventory (`src/ui/inventory.ts`; I or Tab, the gamepad's View button, or the pause menu) pauses the game and
   lists what the mage carries and knows in tabs: artifacts (with their stat changes and a curse's price), spells
-  (the two slots and the pages given up), items (hearts, mana, obols, keys, glyphs) and the mage's own numbers;
+  (the two slots, then a book by school, M3.7), items (hearts, mana, obols, keys, glyphs) and the mage's own numbers;
   the chosen entry is described beside them. Arrows choose, Q and E (LB and RB) change tabs. Anything new the
   mage can carry (potions in M5) gets a tab or a place in one.
 - `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
