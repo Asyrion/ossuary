@@ -298,6 +298,25 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
 - **M7 Descent and Sanctum:** final boss, Sanctum with grimoire, bestiary and disciplines.
 - **M8 Eda:** lore names, floor biomes, adaptive music, ambience beds and final mix.
 
+## Agents and skills (standing instructions from the owner, 2026-09-29)
+
+Two subagents in `.claude/agents/` and one skill in `.claude/skills/`. The owner asked for them to be used as
+below without being asked each time; in a cloud session this line is that request.
+
+- **`rules-reviewer`** (subagent): before opening every PR, run it on `origin/main...HEAD` and fix its blocking
+  findings. It checks the diff against these working agreements, the GDD and the lore limits.
+- **`room-inspector`** (subagent): after every step that changes how rooms look (walls, doors, objects, themes,
+  lights, mechanisms), and before every play-test build, run it on what changed. It uses `npm run inspect`
+  (`tools/inspect-rooms.ts`: screenshots of templates, themes, all objects or a whole floor, and a contact sheet)
+  and reports what looks wrong. Fix its blocking findings; list the polish ones for the owner.
+- **`ship`** (skill): when the owner asks to open a PR and merge it. Checks, PR, CI, rebase merge, the branch back
+  in step with `main`, the Pages deploy confirmed. Never ship without being asked.
+
+Later: an **asset-pipeline** subagent when M3.5 starts (the recipe in `docs/assets.md` for each asset the owner
+hands over), and a **template-builder** subagent if a step needs many templates at once. New agent and skill files
+load when a session starts. In a cloud session the browser for Playwright is under `/opt/pw-browsers`: set
+`PW_CHROMIUM` to it for `npx playwright test` and `npm run inspect`.
+
 ## Working agreements
 
 - Plan before large changes; keep commits small with clear messages.

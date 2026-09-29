@@ -11,6 +11,7 @@
     "test": "vitest run && playwright test",
     "prepare-asset": "tsx tools/prepare-asset.ts",
     "compare": "tsx tools/compare-prototype.ts",
+    "inspect": "tsx tools/inspect-rooms.ts",
     "test:unit": "vitest run",
     "test:e2e": "playwright test"
   },
