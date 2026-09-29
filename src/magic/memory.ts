@@ -8,7 +8,9 @@ import { type Knowledge, type Stage, blank, cast, learn, parse, reach, see, stag
 const KEY = 'ossuary.knowledge', C = CFG.knowledge;
 let kn: Knowledge = {};
 try { kn = parse(localStorage.getItem(KEY)); } catch { /* no storage: start from nothing */ }
-function save() { try { localStorage.setItem(KEY, JSON.stringify(kn)); } catch { /* not kept, still known this session */ } }
+let dirty = false; // casts counted since the last save (saved when a stage changes, and when the page goes)
+function save() { dirty = false; try { localStorage.setItem(KEY, JSON.stringify(kn)); } catch { /* not kept, still known this session */ } }
+if (typeof window !== 'undefined') window.addEventListener('pagehide', () => { if (dirty) save(); });
 
 /** How well the mage knows spell `id`. */
 export const stage = (id: string): Stage => stageOf(kn[id], C.usedCasts);
@@ -19,7 +21,7 @@ export function sawSpell(id: string) { const now = see(kn, id); if (now) save();
 /** A page of it was taken (or the dev menu taught it). */
 export function learnedSpell(id: string) { if (learn(kn, id)) save(); }
 /** It was cast: returns whether that made it known well (used) just now. */
-export function castSpellOnce(id: string) { const was = stage(id); cast(kn, id); save(); return was !== 'used' && stage(id) === 'used'; }
+export function castSpellOnce(id: string) { const was = stage(id); cast(kn, id); dirty = true; if (stage(id) !== was) save(); return was !== 'used' && stage(id) === 'used'; }
 
 /** The dev menu and tests: every spell known well; nothing known; one spell brought to a stage. */
 export function knowEvery() { for (const s of SPELL_DEFS) reach(kn, s.id, 'used', C.usedCasts); save(); }

@@ -167,8 +167,6 @@ function mageEntries(): Entry[] {
   ];
 }
 
-/** The top of the panel: the icon large, the name, and the kind under it. */
-
 /* ---------- drawing and choosing ---------- */
 
 function render() {

@@ -1570,7 +1570,7 @@ test('spell knowledge: a page shows its spell as far as it is known, learning an
   type Pg = { spell: string; x: number; z: number; gone?: boolean };
   type GK = { warp(id: number): void; clearRoom(): void; sim(sec: number, draw?: boolean): void; pages: Pg[]; knowledge: Record<string, string>;
     pagePanel: { spell: string | null; text: string }; cast(slot: number): boolean; mana(v: number): number; spawn(kind: string, x?: number, z?: number): unknown;
-    forgetKnowledge(): void; player: { x: number; z: number; invuln: number; spells: (string | null)[]; spellCd: number[] } };
+    know(id: string, st: string): void; forgetKnowledge(): void; player: { x: number; z: number; invuln: number; spells: (string | null)[]; spellCd: number[] } };
   const errors = await start(page, '?room=library_plain&seed=K3F9QX');
   const r = await page.evaluate(() => {
     const g = (window as unknown as { __game: GK }).__game; g.warp(1); g.player.invuln = 99; g.sim(.3);
@@ -1578,17 +1578,20 @@ test('spell knowledge: a page shows its spell as far as it is known, learning an
     // near the page: its panel, at the stage seen (name, school, what it does; the rest when it is learned)
     g.player.x = p.x; g.player.z = p.z + 1.4; g.sim(.1);
     const seen = { stage: g.knowledge[p.spell], panel: g.pagePanel.spell, text: g.pagePanel.text };
+    // known well elsewhere (set by hand here, then set back): the panel adds what it sets off, and its lore
+    g.know(p.spell, 'used'); g.sim(.05); const usedText = g.pagePanel.text; g.know(p.spell, 'seen'); g.sim(.05);
     // into the page: taken, and learned
     g.player.x = p.x; g.player.z = p.z; g.sim(.2);
     const learned = g.knowledge[p.spell], slot = g.player.spells.indexOf(p.spell);
     // cast it ten times: known well (a foe ahead for the spells that need one)
     g.spawn('dummy'); g.sim(1.2);
     for (let i = 0; i < 10; i++) { g.player.spellCd[slot] = 0; g.mana(200); g.cast(slot); g.sim(.3); }
-    return { spell: p.spell, before, seen, learned, slot, used: g.knowledge[p.spell], toast: document.getElementById('toast')!.textContent };
+    return { spell: p.spell, before, seen, usedText, learned, slot, used: g.knowledge[p.spell], toast: document.getElementById('toast')!.textContent };
   });
   expect(r.before).toBe('unknown');
   expect(r.seen).toMatchObject({ stage: 'seen', panel: r.spell });
   expect(r.seen.text).toContain('Take its page to learn more of it');
+  expect(r.usedText).toContain('What it sets off');
   expect(r.learned).toBe('learned');
   expect(r.slot).toBeGreaterThanOrEqual(0);
   expect(r.used).toBe('used');
