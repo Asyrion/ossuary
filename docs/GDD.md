@@ -790,6 +790,8 @@ The look is a candle-lit cutaway diorama: dark stone rooms, warm torchlight, and
 - **UI:** hearts top left, mana bar, spell slots with cooldowns, potion belt, artifacts and obol, key and glyph counters below them, minimap top right, boss bar bottom centre, lore cards bottom right. Typefaces Cinzel (titles), Alegreya (lore and banners) and Alegreya Sans (UI).
 - **Audio:** simple synthesised effects for now; the full plan is in Audio design, and where sounds come from (sources, licences, specs, pipeline) is in `docs/assets.md` (Sound).
 
+**Style under test (2026-09-29, M3.5 step 2).** The owner is drawn to a cartoony or pixel-art style. Proposed: pixel-art 3D (the Tripo models and the game's lights drawn at a few hundred lines and blown up in whole pixels, with outlines; tiles, icons and effects drawn as pixel art; concept art for Tripo in clean cartoon), against cartoon 3D at full resolution. The dev menu's pixel look switch shows it in the game. Once chosen, it replaces the painted-miniature direction above, and the house style in `docs/assets.md` follows.
+
 **Identity note.** The current hero is close to the Isaac art style. Fine for a hobby prototype; if the game is ever published, characters and art need their own look.
 
 ## Audio design

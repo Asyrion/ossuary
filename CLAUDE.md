@@ -15,7 +15,7 @@ log; its Sound section does the same for sound (sources and their licences, the 
 When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3.5 step 1 built (the asset pipeline's tooling, `docs/M3.5-plan.md`; the owner makes the house style next); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3.5 step 1 built (the asset pipeline's tooling, `docs/M3.5-plan.md`); step 2 under way: the owner compares the pixel look in the game, then sets the house style; M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -142,7 +142,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
   every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
-  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?assets=off` keeps every placeholder and `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets. `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
+  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?assets=off` keeps every placeholder `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=270` turns the pixel look on. `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
   vault, a secret room (behind a cracked wall), a shrine (`?room=shrine_henge`) or a library
   (`?room=library_plain`) next to the start.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
@@ -187,6 +187,12 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   in `tools/imageChecks.ts`, previews in `asset-previews/`) prepare the owner's files; `tools/make-standins.ts` makes
   the stand-ins in `tests/fixtures/assets/` that the tests load. The dev menu's Made assets section lists them,
   turns them off to compare, shows them ahead of the mage, and puts a frame readout on screen (`DEV.fps`).
+- The pixel look (M3.5 step 2's style test, `src/render/pixelLook.ts`, tuning in `CFG.pixelLook`): the scene drawn into
+  a target 360, 270 or 180 lines tall with no smoothing, the camera snapped to its grid, and blown up to the window in
+  whole pixels by one full-screen pass (outlines from depth, light in bands, then tone mapping); the HUD stays sharp.
+  `draw()` in `render/renderer.ts` picks it; draw calls are counted per frame over both passes (`renderer.info`
+  reset in `draw()`). The dev menu switches it, remembered in the browser (`ossuary.pixelLook`); `?pixel=270` or
+  `?pixel=off`; `__game.pixelLook` reads it and `__game.setPixelLook({ lines, outline, bands })` sets it.
 - `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
   1,024 px JPEG textures). Clips: `standing_relax`, `run`, `walk` (slow movement), `cast_a_spell`,
   `hit_to_body_01`, `fall` and `defeat_03` (two deaths, one at random), `Drink Potion` (when healed) and

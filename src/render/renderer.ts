@@ -3,6 +3,7 @@ import { CFG } from '../config';
 import { G } from '../state';
 import type { Room } from '../types';
 import { $, reduceMotion } from '../util';
+import { drawPixelLook, pixelLook } from './pixelLook';
 
 export const canvas = $<HTMLCanvasElement>('game');
 export const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
@@ -10,6 +11,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = CFG.lights.exposure;
+renderer.info.autoReset = false; // (reset once a frame in draw(), so a frame's count covers all its passes)
 
 export const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x050404);
@@ -57,4 +59,9 @@ export function placeCamera() {
   camera.lookAt(camTarget.x + sx, 0, camTarget.z + sz);
 }
 
-export function draw() { placeCamera(); renderer.render(scene, camera); }
+/** Draw a frame: the scene, or the scene in the pixel look (M3.5's style test). Draw calls and triangles are counted
+    per frame, over both passes of the pixel look. */
+export function draw() {
+  renderer.info.reset(); placeCamera();
+  if (pixelLook().lines) drawPixelLook(renderer, scene, camera); else renderer.render(scene, camera);
+}

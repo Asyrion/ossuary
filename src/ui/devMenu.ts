@@ -17,6 +17,8 @@ import { giveResources, spawnPickup } from '../items/pickups';
 import { makeEnemy } from '../actors/enemies';
 import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
 import { assetList, assetsOn, setAssetsOn } from '../assets/models';
+import { pixelLook, setPixelLook } from '../render/pixelLook';
+import { CFG } from '../config';
 import { freeSpotNear, placeUrn } from '../world/rooms';
 import { SIDE_DIR } from '../world/shapes';
 import type { Room } from '../types';
@@ -34,7 +36,7 @@ import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
 import { renderHearts, renderItems, renderMinimap, toast } from './hud';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, fpsBtn: HTMLButtonElement, assetBox: HTMLElement;
+let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
 let spellSlot = 0, knowBox: HTMLElement;
 let wasPlaying = false, keepCarried = true;
 
@@ -206,6 +208,14 @@ function build() {
     fpsBtn = btn('', () => { DEV.fps = !DEV.fps; }),
   );
 
+  // the pixel look (M3.5 step 2's style test): the rows of pixels, outlines, light in bands; kept in this browser
+  const px = section(p, S.pixel);
+  px.append(
+    pxBtn = btn('', () => { const ls = [0, ...CFG.pixelLook.lines]; setPixelLook({ lines: ls[(ls.indexOf(pixelLook().lines) + 1) % ls.length] }); }),
+    lineBtn = btn('', () => setPixelLook({ outline: !pixelLook().outline })),
+    bandBtn = btn('', () => setPixelLook({ bands: !pixelLook().bands })),
+  );
+
   // start something: a test room in a variant, a boss fight, a new run
   const test = section(p, S.test);
   const tpl = el('select'); tpl.setAttribute('aria-label', S.template);
@@ -245,6 +255,10 @@ function refresh() {
   assetBox.replaceChildren(...(list.length ? list.map(a => el('div', '', S.assetRow(a.where, S.assetStatus[a.status], a.triangles))) : [el('div', '', S.noAssets)]));
   assetBtn.textContent = assetsOn() ? S.assetsOn : S.assetsOff; assetBtn.classList.toggle('on', assetsOn()); assetBtn.disabled = !list.some(a => a.status === 'loaded');
   fpsBtn.textContent = DEV.fps ? S.fpsOn : S.fpsOff; fpsBtn.classList.toggle('on', DEV.fps);
+  const look = pixelLook();
+  pxBtn.textContent = S.pixelLines(look.lines); pxBtn.classList.toggle('on', !!look.lines);
+  lineBtn.textContent = look.outline ? S.outlinesOn : S.outlinesOff; lineBtn.classList.toggle('on', look.outline); lineBtn.disabled = !look.lines;
+  bandBtn.textContent = look.bands ? S.bandsOn : S.bandsOff; bandBtn.classList.toggle('on', look.bands); bandBtn.disabled = !look.lines;
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
   knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'));
   spellBox.replaceChildren(...SPELL_DEFS.map(s => {
