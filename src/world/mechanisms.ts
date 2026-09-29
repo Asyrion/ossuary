@@ -12,7 +12,8 @@
    - Hanging censer: a bolt through its chain brings it down on what is under it, spilling burning oil.
    - Reliquary: sealed until the room's candle stands are all lit; then it opens.
    - Dead tree: burns (like roots, longer).
-   Placeholder shapes until they come from Tripo. Geometries and materials are shared; a rune stone's glyph has its own. */
+   Placeholder shapes until they come from Tripo. Geometries and materials are shared, but for a rune stone's rune (a
+   charge colours it) and a dead tree's branches (each grown its own way); both are disposed with the object. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Bolt, PropBox, Room } from '../types';
@@ -48,7 +49,7 @@ const MAT = {
   bronze: std(0x8a6a3a, { roughness: .45, metalness: .7, emissive: 0x1a1006 }), wood: std(0x4a3222, { roughness: .95 }),
   coals: std(0x2a2622, { roughness: 1 }), ember: std(0x5a1a08, { emissive: 0x8a2a06, roughness: 1 }), lode: std(0x34323c, { roughness: .5, metalness: .6 }), wax: std(0xe8dcc0, { emissive: 0x2a2010 }), stone: std(0x6a6660, { roughness: .95 }),
   iron: M.iron, copper: std(0xa0603a, { roughness: .4, metalness: .8 }), gilt: std(0xb89048, { roughness: .55, metalness: .6, emissive: 0x140e04 }),
-  bark: std(0x5a5048, { roughness: 1 }), ice: markShared(new THREE.MeshStandardMaterial({ color: 0xcfeeff, transparent: true, opacity: .55, roughness: .15, metalness: .1, emissive: 0x1a3a4a })),
+  bark: std(0x5a5048, { roughness: 1 }),
   flame: markShared(new THREE.MeshBasicMaterial({ color: 0xffb04a })), seal: markShared(new THREE.MeshBasicMaterial({ color: GOLD })),
 };
 const GEO = {
@@ -62,7 +63,7 @@ const GEO = {
   lode: shared(new THREE.CylinderGeometry(.12, .27, 1.3, 6)), lodeTip: shared(new THREE.ConeGeometry(.12, .3, 6)), band: shared(new THREE.TorusGeometry(1, .12, 4, 6)),
   chain: shared(new THREE.CylinderGeometry(.012, .012, CHAIN, 4)), censer: shared(new THREE.SphereGeometry(.15, 10, 8)), cap: shared(new THREE.ConeGeometry(.14, .14, 8)),
   plinth: shared(new THREE.BoxGeometry(.8, .55, .6)), box: shared(new THREE.BoxGeometry(.64, .36, .44)), lid: shared(new THREE.BoxGeometry(.7, .08, .5)), seal: shared(new THREE.TorusGeometry(.14, .02, 5, 16)),
-  trunk: shared(new THREE.CylinderGeometry(.1, .2, 1.6, 7)), ice: shared(new THREE.IcosahedronGeometry(.55, 0)),
+  trunk: shared(new THREE.CylinderGeometry(.1, .2, 1.6, 7)),
 };
 const mesh = (geo: THREE.BufferGeometry, mat: THREE.Material, x = 0, y = 0, z = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); return m; };
 /** Remember the parts of a look that move or light up (props.ts copies them onto the object). */
@@ -183,11 +184,11 @@ export function boltThrough(b: Bolt) {
   for (const box of room.props ?? []) {
     const p = box.prop;
     if (p.kind === 'brazier' && Math.hypot(b.x - box.x, b.z - box.z) < C.brazierCatch) {
-      if (p.lit && !b.status?.burn) { b.status = { ...b.status, burn: C.brazierBurn }; burst(b.x, .7, b.z, FIRE, 6, 1.6, .045); Sfx.at(b.x, b.z).catchFire(); }
+      if (p.lit && !b.status?.burn) { b.status = { ...b.status, burn: C.brazierBurn }; b.kindled = true; burst(b.x, .7, b.z, FIRE, 6, 1.6, .045); Sfx.at(b.x, b.z).catchFire(); }
       else if (!p.lit && b.status?.burn) light(room, box);
     } else if (p.kind === 'censer' && Math.hypot(b.x - box.x, b.z - box.z) < C.censerCatch) dropCenser(room, box);
   }
-  if (b.status?.burn && Math.random() < .25) riseMote(b.x, b.y, b.z, EMBER, .35); // a burning bolt trails embers
+  if (b.kindled && Math.random() < .25) riseMote(b.x, b.y, b.z, EMBER, .35); // a bolt lit by a brazier trails embers
 }
 
 /* ---------- what they do ---------- */
@@ -259,9 +260,9 @@ function leap(room: Room, box: PropBox) {
     const dist = (x: number, z: number) => { const k = Math.max(0, Math.min(1, ((x - box.x) * dx + (z - box.z) * dz) / len2)); return Math.hypot(box.x + dx * k - x, box.z + dz * k - z); };
     for (const e of G.enemies) {
       if (e.dead || e.spawn > 0 || e.hidden || dist(e.x, e.z) > C.lodeWidth + e.r) continue;
-      damageEnemy(e, C.lodeDamage, 0, 0, .3, 'spell'); inflict(e, { shock: 1 });
+      damageEnemy(e, C.lodeDamage, 0, 0, C.lodeKnock, 'spell'); inflict(e, { shock: 1 });
     }
-    if (dist(player.x, player.z) < C.lodeWidth) hurtPlayer(1, player.x - dz * .01, player.z + dx * .01);
+    if (dist(player.x, player.z) < C.lodeWidth) hurtPlayer(C.lodeHurt, player.x - dz * .01, player.z + dx * .01);
   }
 }
 
@@ -279,9 +280,9 @@ function censerLands(f: (typeof falling)[number]) {
   room.group.remove(f.pot);
   for (const e of G.enemies) {
     if (e.dead || e.spawn > 0 || e.hidden || e.flying || Math.hypot(e.x - x, e.z - z) > C.censerReach + e.r) continue;
-    damageEnemy(e, C.censerDamage, 0, 0, .5, 'spell'); inflict(e, { burn: C.censerBurn });
+    damageEnemy(e, C.censerDamage, 0, 0, C.censerKnock, 'spell'); inflict(e, { burn: C.censerBurn });
   }
-  if (Math.hypot(player.x - x, player.z - z) < C.censerHitsMage) hurtPlayer(1, x, z);
+  if (Math.hypot(player.x - x, player.z - z) < C.censerHitsMage) hurtPlayer(C.censerHurt, x, z);
   // the oil: its tile and a few free ones round it, alight at once
   const t = room.template.tiles, tiles = [f.at], seen = new Set([f.at.c + ',' + f.at.r]);
   for (let i = 0; i < tiles.length && tiles.length <= C.censerSpill; i++) for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {

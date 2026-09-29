@@ -169,6 +169,7 @@ export interface Bolt extends Circle {
   /** Serpent Rod: the straight line the bolt weaves about, and the sideways direction it swings in. */ wave?: { ox: number; oz: number; px: number; pz: number };
   /** A spell's bolt (Rime Shards, Shatter's shards): its hits are spell hits, with the spell's statuses. */ spell?: boolean;
   status?: Partial<Record<StatusKind, number>>;
+  /** Set alight flying through a brazier's flame (M3.6): it trails embers. */ kindled?: boolean;
 }
 export interface Shot extends Circle { y: number; vx: number; vz: number; color: number; mesh: THREE.Group }
 export interface Particle { m: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>; vx: number; vy: number; vz: number; life: number }

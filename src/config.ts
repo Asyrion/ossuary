@@ -46,7 +46,7 @@ export const CFG = {
   // the oil a broken cask spills (tiles beyond its own), and glowcap spores (how long a cloud hangs, its reach, the
   // flash when fire finds it: damage to foes, Burn stacks, half hearts to the mage within reach)
   props: {
-    burn: { roots: 3.5, briar: 2, web: .45, sacks: 1.6, desk: 3, scrolls: .7 } as Record<string, number>, spread: .5,
+    burn: { roots: 3.5, tree: 6, briar: 2, web: .45, sacks: 1.6, desk: 3, scrolls: .7 } as Record<string, number>, spread: .5,
     webSlow: .45, briarHurt: 1, briarDamage: 2, caskSpill: 3,
     spores: { time: 4, reach: 1.3, damage: 6, burn: 2, mageHurt: 1 },
   },
@@ -67,6 +67,9 @@ export const CFG = {
     // how close a bolt passes to catch a brazier's fire or cut a censer's chain; a status to charge a rune stone; fire
     // to thaw an entombed foe; how wide a lodestone's arc hurts (plus a foe's radius); a falling censer hurts the mage
     brazierCatch: .45, censerCatch: .35, runeCatch: .9, thawReach: 1.2, lodeWidth: .6, censerHitsMage: .7,
+    // half hearts the lodestone's arc and a falling censer take from the mage; how hard they throw foes back (× the
+    // usual knockback); how much bigger a blessed bolt is
+    lodeHurt: 1, censerHurt: 1, lodeKnock: .3, censerKnock: .5, blessScale: 1.2,
   },
   themes: { wakeReach: 2.6, riseAfter: 10, riseEvery: 6, riseMost: 3, pageChance: .3, caveReach: 3.5, caveStones: 3, caveDelay: .8, caveDamage: 8 },
   // the library: how close the mage must come to a page, the gap between lecterns, and how far into the room

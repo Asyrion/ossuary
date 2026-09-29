@@ -1391,6 +1391,11 @@ test('mechanisms: a lit brazier sets bolts alight, runes take a school, bells st
     out.brazierDark = find('brazier', 3, 3)?.lit;
     g.element('burn', at(3, 3).x, at(3, 3).z); out.brazierLit = find('brazier', 3, 3)?.lit;
     stand(1, 3); shootEast(.1); out.rune = find('rune', 5, 3)?.school; out.runeStands = !!find('rune', 5, 3);
+    // a bolt set alight by a brazier sets roots alight where it strikes
+    put('brazier', 3, 0); put('roots', 5, 0); g.element('burn', at(3, 0).x, at(3, 0).z);
+    stand(1, 0); shootEast(.1); out.rootsLit = (g.props.find(p => p.kind === 'roots') as unknown as { burning: number } | undefined)?.burning ?? 0;
+    // a dead tree burns longer than roots
+    put('tree', 11, 4); g.element('burn', at(11, 4).x, at(11, 4).z); g.sim(4.5); out.treeAt4 = !!find('tree', 11, 4); g.sim(2.5); out.treeAt7 = !!find('tree', 11, 4);
     // frost reaching an uncharged rune stone charges it with frost; a charged one keeps its school
     put('rune', 11, 1); g.element('chill', at(11, 1).x, at(11, 1).z); out.frostRune = find('rune', 11, 1)?.school;
     g.element('shock', at(11, 1).x, at(11, 1).z); out.frostRuneKept = find('rune', 11, 1)?.school;
@@ -1412,9 +1417,10 @@ test('mechanisms: a lit brazier sets bolts alight, runes take a school, bells st
     return out;
   });
   expect(result).toMatchObject({
-    brazierDark: false, brazierLit: true, rune: 'burn', runeStands: true, frostRune: 'chill', frostRuneKept: 'chill',
+    brazierDark: false, brazierLit: true, rune: 'burn', runeStands: true, frostRune: 'chill', frostRuneKept: 'chill', treeAt4: true, treeAt7: false,
     stunned: true, bellCd: true, leapt: true, lodeCd: true, censerHung: true, censer: false, crushed: true, oil: ['burning'],
   });
+  expect(result.rootsLit).toBeGreaterThan(0);
   await page.screenshot({ path: 'test-results/mechanisms.png' });
   expect(errors).toEqual([]);
 
@@ -1454,6 +1460,23 @@ test('candle stands: all lit, a reliquary opens with its hoard and a chapel bles
   });
   expect(reliquary).toMatchObject({ stands: 4, sealedWhileOneDark: true, opened: true, lifted: true, stays: true });
   expect(reliquary.hoard).toBeGreaterThanOrEqual(2);
+  expect(errors).toEqual([]);
+
+  // a glyph's blast knocks the one dark stand over in burning wax; the others are lit, so the reliquary opens
+  errors = await start(page, '?room=reliquary_gallery&loot=glyphs:1');
+  await page.evaluate(() => {
+    const g = (window as unknown as { __game: G8 }).__game; g.warp(1); g.clearRoom(); g.player.invuln = 99; g.sim(.5);
+    const stands = g.props.filter(p => p.kind === 'candles');
+    for (const s of stands.slice(1)) g.element('burn', s.x, s.z);
+    g.player.x = stands[0].x + .9; g.player.z = stands[0].z; g.player.vx = g.player.vz = 0;
+  });
+  await page.keyboard.press('Space');
+  const knocked = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G8 }).__game;
+    g.sim(.05); g.player.x += 4; g.sim(3);
+    return { stands: g.props.filter(p => p.kind === 'candles').length, opened: !g.props.some(p => p.kind === 'reliquary') };
+  });
+  expect(knocked).toEqual({ stands: 3, opened: true });
   expect(errors).toEqual([]);
 
   errors = await start(page, '?room=chapel_nave');
