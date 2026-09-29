@@ -14,7 +14,7 @@ style reference in every image), budgets per kind of asset, the pipeline from im
 log. When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3.6 under way (`docs/M3.6-plan.md`: step 1, architecture, built); M3 built (see `docs/M3-plan.md`; the balance pass waits for play-tests); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3.6 under way (`docs/M3.6-plan.md`: steps 1 and 2, architecture and objects, built); M3 built (see `docs/M3-plan.md`; the balance pass waits for play-tests); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -38,7 +38,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `data/floors.json` (room counts, difficulty weights, enemy health, altar and vault chances, which floors have
   a shrine, the vault's warden, boss tuning and look per floor),
   `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `i` pillar, `=` stone tomb, `u` urn,
-  `$` rune-sealed urn, `~` water, `%` oil, `R W H` enemies, `B` boss; `x` wall: outside an L's missing corner, and
+  `$` rune-sealed urn, `~` water, `%` oil, the M3.6 objects `b k s c r t v : g p` (bone pile, skull heap, grave sacks,
+  oil cask, rubble, grave roots, thorn briar, cobwebs, glowcaps, pew), `R W H` enemies, `B` boss; `x` wall: outside an L's missing corner, and
   inside the shape to carve it (cut corners, bays, a pinched waist, a free-standing pier); ordeal templates list
   their enemies per wave in `waves`; `special.json` holds ordeals, altars, merchants, vaults, secret rooms and shrines,
   `shapes.json` the larger and narrow rooms) and
@@ -93,6 +94,12 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   lights oil and melts ice, `frostAt` (Chill, frost bolts, the ice wall) freezes water, `shockAt` runs a shock
   through a pool; `inflict` calls `touchPools` for every status on a foe standing in one. `wadeAt` slows the mage
   and walkers in unfrozen water. The drowned floor grows puddles in its fights (`growPuddles`).
+- Objects (M3.6): what each is, its letter and how it blocks (tall: `rocks`; low: `room.lows`, walking only, unless a
+  bolt breaks it; soft: `room.soft`, walked into) are in the pure `src/world/propData.ts`; looks and behaviour in
+  `src/world/props.ts` (`strikeProp` from bolts and blasts, `blastProps`, `burnPropsAt` from `fireAt`, a cask's
+  `addPool`, glowcap spores, `snagAt` for cobwebs, briar stings in `updateProps`), tuning in `CFG.props`, the
+  poorer loot in `remains` and `bundle` (`data/loot.json`). `__game.prop('cask')` puts one down, `__game.props` and
+  `__game.spores` read them, `__game.burn(x, z, r)` sets fire there; the dev menu has a row of them.
 - Sound (`src/audio/sfx.ts`, synthesised placeholders): an effects bus and an interface bus (`UI_SOUNDS`) under a
   master, set by the pause menu's sliders and remembered in the browser. Play an effect where it happens with
   `Sfx.at(x, z).blast()`: panned from the mage (`Sfx.listen` every step) and quieter further off. New sounds go in

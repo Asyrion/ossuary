@@ -77,6 +77,14 @@ const sounds = {
   blast() { tone('sine', 120, 38, .5, .24); tone('sawtooth', 240, 60, .35, .06); hiss(.45, .12, 'bandpass', 700); hiss(.2, .05, 'highpass', 3000); },
   noGlyph() { tone('square', 180, 140, .06, .03); },
   // urns, wards, coffers and chests
+  // the rooms' objects (M3.6)
+  bones() { [900, 1250, 700, 1500, 1050].forEach((f, i) => tone('square', f, f * .8, .03, .025, i * .035)); hiss(.15, .05, 'bandpass', 2200); },
+  sack() { hiss(.22, .1, 'lowpass', 700); tone('sine', 110, 70, .15, .06); },
+  cask() { tone('square', 150, 70, .12, .05); hiss(.25, .09, 'bandpass', 1100); hiss(.5, .06, 'lowpass', 500, .08); },
+  spores() { hiss(.4, .06, 'bandpass', 3200); tone('sine', 660, 990, .3, .025); },
+  sporeFlash() { hiss(.45, .16, 'lowpass', 1400); tone('sine', 140, 50, .4, .15); crackles(6, .4, .05); },
+  tear() { hiss(.1, .07, 'highpass', 2800); tone('square', 420, 300, .04, .02); },
+  catchFire() { hiss(.3, .08, 'bandpass', 1600); crackles(4, .25, .04); },
   urn(sealed = false) { hiss(.22, .12, 'bandpass', sealed ? 2600 : 1600); tone('square', 320, 120, .08, .03); if (sealed) tone('sine', 1320, 660, .4, .05, .03); },
   wardTink() { tone('sine', 1500, 1420, .1, .05); tone('sine', 2250, 2200, .07, .03, .02); },
   wardBreak() { tone('sine', 1100, 280, .45, .07); hiss(.3, .06, 'highpass', 3500); },

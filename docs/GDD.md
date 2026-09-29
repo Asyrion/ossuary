@@ -472,6 +472,23 @@ Rooms are built from cells of 13 × 7 tiles. A standard room is one cell, with a
 
 **Architecture (M3.6).** Rooms are places, not boxes. A template can carve its outline: `x` inside the shape turns tiles into wall, for cut corners, a stepped apse, bays, a pinched waist between the cells of a hall, or a partition or pier standing free. A wall is tall only where it runs unbroken to the room's north edge (the north wall, the side walls, a spur coming down from the north); anywhere the floor lies north of it, it is low, so it never hides the mage, and low walls carved inside the room carry a cap of dark stone. The tall walls facing into the room are dressed by the floor's look: pilasters at intervals and niches between them, holding a skull, candle stubs, a small urn or a few bones. Doors move along their cell edge half the time (per floor, `doorShift`), two or four tiles along a north or south edge and two along an east or west one, where both rooms' templates leave the lane clear; shops, vaults, libraries, shrines and secret cells keep theirs in the middle.
 
+**Objects and piles (M3.6).** Beside rocks, pillars, tombs and urns, templates place the dungeon's remains and furnishings, each answering to magic. Tall ones block walking and bolts; low ones block walking while bolts fly over them, unless a bolt breaks them; soft ones are walked into.
+
+| Object | Blocks | What magic does |
+| --- | --- | --- |
+| Bone pile | Low | A bolt scatters it; now and then something is left (the poorer `remains` loot: mostly nothing, an obol, a glyph stone, a mana vial, rarely half a heart) |
+| Skull heap | Low | Two bolts; `remains` loot |
+| Grave sacks | Low | A bolt spills one to three small things (`bundle` loot); fire burns them |
+| Oil cask | Tall | A bolt breaks it and its oil spills over the tiles round it, a pool that fire lights |
+| Rubble | Low | Only a glyph's blast clears it |
+| Grave roots | Tall | Fire burns them away in a few seconds |
+| Thorn briar | Soft | Stings the mage (half a heart) and walking foes; fire or a blast clears it |
+| Cobwebs | Soft | Slow the mage and walking foes; burn in a flash |
+| Glowcaps | Low | Give soft light; a bolt bursts them into a cloud of spores that flashes when fire finds it, burning every foe in reach, and the mage too if they stand in it |
+| Pews | Low | Side by side they make one bench; cover for movement, not for bolts |
+
+Fire spreads between what burns, and lights oil; anything that burns or blasts (Burn, the lance, the seal, a glyph, burning oil) reaches them.
+
 | Room type | Purpose | Door style | Arrives |
 | --- | --- | --- | --- |
 | Start | No enemies, controls chalked on the floor | Plain | 0.3 |

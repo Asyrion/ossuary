@@ -12,6 +12,7 @@ export function blockers(room: Room, who: Mover, overPits = false) {
   for (const d of doorsOf(room)) if (!d.open) list.push(d.box);
   if (who !== 'flyer') list.push(...room.rocks);
   if ((who === 'player' || who === 'walker') && !overPits) list.push(...room.pits);
+  if ((who === 'player' || who === 'walker') && room.lows) list.push(...room.lows); // pews and rubble: bolts fly over
   if (who !== 'bolt' && room.barriers) list.push(...room.barriers);
   return list;
 }

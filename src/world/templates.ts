@@ -7,6 +7,8 @@
             i  pillar     =  stone tomb (tiles side by side in a row, or else in a column, make one tomb)
             u  urn        $  rune-sealed urn (only a glyph's blast breaks it)
             ~  water      %  oil (both walkable; tiles side by side make one pool, see world/pools.ts)
+            b  bone pile  k  skull heap  s  grave sacks  c  oil cask   r  rubble    p  pew (side by side, one pew)
+            t  grave roots  v  thorn briar  :  cobwebs  g  glowcaps  (the objects of world/propData.ts)
             R  rotling    W  wisp      H  crypt hound      B  the floor's boss
 
    Ordeal templates keep their terrain in `grid` (no enemies) and list each wave's enemies in `waves`,
@@ -18,11 +20,14 @@ import shapedTemplates from '../../data/templates/shapes.json';
 import type { EnemyType } from '../config';
 import type { RoomType } from '../types';
 import { SHAPE_IDS, doorSlots, shapeMask, shapeSize, type ShapeId } from './shapes';
+import { PROPS, PROP_KINDS, PROP_OF_CHAR, type PropKind } from './propData';
 
 export type { ShapeId } from './shapes';
-export type Tile = 'floor' | 'rock' | 'pit' | 'void' | 'pillar' | 'tomb' | 'urn' | 'sealedUrn' | 'water' | 'oil';
-/** Tiles the mage and foes can stand on. */
-export const WALKABLE: readonly Tile[] = ['floor', 'water', 'oil'];
+export type Tile = 'floor' | 'rock' | 'pit' | 'void' | 'pillar' | 'tomb' | 'urn' | 'sealedUrn' | 'water' | 'oil' | PropKind;
+/** Tiles the mage and foes can stand on (soft objects too: briars and cobwebs). */
+export const WALKABLE: readonly Tile[] = ['floor', 'water', 'oil', ...PROP_KINDS.filter(k => PROPS[k].class === 'soft')];
+/** Tiles clear enough for a doorway's lane or a foe's first step: walkable, and nothing in the way. */
+export const CLEAR: readonly Tile[] = ['floor', 'water', 'oil'];
 export type FoeKind = EnemyType | 'boss';
 
 export interface TemplateDef {
@@ -37,7 +42,7 @@ export interface Template {
   /** Every enemy of every wave. */ foes: Foe[];
 }
 
-const TILE_OF: Record<string, Tile> = { '.': 'floor', '#': 'rock', 'o': 'pit', 'x': 'void', 'i': 'pillar', '=': 'tomb', 'u': 'urn', '$': 'sealedUrn', '~': 'water', '%': 'oil' };
+const TILE_OF: Record<string, Tile> = { '.': 'floor', '#': 'rock', 'o': 'pit', 'x': 'void', 'i': 'pillar', '=': 'tomb', 'u': 'urn', '$': 'sealedUrn', '~': 'water', '%': 'oil', ...PROP_OF_CHAR };
 const FOE_OF: Record<string, FoeKind> = { R: 'rotling', W: 'wisp', H: 'hound', B: 'boss' };
 
 /** Parse a template, optionally mirrored left-right and/or top-bottom. */
@@ -87,11 +92,11 @@ export function validateTemplate(def: TemplateDef): string[] {
   let outline = 0;
   for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) if (!mask[r][c] && t.tiles[r][c] !== 'void') outline++;
   if (outline) errs.push(`${outline} tiles disagree with the ${def.shape} outline (use x outside the room)`);
-  for (const f of t.foes) if (!WALKABLE.includes(t.tiles[f.r][f.c])) errs.push(`${f.kind} at (${f.c},${f.r}) stands on ${t.tiles[f.r][f.c]}`);
+  for (const f of t.foes) if (!CLEAR.includes(t.tiles[f.r][f.c])) errs.push(`${f.kind} at (${f.c},${f.r}) stands on ${t.tiles[f.r][f.c]}`);
   const blocked = (c: number, r: number) => !WALKABLE.includes(t.tiles[r]?.[c]);
   const slots = doorSlots(def.shape), lanes = slots.flatMap(s => s.lanes), entries = slots.map(s => s.entry);
   for (const { c, r } of lanes) {
-    if (blocked(c, r)) errs.push(`door lane tile (${c},${r}) is blocked`);
+    if (!CLEAR.includes(t.tiles[r]?.[c])) errs.push(`door lane tile (${c},${r}) is blocked`);
     if (t.foes.some(f => f.c === c && f.r === r)) errs.push(`enemy on door lane tile (${c},${r})`);
   }
   for (const f of t.foes) for (const e of entries) {

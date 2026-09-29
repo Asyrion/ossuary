@@ -37,12 +37,14 @@ import { makeEnemy } from './actors/enemies';
 import { castSpell, learnSpell } from './magic/spells';
 import { mantleLeft } from './magic/shapes';
 import { answerPage, dropPage } from './magic/pages';
-import { poolsDo } from './world/pools';
+import { fireAt, poolsDo } from './world/pools';
 import { spawnShot } from './combat/projectiles';
 import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
 import { isTouch } from './util';
 import { wornNow } from './actors/costume';
+import { placeProp } from './world/props';
+import type { PropKind } from './world/propData';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
@@ -166,6 +168,12 @@ function installDevHooks() {
     /** Cleanse the oldest curse held at once (no fight, no obols); the shrine's rite under way, if any. */
     cleanse: () => cleanseAtOnce(), get rite() { return riteState(); },
     get pickups() { return G.pickups; }, get glyphs() { return G.glyphs; }, get shots() { return G.shots; },
+    /** Put one of the rooms' objects down at (x, z) (on free floor), e.g. prop('cask'); the objects in the room. */
+    prop(kind: PropKind, x = player.x, z = player.z - 1.5) { return !!placeProp(kind, x, z); },
+    get props() { return (G.current.props ?? []).map(b => ({ kind: b.prop.kind, x: b.x, z: b.z, burning: b.prop.burning, hits: b.prop.hits })); },
+    get spores() { return (G.current.spores ?? []).length; },
+    /** Fire reaches (x, z) and `r` round it, as a burning bolt or a blast would: oil, roots, briars, webs, spores. */
+    burn(x: number, z: number, r = 0) { fireAt(x, z, r); },
     /** The costume pieces the mage wears (a hood, from the Pilgrim's Cowl). */
     get costume() { return wornNow(); },
   };

@@ -4,6 +4,8 @@
    so new artifacts, drops, rooms and bosses show up by themselves. Kept in production builds, like the
    hooks, for testing the deployed site. */
 import { BOSS_TYPES, type BossType, type EnemyType } from '../config';
+import { PROP_KINDS } from '../world/propData';
+import { placeProp } from '../world/props';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { ARTIFACT_DEFS, START_FOCUS } from '../items/artifactData';
@@ -141,6 +143,10 @@ function build() {
   // water and oil in this room (the test rooms with them are in the list above)
   const pools = section(p, S.pools);
   pools.append(btn(S.ignite, () => poolsDo('fire')), btn(S.freezeWater, () => poolsDo('frost')), btn(S.shockWater, () => poolsDo('shock')));
+
+  // the rooms' objects (M3.6), put down just ahead of the mage
+  const objs = section(p, S.objects);
+  for (const kind of PROP_KINDS) objs.append(btn(S.propNames[kind], () => { const q = ahead(1.5); if (!placeProp(kind, q.x, q.z)) toast(S.noRoom, 2); }));
 
   // foes, a little further ahead (they don't lock the doors)
   const foes = section(p, S.foes);

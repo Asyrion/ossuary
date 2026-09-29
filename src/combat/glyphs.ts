@@ -17,6 +17,7 @@ import { scene } from '../render/renderer';
 import { disposeTree, glow } from '../render/materials';
 import { glyphTexture } from '../render/textures';
 import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
+import { blastProps, strikeProp } from '../world/props';
 import { blastSeal } from '../world/vault';
 import { openSecret } from '../world/secret';
 import { blastWisp } from '../world/shrine';
@@ -104,8 +105,10 @@ function blast(x: number, z: number, color: number, R: number) {
   for (const rock of room.rocks.slice()) {
     if (!touches(rock, x, z, R)) continue;
     if (rock.urn) strikeUrn(room, rock, true);          // urns, rune-sealed ones too
+    else if (rock.prop) strikeProp(room, rock, true);   // piles, casks, glowcaps
     else if (rock.breakable) hitRock(room, rock, true);
   }
+  blastProps(room, x, z, R); // rubble cleared, briars and cobwebs torn away
   for (const p of G.pickups) if (isContainer(p.kind) && !p.opened && Math.hypot(p.x - x, p.z - z) < R + .3) openContainer(p, true); // chests burn
   for (const d of room.doors) if (d.seal?.sealed && touches(d.box, x, z, R)) blastSeal(d.seal);       // a vault's ward cracks
   for (const d of room.doors) if (d.secret && !d.secret.open && touches(d.box, x, z, R)) openSecret(d); // a cracked wall breaks open

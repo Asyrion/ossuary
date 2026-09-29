@@ -19,8 +19,9 @@ export const DROPS: Drop[] = [...ITEMS, 'coffer', 'chest'];
 
 /** A loot table: with `chance` (default always), `count` items (default one), each picked by weight. */
 export interface LootTable { chance?: number; count?: [number, number]; weights: Partial<Record<Item, number>> }
-export type TableName = 'urn' | 'sealedUrn' | 'coffer' | 'chest' | 'vaultHoard' | 'secretHoard';
-export const TABLES: TableName[] = ['urn', 'sealedUrn', 'coffer', 'chest', 'vaultHoard', 'secretHoard'];
+/** `remains` and `bundle`: what bone piles, skull heaps (poorer than an urn) and grave sacks leave (M3.6). */
+export type TableName = 'urn' | 'sealedUrn' | 'coffer' | 'chest' | 'vaultHoard' | 'secretHoard' | 'remains' | 'bundle';
+export const TABLES: TableName[] = ['urn', 'sealedUrn', 'coffer', 'chest', 'vaultHoard', 'secretHoard', 'remains', 'bundle'];
 
 /** What the merchant sells: an artifact, or an item. */
 export type Ware = 'artifact' | Item;

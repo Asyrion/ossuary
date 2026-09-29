@@ -16,6 +16,7 @@ import { inflict } from '../magic/statusFx';
 import { riseMote } from '../magic/shapes';
 import type { StatusKind } from '../magic/spellData';
 import { poolsOf } from './templates';
+import { burnPropsAt } from './props';
 
 const C = CFG.surface;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, ICE = 0xbfe6ff, SPARK = 0xf0e890, WATER = 0x5a8a9a;
@@ -46,6 +47,18 @@ export function buildPools(room: Room) {
     dress(p); room.group.add(mesh); room.pools.push(p);
     for (const t of tiles) room.poolGrid[t.r][t.c] = p;
   }
+}
+
+/** A new pool poured into the room while it is played (a broken oil cask's spill): its tiles become the pool's. */
+export function addPool(room: Room, kind: Pool['kind'], tiles: { c: number; r: number }[]) {
+  if (!tiles.length) return;
+  const { minX, minZ } = room.bounds;
+  room.pools ??= []; room.poolGrid ??= room.template.tiles.map(row => row.map(() => undefined));
+  const { mesh, mat } = poolMesh(room, tiles);
+  const p: Pool = { kind, tiles: tiles.map(t => ({ ...t, x: minX + t.c + .5, z: minZ + t.r + .5 })), state: 'still', t: 0, charged: 0, tick: 0, mesh, mat };
+  dress(p); room.group.add(mesh); room.pools.push(p);
+  for (const t of tiles) { room.poolGrid[t.r][t.c] = p; room.template.tiles[t.r][t.c] = kind; }
+  return p;
 }
 
 /** A flat mesh over the pool's tiles, its outline drawn as blurred circles joined up (an alpha map). */
@@ -114,6 +127,7 @@ const inPool = (p: Pool, x: number, z: number) => poolAt(x, z) === p;
 
 /** Fire reaches (x, z) and `r` around it: oil there catches alight, ice melts. */
 export function fireAt(x: number, z: number, r = 0) {
+  burnPropsAt(x, z, r); // roots, briars, cobwebs and sacks catch; glowcap spores flash
   for (const p of poolsNear(x, z, r)) {
     if (p.kind === 'oil' && p.state === 'still') ignite(p);
     else if (p.state === 'frozen') { p.state = 'still'; dress(p); Sfx.at(x, z).thaw(); for (const t of p.tiles) burst(t.x, .15, t.z, WATER, 2, 1.2, .04); }
@@ -143,7 +157,9 @@ export function shockAt(x: number, z: number, from?: Enemy) {
 /** A status landed on a foe: what it does to the pool the foe stands in (Burn lights oil, Chill freezes water,
     Shock runs through it). */
 export function touchPools(e: Enemy, kind: StatusKind) {
-  if (e.flying || !G.current.pools?.length) return;
+  if (e.flying) return;
+  if (kind === 'burn') burnPropsAt(e.x, e.z, .5); // a burning foe sets what burns beside it alight
+  if (!G.current.pools?.length) return;
   if (kind === 'burn') fireAt(e.x, e.z);
   else if (kind === 'chill') frostAt(e.x, e.z);
   else shockAt(e.x, e.z, e);

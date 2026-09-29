@@ -15,6 +15,7 @@ import { scene } from '../render/renderer';
 import { basicMat, blob, glowShared, markShared, sphereGeo } from '../render/materials';
 import { blockers, boxAt } from '../world/collision';
 import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
+import { strikeProp } from '../world/props';
 import { hollowRing } from '../world/secret';
 import { strikeWisp } from '../world/shrine';
 import { shootDir } from '../input';
@@ -129,6 +130,7 @@ export function strikeSolid(room: Room, box: Box, x: number, y: number, z: numbe
   if (door?.secret) hollowRing(door, x, z);                                               // a cracked wall rings hollow
   const rock = box as RockBox;
   if (rock.urn) strikeUrn(room, rock, false);                                             // any bolt breaks an urn
+  else if (rock.prop) strikeProp(room, rock, false);                                      // piles, casks and glowcaps break
   return rock;
 }
 
@@ -173,7 +175,7 @@ export function updateBolts(dt: number) {
     const box = !kill && !(b.path === 'boomerang' && b.returning) ? boxAt(b.x, b.z, solids) : undefined;
     if (box) {
       const rock = strikeSolid(room, box, b.x, b.y, b.z);
-      if (!rock.urn && breaker && !b.spell && room.rocks.includes(rock)) hitRock(room, rock); // Mason's Chisel cracks rocks
+      if (!rock.urn && !rock.prop && breaker && !b.spell && room.rocks.includes(rock)) hitRock(room, rock); // Mason's Chisel cracks rocks
       if (b.path === 'bounce' && b.bounces > 0) {
         // reflect on the axis that ran into the box, from the last free position
         const hitX = !!boxAt(b.x, oz, solids), hitZ = !!boxAt(ox, b.z, solids);
