@@ -16,6 +16,7 @@ import { FLOORS, type PlannedRoom } from './generate';
 import { OPPOSITE, SHAPES, SIDE_DIR, cellHalfExtents, shapeMask, shapeSize } from './shapes';
 import { TEMPLATES, growPuddles, parseTemplate, tombRuns } from './templates';
 import { buildPools } from './pools';
+import { chargeRunes } from './mechanisms';
 import { rollTable } from '../items/loot';
 import { spawnPickup } from '../items/pickups';
 import { buildShop } from '../items/merchant';
@@ -71,6 +72,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   }));
   for (const run of tombRuns(template)) addTomb(room, run);
   buildProps(room); // bone piles, casks, roots, briars, cobwebs, glowcaps, pews (M3.6)
+  if (theme?.twist === 'rime') chargeRunes(room, 'chill'); // the frozen mausoleum's rune stones hold frost
   dressTheme(room); // a themed room's scatter: candles, pages, moss, bedrolls, daylight...
   mergePits(room); buildPools(room);
   room.waves = template.waves.map(wv => wv.map(f => ({ kind: f.kind, ...toWorld(room, f.c, f.r) })));

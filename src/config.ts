@@ -64,6 +64,9 @@ export const CFG = {
     kindle: .6, brazierBurn: 3, blessCasts: 6, blessMul: 1.6, bellStun: 1.8, bellCooldown: 7,
     runeEvery: 2.2, runeReach: 2.4, runeAmount: 1, lodeCatch: 1.3, lodeReach: 8, lodeDamage: 5, lodeCooldown: 1.2,
     censerReach: 1, censerDamage: 10, censerBurn: 3, censerSpill: 2, rimeGrip: 3.5,
+    // how close a bolt passes to catch a brazier's fire or cut a censer's chain; a status to charge a rune stone; fire
+    // to thaw an entombed foe; how wide a lodestone's arc hurts (plus a foe's radius); a falling censer hurts the mage
+    brazierCatch: .45, censerCatch: .35, runeCatch: .9, thawReach: 1.2, lodeWidth: .6, censerHitsMage: .7,
   },
   themes: { wakeReach: 2.6, riseAfter: 10, riseEvery: 6, riseMost: 3, pageChance: .3, caveReach: 3.5, caveStones: 3, caveDelay: .8, caveDamage: 8 },
   // the library: how close the mage must come to a page, the gap between lecterns, and how far into the room

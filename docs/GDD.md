@@ -515,7 +515,7 @@ Fire spreads between what burns, and lights oil; anything that burns or blasts (
 | Collapsed crypt | 2, 3 | Rubble, roots, a shaft of daylight | A glyph's blast brings stones down round it a moment later, shadows first, hurting what they land on and leaving rubble |
 | Embalmers' hall | 3 | Slabs with shrouded dead, oil casks, oil | One spark and the room burns |
 | Bell chamber | 1, 3 | A bronze bell (two in the long hall), pillars | Ring the bell and every foe reels |
-| Frozen mausoleum | 2 | Tombs, rune stones, frozen water, rime on the floor, pale stone | Its dead wait in ice until struck or thawed by fire; the rime lets the mage slide |
+| Frozen mausoleum | 2 | Tombs, rune stones that hold frost, frozen water, rime on the floor, pale stone | Its dead wait in ice until struck or thawed by fire; its stones chill foes near them; the rime lets the mage slide |
 | Reliquary gallery | 1, 2 | Candle stands round a sealed reliquary, bays in its walls | Light every candle stand and the reliquary opens |
 | Cloister garth | 2, 3 | A dead tree, briars, roots and braziers under the open sky | Braziers set bolts alight; the tree and the briars burn |
 

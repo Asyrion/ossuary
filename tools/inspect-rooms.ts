@@ -45,7 +45,7 @@ function isOutsideShape(shape: string, c: number, r: number) { return shape === 
 
 type Hooks = { __manual: boolean; __game: Record<string, unknown> & {
   warp(id: number): void; clearRoom(): void; sim(s: number, draw?: boolean): void; prop(kind: string, x: number, z: number): boolean; rooms(): { plan: { id: number } }[];
-  current: { cx: number; cz: number; bounds: { minX: number; minZ: number }; walls: unknown[]; torches: unknown[]; props?: unknown[]; theme?: { id: string }; plan: { doors: { shift?: number }[] } };
+  current: { cx: number; cz: number; bounds: { minX: number; minZ: number }; walls: unknown[]; torches: unknown[]; props?: unknown[]; theme?: { id: string }; plan: { doors: { shift?: number }[] }; template: { tiles: string[][] } };
   player: { x: number; z: number; invuln: number };
 } };
 
@@ -60,14 +60,25 @@ async function take(page: Page, s: Shot, errors: string[]) {
     if (kind === 'floor') return g.rooms().map(r => r.plan.id);
     g.warp(1); g.clearRoom(); g.player.invuln = 99;
     if (kind === 'props') (kinds as string[]).forEach((k, i) => g.prop(k, g.current.bounds.minX + .5 + (i % 7) * 2, g.current.bounds.minZ + 1.5 + Math.floor(i / 7) * 2));
-    g.player.x = g.current.cx; g.player.z = g.current.cz + 1.5; g.sim(1, true);
+    // the mage on the open floor tile nearest a little south of the middle (an L's middle can be outside it)
+    let best = { x: g.current.cx, z: g.current.cz + 1.5 }, bd = 1e9;
+    g.current.template.tiles.forEach((row, r) => row.forEach((k, c) => {
+      const x = g.current.bounds.minX + c + .5, z = g.current.bounds.minZ + r + .5, d = Math.hypot(x - g.current.cx, z - g.current.cz - 1.5);
+      if (k === 'floor' && d < bd) { bd = d; best = { x, z }; }
+    }));
+    g.player.x = best.x; g.player.z = best.z; g.sim(1); g.player.invuln = 0; g.sim(.02, true); // (invulnerable, the mage blinks)
     return [{ walls: g.current.walls.length, torches: g.current.torches.length, props: g.current.props?.length ?? 0, theme: g.current.theme?.id ?? '', shifted: g.current.plan.doors.filter(d => d.shift).length }];
   }, [s.kind, PROP_KINDS] as const);
   if (s.kind === 'floor') {
     for (const id of rooms as number[]) {
       const info = await page.evaluate(id => {
         const g = (window as unknown as Hooks).__game; g.warp(id); g.clearRoom(); g.player.invuln = 99;
-        g.player.x = g.current.cx; g.player.z = g.current.cz + 1.5; g.sim(1, true);
+        let best = { x: g.current.cx, z: g.current.cz + 1.5 }, bd = 1e9;
+        g.current.template.tiles.forEach((row, r) => row.forEach((k, c) => {
+          const x = g.current.bounds.minX + c + .5, z = g.current.bounds.minZ + r + .5, d = Math.hypot(x - g.current.cx, z - g.current.cz - 1.5);
+          if (k === 'floor' && d < bd) { bd = d; best = { x, z }; }
+        }));
+        g.player.x = best.x; g.player.z = best.z; g.sim(1); g.player.invuln = 0; g.sim(.02, true);
         return { walls: g.current.walls.length, torches: g.current.torches.length, props: g.current.props?.length ?? 0, theme: g.current.theme?.id ?? '', shifted: g.current.plan.doors.filter(d => d.shift).length };
       }, id);
       const f = join(outDir, `${s.name}-room${id}.png`); await page.screenshot({ path: f }); files.push(f);

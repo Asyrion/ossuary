@@ -1441,15 +1441,18 @@ test('candle stands: all lit, a reliquary opens with its hoard and a chapel bles
     element(kind: string, x: number, z: number): void; burn(x: number, z: number, r?: number): void;
     player: { x: number; z: number; vx: number; vz: number; hp: number; maxHp: number; invuln: number; blessed: number; stats: { speed: number } };
   };
-  let errors = await start(page, '?room=reliquary_gallery');
+  let errors = await start(page, '?room=reliquary_gallery&variant=dark');
   const reliquary = await page.evaluate(() => {
-    const g = (window as unknown as { __game: G8 }).__game; g.warp(1); g.clearRoom(); g.player.invuln = 99; g.sim(.5);
-    const stands = g.props.filter(p => p.kind === 'candles'), pickups = g.pickups.length;
+    const g = (window as unknown as { __game: G8 & { lightLevels(): { hemi: number } } }).__game; g.warp(1); g.clearRoom(); g.player.invuln = 99; g.sim(2);
+    const dark = g.lightLevels().hemi, stands = g.props.filter(p => p.kind === 'candles'), pickups = g.pickups.length;
     for (const s of stands.slice(1)) g.element('burn', s.x, s.z);
     const sealed = g.props.some(p => p.kind === 'reliquary'); g.element('burn', stands[0].x, stands[0].z); g.sim(.2);
-    return { stands: stands.length, sealedWhileOneDark: sealed, opened: !g.props.some(p => p.kind === 'reliquary'), hoard: g.pickups.length - pickups };
+    const opened = !g.props.some(p => p.kind === 'reliquary'), hoard = g.pickups.length - pickups;
+    g.sim(2); const lifted = g.lightLevels().hemi;
+    g.warp(0); g.sim(1); g.warp(1); g.sim(2); // the dark stays away once the candles are lit
+    return { stands: stands.length, sealedWhileOneDark: sealed, opened, hoard, lifted: lifted > dark * 1.5, stays: g.lightLevels().hemi > dark * 1.5 };
   });
-  expect(reliquary).toMatchObject({ stands: 4, sealedWhileOneDark: true, opened: true });
+  expect(reliquary).toMatchObject({ stands: 4, sealedWhileOneDark: true, opened: true, lifted: true, stays: true });
   expect(reliquary.hoard).toBeGreaterThanOrEqual(2);
   expect(errors).toEqual([]);
 
@@ -1476,9 +1479,10 @@ test('candle stands: all lit, a reliquary opens with its hoard and a chapel bles
     g.keys.add('KeyD'); g.sim(.6); g.keys.delete('KeyD'); const v0 = g.player.vx; g.sim(.15); const glide = g.player.vx / v0;
     // fire thaws one out of its ice
     const thawed = foes[0]; g.burn(thawed.x, thawed.z, .3); g.sim(.1);
-    return { theme: g.current.theme?.id, count: foes.length, frozen, glide, thawed: !thawed.asleep && !thawed.entombed, othersStill: foes.slice(1).every(e => e.entombed) };
+    const runes = (g.props as unknown as { kind: string; school: string | null }[]).filter(p => p.kind === 'rune').map(p => p.school);
+    return { theme: g.current.theme?.id, count: foes.length, frozen, glide, thawed: !thawed.asleep && !thawed.entombed, othersStill: foes.slice(1).every(e => e.entombed), runes };
   });
-  expect(rime).toMatchObject({ theme: 'mausoleum', frozen: true, thawed: true, othersStill: true });
+  expect(rime).toMatchObject({ theme: 'mausoleum', frozen: true, thawed: true, othersStill: true, runes: ['chill', 'chill'] }); // its rune stones hold frost
   expect(rime.count).toBeGreaterThan(1);
   expect(rime.glide).toBeGreaterThan(.45); // on stone the mage stops within a few steps (under .15 of the speed)
   expect(errors).toEqual([]);
