@@ -283,24 +283,74 @@ only one way to get them.
 
 ## A hub between runs (owner's idea, 2026-09-29)
 
-The owner plans a place between runs where the mage does other things (a hub, a square, another plane), something
-like Moonlighter's town before its dungeon portals, and a bigger part of the game once the RPG layers come. Not
-designed yet; the GDD's Sanctum (M7) is the current placeholder for it. Spell knowledge (M3.7) is kept for it.
+The owner plans a place between runs where the mage does other things, and a bigger part of the game once the RPG
+layers come. The GDD's Sanctum (M7) is the current placeholder; spell knowledge (M3.7) is kept for it. Not designed
+yet: the concepts below are for choosing together. Names are placeholders within the lore limits.
 
-- **The loop:** what the mage brings up from the dungeon (relics, reagents, pages, the dead's remains) is sold,
-  traded or given to the hub's people, and investing in them opens new things, as Moonlighter's shops do.
-- **Its people** (placeholder roles, within the lore limits): a scribe who keeps the grimoire and can copy a known
-  page for the next run; a chandler or herbalist for potions and reagents (M5); a sexton who keeps the bestiary; the
-  Ferryman, who takes the mage down and, for obols, carries one thing across from one run to the next.
-- **Before a run:** buy one consumable (a potion, a scroll, a glyph stone) with what carries over; pick a
-  discipline (the starting loadouts); take a vow that makes the run harder for a better reward (like Hades' pact).
-- **What carries over:** a currency of its own (the GDD's Arcane Dust, or a share of the obols a run found, paid
-  as a tithe), knowledge, and unlocks.
-- **Permanent upgrades, the open question:** the GDD says unlocks widen the options but never make the mage
-  stronger. Moonlighter and Rogue Legacy do make the hero stronger over time, which changes the feel (early floors
-  get easy). A middle way: unlocks and bought consumables for a run, and at most a few small, capped boosts.
-- **The magic take:** the hub answers to the mage's magic too; a ward, a well or an altar there reacts to the
-  spells learned, and the Ferryman's crossing is the way down.
+**The owner's direction:**
+- **No copy of Moonlighter or Hades:** no shop where the mage sells loot. Magic and the arcane come first.
+- **Townspeople:** they will be the first NPCs, with a small dialogue system. They talk to the mage, tell what they
+  know, and give things.
+- **Permanent upgrades are allowed:** dungeons will grow bigger, more explorable and harder the deeper they go, which
+  offsets the easing that permanent upgrades bring. The GDD's "no permanent stat increases" rule gets revisited when
+  the hub is designed.
+
+### Concepts (each a whole shape for the hub)
+
+1. **The Unwritten Grimoire.** The hub is inside the mage's own spellbook, a pocket written into its pages, and it
+   grows by knowledge, not by coin.
+   - Every spell known opens a page-room: a study to try the spell on shades that fight back, read what the mage
+     knows of it, and later etch its runes (M6).
+   - Every school learned opens a wing in that school's colour.
+   - The townspeople are marginalia: voices written into the margins by the book's earlier owners, who remember
+     things.
+2. **The Vigil of the Freed.** A quiet, candle-lit crypt above the dungeon, where the dead the mage frees come to
+   rest.
+   - In runs the mage finds bound shades: in secret rooms, behind ordeals, in a boss's keeping.
+   - Released, a shade appears at the Vigil as a townsperson with its memories: one teaches a spell, one tells where
+     secret rooms hide, one remembers a recipe.
+   - Bound instead, it serves as a familiar for the next run only. That choice is the heart of it, and the hub grows
+     by who the mage has freed.
+3. **The Great Circle.** A vast ritual circle on the floor of a ruined nave. Between runs the mage inscribes sigils
+   into its rings with essence carried up from the dungeon:
+   - the ring of vows: a harder run, a better reward;
+   - the ring of gifts: a spell or a potion to start with;
+   - the ring of omens: which themes and schools the floors lean towards.
+
+   Sigils side by side combine, so placing them is a small puzzle. Stepping into the finished circle casts it, and
+   that is the way down.
+4. **The Orrery of Schools.** A great orrery where the five schools turn as spheres.
+   - The mage brings back resonance: stones charged, spells cast, foes of each school put to rest. It moves the
+     spheres.
+   - Two schools aligned make their reactions stronger in the next run; an eclipse opens something hidden (a sealed
+     wing, a new spell in the library's pool).
+   - Growth is more spheres and more rings.
+5. **The Refuge that answers to magic.** A small, half-ruined pocket that is itself a puzzle to unfold, like a
+   Metroidvania.
+   - A frozen stair melts only once an Ember spell is known; a flooded cellar needs Frost to cross; a sealed door
+     answers only to Storm.
+   - Every spell learned in the dungeon opens more of it, and every part opened holds a resident, a workshop or a
+     way down.
+6. **The Echoes.** Every run that ends leaves an echo of the mage in the hub: a pale figure holding what that run
+   carried. Speak to one to learn how it fell (a hint), take a faded copy of one of its artifacts into the next run
+   (weaker, one use), or lay it to rest for essence. The hub fills with the mage's own history.
+
+### Building blocks (fit any concept)
+
+- **The Ferryman's crossing** as the way down: he takes a toll, and what is paid decides where he lands the mage (a
+  deeper floor, a floor that leans to a theme).
+- **A garden of the dead:** what the mage carries up (grave moss, wisp essence, bone dust) is planted and grows over
+  runs into reagents (M5).
+- **The scribe's desk:** copy a known spell into a page to start the next run with (M3.7 knowledge).
+- **A currency that isn't coin:** essence (the GDD's Arcane Dust), or the souls and echoes themselves.
+- **Townspeople and dialogue:** a few lines each, a choice or two, and what they say depends on what the mage has
+  found. They tell bestiary lore, where secret rooms hide and what a boss fears. They give small quests that send the
+  mage into the bigger dungeons ("bring back my ring from the drowned floor"), and open something when helped. Each
+  concept gives them a reason to be there: marginalia, freed dead, keepers of the rite, the mage's own echoes.
+
+**A first pick to talk over:** the Vigil of the Freed (2) as the heart. It gives the townspeople and the dialogue
+their reason, and ties the hub to the dungeon's dead. Add the Refuge's unfolding (5) as its magic take, the Great
+Circle's vows and gifts (3) as the choice before a run, and the Ferryman's crossing as the way down.
 
 ## Costumes (play-test, 2026-09-28)
 
