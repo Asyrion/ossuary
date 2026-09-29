@@ -1,0 +1,28 @@
+{
+  "props": {
+    "urn": {
+      "file": "props/urn.glb",
+      "height": 0.6
+    },
+    "pedestal": {
+      "file": "props/pedestal.glb",
+      "height": 0.7
+    }
+  },
+  "artifacts": {
+    "ember_sigil": {
+      "file": "artifacts/ember_sigil.glb",
+      "height": 0.4
+    }
+  },
+  "floors": {
+    "crypt": {
+      "floor": "textures/crypt/floor.jpg"
+    }
+  },
+  "icons": {
+    "ember_sigil": {
+      "file": "icons/ember_sigil.png"
+    }
+  }
+}

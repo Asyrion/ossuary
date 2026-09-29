@@ -1,0 +1,6 @@
+{
+  "props": { "urn": { "file": "props/missing.glb", "height": 0.6 }, "pedestal": { "file": "props/broken.glb", "height": 0.7 } },
+  "artifacts": {},
+  "floors": { "crypt": { "floor": "textures/crypt/missing.jpg" } },
+  "icons": { "ember_sigil": { "file": "icons/missing.png" } }
+}
