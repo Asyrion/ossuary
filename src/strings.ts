@@ -109,6 +109,10 @@ export const STR = {
   schools: { ember: 'Ember', frost: 'Frost', storm: 'Storm', hallow: 'Hallow', umbral: 'Umbral' } as Record<string, string>,
   spellKind: (school: string) => `${school} spell`,
   spellEffect: (text: string, mana: number, cooldown: number) => `${text}. ${mana} mana, every ${cooldown} s`,
+  /** Spell knowledge (M3.7). */
+  knowledge: {
+    knownWell: (name: string) => `You know ${name} well now: its lore and what it sets off`,
+  },
   manaLabel: (mana: number, max: number) => `Mana ${Math.round(mana)} of ${max}`,
   /** Reactions name themselves in the air; statuses as the training dummy lists them. */
   reactions: { shatter: 'Shatter', overload: 'Overload' } as Record<string, string>,
@@ -232,6 +236,8 @@ export const STR = {
   /** The dev menu (the key left of 1, or F2): for testing, not for players. */
   dev: {
     title: 'Dev menu', close: 'Close',
+    knowledge: 'Spell knowledge', knowAll: 'Know every spell', forgetKnowledge: 'Forget all knowledge',
+    knowledgeInfo: (seen: number, learned: number, used: number) => `Known: ${seen} seen, ${learned} learned, ${used} known well (kept between runs)`,
     /** On the HUD during play-tests, so the key isn't forgotten. */ hint: 'Dev menu: ` / ^ or F2',
     info: (seed: string, floor: number, room: number, type: string) => `Seed ${seed} · floor ${floor} · room ${room} (${type})`,
     mage: 'The mage', heal: 'Full heal', container: '+1 heart container', resetArtifacts: 'Reset artifacts',

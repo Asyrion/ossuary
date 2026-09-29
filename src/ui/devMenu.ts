@@ -23,6 +23,7 @@ import { openSecretRoom, revealCracks } from '../world/secret';
 import { cleanseAtOnce } from '../world/shrine';
 import { SPELL_DEFS } from '../magic/spellData';
 import { forgetSpells, gainMana, learnSpell } from '../magic/spells';
+import { forgetKnowledge, knowEvery, knowledgeNow } from '../magic/memory';
 import { dropPage } from '../magic/pages';
 import { poolsDo } from '../world/pools';
 import { inflict } from '../magic/statusFx';
@@ -33,7 +34,7 @@ import { renderHearts, renderMinimap, toast } from './hud';
 
 const S = STR.dev;
 let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement;
-let spellSlot = 0;
+let spellSlot = 0, knowBox: HTMLElement;
 let wasPlaying = false, keepCarried = true;
 
 export const devOpen = () => !!panel && !panel.hidden;
@@ -142,6 +143,9 @@ function build() {
     btn(S.forget, () => forgetSpells()),
     btn(S.page, () => { if (!dropPage(G.current, player.x, player.z - 1.5)) toast(S.noPage, 2); }),
   );
+  // spell knowledge (M3.7): kept between runs in this browser
+  const know = section(p, S.knowledge);
+  know.append(knowBox = el('p', 'dv-info'), btn(S.knowAll, () => { knowEvery(); refresh(); }), btn(S.forgetKnowledge, () => { forgetKnowledge(); refresh(); }));
   // water and oil in this room (the test rooms with them are in the list above)
   const pools = section(p, S.pools);
   pools.append(btn(S.ignite, () => poolsDo('fire')), btn(S.freezeWater, () => poolsDo('frost')), btn(S.shockWater, () => poolsDo('shock')));
@@ -207,6 +211,8 @@ function refresh() {
   moveBtn.textContent = S.moveClip[DEV.moveClip]; moveBtn.classList.toggle('on', DEV.moveClip !== 'run');
   doorBtn.textContent = S.doors[DEV.doors]; doorBtn.classList.toggle('on', DEV.doors !== 'data');
   manaBtn.textContent = DEV.mana ? S.manaOn : S.manaOff; manaBtn.classList.toggle('on', DEV.mana);
+  const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
+  knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'));
   spellBox.replaceChildren(...SPELL_DEFS.map(s => {
     const b = btn(s.name, () => learnSpell(s.id, spellSlot), `${STR.schools[s.school]}: ${s.text}`);
     const dot = el('i'); dot.style.background = s.color; b.prepend(dot);
