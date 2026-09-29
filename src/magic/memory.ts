@@ -12,6 +12,8 @@ function save() { try { localStorage.setItem(KEY, JSON.stringify(kn)); } catch {
 
 /** How well the mage knows spell `id`. */
 export const stage = (id: string): Stage => stageOf(kn[id], C.usedCasts);
+/** Times cast, over all runs. */
+export const castsOf = (id: string) => kn[id]?.casts ?? 0;
 /** Its page was approached: returns whether it was seen for the first time. */
 export function sawSpell(id: string) { const now = see(kn, id); if (now) save(); return now; }
 /** A page of it was taken (or the dev menu taught it). */

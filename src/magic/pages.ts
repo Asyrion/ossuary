@@ -21,6 +21,9 @@ import { freeSpotNear } from '../world/rooms';
 import { SIDE_DIR } from '../world/shapes';
 import { riseMote } from './shapes';
 import { learnSpell } from './spells';
+import { castsOf, sawSpell, stage } from './memory';
+import { spellSheet } from '../ui/spellPanel';
+import { camera, canvas } from '../render/renderer';
 import { pickPages, shelfPages, spell } from './spellData';
 
 const C = CFG.library;
@@ -288,4 +291,38 @@ export function updatePages(dt: number, now: number) {
 }
 
 /** A new floor or run: nothing asking. */
-export function clearPages() { stopAsking(); }
+export function clearPages() { stopAsking(); hidePagePanel(); }
+
+/* ---------- the panel over a page (M3.7) ---------- */
+
+const panelAt = new THREE.Vector3();
+let shown: { page: Page; stage: string } | null = null;
+/** The nearest page within reach gets a panel over it at the spell's stage; the first time a page is near, its spell
+    is seen. Every step while playing (it follows the page on screen as the camera moves). */
+export function updatePagePanel() {
+  const el = document.getElementById('pagePanel'); if (!el) return;
+  let near: Page | null = null, best = CFG.knowledge.pageReach + player.r;
+  for (const p of G.current.pages ?? []) {
+    if (p.gone) continue;
+    const d = Math.hypot(player.x - p.x, player.z - p.z); if (d < best) { best = d; near = p; }
+  }
+  if (!near) { hidePagePanel(); return; }
+  sawSpell(near.spell);
+  const st = stage(near.spell);
+  if (shown?.page !== near || shown.stage !== st) { el.innerHTML = spellSheet(spell(near.spell), st, '', castsOf(near.spell)); shown = { page: near, stage: st }; }
+  // over the page if there is room above it on screen, otherwise beside it (the mage comes from below: never there)
+  const r = canvas.getBoundingClientRect(), w = el.offsetWidth, h = el.offsetHeight;
+  panelAt.set(near.x, near.kind === 'loose' ? 1.1 : 1.8, near.z).project(camera);
+  const px = r.left + (panelAt.x + 1) / 2 * r.width, py = r.top + (1 - panelAt.y) / 2 * r.height;
+  let x = Math.max(r.left + w / 2 + 8, Math.min(r.right - w / 2 - 8, px)), y = py - h - 6;
+  if (y < r.top + 8) {
+    // on its outer side (a row of pages across the room keeps its neighbours in sight), if that side has room
+    const left = px - 56 - w >= r.left + 8, right = px + 56 + w <= r.right - 8, outerLeft = px < r.left + r.width / 2;
+    x = (outerLeft ? left || !right : !right && left) ? px - 56 - w / 2 : px + 56 + w / 2;
+    y = Math.max(r.top + 8, Math.min(r.bottom - h - 8, py - 24));
+  }
+  el.style.left = `${x}px`; el.style.top = `${y}px`; el.classList.add('on');
+}
+export function hidePagePanel() { shown = null; document.getElementById('pagePanel')?.classList.remove('on'); }
+/** The spell whose panel shows, if any (tests). */
+export const pagePanelSpell = () => shown?.page.spell ?? null;

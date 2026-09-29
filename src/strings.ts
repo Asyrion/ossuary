@@ -112,6 +112,16 @@ export const STR = {
   /** Spell knowledge (M3.7). */
   knowledge: {
     knownWell: (name: string) => `You know ${name} well now: its lore and what it sets off`,
+    /** What a spell's panel says of what isn't known yet. */
+    seenOnly: 'Take its page to learn more of it.',
+    castMore: (n: number) => `Cast it ${n} more time${n === 1 ? '' : 's'} to know it well.`,
+    sets: 'What it sets off',
+    /** A reaction the spell can set off, with the school whose status completes it. */
+    reaction: (name: string, school: string, what: string) => `${name}, with ${school}: ${what}`,
+    reactionText: {
+      shatter: 'a frozen foe shocked, or a shocked foe frozen, bursts into shards',
+      overload: 'a burning foe shocked, or a shocked foe set alight, explodes',
+    } as Record<string, string>,
   },
   manaLabel: (mana: number, max: number) => `Mana ${Math.round(mana)} of ${max}`,
   /** Reactions name themselves in the air; statuses as the training dummy lists them. */
@@ -199,9 +209,9 @@ export const STR = {
     cooldown: (s: number) => `every ${s} s`, damage: (d: number) => `${d} damage`,
     status: { burn: (v: number) => `Burn ${v} s`, chill: (v: number) => `Chill ×${v}`, shock: (v: number) => `Shock ${v} s` } as Record<string, (v: number) => string>,
     statusText: {
-      burn: 'Burn: damage over time. Shocked, a burning foe explodes (Overload).',
-      chill: 'Chill: each stack slows; the third freezes, and a frozen foe takes more damage. Shocked, it shatters (Shatter).',
-      shock: 'Shock: a brief stun, and the next hit leaps to a foe nearby. On a burning foe: Overload; on a frozen one: Shatter.',
+      burn: 'Burn: damage over time.',
+      chill: 'Chill: each stack slows; the third freezes, and a frozen foe takes more damage.',
+      shock: 'Shock: a brief stun, and the next hit leaps to a foe nearby.',
     } as Record<string, string>,
     stat: {
       damage: 'Damage', damageMul: 'Damage', fireDelayMul: 'Time between casts', speed: 'Speed', speedMul: 'Speed',
