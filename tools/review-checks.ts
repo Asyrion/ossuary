@@ -100,4 +100,4 @@ for (const r of order) {
 }
 if (!Object.keys(found).length) console.log('no hints');
 console.log(tests);
-console.log(`files for the adversarial read (rule 12): ${files.filter(f => /^src\/.*\.ts$/.test(f)).join(' ') || 'none'}`);
+console.log(`files for the adversarial read (rule 12): ${files.filter(f => /^(src|tools)\/.*\.ts$/.test(f)).join(' ') || 'none'}`);
