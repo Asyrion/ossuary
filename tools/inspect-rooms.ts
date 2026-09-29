@@ -53,6 +53,7 @@ async function take(page: Page, s: Shot, errors: string[]) {
   const files: string[] = [];
   await page.goto(new URL(s.query, BASE).href);
   await page.waitForFunction(() => !!(window as unknown as Hooks).__game, null, { timeout: 30000 });
+  await page.addStyleTag({ content: '#banner, #lore { display: none !important; }' }); // the floor's title and lore cards would cover the room
   await page.click('#btnStart');
   const rooms = await page.evaluate(([kind, kinds]) => {
     const w = window as unknown as Hooks, g = w.__game; w.__manual = true;

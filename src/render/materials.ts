@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { FloorLook } from '../types';
 import { brickTexture, glowTex, shadowTex } from './textures';
 
@@ -91,6 +92,33 @@ export function glow(color: number, size: number, opacity = 1) {
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false }));
   s.scale.set(size, size, 1); return s;
 }
+/** Fewer draw calls for an object built from many small meshes: its still meshes that share a material are joined into
+    one mesh each. The parts named in `root.userData.parts` (flames, glows, a bell's swing...) and everything under them
+    stay as they are, and so do sprites. Build the object at the origin, then call this, then place it. */
+export function mergeStill(root: THREE.Object3D) {
+  const keep = new Set<THREE.Object3D>(Object.values((root.userData.parts ?? {}) as Record<string, THREE.Object3D>));
+  root.updateMatrixWorld(true);
+  const toRoot = root.matrixWorld.clone().invert(), byMat = new Map<THREE.Material, THREE.Mesh[]>();
+  const walk = (o: THREE.Object3D) => {
+    if (keep.has(o)) return;
+    const m = o as THREE.Mesh;
+    if (m.isMesh && !(o as THREE.Sprite).isSprite && !Array.isArray(m.material)) { // (one material: a geometry's groups don't matter)
+      const list = byMat.get(m.material) ?? []; list.push(m); byMat.set(m.material, list);
+    }
+    for (const c of o.children) walk(c);
+  };
+  walk(root);
+  for (const [mat, meshes] of byMat) {
+    if (meshes.length < 2) continue;
+    const geos = meshes.map(m => { const g = m.geometry.clone(); g.clearGroups(); g.applyMatrix4(toRoot.clone().multiply(m.matrixWorld)); return g; });
+    const merged = geos.every(g => g.index) || geos.every(g => !g.index) ? mergeGeometries(geos) : null;
+    for (const g of geos) g.dispose();
+    if (!merged) continue; // (attributes that don't match: leave them apart)
+    const one = new THREE.Mesh(merged, mat); one.renderOrder = meshes[0].renderOrder; root.add(one);
+    for (const m of meshes) { m.parent?.remove(m); if (!m.geometry.userData.shared) m.geometry.dispose(); }
+  }
+}
+
 /** Free the GPU resources of a removed object tree: every geometry and material not flagged shared.
     Textures are left alone (they are shared or cached elsewhere). */
 export function disposeTree(obj: THREE.Object3D) {

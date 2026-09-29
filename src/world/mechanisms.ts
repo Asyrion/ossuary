@@ -56,7 +56,7 @@ const GEO = {
   leg: shared(new THREE.CylinderGeometry(.025, .03, .6, 5)), bowl: shared(new THREE.CylinderGeometry(.32, .16, .2, 10, 1, true)), coals: shared(new THREE.SphereGeometry(.26, 10, 4, 0, Math.PI * 2, 0, Math.PI / 2)),
   rim: shared(new THREE.TorusGeometry(.32, .03, 4, 16)), ember: shared(new THREE.SphereGeometry(.04, 5, 3)),
   flame: shared(new THREE.ConeGeometry(.2, .5, 7)), small: shared(new THREE.ConeGeometry(.03, .08, 5)), candle: shared(new THREE.CylinderGeometry(.04, .045, .2, 6)),
-  pole: shared(new THREE.CylinderGeometry(.03, .04, 1.1, 6)), dish: shared(new THREE.CylinderGeometry(.22, .18, .04, 10)), foot: shared(new THREE.CylinderGeometry(.2, .24, .06, 10)),
+  pole: shared(new THREE.CylinderGeometry(.03, .04, .72, 6)), dish: shared(new THREE.CylinderGeometry(.22, .18, .04, 10)), foot: shared(new THREE.CylinderGeometry(.2, .24, .06, 10)),
   post: shared(new THREE.BoxGeometry(.12, 1.7, .12)), beam: shared(new THREE.BoxGeometry(1.1, .12, .14)),
   bell: shared(new THREE.LatheGeometry([[0, .62], [.12, .6], [.2, .5], [.23, .25], [.3, .08], [.36, 0], [.33, 0], [0, .02]].map(([x, y]) => new THREE.Vector2(x, y)), 14)),
   stone: shared(new THREE.CylinderGeometry(.26, .36, 1.15, 5)), stroke: shared(new THREE.PlaneGeometry(.045, 1)),
@@ -83,13 +83,13 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
   },
   candles(R) { // an iron stand with a dish of candles; lit one by one by fire
     const g = new THREE.Group(), flames = new THREE.Group();
-    g.add(mesh(GEO.foot, MAT.iron, 0, .03, 0), mesh(GEO.pole, MAT.iron, 0, .6, 0), mesh(GEO.dish, MAT.iron, 0, 1.15, 0));
+    g.add(mesh(GEO.foot, MAT.iron, 0, .03, 0), mesh(GEO.pole, MAT.iron, 0, .42, 0), mesh(GEO.dish, MAT.iron, 0, .78, 0)); // waist-high: bolts fly over it
     for (let i = 0; i < 3; i++) {
       const a = i / 3 * Math.PI * 2 + R(), x = Math.cos(a) * .12, z = Math.sin(a) * .12, h = .7 + R() * .5;
-      const c = mesh(GEO.candle, MAT.wax, x, 1.17 + .1 * h, z); c.scale.y = h; g.add(c);
-      flames.add(mesh(GEO.small, MAT.flame, x, 1.2 + .2 * h + .04, z));
+      const c = mesh(GEO.candle, MAT.wax, x, .8 + .1 * h, z); c.scale.y = h; g.add(c);
+      flames.add(mesh(GEO.small, MAT.flame, x, .83 + .2 * h + .04, z));
     }
-    const gl = glow(0xffc36a, 1, .7); gl.position.y = 1.4; flames.add(gl);
+    const gl = glow(0xffc36a, 1, .7); gl.position.y = 1.03; flames.add(gl);
     flames.visible = false; g.add(flames, blob(.6));
     return withParts(g, { flames });
   },

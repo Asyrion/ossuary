@@ -24,13 +24,15 @@ const FIRE = 0xff7a2a, EMBER = 0xffc060, ICE = 0xbfe6ff, SPARK = 0xf0e890, WATER
 
 /** How each state looks: colour, glow, gloss and opacity over the floor. */
 const LOOK = {
-  water: { color: 0x2a5a6a, emissive: 0x0a2430, roughness: .08, metalness: .45, opacity: .78 },
+  water: { color: 0x2a5a6a, emissive: 0x0a2430, roughness: .38, metalness: .25, opacity: .78 }, // (rough enough that a torch's glint doesn't read as a wisp)
   frozen: { color: 0xc4e6f6, emissive: 0x2a4e6e, roughness: .2, metalness: .1, opacity: .9 },
   oil: { color: 0x1a1410, emissive: 0x160c1c, roughness: .04, metalness: .6, opacity: .94 },
   burning: { color: 0x2a1208, emissive: 0xff6a1a, roughness: .7, metalness: 0, opacity: .96 },
 };
 function dress(p: Pool) {
   const L = p.state === 'frozen' ? LOOK.frozen : p.state === 'burning' ? LOOK.burning : p.kind === 'water' ? LOOK.water : LOOK.oil;
+  const surface = p.state === 'frozen' ? p.mat.userData.ice as THREE.Texture : p.mat.userData.detail as THREE.Texture; // ice is cracked, not rippled
+  if (surface && p.mat.map !== surface) { p.mat.map = surface; p.mat.emissiveMap = surface; }
   p.mat.color.setHex(L.color); p.mat.emissive.setHex(L.emissive); p.mat.roughness = L.roughness; p.mat.metalness = L.metalness; p.mat.opacity = L.opacity;
   p.mat.userData.emissive = L.emissive;
 }
@@ -79,7 +81,9 @@ function poolMesh(room: Room, tiles: { c: number; r: number }[]) {
   }
   const alpha = floorOwnedTexture(new THREE.CanvasTexture(cv));
   const detail = floorOwnedTexture(detailTexture().clone()); detail.repeat.set(w / 2, h / 2); detail.needsUpdate = true;
+  const ice = floorOwnedTexture(iceTexture().clone()); ice.repeat.copy(detail.repeat); ice.needsUpdate = true;
   const mat = new THREE.MeshStandardMaterial({ alphaMap: alpha, map: detail, emissiveMap: detail, transparent: true, depthWrite: false });
+  mat.userData.detail = detail; mat.userData.ice = ice;
   const geo = new THREE.PlaneGeometry(w, h).rotateX(-Math.PI / 2);
   const mesh = new THREE.Mesh(geo, mat); mesh.renderOrder = 1;
   mesh.position.set(room.bounds.minX + c0 - .5 + w / 2 - room.cx, .01, room.bounds.minZ + r0 - .5 + h / 2 - room.cz);
@@ -105,6 +109,28 @@ function detailTexture() {
   for (let i = 0; i < 14; i++) { const x = rnd() * 128, y = rnd() * 128, r = 4 + rnd() * 10; g.beginPath(); g.arc(x, y, r, rnd() * 3, rnd() * 3 + 2); g.stroke(); }
   detailTex = new THREE.CanvasTexture(c); detailTex.wrapS = detailTex.wrapT = THREE.RepeatWrapping; detailTex.colorSpace = THREE.SRGBColorSpace;
   return detailTex;
+}
+
+/** Pale cracks that tile: the surface of frozen water. */
+let iceTex: THREE.CanvasTexture | null = null;
+function iceTexture() {
+  if (iceTex) return iceTex;
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d')!;
+  g.fillStyle = '#8e8e8e'; g.fillRect(0, 0, 128, 128);
+  let seed = 23; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 40; i++) { // frosted patches
+    const x = rnd() * 128, y = rnd() * 128, rad = 8 + rnd() * 20, gr = g.createRadialGradient(x, y, 0, x, y, rad);
+    gr.addColorStop(0, 'rgba(255,255,255,.14)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+  }
+  g.strokeStyle = 'rgba(255,255,255,.65)'; g.lineWidth = 1.4; // cracks: short jagged runs, some branching
+  for (let i = 0; i < 16; i++) {
+    let x = rnd() * 128, y = rnd() * 128, a = rnd() * Math.PI * 2;
+    g.beginPath(); g.moveTo(x, y);
+    for (let k = 0; k < 5; k++) { a += (rnd() - .5) * 1.2; x += Math.cos(a) * (5 + rnd() * 8); y += Math.sin(a) * (5 + rnd() * 8); g.lineTo(x, y); }
+    g.stroke();
+  }
+  iceTex = new THREE.CanvasTexture(c); iceTex.wrapS = iceTex.wrapT = THREE.RepeatWrapping; iceTex.colorSpace = THREE.SRGBColorSpace;
+  return iceTex;
 }
 
 /* ---------- where things stand ---------- */

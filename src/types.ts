@@ -20,7 +20,7 @@ export interface Circle { x: number; z: number; r: number }
 type RGB = [number, number, number];
 /** How a floor looks: placeholder variety until the biome pass (M8). Lives in data/floors.json. */
 /** What a niche in a dressed wall holds (world/dressing.ts). */
-export type NicheKind = 'skull' | 'candle' | 'urn' | 'bones' | 'empty';
+export type NicheKind = 'skull' | 'candle' | 'urn' | 'bones' | 'bell' | 'empty';
 /** How a floor dresses its tall walls: a pilaster every `pilaster` tiles (0: none), and what niches hold, by weight. */
 export interface WallDress { pilaster: number; niches: Partial<Record<NicheKind, number>> }
 export interface FloorLook {

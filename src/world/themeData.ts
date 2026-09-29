@@ -17,8 +17,8 @@ import type { FloorLook } from '../types';
 export type Twist = 'none' | 'risingBones' | 'pages' | 'sleepers' | 'caveIn' | 'blessing' | 'rime';
 export const TWISTS: Twist[] = ['none', 'risingBones', 'pages', 'sleepers', 'caveIn', 'blessing', 'rime'];
 /** Dressing scattered over free floor, which never blocks. */
-export type ScatterKind = 'candles' | 'pages' | 'bones' | 'bedrolls' | 'embers' | 'moss' | 'glowmoss' | 'pebbles' | 'daylight' | 'stains' | 'rime' | 'leaves';
-export const SCATTER_KINDS: ScatterKind[] = ['candles', 'pages', 'bones', 'bedrolls', 'embers', 'moss', 'glowmoss', 'pebbles', 'daylight', 'stains', 'rime', 'leaves'];
+export type ScatterKind = 'candles' | 'pages' | 'bones' | 'bedrolls' | 'embers' | 'moss' | 'glowmoss' | 'pebbles' | 'daylight' | 'stains' | 'rime' | 'leaves' | 'ropes';
+export const SCATTER_KINDS: ScatterKind[] = ['candles', 'pages', 'bones', 'bedrolls', 'embers', 'moss', 'glowmoss', 'pebbles', 'daylight', 'stains', 'rime', 'leaves', 'ropes'];
 
 type LookPatch = { [K in keyof FloorLook]?: Partial<FloorLook[K]> };
 export interface ThemeDef {

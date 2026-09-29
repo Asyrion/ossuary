@@ -24,12 +24,14 @@ const G = {
   skull: geo(new THREE.SphereGeometry(.085, 8, 6)), jaw: geo(new THREE.BoxGeometry(.09, .04, .07)),
   candle: geo(new THREE.CylinderGeometry(.028, .032, .13, 6)), flame: geo(new THREE.ConeGeometry(.022, .06, 5)),
   urn: geo(new THREE.LatheGeometry([[0, 0], [.05, 0], [.075, .05], [.07, .11], [.04, .14], [.045, .16], [0, .16]].map(([x, y]) => new THREE.Vector2(x, y)), 8)),
-  bone: geo(new THREE.CylinderGeometry(.014, .014, .2, 5)), eye: geo(new THREE.SphereGeometry(.018, 6, 4)),
+  bone: geo(new THREE.CylinderGeometry(.014, .014, .2, 5)),
+  handbell: geo(new THREE.LatheGeometry([[0, .2], [.02, .2], [.02, .15], [.05, .13], [.07, .03], [.085, 0], [0, 0]].map(([x, y]) => new THREE.Vector2(x, y)), 10)), eye: geo(new THREE.SphereGeometry(.026, 6, 4)),
 };
 const dark = markShared(new THREE.MeshBasicMaterial({ color: 0x080605 }));
 const boneMat = markShared(new THREE.MeshStandardMaterial({ color: 0xcfc2a6, roughness: .8, emissive: 0x16110a }));
 const waxMat = markShared(new THREE.MeshStandardMaterial({ color: 0xe8dcc0, roughness: .6, emissive: 0x2a2010 }));
 const flameMat = markShared(new THREE.MeshBasicMaterial({ color: 0xffc36a }));
+const bronzeMat = markShared(new THREE.MeshStandardMaterial({ color: 0x8a6a3a, roughness: .45, metalness: .7, emissive: 0x1a1006 }));
 const clayMat = markShared(new THREE.MeshStandardMaterial({ color: 0x7a4a30, roughness: .85 }));
 const stoneCache = new Map<string, THREE.Material>();
 /** The dressing's stone: the floor's brick colour, a little lighter, so pilasters stand out from the wall. */
@@ -88,13 +90,15 @@ function niche(kind: NicheKind, R: () => number, frame: THREE.Material, eyes?: T
     const s = new THREE.Mesh(G.skull, boneMat); s.scale.set(1, .9, 1); s.position.set((R() - .5) * .1, on + .08, .06);
     const j = new THREE.Mesh(G.jaw, boneMat); j.position.set(s.position.x, on + .02, .08);
     g.add(s, j);
-    if (eyes) for (const dx of [-.032, .032]) { const e = new THREE.Mesh(G.eye, eyes); e.position.set(s.position.x + dx, on + .09, .135); g.add(e); }
+    if (eyes) for (const dx of [-.036, .036]) { const e = new THREE.Mesh(G.eye, eyes); e.position.set(s.position.x + dx, on + .09, .135); g.add(e); }
   } else if (kind === 'candle') {
     for (const dx of R() < .5 ? [0] : [-.09, .07]) {
       const c = new THREE.Mesh(G.candle, waxMat); c.position.set(dx, on + .065, .06);
       const f = new THREE.Mesh(G.flame, flameMat); f.position.set(dx, on + .16, .06);
       g.add(c, f);
     }
+  } else if (kind === 'bell') { // a small hand bell of bronze
+    const b = new THREE.Mesh(G.handbell, bronzeMat); b.position.set(0, on, .06); g.add(b);
   } else if (kind === 'urn') {
     const u = new THREE.Mesh(G.urn, clayMat); u.position.set(0, on, .06); g.add(u);
   } else if (kind === 'bones') {
