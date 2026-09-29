@@ -1479,6 +1479,24 @@ test('candle stands: all lit, a reliquary opens with its hoard and a chapel bles
   expect(knocked).toEqual({ stands: 3, opened: true });
   expect(errors).toEqual([]);
 
+  // with every stand knocked over, nothing holds the seal: the reliquary breaks open (and nothing else happens)
+  errors = await start(page, '?room=reliquary_gallery&variant=dark&loot=glyphs:4');
+  const spots = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G8 }).__game; g.warp(1); g.clearRoom(); g.player.invuln = 99; g.sim(.5);
+    return g.props.filter(p => p.kind === 'candles').map(p => ({ x: p.x + (p.x < g.current.cx ? .9 : -.9), z: p.z }));
+  });
+  for (const s of spots) {
+    await page.evaluate(q => { const g = (window as unknown as { __game: G8 }).__game; g.player.x = q.x; g.player.z = q.z; g.player.vx = g.player.vz = 0; g.sim(.05); }, s);
+    await page.keyboard.press('Space');
+    await page.evaluate(() => { const g = (window as unknown as { __game: G8 }).__game; g.sim(.05); g.player.x = g.current.cx; g.player.z = g.current.cz + 2; g.sim(3); });
+  }
+  const bare = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G8 & { current: { candlesLit?: boolean } } }).__game;
+    return { stands: g.props.filter(p => p.kind === 'candles').length, opened: !g.props.some(p => p.kind === 'reliquary'), lit: !!g.current.candlesLit };
+  });
+  expect(bare).toEqual({ stands: 0, opened: true, lit: false });
+  expect(errors).toEqual([]);
+
   errors = await start(page, '?room=chapel_nave');
   const blessing = await page.evaluate(() => {
     const g = (window as unknown as { __game: G8 }).__game; g.warp(1); g.clearRoom(); g.player.invuln = 99; g.sim(.5);

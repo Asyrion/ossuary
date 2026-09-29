@@ -202,10 +202,12 @@ function light(room: Room, box: PropBox) {
   if (p.kind === 'candles') checkCandles(room);
 }
 
-/** Every candle stand in the room lit: reliquaries open, the dark lifts, and a chapel blesses the mage's casts. */
+/** Every candle stand in the room lit: reliquaries open, the dark lifts, and a chapel blesses the mage's casts. With
+    every stand knocked over, nothing holds a reliquary's seal and it breaks open, but that is all. */
 function checkCandles(room: Room) {
   const stands = mechs(room, 'candles');
-  if (room.candlesLit || !stands.length || stands.some(b => !b.prop.lit)) return;
+  if (!stands.length) { for (const box of mechs(room, 'reliquary')) openReliquary(room, box); return; }
+  if (room.candlesLit || stands.some(b => !b.prop.lit)) return;
   room.candlesLit = true;
   Sfx.candlesLit();
   for (const box of mechs(room, 'reliquary')) openReliquary(room, box);
