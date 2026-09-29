@@ -25,7 +25,7 @@
 import { chromium } from '@playwright/test';
 import sharp from 'sharp';
 import { execSync, spawn } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, symlinkSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, join, resolve } from 'node:path';
 import { TEMPLATE_DEFS } from '../src/world/templates';
@@ -219,7 +219,9 @@ async function baseServer(ref: string) {
   const dir = mkdtempSync(join(tmpdir(), 'ossuary-base-')), port = 5299;
   execSync(`git worktree add -f --detach ${dir} ${ref}`, { stdio: 'ignore' });
   symlinkSync(resolve('node_modules'), join(dir, 'node_modules'));
-  const vite = spawn('npx', ['vite', '--port', String(port), '--strictPort'], { cwd: dir, stdio: 'ignore' });
+  // its node_modules lie outside it (a link to ours), which Vite won't serve unless told to
+  writeFileSync(join(dir, 'vite.base.tmp.ts'), `import cfg from './vite.config';\nexport default (env: any) => { const c: any = typeof cfg === 'function' ? (cfg as any)(env) : cfg; return { ...c, server: { ...(c.server ?? {}), fs: { strict: false } } }; };\n`);
+  const vite = spawn('npx', ['vite', '--port', String(port), '--strictPort', '--config', 'vite.base.tmp.ts'], { cwd: dir, stdio: 'ignore' });
   const url = `http://localhost:${port}/`;
   for (let i = 0; i < 60; i++) { try { if ((await fetch(url)).ok) break; } catch { /* not up yet */ } await new Promise(r => setTimeout(r, 1000)); }
   return { url, stop: () => { vite.kill(); execSync(`git worktree remove --force ${dir}`, { stdio: 'ignore' }); } };
