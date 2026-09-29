@@ -171,6 +171,12 @@ export const STR = {
       },
     } as Record<string, { name: string; kind: string; effect: string; lore: string }>,
   },
+  /** Mechanisms (M3.6): every candle stand lit. */
+  mech: {
+    blessed: (n: number) => `The candles bless your next ${n} casts`,
+    reliquary: 'The reliquary opens to the candle-light',
+    darkLifted: 'The candle-light drives off the dark',
+  },
   /** A themed room, the first time the mage enters it (M3.6; the names are in data/themes.json). */
   themeEntered: (name: string) => name,
   /** The inventory (I or Tab, the gamepad's View button, or from the pause menu): what the mage carries and knows. */
@@ -240,7 +246,8 @@ export const STR = {
     spells: 'Spells (click to learn into the slot)', slot: 'Slot', mana: 'Mana', fullMana: 'Full mana', manaOn: 'Endless mana: on', manaOff: 'Endless mana: off', forget: 'Forget spells',
     page: 'Drop a grimoire page', noPage: 'No spell left to learn',
     themes: 'Themed rooms (a test room of each)', objects: 'Objects (put down ahead)', noRoom: 'No free floor there',
-    propNames: { bones: 'Bone pile', skulls: 'Skull heap', sacks: 'Grave sacks', cask: 'Oil cask', rubble: 'Rubble', roots: 'Grave roots', briar: 'Thorn briar', web: 'Cobwebs', glowcap: 'Glowcaps', pew: 'Pew', desk: 'Desk', scrolls: 'Scroll heap' } as Record<string, string>,
+    propNames: { bones: 'Bone pile', skulls: 'Skull heap', sacks: 'Grave sacks', cask: 'Oil cask', rubble: 'Rubble', roots: 'Grave roots', briar: 'Thorn briar', web: 'Cobwebs', glowcap: 'Glowcaps', pew: 'Pew', desk: 'Desk', scrolls: 'Scroll heap', brazier: 'Brazier', candles: 'Candle stand', bell: 'Bell', rune: 'Rune stone', lodestone: 'Lodestone', censer: 'Hanging censer', reliquary: 'Reliquary', tree: 'Dead tree' } as Record<string, string>,
+    kindle: 'Fire ahead', frost: 'Frost ahead', shock: 'Shock ahead',
     pools: 'Water and oil (this room)', ignite: 'Set the oil alight', freezeWater: 'Freeze the water', shockWater: 'Shock the water',
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
     foes: 'Foes (they leave the doors open)', champion: (name: string) => `Champion ${name.toLowerCase()}`,

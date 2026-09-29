@@ -54,6 +54,17 @@ export const CFG = {
   // piles start rising (seconds into the fight), how often, and how many at most; the chance a scriptorium's scroll heap
   // hides a page; the collapsed crypt's cave-in: how far from a blast stones fall, how many, how long their shadows
   // show first, and the damage they do
+  // mechanisms (M3.6, world/mechanisms.ts): how close fire must come to light a brazier or candle stand, and the Burn a
+  // bolt catches flying through a brazier's flame; casts a chapel's candles bless, and how much harder they strike; the
+  // bell's stun and how often it can ring; a charged rune stone's pulse (seconds between, reach, status stacks); a
+  // lodestone's leap (how near shock must land to reach it, how far it leaps, damage, cooldown); a falling censer's
+  // blow (reach, damage, Burn) and the oil it spills (tiles beyond its own); a frozen mausoleum's rime (how quickly the
+  // mage gets a grip: lower slides more)
+  mech: {
+    kindle: .6, brazierBurn: 3, blessCasts: 6, blessMul: 1.6, bellStun: 1.8, bellCooldown: 7,
+    runeEvery: 2.2, runeReach: 2.4, runeAmount: 1, lodeCatch: 1.3, lodeReach: 8, lodeDamage: 5, lodeCooldown: 1.2,
+    censerReach: 1, censerDamage: 10, censerBurn: 3, censerSpill: 2, rimeGrip: 3.5,
+  },
   themes: { wakeReach: 2.6, riseAfter: 10, riseEvery: 6, riseMost: 3, pageChance: .3, caveReach: 3.5, caveStones: 3, caveDelay: .8, caveDamage: 8 },
   // the library: how close the mage must come to a page, the gap between lecterns, and how far into the room
   // (from the door) their row stands, for a door on a long side and on a short one

@@ -7,6 +7,7 @@ import { BOSS_TYPES, type BossType, type EnemyType } from '../config';
 import { PROP_KINDS } from '../world/propData';
 import { THEME_DEFS } from '../world/themeData';
 import { placeProp } from '../world/props';
+import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { ARTIFACT_DEFS, START_FOCUS } from '../items/artifactData';
@@ -152,6 +153,8 @@ function build() {
   // the rooms' objects (M3.6), put down just ahead of the mage
   const objs = section(p, S.objects);
   for (const kind of PROP_KINDS) objs.append(btn(S.propNames[kind], () => { const q = ahead(1.5); if (!placeProp(kind, q.x, q.z)) toast(S.noRoom, 2); }));
+  // fire, frost or shock landing just ahead, as a spell's would: to light braziers and candles, charge runes, set lodestones leaping
+  for (const [kind, label] of [['burn', S.kindle], ['chill', S.frost], ['shock', S.shock]] as [StatusKind, string][]) objs.append(btn(label, () => { const q = ahead(1.5); elementDev(kind, q.x, q.z); }));
 
   // foes, a little further ahead (they don't lock the doors)
   const foes = section(p, S.foes);

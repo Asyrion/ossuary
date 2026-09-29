@@ -45,6 +45,7 @@ import { isTouch } from './util';
 import { wornNow } from './actors/costume';
 import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
+import { elementDev } from './world/mechanisms';
 import type { PropKind } from './world/propData';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
@@ -175,7 +176,10 @@ function installDevHooks() {
     get pickups() { return G.pickups; }, get glyphs() { return G.glyphs; }, get shots() { return G.shots; },
     /** Put one of the rooms' objects down at (x, z) (on free floor), e.g. prop('cask'); the objects in the room. */
     prop(kind: PropKind, x = player.x, z = player.z - 1.5) { return !!placeProp(kind, x, z); },
-    get props() { return (G.current.props ?? []).map(b => ({ kind: b.prop.kind, x: b.x, z: b.z, burning: b.prop.burning, hits: b.prop.hits })); },
+    get props() { return (G.current.props ?? []).map(b => ({ kind: b.prop.kind, x: b.x, z: b.z, burning: b.prop.burning, hits: b.prop.hits, lit: !!b.prop.lit, school: b.prop.school ?? null, cd: b.prop.cd ?? 0 })); },
+    /** Fire, frost or shock landing at (x, z), as a spell's would: lights braziers and candles, charges rune stones,
+        sets lodestones leaping. */
+    element: (kind: StatusKind, x = player.x, z = player.z - 1.5) => elementDev(kind, x, z),
     get spores() { return (G.current.spores ?? []).length; },
     /** Fire reaches (x, z) and `r` round it, as a burning bolt or a blast would: oil, roots, briars, webs, spores. */
     burn(x: number, z: number, r = 0) { fireAt(x, z, r); },

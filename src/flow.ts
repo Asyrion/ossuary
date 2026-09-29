@@ -1,6 +1,7 @@
 /* Game states (title, play, pause, dying, end), runs and floors, and moving between rooms. */
 import type * as THREE from 'three';
 import { enterTheme } from './world/themes';
+import { clearMechanisms } from './world/mechanisms';
 import { CFG, type BossType } from './config';
 import type { Room } from './types';
 import { DEV, G, after, clearTimers, player } from './state';
@@ -50,7 +51,7 @@ export function setNextRun(opts: RunOptions) { nextRun = opts; }
 const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
 
 function clearEntities() {
-  clearRite(); clearSpellFx(); clearStatusFx(); clearPages(); clearProjectiles(); clearGlyphs(); pressed.glyph = false; pressed.spells = [false, false];
+  clearMechanisms(); clearRite(); clearSpellFx(); clearStatusFx(); clearPages(); clearProjectiles(); clearGlyphs(); pressed.glyph = false; pressed.spells = [false, false];
   for (const p of G.particles) { scene.remove(p.m); p.m.material.dispose(); } G.particles.length = 0;
   clearEnemies();
   for (const p of G.pickups) { scene.remove(p.g); disposeTree(p.g); } G.pickups.length = 0;
@@ -86,7 +87,7 @@ export function buildFloor(index: number) {
 }
 
 export function resetPlayer() {
-  Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0 });
+  Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0, blessed: 0 });
   heroReset();
   resetHearts(); resetArtifacts(); resetResources();
   forgetSpells(); player.mana = player.stats.maxMana;

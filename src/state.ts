@@ -47,7 +47,7 @@ export const G = {
 export const DEV = { god: false, mana: false, moveClip: 'run' as 'run' | 'walkInStep' | 'walkNatural', doors: 'data' as 'data' | 'shifted' | 'middle' };
 
 export const player: Player = {
-  dead: false, x: 0, z: 0, vx: 0, vz: 0, r: CFG.hero.radius, hp: 6, maxHp: 6, invuln: 0, fireCd: 0, eye: 1, yawA: 0,
+  dead: false, x: 0, z: 0, vx: 0, vz: 0, r: CFG.hero.radius, hp: 6, maxHp: 6, invuln: 0, fireCd: 0, eye: 1, yawA: 0, blessed: 0,
   squash: 0, bob: 0, focus: START_FOCUS, items: [], heartsPaid: 0, cleansed: [], stats: computeStats(START_FOCUS, [], CFG.hero),
   coins: 0, keys: 0, glyphs: 0,
   mana: CFG.hero.mana, spells: [null, null], spellCd: [0, 0], aim: { x: 0, z: -1 },

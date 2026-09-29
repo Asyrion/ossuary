@@ -17,6 +17,7 @@ import { riseMote } from '../magic/shapes';
 import type { StatusKind } from '../magic/spellData';
 import { poolsOf } from './templates';
 import { burnPropsAt } from './props';
+import { elementAt } from './mechanisms';
 
 const C = CFG.surface;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, ICE = 0xbfe6ff, SPARK = 0xf0e890, WATER = 0x5a8a9a;
@@ -43,7 +44,8 @@ export function buildPools(room: Room) {
   for (const { kind, tiles } of poolsOf(room.template)) {
     const at = tiles.map(t => ({ ...t, x: minX + t.c + .5, z: minZ + t.r + .5 }));
     const { mesh, mat } = poolMesh(room, tiles);
-    const p: Pool = { kind, tiles: at, state: 'still', t: 0, charged: 0, tick: 0, mesh, mat };
+    const frozen = kind === 'water' && room.theme?.twist === 'rime'; // a frozen mausoleum's water is ice until fire finds it
+    const p: Pool = { kind, tiles: at, state: frozen ? 'frozen' : 'still', t: frozen ? Infinity : 0, charged: 0, tick: 0, mesh, mat };
     dress(p); room.group.add(mesh); room.pools.push(p);
     for (const t of tiles) room.poolGrid[t.r][t.c] = p;
   }
@@ -135,6 +137,7 @@ export function fireAt(x: number, z: number, r = 0) {
 }
 /** Frost reaches (x, z) and `r` around it: water there freezes over. */
 export function frostAt(x: number, z: number, r = 0) {
+  elementAt('chill', x, z, r); // a rune stone takes frost
   for (const p of poolsNear(x, z, r)) if (p.kind === 'water' && p.state === 'still') {
     p.state = 'frozen'; p.t = C.iceTime; dress(p); Sfx.at(x, z).freeze();
     for (const t of p.tiles) burst(t.x, .2, t.z, ICE, 3, 1.4, .045);
@@ -143,6 +146,7 @@ export function frostAt(x: number, z: number, r = 0) {
 /** Shock reaches (x, z): if that's in water, it runs through the whole pool, to every foe standing in it and the
     mage too. `from` is spared (it has its shock already). */
 export function shockAt(x: number, z: number, from?: Enemy) {
+  elementAt('shock', x, z); // lodestones leap, a rune stone takes storm
   const p = poolAt(x, z);
   if (!p || p.kind !== 'water' || p.state !== 'still' || p.charged > 0) return;
   p.charged = C.charged;
@@ -159,6 +163,7 @@ export function shockAt(x: number, z: number, from?: Enemy) {
 export function touchPools(e: Enemy, kind: StatusKind) {
   if (e.flying) return;
   if (kind === 'burn') burnPropsAt(e.x, e.z, .5); // a burning foe sets what burns beside it alight
+  else elementAt(kind, e.x, e.z, .5);              // a chilled or shocked one charges a rune, sets a lodestone leaping
   if (!G.current.pools?.length) return;
   if (kind === 'burn') fireAt(e.x, e.z);
   else if (kind === 'chill') frostAt(e.x, e.z);

@@ -84,6 +84,13 @@ const sounds = {
   spores() { hiss(.4, .06, 'bandpass', 3200); tone('sine', 660, 990, .3, .025); },
   sporeFlash() { hiss(.45, .16, 'lowpass', 1400); tone('sine', 140, 50, .4, .15); crackles(6, .4, .05); },
   tear() { hiss(.1, .07, 'highpass', 2800); tone('square', 420, 300, .04, .02); },
+  // mechanisms (M3.6)
+  toll() { [98, 147, 196, 294].forEach((f, i) => tone('sine', f, f * .995, 2.2 - i * .3, .12 / (i + 1))); hiss(.3, .05, 'bandpass', 1200); },
+  candlesLit() { [523, 659, 784, 1047].forEach((f, i) => tone('sine', f, f, 1, .05, i * .1)); hiss(.8, .02, 'highpass', 5000, .2); },
+  runeCharge() { tone('triangle', 330, 660, .4, .06); tone('sine', 990, 1320, .3, .03, .1); },
+  runePulse() { tone('sine', 440, 400, .25, .03); },
+  chainSnap() { tone('square', 1400, 900, .05, .04); tone('square', 1100, 700, .05, .03, .05); },
+  clang() { tone('triangle', 520, 500, .6, .08); tone('triangle', 780, 760, .5, .04); hiss(.4, .1, 'lowpass', 900); },
   full() { tone('sine', 520, 440, .12, .035); tone('sine', 390, 330, .14, .03, .07); },
   wake() { tone('sine', 220, 330, .25, .05); hiss(.2, .04, 'bandpass', 900); },
   catchFire() { hiss(.3, .08, 'bandpass', 1600); crackles(4, .25, .04); },

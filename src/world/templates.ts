@@ -9,7 +9,8 @@
             ~  water      %  oil (both walkable; tiles side by side make one pool, see world/pools.ts)
             b  bone pile  k  skull heap  s  grave sacks  c  oil cask   r  rubble    p  pew (side by side, one pew)
             t  grave roots  v  thorn briar  :  cobwebs  g  glowcaps  d  desk  e  scroll heap
-            (the objects of world/propData.ts)
+            f  brazier  l  candle stand  a  bell  n  rune stone  y  lodestone  *  hanging censer  q  reliquary
+            T  dead tree  (the objects and mechanisms of world/propData.ts)
             R  rotling    W  wisp      H  crypt hound      B  the floor's boss
 
    Ordeal templates keep their terrain in `grid` (no enemies) and list each wave's enemies in `waves`,
@@ -27,7 +28,7 @@ import { PROPS, PROP_KINDS, PROP_OF_CHAR, type PropKind } from './propData';
 export type { ShapeId } from './shapes';
 export type Tile = 'floor' | 'rock' | 'pit' | 'void' | 'pillar' | 'tomb' | 'urn' | 'sealedUrn' | 'water' | 'oil' | PropKind;
 /** Tiles the mage and foes can stand on (soft objects too: briars and cobwebs). */
-export const WALKABLE: readonly Tile[] = ['floor', 'water', 'oil', ...PROP_KINDS.filter(k => PROPS[k].class === 'soft')];
+export const WALKABLE: readonly Tile[] = ['floor', 'water', 'oil', ...PROP_KINDS.filter(k => PROPS[k].class === 'soft' || PROPS[k].class === 'hanging')];
 /** Tiles clear enough for a doorway's lane or a foe's first step: walkable, and nothing in the way. */
 export const CLEAR: readonly Tile[] = ['floor', 'water', 'oil'];
 export type FoeKind = EnemyType | 'boss';

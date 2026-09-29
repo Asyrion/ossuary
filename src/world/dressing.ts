@@ -24,7 +24,7 @@ const G = {
   skull: geo(new THREE.SphereGeometry(.085, 8, 6)), jaw: geo(new THREE.BoxGeometry(.09, .04, .07)),
   candle: geo(new THREE.CylinderGeometry(.028, .032, .13, 6)), flame: geo(new THREE.ConeGeometry(.022, .06, 5)),
   urn: geo(new THREE.LatheGeometry([[0, 0], [.05, 0], [.075, .05], [.07, .11], [.04, .14], [.045, .16], [0, .16]].map(([x, y]) => new THREE.Vector2(x, y)), 8)),
-  bone: geo(new THREE.CylinderGeometry(.014, .014, .2, 5)),
+  bone: geo(new THREE.CylinderGeometry(.014, .014, .2, 5)), eye: geo(new THREE.SphereGeometry(.018, 6, 4)),
 };
 const dark = markShared(new THREE.MeshBasicMaterial({ color: 0x080605 }));
 const boneMat = markShared(new THREE.MeshStandardMaterial({ color: 0xcfc2a6, roughness: .8, emissive: 0x16110a }));
@@ -53,14 +53,18 @@ export function dressNorthWall(room: Room, face: number, x0: number, x1: number,
   for (let x = Math.floor(x0) + .5; x < x1; x++) spots.push(x);
   const add = (mesh: THREE.Object3D, x: number) => { mesh.position.x += x - room.cx; mesh.position.z += face - room.cz; room.group.add(mesh); };
   const niches = Object.entries(dress.niches) as [NicheKind, number][], total = niches.reduce((s, [, w]) => s + w, 0);
+  const eyes = room.theme?.watchers ? (room.eyes ??= new THREE.MeshBasicMaterial({ color: 0x000000 })) : undefined; // an ossuary's skulls watch
   spots.forEach((x, i) => {
     if (dress.pilaster && (i + 1) % dress.pilaster === 0) { if (clear(x, .25)) add(pilaster(room.look), x); return; }
     if (!total || !clear(x, .32) || R() < .35) return;
     let pick = R() * total, kind: NicheKind = niches[0][0];
     for (const [k, w] of niches) { pick -= w; if (pick <= 0) { kind = k; break; } }
-    add(niche(kind, R, stone(room.look)), x);
+    add(niche(kind, R, stone(room.look), eyes), x);
   });
 }
+
+/** A spell was cast in `room`: if its skulls watch (an ossuary), their eyes take the spell's colour. */
+export function skullsWatch(room: Room, color: string) { room.eyes?.color.set(color); }
 
 function pilaster(look: FloorLook) {
   const g = new THREE.Group(), m = stone(look);
@@ -71,7 +75,7 @@ function pilaster(look: FloorLook) {
 }
 
 /** A niche: a dark arched recess framed in stone, with a sill and what the floor keeps in it. */
-function niche(kind: NicheKind, R: () => number, frame: THREE.Material) {
+function niche(kind: NicheKind, R: () => number, frame: THREE.Material, eyes?: THREE.Material) {
   const g = new THREE.Group(), y0 = .42;
   const recess = new THREE.Mesh(G.recess, dark); recess.position.set(0, y0, .004);
   const rim = new THREE.Mesh(G.rim, frame); rim.position.set(0, y0 + .6 - .23, .02);
@@ -84,6 +88,7 @@ function niche(kind: NicheKind, R: () => number, frame: THREE.Material) {
     const s = new THREE.Mesh(G.skull, boneMat); s.scale.set(1, .9, 1); s.position.set((R() - .5) * .1, on + .08, .06);
     const j = new THREE.Mesh(G.jaw, boneMat); j.position.set(s.position.x, on + .02, .08);
     g.add(s, j);
+    if (eyes) for (const dx of [-.032, .032]) { const e = new THREE.Mesh(G.eye, eyes); e.position.set(s.position.x + dx, on + .09, .135); g.add(e); }
   } else if (kind === 'candle') {
     for (const dx of R() < .5 ? [0] : [-.09, .07]) {
       const c = new THREE.Mesh(G.candle, waxMat); c.position.set(dx, on + .065, .06);

@@ -1,8 +1,8 @@
 [
-  { "id": "chapel", "name": "Chapel nave", "twist": "none",
+  { "id": "chapel", "name": "Chapel nave", "twist": "blessing",
     "look": { "torch": { "flame": "#ffd88a", "light": "#ffb86a", "intensity": 1.1 }, "wall": { "dress": { "pilaster": 2, "niches": { "candle": 5, "skull": 1 } } } },
     "scatter": { "candles": 5, "pages": 2 } },
-  { "id": "ossuary", "name": "Ossuary", "twist": "risingBones",
+  { "id": "ossuary", "name": "Ossuary", "twist": "risingBones", "watchers": true,
     "look": { "floor": { "stain": "60,58,50" }, "wall": { "dress": { "pilaster": 3, "niches": { "skull": 6, "bones": 4 } } } },
     "scatter": { "bones": 8 } },
   { "id": "scriptorium", "name": "Scriptorium", "twist": "pages",
@@ -22,5 +22,17 @@
     "scatter": { "pebbles": 10, "daylight": 1 } },
   { "id": "embalmers", "name": "Embalmers' hall", "twist": "none", "tomb": "slab",
     "look": { "floor": { "stain": "60,50,20" }, "torch": { "light": "#e8c060", "flame": "#fff0a0", "intensity": 1 }, "wall": { "dress": { "pilaster": 3, "niches": { "urn": 4, "candle": 2 } } } },
-    "scatter": { "stains": 5 } }
+    "scatter": { "stains": 5 } },
+  { "id": "bells", "name": "Bell chamber", "twist": "none",
+    "look": { "torch": { "flame": "#ffd08a", "light": "#ffa860", "intensity": 1.05 }, "wall": { "dress": { "pilaster": 2, "niches": { "candle": 2, "empty": 2 } } } },
+    "scatter": { "pebbles": 3, "candles": 2 } },
+  { "id": "mausoleum", "name": "Frozen mausoleum", "twist": "rime",
+    "look": { "floor": { "base": [84, 94, 104], "stain": "150,190,210" }, "wall": { "brick": [78, 86, 96], "dress": { "pilaster": 3, "niches": { "skull": 2, "urn": 2, "empty": 1 } } }, "torch": { "light": "#9fd8ff", "flame": "#e0f4ff", "intensity": 0.85 } },
+    "scatter": { "rime": 9 } },
+  { "id": "reliquary", "name": "Reliquary gallery", "twist": "none",
+    "look": { "torch": { "flame": "#ffe0a0", "light": "#ffc870", "intensity": 1.05 }, "wall": { "dress": { "pilaster": 2, "niches": { "urn": 3, "candle": 2, "skull": 1 } } } },
+    "scatter": { "candles": 3 } },
+  { "id": "garth", "name": "Cloister garth", "twist": "none",
+    "look": { "floor": { "stain": "60,70,30" }, "wall": { "stains": "moss", "dress": { "pilaster": 3, "niches": { "empty": 3, "urn": 1 } } } },
+    "scatter": { "leaves": 9, "moss": 4 } }
 ]

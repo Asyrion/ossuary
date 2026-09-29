@@ -59,7 +59,7 @@ async function take(page: Page, s: Shot, errors: string[]) {
     // (no named functions in here: tsx would wrap them in a helper the page doesn't have)
     if (kind === 'floor') return g.rooms().map(r => r.plan.id);
     g.warp(1); g.clearRoom(); g.player.invuln = 99;
-    if (kind === 'props') (kinds as string[]).forEach((k, i) => g.prop(k, g.current.bounds.minX + 1.5 + (i % 5) * 2.4, g.current.bounds.minZ + 1.5 + Math.floor(i / 5) * 2.4));
+    if (kind === 'props') (kinds as string[]).forEach((k, i) => g.prop(k, g.current.bounds.minX + .5 + (i % 7) * 2, g.current.bounds.minZ + 1.5 + Math.floor(i / 7) * 2));
     g.player.x = g.current.cx; g.player.z = g.current.cz + 1.5; g.sim(1, true);
     return [{ walls: g.current.walls.length, torches: g.current.torches.length, props: g.current.props?.length ?? 0, theme: g.current.theme?.id ?? '', shifted: g.current.plan.doors.filter(d => d.shift).length }];
   }, [s.kind, PROP_KINDS] as const);

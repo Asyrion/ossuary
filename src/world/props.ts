@@ -21,7 +21,9 @@ import { riseMote } from '../magic/shapes';
 import { rollTable } from '../items/loot';
 import { spawnPickup } from '../items/pickups';
 import { mulberry } from '../util';
-import { PROPS, type PropKind } from './propData';
+import { PROPS, isMechanism, type MechanismKind, type PropKind } from './propData';
+import { MECH_LOOKS, elementAt, strikeMechanism } from './mechanisms';
+import type { StatusKind } from '../magic/spellData';
 import { addPool, fireAt } from './pools';
 import { scrollsBroken } from './themes';
 
@@ -66,7 +68,7 @@ function webMaterial() {
 }
 
 type Look = (R: () => number, len: number) => THREE.Group;
-const LOOKS: Record<PropKind, Look> = {
+const LOOKS: Record<Exclude<PropKind, MechanismKind>, Look> = {
   bones(R) {
     const g = new THREE.Group();
     for (let i = 0; i < 7; i++) {
@@ -185,14 +187,15 @@ export function buildProps(room: Room) {
 export function addProp(room: Room, kind: PropKind, c: number, r: number, len = 1) {
   const def = PROPS[kind], R = mulberry(c * 97 + r * 13 + room.plan.seed);
   const a = worldOf(room, c, r), x = a.x + (len - 1) / 2, z = a.z;
-  const mesh = LOOKS[kind](R, len); mesh.position.set(x - room.cx, 0, z - room.cz); room.group.add(mesh);
+  const mesh = (isMechanism(kind) ? MECH_LOOKS[kind] : LOOKS[kind])(R, len); mesh.position.set(x - room.cx, 0, z - room.cz); room.group.add(mesh);
   const tiles = Array.from({ length: len }, (_, i) => ({ c: c + i, r }));
   for (const tl of tiles) room.template.tiles[tl.r][tl.c] = kind;
-  const prop: PropState = { kind, hits: def.hits, burning: 0, tiles, mesh };
-  const half = kind === 'cask' ? .3 : kind === 'roots' ? .42 : .38;
+  const prop: PropState = { kind, hits: def.hits, burning: 0, tiles, mesh, parts: mesh.userData.parts };
+  const half = kind === 'cask' ? .3 : kind === 'roots' ? .42 : kind === 'candles' ? .22 : kind === 'lodestone' || kind === 'rune' ? .32 : kind === 'bell' ? .45 : .38;
   const box: PropBox = { x, z, hx: len > 1 ? len / 2 - .06 : half, hz: kind === 'pew' ? .3 : half, hp: def.hits, breakable: false, mesh, tile: { c, r }, prop };
   (room.props ??= []).push(box);
-  if (def.class === 'soft') (room.soft ??= []).push(box);
+  if (def.class === 'hanging') { /* over the floor: nothing blocks, only bolts reach it (mechanisms.ts) */ }
+  else if (def.class === 'soft') (room.soft ??= []).push(box);
   else if (def.class === 'low' && def.hits === 0) (room.lows ??= []).push(box); // bolts fly over pews and rubble
   else room.rocks.push(box);                                                     // tall ones, and piles a bolt breaks
   return box;
@@ -209,8 +212,9 @@ export function removeProp(room: Room, box: PropBox) {
 /* ---------- what bolts and blasts do ---------- */
 
 /** A bolt (or, with `blast`, a glyph's blast) struck an object. Returns whether it broke. */
-export function strikeProp(room: Room, rock: RockBox, blast: boolean) {
+export function strikeProp(room: Room, rock: RockBox, blast: boolean, status?: Partial<Record<StatusKind, number>>) {
   const box = rock as PropBox, p = box.prop; if (!p || !room.props?.includes(box)) return false;
+  if (isMechanism(p.kind)) { strikeMechanism(room, box, blast, status); return false; } // bells ring, runes charge...
   const def = PROPS[p.kind];
   if (blast ? !def.blast : !def.hits) { burst(box.x, .4, box.z, 0x8a8078, 3, 1.2, .04); return false; }
   if (!blast && --p.hits > 0) { // a skull heap loses its top skull first
@@ -265,6 +269,7 @@ export function blastProps(room: Room, x: number, z: number, R: number) {
 /** Fire reaches (x, z) and `r` around it: what burns there catches, and glowcap spores flash. */
 export function burnPropsAt(x: number, z: number, r = 0) {
   const room = G.current;
+  elementAt('burn', x, z, r); // braziers and candles catch, runes take fire, ice round a frozen foe melts
   for (const box of room.props ?? []) {
     const p = box.prop;
     if (!PROPS[p.kind].burns || p.burning > 0) continue;

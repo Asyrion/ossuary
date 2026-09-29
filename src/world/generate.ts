@@ -251,7 +251,9 @@ function assignTemplates(rng: Rng, rooms: PlannedRoom[], cfg: FloorConfig, index
     // fights: now and then in a themed room of one of the floor's themes (if it has one of this shape), else a plain one
     if (room.type === 'normal') {
       const theme = Object.keys(cfg.themes ?? {}).length && rng.chance(cfg.themeChance) ? rng.weighted(cfg.themes) : undefined;
-      const inTheme = theme ? pool.filter(t => t.theme === theme) : [];
+      // the gentle rooms beside floor 1's start take a theme only if it has a gentle template of this shape
+      const gentle = index === 0 && room.dist === 1;
+      const inTheme = theme ? pool.filter(t => t.theme === theme && (!gentle || t.difficulty === 1)) : [];
       pool = inTheme.length ? inTheme : pool.filter(t => !t.theme);
     }
     if (room.type === 'normal' || room.type === 'ordeal') {
