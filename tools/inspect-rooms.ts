@@ -120,7 +120,8 @@ interface Probe { info: Record<string, unknown>; mage: [number, number][]; pools
 /** Set the room up for its picture and say where things are (no named functions in here: tsx would wrap them in a
     helper the page doesn't have). */
 const setUp = ([kind, kinds, warpTo]: readonly [string, readonly string[], number | null]) => {
-  const w = window as unknown as Hooks, g = w.__game; w.__manual = true;
+  const w = window as unknown as Hooks & { __reseed(): void }, g = w.__game; w.__manual = true;
+  w.__reseed(); // the same randomness from here on, on both sides of a comparison (sparks, stains, what a cleared room drops)
   g.warp(warpTo ?? 1);
   g.clearRoom(); g.player.invuln = 99;
   if (kind === 'props') kinds.forEach((k, i) => g.prop(k, g.current.bounds.minX + .5 + (i % 7) * 2, g.current.bounds.minZ + 1.5 + Math.floor(i / 7) * 2));
@@ -187,6 +188,8 @@ async function shoot(url: string, dir: string, list: Shot[], withChecks: boolean
   mkdirSync(dir, { recursive: true });
   const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM || undefined, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: hd ? 2 : 1 });
+  // Math.random from a seed that each room's set-up starts again (a string: tsx would wrap a function in a helper)
+  await page.addInitScript(`(() => { let s = 1; const next = () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; Math.random = next; window.__reseed = () => { s = 1; }; })();`);
   const errors: string[] = [];
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
   page.on('pageerror', e => errors.push(String(e)));
@@ -202,7 +205,8 @@ async function shoot(url: string, dir: string, list: Shot[], withChecks: boolean
   };
   for (const s of list) {
     await page.goto(new URL(`${s.query}&seed=${seed}`, url).href);
-    await page.waitForFunction(() => !!(window as unknown as Hooks).__game, null, { timeout: 30000 });
+    await page.waitForFunction(() => !!(window as unknown as Hooks).__game, null, { timeout: 90000 }); // (a fresh server optimises its dependencies first)
+    await page.waitForFunction(() => String(((window as unknown as Hooks).__game.hero as unknown as { info?: string }).info ?? '').includes('rigged'), null, { timeout: 60000 }); // the hero model loaded
     await page.addStyleTag({ content: '#banner, #lore { display: none !important; }' }); // the floor's title and lore cards would cover the room
     await page.click('#btnStart');
     if (s.kind === 'floor') {
@@ -220,25 +224,45 @@ async function baseServer(ref: string) {
   execSync(`git worktree add -f --detach ${dir} ${ref}`, { stdio: 'ignore' });
   symlinkSync(resolve('node_modules'), join(dir, 'node_modules'));
   // its node_modules lie outside it (a link to ours), which Vite won't serve unless told to
-  writeFileSync(join(dir, 'vite.base.tmp.ts'), `import cfg from './vite.config';\nexport default (env: any) => { const c: any = typeof cfg === 'function' ? (cfg as any)(env) : cfg; return { ...c, server: { ...(c.server ?? {}), fs: { strict: false } } }; };\n`);
-  const vite = spawn('npx', ['vite', '--port', String(port), '--strictPort', '--config', 'vite.base.tmp.ts'], { cwd: dir, stdio: 'ignore' });
+  // (and its own dependency cache: sharing ours with the running dev server makes both re-optimise)
+  writeFileSync(join(dir, 'vite.base.tmp.ts'), `import cfg from './vite.config';\nexport default (env: any) => { const c: any = typeof cfg === 'function' ? (cfg as any)(env) : cfg; return { ...c, cacheDir: '.vite-base', server: { ...(c.server ?? {}), fs: { strict: false } } }; };\n`);
+  const vite = spawn('npx', ['vite', '--port', String(port), '--strictPort', '--config', 'vite.base.tmp.ts'], { cwd: dir, stdio: 'ignore', detached: true });
+  let stopped = false;
+  const stop = () => {
+    if (stopped) return; stopped = true;
+    try { process.kill(-vite.pid!); } catch { /* gone already */ }
+    try { execSync(`git worktree remove --force ${dir}`, { stdio: 'ignore' }); } catch { /* removed already */ }
+  };
+  process.on('exit', stop); for (const sig of ['SIGINT', 'SIGTERM', 'SIGPIPE'] as const) process.on(sig, () => { stop(); process.exit(1); });
   const url = `http://localhost:${port}/`;
-  for (let i = 0; i < 60; i++) { try { if ((await fetch(url)).ok) break; } catch { /* not up yet */ } await new Promise(r => setTimeout(r, 1000)); }
-  return { url, stop: () => { vite.kill(); execSync(`git worktree remove --force ${dir}`, { stdio: 'ignore' }); } };
+  for (let i = 0; i < 90 && vite.exitCode === null; i++) { try { if ((await fetch(url)).ok) break; } catch { /* not up yet */ } await new Promise(r => setTimeout(r, 1000)); }
+  if (vite.exitCode !== null) { stop(); throw new Error(`the ${ref} server didn't start (is port ${port} taken?)`); }
+  return { url, stop };
 }
 
-/** How much of a picture changed between two shots (share of pixels that moved clearly), and a before | after image. */
+/** How much of a picture changed between two shots, and a before | after image when it did. It counts blocks of
+    16 × 16 pixels in which a good part changed clearly, so a small object that changed shows, and a mote or a spark
+    (a few pixels) doesn't. Returns the share of blocks changed. */
 async function compare(before: string, after: string, out: string) {
   const a = await sharp(before).removeAlpha().raw().toBuffer({ resolveWithObject: true }), b = await sharp(after).removeAlpha().raw().toBuffer();
-  let n = 0; for (let i = 0; i < b.length; i += 3) if (Math.abs(a.data[i] - b[i]) + Math.abs(a.data[i + 1] - b[i + 1]) + Math.abs(a.data[i + 2] - b[i + 2]) > 48) n++;
-  const share = n / (b.length / 3);
-  if (share > NOISE) {
-    const W = 640, H = 360, half = (f: string) => sharp(f).resize(W, H).toBuffer();
-    await sharp({ create: { width: W * 2, height: H, channels: 3, background: '#000' } }).composite([{ input: await half(before), left: 0, top: 0 }, { input: await half(after), left: W, top: 0 }]).png().toFile(out);
+  const W = a.info.width, H = a.info.height, B = 16 * (hd ? 2 : 1), bw = Math.ceil(W / B), counts = new Uint16Array(bw * Math.ceil(H / B));
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const i = (y * W + x) * 3;
+    if (Math.abs(a.data[i] - b[i]) + Math.abs(a.data[i + 1] - b[i + 1]) + Math.abs(a.data[i + 2] - b[i + 2]) > 48) counts[Math.floor(y / B) * bw + Math.floor(x / B)]++;
+  }
+  const hit: number[] = []; counts.forEach((c, k) => { if (c > B * B * .3) hit.push(k); });
+  const share = hit.length / counts.length;
+  if (hit.length) { // base | now, half size each, labelled, with the changed blocks outlined on the right
+    const TW = 640, TH = 360, k = TW / W, half = (f: string) => sharp(f).resize(TW, TH).toBuffer();
+    const rects = hit.map(i => `<rect x="${(i % bw) * B * k}" y="${Math.floor(i / bw) * B * k}" width="${B * k}" height="${B * k}" fill="none" stroke="#ff3030" stroke-width="1"/>`).join('');
+    const marks = Buffer.from(`<svg width="${TW}" height="${TH}">${rects}<rect width="96" height="20" fill="#000" opacity=".7"/><text x="6" y="15" font-family="sans-serif" font-size="13" fill="#fff">now</text></svg>`);
+    const tag = Buffer.from(`<svg width="${TW}" height="20"><rect width="160" height="20" fill="#000" opacity=".7"/><text x="6" y="15" font-family="sans-serif" font-size="13" fill="#fff">base ${against}</text></svg>`);
+    await sharp({ create: { width: TW * 2, height: TH, channels: 3, background: '#000' } })
+      .composite([{ input: await half(before), left: 0, top: 0 }, { input: tag, left: 0, top: 0 }, { input: await half(after), left: TW, top: 0 }, { input: marks, left: TW, top: 0 }]).png().toFile(out);
   }
   return share;
 }
-const NOISE = .004; // motes, flickers and sparks move a little between any two shots
+const NOISE = 0; // (a changed block is a change: motes and sparks are too small to fill one)
 
 mkdirSync(outDir, { recursive: true });
 const results = await shoot(BASE, outDir, unique, true);
@@ -264,7 +288,7 @@ const tiles = (await Promise.all(results.map(async (r, i) => {
 await sharp({ create: { width: cols * TW, height: rows * TH, channels: 3, background: '#000' } }).composite(tiles).png().toFile(join(outDir, 'sheet.png'));
 
 for (const r of results) {
-  const d = r.diff === undefined ? '' : r.diff > NOISE ? `  changed ${(r.diff * 100).toFixed(1)}%` : '  unchanged';
+  const d = r.diff === undefined ? '' : r.diff > NOISE ? `  changed (${(r.diff * 100).toFixed(1)}% of the picture)` : '  unchanged';
   console.log(`${r.shot.name}: ${JSON.stringify(r.info)}${d}${r.flags.map(f => `\n  ⚑ ${f}`).join('')}`);
 }
 const look = results.filter(r => r.flags.length || (r.diff !== undefined && r.diff > NOISE)).map(r => basename(r.file, '.png') + (r.diff !== undefined && r.diff > NOISE ? ' (-vs.png)' : ''));

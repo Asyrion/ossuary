@@ -26,14 +26,16 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - name: Runner
+        run: nproc && lscpu | grep -E 'Model name|MHz' || true
       - name: Smoke test
         run: npm test
       - name: Build
         run: npm run build
       - uses: actions/configure-pages@v6
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
       - uses: actions/upload-pages-artifact@v5
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:
           path: dist
       - uses: actions/upload-artifact@v7
@@ -43,7 +45,8 @@ jobs:
           path: test-results/
 
   deploy:
-    if: github.event_name != 'pull_request'
+    # only main goes live: a run started by hand on another branch tests it without deploying it
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     environment:
