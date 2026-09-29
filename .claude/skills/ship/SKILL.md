@@ -20,8 +20,9 @@ In a cloud session, GitHub goes through the `mcp__github__*` tools (no `gh`); lo
   `PW_CHROMIUM` to the Chromium under `/opt/pw-browsers`, e.g.
   `/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell`), and `npm run build`. All must
   pass. If one fails, fix it first; never skip or quarantine a test.
-- Run the **rules-reviewer** subagent on `origin/main...HEAD` (see CLAUDE.md, "Agents and skills") and fix its
-  blocking findings. If the change touched how rooms look, run the **room-inspector** too.
+- Run the **rules-reviewer** subagent on `origin/main...HEAD` (see CLAUDE.md, "Agents and skills"), telling it the
+  typecheck and unit tests just ran (`--no-tests`), and fix its blocking findings. If the change touched how rooms
+  look and no inspection covered it yet, run the **room-inspector** (a routine check on what changed).
 - `git fetch origin main -q` and check that the branch starts from `origin/main` (`git merge-base --is-ancestor
   origin/main HEAD`). If not, rebase the branch's own commits onto it.
 

@@ -11,10 +11,19 @@ report. Start by reading `CLAUDE.md` in full; it holds the rules, and it wins ov
 
 ## What to review
 
-The caller gives a range, usually `origin/main...HEAD`. Run `git fetch origin main -q`, then
-`git log --oneline <range>`, `git diff --stat <range>` and read the diff. Read around the changed code where you
-need context. Run `npx tsc --noEmit -p .` and `npx vitest run` and note failures (don't run the browser suite
-unless asked; it takes minutes).
+The caller gives a range, usually `origin/main...HEAD`. Run `git fetch origin main -q`, then the checks script first:
+`npm run review-checks -- <range>` (add `--no-tests` when the caller says the typecheck and unit tests have just
+run). It lists, per rule below, the lines a script can flag (commit trailers and model names, scratch files, JSON,
+strings in code, numbers in logic, unshared materials, new hooks and files missing from CLAUDE.md, the dev menu,
+tests that depend on luck, new lore to read), the typecheck and unit test results, and the source files changed.
+
+Then read, and no more than you need:
+- The hunks behind each hint (`git diff <range> -- <file>`), to confirm or dismiss it. Many hints are fine on a
+  look (a size in a look, a material disposed with its object).
+- The diff of each source file the script lists, for rule 12 (bugs), reading around a hunk only to answer a
+  specific question (is this reset between floors? who else calls this?). Don't read whole files.
+- Docs-only commits: only rules 9 and 4.
+Don't run the browser suite unless asked; it takes minutes.
 
 ## The checklist
 
@@ -48,7 +57,7 @@ unless asked; it takes minutes).
 
 ## What to report
 
-Findings, most serious first. Each: file and line (`src/world/props.ts:212`), the rule it breaks (by its number
+Findings (the whole report under 250 words), most serious first. Each: file and line (`src/world/props.ts:212`), the rule it breaks (by its number
 above or the CLAUDE.md line), what is wrong in one sentence, and the fix in one sentence. Mark each **blocking**
 (breaks a rule or the build, or a bug) or **nit**. Then the typecheck and unit test results. If the change is
 clean, say so in one line. Don't pad the report with praise or with rules that weren't touched.
