@@ -133,7 +133,7 @@ const setUp = ([kind, kinds, warpTo]: readonly [string, readonly string[], numbe
     if (k === 'floor') { floor.push({ x, z }); if (d < bd) { bd = d; best = { x, z }; } }
     if (k === 'pit') pits.push({ x, z });
   }));
-  g.player.x = best.x; g.player.z = best.z; g.sim(1); g.player.invuln = 0; g.sim(.02, true); // (invulnerable, the mage blinks)
+  g.player.x = best.x; g.player.z = best.z; g.sim(1, true); g.player.invuln = 0; g.sim(.02, true); // (drawn, so the camera is in this room before the last step places anything on screen; invulnerable, the mage blinks)
   // every point to find on screen, projected in one pass: the mage's feet and head, pool tiles, floor and pit tiles
   const v = g.camera.position.clone(), W = window.innerWidth, H = window.innerHeight, pools = g.pools;
   const pts: [string, number, number, number][] = [['mage', g.player.x, .2, g.player.z], ['mage', g.player.x, 1.2, g.player.z]];
