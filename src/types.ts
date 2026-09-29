@@ -1,4 +1,5 @@
 import type * as THREE from 'three';
+import type { PropKind } from './world/propData';
 import type { EnemyType } from './config';
 import type { BossConfig, PlannedRoom } from './world/generate';
 import type { FoeKind, Template } from './world/templates';
@@ -64,7 +65,14 @@ export interface WareSpot {
 export interface Torch { flame: THREE.Mesh; glow: THREE.Sprite; x: number; z: number; lit: boolean }
 /** A rock collider; Mason's Chisel breaks breakable ones. Pedestals, pillars and tombs are unbreakable "rocks";
     urns are "rocks" any bolt breaks, and rune-sealed ones only a blast. */
-export interface RockBox extends Box { hp: number; breakable: boolean; mesh?: THREE.Object3D; tile?: { c: number; r: number }; urn?: 'plain' | 'sealed' }
+export interface RockBox extends Box { hp: number; breakable: boolean; mesh?: THREE.Object3D; tile?: { c: number; r: number }; urn?: 'plain' | 'sealed'; prop?: PropState }
+/** One of the rooms' objects in play (world/props.ts, world/propData.ts): its kind, bolts it can still take, seconds
+    left burning (0: not alight), the tiles it covers, and its look. */
+export interface PropState { kind: PropKind; hits: number; burning: number; tiles: { c: number; r: number }[]; mesh: THREE.Object3D; flame?: THREE.Object3D }
+/** An object in the room, with its box (how it blocks depends on its class: rocks, `lows`, or `soft`). */
+export type PropBox = RockBox & { prop: PropState };
+/** A cloud of glowcap spores hanging where a glowcap burst: fire in it flashes. */
+export interface SporeCloud { x: number; z: number; t: number; g: THREE.Group }
 /** An artifact on a pedestal. `pair` links the boss's two choices: taking one makes the other vanish. */
 export interface ArtifactSpot {
   def: ArtifactDef; room: Room; x: number; z: number; taken: boolean;
@@ -83,6 +91,9 @@ export interface Room {
   bounds: { minX: number; maxX: number; minZ: number; maxZ: number }; w: number; h: number; mask: boolean[][];
   group: THREE.Group; doors: Door[]; walls: Box[]; rocks: RockBox[]; pits: Box[]; torches: Torch[];
   /** Ice a spell raised (Glacial Wall): it stops the mage, foes and their shots, not the mage's bolts. */ barriers?: Box[];
+  /** The room's objects (M3.6): all of them; the low ones that stop walking but not bolts; the soft ones walked into;
+      glowcap spores hanging in the air. Tall objects and breakable piles are also among `rocks`. */
+  props?: PropBox[]; lows?: PropBox[]; soft?: PropBox[]; spores?: SporeCloud[];
   /** Enemies to spawn, wave by wave (ordeals have 2 or 3 waves, other fights 1), in world positions. */
   waves: { kind: FoeKind; x: number; z: number }[][];
   /** The wave being fought, and whether the next one is on its way. */ wave: number; wavePending: boolean;

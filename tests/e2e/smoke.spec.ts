@@ -1202,6 +1202,58 @@ test('carved rooms: x tiles inside the shape are wall the mage can\'t walk into'
   expect(errors).toEqual([]);
 });
 
+test('objects: bolts break piles and casks (oil spills), pews stop walking not bolts, fire burns roots, webs slow, briars sting, spores flash, blasts clear rubble', async ({ page }) => {
+  const errors = await start(page, '?room=treasure_plain&loot=glyphs:3');
+  type P = { kind: string; x: number; z: number; burning: number; hits: number };
+  type G5 = {
+    warp(id: number): void; clearRoom(): void; sim(sec: number, draw?: boolean): void; keys: Set<string>; arrowOrder: string[];
+    current: { bounds: { minX: number; minZ: number } }; prop(kind: string, x: number, z: number): boolean; props: P[]; spores: number;
+    pools: { kind: string }[]; burn(x: number, z: number, r?: number): void; spawn(kind: string, x: number, z: number): { hp: number; maxHp: number };
+    player: { x: number; z: number; vx: number; vz: number; hp: number; maxHp: number; invuln: number };
+  };
+  const result = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G5 }).__game;
+    const at = (c: number, r: number) => ({ x: g.current.bounds.minX + c + .5, z: g.current.bounds.minZ + r + .5 });
+    const put = (kind: string, c: number, r: number) => { const q = at(c, r); return g.prop(kind, q.x, q.z); };
+    const stand = (c: number, r: number) => { const q = at(c, r); g.player.x = q.x; g.player.z = q.z; g.player.vx = g.player.vz = 0; };
+    const has = (kind: string) => g.props.filter(p => p.kind === kind).length;
+    const shootEast = (sec: number) => { g.keys.add('ArrowRight'); g.arrowOrder.push('ArrowRight'); g.sim(sec); g.keys.delete('ArrowRight'); g.arrowOrder.length = 0; g.sim(.5); };
+    g.warp(1); g.clearRoom(); g.player.invuln = 99;
+    const out: Record<string, unknown> = {};
+    // a bone pile breaks to one bolt, a skull heap to two, a cask spills oil
+    put('bones', 4, 0); stand(1, 0); shootEast(.3); out.bones = has('bones');
+    put('skulls', 4, 6); stand(1, 6); shootEast(.3); out.skullsAfterOne = has('skulls'); shootEast(1.2); out.skulls = has('skulls');
+    put('cask', 11, 1); stand(8, 1); shootEast(.8); out.cask = has('cask'); out.oil = g.pools.filter(p => p.kind === 'oil').length;
+    // a pew: the mage can't walk through it, bolts fly over it
+    put('pew', 4, 4); stand(2, 4); g.keys.add('KeyD'); g.sim(1); g.keys.delete('KeyD'); out.pewStops = g.player.x < at(4, 4).x - .4;
+    stand(2, 4); shootEast(1); out.pew = has('pew');
+    // roots burn away
+    put('roots', 11, 5); g.burn(at(11, 5).x, at(11, 5).z); out.rootsBurning = g.props.some(p => p.kind === 'roots' && p.burning > 0); g.sim(4.5); out.roots = has('roots');
+    // cobwebs slow the mage
+    const walk = () => { const x0 = g.player.x; g.keys.add('KeyD'); g.sim(.6); g.keys.delete('KeyD'); return g.player.x - x0; };
+    stand(0, 2); const free = walk(); put('web', 1, 2); put('web', 2, 2); stand(0, 2); g.sim(.2); const snag = walk(); out.webSlows = snag < free * .8;
+    // a briar stings
+    put('briar', 9, 3); stand(9, 3); g.player.invuln = 0; const hp0 = g.player.hp; g.sim(.6); out.stung = g.player.hp < hp0; g.player.hp = g.player.maxHp; g.player.invuln = 99;
+    // a glowcap bursts into spores, and fire in them flashes, hurting a foe in reach
+    put('glowcap', 11, 3); stand(8, 3); shootEast(.3); out.spores = g.spores;
+    const foe = g.spawn('rotling', at(11, 2).x, at(11, 2).z); g.sim(.6); const fhp = foe.hp;
+    g.burn(at(11, 3).x, at(11, 3).z); out.flashed = g.spores === 0 && foe.hp < fhp;
+    put('rubble', 2, 5); stand(3, 6);
+    return out;
+  });
+  expect(result).toMatchObject({ bones: 0, skullsAfterOne: 1, skulls: 0, cask: 0, oil: 1, pewStops: true, pew: 1, rootsBurning: true, roots: 0, webSlows: true, stung: true, spores: 1, flashed: true });
+  // a glyph's blast clears rubble
+  await page.keyboard.press('Space');
+  const rubble = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G5 }).__game;
+    g.sim(.05); g.player.x += 4; g.sim(3);
+    return g.props.filter(p => p.kind === 'rubble').length;
+  });
+  expect(rubble).toBe(0);
+  await page.screenshot({ path: 'test-results/objects.png' });
+  expect(errors).toEqual([]);
+});
+
 test('room variants: ambush, champion, dark and quiet', async ({ page }) => {
   const errors = await start(page, '?room=crypt_b&variant=ambush');
   const result = await page.evaluate(() => {

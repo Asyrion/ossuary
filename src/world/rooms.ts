@@ -25,6 +25,7 @@ import { buildCrackedWall, fillSecret, secretLook } from './secret';
 import { buildShrine, shrineLook } from './shrine';
 import { subtractRect, wallRects, type Rect } from './walls';
 import { dressNorthWall } from './dressing';
+import { buildProps } from './props';
 
 export const roomAt = (gx: number, gy: number) => G.roomMap.get(gx + ',' + gy);
 /** World position of the centre of template tile (c, r). */
@@ -66,6 +67,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
     else if (tile === 'urn' || tile === 'sealedUrn') addUrn(room, c, r, tile === 'sealedUrn');
   }));
   for (const run of tombRuns(template)) addTomb(room, run);
+  buildProps(room); // bone piles, casks, roots, briars, cobwebs, glowcaps, pews (M3.6)
   mergePits(room); buildPools(room);
   room.waves = template.waves.map(wv => wv.map(f => ({ kind: f.kind, ...toWorld(room, f.c, f.r) })));
   if (plan.variant === 'quiet') quieten(room);

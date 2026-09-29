@@ -1,4 +1,5 @@
 import { G, player } from '../state';
+import { snagAt } from '../world/props';
 import { blockers, collide } from '../world/collision';
 import { DH } from '../world/dims';
 import { SIDE_DIR } from '../world/shapes';
@@ -28,7 +29,7 @@ export function updatePlayer(dt: number) {
     }
   }
   const k = 1 - Math.exp(-14 * dt);
-  const st = player.stats, speed = st.speed * wadeAt(player.x, player.z); // slower wading through water
+  const st = player.stats, speed = st.speed * wadeAt(player.x, player.z) * snagAt(player.x, player.z); // slower wading through water, or cobwebs
   player.vx = lerp(player.vx, mv.x * speed, k); player.vz = lerp(player.vz, mv.z * speed, k);
   player.x += player.vx * dt; player.z += player.vz * dt;
   collide(player, blockers(cur, 'player', st.effects.has('pitWalker')));

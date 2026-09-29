@@ -41,6 +41,15 @@ export const CFG = {
   // frozen, the burn burning oil sets on foes and how often, the half hearts it and a shocked pool take from the
   // mage, how long a shocked pool crackles, and the drowned floor's puddles (how many per fight, tiles each)
   surface: { wade: .6, oilBurn: 5, iceTime: 8, groundBurn: 2, tick: .25, mageHurt: 1, charged: .5, shockSpread: 1.5, shockDamage: 2, puddles: [1, 2] as [number, number], puddleSize: [2, 4] as [number, number] },
+  // the rooms' objects (M3.6, world/props.ts): how long each flammable one burns (seconds), how often burning spreads
+  // to what burns beside it, cobwebs' slowing, the briar's sting (half hearts to the mage, damage a second to walkers),
+  // the oil a broken cask spills (tiles beyond its own), and glowcap spores (how long a cloud hangs, its reach, the
+  // flash when fire finds it: damage to foes, Burn stacks, half hearts to the mage within reach)
+  props: {
+    burn: { roots: 3.5, briar: 2, web: .45, sacks: 1.6 } as Record<string, number>, spread: .5,
+    webSlow: .45, briarHurt: 1, briarDamage: 2, caskSpill: 3,
+    spores: { time: 4, reach: 1.3, damage: 6, burn: 2, mageHurt: 1 },
+  },
   // the library: how close the mage must come to a page, the gap between lecterns, and how far into the room
   // (from the door) their row stands, for a door on a long side and on a short one
   library: { reach: .4, spacing: 2.3, spacingShort: 1.9, rowIn: 1.1, rowInShort: 2.6 },

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { snagAt } from '../world/props';
 import { BOSS_TYPES, CFG, type EnemyType } from '../config';
 import type { Enemy } from '../types';
 import { G, player } from '../state';
@@ -131,7 +132,7 @@ export function updateEnemies(dt: number) {
       }
     } else if (e.isBoss) faceTo = updateBoss(e, dt, ux, uz) ?? faceTo;
     e.vx *= slow; e.vz *= slow;
-    if (!e.flying) { const w = wadeAt(e.x, e.z); e.vx *= w; e.vz *= w; } // walkers wade through water
+    if (!e.flying) { const w = wadeAt(e.x, e.z) * snagAt(e.x, e.z); e.vx *= w; e.vz *= w; } // walkers wade through water, snag in cobwebs
     // integrate + knockback
     e.kx *= Math.exp(-8 * dt); e.kz *= Math.exp(-8 * dt);
     e.x += (e.vx + e.kx) * dt; e.z += (e.vz + e.kz) * dt;

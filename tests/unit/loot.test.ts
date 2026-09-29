@@ -40,6 +40,11 @@ describe('loot data', () => {
       expect(sealed).toHaveLength(1); // a sealed urn always holds something
       for (const d of [...coffer, ...chest, ...sealed]) expect(ITEMS).toContain(d);
     }
+    // piles are poorer than urns: less often anything, rarely a heart, never keys
+    const remains = Array.from({ length: 4000 }, () => rollTable(rng, 'remains')).flat(), urnLoot = Array.from({ length: 4000 }, () => rollTable(rng, 'urn')).flat();
+    expect(remains.length).toBeLessThan(urnLoot.length);
+    expect(remains.filter(d => d === 'halfHeart').length).toBeLessThan(urnLoot.filter(d => d === 'halfHeart').length / 2);
+    expect([...remains, ...Array.from({ length: 2000 }, () => rollTable(rng, 'bundle')).flat()].some(d => d === 'key')).toBe(false);
     const urns = Array.from({ length: 4000 }, () => rollTable(rng, 'urn').length);
     expect(urns.filter(n => n > 0).length / urns.length).toBeCloseTo(LOOT.urn.chance!, 1);
   });
@@ -90,6 +95,8 @@ describe('economy', () => {
         for (const row of t.tiles) for (const tile of row) {
           if (tile === 'urn') rollTable(drops, 'urn').forEach(add);
           if (tile === 'sealedUrn') { got.glyphs--; rollTable(drops, 'sealedUrn').forEach(add); }
+          if (tile === 'bones' || tile === 'skulls') rollTable(drops, 'remains').forEach(add); // M3.6 piles
+          if (tile === 'sacks') rollTable(drops, 'bundle').forEach(add);
         }
         if (r.type === 'vault') {
           got.keys--;

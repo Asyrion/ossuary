@@ -16,7 +16,7 @@ import { CFG, type BossType, type EnemyType } from '../config';
 import { Rng } from '../rng';
 import type { FloorLook, RoomType, Side } from '../types';
 import { OPPOSITE, SIDE_DIR, SHAPE_IDS, allowsSide, doorSlots, shapeCells, type ShapeId } from './shapes';
-import { TEMPLATE_DEFS, WALKABLE, parseTemplate, type TemplateDef } from './templates';
+import { CLEAR, TEMPLATE_DEFS, parseTemplate, type TemplateDef } from './templates';
 
 export const GRID_W = 9, GRID_H = 8;
 export const START_CELL = { gx: 4, gy: 3 };
@@ -275,7 +275,7 @@ export function doorFits(room: PlannedRoom, door: PlannedDoor, shift: number, li
   if (!slot) return false;
   const ns = door.side === 'n' || door.side === 's', move = (p: { c: number; r: number }) => ns ? { c: p.c + shift, r: p.r } : { c: p.c, r: p.r + shift };
   const entry = move(slot.entry);
-  return slot.lanes.map(move).every(({ c, r }) => WALKABLE.includes(t.tiles[r]?.[c]) && !t.foes.some(f => f.c === c && f.r === r))
+  return slot.lanes.map(move).every(({ c, r }) => CLEAR.includes(t.tiles[r]?.[c]) && !t.foes.some(f => f.c === c && f.r === r))
     && !t.foes.some(f => Math.max(Math.abs(f.c - entry.c), Math.abs(f.r - entry.r)) < 2);
 }
 
