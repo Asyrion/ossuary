@@ -35,7 +35,7 @@ export function fillVault(room: Room) {
     whichever wall the door is in (above the low south wall), and an iron padlock. */
 function sealMark(room: Room, door: VaultSeal['outer']) {
   const [dx, dz] = SIDE_DIR[door.side], south = door.side === 's', g = new THREE.Group();
-  g.position.set(door.x - dx * .05 - room.cx, south ? .8 : .62, door.z - dz * .05 - room.cz);
+  g.position.set(door.x - dx * (dx ? .35 : .05) - room.cx, south ? .8 : .62, door.z - dz * .05 - room.cz); // (clear of an east or west door's posts)
   const rune = new THREE.Sprite(new THREE.SpriteMaterial({ map: glyphTexture(), color: WARD, transparent: true, opacity: .9, depthWrite: false, blending: THREE.AdditiveBlending }));
   rune.scale.setScalar(south ? .8 : 1.05);
   const lock = new THREE.Group(); lock.position.set(0, -.2, .08);
