@@ -42,7 +42,7 @@ const GEO = {
   page: shared(new THREE.PlaneGeometry(.22, .28).rotateX(-Math.PI / 2)), bone: shared(new THREE.CylinderGeometry(.025, .025, .3, 5)),
   roll: shared(new THREE.CylinderGeometry(.13, .13, .7, 10)), blanket: shared(new THREE.BoxGeometry(.7, .04, 1.1)),
   pebble: shared(new THREE.DodecahedronGeometry(.07, 0)), ash: shared(new THREE.CircleGeometry(.3, 12).rotateX(-Math.PI / 2)),
-  patch: shared(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2)), shaft: shared(new THREE.CylinderGeometry(.5, .75, 6, 12, 1, true)), rope: shared(new THREE.CylinderGeometry(.018, .018, 8, 4)), tuft: shared(new THREE.ConeGeometry(.05, .16, 6)),
+  patch: shared(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2)), shaft: shared(new THREE.CylinderGeometry(.5, .75, 6, 12, 1, true)), rope: shared(new THREE.CylinderGeometry(.02, .02, 3.2, 4)), tuft: shared(new THREE.ConeGeometry(.05, .16, 6)),
 };
 let patchTex: THREE.CanvasTexture | null = null;
 /** A soft round blotch, for moss and stains. */
@@ -74,6 +74,7 @@ function fadeUp() {
   fadeTex = new THREE.CanvasTexture(c); return fadeTex;
 }
 const ropeMat = markShared(new THREE.MeshStandardMaterial({ color: 0x6a5238, roughness: 1 }));
+let ropeFade: THREE.Material | null = null; // a rope fading into the dark above
 
 type Dress = (R: () => number) => THREE.Object3D;
 const DRESS: Record<ScatterKind, Dress> = {
@@ -123,7 +124,8 @@ const DRESS: Record<ScatterKind, Dress> = {
     return g;
   },
   ropes(R) { // a bell rope hanging from the dark above, its tuft at waist height
-    const g = new THREE.Group(), y = .8 + R() * .3, rope = new THREE.Mesh(GEO.rope, ropeMat); rope.position.y = y + 4;
+    ropeFade ??= markShared(new THREE.MeshStandardMaterial({ color: 0x6a5238, roughness: 1, alphaMap: fadeUp(), transparent: true, depthWrite: false }));
+    const g = new THREE.Group(), y = .8 + R() * .3, rope = new THREE.Mesh(GEO.rope, ropeFade); rope.position.y = y + 1.6;
     const tuft = new THREE.Mesh(GEO.tuft, ropeMat); tuft.position.y = y; tuft.rotation.x = Math.PI; g.add(rope, tuft);
     return g;
   },
@@ -152,8 +154,8 @@ export function dressTheme(room: Room) {
     const count = kind === 'daylight' ? n : Math.round(n * scale);
     for (let i = 0; i < count && free.length; i++) {
       // daylight falls near the middle; the rest anywhere
-      const open = free.filter(q => clear(q.c, q.r) >= 3), from = kind === 'daylight' && open.length ? open : free;
-      const pick = kind === 'daylight' ? from.sort((a, b) => Math.hypot(a.c - mid.c, a.r - mid.r) - Math.hypot(b.c - mid.c, b.r - mid.r))[Math.floor(R() * Math.min(6, from.length))] : free[Math.floor(R() * free.length)];
+      const need = kind === 'daylight' ? 3 : kind === 'bedrolls' ? 2 : 0, open = need ? free.filter(q => clear(q.c, q.r) >= need) : free, from = open.length ? open : free;
+      const pick = kind === 'daylight' ? from.sort((a, b) => Math.hypot(a.c - mid.c, a.r - mid.r) - Math.hypot(b.c - mid.c, b.r - mid.r))[Math.floor(R() * Math.min(6, from.length))] : from[Math.floor(R() * from.length)];
       free.splice(free.indexOf(pick), 1);
       const o = DRESS[kind](R); o.position.x += room.bounds.minX + pick.c + .5 + (R() - .5) * .3 - room.cx; o.position.z += room.bounds.minZ + pick.r + .5 + (R() - .5) * .3 - room.cz;
       room.group.add(o);

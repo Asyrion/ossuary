@@ -31,7 +31,7 @@ const dark = markShared(new THREE.MeshBasicMaterial({ color: 0x080605 }));
 const boneMat = markShared(new THREE.MeshStandardMaterial({ color: 0xcfc2a6, roughness: .8, emissive: 0x16110a }));
 const waxMat = markShared(new THREE.MeshStandardMaterial({ color: 0xe8dcc0, roughness: .6, emissive: 0x2a2010 }));
 const flameMat = markShared(new THREE.MeshBasicMaterial({ color: 0xffc36a }));
-const bronzeMat = markShared(new THREE.MeshStandardMaterial({ color: 0x8a6a3a, roughness: .45, metalness: .7, emissive: 0x1a1006 }));
+const bronzeMat = markShared(new THREE.MeshStandardMaterial({ color: 0xb08a4a, roughness: .4, metalness: .5, emissive: 0x3a2810 }));
 const clayMat = markShared(new THREE.MeshStandardMaterial({ color: 0x7a4a30, roughness: .85 }));
 const stoneCache = new Map<string, THREE.Material>();
 /** The dressing's stone: the floor's brick colour, a little lighter, so pilasters stand out from the wall. */
@@ -48,7 +48,7 @@ function stone(look: FloorLook) {
 /** Dress a stretch of tall wall facing south into the room: its inner face at world z `face`, spanning world
     x [x0, x1]; `avoid` are world x positions to keep clear (doors, torches), each with how much room it needs. */
 export function dressNorthWall(room: Room, face: number, x0: number, x1: number, avoid: { x: number; room: number }[]) {
-  const dress = room.look.wall.dress; if (!dress) return;
+  const dress = room.look.wall.dress; if (!dress || room.type === 'library') return; // (its shelves line the north wall)
   const R = mulberry(room.plan.seed ^ Math.round(face * 131 + x0 * 7));
   const clear = (x: number, need: number) => x - need >= x0 && x + need <= x1 && avoid.every(a => Math.abs(x - a.x) >= a.room + need);
   const spots: number[] = [];
@@ -98,7 +98,7 @@ function niche(kind: NicheKind, R: () => number, frame: THREE.Material, eyes?: T
       g.add(c, f);
     }
   } else if (kind === 'bell') { // a small hand bell of bronze
-    const b = new THREE.Mesh(G.handbell, bronzeMat); b.position.set(0, on, .06); g.add(b);
+    const b = new THREE.Mesh(G.handbell, bronzeMat); b.scale.setScalar(1.5); b.position.set(0, on, .06); g.add(b);
   } else if (kind === 'urn') {
     const u = new THREE.Mesh(G.urn, clayMat); u.position.set(0, on, .06); g.add(u);
   } else if (kind === 'bones') {
