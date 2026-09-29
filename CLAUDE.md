@@ -326,11 +326,16 @@ Two subagents in `.claude/agents/` and one skill in `.claude/skills/`. The owner
 below without being asked each time; in a cloud session this line is that request.
 
 - **`rules-reviewer`** (subagent): before opening every PR, run it on `origin/main...HEAD` and fix its blocking
-  findings. It checks the diff against these working agreements, the GDD and the lore limits.
+  findings. It checks the diff against these working agreements, the GDD and the lore limits. It starts from
+  `npm run review-checks` (`tools/review-checks.ts`: what a script can find in the diff, per rule, plus the typecheck
+  and unit tests) and reads only the hunks it flags and the changed source; tell it `--no-tests` when those just ran.
 - **`room-inspector`** (subagent): after every step that changes how rooms look (walls, doors, objects, themes,
-  lights, mechanisms), and before every play-test build, run it on what changed. It uses `npm run inspect`
-  (`tools/inspect-rooms.ts`: screenshots of templates, themes, all objects or a whole floor, and a contact sheet)
-  and reports what looks wrong. Fix its blocking findings; list the polish ones for the owner.
+  lights, mechanisms), run it on what changed (a routine check); before a milestone's play-test build, a closing
+  sweep (every theme, carved rooms, objects, a floor of each look). It uses `npm run inspect`
+  (`tools/inspect-rooms.ts`): `changed` picks the rooms from the diff, `--against origin/main` shoots them on the base
+  too and marks what changed (with before | after images), and checks flag console errors, a hidden mage, pools that
+  read like pits and rooms too dark to read; it looks only at changed or flagged rooms, with a budget of close-ups
+  (`inspect -- crop`). Fix its blocking findings; list the polish ones for the owner.
 - **`ship`** (skill): when the owner asks to open a PR and merge it. Checks, PR, CI, rebase merge, the branch back
   in step with `main`, the Pages deploy confirmed. Never ship without being asked.
 
