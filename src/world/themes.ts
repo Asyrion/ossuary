@@ -42,7 +42,7 @@ const GEO = {
   page: shared(new THREE.PlaneGeometry(.22, .28).rotateX(-Math.PI / 2)), bone: shared(new THREE.CylinderGeometry(.025, .025, .3, 5)),
   roll: shared(new THREE.CylinderGeometry(.13, .13, .7, 10)), blanket: shared(new THREE.BoxGeometry(.7, .04, 1.1)),
   pebble: shared(new THREE.DodecahedronGeometry(.07, 0)), ash: shared(new THREE.CircleGeometry(.3, 12).rotateX(-Math.PI / 2)),
-  patch: shared(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2)), shaft: shared(new THREE.CylinderGeometry(.5, .75, 4, 12, 1, true)),
+  patch: shared(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2)), shaft: shared(new THREE.CylinderGeometry(.5, .75, 6, 12, 1, true)), rope: shared(new THREE.CylinderGeometry(.018, .018, 8, 4)), tuft: shared(new THREE.ConeGeometry(.05, .16, 6)),
 };
 let patchTex: THREE.CanvasTexture | null = null;
 /** A soft round blotch, for moss and stains. */
@@ -65,7 +65,15 @@ const patchMat = (color: number, glowing = false, opacity = .8) => {
   }
   return m;
 };
-let shaftMat: THREE.Material | null = null;
+let shaftMat: THREE.Material | null = null, fadeTex: THREE.CanvasTexture | null = null;
+/** Bright below, fading to nothing above: the daylight's shaft has no top edge to see. */
+function fadeUp() {
+  if (fadeTex) return fadeTex;
+  const c = document.createElement('canvas'); c.width = 4; c.height = 64; const g = c.getContext('2d')!, gr = g.createLinearGradient(0, 0, 0, 64);
+  gr.addColorStop(0, '#000'); gr.addColorStop(.3, '#000'); gr.addColorStop(.7, '#8c8c8c'); gr.addColorStop(1, '#fff'); g.fillStyle = gr; g.fillRect(0, 0, 4, 64); // (grey levels: an alpha map reads them, not the canvas's own alpha; its top is the cylinder's top)
+  fadeTex = new THREE.CanvasTexture(c); return fadeTex;
+}
+const ropeMat = markShared(new THREE.MeshStandardMaterial({ color: 0x6a5238, roughness: 1 }));
 
 type Dress = (R: () => number) => THREE.Object3D;
 const DRESS: Record<ScatterKind, Dress> = {
@@ -109,9 +117,14 @@ const DRESS: Record<ScatterKind, Dress> = {
     return g;
   },
   daylight() { // a shaft of daylight down through the broken ceiling, and the pale disc it makes on the floor
-    shaftMat ??= markShared(new THREE.MeshBasicMaterial({ color: 0xfff2c8, transparent: true, opacity: .09, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-    const g = new THREE.Group(), s = new THREE.Mesh(GEO.shaft, shaftMat); s.position.y = 2; g.add(s);
+    shaftMat ??= markShared(new THREE.MeshBasicMaterial({ color: 0xfff2c8, alphaMap: fadeUp(), transparent: true, opacity: .09, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+    const g = new THREE.Group(), s = new THREE.Mesh(GEO.shaft, shaftMat); s.position.y = 3; g.add(s);
     const disc = new THREE.Mesh(GEO.patch, patchMat(0xfff0c0, true, .16)); disc.scale.setScalar(1.6); disc.position.y = .006; g.add(disc);
+    return g;
+  },
+  ropes(R) { // a bell rope hanging from the dark above, its tuft at waist height
+    const g = new THREE.Group(), y = .8 + R() * .3, rope = new THREE.Mesh(GEO.rope, ropeMat); rope.position.y = y + 4;
+    const tuft = new THREE.Mesh(GEO.tuft, ropeMat); tuft.position.y = y; tuft.rotation.x = Math.PI; g.add(rope, tuft);
     return g;
   },
   rime(R) { const m = new THREE.Mesh(GEO.patch, patchMat(0x9fd0f0, true, .22)); m.scale.setScalar(.7 + R() * .5); m.position.y = .005; m.rotation.y = R() * 6; return m; },
@@ -129,11 +142,18 @@ export function dressTheme(room: Room) {
   const R = mulberry(room.plan.seed ^ 0x7e3e), t = room.template, free: { c: number; r: number }[] = [];
   for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) if (t.tiles[r][c] === 'floor' && !room.template.foes.some(f => f.c === c && f.r === r)) free.push({ c, r });
   const scale = Math.max(1, (t.w * t.h) / (13 * 7) * .7); // larger rooms get more of it
+  // where daylight may fall: at least three tiles from any wall (the grid's edge, or carved and missing corners), near
+  // the middle of the room's own floor (an L's middle is its missing corner)
+  const voids: { c: number; r: number }[] = [], inside: { c: number; r: number }[] = [];
+  for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) (t.tiles[r][c] === 'void' ? voids : inside).push({ c, r });
+  const clear = (c: number, r: number) => Math.min(c + 1, r + 1, t.w - c, t.h - r, ...voids.map(v => Math.max(Math.abs(v.c - c), Math.abs(v.r - r))));
+  const mid = { c: inside.reduce((s, q) => s + q.c, 0) / inside.length, r: inside.reduce((s, q) => s + q.r, 0) / inside.length };
   for (const [kind, n] of Object.entries(theme.scatter) as [ScatterKind, number][]) {
     const count = kind === 'daylight' ? n : Math.round(n * scale);
     for (let i = 0; i < count && free.length; i++) {
       // daylight falls near the middle; the rest anywhere
-      const pick = kind === 'daylight' ? free.sort((a, b) => Math.hypot(a.c - t.w / 2, a.r - t.h / 2) - Math.hypot(b.c - t.w / 2, b.r - t.h / 2))[Math.floor(R() * Math.min(6, free.length))] : free[Math.floor(R() * free.length)];
+      const open = free.filter(q => clear(q.c, q.r) >= 3), from = kind === 'daylight' && open.length ? open : free;
+      const pick = kind === 'daylight' ? from.sort((a, b) => Math.hypot(a.c - mid.c, a.r - mid.r) - Math.hypot(b.c - mid.c, b.r - mid.r))[Math.floor(R() * Math.min(6, from.length))] : free[Math.floor(R() * free.length)];
       free.splice(free.indexOf(pick), 1);
       const o = DRESS[kind](R); o.position.x += room.bounds.minX + pick.c + .5 + (R() - .5) * .3 - room.cx; o.position.z += room.bounds.minZ + pick.r + .5 + (R() - .5) * .3 - room.cz;
       room.group.add(o);

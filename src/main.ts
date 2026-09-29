@@ -12,7 +12,7 @@ import './style.css';
 import { G, player } from './state';
 import { applyStrings } from './strings';
 import { Sfx } from './audio/sfx';
-import { camera, canvas, draw, resize } from './render/renderer';
+import { camera, canvas, draw, renderer, resize } from './render/renderer';
 import './render/lights';
 import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { arrowOrder, initKeyboard, initTouch, keys, type InputActions } from './input';
@@ -136,6 +136,8 @@ function installDevHooks() {
     /** Run the simulation for `sec` seconds in fixed steps; optionally render once afterwards. */
     sim(sec: number, render = false) { for (let t = 0; t < sec; t += STEP) step(STEP); if (render) { draw(); updateVision(); } },
     draw() { draw(); updateVision(); },
+    /** What the last frame cost the GPU (draw calls, triangles) and what is held in memory (geometries, textures). */
+    renderInfo: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures }),
     lightLevels,
     /** Give the mage artifacts by id, e.g. give('bone_lens', 'twin_staff'). */
     give: (...ids: string[]) => giveById(ids),

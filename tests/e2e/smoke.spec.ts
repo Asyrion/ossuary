@@ -1538,3 +1538,23 @@ test('candle stands: all lit, a reliquary opens with its hoard and a chapel bles
   expect(ice).toEqual({ before: ['frozen'], after: ['still'] });
   expect(errors).toEqual([]);
 });
+
+test('a great hall packed with every object stays within its draw calls (their still parts are merged)', async ({ page }) => {
+  type G9 = { warp(id: number): void; clearRoom(): void; sim(sec: number, draw?: boolean): void; prop(kind: string, x: number, z: number): boolean;
+    props: { kind: string; x: number; z: number }[]; element(kind: string, x: number, z: number): void; renderInfo(): { calls: number; triangles: number };
+    current: { cx: number; cz: number; bounds: { minX: number; minZ: number }; template: { w: number; h: number; tiles: string[][] } }; player: { x: number; z: number; invuln: number } };
+  const errors = await start(page, '?room=reliquary_great');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G9 }).__game; g.warp(1); g.clearRoom(); g.player.invuln = 99;
+    const kinds = ['bones', 'skulls', 'sacks', 'cask', 'rubble', 'roots', 'briar', 'web', 'glowcap', 'pew', 'desk', 'scrolls', 'brazier', 'candles', 'bell', 'rune', 'lodestone', 'censer', 'reliquary', 'tree'];
+    const t = g.current.template, b = g.current.bounds; let k = 0;
+    for (let row = 1; row < t.h - 1; row += 2) for (let c = 1; c < t.w - 1; c += 2) if (t.tiles[row][c] === 'floor' && g.prop(kinds[k % kinds.length], b.minX + c + .5, b.minZ + row + .5)) k++;
+    for (const p of g.props) if (p.kind === 'brazier' || p.kind === 'candles') g.element('burn', p.x, p.z);
+    g.player.x = g.current.cx; g.player.z = g.current.cz; g.sim(.5, true);
+    return { placed: k, ...g.renderInfo() };
+  });
+  console.log(`packed great hall: ${r.placed} objects, ${r.calls} draw calls, ${r.triangles} triangles`);
+  expect(r.placed).toBeGreaterThan(80);
+  expect(r.calls).toBeLessThan(750); // 1,085 before objects' still parts were merged
+  expect(errors).toEqual([]);
+});

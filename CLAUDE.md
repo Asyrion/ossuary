@@ -99,7 +99,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   bolt breaks it; soft: `room.soft`, walked into) are in the pure `src/world/propData.ts`; looks and behaviour in
   `src/world/props.ts` (`strikeProp` from bolts and blasts, `blastProps`, `burnPropsAt` from `fireAt`, a cask's
   `addPool`, glowcap spores, `snagAt` for cobwebs, briar stings in `updateProps`), tuning in `CFG.props`, the
-  poorer loot in `remains` and `bundle` (`data/loot.json`). `__game.prop('cask')` puts one down, `__game.props` and
+  poorer loot in `remains` and `bundle` (`data/loot.json`). Each object's still meshes are merged by material when it is
+  built (`mergeStill` in `render/materials.ts`; its `userData.parts` stay apart), so an object costs 2 to 5 draw calls.
+  `__game.prop('cask')` puts one down, `__game.props` and
   `__game.spores` read them, `__game.burn(x, z, r)` sets fire there; the dev menu has a row of them.
 - Mechanisms (M3.6): objects that answer to magic with more than breaking (`MECHANISMS` in `propData.ts`); their looks
   and what they do are in `src/world/mechanisms.ts`, tuning in `CFG.mech`. They hear the same hooks as everything
@@ -145,7 +147,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   spells given up; `__game.cast(slot)` answers a page that asks, as the key does; `__game.pools` reads the room's
   water and oil, `__game.pool('fire' | 'frost' | 'shock')` sets it alight, freezes or shocks it;
   `__game.prop('brazier')` puts an object or mechanism down, `__game.props` reads them, `__game.burn(x, z, r)` sets
-  fire there and `__game.element('shock', x, z)` lands fire, frost or shock there.
+  fire there and `__game.element('shock', x, z)` lands fire, frost or shock there; `__game.renderInfo()` reads the last
+  frame's draw calls and triangles.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons: heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
   special rooms (a sealed vault leads to its warded door), test rooms, boss fights and new runs, taking or
