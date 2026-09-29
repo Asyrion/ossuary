@@ -102,7 +102,8 @@ export function mergeStill(root: THREE.Object3D) {
   const walk = (o: THREE.Object3D) => {
     if (keep.has(o)) return;
     const m = o as THREE.Mesh;
-    if (m.isMesh && !(o as THREE.Sprite).isSprite && !Array.isArray(m.material)) { // (one material: a geometry's groups don't matter)
+    if (!o.visible) return; // (a hidden piece stays hidden)
+    if (m.isMesh && !(o as THREE.Sprite).isSprite && !Array.isArray(m.material) && !o.children.length) { // (one material: a geometry's groups don't matter)
       const list = byMat.get(m.material) ?? []; list.push(m); byMat.set(m.material, list);
     }
     for (const c of o.children) walk(c);
@@ -111,9 +112,11 @@ export function mergeStill(root: THREE.Object3D) {
   for (const [mat, meshes] of byMat) {
     if (meshes.length < 2) continue;
     const geos = meshes.map(m => { const g = m.geometry.clone(); g.clearGroups(); g.applyMatrix4(toRoot.clone().multiply(m.matrixWorld)); return g; });
-    const merged = geos.every(g => g.index) || geos.every(g => !g.index) ? mergeGeometries(geos) : null;
+    const attrs = (g: THREE.BufferGeometry) => Object.keys(g.attributes).sort().join();
+    const alike = geos.every(g => attrs(g) === attrs(geos[0]) && !g.index === !geos[0].index);
+    const merged = alike ? mergeGeometries(geos) : null;
     for (const g of geos) g.dispose();
-    if (!merged) continue; // (attributes that don't match: leave them apart)
+    if (!merged) continue; // (attributes or indexing that don't match: leave them apart)
     const one = new THREE.Mesh(merged, mat); one.renderOrder = meshes[0].renderOrder; root.add(one);
     for (const m of meshes) { m.parent?.remove(m); if (!m.geometry.userData.shared) m.geometry.dispose(); }
   }

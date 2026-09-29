@@ -148,7 +148,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   water and oil, `__game.pool('fire' | 'frost' | 'shock')` sets it alight, freezes or shocks it;
   `__game.prop('brazier')` puts an object or mechanism down, `__game.props` reads them, `__game.burn(x, z, r)` sets
   fire there and `__game.element('shock', x, z)` lands fire, frost or shock there; `__game.renderInfo()` reads the last
-  frame's draw calls and triangles.
+  frame's draw calls and triangles, and the geometries and textures held.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons: heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
   special rooms (a sealed vault leads to its warded door), test rooms, boss fights and new runs, taking or

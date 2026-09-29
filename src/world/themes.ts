@@ -153,8 +153,9 @@ export function dressTheme(room: Room) {
   for (const [kind, n] of Object.entries(theme.scatter) as [ScatterKind, number][]) {
     const count = kind === 'daylight' ? n : Math.round(n * scale);
     for (let i = 0; i < count && free.length; i++) {
-      // daylight falls near the middle; the rest anywhere
-      const need = kind === 'daylight' ? 3 : kind === 'bedrolls' ? 2 : 0, open = need ? free.filter(q => clear(q.c, q.r) >= need) : free, from = open.length ? open : free;
+      // daylight falls near the middle, clear of the walls; bedrolls keep off them; the rest anywhere
+      const need = kind === 'daylight' ? C.daylightClear : kind === 'bedrolls' ? C.bedrollClear : 0; // tiles from any wall
+      const open = need ? free.filter(q => clear(q.c, q.r) >= need) : free, from = open.length ? open : free;
       const pick = kind === 'daylight' ? from.sort((a, b) => Math.hypot(a.c - mid.c, a.r - mid.r) - Math.hypot(b.c - mid.c, b.r - mid.r))[Math.floor(R() * Math.min(6, from.length))] : from[Math.floor(R() * from.length)];
       free.splice(free.indexOf(pick), 1);
       const o = DRESS[kind](R); o.position.x += room.bounds.minX + pick.c + .5 + (R() - .5) * .3 - room.cx; o.position.z += room.bounds.minZ + pick.r + .5 + (R() - .5) * .3 - room.cz;

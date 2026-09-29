@@ -1543,7 +1543,7 @@ test('a great hall packed with every object stays within its draw calls (their s
   type G9 = { warp(id: number): void; clearRoom(): void; sim(sec: number, draw?: boolean): void; prop(kind: string, x: number, z: number): boolean;
     props: { kind: string; x: number; z: number }[]; element(kind: string, x: number, z: number): void; renderInfo(): { calls: number; triangles: number };
     current: { cx: number; cz: number; bounds: { minX: number; minZ: number }; template: { w: number; h: number; tiles: string[][] } }; player: { x: number; z: number; invuln: number } };
-  const errors = await start(page, '?room=reliquary_great');
+  const errors = await start(page, '?room=reliquary_great&seed=K3F9QX'); // (one seed: the same niches, doors and scatter every time)
   const r = await page.evaluate(() => {
     const g = (window as unknown as { __game: G9 }).__game; g.warp(1); g.clearRoom(); g.player.invuln = 99;
     const kinds = ['bones', 'skulls', 'sacks', 'cask', 'rubble', 'roots', 'briar', 'web', 'glowcap', 'pew', 'desk', 'scrolls', 'brazier', 'candles', 'bell', 'rune', 'lodestone', 'censer', 'reliquary', 'tree'];
