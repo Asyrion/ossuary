@@ -5,6 +5,7 @@
    hooks, for testing the deployed site. */
 import { BOSS_TYPES, type BossType, type EnemyType } from '../config';
 import { PROP_KINDS } from '../world/propData';
+import { THEME_DEFS } from '../world/themeData';
 import { placeProp } from '../world/props';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
@@ -143,6 +144,10 @@ function build() {
   // water and oil in this room (the test rooms with them are in the list above)
   const pools = section(p, S.pools);
   pools.append(btn(S.ignite, () => poolsDo('fire')), btn(S.freezeWater, () => poolsDo('frost')), btn(S.shockWater, () => poolsDo('shock')));
+
+  // themed rooms (M3.6): a test room of each theme, next to the start
+  const themes = section(p, S.themes);
+  for (const t of THEME_DEFS) { const first = TEMPLATE_DEFS.find(d => d.theme === t.id); if (first) themes.append(btn(t.name, () => start({ testTemplate: first.id }))); }
 
   // the rooms' objects (M3.6), put down just ahead of the mage
   const objs = section(p, S.objects);

@@ -1,5 +1,6 @@
 /* Game states (title, play, pause, dying, end), runs and floors, and moving between rooms. */
 import type * as THREE from 'three';
+import { enterTheme } from './world/themes';
 import { CFG, type BossType } from './config';
 import type { Room } from './types';
 import { DEV, G, after, clearTimers, player } from './state';
@@ -40,9 +41,10 @@ export interface RunOptions {
   seed?: string; floor?: number; testTemplate?: string; testVariant?: RoomVariant; give?: string[]; boss?: BossType;
   /** Extra obols, keys and glyphs to start with. */ loot?: Partial<Record<Resource, number>>;
   /** Spells to start with, in slot order. */ spells?: string[];
+  /** Every fight on every floor in a room of this theme (M3.6). */ theme?: string;
 }
 let nextRun: RunOptions = {};
-let testTemplate: string | undefined, testVariant: RoomVariant | undefined, forcedBoss: BossType | undefined;
+let testTemplate: string | undefined, testVariant: RoomVariant | undefined, forcedBoss: BossType | undefined, forcedTheme: string | undefined;
 export function setNextRun(opts: RunOptions) { nextRun = opts; }
 
 const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
@@ -102,7 +104,7 @@ function newRun(seed: string): typeof G.run {
 export function startGame(opts?: RunOptions) {
   const o = opts ?? nextRun; nextRun = {};
   const seed = o.seed || newSeed();
-  testTemplate = o.testTemplate; testVariant = o.testVariant; forcedBoss = o.boss;
+  testTemplate = o.testTemplate; testVariant = o.testVariant; forcedBoss = o.boss; forcedTheme = o.theme;
   G.run = newRun(seed);
   Sfx.init(); resetPlayer(); hideLore(); G.stats.time = 0; G.stats.kills = 0; G.stats.obols = 0;
   if (o.give?.length) giveById(o.give);
@@ -164,6 +166,7 @@ export function enterRoom(room: Room) {
     }
     if (room.type === 'ordeal') { banner(...STR.banner.ordeal(room.waves.length)); Sfx.gong(); }
   }
+  enterTheme(room, firstVisit, G.enemies.filter(e => !e.dead)); // a themed room's name, and its sleepers
   if (firstVisit && room.plan.variant === 'dark') Sfx.darkness();
   if (firstVisit && room.type === 'altar' && room.spots.length) banner(...STR.banner.altar);
   if (firstVisit && room.type === 'merchant') { banner(...STR.banner.merchant); Sfx.shade(); }
@@ -328,8 +331,10 @@ export function warp(gx: number, gy?: number) {
   aimCamera(r); enterRoom(r);
 }
 
-/** A floor's settings, with the dev menu's door switch applied. */
+/** A floor's settings, with the dev menu's door switch applied, and `?theme=` making every fight one theme's. */
 function floorConfig(index: number) {
-  const cfg = FLOORS[index];
-  return DEV.doors === 'data' ? cfg : { ...cfg, doorShift: DEV.doors === 'shifted' ? 1 : 0 };
+  let cfg = FLOORS[index];
+  if (DEV.doors !== 'data') cfg = { ...cfg, doorShift: DEV.doors === 'shifted' ? 1 : 0 };
+  if (forcedTheme) cfg = { ...cfg, themeChance: 1, themes: { [forcedTheme]: 1 } };
+  return cfg;
 }

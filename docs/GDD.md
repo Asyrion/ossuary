@@ -489,6 +489,19 @@ Rooms are built from cells of 13 × 7 tiles. A standard room is one cell, with a
 
 Fire spreads between what burns, and lights oil; anything that burns or blasts (Burn, the lance, the seal, a glyph, burning oil) reaches them.
 
+**Themed rooms (M3.6).** About two fights in five (per floor, `themeChance`) take place in a themed room: a kind of place in the dungeon, dressed its own way (torch light, floor stains, what the niches hold, scatter on the floor, how its rocks and tombs look) and with one twist to learn. The mage learns its name on first entering. Each floor draws on some of them (weights in `data/floors.json`).
+
+| Theme | Floors | What is in it | Its twist |
+| --- | --- | --- | --- |
+| Chapel nave | 1, 2 | Rows of pews, an altar, candles in the niches and on the floor | (Candle stands, M3.6 step 4) |
+| Ossuary | 1, 3 | Bone piles, skull heaps, niches full of skulls | If the fight drags on, piles rise as rotlings, one every few seconds |
+| Scriptorium | 1 | Desks, scroll heaps, loose pages | A scroll heap sometimes hides a torn grimoire page |
+| Pilgrims' rest | 1, 2 | Bedrolls, grave sacks, a cold fire | Its foes sleep until hurt, or until the mage comes close |
+| Flooded cistern | 2 | Water between stepping stones and pillars | Frost makes paths; Shock runs through it all |
+| Fungal grotto | 2 | Stalagmites, glowcaps, moss, cobwebs | Glowcap spores that flash in fire |
+| Collapsed crypt | 2, 3 | Rubble, roots, a shaft of daylight | A glyph's blast brings stones down round it a moment later, shadows first, hurting what they land on and leaving rubble |
+| Embalmers' hall | 3 | Slabs with shrouded dead, oil casks, oil | One spark and the room burns |
+
 | Room type | Purpose | Door style | Arrives |
 | --- | --- | --- | --- |
 | Start | No enemies, controls chalked on the floor | Plain | 0.3 |

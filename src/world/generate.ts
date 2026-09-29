@@ -41,6 +41,8 @@ export interface FloorConfig {
   /** The champion that rises in a vault forced open with glyphs. */ vaultWarden: EnemyType;
   /** Chance the boss room is widened into a great hall when there is space. */ bossHallChance: number;
   /** Chance a door moves off the middle of its edge, where both rooms leave room for it (M3.6). */ doorShift: number;
+  /** Chance a fight takes place in a themed room, and which themes the floor draws on, by weight (M3.6). */
+  themeChance: number; themes: Record<string, number>;
   /** Relative weights of room shapes for new rooms. */ shapes: Partial<Record<ShapeId, number>>;
   /** Relative weights of the variants a normal room can roll. */ variants: Partial<Record<RoomVariant, number>>;
   templateWeights: Record<string, number>;
@@ -246,6 +248,12 @@ function assignTemplates(rng: Rng, rooms: PlannedRoom[], cfg: FloorConfig, index
   const used = new Set<string>();
   for (const room of rng.shuffle(rooms.slice())) {
     let pool = library.filter(t => t.shape === room.shape && t.types.includes(room.type));
+    // fights: now and then in a themed room of one of the floor's themes (if it has one of this shape), else a plain one
+    if (room.type === 'normal') {
+      const theme = Object.keys(cfg.themes ?? {}).length && rng.chance(cfg.themeChance) ? rng.weighted(cfg.themes) : undefined;
+      const inTheme = theme ? pool.filter(t => t.theme === theme) : [];
+      pool = inTheme.length ? inTheme : pool.filter(t => !t.theme);
+    }
     if (room.type === 'normal' || room.type === 'ordeal') {
       // the rooms next to the start on floor 1 stay gentle; ordeals are a step harder than the floor
       let difficulty = index === 0 && room.dist === 1 ? 1 : Number(rng.weighted(cfg.templateWeights));

@@ -8,7 +8,8 @@
             u  urn        $  rune-sealed urn (only a glyph's blast breaks it)
             ~  water      %  oil (both walkable; tiles side by side make one pool, see world/pools.ts)
             b  bone pile  k  skull heap  s  grave sacks  c  oil cask   r  rubble    p  pew (side by side, one pew)
-            t  grave roots  v  thorn briar  :  cobwebs  g  glowcaps  (the objects of world/propData.ts)
+            t  grave roots  v  thorn briar  :  cobwebs  g  glowcaps  d  desk  e  scroll heap
+            (the objects of world/propData.ts)
             R  rotling    W  wisp      H  crypt hound      B  the floor's boss
 
    Ordeal templates keep their terrain in `grid` (no enemies) and list each wave's enemies in `waves`,
@@ -17,6 +18,7 @@
 import standardTemplates from '../../data/templates/standard.json';
 import specialTemplates from '../../data/templates/special.json';
 import shapedTemplates from '../../data/templates/shapes.json';
+import themedTemplates from '../../data/templates/themed.json';
 import type { EnemyType } from '../config';
 import type { RoomType } from '../types';
 import { SHAPE_IDS, doorSlots, shapeMask, shapeSize, type ShapeId } from './shapes';
@@ -32,6 +34,7 @@ export type FoeKind = EnemyType | 'boss';
 
 export interface TemplateDef {
   id: string; shape: ShapeId; types: RoomType[]; difficulty: number; grid: string[];
+  /** A themed room's theme (world/themeData.ts, data/themes.json). */ theme?: string;
   /** Ordeal rooms: the enemies of each wave. */ waves?: string[][];
 }
 export interface Foe { kind: FoeKind; c: number; r: number }
@@ -178,6 +181,6 @@ export function tombRuns(t: Pick<Template, 'tiles' | 'w' | 'h'>) {
 }
 
 export const TEMPLATE_DEFS: TemplateDef[] = [
-  ...(standardTemplates as TemplateDef[]), ...(specialTemplates as TemplateDef[]), ...(shapedTemplates as TemplateDef[]),
+  ...(standardTemplates as TemplateDef[]), ...(specialTemplates as TemplateDef[]), ...(shapedTemplates as TemplateDef[]), ...(themedTemplates as TemplateDef[]),
 ];
 export const TEMPLATES = new Map(TEMPLATE_DEFS.map(d => [d.id, d]));

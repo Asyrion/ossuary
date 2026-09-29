@@ -26,6 +26,8 @@ import { buildShrine, shrineLook } from './shrine';
 import { subtractRect, wallRects, type Rect } from './walls';
 import { dressNorthWall } from './dressing';
 import { buildProps } from './props';
+import { THEMES, themedLook } from './themeData';
+import { dressTheme } from './themes';
 
 export const roomAt = (gx: number, gy: number) => G.roomMap.get(gx + ',' + gy);
 /** World position of the centre of template tile (c, r). */
@@ -42,9 +44,10 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   const minX = plan.anchor.gx * PX - HW + (inset?.c0 ?? 0), minZ = plan.anchor.gy * PZ - HD + (inset?.r0 ?? 0);
   const cx = minX + w / 2, cz = minZ + h / 2;
   const floorLook = FLOORS[Math.min(floorIndex, FLOORS.length - 1)].look;
-  const look = plan.type === 'secret' ? secretLook(floorLook) : plan.type === 'shrine' ? shrineLook(floorLook) : floorLook;
+  const theme = def.theme ? THEMES.get(def.theme) : undefined; // a themed room dresses the floor's look its own way
+  const look = plan.type === 'secret' ? secretLook(floorLook) : plan.type === 'shrine' ? shrineLook(floorLook) : themedLook(floorLook, theme);
   const room: Room = {
-    plan, template, look, type: plan.type, gx: plan.anchor.gx, gy: plan.anchor.gy, cx, cz,
+    plan, template, look, theme, type: plan.type, gx: plan.anchor.gx, gy: plan.anchor.gy, cx, cz,
     // the room's inside: its shape, less the tiles the template carves into wall
     bounds: { minX, maxX: minX + w, minZ, maxZ: minZ + h }, w, h, mask: shapeMask(plan.shape, plan.mirrorX, plan.mirrorY).map((row, r) => row.map((inShape, c) => inShape && template.tiles[r][c] !== 'void')),
     group: new THREE.Group(), doors: [], walls: [], rocks: [], pits: [], torches: [], waves: [], wave: 0, wavePending: false, spots: [],
@@ -68,6 +71,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   }));
   for (const run of tombRuns(template)) addTomb(room, run);
   buildProps(room); // bone piles, casks, roots, briars, cobwebs, glowcaps, pews (M3.6)
+  dressTheme(room); // a themed room's scatter: candles, pages, moss, bedrolls, daylight...
   mergePits(room); buildPools(room);
   room.waves = template.waves.map(wv => wv.map(f => ({ kind: f.kind, ...toWorld(room, f.c, f.r) })));
   if (plan.variant === 'quiet') quieten(room);
@@ -117,9 +121,17 @@ function quieten(room: Room) {
 function addRock(room: Room, c: number, r: number) {
   const p = toWorld(room, c, r); const R = mulberry(c * 31 + r * 7 + room.plan.seed);
   const g = new THREE.Group(); g.position.set(p.x - room.cx, 0, p.z - room.cz);
-  const big = new THREE.Mesh(new THREE.DodecahedronGeometry(.46, 0), M.rock); big.scale.set(1, .78 + R() * .2, 1); big.position.y = .3; big.rotation.set(R() * 3, R() * 3, R() * 3);
-  const small = new THREE.Mesh(new THREE.DodecahedronGeometry(.2, 0), M.rock); small.position.set(R() * .5 - .25, .12, .3); small.rotation.set(R() * 3, R() * 3, 0);
-  g.add(big, small, blob(1.3)); room.group.add(g);
+  if (room.theme?.rock === 'dripstone') { // a fungal grotto's rocks are stalagmites, dripped up from the floor
+    for (const [x, z, h, r] of [[0, 0, 1 + R() * .5, .3], [R() * .4 - .2, .25, .45 + R() * .3, .16], [.25, R() * .3 - .2, .3 + R() * .2, .12]]) {
+      const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, 7), M.rock); cone.position.set(x, h / 2, z); g.add(cone);
+    }
+    g.add(blob(1.2));
+  } else {
+    const big = new THREE.Mesh(new THREE.DodecahedronGeometry(.46, 0), M.rock); big.scale.set(1, .78 + R() * .2, 1); big.position.y = .3; big.rotation.set(R() * 3, R() * 3, R() * 3);
+    const small = new THREE.Mesh(new THREE.DodecahedronGeometry(.2, 0), M.rock); small.position.set(R() * .5 - .25, .12, .3); small.rotation.set(R() * 3, R() * 3, 0);
+    g.add(big, small, blob(1.3));
+  }
+  room.group.add(g);
   room.rocks.push({ x: p.x, z: p.z, hx: .42, hz: .42, hp: CFG.artifacts.rockHp, breakable: true, mesh: g, tile: { c, r } });
 }
 
@@ -148,6 +160,14 @@ function addTomb(room: Room, run: { c: number; r: number; len: number; across: b
   const x = (a.x + b.x) / 2, z = (a.z + b.z) / 2, long = run.len - .16, wide = .78;
   const g = new THREE.Group(); g.position.set(x - room.cx, 0, z - room.cz); if (!run.across) g.rotation.y = Math.PI / 2;
   const part = (w: number, h: number, d: number, y: number, mat: THREE.Material = M.tomb) => { const m = new THREE.Mesh(boxUV(w, h, d), mat); m.position.y = y; g.add(m); return m; };
+  if (room.theme?.tomb === 'slab') { // an embalmers' slab: a stone table on two plinths, and someone under a shroud on it
+    part(long, .08, wide, .5, M.stone);
+    for (const px of [-long / 2 + .25, long / 2 - .25]) part(.3, .46, wide - .2, .23).position.x = px;
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(.17, Math.max(.2, long - .7), 4, 8), shroud()); body.rotation.z = Math.PI / 2; body.scale.set(1, 1, .75); body.position.y = .66; g.add(body);
+    const shadow = blob(1); shadow.scale.set(long + .6, 1, wide + .6); g.add(shadow); room.group.add(g);
+    room.rocks.push({ x, z, hx: (run.across ? long : wide) / 2 + .02, hz: (run.across ? wide : long) / 2 + .02, hp: 0, breakable: false });
+    return;
+  }
   part(long, .42, wide, .21);
   part(long + .08, .1, wide + .08, .47);
   part(long - .2, .07, .2, .555, M.stone);                                  // ridge along the lid
@@ -157,6 +177,9 @@ function addTomb(room: Room, run: { c: number; r: number; len: number; across: b
   const shadow = blob(1); shadow.scale.set(long + .6, 1, wide + .6); g.add(shadow); room.group.add(g);
   room.rocks.push({ x, z, hx: (run.across ? long : wide) / 2 + .02, hz: (run.across ? wide : long) / 2 + .02, hp: 0, breakable: false });
 }
+
+let shroudMat: THREE.Material | null = null;
+const shroud = () => shroudMat ??= markShared(new THREE.MeshStandardMaterial({ color: 0xcfc6b0, roughness: 1, emissive: 0x14120c }));
 
 /* Urns: funerary urns of clay, and rune-sealed ones of dark stone ringed by a ward. */
 export const WARD_COLOR = 0x8ab8ff;

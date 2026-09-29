@@ -1254,6 +1254,47 @@ test('objects: bolts break piles and casks (oil spills), pews stop walking not b
   expect(errors).toEqual([]);
 });
 
+test('themed rooms: sleepers wake when the mage comes close, the ossuary\'s bones rise, a blast brings the ceiling down', async ({ page }) => {
+  type E = { x: number; z: number; dead?: boolean; asleep?: boolean; type: string };
+  type G6 = { warp(id: number): void; clearRoom(): void; sim(sec: number, draw?: boolean): void; enemies: E[]; props: { kind: string }[];
+    current: { cx: number; cz: number; theme?: { id: string }; bounds: { minX: number; minZ: number } }; player: { x: number; z: number; invuln: number; hp: number; maxHp: number } };
+  let errors = await start(page, '?room=pilgrims_rest');
+  const sleepers = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G6 }).__game; g.warp(1); g.player.invuln = 99;
+    const at = g.enemies.map(e => ({ x: e.x, z: e.z })); g.sim(2);
+    const still = g.enemies.every((e, i) => e.asleep && Math.hypot(e.x - at[i].x, e.z - at[i].z) < .05);
+    const e = g.enemies[0]; g.player.x = e.x + 1.2; g.player.z = e.z; g.sim(.3);
+    return { theme: g.current.theme?.id, count: g.enemies.length, still, woke: !g.enemies[0].asleep, toast: document.getElementById('toast')!.textContent };
+  });
+  expect(sleepers).toMatchObject({ theme: 'pilgrims', still: true, woke: true, toast: "Pilgrims' rest" });
+  expect(sleepers.count).toBeGreaterThan(1);
+  expect(errors).toEqual([]);
+
+  errors = await start(page, '?room=ossuary_niches');
+  const risen = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G6 }).__game; g.warp(1);
+    const piles = () => g.props.filter(p => p.kind === 'bones' || p.kind === 'skulls').length;
+    const before = { piles: piles(), foes: g.enemies.filter(e => !e.dead).length };
+    g.player.x = g.current.cx; g.player.z = g.current.cz + 3.2; // keep to the bottom, out of the way
+    for (let t = 0; t < 11.5; t += .5) { g.player.hp = g.player.maxHp; g.player.invuln = 99; g.sim(.5); }
+    return { before, after: { piles: piles(), foes: g.enemies.filter(e => !e.dead).length } };
+  });
+  expect(risen.after.piles).toBe(risen.before.piles - 1);
+  expect(risen.after.foes).toBeGreaterThanOrEqual(risen.before.foes); // a rotling rose from the pile
+  expect(errors).toEqual([]);
+
+  errors = await start(page, '?room=collapsed_crypt&loot=glyphs:3');
+  await page.evaluate(() => { const g = (window as unknown as { __game: G6 }).__game; g.warp(1); g.clearRoom(); g.player.invuln = 99; g.player.x = g.current.cx; g.player.z = g.current.cz; });
+  await page.keyboard.press('Space');
+  const fell = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G6 }).__game, rubble = () => g.props.filter(p => p.kind === 'rubble').length;
+    const before = rubble(); g.sim(.05); g.player.z += 3; g.sim(4);
+    return { before, after: rubble() };
+  });
+  expect(fell.after).toBeGreaterThan(fell.before); // the glyph went off clear of the rubble; stones fell round it
+  expect(errors).toEqual([]);
+});
+
 test('room variants: ambush, champion, dark and quiet', async ({ page }) => {
   const errors = await start(page, '?room=crypt_b&variant=ambush');
   const result = await page.evaluate(() => {
