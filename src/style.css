@@ -64,6 +64,8 @@ body.touch #pauseBtn{display:block}
 /* play-test aid: the dev menu's key, bottom left (not on touch screens, which have no keyboard) */
 #devHint{position:absolute;left:calc(env(safe-area-inset-left,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);font:500 15px var(--f-ui);font-variant-numeric:lining-nums;color:#e8dcc2;opacity:.85;padding:4px 10px;background:rgba(10,8,6,.55);border:1px solid rgba(94,77,57,.8);border-radius:2px;text-shadow:0 1px 2px #000;letter-spacing:.02em}
 body.touch #devHint{display:none}
+#fpsInfo{position:absolute;left:calc(env(safe-area-inset-left,0px) + 16px);bottom:calc(env(safe-area-inset-bottom,0px) + 50px);font:500 13px var(--f-ui);font-variant-numeric:tabular-nums;color:#e8dcc2;opacity:.85;padding:3px 8px;background:rgba(10,8,6,.55);border:1px solid rgba(94,77,57,.8);border-radius:2px;text-shadow:0 1px 2px #000}
+#fpsInfo[hidden]{display:none}
 #sticks{position:fixed;inset:0;pointer-events:none}
 .stick{position:absolute;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;border:2px solid rgba(232,220,194,.28);background:rgba(10,8,6,.2);display:none}
 .stick i{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(232,200,150,.35);border:1px solid rgba(255,230,190,.5)}
@@ -137,6 +139,7 @@ body.touch.portrait #rotate{display:flex}
 #dev .dv-s{margin-top:14px}
 #dev h3{font:600 13px var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);margin:0 0 6px;border-bottom:1px solid var(--line);padding-bottom:3px}
 #dev .dv-row{display:flex;flex-wrap:wrap;gap:6px}
+#dev .dv-row > .dv-info{flex-basis:100%;margin:0 0 2px} /* (a line of its own above the buttons) */
 #dev .dv-b{display:inline-flex;align-items:center;gap:6px;font:500 13px var(--f-ui);padding:5px 9px;min-height:30px;border:1px solid var(--line);border-radius:2px;background:transparent;color:var(--ink);cursor:pointer}
 #dev .dv-b:hover{background:rgba(232,166,76,.14)}
 #dev .dv-b.on{border-color:var(--amber);background:rgba(232,166,76,.22)}

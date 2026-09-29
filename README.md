@@ -34,7 +34,9 @@ Isaac-style roguelike set in Eda, built with three.js and Tripo3D models.
 | `npm test` | Unit tests (Vitest) and browser smoke tests (Playwright) |
 | `npm run test:unit` | Unit tests only: floor generator rules, room template checks |
 | `npm run test:e2e` | Browser smoke tests only: clear a room, descend a floor, beat each boss, the end screen, no console errors |
-| `npm run prepare-asset -- in.glb [name.glb]` | Shrink a Tripo GLB's textures into `public/assets/` and print a report |
+| `npm run prepare-asset -- in.glb --kind prop --id urn` | Check a model against its kind's budget (`data/assets.json`), fix what it can (centre, base, facing, triangles, textures), write it into `public/assets/` and print a report |
+| `npm run prepare-texture -- in.png --kind floor --id crypt` | Make a floor or wall tile (seams and light checked, a 2 × 2 preview) or an icon (`--kind icon`, a sheet at 28 and 44 px) for `public/assets/` |
+| `npx tsx tools/make-standins.ts` | Remake the stand-in assets the browser tests load (`tests/fixtures/assets/`), through the same scripts |
 | `npm run compare` | Screenshots of four rooms in the port and in prototype 0.3, into `test-results/compare/` (needs `npm run dev` running) |
 | `npm run inspect -- <targets>` | Screenshots of templates, themes, every object or a whole floor and a contact sheet, into `test-results/inspect/` (the room inspector's tool; needs `npm run dev` running). `changed` picks the rooms from the diff; `--against origin/main` shoots them on main too and marks what changed; checks flag a hidden mage, pools that read like pits and dark rooms |
 | `npm run review-checks -- [range]` | What a script can find in a diff against the project's rules, plus the typecheck and unit tests (the rules reviewer's tool) |

@@ -10,13 +10,14 @@ import { placeProp } from '../world/props';
 import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
-import { ARTIFACT_DEFS, START_FOCUS } from '../items/artifactData';
-import { giveById, grantArtifact, refreshStats, resetArtifacts } from '../items/artifacts';
+import { ARTIFACT_DEFS, START_FOCUS, artifact } from '../items/artifactData';
+import { giveById, grantArtifact, placeArtifact, refreshStats, resetArtifacts } from '../items/artifacts';
 import { DROPS, RESOURCES, type Drop, type Resource } from '../items/loot';
 import { giveResources, spawnPickup } from '../items/pickups';
 import { makeEnemy } from '../actors/enemies';
-import { clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
-import { freeSpotNear } from '../world/rooms';
+import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
+import { assetList, assetsOn, setAssetsOn } from '../assets/models';
+import { freeSpotNear, placeUrn } from '../world/rooms';
 import { SIDE_DIR } from '../world/shapes';
 import type { Room } from '../types';
 import { openSecretRoom, revealCracks } from '../world/secret';
@@ -30,10 +31,10 @@ import { inflict } from '../magic/statusFx';
 import type { StatusKind } from '../magic/spellData';
 import { TEMPLATE_DEFS } from '../world/templates';
 import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
-import { renderHearts, renderMinimap, toast } from './hud';
+import { renderHearts, renderItems, renderMinimap, toast } from './hud';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, fpsBtn: HTMLButtonElement, assetBox: HTMLElement;
 let spellSlot = 0, knowBox: HTMLElement;
 let wasPlaying = false, keepCarried = true;
 
@@ -82,6 +83,26 @@ function goTo(r: Room) {
   warp(seal.outerRoom.plan.id);
   const [dx, dz] = SIDE_DIR[seal.outer.side];
   player.x = seal.outer.x - dx * 1.8; player.z = seal.outer.z - dz * 1.8;
+}
+
+/** Made assets on or off: this floor is built again on its seed (the same rooms and boss), and the mage goes back to
+    the room they were in, to compare. */
+export function useAssets(on: boolean) {
+  setAssetsOn(on); renderItems();
+  if (G.state === 'title') return;
+  const id = G.current.plan.id;
+  if (G.run.bossesMet.at(-1) === G.run.boss) G.run.bossesMet.pop(); // (built again, the floor draws the same boss)
+  buildFloor(G.run.floor); warp(id);
+}
+
+/** Ahead of the mage: a plain and a rune-sealed urn, and an artifact on its pedestal (the first artifact with a made
+    model, or the Ember Sigil), to look at the made assets, or their placeholders, in any room. */
+export function showAssetsHere() {
+  const room = G.current, at = (dx: number, dz: number) => freeSpotNear(room, player.x + dx, player.z + dz);
+  const plain = at(-1.6, -2), sealed = at(0, -2.6);
+  placeUrn(plain.x, plain.z, false); placeUrn(sealed.x, sealed.z, true);
+  const made = assetList().filter(a => a.status === 'loaded' && a.where.startsWith('artifacts.')).map(a => a.where.split('.')[1]);
+  const p = at(1.8, -2); placeArtifact(room, artifact(made[0] ?? 'ember_sigil'), p.x, p.z);
 }
 
 /* ---------- starting runs and test rooms ---------- */
@@ -176,6 +197,15 @@ function build() {
   // this floor: its special rooms, and ways through it
   floorBox = section(p, S.floor);
 
+  // the made assets (M3.5): on or off to compare with the placeholders, what loaded, and what a frame costs
+  const assets = section(p, S.assets);
+  assets.append(
+    assetBox = el('div', 'dv-info'),
+    assetBtn = btn('', () => useAssets(!assetsOn())),
+    btn(S.showAssets, () => { closeDev(); showAssetsHere(); }),
+    fpsBtn = btn('', () => { DEV.fps = !DEV.fps; }),
+  );
+
   // start something: a test room in a variant, a boss fight, a new run
   const test = section(p, S.test);
   const tpl = el('select'); tpl.setAttribute('aria-label', S.template);
@@ -211,6 +241,10 @@ function refresh() {
   moveBtn.textContent = S.moveClip[DEV.moveClip]; moveBtn.classList.toggle('on', DEV.moveClip !== 'run');
   doorBtn.textContent = S.doors[DEV.doors]; doorBtn.classList.toggle('on', DEV.doors !== 'data');
   manaBtn.textContent = DEV.mana ? S.manaOn : S.manaOff; manaBtn.classList.toggle('on', DEV.mana);
+  const list = assetList();
+  assetBox.replaceChildren(...(list.length ? list.map(a => el('div', '', S.assetRow(a.where, S.assetStatus[a.status], a.triangles))) : [el('div', '', S.noAssets)]));
+  assetBtn.textContent = assetsOn() ? S.assetsOn : S.assetsOff; assetBtn.classList.toggle('on', assetsOn()); assetBtn.disabled = !list.some(a => a.status === 'loaded');
+  fpsBtn.textContent = DEV.fps ? S.fpsOn : S.fpsOff; fpsBtn.classList.toggle('on', DEV.fps);
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
   knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'));
   spellBox.replaceChildren(...SPELL_DEFS.map(s => {

@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import type { Enemy } from '../types';
-import { G, player } from '../state';
+import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { CFG } from '../config';
-import { camera } from '../render/renderer';
+import { camera, renderer } from '../render/renderer';
+import { iconUrl } from '../assets/models';
 import { artifact } from '../items/artifactData';
 import { spell } from '../magic/spellData';
 import { spellCost } from '../magic/cost';
@@ -156,7 +157,8 @@ export function artifactIcon(id: string, isFocus: boolean, cleansed = player.cle
   const def = artifact(id), clean = cleansed && !!def.curse;
   const cls = isFocus ? 'focus' : clean ? 'cleansed' : def.kind === 'cursed' ? 'cursed' : '';
   const text = clean ? def.curse!.cleansed : def.text;
-  return `<svg viewBox="0 0 24 24" class="${cls}" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${text}\n\n${def.lore}</title>${ICONS[def.icon] ?? ICONS.sigil}</svg>`;
+  const url = iconUrl(id), art = url ? `<image href="${url}" width="24" height="24"/>` : ICONS[def.icon] ?? ICONS.sigil; // (a painted icon, M3.5, or the drawn one)
+  return `<svg viewBox="0 0 24 24" class="${cls}" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${text}\n\n${def.lore}</title>${art}</svg>`;
 }
 /** The focus followed by every other artifact held. */
 export function renderItems() {
@@ -279,4 +281,17 @@ export function fadeFromBlack() {
 
 /** Red screen-edge flash (CSS transition, so real time is fine here). */
 export function flashHurt() { el.hurt.style.opacity = '1'; setTimeout(() => el.hurt.style.opacity = '0', 160); }
+/** The dev menu's frame readout (DEV.fps): the frame rate, as the median of the last half second's frames, and what
+    the last frame drew. Written only when it changes. */
+const frameEl = $('fpsInfo'), frameTimes: number[] = [], FRAME_WINDOW_MS = 500, STALL_MS = 1000;
+let frameSpan = 0, frameText = '';
+export function updateFrameInfo(ms: number) {
+  if (frameEl.hidden === DEV.fps) frameEl.hidden = !DEV.fps;
+  if (!DEV.fps || !(ms > 0) || ms > STALL_MS) return;
+  frameTimes.push(ms); if ((frameSpan += ms) < FRAME_WINDOW_MS) return;
+  const median = frameTimes.sort((a, b) => a - b)[frameTimes.length >> 1]; frameTimes.length = 0; frameSpan = 0;
+  const text = STR.dev.frameInfo(Math.round(1000 / median), renderer.info.render.calls, renderer.info.render.triangles);
+  if (text !== frameText) frameEl.textContent = frameText = text;
+}
+
 export function setHeroInfo(text: string) { el.heroInfo.textContent = text; }

@@ -13,6 +13,7 @@ import { START_FOCUS, artifact, computeStats, pickArtifact, type ArtifactDef, ty
 import { giveResources } from './pickups';
 import { artifactLore } from '../ui/lore';
 import { dress } from '../actors/costume';
+import { modelFor } from '../assets/models';
 
 const hex = (c: string) => new THREE.Color(c).getHex();
 
@@ -92,10 +93,14 @@ export function offerSecondChoice(pool: Pool) {
 
 /* ---------- pedestals ---------- */
 
-/** The floating placeholder for an artifact: foci are a gem on a rod, cursed ones a dark gem in a thorn ring. */
+/** What floats over an artifact's pedestal: its made model (data/assets.json, M3.5) turning about its middle in its
+    glow, or the placeholder: foci a gem on a rod, cursed ones a dark gem in a thorn ring. */
 export function makeArtifactVisual(def: ArtifactDef) {
-  const g = new THREE.Group(); const color = hex(def.color);
-  if (def.kind === 'focus') {
+  const g = new THREE.Group(); const color = hex(def.color), model = modelFor('artifacts', def.id);
+  if (model) {
+    model.position.y -= model.userData.height / 2; // (it stands on y = 0: lowered so it turns about its middle)
+    g.add(model, glow(def.kind === 'cursed' ? 0xb0201a : color, 1.1, .6));
+  } else if (def.kind === 'focus') {
     const rod = new THREE.Mesh(new THREE.CylinderGeometry(.025, .03, .5, 6), M.frame.normal); rod.rotation.z = .5;
     const gem = new THREE.Mesh(new THREE.OctahedronGeometry(.11), new THREE.MeshBasicMaterial({ color })); gem.position.set(-.12, .2, 0);
     g.add(rod, gem, glow(color, 1.1, .8));
@@ -147,9 +152,13 @@ export function placeArtifact(room: Room, def: ArtifactDef, x: number, z: number
     const tag = priceTag(); tag.position.y = 1.75; pedestal.add(tag);
     price = { hearts: 1, tag };
   } else {
-    const col = new THREE.Mesh(new THREE.CylinderGeometry(.3, .38, .6, 8), M.rock); col.position.y = .3;
-    const top = new THREE.Mesh(new THREE.CylinderGeometry(.42, .42, .1, 8), M.rock); top.position.y = .64;
-    pedestal.add(col, top, blob(1.3));
+    const model = modelFor('props', 'pedestal'); // a made pedestal (M3.5), or the stone column
+    if (model) pedestal.add(model, blob(1.3));
+    else {
+      const col = new THREE.Mesh(new THREE.CylinderGeometry(.3, .38, .6, 8), M.rock); col.position.y = .3;
+      const top = new THREE.Mesh(new THREE.CylinderGeometry(.42, .42, .1, 8), M.rock); top.position.y = .64;
+      pedestal.add(col, top, blob(1.3));
+    }
   }
   const visual = makeArtifactVisual(def); visual.position.y = 1.05; pedestal.add(visual);
   room.group.add(pedestal);

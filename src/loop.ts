@@ -25,7 +25,7 @@ import { updateMagic } from './magic/spells';
 import { updateStatusFx, updateStatuses } from './magic/statusFx';
 import { updateFamiliars } from './combat/familiars';
 import { pollGamepad, type InputActions } from './input';
-import { updateHud, updateVision } from './ui/hud';
+import { updateFrameInfo, updateHud, updateVision } from './ui/hud';
 import { updateLore } from './ui/lore';
 import { ease, lerp } from './util';
 import { camTarget, cameraTargetFor, draw, setViewScale } from './render/renderer';
@@ -79,6 +79,7 @@ function updateWorldFx(dt: number, now: number) {
 function frame(nowMs: number) {
   requestAnimationFrame(frame);
   if (window.__manual) { last = nowMs; return; }
+  updateFrameInfo(nowMs - last); // (the dev menu's frame readout)
   acc += Math.min(MAX_FRAME, (nowMs - last) / 1000); last = nowMs;
   // small tolerance so rAF jitter at 60 Hz doesn't alternate between 0 and 2 steps
   while (acc >= STEP - 1e-3) { step(STEP); acc -= STEP; }
