@@ -36,7 +36,7 @@ import { inflict } from './magic/statusFx';
 import { makeEnemy } from './actors/enemies';
 import { castSpell, learnSpell } from './magic/spells';
 import { mantleLeft } from './magic/shapes';
-import { answerPage, dropPage } from './magic/pages';
+import { answerPage, dropPage, pagePanelSpell } from './magic/pages';
 import { fireAt, poolsDo } from './world/pools';
 import { spawnShot } from './combat/projectiles';
 import { lightLevels } from './render/lights';
@@ -162,6 +162,8 @@ function installDevHooks() {
     /** Spell knowledge (M3.7): every spell's stage; bring one to a stage; forget everything (kept between runs). */
     get knowledge() { return knowledgeNow(); },
     know: (id: string, stage: Stage) => setStage(id, stage), forgetKnowledge: () => forgetKnowledge(),
+    /** The spell whose panel shows over a page near the mage, and the panel's text. */
+    get pagePanel() { return { spell: pagePanelSpell(), text: document.getElementById('pagePanel')?.classList.contains('on') ? document.getElementById('pagePanel')!.textContent : '' }; },
     /** Spawn a foe (e.g. 'dummy', the training dummy) at (x, z), or ahead of the mage; put statuses on every
         foe in the room, e.g. inflict({ burn: 3 }). */
     spawn(kind: EnemyType, x = player.x, z = player.z - 2.5) { return makeEnemy(kind, x, z, 1); },

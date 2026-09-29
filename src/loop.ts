@@ -16,7 +16,7 @@ import { updateParticles } from './combat/fx';
 import { updatePickups, updateTrapdoor } from './items/pickups';
 import { updateArtifacts } from './items/artifacts';
 import { updateShop } from './items/merchant';
-import { updatePages } from './magic/pages';
+import { hidePagePanel, updatePagePanel, updatePages } from './magic/pages';
 import { updatePools } from './world/pools';
 import { updateVaultSeals } from './world/vault';
 import { updateSecretWalls } from './world/secret';
@@ -65,6 +65,7 @@ export function step(dt: number) {
 
 function updateWorldFx(dt: number, now: number) {
   updateRoomFx(dt, now); updateArtifacts(now); updateTrapdoor(dt); updateShop(now); updatePages(dt, now); updateVaultSeals(dt, now); updateSecretWalls(dt, now);
+  if (G.state === 'play' && !G.trans) updatePagePanel(); else hidePagePanel(); // a spell's panel over the page near the mage (M3.7)
   updateFamiliars(dt, now, G.state === 'play' && !G.trans);
   updateShrine(dt, now, G.state === 'play' && !G.trans);
   updateMagic(dt, G.state === 'play' && !G.trans); updateStatusFx(dt); updatePools(dt, now, G.state === 'play' && !G.trans);
