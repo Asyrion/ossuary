@@ -14,7 +14,7 @@ style reference in every image), budgets per kind of asset, the pipeline from im
 log. When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 built (see `docs/M3-plan.md`; the balance pass waits for play-tests); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -325,7 +325,11 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
 - **M4 Tripo enemies:** 3 enemies and 1 boss from Tripo, with elemental affinities.
 - **M5 Alchemy:** potion belt, drink or throw, identification, 4 reagents, alchemy table.
 - **M6 RPG growth:** XP, levels, attributes, 12 boons, runes and waystones.
-- **M7 Descent and Sanctum:** final boss, Sanctum with grimoire, bestiary and disciplines.
+- **M7 Descent and the Vigil:** final boss; the hub between runs, decided 2026-09-29 (GDD: RPG progression, Between runs:
+  the Vigil): shades the mage frees in runs become its townspeople, with a small dialogue system (or are bound as a
+  familiar for one run); it unfolds to the spells the mage knows; the Great Circle (vows, gifts, omens) before a run and
+  the Ferryman's crossing as the way down; echoes of past runs; grimoire, bestiary and disciplines. Permanent upgrades:
+  options first, a few powers, offset by deeper floors and the vows.
 - **M8 Eda:** lore names, floor biomes, adaptive music, ambience beds and final mix.
 
 ## Agents and skills (standing instructions from the owner, 2026-09-29)

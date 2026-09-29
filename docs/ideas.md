@@ -283,6 +283,12 @@ only one way to get them.
 
 ## A hub between runs (owner's idea, 2026-09-29)
 
+**Decided 2026-09-29** (GDD: RPG progression, Between runs: the Vigil; built in M7): the Vigil of the Freed (2) is the
+heart, joined by the Refuge's unfolding (5), the Great Circle (3), the Ferryman's crossing and the Echoes (6), with
+permanent upgrades as options first and a few powers. The Unwritten Grimoire (1), the Orrery of Schools (4) and the
+scribe's desk stay here as ideas; the garden of the dead is the GDD's alchemy garden (M5). What follows is the
+brainstorm as it was.
+
 The owner plans a place between runs where the mage does other things, and a bigger part of the game once the RPG
 layers come. The GDD's Sanctum (M7) is the current placeholder; spell knowledge (M3.7) is kept for it. Not designed
 yet: the concepts below are for choosing together. Names are placeholders within the lore limits.
