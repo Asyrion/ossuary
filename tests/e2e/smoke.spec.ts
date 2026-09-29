@@ -16,6 +16,9 @@ async function start(page: Page, query: string) {
   const errors: string[] = [];
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
   page.on('pageerror', e => errors.push(String(e)));
+  // the tests step the game themselves: no frames drawn in real time from the moment the page loads (with software
+  // WebGL on a two-core runner, the title screen drawing flat out slowed every start down)
+  await page.addInitScript('window.__manual = true');
   await page.goto('/' + query);
   await page.waitForFunction(() => !!(window as unknown as W).__game, null, { timeout: 30_000 });
   expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('title');

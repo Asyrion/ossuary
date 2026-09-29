@@ -189,7 +189,7 @@ async function shoot(url: string, dir: string, list: Shot[], withChecks: boolean
   const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM || undefined, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: hd ? 2 : 1 });
   // Math.random from a seed that each room's set-up starts again (a string: tsx would wrap a function in a helper)
-  await page.addInitScript(`(() => { let s = 1; const next = () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; Math.random = next; window.__reseed = () => { s = 1; }; })();`);
+  await page.addInitScript(`(() => { let s = 1; const next = () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; Math.random = next; window.__reseed = () => { s = 1; }; window.__manual = true; })();`); // (and no frames drawn in real time: the tool steps the game)
   const errors: string[] = [];
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
   page.on('pageerror', e => errors.push(String(e)));
