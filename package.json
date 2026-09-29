@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run && playwright test",
     "prepare-asset": "tsx tools/prepare-asset.ts",
+    "prepare-texture": "tsx tools/prepare-texture.ts",
     "compare": "tsx tools/compare-prototype.ts",
     "inspect": "tsx tools/inspect-rooms.ts",
     "review-checks": "tsx tools/review-checks.ts",

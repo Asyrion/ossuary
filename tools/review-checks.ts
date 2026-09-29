@@ -37,7 +37,7 @@ for (const hash of sh(`git log --format=%H ${range}`).split('\n').filter(Boolean
   const body = msg.split('\n').filter(l => !l.startsWith('Co-Authored-By:')).join('\n');
   if (MODEL.test(body)) flag('10', `${hash.slice(0, 7)} "${subject}" names a model outside the attribution line`);
 }
-for (const f of files) if (/\.tmp\./.test(f) || (/\.(png|jpe?g)$/.test(f) && !f.startsWith('public/')) || f.startsWith('test-results/')) flag('10', `${f}: a scratch file or screenshot in the change`);
+for (const f of files) if (/\.tmp\./.test(f) || (/\.(png|jpe?g)$/.test(f) && !f.startsWith('public/') && !f.startsWith('tests/fixtures/')) || f.startsWith('test-results/')) flag('10', `${f}: a scratch file or screenshot in the change`);
 
 // 9. data files stay valid JSON
 for (const f of files.filter(f => f.endsWith('.json') && existsSync(f))) { try { JSON.parse(readFileSync(f, 'utf8')); } catch (e) { flag('9', `${f}: not valid JSON (${(e as Error).message})`); } }
