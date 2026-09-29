@@ -2,6 +2,7 @@
 import type * as THREE from 'three';
 import { enterTheme } from './world/themes';
 import { clearMechanisms } from './world/mechanisms';
+import { clearModelOptions } from './actors/modelOptions';
 import { CFG, type BossType } from './config';
 import type { Room } from './types';
 import { DEV, G, after, clearTimers, player } from './state';
@@ -51,7 +52,7 @@ export function setNextRun(opts: RunOptions) { nextRun = opts; }
 const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
 
 function clearEntities() {
-  clearMechanisms(); clearRite(); clearSpellFx(); clearStatusFx(); clearPages(); clearProjectiles(); clearGlyphs(); pressed.glyph = false; pressed.spells = [false, false];
+  clearMechanisms(); clearModelOptions(); clearRite(); clearSpellFx(); clearStatusFx(); clearPages(); clearProjectiles(); clearGlyphs(); pressed.glyph = false; pressed.spells = [false, false];
   for (const p of G.particles) { scene.remove(p.m); p.m.material.dispose(); } G.particles.length = 0;
   clearEnemies();
   for (const p of G.pickups) { scene.remove(p.g); disposeTree(p.g); } G.pickups.length = 0;

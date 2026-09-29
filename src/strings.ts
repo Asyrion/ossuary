@@ -247,12 +247,26 @@ export const STR = {
     straight: 'Straight',
   },
   /** The dev menu (the key left of 1, or F2): for testing, not for players. */
+  /** Enemy model options (actors/modelOptions.ts): placeholder names and a note on where each would fit. */
+  options: {
+    boneCrawler: { name: 'Bone Crawler', note: 'Crypt: a ribcage on six bone legs; skitters in bursts' },
+    candleWraith: { name: 'Candle Wraith', note: 'Chapel: a hooded robe with a candle for a head; its flame flares before it strikes' },
+    sextonGhoul: { name: 'Sexton Ghoul', note: 'Crypt: a sexton who never left, with his shovel and lantern; slow, then a wide swing' },
+    drownedMourner: { name: 'Drowned Mourner', note: 'Drowned floor: a veiled mourner, always dripping; weeps a spray of cold water' },
+    cisternLurker: { name: 'Cistern Lurker', note: 'Drowned floor: an eel that rises from a pool and sinks again; bites, and spits from afar' },
+    emberHusk: { name: 'Ember Husk', note: 'Burning floor: a charred body split by glowing cracks; bursts into embers when it falls' },
+    cryptKnight: { name: 'Crypt Knight', note: 'Elite: bones in rusted plate behind a tower shield; blocks bolts from the front' },
+    censerBearer: { name: 'Censer Bearer', note: 'Chapel: a hooded monk swinging a burning censer; its smoke hides him' },
+    skullSwarm: { name: 'Skull Swarm', note: 'Any floor: skulls circling a violet flame; they scatter when hit and circle back' },
+    urnMimic: { name: 'Urn Mimic', note: 'Among the urns: an urn that is not one; waits still, then scuttles and bites' },
+  } as Record<string, { name: string; note: string }>,
   dev: {
     title: 'Dev menu', close: 'Close',
     assets: 'Made assets', showAssets: 'Show them here (urns, a pedestal)', assetsOn: 'Made assets: on', assetsOff: 'Made assets: off (placeholders)', noAssets: 'None named in data/assets.json yet',
     assetStatus: { loaded: 'loaded', missing: 'missing', failed: 'failed', off: 'off (?assets=off)' } as Record<string, string>,
     assetRow: (where: string, status: string, tris?: number) => `${where}: ${status}${tris ? `, ${tris.toLocaleString('en')} triangles` : ''}`,
     fpsOn: 'Frame readout: shown', fpsOff: 'Frame readout: hidden',
+    options: 'Enemy model options (looks only)', showOptions: 'Stand them here',
     pixel: 'Pixel look (style test)', pixelLines: (lines: number) => lines ? `Pixels: ${lines} lines` : 'Pixels: off',
     outlinesOn: 'Outlines: on', outlinesOff: 'Outlines: off', bandsOn: 'Light in bands: on', bandsOff: 'Light in bands: off',
     /** The on-screen readout: frame rate, and what the last frame drew. */

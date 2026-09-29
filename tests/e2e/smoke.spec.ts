@@ -1640,7 +1640,7 @@ test('made assets: missing and broken files, and ?assets=off, leave the placehol
   expect(errors).toEqual([]); expect(off).toEqual([]);
 });
 
-test('the pixel look: on from the URL, drawn with outlines and light in bands, then off again, without errors', async ({ page }) => {
+test('the pixel look: on from the URL, drawn with outlines and light in bands, then off again, and the enemy model options, without errors', async ({ page }) => {
   type Look = { lines: number; outline: boolean; bands: boolean };
   type GP = { sim(sec: number, draw?: boolean): void; pixelLook: Look; setPixelLook(l: Partial<Look>): void; renderInfo(): { calls: number } };
   const errors = await start(page, '?seed=K3F9QX&pixel=270');
@@ -1655,6 +1655,12 @@ test('the pixel look: on from the URL, drawn with outlines and light in bands, t
   expect(r[1].look).toEqual({ lines: 270, outline: true, bands: true });
   expect(r[2].look.lines).toBe(180); expect(r[3].look.lines).toBe(0);
   expect(r[1].calls).toBe(r[3].calls + 1); // (the scene, then the blow-up to the window)
+  // the enemy model options (looks only) stand ahead of the mage and idle, in the pixel look
+  const shown = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GP & { modelOptions(): { id: string }[] } }).__game;
+    g.setPixelLook({ lines: 270 }); const at = g.modelOptions(); g.sim(.5, true); g.setPixelLook({ lines: 0 }); return at.map(a => a.id);
+  });
+  expect(shown.length).toBe(10);
   await page.screenshot({ path: 'test-results/pixel-look.png' });
   expect(errors).toEqual([]);
 });

@@ -18,6 +18,7 @@ import { makeEnemy } from '../actors/enemies';
 import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
 import { assetList, assetsOn, setAssetsOn } from '../assets/models';
 import { pixelLook, setPixelLook } from '../render/pixelLook';
+import { MODEL_OPTIONS, showModelOptions } from '../actors/modelOptions';
 import { CFG } from '../config';
 import { freeSpotNear, placeUrn } from '../world/rooms';
 import { SIDE_DIR } from '../world/shapes';
@@ -215,6 +216,10 @@ function build() {
     lineBtn = btn('', () => setPixelLook({ outline: !pixelLook().outline })),
     bandBtn = btn('', () => setPixelLook({ bands: !pixelLook().bands })),
   );
+
+  // enemy model options (looks only, for the owner to choose from): a row of them ahead of the mage
+  const opts = section(p, S.options);
+  opts.append(el('p', 'dv-info', MODEL_OPTIONS.map((o, i) => `${i + 1}. ${STR.options[o.id].name}`).join(' · ')), btn(S.showOptions, () => { closeDev(); showModelOptions(G.current, player.x, player.z); }));
 
   // start something: a test room in a variant, a boss fight, a new run
   const test = section(p, S.test);

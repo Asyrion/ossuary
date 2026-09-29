@@ -187,6 +187,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   in `tools/imageChecks.ts`, previews in `asset-previews/`) prepare the owner's files; `tools/make-standins.ts` makes
   the stand-ins in `tests/fixtures/assets/` that the tests load. The dev menu's Made assets section lists them,
   turns them off to compare, shows them ahead of the mage, and puts a frame readout on screen (`DEV.fps`).
+- Enemy model options (`src/actors/modelOptions.ts`, the owner's request): ten candidate foes built in code from simple
+  shapes, looks only, each with an idle motion (`updateModelOptions` in the loop); the dev menu stands them ahead of
+  the mage, as does `__game.modelOptions()`; names and notes in `STR.options`, the list in `docs/ideas.md`.
 - The pixel look (M3.5 step 2's style test, `src/render/pixelLook.ts`, tuning in `CFG.pixelLook`): the scene drawn into
   a target 360, 270 or 180 lines tall with no smoothing, the camera snapped to its grid, and blown up to the window in
   whole pixels by one full-screen pass (outlines from depth, light in bands, then tone mapping); the HUD stays sharp.
