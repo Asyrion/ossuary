@@ -167,7 +167,7 @@ The mage has three layers of magic: a free cantrip that is always firing, two ac
 | Spell 1 and 2 | Q and E / LB and RB | Mana + cooldown | Runes socketed into the spell, school mastery |
 | Potion | F / Y, hold to throw | One potion from the belt | Alchemy boons, some artifacts |
 
-**Mana:** a blue bar under the hearts, 100 at start. It refills 4 per second out of combat and 1 per second in combat; killing an enemy with the cantrip gives 3. Mana vials drop from rooms like hearts.
+**Mana:** a blue bar under the hearts, 100 at start. It refills 4 per second out of combat and 1 per second in combat; killing an enemy with the cantrip gives 3. Mana vials drop from rooms like hearts, and like hearts stay on the floor while mana is full; the first time in a run the mage walks into one it can't take (a vial at full mana, a heart at full health) a message says why. While the mage knows no spell nothing spends mana, so loot gives an obol in place of a mana vial until the first spell is learned.
 
 **Spells aim like the cantrip:** a spell fires in the current cast direction, or the move direction when not casting. Some spells are placed at the mage's feet or target the nearest enemy.
 

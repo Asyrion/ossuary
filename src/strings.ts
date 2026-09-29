@@ -76,6 +76,7 @@ export const STR = {
   health: (hp: number, max: number) => `Health ${hp} of ${max} hearts`,
   purse: (coins: number, keys: number, glyphs: number) => `${coins} obols, ${keys} bone keys, ${glyphs} blast glyphs`,
   toast: {
+    fullHealth: 'You are already at full health', fullMana: 'Your mana is already full',
     notGlb: 'That file is not a .glb. Export the model from Tripo as GLB and try again.',
     badGlb: 'This .glb could not be read. Re-export it from Tripo as GLB and try again.',
     focusLeft: (name: string) => `You leave the ${name} on the pedestal`,

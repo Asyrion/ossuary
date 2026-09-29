@@ -33,6 +33,7 @@ export const G = {
     /** Foes put to rest towards the Leech Jar's next half heart. */ leech: 0,
     /** The floor on which the Sexton's Keyring last opened a vault for free. */ freeVault: -1,
     /** Items and containers already described by a lore card this run (ui/lore.ts). */ loreSeen: new Set<string>(),
+    /** Hints already given this run (a heart or a mana vial left lying at full health or mana). */ hinted: new Set<string>(),
     /** The seeded stream for grimoire pages, and the spells given up this run, sold back at later libraries. */
     pages: new Rng(0), forgotten: [] as string[],
   },

@@ -124,8 +124,10 @@ function containerVisual(kind: 'coffer' | 'chest', gilded = false) {
 }
 
 /** Drop something on the floor at (x, z): it falls in from above, or rises out of a broken urn (`rise`).
-    A coffer or a chest is filled when it appears; a chest is gilded by chance unless `gilded` says. */
-export function spawnPickup(kind: Drop, x: number, z: number, opts: { rise?: boolean; gilded?: boolean } = {}) {
+    A coffer or a chest is filled when it appears; a chest is gilded by chance unless `gilded` says. A mana vial
+    becomes an obol while the mage knows no spell (nothing would spend its mana), unless `asIs` (the dev menu). */
+export function spawnPickup(kind: Drop, x: number, z: number, opts: { rise?: boolean; gilded?: boolean; asIs?: boolean } = {}) {
+  if (kind === 'mana' && !opts.asIs && !player.spells.some(Boolean)) kind = 'coin';
   const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
   if (isContainer(kind)) {
     const gilded = kind === 'chest' && (opts.gilded ?? G.run.drops.chance(LOOT.gildedChest));
@@ -209,6 +211,13 @@ function take(p: Pickup, kind: Item) {
   return true;
 }
 
+/** A heart at full health, or a mana vial at full mana: say so, once a run for each. */
+function hintFull(kind: Item) {
+  const what = kind === 'heart' || kind === 'halfHeart' ? 'health' : kind === 'mana' ? 'mana' : null;
+  if (!what || G.run.hinted.has(what)) return;
+  G.run.hinted.add(what); toast(what === 'health' ? STR.toast.fullHealth : STR.toast.fullMana, 2.5); Sfx.full();
+}
+
 /** The mage at distance `d` from a closed container: a coffer opens; a chest asks for a bone key, and says
     so once each time the mage walks up to it without one. */
 function touchContainer(p: Pickup, d: number) {
@@ -248,7 +257,8 @@ export function updatePickups(dt: number) {
     }
     if (d < player.r + p.r && p.drop <= 0) {
       if (take(p, kind)) { scene.remove(p.g); disposeTree(p.g); ps.splice(i, 1); }
-      else { // can't use it now: nudge it away instead
+      else { // can't use it now: say why, the first time in a run, and nudge it away
+        hintFull(kind);
         const nx = (p.x - player.x) / (d || 1), nz = (p.z - player.z) / (d || 1);
         p.x += nx * .05; p.z += nz * .05; p.g.position.set(p.x, 0, p.z);
       }

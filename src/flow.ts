@@ -97,7 +97,7 @@ export function resetPlayer() {
 function newRun(seed: string): typeof G.run {
   return {
     seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [],
-    budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1, loreSeen: new Set(), pages: Rng.from(seed, 'pages'), forgotten: [],
+    budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1, loreSeen: new Set(), hinted: new Set(), pages: Rng.from(seed, 'pages'), forgotten: [],
   };
 }
 
