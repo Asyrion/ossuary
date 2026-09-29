@@ -308,6 +308,9 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
   `docs/M3.5-plan.md`. Its style step can start during M3.
 - **M3.6 Rooms of Eda** (from the first play-test; runs beside M3.5): carved outlines, dressed walls, doors off
   the middle, themed rooms, new objects and piles, mechanisms that answer to magic; steps in `docs/M3.6-plan.md`.
+- **M3.7 Spell knowledge** (decided 2026-09-29, after M3.6 step 5): panels over grimoire pages and in the inventory
+  that fill in as spells are seen, learned, used and later upgraded; the spells tab by school; knowledge kept between
+  runs in the browser until the hub takes it over (GDD: Spells, Spell knowledge).
 - **M4 Tripo enemies:** 3 enemies and 1 boss from Tripo, with elemental affinities.
 - **M5 Alchemy:** potion belt, drink or throw, identification, 4 reagents, alchemy table.
 - **M6 RPG growth:** XP, levels, attributes, 12 boons, runes and waystones.

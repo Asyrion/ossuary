@@ -273,6 +273,27 @@ only one way to get them.
   bone hound pup that charges; a candle owl that marks the nearest foe.
 - **Open:** whether they can die, and whether they grow with the mage's levels (M6).
 
+## A hub between runs (owner's idea, 2026-09-29)
+
+The owner plans a place between runs where the mage does other things (a hub, a square, another plane), something
+like Moonlighter's town before its dungeon portals, and a bigger part of the game once the RPG layers come. Not
+designed yet; the GDD's Sanctum (M7) is the current placeholder for it. Spell knowledge (M3.7) is kept for it.
+
+- **The loop:** what the mage brings up from the dungeon (relics, reagents, pages, the dead's remains) is sold,
+  traded or given to the hub's people, and investing in them opens new things, as Moonlighter's shops do.
+- **Its people** (placeholder roles, within the lore limits): a scribe who keeps the grimoire and can copy a known
+  page for the next run; a chandler or herbalist for potions and reagents (M5); a sexton who keeps the bestiary; the
+  Ferryman, who takes the mage down and, for obols, carries one thing across from one run to the next.
+- **Before a run:** buy one consumable (a potion, a scroll, a glyph stone) with what carries over; pick a
+  discipline (the starting loadouts); take a vow that makes the run harder for a better reward (like Hades' pact).
+- **What carries over:** a currency of its own (the GDD's Arcane Dust, or a share of the obols a run found, paid
+  as a tithe), knowledge, and unlocks.
+- **Permanent upgrades, the open question:** the GDD says unlocks widen the options but never make the mage
+  stronger. Moonlighter and Rogue Legacy do make the hero stronger over time, which changes the feel (early floors
+  get easy). A middle way: unlocks and bought consumables for a run, and at most a few small, capped boosts.
+- **The magic take:** the hub answers to the mage's magic too; a ward, a well or an altar there reacts to the
+  spells learned, and the Ferryman's crossing is the way down.
+
 ## Costumes (play-test, 2026-09-28)
 
 Isaac's items change how Isaac looks; ours should too, in a medieval and magic way. **Built as a proof of
