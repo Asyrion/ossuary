@@ -187,9 +187,16 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   in `tools/imageChecks.ts`, previews in `asset-previews/`) prepare the owner's files; `tools/make-standins.ts` makes
   the stand-ins in `tests/fixtures/assets/` that the tests load. The dev menu's Made assets section lists them,
   turns them off to compare, shows them ahead of the mage, and puts a frame readout on screen (`DEV.fps`).
-- Enemy model options (`src/actors/modelOptions.ts`, the owner's request): ten candidate foes built in code from simple
-  shapes, looks only, each with an idle motion (`updateModelOptions` in the loop); the dev menu stands them ahead of
-  the mage, as does `__game.modelOptions()`; names and notes in `STR.options`, the list in `docs/ideas.md`.
+- Enemy model options (`src/actors/modelOptions.ts`, the owner's request; M4 makes them foes): ten foes built in code from
+  simple shapes, each with a school's light and a floor (GDD: Enemies built in code), looks only for now, each with an idle
+  motion (`updateModelOptions` in the loop); the dev menu stands them ahead of the mage in rows by floor, or takes them
+  away; `__game.modelOptions(ids?)`, `__game.takeModelOptions()`; names and notes in `STR.options`.
+- Spell effect options (`src/magic/effectOptions.ts`, the owner's request): the spells' effects redone in the same style,
+  each a looping demo of one cast worked out from the time (the cantrip, Cinder Lance, Pyre Seal, Rime Shards, Glacial
+  Wall, Arc, Static Mantle, Shatter, Overload, and previews of Hallow and Umbral); the dev menu plays them ahead of the
+  mage; `__game.effectOptions(ids?)`, `__game.takeEffectOptions()`; names in `STR.effects`. The ones the owner likes
+  replace the spells' own effects later. Both galleries build from `src/render/arcane.ts`: materials, parts, rods, runes,
+  rune rings, magic circles, crystals, motes, lightning and waves.
 - The pixel look (M3.5 step 2's style test, `src/render/pixelLook.ts`, tuning in `CFG.pixelLook`): the scene drawn into
   a target 360, 270 or 180 lines tall with no smoothing, the camera snapped to its grid, and blown up to the window in
   whole pixels by one full-screen pass (outlines from depth, light in bands, then tone mapping); the HUD stays sharp.
@@ -229,7 +236,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   in a shuffled order while the budget lasts). `buildFloor` reserves them all; room-clear drops take what
   is left. A gilded reliquary chest (rare; only a key opens it) and the secret room hold artifacts outside
   the budget (`offerBeyondBudget`). While a room's doors are locked, its artifacts can't be taken.
-- Bosses are in `src/actors/bosses.ts` (placeholder shapes until M4): each floor draws one from its pool
+- Bosses are in `src/actors/bosses.ts` (placeholder shapes until M4 builds them in code): each floor draws one from its pool
   in `data/floors.json`, never one the run has met. A boss with `hidden` set (the abbess under the floor,
   the knight in mid-leap) can't be hit and doesn't hurt on contact.
 - Gameplay delays (the warden's second ring, the pause before the death screen) run on simulation time,
@@ -343,7 +350,9 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
 - **M3.7 Spell knowledge** (decided 2026-09-29, after M3.6 step 5): panels over grimoire pages and in the inventory
   that fill in as spells are seen, learned, used and later upgraded; the spells tab by school; knowledge kept between
   runs in the browser until the hub takes it over (GDD: Spells, Spell knowledge).
-- **M4 Tripo enemies:** 3 enemies and 1 boss from Tripo, with elemental affinities.
+- **M4 Enemies in code** (the owner's decision, 2026-09-29, instead of Tripo): the ten enemy options (GDD: Enemies built in
+  code; four on floor 1, three on each other floor) made foes with behaviour, health, sounds and elemental affinities, and a
+  boss built the same way.
 - **M5 Alchemy:** potion belt, drink or throw, identification, 4 reagents, alchemy table.
 - **M6 RPG growth:** XP, levels, attributes, 12 boons, runes and waystones.
 - **M7 Descent and the Vigil:** final boss; the hub between runs, decided 2026-09-29 (GDD: RPG progression, Between runs:
