@@ -407,7 +407,7 @@ function endMantle(quiet: boolean) {
 const bolts: { g: THREE.Group; lines: THREE.Line[]; glows: THREE.Sprite[]; a: THREE.Vector3; b: THREE.Vector3; t: number }[] = [];
 const BOLT_LIFE = .22, BOLT_SEGS = 8, STRANDS = 3;
 let strandMat: THREE.LineBasicMaterial | null = null;
-function lightning(a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }, color: number, glowSize = .7) {
+export function lightning(a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }, color: number, glowSize = .7) {
   strandMat ??= markShared(new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .9, depthWrite: false, blending: THREE.AdditiveBlending }));
   const g = new THREE.Group(), lines: THREE.Line[] = [], glows: THREE.Sprite[] = [];
   for (let s = 0; s < STRANDS; s++) {

@@ -13,6 +13,7 @@ import { showLore } from '../ui/lore';
 import { manaRegen, spell } from './spellData';
 import { spellCost } from './cost';
 import { CAST, clearShapes, leaveRoomShapes, updateShapes } from './shapes';
+import { skullsWatch } from '../world/dressing';
 
 /* ---------- mana ---------- */
 
@@ -53,6 +54,7 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   if (!CAST[def.shape](def, aimDir(cast))) { Sfx.spellFail(); flashMana(slot, 'target'); return false; }
   if (!DEV.mana) gainMana(-cost);
   player.spellCd[slot] = def.cooldown;
+  skullsWatch(G.current, def.color); // an ossuary's skulls take the spell's colour
   heroCast();
   return true;
 }

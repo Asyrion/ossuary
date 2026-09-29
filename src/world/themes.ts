@@ -23,6 +23,11 @@ import { addProp, removeProp } from './props';
 import type { ScatterKind } from './themeData';
 
 const C = CFG.themes;
+/** The ice a frozen mausoleum's foes wait in. */
+const ICE = {
+  geo: (() => { const g = new THREE.IcosahedronGeometry(.55, 0); g.userData.shared = true; return g; })(),
+  mat: markShared(new THREE.MeshStandardMaterial({ color: 0xcfeeff, transparent: true, opacity: .5, roughness: .15, metalness: .1, emissive: 0x1a3a4a, depthWrite: false })),
+};
 
 /* ---------- scatter ---------- */
 
@@ -30,7 +35,7 @@ const shared = <T extends THREE.BufferGeometry>(g: T) => { g.userData.shared = t
 const std = (color: number, o: THREE.MeshStandardMaterialParameters = {}) => markShared(new THREE.MeshStandardMaterial({ color, roughness: .9, ...o }));
 const MAT = {
   wax: std(0xe8dcc0, { emissive: 0x2a2010 }), flame: markShared(new THREE.MeshBasicMaterial({ color: 0xffc36a })), paper: std(0xd8cbaa, { side: THREE.DoubleSide }),
-  blanket: std(0x5a3e34, { roughness: 1 }), blanket2: std(0x3e4a5a, { roughness: 1 }), ash: std(0x2a2622, { roughness: 1 }), stone: M.rock,
+  blanket: std(0x5a3e34, { roughness: 1 }), leaf: std(0x5a4428, { roughness: 1, side: THREE.DoubleSide }), blanket2: std(0x3e4a5a, { roughness: 1 }), ash: std(0x2a2622, { roughness: 1 }), stone: M.rock,
 };
 const GEO = {
   candle: shared(new THREE.CylinderGeometry(.035, .04, .16, 6)), flame: shared(new THREE.ConeGeometry(.025, .07, 5)),
@@ -109,6 +114,12 @@ const DRESS: Record<ScatterKind, Dress> = {
     const disc = new THREE.Mesh(GEO.patch, patchMat(0xfff0c0, true, .16)); disc.scale.setScalar(1.6); disc.position.y = .006; g.add(disc);
     return g;
   },
+  rime(R) { const m = new THREE.Mesh(GEO.patch, patchMat(0x9fd0f0, true, .22)); m.scale.setScalar(.9 + R() * .9); m.position.y = .005; m.rotation.y = R() * 6; return m; },
+  leaves(R) {
+    const g = new THREE.Group();
+    for (let i = 0; i < 6; i++) { const l = new THREE.Mesh(GEO.page, MAT.leaf); l.scale.setScalar(.35 + R() * .3); l.position.set((R() - .5) * .8, .006 + i * .001, (R() - .5) * .8); l.rotation.y = R() * 6; g.add(l); }
+    return g;
+  },
   stains(R) { const m = new THREE.Mesh(GEO.patch, patchMat(0x3a2e0c, false, .7)); m.scale.setScalar(.7 + R() * .7); m.position.y = .004; m.rotation.y = R() * 6; return m; },
 };
 
@@ -137,6 +148,11 @@ export function enterTheme(room: Room, firstVisit: boolean, spawned: Enemy[]) {
   const theme = room.theme; if (!theme) return;
   if (firstVisit) toast(STR.themeEntered(theme.name), 2.5);
   if (theme.twist === 'sleepers') for (const e of spawned) if (!e.isBoss) { e.asleep = true; e.spawn = 0; }
+  // the frozen mausoleum's dead wait in ice, until struck or thawed by fire
+  if (theme.twist === 'rime') for (const e of spawned) if (!e.isBoss) {
+    e.asleep = true; e.spawn = 0; e.entombed = new THREE.Mesh(ICE.geo, ICE.mat);
+    e.entombed.position.y = e.flying ? .8 : .5; e.entombed.scale.set(1, 1.3, 1); e.group.add(e.entombed);
+  }
   riseT = C.riseAfter; risen = 0;
 }
 
@@ -146,7 +162,11 @@ export function updateThemes(dt: number) {
   // sleepers wake when the mage comes close (a hit wakes them in damageEnemy)
   if ((zzT -= dt) <= 0) zzT = .7;
   for (const e of G.enemies) {
-    if (!e.asleep) continue;
+    if (e.entombed && !e.asleep) { // the ice gives: a hit, or fire
+      e.group.remove(e.entombed); e.entombed = undefined;
+      burst(e.x, .7, e.z, 0xcfeeff, 14, 2.2, .06); Sfx.at(e.x, e.z).wallShatter();
+    }
+    if (!e.asleep || e.entombed) continue; // only sleepers wake as the mage comes close
     if (Math.hypot(player.x - e.x, player.z - e.z) < C.wakeReach) { e.asleep = false; burst(e.x, .8, e.z, 0xd8e0ff, 6, 1.4, .04); Sfx.at(e.x, e.z).wake(); }
     else if (zzT === .7) burst(e.x + .15, 1, e.z, 0xd8e0ff, 1, .3, .05); // a breath of sleep
   }

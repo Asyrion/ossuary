@@ -489,18 +489,35 @@ Rooms are built from cells of 13 × 7 tiles. A standard room is one cell, with a
 
 Fire spreads between what burns, and lights oil; anything that burns or blasts (Burn, the lance, the seal, a glyph, burning oil) reaches them.
 
-**Themed rooms (M3.6).** About two fights in five (per floor, `themeChance`) take place in a themed room: a kind of place in the dungeon, dressed its own way (torch light, floor stains, what the niches hold, scatter on the floor, how its rocks and tombs look) and with one twist to learn. The mage learns its name on first entering. Each floor draws on some of them (weights in `data/floors.json`).
+**Mechanisms (M3.6).** Some furnishings answer to magic with more than breaking: they turn a spell or a bolt into something the room does. They hear what everything else hears: fire, frost or shock landing near them (a spell, a status on a foe beside them, a glyph's blast), and the mage's bolts.
+
+| Mechanism | Blocks | What magic does |
+| --- | --- | --- |
+| Brazier | Low | Fire lights it; a bolt flying through a lit brazier's flame catches fire and burns what it strikes |
+| Candle stand | Low | Fire lights it; with every stand in the room lit, the room's reliquary opens, a dark room's dark lifts, and in a chapel nave the next six casts are blessed (harder, in gold). A blast knocks a stand over in burning wax |
+| Bell | Tall | A bolt or a blast rings it: every foe in the room reels for a moment (bosses shrug it off); it must settle before it rings again |
+| Rune stone | Tall | The first status that reaches it (a bolt carrying one, fire, frost or shock landing near) charges it with that school; charged, it pulses that status on the foes round it while the fight lasts |
+| Lodestone | Tall | Shock reaching it leaps to every other lodestone near enough, hurting and shocking what stands between, the mage too |
+| Hanging censer | Soft | A bolt through its chain brings it down on what is under it, and its oil spills burning |
+| Reliquary | Tall | Sealed until the room's candle stands are all lit; then it opens and gives a chest's hoard |
+| Dead tree | Tall | Burns, like grave roots, but longer |
+
+**Themed rooms (M3.6).** Twelve kinds of place. About two fights in five (per floor, `themeChance`) take place in a themed room: a kind of place in the dungeon, dressed its own way (torch light, floor stains, what the niches hold, scatter on the floor, how its rocks and tombs look) and with one twist to learn. The mage learns its name on first entering. Each floor draws on some of them (weights in `data/floors.json`).
 
 | Theme | Floors | What is in it | Its twist |
 | --- | --- | --- | --- |
-| Chapel nave | 1, 2 | Rows of pews, an altar, candles in the niches and on the floor | (Candle stands, M3.6 step 4) |
-| Ossuary | 1, 3 | Bone piles, skull heaps, niches full of skulls | If the fight drags on, piles rise as rotlings, one every few seconds |
+| Chapel nave | 1, 2 | Rows of pews, an altar, candle stands, candles in the niches and on the floor | Light every candle stand and the next six casts are blessed |
+| Ossuary | 1, 3 | Bone piles, skull heaps, niches full of skulls | If the fight drags on, piles rise as rotlings, one every few seconds; the skulls' eyes glow in the colour of the last spell cast |
 | Scriptorium | 1 | Desks, scroll heaps, loose pages | A scroll heap sometimes hides a torn grimoire page |
 | Pilgrims' rest | 1, 2 | Bedrolls, grave sacks, a cold fire | Its foes sleep until hurt, or until the mage comes close |
 | Flooded cistern | 2 | Water between stepping stones and pillars | Frost makes paths; Shock runs through it all |
 | Fungal grotto | 2 | Stalagmites, glowcaps, moss, cobwebs | Glowcap spores that flash in fire |
 | Collapsed crypt | 2, 3 | Rubble, roots, a shaft of daylight | A glyph's blast brings stones down round it a moment later, shadows first, hurting what they land on and leaving rubble |
 | Embalmers' hall | 3 | Slabs with shrouded dead, oil casks, oil | One spark and the room burns |
+| Bell chamber | 1, 3 | A bronze bell (two in the long hall), pillars | Ring the bell and every foe reels |
+| Frozen mausoleum | 2 | Tombs, rune stones, frozen water, rime on the floor, pale stone | Its dead wait in ice until struck or thawed by fire; the rime lets the mage slide |
+| Reliquary gallery | 1, 2 | Candle stands round a sealed reliquary, bays in its walls | Light every candle stand and the reliquary opens |
+| Cloister garth | 2, 3 | A dead tree, briars, roots and braziers under the open sky | Braziers set bolts alight; the tree and the briars burn |
 
 | Room type | Purpose | Door style | Arrives |
 | --- | --- | --- | --- |

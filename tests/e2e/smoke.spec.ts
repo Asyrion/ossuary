@@ -1305,6 +1305,14 @@ test('themed rooms: sleepers wake when the mage comes close, the ossuary\'s bone
   });
   expect(risen.after.piles).toBe(risen.before.piles - 1);
   expect(risen.after.foes).toBeGreaterThanOrEqual(risen.before.foes); // a rotling rose from the pile
+  // its skulls watch: their eyes take the colour of the last spell cast
+  const eyes = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G6 & { learn(id: string, slot: number): void; cast(slot: number): boolean; mana(v: number): number } }).__game;
+    const mat = (g.current as unknown as { eyes?: { color: { getHexString(): string } } }).eyes, before = mat?.color.getHexString();
+    g.learn('rime_shards', 0); g.mana(100); const cast = g.cast(0); g.sim(.1);
+    return { before, cast, after: mat?.color.getHexString() };
+  });
+  expect(eyes).toEqual({ before: '000000', cast: true, after: '9fd8ff' });
   expect(errors).toEqual([]);
 
   errors = await start(page, '?room=collapsed_crypt&loot=glyphs:3');
@@ -1355,5 +1363,133 @@ test('room variants: ambush, champion, dark and quiet', async ({ page }) => {
   expect(result.hemi).toBeLessThan(.6);
   expect(result.quiet.length).toBeLessThanOrEqual(2);
   expect(result.quiet.every(t => t === 'rotling' || t === 'wisp')).toBe(true);
+  expect(errors).toEqual([]);
+});
+
+test('mechanisms: a lit brazier sets bolts alight, runes take a school, bells stun, lodestones leap, a censer falls burning', async ({ page }) => {
+  type P = { kind: string; x: number; z: number; lit: boolean; school: string | null; cd: number };
+  type Foe = { x: number; z: number; hp: number; maxHp: number; status?: { burn: number; chill: number; shock: number; stun: number } };
+  type G7 = {
+    warp(id: number): void; clearRoom(): void; sim(sec: number, draw?: boolean): void; keys: Set<string>; arrowOrder: string[];
+    current: { bounds: { minX: number; minZ: number }; locked: boolean }; prop(kind: string, x: number, z: number): boolean; props: P[];
+    element(kind: string, x: number, z: number): void; spawn(kind: string, x: number, z: number): Foe; enemies: Foe[];
+    pools: { kind: string; state: string }[]; player: { x: number; z: number; vx: number; vz: number; hp: number; maxHp: number; invuln: number };
+  };
+  let errors = await start(page, '?room=treasure_plain');
+  const result = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G7 }).__game;
+    const at = (c: number, r: number) => ({ x: g.current.bounds.minX + c + .5, z: g.current.bounds.minZ + r + .5 });
+    const put = (kind: string, c: number, r: number) => { const q = at(c, r); return g.prop(kind, q.x, q.z); };
+    const stand = (c: number, r: number) => { const q = at(c, r); g.player.x = q.x; g.player.z = q.z; g.player.vx = g.player.vz = 0; };
+    const find = (kind: string, c: number, r: number) => g.props.find(p => p.kind === kind && Math.hypot(p.x - at(c, r).x, p.z - at(c, r).z) < .6);
+    const shootEast = (sec: number) => { g.keys.add('ArrowRight'); g.arrowOrder.push('ArrowRight'); g.sim(sec); g.keys.delete('ArrowRight'); g.arrowOrder.length = 0; g.sim(.5); };
+    const clearFoes = () => { g.clearRoom(); g.sim(.1); };
+    g.warp(1); g.clearRoom(); g.player.invuln = 99;
+    const out: Record<string, unknown> = {};
+    // a brazier lights to fire; a bolt through its flame charges the rune stone behind it with the ember school
+    put('brazier', 3, 3); put('rune', 5, 3);
+    out.brazierDark = find('brazier', 3, 3)?.lit;
+    g.element('burn', at(3, 3).x, at(3, 3).z); out.brazierLit = find('brazier', 3, 3)?.lit;
+    stand(1, 3); shootEast(.1); out.rune = find('rune', 5, 3)?.school; out.runeStands = !!find('rune', 5, 3);
+    // frost reaching an uncharged rune stone charges it with frost; a charged one keeps its school
+    put('rune', 11, 1); g.element('chill', at(11, 1).x, at(11, 1).z); out.frostRune = find('rune', 11, 1)?.school;
+    g.element('shock', at(11, 1).x, at(11, 1).z); out.frostRuneKept = find('rune', 11, 1)?.school;
+    // a bolt rings the bell: every foe reels, and the bell must settle before it rings again
+    put('bell', 4, 5); const dummy = g.spawn('dummy', at(10, 6).x, at(10, 6).z); g.sim(1);
+    stand(1, 5); shootEast(.1); out.stunned = (dummy.status?.stun ?? 0) > 0; out.bellCd = (find('bell', 4, 5)?.cd ?? 0) > 0;
+    clearFoes();
+    // shock on a lodestone leaps to the other, hurting and shocking the foe between
+    put('lodestone', 2, 1); put('lodestone', 9, 1); const between = g.spawn('dummy', at(5, 1).x, at(5, 1).z); g.sim(1);
+    stand(5, 6); g.element('shock', at(2, 1).x, at(2, 1).z);
+    out.leapt = (between.status?.shock ?? 0) > 0; out.lodeCd = (find('lodestone', 9, 1)?.cd ?? 0) > 0; // (the dummy's health never drops)
+    clearFoes();
+    // a bolt through a censer's chain brings it down on the foe under it, and its oil spills burning
+    out.censerHung = put('censer', 9, 6); const under = g.spawn('dummy', at(9, 6).x, at(9, 6).z - .8); g.sim(1);
+    stand(6, 6); shootEast(.1); g.sim(.3);
+    out.censer = !!g.props.find(p => p.kind === 'censer'); out.crushed = (under.status?.burn ?? 0) > 0;
+    out.oil = g.pools.filter(p => p.kind === 'oil').map(p => p.state);
+    stand(6, 4); g.sim(.05, true);
+    return out;
+  });
+  expect(result).toMatchObject({
+    brazierDark: false, brazierLit: true, rune: 'burn', runeStands: true, frostRune: 'chill', frostRuneKept: 'chill',
+    stunned: true, bellCd: true, leapt: true, lodeCd: true, censerHung: true, censer: false, crushed: true, oil: ['burning'],
+  });
+  await page.screenshot({ path: 'test-results/mechanisms.png' });
+  expect(errors).toEqual([]);
+
+  // a charged rune stone pulses its school on the foes round it while the fight lasts
+  errors = await start(page, '?room=rune_circle');
+  const pulse = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G7 }).__game; g.warp(1);
+    const rune = g.props.find(p => p.kind === 'rune')!;
+    const dummy = g.spawn('dummy', rune.x + 1, rune.z);
+    g.element('chill', rune.x, rune.z);
+    for (let t = 0; t < 3; t += .5) { g.player.hp = g.player.maxHp; g.player.invuln = 99; g.sim(.5); }
+    return { locked: g.current.locked, school: g.props.find(p => p.kind === 'rune' && p.x === rune.x && p.z === rune.z)?.school, chilled: (dummy.status?.chill ?? 0) > 0 };
+  });
+  expect(pulse).toEqual({ locked: true, school: 'chill', chilled: true });
+  expect(errors).toEqual([]);
+});
+
+test('candle stands: all lit, a reliquary opens with its hoard and a chapel blesses the next casts; the frozen mausoleum\'s dead wait in ice', async ({ page }) => {
+  type P = { kind: string; x: number; z: number; lit: boolean };
+  type E = { x: number; z: number; dead?: boolean; asleep?: boolean; entombed?: unknown; isBoss?: boolean };
+  type G8 = {
+    warp(id: number): void; clearRoom(): void; sim(sec: number, draw?: boolean): void; keys: Set<string>; arrowOrder: string[];
+    current: { cx: number; cz: number; bounds: { minX: number; minZ: number }; theme?: { id: string } }; props: P[]; pickups: unknown[]; enemies: E[];
+    element(kind: string, x: number, z: number): void; burn(x: number, z: number, r?: number): void;
+    player: { x: number; z: number; vx: number; vz: number; hp: number; maxHp: number; invuln: number; blessed: number; stats: { speed: number } };
+  };
+  let errors = await start(page, '?room=reliquary_gallery');
+  const reliquary = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G8 }).__game; g.warp(1); g.clearRoom(); g.player.invuln = 99; g.sim(.5);
+    const stands = g.props.filter(p => p.kind === 'candles'), pickups = g.pickups.length;
+    for (const s of stands.slice(1)) g.element('burn', s.x, s.z);
+    const sealed = g.props.some(p => p.kind === 'reliquary'); g.element('burn', stands[0].x, stands[0].z); g.sim(.2);
+    return { stands: stands.length, sealedWhileOneDark: sealed, opened: !g.props.some(p => p.kind === 'reliquary'), hoard: g.pickups.length - pickups };
+  });
+  expect(reliquary).toMatchObject({ stands: 4, sealedWhileOneDark: true, opened: true });
+  expect(reliquary.hoard).toBeGreaterThanOrEqual(2);
+  expect(errors).toEqual([]);
+
+  errors = await start(page, '?room=chapel_nave');
+  const blessing = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G8 }).__game; g.warp(1); g.clearRoom(); g.player.invuln = 99; g.sim(.5);
+    for (const s of g.props.filter(p => p.kind === 'candles')) g.element('burn', s.x, s.z);
+    const blessed = g.player.blessed, toast = document.getElementById('toast')!.textContent;
+    g.player.x = g.current.cx; g.player.z = g.current.cz + 2;
+    g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); g.sim(.05); g.keys.delete('ArrowUp'); g.arrowOrder.length = 0; g.sim(.5);
+    return { blessed, toast, after: g.player.blessed };
+  });
+  expect(blessing).toEqual({ blessed: 6, toast: 'The candles bless your next 6 casts', after: 5 });
+  expect(errors).toEqual([]);
+
+  errors = await start(page, '?room=mausoleum_tombs');
+  const rime = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G8 }).__game; g.warp(1);
+    const foes = g.enemies.filter(e => !e.isBoss), at = foes.map(e => ({ x: e.x, z: e.z }));
+    g.player.x = g.current.bounds.minX + 1.5; g.player.z = g.current.bounds.minZ + 6.5; g.player.vx = g.player.vz = 0;
+    for (let t = 0; t < 2; t += .5) { g.player.hp = g.player.maxHp; g.player.invuln = 99; g.sim(.5); }
+    const frozen = foes.every((e, i) => e.entombed && e.asleep && Math.hypot(e.x - at[i].x, e.z - at[i].z) < .05);
+    // rime underfoot: the mage slides on after letting go
+    g.keys.add('KeyD'); g.sim(.6); g.keys.delete('KeyD'); const v0 = g.player.vx; g.sim(.15); const glide = g.player.vx / v0;
+    // fire thaws one out of its ice
+    const thawed = foes[0]; g.burn(thawed.x, thawed.z, .3); g.sim(.1);
+    return { theme: g.current.theme?.id, count: foes.length, frozen, glide, thawed: !thawed.asleep && !thawed.entombed, othersStill: foes.slice(1).every(e => e.entombed) };
+  });
+  expect(rime).toMatchObject({ theme: 'mausoleum', frozen: true, thawed: true, othersStill: true });
+  expect(rime.count).toBeGreaterThan(1);
+  expect(rime.glide).toBeGreaterThan(.45); // on stone the mage stops within a few steps (under .15 of the speed)
+  expect(errors).toEqual([]);
+
+  // its water is ice, until fire finds it
+  errors = await start(page, '?room=mausoleum_hall');
+  const ice = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G8 & { pools: { kind: string; state: string; tiles: { x: number; z: number }[] }[] } }).__game; g.warp(1); g.clearRoom(); g.sim(5);
+    const before = g.pools.map(p => p.state), t = g.pools[0].tiles[0]; g.burn(t.x, t.z); g.sim(.1);
+    return { before, after: g.pools.map(p => p.state) };
+  });
+  expect(ice).toEqual({ before: ['frozen'], after: ['still'] });
   expect(errors).toEqual([]);
 });

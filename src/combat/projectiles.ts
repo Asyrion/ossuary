@@ -16,6 +16,9 @@ import { basicMat, blob, glowShared, markShared, sphereGeo } from '../render/mat
 import { blockers, boxAt } from '../world/collision';
 import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
 import { strikeProp } from '../world/props';
+import { boltThrough } from '../world/mechanisms';
+
+const BLESSED = 0xfff0b0; // a blessed cast's gold
 import { hollowRing } from '../world/secret';
 import { strikeWisp } from '../world/shrine';
 import { shootDir } from '../input';
@@ -68,14 +71,16 @@ export function spawnBolt() {
   const crit = st.effects.has('crit') && Math.random() < A.crit.chance;
   // the Emberwood Wand sets foes burning; the Frostbitten Ring chills with every fifth cast
   const frost = st.effects.has('frostbite') && ++casts % A.frostbite.every === 0;
+  // a chapel's blessing: the next few casts strike harder, in gold
+  const blessed = player.blessed > 0; if (blessed) player.blessed--;
   const status = st.effects.has('emberBolts') || frost ? { ...(st.effects.has('emberBolts') ? { burn: A.emberwood.burn } : {}), ...(frost ? { chill: A.frostbite.chill } : {}) } : undefined;
   for (const k of slots) {
     const a = k * p.fan, c = Math.cos(a), s = Math.sin(a);
     const dx = dir.x * c - dir.z * s, dz = dir.z * c + dir.x * s, off = p.count === 1 ? .1 * player.eye : p.fan ? 0 : k * p.spread;
     makeBolt({
       x: player.x + dx * .3 + px * off, z: player.z + dz * .3 + pz * off, vx: dx * st.shotSpeed + ix, vz: dz * st.shotSpeed + iz,
-      damage: st.damage * (crit ? A.crit.damageMul : 1), range: st.range, scale: st.boltScale * (crit ? A.crit.scale : 1),
-      color: crit ? A.crit.color : frost ? A.frostbite.color : st.boltColor, path: p.path, pierce: st.pierce, bounces: p.bounces, secondary: false, crit, status,
+      damage: st.damage * (crit ? A.crit.damageMul : 1) * (blessed ? CFG.mech.blessMul : 1), range: st.range, scale: st.boltScale * (crit ? A.crit.scale : 1) * (blessed ? 1.2 : 1),
+      color: crit ? A.crit.color : frost ? A.frostbite.color : blessed ? BLESSED : st.boltColor, path: p.path, pierce: st.pierce, bounces: p.bounces, secondary: false, crit, status,
     });
   }
   // the Miser's Purse: gold glints off the cast, more of them the more obols are hoarded
@@ -124,13 +129,13 @@ export function clearProjectiles() {
 
 /** Something of the mage's (a bolt, a beam) reaches a wall, door or rock at (x, y, z): a vault's ward glances it off,
     a cracked wall rings hollow, an urn breaks. Returns the box as a rock, to check for more. */
-export function strikeSolid(room: Room, box: Box, x: number, y: number, z: number) {
+export function strikeSolid(room: Room, box: Box, x: number, y: number, z: number, status?: Partial<Record<StatusKind, number>>) {
   const door = room.doors.find(d => d.box === box);
   if (door?.seal?.sealed) { burst(x, y, z, WARD_COLOR, 5, 1.6, .035); Sfx.at(x, z).wardTink(); } // glances off a vault's ward
   if (door?.secret) hollowRing(door, x, z);                                               // a cracked wall rings hollow
   const rock = box as RockBox;
   if (rock.urn) strikeUrn(room, rock, false);                                             // any bolt breaks an urn
-  else if (rock.prop) strikeProp(room, rock, false);                                      // piles, casks and glowcaps break
+  else if (rock.prop) strikeProp(room, rock, false, status);                              // piles break, bells ring, runes charge
   return rock;
 }
 
@@ -171,10 +176,12 @@ export function updateBolts(dt: number) {
     if (!kill && room.type === 'merchant' && b.dist > CFG.merchant.boltFizzle) {
       burst(b.x, b.y, b.z, WARD_COLOR, 5, 1.3, .04); Sfx.at(b.x, b.z).wardTink(); removeBolt(i, false); continue;
     }
+    // braziers set it alight, a censer's chain is cut (mechanisms, M3.6)
+    if (!kill && !(b.path === 'boomerang' && b.returning)) boltThrough(b);
     // walls, doors and rocks
     const box = !kill && !(b.path === 'boomerang' && b.returning) ? boxAt(b.x, b.z, solids) : undefined;
     if (box) {
-      const rock = strikeSolid(room, box, b.x, b.y, b.z);
+      const rock = strikeSolid(room, box, b.x, b.y, b.z, b.status);
       if (!rock.urn && !rock.prop && breaker && !b.spell && room.rocks.includes(rock)) hitRock(room, rock); // Mason's Chisel cracks rocks
       if (b.path === 'bounce' && b.bounces > 0) {
         // reflect on the axis that ran into the box, from the last free position

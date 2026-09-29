@@ -10,12 +10,15 @@ import type { FloorLook } from '../types';
     risingBones  bone piles rise as rotlings if the fight drags on (the ossuary);
     pages        scroll heaps sometimes hide a torn grimoire page (the scriptorium);
     sleepers     its foes sleep until hurt, or until the mage comes close (the pilgrims' rest);
-    caveIn       a glyph's blast brings more of the ceiling down (the collapsed crypt). */
-export type Twist = 'none' | 'risingBones' | 'pages' | 'sleepers' | 'caveIn';
-export const TWISTS: Twist[] = ['none', 'risingBones', 'pages', 'sleepers', 'caveIn'];
+    caveIn       a glyph's blast brings more of the ceiling down (the collapsed crypt);
+    blessing     every candle stand lit blesses the mage's next casts (the chapel nave);
+    rime         the floor is slick with rime, and the foes wait frozen in ice until struck or thawed (the frozen
+                 mausoleum). */
+export type Twist = 'none' | 'risingBones' | 'pages' | 'sleepers' | 'caveIn' | 'blessing' | 'rime';
+export const TWISTS: Twist[] = ['none', 'risingBones', 'pages', 'sleepers', 'caveIn', 'blessing', 'rime'];
 /** Dressing scattered over free floor, which never blocks. */
-export type ScatterKind = 'candles' | 'pages' | 'bones' | 'bedrolls' | 'embers' | 'moss' | 'glowmoss' | 'pebbles' | 'daylight' | 'stains';
-export const SCATTER_KINDS: ScatterKind[] = ['candles', 'pages', 'bones', 'bedrolls', 'embers', 'moss', 'glowmoss', 'pebbles', 'daylight', 'stains'];
+export type ScatterKind = 'candles' | 'pages' | 'bones' | 'bedrolls' | 'embers' | 'moss' | 'glowmoss' | 'pebbles' | 'daylight' | 'stains' | 'rime' | 'leaves';
+export const SCATTER_KINDS: ScatterKind[] = ['candles', 'pages', 'bones', 'bedrolls', 'embers', 'moss', 'glowmoss', 'pebbles', 'daylight', 'stains', 'rime', 'leaves'];
 
 type LookPatch = { [K in keyof FloorLook]?: Partial<FloorLook[K]> };
 export interface ThemeDef {
@@ -23,6 +26,7 @@ export interface ThemeDef {
   /** Changes to the floor's look in this room. */ look?: LookPatch;
   /** How many of each dressing to scatter over its floor. */ scatter: Partial<Record<ScatterKind, number>>;
   /** Rocks as stalagmites, tombs as embalmers' slabs. */ rock?: 'rock' | 'dripstone'; tomb?: 'tomb' | 'slab';
+  /** The skulls in its niches watch: their eyes glow in the colour of the last spell cast there. */ watchers?: boolean;
 }
 
 export const THEME_DEFS = themesData as ThemeDef[];

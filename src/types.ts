@@ -69,7 +69,12 @@ export interface Torch { flame: THREE.Mesh; glow: THREE.Sprite; x: number; z: nu
 export interface RockBox extends Box { hp: number; breakable: boolean; mesh?: THREE.Object3D; tile?: { c: number; r: number }; urn?: 'plain' | 'sealed'; prop?: PropState }
 /** One of the rooms' objects in play (world/props.ts, world/propData.ts): its kind, bolts it can still take, seconds
     left burning (0: not alight), the tiles it covers, and its look. */
-export interface PropState { kind: PropKind; hits: number; burning: number; tiles: { c: number; r: number }[]; mesh: THREE.Object3D; flame?: THREE.Object3D }
+export interface PropState {
+  kind: PropKind; hits: number; burning: number; tiles: { c: number; r: number }[]; mesh: THREE.Object3D; flame?: THREE.Object3D;
+  /** Mechanisms (world/mechanisms.ts): a brazier's or candle stand's fire; the school a rune stone is charged with;
+      seconds until it can act again, and its own clock; parts of its look that move or light up. */
+  lit?: boolean; school?: StatusKind; cd?: number; t?: number; parts?: Record<string, THREE.Object3D>;
+}
 /** An object in the room, with its box (how it blocks depends on its class: rocks, `lows`, or `soft`). */
 export type PropBox = RockBox & { prop: PropState };
 /** A cloud of glowcap spores hanging where a glowcap burst: fire in it flashes. */
@@ -96,6 +101,8 @@ export interface Room {
       glowcap spores hanging in the air. Tall objects and breakable piles are also among `rocks`. */
   props?: PropBox[]; lows?: PropBox[]; soft?: PropBox[]; spores?: SporeCloud[];
   /** A themed room's theme (M3.6, world/themeData.ts). */ theme?: ThemeDef;
+  /** Every candle stand in the room lit (M3.6 mechanisms): what that does has happened. */ candlesLit?: boolean;
+  /** The eyes of an ossuary's skull niches, one material lit in the last spell's colour (M3.6). */ eyes?: THREE.MeshBasicMaterial;
   /** Enemies to spawn, wave by wave (ordeals have 2 or 3 waves, other fights 1), in world positions. */
   waves: { kind: FoeKind; x: number; z: number }[][];
   /** The wave being fought, and whether the next one is on its way. */ wave: number; wavePending: boolean;
@@ -146,6 +153,7 @@ export interface Enemy extends Circle {
   /** Floor ring (the abbess's ripple, the knight's landing mark); where a leap started. */ marker?: THREE.Mesh; from?: Vec2;
   /** Called by a boss; falls when the boss does. */ servant?: boolean;
   /** Asleep (a pilgrims' rest's foes, M3.6): does nothing until hurt or until the mage comes close. */ asleep?: boolean;
+  /** Held in ice (a frozen mausoleum's foes): asleep until hurt or thawed by fire; the ice around it. */ entombed?: THREE.Object3D;
   /** What struck it last: the cantrip's kills give mana back. */ lastHit?: 'cantrip' | 'spell';
   /** Status effects on it (magic/status.ts), the ice around it while frozen, and the training dummy's label. */
   status?: StatusState; ice?: THREE.Mesh; label?: THREE.Sprite;
@@ -186,6 +194,7 @@ export interface Transition { t: number; dur: number; nb: Room; fx: number; fz: 
 export interface Player extends Circle {
   dead: boolean; vx: number; vz: number; hp: number; maxHp: number; invuln: number; fireCd: number;
   eye: number; yawA: number; squash: number; bob: number;
+  /** Casts a chapel's candles still bless (M3.6): they strike harder, in gold. */ blessed: number;
   /** The equipped focus and every other artifact held, in pickup order. */ focus: string; items: string[];
   /** Heart containers given to bone altars this run. */ heartsPaid: number;
   /** Cursed artifacts cleansed at a shrine: their price gone, their gift halved. */ cleansed: string[];

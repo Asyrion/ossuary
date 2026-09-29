@@ -14,7 +14,7 @@ style reference in every image), budgets per kind of asset, the pipeline from im
 log. When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3.6 under way (`docs/M3.6-plan.md`: steps 1 to 3, architecture, objects and themed rooms, built); M3 built (see `docs/M3-plan.md`; the balance pass waits for play-tests); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3.6 under way (`docs/M3.6-plan.md`: steps 1 to 4, architecture, objects, themed rooms and mechanisms, built); M3 built (see `docs/M3-plan.md`; the balance pass waits for play-tests); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -39,7 +39,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   a shrine, the vault's warden, boss tuning and look per floor),
   `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `i` pillar, `=` stone tomb, `u` urn,
   `$` rune-sealed urn, `~` water, `%` oil, the M3.6 objects `b k s c r t v : g p d e` (bone pile, skull heap, grave sacks,
-  oil cask, rubble, grave roots, thorn briar, cobwebs, glowcaps, pew, desk, scroll heap), `R W H` enemies, `B` boss; `x` wall: outside an L's missing corner, and
+  oil cask, rubble, grave roots, thorn briar, cobwebs, glowcaps, pew, desk, scroll heap) and mechanisms `f l a n y * q T`
+  (brazier, candle stand, bell, rune stone, lodestone, hanging censer, reliquary, dead tree), `R W H` enemies, `B` boss; `x` wall: outside an L's missing corner, and
   inside the shape to carve it (cut corners, bays, a pinched waist, a free-standing pier); ordeal templates list
   their enemies per wave in `waves`; `special.json` holds ordeals, altars, merchants, vaults, secret rooms and shrines,
   `shapes.json` the larger and narrow rooms) and
@@ -100,12 +101,24 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `addPool`, glowcap spores, `snagAt` for cobwebs, briar stings in `updateProps`), tuning in `CFG.props`, the
   poorer loot in `remains` and `bundle` (`data/loot.json`). `__game.prop('cask')` puts one down, `__game.props` and
   `__game.spores` read them, `__game.burn(x, z, r)` sets fire there; the dev menu has a row of them.
+- Mechanisms (M3.6): objects that answer to magic with more than breaking (`MECHANISMS` in `propData.ts`); their looks
+  and what they do are in `src/world/mechanisms.ts`, tuning in `CFG.mech`. They hear the same hooks as everything
+  else: `elementAt(kind, x, z, r)` from `fireAt`, `frostAt`, `shockAt` and `touchPools` (braziers and candle stands
+  light, rune stones take a school, lodestones leap), `strikeMechanism` from `strikeProp` (a bolt with its status, or
+  a blast: bells ring, candles are knocked over), `boltThrough` from `updateBolts` (a lit brazier sets a bolt
+  alight, a bolt cuts a censer's chain). Every candle stand in a room lit (`room.candlesLit`) opens its reliquaries,
+  lifts a dark room and, in a chapel, blesses the next casts (`player.blessed`, in `spawnBolt`). The frozen
+  mausoleum's twist (`rime`) entombs its foes in ice (`entombed` on a foe, freed by a hit or fire) and lets the mage
+  slide; an ossuary's skull niches watch (`watchers` on a theme; `skullsWatch` from `castSpell`).
+  `__game.element('burn' | 'chill' | 'shock', x, z)` lands a status there, as the dev menu's Fire, Frost and Shock
+  buttons do; `__game.props` reads `lit`, `school` and `cd` too.
 - Themed rooms (M3.6): themes are data in `data/themes.json` (look changes, floor scatter, a twist, rock and tomb looks),
   read by the pure `src/world/themeData.ts` (`themedLook`, `validateThemes`); a template's `theme` makes it a themed
   room (all in `data/templates/themed.json`); floors draw on them with `themeChance` and `themes` in
   `data/floors.json`, picked in `assignTemplates`. `src/world/themes.ts` scatters the dressing (`dressTheme`) and runs
   the twists: sleepers (`asleep` on a foe; a hit or the mage coming close wakes it), rising bones, pages in scroll
-  heaps (`scrollsBroken`), the cave-in on a blast (`caveIn`); tuning in `CFG.themes`. `?theme=ossuary` makes every
+  heaps (`scrollsBroken`), the cave-in on a blast (`caveIn`), and with mechanisms the chapel's blessing and the
+  mausoleum's rime; tuning in `CFG.themes`. `?theme=ossuary` makes every
   fight one theme's; the dev menu lists a test room of each.
 - Sound (`src/audio/sfx.ts`, synthesised placeholders): an effects bus and an interface bus (`UI_SOUNDS`) under a
   master, set by the pause menu's sliders and remembered in the browser. Play an effect where it happens with
@@ -129,7 +142,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `__game.shoot(x, z, dx, dz)` fires a foe's shot, `__game.mantle` reads the Static Mantle's seconds left,
   `__game.page()` drops a grimoire page, `__game.pages` and `__game.forgotten` read the room's pages and the
   spells given up; `__game.cast(slot)` answers a page that asks, as the key does; `__game.pools` reads the room's
-  water and oil, `__game.pool('fire' | 'frost' | 'shock')` sets it alight, freezes or shocks it.
+  water and oil, `__game.pool('fire' | 'frost' | 'shock')` sets it alight, freezes or shocks it;
+  `__game.prop('brazier')` puts an object or mechanism down, `__game.props` reads them, `__game.burn(x, z, r)` sets
+  fire there and `__game.element('shock', x, z)` lands fire, frost or shock there.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons: heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
   special rooms (a sealed vault leads to its warded door), test rooms, boss fights and new runs, taking or
