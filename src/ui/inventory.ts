@@ -8,8 +8,10 @@ import { STR } from '../strings';
 import { $ } from '../util';
 import { artifact, focusPattern, halveStat, type StatKey } from '../items/artifactData';
 import { LOOT } from '../items/loot';
-import { spell, type SpellDef } from '../magic/spellData';
-import { spellCost } from '../magic/cost';
+import { SCHOOLS, SPELL_DEFS, spell } from '../magic/spellData';
+import { atLeast } from '../magic/knowledge';
+import { castsOf, stage } from '../magic/memory';
+import { esc, head, spellSheet } from './spellPanel';
 import { showScreen } from './screens';
 import { artifactIcon, spellIcon } from './hud';
 import { itemIcon } from './lore';
@@ -20,7 +22,6 @@ const TABS: Tab[] = ['artifacts', 'spells', 'items', 'mage'];
 interface Entry { icon: string; label: string; badge?: string; corner?: string; dim?: boolean; section?: string; detail: () => string }
 
 const I = () => STR.inv;
-const esc = (t: string) => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 const num = (v: number, d = 1) => String(+v.toFixed(d));
 /** Half hearts as hearts: 5 → "2½", 1 → "½". */
 const halves = (h: number) => h % 2 ? `${h > 1 ? Math.floor(h / 2) : ''}½` : String(h / 2);
@@ -91,34 +92,40 @@ function artifactEntries(): Entry[] {
   });
 }
 
-/** A spell's panel: school and shape, cost now (and before the Witch's Knot), cooldown, damage, statuses. */
-function spellDetail(def: SpellDef, note = '') {
-  const cost = Math.round(spellCost(def)), statuses = Object.entries(def.status ?? {});
-  const chips = [I().mana(cost, def.mana), I().cooldown(def.cooldown), def.damage ? I().damage(def.damage) : '']
-    .filter(Boolean).map(t => `<span class="chip">${esc(t)}</span>`).join('')
-    + statuses.map(([k, v]) => `<span class="chip st-${k}">${esc(I().status[k]?.(v) ?? k)}</span>`).join('');
-  return head(spellIcon(def.id), def.name, `<span style="color:${def.color}">${esc(I().school(STR.schools[def.school]))}</span> · ${esc(I().shapes[def.shape] ?? def.shape)}`, true)
-    + `<p class="effect">${esc(def.text)}</p><div class="chips">${chips}</div>`
-    + (note ? `<p class="note">${esc(note)}</p>` : '')
-    + statuses.map(([k]) => `<p class="note">${esc(I().statusText[k] ?? '')}</p>`).join('')
-    + `<p class="lore">${esc(def.lore)}</p>`;
-}
-
+/** The spells tab (M3.7): the two carried slots, then a book by school. A school shows once a spell of it is learned,
+    with every spell of it the mage has met (carried ones marked Q or E, given-up ones and ones only seen dimmed) and a
+    sealed entry for each one not met yet; each described as far as the mage knows it (ui/spellPanel.ts). */
 function spellEntries(): Entry[] {
-  const keys = STR.controls.spellsKeys.split(' and '), pads = STR.controls.spellsPad.split(' and ');
+  const keys = STR.controls.spellsKeys.split(' and '), pads = STR.controls.spellsPad.split(' and '), K = STR.knowledge;
+  const sheet = (id: string, note = '') => spellSheet(spell(id), stage(id), note, castsOf(id));
   const slots: Entry[] = player.spells.map((id, i) => id ? {
     icon: spellIcon(id), label: spell(id).name, corner: keys[i], section: i === 0 ? I().carried : undefined,
-    detail: () => spellDetail(spell(id), `${I().slot(keys[i])} · ${pads[i]}`),
+    detail: () => sheet(id, `${I().slot(keys[i])} · ${pads[i]}`),
   } : {
     icon: '', label: I().empty, corner: keys[i], dim: true, section: i === 0 ? I().carried : undefined,
     detail: () => head('', I().empty, I().slot(keys[i])) + `<p class="effect">${esc(I().emptyText)}</p>`,
   });
-  const gone = [...new Set(G.run.forgotten)].filter(id => !player.spells.includes(id)).map((id, i): Entry => ({
-    icon: spellIcon(id), label: spell(id).name, dim: true, section: i === 0 ? I().givenUp : undefined,
-    detail: () => spellDetail(spell(id), I().givenUpNote(LOOT.grimoire.rebuy)),
-  }));
-  return [...slots, ...gone];
+  const book: Entry[] = [];
+  for (const school of SCHOOLS) {
+    const all = SPELL_DEFS.filter(s => s.school === school);
+    if (!all.some(s => atLeast(stage(s.id), 'learned'))) continue; // a school opens with its first spell learned
+    const name = STR.schools[school];
+    all.forEach((s, i) => {
+      const st = stage(s.id), slot = player.spells.indexOf(s.id), given = G.run.forgotten.includes(s.id) && slot < 0;
+      book.push(st === 'unknown' ? {
+        icon: SEALED, label: K.sealed, dim: true, section: i === 0 ? name : undefined,
+        detail: () => head(SEALED, K.sealed, I().school(name)) + `<p class="effect">${esc(K.sealedText(name))}</p>`,
+      } : {
+        icon: spellIcon(s.id), label: s.name, section: i === 0 ? name : undefined, corner: slot >= 0 ? keys[slot] : undefined,
+        dim: given || st === 'seen',
+        detail: () => sheet(s.id, slot >= 0 ? `${I().slot(keys[slot])} · ${pads[slot]}` : given ? I().givenUpNote(LOOT.grimoire.rebuy) : st === 'seen' ? '' : K.notCarried),
+      });
+    });
+  }
+  return [...slots, ...book];
 }
+/** A page not found yet: a sealed leaf. */
+const SEALED = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M13 7h17l7 7v27H13z" fill="#3a3128" stroke="#7a6a52" stroke-width="2"/><circle cx="25" cy="27" r="6" fill="#6a2a20" stroke="#a8503c" stroke-width="1.5"/><path d="M22 27h6M25 24v6" stroke="#e0b08a" stroke-width="1.4"/></svg>';
 
 function itemEntries(): Entry[] {
   const M = CFG.mana, st = player.stats;
@@ -161,9 +168,6 @@ function mageEntries(): Entry[] {
 }
 
 /** The top of the panel: the icon large, the name, and the kind under it. */
-function head(icon: string, name: string, kind: string, kindIsHtml = false) {
-  return `<div class="top">${icon ? `<div class="big">${icon}</div>` : ''}<div><h3>${esc(name)}</h3><p class="kind">${kindIsHtml ? kind : esc(kind)}</p></div></div>`;
-}
 
 /* ---------- drawing and choosing ---------- */
 

@@ -956,7 +956,7 @@ test('the pause menu sets the volumes, and the browser remembers them; positione
 
 test('the inventory lists what the mage carries and knows, in tabs, and describes the chosen entry', async ({ page }) => {
   const errors = await start(page, '?seed=INV1&spells=arc,pyre_seal&give=twin_staff,mana_lantern,crown_of_thorns&loot=coins:12,keys:1,glyphs:3');
-  await page.evaluate(() => { ((window as unknown as W).__game as unknown as G12).forgotten.push('rime_shards'); });
+  await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as G12 & { know(id: string, st: string): void }; g.forgotten.push('rime_shards'); g.know('rime_shards', 'learned'); });
   const inv = page.locator('#scrInv'), detail = page.locator('#invDetail'), tiles = page.locator('#invList .tile');
   // I pauses and opens it on the artifacts: the focus first, then what was taken
   await page.keyboard.press('KeyI');
@@ -969,16 +969,20 @@ test('the inventory lists what the mage carries and knows, in tabs, and describe
   await expect(detail).toContainText('Crown of Thorns');
   await expect(detail).toContainText('Spell damage ×1.5');
   await expect(detail.locator('.chip.bad')).toContainText('Hearts -1'); // its price
-  // E turns to the spells: the two slots, and the page given up
+  // E turns to the spells: the two slots, then a book by school (a school opens with its first spell learned), with a
+  // sealed entry for each spell not met yet
   await page.keyboard.press('KeyE');
-  await expect(tiles).toHaveCount(3);
-  await expect(page.locator('#invList .sec')).toHaveText(['Carried', 'Given up']);
+  await expect(tiles).toHaveCount(8);
+  await expect(page.locator('#invList .sec')).toHaveText(['Carried', 'Ember', 'Frost', 'Storm']);
   await page.keyboard.press('ArrowRight');
   await expect(detail).toContainText('Pyre Seal');
   await expect(detail).toContainText('Ember spell');
   await expect(detail).toContainText('35 mana');
   await expect(detail).toContainText('Burn 4 s');
+  await expect(detail).toContainText('Cast it 10 more times to know it well');
   await page.keyboard.press('ArrowRight');
+  await expect(detail).toContainText('A page not yet found'); // Cinder Lance, not met
+  await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight');
   await expect(detail).toContainText('Rime Shards');
   await expect(detail).toContainText('sell its page back for 7 obols');
   // clicking a tab: the items, with their counts
@@ -1557,4 +1561,39 @@ test('a great hall packed with every object stays within its draw calls (their s
   expect(r.placed).toBeGreaterThan(80);
   expect(r.calls).toBeLessThan(750); // 1,085 before objects' still parts were merged
   expect(errors).toEqual([]);
+});
+
+test('spell knowledge: a page shows its spell as far as it is known, learning and casting teach more, and it is kept between runs', async ({ page }) => {
+  type Pg = { spell: string; x: number; z: number; gone?: boolean };
+  type GK = { warp(id: number): void; clearRoom(): void; sim(sec: number, draw?: boolean): void; pages: Pg[]; knowledge: Record<string, string>;
+    pagePanel: { spell: string | null; text: string }; cast(slot: number): boolean; mana(v: number): number; spawn(kind: string, x?: number, z?: number): unknown;
+    forgetKnowledge(): void; player: { x: number; z: number; invuln: number; spells: (string | null)[]; spellCd: number[] } };
+  const errors = await start(page, '?room=library_plain&seed=K3F9QX');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GK }).__game; g.warp(1); g.player.invuln = 99; g.sim(.3);
+    const p = g.pages.filter(q => !q.gone)[0], before = g.knowledge[p.spell];
+    // near the page: its panel, at the stage seen (name, school, what it does; the rest when it is learned)
+    g.player.x = p.x; g.player.z = p.z + 1.4; g.sim(.1);
+    const seen = { stage: g.knowledge[p.spell], panel: g.pagePanel.spell, text: g.pagePanel.text };
+    // into the page: taken, and learned
+    g.player.x = p.x; g.player.z = p.z; g.sim(.2);
+    const learned = g.knowledge[p.spell], slot = g.player.spells.indexOf(p.spell);
+    // cast it ten times: known well (a foe ahead for the spells that need one)
+    g.spawn('dummy'); g.sim(1.2);
+    for (let i = 0; i < 10; i++) { g.player.spellCd[slot] = 0; g.mana(200); g.cast(slot); g.sim(.3); }
+    return { spell: p.spell, before, seen, learned, slot, used: g.knowledge[p.spell], toast: document.getElementById('toast')!.textContent };
+  });
+  expect(r.before).toBe('unknown');
+  expect(r.seen).toMatchObject({ stage: 'seen', panel: r.spell });
+  expect(r.seen.text).toContain('Take its page to learn more of it');
+  expect(r.learned).toBe('learned');
+  expect(r.slot).toBeGreaterThanOrEqual(0);
+  expect(r.used).toBe('used');
+  expect(r.toast).toContain('well now');
+  expect(errors).toEqual([]);
+  // a new run in the same browser: still known well; then forgotten
+  const again = await start(page, '?room=library_plain&seed=K3F9QX');
+  const kept = await page.evaluate(id => { const g = (window as unknown as { __game: GK }).__game; const k = g.knowledge[id]; g.forgetKnowledge(); return { k, after: g.knowledge[id] }; }, r.spell);
+  expect(kept).toEqual({ k: 'used', after: 'unknown' });
+  expect(again).toEqual([]);
 });
