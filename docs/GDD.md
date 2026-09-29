@@ -260,6 +260,19 @@ Fifteen spells, three per school, are enough for M1 to M5. Spells are learned fr
 
 **Casting animation:** the hero's `cast_a_spell` window is reused for every spell; strong spells can play a longer part of the same clip. A second Tripo clip (a two-handed channel) would help beams and cones later.
 
+**Spell knowledge (M3.7, decided 2026-09-29).** The mage comes to know spells in stages, and what the mage knows is kept between runs (in the browser until the hub between runs takes it over; see the Sanctum below).
+
+| Stage | Reached when | What a spell's panel shows |
+| --- | --- | --- |
+| Seen | Its page is first approached | Name, school (in its colour), the one-line effect |
+| Learned | A page of it is taken | Adds mana, cooldown, damage and statuses |
+| Used | It has been cast about ten times (over all runs) | Adds its lore and the reactions it can set off (Frost and Storm: Shatter) |
+| Upgraded | Runes or school mastery change it (M6) | Adds what changed it |
+
+- **At a page:** coming within about two tiles of a grimoire page (library, boss, loose) shows a small panel above it at the spell's stage, so the library's choice of three is an informed one; walking into the page still takes it.
+- **In the inventory:** the spells tab keeps the two carried slots on top, then one section per school, shown only once a spell of that school has been learned. A school's section lists every spell of it the mage has met (carried ones marked Q or E, given-up ones dimmed) and a sealed blank entry for each one not yet met, so there is more to find. Each entry's description is filled to its stage.
+- **Dev menu:** know every spell, and forget everything.
+
 ## Artifacts
 
 Artifacts replace Isaac's items. There are four kinds: one focus that reshapes the cantrip, any number of passive artifacts, cursed artifacts with a price, and sets that reward collecting pieces. The prototype's Ember Sigil becomes the first passive artifact.
@@ -456,7 +469,7 @@ A small hub room the mage returns to after each run. **Arcane Dust** is earned f
 
 | Sanctum feature | What it keeps or unlocks |
 | --- | --- |
-| Grimoire | Every spell, recipe and artifact ever found; recipes stay known |
+| Grimoire | Every spell, recipe and artifact ever found; recipes stay known; spell knowledge (M3.7) moves here from the browser |
 | Bestiary | Enemy weaknesses and resistances once discovered |
 | Disciplines | Starting loadouts: Pyromancer (Cinder Lance, Emberwood Wand), Frostwarden, Stormcaller, Vigil Keeper, Hexer |
 | Library shelves | Adds new spells and artifacts to the pools in future runs |
@@ -858,6 +871,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M3 Magic | Magic is the build | Mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room |
 | M3.5 Asset pipeline | One set of miniatures | The pipeline in `docs/assets.md` tested end to end: an urn, a pedestal, an artifact model, a floor texture and three icons in the game with fallbacks, within budget at 60 fps, in an accepted house style (`docs/M3.5-plan.md`) |
 | M3.6 Rooms of Eda | Places, not arenas | Carved outlines, dressed walls and doors off the middle; twelve themed rooms with their own objects and twists; new objects and piles, and mechanisms that answer to magic (`docs/M3.6-plan.md`) |
+| M3.7 Spell knowledge | Know your spells | Panels over grimoire pages and in the inventory that fill in as spells are seen, learned, used and later upgraded; the spells tab by school; knowledge kept between runs (Spells: Spell knowledge) |
 | M4 Tripo enemies | Own creatures | 3 enemies and 1 boss from Tripo, with elemental affinities |
 | M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
