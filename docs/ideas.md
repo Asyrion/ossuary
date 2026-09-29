@@ -184,6 +184,14 @@ rectangular boxes, a door in the middle of every wall, rocks on a grid, and "kil
 open". The owner chose **A, B and C, in that order**; D and E stay ideas. Doors may move off-centre. The owner
 left the rooms and objects to us ("surprise me"); the picks below are proposals.
 
+**Built in M3.6** (2026-09-29; the GDD's Floors and rooms holds what was built): from A, carved outlines (cut
+corners, apses, bays, piers), pilasters and niches, and doors off the middle; from B, all twelve themes, some with a
+different twist than below (the garth's braziers and burning tree, the mausoleum's ice-bound dead and frost stones,
+the reliquary gallery's candle-lit reliquary); from C, braziers, candle stands, bells, rune stones, lodestones and
+hanging censers. **Still ideas:** levels (a dais, a sunken floor, a gallery), archways between a hall's cells,
+buttresses, a bone chandelier, the garth's thorn seeds, the statue that isn't one, sluices, old wards on the floor,
+and all of D and E.
+
 **A. Architecture inside the cell.** The floor grid stays; what is inside a cell stops being a box.
 
 - **Alcoves** in the walls: burial shelves (loculi) with a skull or an urn in them, niches with a candle.
