@@ -1603,3 +1603,39 @@ test('spell knowledge: a page shows its spell as far as it is known, learning an
   expect(kept).toEqual({ k: 'used', after: 'unknown' });
   expect(again).toEqual([]);
 });
+
+test('made assets: the stand-ins load through the manifest and replace their placeholders, and turn off to compare', async ({ page }) => {
+  type Info = { where: string; status: string; triangles?: number };
+  type Rock = { urn?: string; mesh?: { traverse(f: (o: { name: string }) => void): void } };
+  type GA = { sim(sec: number, draw?: boolean): void; assets: { on: boolean; list: Info[] }; useAssets(on: boolean): void; showAssets(): void;
+    current: { rocks: Rock[]; spots: { visual: { traverse(f: (o: { name: string }) => void): void } }[] } };
+  const errors = await start(page, '?seed=K3F9QX&give=ember_sigil&assets=/tests/fixtures/assets/assets.json');
+  const look = () => page.evaluate(() => {
+    const g = (window as unknown as { __game: GA }).__game;
+    const made = (o?: { traverse(f: (o: { name: string }) => void): void }) => { let found = false; o?.traverse(c => { if (c.name === 'standin') found = true; }); return found; };
+    const urns = g.current.rocks.filter(r => r.urn), spot = g.current.spots.at(-1);
+    return { on: g.assets.on, urns: urns.map(r => made(r.mesh)), sigil: made(spot?.visual), icon: !!document.querySelector('#items image') };
+  });
+  const list = await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.showAssets(); g.sim(.3, true); return g.assets.list; });
+  expect(list.map(a => [a.where, a.status])).toEqual([['props.urn', 'loaded'], ['props.pedestal', 'loaded'], ['artifacts.ember_sigil', 'loaded'], ['floors.crypt.floor', 'loaded'], ['icons.ember_sigil', 'loaded']]);
+  expect(list.find(a => a.where === 'props.urn')!.triangles).toBeLessThanOrEqual(2000); // (lowered to its budget by prepare-asset)
+  expect(await look()).toEqual({ on: true, urns: [true, true], sigil: true, icon: true });
+  await page.screenshot({ path: 'test-results/assets-made.png' });
+  // off: the floor is built again with the placeholders
+  await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.useAssets(false); g.showAssets(); g.sim(.3, true); });
+  expect(await look()).toEqual({ on: false, urns: [false, false], sigil: false, icon: false });
+  expect(errors).toEqual([]);
+});
+
+test('made assets: missing and broken files, and ?assets=off, leave the placeholders with a warning, never an error', async ({ page }) => {
+  type GA = { sim(sec: number, draw?: boolean): void; assets: { on: boolean; list: { where: string; status: string }[] }; showAssets(): void };
+  const warnings: string[] = []; page.on('console', m => { if (m.type() === 'warning') warnings.push(m.text()); });
+  const errors = await start(page, '?seed=K3F9QX&give=ember_sigil&assets=/tests/fixtures/assets/broken.json');
+  const broken = await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.showAssets(); g.sim(.1); return g.assets; }); // (the placeholders are built; no frame needed)
+  expect(broken.on).toBe(false);
+  expect(broken.list.map(a => a.status)).toEqual(['missing', 'failed', 'missing', 'missing']);
+  expect(warnings.filter(w => w.startsWith('asset ')).length).toBe(4);
+  const off = await start(page, '?seed=K3F9QX&assets=off');
+  expect(await page.evaluate(() => (window as unknown as { __game: GA }).__game.assets.on)).toBe(false);
+  expect(errors).toEqual([]); expect(off).toEqual([]);
+});

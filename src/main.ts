@@ -17,7 +17,7 @@ import './render/lights';
 import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { arrowOrder, initKeyboard, initTouch, keys, type InputActions } from './input';
 import { initScreens, showScreen } from './ui/screens';
-import { closeDev, devOpen, toggleDev } from './ui/devMenu';
+import { closeDev, devOpen, showAssetsHere, toggleDev, useAssets } from './ui/devMenu';
 import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPad, openInventory } from './ui/inventory';
 import { setHeroInfo, updateVision } from './ui/hud';
 import { giveById } from './items/artifacts';
@@ -45,6 +45,7 @@ import { isTouch } from './util';
 import { wornNow } from './actors/costume';
 import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
+import { assetList, assetsOn, loadAssets } from './assets/models';
 import { elementDev } from './world/mechanisms';
 import { forgetKnowledge, knowledgeNow, setStage } from './magic/memory';
 import type { Stage } from './magic/knowledge';
@@ -139,6 +140,12 @@ function installDevHooks() {
     sim(sec: number, render = false) { for (let t = 0; t < sec; t += STEP) step(STEP); if (render) { draw(); updateVision(); } },
     draw() { draw(); updateVision(); },
     /** What the last frame cost the GPU (draw calls, triangles) and what is held in memory (geometries, textures). */
+    /** The made assets (M3.5, data/assets.json): whether they are used, and each one's status; turn them on or off
+        (this floor is built again to compare). */
+    get assets() { return { on: assetsOn(), list: assetList().map(a => ({ ...a })) }; },
+    useAssets: (on: boolean) => useAssets(on),
+    /** Ahead of the mage: a plain and a sealed urn, and an artifact on a pedestal (one with a made model if any). */
+    showAssets: () => showAssetsHere(),
     renderInfo: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures }),
     lightLevels,
     /** Give the mage artifacts by id, e.g. give('bone_lens', 'twin_staff'). */
@@ -209,8 +216,10 @@ async function boot() {
   initInventory({ resume });
   // the chalk texture in the start room is drawn with Cinzel, so load its weights first
   const chalkFonts = Promise.all(['600 16px "Cinzel"', '700 16px "Cinzel"'].map(f => document.fonts.load(f)));
+  const assets = loadAssets(); // (models, tiles and icons from data/assets.json: before the first floor is built)
   try { await Promise.race([chalkFonts, new Promise(r => setTimeout(r, 1500))]); } catch { /* draw with the fallback font */ }
   readUrlOptions();
+  await assets;
   resetPlayer(); prepareTitle();
   await loadDefaultHero();
   showScreen('title');

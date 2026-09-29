@@ -249,6 +249,12 @@ export const STR = {
   /** The dev menu (the key left of 1, or F2): for testing, not for players. */
   dev: {
     title: 'Dev menu', close: 'Close',
+    assets: 'Made assets', showAssets: 'Show them here (urns, a pedestal)', assetsOn: 'Made assets: on', assetsOff: 'Made assets: off (placeholders)', noAssets: 'None named in data/assets.json yet',
+    assetStatus: { loaded: 'loaded', missing: 'missing', failed: 'failed', off: 'off (?assets=off)' } as Record<string, string>,
+    assetRow: (where: string, status: string, tris?: number) => `${where}: ${status}${tris ? `, ${tris.toLocaleString('en')} triangles` : ''}`,
+    fpsOn: 'Frame readout: shown', fpsOff: 'Frame readout: hidden',
+    /** The on-screen readout: frame rate, and what the last frame drew. */
+    frameInfo: (fps: number, calls: number, tris: number) => `${fps} fps · ${calls} draw calls · ${tris.toLocaleString('en')} triangles`,
     knowledge: 'Spell knowledge', knowAll: 'Know every spell', forgetKnowledge: 'Forget all knowledge',
     knowledgeInfo: (seen: number, learned: number, used: number) => `Known: ${seen} seen, ${learned} learned, ${used} known well (kept between runs)`,
     /** On the HUD during play-tests, so the key isn't forgotten. */ hint: 'Dev menu: ` / ^ or F2',

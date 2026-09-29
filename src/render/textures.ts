@@ -3,6 +3,7 @@ import type { FloorLook, RoomType } from '../types';
 import { STR } from '../strings';
 import { isTouch, mulberry } from '../util';
 import { renderer } from './renderer';
+import { floorTile } from '../assets/models';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -143,10 +144,12 @@ const floorOwned: THREE.Texture[] = [];
 /** A texture that belongs to this floor (a pool's outline): freed with the floor textures. */
 export function floorOwnedTexture<T extends THREE.Texture>(t: T) { floorOwned.push(t); return t; }
 /** Room floor for a floor's look, drawn over the room's inside `mask` (rows of tiles); boss rooms lean red,
-    treasure rooms warmer. Large rooms use fewer pixels per tile to keep textures small. */
+    treasure rooms warmer. Large rooms use fewer pixels per tile to keep textures small. A look with a painted tile
+    (data/assets.json, M3.5) lays it on every floor tile in place of the drawn flagstones; stains, bones and the rest
+    are drawn over it as before. */
 export function floorTexture(seed: number, kind: RoomType, look: FloorLook, mask: boolean[][]) {
-  const W = mask[0].length, H = mask.length;
-  const key = seed + kind + look.name + W + 'x' + H; const hit = floorCache.get(key); if (hit) return hit;
+  const W = mask[0].length, H = mask.length, tile = floorTile(look.name);
+  const key = seed + kind + look.name + W + 'x' + H + (tile ? 'painted' : ''); const hit = floorCache.get(key); if (hit) return hit;
   const P = W * H > 13 * 7 ? 56 : 72, S = P / 72, cw = W * P, ch = H * P;
   const [c, g] = makeCanvas(cw, ch); const R = mulberry(seed);
   const inside = (col: number, r: number) => !!mask[r]?.[col];
@@ -156,6 +159,11 @@ export function floorTexture(seed: number, kind: RoomType, look: FloorLook, mask
   g.fillStyle = look.floor.mortar; g.fillRect(0, 0, cw, ch);
   for (let r = 0; r < H; r++) for (let col = 0; col < W; col++) {
     if (!inside(col, r)) continue;
+    if (tile) { // the painted tile, each a little lighter or darker (the room's kind leans it below)
+      g.drawImage(tile, col * P, r * P, P, P);
+      g.fillStyle = `rgba(0,0,0,${R() * .14})`; g.fillRect(col * P, r * P, P, P);
+      continue;
+    }
     const x = col * P, y = r * P, v = R() * 18 - 9, ins = (2.5 + R() * 2) * S;
     g.fillStyle = `rgb(${base[0] + v | 0},${base[1] + v | 0},${base[2] + v * .8 | 0})`;
     rrect(g, x + ins, y + ins, P - ins * 2, P - ins * 2, 7 * S); g.fill();
@@ -168,6 +176,8 @@ export function floorTexture(seed: number, kind: RoomType, look: FloorLook, mask
       g.stroke();
     }
   }
+  const lean = tile && { boss: 'rgba(70,0,0,.14)', treasure: 'rgba(255,190,110,.07)', secret: 'rgba(20,30,60,.12)', shrine: 'rgba(255,240,220,.07)' }[kind as string];
+  if (lean) { g.fillStyle = lean; g.fillRect(0, 0, cw, ch); } // (a painted floor leans with its room, as the drawn one does)
   for (let k = 0; k < n(7); k++) {
     const x = R() * cw, y = R() * ch, rad = (40 + R() * 100) * S; const gr = g.createRadialGradient(x, y, 0, x, y, rad);
     const moss = kind === 'boss' ? '60,14,10' : look.floor.stain;

@@ -15,7 +15,7 @@ log; its Sound section does the same for sound (sources and their licences, the 
 When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3.5 step 1 built (the asset pipeline's tooling, `docs/M3.5-plan.md`; the owner makes the house style next); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -142,7 +142,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
   every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
-  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms. `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
+  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?assets=off` keeps every placeholder and `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets. `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
   vault, a secret room (behind a cracked wall), a shrine (`?room=shrine_henge`) or a library
   (`?room=library_plain`) next to the start.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
@@ -157,7 +157,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   water and oil, `__game.pool('fire' | 'frost' | 'shock')` sets it alight, freezes or shocks it;
   `__game.prop('brazier')` puts an object or mechanism down, `__game.props` reads them, `__game.burn(x, z, r)` sets
   fire there and `__game.element('shock', x, z)` lands fire, frost or shock there; `__game.renderInfo()` reads the last
-  frame's draw calls and triangles, and the geometries and textures held.
+  frame's draw calls and triangles, and the geometries and textures held; `__game.assets` reads the made assets and
+  their status, `__game.useAssets(false)` builds the floor again with the placeholders, `__game.showAssets()` puts
+  urns and a pedestal ahead of the mage.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons: heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
   special rooms (a sealed vault leads to its warded door), test rooms, boss fights and new runs, taking or
@@ -176,6 +178,15 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   (the two slots, then a book by school, M3.7), items (hearts, mana, obols, keys, glyphs) and the mage's own numbers;
   the chosen entry is described beside them. Arrows choose, Q and E (LB and RB) change tabs. Anything new the
   mage can carry (potions in M5) gets a tab or a place in one.
+- Made assets (M3.5, `docs/assets.md`): `data/assets.json` holds the budgets per kind and which file replaces which
+  placeholder (`props`: urn, pedestal; `artifacts` by id; `floors`: a look's painted tile; `icons` by id), read by
+  the pure `src/assets/assetData.ts`. `src/assets/models.ts` loads them at boot, before the first floor, and every use
+  shares the model's geometry and materials; a missing or broken file leaves the placeholder (a warning). The hooks
+  are `modelFor` in `addUrn` and `placeArtifact`, `makeArtifactVisual`, `floorTile` in `floorTexture` and `iconUrl` in
+  `artifactIcon`. `tools/prepare-asset.ts` (checks in `tools/assetReport.ts`) and `tools/prepare-texture.ts` (checks
+  in `tools/imageChecks.ts`, previews in `asset-previews/`) prepare the owner's files; `tools/make-standins.ts` makes
+  the stand-ins in `tests/fixtures/assets/` that the tests load. The dev menu's Made assets section lists them,
+  turns them off to compare, shows them ahead of the mage, and puts a frame readout on screen (`DEV.fps`).
 - `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
   1,024 px JPEG textures). Clips: `standing_relax`, `run`, `walk` (slow movement), `cast_a_spell`,
   `hit_to_body_01`, `fall` and `defeat_03` (two deaths, one at random), `Drink Potion` (when healed) and

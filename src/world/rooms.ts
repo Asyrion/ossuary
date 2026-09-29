@@ -29,6 +29,7 @@ import { dressNorthWall } from './dressing';
 import { buildProps } from './props';
 import { THEMES, themedLook } from './themeData';
 import { dressTheme } from './themes';
+import { modelFor, sealedLook } from '../assets/models';
 
 export const roomAt = (gx: number, gy: number) => G.roomMap.get(gx + ',' + gy);
 /** World position of the centre of template tile (c, r). */
@@ -183,8 +184,10 @@ function addTomb(room: Room, run: { c: number; r: number; len: number; across: b
 let shroudMat: THREE.Material | null = null;
 const shroud = () => shroudMat ??= markShared(new THREE.MeshStandardMaterial({ color: 0xcfc6b0, roughness: 1, emissive: 0x14120c }));
 
-/* Urns: funerary urns of clay, and rune-sealed ones of dark stone ringed by a ward. */
+/* Urns: funerary urns of clay, and rune-sealed ones of dark stone ringed by a ward. A made urn (data/assets.json,
+   M3.5) takes the clay placeholder's place; the sealed one is the same model in darker, bluish stone. */
 export const WARD_COLOR = 0x8ab8ff;
+const SEALED_TINT = 0x8090b0, URN_BELLY = .25; // (the placeholder's widest radius, which the ward band fits)
 let urnGeo: { body: THREE.LatheGeometry; lid: THREE.TorusGeometry; band: THREE.TorusGeometry } | null = null;
 function urnShapes() {
   if (urnGeo) return urnGeo;
@@ -198,15 +201,30 @@ function addUrn(room: Room, c: number, r: number, sealed: boolean) {
   const p = toWorld(room, c, r), R = mulberry(c * 53 + r * 11 + room.plan.seed), s = urnShapes();
   const g = new THREE.Group(); g.position.set(p.x - room.cx + (R() - .5) * .12, 0, p.z - room.cz + (R() - .5) * .12);
   g.rotation.y = R() * 6; g.scale.setScalar(.9 + R() * .2);
-  const body = new THREE.Mesh(s.body, sealed ? M.urnStone : M.clay);
-  const lid = new THREE.Mesh(s.lid, M.urnLid); lid.position.y = .52;
-  g.add(body, lid, blob(.8));
-  if (sealed) {
-    const band = new THREE.Mesh(s.band, M.ward); band.position.y = .27; g.add(band);
-    const gl = glow(WARD_COLOR, .9, .45); gl.position.y = .3; g.add(gl);
+  const model = modelFor('props', 'urn');
+  if (model) g.add(sealed ? sealedLook(model, SEALED_TINT) : model, blob(.8));
+  else {
+    const body = new THREE.Mesh(s.body, sealed ? M.urnStone : M.clay);
+    const lid = new THREE.Mesh(s.lid, M.urnLid); lid.position.y = .52;
+    g.add(body, lid, blob(.8));
+  }
+  if (sealed) { // the ward round its belly: sized to a made urn's width, so the band shows outside it
+    const size = model ? new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3()) : null;
+    const k = size ? Math.max(size.x, size.z) / 2 * 1.06 / URN_BELLY : 1, y = size ? size.y * .48 : .27;
+    const band = new THREE.Mesh(s.band, M.ward); band.position.y = y; band.scale.set(k, 1, k); g.add(band);
+    const gl = glow(WARD_COLOR, .9 * k, .45); gl.position.y = y + .03; g.add(gl);
   }
   room.group.add(g);
   room.rocks.push({ x: p.x, z: p.z, hx: .26, hz: .26, hp: 1, breakable: false, mesh: g, tile: { c, r }, urn: sealed ? 'sealed' : 'plain' });
+}
+
+/** The dev menu: an urn (plain or rune-sealed) on the floor tile at (x, z) in this room, as a template's `u` or `$`
+    puts one. Returns whether there was floor for it. */
+export function placeUrn(x: number, z: number, sealed: boolean) {
+  const room = G.current, c = Math.floor(x - room.bounds.minX), r = Math.floor(z - room.bounds.minZ);
+  if (room.template.tiles[r]?.[c] !== 'floor') return false;
+  addUrn(room, c, r, sealed); room.template.tiles[r][c] = sealed ? 'sealedUrn' : 'urn';
+  return true;
 }
 
 /** A bolt or a blast struck an urn. Bolts glance off a rune-sealed urn; otherwise it breaks: grave dust puffs

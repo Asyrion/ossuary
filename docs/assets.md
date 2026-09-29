@@ -108,15 +108,28 @@ Nine steps from a brief to an asset in the deployed game. Who does what: **owner
    Tripo checklist says.
 6. **Export** (owner). GLB with embedded textures, named `<id>.glb`. Upload it to the session with the concept
    image, and say which tools made what.
-7. **Prepare** (Claude). `npm run prepare-asset -- <file> --kind <kind>` shrinks textures to the kind's
-   size, lowers the face count to its budget, and reports: triangles against the budget, size and
-   proportions, where the base sits, whether it faces +Z, textures, and for characters the clips and the roles
-   the game gives them. Anything over budget or wrong is fixed here or sent back to step 5 with the reason.
-   (The `--kind` option and the checks arrive in M3.5, step 1; today the script only shrinks textures and
-   reports on characters.)
-8. **Integrate** (Claude). The file goes to its folder, a line in `data/assets.json` says which placeholder it
-   replaces and how big it is, and the game loads it, falling back to the placeholder if the file is missing
-   or broken. Screenshots in all three floor looks, and the frame rate and triangle count from the dev menu.
+7. **Prepare** (Claude). `npm run prepare-asset -- <file> --kind <kind> --id <id>` holds the model to its
+   kind's budget (in `data/assets.json`) and writes it to the kind's folder. Each check passes, warns, fails, or
+   was fixed:
+   - **fixed** by the script: a model off its centre or not standing on y = 0 is moved; a character facing -Z
+     (told from its hand bones) is turned round; too many triangles are lowered to the budget (meshoptimizer);
+     textures are shrunk to the kind's size, JPEG, or PNG where a material uses transparency.
+   - **checked**: the units (a model a thousand times too small or large fails), proportions against the kind,
+     the rig (a character needs one, a prop ignores one), textures under 256 px (blurry), transparency, a round
+     base, and for characters the clips and the roles the game gives them.
+
+   A failed check writes nothing and says what to change in Tripo (back to step 5). `--check` only reports.
+   The script prints the line for `data/assets.json`. Textures and icons go through `npm run prepare-texture`
+   (below).
+8. **Integrate** (Claude). The file goes to its folder, and a line in `data/assets.json` says which
+   placeholder it replaces and how tall it stands (`props`: the urn and the pedestal; `artifacts`, by artifact
+   id; `floors`, a floor look's tile; `icons`, by artifact id). The game loads it at boot and falls back to
+   the placeholder if the file is missing or broken, with a warning in the console. To check it:
+   - the dev menu's Made assets section: what loaded, with triangles; "Show them here" puts urns and an
+     artifact's pedestal ahead of the mage; "Made assets: off" rebuilds the floor with the placeholders to
+     compare; "Frame readout" shows the frame rate, draw calls and triangles;
+   - `?assets=off` plays with the placeholders only;
+   - screenshots in all three floor looks.
 9. **Review and record** (both). Owner checks the screenshots (or the Pages site) and accepts or sends it
    back to a named step. Accepted assets get a row in `CREDITS.md` (tool, plan) and in the asset log below.
 
@@ -132,21 +145,31 @@ Nine steps from a brief to an asset in the deployed game. Who does what: **owner
 4. Clean input: background removed, 1,024 px.
 5. Tripo: views to 3D, textured, face count lowered to about 1,500.
 6. Export `urn.glb`, uploaded with the concept image.
-7. `npm run prepare-asset -- urn.glb --kind prop`: 1,480 triangles (budget 2,000), 1 texture at 512 px,
-   0.62 × 0.63 × 0.61 (height 0.63), base at y = 0, facing +Z.
+7. `npm run prepare-asset -- urn.glb --kind prop --id urn`: 1,480 triangles (budget 2,000), 1 texture at 512
+   px, 0.62 × 0.63 × 0.61, centred and standing on y = 0 (fixed: it was 0.2 off).
 8. `public/assets/props/urn.glb`, `{ "urn": { "file": "props/urn.glb", "height": 0.6 } }` in
    `data/assets.json`; screenshots on floors 1 to 3; a room with eight urns still at 60 fps.
 9. Accepted; `CREDITS.md`: "urn.glb, made by Azyrion in MidJourney (Standard) and Tripo3D (Master)".
 
 **Floor and wall textures** follow the same steps, without 3D. The concept is the texture: MidJourney with
-`--tile` and the house style, top-down, evenly lit, no objects on it. The check is a 2 × 2 repeat for seams
-(Claude makes the preview) and a screenshot with the game's own cracks, stains and bones over it. Each floor
-look in `data/floors.json` then names its textures, and the procedural texture stays as the fallback.
+`--tile` and the house style, top-down, evenly lit, no objects on it.
+`npm run prepare-texture -- <image> --kind floor --id <look>` makes it a 1,024 px square JPEG in
+`textures/<look>/floor.jpg`, and checks it:
+- a seam score (about 1 is seamless; 2 or more means a seam will likely show);
+- the light spread between its brightest and darkest quarter (baked-in light shows as a pattern);
+- a 2 × 2 repeat in `asset-previews/` to look at.
+
+Then a screenshot with the game's own stains, bones and puddles drawn over it. A floor look's tile goes in
+`data/assets.json` (`floors`); the game lays it on every floor tile, and the procedural floor stays as the
+fallback. Walls go through `--kind wall` the same way, but the game doesn't use them yet.
 
 **Icons** also follow them without 3D: one object, centred, a strong silhouette on a dark or plain
-background, cropped square, background removed, 256 px kept and 128 px shipped. The check is how it reads at
-28 px on the HUD and 44 px on the lore card, and with the red (cursed) and pale (cleansed) rings. An icon can
-also be rendered from the artifact's 3D model instead of painted; the pilot tries both.
+background, cropped square, background removed, 256 px kept and 128 px shipped.
+`npm run prepare-texture -- <image> --kind icon --id <artifact id>` pads it to a square and writes the 128 px
+PNG to `icons/<id>.png`. It warns when the background isn't transparent, and makes a sheet in
+`asset-previews/`: the icon at 28 px (the HUD) and 44 px (the lore card), plain, cursed and cleansed, on the
+game's dark background. The check is how it reads there. An icon can also be rendered from the artifact's 3D
+model instead of painted; the pilot tries both.
 
 ## Sound
 
