@@ -12,7 +12,7 @@ Ossuary is a top-down roguelike with RPG elements, set in the high/dark fantasy 
 
 - **Magic is the build.** Spells, runes, artifacts and potions interact with each other and with the room. The fun is discovering combinations, not collecting stat-ups.
 - **Readable twin-stick combat.** Fixed rooms, four-direction casting, clear telegraphs. Every hit the player takes should feel fair.
-- **Growth you can feel.** RPG levels and choices inside a run; knowledge (recipes, spells, bestiary) that carries over between runs.
+- **Growth you can feel.** RPG levels and choices inside a run; knowledge (recipes, spells, bestiary), the freed dead and a few powers that carry over between runs.
 - **Alchemy as a second game.** Unknown potions to identify, reagents to harvest, recipes to discover. Every potion can be drunk or thrown.
 - **Eda, not Isaac.** The room structure is borrowed; the world, magic schools, creatures and tone come from Eda. Medieval high fantasy turned dark: crypts, chapels, relics, the unquiet dead.
 - **A tabletop miniature look.** Characters read like painted miniatures lit by candle and torch, in a cutaway diorama of each room.
@@ -28,9 +28,9 @@ Ossuary is a top-down roguelike with RPG elements, set in the high/dark fantasy 
 | No character growth inside a run beyond items | XP, levels, attributes and boon choices |
 | Rooms are obstacles | Rooms react to magic: oil burns, water conducts, braziers empower |
 | Bombs: placed, then wait | Blast glyphs: chalked runes the cantrip sets off from afar, chaining and burning in the bolts' colour |
+| Unlocks are new items | The Vigil: the dead the mage frees become its people, and it opens to the magic the mage knows |
 
 **Rule of thumb:** when a system is borrowed from Isaac, it gets a magic take. It answers to the cantrip, glyphs, spells, schools or the room, or to the dead of Eda (souls, shades, the Ferryman), never only to walking over it and waiting. Unscheduled ideas in that spirit, such as more pickup families, are collected in `docs/ideas.md`.
-| Unlocks are new items | The Sanctum: a hub where knowledge persists between runs |
 
 **Scope:** hobby project for desktop browsers, played with keyboard or gamepad. A mobile version may come later and is not designed for until then. No monetisation plans.
 
@@ -81,8 +81,8 @@ flowchart LR
 | Growth in a run | Items only | Items plus levels: each level offers 3 boons, pick 1 |
 | Special rooms per floor | Treasure, boss | Treasure, ordeal, boss, merchant, secret, library, alchemy table or shrine (alternating); sometimes a bone altar or locked vault |
 | Between floors | Trapdoor, straight on | Waystone room: full mana, socket runes into spells, sell or brew |
-| Death | Everything lost | Run items lost; Arcane Dust, discovered recipes and bestiary entries kept |
-| Run start | Same hero, same stats | Choose a discipline (starting spell and focus) unlocked in the Sanctum |
+| Death | Everything lost | Run items lost; Arcane Dust, the freed, spell knowledge, discovered recipes and bestiary entries kept; the run's echo waits at the Vigil |
+| Run start | Same hero, same stats | At the Vigil: a discipline, vows and gifts inscribed in the Great Circle, then the Ferryman's crossing |
 
 **Pacing target:** level 2 after the first two rooms, about 3 levels per floor, first active spell no later than the first library or boss. Floor 1 should give a clear build direction (a school) by its boss.
 
@@ -260,7 +260,7 @@ Fifteen spells, three per school, are enough for M1 to M5. Spells are learned fr
 
 **Casting animation:** the hero's `cast_a_spell` window is reused for every spell; strong spells can play a longer part of the same clip. A second Tripo clip (a two-handed channel) would help beams and cones later.
 
-**Spell knowledge (M3.7, built 2026-09-29).** The mage comes to know spells in stages, and what the mage knows is kept between runs (in the browser until the hub between runs takes it over; see the Sanctum below).
+**Spell knowledge (M3.7, built 2026-09-29).** The mage comes to know spells in stages, and what the mage knows is kept between runs (in the browser until the Vigil, the hub between runs, takes it over; see RPG progression: Between runs).
 
 | Stage | Reached when | What a spell's panel shows |
 | --- | --- | --- |
@@ -433,7 +433,7 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
 
 ## RPG progression
 
-Growth happens on two timescales: levels, attributes and boons inside a run (lost on death), and knowledge and unlocks in the Sanctum between runs (kept). Power mostly stays inside the run, so every run starts fair.
+Growth happens on two timescales: levels, attributes and boons inside a run (lost on death), and knowledge, unlocks and a few powers at the Vigil between runs (kept). Power mostly stays inside the run; the few powers kept are offset by deeper floors and the vows.
 
 **Inside a run**
 
@@ -463,19 +463,119 @@ Growth happens on two timescales: levels, attributes and boons inside a run (los
 
 Boons are weighted towards the schools the player already uses, so a build forms by floor 2.
 
-**Between runs: the Sanctum**
+**Between runs: the Vigil** (decided with the owner 2026-09-29; built in M7)
 
-A small hub room the mage returns to after each run. **Arcane Dust** is earned from every run (depth reached, bosses, discoveries) and spent here.
+The Vigil is a candle-lit crypt above the dungeon, where the dead the mage frees come to rest. The mage wakes there
+after every run and goes down from there. It grows by who the mage has freed and by the magic the mage knows, not by
+coin, and it is no shop: nothing is sold there. It replaces the Sanctum placeholder; its name and every name below are
+placeholders until the Eda lore arrives. The concepts it was chosen from are in `docs/ideas.md` (A hub between runs).
 
-| Sanctum feature | What it keeps or unlocks |
-| --- | --- |
-| Grimoire | Every spell, recipe and artifact ever found; recipes stay known; spell knowledge (M3.7) moves here from the browser |
-| Bestiary | Enemy weaknesses and resistances once discovered |
-| Disciplines | Starting loadouts: Pyromancer (Cinder Lance, Emberwood Wand), Frostwarden, Stormcaller, Vigil Keeper, Hexer |
-| Library shelves | Adds new spells and artifacts to the pools in future runs |
-| Alchemy garden | Start runs with one reagent of choice |
+**Magic take:** the Vigil answers to magic as the dungeon does. Its rooms open to the spells the mage knows; its
+candles, bells, water and skull niches work like the dungeon's own mechanisms; its people are the dungeon's dead.
 
-No permanent stat increases: unlocks widen the options, they don't make the mage stronger. This keeps difficulty honest and matches the roguelike core.
+*The heart: free or bind.* In runs the mage finds bound shades, about one a floor: in secret rooms, behind ordeals, in a
+boss's keeping, now and then in a library or vault. Each shade is someone who died in the dungeon (a sexton, a
+chorister, a pilgrim, a bell-ringer, a novice, an embalmer, a scribe). Breaking its binding takes magic, and then the
+mage chooses:
+
+- **Free it:** it rises to the Vigil and becomes one of its people. It talks, remembers and gives (below).
+- **Bind it:** it serves as a familiar in the next run only. Then it slips back into its chains somewhere in the
+  dungeon, to be met again.
+
+Freeing grows the Vigil; binding is power for one run. That choice is the Vigil's heart.
+
+*Townspeople and dialogue.* The freed are the game's first NPCs, with a small dialogue system:
+
+- A few lines for each moment (the first meeting, after a death, after a boss, a quest open or done) and a choice or
+  two. What a townsperson says depends on what the mage has found.
+- They tell what they know: bestiary lore, where secret rooms hide, what a boss fears.
+- Each gives one thing when freed, and more as its bond deepens: a spell added to the library's pool, a discipline, a
+  recipe (M5), a way through the Vigil, or one of the few powers (below).
+- Some give small quests into the dungeon ("bring back my ring from the drowned floor") and open something when helped.
+- Dialogue is data (lines, conditions, choices), like rooms and spells.
+
+*The Vigil unfolds.* At first it is one dark crypt. Its other parts open to the magic the mage knows, like a small
+Metroidvania:
+
+- a frozen stair melts once an Ember spell is known;
+- a flooded cellar is crossed with Frost;
+- a sealed door answers only to Storm (Hallow and Umbral later).
+
+Every part opened holds a resting place for more of the freed, a workshop, or a way down.
+
+*The Great Circle: the choice before a run.* In the Vigil's nave the mage inscribes sigils into a ritual circle with
+Arcane Dust. The circle has three rings:
+
+- **The ring of vows:** a harder run for a better reward (more foes, faster shots, a curse from the start, a boss's
+  second phase). The vows keep the challenge ahead of the powers.
+- **The ring of gifts:** the discipline (starting spell and focus), and a spell or potion to start with.
+- **The ring of omens:** which themes and schools the floors lean towards.
+
+Sigils side by side combine, so placing them is a small puzzle. Casting the finished circle calls the way down.
+
+*The Ferryman's crossing: the way down.* The Ferryman takes the mage down across dark water, for a toll. What is paid
+decides where he lands the mage: the first floor, or a deeper one once it has been reached. A deeper landing is a
+shortcut that skips the upper floors' rewards.
+
+*Echoes.* Every run that ends leaves an echo of the mage at the Vigil (the last few runs at most): a pale figure
+holding what that run carried. The mage can do one thing with each echo:
+
+- speak to it, to hear how it fell (a hint);
+- take a faded copy of one of its artifacts into the next run (weaker, one use);
+- lay it to rest, for Arcane Dust.
+
+The Vigil fills with the mage's own history.
+
+*What carries over.* **Arcane Dust** is earned from every run (depth reached, bosses, discoveries, shades freed,
+vows kept, echoes laid to rest) and spent at the Vigil. Kept between runs:
+
+- Arcane Dust, the freed and their bonds and quests, and the Vigil's opened parts;
+- spell knowledge (M3.7; it moves here from the browser's own store), recipes, the bestiary and the disciplines;
+- the echoes.
+
+Everything carried in the run is lost at death.
+
+*Permanent upgrades: options first, a few powers* (the owner's decision 2026-09-29; it replaces the earlier rule of
+no permanent stat increases).
+
+- **Options**, most of what the Vigil gives: spells and artifacts added to the pools, disciplines, recipes, bestiary
+  entries, gifts and omens, parts of the Vigil. They widen what a run can be.
+- **Powers**, few and costly: for example more mana, a second rune socket, one heart container, a glyph to start
+  with. Each comes from a freed townsperson and is paid in Arcane Dust. There are about six in all, each a small step.
+- **The offset:** the dungeon grows bigger, more explorable and harder the deeper it goes (M7's descent), and the
+  vows add challenge on top. The vows can always make a run harder than the powers make it easier.
+
+| Feature | Where in the Vigil | What it keeps or unlocks |
+| --- | --- | --- |
+| Grimoire | A lectern, kept by a freed scribe | Every spell, recipe and artifact ever found; recipes stay known; spell knowledge (M3.7) |
+| Bestiary | The crypt's walls | Enemy weaknesses and resistances once discovered |
+| Disciplines | The Great Circle's ring of gifts | Starting loadouts: Pyromancer (Cinder Lance, Emberwood Wand), Frostwarden, Stormcaller, Vigil Keeper, Hexer; each unlocked by a freed shade |
+| Library shelves | Given by the freed | New spells and artifacts in the pools of future runs |
+| Alchemy garden | A garden of the dead, tended by a freed embalmer (M5) | Start runs with one reagent of choice |
+
+*The first run and the return.* The first run starts in the dungeon, as now. When it ends, the mage wakes in the
+Vigil: dark and empty but for its first candle. From then on the title screen leads to the Vigil, and every run,
+won or lost, ends there.
+
+*More of the Vigil's magic* (Claude's additions at the owner's request, 2026-09-29; the owner keeps or strikes each):
+
+1. **The candle wall.** The Vigil starts dark, and every shade freed lights a candle on its wall: the Vigil's light
+   shows how far it has come. Before a run, the mage can light one townsperson's candle to carry a small blessing
+   from them for that run, like a chapel's candle stands in the dungeon.
+2. **The wall of skulls.** The bestiary is a wall of skull niches, like the ossuary's. Each kind of foe put to rest
+   leaves a skull; looking at one reads its weaknesses and resistances. A skull that still watches is a foe not yet
+   understood.
+3. **The scrying pool.** A pool of still water that answers to the spell cast into it, once per run and for Arcane
+   Dust: Frost freezes an image of the next floor's map, Storm shows where its secret room hides, Ember shows its
+   boss.
+4. **The practice crypt.** Shades that fight back, for trying every known spell and its reactions before a run.
+   Casts there count towards knowing a spell well (M3.7).
+5. **The bell that calls the boat.** With the circle cast, the mage rings the Vigil's bell, and the Ferryman's boat
+   comes out of the dark water: the way down as a small rite.
+6. **Obols on the eyes.** An obol laid on a townsperson's eyes deepens their bond: a new memory, a second gift. This
+   is the dungeon's own burial custom, and the reason obols matter beyond one run. Open question: where the Vigil's
+   obols come from (for example the obols still carried when a run ends: all of them after a win, a tenth after a
+   death).
 
 ## Floors and rooms
 
@@ -776,9 +876,9 @@ A full five-floor game needs roughly 85 3D models, about 300 sound files, 5 musi
 
 | Category | Contents | Files (approx.) |
 | --- | --- | --- |
-| Music | 5 floor pieces × 3 to 4 stems, 3 boss themes, title, Sanctum, death | 25 to 30 |
+| Music | 5 floor pieces × 3 to 4 stems, 3 boss themes, title, the Vigil, death | 25 to 30 |
 | Stingers | Room clear, level up, artifact, curse, secret, death, victory | 10 |
-| Ambience beds | 1 loop per floor biome + library, shrine, alchemy, Sanctum | 9 |
+| Ambience beds | 1 loop per floor biome + library, shrine, alchemy, the Vigil | 9 |
 | Ambience one-shots | 3 to 4 per biome | 20 |
 | Spells | 15 spells × cast, travel, impact | 45 |
 | Status and reactions | 5 status loops + apply sounds, 5 reactions | 15 |
@@ -804,7 +904,8 @@ A full five-floor game needs roughly 85 3D models, about 300 sound files, 5 musi
 | Pickups and containers (obol, purse, bone key, glyph stone, urn, coffer, reliquary chest) | 7 | Static |
 | Merchant | 1 | Idle, a small gesture |
 | Props per biome (urns, coffins, statues, bookshelves, braziers) | About 5 per biome | Static |
-| Sanctum hub pieces | About 6 | Static |
+| The Vigil's pieces (crypt dressing, the Great Circle, candle wall, the Ferryman's boat) | About 8 | Static |
+| Townspeople (the freed shades) | 6 to 8 | Idle, a talking gesture |
 
 **Visual effects** (code and particles, no Tripo): cantrip bolts per focus, 15 spell effects, 5 status visuals, 5 reaction bursts, potion splashes, level-up glow, portal and waystone.
 
@@ -875,7 +976,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4 Tripo enemies | Own creatures | 3 enemies and 1 boss from Tripo, with elemental affinities |
 | M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
-| M7 Descent and Sanctum | A full run with a reason to return | Final boss, Sanctum with grimoire, bestiary and disciplines |
+| M7 Descent and the Vigil | A full run with a reason to return | Final boss; the Vigil (RPG progression: Between runs): freed shades as townspeople with dialogue, its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines |
 | M8 Eda | It is Eda | Lore names, floor biomes, adaptive music, ambience beds and final mix |
 
 **Why Plunder comes before Magic:** it builds straight on M1's floor generator and room templates, and Magic's library already sells spells back for coins.
