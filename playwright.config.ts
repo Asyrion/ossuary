@@ -5,7 +5,7 @@ const PORT = 5174;
 export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 90_000,
-  reporter: process.env.CI ? 'github' : 'list',
+  reporter: process.env.CI ? [['list'], ['github']] : 'list', // (list: each test's time in the CI log)
   use: {
     baseURL: `http://localhost:${PORT}/`,
     viewport: { width: 1280, height: 720 },
