@@ -260,7 +260,7 @@ Fifteen spells, three per school, are enough for M1 to M5. Spells are learned fr
 
 **Casting animation:** the hero's `cast_a_spell` window is reused for every spell; strong spells can play a longer part of the same clip. A second Tripo clip (a two-handed channel) would help beams and cones later.
 
-**Spell knowledge (M3.7, decided 2026-09-29).** The mage comes to know spells in stages, and what the mage knows is kept between runs (in the browser until the hub between runs takes it over; see the Sanctum below).
+**Spell knowledge (M3.7, built 2026-09-29).** The mage comes to know spells in stages, and what the mage knows is kept between runs (in the browser until the hub between runs takes it over; see the Sanctum below).
 
 | Stage | Reached when | What a spell's panel shows |
 | --- | --- | --- |
