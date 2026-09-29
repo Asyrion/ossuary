@@ -46,6 +46,8 @@ import { wornNow } from './actors/costume';
 import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
 import { elementDev } from './world/mechanisms';
+import { forgetKnowledge, knowledgeNow, setStage } from './magic/memory';
+import type { Stage } from './magic/knowledge';
 import type { PropKind } from './world/propData';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
@@ -157,6 +159,9 @@ function installDevHooks() {
     learn: (id: string, slot?: number) => learnSpell(id, slot, true),
     cast: (slot: number, aim?: { x: number; z: number }) => answerPage(slot) || castSpell(slot, aim ?? null),
     mana(v?: number) { if (v !== undefined) player.mana = Math.min(player.stats.maxMana, Math.max(0, v)); return player.mana; },
+    /** Spell knowledge (M3.7): every spell's stage; bring one to a stage; forget everything (kept between runs). */
+    get knowledge() { return knowledgeNow(); },
+    know: (id: string, stage: Stage) => setStage(id, stage), forgetKnowledge: () => forgetKnowledge(),
     /** Spawn a foe (e.g. 'dummy', the training dummy) at (x, z), or ahead of the mage; put statuses on every
         foe in the room, e.g. inflict({ burn: 3 }). */
     spawn(kind: EnemyType, x = player.x, z = player.z - 2.5) { return makeEnemy(kind, x, z, 1); },

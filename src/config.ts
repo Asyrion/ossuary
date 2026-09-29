@@ -75,6 +75,9 @@ export const CFG = {
   // the library: how close the mage must come to a page, the gap between lecterns, and how far into the room
   // (from the door) their row stands, for a door on a long side and on a short one
   library: { reach: .4, spacing: 2.3, spacingShort: 1.9, rowIn: 1.1, rowInShort: 2.6 },
+  // spell knowledge (M3.7): casts over all runs that make a learned spell known well (its lore and reactions shown), and
+  // how near a grimoire page (in tiles) its panel shows
+  knowledge: { usedCasts: 10, pageReach: 2 },
   // locked vaults: glyph blasts that force the ward, and where the warden rises (room-relative z)
   vault: { blastsToForce: 2, wardenAt: -1.8 },
   // secret rooms: the pale blue light of the forgotten mage's cell (torch flame and light colours, torch

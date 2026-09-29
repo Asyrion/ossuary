@@ -14,6 +14,7 @@ import { manaRegen, spell } from './spellData';
 import { spellCost } from './cost';
 import { CAST, clearShapes, leaveRoomShapes, updateShapes } from './shapes';
 import { skullsWatch } from '../world/dressing';
+import { castSpellOnce, learnedSpell } from './memory';
 
 /* ---------- mana ---------- */
 
@@ -28,6 +29,7 @@ export function learnSpell(id: string, slot?: number, silent = false): string | 
   const at = slot ?? Math.max(0, player.spells.indexOf(null));
   const replaced = player.spells[at];
   player.spells[at] = id; player.spellCd[at] = 0;
+  learnedSpell(id); // known from here on, in every run (M3.7)
   renderSpells();
   if (!silent) {
     Sfx.learn();
@@ -55,6 +57,7 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   if (!DEV.mana) gainMana(-cost);
   player.spellCd[slot] = def.cooldown;
   skullsWatch(G.current, def.color); // an ossuary's skulls take the spell's colour
+  if (castSpellOnce(id)) toast(STR.knowledge.knownWell(def.name), 3); // cast enough times: its lore and reactions are known
   heroCast();
   return true;
 }
