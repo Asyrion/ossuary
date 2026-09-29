@@ -107,7 +107,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   light, rune stones take a school, lodestones leap), `strikeMechanism` from `strikeProp` (a bolt with its status, or
   a blast: bells ring, candles are knocked over), `boltThrough` from `updateBolts` (a lit brazier sets a bolt
   alight, a bolt cuts a censer's chain). Every candle stand in a room lit (`room.candlesLit`) opens its reliquaries,
-  lifts a dark room and, in a chapel, blesses the next casts (`player.blessed`, in `spawnBolt`). The frozen
+  lifts a dark room and, in a chapel, blesses the next casts (`player.blessed`, in `spawnBolt`); with every stand knocked
+  over by blasts, only the reliquaries open. The frozen
   mausoleum's twist (`rime`) entombs its foes in ice (`entombed` on a foe, freed by a hit or fire), freezes its water,
   charges its rune stones with frost (`chargeRunes`) and lets the mage slide; an ossuary's skull niches watch (`watchers` on a theme; `skullsWatch` from `castSpell`).
   `__game.element('burn' | 'chill' | 'shock', x, z)` lands a status there, as the dev menu's Fire, Frost and Shock
