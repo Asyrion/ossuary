@@ -84,6 +84,7 @@ const sounds = {
   spores() { hiss(.4, .06, 'bandpass', 3200); tone('sine', 660, 990, .3, .025); },
   sporeFlash() { hiss(.45, .16, 'lowpass', 1400); tone('sine', 140, 50, .4, .15); crackles(6, .4, .05); },
   tear() { hiss(.1, .07, 'highpass', 2800); tone('square', 420, 300, .04, .02); },
+  full() { tone('sine', 520, 440, .12, .035); tone('sine', 390, 330, .14, .03, .07); },
   wake() { tone('sine', 220, 330, .25, .05); hiss(.2, .04, 'bandpass', 900); },
   catchFire() { hiss(.3, .08, 'bandpass', 1600); crackles(4, .25, .04); },
   urn(sealed = false) { hiss(.22, .12, 'bandpass', sealed ? 2600 : 1600); tone('square', 320, 120, .08, .03); if (sealed) tone('sine', 1320, 660, .4, .05, .03); },

@@ -272,7 +272,8 @@ after `CFG.hero.fidget` seconds standing still). A rig with no death clip topple
 - Desktop browser first (keyboard, gamepad). The 0.3 touch controls stay but are frozen: don't extend or
   test them, and add no touch UI for new actions until a mobile port.
 - Four-direction casting, eight-direction movement, 3 hearts counted in halves, 1 s invulnerability.
-- Hearts can't be picked up at full health. Doors lock while enemies live.
+- Hearts can't be picked up at full health, mana vials at full mana (the first time in a run a message says why);
+  while the mage knows no spell, loot drops an obol in place of a mana vial (`spawnPickup`). Doors lock while enemies live.
 - Placeholder names (Ossuary, Rotling, Wisp, Crypt hound, Hollow Warden, Drowned Abbess, Pyre Knight,
   Ember Sigil) will be replaced with Eda lore later; keep all player-facing strings in one place to make that easy.
 

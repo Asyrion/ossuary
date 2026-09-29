@@ -1069,6 +1069,29 @@ test('economy artifacts: chalk widens blasts, the band spares the mage, the ferr
   expect(errors).toEqual([]);
 });
 
+test('mana vials: loot gives an obol instead while the mage knows no spell; a vial or heart left lying at full says why, once', async ({ page }) => {
+  const errors = await start(page, '?room=treasure_plain');
+  type G7 = { warp(id: number): void; sim(sec: number): void; learn(id: string, slot: number): void; mana(n: number): void;
+    drop(kind: string, x?: number, z?: number, opts?: { asLoot?: boolean }): void; pickups: { kind: string }[];
+    player: { x: number; z: number; hp: number; maxHp: number } };
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G7 }).__game, P = g.player;
+    const kinds = () => g.pickups.map(p => p.kind);
+    g.warp(1); g.sim(.2);
+    // no spell yet: a vial from loot arrives as an obol
+    g.drop('mana', P.x + 3, P.z, { asLoot: true }); g.sim(.1); const noSpell = kinds().slice(-1)[0];
+    // with a spell, loot drops the vial itself; at full mana it stays on the floor, and the mage is told why
+    g.learn('arc', 0); g.drop('mana', P.x - 3, P.z, { asLoot: true }); g.sim(.6); const withSpell = kinds().slice(-1)[0];
+    g.mana(999); const x = P.x; P.x = x - 3; g.sim(.3);
+    const manaHint = document.getElementById('toast')!.textContent, stillThere = kinds().includes('mana');
+    // a heart at full health says so too
+    P.x = x; P.hp = P.maxHp; g.drop('heart', P.x, P.z - 2); g.sim(.6); P.z -= 2; g.sim(.3);
+    return { noSpell, withSpell, manaHint, stillThere, heartHint: document.getElementById('toast')!.textContent };
+  });
+  expect(r).toEqual({ noSpell: 'coin', withSpell: 'mana', manaHint: 'Your mana is already full', stillThere: true, heartHint: 'You are already at full health' });
+  expect(errors).toEqual([]);
+});
+
 test('picking things up shows their lore: artifacts every time, items and containers the first time in a run', async ({ page }) => {
   const errors = await start(page, '?room=treasure_plain&seed=LORE1');
   type G8 = G7 & { current: G7['current'] & { spots: { x: number; z: number; def: { name: string } }[] } };

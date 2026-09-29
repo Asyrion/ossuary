@@ -140,11 +140,12 @@ function installDevHooks() {
     give: (...ids: string[]) => giveById(ids),
     /** Hand out obols, keys or glyphs, e.g. loot({ glyphs: 3 }). */
     loot: (v: Partial<Record<Resource, number>>) => giveResources(v),
-    /** Drop a pickup (halfHeart, heart, coin, purse, key, glyph, coffer, chest) at (x, z), or just ahead of
-        the mage; a chest is plain unless `gilded` is set. */
-    drop(kind: Drop, x = player.x, z = player.z - 1.5, opts: { gilded?: boolean } = {}) {
+    /** Drop a pickup (halfHeart, heart, coin, purse, key, glyph, mana, coffer, chest) at (x, z), or just ahead of
+        the mage; a chest is plain unless `gilded` is set; `asLoot` drops it as loot would (a mana vial turns into an
+        obol while the mage knows no spell). */
+    drop(kind: Drop, x = player.x, z = player.z - 1.5, opts: { gilded?: boolean; asLoot?: boolean } = {}) {
       if (!DROPS.includes(kind)) throw new Error(`drop: use one of ${DROPS.join(', ')}`);
-      spawnPickup(kind, x, z, { gilded: opts.gilded ?? false });
+      spawnPickup(kind, x, z, { gilded: opts.gilded ?? false, asIs: !opts.asLoot });
     },
     /** Break open every cracked wall of this floor's secret room. */
     openSecret() { const r = G.rooms.find(x => x.type === 'secret'); if (r) openSecretRoom(r); return !!r; },
