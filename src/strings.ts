@@ -246,7 +246,6 @@ export const STR = {
     base: (v: string) => `Base ${v}`,
     straight: 'Straight',
   },
-  /** The dev menu (the key left of 1, or F2): for testing, not for players. */
   /** Enemy model options (actors/modelOptions.ts): placeholder names and a note on where each would fit. */
   options: {
     sporeling: { name: 'Sporeling', note: 'Floor 1, Umbral: a mushroom that walks, hopping on stubby feet; its violet-spotted cap puffs spores that blind' },
@@ -274,6 +273,7 @@ export const STR = {
     hallowPillar: { name: 'Hallow (to come)', note: 'A pillar of gold light falling on a rune circle' },
     umbralHex: { name: 'Umbral (to come)', note: 'A dark orb with violet tendrils coiling into a ring of shadow' },
   } as Record<string, { name: string; note: string }>,
+  /** The dev menu (the key left of 1, or F2): for testing, not for players. */
   dev: {
     title: 'Dev menu', close: 'Close',
     assets: 'Made assets', showAssets: 'Show them here (urns, a pedestal)', assetsOn: 'Made assets: on', assetsOff: 'Made assets: off (placeholders)', noAssets: 'None named in data/assets.json yet',
@@ -281,7 +281,7 @@ export const STR = {
     assetRow: (where: string, status: string, tris?: number) => `${where}: ${status}${tris ? `, ${tris.toLocaleString('en')} triangles` : ''}`,
     fpsOn: 'Frame readout: shown', fpsOff: 'Frame readout: hidden',
     options: 'Enemy model options (looks only)', effects: 'Spell effect options (looks only)', showOptions: 'Stand them here', takeOptions: 'Take them away', floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
-    pixel: 'Pixel look (style test)', pixelLines: (lines: number) => lines ? `Pixels: ${lines} lines` : 'Pixels: off',
+    pixel: 'Pixel look', pixelLines: (lines: number) => lines ? `Pixels: ${lines} lines` : 'Pixels: off',
     lanceNew: 'Cinder Lance: the new look (on the spell)', lanceOld: 'Cinder Lance: the old beam',
     outlinesOn: 'Outlines: on', outlinesOff: 'Outlines: off', bandsOn: 'Light in bands: on', bandsOff: 'Light in bands: off',
     /** The on-screen readout: frame rate, and what the last frame drew. */

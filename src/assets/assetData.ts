@@ -63,9 +63,10 @@ export function validateManifest(m: Manifest, known: Known): string[] {
 /** Every file a manifest names, with where it is named. */
 export function manifestFiles(m: Manifest): { where: string; file: string }[] {
   return [
-    ...Object.entries(m.props).map(([id, e]) => ({ where: `props.${id}`, file: e.file })),
-    ...Object.entries(m.artifacts).map(([id, e]) => ({ where: `artifacts.${id}`, file: e.file })),
-    ...Object.entries(m.floors).map(([look, e]) => ({ where: `floors.${look}.floor`, file: e.floor })),
-    ...Object.entries(m.icons).map(([id, e]) => ({ where: `icons.${id}`, file: e.file })),
+    // (a group left out of a hand-made manifest is empty, not an error: ?assets= may point at one)
+    ...Object.entries(m.props ?? {}).map(([id, e]) => ({ where: `props.${id}`, file: e.file })),
+    ...Object.entries(m.artifacts ?? {}).map(([id, e]) => ({ where: `artifacts.${id}`, file: e.file })),
+    ...Object.entries(m.floors ?? {}).map(([look, e]) => ({ where: `floors.${look}.floor`, file: e.floor })),
+    ...Object.entries(m.icons ?? {}).map(([id, e]) => ({ where: `icons.${id}`, file: e.file })),
   ];
 }

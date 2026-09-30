@@ -143,7 +143,6 @@ function installDevHooks() {
     /** Run the simulation for `sec` seconds in fixed steps; optionally render once afterwards. */
     sim(sec: number, render = false) { for (let t = 0; t < sec; t += STEP) step(STEP); if (render) { draw(); updateVision(); } },
     draw() { draw(); updateVision(); },
-    /** What the last frame cost the GPU (draw calls, triangles) and what is held in memory (geometries, textures). */
     /** The made assets (M3.5, data/assets.json): whether they are used, and each one's status; turn them on or off
         (this floor is built again to compare). */
     get assets() { return { on: assetsOn(), list: assetList().map(a => ({ ...a })) }; },
@@ -160,6 +159,7 @@ function installDevHooks() {
     setPixelLook: (change: Partial<PixelLook>) => setPixelLook(change),
     /** Ahead of the mage: a plain and a sealed urn, and an artifact on a pedestal (one with a made model if any). */
     showAssets: () => showAssetsHere(),
+    /** What the last frame cost the GPU (draw calls, triangles) and what is held in memory (geometries, textures). */
     renderInfo: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures }),
     lightLevels,
     /** Give the mage artifacts by id, e.g. give('bone_lens', 'twin_staff'). */

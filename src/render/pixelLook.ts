@@ -2,7 +2,7 @@
    on by default, at 270 lines). The scene is drawn into a small target, a few hundred lines tall, with no smoothing,
    and blown up to the window in whole pixels; the camera is snapped to that grid so still things don't shimmer as it
    moves. Dark outlines where a nearer surface meets a farther one (from depth), and, optional, light in a few bands,
-   as in cartoon lighting. The HUD stays sharp (it is HTML). The dev menu switches it (remembered in this browser), and
+   as in cartoon lighting. Colours and blending are the canvas's own (see drawPixelLook). The HUD stays sharp (it is HTML). The dev menu switches it (remembered in this browser), and
    so does ?pixel=270 (or off). Tuning in CFG.pixelLook. */
 import * as THREE from 'three';
 import { CFG } from '../config';
@@ -60,11 +60,9 @@ const blit = new THREE.ShaderMaterial({
       if (outline > 0.5) { // the nearer side of an edge: a neighbour lies more than gap units farther away
         float d = depthAt(p);
         float farther = max(max(depthAt(p + ivec2(1, 0)), depthAt(p - ivec2(1, 0))), max(depthAt(p + ivec2(0, 1)), depthAt(p - ivec2(0, 1)))) - d;
-        if (farther > gap) col *= 1.0 - dark;
+        if (farther > gap) col *= pow(1.0 - dark, 1.0 / 2.2); // (as dark as 1 - dark in linear light)
       }
-      gl_FragColor = vec4(col, 1.0);
-      #include <tonemapping_fragment>
-      #include <colorspace_fragment>
+      gl_FragColor = vec4(col, 1.0); // (tone-mapped and encoded already, by the scene's own shaders)
       if (bands > 0.5) { // light in a few steps, the hue kept: steps even to the eye (finer in the dark), never black
         float l = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114)), s = sqrt(l);
         float q = max(floor(s * steps + 0.5), 1.0) / steps;
@@ -81,8 +79,15 @@ export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   const g = pixelGrid(buffer.x, buffer.y, look.lines);
   if (!target || target.width !== g.w || target.height !== g.h) {
     target?.depthTexture?.dispose(); target?.dispose();
-    target = new THREE.WebGLRenderTarget(g.w, g.h, { type: THREE.HalfFloatType, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: true, samples: 0 });
+    target = new THREE.WebGLRenderTarget(g.w, g.h, { type: THREE.UnsignedByteType, colorSpace: THREE.SRGBColorSpace, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: true, samples: 0 });
     target.depthTexture = new THREE.DepthTexture(g.w, g.h);
+    // Blend as the canvas does. three tone-maps and encodes to sRGB in each material's shader only when it draws to the
+    // screen (or an XR target); into any other target it writes linear light, blended as such, and faint translucent
+    // light (a daylight shaft, rime, a torch's halo) came out far brighter and harder-edged than on the canvas. Flagged
+    // as an XR target, the scene is tone-mapped and encoded per material, into plain 8-bit storage (RGBA8, so the GPU
+    // doesn't encode it a second time), and the blow-up only copies it.
+    target.texture.internalFormat = 'RGBA8';
+    (target as THREE.WebGLRenderTarget & { isXRRenderTarget: boolean }).isXRRenderTarget = true;
   }
   // one grid pixel in world units, along the camera's right and up: the camera lands on a whole one
   const step = (camera.top - camera.bottom) / camera.zoom / g.h;

@@ -128,8 +128,9 @@ export const CFG = {
   // outlineDark), and light bands
   pixelLook: { lines: [360, 270, 180], start: 270, outlineGap: 0.3, outlineDark: 0.72, bands: 7 },
   // the Cinder Lance in the new effect style (magic/lanceFx.ts, a proof of concept for redoing the spells' effects): how
-  // long it shows, how quickly it swells to full and when it starts to fade (seconds), and the space between its rune rings
-  lanceFx: { life: 0.6, rise: 0.06, fade: 0.3, ringGap: 1.2 },
+  // long it shows, how quickly it swells to full and when it starts to fade, how long the rune ring at the hand flares
+  // (seconds), the space between its rune rings, and how fast its embers run down it (lengths a second)
+  lanceFx: { life: 0.6, rise: 0.06, fade: 0.3, flare: 0.25, ringGap: 1.2, embers: 1.4 },
   lights: {
     hemi: 1.57, moon: 1.26,
     torch: 4.3, torchDistance: 9, torchDecay: 0.5,
