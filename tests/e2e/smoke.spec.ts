@@ -2046,11 +2046,13 @@ test('foes in code (M4): floor 3\'s salamander lays burning ground that burns th
   const e2 = await start(page, '?seed=K3F9QX&floor=3&foe=hexImp&spells=cinder_lance');
   const imp = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.3);
-    const e = g.enemies[0]; let hidden = false, invisible = false, from = 0, hexes = 0;
-    for (let i = 0; i < 120 && !(hidden && hexes); i++) {
+    let hidden = false, invisible = false, from = 0, hexes = 0;
+    for (let i = 0; i < 160 && !(hidden && hexes && from); i++) { // (every imp in the room: any of them may throw first)
       g.sim(.05); hexes = Math.max(hexes, g.shots.filter(s => s.hex).length);
-      if (e.state === 'gone') { hidden ||= !!e.hidden; invisible ||= !e.model.visible; }
-      if (e.state === 'raise' && !from) from = Math.hypot(e.x - g.player.x, e.z - g.player.z);
+      for (const e of g.enemies) {
+        if (e.state === 'gone') { hidden ||= !!e.hidden; invisible ||= !e.model.visible; }
+        if (e.state === 'raise' && !from) from = Math.hypot(e.x - g.player.x, e.z - g.player.z);
+      }
     }
     // stand in a hex's way
     const mana = g.player.mana; let drained = 0;
