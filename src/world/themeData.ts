@@ -7,7 +7,7 @@ import themesData from '../../data/themes.json';
 import type { FloorLook } from '../types';
 
 /** What a theme's room does differently:
-    risingBones  bone piles rise as rotlings if the fight drags on (the ossuary);
+    risingBones  bone piles burst and the floor's walker comes out, if the fight drags on (the ossuary);
     pages        scroll heaps sometimes hide a torn grimoire page (the scriptorium);
     sleepers     its foes sleep until hurt, or until the mage comes close (the pilgrims' rest);
     caveIn       a glyph's blast brings more of the ceiling down (the collapsed crypt);

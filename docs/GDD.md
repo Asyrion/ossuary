@@ -138,7 +138,9 @@ Combat is Isaac-style: bolts travel in straight lines, drop to the floor at the 
 - Every attack is telegraphed: a glow, a shake or a pause before it lands.
 - Contact and shots cost half a heart; touching a boss costs a full heart.
 
-**Enemies in prototype 0.3** (placeholder shapes; M4 replaces them with the enemies built in code below)
+**Enemies in prototype 0.3** (placeholder shapes; M4 replaced them with the enemies built in code below: the wisp and
+crypt hound are gone, and the rotling is kept only as a plain foe for testing, in no floor's fights; the three bosses
+remain until theirs are built)
 
 | Enemy | HP | Behaviour | Isaac equivalent |
 | --- | --- | --- | --- |

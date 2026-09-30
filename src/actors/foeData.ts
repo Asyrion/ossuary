@@ -70,6 +70,13 @@ export function affinityMul(def: Pick<FoeDef, 'weak' | 'resist'> | undefined, sc
   return school === def.weak ? 1.5 : school === def.resist ? .5 : 1;
 }
 
+/** A foe of `role` for the floor to call up in the middle of a fight (a boss's helpers, the ossuary's rising bones):
+    never an elite, nor one that waits in disguise. */
+export function callFoe(table: RoleTable, role: Role, R: () => number): FoeType {
+  const list = table[role].filter(([id]) => !(isFoe(id) && (FOES[id].elite || FOES[id].behaviour === 'mimic')));
+  return pickFoe({ ...table, [role]: list.length ? list : table[role] }, role, R, true);
+}
+
 /** A floor's roles: for each, the foes that fill it and how often (weights). */
 export type RoleTable = Record<Role, [FoeType, number][]>;
 /** The foe that fills `role` on a floor, picked by `R` (0 to 1) from its weighted list; with `noElite`, an elite is

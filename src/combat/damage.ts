@@ -43,8 +43,8 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   if (e.hp <= 0) killEnemy(e);
 }
 
-const GIB_COLOR: Record<keyof typeof CFG.enemy, number> = { rotling: 0x7f8a60, wisp: 0xb07bff, hound: 0xd8ccb2, dummy: 0xc8a860, warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a };
-const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = { rotling: 0x1d2414, wisp: null, hound: 0x241812, dummy: null, warden: 0x2a0a06, abbess: 0x0c2622, pyre: 0x1a0c06 };
+const GIB_COLOR: Record<keyof typeof CFG.enemy, number> = { rotling: 0x7f8a60, dummy: 0xc8a860, warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a };
+const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = { rotling: 0x1d2414, dummy: null, warden: 0x2a0a06, abbess: 0x0c2622, pyre: 0x1a0c06 };
 /** What flies from a foe when it falls, and the stain it leaves: a foe in code's own (data/foes.json), else the old. */
 const gibOf = (e: Enemy) => e.foe ? new THREE.Color(e.foe.gib).getHex() : GIB_COLOR[e.type as EnemyType];
 const stainOf = (e: Enemy) => e.foe ? (e.foe.stain && new THREE.Color(e.foe.stain).getHex()) : STAIN_COLOR[e.type as EnemyType];

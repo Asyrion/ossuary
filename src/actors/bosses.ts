@@ -5,15 +5,16 @@
    A boss's helpers fall with it, so no fight drags on while its rewards rise.
 
    Hollow Warden: walks at the mage; a ring of 12 shots (a second ring below 60%); aimed 3-shot volleys;
-     calls rotlings below half health.
+     calls the floor's walkers below half health.
    Drowned Abbess: drifts; wails fans of aimed shots; sinks into the floor and follows the mage as a
      ripple that can't be hurt, then a widening ring warns where she surfaces with a ring of shots;
-     calls wisps below half health, and surfaces with a second ring.
+     calls the floor's flyers below half health, and surfaces with a second ring.
    Pyre Knight: stalks; crouches and leaps at where the mage stood (the landing spot glows) and lands
      with a shockwave ring; charges in a line until a wall or rock stuns him; sprays cones of embers;
-     calls crypt hounds below half health, and his landings send a second ring. */
+     calls the floor's heavies below half health, and his landings send a second ring. */
 import * as THREE from 'three';
-import { CFG, type BossType, type EnemyType } from '../config';
+import { CFG, type BossType } from '../config';
+import { callFoe, type Role } from './foeData';
 import type { Enemy } from '../types';
 import { G, after, player } from '../state';
 import { STR } from '../strings';
@@ -31,7 +32,7 @@ type Add = (geo: THREE.BufferGeometry, mat: THREE.Material, px: number, py: numb
 
 const SHOT = { warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a };
 /** Who each boss calls below half health. */
-const SUMMONS: Record<BossType, EnemyType> = { warden: 'rotling', abbess: 'wisp', pyre: 'hound' };
+const SUMMONS: Record<BossType, Role> = { warden: 'R', abbess: 'W', pyre: 'H' };
 
 /** A flat ring lying on the floor (the abbess's ripple, the knight's landing mark), hidden at first. */
 function floorRing(e: Enemy, color: number, radius: number) {
@@ -95,10 +96,10 @@ export function buildBoss(e: Enemy, add: Add) {
 /** Below half health a boss calls its helpers, once; they have the floor's enemy health. */
 function callHelp(e: Enemy) {
   e.summoned = true; Sfx.at(e.x, e.z).boom(); G.shake = .25; banner(STR.bosses[e.type as BossType].summon, '');
-  const n = e.bossCfg?.summons ?? 2, cur = G.current, hpMul = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].enemyHp;
+  const n = e.bossCfg?.summons ?? 2, cur = G.current, floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
   for (let i = 0; i < n; i++) {
     const p = freeSpotNear(cur, cur.cx + (n > 1 ? -4 + 8 * i / (n - 1) : 0), cur.cz + 1.5);
-    makeEnemy(SUMMONS[e.type as BossType], p.x, p.z, hpMul).servant = true;
+    makeEnemy(callFoe(floor.foes, SUMMONS[e.type as BossType], Math.random), p.x, p.z, floor.enemyHp).servant = true;
   }
 }
 

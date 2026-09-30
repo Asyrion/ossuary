@@ -11,7 +11,8 @@
             t  grave roots  v  thorn briar  :  cobwebs  g  glowcaps  d  desk  e  scroll heap
             f  brazier  l  candle stand  a  bell  n  rune stone  y  lodestone  *  hanging censer  q  reliquary
             T  dead tree  (the objects and mechanisms of world/propData.ts)
-            R  rotling    W  wisp      H  crypt hound      B  the floor's boss
+            R  a walker   W  a flyer or shooter   H  a charger or heavy (roles: each floor fills them with its own
+               foes, `foes` in data/floors.json)   B  the floor's boss
 
    Ordeal templates keep their terrain in `grid` (no enemies) and list each wave's enemies in `waves`,
    one grid per wave with only `.` and enemy letters. L-shaped templates are drawn missing the

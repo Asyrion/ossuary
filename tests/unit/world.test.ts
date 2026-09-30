@@ -6,6 +6,7 @@ import { BOSS_TYPES, type BossType } from '../../src/config';
 import { OPPOSITE, SIDE_DIR, allowsSide, shapeCells } from '../../src/world/shapes';
 import { TEMPLATE_DEFS, growPuddles, parseTemplate, poolsOf, tombRuns, validateTemplate } from '../../src/world/templates';
 import { validateThemes } from '../../src/world/themeData';
+import { isFoe } from '../../src/actors/foeData';
 
 describe('room templates', () => {
   it.each(TEMPLATE_DEFS.map(d => [d.id, d] as const))('%s is valid', (_id, def) => {
@@ -193,7 +194,7 @@ describe('floor generator', () => {
   });
 
   it("names a known enemy as each floor's vault warden", () => {
-    for (const f of FLOORS) { expect(Object.keys(CFG.enemy)).toContain(f.vaultWarden); expect(BOSS_TYPES).not.toContain(f.vaultWarden as never); }
+    for (const f of FLOORS) { expect(isFoe(f.vaultWarden), f.vaultWarden).toBe(true); expect(BOSS_TYPES).not.toContain(f.vaultWarden as never); } // (a floor's own foe, M4)
   });
 
   it('gives every floor its own look', () => {

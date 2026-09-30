@@ -1,12 +1,14 @@
 /* Themed rooms in play (M3.6 step 3; the data is in themeData.ts and data/themes.json): the dressing a theme scatters
    over the floor, which never blocks, and the twists:
-   - risingBones  the ossuary's bone piles and skull heaps rise as rotlings, one at a time, if the fight drags on;
+   - risingBones  the ossuary's bone piles and skull heaps burst, one at a time, if the fight drags on, and the floor's
+                  walker comes out of what nested in them;
    - pages        a scroll heap in the scriptorium sometimes hides a torn grimoire page;
    - sleepers     the pilgrims' rest's foes sleep until hurt, or until the mage comes close;
    - caveIn       a glyph's blast in the collapsed crypt brings more of the ceiling down: stones fall round it a moment
                   later (their shadows show where), hurting what they land on and leaving rubble. */
 import * as THREE from 'three';
 import { CFG } from '../config';
+import { callFoe } from '../actors/foeData';
 import type { Enemy, FloorLook, Room } from '../types';
 import { DEV, G, after, player } from '../state';
 import { STR } from '../strings';
@@ -217,7 +219,8 @@ export function updateThemes(dt: number) {
     if (pile) {
       removeProp(room, pile);
       burst(pile.x, .3, pile.z, 0xd8ccb2, 14, 2, .05); Sfx.at(pile.x, pile.z).bones();
-      makeEnemy('rotling', pile.x, pile.z, FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].enemyHp);
+      const floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)]; // (what nested in the bones: the floor's walker)
+      makeEnemy(callFoe(floor.foes, 'R', Math.random), pile.x, pile.z, floor.enemyHp);
       risen++;
     }
   }

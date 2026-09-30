@@ -5,16 +5,13 @@ import { FOES, isFoe, type FoeType } from './foeData';
 import { bumpFoe, buildFoe, clearFoeHazards, poseFoe, teleColor, updateFoe, updateFoeHazards } from './foes';
 import type { Enemy } from '../types';
 import { G, player } from '../state';
-import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { blob, disposeTree, glow } from '../render/materials';
 import { blockers, collide } from '../world/collision';
-import { randomSpot } from '../world/rooms';
 import type { BossConfig } from '../world/generate';
-import { spawnShot } from '../combat/projectiles';
 import { hurtPlayer } from '../combat/damage';
 import { onWaveCleared } from '../flow';
-import { angleLerp, lerp, rand } from '../util';
+import { angleLerp } from '../util';
 import { afterBossMove, buildBoss, updateBoss } from './bosses';
 import { canAct, speedFactor } from '../magic/status';
 import { statusTint } from '../magic/statusFx';
@@ -25,8 +22,9 @@ export function stdMat(color: number, extra: THREE.MeshStandardMaterialParameter
   return new THREE.MeshStandardMaterial({ color, roughness: .85, flatShading: true, ...extra });
 }
 
-/* The foes: those built in code (M4: actors/foes.ts, data/foes.json) and the placeholder primitives they replace (the
-   old three, the bosses until theirs is built, the training dummy). */
+/* The foes: those built in code (M4: actors/foes.ts, data/foes.json), and placeholder primitives: the bosses until theirs
+   is built, and two for testing that no floor's fights hold, the rotling (a plain walker with no school: the browser
+   tests' target) and the training dummy (the dev menu's: it stands still and never falls). */
 /** Spawn an enemy. `hpMul` scales health (deeper floors); `boss` tunes the floor's boss; a champion
     (champion rooms) is bigger, glows, has more health and moves a little faster. */
 export function makeEnemy(type: FoeType, x: number, z: number, hpMul = 1, boss?: BossConfig, opts: { champion?: boolean } = {}) {
@@ -51,22 +49,6 @@ export function makeEnemy(type: FoeType, x: number, z: number, hpMul = 1, boss?:
     add(new THREE.SphereGeometry(.045, 6, 5), eye, -.08, .82, .28); add(new THREE.SphereGeometry(.045, 6, 5), eye, .08, .82, .28);
     add(new THREE.CylinderGeometry(.06, .05, .45, 6), skin, -.3, .42, .16).rotation.x = .9;
     add(new THREE.CylinderGeometry(.06, .05, .45, 6), skin, .3, .42, .16).rotation.x = .9;
-  } else if (type === 'wisp') {
-    const W = CFG.enemy.wisp;
-    e.flying = true; e.contact = 1;
-    const shell = stdMat(0x2a1f35, { emissive: 0x3c1f5c, transparent: true, opacity: .88, flatShading: false, roughness: .4 });
-    add(new THREE.SphereGeometry(.28, 14, 12), shell, 0, 0, 0);
-    e.core = add(new THREE.SphereGeometry(.12, 10, 8), new THREE.MeshBasicMaterial({ color: 0xe0c2ff }), 0, 0, .12);
-    e.halo = glow(0xa266ff, 1.3, .7); e.body.add(e.halo); e.body.position.y = .8;
-    e.target = { x, z }; e.fireT = rand(W.fireMin, W.fireMax) * .7;
-  } else if (type === 'hound') {
-    const hide = stdMat(0x57463c), bone = stdMat(0xd8ccb2), eye = new THREE.MeshBasicMaterial({ color: 0xff4a32 });
-    add(new THREE.SphereGeometry(.3, 10, 8), hide, 0, .36, 0, .85, .6, 1.35);
-    add(new THREE.SphereGeometry(.2, 10, 8), bone, 0, .45, .44, .9, .85, 1.15);
-    add(new THREE.SphereGeometry(.04, 6, 5), eye, -.08, .52, .6); add(new THREE.SphereGeometry(.04, 6, 5), eye, .08, .52, .6);
-    for (let i = 0; i < 3; i++) add(new THREE.ConeGeometry(.05, .18, 5), bone, 0, .6, -.2 + i * .18);
-    for (const [lx, lz] of [[-.16, .22], [.16, .22], [-.16, -.22], [.16, -.22]]) add(new THREE.CylinderGeometry(.045, .035, .3, 5), hide, lx, .15, lz);
-    e.dir = { x: 1, z: 0 }; e.state = 'wander'; e.st = rand(.5, 1.5);
   } else if (type === 'dummy') { // a straw training dummy on a post: stands still, never falls (dev menu)
     const wood = stdMat(0x6a4a2c), straw = stdMat(0xc8a860), sack = stdMat(0x9a8058);
     add(new THREE.CylinderGeometry(.05, .06, 1.1, 6), wood, 0, .55, 0);
@@ -108,34 +90,6 @@ export function updateEnemies(dt: number) {
       const wob = Math.sin(e.t * 3.1) * .35; const sp = CFG.enemy.rotling.speed * e.speedMul;
       e.vx = (ux - uz * wob) * sp; e.vz = (uz + ux * wob) * sp;
       e.body.rotation.z = Math.sin(e.t * 6) * .08; e.body.position.y = Math.abs(Math.sin(e.t * 6)) * .04;
-    } else if (e.type === 'wisp') {
-      const C = CFG.enemy.wisp; const tg = e.target!;
-      if (Math.hypot(tg.x - e.x, tg.z - e.z) < .3 || Math.random() < dt * .3) e.target = randomSpot(cur);
-      const tx = e.target!.x - e.x, tz = e.target!.z - e.z, tl = Math.hypot(tx, tz) || 1;
-      e.vx = lerp(e.vx, tx / tl * C.speed * e.speedMul, dt * 2); e.vz = lerp(e.vz, tz / tl * C.speed * e.speedMul, dt * 2);
-      e.body.position.y = .8 + Math.sin(e.t * 2.4) * .1;
-      e.fireT! -= dt; const ft = e.fireT!;
-      const tele = ft < .45 && ft > 0;
-      e.core!.scale.setScalar(tele ? 1 + (.45 - ft) * 2.2 : 1); e.halo!.material.opacity = tele ? 1 : .6 + Math.sin(e.t * 9) * .1;
-      if (ft <= 0) { spawnShot(e.x + ux * .3, e.z + uz * .3, ux, uz, C.shotSpeed, 0xb784ff, .8); Sfx.at(e.x, e.z).enemyShot(); e.fireT = rand(C.fireMin, C.fireMax); }
-    } else if (e.type === 'hound') {
-      const C = CFG.enemy.hound; e.st -= dt; const dir = e.dir!;
-      if (e.state === 'wander') {
-        e.vx = dir.x * C.speed * e.speedMul; e.vz = dir.z * C.speed * e.speedMul; faceTo = Math.atan2(dir.x, dir.z);
-        if (e.st <= 0) { const d = [[1, 0], [-1, 0], [0, 1], [0, -1]][Math.random() * 4 | 0]; e.dir = { x: d[0], z: d[1] }; e.st = rand(.8, 1.8); }
-        const alignedX = Math.abs(dz) < .45, alignedZ = Math.abs(dx) < .45;
-        if ((alignedX || alignedZ) && dist < 9) { e.state = 'tell'; e.st = .3; e.dir = alignedX ? { x: Math.sign(dx), z: 0 } : { x: 0, z: Math.sign(dz) }; Sfx.at(e.x, e.z).charge(); }
-        e.body.position.y = Math.abs(Math.sin(e.t * 9)) * .03;
-      } else if (e.state === 'tell') {
-        e.vx = e.vz = 0; faceTo = Math.atan2(dir.x, dir.z); e.body.position.x = Math.sin(e.t * 60) * .03;
-        if (e.st <= 0) { e.state = 'charge'; e.body.position.x = 0; }
-      } else if (e.state === 'charge') {
-        e.vx = dir.x * C.charge * e.speedMul; e.vz = dir.z * C.charge * e.speedMul; faceTo = Math.atan2(dir.x, dir.z);
-        e.body.rotation.x = .15;
-      } else if (e.state === 'stun') {
-        e.vx = e.vz = 0; faceTo = e.face; e.body.rotation.x = 0; e.body.rotation.z = Math.sin(e.t * 20) * .1;
-        if (e.st <= 0) { e.state = 'wander'; e.st = rand(.6, 1.2); e.body.rotation.z = 0; }
-      }
     } else if (e.isBoss) faceTo = updateBoss(e, dt, ux, uz) ?? faceTo;
     e.vx *= slow; e.vz *= slow;
     if (!e.flying) { const w = wadeAt(e.x, e.z) * snagAt(e.x, e.z); e.vx *= w; e.vz *= w; } // walkers wade through water, snag in cobwebs
@@ -143,10 +97,7 @@ export function updateEnemies(dt: number) {
     e.kx *= Math.exp(-8 * dt); e.kz *= Math.exp(-8 * dt);
     e.x += (e.vx + e.kx) * dt; e.z += (e.vz + e.kz) * dt;
     const hit = collide(e, e.flying ? walls : solids);
-    if (e.type === 'hound') {
-      if (e.state === 'charge' && hit) { e.state = 'stun'; e.st = .7; G.shake = Math.max(G.shake, .12); Sfx.at(e.x, e.z).hit(); }
-      else if (e.state === 'wander' && hit) { e.dir = { x: -e.dir!.x, z: -e.dir!.z }; }
-    } else if (e.isBoss) afterBossMove(e, hit);
+    if (e.isBoss) afterBossMove(e, hit);
     else if (e.foe) bumpFoe(e, !!hit);
     e.face = angleLerp(e.face, faceTo, 1 - Math.exp(-10 * dt));
     e.group.position.set(e.x, 0, e.z); e.body.rotation.y = e.face;

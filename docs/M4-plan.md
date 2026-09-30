@@ -42,7 +42,9 @@ and continue with M4"), so M4 starts.
    that; the hit flash and the status glows light the merged materials.
 6. **The old three retire.** Rotlings, wisps and crypt hounds go when the ten are in: the bosses call the floor's
    foes, a forced vault's warden is the floor's heavy as a champion, the ossuary's rising bones bring the floor's walker,
-   and quiet rooms keep walkers and flyers, never an elite. The training dummy stays.
+   and quiet rooms keep walkers and flyers, never an elite. The training dummy stays, and so does the rotling, out of
+   every fight, as a plain foe with no school for the browser tests and the dev menu (decided while building step 5:
+   the tests measure spells' damage on it, and a foe with affinities would change that).
 7. **The boss.** One boss built the same way (the GDD's M4 row). Its look is drawn up in the gallery first, as the ten
    were, for the owner to choose; its fight keeps the telegraphs and summons of the placeholder it replaces.
 
@@ -63,8 +65,9 @@ it; the lurker is shocked through its pool and trapped when it freezes. A foe's 
    room has none, so shock and frost reach it) and the Lantern Jelly; chill on the mage. Browser tests.
 4. **Floor 3** (built 2026-09-30): the Cinder Salamander (its burning ground drawn as one instanced mesh), the Hex Imp
    and the Rime Drakeling; the hex. Every floor's fights are foes in code now. Browser tests.
-5. **The old three retire:** summons, the vault's warden, rising bones, quiet rooms; a balance pass over health and
-   counts per floor; the room inspector over fights on each floor.
+5. **The old three retire** (built 2026-09-30): summons (`callFoe`: never an elite, nor a mimic), the vault's warden (the
+   Rune Beetle, the Mire Toad, the Cinder Salamander), rising bones, quiet rooms; the room inspector over fights on each
+   floor. Health stays as in the table until the play-test says otherwise.
 6. **The boss:** looks in the gallery for the owner, then the fight.
 7. **Close:** GDD (as built), CLAUDE.md, the rules reviewer, and a build for the owner (when the owner asks to ship).
 
