@@ -26,7 +26,8 @@ import { burst } from '../combat/fx';
 import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { inflict } from '../magic/statusFx';
 import { newStatus } from '../magic/status';
-import { lightning, riseMote } from '../magic/shapes';
+import { riseMote } from '../magic/shapes';
+import { strikeFx } from '../magic/spellFx';
 import type { StatusKind } from '../magic/spellData';
 import { rollTable } from '../items/loot';
 import { spawnPickup } from '../items/pickups';
@@ -257,7 +258,7 @@ function leap(room: Room, box: PropBox) {
   Sfx.at(box.x, box.z).arc(others.length);
   for (const o of others) {
     o.prop.cd = Math.max(o.prop.cd ?? 0, C.lodeCooldown); // no leaping straight back
-    lightning({ x: box.x, y: 1.3, z: box.z }, { x: o.x, y: 1.3, z: o.z }, SCHOOL_COLOR.shock, .9);
+    strikeFx({ x: box.x, y: 1.3, z: box.z }, { x: o.x, y: 1.3, z: o.z }, SCHOOL_COLOR.shock);
     const dx = o.x - box.x, dz = o.z - box.z, len2 = dx * dx + dz * dz || 1;
     const dist = (x: number, z: number) => { const k = Math.max(0, Math.min(1, ((x - box.x) * dx + (z - box.z) * dz) / len2)); return Math.hypot(box.x + dx * k - x, box.z + dz * k - z); };
     for (const e of G.enemies) {

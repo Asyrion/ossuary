@@ -4,7 +4,8 @@
    spots, crests, crystals, flames or runes, and each belonging to a floor (four in the crypt, three on the drowned
    floor, three on the burning one). Each stands on y = 0 facing +Z (the camera) and moves a little while it idles.
    They are looks only until M4 makes them foes, in code (the owner's decision). The dev menu's gallery stands them in
-   rows by floor ahead of the mage. Names and notes are placeholders in STR.options. */
+   rows by floor ahead of the mage. Names and notes are placeholders in STR.options. Familiars the mage could bind are
+   built the same way, from the owner's drawings (FAMILIAR_OPTIONS, names in STR.familiars). */
 import * as THREE from 'three';
 import type { Room } from '../types';
 import { blob, disposeTree, glow } from '../render/materials';
@@ -336,6 +337,85 @@ export const MODEL_OPTIONS = [
 ] as const satisfies readonly { id: string; floor: 1 | 2 | 3; school: School; build: () => Built }[];
 export type ModelOptionId = (typeof MODEL_OPTIONS)[number]['id'];
 
+/* ---------- familiars ---------- */
+
+/** A familiar the owner drew (2026-09-30), rebuilt in code: a spectral fox of indigo fur, cyan runes and gold swirls
+    along its flanks, glowing eyes and paws, and a great starry tail streaming behind it. It trots in place. */
+function runeFox(): Built {
+  const g = new THREE.Group(), fox = new THREE.Group(); g.add(fox);
+  fox.rotation.y = Math.PI / 2; // (side on, as drawn: built facing +Z, it walks to the right)
+  const fur = std(0x3a2c7a), furDark = std(0x241a52), furLight = std(0x5a6ec8), cheek = std(0xc8d8ff);
+  const cyan = lit(0x8ff0ff), gold = lit(0xffd878), violet = lit(0xb080ff), star = lit(0xffffff);
+  // the body: torso, haunch and a pale chest with a ruff of fur down it
+  const body = new THREE.Group(); body.position.y = .42; fox.add(body);
+  part(body, sphere(.2, 12, 10), fur, [0, 0, 0], { scale: [.72, .78, 1.7] });
+  part(body, sphere(.17, 10, 8), furDark, [0, .02, -.24], { scale: [.85, .9, 1] });
+  part(body, sphere(.12, 10, 8), furLight, [0, -.02, .28], { scale: [.9, 1, .85] });
+  for (let i = 0; i < 4; i++) part(body, new THREE.ConeGeometry(.045, .16, 4), furLight, [(i - 1.5) * .05, -.12 - Math.abs(i - 1.5) * .02, .33], { rot: [Math.PI - .3, 0, (i - 1.5) * .25] });
+  // markings: a line of light along the spine, runes and gold swirls down each flank
+  part(body, box(.014, .014, .48), cyan, [0, .155, -.02]);
+  for (const s of [-1, 1]) {
+    for (const [z, y] of [[.12, .03], [-.03, -.02], [-.18, .03]]) rune(body, 0x8ff0ff, [.148 * s, y, z], .075, [0, s * Math.PI / 2, 0], cyan);
+    part(body, new THREE.TorusGeometry(.1, .006, 4, 20, Math.PI * 1.3), gold, [.15 * s, .0, .05], { rot: [0, s * Math.PI / 2, .6] });
+    part(body, new THREE.TorusGeometry(.05, .006, 4, 14, Math.PI * 1.6), gold, [.15 * s, .03, -.1], { rot: [0, s * Math.PI / 2, 2.2] });
+  }
+  // neck and head: a long snout, pale cheeks swept back, tall ears lit inside, eyes of cyan light
+  limb(fox, [0, .5, .3], [0, .62, .4], .09, furLight, .11);
+  const head = new THREE.Group(); head.position.set(0, .64, .42); fox.add(head);
+  part(head, sphere(.12, 12, 10), fur, [0, 0, 0], { scale: [1, .9, 1.05] });
+  part(head, new THREE.ConeGeometry(.07, .2, 8), fur, [0, -.03, .15], { rot: [Math.PI / 2, 0, 0], scale: [1, 1, .8] });
+  part(head, new THREE.ConeGeometry(.055, .16, 8), cheek, [0, -.06, .13], { rot: [Math.PI / 2, 0, 0], scale: [1, 1, .6] });
+  part(head, sphere(.024, 6, 5), std(0x0c0a14), [0, -.02, .25]);
+  const ears: THREE.Group[] = [];
+  for (const s of [-1, 1]) {
+    part(head, new THREE.ConeGeometry(.05, .14, 4), cheek, [.09 * s, -.05, -.03], { rot: [-Math.PI / 2, 0, -.5 * s] });
+    const ear = new THREE.Group(); ear.position.set(.065 * s, .09, -.03); ear.rotation.z = -.28 * s; head.add(ear); ears.push(ear);
+    part(ear, new THREE.ConeGeometry(.055, .22, 4), furDark, [0, .1, 0]); part(ear, new THREE.ConeGeometry(.03, .15, 4), violet, [0, .08, .02]);
+    part(head, sphere(.026, 8, 6), cyan, [.068 * s, .035, .085], { scale: [1, .6, 1.3] });
+    const shine2 = glow(0x8ff0ff, .16, .8); shine2.position.set(.07 * s, .035, .09); head.add(shine2);
+  }
+  rune(head, 0x8ff0ff, [0, .1, .06], .06, [-.9, 0, 0], cyan);
+  // legs, trotting (diagonal pairs together), each paw lit and trailing a little mist
+  const legs = [[1, .22, 0], [-1, .22, Math.PI], [1, -.22, Math.PI], [-1, -.22, 0]].map(([s, z, phase]) => {
+    const l = new THREE.Group(); l.position.set(.08 * s, .36, z); fox.add(l);
+    limb(l, [0, 0, 0], [0, -.17, .025], .036, fur, .03); limb(l, [0, -.17, .025], [0, -.33, 0], .026, furDark, .022);
+    part(l, sphere(.034, 6, 5), cyan, [0, -.34, .02], { scale: [1, .5, 1.4] });
+    const mist = glow(0x7fd4ff, .26, .55); mist.position.set(0, -.34, 0); l.add(mist);
+    return { l, phase };
+  });
+  // the tail: a great plume sweeping up and back and curling at its tip, dark and starry inside, streaked with light
+  const TAIL = 11, tailFurs = [std(0x241858), std(0x33227a), std(0x3e4aa8)], streak = shine(0x8ff0ff, .55), streak2 = shine(0xb080ff, .5);
+  const curve = (k: number) => ({ y: .5 + .75 * k - .05 * k * k - .2 * k ** 3, z: -.36 - .35 * k - .15 * k * k });
+  const segs = Array.from({ length: TAIL }, (_, i) => {
+    const k = i / (TAIL - 1), r = .045 + .15 * Math.pow(Math.sin(k * Math.PI), .7) * (1 - .3 * k), s = new THREE.Group(); fox.add(s);
+    const ty = .75 - .1 * k - .6 * k * k, tz = -.35 - .3 * k; s.rotation.x = Math.atan2(tz, ty); // (its length along the tail)
+    part(s, sphere(1, 10, 8), tailFurs[i % 3], [0, 0, 0], { scale: [r * .8, r * 1.35, r] });
+    for (const side of [-1, 1]) for (const [dz, m] of [[.35, streak], [-.3, streak2]] as [number, THREE.Material][]) part(s, box(.014, r * 1.7, .014), m, [side * r * .78 * Math.sqrt(1 - dz * dz), 0, dz * r]); // (on its skin, both sides)
+    for (let j = 0; j < 2; j++) { const a = i * 2.3 + j * 3.1; part(s, sphere(.013, 4, 3), [star, gold, cyan][(i + j) % 3], [Math.cos(a) * r * .8, Math.sin(a * 1.3) * r, Math.sin(a) * r * .9]); }
+    return { s, k, r };
+  });
+  const mark = new THREE.Group(); segs[5].s.add(mark); // a rune-diamond of gold on the tail's flank
+  for (const sd of [-1, 1]) for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 4; part(mark, box(.008, .075, .008), gold, [sd * segs[5].r * .82, Math.sin(a) * .026, Math.cos(a) * .026], { rot: [a, 0, 0] }); }
+  const aura = glow(0x7fe8ff, .9, .18); fox.add(aura);
+  const wisps = [0, 1, 2].map(i => part(fox, new THREE.ConeGeometry(.04, .24, 5), shine(0x8ff0ff, .45), [0, 0, 0], { rot: [-Math.PI / 2 - .2 + i * .25, 0, 0] }));
+  const twinkles = [0, 1, 2, 3].map(i => { const t = new THREE.Group(); fox.add(t); part(t, box(.008, .09, .008), star, [0, 0, 0]); part(t, box(.09, .008, .008), star, [0, 0, 0]); t.position.set((i - 1.5) * .2, .75 + (i % 2) * .25, -.6 - (i % 3) * .15); return t; });
+  const dustA = motes(g, 0x8ff0ff, 5, .55, .55, .015), dustB = motes(g, 0xb080ff, 4, .45, .8, .013);
+  return { group: g, shadow: .8, idle: t => {
+    const w = t * 5.5;
+    legs.forEach(({ l, phase }) => { l.rotation.x = Math.sin(w + phase) * .42; });
+    body.position.y = .42 + Math.abs(Math.sin(w)) * .015; head.position.y = .64 + Math.abs(Math.sin(w)) * .012; head.rotation.y = Math.sin(t * .6) * .12;
+    ears.forEach((e, i) => { e.rotation.x = Math.max(0, Math.sin(t * 1.3 + i * 2)) ** 8 * -.4; });
+    for (const { s, k } of segs) { const c = curve(k); s.position.set(Math.sin(t * 1.8 - k * 2.2) * .09 * k, c.y + Math.sin(t * 2.4 - k * 3) * .03 * k, c.z); }
+    const tip = segs[TAIL - 1].s.position; aura.position.copy(segs[6].s.position);
+    wisps.forEach((m, i) => { m.position.set(tip.x + Math.sin(t * 3 + i) * .03, tip.y - .04 + i * .04, tip.z - .1); });
+    twinkles.forEach((tw, i) => { tw.scale.setScalar(.4 + Math.max(0, Math.sin(t * 2.5 + i * 1.7)) * .9); });
+    dustA(t, .7); dustB(t, -.5);
+  } };
+}
+
+/** Familiars the mage could bind, looks only (names and notes in STR.familiars). */
+export const FAMILIAR_OPTIONS = [{ id: 'runeFox', build: runeFox }] as const satisfies readonly { id: string; build: () => Built }[];
+
 /* ---------- the gallery ---------- */
 
 const shown: { room: Room; group: THREE.Group; idle: (t: number) => void }[] = [];
@@ -353,6 +433,16 @@ export function showModelOptions(room: Room, x: number, z: number, only?: readon
     });
   }
   return out;
+}
+/** Stand the familiar options (every one, or those in `only`) in a row ahead of world (x, z) in `room`. */
+export function showFamiliarOptions(room: Room, x: number, z: number, only?: readonly string[]) {
+  const list = FAMILIAR_OPTIONS.filter(o => !only || only.includes(o.id));
+  return list.map((o, i) => {
+    const at = freeSpotNear(room, x + (i - (list.length - 1) / 2) * 2, z - 1.8);
+    const b = o.build(); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
+    shown.push({ room, group: b.group, idle: b.idle });
+    return { id: o.id, x: at.x, z: at.z };
+  });
 }
 /** Every step: the options in the room shown move as they idle. */
 export function updateModelOptions(dt: number, current: Room) {

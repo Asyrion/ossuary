@@ -1,19 +1,19 @@
 /* The pixel look: the game's look, pixel-art 3D (the owner's choice after the style test of M3.5 step 2, 2026-09-30:
-   on by default, at 270 lines). The scene is drawn into a small target, a few hundred lines tall, with no smoothing,
+   on by default, at 360 lines since that day's play-test). The scene is drawn into a small target, a few hundred lines tall, with no smoothing,
    and blown up to the window in whole pixels; the camera is snapped to that grid so still things don't shimmer as it
    moves. Dark outlines where a nearer surface meets a farther one (from depth), and, optional, light in a few bands,
    as in cartoon lighting. Colours and blending are the canvas's own (see drawPixelLook). The HUD stays sharp (it is HTML). The dev menu switches it (remembered in this browser), and
-   so does ?pixel=270 (or off). Tuning in CFG.pixelLook. */
+   so does ?pixel=360 (or off). Tuning in CFG.pixelLook. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 
 export interface PixelLook { /** rows of pixels on screen; 0 is off */ lines: number; outline: boolean; bands: boolean }
-// (a new key: a choice kept from the style test, when it started off, doesn't hide the new default)
 const P = CFG.pixelLook, KEY = 'ossuary.look';
 let look: PixelLook = { lines: P.start, outline: true, bands: false };
 try {
-  const v = JSON.parse(localStorage.getItem(KEY) ?? 'null') as Partial<PixelLook> | null;
-  if (v) look = { lines: P.lines.includes(v.lines ?? -1) ? v.lines! : 0, outline: v.outline !== false, bands: !!v.bands };
+  // (a choice is kept with the default it was made against: when the default changes, the new one shows once)
+  const v = JSON.parse(localStorage.getItem(KEY) ?? 'null') as (Partial<PixelLook> & { start?: number }) | null;
+  if (v && v.start === P.start) look = { lines: P.lines.includes(v.lines ?? -1) ? v.lines! : 0, outline: v.outline !== false, bands: !!v.bands };
 } catch { /* no storage: the default */ }
 if (typeof location !== 'undefined') {
   const q = new URLSearchParams(location.search).get('pixel');
@@ -35,7 +35,7 @@ export const pixelLook = (): Readonly<PixelLook> => look;
 export function setPixelLook(change: Partial<PixelLook>) {
   look = { ...look, ...change };
   if (!P.lines.includes(look.lines)) look.lines = 0;
-  try { localStorage.setItem(KEY, JSON.stringify(look)); } catch { /* not remembered */ }
+  try { localStorage.setItem(KEY, JSON.stringify({ ...look, start: P.start })); } catch { /* not remembered */ }
 }
 
 /* ---------- drawing ---------- */

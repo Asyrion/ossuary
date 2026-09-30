@@ -12,7 +12,7 @@ import type { Bolt, Box, Enemy, RockBox, Room } from '../types';
 import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
-import { basicMat, blob, glowShared, markShared, sphereGeo } from '../render/materials';
+import { basicMat, blob, glowShared, sphereGeo } from '../render/materials';
 import { blockers, boxAt } from '../world/collision';
 import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
 import { strikeProp } from '../world/props';
@@ -28,6 +28,7 @@ import { GILT_COLOR, type BoltPath } from '../items/artifactData';
 import type { StatusKind } from '../magic/spellData';
 import { inflict } from '../magic/statusFx';
 import { frostAt } from '../world/pools';
+import { animateBolt, boltLook, impactFx } from '../magic/spellFx';
 
 const BLESSED = 0xfff0b0; // a blessed cast's gold
 
@@ -36,16 +37,13 @@ interface BoltSpec {
   /** A spell's bolt, with the spell's statuses; `shard` makes it a splinter of ice instead of an orb. */ spell?: boolean; status?: Partial<Record<StatusKind, number>>; shard?: boolean;
 }
 
-let shardGeo: THREE.OctahedronGeometry | null = null;
 function makeBolt(s: BoltSpec) {
   const mesh = new THREE.Group(); const y = .6;
   const shadow = blob(.35 * Math.min(1.4, s.scale)); shadow.position.y = -y + .015;
-  let core: THREE.Mesh;
-  if (s.shard) { // a splinter of ice, pointing where it flies
-    core = new THREE.Mesh(shardGeo ??= markShared(new THREE.OctahedronGeometry(1, 0)), basicMat(s.color));
-    core.scale.set(.06 * s.scale, .06 * s.scale, .24 * s.scale); mesh.rotation.y = Math.atan2(s.vx, s.vz);
-  } else core = new THREE.Mesh(sphereGeo(.1 * s.scale), basicMat(s.color));
-  mesh.add(core, glowShared(s.color, .75 * s.scale, .9), shadow);
+  // (its look, from spellFx.ts: the core, then its glow and shadow at 1 and 2, then rings, runes or a trail)
+  const look = boltLook(s.color, s.scale, !!s.shard);
+  mesh.add(look.core, glowShared(s.color, .75 * s.scale, .9), shadow, ...look.extras);
+  mesh.rotation.y = Math.atan2(s.vx, s.vz); animateBolt(mesh, 0, 0, 0);
   mesh.position.set(s.x, y, s.z); scene.add(mesh);
   const b: Bolt = {
     x: s.x, z: s.z, y, vx: s.vx, vz: s.vz, speed: Math.hypot(s.vx, s.vz), dist: 0, range: s.range, r: .12 * s.scale, mesh,
@@ -141,7 +139,7 @@ export function strikeSolid(room: Room, box: Box, x: number, y: number, z: numbe
 
 function removeBolt(i: number, fizzle = true) {
   const b = G.bolts[i]; scene.remove(b.mesh); G.bolts.splice(i, 1);
-  if (fizzle) { burst(b.x, Math.max(.1, b.y), b.z, b.color, b.secondary ? 3 : 5, 1.6, .05); Sfx.at(b.x, b.z).splash(); }
+  if (fizzle) { burst(b.x, Math.max(.1, b.y), b.z, b.color, b.secondary ? 3 : 5, 1.6, .05); impactFx(b.x, Math.max(.15, b.y), b.z, b.color, b.secondary ? .7 : 1); Sfx.at(b.x, b.z).splash(); }
 }
 
 export function updateBolts(dt: number) {
@@ -225,7 +223,7 @@ export function updateBolts(dt: number) {
       if (gl) { detonateGlyph(gl); if (b.path !== 'boomerang') kill = true; }
     }
     if (b.status?.chill) frostAt(b.x, b.z); // a frost bolt freezes the water it flies over
-    b.mesh.position.set(b.x, b.y, b.z); b.mesh.children[2].position.y = -b.y + .015;
+    b.mesh.position.set(b.x, b.y, b.z); b.mesh.children[2].position.y = -b.y + .015; animateBolt(b.mesh, b.x - ox, b.z - oz, dt);
     if (kill) removeBolt(i);
   }
 }

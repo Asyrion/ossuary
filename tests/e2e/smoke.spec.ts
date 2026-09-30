@@ -671,7 +671,7 @@ test('statuses: chill freezes and stops a foe, Shatter and Overload go off, boss
 });
 
 type G11 = Omit<G10, 'current' | 'enemies' | 'player'> & {
-  clearRoom(): void; shoot(x: number, z: number, dx: number, dz: number): void; readonly mantle: number; readonly lanceFx: boolean; oldLance(on?: boolean): void;
+  clearRoom(): void; shoot(x: number, z: number, dx: number, dz: number): void; readonly mantle: number; readonly spellFx: { lance: boolean; rings: number; strikes: number };
   shots: unknown[]; bolts: unknown[]; current: G10['current'] & { barriers?: unknown[] };
   enemies: (G10['enemies'][number] & { lastHit?: string })[]; player: G10['player'] & { invuln: number };
 };
@@ -683,23 +683,22 @@ test('spells: the lance burns a line, the seal erupts and leaves fire, shards fr
     const g = (window as unknown as W).__game as unknown as G11, P = g.player; g.warp(1); g.sim(.3);
     P.x -= 4; g.learn('cinder_lance', 0);
     g.spawn('dummy', P.x + 2.5, P.z); g.spawn('dummy', P.x + 5, P.z + .2); g.sim(.8);
-    const cast = g.cast(0, { x: 1, z: 0 }), shows = g.lanceFx; g.sim(.1);
-    const burning = g.enemies.filter(e => (e.status?.burn ?? 0) > 0 && e.lastHit === 'spell').length, still = g.lanceFx; g.sim(.7);
-    // (the dev menu's switch back to the old beam: the same strike, without the new look)
-    const gone = !g.lanceFx; g.oldLance(true); g.mana(999); g.sim(2.1); const again = g.cast(0, { x: 1, z: 0 }), oldShows = g.lanceFx; g.oldLance(false);
-    return { cast, shows, still, gone, again, oldShows, burning };
+    const cast = g.cast(0, { x: 1, z: 0 }), shows = g.spellFx.lance; g.sim(.1);
+    const burning = g.enemies.filter(e => (e.status?.burn ?? 0) > 0 && e.lastHit === 'spell').length, still = g.spellFx.lance; g.sim(.7);
+    return { cast, shows, still, gone: !g.spellFx.lance, burning }; // (its look swells, holds and fades by itself)
   });
-  expect(lance).toEqual({ cast: true, shows: true, still: true, gone: true, again: true, oldShows: false, burning: 2 });
+  expect(lance).toEqual({ cast: true, shows: true, still: true, gone: true, burning: 2 });
   // Pyre Seal: nothing for a heartbeat, then the ring strikes, burns and throws back; the ground burns on
   const seal = await page.evaluate(() => {
     const g = (window as unknown as W).__game as unknown as G11, P = g.player; g.clearRoom(); g.sim(.3); g.mana(999); g.learn('pyre_seal', 1);
     const foe = g.spawn('rotling', P.x + 1.2, P.z - .6); g.sim(.8); foe.hp = 60;
     g.cast(1); g.sim(.5); const early = foe.status?.burn ?? 0, at = { x: foe.x, z: foe.z };
-    g.sim(.6); const hit = 60 - foe.hp, burn = foe.status?.burn ?? 0;
+    g.sim(.6); const hit = 60 - foe.hp, burn = foe.status?.burn ?? 0, shockwave = g.spellFx.rings > 0;
     g.clearRoom(); const late = g.spawn('dummy', P.x, P.z); g.sim(1.5); P.hp = P.maxHp;
-    return { early, hit, burn, ground: late.status?.burn ?? 0, pushed: Math.hypot(foe.x - at.x, foe.z - at.z) };
+    return { early, hit, burn, shockwave, ground: late.status?.burn ?? 0, pushed: Math.hypot(foe.x - at.x, foe.z - at.z) };
   });
   expect(seal.early).toBe(0);
+  expect(seal.shockwave).toBe(true); // (the eruption's ring of fire on the floor)
   expect(seal.hit).toBeGreaterThanOrEqual(14);
   expect(seal.burn).toBeGreaterThan(3);
   expect(seal.ground).toBeGreaterThan(0); // walked onto burning ground after the eruption
@@ -732,11 +731,14 @@ test('spells: the lance burns a line, the seal erupts and leaves fire, shards fr
     const a = g.spawn('rotling', P.x - .8, P.z - 1.2), b = g.spawn('rotling', P.x + 1, P.z - 1); g.sim(.7); a.hp = b.hp = 60;
     g.cast(0); const hp = P.hp; g.sim(1.5);
     const during = { hurt: hp - P.hp, left: g.mantle, zapped: g.enemies.filter(e => e.hp < 60 && e.lastHit === 'spell').length };
-    P.invuln = 0; const hp2 = P.hp; g.sim(5.5);
-    return { during, left: g.mantle, hurtAfter: hp2 - P.hp };
+    let crackled = 0; for (let i = 0; i < 20; i++) { g.sim(.05); crackled = Math.max(crackled, g.spellFx.strikes); } // (arcs over the mage, zaps)
+    P.invuln = 0; const hp2 = P.hp; g.sim(4.5);
+    return { during, crackled, left: g.mantle, hurtAfter: hp2 - P.hp, gone: g.spellFx.strikes };
   });
   expect(mantle.during).toMatchObject({ hurt: 0, zapped: 2 });
   expect(mantle.during.left).toBeGreaterThan(4);
+  expect(mantle.crackled).toBeGreaterThan(0);
+  expect(mantle.gone).toBe(0); // (the lightning goes back to its pool when it's done)
   expect(mantle.left).toBe(0);
   expect(mantle.hurtAfter).toBeGreaterThan(0);
   expect(errors).toEqual([]);
@@ -1664,6 +1666,12 @@ test('the pixel look: on from the URL, drawn with outlines and light in bands, t
     g.setPixelLook({ lines: 270 }); const at = g.modelOptions(); g.sim(.5, true); g.setPixelLook({ lines: 0 }); return at.map(a => a.id);
   });
   expect(shown.length).toBe(10);
+  // and the familiar options (the owner's drawings built in code): the Rune Fox
+  const familiars = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GP & { takeModelOptions(): void; familiarOptions(): { id: string }[] } }).__game;
+    g.takeModelOptions(); g.setPixelLook({ lines: 360 }); const at = g.familiarOptions(); g.sim(.5, true); g.setPixelLook({ lines: 0 }); return at.map(a => a.id);
+  });
+  expect(familiars).toEqual(['runeFox']);
   // and the spell effect options, each playing its cast over and over
   const played = await page.evaluate(() => {
     const g = (window as unknown as { __game: GP & { takeModelOptions(): void; effectOptions(): { id: string }[] } }).__game;

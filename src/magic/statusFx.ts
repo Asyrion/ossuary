@@ -17,6 +17,7 @@ import { fireSpellBolt } from '../combat/projectiles';
 import { MAGIC, applyStatus, consumeShock, newStatus, tickStatus, type Reaction } from './status';
 import type { StatusKind } from './spellData';
 import { touchPools } from '../world/pools';
+import { ringFx, strikeFx } from './spellFx';
 
 const R = MAGIC.reactions;
 const ICE = 0xbfe6ff, FIRE = 0xff7a2a, SPARK = 0xf0e890;
@@ -57,6 +58,7 @@ function react(e: Enemy, r: Reaction) {
       fireSpellBolt(x, z, Math.cos(a), Math.sin(a), { damage: S.shardDamage, range: S.shardRange, scale: .8, color: ICE, speed: 9, shard: true });
     }
     burst(e.x, .6, e.z, ICE, 24, 3, .06); burst(e.x, .6, e.z, 0xffffff, 10, 2, .04);
+    ringFx(e.x, .6, e.z, 0xffffff, .15, 1.1, .3); ringFx(e.x, .05, e.z, ICE, .2, 1.5, .45, true); // a flash, and frost thrown out over the floor
     Sfx.at(e.x, e.z).shatter(); G.shake = Math.max(G.shake, .2);
     damageEnemy(e, S.damage, 0, 0, 0, 'spell');
   } else {
@@ -71,6 +73,8 @@ function react(e: Enemy, r: Reaction) {
       if (!o.isBoss && o !== e) { o.kx += ux * O.knockback; o.kz += uz * O.knockback; }
     }
     burst(e.x, .6, e.z, FIRE, 22, 4, .07); burst(e.x, .8, e.z, SPARK, 14, 3.5, .04);
+    ringFx(e.x, .05, e.z, FIRE, .3, O.radius, .45, true); ringFx(e.x, .7, e.z, 0xffe080, .2, 1.2, .3); // the shockwave, and a flash
+    for (let i = 0; i < 3; i++) { const a = Math.random() * Math.PI * 2, d = O.radius * (.4 + Math.random() * .4); strikeFx({ x: e.x, y: .7, z: e.z }, { x: e.x + Math.cos(a) * d, y: .2 + Math.random() * .6, z: e.z + Math.sin(a) * d }, SPARK, .25, true); }
     Sfx.at(e.x, e.z).overload(); G.shake = Math.max(G.shake, .35);
   }
 }

@@ -1,8 +1,8 @@
 /* Spell effect options (the owner's request, 2026-09-29): the spells' effects built in code in the same arcane style as
    the enemy options, for the pixel look. Each is a looping demo that plays one cast from start to end over and over
-   (a charge, the cast, its flight or its hold, the impact), worked out from the time alone. They are looks only: the
-   dev menu's gallery stands them ahead of the mage, and the ones the owner likes replace the spells' own effects in
-   magic/shapes.ts and combat/projectiles.ts later. Names and notes in STR.effects. */
+   (a charge, the cast, its flight or its hold, the impact), worked out from the time alone. The owner liked them
+   (2026-09-30): the spells now wear these looks (magic/spellFx.ts), and the gallery stays as the style book, with the
+   previews of the schools to come (docs/effects.md). Names and notes in STR.effects. */
 import * as THREE from 'three';
 import type { Room } from '../types';
 import { disposeTree, glow } from '../render/materials';

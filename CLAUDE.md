@@ -12,10 +12,11 @@ asset checklist lives in the owner's claude.ai project "Tripo3D-GameDev"; `docs/
 side of asset making: which tool for what (MidJourney, Tripo3D and other image models), the house style (one
 style reference in every image), budgets per kind of asset, the pipeline from image to game, and the asset
 log; its Sound section does the same for sound (sources and their licences, the house sound, specs, pipeline).
+`docs/effects.md` is the house style for magic effects (every spell's look, the schools' light, budgets, how to add one).
 When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3.5 step 1 built (the asset pipeline's tooling, `docs/M3.5-plan.md`); step 2 under way: the pixel look chosen (on by default at 270 lines), the owner sets the house style next; the enemy options redone as critters and the Cinder Lance's new look (a proof of concept) wait on the owner; M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3.5 step 1 built (the asset pipeline's tooling, `docs/M3.5-plan.md`); step 2 under way: the pixel look chosen (on by default at 360 lines), the owner sets the house style next; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -191,22 +192,27 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   fantasy creatures built in code from simple shapes (round, big eyes from `bigEyes`, smaller than the mage; not the dead),
   each with a school's light and a floor (GDD: Enemies built in code), looks only for now, each with an idle motion
   (`updateModelOptions` in the loop); the dev menu stands them ahead of the mage in rows by floor, or takes them
-  away; `__game.modelOptions(ids?)`, `__game.takeModelOptions()`; names and notes in `STR.options`.
+  away; `__game.modelOptions(ids?)`, `__game.takeModelOptions()`; names and notes in `STR.options`. Familiars built the
+  same way from the owner's drawings (`FAMILIAR_OPTIONS`: the Rune Fox) have their own dev menu section,
+  `__game.familiarOptions(ids?)`, names in `STR.familiars`.
 - Spell effect options (`src/magic/effectOptions.ts`, the owner's request): the spells' effects redone in the same style,
   each a looping demo of one cast worked out from the time (the cantrip, Cinder Lance, Pyre Seal, Rime Shards, Glacial
   Wall, Arc, Static Mantle, Shatter, Overload, and previews of Hallow and Umbral); the dev menu plays them ahead of the
-  mage; `__game.effectOptions(ids?)`, `__game.takeEffectOptions()`; names in `STR.effects`. The ones the owner likes
-  replace the spells' own effects later. The first, as a proof of concept, is the Cinder Lance on the real spell
-  (`src/magic/lanceFx.ts`: built once and shown for each cast by `beam` in `shapes.ts`, tuning in `CFG.lanceFx`); the dev
-  menu switches back to the old beam (`DEV.oldLance`); `__game.lanceFx` reads whether it shows, `__game.oldLance(on)`. Both galleries build from `src/render/arcane.ts`: materials, parts, rods, runes,
-  rune rings, magic circles, crystals, motes, lightning and waves.
-- The pixel look (the game's look since 2026-09-30, on by default at 270 lines, `CFG.pixelLook.start`; chosen in M3.5
+  mage; `__game.effectOptions(ids?)`, `__game.takeEffectOptions()`; names in `STR.effects`. The gallery is the style book:
+  every spell now wears its look (2026-09-30). The looks are in `src/magic/spellFx.ts` (`boltLook` and `animateBolt` for
+  the cantrip and shards, `impactFx`, pooled `ringFx` and `strikeFx`, `lanceFx`, `sealFx`, `iceColumn`, `mantleFx`;
+  timings in `CFG.spellFx`), called from `shapes.ts`, `projectiles.ts` and `statusFx.ts`, which keep what the spells do;
+  `__game.spellFx` reads what shows (the lance, rings, lightning). `docs/effects.md` is the guide for new effects. Both
+  galleries build from `src/render/arcane.ts`: materials, parts, rods, runes, rune rings, magic circles, crystals, motes,
+  lightning and waves.
+- The pixel look (the game's look since 2026-09-30, on by default at 360 lines, `CFG.pixelLook.start`; chosen in M3.5
   step 2; `src/render/pixelLook.ts`, tuning in `CFG.pixelLook`): the scene drawn into
-  a target 360, 270 or 180 lines tall with no smoothing, the camera snapped to its grid, and blown up to the window in
+  a target 540, 360, 270 or 180 lines tall with no smoothing, the camera snapped to its grid, and blown up to the window in
   whole pixels by one full-screen pass (outlines from depth, light in bands); the HUD stays sharp. The scene is tone-mapped
   and encoded by its own shaders (the target flagged as an XR target, stored as plain RGBA8), so it blends as on the canvas.
   `draw()` in `render/renderer.ts` picks it; draw calls are counted per frame over both passes (`renderer.info`
-  reset in `draw()`). The dev menu switches it, remembered in the browser (`ossuary.look`); `?pixel=off` or
+  reset in `draw()`). The dev menu switches it, remembered in the browser (`ossuary.look`, with the default it was chosen
+  against: a new default shows once); `?pixel=off` or
   `?pixel=360`; `__game.pixelLook` reads it and `__game.setPixelLook({ lines, outline, bands })` sets it.
 - `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
   1,024 px JPEG textures). Clips: `standing_relax`, `run`, `walk` (slow movement), `cast_a_spell`,
@@ -358,6 +364,9 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
 - **M4 Enemies in code** (the owner's decision, 2026-09-29, instead of Tripo): the ten enemy options (GDD: Enemies built in
   code; four on floor 1, three on each other floor) made foes with behaviour, health, sounds and elemental affinities, and a
   boss built the same way.
+- **M4.5 Bestiary** (decided 2026-09-30): a whole host more creatures built in code (small critters, fantasy creatures,
+  elementals) and new kinds of enemy behaviour, each a look in the dev menu's gallery first, chosen by the owner, then a
+  foe (GDD: The Bestiary; ideas in `docs/ideas.md`, Bestiary).
 - **M5 Alchemy:** potion belt, drink or throw, identification, 4 reagents, alchemy table.
 - **M6 RPG growth:** XP, levels, attributes, 12 boons, runes and waystones.
 - **M7 Descent and the Vigil:** final boss; the hub between runs, decided 2026-09-29 (GDD: RPG progression, Between runs:

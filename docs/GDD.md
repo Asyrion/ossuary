@@ -171,12 +171,16 @@ creatures rather than the dead: round, big-eyed and smaller than the mage. All t
 | 3 | Rime Drakeling (elite) | Frost | A small dragon with ice crystals for horns and spines; breathes rime and takes to its wings |
 
 Behaviour, health, sounds and the affinities (Enemy affinities, below) are M4's to design; a foe's school is a
-starting point for them. If the owner likes the critters, a whole host more follow in the same style.
+starting point for them.
 
-The spells' effects are being redone in the same style: a gallery of looping effects for the owner to judge
-(`src/magic/effectOptions.ts`), and the Cinder Lance on the real spell as a proof of concept (`src/magic/lanceFx.ts`,
-2026-09-30; the dev menu switches back to the old beam to compare). If the owner likes it, every spell's effect is
-redone, and a whole host of new ones made.
+**The Bestiary (M4.5, decided 2026-09-30).** The owner liked the critters and wants a whole host more: small critters,
+fantasy creatures and elementals, and new kinds of enemy behaviour. They come after M4, which builds the enemy
+framework on the ten. Each is drawn up in code as a look first (the dev menu's gallery), chosen by the owner, then
+made a foe. The rules of the ten hold: round, readable shapes; big eyes on the critters; a school's light; smaller than
+the mage (elites and bosses aside); a floor each. The ideas to choose from are in `docs/ideas.md` (Bestiary).
+
+**Spell effects in the same style (decided 2026-09-30).** The owner liked the Cinder Lance in the new style, so every
+spell's effect is redone in it, and `docs/effects.md` is the guide for every effect to come.
 
 **Enemy asset needs per creature:** a run or move clip, an attack clip, a hit reaction and a death. The hero's layered animation system is reused for enemies.
 
@@ -817,7 +821,7 @@ The look is a candle-lit cutaway diorama in pixel-art 3D: dark stone rooms, warm
 - **UI:** hearts top left, mana bar, spell slots with cooldowns, potion belt, artifacts and obol, key and glyph counters below them, minimap top right, boss bar bottom centre, lore cards bottom right. Typefaces Cinzel (titles), Alegreya (lore and banners) and Alegreya Sans (UI).
 - **Audio:** simple synthesised effects for now; the full plan is in Audio design, and where sounds come from (sources, licences, specs, pipeline) is in `docs/assets.md` (Sound).
 
-**The pixel look (decided 2026-09-30, M3.5 step 2).** The owner was drawn to a cartoony or pixel-art style and chose pixel-art 3D over cartoon 3D at full resolution, after comparing them in the game. The models and the game's lights are drawn at 270 lines (a 480 × 270 grid on a 16:9 screen: at 1080p each game pixel is 4 × 4 screen pixels, and the mage about 32 pixels tall) and blown up in whole pixels, with outlines from depth; light in bands stays off. 360 lines looks like sharp 3D, and at 180 small objects stop reading. Tiles, icons and effects are drawn as pixel art; concept art for Tripo stays clean cartoon. The game starts in it; the dev menu and `?pixel=` still switch it (`src/render/pixelLook.ts`). It replaces the painted-miniature direction, and the house style in `docs/assets.md` follows it.
+**The pixel look (decided 2026-09-30, M3.5 step 2).** The owner was drawn to a cartoony or pixel-art style and chose pixel-art 3D over cartoon 3D at full resolution, after comparing them in the game. The models and the game's lights are drawn at 360 lines (a 640 × 360 grid on a 16:9 screen: at 1080p each game pixel is 3 × 3 screen pixels, and the mage about 43 pixels tall) and blown up in whole pixels, with outlines from depth; light in bands stays off. It started at 270 (4 × 4, the mage about 32 pixels), but in the play-test of 2026-09-30 the mage and small things didn't read in a full-screen window; 540 (2 × 2) is offered in the dev menu for a sharper look, and at 180 small objects stop reading. Tiles, icons and effects are drawn as pixel art; concept art for Tripo stays clean cartoon. The game starts in it; the dev menu and `?pixel=` still switch it (`src/render/pixelLook.ts`). It replaces the painted-miniature direction, and the house style in `docs/assets.md` follows it.
 
 **Identity note.** The current hero is close to the Isaac art style. Fine for a hobby prototype; if the game is ever published, characters and art need their own look.
 
@@ -1003,6 +1007,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M3.6 Rooms of Eda | Places, not arenas | Carved outlines, dressed walls and doors off the middle; twelve themed rooms with their own objects and twists; new objects and piles, and mechanisms that answer to magic (`docs/M3.6-plan.md`) |
 | M3.7 Spell knowledge | Know your spells | Panels over grimoire pages and in the inventory that fill in as spells are seen, learned, used and later upgraded; the spells tab by school; knowledge kept between runs (Spells: Spell knowledge) |
 | M4 Enemies in code | Own creatures | The ten enemies built in code (Enemies built in code: four on floor 1, three on each of the others) as foes with behaviour, health, sounds and elemental affinities, and a boss built the same way (the owner chose code over Tripo, 2026-09-29) |
+| M4.5 Bestiary | A living dungeon | More critters, fantasy creatures and elementals built in code, and new kinds of enemy behaviour, spread over the floors; each drawn up as a look, chosen by the owner, then made a foe (Combat and enemies: The Bestiary; ideas in `docs/ideas.md`, decided 2026-09-30) |
 | M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
 | M7 Descent and the Vigil | A full run with a reason to return | Final boss; the Vigil (RPG progression: Between runs): freed shades as townspeople with dialogue, its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines |
