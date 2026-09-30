@@ -503,7 +503,7 @@ Twenty-one notes from the owner's Eda vault: characters (Asyrion, Boketto the St
 Wandering Merchant of Belerial), cultures (the Huruhui, the nomads of Belerial), creatures (Fen-Nex, the War-Tigers and
 other creatures of the Longwood) and places (the Longwood and its World Trees, the Ruins of Lukuku, the Plains of
 Belerial, the Swamps of Ulum, Gekiryu, Dr. Jelly's House, and the two gates of the Pass of Buluiain). The notes embed
-images that aren't in the PR (about half of them are an image and a link); the owner shared ten of them in the session,
+images that aren't in the PR (about half of them are an image and a link); the owner shared twenty of them in the session,
 read below. What follows is what the text and those images suggest for the game; none of it is design until it moves into the GDD, and the in-game names stay
 placeholders until the owner picks which lore goes in (M8).
 
@@ -578,48 +578,66 @@ keeps out. The Huruhui and the Longwood work best as the world above and the los
 roots), not as the tone of the crypts. The placeholder lore's rule (the dungeon only, no gods, factions or places) can
 loosen as the owner decides which of these the game names.
 
-### From the images the owner shared (five of them, 2026-09-30)
+### From the images the owner shared (twenty of them, 2026-09-30)
 
-- **Asyrion** (the fire mage): long black hair, a dark coat worked all over in bronze filigree, a flame held in one hand;
-  round him, rune orbs glowing red in thin gold circles, and white arcs of wind. It is our mage already: fire in the
-  hand (Ember), runes in circles (the blast glyphs and the ward circles), wind at his back (Storm). Ideas: the hero model
-  for Tripo from this sheet; the cantrip's bolt a flame and the glyphs drawn as his red rune orbs in gold rings; an
-  artifact or costume aura of two or three rune orbs that circle the mage in gold rings and go off like glyphs when a
-  foe touches one; and, for "assassin", a first strike on a foe that hasn't seen the mage (asleep, a statue, in the dark
-  variant) that lands as a crit.
-- **The cave mouth over the valley** (sunlight through a cave onto a green canyon and a river): the way out. The
-  Vigil could be this cave mouth above the Huruhui valleys, the runs going down behind it; and the last floor could end
-  here, the trapdoor replaced by daylight at the end of the dark (the cloister garth's daylight already draws it).
-- **The riders of Belerial** (wide hats, ponchos and fur, a helm of horns, and a horned, long-faced beast with a gem at
-  its breast) and **the nomads on the road** (riders in bone masks, and a tall walker with a stag's skull for a face,
-  great horns and a staff, a herd behind). The skull masks and horns are the darkest thing in the drop and sit well in
-  the crypts: the Wandering Merchant as the skull-faced walker with a pack beast (a second trader, or the Bound Shade's
-  replacement); a masked rider as a boss (the Horned Rider, charging as the Hart does, with its beast); bone masks as a
-  costume slot (head) for M4.6; the beast as a mount or a pack animal in the Vigil.
-- **The great gate** (towers either side of an arch as tall as a hill, stairs up to it, a snowy peak framed in it, yellow
-  plains before it): the Gates of Belerial, or Belregi's. A title screen or the Vigil's threshold; in the dungeon, the
-  vault's warded door (M2) and the boss doors could borrow its towers and arch in the room kit.
-
-Five more (the same day):
-
-- **Gekiryu and the Huruhui's cliff towns** (wooden houses on terraces over cascades; a town on a cliff edge with falls
-  pouring off it into a gorge): water that moves. Room kit: a waterfall down the north wall into a pool (the pool's
-  shocks and frost as ever, the fall's mist over it), stilted boards over torrents, and the current tiles noted above.
-  For the Vigil, the terraced town is the shape of a hub that fills in: a house on the terraces lights up for every shade
-  the mage frees.
-- **The jungle canyon** (a mossy stone arch and rope bridges over a chasm, stepping stones, hanging vines, a fall at the
-  back): rooms of bridges. A chasm (pits) crossed by a rope bridge that fire burns through (foes on it fall; the mage
-  must find another way), hanging vines that snag like cobwebs and burn, stepping stones through water. The Longwood
-  floor's rooms, with its roots and ruins.
+People:
+- **Asyrion, twice.** The "Asyrion" note's sheet is a young man (tousled blond hair over a dark undercut, green eyes,
+  freckles, stubble, a grey-green hooded tunic, a traveller's pack); the "fire mage" note's is a dark-haired mage in a
+  bronze-worked coat with a flame in one hand, rune orbs glowing red in thin gold circles round him and white arcs of
+  wind behind. Read together they are the GDD's pitch exactly: an apprentice who goes down and the chaos mage he becomes.
+  The mage can start a run as the apprentice and change towards the fire mage as it goes (M4.6's costumes and
+  transformations already move that way), or across runs in the Vigil. Other ideas from the fire mage: the cantrip's
+  bolt a flame; the glyphs drawn as his red rune orbs in gold rings; an aura of rune orbs that circle the mage and go off
+  like glyphs when a foe touches one; for "assassin", a first strike on a foe that hasn't seen the mage (asleep, a
+  statue, the dark variant) that lands as a crit. The hero's Tripo model can come from these sheets.
+- **Boketto the Storm Caller** (white hair, pointed ears, eyes glowing blue, a violet and teal mark across the face and
+  shoulder, black spiral tattoos down both arms, chains): the Storm transformation's look for M4.6, taken whole: the
+  spirals on the mage's arms, the glow across the shoulder, white hair, eyes that light up when a Storm spell is cast.
+  And the shade in the Vigil who teaches Storm.
 - **The Wandering Merchant of Belerial** (an old man with a white beard, a turban and a staff, riding a huge shaggy pack
-  beast with a red snout and bandaged legs, a crow perched on its head): the second trader, clearly. His shop is his
-  beast's packs; his crow sells what it has seen (the floor's map, where the secret room is); he turns up once a run in
-  an ordinary room, and is gone when the mage leaves it. His beast, calm and enormous, is a look to build in code.
+  beast with a red snout and bandaged legs, a crow perched on its head): the second trader. His shop is his beast's
+  packs; his crow sells what it has seen (the floor's map, where the secret room is); he turns up once a run in an
+  ordinary room and is gone when the mage leaves it. The beast, calm and enormous, is a look to build in code.
+- **The riders and nomads of Belerial** (wide hats, ponchos and fur, a helm of horns, a horned beast with a gem at its
+  breast; riders in bone masks, and a tall walker with a stag's skull for a face, great horns and a staff): the darkest
+  things in the drop, and at home in the crypts. A masked rider as a boss (the Horned Rider, charging with its beast as
+  the Hart does); bone masks as a head piece for M4.6; the skull-faced walker as a shade or a second shopkeeper.
+
+Creatures:
+- **The War-Tiger** (a white-maned tiger armoured in plates of bronze and stone carved with rings, in a dark hall of
+  arches beside a small statue): a boss, not a critter. It stands as a statue until the room wakes (the treasury's
+  guardians and Uzulim's statues again); its plates turn most of a blow (as the gargoyle's stone does), and a blast or a
+  Shatter breaks them off one by one, each leaving it faster and more open. A vault warden for a deep floor.
 - **Fen-Nex** (a long white beast between fox, cat and dragon, its fur blown back into flame-tipped feathers, its legs
-  plated dark blue and marked with red spiral runes, orange eyes): fire and runes, the same palette as Asyrion's sheet.
-  It should be Asyrion's companion: the Eda name and look for the Rune Fox familiar, a familiar that grows with the run
-  (a fox at first, Fen-Nex's full shape late), or a boss of the Longwood; its flame-tipped fur and rune plates would
-  also make a transformation for the mage (three beast artifacts: the pelt as a mantle, the runes on the arms).
+  plated dark blue with red spiral runes, orange eyes): fire and runes, Asyrion's palette. Asyrion's companion: the Eda
+  name and look of the Rune Fox familiar, a familiar that grows with the run (a fox at first, Fen-Nex late), or a boss
+  of the Longwood; its pelt and rune plates would make a beast transformation too.
+- **The antlered fox** (orange and white, long-furred, a stag's antlers, calm on a misty crag among pines): a creature
+  of the Longwood beside the Moonstag Fawn and the Hallowed Hart; a Hallow familiar, or the Vigil's guardian beast.
+- **The pillar dragon** (a long orange and blue-grey dragon with antlers, a spiked mane and a beard, coiled round the top
+  of a stone pillar in the mist): a boss that coils round the room's pillars, moving from one to the next, breathing
+  down on the floor; bolts only reach its head where it leans out. Orange and blue: Ember and Frost at once.
+
+Places:
+- **Gekiryu and the Huruhui's cliff towns** (wooden houses on terraces over cascades; a town on a cliff edge with falls
+  pouring into a gorge): water that moves. Room kit: a waterfall down the north wall into a pool (shock and frost as ever,
+  mist over it), stilted boards over torrents, current tiles that carry the mage, foes, bolts and pickups. For the
+  Vigil, the terraced town is a hub that fills in: a house on the terraces lights up for each shade the mage frees.
+- **The jungle canyon** (a mossy stone arch and rope bridges over a chasm, stepping stones, hanging vines, a fall at the
+  back): rooms of bridges. A chasm crossed by a rope bridge that fire burns through (foes on it fall; the mage finds
+  another way), hanging vines that snag like cobwebs and burn, stepping stones through water: the Longwood floor's rooms.
+- **The cave mouth over the valley** (sunlight through a cave onto a green canyon and its river): the way out. The Vigil
+  as this cave mouth above the valleys, the runs going down behind it; the last floor ending here, in daylight.
+- **The Swamps of Ulum and the Patagoi Atoll** (a delta of green islands and pools between channels, rock spires on
+  the islands): the drowned floor's biome in M8. Room shapes for it: islands of floor in water, a spire as the room's
+  pier, channels that currents run through.
+- **The Plains of Belerial and its gate** (yellow grass to the horizon, towers of rock; an arch as tall as a hill between
+  two towers, stairs up to it, a snowy peak framed in it): the world above. The gate is a title screen or the Vigil's
+  threshold, and its towers and arch could dress the boss doors and the vault's warded door in the room kit.
+- **Dr. Jelly's House** (a laboratory lit green: glass globes of glowing jelly on stands, and behind a great arched
+  window a vat where a jelly serpent coils, a figure at the desk): M5's alchemy room. Glass globes of jelly that burst to
+  a bolt and spill a jelly (the Lantern Jelly's kin) or a reagent; Dr. Jelly as the alchemist who keeps the table; and a
+  boss, the serpent that breaks out of its vat, flooding the room with jelly that slows and conducts.
 
 ### Placeholders the drop could fill (for M8)
 
