@@ -19,7 +19,7 @@ import { fireAt, frostAt } from '../world/pools';
 import { canAct } from './status';
 import type { Shape, SpellDef } from './spellData';
 import { flash, inflict } from './statusFx';
-import { clearSpellFx, iceColumn, lanceFx, mantleFx, ringFx, sealFx, strikeFx, updateSpellFx } from './spellFx';
+import { hideSpellFx, iceColumn, lanceFx, mantleFx, ringFx, sealFx, strikeFx, updateSpellFx } from './spellFx';
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 const FIRE = 0xff7a2a, EMBER = 0xffc060, ICE = 0xbfe6ff;
@@ -75,7 +75,7 @@ const chain: Cast = (def, dir) => {
   let from = { x: player.x + dir.x * .3, y: 1.05, z: player.z + dir.z * .3 };
   path.forEach((e, i) => {
     const to = { x: e.x, y: foeY(e), z: e.z };
-    strikeFx(from, to, color, .3); ringFx(to.x, to.y, to.z, color, .1, .45, .25);
+    strikeFx(from, to, color, CFG.spellFx.chain); ringFx(to.x, to.y, to.z, color, .1, .45, CFG.spellFx.flash);
     const dx = e.x - from.x, dz = e.z - from.z, d = Math.hypot(dx, dz) || 1;
     damageEnemy(e, def.damage * Math.pow(P.falloff, i), dx / d, dz / d, .4, 'spell');
     inflict(e, def.status);
@@ -170,7 +170,7 @@ function erupt(s: (typeof seals)[number]) {
     flame(x, z, i % 2 ? FIRE : EMBER, .7); if (i % 2) burst(x, .2, z, FIRE, 2, 2.2, .06);
   }
   burst(s.x, .3, s.z, FIRE, 14, 3.2, .08);
-  flash(s.x, s.z, 0xff8a3a, P.radius); ringFx(s.x, .05, s.z, FIRE, P.radius * .3, P.radius * 1.25, .45, true);
+  flash(s.x, s.z, 0xff8a3a, P.radius); ringFx(s.x, .05, s.z, FIRE, P.radius * .3, P.radius * 1.25, CFG.spellFx.shockwave, true);
   Sfx.at(s.x, s.z).sealErupt(); G.shake = Math.max(G.shake, .25);
 }
 
@@ -219,20 +219,20 @@ const wall: Cast = (def, dir) => {
   const cx = player.x + dir.x * ahead, cz = player.z + dir.z * ahead;
   if (pointInBoxes(cx, cz, ICE_HALF, solids)) return false;
   // from the middle outwards on both sides, until a wall or rock is in the way
-  const n = Math.max(1, Math.round(P.width / (ICE_HALF * 1.6))), step = P.width / n, spots = [{ x: cx, z: cz }];
+  const n = Math.max(1, Math.round(P.width / (ICE_HALF * 1.6))), step = P.width / n, spots = [{ x: cx, z: cz, k: 0 }]; // (k: steps from the middle)
   for (const s of [-1, 1]) for (let k = 1; k <= n / 2; k++) {
     const x = cx + px * s * k * step, z = cz + pz * s * k * step;
     if (pointInBoxes(x, z, ICE_HALF * .5, solids)) break;
-    spots.push({ x, z });
+    spots.push({ x, z, k });
   }
   // (its look: a pillar of ice for each spot, rising from the middle outwards; iceColumn in spellFx.ts)
   const g = new THREE.Group(), columns: THREE.Group[] = [], boxes: Box[] = [];
-  spots.forEach((p, i) => {
+  for (const p of spots) {
     const c = iceColumn(p.x, p.z, .8 + Math.random() * .45); c.rotation.set((Math.random() - .5) * .16, Math.random() * Math.PI * 2, (Math.random() - .5) * .16);
-    c.userData.delay = Math.min(i, spots.length - i) * .03; c.scale.y = .01; g.add(c); columns.push(c);
+    c.userData.delay = p.k * CFG.spellFx.wallStagger; c.scale.y = .01; g.add(c); columns.push(c);
     boxes.push({ x: p.x, z: p.z, hx: ICE_HALF, hz: ICE_HALF });
     burst(p.x, .3, p.z, ICE, 3, 1.8, .045); frostAt(p.x, p.z, .25); // water it stands in freezes
-  });
+  }
   scene.add(g);
   room.barriers = [...(room.barriers ?? []), ...boxes];
   walls.push({ def, room, boxes, g, columns, t: 0 });
@@ -266,7 +266,7 @@ function dropWall(w: (typeof walls)[number], quiet = false) {
     inflict(e, def.status);
   }
   for (const b of w.boxes) { burst(b.x, .5, b.z, ICE, 6, 2.6, .06); burst(b.x, .8, b.z, 0xffffff, 2, 2, .04); }
-  const mid = w.boxes[Math.floor(w.boxes.length / 2)]; ringFx(mid.x, .05, mid.z, ICE, .3, P.burst + .6, .45, true);
+  const mid = w.boxes[0]; ringFx(mid.x, .05, mid.z, ICE, .3, P.burst + .6, CFG.spellFx.shockwave, true); // (the first box is the middle)
   Sfx.at(w.boxes[0].x, w.boxes[0].z).wallShatter(); G.shake = Math.max(G.shake, .12);
 }
 
@@ -331,7 +331,7 @@ export function updateShapes(dt: number, acting: boolean) {
 
 /** The mage leaves the room: what spells left in it goes quietly (the mantle goes with the mage). */
 export function leaveRoomShapes() {
-  clearSpellFx();
+  hideSpellFx();
   for (const f of flames) scene.remove(f.s); flames.length = 0;
   for (const s of seals) s.fx.drop(); seals.length = 0;
   for (const w of walls) dropWall(w, true); walls.length = 0;

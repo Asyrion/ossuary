@@ -143,7 +143,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
   every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
-  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=360` or `180` changes its rows). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
+  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=540`, `270` or `180` changes its rows). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
   vault, a secret room (behind a cracked wall), a shrine (`?room=shrine_henge`) or a library
   (`?room=library_plain`) next to the start.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
@@ -202,7 +202,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   every spell now wears its look (2026-09-30). The looks are in `src/magic/spellFx.ts` (`boltLook` and `animateBolt` for
   the cantrip and shards, `impactFx`, pooled `ringFx` and `strikeFx`, `lanceFx`, `sealFx`, `iceColumn`, `mantleFx`;
   timings in `CFG.spellFx`), called from `shapes.ts`, `projectiles.ts` and `statusFx.ts`, which keep what the spells do;
-  `__game.spellFx` reads what shows (the lance, rings, lightning). `docs/effects.md` is the guide for new effects. Both
+  `__game.spellFx` reads what shows (the lance, rings, lightning); `hideSpellFx` returns them all to their pools. `docs/effects.md` is the guide for new effects. Both
   galleries build from `src/render/arcane.ts`: materials, parts, rods, runes, rune rings, magic circles, crystals, motes,
   lightning and waves.
 - The pixel look (the game's look since 2026-09-30, on by default at 360 lines, `CFG.pixelLook.start`; chosen in M3.5
@@ -213,7 +213,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `draw()` in `render/renderer.ts` picks it; draw calls are counted per frame over both passes (`renderer.info`
   reset in `draw()`). The dev menu switches it, remembered in the browser (`ossuary.look`, with the default it was chosen
   against: a new default shows once); `?pixel=off` or
-  `?pixel=360`; `__game.pixelLook` reads it and `__game.setPixelLook({ lines, outline, bands })` sets it.
+  `?pixel=540`; `__game.pixelLook` reads it and `__game.setPixelLook({ lines, outline, bands })` sets it.
 - `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
   1,024 px JPEG textures). Clips: `standing_relax`, `run`, `walk` (slow movement), `cast_a_spell`,
   `hit_to_body_01`, `fall` and `defeat_03` (two deaths, one at random), `Drink Potion` (when healed) and
