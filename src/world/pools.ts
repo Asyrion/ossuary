@@ -22,7 +22,7 @@ import { poolsOf } from './templates';
 import { burnPropsAt } from './props';
 import { douseStandsIn, elementAt } from './mechanisms';
 import { blockers, collide } from './collision';
-import type { Flow } from './templates';
+import { fallRuns, type Flow } from './templates';
 
 const C = CFG.surface;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, ICE = 0xbfe6ff, SPARK = 0xf0e890, WATER = 0x5a8a9a;
@@ -64,29 +64,39 @@ export function buildPools(room: Room) {
 /** Each way water flows, as a step on the floor. */
 const FLOW: Record<Flow, [number, number]> = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] };
 
-/** Where the room's water meets the wall upstream, a waterfall pours down the wall into it: one sheet per run of tiles. */
+/** Where the room's water meets the wall upstream, water pours in: down the north or south wall a waterfall from a spout,
+    one sheet per run of tiles (`fallRuns`); from a side wall, seen edge-on, out of a culvert at the floor. */
 function buildFalls(room: Room, flow: Flow) {
-  const t = room.template, [dx, dz] = FLOW[flow], { minX, minZ, maxX, maxZ } = room.bounds;
-  const edge = (c: number, r: number) => room.poolGrid?.[r]?.[c]?.kind === 'water' && (dx ? (dx > 0 ? c === 0 : c === t.w - 1) : (dz > 0 ? r === 0 : r === t.h - 1));
-  const runs: number[][] = [];
-  for (let i = 0; i < (dx ? t.h : t.w); i++) { // along the upstream wall
-    const at = dx ? edge(dx > 0 ? 0 : t.w - 1, i) : edge(i, dz > 0 ? 0 : t.h - 1);
-    if (at) { if (runs.length && runs[runs.length - 1].at(-1) === i - 1) runs[runs.length - 1].push(i); else runs.push([i]); }
-  }
+  const [dx, dz] = FLOW[flow], { minX, minZ, maxX, maxZ } = room.bounds;
   room.falls = [];
-  for (const run of runs) {
-    const width = run.length, mid = run[0] + width / 2, height = dz > 0 ? 1.35 : dz < 0 ? .5 : 1.05; // (the north wall is tall, the south low)
-    const tex = floorOwnedTexture(fallTexture().clone()); tex.repeat.set(width, height * 1.5); tex.needsUpdate = true; // (freed with the floor)
+  const stone = new THREE.MeshStandardMaterial({ color: 0x3a3632, roughness: 1 }); // (the spouts' and culverts': freed with the room)
+  for (const run of fallRuns(room.template)) {
+    const width = run.i1 - run.i0, mid = run.i0 + width / 2;
+    const tex = floorOwnedTexture(fallTexture().clone()); tex.needsUpdate = true; // (freed with the floor)
+    const foam = new THREE.Mesh(new THREE.PlaneGeometry(dx ? .6 : width, dx ? width : .5).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: tex, color: 0x9cc8d8, transparent: true, opacity: .45, depthWrite: false }));
+    foam.renderOrder = 2;
+    if (dx) { // a culvert low in the side wall, its dark mouth and the water spilling out of it
+      const wx = dx > 0 ? minX : maxX, z = minZ + mid;
+      const culvert = new THREE.Mesh(new THREE.BoxGeometry(.36, .42, width + .2), stone); culvert.position.set(wx + dx * .15 - room.cx, .21, z - room.cz); room.group.add(culvert);
+      const mouth = new THREE.Mesh(new THREE.PlaneGeometry(width - .1, .26), new THREE.MeshBasicMaterial({ color: 0x050607 }));
+      mouth.rotation.y = dx > 0 ? Math.PI / 2 : -Math.PI / 2; mouth.position.set(wx + dx * .34 - room.cx, .17, z - room.cz); room.group.add(mouth);
+      tex.repeat.set(1, width * 2);
+      const spill = new THREE.Mesh(new THREE.PlaneGeometry(.5, width).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: tex, color: 0x5a94ae, transparent: true, opacity: .75, depthWrite: false }));
+      spill.position.set(wx + dx * .55 - room.cx, .03, z - room.cz); spill.renderOrder = 2; room.group.add(spill);
+      foam.position.set(wx + dx * .85 - room.cx, .025, z - room.cz); room.group.add(foam);
+      room.falls.push({ mesh: spill, tex });
+      continue;
+    }
+    const height = dz > 0 ? 1.35 : .5; // (the north wall is tall, the south low)
+    tex.repeat.set(width, height * 1.5);
     const mat = new THREE.MeshBasicMaterial({ map: tex, color: 0x5a94ae, transparent: true, opacity: .88, depthWrite: false }); // (dark water, its streaks pale)
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), mat);
-    if (dx) { mesh.rotation.y = dx > 0 ? Math.PI / 2 : -Math.PI / 2; mesh.position.set((dx > 0 ? minX + .03 : maxX - .03) - room.cx, height / 2, minZ + mid - room.cz); }
-    else { mesh.rotation.y = dz > 0 ? 0 : Math.PI; mesh.position.set(minX + mid - room.cx, height / 2, (dz > 0 ? minZ + .03 : maxZ - .03) - room.cz); }
+    mesh.rotation.y = dz > 0 ? 0 : Math.PI; mesh.position.set(minX + mid - room.cx, height / 2, (dz > 0 ? minZ + .03 : maxZ - .03) - room.cz);
     room.group.add(mesh);
     // the spout it pours from: a dark culvert in the wall at its top
-    const spout = new THREE.Mesh(new THREE.BoxGeometry(width + .24, .2, .14), new THREE.MeshStandardMaterial({ color: 0x3a3632, roughness: 1 }));
+    const spout = new THREE.Mesh(new THREE.BoxGeometry(width + .24, .2, .14), stone);
     spout.position.copy(mesh.position); spout.position.y = height - .06; spout.rotation.y = mesh.rotation.y; room.group.add(spout);
-    const foam = new THREE.Mesh(new THREE.PlaneGeometry(dx ? .5 : width, dx ? width : .5).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: tex, color: 0x9cc8d8, transparent: true, opacity: .45, depthWrite: false }));
-    foam.position.set(mesh.position.x + dx * .25, .02, mesh.position.z + dz * .25); foam.renderOrder = 2; room.group.add(foam);
+    foam.position.set(mesh.position.x, .02, mesh.position.z + dz * .25); room.group.add(foam);
     room.falls.push({ mesh, tex });
   }
 }

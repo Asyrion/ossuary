@@ -54,7 +54,7 @@ function sealMark(room: Room, door: VaultSeal['outer']) {
     lock.add(body, shackle);
   }
   // the light it has drunk, filling a disc behind the rune (its own material: it takes the colour of what it drank most)
-  const cup = new THREE.Mesh(new THREE.CircleGeometry(.5, 24), new THREE.MeshBasicMaterial({ color: WARD, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const cup = new THREE.Mesh(new THREE.CircleGeometry(.5, 24), new THREE.MeshBasicMaterial({ color: WARD, transparent: true, opacity: 0, depthWrite: false })); // (not added light: over the rune and its glow it would wash white)
   cup.position.z = -.03; cup.scale.setScalar(.3);
   g.add(rune, lock, glow(WARD, 1.3, .5), cup);
   room.group.add(g);
@@ -136,7 +136,7 @@ export function drinkSpell(s: VaultSeal, def: SpellDef) {
   const at = { x: s.outer.x, y: .8, z: s.outer.z }, color = parseInt(def.color.slice(1), 16);
   strikeFx({ x: player.x, y: .9, z: player.z }, at, color, .3, true); burst(at.x, at.y, at.z, color, 10, 1.6, .04);
   const full = drink(s.drink, def.school, def.mana), top = mostDrunk(s.drink), m = s.cup.material as THREE.MeshBasicMaterial;
-  m.color.setHex(SCHOOL_LIGHT[top]); m.opacity = .15 + .6 * fullness(s.drink); s.cup.scale.setScalar(.3 + .7 * fullness(s.drink));
+  m.color.setHex(SCHOOL_LIGHT[top]).multiplyScalar(.8); m.opacity = .2 + .45 * fullness(s.drink); s.cup.scale.setScalar(.3 + .7 * fullness(s.drink));
   s.mark.scale.setScalar(1.2); Sfx.at(at.x, at.z).wardDrink();
   if (!full) { if (s.drink.total === def.mana) toast(STR.toast.wardDrinks, 4); return; } // (the first spell it drinks: what it is doing)
   Sfx.at(at.x, at.z).wardBurst(); toast(STR.toast.wardBursts(STR.schools[top]), 4);

@@ -136,6 +136,21 @@ export function validateTemplate(def: TemplateDef): string[] {
 }
 
 /** Pools in a parsed template: water or oil tiles joined side by side (not corner to corner) into one pool. */
+/** Where a room's running water (M4.2, `current`) meets the wall it flows from: the runs of water tiles along that
+    edge (tile indices along the wall, `i1` past the last), each a waterfall's span, and the wall they pour from. */
+export function fallRuns(t: Pick<Template, 'tiles' | 'w' | 'h' | 'current'>) {
+  const f = t.current, runs: { side: Flow; i0: number; i1: number }[] = [];
+  if (!f) return runs;
+  const side = ({ s: 'n', n: 's', e: 'w', w: 'e' } as const)[f], across = f === 'e' || f === 'w';
+  for (let i = 0; i < (across ? t.h : t.w); i++) {
+    const [c, r] = f === 's' ? [i, 0] : f === 'n' ? [i, t.h - 1] : f === 'e' ? [0, i] : [t.w - 1, i];
+    if (wet(t.tiles[r][c]) !== 'water') continue;
+    const last = runs.at(-1);
+    if (last && last.i1 === i) last.i1 = i + 1; else runs.push({ side, i0: i, i1: i + 1 });
+  }
+  return runs;
+}
+
 /** A tile as far as pools go: a candle stand standing in water (M4.2) is part of the pool round it. */
 const wet = (tile: Tile) => tile === 'wetCandles' ? 'water' : tile;
 export function poolsOf(t: Pick<Template, 'tiles' | 'w' | 'h'>) {
@@ -159,16 +174,18 @@ export function poolsOf(t: Pick<Template, 'tiles' | 'w' | 'h'>) {
 /** Grow `count` puddles of water, each `size` tiles (least, most), over a template's plain floor, from spots `rnd`
     picks (the drowned floor's standing water made real). Changes `t.tiles`. */
 export function growPuddles(t: Pick<Template, 'tiles' | 'w' | 'h'>, rnd: () => number, count: number, size: [number, number]) {
+  // (plain floor, and not at a pit's or a chasm's edge: a puddle's soft rim would spill over it)
+  const dry = (c: number, r: number) => t.tiles[r]?.[c] === 'floor' && ![[1, 0], [-1, 0], [0, 1], [0, -1]].some(([a, b]) => t.tiles[r + b]?.[c + a] === 'pit' || t.tiles[r + b]?.[c + a] === 'bridge');
   for (let p = 0; p < count; p++) {
     let at: { c: number; r: number } | null = null;
-    for (let i = 0; i < 30 && !at; i++) { const c = Math.floor(rnd() * t.w), r = Math.floor(rnd() * t.h); if (t.tiles[r][c] === 'floor') at = { c, r }; }
+    for (let i = 0; i < 30 && !at; i++) { const c = Math.floor(rnd() * t.w), r = Math.floor(rnd() * t.h); if (dry(c, r)) at = { c, r }; }
     if (!at) continue;
     const want = size[0] + Math.floor(rnd() * (size[1] - size[0] + 1)), grown = [at];
     t.tiles[at.r][at.c] = 'water';
     for (let i = 0; i < 40 && grown.length < want; i++) {
       const from = grown[Math.floor(rnd() * grown.length)], [dc, dr] = [[1, 0], [-1, 0], [0, 1], [0, -1]][Math.floor(rnd() * 4)];
       const c = from.c + dc, r = from.r + dr;
-      if (t.tiles[r]?.[c] === 'floor') { t.tiles[r][c] = 'water'; grown.push({ c, r }); }
+      if (dry(c, r)) { t.tiles[r][c] = 'water'; grown.push({ c, r }); }
     }
   }
 }
