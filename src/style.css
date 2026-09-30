@@ -136,6 +136,11 @@ body.touch.portrait #rotate{display:flex}
 #dev header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 #dev h2{font:400 24px/1 var(--f-display);margin:0}
 #dev .dv-info{margin:6px 0 4px;color:var(--ink-dim);font-size:13px;font-variant-numeric:tabular-nums}
+#dev .dv-tabs{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 0;padding-bottom:10px;border-bottom:1px solid var(--line)}
+#dev .dv-tab{font:600 12px var(--f-display);letter-spacing:.05em;text-transform:uppercase;padding:5px 9px;min-height:28px;border:1px solid var(--line);border-radius:2px;background:transparent;color:var(--ink-dim);cursor:pointer}
+#dev .dv-tab:hover{color:var(--ink);background:rgba(232,166,76,.1)}
+#dev .dv-tab.on{color:var(--ink);border-color:var(--amber);background:rgba(232,166,76,.22)}
+#dev .dv-page[hidden]{display:none}
 #dev .dv-s{margin-top:14px}
 #dev h3{font:600 13px var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-dim);margin:0 0 6px;border-bottom:1px solid var(--line);padding-bottom:3px}
 #dev .dv-row{display:flex;flex-wrap:wrap;gap:6px}
