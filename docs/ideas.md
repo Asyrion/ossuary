@@ -503,7 +503,7 @@ Twenty-one notes from the owner's Eda vault: characters (Asyrion, Boketto the St
 Wandering Merchant of Belerial), cultures (the Huruhui, the nomads of Belerial), creatures (Fen-Nex, the War-Tigers and
 other creatures of the Longwood) and places (the Longwood and its World Trees, the Ruins of Lukuku, the Plains of
 Belerial, the Swamps of Ulum, Gekiryu, Dr. Jelly's House, and the two gates of the Pass of Buluiain). The notes embed
-images that aren't in the PR (about half of them are an image and a link); the owner shared five of them in the session,
+images that aren't in the PR (about half of them are an image and a link); the owner shared ten of them in the session,
 read below. What follows is what the text and those images suggest for the game; none of it is design until it moves into the GDD, and the in-game names stay
 placeholders until the owner picks which lore goes in (M8).
 
@@ -599,6 +599,27 @@ loosen as the owner decides which of these the game names.
 - **The great gate** (towers either side of an arch as tall as a hill, stairs up to it, a snowy peak framed in it, yellow
   plains before it): the Gates of Belerial, or Belregi's. A title screen or the Vigil's threshold; in the dungeon, the
   vault's warded door (M2) and the boss doors could borrow its towers and arch in the room kit.
+
+Five more (the same day):
+
+- **Gekiryu and the Huruhui's cliff towns** (wooden houses on terraces over cascades; a town on a cliff edge with falls
+  pouring off it into a gorge): water that moves. Room kit: a waterfall down the north wall into a pool (the pool's
+  shocks and frost as ever, the fall's mist over it), stilted boards over torrents, and the current tiles noted above.
+  For the Vigil, the terraced town is the shape of a hub that fills in: a house on the terraces lights up for every shade
+  the mage frees.
+- **The jungle canyon** (a mossy stone arch and rope bridges over a chasm, stepping stones, hanging vines, a fall at the
+  back): rooms of bridges. A chasm (pits) crossed by a rope bridge that fire burns through (foes on it fall; the mage
+  must find another way), hanging vines that snag like cobwebs and burn, stepping stones through water. The Longwood
+  floor's rooms, with its roots and ruins.
+- **The Wandering Merchant of Belerial** (an old man with a white beard, a turban and a staff, riding a huge shaggy pack
+  beast with a red snout and bandaged legs, a crow perched on its head): the second trader, clearly. His shop is his
+  beast's packs; his crow sells what it has seen (the floor's map, where the secret room is); he turns up once a run in
+  an ordinary room, and is gone when the mage leaves it. His beast, calm and enormous, is a look to build in code.
+- **Fen-Nex** (a long white beast between fox, cat and dragon, its fur blown back into flame-tipped feathers, its legs
+  plated dark blue and marked with red spiral runes, orange eyes): fire and runes, the same palette as Asyrion's sheet.
+  It should be Asyrion's companion: the Eda name and look for the Rune Fox familiar, a familiar that grows with the run
+  (a fox at first, Fen-Nex's full shape late), or a boss of the Longwood; its flame-tipped fur and rune plates would
+  also make a transformation for the mage (three beast artifacts: the pelt as a mantle, the runes on the arms).
 
 ### Placeholders the drop could fill (for M8)
 
