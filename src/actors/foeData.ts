@@ -5,7 +5,7 @@
    Templates name roles, not foes (`R` a walker, `W` a flyer or shooter, `H` a charger or heavy); each floor fills them
    from its own foes, weighted (`foes` in data/floors.json). */
 import foesData from '../../data/foes.json';
-import type { EnemyType } from '../config';
+import { CFG, type EnemyType } from '../config';
 import { SCHOOLS, type School, type StatusKind } from '../magic/spellData';
 
 export type { School } from '../magic/spellData';
@@ -35,15 +35,15 @@ export const isFoe = (type: string): type is FoeId => type in FOES;
 /** The parameters each behaviour needs (actors/foes.ts); the validator checks every foe has them. */
 export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   hopper: ['hopRate', 'puffEvery', 'puffTell', 'puffRange', 'dim'],
-  flutter: ['orbit', 'orbitSpeed', 'flareEvery', 'flareTell', 'motes', 'moteSpeed', 'lure'],
-  charger: ['sight', 'tell', 'charge', 'stun', 'sparkSpeed'],
+  flutter: ['orbit', 'orbitSpeed', 'flareEvery', 'flareTell', 'flareRange', 'motes', 'moteSpeed', 'lure', 'lureReach', 'relure', 'lureOrbit', 'flameReach', 'burnRate'],
+  charger: ['sight', 'lineUp', 'tell', 'charge', 'stun', 'sparkSpeed'],
   mimic: ['wake', 'lonely', 'tell', 'shots', 'spread', 'shotSpeed', 'hop', 'shut', 'guard'],
   leaper: ['sit', 'crouch', 'leap', 'reach', 'leapsPerBreath', 'breathRange', 'breathTell', 'shots', 'cone', 'shotSpeed', 'chill'],
   lurker: ['under', 'rise', 'volley', 'volleyGap', 'shotSpeed', 'up', 'trapped', 'poolSize'],
   drifter: ['pulseRange', 'pulseEvery', 'pulseTell', 'pulseRadius'],
   scurrier: ['zig', 'angle', 'pause', 'pauseTime', 'trailEvery', 'trailTime'],
   blinker: ['hover', 'vanish', 'gone', 'near', 'raise', 'shotSpeed', 'hex'],
-  drake: ['act', 'breathRange', 'inhale', 'shots', 'cone', 'shotSpeed', 'chill', 'takeoff', 'flySpeed', 'landRing'],
+  drake: ['act', 'breathRange', 'flyEvery', 'inhale', 'shots', 'cone', 'shotSpeed', 'chill', 'takeoff', 'flySpeed', 'landNear', 'flyMax', 'landTime', 'landRing'],
 };
 
 /** What is wrong with the foes' data (an empty list when nothing is). */
@@ -67,7 +67,7 @@ export function validateFoes(defs: Record<string, FoeDef> = FOES) {
 /** Damage of `school` to a foe: half again from its weakness, half from its resistance, as it is otherwise. */
 export function affinityMul(def: Pick<FoeDef, 'weak' | 'resist'> | undefined, school?: School) {
   if (!def || !school) return 1;
-  return school === def.weak ? 1.5 : school === def.resist ? .5 : 1;
+  return school === def.weak ? CFG.affinity.weak : school === def.resist ? CFG.affinity.resist : 1;
 }
 
 /** A foe of `role` for the floor to call up in the middle of a fight (a boss's helpers, the ossuary's rising bones):

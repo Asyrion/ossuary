@@ -23,8 +23,13 @@ export const CFG = {
     abbess: { hp: 120, r: 0.7, speed: .95, dive: 2.7, under: 1.8 }, // dive: speed of her ripple; under: seconds below
     pyre: { hp: 135, r: 0.72, speed: 1.25, charge: 8.2 },
   },
-  // what the foes in code do to the mage (M4): chilled by cold breath and rime, this much slower
-  afflict: { chillSlow: .4 },
+  // what the foes in code do to the mage (M4): chilled by cold breath and rime, this much slower; a salamander's burning
+  // ground burns the mage within `groundReach` (plus half the mage's size) and licks up a flame `groundLicks` times a
+  // second; foes' embers and cold touch what they pass every `touchEvery` seconds, within `emberReach` and `coldReach`;
+  // the dev hook's test shot (`__game.shoot`) flies at `testShot`
+  afflict: { chillSlow: .4, groundReach: .3, groundLicks: .7, touchEvery: .1, emberReach: .2, coldReach: .1, testShot: 3.8 },
+  // a foe's weakness and resistance (M4; GDD: Enemy affinities): the damage of its weak school and of its resisted one
+  affinity: { weak: 1.5, resist: .5 },
   // champion rooms: one enemy is bigger, tinted, tougher and a little faster, and drops a heart
   champion: { hpMul: 2, scale: 1.3, radiusMul: 1.2, speedMul: 1.15, tint: 0x6a1a0a, aura: 0xff5a2a },
   // quiet rooms keep at most this many weak enemies; how often a heart waits there

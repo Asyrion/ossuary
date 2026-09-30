@@ -27,7 +27,7 @@ import { clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRu
 import { STEP, startLoop, step } from './loop';
 import { cleanSeed } from './rng';
 import { VARIANTS, planToText, type RoomVariant } from './world/generate';
-import { BOSS_TYPES, type BossType } from './config';
+import { BOSS_TYPES, CFG, type BossType } from './config';
 import { damageEnemy } from './combat/damage';
 import { DROPS, RESOURCES, type Drop, type Resource } from './items/loot';
 import { giveResources, spawnPickup } from './items/pickups';
@@ -228,7 +228,7 @@ function installDevHooks() {
     get burningGround() { return burningGround(); },
     inflict(status: Partial<Record<StatusKind, number>>) { for (const e of G.enemies) inflict(e, status); },
     /** Fire a foe's shot from (x, z) along (dx, dz) (a wall of ice stops it); seconds of the Static Mantle left. */
-    shoot(x: number, z: number, dx: number, dz: number) { const l = Math.hypot(dx, dz) || 1; spawnShot(x, z, dx / l, dz / l, 3.8, 0xb784ff, .8); },
+    shoot(x: number, z: number, dx: number, dz: number) { const l = Math.hypot(dx, dz) || 1; spawnShot(x, z, dx / l, dz / l, CFG.afflict.testShot, 0xb784ff, .8); },
     get mantle() { return mantleLeft(); },
     /** The spells' looks showing now: the Cinder Lance, and how many rings of light and bolts of lightning. */
     get spellFx() { return fxShowing(); },

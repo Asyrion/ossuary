@@ -95,9 +95,12 @@ export function payBloodTithe() {
   burst(player.x, .8, player.z, 0x8a1a1a, 14, 2, .06);
 }
 
-/** Damage the hero by `halves` half-hearts, knocking them away from (fromX, fromZ). */
-export function hurtPlayer(halves: number, fromX: number, fromZ: number) {
-  if (player.invuln > 0 || G.state !== 'play' || DEV.god) return;
+/** Damage the hero by `halves` half-hearts, knocking them away from (fromX, fromZ). Whether the blow reached the mage
+    (not shrugged off while invulnerable; in god mode it reaches but costs nothing), for what comes with it (a chill, a
+    hex, dimmed sight). */
+export function hurtPlayer(halves: number, fromX: number, fromZ: number): boolean {
+  if (player.invuln > 0 || G.state !== 'play') return false;
+  if (DEV.god) return true;
   player.hp -= halves; player.invuln = player.stats.invuln; renderHearts();
   if (G.current.locked) G.current.hurt = true; // no Unbroken Oath for this fight
   const dx = player.x - fromX, dz = player.z - fromZ, d = Math.hypot(dx, dz) || 1; player.vx += dx / d * 7; player.vz += dz / d * 7;
@@ -111,4 +114,5 @@ export function hurtPlayer(halves: number, fromX: number, fromZ: number) {
     heroHit();
     if (player.stats.effects.has('hurtRing')) { spawnBurst(player.x, player.z, 8, Math.PI / 8); Sfx.bell(); } // Mourning Bell
   }
+  return true;
 }

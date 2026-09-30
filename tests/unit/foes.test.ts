@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BOSS_TYPES, CFG } from '../../src/config';
-import { BEHAVIOUR_PARAMS, FOES, FOE_IDS, ROLES, affinityMul, isFoe, pickFoe, schoolOf, validateFoes, type FoeDef, type RoleTable } from '../../src/actors/foeData';
+import { BEHAVIOUR_PARAMS, FOES, FOE_IDS, ROLES, affinityMul, callFoe, isFoe, pickFoe, schoolOf, validateFoes, type FoeDef, type RoleTable } from '../../src/actors/foeData';
 import { FLOORS } from '../../src/world/generate';
 
 describe('the foes built in code (M4)', () => {
@@ -56,5 +56,15 @@ describe('the foes built in code (M4)', () => {
       const only = { ...table, R: [['sporeling', 1]] } as RoleTable;
       expect(pickFoe(only, 'R', R, true)).toBe('sporeling'); // (nothing else can fill it)
     } finally { (FOES as Record<string, FoeDef>).sporeling = was; }
+  });
+
+  it('calls up neither an elite nor a mimic in the middle of a fight, unless nothing else fills the role', () => {
+    let seed = 11; const R = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const [f1, , f3] = FLOORS, called = (table: RoleTable, role: 'R' | 'W' | 'H') => new Set(Array.from({ length: 300 }, () => callFoe(table, role, R)));
+    expect([...called(f1.foes, 'H')]).toEqual(['runeBeetle']);      // (floor 1's heavies: beetles, and mimics waiting as urns)
+    expect([...called(f3.foes, 'H')]).toEqual(['cinderSalamander']); // (floor 3's: the drakeling is an elite)
+    expect([...called(f1.foes, 'R')]).toEqual(['sporeling']);
+    const mimicsOnly = { ...f1.foes, H: [['urnMimic', 1]] } as RoleTable, eliteOnly = { ...f3.foes, H: [['rimeDrakeling', 1]] } as RoleTable;
+    expect(callFoe(mimicsOnly, 'H', R)).toBe('urnMimic'); expect(callFoe(eliteOnly, 'H', R)).toBe('rimeDrakeling');
   });
 });

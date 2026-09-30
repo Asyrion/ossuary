@@ -35,7 +35,8 @@ import { inflict } from '../magic/statusFx';
 import { lerp, mulberry, rand } from '../util';
 import { MODEL_OPTIONS } from './modelOptions';
 import { metFoe } from './bestiary';
-import type { FoeDef } from './foeData';
+import type { FoeDef, School } from './foeData';
+import { CFG } from '../config';
 
 /** Where the mage is from the foe: the unit direction and the distance. */
 export interface Aim { ux: number; uz: number; dist: number }
@@ -86,7 +87,9 @@ export function poseFoe(e: Enemy) {
   e.model!.position.x = t > 0 ? Math.sin(e.t * 55) * .02 * t : 0;
 }
 /** The school's light a telegraphing foe glows with. */
-export const teleColor = (e: Enemy) => new THREE.Color(light(e));
+const TELE = new Map<School, THREE.Color>();
+/** A foe's telegraph colour: its school's light (one colour a school, shared: read, never changed). */
+export const teleColor = (e: Enemy) => { const s = e.foe!.school; let c = TELE.get(s); if (!c) TELE.set(s, c = new THREE.Color(light(e))); return c; };
 
 /** Where the `k`th Urn Mimic of a wave stands when it comes: beside one of the room's urns (on the room's seed, each its
     own while there are enough), else where it was. */
@@ -130,8 +133,8 @@ export function updateFoeHazards(dt: number) {
   for (let i = trails.length - 1; i >= 0; i--) {
     const f = trails[i]; f.t -= dt;
     if (f.t <= 0 || f.room !== G.current) { trails.splice(i, 1); continue; }
-    if (Math.random() < dt * .7 * Math.min(1, f.t)) flame(f.x + (Math.random() - .5) * .3, f.z + (Math.random() - .5) * .3, Math.random() < .6 ? 0xff7a2a : 0xffc060, .3 + Math.random() * .2);
-    if (Math.hypot(player.x - f.x, player.z - f.z) < .3 + player.r * .5) hurtPlayer(1, f.x, f.z);
+    if (Math.random() < dt * CFG.afflict.groundLicks * Math.min(1, f.t)) flame(f.x + (Math.random() - .5) * .3, f.z + (Math.random() - .5) * .3, Math.random() < .6 ? 0xff7a2a : 0xffc060, .3 + Math.random() * .2);
+    if (Math.hypot(player.x - f.x, player.z - f.z) < CFG.afflict.groundReach + player.r * .5) hurtPlayer(1, f.x, f.z);
   }
   if (!trails.length && !trailGlow?.count) return;
   const mesh = trailMesh();
@@ -175,20 +178,20 @@ const BEHAVIOURS: Record<string, Behaviour> = {
     step(e, dt, a, P, room) {
       // every so often it chooses what to circle: a lit fire near it (most of the time), else the mage
       if ((e.st -= dt) <= 0) {
-        e.st = 2.5;
+        e.st = num(P.relure);
         const fire = litFires(room).map(b => ({ x: b.x, z: b.z, d: Math.hypot(b.x - e.x, b.z - e.z) })).sort((p, q) => p.d - q.d)[0];
-        e.target = fire && fire.d < 7 && Math.random() < num(P.lure) ? { x: fire.x, z: fire.z } : undefined;
+        e.target = fire && fire.d < num(P.lureReach) && Math.random() < num(P.lure) ? { x: fire.x, z: fire.z } : undefined;
         if (e.target && e.state === 'flare') { e.state = 'loop'; e.tele = 0; }
       }
       const lured = e.target, cx = lured?.x ?? player.x, cz = lured?.z ?? player.z;
       if (e.state === 'loop') {
-        const R = (lured ? .7 : num(P.orbit)) * (1 + .4 * Math.sin((e.cycle ?? 0) * 2)); // (loops in and out: a figure of eight round it)
+        const R = num(lured ? P.lureOrbit : P.orbit) * (1 + .4 * Math.sin((e.cycle ?? 0) * 2)); // (loops in and out: a figure of eight round it)
         e.cycle = (e.cycle ?? 0) + dt * num(P.orbitSpeed) * (2.4 / Math.max(.8, R));
         const tx = cx + Math.cos(e.cycle) * R, tz = cz + Math.sin(e.cycle) * R * .8, dx = tx - e.x, dz = tz - e.z, d = Math.hypot(dx, dz) || 1;
         const sp = e.foe!.speed * e.speedMul * Math.min(1, d);
         e.vx = lerp(e.vx, dx / d * sp, Math.min(1, dt * 4)); e.vz = lerp(e.vz, dz / d * sp, Math.min(1, dt * 4));
-        if (lured && Math.hypot(e.x - lured.x, e.z - lured.z) < .45 && Math.random() < dt * 1.5) inflict(e, { burn: 1 }); // a moth to the flame
-        if (!lured && (e.fireT! -= dt) <= 0 && a.dist < 5.5) { e.state = 'flare'; e.fireT = num(P.flareTell); Sfx.at(e.x, e.z).mothFlare(); }
+        if (lured && Math.hypot(e.x - lured.x, e.z - lured.z) < num(P.flameReach) && Math.random() < dt * num(P.burnRate)) inflict(e, { burn: 1 }); // a moth to the flame
+        if (!lured && (e.fireT! -= dt) <= 0 && a.dist < num(P.flareRange)) { e.state = 'flare'; e.fireT = num(P.flareTell); Sfx.at(e.x, e.z).mothFlare(); }
       } else if (e.state === 'flare') { // it hangs still, its wings glowing, then scatters its dust
         e.vx *= Math.exp(-6 * dt); e.vz *= Math.exp(-6 * dt);
         e.tele = Math.min(1, 1 - e.fireT! / num(P.flareTell));
@@ -214,8 +217,9 @@ const BEHAVIOURS: Record<string, Behaviour> = {
           e.dir = { x: d[0], z: d[1] }; e.st = rand(.8, 1.8);
         }
         const dx = player.x - e.x, dz = player.z - e.z;
-        if ((Math.abs(dz) < .45 || Math.abs(dx) < .45) && a.dist < num(P.sight)) {
-          e.dir = Math.abs(dz) < .45 ? { x: Math.sign(dx), z: 0 } : { x: 0, z: Math.sign(dz) };
+        const line = num(P.lineUp);
+        if ((Math.abs(dz) < line || Math.abs(dx) < line) && a.dist < num(P.sight)) {
+          e.dir = Math.abs(dz) < line ? { x: Math.sign(dx), z: 0 } : { x: 0, z: Math.sign(dz) };
           e.state = 'tell'; e.st = num(P.tell); Sfx.at(e.x, e.z).beetleTell();
         }
       } else if (e.state === 'tell') {
@@ -454,7 +458,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
         const sp = e.foe!.speed * e.speedMul; e.vx = a.ux * sp; e.vz = a.uz * sp;
         if (e.st <= 0) {
           e.cycle = (e.cycle ?? 0) + 1;
-          if (a.dist < num(P.breathRange) && e.cycle % 3) { e.state = 'inhale'; e.st = num(P.inhale); Sfx.at(e.x, e.z).drakeInhale(); }
+          if (a.dist < num(P.breathRange) && e.cycle % num(P.flyEvery)) { e.state = 'inhale'; e.st = num(P.inhale); Sfx.at(e.x, e.z).drakeInhale(); }
           else { e.state = 'takeoff'; e.st = num(P.takeoff); Sfx.at(e.x, e.z).drakeWings(); }
         }
       } else if (e.state === 'inhale') { // it draws in the cold, then breathes rime in a wide cone
@@ -468,12 +472,12 @@ const BEHAVIOURS: Record<string, Behaviour> = {
         }
       } else if (e.state === 'takeoff') { e.vx = e.vz = 0; e.tele = Math.min(1, 1 - e.st / num(P.takeoff)) * .5; if (e.st <= 0) {
         // up on its wings, over what stands in the way, to a spot beside the mage
-        const t = Math.random() * Math.PI * 2, d = 1.6 + Math.random();
+        const t = Math.random() * Math.PI * 2, d = span(P.landNear);
         e.target = { x: player.x + Math.cos(t) * d, z: player.z + Math.sin(t) * d }; e.state = 'fly'; e.flying = true; e.tele = 0;
       } } else if (e.state === 'fly') {
         const t = e.target!, dx = t.x - e.x, dz = t.z - e.z, d = Math.hypot(dx, dz), sp = num(P.flySpeed) * e.speedMul;
         e.vx = d > .1 ? dx / d * sp : 0; e.vz = d > .1 ? dz / d * sp : 0;
-        if (d < .25 || e.st < -2.5) { e.state = 'land'; e.st = .3; }
+        if (d < .25 || e.st < -num(P.flyMax)) { e.state = 'land'; e.st = num(P.landTime); }
         return Math.atan2(dx, dz);
       } else if (e.state === 'land') { e.vx = e.vz = 0; if (e.st <= 0) { // down with a ring of frost
         e.flying = false; const n = num(P.landRing);
@@ -482,8 +486,8 @@ const BEHAVIOURS: Record<string, Behaviour> = {
         G.shake = Math.max(G.shake, .15); Sfx.at(e.x, e.z).drakeLand(); e.state = 'stalk'; e.st = span(P.act);
       } }
     },
-    pose(e) { // up in the air while it flies
-      const up = e.state === 'fly' ? 1 : e.state === 'land' ? Math.max(0, e.st / .3) : 0;
+    pose(e, P) { // up in the air while it flies
+      const up = e.state === 'fly' ? 1 : e.state === 'land' ? Math.max(0, e.st / num(P.landTime)) : 0;
       e.model!.position.y = lerp(e.model!.position.y, up * .9, .2);
       e.parts!.ground.position.y = .015 - e.model!.position.y; // (its frost circle stays on the ground: it flies from it)
     },
