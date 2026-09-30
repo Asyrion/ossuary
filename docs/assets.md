@@ -54,7 +54,7 @@ can use the same:
 
 | Name | Reference (MidJourney `--sref` code or image) | Use for | Since |
 | --- | --- | --- | --- |
-| House style | (to be set in M3.5, step 2) | Everything | |
+| House style | (none yet: set when the next special model is made in Tripo) | The mage, bosses where wanted | |
 
 Where a tool takes a style or reference image rather than a code, give it the reference images this
 table points to.
@@ -174,7 +174,7 @@ background, cropped square, background removed, 256 px kept and 128 px shipped.
 PNG to `icons/<id>.png`. It warns when the background isn't transparent, and makes a sheet in
 `asset-previews/`: the icon at 28 px (the HUD) and 44 px (the lore card), plain, cursed and cleansed, on the
 game's dark background. The check is how it reads there. An icon can also be rendered from the artifact's 3D
-model instead of painted; the pilot tries both.
+model instead of painted. (Since 2026-09-30 the game's icons are drawn in code; this is for a special model's icon.)
 
 ## Sound
 
@@ -304,8 +304,8 @@ asset is accepted.
 | Asset | Kind | Replaces | Tools | Style reference | Status |
 | --- | --- | --- | --- | --- | --- |
 | Hero (`hero_default.glb`) | hero | the 0.3 hero | Tripo3D | | in the game |
-| Urn | small prop | procedural urn | | | planned (M3.5) |
-| Pedestal | small prop | procedural pedestal | | | planned (M3.5) |
-| Ember Sigil | artifact | gem placeholder | | | planned (M3.5) |
-| Crypt floor | texture | procedural floor, floor 1 | | | planned (M3.5) |
-| Ember Sigil, Bone Lens and Mask of the Drowned icons | icons | SVG placeholders | | | planned (M3.5) |
+| Urn | small prop | procedural urn | | | dropped 2026-09-30 (built in code) |
+| Pedestal | small prop | procedural pedestal | | | dropped 2026-09-30 (built in code) |
+| Ember Sigil | artifact | gem placeholder | | | dropped 2026-09-30 (built in code) |
+| Crypt floor | texture | procedural floor, floor 1 | | | dropped 2026-09-30 (drawn in code, M3.5 step 3) |
+| Ember Sigil, Bone Lens and Mask of the Drowned icons | icons | SVG placeholders | | | dropped 2026-09-30 (drawn in code) |

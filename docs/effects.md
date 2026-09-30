@@ -38,8 +38,8 @@ own looks are in `src/magic/spellFx.ts`.
    carry it, with white or cream for cores. A second colour is used sparingly: the lance's red edge, Overload's gold
    flash.
 8. **Size for the pixel look.**
-   - At 540 lines a unit of the room is about 50 game pixels (at 360, the lowest offered for play, about 33).
-   - Parts thinner than about 0.03 units flicker or vanish at 360; build for that.
+   - At 540 lines a unit of the room is about 50 game pixels (at 270, the lowest offered, about 25).
+   - Parts thinner than about 0.04 units flicker or vanish at 270, and 0.03 at 360; build for 360.
    - Keep silhouettes clear.
    - Keep added light that passes over a character at an opacity of 0.6 or less, or the mage washes out to white.
    - Check every effect over a dark floor and a lit one.
