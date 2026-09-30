@@ -9,7 +9,7 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Pickup } from '../types';
-import { G, player } from '../state';
+import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { TILT, scene } from '../render/renderer';
@@ -23,6 +23,7 @@ import { LOOT, RESOURCES, afterBurning, dropValue, rollTable, type Drop, type It
 import { offerBeyondBudget, placeArtifact, refreshStats } from './artifacts';
 import { itemLore, type LoreItem } from '../ui/lore';
 import { gainMana } from '../magic/spells';
+import { containerLook, itemLook } from './pickupLooks';
 
 const GOLD = 0xffd27a;
 export const isContainer = (kind: Drop): kind is 'coffer' | 'chest' => kind === 'coffer' || kind === 'chest';
@@ -71,8 +72,9 @@ function makeParts() {
   };
 }
 
-/** How an item looks, on the floor or floating over a merchant's ward circle. */
+/** How an item looks, on the floor or floating over a merchant's ward circle (the room kit's: pickupLooks.ts). */
 export function itemVisual(kind: Item): THREE.Object3D {
+  if (DEV.roomKit) return itemLook(kind);
   const P = parts ??= makeParts();
   if (kind === 'heart' || kind === 'halfHeart') {
     const m = new THREE.Mesh(kind === 'heart' ? P.heart.full : P.heart.half, P.heartMat); m.rotation.x = -TILT; return m;
@@ -104,7 +106,8 @@ export function itemVisual(kind: Item): THREE.Object3D {
 
 /** A coffer or a chest, with its lid on a hinge at the back, and the chest's ward seal on its front (gold on
     a gilded one). */
-function containerVisual(kind: 'coffer' | 'chest', gilded = false) {
+function containerVisual(kind: 'coffer' | 'chest', gilded = false): { g: THREE.Object3D; lid: THREE.Object3D; ward?: THREE.Object3D } {
+  if (DEV.roomKit) return containerLook(kind, gilded);
   const P = parts ??= makeParts(), g = new THREE.Group(), lid = new THREE.Group();
   if (kind === 'coffer') {
     const box = new THREE.Mesh(P.cofferBox, P.wood); box.position.y = .14;

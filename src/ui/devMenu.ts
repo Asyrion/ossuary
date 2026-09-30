@@ -135,6 +135,13 @@ export function objectsHere() {
   for (const [dx, sealed] of [[-.6, false], [.6, true]] as const) { const q = freeSpotNear(room, player.x + dx, player.z - 1.8 - Math.ceil(kinds.length / 7) * 1.4); placeUrn(q.x, q.z, sealed); }
 }
 
+/** Ahead of the mage, in a row: one of every drop and a gilded chest, to look at the room kit's pickups and containers (or,
+    with the room kit off, the old ones) in any room. */
+export function dropsHere() {
+  const all: [Drop, boolean][] = [...DROPS.map(d => [d, false] as [Drop, boolean]), ['chest', true]];
+  all.forEach(([d, gilded], i) => { const q = freeSpotNear(G.current, player.x + (i - (all.length - 1) / 2) * 1.05, player.z - 2.2 - (i % 2) * .5); spawnPickup(d, q.x, q.z, { gilded, asIs: true }); });
+}
+
 /* ---------- starting runs and test rooms ---------- */
 
 /** Start a run, carrying over the mage's artifacts, obols, keys and glyphs when asked. */
@@ -254,7 +261,7 @@ function build() {
       const q = freeSpotNear(G.current, player.x + dx, player.z + dz);
       if (placeProp(kind, q.x, q.z) && lit) fireAt(q.x, q.z, .3);
     }
-  }), btn(S.objectsHere, () => { closeDev(); objectsHere(); }));
+  }), btn(S.objectsHere, () => { closeDev(); objectsHere(); }), btn(S.dropsHere, () => { closeDev(); dropsHere(); }));
 
   // the made assets (M3.5): on or off to compare with the placeholders, what loaded, and what a frame costs
   const assets = section(pages.look, S.assets);
