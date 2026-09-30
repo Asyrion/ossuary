@@ -21,7 +21,7 @@ import { closeDev, devOpen, forceKinds, objectsHere, showAssetsHere, toggleDev, 
 import type { Kinds } from './world/kitData';
 import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPad, openInventory } from './ui/inventory';
 import { setHeroInfo, updateVision } from './ui/hud';
-import { giveById } from './items/artifacts';
+import { giveById, removeArtifactGallery, showArtifactGallery } from './items/artifacts';
 import { ARTIFACTS } from './items/artifactData';
 import { clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRun, startGame, toggleSound, warp } from './flow';
 import { STEP, startLoop, step } from './loop';
@@ -163,6 +163,9 @@ function installDevHooks() {
     get pixelLook() { return { ...pixelLook() }; },
     /** Enemy model options (looks only): stand them (or those named) ahead of the mage, a row per floor; returns where
         each stands; take them away again. */
+    /** Every artifact floating ahead of the mage, as the room kit builds them (the dev menu's artifact gallery); how many. */
+    artifactGallery: () => showArtifactGallery(G.current, player.x, player.z),
+    takeArtifactGallery: () => removeArtifactGallery(G.current),
     modelOptions: (ids?: string[]) => showModelOptions(G.current, player.x, player.z, ids),
     takeModelOptions: () => removeModelOptions(G.current),
     /** The familiar options (looks only, the owner's drawings built in code) ahead of the mage; taken away with the rest. */

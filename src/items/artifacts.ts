@@ -9,12 +9,13 @@ import { Sfx } from '../audio/sfx';
 import { M, blob, disposeTree, glow, mergeStill } from '../render/materials';
 import { burst } from '../combat/fx';
 import { HEART_PATH, banner, renderHearts, renderItems, renderMinimap, toast } from '../ui/hud';
-import { START_FOCUS, artifact, computeStats, pickArtifact, type ArtifactDef, type Pool } from './artifactData';
+import { ARTIFACT_DEFS, START_FOCUS, artifact, computeStats, pickArtifact, type ArtifactDef, type Pool } from './artifactData';
 import { giveResources } from './pickups';
 import { artifactLore } from '../ui/lore';
 import { dress } from '../actors/costume';
 import { modelFor } from '../assets/models';
 import { altarLook, pedestalLook } from '../world/objectLooks';
+import { artifactLook } from './artifactLooks';
 
 const hex = (c: string) => new THREE.Color(c).getHex();
 
@@ -95,12 +96,16 @@ export function offerSecondChoice(pool: Pool) {
 /* ---------- pedestals ---------- */
 
 /** What floats over an artifact's pedestal: its made model (data/assets.json, M3.5) turning about its middle in its
-    glow, or the placeholder: foci a gem on a rod, cursed ones a dark gem in a thorn ring. */
+    glow; the room kit's (artifactLooks.ts: the artifact built in code as what it is); or the placeholder: foci a gem on a
+    rod, cursed ones a dark gem in a thorn ring. */
 export function makeArtifactVisual(def: ArtifactDef) {
   const g = new THREE.Group(); const color = hex(def.color), model = modelFor('artifacts', def.id);
   if (model) {
     model.position.y -= model.userData.height / 2; // (it stands on y = 0: lowered so it turns about its middle)
     g.add(model, glow(def.kind === 'cursed' ? 0xb0201a : color, 1.1, .6));
+  } else if (DEV.roomKit) {
+    const look = artifactLook(def.icon, def.color); mergeStill(look); look.scale.setScalar(1.2); // (a touch larger: it must read at a glance over its pedestal)
+    g.add(look, glow(def.kind === 'cursed' ? 0xb0201a : color, 1.1, .6));
   } else if (def.kind === 'focus') {
     const rod = new THREE.Mesh(new THREE.CylinderGeometry(.025, .03, .5, 6), M.frame.normal); rod.rotation.z = .5;
     const gem = new THREE.Mesh(new THREE.OctahedronGeometry(.11), new THREE.MeshBasicMaterial({ color })); gem.position.set(-.12, .2, 0);
@@ -224,6 +229,28 @@ export function updateArtifacts(now: number) {
     if (s.taken) continue;
     s.visual.position.y = 1.05 + Math.sin(now * 2 + s.x) * .08; s.visual.rotation.y = now * 1.2;
   }
+  (G.current?.group.userData.artifactGallery as THREE.Group | undefined)?.children.forEach((v, i) => { v.rotation.y = now * 1.2 + i; });
+}
+
+/** Dev menu: every artifact floating ahead of world (x, z) in `room`, in rows by kind (foci, passives, cursed), to look
+    at their looks (they can't be taken). Returns how many. */
+export function showArtifactGallery(room: Room, x: number, z: number) {
+  removeArtifactGallery(room);
+  const g = new THREE.Group(), rows = (['focus', 'passive', 'cursed'] as const).flatMap(kind => {
+    const all = ARTIFACT_DEFS.filter(d => d.kind === kind), out: ArtifactDef[][] = [];
+    for (let i = 0; i < all.length; i += 12) out.push(all.slice(i, i + 12));
+    return out;
+  });
+  rows.forEach((row, r) => row.forEach((def, i) => {
+    const v = makeArtifactVisual(def); v.position.set(x - room.cx + (i - (row.length - 1) / 2) * .95, .8, z - room.cz - 1.4 - r * .95); g.add(v);
+  }));
+  room.group.add(g); room.group.userData.artifactGallery = g;
+  return rows.flat().length;
+}
+/** Take the artifact gallery away. */
+export function removeArtifactGallery(room: Room) {
+  const g = room.group.userData.artifactGallery as THREE.Group | undefined; if (!g) return;
+  room.group.remove(g); disposeTree(g); delete room.group.userData.artifactGallery;
 }
 
 /** Every artifact defined, for the ?give= dev option. */
