@@ -63,8 +63,10 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   room.group.position.set(cx, 0, cz); scene.add(room.group);
   // the controls are chalked on the floor of the very first room only
   const kind = plan.type === 'start' && floorIndex > 0 ? 'normal' : plan.type;
-  const art = kitFloor(look) ? pixelFloorTexture(plan.seed, kind, look, room.mask) : { map: floorTexture(plan.seed, kind, look, room.mask), glow: undefined };
-  const floor = new THREE.Mesh(maskGeometry(room.mask, w, h), new THREE.MeshStandardMaterial({ map: art.map, roughness: .95, ...(art.glow && { emissive: 0xffffff, emissiveMap: art.glow, emissiveIntensity: CFG.roomKit.glow }) }));
+  const wet = (c: number, r: number) => template.tiles[r]?.[c] === 'water' || template.tiles[r]?.[c] === 'oil';
+  const art = kitFloor(look) ? pixelFloorTexture(plan.seed, kind, look, room.mask, wet) : { map: floorTexture(plan.seed, kind, look, room.mask), glow: undefined };
+  const glowK = CFG.roomKit.glow * (plan.variant === 'dark' ? CFG.roomKit.glowDark : 1); // (embers dimmer in a dark room)
+  const floor = new THREE.Mesh(maskGeometry(room.mask, w, h), new THREE.MeshStandardMaterial({ map: art.map, roughness: .95, ...(art.glow && { emissive: 0xffffff, emissiveMap: art.glow, emissiveIntensity: glowK }) }));
   room.group.add(floor);
   // the drowned floor's standing water is real in its fights: a puddle or two to wade through
   if (look.floor.decor === 'puddles' && plan.type === 'normal') {

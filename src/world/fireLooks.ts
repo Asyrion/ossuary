@@ -13,7 +13,7 @@ const shared = <T extends THREE.BufferGeometry>(g: T) => { g.userData.shared = t
 // placeholders' so its edges catch the torchlight in the pixel look; the glowing embers keep a material of their own.
 const MAT = {
   iron: paint(0x4a4548), bronze: paint(0xa27a3e), wood: paint(0x563a26), pitch: paint(0x1e1611), coals: paint(0x241f1c), wax: paint(0xf0e2c6),
-  bone: paint(0xd6cab0), skull: paint(0xa89c84), stone: paint(0x77716a), darkStone: paint(0x4a4440), verdigris: paint(0x4f8a76), blackIron: paint(0x2c2a2c), socket: paint(0x16100c),
+  bone: paint(0xd6cab0), skull: paint(0xa89c84), tallow: paint(0x9a9282), stone: paint(0x77716a), darkStone: paint(0x4a4440), verdigris: paint(0x4f8a76), blackIron: paint(0x2c2a2c), socket: paint(0x16100c),
   ember: markShared(new THREE.MeshStandardMaterial({ color: 0x3a1a0e, emissive: 0x5a1e06, roughness: 1, flatShading: true })),
 };
 export const RUNE_COLD = 0x2a1d16, RUNE_LIT = 0xffa040;
@@ -113,7 +113,7 @@ const TORCHES: Record<TorchKind, TorchBuild> = {
     const specs: FlameSpec[] = [];
     for (const [x, h] of [[-.16, .13], [0, .17], [.16, .12]]) {
       mesh(holder, GEO.cup, MAT.bronze, x, .955, .1);
-      mesh(holder, GEO.candle, MAT.wax, x, .975 + h / 2, .1).scale.set(.8, h, .8);
+      mesh(holder, GEO.candle, MAT.tallow, x, .975 + h / 2, .1).scale.set(.8, h, .8); // (tallow-grey: pale flames stand out against it)
       specs.push({ x, y: .975 + h, z: .1, h: .17, w: .08 });
     }
     lit.add(makeFire(specs, pal, 3, .3));
