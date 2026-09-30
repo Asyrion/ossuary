@@ -108,7 +108,7 @@ export function startGame(opts?: RunOptions) {
   const o = opts ?? nextRun; nextRun = {};
   const seed = o.seed || newSeed();
   testTemplate = o.testTemplate; testVariant = o.testVariant; forcedBoss = o.boss; forcedTheme = o.theme;
-  G.run = newRun(seed);
+  G.run = newRun(seed); DEV.kitKinds = {}; // (kinds forced in the dev menu last only for the floor they were forced on)
   Sfx.init(); resetPlayer(); hideLore(); G.stats.time = 0; G.stats.kills = 0; G.stats.obols = 0;
   if (o.give?.length) giveById(o.give);
   if (o.loot) giveResources(o.loot);
@@ -129,7 +129,7 @@ export function prepareTitle() {
 export function descend() {
   if (testTemplate || G.run.floor >= FLOORS.length - 1) { endGame(true); return; }
   Sfx.descend();
-  fadeFromBlack();
+  fadeFromBlack(); DEV.kitKinds = {};
   buildFloor(G.run.floor + 1);
 }
 

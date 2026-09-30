@@ -229,9 +229,10 @@ const BRAZIERS: Record<BrazierKind, BrazierBuild> = {
     threeRunes(runes, .185, .36, .08, 1.1);
     return { fire: bigFire(.8), glowY: 1.08 };
   },
-  basket(g) { // an iron fire basket on a post over a three-footed stand
+  basket(g, runes) { // an iron fire basket on a post over a three-footed stand, a bronze collar of runes on the post
     for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2 + Math.PI / 2, l = mesh(g, GEO.leg, MAT.iron, Math.cos(a) * .12, .07, Math.sin(a) * .12); l.scale.y = .3; l.rotation.set(Math.sin(a) * 1.1, 0, -Math.cos(a) * 1.1); }
     mesh(g, GEO.post, MAT.iron, 0, .38, 0).scale.y = .7;
+    mesh(g, GEO.pedestal, MAT.bronze, 0, .44, 0).scale.set(.5, .36, .5); threeRunes(runes, .092, .44, 0, .8);
     cage(g, 0, .68, 0, .3, .1, .24, 9);
     coals(g, .86, .2);
     return { fire: bigFire(.88, .8, .28), glowY: 1.12 };
