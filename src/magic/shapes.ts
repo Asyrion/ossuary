@@ -177,7 +177,7 @@ function erupt(s: (typeof seals)[number]) {
 /** Tongues of flame, and motes: glows rising and shrinking away (shared materials, so nothing to free). */
 const flames: { s: THREE.Sprite; t: number; size: number }[] = [];
 const FLAME_LIFE = .55;
-function flame(x: number, z: number, color: number, size: number, y = .12) {
+export function flame(x: number, z: number, color: number, size: number, y = .12) {
   const s = glowShared(color, size, .85); s.position.set(x, y, z); scene.add(s); flames.push({ s, t: 0, size });
 }
 /** A mote of light rising from (x, y, z) and fading (a grimoire page's whisper). */

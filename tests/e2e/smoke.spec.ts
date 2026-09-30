@@ -1942,6 +1942,103 @@ test('foes in code (M4): floor 1\'s moth loops, scatters light and is lured by a
   expect([...errors, ...e2, ...e3]).toEqual([]);
 });
 
+test('foes in code (M4): floor 2\'s toad leaps and breathes cold that chills; the lurker lives in water, rises, spits and dives out of reach, and is trapped when its pool freezes; the jelly drifts close and pulses light', async ({ page }) => {
+  type Foe = { type: string; state: string; x: number; z: number; hp: number; hidden?: boolean; model: { position: { y: number } } };
+  type GF = { sim(sec: number, draw?: boolean): void; warp(id: number): void; hit(i: number, dmg: number, school?: string): number; pool(what: string): void;
+    player: { x: number; z: number; hp: number; maxHp: number; invuln: number; chill: number }; enemies: Foe[]; shots: { chill?: number }[];
+    current: { pools?: { kind: string; state: string }[] } };
+  // the toad
+  const errors = await start(page, '?seed=K3F9QX&floor=2&foe=mireToad');
+  const toad = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.5);
+    const seen = new Set<string>(); let high = 0, cold = 0;
+    for (let i = 0; i < 300 && !(seen.has('puff') && cold); i++) {
+      const e = g.enemies[0]; g.player.x = e.x + 2.2; g.player.z = e.z; // (close enough for it to breathe)
+      g.sim(.05); seen.add(e.state); high = Math.max(high, e.model.position.y); cold = Math.max(cold, g.shots.filter(s => s.chill).length);
+    }
+    for (let i = 0; i < 20 && !g.player.chill; i++) { g.player.invuln = 0; g.sim(.05); } // (in the cone's way)
+    return { seen: [...seen].sort(), high, cold, chilled: g.player.chill > 0 };
+  });
+  expect(toad.seen).toEqual(expect.arrayContaining(['sit', 'crouch', 'leap', 'puff'])); expect(toad.high).toBeGreaterThan(.3);
+  expect(toad.cold).toBeGreaterThanOrEqual(3); expect(toad.chilled).toBe(true);
+  // the lurker
+  const e2 = await start(page, '?seed=K3F9QX&floor=2&foe=cisternLurker');
+  const lurker = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.3);
+    const e = g.enemies[0], water = (g.current.pools ?? []).some(p => p.kind === 'water'), startHidden = !!e.hidden;
+    const hpUnder = e.hp; g.hit(0, 3); const tookUnder = hpUnder - e.hp;
+    let upAt = -1; for (let i = 0; i < 100 && e.state !== 'up'; i++) { g.sim(.05); if (e.state === 'up') upAt = i; }
+    const hpUp = e.hp; g.hit(0, 3); const tookUp = hpUp - e.hp; // (storm-free: a plain hit)
+    let dove = false; for (let i = 0; i < 100 && !dove; i++) { g.sim(.05); dove = e.state === 'under' && !!e.hidden; }
+    g.pool('frost'); g.sim(.1); // its water freezes over: up it comes, and there it stays
+    const trapped = e.state, trappedHidden = !!e.hidden;
+    return { water, startHidden, tookUnder, upAt, tookUp, dove, trapped, trappedHidden };
+  });
+  expect(lurker.water).toBe(true); expect(lurker.startHidden).toBe(true); expect(lurker.tookUnder).toBe(0);
+  expect(lurker.upAt).toBeGreaterThanOrEqual(0); expect(lurker.tookUp).toBeCloseTo(3);
+  expect(lurker.dove).toBe(true); expect(lurker.trapped).toBe('trapped'); expect(lurker.trappedHidden).toBe(false);
+  // the jelly
+  const e3 = await start(page, '?seed=K3F9QX&floor=2&foe=lanternJelly');
+  const jelly = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.3);
+    const e = g.enemies[0], before = g.player.hp; let glowed = false;
+    for (let i = 0; i < 160 && g.player.hp === before; i++) { g.player.x = e.x + 1; g.player.z = e.z; g.player.invuln = 0; g.sim(.05); glowed ||= e.state === 'glow'; }
+    return { glowed, hurt: before - g.player.hp, flying: e.model.position.y };
+  });
+  expect(jelly.glowed).toBe(true); expect(jelly.hurt).toBeGreaterThan(0);
+  expect([...errors, ...e2, ...e3]).toEqual([]);
+});
+
+test('foes in code (M4): floor 3\'s salamander lays burning ground that burns the mage; the imp blinks about and its hex drains mana; the drakeling (one a room) breathes rime, takes to its wings and lands in a ring of frost', async ({ page }) => {
+  type Foe = { type: string; state: string; x: number; z: number; hidden?: boolean; flying: boolean; model: { position: { y: number }; visible: boolean } };
+  type GF = { sim(sec: number, draw?: boolean): void; warp(id: number): void; burningGround: number;
+    player: { x: number; z: number; hp: number; maxHp: number; invuln: number; chill: number; mana: number }; enemies: Foe[]; shots: { chill?: number; hex?: number }[] };
+  // the salamander
+  const errors = await start(page, '?seed=K3F9QX&floor=3&foe=cinderSalamander');
+  const sala = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.5);
+    let ground = 0; for (let i = 0; i < 40; i++) { g.sim(.05); ground = Math.max(ground, g.burningGround); }
+    const e = g.enemies[0]; g.player.x = e.x; g.player.z = e.z; g.player.invuln = 0; const hp = g.player.hp;
+    for (let i = 0; i < 4; i++) { g.player.x = e.x; g.player.z = e.z; g.sim(.05); }
+    return { ground, burned: hp - g.player.hp };
+  });
+  expect(sala.ground).toBeGreaterThan(3); expect(sala.burned).toBeGreaterThan(0);
+  // the imp
+  const e2 = await start(page, '?seed=K3F9QX&floor=3&foe=hexImp&spells=cinder_lance');
+  const imp = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.3);
+    const e = g.enemies[0]; let hidden = false, invisible = false, from = 0, hexes = 0;
+    for (let i = 0; i < 120 && !(hidden && hexes); i++) {
+      g.sim(.05); hexes = Math.max(hexes, g.shots.filter(s => s.hex).length);
+      if (e.state === 'gone') { hidden ||= !!e.hidden; invisible ||= !e.model.visible; }
+      if (e.state === 'raise' && !from) from = Math.hypot(e.x - g.player.x, e.z - g.player.z);
+    }
+    // stand in a hex's way
+    const mana = g.player.mana; let drained = 0;
+    for (let i = 0; i < 160 && !drained; i++) { const s = g.shots.find(s => s.hex) as { x?: number; z?: number } | undefined; if (s) { g.player.x = s.x!; g.player.z = s.z!; g.player.invuln = 0; } g.sim(.05); drained = mana - g.player.mana; }
+    return { hidden, invisible, from, hexes, drained };
+  });
+  expect(imp.hidden).toBe(true); expect(imp.invisible).toBe(true); expect(imp.hexes).toBeGreaterThan(0);
+  expect(imp.from).toBeGreaterThan(1.5); expect(imp.drained).toBeGreaterThanOrEqual(5); // (a hex's drain, less what mana came back meanwhile)
+  // the drakeling: one a room on its floor, however many heavies the template has
+  const e3 = await start(page, '?seed=K3F9QX&floor=3&room=twin_hounds');
+  const count = await page.evaluate(() => { const g = (window as unknown as { __game: GF }).__game; g.warp(1); g.sim(.3); return g.enemies.filter(e => e.type === 'rimeDrakeling').length; });
+  expect(count).toBeLessThanOrEqual(1);
+  const e4 = await start(page, '?seed=K3F9QX&floor=3&foe=rimeDrakeling');
+  const drake = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 90; g.warp(1); g.sim(.3);
+    const e = g.enemies[0], seen = new Set<string>(); let rime = 0, high = 0, flew = false;
+    for (let i = 0; i < 400 && !(seen.has('inhale') && seen.has('land') && rime); i++) {
+      g.player.x = e.x + 2.5; g.player.z = e.z; g.sim(.05); seen.add(e.state); rime = Math.max(rime, g.shots.filter(s => s.chill).length);
+      high = Math.max(high, e.model.position.y); flew ||= e.flying;
+    }
+    return { seen: [...seen].sort(), rime, high, flew };
+  });
+  expect(drake.seen).toEqual(expect.arrayContaining(['stalk', 'inhale', 'takeoff', 'fly', 'land']));
+  expect(drake.rime).toBeGreaterThanOrEqual(7); expect(drake.high).toBeGreaterThan(.5); expect(drake.flew).toBe(true);
+  expect([...errors, ...e2, ...e3, ...e4]).toEqual([]);
+});
+
 test('the pixel look: on from the URL, drawn with outlines and light in bands, then off again, and the enemy and spell effect options, without errors', async ({ page }) => {
   type Look = { lines: number; outline: boolean; bands: boolean };
   type GP = { sim(sec: number, draw?: boolean): void; pixelLook: Look; setPixelLook(l: Partial<Look>): void; renderInfo(): { calls: number } };

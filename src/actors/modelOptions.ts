@@ -157,7 +157,7 @@ function mireToad(): Built {
   }
   const frost = glow(F, .8, .4); frost.position.set(0, .4, -.12); body.add(frost);
   const breath = [0, 1, 2].map(() => part(body, sphere(.06, 7, 6), shine(F, .45), [0, 0, 0]));
-  return { group: g, shadow: .75, idle: t => {
+  return { group: g, shadow: .75, parts: { body, throat }, idle: t => {
     const puff = Math.max(0, Math.sin(t * 3.2)); throat.scale.set(1.2 + puff * .35, .8 + puff * .3, .9 + puff * .25);
     body.scale.set(1, 1 + Math.sin(t * 1.6) * .02, 1); blink(eyes, t, 3.3); frost.material.opacity = .3 + Math.sin(t * 2) * .1;
     breath.forEach((b, i) => { const q = (t * .45 + i * .08) % 1; b.visible = q < .45; const k = q / .45; b.position.set((i - 1) * .05 * k, .2 + k * .12, .34 + k * .45); b.scale.setScalar(.4 + k * 1.3); (b.material as THREE.MeshBasicMaterial).opacity = .45 * (1 - k); });
@@ -170,9 +170,10 @@ function cisternLurker(): Built {
   const S = SCHOOL_LIGHT.storm, g = new THREE.Group(), hide = std(0x2e6272), belly = std(0x9cc4b8), light = lit(S), fin = shine(0x9fe8ff, .5);
   part(g, new THREE.CircleGeometry(.5, 20), std(0x12404a, { roughness: .15, metalness: .2, emissive: 0x06242a }), [0, .012, 0], { rot: [-Math.PI / 2, 0, 0] });
   const edge = runeRing(g, S, .5, [0, .03, 0], 8);
+  const rise = new THREE.Group(); g.add(rise); // (all of it that rises out of the pool: M4's foe sinks it to dive)
   const segs: THREE.Mesh[] = [], spots: THREE.Mesh[] = [];
-  for (let i = 0; i < 6; i++) { const r = .14 - i * .01, s = part(g, sphere(r, 10, 8), i % 2 ? belly : hide, [0, 0, 0]); segs.push(s); if (!(i % 2)) for (const x of [-1, 1]) spots.push(part(s, sphere(.022, 5, 4), light, [r * .9 * x, .03, .03])); }
-  const head = new THREE.Group(); g.add(head);
+  for (let i = 0; i < 6; i++) { const r = .14 - i * .01, s = part(rise, sphere(r, 10, 8), i % 2 ? belly : hide, [0, 0, 0]); segs.push(s); if (!(i % 2)) for (const x of [-1, 1]) spots.push(part(s, sphere(.022, 5, 4), light, [r * .9 * x, .03, .03])); }
+  const head = new THREE.Group(); rise.add(head);
   part(head, sphere(.18, 12, 10), hide, [0, 0, 0], { scale: [1.1, .95, 1] });
   part(head, sphere(.12, 10, 8), belly, [0, -.06, .07], { scale: [1.2, .7, 1] });
   const eyes = bigEyes(head, .08, .05, .13, .06);
@@ -192,7 +193,7 @@ function cisternLurker(): Built {
     spots.forEach((s, i) => { s.visible = (Math.floor(t * 4) + i) % 5 !== 0; });
   };
   place(0);
-  return { group: g, shadow: .5, idle: place };
+  return { group: g, shadow: .5, idle: place, parts: { rise, lures: lures[0], lures2: lures[1] } };
 }
 
 /** Drowned floor, Hallow: a jellyfish floating like a lantern, a little flame in its bell and gold light round its rim. */
@@ -215,7 +216,7 @@ function lanternJelly(): Built {
     blink(eyes, t, 4.2);
   };
   place(0);
-  return { group: g, shadow: .5, idle: place };
+  return { group: g, shadow: .5, idle: place, parts: { bell, light } };
 }
 
 /** Burning floor, Ember: a salamander with glowing spots, a crest of flame down its back and a flame on its tail. */

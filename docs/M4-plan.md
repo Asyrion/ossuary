@@ -59,8 +59,10 @@ it; the lurker is shocked through its pool and trapped when it freezes. A foe's 
    floors' roles; the dev menu's foes by floor (and `?foe=`); the Sporeling built through all of it. Browser test.
 2. **Floor 1** (built 2026-09-30): the Vesper Moth, the Rune Beetle and the Urn Mimic; dimmed sight. Floor 1's fights are
    all foes in code now (`R` Sporelings, `W` moths, `H` beetles three times in four and mimics the fourth). Browser tests.
-3. **Floor 2:** the Mire Toad, the Cistern Lurker and the Lantern Jelly; chill on the mage. Browser tests.
-4. **Floor 3:** the Cinder Salamander, the Hex Imp and the Rime Drakeling; the hex. Browser tests.
+3. **Floor 2** (built 2026-09-30): the Mire Toad, the Cistern Lurker (it brings a small pool of real water where the
+   room has none, so shock and frost reach it) and the Lantern Jelly; chill on the mage. Browser tests.
+4. **Floor 3** (built 2026-09-30): the Cinder Salamander (its burning ground drawn as one instanced mesh), the Hex Imp
+   and the Rime Drakeling; the hex. Every floor's fights are foes in code now. Browser tests.
 5. **The old three retire:** summons, the vault's warden, rising bones, quiet rooms; a balance pass over health and
    counts per floor; the room inspector over fights on each floor.
 6. **The boss:** looks in the gallery for the owner, then the fight.
