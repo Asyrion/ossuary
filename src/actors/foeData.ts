@@ -20,7 +20,7 @@ export type Role = 'R' | 'W' | 'H';
 export const ROLES: readonly Role[] = ['R', 'W', 'H'];
 
 export interface FoeDef {
-  id: FoeId; floor: 1 | 2 | 3; school: School; weak: School; resist: School;
+  id: FoeId; floor: number; school: School; weak: School; resist: School;
   hp: number; r: number; speed: number; contact: number; flying: boolean;
   /** Only one in a room (the Rime Drakeling); the rest of its role's picks go to the others. */ elite?: boolean;
   behaviour: string; params: Record<string, number | number[]>;
@@ -55,6 +55,8 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   glider: ['turn', 'overshoot', 'passSpeed', 'sparkEvery', 'sparkTime'],
   absorber: ['keep', 'hold', 'tell', 'perBolt', 'shotSpeed', 'spent', 'open'],
   shell: ['walk', 'hide', 'spinSpeed', 'spinTime', 'bounces', 'dizzy', 'guard', 'open', 'bounceShots', 'shotSpeed', 'chill'],
+  // M4.2: the Wardlings a drinking ward lets out (and, by school, `fire`, `chill`, `hex` on their shots, `ring` of them)
+  wardling: ['keep', 'orbitSpeed', 'volleyEvery', 'tell', 'shots', 'spread', 'shotSpeed'],
 };
 
 /** What is wrong with the foes' data (an empty list when nothing is). */
@@ -62,7 +64,7 @@ export function validateFoes(defs: Record<string, FoeDef> = FOES) {
   const errors: string[] = [];
   for (const [id, d] of Object.entries(defs)) {
     const at = (m: string) => errors.push(`${id}: ${m}`);
-    if (!Number.isInteger(d.floor) || d.floor < 1 || d.floor > floorsData.length) at(`floor ${d.floor}`); // (a floor of the run's)
+    if (!Number.isInteger(d.floor) || d.floor < 0 || d.floor > floorsData.length) at(`floor ${d.floor}`); // (a floor of the run's; 0: no floor's, called up by a drinking ward)
     for (const k of ['school', 'weak', 'resist'] as const) if (!SCHOOLS.includes(d[k])) at(`${k} ${d[k]}`);
     if (d.weak === d.resist) at('weak to what it resists');
     for (const k of ['hp', 'r', 'speed'] as const) if (!(d[k] > 0)) at(`${k} ${d[k]}`);

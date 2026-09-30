@@ -6,6 +6,7 @@ import type { FoeKind, Template } from './world/templates';
 import type { FoeDef, FoeType, School } from './actors/foeData';
 import type { StatusState } from './magic/status';
 import type { SpellStatus, StatusKind } from './magic/spellData';
+import type { Drink } from './magic/drinking';
 import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
 import type { Drop, Item, Soul, Ware } from './items/loot';
 import type { Kinds, KitWeights } from './world/kitData';
@@ -62,6 +63,7 @@ export interface VaultSeal {
   sealed: boolean; blasts: number; vault: Room; inner: Door; outer: Door; outerRoom: Room;
   /** The ward disc and padlock on the outer side. */ mark: THREE.Group;
   /** Says it's sealed again only after the mage steps away. */ armed: boolean;
+  /** M4.2: the ward drinks spells cast near it (magic/drinking.ts); the light filling it (its own material). */ drink: Drink; cup: THREE.Mesh;
 }
 /** A merchant's ware floating in its ward circle; the price is in obols (0 for a focus left behind). */
 export interface WareSpot {
@@ -127,6 +129,7 @@ export interface Room {
   spots: ArtifactSpot[];
   /** The merchant's wares and the shade himself. */ wares?: WareSpot[]; shade?: THREE.Group;
   /** A locked vault forced open by blasts: its warden, a champion, rises when the mage comes in. */ warden?: boolean;
+  /** M4.2: its ward burst full of this school: a Wardling of it is the warden. */ drunk?: School;
   /** A secret room, once one of its walls has been blasted open. */ found?: boolean;
   /** The mage was hurt during this room's fight (Unbroken Oath). */ hurt?: boolean;
   /** A shrine: its circle's material, the motes around it and the offering stones. */
@@ -162,6 +165,7 @@ export interface Enemy extends Circle {
   dead?: boolean; isBoss?: boolean; bossCfg?: BossConfig;
   /** Size and speed factors (champions are bigger and faster); the champion's glow. */ scale: number; speedMul: number;
   champion?: boolean; aura?: THREE.Sprite;
+  /** M4.2: a drinking ward round it (actors/wardShield.ts): what it has drunk, and its light. */ ward?: { drink: Drink; fx: THREE.Mesh };
   // type-specific parts and AI state
   core?: THREE.Mesh; halo?: THREE.Sprite; target?: Vec2; fireT?: number; dir?: Vec2;
   eye?: THREE.Object3D; ring?: THREE.Object3D; cycle?: number; summoned?: boolean; volleys?: number;

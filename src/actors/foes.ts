@@ -805,4 +805,26 @@ const BEHAVIOURS: Record<string, Behaviour> = {
     },
   },
 
+  // M4.2: the Wardlings a drinking ward lets out
+  wardling: {
+    init(e, P) { e.state = 'float'; e.fireT = span(P.volleyEvery); e.cycle = Math.random() * Math.PI * 2; },
+    step(e, dt, a, P) {
+      // it keeps its distance, drifting round the mage
+      e.cycle = (e.cycle ?? 0) + dt * num(P.orbitSpeed);
+      const R = num(P.keep), tx = player.x + Math.cos(e.cycle) * R, tz = player.z + Math.sin(e.cycle) * R * .8, dx = tx - e.x, dz = tz - e.z, d = Math.hypot(dx, dz) || 1;
+      const sp = e.foe!.speed * e.speedMul * Math.min(1, d) * (e.state === 'swell' ? .25 : 1);
+      e.vx = lerp(e.vx, dx / d * sp, Math.min(1, dt * 4)); e.vz = lerp(e.vz, dz / d * sp, Math.min(1, dt * 4));
+      if (e.state === 'float') { if ((e.fireT! -= dt) <= 0) { e.state = 'swell'; e.st = num(P.tell); Sfx.at(e.x, e.z).wardlingSwell(); } return; }
+      e.st -= dt; e.tele = Math.min(1, 1 - e.st / num(P.tell)); // it swells with what it drank, then lets it go
+      if (e.st > 0) return;
+      const o = { fire: !!P.fire, chill: P.chill ? num(P.chill) : undefined, hex: P.hex ? num(P.hex) : undefined }, speed = num(P.shotSpeed);
+      const n = num(P.shots), base = Math.atan2(a.uz, a.ux), spread = num(P.spread), ring = P.ring ? num(P.ring) : 0;
+      for (let i = 0; i < n; i++) { const t = base + (n > 1 ? (i / (n - 1) - .5) * 2 * spread : 0); spawnShot(e.x, e.z, Math.cos(t), Math.sin(t), speed, light(e), .75, 1, o); }
+      for (let i = 0; i < ring; i++) { const t = base + (i + .5) / ring * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(t), Math.sin(t), speed * .8, light(e), .75, .8, o); } // (Hallow's: a ring)
+      burst(e.x, .85, e.z, light(e), 10, 1.8, .04); Sfx.at(e.x, e.z).wardlingShot();
+      e.state = 'float'; e.tele = 0; e.fireT = span(P.volleyEvery);
+    },
+    pose(e) { const p = e.parts!; (p.light as THREE.Sprite).material.opacity = .45 + (e.tele ?? 0) * .5; p.body.scale.multiplyScalar(1 + (e.tele ?? 0) * .18); },
+  },
+
 };

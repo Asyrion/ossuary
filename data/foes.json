@@ -124,5 +124,40 @@
     "behaviour": "shell",
     "params": {"walk": [2, 3], "hide": 0.5, "spinSpeed": 5.6, "spinTime": 3, "bounces": 3, "dizzy": 1.6, "guard": 0.15, "open": 1.5, "bounceShots": 4, "shotSpeed": 3, "chill": 1},
     "gib": "#8a9a88", "stain": "#141c1a"
+  },
+  "wardEmber": {
+    "floor": 0, "school": "ember", "weak": "frost", "resist": "ember",
+    "hp": 16, "r": 0.32, "speed": 2.2, "contact": 1, "flying": true,
+    "behaviour": "wardling",
+    "params": {"keep": 3.2, "orbitSpeed": 0.9, "volleyEvery": [2.2, 3], "tell": 0.6, "shots": 3, "spread": 0.35, "shotSpeed": 3.4, "fire": 1},
+    "gib": "#ffb070", "stain": null
+  },
+  "wardFrost": {
+    "floor": 0, "school": "frost", "weak": "ember", "resist": "frost",
+    "hp": 16, "r": 0.32, "speed": 2.2, "contact": 1, "flying": true,
+    "behaviour": "wardling",
+    "params": {"keep": 3.2, "orbitSpeed": 0.9, "volleyEvery": [2.2, 3], "tell": 0.6, "shots": 3, "spread": 0.35, "shotSpeed": 3.4, "chill": 1.5},
+    "gib": "#bfe8ff", "stain": null
+  },
+  "wardStorm": {
+    "floor": 0, "school": "storm", "weak": "umbral", "resist": "storm",
+    "hp": 16, "r": 0.32, "speed": 2.2, "contact": 1, "flying": true,
+    "behaviour": "wardling",
+    "params": {"keep": 3.2, "orbitSpeed": 0.9, "volleyEvery": [2.2, 3], "tell": 0.6, "shots": 5, "spread": 0.5, "shotSpeed": 4.6},
+    "gib": "#f4ee9a", "stain": null
+  },
+  "wardHallow": {
+    "floor": 0, "school": "hallow", "weak": "umbral", "resist": "hallow",
+    "hp": 16, "r": 0.32, "speed": 2.2, "contact": 1, "flying": true,
+    "behaviour": "wardling",
+    "params": {"keep": 3.2, "orbitSpeed": 0.9, "volleyEvery": [2.2, 3], "tell": 0.6, "shots": 1, "spread": 0.35, "shotSpeed": 3.4, "ring": 10},
+    "gib": "#ffe8b0", "stain": null
+  },
+  "wardUmbral": {
+    "floor": 0, "school": "umbral", "weak": "hallow", "resist": "umbral",
+    "hp": 16, "r": 0.32, "speed": 2.2, "contact": 1, "flying": true,
+    "behaviour": "wardling",
+    "params": {"keep": 3.2, "orbitSpeed": 0.9, "volleyEvery": [2.2, 3], "tell": 0.6, "shots": 3, "spread": 0.35, "shotSpeed": 3.4, "hex": 8},
+    "gib": "#c8a0ff", "stain": null
   }
 }

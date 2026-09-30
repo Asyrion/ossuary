@@ -624,6 +624,57 @@ test('two glyph blasts force a vault, and its warden guards the prize', async ({
   expect(errors).toEqual([]);
 });
 
+test('the drinking ward (M4.2): a vault\'s ward drinks the spells cast near it and bursts into a Wardling of what it drank most; a warded foe drinks spells, keeps statuses off, and breaks into a Wardling', async ({ page }) => {
+  type Wards = { vaults: { sealed: boolean; fill: number; top: string | null; guard: string | null }[]; foes: { type: string; fill: number; top: string }[] };
+  type F = Foe & { hp: number; maxHp: number; type: string; champion?: boolean; dead?: boolean; status?: Record<string, number> };
+  type GW = Omit<G5, 'enemies'> & { learn(id: string, slot: number): void; mana(n: number): void; cast(slot: number, dir?: { x: number; z: number }): boolean; wards: Wards;
+    wardFoe(i: number): boolean; hit(i: number, dmg: number, school?: string, by?: string): void; inflict(s: Record<string, number>): void;
+    spawn(kind: string, x: number, z: number): F; enemies: F[] };
+  let errors = await start(page, '?room=vault_urns&seed=VAULT3');
+  const vault = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GW, P = g.player, d = g.current.doors.find(x => x.seal)!;
+    P.x = d.x; P.z = d.z + 2.5; P.vx = P.vz = 0; P.invuln = 99; g.sim(.2);
+    g.mana(999); g.learn('rime_shards', 0); g.learn('cinder_lance', 1);
+    g.cast(0, { x: 0, z: -1 }); const first = { ...g.wards.vaults[0], bolts: g.bolts.length, toast: document.getElementById('toast')!.textContent };
+    g.sim(1.6); g.cast(0, { x: 0, z: -1 }); g.sim(1.6); g.cast(1, { x: 0, z: -1 }); g.sim(2.1);
+    const three = g.wards.vaults[0];
+    g.cast(0, { x: 0, z: -1 }); g.sim(.3);
+    const burst = { ...g.wards.vaults[0], open: d.open, toast: document.getElementById('toast')!.textContent };
+    P.x = d.x; P.z = d.z + .8; g.keys.add('KeyW'); g.sim(1.4); g.keys.delete('KeyW'); g.sim(.6);
+    const guard = g.enemies.filter(e => !e.dead);
+    return { first, three, burst, inside: { type: g.current.type, locked: g.current.locked, guards: guard.map(e => e.type), champion: guard.every(e => e.champion), banner: document.querySelector('#banner .t')!.textContent } };
+  });
+  expect(vault.first).toMatchObject({ sealed: true, top: 'frost', bolts: 0, toast: expect.stringMatching(/drinks your spell/) });
+  expect(vault.first.fill).toBeCloseTo(15 / 60, 5);
+  expect(vault.three).toMatchObject({ sealed: true, top: 'frost' });
+  expect(vault.three.fill).toBeCloseTo(50 / 60, 5);
+  expect(vault.burst).toMatchObject({ sealed: false, open: true, guard: 'wardFrost', toast: expect.stringMatching(/bursts, full of Frost/) });
+  expect(vault.inside).toEqual({ type: 'vault', locked: true, guards: ['wardFrost'], champion: true, banner: 'What the ward drank rises' });
+  await page.evaluate(() => (window as unknown as W).__game.sim(.05, true));
+  await page.screenshot({ path: 'test-results/smoke-wardling.png' });
+  expect(errors).toEqual([]);
+
+  errors = await start(page, '?room=crypt_a&seed=WARD1');
+  const foe = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GW, P = g.player;
+    g.warp(1); g.clearRoom(); g.sim(.3); P.invuln = 99;
+    const e = g.spawn('rotling', P.x, P.z - 2.5); e.hp = e.maxHp = 200; g.sim(.8);
+    const i = g.enemies.indexOf(e); g.wardFoe(i);
+    g.hit(i, 25, 'storm', 'spell'); g.inflict({ hex: 1, burn: 2 });
+    const held = { hp: e.hp, hex: e.status?.hex ?? 0, burn: e.status?.burn ?? 0, fill: g.wards.foes[0]?.fill };
+    g.hit(i, 3, undefined, 'cantrip'); const cantrip = 200 - e.hp;
+    g.mana(999); g.learn('arc', 0); g.cast(0, { x: 0, z: -1 }); g.sim(.3); const arc = g.wards.foes[0]?.fill ?? 1;
+    g.hit(i, 25, 'storm', 'spell'); g.hit(i, 15, 'umbral', 'spell'); g.sim(.2);
+    return { held, cantrip, arc, after: g.wards.foes.length, risen: g.enemies.filter(x => !x.dead && x.type.startsWith('ward')).map(x => x.type), hp: e.hp };
+  });
+  expect(foe.held).toMatchObject({ hp: 200, hex: 0, burn: 0 });
+  expect(foe.held.fill).toBeCloseTo(25 / 60, 5);
+  expect(foe.cantrip).toBe(3);
+  expect(foe.arc).toBeGreaterThan(25 / 60);
+  expect(foe).toMatchObject({ after: 0, risen: ['wardStorm'], hp: 197 });
+  expect(errors).toEqual([]);
+});
+
 /* M2 step 5: the shrine. */
 type Rite = { id: string; x: number; z: number; hits: number; t: number; inside: boolean; fleeing: boolean } | null;
 type G6 = G5 & {
@@ -2658,7 +2709,7 @@ test('the pixel look: on from the URL, drawn with outlines and light in bands, t
     const g = (window as unknown as { __game: GP & { modelOptions(): { id: string }[] } }).__game;
     g.setPixelLook({ lines: 270 }); const at = g.modelOptions(); g.sim(.5, true); g.setPixelLook({ lines: 0 }); return at.map(a => a.id);
   });
-  expect(shown.length).toBe(18);
+  expect(shown.length).toBe(23); // (M4.2: the five Wardlings too)
   // and the familiar options (the owner's drawings built in code): the Rune Fox
   const familiars = await page.evaluate(() => {
     const g = (window as unknown as { __game: GP & { takeModelOptions(): void; familiarOptions(): { id: string }[] } }).__game;

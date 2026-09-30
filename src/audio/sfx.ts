@@ -261,6 +261,11 @@ const sounds = {
   statueRay() { hiss(.25, .12, 'highpass', 3000); tone('sawtooth', 1320, 180, .25, .05); tone('sine', 660, 330, .4, .04); },
   statueBlind() { tone('sine', 520, 130, .5, .05); hiss(.4, .04, 'lowpass', 900); },
   wardShatter() { [1568, 1175, 880, 659].forEach((f, i) => tone('triangle', f, f * .8, .35, .035, i * .05)); hiss(.4, .08, 'highpass', 3000); },
+  // the drinking ward (M4.2): a spell drunk, the ward bursting; a Wardling swelling and letting its volley go
+  wardDrink() { tone('sine', 660, 220, .35, .06); tone('sine', 990, 330, .3, .03, .04); hiss(.25, .03, 'bandpass', 1400); },
+  wardBurst() { tone('sine', 110, 55, .6, .12); [880, 1320, 1760].forEach((f, i) => tone('triangle', f, f * .6, .5, .04, i * .06)); hiss(.5, .1, 'highpass', 2500); },
+  wardlingSwell() { tone('sine', 300, 700, .5, .04); },
+  wardlingShot() { tone('triangle', 700, 260, .15, .05); hiss(.1, .04, 'bandpass', 1800); },
 };
 type Sounds = typeof sounds;
 /** Sounds of the interface (picking things up, refusals, learning): their own bus, never positioned. */

@@ -26,12 +26,14 @@ import { foeDied, foeStruck } from '../actors/foes';
 import { payToll } from '../magic/shapes';
 import { guardHit, soulsHere } from '../items/souls';
 import { SOUL_COLOR } from '../items/loot';
+import { drinkBlow } from '../actors/wardShield';
 
 /** Hurt a foe, knocking it along (dx, dz); `kbMul` scales the knockback (the Ram's Skull on bolts); `by` says
     what struck it (a foe the cantrip puts to rest gives mana back); `school`, the magic it struck with, if any: a foe in
     code takes half again from its weakness and half from its resistance (M4), and the first time the word rises. */
 export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul = 1, by?: Enemy['lastHit'], school?: School) {
   if (e.spawn > 0 || e.dead || e.hidden) return;
+  if (e.ward && by === 'spell') { drinkBlow(e, dmg, school); return; } // (M4.2: its ward drinks the spells that strike it)
   dmg *= damageTakenMul(e.status) * (e.guard ?? 1); // a frozen foe cracks; a shut mimic's clay turns half a blow
   const aff = affinityMul(e.foe ?? e.bossAff, school); // (the bosses of floors 4 and 5 have theirs too)
   if (aff !== 1) {

@@ -56,6 +56,8 @@ import { removeModelOptions, showBossLooks, showFamiliarOptions, showModelOption
 import { bossLook, setBossLook, type BossLookId } from './actors/bossLooks';
 import { removeEffectOptions, showEffectOptions } from './magic/effectOptions';
 import { elementDev, sapMul } from './world/mechanisms';
+import { wardFoe } from './actors/wardShield';
+import { fullness, mostDrunk } from './magic/drinking';
 import { forgetKnowledge, knowledgeNow, setStage } from './magic/memory';
 import type { Stage } from './magic/knowledge';
 import type { PropKind } from './world/propData';
@@ -257,6 +259,14 @@ function installDevHooks() {
       charge: b.prop.charge ?? 0, blind: b.prop.blind ?? 0, aiming: !!b.prop.aim, ward: b.prop.ward ?? null, broken: !!b.prop.broken })); },
     /** M4.2: whether the mage stands in a sapping obelisk's field (what the cantrip's blows are worth there). */
     get sap() { return sapMul(); },
+    /** M4.2: the drinking wards: every vault's on the floor (sealed or not, how full, what it drank most, the vault's
+        warden) and every warded foe's; `wardFoe(i)` wards the i-th foe. */
+    get wards() {
+      const seals = [...new Set(G.rooms.flatMap(r => r.doors.map(d => d.seal)).filter(s => !!s))];
+      return { vaults: seals.map(s => ({ sealed: s.sealed, fill: fullness(s.drink), top: s.drink.total ? mostDrunk(s.drink) : null, guard: s.vault.waves?.[0]?.[0]?.kind ?? null })),
+        foes: G.enemies.filter(e => e.ward && !e.dead).map(e => ({ type: e.type, fill: fullness(e.ward!.drink), top: mostDrunk(e.ward!.drink) })) };
+    },
+    wardFoe(i: number) { const e = G.enemies[i]; if (e) wardFoe(e); return !!e?.ward; },
     /** Fire, frost or shock landing at (x, z), as a spell's would: lights braziers and candles, charges rune stones,
         sets lodestones leaping. */
     element: (kind: StatusKind | 'sanct' | 'hex', x = player.x, z = player.z - 1.5) => elementDev(kind, x, z),
