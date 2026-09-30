@@ -20,6 +20,8 @@ const V = (x: number, y: number) => new THREE.Vector2(x, y);
 /** A shape turned round the upright from its outline, given from the bottom up (from the top down, it turns inside out). */
 const lathe = (pts: number[][], seg: number) => new THREE.LatheGeometry(pts.map(([x, y]) => V(x, y)), seg);
 const hex = (c: string) => new THREE.Color(c).getHex();
+/** What rocks are mixed towards from the floor's stone, so they stand out on it. */
+const ROCK_GREY = 0x8a8680;
 
 const C = {
   bone: 0xd6cab0, boneOld: 0xbcae92, dust: 0x3a322a, socket: 0x16100c,
@@ -29,7 +31,7 @@ const C = {
   cane: 0x847a4c, thorn: 0xe0d0a8, berry: 0x8a1818, leaf: 0x4e4a26,
   stem: 0xd4dcc4, cap: 0x3fb896, capRim: 0x1e6e58, spot: 0xe0fff4, gill: 0x6a8a78, spore: 0x9fe8b0,
   wood: 0x6e4c30, woodDark: 0x4e3622, woodLight: 0x82603c, pew: 0xa27450, pewDark: 0x80583a, pewLight: 0xb88a5c, paper: 0xd8cbaa, paperOld: 0xbfae88, leather: 0x5e2620, ink: 0x1a1a24, quill: 0xe8e4d8,
-  seal: 0x9a1e18, ribbon: 0x7a2a2a, rune: 0x8fd0ff, gold: 0xffd98a, blood: 0xb02a1a, shroud: 0xcfc6b0, linen: 0xa89c84,
+  soot: 0x241e1c, seal: 0x9a1e18, ribbon: 0x7a2a2a, rune: 0x8fd0ff, gold: 0xffd98a, blood: 0xb02a1a, shroud: 0xcfc6b0, linen: 0xa89c84,
 };
 
 /* ---------- shared pieces ---------- */
@@ -134,10 +136,10 @@ export const OBJECT_LOOKS = {
     const g = new THREE.Group(), st = stoneOf(look, 1.15);
     mesh(g, GEO.mound, tone(C.dust, .1), 0, 0, 0).scale.set(1.1, .6, 1);
     for (let i = 0; i < 5; i++) {
-      const a = i / 5 * Math.PI * 2 + R(), r = i === 4 ? .02 : .1 + R() * .22, w = .2 + R() * .14, h = .12 + R() * .06, d = w * (.6 + R() * .4);
-      put(box(g, w, h, d, tone(shade(st, .85 + R() * .35), .1), Math.cos(a) * r, i === 4 ? .17 : .07, Math.sin(a) * r), (R() - .5) * .5, R() * 3, (R() - .5) * .5, [w, h, d]);
+      const a = i / 5 * Math.PI * 2 + R(), r = i === 4 ? .02 : .16 + R() * .22, w = .2 + R() * .14, h = .08 + R() * .05, d = w * (.6 + R() * .4);
+      put(box(g, w, h, d, tone(shade(st, .95 + R() * .35), .1), Math.cos(a) * r, i === 4 ? .12 : .05, Math.sin(a) * r), (R() - .5) * .4, R() * 3, (R() - .5) * .4, [w, h, d]); // (low: rubble is walked round, not a rock)
     }
-    if (R() < .4) put(mesh(g, GEO.drum, tone(shade(st, 1.1), .08), .2, .14, .18), 0, R() * 3, 0);
+    if (R() < .4) put(mesh(g, GEO.drum, tone(shade(st, 1.3), .08), .2, .14, .18), 0, R() * 3, 0);
     for (let i = 0; i < 7; i++) put(mesh(g, GEO.chip, tone(shade(st, .8 + R() * .3), .1), (R() - .5) * .8, .03, (R() - .5) * .75), R() * 3, R() * 3, 0, .6 + R() * .7);
     g.add(blob(1.1)); return g;
   },
@@ -217,9 +219,10 @@ export const OBJECT_LOOKS = {
   /** A heap of scrolls: rolled ones, some on knobbed rods, some tied with ribbon or sealed in red wax, loose sheets. */
   scrolls(R) {
     const g = new THREE.Group();
+    for (const [x, z, a] of [[-.08, .02, .3], [.1, -.06, -.4]]) put(box(g, .3, .07, .22, tone(C.leather, .08), x, .035, z), 0, a, 0, [.3, .07, .22]); // (books under the heap)
     for (let i = 0; i < 9; i++) {
       const r = .038 + R() * .014, len = .28 + R() * .1, s = new THREE.Group();
-      s.position.set((R() - .5) * .42, .045 + Math.floor(i / 4) * .07 + (i % 2) * .01, (R() - .5) * .42); put(s, 0, R() * 6, Math.PI / 2);
+      s.position.set((R() - .5) * (.42 - Math.floor(i / 4) * .12), .08 + Math.floor(i / 3) * .065 + (i % 2) * .01, (R() - .5) * (.42 - Math.floor(i / 4) * .12)); put(s, 0, R() * 6, Math.PI / 2);
       put(mesh(s, GEO.scroll, tone(i % 3 ? C.paper : C.paperOld, .06)), 0, 0, 0, [r, len, r]);
       if (R() < .4) for (const e of [-1, 1]) mesh(s, GEO.knob, tone(C.woodDark), 0, e * (len / 2 + .02), 0);
       if (R() < .4) put(mesh(s, GEO.ribbon, tone(C.ribbon)), 0, 0, Math.PI / 2, r + .004);
@@ -305,7 +308,7 @@ export function treeLook(R: R) {
     if (i % 2 === 0) put(mesh(g, GEO.thorn, tone(C.hanging, .1), p.x, p.y - .18, p.z), Math.PI, 0, 0, [1.6, 5, 1.2]);
   }
   for (const [y, a, r] of [[.4, .9, .17], [.95, 2.2, .145], [1.3, 1.4, .115]]) mesh(g, GEO.patch, tone(C.lichen, .1), Math.cos(a) * r, y, Math.sin(a) * r).lookAt(Math.cos(a) * 3, y, Math.sin(a) * 3);
-  g.add(blob(1.2)); return g;
+  g.add(blob(1.2)); g.userData.kit = true; return g;
 }
 
 /* ---------- the room's pieces (rooms.ts, items/artifacts.ts) ---------- */
@@ -313,7 +316,8 @@ export function treeLook(R: R) {
 /** A rock (`#`): a rough boulder and a stone or two beside it, in the floor's stone: mossy on the drowned floor, sooty
     on the burning one, lichen now and then in the crypt. A fungal grotto's are dripstone: stalagmites, wet at the tip. */
 export function rockLook(R: R, look: FloorLook | undefined, dripstone: boolean) {
-  const g = new THREE.Group(), stains = look?.wall.stains ?? 'none', st = stoneOf(look, stains === 'soot' ? 1.05 : 1.3);
+  const g = new THREE.Group(), stains = look?.wall.stains ?? 'none';
+  const st = new THREE.Color(stoneOf(look, 1.3)).lerp(new THREE.Color(ROCK_GREY), stains === 'soot' ? .75 : .4).getHex(); // (greyer than the floor, so a rock stands out on it; ash-grey where it burns)
   if (dripstone) {
     [[0, 0, 1 + R() * .5, .3], [R() * .4 - .2, .25, .45 + R() * .3, .16], [.25, R() * .3 - .2, .3 + R() * .2, .12]].forEach(([x, z, h, r], i) => {
       mesh(g, rough(lathe([[r, 0], [r * .85, h * .18], [r * .62, h * .42], [r * .48, h * .6], [r * .28, h * .82], [r * .08, h], [0, h]], 7), .02, i + R()), tone(shade(st, 1.15), .12), x, 0, z);
@@ -325,7 +329,7 @@ export function rockLook(R: R, look: FloorLook | undefined, dripstone: boolean) 
   put(mesh(g, rough(new THREE.IcosahedronGeometry(.2, 0), .05, R() * 9), tone(shade(st, 1.12), .14), (R() - .5) * .2, .5, (R() - .5) * .15), R() * 3, R() * 3, 0, [1, .75, 1]);
   put(mesh(g, rough(new THREE.IcosahedronGeometry(.16, 0), .03, R() * 9), tone(shade(st, .9), .12), R() * .5 - .25, .1, .32), R() * 3, R() * 3, 0);
   if (R() < .5) put(mesh(g, rough(new THREE.IcosahedronGeometry(.1, 0), .02, R() * 9), tone(shade(st, 1.1), .12), .34, .06, R() * .3 - .1), R() * 3, R() * 3, 0);
-  const patches = stains === 'moss' ? 4 : stains === 'none' && R() < .5 ? 2 : 0, color = stains === 'moss' ? C.moss : C.lichen;
+  const patches = stains === 'moss' || stains === 'soot' ? 4 : R() < .5 ? 2 : 0, color = stains === 'moss' ? C.moss : stains === 'soot' ? C.soot : C.lichen;
   for (let i = 0; i < patches; i++) { const a = R() * 6, r = .1 + R() * .15; put(mesh(g, GEO.mound, tone(color, .1), Math.cos(a) * r, .44 - r * .6, Math.sin(a) * r), 0, 0, 0, [.25 + R() * .15, .15, .22]); }
   g.add(blob(1.3)); return g;
 }
@@ -385,8 +389,9 @@ export function tombLook(R: R, long: number, wide: number, look: FloorLook | und
   const hx = -long / 2 + .24;
   if (long >= 1.6 && R() < .7) for (let n = Math.floor((long + .1) / 1.75), i = 0; i < n; i++) { // effigies, heads to the tomb's head end
     const Lb = Math.min(long / n - .62, 1.2), x0 = hx + i * long / n;
-    box(g, .16, .05, .3, fig, x0, .575, 0); mesh(g, new THREE.SphereGeometry(.085, 7, 5), fig, x0 + .04, .64, 0);
-    put(mesh(g, new THREE.CylinderGeometry(.14, .1, Lb, 6), fig, x0 + .12 + Lb / 2, .61, 0), 0, 0, Math.PI / 2, [.7, 1, 1]); // (flattened: lying down)
+    box(g, .16, .05, .3, fig, x0, .575, 0); mesh(g, new THREE.SphereGeometry(.1, 7, 5), fig, x0 + .04, .65, 0);
+    put(mesh(g, new THREE.CylinderGeometry(.17, .08, Lb, 6), fig, x0 + .12 + Lb / 2, .61, 0), 0, 0, Math.PI / 2, [.7, 1, 1]); // (flattened: lying down, broad at the shoulders)
+    box(g, .1, .08, .38, fig, x0 + .2, .62, 0); // (the shoulders)
     mesh(g, new THREE.SphereGeometry(.045, 5, 4), fig, x0 + .34, .68, 0);
     box(g, Lb * .55, .014, .035, fig, x0 + .34 + Lb * .28, .675, 0); box(g, .025, .014, .15, fig, x0 + .36, .68, 0);
     for (const z of [-.05, .05]) box(g, .05, .09, .06, fig, x0 + .14 + Lb, .66, z);
@@ -402,8 +407,8 @@ export function tombLook(R: R, long: number, wide: number, look: FloorLook | und
 /** A funerary urn: foot, belly, shoulder, neck and lip turned in the floor's clay (`urn` in the look), painted bands,
     two small handles, a lid with a knob. A rune-sealed one is dark stone, bound by a band of ward light with runes
     shining in it (`ward`, its colour). */
-export function urnLook(R: R, look: FloorLook | undefined, sealed: boolean, ward: number) {
-  const g = new THREE.Group(), clay = sealed ? 0x4c4a54 : hex(look?.urn?.clay ?? '#8a5436'), band = sealed ? 0x2e2c34 : hex(look?.urn?.band ?? '#4a2618');
+export function urnLook(R: R, look: FloorLook, sealed: boolean, ward: number) {
+  const g = new THREE.Group(), clay = sealed ? 0x4c4a54 : hex(look.urn.clay), band = sealed ? 0x2e2c34 : hex(look.urn.band);
   mesh(g, URN_BODY, tone(clay, .07)); mesh(g, URN_LID, tone(shade(clay, .72), .06)); mesh(g, GEO.spot, tone(shade(clay, .72)), 0, .635, 0).scale.setScalar(2.4);
   for (const [y, r, t] of [[.3, .252, .012], [.17, .2, .009], [.5, .104, .009]]) put(mesh(g, new THREE.TorusGeometry(r, t, 3, 16), tone(band), 0, y, 0), Math.PI / 2);
   for (const s of [-1, 1]) put(mesh(g, URN_HANDLE, tone(clay, .07), s * .2, .41, 0), 0, 0, -s * Math.PI / 2);

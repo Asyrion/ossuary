@@ -76,7 +76,7 @@
       "floor": {"base": [70, 60, 54], "mortar": "#140d0a", "stain": "48,26,16", "decor": "ash", "bones": 3},
       "wall": {"brick": [74, 60, 52], "mortar": "#170e0b", "stains": "soot", "dress": {"pilaster": 3, "niches": {"skull": 3, "bones": 3, "candle": 2, "empty": 1}}},
       "torch": {"style": "brazier", "flame": "#ff7a2a", "light": "#ff9048", "intensity": 1.1, "wax": "#8a2e24"},
-      "urn": {"clay": "#3e302a", "band": "#8a2e1e"},
+      "urn": {"clay": "#6e6660", "band": "#8a2e1e"},
       "light": {"sky": "#90786e", "ground": "#1c0e08", "moon": "#bca498"}
     }
   }
