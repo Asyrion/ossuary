@@ -16,7 +16,7 @@ log; its Sound section does the same for sound (sources and their licences, the 
 When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3.5 step 1 built (the asset pipeline's tooling, `docs/M3.5-plan.md`); step 2 under way: the pixel look chosen (on by default at 360 lines), the owner sets the house style next; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3.5 step 1 built (the asset pipeline's tooling, `docs/M3.5-plan.md`); step 2 under way: the pixel look chosen (on by default at 540 lines), the owner sets the house style next; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -143,7 +143,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
   every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
-  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=540`, `270` or `180` changes its rows). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
+  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=720`, `360`, `270` or `180` changes its rows). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
   vault, a secret room (behind a cracked wall), a shrine (`?room=shrine_henge`) or a library
   (`?room=library_plain`) next to the start.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
@@ -162,7 +162,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   their status, `__game.useAssets(false)` builds the floor again with the placeholders, `__game.showAssets()` puts
   urns and a pedestal ahead of the mage.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
-  buttons: heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
+  buttons, in six tabs (Mage, Magic, Foes & objects, Rooms & runs, Look, Galleries; `TABS`, names in `STR.dev.tabs`, the
+  last one open remembered in the browser as `ossuary.devTab`; a new section goes on the page of the tab it belongs to): heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
   special rooms (a sealed vault leads to its warded door), test rooms, boss fights and new runs, taking or
   cleansing a curse, the clip the mage moves with, spells (into slot Q or E), a grimoire page and mana (full,
   endless). Its lists come from the data, so new
@@ -205,15 +206,15 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `__game.spellFx` reads what shows (the lance, rings, lightning); `hideSpellFx` returns them all to their pools. `docs/effects.md` is the guide for new effects. Both
   galleries build from `src/render/arcane.ts`: materials, parts, rods, runes, rune rings, magic circles, crystals, motes,
   lightning and waves.
-- The pixel look (the game's look since 2026-09-30, on by default at 360 lines, `CFG.pixelLook.start`; chosen in M3.5
+- The pixel look (the game's look since 2026-09-30, on by default at 540 lines, `CFG.pixelLook.start`; chosen in M3.5
   step 2; `src/render/pixelLook.ts`, tuning in `CFG.pixelLook`): the scene drawn into
-  a target 540, 360, 270 or 180 lines tall with no smoothing, the camera snapped to its grid, and blown up to the window in
+  a target 720, 540, 360, 270 or 180 lines tall (rounded so a game pixel is a whole number of screen pixels) with no smoothing, the camera snapped to its grid, and blown up to the window in
   whole pixels by one full-screen pass (outlines from depth, light in bands); the HUD stays sharp. The scene is tone-mapped
   and encoded by its own shaders (the target flagged as an XR target, stored as plain RGBA8), so it blends as on the canvas.
   `draw()` in `render/renderer.ts` picks it; draw calls are counted per frame over both passes (`renderer.info`
   reset in `draw()`). The dev menu switches it, remembered in the browser (`ossuary.look`, with the default it was chosen
   against: a new default shows once); `?pixel=off` or
-  `?pixel=540`; `__game.pixelLook` reads it and `__game.setPixelLook({ lines, outline, bands })` sets it.
+  `?pixel=720`; `__game.pixelLook` reads it and `__game.setPixelLook({ lines, outline, bands })` sets it.
 - `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
   1,024 px JPEG textures). Clips: `standing_relax`, `run`, `walk` (slow movement), `cast_a_spell`,
   `hit_to_body_01`, `fall` and `defeat_03` (two deaths, one at random), `Drink Potion` (when healed) and
@@ -403,8 +404,8 @@ load when a session starts. In a cloud session the browser for Playwright is und
 ## Working agreements
 
 - Plan before large changes; keep commits small with clear messages.
-- **Every new feature gets its dev menu entry in the same step** (`src/ui/devMenu.ts`): a way to spawn,
-  give, reach or trigger it, so testing stays quick. Things listed from data show up by themselves; new
+- **Every new feature gets its dev menu entry in the same step** (`src/ui/devMenu.ts`, in the tab it belongs to): a way
+  to spawn, give, reach or trigger it, so testing stays quick. Things listed from data show up by themselves; new
   kinds of things (a room type, a mechanic, a switch) need a button or a line in `refresh()`. The HUD and the
   title screen's controls show the menu's key during the play-tests (`#devHint`, `STR.dev.hint`,
   `STR.controls.dev`); remove them when they're over.

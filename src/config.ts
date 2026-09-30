@@ -124,10 +124,11 @@ export const CFG = {
     witchKnot: { costMul: 0.8 },                                        // Witch's Knot: spell costs at half health or below
   },
   // the pixel look (render/pixelLook.ts, the game's look since 2026-09-30): the rows of pixels it offers and the one it
-  // starts at (360 since the play-test of 2026-09-30: at 270 the mage and small things didn't read full-screen),
-  // outlines where a nearer surface stands more than outlineGap units before a farther one (darkened by outlineDark),
-  // and light bands
-  pixelLook: { lines: [540, 360, 270, 180], start: 360, outlineGap: 0.3, outlineDark: 0.72, bands: 7 },
+  // starts at (540 since the second play-test of 2026-09-30: at 270, then 360, the mage and small things didn't read
+  // full-screen on a high-resolution monitor; 720 is sharper still where the screen has the pixels for it), outlines
+  // where a nearer surface stands more than outlineGap units before a farther one (darkened by outlineDark), and light
+  // bands
+  pixelLook: { lines: [720, 540, 360, 270, 180], start: 540, outlineGap: 0.3, outlineDark: 0.72, bands: 7 },
   // the spells' looks (magic/spellFx.ts, docs/effects.md), in seconds unless said: the Cinder Lance (how long it shows,
   // how quickly it swells to full, when it starts to fade, how long the rune ring at the hand flares, the space between
   // its rune rings in units, how fast its embers run down it in lengths a second); how long a bolt's impact flares, a

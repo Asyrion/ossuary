@@ -1144,7 +1144,11 @@ test('the dev menu opens on its key, pauses the game, and hands out what it list
   await page.keyboard.press('Backquote');
   await expect(page.locator('#dev')).toBeVisible();
   expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('pause');
-  const click = (text: string) => page.locator('#dev button', { hasText: text }).first().click();
+  const click = (text: string) => page.locator('#dev .dv-page:not([hidden]) button', { hasText: text }).first().click();
+  const tab = (name: string) => page.locator('#dev .dv-tabs button', { hasText: name }).click();
+  // in tabs: the mage's opens first
+  await expect(page.locator('#dev .dv-tabs button')).toHaveText(['Mage', 'Magic', 'Foes & objects', 'Rooms & runs', 'Look', 'Galleries']);
+  await expect(page.locator('#dev .dv-tab.on')).toHaveText('Mage');
   await click('+10 obols'); await click('+5 keys'); await click('Ember Sigil'); await click('God mode'); await click('Gilded chest');
   const got = await page.evaluate(() => {
     const g = (window as unknown as W).__game as unknown as G5 & { pickups: { gilded?: boolean }[] };
@@ -1152,37 +1156,38 @@ test('the dev menu opens on its key, pauses the game, and hands out what it list
   });
   expect(got).toEqual({ coins: 10, keys: 5, items: ['ember_sigil'], gilded: 1 });
   // the floor's secret room is listed, hidden until found, and the menu can open it
+  await tab('Rooms & runs');
   await expect(page.locator('#dev button', { hasText: 'Secret room (hidden)' })).toBeVisible();
   await click('Open the secret room');
   await expect(page.locator('#dev button', { hasText: /^Secret room$/ })).toBeVisible();
   await page.keyboard.press('Escape'); // closes the menu (not the pause screen) and the game goes on
   await expect(page.locator('#dev')).toBeHidden();
   expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('play');
-  // a boss fight from the menu keeps what the mage carries
-  await page.keyboard.press('F2'); await click('The Pyre Knight');
+  // a boss fight from the menu keeps what the mage carries (and the menu opens on the tab it was left on)
+  await page.keyboard.press('F2'); await expect(page.locator('#dev .dv-tab.on')).toHaveText('Rooms & runs'); await click('The Pyre Knight');
   const boss = await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as G5 & { run: { boss: string } }; return { boss: g.run.boss, items: g.player.items, coins: g.player.coins, rooms: g.rooms().length }; });
   expect(boss).toEqual({ boss: 'pyre', items: ['ember_sigil'], coins: 10, rooms: 2 });
   // a curse to try the shrine with, and cleansing it at once
-  await page.keyboard.press('F2'); await click('Take a curse'); await click('Cleanse a curse');
+  await page.keyboard.press('F2'); await tab('Mage'); await click('Take a curse'); await click('Cleanse a curse');
   const curse = await page.evaluate(() => { const P = (window as unknown as W).__game.player as unknown as { items: string[]; cleansed: string[] }; return { items: P.items.length, cleansed: P.cleansed }; });
   expect(curse.items).toBe(2);
   expect(curse.cleansed).toEqual([(await page.evaluate(() => ((window as unknown as W).__game.player as unknown as { items: string[] }).items[1]))]);
   // a spell into slot E, and endless mana
-  await page.locator('#dev select[aria-label="Slot"]').selectOption('1');
+  await tab('Magic'); await page.locator('#dev select[aria-label="Slot"]').selectOption('1');
   await click('Arc'); await click('Endless mana');
   await page.keyboard.press('Escape'); // back to play, where mana flows
   const magic = await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as G9; g.mana(0); g.sim(.05); return { spells: g.player.spells, mana: g.player.mana }; });
   expect(magic).toEqual({ spells: [null, 'arc'], mana: 100 });
   // a grimoire page dropped ahead of the mage; the floor's library is listed
   // the movement clip for the play-tests: run, then the walk in step, then the walk at a natural pace
-  await page.keyboard.press('F2'); await click('Moving: run clip');
+  await page.keyboard.press('F2'); await tab('Mage'); await click('Moving: run clip');
   await expect(page.locator('#dev button', { hasText: 'Moving: walk clip, feet in step' })).toBeVisible();
   await click('Moving: walk clip, feet in step'); await click('Moving: walk clip, natural pace');
   await expect(page.locator('#dev button', { hasText: 'Moving: run clip' })).toBeVisible();
   await page.keyboard.press('Escape');
-  await page.keyboard.press('F2'); await click('Drop a grimoire page');
+  await page.keyboard.press('F2'); await tab('Magic'); await click('Drop a grimoire page');
   expect(await page.evaluate(() => ((window as unknown as W).__game as unknown as G12).pages.filter(p => p.kind === 'loose' && p.spell !== 'arc').length)).toBe(1);
-  await click('Floor 1'); await page.keyboard.press('F2'); await expect(page.locator('#dev button', { hasText: /^Library/ })).toBeVisible();
+  await tab('Rooms & runs'); await click('Floor 1'); await page.keyboard.press('F2'); await expect(page.locator('#dev button', { hasText: /^Library/ })).toBeVisible();
   expect(errors).toEqual([]);
 });
 

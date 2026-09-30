@@ -1,9 +1,9 @@
 /* The pixel look: the game's look, pixel-art 3D (the owner's choice after the style test of M3.5 step 2, 2026-09-30:
-   on by default, at 360 lines since that day's play-test). The scene is drawn into a small target, a few hundred lines tall, with no smoothing,
+   on by default, at 540 lines since that day's play-tests). The scene is drawn into a small target, a few hundred lines tall, with no smoothing,
    and blown up to the window in whole pixels; the camera is snapped to that grid so still things don't shimmer as it
    moves. Dark outlines where a nearer surface meets a farther one (from depth), and, optional, light in a few bands,
    as in cartoon lighting. Colours and blending are the canvas's own (see drawPixelLook). The HUD stays sharp (it is HTML). The dev menu switches it (remembered in this browser), and
-   so does ?pixel=360 (or off). Tuning in CFG.pixelLook. */
+   so does ?pixel=720 (or off). Tuning in CFG.pixelLook. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 

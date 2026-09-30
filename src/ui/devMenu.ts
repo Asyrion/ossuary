@@ -1,6 +1,7 @@
-/* The dev menu (the key left of 1, or F2): a panel over the paused game for testing features quickly:
-   the mage (and their curses), resources, drops, artifacts and foes, this floor's special rooms, and starting
-   a test room, a boss fight or a new run. A thin layer over the same calls as the dev hooks; its lists come from the data,
+/* The dev menu (the key left of 1, or F2): a panel over the paused game for testing features quickly, in tabs: the
+   mage (and their curses, resources, drops and artifacts); magic (spells, mana, knowledge, statuses, water and oil);
+   foes and objects; rooms and runs (this floor's special rooms, a test room, a themed room, a boss fight, a new run);
+   the look (the pixel look, made assets); and the galleries of options. A thin layer over the same calls as the dev hooks; its lists come from the data,
    so new artifacts, drops, rooms and bosses show up by themselves. Kept in production builds, like the
    hooks, for testing the deployed site. */
 import { BOSS_TYPES, type BossType, type EnemyType } from '../config';
@@ -40,6 +41,11 @@ import { renderHearts, renderItems, renderMinimap, toast } from './hud';
 const S = STR.dev;
 let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
 let spellSlot = 0, knowBox: HTMLElement;
+/** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
+const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
+type Tab = (typeof TABS)[number];
+const TAB_KEY = 'ossuary.devTab';
+let pages: Record<Tab, HTMLElement>, tabBtns: Record<Tab, HTMLButtonElement>;
 let wasPlaying = false, keepCarried = true;
 
 export const devOpen = () => !!panel && !panel.hidden;
@@ -72,6 +78,11 @@ function btn(label: string, fn: () => void, title = '') {
 function section(parent: HTMLElement, title: string) {
   const s = el('section', 'dv-s'); s.append(el('h3', '', title));
   const row = el('div', 'dv-row'); s.append(row); parent.append(s); return row;
+}
+/** Open one tab's page (and remember it). */
+function showTab(t: Tab) {
+  for (const k of TABS) { pages[k].hidden = k !== t; tabBtns[k].classList.toggle('on', k === t); tabBtns[k].setAttribute('aria-selected', String(k === t)); }
+  try { localStorage.setItem(TAB_KEY, t); } catch { /* not remembered */ }
 }
 /** Somewhere free just ahead of the mage. */
 const ahead = (d = 1.5) => freeSpotNear(G.current, player.x, player.z - d);
@@ -123,9 +134,17 @@ function build() {
   const p = el('aside'); p.id = 'dev'; p.hidden = true; p.setAttribute('aria-label', S.title);
   const head = el('header'); head.append(el('h2', '', S.title), btn(S.close, closeDev));
   info = el('p', 'dv-info'); p.append(head, info);
+  // the tabs: the mage; magic; foes and objects; rooms and runs; the look; the galleries of options
+  const bar = el('nav', 'dv-tabs'); bar.setAttribute('role', 'tablist'); p.append(bar);
+  pages = {} as Record<Tab, HTMLElement>; tabBtns = {} as Record<Tab, HTMLButtonElement>;
+  for (const t of TABS) {
+    const b = el('button', 'dv-tab', S.tabs[t]); b.type = 'button'; b.setAttribute('role', 'tab'); b.addEventListener('click', () => showTab(t));
+    bar.append(b); tabBtns[t] = b;
+    const page = el('div', 'dv-page'); page.setAttribute('role', 'tabpanel'); p.append(page); pages[t] = page;
+  }
 
   // the mage
-  const mage = section(p, S.mage);
+  const mage = section(pages.mage, S.mage);
   mage.append(
     btn(S.heal, () => { player.hp = player.maxHp; renderHearts(); }),
     btn(S.container, () => { player.heartsPaid--; refreshStats(); }),
@@ -140,28 +159,28 @@ function build() {
     }),
     btn(S.cleanse, () => { if (!cleanseAtOnce()) toast(S.noCurse, 2); }),
   );
-  const res = section(p, S.resources);
+  const res = section(pages.mage, S.resources);
   for (const [r, n] of [['coins', 10], ['keys', 1], ['keys', 5], ['glyphs', 1], ['glyphs', 5]] as [Resource, number][]) {
     res.append(btn(S.give(n, S.names[r]), () => giveResources({ [r]: n })));
   }
   res.append(btn(S.emptyPurse, () => giveResources({ coins: -99, keys: -99, glyphs: -99 })));
 
   // drops, just ahead of the mage
-  const drops = section(p, S.drops);
+  const drops = section(pages.mage, S.drops);
   for (const d of DROPS) drops.append(btn(S.dropNames[d] ?? d, () => { const q = ahead(); spawnPickup(d as Drop, q.x, q.z, { gilded: false, asIs: true }); }));
   drops.append(btn(S.gildedChest, () => { const q = ahead(); spawnPickup('chest', q.x, q.z, { gilded: true }); }));
   drops.append(btn(S.loreAgain, () => G.run.loreSeen.clear(), S.loreAgainTitle)); // their lore cards show again
 
   // artifacts: every one in the data, marked when held
-  artBox = section(p, S.artifacts);
+  artBox = section(pages.mage, S.artifacts);
 
   // spells: every one in the data, learned into the chosen slot; mana
-  spellBox = section(p, S.spells);
+  spellBox = section(pages.magic, S.spells);
   const slotSel = el('select'); slotSel.setAttribute('aria-label', S.slot);
   for (const [i, k] of STR.controls.spellsKeys.split(' and ').entries()) { const o = el('option', '', `${S.slot} ${k}`); o.value = String(i); slotSel.append(o); }
   slotSel.addEventListener('change', () => { spellSlot = Number(slotSel.value); });
   spellBox.parentElement!.insertBefore(slotSel, spellBox);
-  const mana = section(p, S.mana);
+  const mana = section(pages.magic, S.mana);
   mana.append(
     btn(S.fullMana, () => gainMana(player.stats.maxMana)),
     manaBtn = btn('', () => { DEV.mana = !DEV.mana; toast(DEV.mana ? S.manaOn : S.manaOff, 2); }),
@@ -169,40 +188,44 @@ function build() {
     btn(S.page, () => { if (!dropPage(G.current, player.x, player.z - 1.5)) toast(S.noPage, 2); }),
   );
   // spell knowledge (M3.7): kept between runs in this browser
-  const know = section(p, S.knowledge);
+  const know = section(pages.magic, S.knowledge);
   know.append(knowBox = el('p', 'dv-info'), btn(S.knowAll, () => { knowEvery(); refresh(); }), btn(S.forgetKnowledge, () => { forgetKnowledge(); refresh(); }));
   // water and oil in this room (the test rooms with them are in the list above)
-  const pools = section(p, S.pools);
+  const pools = section(pages.magic, S.pools);
   pools.append(btn(S.ignite, () => poolsDo('fire')), btn(S.freezeWater, () => poolsDo('frost')), btn(S.shockWater, () => poolsDo('shock')));
 
-  // themed rooms (M3.6): a test room of each theme, next to the start
-  const themes = section(p, S.themes);
-  for (const t of THEME_DEFS) { const first = TEMPLATE_DEFS.find(d => d.theme === t.id); if (first) themes.append(btn(t.name, () => start({ testTemplate: first.id }))); }
-
-  // the rooms' objects (M3.6), put down just ahead of the mage
-  const objs = section(p, S.objects);
-  for (const kind of PROP_KINDS) objs.append(btn(S.propNames[kind], () => { const q = ahead(1.5); if (!placeProp(kind, q.x, q.z)) toast(S.noRoom, 2); }));
-  // fire, frost or shock landing just ahead, as a spell's would: to light braziers and candles, charge runes, set lodestones leaping
-  for (const [kind, label] of [['burn', S.kindle], ['chill', S.frost], ['shock', S.shock]] as [StatusKind, string][]) objs.append(btn(label, () => { const q = ahead(1.5); elementDev(kind, q.x, q.z); }));
-
   // foes, a little further ahead (they don't lock the doors)
-  const foes = section(p, S.foes);
+  const foes = section(pages.foes, S.foes);
   const floorHp = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].enemyHp;
   for (const [kind, champion] of [['rotling', false], ['wisp', false], ['hound', false], ['hound', true], ['dummy', false]] as [EnemyType, boolean][]) {
     foes.append(btn(champion ? S.champion(S.foeNames[kind]) : S.foeNames[kind], () => { const q = ahead(3); makeEnemy(kind, q.x, q.z, floorHp(), undefined, { champion }); }));
   }
 
+  // the rooms' objects (M3.6), put down just ahead of the mage
+  const objs = section(pages.foes, S.objects);
+  for (const kind of PROP_KINDS) objs.append(btn(S.propNames[kind], () => { const q = ahead(1.5); if (!placeProp(kind, q.x, q.z)) toast(S.noRoom, 2); }));
+  // fire, frost or shock landing just ahead, as a spell's would: to light braziers and candles, charge runes, set lodestones leaping
+  for (const [kind, label] of [['burn', S.kindle], ['chill', S.frost], ['shock', S.shock]] as [StatusKind, string][]) objs.append(btn(label, () => { const q = ahead(1.5); elementDev(kind, q.x, q.z); }));
+
   // statuses on every foe in the room: to see them, and to set off reactions by hand
-  const sts = section(p, S.statuses);
+  const sts = section(pages.magic, S.statuses);
   for (const [kind, amount] of [['burn', 4], ['chill', 1], ['shock', 2]] as [StatusKind, number][]) {
     sts.append(btn(S.inflictOn(STR.statusNames[kind]), () => { for (const e of G.enemies) inflict(e, { [kind]: amount }); }));
   }
 
   // this floor: its special rooms, and ways through it
-  floorBox = section(p, S.floor);
+  floorBox = section(pages.rooms, S.floor);
+
+  // the pixel look (the game's look, M3.5 step 2): the rows of pixels, outlines, light in bands; kept in this browser
+  const px = section(pages.look, S.pixel);
+  px.append(
+    pxBtn = btn('', () => { const ls = [0, ...CFG.pixelLook.lines]; setPixelLook({ lines: ls[(ls.indexOf(pixelLook().lines) + 1) % ls.length] }); }),
+    lineBtn = btn('', () => setPixelLook({ outline: !pixelLook().outline })),
+    bandBtn = btn('', () => setPixelLook({ bands: !pixelLook().bands })),
+  );
 
   // the made assets (M3.5): on or off to compare with the placeholders, what loaded, and what a frame costs
-  const assets = section(p, S.assets);
+  const assets = section(pages.look, S.assets);
   assets.append(
     assetBox = el('div', 'dv-info'),
     assetBtn = btn('', () => useAssets(!assetsOn())),
@@ -210,28 +233,21 @@ function build() {
     fpsBtn = btn('', () => { DEV.fps = !DEV.fps; }),
   );
 
-  // the pixel look (the game's look, M3.5 step 2): the rows of pixels, outlines, light in bands; kept in this browser
-  const px = section(p, S.pixel);
-  px.append(
-    pxBtn = btn('', () => { const ls = [0, ...CFG.pixelLook.lines]; setPixelLook({ lines: ls[(ls.indexOf(pixelLook().lines) + 1) % ls.length] }); }),
-    lineBtn = btn('', () => setPixelLook({ outline: !pixelLook().outline })),
-    bandBtn = btn('', () => setPixelLook({ bands: !pixelLook().bands })),
-  );
 
   // enemy model options (looks only, for the owner to choose from): a row of them ahead of the mage
-  const opts = section(p, S.options);
+  const opts = section(pages.galleries, S.options);
   opts.append(el('p', 'dv-info', [1, 2, 3].map(f => S.floorOptions(f, MODEL_OPTIONS.filter(o => o.floor === f).map(o => STR.options[o.id].name).join(', '))).join(' · ')), btn(S.showOptions, () => { closeDev(); showModelOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
 
   // familiar options (looks only, the owner's drawings built in code): in a row ahead of the mage
-  const fam = section(p, S.familiars);
+  const fam = section(pages.galleries, S.familiars);
   fam.append(el('p', 'dv-info', FAMILIAR_OPTIONS.map(o => STR.familiars[o.id].name).join(', ')), btn(S.showOptions, () => { closeDev(); showFamiliarOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
 
   // spell effect options (looks only): each plays one cast over and over, ahead of the mage
-  const fx = section(p, S.effects);
+  const fx = section(pages.galleries, S.effects);
   fx.append(el('p', 'dv-info', EFFECT_OPTIONS.map(o => STR.effects[o.id].name).join(', ')), btn(S.showOptions, () => { closeDev(); showEffectOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeEffectOptions(G.current)));
 
   // start something: a test room in a variant, a boss fight, a new run
-  const test = section(p, S.test);
+  const test = section(pages.rooms, S.test);
   const tpl = el('select'); tpl.setAttribute('aria-label', S.template);
   const types = [...new Set(TEMPLATE_DEFS.flatMap(t => t.types))];
   for (const ty of types) {
@@ -243,9 +259,13 @@ function build() {
   const variant = el('select'); variant.setAttribute('aria-label', S.variant);
   for (const v of VARIANTS) { const o = el('option', '', S.variants[v] ?? v); o.value = v; variant.append(o); }
   test.append(tpl, variant, btn(S.play, () => start({ testTemplate: tpl.value, testVariant: variant.value as RoomVariant })));
-  const bosses = section(p, S.bosses);
+  // themed rooms (M3.6): a test room of each theme, next to the start
+  const themes = section(pages.rooms, S.themes);
+  for (const t of THEME_DEFS) { const first = TEMPLATE_DEFS.find(d => d.theme === t.id); if (first) themes.append(btn(t.name, () => start({ testTemplate: first.id }))); }
+
+  const bosses = section(pages.rooms, S.bosses);
   for (const b of BOSS_TYPES) bosses.append(btn(STR.bosses[b as BossType].name, () => start({ testTemplate: bossRoom(), boss: b })));
-  const runs = section(p, S.newRun);
+  const runs = section(pages.rooms, S.newRun);
   FLOORS.forEach((_, i) => runs.append(btn(S.floorN(i + 1), () => start({ floor: i }))));
   const keep = el('label', 'dv-check'); const box = el('input'); box.type = 'checkbox'; box.checked = keepCarried;
   box.addEventListener('change', () => { keepCarried = box.checked; });
@@ -253,6 +273,9 @@ function build() {
   // doors off the middle of their edges, in the floors made from now on: as the floor has it, always, or never
   runs.append(doorBtn = btn('', () => { const order = ['data', 'shifted', 'middle'] as const; DEV.doors = order[(order.indexOf(DEV.doors) + 1) % order.length]; toast(S.doors[DEV.doors], 2); refresh(); }));
 
+  let first: Tab = 'mage';
+  try { const v = localStorage.getItem(TAB_KEY) as Tab | null; if (v && TABS.includes(v)) first = v; } catch { /* the first tab */ }
+  showTab(first);
   document.body.append(p);
   return p;
 }

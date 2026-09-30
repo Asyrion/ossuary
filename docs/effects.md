@@ -38,8 +38,8 @@ own looks are in `src/magic/spellFx.ts`.
    carry it, with white or cream for cores. A second colour is used sparingly: the lance's red edge, Overload's gold
    flash.
 8. **Size for the pixel look.**
-   - At 360 lines a unit of the room is about 33 game pixels.
-   - Parts thinner than about 0.03 units flicker or vanish.
+   - At 540 lines a unit of the room is about 50 game pixels (at 360, the lowest offered for play, about 33).
+   - Parts thinner than about 0.03 units flicker or vanish at 360; build for that.
    - Keep silhouettes clear.
    - Keep added light that passes over a character at an opacity of 0.6 or less, or the mage washes out to white.
    - Check every effect over a dark floor and a lit one.
@@ -110,7 +110,7 @@ The target is 60 fps on integrated graphics (CLAUDE.md, Working agreements).
    `CFG.spellFx`.
 3. **Call it from the spell's shape** in `shapes.ts` (or from `projectiles.ts` or `statusFx.ts`). What the spell does stays
    there; only the look moves.
-4. **Screenshot it in the pixel look** at 360 lines:
+4. **Screenshot it in the pixel look** at 540 lines, and once at 360:
    - in all four directions;
    - over a dark floor and a lit one;
    - with the mage and foes near it.
