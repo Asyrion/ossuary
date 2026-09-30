@@ -2,11 +2,18 @@
    whatever a cast leaves behind runs its course in `updateShapes`: a beam of fire fading, a seal waiting to
    erupt and the ground burning after it, a wall of ice, the storm wrapped around the mage, lightning. The
    numbers a shape reads are the spell's `params`; damage and statuses go through `damageEnemy` and `inflict`
-   like everything else, and projectile spells through the bolt pipeline. */
+   like everything else, and projectile spells through the bolt pipeline.
+   M4.1 adds Hallow's and Umbral's: holy ground (zone, Consecrate), a pillar of light on the strongest foe (smite,
+   Judgement), motes circling the mage that break shots (orbit, Wardlight), a slow hexing bolt (bolt, Hex Bolt), hands
+   rising to hold foes (grasp, Grasp of the Grave) and a foe marked to pay in mana and obols (mark, the Ferryman's Toll). */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Box, Enemy, Room, Vec2 } from '../types';
 import { G, player } from '../state';
+import { renderHearts } from '../ui/hud';
+import { heroDrink } from '../actors/hero';
+import { spawnPickup } from '../items/pickups';
+import { freeSpotNear } from '../world/rooms';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { glowShared } from '../render/materials';
@@ -19,7 +26,7 @@ import { fireAt, frostAt } from '../world/pools';
 import { canAct } from './status';
 import type { Shape, SpellDef } from './spellData';
 import { flash, inflict } from './statusFx';
-import { hideSpellFx, iceColumn, lanceFx, mantleFx, ringFx, sealFx, strikeFx, updateSpellFx } from './spellFx';
+import { consecrateFx, graspFx, hideSpellFx, iceColumn, lanceFx, mantleFx, ringFx, sealFx, smiteFx, strikeFx, tollFx, updateSpellFx, wardFx } from './spellFx';
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 const FIRE = 0xff7a2a, EMBER = 0xffc060, ICE = 0xbfe6ff;
@@ -318,15 +325,184 @@ function endMantle(quiet: boolean) {
   mantle = null;
 }
 
+/* ---------- zone: Consecrate (M4.1) ---------- */
+
+/** Holy ground at the mage's feet for a while: every few moments it strikes and sanctifies the foes standing in it (not
+    what flies above), and the mage in it is healed once. */
+const zones: { def: SpellDef; x: number; z: number; t: number; tick: number; healed: boolean; fx: ReturnType<typeof consecrateFx> }[] = [];
+const zone: Cast = def => {
+  zones.push({ def, x: player.x, z: player.z, t: 0, tick: 0, healed: false, fx: consecrateFx(player.x, player.z, def.params.radius, hex(def.color)) });
+  burst(player.x, .2, player.z, hex(def.color), 14, 2, .04); Sfx.consecrate();
+  return true;
+};
+function updateZones(dt: number) {
+  for (let i = zones.length - 1; i >= 0; i--) {
+    const z = zones[i], P = z.def.params; z.t += dt;
+    const left = P.life - z.t;
+    if (left <= 0) { z.fx.drop(); zones.splice(i, 1); continue; }
+    z.fx.update(z.t, Math.min(1, left / .5, z.t / .25));
+    if ((z.tick -= dt) <= 0) {
+      z.tick = P.every;
+      for (const e of G.enemies) if (alive(e) && !e.flying && Math.hypot(e.x - z.x, e.z - z.z) < P.radius + e.r * .5) {
+        damageEnemy(e, z.def.damage, 0, 0, 0, 'spell', z.def.school); inflict(e, z.def.status); burst(e.x, .5, e.z, hex(z.def.color), 3, 1.2, .03);
+      }
+    }
+    if (!z.healed && player.hp < player.maxHp && Math.hypot(player.x - z.x, player.z - z.z) < P.radius) {
+      z.healed = true; player.hp = Math.min(player.maxHp, player.hp + P.heal); renderHearts(); heroDrink(); burst(player.x, .9, player.z, hex(z.def.color), 10, 1.4, .04);
+    }
+  }
+}
+
+/* ---------- smite: Judgement (M4.1) ---------- */
+
+/** The strongest foe in reach is marked by a closing ring of gold; a moment later a pillar of light falls on it, striking
+    and sanctifying everything in it. */
+const smites: { def: SpellDef; target: Enemy; x: number; z: number; t: number; fell: boolean; fx: ReturnType<typeof smiteFx> }[] = [];
+const smite: Cast = def => {
+  const P = def.params; let best: Enemy | null = null;
+  for (const e of G.enemies) if (alive(e) && Math.hypot(e.x - player.x, e.z - player.z) < P.range && (!best || e.hp > best.hp)) best = e;
+  if (!best) return false;
+  smites.push({ def, target: best, x: best.x, z: best.z, t: 0, fell: false, fx: smiteFx(hex(def.color), P.radius) });
+  Sfx.judgementCall();
+  return true;
+};
+function updateSmites(dt: number, now: number) {
+  for (let i = smites.length - 1; i >= 0; i--) {
+    const s = smites[i], P = s.def.params; s.t += dt;
+    if (!s.fell) {
+      if (!s.target.dead) { s.x = s.target.x; s.z = s.target.z; }
+      s.fx.mark(s.x, s.z, Math.min(1, s.t / P.delay), now);
+      if (s.t < P.delay) continue;
+      s.fell = true; s.fx.fall();
+      for (const e of G.enemies) {
+        if (!alive(e) || Math.hypot(e.x - s.x, e.z - s.z) > P.radius + e.r) continue;
+        damageEnemy(e, s.def.damage, 0, 0, 0, 'spell', s.def.school); inflict(e, s.def.status);
+      }
+      burst(s.x, .4, s.z, hex(s.def.color), 24, 3.4, .06); ringFx(s.x, .05, s.z, hex(s.def.color), .2, P.radius * 1.8, CFG.spellFx.shockwave, true);
+      Sfx.at(s.x, s.z).judgement(); G.shake = Math.max(G.shake, .25);
+      continue;
+    }
+    const k = (s.t - P.delay) / .5;
+    if (k >= 1) { s.fx.drop(); smites.splice(i, 1); continue; }
+    s.fx.fade(k);
+  }
+}
+
+/* ---------- orbit: Wardlight (M4.1) ---------- */
+
+/** Motes of light circling the mage for a while: an enemy shot that meets one is broken, and a foe one touches is struck
+    and sanctified (each foe at most every so often). It goes with the mage from room to room, as the mantle does. */
+let ward: { def: SpellDef; t: number; fx: ReturnType<typeof wardFx>; touched: Map<Enemy, number> } | null = null;
+const orbit: Cast = def => {
+  endWard();
+  ward = { def, t: 0, fx: wardFx(def.params.count, hex(def.color)), touched: new Map() };
+  burst(player.x, .8, player.z, hex(def.color), 12, 2, .04); Sfx.wardlight();
+  return true;
+};
+/** Seconds of Wardlight left (0 when it's down). */
+export const wardLeft = () => ward ? ward.def.params.life - ward.t : 0;
+function updateWard(dt: number, now: number) {
+  const w = ward; if (!w) return;
+  const P = w.def.params, color = hex(w.def.color); w.t += dt;
+  if (w.t >= P.life) { endWard(); return; }
+  for (let i = 0; i < P.count; i++) {
+    const a = w.t * P.turn + i / P.count * Math.PI * 2, x = player.x + Math.cos(a) * P.radius, z = player.z + Math.sin(a) * P.radius;
+    w.fx.place(i, x, .75 + Math.sin(w.t * 3 + i) * .08, z, w.t * 4 + i, true);
+    for (let k = G.shots.length - 1; k >= 0; k--) { const s = G.shots[k]; if (Math.hypot(s.x - x, s.z - z) < P.reach + s.r) { scene.remove(s.mesh); G.shots.splice(k, 1); burst(s.x, s.y, s.z, color, 5, 1.4, .03); Sfx.at(s.x, s.z).wardTink(); } }
+    for (const e of G.enemies) {
+      if (!alive(e) || (w.touched.get(e) ?? 0) > now || Math.hypot(e.x - x, e.z - z) > P.reach + e.r) continue;
+      w.touched.set(e, now + P.every);
+      damageEnemy(e, w.def.damage, (e.x - player.x) / P.radius, (e.z - player.z) / P.radius, .3, 'spell', w.def.school); inflict(e, w.def.status);
+      burst(e.x, foeY(e), e.z, color, 5, 1.6, .03);
+    }
+  }
+}
+function endWard() { ward?.fx.drop(); ward = null; }
+
+/* ---------- bolt: Hex Bolt (M4.1) ---------- */
+
+/** One slow dark bolt along the cast direction, hexing what it strikes. */
+const boltShape: Cast = (def, dir) => {
+  const P = def.params, color = hex(def.color);
+  fireSpellBolt(player.x + dir.x * .3, player.z + dir.z * .3, dir.x, dir.z, { damage: def.damage, range: P.range, speed: P.speed, color, scale: P.scale, status: def.status });
+  burst(player.x + dir.x * .4, .7, player.z + dir.z * .4, color, 8, 1.6, .04); Sfx.hexBolt();
+  return true;
+};
+
+/* ---------- grasp: Grasp of the Grave (M4.1) ---------- */
+
+/** Where the mage aims, a few tiles ahead (or on the foe there), dark hands rise out of the floor, then close: every foe
+    in their ring is struck, held where it stands (Root) and hexed. They sink back when the hold is over. */
+const grasps: { def: SpellDef; x: number; z: number; t: number; closed: boolean; fx: ReturnType<typeof graspFx> }[] = [];
+const grasp: Cast = (def, dir) => {
+  const P = def.params, near = pickTarget(player.x, player.z, dir, P.ahead + P.radius);
+  const at = near ? { x: near.x, z: near.z } : freeSpotNear(G.current, player.x + dir.x * P.ahead, player.z + dir.z * P.ahead);
+  grasps.push({ def, x: at.x, z: at.z, t: 0, closed: false, fx: graspFx(at.x, at.z, P.radius, hex(def.color)) });
+  Sfx.at(at.x, at.z).graspRise();
+  return true;
+};
+function updateGrasps(dt: number) {
+  for (let i = grasps.length - 1; i >= 0; i--) {
+    const g = grasps[i], P = g.def.params; g.t += dt;
+    const hold = g.def.status?.root ?? 2, life = P.delay + hold;
+    if (!g.closed && g.t >= P.delay) {
+      g.closed = true;
+      for (const e of G.enemies) {
+        if (!alive(e) || e.flying || Math.hypot(e.x - g.x, e.z - g.z) > P.radius + e.r) continue;
+        damageEnemy(e, g.def.damage, 0, 0, 0, 'spell', g.def.school); inflict(e, g.def.status); burst(e.x, .3, e.z, hex(g.def.color), 6, 1.4, .03);
+      }
+      Sfx.at(g.x, g.z).graspClose();
+    }
+    const k = g.t < P.delay ? g.t / P.delay : g.t < life ? 1 : 1 - (g.t - life) / .3;
+    if (k <= 0 && g.t > life) { g.fx.drop(); grasps.splice(i, 1); continue; }
+    g.fx.set(k);
+  }
+}
+
+/* ---------- mark: the Ferryman's Toll (M4.1) ---------- */
+
+/** The nearest foe is struck and marked with a coin of shadow for a while: every blow the mage lands on it gives back
+    mana (`toll` on the foe; damage.ts), and if it falls marked it pays in obols and its hex spreads to the foes round it
+    (`payToll`). */
+const marks: { def: SpellDef; e: Enemy; t: number; fx: ReturnType<typeof tollFx> }[] = [];
+const mark: Cast = (def, dir) => {
+  const P = def.params, e = pickTarget(player.x, player.z, dir, P.range);
+  if (!e) return false;
+  const had = marks.findIndex(m => m.e === e); if (had >= 0) { marks[had].fx.drop(); marks.splice(had, 1); }
+  e.toll = { mana: P.mana, obols: P.obols, spread: P.spread, spreadRange: P.spreadRange };
+  marks.push({ def, e, t: 0, fx: tollFx(hex(def.color)) });
+  const u = away(e, player.x, player.z);
+  damageEnemy(e, def.damage, u.x, u.z, .3, 'spell', def.school); inflict(e, def.status);
+  strikeFx({ x: player.x, y: 1, z: player.z }, { x: e.x, y: foeY(e), z: e.z }, hex(def.color), CFG.spellFx.chain, true);
+  Sfx.at(e.x, e.z).ferryToll();
+  return true;
+};
+function updateMarks(now: number, dt: number) {
+  for (let i = marks.length - 1; i >= 0; i--) {
+    const m = marks[i]; m.t += dt;
+    if (m.e.dead || m.t >= m.def.params.life) { if (!m.e.dead) m.e.toll = undefined; m.fx.drop(); marks.splice(i, 1); continue; }
+    m.fx.at(m.e.x, m.e.flying ? 1.75 : 1.35, m.e.z, now);
+  }
+}
+/** A marked foe has fallen: it pays its toll in obols, and its hex spreads to the foes round it. */
+export function payToll(e: Enemy) {
+  const T = e.toll; if (!T) return;
+  for (let i = 0; i < T.obols; i++) { const p = freeSpotNear(G.current, e.x + (i - (T.obols - 1) / 2) * .4, e.z); spawnPickup('coin', p.x, p.z); }
+  for (const o of G.enemies) if (o !== e && alive(o) && Math.hypot(o.x - e.x, o.z - e.z) < T.spreadRange) { inflict(o, { hex: T.spread }); sparkBetween(e, o); }
+  burst(e.x, .8, e.z, 0xa266ff, 14, 2.2, .05);
+}
+const sparkBetween = (a: Enemy, b: Enemy) => strikeFx({ x: a.x, y: .8, z: a.z }, { x: b.x, y: foeY(b), z: b.z }, 0xa266ff, CFG.spellFx.chain, true);
+
 /* ---------- every step ---------- */
 
-export const CAST: Record<Shape, Cast> = { beam, placed, shotgun, wall, chain, self };
+export const CAST: Record<Shape, Cast> = { beam, placed, shotgun, wall, chain, self, zone, smite, orbit, bolt: boltShape, grasp, mark };
 
 /** Effects fade every step; seals, walls and the mantle only run while the game does (`acting`). */
 export function updateShapes(dt: number, acting: boolean) {
   updateSpellFx(dt); updateFlames(dt);
   if (!acting) return;
   updateSeals(dt); updateWalls(dt); updateMantle(dt, G.simClock);
+  updateZones(dt); updateSmites(dt, G.simClock); updateWard(dt, G.simClock); updateGrasps(dt); updateMarks(G.simClock, dt);
 }
 
 /** The mage leaves the room: what spells left in it goes quietly (the mantle goes with the mage). */
@@ -335,6 +511,10 @@ export function leaveRoomShapes() {
   for (const f of flames) scene.remove(f.s); flames.length = 0;
   for (const s of seals) s.fx.drop(); seals.length = 0;
   for (const w of walls) dropWall(w, true); walls.length = 0;
+  for (const z of zones) z.fx.drop(); zones.length = 0;
+  for (const s of smites) s.fx.drop(); smites.length = 0;
+  for (const g of grasps) g.fx.drop(); grasps.length = 0;
+  for (const m of marks) { m.e.toll = undefined; m.fx.drop(); } marks.length = 0;
 }
 /** A new floor or run: nothing left at all. */
-export function clearShapes() { leaveRoomShapes(); endMantle(true); }
+export function clearShapes() { leaveRoomShapes(); endMantle(true); endWard(); }

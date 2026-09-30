@@ -26,7 +26,7 @@ import { damageEnemy, hurtPlayer } from './damage';
 import { detonateGlyph, glyphNear } from './glyphs';
 import { burst } from './fx';
 import { GILT_COLOR, type BoltPath } from '../items/artifactData';
-import type { StatusKind } from '../magic/spellData';
+import { elemental, type SpellStatus, type StatusKind } from '../magic/spellData';
 import { inflict } from '../magic/statusFx';
 import { fireAt, frostAt } from '../world/pools';
 import { animateBolt, boltLook, impactFx } from '../magic/spellFx';
@@ -36,7 +36,7 @@ const BLESSED = 0xfff0b0; // a blessed cast's gold
 
 interface BoltSpec {
   x: number; z: number; vx: number; vz: number; damage: number; range: number; scale: number; color: number; path: BoltPath; pierce: number; bounces: number; secondary: boolean; crit?: boolean;
-  /** A spell's bolt, with the spell's statuses; `shard` makes it a splinter of ice instead of an orb. */ spell?: boolean; status?: Partial<Record<StatusKind, number>>; shard?: boolean;
+  /** A spell's bolt, with the spell's statuses; `shard` makes it a splinter of ice instead of an orb. */ spell?: boolean; status?: Partial<Record<SpellStatus, number>>; shard?: boolean;
 }
 
 function makeBolt(s: BoltSpec) {
@@ -109,7 +109,7 @@ export function fireSecondary(x: number, z: number, dx: number, dz: number, o: {
 
 /** A spell's bolt from (x, z) along (dx, dz): Rime Shards' splinters, Shatter's shards. It strikes as a spell
     (no mana back for the kill) and puts the spell's statuses on what it hits. */
-export function fireSpellBolt(x: number, z: number, dx: number, dz: number, o: { damage: number; range: number; speed: number; color: number; scale?: number; status?: Partial<Record<StatusKind, number>>; shard?: boolean }) {
+export function fireSpellBolt(x: number, z: number, dx: number, dz: number, o: { damage: number; range: number; speed: number; color: number; scale?: number; status?: Partial<Record<SpellStatus, number>>; shard?: boolean }) {
   const l = Math.hypot(dx, dz) || 1;
   makeBolt({ x, z, vx: dx / l * o.speed, vz: dz / l * o.speed, damage: o.damage, range: o.range, scale: o.scale ?? .8, color: o.color, path: 'straight', pierce: 0, bounces: 0, secondary: true, spell: true, status: o.status, shard: o.shard });
 }
@@ -181,7 +181,7 @@ export function updateBolts(dt: number) {
     // walls, doors and rocks
     const box = !kill && !(b.path === 'boomerang' && b.returning) ? boxAt(b.x, b.z, solids) : undefined;
     if (box) {
-      const rock = strikeSolid(room, box, b.x, b.y, b.z, b.status);
+      const rock = strikeSolid(room, box, b.x, b.y, b.z, elemental(b.status));
       if (!rock.urn && !rock.prop && breaker && !b.spell && room.rocks.includes(rock)) hitRock(room, rock); // Mason's Chisel cracks rocks
       if (b.path === 'bounce' && b.bounces > 0) {
         // reflect on the axis that ran into the box, from the last free position

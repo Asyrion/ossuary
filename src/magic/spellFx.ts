@@ -276,6 +276,98 @@ export function mantleFx(color: number) {
   };
 }
 
+/* ---------- Hallow and Umbral (M4.1) ---------- */
+
+/** Consecrate's holy ground at (x, z): a circle of gold light with a rune ring turning in it, a soft glow and motes rising.
+    `update` fades it by `fade`; `drop` takes it away. */
+export function consecrateFx(x: number, z: number, radius: number, color: number) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
+  const lineMat = shine(color, .5), circ = circle(g, color, radius, lineMat); mergeStill(circ);
+  const ring = runeRing(g, color, radius * .8, [0, .03, 0], 6), ringMat = (ring.children[0] as THREE.Mesh).material as THREE.MeshBasicMaterial; mergeStill(ring);
+  const fill = new THREE.Mesh(keep('fx.disc', () => new THREE.CircleGeometry(1, 28).rotateX(-Math.PI / 2)), shine(color, .12)); fill.scale.setScalar(radius); fill.position.y = .012; g.add(fill);
+  const warm = glow(color, radius * 2.2, .3); warm.position.y = .4; g.add(warm);
+  const moteMat = lit(whiter(color, .5)), motes = Array.from({ length: 10 }, (_, i) => { const m = new THREE.Mesh(octa(), moteMat); m.scale.setScalar(.035); m.userData.a = i * 2.4; m.userData.r = Math.sqrt((i + .5) / 10) * radius * .9; g.add(m); return m; });
+  return {
+    update(t: number, fade: number) {
+      lineMat.opacity = (.45 + Math.sin(t * 4) * .08) * fade; ringMat.opacity = .8 * fade; ring.rotation.y = t * .7; circ.rotation.y = -t * .2;
+      (fill.material as THREE.MeshBasicMaterial).opacity = .12 * fade; warm.material.opacity = .3 * fade;
+      motes.forEach((m, i) => { const u = (t * .45 + i / 10) % 1, a = m.userData.a as number, r = m.userData.r as number; m.position.set(Math.cos(a) * r, u * 1.6, Math.sin(a) * r); m.scale.setScalar(.035 * (1 - u) * fade + .001); });
+    },
+    drop() { scene.remove(g); disposeTree(g); },
+  };
+}
+
+/** Judgement: a closing ring of gold under the foe it has chosen while it waits (`mark`, k from 0 to 1), then a pillar of
+    light falls on it (`fall`), bright and narrowing (`fade`, from 0 to 1 over its life). */
+export function smiteFx(color: number, radius: number) {
+  const g = new THREE.Group(); scene.add(g);
+  const markMat = shine(color, .7), mark = circle(g, color, radius, markMat); mergeStill(mark);
+  const beamMat = shine(whiter(color, .4), .55), beam = part(g, new THREE.CylinderGeometry(radius * .55, radius * .55, 4, 14, 1, true), beamMat, [0, 2, 0]);
+  const coreMat = shine(0xffffff, .6), core = part(g, new THREE.CylinderGeometry(radius * .2, radius * .2, 4, 10, 1, true), coreMat, [0, 2, 0]);
+  const halo = glow(color, radius * 3.2, 0); halo.position.y = .6; g.add(halo);
+  beam.visible = core.visible = false;
+  return {
+    mark(x: number, z: number, k: number, t: number) { g.position.set(x, 0, z); mark.scale.setScalar(1.6 - k * .6); mark.rotation.y = t * 2; markMat.opacity = .35 + k * .5 + Math.sin(t * 25) * .1 * k; },
+    fall() { beam.visible = core.visible = true; },
+    fade(k: number) {
+      beam.scale.set(1 - k * .7, 1, 1 - k * .7); core.scale.set(1 - k * .7, 1, 1 - k * .7); beamMat.opacity = .55 * (1 - k); coreMat.opacity = .6 * (1 - k);
+      halo.material.opacity = .7 * (1 - k); markMat.opacity = .8 * (1 - k); mark.scale.setScalar(1 + k * .6);
+    },
+    drop() { scene.remove(g); disposeTree(g); },
+  };
+}
+
+/** Wardlight: `count` motes of gold light circling the mage, each a white-hot crystal in a glow. `place` puts mote `i` at
+    (x, y, z); `drop` takes them away. */
+export function wardFx(count: number, color: number) {
+  const g = new THREE.Group(); scene.add(g);
+  const crystalMat = lit(whiter(color, .45));
+  const motes = Array.from({ length: count }, () => {
+    const m = new THREE.Group(); g.add(m);
+    const c = new THREE.Mesh(octa(), crystalMat); c.scale.set(.07, .12, .07); m.add(c);
+    m.add(glow(color, .6, .75));
+    return m;
+  });
+  return {
+    place(i: number, x: number, y: number, z: number, spin: number, on: boolean) { const m = motes[i]; m.visible = on; m.position.set(x, y, z); m.children[0].rotation.y = spin; },
+    drop() { scene.remove(g); disposeTree(g); },
+  };
+}
+
+/** Grasp of the Grave at (x, z): a ring of shadow on the floor and dark hands rising out of it, violet at the fingertips;
+    `set(k)` raises them (0 to 1), `drop` takes them away. */
+export function graspFx(x: number, z: number, radius: number, color: number) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
+  const pool = new THREE.Mesh(keep('fx.disc', () => new THREE.CircleGeometry(1, 28).rotateX(-Math.PI / 2)), new THREE.MeshBasicMaterial({ color: 0x0c0614, transparent: true, opacity: .7, depthWrite: false }));
+  pool.scale.setScalar(radius); pool.position.y = .013; g.add(pool);
+  const rimMat = shine(color, .7), rim = part(g, keep('fx.graspRim', () => new THREE.RingGeometry(.92, 1, 36).rotateX(-Math.PI / 2)), rimMat, [0, .016, 0]); rim.scale.setScalar(radius);
+  const flesh = std(0x1c1426, { emissive: 0x12061e }), tipMat = lit(color);
+  const hands = Array.from({ length: 6 }, (_, i) => {
+    const a = i / 6 * Math.PI * 2 + .3, r = i % 2 ? radius * .55 : radius * .25, h = new THREE.Group(); h.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); h.rotation.y = -a; g.add(h);
+    part(h, keep('fx.palm', () => new THREE.CylinderGeometry(.07, .09, .28, 6).translate(0, .14, 0)), flesh, [0, 0, 0]);
+    for (let f = 0; f < 4; f++) { const fx = (f - 1.5) * .045; part(h, keep('fx.finger', () => new THREE.ConeGeometry(.022, .22, 5).translate(0, .11, 0)), flesh, [fx, .26, 0], { rot: [0, 0, (f - 1.5) * .15] }); part(h, octa(), tipMat, [fx + (f - 1.5) * .03, .47, 0], { scale: .02 }); }
+    return h;
+  });
+  return {
+    set(k: number) { hands.forEach((h, i) => { h.position.y = -.5 + Math.min(1, k * (1.1 + (i % 3) * .1)) * .5; h.scale.setScalar(Math.max(.01, k)); }); rimMat.opacity = .7 * Math.min(1, k * 2); (pool.material as THREE.MeshBasicMaterial).opacity = .7 * Math.min(1, k * 2); },
+    drop() { scene.remove(g); disposeTree(g); },
+  };
+}
+
+/** The Ferryman's Toll: a coin of shadow with a violet rim turning over the foe it marks; `at` moves it, `drop` takes it. */
+export function tollFx(color: number) {
+  const g = new THREE.Group(); scene.add(g);
+  const coin = new THREE.Group(); g.add(coin);
+  part(coin, new THREE.CylinderGeometry(.16, .16, .03, 16), std(0x100a18, { emissive: 0x0c0418 }), [0, 0, 0], { rot: [Math.PI / 2, 0, 0] });
+  part(coin, new THREE.TorusGeometry(.16, .018, 4, 20), lit(color), [0, 0, 0]);
+  part(coin, new THREE.BoxGeometry(.06, .06, .04), lit(whiter(color, .3)), [0, 0, 0]); // (the square hole of an old obol, lit)
+  const aura = glow(color, .8, .5); g.add(aura);
+  return {
+    at(x: number, y: number, z: number, t: number) { g.position.set(x, y, z); coin.rotation.y = t * 3; aura.material.opacity = .4 + Math.sin(t * 5) * .1; },
+    drop() { scene.remove(g); disposeTree(g); },
+  };
+}
+
 /* ---------- every step ---------- */
 
 /** Every step: rings grow and fade, lightning flickers and goes, the lance fades; what's done goes back to its pool. */

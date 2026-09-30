@@ -38,7 +38,7 @@ import { forgetKnowledge, knowEvery, knowledgeNow } from '../magic/memory';
 import { dropPage } from '../magic/pages';
 import { fireAt, poolsDo } from '../world/pools';
 import { inflict } from '../magic/statusFx';
-import type { StatusKind } from '../magic/spellData';
+import type { SpellStatus, StatusKind } from '../magic/spellData';
 import { TEMPLATE_DEFS } from '../world/templates';
 import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
 import { KIT_PARTS, kindsOf, type KitPart, type Kinds } from '../world/kitData';
@@ -244,7 +244,7 @@ function build() {
 
   // statuses on every foe in the room: to see them, and to set off reactions by hand
   const sts = section(pages.magic, S.statuses);
-  for (const [kind, amount] of [['burn', 4], ['chill', 1], ['shock', 2]] as [StatusKind, number][]) {
+  for (const [kind, amount] of [['burn', 4], ['chill', 1], ['shock', 2], ['sanct', 3], ['hex', 1], ['root', 2]] as [SpellStatus, number][]) {
     sts.append(btn(S.inflictOn(STR.statusNames[kind]), () => { for (const e of G.enemies) inflict(e, { [kind]: amount }); }));
   }
 

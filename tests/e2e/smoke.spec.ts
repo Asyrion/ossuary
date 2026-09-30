@@ -838,6 +838,102 @@ test('spells: the lance burns a line, the seal erupts and leaves fire, shards fr
   expect(errors).toEqual([]);
 });
 
+type HStatus = Status & { sanct: number; hex: number; root: number; eclipse: number; black: boolean };
+type G11h = Omit<G11, 'enemies' | 'spawn' | 'inflict'> & {
+  enemies: (Omit<G11['enemies'][number], 'status'> & { status?: HStatus; toll?: unknown })[];
+  spawn(kind: string, x?: number, z?: number): { hp: number; x: number; z: number; status?: HStatus; toll?: unknown; type: string };
+  inflict(status: Record<string, number>): void; hit(i: number, dmg: number, school?: string, by?: string): number;
+  readonly ward: number; pickups: { kind: string }[];
+};
+
+test('Hallow and Umbral (M4.1): holy ground heals and lays foes open, judgement falls on the strongest, wardlight breaks shots, hexes give mana back, hands hold, the toll pays; Eclipse and Blackfire', async ({ page }) => {
+  const errors = await start(page, '?room=treasure_plain&seed=HAL1');
+  // Consecrate: the dummy in the holy ground is struck and sanctified; the mage in it is healed once
+  const zone = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G11h, P = g.player; g.warp(1); g.sim(.3); P.x -= 3;
+    g.learn('consecrate', 0); g.mana(999); const d = g.spawn('dummy', P.x + 1, P.z); g.sim(.8);
+    P.hp = P.maxHp - 1; const cast = g.cast(0); g.sim(1.2);
+    return { cast, sanct: d.status?.sanct ?? 0, healed: P.hp === P.maxHp };
+  });
+  expect(zone).toMatchObject({ cast: true, healed: true });
+  expect(zone.sanct).toBeGreaterThan(1);
+  // Judgement: nothing for a moment, then the pillar falls on the strongest foe in reach, and only on it
+  const judge = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G11h, P = g.player; g.clearRoom(); g.sim(3); g.mana(999); g.learn('judgement', 0);
+    const strong = g.spawn('rotling', P.x + 4, P.z - 2), weak = g.spawn('rotling', P.x + 4, P.z + 2.5); g.sim(.8); strong.hp = 80; weak.hp = 30;
+    const cast = g.cast(0); g.sim(.5); const early = 80 - strong.hp; g.sim(.7);
+    return { cast, early, struck: 80 - strong.hp, sanct: strong.status?.sanct ?? 0, weak: 30 - weak.hp };
+  });
+  expect(judge).toMatchObject({ cast: true, early: 0, weak: 0 });
+  expect(judge.struck).toBeGreaterThanOrEqual(26);
+  expect(judge.sanct).toBeGreaterThan(3);
+  // Wardlight: motes circle the mage for a while and break the shots they meet
+  const ward = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G11h, P = g.player; g.clearRoom(); g.sim(3); g.mana(999); g.learn('wardlight', 0);
+    const cast = g.cast(0), left = g.ward; P.invuln = 0; const hp = P.hp;
+    for (let i = 0; i < 4; i++) g.shoot(P.x + (i - 1.5) * .15, P.z - 3, 0, 1);
+    g.sim(1.2);
+    return { cast, left, hurt: hp - P.hp, shots: g.shots.length };
+  });
+  expect(ward).toMatchObject({ cast: true, hurt: 0, shots: 0 });
+  expect(ward.left).toBeGreaterThan(7);
+  // Hex Bolt: a slow bolt hexes what it strikes, and each blow on a hexed foe spends a stack for mana
+  const hexed = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G11h, P = g.player; g.clearRoom(); g.sim(9); g.mana(999); g.learn('hex_bolt', 0);
+    const d = g.spawn('dummy', P.x, P.z - 2.2); g.sim(.8);
+    const cast = g.cast(0, { x: 0, z: -1 }); g.sim(.8); const hex = d.status?.hex ?? 0;
+    g.mana(10); const i = g.enemies.findIndex(e => e.type === 'dummy'); g.hit(i, 1, undefined, 'cantrip');
+    return { cast, hex, after: d.status?.hex ?? 0, mana: P.mana };
+  });
+  expect(hexed).toMatchObject({ cast: true, hex: 2, after: 1 });
+  expect(hexed.mana).toBeGreaterThanOrEqual(13);
+  // Eclipse (Hallow + Umbral): out of the fight under a black sun, then struck; Blackfire (Umbral + Ember) never goes out
+  const react = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G11h, P = g.player; g.clearRoom(); g.sim(.3);
+    const foe = g.spawn('rotling', P.x + 3, P.z - 2.5); g.sim(.8); foe.hp = 60;
+    g.inflict({ sanct: 3 }); g.inflict({ hex: 1 });
+    const eclipse = foe.status?.eclipse ?? 0, at = { x: foe.x, z: foe.z }; g.sim(1);
+    const moved = Math.hypot(foe.x - at.x, foe.z - at.z), during = 60 - foe.hp; g.sim(1.2);
+    const after = 60 - foe.hp; g.clearRoom(); g.sim(.3);
+    const other = g.spawn('rotling', P.x + 3, P.z - 2.5); g.sim(.8); other.hp = 200;
+    g.inflict({ burn: 2 }); g.inflict({ hex: 1 }); g.sim(4);
+    return { eclipse, moved, during, after, black: other.status?.black, burning: other.status?.burn ?? 0, burnt: 200 - other.hp };
+  });
+  expect(react.eclipse).toBeGreaterThan(1.5);
+  expect(react).toMatchObject({ moved: 0, during: 0, black: true });
+  expect(react.after).toBeGreaterThanOrEqual(18);
+  expect(react.burning).toBeGreaterThan(0); // (a burn of 2 s, still alight after 4)
+  expect(react.burnt).toBeGreaterThanOrEqual(10);
+  // Grasp of the Grave: hands rise where the mage aims and hold the foe there, hexed
+  const held = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G11h, P = g.player; g.clearRoom(); g.sim(3); g.mana(999); g.learn('grasp_of_the_grave', 0);
+    const foe = g.spawn('rotling', P.x, P.z - 3); g.sim(.8); foe.hp = 60;
+    const cast = g.cast(0, { x: 0, z: -1 }); g.sim(.5); const at = { x: foe.x, z: foe.z }, root = foe.status?.root ?? 0, hex = foe.status?.hex ?? 0;
+    g.sim(1);
+    return { cast, root, hex, moved: Math.hypot(foe.x - at.x, foe.z - at.z), struck: 60 - foe.hp };
+  });
+  expect(held).toMatchObject({ cast: true, hex: 1 });
+  expect(held.root).toBeGreaterThan(1.5);
+  expect(held.moved).toBeLessThan(.05);
+  expect(held.struck).toBeGreaterThanOrEqual(5);
+  // the Ferryman's Toll: the nearest foe is marked, blows on it give mana back, and falling it pays an obol and spreads its hex
+  const toll = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as G11h, P = g.player; g.clearRoom(); g.sim(3); g.mana(999); g.learn('ferrymans_toll', 0);
+    const near = g.spawn('rotling', P.x, P.z - 2.5), by = g.spawn('rotling', P.x + 1.2, P.z - 3); g.sim(.8); near.hp = by.hp = 60;
+    const coins = g.pickups.filter(q => q.kind === 'coin').length, cast = g.cast(0, { x: 0, z: -1 }), marked = !!near.toll;
+    g.sim(.3); g.mana(10); const i = g.enemies.indexOf(near as never); g.hit(i, 1, undefined, 'cantrip'); const mana = P.mana;
+    g.sim(.3); g.hit(g.enemies.indexOf(near as never), 99, undefined, 'cantrip'); g.sim(.1);
+    return { cast, marked, mana, paid: g.pickups.filter(q => q.kind === 'coin').length - coins, spread: by.status?.hex ?? 0 };
+  });
+  expect(toll).toMatchObject({ cast: true, marked: true });
+  expect(toll.mana).toBeGreaterThanOrEqual(14); // the toll's 4 (and the hex's stack)
+  expect(toll.paid).toBeGreaterThanOrEqual(1);
+  expect(toll.spread).toBeGreaterThanOrEqual(2);
+  await page.evaluate(() => (window as unknown as W).__game.sim(.05, true));
+  await page.screenshot({ path: 'test-results/smoke-hallow-umbral.png' });
+  expect(errors).toEqual([]);
+});
+
 type PageView = { spell: string; kind: string; price: number; gone: boolean; x: number; z: number };
 type G12 = Omit<G11, 'player'> & {
   player: G11['player'] & { coins: number };
@@ -849,7 +945,7 @@ test('the library: a page learned burns the others, a full hand is asked, given-
   // one slot free: walking into a lectern's page learns it, and the other two burn to ash
   const first = await page.evaluate(() => {
     const g = (window as unknown as W).__game as unknown as G12, P = g.player;
-    g.forgotten.push('cinder_lance', 'pyre_seal'); // given up earlier in the run: one is on a lectern, the other on the shelf
+    g.forgotten.push('cinder_lance', 'pyre_seal', 'rime_shards'); // given up earlier in the run: on the shelf unless a lectern offers them
     g.warp(1); g.sim(.5);
     const lecterns = g.pages.filter(p => p.kind === 'lectern'), pick = lecterns[0], shelf = g.pages.filter(p => p.kind === 'shelf');
     P.x = pick.x; P.z = pick.z + .3; g.sim(.3);
@@ -857,9 +953,8 @@ test('the library: a page learned burns the others, a full hand is asked, given-
   });
   expect(new Set(first.offered).size).toBe(3);
   expect(first.offered).not.toContain('arc');
-  expect(first.shelf).toHaveLength(1);
-  expect(first.offered).not.toContain(first.shelf[0][0]);
-  expect(first.shelf[0][1]).toBe(7);
+  expect(first.shelf.map(q => q[0])).toEqual(['rime_shards', 'pyre_seal', 'cinder_lance'].filter(id => !first.offered.includes(id)).slice(0, 2)); // (latest first, two at most)
+  expect(first.shelf.map(q => q[1])).toEqual([7, 7]);
   expect(first.spells).toEqual(['arc', first.offered[0]]);
   expect(first.gone).toBe(3);
   expect(first.asked).toBe(false);
@@ -2249,7 +2344,7 @@ test('the pixel look: on from the URL, drawn with outlines and light in bands, t
     const g = (window as unknown as { __game: GP & { modelOptions(): { id: string }[] } }).__game;
     g.setPixelLook({ lines: 270 }); const at = g.modelOptions(); g.sim(.5, true); g.setPixelLook({ lines: 0 }); return at.map(a => a.id);
   });
-  expect(shown.length).toBe(10);
+  expect(shown.length).toBe(18);
   // and the familiar options (the owner's drawings built in code): the Rune Fox
   const familiars = await page.evaluate(() => {
     const g = (window as unknown as { __game: GP & { takeModelOptions(): void; familiarOptions(): { id: string }[] } }).__game;

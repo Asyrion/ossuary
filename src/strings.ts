@@ -132,7 +132,7 @@ export const STR = {
   },
   manaLabel: (mana: number, max: number) => `Mana ${Math.round(mana)} of ${max}`,
   /** Reactions name themselves in the air; statuses as the training dummy lists them. */
-  reactions: { shatter: 'Shatter', overload: 'Overload' } as Record<string, string>,
+  reactions: { shatter: 'Shatter', overload: 'Overload', eclipse: 'Eclipse', blackfire: 'Blackfire' } as Record<string, string>,
   /** Over a foe struck by its weakness or its resistance, the first time (M4; GDD: Enemy affinities). */
   foes: { weak: 'Weak', resists: 'Resists' },
   /** Grimoire pages: the question a page asks when both slots are full, and what's left behind. */
@@ -143,7 +143,7 @@ export const STR = {
     known: (name: string) => `You already know ${name}`,
     left: (name: string, kind: string) => kind === 'loose' ? `The page of ${name} lies where the new one was` : `The page of ${name} stays on the lectern: take it back while you are here`,
   },
-  statusNames: { burn: 'Burn', chill: 'Chill', frozen: 'Frozen', shock: 'Shock' },
+  statusNames: { burn: 'Burn', chill: 'Chill', frozen: 'Frozen', shock: 'Shock', sanct: 'Sanctified', hex: 'Hex', root: 'Rooted' } as Record<string, string>,
   /** The boss bar while a shrine draws a curse out. */
   curseOf: (name: string) => `The curse of the ${name}`,
   /** The lore card shown on picking something up (ui/lore.ts). Artifacts keep their lore in data/artifacts.json;

@@ -56,14 +56,19 @@ export function parse(text: string | null | undefined): Knowledge {
   return out;
 }
 
-/** The school whose status each status is (Burn is Ember's, Chill Frost's, Shock Storm's). */
-const SCHOOL_OF = { burn: 'ember', chill: 'frost', shock: 'storm' } as const;
+/** The school whose status each status is (Burn is Ember's, Chill Frost's, Shock Storm's, Sanctified Hallow's, Hex
+    Umbral's). */
+const SCHOOL_OF = { burn: 'ember', chill: 'frost', shock: 'storm', sanct: 'hallow', hex: 'umbral' } as const;
 /** The reactions a spell can set off with another school's status (magic/status.ts): a frozen foe shocked, or a
-    shocked foe frozen, shatters; a burning foe shocked, or a shocked foe set burning, overloads. */
+    shocked foe frozen, shatters; a burning foe shocked, or a shocked foe set burning, overloads; a sanctified foe
+    hexed, or a hexed one sanctified, is eclipsed; a hexed foe set burning, or a burning one hexed, burns with
+    blackfire. */
 export function reactionsOf(def: Pick<SpellDef, 'status'>): { reaction: Reaction; with: School }[] {
-  const has = (k: 'burn' | 'chill' | 'shock') => (def.status?.[k] ?? 0) > 0, out: { reaction: Reaction; with: School }[] = [];
+  const has = (k: keyof typeof SCHOOL_OF) => (def.status?.[k] ?? 0) > 0, out: { reaction: Reaction; with: School }[] = [];
   if (has('chill')) out.push({ reaction: 'shatter', with: SCHOOL_OF.shock });
-  if (has('burn')) out.push({ reaction: 'overload', with: SCHOOL_OF.shock });
+  if (has('burn')) out.push({ reaction: 'overload', with: SCHOOL_OF.shock }, { reaction: 'blackfire', with: SCHOOL_OF.hex });
   if (has('shock')) out.push({ reaction: 'shatter', with: SCHOOL_OF.chill }, { reaction: 'overload', with: SCHOOL_OF.burn });
+  if (has('sanct')) out.push({ reaction: 'eclipse', with: SCHOOL_OF.hex });
+  if (has('hex')) out.push({ reaction: 'eclipse', with: SCHOOL_OF.sanct }, { reaction: 'blackfire', with: SCHOOL_OF.burn });
   return out.filter((r, i) => out.findIndex(o => o.reaction === r.reaction && o.with === r.with) === i);
 }
