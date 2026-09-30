@@ -68,7 +68,18 @@ it; the lurker is shocked through its pool and trapped when it freezes. A foe's 
 5. **The old three retire** (built 2026-09-30): summons (`callFoe`: never an elite, nor a mimic), the vault's warden (the
    Rune Beetle, the Mire Toad, the Cinder Salamander), rising bones, quiet rooms; the room inspector over fights on each
    floor. Health stays as in the table until the play-test says otherwise.
-6. **The boss:** looks in the gallery for the owner, then the fight.
+6. **The boss:** the floor-1 boss, the Hollow Warden (every run meets it first), built in code. Three looks drawn up in
+   `src/actors/bossLooks.ts` for the owner to choose from, each wearing the Warden's fight unchanged (it walks, winds up
+   and bursts a ring of shots, fires aimed volleys, calls the floor's walkers below half health), its shots in its
+   school's light:
+   - **Bell Warden** (Storm): a great beetle whose shell is an old cracked bronze bell, tipped back so it peers out from
+     under the lip, runes crackling on the bronze;
+   - **Mother of Spores** (Umbral): a mushroom as tall as a door, her cap spotted with violet light, a round face under
+     it, little mushrooms at her feet; the Sporelings she calls are her young;
+   - **Hollow Owl** (Hallow): a round barn owl the size of a wardrobe, a pale heart-shaped face with great eyes, a crown
+     of candles, wings folded like a cloak.
+   The Galleries tab stands the three ahead of the mage, and a switch picks the one the Warden wears in its fight
+   (remembered in the browser), until the owner chooses.
 7. **Close:** GDD (as built), CLAUDE.md, the rules reviewer, and a build for the owner (when the owner asks to ship).
 
 **Checks:** each foe readable at the game's camera in the pixel look (a silhouette, its telegraph, its hurt and
