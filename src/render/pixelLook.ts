@@ -1,19 +1,20 @@
-/* The pixel look: a style test for M3.5 step 2, where the owner chooses between pixel-art 3D and cartoon 3D before the
-   house style is set. The scene is drawn into a small target, a few hundred lines tall, with no smoothing, and blown
-   up to the window in whole pixels; the camera is snapped to that grid so still things don't shimmer as it moves.
-   Optional: dark outlines where a nearer surface meets a farther one (from depth), and light in a few bands, as in
-   cartoon lighting. The HUD stays sharp (it is HTML). The dev menu switches it (remembered in this browser), and so
-   does ?pixel=270 (or off). Tuning in CFG.pixelLook. */
+/* The pixel look: the game's look, pixel-art 3D (the owner's choice after the style test of M3.5 step 2, 2026-09-30:
+   on by default, at 270 lines). The scene is drawn into a small target, a few hundred lines tall, with no smoothing,
+   and blown up to the window in whole pixels; the camera is snapped to that grid so still things don't shimmer as it
+   moves. Dark outlines where a nearer surface meets a farther one (from depth), and, optional, light in a few bands,
+   as in cartoon lighting. The HUD stays sharp (it is HTML). The dev menu switches it (remembered in this browser), and
+   so does ?pixel=270 (or off). Tuning in CFG.pixelLook. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 
 export interface PixelLook { /** rows of pixels on screen; 0 is off */ lines: number; outline: boolean; bands: boolean }
-const P = CFG.pixelLook, KEY = 'ossuary.pixelLook';
-let look: PixelLook = { lines: 0, outline: true, bands: false };
+// (a new key: a choice kept from the style test, when it started off, doesn't hide the new default)
+const P = CFG.pixelLook, KEY = 'ossuary.look';
+let look: PixelLook = { lines: P.start, outline: true, bands: false };
 try {
   const v = JSON.parse(localStorage.getItem(KEY) ?? 'null') as Partial<PixelLook> | null;
   if (v) look = { lines: P.lines.includes(v.lines ?? -1) ? v.lines! : 0, outline: v.outline !== false, bands: !!v.bands };
-} catch { /* no storage: off */ }
+} catch { /* no storage: the default */ }
 if (typeof location !== 'undefined') {
   const q = new URLSearchParams(location.search).get('pixel');
   if (q === 'off') look.lines = 0;

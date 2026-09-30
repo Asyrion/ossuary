@@ -9,7 +9,7 @@ import '@fontsource/alegreya-sans/400.css';
 import '@fontsource/alegreya-sans/500.css';
 import '@fontsource/alegreya-sans/700.css';
 import './style.css';
-import { G, player } from './state';
+import { DEV, G, player } from './state';
 import { applyStrings } from './strings';
 import { Sfx } from './audio/sfx';
 import { camera, canvas, draw, renderer, resize } from './render/renderer';
@@ -36,6 +36,7 @@ import { inflict } from './magic/statusFx';
 import { makeEnemy } from './actors/enemies';
 import { castSpell, learnSpell } from './magic/spells';
 import { mantleLeft } from './magic/shapes';
+import { lanceShowing } from './magic/lanceFx';
 import { answerPage, dropPage, pagePanelSpell } from './magic/pages';
 import { fireAt, poolsDo } from './world/pools';
 import { spawnShot } from './combat/projectiles';
@@ -192,6 +193,8 @@ function installDevHooks() {
         Static Mantle left. */
     shoot(x: number, z: number, dx: number, dz: number) { const l = Math.hypot(dx, dz) || 1; spawnShot(x, z, dx / l, dz / l, CFG.enemy.wisp.shotSpeed, 0xb784ff, .8); },
     get mantle() { return mantleLeft(); },
+    /** The Cinder Lance's new look (a proof of concept): whether it shows now, and the switch back to the old beam. */
+    get lanceFx() { return lanceShowing(); }, oldLance(on = true) { DEV.oldLance = on; },
     /** Drop a grimoire page (of `id`, or a spell the mage doesn't know) at (x, z) or ahead of the mage; the pages
         in the room; the spells given up this run. */
     page(id?: string, x = player.x, z = player.z - 1.5) { return dropPage(G.current, x, z, id)?.spell ?? null; },

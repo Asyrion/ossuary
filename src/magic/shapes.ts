@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Box, Enemy, Room, Vec2 } from '../types';
-import { G, player } from '../state';
+import { DEV, G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { glow, glowShared, markShared } from '../render/materials';
@@ -19,6 +19,7 @@ import { fireAt, frostAt } from '../world/pools';
 import { canAct } from './status';
 import type { Shape, SpellDef } from './spellData';
 import { flash, inflict } from './statusFx';
+import { clearLanceFx, lanceFx, updateLanceFx } from './lanceFx';
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 const FIRE = 0xff7a2a, EMBER = 0xffc060, ICE = 0xbfe6ff;
@@ -109,13 +110,13 @@ const beam: Cast = (def, dir) => {
   }
   igniteGlyphs((x, z) => { const t = along(x, z); return t > 0 && t < len && side(x, z) < CFG.glyph.boltReach; }, true);
   for (let t = 0; t < len; t += .3) fireAt(sx + dir.x * t, sz + dir.z * t); // and oil along it
-  beamFx(sx, sz, dir, len, color);
+  if (DEV.oldLance) beamFx(sx, sz, dir, len, color); else lanceFx(sx, sz, dir, len, color); // (the new look, a proof of concept; the dev menu compares)
   for (let t = .4; t < len; t += .6) burst(sx + dir.x * t, .6, sz + dir.z * t, t % 1.2 < .6 ? FIRE : EMBER, 2, 1.4, .045);
   Sfx.lance();
   return true;
 };
 
-/** The beam's look: two crossed ribbons (one flat, one upright, so it reads in any direction) in the spell's
+/** The beam's old look (the dev menu's comparison with the new one in lanceFx.ts): two crossed ribbons (one flat, one upright, so it reads in any direction) in the spell's
     colour around a white-hot core, and glows along it, all narrowing to nothing in a third of a second. */
 const beams: { g: THREE.Group; ribbons: THREE.Mesh[]; glows: THREE.Sprite[]; t: number }[] = [];
 const BEAM_LIFE = .35;
@@ -447,7 +448,7 @@ export const CAST: Record<Shape, Cast> = { beam, placed, shotgun, wall, chain, s
 
 /** Effects fade every step; seals, walls and the mantle only run while the game does (`acting`). */
 export function updateShapes(dt: number, acting: boolean) {
-  updateLightning(dt); updateBeams(dt); updateFlames(dt);
+  updateLightning(dt); updateBeams(dt); updateLanceFx(dt); updateFlames(dt);
   if (!acting) return;
   updateSeals(dt); updateWalls(dt); updateMantle(dt, G.simClock);
 }
@@ -455,7 +456,7 @@ export function updateShapes(dt: number, acting: boolean) {
 /** The mage leaves the room: what spells left in it goes quietly (the mantle goes with the mage). */
 export function leaveRoomShapes() {
   for (const b of bolts) dropBolt(b); bolts.length = 0;
-  for (const b of beams) scene.remove(b.g); beams.length = 0;
+  for (const b of beams) scene.remove(b.g); beams.length = 0; clearLanceFx();
   for (const f of flames) scene.remove(f.s); flames.length = 0;
   for (const s of seals) { scene.remove(s.mesh); s.mat.dispose(); } seals.length = 0;
   for (const w of walls) dropWall(w, true); walls.length = 0;
