@@ -39,7 +39,7 @@ export const G = {
     /** Hints already given this run (a heart or a mana vial left lying at full health or mana). */ hinted: new Set<string>(),
     /** The seeded stream for grimoire pages, and the spells given up this run, sold back at later libraries. */
     pages: new Rng(0), forgotten: [] as string[],
-    /** M4.2: the seeded stream for the Wandering Merchant (when he comes, what he sells), and whether he has come. */
+    /** M4.2: the seeded stream for the Wandering Merchant (when the merchant comes, what is for sale), and whether the merchant has come. */
     wanderer: new Rng(0), wandererMet: false,
     /** M4.2: the floor Fen-Nex was bound on (it grows a stage a floor), while it is. */ fennexFrom: undefined as number | undefined,
   },

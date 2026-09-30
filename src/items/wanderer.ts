@@ -74,7 +74,7 @@ export function updateWanderer(now: number, dt: number) {
   u.crow.rotation.y = Math.sin(now * 2.3) * .7; u.crow.rotation.z = Math.max(0, Math.sin(now * 1.7)) * .3;
 }
 
-/** The mage is somewhere else now (`room`): the merchant goes, and the wares with him. */
+/** The mage is somewhere else now (`room`): the merchant goes, and the wares too. */
 export function wandererLeaves(room: Room) { if (here && here.room !== room) leave(); }
 function leave() {
   if (!here) return;

@@ -272,7 +272,7 @@ function installDevHooks() {
     wardFoe(i: number) { const e = G.enemies[i]; if (e) wardFoe(e); return !!e?.ward; },
     /** M4.2: the way the room's water runs (n, s, e, w or none) and how many waterfalls feed it. */
     get flow() { return { dir: G.current.flow ?? null, falls: G.current.falls?.length ?? 0 }; },
-    /** M4.2: the Wandering Merchant rides into this room (`callWanderer()`), and whether he is here, his wares out, and what. */
+    /** M4.2: the Wandering Merchant rides into this room (`callWanderer()`), and whether the merchant is here, the wares out, and what. */
     callWanderer() { callWanderer(); }, get wanderer() { return wandererState(); },
     /** M4.2: the Pillar Dragon's pillars, whether it is on one, how high its head is, and whether the pillars it raised are up. */
     get dragon() { return dragonInfo(); },

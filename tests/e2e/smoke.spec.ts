@@ -832,7 +832,7 @@ test('the drinking ward (M4.2): a vault\'s ward drinks the spells cast near it a
   expect(errors).toEqual([]);
 });
 
-test('the Wandering Merchant (M4.2): rides into a cleared room, lays out a focus from far off, a soul mote and the crow\'s wares; the crow sells the map and the secret; he is gone when the mage leaves', async ({ page }) => {
+test('the Wandering Merchant (M4.2): rides into a cleared room, lays out a focus from far off, a soul mote and the crow\'s wares; the crow sells the map and the secret; the merchant is gone when the mage leaves', async ({ page }) => {
   type Room = { type: string; known: boolean; visited: boolean; plan: { id: number } };
   type GM = Omit<G5, 'rooms' | 'current'> & { callWanderer(): void; wanderer: { here: boolean; laid: boolean; wares: string[] }; rooms(): Room[]; run: { wandererMet: boolean };
     current: G5['current'] & { wares?: { ware: string; x: number; z: number; sold: boolean }[] } };
