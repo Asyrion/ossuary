@@ -98,11 +98,32 @@ export function glow(color: number, size: number, opacity = 1) {
   s.scale.set(size, size, 1); return s;
 }
 /** The room kit's still surfaces (M3.5 step 3): one material for all of them, each piece's colour painted into its
-    vertices (`paint`), so an object's still body draws in one call whatever it is made of. */
+    vertices (`paint`), so an object's still body draws in one call whatever it is made of. How metallic each piece is
+    goes in its vertices too (`metal`): iron and bronze shine a little, stone, wood and bone are matte (and so lighter). */
 export const KIT_MAT = markShared(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .7, metalness: .3, flatShading: true }));
+KIT_MAT.onBeforeCompile = s => {
+  s.vertexShader = 'attribute float metal;\nvarying float vMetal;\n' + s.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvMetal = metal;');
+  s.fragmentShader = 'varying float vMetal;\n' + s.fragmentShader
+    .replace('#include <metalnessmap_fragment>', '#include <metalnessmap_fragment>\nmetalnessFactor = vMetal;')
+    .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = 1. - vMetal;');
+};
+KIT_MAT.customProgramCacheKey = () => 'kit-metal';
+/** The room kit's glowing pieces (a glowcap's cap, a rune that shines): unlit, their colours in the vertices. */
+export const KIT_GLOW = markShared(new THREE.MeshBasicMaterial({ vertexColors: true }));
 /** A colour for the room kit's pieces: a material that only names the colour; `mergeStill` paints it into the vertices
-    and draws the piece with `KIT_MAT`. */
-export const paint = (color: number) => { const m = new THREE.MeshStandardMaterial({ color, flatShading: true }); m.userData.paint = true; return markShared(m); };
+    and draws the piece with `KIT_MAT`. With `mottle`, each flat face of the piece is a shade lighter or darker (up to that
+    much), so stone, wood and bark look hewn and worn; `metal` is how metallic it is (0 matte, .3 the kit's iron). */
+export const paint = (color: number, mottle = 0, metal = .3) => {
+  const m = new THREE.MeshStandardMaterial({ color, flatShading: true }); m.userData.paint = true; m.userData.mottle = mottle; m.userData.metal = metal; return markShared(m);
+};
+/** A glowing colour for the room kit's pieces: `mergeStill` paints it into one unlit mesh (`KIT_GLOW`) with the others. */
+export const glowPaint = (color: number) => { const m = new THREE.MeshBasicMaterial({ color }); m.userData.paint = 'glow'; return markShared(m); };
+/** A face's shade, the same every time for the same face of the same piece: from its normal and the piece's number. */
+function faceShade(pos: THREE.BufferAttribute | THREE.InterleavedBufferAttribute, i: number, piece: number, mottle: number) {
+  const a = new THREE.Vector3().fromBufferAttribute(pos, i), b = new THREE.Vector3().fromBufferAttribute(pos, i + 1), c = new THREE.Vector3().fromBufferAttribute(pos, i + 2);
+  const n = b.sub(a).cross(c.sub(a)).normalize(), k = Math.round(n.x * 40) * 7.13 + Math.round(n.y * 40) * 13.7 + Math.round(n.z * 40) * 3.31 + piece * 41.9;
+  const h = Math.sin(k) * 43758.5453; return 1 + (h - Math.floor(h) - .5) * 2 * mottle;
+}
 
 /** Fewer draw calls for an object built from many small meshes: its still meshes that share a material are joined into
     one mesh each, and those painted in the room kit's colours (`paint`) into one mesh together. The parts named in
@@ -111,13 +132,14 @@ export const paint = (color: number) => { const m = new THREE.MeshStandardMateri
 export function mergeStill(root: THREE.Object3D) {
   const keep = new Set<THREE.Object3D>(Object.values((root.userData.parts ?? {}) as Record<string, THREE.Object3D>));
   root.updateMatrixWorld(true);
-  const toRoot = root.matrixWorld.clone().invert(), byMat = new Map<THREE.Material, THREE.Mesh[]>(), painted: THREE.Mesh[] = [];
+  const toRoot = root.matrixWorld.clone().invert(), byMat = new Map<THREE.Material, THREE.Mesh[]>(), painted: THREE.Mesh[] = [], glowing: THREE.Mesh[] = [];
   const walk = (o: THREE.Object3D) => {
     if (keep.has(o)) return;
     const m = o as THREE.Mesh;
     if (!o.visible) return; // (a hidden piece stays hidden)
     if (m.isMesh && !(o as THREE.Sprite).isSprite && !Array.isArray(m.material) && !o.children.length) { // (one material: a geometry's groups don't matter)
-      if (m.material.userData.paint) painted.push(m);
+      if (m.material.userData.paint === 'glow') glowing.push(m);
+      else if (m.material.userData.paint) painted.push(m);
       else { const list = byMat.get(m.material) ?? []; list.push(m); byMat.set(m.material, list); }
     }
     for (const c of o.children) walk(c);
@@ -136,18 +158,23 @@ export function mergeStill(root: THREE.Object3D) {
     const one = new THREE.Mesh(merged, mat); one.renderOrder = meshes[0].renderOrder; root.add(one);
     retire(meshes);
   }
-  if (painted.length) { // every painted piece in one: positions and normals, and its colour in each vertex
-    const geos = painted.map(m => {
+  for (const [list, mat] of [[painted, KIT_MAT], [glowing, KIT_GLOW]] as const) { // every painted piece in one: positions and normals, and its colour in each vertex
+    if (!list.length) continue;
+    const geos = list.map((m, piece) => {
       const g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
       for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k);
-      const c = (m.material as THREE.MeshStandardMaterial).color, n = g.attributes.position.count, col = new Float32Array(n * 3);
-      for (let i = 0; i < n; i++) col.set([c.r, c.g, c.b], i * 3);
+      const c = (m.material as THREE.MeshStandardMaterial).color, n = g.attributes.position.count, col = new Float32Array(n * 3), mottle = (m.material as THREE.Material).userData.mottle as number;
+      for (let i = 0; i < n; i += 3) {
+        const f = mottle ? faceShade(g.attributes.position, i, piece, mottle) : 1;
+        for (let k = i; k < Math.min(n, i + 3); k++) col.set([c.r * f, c.g * f, c.b * f], k * 3);
+      }
       g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      if (mat === KIT_MAT) g.setAttribute('metal', new THREE.BufferAttribute(new Float32Array(n).fill((m.material as THREE.Material).userData.metal ?? .3), 1));
       return place(m, g);
     });
-    const one = new THREE.Mesh(mergeGeometries(geos)!, KIT_MAT); root.add(one);
+    const one = new THREE.Mesh(mergeGeometries(geos)!, mat); root.add(one);
     for (const g of geos) g.dispose();
-    retire(painted);
+    retire(list);
   }
 }
 

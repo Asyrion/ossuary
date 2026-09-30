@@ -104,15 +104,23 @@ export function makeFire(specs: FlameSpec[], pal: FirePalette, embers = 0, rise 
   return g;
 }
 
+/** Motes without a fire (a glowcap's spores): `n` of them rising `rise` from over `specs` (only their places and sizes
+    count), `speed` times as fast as a fire's embers. One draw call; they move by themselves. */
+export function makeMotes(specs: FlameSpec[], color: number, n: number, rise = .5, speed = 1) {
+  const m = new THREE.Mesh(emberGeometry(specs, color, n, rise, speed), MAT.ember); m.renderOrder = 2; m.userData.fire = true;
+  m.geometry.boundingSphere = reach(specs, rise);
+  return m;
+}
+
 /** `n` embers spread over the flames, each a tiny crystal with its own start, speed and rise. */
-function emberGeometry(specs: FlameSpec[], color: number, n: number, rise: number) {
+function emberGeometry(specs: FlameSpec[], color: number, n: number, rise: number, speed = 1) {
   const one = new THREE.OctahedronGeometry(1, 0), parts: THREE.BufferGeometry[] = [];
   let seed = 7; const R = () => (seed = seed * 16807 % 2147483647) / 2147483647;
   const col = new THREE.Color(color), bright = col.clone().lerp(new THREE.Color(0xffffff), .5);
   for (let i = 0; i < n; i++) {
     const s = specs[i % specs.length], size = Math.max(.018, s.w * .09), e = one.clone().scale(size, size * 1.3, size);
     e.deleteAttribute('uv'); e.deleteAttribute('normal');
-    const at = [s.x + (R() - .5) * s.w * .6, s.y + s.h * (.2 + R() * .3), s.z + (R() - .5) * s.w * .6], ember = [i / n + R() * .2, .45 + R() * .5, rise * (.6 + R() * .6)];
+    const at = [s.x + (R() - .5) * s.w * .6, s.y + s.h * (.2 + R() * .3), s.z + (R() - .5) * s.w * .6], ember = [i / n + R() * .2, (.45 + R() * .5) * speed, rise * (.6 + R() * .6)];
     const c = R() < .35 ? bright : col, count = e.attributes.position.count;
     const fill = (v: number[]) => { const a = new Float32Array(count * 3); for (let k = 0; k < count; k++) a.set(v, k * 3); return new THREE.BufferAttribute(a, 3); };
     e.setAttribute('color', fill([c.r, c.g, c.b])); e.setAttribute('aCentre', fill(at)); e.setAttribute('aEmber', fill(ember));
