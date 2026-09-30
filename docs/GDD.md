@@ -987,7 +987,7 @@ A full five-floor game needs roughly 85 3D models, about 300 sound files, 5 musi
 | Floor and wall textures | MidJourney seamless tiles (`--tile`) in the house style, over the procedural details |
 | Sound effects | Royalty-free libraries, AI sound effect generators, own recordings (foley is easy: glass, water, paper, fire) |
 | Music | AI music generators, royalty-free libraries, a commissioned composer later |
-| Icons | Painted in MidJourney (Standard plan), or rendered from the Tripo models; M3.5 tries both |
+| Icons | Rendered from the artifacts' models built in code (M3.5, 2026-09-30); a painted icon (MidJourney) for a special model |
 
 Licences differ per source and per subscription plan: for a hobby project most are fine, but if Ossuary is ever published, every asset's licence has to allow commercial use in a game. Keep a simple credits file in the repo from the start (asset, source, licence).
 

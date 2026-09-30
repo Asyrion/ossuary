@@ -265,11 +265,11 @@ function build() {
     fpsBtn = btn('', () => { DEV.fps = !DEV.fps; }),
   );
 
-  // enemy model options (looks only, for the owner to choose from): a row of them ahead of the mage
   // the artifacts as the room kit builds them (looks only), in rows
   const arts = section(pages.galleries, S.artifactGallery);
   arts.append(el('p', 'dv-info', S.artifactsNote), btn(S.showOptions, () => { closeDev(); showArtifactGallery(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeArtifactGallery(G.current)));
 
+  // enemy model options (looks only, for the owner to choose from): a row of them ahead of the mage
   const opts = section(pages.galleries, S.options);
   opts.append(el('p', 'dv-info', [1, 2, 3].map(f => S.floorOptions(f, MODEL_OPTIONS.filter(o => o.floor === f).map(o => STR.options[o.id].name).join(', '))).join(' · ')), btn(S.showOptions, () => { closeDev(); showModelOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
 

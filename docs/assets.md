@@ -174,7 +174,8 @@ background, cropped square, background removed, 256 px kept and 128 px shipped.
 PNG to `icons/<id>.png`. It warns when the background isn't transparent, and makes a sheet in
 `asset-previews/`: the icon at 28 px (the HUD) and 44 px (the lore card), plain, cursed and cleansed, on the
 game's dark background. The check is how it reads there. An icon can also be rendered from the artifact's 3D
-model instead of painted. (Since 2026-09-30 the game's icons are drawn in code; this is for a special model's icon.)
+model instead of painted. (Since 2026-09-30 the game's icons are rendered from the artifacts' models built in code,
+`src/items/artifactIcons.ts`; a painted icon is for a special model's.)
 
 ## Sound
 

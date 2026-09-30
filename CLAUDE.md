@@ -238,7 +238,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `pilasterLook` and `nicheLook` from `dressNorthWall`, each wall's dressing merged into one mesh). The 45 artifacts are
   `src/items/artifactLooks.ts` (`artifactLook(icon, color)`, from `makeArtifactVisual`), and their HUD icons are rendered
   from them (`artifactIconUrl` in `src/items/artifactIcons.ts`, cached, from `artifactIcon` in `hud.ts`; a painted icon
-  first); the Galleries tab floats them all ahead of the mage (`__game.artifactGallery()`).
+  first); the Galleries tab floats them all ahead of the mage (`__game.artifactGallery()`, `__game.takeArtifactGallery()`).
   Variety (the owner's ask after the proof): each floor's look lists its kinds of wall, floor, wall light and brazier,
   weighted (`kit` in `data/floors.json`); each room draws one of each on its seed (`pickKinds` in the pure
   `src/world/kitData.ts`, into `room.look.kinds`); a theme pins some (`kit` in a theme's look: the ossuary's bone wall). The
