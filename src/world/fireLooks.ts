@@ -55,11 +55,11 @@ export const torchPalette = (t: FloorLook['torch']) => firePalette(new THREE.Col
 export function torchLook(t: FloorLook['torch'], kind: TorchKind) {
   const holder = new THREE.Group(), lit = new THREE.Group(), pal = torchPalette(t);
   lit.userData.fire = true; // (its fire moves by itself: no flicker from outside)
-  const gl = TORCHES[kind](holder, lit, pal);
+  const gl = TORCHES[kind](holder, lit, pal, t);
   holder.add(lit, gl);
   return { holder, lit, glow: gl };
 }
-type TorchBuild = (holder: THREE.Group, lit: THREE.Group, pal: FirePalette) => THREE.Sprite;
+type TorchBuild = (holder: THREE.Group, lit: THREE.Group, pal: FirePalette, t: FloorLook['torch']) => THREE.Sprite;
 const at = (s: THREE.Sprite, x: number, y: number, z: number) => { s.position.set(x, y, z); return s; };
 const TORCHES: Record<TorchKind, TorchBuild> = {
   bracket(holder, lit, pal) { // an iron plate and bracket holding a pitch torch upright
@@ -81,13 +81,13 @@ const TORCHES: Record<TorchKind, TorchBuild> = {
     lit.add(makeFire([{ x: 0, y: 1.15, z: .09, h: .28, w: .12, tongues: 1 }], pal, 3, .4));
     return at(glow(pal.body, 1.0, .6), 0, 1.24, .12);
   },
-  candelabra(holder, lit, pal) { // an iron bar on the wall with three candles in cups
+  candelabra(holder, lit, pal, t) { // an iron bar on the wall with three candles in cups, in the floor's wax
     mesh(holder, GEO.plate, MAT.iron, 0, .86, .015).scale.set(.5, 1, 1); mesh(holder, GEO.arm, MAT.iron, 0, .9, .06).scale.z = .6;
     mesh(holder, GEO.bar, MAT.iron, 0, .92, .1);
     const specs: FlameSpec[] = [];
     for (const [x, h] of [[-.16, .13], [0, .17], [.16, .12]]) {
       mesh(holder, GEO.cup, MAT.bronze, x, .955, .1);
-      mesh(holder, GEO.candle, MAT.tallow, x, .975 + h / 2, .1).scale.set(.8, h, .8); // (tallow-grey: pale flames stand out against it)
+      mesh(holder, GEO.candle, t.wax ? waxFor(t.wax) : MAT.wax, x, .975 + h / 2, .1).scale.set(.8, h, .8); // (the drowned's tallow: its pale flames stand out)
       specs.push({ x, y: .975 + h, z: .1, h: .17, w: .08 });
     }
     lit.add(makeFire(specs, pal, 3, .3));

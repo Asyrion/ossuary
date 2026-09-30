@@ -2,9 +2,9 @@
    and the reliquary, built in code in the style of the spell effects (docs/effects.md). What they do is unchanged
    (mechanisms.ts); only the look is new, and each keeps the parts mechanisms.ts moves or lights. Every one has a touch of
    magic that moves: runes orbit a charged stone, the lodestone's shard floats and turns, the reliquary's seal of
-   candle-light turns round it (`updateMechLooks`). `DEV.roomKit` off keeps the old looks. */
+   candle-light turns round it (`updateMechLook`). `DEV.roomKit` off keeps the old looks. */
 import * as THREE from 'three';
-import { blob, glow, markShared } from '../render/materials';
+import { blob, glow, markShared, mergeStill } from '../render/materials';
 import { lit, shine } from '../render/arcane';
 import { MAT, joinAll, mesh, runeStrokes, shared } from './kitParts';
 
@@ -52,9 +52,10 @@ export function runeStoneLook() {
   for (const [x, y, z] of [[-.2, .35, .16], [.18, .85, .1], [.23, .2, -.12]]) mesh(g, GEO.lichen, MAT.lichen, x, y, z).lookAt(x * 3, y, z * 3);
   const rune = mesh(g, GEO.carving, new THREE.MeshStandardMaterial({ color: 0x2e2c30, roughness: .8 }), 0, .6, .272); // (its own material: a charge colours it)
   rune.rotation.x = -.05;
-  const aura = new THREE.Group(); aura.position.y = .7; aura.visible = false;
+  const aura = new THREE.Group(); aura.position.y = .7;
   const auraMat = lit(0xffffff);
   for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2; mesh(aura, GEO.shard, auraMat, Math.cos(a) * .42, (i - 1) * .12, Math.sin(a) * .42); }
+  mergeStill(aura); aura.visible = false; // (joined while shown: mergeStill leaves hidden things; charge() colours its one material)
   const gl = glow(0xffffff, 1, .55); gl.position.set(0, .65, .35); gl.visible = false;
   g.add(aura, gl, blob(.9));
   return { group: g, parts: { rune, glow: gl, aura } };
@@ -73,6 +74,7 @@ export function lodestoneLook() {
   }
   const shard = new THREE.Group(); shard.position.y = .98;
   mesh(shard, GEO.lode, MAT.lode); mesh(shard, GEO.band, MAT.copper, 0, .12, 0); mesh(shard, GEO.band, MAT.copper, 0, -.14, 0).scale.setScalar(.85);
+  mergeStill(shard);
   const tip = glow(0xf0e890, .8, .6); tip.position.y = 1.5;
   g.add(shard, tip, blob(.8));
   return { group: g, parts: { tip, shard } };
@@ -89,6 +91,7 @@ export function bellLook() {
   mesh(swing, GEO.bell, MAT.bronze, 0, -.7, 0); mesh(swing, GEO.bellBand, MAT.darkBronze, 0, -.26, 0); mesh(swing, GEO.bellBand, MAT.darkBronze, 0, -.62, 0).scale.setScalar(1.55);
   for (let i = 0; i < 3; i++) { const a = Math.PI / 2 + (i - 1) * .8, r = mesh(swing, runeGeo(), MAT.darkBronze, Math.cos(a) * .215, -.4, Math.sin(a) * .215); r.rotation.set(-.1, Math.PI / 2 - a, 0, 'YXZ'); }
   mesh(swing, GEO.clapperRod, MAT.iron, 0, -.6, 0); mesh(swing, GEO.clapper, MAT.iron, 0, -.74, 0);
+  mergeStill(swing); // (the bell and its yoke swing as one)
   g.add(swing, blob(1.1));
   return { group: g, parts: { swing } };
 }
@@ -103,6 +106,7 @@ export function censerPot() {
   for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2; mesh(pot, GEO.hole, EMBER_GLOW, Math.cos(a) * .165, .05, Math.sin(a) * .165); }
   for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2, c = mesh(pot, GEO.chain, MAT.iron, Math.cos(a) * .08, .3, Math.sin(a) * .08); c.scale.y = .42; c.rotation.set(Math.sin(a) * .35, 0, -Math.cos(a) * .35); }
   mesh(pot, GEO.ring, MAT.iron, 0, .5, 0);
+  mergeStill(pot); // (its pieces joined: it swings as one)
   const gl = glow(0xffb060, .7, .5); pot.add(gl);
   return pot;
 }
