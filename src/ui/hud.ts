@@ -66,6 +66,19 @@ const ICONS: Record<string, string> = {
   witchknot: `<path d="M5 12c0-4 4-6 7-3s7 1 7-3M5 12c0 4 4 6 7 3s7-1 7 3" ${S}/><circle cx="12" cy="12" r="2" fill="currentColor"/>`,
   thorns: `<path d="M4 16l2-8 4 5 2-7 2 7 4-5 2 8z" ${S}/><path d="M4 19h16M6 8l-2-2M18 8l2-2M12 6V3" ${S}/>`,
   hungertome: `<path d="M4 5h13l3 3v12H7l-3-3z" ${S}/><path d="M8 11l1.5 2 1.5-2 1.5 2 1.5-2 1.5 2" ${S}/><path d="M8 16h8" ${S}/>`,
+  // M4.1
+  pendulum: `<path d="M12 2v2M12 4l4 11" ${S}/><circle cx="16.5" cy="17.5" r="3.5" fill="currentColor"/>`,
+  lodestar: `<path d="M4 20l9-9" ${S}/><path d="M13 11l2-2" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/><path d="M19 3l.8 2.2L22 6l-2.2.8L19 9l-.8-2.2L16 6l2.2-.8z" fill="currentColor"/>`,
+  twincandles: `<path d="M8 21V11M16 21V13M5 21h14" ${S}/><path d="M8 5c1.2 1.4 1.2 3 0 4-1.2-1-1.2-2.6 0-4zM16 7c1.2 1.4 1.2 3 0 4-1.2-1-1.2-2.6 0-4z" fill="currentColor"/>`,
+  choir: `<path d="M5 19L15 9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="18" cy="5" r="1.6" fill="currentColor"/><circle cx="20" cy="10" r="1.3" fill="currentColor"/><circle cx="14" cy="3" r="1.1" fill="currentColor"/>`,
+  echostone: `<ellipse cx="12" cy="13" rx="4.5" ry="3.5" fill="currentColor"/><path d="M5 9a9 9 0 0 1 14 0M3 6a12 12 0 0 1 18 0" ${S}/>`,
+  bloodmoon: `<circle cx="12" cy="13" r="7" fill="currentColor" opacity=".85"/><circle cx="12" cy="13" r="7" ${S}/><path d="M12 3v3" ${S}/>`,
+  salt: `<path d="M5 18c0-5 2-9 5-10 3 1 5 5 5 10z" ${S}/><path d="M15 20l3-5 3 5z" fill="currentColor"/>`,
+  halo: `<ellipse cx="12" cy="12" rx="7" ry="3" ${S}/><path d="M12 4V2M5 6L4 4.5M19 6l1-1.5" ${S}/>`,
+  ferrylantern: `<path d="M5 22V4c0-2 4-2 5 0" ${S}/><path d="M9 8h6v8H9z" ${S}/><path d="M10 10h4v4h-4z" fill="currentColor"/>`,
+  antler: `<path d="M8 21c0-6 2-10 7-15M11 12c3 0 5-1 7-4M13 8c1-2 1-3 0-5" ${S}/>`,
+  contract: `<path d="M5 8h14v8H5z" ${S}/><path d="M5 8c0-2 3-2 3 0v8" ${S}/><circle cx="14" cy="14" r="2.2" fill="currentColor"/>`,
+  lastrite: `<path d="M8 3h7v18H8z" ${S}/><path d="M10 7h3M10 11h3M10 15h3" ${S}/>`,
   // costumes
   hood: `<path d="M5 20c0-7 2-15 7-16 5 1 7 9 7 16" ${S}/><path d="M9 20c0-3 1-7 3-7s3 4 3 7" ${S}/><path d="M12 4c3-1 7 1 8 6" ${S}/>`,
 };

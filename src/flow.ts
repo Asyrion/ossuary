@@ -102,7 +102,7 @@ export function resetPlayer() {
 function newRun(seed: string): typeof G.run {
   return {
     seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [],
-    budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1, loreSeen: new Set(), hinted: new Set(), pages: Rng.from(seed, 'pages'), forgotten: [],
+    budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1, riteFloor: -99, loreSeen: new Set(), hinted: new Set(), pages: Rng.from(seed, 'pages'), forgotten: [],
   };
 }
 
@@ -270,7 +270,8 @@ export function onRoomCleared(room: Room) {
     return;
   }
   if (room.type !== 'normal') return;
-  const drop = rollRoomClear(G.run.drops, LOOT, soulsHere()); // a heart, obols, a bone key or a glyph stone, about half the time
+  let drop = rollRoomClear(G.run.drops, LOOT, soulsHere()); // a heart, obols, a bone key or a glyph stone, about half the time
+  if ((drop === 'heart' || drop === 'halfHeart') && player.stats.effects.has('noClearHearts')) drop = null; // (the Gravemonger's price)
   if (drop) { const p = freeSpotNear(room, room.cx + G.run.drops.range(-1, 1), room.cz + G.run.drops.range(-.5, .5)); spawnPickup(drop, p.x, p.z); }
   // now and then an artifact rises where the fight was, while the floor's budget allows
   const def = loot.chance(CFG.artifacts.dropChance) ? offerOptional('drop') : null;

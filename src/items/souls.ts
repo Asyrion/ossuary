@@ -15,7 +15,7 @@ import { SOUL_COLOR, soulToLose, type Soul } from './loot';
 
 
 /** How much likelier soul motes are in the loot here: the floor's `souls` (the deep floors give more). */
-export const soulsHere = () => FLOORS[G.run.floor]?.souls ?? 1;
+export const soulsHere = () => (FLOORS[G.run.floor]?.souls ?? 1) * (player.stats.effects.has('soulLantern') ? CFG.artifacts.soulLantern.souls : 1); // (twice with the Ferryman's Lantern)
 
 /** Take a mote; false when the mage already holds as many as can be kept. */
 export function gainSoul(kind: Soul) {

@@ -137,6 +137,20 @@ export const CFG = {
     stormglass: { mul: 1.25 },                                          // Stormglass Pendant: cantrip damage on shocked foes
     thurible: { radius: 2.4, burn: 3 },                                 // Thurible of Ash: how far a burning death spreads Burn
     witchKnot: { costMul: 0.8 },                                        // Witch's Knot: spell costs at half health or below
+    // M4.1's twelve
+    swing: { out: 0.55 },                                               // Pendulum of Hours: how far (radians) a bolt sets out from the aim, to curve back onto it at its range's end
+    lodestar: { hang: 2, pulse: 7 },                                    // Lodestar Wand: seconds a bolt hangs as a star, and how fast it twinkles
+    still: { after: 0.25, speed: 0.5 },                                 // standing still: this long below this speed (Twin Vigil Candles, Salt Circle)
+    candles: { damageMul: 1.5 },                                        // Twin Vigil Candles: bolts while standing still
+    choir: { every: 5, damage: 5, delay: 0.35 },                        // Ossuary Choir: foes put to rest in a room per hymn; what it does; the beat before it
+    echo: { damageMul: 0.75, least: 1.5 },                              // Echo Stone: the echo's damage, and the least way back it flies
+    bloodMoon: { fireDelayMul: 0.75, shotSpeedMul: 1.3, color: 0xe03040 }, // Blood Moon Pendant: at half health or below
+    salt: { after: 1, radius: 1.35, keep: 0.25 },                       // Salt Circle: seconds still before it forms; its radius; how far the mage may lean out of it before it breaks
+    halo: { sanct: 3 },                                                 // Gilded Halo: seconds of Sanctified the first bolt lays
+    soulLantern: { hexMul: 1.5, souls: 2 },                             // Ferryman's Lantern: mana from hexes; how much likelier soul motes
+    antler: { every: 6, sanct: 2, damageMul: 1.25, scale: 1.3, color: 0xfff0b0 }, // Hart's Antler: which cast is a lance, and what it lays
+    gravemonger: { chance: 0.5, heartPriceMul: 2 },                     // Gravemonger's Contract: a foe's obol (halved when cleansed); the merchant's hearts
+    lastRite: { rise: 1, every: 1, everyCleansed: 2 },                  // The Last Rite: half hearts risen with; floors between refusals (cleansed: more)
   },
   // the pixel look (render/pixelLook.ts, the game's look since 2026-09-30): the rows of pixels it offers and the one it
   // starts at (1080 since the play-test of the room kit's proof, 2026-09-30; 540 before it: at 270, then 360, the mage

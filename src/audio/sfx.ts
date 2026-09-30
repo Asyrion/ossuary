@@ -225,6 +225,13 @@ const sounds = {
   soulHex() { tone('sine', 147, 73, .9, .08); tone('sine', 1319, 659, .6, .02, .05); hiss(.5, .05, 'lowpass', 500); },
   soulMend() { [587, 740, 880].forEach((f, i) => tone('sine', f, f, 1, .035, i * .06)); },
   shard() { tone('square', 1800, 1700, .03, .04); tone('sine', 110, 220, .6, .07, .02); tone('sine', 880, 1760, .4, .03, .08); },
+  // M4.1's artifacts: the antler's lance, a bolt's echo off stone, the choir's hymn, the last rite, the salt's hiss
+  antlerLance() { tone('triangle', 1568, 1480, .35, .04); tone('sine', 2349, 2300, .3, .02, .03); hiss(.2, .04, 'highpass', 4000); },
+  echo() { tone('sine', 660, 620, .12, .03); tone('sine', 660, 620, .12, .015, .09); },
+  choir() { [262, 330, 392, 523].forEach((f, i) => { tone('sine', f, f, 1.6, .05, i * .05); tone('triangle', f * 2, f * 2, 1.2, .012, i * .05 + .02); }); hiss(1.2, .015, 'bandpass', 2000); },
+  lastRite() { tone('sine', 196, 196, 1.6, .08); [392, 494, 587].forEach((f, i) => tone('sine', f, f, 1.2, .04, .2 + i * .12)); hiss(.8, .03, 'lowpass', 900); },
+  saltForm() { hiss(.5, .05, 'highpass', 5000); tone('sine', 1760, 1976, .3, .015, .1); },
+  saltBreak() { hiss(.25, .06, 'bandpass', 3000); },
   // floor 4's foes (M4.1): the wickmouse's squeak, the chime bat's bell and its strike, the gargoyle's grinding wake and landing, the fawn's healing
   squeak() { tone('sine', 1900, 2600, .05, .03); tone('sine', 2200, 2900, .05, .025, .07); },
   chime() { tone('triangle', 1760, 1740, .6, .05); tone('sine', 2637, 2600, .5, .03, .01); tone('sine', 3520, 3480, .3, .015, .02); },

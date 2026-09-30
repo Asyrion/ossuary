@@ -11,7 +11,8 @@ import { scene } from '../render/renderer';
 import { disposeTree } from '../render/materials';
 import { heroDie, heroHit } from '../actors/hero';
 import { endGame, onBossDead } from '../flow';
-import { flashHurt, renderHearts, updateBossBar } from '../ui/hud';
+import { banner, flashHurt, renderHearts, updateBossBar } from '../ui/hud';
+import { ringFx } from '../magic/spellFx';
 import { addDecal, burst } from './fx';
 import { spawnBurst } from './projectiles';
 import { spawnHeart, spawnPickup } from '../items/pickups';
@@ -42,7 +43,7 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   e.hp -= dmg; e.flash = .09; e.lastHit = by; e.asleep = false; // a sleeper wakes
   const hexed = e.status?.hex ?? 0; // (before the blow spends a stack: a foe that falls with enough leaves a soul mote)
   if (by) { // a hexed foe gives back mana for each stack a blow spends (M4.1); a foe marked by the Ferryman's Toll pays its toll
-    let back = spendHex(e.status);
+    let back = spendHex(e.status) * (player.stats.effects.has('soulLantern') ? CFG.artifacts.soulLantern.hexMul : 1); // (half again with the Ferryman's Lantern)
     if (e.toll && G.simClock >= (e.tollNext ?? 0)) { back += e.toll.mana; e.tollNext = G.simClock + CFG.mana.tollEvery; }
     if (back) { gainMana(back); burst(e.x, 1, e.z, SCHOOL_LIGHT.umbral, 3, 1.4, .03); }
   }
@@ -77,12 +78,31 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
   if (player.stats.killMana) gainMana(player.stats.killMana);         // Hungering Tome
   if (player.stats.effects.has('thurible') && (e.status?.burn ?? 0) > 0) scatterEmbers(e); // Thurible of Ash
   if (e.champion) { const p = freeSpotNear(G.current, e.x, e.z); spawnHeart(p.x, p.z, 2); }
+  if (player.stats.effects.has('choir')) choirCounts(e);                // Ossuary Choir
+  if (player.stats.effects.has('gravemonger') && !e.isBoss) {         // Gravemonger's Contract: the dead pay (less, once cleansed)
+    const A = CFG.artifacts.gravemonger, clean = player.cleansed.includes('gravemongers_contract');
+    if (G.run.drops.chance(A.chance * (clean ? .5 : 1))) { const p = freeSpotNear(G.current, e.x, e.z); spawnPickup('coin', p.x, p.z); }
+  }
   const drop = e.isBoss ? null : rollEnemyDrop(G.run.drops); // now and then an obol
   if (drop) { const p = freeSpotNear(G.current, e.x, e.z); spawnPickup(drop, p.x, p.z); }
   if (e.isBoss) {
     for (const s of G.enemies) if (s.servant && !s.dead) killEnemy(s, true);
     Sfx.at(e.x, e.z).boom(); G.shake = .55; onBossDead();
   } else { if (e.foe) Sfx.at(e.x, e.z).critterDie(); else Sfx.at(e.x, e.z).die(); G.shake = Math.max(G.shake, .08); }
+}
+
+/** The Ossuary Choir: every so many foes put to rest in a room, a beat later the dead sing, and every foe still in the room
+    is struck by the hymn (Hallow). */
+function choirCounts(e: Enemy) {
+  const room = G.current, C = CFG.artifacts.choir;
+  room.choir = (room.choir ?? 0) + 1;
+  if (room.choir % C.every) return;
+  burst(e.x, 1, e.z, SCHOOL_LIGHT.hallow, 10, 1.6, .04);
+  after(C.delay, () => {
+    if (G.current !== room) return; // (the mage has gone on: the hymn stays behind)
+    Sfx.choir(); ringFx(player.x, .05, player.z, SCHOOL_LIGHT.hallow, .4, 7, CFG.spellFx.shockwave * 1.5, true);
+    for (const o of G.enemies) if (!o.dead && o.spawn <= 0 && !o.hidden) { damageEnemy(o, C.damage, 0, 0, 0, 'spell', 'hallow'); burst(o.x, 1.2, o.z, 0xfff0c8, 6, 1.2, .03); }
+  });
 }
 
 /** The Thurible of Ash: a foe that dies burning scatters its embers over the foes around it, and any oil. */
@@ -110,6 +130,13 @@ export function payBloodTithe() {
   burst(player.x, .8, player.z, 0x8a1a1a, 14, 2, .06);
 }
 
+/** The Last Rite: whether it will refuse a killing blow now (once a floor; once every two when cleansed). */
+function lastRite() {
+  if (!player.stats.effects.has('lastRite')) return false;
+  const R = CFG.artifacts.lastRite, every = player.cleansed.includes('the_last_rite') ? R.everyCleansed : R.every;
+  return G.run.floor - G.run.riteFloor >= every;
+}
+
 /** Damage the hero by `halves` half-hearts, knocking them away from (fromX, fromZ). Whether the blow reached the mage
     (not shrugged off while invulnerable; in god mode it reaches but costs nothing), for what comes with it (a chill, a
     hex, dimmed sight). */
@@ -118,6 +145,10 @@ export function hurtPlayer(halves: number, fromX: number, fromZ: number): boolea
   if (DEV.god) return true;
   const guarded = guardHit(); // a soul mote takes the blow before the hearts do (M4.1)
   if (!guarded) player.hp -= halves;
+  if (player.hp <= 0 && lastRite()) { // the Last Rite: this blow is refused, once a floor, and the mage rises
+    player.hp = CFG.artifacts.lastRite.rise; G.run.riteFloor = G.run.floor;
+    burst(player.x, 1, player.z, 0xf0e8d8, 24, 2.4, .06); Sfx.lastRite(); banner(...STR.banner.lastRite);
+  }
   player.invuln = player.stats.invuln; renderHearts();
   if (G.current.locked) G.current.hurt = true; // no Unbroken Oath for this fight
   const dx = player.x - fromX, dz = player.z - fromZ, d = Math.hypot(dx, dz) || 1; player.vx += dx / d * 7; player.vz += dz / d * 7;

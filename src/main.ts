@@ -39,6 +39,7 @@ import { inflict } from './magic/statusFx';
 import { makeEnemy } from './actors/enemies';
 import { castSpell, learnSpell } from './magic/spells';
 import { mantleLeft, wardLeft } from './magic/shapes';
+import { saltCircle } from './combat/familiars';
 import { fxShowing } from './magic/spellFx';
 import { answerPage, dropPage, pagePanelSpell } from './magic/pages';
 import { fireAt, poolsDo } from './world/pools';
@@ -235,6 +236,8 @@ function installDevHooks() {
         Wardlight left. */
     shoot(x: number, z: number, dx: number, dz: number) { const l = Math.hypot(dx, dz) || 1; spawnShot(x, z, dx / l, dz / l, CFG.afflict.testShot, 0xb784ff, .8); },
     get mantle() { return mantleLeft(); }, get ward() { return wardLeft(); },
+    /** The Salt Circle lying round the mage (M4.1): where, and how long; null when none. */
+    get salt() { return saltCircle(); },
     /** The spells' looks showing now: the Cinder Lance, and how many rings of light and bolts of lightning. */
     get spellFx() { return fxShowing(); },
     /** Drop a grimoire page (of `id`, or a spell the mage doesn't know) at (x, z) or ahead of the mage; the pages

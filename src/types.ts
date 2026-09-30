@@ -130,6 +130,7 @@ export interface Room {
   shrine?: { mat: THREE.MeshBasicMaterial; motes: THREE.Sprite[]; stones: OfferingStone[] };
   /** Grimoire pages: a library's lecterns and shelf (laid out on the first visit), a boss's page, a dropped one. */
   pages?: Page[];
+  /** Foes put to rest here towards the Ossuary Choir's next hymn (M4.1). */ choir?: number;
   /** Water and oil on the floor (world/pools.ts), and which pool each tile belongs to ([row][col]). */
   pools?: Pool[]; poolGrid?: (Pool | undefined)[][];
 }
@@ -163,6 +164,7 @@ export interface Enemy extends Circle {
   eye?: THREE.Object3D; ring?: THREE.Object3D; cycle?: number; summoned?: boolean; volleys?: number;
   /** A boss built in code (M4: the Hollow Warden's looks, bossLooks.ts): its school, whose light its shots take. */ bossSchool?: School;
   /** The bosses of floors 4 and 5 (M4.1): their weakness and resistance; the hart's turning spokes. */ bossAff?: { weak: School; resist: School }; spin?: number;
+  /** Sanctified by the Gilded Halo's first bolt already (M4.1). */ haloed?: boolean;
   /** Marked by the Ferryman's Toll (M4.1, shapes.ts): mana back for each blow (at most every so often: `tollNext`), obols and a spreading hex if it falls. */ toll?: { mana: number; obols: number; spread: number; spreadRange: number }; tollNext?: number;
   /** Eclipsed (M4.1): the black sun hung over it while it is out of the fight. */ sun?: THREE.Object3D;
   /** Bosses: out of reach (under the floor, in the air), so neither hurt nor hurting. */ hidden?: boolean;
@@ -192,6 +194,8 @@ export interface Bolt extends Circle {
   /** A spell's bolt (Rime Shards, Shatter's shards): its hits are spell hits, with the spell's statuses. */ spell?: boolean;
   status?: Partial<Record<SpellStatus, number>>;
   /** Set alight flying through a brazier's flame (M3.6): it trails embers. */ kindled?: boolean;
+  /** M4.1: the Pendulum of Hours' turn (radians a second); seconds left hanging as a Lodestar Wand's star; whether it has
+      echoed off a wall already (the Echo Stone). */ curve?: number; star?: number; echoed?: boolean;
 }
 export interface Shot extends Circle {
   y: number; vx: number; vz: number; color: number; mesh: THREE.Group;
@@ -228,6 +232,7 @@ export interface Player extends Circle {
   /** Cursed artifacts cleansed at a shrine: their price gone, their gift halved. */ cleansed: string[];
   /** Obols, bone keys and blast glyphs carried (GDD: Coins, keys and blast glyphs). */ coins: number; keys: number; glyphs: number;
   /** Soul motes held, in the order taken (M4.1: items/souls.ts). */ souls: Soul[];
+  /** Seconds the mage has stood still (the Twin Vigil Candles, the Salt Circle). */ still: number;
   /** Mana (GDD: Magic system); the spells in the two slots (Q and E) and the seconds before each can be cast
       again; where the mage last aimed or walked (a spell cast standing still goes that way). */
   mana: number; spells: (string | null)[]; spellCd: number[]; aim: Vec2;

@@ -34,6 +34,7 @@ export const G = {
     budget: { used: 0, reserved: 0 },
     /** Foes put to rest towards the Leech Jar's next half heart. */ leech: 0,
     /** The floor on which the Sexton's Keyring last opened a vault for free. */ freeVault: -1,
+    /** The floor on which the Last Rite last refused a killing blow (M4.1). */ riteFloor: -99,
     /** Items and containers already described by a lore card this run (ui/lore.ts). */ loreSeen: new Set<string>(),
     /** Hints already given this run (a heart or a mana vial left lying at full health or mana). */ hinted: new Set<string>(),
     /** The seeded stream for grimoire pages, and the spells given up this run, sold back at later libraries. */
@@ -57,7 +58,7 @@ export const DEV = { god: false, mana: false, fps: false, moveClip: 'run' as 'ru
 export const player: Player = {
   dead: false, x: 0, z: 0, vx: 0, vz: 0, r: CFG.hero.radius, hp: 6, maxHp: 6, invuln: 0, fireCd: 0, eye: 1, yawA: 0, blessed: 0,
   squash: 0, bob: 0, focus: START_FOCUS, items: [], heartsPaid: 0, cleansed: [], stats: computeStats(START_FOCUS, [], CFG.hero),
-  coins: 0, keys: 0, glyphs: 0, souls: [],
+  coins: 0, keys: 0, glyphs: 0, souls: [], still: 0,
   mana: CFG.hero.mana, spells: [null, null], spellCd: [0, 0], aim: { x: 0, z: -1 }, dim: 0, chill: 0, pull: { x: 0, z: 0 },
 };
 

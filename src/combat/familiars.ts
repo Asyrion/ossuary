@@ -1,14 +1,18 @@
 /* Companions that artifacts bind to the mage. The Candle Moth, a pale moth drawn to the mage's lantern,
    flutters about them and stings the nearest foe with a lesser bolt now and then. The Weeping Skull circles
    the mage at chest height, swallowing enemy shots it meets and biting foes it passes through. Both come and
-   go with their artifact (a new run takes them away). */
+   go with their artifact (a new run takes them away). M4.1 binds two more things to the mage: the Twin Vigil Candles'
+   flames at the shoulders, which brighten as the mage stands still (the bolts' strength is in projectiles.ts), and the
+   Salt Circle, a ring that forms round a mage who stands still a moment and that walking foes can't cross (`saltHolds`,
+   from the foes' movement), until the mage steps out of it. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Enemy } from '../types';
 import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
-import { M, disposeTree, glow } from '../render/materials';
+import { M, disposeTree, glow, markShared } from '../render/materials';
+import { firePalette, makeFire } from '../render/fire';
 import { burst } from './fx';
 import { damageEnemy } from './damage';
 import { fireSecondary } from './projectiles';
@@ -36,6 +40,53 @@ function makeSkull() {
   g.add(head, jaw, eyes, tear, glow(0xa8c8e0, .9, .35)); scene.add(g);
   return { g, tear, a: 0, bitten: new Map<Enemy, number>() };
 }
+
+/** The Twin Vigil Candles: a small flame over each shoulder, and its glow. */
+let candles: { g: THREE.Group; flames: THREE.Group[]; lights: THREE.Sprite[] } | null = null;
+const CANDLE = firePalette(0xffd878, 0xff9a3a);
+function makeCandles() {
+  const g = new THREE.Group(), flames: THREE.Group[] = [], lights: THREE.Sprite[] = [];
+  for (const s of [-1, 1]) {
+    const f = makeFire([{ x: 0, y: 0, z: 0, h: .16, w: .06, beat: s + 1 }], CANDLE, 2, .25); f.position.set(s * .3, 1.12, -.02);
+    const l = glow(0xffd070, .55, .5); l.position.set(s * .3, 1.2, -.02);
+    g.add(f, l); flames.push(f); lights.push(l);
+  }
+  scene.add(g);
+  return { g, flames, lights };
+}
+
+/** The Salt Circle: where it lies, how long it has, and whether it is breaking. */
+let salt: { g: THREE.Group; x: number; z: number; t: number; gone: number } | null = null;
+let saltParts: { ring: THREE.TorusGeometry; grains: THREE.BufferGeometry; glow: THREE.RingGeometry; mat: THREE.MeshStandardMaterial; ward: THREE.MeshBasicMaterial } | null = null;
+function makeSalt(x: number, z: number) {
+  const R = A.salt.radius;
+  const P = saltParts ??= (() => {
+    const ring = new THREE.TorusGeometry(R, .06, 4, 56); ring.rotateX(Math.PI / 2); ring.scale(1, .35, 1); ring.userData.shared = true;
+    const grains = new THREE.OctahedronGeometry(.045, 0); grains.userData.shared = true;
+    const gl = new THREE.RingGeometry(R - .18, R + .1, 48); gl.rotateX(-Math.PI / 2); gl.userData.shared = true;
+    return { ring, grains, glow: gl,
+      mat: markShared(new THREE.MeshStandardMaterial({ color: 0xf2eee2, roughness: .9, emissive: 0x3a3a34 })),
+      ward: markShared(new THREE.MeshBasicMaterial({ color: 0xfff4d8, transparent: true, opacity: .16, depthWrite: false, blending: THREE.AdditiveBlending })) };
+  })();
+  const g = new THREE.Group(); g.position.set(x, .02, z);
+  g.add(new THREE.Mesh(P.ring, P.mat), new THREE.Mesh(P.glow, P.ward));
+  const grains = new THREE.InstancedMesh(P.grains, P.mat, 36);
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
+  for (let i = 0; i < 36; i++) { const a = i / 36 * Math.PI * 2 + (i % 3) * .05, r = R + ((i * 7) % 5 - 2) * .03; m.compose(new THREE.Vector3(Math.cos(a) * r, .02, Math.sin(a) * r), q.setFromEuler(e.set(i, i * 2, 0)), new THREE.Vector3(1, .6, 1)); grains.setMatrixAt(i, m); }
+  g.add(grains); g.scale.setScalar(.01); scene.add(g);
+  burst(x, .2, z, 0xf2eee2, 18, 1.6, .03); Sfx.saltForm();
+  return { g, x, z, t: 0, gone: 0 };
+}
+/** Walking foes (not a boss) can't cross the salt: one that would is set back at its edge, and one inside when it formed is
+    thrust out. */
+export function saltHolds(e: Enemy) {
+  if (!salt || salt.gone || e.flying || e.isBoss || e.hidden) return;
+  const dx = e.x - salt.x, dz = e.z - salt.z, d = Math.hypot(dx, dz) || .001, edge = A.salt.radius + e.r;
+  if (d >= edge) return;
+  e.x = salt.x + dx / d * edge; e.z = salt.z + dz / d * edge; e.vx = e.vz = 0;
+}
+/** Seconds the Salt Circle has lain (0 when there is none). */
+export const saltCircle = () => salt && !salt.gone ? { x: salt.x, z: salt.z, t: salt.t } : null;
 
 const drop = (o: { g: THREE.Group } | null) => { if (o) { scene.remove(o.g); disposeTree(o.g); } return null; };
 
@@ -90,4 +141,22 @@ export function updateFamiliars(dt: number, now: number, acting: boolean) {
       for (const e of skull.bitten.keys()) if (e.dead) skull.bitten.delete(e);
     }
   } else skull = drop(skull);
+
+  if (fx.has('stillCandles')) { // brighter the longer the mage stands still, full once the bolts are steadied
+    candles ??= makeCandles();
+    const k = Math.min(1, player.still / A.still.after);
+    candles.g.position.set(player.x, 0, player.z);
+    candles.flames.forEach(f => f.scale.setScalar(.5 + .5 * k));
+    candles.lights.forEach((l, i) => { l.material.opacity = .15 + .55 * k + Math.sin(now * 9 + i * 2) * .05; l.scale.setScalar(.35 + .35 * k); });
+  } else candles = drop(candles);
+
+  if (fx.has('saltCircle')) {
+    if (!salt && acting && player.still >= A.salt.after) salt = makeSalt(player.x, player.z);
+    if (salt) {
+      salt.t += dt;
+      if (!salt.gone && Math.hypot(player.x - salt.x, player.z - salt.z) > A.salt.radius + A.salt.keep) { salt.gone = .01; Sfx.saltBreak(); burst(salt.x, .2, salt.z, 0xf2eee2, 10, 1.2, .03); } // stepped out: it scatters
+      if (salt.gone) { salt.gone += dt; salt.g.scale.setScalar(Math.max(.01, 1 - salt.gone * 4)); if (salt.gone > .25) salt = drop(salt); }
+      else salt.g.scale.setScalar(Math.min(1, salt.t * 5));
+    }
+  } else salt = drop(salt);
 }

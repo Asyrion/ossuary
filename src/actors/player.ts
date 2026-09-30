@@ -5,7 +5,7 @@ import { blockers, collide } from '../world/collision';
 import { DH } from '../world/dims';
 import { SIDE_DIR } from '../world/shapes';
 import { moveInput, pressed, shootDir } from '../input';
-import { spawnBolt } from '../combat/projectiles';
+import { bloodMoon, spawnBolt } from '../combat/projectiles';
 import { placeGlyph } from '../combat/glyphs';
 import { castSpell } from '../magic/spells';
 import { answerPage, checkPages } from '../magic/pages';
@@ -34,13 +34,14 @@ export function updatePlayer(dt: number) {
   player.vx = lerp(player.vx, mv.x * speed, k); player.vz = lerp(player.vz, mv.z * speed, k);
   player.x += (player.vx + player.pull.x) * dt; player.z += (player.vz + player.pull.z) * dt; player.pull.x = player.pull.z = 0; // (a lure's draw: spent each step)
   collide(player, blockers(cur, 'player', st.effects.has('pitWalker')));
+  player.still = Math.hypot(player.vx, player.vz) < CFG.artifacts.still.speed ? player.still + dt : 0; // (the Twin Vigil Candles, the Salt Circle)
   if (tryTransition()) return;
   // shooting; spells go where the mage aims, or where they last aimed or walked
   const aim = shootDir();
   if (aim) player.aim = { ...aim };
   else if (Math.hypot(mv.x, mv.z) > .3) { const l = Math.hypot(mv.x, mv.z); player.aim = { x: mv.x / l, z: mv.z / l }; }
   player.fireCd -= dt;
-  if (aim && player.fireCd <= 0) { spawnBolt(); player.fireCd = st.fireDelay; }
+  if (aim && player.fireCd <= 0) { spawnBolt(); player.fireCd = st.fireDelay * (bloodMoon() ? CFG.artifacts.bloodMoon.fireDelayMul : 1); } // (quicker in the Blood Moon's hour)
   if (pressed.glyph) { pressed.glyph = false; placeGlyph(); }
   // a spell key answers a grimoire page's question, if one is asking; otherwise it casts
   for (const i of [0, 1]) if (pressed.spells[i]) { pressed.spells[i] = false; if (!answerPage(i)) castSpell(i, aim); }

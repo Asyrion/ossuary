@@ -1002,6 +1002,106 @@ test('soul motes (M4.1): they take hits before the hearts, a black one hexes the
   expect(errors).toEqual([]);
 });
 
+test('M4.1\'s artifacts: the pendulum swings, the lodestar hangs stars, the echo stone, the halo, the antler\'s lance, the candles, the blood moon, the salt circle, the choir, the lantern, the contract and the last rite', async ({ page }) => {
+  const errors = await start(page, '?room=treasure_plain&seed=ART41');
+  const fire = `(g, key) => { g.player.fireCd = 0; g.keys.add(key); g.arrowOrder.push(key); g.sim(1 / 60); g.keys.delete(key); g.arrowOrder.length = 0; }`;
+  // the Pendulum of Hours: bolts set out to one side, then the other, and curve back onto the aim line
+  const swing = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player, fire = ${fire}; g.warp(1); g.sim(.3); P.x -= 3; g.give('pendulum_of_hours');
+    fire(g, 'ArrowUp'); const a = g.bolts[g.bolts.length - 1], a0 = { x: a.x, curve: a.curve, vx: a.vx };
+    fire(g, 'ArrowUp'); const b = g.bolts[g.bolts.length - 1];
+    let most = 0; for (let i = 0; i < 30 && g.bolts.includes(a); i++) { g.sim(1 / 30); most = Math.max(most, Math.abs(a.x - a0.x)); }
+    return { first: Math.sign(a0.curve), second: Math.sign(b.curve), outward: Math.sign(a0.vx), most };
+  })()`) as { first: number; second: number; outward: number; most: number };
+  expect(swing.first * swing.second).toBe(-1); // (left, then right)
+  expect(swing.outward).toBe(-swing.first); // (out one way, turning back the other)
+  expect(swing.most).toBeGreaterThan(.4);
+  // the Lodestar Wand: a bolt stops at its range's end and hangs there as a star, then goes out
+  const star = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player, fire = ${fire}; g.sim(2); for (const b of [...g.bolts]) b.dist = 99; g.sim(.1); g.give('lodestar_wand');
+    fire(g, 'ArrowRight'); const b = g.bolts[g.bolts.length - 1];
+    let t = 0; for (; t < 3 && b.star === undefined; t += .05) g.sim(.05);
+    const at = { x: b.x, z: b.z }; g.sim(1); const hung = g.bolts.includes(b) && Math.hypot(b.x - at.x, b.z - at.z) < .01;
+    g.sim(1.5); return { became: b.star !== undefined, t, hung, gone: !g.bolts.includes(b) };
+  })()`) as { became: boolean; t: number; hung: boolean; gone: boolean };
+  expect(star).toMatchObject({ became: true, hung: true, gone: true });
+  // the Echo Stone: a bolt at a wall comes back, once; the Gilded Halo: the first bolt on a foe sanctifies it
+  const echo = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player, fire = ${fire}; g.give('apprentice_wand', 'echo_stone', 'gilded_halo'); g.sim(.2);
+    const room = g.current; P.z = room.cz - 1.5; P.x = room.cx - 3;
+    fire(g, 'ArrowUp'); const b = g.bolts[g.bolts.length - 1], vz = b.vz;
+    for (let i = 0; i < 40 && !b.echoed; i++) g.sim(1 / 30);
+    const back = b.echoed && Math.sign(b.vz) === -Math.sign(vz);
+    const d = g.spawn('dummy', P.x + 2.5, P.z); g.sim(.8); fire(g, 'ArrowRight'); g.sim(.5);
+    return { back, sanct: d.status?.sanct ?? 0 };
+  })()`) as { back: boolean; sanct: number };
+  expect(echo.back).toBe(true);
+  expect(echo.sanct).toBeGreaterThan(2);
+  // the Hart's Antler: every sixth cast a lance of light that pierces and sanctifies
+  const lance = await page.evaluate(`(() => {
+    const g = window.__game, fire = ${fire}; g.clearRoom(); g.give('harts_antler'); const seen = [];
+    for (let i = 0; i < 12; i++) { fire(g, 'ArrowDown'); const b = g.bolts[g.bolts.length - 1]; seen.push(b.pierce >= 99 && (b.status?.sanct ?? 0) > 0); g.sim(.2); }
+    return seen.filter(Boolean).length;
+  })()`);
+  expect(lance).toBe(2);
+  // the Twin Vigil Candles: standing still, bolts strike half again as hard; the Blood Moon: hurt, faster and in crimson
+  const steady = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player, fire = ${fire}; g.clearRoom(); g.sim(3); g.give('twin_vigil_candles', 'blood_moon_pendant');
+    g.sim(.5); const still = P.still; fire(g, 'ArrowLeft'); const a = g.bolts[g.bolts.length - 1], base = P.stats.damage;
+    P.hp = 2; g.sim(.3); fire(g, 'ArrowLeft'); const b = g.bolts[g.bolts.length - 1];
+    return { still, mul: a.damage / base, speed: Math.hypot(b.vx, b.vz) / P.stats.shotSpeed, color: b.color, cd: P.fireCd };
+  })()`) as { still: number; mul: number; speed: number; color: number; cd: number };
+  expect(steady.still).toBeGreaterThan(.25);
+  expect(steady.mul).toBeCloseTo(1.5);
+  expect(steady.speed).toBeGreaterThan(1.25); expect(steady.color).toBe(0xe03040);
+  expect(steady.cd).toBeLessThan(.36 * .8);
+  // the Salt Circle: standing still a moment, a ring forms that walking foes can't cross; stepping out breaks it
+  const salt = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player; P.hp = P.maxHp; g.clearRoom(); g.give('salt_circle'); g.sim(1.4);
+    const ring = g.salt; const foe = g.spawn('rotling', P.x + 3, P.z); g.sim(.8); let least = 9;
+    for (let i = 0; i < 60; i++) { g.sim(.05); least = Math.min(least, Math.hypot(foe.x - ring.x, foe.z - ring.z)); }
+    g.clearRoom(); g.keys.add('KeyD'); g.sim(.6); g.keys.delete('KeyD'); g.sim(.3); // (walks out of it)
+    return { formed: !!ring, least, after: g.salt };
+  })()`) as { formed: boolean; least: number; after: unknown };
+  expect(salt.formed).toBe(true);
+  expect(salt.least).toBeGreaterThan(1.35);
+  expect(salt.after).toBeNull();
+  // the Ossuary Choir: the fifth foe put to rest in a room makes it sing, striking the rest
+  const choir = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player; g.clearRoom(); g.sim(.3); g.give('ossuary_choir');
+    for (let i = 0; i < 6; i++) g.spawn('rotling', P.x - 3 + i * 1.2, P.z - 2.5);
+    g.sim(.8); const last = g.enemies[5]; last.hp = 50;
+    for (let k = 0; k < 5; k++) g.hit(g.enemies.findIndex(e => !e.dead && e !== last), 999);
+    g.sim(.6); return 50 - last.hp;
+  })()`);
+  expect(choir).toBeGreaterThanOrEqual(5);
+  // the Ferryman's Lantern: a hex gives back half again the mana
+  const lantern = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player; g.clearRoom(); g.give('ferrymans_lantern'); const d = g.spawn('dummy', P.x, P.z - 2); g.sim(.8);
+    g.inflict({ hex: 2 }); P.spells[0] = 'arc'; g.mana(10); g.hit(g.enemies.indexOf(d), 1, undefined, 'cantrip'); return P.mana;
+  })()`);
+  expect(lantern).toBeCloseTo(14.5, 0);
+  // the Gravemonger's Contract: the dead pay (about one in two), fights won leave no hearts
+  const grave = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player; g.clearRoom(); g.sim(.3); g.give('gravemongers_contract');
+    const coins = g.pickups.filter(q => q.kind === 'coin').length;
+    for (let i = 0; i < 12; i++) g.spawn('rotling', P.x - 4 + (i % 6) * 1.4, P.z - 2.5 + Math.floor(i / 6) * 1.2);
+    g.sim(.8); for (let i = g.enemies.length - 1; i >= 0; i--) g.hit(i, 999); g.sim(.5);
+    return g.pickups.filter(q => q.kind === 'coin').length - coins;
+  })()`);
+  expect(grave).toBeGreaterThanOrEqual(3);
+  // the Last Rite: a killing blow refused once a floor, the mage risen with half a heart; its price, a heart less
+  const rite = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player; g.clearRoom(); g.sim(.3); const max = P.maxHp; g.give('the_last_rite');
+    P.hp = 1; P.invuln = 0; g.shoot(P.x, P.z - .8, 0, 1); g.sim(1);
+    return { lost: max - P.maxHp, hp: P.hp, state: g.state, used: g.run.riteFloor === g.run.floor };
+  })()`) as { lost: number; hp: number; state: string; used: boolean };
+  expect(rite).toEqual({ lost: 2, hp: 1, state: 'play', used: true });
+  await page.evaluate(() => (window as unknown as W).__game.sim(.05, true));
+  await page.screenshot({ path: 'test-results/smoke-artifacts-41.png' });
+  expect(errors).toEqual([]);
+});
+
 type PageView = { spell: string; kind: string; price: number; gone: boolean; x: number; z: number };
 type G12 = Omit<G11, 'player'> & {
   player: G11['player'] & { coins: number };
@@ -2052,7 +2152,7 @@ test('the room kit\'s artifacts: every one built in code, the HUD\'s icons rende
   });
   const errors = await start(page, '?seed=K3F9QX&give=twin_staff,ember_sigil,rams_skull,leech_jar,crown_of_thorns,hungering_tome');
   const n = await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; const n = g.artifactGallery(); g.sim(.3, true); return n; });
-  expect(n).toBe(45); // (every artifact, as the room kit builds it)
+  expect(n).toBe(57); // (every artifact, as the room kit builds it)
   await page.screenshot({ path: 'test-results/room-kit-artifacts.png' });
   const kit = await icons();
   expect(kit.images).toBe(6); // (the twin staff, now the focus, and five more, each rendered from its model)

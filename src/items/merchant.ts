@@ -51,7 +51,11 @@ function wardCircle() {
 }
 
 /** What a ware costs now: the Pedlar's Scale takes 30% off (a focus left in a broken circle stays free). */
-const priceNow = (w: WareSpot) => w.price && player.stats.effects.has('pedlar') ? Math.max(1, Math.round(w.price * CFG.artifacts.pedlar.priceMul)) : w.price;
+const priceNow = (w: WareSpot) => {
+  const dear = (w.ware === 'heart' || w.ware === 'halfHeart') && player.stats.effects.has('dearHearts') ? CFG.artifacts.gravemonger.heartPriceMul : 1; // (the Gravemonger's price)
+  const p = w.price * dear;
+  return p && player.stats.effects.has('pedlar') ? Math.max(1, Math.round(p * CFG.artifacts.pedlar.priceMul)) : p;
+};
 
 /** A floating price: an obol and the number, pale green when the Pedlar's Scale has lowered it. One texture per
     price, kept for the whole session. */

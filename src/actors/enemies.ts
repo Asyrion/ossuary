@@ -17,6 +17,7 @@ import { canAct, speedFactor } from '../magic/status';
 import { statusTint } from '../magic/statusFx';
 import { mantleShields } from '../magic/shapes';
 import { wadeAt } from '../world/pools';
+import { saltHolds } from '../combat/familiars';
 
 export function stdMat(color: number, extra: THREE.MeshStandardMaterialParameters = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: .85, flatShading: true, ...extra });
@@ -97,6 +98,7 @@ export function updateEnemies(dt: number) {
     e.kx *= Math.exp(-8 * dt); e.kz *= Math.exp(-8 * dt);
     e.x += (e.vx + e.kx) * dt; e.z += (e.vz + e.kz) * dt;
     const hit = collide(e, e.flying ? walls : solids);
+    saltHolds(e); // (the Salt Circle keeps walkers out)
     if (e.isBoss) afterBossMove(e, hit);
     else if (e.foe) bumpFoe(e, !!hit);
     e.face = angleLerp(e.face, faceTo, 1 - Math.exp(-10 * dt));

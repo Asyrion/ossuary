@@ -37,6 +37,7 @@ const BLESSED = 0xfff0b0; // a blessed cast's gold
 interface BoltSpec {
   x: number; z: number; vx: number; vz: number; damage: number; range: number; scale: number; color: number; path: BoltPath; pierce: number; bounces: number; secondary: boolean; crit?: boolean;
   /** A spell's bolt, with the spell's statuses; `shard` makes it a splinter of ice instead of an orb. */ spell?: boolean; status?: Partial<Record<SpellStatus, number>>; shard?: boolean;
+  /** The Pendulum of Hours: which side the bolt swings out to (1 or -1). */ swing?: number;
 }
 
 function makeBolt(s: BoltSpec) {
@@ -53,11 +54,18 @@ function makeBolt(s: BoltSpec) {
     spell: s.spell, status: s.status,
   };
   if (s.path === 'wave') { const v = Math.hypot(s.vx, s.vz) || 1; b.wave = { ox: s.x, oz: s.z, px: -s.vz / v, pz: s.vx / v }; }
+  if (s.path === 'swing' && s.swing) { // the Pendulum of Hours: out to one side, turning evenly to meet the aim again where its range ends
+    const out = CFG.artifacts.swing.out * s.swing, c = Math.cos(out), n = Math.sin(out);
+    [b.vx, b.vz] = [b.vx * c - b.vz * n, b.vz * c + b.vx * n];
+    b.curve = -2 * out * b.speed / Math.max(1, b.range);
+  }
   G.bolts.push(b);
   return b;
 }
 
-let casts = 0; // for the Frostbitten Ring's every fifth cast
+let casts = 0, antlerCasts = 0; // for the Frostbitten Ring's every fifth cast, and the Hart's Antler's every sixth
+/** The Blood Moon Pendant's hour: at half health or below, bolts fly faster and come quicker (M4.1). */
+export const bloodMoon = () => player.stats.effects.has('bloodMoon') && player.hp * 2 <= player.maxHp;
 /** Cast the cantrip in the current shooting direction, in the focus's pattern. */
 export function spawnBolt() {
   const dir = shootDir(); if (!dir) return;
@@ -73,18 +81,27 @@ export function spawnBolt() {
   const frost = st.effects.has('frostbite') && ++casts % A.frostbite.every === 0;
   // a chapel's blessing: the next few casts strike harder, in gold
   const blessed = player.blessed > 0; if (blessed) player.blessed--;
-  const status = st.effects.has('emberBolts') || frost ? { ...(st.effects.has('emberBolts') ? { burn: A.emberwood.burn } : {}), ...(frost ? { chill: A.frostbite.chill } : {}) } : undefined;
+  // M4.1: the Hart's Antler makes every sixth cast a lance of light; the Twin Vigil Candles steady a still hand; the Blood
+  // Moon Pendant quickens a hurt one
+  const lance = st.effects.has('antler') && ++antlerCasts % A.antler.every === 0;
+  const steady = st.effects.has('stillCandles') && player.still >= A.still.after, moon = bloodMoon();
+  const statusOf = { ...(st.effects.has('emberBolts') ? { burn: A.emberwood.burn } : {}), ...(frost ? { chill: A.frostbite.chill } : {}), ...(lance ? { sanct: A.antler.sanct } : {}) };
+  const status = Object.keys(statusOf).length ? statusOf : undefined;
+  const dmgMul = (steady ? A.candles.damageMul : 1) * (lance ? A.antler.damageMul : 1), speedMul = moon ? A.bloodMoon.shotSpeedMul : 1;
   for (const k of slots) {
     const a = k * p.fan, c = Math.cos(a), s = Math.sin(a);
     const dx = dir.x * c - dir.z * s, dz = dir.z * c + dir.x * s, off = p.count === 1 ? .1 * player.eye : p.fan ? 0 : k * p.spread;
     makeBolt({
-      x: player.x + dx * .3 + px * off, z: player.z + dz * .3 + pz * off, vx: dx * st.shotSpeed + ix, vz: dz * st.shotSpeed + iz,
-      damage: st.damage * (crit ? A.crit.damageMul : 1) * (blessed ? CFG.mech.blessMul : 1), range: st.range, scale: st.boltScale * (crit ? A.crit.scale : 1) * (blessed ? CFG.mech.blessScale : 1),
-      color: crit ? A.crit.color : frost ? A.frostbite.color : blessed ? BLESSED : st.boltColor, path: p.path, pierce: st.pierce, bounces: p.bounces, secondary: false, crit, status,
+      x: player.x + dx * .3 + px * off, z: player.z + dz * .3 + pz * off, vx: dx * st.shotSpeed * speedMul + ix, vz: dz * st.shotSpeed * speedMul + iz,
+      damage: st.damage * (crit ? A.crit.damageMul : 1) * (blessed ? CFG.mech.blessMul : 1) * dmgMul, range: st.range,
+      scale: st.boltScale * (crit ? A.crit.scale : 1) * (blessed ? CFG.mech.blessScale : 1) * (lance ? A.antler.scale : 1),
+      color: crit ? A.crit.color : lance ? A.antler.color : frost ? A.frostbite.color : blessed ? BLESSED : moon ? A.bloodMoon.color : st.boltColor,
+      path: p.path, pierce: st.pierce + (lance ? 99 : 0), bounces: p.bounces, secondary: false, crit, status, swing: player.eye,
     });
   }
   // the Miser's Purse: gold glints off the cast, more of them the more obols are hoarded
   if (st.gilt > 0) burst(player.x + dir.x * .45, .75, player.z + dir.z * .45, GILT_COLOR, 1 + Math.round(st.gilt * 4), 1.4, .03);
+  if (lance) { burst(player.x + dir.x * .5, .8, player.z + dir.z * .5, A.antler.color, 8, 2, .04); Sfx.antlerLance(); }
   player.squash = 1; heroCast(); Sfx.shoot(); if (crit) Sfx.crit();
 }
 
@@ -155,6 +172,7 @@ export function updateBolts(dt: number) {
       b.vx = dx / d * b.speed; b.vz = dz / d * b.speed;
     }
     if (b.path === 'homing') steer(b, dt);
+    if (b.curve && b.star === undefined) { const a = b.curve * dt, c = Math.cos(a), n = Math.sin(a); [b.vx, b.vz] = [b.vx * c - b.vz * n, b.vz * c + b.vx * n]; } // (the Pendulum's swing)
     const ox = b.x, oz = b.z;
     b.dist += b.speed * dt;
     if (b.wave) { // the Serpent Rod: along a straight line, swinging from side to side
@@ -167,6 +185,12 @@ export function updateBolts(dt: number) {
       b.y = .6;
       if (!b.returning && b.dist >= b.range) { b.returning = true; b.hit.clear(); }
       if (b.dist > b.range * 4) kill = true; // safety: never fly forever
+    } else if (b.star !== undefined) { // a Lodestar Wand's star, hanging where its range ran out, twinkling
+      b.star -= dt; b.y = .6; kill = b.star <= 0;
+      b.mesh.scale.setScalar(1 + Math.sin(b.star * CFG.artifacts.lodestar.pulse) * .25);
+    } else if (!b.spell && !b.secondary && player.stats.effects.has('lodestar')) { // the Lodestar Wand: no fall; at its range's end it stops
+      b.y = .6;
+      if (b.dist >= b.range) { b.star = CFG.artifacts.lodestar.hang; b.vx = b.vz = 0; b.curve = 0; burst(b.x, b.y, b.z, b.color, 4, 1, .03); }
     } else { // straight, bounce and wave: drop to the floor over the last 30% of the range
       const R = b.range, fall = b.dist > R * .7 ? (b.dist - R * .7) / (R * .3) : 0;
       b.y = .6 * (1 - fall * fall);
@@ -190,7 +214,12 @@ export function updateBolts(dt: number) {
         if (hitZ || !hitX) b.vz = -b.vz;
         b.x = ox; b.z = oz; b.bounces--; b.hit.clear(); Sfx.at(b.x, b.z).splash();
       } else if (b.path === 'boomerang') { b.x = ox; b.z = oz; b.returning = true; b.hit.clear(); }
-      else kill = true;
+      else if (!b.echoed && !b.spell && player.stats.effects.has('echo')) { // the Echo Stone: back the way it came, once, a little fainter
+        const E = CFG.artifacts.echo;
+        b.echoed = true; b.x = ox; b.z = oz; b.vx = -b.vx; b.vz = -b.vz; b.range = Math.max(E.least, b.dist); b.dist = 0; b.damage *= E.damageMul; b.hit.clear();
+        if (b.wave) { b.wave.ox = b.x; b.wave.oz = b.z; }
+        burst(b.x, b.y, b.z, b.color, 5, 1.4, .03); Sfx.at(b.x, b.z).echo();
+      } else kill = true;
     }
     // enemies: each is hit at most once per pass; piercing and boomerangs carry on
     if (!kill) for (const e of G.enemies) {
@@ -203,6 +232,7 @@ export function updateBolts(dt: number) {
       if (glass) burst(e.x, .8, e.z, 0xf0e890, 6, 2.2, .03);
       b.hit.add(e);
       if (b.status) inflict(e, b.status);
+      if (!b.spell && !e.haloed && !e.dead && player.stats.effects.has('halo')) { e.haloed = true; inflict(e, { sanct: CFG.artifacts.halo.sanct }); } // the Gilded Halo: the first bolt sanctifies
       if (b.crit) burst(e.x, .7, e.z, CFG.artifacts.crit.color, 8, 2.4, .05);
       // the Cracked Mirror: a cast bolt splits into two halves that fly on either side of it
       if (!b.secondary && player.stats.effects.has('split')) {
