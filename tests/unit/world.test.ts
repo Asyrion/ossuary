@@ -215,8 +215,7 @@ describe('floor generator', () => {
       return hard / normal;
     });
     expect(hardShare[0]).toBeGreaterThan(.08);
-    expect(hardShare[0]).toBeLessThan(hardShare[1]);
-    expect(hardShare[1]).toBeLessThan(hardShare[2]);
+    for (let f = 1; f < hardShare.length; f++) expect(hardShare[f - 1], `floor ${f} against ${f + 1}`).toBeLessThan(hardShare[f]);
   });
 
   it('has room in the budget for every optional source a floor has today', () => {

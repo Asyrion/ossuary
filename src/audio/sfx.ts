@@ -206,6 +206,13 @@ const sounds = {
   // Frost: the drakeling
   drakeInhale() { hiss(.8, .08, 'bandpass', 1200); tone('sine', 70, 140, .8, .07); tone('triangle', 1175, 1568, .6, .015, .2); },
   drakeWings() { for (let i = 0; i < 3; i++) hiss(.12, .1, 'lowpass', 500, i * .16); },
+  // the bosses of floors 4 and 5 (M4.1): the hart's bell-voice, drumming hooves and light; the angler's hum, bite and spit
+  hartBellow() { tone('sine', 196, 185, 1.1, .08); tone('triangle', 392, 370, .9, .04, .05); tone('sine', 587, 554, .8, .025, .12); hiss(.5, .03, 'highpass', 4500, .1); },
+  hartCharge() { for (let i = 0; i < 6; i++) tone('sine', 95, 55, .08, .09, i * .08); hiss(.5, .07, 'lowpass', 500); },
+  hartSpokes() { [880, 1175, 1319].forEach((f, i) => tone('sine', f, f, .5, .035, i * .06)); hiss(.3, .03, 'highpass', 5000); },
+  anglerHum() { tone('sine', 147, 139, 1.8, .07); tone('sine', 220, 208, 1.6, .045, .1); tone('triangle', 441, 417, 1.3, .02, .2); },
+  bite() { tone('square', 320, 70, .09, .09); hiss(.12, .12, 'bandpass', 1300); },
+  spit() { hiss(.14, .08, 'bandpass', 650); tone('sine', 280, 110, .16, .05); },
   drakeLand() { tone('sine', 90, 40, .4, .14); hiss(.35, .1, 'highpass', 3500); [2637, 2093].forEach((f, i) => tone('triangle', f, f * .7, .3, .03, i * .04)); },
 };
 type Sounds = typeof sounds;

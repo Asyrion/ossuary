@@ -162,6 +162,7 @@ export interface Enemy extends Circle {
   core?: THREE.Mesh; halo?: THREE.Sprite; target?: Vec2; fireT?: number; dir?: Vec2;
   eye?: THREE.Object3D; ring?: THREE.Object3D; cycle?: number; summoned?: boolean; volleys?: number;
   /** A boss built in code (M4: the Hollow Warden's looks, bossLooks.ts): its school, whose light its shots take. */ bossSchool?: School;
+  /** The bosses of floors 4 and 5 (M4.1): their weakness and resistance; the hart's turning spokes. */ bossAff?: { weak: School; resist: School }; spin?: number;
   /** Bosses: out of reach (under the floor, in the air), so neither hurt nor hurting. */ hidden?: boolean;
   /** Floor ring (the abbess's ripple, the knight's landing mark); where a leap started. */ marker?: THREE.Mesh; from?: Vec2;
   /** Called by a boss; falls when the boss does. */ servant?: boolean;
@@ -230,4 +231,5 @@ export interface Player extends Circle {
   /** Derived from the base stats and the artifacts held (items/artifactData.ts computeStats). */ stats: Stats;
   /** Seconds the mage's sight stays dimmed (a Sporeling's spores, M4): the edges of the view darken. */ dim: number;
   /** Seconds the mage stays chilled (cold breath, rime, M4): slower (`CFG.afflict.chillSlow`), frost at the view's rim. */ chill: number;
+  /** A drift the mage is drawn along this step, over what they walk (the Deep Angler's lure, M4.1); spent each step. */ pull: { x: number; z: number };
 }

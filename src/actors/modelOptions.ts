@@ -11,7 +11,7 @@ import type { Room } from '../types';
 import { blob, disposeTree, glow } from '../render/materials';
 import { freeSpotNear } from '../world/rooms';
 import { mergeRig } from '../render/rig';
-import { BOSS_LOOKS } from './bossLooks';
+import { ALL_BOSS_LOOKS } from './bossLooks';
 import { SCHOOL_LIGHT, bigEyes, box, circle, crystal, limb, lit, motes, part, rune, runeRing, shine, sphere, std, type School, type V3 } from '../render/arcane';
 
 /** A built option: its group, how it idles, the size of the shadow under it, and the parts a foe's behaviour moves beyond
@@ -428,7 +428,7 @@ let clock = 0;
     crypt's nearest), on free floor; returns where each stands. */
 export function showModelOptions(room: Room, x: number, z: number, only?: readonly string[]) {
   const gap = 1.7, out: { id: string; floor: number; x: number; z: number }[] = [];
-  for (const floor of [1, 2, 3]) {
+  for (const floor of [...new Set(MODEL_OPTIONS.map(o => o.floor))].sort((a, b) => a - b)) {
     const row = MODEL_OPTIONS.filter(o => o.floor === floor && (!only || only.includes(o.id)));
     row.forEach((o, i) => {
       const at = only ? freeSpotNear(room, x, z - 1.8) : freeSpotNear(room, x + (i - (row.length - 1) / 2) * gap, z - 1.8 - (floor - 1) * 1.7);
@@ -448,11 +448,12 @@ export function showFamiliarOptions(room: Room, x: number, z: number, only?: rea
     return { id: o.id, x: at.x, z: at.z };
   });
 }
-/** Stand the Hollow Warden's looks (M4, bossLooks.ts: every one, or those in `only`) in a row ahead of world (x, z). */
+/** Stand the bosses built in code (bossLooks.ts: the Hollow Warden's three looks, M4, and the bosses of floors 4 and 5,
+    M4.1; every one, or those in `only`) in a row ahead of world (x, z). */
 export function showBossLooks(room: Room, x: number, z: number, only?: readonly string[]) {
-  const list = BOSS_LOOKS.filter(o => !only || only.includes(o.id));
+  const list = ALL_BOSS_LOOKS.filter(o => !only || only.includes(o.id));
   return list.map((o, i) => {
-    const at = freeSpotNear(room, x + (i - (list.length - 1) / 2) * 3.2, z - 3);
+    const at = freeSpotNear(room, x + (i - (list.length - 1) / 2) * 2.9, z - 3);
     const b = o.build(); mergeRig(b.group, b.idle, 'boss:' + o.id); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
     shown.push({ room, group: b.group, idle: b.idle });
     return { id: o.id, x: at.x, z: at.z };

@@ -10,9 +10,9 @@ describe('the foes built in code (M4)', () => {
   });
 
   it('the validator catches what is wrong', () => {
-    const bad = { floor: 4, school: 'ember', weak: 'frost', resist: 'frost', hp: 0, r: .3, speed: 1, contact: 1, flying: false, behaviour: 'hopper', params: {}, gib: 'red', stain: null } as unknown as FoeDef;
+    const bad = { floor: 9, school: 'ember', weak: 'frost', resist: 'frost', hp: 0, r: .3, speed: 1, contact: 1, flying: false, behaviour: 'hopper', params: {}, gib: 'red', stain: null } as unknown as FoeDef;
     const errors = validateFoes({ bad });
-    for (const bit of ['floor 4', 'weak to what it resists', 'hp 0', 'hopper needs hopRate', 'gib or stain']) expect(errors.some(e => e.includes(bit)), bit).toBe(true);
+    for (const bit of ['floor 9', 'weak to what it resists', 'hp 0', 'hopper needs hopRate', 'gib or stain']) expect(errors.some(e => e.includes(bit)), bit).toBe(true);
   });
 
   it('a weakness takes half again, a resistance half, anything else as it is', () => {

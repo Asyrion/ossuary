@@ -179,7 +179,7 @@ function installDevHooks() {
     takeModelOptions: () => removeModelOptions(G.current),
     /** The familiar options (looks only, the owner's drawings built in code) ahead of the mage; taken away with the rest. */
     familiarOptions: (ids?: string[]) => showFamiliarOptions(G.current, player.x, player.z, ids),
-    /** The Hollow Warden's looks (M4): stand them ahead of the mage; the one it wears in its fight, and choosing it. */
+    /** The bosses built in code (the Hollow Warden's looks, M4, and floors 4 and 5's, M4.1): stand them ahead of the mage; the look the Warden wears in its fight, and choosing it. */
     bossLooks: (ids?: string[]) => showBossLooks(G.current, player.x, player.z, ids),
     get bossLook() { return bossLook(); }, setBossLook: (id: BossLookId) => setBossLook(id),
     /** Spell effect options (looks only): play them (or those named) ahead of the mage; take them away again. */

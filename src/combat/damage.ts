@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { CFG, type EnemyType } from '../config';
+import { CFG, type BossType, type EnemyType } from '../config';
 import { STR } from '../strings';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { affinityMul, type School } from '../actors/foeData';
@@ -28,10 +28,10 @@ import { fireAt } from '../world/pools';
 export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul = 1, by?: Enemy['lastHit'], school?: School) {
   if (e.spawn > 0 || e.dead || e.hidden) return;
   dmg *= damageTakenMul(e.status) * (e.guard ?? 1); // a frozen foe cracks; a shut mimic's clay turns half a blow
-  const aff = affinityMul(e.foe, school);
+  const aff = affinityMul(e.foe ?? e.bossAff, school); // (the bosses of floors 4 and 5 have theirs too)
   if (aff !== 1) {
     dmg *= aff;
-    if (foundAffinity(e.foe!.id, aff > 1 ? 'weak' : 'resist')) { floatText(e.x, 1.5, e.z, aff > 1 ? STR.foes.weak : STR.foes.resists, aff > 1 ? 0xffd070 : 0xa8a0b8); Sfx.at(e.x, e.z).affinity(aff > 1); }
+    if (foundAffinity(e.foe?.id ?? e.type as BossType, aff > 1 ? 'weak' : 'resist')) { floatText(e.x, 1.5, e.z, aff > 1 ? STR.foes.weak : STR.foes.resists, aff > 1 ? 0xffd070 : 0xa8a0b8); Sfx.at(e.x, e.z).affinity(aff > 1); }
   }
   if (by === 'spell') dmg *= player.stats.spellDamage; // Crown of Thorns
   e.hp -= dmg; e.flash = .09; e.lastHit = by; e.asleep = false; // a sleeper wakes
@@ -43,8 +43,8 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   if (e.hp <= 0) killEnemy(e);
 }
 
-const GIB_COLOR: Record<keyof typeof CFG.enemy, number> = { rotling: 0x7f8a60, dummy: 0xc8a860, warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a };
-const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = { rotling: 0x1d2414, dummy: null, warden: 0x2a0a06, abbess: 0x0c2622, pyre: 0x1a0c06 };
+const GIB_COLOR: Record<keyof typeof CFG.enemy, number> = { rotling: 0x7f8a60, dummy: 0xc8a860, warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a, hart: 0xffe8b0, angler: 0x8a6ad8 };
+const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = { rotling: 0x1d2414, dummy: null, warden: 0x2a0a06, abbess: 0x0c2622, pyre: 0x1a0c06, hart: 0x3a2e14, angler: 0x140c24 };
 /** What flies from a foe when it falls, and the stain it leaves: a foe in code's own (data/foes.json), else the old. */
 const gibOf = (e: Enemy) => e.foe ? new THREE.Color(e.foe.gib).getHex() : GIB_COLOR[e.type as EnemyType];
 const stainOf = (e: Enemy) => e.foe ? (e.foe.stain && new THREE.Color(e.foe.stain).getHex()) : STAIN_COLOR[e.type as EnemyType];
