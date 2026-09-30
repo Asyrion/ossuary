@@ -98,6 +98,7 @@ describe('economy', () => {
           if (tile === 'sealedUrn') { got.glyphs--; roll('sealedUrn').forEach(add); }
           if (tile === 'bones' || tile === 'skulls') roll('remains').forEach(add); // M3.6 piles
           if (tile === 'sacks') roll('bundle').forEach(add);
+          if (tile === 'hoard') roll('hoard').forEach(add); // M4.1: a treasury's offering heaps, broken by blasts
         }
         if (r.type === 'vault') {
           got.keys--;

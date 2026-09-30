@@ -9,7 +9,7 @@
 import type { TableName } from '../items/loot';
 
 export type PropKind = 'bones' | 'skulls' | 'sacks' | 'cask' | 'rubble' | 'roots' | 'briar' | 'web' | 'glowcap' | 'pew' | 'desk' | 'scrolls'
-  | MechanismKind;
+  | 'hoard' | 'boat' | MechanismKind;
 /** The mechanisms (M3.6 step 4, world/mechanisms.ts): objects that answer to magic with more than breaking or burning. */
 export type MechanismKind = 'brazier' | 'candles' | 'bell' | 'rune' | 'lodestone' | 'censer' | 'reliquary' | 'tree';
 export type PropClass = 'tall' | 'low' | 'soft' | 'hanging';
@@ -35,6 +35,9 @@ export const PROPS: Record<PropKind, PropDef> = {
   pew: { char: 'p', class: 'low', hits: 0, blast: false, burns: false },
   desk: { char: 'd', class: 'low', hits: 0, blast: false, burns: true },
   scrolls: { char: 'e', class: 'low', hits: 1, blast: true, burns: true, loot: 'remains' },
+  // M4.1: the Gilded Treasury's heaps of offerings (a blast spills their obols) and the Ferry Landing's moored boats
+  hoard: { char: 'h', class: 'low', hits: 0, blast: true, burns: false, loot: 'hoard' },
+  boat: { char: 'm', class: 'low', hits: 0, blast: false, burns: true },
   // mechanisms (world/mechanisms.ts)
   brazier: { char: 'f', class: 'low', hits: 0, blast: false, burns: false },
   candles: { char: 'l', class: 'low', hits: 0, blast: true, burns: false },

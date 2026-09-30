@@ -10,7 +10,7 @@
    burning) is unchanged (props.ts, rooms.ts, mechanisms.ts, items/artifacts.ts); `DEV.roomKit` off keeps the old looks. */
 import * as THREE from 'three';
 import type { FloorLook } from '../types';
-import { blob, glow, markShared } from '../render/materials';
+import { blob, glow, glowShared, markShared } from '../render/materials';
 import { EMBER_FIRE, firePalette, makeFire, makeMotes, type FlameSpec } from '../render/fire';
 import { MAT, curve, glowTone, joinAll, mesh, rough, runeStrokes, shade, shared, stoneOf, taperTube, tone } from './kitParts';
 import { torchPalette, waxFor } from './fireLooks';
@@ -244,7 +244,43 @@ export const OBJECT_LOOKS = {
     const sh = blob(1); sh.scale.set(len, 1, .9); g.add(sh);
     return g;
   },
+  /** A heap of old offerings (M4.1, the Gilded Treasury): obols in a spill, a cup, a dish on its edge, a candlestick
+      lying down, a little casket; a glyph's blast scatters it into obols. */
+  hoard(R) {
+    const g = new THREE.Group(), gold = tone(0xc8a04a, .12, .55), dark = tone(0x8a6a2a, .1, .5), coin = tone(0xd8b050, .08, .6);
+    mesh(g, new THREE.ConeGeometry(.36, .2, 9), dark, 0, .1, 0);
+    for (let i = 0; i < 16; i++) { const a = R() * Math.PI * 2, r = R() * .34; put(mesh(g, GEO.sealDisc, coin, Math.cos(a) * r, .2 - r * .5 + R() * .03, Math.sin(a) * r), R() * .8 - .4, 0, R() * .8 - .4, [2.6, 1.4, 2.6]); }
+    mesh(g, new THREE.CylinderGeometry(.07, .04, .12, 8), gold, .12, .26, -.05); mesh(g, new THREE.CylinderGeometry(.015, .015, .08, 5), gold, .12, .16, -.05);
+    put(mesh(g, new THREE.CylinderGeometry(.14, .14, .02, 12), gold, -.14, .2, -.06), 1.1, 0, .2);
+    put(mesh(g, new THREE.CylinderGeometry(.02, .03, .3, 6), gold, .05, .1, .22), 0, .4, Math.PI / 2 - .2);
+    box(g, .16, .1, .11, tone(0x5a2a1a, .1), -.2, .08, .16); box(g, .17, .02, .12, gold, -.2, .14, .16);
+    put(mesh(g, new THREE.OctahedronGeometry(.03, 0), glowTone(0xff5a4a)), 0, 0, 0).position.set(-.2, .17, .16);
+    g.add(glowShared(0xffd27a, .7, .28)); g.children[g.children.length - 1].position.y = .3;
+    const sh = blob(.9); g.add(sh);
+    return g;
+  },
+  /** A ferry skiff moored along the floor (M4.1, the Ferry Landing), `len` tiles long: a tarred hull, its thwarts, an oar
+      shipped along it, its rope to the landing. It burns. */
+  boat(_R, len) {
+    const g = new THREE.Group(), L = len - .05, W = .62, tar = tone(0x2e2620, .12), plank = tone(0x6a5238, .1), rim = tone(0x4a3a2a, .08), rope = tone(C.rope, .06);
+    mesh(g, boatHull(L, W, .24), tar, 0, .02, 0);                  // the tarred hull, pointed at both ends
+    mesh(g, boatHull(L * .97, W * .96, .03), rim, 0, .26, 0);      // its gunwale
+    mesh(g, boatHull(L * .8, W * .7, .03), plank, 0, .24, 0);      // the boards inside it
+    for (let i = 0; i < Math.max(1, len); i++) box(g, .07, .04, W * .74, plank, -L / 2 + (i + .5) * L / Math.max(1, len) * .8 + L * .1, .31, 0);
+    put(mesh(g, new THREE.CylinderGeometry(.018, .018, L * .75, 5), tone(C.woodLight, .08), 0, .34, .1), 0, 0, Math.PI / 2 + .05);
+    put(mesh(g, new THREE.TorusGeometry(.06, .015, 4, 10), rope, L / 2 + .02, .2, 0), Math.PI / 2 - .3, 0, 0);
+    const sh = blob(1); sh.scale.set(len * .9, 1, .8); g.add(sh);
+    return g;
+  },
 } satisfies Record<string, ObjectLook>;
+
+/** A boat's hull `l` long and `w` wide, pointed at both ends, `h` deep, lying on the floor (its top at `h`). */
+function boatHull(l: number, w: number, h: number) {
+  const o = new THREE.Shape(); o.moveTo(-l / 2, 0);
+  o.quadraticCurveTo(-l * .32, w / 2, 0, w / 2); o.quadraticCurveTo(l * .32, w / 2, l / 2, 0);
+  o.quadraticCurveTo(l * .32, -w / 2, 0, -w / 2); o.quadraticCurveTo(-l * .32, -w / 2, -l / 2, 0);
+  return new THREE.ExtrudeGeometry(o, { depth: h, bevelEnabled: false, curveSegments: 6 }).rotateX(-Math.PI / 2);
+}
 
 /** A cap's top and its rim, `r` across: two glowing colours. */
 const capTop = (r: number) => lathe([[r * .76, r * .4], [r * .45, r * .56], [0, r * .62]], 8);

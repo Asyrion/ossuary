@@ -21,6 +21,7 @@ import { heroDrink } from '../actors/hero';
 import { WARD_COLOR as WARD, freeSpotNear } from '../world/rooms';
 import { LOOT, RESOURCES, SOUL_COLOR, afterBurning, dropValue, isSoul, rollTable, type Drop, type Item, type Resource } from './loot';
 import { gainSoul, soulsHere } from './souls';
+import { goldTaken } from '../world/themes';
 import { offerBeyondBudget, placeArtifact, refreshStats } from './artifacts';
 import { itemLore, type LoreItem } from '../ui/lore';
 import { gainMana } from '../magic/spells';
@@ -227,7 +228,7 @@ export function useItem(kind: Item) {
 function take(p: Pickup, kind: Item) {
   if (cantUse(kind)) return false;
   useItem(kind);
-  const coins = dropValue(kind).coins; if (coins) G.stats.obols += coins; // for the end screen
+  const coins = dropValue(kind).coins; if (coins) { G.stats.obols += coins; goldTaken(G.current); } // for the end screen; a treasury's guardians wake
   SOUND[kind](); burst(p.x, .4, p.z, SPARK[kind], 8, 2, .05);
   itemLore(kind); // what it is, the first time in a run
   return true;

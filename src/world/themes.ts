@@ -40,6 +40,8 @@ const shared = <T extends THREE.BufferGeometry>(g: T) => { g.userData.shared = t
 const std = (color: number, o: THREE.MeshStandardMaterialParameters = {}) => markShared(new THREE.MeshStandardMaterial({ color, roughness: .9, ...o }));
 const MAT = {
   wax: std(0xe8dcc0, { emissive: 0x2a2010 }), flame: markShared(new THREE.MeshBasicMaterial({ color: 0xffc36a })), paper: std(0xd8cbaa, { side: THREE.DoubleSide }),
+  gold: std(0xd8b050, { roughness: .4, metalness: .6, emissive: 0x3a2808 }), pole: std(0x2e2620, { roughness: 1 }),
+  spirit: markShared(new THREE.MeshBasicMaterial({ color: 0xcfe8ff })),
   blanket: std(0x5a3e34, { roughness: 1 }), leaf: std(0x46442a, { roughness: 1, side: THREE.DoubleSide }), blanket2: std(0x3e4a5a, { roughness: 1 }), ash: std(0x2a2622, { roughness: 1 }), stone: M.rock,
 };
 const GEO = {
@@ -47,6 +49,8 @@ const GEO = {
   page: shared(new THREE.PlaneGeometry(.22, .28).rotateX(-Math.PI / 2)), bone: shared(new THREE.CylinderGeometry(.025, .025, .3, 5)),
   roll: shared(new THREE.CylinderGeometry(.13, .13, .7, 10)), blanket: shared(new THREE.BoxGeometry(.7, .04, 1.1)),
   pebble: shared(new THREE.DodecahedronGeometry(.07, 0)), ash: shared(new THREE.CircleGeometry(.3, 12).rotateX(-Math.PI / 2)),
+  coin: shared(new THREE.CylinderGeometry(.07, .07, .012, 9)), pole: shared(new THREE.CylinderGeometry(.035, .05, 1.8, 6)), arm: shared(new THREE.BoxGeometry(.34, .04, .04)),
+  lamp: shared(new THREE.CylinderGeometry(.07, .06, .16, 6)), cap: shared(new THREE.ConeGeometry(.09, .08, 6)),
   patch: shared(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2)), shaft: shared(new THREE.CylinderGeometry(.5, .75, 6, 12, 1, true)), rope: shared(new THREE.CylinderGeometry(.02, .02, 3.2, 4)), tuft: shared(new THREE.ConeGeometry(.05, .16, 6)),
 };
 let patchTex: THREE.CanvasTexture | null = null;
@@ -154,6 +158,23 @@ const DRESS: Record<ScatterKind, Dress> = {
     return g;
   },
   stains(R) { const m = new THREE.Mesh(GEO.patch, patchMat(0x3a2e0c, false, .7)); m.scale.setScalar(.7 + R() * .7); m.position.y = .004; m.rotation.y = R() * 6; return m; },
+  // M4.1: obols spilled from the treasury's heaps (only to look at: the heaps hold the ones to take), and the landing's
+  // lamps on poles, burning with the shore's pale spirit fire
+  coins(R) {
+    const g = new THREE.Group();
+    for (let i = 0; i < 5; i++) { const c = new THREE.Mesh(GEO.coin, MAT.gold); c.position.set((R() - .5) * .6, .012 + i * .002, (R() - .5) * .6); c.rotation.set((R() - .5) * .3, R() * 6, (R() - .5) * .3); g.add(c); }
+    const gl = glow(0xffd27a, .45, .35); gl.position.y = .1; g.add(gl);
+    return g;
+  },
+  lamps(R) {
+    const g = new THREE.Group(), pole = new THREE.Mesh(GEO.pole, MAT.pole); pole.position.y = .9; g.add(pole);
+    const arm = new THREE.Mesh(GEO.arm, MAT.pole); arm.position.set(.16, 1.72, 0); g.add(arm);
+    const lamp = new THREE.Mesh(GEO.lamp, MAT.spirit); lamp.position.set(.3, 1.55, 0); g.add(lamp);
+    const cap = new THREE.Mesh(GEO.cap, MAT.pole); cap.position.set(.3, 1.66, 0); g.add(cap);
+    const gl = glow(0x9ad0ff, 1.1, .55); gl.position.set(.3, 1.55, 0); g.add(gl);
+    g.rotation.y = R() * 6; g.add(blob(.5));
+    return g;
+  },
 };
 
 /** Scatter a themed room's dressing over its free floor (seeded, so a room looks the same every time). */
@@ -189,15 +210,29 @@ export function enterTheme(room: Room, firstVisit: boolean, spawned: Enemy[]) {
   const theme = room.theme; if (!theme) return;
   if (firstVisit) toast(STR.themeEntered(theme.name), 2.5);
   if (theme.twist === 'sleepers') for (const e of spawned) if (!e.isBoss) { e.asleep = true; e.spawn = 0; }
+  // the treasury's guardians stand among the gold like statues: coming close won't wake them, taking their gold will
+  if (theme.twist === 'guardians') for (const e of spawned) if (!e.isBoss) { e.asleep = true; e.statue = true; e.spawn = 0; }
   // the frozen mausoleum's dead wait in ice, until struck or thawed by fire
   if (theme.twist === 'rime') for (const e of spawned) if (!e.isBoss) {
     e.asleep = true; e.spawn = 0; e.entombed = new THREE.Mesh(ICE.geo, ICE.mat);
     e.entombed.position.y = e.flying ? .8 : .5; e.entombed.scale.set(1, 1.3, 1); e.group.add(e.entombed);
   }
-  riseT = C.riseAfter; risen = 0;
+  riseT = C.riseAfter; risen = 0; drownT = C.drownAfter; drowned = 0;
 }
 
-let riseT = 0, risen = 0, zzT = 0;
+/** An obol taken (M4.1): in the gilded treasury, every guardian still standing wakes at once. */
+export function goldTaken(room: Room) {
+  if (room.theme?.twist !== 'guardians' || !room.locked) return;
+  const statues = G.enemies.filter(e => e.statue && e.asleep && !e.dead);
+  if (!statues.length) return;
+  for (const e of statues) { e.asleep = false; e.statue = false; burst(e.x, .8, e.z, 0xffd27a, 12, 1.8, .05); }
+  Sfx.guardians(); toast(STR.guardiansWake, 3); G.shake = Math.max(G.shake, .15);
+}
+
+/** Whether a room's river runs (some of its water not frozen). */
+const riverRuns = (room: Room) => (room.pools ?? []).some(p => p.kind === 'water' && p.state !== 'frozen');
+
+let riseT = 0, risen = 0, zzT = 0, drownT = 0, drowned = 0;
 export function updateThemes(dt: number) {
   const room = G.current, twist = room.theme?.twist;
   // sleepers wake when the mage comes close (a hit wakes them in damageEnemy)
@@ -207,10 +242,13 @@ export function updateThemes(dt: number) {
       e.group.remove(e.entombed); e.entombed = undefined;
       burst(e.x, .7, e.z, 0xcfeeff, 14, 2.2, .06); Sfx.at(e.x, e.z).wallShatter();
     }
+    if (e.statue && !e.asleep) e.statue = false; // (a guardian struck is a statue no more)
+    if (e.statue) { if (zzT === .7 && Math.random() < .4) burst(e.x, 1, e.z, 0xffd27a, 1, .4, .03); continue; } // (a glint off the gilt; closeness won't wake it)
     if (!e.asleep || e.entombed) continue; // only sleepers wake as the mage comes close
     if (Math.hypot(player.x - e.x, player.z - e.z) < C.wakeReach) { e.asleep = false; burst(e.x, .8, e.z, 0xd8e0ff, 6, 1.4, .04); Sfx.at(e.x, e.z).wake(); }
     else if (zzT === .7) burst(e.x + .15, 1, e.z, 0xd8e0ff, 1, .3, .05); // a breath of sleep
   }
+  updateDrowned(dt);
   // the ossuary's dead don't all stay down
   if (twist === 'risingBones' && room.locked && G.enemies.some(e => !e.dead) && risen < C.riseMost && (riseT -= dt) <= 0) {
     riseT = C.riseEvery;
@@ -224,6 +262,23 @@ export function updateThemes(dt: number) {
       risen++;
     }
   }
+}
+
+/** The ferry landing: while its fight lasts, the drowned climb out of the river, one at a time, until it is frozen. */
+function updateDrowned(dt: number) {
+  const room = G.current;
+  if (room.theme?.twist !== 'drowned' || !room.locked || !G.enemies.some(e => !e.dead) || drowned >= C.drownMost) return;
+  if ((drownT -= dt) > 0) return;
+  drownT = C.drownEvery;
+  if (!riverRuns(room)) return; // frozen over: they stay down
+  const open = (room.pools ?? []).filter(p => p.kind === 'water' && p.state !== 'frozen').flatMap(p => p.tiles);
+  const far = open.filter(t => Math.hypot(t.x - player.x, t.z - player.z) > 2.5), from = far.length ? far : open, at = from[Math.floor(Math.random() * from.length)];
+  if (!at) return;
+  const floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
+  makeEnemy(callFoe(floor.foes, 'W', Math.random), at.x, at.z, floor.enemyHp); // (what the river gives back: the floor's flyers and shooters)
+  burst(at.x, .2, at.z, 0x9ad0ff, 16, 2.2, .05); burst(at.x, .1, at.z, 0x2a3a4a, 10, 1.2, .06); Sfx.at(at.x, at.z).splash();
+  if (!drowned) toast(STR.drownedRise, 3.5);
+  drowned++;
 }
 
 /** A scroll heap broke: in the scriptorium, now and then a torn grimoire page was in it. */

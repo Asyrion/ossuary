@@ -232,6 +232,7 @@ const sounds = {
   lastRite() { tone('sine', 196, 196, 1.6, .08); [392, 494, 587].forEach((f, i) => tone('sine', f, f, 1.2, .04, .2 + i * .12)); hiss(.8, .03, 'lowpass', 900); },
   saltForm() { hiss(.5, .05, 'highpass', 5000); tone('sine', 1760, 1976, .3, .015, .1); },
   saltBreak() { hiss(.25, .06, 'bandpass', 3000); },
+  guardians() { tone('square', 70, 55, .5, .06); hiss(.5, .08, 'lowpass', 400); [1319, 1568].forEach((f, i) => tone('triangle', f, f * .7, .4, .02, i * .06)); },
   // floor 4's foes (M4.1): the wickmouse's squeak, the chime bat's bell and its strike, the gargoyle's grinding wake and landing, the fawn's healing
   squeak() { tone('sine', 1900, 2600, .05, .03); tone('sine', 2200, 2900, .05, .025, .07); },
   chime() { tone('triangle', 1760, 1740, .6, .05); tone('sine', 2637, 2600, .5, .03, .01); tone('sine', 3520, 3480, .3, .015, .02); },
