@@ -10,7 +10,7 @@ import { CFG } from '../config';
 import type { FloorLook, RoomType } from '../types';
 import { mulberry } from '../util';
 import { renderer } from './renderer';
-import { cacheFloor, cachedFloor, drawMarks } from './textures';
+import { MARKED_ROOMS, cacheFloor, cachedFloor, drawMarks } from './textures';
 
 type RGB = [number, number, number];
 const hex = (s: string): RGB => { const n = parseInt(s.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
@@ -178,16 +178,18 @@ export function pixelFloorTexture(seed: number, kind: RoomType, look: FloorLook,
     }
   }
   // the special room's marks, hardened into whole texels: drawn on a layer, then each texel on or off
-  const layer = document.createElement('canvas'); layer.width = cw; layer.height = ch;
-  const lg = layer.getContext('2d', { willReadFrequently: true })!;
-  drawMarks(kind, cw, ch * TX / TY, TX, R, (rgb, alpha, draw, dither) => { // (drawn a tile square, then squeezed down)
-    lg.setTransform(1, 0, 0, TY / TX, 0, 0); lg.clearRect(0, 0, cw, ch * TX / TY); draw(lg); lg.setTransform(1, 0, 0, 1, 0, 0);
-    const d = lg.getImageData(0, 0, cw, ch).data, c = csv(rgb);
-    for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
-      const cover = d[(y * cw + x) * 4 + 3] / 255 / alpha;
-      if (dither ? cover > bayer(x, y) : cover >= .3) px.mix(x, y, c, alpha); // (a low threshold: thin strokes keep their texels)
-    }
-  });
+  if (MARKED_ROOMS.has(kind)) {
+    const layer = document.createElement('canvas'); layer.width = cw; layer.height = ch;
+    const lg = layer.getContext('2d', { willReadFrequently: true })!;
+    drawMarks(kind, cw, ch * TX / TY, TX, R, (rgb, alpha, draw, dither) => { // (drawn a tile square, then squeezed down)
+      lg.setTransform(1, 0, 0, TY / TX, 0, 0); lg.clearRect(0, 0, cw, ch * TX / TY); draw(lg); lg.setTransform(1, 0, 0, 1, 0, 0);
+      const d = lg.getImageData(0, 0, cw, ch).data, c = csv(rgb);
+      for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+        const cover = d[(y * cw + x) * 4 + 3] / 255 / alpha;
+        if (dither ? cover > bayer(x, y) : cover >= .3) px.mix(x, y, c, alpha); // (a low threshold: thin strokes keep their texels)
+      }
+    });
+  }
   const t = texture(px.canvas());
   return cacheFloor(key, t);
 }

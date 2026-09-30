@@ -19,7 +19,7 @@ import { spawnPickup } from '../items/pickups';
 import { LOOT, rollTable } from '../items/loot';
 import { SIDE_DIR } from './shapes';
 import { DH, H_LOW, H_TALL, WT } from './dims';
-import { WARD_COLOR, freeSpotNear } from './rooms';
+import { WARD_COLOR, freeSpotNear, kitWalls } from './rooms';
 
 const C = CFG.secret;
 const isNS = (s: Side) => s === 'n' || s === 's';
@@ -50,7 +50,7 @@ export function buildCrackedWall(room: Room, side: Side, nb: Room, x: number, z:
   const [dx, dz] = SIDE_DIR[side], ns = isNS(side), h = side === 's' ? H_LOW : H_TALL;
   const wx = x + dx * WT / 2, wz = z + dz * WT / 2; // the doorway's centre on the wall's centre line
   const plug = new THREE.Group(); plug.position.set(wx - room.cx, 0, wz - room.cz);
-  const wall = new THREE.Mesh(ns ? boxUV(DH * 2, h, WT) : boxUV(WT, h, DH * 2), wallMaterials(room.look.wall)); wall.position.y = h / 2;
+  const wall = new THREE.Mesh(ns ? boxUV(DH * 2, h, WT) : boxUV(WT, h, DH * 2), wallMaterials(room.look.wall, kitWalls(room.look))); wall.position.y = h / 2; // (in the room kit's bricks where the walls are)
   crackMat ??= markShared(new THREE.MeshBasicMaterial({ map: crackTexture(), color: 0x120e0b, transparent: true, depthWrite: false, opacity: .85 }));
   const glowMat = () => new THREE.MeshBasicMaterial({ map: crackTexture(), color: WARD_COLOR, transparent: true, depthWrite: false, opacity: 0, blending: THREE.AdditiveBlending });
   const glows: THREE.MeshBasicMaterial[] = [];
