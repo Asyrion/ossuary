@@ -63,7 +63,10 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   room.group.position.set(cx, 0, cz); scene.add(room.group);
   // the controls are chalked on the floor of the very first room only
   const kind = plan.type === 'start' && floorIndex > 0 ? 'normal' : plan.type;
-  const wet = (c: number, r: number) => template.tiles[r]?.[c] === 'water' || template.tiles[r]?.[c] === 'oil';
+  // water and oil, and where oil may spill (round a cask or a censer): no embers glow under them
+  const spills: [number, number, number][] = [];
+  template.tiles.forEach((row, r) => row.forEach((t, c) => { if (t === 'cask') spills.push([c, r, CFG.props.caskSpill]); else if (t === 'censer') spills.push([c, r, CFG.mech.censerSpill]); }));
+  const wet = (c: number, r: number) => template.tiles[r]?.[c] === 'water' || template.tiles[r]?.[c] === 'oil' || spills.some(([sc, sr, n]) => Math.abs(sc - c) + Math.abs(sr - r) <= n);
   const art = kitFloor(look) ? pixelFloorTexture(plan.seed, kind, look, room.mask, wet) : { map: floorTexture(plan.seed, kind, look, room.mask), glow: undefined };
   const glowK = CFG.roomKit.glow * (plan.variant === 'dark' ? CFG.roomKit.glowDark : 1); // (embers dimmer in a dark room)
   const floor = new THREE.Mesh(maskGeometry(room.mask, w, h), new THREE.MeshStandardMaterial({ map: art.map, roughness: .95, ...(art.glow && { emissive: 0xffffff, emissiveMap: art.glow, emissiveIntensity: glowK }) }));

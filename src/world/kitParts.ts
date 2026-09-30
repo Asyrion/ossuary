@@ -9,7 +9,7 @@ export const shared = <T extends THREE.BufferGeometry>(g: T) => { g.userData.sha
 // keep a material of their own.
 export const MAT = {
   iron: paint(0x4a4548), bronze: paint(0xa27a3e), wood: paint(0x563a26), pitch: paint(0x1e1611), coals: paint(0x241f1c), wax: paint(0xf0e2c6),
-  bone: paint(0xd6cab0), skull: paint(0xa89c84), tallow: paint(0x9a9282), stone: paint(0x77716a), darkStone: paint(0x4a4440), verdigris: paint(0x4f8a76), blackIron: paint(0x2c2a2c), socket: paint(0x16100c),
+  bone: paint(0xd6cab0), skull: paint(0xa89c84), stone: paint(0x77716a), darkStone: paint(0x4a4440), verdigris: paint(0x4f8a76), blackIron: paint(0x2c2a2c), socket: paint(0x16100c),
   copper: paint(0xb06a40), lode: paint(0x3a3842), gilt: paint(0xc49a4a), lichen: paint(0x6a7a52), darkBronze: paint(0x6e5028),
   ember: markShared(new THREE.MeshStandardMaterial({ color: 0x3a1a0e, emissive: 0x5a1e06, roughness: 1, flatShading: true })),
 };
