@@ -27,7 +27,8 @@ import { clearProjectiles } from './combat/projectiles';
 import { clearGlyphs } from './combat/glyphs';
 import { pressed } from './input';
 import { giveResources, makeTrapdoor, resetResources, spawnHeart, spawnPickup } from './items/pickups';
-import { rollRoomClear, type Resource } from './items/loot';
+import { LOOT, rollRoomClear, type Resource } from './items/loot';
+import { hallowedMend, resetSouls, soulsHere } from './items/souls';
 import { giveById, offerGuaranteed, offerOptional, offerSecondChoice, placeArtifact, resetArtifacts, resetBudget } from './items/artifacts';
 import { banner, fadeFromBlack, hideBossBar, renderHearts, renderMinimap, resetHearts, showBossBar, toast } from './ui/hud';
 import { showEndScreen, showScreen } from './ui/screens';
@@ -92,7 +93,7 @@ export function buildFloor(index: number) {
 export function resetPlayer() {
   Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0, blessed: 0, dim: 0, chill: 0, pull: { x: 0, z: 0 } });
   heroReset();
-  resetHearts(); resetArtifacts(); resetResources();
+  resetHearts(); resetArtifacts(); resetResources(); resetSouls();
   forgetSpells(); player.mana = player.stats.maxMana;
 }
 
@@ -129,7 +130,7 @@ export function prepareTitle() {
 /** Take the trapdoor: the next floor, or the end of the run after the last one. */
 export function descend() {
   if (testTemplate || G.run.floor >= FLOORS.length - 1) { endGame(true); return; }
-  Sfx.descend();
+  Sfx.descend(); hallowedMend(); // the hallowed soul motes give back half a heart each, at every floor's end
   fadeFromBlack(); DEV.kitKinds = {};
   buildFloor(G.run.floor + 1);
 }
@@ -269,7 +270,7 @@ export function onRoomCleared(room: Room) {
     return;
   }
   if (room.type !== 'normal') return;
-  const drop = rollRoomClear(G.run.drops); // a heart, obols, a bone key or a glyph stone, about half the time
+  const drop = rollRoomClear(G.run.drops, LOOT, soulsHere()); // a heart, obols, a bone key or a glyph stone, about half the time
   if (drop) { const p = freeSpotNear(room, room.cx + G.run.drops.range(-1, 1), room.cz + G.run.drops.range(-.5, .5)); spawnPickup(drop, p.x, p.z); }
   // now and then an artifact rises where the fight was, while the floor's budget allows
   const def = loot.chance(CFG.artifacts.dropChance) ? offerOptional('drop') : null;

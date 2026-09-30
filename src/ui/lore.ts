@@ -8,14 +8,16 @@ import { G, player } from '../state';
 import { STR } from '../strings';
 import { $ } from '../util';
 import type { ArtifactDef } from '../items/artifactData';
-import { HEART_PATH, RES_ICONS, artifactIcon } from './hud';
+import { HEART_PATH, RES_ICONS, SOUL_HUES, SOUL_PATH, artifactIcon } from './hud';
 
 export interface LoreEntry { name: string; kind: string; effect: string; lore: string; icon: string }
 /** Things described the first time they're taken in a run: items and containers. */
-export type LoreItem = 'coin' | 'purse' | 'key' | 'glyph' | 'halfHeart' | 'heart' | 'mana' | 'coffer' | 'chest' | 'gilded';
+export type LoreItem = 'coin' | 'purse' | 'key' | 'glyph' | 'halfHeart' | 'heart' | 'mana' | 'paleSoul' | 'blackSoul' | 'hallowedSoul' | 'shard' | 'coffer' | 'chest' | 'gilded';
 
 const svg = (body: string, color = 'currentColor') => `<svg viewBox="0 0 24 24" style="color:${color}" aria-hidden="true">${body}</svg>`;
 const S = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+const soul = (kind: keyof typeof SOUL_HUES) => { const [fill, rim, core] = SOUL_HUES[kind];
+  return svg(`<path d="${SOUL_PATH}" fill="${fill}" stroke="${rim}" stroke-width="1.4"/><ellipse cx="12" cy="15.2" rx="2.3" ry="3" fill="${core}" opacity=".75"/>`); };
 const box = (lid: string) => `<path d="M3 10h18v10H3z" ${S}/><path d="M3 10l2-5h14l2 5" ${S}/>${lid}`;
 const ITEM_ICONS: Record<LoreItem, string> = {
   coin: svg(RES_ICONS.coins),
@@ -25,6 +27,8 @@ const ITEM_ICONS: Record<LoreItem, string> = {
   halfHeart: svg(`<path d="${HEART_PATH}" fill="none" stroke="#e0473a" stroke-width="1.5"/><path d="${HEART_PATH}" fill="#e0473a" clip-path="url(#halfclip)"/>`),
   heart: svg(`<path d="${HEART_PATH}" fill="#e0473a"/>`),
   mana: svg(`<path d="M9 3h6M10 3v4l-4 5v7a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-7l-4-5V3" ${S}/><path d="M7 14h10v5a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1z" fill="currentColor"/>`, '#6fa8ff'),
+  paleSoul: soul('pale'), blackSoul: soul('black'), hallowedSoul: soul('hallowed'),
+  shard: svg(`<path d="M9 3l6 2 3 7-4 9-6-3-3-8z" fill="#3a3a4a" stroke="#8aa0d8" stroke-width="1.5" stroke-linejoin="round"/><path d="M9.5 7l3 3-1 4 2 3" fill="none" stroke="#9ec8ff" stroke-width="1.4" stroke-linecap="round"/>`),
   coffer: svg(box(''), '#b08a5a'),
   chest: svg(box(`<circle cx="12" cy="15" r="2.6" ${S}/>`), '#8ab8ff'),
   gilded: svg(box(`<circle cx="12" cy="15" r="2.6" ${S}/>`), '#e8c060'),

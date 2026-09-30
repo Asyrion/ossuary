@@ -80,7 +80,27 @@ const ITEMS: Record<Item, Build> = {
     mesh(f, GEO.rune, glowTone(AMBER), 0, 0, .04);
     g.add(glowShared(0xff9a3a, .75, .55));
   },
+  paleSoul: g => soul(g, 0xa8c0f0, 0xe8f0ff), // (M4.1) a pale flame with a white heart
+  blackSoul(g) { soul(g, 0x2a1640, 0xb07aff, true); put(mesh(g, new THREE.TorusGeometry(.12, .012, 3, 16), glowTone(0xa266ff), 0, -.15, 0), Math.PI / 2); },
+  hallowedSoul(g) { soul(g, 0xffd878, 0xfffbe8); put(mesh(g, new THREE.TorusGeometry(.085, .013, 3, 18), glowTone(0xffe8a0), 0, .33, 0), Math.PI / 2 - .25); },
+  shard(g) { // a splinter of lodestone: dark iron-grey, veined with the blue it pulls in, a chip beside it, filings at its foot
+    const iron = tone(0x5c6478, .2, .55), vein = glowTone(0x8ab8ff);
+    put(mesh(g, rough(new THREE.OctahedronGeometry(.17, 0), .025, 11), iron), .15, .3, .1, [.72, 1.55, .6]);
+    put(mesh(g, rough(new THREE.OctahedronGeometry(.08, 0), .014, 12), iron, .17, -.14, .04), .5, 0, -.7, [.8, 1.4, .6]);
+    for (const [x, y, rz, l] of [[-.03, .08, .35, .16], [.04, -.07, -.45, .13], [0, .22, .1, .1]]) put(mesh(g, cyl(.014, .014, l, 3), vein, x, y, .09), 0, 0, rz);
+    for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2; box(g, .025, .014, .06, iron, Math.cos(a) * .19, -.24, Math.sin(a) * .19).rotation.y = -a; }
+    g.add(glowShared(0x8ab8ff, .9, .6));
+  },
 };
+/** A soul mote: a flame turned on the upright, its `body` colour round a brighter `core`; `dark`, the body unlit (a black
+    mote's shadow, its light all in the core). */
+function soul(g: THREE.Group, body: number, core: number, dark = false) {
+  const flame = [[0, -.16], [.09, -.15], [.13, -.1], [.14, -.03], [.12, .04], [.085, .1], [.05, .16], [.02, .22], [0, .27]];
+  mesh(g, lathe(flame, 10), dark ? tone(body, .1) : glowTone(body));
+  put(mesh(g, lathe(flame.map(([x, y]) => [x * .5, y * .55 - .05]), 8), glowTone(core), 0, .035, .1), 0, 0, 0, [1, 1, .6]); // (its heart, showing at the front)
+  for (const [x, y, r] of [[-.06, .33, .022], [.05, .4, .016]]) mesh(g, new THREE.SphereGeometry(r, 5, 4), glowTone(core), x, y, 0); // (sparks rising off it)
+  g.add(glowShared(dark ? 0xa266ff : body, .75, .55));
+}
 const GEO = { rune: shared(runeStrokes(.26)), stamp: shared(runeStrokes(.13)) };
 
 /** A heart of blood: its body dark, its face a glowing ruby, a glint on it; `half`, broken down the middle. */

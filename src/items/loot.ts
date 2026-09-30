@@ -8,9 +8,26 @@ import type { Rng } from '../rng';
 
 export type Resource = 'coins' | 'keys' | 'glyphs';
 export const RESOURCES: Resource[] = ['coins', 'keys', 'glyphs'];
-/** Things picked up by walking over them. */
-export type Item = 'halfHeart' | 'heart' | 'coin' | 'purse' | 'key' | 'glyph' | 'mana';
-export const ITEMS: Item[] = ['halfHeart', 'heart', 'coin', 'purse', 'key', 'glyph', 'mana'];
+/** Things picked up by walking over them. M4.1 adds the soul motes (pale, black and hallowed) and the lodestone shard. */
+export type Item = 'halfHeart' | 'heart' | 'coin' | 'purse' | 'key' | 'glyph' | 'mana' | 'paleSoul' | 'blackSoul' | 'hallowedSoul' | 'shard';
+export const ITEMS: Item[] = ['halfHeart', 'heart', 'coin', 'purse', 'key', 'glyph', 'mana', 'paleSoul', 'blackSoul', 'hallowedSoul', 'shard'];
+
+/** Soul motes (M4.1; GDD: Items): pale flames kept beside the hearts that take a hit before the hearts do. A pale one
+    guards one hit; a black one guards one and hexes the room when it goes; a hallowed one goes last, and gives back half
+    a heart at the end of every floor it lives through. */
+export type Soul = 'pale' | 'black' | 'hallowed';
+export const SOULS: Soul[] = ['pale', 'black', 'hallowed'];
+/** Each mote's light, in the room. */
+export const SOUL_COLOR: Record<Soul, number> = { pale: 0xcfe0ff, black: 0xa266ff, hallowed: 0xffe39a };
+const SOUL_ITEM: Record<Soul, Item> = { pale: 'paleSoul', black: 'blackSoul', hallowed: 'hallowedSoul' };
+export const soulItem = (s: Soul) => SOUL_ITEM[s];
+export const isSoul = (d: Drop): boolean => d === 'paleSoul' || d === 'blackSoul' || d === 'hallowedSoul';
+/** Which of the motes held a hit (or a spell short of mana) takes: the last taken that isn't hallowed, else the last
+    hallowed one; -1 when there are none. */
+export function soulToLose(souls: readonly Soul[]) {
+  for (let i = souls.length - 1; i >= 0; i--) if (souls[i] !== 'hallowed') return i;
+  return souls.length - 1;
+}
 /** Containers left on the floor: a coffer opens when walked into, a reliquary chest is sealed by a ward. */
 export type Container = 'coffer' | 'chest';
 /** Anything that can lie on the floor. */
@@ -36,6 +53,7 @@ export interface LootData extends Record<TableName, LootTable> {
   /** Most of each resource the mage can carry. */ cap: number;
   /** Obols in a purse. */ purse: number;
   /** Mana in a mana vial. */ manaVial: number;
+  /** Mana a lodestone shard gives (it also ends every spell's cooldown). */ shard: number;
   /** A cleared room leaves one drop with this chance, picked by weight. */ roomClear: { chance: number; weights: Partial<Record<Drop, number>> };
   /** Chance a fallen enemy leaves an obol. */ enemyCoin: number;
   /** Chance a reliquary chest is gilded: it holds an artifact outside the floor's budget, and only a bone
@@ -50,7 +68,7 @@ export interface LootData extends Record<TableName, LootTable> {
 export const LOOT = lootData as LootData;
 
 /** What an item gives: half hearts, or resources. */
-export function dropValue(d: Item, loot: LootData = LOOT): { hearts?: number; mana?: number } & Partial<Record<Resource, number>> {
+export function dropValue(d: Item, loot: LootData = LOOT): { hearts?: number; mana?: number; soul?: Soul; shard?: number } & Partial<Record<Resource, number>> {
   switch (d) {
     case 'halfHeart': return { hearts: 1 };
     case 'heart': return { hearts: 2 };
@@ -59,19 +77,30 @@ export function dropValue(d: Item, loot: LootData = LOOT): { hearts?: number; ma
     case 'key': return { keys: 1 };
     case 'glyph': return { glyphs: 1 };
     case 'mana': return { mana: loot.manaVial };
+    case 'paleSoul': return { soul: 'pale' };
+    case 'blackSoul': return { soul: 'black' };
+    case 'hallowedSoul': return { soul: 'hallowed' };
+    case 'shard': return { shard: loot.shard };
   }
 }
 
+/** Weights with the soul motes' scaled by `souls` (a floor's `souls` in data/floors.json: the deep floors give more). */
+function soulWeighted<K extends string>(w: Partial<Record<K, number>>, souls: number): Record<K, number> {
+  if (souls === 1) return w as Record<K, number>;
+  const out = { ...w } as Record<K, number>;
+  for (const k of Object.keys(out) as K[]) if (isSoul(k as Drop)) out[k] *= souls;
+  return out;
+}
 /** What a cleared room leaves behind, if anything: an item, or now and then a coffer or a chest. */
-export function rollRoomClear(rng: Rng, loot: LootData = LOOT): Drop | null {
-  return rng.chance(loot.roomClear.chance) ? rng.weighted(loot.roomClear.weights as Record<Drop, number>) : null;
+export function rollRoomClear(rng: Rng, loot: LootData = LOOT, souls = 1): Drop | null {
+  return rng.chance(loot.roomClear.chance) ? rng.weighted(soulWeighted(loot.roomClear.weights, souls)) : null;
 }
 /** What an urn, a rune-sealed urn, a coffer or a chest holds (possibly nothing). */
-export function rollTable(rng: Rng, name: TableName, loot: LootData = LOOT): Item[] {
+export function rollTable(rng: Rng, name: TableName, loot: LootData = LOOT, souls = 1): Item[] {
   const t = loot[name];
   if (t.chance !== undefined && !rng.chance(t.chance)) return [];
-  const [lo, hi] = t.count ?? [1, 1];
-  return Array.from({ length: rng.int(lo, hi) }, () => rng.weighted(t.weights as Record<Item, number>));
+  const [lo, hi] = t.count ?? [1, 1], w = soulWeighted(t.weights, souls);
+  return Array.from({ length: rng.int(lo, hi) }, () => rng.weighted(w));
 }
 /** A reliquary chest forced open by a blast: the ward burns half of what's inside (never all of it). */
 export const afterBurning = <T>(contents: T[]) => contents.slice(0, Math.max(1, Math.floor(contents.length / 2)));
@@ -82,10 +111,10 @@ export function rollEnemyDrop(rng: Rng, loot: LootData = LOOT): Drop | null {
 
 /** The merchant's stock: the artifact first when he has one, then items by weight (the same item can come
     twice), 3 or 4 wares in all. */
-export function rollWares(rng: Rng, withArtifact: boolean, loot: LootData = LOOT): Ware[] {
-  const m = loot.merchant, n = rng.int(m.wares[0], m.wares[1]);
+export function rollWares(rng: Rng, withArtifact: boolean, loot: LootData = LOOT, souls = 1): Ware[] {
+  const m = loot.merchant, n = rng.int(m.wares[0], m.wares[1]), w = soulWeighted(m.weights, souls);
   const wares: Ware[] = withArtifact ? ['artifact'] : [];
-  while (wares.length < n) wares.push(rng.weighted(m.weights as Record<Item, number>));
+  while (wares.length < n) wares.push(rng.weighted(w));
   return wares;
 }
 /** A ware's price in obols. */
@@ -98,6 +127,7 @@ export function validateLoot(loot: LootData = LOOT): string[] {
   if (!(loot.cap > 0)) errs.push('the cap must be above 0');
   if (!(loot.purse > 1)) errs.push('a purse must hold more than one obol');
   if (!(loot.manaVial > 0)) errs.push('a mana vial must hold some mana');
+  if (!(loot.shard > 0)) errs.push('a lodestone shard must give some mana');
   const weights = (name: string, w: Record<string, number>, known: readonly string[]) => {
     for (const k of Object.keys(w)) if (!known.includes(k)) errs.push(`${name} drop "${k}" is unknown`);
     if (!Object.values(w).some(v => v > 0) || Object.values(w).some(v => v < 0)) errs.push(`${name} weights must be positive`);

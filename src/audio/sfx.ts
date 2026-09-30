@@ -217,6 +217,14 @@ const sounds = {
   ferryToll() { tone('sine', 1760, 1760, .1, .05); tone('sine', 147, 139, 1.4, .08, .05); tone('sine', 220, 208, 1.1, .04, .1); },
   eclipse() { tone('sine', 110, 55, 1, .1); tone('sine', 988, 494, .9, .03); hiss(.6, .05, 'lowpass', 600); },
   blackfire() { tone('sine', 90, 60, .6, .08); hiss(.5, .08, 'bandpass', 900); crackles(6, .4, .04); },
+  // soul motes and the lodestone shard (M4.1): a pale breath taken and let go, a black one's spill, a hallowed chord;
+  // the shard's click and the hum of the lodestone
+  soulTake() { tone('sine', 660, 990, .35, .04); tone('sine', 1320, 1980, .3, .02, .06); hiss(.25, .02, 'highpass', 5000, .04); },
+  soulLost() { tone('sine', 1175, 392, .5, .06); hiss(.4, .05, 'bandpass', 1800); },
+  soulBurn() { tone('triangle', 494, 988, .3, .05); hiss(.3, .06, 'highpass', 3000); },
+  soulHex() { tone('sine', 147, 73, .9, .08); tone('sine', 1319, 659, .6, .02, .05); hiss(.5, .05, 'lowpass', 500); },
+  soulMend() { [587, 740, 880].forEach((f, i) => tone('sine', f, f, 1, .035, i * .06)); },
+  shard() { tone('square', 1800, 1700, .03, .04); tone('sine', 110, 220, .6, .07, .02); tone('sine', 880, 1760, .4, .03, .08); },
   // floor 4's foes (M4.1): the wickmouse's squeak, the chime bat's bell and its strike, the gargoyle's grinding wake and landing, the fawn's healing
   squeak() { tone('sine', 1900, 2600, .05, .03); tone('sine', 2200, 2900, .05, .025, .07); },
   chime() { tone('triangle', 1760, 1740, .6, .05); tone('sine', 2637, 2600, .5, .03, .01); tone('sine', 3520, 3480, .3, .015, .02); },

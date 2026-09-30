@@ -16,7 +16,7 @@ log; its Sound section does the same for sound (sources and their licences, the 
 When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M4.1 under way (two floors deeper, `docs/M4.1-plan.md`, the owner's ask of 2026-09-30): steps 1 to 7 built (a run of five floors, the Gilded Reliquary and the Ferryman's Shore, each with its room kit, four foes and a boss built in code, the Hallowed Hart and the Deep Angler; Hallow and Umbral magic: six spells, Sanctified, Hex and Root, Eclipse and Blackfire); soul motes, twelve artifacts and two themes next; M4 built (enemies in code, `docs/M4-plan.md`): the foe framework and all ten foes (every floor's fights, a boss's helpers, a vault's warden and the ossuary's rising bones are foes in code; the wisp and crypt hound gone, the rotling kept as a plain test foe) and the floor-1 boss built in code in three looks, the owner to choose one (the Galleries tab); the owner's play-test next; M3.5 signed off by the owner 2026-09-30 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 1080 lines since the proof's play-test), step 3 under way: the room kit redone in code in the new style (the proof accepted 2026-09-30; variety built: three kinds of wall, floor, wall light and brazier per floor, drawn per room; every mechanism, object, door, niche and artifact rebuilt, the list done, then pickups, chests and the special rooms' pieces; the owner's review next); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M4.1 under way (two floors deeper, `docs/M4.1-plan.md`, the owner's ask of 2026-09-30): steps 1 to 7 built (a run of five floors, the Gilded Reliquary and the Ferryman's Shore, each with its room kit, four foes and a boss built in code, the Hallowed Hart and the Deep Angler; Hallow and Umbral magic: six spells, Sanctified, Hex and Root, Eclipse and Blackfire; soul motes and the lodestone shard); twelve artifacts and two themes next; M4 built (enemies in code, `docs/M4-plan.md`): the foe framework and all ten foes (every floor's fights, a boss's helpers, a vault's warden and the ossuary's rising bones are foes in code; the wisp and crypt hound gone, the rotling kept as a plain test foe) and the floor-1 boss built in code in three looks, the owner to choose one (the Galleries tab); the owner's play-test next; M3.5 signed off by the owner 2026-09-30 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 1080 lines since the proof's play-test), step 3 under way: the room kit redone in code in the new style (the proof accepted 2026-09-30; variety built: three kinds of wall, floor, wall light and brazier per floor, drawn per room; every mechanism, object, door, niche and artifact rebuilt, the list done, then pickups, chests and the special rooms' pieces; the owner's review next); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -92,6 +92,13 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   and `speedFactor`, `damageEnemy` applies `damageTakenMul` and the leap, and gives back mana for a hex (`spendHex`); a
   sanctified foe can't be healed (`canHeal`). Props and mechanisms hear only the elemental ones (`elemental()`). The training dummy (`dummy` in
   `CFG.enemy`) never falls and shows its hits and statuses.
+  Soul motes (M4.1, `src/items/souls.ts`): `player.souls` (pale, black, hallowed) drawn after the hearts, taking a hit
+  before them (`guardHit` in `hurtPlayer`; which goes first is the pure `soulToLose` in `loot.ts`); a black one hexes the
+  room as it goes, a hallowed one mends half a heart at every floor's end (`hallowedMend` in `descend`), and a spell cast
+  short of mana burns one (`burnSoul` in `castSpell`). A floor's `souls` in `data/floors.json` weights them in all its loot
+  (`soulsHere`); a foe that falls deep in a hex leaves a black one (`CFG.souls`). The lodestone shard ends every cooldown and
+  gives mana. Taking an item and the merchant's refusals share `cantUse` and `useItem` (`pickups.ts`). `__game.souls`,
+  `__game.soul('black')`, `__game.hallowedMend()`; the dev menu's resources row gives them.
   Grimoire pages and the library (a one-cell dead end on every floor) are in `src/magic/pages.ts`: `room.pages`
   (lectern, shelf or loose), laid out on the library's first visit from the pure `pickPages` and `shelfPages`
   (`spellData.ts`, the run's `pages` stream); a page with both slots full asks through `showPrompt` and a spell
@@ -183,7 +190,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   Ferryman) and invent no gods, factions or places.
 - The inventory (`src/ui/inventory.ts`; I or Tab, the gamepad's View button, or the pause menu) pauses the game and
   lists what the mage carries and knows in tabs: artifacts (with their stat changes and a curse's price), spells
-  (the two slots, then a book by school, M3.7), items (hearts, mana, obols, keys, glyphs) and the mage's own numbers;
+  (the two slots, then a book by school, M3.7), items (hearts, mana, soul motes, obols, keys, glyphs) and the mage's own numbers;
   the chosen entry is described beside them. Arrows choose, Q and E (LB and RB) change tabs. Anything new the
   mage can carry (potions in M5) gets a tab or a place in one.
 - Made assets (M3.5, `docs/assets.md`): `data/assets.json` holds the budgets per kind and which file replaces which
@@ -219,7 +226,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `blinker` (Hex Imp: its `hex` shot drains mana), `drake` (Rime Drakeling, the elite: breath, flight, a frost ring); floor 4's
   (M4.1): `scamper` (Wickmouse: cover to cover, a dart; its candle falls burning, a behaviour's `die` through `foeDied`),
   `chimer` (Chime Bat: a closing ring marks the mage's spot, then a spark strikes it), `gargoyle` (Gargoyle Whelp: stone
-  that turns most of a blow, two pounces landing in frost), `healer` (Moonstag Fawn: keeps off, heals the hurt round it);
+  that turns most of a blow, two pounces landing in frost), `healer` (Moonstag Fawn: keeps off, heals the hurt round it, a boss only a little, `bossShare`);
   floor 5's: `burrower` (Rootling: a mound under the floor that bursts up under the mage; burning, it stays up), `glider`
   (Storm Ray: passes laying sparks, `laySpark`, that arm and sting; `__game.sparkGround`), `absorber` (Void Mote: swallows
   the cantrip through a behaviour's `struck` hook in `damageEnemy`, spills it back as a ring, then hangs open),
@@ -425,8 +432,9 @@ after `CFG.hero.fidget` seconds standing still). A rig with no death clip topple
 - Desktop browser first (keyboard, gamepad). The 0.3 touch controls stay but are frozen: don't extend or
   test them, and add no touch UI for new actions until a mobile port.
 - Four-direction casting, eight-direction movement, 3 hearts counted in halves, 1 s invulnerability.
-- Hearts can't be picked up at full health, mana vials at full mana (the first time in a run a message says why);
-  while the mage knows no spell, loot drops an obol in place of a mana vial (`spawnPickup`). Doors lock while enemies live.
+- Hearts can't be picked up at full health, mana vials at full mana, soul motes past `CFG.souls.max`, a lodestone shard
+  with the spells ready and mana full (the first time in a run a message says why); while the mage knows no spell, loot
+  drops an obol in place of a mana vial or a shard (`spawnPickup`). Doors lock while enemies live.
 - Placeholder names (Ossuary, the ten foes in code (Sporeling to Rime Drakeling), Hollow Warden, Drowned Abbess, Pyre Knight,
   Ember Sigil) will be replaced with Eda lore later; keep all player-facing strings in one place to make that easy.
 

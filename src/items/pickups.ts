@@ -19,7 +19,8 @@ import { burst } from '../combat/fx';
 import { banner, renderHearts, renderPurse, toast } from '../ui/hud';
 import { heroDrink } from '../actors/hero';
 import { WARD_COLOR as WARD, freeSpotNear } from '../world/rooms';
-import { LOOT, RESOURCES, afterBurning, dropValue, rollTable, type Drop, type Item, type Resource } from './loot';
+import { LOOT, RESOURCES, SOUL_COLOR, afterBurning, dropValue, isSoul, rollTable, type Drop, type Item, type Resource } from './loot';
+import { gainSoul, soulsHere } from './souls';
 import { offerBeyondBudget, placeArtifact, refreshStats } from './artifacts';
 import { itemLore, type LoreItem } from '../ui/lore';
 import { gainMana } from '../magic/spells';
@@ -74,7 +75,7 @@ function makeParts() {
 
 /** How an item looks, on the floor or floating over a merchant's ward circle (the room kit's: pickupLooks.ts). */
 export function itemVisual(kind: Item): THREE.Object3D {
-  if (DEV.roomKit) return itemLook(kind);
+  if (DEV.roomKit || isSoul(kind) || kind === 'shard') return itemLook(kind); // (M4.1's items have only the kit's look)
   const P = parts ??= makeParts();
   if (kind === 'heart' || kind === 'halfHeart') {
     const m = new THREE.Mesh(kind === 'heart' ? P.heart.full : P.heart.half, P.heartMat); m.rotation.x = -TILT; return m;
@@ -128,14 +129,15 @@ function containerVisual(kind: 'coffer' | 'chest', gilded = false): { g: THREE.O
 
 /** Drop something on the floor at (x, z): it falls in from above, or rises out of a broken urn (`rise`).
     A coffer or a chest is filled when it appears; a chest is gilded by chance unless `gilded` says. A mana vial
-    becomes an obol while the mage knows no spell (nothing would spend its mana), unless `asIs` (the dev menu). */
+    becomes an obol while the mage knows no spell (nothing would spend its mana), as does a lodestone shard, unless `asIs`
+    (the dev menu). */
 export function spawnPickup(kind: Drop, x: number, z: number, opts: { rise?: boolean; gilded?: boolean; asIs?: boolean } = {}) {
-  if (kind === 'mana' && !opts.asIs && !player.spells.some(Boolean)) kind = 'coin';
+  if ((kind === 'mana' || kind === 'shard') && !opts.asIs && !player.spells.some(Boolean)) kind = 'coin';
   const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
   if (isContainer(kind)) {
     const gilded = kind === 'chest' && (opts.gilded ?? G.run.drops.chance(LOOT.gildedChest));
     const v = containerVisual(kind, gilded); g.add(v.g);
-    G.pickups.push({ kind, x, z, r: .4, g, m: v.g, t: 0, drop: .5, contents: gilded ? [] : rollTable(G.run.drops, kind), lid: v.lid, ward: v.ward, armed: true, gilded });
+    G.pickups.push({ kind, x, z, r: .4, g, m: v.g, t: 0, drop: .5, contents: gilded ? [] : rollTable(G.run.drops, kind, LOOT, soulsHere()), lid: v.lid, ward: v.ward, armed: true, gilded });
     return;
   }
   const m = itemVisual(kind); m.position.y = .35; g.add(m, blob(.55));
@@ -162,7 +164,7 @@ export function openContainer(p: Pickup, burnt = false) {
       burst(spot.x, .8, spot.z, GOLD, 24, 2.6, .06); Sfx.unbind(); Sfx.rise(); banner(...STR.banner.gildedRelic);
       return;
     }
-    p.contents = rollTable(G.run.drops, 'chest'); // every artifact has been offered: an ordinary hoard, then
+    p.contents = rollTable(G.run.drops, 'chest', LOOT, soulsHere()); // every artifact has been offered: an ordinary hoard, then
   }
   let items = p.contents;
   if (burnt && p.kind === 'chest') {
@@ -191,34 +193,53 @@ export function resetResources() { for (const k of RESOURCES) player[k] = LOOT.s
 
 const SOUND: Record<Item, () => void> = {
   halfHeart: () => Sfx.pickup(), heart: () => Sfx.pickup(), coin: () => Sfx.coin(), purse: () => Sfx.coin(true), key: () => Sfx.key(), glyph: () => Sfx.glyphPickup(), mana: () => Sfx.manaVial(),
+  paleSoul: () => Sfx.soulTake(), blackSoul: () => Sfx.soulTake(), hallowedSoul: () => Sfx.soulTake(), shard: () => Sfx.shard(),
 };
-const SPARK: Record<Item, number> = { halfHeart: 0xe0473a, heart: 0xe0473a, coin: 0xffd27a, purse: 0xffd27a, key: 0xf0e6cc, glyph: 0xff9a3a, mana: 0x6fa8ff };
+const SPARK: Record<Item, number> = {
+  halfHeart: 0xe0473a, heart: 0xe0473a, coin: 0xffd27a, purse: 0xffd27a, key: 0xf0e6cc, glyph: 0xff9a3a, mana: 0x6fa8ff,
+  paleSoul: SOUL_COLOR.pale, blackSoul: SOUL_COLOR.black, hallowedSoul: SOUL_COLOR.hallowed, shard: 0x7aa8ff,
+};
 
-/** Take an item if the mage can use it: hearts below full health, resources below the cap. */
-function take(p: Pickup, kind: Item) {
+/** Why the mage can't use an item now (the merchant says it too), or null when they can: whole, brimming with mana,
+    at the cap, holding all the soul motes they can keep, or with nothing a shard could give. */
+export function cantUse(kind: Item): 'whole' | 'brimming' | 'full' | 'souls' | 'idle' | null {
   const v = dropValue(kind);
-  if (v.hearts) {
-    if (player.hp >= player.maxHp) return false;
-    player.hp = Math.min(player.maxHp, player.hp + v.hearts); renderHearts(); heroDrink();
-  } else if (v.mana) { // like a heart: left lying while the mage brims with mana
-    if (player.mana >= player.stats.maxMana) return false;
-    gainMana(v.mana); heroDrink();
-  } else {
-    const res = RESOURCES.find(k => v[k])!;
-    if (player[res] >= LOOT.cap) return false;
-    giveResources(v);
-    if (v.coins) G.stats.obols += v.coins; // for the end screen
-  }
+  if (v.hearts) return player.hp >= player.maxHp ? 'whole' : null;
+  if (v.mana) return player.mana >= player.stats.maxMana ? 'brimming' : null;
+  if (v.soul) return player.souls.length >= CFG.souls.max ? 'souls' : null;
+  if (v.shard) return player.mana >= player.stats.maxMana && player.spellCd.every(c => c <= 0) ? 'idle' : null;
+  const res = RESOURCES.find(k => v[k])!;
+  return player[res] >= LOOT.cap ? 'full' : null;
+}
+/** Hand an item over (after `cantUse`): hearts heal, a vial or a shard gives mana (a shard ends every cooldown too), a mote
+    is kept, resources are added. */
+export function useItem(kind: Item) {
+  const v = dropValue(kind);
+  if (v.hearts) { player.hp = Math.min(player.maxHp, player.hp + v.hearts); renderHearts(); heroDrink(); }
+  else if (v.mana) { gainMana(v.mana); heroDrink(); }
+  else if (v.soul) gainSoul(v.soul);
+  else if (v.shard) { player.spellCd.fill(0); gainMana(v.shard); burst(player.x, 1, player.z, 0x7aa8ff, 10, 1.8, .05); }
+  else giveResources(v);
+}
+
+/** Take an item if the mage can use it: hearts below full health, mana below full, resources below the cap, soul motes
+    below the most kept, a shard while a spell cools down or mana is short. */
+function take(p: Pickup, kind: Item) {
+  if (cantUse(kind)) return false;
+  useItem(kind);
+  const coins = dropValue(kind).coins; if (coins) G.stats.obols += coins; // for the end screen
   SOUND[kind](); burst(p.x, .4, p.z, SPARK[kind], 8, 2, .05);
   itemLore(kind); // what it is, the first time in a run
   return true;
 }
 
-/** A heart at full health, or a mana vial at full mana: say so, once a run for each. */
+/** A heart at full health, a mana vial at full mana, a soul mote with all the motes kept, a shard with nothing to give:
+    say so, once a run for each. */
+const HINTS = { whole: () => STR.toast.fullHealth, brimming: () => STR.toast.fullMana, souls: () => STR.toast.fullSouls, idle: () => STR.toast.shardIdle };
 function hintFull(kind: Item) {
-  const what = kind === 'heart' || kind === 'halfHeart' ? 'health' : kind === 'mana' ? 'mana' : null;
-  if (!what || G.run.hinted.has(what)) return;
-  G.run.hinted.add(what); toast(what === 'health' ? STR.toast.fullHealth : STR.toast.fullMana, 2.5); Sfx.full();
+  const why = cantUse(kind);
+  if (!why || why === 'full' || G.run.hinted.has(why)) return;
+  G.run.hinted.add(why); toast(HINTS[why](), 2.5); Sfx.full();
 }
 
 /** The mage at distance `d` from a closed container: a coffer opens; a chest asks for a bone key, and says
@@ -251,7 +272,7 @@ export function updatePickups(dt: number) {
       p.m.position.y = .35 * k; p.rise.position.y = .2 + k * 1.1; p.rise.material.opacity = .8 * (1 - k);
       if (p.drop <= 0) { p.g.remove(p.rise); p.rise.material.dispose(); p.rise = undefined; }
     } else p.m.position.y = .35 + Math.sin(p.t * 3) * .06 + Math.max(0, p.drop) * 1.2;
-    p.m.rotation.y = heart || kind === 'glyph' || kind === 'key' ? Math.sin(p.t * 1.6) * .5 : kind === 'coin' ? Math.sin(p.t * 2.2) * 1.1 : p.t * 2.4;
+    p.m.rotation.y = heart || kind === 'glyph' || kind === 'key' || isSoul(kind) ? Math.sin(p.t * 1.6) * .5 : kind === 'coin' ? Math.sin(p.t * 2.2) * 1.1 : p.t * 2.4;
     // obols are drawn to the living: from close by they drift to the mage
     if ((kind === 'coin' || kind === 'purse') && p.drop <= 0 && d < CFG.pickups.obolDrift && d > .01 && player.coins < LOOT.cap) {
       const step = Math.min(d, (1.5 + (CFG.pickups.obolDrift - d) * 3) * dt);

@@ -94,7 +94,7 @@
     "floor": 4, "school": "hallow", "weak": "umbral", "resist": "hallow",
     "hp": 8, "r": 0.28, "speed": 2.4, "contact": 1, "flying": false,
     "behaviour": "healer",
-    "params": {"keep": 3.4, "healEvery": [3, 4.2], "healTell": 0.8, "healRange": 3, "healShare": 0.25},
+    "params": {"keep": 3.4, "healEvery": [3, 4.2], "healTell": 0.8, "healRange": 3, "healShare": 0.25, "bossShare": 0.04},
     "gib": "#f0e8da", "stain": null
   },
   "rootling": {

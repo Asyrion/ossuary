@@ -29,7 +29,8 @@ import { cleanSeed } from './rng';
 import { VARIANTS, planToText, type RoomVariant } from './world/generate';
 import { BOSS_TYPES, CFG, type BossType } from './config';
 import { damageEnemy } from './combat/damage';
-import { DROPS, RESOURCES, type Drop, type Resource } from './items/loot';
+import { DROPS, RESOURCES, type Drop, type Resource, type Soul } from './items/loot';
+import { gainSoul, hallowedMend } from './items/souls';
 import { giveResources, spawnPickup } from './items/pickups';
 import { openSecretRoom } from './world/secret';
 import { cleanseAtOnce, riteState } from './world/shrine';
@@ -198,13 +199,16 @@ function installDevHooks() {
     give: (...ids: string[]) => giveById(ids),
     /** Hand out obols, keys or glyphs, e.g. loot({ glyphs: 3 }). */
     loot: (v: Partial<Record<Resource, number>>) => giveResources(v),
-    /** Drop a pickup (halfHeart, heart, coin, purse, key, glyph, mana, coffer, chest) at (x, z), or just ahead of
-        the mage; a chest is plain unless `gilded` is set; `asLoot` drops it as loot would (a mana vial turns into an
+    /** Drop a pickup (halfHeart, heart, coin, purse, key, glyph, mana, the soul motes paleSoul, blackSoul and
+        hallowedSoul, shard, coffer, chest) at (x, z), or just ahead of the mage; a chest is plain unless `gilded` is set; `asLoot` drops it as loot would (a mana vial turns into an
         obol while the mage knows no spell). */
     drop(kind: Drop, x = player.x, z = player.z - 1.5, opts: { gilded?: boolean; asLoot?: boolean } = {}) {
       if (!DROPS.includes(kind)) throw new Error(`drop: use one of ${DROPS.join(', ')}`);
       spawnPickup(kind, x, z, { gilded: opts.gilded ?? false, asIs: !opts.asLoot });
     },
+    /** The soul motes held, in the order taken (M4.1); give one (false when as many are kept as can be); a floor's end
+        for the hallowed ones (the half hearts they gave back). */
+    get souls() { return [...player.souls]; }, soul: (kind: Soul) => gainSoul(kind), hallowedMend: () => hallowedMend(),
     /** Break open every cracked wall of this floor's secret room. */
     openSecret() { const r = G.rooms.find(x => x.type === 'secret'); if (r) openSecretRoom(r); return !!r; },
     /** Learn a spell into a slot (0 or 1); cast the spell in a slot, as if its key were pressed (optionally

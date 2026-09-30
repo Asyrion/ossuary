@@ -23,6 +23,7 @@ import { fireSpellBolt, strikeSolid } from '../combat/projectiles';
 import { detonateGlyph } from '../combat/glyphs';
 import { blockers, boxAt, pointInBoxes } from '../world/collision';
 import { fireAt, frostAt } from '../world/pools';
+import { hallowAt } from '../world/mechanisms';
 import { canAct } from './status';
 import type { Shape, SpellDef } from './spellData';
 import { flash, inflict } from './statusFx';
@@ -332,6 +333,7 @@ function endMantle(quiet: boolean) {
 const zones: { def: SpellDef; x: number; z: number; t: number; tick: number; healed: boolean; fx: ReturnType<typeof consecrateFx> }[] = [];
 const zone: Cast = def => {
   zones.push({ def, x: player.x, z: player.z, t: 0, tick: 0, healed: false, fx: consecrateFx(player.x, player.z, def.params.radius, hex(def.color)) });
+  hallowAt(player.x, player.z, def.params.radius); // holy ground kindles the candle stands on it
   burst(player.x, .2, player.z, hex(def.color), 14, 2, .04); Sfx.consecrate();
   return true;
 };
@@ -379,6 +381,7 @@ function updateSmites(dt: number, now: number) {
         damageEnemy(e, s.def.damage, 0, 0, 0, 'spell', s.def.school); inflict(e, s.def.status);
       }
       burst(s.x, .4, s.z, hex(s.def.color), 24, 3.4, .06); ringFx(s.x, .05, s.z, hex(s.def.color), .2, P.radius * 1.8, CFG.spellFx.shockwave, true);
+      hallowAt(s.x, s.z, P.radius); // (and the pillar kindles candles where it falls)
       Sfx.at(s.x, s.z).judgement(); G.shake = Math.max(G.shake, .25);
       continue;
     }

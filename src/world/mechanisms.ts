@@ -30,7 +30,8 @@ import { newStatus } from '../magic/status';
 import { riseMote } from '../magic/shapes';
 import { strikeFx } from '../magic/spellFx';
 import type { StatusKind } from '../magic/spellData';
-import { rollTable } from '../items/loot';
+import { LOOT, rollTable } from '../items/loot';
+import { soulsHere } from '../items/souls';
 import { spawnPickup } from '../items/pickups';
 import { toast } from '../ui/hud';
 import { freeSpotNear } from './rooms';
@@ -176,6 +177,13 @@ export function elementAt(kind: StatusKind, x: number, z: number, r = 0) {
   if (kind === 'burn') for (const e of G.enemies) if (e.entombed && e.asleep && Math.hypot(e.x - x, e.z - z) < C.thawReach + r) e.asleep = false; // thawed
 }
 
+/** Holy light lands at (x, z) within `r` (M4.1: Consecrate's ground, Judgement's pillar): candle stands kindle, as the
+    chapel's did for its prayers; nothing else answers to it. */
+export function hallowAt(x: number, z: number, r = 0) {
+  const room = G.current;
+  for (const box of room.props ?? []) if (box.prop.kind === 'candles' && !box.prop.lit && near(box, x, z, C.kindle + r)) light(room, box);
+}
+
 /** A bolt or a blast struck a mechanism. Returns whether it was one (so it neither breaks nor clunks). */
 export function strikeMechanism(room: Room, box: PropBox, blast: boolean, status?: Partial<Record<StatusKind, number>>) {
   const p = box.prop;
@@ -234,7 +242,7 @@ function checkCandles(room: Room) {
 function openReliquary(room: Room, box: PropBox) {
   removeProp(room, box);
   burst(box.x, .6, box.z, GOLD, 24, 2.6, .06); Sfx.at(box.x, box.z).unbind(); toast(STR.mech.reliquary, 2.5);
-  rollTable(G.run.drops, 'chest').forEach((item, i, all) => {
+  rollTable(G.run.drops, 'chest', LOOT, soulsHere()).forEach((item, i, all) => {
     const a = Math.PI / 2 + (i - (all.length - 1) / 2) * .75, s = freeSpotNear(room, box.x + Math.cos(a) * .9, box.z + Math.sin(a) * .9);
     spawnPickup(item, s.x, s.z);
   });

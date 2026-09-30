@@ -7,7 +7,7 @@ import type { FoeDef, FoeType, School } from './actors/foeData';
 import type { StatusState } from './magic/status';
 import type { SpellStatus, StatusKind } from './magic/spellData';
 import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
-import type { Drop, Item, Ware } from './items/loot';
+import type { Drop, Item, Soul, Ware } from './items/loot';
 import type { Kinds, KitWeights } from './world/kitData';
 
 export type Side = 'n' | 's' | 'e' | 'w';
@@ -227,6 +227,7 @@ export interface Player extends Circle {
   /** Heart containers given to bone altars this run. */ heartsPaid: number;
   /** Cursed artifacts cleansed at a shrine: their price gone, their gift halved. */ cleansed: string[];
   /** Obols, bone keys and blast glyphs carried (GDD: Coins, keys and blast glyphs). */ coins: number; keys: number; glyphs: number;
+  /** Soul motes held, in the order taken (M4.1: items/souls.ts). */ souls: Soul[];
   /** Mana (GDD: Magic system); the spells in the two slots (Q and E) and the seconds before each can be cast
       again; where the mage last aimed or walked (a spell cast standing still goes that way). */
   mana: number; spells: (string | null)[]; spellCd: number[]; aim: Vec2;

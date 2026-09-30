@@ -17,6 +17,7 @@ import { renderMinimap, toast } from '../ui/hud';
 import { offerBeyondBudget, placeArtifact } from '../items/artifacts';
 import { spawnPickup } from '../items/pickups';
 import { LOOT, rollTable } from '../items/loot';
+import { soulsHere } from '../items/souls';
 import { SIDE_DIR } from './shapes';
 import { DH, H_LOW, H_TALL, WT } from './dims';
 import { WARD_COLOR, freeSpotNear, kitWalls } from './rooms';
@@ -35,7 +36,7 @@ export function fillSecret(room: Room) {
   const S = LOOT.secretRoom, spot = (x: number, z: number) => freeSpotNear(room, room.cx + x, room.cz + z);
   for (let i = 0; i < S.chests; i++) { const p = spot(0, -.6 + i); spawnPickup('chest', p.x, p.z); }
   for (let i = 0; i < S.coffers; i++) { const p = spot(i % 2 ? 2.4 : -2.4, .4); spawnPickup('coffer', p.x, p.z); }
-  const hoard = rollTable(G.run.drops, 'secretHoard');
+  const hoard = rollTable(G.run.drops, 'secretHoard', LOOT, soulsHere());
   hoard.forEach((item, i) => { const a = .3 + i / hoard.length * Math.PI * 2, p = spot(Math.cos(a) * 1.6, Math.sin(a) * 1.2 + .3); spawnPickup(item, p.x, p.z); });
 }
 

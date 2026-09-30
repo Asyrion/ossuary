@@ -49,7 +49,7 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   scamper: ['near', 'peep', 'dart', 'dartTime', 'hide', 'oilEvery', 'dropFire'],
   chimer: ['orbit', 'orbitSpeed', 'chimeEvery', 'chimeTell', 'strikeDelay', 'mark', 'range'],
   gargoyle: ['wake', 'lonely', 'rest', 'tell', 'crouch', 'leap', 'reach', 'pounces', 'ring', 'shotSpeed', 'chill', 'guard'],
-  healer: ['keep', 'healEvery', 'healTell', 'healRange', 'healShare'],
+  healer: ['keep', 'healEvery', 'healTell', 'healRange', 'healShare', 'bossShare'],
   // floor 5 (M4.1)
   burrower: ['up', 'dig', 'under', 'burrowSpeed', 'tell', 'reach', 'motes', 'shotSpeed'],
   glider: ['turn', 'overshoot', 'passSpeed', 'sparkEvery', 'sparkTime'],

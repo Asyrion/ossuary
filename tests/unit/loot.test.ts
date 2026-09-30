@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Rng } from '../../src/rng';
 import { FLOORS, generateFloor } from '../../src/world/generate';
 import { TEMPLATES, parseTemplate } from '../../src/world/templates';
-import { DROPS, ITEMS, LOOT, MAX_WARES, RESOURCES, afterBurning, dropValue, priceOf, rollEnemyDrop, rollRoomClear, rollTable, rollWares, validateLoot, type Drop, type Item, type LootData } from '../../src/items/loot';
+import { DROPS, ITEMS, LOOT, MAX_WARES, RESOURCES, afterBurning, dropValue, priceOf, rollEnemyDrop, rollRoomClear, rollTable, rollWares, soulToLose, validateLoot, type Drop, type Item, type LootData, type TableName } from '../../src/items/loot';
 
 describe('loot data', () => {
   it('is valid', () => expect(validateLoot()).toEqual([]));
@@ -81,11 +81,12 @@ describe('loot data', () => {
    GDD's 12 to 18 obols. */
 describe('economy', () => {
   it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i: room clears, enemies, urns, containers, vaults and secret rooms', (floorNo, cfg) => {
-    const N = 300, got = { coins: 0, keys: 0, glyphs: 0, hearts: 0 };
+    const N = 300, got = { coins: 0, keys: 0, glyphs: 0, hearts: 0, souls: 0 }, souls = cfg.souls ?? 1; // (the deep floors give more motes)
     let relics = 0;
-    const add = (d: Item) => { const v = dropValue(d); for (const k of [...RESOURCES, 'hearts'] as const) got[k] += v[k] ?? 0; };
+    const add = (d: Item) => { const v = dropValue(d); for (const k of [...RESOURCES, 'hearts'] as const) got[k] += v[k] ?? 0; if (v.soul) got.souls++; };
+    const roll = (name: TableName) => rollTable(drops, name, LOOT, souls);
     // a chest takes a key; a gilded one holds a relic (an artifact beyond the budget) instead of loot
-    const chest = () => { got.keys--; if (drops.chance(LOOT.gildedChest)) relics++; else rollTable(drops, 'chest').forEach(add); };
+    const chest = () => { got.keys--; if (drops.chance(LOOT.gildedChest)) relics++; else roll('chest').forEach(add); };
     let drops = new Rng(0);
     for (let s = 0; s < N; s++) {
       const plan = generateFloor(Rng.from('ECON' + s, 'floor' + (floorNo - 1)), cfg, floorNo - 1);
@@ -93,29 +94,29 @@ describe('economy', () => {
       for (const r of plan.rooms) {
         const t = parseTemplate(TEMPLATES.get(r.templateId)!);
         for (const row of t.tiles) for (const tile of row) {
-          if (tile === 'urn') rollTable(drops, 'urn').forEach(add);
-          if (tile === 'sealedUrn') { got.glyphs--; rollTable(drops, 'sealedUrn').forEach(add); }
-          if (tile === 'bones' || tile === 'skulls') rollTable(drops, 'remains').forEach(add); // M3.6 piles
-          if (tile === 'sacks') rollTable(drops, 'bundle').forEach(add);
+          if (tile === 'urn') roll('urn').forEach(add);
+          if (tile === 'sealedUrn') { got.glyphs--; roll('sealedUrn').forEach(add); }
+          if (tile === 'bones' || tile === 'skulls') roll('remains').forEach(add); // M3.6 piles
+          if (tile === 'sacks') roll('bundle').forEach(add);
         }
         if (r.type === 'vault') {
           got.keys--;
-          if (!r.artifact) { rollTable(drops, 'vaultHoard').forEach(add); chest(); }
+          if (!r.artifact) { roll('vaultHoard').forEach(add); chest(); }
         }
         if (r.type === 'secret') { // a glyph opens it; without an artifact it holds a hoard, coffers and chests
           got.glyphs--;
           if (!r.artifact) {
-            rollTable(drops, 'secretHoard').forEach(add);
-            for (let i = 0; i < LOOT.secretRoom.coffers; i++) rollTable(drops, 'coffer').forEach(add);
+            roll('secretHoard').forEach(add);
+            for (let i = 0; i < LOOT.secretRoom.coffers; i++) roll('coffer').forEach(add);
             for (let i = 0; i < LOOT.secretRoom.chests; i++) chest();
           }
         }
         if (r.type !== 'normal') continue;
         const foes = r.variant === 'quiet' ? 1 : t.foes.length;
         for (let i = 0; i < foes; i++) { const d = rollEnemyDrop(drops); if (d) add(d as Item); }
-        const d = rollRoomClear(drops);
+        const d = rollRoomClear(drops, LOOT, souls);
         if (d === 'chest') chest();
-        else if (d === 'coffer') rollTable(drops, d).forEach(add);
+        else if (d === 'coffer') roll(d).forEach(add);
         else if (d) add(d);
       }
     }
@@ -124,8 +125,40 @@ describe('economy', () => {
     expect(per.glyphs).toBeGreaterThan(.2); // net of the glyphs sealed urns and secret rooms ask for
     expect(per.keys).toBeGreaterThan(.2);   // net of the keys chests and vaults ask for
     expect(per.hearts).toBeGreaterThan(2);
+    // soul motes (M4.1): a few a floor, more on the deep floors than the first
+    expect(per.souls).toBeGreaterThan(floorNo >= 4 ? .8 : .25); expect(per.souls).toBeLessThan(floorNo >= 4 ? 3 : 1);
     // relics beyond the budget are rare: a few floors in a hundred
     expect(relics / N).toBeGreaterThan(0);
     expect(relics / N).toBeLessThan(.1);
+  });
+});
+
+describe('soul motes and the lodestone shard (M4.1)', () => {
+  it('each gives what it is', () => {
+    expect(dropValue('paleSoul')).toEqual({ soul: 'pale' });
+    expect(dropValue('blackSoul')).toEqual({ soul: 'black' });
+    expect(dropValue('hallowedSoul')).toEqual({ soul: 'hallowed' });
+    expect(dropValue('shard')).toEqual({ shard: LOOT.shard });
+  });
+
+  it('a hit takes the last mote taken, a hallowed one only when no other is left', () => {
+    expect(soulToLose([])).toBe(-1);
+    expect(soulToLose(['pale', 'black'])).toBe(1);
+    expect(soulToLose(['black', 'hallowed', 'pale'])).toBe(2);
+    expect(soulToLose(['pale', 'hallowed', 'hallowed'])).toBe(0);
+    expect(soulToLose(['hallowed', 'hallowed'])).toBe(1);
+  });
+
+  it('a floor that gives more motes gives them in proportion, and only them', () => {
+    const count = (souls: number) => {
+      const rng = new Rng(7), seen = new Map<string, number>();
+      for (let i = 0; i < 20000; i++) { const d = rollRoomClear(rng, LOOT, souls); seen.set(String(d), (seen.get(String(d)) ?? 0) + 1); }
+      return seen;
+    };
+    const one = count(1), three = count(3);
+    const motes = (m: Map<string, number>) => ['paleSoul', 'blackSoul', 'hallowedSoul'].reduce((a, k) => a + (m.get(k) ?? 0), 0);
+    expect(motes(three) / motes(one)).toBeGreaterThan(2.3);
+    expect((three.get('glyph') ?? 0) / (one.get('glyph') ?? 1)).toBeLessThan(1); // (the rest a little rarer, as the weights share out)
+    expect(three.get('null')! / one.get('null')!).toBeCloseTo(1, 1); // (as often something at all)
   });
 });

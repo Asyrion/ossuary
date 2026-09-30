@@ -20,7 +20,8 @@ import { OPPOSITE, SHAPES, SIDE_DIR, cellHalfExtents, shapeMask, shapeSize } fro
 import { TEMPLATES, growPuddles, parseTemplate, tombRuns } from './templates';
 import { buildPools } from './pools';
 import { chargeRunes } from './mechanisms';
-import { rollTable } from '../items/loot';
+import { LOOT, rollTable } from '../items/loot';
+import { soulsHere } from '../items/souls';
 import { spawnPickup } from '../items/pickups';
 import { buildShop } from '../items/merchant';
 import { furnishLibrary } from '../magic/pages';
@@ -282,7 +283,7 @@ export function strikeUrn(room: Room, rock: RockBox, blast: boolean) {
   burst(rock.x, .2, rock.z, 0x8a8278, 12, .9, .07);                                        // grave dust
   if (rock.urn === 'sealed') burst(rock.x, .4, rock.z, WARD_COLOR, 10, 2, .04);
   Sfx.at(rock.x, rock.z).urn(rock.urn === 'sealed');
-  for (const item of rollTable(G.run.drops, rock.urn === 'sealed' ? 'sealedUrn' : 'urn')) spawnPickup(item, rock.x, rock.z, { rise: true });
+  for (const item of rollTable(G.run.drops, rock.urn === 'sealed' ? 'sealedUrn' : 'urn', LOOT, soulsHere())) spawnPickup(item, rock.x, rock.z, { rise: true });
   return true;
 }
 

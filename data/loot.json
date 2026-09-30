@@ -3,17 +3,18 @@
   "cap": 99,
   "purse": 5,
   "manaVial": 25,
+  "shard": 25,
   "roomClear": {
     "chance": 0.65,
-    "weights": { "halfHeart": 21, "heart": 16, "coin": 20, "purse": 5, "key": 10, "glyph": 26, "mana": 10, "coffer": 5, "chest": 2 }
+    "weights": { "halfHeart": 21, "heart": 16, "coin": 20, "purse": 5, "key": 10, "glyph": 26, "mana": 10, "coffer": 5, "chest": 2, "paleSoul": 3, "blackSoul": 1, "hallowedSoul": 1, "shard": 3 }
   },
   "enemyCoin": 0.06,
   "urn": { "chance": 0.25, "weights": { "coin": 54, "halfHeart": 22, "glyph": 12, "mana": 12 } },
-  "remains": { "chance": 0.2, "weights": { "coin": 60, "glyph": 16, "mana": 16, "halfHeart": 8 } },
+  "remains": { "chance": 0.2, "weights": { "coin": 60, "glyph": 16, "mana": 16, "halfHeart": 8, "paleSoul": 3 } },
   "bundle": { "chance": 0.8, "count": [1, 3], "weights": { "coin": 72, "glyph": 14, "mana": 14 } },
   "sealedUrn": { "chance": 1, "weights": { "coin": 20, "purse": 25, "key": 30, "heart": 25 } },
-  "coffer": { "count": [1, 3], "weights": { "coin": 40, "halfHeart": 20, "key": 15, "glyph": 25 } },
-  "chest": { "count": [2, 4], "weights": { "purse": 30, "key": 20, "glyph": 25, "heart": 25 } },
+  "coffer": { "count": [1, 3], "weights": { "coin": 40, "halfHeart": 20, "key": 15, "glyph": 25, "paleSoul": 4, "shard": 3 } },
+  "chest": { "count": [2, 4], "weights": { "purse": 30, "key": 20, "glyph": 25, "heart": 25, "blackSoul": 4, "hallowedSoul": 4 } },
   "gildedChest": 0.1,
   "vaultHoard": { "count": [4, 6], "weights": { "coin": 35, "purse": 30, "glyph": 35 } },
   "secretHoard": { "count": [3, 5], "weights": { "coin": 40, "purse": 16, "key": 16, "glyph": 28 } },
@@ -22,7 +23,7 @@
   "grimoire": { "lecterns": 3, "shelf": 2, "rebuy": 7, "clearChance": 0.04 },
   "merchant": {
     "wares": [3, 4],
-    "prices": { "artifact": 15, "heart": 3, "key": 5, "glyph": 5, "mana": 3 },
-    "weights": { "heart": 40, "key": 30, "glyph": 30, "mana": 25 }
+    "prices": { "artifact": 15, "heart": 3, "key": 5, "glyph": 5, "mana": 3, "paleSoul": 4, "blackSoul": 6, "hallowedSoul": 6, "shard": 4 },
+    "weights": { "heart": 40, "key": 30, "glyph": 30, "mana": 25, "paleSoul": 10, "blackSoul": 5, "hallowedSoul": 5, "shard": 8 }
   }
 }

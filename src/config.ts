@@ -109,6 +109,9 @@ export const CFG = {
   camTiltDeg: 45,
   camHallView: 1.2,    // larger halls: the camera pulls back so the view is this much wider and deeper
   pickups: { obolDrift: 1.8 },  // obols drift to the mage from this close
+  /** Soul motes (M4.1, items/souls.ts): most held; the hex a black one lays on every foe in the room when it goes; the
+      chance a foe that falls with enough hex stacks (magic.json's `hex.soulAt`) leaves a black one. */
+  souls: { max: 6, blackHex: 2, hexChance: .5 },
   // blast glyphs: fuse (s), reach (tiles), damage to foes, halves of hearts off the mage, knockback, time
   // between two glyphs, how close a bolt must pass to set one off (after flying boltArm, so a bolt leaving
   // the mage doesn't set off the glyph at their feet), and the pause before a blast sets off its neighbours
