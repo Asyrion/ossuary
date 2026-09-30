@@ -11,7 +11,7 @@ import { G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { boxUV, disposeTree, markShared, wallMaterials } from '../render/materials';
-import { crackTexture } from '../render/textures';
+import { crackTexelTexture, crackTexture } from '../render/textures';
 import { burst } from '../combat/fx';
 import { renderMinimap, toast } from '../ui/hud';
 import { offerBeyondBudget, placeArtifact } from '../items/artifacts';
@@ -41,7 +41,9 @@ export function fillSecret(room: Room) {
 
 /* ---------- cracked walls ---------- */
 
-let crackMat: THREE.MeshBasicMaterial | null = null;
+const crackMats = new Map<THREE.Texture, THREE.MeshBasicMaterial>();
+/** The crack's dark lines, one material per picture (the old smooth one, or the room kit's in texels of each size). */
+const crackMat = (map: THREE.Texture) => crackMats.get(map) ?? crackMats.set(map, markShared(new THREE.MeshBasicMaterial({ map, color: 0x120e0b, transparent: true, depthWrite: false, opacity: .85 }))).get(map)!;
 const planeGeo = (() => { const g = new THREE.PlaneGeometry(1, 1); g.userData.shared = true; return g; })();
 
 /** A hidden doorway on `side` of `room` whose middle (on the inside edge) is at (x, z): the wall carries on
@@ -51,14 +53,13 @@ export function buildCrackedWall(room: Room, side: Side, nb: Room, x: number, z:
   const wx = x + dx * WT / 2, wz = z + dz * WT / 2; // the doorway's centre on the wall's centre line
   const plug = new THREE.Group(); plug.position.set(wx - room.cx, 0, wz - room.cz);
   const wall = new THREE.Mesh(ns ? boxUV(DH * 2, h, WT) : boxUV(WT, h, DH * 2), wallMaterials(room.look.wall, kitWalls(room.look))); wall.position.y = h / 2; // (in the room kit's bricks where the walls are)
-  crackMat ??= markShared(new THREE.MeshBasicMaterial({ map: crackTexture(), color: 0x120e0b, transparent: true, depthWrite: false, opacity: .85 }));
-  const glowMat = () => new THREE.MeshBasicMaterial({ map: crackTexture(), color: WARD_COLOR, transparent: true, depthWrite: false, opacity: 0, blending: THREE.AdditiveBlending });
+  const [TX, TY] = CFG.roomKit.texel, kit = !!kitWalls(room.look); // (the room kit's crack: whole texels, as its bricks)
+  const glowMat = (map: THREE.Texture) => new THREE.MeshBasicMaterial({ map, color: WARD_COLOR, transparent: true, depthWrite: false, opacity: 0, blending: THREE.AdditiveBlending });
   const glows: THREE.MeshBasicMaterial[] = [];
   const decal = (w: number, hh: number, place: (m: THREE.Mesh) => void) => {
-    for (const mat of [crackMat!, glowMat()]) {
-      const m = new THREE.Mesh(planeGeo, mat); m.scale.set(w, hh, 1); place(m); plug.add(m);
-      if (mat !== crackMat) glows.push(mat);
-    }
+    const map = kit ? crackTexelTexture(Math.round(w * TX), Math.round(hh * TY)) : crackTexture(), glow = glowMat(map);
+    for (const mat of [crackMat(map), glow]) { const m = new THREE.Mesh(planeGeo, mat); m.scale.set(w, hh, 1); place(m); plug.add(m); }
+    glows.push(glow);
   };
   // on the inner face, facing into the room
   decal(DH * 2 * .9, h * .9, m => { m.position.set(-dx * (WT / 2 + .012), h / 2, -dz * (WT / 2 + .012)); m.rotation.y = Math.atan2(-dx, -dz); });

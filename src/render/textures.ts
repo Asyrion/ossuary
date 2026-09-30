@@ -89,6 +89,29 @@ export function crackTexture() {
   return crackTex = canvasTex(c);
 }
 
+/** The same crack drawn in whole texels, `w` × `h` of them (the room kit's walls: pixelTextures.ts), sampled nearest so
+    they stay crisp. White on clear, tinted by the material, as `crackTexture`. Kept per size. */
+const crackTexels = new Map<string, THREE.CanvasTexture>();
+export function crackTexelTexture(w: number, h: number) {
+  const key = w + 'x' + h, hit = crackTexels.get(key); if (hit) return hit;
+  const [c, g] = makeCanvas(w, h), R = mulberry(7); g.fillStyle = '#fff';
+  const line = (x0: number, y0: number, x1: number, y1: number, thick: number) => {
+    const n = Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)));
+    for (let k = 0; k <= n; k++) g.fillRect(Math.round(x0 + (x1 - x0) * k / n), Math.round(y0 + (y1 - y0) * k / n), thick, 1);
+  };
+  const step = h / 26;
+  const branch = (x: number, y: number, a: number, len: number, thick: number, depth: number) => {
+    for (let i = 0; i < len; i++) {
+      a += (R() - .5) * .9; const nx = x + Math.cos(a) * step * 1.6, ny = y + Math.sin(a) * step;
+      line(x, y, nx, ny, thick); x = nx; y = ny;
+      if (depth && R() < .25) branch(x, y, a + (R() < .5 ? .8 : -.8), len / 2, 1, depth - 1);
+    }
+  };
+  branch(w / 2, 1, Math.PI / 2, 16, 2, 2); branch(w / 2, h / 2, .3, 7, 1, 1); branch(w / 2, h / 2, Math.PI - .3, 7, 1, 1);
+  const t = canvasTex(c); t.magFilter = t.minFilter = THREE.NearestFilter; t.generateMipmaps = false;
+  crackTexels.set(key, t); return t;
+}
+
 export function glyphStoneTexture() {
   if (glyphStoneTex) return glyphStoneTex;
   const [c, g] = makeCanvas(128, 128); g.translate(64, 64);

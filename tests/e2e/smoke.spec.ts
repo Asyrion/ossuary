@@ -1812,6 +1812,51 @@ test('the room kit\'s artifacts: every one built in code, the HUD\'s icons rende
   expect(errors).toEqual([]);
 });
 
+test('the room kit\'s pickups and special rooms: every drop, coffers and chests that still open, the shade, the library, the shrine\'s stones and the vault\'s lock built in code, and the old look to compare', async ({ page }) => {
+  type Mat = { vertexColors?: boolean };
+  type O = { traverse(f: (o: O & { material?: Mat | Mat[] }) => void): void };
+  const painted = (o?: O) => { let n = 0; o?.traverse(q => { if ([q.material ?? []].flat().some(m => m.vertexColors)) n++; }); return n; }; // (the room kit's pieces: colours in the vertices)
+  // (evaluated as strings, so the counting function goes along with them)
+  const drops = () => page.evaluate(`(() => {
+    const g = window.__game, painted = ${painted.toString()};
+    g.dropsHere(); g.sim(.8, true);
+    const laid = g.pickups.map(p => ({ kind: p.kind, painted: painted(p.m) > 0 }));
+    g.loot({ keys: 3 });
+    for (const p of g.pickups.filter(p => p.kind === 'coffer' || p.kind === 'chest')) { g.player.x = p.x; g.player.z = p.z + .5; g.sim(.1, true); }
+    g.sim(.8, true);
+    const boxes = g.pickups.filter(p => p.kind === 'coffer' || p.kind === 'chest');
+    return { laid, opened: boxes.filter(p => p.opened && !p.ward).length, boxes: boxes.length, spilled: g.pickups.length - laid.length };
+  })()`) as Promise<{ laid: { kind: string; painted: boolean }[]; opened: number; boxes: number; spilled: number }>;
+  const errors = await start(page, '?seed=K3F9QX');
+  const kit = await drops();
+  expect(kit.laid.map(d => d.kind).sort()).toEqual(['chest', 'chest', 'coffer', 'coin', 'glyph', 'halfHeart', 'heart', 'key', 'mana', 'purse']);
+  expect(kit.laid.every(d => d.painted)).toBe(true);
+  expect(kit).toMatchObject({ boxes: 3, opened: 3 }); expect(kit.spilled).toBeGreaterThan(0); // (a key each for the chests; the gilded one's relic is an artifact, not a pickup)
+  await page.screenshot({ path: 'test-results/room-kit-drops.png' });
+  // the special rooms' pieces: the shade, the lecterns and bookcases, the offering stones, the vault's padlock
+  const special = (q: string) => start(page, `?seed=K3F9QX${q}`).then(async errs => ({ errs, ...(await page.evaluate(`(() => {
+    const g = window.__game, painted = ${painted.toString()}, outer = g.current.doors.find(d => d.seal)?.seal.mark;
+    g.warp(1); g.sim(.5, true);
+    const r = g.current;
+    return { shade: painted(r.shade), eyes: r.shade?.userData.eyes?.length ?? 0, lecterns: (r.pages ?? []).filter(p => painted(p.g)).length, pages: (r.pages ?? []).length,
+      stones: (r.shrine?.stones ?? []).filter(s => painted(s.g) > painted(s.visual)).length, lock: painted(outer) };
+  })()`) as { shade: number; eyes: number; lecterns: number; pages: number; stones: number; lock: number }) }));
+  for (const old of [false, true]) {
+    const k = old ? '&kit=old' : '';
+    const shop = await special(`&room=merchant_plain${k}`), library = await special(`&room=library_plain${k}`);
+    const shrine = await special(`&floor=2&room=shrine_henge&give=chain_of_the_penitent,leaden_heart${k}`), vault = await special(`&room=vault_urns${k}`);
+    for (const r of [shop, library, shrine, vault]) expect(r.errs).toEqual([]);
+    expect(shop.eyes).toBe(2); expect(library.pages).toBe(3);
+    if (old) { expect([shop.shade, library.lecterns, shrine.stones, vault.lock]).toEqual([0, 0, 0, 0]); continue; }
+    expect(shop.shade).toBeGreaterThan(0); expect(library.lecterns).toBe(3); expect(shrine.stones).toBe(2); expect(vault.lock).toBeGreaterThan(0);
+  }
+  // off: the old pickups, nothing painted
+  await start(page, '?seed=K3F9QX&kit=old');
+  const old = await drops();
+  expect(old.laid.some(d => d.painted)).toBe(false); expect(old).toMatchObject({ boxes: 3, opened: 3 });
+  expect(errors).toEqual([]);
+});
+
 test('the pixel look: on from the URL, drawn with outlines and light in bands, then off again, and the enemy and spell effect options, without errors', async ({ page }) => {
   type Look = { lines: number; outline: boolean; bands: boolean };
   type GP = { sim(sec: number, draw?: boolean): void; pixelLook: Look; setPixelLook(l: Partial<Look>): void; renderInfo(): { calls: number } };

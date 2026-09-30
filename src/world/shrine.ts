@@ -7,10 +7,11 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Bolt, FloorLook, OfferingStone, Room } from '../types';
-import { G, player } from '../state';
+import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { M, basicMat, blob, disposeTree, glow, sphereGeo } from '../render/materials';
+import { offeringStoneLook } from './specialLooks';
 import { shrineCircleTexture } from '../render/textures';
 import { scene } from '../render/renderer';
 import { burst } from '../combat/fx';
@@ -48,10 +49,14 @@ export function buildShrine(room: Room) {
 
 function makeStone(room: Room, id: string, slot: number): OfferingStone {
   const [lx, lz] = C.stones[slot], g = new THREE.Group(); g.position.set(lx, 0, lz);
-  const rock = new THREE.Mesh(new THREE.CylinderGeometry(.22, .32, .74, 6), M.stone); rock.position.y = .37; rock.rotation.y = slot * .7;
-  const top = new THREE.Mesh(new THREE.CylinderGeometry(.27, .25, .08, 6), M.frame.shrine); top.position.y = .78; top.rotation.y = rock.rotation.y;
+  if (DEV.roomKit) g.add(offeringStoneLook(room.look, slot * .7, CURSE)); // (the room kit's: specialLooks.ts)
+  else {
+    const rock = new THREE.Mesh(new THREE.CylinderGeometry(.22, .32, .74, 6), M.stone); rock.position.y = .37; rock.rotation.y = slot * .7;
+    const top = new THREE.Mesh(new THREE.CylinderGeometry(.27, .25, .08, 6), M.frame.shrine); top.position.y = .78; top.rotation.y = rock.rotation.y;
+    g.add(rock, top, blob(1.1));
+  }
   const visual = makeArtifactVisual(artifact(id)); visual.scale.setScalar(.8); visual.position.y = 1.2;
-  g.add(rock, top, visual, blob(1.1)); room.group.add(g);
+  g.add(visual); room.group.add(g);
   const x = room.cx + lx, z = room.cz + lz, collider = { x, z, hx: .28, hz: .28, hp: Infinity, breakable: false };
   room.rocks.push(collider);
   return { id, slot, x, z, g, visual, collider, armed: true };
