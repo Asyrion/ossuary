@@ -173,6 +173,9 @@ export interface Enemy extends Circle {
   eye?: THREE.Object3D; ring?: THREE.Object3D; cycle?: number; summoned?: boolean; volleys?: number;
   /** A boss built in code (M4: the Hollow Warden's looks, bossLooks.ts): its school, whose light its shots take. */ bossSchool?: School;
   /** The bosses of floors 4 and 5 (M4.1): their weakness and resistance; the hart's turning spokes. */ bossAff?: { weak: School; resist: School }; spin?: number;
+  /** The Twin Guardians (M4.2): the other twin; which part it plays now; whether bolts glance off it (while it shields);
+      whether it rages (its twin fallen); seconds until the shield passes across. */
+  twin?: Enemy; role?: 'strike' | 'shield'; glance?: boolean; rage?: boolean; swapT?: number;
   /** The War-Tiger (M4.2): the plates it has left, and the damage they have turned since the last one fell. */ plates?: number; worn?: number;
   /** Sanctified by the Gilded Halo's first bolt already (M4.1). */ haloed?: boolean;
   /** A gilded treasury's guardian, standing like a statue until its gold is taken (M4.1, themes.ts). */ statue?: boolean;

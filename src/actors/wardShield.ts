@@ -22,8 +22,8 @@ const sharedGeo = <T extends THREE.BufferGeometry>(g: T) => { g.userData.shared 
 let geo: THREE.IcosahedronGeometry | null = null, ringGeo: THREE.TorusGeometry | null = null;
 let told = false;
 
-/** Raise a drinking ward round `e` that holds `need` of spells' harm. */
-export function wardFoe(e: Enemy, need: number = CFG.ward.foeNeed) {
+/** Raise a drinking ward round `e` that holds `need` of spells' harm, `size` across its middle, `y` high. */
+export function wardFoe(e: Enemy, need: number = CFG.ward.foeNeed, size = e.r * 1.8 + .3, y = e.flying ? .9 : .55) {
   if (e.ward || e.dead) return;
   geo ??= sharedGeo(new THREE.IcosahedronGeometry(1, 2)); ringGeo ??= sharedGeo(new THREE.TorusGeometry(1, .035, 4, 32));
   // a faint sphere, and two rings of ward-light round it, crossed, so it reads as a ward and not a haze (its own materials: they fill with colour)
@@ -31,7 +31,7 @@ export function wardFoe(e: Enemy, need: number = CFG.ward.foeNeed) {
   const rimMat = new THREE.MeshBasicMaterial({ color: WARD, transparent: true, opacity: .75, blending: THREE.AdditiveBlending, depthWrite: false });
   for (const [x, z] of [[Math.PI / 2, 0], [.5, .9]]) { const ring = new THREE.Mesh(ringGeo, rimMat); ring.rotation.set(x, 0, z); fx.add(ring); }
   fx.userData.rim = rimMat;
-  fx.position.y = e.flying ? .9 : .55; fx.scale.setScalar(e.r * 1.8 + .3);
+  fx.position.y = y; fx.scale.setScalar(size); fx.userData.size = size;
   e.group.add(fx);
   e.ward = { drink: newDrink(need), fx };
   burst(e.x, fx.position.y, e.z, WARD, 14, 1.8, .04);
@@ -60,11 +60,17 @@ function breakWard(e: Enemy, school: School) {
   makeEnemy(WARDLING[school], at.x, at.z, floor.enemyHp);
 }
 
+/** Lower `e`'s ward without breaking it (a Twin Guardian passing its shield across): no Wardling comes of it. */
+export function unwardFoe(e: Enemy) {
+  const w = e.ward; if (!w) return;
+  e.ward = undefined; e.group.remove(w.fx); (w.fx.material as THREE.Material).dispose(); (w.fx.userData.rim as THREE.Material).dispose();
+}
+
 /** Each step: the ward's light breathes, and shrinks back after a drink. */
 export function updateWardShields(now: number) {
   for (const e of G.enemies) {
     if (!e.ward) continue;
-    const base = e.r * 1.8 + .3, s = e.ward.fx.scale.x;
+    const base = e.ward.fx.userData.size as number, s = e.ward.fx.scale.x;
     e.ward.fx.scale.setScalar(base + (s - base) * .9 + Math.sin(now * 3 + e.x) * .01);
     e.ward.fx.rotation.y = now * .4;
   }

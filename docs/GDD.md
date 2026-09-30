@@ -244,7 +244,12 @@ others and drawn into the floors' pools:
   floor 5's pool.
 - **The Twin Guardians** (the colossal bearded guardians crouched in the gate's towers, lion-pawed): two statues that wake
   together. One strikes while the other shields it (bolts glance off the shielding one); they trade places as the mage
-  moves; when one falls, the other rages. The Uzulim statues whose eyes follow whoever approaches are their kind.
+  moves; when one falls, the other rages. The Uzulim statues whose eyes follow whoever approaches are their kind. As
+  built (step 8): statues whose heads follow the mage until the mage comes near or strikes one; the shielding twin holds
+  its post behind its stone shield and a drinking ward (bolts glance off, spells are drunk), the other slams the floor and
+  fixes the mage with a gaze of gold, and the shield passes across every six seconds. A shielder that put itself between
+  the mage and its twin blocked every line on the striker, so it holds its post until the owner's play-test says
+  otherwise. They share one bar and one reward. Hallow; weak to Frost, resisting Hallow. In the pools of floors 3 and 4.
 
 **The Bestiary (M4.5, decided 2026-09-30).** The owner liked the critters and wants a whole host more: small critters,
 fantasy creatures and elementals, and new kinds of enemy behaviour. They come after M4, which builds the enemy

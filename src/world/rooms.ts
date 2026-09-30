@@ -169,7 +169,7 @@ function addRock(room: Room, c: number, r: number) {
     a rock but never breaks; it keeps how tall it stands (`pillar`: the Pillar Dragon coils round its top). */
 function addPillar(room: Room, c: number, r: number) {
   const p = toWorld(room, c, r), R = mulberry(c * 131 + r * 17 + room.plan.seed);
-  const broken = R() < .35, shaft = broken ? .55 + R() * .45 : 1.3;
+  const broken = R() < .35 && room.type !== 'boss', shaft = broken ? .55 + R() * .45 : 1.3; // (a boss's hall keeps its pillars whole: the Pillar Dragon coils on them)
   room.group.add(pillarAt(room, p.x, p.z, R, broken, shaft));
   room.rocks.push({ x: p.x, z: p.z, hx: .4, hz: .4, hp: 0, breakable: false, pillar: broken ? shaft + .3 : PILLAR_TOP });
 }

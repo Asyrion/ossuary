@@ -44,6 +44,7 @@ import { makeEnemy, stdMat } from './enemies';
 import { anglerLook, bossLook, buildBossLook, hartLook, tigerLook } from './bossLooks';
 import { mergeRig } from '../render/rig';
 import { buildDragon, dragonMoved, updateDragon } from './pillarDragon';
+import { buildTwin, updateTwin } from './twinGuardians';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { ease, lerp } from '../util';
 
@@ -53,7 +54,7 @@ const SHOT: Partial<Record<BossType, number>> = { warden: 0xff6a3a, abbess: 0x6f
 /** A boss's shots: in its school's light when it is built in code, else its own colour. */
 const shotColor = (e: Enemy) => e.bossSchool ? SCHOOL_LIGHT[e.bossSchool] : SHOT[e.type as BossType] ?? 0xffffff;
 /** Who each boss calls below half health. */
-const SUMMONS: Record<BossType, Role> = { warden: 'R', abbess: 'W', pyre: 'H', hart: 'W', angler: 'W', tiger: 'R', dragon: 'W' };
+const SUMMONS: Record<BossType, Role> = { warden: 'R', abbess: 'W', pyre: 'H', hart: 'W', angler: 'W', tiger: 'R', dragon: 'W', twins: 'H' };
 
 /** A flat ring lying on the floor (the abbess's ripple, the knight's landing mark), hidden at first. */
 function floorRing(e: Enemy, color: number, radius: number) {
@@ -90,6 +91,7 @@ export function buildBoss(e: Enemy, add: Add) {
     e.plates = C.plates; e.worn = 0; e.guard = C.guard; e.marker = floorRing(e, SCHOOL_LIGHT.frost, .8);
     e.contact = 0; e.state = 'statue'; e.st = Infinity; P.ring.visible = P.rime.visible = false; P.halo.material.opacity = 0; P.eye.scale.set(1, .15, 1);
   } else if (e.type === 'dragon') buildDragon(e); // built in code (M4.2): its fight is pillarDragon.ts
+  else if (e.type === 'twins') buildTwin(e); // built in code (M4.2): the pair's fight is twinGuardians.ts
   else if (e.type === 'abbess') {
     // a drowned nun: a bell of wet robes, a veiled pale face, a verdigris halo, lamp-green eyes
     const robe = stdMat(0x1d3431, { roughness: .55 }), hem = stdMat(0x28463f, { roughness: .6 }), pale = stdMat(0xc3cdbd), weed = stdMat(0x3f5a2c);
@@ -137,7 +139,8 @@ function lane(e: Enemy) {
 
 /** Below half health a boss calls its helpers, once; they have the floor's enemy health. */
 function callHelp(e: Enemy) {
-  e.summoned = true; Sfx.at(e.x, e.z).boom(); G.shake = .25; banner(STR.bosses[e.type as BossType].summon, '');
+  e.summoned = true; if (e.twin) e.twin.summoned = true; // (the twins call once for the pair)
+  Sfx.at(e.x, e.z).boom(); G.shake = .25; banner(STR.bosses[e.type as BossType].summon, '');
   const n = e.bossCfg?.summons ?? 2, cur = G.current, floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
   for (let i = 0; i < n; i++) {
     const p = freeSpotNear(cur, cur.cx + (n > 1 ? -4 + 8 * i / (n - 1) : 0), cur.cz + 1.5);
@@ -172,6 +175,7 @@ export function updateBoss(e: Enemy, dt: number, ux: number, uz: number): number
   else if (e.type === 'angler') return updateAngler(e, dt, ux, uz);
   else if (e.type === 'tiger') return updateTiger(e, dt, ux, uz);
   else if (e.type === 'dragon') return updateDragon(e, dt);
+  else if (e.type === 'twins') return updateTwin(e, dt, ux, uz);
   return undefined;
 }
 

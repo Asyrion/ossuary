@@ -56,6 +56,7 @@ export const STR = {
     angler: { name: 'The Deep Angler', sub: 'Its light calls the dead astray', summon: 'The angler calls the dark', dead: "The angler's light goes out" },
     tiger: { name: 'The War-Tiger', sub: 'The Wardens set it at the vault, and it never left its post', summon: 'Its roar wakes the halls', dead: 'The tiger lies down at its post', plate: 'A plate falls' },
     dragon: { name: 'The Pillar Dragon', sub: "It coils where the Wardens' columns still stand", summon: 'The dragon calls the dark down', dead: 'The dragon slides from the columns at last', fall: 'Knocked down' },
+    twins: { name: 'The Twin Guardians', sub: 'They crouched in the towers of the Gate, and followed the Wardens down', summon: 'The guardians call the halls to arms', dead: 'The guardians are stone again', rage: 'The last guardian rages' },
   },
   banner: {
     wayDown: 'A way down has opened',

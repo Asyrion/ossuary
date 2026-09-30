@@ -28,6 +28,7 @@ import { guardHit, soulsHere } from '../items/souls';
 import { SOUL_COLOR } from '../items/loot';
 import { drinkBlow } from '../actors/wardShield';
 import { wearPlates } from '../actors/bosses';
+import { glance, twinFell } from '../actors/twinGuardians';
 
 /** Hurt a foe, knocking it along (dx, dz); `kbMul` scales the knockback (the Ram's Skull on bolts); `by` says
     what struck it (a foe the cantrip puts to rest gives mana back); `school`, the magic it struck with, if any: a foe in
@@ -35,6 +36,7 @@ import { wearPlates } from '../actors/bosses';
 export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul = 1, by?: Enemy['lastHit'], school?: School) {
   if (e.spawn > 0 || e.dead || e.hidden) return;
   if (e.ward && by === 'spell') { drinkBlow(e, dmg, school); return; } // (M4.2: its ward drinks the spells that strike it)
+  if (e.glance && by === 'cantrip') { glance(e); return; } // (a Twin Guardian's shield turns bolts)
   const raw = dmg * damageTakenMul(e.status); dmg = raw * (e.guard ?? 1); // a frozen foe cracks; a shut mimic's clay turns half a blow
   if (e.plates) wearPlates(e, raw - dmg); // (M4.2: the War-Tiger's plates turn most of it, and wear)
   const aff = affinityMul(e.foe ?? e.bossAff, school); // (the bosses of floors 4 and 5 have theirs too)
@@ -55,12 +57,12 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   shockLeap(e, dmg); // a shocked foe passes part of the hit on
   const kb = (e.isBoss ? .6 : 2.6) * kbMul; e.kx += dx * kb; e.kz += dz * kb;
   Sfx.at(e.x, e.z).hit();
-  if (e.isBoss) updateBossBar(e);
+  if (e.isBoss) updateBossBar(e.twin ? { hp: Math.max(0, e.hp) + Math.max(0, e.twin.hp), maxHp: e.maxHp + e.twin.maxHp } : e); // (the twins share one bar)
   if (e.hp <= 0) killEnemy(e, false, hexed);
 }
 
-const GIB_COLOR: Record<keyof typeof CFG.enemy, number> = { rotling: 0x7f8a60, dummy: 0xc8a860, warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a, hart: 0xffe8b0, angler: 0x8a6ad8, tiger: 0xd8e8f4, dragon: 0xe07a2c };
-const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = { rotling: 0x1d2414, dummy: null, warden: 0x2a0a06, abbess: 0x0c2622, pyre: 0x1a0c06, hart: 0x3a2e14, angler: 0x140c24, tiger: 0x1c2a36, dragon: 0x2a1a14 };
+const GIB_COLOR: Record<keyof typeof CFG.enemy, number> = { rotling: 0x7f8a60, dummy: 0xc8a860, warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a, hart: 0xffe8b0, angler: 0x8a6ad8, tiger: 0xd8e8f4, dragon: 0xe07a2c, twins: 0xc2ae8a };
+const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = { rotling: 0x1d2414, dummy: null, warden: 0x2a0a06, abbess: 0x0c2622, pyre: 0x1a0c06, hart: 0x3a2e14, angler: 0x140c24, tiger: 0x1c2a36, dragon: 0x2a1a14, twins: 0x3a3226 };
 /** What flies from a foe when it falls, and the stain it leaves: a foe in code's own (data/foes.json), else the old. */
 const gibOf = (e: Enemy) => e.foe ? new THREE.Color(e.foe.gib).getHex() : GIB_COLOR[e.type as EnemyType];
 const stainOf = (e: Enemy) => e.foe ? (e.foe.stain && new THREE.Color(e.foe.stain).getHex()) : STAIN_COLOR[e.type as EnemyType];
@@ -89,7 +91,8 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
   }
   const drop = e.isBoss ? null : rollEnemyDrop(G.run.drops); // now and then an obol
   if (drop) { const p = freeSpotNear(G.current, e.x, e.z); spawnPickup(drop, p.x, p.z); }
-  if (e.isBoss) {
+  if (e.isBoss && e.twin && !e.twin.dead) { Sfx.at(e.x, e.z).boom(); G.shake = .45; twinFell(e.twin); } // (one twin down: the other fights on, raging)
+  else if (e.isBoss) {
     for (const s of G.enemies) if (s.servant && !s.dead) killEnemy(s, true);
     Sfx.at(e.x, e.z).boom(); G.shake = .55; onBossDead();
   } else { if (e.foe) Sfx.at(e.x, e.z).critterDie(); else Sfx.at(e.x, e.z).die(); G.shake = Math.max(G.shake, .08); }

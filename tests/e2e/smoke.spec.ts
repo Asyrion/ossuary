@@ -39,7 +39,8 @@ async function start(page: Page, query: string) {
         g.player.hp = g.player.maxHp; // these tests check the loop, not survival (hits still knock the hero back)
         const p = g.player;
         // a foe killed by a bolt stays in the list, marked dead, until the next step
-        const e = g.enemies.filter(f => !f.dead).sort((a, b) => Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0];
+        // (a foe whose shield turns bolts, a Twin Guardian, only when there's nothing else)
+        const e = g.enemies.filter(f => !f.dead).sort((a, b) => +!!(a as { glance?: boolean }).glance - +!!(b as { glance?: boolean }).glance || Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0];
         if (!e) { hold([]); g.sim(0.05); continue; }
         const dx = e.x - p.x, dz = e.z - p.z, codes: string[] = [];
         if (Math.hypot(dx, dz) < (e.isBoss ? 1.6 : .9)) {
@@ -324,6 +325,44 @@ test('the Pillar Dragon coils round the pillars (raising its own where too few),
   for (const e of errors) expect(e).toEqual([]);
 });
 
+test('the Twin Guardians wake together; one strikes while the other shields it, bolts glancing off; they trade the shield; when one falls the other rages; one reward for both', async ({ page }) => {
+  const errors = await start(page, '?room=boss_open&boss=twins&floor=4');
+  type Twin = Foe & { type: string; state: string; hp: number; maxHp: number; contact: number; role?: string; glance?: boolean; rage?: boolean; ward?: object; summoned?: boolean };
+  type G2 = GameHooks & { hit(i: number, dmg: number, school?: string, by?: string): number };
+  const woke = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as G2; g.warp(1); g.sim(.7, true);
+    const twins = g.enemies.filter(f => f.isBoss) as Twin[], still = twins.map(t => [t.state, t.contact]);
+    g.sim(1); const stay = twins.map(t => t.state);
+    g.player.x = twins[0].x; g.player.z = twins[0].z + 2.4; g.sim(1.2);
+    const shield = twins.find(t => t.role === 'shield')!, strike = twins.find(t => t.role === 'strike')!, si = g.enemies.indexOf(shield), ki = g.enemies.indexOf(strike);
+    const out: Record<string, unknown> = { n: twins.length, still, stay, states: twins.map(t => t.state).sort(), warded: !!shield.ward && !strike.ward, glance: [shield.glance, strike.glance] };
+    const s0 = shield.hp; g.hit(si, 5, undefined, 'cantrip'); out.glanced = s0 - shield.hp; // (bolts glance off the shielding twin)
+    g.hit(si, 5, 'ember', 'spell'); out.drunk = s0 - shield.hp; // (its ward drinks spells)
+    const k0 = strike.hp; g.hit(ki, 5, undefined, 'cantrip'); out.struck = k0 - strike.hp;
+    const fill = parseFloat((document.querySelector('#bossbar .fill') as HTMLElement).style.width);
+    out.bar = Math.abs(fill - (shield.hp + strike.hp) / (shield.maxHp + strike.maxHp) * 100) < .01; // (one bar for both)
+    for (let k = 0; k < 240 && shield.role === 'shield'; k++) { g.player.hp = g.player.maxHp; g.sim(.05); }
+    out.traded = [shield.role, strike.role, !!strike.ward];
+    // one falls: the other rages, and the fight isn't over
+    const fall = g.enemies.indexOf(shield); g.hit(fall, 9999); g.sim(.1);
+    out.rage = { left: g.enemies.filter(f => f.isBoss).length, rage: strike.rage, glance: strike.glance, ward: !!strike.ward, cleared: g.current.cleared };
+    return out;
+  });
+  expect(woke).toMatchObject({ n: 2, still: [['statue', 0], ['statue', 0]], stay: ['statue', 'statue'], warded: true, glance: [true, false], glanced: 0, drunk: 0, struck: 5, bar: true, traded: ['strike', 'shield', true] });
+  expect(woke.states).toEqual(['guard', 'stalk']);
+  expect(woke.rage).toEqual({ left: 1, rage: true, glance: false, ward: false, cleared: false });
+  const fight = await page.evaluate(() => {
+    const w = window as unknown as W, g = w.__game as G2, last = g.enemies.find(f => f.isBoss) as Twin, states = new Set<string>();
+    let seconds = 0; for (; seconds < 240 && g.enemies.length; seconds += .25) { w.__fight(.25); states.add(last.state); }
+    g.sim(.5);
+    return { seconds, states: [...states], left: g.enemies.length, cleared: g.current.cleared, choice: (g.current as RoomView & { spots: unknown[] }).spots.length };
+  });
+  console.log(`the last twin beaten in ${fight.seconds.toFixed(1)} s; states seen: ${fight.states.join(', ')}`);
+  expect(fight).toMatchObject({ left: 0, cleared: true, choice: 2 }); // (the reward once, for the pair)
+  expect(fight.states).toEqual(expect.arrayContaining(['stalk', 'windSlam', 'windGaze', 'gaze']));
+  expect(errors).toEqual([]);
+});
+
 test('the Hollow Warden wears the look chosen for it, its shots in its school\'s light, and can be beaten', async ({ page }) => {
   const LIGHT: Record<string, number> = { bellWarden: 0xf0e070, motherOfSpores: 0xa266ff, hollowOwl: 0xffd878 }; // (SCHOOL_LIGHT: storm, umbral, hallow)
   type Boss = Foe & { type: string; state: string; summoned?: boolean; mats: unknown[]; eye?: object; ring?: object; halo?: object; model: { traverse(f: (o: { isMesh?: boolean; isSprite?: boolean; isPoints?: boolean }) => void): void } };
@@ -359,7 +398,7 @@ test('the Hollow Warden wears the look chosen for it, its shots in its school\'s
     g.sim(.2, true); g.setBossLook('bellWarden');
     return { ids, look: g.bossLook, kept: localStorage.getItem('ossuary.bossLook') };
   });
-  expect(gallery).toEqual({ ids: ['bellWarden', 'motherOfSpores', 'hollowOwl', 'hart', 'angler', 'tiger', 'dragon'], look: 'bellWarden', kept: 'bellWarden' }); // (and the bosses of floors 4 and 5, M4.1, and the Eda lore's, M4.2)
+  expect(gallery).toEqual({ ids: ['bellWarden', 'motherOfSpores', 'hollowOwl', 'hart', 'angler', 'tiger', 'dragon', 'twins'], look: 'bellWarden', kept: 'bellWarden' }); // (and the bosses of floors 4 and 5, M4.1, and the Eda lore's, M4.2)
   for (const e of errors) expect(e).toEqual([]);
 });
 
