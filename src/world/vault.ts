@@ -5,10 +5,11 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Room, VaultSeal } from '../types';
-import { G, player } from '../state';
+import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { M, disposeTree, glow } from '../render/materials';
+import { padlockLook } from './specialLooks';
 import { glyphTexture } from '../render/textures';
 import { burst } from '../combat/fx';
 import { renderMinimap, toast } from '../ui/hud';
@@ -38,10 +39,12 @@ function sealMark(room: Room, door: VaultSeal['outer']) {
   g.position.set(door.x - dx * (dx ? .35 : .05) - room.cx, south ? .8 : .62, door.z - dz * .05 - room.cz); // (clear of an east or west door's posts)
   const rune = new THREE.Sprite(new THREE.SpriteMaterial({ map: glyphTexture(), color: WARD, transparent: true, opacity: .9, depthWrite: false, blending: THREE.AdditiveBlending }));
   rune.scale.setScalar(south ? .8 : 1.05);
-  const lock = new THREE.Group(); lock.position.set(0, -.2, .08);
-  const body = new THREE.Mesh(new THREE.BoxGeometry(.2, .17, .07), M.iron);
-  const shackle = new THREE.Mesh(new THREE.TorusGeometry(.065, .018, 5, 12, Math.PI), M.iron); shackle.position.y = .085;
-  lock.add(body, shackle);
+  const lock = DEV.roomKit ? padlockLook(WARD) : new THREE.Group(); lock.position.set(0, -.2, .08); // (the room kit's: specialLooks.ts)
+  if (!DEV.roomKit) {
+    const body = new THREE.Mesh(new THREE.BoxGeometry(.2, .17, .07), M.iron);
+    const shackle = new THREE.Mesh(new THREE.TorusGeometry(.065, .018, 5, 12, Math.PI), M.iron); shackle.position.y = .085;
+    lock.add(body, shackle);
+  }
   g.add(rune, lock, glow(WARD, 1.3, .5));
   room.group.add(g);
   return g;

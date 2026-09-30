@@ -6,10 +6,11 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Room, WareSpot } from '../types';
-import { G, player } from '../state';
+import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { M, basicMat, blob, disposeTree, glow, markShared } from '../render/materials';
+import { shadeLook } from '../world/specialLooks';
 import { glyphTexture } from '../render/textures';
 import { burst } from '../combat/fx';
 import { renderHearts, renderMinimap, toast } from '../ui/hud';
@@ -76,8 +77,9 @@ export function coinTag(price: number, lowered = false) {
 }
 
 /** The shade: a hooded, footless figure with pale eyes, a lantern in one hand and a ward ring binding it
-    to the floor (placeholder shapes until a Tripo model). */
+    to the floor (the room kit's: specialLooks.ts). */
 function makeShade() {
+  if (DEV.roomKit) return shadeLook(WARD);
   const P = parts ??= makeParts(), g = new THREE.Group(), body = new THREE.Group();
   const robe = new THREE.Mesh(new THREE.ConeGeometry(.44, 1.2, 12, 1, true), P.robe); robe.position.y = .72;
   const hood = new THREE.Mesh(new THREE.SphereGeometry(.25, 14, 10), P.robe); hood.position.y = 1.42; hood.scale.set(1, 1.15, 1);

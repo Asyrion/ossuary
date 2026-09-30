@@ -7,10 +7,11 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Page, Room } from '../types';
-import { G, player } from '../state';
+import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { M, basicMat, blob, disposeTree, glowShared, markShared } from '../render/materials';
+import { M, basicMat, blob, disposeTree, glowShared, markShared, mergeStill } from '../render/materials';
+import { bookcaseLook, lecternLook } from '../world/specialLooks';
 import { burst } from '../combat/fx';
 import { banner, hidePrompt, renderMinimap, showPrompt, spellIcon, spellIconSvg, toast } from '../ui/hud';
 import { giveResources } from '../items/pickups';
@@ -131,7 +132,7 @@ function makeLectern() {
 /** Put a page of `id` in `room` at (x, z): on a lectern, on the shelf at a price, or lying loose. */
 function addPage(room: Room, id: string, x: number, z: number, kind: Page['kind'], price = 0): Page {
   const g = new THREE.Group(); g.position.set(x - room.cx, 0, z - room.cz);
-  if (kind !== 'loose') g.add(makeLectern()); else g.add(blob(.8));
+  if (kind !== 'loose') g.add(DEV.roomKit ? lecternLook(room.look) : makeLectern()); else g.add(blob(.8));
   const p: Page = { spell: id, x, z, kind, price, g, armed: true, gone: false };
   setLeaf(p, id);
   if (price) { p.tag = coinTag(price); p.tag.position.y = 2; g.add(p.tag); }
@@ -150,16 +151,19 @@ export function furnishLibrary(room: Room) {
   const P = parts ??= makeParts(), { minX, maxX, minZ } = room.bounds;
   const northDoor = room.plan.doors.some(d => d.side === 'n');
   const n = Math.floor((maxX - minX - .4) / 1.6), x0 = (minX + maxX) / 2 - (n - 1) * .8;
+  const kit = DEV.roomKit ? new THREE.Group() : null; // (the room kit's bookcases: every one in one mesh)
   for (let i = 0; i < n; i++) {
     const x = x0 + i * 1.6, z = minZ + .18;
     if (northDoor && Math.abs(x - room.cx) < 1.6) continue;
     if (pointInBoxes(x, z + .3, .5, room.rocks)) continue;
+    room.rocks.push({ x, z, hx: .75, hz: .17, hp: Infinity, breakable: false });
+    if (kit) { const b = bookcaseLook(i); b.position.set(x - room.cx, 0, z - room.cz); kit.add(b); continue; }
     const g = new THREE.Group(); g.position.set(x - room.cx, 0, z - room.cz);
     const carcass = new THREE.Mesh(P.carcass, M.frame.library); carcass.position.y = .625;
     const spines = new THREE.Mesh(P.spines, P.books); spines.position.set(0, .64, .175);
     g.add(carcass, spines); room.group.add(g);
-    room.rocks.push({ x, z, hx: .75, hz: .17, hp: Infinity, breakable: false });
   }
+  if (kit) { mergeStill(kit); room.group.add(kit); }
 }
 
 /** The library on the mage's first visit: three pages of different schools on lecterns in a row across the room,
