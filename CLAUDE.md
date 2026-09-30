@@ -1,8 +1,8 @@
 # Ossuary: project brief for Claude Code
 
 Ossuary is a hobby desktop-browser game: a top-down roguelike in the style of The Binding of Isaac, set in
-the owner's fantasy world **Eda** (high fantasy turned dark, medieval). Characters are made in **Tripo3D**
-and exported as GLB. The owner (Azyrion) designs; you build.
+the owner's fantasy world **Eda** (high fantasy turned dark, medieval). The mage is made in **Tripo3D**
+and exported as GLB; everything else is built in code (the owner's decision, 2026-09-30). The owner (Azyrion) designs; you build.
 
 **`docs/GDD.md` is the source of truth for game design.** Read the relevant section before starting a
 milestone; if this file disagrees with it on design, the GDD wins. `docs/ideas.md` is an idea bank of
@@ -143,7 +143,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
   every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
-  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=1080`, `720`, `360` or `270` changes its rows). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
+  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=1080`, `720`, `540`, `360` or `270` sets its rows). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
   vault, a secret room (behind a cracked wall), a shrine (`?room=shrine_henge`) or a library
   (`?room=library_plain`) next to the start.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`

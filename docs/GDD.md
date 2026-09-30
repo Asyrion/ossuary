@@ -409,7 +409,7 @@ Picking up an artifact shows on the mage, as Isaac's items do, but in a high fan
   look.
 - **Transformations.** Three artifacts of one kind (a `kind` tag in `data/artifacts.json`) transform the mage for
   the rest of the run. The look takes several slots, an aura and a tint of the robes. A banner and a lore card name
-  it, and the mage gains a gift in its spirit (Isaac's Guppy and Seraphim, with a magic take). Sets (above) keep
+  it, and the mage gains a gift in its spirit (as Isaac's transformations do, with a magic take). Sets (above) keep
   their bonus; a transformation counts any artifacts of its kind. Proposed, to be chosen with the owner:
 
 | Transformation | Kind | The look | The gift |
@@ -417,12 +417,12 @@ Picking up an artifact shows on the mage, as Isaac's items do, but in a high fan
 | Pyromancer | Ember | A crown of flame, smouldering sleeves, burning footprints | The cantrip leaves embers where it strikes |
 | Frostborn | Frost | An ice crown, rimed robes, frosted breath | Foes that touch the mage are chilled |
 | Stormcaller | Storm | A crackling aura, eyes lit with lightning | Every fifth cast leaps to a second foe |
-| Seraph | Hallow | A halo and wings of light | The mage floats over pits and water |
+| Lightbearer | Hallow | A halo and wings of candle-light | The mage floats over pits and water |
 | Shadowstep | Umbral | A cloak of shadow, violet eyes | A short blink in the moving direction |
 | Runescribe | Runes and scrolls | Runes glowing across the robes, a floating grimoire | Bolts leave a rune that bursts a moment later |
-| Pilgrim | Pilgrim's things (the Cowl, the Crook, the Boots) | A pilgrim's robes, a lantern at the belt | Each floor's map is known, and the mage walks faster |
+| Pilgrim | Pilgrim's things (the Cowl, the Boots, the Rosary of Haste) | A pilgrim's robes, a lantern at the belt | The lantern's light shows each floor's map and makes cracked walls glow; the mage walks faster |
 | Beastcaller | Familiars | A circlet of antlers, motes circling | One more familiar, and familiars strike harder |
-| Alchemist (M5) | Potions | A bandolier of vials, goggles | Thrown potions split in two |
+| Alchemist (M5) | Potions | A bandolier of vials, a stained apron | Thrown potions split in two |
 
 **Artifact data shape**
 
@@ -842,7 +842,7 @@ The look is a candle-lit cutaway diorama in pixel-art 3D: dark stone rooms, warm
 - **Palette:** worn stone browns, torch amber for the hero's magic, verdigris greens for the undead, violet for wisp magic, rust red for the boss.
 - **Characters:** the mage is a Tripo3D model (chibi proportions, textured, rigged; see the Tripo asset checklist); Tripo stays for special models like it (bosses, where wanted). Enemies and familiars are built in code (Combat and enemies).
 - **Environment:** built in code in the pixel look (the owner's decision 2026-09-30: no Tripo props): objects, mechanisms, walls and floors, the floors and walls with pixel-art textures drawn in code at the game's own pixel size. The room kit is being redone in the style of the spell effects (`docs/M3.5-plan.md`, step 3), a proof first: the fire objects and the crypt's floor and walls.
-- **How assets are made:** `docs/assets.md` holds the house style (every image made with one style reference, in any tool), the budgets per kind of asset and the pipeline from a first image in MidJourney, Tripo or another image model to a model, texture or icon in the game. Milestone M3.5 tests it on a few pilot assets (`docs/M3.5-plan.md`).
+- **How assets are made:** everything is built in code in the pixel look, in the style of the spell effects (`docs/effects.md`); `docs/assets.md` holds the pipeline, house style and budgets for the special models that still come from Tripo (the mage, bosses where wanted). Milestone M3.5 (`docs/M3.5-plan.md`) is the look: the pixel look, and the room kit redone in code.
 - **UI:** hearts top left, mana bar, spell slots with cooldowns, potion belt, artifacts and obol, key and glyph counters below them, minimap top right, boss bar bottom centre, lore cards bottom right. Typefaces Cinzel (titles), Alegreya (lore and banners) and Alegreya Sans (UI).
 - **Audio:** simple synthesised effects for now; the full plan is in Audio design, and where sounds come from (sources, licences, specs, pipeline) is in `docs/assets.md` (Sound).
 
@@ -854,7 +854,7 @@ The look is a candle-lit cutaway diorama in pixel-art 3D: dark stone rooms, warm
 | 720 | 540 | 720 | 720 |
 | 540 (the default) | 540 | 480 | 540 |
 | 360 | 360 | 360 | 360 |
-| 270 | 270 | 288 | 270 |
+| 270 | 270 | 240 | 270 |
 
 At 180 small objects stop reading, so it is no longer offered. Tiles, icons and effects are drawn as pixel art; concept art for Tripo stays clean cartoon. The game starts in it; the dev menu and `?pixel=` still switch it (`src/render/pixelLook.ts`). It replaces the painted-miniature direction, and the house style in `docs/assets.md` follows it.
 

@@ -18,6 +18,8 @@ import { giveResources, spawnPickup } from '../items/pickups';
 import { makeEnemy } from '../actors/enemies';
 import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
 import { assetList, assetsOn, setAssetsOn } from '../assets/models';
+import { Vector2 } from 'three';
+import { renderer } from '../render/renderer';
 import { drawnRows, pixelLook, setPixelLook } from '../render/pixelLook';
 import { FAMILIAR_OPTIONS, MODEL_OPTIONS, removeModelOptions, showFamiliarOptions, showModelOptions } from '../actors/modelOptions';
 import { EFFECT_OPTIONS, removeEffectOptions, showEffectOptions } from '../magic/effectOptions';
@@ -190,7 +192,7 @@ function build() {
   // spell knowledge (M3.7): kept between runs in this browser
   const know = section(pages.magic, S.knowledge);
   know.append(knowBox = el('p', 'dv-info'), btn(S.knowAll, () => { knowEvery(); refresh(); }), btn(S.forgetKnowledge, () => { forgetKnowledge(); refresh(); }));
-  // water and oil in this room (the test rooms with them are in the list above)
+  // water and oil in this room (the test rooms with them are on the Rooms & runs tab)
   const pools = section(pages.magic, S.pools);
   pools.append(btn(S.ignite, () => poolsDo('fire')), btn(S.freezeWater, () => poolsDo('frost')), btn(S.shockWater, () => poolsDo('shock')));
 
@@ -232,7 +234,6 @@ function build() {
     btn(S.showAssets, () => { closeDev(); showAssetsHere(); }),
     fpsBtn = btn('', () => { DEV.fps = !DEV.fps; }),
   );
-
 
   // enemy model options (looks only, for the owner to choose from): a row of them ahead of the mage
   const opts = section(pages.galleries, S.options);
@@ -293,7 +294,7 @@ function refresh() {
   assetBtn.textContent = assetsOn() ? S.assetsOn : S.assetsOff; assetBtn.classList.toggle('on', assetsOn()); assetBtn.disabled = !list.some(a => a.status === 'loaded');
   fpsBtn.textContent = DEV.fps ? S.fpsOn : S.fpsOff; fpsBtn.classList.toggle('on', DEV.fps);
   const look = pixelLook();
-  pxBtn.textContent = S.pixelLines(look.lines, drawnRows()); pxBtn.classList.toggle('on', !!look.lines);
+  pxBtn.textContent = S.pixelLines(look.lines, drawnRows(renderer.getDrawingBufferSize(new Vector2()).y)); pxBtn.classList.toggle('on', !!look.lines);
   lineBtn.textContent = look.outline ? S.outlinesOn : S.outlinesOff; lineBtn.classList.toggle('on', look.outline); lineBtn.disabled = !look.lines;
   bandBtn.textContent = look.bands ? S.bandsOn : S.bandsOff; bandBtn.classList.toggle('on', look.bands); bandBtn.disabled = !look.lines;
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
