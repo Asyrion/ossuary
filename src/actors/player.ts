@@ -30,7 +30,7 @@ export function updatePlayer(dt: number) {
     }
   }
   const k = 1 - Math.exp(-(cur.theme?.twist === 'rime' ? CFG.mech.rimeGrip : 14) * dt); // rime underfoot: the mage slides
-  const st = player.stats, speed = st.speed * wadeAt(player.x, player.z) * snagAt(player.x, player.z); // slower wading through water, or cobwebs
+  const st = player.stats, speed = st.speed * wadeAt(player.x, player.z) * snagAt(player.x, player.z) * (player.chill > 0 ? 1 - CFG.afflict.chillSlow : 1); // slower wading through water, or cobwebs, or chilled
   player.vx = lerp(player.vx, mv.x * speed, k); player.vz = lerp(player.vz, mv.z * speed, k);
   player.x += player.vx * dt; player.z += player.vz * dt;
   collide(player, blockers(cur, 'player', st.effects.has('pitWalker')));
@@ -46,6 +46,7 @@ export function updatePlayer(dt: number) {
   for (const i of [0, 1]) if (pressed.spells[i]) { pressed.spells[i] = false; if (!answerPage(i)) castSpell(i, aim); }
   if (player.invuln > 0) player.invuln -= dt;
   if (player.dim > 0) player.dim = Math.max(0, player.dim - dt);
+  if (player.chill > 0) player.chill = Math.max(0, player.chill - dt);
   // artifacts and the trapdoor down
   checkArtifactPickup(); checkWares(); checkPages(); checkVaultDoors(); checkShrine();
   const trapdoor = G.trapdoor;

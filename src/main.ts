@@ -58,6 +58,7 @@ import type { Stage } from './magic/knowledge';
 import type { PropKind } from './world/propData';
 import { FOE_IDS, isFoe, type FoeType, type School } from './actors/foeData';
 import { bestiary, forgetBestiary } from './actors/bestiary';
+import { burningGround } from './actors/foes';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
@@ -219,6 +220,8 @@ function installDevHooks() {
     hit: (i: number, dmg: number, school?: School) => { const e = G.enemies[i]; if (e) damageEnemy(e, dmg, 0, 0, 0, 'spell', school); return e?.hp; },
     /** What the mage has found of the foes (M4), kept between runs; forget it all. */
     get bestiary() { return bestiary(); }, forgetBestiary: () => forgetBestiary(),
+    /** Patches of ground a salamander has set burning in this room (M4). */
+    get burningGround() { return burningGround(); },
     inflict(status: Partial<Record<StatusKind, number>>) { for (const e of G.enemies) inflict(e, status); },
     /** Fire a foe's shot from (x, z) along (dx, dz), as a wisp would (a wall of ice stops it); seconds of the
         Static Mantle left. */

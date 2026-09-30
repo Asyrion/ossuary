@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { snagAt } from '../world/props';
 import { BOSS_TYPES, CFG, type EnemyType } from '../config';
 import { FOES, isFoe, type FoeType } from './foeData';
-import { bumpFoe, buildFoe, poseFoe, teleColor, updateFoe } from './foes';
+import { bumpFoe, buildFoe, clearFoeHazards, poseFoe, teleColor, updateFoe, updateFoeHazards } from './foes';
 import type { Enemy } from '../types';
 import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
@@ -85,6 +85,7 @@ export function makeEnemy(type: FoeType, x: number, z: number, hpMul = 1, boss?:
 }
 
 export function clearEnemies() {
+  clearFoeHazards();
   for (const e of G.enemies) { scene.remove(e.group); disposeTree(e.group); }
   G.enemies.length = 0;
 }
@@ -171,6 +172,7 @@ export function updateEnemies(dt: number) {
       a.x -= dx * p * wa; a.z -= dz * p * wa; b.x += dx * p * wb; b.z += dz * p * wb;
     }
   }
+  updateFoeHazards(dt); // (a salamander's burning trail)
   const alive = G.enemies.filter(e => !e.dead);
   if (alive.length !== G.enemies.length) G.enemies = alive;
   if (cur.locked && G.enemies.length === 0) onWaveCleared(cur);

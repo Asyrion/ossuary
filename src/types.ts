@@ -173,7 +173,7 @@ export interface Enemy extends Circle {
       at `animRate` (0 holds it still); how strongly it telegraphs (0 to 1: its school's glow, a swell); its shadow's size. */
   foe?: FoeDef; model?: THREE.Object3D; idle?: (t: number) => void; at?: number; animRate?: number; tele?: number; shadow?: number;
   /** Its model's parts its behaviour moves (a beetle's wing-cases, a mimic's lid); how open a lid or shell is (0 to 1);
-      what it takes of a hit (a shut mimic, half). */ parts?: Record<string, THREE.Object3D>; open?: number; guard?: number;
+      what it takes of a hit (a shut mimic, half); a behaviour's own clock (a salamander's trail). */ parts?: Record<string, THREE.Object3D>; open?: number; guard?: number; tick?: number;
 }
 
 export interface Bolt extends Circle {
@@ -191,6 +191,8 @@ export interface Bolt extends Circle {
 export interface Shot extends Circle {
   y: number; vx: number; vz: number; color: number; mesh: THREE.Group;
   /** An ember (a mimic's, M4): it lights what burns along its way, oil, braziers and roots. */ fire?: boolean; fireT?: number;
+  /** Cold (a toad's breath, M4): it freezes the water it passes and chills the mage it strikes this many seconds. */ chill?: number;
+  /** A hex (an imp's flame, M4): it drains this much mana from the mage it strikes. */ hex?: number;
 }
 export interface Particle { m: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>; vx: number; vy: number; vz: number; life: number }
 /** Something lying on the floor to pick up; `m` is the part that bobs and spins, `drop` the fall-in time left. */
@@ -225,4 +227,5 @@ export interface Player extends Circle {
   mana: number; spells: (string | null)[]; spellCd: number[]; aim: Vec2;
   /** Derived from the base stats and the artifacts held (items/artifactData.ts computeStats). */ stats: Stats;
   /** Seconds the mage's sight stays dimmed (a Sporeling's spores, M4): the edges of the view darken. */ dim: number;
+  /** Seconds the mage stays chilled (cold breath, rime, M4): slower (`CFG.afflict.chillSlow`), frost at the view's rim. */ chill: number;
 }

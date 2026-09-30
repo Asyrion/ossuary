@@ -30,6 +30,7 @@ import type { StatusKind } from '../magic/spellData';
 import { inflict } from '../magic/statusFx';
 import { fireAt, frostAt } from '../world/pools';
 import { animateBolt, boltLook, impactFx } from '../magic/spellFx';
+import { gainMana } from '../magic/spells';
 
 const BLESSED = 0xfff0b0; // a blessed cast's gold
 
@@ -114,11 +115,11 @@ export function fireSpellBolt(x: number, z: number, dx: number, dz: number, o: {
 }
 
 /** Enemy projectile. */
-export function spawnShot(x: number, z: number, dx: number, dz: number, speed: number, color: number, y = .55, size = 1, o: { fire?: boolean } = {}) {
+export function spawnShot(x: number, z: number, dx: number, dz: number, speed: number, color: number, y = .55, size = 1, o: { fire?: boolean; chill?: number; hex?: number } = {}) {
   const mesh = new THREE.Group();
   const sh = blob(.4); sh.position.y = -y + .015;
   mesh.add(new THREE.Mesh(sphereGeo(.13 * size), basicMat(color)), glowShared(color, .9 * size, .9), sh);
-  scene.add(mesh); G.shots.push({ x, z, y, vx: dx * speed, vz: dz * speed, r: .14 * size, color, mesh, fire: o.fire, fireT: 0 });
+  scene.add(mesh); G.shots.push({ x, z, y, vx: dx * speed, vz: dz * speed, r: .14 * size, color, mesh, fire: o.fire, fireT: 0, chill: o.chill, hex: o.hex });
 }
 
 export function clearProjectiles() {
@@ -248,10 +249,10 @@ export function updateShots(dt: number) {
   const room = G.current, solids = blockers(room, 'bolt'), ice = room.barriers ?? [];
   for (let i = G.shots.length - 1; i >= 0; i--) {
     const s = G.shots[i]; s.x += s.vx * dt; s.z += s.vz * dt; s.mesh.position.set(s.x, s.y, s.z);
-    if (s.fire && (s.fireT = (s.fireT ?? 0) - dt) <= 0) { s.fireT = .1; fireAt(s.x, s.z, .2); } // an ember lights what it passes
+    if ((s.fire || s.chill) && (s.fireT = (s.fireT ?? 0) - dt) <= 0) { s.fireT = .1; if (s.fire) fireAt(s.x, s.z, .2); else frostAt(s.x, s.z, .1); } // an ember lights what it passes, cold freezes it
     let kill = !!boxAt(s.x, s.z, solids);
     if (!kill && boxAt(s.x, s.z, ice)) { kill = true; burst(s.x, s.y, s.z, 0xbfe6ff, 5, 1.4, .04); Sfx.at(s.x, s.z).wardTink(); } // a wall of ice stops foes' shots
-    if (!kill && Math.hypot(player.x - s.x, player.z - s.z) < player.r + s.r) { hurtPlayer(1, s.x - s.vx, s.z - s.vz); kill = true; }
+    if (!kill && Math.hypot(player.x - s.x, player.z - s.z) < player.r + s.r) { hurtPlayer(1, s.x - s.vx, s.z - s.vz); if (s.chill) player.chill = Math.max(player.chill, s.chill); if (s.hex) { gainMana(-s.hex); burst(player.x, .9, player.z, 0x8a5acf, 10, 1.8, .04); } kill = true; }
     if (kill) { scene.remove(s.mesh); G.shots.splice(i, 1); burst(s.x, s.y, s.z, s.color, 4, 1.2, .05); }
   }
 }

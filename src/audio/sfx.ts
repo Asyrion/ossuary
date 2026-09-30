@@ -187,6 +187,26 @@ const sounds = {
   mimicWake() { tone('square', 700, 900, .06, .04); tone('square', 820, 1000, .06, .035, .08); hiss(.2, .06, 'bandpass', 1200); tone('sine', 180, 260, .3, .05, .05); },
   mimicSpit() { hiss(.35, .12, 'bandpass', 1100); tone('sawtooth', 240, 120, .25, .05); crackles(6, .35, .04); },
   mimicShut() { tone('square', 520, 300, .07, .05); hiss(.1, .05, 'lowpass', 1500); },
+  // Frost: glassy, airy
+  toadPuff() { tone('sine', 90, 150, .6, .07); hiss(.6, .03, 'bandpass', 700); tone('triangle', 1760, 2349, .5, .015, .15); },
+  toadLeap() { tone('sine', 180, 320, .15, .05); hiss(.1, .04, 'bandpass', 900); },
+  toadLand() { tone('sine', 120, 60, .15, .07); hiss(.12, .06, 'lowpass', 700); },
+  toadBreath() { hiss(.6, .12, 'highpass', 3000); [2637, 2093, 3136].forEach((f, i) => tone('triangle', f, f * .8, .35, .025, i * .05)); tone('sine', 260, 180, .4, .04); },
+  // Storm, under water
+  lurkerRise() { hiss(.4, .1, 'bandpass', 500); tone('sine', 140, 280, .4, .05); crackles(3, .3, .03); },
+  lurkerDive() { hiss(.35, .09, 'lowpass', 600); tone('sine', 260, 110, .3, .05); },
+  // Hallow
+  jellyGlow() { [988, 1319, 1568].forEach((f, i) => tone('sine', f, f * 1.01, .7, .025, i * .12)); },
+  jellyPulse() { tone('sine', 523, 1047, .35, .06); tone('triangle', 2093, 1568, .4, .03); hiss(.3, .04, 'highpass', 5000); },
+  // Ember: the salamander's scamper
+  skitter() { for (let i = 0; i < 4; i++) tone('square', 900 + i * 120, 700, .03, .02, i * .04); crackles(3, .2, .03); },
+  // Umbral: the imp's blink and its hex
+  impBlink() { tone('sine', 220, 660, .18, .05); tone('sine', 330, 990, .15, .025, .04); hiss(.15, .04, 'bandpass', 1800); },
+  impThrow() { tone('sawtooth', 110, 60, .4, .05); hiss(.3, .07, 'bandpass', 700); tone('sine', 440, 220, .3, .03, .05); },
+  // Frost: the drakeling
+  drakeInhale() { hiss(.8, .08, 'bandpass', 1200); tone('sine', 70, 140, .8, .07); tone('triangle', 1175, 1568, .6, .015, .2); },
+  drakeWings() { for (let i = 0; i < 3; i++) hiss(.12, .1, 'lowpass', 500, i * .16); },
+  drakeLand() { tone('sine', 90, 40, .4, .14); hiss(.35, .1, 'highpass', 3500); [2637, 2093].forEach((f, i) => tone('triangle', f, f * .7, .3, .03, i * .04)); },
 };
 type Sounds = typeof sounds;
 /** Sounds of the interface (picking things up, refusals, learning): their own bus, never positioned. */

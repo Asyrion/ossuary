@@ -24,6 +24,8 @@ export const CFG = {
     abbess: { hp: 120, r: 0.7, speed: .95, dive: 2.7, under: 1.8 }, // dive: speed of her ripple; under: seconds below
     pyre: { hp: 135, r: 0.72, speed: 1.25, charge: 8.2 },
   },
+  // what the foes in code do to the mage (M4): chilled by cold breath and rime, this much slower
+  afflict: { chillSlow: .4 },
   // champion rooms: one enemy is bigger, tinted, tougher and a little faster, and drops a heart
   champion: { hpMul: 2, scale: 1.3, radiusMul: 1.2, speedMul: 1.15, tint: 0x6a1a0a, aura: 0xff5a2a },
   // quiet rooms keep at most this many weak enemies; how often a heart waits there

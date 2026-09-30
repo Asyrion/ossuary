@@ -26,5 +26,47 @@
     "behaviour": "mimic",
     "params": {"wake": 2.2, "lonely": 2.5, "tell": 0.55, "shots": 3, "spread": 0.35, "shotSpeed": 3.6, "hop": 1.6, "shut": 1.3, "guard": 0.5},
     "gib": "#b0603c", "stain": "#2a1208"
+  },
+  "mireToad": {
+    "floor": 2, "school": "frost", "weak": "storm", "resist": "frost",
+    "hp": 13, "r": 0.36, "speed": 1, "contact": 1, "flying": false,
+    "behaviour": "leaper",
+    "params": {"sit": [0.7, 1.3], "crouch": 0.35, "leap": 0.55, "reach": 2.6, "leapsPerBreath": [2, 3], "breathRange": 3.8, "breathTell": 0.7, "shots": 5, "cone": 0.9, "shotSpeed": 4.2, "chill": 1.5},
+    "gib": "#9cc4c0", "stain": "#10201e"
+  },
+  "cisternLurker": {
+    "floor": 2, "school": "storm", "weak": "frost", "resist": "storm",
+    "hp": 10, "r": 0.3, "speed": 2.2, "contact": 1, "flying": false,
+    "behaviour": "lurker",
+    "params": {"under": [1.4, 2.4], "rise": 0.55, "volley": 3, "volleyGap": 0.28, "shotSpeed": 4.4, "up": 1.4, "trapped": 2.5, "poolSize": 1},
+    "gib": "#9fe8ff", "stain": null
+  },
+  "lanternJelly": {
+    "floor": 2, "school": "hallow", "weak": "storm", "resist": "ember",
+    "hp": 9, "r": 0.3, "speed": 0.9, "contact": 1, "flying": true,
+    "behaviour": "drifter",
+    "params": {"pulseRange": 2.6, "pulseEvery": [2.5, 3.5], "pulseTell": 0.8, "pulseRadius": 1.7},
+    "gib": "#f6dca0", "stain": null
+  },
+  "cinderSalamander": {
+    "floor": 3, "school": "ember", "weak": "frost", "resist": "ember",
+    "hp": 10, "r": 0.3, "speed": 3.2, "contact": 1, "flying": false,
+    "behaviour": "scurrier",
+    "params": {"zig": 0.45, "angle": 0.7, "pause": [2, 3.5], "pauseTime": 0.35, "trailEvery": 0.22, "trailTime": 2.2},
+    "gib": "#d8702c", "stain": "#2a0c06"
+  },
+  "hexImp": {
+    "floor": 3, "school": "umbral", "weak": "storm", "resist": "ember",
+    "hp": 8, "r": 0.26, "speed": 1, "contact": 1, "flying": true,
+    "behaviour": "blinker",
+    "params": {"hover": [1, 1.8], "vanish": 0.35, "gone": 0.25, "near": [2.5, 4.5], "raise": 0.6, "shotSpeed": 3.2, "hex": 10},
+    "gib": "#b096cc", "stain": null
+  },
+  "rimeDrakeling": {
+    "floor": 3, "school": "frost", "weak": "ember", "resist": "frost",
+    "hp": 34, "r": 0.45, "speed": 1.1, "contact": 1, "flying": false, "elite": true,
+    "behaviour": "drake",
+    "params": {"act": [2.2, 3.2], "breathRange": 4.2, "inhale": 0.8, "shots": 7, "cone": 1, "shotSpeed": 4.4, "chill": 1.8, "takeoff": 0.5, "flySpeed": 4, "landRing": 8},
+    "gib": "#dceaf2", "stain": "#102030"
   }
 }

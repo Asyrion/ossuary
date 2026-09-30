@@ -38,6 +38,12 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   flutter: ['orbit', 'orbitSpeed', 'flareEvery', 'flareTell', 'motes', 'moteSpeed', 'lure'],
   charger: ['sight', 'tell', 'charge', 'stun', 'sparkSpeed'],
   mimic: ['wake', 'lonely', 'tell', 'shots', 'spread', 'shotSpeed', 'hop', 'shut', 'guard'],
+  leaper: ['sit', 'crouch', 'leap', 'reach', 'leapsPerBreath', 'breathRange', 'breathTell', 'shots', 'cone', 'shotSpeed', 'chill'],
+  lurker: ['under', 'rise', 'volley', 'volleyGap', 'shotSpeed', 'up', 'trapped', 'poolSize'],
+  drifter: ['pulseRange', 'pulseEvery', 'pulseTell', 'pulseRadius'],
+  scurrier: ['zig', 'angle', 'pause', 'pauseTime', 'trailEvery', 'trailTime'],
+  blinker: ['hover', 'vanish', 'gone', 'near', 'raise', 'shotSpeed', 'hex'],
+  drake: ['act', 'breathRange', 'inhale', 'shots', 'cone', 'shotSpeed', 'chill', 'takeoff', 'flySpeed', 'landRing'],
 };
 
 /** What is wrong with the foes' data (an empty list when nothing is). */

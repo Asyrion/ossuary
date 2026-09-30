@@ -25,6 +25,8 @@ body{font-family:var(--f-ui);color:var(--ink);-webkit-user-select:none;user-sele
 #vignette{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse 75% 70% at 50% 50%,transparent 55%,rgba(0,0,0,.55) 100%)}
 #hurt{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(150,20,10,.55));opacity:0;transition:opacity .35s}
 /* sight dimmed by a Sporeling's spores (M4): the edges of the view darken, violet-black */
+/* chilled by cold breath or rime (M4): frost at the rim of the view */
+#chill{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(170,215,255,.28) 78%,rgba(225,245,255,.62));opacity:0;transition:opacity .25s}
 #dim{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at var(--x,50%) var(--y,50%),transparent 9vh,rgba(22,8,34,.72) 30vh,rgba(8,2,14,.95) 62vh);opacity:0}
 #hud{position:fixed;inset:0;pointer-events:none}
 #hearts{position:absolute;left:calc(env(safe-area-inset-left,0px) + 16px);top:calc(env(safe-area-inset-top,0px) + 14px);display:flex;gap:4px}
