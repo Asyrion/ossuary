@@ -211,7 +211,10 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   lighting what they pass); `leaper` (Mire Toad: breath of `chill` shots that freeze water they pass), `lurker` (Cistern
   Lurker: hidden under water, `addPool`s its own where the room has none, trapped when it freezes), `drifter` (Lantern
   Jelly: a pulse of light), `scurrier` (Cinder Salamander: burning ground, `updateFoeHazards`, one instanced glow),
-  `blinker` (Hex Imp: its `hex` shot drains mana), `drake` (Rime Drakeling, the elite: breath, flight, a frost ring).
+  `blinker` (Hex Imp: its `hex` shot drains mana), `drake` (Rime Drakeling, the elite: breath, flight, a frost ring); floor 4's
+  (M4.1): `scamper` (Wickmouse: cover to cover, a dart; its candle falls burning, a behaviour's `die` through `foeDied`),
+  `chimer` (Chime Bat: a closing ring marks the mage's spot, then a spark strikes it), `gargoyle` (Gargoyle Whelp: stone
+  that turns most of a blow, two pounces landing in frost), `healer` (Moonstag Fawn: keeps off, heals the hurt round it).
   Templates' `R W H` are roles now: each floor fills them from `foes` in
   `data/floors.json`, on the room's seed, one elite a room at most (`buildRoom`); `?foe=sporeling` (`DEV.foe`, the dev
   menu's Fights switch) puts one foe in every fight. Damage carries a school (`damageEnemy`'s last argument: spells by

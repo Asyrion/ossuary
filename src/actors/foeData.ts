@@ -45,6 +45,11 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   scurrier: ['zig', 'angle', 'pause', 'pauseTime', 'trailEvery', 'trailTime'],
   blinker: ['hover', 'vanish', 'gone', 'near', 'raise', 'shotSpeed', 'hex'],
   drake: ['act', 'breathRange', 'flyEvery', 'inhale', 'shots', 'cone', 'shotSpeed', 'chill', 'takeoff', 'flySpeed', 'landNear', 'flyMax', 'landTime', 'landRing'],
+  // floor 4 (M4.1)
+  scamper: ['near', 'peep', 'dart', 'dartTime', 'hide', 'oilEvery', 'dropFire'],
+  chimer: ['orbit', 'orbitSpeed', 'chimeEvery', 'chimeTell', 'strikeDelay', 'mark', 'range'],
+  gargoyle: ['wake', 'lonely', 'rest', 'tell', 'crouch', 'leap', 'reach', 'pounces', 'ring', 'shotSpeed', 'chill', 'guard'],
+  healer: ['keep', 'healEvery', 'healTell', 'healRange', 'healShare'],
 };
 
 /** What is wrong with the foes' data (an empty list when nothing is). */

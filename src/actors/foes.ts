@@ -13,7 +13,14 @@
      stunned, its wing-cases part and it throws a spark at the mage.
    Mimic (the Urn Mimic): stands among the urns as an urn, and does nothing until the mage comes close, it is struck, or
      no foe in the room has been awake for a while (so a room is never left locked on a hidden one); then it peeks, spits a fan of embers (they light what burns), hops after the mage and shuts
-     again, taking half of any blow while shut. */
+     again, taking half of any blow while shut.
+   Floor 4 (M4.1): Scamper (the Wickmouse) runs from cover to cover a few tiles off the mage, peeps (its candle flares) and
+     darts at the mage, lighting oil it runs through; its candle falls burning when it dies (`die`). Chimer (the Chime Bat)
+     loops round the mage; its bell rings and the ground under the mage is marked with a closing ring, where a spark
+     strikes a moment later (shocking water there). Gargoyle (the Gargoyle Whelp) sits as stone (bolts glance off it:
+     `guard`) until the mage comes near or it has rested; then it wakes, pounces twice, landing in a ring of frost shots,
+     and turns to stone again. Healer (the Moonstag Fawn) keeps away from the mage and near the other foes, and bows to
+     heal the hurt ones round it. */
 import * as THREE from 'three';
 import type { Enemy, PropBox, Room } from '../types';
 import { G, player } from '../state';
@@ -26,8 +33,9 @@ import { glowTex } from '../render/textures';
 import { burst } from '../combat/fx';
 import { spawnShot } from '../combat/projectiles';
 import { addSpores } from '../world/props';
-import { addPool, fireAt, frostAt, poolAt } from '../world/pools';
-import { ringFx } from '../magic/spellFx';
+import { addPool, fireAt, frostAt, poolAt, shockAt } from '../world/pools';
+import { ringFx, strikeFx } from '../magic/spellFx';
+import { updateBossBar } from '../ui/hud';
 import { hurtPlayer } from '../combat/damage';
 import { freeSpotNear, randomSpot } from '../world/rooms';
 import { flame } from '../magic/shapes';
@@ -48,6 +56,7 @@ interface Behaviour {
   /** After its idle: the parts it moves itself. */ pose?(e: Enemy, P: Params): void;
   /** It ran into a wall or a rock this step (`hit`), or didn't. */ bump?(e: Enemy, hit: boolean, P: Params): void;
   /** The lurker's: up out of the water. */ surface?(e: Enemy, P: Params): void;
+  /** As it falls (the wickmouse's candle). */ die?(e: Enemy, P: Params): void;
 }
 const num = (v: number | number[]) => v as number, span = (v: number | number[]) => rand(...(v as [number, number]));
 const light = (e: Enemy) => SCHOOL_LIGHT[e.foe!.school];
@@ -76,6 +85,8 @@ export function updateFoe(e: Enemy, dt: number, a: Aim) {
   e.idle!(e.at!); B.pose?.(e, def.params);
   return face;
 }
+/** A foe in code has fallen: what its behaviour leaves behind. */
+export function foeDied(e: Enemy) { if (e.foe) BEHAVIOURS[e.foe.behaviour].die?.(e, e.foe.params); }
 /** After it moved: whether it ran into a wall or a rock. */
 export function bumpFoe(e: Enemy, hit: boolean) { BEHAVIOURS[e.foe!.behaviour].bump?.(e, hit, e.foe!.params); }
 
@@ -490,6 +501,144 @@ const BEHAVIOURS: Record<string, Behaviour> = {
       const up = e.state === 'fly' ? 1 : e.state === 'land' ? Math.max(0, e.st / num(P.landTime)) : 0;
       e.model!.position.y = lerp(e.model!.position.y, up * .9, .2);
       e.parts!.ground.position.y = .015 - e.model!.position.y; // (its frost circle stays on the ground: it flies from it)
+    },
+  },
+
+  /* floor 4 (M4.1) */
+
+  scamper: {
+    init(e, P) { e.state = 'hide'; e.st = span(P.hide) * .5; e.target = undefined; e.tick = 0; },
+    step(e, dt, a, P, room) {
+      e.st -= dt;
+      const sp = e.foe!.speed * e.speedMul;
+      const oil = () => { if ((e.tick! -= dt) <= 0) { e.tick = num(P.oilEvery); if (poolAt(e.x, e.z)?.kind === 'oil') fireAt(e.x, e.z, .1); } }; // (its candle lights the oil it runs through)
+      if (e.state === 'hide') { // to cover a few tiles off the mage
+        if (!e.target) {
+          const [lo, hi] = P.near as number[]; let spot = freeSpotNear(room, e.x, e.z);
+          for (let i = 0; i < 12; i++) { const s = randomSpot(room), d = Math.hypot(s.x - player.x, s.z - player.z); if (d > lo && d < hi) { spot = freeSpotNear(room, s.x, s.z); break; } }
+          e.target = spot;
+        }
+        const t = e.target, dx = t.x - e.x, dz = t.z - e.z, d = Math.hypot(dx, dz);
+        e.vx = d > .15 ? dx / d * sp : 0; e.vz = d > .15 ? dz / d * sp : 0; oil();
+        if (d < .25 || e.st <= 0) { e.state = 'peep'; e.st = num(P.peep); e.target = undefined; Sfx.at(e.x, e.z).squeak(); }
+        return d > .15 ? Math.atan2(dx, dz) : undefined;
+      } else if (e.state === 'peep') { // it stops, its candle flares: then it darts
+        e.vx = e.vz = 0; e.tele = Math.min(1, 1 - e.st / num(P.peep));
+        if (e.st <= 0) { e.state = 'dart'; e.st = num(P.dartTime); e.tele = 0; e.dir = { x: a.ux, z: a.uz }; }
+      } else if (e.state === 'dart') { // straight at the mage, quick
+        const s = num(P.dart) * e.speedMul; e.vx = e.dir!.x * s; e.vz = e.dir!.z * s; oil();
+        if (e.st <= 0) { e.state = 'hide'; e.st = span(P.hide); }
+        return Math.atan2(e.dir!.x, e.dir!.z);
+      }
+    },
+    bump(e, hit, P) { if (hit && e.state === 'dart') { e.state = 'hide'; e.st = span(P.hide); } },
+    die(e, P) { fireAt(e.x, e.z, num(P.dropFire)); flame(e.x, e.z, SCHOOL_LIGHT.ember, .6); }, // its candle falls, burning
+    pose(e) { e.parts!.flame.scale.multiplyScalar(1 + (e.tele ?? 0) * .9); },
+  },
+
+  chimer: {
+    init(e, P) { e.state = 'flit'; e.fireT = span(P.chimeEvery); e.cycle = Math.random() * Math.PI * 2; e.target = undefined; },
+    step(e, dt, a, P) {
+      // a quick, uneven loop round the mage
+      const R = num(P.orbit) * (1 + .3 * Math.sin((e.cycle ?? 0) * 3));
+      e.cycle = (e.cycle ?? 0) + dt * num(P.orbitSpeed);
+      const tx = player.x + Math.cos(e.cycle) * R, tz = player.z + Math.sin(e.cycle) * R * .8, dx = tx - e.x, dz = tz - e.z, d = Math.hypot(dx, dz) || 1;
+      const sp = e.foe!.speed * e.speedMul * Math.min(1, d) * (e.state === 'chime' ? .3 : 1);
+      e.vx = lerp(e.vx, dx / d * sp, Math.min(1, dt * 5)); e.vz = lerp(e.vz, dz / d * sp, Math.min(1, dt * 5));
+      if (e.state === 'flit') {
+        if ((e.fireT! -= dt) <= 0 && a.dist < num(P.range) && !e.target) { e.state = 'chime'; e.st = num(P.chimeTell); Sfx.at(e.x, e.z).chime(); }
+      } else { // its bell rings; then the ground where the mage stands is marked
+        e.st -= dt; e.tele = Math.min(1, 1 - e.st / num(P.chimeTell));
+        if (e.st <= 0) {
+          e.target = { x: player.x, z: player.z }; e.tick = num(P.strikeDelay); e.state = 'flit'; e.tele = 0; e.fireT = span(P.chimeEvery);
+          ringFx(e.target.x, .06, e.target.z, light(e), num(P.mark), .12, num(P.strikeDelay), true); // (the mark: a ring on the floor, closing on the spot)
+        }
+      }
+      if (e.target && (e.tick! -= dt) <= 0) { // the spark strikes the mark
+        const t = e.target; e.target = undefined;
+        strikeFx({ x: t.x, y: 3, z: t.z }, { x: t.x, y: .05, z: t.z }, light(e));
+        burst(t.x, .2, t.z, light(e), 10, 2, .04); Sfx.at(t.x, t.z).zap(); shockAt(t.x, t.z);
+        if (Math.hypot(player.x - t.x, player.z - t.z) < num(P.mark) * .8 + player.r * .5) hurtPlayer(1, t.x, t.z);
+      }
+    },
+    pose(e) { e.parts!.bell.rotation.z += (e.tele ?? 0) * Math.sin(e.t * 40) * .6; },
+  },
+
+  gargoyle: {
+    init(e, P) { e.state = 'stone'; e.st = span(P.rest) * 1.5; e.guard = num(P.guard); e.contact = 0; e.animRate = 0; e.fireT = 0; },
+    step(e, dt, a, P) {
+      e.st -= dt;
+      if (e.state === 'stone') { // a stone pup on its perch: bolts glance off it
+        e.vx = e.vz = 0; e.kx = e.kz = 0; e.animRate = 0;
+        const stillness = G.enemies.every(o => o.dead || o === e || o.state === 'stone' || o.state === 'hidden'); // (nothing awake: it stirs)
+        e.fireT = stillness ? e.fireT! + dt : 0;
+        if (a.dist < num(P.wake) || e.st <= 0 || e.fireT > num(P.lonely)) { e.state = 'wake'; e.st = num(P.tell); Sfx.at(e.x, e.z).grind(); }
+        return e.face;
+      }
+      if (e.state === 'wake') { // its eyes light and it shakes the stone off
+        e.vx = e.vz = 0; e.animRate = 1; e.tele = Math.min(1, 1 - e.st / num(P.tell));
+        if (e.st <= 0) { e.state = 'crouch'; e.st = num(P.crouch); e.guard = 1; e.contact = e.foe!.contact; e.tele = 0; e.cycle = num(P.pounces); }
+      } else if (e.state === 'crouch') {
+        e.vx = e.vz = 0;
+        if (e.st <= 0) { const d = Math.min(a.dist, num(P.reach)), T = num(P.leap); e.dir = { x: a.ux * d / T, z: a.uz * d / T }; e.state = 'leap'; e.st = T; e.flying = true; Sfx.at(e.x, e.z).drakeWings(); }
+      } else if (e.state === 'leap') {
+        e.vx = e.dir!.x * e.speedMul; e.vz = e.dir!.z * e.speedMul;
+        if (e.st <= 0) { // down in a ring of frost
+          e.flying = false; const n = num(P.ring), off = Math.random() * Math.PI;
+          for (let i = 0; i < n; i++) { const t = off + i / n * Math.PI * 2; spawnShot(e.x + Math.cos(t) * .35, e.z + Math.sin(t) * .35, Math.cos(t), Math.sin(t), num(P.shotSpeed), light(e), .4, .8, { chill: num(P.chill) }); }
+          ringFx(e.x, .08, e.z, light(e), .2, 1.4, .35, true); frostAt(e.x, e.z, .8); Sfx.at(e.x, e.z).stoneLand(); G.shake = Math.max(G.shake, .1);
+          e.cycle! -= 1; if (e.cycle! > 0) { e.state = 'crouch'; e.st = num(P.crouch) + .25; } else { e.state = 'settle'; e.st = .6; }
+        }
+        return Math.atan2(e.dir!.x, e.dir!.z);
+      } else if (e.state === 'settle') { // and back to stone
+        e.vx = e.vz = 0;
+        if (e.st <= 0) { e.state = 'stone'; e.st = span(P.rest); e.guard = num(P.guard); e.contact = 0; Sfx.at(e.x, e.z).grind(); }
+      }
+    },
+    pose(e, P) {
+      const p = e.parts!, stone = e.state === 'stone', k = e.state === 'leap' ? 1 - e.st / num(P.leap) : 0;
+      e.model!.position.y = Math.sin(k * Math.PI) * .5;
+      (p.shine as THREE.Sprite).material.opacity = stone ? 0 : .7; p.eyeL.scale.y = p.eyeR.scale.y = stone ? .12 : p.eyeL.scale.y; // (asleep in the stone)
+      p.wings.rotation.z = e.state === 'leap' ? -.9 : 0; p.wings2.rotation.z = e.state === 'leap' ? .9 : 0;
+    },
+  },
+
+  healer: {
+    init(e, P) { e.state = 'wander'; e.fireT = span(P.healEvery); },
+    step(e, dt, a, P) {
+      const others = G.enemies.filter(o => o !== e && !o.dead && o.spawn <= 0 && !o.hidden);
+      if (e.state === 'wander') { // away from the mage, near the others, never quite still
+        let tx = 0, tz = 0;
+        if (a.dist < num(P.keep)) { tx = -a.ux; tz = -a.uz; }
+        else if (others.length) {
+          const cx = others.reduce((s, o) => s + o.x, 0) / others.length, cz = others.reduce((s, o) => s + o.z, 0) / others.length, dx = cx - e.x, dz = cz - e.z, d = Math.hypot(dx, dz);
+          if (d > 1.5) { tx = dx / d; tz = dz / d; }
+        }
+        tx += Math.sin(e.t * 1.1 + e.x) * .35; tz += Math.cos(e.t * .9 + e.z) * .35;
+        const l = Math.hypot(tx, tz) || 1, sp = e.foe!.speed * e.speedMul * Math.min(1, l);
+        e.vx = lerp(e.vx, tx / l * sp, Math.min(1, dt * 4)); e.vz = lerp(e.vz, tz / l * sp, Math.min(1, dt * 4));
+        if ((e.fireT! -= dt) <= 0) {
+          if (others.some(o => o.hp < o.maxHp && Math.hypot(o.x - e.x, o.z - e.z) < num(P.healRange))) { e.state = 'bow'; e.st = num(P.healTell); Sfx.at(e.x, e.z).jellyGlow(); }
+          else e.fireT = .5;
+        }
+        return Math.hypot(e.vx, e.vz) > .1 ? Math.atan2(e.vx, e.vz) : undefined;
+      }
+      // it bows, its antlers brighten; then their light heals the hurt foes round it
+      e.vx = e.vz = 0; e.st -= dt; e.tele = Math.min(1, 1 - e.st / num(P.healTell));
+      if (e.st <= 0) {
+        const R = num(P.healRange);
+        for (const o of others) if (o.hp < o.maxHp && Math.hypot(o.x - e.x, o.z - e.z) < R) {
+          o.hp = Math.min(o.maxHp, o.hp + o.maxHp * num(P.healShare)); if (o.isBoss) updateBossBar(o);
+          burst(o.x, .8, o.z, light(e), 8, 1.2, .04);
+        }
+        ringFx(e.x, .1, e.z, light(e), .2, R, .5, true); Sfx.at(e.x, e.z).fawnHeal();
+        e.state = 'wander'; e.tele = 0; e.fireT = span(P.healEvery);
+      }
+    },
+    pose(e) {
+      const p = e.parts!, moving = Math.hypot(e.vx, e.vz) > .1, tele = e.tele ?? 0;
+      (p.aura as THREE.Sprite).material.opacity = .3 + tele * .65; p.head.rotation.x = tele * .5;
+      p.legs.children.forEach((l, i) => { l.rotation.x = moving ? Math.sin(e.t * 13 + (i === 0 || i === 3 ? 0 : Math.PI)) * .5 : 0; });
     },
   },
 

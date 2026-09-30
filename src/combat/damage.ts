@@ -21,6 +21,7 @@ import { gainMana } from '../magic/spells';
 import { damageTakenMul } from '../magic/status';
 import { dummyHit, floatText, inflict, shockLeap } from '../magic/statusFx';
 import { fireAt } from '../world/pools';
+import { foeDied } from '../actors/foes';
 
 /** Hurt a foe, knocking it along (dx, dz); `kbMul` scales the knockback (the Ram's Skull on bolts); `by` says
     what struck it (a foe the cantrip puts to rest gives mana back); `school`, the magic it struck with, if any: a foe in
@@ -53,7 +54,7 @@ function killEnemy(e: Enemy, withBoss = false) {
   e.dead = true; scene.remove(e.group); disposeTree(e.group); G.stats.kills++;
   if (withBoss) { burst(e.x, .45, e.z, gibOf(e), 12, 3, .08); return; } // its master fell: it crumbles, and drops nothing
   burst(e.x, e.isBoss ? 1 : .45, e.z, gibOf(e), e.isBoss ? 60 : 16, e.isBoss ? 6 : 3.5, e.isBoss ? .12 : .08);
-  if (e.foe) burst(e.x, .5, e.z, SCHOOL_LIGHT[e.foe.school], 10, 2.2, .04); // (its school's light goes out of it)
+  if (e.foe) { burst(e.x, .5, e.z, SCHOOL_LIGHT[e.foe.school], 10, 2.2, .04); foeDied(e); } // (its school's light goes out of it; what it leaves behind)
   const stain = stainOf(e);
   if (stain) addDecal(e.x, e.z, stain, e.isBoss ? 1.6 : .7);
   if (player.stats.effects.has('deathBurst')) spawnBurst(e.x, e.z, 4); // Saint's Knucklebone
