@@ -278,7 +278,7 @@ test('the end screen sums up the run, and replays its seed', async ({ page }) =>
     title: document.getElementById('endTitle')!.textContent, floor: document.getElementById('endFloor')!.textContent,
     kills: document.getElementById('endKills')!.textContent, seed: document.getElementById('endSeed')!.textContent,
     time: document.getElementById('endTime')!.textContent, carried: document.querySelectorAll('#endItems li').length,
-    obols: Number(document.getElementById('endObols')!.textContent),
+    obols: Number(document.getElementById('endObols')!.textContent), text: document.getElementById('endText')!.textContent,
   }));
   // a test room ends the run as a win when the mage takes the way down
   await page.evaluate(() => {
@@ -291,6 +291,7 @@ test('the end screen sums up the run, and replays its seed', async ({ page }) =>
   await page.screenshot({ path: 'test-results/smoke-end.png' });
   expect(won).toMatchObject({ shown: true, floor: '1 of 5', kills: '3', seed: 'ENDRUN', carried: 2 }); // twin staff replaced the wand
   expect(won.time).toMatch(/^\d+:\d\d$/);
+  expect(won.text).toMatch(/Wardens' vault.*Kaelith's seal/); // (M4.2: the setting in the text)
 
   // replay: a full run on the same seed; then fall in its first fight
   await page.click('#btnReplay');
@@ -305,6 +306,31 @@ test('the end screen sums up the run, and replays its seed', async ({ page }) =>
   const lost = await summary();
   expect(lost).toMatchObject({ shown: true, floor: '1 of 5', seed: 'ENDRUN', carried: 1 });
   expect(lost.title).not.toBe(won.title);
+  expect(lost).toMatchObject({ title: 'Asyrion fell in the vault', text: expect.stringMatching(/^Asyrion's descent ended on floor 1, The Ossuary/) });
+  expect(errors).toEqual([]);
+});
+
+test('the setting (M4.2): the title names the Gate of Uzulim and Asyrion; the first floor opens beneath the Wardens\' chapel, and the Warden is one of them', async ({ page }) => {
+  await page.addInitScript('window.__manual = true');
+  await page.goto('/?seed=GATE01');
+  await page.waitForFunction(() => !!(window as unknown as W).__game, null, { timeout: 30_000 });
+  const title = await page.evaluate(() => ({
+    heading: document.querySelector('#scrTitle h1')!.textContent, place: document.querySelector('#scrTitle .place')!.textContent,
+    intro: document.querySelector('#scrTitle .place + p')!.textContent,
+  }));
+  expect(title).toEqual({ heading: 'Ossuary', place: 'Beneath the Gate of Uzulim', intro: expect.stringMatching(/^Asyrion's first descent into the Wardens' vault/) });
+  await page.screenshot({ path: 'test-results/smoke-title.png' });
+  await page.click('#btnStart');
+  const banner = await page.evaluate(() => [document.querySelector('#banner .t')!.textContent, document.querySelector('#banner .s')!.textContent]);
+  expect(banner).toEqual(['The Ossuary', "Beneath the Wardens' chapel, below the Gate of Uzulim"]);
+  // the floor-1 boss's banner names what it was
+  const errors = await start(page, '?seed=GATE01&boss=warden');
+  const warden = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as { rooms(): { type: string; plan: { id: number } }[]; warp(id: number): void; sim(s: number): void };
+    g.warp(g.rooms().find(r => r.type === 'boss')!.plan.id); g.sim(.3);
+    return [document.querySelector('#banner .t')!.textContent, document.querySelector('#banner .s')!.textContent];
+  });
+  expect(warden).toEqual(['The Hollow Warden', 'A Warden of Uzulim who never came back up']);
   expect(errors).toEqual([]);
 });
 

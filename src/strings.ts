@@ -6,7 +6,8 @@ export const STR = {
   pageTitle: 'Ossuary, an Eda prototype',
   title: {
     heading: 'Ossuary',
-    intro: 'A first descent beneath Eda. Clear the crypt, take the relic from its altar, and put the warden below to rest.',
+    place: 'Beneath the Gate of Uzulim',
+    intro: "Asyrion's first descent into the Wardens' vault. Clear the crypt, take the relic from its altar, and put the fallen Warden below to rest.",
     start: 'Descend',
     note: 'Prototype 0.4. Drop any Tripo .glb onto this page to play as it.',
   },
@@ -30,9 +31,9 @@ export const STR = {
   },
   end: {
     won: 'The descent is complete',
-    lost: 'You fell in the ossuary',
-    wonText: 'Every floor cleared, and every keeper put to rest.',
-    lostText: (floor: number, name: string) => `Your descent ended on floor ${floor}, ${name}.`,
+    lost: 'Asyrion fell in the vault',
+    wonText: "Every floor of the Wardens' vault cleared, and every keeper put to rest. Below the last, Kaelith's seal still holds.",
+    lostText: (floor: number, name: string) => `Asyrion's descent ended on floor ${floor}, ${name}.`,
     floor: 'Deepest floor', time: 'Time', kills: 'Foes put to rest', obols: 'Obols found', seed: 'Seed', artifacts: 'Artifacts carried',
     floorValue: (floor: number, floors: number) => `${floor} of ${floors}`,
     again: 'Descend again',
@@ -40,15 +41,15 @@ export const STR = {
   },
   /** Banner when a floor begins, floor 1 first. */
   floors: [
-    ['The Ossuary', 'Beneath the old chapel of Eda'],
+    ['The Ossuary', "Beneath the Wardens' chapel, below the Gate of Uzulim"],
     ['The Drowned Catacombs', "Where the chapel's water gathers"],
-    ['The Burning Scriptorium', 'Where the chapel kept its books'],
-    ['The Gilded Reliquary', 'Where the chapel hid its relics'],
+    ['The Burning Scriptorium', 'Where the Wardens kept their books'],
+    ['The Gilded Reliquary', 'Where the Wardens sealed what they took'],
     ["The Ferryman's Shore", 'Where the dead wait to cross'],
   ] as Banner[],
   /** The bosses: name and line on the boss bar banner, the banner when it calls help, the one when it dies. */
   bosses: {
-    warden: { name: 'The Hollow Warden', sub: 'Keeper of the lower vault', summon: 'The warden calls its dead', dead: 'The warden is still' },
+    warden: { name: 'The Hollow Warden', sub: 'A Warden of Uzulim who never came back up', summon: 'The Warden calls its dead', dead: 'The Warden is still at last' },
     abbess: { name: 'The Drowned Abbess', sub: 'She still keeps the hours below', summon: 'The abbess calls the drowned lights', dead: 'The abbess sinks for good' },
     pyre: { name: 'The Pyre Knight', sub: 'Sworn to the burning books', summon: 'The knight calls the hounds', dead: 'The knight burns out' },
     hart: { name: 'The Hallowed Hart', sub: "It keeps the relics' light", summon: 'The hart calls its fawns', dead: 'The hart lies down at last' },
@@ -64,10 +65,10 @@ export const STR = {
     altar: ['A bone altar', 'It asks for a heart'] as Banner,
     altarRefuses: ['The altar refuses', 'You have no heart to spare'] as Banner,
     merchant: ['The Bound Shade', 'He deals in the obols of the dead'] as Banner,
-    vault: ['The Vault', 'What the dead would not give up'] as Banner,
+    vault: ['The Vault', 'What the Wardens would not give up'] as Banner,
     vaultWarden: ["The vault's warden wakes", 'It will not give up the hoard'] as Banner,
     gildedRelic: ['A relic in the reliquary', 'Fortune favours the bold'] as Banner,
-    secret: ['A forgotten cell', 'Someone studied the dark here, long ago'] as Banner,
+    secret: ['A forgotten cell', 'A Warden studied the dark here, long ago'] as Banner,
     library: ['The Library', 'Torn pages whisper on their lecterns'] as Banner,
     pageFalls: ['A torn page', 'It whispers of a spell'] as Banner,
     shrine: (price: number): Banner => ['A shrine', `For ${price} obols it cleanses a curse`],
@@ -167,7 +168,7 @@ export const STR = {
       },
       key: {
         name: 'Bone key', kind: 'Key', effect: 'Unbinds a warded reliquary chest, or a vault\'s ward',
-        lore: 'Carved by the sextons from a finger bone, for they knew that wards are woven by the dead and answer to the dead. One key, one ward.',
+        lore: "Carved by the Wardens' sextons from a finger bone, for they knew that wards are woven by the dead and answer to the dead. One key, one ward.",
       },
       glyph: {
         name: 'Glyph stone', kind: 'Blast glyph', effect: 'One more glyph to chalk on the floor (Space); your own bolt sets it off',
@@ -191,7 +192,7 @@ export const STR = {
       },
       chest: {
         name: 'Reliquary chest', kind: 'Container', effect: 'A bone key unbinds its ward; a blast breaks it, and burns half of what is inside',
-        lore: 'A reliquary sealed with a priest\'s ward so that no thief could open it. A bone key asks the ward politely; a blast does not, and the relics pay for it.',
+        lore: 'A reliquary sealed with a Warden\'s ward so that no thief could open it. A bone key asks the ward politely; a blast does not, and the relics pay for it.',
       },
       paleSoul: {
         name: 'Pale soul mote', kind: 'Soul', effect: 'Kept beside your hearts: takes the next hit for you. A spell short of mana burns one for the rest',
@@ -207,11 +208,11 @@ export const STR = {
       },
       shard: {
         name: 'Lodestone shard', kind: 'Magic', effect: 'Ends every spell\'s cooldown and restores 25 mana; left lying while your spells are ready and your mana full',
-        lore: 'A splinter of the stones the sextons set in the crypt walls to hold the old wards. It still pulls: at magic, at breath, at whatever the mage has spent.',
+        lore: 'A splinter of the stones the Wardens set in the vault walls to hold the old wards. It still pulls: at magic, at breath, at whatever the mage has spent.',
       },
       gilded: {
         name: 'Gilded reliquary', kind: 'Container', effect: 'Only a bone key opens it; a relic lies inside',
-        lore: 'Gilded for a relic that mattered, and sealed with a golden ward that no blast has ever broken. Whatever lies inside was worth the gold.',
+        lore: 'Gilded by the Wardens for a relic that mattered, and sealed with a golden ward that no blast has ever broken. Whatever they took from the wild and locked inside was worth the gold.',
       },
     } as Record<string, { name: string; kind: string; effect: string; lore: string }>,
   },

@@ -97,7 +97,7 @@
     "effects": ["unhurtHeal"], "color": "#f0d080", "icon": "oath" },
 
   { "id": "sextons_keyring", "name": "Sexton's Keyring", "kind": "passive",
-    "lore": "The sexton kept the keys to every door, gate and crypt of the chapel, and to some of the doors below. Warded locks still remember him, and step aside.",
+    "lore": "The sexton kept the keys to every door, gate and crypt of the Wardens' chapel, and to some of the doors below. Warded locks still remember him, and step aside.",
     "text": "Three bone keys, and a vault's ward yields to you once a floor", "pools": ["treasure", "drop", "merchant"],
     "gives": { "keys": 3 }, "effects": ["freeVault"], "color": "#d8ccb0", "icon": "keyring" },
   { "id": "misers_purse", "name": "Miser's Purse", "kind": "passive",
