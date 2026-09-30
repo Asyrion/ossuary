@@ -11,6 +11,7 @@ import { placeProp } from '../world/props';
 import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
 import { wardFoe } from '../actors/wardShield';
+import { fennexInfo, growFennex } from '../combat/fennex';
 import { callWanderer } from '../items/wanderer';
 import { STR } from '../strings';
 import { FOES, FOE_IDS, pickFoe } from '../actors/foeData';
@@ -206,6 +207,8 @@ function build() {
 
   // artifacts: every one in the data, marked when held
   artBox = section(pages.mage, S.artifacts);
+  // Fen-Nex (M4.2): bound by its artifact above; grown a stage here, as if a floor had gone by
+  section(pages.mage, S.fennex).append(btn(S.growFennex, () => { if (fennexInfo()) growFennex(); else toast(S.noFennex, 2); }));
 
   // spells: every one in the data, learned into the chosen slot; mana
   spellBox = section(pages.magic, S.spells);

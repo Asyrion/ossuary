@@ -562,9 +562,9 @@ export type ModelOptionId = (typeof MODEL_OPTIONS)[number]['id'];
 
 /** A familiar the owner drew (2026-09-30), rebuilt in code: a spectral fox of indigo fur, cyan runes and gold swirls
     along its flanks, glowing eyes and paws, and a great starry tail streaming behind it. It trots in place. */
-function runeFox(): Built {
+function runeFox(sideOn = true): Built {
   const g = new THREE.Group(), fox = new THREE.Group(); g.add(fox);
-  fox.rotation.y = Math.PI / 2; // (side on, as drawn: built facing +Z, it walks to the right)
+  if (sideOn) fox.rotation.y = Math.PI / 2; // (side on, as drawn: built facing +Z, it walks to the right)
   const fur = std(0x3a2c7a), furDark = std(0x241a52), furLight = std(0x5a6ec8), cheek = std(0xc8d8ff);
   const cyan = lit(0x8ff0ff), gold = lit(0xffd878), violet = lit(0xb080ff), star = lit(0xffffff);
   // the body: torso, haunch and a pale chest with a ruff of fur down it
@@ -634,8 +634,73 @@ function runeFox(): Built {
   } };
 }
 
+/** Fen-Nex in its full shape (M4.2, the owner's Fen-Nex, "fox man"): a long white beast between fox, cat and dragon, its
+    fur blown back into feathers tipped with flame, its legs plated dark blue with red spiral runes, eyes of ember gold, a
+    long feathered tail burning at its tip; it breathes Ember. Built facing +Z; it runs in place. `sideOn` turns it to
+    walk to the right, as the gallery shows the familiars. */
+function fenNex(sideOn = true): Built {
+  const g = new THREE.Group(), beast = new THREE.Group(); g.add(beast); if (sideOn) beast.rotation.y = Math.PI / 2;
+  const fur = std(0xf4f0ea), shade2 = std(0xd8d2c8), plate = std(0x1c2a5a, { roughness: .5, metalness: .3 }), dark = std(0x10162e);
+  const flame = lit(0xff8a2a), flameHot = lit(0xffd070), rune = lit(0xff3a2a), eyeM = lit(0xffc040);
+  const body = new THREE.Group(); body.position.y = .55; beast.add(body);
+  part(body, sphere(.25, 14, 10), fur, [0, 0, 0], { scale: [.72, .72, 2] });
+  part(body, sphere(.2, 12, 8), shade2, [0, -.06, .28], { scale: [.85, .85, 1] });
+  // feathers blown back along its back and flanks, each tipped with flame
+  const tips: THREE.Mesh[] = [];
+  for (let i = 0; i < 9; i++) for (const s of [-1, 0, 1]) {
+    if (s === 0 && i % 2) continue;
+    const z = .36 - i * .09, y = .16 - Math.abs(s) * .05, x = s * .13;
+    part(body, new THREE.ConeGeometry(.045, .2, 4), fur, [x, y, z], { rot: [-1.9, 0, s * .5] });
+    tips.push(part(body, new THREE.ConeGeometry(.022, .07, 4), i % 3 ? flame : flameHot, [x + s * .05, y + .06, z - .1], { rot: [-1.9, 0, s * .5] }));
+  }
+  // neck and head: a cat's round skull, a fox's snout and tall ears, a dragon's swept-back horns; ember eyes
+  limb(beast, [0, .66, .42], [0, .86, .62], .1, fur, .12);
+  const head = new THREE.Group(); head.position.set(0, .9, .68); beast.add(head);
+  part(head, sphere(.14, 12, 10), fur, [0, 0, 0], { scale: [1, .9, 1.05] });
+  part(head, new THREE.ConeGeometry(.075, .22, 8), fur, [0, -.03, .17], { rot: [Math.PI / 2, 0, 0], scale: [1, 1, .75] });
+  part(head, sphere(.026, 6, 5), dark, [0, -.02, .28]);
+  for (const s of [-1, 1]) {
+    part(head, new THREE.ConeGeometry(.05, .2, 4), fur, [.07 * s, .14, -.02], { rot: [-.3, 0, -.3 * s] });
+    part(head, new THREE.ConeGeometry(.028, .12, 4), flame, [.07 * s, .16, 0], { rot: [-.3, 0, -.3 * s] });
+    limb(head, [.06 * s, .06, -.06], [.12 * s, .12, -.26], .022, plate, .01); // (swept-back horns)
+    part(head, sphere(.028, 8, 6), eyeM, [.07 * s, .03, .1], { scale: [1, .6, 1.3] });
+  }
+  const mouth = glow(0xff8a2a, .5, 0); mouth.position.set(0, -.04, .32); head.add(mouth);
+  // legs plated dark blue, a red spiral rune on each plate
+  const legs = [[1, .3, 0], [-1, .3, Math.PI], [1, -.3, Math.PI], [-1, -.3, 0]].map(([s, z, phase]) => {
+    const l = new THREE.Group(); l.position.set(.11 * s, .5, z); beast.add(l);
+    limb(l, [0, 0, 0], [0, -.24, .03], .05, fur, .045); limb(l, [0, -.24, .03], [0, -.46, 0], .045, plate, .04);
+    part(l, new THREE.TorusGeometry(.03, .006, 4, 12, Math.PI * 1.6), rune, [.045 * s, -.33, .015], { rot: [0, s * Math.PI / 2, 0] });
+    part(l, sphere(.045, 6, 5), plate, [0, -.47, .03], { scale: [1, .5, 1.4] });
+    return { l, phase };
+  });
+  // the tail: long and feathered, burning at its tip
+  const TAIL = 8, segs = Array.from({ length: TAIL }, (_, i) => {
+    const k = i / (TAIL - 1), s = new THREE.Group(); beast.add(s);
+    part(s, sphere(.06 + .05 * Math.sin(k * Math.PI), 8, 6), fur, [0, 0, 0], { scale: [1, 1, 1.6] });
+    if (i % 2) for (const sd of [-1, 1]) part(s, new THREE.ConeGeometry(.03, .14, 4), fur, [sd * .05, .03, -.04], { rot: [-2.2, 0, sd * .6] });
+    return { s, k };
+  });
+  const tipFire = new THREE.Group(); beast.add(tipFire);
+  part(tipFire, new THREE.ConeGeometry(.06, .2, 6), flame, [0, .06, 0]); part(tipFire, new THREE.ConeGeometry(.035, .13, 6), flameHot, [0, .05, 0]);
+  const tipGlow = glow(0xff8a2a, .7, .6); tipFire.add(tipGlow);
+  const embers = motes(g, 0xff9a3a, 5, .6, .7, .016);
+  return { group: g, shadow: 1, parts: { head, mouth } as Record<string, THREE.Object3D>, idle: t => {
+    const w = t * 6;
+    legs.forEach(({ l, phase }) => { l.rotation.x = Math.sin(w + phase) * .5; });
+    body.position.y = .55 + Math.abs(Math.sin(w)) * .02; head.position.y = .9 + Math.abs(Math.sin(w)) * .015;
+    for (const { s, k } of segs) s.position.set(Math.sin(t * 2.2 - k * 2.5) * .12 * k, .6 + .25 * k + Math.sin(t * 2.6 - k * 3) * .03 * k, -.5 - .55 * k);
+    const tip = segs[TAIL - 1].s.position; tipFire.position.set(tip.x, tip.y + .05, tip.z - .08); tipFire.scale.set(1, .85 + Math.sin(t * 17) * .15, 1);
+    tips.forEach((f, i) => { f.scale.setScalar(.8 + Math.sin(t * 13 + i * 1.3) * .25); });
+    embers(t, .6);
+  } };
+}
+
+/** Fen-Nex as it is at `stage` (1 and 2: the Rune Fox, 3: its full shape), facing +Z, for the game (combat/fennex.ts). */
+export const fennexLook = (stage: number) => stage >= 3 ? fenNex(false) : runeFox(false);
+
 /** Familiars the mage could bind, looks only (names and notes in STR.familiars). */
-export const FAMILIAR_OPTIONS = [{ id: 'runeFox', build: runeFox }] as const satisfies readonly { id: string; build: () => Built }[];
+export const FAMILIAR_OPTIONS = [{ id: 'runeFox', build: () => runeFox() }, { id: 'fenNex', build: () => fenNex() }] as const satisfies readonly { id: string; build: () => Built }[];
 
 /* ---------- the gallery ---------- */
 

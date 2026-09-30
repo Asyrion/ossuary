@@ -59,6 +59,7 @@ import { elementDev, sapMul } from './world/mechanisms';
 import { wardFoe } from './actors/wardShield';
 import { callWanderer, wandererState } from './items/wanderer';
 import { dragonInfo } from './actors/pillarDragon';
+import { fennexInfo, growFennex } from './combat/fennex';
 import { fullness, mostDrunk } from './magic/drinking';
 import { forgetKnowledge, knowledgeNow, setStage } from './magic/memory';
 import type { Stage } from './magic/knowledge';
@@ -275,6 +276,8 @@ function installDevHooks() {
     callWanderer() { callWanderer(); }, get wanderer() { return wandererState(); },
     /** M4.2: the Pillar Dragon's pillars, whether it is on one, how high its head is, and whether the pillars it raised are up. */
     get dragon() { return dragonInfo(); },
+    /** M4.2: Fen-Nex (its stage, where it is, whether it hunts), and growing it a stage. */
+    get fennex() { return fennexInfo(); }, growFennex() { growFennex(); },
     /** Fire, frost or shock landing at (x, z), as a spell's would: lights braziers and candles, charges rune stones,
         sets lodestones leaping. */
     element: (kind: StatusKind | 'sanct' | 'hex', x = player.x, z = player.z - 1.5) => elementDev(kind, x, z),

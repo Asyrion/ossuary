@@ -41,6 +41,7 @@ export const G = {
     pages: new Rng(0), forgotten: [] as string[],
     /** M4.2: the seeded stream for the Wandering Merchant (when he comes, what he sells), and whether he has come. */
     wanderer: new Rng(0), wandererMet: false,
+    /** M4.2: the floor Fen-Nex was bound on (it grows a stage a floor), while it is. */ fennexFrom: undefined as number | undefined,
   },
   shake: 0,
   simClock: 0,
