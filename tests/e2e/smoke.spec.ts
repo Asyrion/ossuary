@@ -1785,7 +1785,7 @@ test('the room kit\'s variety: rooms draw different kinds, and every kind of wal
   type GV = { sim(sec: number, draw?: boolean): void; kinds: K | null; forceKinds(k: Partial<K>): void; prop(kind: string, x: number, z: number): boolean;
     burn(x: number, z: number, r?: number): void; renderInfo(): { calls: number }; rooms(): { look: { kinds?: K; kit?: Record<string, Record<string, number>> } }[];
     current: { cx: number; cz: number } };
-  for (const floor of [1, 2, 3]) {
+  for (const floor of [1, 2, 3, 4, 5]) { // (floors 4 and 5 from M4.1)
     const errors = await start(page, `?seed=K3F9QX&floor=${floor}`);
     const r = await page.evaluate(() => {
       const g = (window as unknown as { __game: GV }).__game, kit = g.rooms()[0].look.kit!;
@@ -1826,7 +1826,7 @@ test('the room kit\'s objects: every pile and object, urns, pedestals, pillars a
     };
   });
   const kinds = ['bones', 'briar', 'cask', 'desk', 'glowcap', 'pew', 'roots', 'rubble', 'sacks', 'scrolls', 'skulls', 'tree', 'web'];
-  for (const floor of [1, 2, 3]) {
+  for (const floor of [1, 2, 3, 4, 5]) {
     const errors = await start(page, `?seed=K3F9QX&floor=${floor}`);
     const kit = await objects();
     expect(kit.kinds, `floor ${floor}`).toEqual(kinds);

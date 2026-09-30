@@ -188,8 +188,8 @@ describe('floor generator', () => {
     expect(rgb(floor.base) && rgb(wall.brick)).toBe(true);
     for (const c of [floor.mortar, wall.mortar, torch.flame, torch.light, light.sky, light.ground, light.moon]) expect(c).toMatch(hex);
     expect(floor.stain).toMatch(/^\d+,\d+,\d+$/);
-    expect(['bones', 'puddles', 'ash']).toContain(floor.decor);
-    expect(['none', 'moss', 'soot']).toContain(wall.stains);
+    expect(['bones', 'puddles', 'ash', 'wax']).toContain(floor.decor);
+    expect(['none', 'moss', 'soot', 'gilt']).toContain(wall.stains);
     expect(['bracket', 'lantern', 'brazier']).toContain(torch.style);
   });
 

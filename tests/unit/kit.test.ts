@@ -46,7 +46,7 @@ describe('the room kit\'s kinds (M3.5 step 3)', () => {
   });
 
   it('names unknown kinds and empty parts', () => {
-    expect(validateKit('x', { wall: { marble: 1 } } as unknown as KitWeights)).toEqual(expect.arrayContaining([
-      'look "x": kit.wall names unknown kind "marble"', 'look "x": kit.floor lists no kinds']));
+    expect(validateKit('x', { wall: { velvet: 1 } } as unknown as KitWeights)).toEqual(expect.arrayContaining([
+      'look "x": kit.wall names unknown kind "velvet"', 'look "x": kit.floor lists no kinds']));
   });
 });
