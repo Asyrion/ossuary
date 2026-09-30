@@ -1897,7 +1897,7 @@ test('the room kit\'s pickups and special rooms: every drop, coffers and chests 
 });
 
 test('foes in code (M4): the Sporeling fills the fights, hops, swells and puffs spores that sting and dim the sight, takes half again from Ember and half from Frost, and the bestiary keeps what was found', async ({ page }) => {
-  type Foe = { type: string; state: string; tele?: number; hp: number; mats: unknown[] };
+  type Foe = { type: string; state: string; tele?: number; hp: number; mats: unknown[]; contact: number };
   type GS = { sim(sec: number, draw?: boolean): void; warp(id: number): void; renderInfo(): { calls: number }; forgetBestiary(): void;
     hit(i: number, dmg: number, school?: string): number; bestiary: Record<string, { met: boolean; weak: boolean; resist: boolean }>;
     player: { x: number; z: number; hp: number; maxHp: number; invuln: number; dim: number }; enemies: Foe[];
@@ -1911,6 +1911,9 @@ test('foes in code (M4): the Sporeling fills the fights, hops, swells and puffs 
     let swelled = false, puffed = false;
     for (let i = 0; i < 100 && !puffed; i++) { g.sim(.1); swelled ||= g.enemies.some(e => e.state === 'swell' && (e.tele ?? 0) > 0); puffed = (g.current.spores ?? []).some(s => s.sting); }
     const cloud = (g.current.spores ?? []).find(s => s.sting)!;
+    // (a sting lands only on a mage not reeling from another blow: the Sporeling that puffed it stands in its cloud, and
+    // its touch would come first, so the foes touch no one while the mage steps in)
+    for (const f of g.enemies) f.contact = 0;
     g.player.x = cloud.x; g.player.z = cloud.z; g.player.invuln = 0; g.sim(.1);
     const dim = g.player.dim, e = g.enemies[0];
     const before = e.hp; g.hit(0, 2, 'ember'); const weak = before - e.hp;
@@ -2055,12 +2058,13 @@ test('foes in code (M4): floor 3\'s salamander lays burning ground that burns th
       }
     }
     // stand in a hex's way
-    const mana = g.player.mana; let drained = 0;
-    for (let i = 0; i < 160 && !drained; i++) { const s = g.shots.find(s => s.hex) as { x?: number; z?: number } | undefined; if (s) { g.player.x = s.x!; g.player.z = s.z!; g.player.invuln = 0; } g.sim(.05); drained = mana - g.player.mana; }
+    const mana = g.player.mana = 100; let drained = 0; // (full, so no mana comes back meanwhile)
+    for (const f of g.enemies) (f as Foe & { contact: number }).contact = 0; // (an imp's touch, beside its fresh throw, would come first)
+    for (let i = 0; i < 160 && drained < 5; i++) { const s = g.shots.find(s => s.hex) as { x?: number; z?: number } | undefined; if (s) { g.player.x = s.x!; g.player.z = s.z!; g.player.invuln = 0; } g.sim(.05); drained = mana - g.player.mana; }
     return { hidden, invisible, from, hexes, drained };
   });
   expect(imp.hidden).toBe(true); expect(imp.invisible).toBe(true); expect(imp.hexes).toBeGreaterThan(0);
-  expect(imp.from).toBeGreaterThan(1.5); expect(imp.drained).toBeGreaterThanOrEqual(5); // (a hex's drain, less what mana came back meanwhile)
+  expect(imp.from).toBeGreaterThan(1.5); expect(imp.drained).toBeGreaterThanOrEqual(5); // (a hex's drain)
   // the drakeling: one a room on its floor, however many heavies the template has
   const e3 = await start(page, '?seed=K3F9QX&floor=3&room=twin_hounds');
   const count = await page.evaluate(() => { const g = (window as unknown as { __game: GF }).__game; g.warp(1); g.sim(.3); return g.enemies.filter(e => e.type === 'rimeDrakeling').length; });
