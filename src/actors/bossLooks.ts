@@ -214,14 +214,97 @@ export function anglerLook(): BossBuilt {
   } };
 }
 
+/** The War-Tiger (M4.2, from the Eda lore; Frost): a great white-maned tiger with grey stripes, armoured in plates of
+    bronze and stone: a pauldron on each shoulder, a slab of carved stone along its back and a bronze brow, each with a rune
+    of frost cut in it. Its fight (bosses.ts) stands it still as a statue, moves its legs as it prowls and pounces, a
+    forepaw as it swipes, its head and jaw as it roars; each plate is a part of its own (`plate0` to `plate3`) that a blast,
+    a Shatter or enough blows knock off. */
+export function tigerLook(): BossBuilt {
+  const F = SCHOOL_LIGHT.frost, g = new THREE.Group(), fur = std(0xebe5d8), pale = std(0xf8f4ec), stripe = std(0x4c4c58), nose = std(0x4a2c30), claw = std(0xd8d0c0);
+  const bronze = std(0xae783c, { roughness: .4, metalness: .6 }), verd = std(0x5a9a86, { roughness: .7 }), stone = std(0x9c968a, { roughness: .95 }), stoneDark = std(0x6a665e), runeM = lit(F, .95);
+  const body = new THREE.Group(); g.add(body);
+  // long and low; the grey stripes run from the spine down each flank, tapering
+  part(body, sphere(.7, 16, 12), fur, [0, .84, -.05], { scale: [.8, .62, 1.22] });
+  part(body, sphere(.5, 12, 10), pale, [0, .66, .12], { scale: [.9, .5, 1.3] }); // (the pale underside)
+  for (const dz of [-.62, -.36, -.1, .16]) for (const s of [-1, 1]) {
+    const f = Math.sqrt(1 - (dz / .86) ** 2), pts: THREE.Vector3[] = [];
+    for (let k = 0; k <= 6; k++) { const a = Math.PI / 2 - s * (.2 + k * .17); pts.push(new THREE.Vector3(Math.cos(a) * .58 * f, .84 + Math.sin(a) * .45 * f, -.05 + dz + k * .015)); }
+    part(body, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 8, .034, 4), stripe, [0, 0, 0]);
+  }
+  // four legs, each a pivot at the hip or shoulder: thick, striped, great paws (the fore ones clawed)
+  const legs = new THREE.Group(); body.add(legs);
+  for (const [x, z] of [[-.34, .5], [.34, .5], [-.32, -.58], [.32, -.58]] as [number, number][]) {
+    const l = new THREE.Group(); l.position.set(x, .72, z); legs.add(l);
+    limb(l, [0, 0, 0], [0, -.36, .04], .14, fur, .11); limb(l, [0, -.36, .04], [0, -.62, .02], .11, fur, .1);
+    part(l, new THREE.TorusGeometry(.125, .026, 4, 12), stripe, [0, -.2, .02], { rot: [Math.PI / 2, 0, 0] });
+    part(l, sphere(.13, 10, 8), pale, [0, -.64, .07], { scale: [1, .55, 1.3] });
+    if (z > 0) for (let i = -1; i <= 1; i++) part(l, new THREE.ConeGeometry(.022, .08, 4), claw, [i * .055, -.66, .22], { rot: [Math.PI / 2, 0, 0] });
+  }
+  // the head: a broad face, a pale muzzle, round ears, big eyes of frost-pale blue, and a jaw that drops as it roars
+  const head = new THREE.Group(); head.position.set(0, 1.1, .92); body.add(head);
+  part(head, sphere(.38, 14, 12), fur, [0, 0, 0], { scale: [1.08, .92, 1] });
+  part(head, sphere(.2, 10, 8), pale, [0, -.1, .3], { scale: [1.2, .75, .85] });
+  part(head, sphere(.055, 7, 5), nose, [0, -.03, .45], { scale: [1.3, .8, 1] });
+  for (const s of [-1, 1]) {
+    part(head, sphere(.1, 8, 6), fur, [.27 * s, .3, -.04], { scale: [1, 1, .5] });
+    part(head, sphere(.06, 6, 5), stripe, [.27 * s, .3, -.01], { scale: [1, 1, .4] });
+    for (let i = 0; i < 2; i++) part(head, box(.03, .12, .03), stripe, [(.3 + i * .05) * s, .02 - i * .08, .18], { rot: [0, 0, s * (1.2 + i * .2)] }); // (stripes on its cheeks)
+  }
+  const jaw = new THREE.Group(); jaw.position.set(0, -.18, .12); head.add(jaw);
+  part(jaw, sphere(.17, 10, 6), pale, [0, -.02, .2], { scale: [1.05, .5, .9] });
+  for (const s of [-1, 1]) part(jaw, new THREE.ConeGeometry(.025, .09, 4), claw, [.08 * s, .06, .3], {}); // (fangs)
+  const eye = new THREE.Group(); eye.position.set(0, .08, .28); head.add(eye);
+  const eyes = bigEyes(eye, .15, 0, 0, .1, 0x10283a, .3);
+  // the mane: a white ruff round the face, tufts pointing out
+  for (let i = 0; i < 14; i++) {
+    const a = i / 14 * Math.PI * 2, r = .42 + (i % 2) * .05;
+    part(head, new THREE.ConeGeometry(.1, .3, 5), pale, [Math.cos(a) * r, Math.sin(a) * r * .9 - .02, -.14], { rot: [0, 0, a - Math.PI / 2] });
+  }
+  part(head, sphere(.46, 12, 10), pale, [0, -.02, -.2], { scale: [1.05, 1, .6] });
+  // the tail, striped, curling up at the end
+  const tail = new THREE.Group(); tail.position.set(0, .9, -.98); body.add(tail);
+  const tp: V3[] = [[0, 0, 0], [0, -.12, -.36], [0, -.1, -.72], [0, .12, -.94]];
+  for (let i = 0; i < 3; i++) { limb(tail, tp[i], tp[i + 1], .07 - i * .012, fur, .06 - i * .012); part(tail, new THREE.TorusGeometry(.07 - i * .012, .018, 4, 10), stripe, tp[i + 1], { rot: [Math.PI / 2 + i * .5, 0, 0] }); }
+  // the plates: bronze pauldrons on its shoulders, a slab of carved stone on its back, a bronze brow
+  const plates = [-1, 1].map(s => {
+    const p = new THREE.Group(); p.position.set(.4 * s, 1.02, .44); p.rotation.z = -s * .55; body.add(p);
+    part(p, new THREE.SphereGeometry(.3, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), bronze, [0, 0, 0], { scale: [1, .62, 1.2] });
+    part(p, new THREE.TorusGeometry(.3, .03, 4, 20), verd, [0, 0, 0], { rot: [Math.PI / 2, 0, 0], scale: [1, 1.2, 1] });
+    for (const z of [-.2, 0, .2]) part(p, sphere(.03, 5, 4), verd, [.24, .05, z]);
+    rune(p, F, [0, .19, 0], .16, [-Math.PI / 2, 0, 0], runeM);
+    return p;
+  });
+  const back = new THREE.Group(); back.position.set(0, 1.28, -.2); back.rotation.x = .06; body.add(back);
+  part(back, box(.62, .1, .9), stone, [0, 0, 0]);
+  for (const s of [-1, 1]) part(back, box(.06, .12, .92), stoneDark, [.31 * s, -.01, 0]);
+  for (const z of [-.25, .25]) rune(back, F, [0, .056, z], .2, [-Math.PI / 2, 0, 0], runeM);
+  plates.push(back);
+  const brow = new THREE.Group(); brow.position.set(0, .2, .1); brow.rotation.x = .45; head.add(brow);
+  part(brow, new THREE.SphereGeometry(.4, 14, 6, 0, Math.PI * 2, 0, Math.PI * .26), bronze, [0, -.3, 0]);
+  part(brow, box(.05, .07, .36), bronze, [0, .1, 0]);
+  rune(brow, F, [0, .115, .1], .12, [-Math.PI / 2, 0, 0], runeM);
+  plates.push(brow);
+  circle(g, F, 1.5);
+  const ring = haloRing(g, F, .9, 2.35, -.2);
+  const halo = glow(F, 3.4, .35); halo.position.set(0, 1.9, 0); g.add(halo);
+  const rime = new THREE.Group(); g.add(rime);
+  const frost = motes(rime, F, 7, 1.3, 1.2, .03);
+  return { group: g, shadow: 2.5, school: 'frost', parts: { eye, ring, halo, body, head, jaw, legs, tail, rime, plate0: plates[0], plate1: plates[1], plate2: plates[2], plate3: plates[3] }, idle: t => {
+    const b = Math.sin(t * 1.8); body.scale.set(1, 1 + b * .015, 1); head.rotation.z = Math.sin(t * .7) * .05;
+    tail.rotation.y = Math.sin(t * 1.9) * .35; tail.rotation.x = Math.sin(t * 1.3) * .1;
+    blink(eyes, t, 4.6); frost(t, .5);
+  } };
+}
+
 /** The looks, for the owner to choose (the dev menu's Galleries tab stands them ahead of the mage, and picks the one the
     Hollow Warden wears in its fight). */
 export const BOSS_LOOKS = [
   { id: 'bellWarden', build: bellWarden }, { id: 'motherOfSpores', build: motherOfSpores }, { id: 'hollowOwl', build: hollowOwl },
 ] as const;
 export type BossLookId = (typeof BOSS_LOOKS)[number]['id'];
-/** Every boss built in code, for the Galleries tab: the Warden's three looks, then the bosses of floors 4 and 5. */
-export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [...BOSS_LOOKS, { id: 'hart', build: hartLook }, { id: 'angler', build: anglerLook }];
+/** Every boss built in code, for the Galleries tab: the Warden's three looks, the bosses of floors 4 and 5, then the
+    bosses from the Eda lore (M4.2). */
+export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [...BOSS_LOOKS, { id: 'hart', build: hartLook }, { id: 'angler', build: anglerLook }, { id: 'tiger', build: tigerLook }];
 
 /** The look the Hollow Warden wears until the owner chooses: picked in the dev menu, remembered in this browser. */
 const LOOK_KEY = 'ossuary.bossLook', FIRST: BossLookId = 'motherOfSpores';
