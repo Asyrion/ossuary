@@ -1745,6 +1745,7 @@ test('themed rooms (M4.1): the treasury\'s guardians stand as statues until thei
   errors = await start(page, '?room=landing_moor&floor=5&seed=LND1');
   const drowned = await page.evaluate(() => {
     const g = (window as unknown as { __game: GT }).__game; g.warp(1); g.player.invuln = 99;
+    for (const e of g.enemies) e.asleep = true; // (the room's own foes held still: a frost foe spinning over the river freezes it)
     const n0 = g.enemies.filter(e => !e.dead).length; g.sim(6);
     const n1 = g.enemies.length, toast = document.getElementById('toast')!.textContent;
     g.pool('frost'); const frozen = g.pools.filter(p => p.kind === 'water').every(p => p.state === 'frozen');

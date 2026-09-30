@@ -164,10 +164,11 @@ export function fireAt(x: number, z: number, r = 0) {
     else if (p.state === 'frozen') { p.state = 'still'; dress(p); Sfx.at(x, z).thaw(); for (const t of p.tiles) burst(t.x, .15, t.z, WATER, 2, 1.2, .04); }
   }
 }
-/** Frost reaches (x, z) and `r` around it: water there freezes over. */
+/** Frost reaches (x, z) and `r` around it: water there freezes over, and ice already there keeps. */
 export function frostAt(x: number, z: number, r = 0) {
   elementAt('chill', x, z, r); // a rune stone takes frost
-  for (const p of poolsNear(x, z, r)) if (p.kind === 'water' && p.state === 'still') {
+  for (const p of poolsNear(x, z, r)) if (p.kind === 'water' && p.state === 'frozen') p.t = Math.max(p.t, C.iceTime);
+  else if (p.kind === 'water' && p.state === 'still') {
     p.state = 'frozen'; p.t = C.iceTime; dress(p); Sfx.at(x, z).freeze();
     for (const t of p.tiles) burst(t.x, .2, t.z, ICE, 3, 1.4, .045);
   }
