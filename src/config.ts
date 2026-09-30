@@ -32,18 +32,20 @@ export const CFG = {
       bite: 2, spit: { count: 3, spread: .55, speed: 3.3, hex: 10 }, ring: { count: 16, speed: 2.7, later: 2.3 } }, // half hearts a bite; its hexing volleys; its breath's ring
     // the War-Tiger (M4.2, from the Eda lore): a statue until the mage comes within `wake` (or strikes it); its `plates` let
     // through only `guard` of a blow at first, more with each lost, until all of it; a plate falls to a glyph's blast, a
-    // Shatter (a shock on its rimed plates) or `wear` damage turned; each lost makes it `plateSpeed` faster. Its pounce
+    // Shatter (a shock on its rimed plates) or `wear` damage turned; each lost makes it `plateSpeed` faster (below half
+    // health, `hurtSpeed` times as fast). Its pounce
     // (a tell, then a leap at where the mage stood, throwing frost shards on landing), its swipe (a tell, then a fan of
     // claws fanning out from its paw), its roar (a ring; a second below half health)
-    tiger: { hp: 110, r: .85, speed: 1.5, weak: 'storm' as const, resist: 'frost' as const, wake: 3, plates: 4, guard: .4, wear: 30, plateSpeed: .14,
+    tiger: { hp: 110, r: .85, speed: 1.5, weak: 'storm' as const, resist: 'frost' as const, wake: 3, plates: 4, guard: .4, wear: 30, plateSpeed: .14, hurtSpeed: 1.15,
       pounce: { tell: .6, speed: 8.5, time: .9, shards: 8, shardSpeed: 3, chill: 1 }, swipe: { reach: 2, tell: .55, count: 5, spread: 1.1, speed: 3.6 },
       roar: { tell: .7, count: 14, speed: 2.9, later: 2.5 } },
     // the Pillar Dragon (M4.2, from the Eda lore): `r` is its head's, all a bolt can reach; it comes down from `enter` high
     // onto a coil round a pillar's top (`coil`), leans out `lean` beyond it, waits `settle` (then `pause` between breaths),
     // breathes `breaths` times (fire and frost by turns: a tell, then a stream sweeping across the mage), then flies to
     // another pillar (`nearest`: how often the one nearest the mage). Knocked off, it lies `down` seconds, taking `open`
-    // times each blow, then climbs at `climb`. Pillars it raises rise `depth` in `time`; below half health a `ring` as it lands
-    dragon: { hp: 115, r: .6, speed: 0, weak: 'umbral' as const, resist: 'ember' as const, enter: 5, lean: 1.1, settle: 1.1, pause: 1, breaths: 2, down: 4, open: 1.5, climb: 5,
+    // times each blow, then climbs at `climb`. Pillars it raises rise `depth` in `time`; below half health a `ring` as it lands,
+    // and its waits `hurtQuick` times as long
+    dragon: { hp: 115, r: .6, speed: 0, hurtQuick: .75, weak: 'umbral' as const, resist: 'ember' as const, enter: 5, lean: 1.1, settle: 1.1, pause: 1, breaths: 2, down: 4, open: 1.5, climb: 5,
       coil: { radius: .62, turns: 1.25, drop: 1.2 }, fly: { speed: 7, lift: 1.4, nearest: .65 }, rise: { time: 1.2, depth: 2 },
       breath: { tell: .7, time: 1, every: .08, speed: 4.2, sweep: .75 }, ring: { count: 12, speed: 2.8 } },
     // the Twin Guardians (M4.2, from the Eda lore): each has `hp`; they stand `apart`, statues until the mage comes within
@@ -171,10 +173,10 @@ export const CFG = {
     split: { angle: 0.7, damageMul: 0.5, range: 3.2 },                  // Cracked Mirror: two halves, this far apart (radians)
     wave: { amp: 0.45, freq: 3.2 },                                     // Serpent Rod: how far bolts swing, and how often (per tile)
     leech: { every: 10 },                                               // Leech Jar: foes put to rest per half heart
-    // Fen-Nex (M4.2): its size at each stage; how far behind the mage it keeps, how fast it runs and darts; how far off it
+    // Fen-Nex (M4.2): its size at each stage, and how much faster each stage runs; how far behind the mage it keeps, how fast it runs and darts; how far off it
     // spies prey (plus its stage), and past how far from the mage it comes back to their side; its bite (every so often, the
     // cantrip's damage times `mul` at each stage) and its full shape's breath of Ember
-    fennex: { scale: [.62, .9, .8], heel: .9, speed: 4.2, dash: 8, reach: 4, leash: 9, bite: { every: 1.3, mul: [.6, .85, 1.1] },
+    fennex: { scale: [.62, .9, .8], stageSpeed: .15, heel: .9, speed: 4.2, dash: 8, reach: 4, leash: 9, bite: { every: 1.3, mul: [.6, .85, 1.1] },
       breath: { every: 3.2, range: 3.2, count: 5, spread: .6, speed: 7, mul: .45, burn: 2 } },
     moth: { every: 1.1, range: 7, damageMul: 0.45, orbit: 0.85, speed: 7 }, // Candle Moth: seconds between stings, reach
     skull: { orbit: 1.15, spin: 2.6, damage: 3, every: 0.45, reach: 0.34 }, // Weeping Skull: radius, radians/s, bite and its rest

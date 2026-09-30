@@ -511,7 +511,7 @@ function updateTiger(e: Enemy, dt: number, ux: number, uz: number): number | und
     halo.material.opacity = .35 * k;
     if (e.st <= 0) { P.body.position.x = 0; e.state = 'prowl'; e.st = 1.2; }
   } else if (e.state === 'prowl') {
-    const sp = C.speed * speedMul * quick * (hurt ? 1.15 : 1), side = e.cycle! % 2 ? .5 : -.5;
+    const sp = C.speed * speedMul * quick * (hurt ? C.hurtSpeed : 1), side = e.cycle! % 2 ? .5 : -.5;
     if (d > C.swipe.reach * .75) { e.vx = ux * sp; e.vz = uz * sp; } else { e.vx = -uz * sp * side; e.vz = ux * sp * side; } // (in reach of its claws, it circles the mage rather than walking into them)
     stride(8 * quick, .5);
     relax(); eye.scale.setScalar(1); halo.material.opacity = .35;

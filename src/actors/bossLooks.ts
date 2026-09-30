@@ -361,7 +361,7 @@ export function dragonBody(n = 22, spacing = .2): DragonBody {
   for (const m of [segs, spikes, legs]) { m.frustumCulled = false; g.add(m); } // (the instances go wherever the body does)
   const LEGS = [Math.round(n * .22), Math.round(n * .55)];
   const radius = (i: number) => { const t = i / (n - 1); return t < .3 ? .17 + .08 * t / .3 : .25 - .17 * Math.pow((t - .3) / .7, 1.2); };
-  const m = new THREE.Matrix4(), local = new THREE.Matrix4(), rot = new THREE.Matrix4(), x = new THREE.Vector3(), y = new THREE.Vector3(), f = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), p = new THREE.Vector3(), q = new THREE.Vector3();
+  const m = new THREE.Matrix4(), local = new THREE.Matrix4(), rot = new THREE.Matrix4(), turn = new THREE.Matrix4(), x = new THREE.Vector3(), y = new THREE.Vector3(), f = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), p = new THREE.Vector3(), q = new THREE.Vector3();
   const basis = (at: readonly (readonly [number, number, number])[], i: number, r: number) => {
     const a = at[Math.max(0, i - 1)], z = at[Math.min(at.length - 1, i + 1)];
     f.set(a[0] - z[0], a[1] - z[1], a[2] - z[2]); if (f.lengthSq() < 1e-8) f.set(0, 0, 1); f.normalize();
@@ -372,12 +372,12 @@ export function dragonBody(n = 22, spacing = .2): DragonBody {
   return { group: g, n, spacing, mats: [skin, bone], pose: at => {
     for (let i = 0; i < n; i++) {
       const r = radius(i); basis(at, i, r); segs.setMatrixAt(i, m);
-      spikes.setMatrixAt(i, local.copy(m).multiply(rot.makeTranslation(0, .8, 0)).multiply(new THREE.Matrix4().makeRotationX(-.7)).multiply(rot.makeScale(.42, .55, .42)));
+      spikes.setMatrixAt(i, local.copy(m).multiply(rot.makeTranslation(0, .8, 0)).multiply(turn.makeRotationX(-.7)).multiply(rot.makeScale(.42, .55, .42)));
       const k = LEGS.indexOf(i);
-      if (k >= 0) for (const s of [1, -1]) legs.setMatrixAt(k * 2 + (s > 0 ? 0 : 1), local.copy(m).multiply(rot.makeTranslation(s * .8, -.35, .1)).multiply(new THREE.Matrix4().makeRotationZ(-s * 2.3)).multiply(rot.makeScale(1 / r * .2, 1 / (r * .9) * .2, 1 / (r * 1.3) * .2)));
+      if (k >= 0) for (const s of [1, -1]) legs.setMatrixAt(k * 2 + (s > 0 ? 0 : 1), local.copy(m).multiply(rot.makeTranslation(s * .8, -.35, .1)).multiply(turn.makeRotationZ(-s * 2.3)).multiply(rot.makeScale(1 / r * .2, 1 / (r * .9) * .2, 1 / (r * 1.3) * .2)));
     }
     basis(at, n - 1, radius(n - 1)); // (a tuft at the tail, pointing back)
-    for (let k = 0; k < 3; k++) spikes.setMatrixAt(n + k, local.copy(m).multiply(new THREE.Matrix4().makeRotationX(-Math.PI / 2 - .4 + k * .4)).multiply(rot.makeScale(1.3, 3, 1.3)));
+    for (let k = 0; k < 3; k++) spikes.setMatrixAt(n + k, local.copy(m).multiply(turn.makeRotationX(-Math.PI / 2 - .4 + k * .4)).multiply(rot.makeScale(1.3, 3, 1.3)));
     segs.instanceMatrix.needsUpdate = spikes.instanceMatrix.needsUpdate = legs.instanceMatrix.needsUpdate = true;
   } };
 }

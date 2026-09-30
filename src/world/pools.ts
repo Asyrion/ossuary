@@ -127,9 +127,10 @@ function flow(room: Room, f: Flow, dt: number) {
   for (const p of room.pools ?? []) if (p.kind === 'water' && p.state === 'still' && p.mat.map) { p.mat.map.offset.x -= dx * F.carry * dt / 2; p.mat.map.offset.y += dz * F.carry * dt / 2; }
   for (const w of room.falls ?? []) w.tex.offset.y += dt * 1.2;
   if (!player.dead && running(player.x, player.z)) { player.x += dx * F.carry * dt; player.z += dz * F.carry * dt; collide(player, blockers(room, 'player')); }
+  let walls: ReturnType<typeof blockers> | null = null; // (worked out once a step, for every walker the water carries)
   for (const e of G.enemies) {
     if (e.dead || e.spawn > 0 || e.flying || e.hidden || !running(e.x, e.z)) continue;
-    e.x += dx * F.carry * dt; e.z += dz * F.carry * dt; collide(e, blockers(room, 'walker'));
+    e.x += dx * F.carry * dt; e.z += dz * F.carry * dt; collide(e, walls ??= blockers(room, 'walker'));
   }
   for (const b of G.bolts) if (running(b.x, b.z)) { b.x += dx * F.bolts * dt; b.z += dz * F.bolts * dt; }
   for (const s of G.shots) if (running(s.x, s.z)) { s.x += dx * F.bolts * dt; s.z += dz * F.bolts * dt; }
