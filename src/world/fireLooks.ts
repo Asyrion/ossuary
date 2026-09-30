@@ -43,6 +43,10 @@ const GEO = {
   plinth: shared(new THREE.BoxGeometry(.66, .34, .66)), plinthTop: shared(new THREE.BoxGeometry(.72, .06, .72)), wideBowl: shared(new THREE.LatheGeometry([[.1, 0], [.3, .03], [.4, .1], [.42, .16]].map(([x, y]) => new THREE.Vector2(x, y)), 12)),
   pot: shared(new THREE.LatheGeometry([[.1, 0], [.25, .06], [.33, .2], [.33, .32], [.28, .42], [.27, .45]].map(([x, y]) => new THREE.Vector2(x, y)), 12)), stub: shared(new THREE.CylinderGeometry(.04, .03, .16, 5)),
   handle: shared(new THREE.TorusGeometry(.06, .015, 4, 10)),
+  // the Reliquary's (M4.1): a sconce's back plate and drip pan, a candle crown's ring; a chalice's cup; a censer's orb
+  disc: shared(new THREE.CircleGeometry(.13, 14)), pan: shared(new THREE.CylinderGeometry(.1, .06, .03, 10)),
+  chalice: shared(new THREE.LatheGeometry([[.05, 0], [.2, .04], [.3, .12], [.34, .24], [.35, .3]].map(([x, y]) => new THREE.Vector2(x, y)), 12)),
+  censer: shared(new THREE.SphereGeometry(.27, 12, 8, 0, Math.PI * 2, Math.PI * .28, Math.PI * .72)), hole: shared(new THREE.SphereGeometry(.032, 5, 4)),
 };
 
 /** The wall torch's fire colours in a floor's look (the crypt's amber, the drowned's pale lanterns, the burning's red). */
@@ -129,6 +133,27 @@ const TORCHES: Record<TorchKind, TorchBuild> = {
     mesh(holder, GEO.bowl, MAT.iron, 0, 1.06, .09).scale.set(.45, .35, .45); mesh(holder, GEO.rim, MAT.bronze, 0, 1.16, .09).scale.setScalar(.45);
     lit.add(makeFire([{ x: 0, y: 1.14, z: .09, h: .3, w: .16, tongues: 2 }], pal, 4, .45));
     return at(glow(pal.body, 1.2, .75), 0, 1.25, .12);
+  },
+  sconce(holder, lit, pal, t) { // the Reliquary's (M4.1): a gilded sconce, a disc of gold behind a tall candle to throw its light back
+    mesh(holder, GEO.plate, MAT.gilt, 0, .9, .015).scale.set(.9, 1.2, 1); mesh(holder, GEO.plateTop, MAT.gilt, 0, 1.15, .015).scale.set(.9, 1, 1);
+    mesh(holder, GEO.disc, MAT.gilt, 0, 1.28, .03); mesh(holder, GEO.rivet, MAT.gilt, 0, .8, .035);
+    mesh(holder, GEO.arm, MAT.gilt, 0, .86, .07).scale.z = .7; mesh(holder, GEO.pan, MAT.gilt, 0, .9, .13);
+    mesh(holder, GEO.candle, t.wax ? waxFor(t.wax) : MAT.wax, 0, 1.08, .13).scale.set(.9, .34, .9);
+    lit.add(makeFire([{ x: 0, y: 1.25, z: .13, h: .2, w: .09 }], pal, 3, .35));
+    return at(glow(pal.body, 1.2, .8), 0, 1.32, .15);
+  },
+  crown(holder, lit, pal, t) { // the Reliquary's: a small crown of candles, a gilt ring hung from a bracket, five candles on its rim
+    mesh(holder, GEO.plate, MAT.gilt, 0, 1.2, .015).scale.set(.6, .7, 1); mesh(holder, GEO.arm, MAT.gilt, 0, 1.3, .1).scale.z = .9;
+    for (const s of [-1, 1]) { const c = mesh(holder, GEO.chain, MAT.gilt, s * .07, 1.14, .2); c.scale.y = .2; c.rotation.z = s * .35; }
+    mesh(holder, GEO.basketRing, MAT.gilt, 0, 1.04, .2).scale.set(.15, 1.3, .15);
+    const specs: FlameSpec[] = [];
+    for (let i = 0; i < 5; i++) {
+      const a = i / 5 * Math.PI * 2 + Math.PI / 2, x = Math.cos(a) * .15, z = .2 + Math.sin(a) * .15, h = .09 + (i % 2) * .04;
+      mesh(holder, GEO.candle, t.wax ? waxFor(t.wax) : MAT.wax, x, 1.05 + h / 2, z).scale.set(.7, h, .7);
+      specs.push({ x, y: 1.05 + h, z, h: .13, w: .065 });
+    }
+    lit.add(makeFire(specs, pal, 3, .3));
+    return at(glow(pal.body, 1.3, .8), 0, 1.2, .22);
   },
   basket(holder, lit, pal) { // an iron fire basket hanging on a short chain from a bracket
     mesh(holder, GEO.plate, MAT.iron, 0, 1.18, .015).scale.set(.7, .9, 1);
@@ -226,6 +251,27 @@ const BRAZIERS: Record<BrazierKind, BrazierBuild> = {
     mesh(g, GEO.coals, MAT.coals, 0, .53, 0).scale.setScalar(1.3); coals(g, .56, .36);
     runes.push(runePlace(0, .19, .332, Math.PI / 2, 0, 1.3), runePlace(.332, .19, 0, 0, 0, 1.3), runePlace(-.332, .19, 0, Math.PI, 0, 1.3));
     return { fire: bigFire(.58, 1.05, .4), glowY: 1.0 };
+  },
+  chalice(g, runes) { // the Reliquary's (M4.1): a great gilt chalice on a knopped stem and a stone foot, runes round its cup
+    mesh(g, GEO.base, MAT.stone, 0, .05, 0).scale.set(.8, 1, .8); mesh(g, GEO.pedestal, MAT.gilt, 0, .16, 0).scale.set(.9, .25, .9);
+    mesh(g, GEO.post, MAT.gilt, 0, .38, 0).scale.set(1.6, .4, 1.6); mesh(g, GEO.knop, MAT.gilt, 0, .38, 0).scale.setScalar(1.7);
+    mesh(g, GEO.chalice, MAT.gilt, 0, .55, 0); mesh(g, GEO.rim, MAT.gilt, 0, .85, 0);
+    mesh(g, GEO.coals, MAT.coals, 0, .8, 0); coals(g, .83, .28);
+    threeRunes(runes, .32, .72, -.2, .95);
+    return { fire: bigFire(.85), glowY: 1.12 };
+  },
+  censer(g, runes) { // the Reliquary's: a standing censer, a bronze orb pierced with holes on three thin gilt legs, open at the top
+    for (let i = 0; i < 3; i++) {
+      const a = i / 3 * Math.PI * 2 + Math.PI / 2, foot = new THREE.Vector3(Math.cos(a) * .26, .03, Math.sin(a) * .26), top = new THREE.Vector3(Math.cos(a) * .18, .5, Math.sin(a) * .18);
+      const d = top.clone().sub(foot), leg = mesh(g, GEO.leg, MAT.gilt); leg.scale.set(.8, d.length(), .8);
+      leg.position.copy(foot).addScaledVector(d, .5); leg.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
+      mesh(g, GEO.claw, MAT.gilt, foot.x, 0, foot.z).scale.setScalar(.8);
+    }
+    mesh(g, GEO.censer, MAT.darkBronze, 0, .66, 0); mesh(g, GEO.rim, MAT.gilt, 0, .87, 0).scale.setScalar(.6);
+    for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2, y = i % 2 ? .6 : .72, r = i % 2 ? .265 : .245; mesh(g, GEO.hole, MAT.socket, Math.cos(a) * r, y, Math.sin(a) * r); } // (pierced)
+    mesh(g, GEO.coals, MAT.coals, 0, .84, 0).scale.setScalar(.55); coals(g, .86, .16);
+    threeRunes(runes, .27, .52, .35, .8);
+    return { fire: bigFire(.86, .7, .22), glowY: 1.1 };
   },
   cauldron(g, runes) { // a black iron cauldron on three stubby legs, handles at its sides, runes round its belly
     for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2 + Math.PI / 2; mesh(g, GEO.stub, MAT.blackIron, Math.cos(a) * .2, .08, Math.sin(a) * .2); }

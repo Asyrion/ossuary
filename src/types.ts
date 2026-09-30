@@ -27,8 +27,8 @@ export interface WallDress { pilaster: number; niches: Partial<Record<NicheKind,
 export interface FloorLook {
   name: string;
   /** Floor tiles: base colour, mortar, stain colour ("r,g,b"), scattered decoration and how many bones. */
-  floor: { base: RGB; mortar: string; stain: string; decor: 'bones' | 'puddles' | 'ash'; bones: number };
-  wall: { brick: RGB; mortar: string; stains: 'none' | 'moss' | 'soot'; dress?: WallDress };
+  floor: { base: RGB; mortar: string; stain: string; decor: 'bones' | 'puddles' | 'ash' | 'wax'; bones: number };
+  wall: { brick: RGB; mortar: string; stains: 'none' | 'moss' | 'soot' | 'gilt'; dress?: WallDress };
   /** The floor's lights: the wall torch's old style, its flame and light, and the wax of its candles (the room kit's). */
   torch: { style: 'bracket' | 'lantern' | 'brazier'; flame: string; light: string; intensity: number; wax?: string };
   /** Hemisphere sky and ground colours, and the moonlight. */

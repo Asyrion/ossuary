@@ -274,7 +274,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   weighted (`kit` in `data/floors.json`); each room draws one of each on its seed (`pickKinds` in the pure
   `src/world/kitData.ts`, into `room.look.kinds`); a theme pins some (`kit` in a theme's look: the ossuary's bone wall). The
   kinds are `WALLS` and `PAVING` in `pixelTextures.ts` (embers glow through an emissive map, `CFG.roomKit.glow`) and
-  `TORCHES` and `BRAZIERS` in `fireLooks.ts`. The dev menu's Look tab steps each part's kind on every room of the floor
+  `TORCHES` and `BRAZIERS` in `fireLooks.ts` (M4.1 adds floor 4's: marble, gilded and tracery walls, checker and inlay floors,
+  sconce and crown lights, chalice and censer braziers; its `gilt` stains and `wax` decor). The dev menu's Look tab steps each part's kind on every room of the floor
   (`DEV.kitKinds`, cleared on a new floor or run); `__game.kinds` reads the room's, `__game.forceKinds({ wall: 'ashlar' })`
   forces them.
 - `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,

@@ -214,6 +214,64 @@ const WALLS: Record<WallKind, (wall: FloorLook['wall'], W: number) => WallArt> =
     }
     return { px, glow };
   },
+  marble(wall, W) { // the Reliquary's (M4.1): great slabs of veined marble, finely jointed and polished, a sheen along each top
+    const H = 64, px = new Px(W, H, true), R = mulberry(75), joint = scale(hex(wall.mortar), 1.8), pale = tint(wall.brick, 18, 1.15);
+    px.fill(joint);
+    let y0 = 0;
+    for (const ch of [22, 20, 22]) {
+      let x0 = Math.floor(R() * 24);
+      for (const l of lengths(R, W, 30, 48)) {
+        block(px, x0, y0, l, ch, scale(pale, .92 + R() * .14), 75, 1);
+        for (let v = 0; v < 2; v++) { // veins wandering across it, one grey, one with a thread of gold
+          let y = y0 + 3 + R() * (ch - 6); const drift = (R() - .5) * .7, vein: RGB = v ? [118, 110, 100] : [168, 132, 70];
+          for (let x = x0 + 2; x < x0 + l - 1; x++) {
+            y += drift + Math.sin(x * .31 + v * 3 + y0) * .45;
+            const yy = Math.round(Math.min(y0 + ch - 2, Math.max(y0 + 1, y))); px.mix(x, yy, vein, .5); if (bayer(x, yy) < .3) px.mix(x, yy + 1, vein, .22);
+          }
+        }
+        for (let fy = 2; fy < ch / 3; fy++) for (let fx = 2; fx < l - 2; fx++) if (bayer(x0 + fx, y0 + fy) < .2 * (1 - fy / (ch / 3))) px.mul(x0 + fx, y0 + fy, 1.08); // (polished)
+        x0 += l;
+      }
+      y0 += ch;
+    }
+    return { px };
+  },
+  gilded(wall, W) { // the Reliquary's: panels of dark stone framed in gold between plain courses, a gilt rosette on each
+    const H = 64, px = new Px(W, H, true), R = mulberry(85), mortar = hex(wall.mortar), gold: RGB = [196, 156, 74], panel = tint(wall.brick, -12, .6);
+    px.fill(mortar);
+    for (const [y0, ch] of [[0, 12], [50, 14]] as const) { let x0 = Math.floor(R() * 16); for (const l of lengths(R, W, 20, 32)) { block(px, x0, y0, l, ch, tint(wall.brick, R() * 14 - 7, 1.05), 85); wear(px, R, x0, y0, l, ch, mortar, .06); x0 += l; } }
+    for (let p = 0; p < 2; p++) { // a panel a unit
+      const x0 = p * W / 2 + 3, y0 = 14, w = W / 2 - 6, h = 34;
+      for (let y = y0; y < y0 + h; y++) for (let x = x0; x < x0 + w; x++) {
+        const ex = Math.min(x - x0, x0 + w - 1 - x), ey = Math.min(y - y0, y0 + h - 1 - y);
+        if (ex < 2 || ey < 2) px.set(x, y, scale(gold, (y - y0 < 2 || x - x0 < 2 ? 1.25 : .7) * (bayer(x, y) < .12 ? 1.18 : 1))); // the frame, lit from above and left
+        else if (ex < 3 || ey < 3) px.set(x, y, scale(panel, .7)); // its shadow inside
+        else px.set(x, y, scale(panel, .95 + hash(x, y, 86) * .1));
+      }
+      const cx = x0 + w / 2, cy = y0 + h / 2; // the rosette: a diamond of gold round a dark heart
+      for (let v = -5; v <= 5; v++) for (let u = -5; u <= 5; u++) { const d = Math.abs(u) + Math.abs(v); if (d <= 5) px.set(Math.round(cx + u), Math.round(cy + v), d <= 1 ? scale(gold, .45) : scale(gold, u + v < 0 ? 1.25 : .9)); }
+      for (let k = 0; k < 3; k++) px.blotch(x0 + R() * w, y0 + R() * h, 3 + R() * 3, 2 + R() * 2, .8, (x, y) => { const c = px.get(x, y); if (c[0] > 150) px.set(x, y, scale(panel, 1.3)); }); // (gold worn away)
+    }
+    return { px };
+  },
+  tracery(wall, W) { // the Reliquary's: blind arcading carved in pale ashlar, four pointed arches to two units, a roundel between each two
+    const H = 64, px = new Px(W, H, true), R = mulberry(95), mortar = hex(wall.mortar), stone = tint(wall.brick, 10, 1.08), deep = scale(stone, .5);
+    px.fill(mortar);
+    let y0 = 0;
+    for (const ch of [16, 16, 16, 16]) { let x0 = Math.floor(R() * 20); for (const l of lengths(R, W, 22, 40)) { block(px, x0, y0, l, ch, scale(stone, .92 + R() * .1), 95, 1); x0 += l; } y0 += ch; }
+    const AW = W / 4, a = AW / 2 - 3, r = a * 1.6, spring = 30, sill = 58;
+    for (let i = 0; i < 4; i++) {
+      const cx = i * AW + AW / 2;
+      for (let y = 8; y < sill; y++) for (let x = Math.floor(cx - a - 2); x <= cx + a + 2; x++) {
+        const dx = Math.abs(x - cx), inArc = (grow: number) => y >= spring ? dx < a + grow : Math.hypot(x - (cx + (r - a)), y - spring) < r + grow && Math.hypot(x - (cx - (r - a)), y - spring) < r + grow; // (a pointed head: two arcs)
+        if (inArc(0)) px.set(x, y, scale(deep, x < cx - a + 2 ? .75 : 1)); // the recess, shadowed on its left by the moulding
+        else if (inArc(2)) px.set(x, y, scale(stone, x < cx ? 1.28 : .78)); // the moulding, lit on its left
+      }
+      for (let x = Math.floor(cx - a - 2); x <= cx + a + 2; x++) { px.set(x, sill, scale(stone, 1.3)); px.set(x, sill + 1, scale(stone, .7)); } // its sill
+      if (i % 2) { const rx = i * AW, ry = 12; for (let v = -5; v <= 5; v++) for (let u = -5; u <= 5; u++) { const d = Math.hypot(u, v); if (d < 3.2) px.set(rx + u, ry + v, deep); else if (d < 5) px.set(rx + u, ry + v, scale(stone, u + v < 0 ? 1.25 : .8)); } } // a roundel
+    }
+    return { px };
+  },
 };
 
 /** Stains over any wall in the look's kind: moss and drip lines (damp), black smears (scorched) or darker patches. */
@@ -224,6 +282,9 @@ function stainWall(px: Px, stains: FloorLook['wall']['stains']) {
     for (let k = 0; k < 10; k++) { const x = Math.floor(S() * W), y0 = Math.floor(S() * H), len = 6 + Math.floor(S() * 16); for (let y = y0; y < y0 + len; y++) px.mul(x, y, .65); }
   } else if (stains === 'soot') {
     for (let k = 0; k < 10; k++) px.blotch(S() * W, S() * H, 8 + S() * 14, 6 + S() * 10, 1, (x, y) => px.mix(x, y, [6, 4, 3], .6));
+  } else if (stains === 'gilt') { // the Reliquary's (M4.1): flecks of gold leaf caught on the stone, and candle smoke high up
+    for (let k = 0; k < 40; k++) { const x = Math.floor(S() * W), y = Math.floor(S() * H); px.mix(x, y, [226, 186, 96], .7); if (S() < .5) px.mix(x + 1, y, [226, 186, 96], .4); }
+    for (let k = 0; k < 5; k++) px.blotch(S() * W, S() * H * .4, 6 + S() * 8, 4 + S() * 5, .6, (x, y) => px.mul(x, y, .88));
   } else {
     for (let k = 0; k < 6; k++) px.blotch(S() * W, S() * H, 6 + S() * 10, 4 + S() * 6, .7, (x, y) => px.mul(x, y, .86));
   }
@@ -300,6 +361,14 @@ function flags(f: FloorCtx, taken: boolean[][]) {
     else if (roll < .3 && free(c, r + 1)) h = 2;
     for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) taken[r + j][c + i] = true;
     slab(f, c * TX, r * TY, w * TX, h * TY);
+  }
+}
+
+/** Where four inlaid slabs meet: a small star of brass. */
+function brassStar(px: Px, x: number, y: number, brass: RGB) {
+  for (let v = -4; v <= 4; v++) for (let u = -5; u <= 5; u++) {
+    const au = Math.abs(u), av = Math.abs(v) * 1.3, on = au + av <= 5 || Math.max(au, av) <= 2.5;
+    if (on) px.set(x + u, y + v, scale(brass, u + v < 0 ? 1.25 : u + v > 2 ? .75 : 1));
   }
 }
 
@@ -398,6 +467,30 @@ const PAVING: Record<FloorKind, (f: FloorCtx, mask: boolean[][]) => void> = {
       px.set(x, y, scale(c, k * (hash(x, y, 52) < .05 ? .8 : 1)));
     }
   },
+  checker(f) { // the Reliquary's (M4.1): polished marble in a chequer of pale and dark squares, half a tile each, veined
+    const { px, cw, ch, TX, TY, base } = f, SX = TX / 2, SY = TY / 2;
+    const pale: RGB = [base[0] * .6 + 206 * .4, base[1] * .6 + 196 * .4, base[2] * .6 + 176 * .4], dark: RGB = [base[0] * .6 + 50 * .4, base[1] * .6 + 46 * .4, base[2] * .6 + 48 * .4]; // (not too stark: foes and shots must read on it)
+    for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+      const i = Math.floor(x / SX), j = Math.floor(y / SY), lx = x - i * SX, ly = y - j * SY, light = (i + j) % 2 === 0;
+      if (lx === 0 || ly === 0) { px.set(x, y, scale(f.mortar, 1.4)); continue; }
+      const n = hash(i, j, 61), vein = Math.sin((x + y * 1.3) * .21 + n * 9 + Math.sin(y * .17 + n * 5) * 2.4);
+      let k = (ly === 1 ? 1.12 : ly === SY - 1 ? .86 : 1) * (.94 + n * .12);
+      if (vein > .96) k *= light ? .84 : 1.28; // (veins: grey in the pale, pale in the dark)
+      if (hash(x, y, 62) < .04) k *= .9;
+      px.set(x, y, scale(light ? pale : dark, k));
+    }
+  },
+  inlay(f, mask) { // the Reliquary's: great slabs a tile each, brass laid in every joint, a star of brass where four meet
+    const { px, inside, TX, TY, cw, ch } = f, brass: RGB = [176, 138, 64];
+    for (let r = 0; r < mask.length; r++) for (let c = 0; c < mask[0].length; c++) if (inside(c, r)) slab(f, c * TX, r * TY, TX, TY, 1.04);
+    for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+      const lx = x % TX, ly = y % TY, jx = lx === 0 || lx === TX - 1, jy = ly === 0 || ly === TY - 1;
+      if (!jx && !jy) continue;
+      if (hash(Math.floor(x / 6), Math.floor(y / 6), 71) < .12) continue; // (the brass worn through here and there)
+      px.set(x, y, scale(brass, (jx ? lx === 0 : ly === 0) ? 1.2 : .72));
+    }
+    for (let r = 0; r <= mask.length; r += 2) for (let c = 0; c <= mask[0].length; c += 2) if (inside(c, r) || inside(c - 1, r - 1)) brassStar(px, c * TX, r * TY, brass);
+  },
 };
 
 /** A room's floor in the room kit's style, over its `mask` (rows of tiles): paved in the room's kind of floor, stained in
@@ -426,6 +519,15 @@ export function pixelFloorTexture(seed: number, kind: RoomType, look: FloorLook,
     px.blotch(x, y, rx, ry, 1.6, (u, v) => px.mix(u, v, [12, 22, 26], paving === 'mosaic' ? .38 : .62)); // (lighter over the pale mosaic, or it reads as a hole)
     for (let u = Math.floor(x - rx * .7); u < x + rx * .7; u++) { const v = Math.round(y - ry * Math.sqrt(Math.max(0, 1 - ((u - x) / rx) ** 2)) + 1); if (bayer(u, v) < .7) px.mix(u, v, [150, 200, 210], .4); }
     for (let u = Math.floor(x - rx * .35); u < x - rx * .05; u++) px.mix(u, Math.round(y - ry * .3), [190, 230, 235], .25);
+  } else if (look.floor.decor === 'wax') { // the Reliquary's (M4.1): candle wax spilt on the floor, and a burnt-down stub here and there
+    const wax = hex(look.torch.wax ?? '#f0e2c6');
+    for (let k = 0; k < n(16); k++) { const x = R() * cw, y = R() * ch, r = 2 + R() * 4; px.blotch(x, y, r, r * .7, 1.8, (u, v) => px.mix(u, v, wax, .75)); px.mul(Math.round(x), Math.round(y + r * .7), .72); }
+    for (let k = 0; k < n(5); k++) {
+      const x = Math.floor(R() * cw), y = Math.floor(R() * ch);
+      if (!inside(Math.floor(x / TX), Math.floor((y + 8) / TY))) continue;
+      for (let v = 0; v < 6; v++) for (let u = 0; u < 4; u++) px.set(x + u, y + v, scale(wax, v === 0 ? 1.1 : u === 3 ? .78 : 1)); // a stub, its wick burnt black
+      px.set(x + 1, y - 1, [30, 24, 20]); for (let u = -1; u < 5; u++) px.mul(x + u, y + 6, .6);
+    }
   } else if (look.floor.decor === 'ash') { // ash drifts, and embers glowing in them
     for (let k = 0; k < n(9); k++) { const r = 14 + R() * 34; px.blotch(R() * cw, R() * ch, r, r * .6, 1, (u, v) => px.mix(u, v, [34, 30, 28], .5)); }
     for (let k = 0; k < n(70); k++) { const x = Math.floor(R() * cw), y = Math.floor(R() * ch), hot = .5 + R() * .5; px.set(x, y, [200 + 55 * hot, 70 + 60 * hot, 20]); glow?.set(x, y, [255 * hot, 120 * hot, 20]); }
