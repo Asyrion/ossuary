@@ -1,0 +1,30 @@
+{
+  "sporeling": {
+    "floor": 1, "school": "umbral", "weak": "ember", "resist": "frost",
+    "hp": 9, "r": 0.3, "speed": 2.6, "contact": 1, "flying": false,
+    "behaviour": "hopper",
+    "params": {"hopRate": 1.3, "puffEvery": [3.5, 5.5], "puffTell": 0.7, "puffRange": 4.5, "dim": 2},
+    "gib": "#c8a0e8", "stain": "#1c1026"
+  },
+  "vesperMoth": {
+    "floor": 1, "school": "hallow", "weak": "ember", "resist": "storm",
+    "hp": 6, "r": 0.28, "speed": 2.3, "contact": 1, "flying": true,
+    "behaviour": "flutter",
+    "params": {"orbit": 2.4, "orbitSpeed": 1.1, "flareEvery": [3, 4.5], "flareTell": 0.6, "motes": 6, "moteSpeed": 2.4, "lure": 0.75},
+    "gib": "#f0e6cc", "stain": null
+  },
+  "runeBeetle": {
+    "floor": 1, "school": "storm", "weak": "frost", "resist": "storm",
+    "hp": 12, "r": 0.32, "speed": 1.2, "contact": 1, "flying": false,
+    "behaviour": "charger",
+    "params": {"sight": 9, "tell": 0.45, "charge": 6.8, "stun": 1.2, "sparkSpeed": 4.4},
+    "gib": "#234a78", "stain": "#101820"
+  },
+  "urnMimic": {
+    "floor": 1, "school": "ember", "weak": "frost", "resist": "ember",
+    "hp": 11, "r": 0.3, "speed": 0.9, "contact": 1, "flying": false,
+    "behaviour": "mimic",
+    "params": {"wake": 2.2, "lonely": 2.5, "tell": 0.55, "shots": 3, "spread": 0.35, "shotSpeed": 3.6, "hop": 1.6, "shut": 1.3, "guard": 0.5},
+    "gib": "#b0603c", "stain": "#2a1208"
+  }
+}

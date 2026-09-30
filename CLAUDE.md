@@ -16,7 +16,7 @@ log; its Sound section does the same for sound (sources and their licences, the 
 When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3.5 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 1080 lines since the proof's play-test), step 3 under way: the room kit redone in code in the new style (the proof accepted 2026-09-30; variety built: three kinds of wall, floor, wall light and brazier per floor, drawn per room; every mechanism, object, door, niche and artifact rebuilt, the list done, then pickups, chests and the special rooms' pieces; the owner's review next); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M4 under way (enemies in code, `docs/M4-plan.md`): steps 1 and 2 built (the foe framework; floor 1's four: Sporeling, Vesper Moth, Rune Beetle, Urn Mimic); M3.5 signed off by the owner 2026-09-30 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 1080 lines since the proof's play-test), step 3 under way: the room kit redone in code in the new style (the proof accepted 2026-09-30; variety built: three kinds of wall, floor, wall light and brazier per floor, drawn per room; every mechanism, object, door, niche and artifact rebuilt, the list done, then pickups, chests and the special rooms' pieces; the owner's review next); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -197,6 +197,26 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   away; `__game.modelOptions(ids?)`, `__game.takeModelOptions()`; names and notes in `STR.options`. Familiars built the
   same way from the owner's drawings (`FAMILIAR_OPTIONS`: the Rune Fox) have their own dev menu section,
   `__game.familiarOptions(ids?)`, names in `STR.familiars`.
+- Foes in code (M4, `docs/M4-plan.md`): the enemy model options made foes. What each is lives in `data/foes.json` (floor,
+  school, weakness and resistance, health, size, speed, contact, flying, elite, behaviour and its params, gib and stain
+  colours), read by the pure `src/actors/foeData.ts` (`validateFoes`, `BEHAVIOUR_PARAMS`, `affinityMul`, `pickFoe`,
+  `schoolOf`, unit-tested); its look is the model option of the same id. `src/actors/foes.ts` builds one (`buildFoe` from
+  `makeEnemy`: the model merged by `mergeRig` in `src/render/rig.ts`, which samples the idle to find the moving parts and
+  merges the still meshes within each, about 50 draw calls down to about 15) and runs it (`updateFoe`: a behaviour by
+  kind in `BEHAVIOURS`, the idle on the foe's own clock `at`; `poseFoe`: a telegraph's swell and glow in its school's
+  light, `tele`, and a hit's squash; a behaviour may `pose` the model's `parts` after the idle, and hears a `bump` into a
+  wall). The behaviours so far: `hopper` (Sporeling), `flutter` (Vesper Moth: lured by lit braziers and candle stands),
+  `charger` (Rune Beetle), `mimic` (Urn Mimic: placed beside the room's urns by `mimicSpot`, hidden until the mage comes
+  near, it is struck or nothing in the room is awake; `guard` halves blows while shut; its embers are shots with `fire`,
+  lighting what they pass). Templates' `R W H` are roles now: each floor fills them from `foes` in
+  `data/floors.json`, on the room's seed, one elite a room at most (`buildRoom`); `?foe=sporeling` (`DEV.foe`, the dev
+  menu's Fights switch) puts one foe in every fight. Damage carries a school (`damageEnemy`'s last argument: spells by
+  theirs, burns Ember, shocks and shocked pools Storm, bolts by the statuses they bring): a foe takes +50% from its
+  weakness and −50% from its resistance, and the first time the word rises (`STR.foes`); what the mage has found is kept
+  in `localStorage` (`ossuary.bestiary`, `src/actors/bestiary.ts`) for M7's bestiary. The mage's afflictions: `player.dim`
+  (a Sporeling's stinging spores, `addSpores` with `sting` in `props.ts`; `#dim` darkens round the mage). The dev menu's
+  Foes lists each floor's foes from the data; `__game.spawn('sporeling')`, `__game.hit(i, dmg, school)`,
+  `__game.bestiary`, `__game.forgetBestiary()`.
 - Spell effect options (`src/magic/effectOptions.ts`, the owner's request): the spells' effects redone in the same style,
   each a looping demo of one cast worked out from the time (the cantrip, Cinder Lance, Pyre Seal, Rime Shards, Glacial
   Wall, Arc, Static Mantle, Shatter, Overload, and previews of Hallow and Umbral); the dev menu plays them ahead of the

@@ -12,7 +12,8 @@
    Doors go on every cell edge two rooms share, if both shapes allow that side. Last comes the secret room:
    an empty cell with hidden doorways into two or more rooms (never the boss, the vault or the merchant). */
 import floorsData from '../../data/floors.json';
-import { CFG, type BossType, type EnemyType } from '../config';
+import type { FoeType, RoleTable } from '../actors/foeData';
+import { CFG, type BossType } from '../config';
 import { Rng } from '../rng';
 import type { FloorLook, RoomType, Side } from '../types';
 import { OPPOSITE, SIDE_DIR, SHAPE_IDS, allowsSide, doorSlots, shapeCells, type ShapeId } from './shapes';
@@ -38,7 +39,9 @@ export interface FloorConfig {
   /** Whether the floor has a shrine, where curses are cleansed (GDD: 1 on floor 2). */ shrine: boolean;
   /** Whether the floor has a library, where grimoire pages teach spells (GDD: one on every floor). */ library: boolean;
   /** Chance the secret room holds an artifact (outside the budget) rather than a hoard. */ secretArtifactChance: number;
-  /** The champion that rises in a vault forced open with glyphs. */ vaultWarden: EnemyType;
+  /** The champion that rises in a vault forced open with glyphs. */ vaultWarden: FoeType;
+  /** The floor's foes by role (M4): what fills a template's walkers (`R`), flyers and shooters (`W`) and chargers and
+      heavies (`H`), by weight (actors/foeData.ts). */ foes: RoleTable;
   /** Chance the boss room is widened into a great hall when there is space. */ bossHallChance: number;
   /** Chance a door moves off the middle of its edge, where both rooms leave room for it (M3.6). */ doorShift: number;
   /** Chance a fight takes place in a themed room, and which themes the floor draws on, by weight (M3.6). */

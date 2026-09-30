@@ -46,7 +46,7 @@ export function shockLeap(e: Enemy, dmg: number) {
   }
   if (!best) return;
   sparkLine(e, best);
-  damageEnemy(best, dmg * MAGIC.shock.leapShare, (best.x - e.x) / (bd || 1), (best.z - e.z) / (bd || 1), .3, 'spell');
+  damageEnemy(best, dmg * MAGIC.shock.leapShare, (best.x - e.x) / (bd || 1), (best.z - e.z) / (bd || 1), .3, 'spell', 'storm');
 }
 
 function react(e: Enemy, r: Reaction) {
@@ -101,7 +101,7 @@ export function updateStatuses(dt: number, now: number) {
     const s = e.status;
     if (!s || e.dead) continue;
     const { burnDamage, thawed } = tickStatus(s, dt);
-    if (burnDamage > 0) damageEnemy(e, burnDamage, 0, 0, 0, e.lastHit ?? 'spell'); // the fire is whoever lit it last
+    if (burnDamage > 0) damageEnemy(e, burnDamage, 0, 0, 0, e.lastHit ?? 'spell', 'ember'); // the fire is whoever lit it last
     if (e.dead) continue;
     if (s.burn > 0) touchPools(e, 'burn'); // a burning foe walking into oil sets it alight
     if (s.frozen > 0) addIce(e); else if (e.ice) { removeIce(e); if (thawed) Sfx.at(e.x, e.z).thaw(); }

@@ -20,7 +20,7 @@ import standardTemplates from '../../data/templates/standard.json';
 import specialTemplates from '../../data/templates/special.json';
 import shapedTemplates from '../../data/templates/shapes.json';
 import themedTemplates from '../../data/templates/themed.json';
-import type { EnemyType } from '../config';
+import type { Role } from '../actors/foeData';
 import type { RoomType } from '../types';
 import { SHAPE_IDS, doorSlots, shapeMask, shapeSize, type ShapeId } from './shapes';
 import { PROPS, PROP_KINDS, PROP_OF_CHAR, type PropKind } from './propData';
@@ -31,7 +31,8 @@ export type Tile = 'floor' | 'rock' | 'pit' | 'void' | 'pillar' | 'tomb' | 'urn'
 export const WALKABLE: readonly Tile[] = ['floor', 'water', 'oil', ...PROP_KINDS.filter(k => PROPS[k].class === 'soft' || PROPS[k].class === 'hanging')];
 /** Tiles clear enough for a doorway's lane or a foe's first step: walkable, and nothing in the way. */
 export const CLEAR: readonly Tile[] = ['floor', 'water', 'oil'];
-export type FoeKind = EnemyType | 'boss';
+/** What a template's foe letter names: a role the floor fills (actors/foeData.ts), or its boss. */
+export type FoeKind = Role | 'boss';
 
 export interface TemplateDef {
   id: string; shape: ShapeId; types: RoomType[]; difficulty: number; grid: string[];
@@ -47,7 +48,7 @@ export interface Template {
 }
 
 const TILE_OF: Record<string, Tile> = { '.': 'floor', '#': 'rock', 'o': 'pit', 'x': 'void', 'i': 'pillar', '=': 'tomb', 'u': 'urn', '$': 'sealedUrn', '~': 'water', '%': 'oil', ...PROP_OF_CHAR };
-const FOE_OF: Record<string, FoeKind> = { R: 'rotling', W: 'wisp', H: 'hound', B: 'boss' };
+const FOE_OF: Record<string, FoeKind> = { R: 'R', W: 'W', H: 'H', B: 'boss' };
 
 /** Parse a template, optionally mirrored left-right and/or top-bottom. */
 export function parseTemplate(def: TemplateDef, mirrorX = false, mirrorY = false): Template {

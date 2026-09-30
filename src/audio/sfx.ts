@@ -170,6 +170,23 @@ const sounds = {
   darkness() { hiss(1, .07, 'lowpass', 400); tone('sine', 180, 120, 1, .03); },
   champion() { tone('sawtooth', 80, 60, .5, .08); hiss(.4, .06, 'lowpass', 300); },
   bell() { tone('sine', 196, 196, 1.2, .12); tone('sine', 392, 392, .8, .05); tone('triangle', 588, 588, .5, .03); },
+  // the foes built in code (M4): critters squeak and pop rather than groan; each attack's warning and its blow in the
+  // palette of its school (Umbral: low, hollow, breathy)
+  critterDie() { tone('square', 880, 260, .16, .05); tone('sine', 520, 180, .22, .05, .03); hiss(.18, .08, 'bandpass', 1400); },
+  affinity(weak: boolean) { if (weak) { tone('triangle', 880, 1320, .12, .05); tone('triangle', 1320, 1760, .14, .04, .06); } else { tone('sine', 330, 220, .2, .05); hiss(.12, .03, 'lowpass', 700); } },
+  sporeSwell() { tone('sine', 110, 190, .6, .06); hiss(.6, .04, 'bandpass', 500); tone('sine', 220, 300, .5, .02, .1); },
+  sporePuff() { hiss(.45, .14, 'lowpass', 900); tone('sine', 150, 70, .3, .08); hiss(.3, .05, 'bandpass', 2400, .05); },
+  // Hallow: bright bells and chimes
+  mothFlare() { [1568, 1976, 2349].forEach((f, i) => tone('sine', f, f * 1.02, .5, .03, i * .1)); hiss(.5, .02, 'highpass', 6000); },
+  mothDust() { [2637, 3136, 3520, 2093].forEach((f, i) => tone('triangle', f, f * .96, .25, .025, i * .03)); hiss(.3, .04, 'highpass', 5000); },
+  // Storm: buzzing, crackling
+  beetleTell() { tone('sawtooth', 160, 420, .45, .04); hiss(.45, .04, 'bandpass', 3000); tone('square', 1200, 1800, .3, .015, .1); },
+  beetleThud() { tone('sine', 110, 50, .25, .12); hiss(.2, .1, 'lowpass', 600); tone('square', 300, 150, .08, .04); },
+  spark() { hiss(.12, .1, 'highpass', 3200); tone('square', 1800, 500, .1, .035); tone('sawtooth', 900, 1400, .08, .02, .03); },
+  // Ember: clay and fire
+  mimicWake() { tone('square', 700, 900, .06, .04); tone('square', 820, 1000, .06, .035, .08); hiss(.2, .06, 'bandpass', 1200); tone('sine', 180, 260, .3, .05, .05); },
+  mimicSpit() { hiss(.35, .12, 'bandpass', 1100); tone('sawtooth', 240, 120, .25, .05); crackles(6, .35, .04); },
+  mimicShut() { tone('square', 520, 300, .07, .05); hiss(.1, .05, 'lowpass', 1500); },
 };
 type Sounds = typeof sounds;
 /** Sounds of the interface (picking things up, refusals, learning): their own bus, never positioned. */

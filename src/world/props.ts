@@ -296,10 +296,12 @@ function ignite(room: Room, box: PropBox) {
 
 /* ---------- glowcap spores ---------- */
 
-function addSpores(room: Room, x: number, z: number) {
+/** A cloud of spores at (x, z): a broken glowcap's, or a Sporeling's puff (M4: `color` its violet, `sting` the seconds it
+    dims the mage's sight who stands in it, with half a heart, once). Fire makes either flash. */
+export function addSpores(room: Room, x: number, z: number, o: { color?: number; sting?: number } = {}) {
   const g = new THREE.Group(); g.position.set(x - room.cx, 0, z - room.cz);
-  for (let i = 0; i < 5; i++) { const s = glow(SPORE, .9 + Math.random() * .6, .35); s.position.set((Math.random() - .5) * 1.4, .3 + Math.random() * .5, (Math.random() - .5) * 1.4); g.add(s); }
-  room.group.add(g); (room.spores ??= []).push({ x, z, t: P.spores.time, g });
+  for (let i = 0; i < 5; i++) { const s = glow(o.color ?? SPORE, .9 + Math.random() * .6, .35); s.position.set((Math.random() - .5) * 1.4, .3 + Math.random() * .5, (Math.random() - .5) * 1.4); g.add(s); }
+  room.group.add(g); (room.spores ??= []).push({ x, z, t: P.spores.time, g, sting: o.sting });
 }
 function dropSpores(room: Room, s: SporeCloud) { room.group.remove(s.g); disposeTree(s.g); room.spores = room.spores?.filter(o => o !== s); }
 
@@ -311,7 +313,7 @@ function flash(room: Room, s: SporeCloud) {
     if (e.dead || e.spawn > 0 || e.hidden) continue;
     const dx = e.x - s.x, dz = e.z - s.z, d = Math.hypot(dx, dz);
     if (d > S.reach + e.r) continue;
-    damageEnemy(e, S.damage, d > .01 ? dx / d : 0, d > .01 ? dz / d : 0, .6, 'spell'); inflict(e, { burn: S.burn });
+    damageEnemy(e, S.damage, d > .01 ? dx / d : 0, d > .01 ? dz / d : 0, .6, 'spell', 'ember'); inflict(e, { burn: S.burn });
   }
   if (Math.hypot(player.x - s.x, player.z - s.z) < S.reach) hurtPlayer(S.mageHurt, s.x, s.z);
   burst(s.x, .5, s.z, FIRE, 18, 3.2, .07); burst(s.x, .5, s.z, SPORE, 10, 2.4, .05);
@@ -363,6 +365,9 @@ export function updateProps(dt: number) {
   // spores drift and settle
   for (const s of room.spores ?? []) {
     s.t -= dt; s.g.rotation.y += dt * .4; s.g.position.y = Math.sin(s.t * 2) * .05;
+    if (s.sting && !s.stung && Math.hypot(player.x - s.x, player.z - s.z) < P.spores.reach * .8) { // a Sporeling's spores sting, and dim the sight
+      s.stung = true; hurtPlayer(1, s.x, s.z); player.dim = Math.max(player.dim, s.sting);
+    }
     for (const c of s.g.children) ((c as THREE.Mesh).material as THREE.Material).opacity = .35 * Math.min(1, s.t);
     if (s.t <= 0) dropSpores(room, s);
   }

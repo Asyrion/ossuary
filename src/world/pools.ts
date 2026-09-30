@@ -181,7 +181,7 @@ export function shockAt(x: number, z: number, from?: Enemy) {
   p.charged = C.charged;
   for (const e of G.enemies) {
     if (e === from || e.dead || e.spawn > 0 || e.hidden || e.flying || !inPool(p, e.x, e.z)) continue;
-    damageEnemy(e, C.shockDamage, 0, 0, 0, 'spell'); inflict(e, { shock: C.shockSpread });
+    damageEnemy(e, C.shockDamage, 0, 0, 0, 'spell', 'storm'); inflict(e, { shock: C.shockSpread });
   }
   if (inPool(p, player.x, player.z)) hurtPlayer(C.mageHurt, player.x, player.z + .01);
   for (const t of p.tiles) burst(t.x, .2, t.z, SPARK, 3, 2.4, .03);

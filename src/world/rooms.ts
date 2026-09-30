@@ -15,6 +15,7 @@ import { burst } from '../combat/fx';
 import { mulberry } from '../util';
 import { DH, H_LOW, H_TALL, HD, HW, PX, PZ, WT } from './dims';
 import { FLOORS, type PlannedRoom } from './generate';
+import { FOES, isFoe, pickFoe } from '../actors/foeData';
 import { OPPOSITE, SHAPES, SIDE_DIR, cellHalfExtents, shapeMask, shapeSize } from './shapes';
 import { TEMPLATES, growPuddles, parseTemplate, tombRuns } from './templates';
 import { buildPools } from './pools';
@@ -89,7 +90,14 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   if (theme?.twist === 'rime') chargeRunes(room, 'chill'); // the frozen mausoleum's rune stones hold frost
   dressTheme(room); // a themed room's scatter: candles, pages, moss, bedrolls, daylight...
   mergePits(room); buildPools(room);
-  room.waves = template.waves.map(wv => wv.map(f => ({ kind: f.kind, ...toWorld(room, f.c, f.r) })));
+  // the template's roles filled with the floor's foes, on the room's seed (one elite at most)
+  const pick = mulberry(plan.seed ^ 0xf0e5), table = FLOORS[Math.min(floorIndex, FLOORS.length - 1)].foes;
+  let elite = false;
+  room.waves = template.waves.map(wv => wv.map(f => {
+    const kind = f.kind === 'boss' ? 'boss' : DEV.foe ?? pickFoe(table, f.kind, pick, elite);
+    if (kind !== 'boss' && isFoe(kind) && FOES[kind].elite) elite = true;
+    return { kind, role: f.kind, ...toWorld(room, f.c, f.r) };
+  }));
   if (plan.variant === 'quiet') quieten(room);
   room.cleared = room.waves.length === 0;
   if (plan.type === 'treasure') addPedestal(room);
@@ -124,10 +132,11 @@ function maskGeometry(mask: boolean[][], w: number, h: number) {
   return g;
 }
 
-/** Quiet rooms keep none, one or two of the template's weak enemies (never hounds), and often a heart. */
+/** Quiet rooms keep none, one or two of the template's weak enemies (walkers and flyers, never a heavy or an elite),
+    and often a heart. */
 function quieten(room: Room) {
   const R = mulberry(room.plan.seed ^ 0x51ee7);
-  const weak = (room.waves[0] ?? []).filter(f => f.kind === 'rotling' || f.kind === 'wisp');
+  const weak = (room.waves[0] ?? []).filter(f => (f.role === 'R' || f.role === 'W') && !(isFoe(f.kind) && FOES[f.kind].elite));
   for (let i = weak.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [weak[i], weak[j]] = [weak[j], weak[i]]; }
   const keep = Math.min(weak.length, Math.floor(R() * (CFG.quiet.maxEnemies + 1)));
   room.waves = keep ? [weak.slice(0, keep)] : [];

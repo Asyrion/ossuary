@@ -10,10 +10,12 @@ import * as THREE from 'three';
 import type { Room } from '../types';
 import { blob, disposeTree, glow } from '../render/materials';
 import { freeSpotNear } from '../world/rooms';
+import { mergeRig } from '../render/rig';
 import { SCHOOL_LIGHT, bigEyes, box, circle, crystal, limb, lit, motes, part, rune, runeRing, shine, sphere, std, type School, type V3 } from '../render/arcane';
 
-/** A built option: its group, how it idles, and the size of the shadow under it. */
-interface Built { group: THREE.Group; idle: (t: number) => void; shadow: number }
+/** A built option: its group, how it idles, the size of the shadow under it, and the parts a foe's behaviour moves beyond
+    its idle (M4: a beetle's wing-cases, a mimic's lid). */
+interface Built { group: THREE.Group; idle: (t: number) => void; shadow: number; parts?: Record<string, THREE.Object3D> }
 
 /** Now and then the eyes close for a moment. */
 const blink = (list: THREE.Object3D[], t: number, every = 3.4, at = 0) => { const k = (t + at) % every; for (const e of list) e.scale.y = k < .12 ? .12 : 1; };
@@ -103,7 +105,7 @@ function runeBeetle(): Built {
     const l = new THREE.Group(), k = .03 * (1 - i); l.position.set(.1 * s, -.04, .12 - i * .14); body.add(l); legs.push(l);
     limb(l, [0, 0, 0], [.14 * s, .03, k], .016, legM); limb(l, [.14 * s, .03, k], [.2 * s, -.13, k * 2], .014, legM, .008);
   }
-  return { group: g, shadow: .65, idle: t => {
+  return { group: g, shadow: .65, parts: { halfL: halves[0], halfR: halves[1], inner }, idle: t => {
     const open = Math.max(0, Math.sin(t * 1.3)) ** 4;
     halves.forEach((h, i) => { h.rotation.z = (i ? 1 : -1) * open * .4; }); inner.material.opacity = open * .9;
     legs.forEach((l, i) => { l.rotation.y = Math.sin(t * 10 + i * 1.9) * .2 * (1 - open); }); body.position.y = .17 + Math.abs(Math.sin(t * 10)) * .008 * (1 - open);
@@ -127,7 +129,7 @@ function urnMimic(): Built {
   for (const s of [-1, 1]) part(lid, new THREE.ConeGeometry(.018, .05, 4), tooth, [.05 * s, -.02, .31], { rot: [Math.PI, 0, 0] });
   const feet = [[-1, 1], [1, 1], [-1, -1], [1, -1]].map(([x, z]) => part(body, sphere(.06, 8, 6), clayDark, [.12 * x, .03, .1 * z], { scale: [1, .7, 1.1] }));
   const embers = [0, 1, 2].map(() => part(body, sphere(.02, 5, 4), lit(0xffb040), [0, 0, 0]));
-  return { group: g, shadow: .65, idle: t => {
+  return { group: g, shadow: .65, parts: { lid, peek, inside }, idle: t => {
     const k = t * .45 % 1, open = Math.min(1, Math.max(0, Math.sin(k * Math.PI * 2) * 1.6));
     lid.rotation.x = -open * .8; peek.position.y = .42 + open * .085; peek.rotation.y = Math.sin(t * 3) * .35 * open;
     body.position.y = Math.abs(Math.sin(t * 8)) * .012; feet.forEach((f, i) => { f.position.y = .03 + Math.max(0, Math.sin(t * 8 + i * 1.6)) * .015; });
@@ -428,7 +430,7 @@ export function showModelOptions(room: Room, x: number, z: number, only?: readon
     const row = MODEL_OPTIONS.filter(o => o.floor === floor && (!only || only.includes(o.id)));
     row.forEach((o, i) => {
       const at = only ? freeSpotNear(room, x, z - 1.8) : freeSpotNear(room, x + (i - (row.length - 1) / 2) * gap, z - 1.8 - (floor - 1) * 1.7);
-      const b = o.build(); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
+      const b = o.build(); mergeRig(b.group, b.idle, o.id); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
       shown.push({ room, group: b.group, idle: b.idle }); out.push({ id: o.id, floor, x: at.x, z: at.z });
     });
   }
@@ -439,7 +441,7 @@ export function showFamiliarOptions(room: Room, x: number, z: number, only?: rea
   const list = FAMILIAR_OPTIONS.filter(o => !only || only.includes(o.id));
   return list.map((o, i) => {
     const at = freeSpotNear(room, x + (i - (list.length - 1) / 2) * 2, z - 1.8);
-    const b = o.build(); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
+    const b = o.build(); mergeRig(b.group, b.idle, o.id); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
     shown.push({ room, group: b.group, idle: b.idle });
     return { id: o.id, x: at.x, z: at.z };
   });

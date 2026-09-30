@@ -129,6 +129,8 @@ export const STR = {
   manaLabel: (mana: number, max: number) => `Mana ${Math.round(mana)} of ${max}`,
   /** Reactions name themselves in the air; statuses as the training dummy lists them. */
   reactions: { shatter: 'Shatter', overload: 'Overload' } as Record<string, string>,
+  /** Over a foe struck by its weakness or its resistance, the first time (M4; GDD: Enemy affinities). */
+  foes: { weak: 'Weak', resists: 'Resists' },
   /** Grimoire pages: the question a page asks when both slots are full, and what's left behind. */
   pages: {
     ask: (name: string) => `Learn ${name} in place of`,
@@ -321,6 +323,8 @@ export const STR = {
     pools: 'Water and oil (this room)', ignite: 'Set the oil alight', freezeWater: 'Freeze the water', shockWater: 'Shock the water',
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
     foes: 'Foes (they leave the doors open)', champion: (name: string) => `Champion ${name.toLowerCase()}`,
+    foesOfFloor: (floor: number) => `Floor ${floor}'s foes, built in code:`, foesAsFloor: 'Fights: each floor\'s own foes', foeEverywhere: (name: string) => `Fights: ${name} in every one`,
+    bestiaryNote: 'Weaknesses and resistances found are kept between runs (the bestiary to come).', forgetBestiary: 'Forget the bestiary',
     foeNames: { rotling: 'Rotling', wisp: 'Wisp', hound: 'Crypt hound', dummy: 'Training dummy' } as Record<string, string>,
     statuses: 'Statuses on the foes here', inflictOn: (name: string) => `${name} them`,
     floor: 'This floor', sealed: 'sealed', hidden: 'hidden', clear: 'End this fight', reveal: 'Reveal the map', nextFloor: 'Next floor',
