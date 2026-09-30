@@ -24,11 +24,25 @@ describe('lore', () => {
 describe('artifact data', () => {
   it('is valid', () => expect(validateArtifacts()).toEqual([]));
 
-  it('holds the M1 set, the 13 added after M2 step 4, the 7 economy artifacts, the 10 of M3 and the Pilgrim\'s Cowl: 44 besides the starting wand', () => {
-    expect(ARTIFACT_DEFS.filter(a => !a.start)).toHaveLength(44);
-    expect(ARTIFACT_DEFS.filter(a => a.kind !== 'focus')).toHaveLength(36);
-    expect(ARTIFACT_DEFS.filter(a => a.kind === 'focus' && !a.start)).toHaveLength(8);
-    expect(ARTIFACT_DEFS.filter(a => a.kind === 'cursed')).toHaveLength(6);
+  it('holds the M1 set, the 13 added after M2 step 4, the 7 economy artifacts, the 10 of M3, the Pilgrim\'s Cowl and M4.1\'s 12: 56 besides the starting wand', () => {
+    expect(ARTIFACT_DEFS.filter(a => !a.start)).toHaveLength(56);
+    expect(ARTIFACT_DEFS.filter(a => a.kind !== 'focus')).toHaveLength(46);
+    expect(ARTIFACT_DEFS.filter(a => a.kind === 'focus' && !a.start)).toHaveLength(10);
+    expect(ARTIFACT_DEFS.filter(a => a.kind === 'cursed')).toHaveLength(8);
+  });
+
+  it('M4.1: the Pendulum swings its bolts, the Lodestar and the rest are effects, and a cleansed Last Rite keeps its gift without its price', () => {
+    const base = { damage: 3.5, fireDelay: .36, speed: 4.3, shotSpeed: 8.8, range: 6.8, hearts: 3, invuln: 1, mana: 100 };
+    const swing = computeStats('pendulum_of_hours', [], base);
+    expect(swing.pattern.path).toBe('swing'); expect(swing.damage).toBeCloseTo(3.5 * 1.2);
+    const star = computeStats('lodestar_wand', ['echo_stone', 'gilded_halo', 'harts_antler'], base);
+    for (const e of ['lodestar', 'echo', 'halo', 'antler'] as const) expect(star.effects.has(e)).toBe(true);
+    const rite = computeStats('apprentice_wand', ['the_last_rite'], base), clean = computeStats('apprentice_wand', ['the_last_rite'], base, ['the_last_rite']);
+    expect([rite.maxHp, rite.effects.has('lastRite')]).toEqual([4, true]);
+    expect([clean.maxHp, clean.effects.has('lastRite')]).toEqual([6, true]);
+    const grave = computeStats('apprentice_wand', ['gravemongers_contract'], base), paid = computeStats('apprentice_wand', ['gravemongers_contract'], base, ['gravemongers_contract']);
+    expect(['gravemonger', 'noClearHearts', 'dearHearts'].map(e => grave.effects.has(e as never))).toEqual([true, true, true]);
+    expect(['gravemonger', 'noClearHearts', 'dearHearts'].map(e => paid.effects.has(e as never))).toEqual([true, false, false]);
   });
 
   it('M3: spell damage and mana from kills combine like the other stats, and a cleansed curse halves them', () => {

@@ -73,6 +73,7 @@ export const STR = {
     shrine: (price: number): Banner => ['A shrine', `For ${price} obols it cleanses a curse`],
     riteBegins: ['The curse fights back', 'Strike it down inside the circle'] as Banner,
     cleansed: (name: string, text: string): Banner => [`The ${name} is cleansed`, text],
+    lastRite: ['The last rite holds', 'Death is refused, this once'] as Banner,
   },
   runInfo: (floor: number, floors: number, seed: string) => `Floor ${floor} of ${floors} · Seed ${seed}`,
   rotate: 'Turn your phone sideways to play.',

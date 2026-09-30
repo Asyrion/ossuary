@@ -271,6 +271,79 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     mesh(g, new THREE.TorusKnotGeometry(.1, .022, 48, 5, 2, 3), tone(c, .06), 0, 0, 0);
     mesh(g, ball(.035, 6, 5), glowTone(shade(c, 1.5)), 0, 0, .06);
   },
+  // ---------- M4.1 ----------
+  pendulum(g, c) { // a clock's pendulum caught mid-swing: its rod from a hook, a bob with a rune lit in it
+    const p = new THREE.Group(); p.position.y = .22; p.rotation.z = .35; g.add(p);
+    mesh(p, new THREE.TorusGeometry(.03, .01, 4, 8), metal(BRASS), 0, .02, 0);
+    mesh(p, cyl(.01, .01, .34, 5), metal(BRASS), 0, -.17, 0);
+    put(mesh(p, cyl(.1, .1, .035, 14), metal(c), 0, -.38, 0), Math.PI / 2);
+    put(mesh(p, GEO.rune, glowTone(0xfff0c0), 0, -.38, .02), 0, 0, 0, .9);
+    mesh(p, new THREE.TorusGeometry(.1, .012, 4, 16), metal(shade(c, .7)), 0, -.38, 0);
+  },
+  lodestar(g, c) { // a dark wand tipped with a lodestone, a small star hanging where its bolt stopped
+    const w = new THREE.Group(); w.rotation.z = -.6; g.add(w);
+    mesh(w, cyl(.012, .022, .44), tone(0x3a3440, .08), 0, -.03, 0);
+    put(mesh(w, GEO.gem, tone(0x5c6478, .15, .5), 0, .22, 0), 0, .4, 0, [.05, .07, .05]);
+    const star = new THREE.Group(); star.position.set(.14, .22, .02); g.add(star);
+    for (const r of [0, Math.PI / 2]) put(mesh(star, GEO.gem, glowTone(c)), 0, 0, r + Math.PI / 4, [.018, .07, .018]);
+    mesh(star, ball(.028, 6, 5), glowTone(0xffffff));
+  },
+  twincandles(g, c) { // two vigil candles side by side on one dish, both lit
+    mesh(g, cyl(.16, .13, .025, 12), metal(BRASS), 0, -.17, 0);
+    for (const [x, h] of [[-.06, .26], [.065, .22]]) {
+      mesh(g, cyl(.045, .05, h, 9), tone(0xf0e6cc, .04), x, -.16 + h / 2, 0);
+      mesh(g, ball(.028, 6, 5), glowTone(c), x, -.16 + h + .04, 0).scale.set(1, 2, 1);
+    }
+  },
+  choir(g, c) { // a bone flute, its finger holes dark, the notes of the hymn rising off it
+    const f = new THREE.Group(); f.rotation.z = -.5; g.add(f);
+    mesh(f, cyl(.028, .03, .42, 8), tone(c, .06), 0, -.02, 0); mesh(f, ball(.034, 7, 5), tone(shade(c, .9), .06), 0, .19, 0);
+    for (let i = 0; i < 4; i++) mesh(f, ball(.011, 5, 3), tone(0x1a120c), 0, -.12 + i * .07, .027);
+    for (const [x, y] of [[.1, .12], [.16, .2], [.08, .24]]) mesh(g, ball(.022, 6, 4), glowTone(0xfff0c8), x, y, .04);
+  },
+  echostone(g, c) { // a smooth cistern pebble, rings of its echo lit round it
+    put(mesh(g, ball(.13, 12, 9), tone(c, .12)), 0, 0, 0, [1.1, .8, .9]);
+    for (const r of [.17, .22]) put(mesh(g, new THREE.TorusGeometry(r, .008, 3, 24), glowTone(0xc8e0ff), 0, 0, 0), 1.2, 0, 0);
+  },
+  bloodmoon(g, c) { // a disc of red glass in a dark iron frame, on a loop
+    const d = lean(g);
+    put(mesh(d, cyl(.13, .13, .03, 16), glowTone(shade(c, .8))), Math.PI / 2);
+    mesh(d, new THREE.TorusGeometry(.135, .02, 4, 18), metal(IRON), 0, 0, 0);
+    put(mesh(d, cyl(.05, .05, .032, 10), glowTone(shade(c, 1.4)), .04, .04, .002), Math.PI / 2);
+    mesh(d, new THREE.TorusGeometry(.03, .01, 4, 8), metal(IRON), 0, .17, 0);
+  },
+  salt(g, c) { // a pouch of grave salt, open, a little heap spilled beside it
+    mesh(g, lathe([[0, -.15], [.1, -.14], [.13, -.07], [.12, .02], [.07, .07], [.08, .1], [0, .1]], 9), tone(LEATHER, .1), -.04, 0, 0);
+    mesh(g, new THREE.TorusGeometry(.07, .012, 4, 10), tone(0x8a6a40), -.04, .07, 0).rotation.x = Math.PI / 2;
+    mesh(g, new THREE.ConeGeometry(.1, .07, 8), tone(c, .12), .12, -.13, .04);
+    for (const [x, y, z] of [[.02, .09, .02], [.07, -.1, .1], [.18, -.14, .08]]) put(mesh(g, GEO.gem, tone(c, .05), x, y, z), 0, x * 9, 0, .025);
+  },
+  halo(g, c) { // a saint's halo of beaten gold, its rays standing out
+    const h = lean(g);
+    mesh(h, new THREE.TorusGeometry(.15, .025, 5, 24), metal(c), 0, 0, 0);
+    mesh(h, new THREE.TorusGeometry(.15, .008, 3, 24), glowTone(0xfff4d0), 0, 0, .02);
+    for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; stick(h, [Math.cos(a) * .18, Math.sin(a) * .18, 0], [Math.cos(a) * (i % 2 ? .23 : .26), Math.sin(a) * (i % 2 ? .23 : .26), 0], .007, glowTone(c)); }
+  },
+  ferrylantern(g, c) { // the Ferryman's prow lamp, hung from its crook
+    tube(g, [[-.12, -.25, 0], [-.12, .1, 0], [-.08, .24, 0], [.02, .24, 0], [.04, .18, 0]], .016, .012, tone(DARKWOOD, .1), 10);
+    const l = new THREE.Group(); l.position.set(.04, -.02, 0); l.scale.setScalar(.85); g.add(l); lantern(l, c);
+  },
+  antler(g, c) { // a tine of the white hart's antler, its point still lit
+    tube(g, [[-.08, -.22, 0], [-.04, -.05, .02], [.02, .08, 0], [.1, .2, -.02]], .035, .014, tone(0xf0e8d0, .08), 12);
+    tube(g, [[-.04, -.06, .02], [.06, -.02, .02], [.14, .03, 0]], .02, .01, tone(0xf0e8d0, .08), 8);
+    mesh(g, ball(.02, 6, 4), glowTone(c), .1, .2, -.02); mesh(g, ball(.014, 5, 3), glowTone(c), .14, .03, 0);
+  },
+  contract(g, c) { // a contract rolled tight, a seal of red wax on its cord, an obol for the first body
+    put(mesh(g, cyl(.05, .05, .36, 10), tone(0xe0d4b0, .06), 0, .02, 0), 0, 0, Math.PI / 2 - .3);
+    for (const s of [-1, 1]) put(mesh(g, cyl(.056, .056, .02, 10), tone(c, .08), s * .17 * Math.cos(.3), .02 + s * .17 * Math.sin(.3), 0), 0, 0, Math.PI / 2 - .3);
+    put(mesh(g, cyl(.045, .05, .02, 10), tone(0x8a1a1a, .06), 0, .02, .055), Math.PI / 2);
+    put(mesh(g, GEO.coin, metal(GOLD), .1, -.16, .04), 1.2, 0, .2);
+  },
+  lastrite(g, c) { // a strip of linen with the rite written on it, folded over once, its words faintly lit
+    const l = lean(g);
+    box(l, .12, .36, .012, tone(c, .06), -.05, 0, 0); put(box(l, .12, .2, .012, tone(shade(c, .92), .06), .06, .07, .012), 0, 0, -.25, [.12, .2, .012]);
+    for (let i = 0; i < 3; i++) put(mesh(l, GEO.rune, glowTone(0xb8c8ff), -.05, .12 - i * .1, .01), 0, 0, 0, .5);
+  },
   hood(g, c) { // a pilgrim's cowl
     mesh(g, lathe([[.2, -.2], [.18, -.05], [.15, .06], [.1, .14], [.04, .18], [0, .19]], 12), tone(c, .08), 0, 0, 0);
     put(mesh(g, ball(.12, 10, 8), tone(0x1a1010), 0, -.05, .09), 0, 0, 0, [1, 1.1, .5]);

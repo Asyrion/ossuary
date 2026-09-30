@@ -16,12 +16,14 @@ export type ArtifactKind = 'focus' | 'passive' | 'cursed';
 export type Effect = 'pitWalker' | 'fullHeal' | 'deathBurst' | 'hurtRing' | 'rockBreaker' | 'vision'
   | 'crit' | 'split' | 'leech' | 'moth' | 'orbital' | 'unhurtHeal' | 'bloodTithe'
   | 'freeVault' | 'ferryman' | 'glyphWard' | 'graveLantern' | 'pedlar'
-  | 'emberBolts' | 'vigil' | 'frostbite' | 'stormglass' | 'thurible' | 'witchKnot' | 'noRegen';
+  | 'emberBolts' | 'vigil' | 'frostbite' | 'stormglass' | 'thurible' | 'witchKnot' | 'noRegen'
+  | 'lodestar' | 'stillCandles' | 'choir' | 'echo' | 'bloodMoon' | 'saltCircle' | 'halo' | 'soulLantern' | 'antler'
+  | 'gravemonger' | 'noClearHearts' | 'dearHearts' | 'lastRite';
 /** Additive unless the name ends in Mul (multiplied). `obolDamage` is cantrip damage per ten obols held;
     `spellDamageMul` multiplies what spells do; `killMana` is mana back for every foe put to rest. */
 export type StatKey = 'damage' | 'damageMul' | 'fireDelayMul' | 'speed' | 'speedMul' | 'boltScale' | 'hearts' | 'invuln' | 'pierce'
   | 'shotSpeedMul' | 'rangeMul' | 'knockbackMul' | 'obolDamage' | 'blastMul' | 'mana' | 'spellDamageMul' | 'killMana';
-export type BoltPath = 'straight' | 'bounce' | 'boomerang' | 'wave' | 'homing';
+export type BoltPath = 'straight' | 'bounce' | 'boomerang' | 'wave' | 'homing' | 'swing';
 
 export interface FocusPattern {
   /** Bolts per cast, side by side. */ count: number;
@@ -45,10 +47,11 @@ export interface ArtifactDef {
 
 export const POOLS: Pool[] = ['treasure', 'ordeal', 'boss', 'altar', 'drop', 'merchant', 'secret', 'vault'];
 const EFFECTS: Effect[] = ['pitWalker', 'fullHeal', 'deathBurst', 'hurtRing', 'rockBreaker', 'vision', 'crit', 'split', 'leech', 'moth', 'orbital', 'unhurtHeal', 'bloodTithe',
-  'freeVault', 'ferryman', 'glyphWard', 'graveLantern', 'pedlar', 'emberBolts', 'vigil', 'frostbite', 'stormglass', 'thurible', 'witchKnot', 'noRegen'];
+  'freeVault', 'ferryman', 'glyphWard', 'graveLantern', 'pedlar', 'emberBolts', 'vigil', 'frostbite', 'stormglass', 'thurible', 'witchKnot', 'noRegen',
+  'lodestar', 'stillCandles', 'choir', 'echo', 'bloodMoon', 'saltCircle', 'halo', 'soulLantern', 'antler', 'gravemonger', 'noClearHearts', 'dearHearts', 'lastRite'];
 const STAT_KEYS: StatKey[] = ['damage', 'damageMul', 'fireDelayMul', 'speed', 'speedMul', 'boltScale', 'hearts', 'invuln', 'pierce', 'shotSpeedMul', 'rangeMul', 'knockbackMul', 'obolDamage', 'blastMul', 'mana', 'spellDamageMul', 'killMana'];
 const RESOURCE_KEYS: Resource[] = ['coins', 'keys', 'glyphs'];
-const PATHS: BoltPath[] = ['straight', 'bounce', 'boomerang', 'wave', 'homing'];
+const PATHS: BoltPath[] = ['straight', 'bounce', 'boomerang', 'wave', 'homing', 'swing'];
 
 export const ARTIFACT_DEFS = artifactsData as ArtifactDef[];
 export const ARTIFACTS = new Map(ARTIFACT_DEFS.map(a => [a.id, a]));
