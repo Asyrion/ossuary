@@ -342,7 +342,7 @@ burn that never goes out while the foe lives. Tuning in `data/magic.json`.
 | Swift | −30% cooldown, +20% mana cost |
 | Blood | Costs half a heart instead of mana when mana runs out |
 
-**Enemy affinities (RPG layer):** every enemy has one weakness (+50% damage) and one resistance (−50%), shown in the bestiary once discovered. Placeholder examples: Rotlings are weak to Ember; Wisps resist Umbral and are weak to Hallow; the Hollow Warden resists Frost. As built in M4, each of the ten foes has its pair (`data/foes.json`, the table in `docs/M4-plan.md`); the bosses of floors 4 and 5 have theirs (M4.1), and M4.2's bosses will.
+**Enemy affinities (RPG layer):** every enemy has one weakness (+50% damage) and one resistance (−50%), shown in the bestiary once discovered. Placeholder examples: Rotlings are weak to Ember; Wisps resist Umbral and are weak to Hallow; the Hollow Warden resists Frost. As built in M4, each of the ten foes has its pair (`data/foes.json`, the table in `docs/M4-plan.md`); the bosses of floors 4 and 5 have theirs (M4.1), and so do M4.2's (the War-Tiger weak to Storm and resisting Frost, the Pillar Dragon weak to Umbral and resisting Ember, the Twin Guardians weak to Frost and resisting Hallow).
 
 ## Spells
 
@@ -821,6 +821,16 @@ Fire spreads between what burns, and lights oil; anything that burns or blasts (
 | Current | Walked through | Flowing water that carries the mage, foes, bolts and pickups along; frost stops it (it freezes), and shock runs down it. A waterfall down a wall feeds it |
 | Candle stand in water | Low | Stands in water and lights as any candle stand does; lit, it lights the water round it (the flooded hall of the owner's image), and shock through the water knocks it out |
 
+As built (M4.2 steps 2 to 4; `docs/M4.2-plan.md`): a watching statue charges while the mage is in its sight during a fight
+(7.5 tiles), marks the spot and strikes it with a ray; a hex blinds it for 7 seconds. A sapping obelisk's field (2.8 tiles)
+halves the cantrip and drains 5 mana a second until its ward's school lands on it. A vault's drinking ward drinks the
+spells cast within 4 tiles of it (60 of harm); full, it bursts and the vault's warden is a Wardling (one for each school)
+of the school it drank most; a foe's ward (the Twin Guardians' shield) drinks the spells that strike it and keeps statuses
+off, and breaks into a Wardling. A rope bridge burns through in four seconds; a foe on it falls, and the mage takes a
+heart's fall and climbs out beside the chasm. A current carries the mage at 1.7 tiles a second (bolts, shots and pickups
+too) and stops when frozen; its waterfall pours from the wall upstream. Candle stands in water are lit and knocked out as
+the table says. The dev menu's rooms show each piece.
+
 **Themed rooms (M3.6).** Twelve kinds of place. About two fights in five (per floor, `themeChance`) take place in a themed room: a kind of place in the dungeon, dressed its own way (torch light, floor stains, what the niches hold, scatter on the floor, how its rocks and tombs look) and with one twist to learn. The mage learns its name on first entering. Each floor draws on some of them (weights in `data/floors.json`).
 
 | Theme | Floors | What is in it | Its twist |
@@ -950,7 +960,9 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 ordinary room after its fight, an old man with a white beard, a turban and a staff on a huge shaggy pack beast, a crow on
 its head. The wares are in the beast's packs: things the Bound Shade doesn't sell (a foreign focus, soul motes, reagents
 from M5). The crow sells what it has seen: the floor's map, or where the secret room is. The merchant is gone when the mage leaves the
-room.
+room. As built (M4.2 step 5): from the second floor on, an ordinary room's cleared fight calls the merchant one time in seven,
+once a run; the merchant rides in through the door furthest from the mage and lays out a focus the run hasn't met (18 obols),
+a hallowed or black soul mote (7), the crow's map (5) and, while there is one to find, the secret room (8).
 
 **The merchant** (1 per floor, in a dead end). A hooded trader (placeholder): a bound shade who deals in the obols of the dead, with 3 or 4 items per visit; the first is an artifact while the floor's budget allows. His wares float in ward circles that paying breaks: walking into one buys it, or he refuses (too few obols, a heart at full health). His shop is warded: bolts fizzle there and a glyph's chalk won't take, so there is no fighting or robbing him.
 
