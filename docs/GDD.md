@@ -172,6 +172,16 @@ creatures rather than the dead: round, big-eyed and smaller than the mage. All t
 | 3 | Cinder Salamander | Ember | A salamander with a crest of flame; scurries, and leaves a trail of burning ground |
 | 3 | Hex Imp | Umbral | A big-eared imp on bat wings holding up a violet flame; blinks about the room and throws it |
 | 3 | Rime Drakeling (elite) | Frost | A small dragon with ice crystals for horns and spines; breathes rime and takes to its wings |
+| 4 | Wickmouse | Ember | A mouse with a candle stub burning on its back; darts from cover to cover, and its candle falls burning when it dies |
+| 4 | Chime Bat | Storm | A round bat with a bell at its throat; its chime marks the ground under the mage, and a spark strikes the mark |
+| 4 | Gargoyle Whelp | Frost | A stone pup that bolts glance off while it perches; wakes, pounces twice with a ring of frost, turns to stone again |
+| 4 | Moonstag Fawn | Hallow | A gold-dappled fawn that keeps away from the mage and heals the foes near it (a boss only a little) |
+| 5 | Rootling | Umbral | A seed-bulb on root feet; burrows, creeps after the mage as a mound and bursts up under it; fire keeps it up |
+| 5 | Storm Ray | Storm | A little manta of storm cloud; makes long passes, leaving a line of sparks on the floor |
+| 5 | Void Mote | Umbral | A knot of the dark that swallows the cantrip's bolts and spills them back as a ring; spells hurt it |
+| 5 | Lantern Tortoise (elite) | Frost | A big tortoise with a shrine of candles on its shell; hides and spins off the walls, then lies dizzy |
+
+The last eight arrived with M4.1 (two floors deeper, `docs/M4.1-plan.md`), four a floor, each a new kind of fight.
 
 Behaviour, health, sounds and the affinities (Enemy affinities, below) are M4's to design; a foe's school is a
 starting point for them.
@@ -246,6 +256,13 @@ The mage has three layers of magic: a free cantrip that is always firing, two ac
 | Hallow + Umbral | Eclipse: the enemy is removed from the fight for 3 s, then takes all stored damage |
 | Umbral + Ember | Blackfire: burn that never goes out until the enemy dies |
 
+**Hallow and Umbral as built (M4.1).** Sanctified: for a few seconds the foe takes a quarter more damage from everything
+and nothing heals it. Hex: stacks (up to five) that fade a while after the last; each blow the mage lands on a hexed foe
+spends one and gives back 3 mana, and a foe that falls with three or more leaves a black soul mote one time in two.
+Root (Umbral's hands): held where it stands, still striking; a boss only for a moment. Eclipse: the foe is out of the
+fight for 2 s under a black sun, nothing reaching it, then struck for 18 (a boss is only struck). Blackfire: a violet
+burn that never goes out while the foe lives. Tuning in `data/magic.json`.
+
 **Rooms react to magic.** Oil puddles ignite, water conducts shock across the whole puddle, braziers lit by Ember empower Ember spells in that room, cobwebs burn away to open shortcuts, gravestones can be shattered by Frost. This is the main systemic difference from Isaac and gives room templates a second purpose.
 
 **As built in M3** (numbers in `data/spells.json`, `data/magic.json` and `CFG`; see `docs/M3-plan.md`):
@@ -298,6 +315,15 @@ Fifteen spells, three per school, are enough for M1 to M5. Spells are learned fr
 | Umbral | Grasp of the Grave | 30 | 10 s | Hands rise from the floor and root enemies in an area for 2 s |
 | Umbral | Soul Harvest | 0 | 20 s | Consumes all Hex stacks in the room: damage per stack, +1 mana per stack |
 
+**As built in M4.1** (`data/spells.json`): six spells for Hallow and Umbral, four from this table and two new ones.
+Consecrate (35 mana, 12 s: holy ground at the mage's feet for 6 s that sears and sanctifies what walks in it, heals the
+mage half a heart once, and kindles the candle stands on it), Judgement (45, 14 s: a closing ring of gold marks the
+strongest foe in reach, then a pillar of light falls on it), Wardlight (new; 30, 14 s: six motes circle the mage for
+8 s, breaking the shots they meet and searing what they touch), Hex Bolt (14, 1.8 s: a slow dark bolt, two stacks of
+Hex), Grasp of the Grave (30, 10 s: hands rise where the mage aims and hold every foe there, hexed) and the Ferryman's
+Toll (new; 20, 6 s: the nearest foe is marked with a coin of shadow; blows on it give back mana, and if it falls marked
+it pays an obol and its hex spreads). Lantern of Vigil and Soul Harvest wait.
+
 **Spell data shape**
 
 ```json
@@ -338,6 +364,18 @@ Artifacts replace Isaac's items. There are four kinds: one focus that reshapes t
 | Passive | Unlimited, stack | Stats, triggers, new behaviours |
 | Cursed | Unlimited | Strong effect plus a drawback; cleansed at a shrine, which removes the drawback and halves the effect |
 | Set piece | Unlimited | 2 or 3 pieces of a set grant a bonus |
+
+**M4.1's twelve** (the artifacts now number 56 besides the starting wand; `data/artifacts.json`): two foci, the
+Pendulum of Hours (bolts swing out to one side and curve back onto the aim, the side alternating by cast) and the
+Lodestar Wand (bolts hang as small stars where their range ends); passives: the Twin Vigil Candles (standing still,
+bolts strike half again as hard, two flames at the shoulders), the Ossuary Choir (the fifth foe put to rest in a room
+makes the dead sing, striking every foe there), the Echo Stone (a bolt comes back off a wall once), the Blood Moon
+Pendant (at half health, faster bolts, a quicker hand, crimson), the Salt Circle (standing still a moment, a ring that
+walking foes can't cross), the Gilded Halo (the first bolt sanctifies each foe), the Ferryman's Lantern (hexes give
+back half again the mana, soul motes come twice as often) and the Hart's Antler (every sixth cast a lance of light that
+pierces and sanctifies); cursed: the Gravemonger's Contract (half the foes put to rest leave an obol; price: fights
+leave no hearts and hearts cost twice as much) and the Last Rite (once a floor a killing blow is refused; price: a
+heart container).
 
 **Artifacts per floor: at least 3; a budget of 6, and now and then luck gives more.** Three sources are on every floor; optional ones can add up to three more, enough for the merchant, a vault and a bone altar on the same floor. The boss's choice of two counts as one, since only one can be taken. Some finds sit outside the budget, so a lucky floor can hold more (decided 2026-09-28): a gilded reliquary chest (see Containers), and from step 4 of M2 the secret room.
 
@@ -711,6 +749,8 @@ Fire spreads between what burns, and lights oil; anything that burns or blasts (
 | Frozen mausoleum | 2 | Tombs, rune stones that hold frost, frozen water, rime on the floor, pale stone | Its dead wait in ice until struck or thawed by fire; its stones chill foes near them; the rime lets the mage slide |
 | Reliquary gallery | 1, 2 | Candle stands round a sealed reliquary, bays in its walls | Light every candle stand and the reliquary opens |
 | Cloister garth | 2, 3 | A dead tree, briars, roots and braziers, and daylight through the open roof | Braziers set bolts alight; the tree and the briars burn |
+| Gilded treasury (M4.1) | 4 | Gilded walls, heaps of offerings, spilled obols, candle stands round a sealed reliquary | Its foes stand as statues among the gold until the mage takes an obol there; a glyph's blast spills a heap's obols |
+| Ferry landing (M4.1) | 5 | A river between boards, moored boats that burn, lamps on poles | While the fight lasts the drowned climb out of the river, until it is frozen |
 
 | Room type | Purpose | Door style | Arrives |
 | --- | --- | --- | --- |
@@ -779,6 +819,8 @@ Pickups feed the three resources of a run (health, mana, gold) plus reagents for
 | Bone key | Opens locked vaults and reliquary chests | M2 |
 | Glyph stone | One more blast glyph to chalk: its blast breaks rocks, urns and cracked walls and opens secret rooms | M2 |
 | Mana vial | +25 mana | M3 |
+| Soul mote (pale, black, hallowed) | Kept beside the hearts: takes a hit before them, can't be healed back; a black one hexes the room as it goes, a hallowed one goes last and mends half a heart at every floor's end; a spell short of mana burns one for the rest. More on the deep floors | M4.1 |
+| Lodestone shard | Ends every spell's cooldown and gives 25 mana | M4.1 |
 | Grimoire page | Learn a spell (replaces a slot) | M3 |
 | Reagent | Goes into the ingredient pouch | M5 |
 | Unknown potion | Goes into the potion belt | M5 |
@@ -913,7 +955,7 @@ Audio is designed for headphones first: every sound has a position in the room, 
 - Under one heart, the music thins out and a heartbeat joins.
 - Boss themes are separate pieces with a phase change at 50% health.
 
-**Floor biomes and their soundscapes** (proposal; the biomes themselves are a new idea and need Eda lore). The current scope is three floors, so floors 4 and 5 are kept as ideas for later.
+**Floor biomes and their soundscapes** (proposal; the biomes themselves are a new idea and need Eda lore). Floors 4 and 5 exist since M4.1 (the Gilded Reliquary and the Ferryman's Shore), with placeholder sounds; the table's floors 4 and 5 are still ideas for their biomes.
 
 | Floor | Biome (placeholder) | Ambience bed | Random one-shots | Music mood |
 | --- | --- | --- | --- | --- |
