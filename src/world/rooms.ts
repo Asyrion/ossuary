@@ -3,11 +3,13 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Box, Door, DoorStyle, FloorLook, RockBox, Room, Side } from '../types';
-import { G } from '../state';
+import { DEV, G } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { floorTexture, pitTexture } from '../render/textures';
-import { M, basicMat, blob, boxUV, cappedWallMaterials, disposeTree, glow, markShared, wallMaterials } from '../render/materials';
+import { pixelFloorTexture } from '../render/pixelTextures';
+import { M, basicMat, blob, boxUV, cappedWallMaterials, disposeTree, glow, markShared, mergeStill, wallMaterials } from '../render/materials';
+import { tickFire } from '../render/fire';
 import { offerGuaranteed, placeArtifact } from '../items/artifacts';
 import { burst } from '../combat/fx';
 import { mulberry } from '../util';
@@ -26,10 +28,11 @@ import { buildCrackedWall, fillSecret, secretLook } from './secret';
 import { buildShrine, shrineLook } from './shrine';
 import { subtractRect, wallRects, type Rect } from './walls';
 import { dressNorthWall } from './dressing';
+import { torchLook } from './fireLooks';
 import { buildProps } from './props';
 import { THEMES, themedLook } from './themeData';
 import { dressTheme } from './themes';
-import { modelFor, sealedLook } from '../assets/models';
+import { floorTile, modelFor, sealedLook } from '../assets/models';
 
 export const roomAt = (gx: number, gy: number) => G.roomMap.get(gx + ',' + gy);
 /** World position of the centre of template tile (c, r). */
@@ -58,7 +61,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   room.group.position.set(cx, 0, cz); scene.add(room.group);
   // the controls are chalked on the floor of the very first room only
   const kind = plan.type === 'start' && floorIndex > 0 ? 'normal' : plan.type;
-  const floor = new THREE.Mesh(maskGeometry(room.mask, w, h), new THREE.MeshStandardMaterial({ map: floorTexture(plan.seed, kind, look, room.mask), roughness: .95 }));
+  const floor = new THREE.Mesh(maskGeometry(room.mask, w, h), new THREE.MeshStandardMaterial({ map: kitFloor(look) ? pixelFloorTexture(plan.seed, kind, look, room.mask) : floorTexture(plan.seed, kind, look, room.mask), roughness: .95 }));
   room.group.add(floor);
   // the drowned floor's standing water is real in its fights: a puddle or two to wade through
   if (look.floor.decor === 'puddles' && plan.type === 'normal') {
@@ -365,7 +368,7 @@ function wallBox(room: Room, x0: number, x1: number, z0: number, z1: number, h: 
 /** Walls along the outline with gaps for the doors, the doors themselves, and torches. Needs every room of
     the floor built, since a door's look depends on the room behind it. */
 export function buildWallsAndDoors(room: Room) {
-  const { minX, minZ } = room.bounds, mats = wallMaterials(room.look.wall), capped = cappedWallMaterials(room.look.wall);
+  const { minX, minZ } = room.bounds, mats = wallMaterials(room.look.wall, kitFloor(room.look)), capped = cappedWallMaterials(room.look.wall, kitFloor(room.look));
   const { hx, hz } = cellHalfExtents(room.plan.shape);
   // doors first: where they are decides where the walls have gaps
   for (const pd of room.plan.doors) {
@@ -431,9 +434,21 @@ function placeTorches(room: Room, run: WallRun, across0: number) {
   }
 }
 
+/** The room kit's floor and walls are drawn for the crypt so far (the proof, M3.5 step 3); other looks keep the old. */
+export const kitFloor = (look: FloorLook) => DEV.roomKit && look.name === 'crypt' && !floorTile(look.name);
+
 /** A light on a wall, in the floor's style: iron bracket (crypt), cage lantern (drowned) or brazier (burning).
     Built facing south and turned to face the room along `normal`. */
 function addTorch(room: Room, x: number, z: number, normal: [number, number], t: FloorLook['torch']) {
+  const lit = room.plan.variant !== 'dark', at = { x: x + normal[0] * .6, z: z + normal[1] * .6 };
+  if (DEV.roomKit) { // the room kit's torch (fireLooks.ts): its fire moves by itself
+    const { holder, lit: fire, glow: gl } = torchLook(t);
+    holder.userData.parts = { fire, gl }; mergeStill(holder);
+    holder.position.set(x - room.cx, 0, z - room.cz); holder.rotation.y = Math.atan2(normal[0], normal[1]);
+    fire.visible = gl.visible = lit; room.group.add(holder);
+    room.torches.push({ flame: fire, glow: gl, ...at, lit });
+    return;
+  }
   const flameMat = basicMat(new THREE.Color(t.flame).getHex());
   const holder = new THREE.Group(); holder.position.set(x - room.cx, 0, z - room.cz);
   holder.rotation.y = Math.atan2(normal[0], normal[1]);
@@ -461,9 +476,8 @@ function addTorch(room: Room, x: number, z: number, normal: [number, number], t:
   const gl = glow(new THREE.Color(t.light).getHex(), glowSize, .8); gl.position.set(0, glowAt[0], glowAt[1]); holder.add(gl);
   room.group.add(holder);
   // dark rooms: the torch hangs cold, its flame out
-  const lit = room.plan.variant !== 'dark';
   flame.visible = gl.visible = lit;
-  room.torches.push({ flame, glow: gl, x: x + normal[0] * .6, z: z + normal[1] * .6, lit });
+  room.torches.push({ flame, glow: gl, ...at, lit });
 }
 
 /** A doorway on `side` whose middle (on the room's inside edge) is at world (x, z): posts, lintel, threshold,
@@ -568,12 +582,14 @@ export function setDoors(room: Room, open: boolean, sound = true) {
 }
 
 export function updateRoomFx(dt: number, now: number) {
+  tickFire(now);
   for (const r of G.rooms) {
     for (const d of doorsOf(r)) { const target = d.open ? -d.barH - .05 : 0; d.bars.position.y += (target - d.bars.position.y) * (1 - Math.exp(-12 * dt)); }
     if (r === G.current) for (const t of r.torches) {
       if (!t.lit) continue;
       const f = .85 + Math.sin(now * 17 + t.x) * .08 + Math.sin(now * 29 + t.x * 2) * .06;
-      t.flame.scale.set(1, f, 1); t.glow.material.opacity = .6 + f * .25;
+      if (!t.flame.userData.fire) t.flame.scale.set(1, f, 1); // (the kit's fire flickers by itself)
+      t.glow.material.opacity = .6 + f * .25;
     }
   }
 }

@@ -9,7 +9,7 @@ import '@fontsource/alegreya-sans/400.css';
 import '@fontsource/alegreya-sans/500.css';
 import '@fontsource/alegreya-sans/700.css';
 import './style.css';
-import { G, player } from './state';
+import { DEV, G, player } from './state';
 import { applyStrings } from './strings';
 import { Sfx } from './audio/sfx';
 import { camera, canvas, draw, renderer, resize } from './render/renderer';
@@ -17,7 +17,7 @@ import './render/lights';
 import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { arrowOrder, initKeyboard, initTouch, keys, type InputActions } from './input';
 import { initScreens, showScreen } from './ui/screens';
-import { closeDev, devOpen, showAssetsHere, toggleDev, useAssets } from './ui/devMenu';
+import { closeDev, devOpen, showAssetsHere, toggleDev, useAssets, useRoomKit } from './ui/devMenu';
 import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPad, openInventory } from './ui/inventory';
 import { setHeroInfo, updateVision } from './ui/hud';
 import { giveById } from './items/artifacts';
@@ -98,9 +98,12 @@ async function loadDefaultHero() {
     ?room=<template id> plays one room template (for reviewing templates), ?variant=dark dresses that room
     in a variant (quiet, champion, ambush, dark), ?give=bone_lens,twin_staff starts the run holding those
     artifacts, ?boss=pyre picks every floor's boss, ?loot=coins:20,glyphs:5 hands out obols, keys and glyphs,
-    ?spells=arc starts with spells in the slots, ?theme=ossuary makes every fight one theme's. */
+    ?spells=arc starts with spells in the slots, ?theme=ossuary makes every fight one theme's, ?kit=old builds the rooms
+    in the old look (before the room kit). */
 function readUrlOptions() {
   const q = new URLSearchParams(location.search);
+  const kit = q.get('kit');
+  if (kit === 'old') DEV.roomKit = false; else if (kit && kit !== 'new') console.warn(`?kit=${kit}: use new or old`);
   const seed = q.get('seed'), floor = Number(q.get('floor')), room = q.get('room'), variant = q.get('variant') as RoomVariant | null;
   if (variant && !VARIANTS.includes(variant)) console.warn(`?variant=${variant}: use one of ${VARIANTS.join(', ')}`);
   // ?loot=coins:20,keys:2,glyphs:5
@@ -147,6 +150,10 @@ function installDevHooks() {
         (this floor is built again to compare). */
     get assets() { return { on: assetsOn(), list: assetList().map(a => ({ ...a })) }; },
     useAssets: (on: boolean) => useAssets(on),
+    /** The room kit (M3.5 step 3's proof: fire objects, the crypt's floor and walls built in code): whether it is used;
+        turn it on or off (this floor is built again to compare). */
+    get roomKit() { return DEV.roomKit; },
+    useRoomKit: (on: boolean) => useRoomKit(on),
     /** The pixel look (a style test): rows of pixels (0 off), outlines, light in bands; set any of them. */
     get pixelLook() { return { ...pixelLook() }; },
     /** Enemy model options (looks only): stand them (or those named) ahead of the mage, a row per floor; returns where

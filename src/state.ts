@@ -44,7 +44,9 @@ export const G = {
 /** Dev menu switches (ui/devMenu.ts): god mode keeps the mage from harm; endless mana never runs out; `moveClip`
     tries the walk clip for all movement (with its feet in step, or at a natural pace), to compare with the run;
     `doors` moves every door off the middle of its edge where it fits, or none, in the floors made from now on. */
-export const DEV = { god: false, mana: false, fps: false, moveClip: 'run' as 'run' | 'walkInStep' | 'walkNatural', doors: 'data' as 'data' | 'shifted' | 'middle' };
+export const DEV = { god: false, mana: false, fps: false, moveClip: 'run' as 'run' | 'walkInStep' | 'walkNatural', doors: 'data' as 'data' | 'shifted' | 'middle',
+  /** The room kit in code (M3.5 step 3's proof: the fire objects, the crypt's floor and walls); off keeps the old looks. */
+  roomKit: true };
 
 export const player: Player = {
   dead: false, x: 0, z: 0, vx: 0, vz: 0, r: CFG.hero.radius, hp: 6, maxHp: 6, invuln: 0, fireCd: 0, eye: 1, yawA: 0, blessed: 0,

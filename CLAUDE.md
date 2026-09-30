@@ -16,7 +16,7 @@ log; its Sound section does the same for sound (sources and their licences, the 
 When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3.5 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 540 lines), step 3 under way: the room kit redone in code in the new style, a proof first (the fire objects and the crypt's floor and walls); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3.5 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 540 lines), step 3 under way: the room kit redone in code in the new style, its proof built (the fire objects and the crypt's floor and walls, the old look behind `DEV.roomKit`) and waiting on the owner; code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -143,7 +143,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
   every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
-  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=1080`, `720`, `540`, `360` or `270` sets its rows). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
+  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=1080`, `720`, `540`, `360` or `270` sets its rows), `?kit=old` builds the rooms in the old look (before the room kit). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
   vault, a secret room (behind a cracked wall), a shrine (`?room=shrine_henge`) or a library
   (`?room=library_plain`) next to the start.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
@@ -216,6 +216,15 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   reset in `draw()`). The dev menu switches it, remembered in the browser (`ossuary.look`, with the default it was chosen
   against: a new default shows once); `?pixel=off` or
   `?pixel=720`; `__game.pixelLook` reads it and `__game.setPixelLook({ lines, outline, bands })` sets it.
+- The room kit (M3.5 step 3, the proof; `docs/M3.5-plan.md`): the room's pieces redone in code in the style of the spell
+  effects. Fire is `src/render/fire.ts` (`makeFire`: layered flames and embers moved on the GPU from `tickFire`, colours in
+  the geometry, four shared materials); the fire objects are `src/world/fireLooks.ts` (`torchLook` in each floor's style,
+  `brazierLook` with runes that kindle, `candleStandLook`), called from `addTorch` in `rooms.ts` and `MECH_LOOKS` in
+  `mechanisms.ts`. Their still pieces are painted (`paint`; `mergeStill` bakes the colours into one mesh, `KIT_MAT`). The
+  crypt's floor and walls are pixel art drawn texel by texel in `src/render/pixelTextures.ts` (`CFG.roomKit.texel`,
+  `kitFloor` in `rooms.ts`); the special rooms' marks come from `drawMarks` in `textures.ts`, hardened into texels.
+  `DEV.roomKit` (the dev menu's Look tab, `?kit=old`, `__game.roomKit`, `__game.useRoomKit(on)`) builds the floor again in
+  the new or old look; "Fire objects here" stands braziers and candle stands ahead of the mage, cold and lit.
 - `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
   1,024 px JPEG textures). Clips: `standing_relax`, `run`, `walk` (slow movement), `cast_a_spell`,
   `hit_to_body_01`, `fall` and `defeat_03` (two deaths, one at random), `Drink Potion` (when healed) and

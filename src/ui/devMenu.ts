@@ -33,7 +33,7 @@ import { SPELL_DEFS } from '../magic/spellData';
 import { forgetSpells, gainMana, learnSpell } from '../magic/spells';
 import { forgetKnowledge, knowEvery, knowledgeNow } from '../magic/memory';
 import { dropPage } from '../magic/pages';
-import { poolsDo } from '../world/pools';
+import { fireAt, poolsDo } from '../world/pools';
 import { inflict } from '../magic/statusFx';
 import type { StatusKind } from '../magic/spellData';
 import { TEMPLATE_DEFS } from '../world/templates';
@@ -41,7 +41,7 @@ import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
 import { renderHearts, renderItems, renderMinimap, toast } from './hud';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
 let spellSlot = 0, knowBox: HTMLElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
@@ -102,10 +102,12 @@ function goTo(r: Room) {
   player.x = seal.outer.x - dx * 1.8; player.z = seal.outer.z - dz * 1.8;
 }
 
-/** Made assets on or off: this floor is built again on its seed (the same rooms and boss), and the mage goes back to
-    the room they were in, to compare. */
-export function useAssets(on: boolean) {
-  setAssetsOn(on); renderItems();
+/** Made assets on or off: this floor is built again (`rebuildFloor`), to compare. */
+export function useAssets(on: boolean) { setAssetsOn(on); renderItems(); rebuildFloor(); }
+/** The room kit (M3.5 step 3's proof) on or off: this floor is built again in the new or the old look, to compare. */
+export function useRoomKit(on: boolean) { DEV.roomKit = on; rebuildFloor(); }
+/** This floor built again on its seed (the same rooms and boss), and the mage back in the room they were in. */
+function rebuildFloor() {
   if (G.state === 'title') return;
   const id = G.current.plan.id;
   if (G.run.bossesMet.at(-1) === G.run.boss) G.run.bossesMet.pop(); // (built again, the floor draws the same boss)
@@ -226,6 +228,16 @@ function build() {
     bandBtn = btn('', () => setPixelLook({ bands: !pixelLook().bands })),
   );
 
+  // the room kit (M3.5 step 3's proof): the pieces built in code, or the old ones to compare; the fire objects to look at
+  const kit = section(pages.look, S.kit);
+  kit.append(el('p', 'dv-info', S.kitNote), kitBtn = btn('', () => useRoomKit(!DEV.roomKit)), btn(S.fireHere, () => {
+    closeDev();
+    for (const [kind, dx, dz, lit] of [['brazier', -1.4, -1.8, false], ['brazier', 0, -2.2, true], ['candles', 1.3, -1.8, false], ['candles', 2.4, -2.2, true]] as const) {
+      const q = freeSpotNear(G.current, player.x + dx, player.z + dz);
+      if (placeProp(kind, q.x, q.z) && lit) fireAt(q.x, q.z, .3);
+    }
+  }));
+
   // the made assets (M3.5): on or off to compare with the placeholders, what loaded, and what a frame costs
   const assets = section(pages.look, S.assets);
   assets.append(
@@ -292,6 +304,7 @@ function refresh() {
   const list = assetList();
   assetBox.replaceChildren(...(list.length ? list.map(a => el('div', '', S.assetRow(a.where, S.assetStatus[a.status], a.triangles))) : [el('div', '', S.noAssets)]));
   assetBtn.textContent = assetsOn() ? S.assetsOn : S.assetsOff; assetBtn.classList.toggle('on', assetsOn()); assetBtn.disabled = !list.some(a => a.status === 'loaded');
+  kitBtn.textContent = DEV.roomKit ? S.kitNew : S.kitOld; kitBtn.classList.toggle('on', DEV.roomKit);
   fpsBtn.textContent = DEV.fps ? S.fpsOn : S.fpsOff; fpsBtn.classList.toggle('on', DEV.fps);
   const look = pixelLook();
   pxBtn.textContent = S.pixelLines(look.lines, drawnRows(renderer.getDrawingBufferSize(new Vector2()).y)); pxBtn.classList.toggle('on', !!look.lines);
