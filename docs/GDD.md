@@ -6,7 +6,21 @@ Sep 24, 2026 · @Azyrion
 
 Ossuary is a top-down roguelike with RPG elements, set in the high/dark fantasy world of Eda. It borrows the room-by-room structure of The Binding of Isaac, but its identity is magic: every run is a spellbook the player assembles from spells, runes, magical artifacts and potions they brew themselves. It runs in desktop browsers (a mobile version may come later); its rooms, creatures and effects are built in code, with Tripo3D for special models (the mage, bosses where wanted). It is a hobby project; the current goal is to prove the core loop is fun before adding content.
 
-**Pitch:** An apprentice mage descends beneath a ruined chapel of Eda, room by room, floor by floor. They learn spells from torn grimoire pages, bind cursed artifacts to their will, brew potions from what the dead leave behind, and grow stronger with every floor. Every run builds a different mage; what the mage learns is never fully lost.
+**Pitch:** An apprentice mage, Asyrion, breaks into the vault beneath the Gate of Uzulim, room by room, floor by floor, where the gate's Wardens sealed away what they took from the wilderness. He learns spells from torn grimoire pages, binds cursed artifacts to his will, brews potions from what the dead leave behind, and grows with every floor from an apprentice into a chaos mage of fire and runes. Every run builds a different mage; what the mage learns is never fully lost.
+
+**Setting (from the owner's Eda lore, adopted 2026-09-30; `docs/ideas.md` has the reading of the notes and images).**
+The Pass of Buluiain runs through the valleys of the Huruhui, guarded at each end by a gate: Belregi, carved and bright,
+towards the valleys, and Uzulim, dark volcanic stone, towards the wild lands beyond. The Uzulim Wardens keep the dark
+gate, and beneath it a vault of what they took from the wilderness over the centuries, "a source of great strength and
+a potential danger". The runs go down into that vault. The chapel above the first floor is the Wardens' own; the crypts
+are theirs, and their dead lie there with the sextons and pilgrims who served them; the artifacts on the pedestals are
+what they sealed away; the Hollow Warden is a Warden who never came back up. Below the vault lies what Kaelith, the
+Shadow Sentinel, gave their life to seal: the horde from the wilderness, whose creatures are the dungeon's foes. **The
+world above** (the Huruhui's green valleys and cliff towns, the Longwood and its World Trees, the Plains of Belerial) is
+lush and hopeful where the vault is dark: it is what the gate keeps safe. The game shows it at the edges only: through
+the Vigil, a cave mouth over the valleys, and at a run's end, in daylight. The dark stays below; the light is what the
+mage climbs back to.
+
 
 **Pillars**
 
@@ -207,6 +221,20 @@ bell), the **Mother of Spores** (Umbral; a mushroom as tall as a door whose youn
 **Hollow Owl** (Hallow; a round barn owl with a crown of candles). The owner chooses one after the play-test (the dev
 menu's Galleries tab stands them and switches the one the Warden wears).
 
+**Bosses from the Eda lore (M4.2, decided 2026-09-30).** Three bosses from the owner's images, built in code like the
+others and drawn into the floors' pools:
+- **The War-Tiger** (a white-maned tiger armoured in plates of bronze and stone): it stands as a statue in its hall until
+  the mage comes in, charges and swipes, and its plates turn most of a blow; a glyph's blast or a Shatter breaks a plate
+  off, and each plate lost leaves it faster and more open. Frost (its plates rime) and Storm (it fears the bells of the
+  Wardens) are its weakness and resistance to settle in building.
+- **The Pillar Dragon** (a long dragon with antlers, a spiked mane and a beard, orange and blue-grey): it coils round the
+  top of the room's pillars and moves from one to the next; bolts reach only its head where it leans out, and it breathes
+  down on the floor, fire from its orange side and frost from its blue, as it faces. Knocking it off a pillar (a blast at
+  the pillar's foot, a bell) brings it down to the floor for a while, open.
+- **The Twin Guardians** (the colossal bearded guardians crouched in the gate's towers, lion-pawed): two statues that wake
+  together. One strikes while the other shields it (bolts glance off the shielding one); they trade places as the mage
+  moves; when one falls, the other rages. The Uzulim statues whose eyes follow whoever approaches are their kind.
+
 **The Bestiary (M4.5, decided 2026-09-30).** The owner liked the critters and wants a whole host more: small critters,
 fantasy creatures and elementals, and new kinds of enemy behaviour. They come after M4, which builds the enemy
 framework on the ten. Each is drawn up in code as a look first (the dev menu's gallery), chosen by the owner, then
@@ -245,6 +273,13 @@ The mage has three layers of magic: a free cantrip that is always firing, two ac
 | Storm | Shock: chains to nearby enemies, brief stun | Groups, anything wet | Burst |
 | Hallow | Sanctified: takes more damage, can't regenerate | Wraiths, the Warden's kind | Precise, defensive |
 | Umbral | Hex: drains life or mana back to the mage | Living things | Risky, sustain |
+
+**A sixth school: Verdant** (adopted 2026-09-30 from the Huruhui's biomancy; designed and built with M5's gardens and
+reagents). Growth, roots, pollen and healing: the school the valleys practise. Its status, *Overgrown*: vines that slow a
+foe more the longer they hold, and flower when it falls (a little healing for the mage, once a room). Reactions to
+design with it: Verdant + Ember, *Wildfire* (the burn runs to every overgrown foe); Verdant + Frost, *Frostbloom* (ice
+flowers that shatter); Verdant + Storm, *Pollen spark* (a cloud of pollen that shocks). Spells to design: a snare of
+thorns, a cloud of healing pollen, a wall of living wood. Its sound: wood and breath, reeds and seed pods.
 
 **Element reactions** (two effects on the same enemy or tile)
 
@@ -291,7 +326,7 @@ burn that never goes out while the foe lives. Tuning in `data/magic.json`.
 | Swift | −30% cooldown, +20% mana cost |
 | Blood | Costs half a heart instead of mana when mana runs out |
 
-**Enemy affinities (RPG layer):** every enemy has one weakness (+50% damage) and one resistance (−50%), shown in the bestiary once discovered. Placeholder examples: Rotlings are weak to Ember; Wisps resist Umbral and are weak to Hallow; the Hollow Warden resists Frost. As built in M4, each of the ten foes has its pair (`data/foes.json`, the table in `docs/M4-plan.md`); the bosses have none yet.
+**Enemy affinities (RPG layer):** every enemy has one weakness (+50% damage) and one resistance (−50%), shown in the bestiary once discovered. Placeholder examples: Rotlings are weak to Ember; Wisps resist Umbral and are weak to Hallow; the Hollow Warden resists Frost. As built in M4, each of the ten foes has its pair (`data/foes.json`, the table in `docs/M4-plan.md`); the bosses of floors 4 and 5 have theirs (M4.1), and M4.2's bosses will.
 
 ## Spells
 
@@ -478,13 +513,26 @@ Picking up an artifact shows on the mage, as Isaac's items do, but in a high fan
 | --- | --- | --- | --- |
 | Pyromancer | Ember | A crown of flame, smouldering sleeves, burning footprints | The cantrip leaves embers where it strikes |
 | Frostborn | Frost | An ice crown, rimed robes, frosted breath | Foes that touch the mage are chilled |
-| Stormcaller | Storm | A crackling aura, eyes lit with lightning | Every fifth cast leaps to a second foe |
+| Stormcaller | Storm | Boketto's look (the owner's image): white hair, black spirals down the arms, a violet and teal glow across the face and shoulder, eyes lit blue when a Storm spell is cast | Every fifth cast leaps to a second foe |
 | Lightbearer | Hallow | A halo and wings of candle-light | The mage floats over pits and water |
 | Shadowstep | Umbral | A cloak of shadow, violet eyes | A short blink in the moving direction |
 | Runescribe | Runes and scrolls | Runes glowing across the robes, a floating grimoire | Bolts leave a rune that bursts a moment later |
 | Pilgrim | Pilgrim's things (the Cowl, the Boots, the Rosary of Haste) | A pilgrim's robes, a lantern at the belt | The lantern's light shows each floor's map and makes cracked walls glow; the mage walks faster |
 | Beastcaller | Familiars | A circlet of antlers, motes circling | One more familiar, and familiars strike harder |
 | Alchemist (M5) | Potions | A bandolier of vials, a stained apron | Thrown potions split in two |
+
+**Asyrion's arc** (from the owner's two sheets, adopted 2026-09-30). The mage is Asyrion. A run begins in the
+apprentice's look (a young man with tousled fair hair over a dark undercut, green eyes, a grey-green hooded tunic, a
+traveller's pack) and grows towards the chaos mage's (long dark hair, a dark coat worked all over in bronze, a flame in one
+hand, red rune orbs circling in thin gold rings, white arcs of wind): the more of his power the mage holds (artifacts for
+now; levels from M6), the more of the fire mage's pieces replace the apprentice's, slot by slot, as costumes do. The Tripo
+model is made from the sheets (docs/assets.md); the pieces that change are built in code.
+
+**Fen-Nex** (the owner's Fen-Nex, "fox man", adopted 2026-09-30). The Rune Fox familiar built from the owner's drawing is
+Fen-Nex, Asyrion's companion: an artifact binds it as a small rune fox that runs at the mage's heel and bites; as the run
+goes on (floors cleared) it grows into its full shape, a long white beast between fox, cat and dragon, its fur blown back
+into flame-tipped feathers, its legs plated dark blue with red spiral runes, and it breathes Ember. Three beast artifacts
+make its pelt a transformation (the Beastcaller's look takes it).
 
 **Artifact data shape**
 
@@ -514,6 +562,12 @@ half of an added stat, half the way to 1 of a multiplied one (×2 becomes ×1.5)
 Potions are the second game inside a run: every potion has a drink effect on the mage and a throw effect on the room, found potions are unidentified, and the mage can brew their own from reagents.
 
 **The potion belt:** 3 slots (4 with the Alchemist's Satchel). Tap the potion button to drink the selected potion, hold it to aim and throw in the cast direction. Thrown potions shatter in a 2-tile splash.
+
+**Dr. Jelly's laboratory** (the owner's Dr. Jelly's House, adopted 2026-09-30). The alchemy table stands in a
+laboratory lit green: glass globes of glowing jelly on stands, and behind a great arched window a vat where a jelly serpent
+coils. Dr. Jelly, the alchemist who keeps it, identifies a potion and trades recipes. The globes burst to a bolt and spill a
+jelly (the Lantern Jelly's kin) or a reagent. Once a run the serpent may break out of its vat as a boss, flooding the room
+with jelly that slows and conducts shock.
 
 **Identification.** Bottle shapes and colours are shuffled every run, like Isaac's pills. Unknown potions show only their bottle. A potion is identified by drinking or throwing it, by an identify boon, or at an alchemy table. Once a recipe has been brewed, that potion is always identified in future runs.
 
@@ -583,7 +637,13 @@ Boons are weighted towards the schools the player already uses, so a build forms
 
 **Between runs: the Vigil** (decided with the owner 2026-09-29; built in M7)
 
-The Vigil is a candle-lit crypt above the dungeon, where the dead the mage frees come to rest. The mage wakes there
+The Vigil is a candle-lit crypt above the dungeon, where the dead the mage frees come to rest. With the Eda lore
+(2026-09-30) it opens at the back into a cave mouth over the Huruhui valleys: as the mage frees shades, the cave fills in
+as the Huruhui's cave cities do (a terrace, a house, a garden bed and a fall of water for each), and the light of the
+valleys reaches further in. Its first shades include Boketto the Storm Caller and the Cloud Forest Wizard, who teach
+their schools (Storm, and Verdant); Huruhui foragers (flower crowns, bows and spears) bring reagents back between runs.
+Kaelith, the Shadow Sentinel, is the voice under the vault: heard in the Vigil, met as the final boss (M7), the seal they
+became the last thing between the horde and the pass. A run won ends in daylight, at the cave mouth. The mage wakes there
 after every run and goes down from there. It grows by who the mage has freed and by the magic the mage knows, not by
 coin, and it is no shop: nothing is sold there. It replaces the Sanctum placeholder; its name and every name below are
 placeholders until the Eda lore arrives. The concepts it was chosen from are in `docs/ideas.md` (A hub between runs).
@@ -733,6 +793,17 @@ Fire spreads between what burns, and lights oil; anything that burns or blasts (
 | Reliquary | Tall | Sealed until the room's candle stands are all lit (or all knocked over); then it opens and gives a chest's hoard |
 | Dead tree | Tall | Burns, like grave roots, but longer; a burning bolt (from a brazier) sets it alight, as it does roots |
 
+**From the Eda lore (M4.2, adopted 2026-09-30).** Six more pieces that answer to magic:
+
+| Piece | Blocks | What magic does |
+| --- | --- | --- |
+| Watching statue | Tall | A hooded Warden's statue whose gaze follows the mage; standing in its gaze charges it, and full, it strikes a ray at where the mage stands. Umbral (a hex) blinds it for a while; a pillar between breaks its gaze |
+| Sapping obelisk | Tall | Its field saps the mage within it: the cantrip weakens and mana drains. Each obelisk's ward answers to one school, as a rune stone does; break its ward with that school and its field goes out |
+| Drinking ward | None (a door's or a boss's shield) | Drinks every spell thrown at it, filling; full, it breaks and releases an elemental of the school it drank most (a vault door's ward, a boss's shield): the mage chooses the fight by what they cast |
+| Rope bridge | Walked on | Carries the mage and foes over a chasm; fire burns it through, and what stands on it falls |
+| Current | Walked through | Flowing water that carries the mage, foes, bolts and pickups along; frost stops it (it freezes), and shock runs down it. A waterfall down a wall feeds it |
+| Candle stand in water | Low | Stands in water and lights as any candle stand does; lit, it lights the water round it (the flooded hall of the owner's image), and shock through the water knocks it out |
+
 **Themed rooms (M3.6).** Twelve kinds of place. About two fights in five (per floor, `themeChance`) take place in a themed room: a kind of place in the dungeon, dressed its own way (torch light, floor stains, what the niches hold, scatter on the floor, how its rocks and tombs look) and with one twist to learn. The mage learns its name on first entering. Each floor draws on some of them (weights in `data/floors.json`).
 
 | Theme | Floors | What is in it | Its twist |
@@ -857,6 +928,12 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 - It flares when the fuse runs out, or at once when one of the mage's own bolts crosses it (a bolt leaving the mage doesn't set off the glyph at their feet). So the focus shapes how glyphs are used: bouncing bolts set them off round corners, the crook's bolt on its way back, twin bolts two at a time.
 - The blast (1.5 tiles) deals 10 damage to every foe in reach (bosses too), knocks them back, breaks rocks (not pillars or tombs), urns and cracked walls, snuffs out enemy shots and sets off other glyphs in reach, so glyphs chain. A mage caught in it loses a full heart.
 - It burns in the colour of the mage's bolts, so artifacts that change the bolts show in the glyphs too. Idea for M3: a glyph takes the school of the mage's focus, so an Ember glyph leaves burning ground and a Frost glyph chills.
+
+**The Wandering Merchant of Belerial** (M4.2, adopted 2026-09-30). A second trader, rare: once a run he rides into an
+ordinary room after its fight, an old man with a white beard, a turban and a staff on a huge shaggy pack beast, a crow on
+its head. His wares are in the beast's packs: things the Bound Shade doesn't sell (a foreign focus, soul motes, reagents
+from M5). His crow sells what it has seen: the floor's map, or where the secret room is. He is gone when the mage leaves the
+room.
 
 **The merchant** (1 per floor, in a dead end). A hooded trader (placeholder): a bound shade who deals in the obols of the dead, with 3 or 4 items per visit; the first is an artifact while the floor's budget allows. His wares float in ward circles that paying breaks: walking into one buys it, or he refuses (too few obols, a heart at full health). His shop is warded: bolts fizzle there and a glyph's chalk won't take, so there is no fighting or robbing him.
 
@@ -1110,11 +1187,12 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M3.7 Spell knowledge | Know your spells | Panels over grimoire pages and in the inventory that fill in as spells are seen, learned, used and later upgraded; the spells tab by school; knowledge kept between runs (Spells: Spell knowledge) |
 | M4 Enemies in code | Own creatures | The ten enemies built in code (Enemies built in code: four on floor 1, three on each of the others) as foes with behaviour, health, sounds and elemental affinities, and a boss built the same way (the owner chose code over Tripo, 2026-09-29) |
 | M4.1 Two floors deeper | A longer descent | Floors 4 and 5 with their own looks, room kit, foes, bosses and themes; Hallow and Umbral spells and statuses; soul motes; twelve more artifacts (the owner's ask, 2026-09-30; `docs/M4.1-plan.md`) |
+| M4.2 Beneath the Gate | The vault has a story | The Eda setting in the game's text (the Gate of Uzulim, its Wardens, Kaelith, Asyrion); the six pieces from the lore (watching statues, sapping obelisks, the drinking ward, rope bridges, currents and waterfalls, candle stands in water); the Wandering Merchant of Belerial; three bosses (the War-Tiger, the Pillar Dragon, the Twin Guardians); Fen-Nex as the familiar that grows (adopted 2026-09-30; `docs/M4.2-plan.md`) |
 | M4.5 Bestiary | A living dungeon | More critters, fantasy creatures and elementals built in code, and new kinds of enemy behaviour, spread over the floors; each drawn up as a look, chosen by the owner, then made a foe (Combat and enemies: The Bestiary; ideas in `docs/ideas.md`, decided 2026-09-30) |
-| M4.6 Costumes and transformations | You can see your build | Most artifacts wear a costume piece built in code; transformations when three artifacts of a kind are held (Artifacts: Costumes and transformations; decided 2026-09-30, its place in the order the owner's to move) |
-| M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table |
+| M4.6 Costumes and transformations | You can see your build | Most artifacts wear a costume piece built in code; transformations when three artifacts of a kind are held, Boketto's look for the Stormcaller; Asyrion's arc from apprentice to chaos mage (Artifacts: Costumes and transformations; decided 2026-09-30, its place in the order the owner's to move) |
+| M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
-| M7 Descent and the Vigil | A full run with a reason to return | Final boss; the Vigil (RPG progression: Between runs): freed shades as townspeople with dialogue, its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines |
+| M7 Descent and the Vigil | A full run with a reason to return | Final boss (Kaelith, the Shadow Sentinel); the Vigil (RPG progression: Between runs) at the cave mouth over the valleys: freed shades as townspeople with dialogue (Boketto, the Cloud Forest Wizard, the Huruhui foragers), its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines; a won run ends in daylight |
 | M8 Eda | It is Eda | Lore names, floor biomes, adaptive music, ambience beds and final mix |
 
 **Why Plunder comes before Magic:** it builds straight on M1's floor generator and room templates, and Magic's library already sells spells back for coins.
@@ -1136,19 +1214,19 @@ All names in the prototype are placeholders until the Eda lore is added to this 
 | Placeholder | Stands for | Replace with |
 | --- | --- | --- |
 | Ossuary (working title) | Game title and floor 1 | Title and first location from Eda |
-| The old chapel of Eda | Setting of floor 1 | A real place in Eda |
-| Hero (no name) | Player character | Name and short backstory |
+| The old chapel of Eda | Setting of floor 1 | The Uzulim Wardens' chapel over their vault, beneath the Gate of Uzulim (adopted 2026-09-30) |
+| Hero (no name) | Player character | Asyrion, apprentice turned chaos mage (adopted 2026-09-30) |
 | Rotling, Wisp, Crypt hound | Enemy types | Eda creatures |
-| The Hollow Warden | Floor 1 boss | Eda boss creature |
+| The Hollow Warden | Floor 1 boss | A fallen Uzulim Warden (adopted 2026-09-30; its look is the owner's choice) |
 | The Drowned Abbess, the Pyre Knight | Floor 2 and 3 bosses | Eda boss creatures |
 | Ember Sigil | First artifact | Eda artifact |
 | Ordeal, Bone altar | M1 room types | Eda names for these rooms |
 | Coins | Currency | An Eda currency (idea: obols, the coins laid on the eyes of the dead) |
 | The merchant | Trader NPC | Who trades with the dead in Eda |
 
-- [ ] Who is the hero, and why do they descend?
-- [ ] Which region of Eda is the dungeon in, and what are floors 2 and 3?
-- [ ] Does Eda have its own schools or traditions of magic that should replace Ember, Frost, Storm, Hallow and Umbral?
+- [x] Who is the hero, and why do they descend? Asyrion, an apprentice who becomes a chaos mage, breaking into the Wardens' vault beneath the Gate of Uzulim (Vision: Setting)
+- [x] Which region of Eda is the dungeon in, and what are floors 2 and 3? The Pass of Buluiain, beneath the Gate of Uzulim; the floors are the vault's levels, their biomes for M8
+- [x] Does Eda have its own schools or traditions of magic that should replace Ember, Frost, Storm, Hallow and Umbral? They stay, and the Huruhui's biomancy adds a sixth, Verdant (Magic system)
 - [ ] Should artifacts come from Eda's factions or gods (for example one pool per faction)?
 - [ ] Who teaches alchemy in Eda, and is it respected or forbidden?
 - [ ] Should the disciplines be separate playable characters with their own Tripo models, or one mage with different loadouts?
