@@ -551,7 +551,8 @@ const BEHAVIOURS: Record<string, Behaviour> = {
         if (e.st <= 0 && !burning) { e.state = 'dig'; e.st = num(P.dig); Sfx.at(e.x, e.z).dig(); }
       } else if (e.state === 'dig') {
         e.vx = e.vz = 0;
-        if (e.st <= 0) { e.state = 'under'; e.st = num(P.under); e.hidden = true; e.contact = 0; }
+        if (burning) { e.state = 'up'; e.st = span(P.up); } // (set alight half in the ground, it climbs back out)
+        else if (e.st <= 0) { e.state = 'under'; e.st = num(P.under); e.hidden = true; e.contact = 0; }
       } else if (e.state === 'under') { // a mound creeping after the mage
         const sp = num(P.burrowSpeed) * e.speedMul; e.vx = a.ux * sp; e.vz = a.uz * sp;
         if (Math.random() < dt * 8) burst(e.x, .05, e.z, 0x3a3028, 1, .6, .04); // (earth thrown up)
@@ -632,7 +633,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
       e.st -= dt;
       if (e.state === 'walk') {
         const sp = e.foe!.speed * e.speedMul; e.vx = a.ux * sp; e.vz = a.uz * sp;
-        if (e.st <= 0) { e.state = 'hide'; e.st = num(P.hide); Sfx.at(e.x, e.z).shellIn(); }
+        if (e.st <= 0) { e.state = 'hide'; e.st = num(P.hide); e.guard = num(P.guard); Sfx.at(e.x, e.z).shellIn(); } // (shut from the first moment)
       } else if (e.state === 'hide') { // into its shell: bolts glance off
         e.vx = e.vz = 0; e.tele = Math.min(1, 1 - e.st / num(P.hide)); e.guard = num(P.guard);
         if (e.st <= 0) { e.state = 'spin'; e.st = num(P.spinTime); e.cycle = num(P.bounces); e.dir = { x: a.ux, z: a.uz }; e.tele = 0; Sfx.at(e.x, e.z).drakeWings(); }
