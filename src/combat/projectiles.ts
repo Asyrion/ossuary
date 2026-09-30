@@ -16,7 +16,7 @@ import { basicMat, blob, glowShared, sphereGeo } from '../render/materials';
 import { blockers, boxAt } from '../world/collision';
 import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
 import { strikeProp } from '../world/props';
-import { boltThrough } from '../world/mechanisms';
+import { boltThrough, sapMul } from '../world/mechanisms';
 import { hollowRing } from '../world/secret';
 import { strikeWisp } from '../world/shrine';
 import { shootDir } from '../input';
@@ -26,7 +26,7 @@ import { damageEnemy, hurtPlayer } from './damage';
 import { detonateGlyph, glyphNear } from './glyphs';
 import { burst } from './fx';
 import { GILT_COLOR, type BoltPath } from '../items/artifactData';
-import { elemental, type SpellStatus, type StatusKind } from '../magic/spellData';
+import type { SpellStatus } from '../magic/spellData';
 import { inflict } from '../magic/statusFx';
 import { fireAt, frostAt } from '../world/pools';
 import { animateBolt, boltLook, impactFx } from '../magic/spellFx';
@@ -87,7 +87,7 @@ export function spawnBolt() {
   const steady = st.effects.has('stillCandles') && player.still >= A.still.after, moon = bloodMoon();
   const statusOf = { ...(st.effects.has('emberBolts') ? { burn: A.emberwood.burn } : {}), ...(frost ? { chill: A.frostbite.chill } : {}), ...(lance ? { sanct: A.antler.sanct } : {}) };
   const status = Object.keys(statusOf).length ? statusOf : undefined;
-  const dmgMul = (steady ? A.candles.damageMul : 1) * (lance ? A.antler.damageMul : 1), speedMul = moon ? A.bloodMoon.shotSpeedMul : 1;
+  const dmgMul = (steady ? A.candles.damageMul : 1) * (lance ? A.antler.damageMul : 1) * sapMul(), speedMul = moon ? A.bloodMoon.shotSpeedMul : 1;
   for (const k of slots) {
     const a = k * p.fan, c = Math.cos(a), s = Math.sin(a);
     const dx = dir.x * c - dir.z * s, dz = dir.z * c + dir.x * s, off = p.count === 1 ? .1 * player.eye : p.fan ? 0 : k * p.spread;
@@ -146,7 +146,7 @@ export function clearProjectiles() {
 
 /** Something of the mage's (a bolt, a beam) reaches a wall, door or rock at (x, y, z): a vault's ward glances it off,
     a cracked wall rings hollow, an urn breaks. Returns the box as a rock, to check for more. */
-export function strikeSolid(room: Room, box: Box, x: number, y: number, z: number, status?: Partial<Record<StatusKind, number>>) {
+export function strikeSolid(room: Room, box: Box, x: number, y: number, z: number, status?: Partial<Record<SpellStatus, number>>) {
   const door = room.doors.find(d => d.box === box);
   if (door?.seal?.sealed) { burst(x, y, z, WARD_COLOR, 5, 1.6, .035); Sfx.at(x, z).wardTink(); } // glances off a vault's ward
   if (door?.secret) hollowRing(door, x, z);                                               // a cracked wall rings hollow
@@ -205,7 +205,7 @@ export function updateBolts(dt: number) {
     // walls, doors and rocks
     const box = !kill && !(b.path === 'boomerang' && b.returning) ? boxAt(b.x, b.z, solids) : undefined;
     if (box) {
-      const rock = strikeSolid(room, box, b.x, b.y, b.z, elemental(b.status));
+      const rock = strikeSolid(room, box, b.x, b.y, b.z, b.status); // (every status: a statue hears a hex, an obelisk its ward's school)
       if (!rock.urn && !rock.prop && breaker && !b.spell && room.rocks.includes(rock)) hitRock(room, rock); // Mason's Chisel cracks rocks
       if (b.path === 'bounce' && b.bounces > 0) {
         // reflect on the axis that ran into the box, from the last free position

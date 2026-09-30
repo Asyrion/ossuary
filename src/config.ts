@@ -84,6 +84,13 @@ export const CFG = {
     // half hearts the lodestone's arc and a falling censer take from the mage; how hard they throw foes back (× the
     // usual knockback); how much bigger a blessed bolt is
     lodeHurt: 1, censerHurt: 1, lodeKnock: .3, censerKnock: .5, blessScale: 1.2,
+    // M4.2: a watching statue: how far it sees; seconds of gaze that charge it; how fast its charge cools out of its
+    // gaze; the pause between its mark and its ray; how wide the ray strikes; half hearts it takes; seconds before it
+    // watches again; seconds a hex blinds it; how close darkness landing reaches it; what its ray does to a foe
+    statue: { reach: 7.5, charge: 2.2, cool: 1.5, delay: .75, radius: .75, hurt: 1, rest: 1.5, blind: 7, umbralCatch: 1.2, damage: 12 },
+    // a sapping obelisk: how far its field reaches; what the cantrip's blows are worth inside it; mana drained a second;
+    // how close its school must land to break its ward
+    obelisk: { reach: 2.8, sap: .5, drain: 5, catch: 1 },
   },
   themes: { wakeReach: 2.6, riseAfter: 10, riseEvery: 6, riseMost: 3, pageChance: .3, caveReach: 3.5, caveStones: 3, caveDelay: .8, caveDamage: 8, daylightClear: 3, bedrollClear: 2,
     // M4.1: the drowned climb out of the landing's river this long into a fight, then this often, at most this many

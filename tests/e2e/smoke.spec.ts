@@ -1896,6 +1896,67 @@ test('mechanisms: a lit brazier sets bolts alight, runes take a school, bells st
   expect(errors).toEqual([]);
 });
 
+test('watching statues and sapping obelisks (M4.2): a statue in sight charges, marks the mage and strikes; a pillar breaks its gaze, a hex blinds it; an obelisk saps the cantrip and mana until its school breaks its ward', async ({ page }) => {
+  type P = { kind: string; x: number; z: number; cd: number; charge: number; blind: number; aiming: boolean; ward: string | null; broken: boolean };
+  type G12 = {
+    warp(id: number): void; sim(sec: number, draw?: boolean): void; props: P[]; element(kind: string, x: number, z: number): void;
+    enemies: { x: number; z: number; asleep?: boolean; spawn: number }[]; current: { bounds: { minX: number; minZ: number }; locked: boolean };
+    player: { x: number; z: number; vx: number; vz: number; hp: number; invuln: number; mana: number }; sap: number;
+    learn(id: string, slot: number): void; mana(n: number): void; cast(slot: number, dir?: { x: number; z: number }): boolean;
+    keys: Set<string>; arrowOrder: string[]; bolts: { damage: number }[];
+  };
+  let errors = await start(page, '?room=gaze_watch&seed=GAZE01');
+  const gaze = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G12 }).__game;
+    const at = (c: number, r: number) => ({ x: g.current.bounds.minX + c + .5, z: g.current.bounds.minZ + r + .5 });
+    const stand = (c: number, r: number) => { const q = at(c, r); g.player.x = q.x; g.player.z = q.z; g.player.vx = g.player.vz = 0; };
+    const statue = (c: number) => g.props.find(p => p.kind === 'statue' && Math.abs(p.x - at(c, 1).x) < .6)!;
+    g.warp(1); g.sim(.3);
+    const corner = at(11, 5); for (const e of g.enemies) { e.asleep = true; e.spawn = 0; e.x = corner.x; e.z = corner.z; } // (the fight goes on, held still)
+    stand(6, 5); g.player.invuln = 0; const hp = g.player.hp;
+    g.sim(2.3); const marked = [statue(3).aiming, statue(9).aiming];
+    g.sim(.8); const struck = hp - g.player.hp, rested = statue(3).cd > 0;
+    g.player.invuln = 99; g.sim(1.6);
+    g.element('hex', at(9, 1).x, at(9, 1).z);   // darkness blinds the east statue
+    stand(1, 5); g.sim(3);                        // the pillar at (2, 3) stands between the mage and the west statue
+    const hidden = { blindEast: statue(9).blind > 0, east: statue(9).charge, west: statue(3).charge };
+    stand(3, 4); g.mana(999); g.learn('hex_bolt', 0); g.cast(0, { x: 0, z: -1 }); g.sim(1.5); // a Hex Bolt into the west statue
+    return { marked, struck, rested, hidden, blindWest: statue(3).blind > 0, locked: g.current.locked };
+  });
+  expect(gaze).toMatchObject({ marked: [true, true], rested: true, hidden: { blindEast: true, east: 0 }, blindWest: true, locked: true });
+  expect(gaze.struck).toBeGreaterThan(0);
+  expect(gaze.hidden.west).toBeLessThan(.1);
+  expect(errors).toEqual([]);
+
+  errors = await start(page, '?room=obelisk_court&seed=OBEL01');
+  const ob = await page.evaluate(() => {
+    const g = (window as unknown as { __game: G12 }).__game;
+    const at = (c: number, r: number) => ({ x: g.current.bounds.minX + c + .5, z: g.current.bounds.minZ + r + .5 });
+    g.warp(1); g.sim(.3); g.player.invuln = 99;
+    const corner = at(0, 0); for (const e of g.enemies) { e.asleep = true; e.spawn = 0; e.x = corner.x; e.z = corner.z; }
+    const q = at(6, 5); g.player.x = q.x; g.player.z = q.z; g.player.vx = g.player.vz = 0;
+    g.mana(100); g.sim(1);
+    const sap = g.sap, drained = 100 - g.player.mana, toast = document.getElementById('toast')!.textContent;
+    g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); g.sim(.05); g.keys.delete('ArrowUp'); g.arrowOrder.length = 0;
+    const weak = g.bolts[0]?.damage ?? 0; g.sim(1);
+    const o = () => g.props.find(p => p.kind === 'obelisk')!, ward = o().ward!;
+    const kinds: Record<string, string> = { ember: 'burn', frost: 'chill', storm: 'shock', hallow: 'sanct', umbral: 'hex' };
+    const wrong = Object.values(kinds).find(k => k !== kinds[ward])!;
+    g.element(wrong, o().x, o().z); const held = !o().broken;
+    g.element(kinds[ward], o().x, o().z); g.sim(.3);
+    g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); g.sim(.05); g.keys.delete('ArrowUp'); g.arrowOrder.length = 0;
+    const whole = g.bolts[0]?.damage ?? 0; g.sim(.05, true);
+    return { ward, sap, drained, toast, held, broken: o().broken, sapAfter: g.sap, weak, whole };
+  });
+  expect(ob).toMatchObject({ sap: .5, held: true, broken: true, sapAfter: 1 });
+  expect(ob.drained).toBeGreaterThan(2);
+  expect(ob.toast).toMatch(/saps your magic/);
+  expect(ob.weak).toBeGreaterThan(0);
+  expect(ob.whole).toBeCloseTo(ob.weak * 2, 5);
+  await page.screenshot({ path: 'test-results/smoke-obelisk.png' });
+  expect(errors).toEqual([]);
+});
+
 test('candle stands: all lit, a reliquary opens with its hoard and a chapel blesses the next casts; the frozen mausoleum\'s dead wait in ice', async ({ page }) => {
   type P = { kind: string; x: number; z: number; lit: boolean };
   type E = { x: number; z: number; dead?: boolean; asleep?: boolean; entombed?: unknown; isBoss?: boolean };

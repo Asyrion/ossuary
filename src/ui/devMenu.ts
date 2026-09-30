@@ -244,7 +244,7 @@ function build() {
   const objs = section(pages.foes, S.objects);
   for (const kind of PROP_KINDS) objs.append(btn(S.propNames[kind], () => { const q = ahead(1.5); if (!placeProp(kind, q.x, q.z)) toast(S.noRoom, 2); }));
   // fire, frost or shock landing just ahead, as a spell's would: to light braziers and candles, charge runes, set lodestones leaping
-  for (const [kind, label] of [['burn', S.kindle], ['chill', S.frost], ['shock', S.shock]] as [StatusKind, string][]) objs.append(btn(label, () => { const q = ahead(1.5); elementDev(kind, q.x, q.z); }));
+  for (const [kind, label] of [['burn', S.kindle], ['chill', S.frost], ['shock', S.shock], ['sanct', S.hallowAhead], ['hex', S.umbralAhead]] as [StatusKind | 'sanct' | 'hex', string][]) objs.append(btn(label, () => { const q = ahead(1.5); elementDev(kind, q.x, q.z); }));
 
   // statuses on every foe in the room: to see them, and to set off reactions by hand
   const sts = section(pages.magic, S.statuses);
