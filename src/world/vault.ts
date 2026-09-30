@@ -70,7 +70,7 @@ function unseal(s: VaultSeal, forced: boolean) {
   if (forced) {
     const v = s.vault, kind = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].vaultWarden;
     v.warden = true; v.cleared = false;
-    v.waves = [[{ kind, x: v.cx, z: v.cz + CFG.vault.wardenAt }]];
+    v.waves = [[{ kind, role: 'H', x: v.cx, z: v.cz + CFG.vault.wardenAt }]];
   }
   renderMinimap();
 }

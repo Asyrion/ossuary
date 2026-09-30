@@ -11,6 +11,8 @@ import { placeProp } from '../world/props';
 import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
+import { FOES, FOE_IDS } from '../actors/foeData';
+import { forgetBestiary } from '../actors/bestiary';
 import { ARTIFACT_DEFS, START_FOCUS, artifact } from '../items/artifactData';
 import { giveById, grantArtifact, placeArtifact, refreshStats, removeArtifactGallery, resetArtifacts, showArtifactGallery } from '../items/artifacts';
 import { DROPS, RESOURCES, type Drop, type Resource } from '../items/loot';
@@ -42,7 +44,7 @@ import { KIT_PARTS, kindsOf, type KitPart, type Kinds } from '../world/kitData';
 import { renderHearts, renderItems, renderMinimap, toast } from './hud';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
 let spellSlot = 0, knowBox: HTMLElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
@@ -222,6 +224,14 @@ function build() {
   for (const [kind, champion] of [['rotling', false], ['wisp', false], ['hound', false], ['hound', true], ['dummy', false]] as [EnemyType, boolean][]) {
     foes.append(btn(champion ? S.champion(S.foeNames[kind]) : S.foeNames[kind], () => { const q = ahead(3); makeEnemy(kind, q.x, q.z, floorHp(), undefined, { champion }); }));
   }
+  // the foes built in code (M4), by floor, from data/foes.json; and one of them in every fight, to test it
+  for (const floor of [1, 2, 3]) {
+    const row = FOE_IDS.filter(id => FOES[id].floor === floor);
+    if (row.length) foes.append(el('p', 'dv-info', S.foesOfFloor(floor)), ...row.map(id => btn(STR.options[id].name, () => { const q = ahead(3); makeEnemy(id, q.x, q.z, floorHp()); })));
+  }
+  foes.append(el('p', 'dv-info', S.bestiaryNote), foeBtn = btn('', () => { // (the floor is built again with it)
+    const list = [undefined, ...FOE_IDS], at = list.indexOf(DEV.foe); DEV.foe = list[(at + 1) % list.length]; rebuildFloor(); refresh();
+  }), btn(S.forgetBestiary, () => { forgetBestiary(); refresh(); }));
 
   // the rooms' objects (M3.6), put down just ahead of the mage
   const objs = section(pages.foes, S.objects);
@@ -327,6 +337,7 @@ function refresh() {
   const cur = G.current;
   info.textContent = S.info(G.run.seed, G.run.floor + 1, cur.plan.id, S.roomNames[cur.type] ?? cur.type);
   godBtn.textContent = DEV.god ? S.godOn : S.godOff; godBtn.classList.toggle('on', DEV.god);
+  foeBtn.textContent = DEV.foe ? S.foeEverywhere(STR.options[DEV.foe].name) : S.foesAsFloor; foeBtn.classList.toggle('on', !!DEV.foe);
   moveBtn.textContent = S.moveClip[DEV.moveClip]; moveBtn.classList.toggle('on', DEV.moveClip !== 'run');
   doorBtn.textContent = S.doors[DEV.doors]; doorBtn.classList.toggle('on', DEV.doors !== 'data');
   manaBtn.textContent = DEV.mana ? S.manaOn : S.manaOff; manaBtn.classList.toggle('on', DEV.mana);

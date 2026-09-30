@@ -38,6 +38,7 @@ import { clearPages, dropPage, enterLibrary, maybeDropPage } from './magic/pages
 import { resetClock } from './loop';
 import { $, mulberry } from './util';
 import { burst } from './combat/fx';
+import { mimicSpot } from './actors/foes';
 
 /** How the next run starts. Set from the URL at boot (?seed, ?floor, ?room, ?variant, ?give, ?boss, ?loot); used once. */
 export interface RunOptions {
@@ -89,7 +90,7 @@ export function buildFloor(index: number) {
 }
 
 export function resetPlayer() {
-  Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0, blessed: 0 });
+  Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0, blessed: 0, dim: 0 });
   heroReset();
   resetHearts(); resetArtifacts(); resetResources();
   forgetSpells(); player.mana = player.stats.maxMana;
@@ -190,6 +191,7 @@ function spawnWave(room: Room, ambush = false) {
   const mortal = foes.filter(f => f.kind !== 'boss');
   const championRoom = room.plan.variant === 'champion' || room.warden; // a forced vault's warden is a champion
   const champion = championRoom && room.wave === 0 && mortal.length ? mortal[Math.floor(mulberry(room.plan.seed)() * mortal.length)] : null;
+  let mimics = 0;
   for (const f of foes) {
     let { x, z } = f;
     if (ambush) {
@@ -197,6 +199,7 @@ function spawnWave(room: Room, ambush = false) {
       if (d < 2.2) { const p = freeSpotNear(room, player.x + (d ? dx / d : 1) * 3, player.z + (d ? dz / d : 0) * 3); x = p.x; z = p.z; }
       burst(x, .1, z, 0x5a4a3a, 14, 2.2, .08);
     }
+    if (f.kind === 'urnMimic' && !ambush) ({ x, z } = mimicSpot(room, x, z, mimics++)); // (it waits among the urns, as one of them)
     if (f.kind === 'boss') makeEnemy(G.run.boss, x, z, 1, cfg.boss);
     else makeEnemy(f.kind, x, z, cfg.enemyHp, undefined, { champion: f === champion });
   }

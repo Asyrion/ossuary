@@ -27,7 +27,8 @@ import { clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRu
 import { STEP, startLoop, step } from './loop';
 import { cleanSeed } from './rng';
 import { VARIANTS, planToText, type RoomVariant } from './world/generate';
-import { BOSS_TYPES, CFG, type BossType, type EnemyType } from './config';
+import { BOSS_TYPES, CFG, type BossType } from './config';
+import { damageEnemy } from './combat/damage';
 import { DROPS, RESOURCES, type Drop, type Resource } from './items/loot';
 import { giveResources, spawnPickup } from './items/pickups';
 import { openSecretRoom } from './world/secret';
@@ -55,6 +56,8 @@ import { elementDev } from './world/mechanisms';
 import { forgetKnowledge, knowledgeNow, setStage } from './magic/memory';
 import type { Stage } from './magic/knowledge';
 import type { PropKind } from './world/propData';
+import { FOE_IDS, isFoe, type FoeType, type School } from './actors/foeData';
+import { bestiary, forgetBestiary } from './actors/bestiary';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
@@ -116,6 +119,9 @@ function readUrlOptions() {
   const boss = q.get('boss') as BossType | null, bossOk = !!boss && BOSS_TYPES.includes(boss);
   if (boss && !bossOk) console.warn(`?boss=${boss}: use one of ${BOSS_TYPES.join(', ')}`);
   const theme = q.get('theme');
+  // ?foe=sporeling: that foe in every template role, on every floor (M4)
+  const foe = q.get('foe');
+  if (foe && isFoe(foe)) DEV.foe = foe; else if (foe) console.warn(`?foe=${foe}: use one of ${FOE_IDS.join(', ')}`);
   if (theme && !THEMES.has(theme)) console.warn(`?theme=${theme}: use one of ${[...THEMES.keys()].join(', ')}`);
   const give = (q.get('give') ?? '').split(',').map(s => s.trim()).filter(Boolean);
   const spells = (q.get('spells') ?? '').split(',').map(s => s.trim()).filter(Boolean);
@@ -208,7 +214,11 @@ function installDevHooks() {
     get pagePanel() { return { spell: pagePanelSpell(), text: document.getElementById('pagePanel')?.classList.contains('on') ? document.getElementById('pagePanel')!.textContent : '' }; },
     /** Spawn a foe (e.g. 'dummy', the training dummy) at (x, z), or ahead of the mage; put statuses on every
         foe in the room, e.g. inflict({ burn: 3 }). */
-    spawn(kind: EnemyType, x = player.x, z = player.z - 2.5) { return makeEnemy(kind, x, z, 1); },
+    spawn(kind: FoeType, x = player.x, z = player.z - 2.5) { return makeEnemy(kind, x, z, 1); },
+    /** Strike the room's foe `i` for `dmg`, of `school` if given (M4: its weakness and resistance count). */
+    hit: (i: number, dmg: number, school?: School) => { const e = G.enemies[i]; if (e) damageEnemy(e, dmg, 0, 0, 0, 'spell', school); return e?.hp; },
+    /** What the mage has found of the foes (M4), kept between runs; forget it all. */
+    get bestiary() { return bestiary(); }, forgetBestiary: () => forgetBestiary(),
     inflict(status: Partial<Record<StatusKind, number>>) { for (const e of G.enemies) inflict(e, status); },
     /** Fire a foe's shot from (x, z) along (dx, dz), as a wisp would (a wall of ice stops it); seconds of the
         Static Mantle left. */

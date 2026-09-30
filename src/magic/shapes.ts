@@ -77,7 +77,7 @@ const chain: Cast = (def, dir) => {
     const to = { x: e.x, y: foeY(e), z: e.z };
     strikeFx(from, to, color, CFG.spellFx.chain); ringFx(to.x, to.y, to.z, color, .1, .45, CFG.spellFx.flash);
     const dx = e.x - from.x, dz = e.z - from.z, d = Math.hypot(dx, dz) || 1;
-    damageEnemy(e, def.damage * Math.pow(P.falloff, i), dx / d, dz / d, .4, 'spell');
+    damageEnemy(e, def.damage * Math.pow(P.falloff, i), dx / d, dz / d, .4, 'spell', def.school);
     inflict(e, def.status);
     burst(to.x, to.y, to.z, color, 8, 2.2, .04);
     from = to;
@@ -104,7 +104,7 @@ const beam: Cast = (def, dir) => {
     if (!alive(e)) continue;
     const t = along(e.x, e.z);
     if (t < -e.r || t > len + e.r || side(e.x, e.z) > e.r + P.width) continue;
-    damageEnemy(e, def.damage, dir.x, dir.z, .5, 'spell');
+    damageEnemy(e, def.damage, dir.x, dir.z, .5, 'spell', def.school);
     inflict(e, def.status);
     burst(e.x, foeY(e), e.z, color, 8, 2.4, .05);
   }
@@ -159,7 +159,7 @@ function erupt(s: (typeof seals)[number]) {
     if (!alive(e)) continue;
     const u = away(e, s.x, s.z);
     if (u.d > P.radius + e.r) continue;
-    damageEnemy(e, def.damage, u.x, u.z, 0, 'spell');
+    damageEnemy(e, def.damage, u.x, u.z, 0, 'spell', def.school);
     inflict(e, def.status);
     if (!e.isBoss) { e.kx += u.x * P.knockback; e.kz += u.z * P.knockback; }
   }
@@ -262,7 +262,7 @@ function dropWall(w: (typeof walls)[number], quiet = false) {
     for (const b of w.boxes) { const d = Math.hypot(e.x - b.x, e.z - b.z); if (d < nd) { nd = d; near = b; } }
     if (nd > P.burst + e.r) continue;
     const u = away(e, near.x, near.z);
-    damageEnemy(e, def.damage, u.x, u.z, .6, 'spell');
+    damageEnemy(e, def.damage, u.x, u.z, .6, 'spell', def.school);
     inflict(e, def.status);
   }
   for (const b of w.boxes) { burst(b.x, .5, b.z, ICE, 6, 2.6, .06); burst(b.x, .8, b.z, 0xffffff, 2, 2, .04); }
@@ -305,7 +305,7 @@ function updateMantle(dt: number, now: number) {
     if (u.d > player.r + e.r + P.reach) continue;
     m.zapped.set(e, now + P.every);
     strikeFx({ x: player.x, y: .8, z: player.z }, { x: e.x, y: foeY(e), z: e.z }, color);
-    damageEnemy(e, m.def.damage, u.x, u.z, 0, 'spell');
+    damageEnemy(e, m.def.damage, u.x, u.z, 0, 'spell', m.def.school);
     inflict(e, m.def.status);
     if (!e.isBoss) { e.kx += u.x * P.knockback; e.kz += u.z * P.knockback; }
     burst(e.x, foeY(e), e.z, color, 8, 2.4, .035); Sfx.at(e.x, e.z).mantleZap();

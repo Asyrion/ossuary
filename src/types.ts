@@ -1,9 +1,9 @@
 import type * as THREE from 'three';
 import type { PropKind } from './world/propData';
 import type { ThemeDef } from './world/themeData';
-import type { EnemyType } from './config';
 import type { BossConfig, PlannedRoom } from './world/generate';
 import type { FoeKind, Template } from './world/templates';
+import type { FoeDef, FoeType } from './actors/foeData';
 import type { StatusState } from './magic/status';
 import type { StatusKind } from './magic/spellData';
 import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
@@ -86,7 +86,10 @@ export interface PropState {
 /** An object in the room, with its box (how it blocks depends on its class: rocks, `lows`, or `soft`). */
 export type PropBox = RockBox & { prop: PropState };
 /** A cloud of glowcap spores hanging where a glowcap burst: fire in it flashes. */
-export interface SporeCloud { x: number; z: number; t: number; g: THREE.Group }
+export interface SporeCloud {
+  x: number; z: number; t: number; g: THREE.Group;
+  /** A Sporeling's puff (M4): it stings the mage who stands in it, once, and dims their sight this many seconds. */ sting?: number; stung?: boolean;
+}
 /** An artifact on a pedestal. `pair` links the boss's two choices: taking one makes the other vanish. */
 export interface ArtifactSpot {
   def: ArtifactDef; room: Room; x: number; z: number; taken: boolean;
@@ -112,7 +115,8 @@ export interface Room {
   /** Every candle stand in the room lit (M3.6 mechanisms): what that does has happened. */ candlesLit?: boolean;
   /** The eyes of an ossuary's skull niches, one material lit in the last spell's colour (M3.6). */ eyes?: THREE.MeshBasicMaterial;
   /** Enemies to spawn, wave by wave (ordeals have 2 or 3 waves, other fights 1), in world positions. */
-  waves: { kind: FoeKind; x: number; z: number }[][];
+  /** Each wave's foes: what the floor put in each template role (or the boss), and where. */
+  waves: { kind: FoeType | 'boss'; role: FoeKind; x: number; z: number }[][];
   /** The wave being fought, and whether the next one is on its way. */ wave: number; wavePending: boolean;
   /** Ambush rooms: waiting for the mage to reach the middle (armed), or already sprung. */ ambush?: 'armed' | 'sprung';
   /** Quiet rooms: a heart waits there on the first visit. */ quietHeart?: boolean;
@@ -148,7 +152,7 @@ export interface Page {
 }
 
 export interface Enemy extends Circle {
-  type: EnemyType; vx: number; vz: number; kx: number; kz: number; hp: number; maxHp: number;
+  type: FoeType; vx: number; vz: number; kx: number; kz: number; hp: number; maxHp: number;
   flying: boolean; spawn: number; t: number; flash: number; mats: THREE.MeshStandardMaterial[];
   group: THREE.Group; body: THREE.Group; face: number; contact: number; state: string; st: number;
   dead?: boolean; isBoss?: boolean; bossCfg?: BossConfig;
@@ -165,6 +169,11 @@ export interface Enemy extends Circle {
   /** What struck it last: the cantrip's kills give mana back. */ lastHit?: 'cantrip' | 'spell';
   /** Status effects on it (magic/status.ts), the ice around it while frozen, and the training dummy's label. */
   status?: StatusState; ice?: THREE.Mesh; label?: THREE.Sprite;
+  /** A foe built in code (M4, actors/foes.ts): what it is; its model and the model's idle, played on its own clock `at`
+      at `animRate` (0 holds it still); how strongly it telegraphs (0 to 1: its school's glow, a swell); its shadow's size. */
+  foe?: FoeDef; model?: THREE.Object3D; idle?: (t: number) => void; at?: number; animRate?: number; tele?: number; shadow?: number;
+  /** Its model's parts its behaviour moves (a beetle's wing-cases, a mimic's lid); how open a lid or shell is (0 to 1);
+      what it takes of a hit (a shut mimic, half). */ parts?: Record<string, THREE.Object3D>; open?: number; guard?: number;
 }
 
 export interface Bolt extends Circle {
@@ -179,7 +188,10 @@ export interface Bolt extends Circle {
   status?: Partial<Record<StatusKind, number>>;
   /** Set alight flying through a brazier's flame (M3.6): it trails embers. */ kindled?: boolean;
 }
-export interface Shot extends Circle { y: number; vx: number; vz: number; color: number; mesh: THREE.Group }
+export interface Shot extends Circle {
+  y: number; vx: number; vz: number; color: number; mesh: THREE.Group;
+  /** An ember (a mimic's, M4): it lights what burns along its way, oil, braziers and roots. */ fire?: boolean; fireT?: number;
+}
 export interface Particle { m: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>; vx: number; vy: number; vz: number; life: number }
 /** Something lying on the floor to pick up; `m` is the part that bobs and spins, `drop` the fall-in time left. */
 export interface Pickup extends Circle {
@@ -212,4 +224,5 @@ export interface Player extends Circle {
       again; where the mage last aimed or walked (a spell cast standing still goes that way). */
   mana: number; spells: (string | null)[]; spellCd: number[]; aim: Vec2;
   /** Derived from the base stats and the artifacts held (items/artifactData.ts computeStats). */ stats: Stats;
+  /** Seconds the mage's sight stays dimmed (a Sporeling's spores, M4): the edges of the view darken. */ dim: number;
 }

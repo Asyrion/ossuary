@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { snagAt } from '../world/props';
 import { BOSS_TYPES, CFG, type EnemyType } from '../config';
+import { FOES, isFoe, type FoeType } from './foeData';
+import { bumpFoe, buildFoe, poseFoe, teleColor, updateFoe } from './foes';
 import type { Enemy } from '../types';
 import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
@@ -23,11 +25,12 @@ export function stdMat(color: number, extra: THREE.MeshStandardMaterialParameter
   return new THREE.MeshStandardMaterial({ color, roughness: .85, flatShading: true, ...extra });
 }
 
-/* Placeholder primitive foes. M2 replaces these with Tripo models. */
+/* The foes: those built in code (M4: actors/foes.ts, data/foes.json) and the placeholder primitives they replace (the
+   old three, the bosses until theirs is built, the training dummy). */
 /** Spawn an enemy. `hpMul` scales health (deeper floors); `boss` tunes the floor's boss; a champion
     (champion rooms) is bigger, glows, has more health and moves a little faster. */
-export function makeEnemy(type: EnemyType, x: number, z: number, hpMul = 1, boss?: BossConfig, opts: { champion?: boolean } = {}) {
-  const C = CFG.enemy[type], CH = CFG.champion;
+export function makeEnemy(type: FoeType, x: number, z: number, hpMul = 1, boss?: BossConfig, opts: { champion?: boolean } = {}) {
+  const def = isFoe(type) ? FOES[type] : undefined, C = def ?? CFG.enemy[type as EnemyType], CH = CFG.champion;
   const hp = C.hp * hpMul * (boss?.hpMul ?? 1) * (opts.champion ? CH.hpMul : 1);
   const e: Enemy = {
     type, x, z, vx: 0, vz: 0, kx: 0, kz: 0, r: C.r * (opts.champion ? CH.radiusMul : 1), hp, maxHp: hp, bossCfg: boss, flying: false, spawn: .6, t: Math.random() * 10,
@@ -40,7 +43,8 @@ export function makeEnemy(type: EnemyType, x: number, z: number, hpMul = 1, boss
     if (mat instanceof THREE.MeshStandardMaterial) { mat.userData.base = mat.emissive.clone(); e.mats.push(mat); }
     return m;
   };
-  if (type === 'rotling') {
+  if (def) buildFoe(e, def);
+  else if (type === 'rotling') {
     const skin = stdMat(0x6f7b5b), pale = stdMat(0x8d917a), eye = new THREE.MeshBasicMaterial({ color: 0xffd35e });
     add(new THREE.SphereGeometry(.32, 10, 8), skin, 0, .38, 0, 1, 1.12, .9);
     add(new THREE.SphereGeometry(.21, 10, 8), pale, 0, .78, .1);
@@ -76,7 +80,7 @@ export function makeEnemy(type: EnemyType, x: number, z: number, hpMul = 1, boss
     for (const m of e.mats) { m.userData.base = new THREE.Color(CH.tint); m.emissive.set(CH.tint); }
     e.aura = glow(CH.aura, 1.6, .5); e.aura.position.y = .5; e.group.add(e.aura);
   }
-  e.group.add(blob(C.r * 3)); e.group.position.set(x, 0, z); e.group.scale.setScalar(.01); scene.add(e.group);
+  e.group.add(blob(e.shadow ?? C.r * 3)); e.group.position.set(x, 0, z); e.group.scale.setScalar(.01); scene.add(e.group);
   G.enemies.push(e); return e;
 }
 
@@ -98,6 +102,7 @@ export function updateEnemies(dt: number) {
     const dx = player.x - e.x, dz = player.z - e.z, dist = Math.hypot(dx, dz) || 1, ux = dx / dist, uz = dz / dist;
     let faceTo = Math.atan2(ux, uz);
     if (!acts || e.type === 'dummy') { e.vx = e.vz = 0; faceTo = e.face; }
+    else if (e.foe) faceTo = updateFoe(e, dt, { ux, uz, dist }) ?? faceTo;
     else if (e.type === 'rotling') {
       const wob = Math.sin(e.t * 3.1) * .35; const sp = CFG.enemy.rotling.speed * e.speedMul;
       e.vx = (ux - uz * wob) * sp; e.vz = (uz + ux * wob) * sp;
@@ -141,12 +146,17 @@ export function updateEnemies(dt: number) {
       if (e.state === 'charge' && hit) { e.state = 'stun'; e.st = .7; G.shake = Math.max(G.shake, .12); Sfx.at(e.x, e.z).hit(); }
       else if (e.state === 'wander' && hit) { e.dir = { x: -e.dir!.x, z: -e.dir!.z }; }
     } else if (e.isBoss) afterBossMove(e, hit);
+    else if (e.foe) bumpFoe(e, !!hit);
     e.face = angleLerp(e.face, faceTo, 1 - Math.exp(-10 * dt));
     e.group.position.set(e.x, 0, e.z); e.body.rotation.y = e.face;
     // hit flash, else the glow of its statuses
     const tint = e.flash > 0 ? null : statusTint(e, G.simClock);
     if (e.flash > 0) { e.flash -= dt; for (const m of e.mats) m.emissive.setRGB(1, .95, .9); }
     else for (const m of e.mats) { m.emissive.copy(m.userData.base as THREE.Color); if (tint) m.emissive.lerp(tint[0], tint[1]); }
+    if (e.foe) { // a foe in code: its telegraph glows in its school's light, and it swells; a hit squashes it
+      if (e.tele && e.flash <= 0) { const c = teleColor(e); for (const m of e.mats) m.emissive.lerp(c, e.tele * .75); }
+      poseFoe(e);
+    }
     // contact damage (not from a boss under the floor or in the air, nor from a foe frozen in ice or stunned, nor
     // through the Static Mantle)
     if (!e.hidden && acts && e.contact && Math.hypot(player.x - e.x, player.z - e.z) < player.r + e.r * .9 && !mantleShields(e)) hurtPlayer(e.contact, e.x, e.z);

@@ -1356,7 +1356,7 @@ test('room variants: ambush, champion, dark and quiet', async ({ page }) => {
   const errors = await start(page, '?room=crypt_b&variant=ambush');
   const result = await page.evaluate(() => {
     type E = { champion?: boolean; type: string; maxHp: number; x: number; z: number };
-    type Rm = { locked: boolean; ambush?: string; torches: { lit: boolean }[] };
+    type Rm = { locked: boolean; ambush?: string; torches: { lit: boolean }[]; waves: { role: string }[][] };
     const g = (window as unknown as W).__game as unknown as {
       startGame(o: object): void; warp(id: number): void; sim(s: number): void; keys: Set<string>;
       enemies: E[]; current: Rm; player: { x: number; z: number; invuln: number };
@@ -1376,7 +1376,7 @@ test('room variants: ambush, champion, dark and quiet', async ({ page }) => {
     // quiet: at most two weak enemies
     g.startGame({ testTemplate: 'crypt_c', testVariant: 'quiet' }); g.warp(1); g.sim(.2);
     return { armed, sprung, champions: champ.length, hpRatio: champ[0].maxHp / peer!.maxHp, lit: g.current.torches.length,
-      darkTorches: light.torches.reduce((a, b) => a + b, 0), hemi: light.hemi, quiet: g.enemies.map(e => e.type) };
+      darkTorches: light.torches.reduce((a, b) => a + b, 0), hemi: light.hemi, quiet: g.enemies.map(e => e.type), quietRoles: g.current.waves.flat().map(f => f.role) };
   });
   expect(result.armed).toEqual({ foes: 0, locked: false });
   expect(result.sprung.foes).toBeGreaterThan(0);
@@ -1387,7 +1387,7 @@ test('room variants: ambush, champion, dark and quiet', async ({ page }) => {
   expect(result.darkTorches).toBe(0);
   expect(result.hemi).toBeLessThan(.6);
   expect(result.quiet.length).toBeLessThanOrEqual(2);
-  expect(result.quiet.every(t => t === 'rotling' || t === 'wisp')).toBe(true);
+  expect(result.quietRoles.every(r => r === 'R' || r === 'W')).toBe(true); // (walkers and flyers, never a heavy)
   expect(errors).toEqual([]);
 });
 
@@ -1855,6 +1855,91 @@ test('the room kit\'s pickups and special rooms: every drop, coffers and chests 
   const old = await drops();
   expect(old.laid.some(d => d.painted)).toBe(false); expect(old).toMatchObject({ boxes: 3, opened: 3 });
   expect(errors).toEqual([]);
+});
+
+test('foes in code (M4): the Sporeling fills the fights, hops, swells and puffs spores that sting and dim the sight, takes half again from Ember and half from Frost, and the bestiary keeps what was found', async ({ page }) => {
+  type Foe = { type: string; state: string; tele?: number; hp: number; mats: unknown[] };
+  type GS = { sim(sec: number, draw?: boolean): void; warp(id: number): void; renderInfo(): { calls: number }; forgetBestiary(): void;
+    hit(i: number, dmg: number, school?: string): number; bestiary: Record<string, { met: boolean; weak: boolean; resist: boolean }>;
+    player: { x: number; z: number; hp: number; maxHp: number; invuln: number; dim: number }; enemies: Foe[];
+    current: { spores?: { x: number; z: number; sting?: number }[] } };
+  const errors = await start(page, '?seed=K3F9QX&foe=sporeling');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GS }).__game; g.forgetBestiary();
+    g.player.maxHp = g.player.hp = 60; // (the test stands among them)
+    g.warp(1); g.sim(.8, true);
+    const kinds = [...new Set(g.enemies.map(e => e.type))], calls = g.renderInfo().calls, n = g.enemies.length;
+    let swelled = false, puffed = false;
+    for (let i = 0; i < 100 && !puffed; i++) { g.sim(.1); swelled ||= g.enemies.some(e => e.state === 'swell' && (e.tele ?? 0) > 0); puffed = (g.current.spores ?? []).some(s => s.sting); }
+    const cloud = (g.current.spores ?? []).find(s => s.sting)!;
+    g.player.x = cloud.x; g.player.z = cloud.z; g.player.invuln = 0; g.sim(.1);
+    const dim = g.player.dim, e = g.enemies[0];
+    const before = e.hp; g.hit(0, 2, 'ember'); const weak = before - e.hp;
+    const mid = e.hp; g.hit(0, 2, 'frost'); const resist = mid - e.hp;
+    const last = e.hp; g.hit(0, 2); const plain = last - e.hp;
+    return { kinds, calls, n, swelled, puffed, dim, weak, resist, plain, book: g.bestiary.sporeling, mats: e.mats.length };
+  });
+  expect(r.kinds).toEqual(['sporeling']); expect(r.n).toBeGreaterThan(0);
+  expect(r.calls).toBeLessThan(90 + r.n * 20); // (each foe's still parts merged: about a dozen calls, not fifty)
+  expect(r.swelled).toBe(true); expect(r.puffed).toBe(true);
+  expect(r.dim).toBeGreaterThan(1);
+  expect(r.weak).toBeCloseTo(3); expect(r.resist).toBeCloseTo(1); expect(r.plain).toBeCloseTo(2);
+  expect(r.book).toEqual({ met: true, weak: true, resist: true });
+  expect(r.mats).toBeGreaterThan(0); // (its merged surfaces flash when hit)
+  await page.screenshot({ path: 'test-results/foes-sporeling.png' });
+  expect(errors).toEqual([]);
+});
+
+test('foes in code (M4): floor 1\'s moth loops, scatters light and is lured by a lit brazier; the beetle charges, is stunned against a wall and throws a spark; the mimic waits among the urns, wakes, spits embers and shuts', async ({ page }) => {
+  type Foe = { type: string; state: string; x: number; z: number; hp: number; contact: number; guard?: number; fireT?: number; status?: { burn?: number } };
+  type GF = { sim(sec: number, draw?: boolean): void; warp(id: number): void; hit(i: number, dmg: number, school?: string): number;
+    prop(kind: string, x?: number, z?: number): boolean; props: { kind: string; x: number; z: number; lit: boolean }[]; element(kind: string, x: number, z: number): void;
+    player: { x: number; z: number; hp: number; maxHp: number }; enemies: Foe[]; shots: { fire?: boolean }[];
+    current: { cx: number; cz: number; rocks: { x: number; z: number; urn?: string }[] } };
+  const G = () => (window as unknown as { __game: GF }).__game;
+  // the moth
+  const errors = await start(page, '?seed=K3F9QX&foe=vesperMoth');
+  const moth = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.8);
+    let flares = 0, motes = 0;
+    for (let i = 0; i < 90; i++) { const was = g.shots.length; g.sim(.1); flares += g.enemies.filter(e => e.state === 'flare').length ? 1 : 0; motes = Math.max(motes, g.shots.length - was); }
+    // a lit brazier in the middle: the moths come to it
+    const c = g.current; g.prop('brazier', c.cx, c.cz); const b = g.props.find(p => p.kind === 'brazier')!; g.element('burn', b.x, b.z);
+    let near = 0, burned = false;
+    for (let i = 0; i < 120; i++) { g.sim(.1); near = Math.max(near, g.enemies.filter(e => Math.hypot(e.x - b.x, e.z - b.z) < 1.6).length); burned ||= g.enemies.some(e => (e.status?.burn ?? 0) > 0); }
+    return { flares, motes, lit: g.props.find(p => p.kind === 'brazier')!.lit, near, burned };
+  });
+  expect(moth.flares).toBeGreaterThan(0); expect(moth.motes).toBeGreaterThanOrEqual(6);
+  expect(moth.lit).toBe(true); expect(moth.near).toBeGreaterThan(0); expect(moth.burned).toBe(true);
+  // the beetle
+  const e2 = await start(page, '?seed=K3F9QX&foe=runeBeetle');
+  const beetle = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.5);
+    const seen = new Set<string>(); let sparks = 0;
+    for (let i = 0; i < 200 && !(seen.has('stun') && sparks); i++) { g.sim(.05); g.enemies.forEach(e => seen.add(e.state)); if (g.enemies.some(e => e.state === 'stun' && e.fireT === 1)) sparks++; } // (thrown once a stun)
+    return { seen: [...seen].sort(), sparks };
+  });
+  expect(beetle.seen).toEqual(expect.arrayContaining(['wander', 'tell', 'charge', 'stun'])); expect(beetle.sparks).toBeGreaterThan(0);
+  // the mimic
+  const e3 = await start(page, '?seed=K3F9QX&room=crypt_b&foe=urnMimic');
+  const mimic = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.5);
+    const urns = g.current.rocks.filter(r => r.urn);
+    const hidden = g.enemies.every(e => e.state === 'hidden' && e.contact === 0);
+    const byUrns = g.enemies.every(e => urns.some(u => Math.hypot(u.x - e.x, u.z - e.z) < 1.6));
+    const m = g.enemies[0]; g.player.x = m.x + 1.2; g.player.z = m.z; g.sim(.1);
+    const woke = m.state, states = new Set<string>(); let embers = 0;
+    for (let i = 0; i < 80 && !states.has('shut'); i++) { g.sim(.05); states.add(m.state); embers = Math.max(embers, g.shots.filter(s => s.fire).length); }
+    const guard = m.guard, before = m.hp; g.hit(0, 2); const took = before - m.hp;
+    return { hidden, byUrns, woke, states: [...states].sort(), embers, guard, took, others: g.enemies.slice(1).some(e => e.state === 'hidden') };
+  });
+  expect(mimic.hidden).toBe(true); expect(mimic.byUrns).toBe(true);
+  expect(mimic.woke).toBe('peek'); expect(mimic.states).toEqual(expect.arrayContaining(['peek', 'hop', 'shut']));
+  expect(mimic.embers).toBeGreaterThanOrEqual(3); // (a fan of embers, each lighting what it passes)
+  expect(mimic.guard).toBe(.5); expect(mimic.took).toBeCloseTo(1); // (shut, its clay turns half a blow)
+  expect(mimic.others).toBe(true); // (those the mage didn't come near wait on)
+  void G;
+  expect([...errors, ...e2, ...e3]).toEqual([]);
 });
 
 test('the pixel look: on from the URL, drawn with outlines and light in bands, then off again, and the enemy and spell effect options, without errors', async ({ page }) => {

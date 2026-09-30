@@ -126,7 +126,7 @@ export const RES_ICONS = {
 const el = {
   purse: $('purse'), mana: $('mana'), manaFill: $('mana').querySelector('i') as HTMLElement,
   hearts: $('hearts'), items: $('items'), bossbar: $('bossbar'), bossname: $('bossname'), banner: $('banner'),
-  toast: $('toast'), prompt: $('prompt'), hurt: $('hurt'), heroInfo: $('heroInfo'),
+  toast: $('toast'), prompt: $('prompt'), hurt: $('hurt'), dim: $('dim'), heroInfo: $('heroInfo'),
 };
 
 let lastHearts = '';
@@ -269,8 +269,12 @@ export function banner(t: string, s = '', dur = 2.6) {
 export function showPrompt(html: string) { el.prompt.innerHTML = html; el.prompt.classList.add('on'); }
 export function hidePrompt() { el.prompt.classList.remove('on'); }
 export function toast(msg: string, dur = 3) { el.toast.textContent = msg; el.toast.classList.add('on'); toastT = dur; }
+const dimAt = new THREE.Vector3();
 export function updateHud(dt: number) {
   updateMagicHud();
+  // dimmed sight (a Sporeling's spores): darkness closing in round the mage, fading as it wears off
+  const dim = Math.min(1, player.dim / .6).toFixed(2); if (el.dim.style.opacity !== dim) el.dim.style.opacity = dim;
+  if (player.dim > 0) { dimAt.set(player.x, .6, player.z).project(camera); el.dim.style.setProperty('--x', `${(dimAt.x + 1) * 50}%`); el.dim.style.setProperty('--y', `${(1 - dimAt.y) * 50}%`); }
   if (bannerT > 0) { bannerT -= dt; if (bannerT <= 0) el.banner.classList.remove('on'); }
   if (toastT > 0) { toastT -= dt; if (toastT <= 0) el.toast.classList.remove('on'); }
 }

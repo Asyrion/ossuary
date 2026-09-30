@@ -281,7 +281,7 @@ function leap(room: Room, box: PropBox) {
     const dist = (x: number, z: number) => { const k = Math.max(0, Math.min(1, ((x - box.x) * dx + (z - box.z) * dz) / len2)); return Math.hypot(box.x + dx * k - x, box.z + dz * k - z); };
     for (const e of G.enemies) {
       if (e.dead || e.spawn > 0 || e.hidden || dist(e.x, e.z) > C.lodeWidth + e.r) continue;
-      damageEnemy(e, C.lodeDamage, 0, 0, C.lodeKnock, 'spell'); inflict(e, { shock: 1 });
+      damageEnemy(e, C.lodeDamage, 0, 0, C.lodeKnock, 'spell', 'storm'); inflict(e, { shock: 1 });
     }
     if (dist(player.x, player.z) < C.lodeWidth) hurtPlayer(C.lodeHurt, player.x - dz * .01, player.z + dx * .01);
   }
@@ -303,7 +303,7 @@ function censerLands(f: (typeof falling)[number]) {
   room.group.remove(f.pot); disposeTree(f.pot);
   for (const e of G.enemies) {
     if (e.dead || e.spawn > 0 || e.hidden || e.flying || Math.hypot(e.x - x, e.z - z) > C.censerReach + e.r) continue;
-    damageEnemy(e, C.censerDamage, 0, 0, C.censerKnock, 'spell'); inflict(e, { burn: C.censerBurn });
+    damageEnemy(e, C.censerDamage, 0, 0, C.censerKnock, 'spell', 'ember'); inflict(e, { burn: C.censerBurn });
   }
   if (Math.hypot(player.x - x, player.z - z) < C.censerHitsMage) hurtPlayer(C.censerHurt, x, z);
   // the oil: its tile and a few free ones round it, alight at once

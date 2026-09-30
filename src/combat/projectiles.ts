@@ -21,13 +21,14 @@ import { hollowRing } from '../world/secret';
 import { strikeWisp } from '../world/shrine';
 import { shootDir } from '../input';
 import { heroCast } from '../actors/hero';
+import { schoolOf } from '../actors/foeData';
 import { damageEnemy, hurtPlayer } from './damage';
 import { detonateGlyph, glyphNear } from './glyphs';
 import { burst } from './fx';
 import { GILT_COLOR, type BoltPath } from '../items/artifactData';
 import type { StatusKind } from '../magic/spellData';
 import { inflict } from '../magic/statusFx';
-import { frostAt } from '../world/pools';
+import { fireAt, frostAt } from '../world/pools';
 import { animateBolt, boltLook, impactFx } from '../magic/spellFx';
 
 const BLESSED = 0xfff0b0; // a blessed cast's gold
@@ -113,11 +114,11 @@ export function fireSpellBolt(x: number, z: number, dx: number, dz: number, o: {
 }
 
 /** Enemy projectile. */
-export function spawnShot(x: number, z: number, dx: number, dz: number, speed: number, color: number, y = .55, size = 1) {
+export function spawnShot(x: number, z: number, dx: number, dz: number, speed: number, color: number, y = .55, size = 1, o: { fire?: boolean } = {}) {
   const mesh = new THREE.Group();
   const sh = blob(.4); sh.position.y = -y + .015;
   mesh.add(new THREE.Mesh(sphereGeo(.13 * size), basicMat(color)), glowShared(color, .9 * size, .9), sh);
-  scene.add(mesh); G.shots.push({ x, z, y, vx: dx * speed, vz: dz * speed, r: .14 * size, color, mesh });
+  scene.add(mesh); G.shots.push({ x, z, y, vx: dx * speed, vz: dz * speed, r: .14 * size, color, mesh, fire: o.fire, fireT: 0 });
 }
 
 export function clearProjectiles() {
@@ -197,7 +198,7 @@ export function updateBolts(dt: number) {
       if (Math.hypot(b.x - e.x, b.z - e.z) >= e.r + b.r || Math.abs(b.y - ey) >= 1.4) continue;
       // the Stormglass Pendant: the cantrip strikes a shocked foe harder
       const glass = !b.spell && player.stats.effects.has('stormglass') && (e.status?.shock ?? 0) > 0;
-      damageEnemy(e, b.damage * (glass ? CFG.artifacts.stormglass.mul : 1), b.vx / b.speed, b.vz / b.speed, b.spell ? .3 : player.stats.knockback, b.spell ? 'spell' : 'cantrip');
+      damageEnemy(e, b.damage * (glass ? CFG.artifacts.stormglass.mul : 1), b.vx / b.speed, b.vz / b.speed, b.spell ? .3 : player.stats.knockback, b.spell ? 'spell' : 'cantrip', schoolOf(b.status));
       if (glass) burst(e.x, .8, e.z, 0xf0e890, 6, 2.2, .03);
       b.hit.add(e);
       if (b.status) inflict(e, b.status);
@@ -247,6 +248,7 @@ export function updateShots(dt: number) {
   const room = G.current, solids = blockers(room, 'bolt'), ice = room.barriers ?? [];
   for (let i = G.shots.length - 1; i >= 0; i--) {
     const s = G.shots[i]; s.x += s.vx * dt; s.z += s.vz * dt; s.mesh.position.set(s.x, s.y, s.z);
+    if (s.fire && (s.fireT = (s.fireT ?? 0) - dt) <= 0) { s.fireT = .1; fireAt(s.x, s.z, .2); } // an ember lights what it passes
     let kill = !!boxAt(s.x, s.z, solids);
     if (!kill && boxAt(s.x, s.z, ice)) { kill = true; burst(s.x, s.y, s.z, 0xbfe6ff, 5, 1.4, .04); Sfx.at(s.x, s.z).wardTink(); } // a wall of ice stops foes' shots
     if (!kill && Math.hypot(player.x - s.x, player.z - s.z) < player.r + s.r) { hurtPlayer(1, s.x - s.vx, s.z - s.vz); kill = true; }

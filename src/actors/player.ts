@@ -45,6 +45,7 @@ export function updatePlayer(dt: number) {
   // a spell key answers a grimoire page's question, if one is asking; otherwise it casts
   for (const i of [0, 1]) if (pressed.spells[i]) { pressed.spells[i] = false; if (!answerPage(i)) castSpell(i, aim); }
   if (player.invuln > 0) player.invuln -= dt;
+  if (player.dim > 0) player.dim = Math.max(0, player.dim - dt);
   // artifacts and the trapdoor down
   checkArtifactPickup(); checkWares(); checkPages(); checkVaultDoors(); checkShrine();
   const trapdoor = G.trapdoor;
