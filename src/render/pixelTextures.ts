@@ -363,22 +363,24 @@ const PAVING: Record<FloorKind, (f: FloorCtx, mask: boolean[][]) => void> = {
     }
   },
   basalt(f) { // plates of black basalt split along irregular seams, embers glowing in some of them
-    const { px, glow, cw, ch, base } = f, G = 18, cells = new Map<string, [number, number]>(), dark: RGB = scale([base[0], base[1] + 2, base[2] + 8], .5);
-    // each plate's point, jittered but not so far that two crowd into a sliver of a plate
-    const pt = (i: number, j: number) => { const k = i + ',' + j; let p = cells.get(k); if (!p) { p = [(i + .25 + hash(i, j, 41) * .5) * G, (j + .25 + hash(i, j, 42) * .5) * G * .72]; cells.set(k, p); } return p; };
+    const { px, glow, cw, ch, base } = f, G = 18, GY = G * .72, dark: RGB = scale([base[0], base[1] + 2, base[2] + 8], .5);
+    // each plate's point, jittered but not so far that two crowd into a sliver of a plate; worked out once, into an array
+    const cols = Math.ceil(cw / G) + 3, rows = Math.ceil(ch / GY) + 5, P = new Float32Array(cols * rows * 2);
+    for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) { const gi = i - 1, gj = j - 2, k = (j * cols + i) * 2; P[k] = (gi + .25 + hash(gi, gj, 41) * .5) * G; P[k + 1] = (gj + .25 + hash(gi, gj, 42) * .5) * GY; }
     for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
-      const i0 = Math.floor(x / G), j0 = Math.floor(y / (G * .72));
-      let d1 = 1e9, d2 = 1e9, a = [0, 0], b = [0, 0];
+      const i0 = Math.floor(x / G) + 1, j0 = Math.floor(y / GY) + 2;
+      let d1 = 1e9, d2 = 1e9, ai = 0, aj = 0, bi = 0, bj = 0;
       for (let j = j0 - 2; j <= j0 + 2; j++) for (let i = i0 - 1; i <= i0 + 1; i++) { // (two rows each way: the rows are squeezed, so a nearer point can sit two away)
-        const p = pt(i, j), d = Math.hypot(x - p[0], (y - p[1]) * 1.3);
-        if (d < d1) { d2 = d1; b = a; d1 = d; a = [i, j]; } else if (d < d2) { d2 = d; b = [i, j]; }
+        const k = (j * cols + i) * 2, dx = x - P[k], dy = (y - P[k + 1]) * 1.3, d = dx * dx + dy * dy; // (squared: roots only for the two nearest)
+        if (d < d1) { d2 = d1; bi = ai; bj = aj; d1 = d; ai = i; aj = j; } else if (d < d2) { d2 = d; bi = i; bj = j; }
       }
-      if (d2 - d1 < 1.6) { // a seam
-        const hot = hash(Math.min(a[0] * 97 + a[1], b[0] * 97 + b[1]), Math.max(a[0] * 97 + a[1], b[0] * 97 + b[1]), 43);
+      const gap = Math.sqrt(d2) - Math.sqrt(d1);
+      if (gap < 1.6) { // a seam
+        const ka = ai * 97 + aj, kb = bi * 97 + bj, hot = hash(Math.min(ka, kb), Math.max(ka, kb), 43);
         if (hot < .14 && glow) { const k = .45 + .4 * hash(x, y, 44); px.set(x, y, [160 * k + 60, 60 * k + 20, 14]); glow.set(x, y, [255 * k, 100 * k, 16]); } else px.set(x, y, scale(f.mortar, .8));
         continue;
       }
-      const k = (d2 - d1 < 3.5 ? .85 : 1) * (.85 + hash(a[0], a[1], 45) * .3) * (hash(x, y, 46) < .05 ? .8 : 1); // (darker at its edges)
+      const k = (gap < 3.5 ? .85 : 1) * (.85 + hash(ai, aj, 45) * .3) * (hash(x, y, 46) < .05 ? .8 : 1); // (darker at its edges)
       px.set(x, y, scale(dark, k));
     }
   },

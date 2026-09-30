@@ -220,9 +220,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   effects. Fire is `src/render/fire.ts` (`makeFire`: layered flames and embers moved on the GPU from `tickFire`, colours in
   the geometry, four shared materials); the fire objects are `src/world/fireLooks.ts` (`torchLook` in each floor's style,
   `brazierLook` with runes that kindle, `candleStandLook`), called from `addTorch` in `rooms.ts` and `MECH_LOOKS` in
-  `mechanisms.ts`. Their still pieces are painted (`paint`; `mergeStill` bakes the colours into one mesh, `KIT_MAT`). The
-  crypt's floor and walls are pixel art drawn texel by texel in `src/render/pixelTextures.ts` (`CFG.roomKit.texel`,
-  `kitFloor` in `rooms.ts`); the special rooms' marks come from `drawMarks` in `textures.ts`, hardened into texels.
+  `mechanisms.ts`. Their still pieces are painted (`paint`; `mergeStill` bakes the colours into one mesh, `KIT_MAT`). Every
+  floor's floors and walls are pixel art drawn texel by texel in `src/render/pixelTextures.ts` (`CFG.roomKit.texel`,
+  `kitWalls` and `kitFloor` in `rooms.ts`); the special rooms' marks come from `drawMarks` in `textures.ts`, hardened into texels.
   `DEV.roomKit` (the dev menu's Look tab, `?kit=old`, `__game.roomKit`, `__game.useRoomKit(on)`) builds the floor again in
   the new or old look; "Fire objects here" stands braziers and candle stands ahead of the mage, cold and lit.
   Variety (the owner's ask after the proof): each floor's look lists its kinds of wall, floor, wall light and brazier,
@@ -230,7 +230,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `src/world/kitData.ts`, into `room.look.kinds`); a theme pins some (`kit` in a theme's look: the ossuary's bone wall). The
   kinds are `WALLS` and `PAVING` in `pixelTextures.ts` (embers glow through an emissive map, `CFG.roomKit.glow`) and
   `TORCHES` and `BRAZIERS` in `fireLooks.ts`. The dev menu's Look tab steps each part's kind on every room of the floor
-  (`DEV.kitKinds`); `__game.kinds` reads the room's, `__game.forceKinds({ wall: 'ashlar' })` forces them.
+  (`DEV.kitKinds`, cleared on a new floor or run); `__game.kinds` reads the room's, `__game.forceKinds({ wall: 'ashlar' })`
+  forces them.
 - `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
   1,024 px JPEG textures). Clips: `standing_relax`, `run`, `walk` (slow movement), `cast_a_spell`,
   `hit_to_body_01`, `fall` and `defeat_03` (two deaths, one at random), `Drink Potion` (when healed) and
