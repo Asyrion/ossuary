@@ -96,5 +96,33 @@
     "behaviour": "healer",
     "params": {"keep": 3.4, "healEvery": [3, 4.2], "healTell": 0.8, "healRange": 3, "healShare": 0.25},
     "gib": "#f0e8da", "stain": null
+  },
+  "rootling": {
+    "floor": 5, "school": "umbral", "weak": "ember", "resist": "umbral",
+    "hp": 12, "r": 0.3, "speed": 1.5, "contact": 1, "flying": false,
+    "behaviour": "burrower",
+    "params": {"up": [1.6, 2.6], "dig": 0.45, "under": 2.4, "burrowSpeed": 2.8, "tell": 0.6, "reach": 0.75, "motes": 5, "shotSpeed": 2.6},
+    "gib": "#6a5038", "stain": "#1a1410"
+  },
+  "stormRay": {
+    "floor": 5, "school": "storm", "weak": "frost", "resist": "storm",
+    "hp": 9, "r": 0.3, "speed": 2, "contact": 1, "flying": true,
+    "behaviour": "glider",
+    "params": {"turn": 1.4, "overshoot": 3, "passSpeed": 4, "sparkEvery": 0.2, "sparkTime": 1.2},
+    "gib": "#a8b0bc", "stain": null
+  },
+  "voidMote": {
+    "floor": 5, "school": "umbral", "weak": "hallow", "resist": "umbral",
+    "hp": 10, "r": 0.28, "speed": 1.4, "contact": 1, "flying": true,
+    "behaviour": "absorber",
+    "params": {"keep": 3, "hold": 5, "tell": 0.6, "perBolt": 2, "shotSpeed": 2.8, "spent": 3, "open": 1.5},
+    "gib": "#4a2a7a", "stain": "#0c0814"
+  },
+  "lanternTortoise": {
+    "floor": 5, "school": "frost", "weak": "storm", "resist": "frost",
+    "hp": 38, "r": 0.5, "speed": 0.9, "contact": 1, "flying": false, "elite": true,
+    "behaviour": "shell",
+    "params": {"walk": [2, 3], "hide": 0.5, "spinSpeed": 5.6, "spinTime": 3, "bounces": 3, "dizzy": 1.6, "guard": 0.15, "open": 1.5, "bounceShots": 4, "shotSpeed": 3, "chill": 1},
+    "gib": "#8a9a88", "stain": "#141c1a"
   }
 }

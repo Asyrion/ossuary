@@ -268,6 +268,10 @@ export const STR = {
     chimeBat: { name: 'Chime Bat', note: 'Floor 4, Storm: a round bat with a bell at its throat; its chime marks the ground under the mage, and a spark strikes the mark' },
     gargoyleWhelp: { name: 'Gargoyle Whelp', note: 'Floor 4, Frost: a stone pup that bolts glance off while it perches; wakes, pounces twice with a ring of frost, and turns to stone again' },
     moonstagFawn: { name: 'Moonstag Fawn', note: 'Floor 4, Hallow: a gold-dappled fawn that keeps away from the mage and heals the foes near it' },
+    rootling: { name: 'Rootling', note: 'Floor 5, Umbral: a seed-bulb on root feet; burrows, creeps after the mage as a mound and bursts up under it; fire keeps it above ground' },
+    stormRay: { name: 'Storm Ray', note: 'Floor 5, Storm: a little manta of storm cloud; makes long passes, leaving a line of sparks on the floor' },
+    voidMote: { name: 'Void Mote', note: 'Floor 5, Umbral: a knot of the dark that swallows the cantrip\'s bolts and spills them back as a ring; spells hurt it' },
+    lanternTortoise: { name: 'Lantern Tortoise', note: 'Floor 5, Frost (elite): a big tortoise with a shrine of candles on its shell; hides and spins off the walls, then lies dizzy' },
   } as Record<string, { name: string; note: string }>,
   /** The Hollow Warden's looks built in code (M4, actors/bossLooks.ts), for the owner to choose; placeholder names. */
   bossLooks: {

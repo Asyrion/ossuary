@@ -20,7 +20,15 @@
      strikes a moment later (shocking water there). Gargoyle (the Gargoyle Whelp) sits as stone (bolts glance off it:
      `guard`) until the mage comes near or it has rested; then it wakes, pounces twice, landing in a ring of frost shots,
      and turns to stone again. Healer (the Moonstag Fawn) keeps away from the mage and near the other foes, and bows to
-     heal the hurt ones round it. */
+     heal the hurt ones round it.
+   Floor 5 (M4.1): Burrower (the Rootling) toddles at the mage, then digs in and creeps after it as a mound, and bursts up
+     under it (a ring warns first) in a spray of dark motes; burning, or on burning oil, it can't go under, and fire on
+     its mound drives it up dazed. Glider (the Storm Ray) circles, then lines up and makes a long pass through where the
+     mage stands, laying a line of sparks that crackle, then arm: they shock water and sting. Absorber (the Void Mote)
+     keeps a few tiles off and swallows the cantrip's bolts (`struck`), growing with each; full, it swells and spills them
+     as a ring of dark shots, and hangs open to harm for a moment; spells hurt it as ever. Shell (the Lantern Tortoise,
+     the elite) plods at the mage, hides in its shell (bolts glance off) and spins across the room off the walls, throwing
+     frost at each, then lies dizzy, open to harm. */
 import * as THREE from 'three';
 import type { Enemy, PropBox, Room } from '../types';
 import { G, player } from '../state';
@@ -57,6 +65,7 @@ interface Behaviour {
   /** It ran into a wall or a rock this step (`hit`), or didn't. */ bump?(e: Enemy, hit: boolean, P: Params): void;
   /** The lurker's: up out of the water. */ surface?(e: Enemy, P: Params): void;
   /** As it falls (the wickmouse's candle). */ die?(e: Enemy, P: Params): void;
+  /** A blow lands on it: how much of `dmg` it takes (a void mote swallows the cantrip's bolts). */ struck?(e: Enemy, dmg: number, by: Enemy['lastHit'], P: Params): number;
 }
 const num = (v: number | number[]) => v as number, span = (v: number | number[]) => rand(...(v as [number, number]));
 const light = (e: Enemy) => SCHOOL_LIGHT[e.foe!.school];
@@ -85,6 +94,8 @@ export function updateFoe(e: Enemy, dt: number, a: Aim) {
   e.idle!(e.at!); B.pose?.(e, def.params);
   return face;
 }
+/** A blow lands on a foe in code: how much of it its behaviour lets through (0: none, it was swallowed or turned). */
+export function foeStruck(e: Enemy, dmg: number, by: Enemy['lastHit']) { const B = e.foe && BEHAVIOURS[e.foe.behaviour]; return B?.struck ? B.struck(e, dmg, by, e.foe!.params) : dmg; }
 /** A foe in code has fallen: what its behaviour leaves behind. */
 export function foeDied(e: Enemy) { if (e.foe) BEHAVIOURS[e.foe.behaviour].die?.(e, e.foe.params); }
 /** After it moved: whether it ran into a wall or a rock. */
@@ -120,42 +131,64 @@ export function mimicSpot(room: Room, x: number, z: number, k: number, taken: { 
 const waterTiles = (room: Room) => (room.pools ?? []).filter(p => p.kind === 'water').flatMap(p => p.tiles);
 const nearestWater = (room: Room, x: number, z: number) => waterTiles(room).map(t => ({ ...t, d: Math.hypot(t.x - x, t.z - z) })).sort((p, q) => p.d - q.d)[0];
 
-/* ---------- burning ground (a salamander's trail) ---------- */
+/* ---------- what foes leave on the floor: burning ground (a salamander's trail), sparks (a storm ray's line) ---------- */
 
-const trails: { room: Room; x: number; z: number; t: number; life: number }[] = [];
-const MAX_TRAIL = 96;
-/** Every patch's glow on the floor, drawn at once (one instanced mesh: a room of salamanders stays cheap). */
-let trailGlow: THREE.InstancedMesh | null = null;
-function trailMesh() {
-  if (trailGlow) return trailGlow;
-  const geo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), mat = new THREE.MeshBasicMaterial({ map: glowTex, color: 0xff6a20, transparent: true, opacity: .8, blending: THREE.AdditiveBlending, depthWrite: false });
-  trailGlow = new THREE.InstancedMesh(geo, mat, MAX_TRAIL); trailGlow.count = 0; trailGlow.frustumCulled = false; trailGlow.renderOrder = 2; scene.add(trailGlow);
-  return trailGlow;
+type HazardKind = 'fire' | 'spark';
+const hazards: { room: Room; x: number; z: number; t: number; life: number; kind: HazardKind; armed?: boolean }[] = [];
+const MAX_HAZARDS = 96; // (of each kind)
+/** Each kind's patches' glow on the floor, drawn at once (one instanced mesh a kind: a room of salamanders stays cheap). */
+const hazardGlow: Record<HazardKind, THREE.InstancedMesh | null> = { fire: null, spark: null };
+function hazardMesh(kind: HazardKind) {
+  const had = hazardGlow[kind]; if (had) return had;
+  const geo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), mat = new THREE.MeshBasicMaterial({ map: glowTex, color: kind === 'fire' ? 0xff6a20 : SCHOOL_LIGHT.storm, transparent: true, opacity: .8, blending: THREE.AdditiveBlending, depthWrite: false });
+  const mesh = new THREE.InstancedMesh(geo, mat, MAX_HAZARDS); mesh.count = 0; mesh.frustumCulled = false; mesh.renderOrder = 2; scene.add(mesh);
+  return hazardGlow[kind] = mesh;
+}
+function lay(room: Room, x: number, z: number, time: number, kind: HazardKind) {
+  const mine = hazards.filter(h => h.kind === kind); if (mine.length >= MAX_HAZARDS) hazards.splice(hazards.indexOf(mine[0]), 1);
+  hazards.push({ room, x, z, t: time, life: time, kind });
 }
 /** A patch of burning ground at (x, z) for `time` seconds: it lights what burns there (oil, roots, braziers), and burns
     the mage who stands in it. */
-function layFire(room: Room, x: number, z: number, time: number) {
-  if (trails.length >= MAX_TRAIL) trails.shift();
-  trails.push({ room, x, z, t: time, life: time }); fireAt(x, z, .15);
-}
+function layFire(room: Room, x: number, z: number, time: number) { lay(room, x, z, time, 'fire'); fireAt(x, z, .15); }
+/** A patch of sparks at (x, z) for `time` seconds: crackling at first, then armed (`CFG.afflict.sparkArm`): it shocks the
+    water there and hurts the mage who stands in it. */
+function laySpark(room: Room, x: number, z: number, time: number) { lay(room, x, z, time, 'spark'); }
 const m4 = new THREE.Matrix4(), q0 = new THREE.Quaternion(), v3 = new THREE.Vector3(), s3 = new THREE.Vector3();
-/** Every step: the burning ground glows, now and then a flame licks up, it burns the mage in it, and it goes out. */
+/** Every step: burning ground glows, now and then a flame licks up, it burns the mage in it, and it goes out; sparks
+    crackle, arm and sting. */
 export function updateFoeHazards(dt: number) {
-  for (let i = trails.length - 1; i >= 0; i--) {
-    const f = trails[i]; f.t -= dt;
-    if (f.t <= 0 || f.room !== G.current) { trails.splice(i, 1); continue; }
-    if (Math.random() < dt * CFG.afflict.groundLicks * Math.min(1, f.t)) flame(f.x + (Math.random() - .5) * .3, f.z + (Math.random() - .5) * .3, Math.random() < .6 ? 0xff7a2a : 0xffc060, .3 + Math.random() * .2);
-    if (Math.hypot(player.x - f.x, player.z - f.z) < CFG.afflict.groundReach + player.r * .5) hurtPlayer(1, f.x, f.z);
+  const A = CFG.afflict;
+  for (let i = hazards.length - 1; i >= 0; i--) {
+    const h = hazards[i]; h.t -= dt;
+    if (h.t <= 0 || h.room !== G.current) { hazards.splice(i, 1); continue; }
+    const near = Math.hypot(player.x - h.x, player.z - h.z) < A.groundReach + player.r * .5;
+    if (h.kind === 'fire') {
+      if (Math.random() < dt * A.groundLicks * Math.min(1, h.t)) flame(h.x + (Math.random() - .5) * .3, h.z + (Math.random() - .5) * .3, Math.random() < .6 ? 0xff7a2a : 0xffc060, .3 + Math.random() * .2);
+      if (near) hurtPlayer(1, h.x, h.z);
+    } else {
+      const armed = h.life - h.t >= A.sparkArm;
+      if (armed && !h.armed) { h.armed = true; shockAt(h.x, h.z); }
+      if (Math.random() < dt * (armed ? 3 : 10)) burst(h.x + (Math.random() - .5) * .3, .08, h.z + (Math.random() - .5) * .3, SCHOOL_LIGHT.storm, 1, 1.2, .025);
+      if (armed && near) hurtPlayer(1, h.x, h.z);
+    }
   }
-  if (!trails.length && !trailGlow?.count) return;
-  const mesh = trailMesh();
-  trails.forEach((f, i) => { const k = Math.min(1, f.t / .4) * (.85 + Math.sin(G.simClock * 11 + i) * .15); mesh.setMatrixAt(i, m4.compose(v3.set(f.x, .04, f.z), q0, s3.setScalar(.75 * k))); });
-  mesh.count = trails.length; mesh.instanceMatrix.needsUpdate = true;
+  for (const kind of ['fire', 'spark'] as const) {
+    const list = hazards.filter(h => h.kind === kind);
+    if (!list.length && !hazardGlow[kind]?.count) continue;
+    const mesh = hazardMesh(kind);
+    list.forEach((h, i) => {
+      const k = Math.min(1, h.t / .4) * (kind === 'fire' ? .85 + Math.sin(G.simClock * 11 + i) * .15 : h.armed ? .9 + Math.sin(G.simClock * 30 + i) * .1 : .45);
+      mesh.setMatrixAt(i, m4.compose(v3.set(h.x, .04, h.z), q0, s3.setScalar((kind === 'fire' ? .75 : .6) * k)));
+    });
+    mesh.count = list.length; mesh.instanceMatrix.needsUpdate = true;
+  }
 }
-/** A new floor: the ground stops burning. */
-export function clearFoeHazards() { trails.length = 0; if (trailGlow) trailGlow.count = 0; }
-/** The burning ground in the current room (tests). */
-export const burningGround = () => trails.filter(f => f.room === G.current).length;
+/** A new floor: the ground stops burning and sparking. */
+export function clearFoeHazards() { hazards.length = 0; for (const m of Object.values(hazardGlow)) if (m) m.count = 0; }
+/** The burning ground and the sparks in the current room (tests). */
+export const burningGround = () => hazards.filter(h => h.kind === 'fire' && h.room === G.current).length;
+export const sparkGround = () => hazards.filter(h => h.kind === 'spark' && h.room === G.current).length;
 
 /** The lit braziers and candle stands in `room` (a moth is lured to them). */
 const litFires = (room: Room) => (room.props ?? []).filter((b: PropBox) => (b.prop.kind === 'brazier' || b.prop.kind === 'candles') && b.prop.lit);
@@ -501,6 +534,131 @@ const BEHAVIOURS: Record<string, Behaviour> = {
       const up = e.state === 'fly' ? 1 : e.state === 'land' ? Math.max(0, e.st / num(P.landTime)) : 0;
       e.model!.position.y = lerp(e.model!.position.y, up * .9, .2);
       e.parts!.ground.position.y = .015 - e.model!.position.y; // (its frost circle stays on the ground: it flies from it)
+    },
+  },
+
+  /* floor 5 (M4.1) */
+
+  burrower: {
+    init(e, P) { e.state = 'up'; e.st = span(P.up); },
+    surface(e) { e.hidden = false; e.contact = e.foe!.contact; },
+    step(e, dt, a, P) {
+      e.st -= dt;
+      const burning = (e.status?.burn ?? 0) > 0 || poolAt(e.x, e.z)?.state === 'burning';
+      if (e.state === 'up') { // it toddles at the mage; while it burns it can't go under
+        const sp = e.foe!.speed * e.speedMul; e.vx = a.ux * sp; e.vz = a.uz * sp;
+        if (e.st <= 0 && !burning) { e.state = 'dig'; e.st = num(P.dig); Sfx.at(e.x, e.z).dig(); }
+      } else if (e.state === 'dig') {
+        e.vx = e.vz = 0;
+        if (e.st <= 0) { e.state = 'under'; e.st = num(P.under); e.hidden = true; e.contact = 0; }
+      } else if (e.state === 'under') { // a mound creeping after the mage
+        const sp = num(P.burrowSpeed) * e.speedMul; e.vx = a.ux * sp; e.vz = a.uz * sp;
+        if (Math.random() < dt * 8) burst(e.x, .05, e.z, 0x3a3028, 1, .6, .04); // (earth thrown up)
+        if (burning) { this.surface!(e, P); e.state = 'dazed'; e.st = 1.2; burst(e.x, .4, e.z, 0xff9a3a, 10, 1.6, .05); Sfx.at(e.x, e.z).dig(); } // fire on its mound drives it up
+        else if (a.dist < .5 || e.st <= 0) { e.state = 'rumble'; e.st = num(P.tell); e.vx = e.vz = 0; ringFx(e.x, .05, e.z, light(e), .8, .25, num(P.tell), true); Sfx.at(e.x, e.z).rumble(); }
+      } else if (e.state === 'rumble') { // the ground shakes where it will come up
+        e.vx = e.vz = 0;
+        if (e.st <= 0) {
+          this.surface!(e, P);
+          if (a.dist < num(P.reach)) hurtPlayer(1, e.x, e.z);
+          const n = num(P.motes), off = Math.random() * Math.PI;
+          for (let i = 0; i < n; i++) { const t = off + i / n * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(t), Math.sin(t), num(P.shotSpeed), light(e), .4, .8); }
+          burst(e.x, .3, e.z, 0x3a3028, 16, 2.4, .06); Sfx.at(e.x, e.z).rubble(); e.state = 'up'; e.st = span(P.up);
+        }
+      } else if (e.state === 'dazed') { e.vx = e.vz = 0; e.tele = .3; if (e.st <= 0) { e.state = 'up'; e.st = span(P.up); e.tele = 0; } }
+    },
+    pose(e, P) {
+      const p = e.parts!, under = e.state === 'under' || e.state === 'rumble';
+      p.mound.visible = under || e.state === 'dig'; p.body.visible = !under;
+      if (e.state === 'dig') p.body.position.y = -(1 - Math.max(0, e.st) / num(P.dig)) * .5;
+      p.mound.position.x = e.state === 'rumble' ? Math.sin(e.t * 50) * .04 : 0;
+    },
+  },
+
+  glider: {
+    init(e, P) { e.state = 'turn'; e.st = num(P.turn); e.cycle = Math.random() * 6; e.tick = 0; },
+    step(e, dt, a, P, room) {
+      e.st -= dt;
+      if (e.state === 'turn') { // a slow circle; then it lines up on the mage
+        e.cycle = (e.cycle ?? 0) + dt * 1.8; const sp = e.foe!.speed * e.speedMul;
+        e.vx = lerp(e.vx, Math.cos(e.cycle) * sp, Math.min(1, dt * 3)); e.vz = lerp(e.vz, Math.sin(e.cycle) * sp, Math.min(1, dt * 3));
+        e.tele = e.st < .45 ? 1 - e.st / .45 : 0;
+        if (e.st <= 0) { // a pass through where the mage stands, and on past it
+          const over = num(P.overshoot); e.target = freeSpotNear(room, player.x + a.ux * over, player.z + a.uz * over);
+          e.state = 'pass'; e.st = 3; e.tele = 0; Sfx.at(e.x, e.z).rayPass();
+        }
+        return e.st < .45 ? Math.atan2(a.ux, a.uz) : Math.atan2(e.vx, e.vz);
+      }
+      // the pass: straight and quick, sparks laid on the floor behind it
+      const t = e.target!, dx = t.x - e.x, dz = t.z - e.z, d = Math.hypot(dx, dz), sp = num(P.passSpeed) * e.speedMul;
+      e.vx = d > .1 ? dx / d * sp : 0; e.vz = d > .1 ? dz / d * sp : 0;
+      if ((e.tick! -= dt) <= 0) { e.tick = num(P.sparkEvery); laySpark(room, e.x, e.z, num(P.sparkTime)); }
+      if (d < .3 || e.st <= 0) { e.state = 'turn'; e.st = num(P.turn); }
+      return Math.atan2(dx, dz);
+    },
+  },
+
+  absorber: {
+    init(e) { e.state = 'drift'; e.cycle = 0; },
+    step(e, dt, a, P) {
+      if (e.state === 'swell') { // full: it swells, then spills what it swallowed as a ring of dark shots
+        e.vx = e.vz = 0; e.st -= dt; e.tele = Math.min(1, 1 - e.st / num(P.tell));
+        if (e.st <= 0) {
+          const n = Math.max(4, (e.cycle ?? 0) * num(P.perBolt)), off = Math.random() * Math.PI;
+          for (let i = 0; i < n; i++) { const t = off + i / n * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(t), Math.sin(t), num(P.shotSpeed), light(e), .9, .95); }
+          burst(e.x, .9, e.z, light(e), 16, 2.4, .05); Sfx.at(e.x, e.z).spill();
+          e.cycle = 0; e.state = 'spent'; e.st = num(P.spent); e.tele = 0;
+        }
+        return;
+      }
+      const keep = num(P.keep), want = a.dist > keep + .5 ? 1 : a.dist < keep - .5 ? -1 : 0, sp = e.foe!.speed * e.speedMul;
+      e.vx = lerp(e.vx, (a.ux * want - a.uz * .4) * sp, Math.min(1, dt * 2)); e.vz = lerp(e.vz, (a.uz * want + a.ux * .4) * sp, Math.min(1, dt * 2));
+      if (e.state === 'spent' && (e.st -= dt) <= 0) e.state = 'drift';
+      if (e.state === 'drift' && (e.cycle ?? 0) >= num(P.hold)) { e.state = 'swell'; e.st = num(P.tell); Sfx.at(e.x, e.z).gulp(); }
+    },
+    struck(e, dmg, by, P) { // the cantrip's bolts are swallowed; just spilt, it is open to them
+      if (e.state === 'spent') return dmg * num(P.open);
+      if (by !== 'cantrip') return dmg;
+      if (e.state === 'drift') { e.cycle = (e.cycle ?? 0) + 1; burst(e.x, .9, e.z, light(e), 5, 1, .03); Sfx.at(e.x, e.z).gulp(); }
+      return 0;
+    },
+    pose(e) { e.parts!.body.scale.setScalar(1 + (e.cycle ?? 0) * .09); },
+  },
+
+  shell: {
+    init(e, P) { e.state = 'walk'; e.st = span(P.walk); e.guard = 1; },
+    step(e, dt, a, P) {
+      e.st -= dt;
+      if (e.state === 'walk') {
+        const sp = e.foe!.speed * e.speedMul; e.vx = a.ux * sp; e.vz = a.uz * sp;
+        if (e.st <= 0) { e.state = 'hide'; e.st = num(P.hide); Sfx.at(e.x, e.z).shellIn(); }
+      } else if (e.state === 'hide') { // into its shell: bolts glance off
+        e.vx = e.vz = 0; e.tele = Math.min(1, 1 - e.st / num(P.hide)); e.guard = num(P.guard);
+        if (e.st <= 0) { e.state = 'spin'; e.st = num(P.spinTime); e.cycle = num(P.bounces); e.dir = { x: a.ux, z: a.uz }; e.tele = 0; Sfx.at(e.x, e.z).drakeWings(); }
+      } else if (e.state === 'spin') { // across the room, off the walls, leaving frost
+        const s = num(P.spinSpeed) * e.speedMul; e.vx = e.dir!.x * s; e.vz = e.dir!.z * s;
+        if (Math.random() < dt * 6) frostAt(e.x, e.z, .3);
+        if (e.st <= 0 || (e.cycle ?? 0) <= 0) { e.state = 'dizzy'; e.st = num(P.dizzy); e.guard = num(P.open); Sfx.at(e.x, e.z).beetleThud(); }
+        return e.face;
+      } else if (e.state === 'dizzy') { // out of its shell and giddy: open to harm
+        e.vx = e.vz = 0;
+        if (e.st <= 0) { e.state = 'walk'; e.st = span(P.walk); e.guard = 1; }
+      }
+    },
+    bump(e, hit, P) {
+      if (!hit || e.state !== 'spin') return;
+      e.cycle = (e.cycle ?? 0) - 1; // off the wall, back into the room and towards the mage's side of it
+      const tx = player.x - e.x, tz = player.z - e.z, l = Math.hypot(tx, tz) || 1, nx = -e.dir!.x * .45 + tx / l * .55, nz = -e.dir!.z * .45 + tz / l * .55, n = Math.hypot(nx, nz) || 1;
+      e.dir = { x: nx / n, z: nz / n };
+      const k = num(P.bounceShots), off = Math.random() * Math.PI;
+      for (let i = 0; i < k; i++) { const t = off + i / k * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(t), Math.sin(t), num(P.shotSpeed), light(e), .4, .8, { chill: num(P.chill) }); }
+      G.shake = Math.max(G.shake, .1); Sfx.at(e.x, e.z).stoneLand(); burst(e.x, .3, e.z, light(e), 8, 1.6, .04);
+    },
+    pose(e) {
+      const p = e.parts!, shut = e.state === 'hide' || e.state === 'spin';
+      p.head.scale.setScalar(shut ? .01 : 1); p.legs.scale.y = shut ? .2 : 1;
+      e.model!.rotation.y = e.state === 'spin' ? e.model!.rotation.y + .5 : 0;
+      if (e.state === 'dizzy') p.head.rotation.z = Math.sin(e.t * 9) * .3;
     },
   },
 

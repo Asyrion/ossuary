@@ -2177,6 +2177,58 @@ test('foes in code (M4.1): floor 4\'s wickmouse darts and drops its candle burni
   for (const e of [e1, e2, e3, e4]) expect(e).toEqual([]);
 });
 
+test('foes in code (M4.1): floor 5\'s rootling burrows and bursts up (fire keeps it up); the storm ray lays sparks; the void mote swallows bolts and spills them; the tortoise hides, spins and lies dizzy', async ({ page }) => {
+  type Foe = { type: string; state: string; x: number; z: number; hp: number; hidden?: boolean };
+  type GF = { sim(sec: number, draw?: boolean): void; warp(id: number): void; hit(i: number, dmg: number, school?: string, by?: string): number; inflict(s: Record<string, number>): void;
+    sparkGround: number; player: { x: number; z: number; hp: number; maxHp: number; invuln: number }; enemies: Foe[]; shots: { chill?: number }[] };
+  // the rootling
+  const e1 = await start(page, '?seed=K3F9QX&floor=5&foe=rootling');
+  const root = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.8);
+    const seen = new Set<string>(); let hid = false;
+    for (let i = 0; i < 160; i++) { g.player.invuln = 0; g.sim(.05); g.enemies.forEach(e => { seen.add(e.state); hid ||= !!e.hidden && e.state === 'under'; }); }
+    // burning, they stay above ground
+    for (let i = 0; i < 30 && g.enemies.some(e => e.hidden); i++) g.sim(.1);
+    g.inflict({ burn: 6 }); let dug = false; for (let i = 0; i < 60; i++) { g.sim(.05); dug ||= g.enemies.some(e => e.state === 'under' || e.state === 'dig'); }
+    return { seen: [...seen].sort(), hid, dug };
+  });
+  expect(root.seen).toEqual(expect.arrayContaining(['dig', 'rumble', 'under', 'up'])); expect(root.hid).toBe(true); expect(root.dug).toBe(false);
+  // the storm ray
+  const e2 = await start(page, '?seed=K3F9QX&floor=5&foe=stormRay');
+  const ray = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.8);
+    let passed = false, sparks = 0; for (let i = 0; i < 120 && !(passed && sparks); i++) { g.sim(.05); passed ||= g.enemies.some(e => e.state === 'pass'); sparks = Math.max(sparks, g.sparkGround); }
+    return { passed, sparks };
+  });
+  expect(ray.passed).toBe(true); expect(ray.sparks).toBeGreaterThan(2);
+  // the void mote: the cantrip's bolts are swallowed, five spill back, then it is open to them
+  const e3 = await start(page, '?seed=K3F9QX&floor=5&foe=voidMote');
+  const mote = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.8);
+    const e = g.enemies[0], hp0 = e.hp; for (let i = 0; i < 5; i++) g.hit(0, 3, undefined, 'cantrip');
+    const swallowed = hp0 - e.hp, shots0 = g.shots.length; let spilt = 0;
+    for (let i = 0; i < 30 && e.state !== 'spent'; i++) { g.sim(.05); spilt = Math.max(spilt, g.shots.length - shots0); }
+    const hp1 = e.hp; g.hit(0, 2, undefined, 'cantrip'); const open = hp1 - e.hp;
+    const hp2 = e.hp; g.sim(3.2); g.hit(0, 2); const spell = hp2 - e.hp; // (spells hurt it as ever)
+    return { swallowed, spilt, state: e.state, open, spell };
+  });
+  expect(mote.swallowed).toBe(0); expect(mote.spilt).toBeGreaterThanOrEqual(8); expect(mote.open).toBeCloseTo(3); expect(mote.spell).toBeCloseTo(2);
+  // the tortoise
+  const e4 = await start(page, '?seed=K3F9QX&floor=5&foe=lanternTortoise');
+  const tort = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 90; g.warp(1); g.sim(.8);
+    const seen = new Set<string>(); let shut = -1, dizzy = -1;
+    for (let i = 0; i < 200 && (shut < 0 || dizzy < 0); i++) {
+      g.player.invuln = 0; g.sim(.05); g.enemies.forEach(e => seen.add(e.state));
+      const e = g.enemies[0], hp = e.hp;
+      if (shut < 0 && e.state === 'hide') { g.hit(0, 10); shut = hp - e.hp; } else if (dizzy < 0 && e.state === 'dizzy') { g.hit(0, 10); dizzy = hp - e.hp; }
+    }
+    return { seen: [...seen].sort(), shut, dizzy };
+  });
+  expect(tort.seen).toEqual(expect.arrayContaining(['dizzy', 'hide', 'spin', 'walk'])); expect(tort.shut).toBeCloseTo(1.5); expect(tort.dizzy).toBeCloseTo(15);
+  for (const e of [e1, e2, e3, e4]) expect(e).toEqual([]);
+});
+
 test('the pixel look: on from the URL, drawn with outlines and light in bands, then off again, and the enemy and spell effect options, without errors', async ({ page }) => {
   type Look = { lines: number; outline: boolean; bands: boolean };
   type GP = { sim(sec: number, draw?: boolean): void; pixelLook: Look; setPixelLook(l: Partial<Look>): void; renderInfo(): { calls: number } };

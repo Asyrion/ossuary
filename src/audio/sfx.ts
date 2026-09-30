@@ -213,6 +213,13 @@ const sounds = {
   grind() { hiss(.3, .1, 'lowpass', 350); tone('square', 70, 55, .25, .04); },
   stoneLand() { tone('sine', 110, 45, .3, .12); hiss(.2, .08, 'lowpass', 600); [2349, 1760].forEach((f, i) => tone('triangle', f, f * .7, .25, .025, i * .04)); },
   fawnHeal() { [784, 988, 1175, 1568].forEach((f, i) => tone('sine', f, f, .45, .035, i * .07)); hiss(.4, .02, 'highpass', 5000, .1); },
+  // floor 5's foes (M4.1): the rootling's digging and rumble, the storm ray's rush, the void mote's gulp and spill, the tortoise's shell
+  dig() { hiss(.3, .08, 'lowpass', 500); tone('sine', 140, 80, .2, .04); },
+  rumble() { tone('sine', 60, 50, .6, .1); hiss(.5, .06, 'lowpass', 300); },
+  rayPass() { hiss(.5, .07, 'bandpass', 900); tone('sine', 300, 500, .4, .03); crackles(5, .4, .03); },
+  gulp() { tone('sine', 420, 140, .16, .06); },
+  spill() { tone('sine', 140, 520, .35, .06); hiss(.35, .06, 'bandpass', 700); },
+  shellIn() { tone('square', 260, 180, .06, .04); hiss(.08, .05, 'bandpass', 1200); },
   // the bosses of floors 4 and 5 (M4.1): the hart's bell-voice, drumming hooves and light; the angler's hum, bite and spit
   hartBellow() { tone('sine', 196, 185, 1.1, .08); tone('triangle', 392, 370, .9, .04, .05); tone('sine', 587, 554, .8, .025, .12); hiss(.5, .03, 'highpass', 4500, .1); },
   hartCharge() { for (let i = 0; i < 6; i++) tone('sine', 95, 55, .08, .09, i * .08); hiss(.5, .07, 'lowpass', 500); },
