@@ -12,7 +12,7 @@ import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { ARTIFACT_DEFS, START_FOCUS, artifact } from '../items/artifactData';
-import { giveById, grantArtifact, placeArtifact, refreshStats, resetArtifacts } from '../items/artifacts';
+import { giveById, grantArtifact, placeArtifact, refreshStats, removeArtifactGallery, resetArtifacts, showArtifactGallery } from '../items/artifacts';
 import { DROPS, RESOURCES, type Drop, type Resource } from '../items/loot';
 import { giveResources, spawnPickup } from '../items/pickups';
 import { makeEnemy } from '../actors/enemies';
@@ -106,7 +106,7 @@ function goTo(r: Room) {
 /** Made assets on or off: this floor is built again (`rebuildFloor`), to compare. */
 export function useAssets(on: boolean) { setAssetsOn(on); renderItems(); rebuildFloor(); }
 /** The room kit (M3.5 step 3's proof) on or off: this floor is built again in the new or the old look, to compare. */
-export function useRoomKit(on: boolean) { DEV.roomKit = on; rebuildFloor(); }
+export function useRoomKit(on: boolean) { DEV.roomKit = on; rebuildFloor(); renderItems(); } // (the HUD's icons too: drawn, or rendered from the kit's models)
 /** The room kit's kinds forced on every room of this floor (or drawn per room again, for a part left out): built again. */
 export function forceKinds(k: Partial<Kinds>) { DEV.kitKinds = { ...k }; rebuildFloor(); }
 /** This floor built again on its seed (the same rooms and boss), and the mage back in the room they were in. */
@@ -266,6 +266,10 @@ function build() {
   );
 
   // enemy model options (looks only, for the owner to choose from): a row of them ahead of the mage
+  // the artifacts as the room kit builds them (looks only), in rows
+  const arts = section(pages.galleries, S.artifactGallery);
+  arts.append(el('p', 'dv-info', S.artifactsNote), btn(S.showOptions, () => { closeDev(); showArtifactGallery(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeArtifactGallery(G.current)));
+
   const opts = section(pages.galleries, S.options);
   opts.append(el('p', 'dv-info', [1, 2, 3].map(f => S.floorOptions(f, MODEL_OPTIONS.filter(o => o.floor === f).map(o => STR.options[o.id].name).join(', '))).join(' · ')), btn(S.showOptions, () => { closeDev(); showModelOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
 

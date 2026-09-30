@@ -5,13 +5,15 @@ import { STR } from '../strings';
 import { CFG } from '../config';
 import { camera, renderer } from '../render/renderer';
 import { iconUrl } from '../assets/models';
+import { artifactIconUrl } from '../items/artifactIcons';
 import { artifact } from '../items/artifactData';
 import { spell } from '../magic/spellData';
 import { spellCost } from '../magic/cost';
 import { $, clamp } from '../util';
 
 export const HEART_PATH = 'M12 21.2s-7.6-4.7-9.7-9.3C.8 8.3 3 4.4 6.7 4.4c2.1 0 3.6 1.1 4.4 2.7.8-1.6 2.3-2.7 4.4-2.7 3.7 0 5.9 3.9 4.3 7.5-2.1 4.6-9.8 9.3-9.8 9.3z';
-/* Placeholder artifact icons (24 × 24, drawn in the artifact's colour) until icons are rendered from Tripo models. */
+/* The artifacts' drawn icons (24 × 24, in the artifact's colour): the room kit's are rendered from its models
+   (items/artifactIcons.ts); these stay for the room kit off. */
 const S = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
 const ICONS: Record<string, string> = {
   wand: `<path d="M5 19L16 8" ${S}/><path d="M17 3l1.2 3.3L21.5 7l-3.3 1.2L17 11.5l-1.2-3.3L12.5 7l3.3-1.2z" fill="currentColor"/>`,
@@ -157,7 +159,8 @@ export function artifactIcon(id: string, isFocus: boolean, cleansed = player.cle
   const def = artifact(id), clean = cleansed && !!def.curse;
   const cls = isFocus ? 'focus' : clean ? 'cleansed' : def.kind === 'cursed' ? 'cursed' : '';
   const text = clean ? def.curse!.cleansed : def.text;
-  const url = iconUrl(id), art = url ? `<image href="${url}" width="24" height="24"/>` : ICONS[def.icon] ?? ICONS.sigil; // (a painted icon, M3.5, or the drawn one)
+  const url = iconUrl(id) ?? (DEV.roomKit ? artifactIconUrl(def) : null); // (a painted icon, M3.5; the room kit's, rendered from its model; or the drawn one)
+  const art = url ? `<image href="${url}" width="24" height="24"/>` : ICONS[def.icon] ?? ICONS.sigil;
   return `<svg viewBox="0 0 24 24" class="${cls}" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${text}\n\n${def.lore}</title>${art}</svg>`;
 }
 /** The focus followed by every other artifact held. */

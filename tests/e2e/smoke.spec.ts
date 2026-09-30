@@ -1632,7 +1632,7 @@ test('made assets: the stand-ins load through the manifest and replace their pla
     const g = (window as unknown as { __game: GA }).__game;
     const made = (o?: { traverse(f: (o: { name: string }) => void): void }) => { let found = false; o?.traverse(c => { if (c.name === 'standin') found = true; }); return found; };
     const urns = g.current.rocks.filter(r => r.urn), spot = g.current.spots.at(-1);
-    return { on: g.assets.on, urns: urns.map(r => made(r.mesh)), sigil: made(spot?.visual), icon: !!document.querySelector('#items image') };
+    return { on: g.assets.on, urns: urns.map(r => made(r.mesh)), sigil: made(spot?.visual), icon: [...document.querySelectorAll('#items image')].some(i => !i.getAttribute('href')!.startsWith('data:')) }; // (the painted icon's file, not one the room kit renders)
   });
   const list = await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.showAssets(); g.sim(.3, true); return g.assets.list; });
   expect(list.map(a => [a.where, a.status])).toEqual([['props.urn', 'loaded'], ['props.pedestal', 'loaded'], ['artifacts.ember_sigil', 'loaded'], ['floors.crypt.floor', 'loaded'], ['icons.ember_sigil', 'loaded']]);
@@ -1786,6 +1786,30 @@ test('the room kit\'s doors, gates, niches and pilasters: built in code, one mes
   expect(before.gates.every(n => n > 1)).toBe(true); expect(before.shut.every(Boolean)).toBe(true);
   expect(kit.calls).toBeLessThan(before.calls - 20); // (each door and each wall's dressing in a call or two)
   expect(errors).toEqual([]); expect(old).toEqual([]);
+});
+
+test('the room kit\'s artifacts: every one built in code, the HUD\'s icons rendered from them, and the old ones to compare', async ({ page }) => {
+  type GA = { sim(sec: number, draw?: boolean): void; artifactGallery(): number; takeArtifactGallery(): void; useRoomKit(on: boolean): void;
+    current: { group: { userData: Record<string, unknown> } } };
+  const icons = () => page.evaluate(async () => {
+    const imgs = [...document.querySelectorAll('#items svg image')] as SVGImageElement[], paths = document.querySelectorAll('#items svg path').length;
+    const sizes = await Promise.all(imgs.map(i => new Promise<number[]>(ok => { const im = new Image(); im.onload = () => {
+      const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d')!; g.drawImage(im, 0, 0);
+      const d = g.getImageData(0, 0, c.width, c.height).data; let solid = 0; for (let k = 3; k < d.length; k += 4) if (d[k] > 200) solid++;
+      ok([im.width, solid]); }; im.src = i.getAttribute('href')!; })));
+    return { images: imgs.length, paths, sizes };
+  });
+  const errors = await start(page, '?seed=K3F9QX&give=twin_staff,ember_sigil,rams_skull,leech_jar,crown_of_thorns,hungering_tome');
+  const n = await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; const n = g.artifactGallery(); g.sim(.3, true); return n; });
+  expect(n).toBe(45); // (every artifact, as the room kit builds it)
+  await page.screenshot({ path: 'test-results/room-kit-artifacts.png' });
+  const kit = await icons();
+  expect(kit.images).toBe(6); // (the twin staff, now the focus, and five more, each rendered from its model)
+  for (const [w, solid] of kit.sizes) { expect(w).toBe(48); expect(solid).toBeGreaterThan(40); }
+  await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.takeArtifactGallery(); g.useRoomKit(false); });
+  const old = await icons();
+  expect(old.images).toBe(0); expect(old.paths).toBeGreaterThan(0); // (the drawn icons again)
+  expect(errors).toEqual([]);
 });
 
 test('the pixel look: on from the URL, drawn with outlines and light in bands, then off again, and the enemy and spell effect options, without errors', async ({ page }) => {

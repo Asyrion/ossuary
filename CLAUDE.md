@@ -16,7 +16,7 @@ log; its Sound section does the same for sound (sources and their licences, the 
 When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3.5 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 1080 lines since the proof's play-test), step 3 under way: the room kit redone in code in the new style (the proof accepted 2026-09-30; variety built: three kinds of wall, floor, wall light and brazier per floor, drawn per room; every mechanism, object, door and niche rebuilt; the artifacts next); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3.5 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 1080 lines since the proof's play-test), step 3 under way: the room kit redone in code in the new style (the proof accepted 2026-09-30; variety built: three kinds of wall, floor, wall light and brazier per floor, drawn per room; every mechanism, object, door, niche and artifact rebuilt, the list done; the owner's review next); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -54,8 +54,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   for anything artifacts change.
   The cantrip pipeline is in `src/combat/projectiles.ts` (fans, the serpent's weave, the tome's homing, strong
   casts, split bolts, burning and chilling bolts); companions that artifacts bind (the Candle Moth, the Weeping Skull) in `src/combat/familiars.ts`.
-  New artifacts are data plus, for a new mechanic, an `Effect` or stat key in `artifactData.ts`, and an icon
-  in `hud.ts` (44 artifacts and the starting wand; 15 more ideas in `docs/ideas.md`). The M3 ten reach into
+  New artifacts are data plus, for a new mechanic, an `Effect` or stat key in `artifactData.ts`, a look in
+  `src/items/artifactLooks.ts` (its HUD icon is rendered from it) and a drawn icon in `hud.ts` for the room kit off (44
+  artifacts and the starting wand; 15 more ideas in `docs/ideas.md`). The M3 ten reach into
   magic: `spellDamageMul` and `killMana` stats (`damageEnemy`, `killEnemy`), `emberBolts`, `frostbite` and
   `stormglass` on the cantrip, `thurible` on a burning death, `vigil` in `onRoomCleared`, `witchKnot` in
   `spellCost` (`src/magic/cost.ts`), `noRegen` in `updateMagic`. An artifact's `gives`
@@ -234,7 +235,10 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   walls, `urn` clay in each look, wax); a burning object's fire and the niches' and themes' candles use `makeFire` too.
   "Objects here" in the Look tab (`__game.objectsHere()`) stands every object and two urns ahead of the mage. Doors and
   their gates, pilasters and niches are `src/world/wallLooks.ts` (`doorLook` from `buildDoor`, turned by `DOOR_TURN`;
-  `pilasterLook` and `nicheLook` from `dressNorthWall`, each wall's dressing merged into one mesh).
+  `pilasterLook` and `nicheLook` from `dressNorthWall`, each wall's dressing merged into one mesh). The 45 artifacts are
+  `src/items/artifactLooks.ts` (`artifactLook(icon, color)`, from `makeArtifactVisual`), and their HUD icons are rendered
+  from them (`artifactIconUrl` in `src/items/artifactIcons.ts`, cached, from `artifactIcon` in `hud.ts`; a painted icon
+  first); the Galleries tab floats them all ahead of the mage (`__game.artifactGallery()`).
   Variety (the owner's ask after the proof): each floor's look lists its kinds of wall, floor, wall light and brazier,
   weighted (`kit` in `data/floors.json`); each room draws one of each on its seed (`pickKinds` in the pure
   `src/world/kitData.ts`, into `room.look.kinds`); a theme pins some (`kit` in a theme's look: the ossuary's bone wall). The
