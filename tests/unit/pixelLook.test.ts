@@ -16,6 +16,10 @@ describe('the pixel look', () => {
     expect(pixelGrid(2560, 1440, 540).h).toBe(480); // (1440 / 540 rounds up to 3)
     expect(pixelGrid(2560, 1440, 720).h).toBe(720);
     expect(pixelGrid(1920, 1080, 720).h).toBe(540); // (a 1080p screen hasn't the pixels for 720)
+    expect(pixelGrid(3840, 2160, 540).h).toBe(540); // 4K: 540, 720 and 1080 each on whole pixels
+    expect(pixelGrid(3840, 2160, 720).h).toBe(720);
+    expect(pixelGrid(3840, 2160, 1080).h).toBe(1080);
+    expect(pixelGrid(2560, 1440, 1080).h).toBe(720); // (1440p: 1080 draws as 720)
     // a smaller window keeps the look, at fewer rows, rather than turning sharp
     expect(pixelGrid(1920, 950, 540)).toMatchObject({ h: 475, f: 2 });
     expect(pixelGrid(1440, 800, 540)).toMatchObject({ h: 400, f: 2 });

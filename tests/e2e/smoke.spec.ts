@@ -1664,14 +1664,14 @@ test('the pixel look: on from the URL, drawn with outlines and light in bands, t
   const errors = await start(page, '?seed=K3F9QX&pixel=270');
   const r = await page.evaluate(() => {
     const g = (window as unknown as { __game: GP }).__game, out: { look: Look; calls: number }[] = [];
-    for (const l of [{}, { outline: true, bands: true }, { lines: 180, outline: false }, { lines: 0 }]) {
+    for (const l of [{}, { outline: true, bands: true }, { lines: 360, outline: false }, { lines: 0 }]) {
       g.setPixelLook(l); g.sim(.1, true); out.push({ look: g.pixelLook, calls: g.renderInfo().calls });
     }
     return out;
   });
   expect(r[0].look.lines).toBe(270);
   expect(r[1].look).toEqual({ lines: 270, outline: true, bands: true });
-  expect(r[2].look.lines).toBe(180); expect(r[3].look.lines).toBe(0);
+  expect(r[2].look.lines).toBe(360); expect(r[3].look.lines).toBe(0);
   expect(r[1].calls).toBe(r[3].calls + 1); // (the scene, then the blow-up to the window)
   // the enemy model options (looks only) stand ahead of the mage and idle, in the pixel look
   const shown = await page.evaluate(() => {

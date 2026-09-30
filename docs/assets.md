@@ -7,7 +7,11 @@ and audio; Asset list) says what the game needs; this file says how to make it. 
 in the owner's Tripo asset checklist (claude.ai project "Tripo3D-GameDev"); keep the two consistent when either
 changes. The first run through this pipeline is milestone M3.5 (`docs/M3.5-plan.md`).
 
-Written 2026-09-28. Everything here is a starting point to be corrected by the M3.5 pilot.
+Written 2026-09-28. **Changed 2026-09-30:** the owner is happy with the models and textures built in code, so
+everything in the game is built in code in the pixel look, in the style of the spell effects (`docs/effects.md`):
+creatures, familiars, the room kit (objects, mechanisms, floors, walls), artifacts and icons. Tripo, and the image
+tools, house style and pipeline below, stay for special models: the mage, and bosses where wanted. The M3.5 pilot of
+Tripo props was dropped (`docs/M3.5-plan.md`).
 
 ## Tools and what each is for
 
