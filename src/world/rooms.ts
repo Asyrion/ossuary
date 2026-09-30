@@ -626,7 +626,10 @@ export function setDoors(room: Room, open: boolean, sound = true) {
 export function updateRoomFx(dt: number, now: number) {
   tickFire(now);
   for (const r of G.rooms) {
-    for (const d of doorsOf(r)) { const target = d.open ? -d.barH - .05 : 0; d.bars.position.y += (target - d.bars.position.y) * (1 - Math.exp(-12 * dt)); }
+    for (const d of doorsOf(r)) {
+      const target = d.open ? -d.barH - .05 : 0; d.bars.position.y += (target - d.bars.position.y) * (1 - Math.exp(-12 * dt));
+      d.bars.visible = !d.open || d.bars.position.y > -d.barH; // (sunk out of sight: hidden, or it shows past a south door, where nothing is drawn)
+    }
     if (r === G.current) for (const t of r.torches) {
       if (!t.lit) continue;
       const f = .85 + Math.sin(now * 17 + t.x) * .08 + Math.sin(now * 29 + t.x * 2) * .06;
