@@ -15,6 +15,8 @@
    - Watching statue (M4.2, from the Eda lore): a Warden's statue whose head follows the mage; while a fight lasts, the
      mage standing in its sight (no pillar, rock or ice between) charges it, and full, it marks where the mage stands
      and a ray strikes there a moment later. A hex (a Hex Bolt, Grasp of the Grave's hands) blinds it for a while.
+   - Candle stand in water (M4.2): a candle stand standing in a pool, lit and counted as any other; lit, it lights the
+     water round it, and shock running through its pool puts it out.
    - Sapping obelisk (M4.2): its field weakens the cantrip of the mage standing in it and drains their mana. Its ward
      answers to one school, shown in its runes; that school landing on it (a bolt carrying it, fire, frost or shock,
      holy ground or a pillar of light, darkness) breaks the ward, and the field goes out.
@@ -23,7 +25,7 @@
    it) and a dead tree's branches (each grown its own way); both are disposed with the object. */
 import * as THREE from 'three';
 import { CFG } from '../config';
-import type { Bolt, FloorLook, PropBox, Room } from '../types';
+import type { Bolt, FloorLook, Pool, PropBox, Room } from '../types';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
@@ -32,6 +34,7 @@ import { setDarkness } from '../render/lights';
 import { burst } from '../combat/fx';
 import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { SCHOOL_LIGHT } from '../render/arcane';
+import { glowTex } from '../render/textures';
 import { boxAt } from './collision';
 import { inflict } from '../magic/statusFx';
 import { newStatus } from '../magic/status';
@@ -167,6 +170,13 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
     }
     g.add(blob(1.2)); return g;
   },
+  wetCandles(R, len, look) { // a candle stand standing in water, ripples round its foot; lit, a pool of light on the water
+    const g = MECH_LOOKS.candles(R, len, look), parts = g.userData.parts as Record<string, THREE.Object3D>;
+    const ripple = new THREE.Mesh(RIPPLE, MAT_RIPPLE); ripple.position.y = .03; g.add(ripple);
+    const waterGlow = new THREE.Mesh(POOL_OF_LIGHT, new THREE.MeshBasicMaterial({ map: glowTex, color: 0xffb860, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false }));
+    waterGlow.position.y = .025; waterGlow.visible = false; g.add(waterGlow);
+    return withParts(g, { ...parts, waterGlow });
+  },
   // M4.2: built in the room kit's style whatever the look (they came after it)
   statue() { return kitLook(statueLook()); },
   obelisk(R) { // its ward's school, drawn on the room's seed, colours its runes and its field
@@ -175,10 +185,15 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
   },
 };
 
+const RIPPLE = shared(new THREE.RingGeometry(.26, .3, 20).rotateX(-Math.PI / 2)), POOL_OF_LIGHT = shared(new THREE.PlaneGeometry(3.2, 3.2).rotateX(-Math.PI / 2));
+const MAT_RIPPLE = markShared(new THREE.MeshBasicMaterial({ color: 0xbfe0ea, transparent: true, opacity: .35, depthWrite: false }));
+
 /* ---------- what reaches them ---------- */
 
 const near = (box: PropBox, x: number, z: number, r: number) => Math.hypot(box.x - x, box.z - z) < r;
 const mechs = (room: Room, kind: MechanismKind) => (room.props ?? []).filter(b => b.prop.kind === kind);
+/** A candle stand, on the floor or standing in water (M4.2). */
+const isStand = (kind: string) => kind === 'candles' || kind === 'wetCandles';
 
 /** A status reaches (x, z) and `r` round it (fire, frost or shock landing, a status put on a foe standing there):
     braziers and candle stands catch fire, rune stones take a charge, lodestones leap, the ice round a frozen foe melts. */
@@ -186,7 +201,7 @@ export function elementAt(kind: StatusKind, x: number, z: number, r = 0) {
   const room = G.current;
   for (const box of room.props ?? []) {
     const p = box.prop;
-    if (kind === 'burn' && (p.kind === 'brazier' || p.kind === 'candles') && !p.lit && near(box, x, z, C.kindle + r)) light(room, box);
+    if (kind === 'burn' && (p.kind === 'brazier' || isStand(p.kind)) && !p.lit && near(box, x, z, C.kindle + r)) light(room, box);
     else if (p.kind === 'rune' && !p.school && near(box, x, z, C.runeCatch + r)) charge(box, kind);
     else if (kind === 'shock' && p.kind === 'lodestone' && near(box, x, z, C.lodeCatch + r)) leap(room, box);
     else if (p.kind === 'obelisk' && p.ward === STATUS_SCHOOL[kind] && near(box, x, z, C.obelisk.catch + r)) breakWard(box);
@@ -199,7 +214,7 @@ export function elementAt(kind: StatusKind, x: number, z: number, r = 0) {
 export function hallowAt(x: number, z: number, r = 0) {
   const room = G.current;
   for (const box of room.props ?? []) {
-    if (box.prop.kind === 'candles' && !box.prop.lit && near(box, x, z, C.kindle + r)) light(room, box);
+    if (isStand(box.prop.kind) && !box.prop.lit && near(box, x, z, C.kindle + r)) light(room, box);
     else if (box.prop.kind === 'obelisk' && box.prop.ward === 'hallow' && near(box, x, z, C.obelisk.catch + r)) breakWard(box);
   }
 }
@@ -224,6 +239,9 @@ export function strikeMechanism(room: Room, box: PropBox, blast: boolean, status
       else { burst(box.x, 1.2, box.z, p.broken ? 0x8a8078 : SCHOOL_LIGHT[p.ward ?? 'umbral'], 4, 1.2, .04); if (!p.broken) Sfx.at(box.x, box.z).wardTink(); }
       return true;
     case 'lodestone': if (status?.shock) leap(room, box); else burst(box.x, .7, box.z, 0x8a8078, 3, 1.2, .04); return true;
+    case 'wetCandles': // knocked over into the water: its flames go out with a hiss
+      if (blast) { removeProp(room, box); burst(box.x, .5, box.z, 0x9ad0ff, 12, 2, .05); Sfx.at(box.x, box.z).sizzle(); checkCandles(room); }
+      return true;
     case 'candles':
       if (blast) { removeProp(room, box); burst(box.x, .8, box.z, MAT.wax.color.getHex(), 10, 2, .05); fireAt(box.x, box.z, .6); checkCandles(room); } // knocked over, burning wax
       return true;
@@ -256,13 +274,14 @@ function light(room: Room, box: PropBox) {
   if (p.parts?.flames) p.parts.flames.visible = true;
   if (p.parts?.runes) ((p.parts.runes as THREE.Mesh).material as THREE.MeshBasicMaterial).color.setHex(RUNE_LIT); // the brazier's runes kindle
   burst(box.x, 1, box.z, FIRE, 6, 1.6, .05); Sfx.at(box.x, box.z).catchFire();
-  if (p.kind === 'candles') checkCandles(room);
+  if (p.parts?.waterGlow) p.parts.waterGlow.visible = true; // (a stand in water lights the water round it)
+  if (isStand(p.kind)) checkCandles(room);
 }
 
 /** Every candle stand in the room lit: reliquaries open, the dark lifts, and a chapel blesses the mage's casts. With
     every stand knocked over, nothing holds a reliquary's seal and it breaks open, but that is all. */
 function checkCandles(room: Room) {
-  const stands = mechs(room, 'candles');
+  const stands = (room.props ?? []).filter(b => isStand(b.prop.kind));
   if (!stands.length) { for (const box of mechs(room, 'reliquary')) openReliquary(room, box); return; }
   if (room.candlesLit || stands.some(b => !b.prop.lit)) return;
   room.candlesLit = true;
@@ -516,6 +535,18 @@ export function updateMechanisms(dt: number) {
     const w = waves[i]; w.t += dt; const k = Math.min(1, w.t / .45);
     w.ring.scale.setScalar(.3 + (w.to - .3) * k); (w.ring.material as THREE.MeshBasicMaterial).opacity = .8 * (1 - k);
     if (k >= 1) { w.room.group.remove(w.ring); (w.ring.material as THREE.Material).dispose(); waves.splice(i, 1); }
+  }
+}
+
+/** Shock ran through a pool (M4.2): the candle stands standing in it go out with a hiss. */
+export function douseStandsIn(pool: Pool) {
+  for (const box of G.current.props ?? []) {
+    const p = box.prop;
+    if (p.kind !== 'wetCandles' || !p.lit || !pool.tiles.some(t => p.tiles.some(q => q.c === t.c && q.r === t.r))) continue;
+    p.lit = false;
+    if (p.parts?.flames) p.parts.flames.visible = false;
+    if (p.parts?.waterGlow) p.parts.waterGlow.visible = false;
+    burst(box.x, .9, box.z, 0xd8e8f0, 10, 1.4, .04); Sfx.at(box.x, box.z).sizzle();
   }
 }
 

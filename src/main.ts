@@ -267,6 +267,8 @@ function installDevHooks() {
         foes: G.enemies.filter(e => e.ward && !e.dead).map(e => ({ type: e.type, fill: fullness(e.ward!.drink), top: mostDrunk(e.ward!.drink) })) };
     },
     wardFoe(i: number) { const e = G.enemies[i]; if (e) wardFoe(e); return !!e?.ward; },
+    /** M4.2: the way the room's water runs (n, s, e, w or none) and how many waterfalls feed it. */
+    get flow() { return { dir: G.current.flow ?? null, falls: G.current.falls?.length ?? 0 }; },
     /** Fire, frost or shock landing at (x, z), as a spell's would: lights braziers and candles, charges rune stones,
         sets lodestones leaping. */
     element: (kind: StatusKind | 'sanct' | 'hex', x = player.x, z = player.z - 1.5) => elementDev(kind, x, z),

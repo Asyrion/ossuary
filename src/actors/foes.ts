@@ -195,7 +195,7 @@ export const burningGround = () => hazards.filter(h => h.kind === 'fire' && h.ro
 export const sparkGround = () => hazards.filter(h => h.kind === 'spark' && h.room === G.current).length;
 
 /** The lit braziers and candle stands in `room` (a moth is lured to them). */
-const litFires = (room: Room) => (room.props ?? []).filter((b: PropBox) => (b.prop.kind === 'brazier' || b.prop.kind === 'candles') && b.prop.lit);
+const litFires = (room: Room) => (room.props ?? []).filter((b: PropBox) => (b.prop.kind === 'brazier' || b.prop.kind === 'candles' || b.prop.kind === 'wetCandles') && b.prop.lit);
 
 /* ---------- behaviours ---------- */
 

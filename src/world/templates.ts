@@ -39,13 +39,16 @@ export interface TemplateDef {
   id: string; shape: ShapeId; types: RoomType[]; difficulty: number; grid: string[];
   /** A themed room's theme (world/themeData.ts, data/themes.json). */ theme?: string;
   /** Ordeal rooms: the enemies of each wave. */ waves?: string[][];
+  /** M4.2: the way its water flows (a current, fed by a waterfall where it leaves the wall upstream). */ current?: Flow;
 }
+export type Flow = 'n' | 's' | 'e' | 'w';
 export interface Foe { kind: FoeKind; c: number; r: number }
 export interface Template {
   id: string; shape: ShapeId; types: RoomType[]; difficulty: number; w: number; h: number;
   tiles: Tile[][]; // [row][col]
   /** Enemies per wave: one wave for normal and boss rooms, none for empty rooms. */ waves: Foe[][];
   /** Every enemy of every wave. */ foes: Foe[];
+  /** M4.2: the way its water flows, mirrored with the grid. */ current?: Flow;
 }
 
 const TILE_OF: Record<string, Tile> = { '.': 'floor', '#': 'rock', 'o': 'pit', 'x': 'void', 'i': 'pillar', '=': 'tomb', 'u': 'urn', '$': 'sealedUrn', '~': 'water', '%': 'oil', ...PROP_OF_CHAR };
@@ -67,7 +70,8 @@ export function parseTemplate(def: TemplateDef, mirrorX = false, mirrorY = false
   const waves = def.waves
     ? def.waves.map(grid => { const list: Foe[] = []; for (let r = 0; r < h; r++) for (let c = 0; c < w; c++) { const f = FOE_OF[at(grid, c, r)]; if (f) list.push({ kind: f, c, r }); } return list; })
     : inGrid.length ? [inGrid] : [];
-  return { id: def.id, shape: def.shape, types: def.types, difficulty: def.difficulty, w, h, tiles, waves, foes: waves.flat() };
+  const flip: Record<Flow, Flow> = { n: mirrorY ? 's' : 'n', s: mirrorY ? 'n' : 's', e: mirrorX ? 'w' : 'e', w: mirrorX ? 'e' : 'w' };
+  return { id: def.id, shape: def.shape, types: def.types, difficulty: def.difficulty, w, h, tiles, waves, foes: waves.flat(), current: def.current && flip[def.current] };
 }
 
 /** Problems with a template definition; empty when it is valid. */
@@ -132,17 +136,19 @@ export function validateTemplate(def: TemplateDef): string[] {
 }
 
 /** Pools in a parsed template: water or oil tiles joined side by side (not corner to corner) into one pool. */
+/** A tile as far as pools go: a candle stand standing in water (M4.2) is part of the pool round it. */
+const wet = (tile: Tile) => tile === 'wetCandles' ? 'water' : tile;
 export function poolsOf(t: Pick<Template, 'tiles' | 'w' | 'h'>) {
   const pools: { kind: 'water' | 'oil'; tiles: { c: number; r: number }[] }[] = [], seen = new Set<string>();
   for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) {
-    const kind = t.tiles[r][c];
+    const kind = wet(t.tiles[r][c]);
     if ((kind !== 'water' && kind !== 'oil') || seen.has(c + ',' + r)) continue;
     const tiles: { c: number; r: number }[] = [], queue = [{ c, r }]; seen.add(c + ',' + r);
     while (queue.length) {
       const p = queue.pop()!; tiles.push(p);
       for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
         const nc = p.c + dc, nr = p.r + dr, k = nc + ',' + nr;
-        if (t.tiles[nr]?.[nc] === kind && !seen.has(k)) { seen.add(k); queue.push({ c: nc, r: nr }); }
+        if (t.tiles[nr]?.[nc] !== undefined && wet(t.tiles[nr][nc]) === kind && !seen.has(k)) { seen.add(k); queue.push({ c: nc, r: nr }); }
       }
     }
     pools.push({ kind, tiles });

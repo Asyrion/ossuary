@@ -274,6 +274,23 @@ export const OBJECT_LOOKS = {
     const sh = blob(1); sh.scale.set(len * .9, 1, .8); g.add(sh);
     return g;
   },
+  /** A rope bridge over a chasm (M4.2, from the Eda lore), `len` tiles long along x: planks laid across two ropes, a rope
+      rail each side sagging between posts that stand on the ledges at its ends, hangers down to the deck. It burns. */
+  bridge(R, len) {
+    const g = new THREE.Group(), L = len, plank = tone(0x735a3c, .12), old = tone(0x5a4630, .12), rope = tone(C.rope, .06), post = tone(0x4e3a28, .1);
+    const n = Math.max(3, Math.round(L / .21));
+    for (let i = 0; i < n; i++) { // the planks, a little uneven, now and then a dark old one
+      const x = -L / 2 + (i + .5) * L / n;
+      put(box(g, .15, .04, .84 + (R() - .5) * .08, R() < .25 ? old : plank, x, .045, (R() - .5) * .04), 0, (R() - .5) * .1, (R() - .5) * .05, [.15, .04, .84]);
+    }
+    for (const z of [-.3, .3]) put(mesh(g, GEO.scroll, rope, 0, .02, z), 0, 0, Math.PI / 2, [.018, L + .1, .018]); // (the ropes under the deck)
+    for (const z of [-.45, .45]) {
+      for (const x of [-L / 2 - .04, L / 2 + .04]) { mesh(g, GEO.stem, post, x, 0, z).scale.set(1.6, .72, 1.6); mesh(g, GEO.knob, post, x, .74, z).scale.setScalar(1.8); }
+      g.add(new THREE.Mesh(taperTube(curve([[-L / 2 - .04, .66, z], [-L / 4, .5, z], [0, .45, z], [L / 4, .5, z], [L / 2 + .04, .66, z]]), 12, .017, .017, 4), rope));
+      for (let x = -L / 2 + .45; x < L / 2 - .3; x += .5) { const y = .45 + .21 * (2 * x / L) ** 2; put(mesh(g, GEO.scroll, rope, x, (y + .06) / 2, z), 0, 0, 0, [.008, y - .06, .008]); } // (hangers, rail to deck)
+    }
+    return g;
+  },
 } satisfies Record<string, ObjectLook>;
 
 /** A boat's hull `l` long and `w` wide, pointed at both ends, `h` deep, lying on the floor (its top at `h`); with `wall`,

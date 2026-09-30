@@ -62,7 +62,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
     // the room's inside: its shape, less the tiles the template carves into wall
     bounds: { minX, maxX: minX + w, minZ, maxZ: minZ + h }, w, h, mask: shapeMask(plan.shape, plan.mirrorX, plan.mirrorY).map((row, r) => row.map((inShape, c) => inShape && template.tiles[r][c] !== 'void')),
     group: new THREE.Group(), doors: [], walls: [], rocks: [], pits: [], torches: [], waves: [], wave: 0, wavePending: false, spots: [],
-    cleared: true, visited: false, known: false, locked: false,
+    cleared: true, visited: false, known: false, locked: false, flow: template.current,
   };
   room.group.position.set(cx, 0, cz); scene.add(room.group);
   // the controls are chalked on the floor of the very first room only
@@ -76,7 +76,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   const floor = new THREE.Mesh(maskGeometry(room.mask, w, h), new THREE.MeshStandardMaterial({ map: art.map, roughness: .95, ...(art.glow && { emissive: 0xffffff, emissiveMap: art.glow, emissiveIntensity: glowK }) }));
   room.group.add(floor);
   // the drowned floor's standing water is real in its fights: a puddle or two to wade through
-  if (look.floor.decor === 'puddles' && plan.type === 'normal') {
+  if (look.floor.decor === 'puddles' && plan.type === 'normal' && !template.current) { // (a room whose water runs has its own)
     const R = mulberry(plan.seed ^ 0xd20e), [lo, hi] = CFG.surface.puddles;
     growPuddles(template, R, lo + Math.floor(R() * (hi - lo + 1)), CFG.surface.puddleSize);
   }
@@ -303,14 +303,20 @@ export function hitRock(room: Room, rock: RockBox, shatter = false) {
 // Pits: a dark hole drawn over the floor. Walkers and the mage can't cross them; bolts and wisps can.
 const PIT_GEO = new THREE.PlaneGeometry(1, 1); PIT_GEO.rotateX(-Math.PI / 2); PIT_GEO.userData.shared = true;
 let pitMat: THREE.MeshBasicMaterial | null = null;
-function addPit(room: Room, c: number, r: number) {
+/** A pit on tile (c, r); not `solid`, only its dark (the chasm under a rope bridge, M4.2: it falls when the bridge burns). */
+export function addPit(room: Room, c: number, r: number, solid = true) {
   pitMat ??= markShared(new THREE.MeshBasicMaterial({ map: pitTexture(), transparent: true, depthWrite: false }));
   const p = toWorld(room, c, r);
   const m = new THREE.Mesh(PIT_GEO, pitMat); m.position.set(p.x - room.cx, .006, p.z - room.cz); room.group.add(m);
-  room.pits.push({ x: p.x, z: p.z, hx: .5, hz: .5 });
+  if (solid) room.pits.push({ x: p.x, z: p.z, hx: .5, hz: .5 });
+}
+/** A bridge burnt through (M4.2): the chasm under tile (c, r) is a pit now (its dark was drawn with the bridge). */
+export function openChasm(room: Room, c: number, r: number) {
+  const p = toWorld(room, c, r);
+  room.template.tiles[r][c] = 'pit'; room.pits.push({ x: p.x, z: p.z, hx: .5, hz: .5 }); mergePits(room);
 }
 /** Join pit tiles in the same row into one collision box, so the mage slides along them smoothly. */
-function mergePits(room: Room) {
+export function mergePits(room: Room) {
   const rows = new Map<number, Box[]>();
   for (const b of room.pits) { const list = rows.get(b.z) ?? []; list.push(b); rows.set(b.z, list); }
   const merged: Box[] = [];

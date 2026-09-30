@@ -9,9 +9,9 @@
 import type { TableName } from '../items/loot';
 
 export type PropKind = 'bones' | 'skulls' | 'sacks' | 'cask' | 'rubble' | 'roots' | 'briar' | 'web' | 'glowcap' | 'pew' | 'desk' | 'scrolls'
-  | 'hoard' | 'boat' | MechanismKind;
+  | 'hoard' | 'boat' | 'bridge' | MechanismKind;
 /** The mechanisms (M3.6 step 4, world/mechanisms.ts): objects that answer to magic with more than breaking or burning. */
-export type MechanismKind = 'brazier' | 'candles' | 'bell' | 'rune' | 'lodestone' | 'censer' | 'reliquary' | 'tree' | 'statue' | 'obelisk';
+export type MechanismKind = 'brazier' | 'candles' | 'bell' | 'rune' | 'lodestone' | 'censer' | 'reliquary' | 'tree' | 'statue' | 'obelisk' | 'wetCandles';
 export type PropClass = 'tall' | 'low' | 'soft' | 'hanging';
 
 export interface PropDef {
@@ -38,6 +38,8 @@ export const PROPS: Record<PropKind, PropDef> = {
   // M4.1: the Gilded Treasury's heaps of offerings (a blast spills their obols) and the Ferry Landing's moored boats
   hoard: { char: 'h', class: 'low', hits: 0, blast: true, burns: false, loot: 'hoard' },
   boat: { char: 'm', class: 'low', hits: 0, blast: false, burns: true },
+  // M4.2: a rope bridge over a chasm, walked on (a run of them, across or down, is one bridge); fire burns it through
+  bridge: { char: '+', class: 'soft', hits: 0, blast: false, burns: true },
   // mechanisms (world/mechanisms.ts)
   brazier: { char: 'f', class: 'low', hits: 0, blast: false, burns: false },
   candles: { char: 'l', class: 'low', hits: 0, blast: true, burns: false },
@@ -50,9 +52,11 @@ export const PROPS: Record<PropKind, PropDef> = {
   // M4.2, from the Eda lore: a Warden's statue whose gaze strikes, and an obelisk whose field saps the mage
   statue: { char: 'w', class: 'tall', hits: 0, blast: false, burns: false },
   obelisk: { char: '!', class: 'tall', hits: 0, blast: false, burns: false },
+  // a candle stand standing in water: its tile is part of the pool round it
+  wetCandles: { char: 'L', class: 'low', hits: 0, blast: true, burns: false },
 };
 export const PROP_KINDS = Object.keys(PROPS) as PropKind[];
 export const PROP_OF_CHAR: Record<string, PropKind> = Object.fromEntries(PROP_KINDS.map(k => [PROPS[k].char, k]));
 export const isProp = (tile: string): tile is PropKind => tile in PROPS;
-export const MECHANISMS: MechanismKind[] = ['brazier', 'candles', 'bell', 'rune', 'lodestone', 'censer', 'reliquary', 'tree', 'statue', 'obelisk'];
+export const MECHANISMS: MechanismKind[] = ['brazier', 'candles', 'bell', 'rune', 'lodestone', 'censer', 'reliquary', 'tree', 'statue', 'obelisk', 'wetCandles'];
 export const isMechanism = (k: string): k is MechanismKind => (MECHANISMS as string[]).includes(k);
