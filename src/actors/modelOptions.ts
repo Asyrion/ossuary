@@ -168,7 +168,7 @@ function mireToad(): Built {
     each whisker. */
 function cisternLurker(): Built {
   const S = SCHOOL_LIGHT.storm, g = new THREE.Group(), hide = std(0x2e6272), belly = std(0x9cc4b8), light = lit(S), fin = shine(0x9fe8ff, .5);
-  part(g, new THREE.CircleGeometry(.5, 20), std(0x12404a, { roughness: .15, metalness: .2, emissive: 0x06242a }), [0, .012, 0], { rot: [-Math.PI / 2, 0, 0] });
+  const disc = part(g, new THREE.CircleGeometry(.5, 20), std(0x12404a, { roughness: .15, metalness: .2, emissive: 0x06242a }), [0, .012, 0], { rot: [-Math.PI / 2, 0, 0] });
   const edge = runeRing(g, S, .5, [0, .03, 0], 8);
   const rise = new THREE.Group(); g.add(rise); // (all of it that rises out of the pool: M4's foe sinks it to dive)
   const segs: THREE.Mesh[] = [], spots: THREE.Mesh[] = [];
@@ -193,7 +193,7 @@ function cisternLurker(): Built {
     spots.forEach((s, i) => { s.visible = (Math.floor(t * 4) + i) % 5 !== 0; });
   };
   place(0);
-  return { group: g, shadow: .5, idle: place, parts: { rise, lures: lures[0], lures2: lures[1] } };
+  return { group: g, shadow: .5, idle: place, parts: { rise, lures: lures[0], lures2: lures[1], disc } };
 }
 
 /** Drowned floor, Hallow: a jellyfish floating like a lantern, a little flame in its bell and gold light round its rim. */
@@ -221,7 +221,7 @@ function lanternJelly(): Built {
 
 /** Burning floor, Ember: a salamander with glowing spots, a crest of flame down its back and a flame on its tail. */
 function cinderSalamander(): Built {
-  const E = SCHOOL_LIGHT.ember, g = new THREE.Group(), skin = std(0x5a2420), belly = std(0xd8702c), spot = lit(0xffa040), flameM = lit(E), flameCore = lit(0xffd060), body = new THREE.Group(); g.add(body);
+  const E = SCHOOL_LIGHT.ember, g = new THREE.Group(), skin = std(0x7a3226), belly = std(0xe07a34), spot = lit(0xffa040), flameM = lit(E), flameCore = lit(0xffd060), body = new THREE.Group(); g.add(body);
   body.rotation.y = .6; // (turned a little, so its length shows; the head looks back at the camera)
   const head = new THREE.Group(); head.position.set(0, .15, .3); body.add(head);
   part(head, sphere(.13, 12, 8), skin, [0, 0, 0], { scale: [1.15, .75, 1.2] });
@@ -250,7 +250,7 @@ function cinderSalamander(): Built {
 
 /** Burning floor, Umbral: a big-eared imp on bat wings over a hex circle, holding up a violet flame; it grins. */
 function hexImp(): Built {
-  const U = SCHOOL_LIGHT.umbral, g = new THREE.Group(), skin = std(0x8a66b2), paler = std(0xb096cc), dark = std(0x241830), wingM = std(0x3a2250, { side: THREE.DoubleSide }), float = new THREE.Group(); g.add(float);
+  const U = SCHOOL_LIGHT.umbral, g = new THREE.Group(), skin = std(0xa07ccc), paler = std(0xc4aee0), dark = std(0x241830), wingM = std(0x3a2250, { side: THREE.DoubleSide }), float = new THREE.Group(); g.add(float);
   const hex = circle(g, U, .38);
   const body = new THREE.Group(); body.position.y = .48; float.add(body);
   part(body, sphere(.11, 10, 8), skin, [0, 0, 0], { scale: [1, 1.1, .9] });
@@ -291,7 +291,7 @@ function hexImp(): Built {
 /** Burning floor, Frost (an elite): a small dragon with ice crystals for horns and spines, on little wings; breathes rime. */
 function rimeDrakeling(): Built {
   const F = SCHOOL_LIGHT.frost, g = new THREE.Group(), scaleM = std(0x8ab8d8), belly = std(0xdceaf2), wingM = std(0x5a86b0, { side: THREE.DoubleSide }), bone = std(0x3a5a7a), ice = lit(F), body = new THREE.Group(); g.add(body);
-  circle(g, F, .62);
+  const ground = circle(g, F, .62);
   part(body, sphere(.22, 12, 10), scaleM, [0, .3, -.04], { scale: [.95, .95, 1.15] });
   part(body, sphere(.15, 10, 8), belly, [0, .28, .1], { scale: [1, 1.15, .7] });
   limb(body, [0, .42, .06], [0, .58, .16], .09, scaleM, .1);
@@ -319,7 +319,7 @@ function rimeDrakeling(): Built {
   const tailTip = crystal(body, F, [0, 0, 0], .12, [0, 0, 0], ice);
   const breath = [0, 1, 2, 3].map(() => part(head, sphere(.05, 7, 6), shine(F, .5), [0, 0, 0]));
   const snow = motes(g, 0xe8f6ff, 5, .5, .7, .014);
-  return { group: g, shadow: .9, idle: t => {
+  return { group: g, shadow: .9, parts: { ground }, idle: t => {
     body.scale.set(1, 1 + Math.sin(t * 1.8) * .02, 1); head.rotation.set(Math.sin(t * 1.1) * .08, Math.sin(t * .7) * .25, Math.sin(t * .9) * .06);
     wings.forEach(({ w, s }) => { w.rotation.z = s * (.15 + Math.sin(t * 3) * .25); });
     tail.forEach((m, i) => { const k = i / 4; m.position.set(Math.sin(k * 2.2 + Math.sin(t * 1.5) * .4) * .22 * k, .12 - k * .08, -.26 - k * .22); });

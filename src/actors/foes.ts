@@ -20,6 +20,7 @@ import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { mergeRig } from '../render/rig';
+import { glow } from '../render/materials';
 import { scene } from '../render/renderer';
 import { glowTex } from '../render/textures';
 import { burst } from '../combat/fx';
@@ -55,11 +56,13 @@ export function buildFoe(e: Enemy, def: FoeDef) {
   const opt = MODEL_OPTIONS.find(o => o.id === def.id);
   if (!opt) throw new Error(`foe ${def.id}: no model option of that id`);
   const b = opt.build();
-  e.mats = mergeRig(b.group, b.idle, def.id);
+  e.mats = mergeRig(b.group, b.idle, def.id, Object.values(b.parts ?? {}));
   for (const m of e.mats) m.userData.base = m.emissive.clone();
   e.foe = def; e.model = b.group; e.idle = b.idle; e.parts = b.parts; e.at = Math.random() * 4; e.tele = 0; e.shadow = b.shadow;
   e.flying = def.flying; e.contact = def.contact;
   e.body.add(b.group);
+  // its telegraph's glow, in its school's light (a pale foe's body alone barely shows it)
+  e.teleGlow = glow(SCHOOL_LIGHT[def.school], 1 + def.r * 2, 0); e.teleGlow.position.y = def.flying ? .7 : .4; e.teleGlow.visible = false; e.body.add(e.teleGlow);
   BEHAVIOURS[def.behaviour].init(e, def.params);
   metFoe(def.id);
 }
@@ -79,6 +82,7 @@ export function bumpFoe(e: Enemy, hit: boolean) { BEHAVIOURS[e.foe!.behaviour].b
 export function poseFoe(e: Enemy) {
   const t = e.tele ?? 0, hit = e.flash > 0 ? 1 : 0;
   e.model!.scale.set(1 + t * .22 + hit * .14, 1 + t * .14 - hit * .16, 1 + t * .22 + hit * .14);
+  if (e.teleGlow) { e.teleGlow.visible = t > .02; e.teleGlow.material.opacity = t * .85; }
   e.model!.position.x = t > 0 ? Math.sin(e.t * 55) * .02 * t : 0;
 }
 /** The school's light a telegraphing foe glows with. */
@@ -86,11 +90,16 @@ export const teleColor = (e: Enemy) => new THREE.Color(light(e));
 
 /** Where the `k`th Urn Mimic of a wave stands when it comes: beside one of the room's urns (on the room's seed, each its
     own while there are enough), else where it was. */
-export function mimicSpot(room: Room, x: number, z: number, k: number) {
+export function mimicSpot(room: Room, x: number, z: number, k: number, taken: { x: number; z: number }[] = []) {
   const urns = room.rocks.filter(r => r.urn && r.hp > 0);
   if (!urns.length) return { x, z };
-  const R = mulberry(room.plan.seed ^ 0x3171c), first = Math.floor(R() * urns.length), u = urns[(first + k) % urns.length], side = (R() < .5 ? -1 : 1) * (k >= urns.length ? -1 : 1);
-  return freeSpotNear(room, u.x + side * .9, u.z);
+  const R = mulberry(room.plan.seed ^ 0x3171c), first = Math.floor(R() * urns.length), side = R() < .5 ? -1 : 1;
+  for (let i = 0; i < urns.length * 4; i++) { // (beside each urn in turn, one side then the other and further, not where one already waits)
+    const u = urns[(first + k + i) % urns.length], s = side * (Math.floor(i / urns.length) % 2 ? -1 : 1), far = i >= urns.length * 2 ? 1.8 : .9;
+    const p = freeSpotNear(room, u.x + s * far, u.z);
+    if (!taken.some(t => Math.hypot(t.x - p.x, t.z - p.z) < .7)) return p;
+  }
+  return freeSpotNear(room, x, z);
 }
 
 /** The water in `room` a lurker can be in (not burnt-away oil: water, still or frozen), tile by tile. */
@@ -113,7 +122,7 @@ function trailMesh() {
     the mage who stands in it. */
 function layFire(room: Room, x: number, z: number, time: number) {
   if (trails.length >= MAX_TRAIL) trails.shift();
-  trails.push({ room, x, z, t: time, life: time }); fireAt(x, z, .15); flame(x, z, 0xff7a2a, .4);
+  trails.push({ room, x, z, t: time, life: time }); fireAt(x, z, .15);
 }
 const m4 = new THREE.Matrix4(), q0 = new THREE.Quaternion(), v3 = new THREE.Vector3(), s3 = new THREE.Vector3();
 /** Every step: the burning ground glows, now and then a flame licks up, it burns the mage in it, and it goes out. */
@@ -121,7 +130,7 @@ export function updateFoeHazards(dt: number) {
   for (let i = trails.length - 1; i >= 0; i--) {
     const f = trails[i]; f.t -= dt;
     if (f.t <= 0 || f.room !== G.current) { trails.splice(i, 1); continue; }
-    if (Math.random() < dt * 2.5 * Math.min(1, f.t)) flame(f.x + (Math.random() - .5) * .3, f.z + (Math.random() - .5) * .3, Math.random() < .6 ? 0xff7a2a : 0xffc060, .3 + Math.random() * .2);
+    if (Math.random() < dt * .7 * Math.min(1, f.t)) flame(f.x + (Math.random() - .5) * .3, f.z + (Math.random() - .5) * .3, Math.random() < .6 ? 0xff7a2a : 0xffc060, .3 + Math.random() * .2);
     if (Math.hypot(player.x - f.x, player.z - f.z) < .3 + player.r * .5) hurtPlayer(1, f.x, f.z);
   }
   if (!trails.length && !trailGlow?.count) return;
@@ -235,8 +244,8 @@ const BEHAVIOURS: Record<string, Behaviour> = {
     },
     pose(e) {
       const o = e.open ?? 0, p = e.parts!;
-      p.halfL.rotation.z = -o * .5; p.halfR.rotation.z = o * .5;
-      ((p.inner as THREE.Sprite).material).opacity = o * .9 + (e.tele ?? 0) * .6;
+      p.halfL.rotation.z = -o * .85; p.halfR.rotation.z = o * .85;
+      ((p.inner as THREE.Sprite).material).opacity = o * .9 + (e.tele ?? 0) * .6; p.inner.scale.setScalar(.8 + o * .9);
     },
   },
 
@@ -344,6 +353,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
         if (e.st <= 0) { e.state = 'up'; e.st = num(P.up); e.fireT = 0; e.cycle = num(P.volley); e.tele = 0; }
       } else if (e.state === 'up' || e.state === 'trapped') { // it spits sparks at the mage; trapped in ice, it can't dive
         e.vx = e.vz = 0; e.open = 1;
+        if (frozen && e.state === 'up') { e.state = 'trapped'; e.st = Math.max(e.st, num(P.trapped)); }
         if ((e.cycle ?? 0) > 0 && (e.fireT! -= dt) <= 0) {
           spawnShot(e.x + a.ux * .3, e.z + a.uz * .3, a.ux, a.uz, num(P.shotSpeed), light(e), .7, .85);
           burst(e.x, .8, e.z, light(e), 6, 1.4, .03); Sfx.at(e.x, e.z).spark(); e.cycle! -= 1; e.fireT = num(P.volleyGap);
@@ -358,6 +368,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
     },
     pose(e) {
       const o = e.open ?? 0, p = e.parts!;
+      p.disc.visible = poolAt(e.x, e.z)?.state !== 'frozen'; // (its dark water shows the ice when its pool freezes)
       p.rise.position.y = (o - 1) * 1.1; p.rise.visible = o > .02; // (below the floor, it can't be seen)
       for (const l of [p.lures, p.lures2]) (l as THREE.Sprite).material.opacity = e.hidden ? .35 + Math.sin(e.t * 6) * .2 : (l as THREE.Sprite).material.opacity;
     },
@@ -474,6 +485,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
     pose(e) { // up in the air while it flies
       const up = e.state === 'fly' ? 1 : e.state === 'land' ? Math.max(0, e.st / .3) : 0;
       e.model!.position.y = lerp(e.model!.position.y, up * .9, .2);
+      e.parts!.ground.position.y = .015 - e.model!.position.y; // (its frost circle stays on the ground: it flies from it)
     },
   },
 

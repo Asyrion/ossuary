@@ -12,14 +12,16 @@ interface Plan { moving: Set<number>; live: Set<number> }
 const plans = new Map<string, Plan>();
 const SAMPLES = 320, STEP = .043; // (about 14 s: every blink, peek and flicker comes round at least once)
 
-/** Merge the still parts of `root` (see above); returns its lit surfaces after the merge, whose emissive a hit flash or a
-    status glow may light (each creature has its own). */
-export function mergeRig(root: THREE.Object3D, idle: Idle, key: string) {
+/** Merge the still parts of `root` (see above); `keep` are parts moved by something else than the idle (a foe's behaviour),
+    kept apart as if they moved. Returns its lit surfaces after the merge, whose emissive a hit flash or a status glow may
+    light (each creature has its own). */
+export function mergeRig(root: THREE.Object3D, idle: Idle, key: string, keep: THREE.Object3D[] = []) {
   const nodes: THREE.Object3D[] = []; root.traverse(o => { if (o !== root) nodes.push(o); });
-  const plan = plans.get(key) ?? study(nodes, idle);
-  plans.set(key, plan);
-  idle(0); root.updateMatrixWorld(true);
+  const studied = plans.get(key) ?? study(nodes, idle);
+  plans.set(key, studied);
   const index = new Map(nodes.map((o, i) => [o, i]));
+  const plan = { moving: new Set([...studied.moving, ...keep.map(o => index.get(o)!)]), live: studied.live };
+  idle(0); root.updateMatrixWorld(true);
   const owner = (o: THREE.Object3D) => { let p = o.parent!; while (p !== root && !plan.moving.has(index.get(p)!)) p = p.parent!; return p; };
   const groups = new Map<THREE.Object3D, Map<string, THREE.Mesh[]>>(), dropped = new Set<THREE.Material>();
   nodes.forEach((o, i) => {

@@ -191,7 +191,7 @@ function spawnWave(room: Room, ambush = false) {
   const mortal = foes.filter(f => f.kind !== 'boss');
   const championRoom = room.plan.variant === 'champion' || room.warden; // a forced vault's warden is a champion
   const champion = championRoom && room.wave === 0 && mortal.length ? mortal[Math.floor(mulberry(room.plan.seed)() * mortal.length)] : null;
-  let mimics = 0;
+  let mimics = 0; const taken: { x: number; z: number }[] = [];
   for (const f of foes) {
     let { x, z } = f;
     if (ambush) {
@@ -199,7 +199,7 @@ function spawnWave(room: Room, ambush = false) {
       if (d < 2.2) { const p = freeSpotNear(room, player.x + (d ? dx / d : 1) * 3, player.z + (d ? dz / d : 0) * 3); x = p.x; z = p.z; }
       burst(x, .1, z, 0x5a4a3a, 14, 2.2, .08);
     }
-    if (f.kind === 'urnMimic' && !ambush) ({ x, z } = mimicSpot(room, x, z, mimics++)); // (it waits among the urns, as one of them)
+    if (f.kind === 'urnMimic' && !ambush) { ({ x, z } = mimicSpot(room, x, z, mimics++, taken)); taken.push({ x, z }); } // (it waits among the urns, as one of them)
     if (f.kind === 'boss') makeEnemy(G.run.boss, x, z, 1, cfg.boss);
     else makeEnemy(f.kind, x, z, cfg.enemyHp, undefined, { champion: f === champion });
   }

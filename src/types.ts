@@ -173,7 +173,8 @@ export interface Enemy extends Circle {
       at `animRate` (0 holds it still); how strongly it telegraphs (0 to 1: its school's glow, a swell); its shadow's size. */
   foe?: FoeDef; model?: THREE.Object3D; idle?: (t: number) => void; at?: number; animRate?: number; tele?: number; shadow?: number;
   /** Its model's parts its behaviour moves (a beetle's wing-cases, a mimic's lid); how open a lid or shell is (0 to 1);
-      what it takes of a hit (a shut mimic, half); a behaviour's own clock (a salamander's trail). */ parts?: Record<string, THREE.Object3D>; open?: number; guard?: number; tick?: number;
+      what it takes of a hit (a shut mimic, half); a behaviour's own clock (a salamander's trail); the glow of its telegraph. */
+  parts?: Record<string, THREE.Object3D>; open?: number; guard?: number; tick?: number; teleGlow?: THREE.Sprite;
 }
 
 export interface Bolt extends Circle {
