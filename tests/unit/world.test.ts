@@ -189,7 +189,7 @@ describe('floor generator', () => {
     for (const c of [floor.mortar, wall.mortar, torch.flame, torch.light, light.sky, light.ground, light.moon]) expect(c).toMatch(hex);
     expect(floor.stain).toMatch(/^\d+,\d+,\d+$/);
     expect(['bones', 'puddles', 'ash', 'wax']).toContain(floor.decor);
-    expect(['none', 'moss', 'soot', 'gilt']).toContain(wall.stains);
+    expect(['none', 'moss', 'soot', 'gilt', 'salt']).toContain(wall.stains);
     expect(['bracket', 'lantern', 'brazier']).toContain(torch.style);
   });
 

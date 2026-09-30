@@ -272,6 +272,54 @@ const WALLS: Record<WallKind, (wall: FloorLook['wall'], W: number) => WallArt> =
     }
     return { px };
   },
+  slate(wall, W) { // the Shore's (M4.1): thin courses of split slate laid dry, dark and laminated, their top edges catching the light
+    const H = 48, px = new Px(W, H, true), R = mulberry(105), slate = tint(wall.brick, 0, .85);
+    px.fill(scale(hex(wall.mortar), .8));
+    for (let y0 = 0; y0 < H;) {
+      const ch = Math.min(3 + Math.floor(R() * 3), H - y0); let x0 = Math.floor(R() * 16);
+      for (const l of lengths(R, W, 10, 30)) {
+        const c = scale(slate, .8 + R() * .35);
+        for (let y = y0; y < y0 + ch - 1; y++) for (let x = x0 + 1; x < x0 + l; x++) px.set(x, y, scale(c, (y === y0 ? 1.35 : y === y0 + ch - 2 && ch > 2 ? .75 : 1) * (hash(x, y, 105) < .05 ? .85 : 1)));
+        x0 += l;
+      }
+      y0 += ch;
+    }
+    return { px };
+  },
+  drystone(wall, W) { // the Shore's: round river stones set dry, no mortar, the dark between them
+    const H = 48, px = new Px(W, H, true), R = mulberry(115);
+    px.fill(scale(hex(wall.mortar), .7));
+    for (let row = 0; row < 5; row++) {
+      let x = Math.floor(R() * 8) - 4;
+      while (x < W + 6) {
+        const rx = 5 + R() * 3.5, ry = 3.8 + R() * 1.4, cx = x + rx, cy = row * 9.6 + 5 + (R() - .5) * 2, v = R() * 24 - 12, c: RGB = [wall.brick[0] + v - 2, wall.brick[1] + v, wall.brick[2] + v + 4];
+        for (let dv = Math.floor(-ry); dv <= ry; dv++) for (let u = Math.floor(-rx); u <= rx; u++) {
+          const d = (u / rx) ** 2 + (dv / ry) ** 2; if (d > 1) continue;
+          const lit = -u / rx * .25 - dv / ry * .5, k = lit > .25 ? 1.3 : lit > .02 ? 1.08 : lit > -.3 ? .9 : .7; // (lit from above, in four bands)
+          px.set(Math.round(cx + u), Math.round(cy + dv), scale(c, k * (hash(Math.round(cx + u), Math.round(cy + dv), 115) < .05 ? .85 : 1)));
+        }
+        x += rx * 2 + .5;
+      }
+    }
+    return { px };
+  },
+  pilings(wall, W) { // the Shore's: a landing's wall of tarred piles, iron-banded, weed and salt at their feet
+    const H = 48, px = new Px(W, H, true), R = mulberry(125), tar: RGB = [44, 38, 34], weed: RGB = [44, 70, 54], iron: RGB = [58, 58, 62];
+    px.fill(scale(hex(wall.mortar), .6));
+    let x0 = 0;
+    for (const pw of lengths(R, W, 11, 16)) {
+      const c = scale(tar, .85 + R() * .35);
+      for (let y = 0; y < H; y++) for (let x = x0 + 1; x < x0 + pw; x++) {
+        const u = (x - x0 - 1) / (pw - 2), k = u < .2 ? 1.35 : u < .45 ? 1.1 : u > .82 ? .6 : 1; // (round: lit on its left)
+        const grain = Math.sin(x * 1.7 + Math.sin(y * .23 + x0) * 2) > .8 ? .82 : 1;
+        px.set(x, y, scale(c, k * grain * (hash(x, y, 125) < .05 ? .8 : 1)));
+      }
+      for (const by of [9, 33]) for (let x = x0 + 1; x < x0 + pw; x++) { px.set(x, by, scale(iron, 1.3)); px.set(x, by + 1, iron); px.set(x, by + 2, scale(iron, .6)); if ((x - x0) % 5 === 2) px.set(x, by + 1, scale(iron, 1.6)); } // bands and rivets
+      for (let y = H - 9; y < H; y++) for (let x = x0 + 1; x < x0 + pw; x++) if (bayer(x, y) < (y - (H - 9)) / 9 * .9) px.mix(x, y, weed, .6); // weed at the foot
+      x0 += pw;
+    }
+    return { px };
+  },
 };
 
 /** Stains over any wall in the look's kind: moss and drip lines (damp), black smears (scorched) or darker patches. */
@@ -282,6 +330,9 @@ function stainWall(px: Px, stains: FloorLook['wall']['stains']) {
     for (let k = 0; k < 10; k++) { const x = Math.floor(S() * W), y0 = Math.floor(S() * H), len = 6 + Math.floor(S() * 16); for (let y = y0; y < y0 + len; y++) px.mul(x, y, .65); }
   } else if (stains === 'soot') {
     for (let k = 0; k < 10; k++) px.blotch(S() * W, S() * H, 8 + S() * 14, 6 + S() * 10, 1, (x, y) => px.mix(x, y, [6, 4, 3], .6));
+  } else if (stains === 'salt') { // the Shore's (M4.1): a crust of salt dried white in patches, and pale runs down the stone
+    for (let k = 0; k < 4; k++) px.blotch(S() * W, S() * H, 6 + S() * 8, 3 + S() * 4, .7, (x, y) => px.mix(x, y, [170, 178, 182], .28));
+    for (let k = 0; k < 5; k++) { const x = Math.floor(S() * W), y0 = Math.floor(S() * H), len = 4 + Math.floor(S() * 8); for (let y = y0; y < y0 + len; y++) px.mix(x, y, [160, 170, 176], .2); }
   } else if (stains === 'gilt') { // the Reliquary's (M4.1): flecks of gold leaf caught on the stone, and candle smoke high up
     for (let k = 0; k < 40; k++) { const x = Math.floor(S() * W), y = Math.floor(S() * H); px.mix(x, y, [226, 186, 96], .7); if (S() < .5) px.mix(x + 1, y, [226, 186, 96], .4); }
     for (let k = 0; k < 5; k++) px.blotch(S() * W, S() * H * .4, 6 + S() * 8, 4 + S() * 5, .6, (x, y) => px.mul(x, y, .88));
@@ -465,6 +516,34 @@ const PAVING: Record<FloorKind, (f: FloorCtx, mask: boolean[][]) => void> = {
       const n = hash(ai, aj, 51), c = n < .18 ? scale(brick, .45) : scale(brick, .85 + n * .3);
       const k = ly === 1 ? 1.22 : ly === h - 1 ? .74 : lx === 1 ? 1.08 : lx === w - 1 ? .84 : 1;
       px.set(x, y, scale(c, k * (hash(x, y, 52) < .05 ? .8 : 1)));
+    }
+  },
+  boards(f) { // the Shore's (M4.1): a landing stage of weathered planks running across, gaps between, nail heads, some dark with wet
+    const { px, R, cw, ch, base } = f, PH = 8, wood: RGB = [base[0] * .5 + 92 * .5, base[1] * .5 + 80 * .5, base[2] * .5 + 68 * .5];
+    for (let y0 = 0; y0 < ch; y0 += PH) {
+      let x0 = -Math.floor(R() * 40);
+      while (x0 < cw) {
+        const l = 40 + Math.floor(R() * 60), wet = R() < .2, c = scale(wood, (wet ? .62 : .85) + R() * .25), s = Math.floor(R() * 1e5);
+        for (let y = y0 + 1; y < y0 + PH; y++) for (let x = Math.max(0, x0 + 1); x < Math.min(cw, x0 + l); x++) {
+          const grain = Math.sin(x * .09 + (y - y0) * 1.9 + Math.sin(x * .03 + s) * 2.2) > .7 ? .85 : 1;
+          px.set(x, y, scale(c, (y === y0 + 1 ? 1.25 : y === y0 + PH - 1 ? .7 : 1) * grain * (hash(x, y, 131) < .04 ? .8 : 1)));
+        }
+        for (const nx of [x0 + 3, x0 + l - 3]) if (nx > 0 && nx < cw) { px.set(nx, y0 + 3, [30, 28, 30]); px.set(nx, y0 + 5, [30, 28, 30]); } // nails at its ends
+        x0 += l;
+      }
+    }
+  },
+  shingle(f) { // the Shore's: a beach of black shingle, a few pale pebbles among the dark, lit from above
+    const { px, cw, ch, base } = f, G = 6;
+    for (let gy = -1; gy < ch / G * 1.4 + 1; gy++) for (let gx = -1; gx < cw / G + 1; gx++) {
+      const h1 = hash(gx, gy, 141), h2 = hash(gx, gy, 142), h3 = hash(gx, gy, 143);
+      const cx = gx * G + h1 * G, cy = gy * G * .72 + h2 * G * .6, rx = 2 + h3 * 2.2, ry = rx * (.6 + h1 * .25);
+      const pale = h2 > .985, v = h3 * 22 - 11, c: RGB = pale ? [128, 126, 122] : [base[0] * .8 + v, base[1] * .8 + v, base[2] * .8 + v + 3];
+      for (let v2 = Math.floor(-ry); v2 <= ry; v2++) for (let u = Math.floor(-rx); u <= rx; u++) {
+        const d = (u / rx) ** 2 + (v2 / ry) ** 2; if (d > 1) continue;
+        const k = v2 / ry < -.4 ? 1.3 : v2 / ry > .45 ? .68 : 1;
+        px.set(Math.round(cx + u), Math.round(cy + v2), scale(c, k));
+      }
     }
   },
   checker(f) { // the Reliquary's (M4.1): polished marble in a chequer of pale and dark squares, half a tile each, veined

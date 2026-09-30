@@ -47,6 +47,10 @@ const GEO = {
   disc: shared(new THREE.CircleGeometry(.13, 14)), pan: shared(new THREE.CylinderGeometry(.1, .06, .03, 10)),
   chalice: shared(new THREE.LatheGeometry([[.05, 0], [.2, .04], [.3, .12], [.34, .24], [.35, .3]].map(([x, y]) => new THREE.Vector2(x, y)), 12)),
   censer: shared(new THREE.SphereGeometry(.27, 12, 8, 0, Math.PI * 2, Math.PI * .28, Math.PI * .72)), hole: shared(new THREE.SphereGeometry(.032, 5, 4)),
+  // the Shore's (M4.1): a boatman's crooked pole; flat stones for a cairn; a stone boat's hull; a funeral urn
+  staff: shared(new THREE.CylinderGeometry(.028, .036, 1, 6)), flat: shared(new THREE.CylinderGeometry(.13, .15, .07, 7)),
+  hull: shared(new THREE.SphereGeometry(.3, 12, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).scale(1.7, .75, 1)), prow: shared(new THREE.ConeGeometry(.07, .3, 5)),
+  urn: shared(new THREE.LatheGeometry([[.1, 0], [.16, .05], [.29, .22], [.3, .38], [.2, .56], [.15, .62], [.22, .7], [.24, .72]].map(([x, y]) => new THREE.Vector2(x, y)), 12)),
 };
 
 /** The wall torch's fire colours in a floor's look (the crypt's amber, the drowned's pale lanterns, the burning's red). */
@@ -154,6 +158,22 @@ const TORCHES: Record<TorchKind, TorchBuild> = {
     }
     lit.add(makeFire(specs, pal, 3, .3));
     return at(glow(pal.body, 1.3, .8), 0, 1.2, .22);
+  },
+  pole(holder, lit, pal) { // the Shore's (M4.1): a boatman's lamp hung from a crooked pole bracketed to the wall, burning pale
+    mesh(holder, GEO.staff, MAT.wood, 0, .95, .06).scale.y = .9; mesh(holder, GEO.ring, MAT.iron, 0, .7, .06).scale.setScalar(.8); mesh(holder, GEO.ring, MAT.iron, 0, 1.2, .06).scale.setScalar(.8);
+    const crook = mesh(holder, GEO.staff, MAT.wood, 0, 1.42, .16); crook.scale.y = .3; crook.rotation.x = 1.1;
+    mesh(holder, GEO.lHook, MAT.iron, 0, 1.44, .3); mesh(holder, GEO.lCap, MAT.iron, 0, 1.32, .3).scale.setScalar(.8); mesh(holder, GEO.lBase, MAT.iron, 0, 1.08, .3).scale.setScalar(.8);
+    for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + Math.PI / 4; mesh(holder, GEO.lBar, MAT.iron, Math.cos(a) * .075, 1.19, .3 + Math.sin(a) * .075).scale.y = .8; }
+    mesh(lit, GEO.lGlass, glassFor(pal.body), 0, 1.19, .3).scale.set(.8, .82, .8);
+    lit.add(makeFire([{ x: 0, y: 1.1, z: .3, h: .14, w: .07 }], pal, 2, .2));
+    return at(glow(pal.body, 1.1, .8), 0, 1.19, .32);
+  },
+  cairn(holder, lit, pal) { // the Shore's: flat river stones stacked on a ledge, a pale flame burning in the hollow of the topmost
+    mesh(holder, GEO.shelf, MAT.darkStone, 0, .8, .09).scale.set(1.4, 1.2, 1.3);
+    [[.84, 1.05, 0], [.91, .9, .2], [.98, .75, -.3]].forEach(([y, s, r]) => { const m = mesh(holder, GEO.flat, MAT.darkStone, 0, y, .1); m.scale.set(s, 1, s * .9); m.rotation.y = r; });
+    mesh(holder, GEO.flat, MAT.stone, 0, 1.04, .1).scale.set(.6, .8, .55);
+    lit.add(makeFire([{ x: 0, y: 1.06, z: .1, h: .24, w: .1, tongues: 2 }], pal, 3, .3));
+    return at(glow(pal.body, 1.2, .8), 0, 1.18, .12);
   },
   basket(holder, lit, pal) { // an iron fire basket hanging on a short chain from a bracket
     mesh(holder, GEO.plate, MAT.iron, 0, 1.18, .015).scale.set(.7, .9, 1);
@@ -272,6 +292,19 @@ const BRAZIERS: Record<BrazierKind, BrazierBuild> = {
     mesh(g, GEO.coals, MAT.coals, 0, .84, 0).scale.setScalar(.55); coals(g, .86, .16);
     threeRunes(runes, .27, .52, .35, .8);
     return { fire: bigFire(.86, .7, .22), glowY: 1.1 };
+  },
+  boat(g, runes) { // the Shore's (M4.1): a small stone boat on a block, its hull full of coals, prow and stern curling up, runes on its side
+    mesh(g, GEO.base, MAT.darkStone, 0, .12, 0).scale.set(1.3, 2.4, .8);
+    mesh(g, GEO.hull, MAT.stone, 0, .54, 0); for (const s of [-1, 1]) { const p = mesh(g, GEO.prow, MAT.stone, s * .48, .62, 0); p.rotation.z = -s * .7; }
+    mesh(g, GEO.coals, MAT.coals, 0, .5, 0).scale.set(1.5, 1, .8); coals(g, .53, .24);
+    runes.push(runePlace(-.2, .38, .24, Math.PI / 2, .2, .8), runePlace(.2, .38, .24, Math.PI / 2, .2, .8), runePlace(0, .36, .27, Math.PI / 2, .2, .9));
+    return { fire: [{ x: -.18, y: .54, z: 0, h: .6, w: .22, tongues: 3 }, { x: .16, y: .54, z: 0, h: .52, w: .2, beat: 4.4 }, { x: 0, y: .54, z: .04, h: .78, w: .24, tongues: 3 }], glowY: .95 };
+  },
+  urn(g, runes) { // the Shore's: a great funeral urn of dark clay, a band of bronze at its shoulder, fire in its mouth
+    mesh(g, GEO.urn, MAT.darkStone, 0, 0, 0).scale.set(1, 1.05, 1); mesh(g, GEO.rim, MAT.bronze, 0, .6, 0).scale.set(.58, 1, .58);
+    mesh(g, GEO.coals, MAT.coals, 0, .73, 0).scale.setScalar(.6); coals(g, .75, .15);
+    threeRunes(runes, .3, .32, 0, 1);
+    return { fire: bigFire(.76, .72, .24), glowY: 1.08 };
   },
   cauldron(g, runes) { // a black iron cauldron on three stubby legs, handles at its sides, runes round its belly
     for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2 + Math.PI / 2; mesh(g, GEO.stub, MAT.blackIron, Math.cos(a) * .2, .08, Math.sin(a) * .2); }
