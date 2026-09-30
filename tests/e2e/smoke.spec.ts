@@ -1703,6 +1703,61 @@ test('themed rooms: sleepers wake when the mage comes close, the ossuary\'s bone
   expect(errors).toEqual([]);
 });
 
+test('themed rooms (M4.1): the treasury\'s guardians stand as statues until their gold is taken, a blast spills a heap\'s obols; the drowned climb out of the landing\'s river until it freezes', async ({ page }) => {
+  type E = { x: number; z: number; dead?: boolean; asleep?: boolean; statue?: boolean; type: string };
+  type GT = { warp(id: number): void; clearRoom(): void; sim(sec: number, draw?: boolean): void; enemies: E[]; props: { kind: string; x: number; z: number }[]; pickups: { kind: string; x: number; z: number }[];
+    loot(v: Record<string, number>): void; pool(what: string): void; pools: { kind: string; state: string }[];
+    current: { theme?: { id: string } }; player: { x: number; z: number; invuln: number } };
+  let errors = await start(page, '?room=treasury_vault&floor=4&seed=TRS1');
+  const statues = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GT }).__game; g.warp(1); g.player.invuln = 99;
+    const at = g.enemies.map(e => ({ x: e.x, z: e.z })); g.sim(1);
+    const e = g.enemies[0]; g.player.x = e.x + 1.1; g.player.z = e.z; g.sim(1.5); // (close by: a statue doesn't wake)
+    const still = g.enemies.every((q, i) => q.asleep && q.statue && Math.hypot(q.x - at[i].x, q.z - at[i].z) < .05);
+    const heaps = g.props.filter(p => p.kind === 'hoard').length;
+    return { theme: g.current.theme?.id, count: g.enemies.length, still, heaps };
+  });
+  expect(statues).toMatchObject({ theme: 'treasury', still: true, heaps: 4 });
+  expect(statues.count).toBeGreaterThan(1);
+  // a glyph chalked beside a heap: its blast scatters the heap's obols; taking one wakes every guardian
+  await page.evaluate(() => {
+    const g = (window as unknown as { __game: GT }).__game, h = g.props.find(p => p.kind === 'hoard')!;
+    g.loot({ glyphs: 1 }); g.player.x = h.x + .9; g.player.z = h.z;
+  });
+  await page.keyboard.press('Space');
+  const spill = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GT }).__game; g.sim(.1); g.player.x += 2.5; g.sim(2.2);
+    const heaps = g.props.filter(p => p.kind === 'hoard').length, loot = g.pickups.filter(q => q.kind !== 'chest' && q.kind !== 'coffer');
+    const statuesBefore = g.enemies.filter(e => e.statue).length;
+    const coin = g.pickups.find(q => q.kind === 'coin' || q.kind === 'purse');
+    if (coin) { g.player.x = coin.x; g.player.z = coin.z; } g.sim(.6);
+    return { heaps, loot: loot.length, statuesBefore, statuesAfter: g.enemies.filter(e => e.statue).length, awake: g.enemies.filter(e => !e.asleep && !e.dead).length, toast: document.getElementById('toast')!.textContent };
+  });
+  expect(spill.heaps).toBe(3);
+  expect(spill.loot).toBeGreaterThanOrEqual(1);
+  expect(spill.statuesAfter).toBe(0);
+  expect(spill.awake).toBeGreaterThan(0);
+  expect(spill.toast).toMatch(/guardians wake/);
+  await page.evaluate(() => (window as unknown as { __game: GT }).__game.sim(.05, true));
+  await page.screenshot({ path: 'test-results/smoke-treasury.png' });
+  expect(errors).toEqual([]);
+  // the ferry landing: while the fight lasts the drowned climb out of the river; frozen, it keeps them
+  errors = await start(page, '?room=landing_moor&floor=5&seed=LND1');
+  const drowned = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GT }).__game; g.warp(1); g.player.invuln = 99;
+    const n0 = g.enemies.filter(e => !e.dead).length; g.sim(6);
+    const n1 = g.enemies.length, toast = document.getElementById('toast')!.textContent;
+    g.pool('frost'); const frozen = g.pools.filter(p => p.kind === 'water').every(p => p.state === 'frozen');
+    const n2 = g.enemies.length; g.sim(8);
+    return { theme: g.current.theme?.id, rose: n1 - n0, toast, frozen, later: g.enemies.length - n2 };
+  });
+  expect(drowned).toMatchObject({ theme: 'landing', rose: 1, frozen: true, later: 0 });
+  expect(drowned.toast).toMatch(/drowned/);
+  await page.evaluate(() => (window as unknown as { __game: GT }).__game.sim(.05, true));
+  await page.screenshot({ path: 'test-results/smoke-landing.png' });
+  expect(errors).toEqual([]);
+});
+
 test('room variants: ambush, champion, dark and quiet', async ({ page }) => {
   const errors = await start(page, '?room=crypt_b&variant=ambush');
   const result = await page.evaluate(() => {
@@ -2090,12 +2145,12 @@ test('the room kit\'s objects: every pile and object, urns, pedestals, pillars a
       burning: !!sack.prop.flame, kitFire: !!sack.prop.flame?.userData.fire, calls,
     };
   });
-  const kinds = ['bones', 'briar', 'cask', 'desk', 'glowcap', 'pew', 'roots', 'rubble', 'sacks', 'scrolls', 'skulls', 'tree', 'web'];
+  const kinds = ['boat', 'bones', 'briar', 'cask', 'desk', 'glowcap', 'hoard', 'pew', 'roots', 'rubble', 'sacks', 'scrolls', 'skulls', 'tree', 'web'];
   for (const floor of [1, 2, 3, 4, 5]) {
     const errors = await start(page, `?seed=K3F9QX&floor=${floor}`);
     const kit = await objects();
     expect(kit.kinds, `floor ${floor}`).toEqual(kinds);
-    expect(kit).toMatchObject({ painted: 12, urns: 4, urnsPainted: 4, pedestal: true, burning: true, kitFire: true }); // (all but the cobweb, drawn in pixel art; two urns each from both buttons)
+    expect(kit).toMatchObject({ painted: 14, urns: 4, urnsPainted: 4, pedestal: true, burning: true, kitFire: true }); // (all but the cobweb, drawn in pixel art; two urns each from both buttons)
     expect(kit.calls).toBeLessThan(260);
     if (floor === 1) await page.screenshot({ path: 'test-results/room-kit-objects.png' });
     // a room of pillars and a tomb
@@ -2110,7 +2165,7 @@ test('the room kit\'s objects: every pile and object, urns, pedestals, pillars a
   }
   // off: the old looks, nothing painted
   await start(page, '?seed=K3F9QX&kit=old');
-  expect(await objects()).toMatchObject({ kinds, painted: 0, urnsPainted: 0, pedestal: false, burning: true, kitFire: false });
+  expect(await objects()).toMatchObject({ kinds, painted: 2, urnsPainted: 0, pedestal: false, burning: true, kitFire: false }); // (M4.1's heap and boat have only the kit's look)
 });
 
 test('the room kit\'s doors, gates, niches and pilasters: built in code, one mesh a gate, fewer draw calls, and the gate still rises', async ({ page }) => {

@@ -165,6 +165,7 @@ export interface Enemy extends Circle {
   /** A boss built in code (M4: the Hollow Warden's looks, bossLooks.ts): its school, whose light its shots take. */ bossSchool?: School;
   /** The bosses of floors 4 and 5 (M4.1): their weakness and resistance; the hart's turning spokes. */ bossAff?: { weak: School; resist: School }; spin?: number;
   /** Sanctified by the Gilded Halo's first bolt already (M4.1). */ haloed?: boolean;
+  /** A gilded treasury's guardian, standing like a statue until its gold is taken (M4.1, themes.ts). */ statue?: boolean;
   /** Marked by the Ferryman's Toll (M4.1, shapes.ts): mana back for each blow (at most every so often: `tollNext`), obols and a spreading hex if it falls. */ toll?: { mana: number; obols: number; spread: number; spreadRange: number }; tollNext?: number;
   /** Eclipsed (M4.1): the black sun hung over it while it is out of the fight. */ sun?: THREE.Object3D;
   /** Bosses: out of reach (under the floor, in the air), so neither hurt nor hurting. */ hidden?: boolean;

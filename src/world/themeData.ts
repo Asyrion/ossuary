@@ -13,12 +13,16 @@ import type { FloorLook } from '../types';
     caveIn       a glyph's blast brings more of the ceiling down (the collapsed crypt);
     blessing     every candle stand lit blesses the mage's next casts (the chapel nave);
     rime         the floor is slick with rime, and the foes wait frozen in ice until struck or thawed (the frozen
-                 mausoleum). */
-export type Twist = 'none' | 'risingBones' | 'pages' | 'sleepers' | 'caveIn' | 'blessing' | 'rime';
-export const TWISTS: Twist[] = ['none', 'risingBones', 'pages', 'sleepers', 'caveIn', 'blessing', 'rime'];
-/** Dressing scattered over free floor, which never blocks. */
-export type ScatterKind = 'candles' | 'pages' | 'bones' | 'bedrolls' | 'embers' | 'moss' | 'glowmoss' | 'pebbles' | 'daylight' | 'stains' | 'rime' | 'leaves' | 'ropes';
-export const SCATTER_KINDS: ScatterKind[] = ['candles', 'pages', 'bones', 'bedrolls', 'embers', 'moss', 'glowmoss', 'pebbles', 'daylight', 'stains', 'rime', 'leaves', 'ropes'];
+                 mausoleum);
+    guardians    its foes stand still as statues among the gold, and wake all at once when the mage takes an obol
+                 there (or strikes one) (M4.1, the gilded treasury);
+    drowned      while the fight lasts, the drowned climb out of its river now and then, until the river is frozen
+                 (M4.1, the ferry landing). */
+export type Twist = 'none' | 'risingBones' | 'pages' | 'sleepers' | 'caveIn' | 'blessing' | 'rime' | 'guardians' | 'drowned';
+export const TWISTS: Twist[] = ['none', 'risingBones', 'pages', 'sleepers', 'caveIn', 'blessing', 'rime', 'guardians', 'drowned'];
+/** Dressing scattered over free floor, which never blocks (M4.1 adds spilled obols and lamps on poles). */
+export type ScatterKind = 'candles' | 'pages' | 'bones' | 'bedrolls' | 'embers' | 'moss' | 'glowmoss' | 'pebbles' | 'daylight' | 'stains' | 'rime' | 'leaves' | 'ropes' | 'coins' | 'lamps';
+export const SCATTER_KINDS: ScatterKind[] = ['candles', 'pages', 'bones', 'bedrolls', 'embers', 'moss', 'glowmoss', 'pebbles', 'daylight', 'stains', 'rime', 'leaves', 'ropes', 'coins', 'lamps'];
 
 type LookPatch = { [K in keyof FloorLook]?: Partial<FloorLook[K]> };
 export interface ThemeDef {

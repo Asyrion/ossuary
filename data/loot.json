@@ -12,6 +12,7 @@
   "urn": { "chance": 0.25, "weights": { "coin": 54, "halfHeart": 22, "glyph": 12, "mana": 12 } },
   "remains": { "chance": 0.2, "weights": { "coin": 60, "glyph": 16, "mana": 16, "halfHeart": 8, "paleSoul": 3 } },
   "bundle": { "chance": 0.8, "count": [1, 3], "weights": { "coin": 72, "glyph": 14, "mana": 14 } },
+  "hoard": { "count": [1, 1], "weights": { "coin": 90, "purse": 5, "hallowedSoul": 5 } },
   "sealedUrn": { "chance": 1, "weights": { "coin": 20, "purse": 25, "key": 30, "heart": 25 } },
   "coffer": { "count": [1, 3], "weights": { "coin": 40, "halfHeart": 20, "key": 15, "glyph": 25, "paleSoul": 4, "shard": 3 } },
   "chest": { "count": [2, 4], "weights": { "purse": 30, "key": 20, "glyph": 25, "heart": 25, "blackSoul": 4, "hallowedSoul": 4 } },

@@ -154,6 +154,8 @@ const LOOKS: Record<Exclude<PropKind, MechanismKind>, Look> = {
     const sheet = new THREE.Mesh(boxUV(.3, .01, .36), MAT.paper); sheet.position.set(.2, .01, .2); sheet.rotation.y = R() * 6; g.add(sheet, blob(.9));
     return g;
   },
+  // M4.1's objects have only the room kit's look
+  hoard: R => OBJECT_LOOKS.hoard(R), boat: (R, len) => OBJECT_LOOKS.boat(R, len),
   pew(_R, len) { // a bench facing north, towards where a chapel's altar would stand: seat, back on the south side, ends
     const g = new THREE.Group(), L = len - .12;
     const seat = new THREE.Mesh(boxUV(L, .07, .42), MAT.wood); seat.position.set(0, .34, -.05);
@@ -179,8 +181,9 @@ export function buildProps(room: Room) {
   for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) {
     const kind = t.tiles[r][c] as PropKind;
     if (!(kind in PROPS)) continue;
-    if (kind === 'pew' && t.tiles[r][c - 1] === 'pew') continue; // part of the pew begun to its left
-    let len = 1; if (kind === 'pew') while (t.tiles[r][c + len] === 'pew') len++;
+    const long = kind === 'pew' || kind === 'boat'; // (a run of them is one long pew, or one boat)
+    if (long && t.tiles[r][c - 1] === kind) continue; // part of the one begun to its left
+    let len = 1; if (long) while (t.tiles[r][c + len] === kind) len++;
     addProp(room, kind, c, r, len);
   }
 }
@@ -198,7 +201,7 @@ export function addProp(room: Room, kind: PropKind, c: number, r: number, len = 
   for (const tl of tiles) room.template.tiles[tl.r][tl.c] = kind;
   const prop: PropState = { kind, hits: def.hits, burning: 0, tiles, mesh, parts: mesh.userData.parts };
   const half = kind === 'cask' ? .3 : kind === 'roots' ? .42 : kind === 'candles' ? .22 : kind === 'lodestone' || kind === 'rune' ? .32 : kind === 'bell' ? .45 : .38;
-  const box: PropBox = { x, z, hx: len > 1 ? len / 2 - .06 : half, hz: kind === 'pew' ? .3 : half, hp: def.hits, breakable: false, mesh, tile: { c, r }, prop };
+  const box: PropBox = { x, z, hx: len > 1 ? len / 2 - .06 : half, hz: kind === 'pew' ? .3 : kind === 'boat' ? .34 : half, hp: def.hits, breakable: false, mesh, tile: { c, r }, prop };
   (room.props ??= []).push(box);
   if (def.class === 'hanging') { /* over the floor: nothing blocks, only bolts reach it (mechanisms.ts) */ }
   else if (def.class === 'soft') (room.soft ??= []).push(box);
@@ -244,6 +247,7 @@ function breakProp(room: Room, box: PropBox) {
     case 'glowcap': burst(x, .3, z, SPORE, 14, 1.4, .06); sfx.spores(); addSpores(room, x, z); break;
     case 'scrolls': burst(x, .3, z, 0xd8cbaa, 12, 1.8, .05); sfx.sack(); scrollsBroken(room, x, z); break;
     case 'briar': case 'web': burst(x, .25, z, kind === 'web' ? 0xe8e8f0 : 0x2e3a22, 8, 1.4, .04); sfx.tear(); break;
+    case 'hoard': burst(x, .3, z, 0xffd27a, 16, 2.4, .05); burst(x, .15, z, 0xc8a04a, 10, 1.2, .05); sfx.coin(true); break;
     default: burst(x, .3, z, 0x8a8078, 8, 1.6, .05);
   }
   if (def.loot) for (const item of rollTable(G.run.drops, def.loot, LOOT, soulsHere())) spawnPickup(item, x, z, { rise: true });
