@@ -496,3 +496,97 @@ whatever model is loaded.
 - **Tripo pieces:** small props made to the budgets in `docs/assets.md`, replacing the placeholder shapes.
 - **Limits:** the hero is one mesh, so a piece can cover the hair but not hide it; a Tripo hero exported with its
   hair as a separate part would lift that.
+
+## The Eda lore drop (the owner's notes, PR 24, 2026-09-30)
+
+Twenty-one notes from the owner's Eda vault: characters (Asyrion, Boketto the Storm Caller, a Cloud Forest Wizard, a
+Wandering Merchant of Belerial), cultures (the Huruhui, the nomads of Belerial), creatures (Fen-Nex, the War-Tigers and
+other creatures of the Longwood) and places (the Longwood and its World Trees, the Ruins of Lukuku, the Plains of
+Belerial, the Swamps of Ulum, Gekiryu, Dr. Jelly's House, and the two gates of the Pass of Buluiain). Only the text was
+read: the notes embed images that aren't in the PR, and about half of them are an image and a link. What follows is what
+the text suggests for the game; none of it is design until it moves into the GDD, and the in-game names stay
+placeholders until the owner picks which lore goes in (M8).
+
+### Where the dungeon is: beneath the Gate of Uzulim
+
+The strongest hook. The Gate of Uzulim guards the wild end of the Pass of Buluiain, and "a hidden vault beneath the gate"
+holds the artifacts its Wardens took from the wilderness over centuries, "a source of great strength and a potential
+danger". That is a roguelike's artifact pool with a reason to exist, and a dungeon with a reason to go down:
+- The runs descend into the Wardens' vault under the gate. The chapel above becomes the Wardens' fortress chapel; the
+  crypts are theirs; the artifacts on the pedestals are what they sealed away.
+- The Hollow Warden (floor 1's boss) is an Uzulim Warden who never came back up. Kaelith, the Shadow Sentinel who died
+  sealing a horde from the wilderness, is a final boss or the voice of the Vigil (M7): what the mage fights down there
+  is the horde Kaelith sealed.
+- It answers two open questions in the GDD (where the dungeon is, and why the hero descends), and Asyrion, the owner's
+  fire and chaos mage (an assassin), is the obvious hero: a mage who breaks into the vault for its artifacts.
+
+### Mechanics the gates suggest
+
+- **Watching statues** (Uzulim's two hooded guardians, whose eyes follow whoever approaches and who wake if the gate is
+  threatened). The ossuary's watching skulls and the Gilded Treasury's guardians (M4.1) are already this; a statue
+  mechanism whose gaze follows the mage and charges while they stand in it (broken by Umbral, or by stepping behind a
+  pillar) would make it a room to read.
+- **Obelisks that sap strength and will** (Uzulim's ring of warded obelisks). A mechanism with a field: inside it the
+  cantrip weakens and mana drains. Each obelisk's ward answers to one school (as rune stones do); break the ring and the
+  room is safe. A vault or boss room built round four of them.
+- **A ward that drinks magic** (Belregi's shimmering barrier that absorbs spells and calls elemental forces). A vault
+  door or boss shield that fills with every spell thrown at it, and when full releases an elemental in the school it
+  drank most of: the player chooses what they fight by what they cast.
+- **The Heart of Belregi**, the artifact said to command nature: a capstone, once a run from the final boss (every status
+  the mage lays spreads as weather), or the Vigil's centrepiece.
+
+### Storm, weather and water (Boketto, Gekiryu, the Swamps of Ulum)
+
+- **Boketto the Storm Caller** is Storm's legend: the glowing sigils on their body and their white hair are a ready-made
+  Storm transformation for M4.6 (three Storm artifacts: sigils glow on the mage, their hair turns white, and a dodge or
+  a hit calls a bolt of lightning). As a shade in the Vigil, Boketto teaches Storm.
+- **Call the Storm**, a spell (Storm, room-wide): rain for a few seconds that leaves every floor tile wet (shock runs
+  through all of it, as through a pool), then lightning falls on the foes it marked. The drought Boketto ended suggests a
+  twist: a room of dry basins that a Frost or Storm spell refills.
+- **Gekiryu, the village of endless torrents**: flowing water. Current tiles that carry the mage, foes, bolts and
+  pickups along, for the drowned floor and the Ferry Landing's river (which would then carry the drowned downstream).
+- **The Swamps of Ulum and the Patagoi Atoll**: the biome and names for the drowned floor (floor 2) or the Shore (floor 5)
+  in M8.
+
+### Life, gardens and the Longwood (the Huruhui, Fen-Nex, the War-Tigers, the World Trees)
+
+- **The Huruhui**: cliff dwellers with bioluminescent plants, vertical enchanted gardens, aquaponics and biomancy. A
+  garden room where plants grow over a fight and can be cut for M5's reagents; glowcaps already fit. Their offerings of
+  food and flowers suggest a shrine that asks for flowers or reagents instead of obols. Their biomancy's "bioengineered
+  organisms that pollinate and clear waste" are small M4.5 critters (pollen motes that heal plants, grubs that eat
+  what falls). Their art and music fit the Ossuary Choir and the bells.
+- **A Verdant school?** Boketto is Storm, and the Huruhui's biomancy is a school the game doesn't have (growth, roots,
+  healing, pollen). The GDD asks whether Eda has its own schools; this is the one the lore points at.
+- **Fen-Nex**, the fox shapeshifter ("Fen" fox, "Nex" man): the Eda name for the Rune Fox familiar built from the owner's
+  drawing, or a transformation (fox form: quicker, a dash through foes), or a boss that shifts between fox and man.
+- **The War-Tigers of the Longwood**: an M4.5 heavy, a charging elite (and, in a later hub, a mount).
+- **The Longwood, its World Trees and the Ruins of Lukuku**: a deeper floor where the vault breaks into the roots of a World
+  Tree and the ruins of a civilisation lost to time; the grave roots and the dead tree are its objects already.
+
+### People for the Vigil and the shops
+
+- **The Wandering Merchant of Belerial** and the nomad riders: a second, rare merchant who rides in on a two-legged beast
+  once a run, with wares the Bound Shade doesn't have (foreign foci, M5 reagents), or a trader in the Vigil.
+- **Dr. Jelly's House**: an eccentric alchemist for M5's alchemy table (the Lantern Jelly is already a foe).
+- **The Cloud Forest Wizard**: a shade to free and bring to the Vigil, a teacher of a school.
+
+### What pulls against the game's tone
+
+The notes are lush and hopeful (valleys in harmony with nature, festivals, sustainable magic); the game is "high fantasy
+turned dark". The Gate of Uzulim is the bridge: it is where that harmony keeps the dark out, and the dungeon is what it
+keeps out. The Huruhui and the Longwood work best as the world above and the lost layers below (their ruins, their
+roots), not as the tone of the crypts. The placeholder lore's rule (the dungeon only, no gods, factions or places) can
+loosen as the owner decides which of these the game names.
+
+### Placeholders the drop could fill (for M8)
+
+| Placeholder | Could become |
+| --- | --- |
+| The old chapel of Eda (setting) | The Wardens' chapel above the vault beneath the Gate of Uzulim, in the Pass of Buluiain |
+| Hero (no name) | Asyrion, fire and chaos mage |
+| The Hollow Warden | A fallen Uzulim Warden |
+| Final boss (M7) | Kaelith, the Shadow Sentinel, or the horde Kaelith sealed |
+| The Rune Fox familiar | Fen-Nex |
+| The Drowned floor, the Ferryman's Shore | The Swamps of Ulum; Gekiryu's torrents |
+| The Bound Shade (merchant) | Stays; the Wandering Merchant of Belerial as a second trader |
+| A sixth school (open question) | Verdant, from Huruhui biomancy |
