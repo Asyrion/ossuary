@@ -46,6 +46,13 @@ export const CFG = {
     dragon: { hp: 115, r: .6, speed: 0, weak: 'umbral' as const, resist: 'ember' as const, enter: 5, lean: 1.1, settle: 1.1, pause: 1, breaths: 2, down: 4, open: 1.5, climb: 5,
       coil: { radius: .62, turns: 1.25, drop: 1.2 }, fly: { speed: 7, lift: 1.4, nearest: .65 }, rise: { time: 1.2, depth: 2 },
       breath: { tell: .7, time: 1, every: .08, speed: 4.2, sweep: .75 }, ring: { count: 12, speed: 2.8 } },
+    // the Twin Guardians (M4.2, from the Eda lore): each has `hp`; they stand `apart`, statues until the mage comes within
+    // `wake` of either; the shielding twin goes back to its post (at `guardSpeed`),
+    // its drinking ward holding `wardNeed`, `wardSize` across; they trade the shield every `swap` seconds; the striker pauses `pause` between
+    // blows: its slam (a tell, a ring of stone, a blow within `reach`) and its gaze (a tell, then `count` shots of gold,
+    // `every` apart); the striker stops `keep` from the mage, and the shielder's touch is only `shieldContact`. The last one standing rages: `speed` times faster, its waits `quick` times as long
+    twins: { hp: 65, r: .9, speed: 1.1, keep: 1.5, shieldContact: 1, weak: 'frost' as const, resist: 'hallow' as const, wake: 3.2, apart: 3.4, swap: 6, guardSpeed: 2.8, wardNeed: 45, wardSize: 1.3, pause: 1.4,
+      slam: { tell: .65, count: 12, speed: 3, reach: 1.9, hurt: 1 }, gaze: { tell: .7, count: 6, every: .1, speed: 5.5 }, rage: { speed: 1.4, quick: .7 } },
   },
   // what the foes in code do to the mage (M4): chilled by cold breath and rime, this much slower; a salamander's burning
   // ground burns the mage within `groundReach` (plus half the mage's size) and licks up a flame `groundLicks` times a
@@ -233,5 +240,5 @@ export const CFG = {
 
 export type EnemyType = keyof typeof CFG.enemy;
 /** Enemy types that are bosses; each floor draws its boss from a pool of these (data/floors.json). */
-export const BOSS_TYPES = ['warden', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon'] as const satisfies readonly EnemyType[];
+export const BOSS_TYPES = ['warden', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins'] as const satisfies readonly EnemyType[];
 export type BossType = (typeof BOSS_TYPES)[number];

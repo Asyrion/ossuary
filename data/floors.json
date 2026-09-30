@@ -72,7 +72,7 @@
     "shapes": {"standard": 56, "corridor_ew": 7, "corridor_ns": 6, "long": 9, "tall": 8, "great": 6, "l_shape": 8},
     "variants": {"normal": 52, "quiet": 8, "champion": 14, "ambush": 13, "dark": 13},
     "templateWeights": {"1": 0.15, "2": 0.45, "3": 0.4},
-    "boss": {"pool": ["abbess", "pyre", "tiger"], "hpMul": 1.25, "speedMul": 1.1, "shotSpeedMul": 1.15, "summons": 3, "volleys": 4},
+    "boss": {"pool": ["abbess", "pyre", "tiger", "twins"], "hpMul": 1.25, "speedMul": 1.1, "shotSpeedMul": 1.15, "summons": 3, "volleys": 4},
     "look": {
       "name": "burning",
       "kit": {"wall": {"bricks": 3, "basalt": 2, "beams": 2}, "floor": {"flags": 3, "basalt": 2, "herringbone": 2}, "torch": {"brazier": 3, "basket": 2, "mask": 1}, "brazier": {"tripod": 2, "plinth": 1, "cauldron": 1}},
@@ -101,7 +101,7 @@
     "shapes": {"standard": 54, "corridor_ew": 7, "corridor_ns": 6, "long": 9, "tall": 8, "great": 7, "l_shape": 9},
     "variants": {"normal": 48, "quiet": 7, "champion": 16, "ambush": 14, "dark": 15},
     "templateWeights": {"1": 0.1, "2": 0.4, "3": 0.5},
-    "boss": {"pool": ["hart", "tiger"], "hpMul": 1.4, "speedMul": 1.15, "shotSpeedMul": 1.2, "summons": 3, "volleys": 4},
+    "boss": {"pool": ["hart", "tiger", "twins"], "hpMul": 1.4, "speedMul": 1.15, "shotSpeedMul": 1.2, "summons": 3, "volleys": 4},
     "look": {
       "name": "reliquary",
       "kit": {"wall": {"marble": 3, "gilded": 2, "tracery": 2}, "floor": {"checker": 3, "inlay": 2, "mosaic": 1}, "torch": {"sconce": 3, "crown": 2, "candelabra": 1}, "brazier": {"chalice": 2, "censer": 2, "font": 1}},

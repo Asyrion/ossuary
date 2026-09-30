@@ -392,6 +392,65 @@ export function dragonLook(): BossBuilt {
   return { ...L, group: g, shadow: 2 };
 }
 
+/** One of the Twin Guardians (M4.2, from the Eda lore; Hallow): a colossal bearded guardian of sandstone crouched as
+    the ones in the gate's towers, a helm on its head, lion paws for hands and feet, a round stone shield on its left
+    arm; its eyes the Wardens' gold. The two differ a little (`second`: greyer stone, a forked beard, a crest on its
+    helm). Its fight (bosses.ts) turns its head after the mage, raises its shield arm as it shields its twin, and rears
+    its right paw to strike. */
+export function twinLook(second = false): BossBuilt {
+  const H = SCHOOL_LIGHT.hallow, g = new THREE.Group(), stone = std(second ? 0xa8a296 : 0xc2ae8a, { roughness: .95 }), dark = std(second ? 0x7a756c : 0x8e7c60, { roughness: .95 }), gold = std(0xc89a48, { roughness: .45, metalness: .5 });
+  const body = new THREE.Group(); g.add(body);
+  // crouched: great haunches, a broad chest leaning forward, the forepaws planted
+  part(body, sphere(.62, 14, 10), stone, [0, .85, -.15], { scale: [1.1, .95, 1] });
+  part(body, sphere(.55, 14, 10), stone, [0, 1.35, .15], { scale: [1.15, 1, .85] });
+  part(body, box(.9, .1, .5), gold, [0, 1.05, .32]); // (a belt of gilt)
+  for (const s of [-1, 1]) { // haunches and hind paws
+    part(body, sphere(.36, 10, 8), dark, [.5 * s, .45, -.2], { scale: [.8, 1, 1.2] });
+    part(body, sphere(.22, 9, 7), stone, [.55 * s, .12, .2], { scale: [1.1, .6, 1.4] });
+    for (let i = -1; i <= 1; i++) part(body, sphere(.06, 6, 5), dark, [.55 * s + i * .08, .08, .45]);
+  }
+  // the head: a helm, heavy brows, a great square beard; eyes of the Wardens' gold
+  const head = new THREE.Group(); head.position.set(0, 1.95, .3); body.add(head);
+  part(head, sphere(.3, 12, 10), stone, [0, 0, 0], { scale: [1, 1.05, .95] });
+  part(head, new THREE.SphereGeometry(.33, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), gold, [0, .05, -.02]); // (the helm)
+  part(head, box(.5, .06, .12), gold, [0, .06, .22]); // (its brim)
+  if (second) part(head, box(.06, .22, .5), gold, [0, .38, -.02]); // (a crest)
+  part(head, box(.42, .07, .1), dark, [0, -.02, .26]); // (brows)
+  const beard = new THREE.Group(); beard.position.set(0, -.2, .18); head.add(beard);
+  if (second) for (const s of [-1, 1]) part(beard, new THREE.ConeGeometry(.13, .55, 5), dark, [.1 * s, -.2, 0], { rot: [Math.PI, 0, s * .15] });
+  else { part(beard, box(.34, .5, .16), dark, [0, -.2, 0]); for (let i = 0; i < 4; i++) part(beard, box(.34, .03, .17), stone, [0, -.05 - i * .11, 0]); }
+  const eye = new THREE.Group(); eye.position.set(0, .06, .27); head.add(eye);
+  for (const s of [-1, 1]) part(eye, sphere(.05, 7, 5), lit(H), [.1 * s, 0, 0]);
+  const eyeGlow = glow(H, .7, .6); eye.add(eyeGlow);
+  // the arms: a lion paw each, the left bearing a round stone shield with a gilt boss
+  const arm = (s: 1 | -1) => {
+    const a = new THREE.Group(); a.position.set(.62 * s, 1.55, .15); body.add(a);
+    limb(a, [0, 0, 0], [.08 * s, -.5, .22], .16, stone, .13); limb(a, [.08 * s, -.5, .22], [.05 * s, -1.05, .45], .13, stone, .12);
+    part(a, sphere(.2, 10, 8), stone, [.05 * s, -1.2, .52], { scale: [1.15, .7, 1.3] });
+    for (let i = -1; i <= 1; i++) part(a, new THREE.ConeGeometry(.035, .1, 4), dark, [.05 * s + i * .08, -1.28, .74], { rot: [Math.PI / 2, 0, 0] });
+    return a;
+  };
+  const armL = arm(1), armR = arm(-1);
+  const shield = new THREE.Group(); shield.position.set(.2, -.7, .5); armL.add(shield);
+  part(shield, new THREE.CylinderGeometry(.5, .5, .1, 16), dark, [0, 0, 0], { rot: [Math.PI / 2, 0, 0] });
+  part(shield, new THREE.TorusGeometry(.5, .04, 4, 20), gold, [0, 0, .05]);
+  part(shield, sphere(.12, 8, 6), gold, [0, 0, .08], { scale: [1, 1, .5] });
+  rune(shield, H, [0, .28, .06], .14, [0, 0, 0], lit(H, .9));
+  const ring = haloRing(g, H, .85, 2.75, -.4);
+  const halo = glow(H, 3.2, .3); halo.position.set(0, 1.9, -.3); g.add(halo);
+  const dust = motes(g, H, 5, 1.1, 1.4, .025);
+  return { group: g, shadow: 2.6, school: 'hallow', parts: { eye, ring, halo, body, head, armL, armR, shield, eyeGlow }, idle: t => {
+    const b = Math.sin(t * 1.1); body.scale.set(1 + b * .01, 1 + b * .012, 1); dust(t, .4);
+  } };
+}
+
+/** The Twin Guardians for the gallery: the two side by side. */
+export function twinPairLook(): BossBuilt {
+  const a = twinLook(), b = twinLook(true), g = new THREE.Group();
+  a.group.position.x = -1.2; b.group.position.x = 1.2; g.add(a.group, b.group);
+  return { ...a, group: g, shadow: 4, idle: t => { a.idle(t); b.idle(t + 1.7); } };
+}
+
 /** The looks, for the owner to choose (the dev menu's Galleries tab stands them ahead of the mage, and picks the one the
     Hollow Warden wears in its fight). */
 export const BOSS_LOOKS = [
@@ -400,7 +459,7 @@ export const BOSS_LOOKS = [
 export type BossLookId = (typeof BOSS_LOOKS)[number]['id'];
 /** Every boss built in code, for the Galleries tab: the Warden's three looks, the bosses of floors 4 and 5, then the
     bosses from the Eda lore (M4.2). */
-export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [...BOSS_LOOKS, { id: 'hart', build: hartLook }, { id: 'angler', build: anglerLook }, { id: 'tiger', build: tigerLook }, { id: 'dragon', build: dragonLook }];
+export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [...BOSS_LOOKS, { id: 'hart', build: hartLook }, { id: 'angler', build: anglerLook }, { id: 'tiger', build: tigerLook }, { id: 'dragon', build: dragonLook }, { id: 'twins', build: twinPairLook }];
 
 /** The look the Hollow Warden wears until the owner chooses: picked in the dev menu, remembered in this browser. */
 const LOOK_KEY = 'ossuary.bossLook', FIRST: BossLookId = 'motherOfSpores';

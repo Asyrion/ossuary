@@ -63,7 +63,7 @@ export function makeEnemy(type: FoeType, x: number, z: number, hpMul = 1, boss?:
     for (const m of e.mats) { m.userData.base = new THREE.Color(CH.tint); m.emissive.set(CH.tint); }
     e.aura = glow(CH.aura, 1.6, .5); e.aura.position.y = .5; e.group.add(e.aura);
   }
-  e.group.add(blob(e.shadow ?? C.r * 3)); e.group.position.set(x, 0, z); e.group.scale.setScalar(.01); scene.add(e.group);
+  e.group.add(blob(e.shadow ?? C.r * 3)); e.group.position.set(e.x, 0, e.z); e.group.scale.setScalar(.01); scene.add(e.group);
   G.enemies.push(e); return e;
 }
 
