@@ -159,10 +159,30 @@ export function pixelFloorTexture(seed: number, kind: RoomType, look: FloorLook,
   // stains in dither: moss, damp or blood
   const stain = csv(kind === 'boss' ? '60,14,10' : look.floor.stain);
   for (let k = 0; k < n(7); k++) { const r = (26 + R() * 60), x = R() * cw, y = R() * ch; px.blotch(x, y, r, r * TY / TX, .75, (u, v) => { if (inside(Math.floor(u / TX), Math.floor(v / TY))) px.mix(u, v, stain, .3); }); }
-  // bones, and now and then a skull
+  // the special room's marks, hardened into whole texels: drawn on a layer, each texel on or off (laid down last)
+  const marks: { on: Uint8Array; c: RGB; alpha: number }[] = [], marked = new Uint8Array(cw * ch);
+  if (MARKED_ROOMS.has(kind)) {
+    const layer = document.createElement('canvas'); layer.width = cw; layer.height = ch;
+    const lg = layer.getContext('2d', { willReadFrequently: true })!;
+    drawMarks(kind, cw, ch * TX / TY, TX, R, (rgb, alpha, draw, dither) => { // (drawn a tile square, then squeezed down)
+      lg.setTransform(1, 0, 0, TY / TX, 0, 0); lg.clearRect(0, 0, cw, ch * TX / TY); draw(lg); lg.setTransform(1, 0, 0, 1, 0, 0);
+      const d = lg.getImageData(0, 0, cw, ch).data, on = new Uint8Array(cw * ch);
+      for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+        const i = y * cw + x, cover = d[i * 4 + 3] / 255 / alpha;
+        if (dither ? cover > bayer(x, y) : cover >= .3) on[i] = marked[i] = 1; // (a low threshold: thin strokes keep their texels)
+      }
+      marks.push({ on, c: csv(rgb), alpha });
+    });
+  }
+  /** Whether any mark lies within the box round (x, y): a bone or skull there would muddle it. */
+  const nearMark = (x: number, y: number) => {
+    for (let v = Math.max(0, Math.floor(y) - 6); v < Math.min(ch, y + 10); v++) for (let u = Math.max(0, Math.floor(x) - 10); u < Math.min(cw, x + 11); u++) if (marked[v * cw + u]) return true;
+    return false;
+  };
+  // bones, and now and then a skull, kept clear of the marks
   for (let k = 0; k < n(look.floor.bones); k++) {
     const x = R() * cw, y = R() * ch, a = R() * Math.PI, sk = R() < .2;
-    if (!inside(Math.floor(x / TX), Math.floor(y / TY)) || !inside(Math.floor((x + 8) / TX), Math.floor((y + 8) / TY))) continue;
+    if (!inside(Math.floor(x / TX), Math.floor(y / TY)) || !inside(Math.floor((x + 8) / TX), Math.floor((y + 8) / TY)) || nearMark(x, y)) continue;
     if (sk) skull(px, Math.floor(x), Math.floor(y)); else bone(px, x, y, a, 10 + R() * 5, TY / TX);
   }
   // darker towards the walls, in dithered steps over a tile (the far wall's side a little deeper)
@@ -177,19 +197,7 @@ export function pixelFloorTexture(seed: number, kind: RoomType, look: FloorLook,
       if (step > 0) px.mul(x, y, 1 - .55 * step);
     }
   }
-  // the special room's marks, hardened into whole texels: drawn on a layer, then each texel on or off
-  if (MARKED_ROOMS.has(kind)) {
-    const layer = document.createElement('canvas'); layer.width = cw; layer.height = ch;
-    const lg = layer.getContext('2d', { willReadFrequently: true })!;
-    drawMarks(kind, cw, ch * TX / TY, TX, R, (rgb, alpha, draw, dither) => { // (drawn a tile square, then squeezed down)
-      lg.setTransform(1, 0, 0, TY / TX, 0, 0); lg.clearRect(0, 0, cw, ch * TX / TY); draw(lg); lg.setTransform(1, 0, 0, 1, 0, 0);
-      const d = lg.getImageData(0, 0, cw, ch).data, c = csv(rgb);
-      for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
-        const cover = d[(y * cw + x) * 4 + 3] / 255 / alpha;
-        if (dither ? cover > bayer(x, y) : cover >= .3) px.mix(x, y, c, alpha); // (a low threshold: thin strokes keep their texels)
-      }
-    });
-  }
+  for (const m of marks) for (let i = 0; i < m.on.length; i++) if (m.on[i]) px.mix(i % cw, Math.floor(i / cw), m.c, m.alpha); // the marks, last
   const t = texture(px.canvas());
   return cacheFloor(key, t);
 }

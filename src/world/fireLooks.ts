@@ -15,6 +15,7 @@ const MAT = {
   ember: markShared(new THREE.MeshStandardMaterial({ color: 0x3a1a0e, emissive: 0x5a1e06, roughness: 1, flatShading: true })),
 };
 export const RUNE_COLD = 0x2a1d16, RUNE_LIT = 0xffa040;
+const CANDLE_FIRE = firePalette(0xffd070, 0xff8428);
 
 /** A carved rune (three strokes), one geometry, facing +Z, `s` tall. */
 function runeStrokes(s: number) {
@@ -60,7 +61,7 @@ export const torchPalette = (t: FloorLook['torch']) => firePalette(new THREE.Col
 
 /** A light on a wall in the floor's style, built facing south (+Z, into the room) from the wall's face: an iron bracket
     holding a pitch torch (crypt), a cage lantern on an arm (drowned) or a brazier on a bracket (burning). `lit` is what
-    shows while it burns (its fire and a rune on the bracket); the glow is apart, for the flicker. */
+    shows while it burns (its fire, and a lantern's glass); the glow is apart, for the flicker. */
 export function torchLook(t: FloorLook['torch']) {
   const holder = new THREE.Group(), lit = new THREE.Group(), pal = torchPalette(t);
   lit.userData.fire = true; // (its fire moves by itself: no flicker from outside)
@@ -87,16 +88,14 @@ export function torchLook(t: FloorLook['torch']) {
     mesh(holder, GEO.ring, MAT.iron, 0, 1.0, .11).scale.setScalar(.85);
     mesh(holder, GEO.haft, MAT.wood, 0, .95, .11);
     mesh(holder, GEO.head, MAT.pitch, 0, 1.2, .115); mesh(holder, GEO.band, MAT.iron, 0, 1.15, .115);
-    mesh(lit, GEO.rune, runeMat(pal.body), 0, .86, .032); // a warding rune on the bracket, glowing while the torch burns
     lit.add(makeFire([{ x: 0, y: 1.23, z: .12, h: .4, w: .13, tongues: 2 }], pal, 4, .45));
     gl = glow(pal.body, 1.1, .7); gl.position.set(0, 1.32, .14);
   }
   holder.add(lit, gl);
   return { holder, lit, glow: gl };
 }
-const glassCache = new Map<number, THREE.Material>(), runeCache = new Map<number, THREE.Material>();
+const glassCache = new Map<number, THREE.Material>();
 const glassFor = (c: number) => glassCache.get(c) ?? (glassCache.set(c, markShared(new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .2, blending: THREE.AdditiveBlending, depthWrite: false }))), glassCache.get(c)!);
-const runeMat = (c: number) => runeCache.get(c) ?? (runeCache.set(c, markShared(new THREE.MeshBasicMaterial({ color: new THREE.Color(c).lerp(new THREE.Color(0xc02008), .35) }))), runeCache.get(c)!);
 
 /** The brazier: an iron bowl of coals on three splayed legs with claw feet and a collar, a bronze rim, and three plaques
     with runes on the bowl that kindle with it. `flame` and `glow` show once lit; `runes` (their own material) turn
@@ -143,10 +142,10 @@ export function candleStandLook(R: () => number) {
     const a = i / n * Math.PI * 2 + R(), r = i === 0 && n > 3 ? 0 : .12 + R() * .04, x = Math.cos(a) * r, z = Math.sin(a) * r, h = .1 + R() * .18;
     const c = mesh(g, GEO.candle, MAT.wax, x, .8 + h / 2, z); c.scale.y = h;
     for (let k = 0; k < 1 + (R() < .5 ? 1 : 0); k++) { const b = R() * Math.PI * 2; mesh(g, GEO.drip, MAT.wax, x + Math.cos(b) * .036, .8 + h * (.5 + R() * .45), z + Math.sin(b) * .036).scale.y = 1.6; }
-    specs.push({ x, y: .8 + h, z, h: .12, w: .06 });
+    specs.push({ x, y: .8 + h, z, h: .19, w: .085 });
   }
-  flames.add(makeFire(specs, EMBER_FIRE, 3, .3));
-  const gl = glow(EMBER_FIRE.body, 1.1, .7); gl.position.y = 1.05; flames.add(gl);
+  flames.add(makeFire(specs, CANDLE_FIRE, 5, .35)); // (big and warm for candles: a lit stand must read at a glance, to open reliquaries)
+  const gl = glow(CANDLE_FIRE.body, 1.5, .9); gl.position.y = 1.1; flames.add(gl);
   flames.visible = false; g.add(flames, blob(.6));
   return { group: g, parts: { flames } };
 }
