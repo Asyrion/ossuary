@@ -368,7 +368,7 @@ function wallBox(room: Room, x0: number, x1: number, z0: number, z1: number, h: 
 /** Walls along the outline with gaps for the doors, the doors themselves, and torches. Needs every room of
     the floor built, since a door's look depends on the room behind it. */
 export function buildWallsAndDoors(room: Room) {
-  const { minX, minZ } = room.bounds, mats = wallMaterials(room.look.wall, kitFloor(room.look)), capped = cappedWallMaterials(room.look.wall, kitFloor(room.look));
+  const { minX, minZ } = room.bounds, mats = wallMaterials(room.look.wall, kitWalls(room.look)), capped = cappedWallMaterials(room.look.wall, kitWalls(room.look));
   const { hx, hz } = cellHalfExtents(room.plan.shape);
   // doors first: where they are decides where the walls have gaps
   for (const pd of room.plan.doors) {
@@ -434,8 +434,10 @@ function placeTorches(room: Room, run: WallRun, across0: number) {
   }
 }
 
-/** The room kit's floor and walls are drawn for the crypt so far (the proof, M3.5 step 3); other looks keep the old. */
-export const kitFloor = (look: FloorLook) => DEV.roomKit && look.name === 'crypt' && !floorTile(look.name);
+/** The room kit's walls are drawn for the crypt so far (the proof, M3.5 step 3); other looks keep the old. */
+export const kitWalls = (look: FloorLook) => DEV.roomKit && look.name === 'crypt';
+/** ...and its floor too, unless a made floor tile (data/assets.json) paints it. */
+export const kitFloor = (look: FloorLook) => kitWalls(look) && !floorTile(look.name);
 
 /** A light on a wall, in the floor's style: iron bracket (crypt), cage lantern (drowned) or brazier (burning).
     Built facing south and turned to face the room along `normal`. */

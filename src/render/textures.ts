@@ -232,6 +232,8 @@ export function floorTexture(seed: number, kind: RoomType, look: FloorLook, mask
 export type Ink = (rgb: string, alpha: number, draw: (g: Ctx) => void, dither?: boolean) => void;
 const inkIn = (g: Ctx, rgb: string, alpha: number) => { g.fillStyle = g.strokeStyle = `rgba(${rgb},${alpha})`; };
 
+/** The rooms whose floors carry marks (`drawMarks`). */
+export const MARKED_ROOMS: ReadonlySet<RoomType> = new Set<RoomType>(['start', 'ordeal', 'altar', 'secret', 'boss']);
 /** The marks on a special room's floor, over a canvas `cw` × `ch` with `P` to a tile: the controls chalked in the first
     room, the ordeal's square, the altar's circle, the forgotten mage's runes and pages, the boss's rings. */
 export function drawMarks(kind: RoomType, cw: number, ch: number, P: number, R: () => number, ink: Ink) {
