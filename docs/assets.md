@@ -33,7 +33,7 @@ and for making a matching asset later.
 The GDD's art direction, as rules for images:
 
 - **A candle-lit cutaway diorama in pixel-art 3D** (the GDD's look, decided 2026-09-30). The game draws every model
-  at 540 lines and blows it up in whole pixels, with outlines; tiles, icons and effects are drawn as pixel art, and
+  at 1080 lines at most (720 on a 1440p screen) and blows it up in whole pixels, with outlines; tiles, icons and effects are drawn as pixel art, and
   concept art for Tripo is clean cartoon: clear shapes, slightly exaggerated proportions (chibi for characters),
   flat areas of colour, gentle edge highlights. Not photorealistic, not glossy.
 - **Materials:** worn stone, old bone, dark iron, tarnished brass and bronze, wax, clay, parchment, rotting

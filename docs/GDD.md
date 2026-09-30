@@ -846,13 +846,13 @@ The look is a candle-lit cutaway diorama in pixel-art 3D: dark stone rooms, warm
 - **UI:** hearts top left, mana bar, spell slots with cooldowns, potion belt, artifacts and obol, key and glyph counters below them, minimap top right, boss bar bottom centre, lore cards bottom right. Typefaces Cinzel (titles), Alegreya (lore and banners) and Alegreya Sans (UI).
 - **Audio:** simple synthesised effects for now; the full plan is in Audio design, and where sounds come from (sources, licences, specs, pipeline) is in `docs/assets.md` (Sound).
 
-**The pixel look (decided 2026-09-30, M3.5 step 2).** The owner was drawn to a cartoony or pixel-art style and chose pixel-art 3D over cartoon 3D at full resolution, after comparing them in the game. The models and the game's lights are drawn at 540 lines (a 960 × 540 grid on a 16:9 screen: at 1080p each game pixel is 2 × 2 screen pixels, and the mage about 64 pixels tall) and blown up in whole pixels, with outlines from depth; light in bands stays off. It started at 270 (4 × 4 at 1080p, the mage about 32 pixels), then 360; in the play-tests of 2026-09-30 neither let the mage and small things read in a full-screen window on a high-resolution monitor, and 540 was the first that did. The rows are at most: each game pixel is a whole number of screen pixels, rounded up, so a smaller window keeps the look at fewer rows rather than turning sharp. The dev menu offers the rows that fall on whole pixels on the owner's screens (a full-screen browser):
+**The pixel look (decided 2026-09-30, M3.5 step 2).** The owner was drawn to a cartoony or pixel-art style and chose pixel-art 3D over cartoon 3D at full resolution, after comparing them in the game. The models and the game's lights are drawn at 1080 lines at most and blown up in whole pixels, with outlines from depth; light in bands stays off. It started at 270 (4 × 4 at 1080p, the mage about 32 pixels), then 360; in the play-tests of 2026-09-30 neither let the mage and small things read in a full-screen window on a high-resolution monitor, and 540 was the first that did (a 960 × 540 grid, the mage about 64 pixels tall). After playing the room kit's proof the owner set 1080 as the default (2026-09-30): 720 rows on a 1440p screen, 1080 on a 4K one. The rows are at most: each game pixel is a whole number of screen pixels, rounded up, so a smaller window keeps the look at fewer rows rather than turning sharp. The dev menu offers the rows that fall on whole pixels on the owner's screens (a full-screen browser):
 
 | Choice | 1080p | 1440p (2K) | 2160p (4K) |
 | --- | --- | --- | --- |
-| 1080 | 1080 (sharp, no pixel look) | 720 | 1080 |
+| 1080 (the default) | 1080 (sharp, no pixel look) | 720 | 1080 |
 | 720 | 540 | 720 | 720 |
-| 540 (the default) | 540 | 480 | 540 |
+| 540 | 540 | 480 | 540 |
 | 360 | 360 | 360 | 360 |
 | 270 | 270 | 240 | 270 |
 
@@ -1038,7 +1038,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M1 Core loop | Runs feel different | Three generated floors with varied maps, room counts and room shapes; a different boss on each floor; 50+ room templates; room variants from quiet to ordeal, and bone altars; 3 to 5 artifacts per floor from 10 artifacts and 3 foci as data |
 | M2 Plunder | Exploration pays | Obols, bone keys and blast glyphs; merchant, secret room, locked vault and shrine cleansing; urns and chests |
 | M3 Magic | Magic is the build | Mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room |
-| M3.5 The look | One set | The asset pipeline's tooling (built); the pixel look (decided, 540 lines); the room kit (objects, mechanisms, floors and walls) redone in code in the style of the spell effects, at 60 fps; Tripo kept for special models such as the mage (the owner's decision 2026-09-30, `docs/M3.5-plan.md`) |
+| M3.5 The look | One set | The asset pipeline's tooling (built); the pixel look (decided; 1080 lines by default); the room kit (objects, mechanisms, floors and walls) redone in code in the style of the spell effects, at 60 fps; Tripo kept for special models such as the mage (the owner's decision 2026-09-30, `docs/M3.5-plan.md`) |
 | M3.6 Rooms of Eda | Places, not arenas | Carved outlines, dressed walls and doors off the middle; twelve themed rooms with their own objects and twists; new objects and piles, and mechanisms that answer to magic (`docs/M3.6-plan.md`) |
 | M3.7 Spell knowledge | Know your spells | Panels over grimoire pages and in the inventory that fill in as spells are seen, learned, used and later upgraded; the spells tab by school; knowledge kept between runs (Spells: Spell knowledge) |
 | M4 Enemies in code | Own creatures | The ten enemies built in code (Enemies built in code: four on floor 1, three on each of the others) as foes with behaviour, health, sounds and elemental affinities, and a boss built the same way (the owner chose code over Tripo, 2026-09-29) |
