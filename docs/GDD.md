@@ -579,7 +579,7 @@ no permanent stat increases).
 | Feature | Where in the Vigil | What it keeps or unlocks |
 | --- | --- | --- |
 | Grimoire | A lectern, kept by a freed scribe | Every spell, recipe and artifact ever found; recipes stay known; spell knowledge (M3.7) |
-| Bestiary | The crypt's walls | Enemy weaknesses and resistances once discovered |
+| Bestiary | The crypt's walls | Enemy weaknesses and resistances once discovered (the record kept in the Vigil; the M4.5 milestone of the same name adds the creatures themselves) |
 | Disciplines | The Great Circle's ring of gifts | Starting loadouts: Pyromancer (Cinder Lance, Emberwood Wand), Frostwarden, Stormcaller, Vigil Keeper, Hexer; each unlocked by a freed shade |
 | Library shelves | Given by the freed | New spells and artifacts in the pools of future runs |
 | Alchemy garden | A garden of the dead, tended by a freed embalmer (M5) | Start runs with one reagent of choice |

@@ -226,10 +226,10 @@ export function sealFx(x: number, z: number, radius: number, color: number) {
     erupt() { erupted = 0; for (const f of flames) f.visible = true; pillar.visible = true; },
     burn(dt: number, left: number, t: number) {
       erupted += dt;
-      const rise = Math.min(1, erupted / .15), p = Math.min(1, erupted / CFG.spellFx.sealPillar), fade = Math.min(1, left);
-      flames.forEach((f, i) => { const h = rise * (erupted < .5 ? 1 : .45) * (.8 + Math.sin(t * 13 + i * 2) * .25) * fade; f.scale.set(1, Math.max(.01, h), 1); });
-      pillar.visible = p < 1; pillar.scale.set(1 - p * .4, Math.min(1, erupted / .12), 1 - p * .4); pillarMat.opacity = .45 * (1 - p);
-      lineMat.opacity = fade * (.45 + Math.sin(t * 13) * .08); ringMat.opacity = .8 * Math.max(0, 1 - erupted / .6); star.visible = erupted < .6;
+      const C = CFG.spellFx.seal, rise = Math.min(1, erupted / C.rise), p = Math.min(1, erupted / C.pillar), fade = Math.min(1, left);
+      flames.forEach((f, i) => { const h = rise * (erupted < C.crown ? 1 : .45) * (.8 + Math.sin(t * 13 + i * 2) * .25) * fade; f.scale.set(1, Math.max(.01, h), 1); });
+      pillar.visible = p < 1; pillar.scale.set(1 - p * .4, Math.min(1, erupted / C.rise), 1 - p * .4); pillarMat.opacity = .45 * (1 - p);
+      lineMat.opacity = fade * (.45 + Math.sin(t * 13) * .08); ringMat.opacity = .8 * Math.max(0, 1 - erupted / C.star); star.visible = erupted < C.star;
       heat.material.opacity = .5 * (1 - p * .5) * fade; ring.rotation.y = -t * .6; circ.rotation.y = t * .2;
     },
     drop() { scene.remove(g); disposeTree(g); },
@@ -256,7 +256,7 @@ export function iceColumn(x: number, z: number, h: number) {
     jumping between the rings. `update` follows the mage and fades it by `fade`; `drop` takes it away. */
 export function mantleFx(color: number) {
   const g = new THREE.Group(), c = .7, R = .55, ringMat = shine(color, .6); scene.add(g);
-  const rings = [0, 1, 2].map(() => part(g, new THREE.TorusGeometry(R, .016, 4, 36), ringMat, [0, c, 0]));
+  const rings = [0, 1, 2].map(() => part(g, keep('fx.mantleRing', () => new THREE.TorusGeometry(R, .016, 4, 36)), ringMat, [0, c, 0]));
   const core = glow(color, 1.5, .4); core.position.y = c; g.add(core);
   const jumps = [lightningBolt(g, color, 4, .018), lightningBolt(g, color, 4, .018)];
   const pt = (a: number, b: number): V3 => [Math.cos(a) * Math.cos(b) * R, c + Math.sin(b) * R, Math.sin(a) * Math.cos(b) * R];
@@ -285,7 +285,7 @@ export function updateSpellFx(dt: number) {
   if (lance?.on) stepLance(lance, dt);
 }
 /** The mage leaves the room, or a new floor: nothing left showing (all of it back in its pool). */
-export function clearSpellFx() {
+export function hideSpellFx() {
   for (const r of rings) { r.m.visible = false; idleRings.push(r); } rings.length = 0;
   for (const s of strikes) { s.root.visible = false; idleStrikes.push(s); } strikes.length = 0;
   if (lance) { lance.on = false; lance.root.visible = false; }

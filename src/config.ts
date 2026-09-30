@@ -131,10 +131,15 @@ export const CFG = {
   // the spells' looks (magic/spellFx.ts, docs/effects.md), in seconds unless said: the Cinder Lance (how long it shows,
   // how quickly it swells to full, when it starts to fade, how long the rune ring at the hand flares, the space between
   // its rune rings in units, how fast its embers run down it in lengths a second); how long a bolt's impact flares, a
-  // bolt of lightning lasts and a ring of light grows and fades; the Pyre Seal's pillar; the Glacial Wall's rise
+  // bolt of lightning lasts (Arc's a little longer, the crackles of Overload), a ring of light grows and fades (a flash
+  // turned to the camera, a shockwave on the floor); the Pyre Seal's eruption (its flames and pillar rising, the crown
+  // at full height, the pillar's fade, the star and rune ring going); the Glacial Wall's pillars rising, one step from
+  // the middle after another
   spellFx: {
     lance: { life: 0.6, rise: 0.06, fade: 0.3, flare: 0.25, ringGap: 1.2, embers: 1.4 },
-    impact: 0.22, strike: 0.22, ring: 0.3, sealPillar: 0.7, wallRise: 0.25,
+    impact: 0.22, strike: 0.22, chain: 0.3, crackle: 0.25, ring: 0.3, flash: 0.3, shockwave: 0.45,
+    seal: { rise: 0.15, crown: 0.5, pillar: 0.7, star: 0.6 },
+    wallRise: 0.25, wallStagger: 0.03,
   },
   lights: {
     hemi: 1.57, moon: 1.26,
