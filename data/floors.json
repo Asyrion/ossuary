@@ -47,7 +47,7 @@
       "kit": {"wall": {"bricks": 3, "tide": 2, "rubble": 2}, "floor": {"flags": 3, "cobbles": 2, "mosaic": 1}, "torch": {"lantern": 3, "witchlight": 2, "candelabra": 1}, "brazier": {"column": 2, "tripod": 1, "basket": 1}},
       "floor": {"base": [62, 66, 62], "mortar": "#101412", "stain": "34,60,50", "decor": "puddles", "bones": 2},
       "wall": {"brick": [64, 68, 62], "mortar": "#131714", "stains": "moss", "dress": {"pilaster": 4, "niches": {"urn": 3, "skull": 2, "empty": 3, "candle": 1}}},
-      "torch": {"style": "lantern", "flame": "#a8f0e0", "light": "#d0c8a8", "intensity": 0.85, "wax": "#9a9282"},
+      "torch": {"style": "lantern", "flame": "#a8f0e0", "light": "#d0c8a8", "intensity": 0.85, "wax": "#c4b89c"},
       "light": {"sky": "#7a8898", "ground": "#10160f", "moon": "#a8c0d4"}
     }
   },
