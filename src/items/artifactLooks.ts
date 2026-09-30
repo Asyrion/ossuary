@@ -9,6 +9,8 @@ import { glowTone, curve, mesh, runeStrokes, shade, shared, taperTube, tone } fr
 import { C, bone, box, put, skull } from '../world/objectLooks';
 
 type Build = (g: THREE.Group, c: number) => void;
+/** A cursed artifact's light (its glow over the pedestal, the rim of its icon). */
+export const CURSED_RED = 0xb0201a;
 const V = (x: number, y: number) => new THREE.Vector2(x, y);
 /** A shape turned round the upright from its outline, given from the bottom up. */
 const lathe = (pts: number[][], seg = 10) => new THREE.LatheGeometry(pts.map(([x, y]) => V(x, y)), seg);
@@ -110,10 +112,11 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; mesh(g, ball(.028, 6, 4), tone(c, .05), Math.cos(a) * .14, .05 + Math.sin(a) * .14, 0); }
     stick(g, [0, -.09, 0], [0, -.18, 0], .006, tone(0x6a5a44)); gem(g, shade(c, 1.2), .04, 0, -.21, 0);
   },
-  lens(g, c) { // a lens in a bone rim, on a bone handle
-    mesh(g, cyl(.12, .12, .02, 14).rotateX(Math.PI / 2), glowTone(shade(c, .8)), 0, .05, 0);
-    mesh(g, new THREE.TorusGeometry(.125, .022, 5, 16), tone(C.bone, .05), 0, .05, 0);
-    stick(g, [0, -.08, 0], [0, -.26, 0], .02, tone(C.bone, .05), .025);
+  lens(g, c) { // a lens ground from bone, in a rim of little teeth, hung on a chain of finger bones
+    mesh(g, cyl(.13, .13, .03, 14).rotateX(Math.PI / 2), glowTone(shade(c, .8)), 0, 0, 0);
+    mesh(g, new THREE.TorusGeometry(.135, .028, 5, 16), tone(C.bone, .05), 0, 0, 0);
+    for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; put(mesh(g, new THREE.ConeGeometry(.018, .05, 4), tone(C.boneOld), Math.cos(a) * .17, Math.sin(a) * .17, 0), 0, 0, a - Math.PI / 2); }
+    for (let i = 0; i < 3; i++) mesh(g, cyl(.012, .012, .05, 5), tone(C.bone, .05), 0, .21 + i * .055, 0);
   },
   shard(g, c) { // a shard of red crystal bound in gold wire
     put(mesh(g, GEO.gem, glowTone(c), 0, 0, 0), .2, .6, .15, [.09, .24, .07]);
@@ -130,8 +133,8 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
   },
   chisel(g, c) { // a mason's chisel: a steel blade, a wooden handle
     const s = new THREE.Group(); s.rotation.z = -.7; g.add(s);
-    mesh(s, cyl(.03, .035, .2, 7), tone(WOOD, .1), 0, -.12, 0);
-    put(box(s, .05, .22, .03, metal(c), 0, .08, 0), 0, 0, 0, [.05, .22, .03]); put(mesh(s, GEO.gem, metal(shade(c, 1.2)), 0, .2, 0), 0, 0, 0, [.03, .03, .02]);
+    mesh(s, cyl(.045, .05, .22, 8), tone(WOOD, .1), 0, -.12, 0); mesh(s, cyl(.052, .052, .03, 8), metal(IRON), 0, -.01, 0);
+    put(box(s, .08, .24, .05, metal(c), 0, .1, 0), 0, 0, 0, [.08, .24, .05]); put(box(s, .08, .04, .02, metal(shade(c, 1.3)), 0, .23, 0), 0, 0, 0, [.08, .04, .02]);
   },
   eye(g, c) { // a raven's eye in a ring of black feathers
     mesh(g, ball(.1, 10, 8), tone(0xe8e4d8, .03), 0, 0, 0); mesh(g, ball(.05, 8, 6), glowTone(c), 0, 0, .065); mesh(g, ball(.022, 6, 4), tone(0x0a0808), 0, 0, .1);
@@ -143,7 +146,8 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     stick(g, [0, -.08, 0], [0, -.26, 0], .018, metal(SILVER), .024);
     for (const [a, b] of [[[-.02, .15, .01], [.02, .07, .01]], [[.02, .07, .01], [-.03, .0, .01]]]) stick(g, a, b, .004, tone(0x1a2028));
   },
-  feather(g, c) { // two hawk's feathers bound with a bone ring
+  feather(g, c) { // two hawk's feathers bound with a bone ring (leaning back)
+    g = lean(g);
     for (const [s, a] of [[-1, .35], [1, -.25]]) { const f = new THREE.Group(); f.rotation.z = a; g.add(f); put(mesh(f, ball(.07, 8, 6), tone(c, .08), s * .03, .06, 0), 0, 0, 0, [.8, 2.6, .15]); stick(f, [s * .03, -.14, 0], [s * .03, .22, 0], .006, tone(0xe8e0c8)); }
     mesh(g, new THREE.TorusGeometry(.03, .012, 4, 10), tone(C.bone), 0, -.1, 0).rotation.x = Math.PI / 2;
   },
@@ -156,7 +160,8 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     tube(g, [[-.05, -.1, .1], [.03, -.04, .11], [-.02, .03, .11], [.04, .07, .1]], .025, .018, tone(c, .1), 10);
     mesh(g, cyl(.07, .06, .05, 8), tone(0xa08058, .1), 0, .17, 0);
   },
-  moth(g, c) { // a pale moth, eyes on its wings
+  moth(g, c) { // a pale moth, eyes on its wings (leaning back: flat, it would turn edge-on)
+    g = lean(g);
     put(mesh(g, ball(.035, 6, 5), tone(shade(c, .8), .05), 0, 0, 0), 0, 0, 0, [1, 2.6, 1]);
     for (const s of [-1, 1]) {
       put(mesh(g, ball(.1, 8, 4), tone(c, .06), s * .1, .04, 0), 0, 0, s * .5, [1, .75, .12]); put(mesh(g, ball(.06, 8, 4), tone(shade(c, .9), .06), s * .07, -.07, 0), 0, 0, -s * .5, [1, .75, .12]);
@@ -183,7 +188,8 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     for (const y of [.1, .05, 0]) box(g, .18, .012, .005, tone(0x3a2a22), 0, y, .01);
     mesh(g, ball(.045, 8, 6), glowTone(c), .04, -.11, .02).scale.set(1, 1.2, .4);
   },
-  keyring(g, c) { // a sexton's iron ring with three keys on it
+  keyring(g, c) { // a sexton's iron ring with three keys on it (leaning back)
+    g = lean(g);
     mesh(g, new THREE.TorusGeometry(.1, .014, 4, 16), metal(IRON), 0, .1, 0);
     for (const [x, a] of [[-.06, .3], [0, 0], [.06, -.3]]) {
       const k = new THREE.Group(); k.position.set(x, .02, 0); k.rotation.z = a; g.add(k);
@@ -210,7 +216,11 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + (i - 2) * .45; put(mesh(g, GEO.rune, glowTone(c), Math.cos(a) * .14, Math.sin(a) * .14 * Math.cos(.5), .02 + Math.sin(a) * .14 * Math.sin(.5)), 0, 0, a + Math.PI / 2, .5); }
   },
   lantern(g, c) { lantern(g, c); },
-  manalantern(g, c) { lantern(g, c); gem(g, shade(c, 1.3), .03, 0, 0, .075, 1.6); },
+  manalantern(g, c) { // a brass lamp with no glass, a crystal of mana burning in it
+    mesh(g, cyl(.1, .06, .05, 8), metal(BRASS), 0, -.12, 0); mesh(g, new THREE.TorusGeometry(.1, .014, 4, 16), metal(BRASS), 0, .1, 0).rotation.x = Math.PI / 2;
+    for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + .4; tube(g, [[Math.cos(a) * .07, -.1, Math.sin(a) * .07], [Math.cos(a) * .12, 0, Math.sin(a) * .12], [Math.cos(a) * .1, .1, Math.sin(a) * .1]], .012, .01, metal(BRASS), 6); }
+    gem(g, c, .07, 0, 0, 0, 1.7); mesh(g, new THREE.TorusGeometry(.035, .01, 4, 8), metal(BRASS), 0, .19, 0);
+  },
   scale(g, c) { // a pedlar's balance: a post, a beam, two pans on cords
     mesh(g, cyl(.012, .016, .36), metal(BRASS), 0, 0, 0); mesh(g, cyl(.05, .06, .03, 8), metal(BRASS), 0, -.18, 0);
     box(g, .36, .02, .02, metal(c), 0, .16, 0);
@@ -223,14 +233,14 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     box(g, .08, .02, .02, tone(0x08100e), 0, -.1, .065);
   },
   chain(g, c) { // three links of a penitent's chain, a shackle on the last
-    for (let i = 0; i < 3; i++) put(mesh(g, new THREE.TorusGeometry(.055, .016, 4, 10), metal(c), -.12 + i * .09, .06 - i * .06, 0), 0, i % 2 ? Math.PI / 2 : 0, .7, [1, 1.4, 1]);
-    put(mesh(g, new THREE.TorusGeometry(.08, .022, 4, 12, Math.PI * 1.4), metal(shade(c, .8)), .12, -.12, 0), 0, 0, -.3);
+    for (let i = 0; i < 3; i++) put(mesh(g, new THREE.TorusGeometry(.07, .024, 4, 10), metal(c), -.14 + i * .11, .08 - i * .08, 0), 0, i % 2 ? Math.PI / 2 : 0, .7, [1, 1.4, 1]);
+    put(mesh(g, new THREE.TorusGeometry(.1, .03, 4, 12, Math.PI * 1.4), metal(shade(c, .8)), .14, -.15, 0), 0, 0, -.3);
   },
   thorns(g, c) { // a crown of twisted thorn branches
     const ring: number[][] = []; for (let i = 0; i <= 24; i++) { const a = i / 24 * Math.PI * 2; ring.push([Math.cos(a) * .15, Math.sin(a * 3) * .02, Math.sin(a) * .15]); }
-    tube(g, ring, .018, .018, tone(c, .1), 48);
-    for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; put(mesh(g, new THREE.ConeGeometry(.012, .07, 4), tone(0xc8b890), Math.cos(a) * .15, .03, Math.sin(a) * .15), 0, -a, Math.PI / 2 - .5); }
-    g.rotation.x = .5;
+    const t = new THREE.Group(); t.rotation.x = 1.05; g.add(t); // (tipped up to face the camera: flat, a crown reads as a line)
+    tube(t, ring, .022, .022, tone(c, .1), 48);
+    for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; put(mesh(t, new THREE.ConeGeometry(.014, .08, 4), tone(0xc8b890), Math.cos(a) * .15, .03, Math.sin(a) * .15), 0, -a, Math.PI / 2 - .5); }
   },
   hungertome(g, c) { // a hungering book, its pages turned to teeth
     book(g, c, IRON);
@@ -251,10 +261,11 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     stick(g, [.02, .05, .09], [-.03, -.04, .09], .008, glowTone(0xfffff0)); stick(g, [-.03, -.04, .09], [.03, -.1, .09], .008, glowTone(0xfffff0));
     mesh(g, new THREE.TorusGeometry(.04, .01, 4, 10), metal(GOLD), 0, .15, 0);
   },
-  thurible(g, c) { // a thurible of ash on its chains, embers glowing, ash smoking from it
-    ARTIFACT_LOOKS.censer(g, 0xff7030);
-    g.children.forEach(o => { if ((o as THREE.Mesh).isMesh) o.position.y -= .03; });
-    for (const [x, y, r] of [[.05, .15, .04], [-.03, .2, .03], [.02, .26, .025]]) mesh(g, ball(r, 6, 4), tone(shade(c, .8), .08), x, y, .06);
+  thurible(g, c) { // a ball of blackened iron on a single chain, embers glowing in its slits, ash smoking from it
+    mesh(g, ball(.12, 10, 8), metal(0x2a2624), 0, -.08, 0);
+    for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2; put(box(g, .02, .09, .01, glowTone(0xff7030), Math.cos(a) * .12, -.08, Math.sin(a) * .12), 0, -a + Math.PI / 2, 0, [.02, .09, .01]); }
+    stick(g, [0, .04, 0], [0, .26, 0], .008, metal(IRON)); mesh(g, new THREE.TorusGeometry(.03, .01, 4, 8), metal(IRON), 0, .27, 0);
+    for (const [x, y, r] of [[.1, .02, .045], [.15, .1, .035], [.12, .18, .028]]) mesh(g, ball(r, 6, 4), tone(shade(c, .9), .08), x, y, .04);
   },
   witchknot(g, c) { // a witch's knot of cord, a bead bound in it
     mesh(g, new THREE.TorusKnotGeometry(.1, .022, 48, 5, 2, 3), tone(c, .06), 0, 0, 0);
@@ -274,6 +285,9 @@ const HEART = shared((() => {
   h.bezierCurveTo(.05, .16, .15, .13, .15, .05); h.bezierCurveTo(.15, -.02, .03, -.08, 0, -.13);
   return new THREE.ExtrudeGeometry(h, { depth: .06, bevelEnabled: true, bevelThickness: .02, bevelSize: .015, bevelSegments: 1, curveSegments: 6 }).translate(0, 0, -.03);
 })());
+
+/** A group inside `g` leaning back 40°, for a flat artifact: as it turns, its face still shows to the camera above. */
+function lean(g: THREE.Group) { const l = new THREE.Group(); l.rotation.x = -.7; g.add(l); return l; }
 
 /** An artifact's look by its icon (a known one's, or the sigil). */
 export function artifactLook(icon: string, color: string) {

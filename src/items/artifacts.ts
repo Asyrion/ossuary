@@ -6,7 +6,7 @@ import type { ArtifactSpot, Room } from '../types';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { M, blob, disposeTree, glow, mergeStill } from '../render/materials';
+import { M, blob, disposeTree, glow, glowShared, mergeStill } from '../render/materials';
 import { burst } from '../combat/fx';
 import { HEART_PATH, banner, renderHearts, renderItems, renderMinimap, toast } from '../ui/hud';
 import { ARTIFACT_DEFS, START_FOCUS, artifact, computeStats, pickArtifact, type ArtifactDef, type Pool } from './artifactData';
@@ -15,7 +15,7 @@ import { artifactLore } from '../ui/lore';
 import { dress } from '../actors/costume';
 import { modelFor } from '../assets/models';
 import { altarLook, pedestalLook } from '../world/objectLooks';
-import { artifactLook } from './artifactLooks';
+import { CURSED_RED, artifactLook } from './artifactLooks';
 
 const hex = (c: string) => new THREE.Color(c).getHex();
 
@@ -102,10 +102,12 @@ export function makeArtifactVisual(def: ArtifactDef) {
   const g = new THREE.Group(); const color = hex(def.color), model = modelFor('artifacts', def.id);
   if (model) {
     model.position.y -= model.userData.height / 2; // (it stands on y = 0: lowered so it turns about its middle)
-    g.add(model, glow(def.kind === 'cursed' ? 0xb0201a : color, 1.1, .6));
+    g.add(model, glow(def.kind === 'cursed' ? CURSED_RED : color, 1.1, .6));
   } else if (DEV.roomKit) {
-    const look = artifactLook(def.icon, def.color); mergeStill(look); look.scale.setScalar(1.2); // (a touch larger: it must read at a glance over its pedestal)
-    g.add(look, glow(def.kind === 'cursed' ? 0xb0201a : color, 1.1, .6));
+    const look = artifactLook(def.icon, def.color), K = CFG.roomKit; mergeStill(look); look.scale.setScalar(K.artifactScale); // (a touch larger: it must read at a glance)
+    const half = new THREE.Box3().setFromObject(look).getSize(new THREE.Vector3()).y / 2;
+    look.position.y = Math.max(0, half - K.artifactClear); // (a tall one lifted, so it never dips into its pedestal as it bobs)
+    g.add(look, glowShared(def.kind === 'cursed' ? CURSED_RED : color, 1.1, .6));
   } else if (def.kind === 'focus') {
     const rod = new THREE.Mesh(new THREE.CylinderGeometry(.025, .03, .5, 6), M.frame.normal); rod.rotation.z = .5;
     const gem = new THREE.Mesh(new THREE.OctahedronGeometry(.11), new THREE.MeshBasicMaterial({ color })); gem.position.set(-.12, .2, 0);
@@ -113,7 +115,7 @@ export function makeArtifactVisual(def: ArtifactDef) {
   } else if (def.kind === 'cursed') {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(.21, .03, 5, 12), M.frame.boss);
     const gem = new THREE.Mesh(new THREE.OctahedronGeometry(.14), new THREE.MeshStandardMaterial({ color: 0x14080a, emissive: color, emissiveIntensity: .6, roughness: .3 }));
-    g.add(ring, gem, glow(0xb0201a, 1.3, .7));
+    g.add(ring, gem, glow(CURSED_RED, 1.3, .7));
   } else {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(.2, .04, 8, 20), M.frame.treasure);
     const gem = new THREE.Mesh(new THREE.OctahedronGeometry(.13), new THREE.MeshBasicMaterial({ color }));
@@ -182,7 +184,7 @@ export function placeArtifact(room: Room, def: ArtifactDef, x: number, z: number
 }
 
 function setVisual(spot: ArtifactSpot, def: ArtifactDef) {
-  spot.pedestal.remove(spot.visual);
+  spot.pedestal.remove(spot.visual); disposeTree(spot.visual);
   spot.def = def; spot.visual = makeArtifactVisual(def); spot.visual.position.y = 1.05; spot.pedestal.add(spot.visual);
 }
 

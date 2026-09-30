@@ -161,11 +161,12 @@ function installDevHooks() {
     forceKinds: (k: Partial<Kinds>) => forceKinds(k),
     /** The pixel look (a style test): rows of pixels (0 off), outlines, light in bands; set any of them. */
     get pixelLook() { return { ...pixelLook() }; },
-    /** Enemy model options (looks only): stand them (or those named) ahead of the mage, a row per floor; returns where
-        each stands; take them away again. */
-    /** Every artifact floating ahead of the mage, as the room kit builds them (the dev menu's artifact gallery); how many. */
+    /** Every artifact floating ahead of the mage, as the room kit builds them (the dev menu's artifact gallery); how many;
+        and taken away again. */
     artifactGallery: () => showArtifactGallery(G.current, player.x, player.z),
     takeArtifactGallery: () => removeArtifactGallery(G.current),
+    /** Enemy model options (looks only): stand them (or those named) ahead of the mage, a row per floor; returns where
+        each stands; take them away again. */
     modelOptions: (ids?: string[]) => showModelOptions(G.current, player.x, player.z, ids),
     takeModelOptions: () => removeModelOptions(G.current),
     /** The familiar options (looks only, the owner's drawings built in code) ahead of the mage; taken away with the rest. */
