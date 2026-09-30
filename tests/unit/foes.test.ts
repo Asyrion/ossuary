@@ -46,7 +46,7 @@ describe('the foes built in code (M4)', () => {
 
   it('picks by weight, and passes an elite over when asked while another can fill the role', () => {
     let seed = 7; const R = () => (seed = (seed * 16807) % 2147483647) / 2147483647; // (a small seeded stream)
-    const table = { R: [['sporeling', 3], ['rotling', 1]], W: [['wisp', 1]], H: [['hound', 1]] } as RoleTable;
+    const table = { R: [['sporeling', 3], ['rotling', 1]], W: [['vesperMoth', 1]], H: [['runeBeetle', 1]] } as RoleTable;
     const n = 4000, count = Array.from({ length: n }, () => pickFoe(table, 'R', R)).filter(id => id === 'sporeling').length;
     expect(count / n).toBeGreaterThan(.7); expect(count / n).toBeLessThan(.8);
     const elite = { ...FOES.sporeling, elite: true };

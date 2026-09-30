@@ -11,7 +11,7 @@ import { placeProp } from '../world/props';
 import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
-import { FOES, FOE_IDS } from '../actors/foeData';
+import { FOES, FOE_IDS, pickFoe } from '../actors/foeData';
 import { forgetBestiary } from '../actors/bestiary';
 import { ARTIFACT_DEFS, START_FOCUS, artifact } from '../items/artifactData';
 import { giveById, grantArtifact, placeArtifact, refreshStats, removeArtifactGallery, resetArtifacts, showArtifactGallery } from '../items/artifacts';
@@ -221,9 +221,11 @@ function build() {
   // foes, a little further ahead (they don't lock the doors)
   const foes = section(pages.foes, S.foes);
   const floorHp = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].enemyHp;
-  for (const [kind, champion] of [['rotling', false], ['wisp', false], ['hound', false], ['hound', true], ['dummy', false]] as [EnemyType, boolean][]) {
-    foes.append(btn(champion ? S.champion(S.foeNames[kind]) : S.foeNames[kind], () => { const q = ahead(3); makeEnemy(kind, q.x, q.z, floorHp(), undefined, { champion }); }));
-  }
+  for (const kind of ['rotling', 'dummy'] as EnemyType[]) foes.append(btn(S.foeNames[kind], () => { const q = ahead(3); makeEnemy(kind, q.x, q.z, floorHp()); }));
+  foes.append(btn(S.championHeavy, () => { // this floor's heavy, as a champion room has one
+    const q = ahead(3), floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
+    makeEnemy(pickFoe(floor.foes, 'H', Math.random, true), q.x, q.z, floorHp(), undefined, { champion: true });
+  }));
   // the foes built in code (M4), by floor, from data/foes.json; and one of them in every fight, to test it
   for (const floor of [1, 2, 3]) {
     const row = FOE_IDS.filter(id => FOES[id].floor === floor);
