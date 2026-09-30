@@ -20,7 +20,7 @@ const GEO = {
   // the bell: posts, a beam under a little roof, a yoke, a flared bell, a clapper
   post: shared(new THREE.BoxGeometry(.12, 1.72, .12)), footing: shared(new THREE.BoxGeometry(.24, .12, .24)), beam: shared(new THREE.BoxGeometry(1.22, .14, .16)),
   roof: shared(new THREE.BoxGeometry(.72, .04, .3)), yoke: shared(new THREE.BoxGeometry(.3, .1, .13)),
-  bell: shared(new THREE.LatheGeometry([[0, .64], [.12, .62], [.2, .52], [.22, .3], [.27, .12], [.36, .02], [.37, 0], [.33, 0], [0, .03]].map(([x, y]) => new THREE.Vector2(x, y)), 14)),
+  bell: shared(new THREE.LatheGeometry([[0, .03], [.33, 0], [.37, 0], [.36, .02], [.27, .12], [.22, .3], [.2, .52], [.12, .62], [0, .64]].map(([x, y]) => new THREE.Vector2(x, y)), 14)), // (from the bottom up: turned from the top down, a lathe is inside out)
   bellBand: shared(new THREE.TorusGeometry(.215, .018, 4, 16).rotateX(Math.PI / 2)), clapperRod: shared(new THREE.CylinderGeometry(.012, .012, .3, 4)), clapper: shared(new THREE.SphereGeometry(.05, 6, 4)),
   // the censer: a chain, a ring, three short chains, a pierced pot, a domed cap and a finial
   chain: shared(new THREE.CylinderGeometry(.012, .012, 1, 4)), ring: shared(new THREE.TorusGeometry(.05, .012, 4, 10).rotateX(Math.PI / 2)),
