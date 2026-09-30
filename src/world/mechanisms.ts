@@ -20,7 +20,7 @@ import type { Bolt, FloorLook, PropBox, Room } from '../types';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { M, blob, glow, markShared } from '../render/materials';
+import { M, blob, disposeTree, glow, markShared } from '../render/materials';
 import { setDarkness } from '../render/lights';
 import { burst } from '../combat/fx';
 import { damageEnemy, hurtPlayer } from '../combat/damage';
@@ -37,6 +37,7 @@ import { addPool, fireAt } from './pools';
 import { removeProp } from './props';
 import type { MechanismKind } from './propData';
 import { RUNE_LIT, brazierLook, candleStandLook } from './fireLooks';
+import { bellLook, censerLook, censerPot, lodestoneLook, reliquaryLook, runeStoneLook, updateMechLook } from './mechLooks';
 
 const C = CFG.mech;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, GOLD = 0xffd98a;
@@ -70,11 +71,13 @@ const GEO = {
 const mesh = (geo: THREE.BufferGeometry, mat: THREE.Material, x = 0, y = 0, z = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); return m; };
 /** Remember the parts of a look that move or light up (props.ts copies them onto the object). */
 const withParts = (g: THREE.Group, parts: Record<string, THREE.Object3D>) => { g.userData.parts = parts; return g; };
+/** A look from the room kit (fireLooks.ts, mechLooks.ts), flagged so its own magic moves each step (`updateMechLook`). */
+const kitLook = (k: { group: THREE.Group; parts: Record<string, THREE.Object3D> }) => { k.group.userData.kit = true; return withParts(k.group, k.parts); };
 
 type Look = (R: () => number, len: number, look?: FloorLook) => THREE.Group;
 export const MECH_LOOKS: Record<MechanismKind, Look> = {
   brazier(_R, _len, look) { // an iron bowl of coals on three legs; its fire shows once lit
-    if (DEV.roomKit && look?.kinds) { const k = brazierLook(look.kinds.brazier); return withParts(k.group, k.parts); }
+    if (DEV.roomKit && look?.kinds) return kitLook(brazierLook(look.kinds.brazier));
     const g = new THREE.Group();
     for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2, l = mesh(GEO.leg, MAT.iron, Math.cos(a) * .18, .3, Math.sin(a) * .18); l.rotation.set(Math.sin(a) * .25, 0, -Math.cos(a) * .25); g.add(l); }
     const bowl = mesh(GEO.bowl, MAT.iron, 0, .66, 0), coals = mesh(GEO.coals, MAT.coals, 0, .68, 0); coals.scale.y = .45;
@@ -85,7 +88,7 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
     return withParts(g, { flame, glow: gl });
   },
   candles(R, _len, look) { // an iron stand with a dish of candles; lit one by one by fire
-    if (DEV.roomKit && look?.kinds) { const k = candleStandLook(R); return withParts(k.group, k.parts); }
+    if (DEV.roomKit && look?.kinds) return kitLook(candleStandLook(R, look.torch));
     const g = new THREE.Group(), flames = new THREE.Group();
     g.add(mesh(GEO.foot, MAT.iron, 0, .03, 0), mesh(GEO.pole, MAT.iron, 0, .42, 0), mesh(GEO.dish, MAT.iron, 0, .78, 0)); // waist-high: bolts fly over it
     for (let i = 0; i < 3; i++) {
@@ -97,13 +100,15 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
     flames.visible = false; g.add(flames, blob(.6));
     return withParts(g, { flames });
   },
-  bell() { // a bronze bell hanging from a wooden frame
+  bell(_R, _len, look) { // a bronze bell hanging from a wooden frame
+    if (DEV.roomKit && look?.kinds) return kitLook(bellLook());
     const g = new THREE.Group(), swing = new THREE.Group(); swing.position.y = 1.6;
     g.add(mesh(GEO.post, MAT.wood, -.48, .85, 0), mesh(GEO.post, MAT.wood, .48, .85, 0), mesh(GEO.beam, MAT.wood, 0, 1.68, 0));
     const bell = mesh(GEO.bell, MAT.bronze, 0, -.7, 0); swing.add(bell); g.add(swing, blob(1.1));
     return withParts(g, { swing });
   },
-  rune() { // a standing stone with a rune cut into its face, dull until a school charges it
+  rune(_R, _len, look) { // a standing stone with a rune cut into its face, dull until a school charges it
+    if (DEV.roomKit && look?.kinds) return kitLook(runeStoneLook());
     const g = new THREE.Group(), s = mesh(GEO.stone, MAT.stone, 0, .575, 0); s.rotation.y = .3;
     const rune = new THREE.Group(), mat = new THREE.MeshStandardMaterial({ color: 0x3a3a40, roughness: .8 }); // its own material: a charge colours it
     for (const [x, y, len, a] of [[0, 0, .42, 0], [-.06, .12, .18, .7], [.06, .12, .18, -.7], [0, -.1, .14, 1.57]]) { const s = mesh(GEO.stroke, mat, x, y, 0); s.scale.y = len; s.rotation.z = a; rune.add(s); }
@@ -112,7 +117,8 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
     g.add(s, rune, gl, blob(.9));
     return withParts(g, { rune, glow: gl });
   },
-  lodestone() { // a pillar of dark iron-stone bound in copper; a spark gathers at its top when it leaps
+  lodestone(_R, _len, look) { // a pillar of dark iron-stone bound in copper; a spark gathers at its top when it leaps
+    if (DEV.roomKit && look?.kinds) return kitLook(lodestoneLook());
     const g = new THREE.Group();
     const body = new THREE.Group(); body.rotation.set(.06, .4, -.05); // a rough-hewn shard, leaning a little
     body.add(mesh(GEO.lode, MAT.lode, 0, .65, 0), mesh(GEO.lodeTip, MAT.lode, 0, 1.45, 0));
@@ -120,7 +126,8 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
     const tip = glow(0xf0e890, .8, .6); tip.position.y = 1.62; g.add(body, tip, blob(.8));
     return withParts(g, { tip });
   },
-  censer() { // a censer swinging on a long chain from the dark above, its smoke glowing faintly
+  censer(_R, _len, look) { // a censer swinging on a long chain from the dark above, its smoke glowing faintly
+    if (DEV.roomKit && look?.kinds) return kitLook(censerLook(CHAIN));
     const g = new THREE.Group(), swing = new THREE.Group(); swing.position.y = 1.5 + CHAIN;
     swing.add(mesh(GEO.chain, MAT.iron, 0, -CHAIN / 2, 0));
     const pot = new THREE.Group(); pot.position.y = -CHAIN;
@@ -129,7 +136,8 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
     const shadow = blob(.7); g.add(swing, shadow);
     return withParts(g, { swing, pot });
   },
-  reliquary() { // a gilded reliquary on a plinth, bound by a seal of candle-light
+  reliquary(_R, _len, look) { // a gilded reliquary on a plinth, bound by a seal of candle-light
+    if (DEV.roomKit && look?.kinds) return kitLook(reliquaryLook());
     const g = new THREE.Group();
     g.add(mesh(GEO.plinth, MAT.stone, 0, .275, 0), mesh(GEO.box, MAT.gilt, 0, .73, 0), mesh(GEO.lid, MAT.gilt, 0, .95, 0));
     const seal = mesh(GEO.seal, MAT.seal, 0, .75, .23); const gl = glow(GOLD, .9, .6); gl.position.set(0, .75, .3);
@@ -245,8 +253,11 @@ function ring(room: Room, box: PropBox) {
 /** A rune stone takes the school that reached it, and glows in its colour (`quiet`: as the room is built). */
 function charge(box: PropBox, school: StatusKind, quiet = false) {
   const p = box.prop; p.school = school; p.t = 0;
-  const color = SCHOOL_COLOR[school], stroke = p.parts?.rune?.children[0] as THREE.Mesh | undefined, gl = p.parts?.glow as THREE.Sprite | undefined;
+  const color = SCHOOL_COLOR[school], rune = p.parts?.rune, gl = p.parts?.glow as THREE.Sprite | undefined;
+  const stroke = ((rune as THREE.Mesh | undefined)?.isMesh ? rune : rune?.children[0]) as THREE.Mesh | undefined; // (the room kit's carving is one mesh)
   if (stroke) { const m = stroke.material as THREE.MeshStandardMaterial; m.emissive.setHex(color); m.color.setHex(color); } // (its strokes share it)
+  const aura = p.parts?.aura; // (the room kit's stone: runes of its school circle it)
+  if (aura) { ((aura.children[0] as THREE.Mesh).material as THREE.MeshBasicMaterial).color.setHex(color); aura.visible = true; }
   if (gl) { gl.material.color.setHex(color); gl.visible = true; }
   if (!quiet) { burst(box.x, .8, box.z, color, 10, 1.8, .05); Sfx.at(box.x, box.z).runeCharge(); }
 }
@@ -277,14 +288,16 @@ function leap(room: Room, box: PropBox) {
 function dropCenser(room: Room, box: PropBox) {
   const { x, z } = box, at = box.prop.tiles[0];
   removeProp(room, box);
-  const pot = new THREE.Group(); pot.add(mesh(GEO.censer, MAT.bronze), mesh(GEO.cap, MAT.bronze, 0, .15, 0)); pot.position.set(x - room.cx, 1.5, z - room.cz); room.group.add(pot);
+  const pot = box.mesh?.userData.kit ? censerPot() : new THREE.Group(); // (the room kit's pot, or the old one)
+  if (!box.mesh?.userData.kit) pot.add(mesh(GEO.censer, MAT.bronze), mesh(GEO.cap, MAT.bronze, 0, .15, 0));
+  pot.position.set(x - room.cx, 1.5, z - room.cz); room.group.add(pot);
   Sfx.at(x, z).chainSnap();
   falling.push({ room, pot, x, z, at, t: 0 });
 }
 const falling: { room: Room; pot: THREE.Group; x: number; z: number; at: { c: number; r: number }; t: number }[] = [];
 function censerLands(f: (typeof falling)[number]) {
   const { room, x, z } = f;
-  room.group.remove(f.pot);
+  room.group.remove(f.pot); disposeTree(f.pot);
   for (const e of G.enemies) {
     if (e.dead || e.spawn > 0 || e.hidden || e.flying || Math.hypot(e.x - x, e.z - z) > C.censerReach + e.r) continue;
     damageEnemy(e, C.censerDamage, 0, 0, C.censerKnock, 'spell'); inflict(e, { burn: C.censerBurn });
@@ -318,6 +331,7 @@ export function updateMechanisms(dt: number) {
   for (const box of room.props ?? []) {
     const p = box.prop;
     if (p.cd && p.cd > 0) p.cd = Math.max(0, p.cd - dt);
+    if (p.parts && box.mesh?.userData.kit) updateMechLook(p.parts, G.simClock, box.x);
     if (p.kind === 'brazier' && p.lit && p.parts?.flame && !p.parts.flame.userData.fire) { p.parts.flame.scale.set(1, .85 + Math.sin(G.simClock * 17 + box.x) * .15, 1); if (Math.random() < dt * 4) riseMote(box.x, 1.1, box.z, EMBER, .4); }
     if (p.kind === 'bell' && p.parts?.swing) { p.t = (p.t ?? 99) + dt; p.parts.swing.rotation.z = Math.sin(p.t * 9) * .35 * Math.exp(-p.t * 1.2); }
     if (p.kind === 'censer' && p.parts?.swing) p.parts.swing.rotation.z = Math.sin(G.simClock * 1.3 + box.x) * .016; // (a long chain: a small swing)
@@ -331,7 +345,7 @@ export function updateMechanisms(dt: number) {
   }
   for (let i = falling.length - 1; i >= 0; i--) {
     const f = falling[i]; f.t += dt; f.pot.position.y = Math.max(.15, 1.5 - 9 * f.t * f.t); f.pot.rotation.z += dt * 6;
-    if (f.pot.position.y <= .15 || f.room !== G.current) { falling.splice(i, 1); if (f.room === G.current) censerLands(f); else f.room.group.remove(f.pot); } // (its geometries are shared)
+    if (f.pot.position.y <= .15 || f.room !== G.current) { falling.splice(i, 1); if (f.room === G.current) censerLands(f); else { f.room.group.remove(f.pot); disposeTree(f.pot); } } // (its geometries are shared; its glow isn't)
   }
   for (let i = waves.length - 1; i >= 0; i--) {
     const w = waves[i]; w.t += dt; const k = Math.min(1, w.t / .45);

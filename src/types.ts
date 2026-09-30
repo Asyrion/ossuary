@@ -29,7 +29,8 @@ export interface FloorLook {
   /** Floor tiles: base colour, mortar, stain colour ("r,g,b"), scattered decoration and how many bones. */
   floor: { base: RGB; mortar: string; stain: string; decor: 'bones' | 'puddles' | 'ash'; bones: number };
   wall: { brick: RGB; mortar: string; stains: 'none' | 'moss' | 'soot'; dress?: WallDress };
-  torch: { style: 'bracket' | 'lantern' | 'brazier'; flame: string; light: string; intensity: number };
+  /** The floor's lights: the wall torch's old style, its flame and light, and the wax of its candles (the room kit's). */
+  torch: { style: 'bracket' | 'lantern' | 'brazier'; flame: string; light: string; intensity: number; wax?: string };
   /** Hemisphere sky and ground colours, and the moonlight. */
   light: { sky: string; ground: string; moon: string };
   /** The room kit's kinds of wall, floor, wall light and brazier, weighted (world/kitData.ts). */

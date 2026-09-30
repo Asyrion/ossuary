@@ -16,7 +16,7 @@ log; its Sound section does the same for sound (sources and their licences, the 
 When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3.5 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 1080 lines since the proof's play-test), step 3 under way: the room kit redone in code in the new style (the proof accepted 2026-09-30; variety built: three kinds of wall, floor, wall light and brazier per floor, drawn per room; the other mechanisms, objects, doors and artifacts next); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3.5 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 1080 lines since the proof's play-test), step 3 under way: the room kit redone in code in the new style (the proof accepted 2026-09-30; variety built: three kinds of wall, floor, wall light and brazier per floor, drawn per room; every mechanism rebuilt; the objects, doors and artifacts next); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -224,7 +224,10 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   floor's floors and walls are pixel art drawn texel by texel in `src/render/pixelTextures.ts` (`CFG.roomKit.texel`,
   `kitWalls` and `kitFloor` in `rooms.ts`); the special rooms' marks come from `drawMarks` in `textures.ts`, hardened into texels.
   `DEV.roomKit` (the dev menu's Look tab, `?kit=old`, `__game.roomKit`, `__game.useRoomKit(on)`) builds the floor again in
-  the new or old look; "Fire objects here" stands braziers and candle stands ahead of the mage, cold and lit.
+  the new or old look; "Fire objects here" stands braziers and candle stands ahead of the mage, cold and lit. The other
+  mechanisms are `src/world/mechLooks.ts` (rune stone, lodestone, bell, censer, reliquary; `updateMechLook` moves their
+  magic each step: a charged stone's runes, the floating shard, the reliquary's seal), built from `src/world/kitParts.ts`
+  (the painted materials, `mesh`, `joinAll`, `runeStrokes`); a look from the kit is flagged `userData.kit`.
   Variety (the owner's ask after the proof): each floor's look lists its kinds of wall, floor, wall light and brazier,
   weighted (`kit` in `data/floors.json`); each room draws one of each on its seed (`pickKinds` in the pure
   `src/world/kitData.ts`, into `room.look.kinds`); a theme pins some (`kit` in a theme's look: the ossuary's bone wall). The
