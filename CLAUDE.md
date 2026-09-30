@@ -16,7 +16,7 @@ log; its Sound section does the same for sound (sources and their licences, the 
 When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3.5 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 540 lines), step 3 under way: the room kit redone in code in the new style, its proof built (the fire objects and the crypt's floor and walls, the old look behind `DEV.roomKit`) and waiting on the owner; code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3.5 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 1080 lines since the proof's play-test), step 3 under way: the room kit redone in code in the new style, its proof built (the fire objects and the crypt's floor and walls, the old look behind `DEV.roomKit`) and waiting on the owner; code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -206,7 +206,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `__game.spellFx` reads what shows (the lance, rings, lightning); `hideSpellFx` returns them all to their pools. `docs/effects.md` is the guide for new effects. Both
   galleries build from `src/render/arcane.ts`: materials, parts, rods, runes, rune rings, magic circles, crystals, motes,
   lightning and waves.
-- The pixel look (the game's look since 2026-09-30, on by default at 540 lines, `CFG.pixelLook.start`; chosen in M3.5
+- The pixel look (the game's look since 2026-09-30, on by default at 1080 lines, `CFG.pixelLook.start`; chosen in M3.5
   step 2; `src/render/pixelLook.ts`, tuning in `CFG.pixelLook`): the scene drawn into
   a target of at most 1080, 720, 540, 360 or 270 lines (a game pixel a whole number of screen pixels, rounded up, so a
   smaller window keeps the look at fewer rows; `drawnRows()` and the dev menu say how many) with no smoothing, the camera snapped to its grid, and blown up to the window in
@@ -365,7 +365,7 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
   urns, chests.
 - **M3 Magic:** mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room.
 - **M3.5 The look:** the asset pipeline's tooling (for special models from Tripo: the mage, bosses where wanted), the
-  pixel look (540 lines), and the room kit redone in code in the style of the spell effects (the owner's decision
+  pixel look (1080 lines by default), and the room kit redone in code in the style of the spell effects (the owner's decision
   2026-09-30: code, not Tripo, for everything else); steps and checks in `docs/M3.5-plan.md`.
 - **M3.6 Rooms of Eda** (from the first play-test; runs beside M3.5): carved outlines, dressed walls, doors off
   the middle, themed rooms, new objects and piles, mechanisms that answer to magic; steps in `docs/M3.6-plan.md`.

@@ -124,15 +124,15 @@ export const CFG = {
     witchKnot: { costMul: 0.8 },                                        // Witch's Knot: spell costs at half health or below
   },
   // the pixel look (render/pixelLook.ts, the game's look since 2026-09-30): the rows of pixels it offers and the one it
-  // starts at (540 since the second play-test of 2026-09-30: at 270, then 360, the mage and small things didn't read
-  // full-screen on a high-resolution monitor). The offers are the rows that fall on whole screen pixels on the owner's
+  // starts at (1080 since the play-test of the room kit's proof, 2026-09-30; 540 before it: at 270, then 360, the mage
+  // and small things didn't read full-screen on a high-resolution monitor). The offers are the rows that fall on whole screen pixels on the owner's
   // screens: 540 draws 540 rows at 1080p and 4K and 480 at 1440p; 720 draws 720 at 1440p and 4K; 1080 draws 1080 on
   // a 4K screen only; 360 and 270 are coarser. Outlines where a nearer surface stands more than outlineGap units before a
   // farther one (darkened by outlineDark), and light bands
-  pixelLook: { lines: [1080, 720, 540, 360, 270], start: 540, outlineGap: 0.3, outlineDark: 0.72, bands: 7 },
+  pixelLook: { lines: [1080, 720, 540, 360, 270], start: 1080, outlineGap: 0.3, outlineDark: 0.72, bands: 7 },
   // the room kit's floors and walls (render/pixelTextures.ts, M3.5 step 3): texels to a unit across and down the screen.
   // At 540 lines a one-cell room shows a unit as about 62 × 44 pixels (the floor seen from 45° above), a great hall as
-  // 50 × 35; 48 × 34 keeps a texel square on screen and at least a pixel in both
+  // 50 × 35; 48 × 34 keeps a texel square on screen and at least a pixel in both (at 1080 lines a texel is 2 to 3)
   roomKit: { texel: [48, 34] as [number, number] },
   // the spells' looks (magic/spellFx.ts, docs/effects.md), in seconds unless said: the Cinder Lance (how long it shows,
   // how quickly it swells to full, when it starts to fade, how long the rune ring at the hand flares, the space between
