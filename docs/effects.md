@@ -102,6 +102,33 @@ The target is 60 fps on integrated graphics (CLAUDE.md, Working agreements).
 - **Clean up.** Whatever isn't pooled is disposed when it goes (`disposeTree`). The mage leaving a room clears it all
   (`clearSpellFx`).
 
+## The room kit (M3.5 step 3)
+
+The room's pieces follow this style too, starting with the proof: the fire objects and the crypt's floor and walls
+(`docs/M3.5-plan.md`).
+
+- **Fire** is `makeFire` in `src/render/fire.ts`. Give it the flames (base, height, width, tongues) and a palette
+  (`firePalette(flame, light)`); it returns a group that moves by itself. Show or hide the group; never scale it from
+  outside. The layers:
+  - a core painted over a sheath of the fire's colour;
+  - a faint red edge of added light;
+  - embers rising.
+  Don't make the sheath added light: in front of a torch-lit wall, added layers go white.
+- **Build objects upright.** The camera looks down at 45°, so whatever leans out towards it drops down the screen. A wall
+  torch's flame goes above its bracket and close to the wall.
+- **Paint still pieces** (`paint(color)` in `render/materials.ts`, not a material each). `mergeStill` bakes them into one
+  mesh, so an object's still body is one draw call. Only what moves, lights up or glows keeps its own mesh, named in
+  `userData.parts`.
+- **Floors and walls are pixel art at the game's pixel size**, drawn texel by texel in `src/render/pixelTextures.ts`
+  (`CFG.roomKit.texel`, 48 × 34 texels a unit):
+  - bevels one or two texels deep;
+  - soft things (stains, damp, darkening) in ordered dither, never gradients;
+  - small sprites for bones and skulls;
+  - marks drawn with the canvas, then hardened into whole texels.
+  Sample them nearest (`magFilter`), so the texels stay crisp.
+- **Budget:** a wall light or a brazier costs about 3 draw calls for its fire, 1 for its body and 1 for its glow. A room
+  at rest stays within about 10 calls of the old look.
+
 ## How to add an effect
 
 1. **Try it in the gallery.** Add a demo to `effectOptions.ts`: a looping `play(t)` worked out from the time alone,

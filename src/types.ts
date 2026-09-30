@@ -63,7 +63,7 @@ export interface WareSpot {
   /** The price its tag shows (the Pedlar's Scale lowers it). */ tagPrice?: number;
 }
 /** A wall light; dark rooms have their torches out (`lit` false). (x, z) is where its light sits. */
-export interface Torch { flame: THREE.Mesh; glow: THREE.Sprite; x: number; z: number; lit: boolean }
+export interface Torch { flame: THREE.Object3D; glow: THREE.Sprite; x: number; z: number; lit: boolean }
 /** A rock collider; Mason's Chisel breaks breakable ones. Pedestals, pillars and tombs are unbreakable "rocks";
     urns are "rocks" any bolt breaks, and rune-sealed ones only a blast. */
 export interface RockBox extends Box { hp: number; breakable: boolean; mesh?: THREE.Object3D; tile?: { c: number; r: number }; urn?: 'plain' | 'sealed'; prop?: PropState }

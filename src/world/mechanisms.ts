@@ -17,7 +17,7 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Bolt, PropBox, Room } from '../types';
-import { G, player } from '../state';
+import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { M, blob, glow, markShared } from '../render/materials';
@@ -36,6 +36,7 @@ import { freeSpotNear } from './rooms';
 import { addPool, fireAt } from './pools';
 import { removeProp } from './props';
 import type { MechanismKind } from './propData';
+import { RUNE_LIT, brazierLook, candleStandLook } from './fireLooks';
 
 const C = CFG.mech;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, GOLD = 0xffd98a;
@@ -73,6 +74,7 @@ const withParts = (g: THREE.Group, parts: Record<string, THREE.Object3D>) => { g
 type Look = (R: () => number, len: number) => THREE.Group;
 export const MECH_LOOKS: Record<MechanismKind, Look> = {
   brazier() { // an iron bowl of coals on three legs; its fire shows once lit
+    if (DEV.roomKit) { const k = brazierLook(); return withParts(k.group, k.parts); }
     const g = new THREE.Group();
     for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2, l = mesh(GEO.leg, MAT.iron, Math.cos(a) * .18, .3, Math.sin(a) * .18); l.rotation.set(Math.sin(a) * .25, 0, -Math.cos(a) * .25); g.add(l); }
     const bowl = mesh(GEO.bowl, MAT.iron, 0, .66, 0), coals = mesh(GEO.coals, MAT.coals, 0, .68, 0); coals.scale.y = .45;
@@ -83,6 +85,7 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
     return withParts(g, { flame, glow: gl });
   },
   candles(R) { // an iron stand with a dish of candles; lit one by one by fire
+    if (DEV.roomKit) { const k = candleStandLook(R); return withParts(k.group, k.parts); }
     const g = new THREE.Group(), flames = new THREE.Group();
     g.add(mesh(GEO.foot, MAT.iron, 0, .03, 0), mesh(GEO.pole, MAT.iron, 0, .42, 0), mesh(GEO.dish, MAT.iron, 0, .78, 0)); // waist-high: bolts fly over it
     for (let i = 0; i < 3; i++) {
@@ -199,6 +202,7 @@ function light(room: Room, box: PropBox) {
   if (p.parts?.flame) p.parts.flame.visible = true;
   if (p.parts?.glow) p.parts.glow.visible = true;
   if (p.parts?.flames) p.parts.flames.visible = true;
+  if (p.parts?.runes) ((p.parts.runes as THREE.Mesh).material as THREE.MeshBasicMaterial).color.setHex(RUNE_LIT); // the brazier's runes kindle
   burst(box.x, 1, box.z, FIRE, 6, 1.6, .05); Sfx.at(box.x, box.z).catchFire();
   if (p.kind === 'candles') checkCandles(room);
 }
@@ -314,7 +318,7 @@ export function updateMechanisms(dt: number) {
   for (const box of room.props ?? []) {
     const p = box.prop;
     if (p.cd && p.cd > 0) p.cd = Math.max(0, p.cd - dt);
-    if (p.kind === 'brazier' && p.lit && p.parts?.flame) { p.parts.flame.scale.set(1, .85 + Math.sin(G.simClock * 17 + box.x) * .15, 1); if (Math.random() < dt * 4) riseMote(box.x, 1.1, box.z, EMBER, .4); }
+    if (p.kind === 'brazier' && p.lit && p.parts?.flame && !p.parts.flame.userData.fire) { p.parts.flame.scale.set(1, .85 + Math.sin(G.simClock * 17 + box.x) * .15, 1); if (Math.random() < dt * 4) riseMote(box.x, 1.1, box.z, EMBER, .4); }
     if (p.kind === 'bell' && p.parts?.swing) { p.t = (p.t ?? 99) + dt; p.parts.swing.rotation.z = Math.sin(p.t * 9) * .35 * Math.exp(-p.t * 1.2); }
     if (p.kind === 'censer' && p.parts?.swing) p.parts.swing.rotation.z = Math.sin(G.simClock * 1.3 + box.x) * .016; // (a long chain: a small swing)
     if (p.kind === 'lodestone' && p.parts?.tip) (p.parts.tip as THREE.Sprite).material.opacity = .25 + .5 * (p.cd ?? 0) / C.lodeCooldown + Math.sin(G.simClock * 3 + box.z) * .1;

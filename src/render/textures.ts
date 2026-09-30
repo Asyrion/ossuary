@@ -137,7 +137,10 @@ export function pitTexture() {
   pitTex = canvasTex(c); return pitTex;
 }
 
-const floorCache = new Map<string, THREE.CanvasTexture>();
+const floorCache = new Map<string, THREE.Texture>();
+/** A floor texture made elsewhere (the room kit's), kept and freed with the others. */
+export const cachedFloor = (key: string) => floorCache.get(key);
+export function cacheFloor<T extends THREE.Texture>(key: string, t: T) { floorCache.set(key, t); return t; }
 /** Floor textures are cached per room seed; call between floors to free them. */
 export function clearFloorTextures() { for (const t of floorCache.values()) t.dispose(); floorCache.clear(); for (const t of floorOwned) t.dispose(); floorOwned.length = 0; }
 const floorOwned: THREE.Texture[] = [];
@@ -220,38 +223,57 @@ export function floorTexture(seed: number, kind: RoomType, look: FloorLook, mask
     if (col > 0 && !inside(col - 1, r)) { g.fillStyle = edge(x, 0, x + e1, 0); g.fillRect(x, y, e1, P); }
     if (col < W - 1 && !inside(col + 1, r)) { g.fillStyle = edge(x + P, 0, x + P - e1, 0); g.fillRect(x + P - e1, y, e1, P); }
   }
-  if (kind === 'start') drawChalk(g, P);
-  g.save(); g.translate(cw / 2, ch / 2); g.scale(S, S);
+  drawMarks(kind, cw, ch, P, R, (_rgb, _a, draw) => draw(g));
+  const t = canvasTex(c); floorCache.set(key, t); return t;
+}
+
+/** How a floor's marks are laid down: `draw` strokes and fills in the colour `rgb` at `alpha` (the old floor draws
+    straight onto its canvas; the room kit's hardens every mark into whole texels). `dither` is for soft fills. */
+export type Ink = (rgb: string, alpha: number, draw: (g: Ctx) => void, dither?: boolean) => void;
+const inkIn = (g: Ctx, rgb: string, alpha: number) => { g.fillStyle = g.strokeStyle = `rgba(${rgb},${alpha})`; };
+
+/** The marks on a special room's floor, over a canvas `cw` × `ch` with `P` to a tile: the controls chalked in the first
+    room, the ordeal's square, the altar's circle, the forgotten mage's runes and pages, the boss's rings. */
+export function drawMarks(kind: RoomType, cw: number, ch: number, P: number, R: () => number, ink: Ink) {
+  const S = P / 72;
+  if (kind === 'start') ink('230,220,200', .5, g => drawChalk(g, P));
+  const at = (g: Ctx) => { g.translate(cw / 2, ch / 2); g.scale(S, S); };
   if (kind === 'ordeal') { // an engraved square with three notches, one per possible wave
-    g.strokeStyle = 'rgba(10,8,8,.55)'; g.lineWidth = 5;
-    g.strokeRect(-130, -110, 260, 220); g.strokeStyle = 'rgba(200,190,170,.12)'; g.lineWidth = 2; g.strokeRect(-124, -104, 248, 208);
-    for (const x of [-40, 0, 40]) { g.fillStyle = 'rgba(10,8,8,.5)'; g.fillRect(x - 6, -128, 12, 22); }
+    ink('10,8,8', .55, g => { g.save(); at(g); inkIn(g, '10,8,8', .55); g.lineWidth = 5; g.strokeRect(-130, -110, 260, 220); g.restore(); });
+    ink('200,190,170', .12, g => { g.save(); at(g); inkIn(g, '200,190,170', .12); g.lineWidth = 2; g.strokeRect(-124, -104, 248, 208); g.restore(); });
+    ink('10,8,8', .5, g => { g.save(); at(g); inkIn(g, '10,8,8', .5); for (const x of [-40, 0, 40]) g.fillRect(x - 6, -128, 12, 22); g.restore(); });
   }
   if (kind === 'altar') { // a bone-chalk circle stained dark at its heart
-    const gr = g.createRadialGradient(0, 0, 0, 0, 0, 110); gr.addColorStop(0, 'rgba(60,8,6,.5)'); gr.addColorStop(1, 'rgba(60,8,6,0)');
-    g.fillStyle = gr; g.fillRect(-110, -110, 220, 220);
-    g.strokeStyle = 'rgba(225,212,188,.3)'; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, 140, 0, 7); g.stroke();
-    for (let i = 0; i < 6; i++) { g.rotate(Math.PI / 3); g.beginPath(); g.moveTo(0, -140); g.lineTo(0, -160); g.stroke(); }
+    ink('60,8,6', .5, g => {
+      g.save(); at(g); const gr = g.createRadialGradient(0, 0, 0, 0, 0, 110); gr.addColorStop(0, 'rgba(60,8,6,.5)'); gr.addColorStop(1, 'rgba(60,8,6,0)');
+      g.fillStyle = gr; g.fillRect(-110, -110, 220, 220); g.restore();
+    }, true);
+    ink('225,212,188', .3, g => {
+      g.save(); at(g); inkIn(g, '225,212,188', .3); g.lineWidth = 3; g.beginPath(); g.arc(0, 0, 140, 0, 7); g.stroke();
+      for (let i = 0; i < 6; i++) { g.rotate(Math.PI / 3); g.beginPath(); g.moveTo(0, -140); g.lineTo(0, -160); g.stroke(); }
+      g.restore();
+    });
   }
   if (kind === 'secret') { // a forgotten mage's work: a faded circle of runes in pale blue chalk, and loose pages
-    g.strokeStyle = 'rgba(150,190,255,.28)'; g.lineWidth = 3;
-    g.beginPath(); g.arc(0, 0, 150, 0, 7); g.stroke(); g.beginPath(); g.arc(0, 0, 128, 0, 7); g.stroke();
-    g.save(); g.scale(.5, .5); drawRune(g, 200); g.restore();
-    for (let i = 0; i < 12; i++) { g.rotate(Math.PI / 6); g.beginPath(); g.moveTo(-6, -139); g.lineTo(6, -139); g.moveTo(0, -145); g.lineTo(0, -133); g.stroke(); }
-    for (let k = 0; k < 7; k++) {
-      g.save(); g.translate((R() - .5) * 700, (R() - .5) * 380); g.rotate(R() * 6);
-      g.fillStyle = 'rgba(214,204,178,.32)'; g.fillRect(-14, -18, 28, 36);
-      g.fillStyle = 'rgba(40,34,30,.35)'; for (let l = 0; l < 5; l++) g.fillRect(-10, -12 + l * 6, 16 + R() * 4, 1.5);
+    ink('150,190,255', .28, g => {
+      g.save(); at(g); inkIn(g, '150,190,255', .28); g.lineWidth = 3;
+      g.beginPath(); g.arc(0, 0, 150, 0, 7); g.stroke(); g.beginPath(); g.arc(0, 0, 128, 0, 7); g.stroke();
+      g.save(); g.scale(.5, .5); drawRune(g, 200); g.restore();
+      for (let i = 0; i < 12; i++) { g.rotate(Math.PI / 6); g.beginPath(); g.moveTo(-6, -139); g.lineTo(6, -139); g.moveTo(0, -145); g.lineTo(0, -133); g.stroke(); }
       g.restore();
-    }
+    });
+    const pages = Array.from({ length: 7 }, () => { const x = (R() - .5) * 700, y = (R() - .5) * 380, a = R() * 6; return { x, y, a, lines: Array.from({ length: 5 }, () => 16 + R() * 4) }; });
+    ink('214,204,178', .32, g => { g.save(); at(g); inkIn(g, '214,204,178', .32); for (const p of pages) { g.save(); g.translate(p.x, p.y); g.rotate(p.a); g.fillRect(-14, -18, 28, 36); g.restore(); } g.restore(); });
+    ink('40,34,30', .35, g => { g.save(); at(g); inkIn(g, '40,34,30', .35); for (const p of pages) { g.save(); g.translate(p.x, p.y); g.rotate(p.a); p.lines.forEach((w, l) => g.fillRect(-10, -12 + l * 6, w, 1.5)); g.restore(); } g.restore(); });
   }
   if (kind === 'boss') {
-    g.strokeStyle = 'rgba(140,30,20,.35)'; g.lineWidth = 4;
-    g.beginPath(); g.arc(0, 0, 150, 0, 7); g.stroke(); g.beginPath(); g.arc(0, 0, 120, 0, 7); g.stroke();
-    for (let i = 0; i < 8; i++) { g.rotate(Math.PI / 4); g.beginPath(); g.moveTo(0, -120); g.lineTo(0, -150); g.stroke(); }
+    ink('140,30,20', .35, g => {
+      g.save(); at(g); inkIn(g, '140,30,20', .35); g.lineWidth = 4;
+      g.beginPath(); g.arc(0, 0, 150, 0, 7); g.stroke(); g.beginPath(); g.arc(0, 0, 120, 0, 7); g.stroke();
+      for (let i = 0; i < 8; i++) { g.rotate(Math.PI / 4); g.beginPath(); g.moveTo(0, -120); g.lineTo(0, -150); g.stroke(); }
+      g.restore();
+    });
   }
-  g.restore();
-  const t = canvasTex(c); floorCache.set(key, t); return t;
 }
 
 /** The controls chalked on the floor of the first room, in Cinzel capitals; arrows are drawn as strokes. */

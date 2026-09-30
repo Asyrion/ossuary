@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { FloorLook } from '../types';
 import { brickTexture, glowTex, shadowTex } from './textures';
+import { pixelBrickTexture } from './pixelTextures';
 
 /** Box whose UVs are scaled by face size, so the brick texture tiles at 1 repeat per unit. */
 export function boxUV(w: number, h: number, d: number) {
@@ -43,11 +44,12 @@ export function markShared<T extends { userData: Record<string, unknown> }>(o: T
 for (const m of [M.wallTop, M.threshold, M.rock, M.stone, M.tomb, M.clay, M.urnStone, M.urnLid, M.ward, M.iron, M.gate, M.hero, M.bone, ...Object.values(M.frame)]) markShared(m);
 
 const wallCache = new Map<string, THREE.Material[]>();
-/** Box materials for walls in a floor's look (brick sides, dark tops), shared by every room of that look. */
-export function wallMaterials(wall: FloorLook['wall']) {
-  const key = JSON.stringify(wall); let mats = wallCache.get(key);
+/** Box materials for walls in a floor's look (brick sides, dark tops), shared by every room of that look; `kit` for the
+    room kit's pixel bricks. */
+export function wallMaterials(wall: FloorLook['wall'], kit = false) {
+  const key = JSON.stringify(wall) + kit; let mats = wallCache.get(key);
   if (!mats) {
-    const brick = markShared(new THREE.MeshStandardMaterial({ map: brickTexture(wall), roughness: .95 }));
+    const brick = markShared(new THREE.MeshStandardMaterial({ map: kit ? pixelBrickTexture(wall) : brickTexture(wall), roughness: .95 }));
     mats = [brick, brick, M.wallTop, M.wallTop, brick, brick]; wallCache.set(key, mats);
   }
   return mats;
@@ -56,10 +58,10 @@ export function wallMaterials(wall: FloorLook['wall']) {
 const cappedCache = new Map<string, THREE.Material[]>();
 /** Walls carved inside a room (a partition, a pier, a cut corner): brick sides under a cap of dressed stone, so a
     low one reads as masonry rather than a hole in the floor. */
-export function cappedWallMaterials(wall: FloorLook['wall']) {
-  const key = JSON.stringify(wall); let mats = cappedCache.get(key);
+export function cappedWallMaterials(wall: FloorLook['wall'], kit = false) {
+  const key = JSON.stringify(wall) + kit; let mats = cappedCache.get(key);
   if (!mats) {
-    const [brick] = wallMaterials(wall), [r, g, b] = wall.brick.map(v => Math.min(255, Math.round(v * .6)));
+    const [brick] = wallMaterials(wall, kit), [r, g, b] = wall.brick.map(v => Math.min(255, Math.round(v * .6)));
     const cap = markShared(new THREE.MeshStandardMaterial({ color: new THREE.Color(`rgb(${r},${g},${b})`), roughness: .9 }));
     mats = [brick, brick, cap, cap, brick, brick]; cappedCache.set(key, mats);
   }
@@ -92,33 +94,57 @@ export function glow(color: number, size: number, opacity = 1) {
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false }));
   s.scale.set(size, size, 1); return s;
 }
+/** The room kit's still surfaces (M3.5 step 3): one material for all of them, each piece's colour painted into its
+    vertices (`paint`), so an object's still body draws in one call whatever it is made of. */
+export const KIT_MAT = markShared(new THREE.MeshStandardMaterial({ vertexColors: true, roughness: .7, metalness: .3, flatShading: true }));
+/** A colour for the room kit's pieces: a material that only names the colour; `mergeStill` paints it into the vertices
+    and draws the piece with `KIT_MAT`. */
+export const paint = (color: number) => { const m = new THREE.MeshStandardMaterial({ color, flatShading: true }); m.userData.paint = true; return markShared(m); };
+
 /** Fewer draw calls for an object built from many small meshes: its still meshes that share a material are joined into
-    one mesh each. The parts named in `root.userData.parts` (flames, glows, a bell's swing...) and everything under them
-    stay as they are, and so do sprites. Build the object at the origin, then call this, then place it. */
+    one mesh each, and those painted in the room kit's colours (`paint`) into one mesh together. The parts named in
+    `root.userData.parts` (flames, glows, a bell's swing...) and everything under them stay as they are, and so do
+    sprites. Build the object at the origin, then call this, then place it. */
 export function mergeStill(root: THREE.Object3D) {
   const keep = new Set<THREE.Object3D>(Object.values((root.userData.parts ?? {}) as Record<string, THREE.Object3D>));
   root.updateMatrixWorld(true);
-  const toRoot = root.matrixWorld.clone().invert(), byMat = new Map<THREE.Material, THREE.Mesh[]>();
+  const toRoot = root.matrixWorld.clone().invert(), byMat = new Map<THREE.Material, THREE.Mesh[]>(), painted: THREE.Mesh[] = [];
   const walk = (o: THREE.Object3D) => {
     if (keep.has(o)) return;
     const m = o as THREE.Mesh;
     if (!o.visible) return; // (a hidden piece stays hidden)
     if (m.isMesh && !(o as THREE.Sprite).isSprite && !Array.isArray(m.material) && !o.children.length) { // (one material: a geometry's groups don't matter)
-      const list = byMat.get(m.material) ?? []; list.push(m); byMat.set(m.material, list);
+      if (m.material.userData.paint) painted.push(m);
+      else { const list = byMat.get(m.material) ?? []; list.push(m); byMat.set(m.material, list); }
     }
     for (const c of o.children) walk(c);
   };
   walk(root);
+  const place = (m: THREE.Mesh, g: THREE.BufferGeometry) => { g.clearGroups(); g.applyMatrix4(toRoot.clone().multiply(m.matrixWorld)); return g; };
+  const retire = (meshes: THREE.Mesh[]) => { for (const m of meshes) { m.parent?.remove(m); if (!m.geometry.userData.shared) m.geometry.dispose(); } };
   for (const [mat, meshes] of byMat) {
     if (meshes.length < 2) continue;
-    const geos = meshes.map(m => { const g = m.geometry.clone(); g.clearGroups(); g.applyMatrix4(toRoot.clone().multiply(m.matrixWorld)); return g; });
+    const geos = meshes.map(m => place(m, m.geometry.clone()));
     const attrs = (g: THREE.BufferGeometry) => Object.keys(g.attributes).sort().join();
     const alike = geos.every(g => attrs(g) === attrs(geos[0]) && !g.index === !geos[0].index);
     const merged = alike ? mergeGeometries(geos) : null;
     for (const g of geos) g.dispose();
     if (!merged) continue; // (attributes or indexing that don't match: leave them apart)
     const one = new THREE.Mesh(merged, mat); one.renderOrder = meshes[0].renderOrder; root.add(one);
-    for (const m of meshes) { m.parent?.remove(m); if (!m.geometry.userData.shared) m.geometry.dispose(); }
+    retire(meshes);
+  }
+  if (painted.length) { // every painted piece in one: positions and normals, and its colour in each vertex
+    const geos = painted.map(m => {
+      const g = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
+      for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k);
+      const c = (m.material as THREE.MeshStandardMaterial).color, n = g.attributes.position.count, col = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) col.set([c.r, c.g, c.b], i * 3);
+      g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      return place(m, g);
+    });
+    const one = new THREE.Mesh(mergeGeometries(geos)!, KIT_MAT); root.add(one);
+    for (const g of geos) g.dispose();
+    retire(painted);
   }
 }
 

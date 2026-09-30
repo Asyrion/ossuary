@@ -1658,6 +1658,42 @@ test('made assets: missing and broken files, and ?assets=off, leave the placehol
   expect(errors).toEqual([]); expect(off).toEqual([]);
 });
 
+test('the room kit: torches, braziers and candle stands built in code, the crypt\'s floor and walls in pixel art, and the old look to compare', async ({ page }) => {
+  type Mat = { map?: { magFilter: number } };
+  type O = { userData: Record<string, unknown>; visible: boolean; traverse(f: (o: O & { material?: Mat | Mat[] }) => void): void };
+  type Box = { x: number; z: number; prop: { kind: string; lit?: boolean; parts?: Record<string, O & { material?: { color: { getHex(): number } } }> } };
+  type GR = { sim(sec: number, draw?: boolean): void; roomKit: boolean; useRoomKit(on: boolean): void; prop(kind: string, x: number, z: number): boolean;
+    burn(x: number, z: number, r?: number): void; renderInfo(): { calls: number };
+    current: { group: O; torches: { flame: O; lit: boolean }[]; props?: Box[] }; player: { x: number; z: number } };
+  const errors = await start(page, '?seed=K3F9QX');
+  const look = () => page.evaluate(() => {
+    const g = (window as unknown as { __game: GR }).__game, p = g.player;
+    g.prop('brazier', p.x - 1.5, p.z - 1.8); g.prop('candles', p.x + 1.5, p.z - 1.8);
+    for (const b of g.current.props ?? []) g.burn(b.x, b.z, .3);
+    g.sim(.6, true);
+    let nearest = 0; g.current.group.traverse(o => { if ([o.material ?? []].flat().some(m => m.map?.magFilter === 1003)) nearest++; }); // (NearestFilter: the pixel floor and walls)
+    const brazier = g.current.props!.find(b => b.prop.kind === 'brazier')!, stand = g.current.props!.find(b => b.prop.kind === 'candles')!;
+    return {
+      kit: g.roomKit, nearest, torches: g.current.torches.length, fire: g.current.torches.every(t => !!t.flame.userData.fire),
+      brazier: { lit: !!brazier.prop.lit, fire: !!brazier.prop.parts?.flame.userData.fire, runes: brazier.prop.parts?.runes?.material?.color.getHex() ?? null },
+      stand: { lit: !!stand.prop.lit, shown: !!stand.prop.parts?.flames.visible }, calls: g.renderInfo().calls,
+    };
+  });
+  const kit = await look();
+  expect(kit).toMatchObject({ kit: true, fire: true, brazier: { lit: true, fire: true, runes: 0xffa040 }, stand: { lit: true, shown: true } });
+  expect(kit.torches).toBeGreaterThan(0);
+  expect(kit.nearest).toBeGreaterThanOrEqual(2); // (the floor, and the walls)
+  await page.screenshot({ path: 'test-results/room-kit.png' });
+  // off: the floor is built again in the old look
+  await page.evaluate(() => (window as unknown as { __game: GR }).__game.useRoomKit(false));
+  const old = await look();
+  expect(old).toMatchObject({ kit: false, nearest: 0, fire: false, brazier: { lit: true, fire: false, runes: null }, stand: { lit: true, shown: true } });
+  // and ?kit=old starts in the old look
+  const again = await start(page, '?seed=K3F9QX&kit=old');
+  expect(await page.evaluate(() => (window as unknown as { __game: GR }).__game.roomKit)).toBe(false);
+  expect(errors).toEqual([]); expect(again).toEqual([]);
+});
+
 test('the pixel look: on from the URL, drawn with outlines and light in bands, then off again, and the enemy and spell effect options, without errors', async ({ page }) => {
   type Look = { lines: number; outline: boolean; bands: boolean };
   type GP = { sim(sec: number, draw?: boolean): void; pixelLook: Look; setPixelLook(l: Partial<Look>): void; renderInfo(): { calls: number } };
