@@ -1,4 +1,5 @@
-/* Bosses: placeholder primitive shapes until the Tripo bosses (M4). A floor draws its boss from the pool
+/* Bosses: the Hollow Warden built in code (M4: one of three looks, bossLooks.ts, for the owner to choose); the others
+   placeholder primitive shapes until theirs are built. A floor draws its boss from the pool
    in data/floors.json, never one the run has already met; the floor's boss block scales its health,
    speed and shot speed, how many foes it calls and how often it repeats its aimed attack.
 
@@ -26,11 +27,16 @@ import { spawnShot } from '../combat/projectiles';
 import { burst } from '../combat/fx';
 import { banner } from '../ui/hud';
 import { makeEnemy, stdMat } from './enemies';
+import { bossLook, buildBossLook } from './bossLooks';
+import { mergeRig } from '../render/rig';
+import { SCHOOL_LIGHT } from '../render/arcane';
 import { ease, lerp } from '../util';
 
 type Add = (geo: THREE.BufferGeometry, mat: THREE.Material, px: number, py: number, pz: number, sx?: number, sy?: number, sz?: number) => THREE.Mesh;
 
 const SHOT = { warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a };
+/** A boss's shots: in its school's light when it is built in code, else its own colour. */
+const shotColor = (e: Enemy) => e.bossSchool ? SCHOOL_LIGHT[e.bossSchool] : SHOT[e.type as BossType];
 /** Who each boss calls below half health. */
 const SUMMONS: Record<BossType, Role> = { warden: 'R', abbess: 'W', pyre: 'H' };
 
@@ -44,17 +50,12 @@ function floorRing(e: Enemy, color: number, radius: number) {
 /** Build a boss's body and set its first state. */
 export function buildBoss(e: Enemy, add: Add) {
   e.contact = 2; e.isBoss = true; e.cycle = 0; e.summoned = false;
-  if (e.type === 'warden') {
-    const iron = stdMat(0x3d3b42, { metalness: .6, roughness: .45 }), dark = stdMat(0x1e1c20, { metalness: .4 }), bone = stdMat(0xcfc2a6);
-    add(new THREE.CylinderGeometry(.5, .78, 1.4, 8), iron, 0, .72, 0);
-    add(new THREE.SphereGeometry(.34, 10, 8), iron, -.6, 1.35, 0, 1, .8, 1); add(new THREE.SphereGeometry(.34, 10, 8), iron, .6, 1.35, 0, 1, .8, 1);
-    add(new THREE.CylinderGeometry(.28, .34, .5, 6), dark, 0, 1.7, 0);
-    add(new THREE.ConeGeometry(.09, .45, 6), bone, -.26, 2.02, 0).rotation.z = .5;
-    add(new THREE.ConeGeometry(.09, .45, 6), bone, .26, 2.02, 0).rotation.z = -.5;
-    e.eye = add(new THREE.BoxGeometry(.36, .06, .05), new THREE.MeshBasicMaterial({ color: 0xff5a2a }), 0, 1.74, .3);
-    e.ring = new THREE.Mesh(new THREE.TorusGeometry(.55, .035, 6, 32), new THREE.MeshBasicMaterial({ color: 0xff6a3a, transparent: true, opacity: .8 }));
-    e.ring.position.set(0, 1.75, -.25); e.body.add(e.ring);
-    e.halo = glow(0xff4a1a, 2.2, .35); e.halo.position.set(0, 1.7, -.2); e.body.add(e.halo);
+  if (e.type === 'warden') { // built in code (M4): the look chosen in the dev menu (bossLooks.ts), its still parts merged
+    const id = bossLook(), L = buildBossLook(id);
+    e.mats = mergeRig(L.group, L.idle, 'boss:' + id, [L.parts.eye, L.parts.ring]);
+    for (const m of e.mats) m.userData.base = m.emissive.clone();
+    e.model = L.group; e.idle = L.idle; e.shadow = L.shadow; e.bossSchool = L.school; e.body.add(L.group);
+    e.eye = L.parts.eye; e.ring = L.parts.ring; e.halo = L.parts.halo;
     e.state = 'walk'; e.st = 2.2;
   } else if (e.type === 'abbess') {
     // a drowned nun: a bell of wet robes, a veiled pale face, a verdigris halo, lamp-green eyes
@@ -104,14 +105,14 @@ function callHelp(e: Enemy) {
 }
 
 function ringOfShots(e: Enemy, n: number, speed: number, offset: number, size = 1.25) {
-  for (let i = 0; i < n; i++) { const a = offset + i / n * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(a), Math.sin(a), speed, SHOT[e.type as BossType], .9, size); }
+  for (let i = 0; i < n; i++) { const a = offset + i / n * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(a), Math.sin(a), speed, shotColor(e), .9, size); }
 }
 /** `count` shots spread over `spread` radians around the direction to the mage. */
 function fan(e: Enemy, count: number, spread: number, speed: number, turn: number, from = .8) {
   const base = Math.atan2(player.z - e.z, player.x - e.x) + turn, ux = Math.cos(base), uz = Math.sin(base);
   for (let i = 0; i < count; i++) {
     const a = base + (count > 1 ? (i / (count - 1) - .5) * spread : 0);
-    spawnShot(e.x + ux * from, e.z + uz * from, Math.cos(a), Math.sin(a), speed, SHOT[e.type as BossType], 1, 1.1);
+    spawnShot(e.x + ux * from, e.z + uz * from, Math.cos(a), Math.sin(a), speed, shotColor(e), 1, 1.1);
   }
 }
 /** A second ring a moment later, if the boss is still alive and the fight still on. */
@@ -146,13 +147,15 @@ function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
   const speed = C.speed * (B?.speedMul ?? 1), shotMul = B?.shotSpeedMul ?? 1;
   const hpFrac = e.hp / e.maxHp;
   const ring = e.ring!, eye = e.eye!, halo = e.halo!;
+  e.idle?.(e.t); // (a look built in code lives: it blinks, sways, sheds its motes)
   ring.rotation.z += dt * (e.state.startsWith('wind') ? 6 : 1.2);
   if (e.state === 'walk') {
     e.vx = ux * speed * (hpFrac < .5 ? 1.25 : 1); e.vz = uz * speed * (hpFrac < .5 ? 1.25 : 1);
     e.body.position.y = Math.abs(Math.sin(e.t * 4)) * .05; eye.scale.set(1, 1, 1); halo.material.opacity = .35;
     if (e.st <= 0) { e.cycle = e.cycle! + 1; e.state = e.cycle % 2 ? 'windBurst' : 'windAim'; e.st = e.state === 'windBurst' ? .75 : .5; }
   } else if (e.state === 'windBurst' || e.state === 'windAim') {
-    e.vx = e.vz = 0; const k = 1 - e.st / .75; halo.material.opacity = .35 + k * .6; eye.scale.set(1 + k, 1 + k * 2, 1);
+    e.vx = e.vz = 0; const k = 1 - e.st / .75; halo.material.opacity = .35 + k * .6;
+    eye.scale.setScalar(1 + k * .6); // (its great eyes widen)
     e.body.position.y = 0; e.body.position.x = Math.sin(e.t * 50) * .02;
     if (e.st <= 0) {
       e.body.position.x = 0;

@@ -54,9 +54,8 @@ export function rune(parent: THREE.Object3D, color: number, at: V3, s = .1, rot:
   return g;
 }
 /** A thin ring with runes standing round it (turn it with `rot`; spin it as it plays). Lies flat (in XZ) unless turned. */
-export function runeRing(parent: THREE.Object3D, color: number, radius: number, at: V3, count = 6, rot: V3 = [0, 0, 0]) {
+export function runeRing(parent: THREE.Object3D, color: number, radius: number, at: V3, count = 6, rot: V3 = [0, 0, 0], m: THREE.MeshBasicMaterial = shine(color, .8)) {
   const g = new THREE.Group(); g.position.set(...at); g.rotation.set(...rot); parent.add(g);
-  const m = shine(color, .8);
   part(g, new THREE.TorusGeometry(radius, radius * .035, 4, 28), m, [0, 0, 0], { rot: [Math.PI / 2, 0, 0] });
   for (let i = 0; i < count; i++) { const a = i / count * Math.PI * 2; rune(g, color, [Math.cos(a) * radius, 0, Math.sin(a) * radius], radius * .3, [0, -a + Math.PI / 2, 0], m); }
   return g;

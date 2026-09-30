@@ -139,8 +139,9 @@ Combat is Isaac-style: bolts travel in straight lines, drop to the floor at the 
 - Contact and shots cost half a heart; touching a boss costs a full heart.
 
 **Enemies in prototype 0.3** (placeholder shapes; M4 replaced them with the enemies built in code below: the wisp and
-crypt hound are gone, and the rotling is kept only as a plain foe for testing, in no floor's fights; the three bosses
-remain until theirs are built)
+crypt hound are gone, and the rotling is kept only as a plain foe for testing, in no floor's fights; the Hollow Warden
+wears a look built in code, below, and the other two bosses remain until theirs are built; a boss now calls its floor's
+foes rather than the three)
 
 | Enemy | HP | Behaviour | Isaac equivalent |
 | --- | --- | --- | --- |
@@ -174,6 +175,27 @@ creatures rather than the dead: round, big-eyed and smaller than the mage. All t
 
 Behaviour, health, sounds and the affinities (Enemy affinities, below) are M4's to design; a foe's school is a
 starting point for them.
+
+**As built in M4 (2026-09-30; `docs/M4-plan.md` holds the table of health, weaknesses and resistances).** Templates mark
+roles rather than kinds: a walker that comes at the mage, a flyer or shooter that keeps its distance, a charger or heavy;
+each floor fills them from its own foes, weighted, with one elite a room at most. Each foe fights by its look: the
+Sporeling hops and puffs a stinging spore cloud that dims the mage's sight (fire makes it flash); the Vesper Moth loops
+round the mage or round a lit brazier or candle stand and scatters light motes; the Rune Beetle charges when lined up and
+throws a spark when it stuns itself on a wall; the Urn Mimic waits beside the room's urns as one of them and spits embers
+that light oil; the Mire Toad leaps and breathes cold that chills the mage and freezes water; the Cistern Lurker lives
+under water (bringing a pool where the room has none), rises to spit sparks, is hurt through a shocked pool and trapped
+by a frozen one; the Lantern Jelly drifts over rocks and pulses light; the Cinder Salamander zigzags and leaves burning
+ground; the Hex Imp blinks about and throws a hex that drains mana; the Rime Drakeling stalks, breathes rime, and flies
+across the room to land in a ring of frost. Every attack has its tell and a sound in its school's palette. Each foe takes
++50% from its weakness and −50% from its resistance, and the first time the mage finds one the word rises over the foe;
+what it has found is kept between runs for the bestiary.
+
+**The floor-1 boss built in code (M4, 2026-09-30).** The Hollow Warden keeps its fight (it walks, winds up and bursts a
+ring of shots, fires aimed volleys, calls the floor's walkers below half health) and takes one of three looks drawn up
+for the owner, its shots in its school's light: the **Bell Warden** (Storm; a great beetle under an old cracked bronze
+bell), the **Mother of Spores** (Umbral; a mushroom as tall as a door whose young are the Sporelings she calls) and the
+**Hollow Owl** (Hallow; a round barn owl with a crown of candles). The owner chooses one after the play-test (the dev
+menu's Galleries tab stands them and switches the one the Warden wears).
 
 **The Bestiary (M4.5, decided 2026-09-30).** The owner liked the critters and wants a whole host more: small critters,
 fantasy creatures and elementals, and new kinds of enemy behaviour. They come after M4, which builds the enemy
@@ -252,7 +274,7 @@ The mage has three layers of magic: a free cantrip that is always firing, two ac
 | Swift | −30% cooldown, +20% mana cost |
 | Blood | Costs half a heart instead of mana when mana runs out |
 
-**Enemy affinities (RPG layer):** every enemy has one weakness (+50% damage) and one resistance (−50%), shown in the bestiary once discovered. Placeholder examples: Rotlings are weak to Ember; Wisps resist Umbral and are weak to Hallow; the Hollow Warden resists Frost.
+**Enemy affinities (RPG layer):** every enemy has one weakness (+50% damage) and one resistance (−50%), shown in the bestiary once discovered. Placeholder examples: Rotlings are weak to Ember; Wisps resist Umbral and are weak to Hallow; the Hollow Warden resists Frost. As built in M4, each of the ten foes has its pair (`data/foes.json`, the table in `docs/M4-plan.md`); the bosses have none yet.
 
 ## Spells
 

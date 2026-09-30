@@ -261,6 +261,12 @@ export const STR = {
     hexImp: { name: 'Hex Imp', note: 'Floor 3, Umbral: a big-eared imp on bat wings holding up a violet flame; blinks about the room and throws it' },
     rimeDrakeling: { name: 'Rime Drakeling', note: 'Floor 3, Frost (elite): a small dragon with ice crystals for horns and spines; breathes rime and takes to its wings' },
   } as Record<string, { name: string; note: string }>,
+  /** The Hollow Warden's looks built in code (M4, actors/bossLooks.ts), for the owner to choose; placeholder names. */
+  bossLooks: {
+    bellWarden: { name: 'Bell Warden', note: 'Storm: a great beetle under an old cracked bronze bell, peering out from under the lip' },
+    motherOfSpores: { name: 'Mother of Spores', note: 'Umbral: a mushroom as tall as a door, her cap spotted with violet light; the Sporelings she calls are her young' },
+    hollowOwl: { name: 'Hollow Owl', note: 'Hallow: a round barn owl the size of a wardrobe, a crown of candles, wings folded like a cloak' },
+  } as Record<string, { name: string; note: string }>,
   /** Familiar options (actors/modelOptions.ts): the owner's drawings, built in code; placeholder names. */
   familiars: {
     runeFox: { name: 'Rune Fox', note: 'A spectral fox with runes along its flanks and a starry tail (the owner\'s drawing)' },
@@ -297,6 +303,7 @@ export const STR = {
     } as Record<string, string>,
     fpsOn: 'Frame readout: shown', fpsOff: 'Frame readout: hidden',
     artifactGallery: 'Artifacts (the room kit\'s: built in code, their icons rendered from them)', artifactsNote: 'Every artifact floating ahead of the mage in rows (foci, passives, cursed), to look at; they can\'t be taken',
+    bossLooks: 'The Hollow Warden\'s looks (the floor-1 boss, built in code: choose one)', wardenWears: (name: string) => `The Warden wears: ${name}`,
     options: 'Enemy model options (looks only)', familiars: 'Familiar options (looks only)', effects: 'Spell effect options (looks only)', showOptions: 'Stand them here', takeOptions: 'Take them away', floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
     pixel: 'Pixel look', pixelLines: (lines: number, drawn: number) => !lines ? 'Pixels: off' : drawn && drawn !== lines ? `Pixels: ${lines} lines (${drawn} in this window)` : `Pixels: ${lines} lines`,
     outlinesOn: 'Outlines: on', outlinesOff: 'Outlines: off', bandsOn: 'Light in bands: on', bandsOff: 'Light in bands: off',
