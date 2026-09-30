@@ -366,7 +366,7 @@ export function updateProps(dt: number) {
   for (const s of room.spores ?? []) {
     s.t -= dt; s.g.rotation.y += dt * .4; s.g.position.y = Math.sin(s.t * 2) * .05;
     if (s.sting && !s.stung && Math.hypot(player.x - s.x, player.z - s.z) < P.spores.reach * .8) { // a Sporeling's spores sting, and dim the sight
-      s.stung = true; hurtPlayer(1, s.x, s.z); player.dim = Math.max(player.dim, s.sting);
+      if (hurtPlayer(1, s.x, s.z)) { s.stung = true; player.dim = Math.max(player.dim, s.sting); } // (while the mage shrugs off blows, the cloud waits)
     }
     for (const c of s.g.children) ((c as THREE.Mesh).material as THREE.Material).opacity = .35 * Math.min(1, s.t);
     if (s.t <= 0) dropSpores(room, s);

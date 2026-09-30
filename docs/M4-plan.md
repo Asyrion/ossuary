@@ -83,7 +83,12 @@ it; the lurker is shocked through its pool and trapped when it freezes. A foe's 
    calls); its rune ring is in its school's colour rather
    than added light (the halo behind it washed added light to white); the wind-up swells its great eyes evenly (the
    placeholder's slit stretched). Browser test: each look in the fight, its shots' colour, a fight to the end.
-7. **Close:** GDD (as built), CLAUDE.md, the rules reviewer, and a build for the owner (when the owner asks to ship).
+7. **Close** (2026-09-30): the GDD's as-built notes (Combat and enemies), CLAUDE.md, and the rules reviewer, whose findings
+   were fixed: the behaviours' last inline numbers moved into each foe's `params` (the moth's lure and flare range, the
+   beetle's line-up, the drakeling's flights and landing), the affinities and the afflictions' reach into `CFG`
+   (`affinity`, `afflict`), one telegraph colour a school instead of a new one each step, a unit test for `callFoe`, and a
+   chill, a hex or dimmed sight only with a blow that lands. Left for later: each foe merges its model again when it spawns
+   (the merged geometry could be shared per kind, as the pickups' are). The build for the owner when the owner asks to ship.
 
 **Checks:** each foe readable at the game's camera in the pixel look (a silhouette, its telegraph, its hurt and
 death); a fight of eight foes within its draw calls and at 60 fps in the dev menu's readout; every foe dies without

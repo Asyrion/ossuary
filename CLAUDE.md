@@ -144,7 +144,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
   every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
-  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=1080`, `720`, `540`, `360` or `270` sets its rows), `?kit=old` builds the rooms in the old look (before the room kit). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
+  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?foe=sporeling` fills every fight with one foe in code, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=1080`, `720`, `540`, `360` or `270` sets its rows), `?kit=old` builds the rooms in the old look (before the room kit). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
   vault, a secret room (behind a cracked wall), a shrine (`?room=shrine_henge`) or a library
   (`?room=library_plain`) next to the start.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
@@ -216,10 +216,11 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `data/floors.json`, on the room's seed, one elite a room at most (`buildRoom`); `?foe=sporeling` (`DEV.foe`, the dev
   menu's Fights switch) puts one foe in every fight. Damage carries a school (`damageEnemy`'s last argument: spells by
   theirs, burns Ember, shocks and shocked pools Storm, bolts by the statuses they bring): a foe takes +50% from its
-  weakness and −50% from its resistance, and the first time the word rises (`STR.foes`); what the mage has found is kept
+  weakness and −50% from its resistance (`CFG.affinity`), and the first time the word rises (`STR.foes`); what the mage has found is kept
   in `localStorage` (`ossuary.bestiary`, `src/actors/bestiary.ts`) for M7's bestiary. The mage's afflictions: `player.dim`
   (a Sporeling's stinging spores, `addSpores` with `sting` in `props.ts`; `#dim` darkens round the mage), `player.chill`
-  (cold shots: slower by `CFG.afflict.chillSlow`, `#chill` frosts the rim) and a hex's drained mana. The dev menu's
+  (cold shots: slower by `CFG.afflict.chillSlow`, `#chill` frosts the rim) and a hex's drained mana, each only with a
+  blow that lands (`hurtPlayer` says whether it did). The dev menu's
   Foes lists each floor's foes from the data; `__game.spawn('sporeling')`, `__game.hit(i, dmg, school)`,
   `__game.bestiary`, `__game.forgetBestiary()`, `__game.burningGround`.
 - Spell effect options (`src/magic/effectOptions.ts`, the owner's request): the spells' effects redone in the same style,

@@ -10,14 +10,14 @@
     "floor": 1, "school": "hallow", "weak": "ember", "resist": "storm",
     "hp": 6, "r": 0.28, "speed": 2.3, "contact": 1, "flying": true,
     "behaviour": "flutter",
-    "params": {"orbit": 2.4, "orbitSpeed": 1.1, "flareEvery": [3, 4.5], "flareTell": 0.6, "motes": 6, "moteSpeed": 2.4, "lure": 0.75},
+    "params": {"orbit": 2.4, "orbitSpeed": 1.1, "flareEvery": [3, 4.5], "flareTell": 0.6, "flareRange": 5.5, "motes": 6, "moteSpeed": 2.4, "lure": 0.75, "lureReach": 7, "relure": 2.5, "lureOrbit": 0.7, "flameReach": 0.45, "burnRate": 1.5},
     "gib": "#f0e6cc", "stain": null
   },
   "runeBeetle": {
     "floor": 1, "school": "storm", "weak": "frost", "resist": "storm",
     "hp": 12, "r": 0.32, "speed": 1.2, "contact": 1, "flying": false,
     "behaviour": "charger",
-    "params": {"sight": 9, "tell": 0.45, "charge": 6.8, "stun": 1.2, "sparkSpeed": 4.4},
+    "params": {"sight": 9, "lineUp": 0.45, "tell": 0.45, "charge": 6.8, "stun": 1.2, "sparkSpeed": 4.4},
     "gib": "#234a78", "stain": "#101820"
   },
   "urnMimic": {
@@ -66,7 +66,7 @@
     "floor": 3, "school": "frost", "weak": "ember", "resist": "frost",
     "hp": 34, "r": 0.45, "speed": 1.1, "contact": 1, "flying": false, "elite": true,
     "behaviour": "drake",
-    "params": {"act": [2.2, 3.2], "breathRange": 4.2, "inhale": 0.8, "shots": 7, "cone": 1, "shotSpeed": 4.4, "chill": 1.8, "takeoff": 0.5, "flySpeed": 4, "landRing": 8},
+    "params": {"act": [2.2, 3.2], "breathRange": 4.2, "flyEvery": 3, "inhale": 0.8, "shots": 7, "cone": 1, "shotSpeed": 4.4, "chill": 1.8, "takeoff": 0.5, "flySpeed": 4, "landNear": [1.6, 2.6], "flyMax": 2.5, "landTime": 0.3, "landRing": 8},
     "gib": "#dceaf2", "stain": "#102030"
   }
 }

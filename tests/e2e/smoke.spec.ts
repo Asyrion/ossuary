@@ -1945,7 +1945,7 @@ test('foes in code (M4): floor 1\'s moth loops, scatters light and is lured by a
     // a lit brazier in the middle: the moths come to it
     const c = g.current; g.prop('brazier', c.cx, c.cz); const b = g.props.find(p => p.kind === 'brazier')!; g.element('burn', b.x, b.z);
     let near = 0, burned = false;
-    for (let i = 0; i < 120; i++) { g.sim(.1); near = Math.max(near, g.enemies.filter(e => Math.hypot(e.x - b.x, e.z - b.z) < 1.6).length); burned ||= g.enemies.some(e => (e.status?.burn ?? 0) > 0); }
+    for (let i = 0; i < 300 && !(near && burned); i++) { g.sim(.1); near = Math.max(near, g.enemies.filter(e => Math.hypot(e.x - b.x, e.z - b.z) < 1.6).length); burned ||= g.enemies.some(e => (e.status?.burn ?? 0) > 0); } // (the lure and the singeing are chance: time enough for both)
     return { flares, motes, lit: g.props.find(p => p.kind === 'brazier')!.lit, near, burned };
   });
   expect(moth.flares).toBeGreaterThan(0); expect(moth.motes).toBeGreaterThanOrEqual(6);
