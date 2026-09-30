@@ -59,8 +59,8 @@ describe('grimoire pages', () => {
       expect(three).not.toContain('arc');
       expect(new Set(three.map(id => spell(id).school)).size).toBe(3);
       const five = pickPages(rng, known, 5, ['static_mantle']);
-      expect(five).toHaveLength(4); // six spells, one known, one skipped: Ember's two and Frost's two
-      expect(new Set(five.slice(0, 2).map(id => spell(id).school)).size).toBe(2); // one of each school first
+      expect(five).toHaveLength(5); // (twelve spells from M4.1: Storm's two are known or skipped)
+      expect(new Set(five.slice(0, 4).map(id => spell(id).school)).size).toBe(4); // one of each school left first: Ember, Frost, Hallow, Umbral
     }
   });
 

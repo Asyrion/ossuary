@@ -206,6 +206,17 @@ const sounds = {
   // Frost: the drakeling
   drakeInhale() { hiss(.8, .08, 'bandpass', 1200); tone('sine', 70, 140, .8, .07); tone('triangle', 1175, 1568, .6, .015, .2); },
   drakeWings() { for (let i = 0; i < 3; i++) hiss(.12, .1, 'lowpass', 500, i * .16); },
+  // Hallow and Umbral (M4.1): Hallow's bells and choir, Umbral's low drones and swells drawn backwards
+  consecrate() { [523, 659, 784].forEach((f, i) => tone('sine', f, f, 1.4, .045, i * .03)); tone('sine', 1047, 1047, 1.2, .02, .1); hiss(.8, .02, 'highpass', 6000, .1); },
+  judgementCall() { tone('triangle', 1319, 1300, .9, .04); tone('sine', 1976, 1950, .7, .02, .05); },
+  judgement() { tone('sine', 196, 98, .8, .16); [784, 988, 1175, 1568].forEach((f, i) => tone('sine', f, f, 1, .04, i * .02)); hiss(.5, .1, 'bandpass', 2400); },
+  wardlight() { [1175, 1568, 2093].forEach((f, i) => tone('sine', f, f * 1.01, .6, .03, i * .08)); },
+  hexBolt() { tone('sine', 180, 90, .4, .07); tone('triangle', 90, 180, .35, .03, .05); hiss(.3, .04, 'lowpass', 500); },
+  graspRise() { tone('sine', 70, 110, .5, .08); hiss(.5, .05, 'lowpass', 400); },
+  graspClose() { tone('square', 140, 60, .12, .05); hiss(.2, .08, 'lowpass', 700); tone('sine', 110, 104, .8, .05, .05); },
+  ferryToll() { tone('sine', 1760, 1760, .1, .05); tone('sine', 147, 139, 1.4, .08, .05); tone('sine', 220, 208, 1.1, .04, .1); },
+  eclipse() { tone('sine', 110, 55, 1, .1); tone('sine', 988, 494, .9, .03); hiss(.6, .05, 'lowpass', 600); },
+  blackfire() { tone('sine', 90, 60, .6, .08); hiss(.5, .08, 'bandpass', 900); crackles(6, .4, .04); },
   // floor 4's foes (M4.1): the wickmouse's squeak, the chime bat's bell and its strike, the gargoyle's grinding wake and landing, the fawn's healing
   squeak() { tone('sine', 1900, 2600, .05, .03); tone('sine', 2200, 2900, .05, .025, .07); },
   chime() { tone('triangle', 1760, 1740, .6, .05); tone('sine', 2637, 2600, .5, .03, .01); tone('sine', 3520, 3480, .3, .015, .02); },

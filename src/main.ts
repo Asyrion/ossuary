@@ -33,11 +33,11 @@ import { DROPS, RESOURCES, type Drop, type Resource } from './items/loot';
 import { giveResources, spawnPickup } from './items/pickups';
 import { openSecretRoom } from './world/secret';
 import { cleanseAtOnce, riteState } from './world/shrine';
-import { SPELLS, type StatusKind } from './magic/spellData';
+import { SPELLS, type SpellStatus, type StatusKind } from './magic/spellData';
 import { inflict } from './magic/statusFx';
 import { makeEnemy } from './actors/enemies';
 import { castSpell, learnSpell } from './magic/spells';
-import { mantleLeft } from './magic/shapes';
+import { mantleLeft, wardLeft } from './magic/shapes';
 import { fxShowing } from './magic/spellFx';
 import { answerPage, dropPage, pagePanelSpell } from './magic/pages';
 import { fireAt, poolsDo } from './world/pools';
@@ -226,10 +226,11 @@ function installDevHooks() {
     get bestiary() { return bestiary(); }, forgetBestiary: () => forgetBestiary(),
     /** Patches of ground a salamander has set burning in this room (M4). */
     get burningGround() { return burningGround(); }, get sparkGround() { return sparkGround(); },
-    inflict(status: Partial<Record<StatusKind, number>>) { for (const e of G.enemies) inflict(e, status); },
-    /** Fire a foe's shot from (x, z) along (dx, dz) (a wall of ice stops it); seconds of the Static Mantle left. */
+    inflict(status: Partial<Record<SpellStatus, number>>) { for (const e of G.enemies) inflict(e, status); },
+    /** Fire a foe's shot from (x, z) along (dx, dz) (a wall of ice stops it); seconds of the Static Mantle and of
+        Wardlight left. */
     shoot(x: number, z: number, dx: number, dz: number) { const l = Math.hypot(dx, dz) || 1; spawnShot(x, z, dx / l, dz / l, CFG.afflict.testShot, 0xb784ff, .8); },
-    get mantle() { return mantleLeft(); },
+    get mantle() { return mantleLeft(); }, get ward() { return wardLeft(); },
     /** The spells' looks showing now: the Cinder Lance, and how many rings of light and bolts of lightning. */
     get spellFx() { return fxShowing(); },
     /** Drop a grimoire page (of `id`, or a spell the mage doesn't know) at (x, z) or ahead of the mage; the pages

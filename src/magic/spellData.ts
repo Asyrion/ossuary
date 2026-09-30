@@ -7,9 +7,9 @@ import type { Rng } from '../rng';
 /** The schools of magic (GDD: Magic system). M3 brings Ember, Frost and Storm; Hallow and Umbral follow. */
 export type School = 'ember' | 'frost' | 'storm' | 'hallow' | 'umbral';
 export const SCHOOLS: School[] = ['ember', 'frost', 'storm', 'hallow', 'umbral'];
-/** How a spell behaves; each is a function in magic/spells.ts. */
-export type Shape = 'beam' | 'placed' | 'shotgun' | 'wall' | 'chain' | 'self';
-export const SHAPES: Shape[] = ['beam', 'placed', 'shotgun', 'wall', 'chain', 'self'];
+/** How a spell behaves; each is a function in magic/shapes.ts. M4.1's Hallow and Umbral bring the last six. */
+export type Shape = 'beam' | 'placed' | 'shotgun' | 'wall' | 'chain' | 'self' | 'zone' | 'smite' | 'orbit' | 'bolt' | 'grasp' | 'mark';
+export const SHAPES: Shape[] = ['beam', 'placed', 'shotgun', 'wall', 'chain', 'self', 'zone', 'smite', 'orbit', 'bolt', 'grasp', 'mark'];
 /** The params each shape reads; a spell of that shape must give them all. */
 export const SHAPE_PARAMS: Record<Shape, string[]> = {
   beam: ['range', 'width'],                                        // how far, and how wide a line it strikes
@@ -18,16 +18,28 @@ export const SHAPE_PARAMS: Record<Shape, string[]> = {
   wall: ['ahead', 'width', 'life', 'burst'],                       // how far ahead, how wide, seconds, reach of its shattering
   chain: ['range', 'jumps', 'jumpRange', 'falloff'],               // first strike, leaps, each strike's share of the last
   self: ['life', 'reach', 'knockback', 'every'],                   // seconds, reach beyond the mage, a foe's rest between zaps
+  zone: ['radius', 'life', 'every', 'heal'],                       // holy ground: size, seconds, between its touches, the mage's healing (halves, once)
+  smite: ['range', 'delay', 'radius'],                             // how far it looks for the strongest foe, seconds to fall, its pillar
+  orbit: ['count', 'radius', 'life', 'turn', 'every', 'reach'],    // motes, how far out, seconds, their turning (rad/s), a foe's rest between touches, a mote's reach
+  bolt: ['range', 'speed', 'scale'],                               // one slow bolt: how far, how fast, how big
+  grasp: ['ahead', 'radius', 'delay'],                             // where the hands rise, how wide, seconds before they close
+  mark: ['range', 'life', 'mana', 'obols', 'spread', 'spreadRange'], // the nearest foe marked: how long, mana a hit, obols if it falls, the hex it spreads
 };
-/** Status effects a spell can apply (magic/status.ts), with how many stacks or how strongly. */
+/** The elemental statuses (magic/status.ts): what the room answers to as well (oil, water, braziers, rune stones). */
 export type StatusKind = 'burn' | 'chill' | 'shock';
 export const STATUS_KINDS: StatusKind[] = ['burn', 'chill', 'shock'];
+/** Every status a spell can apply, with how many stacks or how strongly: the elements, and Hallow's Sanctified (seconds),
+    Umbral's Hex (stacks) and the grave's hold, Root (seconds), from M4.1. */
+export type SpellStatus = StatusKind | 'sanct' | 'hex' | 'root';
+export const SPELL_STATUSES: SpellStatus[] = [...STATUS_KINDS, 'sanct', 'hex', 'root'];
+/** Only the elemental part of a set of statuses (what rooms, props and mechanisms hear). */
+export const elemental = (s?: Partial<Record<SpellStatus, number>>) => s && Object.fromEntries(Object.entries(s).filter(([k]) => (STATUS_KINDS as string[]).includes(k))) as Partial<Record<StatusKind, number>>;
 
 export interface SpellDef {
   id: string; name: string; school: School; shape: Shape;
   /** Mana to cast, and seconds before it can be cast again. */ mana: number; cooldown: number;
   /** Damage of one hit (a beam's, a shard's, a strike's). */ damage: number;
-  status?: Partial<Record<StatusKind, number>>;
+  status?: Partial<Record<SpellStatus, number>>;
   /** Numbers only the shape reads (range, count, radius, duration...). */ params: Record<string, number>;
   tags: string[]; color: string; icon: string;
   /** What it does, in a few words (the lore card), and its lore. */ text: string; lore: string;
@@ -54,7 +66,7 @@ export function validateSpells(defs: SpellDef[] = SPELL_DEFS): string[] {
     if (!SHAPES.includes(s.shape)) errs.push(`${at} has unknown shape "${s.shape}"`);
     else for (const k of SHAPE_PARAMS[s.shape]) if (!(k in (s.params ?? {}))) errs.push(`${at} (${s.shape}) needs param "${k}"`);
     if (!(s.mana >= 0 && s.cooldown > 0 && s.damage >= 0)) errs.push(`${at} needs mana of 0 or more, a cooldown above 0 and damage of 0 or more`);
-    for (const k of Object.keys(s.status ?? {})) if (!STATUS_KINDS.includes(k as StatusKind)) errs.push(`${at} has unknown status "${k}"`);
+    for (const k of Object.keys(s.status ?? {})) if (!SPELL_STATUSES.includes(k as SpellStatus)) errs.push(`${at} has unknown status "${k}"`);
     for (const [k, v] of Object.entries(s.params ?? {})) if (typeof v !== 'number' || !isFinite(v)) errs.push(`${at} param "${k}" must be a number`);
     if (!/^#[0-9a-f]{6}$/i.test(s.color)) errs.push(`${at} has a bad colour`);
     if (!s.icon) errs.push(`${at} needs an icon`);

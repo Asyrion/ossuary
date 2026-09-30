@@ -12,8 +12,9 @@ export const CFG = {
     fidget: [9, 16] as [number, number], // seconds standing still before the mage eats something
   },
   // mana (GDD: Magic system): regained each second out of a fight and in one, and for each foe the cantrip
-  // puts to rest (a mana vial's worth is in data/loot.json)
-  mana: { calm: 4, fight: 1, perKill: 3 },
+  // puts to rest (a mana vial's worth is in data/loot.json); a foe marked by the Ferryman's Toll pays at most every
+  // `tollEvery` seconds (M4.1)
+  mana: { calm: 4, fight: 1, perKill: 3, tollEvery: .2 },
   enemy: {
     // a plain walker with no school, in no floor's fights (the foes in code fill them, M4): the browser tests' target
     rotling: { hp: 10, r: 0.32, speed: 1.35 },

@@ -2,8 +2,10 @@
    foe (flames licking up from a burning one, a blue tint deepening with each chill stack, a block of ice around
    a frozen one, sparks crackling on a shocked one), the burn's damage, the shock's leap to a neighbour, and the
    two reactions: Shatter bursts a frozen foe into ice shards that fly at its neighbours, Overload blows a
-   burning foe apart and throws everything near it back. Reactions name themselves in the air, so players learn
-   them. The training dummy (dev menu) shows its statuses and every hit it takes. */
+   burning foe apart and throws everything near it back. M4.1 adds Hallow's and Umbral's: a sanctified foe glows gold,
+   a hexed one violet, a rooted one is held by the shadow at its feet; Eclipse hangs a black sun over a foe it takes out
+   of the fight and strikes it when it comes back, Blackfire burns violet and never goes out. Reactions name themselves
+   in the air, so players learn them. The training dummy (dev menu) shows its statuses and every hit it takes. */
 import * as THREE from 'three';
 import type { Enemy } from '../types';
 import { CFG } from '../config';
@@ -16,23 +18,25 @@ import { burst } from '../combat/fx';
 import { damageEnemy } from '../combat/damage';
 import { fireSpellBolt } from '../combat/projectiles';
 import { MAGIC, applyStatus, consumeShock, newStatus, tickStatus, type Reaction } from './status';
-import type { StatusKind } from './spellData';
+import { STATUS_KINDS, type SpellStatus, type StatusKind } from './spellData';
+import { SCHOOL_LIGHT } from '../render/arcane';
 import { touchPools } from '../world/pools';
 import { ringFx, strikeFx } from './spellFx';
 
 const R = MAGIC.reactions;
-const ICE = 0xbfe6ff, FIRE = 0xff7a2a, SPARK = 0xf0e890;
+const ICE = 0xbfe6ff, FIRE = 0xff7a2a, SPARK = 0xf0e890, GOLD = SCHOOL_LIGHT.hallow, VIOLET = SCHOOL_LIGHT.umbral, BLACKFIRE = 0x8a3ae0;
 
 /** Apply a spell's statuses to a foe, and carry out what they set off. */
-export function inflict(e: Enemy, status: Partial<Record<StatusKind, number>> | undefined) {
+export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> | undefined) {
   if (!status || e.dead) return;
-  for (const [kind, amount] of Object.entries(status) as [StatusKind, number][]) {
+  for (const [kind, amount] of Object.entries(status) as [SpellStatus, number][]) {
     if (e.dead) return;
     const res = applyStatus(e.status ??= newStatus(), kind, amount, !!e.isBoss);
     if (res.froze) { Sfx.at(e.x, e.z).freeze(); burst(e.x, .6, e.z, ICE, 12, 1.6, .05); }
     if (res.stunned) burst(e.x, .9, e.z, SPARK, 6, 2, .03);
     if (res.reaction) react(e, res.reaction);
-    touchPools(e, kind); // oil catches fire, water freezes or carries the shock
+    if ((STATUS_KINDS as string[]).includes(kind)) touchPools(e, kind as StatusKind); // oil catches fire, water freezes or carries the shock
+    else if (kind === 'hex') burst(e.x, .8, e.z, VIOLET, 4, 1.2, .03); else if (kind === 'sanct') burst(e.x, .8, e.z, GOLD, 4, 1.2, .03);
   }
 }
 
@@ -50,7 +54,15 @@ export function shockLeap(e: Enemy, dmg: number) {
 }
 
 function react(e: Enemy, r: Reaction) {
-  floatText(e.x, 1.7, e.z, STR.reactions[r], r === 'shatter' ? ICE : 0xffc060);
+  floatText(e.x, 1.7, e.z, STR.reactions[r], r === 'shatter' ? ICE : r === 'eclipse' ? 0xd8b0ff : r === 'blackfire' ? 0xb070ff : 0xffc060);
+  if (r === 'eclipse') { // taken out of the fight under a black sun (a boss only struck, at once)
+    burst(e.x, .9, e.z, VIOLET, 18, 2.6, .05); burst(e.x, .9, e.z, GOLD, 12, 2.2, .04); ringFx(e.x, .9, e.z, GOLD, .2, 1.3, CFG.spellFx.flash);
+    Sfx.at(e.x, e.z).eclipse();
+    if (e.isBoss) { damageEnemy(e, R.eclipse.damage, 0, 0, 0, 'spell'); return; }
+    e.hidden = true; e.body.visible = false; e.sun = blackSun(); e.sun.position.set(0, e.flying ? .95 : .75, 0); e.group.add(e.sun);
+    return;
+  }
+  if (r === 'blackfire') { burst(e.x, .7, e.z, BLACKFIRE, 18, 2.4, .05); Sfx.at(e.x, e.z).blackfire(); return; }
   if (r === 'shatter') {
     removeIce(e);
     const S = R.shatter;
@@ -80,6 +92,24 @@ function react(e: Enemy, r: Reaction) {
   }
 }
 
+/** Eclipse's black sun: a dark orb in a crown of gold light (Hallow round Umbral), made for each foe it takes. */
+function blackSun() {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(sunGeo(), new THREE.MeshBasicMaterial({ color: 0x06030a })));
+  const crown = glow(GOLD, 1.6, .85); g.add(crown);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(.3, .025, 4, 24), new THREE.MeshBasicMaterial({ color: GOLD })); rim.rotation.x = -Math.PI / 4; g.add(rim);
+  return g;
+}
+let sunGeoKept: THREE.SphereGeometry | null = null;
+const sunGeo = () => sunGeoKept ??= markShared(new THREE.SphereGeometry(.27, 14, 10));
+/** The eclipse is over: the foe comes back, and is struck. */
+function endEclipse(e: Enemy) {
+  if (e.sun) { e.group.remove(e.sun); for (const o of e.sun.children) { const m = o as THREE.Mesh; if (m.geometry && m.geometry !== sunGeo()) m.geometry.dispose(); ((m.material ?? (o as THREE.Sprite).material) as THREE.Material)?.dispose(); } e.sun = undefined; }
+  e.hidden = false; e.body.visible = true;
+  burst(e.x, .8, e.z, 0x2a0a4a, 16, 2.4, .05); burst(e.x, .8, e.z, GOLD, 10, 2, .04);
+  damageEnemy(e, R.eclipse.damage, 0, 0, 0, 'spell');
+}
+
 /* ---------- every step ---------- */
 
 let ice: { geo: THREE.IcosahedronGeometry; mat: THREE.MeshStandardMaterial } | null = null;
@@ -100,13 +130,18 @@ export function updateStatuses(dt: number, now: number) {
   for (const e of G.enemies) {
     const s = e.status;
     if (!s || e.dead) continue;
-    const { burnDamage, thawed } = tickStatus(s, dt);
+    const { burnDamage, thawed, eclipsed } = tickStatus(s, dt);
+    if (eclipsed) endEclipse(e);
+    if (s.eclipse > 0) { if (e.sun) e.sun.rotation.y += dt * 2; continue; } // (out of the fight: nothing shows but its sun)
     if (burnDamage > 0) damageEnemy(e, burnDamage, 0, 0, 0, e.lastHit ?? 'spell', 'ember'); // the fire is whoever lit it last
     if (e.dead) continue;
     if (s.burn > 0) touchPools(e, 'burn'); // a burning foe walking into oil sets it alight
     if (s.frozen > 0) addIce(e); else if (e.ice) { removeIce(e); if (thawed) Sfx.at(e.x, e.z).thaw(); }
     const y = e.flying ? .85 : .5;
-    if (s.burn > 0 && Math.random() < dt * 14) burst(e.x + (Math.random() - .5) * e.r, y + .2, e.z + (Math.random() - .5) * e.r, Math.random() < .5 ? FIRE : 0xffc060, 1, .7, .05);
+    if (s.burn > 0 && Math.random() < dt * 14) burst(e.x + (Math.random() - .5) * e.r, y + .2, e.z + (Math.random() - .5) * e.r, s.black ? (Math.random() < .5 ? BLACKFIRE : 0x2a0a4a) : Math.random() < .5 ? FIRE : 0xffc060, 1, .7, .05);
+    if (s.hex > 0 && Math.random() < dt * 3 * s.hex) burst(e.x + (Math.random() - .5) * e.r * 1.6, y + .35, e.z + (Math.random() - .5) * e.r * 1.6, VIOLET, 1, .5, .03);
+    if (s.sanct > 0 && Math.random() < dt * 6) burst(e.x + (Math.random() - .5) * e.r * 1.6, y + .5, e.z + (Math.random() - .5) * e.r * 1.6, GOLD, 1, .8, .03);
+    if (s.root > 0 && Math.random() < dt * 5) burst(e.x + (Math.random() - .5) * e.r * 2, .08, e.z + (Math.random() - .5) * e.r * 2, 0x2a0a4a, 1, .4, .04);
     if ((s.shock > 0 || s.stun > 0) && Math.random() < dt * 8) burst(e.x + (Math.random() - .5) * e.r * 2, y + .3, e.z + (Math.random() - .5) * e.r * 2, SPARK, 2, 2.4, .025);
     if (e.type === 'dummy') dummyLabel(e, now);
   }
@@ -119,7 +154,10 @@ const tint = new THREE.Color();
 export function statusTint(e: Enemy, now: number): [THREE.Color, number] | null {
   const s = e.status; if (!s) return null;
   if (s.frozen > 0) return [tint.setHex(0x4a8ad8), .85];
+  if (s.burn > 0 && s.black) return [tint.setHex(0x6a1ac0), .5 + Math.sin(now * 17 + e.x) * .2];
   if (s.burn > 0) return [tint.setHex(0xff5a10), .45 + Math.sin(now * 17 + e.x) * .2];
+  if (s.sanct > 0) return [tint.setHex(0xc89a30), .45 + Math.sin(now * 6) * .1];
+  if (s.hex > 0) return [tint.setHex(0x6a2ab0), Math.min(.6, .2 + s.hex * .08)];
   if (s.stun > 0 || (s.shock > 0 && Math.sin(now * 40) > .6)) return [tint.setHex(0xe8e070), .6];
   if (s.chill > 0) return [tint.setHex(0x3a6aa8), Math.min(.7, .3 * s.chill)];
   return null;
@@ -182,6 +220,9 @@ function dummyLabel(e: Enemy, _now: number) {
   if (s.frozen > 0) parts.push(STR.statusNames.frozen);
   else if (s.chill > 0) parts.push(`${STR.statusNames.chill} ${s.chill}`);
   if (s.shock > 0) parts.push(STR.statusNames.shock);
+  if (s.sanct > 0) parts.push(STR.statusNames.sanct);
+  if (s.hex > 0) parts.push(`${STR.statusNames.hex} ${s.hex}`);
+  if (s.root > 0) parts.push(STR.statusNames.root);
   const text = parts.join(' · ');
   if (e.label?.userData.text === text) return;
   if (e.label) { e.group.remove(e.label); e.label.material.dispose(); e.label = undefined; }

@@ -48,6 +48,7 @@ import { hurtPlayer } from '../combat/damage';
 import { freeSpotNear, randomSpot } from '../world/rooms';
 import { flame } from '../magic/shapes';
 import { inflict } from '../magic/statusFx';
+import { canHeal } from '../magic/status';
 import { lerp, mulberry, rand } from '../util';
 import { MODEL_OPTIONS } from './modelOptions';
 import { metFoe } from './bestiary';
@@ -785,7 +786,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
       e.vx = e.vz = 0; e.st -= dt; e.tele = Math.min(1, 1 - e.st / num(P.healTell));
       if (e.st <= 0) {
         const R = num(P.healRange);
-        for (const o of others) if (o.hp < o.maxHp && Math.hypot(o.x - e.x, o.z - e.z) < R) {
+        for (const o of others) if (o.hp < o.maxHp && canHeal(o.status) && Math.hypot(o.x - e.x, o.z - e.z) < R) { // (not what Hallow has sanctified)
           o.hp = Math.min(o.maxHp, o.hp + o.maxHp * num(P.healShare)); if (o.isBoss) updateBossBar(o);
           burst(o.x, .8, o.z, light(e), 8, 1.2, .04);
         }

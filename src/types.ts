@@ -5,7 +5,7 @@ import type { BossConfig, PlannedRoom } from './world/generate';
 import type { FoeKind, Template } from './world/templates';
 import type { FoeDef, FoeType, School } from './actors/foeData';
 import type { StatusState } from './magic/status';
-import type { StatusKind } from './magic/spellData';
+import type { SpellStatus, StatusKind } from './magic/spellData';
 import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
 import type { Drop, Item, Ware } from './items/loot';
 import type { Kinds, KitWeights } from './world/kitData';
@@ -163,6 +163,8 @@ export interface Enemy extends Circle {
   eye?: THREE.Object3D; ring?: THREE.Object3D; cycle?: number; summoned?: boolean; volleys?: number;
   /** A boss built in code (M4: the Hollow Warden's looks, bossLooks.ts): its school, whose light its shots take. */ bossSchool?: School;
   /** The bosses of floors 4 and 5 (M4.1): their weakness and resistance; the hart's turning spokes. */ bossAff?: { weak: School; resist: School }; spin?: number;
+  /** Marked by the Ferryman's Toll (M4.1, shapes.ts): mana back for each blow (at most every so often: `tollNext`), obols and a spreading hex if it falls. */ toll?: { mana: number; obols: number; spread: number; spreadRange: number }; tollNext?: number;
+  /** Eclipsed (M4.1): the black sun hung over it while it is out of the fight. */ sun?: THREE.Object3D;
   /** Bosses: out of reach (under the floor, in the air), so neither hurt nor hurting. */ hidden?: boolean;
   /** Floor ring (the abbess's ripple, the knight's landing mark); where a leap started. */ marker?: THREE.Mesh; from?: Vec2;
   /** Called by a boss; falls when the boss does. */ servant?: boolean;
@@ -188,7 +190,7 @@ export interface Bolt extends Circle {
   /** Raven's Eye: this bolt strikes thrice as hard. */ crit?: boolean;
   /** Serpent Rod: the straight line the bolt weaves about, and the sideways direction it swings in. */ wave?: { ox: number; oz: number; px: number; pz: number };
   /** A spell's bolt (Rime Shards, Shatter's shards): its hits are spell hits, with the spell's statuses. */ spell?: boolean;
-  status?: Partial<Record<StatusKind, number>>;
+  status?: Partial<Record<SpellStatus, number>>;
   /** Set alight flying through a brazier's flame (M3.6): it trails embers. */ kindled?: boolean;
 }
 export interface Shot extends Circle {

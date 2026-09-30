@@ -7,13 +7,13 @@
 import foesData from '../../data/foes.json';
 import floorsData from '../../data/floors.json';
 import { CFG, type EnemyType } from '../config';
-import { SCHOOLS, type School, type StatusKind } from '../magic/spellData';
+import { SCHOOLS, type School, type SpellStatus } from '../magic/spellData';
 
 export type { School } from '../magic/spellData';
-const STATUS_SCHOOL: Record<StatusKind, School> = { burn: 'ember', chill: 'frost', shock: 'storm' };
+const STATUS_SCHOOL: Record<SpellStatus, School> = { burn: 'ember', chill: 'frost', shock: 'storm', sanct: 'hallow', hex: 'umbral', root: 'umbral' };
 /** The school a hit carries from the statuses it brings (a burning bolt is Ember's), if any. */
-export const schoolOf = (status?: Partial<Record<StatusKind, number>>) => {
-  const k = status && (Object.keys(status) as StatusKind[]).find(s => (status[s] ?? 0) > 0);
+export const schoolOf = (status?: Partial<Record<SpellStatus, number>>) => {
+  const k = status && (Object.keys(status) as SpellStatus[]).find(s => (status[s] ?? 0) > 0);
   return k ? STATUS_SCHOOL[k] : undefined;
 };
 export type Role = 'R' | 'W' | 'H';

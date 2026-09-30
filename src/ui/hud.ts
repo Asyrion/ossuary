@@ -73,6 +73,13 @@ const SPELL_ICONS: Record<string, string> = {
   shards: `<path d="M4 20l4-9 2 5zM12 20l0-11 2 6zM20 20l-4-9-2 5z" fill="currentColor"/>`,
   wall: `<path d="M3 20h18M4 20V9l3-4 3 4v11M10 20V7l3-4 3 4v13M16 20V10l3-3 2 3v10" ${S}/>`,
   mantle: `<circle cx="12" cy="8" r="3" ${S}/><path d="M6 21c0-5 3-8 6-8s6 3 6 8" ${S}/><path d="M3 12l3-2-1 4 3-1M21 12l-3-2 1 4-3-1" ${S}/>`,
+  // Hallow and Umbral (M4.1)
+  consecrate: `<ellipse cx="12" cy="17" rx="9" ry="3.5" ${S}/><path d="M12 3v9M8 6l2 5M16 6l-2 5" ${S}/>`,
+  judgement: `<path d="M9 2h6v12H9z" fill="currentColor"/><path d="M4 20h16M7 17l5 3 5-3" ${S}/>`,
+  wardlight: `<circle cx="12" cy="12" r="7" ${S} stroke-dasharray="2 3"/><circle cx="12" cy="5" r="2.2" fill="currentColor"/><circle cx="18" cy="15" r="2.2" fill="currentColor"/><circle cx="6" cy="15" r="2.2" fill="currentColor"/>`,
+  hexbolt: `<path d="M3 21l7-7" ${S}/><circle cx="14" cy="10" r="5.5" fill="currentColor"/><circle cx="14" cy="10" r="1.8" fill="#120a1c"/>`,
+  grasp: `<path d="M7 20v-7M10 20V8M13 20V7M16 20v-9M19 20v-5" ${S}/><path d="M4 21h17" ${S}/>`,
+  toll: `<circle cx="12" cy="12" r="8" ${S}/><rect x="9.5" y="9.5" width="5" height="5" fill="currentColor"/>`,
 };
 /** A spell's icon as inline SVG in its colour. */
 export function spellIcon(id: string) {

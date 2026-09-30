@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAGIC, applyStatus, canAct, consumeShock, damageTakenMul, newStatus, speedFactor, tickStatus } from '../../src/magic/status';
+import { MAGIC, applyStatus, canAct, canHeal, consumeShock, damageTakenMul, newStatus, spendHex, speedFactor, tickStatus } from '../../src/magic/status';
 
 const T = MAGIC;
 
@@ -99,5 +99,51 @@ describe('reactions', () => {
     expect(applyStatus(s, 'shock', 2, true)).toEqual({ reaction: 'overload' });
     for (let i = 0; i < 4; i++) applyStatus(s, 'chill', 1, true);
     expect(applyStatus(s, 'shock', 2, true).reaction).toBeUndefined();
+  });
+});
+
+describe('Hallow and Umbral (M4.1)', () => {
+  it('sanctified: a foe takes more from everything for a while, and nothing heals it', () => {
+    const s = newStatus();
+    applyStatus(s, 'sanct', 2, false);
+    expect(damageTakenMul(s)).toBeCloseTo(MAGIC.sanct.damageMul); expect(canHeal(s)).toBe(false);
+    tickStatus(s, 2.1);
+    expect(damageTakenMul(s)).toBe(1); expect(canHeal(s)).toBe(true);
+  });
+
+  it('hex: stacks up to a cap and fades; each blow spends a stack for mana', () => {
+    const s = newStatus();
+    for (let i = 0; i < 4; i++) applyStatus(s, 'hex', 2, false);
+    expect(s.hex).toBe(MAGIC.hex.max);
+    expect(spendHex(s)).toBe(MAGIC.hex.manaPerStack); expect(s.hex).toBe(MAGIC.hex.max - 1);
+    tickStatus(s, MAGIC.hex.time + .1); expect(s.hex).toBe(0); expect(spendHex(s)).toBe(0);
+  });
+
+  it('root holds a foe still but lets it act, and a boss only for a moment', () => {
+    const s = newStatus(); applyStatus(s, 'root', 2, false);
+    expect(speedFactor(s)).toBe(0); expect(canAct(s)).toBe(true);
+    const b = newStatus(); applyStatus(b, 'root', 2, true); expect(b.root).toBe(MAGIC.root.bossMax);
+  });
+
+  it('eclipse: sanctified meets hex (either way round), the foe is out of the fight, then it comes back', () => {
+    for (const [first, second] of [['sanct', 'hex'], ['hex', 'sanct']] as const) {
+      const s = newStatus(); applyStatus(s, first, 2, false);
+      expect(applyStatus(s, second, 2, false).reaction).toBe('eclipse');
+      expect(s.sanct + s.hex).toBe(0); expect(canAct(s)).toBe(false); expect(speedFactor(s)).toBe(0);
+      expect(applyStatus(s, 'burn', 3, false)).toEqual({}); // (nothing reaches it meanwhile)
+      expect(tickStatus(s, MAGIC.reactions.eclipse.time + .01).eclipsed).toBe(true); expect(canAct(s)).toBe(true);
+    }
+    const b = newStatus(); applyStatus(b, 'hex', 1, true);
+    expect(applyStatus(b, 'sanct', 2, true).reaction).toBe('eclipse'); expect(b.eclipse).toBe(0); // (a boss is only struck)
+  });
+
+  it('blackfire: hex meets burn (either way round), and the burn never goes out', () => {
+    for (const [first, second] of [['hex', 'burn'], ['burn', 'hex']] as const) {
+      const s = newStatus(); applyStatus(s, first, 2, false);
+      expect(applyStatus(s, second, 2, false).reaction).toBe('blackfire');
+      expect(s.black).toBe(true);
+      let dealt = 0; for (let i = 0; i < 40; i++) dealt += tickStatus(s, .25).burnDamage; // ten seconds, far past any burn
+      expect(s.burn).toBeGreaterThan(0); expect(dealt).toBeCloseTo(MAGIC.reactions.blackfire.dps * 10, 0);
+    }
   });
 });

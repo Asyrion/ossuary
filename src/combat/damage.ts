@@ -18,10 +18,11 @@ import { spawnHeart, spawnPickup } from '../items/pickups';
 import { rollEnemyDrop } from '../items/loot';
 import { freeSpotNear } from '../world/rooms';
 import { gainMana } from '../magic/spells';
-import { damageTakenMul } from '../magic/status';
+import { damageTakenMul, spendHex } from '../magic/status';
 import { dummyHit, floatText, inflict, shockLeap } from '../magic/statusFx';
 import { fireAt } from '../world/pools';
 import { foeDied, foeStruck } from '../actors/foes';
+import { payToll } from '../magic/shapes';
 
 /** Hurt a foe, knocking it along (dx, dz); `kbMul` scales the knockback (the Ram's Skull on bolts); `by` says
     what struck it (a foe the cantrip puts to rest gives mana back); `school`, the magic it struck with, if any: a foe in
@@ -37,6 +38,11 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   if (by === 'spell') dmg *= player.stats.spellDamage; // Crown of Thorns
   if (e.foe) { dmg = foeStruck(e, dmg, by); if (dmg <= 0) { e.flash = .09; return; } } // (a void mote swallows the cantrip)
   e.hp -= dmg; e.flash = .09; e.lastHit = by; e.asleep = false; // a sleeper wakes
+  if (by) { // a hexed foe gives back mana for each stack a blow spends (M4.1); a foe marked by the Ferryman's Toll pays its toll
+    let back = spendHex(e.status);
+    if (e.toll && G.simClock >= (e.tollNext ?? 0)) { back += e.toll.mana; e.tollNext = G.simClock + CFG.mana.tollEvery; }
+    if (back) { gainMana(back); burst(e.x, 1, e.z, SCHOOL_LIGHT.umbral, 3, 1.4, .03); }
+  }
   if (e.type === 'dummy') { e.hp = e.maxHp; dummyHit(e, dmg); } // the training dummy never falls
   shockLeap(e, dmg); // a shocked foe passes part of the hit on
   const kb = (e.isBoss ? .6 : 2.6) * kbMul; e.kx += dx * kb; e.kz += dz * kb;
@@ -56,6 +62,7 @@ function killEnemy(e: Enemy, withBoss = false) {
   if (withBoss) { burst(e.x, .45, e.z, gibOf(e), 12, 3, .08); return; } // its master fell: it crumbles, and drops nothing
   burst(e.x, e.isBoss ? 1 : .45, e.z, gibOf(e), e.isBoss ? 60 : 16, e.isBoss ? 6 : 3.5, e.isBoss ? .12 : .08);
   if (e.foe) { burst(e.x, .5, e.z, SCHOOL_LIGHT[e.foe.school], 10, 2.2, .04); foeDied(e); } // (its school's light goes out of it; what it leaves behind)
+  if (e.toll) payToll(e); // marked by the Ferryman's Toll: it pays in obols, and its hex spreads
   const stain = stainOf(e);
   if (stain) addDecal(e.x, e.z, stain, e.isBoss ? 1.6 : .7);
   if (player.stats.effects.has('deathBurst')) spawnBurst(e.x, e.z, 4); // Saint's Knucklebone
