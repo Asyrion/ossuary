@@ -11,6 +11,7 @@ import type { Room } from '../types';
 import { blob, disposeTree, glow } from '../render/materials';
 import { freeSpotNear } from '../world/rooms';
 import { mergeRig } from '../render/rig';
+import { BOSS_LOOKS } from './bossLooks';
 import { SCHOOL_LIGHT, bigEyes, box, circle, crystal, limb, lit, motes, part, rune, runeRing, shine, sphere, std, type School, type V3 } from '../render/arcane';
 
 /** A built option: its group, how it idles, the size of the shadow under it, and the parts a foe's behaviour moves beyond
@@ -443,6 +444,16 @@ export function showFamiliarOptions(room: Room, x: number, z: number, only?: rea
   return list.map((o, i) => {
     const at = freeSpotNear(room, x + (i - (list.length - 1) / 2) * 2, z - 1.8);
     const b = o.build(); mergeRig(b.group, b.idle, o.id); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
+    shown.push({ room, group: b.group, idle: b.idle });
+    return { id: o.id, x: at.x, z: at.z };
+  });
+}
+/** Stand the Hollow Warden's looks (M4, bossLooks.ts: every one, or those in `only`) in a row ahead of world (x, z). */
+export function showBossLooks(room: Room, x: number, z: number, only?: readonly string[]) {
+  const list = BOSS_LOOKS.filter(o => !only || only.includes(o.id));
+  return list.map((o, i) => {
+    const at = freeSpotNear(room, x + (i - (list.length - 1) / 2) * 3.2, z - 3);
+    const b = o.build(); mergeRig(b.group, b.idle, 'boss:' + o.id); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
     shown.push({ room, group: b.group, idle: b.idle });
     return { id: o.id, x: at.x, z: at.z };
   });

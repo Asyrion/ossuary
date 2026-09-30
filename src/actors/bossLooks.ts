@@ -20,10 +20,11 @@ export interface BossBuilt { group: THREE.Group; idle: (t: number) => void; shad
 
 const blink = (list: THREE.Object3D[], t: number, every = 3.6) => { const k = t % every; for (const e of list) e.scale.y = k < .14 ? .12 : 1; };
 const smile = (parent: THREE.Object3D, at: V3, r: number, color = 0x2a1418) => part(parent, new THREE.TorusGeometry(r, r * .14, 4, 12, Math.PI), lit(color), at, { rot: [0, 0, Math.PI] });
-/** The ring of runes behind its head that the fight turns (in its own plane, facing the camera, tipped back a little). */
+/** The ring of runes behind its head that the fight turns (in its own plane, facing the camera, tipped back a little; in
+    its school's colour, not added light, which the halo behind it would wash to white). */
 function haloRing(g: THREE.Object3D, color: number, radius: number, y: number) {
   const ring = new THREE.Group(); ring.position.set(0, y, -.35); ring.rotation.x = -.35; g.add(ring);
-  runeRing(ring, color, radius, [0, 0, 0], 8, [Math.PI / 2, 0, 0]);
+  runeRing(ring, color, radius, [0, 0, 0], 8, [Math.PI / 2, 0, 0], lit(color, .9));
   return ring;
 }
 
@@ -125,9 +126,18 @@ function hollowOwl(): BossBuilt {
   } };
 }
 
-/** The looks, for the owner to choose (the dev menu's Galleries tab stands them ahead of the mage; `DEV.bossLook` is the
-    one the Hollow Warden wears in its fight). */
+/** The looks, for the owner to choose (the dev menu's Galleries tab stands them ahead of the mage, and picks the one the
+    Hollow Warden wears in its fight). */
 export const BOSS_LOOKS = [
   { id: 'bellWarden', build: bellWarden }, { id: 'motherOfSpores', build: motherOfSpores }, { id: 'hollowOwl', build: hollowOwl },
 ] as const;
 export type BossLookId = (typeof BOSS_LOOKS)[number]['id'];
+
+/** The look the Hollow Warden wears until the owner chooses: picked in the dev menu, remembered in this browser. */
+const LOOK_KEY = 'ossuary.bossLook', FIRST: BossLookId = 'motherOfSpores';
+let chosen: BossLookId = FIRST;
+try { const v = localStorage.getItem(LOOK_KEY); if (BOSS_LOOKS.some(o => o.id === v)) chosen = v as BossLookId; } catch { /* no storage: the first */ }
+export const bossLook = () => chosen;
+export function setBossLook(id: BossLookId) { chosen = id; try { localStorage.setItem(LOOK_KEY, id); } catch { /* kept this session */ } }
+/** Build the look the Hollow Warden wears now. */
+export const buildBossLook = (id: BossLookId = chosen) => BOSS_LOOKS.find(o => o.id === id)!.build();

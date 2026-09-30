@@ -16,7 +16,7 @@ log; its Sound section does the same for sound (sources and their licences, the 
 When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M4 under way (enemies in code, `docs/M4-plan.md`): steps 1 to 5 built (the foe framework and all ten foes: every floor's fights, a boss's helpers, a vault's warden and the ossuary's rising bones are foes in code; the wisp and crypt hound gone, the rotling kept as a plain test foe); the boss next; M3.5 signed off by the owner 2026-09-30 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 1080 lines since the proof's play-test), step 3 under way: the room kit redone in code in the new style (the proof accepted 2026-09-30; variety built: three kinds of wall, floor, wall light and brazier per floor, drawn per room; every mechanism, object, door, niche and artifact rebuilt, the list done, then pickups, chests and the special rooms' pieces; the owner's review next); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M4 built (enemies in code, `docs/M4-plan.md`): the foe framework and all ten foes (every floor's fights, a boss's helpers, a vault's warden and the ossuary's rising bones are foes in code; the wisp and crypt hound gone, the rotling kept as a plain test foe) and the floor-1 boss built in code in three looks, the owner to choose one (the Galleries tab); the owner's play-test next; M3.5 signed off by the owner 2026-09-30 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 1080 lines since the proof's play-test), step 3 under way: the room kit redone in code in the new style (the proof accepted 2026-09-30; variety built: three kinds of wall, floor, wall light and brazier per floor, drawn per room; every mechanism, object, door, niche and artifact rebuilt, the list done, then pickups, chests and the special rooms' pieces; the owner's review next); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -309,9 +309,14 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   in a shuffled order while the budget lasts). `buildFloor` reserves them all; room-clear drops take what
   is left. A gilded reliquary chest (rare; only a key opens it) and the secret room hold artifacts outside
   the budget (`offerBeyondBudget`). While a room's doors are locked, its artifacts can't be taken.
-- Bosses are in `src/actors/bosses.ts` (placeholder shapes until M4 builds them in code): each floor draws one from its pool
-  in `data/floors.json`, never one the run has met. A boss with `hidden` set (the abbess under the floor,
-  the knight in mid-leap) can't be hit and doesn't hurt on contact.
+- Bosses are in `src/actors/bosses.ts`: each floor draws one from its pool in `data/floors.json`, never one the run has met.
+  The Hollow Warden (floor 1's, met first) is built in code (M4): three looks in `src/actors/bossLooks.ts` (Bell Warden,
+  Mother of Spores, Hollow Owl; names in `STR.bossLooks`), each giving its fight the parts it moves (`eye`, `ring`, `halo`)
+  and its school, whose light its shots take (`bossSchool`); its still parts merged by `mergeRig` (about 20 draw calls).
+  The one it wears is the owner's choice for now: the dev menu's Galleries tab stands the three and switches it
+  (`ossuary.bossLook` in the browser; `__game.bossLooks()`, `__game.bossLook`, `__game.setBossLook(id)`). The abbess and
+  the knight are still placeholder shapes. A boss with `hidden` set (the abbess under the floor, the knight in mid-leap)
+  can't be hit and doesn't hurt on contact.
 - Gameplay delays (the warden's second ring, the pause before the death screen) run on simulation time,
   so they pause with the game and advance under `__game.sim()`.
 - Dev hooks (`window.__game`, `window.__manual`) are also in production builds, for testing the deployed site.

@@ -3,7 +3,7 @@ import type { PropKind } from './world/propData';
 import type { ThemeDef } from './world/themeData';
 import type { BossConfig, PlannedRoom } from './world/generate';
 import type { FoeKind, Template } from './world/templates';
-import type { FoeDef, FoeType } from './actors/foeData';
+import type { FoeDef, FoeType, School } from './actors/foeData';
 import type { StatusState } from './magic/status';
 import type { StatusKind } from './magic/spellData';
 import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
@@ -160,7 +160,8 @@ export interface Enemy extends Circle {
   champion?: boolean; aura?: THREE.Sprite;
   // type-specific parts and AI state
   core?: THREE.Mesh; halo?: THREE.Sprite; target?: Vec2; fireT?: number; dir?: Vec2;
-  eye?: THREE.Mesh; ring?: THREE.Mesh; cycle?: number; summoned?: boolean; volleys?: number;
+  eye?: THREE.Object3D; ring?: THREE.Object3D; cycle?: number; summoned?: boolean; volleys?: number;
+  /** A boss built in code (M4: the Hollow Warden's looks, bossLooks.ts): its school, whose light its shots take. */ bossSchool?: School;
   /** Bosses: out of reach (under the floor, in the air), so neither hurt nor hurting. */ hidden?: boolean;
   /** Floor ring (the abbess's ripple, the knight's landing mark); where a leap started. */ marker?: THREE.Mesh; from?: Vec2;
   /** Called by a boss; falls when the boss does. */ servant?: boolean;
