@@ -280,6 +280,9 @@ only one way to get them.
   that lights dark rooms and finds cracked walls; a grave rat that digs up obols; a toad that swallows shots; a
   bone hound pup that charges; a candle owl that marks the nearest foe.
 - **Open:** whether they can die, and whether they grow with the mage's levels (M6).
+- **The Rune Fox** (the owner's drawing, 2026-09-30; built in code as a look, the dev menu's Familiar options): a
+  spectral fox with runes along its flanks and a starry tail. As a familiar it trots beside the mage and leaps at the
+  nearest foe. Magic take: its runes take the colour of the last spell cast, and its bite carries that spell's status.
 
 ## A hub between runs (owner's idea, 2026-09-29)
 
@@ -381,6 +384,98 @@ possibly M4, built in code instead of from Tripo, if the owner decides so. Names
 8. **Censer Bearer** (chapel): a hooded monk swinging a burning censer; its smoke hides him.
 9. **Skull Swarm** (any floor): skulls circling a violet flame; they scatter when hit and circle back.
 10. **Urn Mimic** (among the urns): an urn that is not one; waits still, then scuttles and bites.
+
+## Bestiary: more creatures and enemy types (owner's request, 2026-09-30)
+
+**Scheduled as M4.5 Bestiary** (GDD: Combat and enemies, The Bestiary). The owner liked the critters and wants a whole
+host more: small critters, fantasy creatures and elementals, and new kinds of enemies. Each is drawn up in code as a look
+first, then chosen, then made a foe. The rules of the ten hold: round, readable shapes; big eyes on the critters; a
+school's light; smaller than the mage (elites and bosses aside); a floor each. Names are placeholders.
+
+**Small critters**
+
+| Critter | School | Where | The look, and how it could fight |
+| --- | --- | --- | --- |
+| Wickmouse | Ember | Crypt, chapel | A mouse with a candle stub burning on its back; scurries from cover to cover and lights any oil it runs through |
+| Inkling | Umbral | Library, scriptorium | A blot of ink with eyes that crawls out of scroll heaps; leaves a smear that slows, and splits in two when struck |
+| Chime Bat | Storm | Bell chamber | A bat with a tiny bell round its neck; flits in loops, and its chime marks the mage for a spark that follows |
+| Rime Snail | Frost | Drowned floor | A snail with a shell of ice; slow, leaves frost that freezes water, and turns its shell to bolts |
+| Spiderling | Umbral | Ossuary, crypt | Drops from the ceiling on a thread; its webs slow; a clutch hatches from an egg sack when the room wakes |
+| Firefly Cloud | Hallow | Garth, chapel | A cloud of fireflies pulsing as one; blinding when swatted; scatters and gathers again |
+| Rubble Crab | Storm | Collapsed rooms | A crab wearing a shell of rubble, hiding among the piles; pinches; a blast flips it on its back |
+| Dust Puff | Umbral | Any | A ball of dust with eyes that rolls at the mage and bursts into a dark cloud |
+| Frost Hare | Frost | Frozen rooms | A white hare with ice-blue eyes that leaps in long bounds; hard to hit, slides on ice |
+| Puffcap | Umbral | Grotto | A small Sporeling that swells and bursts into spores when the mage comes close |
+| Ember Wasp | Ember | Burning floor | Streams from a nest set in a wall; fire destroys the nest, and the wasps with it |
+| Glass Newt | Frost | Drowned floor | A clear little newt, cold to the touch; chills what it bites (also an idea for a familiar) |
+
+**Fantasy creatures**
+
+| Creature | School | Where | The look, and how it could fight |
+| --- | --- | --- | --- |
+| Basilisk Hatchling | Umbral | Crypt | A small lizard with a crest and a stare: its telegraphed gaze slows the mage while it lasts |
+| Gargoyle Whelp | Frost | Chapel, bell chamber | Perches on a wall as stone; drops when the mage passes; bolts glance off it until it moves |
+| Grimoire Mimic | Umbral | Library | A book that flaps and bites; drops a grimoire page when it falls |
+| Brine Serpent | Frost | Drowned floor | Coils up out of a pool and spits; freezing the pool traps it |
+| Moonstag Fawn | Hallow | Garth | A fawn with glowing antlers that heals the foes near it; put it to rest first |
+| Rootling | Umbral | Crypt with grave roots | A sapling creature that burrows and bursts up under the mage; fire keeps it above ground |
+| Phoenix Chick (elite) | Ember | Burning floor | Rises again from its ashes once, unless the ashes are frozen first |
+| Storm Ray | Storm | Drowned floor | A manta of storm-cloud gliding over the room, shocking the floor and water beneath it |
+| Griffin Fledgling (elite) | Storm | Burning floor | Circles high, then swoops along a marked line |
+| Shadow Fox | Umbral | Any | Blinks from shadow to shadow; a lit brazier or a lifted dark keeps it in the open |
+| Harpy Chick | Storm | Bell chamber | Dives from above and screeches; its screech scatters glyphs |
+| Salt Golemling | Frost | Embalmers' hall | A small golem of salt and wax; slow, blocks bolts, melts in fire |
+
+**Elementals** (one or more for every school; each is made of its element, so the room answers to it)
+
+| Elemental | School | The look, and how it could fight |
+| --- | --- | --- |
+| Cinder Sprite | Ember | A flicker of flame with eyes; flits about, lights oil and braziers it touches |
+| Magma Blob | Ember | Splits into smaller blobs when struck, each leaving burning ground |
+| Hearth Golem (elite) | Ember | A walking brazier; its fire must be put out with frost before it can be hurt |
+| Snowball Sprite | Frost | Rolls at the mage, growing as it rolls, and bursts into a chill |
+| Glacier Golem (elite) | Frost | Slow, blocks bolts; storm on a frozen golem shatters it (Shatter) |
+| Spark Sprite | Storm | Zips in straight lines from wall to wall, turning at each |
+| Thunderhead | Storm | A small storm-cloud that rains sparks on where the mage stands; water under it carries them |
+| Lodestone Golem | Storm | Bends the mage's bolts towards itself |
+| Choir Wisp | Hallow | Sings: foes near it strike harder until it is silenced |
+| Radiant Orb | Hallow | Drifts and flares, blinding for a moment when the mage looks its way too long |
+| Gloom Sprite | Umbral | Darkens the room round it as it moves |
+| Void Mote | Umbral | Swallows the mage's bolts, growing with each, until a spell bursts it |
+| Puddle Elemental | (water) | A walking pool on the drowned floor; frozen, it becomes ice to stand on |
+| Rubble Golem | (earth) | Breaks into rolling stones when a blast hits it |
+
+Elemental rules to try: an elemental takes its own school's status as healing (a Cinder Sprite grows when burned);
+the opposite school hurts it twice over (Ember and Frost, Hallow and Umbral; Storm and water); and it touches the room
+as its element does (fire lights oil, frost freezes water, sparks run through pools).
+
+**Enemy types** (how they fight, each with a magic take; any creature above can take one)
+
+| Type | How it fights | Magic take |
+| --- | --- | --- |
+| Chaser | Walks straight at the mage | Leaves its school's trail (frost, embers) |
+| Hopper | Leaps, lands, pauses | Lands with a small burst of its school |
+| Charger | Lines up and charges until a wall stops it | Charging through a pool carries the pool's element |
+| Flier | Ignores rocks and pits | Can't be slowed by water; ground spells miss it |
+| Shooter | Aimed shots | Its shots carry its school's status |
+| Spreader | Rings or fans of shots | A reaction on it bursts its next ring |
+| Turret | Bound to a wall or floor | Can be turned: a rune of the mage's school captures it for the room |
+| Burrower | Under the floor, surfaces under the mage | Fire or frost on its mound keeps it down |
+| Swarm | Many weak ones with one mind | A chain spell (Arc) leaps through all of them |
+| Splitter | Splits when it falls | Frozen, it shatters instead of splitting |
+| Shielded | Blocks bolts from the front | A reaction breaks the shield |
+| Healer | Heals or shields the foes near it | Hallow heals it, Umbral silences it |
+| Summoner | Calls more foes | Its circle on the floor can be broken by a blast glyph |
+| Mimic | Hides as an object (urn, book, chest) | Reveals itself to the mage's own school |
+| Ambusher | Sleeps or waits above | Wakes to noise: a bell, a blast, a spell |
+| Kiter | Keeps its distance | Slowed by chill, it can be caught |
+| Blinker | Teleports | Shock stops it blinking |
+| Trapper | Lays hazards (webs, burning ground, ice) | Its hazards take the mage's elements too (burn a web) |
+| Leech | Drains mana on touch | Gives the mana back when put to rest |
+| Absorber | Eats one school's spells to grow | Must be beaten with another school |
+| Mirror | Reflects bolts unless struck from behind | Spells go through it |
+| Tethered pair | Two foes joined by a beam that hurts | The beam carries statuses from one to the other |
+| Champion | Any foe, bigger, with a school's aura | Drops more; its aura's school decides its weakness |
 
 ## Costumes (play-test, 2026-09-28)
 

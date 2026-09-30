@@ -9,7 +9,7 @@ import '@fontsource/alegreya-sans/400.css';
 import '@fontsource/alegreya-sans/500.css';
 import '@fontsource/alegreya-sans/700.css';
 import './style.css';
-import { DEV, G, player } from './state';
+import { G, player } from './state';
 import { applyStrings } from './strings';
 import { Sfx } from './audio/sfx';
 import { camera, canvas, draw, renderer, resize } from './render/renderer';
@@ -36,7 +36,7 @@ import { inflict } from './magic/statusFx';
 import { makeEnemy } from './actors/enemies';
 import { castSpell, learnSpell } from './magic/spells';
 import { mantleLeft } from './magic/shapes';
-import { lanceShowing } from './magic/lanceFx';
+import { fxShowing } from './magic/spellFx';
 import { answerPage, dropPage, pagePanelSpell } from './magic/pages';
 import { fireAt, poolsDo } from './world/pools';
 import { spawnShot } from './combat/projectiles';
@@ -48,7 +48,7 @@ import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
 import { assetList, assetsOn, loadAssets } from './assets/models';
 import { pixelLook, setPixelLook, type PixelLook } from './render/pixelLook';
-import { removeModelOptions, showModelOptions } from './actors/modelOptions';
+import { removeModelOptions, showFamiliarOptions, showModelOptions } from './actors/modelOptions';
 import { removeEffectOptions, showEffectOptions } from './magic/effectOptions';
 import { elementDev } from './world/mechanisms';
 import { forgetKnowledge, knowledgeNow, setStage } from './magic/memory';
@@ -153,6 +153,8 @@ function installDevHooks() {
         each stands; take them away again. */
     modelOptions: (ids?: string[]) => showModelOptions(G.current, player.x, player.z, ids),
     takeModelOptions: () => removeModelOptions(G.current),
+    /** The familiar options (looks only, the owner's drawings built in code) ahead of the mage; taken away with the rest. */
+    familiarOptions: (ids?: string[]) => showFamiliarOptions(G.current, player.x, player.z, ids),
     /** Spell effect options (looks only): play them (or those named) ahead of the mage; take them away again. */
     effectOptions: (ids?: string[]) => showEffectOptions(G.current, player.x, player.z, ids),
     takeEffectOptions: () => removeEffectOptions(G.current),
@@ -193,8 +195,8 @@ function installDevHooks() {
         Static Mantle left. */
     shoot(x: number, z: number, dx: number, dz: number) { const l = Math.hypot(dx, dz) || 1; spawnShot(x, z, dx / l, dz / l, CFG.enemy.wisp.shotSpeed, 0xb784ff, .8); },
     get mantle() { return mantleLeft(); },
-    /** The Cinder Lance's new look (a proof of concept): whether it shows now, and the switch back to the old beam. */
-    get lanceFx() { return lanceShowing(); }, oldLance(on = true) { DEV.oldLance = on; },
+    /** The spells' looks showing now: the Cinder Lance, and how many rings of light and bolts of lightning. */
+    get spellFx() { return fxShowing(); },
     /** Drop a grimoire page (of `id`, or a spell the mage doesn't know) at (x, z) or ahead of the mage; the pages
         in the room; the spells given up this run. */
     page(id?: string, x = player.x, z = player.z - 1.5) { return dropPage(G.current, x, z, id)?.spell ?? null; },

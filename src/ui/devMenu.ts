@@ -18,7 +18,7 @@ import { makeEnemy } from '../actors/enemies';
 import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
 import { assetList, assetsOn, setAssetsOn } from '../assets/models';
 import { pixelLook, setPixelLook } from '../render/pixelLook';
-import { MODEL_OPTIONS, removeModelOptions, showModelOptions } from '../actors/modelOptions';
+import { FAMILIAR_OPTIONS, MODEL_OPTIONS, removeModelOptions, showFamiliarOptions, showModelOptions } from '../actors/modelOptions';
 import { EFFECT_OPTIONS, removeEffectOptions, showEffectOptions } from '../magic/effectOptions';
 import { CFG } from '../config';
 import { freeSpotNear, placeUrn } from '../world/rooms';
@@ -38,7 +38,7 @@ import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
 import { renderHearts, renderItems, renderMinimap, toast } from './hud';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, lanceBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
 let spellSlot = 0, knowBox: HTMLElement;
 let wasPlaying = false, keepCarried = true;
 
@@ -222,11 +222,13 @@ function build() {
   const opts = section(p, S.options);
   opts.append(el('p', 'dv-info', [1, 2, 3].map(f => S.floorOptions(f, MODEL_OPTIONS.filter(o => o.floor === f).map(o => STR.options[o.id].name).join(', '))).join(' · ')), btn(S.showOptions, () => { closeDev(); showModelOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
 
+  // familiar options (looks only, the owner's drawings built in code): in a row ahead of the mage
+  const fam = section(p, S.familiars);
+  fam.append(el('p', 'dv-info', FAMILIAR_OPTIONS.map(o => STR.familiars[o.id].name).join(', ')), btn(S.showOptions, () => { closeDev(); showFamiliarOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
+
   // spell effect options (looks only): each plays one cast over and over, ahead of the mage
   const fx = section(p, S.effects);
-  fx.append(el('p', 'dv-info', EFFECT_OPTIONS.map(o => STR.effects[o.id].name).join(', ')), btn(S.showOptions, () => { closeDev(); showEffectOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeEffectOptions(G.current)),
-    // the Cinder Lance in the new style on the real spell (a proof of concept), or back to its old beam to compare
-    lanceBtn = btn('', () => { DEV.oldLance = !DEV.oldLance; }));
+  fx.append(el('p', 'dv-info', EFFECT_OPTIONS.map(o => STR.effects[o.id].name).join(', ')), btn(S.showOptions, () => { closeDev(); showEffectOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeEffectOptions(G.current)));
 
   // start something: a test room in a variant, a boss fight, a new run
   const test = section(p, S.test);
@@ -271,7 +273,6 @@ function refresh() {
   pxBtn.textContent = S.pixelLines(look.lines); pxBtn.classList.toggle('on', !!look.lines);
   lineBtn.textContent = look.outline ? S.outlinesOn : S.outlinesOff; lineBtn.classList.toggle('on', look.outline); lineBtn.disabled = !look.lines;
   bandBtn.textContent = look.bands ? S.bandsOn : S.bandsOff; bandBtn.classList.toggle('on', look.bands); bandBtn.disabled = !look.lines;
-  lanceBtn.textContent = DEV.oldLance ? S.lanceOld : S.lanceNew; lanceBtn.classList.toggle('on', DEV.oldLance);
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
   knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'));
   spellBox.replaceChildren(...SPELL_DEFS.map(s => {

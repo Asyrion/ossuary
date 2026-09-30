@@ -86,6 +86,8 @@ export function lightningBolt(parent: THREE.Object3D, color: number, n = 8, widt
   let rnd = 1;
   const r = () => (rnd = rnd * 16807 % 2147483647) / 2147483647 - .5;
   return {
+    /** Its two materials: recolour the sheath, fade both. */
+    core, sheath,
     set(from: V3, to: V3, seed: number, jitter = .12, visible = true) {
       rnd = 1 + (Math.floor(seed) * 7919) % 2147483646; a.set(...from); b.set(...to); side.subVectors(b, a).cross(Y).normalize();
       p.copy(a);

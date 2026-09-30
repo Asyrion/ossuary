@@ -124,13 +124,18 @@ export const CFG = {
     witchKnot: { costMul: 0.8 },                                        // Witch's Knot: spell costs at half health or below
   },
   // the pixel look (render/pixelLook.ts, the game's look since 2026-09-30): the rows of pixels it offers and the one it
-  // starts at, outlines where a nearer surface stands more than outlineGap units before a farther one (darkened by
-  // outlineDark), and light bands
-  pixelLook: { lines: [360, 270, 180], start: 270, outlineGap: 0.3, outlineDark: 0.72, bands: 7 },
-  // the Cinder Lance in the new effect style (magic/lanceFx.ts, a proof of concept for redoing the spells' effects): how
-  // long it shows, how quickly it swells to full and when it starts to fade, how long the rune ring at the hand flares
-  // (seconds), the space between its rune rings, and how fast its embers run down it (lengths a second)
-  lanceFx: { life: 0.6, rise: 0.06, fade: 0.3, flare: 0.25, ringGap: 1.2, embers: 1.4 },
+  // starts at (360 since the play-test of 2026-09-30: at 270 the mage and small things didn't read full-screen),
+  // outlines where a nearer surface stands more than outlineGap units before a farther one (darkened by outlineDark),
+  // and light bands
+  pixelLook: { lines: [540, 360, 270, 180], start: 360, outlineGap: 0.3, outlineDark: 0.72, bands: 7 },
+  // the spells' looks (magic/spellFx.ts, docs/effects.md), in seconds unless said: the Cinder Lance (how long it shows,
+  // how quickly it swells to full, when it starts to fade, how long the rune ring at the hand flares, the space between
+  // its rune rings in units, how fast its embers run down it in lengths a second); how long a bolt's impact flares, a
+  // bolt of lightning lasts and a ring of light grows and fades; the Pyre Seal's pillar; the Glacial Wall's rise
+  spellFx: {
+    lance: { life: 0.6, rise: 0.06, fade: 0.3, flare: 0.25, ringGap: 1.2, embers: 1.4 },
+    impact: 0.22, strike: 0.22, ring: 0.3, sealPillar: 0.7, wallRise: 0.25,
+  },
   lights: {
     hemi: 1.57, moon: 1.26,
     torch: 4.3, torchDistance: 9, torchDecay: 0.5,

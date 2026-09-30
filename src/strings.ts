@@ -259,6 +259,10 @@ export const STR = {
     hexImp: { name: 'Hex Imp', note: 'Floor 3, Umbral: a big-eared imp on bat wings holding up a violet flame; blinks about the room and throws it' },
     rimeDrakeling: { name: 'Rime Drakeling', note: 'Floor 3, Frost (elite): a small dragon with ice crystals for horns and spines; breathes rime and takes to its wings' },
   } as Record<string, { name: string; note: string }>,
+  /** Familiar options (actors/modelOptions.ts): the owner's drawings, built in code; placeholder names. */
+  familiars: {
+    runeFox: { name: 'Rune Fox', note: 'A spectral fox with runes along its flanks and a starry tail (the owner\'s drawing)' },
+  } as Record<string, { name: string; note: string }>,
   /** Spell effect options (magic/effectOptions.ts): names and what each shows. */
   effects: {
     arcaneBolt: { name: 'Arcane bolt', note: "The cantrip: a spinning missile trailing runes, bursting where it lands" },
@@ -280,9 +284,8 @@ export const STR = {
     assetStatus: { loaded: 'loaded', missing: 'missing', failed: 'failed', off: 'off (?assets=off)' } as Record<string, string>,
     assetRow: (where: string, status: string, tris?: number) => `${where}: ${status}${tris ? `, ${tris.toLocaleString('en')} triangles` : ''}`,
     fpsOn: 'Frame readout: shown', fpsOff: 'Frame readout: hidden',
-    options: 'Enemy model options (looks only)', effects: 'Spell effect options (looks only)', showOptions: 'Stand them here', takeOptions: 'Take them away', floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
+    options: 'Enemy model options (looks only)', familiars: 'Familiar options (looks only)', effects: 'Spell effect options (looks only)', showOptions: 'Stand them here', takeOptions: 'Take them away', floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
     pixel: 'Pixel look', pixelLines: (lines: number) => lines ? `Pixels: ${lines} lines` : 'Pixels: off',
-    lanceNew: 'Cinder Lance: the new look (on the spell)', lanceOld: 'Cinder Lance: the old beam',
     outlinesOn: 'Outlines: on', outlinesOff: 'Outlines: off', bandsOn: 'Light in bands: on', bandsOff: 'Light in bands: off',
     /** The on-screen readout: frame rate, and what the last frame drew. */
     frameInfo: (fps: number, calls: number, tris: number) => `${fps} fps · ${calls} draw calls · ${tris.toLocaleString('en')} triangles`,

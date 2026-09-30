@@ -6,10 +6,10 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Box, Enemy, Room, Vec2 } from '../types';
-import { DEV, G, player } from '../state';
+import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
-import { glow, glowShared, markShared } from '../render/materials';
+import { glowShared } from '../render/materials';
 import { burst } from '../combat/fx';
 import { damageEnemy } from '../combat/damage';
 import { fireSpellBolt, strikeSolid } from '../combat/projectiles';
@@ -19,7 +19,7 @@ import { fireAt, frostAt } from '../world/pools';
 import { canAct } from './status';
 import type { Shape, SpellDef } from './spellData';
 import { flash, inflict } from './statusFx';
-import { clearLanceFx, lanceFx, updateLanceFx } from './lanceFx';
+import { clearSpellFx, iceColumn, lanceFx, mantleFx, ringFx, sealFx, strikeFx, updateSpellFx } from './spellFx';
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 const FIRE = 0xff7a2a, EMBER = 0xffc060, ICE = 0xbfe6ff;
@@ -75,7 +75,7 @@ const chain: Cast = (def, dir) => {
   let from = { x: player.x + dir.x * .3, y: 1.05, z: player.z + dir.z * .3 };
   path.forEach((e, i) => {
     const to = { x: e.x, y: foeY(e), z: e.z };
-    lightning(from, to, color);
+    strikeFx(from, to, color, .3); ringFx(to.x, to.y, to.z, color, .1, .45, .25);
     const dx = e.x - from.x, dz = e.z - from.z, d = Math.hypot(dx, dz) || 1;
     damageEnemy(e, def.damage * Math.pow(P.falloff, i), dx / d, dz / d, .4, 'spell');
     inflict(e, def.status);
@@ -110,107 +110,37 @@ const beam: Cast = (def, dir) => {
   }
   igniteGlyphs((x, z) => { const t = along(x, z); return t > 0 && t < len && side(x, z) < CFG.glyph.boltReach; }, true);
   for (let t = 0; t < len; t += .3) fireAt(sx + dir.x * t, sz + dir.z * t); // and oil along it
-  if (DEV.oldLance) beamFx(sx, sz, dir, len, color); else lanceFx(sx, sz, dir, len, color); // (the new look, a proof of concept; the dev menu compares)
+  lanceFx(sx, sz, dir, len, color);
   for (let t = .4; t < len; t += .6) burst(sx + dir.x * t, .6, sz + dir.z * t, t % 1.2 < .6 ? FIRE : EMBER, 2, 1.4, .045);
   Sfx.lance();
   return true;
 };
 
-/** The beam's old look (the dev menu's comparison with the new one in lanceFx.ts): two crossed ribbons (one flat, one upright, so it reads in any direction) in the spell's
-    colour around a white-hot core, and glows along it, all narrowing to nothing in a third of a second. */
-const beams: { g: THREE.Group; ribbons: THREE.Mesh[]; glows: THREE.Sprite[]; t: number }[] = [];
-const BEAM_LIFE = .35;
-let ribbonGeo: THREE.PlaneGeometry | null = null, stripe: THREE.CanvasTexture | null = null;
-const ribbonMats = new Map<number, THREE.MeshBasicMaterial>();
-function ribbonMat(color: number) {
-  let m = ribbonMats.get(color);
-  if (!m) {
-    stripe ??= stripeTexture();
-    m = markShared(new THREE.MeshBasicMaterial({ map: stripe, color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
-    ribbonMats.set(color, m);
-  }
-  return m;
-}
-/** A soft stripe: bright in the middle, fading to nothing at both edges (a beam seen across). */
-function stripeTexture() {
-  const c = document.createElement('canvas'); c.width = 4; c.height = 64; const g = c.getContext('2d')!;
-  const gr = g.createLinearGradient(0, 0, 0, 64);
-  gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(.3, 'rgba(255,255,255,.35)'); gr.addColorStop(.5, 'rgba(255,255,255,1)');
-  gr.addColorStop(.7, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = gr; g.fillRect(0, 0, 4, 64);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
-}
-function beamFx(sx: number, sz: number, dir: Vec2, len: number, color: number) {
-  ribbonGeo ??= markShared(new THREE.PlaneGeometry(1, 1));
-  const g = new THREE.Group(), ribbons: THREE.Mesh[] = [], glows: THREE.Sprite[] = [];
-  g.position.set(sx + dir.x * len / 2, .6, sz + dir.z * len / 2); g.rotation.y = Math.atan2(-dir.z, dir.x);
-  for (const [c, w] of [[color, .7], [0xfff2d8, .22]] as const) for (const flat of [true, false]) {
-    const m = new THREE.Mesh(ribbonGeo, ribbonMat(c)); m.scale.set(len, w, 1); m.userData.w = w;
-    if (flat) m.rotation.x = -Math.PI / 2;
-    g.add(m); ribbons.push(m);
-  }
-  for (let t = .2; t < len; t += .7) { const s = glowShared(color, 1, .7); s.position.x = t - len / 2; g.add(s); glows.push(s); }
-  scene.add(g); beams.push({ g, ribbons, glows, t: 0 });
-}
-function updateBeams(dt: number) {
-  for (let i = beams.length - 1; i >= 0; i--) {
-    const b = beams[i]; b.t += dt;
-    if (b.t >= BEAM_LIFE) { scene.remove(b.g); beams.splice(i, 1); continue; }
-    const w = Math.pow(1 - b.t / BEAM_LIFE, .6) * (.85 + Math.random() * .3);
-    for (const r of b.ribbons) r.scale.y = r.userData.w * w;
-    for (const s of b.glows) s.scale.setScalar(w);
-  }
-}
-
 /* ---------- placed: Pyre Seal ---------- */
 
 /** A seal chalked in fire at the mage's feet: it brightens and turns for a heartbeat, then erupts (a ring of
     flame that strikes, sets burning and throws back every foe in it, and sets off glyphs), and the ground in
-    it burns for a while after, setting foes that walk on it burning again. */
-const seals: { def: SpellDef; x: number; z: number; t: number; mesh: THREE.Mesh; mat: THREE.MeshBasicMaterial; erupted: boolean; tick: number }[] = [];
-let flatGeo: THREE.PlaneGeometry | null = null, sealTex: THREE.CanvasTexture | null = null;
+    it burns for a while after, setting foes that walk on it burning again. Its look is `sealFx` (spellFx.ts). */
+const seals: { def: SpellDef; x: number; z: number; t: number; fx: ReturnType<typeof sealFx>; erupted: boolean; tick: number }[] = [];
 const placed: Cast = def => {
   const P = def.params, color = hex(def.color);
-  flatGeo ??= markShared(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2));
-  const mat = new THREE.MeshBasicMaterial({ map: sealTex ??= sealTexture(), color, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false });
-  const mesh = new THREE.Mesh(flatGeo, mat); mesh.scale.set(P.radius * 2, 1, P.radius * 2); mesh.position.set(player.x, .03, player.z); mesh.renderOrder = 2;
-  scene.add(mesh);
-  seals.push({ def, x: player.x, z: player.z, t: 0, mesh, mat, erupted: false, tick: 0 });
+  seals.push({ def, x: player.x, z: player.z, t: 0, fx: sealFx(player.x, player.z, P.radius, color), erupted: false, tick: 0 });
   burst(player.x, .1, player.z, color, 10, 1.6, .04); Sfx.sealPlace();
   return true;
 };
-/** The seal: two rings with ticks between them, a seven-pointed star and a flame at its heart, in white (the
-    material gives it the spell's colour). */
-function sealTexture() {
-  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d')!;
-  g.translate(128, 128); g.strokeStyle = g.fillStyle = '#fff'; g.lineCap = 'round';
-  g.lineWidth = 7; g.beginPath(); g.arc(0, 0, 118, 0, Math.PI * 2); g.stroke();
-  g.lineWidth = 3; g.beginPath(); g.arc(0, 0, 100, 0, Math.PI * 2); g.stroke();
-  for (let i = 0; i < 24; i++) {
-    const a = i / 24 * Math.PI * 2, r = i % 3 ? 110 : 116;
-    g.beginPath(); g.moveTo(Math.cos(a) * 103, Math.sin(a) * 103); g.lineTo(Math.cos(a) * r, Math.sin(a) * r); g.stroke();
-  }
-  g.lineWidth = 4; g.beginPath();
-  for (let i = 0; i <= 7; i++) { const a = (i * 3 % 7) / 7 * Math.PI * 2 - Math.PI / 2; g[i ? 'lineTo' : 'moveTo'](Math.cos(a) * 96, Math.sin(a) * 96); }
-  g.stroke();
-  g.lineWidth = 3; g.beginPath(); g.arc(0, 0, 44, 0, Math.PI * 2); g.stroke();
-  g.beginPath(); g.moveTo(0, -30); g.quadraticCurveTo(22, 2, 0, 26); g.quadraticCurveTo(-22, 2, 0, -30); g.fill();
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
-}
 function updateSeals(dt: number) {
   for (let i = seals.length - 1; i >= 0; i--) {
     const s = seals[i], P = s.def.params; s.t += dt;
     if (!s.erupted) { // brighter and faster as it's about to erupt
       const k = Math.min(1, s.t / P.delay);
-      s.mat.opacity = .25 + .6 * k + Math.sin(s.t * 30) * .1 * k;
-      s.mesh.rotation.y += dt * (1 + 3 * k);
+      s.fx.charge(k, s.t);
       if (Math.random() < dt * 20) { const a = Math.random() * Math.PI * 2; flame(s.x + Math.cos(a) * P.radius * .92, s.z + Math.sin(a) * P.radius * .92, FIRE, .35); }
       if (s.t >= P.delay) erupt(s);
       continue;
     }
     const left = P.delay + P.ground - s.t;
-    if (left <= 0) { scene.remove(s.mesh); s.mat.dispose(); seals.splice(i, 1); continue; }
-    s.mat.opacity = Math.min(1, left) * (.4 + Math.sin(s.t * 13) * .08 + Math.random() * .06);
+    if (left <= 0) { s.fx.drop(); seals.splice(i, 1); continue; }
+    s.fx.burn(dt, left, s.t);
     // flames lick up from the burning ground, and it sets burning what walks on it (not what flies above)
     if (Math.random() < dt * 40 * Math.min(1, left)) { const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * P.radius; flame(s.x + Math.cos(a) * r, s.z + Math.sin(a) * r, Math.random() < .6 ? FIRE : EMBER, .4 + Math.random() * .35); }
     s.tick -= dt;
@@ -224,7 +154,7 @@ function updateSeals(dt: number) {
 }
 function erupt(s: (typeof seals)[number]) {
   const def = s.def, P = def.params;
-  s.erupted = true; s.mat.color.setHex(FIRE);
+  s.erupted = true; s.fx.erupt();
   for (const e of G.enemies) {
     if (!alive(e)) continue;
     const u = away(e, s.x, s.z);
@@ -240,7 +170,7 @@ function erupt(s: (typeof seals)[number]) {
     flame(x, z, i % 2 ? FIRE : EMBER, .7); if (i % 2) burst(x, .2, z, FIRE, 2, 2.2, .06);
   }
   burst(s.x, .3, s.z, FIRE, 14, 3.2, .08);
-  flash(s.x, s.z, 0xff8a3a, P.radius);
+  flash(s.x, s.z, 0xff8a3a, P.radius); ringFx(s.x, .05, s.z, FIRE, P.radius * .3, P.radius * 1.25, .45, true);
   Sfx.at(s.x, s.z).sealErupt(); G.shake = Math.max(G.shake, .25);
 }
 
@@ -279,8 +209,7 @@ const shotgun: Cast = (def, dir) => {
 /** A wall of ice crystals across the cast direction, a little ahead of the mage (nearer when something is in the
     way), stopping at walls and rocks. It stops the mage, foes and their shots, not the mage's bolts; when its
     time is up it shatters, striking and chilling every foe near it. */
-const walls: { def: SpellDef; room: Room; boxes: Box[]; g: THREE.Group; crystals: THREE.Mesh[]; t: number }[] = [];
-let crystal: { geo: THREE.ConeGeometry; mat: THREE.MeshStandardMaterial } | null = null;
+const walls: { def: SpellDef; room: Room; boxes: Box[]; g: THREE.Group; columns: THREE.Group[]; t: number }[] = [];
 const ICE_HALF = .27;
 const wall: Cast = (def, dir) => {
   const P = def.params, room = G.current, solids = blockers(room, 'bolt');
@@ -296,24 +225,17 @@ const wall: Cast = (def, dir) => {
     if (pointInBoxes(x, z, ICE_HALF * .5, solids)) break;
     spots.push({ x, z });
   }
-  crystal ??= {
-    geo: markShared(new THREE.ConeGeometry(.3, 1, 5).translate(0, .5, 0)),
-    mat: markShared(new THREE.MeshStandardMaterial({ color: 0xcfeeff, transparent: true, opacity: .82, roughness: .15, metalness: .1, emissive: 0x2a5a8a, flatShading: true })),
-  };
-  const g = new THREE.Group(), crystals: THREE.Mesh[] = [], boxes: Box[] = [];
-  for (const p of spots) {
-    for (let j = 0; j < 2; j++) { // a tall crystal, and a shorter one leaning off it
-      const m = new THREE.Mesh(crystal.geo, crystal.mat), h = j ? .5 + Math.random() * .3 : .95 + Math.random() * .45;
-      m.position.set(p.x + (j ? (Math.random() - .5) * .3 : 0), 0, p.z + (j ? (Math.random() - .5) * .3 : 0));
-      m.rotation.set((Math.random() - .5) * .25 + (j ? .35 : 0), Math.random() * Math.PI * 2, (Math.random() - .5) * .25);
-      m.userData.h = h; m.scale.set(1, .02, 1); g.add(m); crystals.push(m);
-    }
+  // (its look: a pillar of ice for each spot, rising from the middle outwards; iceColumn in spellFx.ts)
+  const g = new THREE.Group(), columns: THREE.Group[] = [], boxes: Box[] = [];
+  spots.forEach((p, i) => {
+    const c = iceColumn(p.x, p.z, .8 + Math.random() * .45); c.rotation.set((Math.random() - .5) * .16, Math.random() * Math.PI * 2, (Math.random() - .5) * .16);
+    c.userData.delay = Math.min(i, spots.length - i) * .03; c.scale.y = .01; g.add(c); columns.push(c);
     boxes.push({ x: p.x, z: p.z, hx: ICE_HALF, hz: ICE_HALF });
     burst(p.x, .3, p.z, ICE, 3, 1.8, .045); frostAt(p.x, p.z, .25); // water it stands in freezes
-  }
+  });
   scene.add(g);
   room.barriers = [...(room.barriers ?? []), ...boxes];
-  walls.push({ def, room, boxes, g, crystals, t: 0 });
+  walls.push({ def, room, boxes, g, columns, t: 0 });
   Sfx.wallRise();
   return true;
 };
@@ -321,9 +243,11 @@ function updateWalls(dt: number) {
   for (let i = walls.length - 1; i >= 0; i--) {
     const w = walls[i]; w.t += dt;
     const left = w.def.params.life - w.t;
-    const rise = 1 - Math.pow(1 - Math.min(1, w.t / .18), 3);
-    for (const m of w.crystals) m.scale.y = m.userData.h * rise;
-    const shiver = left < .6 ? (Math.random() - .5) * .05 : 0; w.g.position.set(shiver, 0, -shiver); // it cracks before it goes
+    for (const c of w.columns) { // up with a little overshoot, and sinking a little as it cracks before it goes
+      const r = Math.min(1, Math.max(0, (w.t - c.userData.delay) / CFG.spellFx.wallRise)), up = r < 1 ? r * (1 + Math.sin(r * Math.PI) * .25) : 1;
+      c.scale.y = Math.max(.01, up * (left < .6 ? .85 + left / .6 * .15 : 1));
+    }
+    const shiver = left < .6 ? (Math.random() - .5) * .05 : 0; w.g.position.set(shiver, 0, -shiver);
     if (left <= 0) { dropWall(w); walls.splice(i, 1); }
   }
 }
@@ -342,6 +266,7 @@ function dropWall(w: (typeof walls)[number], quiet = false) {
     inflict(e, def.status);
   }
   for (const b of w.boxes) { burst(b.x, .5, b.z, ICE, 6, 2.6, .06); burst(b.x, .8, b.z, 0xffffff, 2, 2, .04); }
+  const mid = w.boxes[Math.floor(w.boxes.length / 2)]; ringFx(mid.x, .05, mid.z, ICE, .3, P.burst + .6, .45, true);
   Sfx.at(w.boxes[0].x, w.boxes[0].z).wallShatter(); G.shake = Math.max(G.shake, .12);
 }
 
@@ -349,14 +274,11 @@ function dropWall(w: (typeof walls)[number], quiet = false) {
 
 /** The storm wrapped around the mage for a while: sparks circling, small arcs crackling over the body, and any
     foe that touches it struck, shocked and thrown back (each foe at most every so often). */
-let mantle: { def: SpellDef; t: number; g: THREE.Group; aura: THREE.Sprite; sparks: THREE.Sprite[]; zapped: Map<Enemy, number>; arcT: number } | null = null;
+let mantle: { def: SpellDef; t: number; fx: ReturnType<typeof mantleFx>; zapped: Map<Enemy, number>; arcT: number } | null = null;
 const self: Cast = def => {
   endMantle(true);
-  const color = hex(def.color), g = new THREE.Group(), aura = glow(color, 1.7, .25), sparks: THREE.Sprite[] = [];
-  aura.position.y = .7; g.add(aura);
-  for (let i = 0; i < 5; i++) { const s = glowShared(color, .28, .95); g.add(s); sparks.push(s); }
-  g.position.set(player.x, 0, player.z); scene.add(g);
-  mantle = { def, t: 0, g, aura, sparks, zapped: new Map(), arcT: 0 };
+  const color = hex(def.color), fx = mantleFx(color);
+  mantle = { def, t: 0, fx, zapped: new Map(), arcT: 0 }; fx.update(player.x, player.z, 0, 1);
   burst(player.x, .7, player.z, color, 14, 2.4, .04); Sfx.mantle();
   return true;
 };
@@ -370,24 +292,19 @@ function updateMantle(dt: number, now: number) {
   const P = m.def.params, color = hex(m.def.color); m.t += dt;
   if (m.t >= P.life) { endMantle(false); return; }
   const fade = Math.min(1, (P.life - m.t) / .5);
-  m.g.position.set(player.x, 0, player.z);
-  m.aura.material.opacity = (.2 + Math.sin(m.t * 11) * .06 + Math.random() * .05) * fade;
-  m.sparks.forEach((s, i) => {
-    const a = m.t * (3 + i * .7) + i * 1.3;
-    s.position.set(Math.cos(a) * .55, .35 + ((i * .37 + m.t * .8) % 1) * .9, Math.sin(a) * .55); s.visible = Math.random() > .1;
-  });
+  m.fx.update(player.x, player.z, m.t, fade);
   m.arcT -= dt;
   if (m.arcT <= 0) { // a small arc crackles over the mage
     m.arcT = .15 + Math.random() * .15;
     const a = Math.random() * Math.PI * 2, b = a + 1 + Math.random() * 2;
-    lightning({ x: player.x + Math.cos(a) * .45, y: .3 + Math.random() * .9, z: player.z + Math.sin(a) * .45 }, { x: player.x + Math.cos(b) * .45, y: .3 + Math.random() * .9, z: player.z + Math.sin(b) * .45 }, color, .25);
+    strikeFx({ x: player.x + Math.cos(a) * .45, y: .3 + Math.random() * .9, z: player.z + Math.sin(a) * .45 }, { x: player.x + Math.cos(b) * .45, y: .3 + Math.random() * .9, z: player.z + Math.sin(b) * .45 }, color, undefined, true);
   }
   for (const e of G.enemies) {
     if (!alive(e) || (m.zapped.get(e) ?? 0) > now) continue;
     const u = away(e, player.x, player.z);
     if (u.d > player.r + e.r + P.reach) continue;
     m.zapped.set(e, now + P.every);
-    lightning({ x: player.x, y: .8, z: player.z }, { x: e.x, y: foeY(e), z: e.z }, color, .45);
+    strikeFx({ x: player.x, y: .8, z: player.z }, { x: e.x, y: foeY(e), z: e.z }, color);
     damageEnemy(e, m.def.damage, u.x, u.z, 0, 'spell');
     inflict(e, m.def.status);
     if (!e.isBoss) { e.kx += u.x * P.knockback; e.kz += u.z * P.knockback; }
@@ -396,50 +313,9 @@ function updateMantle(dt: number, now: number) {
 }
 function endMantle(quiet: boolean) {
   if (!mantle) return;
-  scene.remove(mantle.g); mantle.aura.material.dispose();
+  mantle.fx.drop();
   if (!quiet) { burst(player.x, .7, player.z, hex(mantle.def.color), 8, 1.6, .03); Sfx.mantleEnd(); }
   mantle = null;
-}
-
-/* ---------- lightning ---------- */
-
-/** A bolt of lightning between two points: three jagged strands, braided and re-jagged every frame so it
-    flickers, with a glow along it in the spell's colour, gone in a fifth of a second. */
-const bolts: { g: THREE.Group; lines: THREE.Line[]; glows: THREE.Sprite[]; a: THREE.Vector3; b: THREE.Vector3; t: number }[] = [];
-const BOLT_LIFE = .22, BOLT_SEGS = 8, STRANDS = 3;
-let strandMat: THREE.LineBasicMaterial | null = null;
-export function lightning(a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }, color: number, glowSize = .7) {
-  strandMat ??= markShared(new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .9, depthWrite: false, blending: THREE.AdditiveBlending }));
-  const g = new THREE.Group(), lines: THREE.Line[] = [], glows: THREE.Sprite[] = [];
-  for (let s = 0; s < STRANDS; s++) {
-    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array((BOLT_SEGS + 1) * 3), 3));
-    const line = new THREE.Line(geo, strandMat); g.add(line); lines.push(line);
-  }
-  for (let i = 0; i <= BOLT_SEGS; i++) { const s = glowShared(color, glowSize, .7); g.add(s); glows.push(s); } // the glow along it
-  scene.add(g);
-  const bolt = { g, lines, glows, a: new THREE.Vector3(a.x, a.y, a.z), b: new THREE.Vector3(b.x, b.y, b.z), t: 0 };
-  jag(bolt); bolts.push(bolt);
-}
-function jag(bolt: (typeof bolts)[number]) {
-  const len = bolt.a.distanceTo(bolt.b);
-  bolt.lines.forEach((line, s) => {
-    const pos = line.geometry.getAttribute('position') as THREE.BufferAttribute, amp = len * (s ? .12 : .07);
-    for (let i = 0; i <= BOLT_SEGS; i++) {
-      const k = i / BOLT_SEGS, j = i && i < BOLT_SEGS ? amp : 0;
-      const x = bolt.a.x + (bolt.b.x - bolt.a.x) * k + (Math.random() - .5) * j, y = bolt.a.y + (bolt.b.y - bolt.a.y) * k + (Math.random() - .5) * j, z = bolt.a.z + (bolt.b.z - bolt.a.z) * k + (Math.random() - .5) * j;
-      pos.setXYZ(i, x, y, z);
-      if (!s) bolt.glows[i].position.set(x, y, z);
-    }
-    pos.needsUpdate = true;
-  });
-}
-const dropBolt = (b: (typeof bolts)[number]) => { scene.remove(b.g); for (const l of b.lines) l.geometry.dispose(); };
-function updateLightning(dt: number) {
-  for (let i = bolts.length - 1; i >= 0; i--) {
-    const b = bolts[i]; b.t += dt;
-    if (b.t >= BOLT_LIFE) { dropBolt(b); bolts.splice(i, 1); continue; }
-    jag(b); b.g.visible = Math.random() > .15; // a flicker
-  }
 }
 
 /* ---------- every step ---------- */
@@ -448,17 +324,16 @@ export const CAST: Record<Shape, Cast> = { beam, placed, shotgun, wall, chain, s
 
 /** Effects fade every step; seals, walls and the mantle only run while the game does (`acting`). */
 export function updateShapes(dt: number, acting: boolean) {
-  updateLightning(dt); updateBeams(dt); updateLanceFx(dt); updateFlames(dt);
+  updateSpellFx(dt); updateFlames(dt);
   if (!acting) return;
   updateSeals(dt); updateWalls(dt); updateMantle(dt, G.simClock);
 }
 
 /** The mage leaves the room: what spells left in it goes quietly (the mantle goes with the mage). */
 export function leaveRoomShapes() {
-  for (const b of bolts) dropBolt(b); bolts.length = 0;
-  for (const b of beams) scene.remove(b.g); beams.length = 0; clearLanceFx();
+  clearSpellFx();
   for (const f of flames) scene.remove(f.s); flames.length = 0;
-  for (const s of seals) { scene.remove(s.mesh); s.mat.dispose(); } seals.length = 0;
+  for (const s of seals) s.fx.drop(); seals.length = 0;
   for (const w of walls) dropWall(w, true); walls.length = 0;
 }
 /** A new floor or run: nothing left at all. */
