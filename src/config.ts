@@ -38,6 +38,14 @@ export const CFG = {
     tiger: { hp: 110, r: .85, speed: 1.5, weak: 'storm' as const, resist: 'frost' as const, wake: 3, plates: 4, guard: .4, wear: 30, plateSpeed: .14,
       pounce: { tell: .6, speed: 8.5, time: .9, shards: 8, shardSpeed: 3, chill: 1 }, swipe: { reach: 2, tell: .55, count: 5, spread: 1.1, speed: 3.6 },
       roar: { tell: .7, count: 14, speed: 2.9, later: 2.5 } },
+    // the Pillar Dragon (M4.2, from the Eda lore): `r` is its head's, all a bolt can reach; it comes down from `enter` high
+    // onto a coil round a pillar's top (`coil`), leans out `lean` beyond it, waits `settle` (then `pause` between breaths),
+    // breathes `breaths` times (fire and frost by turns: a tell, then a stream sweeping across the mage), then flies to
+    // another pillar (`nearest`: how often the one nearest the mage). Knocked off, it lies `down` seconds, taking `open`
+    // times each blow, then climbs at `climb`. Pillars it raises rise `depth` in `time`; below half health a `ring` as it lands
+    dragon: { hp: 115, r: .6, speed: 0, weak: 'umbral' as const, resist: 'ember' as const, enter: 5, lean: 1.1, settle: 1.1, pause: 1, breaths: 2, down: 4, open: 1.5, climb: 5,
+      coil: { radius: .62, turns: 1.25, drop: 1.2 }, fly: { speed: 7, lift: 1.4, nearest: .65 }, rise: { time: 1.2, depth: 2 },
+      breath: { tell: .7, time: 1, every: .08, speed: 4.2, sweep: .75 }, ring: { count: 12, speed: 2.8 } },
   },
   // what the foes in code do to the mage (M4): chilled by cold breath and rime, this much slower; a salamander's burning
   // ground burns the mage within `groundReach` (plus half the mage's size) and licks up a flame `groundLicks` times a
@@ -225,5 +233,5 @@ export const CFG = {
 
 export type EnemyType = keyof typeof CFG.enemy;
 /** Enemy types that are bosses; each floor draws its boss from a pool of these (data/floors.json). */
-export const BOSS_TYPES = ['warden', 'abbess', 'pyre', 'hart', 'angler', 'tiger'] as const satisfies readonly EnemyType[];
+export const BOSS_TYPES = ['warden', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon'] as const satisfies readonly EnemyType[];
 export type BossType = (typeof BOSS_TYPES)[number];

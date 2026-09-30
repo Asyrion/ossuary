@@ -76,7 +76,7 @@ export interface WareSpot {
 export interface Torch { flame: THREE.Object3D; glow: THREE.Sprite; x: number; z: number; lit: boolean }
 /** A rock collider; Mason's Chisel breaks breakable ones. Pedestals, pillars and tombs are unbreakable "rocks";
     urns are "rocks" any bolt breaks, and rune-sealed ones only a blast. */
-export interface RockBox extends Box { hp: number; breakable: boolean; mesh?: THREE.Object3D; tile?: { c: number; r: number }; urn?: 'plain' | 'sealed'; prop?: PropState }
+export interface RockBox extends Box { hp: number; breakable: boolean; mesh?: THREE.Object3D; tile?: { c: number; r: number }; urn?: 'plain' | 'sealed'; prop?: PropState; /** A pillar: how tall it stands (M4.2). */ pillar?: number }
 /** One of the rooms' objects in play (world/props.ts, world/propData.ts): its kind, bolts it can still take, seconds
     left burning (0: not alight), the tiles it covers, and its look. */
 export interface PropState {

@@ -166,16 +166,25 @@ function addRock(room: Room, c: number, r: number) {
 }
 
 /** A stone pillar: plinth, shaft and capital, or broken off partway (chosen by the room's seed). Blocks like
-    a rock but never breaks. */
+    a rock but never breaks; it keeps how tall it stands (`pillar`: the Pillar Dragon coils round its top). */
 function addPillar(room: Room, c: number, r: number) {
   const p = toWorld(room, c, r), R = mulberry(c * 131 + r * 17 + room.plan.seed);
   const broken = R() < .35, shaft = broken ? .55 + R() * .45 : 1.3;
-  if (kitPieces(room)) {
-    const g = pillarLook(R, room.look, broken, shaft - .06); mergeStill(g); g.position.set(p.x - room.cx, 0, p.z - room.cz); room.group.add(g);
-    room.rocks.push({ x: p.x, z: p.z, hx: .4, hz: .4, hp: 0, breakable: false });
-    return;
-  }
-  const g = new THREE.Group(); g.position.set(p.x - room.cx, 0, p.z - room.cz);
+  room.group.add(pillarAt(room, p.x, p.z, R, broken, shaft));
+  room.rocks.push({ x: p.x, z: p.z, hx: .4, hz: .4, hp: 0, breakable: false, pillar: broken ? shaft + .3 : PILLAR_TOP });
+}
+/** How tall a whole pillar stands, to the top of its capital. */
+export const PILLAR_TOP = 1.75;
+/** A whole pillar raised at (x, z) where there was none (M4.2: the Pillar Dragon brings its own when the room has too
+    few); returns its look, standing at the floor, for the caller to raise out of it. */
+export function raisePillar(room: Room, x: number, z: number) {
+  const g = pillarAt(room, x, z, mulberry(Math.round(x * 131 + z * 17) + room.plan.seed), false, 1.3);
+  room.group.add(g); room.rocks.push({ x, z, hx: .4, hz: .4, hp: 0, breakable: false, pillar: PILLAR_TOP });
+  return g;
+}
+function pillarAt(room: Room, x: number, z: number, R: () => number, broken: boolean, shaft: number) {
+  if (kitPieces(room)) { const g = pillarLook(R, room.look, broken, shaft - .06); mergeStill(g); g.position.set(x - room.cx, 0, z - room.cz); return g; }
+  const g = new THREE.Group(); g.position.set(x - room.cx, 0, z - room.cz);
   const part = (geo: THREE.BufferGeometry, y: number, rot = 0) => { const m = new THREE.Mesh(geo, M.stone); m.position.y = y; m.rotation.y = rot; g.add(m); return m; };
   part(new THREE.BoxGeometry(.86, .22, .86), .11);
   part(new THREE.CylinderGeometry(.27, .3, shaft, 8), .22 + shaft / 2, R());
@@ -184,8 +193,7 @@ function addPillar(room: Room, c: number, r: number) {
     const chunk = new THREE.Mesh(new THREE.DodecahedronGeometry(.16, 0), M.stone);
     const a = R() * Math.PI * 2; chunk.position.set(Math.cos(a) * .42, .1, Math.sin(a) * .42); g.add(chunk);
   } else part(new THREE.BoxGeometry(.72, .18, .72), .22 + shaft + .09);
-  g.add(blob(1.25)); room.group.add(g);
-  room.rocks.push({ x: p.x, z: p.z, hx: .4, hz: .4, hp: 0, breakable: false });
+  g.add(blob(1.25)); return g;
 }
 
 /** A stone tomb `len` tiles long, across (along x) or up and down: a plinth, a lid with a raised ridge and a

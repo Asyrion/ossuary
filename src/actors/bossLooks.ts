@@ -13,6 +13,7 @@
      candles on her head and wings folded like a cloak. */
 import * as THREE from 'three';
 import { glow } from '../render/materials';
+import { lay, neck, spiral, type P3 } from './dragonPath';
 import { SCHOOL_LIGHT, bigEyes, box, circle, limb, lit, motes, part, rune, runeRing, sphere, std, type School, type V3 } from '../render/arcane';
 
 /** A built boss look: its group, how it idles, its shadow, the parts the fight moves (the Warden's three, and any a
@@ -296,6 +297,101 @@ export function tigerLook(): BossBuilt {
   } };
 }
 
+/* The Pillar Dragon (M4.2, from the Eda lore; Ember and Frost): a long dragon with antlers, a spiked mane and a beard,
+   orange down its left flank and blue-grey down its right. Its head is one look (it leans out from the pillar and
+   breathes); its body a chain of segments drawn as instances, laid along its path each step (pillarDragon.ts). */
+const DRAGON = { fire: 0xe07a2c, frost: 0x6c8098, cream: 0xf0e2c2, horn: 0xdcc088 };
+/** Half a sphere: the side of +x (its left, orange) or of -x (its right, blue-grey). */
+const halfBall = (r: number, side: 1 | -1) => new THREE.SphereGeometry(r, 12, 9, side > 0 ? 0 : Math.PI, Math.PI).rotateY(Math.PI / 2);
+
+/** The Pillar Dragon's head, facing +z from where its neck joins (the origin): split orange and blue-grey, a cream
+    muzzle and beard, antlers, a spiked mane, long whiskers, big eyes; its jaw drops and its maw glows as it breathes. */
+export function dragonHead(): BossBuilt {
+  const g = new THREE.Group(), orange = std(DRAGON.fire, { roughness: .6 }), blue = std(DRAGON.frost, { roughness: .6 }), cream = std(DRAGON.cream), horn = std(DRAGON.horn, { roughness: .55, metalness: .15 }), dark = std(0x2a1a18);
+  const head = new THREE.Group(); g.add(head);
+  const split = (parent: THREE.Object3D, r: number, at: V3, scale: V3) => { for (const s of [1, -1] as const) part(parent, halfBall(r, s), s > 0 ? orange : blue, at, { scale }); };
+  split(head, .3, [0, .06, .14], [1, .85, 1.1]); // (the skull)
+  split(head, .2, [0, 0, .48], [.9, .7, 1.45]); // (the snout)
+  part(head, sphere(.1, 9, 7), cream, [0, .04, .72], { scale: [1.2, .8, .9] });
+  for (const s of [-1, 1]) part(head, sphere(.028, 5, 4), dark, [.06 * s, .08, .79]);
+  for (const s of [-1, 1]) part(head, sphere(.09, 8, 6), s > 0 ? orange : blue, [.2 * s, .2, .32], { scale: [1, .6, 1.4] }); // (brows)
+  const jaw = new THREE.Group(); jaw.position.set(0, -.12, .2); head.add(jaw);
+  part(jaw, sphere(.17, 10, 7), cream, [0, -.02, .26], { scale: [.85, .42, 1.6] });
+  for (const s of [-1, 1]) for (let i = 0; i < 2; i++) part(jaw, new THREE.ConeGeometry(.022, .08, 4), std(0xf8f4ea), [.08 * s, .06, .38 + i * .12]);
+  for (let i = 0; i < 5; i++) part(jaw, new THREE.ConeGeometry(.045, .3 - Math.abs(i - 2) * .05, 5), cream, [(i - 2) * .05, -.16, .3 - Math.abs(i - 2) * .03], { rot: [Math.PI + .2, 0, 0] }); // (the beard)
+  const eye = new THREE.Group(); eye.position.set(0, .15, .4); head.add(eye);
+  const eyes = bigEyes(eye, .13, 0, 0, .085, 0x2a1408, .5);
+  // antlers, branching back and up; a mane of spikes round the back of the head; whiskers streaming from the snout
+  for (const s of [-1, 1]) {
+    const beam: V3[] = [[.12 * s, .26, 0], [.24 * s, .5, -.12], [.3 * s, .72, -.3]];
+    for (let i = 0; i < 2; i++) limb(head, beam[i], beam[i + 1], .035 - i * .008, horn, .028 - i * .008);
+    limb(head, beam[1], [.42 * s, .6, -.02], .022, horn, .014); limb(head, beam[2], [.2 * s, .86, -.34], .018, horn, .012);
+  }
+  for (let i = 0; i < 9; i++) { const a = -.5 + i / 8 * (Math.PI + 1); part(head, new THREE.ConeGeometry(.06, .3, 4), cream, [Math.cos(a) * .3, .06 + Math.sin(a) * .3, -.14], { rot: [-1.1, 0, a - Math.PI / 2] }); }
+  for (const s of [-1, 1]) {
+    const pts = [[.14 * s, 0, .62], [.4 * s, -.06, .74], [.68 * s, -.2, .62], [.86 * s, -.36, .4]].map(([x, y, z]) => new THREE.Vector3(x, y, z));
+    part(head, new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 10, .014, 4), cream, [0, 0, 0]);
+  }
+  const maw = glow(DRAGON.fire, 1.6, 0); maw.position.set(0, -.08, .74); head.add(maw);
+  const ring = haloRing(g, SCHOOL_LIGHT.ember, .42, .78, -.5);
+  const halo = glow(DRAGON.fire, 2.6, .3); halo.position.set(0, .3, -.2); g.add(halo);
+  return { group: g, shadow: 1.2, school: 'ember', parts: { eye, ring, halo, head, jaw, maw }, idle: t => {
+    head.rotation.z = Math.sin(t * 1.2) * .06; head.rotation.x = Math.sin(t * .9) * .05; blink(eyes, t, 4.3);
+  } };
+}
+
+/** The Pillar Dragon's body: `n` segments drawn as instances (a few draw calls for the whole length), orange on the left
+    and blue-grey on the right, cream beneath, a spike on each, four short legs and a tuft at the tail. `pose` lays them
+    along the points given (head end first), each turned along the body. */
+export interface DragonBody { group: THREE.Group; n: number; spacing: number; mats: THREE.MeshStandardMaterial[]; pose: (at: readonly (readonly [number, number, number])[]) => void }
+export function dragonBody(n = 22, spacing = .2): DragonBody {
+  const g = new THREE.Group(), o = new THREE.Color(DRAGON.fire), b = new THREE.Color(DRAGON.frost), c = new THREE.Color(DRAGON.cream), white = new THREE.Color(0xffffff);
+  const painted = (geo: THREE.BufferGeometry, colour: (x: number, y: number) => THREE.Color) => {
+    const p = geo.attributes.position, col = new Float32Array(p.count * 3);
+    for (let k = 0; k < p.count; k++) colour(p.getX(k), p.getY(k)).toArray(col, k * 3);
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); return geo;
+  };
+  // (painted in their vertices: the merge that makes a look cheap leaves instances alone, and so does it these)
+  const skin = std(0xffffff, { vertexColors: true, roughness: .6 }), bone = std(0xffffff, { vertexColors: true });
+  const segGeo = painted(new THREE.SphereGeometry(1, 12, 8), (x, y) => y < -.6 ? c : x > 0 ? o : b);
+  const spikeGeo = painted(new THREE.ConeGeometry(.5, 1, 4).translate(0, .5, 0), () => c);
+  const legGeo = painted(new THREE.CylinderGeometry(.05, .07, .4, 5).translate(0, .2, 0), () => white);
+  const segs = new THREE.InstancedMesh(segGeo, skin, n), spikes = new THREE.InstancedMesh(spikeGeo, bone, n + 3), legs = new THREE.InstancedMesh(legGeo, skin, 4);
+  for (let i = 0; i < 4; i++) legs.setColorAt(i, i % 2 ? b : o);
+  for (const m of [segs, spikes, legs]) { m.frustumCulled = false; g.add(m); } // (the instances go wherever the body does)
+  const LEGS = [Math.round(n * .22), Math.round(n * .55)];
+  const radius = (i: number) => { const t = i / (n - 1); return t < .3 ? .17 + .08 * t / .3 : .25 - .17 * Math.pow((t - .3) / .7, 1.2); };
+  const m = new THREE.Matrix4(), local = new THREE.Matrix4(), rot = new THREE.Matrix4(), x = new THREE.Vector3(), y = new THREE.Vector3(), f = new THREE.Vector3(), up = new THREE.Vector3(0, 1, 0), p = new THREE.Vector3(), q = new THREE.Vector3();
+  const basis = (at: readonly (readonly [number, number, number])[], i: number, r: number) => {
+    const a = at[Math.max(0, i - 1)], z = at[Math.min(at.length - 1, i + 1)];
+    f.set(a[0] - z[0], a[1] - z[1], a[2] - z[2]); if (f.lengthSq() < 1e-8) f.set(0, 0, 1); f.normalize();
+    x.crossVectors(up, f); if (x.lengthSq() < 1e-6) x.set(1, 0, 0); x.normalize(); y.crossVectors(f, x);
+    p.set(at[i][0], at[i][1], at[i][2]);
+    return m.makeBasis(x, y, f).scale(q.set(r, r * .9, r * 1.3)).setPosition(p);
+  };
+  return { group: g, n, spacing, mats: [skin, bone], pose: at => {
+    for (let i = 0; i < n; i++) {
+      const r = radius(i); basis(at, i, r); segs.setMatrixAt(i, m);
+      spikes.setMatrixAt(i, local.copy(m).multiply(rot.makeTranslation(0, .8, 0)).multiply(new THREE.Matrix4().makeRotationX(-.7)).multiply(rot.makeScale(.42, .55, .42)));
+      const k = LEGS.indexOf(i);
+      if (k >= 0) for (const s of [1, -1]) legs.setMatrixAt(k * 2 + (s > 0 ? 0 : 1), local.copy(m).multiply(rot.makeTranslation(s * .8, -.35, .1)).multiply(new THREE.Matrix4().makeRotationZ(-s * 2.3)).multiply(rot.makeScale(1 / r * .2, 1 / (r * .9) * .2, 1 / (r * 1.3) * .2)));
+    }
+    basis(at, n - 1, radius(n - 1)); // (a tuft at the tail, pointing back)
+    for (let k = 0; k < 3; k++) spikes.setMatrixAt(n + k, local.copy(m).multiply(new THREE.Matrix4().makeRotationX(-Math.PI / 2 - .4 + k * .4)).multiply(rot.makeScale(1.3, 3, 1.3)));
+    segs.instanceMatrix.needsUpdate = spikes.instanceMatrix.needsUpdate = legs.instanceMatrix.needsUpdate = true;
+  } };
+}
+
+/** The Pillar Dragon for the gallery: coiled round a stone column, leaning out (the same path its fight lays it on). */
+export function dragonLook(): BossBuilt {
+  const L = dragonHead(), g = new THREE.Group(), B = dragonBody(), stone = std(0x8a8478);
+  part(g, new THREE.CylinderGeometry(.27, .3, 1.55, 10), stone, [0, .78, 0]); part(g, box(.72, .18, .72), stone, [0, 1.62, 0]); part(g, box(.86, .2, .86), stone, [0, .1, 0]);
+  const coil = spiral(0, 0, 1.75, Math.PI * .75, { radius: .62, turns: 1.25, drop: 1.2 }), end = coil[coil.length - 1], h: P3 = [.35, 1.6, 1.15];
+  B.pose(lay([...neck(h, end, .35), ...coil.slice().reverse()], B.n, B.spacing, .3));
+  g.add(B.group); L.group.position.set(...h); L.group.rotation.y = .3; g.add(L.group);
+  return { ...L, group: g, shadow: 2 };
+}
+
 /** The looks, for the owner to choose (the dev menu's Galleries tab stands them ahead of the mage, and picks the one the
     Hollow Warden wears in its fight). */
 export const BOSS_LOOKS = [
@@ -304,7 +400,7 @@ export const BOSS_LOOKS = [
 export type BossLookId = (typeof BOSS_LOOKS)[number]['id'];
 /** Every boss built in code, for the Galleries tab: the Warden's three looks, the bosses of floors 4 and 5, then the
     bosses from the Eda lore (M4.2). */
-export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [...BOSS_LOOKS, { id: 'hart', build: hartLook }, { id: 'angler', build: anglerLook }, { id: 'tiger', build: tigerLook }];
+export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [...BOSS_LOOKS, { id: 'hart', build: hartLook }, { id: 'angler', build: anglerLook }, { id: 'tiger', build: tigerLook }, { id: 'dragon', build: dragonLook }];
 
 /** The look the Hollow Warden wears until the owner chooses: picked in the dev menu, remembered in this browser. */
 const LOOK_KEY = 'ossuary.bossLook', FIRST: BossLookId = 'motherOfSpores';
