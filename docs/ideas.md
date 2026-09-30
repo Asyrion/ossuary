@@ -479,6 +479,10 @@ as its element does (fire lights oil, frost freezes water, sparks run through po
 
 ## Costumes (play-test, 2026-09-28)
 
+**Decided 2026-09-30:** the Pilgrim's Cowl proved it; the owner wants many more pieces, and transformations when three
+artifacts of a kind are held. Now in the GDD (Artifacts: Costumes and transformations), milestone M4.6. Pieces are built
+in code, not in Tripo. What follows is the first note as it was.
+
 Isaac's items change how Isaac looks; ours should too, in a medieval and magic way. **Built as a proof of
 concept:** the Pilgrim's Cowl puts a hood on the mage (`src/actors/costume.ts`). Pieces hang from the rig's
 bones, one per slot (head, shoulders, back, hands, aura; the one taken last wins the slot), and are fitted to

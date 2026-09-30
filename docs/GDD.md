@@ -399,6 +399,31 @@ The generator places the three guaranteed sources first, then gives artifacts to
 | The Vigil | Candle of the Vigil, Mana Lantern | Hallow spells cost no mana while at full health |
 | The Drowned Choir | Drowned Orb, Mask of the Drowned | Water puddles appear in every room; the mage is immune to shock |
 
+**Costumes and transformations** (decided with the owner 2026-09-30, after the Pilgrim's Cowl proved the idea)
+
+Picking up an artifact shows on the mage, as Isaac's items do, but in a high fantasy and magic way.
+
+- **Costumes.** Most artifacts wear a piece, built in code and hung from a bone of the rig, one per slot: head,
+  face, shoulders, back, hands, belt and aura. The one taken last wins its slot. A cursed artifact shows its curse
+  (the mask weeps, the chain drags on the floor) until a shrine cleanses it; then its piece changes to its cleansed
+  look.
+- **Transformations.** Three artifacts of one kind (a `kind` tag in `data/artifacts.json`) transform the mage for
+  the rest of the run. The look takes several slots, an aura and a tint of the robes. A banner and a lore card name
+  it, and the mage gains a gift in its spirit (Isaac's Guppy and Seraphim, with a magic take). Sets (above) keep
+  their bonus; a transformation counts any artifacts of its kind. Proposed, to be chosen with the owner:
+
+| Transformation | Kind | The look | The gift |
+| --- | --- | --- | --- |
+| Pyromancer | Ember | A crown of flame, smouldering sleeves, burning footprints | The cantrip leaves embers where it strikes |
+| Frostborn | Frost | An ice crown, rimed robes, frosted breath | Foes that touch the mage are chilled |
+| Stormcaller | Storm | A crackling aura, eyes lit with lightning | Every fifth cast leaps to a second foe |
+| Seraph | Hallow | A halo and wings of light | The mage floats over pits and water |
+| Shadowstep | Umbral | A cloak of shadow, violet eyes | A short blink in the moving direction |
+| Runescribe | Runes and scrolls | Runes glowing across the robes, a floating grimoire | Bolts leave a rune that bursts a moment later |
+| Pilgrim | Pilgrim's things (the Cowl, the Crook, the Boots) | A pilgrim's robes, a lantern at the belt | Each floor's map is known, and the mage walks faster |
+| Beastcaller | Familiars | A circlet of antlers, motes circling | One more familiar, and familiars strike harder |
+| Alchemist (M5) | Potions | A bandolier of vials, goggles | Thrown potions split in two |
+
 **Artifact data shape**
 
 ```json
@@ -420,7 +445,7 @@ once a shrine has cleansed it: the Mask of the Drowned is `"stats": { "damageMul
 ["vision"], "cleansed": "Your bolts strike half again as hard" }`. Cleansing drops the `curse` and halves the gift:
 half of an added stat, half the way to 1 of a multiplied one (×2 becomes ×1.5).
 
-**Tripo use:** each artifact can get a small Tripo model floating on its pedestal (static, under 5,000 triangles), rendered as an icon for the HUD.
+**Their looks are built in code** (the owner's decision 2026-09-30): the models over the pedestals, the costume pieces and the icons. Tripo is kept for special models (the mage, and bosses where wanted).
 
 ## Potions and alchemy
 
@@ -460,7 +485,7 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
 
 **Brewing:** at an alchemy table, combine two reagents. Known recipes show their result; unknown combinations are experiments that can fail into Volatile Mixture. Discovered recipes are written into the grimoire and kept forever. Example recipes: Grave Moss + Grave Moss = Healing Draught; Wisp Essence + Grave Moss = Mana Tonic; Ember Salt + Bone Dust = Liquid Ember; Rimewater + Wisp Essence = Frostbrew; Warden's Ash + any = a rare potion.
 
-**Tripo use:** reagents and potion bottles are small static props; bottles can share one mesh with shuffled colours.
+**Their looks** are built in code: reagents and potion bottles are small props; bottles can share one mesh with shuffled colours.
 
 ## RPG progression
 
@@ -815,13 +840,23 @@ The look is a candle-lit cutaway diorama in pixel-art 3D: dark stone rooms, warm
 - **Scale:** 1 tile = 1 unit. The hero is 1.3 units tall; enemies 0.4 to 1.2 (the critters built in code mostly under 0.9); bosses about 2.
 - **Light:** a dim fill, a cold moonlight from above, two flickering torch lights per room, and a warm lantern following the hero. Characters get a faint self-light from their colour texture so they stay readable.
 - **Palette:** worn stone browns, torch amber for the hero's magic, verdigris greens for the undead, violet for wisp magic, rust red for the boss.
-- **Characters:** Tripo3D models, chibi proportions, textured, rigged; see the Tripo asset checklist.
-- **Environment:** procedural in code for now (floor textures, walls, rocks, pillars, stone tombs). Tripo props such as urns, coffins and statues can replace them later, and painted tiling textures the floors and walls; each keeps its procedural version as a fallback.
+- **Characters:** the mage is a Tripo3D model (chibi proportions, textured, rigged; see the Tripo asset checklist); Tripo stays for special models like it (bosses, where wanted). Enemies and familiars are built in code (Combat and enemies).
+- **Environment:** built in code in the pixel look (the owner's decision 2026-09-30: no Tripo props): objects, mechanisms, walls and floors, the floors and walls with pixel-art textures drawn in code at the game's own pixel size. The room kit is being redone in the style of the spell effects (`docs/M3.5-plan.md`, step 3), a proof first: the fire objects and the crypt's floor and walls.
 - **How assets are made:** `docs/assets.md` holds the house style (every image made with one style reference, in any tool), the budgets per kind of asset and the pipeline from a first image in MidJourney, Tripo or another image model to a model, texture or icon in the game. Milestone M3.5 tests it on a few pilot assets (`docs/M3.5-plan.md`).
 - **UI:** hearts top left, mana bar, spell slots with cooldowns, potion belt, artifacts and obol, key and glyph counters below them, minimap top right, boss bar bottom centre, lore cards bottom right. Typefaces Cinzel (titles), Alegreya (lore and banners) and Alegreya Sans (UI).
 - **Audio:** simple synthesised effects for now; the full plan is in Audio design, and where sounds come from (sources, licences, specs, pipeline) is in `docs/assets.md` (Sound).
 
-**The pixel look (decided 2026-09-30, M3.5 step 2).** The owner was drawn to a cartoony or pixel-art style and chose pixel-art 3D over cartoon 3D at full resolution, after comparing them in the game. The models and the game's lights are drawn at 540 lines (a 960 × 540 grid on a 16:9 screen: at 1080p each game pixel is 2 × 2 screen pixels, and the mage about 64 pixels tall) and blown up in whole pixels, with outlines from depth; light in bands stays off. It started at 270 (4 × 4 at 1080p, the mage about 32 pixels), then 360; in the play-tests of 2026-09-30 neither let the mage and small things read in a full-screen window on a high-resolution monitor, and 540 was the first that did. The dev menu offers 720 for screens with the pixels for it. The rows are at most: each game pixel is a whole number of screen pixels, rounded up, so on a 1080p screen 720 draws as 540, on a 1440p one 540 draws as 480, and a smaller window keeps the look at fewer rows rather than turning sharp. At 180 small objects stop reading. Tiles, icons and effects are drawn as pixel art; concept art for Tripo stays clean cartoon. The game starts in it; the dev menu and `?pixel=` still switch it (`src/render/pixelLook.ts`). It replaces the painted-miniature direction, and the house style in `docs/assets.md` follows it.
+**The pixel look (decided 2026-09-30, M3.5 step 2).** The owner was drawn to a cartoony or pixel-art style and chose pixel-art 3D over cartoon 3D at full resolution, after comparing them in the game. The models and the game's lights are drawn at 540 lines (a 960 × 540 grid on a 16:9 screen: at 1080p each game pixel is 2 × 2 screen pixels, and the mage about 64 pixels tall) and blown up in whole pixels, with outlines from depth; light in bands stays off. It started at 270 (4 × 4 at 1080p, the mage about 32 pixels), then 360; in the play-tests of 2026-09-30 neither let the mage and small things read in a full-screen window on a high-resolution monitor, and 540 was the first that did. The rows are at most: each game pixel is a whole number of screen pixels, rounded up, so a smaller window keeps the look at fewer rows rather than turning sharp. The dev menu offers the rows that fall on whole pixels on the owner's screens (a full-screen browser):
+
+| Choice | 1080p | 1440p (2K) | 2160p (4K) |
+| --- | --- | --- | --- |
+| 1080 | 1080 (sharp, no pixel look) | 720 | 1080 |
+| 720 | 540 | 720 | 720 |
+| 540 (the default) | 540 | 480 | 540 |
+| 360 | 360 | 360 | 360 |
+| 270 | 270 | 288 | 270 |
+
+At 180 small objects stop reading, so it is no longer offered. Tiles, icons and effects are drawn as pixel art; concept art for Tripo stays clean cartoon. The game starts in it; the dev menu and `?pixel=` still switch it (`src/render/pixelLook.ts`). It replaces the painted-miniature direction, and the house style in `docs/assets.md` follows it.
 
 **Identity note.** The current hero is close to the Isaac art style. Fine for a hobby prototype; if the game is ever published, characters and art need their own look.
 
@@ -1003,11 +1038,12 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M1 Core loop | Runs feel different | Three generated floors with varied maps, room counts and room shapes; a different boss on each floor; 50+ room templates; room variants from quiet to ordeal, and bone altars; 3 to 5 artifacts per floor from 10 artifacts and 3 foci as data |
 | M2 Plunder | Exploration pays | Obols, bone keys and blast glyphs; merchant, secret room, locked vault and shrine cleansing; urns and chests |
 | M3 Magic | Magic is the build | Mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room |
-| M3.5 Asset pipeline | One set of miniatures | The pipeline in `docs/assets.md` tested end to end: an urn, a pedestal, an artifact model, a floor texture and three icons in the game with fallbacks, within budget at 60 fps, in an accepted house style (`docs/M3.5-plan.md`) |
+| M3.5 The look | One set | The asset pipeline's tooling (built); the pixel look (decided, 540 lines); the room kit (objects, mechanisms, floors and walls) redone in code in the style of the spell effects, at 60 fps; Tripo kept for special models such as the mage (the owner's decision 2026-09-30, `docs/M3.5-plan.md`) |
 | M3.6 Rooms of Eda | Places, not arenas | Carved outlines, dressed walls and doors off the middle; twelve themed rooms with their own objects and twists; new objects and piles, and mechanisms that answer to magic (`docs/M3.6-plan.md`) |
 | M3.7 Spell knowledge | Know your spells | Panels over grimoire pages and in the inventory that fill in as spells are seen, learned, used and later upgraded; the spells tab by school; knowledge kept between runs (Spells: Spell knowledge) |
 | M4 Enemies in code | Own creatures | The ten enemies built in code (Enemies built in code: four on floor 1, three on each of the others) as foes with behaviour, health, sounds and elemental affinities, and a boss built the same way (the owner chose code over Tripo, 2026-09-29) |
 | M4.5 Bestiary | A living dungeon | More critters, fantasy creatures and elementals built in code, and new kinds of enemy behaviour, spread over the floors; each drawn up as a look, chosen by the owner, then made a foe (Combat and enemies: The Bestiary; ideas in `docs/ideas.md`, decided 2026-09-30) |
+| M4.6 Costumes and transformations | You can see your build | Most artifacts wear a costume piece built in code; transformations when three artifacts of a kind are held (Artifacts: Costumes and transformations; decided 2026-09-30, its place in the order the owner's to move) |
 | M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
 | M7 Descent and the Vigil | A full run with a reason to return | Final boss; the Vigil (RPG progression: Between runs): freed shades as townspeople with dialogue, its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines |

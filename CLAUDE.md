@@ -16,7 +16,7 @@ log; its Sound section does the same for sound (sources and their licences, the 
 When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M3.5 step 1 built (the asset pipeline's tooling, `docs/M3.5-plan.md`); step 2 under way: the pixel look chosen (on by default at 540 lines), the owner sets the house style next; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M3.5 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 540 lines), step 3 under way: the room kit redone in code in the new style, a proof first (the fire objects and the crypt's floor and walls); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -64,7 +64,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   aura; the one taken last wins), hung from a bone of the rig so it follows every clip, and fitted in the rest pose to
   the part of the body it covers (the head and hair the head bone moves); a static model wears it on the top of its
   silhouette. `setHero` refits (`fitCostumes`), `refreshStats` dresses (`dress`). The Pilgrim's Cowl's hood is the
-  first piece, a placeholder shape until pieces come from Tripo; `__game.costume` reads what is worn. The economy artifacts (step 6 of M2) reach into the
+  first piece, built in code like the ones to come (M4.6: most artifacts, and transformations); `__game.costume` reads what is worn. The economy artifacts (step 6 of M2) reach into the
   systems they bend: `freeVault` in `world/vault.ts`, `ferryman` in `flow.ts` (`onRoomCleared`), `glyphWard`
   and `blastMul` in `combat/glyphs.ts`, `graveLantern` in `world/secret.ts` and the minimap, `pedlar` in
   `items/merchant.ts`; the Miser's Purse's `obolDamage` makes `player.stats` depend on obols held, so
@@ -143,7 +143,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
   every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
-  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=720`, `360`, `270` or `180` changes its rows). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
+  keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=1080`, `720`, `360` or `270` changes its rows). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
   vault, a secret room (behind a cracked wall), a shrine (`?room=shrine_henge`) or a library
   (`?room=library_plain`) next to the start.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
@@ -208,7 +208,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   lightning and waves.
 - The pixel look (the game's look since 2026-09-30, on by default at 540 lines, `CFG.pixelLook.start`; chosen in M3.5
   step 2; `src/render/pixelLook.ts`, tuning in `CFG.pixelLook`): the scene drawn into
-  a target of at most 720, 540, 360, 270 or 180 lines (a game pixel a whole number of screen pixels, rounded up, so a
+  a target of at most 1080, 720, 540, 360 or 270 lines (a game pixel a whole number of screen pixels, rounded up, so a
   smaller window keeps the look at fewer rows; `drawnRows()` and the dev menu say how many) with no smoothing, the camera snapped to its grid, and blown up to the window in
   whole pixels by one full-screen pass (outlines from depth, light in bands); the HUD stays sharp. The scene is tone-mapped
   and encoded by its own shaders (the target flagged as an XR target, stored as plain RGBA8), so it blends as on the canvas.
@@ -355,9 +355,9 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
 - **M2 Plunder:** obols, bone keys and blast glyphs; merchant, secret room, locked vault, shrine cleansing;
   urns, chests.
 - **M3 Magic:** mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room.
-- **M3.5 Asset pipeline:** the pipeline in `docs/assets.md` tested on pilot assets (an urn, a pedestal, an
-  artifact model, a floor texture, three icons) with fallbacks to the placeholders; steps and checks in
-  `docs/M3.5-plan.md`. Its style step can start during M3.
+- **M3.5 The look:** the asset pipeline's tooling (for special models from Tripo: the mage, bosses where wanted), the
+  pixel look (540 lines), and the room kit redone in code in the style of the spell effects (the owner's decision
+  2026-09-30: code, not Tripo, for everything else); steps and checks in `docs/M3.5-plan.md`.
 - **M3.6 Rooms of Eda** (from the first play-test; runs beside M3.5): carved outlines, dressed walls, doors off
   the middle, themed rooms, new objects and piles, mechanisms that answer to magic; steps in `docs/M3.6-plan.md`.
 - **M3.7 Spell knowledge** (decided 2026-09-29, after M3.6 step 5): panels over grimoire pages and in the inventory
@@ -369,6 +369,8 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
 - **M4.5 Bestiary** (decided 2026-09-30): a whole host more creatures built in code (small critters, fantasy creatures,
   elementals) and new kinds of enemy behaviour, each a look in the dev menu's gallery first, chosen by the owner, then a
   foe (GDD: The Bestiary; ideas in `docs/ideas.md`, Bestiary).
+- **M4.6 Costumes and transformations** (decided 2026-09-30): most artifacts wear a costume piece built in code;
+  three artifacts of a kind transform the mage (a look and a gift; GDD: Artifacts, Costumes and transformations).
 - **M5 Alchemy:** potion belt, drink or throw, identification, 4 reagents, alchemy table.
 - **M6 RPG growth:** XP, levels, attributes, 12 boons, runes and waystones.
 - **M7 Descent and the Vigil:** final boss; the hub between runs, decided 2026-09-29 (GDD: RPG progression, Between runs:
