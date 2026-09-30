@@ -357,8 +357,8 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
   } else if (e.state === 'spokes') { // it turns, and light streams out along its spokes
     e.vx = e.vz = 0; e.spin = e.spin! + dt * 1.3; e.fireT = e.fireT! - dt;
     if (e.fireT <= 0) {
-      e.fireT = .16; const n = hurt ? 6 : 4;
-      for (let i = 0; i < n; i++) { const a = e.spin + i / n * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(a), Math.sin(a), 3.1 * shotMul, shotColor(e), 1, 1.05); }
+      const S = C.spokes; e.fireT = S.every; const n = hurt ? S.hurtCount : S.count;
+      for (let i = 0; i < n; i++) { const a = e.spin + i / n * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(a), Math.sin(a), S.speed * shotMul, shotColor(e), 1, 1.05); }
     }
     if (e.st <= 0) { e.state = 'walk'; e.st = 1.8; }
     return e.face + dt * 1.3;
@@ -368,8 +368,8 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
     if (e.st <= 0) {
       P.body.rotation.x = 0; P.body.position.z = 0;
       const off = Math.random() * Math.PI;
-      ringOfShots(e, 18, 3 * shotMul, off, 1.1);
-      if (hurt) laterRing(e, .3, 18, 2.6 * shotMul, off + Math.PI / 18);
+      const S = C.stamp; ringOfShots(e, S.count, S.speed * shotMul, off, 1.1);
+      if (hurt) laterRing(e, .3, S.count, S.later * shotMul, off + Math.PI / S.count);
       burst(e.x, .2, e.z, SCHOOL_LIGHT.hallow, 26, 4, .07); Sfx.at(e.x, e.z).boom(); G.shake = .3;
       e.state = 'recover'; e.st = .6;
     }
@@ -408,7 +408,7 @@ function updateAngler(e: Enemy, dt: number, ux: number, uz: number): number | un
     e.vx = e.vz = 0; P.jaw.rotation.x = .55 * Math.max(0, e.st) / .3;
     if (e.st <= 0) {
       Sfx.at(e.x, e.z).bite(); burst(e.x + ux * .9, .9, e.z + uz * .9, 0xece6f4, 10, 2, .04);
-      if (d < C.reach + .3) hurtPlayer(2, e.x, e.z);
+      if (d < C.reach + .3) hurtPlayer(C.bite, e.x, e.z);
       e.state = 'recover'; e.st = .7;
     }
   } else if (e.state === 'flinch') { // its lure dims and it shakes off the blow
@@ -420,7 +420,7 @@ function updateAngler(e: Enemy, dt: number, ux: number, uz: number): number | un
   } else if (e.state === 'spit') { // volleys of shadow that hex
     e.vx = e.vz = 0;
     if (e.st <= 0) {
-      fan(e, 3, .55, 3.3 * shotMul, e.volleys! % 2 ? .12 : -.12, .9, { hex: 10 }); Sfx.at(e.x, e.z).spit();
+      const S = C.spit; fan(e, S.count, S.spread, S.speed * shotMul, e.volleys! % 2 ? .12 : -.12, .9, { hex: S.hex }); Sfx.at(e.x, e.z).spit();
       e.volleys = e.volleys! - 1; e.st = .45; if (e.volleys <= 0) { e.state = 'drift'; e.st = 2; }
     }
   } else if (e.state === 'windRing') { // it puffs itself up
@@ -428,8 +428,8 @@ function updateAngler(e: Enemy, dt: number, ux: number, uz: number): number | un
     if (e.st <= 0) {
       P.body.scale.setScalar(1);
       const off = Math.random() * Math.PI;
-      ringOfShots(e, 16, 2.7 * shotMul, off, 1.2);
-      if (hurt) laterRing(e, .35, 16, 2.3 * shotMul, off + Math.PI / 16);
+      const S = C.ring; ringOfShots(e, S.count, S.speed * shotMul, off, 1.2);
+      if (hurt) laterRing(e, .35, S.count, S.later * shotMul, off + Math.PI / S.count);
       burst(e.x, 1.2, e.z, SCHOOL_LIGHT.umbral, 24, 3.5, .07); Sfx.at(e.x, e.z).boom(); G.shake = .25;
       e.state = 'recover'; e.st = .6;
     }

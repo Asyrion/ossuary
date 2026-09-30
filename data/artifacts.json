@@ -241,7 +241,7 @@
     "text": "Every sixth cast is a lance of light that pierces and sanctifies", "pools": ["treasure", "ordeal", "boss", "drop"],
     "effects": ["antler"], "color": "#fff0b0", "icon": "antler" },
   { "id": "gravemongers_contract", "name": "Gravemonger's Contract", "kind": "cursed",
-    "lore": "A contract with the gravemongers, who bought what the dead had on them. It pays well for every body, and in return it takes the living's share: no mending for the one who signs it, and everything dearer.",
+    "lore": "A contract with a gravemonger, one who bought what the dead had on them. It pays well for every body, and in return it takes the living's share: no mending for the one who signs it, and everything dearer.",
     "text": "Half the foes you put to rest leave an obol, but fights won leave no hearts and hearts cost twice as much", "pools": ["altar", "secret", "boss"],
     "effects": ["gravemonger"], "curse": { "effects": ["noClearHearts", "dearHearts"], "cleansed": "Now and then a foe you put to rest leaves an obol" },
     "color": "#8a7a50", "icon": "contract" },

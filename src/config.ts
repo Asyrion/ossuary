@@ -26,8 +26,10 @@ export const CFG = {
     // floors 4 and 5 (M4.1), built in code, with a weakness and a resistance like the foes: the hart's charge speed; the
     // angler's pull on the mage (units a second), how long it pulls, how close its bite reaches, and the share of its
     // health that, struck off while it pulls, makes it flinch
-    hart: { hp: 150, r: 0.85, speed: 1.35, charge: 8.6, weak: 'umbral' as const, resist: 'hallow' as const },
-    angler: { hp: 165, r: 0.9, speed: 1.1, pull: 2.6, pullTime: 2.4, reach: 1.7, flinch: .06, weak: 'hallow' as const, resist: 'umbral' as const },
+    hart: { hp: 150, r: 0.85, speed: 1.35, charge: 8.6, weak: 'umbral' as const, resist: 'hallow' as const,
+      spokes: { every: .16, count: 4, hurtCount: 6, speed: 3.1 }, stamp: { count: 18, speed: 3, later: 2.6 } }, // its spokes of light, and its stamp's ring (a second below half health)
+    angler: { hp: 165, r: 0.9, speed: 1.1, pull: 2.6, pullTime: 2.4, reach: 1.7, flinch: .06, weak: 'hallow' as const, resist: 'umbral' as const,
+      bite: 2, spit: { count: 3, spread: .55, speed: 3.3, hex: 10 }, ring: { count: 16, speed: 2.7, later: 2.3 } }, // half hearts a bite; its hexing volleys; its breath's ring
   },
   // what the foes in code do to the mage (M4): chilled by cold breath and rime, this much slower; a salamander's burning
   // ground burns the mage within `groundReach` (plus half the mage's size) and licks up a flame `groundLicks` times a

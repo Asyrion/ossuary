@@ -156,6 +156,8 @@ function layFire(room: Room, x: number, z: number, time: number) { lay(room, x, 
     water there and hurts the mage who stands in it. */
 function laySpark(room: Room, x: number, z: number, time: number) { lay(room, x, z, time, 'spark'); }
 const m4 = new THREE.Matrix4(), q0 = new THREE.Quaternion(), v3 = new THREE.Vector3(), s3 = new THREE.Vector3();
+/** The foes round a fawn this step (reused, not made anew every frame). */
+const company: Enemy[] = [];
 /** Every step: burning ground glows, now and then a flame licks up, it burns the mage in it, and it goes out; sparks
     crackle, arm and sting. */
 export function updateFoeHazards(dt: number) {
@@ -174,6 +176,7 @@ export function updateFoeHazards(dt: number) {
       if (armed && near) hurtPlayer(1, h.x, h.z);
     }
   }
+  if (!hazards.length && !hazardGlow.fire?.count && !hazardGlow.spark?.count) return; // (none to draw)
   for (const kind of ['fire', 'spark'] as const) {
     const list = hazards.filter(h => h.kind === kind);
     if (!list.length && !hazardGlow[kind]?.count) continue;
@@ -766,7 +769,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
   healer: {
     init(e, P) { e.state = 'wander'; e.fireT = span(P.healEvery); },
     step(e, dt, a, P) {
-      const others = G.enemies.filter(o => o !== e && !o.dead && o.spawn <= 0 && !o.hidden);
+      const others = company; others.length = 0; for (const o of G.enemies) if (o !== e && !o.dead && o.spawn <= 0 && !o.hidden) others.push(o); // (one array, reused)
       if (e.state === 'wander') { // away from the mage, near the others, never quite still
         let tx = 0, tz = 0;
         if (a.dist < num(P.keep)) { tx = -a.ux; tz = -a.uz; }

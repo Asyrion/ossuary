@@ -56,7 +56,7 @@ function makeCandles() {
 }
 
 /** The Salt Circle: where it lies, how long it has, and whether it is breaking. */
-let salt: { g: THREE.Group; x: number; z: number; t: number; gone: number } | null = null;
+let salt: { g: THREE.Group; grains: THREE.InstancedMesh; x: number; z: number; t: number; gone: number } | null = null;
 let saltParts: { ring: THREE.TorusGeometry; grains: THREE.BufferGeometry; glow: THREE.RingGeometry; mat: THREE.MeshStandardMaterial; ward: THREE.MeshBasicMaterial } | null = null;
 function makeSalt(x: number, z: number) {
   const R = A.salt.radius;
@@ -75,8 +75,10 @@ function makeSalt(x: number, z: number) {
   for (let i = 0; i < 36; i++) { const a = i / 36 * Math.PI * 2 + (i % 3) * .05, r = R + ((i * 7) % 5 - 2) * .03; m.compose(new THREE.Vector3(Math.cos(a) * r, .02, Math.sin(a) * r), q.setFromEuler(e.set(i, i * 2, 0)), new THREE.Vector3(1, .6, 1)); grains.setMatrixAt(i, m); }
   g.add(grains); g.scale.setScalar(.01); scene.add(g);
   burst(x, .2, z, 0xf2eee2, 18, 1.6, .03); Sfx.saltForm();
-  return { g, x, z, t: 0, gone: 0 };
+  return { g, grains, x, z, t: 0, gone: 0 };
 }
+/** The salt goes: its look, and its grains' instance buffer. */
+const dropSalt = () => { salt?.grains.dispose(); return drop(salt); };
 /** Walking foes (not a boss) can't cross the salt: one that would is set back at its edge, and one inside when it formed is
     thrust out. */
 export function saltHolds(e: Enemy) {
@@ -155,8 +157,8 @@ export function updateFamiliars(dt: number, now: number, acting: boolean) {
     if (salt) {
       salt.t += dt;
       if (!salt.gone && Math.hypot(player.x - salt.x, player.z - salt.z) > A.salt.radius + A.salt.keep) { salt.gone = .01; Sfx.saltBreak(); burst(salt.x, .2, salt.z, 0xf2eee2, 10, 1.2, .03); } // stepped out: it scatters
-      if (salt.gone) { salt.gone += dt; salt.g.scale.setScalar(Math.max(.01, 1 - salt.gone * 4)); if (salt.gone > .25) salt = drop(salt); }
+      if (salt.gone) { salt.gone += dt; salt.g.scale.setScalar(Math.max(.01, 1 - salt.gone * 4)); if (salt.gone > .25) salt = dropSalt(); }
       else salt.g.scale.setScalar(Math.min(1, salt.t * 5));
     }
-  } else salt = drop(salt);
+  } else salt = dropSalt();
 }

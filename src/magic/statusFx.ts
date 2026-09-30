@@ -13,7 +13,7 @@ import { G } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
-import { glow, markShared } from '../render/materials';
+import { disposeTree, glow, markShared } from '../render/materials';
 import { burst } from '../combat/fx';
 import { damageEnemy } from '../combat/damage';
 import { fireSpellBolt } from '../combat/projectiles';
@@ -104,7 +104,7 @@ let sunGeoKept: THREE.SphereGeometry | null = null;
 const sunGeo = () => sunGeoKept ??= markShared(new THREE.SphereGeometry(.27, 14, 10));
 /** The eclipse is over: the foe comes back, and is struck. */
 function endEclipse(e: Enemy) {
-  if (e.sun) { e.group.remove(e.sun); for (const o of e.sun.children) { const m = o as THREE.Mesh; if (m.geometry && m.geometry !== sunGeo()) m.geometry.dispose(); ((m.material ?? (o as THREE.Sprite).material) as THREE.Material)?.dispose(); } e.sun = undefined; }
+  if (e.sun) { e.group.remove(e.sun); disposeTree(e.sun); e.sun = undefined; } // (the sphere is shared; sprites' geometry is everyone's)
   e.hidden = false; e.body.visible = true;
   burst(e.x, .8, e.z, 0x2a0a4a, 16, 2.4, .05); burst(e.x, .8, e.z, GOLD, 10, 2, .04);
   damageEnemy(e, R.eclipse.damage, 0, 0, 0, 'spell');
@@ -152,6 +152,7 @@ const tint = new THREE.Color();
 /** The glow a foe's statuses give its body (the hit flash still wins), or null: icy blue while frozen, a bluer
     tint with each chill stack, a flickering ember glow while burning, a flicker of yellow while shocked. */
 export function statusTint(e: Enemy, now: number): [THREE.Color, number] | null {
+  if (e.statue) return [tint.setHex(0xa88a4a), .7]; // a treasury's guardian stands gilded, a statue until its gold is taken
   const s = e.status; if (!s) return null;
   if (s.frozen > 0) return [tint.setHex(0x4a8ad8), .85];
   if (s.burn > 0 && s.black) return [tint.setHex(0x6a1ac0), .5 + Math.sin(now * 17 + e.x) * .2];
