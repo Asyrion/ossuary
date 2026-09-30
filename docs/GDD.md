@@ -6,7 +6,7 @@ Sep 24, 2026 · @Azyrion
 
 Ossuary is a top-down roguelike with RPG elements, set in the high/dark fantasy world of Eda. It borrows the room-by-room structure of The Binding of Isaac, but its identity is magic: every run is a spellbook the player assembles from spells, runes, magical artifacts and potions they brew themselves. It runs in desktop browsers (a mobile version may come later); its rooms, creatures and effects are built in code, with Tripo3D for special models (the mage, bosses where wanted). It is a hobby project; the current goal is to prove the core loop is fun before adding content.
 
-**Pitch:** An apprentice mage, Asyrion, breaks into the vault beneath the Gate of Uzulim, room by room, floor by floor, where the gate's Wardens sealed away what they took from the wilderness. He learns spells from torn grimoire pages, binds cursed artifacts to his will, brews potions from what the dead leave behind, and grows with every floor from an apprentice into a chaos mage of fire and runes. Every run builds a different mage; what the mage learns is never fully lost.
+**Pitch:** An apprentice mage, Asyrion, breaks into the vault beneath the Gate of Uzulim, room by room, floor by floor, where the gate's Wardens sealed away what they took from the wilderness. They learn spells from torn grimoire pages, bind cursed artifacts to their will, brew potions from what the dead leave behind, and grow with every floor from an apprentice into a chaos mage of fire and runes. Every run builds a different mage; what the mage learns is never fully lost.
 
 **Setting (from the owner's Eda lore, adopted 2026-09-30; `docs/ideas.md` has the reading of the notes and images).**
 The Pass of Buluiain runs through the valleys of the Huruhui, guarded at each end by a gate: Belregi, carved and bright,
@@ -217,7 +217,7 @@ what it has found is kept between runs for the bestiary.
 **The floor-1 boss built in code (M4, 2026-09-30).** The Hollow Warden keeps its fight (it walks, winds up and bursts a
 ring of shots, fires aimed volleys, calls the floor's walkers below half health) and takes one of three looks drawn up
 for the owner, its shots in its school's light: the **Bell Warden** (Storm; a great beetle under an old cracked bronze
-bell), the **Mother of Spores** (Umbral; a mushroom as tall as a door whose young are the Sporelings she calls) and the
+bell), the **Mother of Spores** (Umbral; a mushroom as tall as a door whose young are the Sporelings it calls) and the
 **Hollow Owl** (Hallow; a round barn owl with a crown of candles). The owner chooses one after the play-test (the dev
 menu's Galleries tab stands them and switches the one the Warden wears).
 
@@ -524,7 +524,7 @@ Picking up an artifact shows on the mage, as Isaac's items do, but in a high fan
 **Asyrion's arc** (from the owner's two sheets, adopted 2026-09-30). The mage is Asyrion. A run begins in the
 apprentice's look (a young man with tousled fair hair over a dark undercut, green eyes, a grey-green hooded tunic, a
 traveller's pack) and grows towards the chaos mage's (long dark hair, a dark coat worked all over in bronze, a flame in one
-hand, red rune orbs circling in thin gold rings, white arcs of wind): the more of his power the mage holds (artifacts for
+hand, red rune orbs circling in thin gold rings, white arcs of wind): the more of their power the mage holds (artifacts for
 now; levels from M6), the more of the fire mage's pieces replace the apprentice's, slot by slot, as costumes do. The Tripo
 model is made from the sheets (docs/assets.md); the pieces that change are built in code.
 
@@ -929,10 +929,10 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 - The blast (1.5 tiles) deals 10 damage to every foe in reach (bosses too), knocks them back, breaks rocks (not pillars or tombs), urns and cracked walls, snuffs out enemy shots and sets off other glyphs in reach, so glyphs chain. A mage caught in it loses a full heart.
 - It burns in the colour of the mage's bolts, so artifacts that change the bolts show in the glyphs too. Idea for M3: a glyph takes the school of the mage's focus, so an Ember glyph leaves burning ground and a Frost glyph chills.
 
-**The Wandering Merchant of Belerial** (M4.2, adopted 2026-09-30). A second trader, rare: once a run he rides into an
+**The Wandering Merchant of Belerial** (M4.2, adopted 2026-09-30). A second trader, rare: once a run the merchant rides into an
 ordinary room after its fight, an old man with a white beard, a turban and a staff on a huge shaggy pack beast, a crow on
-its head. His wares are in the beast's packs: things the Bound Shade doesn't sell (a foreign focus, soul motes, reagents
-from M5). His crow sells what it has seen: the floor's map, or where the secret room is. He is gone when the mage leaves the
+its head. The wares are in the beast's packs: things the Bound Shade doesn't sell (a foreign focus, soul motes, reagents
+from M5). The crow sells what it has seen: the floor's map, or where the secret room is. The merchant is gone when the mage leaves the
 room.
 
 **The merchant** (1 per floor, in a dead end). A hooded trader (placeholder): a bound shade who deals in the obols of the dead, with 3 or 4 items per visit; the first is an artifact while the floor's budget allows. His wares float in ward circles that paying breaks: walking into one buys it, or he refuses (too few obols, a heart at full health). His shop is warded: bolts fizzle there and a glyph's chalk won't take, so there is no fighting or robbing him.

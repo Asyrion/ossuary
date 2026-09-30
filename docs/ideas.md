@@ -583,11 +583,11 @@ loosen as the owner decides which of these the game names.
 People:
 - **Asyrion, twice.** The "Asyrion" note's sheet is a young man (tousled blond hair over a dark undercut, green eyes,
   freckles, stubble, a grey-green hooded tunic, a traveller's pack); the "fire mage" note's is a dark-haired mage in a
-  bronze-worked coat with a flame in one hand, rune orbs glowing red in thin gold circles round him and white arcs of
-  wind behind. Read together they are the GDD's pitch exactly: an apprentice who goes down and the chaos mage he becomes.
+  bronze-worked coat with a flame in one hand, rune orbs glowing red in thin gold circles round them and white arcs of
+  wind behind. Read together they are the GDD's pitch exactly: an apprentice who goes down and the chaos mage they become.
   The mage can start a run as the apprentice and change towards the fire mage as it goes (M4.6's costumes and
   transformations already move that way), or across runs in the Vigil. Other ideas from the fire mage: the cantrip's
-  bolt a flame; the glyphs drawn as his red rune orbs in gold rings; an aura of rune orbs that circle the mage and go off
+  bolt a flame; the glyphs drawn as the red rune orbs in gold rings; an aura of rune orbs that circle the mage and go off
   like glyphs when a foe touches one; for "assassin", a first strike on a foe that hasn't seen the mage (asleep, a
   statue, the dark variant) that lands as a crit. The hero's Tripo model can come from these sheets.
 - **Boketto the Storm Caller** (white hair, pointed ears, eyes glowing blue, a violet and teal mark across the face and
@@ -595,8 +595,8 @@ People:
   spirals on the mage's arms, the glow across the shoulder, white hair, eyes that light up when a Storm spell is cast.
   And the shade in the Vigil who teaches Storm.
 - **The Wandering Merchant of Belerial** (an old man with a white beard, a turban and a staff, riding a huge shaggy pack
-  beast with a red snout and bandaged legs, a crow perched on its head): the second trader. His shop is his beast's
-  packs; his crow sells what it has seen (the floor's map, where the secret room is); he turns up once a run in an
+  beast with a red snout and bandaged legs, a crow perched on its head): the second trader. The shop is the beast's
+  packs; the crow sells what it has seen (the floor's map, where the secret room is); the merchant turns up once a run in an
   ordinary room and is gone when the mage leaves it. The beast, calm and enormous, is a look to build in code.
 - **The Huruhui** (young foragers in blue-teal tunics with red scarves, crowns of red flowers, armfuls of greenery,
   bows, spears and short blades, packs with plants growing out of them, a round red emblem on the sleeve): the friendly
