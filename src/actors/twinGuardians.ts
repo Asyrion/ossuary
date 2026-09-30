@@ -97,7 +97,8 @@ export function updateTwin(e: Enemy, dt: number, ux: number, uz: number): number
   }
   P.armL.rotation.x = lerp(P.armL.rotation.x, 0, .15);
   if (e.state === 'stalk') {
-    const sp = C.speed * speedMul * (e.rage ? C.rage.speed : 1) * (d > C.keep ? 1 : 0); e.vx = ux * sp; e.vz = uz * sp; // (it stops at arm's length) halo.material.opacity = .3; P.armR.rotation.x = lerp(P.armR.rotation.x, 0, .15);
+    const sp = C.speed * speedMul * (e.rage ? C.rage.speed : 1) * (d > C.keep ? 1 : 0); e.vx = ux * sp; e.vz = uz * sp; // (it stops at arm's length)
+    halo.material.opacity = .3; P.armR.rotation.x = lerp(P.armR.rotation.x, 0, .15);
     P.body.position.y = Math.abs(Math.sin(e.t * 4)) * .04;
     if (e.st <= 0) { // a slam and a gaze by turns
       e.cycle = e.cycle! + 1; e.state = e.cycle % 2 ? 'windSlam' : 'windGaze'; e.st = (e.state === 'windSlam' ? C.slam.tell : C.gaze.tell) * fast;

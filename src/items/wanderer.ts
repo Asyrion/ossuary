@@ -49,7 +49,14 @@ function layOut() {
   list.push({ ware: G.run.wanderer.weighted(LOOT.wanderer.souls as Record<Item, number>) });
   list.push({ ware: 'map' });
   if (!crowRefuses('secret')) list.push({ ware: 'secret' });
-  room.wares = list.map((w, i) => layWare(room, w.ware, w.def, h.to.x + (i - (list.length - 1) / 2) * C.spacing, h.to.z + C.waresAt, P[w.ware] ?? 5));
+  const taken = [h.to]; // (each on open floor, clear of the beast and of each other: never over a pit, a pillar or an obelisk)
+  room.wares = list.map((w, i) => {
+    const x = h.to.x + (i - (list.length - 1) / 2) * C.spacing, z = h.to.z + C.waresAt;
+    let at = freeSpotNear(room, x, z);
+    for (let k = 1; k < 8 && taken.some(q => Math.hypot(q.x - at.x, q.z - at.z) < C.spacing * .7); k++) at = freeSpotNear(room, x + (k % 2 ? k : -k) * C.spacing * .5, z + Math.floor(k / 2));
+    taken.push(at);
+    return layWare(room, w.ware, w.def, at.x, at.z, P[w.ware]!); // (every ware it lays has its price in data/loot.json: tests/unit/m42rules.test.ts)
+  });
   h.block = { x: h.to.x, z: h.to.z, hx: C.block[0], hz: C.block[1], hp: Infinity, breakable: false }; room.rocks.push(h.block);
   toast(STR.toast.wandererGreets, 3.5);
 }
@@ -85,8 +92,8 @@ function leave() {
 }
 /** A new floor or run: nothing of the last one's merchant is left (its room is gone with it). */
 export function clearWanderer() { here = null; }
-/** Dev hooks: whether the merchant is here, whether the wares are out, and what they are. */
-export const wandererState = () => ({ here: !!here && here.room === G.current, laid: !!here?.laid, wares: here ? (here.room.wares ?? []).map(w => w.ware) : [] });
+/** Dev hooks: whether the merchant is here, whether the wares are out, what they are and where. */
+export const wandererState = () => ({ here: !!here && here.room === G.current, laid: !!here?.laid, wares: here ? (here.room.wares ?? []).map(w => w.ware) : [], at: here ? (here.room.wares ?? []).map(w => ({ x: w.x, z: w.z })) : [] });
 
 /* ---------- the crow ---------- */
 

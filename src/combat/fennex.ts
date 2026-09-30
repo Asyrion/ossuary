@@ -53,7 +53,7 @@ export function updateFennex(dt: number, acting: boolean) {
     burst(x, .6, z, stage === 3 ? 0xff8a2a : 0x8ff0ff, 30, 2.4, .06); Sfx.at(x, z).wake(); toast(STR.toast.fennexGrows[stage - 2], 3.5);
   }
   if (!acting) return;
-  const f = fen, speedOf = (s: number) => s * (1 + .15 * (stage - 1));
+  const f = fen, speedOf = (s: number) => s * (1 + F.stageSpeed * (stage - 1));
   f.cd -= dt; f.breath -= dt;
   if (f.prey && (f.prey.dead || !G.enemies.includes(f.prey))) f.prey = null;
   if (!f.prey && f.cd <= 0) f.prey = nearest(player.x, player.z, F.reach + stage);
@@ -85,8 +85,6 @@ export function updateFennex(dt: number, acting: boolean) {
   if (f.mouth) f.mouth.material.opacity *= Math.exp(-4 * dt);
   f.g.position.set(f.x, 0, f.z); f.g.rotation.y = f.face; f.idle(f.t);
 }
-/** A new run: Fen-Nex goes with the old one. */
-export function clearFennex() { if (fen) { scene.remove(fen.g); disposeTree(fen.g); fen = null; } }
 /** Dev hooks: where Fen-Nex is, how grown, what it hunts; and growing it a stage (as if a floor had gone by). */
 export const fennexInfo = () => fen ? { stage: fen.stage, x: fen.x, z: fen.z, hunting: !!fen.prey } : null;
 export function growFennex() { if (G.run.fennexFrom !== undefined && fennexStage() < 3) G.run.fennexFrom--; }

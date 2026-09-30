@@ -101,7 +101,7 @@ function lie(k: Coil, rate: number) {
 
 /** One step of the dragon's fight. Returns the way it should face, when that isn't towards the mage. */
 export function updateDragon(e: Enemy, dt: number): number | undefined {
-  const k = coils.get(e)!, P = e.parts!, halo = e.halo!, maw = P.maw as THREE.Sprite, hurt = e.hp / e.maxHp < .5, shotMul = e.bossCfg?.shotSpeedMul ?? 1, quick = hurt ? .75 : 1;
+  const k = coils.get(e)!, P = e.parts!, halo = e.halo!, maw = P.maw as THREE.Sprite, hurt = e.hp / e.maxHp < .5, shotMul = e.bossCfg?.shotSpeedMul ?? 1, quick = hurt ? C.hurtQuick : 1;
   e.vx = e.vz = e.kx = e.kz = 0;
   const winding = e.state === 'windBreath' || e.state === 'windMove';
   e.idle?.(e.t); e.ring!.rotation.z += dt * (winding ? 5 : 1.2);

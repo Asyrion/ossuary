@@ -25,7 +25,7 @@
    it) and a dead tree's branches (each grown its own way); both are disposed with the object. */
 import * as THREE from 'three';
 import { CFG } from '../config';
-import type { Bolt, FloorLook, Pool, PropBox, Room } from '../types';
+import type { Bolt, Box, FloorLook, Pool, PropBox, Room } from '../types';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
@@ -395,8 +395,10 @@ function blind(box: PropBox) {
 }
 
 /** Nothing tall between the statue and (x, z): walls, rocks, pillars, other statues, a spell's ice. */
+const solids: Box[] = []; // (reused each look)
 function inSight(room: Room, box: PropBox, x: number, z: number) {
-  const solids = [...room.walls, ...room.rocks, ...(room.barriers ?? [])].filter(b => b !== box);
+  solids.length = 0;
+  for (const list of [room.walls, room.rocks, room.barriers ?? []]) for (const b of list) if (b !== box) solids.push(b);
   const dx = x - box.x, dz = z - box.z, n = Math.ceil(Math.hypot(dx, dz) / .2);
   for (let i = 1; i < n; i++) if (boxAt(box.x + dx * i / n, box.z + dz * i / n, solids)) return false;
   return true;

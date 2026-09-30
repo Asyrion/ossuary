@@ -124,7 +124,7 @@ const setUp = ([kind, kinds, warpTo]: readonly [string, readonly string[], numbe
   w.__reseed(); // the same randomness from here on, on both sides of a comparison (sparks, stains, what a cleared room drops)
   g.warp(warpTo ?? 1);
   g.clearRoom(); g.player.invuln = 99;
-  if (kind === 'props') kinds.forEach((k, i) => { try { g.prop(k, g.current.bounds.minX + .5 + (i % 8) * 1.6, g.current.bounds.minZ + 1.5 + Math.floor(i / 8) * 2); } catch { /* a kind the base doesn't have yet */ } }); // (three rows of eight: every kind inside the room)
+  if (kind === 'props') kinds.forEach((k, i) => { try { g.prop(k, g.current.bounds.minX + .5 + (i % 9) * 1.4, g.current.bounds.minZ + 1.5 + Math.floor(i / 9) * 2); } catch { /* a kind the base doesn't have yet */ } }); // (three rows of nine: every kind inside the room)
   // the mage on the open floor tile nearest a little south of the middle (an L's middle can be outside it)
   let best = { x: g.current.cx, z: g.current.cz + 1.5 }, bd = 1e9;
   const tiles = g.current.template.tiles, b = g.current.bounds, floor: { x: number; z: number }[] = [], pits: { x: number; z: number }[] = [];

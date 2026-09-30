@@ -78,6 +78,7 @@ export function parseTemplate(def: TemplateDef, mirrorX = false, mirrorY = false
 export function validateTemplate(def: TemplateDef): string[] {
   const errs: string[] = [];
   if (!SHAPE_IDS.includes(def.shape)) return [`unknown shape "${def.shape}"`];
+  if (def.current !== undefined && !(['n', 's', 'e', 'w'] as string[]).includes(def.current)) errs.push(`unknown current "${def.current}"`); // (M4.2)
   const size = shapeSize(def.shape);
   if (def.grid.length !== size.h) errs.push(`has ${def.grid.length} rows, needs ${size.h}`);
   def.grid.forEach((row, r) => {
@@ -135,7 +136,6 @@ export function validateTemplate(def: TemplateDef): string[] {
   return errs;
 }
 
-/** Pools in a parsed template: water or oil tiles joined side by side (not corner to corner) into one pool. */
 /** Where a room's running water (M4.2, `current`) meets the wall it flows from: the runs of water tiles along that
     edge (tile indices along the wall, `i1` past the last), each a waterfall's span, and the wall they pour from. */
 export function fallRuns(t: Pick<Template, 'tiles' | 'w' | 'h' | 'current'>) {
@@ -153,6 +153,7 @@ export function fallRuns(t: Pick<Template, 'tiles' | 'w' | 'h' | 'current'>) {
 
 /** A tile as far as pools go: a candle stand standing in water (M4.2) is part of the pool round it. */
 const wet = (tile: Tile) => tile === 'wetCandles' ? 'water' : tile;
+/** Pools in a parsed template: water or oil tiles joined side by side (not corner to corner) into one pool. */
 export function poolsOf(t: Pick<Template, 'tiles' | 'w' | 'h'>) {
   const pools: { kind: 'water' | 'oil'; tiles: { c: number; r: number }[] }[] = [], seen = new Set<string>();
   for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) {

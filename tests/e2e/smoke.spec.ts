@@ -832,6 +832,22 @@ test('the drinking ward (M4.2): a vault\'s ward drinks the spells cast near it a
   expect(errors).toEqual([]);
 });
 
+test('the Wandering Merchant lays its wares on open floor, never over a chasm, a pillar or an obelisk', async ({ page }) => {
+  type GW = GameHooks & { callWanderer(): void; clearRoom(): void; wanderer: { laid: boolean; at: { x: number; z: number }[] }; current: RoomView & { bounds: { minX: number; minZ: number }; template: { tiles: string[][] }; rocks: { x: number; z: number; hx: number; hz: number }[] } };
+  const errors: string[][] = [];
+  for (const room of ['rope_chasm', 'obelisk_pair']) {
+    errors.push(await start(page, `?room=${room}`));
+    const spots = await page.evaluate(() => {
+      const g = (window as unknown as W).__game as GW; g.warp(1); g.clearRoom(); g.sim(.3); g.callWanderer(); g.sim(3);
+      const r = g.current, tile = (x: number, z: number) => r.template.tiles[Math.floor(z - r.bounds.minZ)]?.[Math.floor(x - r.bounds.minX)];
+      return { laid: g.wanderer.laid, at: g.wanderer.at.map(p => ({ tile: tile(p.x, p.z), clear: !r.rocks.some(b => Math.abs(p.x - b.x) < b.hx && Math.abs(p.z - b.z) < b.hz) })) };
+    });
+    expect(spots.laid, room).toBe(true);
+    for (const s of spots.at) expect(s, room).toEqual({ tile: 'floor', clear: true });
+  }
+  for (const e of errors) expect(e).toEqual([]);
+});
+
 test('the Wandering Merchant (M4.2): rides into a cleared room, lays out a focus from far off, a soul mote and the crow\'s wares; the crow sells the map and the secret; the merchant is gone when the mage leaves', async ({ page }) => {
   type Room = { type: string; known: boolean; visited: boolean; plan: { id: number } };
   type GM = Omit<G5, 'rooms' | 'current'> & { callWanderer(): void; wanderer: { here: boolean; laid: boolean; wares: string[] }; rooms(): Room[]; run: { wandererMet: boolean };
