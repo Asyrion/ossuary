@@ -42,7 +42,9 @@ export type TableName = 'urn' | 'sealedUrn' | 'coffer' | 'chest' | 'vaultHoard' 
 export const TABLES: TableName[] = ['urn', 'sealedUrn', 'coffer', 'chest', 'vaultHoard', 'secretHoard', 'remains', 'bundle', 'hoard'];
 
 /** What the merchant sells: an artifact, or an item. */
-export type Ware = 'artifact' | Item;
+/** What a trader sells: an artifact, an item, or (M4.2, the Wandering Merchant's crow) the floor's map or where its secret
+    room lies. */
+export type Ware = 'artifact' | Item | 'map' | 'secret';
 /** The merchant's stock: how many wares (the artifact counts), their prices in obols, and how the wares
     after the artifact are picked. */
 export interface MerchantData { wares: [number, number]; prices: Partial<Record<Ware, number>>; weights: Partial<Record<Item, number>> }
@@ -62,6 +64,8 @@ export interface LootData extends Record<TableName, LootTable> {
   /** A secret room without an artifact: coffers and reliquary chests beside its hoard (`secretHoard`). */
   secretRoom: { coffers: number; chests: number };
   /** Obols the shrine asks to cleanse a curse, paid once the curse is put down. */ shrine: { price: number };
+  /** M4.2: the Wandering Merchant's prices, and the soul motes in the beast's packs (by weight). */
+  wanderer: { prices: Partial<Record<Ware, number>>; souls: Partial<Record<Item, number>> };
   /** Grimoire pages: how many a library's lecterns offer, how many given-up spells its shelf sells back and for how
       many obols, and the chance a cleared room leaves one. */ grimoire: { lecterns: number; shelf: number; rebuy: number; clearChance: number };
   merchant: MerchantData;

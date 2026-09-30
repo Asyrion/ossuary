@@ -10,7 +10,7 @@ import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { M, basicMat, blob, disposeTree, glow, markShared } from '../render/materials';
-import { shadeLook } from '../world/specialLooks';
+import { crowWareLook, shadeLook } from '../world/specialLooks';
 import { glyphTexture } from '../render/textures';
 import { burst } from '../combat/fx';
 import { renderMinimap, toast } from '../ui/hud';
@@ -19,7 +19,9 @@ import { grantArtifact, makeArtifactVisual, offerGuaranteed } from './artifacts'
 import { cantUse, giveResources, itemVisual, useItem } from './pickups';
 import { soulsHere } from './souls';
 import { itemLore, type LoreItem } from '../ui/lore';
-import { LOOT, priceOf, rollWares, type Item } from './loot';
+import { LOOT, priceOf, rollWares, type Item, type Ware } from './loot';
+import type { ArtifactDef } from './artifactData';
+import { crowRefuses, crowTells } from './wanderer';
 
 const C = CFG.merchant;
 
@@ -107,18 +109,20 @@ function makeShade() {
 export function buildShop(room: Room) {
   const def = room.plan.artifact ? offerGuaranteed('merchant') : null;
   const wares = rollWares(G.run.loot, !!def, LOOT, soulsHere());
-  room.wares = wares.map((ware, i) => {
-    const x = room.cx + (i - (wares.length - 1) / 2) * C.spacing, z = room.cz + C.waresAt;
-    const g = new THREE.Group(); g.position.set(x - room.cx, 0, z - room.cz);
-    const circle = wardCircle();
-    const item = ware === 'artifact' ? makeArtifactVisual(def!) : itemVisual(ware);
-    if (ware !== 'artifact') item.scale.multiplyScalar(1.35);
-    const price = priceOf(ware), tag = coinTag(price); tag.position.y = 1.85;
-    g.add(circle, item, tag); room.group.add(g);
-    return { ware, def: ware === 'artifact' ? def! : undefined, price, x, z, g, item, circle, tag, tagPrice: price, sold: false, armed: true };
-  });
+  room.wares = wares.map((ware, i) => layWare(room, ware, ware === 'artifact' ? def! : undefined, room.cx + (i - (wares.length - 1) / 2) * C.spacing, room.cz + C.waresAt, priceOf(ware)));
   const shade = makeShade(); shade.position.set(0, 0, C.shadeAt); room.group.add(shade); room.shade = shade;
   room.rocks.push({ x: room.cx, z: room.cz + C.shadeAt, hx: .42, hz: .42, hp: Infinity, breakable: false });
+}
+
+/** A ware in its ward circle at (x, z), priced `price` (the shade's, and M4.2's Wandering Merchant's). */
+export function layWare(room: Room, ware: Ware, def: ArtifactDef | undefined, x: number, z: number, price: number): WareSpot {
+  const g = new THREE.Group(); g.position.set(x - room.cx, 0, z - room.cz);
+  const circle = wardCircle();
+  const item = ware === 'artifact' ? makeArtifactVisual(def!) : ware === 'map' || ware === 'secret' ? crowWareLook(ware) : itemVisual(ware);
+  if (ware !== 'artifact') item.scale.multiplyScalar(1.35);
+  const tag = coinTag(price); tag.position.y = 1.85;
+  g.add(circle, item, tag); room.group.add(g);
+  return { ware, def, price, x, z, g, item, circle, tag, tagPrice: price, sold: false, armed: true };
 }
 
 /** What he says when the mage couldn't use a ware now. */
@@ -131,7 +135,8 @@ function refuse(w: WareSpot, msg: string) {
 /** Pay for a ware (or refuse), break its ward and hand it over. A focus bought leaves the old one in the
     empty circle, free to take back. */
 function buy(w: WareSpot) {
-  if (w.ware !== 'artifact') {
+  if (w.ware === 'map' || w.ware === 'secret') { const why = crowRefuses(w.ware); if (why) return refuse(w, why); } // (the Wandering Merchant's crow, M4.2)
+  else if (w.ware !== 'artifact') {
     const why = cantUse(w.ware);
     if (why) return refuse(w, REFUSE[why]());
   }
@@ -149,7 +154,8 @@ function buy(w: WareSpot) {
       toast(STR.toast.focusLeftShop(replaced.name), 3.5);
       return;
     }
-  } else {
+  } else if (w.ware === 'map' || w.ware === 'secret') crowTells(w.ware);
+  else {
     useItem(w.ware as Item);
     toast(STR.toast.bought(STR.wares[w.ware]), 2.5); itemLore(w.ware as LoreItem);
   }
@@ -171,11 +177,13 @@ export function checkWares() {
 /** The shade bobs and turns to watch the mage; wares turn over their circles. */
 export function updateShop(now: number) {
   const room = G.current;
-  if (!room.wares || !room.shade) return;
-  const { body, eyes } = room.shade.userData as { body: THREE.Group; eyes: THREE.Sprite[] };
-  body.position.y = .08 + Math.sin(now * 1.3) * .05;
-  body.rotation.y = Math.atan2(player.x - room.cx, player.z - (room.cz + C.shadeAt));
-  for (const e of eyes) e.material.opacity = .75 + Math.sin(now * 7 + e.position.x * 40) * .2;
+  if (!room.wares) return;
+  if (room.shade) { // (the Wandering Merchant's wares have no shade over them, M4.2)
+    const { body, eyes } = room.shade.userData as { body: THREE.Group; eyes: THREE.Sprite[] };
+    body.position.y = .08 + Math.sin(now * 1.3) * .05;
+    body.rotation.y = Math.atan2(player.x - room.cx, player.z - (room.cz + C.shadeAt));
+    for (const e of eyes) e.material.opacity = .75 + Math.sin(now * 7 + e.position.x * 40) * .2;
+  }
   for (const w of room.wares) {
     if (w.sold) continue;
     w.item.position.y = (w.def ? 1.05 : .75) + Math.sin(now * 2 + w.x) * .07;

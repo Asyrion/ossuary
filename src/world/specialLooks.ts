@@ -159,3 +159,94 @@ export function padlockLook(ward: number) {
   mergeStill(g);
   return g;
 }
+
+/* ---------- M4.2: the Wandering Merchant of Belerial (from the Eda lore) ---------- */
+
+const FUR = 0x7a6a58, FUR_DARK = 0x54483c, SNOUT = 0xb04a3a, BANDAGE = 0xd8ccb0, CANVAS = 0x9a8a68, CANVAS_DARK = 0x6e5e44;
+const INDIGO = 0x3e4a78, INDIGO_DARK = 0x283054, BEARD = 0xe8e4dc, SKIN = 0xc89a78, TURBAN = 0xe0d6c0, SAFFRON = 0xd09a3a, CROW = 0x16141a;
+
+/** The Wandering Merchant: an old trader with a white beard, a turban and a staff, riding a huge shaggy pack beast (a red
+    snout, bandaged legs, packs and a rolled blanket on its back) with a crow perched on its head. It faces east (+x) and
+    the merchant turns to the camera. `legs` (swing as it walks), `beast` (breathes), `head` (the merchant's, turns to
+    the mage) and `crow` (hops, turns its head) in `userData`. */
+export function wandererLook() {
+  const g = new THREE.Group(), beast = new THREE.Group(), R = mulberry(41);
+  const fur = tone(FUR, .16), furDark = tone(FUR_DARK, .14), snout = tone(SNOUT, .1), bandage = tone(BANDAGE, .1), canvas = tone(CANVAS, .14), canvasDark = tone(CANVAS_DARK, .12);
+  g.add(beast);
+  // the body: a great shaggy barrel, its fringe of fur hanging to the knees
+  put(mesh(beast, rough(new THREE.SphereGeometry(.62, 12, 9), .07, 5), fur, 0, 1.05, 0), 0, 0, 0, [1.25, .92, .86]);
+  for (let i = 0; i < 26; i++) { const a = i / 26 * Math.PI * 2, x = Math.cos(a) * .72, z = Math.sin(a) * .5; put(mesh(beast, new THREE.ConeGeometry(.1, .42, 4), i % 3 ? furDark : fur, x, .62 + R() * .06, z), Math.PI, R() * 3, (R() - .5) * .3); } // (the fringe)
+  for (let i = 0; i < 18; i++) { const a = R() * Math.PI * 2, y = .2 + R() * .6; put(mesh(beast, new THREE.SphereGeometry(.13, 5, 4), R() < .5 ? furDark : fur, Math.cos(a) * .66 * Math.sqrt(1 - y * y), 1.05 + y * .5, Math.sin(a) * .46 * Math.sqrt(1 - y * y)), R(), R(), R(), [1, .6, 1]); } // (tufts all over its back)
+  // the head, low and forward, a red snout, small eyes and curled horns
+  const bh = new THREE.Group(); bh.position.set(.86, .92, 0); beast.add(bh);
+  put(mesh(bh, rough(new THREE.SphereGeometry(.3, 10, 8), .04, 9), fur), 0, 0, 0, [1.1, .95, .95]);
+  put(mesh(bh, new THREE.SphereGeometry(.15, 8, 6), snout, .27, -.08, 0), 0, 0, 0, [1.1, .8, 1.1]);
+  for (const s of [-1, 1]) {
+    mesh(bh, new THREE.SphereGeometry(.035, 6, 4), tone(0x120e0c), .2, .08, s * .17);
+    tube(bh, [[0, .18, s * .2], [-.05, .32, s * .32], [.08, .38, s * .38], [.14, .28, s * .36]], .045, .015, tone(0xd8c8a8, .08), 8);
+  }
+  // legs, stubby, bandaged at the shin
+  const legs: THREE.Object3D[] = [];
+  for (const [x, z] of [[.5, .3], [.5, -.3], [-.5, .3], [-.5, -.3]] as [number, number][]) {
+    const leg = new THREE.Group(); leg.position.set(x, .62, z); beast.add(leg);
+    mesh(leg, cyl(.11, .1, .62, 7), furDark, 0, -.31, 0); mesh(leg, cyl(.12, .12, .16, 7), bandage, 0, -.36, 0); mesh(leg, cyl(.12, .13, .07, 7), tone(0x2a221c), 0, -.6, 0);
+    legs.push(leg);
+  }
+  // the packs: a bag on each flank, a rolled blanket across the back, a pot swinging
+  for (const s of [-1, 1]) {
+    mesh(beast, lathe([[0, 0], [.2, .02], [.24, .14], [.22, .3], [.14, .38], [.06, .4]], 8), s > 0 ? canvas : canvasDark, -.1, .72, s * .52).rotation.x = s * .2;
+    mesh(beast, cyl(.015, .015, .5, 4), tone(C.rope, .06), -.1, 1.05, s * .4).rotation.x = s * .9;
+  }
+  put(mesh(beast, cyl(.14, .14, .7, 10), tone(0x8a3a2a, .12), -.42, 1.5, 0), 0, 0, Math.PI / 2); // (the rolled blanket, lying along its back behind the rider)
+  for (const x of [-.62, -.22]) put(mesh(beast, cyl(.145, .145, .06, 10), tone(0xd0b070, .1), x, 1.5, 0), 0, 0, Math.PI / 2);
+  mesh(beast, lathe([[0, 0], [.1, .02], [.12, .1], [.08, .16]], 8), metal(0x6a5a48), -.72, .9, .32);
+  // the merchant, cross-legged on the beast's back, facing the camera
+  const rider = new THREE.Group(); rider.position.set(.12, 1.38, 0); beast.add(rider);
+  const robe = tone(INDIGO, .14), robeDark = tone(INDIGO_DARK, .12);
+  mesh(rider, lathe([[.3, 0], [.3, .08], [.24, .3], [.2, .5], [.13, .62], [0, .64]], 10), robe);
+  put(mesh(rider, cyl(.14, .16, .5, 8), robeDark, 0, .06, .1), 0, 0, Math.PI / 2, [1, 1, .8]); // (the folded legs)
+  const head = new THREE.Group(); head.position.y = .76; rider.add(head);
+  mesh(head, new THREE.SphereGeometry(.13, 10, 8), tone(SKIN, .06));
+  put(mesh(head, new THREE.ConeGeometry(.12, .34, 8), tone(BEARD, .06), 0, -.2, .07), Math.PI, 0, 0); // the long white beard
+  put(mesh(head, new THREE.TorusGeometry(.13, .06, 6, 12), tone(TURBAN, .08), 0, .09, 0), Math.PI / 2, 0, 0);
+  put(mesh(head, new THREE.SphereGeometry(.13, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), tone(TURBAN, .08), 0, .1, 0), 0, 0, 0, [1, 1.1, 1]);
+  mesh(head, new THREE.SphereGeometry(.03, 6, 4), tone(SAFFRON), 0, .15, .13);
+  for (const s of [-1, 1]) mesh(head, new THREE.SphereGeometry(.016, 5, 4), tone(0x120e0c), s * .045, .01, .12);
+  // the staff, upright in one hand, crooked at its top, a bell hanging from the crook
+  mesh(rider, cyl(.022, .025, 1.5, 6), tone(0x5a4028, .1), .28, .5, .12);
+  tube(rider, [[.28, 1.24, .12], [.3, 1.36, .12], [.2, 1.42, .12], [.14, 1.34, .12]], .025, .02, tone(0x5a4028, .1), 8);
+  mesh(rider, lathe([[0, 0], [.05, .01], [.045, .06], [0, .08]], 8), metal(0xc49a4a), .14, 1.22, .12);
+  mesh(rider, new THREE.SphereGeometry(.06, 6, 5), robe, .26, .44, .15); // (the hand on it)
+  // the crow on the beast's head
+  const crow = new THREE.Group(); crow.position.set(.9, 1.24, 0); crow.scale.setScalar(1.5); beast.add(crow);
+  put(mesh(crow, new THREE.SphereGeometry(.08, 8, 6), tone(CROW, .08)), 0, 0, 0, [1.3, 1, .9]);
+  mesh(crow, new THREE.ConeGeometry(.05, .14, 4), tone(CROW, .08), -.12, .01, 0).rotation.z = Math.PI / 2;
+  const crowHead = new THREE.Group(); crowHead.position.set(.07, .08, 0); crow.add(crowHead);
+  mesh(crowHead, new THREE.SphereGeometry(.05, 8, 6), tone(CROW, .08)); mesh(crowHead, new THREE.ConeGeometry(.018, .07, 4), tone(0x4a4640), .06, 0, 0).rotation.z = -Math.PI / 2;
+  mesh(crowHead, new THREE.SphereGeometry(.012, 4, 3), glowTone(0xffd070), .025, .015, .035);
+  g.add(blob(1.8));
+  // merged group by group, what moves kept apart: each leg, the merchant's head, the crow and its head, the beast
+  for (const leg of legs) mergeStill(leg);
+  mergeStill(head); mergeStill(crowHead);
+  crow.userData.parts = { crowHead }; mergeStill(crow);
+  beast.userData.parts = { head, crow, ...Object.fromEntries(legs.map((l, i) => ['leg' + i, l])) }; mergeStill(beast);
+  g.userData = { beast, legs, head, crow: crowHead };
+  return g;
+}
+
+/** What the crow sells, floating in its ward circle: the floor's map (a parchment unrolled, a plan of rooms drawn on it),
+    or where its secret room lies (a black feather over a cracked stone, a pale glow in the crack). */
+export function crowWareLook(kind: 'map' | 'secret') {
+  const g = new THREE.Group();
+  if (kind === 'map') {
+    put(mesh(g, new THREE.BoxGeometry(.42, .015, .32), tone(0xd8c8a0, .12)), -.5, 0, .1);
+    for (const x of [-.21, .21]) put(mesh(g, cyl(.035, .035, .34, 8), tone(0xc8b890, .1), x, .01, 0), Math.PI / 2, 0, 0);
+    for (const [x, z, w, d] of [[-.1, -.06, .1, .07], [.04, -.06, .09, .07], [.04, .05, .09, .06], [.14, .05, .06, .06]]) put(mesh(g, new THREE.BoxGeometry(w, .02, d), tone(0x5a4630), x, .012, z), -.5, 0, .1);
+  } else {
+    put(mesh(g, rough(new THREE.DodecahedronGeometry(.16, 0), .03, 4), tone(0x6a645c, .12)), 0, .4, 0, [1, .8, 1]);
+    put(mesh(g, new THREE.BoxGeometry(.02, .2, .02), glowTone(0x8aa8ff), 0, .02, .13), 0, 0, .4);
+    put(mesh(g, new THREE.ConeGeometry(.05, .36, 4), tone(CROW, .08), .05, .16, 0), 0, 0, -.9, [1, 1, .25]);
+  }
+  mergeStill(g);
+  return g;
+}

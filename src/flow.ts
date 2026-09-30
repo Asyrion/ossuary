@@ -3,6 +3,7 @@ import type * as THREE from 'three';
 import { enterTheme } from './world/themes';
 import { clearMechanisms } from './world/mechanisms';
 import { resetWardShields } from './actors/wardShield';
+import { clearWanderer, maybeWanderer, wandererLeaves } from './items/wanderer';
 import { clearModelOptions } from './actors/modelOptions';
 import { clearEffectOptions } from './magic/effectOptions';
 import { CFG, type BossType } from './config';
@@ -56,7 +57,7 @@ export function setNextRun(opts: RunOptions) { nextRun = opts; }
 const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
 
 function clearEntities() {
-  clearMechanisms(); resetWardShields(); clearModelOptions(); clearEffectOptions(); clearRite(); clearSpellFx(); clearStatusFx(); clearPages(); clearProjectiles(); clearGlyphs(); pressed.glyph = false; pressed.spells = [false, false];
+  clearMechanisms(); resetWardShields(); clearWanderer(); clearModelOptions(); clearEffectOptions(); clearRite(); clearSpellFx(); clearStatusFx(); clearPages(); clearProjectiles(); clearGlyphs(); pressed.glyph = false; pressed.spells = [false, false];
   for (const p of G.particles) { scene.remove(p.m); p.m.material.dispose(); } G.particles.length = 0;
   clearEnemies();
   for (const p of G.pickups) { scene.remove(p.g); disposeTree(p.g); } G.pickups.length = 0;
@@ -104,6 +105,7 @@ function newRun(seed: string): typeof G.run {
   return {
     seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [],
     budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1, riteFloor: -99, loreSeen: new Set(), hinted: new Set(), pages: Rng.from(seed, 'pages'), forgotten: [],
+    wanderer: Rng.from(seed, 'wanderer'), wandererMet: false,
   };
 }
 
@@ -156,6 +158,7 @@ function showRooms(...list: Room[]) { for (const r of G.rooms) r.group.visible =
 
 export function enterRoom(room: Room) {
   const firstVisit = !room.visited;
+  wandererLeaves(room); // (the Wandering Merchant stays in the room he came to)
   G.current = room; room.visited = true; room.known = true; showRooms(room);
   for (const d of doorsOf(room)) if (!d.secret || d.secret.open) d.nb.known = true; // not what's behind a cracked wall
   applyRoomTorches(room.look); resetTorchLights(room.torches, player.x, player.z);
@@ -278,6 +281,7 @@ export function onRoomCleared(room: Room) {
   const def = loot.chance(CFG.artifacts.dropChance) ? offerOptional('drop') : null;
   if (def) { const p = freeSpotNear(room, room.cx, room.cz + 1); placeArtifact(room, def, p.x, p.z); banner(...STR.banner.artifactRises); Sfx.rise(); }
   else maybeDropPage(room); // and, rarely, a grimoire page
+  maybeWanderer(room); // once a run, the Wandering Merchant rides in (M4.2)
 }
 
 export function onBossDead() {

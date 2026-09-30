@@ -11,6 +11,7 @@ import { placeProp } from '../world/props';
 import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
 import { wardFoe } from '../actors/wardShield';
+import { callWanderer } from '../items/wanderer';
 import { STR } from '../strings';
 import { FOES, FOE_IDS, pickFoe } from '../actors/foeData';
 import { forgetBestiary } from '../actors/bestiary';
@@ -259,6 +260,8 @@ function build() {
 
   // this floor: its special rooms, and ways through it
   floorBox = section(pages.rooms, S.floor);
+  // the Wandering Merchant (M4.2): rides into this room now, whatever the run's luck
+  section(pages.rooms, STR.banner.wanderer[0]).append(btn(S.wanderer, () => { closeDev(); callWanderer(); }));
 
   // the pixel look (the game's look, M3.5 step 2): the rows of pixels, outlines, light in bands; kept in this browser
   const px = section(pages.look, S.pixel);

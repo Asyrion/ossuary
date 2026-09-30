@@ -140,6 +140,12 @@ export function pickArtifact(rng: Rng, pool: Pool, seen: ReadonlySet<string>): A
   return list.length ? rng.pick(list) : null;
 }
 
+/** A focus the run hasn't met (M4.2: the Wandering Merchant's, from far off): any pool's. */
+export function pickFocus(rng: Rng, seen: ReadonlySet<string>, held?: string): ArtifactDef | null {
+  const list = ARTIFACT_DEFS.filter(a => a.kind === 'focus' && !a.start && !seen.has(a.id) && a.id !== held);
+  return list.length ? rng.pick(list) : null;
+}
+
 /** Problems in data/artifacts.json; empty when valid. */
 export function validateArtifacts(defs: ArtifactDef[] = ARTIFACT_DEFS): string[] {
   const errs: string[] = [];

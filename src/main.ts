@@ -57,6 +57,7 @@ import { bossLook, setBossLook, type BossLookId } from './actors/bossLooks';
 import { removeEffectOptions, showEffectOptions } from './magic/effectOptions';
 import { elementDev, sapMul } from './world/mechanisms';
 import { wardFoe } from './actors/wardShield';
+import { callWanderer, wandererState } from './items/wanderer';
 import { fullness, mostDrunk } from './magic/drinking';
 import { forgetKnowledge, knowledgeNow, setStage } from './magic/memory';
 import type { Stage } from './magic/knowledge';
@@ -269,6 +270,8 @@ function installDevHooks() {
     wardFoe(i: number) { const e = G.enemies[i]; if (e) wardFoe(e); return !!e?.ward; },
     /** M4.2: the way the room's water runs (n, s, e, w or none) and how many waterfalls feed it. */
     get flow() { return { dir: G.current.flow ?? null, falls: G.current.falls?.length ?? 0 }; },
+    /** M4.2: the Wandering Merchant rides into this room (`callWanderer()`), and whether he is here, his wares out, and what. */
+    callWanderer() { callWanderer(); }, get wanderer() { return wandererState(); },
     /** Fire, frost or shock landing at (x, z), as a spell's would: lights braziers and candles, charges rune stones,
         sets lodestones leaping. */
     element: (kind: StatusKind | 'sanct' | 'hex', x = player.x, z = player.z - 1.5) => elementDev(kind, x, z),
