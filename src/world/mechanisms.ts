@@ -173,7 +173,7 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
   wetCandles(R, len, look) { // a candle stand standing in water, ripples round its foot; lit, a pool of light on the water
     const g = MECH_LOOKS.candles(R, len, look), parts = g.userData.parts as Record<string, THREE.Object3D>;
     const ripple = new THREE.Mesh(RIPPLE, MAT_RIPPLE); ripple.position.y = .03; g.add(ripple);
-    const waterGlow = new THREE.Mesh(POOL_OF_LIGHT, new THREE.MeshBasicMaterial({ map: glowTex, color: 0xffb860, transparent: true, opacity: .55, blending: THREE.AdditiveBlending, depthWrite: false }));
+    const waterGlow = new THREE.Mesh(POOL_OF_LIGHT, new THREE.MeshBasicMaterial({ map: glowTex, color: 0xffa040, transparent: true, opacity: .85, blending: THREE.AdditiveBlending, depthWrite: false }));
     waterGlow.position.y = .025; waterGlow.visible = false; g.add(waterGlow);
     return withParts(g, { ...parts, waterGlow });
   },

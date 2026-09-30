@@ -6,7 +6,7 @@ import type { Box, Door, DoorStyle, FloorLook, RockBox, Room, Side } from '../ty
 import { DEV, G } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
-import { floorTexture, pitTexture } from '../render/textures';
+import { floorOwnedTexture, floorTexture } from '../render/textures';
 import { pixelFloorTexture } from '../render/pixelTextures';
 import { M, basicMat, blob, boxUV, cappedWallMaterials, disposeTree, glow, markShared, mergeStill, wallMaterials } from '../render/materials';
 import { tickFire } from '../render/fire';
@@ -17,7 +17,7 @@ import { DH, H_LOW, H_TALL, HD, HW, PX, PZ, WT } from './dims';
 import { FLOORS, type PlannedRoom } from './generate';
 import { FOES, isFoe, pickFoe } from '../actors/foeData';
 import { OPPOSITE, SHAPES, SIDE_DIR, cellHalfExtents, shapeMask, shapeSize } from './shapes';
-import { TEMPLATES, growPuddles, parseTemplate, tombRuns } from './templates';
+import { TEMPLATES, fallRuns, growPuddles, parseTemplate, tombRuns } from './templates';
 import { buildPools } from './pools';
 import { chargeRunes } from './mechanisms';
 import { LOOT, rollTable } from '../items/loot';
@@ -90,7 +90,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   buildProps(room); // bone piles, casks, roots, briars, cobwebs, glowcaps, pews (M3.6)
   if (theme?.twist === 'rime') chargeRunes(room, 'chill'); // the frozen mausoleum's rune stones hold frost
   dressTheme(room); // a themed room's scatter: candles, pages, moss, bedrolls, daylight...
-  mergePits(room); buildPools(room);
+  drawPits(room); mergePits(room); buildPools(room);
   // the template's roles filled with the floor's foes, on the room's seed (one elite at most)
   const pick = mulberry(plan.seed ^ 0xf0e5), table = FLOORS[Math.min(floorIndex, FLOORS.length - 1)].foes;
   let elite = false;
@@ -300,15 +300,47 @@ export function hitRock(room: Room, rock: RockBox, shatter = false) {
   burst(rock.x, .5, rock.z, 0x6b625a, 16, 2.6, .09); Sfx.at(rock.x, rock.z).rubble(); G.shake = Math.max(G.shake, .1);
 }
 
-// Pits: a dark hole drawn over the floor. Walkers and the mage can't cross them; bolts and wisps can.
-const PIT_GEO = new THREE.PlaneGeometry(1, 1); PIT_GEO.rotateX(-Math.PI / 2); PIT_GEO.userData.shared = true;
-let pitMat: THREE.MeshBasicMaterial | null = null;
+// Pits: a dark hole drawn over the floor. Walkers and the mage can't cross them; bolts and wisps can. Pits side by side
+// are drawn as one (M4.2: a chasm, not a row of holes), their dark joined and soft at its rim (`drawPits`).
 /** A pit on tile (c, r); not `solid`, only its dark (the chasm under a rope bridge, M4.2: it falls when the bridge burns). */
 export function addPit(room: Room, c: number, r: number, solid = true) {
-  pitMat ??= markShared(new THREE.MeshBasicMaterial({ map: pitTexture(), transparent: true, depthWrite: false }));
   const p = toWorld(room, c, r);
-  const m = new THREE.Mesh(PIT_GEO, pitMat); m.position.set(p.x - room.cx, .006, p.z - room.cz); room.group.add(m);
+  (room.pitTiles ??= []).push({ c, r });
   if (solid) room.pits.push({ x: p.x, z: p.z, hx: .5, hz: .5 });
+}
+/** The room's pits drawn: one dark shape over each stretch of pit tiles side by side, blurred at its rim. */
+function drawPits(room: Room) {
+  const tiles = room.pitTiles ?? [], has = new Set(tiles.map(t => t.c + ',' + t.r)), seen = new Set<string>();
+  for (const start of tiles) {
+    if (seen.has(start.c + ',' + start.r)) continue;
+    const region = [start], queue = [start]; seen.add(start.c + ',' + start.r);
+    while (queue.length) {
+      const q = queue.pop()!;
+      for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = (q.c + dc) + ',' + (q.r + dr); if (has.has(k) && !seen.has(k)) { seen.add(k); const n = { c: q.c + dc, r: q.r + dr }; region.push(n); queue.push(n); } }
+    }
+    const P = 32, c0 = Math.min(...region.map(t => t.c)), c1 = Math.max(...region.map(t => t.c)), r0 = Math.min(...region.map(t => t.r)), r1 = Math.max(...region.map(t => t.r));
+    const w = c1 - c0 + 2, h = r1 - r0 + 2, cv = document.createElement('canvas'); cv.width = w * P; cv.height = h * P;
+    const g = cv.getContext('2d')!, inReg = new Set(region.map(t => t.c + ',' + t.r)); g.filter = 'blur(4px)'; g.fillStyle = 'rgb(3,2,2)';
+    for (const t of region) { // a rounded square per tile, bridged to its neighbours: one hole with a soft rim
+      const x = (t.c - c0 + 1) * P, y = (t.r - r0 + 1) * P;
+      g.beginPath(); g.roundRect(x - P * .46, y - P * .46, P * .92, P * .92, P * .3); g.fill();
+      if (inReg.has((t.c + 1) + ',' + t.r)) g.fillRect(x, y - P * .46, P, P * .92);
+      if (inReg.has(t.c + ',' + (t.r + 1))) g.fillRect(x - P * .46, y, P * .92, P);
+      if (inReg.has((t.c + 1) + ',' + t.r) && inReg.has(t.c + ',' + (t.r + 1)) && inReg.has((t.c + 1) + ',' + (t.r + 1))) g.fillRect(x, y, P, P);
+    }
+    g.filter = 'none'; const R = mulberry(room.plan.seed ^ 0x9175);
+    for (const t of region) for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { // a crumbled rim: stones along its open edges
+      if (inReg.has((t.c + dc) + ',' + (t.r + dr))) continue;
+      for (let k = 0; k < 5; k++) {
+        const along = (R() - .5) * P * .9, x = (t.c - c0 + 1) * P + (dc ? dc * P * .44 : along), y = (t.r - r0 + 1) * P + (dr ? dr * P * .44 : along);
+        g.fillStyle = `rgba(60,52,44,${.35 + R() * .4})`; g.fillRect(x, y, 1 + R() * 2, 1 + R() * 2);
+      }
+    }
+    const tex = floorOwnedTexture(new THREE.CanvasTexture(cv)); tex.colorSpace = THREE.SRGBColorSpace;
+    const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false });
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h).rotateX(-Math.PI / 2), mat);
+    m.position.set(room.bounds.minX + c0 - .5 + w / 2 - room.cx, .006, room.bounds.minZ + r0 - .5 + h / 2 - room.cz); room.group.add(m);
+  }
 }
 /** A bridge burnt through (M4.2): the chasm under tile (c, r) is a pit now (its dark was drawn with the bridge). */
 export function openChasm(room: Room, c: number, r: number) {
@@ -447,18 +479,20 @@ export function buildWallsAndDoors(room: Room) {
     const ns = isNS(run.facing), mid = Math.floor((run.i0 + run.i1) / 2);
     return run.i1 - run.i0 >= 3 && (ns ? tallAt(mid, run.line) : tallAt(run.line, mid));
   });
-  for (const run of tallRuns) placeTorches(room, run, (isNS(run.facing) ? minZ : minX) + run.line);
+  const falls = fallRuns(room.template); // (M4.2: waterfalls pour from these spans of wall; torches and dressing keep off them)
+  for (const run of tallRuns) placeTorches(room, run, (isNS(run.facing) ? minZ : minX) + run.line, falls);
   // pilasters and niches along the tall walls facing south into the room, clear of doors and torches
   for (const run of tallRuns) if (run.facing === 'n') {
     const face = minZ + run.line + WT;
     const avoid = [...room.doors.filter(d => d.side === 'n' && Math.abs(d.z - face) < .1).map(d => ({ x: d.x, room: DH + .3 })),
-      ...room.torches.filter(t => Math.abs(t.z - (face + .6)) < .1).map(t => ({ x: t.x, room: .3 }))];
+      ...room.torches.filter(t => Math.abs(t.z - (face + .6)) < .1).map(t => ({ x: t.x, room: .3 })),
+      ...falls.filter(f => f.side === 'n').map(f => ({ x: minX + (f.i0 + f.i1) / 2, room: (f.i1 - f.i0) / 2 + .3 }))];
     dressNorthWall(room, face, minX + run.i0, minX + run.i1, avoid);
   }
 }
 
 /** Torches along a wall run: on every north wall, and on long east/west walls (tall rooms). */
-function placeTorches(room: Room, run: WallRun, across0: number) {
+function placeTorches(room: Room, run: WallRun, across0: number, falls: ReturnType<typeof fallRuns>) {
   const ns = isNS(run.facing);
   if (run.facing === 's') return;
   const base = ns ? room.bounds.minX : room.bounds.minZ;
@@ -466,13 +500,14 @@ function placeTorches(room: Room, run: WallRun, across0: number) {
   if (!ns && len < 14) return;
   const count = ns ? Math.max(1, Math.round(len / 6.5)) : Math.floor(len / 8);
   const spots = count === 1 ? [len / 2] : ns ? Array.from({ length: count }, (_, i) => 3 + i * (len - 6) / (count - 1)) : Array.from({ length: count }, (_, i) => (i + .5) * len / count);
-  const doorsHere = room.doors.filter(d => d.side === run.facing).map(d => ns ? d.x : d.z);
+  const inTheWay = [...room.doors.filter(d => d.side === run.facing).map(d => ({ at: ns ? d.x : d.z, half: DH })), // doors, and waterfalls (M4.2)
+    ...falls.filter(f => f.side === run.facing).map(f => ({ at: base + (f.i0 + f.i1) / 2, half: (f.i1 - f.i0) / 2 }))];
   const face = run.facing === 'n' ? across0 + WT : run.facing === 'w' ? across0 + WT : across0; // the wall's inner face
   for (let s of spots) {
     let at = inner0 + s;
-    const blocked = doorsHere.find(d => Math.abs(at - d) < DH + .5);
-    if (blocked !== undefined) { // move clear of the door, or skip if there's no room
-      const options = [blocked - DH - .6, blocked + DH + .6].filter(p => p > inner0 + .5 && p < inner1 - .5);
+    const blocked = inTheWay.find(b => Math.abs(at - b.at) < b.half + .5);
+    if (blocked) { // move clear of the door, or skip if there's no room
+      const options = [blocked.at - blocked.half - .6, blocked.at + blocked.half + .6].filter(p => p > inner0 + .5 && p < inner1 - .5 && !inTheWay.some(b => Math.abs(p - b.at) < b.half + .4));
       if (!options.length) continue;
       at = options[0];
     }

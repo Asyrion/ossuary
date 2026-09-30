@@ -130,6 +130,7 @@ export interface Room {
   /** The merchant's wares and the shade himself. */ wares?: WareSpot[]; shade?: THREE.Group;
   /** A locked vault forced open by blasts: its warden, a champion, rises when the mage comes in. */ warden?: boolean;
   /** M4.2: its ward burst full of this school: a Wardling of it is the warden. */ drunk?: School;
+  /** M4.2: the tiles its pits' dark covers (a rope bridge's chasm too), drawn joined. */ pitTiles?: { c: number; r: number }[];
   /** M4.2: the way its water flows (from the template), and the waterfalls feeding it. */ flow?: Flow; falls?: { mesh: THREE.Mesh; tex: THREE.Texture }[];
   /** A secret room, once one of its walls has been blasted open. */ found?: boolean;
   /** The mage was hurt during this room's fight (Unbroken Oath). */ hurt?: boolean;

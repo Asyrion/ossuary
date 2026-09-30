@@ -520,7 +520,8 @@ function lanternTortoise(): Built {
     top: a flame, ice spikes, a crest of sparks, a halo, little horns. */
 function wardling(school: School): Built {
   const L = SCHOOL_LIGHT[school], g = new THREE.Group(), body = new THREE.Group(); body.position.y = .85; g.add(body);
-  part(body, sphere(.25, 14, 10), std(new THREE.Color(L).multiplyScalar(.7).getHex(), { emissive: L, emissiveIntensity: .35, roughness: .4 }), [0, 0, 0]); // the drop of light
+  const drop = school === 'storm' ? 0x5a6ab8 : new THREE.Color(L).multiplyScalar(.7).getHex(); // (Storm's a thundercloud: its yellow is too near Hallow's gold)
+  part(body, sphere(.25, 14, 10), std(drop, { emissive: school === 'storm' ? 0x2a3470 : L, emissiveIntensity: .35, roughness: .4 }), [0, 0, 0]); // the drop of light
   part(body, sphere(.06, 8, 6), shine(0xffffff, .55), [-.11, .12, .16]);                                                                              // a gleam on it
   const eyes = bigEyes(body, .085, .04, .2, .062);
   const ring = new THREE.Group(); ring.rotation.x = 1.25; body.add(ring);
