@@ -1762,6 +1762,32 @@ test('the room kit\'s objects: every pile and object, urns, pedestals, pillars a
   expect(await objects()).toMatchObject({ kinds, painted: 0, urnsPainted: 0, pedestal: false, burning: true, kitFire: false });
 });
 
+test('the room kit\'s doors, gates, niches and pilasters: built in code, one mesh a gate, fewer draw calls, and the gate still rises', async ({ page }) => {
+  type Mat = { vertexColors?: boolean };
+  type O = { children: O[]; position: { y: number }; traverse(f: (o: O & { material?: Mat | Mat[] }) => void): void };
+  type GD = { sim(sec: number, draw?: boolean): void; warp(id: number): void; renderInfo(): { calls: number };
+    current: { locked: boolean; doors: { style: string; bars: O; barH: number }[]; group: O } };
+  const look = () => page.evaluate(() => {
+    const g = (window as unknown as { __game: GD }).__game; g.sim(.3, true);
+    const start = { calls: g.renderInfo().calls, gates: g.current.doors.filter(d => d.style !== 'secret').map(d => d.bars.children.length) };
+    let painted = 0; g.current.group.traverse(o => { if ([o.material ?? []].flat().some(m => m.vertexColors)) painted++; });
+    g.warp(1); g.sim(1.5, true); // (a fight: the doors lock, the gates rise)
+    const shut = g.current.doors.filter(d => d.style !== 'secret').map(d => Math.abs(d.bars.position.y) < .02);
+    return { ...start, painted, locked: g.current.locked, shut };
+  });
+  const errors = await start(page, '?seed=K3F9QX&room=crypt_a');
+  const kit = await look();
+  expect(kit.gates.every(n => n === 1)).toBe(true); // (a gate's bars, tips and rivets in one mesh)
+  expect(kit.painted).toBeGreaterThan(6);
+  expect(kit.locked).toBe(true); expect(kit.shut.every(Boolean)).toBe(true);
+  await page.screenshot({ path: 'test-results/room-kit-doors.png' });
+  const old = await start(page, '?seed=K3F9QX&room=crypt_a&kit=old');
+  const before = await look();
+  expect(before.gates.every(n => n > 1)).toBe(true); expect(before.shut.every(Boolean)).toBe(true);
+  expect(kit.calls).toBeLessThan(before.calls - 20); // (each door and each wall's dressing in a call or two)
+  expect(errors).toEqual([]); expect(old).toEqual([]);
+});
+
 test('the pixel look: on from the URL, drawn with outlines and light in bands, then off again, and the enemy and spell effect options, without errors', async ({ page }) => {
   type Look = { lines: number; outline: boolean; bands: boolean };
   type GP = { sim(sec: number, draw?: boolean): void; pixelLook: Look; setPixelLook(l: Partial<Look>): void; renderInfo(): { calls: number } };
