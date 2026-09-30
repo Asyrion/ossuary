@@ -29,6 +29,7 @@ import { damageEnemy, hurtPlayer } from './damage';
 import { addDecal, burst } from './fx';
 import { clamp } from '../util';
 import { breakPlate } from '../actors/bosses';
+import { dragonBlast } from '../actors/pillarDragon';
 import { fireAt } from '../world/pools';
 
 const C = CFG.glyph;
@@ -111,6 +112,7 @@ function blast(x: number, z: number, color: number, R: number) {
     else if (rock.prop) strikeProp(room, rock, true);   // piles, casks, glowcaps
     else if (rock.breakable) hitRock(room, rock, true);
   }
+  dragonBlast(x, z, R); // (M4.2: a blast at the foot of the Pillar Dragon's pillar knocks it off)
   blastProps(room, x, z, R); // rubble cleared, briars and cobwebs torn away
   caveIn(room, x, z); // in the collapsed crypt, more of the ceiling comes down
   for (const p of G.pickups) if (isContainer(p.kind) && !p.opened && Math.hypot(p.x - x, p.z - z) < R + .3) openContainer(p, true); // chests burn

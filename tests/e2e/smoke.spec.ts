@@ -194,7 +194,7 @@ test('a run is five floors: the Gilded Reliquary and the Ferryman\'s Shore below
     g.descend(); g.sim(.2, true); note(); // (and on to the Shore)
     return seen;
   });
-  expect(floors.map(f => [f.floor, f.boss, f.shrines, f.banner])).toEqual([[3, 'hart', 1, 'The Gilded Reliquary'], [4, 'angler', 0, "The Ferryman's Shore"]]); // (a shrine on floor 4 as on floor 2)
+  expect(floors.map(f => [f.floor, f.boss, f.shrines, f.banner])).toEqual([[3, expect.stringMatching(/^(hart|tiger)$/), 1, 'The Gilded Reliquary'], [4, expect.stringMatching(/^(angler|dragon)$/), 0, "The Ferryman's Shore"]]); // (a shrine on floor 4 as on floor 2; M4.2's bosses join their pools)
   await page.screenshot({ path: 'test-results/smoke-floor5.png' });
   const end = await page.evaluate(() => { const g = (window as unknown as W).__game as G2; g.descend(); g.sim(.2); return { state: g.state, floor: document.getElementById('endFloor')!.textContent }; });
   expect(end).toEqual({ state: 'end', floor: '5 of 5' });
@@ -275,6 +275,55 @@ test('the War-Tiger stands as a statue until the mage comes near, loses its plat
   expect(errors).toEqual([]);
 });
 
+test('the Pillar Dragon coils round the pillars (raising its own where too few), breathes fire and frost, falls to a glyph at its pillar\'s foot or a bell, and can be beaten', async ({ page }) => {
+  type Boss = Foe & { type: string; state: string; hp: number; contact: number; summoned?: boolean };
+  type G2 = GameHooks & { hit(i: number, dmg: number, school?: string): number; glyphs: { x: number; z: number; fuse: number }[]; shots: { fire?: boolean; chill?: number }[];
+    dragon: { state: string; pillars: number; on: boolean; headY: number; risen: boolean }; props: { kind: string; x: number; z: number; cd?: number }[] };
+  const errors = [await start(page, '?room=boss_open&boss=dragon&floor=5')];
+  const first = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as G2, seen = new Set<string>(); let fire = false, frost = false, high = 0;
+    g.warp(1); g.sim(.7, true);
+    for (let k = 0; k < 200; k++) { g.player.hp = g.player.maxHp; g.sim(.05); seen.add(g.dragon.state); fire ||= g.shots.some(s => s.fire); frost ||= g.shots.some(s => !!s.chill); if (g.dragon.on) high = Math.max(high, g.dragon.headY); }
+    return { pillars: g.dragon.pillars, risen: g.dragon.risen, seen: [...seen], fire, frost, high: high > 1.2 };
+  });
+  expect(first).toMatchObject({ pillars: 4, risen: true, fire: true, frost: true, high: true }); // (a plain room: it raised four)
+  expect(first.seen).toEqual(expect.arrayContaining(['arrive', 'coiled', 'windBreath', 'breath', 'travel']));
+  // a glyph at the foot of its pillar knocks it down: it lies open a while (half again of each blow, and it hurts to touch), then climbs back
+  await page.evaluate(() => { const g = (window as unknown as W).__game as G2; for (let k = 0; k < 200 && !(g.dragon.on && g.dragon.state === 'coiled'); k++) { g.player.hp = g.player.maxHp; g.sim(.05); } g.sim(.45); });
+  await page.keyboard.press('Space');
+  const knocked = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as G2, e = g.enemies.find(f => f.isBoss) as Boss, i = g.enemies.indexOf(e);
+    g.sim(.05); const gl = g.glyphs[0]; gl.x = e.x; gl.z = e.z; gl.fuse = .01;
+    g.sim(.1); const fell = g.dragon.state;
+    for (let k = 0; k < 30 && e.state !== 'down'; k++) g.sim(.05);
+    const down = { state: e.state, contact: e.contact, low: g.dragon.headY < .6 };
+    const hp0 = e.hp; g.hit(i, 4); const open = hp0 - e.hp;
+    for (let k = 0; k < 200 && !g.dragon.on; k++) { g.player.hp = g.player.maxHp; g.sim(.05); }
+    return { fell, down, open, back: g.dragon.on };
+  });
+  expect(knocked).toMatchObject({ fell: 'fall', down: { state: 'down', contact: 2, low: true }, back: true });
+  expect(knocked.open).toBeCloseTo(6);
+  // in the belfry, a bell rung knocks it down too; then the fight to the end
+  errors.push(await start(page, '?room=boss_belfry&boss=dragon&floor=5'));
+  const belfry = await page.evaluate(() => {
+    const w = window as unknown as W, g = w.__game as G2;
+    g.warp(1); g.sim(.7, true);
+    for (let k = 0; k < 200 && !(g.dragon.on && g.dragon.state === 'coiled'); k++) { g.player.hp = g.player.maxHp; g.sim(.05); }
+    const bell = g.props.filter(p => p.kind === 'bell').sort((a, b) => b.x - a.x)[0];
+    g.player.x = bell.x - 1; g.player.z = bell.z; g.keys.add('ArrowRight'); g.arrowOrder.push('ArrowRight'); g.sim(.1); g.keys.delete('ArrowRight'); g.arrowOrder.length = 0;
+    const seen = new Set<string>(); for (let k = 0; k < 12; k++) { g.sim(.05); seen.add(g.dragon.state); }
+    const rang = (g.props.find(p => p.kind === 'bell' && p.x === bell.x && p.z === bell.z)?.cd ?? 0) > 0; // (props are read afresh)
+    const boss = g.enemies.find(f => f.isBoss) as Boss;
+    let called = false, seconds = 0;
+    for (; seconds < 240 && g.enemies.length; seconds += .25) { w.__fight(.25); called ||= !!boss.summoned; }
+    g.sim(.5);
+    return { rang, fell: seen.has('fall'), seconds, called, left: g.enemies.length, cleared: g.current.cleared };
+  });
+  console.log(`dragon beaten in ${belfry.seconds.toFixed(1)} s of game time`);
+  expect(belfry).toMatchObject({ rang: true, fell: true, called: true, left: 0, cleared: true });
+  for (const e of errors) expect(e).toEqual([]);
+});
+
 test('the Hollow Warden wears the look chosen for it, its shots in its school\'s light, and can be beaten', async ({ page }) => {
   const LIGHT: Record<string, number> = { bellWarden: 0xf0e070, motherOfSpores: 0xa266ff, hollowOwl: 0xffd878 }; // (SCHOOL_LIGHT: storm, umbral, hallow)
   type Boss = Foe & { type: string; state: string; summoned?: boolean; mats: unknown[]; eye?: object; ring?: object; halo?: object; model: { traverse(f: (o: { isMesh?: boolean; isSprite?: boolean; isPoints?: boolean }) => void): void } };
@@ -310,7 +359,7 @@ test('the Hollow Warden wears the look chosen for it, its shots in its school\'s
     g.sim(.2, true); g.setBossLook('bellWarden');
     return { ids, look: g.bossLook, kept: localStorage.getItem('ossuary.bossLook') };
   });
-  expect(gallery).toEqual({ ids: ['bellWarden', 'motherOfSpores', 'hollowOwl', 'hart', 'angler', 'tiger'], look: 'bellWarden', kept: 'bellWarden' }); // (and the bosses of floors 4 and 5, M4.1, and the Eda lore's, M4.2)
+  expect(gallery).toEqual({ ids: ['bellWarden', 'motherOfSpores', 'hollowOwl', 'hart', 'angler', 'tiger', 'dragon'], look: 'bellWarden', kept: 'bellWarden' }); // (and the bosses of floors 4 and 5, M4.1, and the Eda lore's, M4.2)
   for (const e of errors) expect(e).toEqual([]);
 });
 

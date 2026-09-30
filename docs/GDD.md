@@ -225,12 +225,23 @@ menu's Galleries tab stands them and switches the one the Warden wears).
 others and drawn into the floors' pools:
 - **The War-Tiger** (a white-maned tiger armoured in plates of bronze and stone): it stands as a statue in its hall until
   the mage comes in, charges and swipes, and its plates turn most of a blow; a glyph's blast or a Shatter breaks a plate
-  off, and each plate lost leaves it faster and more open. Frost (its plates rime) and Storm (it fears the bells of the
-  Wardens) are its weakness and resistance to settle in building.
+  off, and each plate lost leaves it faster and more open. As built (step 6): a statue until the mage comes within three
+  tiles or strikes it (so a glyph can be chalked beside it first); it prowls, circles the mage at claw reach and swipes a
+  fan of claws, crouches with the spot it will land on marked and pounces there (a wall stuns it; frost flies from its
+  plates as it lands), and roars rings. Four plates (two bronze pauldrons, a stone slab on its back, a bronze brow) let
+  only 40% of a blow through at first; bosses never freeze, so its Shatter is a shock on plates rimed by two chills; enough
+  blows turned also wear a plate through. Weak to Storm (it fears the Wardens' bells), resisting Frost (its plates rime).
+  In the pools of floors 3 and 4.
 - **The Pillar Dragon** (a long dragon with antlers, a spiked mane and a beard, orange and blue-grey): it coils round the
   top of the room's pillars and moves from one to the next; bolts reach only its head where it leans out, and it breathes
   down on the floor, fire from its orange side and frost from its blue, as it faces. Knocking it off a pillar (a blast at
-  the pillar's foot, a bell) brings it down to the floor for a while, open.
+  the pillar's foot, a bell) brings it down to the floor for a while, open. As built (step 7): orange down its left flank,
+  blue-grey down its right; a room with fewer than three pillars raises four as it comes down from above, and a belfry
+  (four pillars, two bells) joins the boss rooms. Coiled round a pillar it leans out, only its head in reach, and breathes
+  twice, fire and frost by turns (its maw glows with what is coming, then a stream sweeps across where the mage stood),
+  then flies to another pillar, most often the one nearest the mage; below half health it throws a ring of fire and frost
+  as it lands. Knocked down it lies four seconds, taking half again of each blow. Weak to Umbral, resisting Ember. In
+  floor 5's pool.
 - **The Twin Guardians** (the colossal bearded guardians crouched in the gate's towers, lion-pawed): two statues that wake
   together. One strikes while the other shields it (bolts glance off the shielding one); they trade places as the mage
   moves; when one falls, the other rages. The Uzulim statues whose eyes follow whoever approaches are their kind.

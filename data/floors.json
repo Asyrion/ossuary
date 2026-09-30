@@ -130,7 +130,7 @@
     "shapes": {"standard": 52, "corridor_ew": 8, "corridor_ns": 6, "long": 10, "tall": 8, "great": 7, "l_shape": 9},
     "variants": {"normal": 45, "quiet": 6, "champion": 17, "ambush": 15, "dark": 17},
     "templateWeights": {"1": 0.08, "2": 0.4, "3": 0.52},
-    "boss": {"pool": ["angler"], "hpMul": 1.55, "speedMul": 1.2, "shotSpeedMul": 1.25, "summons": 3, "volleys": 5},
+    "boss": {"pool": ["angler", "dragon"], "hpMul": 1.55, "speedMul": 1.2, "shotSpeedMul": 1.25, "summons": 3, "volleys": 5},
     "look": {
       "name": "shore",
       "kit": {"wall": {"slate": 3, "drystone": 2, "pilings": 2}, "floor": {"boards": 2, "shingle": 2, "flags": 1}, "torch": {"pole": 3, "cairn": 2, "witchlight": 1}, "brazier": {"boat": 2, "urn": 2, "basket": 1}},

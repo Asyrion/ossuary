@@ -52,6 +52,7 @@ import type { MechanismKind } from './propData';
 import { RUNE_LIT, brazierLook, candleStandLook } from './fireLooks';
 import { EYE_BLIND, EYE_DIM, EYE_LIT, bellLook, censerLook, censerPot, lodestoneLook, obeliskLook, reliquaryLook, runeStoneLook, statueLook, updateMechLook } from './mechLooks';
 import { treeLook } from './objectLooks';
+import { dragonBell } from '../actors/pillarDragon';
 
 const C = CFG.mech;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, GOLD = 0xffd98a;
@@ -300,7 +301,8 @@ function openReliquary(room: Room, box: PropBox) {
   });
 }
 
-/** The bell rings: every foe in the room reels (bosses shrug it off), and it must settle before it rings again. */
+/** The bell rings: every foe in the room reels (bosses shrug it off, but the Pillar Dragon loses its hold), and it must
+    settle before it rings again. */
 function ring(room: Room, box: PropBox) {
   const p = box.prop;
   if ((p.cd ?? 0) > 0) { Sfx.at(box.x, box.z).wardTink(); return; }
@@ -310,6 +312,7 @@ function ring(room: Room, box: PropBox) {
     e.status ??= newStatus(); e.status.stun = Math.max(e.status.stun, C.bellStun);
     burst(e.x, 1, e.z, GOLD, 4, 1.2, .04);
   }
+  dragonBell(); // (M4.2: the Pillar Dragon loses its hold)
   wave(room, box.x, box.z, GOLD, 9); Sfx.at(box.x, box.z).toll(); G.shake = Math.max(G.shake, .12);
 }
 
