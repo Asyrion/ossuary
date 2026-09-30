@@ -10,7 +10,7 @@
    Placeholder shapes, sharing their geometries and materials, until the objects come from Tripo. */
 import * as THREE from 'three';
 import { CFG } from '../config';
-import type { PropBox, PropState, Room, RockBox, SporeCloud } from '../types';
+import type { PropBox, PropState, Room, RockBox, SporeCloud, FloorLook } from '../types';
 import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { M, blob, boxUV, disposeTree, glow, markShared, mergeStill } from '../render/materials';
@@ -67,7 +67,7 @@ function webMaterial() {
   return webMat = markShared(new THREE.MeshBasicMaterial({ map, color: 0xe8e8f0, transparent: true, opacity: .6, side: THREE.DoubleSide, depthWrite: false }));
 }
 
-type Look = (R: () => number, len: number) => THREE.Group;
+type Look = (R: () => number, len: number, look?: FloorLook) => THREE.Group;
 const LOOKS: Record<Exclude<PropKind, MechanismKind>, Look> = {
   bones(R) {
     const g = new THREE.Group();
@@ -187,7 +187,7 @@ export function buildProps(room: Room) {
 export function addProp(room: Room, kind: PropKind, c: number, r: number, len = 1) {
   const def = PROPS[kind], R = mulberry(c * 97 + r * 13 + room.plan.seed);
   const a = worldOf(room, c, r), x = a.x + (len - 1) / 2, z = a.z;
-  const mesh = (isMechanism(kind) ? MECH_LOOKS[kind] : LOOKS[kind])(R, len); mergeStill(mesh); // a few draw calls, not a dozen
+  const mesh = (isMechanism(kind) ? MECH_LOOKS[kind] : LOOKS[kind])(R, len, room.look); mergeStill(mesh); // a few draw calls, not a dozen
   mesh.position.set(x - room.cx, 0, z - room.cz); room.group.add(mesh);
   const tiles = Array.from({ length: len }, (_, i) => ({ c: c + i, r }));
   for (const tl of tiles) room.template.tiles[tl.r][tl.c] = kind;

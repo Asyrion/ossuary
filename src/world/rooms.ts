@@ -447,7 +447,7 @@ export const kitFloor = (look: FloorLook) => !!kitWalls(look) && !floorTile(look
 function addTorch(room: Room, x: number, z: number, normal: [number, number], t: FloorLook['torch']) {
   const lit = room.plan.variant !== 'dark', at = { x: x + normal[0] * .6, z: z + normal[1] * .6 };
   if (DEV.roomKit) { // the room kit's torch (fireLooks.ts): its fire moves by itself
-    const { holder, lit: fire, glow: gl } = torchLook(t);
+    const { holder, lit: fire, glow: gl } = torchLook(t, room.look.kinds?.torch ?? t.style); // (the old looks' styles are kinds too)
     holder.userData.parts = { fire, gl }; mergeStill(holder);
     holder.position.set(x - room.cx, 0, z - room.cz); holder.rotation.y = Math.atan2(normal[0], normal[1]);
     fire.visible = gl.visible = lit; room.group.add(holder);

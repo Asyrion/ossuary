@@ -16,7 +16,7 @@
    charge colours it) and a dead tree's branches (each grown its own way); both are disposed with the object. */
 import * as THREE from 'three';
 import { CFG } from '../config';
-import type { Bolt, PropBox, Room } from '../types';
+import type { Bolt, FloorLook, PropBox, Room } from '../types';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
@@ -71,10 +71,10 @@ const mesh = (geo: THREE.BufferGeometry, mat: THREE.Material, x = 0, y = 0, z = 
 /** Remember the parts of a look that move or light up (props.ts copies them onto the object). */
 const withParts = (g: THREE.Group, parts: Record<string, THREE.Object3D>) => { g.userData.parts = parts; return g; };
 
-type Look = (R: () => number, len: number) => THREE.Group;
+type Look = (R: () => number, len: number, look?: FloorLook) => THREE.Group;
 export const MECH_LOOKS: Record<MechanismKind, Look> = {
-  brazier() { // an iron bowl of coals on three legs; its fire shows once lit
-    if (DEV.roomKit) { const k = brazierLook(); return withParts(k.group, k.parts); }
+  brazier(_R, _len, look) { // an iron bowl of coals on three legs; its fire shows once lit
+    if (DEV.roomKit && look?.kinds) { const k = brazierLook(look.kinds.brazier); return withParts(k.group, k.parts); }
     const g = new THREE.Group();
     for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2, l = mesh(GEO.leg, MAT.iron, Math.cos(a) * .18, .3, Math.sin(a) * .18); l.rotation.set(Math.sin(a) * .25, 0, -Math.cos(a) * .25); g.add(l); }
     const bowl = mesh(GEO.bowl, MAT.iron, 0, .66, 0), coals = mesh(GEO.coals, MAT.coals, 0, .68, 0); coals.scale.y = .45;
@@ -84,8 +84,8 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
     flame.visible = gl.visible = false; g.add(bowl, coals, rim, flame, gl, blob(.9));
     return withParts(g, { flame, glow: gl });
   },
-  candles(R) { // an iron stand with a dish of candles; lit one by one by fire
-    if (DEV.roomKit) { const k = candleStandLook(R); return withParts(k.group, k.parts); }
+  candles(R, _len, look) { // an iron stand with a dish of candles; lit one by one by fire
+    if (DEV.roomKit && look?.kinds) { const k = candleStandLook(R); return withParts(k.group, k.parts); }
     const g = new THREE.Group(), flames = new THREE.Group();
     g.add(mesh(GEO.foot, MAT.iron, 0, .03, 0), mesh(GEO.pole, MAT.iron, 0, .42, 0), mesh(GEO.dish, MAT.iron, 0, .78, 0)); // waist-high: bolts fly over it
     for (let i = 0; i < 3; i++) {

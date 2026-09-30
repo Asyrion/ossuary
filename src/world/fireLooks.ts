@@ -6,12 +6,14 @@ import * as THREE from 'three';
 import type { FloorLook } from '../types';
 import { blob, glow, markShared, paint } from '../render/materials';
 import { EMBER_FIRE, firePalette, makeFire, type FirePalette, type FlameSpec } from '../render/fire';
+import type { BrazierKind, TorchKind } from './kitData';
 
 const shared = <T extends THREE.BufferGeometry>(g: T) => { g.userData.shared = true; return g; };
 // Painted (materials.ts, `paint`): each object's still body draws in one call. Iron a little lighter than the
 // placeholders' so its edges catch the torchlight in the pixel look; the glowing embers keep a material of their own.
 const MAT = {
   iron: paint(0x4a4548), bronze: paint(0xa27a3e), wood: paint(0x563a26), pitch: paint(0x1e1611), coals: paint(0x241f1c), wax: paint(0xf0e2c6),
+  bone: paint(0xd6cab0), skull: paint(0xa89c84), stone: paint(0x77716a), darkStone: paint(0x4a4440), verdigris: paint(0x4f8a76), blackIron: paint(0x2c2a2c), socket: paint(0x16100c),
   ember: markShared(new THREE.MeshStandardMaterial({ color: 0x3a1a0e, emissive: 0x5a1e06, roughness: 1, flatShading: true })),
 };
 export const RUNE_COLD = 0x2a1d16, RUNE_LIT = 0xffa040;
@@ -51,6 +53,19 @@ const GEO = {
   foot: shared(new THREE.CylinderGeometry(.16, .22, .05, 6)), pole: shared(new THREE.CylinderGeometry(.026, .034, .72, 6)), knop: shared(new THREE.SphereGeometry(.045, 7, 5)),
   dish: shared(new THREE.CylinderGeometry(.24, .17, .045, 12)), dishRim: shared(new THREE.TorusGeometry(.24, .014, 4, 16).rotateX(Math.PI / 2)),
   candle: shared(new THREE.CylinderGeometry(.038, .042, 1, 7)), drip: shared(new THREE.SphereGeometry(.022, 5, 4)), pool: shared(new THREE.SphereGeometry(.09, 8, 3, 0, Math.PI * 2, 0, Math.PI / 2).scale(1, .25, 1)),
+  // the other wall lights: a skull, a candelabra's bar and cups, a witchlight's orb and cage, a beast's mask, a hanging basket
+  skull: shared(new THREE.SphereGeometry(.085, 9, 7).scale(1, .92, 1.05)), jaw: shared(new THREE.BoxGeometry(.1, .04, .08)), socket: shared(new THREE.SphereGeometry(.024, 6, 4)),
+  shelf: shared(new THREE.BoxGeometry(.18, .03, .14)), bar: shared(new THREE.BoxGeometry(.4, .035, .04)), cup: shared(new THREE.CylinderGeometry(.045, .03, .04, 8)),
+  orb: shared(new THREE.SphereGeometry(.095, 10, 8)), hoop: shared(new THREE.TorusGeometry(.105, .012, 4, 14)), finial: shared(new THREE.ConeGeometry(.04, .09, 6)),
+  mask: shared(new THREE.SphereGeometry(.17, 8, 6).scale(1, 1.05, .45)), horn: shared(new THREE.ConeGeometry(.04, .2, 5)), brow: shared(new THREE.BoxGeometry(.26, .045, .07)), slit: shared(new THREE.BoxGeometry(.055, .022, .02)),
+  chain: shared(new THREE.CylinderGeometry(.01, .01, 1, 4)), basketRing: shared(new THREE.TorusGeometry(1, .06, 4, 12).rotateX(Math.PI / 2)), basketBar: shared(new THREE.BoxGeometry(.018, 1, .018)),
+  // the other braziers: a font's pedestal and basin, a post, a fluted column and its capital, a plinth, a cauldron
+  pedestal: shared(new THREE.CylinderGeometry(.15, .19, .5, 8)), base: shared(new THREE.BoxGeometry(.46, .1, .46)),
+  basin: shared(new THREE.LatheGeometry([[.12, 0], [.28, .04], [.37, .13], [.38, .2], [.33, .2], [.3, .12]].map(([x, y]) => new THREE.Vector2(x, y)), 10)),
+  post: shared(new THREE.CylinderGeometry(.035, .045, 1, 6)), column: shared(new THREE.CylinderGeometry(.13, .15, .52, 10)), capital: shared(new THREE.CylinderGeometry(.21, .15, .08, 10)),
+  plinth: shared(new THREE.BoxGeometry(.66, .34, .66)), plinthTop: shared(new THREE.BoxGeometry(.72, .06, .72)), wideBowl: shared(new THREE.LatheGeometry([[.1, 0], [.3, .03], [.4, .1], [.42, .16]].map(([x, y]) => new THREE.Vector2(x, y)), 12)),
+  pot: shared(new THREE.LatheGeometry([[.1, 0], [.25, .06], [.33, .2], [.33, .32], [.28, .42], [.27, .45]].map(([x, y]) => new THREE.Vector2(x, y)), 12)), stub: shared(new THREE.CylinderGeometry(.04, .03, .16, 5)),
+  handle: shared(new THREE.TorusGeometry(.06, .015, 4, 10)),
 };
 
 const mesh = (parent: THREE.Object3D, geo: THREE.BufferGeometry, mat: THREE.Material, x = 0, y = 0, z = 0) => {
@@ -59,29 +74,21 @@ const mesh = (parent: THREE.Object3D, geo: THREE.BufferGeometry, mat: THREE.Mate
 /** The wall torch's fire colours in a floor's look (the crypt's amber, the drowned's pale lanterns, the burning's red). */
 export const torchPalette = (t: FloorLook['torch']) => firePalette(new THREE.Color(t.flame).getHex(), new THREE.Color(t.light).getHex());
 
-/** A light on a wall in the floor's style, built facing south (+Z, into the room) from the wall's face: an iron bracket
-    holding a pitch torch (crypt), a cage lantern on an arm (drowned) or a brazier on a bracket (burning). `lit` is what
-    shows while it burns (its fire, and a lantern's glass); the glow is apart, for the flicker. */
-export function torchLook(t: FloorLook['torch']) {
+/** A light on a wall, built facing south (+Z, into the room) from the wall's face, of the room's kind (kitData.ts): each
+    floor offers two or three. Upright and close to the wall: seen from above at 45°, whatever leans out towards the
+    camera drops down the screen, so the fire always stands above its holder. `lit` is what shows while it burns (the
+    fire, a lantern's glass, eyes that glow); the glow is apart, for the flicker. */
+export function torchLook(t: FloorLook['torch'], kind: TorchKind) {
   const holder = new THREE.Group(), lit = new THREE.Group(), pal = torchPalette(t);
   lit.userData.fire = true; // (its fire moves by itself: no flicker from outside)
-  let gl: THREE.Sprite;
-  if (t.style === 'lantern') {
-    mesh(holder, GEO.lArm, MAT.iron, 0, 1.4, .16); mesh(holder, GEO.lHook, MAT.iron, 0, 1.36, .31);
-    mesh(holder, GEO.lCap, MAT.iron, 0, 1.28, .31); mesh(holder, GEO.lBase, MAT.iron, 0, .98, .31);
-    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + Math.PI / 6; mesh(holder, GEO.lBar, MAT.iron, Math.cos(a) * .095, 1.1, .31 + Math.sin(a) * .095); }
-    mesh(lit, GEO.lGlass, glassFor(pal.body), 0, 1.1, .31).renderOrder = 2; // the pane glows with the flame
-    lit.add(makeFire([{ x: 0, y: 1.0, z: .31, h: .17, w: .085 }], pal));
-    gl = glow(pal.body, 1.1, .8); gl.position.set(0, 1.1, .33);
-  } else if (t.style === 'brazier') {
-    mesh(holder, GEO.plate, MAT.iron, 0, .66, .015).scale.set(.8, 1.2, 1);
-    const strut = mesh(holder, GEO.arm, MAT.iron, 0, .72, .12); strut.rotation.x = -.5; strut.scale.z = 1.2;
-    const bowl = mesh(holder, GEO.bowl, MAT.iron, 0, .8, .26); bowl.scale.setScalar(.62);
-    mesh(holder, GEO.rim, MAT.bronze, 0, .94, .26).scale.setScalar(.62);
-    mesh(holder, GEO.coals, MAT.coals, 0, .93, .26).scale.setScalar(.6);
-    lit.add(makeFire([{ x: 0, y: .95, z: .26, h: .5, w: .26, tongues: 3 }], pal, 5, .6));
-    gl = glow(pal.body, 1.5, .8); gl.position.set(0, 1.15, .28);
-  } else { // (upright and close to the wall: seen from above at 45°, whatever leans out towards the camera drops down the screen)
+  const gl = TORCHES[kind](holder, lit, pal);
+  holder.add(lit, gl);
+  return { holder, lit, glow: gl };
+}
+type TorchBuild = (holder: THREE.Group, lit: THREE.Group, pal: FirePalette) => THREE.Sprite;
+const at = (s: THREE.Sprite, x: number, y: number, z: number) => { s.position.set(x, y, z); return s; };
+const TORCHES: Record<TorchKind, TorchBuild> = {
+  bracket(holder, lit, pal) { // an iron plate and bracket holding a pitch torch upright
     mesh(holder, GEO.plate, MAT.iron, 0, .86, .015); mesh(holder, GEO.plateTop, MAT.iron, 0, 1.06, .015);
     mesh(holder, GEO.rivet, MAT.bronze, 0, .97, .035); mesh(holder, GEO.rivet, MAT.bronze, 0, .74, .035);
     mesh(holder, GEO.arm, MAT.iron, 0, .8, .06).scale.z = .6; mesh(holder, GEO.ring, MAT.iron, 0, .82, .11);
@@ -89,45 +96,169 @@ export function torchLook(t: FloorLook['torch']) {
     mesh(holder, GEO.haft, MAT.wood, 0, .95, .11);
     mesh(holder, GEO.head, MAT.pitch, 0, 1.2, .115); mesh(holder, GEO.band, MAT.iron, 0, 1.15, .115);
     lit.add(makeFire([{ x: 0, y: 1.23, z: .12, h: .4, w: .13, tongues: 2 }], pal, 4, .45));
-    gl = glow(pal.body, 1.1, .7); gl.position.set(0, 1.32, .14);
+    return at(glow(pal.body, 1.1, .7), 0, 1.32, .14);
+  },
+  skull(holder, lit, pal) { // a skull on an iron shelf, the fire burning in its open crown and its eyes lit from within
+    mesh(holder, GEO.plate, MAT.iron, 0, .9, .015).scale.set(1.1, .8, 1); mesh(holder, GEO.arm, MAT.iron, 0, .86, .06).scale.z = .6;
+    mesh(holder, GEO.shelf, MAT.iron, 0, .93, .09).scale.set(1.2, 1, 1.1);
+    mesh(holder, GEO.skull, MAT.skull, 0, 1.06, .09).scale.setScalar(1.25); mesh(holder, GEO.jaw, MAT.skull, 0, .97, .14).scale.set(1.2, 1, 1.1);
+    for (const s of [-1, 1]) { mesh(holder, GEO.socket, MAT.socket, s * .042, 1.06, .185).scale.setScalar(1.3); mesh(lit, GEO.socket, eyeFor(pal.body), s * .042, 1.06, .195).scale.setScalar(.75); }
+    mesh(holder, GEO.socket, MAT.socket, 0, 1.015, .2).scale.set(.6, .8, .6); // (the nose)
+    lit.add(makeFire([{ x: 0, y: 1.15, z: .09, h: .28, w: .12, tongues: 1 }], pal, 3, .4));
+    return at(glow(pal.body, 1.0, .6), 0, 1.24, .12);
+  },
+  candelabra(holder, lit, pal) { // an iron bar on the wall with three candles in cups
+    mesh(holder, GEO.plate, MAT.iron, 0, .86, .015).scale.set(.5, 1, 1); mesh(holder, GEO.arm, MAT.iron, 0, .9, .06).scale.z = .6;
+    mesh(holder, GEO.bar, MAT.iron, 0, .92, .1);
+    const specs: FlameSpec[] = [];
+    for (const [x, h] of [[-.16, .13], [0, .17], [.16, .12]]) {
+      mesh(holder, GEO.cup, MAT.bronze, x, .955, .1);
+      mesh(holder, GEO.candle, MAT.wax, x, .975 + h / 2, .1).scale.set(.8, h, .8);
+      specs.push({ x, y: .975 + h, z: .1, h: .17, w: .08 });
+    }
+    lit.add(makeFire(specs, pal, 3, .3));
+    return at(glow(pal.body, 1.2, .75), 0, 1.2, .12);
+  },
+  lantern(holder, lit, pal) { // a cage lantern on an arm; its glass glows with the flame
+    mesh(holder, GEO.lArm, MAT.iron, 0, 1.4, .16); mesh(holder, GEO.lHook, MAT.iron, 0, 1.36, .31);
+    mesh(holder, GEO.lCap, MAT.iron, 0, 1.28, .31); mesh(holder, GEO.lBase, MAT.iron, 0, .98, .31);
+    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2 + Math.PI / 6; mesh(holder, GEO.lBar, MAT.iron, Math.cos(a) * .095, 1.1, .31 + Math.sin(a) * .095); }
+    mesh(lit, GEO.lGlass, glassFor(pal.body), 0, 1.1, .31).renderOrder = 2;
+    lit.add(makeFire([{ x: 0, y: 1.0, z: .31, h: .17, w: .085 }], pal));
+    return at(glow(pal.body, 1.1, .8), 0, 1.1, .33);
+  },
+  witchlight(holder, lit, pal) { // a glass orb in a cage of three hoops, a pale flame drifting inside it
+    mesh(holder, GEO.plate, MAT.iron, 0, .92, .015).scale.set(.7, .8, 1); mesh(holder, GEO.arm, MAT.iron, 0, .98, .07).scale.z = .8;
+    mesh(holder, GEO.cup, MAT.bronze, 0, 1.0, .14).scale.set(1.3, 1, 1.3);
+    for (let i = 0; i < 3; i++) mesh(holder, GEO.hoop, MAT.bronze, 0, 1.115, .14).rotation.y = i * Math.PI / 3;
+    mesh(holder, GEO.finial, MAT.bronze, 0, 1.25, .14);
+    mesh(lit, GEO.orb, glassFor(pal.body, .35), 0, 1.115, .14).renderOrder = 2;
+    lit.add(makeFire([{ x: 0, y: 1.05, z: .14, h: .15, w: .09 }], pal, 2, .12));
+    return at(glow(pal.body, 1.2, .8), 0, 1.12, .16);
+  },
+  brazier(holder, lit, pal) { // a small brazier on a wall bracket
+    mesh(holder, GEO.plate, MAT.iron, 0, .66, .015).scale.set(.8, 1.2, 1);
+    const strut = mesh(holder, GEO.arm, MAT.iron, 0, .72, .12); strut.rotation.x = -.5; strut.scale.z = 1.2;
+    mesh(holder, GEO.bowl, MAT.iron, 0, .8, .26).scale.setScalar(.62);
+    mesh(holder, GEO.rim, MAT.bronze, 0, .94, .26).scale.setScalar(.62);
+    mesh(holder, GEO.coals, MAT.coals, 0, .93, .26).scale.setScalar(.6);
+    lit.add(makeFire([{ x: 0, y: .95, z: .26, h: .5, w: .26, tongues: 3 }], pal, 5, .6));
+    return at(glow(pal.body, 1.5, .8), 0, 1.15, .28);
+  },
+  mask(holder, lit, pal) { // a horned beast's mask of iron, eyes burning, a bowl of fire on its brow
+    mesh(holder, GEO.mask, MAT.blackIron, 0, .95, .04);
+    mesh(holder, GEO.brow, MAT.iron, 0, 1.0, .1);
+    for (const s of [-1, 1]) {
+      const h = mesh(holder, GEO.horn, MAT.bone, s * .2, 1.06, .06); h.rotation.z = -s * 1.05; h.scale.set(1.1, 1.2, 1.1); // (swept out, clear of the fire)
+      mesh(lit, GEO.slit, eyeFor(pal.body), s * .06, .965, .115).rotation.z = s * .25;
+    }
+    mesh(holder, GEO.bowl, MAT.iron, 0, 1.06, .09).scale.set(.45, .35, .45); mesh(holder, GEO.rim, MAT.bronze, 0, 1.16, .09).scale.setScalar(.45);
+    lit.add(makeFire([{ x: 0, y: 1.14, z: .09, h: .3, w: .16, tongues: 2 }], pal, 4, .45));
+    return at(glow(pal.body, 1.2, .75), 0, 1.25, .12);
+  },
+  basket(holder, lit, pal) { // an iron fire basket hanging on a short chain from a bracket
+    mesh(holder, GEO.plate, MAT.iron, 0, 1.18, .015).scale.set(.7, .9, 1);
+    mesh(holder, GEO.arm, MAT.iron, 0, 1.28, .1).scale.z = .9; mesh(holder, GEO.chain, MAT.iron, 0, 1.2, .18).scale.y = .15;
+    cage(holder, 0, .92, .18, .13, .06, .17);
+    mesh(holder, GEO.lump, MAT.coals, 0, 1.06, .18).scale.setScalar(1.1);
+    lit.add(makeFire([{ x: 0, y: 1.06, z: .18, h: .34, w: .2, tongues: 2 }], pal, 4, .45));
+    return at(glow(pal.body, 1.3, .8), 0, 1.18, .2);
+  },
+};
+/** An iron fire basket: a ring at the top of `rTop`, bars curving in to a ring of `rBot` at the bottom, `h` tall. */
+function cage(parent: THREE.Object3D, x: number, y: number, z: number, rTop: number, rBot: number, h: number, bars = 7) {
+  mesh(parent, GEO.basketRing, MAT.iron, x, y + h, z).scale.set(rTop, 1, rTop);
+  mesh(parent, GEO.basketRing, MAT.iron, x, y, z).scale.set(rBot, 1, rBot);
+  for (let i = 0; i < bars; i++) {
+    const a = i / bars * Math.PI * 2, b = mesh(parent, GEO.basketBar, MAT.iron, x + Math.cos(a) * (rTop + rBot) / 2, y + h / 2, z + Math.sin(a) * (rTop + rBot) / 2);
+    b.scale.y = Math.hypot(h, rTop - rBot); b.rotation.set(0, -a, 0, 'YXZ'); b.rotateZ(-Math.atan2(rTop - rBot, h));
   }
-  holder.add(lit, gl);
-  return { holder, lit, glow: gl };
 }
+const eyeCache = new Map<number, THREE.Material>();
+/** Eyes lit from within, in the fire's colour (shared per colour). */
+const eyeFor = (c: number) => eyeCache.get(c) ?? (eyeCache.set(c, markShared(new THREE.MeshBasicMaterial({ color: new THREE.Color(c).lerp(new THREE.Color(0xffffff), .3) }))), eyeCache.get(c)!);
 const glassCache = new Map<number, THREE.Material>();
-const glassFor = (c: number) => glassCache.get(c) ?? (glassCache.set(c, markShared(new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .2, blending: THREE.AdditiveBlending, depthWrite: false }))), glassCache.get(c)!);
+const glassFor = (c: number, opacity = .2) => { const k = c * 10 + opacity * 100; return glassCache.get(k) ?? (glassCache.set(k, markShared(new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false }))), glassCache.get(k)!); };
 
-/** The brazier: an iron bowl of coals on three splayed legs with claw feet and a collar, a bronze rim, and three plaques
-    with runes on the bowl that kindle with it. `flame` and `glow` show once lit; `runes` (their own material) turn
-    from cold to lit. */
-export function brazierLook() {
-  const g = new THREE.Group(), pal: FirePalette = EMBER_FIRE;
-  for (let i = 0; i < 3; i++) {
-    const a = i / 3 * Math.PI * 2 + Math.PI / 2, foot = new THREE.Vector3(Math.cos(a) * .3, .03, Math.sin(a) * .3), top = new THREE.Vector3(Math.cos(a) * .16, .6, Math.sin(a) * .16);
-    const d = top.clone().sub(foot), leg = mesh(g, GEO.leg, MAT.iron); leg.scale.y = d.length();
-    leg.position.copy(foot).addScaledVector(d, .5); leg.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
-    mesh(g, GEO.claw, MAT.bronze, foot.x, 0, foot.z);
-  }
-  mesh(g, GEO.collar, MAT.iron, 0, .3, 0).scale.setScalar(1.05);
-  mesh(g, GEO.bowl, MAT.iron, 0, .54, 0); mesh(g, GEO.rim, MAT.bronze, 0, .82, 0); mesh(g, GEO.coals, MAT.coals, 0, .78, 0);
-  for (let i = 0; i < 9; i++) { // coals heaped in the bowl, a few still glowing
-    const a = i * 2.4, r = i ? .1 + (i % 3) * .07 : 0, c = mesh(g, GEO.lump, i === 2 || i === 7 ? MAT.ember : MAT.coals, Math.cos(a) * r, .82 + (i ? .01 : .05), Math.sin(a) * r);
-    c.rotation.set(i, i * 2, 0); c.scale.setScalar(c.material === MAT.ember ? .6 : .8 + (i % 4) * .15);
-  }
-  // three plaques on the bowl's sloping side, one turned to the camera, each with a rune
-  const runeParts: THREE.BufferGeometry[] = [];
-  for (let i = 0; i < 3; i++) {
-    const a = i / 3 * Math.PI * 2 + Math.PI / 2, x = Math.cos(a) * .335, z = Math.sin(a) * .335;
-    const p = mesh(g, GEO.plaque, MAT.bronze, x, .7, z); p.rotation.set(-.1, Math.PI / 2 - a, 0, 'YXZ');
-    p.updateMatrix();
-    runeParts.push(GEO.rune.clone().scale(1.05, 1.05, 1).translate(0, 0, .016).applyMatrix4(p.matrix));
-  }
-  const runes = new THREE.Mesh(joinAll(runeParts), new THREE.MeshBasicMaterial({ color: RUNE_COLD })); // (its own material: lit, it glows)
-  const flame = makeFire([{ x: 0, y: .84, z: 0, h: .85, w: .3, tongues: 4 }, { x: .15, y: .84, z: .05, h: .48, w: .17, beat: 4.1 }, { x: -.13, y: .84, z: -.06, h: .55, w: .17, beat: 5.3 }], pal, 8, .9);
-  const gl = glow(pal.body, 1.5, .55); gl.position.y = 1.1;
+/** A standing brazier of the room's kind (kitData.ts): each floor offers two or three. Every one carries runes (their own
+    material) that kindle with it; `flame` and `glow` show once lit. */
+export function brazierLook(kind: BrazierKind) {
+  const g = new THREE.Group(), runeAt: THREE.Matrix4[] = [];
+  const { fire, glowY } = BRAZIERS[kind](g, runeAt);
+  const runes = new THREE.Mesh(joinAll(runeAt.map(m => GEO.rune.clone().applyMatrix4(m))), new THREE.MeshBasicMaterial({ color: RUNE_COLD })); // (its own material: lit, it glows)
+  const flame = makeFire(fire, EMBER_FIRE, 8, .9), gl = glow(EMBER_FIRE.body, 1.5, .55); gl.position.y = glowY;
   flame.visible = gl.visible = false; g.add(runes, flame, gl, blob(.9));
   return { group: g, parts: { flame, glow: gl, runes } };
 }
+/** Where a rune sits: on a face at (x, y, z), turned to face out at angle `a` round the object, tilted back by `tilt`. */
+const runePlace = (x: number, y: number, z: number, a: number, tilt = 0, size = 1) =>
+  new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(tilt, Math.PI / 2 - a, 0, 'YXZ')), new THREE.Vector3(size, size, 1));
+/** Three runes round an object of radius `r` at height `y`, the middle one turned to the camera. */
+const threeRunes = (out: THREE.Matrix4[], r: number, y: number, tilt = 0, size = 1) => { for (let i = 0; i < 3; i++) { const a = Math.PI / 2 + (i - 1) * .9; out.push(runePlace(Math.cos(a) * r, y, Math.sin(a) * r, a, tilt, size)); } };
+/** Coals heaped at height `y` within radius `r`, a few still glowing. */
+function coals(g: THREE.Group, y: number, r: number) {
+  for (let i = 0; i < 9; i++) {
+    const a = i * 2.4, d = i ? (.3 + (i % 3) * .22) * r : 0, c = mesh(g, GEO.lump, i === 2 || i === 7 ? MAT.ember : MAT.coals, Math.cos(a) * d, y + (i ? 0 : .04), Math.sin(a) * d);
+    c.rotation.set(i, i * 2, 0); c.scale.setScalar(c.material === MAT.ember ? .6 : .8 + (i % 4) * .15);
+  }
+}
+type BrazierBuild = (g: THREE.Group, runes: THREE.Matrix4[]) => { fire: FlameSpec[]; glowY: number };
+const bigFire = (y: number, h = .85, w = .3): FlameSpec[] => [{ x: 0, y, z: 0, h, w, tongues: 4 }, { x: .15, y, z: .05, h: h * .56, w: w * .57, beat: 4.1 }, { x: -.13, y, z: -.06, h: h * .65, w: w * .57, beat: 5.3 }];
+const BRAZIERS: Record<BrazierKind, BrazierBuild> = {
+  tripod(g, runes) { // an iron bowl of coals on three splayed legs with claw feet and a collar, plaques with runes on the bowl
+    for (let i = 0; i < 3; i++) {
+      const a = i / 3 * Math.PI * 2 + Math.PI / 2, foot = new THREE.Vector3(Math.cos(a) * .3, .03, Math.sin(a) * .3), top = new THREE.Vector3(Math.cos(a) * .16, .6, Math.sin(a) * .16);
+      const d = top.clone().sub(foot), leg = mesh(g, GEO.leg, MAT.iron); leg.scale.y = d.length();
+      leg.position.copy(foot).addScaledVector(d, .5); leg.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
+      mesh(g, GEO.claw, MAT.bronze, foot.x, 0, foot.z);
+    }
+    mesh(g, GEO.collar, MAT.iron, 0, .3, 0).scale.setScalar(1.05);
+    mesh(g, GEO.bowl, MAT.iron, 0, .54, 0); mesh(g, GEO.rim, MAT.bronze, 0, .82, 0); mesh(g, GEO.coals, MAT.coals, 0, .78, 0);
+    coals(g, .82, .3);
+    for (let i = 0; i < 3; i++) { // plaques on the bowl, one turned to the camera, each with a rune
+      const a = i / 3 * Math.PI * 2 + Math.PI / 2, x = Math.cos(a) * .335, z = Math.sin(a) * .335;
+      const p = mesh(g, GEO.plaque, MAT.bronze, x, .7, z); p.rotation.set(-.1, Math.PI / 2 - a, 0, 'YXZ');
+      runes.push(runePlace(Math.cos(a) * .351, .7, Math.sin(a) * .351, a, -.1, 1.05));
+    }
+    return { fire: bigFire(.84), glowY: 1.1 };
+  },
+  font(g, runes) { // a stone basin on an eight-sided pedestal carved with runes, on a square foot
+    mesh(g, GEO.base, MAT.darkStone, 0, .05, 0); mesh(g, GEO.pedestal, MAT.stone, 0, .35, 0);
+    mesh(g, GEO.basin, MAT.stone, 0, .6, 0); mesh(g, GEO.coals, MAT.coals, 0, .76, 0).scale.setScalar(.95);
+    coals(g, .79, .28);
+    threeRunes(runes, .185, .36, .08, 1.1);
+    return { fire: bigFire(.8), glowY: 1.08 };
+  },
+  basket(g) { // an iron fire basket on a post over a three-footed stand
+    for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2 + Math.PI / 2, l = mesh(g, GEO.leg, MAT.iron, Math.cos(a) * .12, .07, Math.sin(a) * .12); l.scale.y = .3; l.rotation.set(Math.sin(a) * 1.1, 0, -Math.cos(a) * 1.1); }
+    mesh(g, GEO.post, MAT.iron, 0, .38, 0).scale.y = .7;
+    cage(g, 0, .68, 0, .3, .1, .24, 9);
+    coals(g, .86, .2);
+    return { fire: bigFire(.88, .8, .28), glowY: 1.12 };
+  },
+  column(g, runes) { // a bronze bowl gone green, on a fluted column with a capital, a band of runes round the bowl
+    mesh(g, GEO.base, MAT.darkStone, 0, .05, 0).scale.set(.8, 1, .8); mesh(g, GEO.column, MAT.stone, 0, .36, 0); mesh(g, GEO.capital, MAT.stone, 0, .65, 0);
+    mesh(g, GEO.bowl, MAT.verdigris, 0, .6, 0).scale.set(.95, .8, .95); mesh(g, GEO.rim, MAT.verdigris, 0, .83, 0).scale.setScalar(.95);
+    mesh(g, GEO.coals, MAT.coals, 0, .8, 0).scale.setScalar(.9); coals(g, .83, .28);
+    threeRunes(runes, .31, .72, -.15, .9);
+    return { fire: bigFire(.84), glowY: 1.1 };
+  },
+  plinth(g, runes) { // a wide stone plinth under a shallow bowl of iron, a great fire; runes cut in the plinth's faces
+    mesh(g, GEO.plinth, MAT.darkStone, 0, .17, 0); mesh(g, GEO.plinthTop, MAT.stone, 0, .37, 0);
+    mesh(g, GEO.wideBowl, MAT.iron, 0, .4, 0); mesh(g, GEO.rim, MAT.bronze, 0, .56, 0).scale.setScalar(1.2);
+    mesh(g, GEO.coals, MAT.coals, 0, .53, 0).scale.setScalar(1.3); coals(g, .56, .36);
+    runes.push(runePlace(0, .19, .332, Math.PI / 2, 0, 1.3), runePlace(.332, .19, 0, 0, 0, 1.3), runePlace(-.332, .19, 0, Math.PI, 0, 1.3));
+    return { fire: bigFire(.58, 1.05, .4), glowY: 1.0 };
+  },
+  cauldron(g, runes) { // a black iron cauldron on three stubby legs, handles at its sides, runes round its belly
+    for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2 + Math.PI / 2; mesh(g, GEO.stub, MAT.blackIron, Math.cos(a) * .2, .08, Math.sin(a) * .2); }
+    mesh(g, GEO.pot, MAT.blackIron, 0, .14, 0); mesh(g, GEO.rim, MAT.iron, 0, .59, 0).scale.setScalar(.8);
+    for (const s of [-1, 1]) mesh(g, GEO.handle, MAT.iron, s * .34, .5, 0).rotation.y = Math.PI / 2;
+    mesh(g, GEO.coals, MAT.coals, 0, .55, 0).scale.setScalar(.85); coals(g, .58, .24);
+    threeRunes(runes, .335, .38, 0, 1.05);
+    return { fire: bigFire(.6, .8, .3), glowY: .9 };
+  },
+};
 
 /** The candle stand: a pole on a clawed foot with two bronze knops, a dish with a bronze rim, and three to five candles
     of different heights with wax running down them. `flames` (every candle's flame and the glow) shows once lit. */
