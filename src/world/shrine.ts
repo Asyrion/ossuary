@@ -18,11 +18,12 @@ import { spawnShot } from '../combat/projectiles';
 import { banner, hideBossBar, renderMinimap, showBossBar, toast, updateBossBar } from '../ui/hud';
 import { artifact } from '../items/artifactData';
 import { cleanseArtifact, heldCurses, makeArtifactVisual } from '../items/artifacts';
+import { CURSED_RED } from '../items/artifactLooks';
 import { giveResources } from '../items/pickups';
 import { LOOT } from '../items/loot';
 import { clamp } from '../util';
 
-const C = CFG.shrine, HOLY = 0xf4e2b0, CURSE = 0xb0201a, MOTES = 24, STONE_R = .32, FLEE = .5;
+const C = CFG.shrine, HOLY = 0xf4e2b0, CURSE = CURSED_RED, MOTES = 24, STONE_R = .32, FLEE = .5;
 const between = ([lo, hi]: [number, number]) => lo + Math.random() * (hi - lo);
 
 /** A shrine's look: the floor's, lit warm white. */

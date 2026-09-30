@@ -309,4 +309,4 @@ asset is accepted.
 | Pedestal | small prop | procedural pedestal | | | dropped 2026-09-30 (built in code) |
 | Ember Sigil | artifact | gem placeholder | | | dropped 2026-09-30 (built in code) |
 | Crypt floor | texture | procedural floor, floor 1 | | | dropped 2026-09-30 (drawn in code, M3.5 step 3) |
-| Ember Sigil, Bone Lens and Mask of the Drowned icons | icons | SVG placeholders | | | dropped 2026-09-30 (drawn in code) |
+| Ember Sigil, Bone Lens and Mask of the Drowned icons | icons | SVG placeholders | | | dropped 2026-09-30 (rendered from the models built in code) |

@@ -130,12 +130,10 @@ export const CFG = {
   // a 4K screen only; 360 and 270 are coarser. Outlines where a nearer surface stands more than outlineGap units before a
   // farther one (darkened by outlineDark), and light bands
   pixelLook: { lines: [1080, 720, 540, 360, 270], start: 1080, outlineGap: 0.3, outlineDark: 0.72, bands: 7 },
-  // the room kit's floors and walls (render/pixelTextures.ts, M3.5 step 3): texels to a unit across and down the screen.
-  // At 540 lines a one-cell room shows a unit as about 62 × 44 pixels (the floor seen from 45° above), a great hall as
-  // 50 × 35; 48 × 34 keeps a texel square on screen and at least a pixel in both (at 1080 lines a texel is 2 to 3);
-  // and how brightly embers glow in the walls and floors that have them (basalt seams, charred beams), a floor's the less
-  // in a dark room (glowDark)
-  // the room kit (M3.5 step 3): the pixel textures' texels a unit, how bright embers glow in them (and in a dark room);
+  // the room kit (M3.5 step 3): the floors' and walls' texels to a unit across and down the screen (render/pixelTextures.ts;
+  // at 540 lines a one-cell room shows a unit as about 62 × 44 pixels, the floor seen from 45° above, a great hall as
+  // 50 × 35; 48 × 34 keeps a texel square on screen and at least a pixel in both, at 1080 lines 2 to 3), how brightly
+  // embers glow in the walls and floors that have them (basalt seams, charred beams), a floor's the less in a dark room;
   // the artifacts built in code: how much larger than built they float, how far a tall one is lifted clear of its pedestal
   // (its half height past this); their HUD icons (items/artifactIcons.ts): drawn at `size` pixels and scaled to `out`,
   // turned (x, y) to the camera, the margin round them, the light (fill, key, the rim in the artifact's colour), and the
