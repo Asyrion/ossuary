@@ -5,35 +5,12 @@
 import * as THREE from 'three';
 import type { FloorLook } from '../types';
 import { blob, glow, markShared, paint } from '../render/materials';
+import { MAT, joinAll, mesh, runeStrokes, shared } from './kitParts';
 import { EMBER_FIRE, firePalette, makeFire, type FirePalette, type FlameSpec } from '../render/fire';
 import type { BrazierKind, TorchKind } from './kitData';
 
-const shared = <T extends THREE.BufferGeometry>(g: T) => { g.userData.shared = true; return g; };
-// Painted (materials.ts, `paint`): each object's still body draws in one call. Iron a little lighter than the
-// placeholders' so its edges catch the torchlight in the pixel look; the glowing embers keep a material of their own.
-const MAT = {
-  iron: paint(0x4a4548), bronze: paint(0xa27a3e), wood: paint(0x563a26), pitch: paint(0x1e1611), coals: paint(0x241f1c), wax: paint(0xf0e2c6),
-  bone: paint(0xd6cab0), skull: paint(0xa89c84), tallow: paint(0x9a9282), stone: paint(0x77716a), darkStone: paint(0x4a4440), verdigris: paint(0x4f8a76), blackIron: paint(0x2c2a2c), socket: paint(0x16100c),
-  ember: markShared(new THREE.MeshStandardMaterial({ color: 0x3a1a0e, emissive: 0x5a1e06, roughness: 1, flatShading: true })),
-};
 export const RUNE_COLD = 0x2a1d16, RUNE_LIT = 0xffa040;
 const CANDLE_FIRE = firePalette(0xffd070, 0xff8428);
-
-/** A carved rune (three strokes), one geometry, facing +Z, `s` tall. */
-function runeStrokes(s: number) {
-  const box = (w: number, h: number) => new THREE.BoxGeometry(w * s, h * s, .02);
-  const a = box(.16, 1), b = box(.14, .55).rotateZ(.7).translate(-s * .17, s * .16, 0), c = box(.14, .55).rotateZ(.7).translate(s * .17, -s * .12, 0);
-  return joinAll([a, b, c]);
-}
-function joinAll(parts: THREE.BufferGeometry[]) {
-  const flat = parts.map(p => { const x = p.index ? p.toNonIndexed() : p; for (const k of Object.keys(x.attributes)) if (k !== 'position' && k !== 'normal') x.deleteAttribute(k); return x; });
-  const out = new THREE.BufferGeometry(), n = flat.reduce((s, p) => s + p.attributes.position.count, 0);
-  const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3); let o = 0;
-  for (const p of flat) { pos.set(p.attributes.position.array as Float32Array, o * 3); nor.set(p.attributes.normal.array as Float32Array, o * 3); o += p.attributes.position.count; }
-  out.setAttribute('position', new THREE.BufferAttribute(pos, 3)); out.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
-  for (const p of [...parts, ...flat]) p.dispose();
-  return out;
-}
 
 const GEO = {
   plate: shared(new THREE.BoxGeometry(.17, .3, .03)), plateTop: shared(new THREE.ConeGeometry(.12, .1, 4).rotateY(Math.PI / 4).scale(1, 1, .25)),
@@ -68,9 +45,6 @@ const GEO = {
   handle: shared(new THREE.TorusGeometry(.06, .015, 4, 10)),
 };
 
-const mesh = (parent: THREE.Object3D, geo: THREE.BufferGeometry, mat: THREE.Material, x = 0, y = 0, z = 0) => {
-  const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); parent.add(m); return m;
-};
 /** The wall torch's fire colours in a floor's look (the crypt's amber, the drowned's pale lanterns, the burning's red). */
 export const torchPalette = (t: FloorLook['torch']) => firePalette(new THREE.Color(t.flame).getHex(), new THREE.Color(t.light).getHex());
 
@@ -177,7 +151,9 @@ function cage(parent: THREE.Object3D, x: number, y: number, z: number, rTop: num
 const eyeCache = new Map<number, THREE.Material>();
 /** Eyes lit from within, in the fire's colour (shared per colour). */
 const eyeFor = (c: number) => eyeCache.get(c) ?? (eyeCache.set(c, markShared(new THREE.MeshBasicMaterial({ color: new THREE.Color(c).lerp(new THREE.Color(0xffffff), .3) }))), eyeCache.get(c)!);
-const glassCache = new Map<number, THREE.Material>();
+const glassCache = new Map<number, THREE.Material>(), waxCache = new Map<string, THREE.Material>();
+/** Wax of a floor's colour (painted: merged into the stand's body). */
+const waxFor = (hex: string) => waxCache.get(hex) ?? (waxCache.set(hex, paint(new THREE.Color(hex).getHex())), waxCache.get(hex)!);
 const glassFor = (c: number, opacity = .2) => { const k = c * 10 + opacity * 100; return glassCache.get(k) ?? (glassCache.set(k, markShared(new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false }))), glassCache.get(k)!); };
 
 /** A standing brazier of the room's kind (kitData.ts): each floor offers two or three. Every one carries runes (their own
@@ -262,22 +238,25 @@ const BRAZIERS: Record<BrazierKind, BrazierBuild> = {
 };
 
 /** The candle stand: a pole on a clawed foot with two bronze knops, a dish with a bronze rim, and three to five candles
-    of different heights with wax running down them. `flames` (every candle's flame and the glow) shows once lit. */
-export function candleStandLook(R: () => number) {
+    of different heights with wax running down them, in the floor's wax and burning in its flame (`t`, the look's lights;
+    the crypt's warm, the drowned's pale on tallow, the burning's on dark red wax). `flames` (every candle's flame and the
+    glow) shows once lit. */
+export function candleStandLook(R: () => number, t?: FloorLook['torch']) {
+  const pal = t ? torchPalette(t) : CANDLE_FIRE, wax = t?.wax ? waxFor(t.wax) : MAT.wax;
   const g = new THREE.Group(), flames = new THREE.Group();
   mesh(g, GEO.foot, MAT.iron, 0, .025, 0);
   for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2 + Math.PI / 2; mesh(g, GEO.claw, MAT.iron, Math.cos(a) * .2, 0, Math.sin(a) * .2).scale.setScalar(.8); }
   mesh(g, GEO.pole, MAT.iron, 0, .41, 0); mesh(g, GEO.knop, MAT.bronze, 0, .3, 0); mesh(g, GEO.knop, MAT.bronze, 0, .62, 0).scale.setScalar(.8);
-  mesh(g, GEO.dish, MAT.iron, 0, .78, 0); mesh(g, GEO.dishRim, MAT.bronze, 0, .8, 0); mesh(g, GEO.pool, MAT.wax, 0, .8, 0);
+  mesh(g, GEO.dish, MAT.iron, 0, .78, 0); mesh(g, GEO.dishRim, MAT.bronze, 0, .8, 0); mesh(g, GEO.pool, wax, 0, .8, 0);
   const n = 3 + Math.floor(R() * 3), specs: FlameSpec[] = [];
   for (let i = 0; i < n; i++) {
     const a = i / n * Math.PI * 2 + R(), r = i === 0 && n > 3 ? 0 : .12 + R() * .04, x = Math.cos(a) * r, z = Math.sin(a) * r, h = .1 + R() * .18;
-    const c = mesh(g, GEO.candle, MAT.wax, x, .8 + h / 2, z); c.scale.y = h;
-    for (let k = 0; k < 1 + (R() < .5 ? 1 : 0); k++) { const b = R() * Math.PI * 2; mesh(g, GEO.drip, MAT.wax, x + Math.cos(b) * .036, .8 + h * (.5 + R() * .45), z + Math.sin(b) * .036).scale.y = 1.6; }
+    const c = mesh(g, GEO.candle, wax, x, .8 + h / 2, z); c.scale.y = h;
+    for (let k = 0; k < 1 + (R() < .5 ? 1 : 0); k++) { const b = R() * Math.PI * 2; mesh(g, GEO.drip, wax, x + Math.cos(b) * .036, .8 + h * (.5 + R() * .45), z + Math.sin(b) * .036).scale.y = 1.6; }
     specs.push({ x, y: .8 + h, z, h: .19, w: .085 });
   }
-  flames.add(makeFire(specs, CANDLE_FIRE, 5, .35)); // (big and warm for candles: a lit stand must read at a glance, to open reliquaries)
-  const gl = glow(CANDLE_FIRE.body, 1.5, .9); gl.position.y = 1.1; flames.add(gl);
+  flames.add(makeFire(specs, pal, 5, .35)); // (big and warm for candles: a lit stand must read at a glance, to open reliquaries)
+  const gl = glow(pal.body, 1.5, .9); gl.position.y = 1.1; flames.add(gl);
   flames.visible = false; g.add(flames, blob(.6));
   return { group: g, parts: { flames } };
 }
