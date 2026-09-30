@@ -33,7 +33,7 @@
     "damage": 2, "status": { "sanct": 2 }, "params": { "radius": 1.9, "life": 6, "every": 0.5, "heal": 1 },
     "tags": ["area", "ground"], "color": "#ffd878", "icon": "consecrate",
     "text": "Holy ground at your feet sears the foes who stand in it and lays them open; standing in it heals you a little",
-    "lore": "The chapel's floor was blessed before a single grave was cut in it. A little of that blessing sleeps in the stone still, and a word wakes it: for a few breaths, the ground remembers whose it was." },
+    "lore": "The Wardens blessed their chapel's floor before a single grave was cut in it. A little of that blessing sleeps in the stone still, and a word wakes it: for a few breaths, the ground remembers whose it was." },
   { "id": "judgement", "name": "Judgement", "school": "hallow", "shape": "smite", "mana": 45, "cooldown": 14,
     "damage": 26, "status": { "sanct": 4 }, "params": { "range": 9, "delay": 1, "radius": 1 },
     "tags": ["target", "area"], "color": "#fff0b0", "icon": "judgement",

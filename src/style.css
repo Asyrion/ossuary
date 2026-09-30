@@ -83,6 +83,7 @@ body.touch #devHint{display:none}
 .card h1{font-family:var(--f-display);font-weight:400;font-size:clamp(46px,8vw,76px);line-height:.95;margin:0 0 10px;letter-spacing:.01em}
 .card h2{font-family:var(--f-display);font-weight:400;font-size:clamp(32px,5vw,48px);line-height:1;margin:0 0 10px}
 .card p{font-family:var(--f-serif);font-size:19px;line-height:1.45;margin:0 0 18px;color:var(--ink);max-width:48ch}
+.card p.place{font-family:var(--f-ui);font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim);margin:-2px 0 14px}
 .card p.small{font-family:var(--f-ui);font-size:14px;color:var(--ink-dim);margin:16px 0 0;line-height:1.4}
 .controls{display:grid;grid-template-columns:auto repeat(3,1fr);gap:6px 18px;font-size:15px;margin:4px 0 22px;align-items:baseline}
 .controls .h{color:var(--ink-dim);font-size:13px;font-weight:500}
