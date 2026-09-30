@@ -5,8 +5,8 @@
    candle-light turns round it (`updateMechLook`). `DEV.roomKit` off keeps the old looks. */
 import * as THREE from 'three';
 import { blob, glow, markShared, mergeStill } from '../render/materials';
-import { lit, shine } from '../render/arcane';
-import { MAT, joinAll, mesh, runeStrokes, shared } from './kitParts';
+import { SCHOOL_LIGHT, lit, shine, type School } from '../render/arcane';
+import { MAT, joinAll, mesh, runeStrokes, shared, tone } from './kitParts';
 
 const GOLD = 0xffd98a;
 const GEO = {
@@ -154,44 +154,54 @@ const STATUE = {
     (`head`) turns to follow the mage; its eyes (`eyes`, their own material) kindle as its gaze charges and go dark when a
     hex blinds it; the gaze itself (`gaze`, a line to the mage, its own geometry) shows while it charges. */
 export function statueLook() {
-  const g = new THREE.Group();
-  mesh(g, STATUE.step, MAT.darkStone, 0, .03, 0); mesh(g, STATUE.plinth, MAT.darkStone, 0, .18, 0);
+  const g = new THREE.Group(), pale = tone(0xb2aa9c, .12), shadow = tone(0x7c7568, .1); // (pale limestone: it stands against the lit north wall)
+  mesh(g, STATUE.step, MAT.darkStone, 0, .03, 0); mesh(g, STATUE.plinth, shadow, 0, .18, 0);
   const body = new THREE.Group(); body.position.y = .3; g.add(body);
-  mesh(body, STATUE.robe, MAT.stone);
-  for (let i = 0; i < 5; i++) { const a = Math.PI / 2 + (i - 2) * .42; mesh(body, STATUE.fold, MAT.darkStone, Math.cos(a) * .27, .44, Math.sin(a) * .27).rotation.set(0, -a + Math.PI / 2, -.05 * (i - 2)); } // (the robe's folds)
+  mesh(body, STATUE.robe, pale);
+  for (let i = 0; i < 5; i++) { const a = Math.PI / 2 + (i - 2) * .42; mesh(body, STATUE.fold, shadow, Math.cos(a) * .27, .44, Math.sin(a) * .27).rotation.set(0, -a + Math.PI / 2, -.05 * (i - 2)); } // (the robe's folds)
   mesh(body, STATUE.blade, MAT.iron, 0, .5, .3).rotation.x = -.08; mesh(body, STATUE.guard, MAT.iron, 0, .93, .27);
-  mesh(body, STATUE.grip, MAT.darkBronze, 0, 1.02, .27); mesh(body, STATUE.pommel, MAT.darkBronze, 0, 1.1, .27); mesh(body, STATUE.hands, MAT.stone, 0, 1.0, .25);
+  mesh(body, STATUE.grip, MAT.darkBronze, 0, 1.02, .27); mesh(body, STATUE.pommel, MAT.darkBronze, 0, 1.1, .27); mesh(body, STATUE.hands, pale, 0, 1.0, .25);
   const head = new THREE.Group(); head.position.y = 1.52;
-  mesh(head, STATUE.hood, MAT.stone, 0, -.06, 0); mesh(head, STATUE.peak, MAT.stone, 0, .19, -.05).rotation.x = -.35;
+  mesh(head, STATUE.hood, pale, 0, -.06, 0); mesh(head, STATUE.peak, pale, 0, .19, -.05).rotation.x = -.35;
   mesh(head, STATUE.face, MAT.socket, 0, -.04, .17);
   const eyeMat = new THREE.MeshBasicMaterial({ color: EYE_DIM }), eyes = new THREE.Group(); // (its own: the gaze kindles it)
   mesh(eyes, STATUE.eye, eyeMat, -.045, -.02, .18); mesh(eyes, STATUE.eye, eyeMat, .045, -.02, .18);
   head.add(eyes); head.userData.parts = { eyes }; mergeStill(head); head.userData.eyes = eyeMat;
   const gaze = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, 0, 1)]),
-    new THREE.LineBasicMaterial({ color: EYE_LIT, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+    new THREE.LineBasicMaterial({ color: GAZE, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })); // (near white: it reads over gold floors too)
   gaze.frustumCulled = false; gaze.visible = false;
   g.add(head, gaze, blob(1));
   return { group: g, parts: { head, gaze } };
 }
-export const EYE_DIM = 0x5a4a2a, EYE_LIT = 0xffd878, EYE_BLIND = 0x3a2458;
+export const EYE_DIM = 0x5a4a2a, EYE_LIT = 0xffd878, EYE_BLIND = 0x3a2458, GAZE = 0xfff4e0;
 
 const OBELISK = {
   base: shared(new THREE.BoxGeometry(.64, .16, .64)), shaft: shared(new THREE.CylinderGeometry(.12, .21, 1.7, 4).rotateY(Math.PI / 4)),
-  cap: shared(new THREE.ConeGeometry(.17, .26, 4).rotateY(Math.PI / 4)), crystal: shared(new THREE.OctahedronGeometry(.09, 0).scale(.8, 1.5, .8)),
+  cap: shared(new THREE.ConeGeometry(.17, .26, 4).rotateY(Math.PI / 4)),
   // runes cut down the face turned to the camera, each set on the tapering face at its height (the shaft narrows from
   // .21 at its foot, y .16, to .12 at its point, y 1.86; a four-sided face lies at the radius times cos 45°)
   runes: shared(joinAll([0, 1, 2].map(i => { const y = .5 + i * .42, r = .21 - .09 * (y - .16) / 1.7; return runeStrokes(.2 - i * .025).rotateX(-.04).translate(0, y, r * Math.SQRT1_2 + .012); }))),
   field: shared(new THREE.RingGeometry(.94, 1, 48).rotateX(-Math.PI / 2)),
 };
 
+/** Each school's sign, floating over an obelisk's point so its ward reads at a glance (Hallow's gold and Storm's yellow
+    are close): a flame, a snowflake, a lightning bolt, a halo, a crescent. */
+const EMBLEM: Record<School, THREE.BufferGeometry> = {
+  ember: shared(joinAll([new THREE.ConeGeometry(.09, .26, 6), new THREE.ConeGeometry(.05, .16, 5).translate(.06, -.04, 0), new THREE.ConeGeometry(.05, .14, 5).translate(-.06, -.05, 0)])),
+  frost: shared(joinAll([0, 1, 2].map(i => new THREE.BoxGeometry(.03, .28, .03).rotateZ(i * Math.PI / 3)))),
+  storm: shared(joinAll([new THREE.BoxGeometry(.04, .16, .03).rotateZ(-.5).translate(.02, .08, 0), new THREE.BoxGeometry(.12, .035, .03).translate(0, 0, 0), new THREE.BoxGeometry(.04, .16, .03).rotateZ(-.5).translate(-.02, -.08, 0)])),
+  hallow: shared(joinAll([new THREE.TorusGeometry(.11, .018, 4, 18).rotateX(Math.PI / 2).translate(0, .1, 0), new THREE.OctahedronGeometry(.05, 0)])),
+  umbral: shared(new THREE.TorusGeometry(.1, .032, 4, 12, Math.PI * 1.3).rotateZ(Math.PI * .85)),
+};
+
 /** The sapping obelisk (M4.2): a black stone needle on a plinth, runes of its ward's school cut down its face (`runes`)
-    and a shard of it floating over the point (`crystal`), and on the floor the edge of its field (`field`, `reach`
-    across). The runes, the shard and the field have their own materials, dulled when the ward breaks. */
-export function obeliskLook(color: number, reach: number) {
-  const g = new THREE.Group();
+    and the school's sign floating over the point (`crystal`), and on the floor the edge of its field (`field`, `reach`
+    across). The runes, the sign and the field have their own materials, dulled when the ward breaks. */
+export function obeliskLook(school: School, reach: number) {
+  const g = new THREE.Group(), color = SCHOOL_LIGHT[school];
   mesh(g, OBELISK.base, MAT.darkStone, 0, .08, 0); mesh(g, OBELISK.shaft, MAT.lode, 0, 1.01, 0); mesh(g, OBELISK.cap, MAT.lode, 0, 1.99, 0);
   const runes = mesh(g, OBELISK.runes, lit(color));
-  const crystal = mesh(g, OBELISK.crystal, lit(color), 0, 2.3, 0);
+  const crystal = mesh(g, EMBLEM[school], lit(color), 0, 2.3, 0); crystal.scale.setScalar(1.7); // (large enough to read from across the room)
   const field = mesh(g, OBELISK.field, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .4, blending: THREE.AdditiveBlending, depthWrite: false }), 0, .03, 0);
   field.scale.setScalar(reach);
   const gl = glow(color, 1.2, .6); gl.position.y = 2.3;

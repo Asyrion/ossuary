@@ -170,7 +170,7 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
   // M4.2: built in the room kit's style whatever the look (they came after it)
   statue() { return kitLook(statueLook()); },
   obelisk(R) { // its ward's school, drawn on the room's seed, colours its runes and its field
-    const ward = SCHOOLS[Math.floor(R() * SCHOOLS.length)], g = kitLook(obeliskLook(SCHOOL_LIGHT[ward], C.obelisk.reach));
+    const ward = SCHOOLS[Math.floor(R() * SCHOOLS.length)], g = kitLook(obeliskLook(ward, C.obelisk.reach));
     g.userData.ward = ward; return g;
   },
 };
@@ -412,9 +412,10 @@ function updateStatue(room: Room, box: PropBox, dt: number, fighting: boolean) {
     }
   }
 }
-/** The statue's ray lands at (x, z): what stands there is struck (the mage, and foes too). */
+/** The statue's ray lands at (x, z): a straight beam of gold from its eyes, and what stands there is struck (the mage,
+    and foes too). */
 function strikeRay(box: PropBox, x: number, z: number) {
-  strikeFx({ x: box.x, y: 1.55, z: box.z }, { x, y: .05, z }, EYE_LIT);
+  beam(G.current, { x: box.x, y: 1.52, z: box.z }, { x, y: .05, z }, EYE_LIT);
   ringFx(x, .06, z, EYE_LIT, .2, S.radius * 1.2, .35, true); burst(x, .3, z, EYE_LIT, 16, 2.2, .05);
   Sfx.at(x, z).statueRay();
   if (!player.dead && Math.hypot(player.x - x, player.z - z) < S.radius) hurtPlayer(S.hurt, box.x, box.z);
@@ -457,6 +458,20 @@ function updateSapping(room: Room, dt: number) {
   if (!told.has(room)) { told.add(room); toast(STR.mech.sapped(STR.schools[sapping.prop.ward ?? 'umbral']), 4); }
 }
 
+/* ---------- beams: a watching statue's ray ---------- */
+
+const beams: { room: Room; mesh: THREE.Mesh; t: number }[] = [];
+let beamGeo: THREE.CylinderGeometry | null = null;
+const UP = new THREE.Vector3(0, 1, 0), dir = new THREE.Vector3();
+/** A straight beam of `color` from `a` to `b` that flares and fades (its own material, freed when it goes). */
+function beam(room: Room, a: { x: number; y: number; z: number }, b: { x: number; y: number; z: number }, color: number) {
+  beamGeo ??= shared(new THREE.CylinderGeometry(1, 1, 1, 6, 1, true).translate(0, .5, 0));
+  const m = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .95, blending: THREE.AdditiveBlending, depthWrite: false }));
+  dir.set(b.x - a.x, b.y - a.y, b.z - a.z); const len = dir.length();
+  m.position.set(a.x - room.cx, a.y, a.z - room.cz); m.quaternion.setFromUnitVectors(UP, dir.normalize()); m.scale.set(.07, len, .07);
+  room.group.add(m); beams.push({ room, mesh: m, t: 0 });
+}
+
 /* ---------- rings of light ---------- */
 
 const waves: { room: Room; ring: THREE.Mesh; t: number; to: number }[] = [];
@@ -492,6 +507,11 @@ export function updateMechanisms(dt: number) {
     const f = falling[i]; f.t += dt; f.pot.position.y = Math.max(.15, 1.5 - 9 * f.t * f.t); f.pot.rotation.z += dt * 6;
     if (f.pot.position.y <= .15 || f.room !== G.current) { falling.splice(i, 1); if (f.room === G.current) censerLands(f); else { f.room.group.remove(f.pot); disposeTree(f.pot); } } // (its geometries are shared; its glow isn't)
   }
+  for (let i = beams.length - 1; i >= 0; i--) { // the ray flares, then thins and fades
+    const b = beams[i]; b.t += dt; const k = Math.min(1, b.t / .35);
+    b.mesh.scale.x = b.mesh.scale.z = .07 * (1 + .6 * (1 - k)) * (1 - k * .7); (b.mesh.material as THREE.MeshBasicMaterial).opacity = .95 * (1 - k);
+    if (k >= 1) { b.room.group.remove(b.mesh); (b.mesh.material as THREE.Material).dispose(); beams.splice(i, 1); }
+  }
   for (let i = waves.length - 1; i >= 0; i--) {
     const w = waves[i]; w.t += dt; const k = Math.min(1, w.t / .45);
     w.ring.scale.setScalar(.3 + (w.to - .3) * k); (w.ring.material as THREE.MeshBasicMaterial).opacity = .8 * (1 - k);
@@ -500,7 +520,10 @@ export function updateMechanisms(dt: number) {
 }
 
 /** A new floor: nothing left falling or ringing from the last one. */
-export function clearMechanisms() { falling.length = 0; for (const w of waves) (w.ring.material as THREE.Material).dispose(); waves.length = 0; sapping = null; }
+export function clearMechanisms() {
+  falling.length = 0; for (const w of waves) (w.ring.material as THREE.Material).dispose(); waves.length = 0; sapping = null;
+  for (const b of beams) (b.mesh.material as THREE.Material).dispose(); beams.length = 0;
+}
 
 /** Dev menu and tests: fire, frost or shock at (x, z), as a spell landing there would; or (M4.2) holy light or darkness. */
 export function elementDev(kind: StatusKind | 'sanct' | 'hex', x: number, z: number) {
