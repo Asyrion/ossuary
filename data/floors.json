@@ -106,7 +106,7 @@
       "kit": {"wall": {"marble": 3, "gilded": 2, "tracery": 2}, "floor": {"checker": 3, "inlay": 2, "mosaic": 1}, "torch": {"sconce": 3, "crown": 2, "candelabra": 1}, "brazier": {"chalice": 2, "censer": 2, "font": 1}},
       "floor": {"base": [104, 96, 84], "mortar": "#2a2218", "stain": "90,74,40", "decor": "wax", "bones": 1},
       "wall": {"brick": [112, 104, 92], "mortar": "#2c251c", "stains": "gilt", "dress": {"pilaster": 4, "niches": {"candle": 4, "urn": 2, "skull": 1, "empty": 1}}},
-      "torch": {"style": "bracket", "flame": "#fff0c0", "light": "#ffe0a0", "intensity": 1.05, "wax": "#f6ecd6"},
+      "torch": {"style": "bracket", "flame": "#ffdc8a", "light": "#ffe0a0", "intensity": 1.05, "wax": "#f6ecd6"},
       "urn": {"clay": "#b8a27a", "band": "#8a6a2a"},
       "light": {"sky": "#a8a090", "ground": "#241c10", "moon": "#e0d4b0"}
     }
@@ -132,11 +132,11 @@
     "look": {
       "name": "shore",
       "kit": {"wall": {"slate": 3, "drystone": 2, "pilings": 2}, "floor": {"boards": 2, "shingle": 2, "flags": 1}, "torch": {"pole": 3, "cairn": 2, "witchlight": 1}, "brazier": {"boat": 2, "urn": 2, "basket": 1}},
-      "floor": {"base": [48, 52, 58], "mortar": "#0a0c10", "stain": "40,52,70", "decor": "puddles", "bones": 2},
+      "floor": {"base": [54, 58, 66], "mortar": "#0a0c10", "stain": "40,52,70", "decor": "puddles", "bones": 2},
       "wall": {"brick": [52, 56, 62], "mortar": "#0c0e12", "stains": "salt", "dress": {"pilaster": 3, "niches": {"skull": 3, "candle": 2, "urn": 2, "empty": 2}}},
       "torch": {"style": "lantern", "flame": "#b8a8ff", "light": "#8fc8e8", "intensity": 0.9, "wax": "#9a9ab0"},
       "urn": {"clay": "#4a4a56", "band": "#7a6aa8"},
-      "light": {"sky": "#6a7890", "ground": "#0a0c12", "moon": "#9ab0e0"}
+      "light": {"sky": "#7888a2", "ground": "#0c0e16", "moon": "#a8bcea"}
     }
   }
 ]

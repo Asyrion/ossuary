@@ -215,7 +215,7 @@ const WALLS: Record<WallKind, (wall: FloorLook['wall'], W: number) => WallArt> =
     return { px, glow };
   },
   marble(wall, W) { // the Reliquary's (M4.1): great slabs of veined marble, finely jointed and polished, a sheen along each top
-    const H = 64, px = new Px(W, H, true), R = mulberry(75), joint = scale(hex(wall.mortar), 1.8), pale = tint(wall.brick, 18, 1.15);
+    const H = 64, px = new Px(W, H, true), R = mulberry(75), joint = scale(hex(wall.mortar), 1.8), pale: RGB = [wall.brick[0] * .4 + 206 * .6, wall.brick[1] * .4 + 202 * .6, wall.brick[2] * .4 + 196 * .6]; // (pale and cool: marble, not sandstone, under the warm candles)
     px.fill(joint);
     let y0 = 0;
     for (const ch of [22, 20, 22]) {
@@ -601,11 +601,11 @@ export function pixelFloorTexture(seed: number, kind: RoomType, look: FloorLook,
   } else if (look.floor.decor === 'wax') { // the Reliquary's (M4.1): candle wax spilt on the floor, and a burnt-down stub here and there
     const wax = hex(look.torch.wax ?? '#f0e2c6');
     for (let k = 0; k < n(16); k++) { const x = R() * cw, y = R() * ch, r = 2 + R() * 4; px.blotch(x, y, r, r * .7, 1.8, (u, v) => px.mix(u, v, wax, .75)); px.mul(Math.round(x), Math.round(y + r * .7), .72); }
-    for (let k = 0; k < n(5); k++) {
+    for (let k = 0; k < n(3); k++) {
       const x = Math.floor(R() * cw), y = Math.floor(R() * ch);
       if (!inside(Math.floor(x / TX), Math.floor((y + 8) / TY))) continue;
-      for (let v = 0; v < 6; v++) for (let u = 0; u < 4; u++) px.set(x + u, y + v, scale(wax, v === 0 ? 1.1 : u === 3 ? .78 : 1)); // a stub, its wick burnt black
-      px.set(x + 1, y - 1, [30, 24, 20]); for (let u = -1; u < 5; u++) px.mul(x + u, y + 6, .6);
+      for (let v = 0; v < 5; v++) for (let u = 0; u < 3; u++) px.set(x + u, y + v, scale(wax, v === 0 ? .85 : u === 2 ? .6 : .75)); // a stub, its wick burnt black (dull: not to pass for a pickup)
+      px.set(x + 1, y - 1, [30, 24, 20]); for (let u = -1; u < 4; u++) px.mul(x + u, y + 5, .6);
     }
   } else if (look.floor.decor === 'ash') { // ash drifts, and embers glowing in them
     for (let k = 0; k < n(9); k++) { const r = 14 + R() * 34; px.blotch(R() * cw, R() * ch, r, r * .6, 1, (u, v) => px.mix(u, v, [34, 30, 28], .5)); }
