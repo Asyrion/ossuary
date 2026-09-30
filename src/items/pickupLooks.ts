@@ -161,7 +161,7 @@ const SEAL_RUNE = shared(runeStrokes(.045));
 function keep(g: THREE.Group, moving: THREE.Object3D[] = [], apart: THREE.Object3D[] = []) {
   for (const m of moving) mergeStill(m);
   g.userData.parts = Object.fromEntries([...moving, ...apart].map((m, i) => [i, m]));
-  mergeStill(g);
+  mergeStill(g); delete g.userData.parts; // (a copy copies its userData through JSON: objects left in it would be written out every time)
   g.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh && m.geometry) m.geometry.userData.shared = true; });
   return g;
 }

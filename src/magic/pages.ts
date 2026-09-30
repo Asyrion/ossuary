@@ -12,6 +12,7 @@ import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { M, basicMat, blob, disposeTree, glowShared, markShared, mergeStill } from '../render/materials';
 import { bookcaseLook, lecternLook } from '../world/specialLooks';
+import { hashString } from '../rng';
 import { burst } from '../combat/fx';
 import { banner, hidePrompt, renderMinimap, showPrompt, spellIcon, spellIconSvg, toast } from '../ui/hud';
 import { giveResources } from '../items/pickups';
@@ -157,7 +158,7 @@ export function furnishLibrary(room: Room) {
     if (northDoor && Math.abs(x - room.cx) < 1.6) continue;
     if (pointInBoxes(x, z + .3, .5, room.rocks)) continue;
     room.rocks.push({ x, z, hx: .75, hz: .17, hp: Infinity, breakable: false });
-    if (kit) { const b = bookcaseLook(i); b.position.set(x - room.cx, 0, z - room.cz); kit.add(b); continue; }
+    if (kit) { const b = bookcaseLook(hashString(`${G.run.seed}:${G.run.floor}:${room.gx},${room.gy}`) + i * 977); b.position.set(x - room.cx, 0, z - room.cz); kit.add(b); continue; } // (every library its own books, the same on a replay)
     const g = new THREE.Group(); g.position.set(x - room.cx, 0, z - room.cz);
     const carcass = new THREE.Mesh(P.carcass, M.frame.library); carcass.position.y = .625;
     const spines = new THREE.Mesh(P.spines, P.books); spines.position.set(0, .64, .175);
