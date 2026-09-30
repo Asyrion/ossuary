@@ -513,10 +513,11 @@ function addTorch(room: Room, x: number, z: number, normal: [number, number], t:
   room.torches.push({ flame, glow: gl, ...at, lit });
 }
 
-/** A doorway on `side` whose middle (on the room's inside edge) is at world (x, z): posts, lintel, threshold,
-    the mark above it for special rooms, and the bars that rise while enemies live. */
 /** How a door built facing +z (the room kit's) is turned to face into the room from each wall. */
 const DOOR_TURN: Record<Side, number> = { n: 0, s: Math.PI, w: Math.PI / 2, e: -Math.PI / 2 };
+
+/** A doorway on `side` whose middle (on the room's inside edge) is at world (x, z): posts, lintel, threshold,
+    the mark above it for special rooms, and the bars that rise while enemies live. */
 function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number, z: number): Door {
   if (style === 'secret') return buildCrackedWall(room, side, nb, x, z); // a hidden doorway: the wall carries on
   const ns = isNS(side), [dx, dz] = SIDE_DIR[side];
@@ -528,9 +529,9 @@ function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number
     const m = new THREE.Mesh(ns ? boxUV(len, h, acrossLen) : boxUV(acrossLen, h, len), mats);
     m.position.set(p.x, y0 + h / 2, p.z); room.group.add(m);
   };
-  const h = wallHeight(side), fm = M.frame[style];
+  const h = wallHeight(side), fm = M.frame[style], barH = side === 's' ? H_LOW + .1 : h - .25;
   if (kitPieces(room)) { // the room kit's door and gate (wallLooks.ts), turned to face into the room
-    const barH = side === 's' ? H_LOW + .1 : h - .25, { frame, bars } = doorLook(style, room.look, h, side === 's', side === 'n', barH), p = at(0, 0);
+    const { frame, bars } = doorLook(style, room.look, h, side === 's', side === 'n', barH, DOOR_TURN[side]), p = at(0, 0);
     for (const g of [frame, bars]) { g.position.set(p.x, 0, p.z); g.rotation.y = DOOR_TURN[side]; room.group.add(g); }
     bars.position.y = -barH - .05;
     return { side, nb, x, z, bars, barH, open: true, style, box: { x: wx, z: wz, hx: ns ? DH : WT / 2, hz: ns ? WT / 2 : DH } };
@@ -586,7 +587,7 @@ function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number
     room.group.add(book);
   }
   // bars (sink into the floor when open)
-  const bars = new THREE.Group(); const barH = side === 's' ? H_LOW + .1 : h - .25;
+  const bars = new THREE.Group();
   for (let i = 0; i < 5; i++) {
     const along = -DH + .16 + i * ((DH * 2 - .32) / 4);
     const b = new THREE.Mesh(new THREE.BoxGeometry(.1, barH, .1), M.gate); const p = at(along, 0);

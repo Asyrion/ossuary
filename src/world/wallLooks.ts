@@ -2,18 +2,19 @@
    spell effects (docs/effects.md), in the stone of the floor's walls (`stoneOf`):
    - a door: jambs of dressed blocks, a threshold of worn stone; through a tall north wall, a lintel and an arch of
      voussoirs crowning it above the wall's line, its keystone carrying what lies beyond (a horned skull for the boss,
-     a skull on iron spikes for an ordeal, crossed bones for an altar, a golden rune for treasure, a lantern for the
-     merchant, a ring of runes for the shrine, an open book for the library); each style's trim on its capitals;
+     a skull on iron spikes for an ordeal, crossed bones for an altar, a gem for treasure, a lantern for the merchant, a
+     ring of runes for the shrine, an open book for the library); each style's trim on its capitals; a side door carries
+     its emblem over the doorway, a low south door a pair of them on its gateposts, always turned to the camera;
    - its gate: an iron portcullis of spear-tipped bars, crossbars and rivets, rising from the floor when the doors lock;
    - the tall walls' pilasters (a base, a fluted shaft, a capital) and niches (an arched recess framed in blocks, a sill,
-     and what the floor keeps there: a skull, candles, a hand bell, a small urn in its clay, bones, or nothing).
+     and what the floor keeps there: a skull, candles, a hand bell, a small urn in its clay, bones, or a few pebbles).
    What they do is unchanged (rooms.ts, dressing.ts); `DEV.roomKit` off keeps the old looks. Every piece is painted, so a
    door's frame, its gate and a wall's dressing each draw in one or two calls. */
 import * as THREE from 'three';
 import type { DoorStyle, FloorLook, NicheKind } from '../types';
 import { glow, mergeStill } from '../render/materials';
 import type { FlameSpec } from '../render/fire';
-import { glowTone, mesh, runeStrokes, shade, shared, stoneOf, tone } from './kitParts';
+import { MAT, glowTone, mesh, runeStrokes, shade, shared, stoneOf, tone } from './kitParts';
 import { C, URN_BODY, URN_LID, bone, box, put, skull } from './objectLooks';
 import { waxFor } from './fireLooks';
 import { DH, H_TALL, WT } from './dims';
@@ -23,13 +24,15 @@ const WALL_TOP = glowTone(0x0d0a08);
 /** How deep a north door's arch is, set on the wall's room face. */
 const ARCH_DEPTH = .34;
 const lathe = (pts: number[][], seg: number) => new THREE.LatheGeometry(pts.map(([x, y]) => new THREE.Vector2(x, y)), seg); // (from the bottom up)
+/** A gate's spear tips, how tall. */
+const TIP = .15;
 const GEO = {
   rune: shared(runeStrokes(.12)), smallRune: shared(runeStrokes(.07)), spot: shared(new THREE.SphereGeometry(.025, 5, 4)),
-  tip: shared(new THREE.ConeGeometry(.05, .15, 4)), horn: shared(new THREE.ConeGeometry(.045, .26, 5)),
+  tip: shared(new THREE.ConeGeometry(.05, TIP, 4)), horn: shared(new THREE.ConeGeometry(.045, .26, 5)),
   handbell: shared(lathe([[0, 0], [.085, 0], [.07, .03], [.05, .13], [.02, .15], [.02, .2], [0, .2]], 10)),
   glass: shared(new THREE.CylinderGeometry(.07, .07, .16, 6)), cap: shared(new THREE.ConeGeometry(.1, .09, 6)), ring: shared(new THREE.TorusGeometry(.19, .018, 4, 24)),
   candle: shared(new THREE.CylinderGeometry(.028, .032, 1, 6).translate(0, .5, 0)), drip: shared(new THREE.SphereGeometry(.015, 5, 4).scale(1, 1.6, 1)),
-  pebble: shared(new THREE.DodecahedronGeometry(.03, 0)),
+  pebble: shared(new THREE.DodecahedronGeometry(.03, 0)), gem: shared(new THREE.OctahedronGeometry(.08, 0)),
 };
 
 /** The trim of each style of door: its capitals and keystone. */
@@ -40,9 +43,9 @@ const TRIM: Record<DoorStyle, { color: number; metal: number } | null> = {
 };
 
 /** A door in the room kit's style, built at the door's middle on the wall's centre line, facing +z (into the room), with
-    x along the wall; rooms.ts turns and places it. `h` is the wall's height, `low` a low (south) wall's door, `barH` the
-    gate's bars. Returns the frame (still, merged) and the gate (`bars`, which rooms.ts moves up and down). */
-export function doorLook(style: DoorStyle, look: FloorLook, h: number, low: boolean, north: boolean, barH: number) {
+    x along the wall; rooms.ts turns it by `turn` and places it. `h` is the wall's height, `low` a low (south) wall's door,
+    `barH` the gate's height. Returns the frame (still, merged) and the gate (`bars`, which rooms.ts moves up and down). */
+export function doorLook(style: DoorStyle, look: FloorLook, h: number, low: boolean, north: boolean, barH: number, turn: number) {
   const frame = new THREE.Group(), st = stoneOf(look, 1.45), trim = TRIM[style];
   const stone = tone(st, .1), stoneDark = tone(shade(st, .85), .1), trimMat = trim ? tone(trim.color, .06, trim.metal) : tone(shade(st, 1.15), .08);
   const top = h + (low ? .05 : .1), courses = Math.max(2, Math.round(top / .3)), ch = top / courses;
@@ -51,8 +54,8 @@ export function doorLook(style: DoorStyle, look: FloorLook, h: number, low: bool
       const w = i % 2 ? .24 : .3;
       box(frame, w, ch - .012, WT + .14, i % 2 ? stoneDark : stone, s * (DH + w / 2 - .01), i * ch + ch / 2, 0);
     }
-    if (low) box(frame, .36, .07, WT + .2, trimMat, s * (DH + .14), top + .035, 0); // its capital, in the style's trim (on a tall wall, on the room's
-    else box(frame, .36, .07, .4, trimMat, s * (DH + .14), top + .035, WT / 2 - .12);   // face only: from above, a deep one reads as a post)
+    if (low) box(frame, .36, .07, WT + .2, tone(shade(st, 1.15), .08), s * (DH + .14), top + .035, 0); // its capital: on a low wall, stone (its whole top is
+    else box(frame, .36, .07, .4, trimMat, s * (DH + .14), top + .035, WT / 2 - .12);                  // seen); on a tall one the style's trim, on the room's face only (a deep one reads as a post)
     if (style === 'vault') for (let i = 1; i < courses; i++) mesh(frame, GEO.spot, tone(0x2c2a2c, 0, .6), s * (DH + .12), i * ch, WT / 2 + .07).scale.setScalar(1.3); // iron studs
   }
   if (!low) for (const sx of [-1, 1]) box(frame, .3, .006, WT + .14, WALL_TOP, sx * (DH + .14), top + .003, -.05); // (tops black like the walls': seen from above, stone reads as a slab)
@@ -68,8 +71,14 @@ export function doorLook(style: DoorStyle, look: FloorLook, h: number, low: bool
     }
     emblemY = top + rise - .08;
   }
-  const em = new THREE.Group(); em.position.set(0, emblemY, WT / 2 + (north ? .02 : .06)); frame.add(em);
-  EMBLEMS[style]?.(em, trimMat);
+  // the emblem: on the keystone; over a side door's doorway; on a low door's gateposts (it has no lintel), a pair; always
+  // turned back to face the camera, whichever way the door faces
+  const spots = north ? [[0, emblemY, WT / 2 + .02]] : low ? [[-(DH + .14), top + .2, 0], [DH + .14, top + .2, 0]] : [[0, emblemY, WT / 2 + .06]];
+  const emblem = EMBLEMS[style];
+  if (emblem) for (const [x, y, z] of spots) {
+    const em = new THREE.Group(); em.position.set(x, y, z); em.rotation.y = -turn; if (low) em.scale.setScalar(.8); frame.add(em);
+    emblem(em, trimMat);
+  }
   mergeStill(frame);
   return { frame, bars: gateLook(barH) };
 }
@@ -90,9 +99,9 @@ const EMBLEMS: Partial<Record<DoorStyle, (g: THREE.Group, trim: THREE.Material) 
     for (const s of [-1, 1]) put(mesh(g, new THREE.CylinderGeometry(.03, .03, .5, 5), tone(C.bone, .05), 0, 0, .04), 0, 0, s * .75);
     skull(g, 0, .02, .1, 0, 0, .65);
   },
-  treasure(g, trim) { // a golden rune on a gilded boss
-    mesh(g, new THREE.CylinderGeometry(.12, .12, .04, 8).rotateX(Math.PI / 2), trim, 0, 0, .02);
-    mesh(g, GEO.rune, glowTone(0xffd070), 0, 0, .05);
+  treasure(g, trim) { // a glowing gem set in a gilded boss
+    mesh(g, new THREE.CylinderGeometry(.13, .13, .04, 8).rotateX(Math.PI / 2), trim, 0, 0, .02);
+    put(mesh(g, GEO.gem, glowTone(0xffc850), 0, 0, .07), 0, Math.PI / 4, 0, [1, 1.3, .7]);
     const gl = glow(0xffc050, .8, .7); gl.position.z = .1; g.add(gl);
   },
   merchant(g) { // a lantern hanging from an iron arm
@@ -114,12 +123,13 @@ const EMBLEMS: Partial<Record<DoorStyle, (g: THREE.Group, trim: THREE.Material) 
   },
 };
 
-/** A gate: a portcullis of iron bars `barH` tall with spear tips, two crossbars riveted to them, built across x at z = 0
-    (rooms.ts turns it with its door and moves it up and down). One mesh. */
+/** A gate: a portcullis of iron bars with spear tips, `barH` tall in all (so it sinks out of sight when open), two
+    crossbars riveted to them, built across x at z = 0 (rooms.ts turns it with its door and moves it up and down). One mesh. */
 export function gateLook(barH: number) {
   const g = new THREE.Group(), iron = tone(0x2e2c2e, .06, .5), tips = tone(0x5a5658, 0, .5);
   const xs = Array.from({ length: 5 }, (_, i) => -DH + .16 + i * ((DH * 2 - .32) / 4));
-  for (const x of xs) { box(g, .06, barH, .06, iron, x, barH / 2, 0); mesh(g, GEO.tip, tips, x, barH + .07, 0).rotation.y = Math.PI / 4; }
+  const bar = barH - TIP;
+  for (const x of xs) { box(g, .06, bar, .06, iron, x, bar / 2, 0); mesh(g, GEO.tip, tips, x, bar + TIP / 2, 0).rotation.y = Math.PI / 4; }
   for (const y of [barH * .28, barH * .7]) {
     box(g, DH * 2, .07, .08, iron, 0, y, 0);
     for (const x of xs) for (const z of [-.05, .05]) mesh(g, GEO.spot, tips, x, y, z);
@@ -158,7 +168,7 @@ export function nicheLook(kind: NicheKind, R: () => number, look: FloorLook, eye
     const x = (R() - .5) * .1; skull(g, x, on + .085, .06, 0, 0, .7);
     if (eyes) for (const dx of [-.032, .032]) mesh(g, GEO.spot, eyes, x + dx, on + .085, .135).scale.setScalar(1.1);
   } else if (kind === 'candle') {
-    const wax = waxFor(look.torch.wax ?? '#f0e2c6');
+    const wax = look.torch.wax ? waxFor(look.torch.wax) : MAT.wax;
     for (const dx of R() < .5 ? [0] : [-.09, .07]) {
       const hgt = .1 + R() * .06; put(mesh(g, GEO.candle, wax, dx, on, .06), 0, 0, 0, [1, hgt, 1]); mesh(g, GEO.drip, wax, dx + .025, on + hgt * .6, .075);
       flames?.push({ x: dx, y: on + hgt, z: .06, h: .12, w: .06, beat: flames.length * 1.7 });

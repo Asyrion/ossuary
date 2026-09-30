@@ -68,7 +68,7 @@ export function dressNorthWall(room: Room, face: number, x0: number, x1: number,
     let pick = R() * total, kind: NicheKind = niches[0][0];
     for (const [k, w] of niches) { pick -= w; if (pick <= 0) { kind = k; break; } }
     const n = flames?.length ?? 0;
-    add(kit ? nicheLook(kind, R, room.look, eyes, flames) : niche(kind, R, stone(room.look), eyes, flames), x);
+    add(kit ? nicheLook(kind, R, room.look, eyes, flames) : niche(kind, R, stone(room.look), eyes), x);
     for (const f of flames?.slice(n) ?? []) { f.x += x - room.cx; f.z += face - room.cz; }
   });
   if (flames?.length) room.group.add(candleFire(flames, room.look));
@@ -86,9 +86,8 @@ function pilaster(look: FloorLook) {
   g.add(shaft, base, cap); return g;
 }
 
-/** A niche: a dark arched recess framed in stone, with a sill and what the floor keeps in it. With `flames`, a candle's
-    flame is put there (where it burns, from the niche's middle) for the room kit's fire, not built. */
-function niche(kind: NicheKind, R: () => number, frame: THREE.Material, eyes?: THREE.Material, flames?: FlameSpec[]) {
+/** A niche: a dark arched recess framed in stone, with a sill and what the floor keeps in it. */
+function niche(kind: NicheKind, R: () => number, frame: THREE.Material, eyes?: THREE.Material) {
   const g = new THREE.Group(), y0 = .42;
   const recess = new THREE.Mesh(G.recess, dark); recess.position.set(0, y0, .004);
   const rim = new THREE.Mesh(G.rim, frame); rim.position.set(0, y0 + .6 - .23, .02);
@@ -105,9 +104,8 @@ function niche(kind: NicheKind, R: () => number, frame: THREE.Material, eyes?: T
   } else if (kind === 'candle') {
     for (const dx of R() < .5 ? [0] : [-.09, .07]) {
       const c = new THREE.Mesh(G.candle, waxMat); c.position.set(dx, on + .065, .06);
-      g.add(c);
-      if (flames) flames.push({ x: dx, y: on + .13, z: .06, h: .12, w: .06, beat: flames.length * 1.7 }); // (the room kit's fire, lit where the niche stands)
-      else { const f = new THREE.Mesh(G.flame, flameMat); f.position.set(dx, on + .16, .06); g.add(f); }
+      const f = new THREE.Mesh(G.flame, flameMat); f.position.set(dx, on + .16, .06);
+      g.add(c, f);
     }
   } else if (kind === 'bell') { // a small hand bell of bronze
     const b = new THREE.Mesh(G.handbell, bronzeMat); b.scale.setScalar(1.5); b.position.set(0, on, .06); g.add(b);
