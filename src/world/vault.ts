@@ -15,7 +15,8 @@ import { burst } from '../combat/fx';
 import { renderMinimap, toast } from '../ui/hud';
 import { offerGuaranteed, placeArtifact } from '../items/artifacts';
 import { giveResources, spawnPickup } from '../items/pickups';
-import { rollTable } from '../items/loot';
+import { LOOT, rollTable } from '../items/loot';
+import { soulsHere } from '../items/souls';
 import { FLOORS } from './generate';
 import { SIDE_DIR } from './shapes';
 import { WARD_COLOR as WARD, freeSpotNear } from './rooms';
@@ -25,7 +26,7 @@ export function fillVault(room: Room) {
   const def = room.plan.artifact ? offerGuaranteed('vault') : null;
   if (def) { placeArtifact(room, def, room.cx, room.cz); return; }
   spawnPickup('chest', room.cx, room.cz);
-  const hoard = rollTable(G.run.drops, 'vaultHoard');
+  const hoard = rollTable(G.run.drops, 'vaultHoard', LOOT, soulsHere());
   hoard.forEach((item, i) => {
     const a = .5 + i / hoard.length * Math.PI * 2, p = freeSpotNear(room, room.cx + Math.cos(a) * 1.7, room.cz + Math.sin(a) * 1.3);
     spawnPickup(item, p.x, p.z);

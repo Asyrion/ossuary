@@ -13,14 +13,13 @@ import { M, basicMat, blob, disposeTree, glow, markShared } from '../render/mate
 import { shadeLook } from '../world/specialLooks';
 import { glyphTexture } from '../render/textures';
 import { burst } from '../combat/fx';
-import { renderHearts, renderMinimap, toast } from '../ui/hud';
+import { renderMinimap, toast } from '../ui/hud';
 import { WARD_COLOR as WARD } from '../world/rooms';
 import { grantArtifact, makeArtifactVisual, offerGuaranteed } from './artifacts';
-import { giveResources, itemVisual } from './pickups';
-import { heroDrink } from '../actors/hero';
+import { cantUse, giveResources, itemVisual, useItem } from './pickups';
+import { soulsHere } from './souls';
 import { itemLore, type LoreItem } from '../ui/lore';
-import { gainMana } from '../magic/spells';
-import { LOOT, RESOURCES, dropValue, priceOf, rollWares, type Item } from './loot';
+import { LOOT, priceOf, rollWares, type Item } from './loot';
 
 const C = CFG.merchant;
 
@@ -103,7 +102,7 @@ function makeShade() {
 /** Stock a merchant's room: the shade at the back, the wares in a row in front of him. */
 export function buildShop(room: Room) {
   const def = room.plan.artifact ? offerGuaranteed('merchant') : null;
-  const wares = rollWares(G.run.loot, !!def);
+  const wares = rollWares(G.run.loot, !!def, LOOT, soulsHere());
   room.wares = wares.map((ware, i) => {
     const x = room.cx + (i - (wares.length - 1) / 2) * C.spacing, z = room.cz + C.waresAt;
     const g = new THREE.Group(); g.position.set(x - room.cx, 0, z - room.cz);
@@ -118,6 +117,8 @@ export function buildShop(room: Room) {
   room.rocks.push({ x: room.cx, z: room.cz + C.shadeAt, hx: .42, hz: .42, hp: Infinity, breakable: false });
 }
 
+/** What he says when the mage couldn't use a ware now. */
+const REFUSE = { whole: () => STR.toast.wareWhole, brimming: () => STR.toast.wareBrimming, full: () => STR.toast.wareFull, souls: () => STR.toast.wareSouls, idle: () => STR.toast.wareIdle };
 function refuse(w: WareSpot, msg: string) {
   toast(msg, 3.2); Sfx.refuse();
   if (w.circle) burst(w.x, .2, w.z, WARD, 6, 1.2, .04);
@@ -127,11 +128,8 @@ function refuse(w: WareSpot, msg: string) {
     empty circle, free to take back. */
 function buy(w: WareSpot) {
   if (w.ware !== 'artifact') {
-    const v = dropValue(w.ware);
-    if (v.hearts && player.hp >= player.maxHp) return refuse(w, STR.toast.wareWhole);
-    if (v.mana && player.mana >= player.stats.maxMana) return refuse(w, STR.toast.wareBrimming);
-    const res = RESOURCES.find(k => v[k]);
-    if (res && player[res] >= LOOT.cap) return refuse(w, STR.toast.wareFull);
+    const why = cantUse(w.ware);
+    if (why) return refuse(w, REFUSE[why]());
   }
   const price = priceNow(w);
   if (player.coins < price) return refuse(w, STR.toast.tooPoor(price, player.coins));
@@ -148,9 +146,7 @@ function buy(w: WareSpot) {
       return;
     }
   } else {
-    const v = dropValue(w.ware as Item);
-    if (v.hearts) { player.hp = Math.min(player.maxHp, player.hp + v.hearts); renderHearts(); heroDrink(); }
-    else if (v.mana) { gainMana(v.mana); heroDrink(); } else giveResources(v);
+    useItem(w.ware as Item);
     toast(STR.toast.bought(STR.wares[w.ware]), 2.5); itemLore(w.ware as LoreItem);
   }
   w.sold = true; w.g.remove(w.item); disposeTree(w.item);

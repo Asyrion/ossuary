@@ -7,13 +7,13 @@ import { G, player } from '../state';
 import { STR } from '../strings';
 import { $ } from '../util';
 import { artifact, focusPattern, halveStat, type StatKey } from '../items/artifactData';
-import { LOOT } from '../items/loot';
+import { LOOT, SOULS } from '../items/loot';
 import { SCHOOLS, SPELL_DEFS, spell } from '../magic/spellData';
 import { atLeast } from '../magic/knowledge';
 import { castsOf, stage } from '../magic/memory';
 import { esc, head, spellSheet } from './spellPanel';
 import { showScreen } from './screens';
-import { artifactIcon, spellIcon } from './hud';
+import { artifactIcon, soulSvg, spellIcon } from './hud';
 import { itemIcon } from './lore';
 
 type Tab = 'artifacts' | 'spells' | 'items' | 'mage';
@@ -133,13 +133,16 @@ function itemEntries(): Entry[] {
     const t = STR.lore.items[k];
     return { icon: itemIcon(k), label: t.name, badge: String(count), detail: () => head(itemIcon(k), t.name, `${t.kind} · ${count}`) + `<p class="effect">${esc(t.effect)}</p><p class="lore">${esc(t.lore)}</p>` };
   };
-  const H = I().hearts, MI = I().manaItem;
+  const H = I().hearts, MI = I().manaItem, SO = I().souls;
   return [
     { icon: itemIcon('heart'), label: H.name, badge: halves(player.hp),
       detail: () => head(itemIcon('heart'), H.name, `${H.kind} · ${I().of(halves(player.hp), halves(player.maxHp))}`) + `<p class="effect">${esc(H.effect)}</p>` },
     { icon: itemIcon('mana'), label: MI.name, badge: String(Math.round(player.mana)),
       detail: () => head(itemIcon('mana'), MI.name, `${MI.kind} · ${I().of(String(Math.round(player.mana)), String(st.maxMana))}`)
         + `<p class="effect">${esc(st.effects.has('noRegen') ? MI.noRegen : MI.effect(M.calm, M.fight, M.perKill))}</p>` },
+    { icon: soulSvg(player.souls[player.souls.length - 1] ?? 'pale'), label: SO.name, badge: String(player.souls.length),
+      detail: () => head(soulSvg(player.souls[player.souls.length - 1] ?? 'pale'), SO.name, `${SO.kind} · ${player.souls.length ? SO.held(...SOULS.map(k => player.souls.filter(s => s === k).length) as [number, number, number]) : SO.none}`)
+        + `<p class="effect">${esc(SO.effect)}</p>` },
     item('coin', player.coins), item('key', player.keys), item('glyph', player.glyphs),
   ];
 }

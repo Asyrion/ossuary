@@ -18,11 +18,13 @@ import { spawnHeart, spawnPickup } from '../items/pickups';
 import { rollEnemyDrop } from '../items/loot';
 import { freeSpotNear } from '../world/rooms';
 import { gainMana } from '../magic/spells';
-import { damageTakenMul, spendHex } from '../magic/status';
+import { MAGIC, damageTakenMul, spendHex } from '../magic/status';
 import { dummyHit, floatText, inflict, shockLeap } from '../magic/statusFx';
 import { fireAt } from '../world/pools';
 import { foeDied, foeStruck } from '../actors/foes';
 import { payToll } from '../magic/shapes';
+import { guardHit, soulsHere } from '../items/souls';
+import { SOUL_COLOR } from '../items/loot';
 
 /** Hurt a foe, knocking it along (dx, dz); `kbMul` scales the knockback (the Ram's Skull on bolts); `by` says
     what struck it (a foe the cantrip puts to rest gives mana back); `school`, the magic it struck with, if any: a foe in
@@ -38,6 +40,7 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   if (by === 'spell') dmg *= player.stats.spellDamage; // Crown of Thorns
   if (e.foe) { dmg = foeStruck(e, dmg, by); if (dmg <= 0) { e.flash = .09; return; } } // (a void mote swallows the cantrip)
   e.hp -= dmg; e.flash = .09; e.lastHit = by; e.asleep = false; // a sleeper wakes
+  const hexed = e.status?.hex ?? 0; // (before the blow spends a stack: a foe that falls with enough leaves a soul mote)
   if (by) { // a hexed foe gives back mana for each stack a blow spends (M4.1); a foe marked by the Ferryman's Toll pays its toll
     let back = spendHex(e.status);
     if (e.toll && G.simClock >= (e.tollNext ?? 0)) { back += e.toll.mana; e.tollNext = G.simClock + CFG.mana.tollEvery; }
@@ -48,7 +51,7 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   const kb = (e.isBoss ? .6 : 2.6) * kbMul; e.kx += dx * kb; e.kz += dz * kb;
   Sfx.at(e.x, e.z).hit();
   if (e.isBoss) updateBossBar(e);
-  if (e.hp <= 0) killEnemy(e);
+  if (e.hp <= 0) killEnemy(e, false, hexed);
 }
 
 const GIB_COLOR: Record<keyof typeof CFG.enemy, number> = { rotling: 0x7f8a60, dummy: 0xc8a860, warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a, hart: 0xffe8b0, angler: 0x8a6ad8 };
@@ -57,12 +60,15 @@ const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = { rotling: 0x
 const gibOf = (e: Enemy) => e.foe ? new THREE.Color(e.foe.gib).getHex() : GIB_COLOR[e.type as EnemyType];
 const stainOf = (e: Enemy) => e.foe ? (e.foe.stain && new THREE.Color(e.foe.stain).getHex()) : STAIN_COLOR[e.type as EnemyType];
 
-function killEnemy(e: Enemy, withBoss = false) {
+function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
   e.dead = true; scene.remove(e.group); disposeTree(e.group); G.stats.kills++;
   if (withBoss) { burst(e.x, .45, e.z, gibOf(e), 12, 3, .08); return; } // its master fell: it crumbles, and drops nothing
   burst(e.x, e.isBoss ? 1 : .45, e.z, gibOf(e), e.isBoss ? 60 : 16, e.isBoss ? 6 : 3.5, e.isBoss ? .12 : .08);
   if (e.foe) { burst(e.x, .5, e.z, SCHOOL_LIGHT[e.foe.school], 10, 2.2, .04); foeDied(e); } // (its school's light goes out of it; what it leaves behind)
   if (e.toll) payToll(e); // marked by the Ferryman's Toll: it pays in obols, and its hex spreads
+  if (hexed >= MAGIC.hex.soulAt && e.type !== 'dummy' && G.run.drops.chance(Math.min(1, CFG.souls.hexChance * soulsHere()))) { // deep in a hex, its soul stays: a black mote
+    const p = freeSpotNear(G.current, e.x, e.z); spawnPickup('blackSoul', p.x, p.z, { rise: true });
+  }
   const stain = stainOf(e);
   if (stain) addDecal(e.x, e.z, stain, e.isBoss ? 1.6 : .7);
   if (player.stats.effects.has('deathBurst')) spawnBurst(e.x, e.z, 4); // Saint's Knucklebone
@@ -110,11 +116,13 @@ export function payBloodTithe() {
 export function hurtPlayer(halves: number, fromX: number, fromZ: number): boolean {
   if (player.invuln > 0 || G.state !== 'play') return false;
   if (DEV.god) return true;
-  player.hp -= halves; player.invuln = player.stats.invuln; renderHearts();
+  const guarded = guardHit(); // a soul mote takes the blow before the hearts do (M4.1)
+  if (!guarded) player.hp -= halves;
+  player.invuln = player.stats.invuln; renderHearts();
   if (G.current.locked) G.current.hurt = true; // no Unbroken Oath for this fight
   const dx = player.x - fromX, dz = player.z - fromZ, d = Math.hypot(dx, dz) || 1; player.vx += dx / d * 7; player.vz += dz / d * 7;
-  G.shake = .3; Sfx.hurt(); flashHurt();
-  burst(player.x, .6, player.z, 0xb3261a, 10, 2.5, .07);
+  G.shake = .3; if (!guarded) Sfx.hurt(); flashHurt();
+  burst(player.x, .6, player.z, guarded ? SOUL_COLOR[guarded] : 0xb3261a, 10, 2.5, .07);
   if (player.hp <= 0) {
     player.hp = 0; renderHearts(); player.vx = player.vz = 0;
     const wait = heroDie(); G.state = 'dying';

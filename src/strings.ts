@@ -77,10 +77,12 @@ export const STR = {
   runInfo: (floor: number, floors: number, seed: string) => `Floor ${floor} of ${floors} · Seed ${seed}`,
   rotate: 'Turn your phone sideways to play.',
   drop: 'Release to play as this model',
-  health: (hp: number, max: number) => `Health ${hp} of ${max} hearts`,
+  health: (hp: number, max: number, souls = 0) => `Health ${hp} of ${max} hearts` + (souls ? `, ${souls} soul mote${souls > 1 ? 's' : ''}` : ''),
   purse: (coins: number, keys: number, glyphs: number) => `${coins} obols, ${keys} bone keys, ${glyphs} blast glyphs`,
   toast: {
     fullHealth: 'You are already at full health', fullMana: 'Your mana is already full',
+    fullSouls: 'You can keep no more soul motes', shardIdle: 'Your spells are ready and your mana full: the shard has nothing to give',
+    soulBurned: 'Short of mana, the spell burned a soul mote for the rest',
     notGlb: 'That file is not a .glb. Export the model from Tripo as GLB and try again.',
     badGlb: 'This .glb could not be read. Re-export it from Tripo as GLB and try again.',
     focusLeft: (name: string) => `You leave the ${name} on the pedestal`,
@@ -107,6 +109,8 @@ export const STR = {
     noSpell: 'No spell in that slot yet: grimoire pages teach them.',
     spellWarded: "The shop's ward smothers the spell.",
     wareBrimming: 'You brim with mana already; keep your obols.',
+    wareSouls: 'You can keep no more soul motes; keep your obols.',
+    wareIdle: 'Your spells are ready and your mana full; keep your obols.',
     curseEscaped: (name: string) => `The curse slips back into the ${name}. Walk into its stone to try again.`,
   },
   /** The schools of magic, and how a spell's lore card names it and says what it does. */
@@ -188,6 +192,22 @@ export const STR = {
         name: 'Reliquary chest', kind: 'Container', effect: 'A bone key unbinds its ward; a blast breaks it, and burns half of what is inside',
         lore: 'A reliquary sealed with a priest\'s ward so that no thief could open it. A bone key asks the ward politely; a blast does not, and the relics pay for it.',
       },
+      paleSoul: {
+        name: 'Pale soul mote', kind: 'Soul', effect: 'Kept beside your hearts: takes the next hit for you. A spell short of mana burns one for the rest',
+        lore: 'Not every soul in the catacombs found the ferry. Some drift, pale and patient, and will stand between you and a blow if you let them walk beside you.',
+      },
+      blackSoul: {
+        name: 'Black soul mote', kind: 'Soul', effect: 'Takes a hit for you, and going out, hexes every foe in the room',
+        lore: 'A soul that went down angry and stayed that way. It guards you as willingly as any, and when it goes out it spills its grudge over everything nearby.',
+      },
+      hallowedSoul: {
+        name: 'Hallowed soul mote', kind: 'Soul', effect: 'Takes a hit only when no other mote is left; each floor it lives through gives back half a heart',
+        lore: 'A pilgrim who died with a prayer still on their lips. It goes last, as the faithful always did, and at every stair down it gives a little of its warmth to you.',
+      },
+      shard: {
+        name: 'Lodestone shard', kind: 'Magic', effect: 'Ends every spell\'s cooldown and restores 25 mana; left lying while your spells are ready and your mana full',
+        lore: 'A splinter of the stones the sextons set in the crypt walls to hold the old wards. It still pulls: at magic, at breath, at whatever the mage has spent.',
+      },
       gilded: {
         name: 'Gilded reliquary', kind: 'Container', effect: 'Only a bone key opens it; a relic lies inside',
         lore: 'Gilded for a relic that mattered, and sealed with a golden ward that no blast has ever broken. Whatever lies inside was worth the gold.',
@@ -232,6 +252,11 @@ export const STR = {
     paths: { bounce: 'Bounce off walls', boomerang: 'Come back', wave: 'Weave', homing: 'Curve towards foes' } as Record<string, string>,
     boltDamage: 'Bolt damage',
     hearts: { name: 'Hearts', kind: 'Life', effect: 'Your life, counted in halves. A heart or half a heart heals; a bone altar asks for a whole one.' },
+    souls: {
+      name: 'Soul motes', kind: 'Souls', none: 'None held',
+      held: (pale: number, black: number, hallowed: number) => [[pale, 'pale'], [black, 'black'], [hallowed, 'hallowed']].filter(([n]) => n).map(([n, k]) => `${n} ${k}`).join(', '),
+      effect: 'Pale flames kept beside your hearts: each takes a hit before your hearts do, and none can be healed back. A black one hexes the room when it goes out; a hallowed one goes last and gives back half a heart at every floor\'s end. A spell short of mana burns one for the rest.',
+    },
     manaItem: { name: 'Mana', kind: 'Magic', effect: (calm: number, fight: number, kill: number) => `Spells cost it. It comes back ${calm} a second out of a fight and ${fight} in one, and ${kill} for every foe your cantrip puts to rest.`, noRegen: 'The Hungering Tome feeds it only on the dead: it no longer comes back on its own.' },
     of: (n: string, max: string) => `${n} of ${max}`,
     mage: {
@@ -329,11 +354,11 @@ export const STR = {
     godOn: 'God mode: on', godOff: 'God mode: off',
     doors: { data: 'Doors: as the floor has them', shifted: 'Doors: off the middle', middle: 'Doors: in the middle' } as Record<string, string>,
     moveClip: { run: 'Moving: run clip', walkInStep: 'Moving: walk clip, feet in step', walkNatural: 'Moving: walk clip, natural pace' } as Record<string, string>,
-    resources: 'Obols, keys and glyphs', emptyPurse: 'Empty the purse',
+    resources: 'Obols, keys, glyphs and soul motes', emptyPurse: 'Empty the purse', giveSoul: (name: string) => `+ ${name}`, noSouls: 'No soul motes', floorEnd: "A floor's end (hallowed motes mend)",
     give: (n: number, what: string) => `+${n} ${what}${n === 1 ? '' : 's'}`,
     names: { coins: 'obol', keys: 'key', glyphs: 'glyph' } as Record<string, string>,
     drops: 'Drop ahead of the mage', gildedChest: 'Gilded chest', loreAgain: 'Describe items again', loreAgainTitle: 'Items and containers show their lore card again the next time one is taken',
-    dropNames: { halfHeart: 'Half heart', heart: 'Heart', coin: 'Obol', purse: 'Purse', key: 'Bone key', glyph: 'Glyph stone', mana: 'Mana vial', coffer: 'Coffer', chest: 'Reliquary chest' } as Record<string, string>,
+    dropNames: { halfHeart: 'Half heart', heart: 'Heart', coin: 'Obol', purse: 'Purse', key: 'Bone key', glyph: 'Glyph stone', mana: 'Mana vial', paleSoul: 'Pale soul mote', blackSoul: 'Black soul mote', hallowedSoul: 'Hallowed soul mote', shard: 'Lodestone shard', coffer: 'Coffer', chest: 'Reliquary chest' } as Record<string, string>,
     spells: 'Spells (click to learn into the slot)', slot: 'Slot', mana: 'Mana', fullMana: 'Full mana', manaOn: 'Endless mana: on', manaOff: 'Endless mana: off', forget: 'Forget spells',
     page: 'Drop a grimoire page', noPage: 'No spell left to learn',
     themes: 'Themed rooms (a test room of each)', objects: 'Objects (put down ahead)', noRoom: 'No free floor there',
@@ -356,7 +381,7 @@ export const STR = {
     keep: ' Keep artifacts, obols, keys and glyphs when starting',
   },
   /** What a merchant's ware is called in messages. */
-  wares: { heart: 'heart', halfHeart: 'half heart', key: 'bone key', glyph: 'glyph stone', coin: 'obol', purse: 'purse', mana: 'mana vial' } as Record<string, string>,
+  wares: { heart: 'heart', halfHeart: 'half heart', key: 'bone key', glyph: 'glyph stone', coin: 'obol', purse: 'purse', mana: 'mana vial', paleSoul: 'pale soul mote', blackSoul: 'black soul mote', hallowedSoul: 'hallowed soul mote', shard: 'lodestone shard' } as Record<string, string>,
   heroInfo: (label: string, tris: number, stripped: boolean, skinned: boolean, clips: string) =>
     `${label}: ${tris.toLocaleString()} triangles${stripped ? ', base removed' : ''}` +
     `${skinned ? ', rigged' : ', static (procedural animation)'}${clips ? `. Clips used: ${clips}` : ''}.`,

@@ -40,6 +40,8 @@ export interface FloorConfig {
   /** Whether the floor has a library, where grimoire pages teach spells (GDD: one on every floor). */ library: boolean;
   /** Chance the secret room holds an artifact (outside the budget) rather than a hoard. */ secretArtifactChance: number;
   /** The champion that rises in a vault forced open with glyphs. */ vaultWarden: FoeType;
+  /** How much likelier soul motes are in the floor's loot than on the first floors (M4.1: the deep floors give more;
+      1 when unset). */ souls?: number;
   /** The floor's foes by role (M4): what fills a template's walkers (`R`), flyers and shooters (`W`) and chargers and
       heavies (`H`), by weight (actors/foeData.ts). */ foes: RoleTable;
   /** Chance the boss room is widened into a great hall when there is space. */ bossHallChance: number;

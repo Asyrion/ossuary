@@ -788,7 +788,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
       if (e.st <= 0) {
         const R = num(P.healRange);
         for (const o of others) if (o.hp < o.maxHp && canHeal(o.status) && Math.hypot(o.x - e.x, o.z - e.z) < R) { // (not what Hallow has sanctified)
-          o.hp = Math.min(o.maxHp, o.hp + o.maxHp * num(P.healShare)); if (o.isBoss) updateBossBar(o);
+          o.hp = Math.min(o.maxHp, o.hp + o.maxHp * num(o.isBoss ? P.bossShare : P.healShare)); if (o.isBoss) updateBossBar(o); // (a boss takes only a little of it)
           burst(o.x, .8, o.z, light(e), 8, 1.2, .04);
         }
         ringFx(e.x, .1, e.z, light(e), .2, R, .5, true); Sfx.at(e.x, e.z).fawnHeal();

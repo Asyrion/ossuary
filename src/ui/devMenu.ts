@@ -15,7 +15,8 @@ import { FOES, FOE_IDS, pickFoe } from '../actors/foeData';
 import { forgetBestiary } from '../actors/bestiary';
 import { ARTIFACT_DEFS, START_FOCUS, artifact } from '../items/artifactData';
 import { giveById, grantArtifact, placeArtifact, refreshStats, removeArtifactGallery, resetArtifacts, showArtifactGallery } from '../items/artifacts';
-import { DROPS, RESOURCES, type Drop, type Resource } from '../items/loot';
+import { DROPS, RESOURCES, SOULS, soulItem, type Drop, type Resource } from '../items/loot';
+import { gainSoul, hallowedMend, resetSouls } from '../items/souls';
 import { giveResources, spawnPickup } from '../items/pickups';
 import { makeEnemy } from '../actors/enemies';
 import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
@@ -189,6 +190,9 @@ function build() {
     res.append(btn(S.give(n, S.names[r]), () => giveResources({ [r]: n })));
   }
   res.append(btn(S.emptyPurse, () => giveResources({ coins: -99, keys: -99, glyphs: -99 })));
+  // soul motes (M4.1): one of each kind straight into the HUD, none, and a floor's end for the hallowed ones
+  for (const k of SOULS) res.append(btn(S.giveSoul(S.dropNames[soulItem(k)]), () => { if (!gainSoul(k)) toast(STR.toast.fullSouls, 2); }));
+  res.append(btn(S.noSouls, () => resetSouls()), btn(S.floorEnd, () => hallowedMend()));
 
   // drops, just ahead of the mage
   const drops = section(pages.mage, S.drops);

@@ -11,6 +11,11 @@ import { spell } from '../magic/spellData';
 import { spellCost } from '../magic/cost';
 import { $, clamp } from '../util';
 
+/** A soul mote's flame (M4.1), and its colours: fill, rim, and the brighter core. */
+export const SOUL_PATH = 'M12 2.8c2.4 3.4 6.3 6.8 6.3 11.3a6.3 6.3 0 0 1-12.6 0c0-2.9 1.5-4.5 2.8-6.1.3 1.7 1.1 2.9 2.3 3.4-.4-3.1 0-5.9 1.2-8.6z';
+export const SOUL_HUES = { pale: ['#cfe0ff', '#5a6a8a', '#ffffff'], black: ['#2a1640', '#a266ff', '#c8a0ff'], hallowed: ['#ffe39a', '#9a7a2a', '#fffbe8'] } as const;
+export const soulSvg = (kind: keyof typeof SOUL_HUES) => { const [fill, rim, core] = SOUL_HUES[kind];
+  return `<svg viewBox="0 0 24 24" class="soul ${kind}"><path d="${SOUL_PATH}" fill="${fill}" stroke="${rim}" stroke-width="1.4"/><ellipse cx="12" cy="15.2" rx="2.3" ry="3" fill="${core}" opacity=".75"/></svg>`; };
 export const HEART_PATH = 'M12 21.2s-7.6-4.7-9.7-9.3C.8 8.3 3 4.4 6.7 4.4c2.1 0 3.6 1.1 4.4 2.7.8-1.6 2.3-2.7 4.4-2.7 3.7 0 5.9 3.9 4.3 7.5-2.1 4.6-9.8 9.3-9.8 9.3z';
 /* The artifacts' drawn icons (24 × 24, in the artifact's colour): the room kit's are rendered from its models
    (items/artifactIcons.ts); these stay for the room kit off. */
@@ -139,7 +144,7 @@ const el = {
 let lastHearts = '';
 export function resetHearts() { lastHearts = ''; }
 export function renderHearts() {
-  const key = player.hp + '/' + player.maxHp; if (key === lastHearts) return; lastHearts = key;
+  const key = player.hp + '/' + player.maxHp + '/' + player.souls.join(); if (key === lastHearts) return; lastHearts = key;
   let html = '';
   for (let i = 0; i < player.maxHp / 2; i++) {
     const v = clamp(player.hp - i * 2, 0, 2);
@@ -147,8 +152,9 @@ export function renderHearts() {
       (v === 2 ? `<path d="${HEART_PATH}" fill="#c42c1f"/>` : v === 1 ? `<path d="${HEART_PATH}" fill="#c42c1f" clip-path="url(#halfclip)"/>` : '') +
       `<path d="M7 7.2c-1.2.3-2 1.2-2.2 2.4" stroke="rgba(255,220,200,.55)" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>`;
   }
+  for (const kind of player.souls) html += soulSvg(kind); // soul motes after the hearts (M4.1), in the order taken
   el.hearts.innerHTML = html;
-  el.hearts.setAttribute('aria-label', STR.health(player.hp / 2, player.maxHp / 2));
+  el.hearts.setAttribute('aria-label', STR.health(player.hp / 2, player.maxHp / 2, player.souls.length));
 }
 
 let lastPurse = '';

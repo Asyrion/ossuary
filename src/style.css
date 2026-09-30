@@ -31,6 +31,9 @@ body{font-family:var(--f-ui);color:var(--ink);-webkit-user-select:none;user-sele
 #hud{position:fixed;inset:0;pointer-events:none}
 #hearts{position:absolute;left:calc(env(safe-area-inset-left,0px) + 16px);top:calc(env(safe-area-inset-top,0px) + 14px);display:flex;gap:4px}
 #hearts svg{width:30px;height:30px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.6))}
+#hearts svg.soul{width:26px;height:30px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.6)) drop-shadow(0 0 4px rgba(200,220,255,.35))}
+#hearts svg.soul.black{filter:drop-shadow(0 2px 0 rgba(0,0,0,.6)) drop-shadow(0 0 4px rgba(162,102,255,.5))}
+#hearts svg.soul.hallowed{filter:drop-shadow(0 2px 0 rgba(0,0,0,.6)) drop-shadow(0 0 4px rgba(255,227,154,.5))}
 #mana{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 50px);width:150px;height:8px;border:1px solid #0b0a14;background:#10121e;border-radius:2px;box-shadow:0 2px 0 rgba(0,0,0,.5);overflow:hidden}
 #mana i{display:block;height:100%;width:100%;background:linear-gradient(#8fc0ff,#3a6fd8);transform-origin:left;transition:background .2s}
 #mana.flash i{background:linear-gradient(#ff9a8a,#c83a2a)}

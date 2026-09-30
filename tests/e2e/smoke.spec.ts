@@ -843,7 +843,7 @@ type G11h = Omit<G11, 'enemies' | 'spawn' | 'inflict'> & {
   enemies: (Omit<G11['enemies'][number], 'status'> & { status?: HStatus; toll?: unknown })[];
   spawn(kind: string, x?: number, z?: number): { hp: number; x: number; z: number; status?: HStatus; toll?: unknown; type: string };
   inflict(status: Record<string, number>): void; hit(i: number, dmg: number, school?: string, by?: string): number;
-  readonly ward: number; pickups: { kind: string }[];
+  readonly ward: number; pickups: { kind: string }[]; prop(kind: string, x?: number, z?: number): boolean; props: { kind: string; lit?: boolean }[];
 };
 
 test('Hallow and Umbral (M4.1): holy ground heals and lays foes open, judgement falls on the strongest, wardlight breaks shots, hexes give mana back, hands hold, the toll pays; Eclipse and Blackfire', async ({ page }) => {
@@ -851,11 +851,11 @@ test('Hallow and Umbral (M4.1): holy ground heals and lays foes open, judgement 
   // Consecrate: the dummy in the holy ground is struck and sanctified; the mage in it is healed once
   const zone = await page.evaluate(() => {
     const g = (window as unknown as W).__game as unknown as G11h, P = g.player; g.warp(1); g.sim(.3); P.x -= 3;
-    g.learn('consecrate', 0); g.mana(999); const d = g.spawn('dummy', P.x + 1, P.z); g.sim(.8);
+    g.learn('consecrate', 0); g.mana(999); const d = g.spawn('dummy', P.x + 1, P.z); g.prop('candles', P.x - 1.2, P.z); g.sim(.8);
     P.hp = P.maxHp - 1; const cast = g.cast(0); g.sim(1.2);
-    return { cast, sanct: d.status?.sanct ?? 0, healed: P.hp === P.maxHp };
+    return { cast, sanct: d.status?.sanct ?? 0, healed: P.hp === P.maxHp, candles: g.props.find(q => q.kind === 'candles')?.lit };
   });
-  expect(zone).toMatchObject({ cast: true, healed: true });
+  expect(zone).toMatchObject({ cast: true, healed: true, candles: true }); // (holy ground kindles the candle stands on it)
   expect(zone.sanct).toBeGreaterThan(1);
   // Judgement: nothing for a moment, then the pillar falls on the strongest foe in reach, and only on it
   const judge = await page.evaluate(() => {
@@ -931,6 +931,74 @@ test('Hallow and Umbral (M4.1): holy ground heals and lays foes open, judgement 
   expect(toll.spread).toBeGreaterThanOrEqual(2);
   await page.evaluate(() => (window as unknown as W).__game.sim(.05, true));
   await page.screenshot({ path: 'test-results/smoke-hallow-umbral.png' });
+  expect(errors).toEqual([]);
+});
+
+type GS = Omit<G11h, 'player'> & {
+  player: G11h['player'] & { spellCd: number[]; souls: string[] }; readonly souls: string[]; soul(kind: string): boolean; hallowedMend(): number;
+  drop(kind: string, x?: number, z?: number): void;
+};
+
+test('soul motes (M4.1): they take hits before the hearts, a black one hexes the room, a hallowed one goes last and mends at a floor\'s end, a spell short of mana burns one, a hexed foe leaves one; the lodestone shard ends cooldowns', async ({ page }) => {
+  const errors = await start(page, '?room=treasure_plain&seed=SOUL1&spells=arc');
+  // a pale mote picked up shows beside the hearts, and takes the next hit
+  const pale = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GS, P = g.player; g.warp(1); g.sim(.3); P.x -= 3;
+    g.drop('paleSoul', P.x, P.z); g.sim(.8); const held = g.souls, shown = document.querySelectorAll('#hearts svg.soul').length;
+    P.invuln = 0; const hp = P.hp; g.shoot(P.x, P.z - 2.5, 0, 1); g.sim(1);
+    return { held, shown, hurt: hp - P.hp, after: g.souls, left: document.querySelectorAll('#hearts svg.soul').length };
+  });
+  expect(pale).toEqual({ held: ['pale'], shown: 1, hurt: 0, after: [], left: 0 });
+  // a black and a hallowed one: the hit takes the black (the hallowed goes last though taken later), which hexes every foe
+  const black = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GS, P = g.player;
+    const a = g.spawn('rotling', P.x + 4, P.z - 2), b = g.spawn('rotling', P.x + 5, P.z + 2); g.sim(.8);
+    g.soul('black'); g.soul('hallowed'); P.invuln = 0; const hp = P.hp; g.shoot(P.x, P.z - 2.5, 0, 1); g.sim(1);
+    const after = g.souls, hexed = [a.status?.hex ?? 0, b.status?.hex ?? 0];
+    P.invuln = 0; g.shoot(P.x, P.z - 2.5, 0, 1); g.sim(1);
+    return { after, hexed, hurt: hp - P.hp, last: g.souls };
+  });
+  expect(black).toEqual({ after: ['hallowed'], hexed: [2, 2], hurt: 0, last: [] });
+  // hallowed motes held at a floor's end give back half a heart each
+  const mend = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GS, P = g.player; g.clearRoom(); g.sim(.3);
+    P.hp = P.maxHp - 3; g.soul('hallowed'); g.soul('hallowed'); g.soul('pale');
+    return { mended: g.hallowedMend(), short: P.maxHp - P.hp, kept: g.souls };
+  });
+  expect(mend).toEqual({ mended: 2, short: 1, kept: ['hallowed', 'hallowed', 'pale'] });
+  // a spell short of mana burns a mote for the rest (the last taken that isn't hallowed); with none, it fails
+  const burn = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GS; g.spawn('dummy', g.player.x, g.player.z - 2); g.sim(.8);
+    g.mana(2); const cast = g.cast(0, { x: 0, z: -1 }), after = g.souls, toast = document.querySelector('#toast')!.textContent;
+    g.sim(2); g.player.souls.length = 0; g.mana(2); const failed = !g.cast(0, { x: 0, z: -1 });
+    return { cast, after, toast, failed };
+  });
+  expect(burn).toMatchObject({ cast: true, after: ['hallowed', 'hallowed'], failed: true });
+  expect(burn.toast).toMatch(/soul mote/);
+  // the lodestone shard ends the cooldown and gives mana; with nothing to give, it is left lying
+  const shard = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GS, P = g.player; g.clearRoom(); g.sim(.3); g.mana(999);
+    g.spawn('dummy', P.x, P.z - 2); g.sim(.8); g.cast(0, { x: 0, z: -1 }); const cd = P.spellCd[0]; g.mana(10); g.clearRoom();
+    g.drop('shard', P.x, P.z); g.sim(.8); const after = { cd: P.spellCd[0], mana: P.mana };
+    g.mana(999); g.drop('shard', P.x, P.z); g.sim(.8);
+    return { cd, after, lying: g.pickups.filter(q => q.kind === 'shard').length };
+  });
+  expect(shard.cd).toBeGreaterThan(.5);
+  expect(shard.after.cd).toBe(0); expect(shard.after.mana).toBeGreaterThanOrEqual(35);
+  expect(shard.lying).toBe(1);
+  // a foe that falls deep in a hex leaves a black mote now and then (about one in two)
+  const hexed = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GS, P = g.player; g.clearRoom(); g.sim(.3);
+    for (let i = 0; i < 8; i++) g.spawn('rotling', P.x - 3 + (i % 4) * 1.6, P.z - 2.5 + Math.floor(i / 4) * 1.2);
+    g.sim(.8); g.inflict({ hex: 4 });
+    for (let i = g.enemies.length - 1; i >= 0; i--) g.hit(i, 999, undefined, 'spell');
+    g.sim(1);
+    return g.pickups.filter(q => q.kind === 'blackSoul').length;
+  });
+  expect(hexed).toBeGreaterThanOrEqual(1);
+  expect(hexed).toBeLessThanOrEqual(8);
+  await page.evaluate(() => (window as unknown as W).__game.sim(.05, true));
+  await page.screenshot({ path: 'test-results/smoke-souls.png' });
   expect(errors).toEqual([]);
 });
 
@@ -1184,9 +1252,11 @@ test('the inventory lists what the mage carries and knows, in tabs, and describe
   await expect(detail).toContainText('sell its page back for 7 obols');
   // clicking a tab: the items, with their counts
   await page.locator('#invTabs button', { hasText: 'Items' }).click();
-  await expect(tiles).toHaveCount(5);
-  await expect(page.locator('#invList .tile .n')).toHaveText(['2', '100', '12', '1', '4']); // the crown took a heart
+  await expect(tiles).toHaveCount(6);
+  await expect(page.locator('#invList .tile .n')).toHaveText(['2', '100', '0', '12', '1', '4']); // the crown took a heart; no soul motes yet
   await tiles.nth(2).click();
+  await expect(detail).toContainText('None held');
+  await tiles.nth(3).click();
   await expect(detail).toContainText('Grave obol');
   // the mage's numbers
   await page.keyboard.press('KeyE');
@@ -2010,7 +2080,7 @@ test('the room kit\'s pickups and special rooms: every drop, coffers and chests 
   })()`) as Promise<{ laid: { kind: string; painted: boolean }[]; opened: number; boxes: number; spilled: number }>;
   const errors = await start(page, '?seed=K3F9QX');
   const kit = await drops();
-  expect(kit.laid.map(d => d.kind).sort()).toEqual(['chest', 'chest', 'coffer', 'coin', 'glyph', 'halfHeart', 'heart', 'key', 'mana', 'purse']);
+  expect(kit.laid.map(d => d.kind).sort()).toEqual(['blackSoul', 'chest', 'chest', 'coffer', 'coin', 'glyph', 'halfHeart', 'hallowedSoul', 'heart', 'key', 'mana', 'paleSoul', 'purse', 'shard']);
   expect(kit.laid.every(d => d.painted)).toBe(true);
   expect(kit).toMatchObject({ boxes: 3, opened: 3 }); expect(kit.spilled).toBeGreaterThan(0); // (a key each for the chests; the gilded one's relic is an artifact, not a pickup)
   await page.screenshot({ path: 'test-results/room-kit-drops.png' });
@@ -2034,7 +2104,8 @@ test('the room kit\'s pickups and special rooms: every drop, coffers and chests 
   // off: the old pickups, nothing painted
   await start(page, '?seed=K3F9QX&kit=old');
   const old = await drops();
-  expect(old.laid.some(d => d.painted)).toBe(false); expect(old).toMatchObject({ boxes: 3, opened: 3 });
+  expect(old.laid.filter(d => d.painted).map(d => d.kind).sort()).toEqual(['blackSoul', 'hallowedSoul', 'paleSoul', 'shard']); // (M4.1's items have only the kit's look)
+  expect(old).toMatchObject({ boxes: 3, opened: 3 });
   expect(errors).toEqual([]);
 });
 

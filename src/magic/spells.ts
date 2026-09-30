@@ -15,6 +15,7 @@ import { spellCost } from './cost';
 import { CAST, clearShapes, leaveRoomShapes, updateShapes } from './shapes';
 import { skullsWatch } from '../world/dressing';
 import { castSpellOnce, learnedSpell } from './memory';
+import { burnSoul } from '../items/souls';
 
 /* ---------- mana ---------- */
 
@@ -51,9 +52,10 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   const def = spell(id);
   if (G.current.type === 'merchant') { toast(STR.toast.spellWarded, 2.5); Sfx.wardTink(); flashMana(slot, 'target'); return false; }
   if (player.spellCd[slot] > 0) { Sfx.spellFail(); flashMana(slot, 'cooldown'); return false; }
-  const cost = spellCost(def);
-  if (player.mana < cost && !DEV.mana) { Sfx.spellFail(); flashMana(slot, 'mana'); return false; }
+  const cost = spellCost(def), short = player.mana < cost && !DEV.mana;
+  if (short && !player.souls.length) { Sfx.spellFail(); flashMana(slot, 'mana'); return false; } // (with a soul mote, it burns for the rest)
   if (!CAST[def.shape](def, aimDir(cast))) { Sfx.spellFail(); flashMana(slot, 'target'); return false; }
+  if (short) burnSoul();
   if (!DEV.mana) gainMana(-cost);
   player.spellCd[slot] = def.cooldown;
   skullsWatch(G.current, def.color); // an ossuary's skulls take the spell's colour

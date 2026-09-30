@@ -18,7 +18,8 @@ import { addDecal, burst } from '../combat/fx';
 import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { inflict } from '../magic/statusFx';
 import { riseMote } from '../magic/shapes';
-import { rollTable } from '../items/loot';
+import { LOOT, rollTable } from '../items/loot';
+import { soulsHere } from '../items/souls';
 import { spawnPickup } from '../items/pickups';
 import { mulberry } from '../util';
 import { PROPS, isMechanism, type MechanismKind, type PropKind } from './propData';
@@ -245,7 +246,7 @@ function breakProp(room: Room, box: PropBox) {
     case 'briar': case 'web': burst(x, .25, z, kind === 'web' ? 0xe8e8f0 : 0x2e3a22, 8, 1.4, .04); sfx.tear(); break;
     default: burst(x, .3, z, 0x8a8078, 8, 1.6, .05);
   }
-  if (def.loot) for (const item of rollTable(G.run.drops, def.loot)) spawnPickup(item, x, z, { rise: true });
+  if (def.loot) for (const item of rollTable(G.run.drops, def.loot, LOOT, soulsHere())) spawnPickup(item, x, z, { rise: true });
 }
 
 /** A broken cask's oil: its own tile and a few of the free floor tiles beside it, spreading outwards. */
