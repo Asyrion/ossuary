@@ -54,13 +54,17 @@ export const CFG = {
   // water and oil (world/pools.ts): wading speed (the mage and walking foes), seconds oil burns and water stays
   // frozen, the burn burning oil sets on foes and how often, the half hearts it and a shocked pool take from the
   // mage, how long a shocked pool crackles, and the drowned floor's puddles (how many per fight, tiles each)
+  // M4.2: how fast a current carries the mage and walking foes, bolts and shots over it, and pickups lying in it (units a second)
+  flow: { carry: 1.7, bolts: 1.1, pickups: 1.3 },
   surface: { wade: .6, oilBurn: 5, iceTime: 8, groundBurn: 2, tick: .25, mageHurt: 1, charged: .5, shockSpread: 1.5, shockDamage: 2, puddles: [1, 2] as [number, number], puddleSize: [2, 4] as [number, number] },
   // the rooms' objects (M3.6, world/props.ts): how long each flammable one burns (seconds), how often burning spreads
   // to what burns beside it, cobwebs' slowing, the briar's sting (half hearts to the mage, damage a second to walkers),
   // the oil a broken cask spills (tiles beyond its own), and glowcap spores (how long a cloud hangs, its reach, the
   // flash when fire finds it: damage to foes, Burn stacks, half hearts to the mage within reach)
   props: {
-    burn: { roots: 3.5, tree: 6, briar: 2, web: .45, sacks: 1.6, desk: 3, scrolls: .7 } as Record<string, number>, spread: .5,
+    burn: { roots: 3.5, tree: 6, briar: 2, web: .45, sacks: 1.6, desk: 3, scrolls: .7, bridge: 4 } as Record<string, number>, spread: .5,
+    // M4.2: half hearts a fall through a burnt rope bridge takes from the mage
+    fallHurt: 2,
     webSlow: .45, briarHurt: 1, briarDamage: 2, caskSpill: 3,
     spores: { time: 4, reach: 1.3, damage: 6, burn: 2, mageHurt: 1 },
   },

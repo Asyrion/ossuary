@@ -2,7 +2,7 @@ import type * as THREE from 'three';
 import type { PropKind } from './world/propData';
 import type { ThemeDef } from './world/themeData';
 import type { BossConfig, PlannedRoom } from './world/generate';
-import type { FoeKind, Template } from './world/templates';
+import type { FoeKind, Flow, Template } from './world/templates';
 import type { FoeDef, FoeType, School } from './actors/foeData';
 import type { StatusState } from './magic/status';
 import type { SpellStatus, StatusKind } from './magic/spellData';
@@ -130,6 +130,7 @@ export interface Room {
   /** The merchant's wares and the shade himself. */ wares?: WareSpot[]; shade?: THREE.Group;
   /** A locked vault forced open by blasts: its warden, a champion, rises when the mage comes in. */ warden?: boolean;
   /** M4.2: its ward burst full of this school: a Wardling of it is the warden. */ drunk?: School;
+  /** M4.2: the way its water flows (from the template), and the waterfalls feeding it. */ flow?: Flow; falls?: { mesh: THREE.Mesh; tex: THREE.Texture }[];
   /** A secret room, once one of its walls has been blasted open. */ found?: boolean;
   /** The mage was hurt during this room's fight (Unbroken Oath). */ hurt?: boolean;
   /** A shrine: its circle's material, the motes around it and the offering stones. */

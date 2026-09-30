@@ -28,6 +28,7 @@ import type { SpellStatus } from '../magic/spellData';
 import { addPool, fireAt } from './pools';
 import { scrollsBroken } from './themes';
 import { OBJECT_LOOKS, burningFire } from './objectLooks';
+import { addPit, freeSpotNear, openChasm } from './rooms';
 
 const P = CFG.props;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, SPORE = 0x9fe8b0, BONE = 0xd8ccb2;
@@ -155,7 +156,7 @@ const LOOKS: Record<Exclude<PropKind, MechanismKind>, Look> = {
     return g;
   },
   // M4.1's objects have only the room kit's look
-  hoard: R => OBJECT_LOOKS.hoard(R), boat: (R, len) => OBJECT_LOOKS.boat(R, len),
+  hoard: R => OBJECT_LOOKS.hoard(R), boat: (R, len) => OBJECT_LOOKS.boat(R, len), bridge: (R, len) => OBJECT_LOOKS.bridge(R, len),
   pew(_R, len) { // a bench facing north, towards where a chapel's altar would stand: seat, back on the south side, ends
     const g = new THREE.Group(), L = len - .12;
     const seat = new THREE.Mesh(boxUV(L, .07, .42), MAT.wood); seat.position.set(0, .34, -.05);
@@ -175,33 +176,38 @@ function skull() {
 
 const worldOf = (room: Room, c: number, r: number) => ({ x: room.bounds.minX + c + .5, z: room.bounds.minZ + r + .5 });
 
-/** The objects in a room's template: pews side by side join into one. */
+/** The objects in a room's template: pews side by side join into one, and a rope bridge's tiles, across or down (M4.2),
+    into one over the chasm drawn under it. */
 export function buildProps(room: Room) {
   const t = room.template;
   for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) {
     const kind = t.tiles[r][c] as PropKind;
     if (!(kind in PROPS)) continue;
-    const long = kind === 'pew' || kind === 'boat'; // (a run of them is one long pew, or one boat)
+    if (kind === 'bridge') addPit(room, c, r, false); // (the chasm's dark under it; it falls open when the bridge burns)
+    const long = kind === 'pew' || kind === 'boat' || kind === 'bridge'; // (a run of them is one long pew, one boat, one bridge)
     if (long && t.tiles[r][c - 1] === kind) continue; // part of the one begun to its left
-    let len = 1; if (long) while (t.tiles[r][c + len] === kind) len++;
-    addProp(room, kind, c, r, len);
+    const down = kind === 'bridge' && t.tiles[r][c + 1] !== kind && (t.tiles[r + 1]?.[c] === kind || t.tiles[r - 1]?.[c] === kind);
+    if (down && t.tiles[r - 1]?.[c] === kind) continue; // part of the one begun above it
+    let len = 1; if (long) while ((down ? t.tiles[r + len]?.[c] : t.tiles[r][c + len]) === kind) len++;
+    addProp(room, kind, c, r, len, down);
   }
 }
 
 /** Whether a room's objects are the room kit's (objectLooks.ts). */
 const kitObjects = (room: Room) => DEV.roomKit && !!room.look.kinds;
 
-/** An object on tile (c, r) (a pew `len` tiles long from there). */
-export function addProp(room: Room, kind: PropKind, c: number, r: number, len = 1) {
+/** An object on tile (c, r) (a pew `len` tiles long from there; a rope bridge that long across, or `down`). */
+export function addProp(room: Room, kind: PropKind, c: number, r: number, len = 1, down = false) {
   const def = PROPS[kind], R = mulberry(c * 97 + r * 13 + room.plan.seed);
-  const a = worldOf(room, c, r), x = a.x + (len - 1) / 2, z = a.z;
+  const a = worldOf(room, c, r), x = a.x + (down ? 0 : (len - 1) / 2), z = a.z + (down ? (len - 1) / 2 : 0);
   const mesh = (isMechanism(kind) ? MECH_LOOKS[kind] : kitObjects(room) ? OBJECT_LOOKS[kind] : LOOKS[kind])(R, len, room.look); mergeStill(mesh); // a few draw calls, not a dozen
-  mesh.position.set(x - room.cx, 0, z - room.cz); room.group.add(mesh);
-  const tiles = Array.from({ length: len }, (_, i) => ({ c: c + i, r }));
+  mesh.position.set(x - room.cx, 0, z - room.cz); if (down) mesh.rotation.y = Math.PI / 2; room.group.add(mesh);
+  const tiles = Array.from({ length: len }, (_, i) => down ? { c, r: r + i } : { c: c + i, r });
   for (const tl of tiles) room.template.tiles[tl.r][tl.c] = kind;
   const prop: PropState = { kind, hits: def.hits, burning: 0, tiles, mesh, parts: mesh.userData.parts, ward: mesh.userData.ward };
-  const half = kind === 'cask' ? .3 : kind === 'roots' ? .42 : kind === 'candles' ? .22 : kind === 'lodestone' || kind === 'rune' || kind === 'obelisk' ? .32 : kind === 'bell' ? .45 : .38;
-  const box: PropBox = { x, z, hx: len > 1 ? len / 2 - .06 : half, hz: kind === 'pew' ? .3 : kind === 'boat' ? .34 : half, hp: def.hits, breakable: false, mesh, tile: { c, r }, prop };
+  const half = kind === 'cask' ? .3 : kind === 'roots' ? .42 : kind === 'candles' || kind === 'wetCandles' ? .22 : kind === 'lodestone' || kind === 'rune' || kind === 'obelisk' ? .32 : kind === 'bell' ? .45 : .38;
+  const long = len > 1 ? len / 2 - .06 : half, wide = kind === 'pew' ? .3 : kind === 'boat' ? .34 : kind === 'bridge' ? .45 : half;
+  const box: PropBox = { x, z, hx: down ? wide : long, hz: down ? long : wide, hp: def.hits, breakable: false, mesh, tile: { c, r }, prop };
   (room.props ??= []).push(box);
   if (def.class === 'hanging') { /* over the floor: nothing blocks, only bolts reach it (mechanisms.ts) */ }
   else if (def.class === 'soft') (room.soft ??= []).push(box);
@@ -299,6 +305,19 @@ function ignite(room: Room, box: PropBox) {
   burst(box.x, .3, box.z, FIRE, 6, 2, .06); Sfx.at(box.x, box.z).catchFire();
 }
 
+/** A rope bridge burnt through (M4.2): the chasm opens under it, and what stood on it falls. A foe is gone; the mage
+    takes a heart's fall and climbs out on the nearest ledge. */
+function collapse(room: Room, box: PropBox) {
+  for (const t of box.prop.tiles) openChasm(room, t.c, t.r);
+  for (const t of box.prop.tiles) { const w = worldOf(room, t.c, t.r); burst(w.x, .1, w.z, 0x6a5238, 5, 1.6, .05); }
+  Sfx.at(box.x, box.z).rubble();
+  for (const e of G.enemies) if (!e.dead && e.spawn <= 0 && !e.flying && !e.isBoss && standsIn(box, e.x, e.z)) { e.hp = Math.min(e.hp, 1); damageEnemy(e, 999, 0, 0, 0); }
+  if (standsIn(box, player.x, player.z)) {
+    hurtPlayer(P.fallHurt, player.x, player.z + .01);
+    const ledge = freeSpotNear(room, player.x, player.z); player.x = ledge.x; player.z = ledge.z; player.vx = player.vz = 0;
+  }
+}
+
 /* ---------- glowcap spores ---------- */
 
 /** A cloud of spores at (x, z): a broken glowcap's, or a Sporeling's puff (M4: `color` its violet, `sting` the seconds it
@@ -365,6 +384,7 @@ export function updateProps(dt: number) {
       for (const t of p.tiles) { const w = worldOf(room, t.c, t.r); addDecal(w.x, w.z, 0x0a0806, .8); }
       burst(box.x, .3, box.z, 0x2a2420, 8, 1.2, .06);
       removeProp(room, box);
+      if (p.kind === 'bridge') collapse(room, box);
     }
   }
   // spores drift and settle

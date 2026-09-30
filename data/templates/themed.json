@@ -360,7 +360,7 @@
     "............................",
     "............................"
   ] },
-  {"id": "landing_moor", "shape": "standard", "types": ["normal"], "difficulty": 2, "theme": "landing", "grid": [
+  {"id": "landing_moor", "shape": "standard", "types": ["normal"], "difficulty": 2, "theme": "landing", "current": "s", "grid": [
     "........~~~..",
     ".R....mm~~~W.",
     "..mm....~~~..",
@@ -369,7 +369,7 @@
     ".....mm.~~~R.",
     "........~~~.."
   ] },
-  {"id": "landing_long", "shape": "long", "types": ["normal"], "difficulty": 3, "theme": "landing", "grid": [
+  {"id": "landing_long", "shape": "long", "types": ["normal"], "difficulty": 3, "theme": "landing", "current": "e", "grid": [
     "............................",
     "....R......W............W...",
     "..mm............mm..........",

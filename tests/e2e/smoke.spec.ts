@@ -2008,6 +2008,68 @@ test('watching statues and sapping obelisks (M4.2): a statue in sight charges, m
   expect(errors).toEqual([]);
 });
 
+test('rope bridges, currents and candles in water (M4.2): a bridge carries the mage over a chasm until fire burns it through; a current carries the mage and what lies in it, and stops when frozen; stands in water light it and go out to a shock', async ({ page }) => {
+  type P = { kind: string; x: number; z: number; lit: boolean; burning: number };
+  type GB = {
+    warp(id: number): void; clearRoom(): void; sim(sec: number, draw?: boolean): void; props: P[]; element(kind: string, x: number, z: number): void;
+    spawn(kind: string, x: number, z: number): { x: number; z: number; dead?: boolean }; enemies: { asleep?: boolean; spawn: number }[];
+    player: { x: number; z: number; vx: number; vz: number; hp: number; invuln: number }; pools: { kind: string; state: string; tiles: { x: number; z: number }[] }[];
+    pool(what: string): void; flow: { dir: string | null; falls: number }; drop(kind: string, x?: number, z?: number): void; pickups: { kind: string; x: number; z: number }[];
+    current: { template: { tiles: string[][] }; bounds: { minX: number; minZ: number } };
+  };
+  let errors = await start(page, '?room=rope_chasm&seed=BRIDGE1');
+  const bridge = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GB }).__game, P = g.player;
+    g.warp(1); g.clearRoom(); g.sim(.3); P.invuln = 0;
+    const b = g.props.find(p => p.kind === 'bridge')!, tile = (x: number, z: number) => g.current.template.tiles[Math.floor(z - g.current.bounds.minZ)][Math.floor(x - g.current.bounds.minX)];
+    P.x = b.x; P.z = b.z; P.vx = P.vz = 0; g.sim(.5); const held = Math.hypot(P.x - b.x, P.z - b.z) < .1; // (standing on it, over the chasm)
+    const foe = g.spawn('rotling', b.x, b.z + .8); g.sim(.3); foe.x = b.x; foe.z = b.z + .8; P.z = b.z - .6; const hp = P.hp;
+    g.element('burn', b.x, b.z); const burning = (g.props.find(p => p.kind === 'bridge' && p.x === b.x)?.burning ?? 0) > 0;
+    const standing = () => g.props.some(p => p.kind === 'bridge' && p.x === b.x);
+    for (let t = 0; t < 6 && standing(); t += .05) { P.x = b.x; P.z = b.z - .6; P.vx = P.vz = 0; foe.x = b.x; foe.z = b.z + .8; P.invuln = t < 3.8 ? 99 : 0; g.sim(.05); } // (on it as it burns through)
+    g.sim(.3);
+    return { held, burning, gone: !g.props.some(p => p.kind === 'bridge' && p.x === b.x), chasm: tile(b.x, b.z), fell: !!foe.dead, hurt: hp - P.hp, ledge: tile(P.x, P.z) };
+  });
+  expect(bridge).toMatchObject({ held: true, burning: true, gone: true, chasm: 'pit', fell: true, ledge: 'floor' });
+  expect(bridge.hurt).toBeGreaterThan(0);
+  await page.evaluate(() => (window as unknown as { __game: GB }).__game.sim(.05, true));
+  await page.screenshot({ path: 'test-results/smoke-bridge.png' });
+  expect(errors).toEqual([]);
+
+  errors = await start(page, '?room=mill_race&seed=RACE1');
+  const race = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GB }).__game, P = g.player;
+    g.warp(1); g.clearRoom(); g.sim(.3); P.invuln = 99;
+    const w = g.pools.find(p => p.kind === 'water')!, top = w.tiles.reduce((a, t) => t.z < a.z ? t : a);
+    P.x = top.x; P.z = top.z + .6; P.vx = P.vz = 0; const z0 = P.z; g.sim(1); const carried = P.z - z0;
+    P.x = top.x + 5; P.z = top.z + 3; // (out of the race and away: obols would drift to the mage)
+    g.drop('key', top.x, top.z + 1.2); g.sim(.8); const key = g.pickups.find(q => q.kind === 'key')!, kz0 = key.z; g.sim(1); const drifted = key.z - kz0;
+    g.pool('frost'); P.x = top.x; P.z = top.z + .6; const z1 = P.z; g.sim(1); const frozen = P.z - z1;
+    return { flow: g.flow, carried, drifted, frozen, state: g.pools.find(p => p.kind === 'water')!.state };
+  });
+  expect(race.flow).toEqual({ dir: 's', falls: 1 });
+  expect(race.carried).toBeGreaterThan(1);
+  expect(race.drifted).toBeGreaterThan(.8);
+  expect(race.state).toBe('frozen');
+  expect(Math.abs(race.frozen)).toBeLessThan(.1);
+  expect(errors).toEqual([]);
+
+  errors = await start(page, '?room=flooded_hall&seed=FLOOD1');
+  const stands = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GB }).__game, P = g.player;
+    g.warp(1); g.clearRoom(); g.sim(.3); P.invuln = 99;
+    const wet = () => g.props.filter(p => p.kind === 'wetCandles');
+    const count = wet().length;
+    for (const p of wet()) g.element('burn', p.x, p.z);
+    const lit = wet().filter(p => p.lit).length, reliquary = g.props.some(p => p.kind === 'reliquary');
+    g.pool('shock'); g.sim(.2);
+    return { count, lit, reliquary, afterShock: wet().filter(p => p.lit).length };
+  });
+  expect(stands).toEqual({ count: 4, lit: 4, reliquary: false, afterShock: 0 }); // (every stand lit opened the reliquary)
+  await page.evaluate(() => (window as unknown as { __game: GB }).__game.sim(.05, true));
+  expect(errors).toEqual([]);
+});
+
 test('candle stands: all lit, a reliquary opens with its hoard and a chapel blesses the next casts; the frozen mausoleum\'s dead wait in ice', async ({ page }) => {
   type P = { kind: string; x: number; z: number; lit: boolean };
   type E = { x: number; z: number; dead?: boolean; asleep?: boolean; entombed?: unknown; isBoss?: boolean };
@@ -2284,12 +2346,12 @@ test('the room kit\'s objects: every pile and object, urns, pedestals, pillars a
       burning: !!sack.prop.flame, kitFire: !!sack.prop.flame?.userData.fire, calls,
     };
   });
-  const kinds = ['boat', 'bones', 'briar', 'cask', 'desk', 'glowcap', 'hoard', 'pew', 'roots', 'rubble', 'sacks', 'scrolls', 'skulls', 'tree', 'web'];
+  const kinds = ['boat', 'bones', 'briar', 'bridge', 'cask', 'desk', 'glowcap', 'hoard', 'pew', 'roots', 'rubble', 'sacks', 'scrolls', 'skulls', 'tree', 'web'];
   for (const floor of [1, 2, 3, 4, 5]) {
     const errors = await start(page, `?seed=K3F9QX&floor=${floor}`);
     const kit = await objects();
     expect(kit.kinds, `floor ${floor}`).toEqual(kinds);
-    expect(kit).toMatchObject({ painted: 14, urns: 4, urnsPainted: 4, pedestal: true, burning: true, kitFire: true }); // (all but the cobweb, drawn in pixel art; two urns each from both buttons)
+    expect(kit).toMatchObject({ painted: 15, urns: 4, urnsPainted: 4, pedestal: true, burning: true, kitFire: true }); // (all but the cobweb, drawn in pixel art; two urns each from both buttons)
     expect(kit.calls).toBeLessThan(260);
     if (floor === 1) await page.screenshot({ path: 'test-results/room-kit-objects.png' });
     // a room of pillars and a tomb
@@ -2304,7 +2366,7 @@ test('the room kit\'s objects: every pile and object, urns, pedestals, pillars a
   }
   // off: the old looks, nothing painted
   await start(page, '?seed=K3F9QX&kit=old');
-  expect(await objects()).toMatchObject({ kinds, painted: 2, urnsPainted: 0, pedestal: false, burning: true, kitFire: false }); // (M4.1's heap and boat have only the kit's look)
+  expect(await objects()).toMatchObject({ kinds, painted: 3, urnsPainted: 0, pedestal: false, burning: true, kitFire: false }); // (M4.1's heap and boat and M4.2's bridge have only the kit's look)
 });
 
 test('the room kit\'s doors, gates, niches and pilasters: built in code, one mesh a gate, fewer draw calls, and the gate still rises', async ({ page }) => {

@@ -3,7 +3,10 @@
    spells and blasts, and burns for a few seconds, setting walking foes on it burning and hurting the mage; then it
    is spent, leaving soot. Water is shallow: the mage and walking foes wade through it slower; Shock on anything
    standing in it runs through the whole pool, to every foe in it and the mage too; Frost freezes it over for a
-   while, crossed at full speed and conducting nothing, and fire melts it again. Flyers are above it all. */
+   while, crossed at full speed and conducting nothing, and fire melts it again. Flyers are above it all.
+   M4.2 (from the Eda lore): a room's water can run (the template's `current`): it carries the mage and walking foes,
+   bolts and shots flying over it, and pickups lying in it, downstream; frozen, it stops. A waterfall down the wall
+   upstream feeds it. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Enemy, Pool, Room } from '../types';
@@ -17,7 +20,9 @@ import { riseMote } from '../magic/shapes';
 import type { StatusKind } from '../magic/spellData';
 import { poolsOf } from './templates';
 import { burnPropsAt } from './props';
-import { elementAt } from './mechanisms';
+import { douseStandsIn, elementAt } from './mechanisms';
+import { blockers, collide } from './collision';
+import type { Flow } from './templates';
 
 const C = CFG.surface;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, ICE = 0xbfe6ff, SPARK = 0xf0e890, WATER = 0x5a8a9a;
@@ -50,6 +55,77 @@ export function buildPools(room: Room) {
     const p: Pool = { kind, tiles: at, state: frozen ? 'frozen' : 'still', t: frozen ? Infinity : 0, charged: 0, tick: 0, mesh, mat };
     dress(p); room.group.add(mesh); room.pools.push(p);
     for (const t of tiles) room.poolGrid[t.r][t.c] = p;
+  }
+  if (room.flow) buildFalls(room, room.flow);
+}
+
+/* ---------- currents and waterfalls (M4.2) ---------- */
+
+/** Each way water flows, as a step on the floor. */
+const FLOW: Record<Flow, [number, number]> = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] };
+
+/** Where the room's water meets the wall upstream, a waterfall pours down the wall into it: one sheet per run of tiles. */
+function buildFalls(room: Room, flow: Flow) {
+  const t = room.template, [dx, dz] = FLOW[flow], { minX, minZ, maxX, maxZ } = room.bounds;
+  const edge = (c: number, r: number) => room.poolGrid?.[r]?.[c]?.kind === 'water' && (dx ? (dx > 0 ? c === 0 : c === t.w - 1) : (dz > 0 ? r === 0 : r === t.h - 1));
+  const runs: number[][] = [];
+  for (let i = 0; i < (dx ? t.h : t.w); i++) { // along the upstream wall
+    const at = dx ? edge(dx > 0 ? 0 : t.w - 1, i) : edge(i, dz > 0 ? 0 : t.h - 1);
+    if (at) { if (runs.length && runs[runs.length - 1].at(-1) === i - 1) runs[runs.length - 1].push(i); else runs.push([i]); }
+  }
+  room.falls = [];
+  for (const run of runs) {
+    const width = run.length, mid = run[0] + width / 2, height = dz > 0 ? 1.35 : dz < 0 ? .5 : 1.05; // (the north wall is tall, the south low)
+    const tex = floorOwnedTexture(fallTexture().clone()); tex.repeat.set(width, height * 1.5); tex.needsUpdate = true; // (freed with the floor)
+    const mat = new THREE.MeshBasicMaterial({ map: tex, color: 0x5a94ae, transparent: true, opacity: .88, depthWrite: false }); // (dark water, its streaks pale)
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), mat);
+    if (dx) { mesh.rotation.y = dx > 0 ? Math.PI / 2 : -Math.PI / 2; mesh.position.set((dx > 0 ? minX + .03 : maxX - .03) - room.cx, height / 2, minZ + mid - room.cz); }
+    else { mesh.rotation.y = dz > 0 ? 0 : Math.PI; mesh.position.set(minX + mid - room.cx, height / 2, (dz > 0 ? minZ + .03 : maxZ - .03) - room.cz); }
+    room.group.add(mesh);
+    // the spout it pours from: a dark culvert in the wall at its top
+    const spout = new THREE.Mesh(new THREE.BoxGeometry(width + .24, .2, .14), new THREE.MeshStandardMaterial({ color: 0x3a3632, roughness: 1 }));
+    spout.position.copy(mesh.position); spout.position.y = height - .06; spout.rotation.y = mesh.rotation.y; room.group.add(spout);
+    const foam = new THREE.Mesh(new THREE.PlaneGeometry(dx ? .5 : width, dx ? width : .5).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: tex, color: 0x9cc8d8, transparent: true, opacity: .45, depthWrite: false }));
+    foam.position.set(mesh.position.x + dx * .25, .02, mesh.position.z + dz * .25); foam.renderOrder = 2; room.group.add(foam);
+    room.falls.push({ mesh, tex });
+  }
+}
+
+/** Pale streaks falling over blue, tiling: a waterfall's sheet (and the foam where it lands). */
+let fallTex: THREE.CanvasTexture | null = null;
+function fallTexture() {
+  if (fallTex) return fallTex;
+  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d')!;
+  g.fillStyle = '#3a5866'; g.fillRect(0, 0, 64, 64);
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 26; i++) { // streaks, wrapping top to bottom so the sheet tiles as it falls
+    const x = Math.floor(rnd() * 64), y = rnd() * 64, len = 10 + rnd() * 30, v = 200 + Math.floor(rnd() * 55);
+    g.fillStyle = `rgba(${v},${v},${v},${.35 + rnd() * .4})`;
+    for (const oy of [-64, 0, 64]) g.fillRect(x, y + oy, 1 + Math.floor(rnd() * 2), len);
+  }
+  fallTex = new THREE.CanvasTexture(c); fallTex.wrapS = fallTex.wrapT = THREE.RepeatWrapping; fallTex.colorSpace = THREE.SRGBColorSpace;
+  fallTex.magFilter = THREE.NearestFilter;
+  return fallTex;
+}
+
+/** Water that runs here: not frozen. */
+const running = (x: number, z: number) => { const p = poolAt(x, z); return p?.kind === 'water' && p.state === 'still'; };
+
+/** The current carries what is in it or over it downstream, and its surface and its falls move with it. */
+function flow(room: Room, f: Flow, dt: number) {
+  const [dx, dz] = FLOW[f], F = CFG.flow;
+  for (const p of room.pools ?? []) if (p.kind === 'water' && p.state === 'still' && p.mat.map) { p.mat.map.offset.x -= dx * F.carry * dt / 2; p.mat.map.offset.y += dz * F.carry * dt / 2; }
+  for (const w of room.falls ?? []) w.tex.offset.y += dt * 1.2;
+  if (!player.dead && running(player.x, player.z)) { player.x += dx * F.carry * dt; player.z += dz * F.carry * dt; collide(player, blockers(room, 'player')); }
+  for (const e of G.enemies) {
+    if (e.dead || e.spawn > 0 || e.flying || e.hidden || !running(e.x, e.z)) continue;
+    e.x += dx * F.carry * dt; e.z += dz * F.carry * dt; collide(e, blockers(room, 'walker'));
+  }
+  for (const b of G.bolts) if (running(b.x, b.z)) { b.x += dx * F.bolts * dt; b.z += dz * F.bolts * dt; }
+  for (const s of G.shots) if (running(s.x, s.z)) { s.x += dx * F.bolts * dt; s.z += dz * F.bolts * dt; }
+  for (const q of G.pickups) {
+    const nx = q.x + dx * F.pickups * dt, nz = q.z + dz * F.pickups * dt;
+    if (q.drop <= 0 && running(q.x, q.z) && running(nx, nz)) { q.x = nx; q.z = nz; q.g.position.set(q.x, 0, q.z); } // (to the end of the current, and no further)
   }
 }
 
@@ -180,6 +256,7 @@ export function shockAt(x: number, z: number, from?: Enemy) {
   const p = poolAt(x, z);
   if (!p || p.kind !== 'water' || p.state !== 'still' || p.charged > 0) return;
   p.charged = C.charged;
+  douseStandsIn(p); // (M4.2: candle stands standing in it go out)
   for (const e of G.enemies) {
     if (e === from || e.dead || e.spawn > 0 || e.hidden || e.flying || !inPool(p, e.x, e.z)) continue;
     damageEnemy(e, C.shockDamage, 0, 0, 0, 'spell', 'storm'); inflict(e, { shock: C.shockSpread });
@@ -215,6 +292,7 @@ const glow = new THREE.Color();
 export function updatePools(dt: number, now: number, acting: boolean) {
   const room = G.current;
   if (!room.pools?.length) return;
+  if (room.flow && acting) flow(room, room.flow, dt);
   for (const p of room.pools) {
     if (p.state === 'spent') continue;
     glow.setHex(p.mat.userData.emissive as number);
