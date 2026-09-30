@@ -249,16 +249,16 @@ export const STR = {
   /** The dev menu (the key left of 1, or F2): for testing, not for players. */
   /** Enemy model options (actors/modelOptions.ts): placeholder names and a note on where each would fit. */
   options: {
-    boneCrawler: { name: 'Bone Crawler', note: 'Floor 1, Umbral: a rune-cut ribcage on six bone legs, a dark crystal for a heart; skitters in bursts' },
-    candleWraith: { name: 'Candle Wraith', note: 'Floor 1, Hallow: a gold-hemmed robe with a spirit-candle for a head, candles circling it; its flame flares before it strikes' },
-    sextonGhoul: { name: 'Sexton Ghoul', note: 'Floor 1, Hallow: the sexton who keeps the dead, a soul-light in his lantern; slow, then a wide swing' },
-    drownedMourner: { name: 'Drowned Mourner', note: 'Floor 2, Frost: a veiled mourner crowned in ice, water held in the air round her; weeps a spray of cold' },
-    cisternLurker: { name: 'Cistern Lurker', note: 'Floor 2, Storm: an eel with lights along its flanks, rising from a rune-edged pool; bites, and spits sparks' },
-    emberHusk: { name: 'Ember Husk', note: 'Floor 3, Ember: a charred body with a molten heart and a crown of embers; bursts into embers when it falls' },
-    cryptKnight: { name: 'Crypt Knight', note: 'Floor 3, Frost (elite): bones in rime-crusted plate with a frost-lit blade; blocks bolts from the front' },
-    censerBearer: { name: 'Censer Bearer', note: 'Floor 3, Ember: a thurifer swinging a censer of arcane fire; its smoke hides him' },
-    skullSwarm: { name: 'Skull Swarm', note: 'Floor 2, Umbral: skulls in violet flame circling a dark crystal; they scatter when hit and circle back' },
-    urnMimic: { name: 'Urn Mimic', note: 'Floor 1, Storm: a brass-banded urn with a storm sealed in it; waits among the urns, then bites' },
+    sporeling: { name: 'Sporeling', note: 'Floor 1, Umbral: a mushroom that walks, hopping on stubby feet; its violet-spotted cap puffs spores that blind' },
+    vesperMoth: { name: 'Vesper Moth', note: "Floor 1, Hallow: a fuzzy moth drawn to candles, gold eyespots on its wings; flutters in loops and dusts the mage with light" },
+    runeBeetle: { name: 'Rune Beetle', note: 'Floor 1, Storm: a scarab with runes lit on its shell; charges in a line, and its wing-cases part to throw a spark' },
+    urnMimic: { name: 'Urn Mimic', note: 'Floor 1, Ember: a kiln-fired urn on stubby feet with a fire in its belly; waits among the urns, peeks, then spits embers' },
+    mireToad: { name: 'Mire Toad', note: 'Floor 2, Frost: a fat toad with frost crystals on its back; leaps, and breathes a cone of cold' },
+    cisternLurker: { name: 'Cistern Lurker', note: 'Floor 2, Storm: a round-headed eel rising from a rune-edged pool, a glowing lure on each whisker; spits sparks, then dives' },
+    lanternJelly: { name: 'Lantern Jelly', note: 'Floor 2, Hallow: a jellyfish floating like a lantern, a little flame in its bell; drifts close and pulses light' },
+    cinderSalamander: { name: 'Cinder Salamander', note: 'Floor 3, Ember: a salamander with a crest of flame; scurries, and leaves a trail of burning ground' },
+    hexImp: { name: 'Hex Imp', note: 'Floor 3, Umbral: a big-eared imp on bat wings holding up a violet flame; blinks about the room and throws it' },
+    rimeDrakeling: { name: 'Rime Drakeling', note: 'Floor 3, Frost (elite): a small dragon with ice crystals for horns and spines; breathes rime and takes to its wings' },
   } as Record<string, { name: string; note: string }>,
   /** Spell effect options (magic/effectOptions.ts): names and what each shows. */
   effects: {
@@ -282,6 +282,7 @@ export const STR = {
     fpsOn: 'Frame readout: shown', fpsOff: 'Frame readout: hidden',
     options: 'Enemy model options (looks only)', effects: 'Spell effect options (looks only)', showOptions: 'Stand them here', takeOptions: 'Take them away', floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
     pixel: 'Pixel look (style test)', pixelLines: (lines: number) => lines ? `Pixels: ${lines} lines` : 'Pixels: off',
+    lanceNew: 'Cinder Lance: the new look (on the spell)', lanceOld: 'Cinder Lance: the old beam',
     outlinesOn: 'Outlines: on', outlinesOff: 'Outlines: off', bandsOn: 'Light in bands: on', bandsOff: 'Light in bands: off',
     /** The on-screen readout: frame rate, and what the last frame drew. */
     frameInfo: (fps: number, calls: number, tris: number) => `${fps} fps · ${calls} draw calls · ${tris.toLocaleString('en')} triangles`,

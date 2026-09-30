@@ -32,6 +32,18 @@ export function limb(parent: THREE.Object3D, a: V3, b: V3, r: number, mat: THREE
 export const sphere = (r: number, w = 10, h = 8) => new THREE.SphereGeometry(r, w, h);
 export const box = (w: number, h: number, d: number) => new THREE.BoxGeometry(w, h, d);
 export const eyes = (parent: THREE.Object3D, color: number, x: number, y: number, z: number, r = .035) => { const m = lit(color); part(parent, sphere(r, 6, 5), m, [-x, y, z]); part(parent, sphere(r, 6, 5), m, [x, y, z]); };
+/** Big round eyes that read at a glance even on something small (the critters'): white, a large pupil turned a little up
+    towards the camera, and a glint; placed at (±x, y, z), turned outwards by `yaw`. Returns the two, to blink (scale.y). */
+export function bigEyes(parent: THREE.Object3D, x: number, y: number, z: number, r = .06, pupil = 0x1a1224, yaw = 0) {
+  const white = lit(0xf4f0e6), dark = lit(pupil), glint = lit(0xffffff);
+  return [-1, 1].map(s => {
+    const e = new THREE.Group(); e.position.set(x * s, y, z); e.rotation.y = yaw * s; parent.add(e);
+    part(e, sphere(r, 10, 8), white, [0, 0, 0]);
+    part(e, sphere(r * .64, 8, 6), dark, [0, r * .22, r * .48]);
+    part(e, sphere(r * .2, 5, 4), glint, [r * .2, r * .5, r * .9]);
+    return e;
+  });
+}
 
 /** A glowing rune: three strokes, facing +Z, `s` tall. */
 export function rune(parent: THREE.Object3D, color: number, at: V3, s = .1, rot: V3 = [0, 0, 0], mat: THREE.Material = lit(color)) {

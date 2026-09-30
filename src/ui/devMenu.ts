@@ -38,7 +38,7 @@ import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
 import { renderHearts, renderItems, renderMinimap, toast } from './hud';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, lanceBtn: HTMLButtonElement;
 let spellSlot = 0, knowBox: HTMLElement;
 let wasPlaying = false, keepCarried = true;
 
@@ -224,7 +224,9 @@ function build() {
 
   // spell effect options (looks only): each plays one cast over and over, ahead of the mage
   const fx = section(p, S.effects);
-  fx.append(el('p', 'dv-info', EFFECT_OPTIONS.map(o => STR.effects[o.id].name).join(', ')), btn(S.showOptions, () => { closeDev(); showEffectOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeEffectOptions(G.current)));
+  fx.append(el('p', 'dv-info', EFFECT_OPTIONS.map(o => STR.effects[o.id].name).join(', ')), btn(S.showOptions, () => { closeDev(); showEffectOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeEffectOptions(G.current)),
+    // the Cinder Lance in the new style on the real spell (a proof of concept), or back to its old beam to compare
+    lanceBtn = btn('', () => { DEV.oldLance = !DEV.oldLance; }));
 
   // start something: a test room in a variant, a boss fight, a new run
   const test = section(p, S.test);
@@ -269,6 +271,7 @@ function refresh() {
   pxBtn.textContent = S.pixelLines(look.lines); pxBtn.classList.toggle('on', !!look.lines);
   lineBtn.textContent = look.outline ? S.outlinesOn : S.outlinesOff; lineBtn.classList.toggle('on', look.outline); lineBtn.disabled = !look.lines;
   bandBtn.textContent = look.bands ? S.bandsOn : S.bandsOff; bandBtn.classList.toggle('on', look.bands); bandBtn.disabled = !look.lines;
+  lanceBtn.textContent = DEV.oldLance ? S.lanceOld : S.lanceNew; lanceBtn.classList.toggle('on', DEV.oldLance);
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
   knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'));
   spellBox.replaceChildren(...SPELL_DEFS.map(s => {

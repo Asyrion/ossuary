@@ -361,7 +361,9 @@ Circle's vows and gifts (3) as the choice before a run, and the Ferryman's cross
 ## Enemy model options (owner's request, 2026-09-29)
 
 **Decided 2026-09-29:** made more high fantasy (a school's light each) and divided over the three floors; M4 makes all
-ten foes, in code instead of Tripo (GDD: Enemies built in code). What follows is the first round as it was.
+ten foes, in code instead of Tripo (GDD: Enemies built in code). **2026-09-30:** the owner wanted critters and small
+fantasy creatures rather than the dead, so eight were replaced and the Urn Mimic and Cistern Lurker made cuter (the GDD
+lists the ten). What follows is the first round as it was.
 
 The owner liked the code-built placeholder models in the pixel look, and asked for more enemy models to choose
 from. Ten candidates are built in `src/actors/modelOptions.ts`, from simple shapes, each moving a little while it

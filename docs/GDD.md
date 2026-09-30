@@ -15,7 +15,7 @@ Ossuary is a top-down roguelike with RPG elements, set in the high/dark fantasy 
 - **Growth you can feel.** RPG levels and choices inside a run; knowledge (recipes, spells, bestiary), the freed dead and a few powers that carry over between runs.
 - **Alchemy as a second game.** Unknown potions to identify, reagents to harvest, recipes to discover. Every potion can be drunk or thrown.
 - **Eda, not Isaac.** The room structure is borrowed; the world, magic schools, creatures and tone come from Eda. Medieval high fantasy turned dark: crypts, chapels, relics, the unquiet dead.
-- **A tabletop miniature look.** Characters read like painted miniatures lit by candle and torch, in a cutaway diorama of each room.
+- **A pixel-art diorama.** Each room is a candle-lit cutaway diorama drawn in pixel-art 3D: models and torchlight drawn small and blown up in whole pixels, with outlines.
 - **Tripo in, game out.** Any model exported to the checklist drops into the game without hand-fixing.
 
 **What separates Ossuary from an Isaac clone**
@@ -153,25 +153,30 @@ When a boss falls, the foes it called fall with it, so no fight drags on while i
 
 **Enemies built in code** (decided with the owner 2026-09-29; M4 makes them foes). The owner liked the code-built
 models in the pixel look and chose code over Tripo for the enemies. Ten were drawn up as options
-(`src/actors/modelOptions.ts`, shown by the dev menu) and, on the owner's second look, made more high fantasy: each
-carries its school's light (runes, crystals, rune rings, motes, spirit fire). All ten are divided over the three floors:
+(`src/actors/modelOptions.ts`, shown by the dev menu). On the owner's second look each took its school's light
+(runes, crystals, rune rings, motes, spirit fire); on the third (2026-09-30) they became critters and small fantasy
+creatures rather than the dead: round, big-eyed and smaller than the mage. All ten are divided over the three floors:
 
 | Floor | Enemy (placeholder name) | School | The look, and how it could fight |
 | --- | --- | --- | --- |
-| 1 | Bone Crawler | Umbral | A rune-cut ribcage on six bone legs, a dark crystal for a heart; skitters in bursts |
-| 1 | Candle Wraith | Hallow | A gold-hemmed robe with a spirit-candle for a head, candles circling it; its flame flares before it strikes |
-| 1 | Sexton Ghoul | Hallow | The sexton who keeps the dead, a soul-light in his lantern; slow, then a wide swing of his shovel |
-| 1 | Urn Mimic | Storm | A brass-banded urn with a storm sealed in it; waits among the urns, then bites |
-| 2 | Drowned Mourner | Frost | A veiled mourner crowned in ice, water held in the air round her; weeps a spray of cold |
-| 2 | Cistern Lurker | Storm | An eel with lights along its flanks, rising from a rune-edged pool; bites, and spits sparks |
-| 2 | Skull Swarm | Umbral | Skulls in violet flame circling a dark crystal; they scatter when hit and circle back |
-| 3 | Ember Husk | Ember | A charred body with a molten heart and a crown of embers; bursts into embers when it falls |
-| 3 | Censer Bearer | Ember | A thurifer swinging a censer of arcane fire; its smoke hides him |
-| 3 | Crypt Knight (elite) | Frost | Bones in rime-crusted plate with a frost-lit blade; blocks bolts from the front |
+| 1 | Sporeling | Umbral | A mushroom that walks, hopping on stubby feet; its violet-spotted cap puffs spores that blind |
+| 1 | Vesper Moth | Hallow | A fuzzy moth drawn to candles, gold eyespots on its wings; flutters in loops and dusts the mage with light |
+| 1 | Rune Beetle | Storm | A scarab with runes lit on its shell; charges in a line, and its wing-cases part to throw a spark |
+| 1 | Urn Mimic | Ember | A kiln-fired urn on stubby feet with a fire in its belly; waits among the urns, peeks, then spits embers |
+| 2 | Mire Toad | Frost | A fat toad with frost crystals on its back; leaps, and breathes a cone of cold |
+| 2 | Cistern Lurker | Storm | A round-headed eel rising from a rune-edged pool, a glowing lure on each whisker; spits sparks, then dives |
+| 2 | Lantern Jelly | Hallow | A jellyfish floating like a lantern, a little flame in its bell; drifts close and pulses light |
+| 3 | Cinder Salamander | Ember | A salamander with a crest of flame; scurries, and leaves a trail of burning ground |
+| 3 | Hex Imp | Umbral | A big-eared imp on bat wings holding up a violet flame; blinks about the room and throws it |
+| 3 | Rime Drakeling (elite) | Frost | A small dragon with ice crystals for horns and spines; breathes rime and takes to its wings |
 
 Behaviour, health, sounds and the affinities (Enemy affinities, below) are M4's to design; a foe's school is a
-starting point for them. The spells' effects are being redone in the same style (`src/magic/effectOptions.ts`, a
-gallery of looping effects for the owner to judge).
+starting point for them. If the owner likes the critters, a whole host more follow in the same style.
+
+The spells' effects are being redone in the same style: a gallery of looping effects for the owner to judge
+(`src/magic/effectOptions.ts`), and the Cinder Lance on the real spell as a proof of concept (`src/magic/lanceFx.ts`,
+2026-09-30; the dev menu switches back to the old beam to compare). If the owner likes it, every spell's effect is
+redone, and a whole host of new ones made.
 
 **Enemy asset needs per creature:** a run or move clip, an attack clip, a hit reaction and a death. The hero's layered animation system is reused for enemies.
 
@@ -800,10 +805,10 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 
 ## Art, camera and audio
 
-The look is a candle-lit cutaway diorama: dark stone rooms, warm torchlight, and chibi characters that read like painted miniatures.
+The look is a candle-lit cutaway diorama in pixel-art 3D: dark stone rooms, warm torchlight and chibi characters, drawn small and blown up in whole pixels, with outlines.
 
 - **Camera:** orthographic, tilted 45° from horizontal, fixed per room; it pans between rooms in 0.42 s. Only the current room is drawn.
-- **Scale:** 1 tile = 1 unit. The hero is 1.3 units tall; enemies 0.8 to 1.2; bosses about 2.
+- **Scale:** 1 tile = 1 unit. The hero is 1.3 units tall; enemies 0.4 to 1.2 (the critters built in code mostly under 0.9); bosses about 2.
 - **Light:** a dim fill, a cold moonlight from above, two flickering torch lights per room, and a warm lantern following the hero. Characters get a faint self-light from their colour texture so they stay readable.
 - **Palette:** worn stone browns, torch amber for the hero's magic, verdigris greens for the undead, violet for wisp magic, rust red for the boss.
 - **Characters:** Tripo3D models, chibi proportions, textured, rigged; see the Tripo asset checklist.
@@ -812,7 +817,7 @@ The look is a candle-lit cutaway diorama: dark stone rooms, warm torchlight, and
 - **UI:** hearts top left, mana bar, spell slots with cooldowns, potion belt, artifacts and obol, key and glyph counters below them, minimap top right, boss bar bottom centre, lore cards bottom right. Typefaces Cinzel (titles), Alegreya (lore and banners) and Alegreya Sans (UI).
 - **Audio:** simple synthesised effects for now; the full plan is in Audio design, and where sounds come from (sources, licences, specs, pipeline) is in `docs/assets.md` (Sound).
 
-**Style under test (2026-09-29, M3.5 step 2).** The owner is drawn to a cartoony or pixel-art style. Proposed: pixel-art 3D (the Tripo models and the game's lights drawn at a few hundred lines and blown up in whole pixels, with outlines; tiles, icons and effects drawn as pixel art; concept art for Tripo in clean cartoon), against cartoon 3D at full resolution. The dev menu's pixel look switch shows it in the game. Once chosen, it replaces the painted-miniature direction above, and the house style in `docs/assets.md` follows.
+**The pixel look (decided 2026-09-30, M3.5 step 2).** The owner was drawn to a cartoony or pixel-art style and chose pixel-art 3D over cartoon 3D at full resolution, after comparing them in the game. The models and the game's lights are drawn at 270 lines (a 480 × 270 grid on a 16:9 screen: at 1080p each game pixel is 4 × 4 screen pixels, and the mage about 32 pixels tall) and blown up in whole pixels, with outlines from depth; light in bands stays off. 360 lines looks like sharp 3D, and at 180 small objects stop reading. Tiles, icons and effects are drawn as pixel art; concept art for Tripo stays clean cartoon. The game starts in it; the dev menu and `?pixel=` still switch it (`src/render/pixelLook.ts`). It replaces the painted-miniature direction, and the house style in `docs/assets.md` follows it.
 
 **Identity note.** The current hero is close to the Isaac art style. Fine for a hobby prototype; if the game is ever published, characters and art need their own look.
 

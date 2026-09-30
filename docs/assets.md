@@ -28,9 +28,10 @@ and for making a matching asset later.
 
 The GDD's art direction, as rules for images:
 
-- **A candle-lit cutaway diorama with painted miniatures.** Objects read like hand-painted tabletop pieces:
-  clear shapes, slightly exaggerated proportions (chibi for characters), visible brush texture, gentle
-  edge highlights. Not photorealistic, not glossy, not cel-shaded.
+- **A candle-lit cutaway diorama in pixel-art 3D** (the GDD's look, decided 2026-09-30). The game draws every model
+  at 270 lines and blows it up in whole pixels, with outlines; tiles, icons and effects are drawn as pixel art, and
+  concept art for Tripo is clean cartoon: clear shapes, slightly exaggerated proportions (chibi for characters),
+  flat areas of colour, gentle edge highlights. Not photorealistic, not glossy.
 - **Materials:** worn stone, old bone, dark iron, tarnished brass and bronze, wax, clay, parchment, rotting
   wood, verdigris.
 - **Palette:** worn stone browns, torch amber for the mage's magic, verdigris greens for the undead, violet for
@@ -38,11 +39,11 @@ The GDD's art direction, as rules for images:
   game's torchlight adds the warmth.
 - **Even, flat lighting on textures.** The game lights every scene itself; light or shadow baked into a
   texture fights it. Ask for soft, even studio light and no cast shadows.
-- **Readable from above and far away.** The camera looks down at 45° from about eight tiles away, and a prop
-  is 30 to 60 pixels tall on screen. Big shapes and clear silhouettes matter; detail smaller than a finger at
-  the object's scale is lost.
-- **Avoid:** text and letters, modern or sci-fi materials, bright saturated colours, heavy outlines, busy
-  noise, anything that only works from one angle.
+- **Readable from above and far away.** The camera looks down at 45° from about eight tiles away, and at 270
+  lines a prop is 10 to 20 game pixels tall (the mage about 32). Big shapes, clear silhouettes and a few flat
+  colours matter; detail smaller than a hand at the object's scale is lost.
+- **Avoid:** text and letters, modern or sci-fi materials, bright saturated colours, outlines drawn into a
+  texture (the game draws its own), busy noise, anything that only works from one angle.
 
 **Style references.** Every new image uses the house style reference; record each one here so any tool
 can use the same:

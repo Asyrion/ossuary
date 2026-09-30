@@ -123,9 +123,13 @@ export const CFG = {
     thurible: { radius: 2.4, burn: 3 },                                 // Thurible of Ash: how far a burning death spreads Burn
     witchKnot: { costMul: 0.8 },                                        // Witch's Knot: spell costs at half health or below
   },
-  // the pixel look (render/pixelLook.ts, a style test for M3.5 step 2): the rows of pixels it offers, outlines where a
-  // nearer surface stands more than outlineGap units before a farther one (darkened by outlineDark), and light bands
-  pixelLook: { lines: [360, 270, 180], outlineGap: 0.3, outlineDark: 0.72, bands: 7 },
+  // the pixel look (render/pixelLook.ts, the game's look since 2026-09-30): the rows of pixels it offers and the one it
+  // starts at, outlines where a nearer surface stands more than outlineGap units before a farther one (darkened by
+  // outlineDark), and light bands
+  pixelLook: { lines: [360, 270, 180], start: 270, outlineGap: 0.3, outlineDark: 0.72, bands: 7 },
+  // the Cinder Lance in the new effect style (magic/lanceFx.ts, a proof of concept for redoing the spells' effects): how
+  // long it shows, how quickly it swells to full and when it starts to fade (seconds), and the space between its rune rings
+  lanceFx: { life: 0.6, rise: 0.06, fade: 0.3, ringGap: 1.2 },
   lights: {
     hemi: 1.57, moon: 1.26,
     torch: 4.3, torchDistance: 9, torchDecay: 0.5,

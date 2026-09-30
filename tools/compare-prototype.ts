@@ -37,7 +37,7 @@ mkdirSync(outDir, { recursive: true });
 const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 page.on('console', m => { if (m.type() === 'error') console.log('console error:', m.text()); });
-await shoot(page, BASE, 'port');
+await shoot(page, new URL('?pixel=off', BASE).href, 'port'); // (the prototype has no pixel look)
 await shoot(page, new URL('prototype/ossuary-0.3-playable.html', BASE).href, 'proto');
 await browser.close();
 console.log('wrote', outDir);

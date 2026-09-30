@@ -671,7 +671,7 @@ test('statuses: chill freezes and stops a foe, Shatter and Overload go off, boss
 });
 
 type G11 = Omit<G10, 'current' | 'enemies' | 'player'> & {
-  clearRoom(): void; shoot(x: number, z: number, dx: number, dz: number): void; readonly mantle: number;
+  clearRoom(): void; shoot(x: number, z: number, dx: number, dz: number): void; readonly mantle: number; readonly lanceFx: boolean; oldLance(on?: boolean): void;
   shots: unknown[]; bolts: unknown[]; current: G10['current'] & { barriers?: unknown[] };
   enemies: (G10['enemies'][number] & { lastHit?: string })[]; player: G10['player'] & { invuln: number };
 };
@@ -683,10 +683,13 @@ test('spells: the lance burns a line, the seal erupts and leaves fire, shards fr
     const g = (window as unknown as W).__game as unknown as G11, P = g.player; g.warp(1); g.sim(.3);
     P.x -= 4; g.learn('cinder_lance', 0);
     g.spawn('dummy', P.x + 2.5, P.z); g.spawn('dummy', P.x + 5, P.z + .2); g.sim(.8);
-    const cast = g.cast(0, { x: 1, z: 0 });
-    return { cast, burning: g.enemies.filter(e => (e.status?.burn ?? 0) > 0 && e.lastHit === 'spell').length };
+    const cast = g.cast(0, { x: 1, z: 0 }), shows = g.lanceFx; g.sim(.1);
+    const burning = g.enemies.filter(e => (e.status?.burn ?? 0) > 0 && e.lastHit === 'spell').length, still = g.lanceFx; g.sim(.7);
+    // (the dev menu's switch back to the old beam: the same strike, without the new look)
+    const gone = !g.lanceFx; g.oldLance(true); g.mana(999); g.sim(2.1); const again = g.cast(0, { x: 1, z: 0 }), oldShows = g.lanceFx; g.oldLance(false);
+    return { cast, shows, still, gone, again, oldShows, burning };
   });
-  expect(lance).toEqual({ cast: true, burning: 2 });
+  expect(lance).toEqual({ cast: true, shows: true, still: true, gone: true, again: true, oldShows: false, burning: 2 });
   // Pyre Seal: nothing for a heartbeat, then the ring strikes, burns and throws back; the ground burns on
   const seal = await page.evaluate(() => {
     const g = (window as unknown as W).__game as unknown as G11, P = g.player; g.clearRoom(); g.sim(.3); g.mana(999); g.learn('pyre_seal', 1);

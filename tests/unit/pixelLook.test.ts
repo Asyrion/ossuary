@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { pixelGrid, snapBy } from '../../src/render/pixelLook';
+import { CFG } from '../../src/config';
+import { pixelGrid, pixelLook, snapBy } from '../../src/render/pixelLook';
 
 describe('the pixel look', () => {
+  it('is the game\'s look: on from the start, at one of the rows it offers, with outlines', () => {
+    expect(CFG.pixelLook.lines).toContain(CFG.pixelLook.start);
+    expect(pixelLook()).toEqual({ lines: CFG.pixelLook.start, outline: true, bands: false });
+  });
   it('blows each game pixel up to a whole number of screen pixels, near the rows asked for', () => {
     expect(pixelGrid(1920, 1080, 270)).toEqual({ w: 480, h: 270, f: 4 });
     expect(pixelGrid(1920, 1080, 360)).toEqual({ w: 640, h: 360, f: 3 });
