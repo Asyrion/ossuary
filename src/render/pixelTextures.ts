@@ -332,7 +332,7 @@ const PAVING: Record<FloorKind, (f: FloorCtx, mask: boolean[][]) => void> = {
     for (let y0 = 0; y0 < ch; y0 += 7) {
       let x0 = -Math.floor(R() * 8);
       while (x0 < cw) {
-        const w = 6 + Math.floor(R() * 5), h = 5 + Math.floor(R() * 2), dy = Math.floor(R() * 2), v = R() * 28 - 14, c = scale([base[0] + v, base[1] + v, base[2] + v * .8], 1.15);
+        const w = 6 + Math.floor(R() * 5), h = 5 + Math.floor(R() * 2), dy = Math.floor(R() * 2), v = R() * 28 - 14, c = scale([base[0] + v, base[1] + v, base[2] + v * .8], 1.3); // (lighter than the flagstones: the joints darken them)
         for (let fy = 0; fy < h; fy++) for (let fx = 0; fx < w - 1; fx++) {
           const ex = Math.min(fx, w - 2 - fx), ey = Math.min(fy, h - 1 - fy);
           if (ex + ey < 2 && !(ex === 1 && ey === 1)) continue; // (the corners rounded off)

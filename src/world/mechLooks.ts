@@ -13,7 +13,7 @@ const GEO = {
   // the rune stone: a six-sided menhir, pointed, on rubble; a carved ring round its rune
   menhir: shared(new THREE.LatheGeometry([[.28, 0], [.3, .3], [.27, .75], [.2, 1.02], [.09, 1.14], [0, 1.17]].map(([x, y]) => new THREE.Vector2(x, y)), 6)),
   rubble: shared(new THREE.DodecahedronGeometry(.1, 0)), lichen: shared(new THREE.SphereGeometry(.07, 6, 3).scale(1, .6, .25)),
-  carving: shared(joinAll([new THREE.TorusGeometry(.13, .014, 4, 18), runeStrokes(.17)])), shard: shared(new THREE.OctahedronGeometry(.05, 0).scale(.8, 1.6, .8)),
+  carving: shared(joinAll([new THREE.TorusGeometry(.17, .02, 4, 20), runeStrokes(.24)])), shard: shared(new THREE.OctahedronGeometry(.075, 0).scale(.8, 1.6, .8)),
   // the lodestone: a plinth, copper prongs, a floating shard banded in copper
   plinth: shared(new THREE.CylinderGeometry(.3, .34, .12, 6)), prong: shared(new THREE.CylinderGeometry(.022, .03, 1, 5)), knob: shared(new THREE.SphereGeometry(.045, 6, 4)),
   lode: shared(new THREE.OctahedronGeometry(.19, 0).scale(.8, 2.3, .8)), band: shared(new THREE.TorusGeometry(.13, .02, 4, 6).rotateX(Math.PI / 2)),
@@ -50,13 +50,13 @@ export function runeStoneLook() {
   const stone = mesh(g, GEO.menhir, MAT.stone); stone.rotation.y = Math.PI / 6; // (a face square to the camera)
   for (let i = 0; i < 5; i++) { const a = i * 1.3 + .4; mesh(g, GEO.rubble, MAT.darkStone, Math.cos(a) * .32, .05, Math.sin(a) * .3).scale.setScalar(.7 + (i % 3) * .25); }
   for (const [x, y, z] of [[-.2, .35, .16], [.18, .85, .1], [.23, .2, -.12]]) mesh(g, GEO.lichen, MAT.lichen, x, y, z).lookAt(x * 3, y, z * 3);
-  const rune = mesh(g, GEO.carving, new THREE.MeshStandardMaterial({ color: 0x2e2c30, roughness: .8 }), 0, .6, .272); // (its own material: a charge colours it)
+  const rune = mesh(g, GEO.carving, new THREE.MeshStandardMaterial({ color: 0x5a5660, emissive: 0x16141c, roughness: .8 }), 0, .58, .275); // (its own material: a charge colours it; cold, a pale cut that still reads)
   rune.rotation.x = -.05;
   const aura = new THREE.Group(); aura.position.y = .7;
   const auraMat = lit(0xffffff);
   for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2; mesh(aura, GEO.shard, auraMat, Math.cos(a) * .42, (i - 1) * .12, Math.sin(a) * .42); }
   mergeStill(aura); aura.visible = false; // (joined while shown: mergeStill leaves hidden things; charge() colours its one material)
-  const gl = glow(0xffffff, 1, .55); gl.position.set(0, .65, .35); gl.visible = false;
+  const gl = glow(0xffffff, 1.4, .7); gl.position.set(0, .62, .36); gl.visible = false; // (charged: the stone shines its school's light)
   g.add(aura, gl, blob(.9));
   return { group: g, parts: { rune, glow: gl, aura } };
 }
