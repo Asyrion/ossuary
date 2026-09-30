@@ -267,7 +267,8 @@ export function strikeUrn(room: Room, rock: RockBox, blast: boolean) {
   room.group.remove(rock.mesh); disposeTree(rock.mesh);
   room.rocks = room.rocks.filter(r => r !== rock);
   if (rock.tile) room.template.tiles[rock.tile.r][rock.tile.c] = 'floor';
-  burst(rock.x, .3, rock.z, rock.urn === 'sealed' ? 0x4c4a54 : 0x8a5436, 10, 2.2, .06); // shards
+  const clay = kitPieces(room) ? new THREE.Color(room.look.urn.clay).getHex() : 0x8a5436; // (the room kit's urns are in the floor's clay)
+  burst(rock.x, .3, rock.z, rock.urn === 'sealed' ? 0x4c4a54 : clay, 10, 2.2, .06); // shards
   burst(rock.x, .2, rock.z, 0x8a8278, 12, .9, .07);                                        // grave dust
   if (rock.urn === 'sealed') burst(rock.x, .4, rock.z, WARD_COLOR, 10, 2, .04);
   Sfx.at(rock.x, rock.z).urn(rock.urn === 'sealed');

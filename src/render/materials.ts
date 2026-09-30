@@ -119,10 +119,10 @@ export const paint = (color: number, mottle = 0, metal = .3) => {
 /** A glowing colour for the room kit's pieces: `mergeStill` paints it into one unlit mesh (`KIT_GLOW`) with the others. */
 export const glowPaint = (color: number) => { const m = new THREE.MeshBasicMaterial({ color }); m.userData.paint = 'glow'; return markShared(m); };
 /** A face's shade, the same every time for the same face of the same piece: from its normal and the piece's number. */
+const fa = new THREE.Vector3(), fb = new THREE.Vector3(), fc = new THREE.Vector3();
 function faceShade(pos: THREE.BufferAttribute | THREE.InterleavedBufferAttribute, i: number, piece: number, mottle: number) {
-  const a = new THREE.Vector3().fromBufferAttribute(pos, i), b = new THREE.Vector3().fromBufferAttribute(pos, i + 1), c = new THREE.Vector3().fromBufferAttribute(pos, i + 2);
-  const n = b.sub(a).cross(c.sub(a)).normalize(), k = Math.round(n.x * 40) * 7.13 + Math.round(n.y * 40) * 13.7 + Math.round(n.z * 40) * 3.31 + piece * 41.9;
-  if (!Number.isFinite(k)) return 1; // (a face with no area, at a lathe's axis or a sphere's pole)
+  fa.fromBufferAttribute(pos, i); fb.fromBufferAttribute(pos, i + 1); fc.fromBufferAttribute(pos, i + 2);
+  const n = fb.sub(fa).cross(fc.sub(fa)).normalize(), k = Math.round(n.x * 40) * 7.13 + Math.round(n.y * 40) * 13.7 + Math.round(n.z * 40) * 3.31 + piece * 41.9; // (a face with no area: a zero normal, one shade)
   const h = Math.sin(k) * 43758.5453; return 1 + (h - Math.floor(h) - .5) * 2 * mottle;
 }
 

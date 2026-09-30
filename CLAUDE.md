@@ -107,7 +107,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   and walkers in unfrozen water. The drowned floor grows puddles in its fights (`growPuddles`).
 - Objects (M3.6): what each is, its letter and how it blocks (tall: `rocks`; low: `room.lows`, walking only, unless a
   bolt breaks it; soft: `room.soft`, walked into) are in the pure `src/world/propData.ts`; looks and behaviour in
-  `src/world/props.ts` (`strikeProp` from bolts and blasts, `blastProps`, `burnPropsAt` from `fireAt`, a cask's
+  `src/world/props.ts` (the room kit's looks in `objectLooks.ts`; `strikeProp` from bolts and blasts, `blastProps`, `burnPropsAt` from `fireAt`, a cask's
   `addPool`, glowcap spores, `snagAt` for cobwebs, briar stings in `updateProps`), tuning in `CFG.props`, the
   poorer loot in `remains` and `bundle` (`data/loot.json`). Each object's still meshes are merged by material when it is
   built (`mergeStill` in `render/materials.ts`; its `userData.parts` stay apart), so an object costs 2 to 5 draw calls.

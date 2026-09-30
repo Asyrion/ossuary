@@ -12,8 +12,9 @@
    - Hanging censer: a bolt through its chain brings it down on what is under it, spilling burning oil.
    - Reliquary: sealed until the room's candle stands are all lit; then it opens.
    - Dead tree: burns (like roots, longer).
-   Placeholder shapes until they come from Tripo. Geometries and materials are shared, but for a rune stone's rune (a
-   charge colours it) and a dead tree's branches (each grown its own way); both are disposed with the object. */
+   The room kit's looks are in fireLooks.ts, mechLooks.ts and objectLooks.ts (the dead tree); the placeholder shapes here
+   stay for `DEV.roomKit` off. Their geometries and materials are shared, but for a rune stone's rune (a charge colours
+   it) and a dead tree's branches (each grown its own way); both are disposed with the object. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Bolt, FloorLook, PropBox, Room } from '../types';

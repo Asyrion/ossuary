@@ -6,7 +6,7 @@ import type { ArtifactSpot, Room } from '../types';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { M, blob, glow, mergeStill } from '../render/materials';
+import { M, blob, disposeTree, glow, mergeStill } from '../render/materials';
 import { burst } from '../combat/fx';
 import { HEART_PATH, banner, renderHearts, renderItems, renderMinimap, toast } from '../ui/hud';
 import { START_FOCUS, artifact, computeStats, pickArtifact, type ArtifactDef, type Pool } from './artifactData';
@@ -183,7 +183,7 @@ function setVisual(spot: ArtifactSpot, def: ArtifactDef) {
 
 /** Remove a pedestal entirely (the boss's other choice). */
 function vanish(spot: ArtifactSpot) {
-  spot.taken = true; spot.room.group.remove(spot.pedestal);
+  spot.taken = true; spot.room.group.remove(spot.pedestal); disposeTree(spot.pedestal);
   spot.room.rocks = spot.room.rocks.filter(r => r !== spot.collider);
   burst(spot.x, .8, spot.z, 0x9a8a7a, 18, 2.4, .06); Sfx.vanish();
 }
