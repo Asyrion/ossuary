@@ -262,23 +262,31 @@ export const OBJECT_LOOKS = {
   /** A ferry skiff moored along the floor (M4.1, the Ferry Landing), `len` tiles long: a tarred hull, its thwarts, an oar
       shipped along it, its rope to the landing. It burns. */
   boat(_R, len) {
-    const g = new THREE.Group(), L = len - .05, W = .62, tar = tone(0x2e2620, .12), plank = tone(0x6a5238, .1), rim = tone(0x4a3a2a, .08), rope = tone(C.rope, .06);
-    mesh(g, boatHull(L, W, .24), tar, 0, .02, 0);                  // the tarred hull, pointed at both ends
-    mesh(g, boatHull(L * .97, W * .96, .03), rim, 0, .26, 0);      // its gunwale
-    mesh(g, boatHull(L * .8, W * .7, .03), plank, 0, .24, 0);      // the boards inside it
-    for (let i = 0; i < Math.max(1, len); i++) box(g, .07, .04, W * .74, plank, -L / 2 + (i + .5) * L / Math.max(1, len) * .8 + L * .1, .31, 0);
-    put(mesh(g, new THREE.CylinderGeometry(.018, .018, L * .75, 5), tone(C.woodLight, .08), 0, .34, .1), 0, 0, Math.PI / 2 + .05);
+    const g = new THREE.Group(), L = len - .05, W = .62, tar = tone(0x1a1410, .1), plank = tone(0x7a6040, .1), rim = tone(0x8a6a44, .08), hold = tone(0x0e0a08), rope = tone(C.rope, .06);
+    mesh(g, boatHull(L, W, .12), tar, 0, .02, 0);                  // the tarred hull's bottom, pointed at both ends
+    mesh(g, boatHull(L, W, .2, .07), tar, 0, .14, 0);              // its sides, open above
+    mesh(g, boatHull(L * 1.01, W * 1.02, .03, .06), rim, 0, .34, 0); // its gunwale, pale against the tar
+    mesh(g, boatHull(L * .96, W * .9, .01), hold, 0, .14, 0);      // the dark of the hold inside it
+    mesh(g, boatHull(L * .72, W * .5, .02), plank, 0, .15, 0);     // the boards down in its bottom
+    for (let i = 0; i < Math.max(1, len); i++) box(g, .07, .04, W * .82, plank, -L / 2 + (i + .5) * L / Math.max(1, len) * .8 + L * .1, .3, 0); // thwarts across
+    put(mesh(g, new THREE.CylinderGeometry(.018, .018, L * .75, 5), tone(C.woodLight, .08), 0, .36, .12), 0, 0, Math.PI / 2 + .05);
     put(mesh(g, new THREE.TorusGeometry(.06, .015, 4, 10), rope, L / 2 + .02, .2, 0), Math.PI / 2 - .3, 0, 0);
     const sh = blob(1); sh.scale.set(len * .9, 1, .8); g.add(sh);
     return g;
   },
 } satisfies Record<string, ObjectLook>;
 
-/** A boat's hull `l` long and `w` wide, pointed at both ends, `h` deep, lying on the floor (its top at `h`). */
-function boatHull(l: number, w: number, h: number) {
-  const o = new THREE.Shape(); o.moveTo(-l / 2, 0);
-  o.quadraticCurveTo(-l * .32, w / 2, 0, w / 2); o.quadraticCurveTo(l * .32, w / 2, l / 2, 0);
-  o.quadraticCurveTo(l * .32, -w / 2, 0, -w / 2); o.quadraticCurveTo(-l * .32, -w / 2, -l / 2, 0);
+/** A boat's hull `l` long and `w` wide, pointed at both ends, `h` deep, lying on the floor (its top at `h`); with `wall`,
+    only a ring that thick, open in the middle. */
+function boatHull(l: number, w: number, h: number, wall = 0) {
+  const lens = <T extends THREE.Path>(o: T, l: number, w: number) => {
+    o.moveTo(-l / 2, 0);
+    o.quadraticCurveTo(-l * .32, w / 2, 0, w / 2); o.quadraticCurveTo(l * .32, w / 2, l / 2, 0);
+    o.quadraticCurveTo(l * .32, -w / 2, 0, -w / 2); o.quadraticCurveTo(-l * .32, -w / 2, -l / 2, 0);
+    return o;
+  };
+  const o = lens(new THREE.Shape(), l, w);
+  if (wall) o.holes.push(lens(new THREE.Path(), l - wall * 4, w - wall * 2));
   return new THREE.ExtrudeGeometry(o, { depth: h, bevelEnabled: false, curveSegments: 6 }).rotateX(-Math.PI / 2);
 }
 
