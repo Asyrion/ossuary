@@ -38,6 +38,7 @@ import { removeProp } from './props';
 import type { MechanismKind } from './propData';
 import { RUNE_LIT, brazierLook, candleStandLook } from './fireLooks';
 import { bellLook, censerLook, censerPot, lodestoneLook, reliquaryLook, runeStoneLook, updateMechLook } from './mechLooks';
+import { treeLook } from './objectLooks';
 
 const C = CFG.mech;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, GOLD = 0xffd98a;
@@ -144,7 +145,8 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
     g.add(seal, gl, blob(1.1));
     return withParts(g, { seal });
   },
-  tree(R) { // a dead tree, grown down here in the dark and died of it
+  tree(R, _len, look) { // a dead tree, grown down here in the dark and died of it
+    if (DEV.roomKit && look?.kinds) return treeLook(R);
     const g = new THREE.Group(); g.add(mesh(GEO.trunk, MAT.bark, 0, .8, 0));
     for (let i = 0; i < 4; i++) {
       const a = R() * Math.PI * 2, h = .9 + R() * .6, len = .5 + R() * .5;

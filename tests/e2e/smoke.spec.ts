@@ -1720,6 +1720,48 @@ test('the room kit\'s variety: rooms draw different kinds, and every kind of wal
   }
 });
 
+test('the room kit\'s objects: every pile and object, urns, pedestals, pillars and tombs built in code on each floor, burning in the kit\'s fire, and the old look to compare', async ({ page }) => {
+  type Mat = { vertexColors?: boolean };
+  type O = { userData: Record<string, unknown>; traverse(f: (o: O & { material?: Mat | Mat[] }) => void): void };
+  type Box = { x: number; z: number; prop: { kind: string; flame?: O; mesh: O } };
+  type GO = { sim(sec: number, draw?: boolean): void; objectsHere(): void; showAssets(): void; burn(x: number, z: number, r?: number): void;
+    renderInfo(): { calls: number }; warp(id: number): void; clearRoom(): void;
+    current: { props?: Box[]; rocks: { urn?: string; mesh?: O }[]; spots: { pedestal: O }[]; group: O } };
+  const objects = () => page.evaluate(() => {
+    const g = (window as unknown as { __game: GO }).__game;
+    const painted = (o: O) => { let n = 0; o.traverse(q => { if ([q.material ?? []].flat().some(m => m.vertexColors)) n++; }); return n > 0; }; // (the room kit's pieces: colours in the vertices)
+    g.objectsHere(); g.showAssets(); g.sim(.3, true);
+    const props = g.current.props ?? [], urns = g.current.rocks.filter(r => r.urn), calls = g.renderInfo().calls;
+    const sack = props.find(b => b.prop.kind === 'sacks')!; g.burn(sack.x, sack.z, .1); g.sim(.2, true);
+    return {
+      kinds: props.map(b => b.prop.kind).sort(), painted: props.filter(b => painted(b.prop.mesh)).length,
+      urns: urns.length, urnsPainted: urns.filter(u => u.mesh && painted(u.mesh)).length, pedestal: painted(g.current.spots[g.current.spots.length - 1].pedestal),
+      burning: !!sack.prop.flame, kitFire: !!sack.prop.flame?.userData.fire, calls,
+    };
+  });
+  const kinds = ['bones', 'briar', 'cask', 'desk', 'glowcap', 'pew', 'roots', 'rubble', 'sacks', 'scrolls', 'skulls', 'tree', 'web'];
+  for (const floor of [1, 2, 3]) {
+    const errors = await start(page, `?seed=K3F9QX&floor=${floor}`);
+    const kit = await objects();
+    expect(kit.kinds, `floor ${floor}`).toEqual(kinds);
+    expect(kit).toMatchObject({ painted: 12, urns: 4, urnsPainted: 4, pedestal: true, burning: true, kitFire: true }); // (all but the cobweb, drawn in pixel art; two urns each from both buttons)
+    expect(kit.calls).toBeLessThan(260);
+    if (floor === 1) await page.screenshot({ path: 'test-results/room-kit-objects.png' });
+    // a room of pillars and a tomb
+    const room = await start(page, `?seed=K3F9QX&floor=${floor}&room=sarcophagus`);
+    const pieces = await page.evaluate(() => {
+      const g = (window as unknown as { __game: GO }).__game; g.warp(1); g.clearRoom(); g.sim(.2, true);
+      let n = 0; g.current.group.traverse(o => { if ([o.material ?? []].flat().some(m => m.vertexColors)) n++; });
+      return n;
+    });
+    expect(pieces).toBeGreaterThanOrEqual(9); // (four pillars, a tomb, urns and the torches)
+    expect(errors).toEqual([]); expect(room).toEqual([]);
+  }
+  // off: the old looks, nothing painted
+  await start(page, '?seed=K3F9QX&kit=old');
+  expect(await objects()).toMatchObject({ kinds, painted: 0, urnsPainted: 0, pedestal: false, burning: true, kitFire: false });
+});
+
 test('the pixel look: on from the URL, drawn with outlines and light in bands, then off again, and the enemy and spell effect options, without errors', async ({ page }) => {
   type Look = { lines: number; outline: boolean; bands: boolean };
   type GP = { sim(sec: number, draw?: boolean): void; pixelLook: Look; setPixelLook(l: Partial<Look>): void; renderInfo(): { calls: number } };

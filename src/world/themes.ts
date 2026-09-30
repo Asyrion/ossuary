@@ -7,11 +7,12 @@
                   later (their shadows show where), hurting what they land on and leaving rubble. */
 import * as THREE from 'three';
 import { CFG } from '../config';
-import type { Enemy, Room } from '../types';
-import { G, after, player } from '../state';
+import type { Enemy, FloorLook, Room } from '../types';
+import { DEV, G, after, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { M, blob, glow, markShared } from '../render/materials';
+import { M, blob, glow, markShared, mergeStill } from '../render/materials';
+import type { FlameSpec } from '../render/fire';
 import { burst } from '../combat/fx';
 import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { makeEnemy } from '../actors/enemies';
@@ -21,6 +22,8 @@ import { mulberry } from '../util';
 import { FLOORS } from './generate';
 import { addProp, removeProp } from './props';
 import type { ScatterKind } from './themeData';
+import { candleFire } from './objectLooks';
+import { waxFor } from './fireLooks';
 
 const C = CFG.themes;
 /** The ice a frozen mausoleum's foes wait in. */
@@ -38,7 +41,7 @@ const MAT = {
   blanket: std(0x5a3e34, { roughness: 1 }), leaf: std(0x46442a, { roughness: 1, side: THREE.DoubleSide }), blanket2: std(0x3e4a5a, { roughness: 1 }), ash: std(0x2a2622, { roughness: 1 }), stone: M.rock,
 };
 const GEO = {
-  candle: shared(new THREE.CylinderGeometry(.035, .04, .16, 6)), flame: shared(new THREE.ConeGeometry(.025, .07, 5)),
+  candle: shared(new THREE.CylinderGeometry(.035, .04, .16, 6)), flame: shared(new THREE.ConeGeometry(.025, .07, 5)), drip: shared(new THREE.SphereGeometry(.016, 5, 4).scale(1, 1.6, 1)),
   page: shared(new THREE.PlaneGeometry(.22, .28).rotateX(-Math.PI / 2)), bone: shared(new THREE.CylinderGeometry(.025, .025, .3, 5)),
   roll: shared(new THREE.CylinderGeometry(.13, .13, .7, 10)), blanket: shared(new THREE.BoxGeometry(.7, .04, 1.1)),
   pebble: shared(new THREE.DodecahedronGeometry(.07, 0)), ash: shared(new THREE.CircleGeometry(.3, 12).rotateX(-Math.PI / 2)),
@@ -76,10 +79,23 @@ function fadeUp() {
 const ropeMat = markShared(new THREE.MeshStandardMaterial({ color: 0x6a5238, roughness: 1 }));
 let ropeFade: THREE.Material | null = null; // a rope fading into the dark above
 
-type Dress = (R: () => number) => THREE.Object3D;
+/** A piece of a theme's dressing; `kit` is the room's look when the room kit builds it (its candles burn in the kit's fire). */
+type Dress = (R: () => number, kit?: FloorLook) => THREE.Object3D;
 const DRESS: Record<ScatterKind, Dress> = {
-  candles(R) {
+  candles(R, kit) {
     const g = new THREE.Group();
+    if (kit) { // candles in the floor's wax, burning in its light, drips down them
+      const wax = kit.torch.wax ? waxFor(kit.torch.wax) : MAT.wax, specs: FlameSpec[] = [];
+      for (let i = 0, n = 1 + Math.floor(R() * 3); i < n; i++) {
+        const h = .6 + R() * .8, x = (R() - .5) * .3, z = (R() - .5) * .3;
+        const c = new THREE.Mesh(GEO.candle, wax); c.scale.y = h; c.position.set(x, .08 * h, z); g.add(c);
+        const d = new THREE.Mesh(GEO.drip, wax); d.position.set(x + .03, .12 * h, z + .02); g.add(d);
+        specs.push({ x, y: .16 * h, z, h: .15, w: .07 });
+      }
+      const fire = candleFire(specs, kit), gl = glow(0xffc36a, .7, .5); gl.position.y = .2;
+      g.userData.parts = { fire }; g.add(fire, gl); mergeStill(g);
+      return g;
+    }
     for (let i = 0, n = 1 + Math.floor(R() * 3); i < n; i++) {
       const h = .6 + R() * .8, x = (R() - .5) * .3, z = (R() - .5) * .3;
       const c = new THREE.Mesh(GEO.candle, MAT.wax); c.scale.y = h; c.position.set(x, .08 * h, z);
@@ -141,7 +157,7 @@ const DRESS: Record<ScatterKind, Dress> = {
 /** Scatter a themed room's dressing over its free floor (seeded, so a room looks the same every time). */
 export function dressTheme(room: Room) {
   const theme = room.theme; if (!theme) return;
-  const R = mulberry(room.plan.seed ^ 0x7e3e), t = room.template, free: { c: number; r: number }[] = [];
+  const R = mulberry(room.plan.seed ^ 0x7e3e), t = room.template, free: { c: number; r: number }[] = [], kit = DEV.roomKit && room.look.kinds ? room.look : undefined;
   for (let r = 0; r < t.h; r++) for (let c = 0; c < t.w; c++) if (t.tiles[r][c] === 'floor' && !room.template.foes.some(f => f.c === c && f.r === r)) free.push({ c, r });
   const scale = Math.max(1, (t.w * t.h) / (13 * 7) * .7); // larger rooms get more of it
   // where daylight may fall: at least three tiles from any wall (the grid's edge, or carved and missing corners), near
@@ -158,7 +174,7 @@ export function dressTheme(room: Room) {
       const open = need ? free.filter(q => clear(q.c, q.r) >= need) : free, from = open.length ? open : free;
       const pick = kind === 'daylight' ? from.sort((a, b) => Math.hypot(a.c - mid.c, a.r - mid.r) - Math.hypot(b.c - mid.c, b.r - mid.r))[Math.floor(R() * Math.min(6, from.length))] : from[Math.floor(R() * from.length)];
       free.splice(free.indexOf(pick), 1);
-      const o = DRESS[kind](R); o.position.x += room.bounds.minX + pick.c + .5 + (R() - .5) * .3 - room.cx; o.position.z += room.bounds.minZ + pick.r + .5 + (R() - .5) * .3 - room.cz;
+      const o = DRESS[kind](R, kit); o.position.x += room.bounds.minX + pick.c + .5 + (R() - .5) * .3 - room.cx; o.position.z += room.bounds.minZ + pick.r + .5 + (R() - .5) * .3 - room.cz;
       room.group.add(o);
     }
   }

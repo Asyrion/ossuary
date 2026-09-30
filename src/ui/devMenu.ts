@@ -5,7 +5,7 @@
    so new artifacts, drops, rooms and bosses show up by themselves. Kept in production builds, like the
    hooks, for testing the deployed site. */
 import { BOSS_TYPES, type BossType, type EnemyType } from '../config';
-import { PROP_KINDS } from '../world/propData';
+import { PROP_KINDS, isMechanism } from '../world/propData';
 import { THEME_DEFS } from '../world/themeData';
 import { placeProp } from '../world/props';
 import { elementDev } from '../world/mechanisms';
@@ -127,6 +127,14 @@ export function showAssetsHere() {
   const p = at(1.8, -2); placeArtifact(room, artifact(made[0] ?? 'ember_sigil'), p.x, p.z);
 }
 
+/** Ahead of the mage, in rows: one of every object and pile (the dead tree among them) and a plain and a rune-sealed urn,
+    to look at the room kit's objects (or, with the room kit off, the old ones) in any room. */
+export function objectsHere() {
+  const kinds = PROP_KINDS.filter(k => !isMechanism(k) || k === 'tree'), room = G.current;
+  kinds.forEach((k, i) => { const q = freeSpotNear(room, player.x + (i % 7 - 3) * 1.1, player.z - 1.8 - Math.floor(i / 7) * 1.4); placeProp(k, q.x, q.z); });
+  for (const [dx, sealed] of [[-.6, false], [.6, true]] as const) { const q = freeSpotNear(room, player.x + dx, player.z - 1.8 - Math.ceil(kinds.length / 7) * 1.4); placeUrn(q.x, q.z, sealed); }
+}
+
 /* ---------- starting runs and test rooms ---------- */
 
 /** Start a run, carrying over the mage's artifacts, obols, keys and glyphs when asked. */
@@ -246,7 +254,7 @@ function build() {
       const q = freeSpotNear(G.current, player.x + dx, player.z + dz);
       if (placeProp(kind, q.x, q.z) && lit) fireAt(q.x, q.z, .3);
     }
-  }));
+  }), btn(S.objectsHere, () => { closeDev(); objectsHere(); }));
 
   // the made assets (M3.5): on or off to compare with the placeholders, what loaded, and what a frame costs
   const assets = section(pages.look, S.assets);

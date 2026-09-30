@@ -29,6 +29,7 @@ import { buildShrine, shrineLook } from './shrine';
 import { subtractRect, wallRects, type Rect } from './walls';
 import { dressNorthWall } from './dressing';
 import { torchLook } from './fireLooks';
+import { pillarLook, rockLook, tombLook, urnLook } from './objectLooks';
 import { buildProps } from './props';
 import { THEMES, themedLook } from './themeData';
 import { pickKinds } from './kitData';
@@ -132,10 +133,14 @@ function quieten(room: Room) {
   room.quietHeart = R() < CFG.quiet.heartChance;
 }
 
+/** Whether a room's rocks, pillars, tombs and urns are the room kit's (objectLooks.ts). */
+export const kitPieces = (room: Room) => DEV.roomKit && !!room.look.kinds;
+
 function addRock(room: Room, c: number, r: number) {
   const p = toWorld(room, c, r); const R = mulberry(c * 31 + r * 7 + room.plan.seed);
-  const g = new THREE.Group(); g.position.set(p.x - room.cx, 0, p.z - room.cz);
-  if (room.theme?.rock === 'dripstone') { // a fungal grotto's rocks are stalagmites, dripped up from the floor
+  let g = new THREE.Group();
+  if (kitPieces(room)) { g = rockLook(R, room.look, room.theme?.rock === 'dripstone'); mergeStill(g); }
+  else if (room.theme?.rock === 'dripstone') { // a fungal grotto's rocks are stalagmites, dripped up from the floor
     for (const [x, z, h, r] of [[0, 0, 1 + R() * .5, .3], [R() * .4 - .2, .25, .45 + R() * .3, .16], [.25, R() * .3 - .2, .3 + R() * .2, .12]]) {
       const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, 7), M.rock); cone.position.set(x, h / 2, z); g.add(cone);
     }
@@ -145,7 +150,7 @@ function addRock(room: Room, c: number, r: number) {
     const small = new THREE.Mesh(new THREE.DodecahedronGeometry(.2, 0), M.rock); small.position.set(R() * .5 - .25, .12, .3); small.rotation.set(R() * 3, R() * 3, 0);
     g.add(big, small, blob(1.3));
   }
-  room.group.add(g);
+  g.position.set(p.x - room.cx, 0, p.z - room.cz); room.group.add(g);
   room.rocks.push({ x: p.x, z: p.z, hx: .42, hz: .42, hp: CFG.artifacts.rockHp, breakable: true, mesh: g, tile: { c, r } });
 }
 
@@ -153,10 +158,15 @@ function addRock(room: Room, c: number, r: number) {
     a rock but never breaks. */
 function addPillar(room: Room, c: number, r: number) {
   const p = toWorld(room, c, r), R = mulberry(c * 131 + r * 17 + room.plan.seed);
+  const broken = R() < .35, shaft = broken ? .55 + R() * .45 : 1.3;
+  if (kitPieces(room)) {
+    const g = pillarLook(R, room.look, broken, shaft - .06); mergeStill(g); g.position.set(p.x - room.cx, 0, p.z - room.cz); room.group.add(g);
+    room.rocks.push({ x: p.x, z: p.z, hx: .4, hz: .4, hp: 0, breakable: false });
+    return;
+  }
   const g = new THREE.Group(); g.position.set(p.x - room.cx, 0, p.z - room.cz);
   const part = (geo: THREE.BufferGeometry, y: number, rot = 0) => { const m = new THREE.Mesh(geo, M.stone); m.position.y = y; m.rotation.y = rot; g.add(m); return m; };
   part(new THREE.BoxGeometry(.86, .22, .86), .11);
-  const broken = R() < .35, shaft = broken ? .55 + R() * .45 : 1.3;
   part(new THREE.CylinderGeometry(.27, .3, shaft, 8), .22 + shaft / 2, R());
   if (broken) { // a jagged top and a fallen chunk beside it
     part(new THREE.CylinderGeometry(.2, .27, .14, 8), .22 + shaft + .07, R()).rotation.z = .25;
@@ -172,6 +182,12 @@ function addPillar(room: Room, c: number, r: number) {
 function addTomb(room: Room, run: { c: number; r: number; len: number; across: boolean }) {
   const a = toWorld(room, run.c, run.r), b = toWorld(room, run.c + (run.across ? run.len - 1 : 0), run.r + (run.across ? 0 : run.len - 1));
   const x = (a.x + b.x) / 2, z = (a.z + b.z) / 2, long = run.len - .16, wide = .78;
+  if (kitPieces(room)) {
+    const g = tombLook(mulberry(run.c * 71 + run.r * 29 + room.plan.seed), long, wide, room.look, room.theme?.tomb === 'slab'); mergeStill(g);
+    g.position.set(x - room.cx, 0, z - room.cz); if (!run.across) g.rotation.y = Math.PI / 2; room.group.add(g);
+    room.rocks.push({ x, z, hx: (run.across ? long : wide) / 2 + .02, hz: (run.across ? wide : long) / 2 + .02, hp: 0, breakable: false });
+    return;
+  }
   const g = new THREE.Group(); g.position.set(x - room.cx, 0, z - room.cz); if (!run.across) g.rotation.y = Math.PI / 2;
   const part = (w: number, h: number, d: number, y: number, mat: THREE.Material = M.tomb) => { const m = new THREE.Mesh(boxUV(w, h, d), mat); m.position.y = y; g.add(m); return m; };
   if (room.theme?.tomb === 'slab') { // an embalmers' slab: a stone table on two plinths, and someone under a shroud on it
@@ -214,7 +230,12 @@ function addUrn(room: Room, c: number, r: number, sealed: boolean) {
   g.rotation.y = R() * 6; g.scale.setScalar(.9 + R() * .2);
   const model = modelFor('props', 'urn');
   if (model) g.add(sealed ? sealedLook(model, SEALED_TINT) : model, blob(.8));
-  else {
+  else if (kitPieces(room)) { // the room kit's urn, its ward its own (objectLooks.ts)
+    const k = urnLook(R, room.look, sealed, WARD_COLOR); mergeStill(k); g.add(k); g.rotation.y = 0; // (turned a little, its ward's runes to the camera)
+    room.group.add(g);
+    room.rocks.push({ x: p.x, z: p.z, hx: .26, hz: .26, hp: 1, breakable: false, mesh: g, tile: { c, r }, urn: sealed ? 'sealed' : 'plain' });
+    return;
+  } else {
     const body = new THREE.Mesh(s.body, sealed ? M.urnStone : M.clay);
     const lid = new THREE.Mesh(s.lid, M.urnLid); lid.position.y = .52;
     g.add(body, lid, blob(.8));
