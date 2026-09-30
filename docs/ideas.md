@@ -503,8 +503,8 @@ Twenty-one notes from the owner's Eda vault: characters (Asyrion, Boketto the St
 Wandering Merchant of Belerial), cultures (the Huruhui, the nomads of Belerial), creatures (Fen-Nex, the War-Tigers and
 other creatures of the Longwood) and places (the Longwood and its World Trees, the Ruins of Lukuku, the Plains of
 Belerial, the Swamps of Ulum, Gekiryu, Dr. Jelly's House, and the two gates of the Pass of Buluiain). The notes embed
-images that aren't in the PR (about half of them are an image and a link); the owner shared twenty of them in the session,
-read below. What follows is what the text and those images suggest for the game; none of it is design until it moves into the GDD, and the in-game names stay
+images that aren't in the PR (about half of them are an image and a link); the owner shared twenty-seven of them in the
+session, read below. What follows is what the text and those images suggest for the game; none of it is design until it moves into the GDD, and the in-game names stay
 placeholders until the owner picks which lore goes in (M8).
 
 ### Where the dungeon is: beneath the Gate of Uzulim
@@ -578,7 +578,7 @@ keeps out. The Huruhui and the Longwood work best as the world above and the los
 roots), not as the tone of the crypts. The placeholder lore's rule (the dungeon only, no gods, factions or places) can
 loosen as the owner decides which of these the game names.
 
-### From the images the owner shared (twenty of them, 2026-09-30)
+### From the images the owner shared (twenty-seven of them, 2026-09-30)
 
 People:
 - **Asyrion, twice.** The "Asyrion" note's sheet is a young man (tousled blond hair over a dark undercut, green eyes,
@@ -598,6 +598,11 @@ People:
   beast with a red snout and bandaged legs, a crow perched on its head): the second trader. His shop is his beast's
   packs; his crow sells what it has seen (the floor's map, where the secret room is); he turns up once a run in an
   ordinary room and is gone when the mage leaves it. The beast, calm and enormous, is a look to build in code.
+- **The Huruhui** (young foragers in blue-teal tunics with red scarves, crowns of red flowers, armfuls of greenery,
+  bows, spears and short blades, packs with plants growing out of them, a round red emblem on the sleeve): the friendly
+  face of the drop. Townspeople and rangers for the Vigil (a forager who brings back reagents between runs); a flower
+  crown as a head piece for M4.6 (with the Verdant school, if it comes); flowers as the price of a Huruhui shrine; their
+  red emblem as the Vigil's banner.
 - **The riders and nomads of Belerial** (wide hats, ponchos and fur, a helm of horns, a horned beast with a gem at its
   breast; riders in bone masks, and a tall walker with a stag's skull for a face, great horns and a staff): the darkest
   things in the drop, and at home in the crypts. A masked rider as a boss (the Horned Rider, charging with its beast as
@@ -631,6 +636,21 @@ Places:
 - **The Swamps of Ulum and the Patagoi Atoll** (a delta of green islands and pools between channels, rock spires on
   the islands): the drowned floor's biome in M8. Room shapes for it: islands of floor in water, a spire as the room's
   pier, channels that currents run through.
+- **The two gates of the Pass of Buluiain.** One is dark and austere: two towers of black rock rising like jagged teeth,
+  a gatehouse slung between them, a tall arch, two hooded figures walking in (the Uzulim Wardens, and Uzulim as the
+  text has it). The other is two round towers with a colossal bearded guardian crouched in the face of each, lion-pawed,
+  over a carved gatehouse. The crouching guardians are a two-part boss: twin statues that wake together, one striking
+  while the other shields it, their stone turning blows until the other falls (the treasury's guardians and the
+  War-Tiger's plates, at a boss's size). The dark gate's towers are the look for the run's first room, where the mage
+  goes in under the Wardens' arch.
+- **The flooded hall** (arcades and stairs of an underground palace standing in dark water, mossy pillars, candles
+  standing in the water on their own, a waterfall far off): the most dungeon-like image of the drop, and the Ferry
+  Landing (M4.1) in all but name. A drowned theme or a deeper floor from it: candle stands that stand in water and can
+  still be lit (the chapel's blessing over water), stairs up to dry galleries on the room's edges, arches along the
+  walls, the waterfall at the back.
+- **The Huruhui's cities** (a city of terraces, crop beds and falls inside a vast cave round a lake; a palace down a
+  canyon, its levels pouring falls into a turquoise pool, a boat on it): the Vigil at its fullest, a cave city that the
+  shades the mage frees come to live in, or where the runs end, in daylight.
 - **The Plains of Belerial and its gate** (yellow grass to the horizon, towers of rock; an arch as tall as a hill between
   two towers, stairs up to it, a snowy peak framed in it): the world above. The gate is a title screen or the Vigil's
   threshold, and its towers and arch could dress the boss doors and the vault's warded door in the room kit.
