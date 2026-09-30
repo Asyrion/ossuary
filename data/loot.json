@@ -21,6 +21,7 @@
   "secretHoard": { "count": [3, 5], "weights": { "coin": 40, "purse": 16, "key": 16, "glyph": 28 } },
   "secretRoom": { "coffers": 2, "chests": 1 },
   "shrine": { "price": 10 },
+  "wanderer": { "prices": { "artifact": 18, "hallowedSoul": 7, "blackSoul": 7, "map": 5, "secret": 8 }, "souls": { "hallowedSoul": 1, "blackSoul": 1 } },
   "grimoire": { "lecterns": 3, "shelf": 2, "rebuy": 7, "clearChance": 0.04 },
   "merchant": {
     "wares": [3, 4],

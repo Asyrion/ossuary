@@ -675,6 +675,38 @@ test('the drinking ward (M4.2): a vault\'s ward drinks the spells cast near it a
   expect(errors).toEqual([]);
 });
 
+test('the Wandering Merchant (M4.2): rides into a cleared room, lays out a focus from far off, a soul mote and the crow\'s wares; the crow sells the map and the secret; he is gone when the mage leaves', async ({ page }) => {
+  type Room = { type: string; known: boolean; visited: boolean; plan: { id: number } };
+  type GM = Omit<G5, 'rooms' | 'current'> & { callWanderer(): void; wanderer: { here: boolean; laid: boolean; wares: string[] }; rooms(): Room[]; run: { wandererMet: boolean };
+    current: G5['current'] & { wares?: { ware: string; x: number; z: number; sold: boolean }[] } };
+  const errors = await start(page, '?seed=WANDER&floor=2&loot=coins:30');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GM, P = g.player;
+    const normal = g.rooms().find(x => x.type === 'normal')!;
+    g.warp(normal.plan.id); g.clearRoom(); g.sim(.3); P.invuln = 99;
+    const before = { met: g.run.wandererMet, here: g.wanderer.here };
+    g.callWanderer(); g.sim(1); const riding = g.wanderer;
+    g.sim(2); const laid = g.wanderer;
+    const buy = (ware: string) => { const w = g.current.wares!.find(x => x.ware === ware)!; P.x = w.x; P.z = w.z + 1.4; g.sim(.2); P.z = w.z; g.sim(.3); P.z = w.z + 1.4; g.sim(.3); return w.sold; };
+    const coins = P.coins, unknown = g.rooms().filter(x => x.type !== 'secret' && !x.known).length;
+    const map = buy('map'), mapped = g.rooms().filter(x => x.type !== 'secret' && !x.known).length;
+    const secret = laid.wares.includes('secret') ? buy('secret') : null, secretKnown = g.rooms().find(x => x.type === 'secret')?.known ?? null;
+    const spent = coins - P.coins;
+    const other = g.rooms().find(x => x.type === 'normal' && x !== normal)!; g.warp(other.plan.id); g.sim(.3); const away = g.wanderer;
+    g.warp(normal.plan.id); g.sim(.3);
+    return { before, riding, laid, unknown, map, mapped, secret, secretKnown, spent, away, back: g.wanderer, met: g.run.wandererMet };
+  });
+  expect(r.before).toEqual({ met: false, here: false });
+  expect(r.riding).toMatchObject({ here: true, laid: false, wares: [] });
+  expect(r.laid.laid).toBe(true);
+  expect(r.laid.wares.slice(0, 3)).toEqual(['artifact', expect.stringMatching(/Soul$/), 'map']);
+  expect(r.unknown).toBeGreaterThan(0);
+  expect(r).toMatchObject({ map: true, mapped: 0, met: true, away: { here: false }, back: { here: false, wares: [] } });
+  if (r.secret !== null) expect(r).toMatchObject({ secret: true, secretKnown: true });
+  expect(r.spent).toBe(r.secret ? 13 : 5);
+  expect(errors).toEqual([]);
+});
+
 /* M2 step 5: the shrine. */
 type Rite = { id: string; x: number; z: number; hits: number; t: number; inside: boolean; fleeing: boolean } | null;
 type G6 = G5 & {

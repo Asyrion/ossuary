@@ -67,6 +67,7 @@ export const STR = {
     merchant: ['The Bound Shade', 'He deals in the obols of the dead'] as Banner,
     vault: ['The Vault', 'What the Wardens would not give up'] as Banner,
     vaultWarden: ["The vault's warden wakes", 'It will not give up the hoard'] as Banner,
+    wanderer: ['The Wandering Merchant', 'Out of Belerial, with wares from far off'] as Banner,
     vaultWardling: (school: string): Banner => [`What the ward drank rises`, `${school} guards the vault now`],
     gildedRelic: ['A relic in the reliquary', 'Fortune favours the bold'] as Banner,
     secret: ['A forgotten cell', 'A Warden studied the dark here, long ago'] as Banner,
@@ -101,6 +102,11 @@ export const STR = {
     wardDrinks: 'The ward drinks your spell. Fill it, and what it drank most rises to guard the vault.',
     wardBursts: (school: string) => `The ward bursts, full of ${school}`,
     shieldDrinks: 'Its ward drinks your spells. Fill it, and it breaks.',
+    wandererGreets: 'The merchant has things the shade never will. The crow will sell what it has seen.',
+    crowMapped: 'Every room of this floor is on your map already.',
+    crowNoSecret: 'The crow has seen no secret on this floor that you have not.',
+    crowMap: 'The crow tells you the floor: every room of it is on your map.',
+    crowSecret: 'The crow saw a hollow wall: the secret room is on your map, and its cracked walls glow.',
     shieldBreaks: (school: string) => `The ward breaks, and lets out its ${school}`,
     wardCracks: 'The ward cracks. One more blast breaks it, and wakes what guards the vault.',
     vaultForced: 'The ward shatters. Something stirs inside the vault.',
@@ -386,7 +392,7 @@ export const STR = {
     pools: 'Water and oil (this room)', ignite: 'Set the oil alight', freezeWater: 'Freeze the water', shockWater: 'Shock the water',
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
     foes: 'Foes (they leave the doors open)', championHeavy: 'A champion of this floor\'s heavies',
-    wardFoe: 'Ward the nearest foe (it drinks spells)', noFoe: 'No foe in the room',
+    wardFoe: 'Ward the nearest foe (it drinks spells)', wanderer: 'The Wandering Merchant, here', noFoe: 'No foe in the room',
     foesOfFloor: (floor: number) => floor ? `Floor ${floor}'s foes, built in code:` : 'The Wardlings, let out by drinking wards:', foesAsFloor: 'Fights: each floor\'s own foes', foeEverywhere: (name: string) => `Fights: ${name} in every one`,
     bestiaryNote: 'Weaknesses and resistances found are kept between runs (the bestiary to come).', forgetBestiary: 'Forget the bestiary',
     foeNames: { rotling: 'Rotling (a plain foe, for testing)', dummy: 'Training dummy' } as Record<string, string>,
@@ -401,7 +407,7 @@ export const STR = {
     keep: ' Keep artifacts, obols, keys and glyphs when starting',
   },
   /** What a merchant's ware is called in messages. */
-  wares: { heart: 'heart', halfHeart: 'half heart', key: 'bone key', glyph: 'glyph stone', coin: 'obol', purse: 'purse', mana: 'mana vial', paleSoul: 'pale soul mote', blackSoul: 'black soul mote', hallowedSoul: 'hallowed soul mote', shard: 'lodestone shard' } as Record<string, string>,
+  wares: { heart: 'heart', halfHeart: 'half heart', key: 'bone key', glyph: 'glyph stone', coin: 'obol', purse: 'purse', mana: 'mana vial', paleSoul: 'pale soul mote', blackSoul: 'black soul mote', hallowedSoul: 'hallowed soul mote', shard: 'lodestone shard', map: "the crow's map", secret: "the crow's secret" } as Record<string, string>,
   heroInfo: (label: string, tris: number, stripped: boolean, skinned: boolean, clips: string) =>
     `${label}: ${tris.toLocaleString()} triangles${stripped ? ', base removed' : ''}` +
     `${skinned ? ', rigged' : ', static (procedural animation)'}${clips ? `. Clips used: ${clips}` : ''}.`,
