@@ -68,5 +68,33 @@
     "behaviour": "drake",
     "params": {"act": [2.2, 3.2], "breathRange": 4.2, "flyEvery": 3, "inhale": 0.8, "shots": 7, "cone": 1, "shotSpeed": 4.4, "chill": 1.8, "takeoff": 0.5, "flySpeed": 4, "landNear": [1.6, 2.6], "flyMax": 2.5, "landTime": 0.3, "landRing": 8},
     "gib": "#dceaf2", "stain": "#102030"
+  },
+  "wickmouse": {
+    "floor": 4, "school": "ember", "weak": "frost", "resist": "ember",
+    "hp": 8, "r": 0.26, "speed": 3.2, "contact": 1, "flying": false,
+    "behaviour": "scamper",
+    "params": {"near": [2.4, 4.4], "peep": 0.55, "dart": 4.4, "dartTime": 0.75, "hide": [1.4, 2.4], "oilEvery": 0.15, "dropFire": 0.6},
+    "gib": "#b8a898", "stain": "#2a1a10"
+  },
+  "chimeBat": {
+    "floor": 4, "school": "storm", "weak": "frost", "resist": "storm",
+    "hp": 7, "r": 0.26, "speed": 2.8, "contact": 1, "flying": true,
+    "behaviour": "chimer",
+    "params": {"orbit": 2.8, "orbitSpeed": 1.5, "chimeEvery": [2.6, 3.6], "chimeTell": 0.45, "strikeDelay": 0.9, "mark": 0.85, "range": 6.5},
+    "gib": "#7a6a8a", "stain": null
+  },
+  "gargoyleWhelp": {
+    "floor": 4, "school": "frost", "weak": "storm", "resist": "frost",
+    "hp": 14, "r": 0.34, "speed": 1.2, "contact": 1, "flying": false,
+    "behaviour": "gargoyle",
+    "params": {"wake": 2.8, "lonely": 2.2, "rest": [1.8, 2.8], "tell": 0.5, "crouch": 0.35, "leap": 0.5, "reach": 3.2, "pounces": 2, "ring": 6, "shotSpeed": 3.2, "chill": 1, "guard": 0.2},
+    "gib": "#9a968e", "stain": "#1a1c22"
+  },
+  "moonstagFawn": {
+    "floor": 4, "school": "hallow", "weak": "umbral", "resist": "hallow",
+    "hp": 8, "r": 0.28, "speed": 2.4, "contact": 1, "flying": false,
+    "behaviour": "healer",
+    "params": {"keep": 3.4, "healEvery": [3, 4.2], "healTell": 0.8, "healRange": 3, "healShare": 0.25},
+    "gib": "#f0e8da", "stain": null
   }
 }

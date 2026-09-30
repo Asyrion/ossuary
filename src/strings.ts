@@ -264,6 +264,10 @@ export const STR = {
     cinderSalamander: { name: 'Cinder Salamander', note: 'Floor 3, Ember: a salamander with a crest of flame; scurries, and leaves a trail of burning ground' },
     hexImp: { name: 'Hex Imp', note: 'Floor 3, Umbral: a big-eared imp on bat wings holding up a violet flame; blinks about the room and throws it' },
     rimeDrakeling: { name: 'Rime Drakeling', note: 'Floor 3, Frost (elite): a small dragon with ice crystals for horns and spines; breathes rime and takes to its wings' },
+    wickmouse: { name: 'Wickmouse', note: 'Floor 4, Ember: a mouse with a candle stub burning on its back; darts from cover to cover, and its candle falls burning when it dies' },
+    chimeBat: { name: 'Chime Bat', note: 'Floor 4, Storm: a round bat with a bell at its throat; its chime marks the ground under the mage, and a spark strikes the mark' },
+    gargoyleWhelp: { name: 'Gargoyle Whelp', note: 'Floor 4, Frost: a stone pup that bolts glance off while it perches; wakes, pounces twice with a ring of frost, and turns to stone again' },
+    moonstagFawn: { name: 'Moonstag Fawn', note: 'Floor 4, Hallow: a gold-dappled fawn that keeps away from the mage and heals the foes near it' },
   } as Record<string, { name: string; note: string }>,
   /** The Hollow Warden's looks built in code (M4, actors/bossLooks.ts), for the owner to choose; placeholder names. */
   bossLooks: {

@@ -206,6 +206,13 @@ const sounds = {
   // Frost: the drakeling
   drakeInhale() { hiss(.8, .08, 'bandpass', 1200); tone('sine', 70, 140, .8, .07); tone('triangle', 1175, 1568, .6, .015, .2); },
   drakeWings() { for (let i = 0; i < 3; i++) hiss(.12, .1, 'lowpass', 500, i * .16); },
+  // floor 4's foes (M4.1): the wickmouse's squeak, the chime bat's bell and its strike, the gargoyle's grinding wake and landing, the fawn's healing
+  squeak() { tone('sine', 1900, 2600, .05, .03); tone('sine', 2200, 2900, .05, .025, .07); },
+  chime() { tone('triangle', 1760, 1740, .6, .05); tone('sine', 2637, 2600, .5, .03, .01); tone('sine', 3520, 3480, .3, .015, .02); },
+  zap() { hiss(.12, .12, 'highpass', 3500); tone('square', 900, 120, .1, .05); crackles(4, .15, .04); },
+  grind() { hiss(.3, .1, 'lowpass', 350); tone('square', 70, 55, .25, .04); },
+  stoneLand() { tone('sine', 110, 45, .3, .12); hiss(.2, .08, 'lowpass', 600); [2349, 1760].forEach((f, i) => tone('triangle', f, f * .7, .25, .025, i * .04)); },
+  fawnHeal() { [784, 988, 1175, 1568].forEach((f, i) => tone('sine', f, f, .45, .035, i * .07)); hiss(.4, .02, 'highpass', 5000, .1); },
   // the bosses of floors 4 and 5 (M4.1): the hart's bell-voice, drumming hooves and light; the angler's hum, bite and spit
   hartBellow() { tone('sine', 196, 185, 1.1, .08); tone('triangle', 392, 370, .9, .04, .05); tone('sine', 587, 554, .8, .025, .12); hiss(.5, .03, 'highpass', 4500, .1); },
   hartCharge() { for (let i = 0; i < 6; i++) tone('sine', 95, 55, .08, .09, i * .08); hiss(.5, .07, 'lowpass', 500); },

@@ -1985,7 +1985,6 @@ test('foes in code (M4): floor 1\'s moth loops, scatters light and is lured by a
     prop(kind: string, x?: number, z?: number): boolean; props: { kind: string; x: number; z: number; lit: boolean }[]; element(kind: string, x: number, z: number): void;
     player: { x: number; z: number; hp: number; maxHp: number }; enemies: Foe[]; shots: { fire?: boolean }[];
     current: { cx: number; cz: number; rocks: { x: number; z: number; urn?: string }[] } };
-  const G = () => (window as unknown as { __game: GF }).__game;
   // the moth
   const errors = await start(page, '?seed=K3F9QX&foe=vesperMoth');
   const moth = await page.evaluate(() => {
@@ -2027,7 +2026,6 @@ test('foes in code (M4): floor 1\'s moth loops, scatters light and is lured by a
   expect(mimic.embers).toBeGreaterThanOrEqual(3); // (a fan of embers, each lighting what it passes)
   expect(mimic.guard).toBe(.5); expect(mimic.took).toBeCloseTo(1); // (shut, its clay turns half a blow)
   expect(mimic.others).toBe(true); // (those the mage didn't come near wait on)
-  void G;
   expect([...errors, ...e2, ...e3]).toEqual([]);
 });
 
@@ -2129,6 +2127,54 @@ test('foes in code (M4): floor 3\'s salamander lays burning ground that burns th
   expect(drake.seen).toEqual(expect.arrayContaining(['stalk', 'inhale', 'takeoff', 'fly', 'land']));
   expect(drake.rime).toBeGreaterThanOrEqual(7); expect(drake.high).toBeGreaterThan(.5); expect(drake.flew).toBe(true);
   expect([...errors, ...e2, ...e3, ...e4]).toEqual([]);
+});
+
+test('foes in code (M4.1): floor 4\'s wickmouse darts and drops its candle burning; the chime bat marks the ground for a spark; the gargoyle perches as stone and pounces; the fawn heals', async ({ page }) => {
+  type Foe = { type: string; state: string; x: number; z: number; hp: number; maxHp: number; tele?: number };
+  type GF = { sim(sec: number, draw?: boolean): void; warp(id: number): void; hit(i: number, dmg: number, school?: string): number; prop(kind: string, x: number, z: number): boolean;
+    props: { kind: string; x: number; z: number; lit: boolean }[]; spellFx: { strikes: number };
+    player: { x: number; z: number; hp: number; maxHp: number; invuln: number }; enemies: Foe[]; shots: { chill?: number }[] };
+  // the wickmouse
+  const e1 = await start(page, '?seed=K3F9QX&floor=4&foe=wickmouse');
+  const mouse = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.8);
+    const seen = new Set<string>(); for (let i = 0; i < 100; i++) { g.sim(.05); g.enemies.forEach(e => seen.add(e.state)); }
+    const e = g.enemies[0]; g.prop('brazier', e.x + .4, e.z); const cold = g.props.find(p => p.kind === 'brazier')!.lit; // (its candle falls on what burns)
+    g.hit(0, 99); g.sim(.2);
+    return { seen: [...seen].sort(), cold, lit: g.props.find(p => p.kind === 'brazier')!.lit };
+  });
+  expect(mouse.seen).toEqual(expect.arrayContaining(['dart', 'hide', 'peep'])); expect(mouse).toMatchObject({ cold: false, lit: true });
+  // the chime bat: stand still, and the spark finds the mark
+  const e2 = await start(page, '?seed=K3F9QX&floor=4&foe=chimeBat');
+  const bat = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.8);
+    let chimed = false, struck = 0; const hp = g.player.hp;
+    for (let i = 0; i < 160 && !(chimed && struck); i++) { g.player.invuln = 0; g.sim(.05); chimed ||= g.enemies.some(e => e.state === 'chime'); struck = Math.max(struck, g.spellFx.strikes); }
+    return { chimed, struck, hurt: hp - g.player.hp };
+  });
+  expect(bat.chimed).toBe(true); expect(bat.struck).toBeGreaterThan(0); expect(bat.hurt).toBeGreaterThan(0);
+  // the gargoyle: stone turns most of a blow; awake, it pounces and lands in frost
+  const e3 = await start(page, '?seed=K3F9QX&floor=4&foe=gargoyleWhelp');
+  const garg = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 90; g.warp(1); g.sim(.8);
+    const e = g.enemies[0], state0 = e.state, hp0 = e.hp; g.hit(0, 10); const stoneTook = hp0 - e.hp;
+    const seen = new Set<string>(); let frost = 0;
+    for (let i = 0; i < 200; i++) { g.player.invuln = 0; g.sim(.05); g.enemies.forEach(f => seen.add(f.state)); frost = Math.max(frost, g.shots.filter(s => s.chill).length); }
+    return { state0, stoneTook, seen: [...seen].sort(), frost };
+  });
+  expect(garg.state0).toBe('stone'); expect(garg.stoneTook).toBeCloseTo(2); // (a fifth of the blow)
+  expect(garg.seen).toEqual(expect.arrayContaining(['stone', 'wake', 'crouch', 'leap', 'settle'])); expect(garg.frost).toBeGreaterThanOrEqual(6);
+  // the fawn heals the hurt round it
+  const e4 = await start(page, '?seed=K3F9QX&floor=4&foe=moonstagFawn');
+  const fawn = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.warp(1); g.sim(.8);
+    g.player.x = g.enemies[0].x + 6; // (far off, so they gather rather than flee)
+    g.hit(0, 5); const hurt = g.enemies[0].hp; let bowed = false;
+    for (let i = 0; i < 200 && g.enemies[0].hp <= hurt; i++) { g.sim(.05); bowed ||= g.enemies.some(e => e.state === 'bow'); }
+    return { bowed, healed: g.enemies[0].hp - hurt, n: g.enemies.length };
+  });
+  expect(fawn.n).toBeGreaterThan(1); expect(fawn.bowed).toBe(true); expect(fawn.healed).toBeGreaterThan(0);
+  for (const e of [e1, e2, e3, e4]) expect(e).toEqual([]);
 });
 
 test('the pixel look: on from the URL, drawn with outlines and light in bands, then off again, and the enemy and spell effect options, without errors', async ({ page }) => {
