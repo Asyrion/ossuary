@@ -128,6 +128,14 @@ The room's pieces follow this style too, starting with the proof: the fire objec
   Sample them nearest (`magFilter`), so the texels stay crisp.
 - **Budget:** a wall light or a brazier costs about 3 draw calls for its fire, 1 for its body and 1 for its glow. A room
   at rest stays within about 10 calls of the old look.
+- **Variety:** each floor offers three kinds of wall, floor, wall light and brazier (`kit` in each look in
+  `data/floors.json`); a room draws one of each. To add a kind:
+  1. name it in `src/world/kitData.ts`;
+  2. draw it: a wall in `WALLS` or a floor in `PAVING` (`pixelTextures.ts`), a wall light in `TORCHES` or a brazier in
+     `BRAZIERS` (`fireLooks.ts`);
+  3. give it a weight in a floor's `kit`, and a name in `STR.dev.kitKinds`;
+  4. step to it with the dev menu's Look tab, and screenshot it cold and lit.
+  A brazier always carries runes that kindle when it is lit.
 
 ## How to add an effect
 

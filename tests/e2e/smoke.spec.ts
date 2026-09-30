@@ -1694,6 +1694,32 @@ test('the room kit: torches, braziers and candle stands built in code, the crypt
   expect(errors).toEqual([]); expect(again).toEqual([]);
 });
 
+test('the room kit\'s variety: rooms draw different kinds, and every kind of wall, floor, wall light and brazier builds on its floor', async ({ page }) => {
+  type K = { wall: string; floor: string; torch: string; brazier: string };
+  type GV = { sim(sec: number, draw?: boolean): void; kinds: K | null; forceKinds(k: Partial<K>): void; prop(kind: string, x: number, z: number): boolean;
+    burn(x: number, z: number, r?: number): void; renderInfo(): { calls: number }; rooms(): { look: { kinds?: K; kit?: Record<string, Record<string, number>> } }[];
+    current: { cx: number; cz: number } };
+  for (const floor of [1, 2, 3]) {
+    const errors = await start(page, `?seed=K3F9QX&floor=${floor}`);
+    const r = await page.evaluate(() => {
+      const g = (window as unknown as { __game: GV }).__game, kit = g.rooms()[0].look.kit!;
+      const drawn = new Set(g.rooms().map(room => room.look.kinds!.wall + '/' + room.look.kinds!.floor)); // (drawn per room, on its seed)
+      const lists = { wall: Object.keys(kit.wall), floor: Object.keys(kit.floor), torch: Object.keys(kit.torch), brazier: Object.keys(kit.brazier) }, built: K[] = [], calls: number[] = [];
+      for (let i = 0; i < 3; i++) {
+        const want = { wall: lists.wall[i % lists.wall.length], floor: lists.floor[i % lists.floor.length], torch: lists.torch[i % lists.torch.length], brazier: lists.brazier[i % lists.brazier.length] };
+        g.forceKinds(want); g.prop('brazier', g.current.cx, g.current.cz); g.burn(g.current.cx, g.current.cz, .3); g.sim(.3, true);
+        built.push(g.kinds!); calls.push(g.renderInfo().calls);
+      }
+      g.forceKinds({});
+      return { drawn: drawn.size, lists, built, calls };
+    });
+    expect(r.drawn, `floor ${floor}`).toBeGreaterThan(1);
+    r.built.forEach((k, i) => expect(k).toEqual({ wall: r.lists.wall[i % r.lists.wall.length], floor: r.lists.floor[i % r.lists.floor.length], torch: r.lists.torch[i % r.lists.torch.length], brazier: r.lists.brazier[i % r.lists.brazier.length] }));
+    for (const c of r.calls) expect(c).toBeLessThan(260);
+    expect(errors).toEqual([]);
+  }
+});
+
 test('the pixel look: on from the URL, drawn with outlines and light in bands, then off again, and the enemy and spell effect options, without errors', async ({ page }) => {
   type Look = { lines: number; outline: boolean; bands: boolean };
   type GP = { sim(sec: number, draw?: boolean): void; pixelLook: Look; setPixelLook(l: Partial<Look>): void; renderInfo(): { calls: number } };
