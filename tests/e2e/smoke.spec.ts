@@ -519,7 +519,14 @@ type G6 = G5 & {
   current: G5['current'] & { shrine: { stones: { id: string; x: number; z: number }[] } };
 };
 
+/** Math.random from a seed, started again by `window.__reseed()` (as `npm run inspect` does): for a test whose outcome
+    hangs on the game's unseeded randomness, such as where the shrine's wisp flies. */
+const SEEDED_RANDOM = `(() => { let s = 1; Math.random = () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; window.__reseed = () => { s = 1; }; })();`;
+
 test('the shrine cleanses a curse put down inside its circle, refuses the poor, and lets a curse escape in time', async ({ page }) => {
+  // (where the wisp flies is random; seeded, the bot's chase goes the same way every run instead of now and then
+  // running out of the rite's ten seconds)
+  await page.addInitScript(SEEDED_RANDOM);
   const errors = await start(page, '?room=shrine_henge&seed=SHRN01&give=mask_of_the_drowned,chain_of_the_penitent&loot=coins:14');
   const entered = await page.evaluate(() => {
     const g = (window as unknown as W).__game as unknown as G6; g.warp(1); g.sim(.5);
@@ -530,6 +537,7 @@ test('the shrine cleanses a curse put down inside its circle, refuses the poor, 
   // and casts north whenever it's inside
   const cleansed = await page.evaluate(() => {
     const g = (window as unknown as W).__game as unknown as G6, P = g.player, r = g.current, K = g.keys, s = r.shrine.stones[0];
+    (window as unknown as { __reseed(): void }).__reseed();
     P.x = s.x + 1.2; P.z = s.z; K.add('KeyA'); g.sim(.6); K.delete('KeyA');
     const began = g.rite?.id;
     P.invuln = 999; let t = 0;
