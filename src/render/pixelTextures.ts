@@ -347,13 +347,17 @@ const PAVING: Record<FloorKind, (f: FloorCtx, mask: boolean[][]) => void> = {
     const { px, R, cw, ch, TX, TY, base } = f, T = 4;
     const dull = (c: RGB): RGB => [c[0] * .55 + base[0] * .45, c[1] * .55 + base[1] * .45, c[2] * .55 + base[2] * .45];
     const cream = dull([150, 144, 122]), teal = dull([46, 104, 100]), ochre = dull([140, 106, 60]), blue = dull([40, 60, 86]);
+    const bed: RGB = scale(base, .8);
     const holes: [number, number, number][] = Array.from({ length: f.n(4) }, () => [R() * cw, R() * ch, 10 + R() * 16]);
     for (let ty = 0; ty < ch; ty += T) for (let tx = 0; tx < cw; tx += T) {
       const u = (tx + 2) / TX, v = (ty + 2) / TY, cu = ((u % 4) + 4) % 4 - 2, cv = ((v % 4) + 4) % 4 - 2, r = Math.hypot(cu, cv);
       const lat = (a: number) => ((a % 1) + 1) % 1 < .1;
       let c = Math.abs(r - 1.4) < .16 ? ochre : r < 1.4 && (Math.abs(cu) < .12 || Math.abs(cv) < .12) ? blue : r < 1.4 ? teal : lat(u + v) || lat(u - v) ? teal : cream;
       const gone = hash(tx, ty, 31) < .06 || holes.some(([hx, hy, hr]) => Math.hypot(tx - hx, (ty - hy) * TX / TY) < hr * (.7 + hash(tx, ty, 32) * .5));
-      if (gone) continue; // (the bed shows through: the mortar)
+      if (gone) { // the bed shows through: grey lime, never dark enough to read as a pit
+        for (let j = 0; j < T; j++) for (let i = 0; i < T; i++) px.set(tx + i, ty + j, scale(bed, .9 + hash(tx + i, ty + j, 34) * .2));
+        continue;
+      }
       c = scale(c, .85 + hash(tx, ty, 33) * .25);
       for (let j = 0; j < T; j++) for (let i = 0; i < T; i++) px.set(tx + i, ty + j, scale(c, i === T - 1 || j === T - 1 ? .72 : j === 0 ? 1.1 : 1)); // (the grout a darker shade, not a black grid)
     }
