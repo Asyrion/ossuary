@@ -285,7 +285,7 @@ export const STR = {
     assetStatus: { loaded: 'loaded', missing: 'missing', failed: 'failed', off: 'off (?assets=off)' } as Record<string, string>,
     assetRow: (where: string, status: string, tris?: number) => `${where}: ${status}${tris ? `, ${tris.toLocaleString('en')} triangles` : ''}`,
     kit: 'Room kit (built in code)', kitNote: 'Wall lights, braziers, the mechanisms and the rooms\' objects built in code, and every floor\'s floors and walls in pixel art; each room draws its kinds, and the buttons below force one on every room of this floor',
-    kitNew: 'Room kit: new (built in code)', kitOld: 'Room kit: old (to compare)', fireHere: 'Fire objects here (cold and lit)', objectsHere: 'Objects here (every pile and object, two urns)',
+    kitNew: 'Room kit: new (built in code)', kitOld: 'Room kit: old (to compare)', fireHere: 'Fire objects here (cold and lit)', objectsHere: 'Objects here (every pile and object, two urns)', dropsHere: 'Drops here (every pickup, coffer and chest)',
     kitPart: (part: string, kind: string, forced: boolean) => `${({ wall: 'Walls', floor: 'Floor', torch: 'Wall lights', brazier: 'Braziers' } as Record<string, string>)[part]}: ${kind}${forced ? ' (every room)' : ' (this room drew)'}`,
     kitKinds: {
       bricks: 'bricks', ashlar: 'ashlar', bones: 'bone wall', tide: 'tide-marked blocks', rubble: 'rubble stone', basalt: 'basalt', beams: 'charred beams',
