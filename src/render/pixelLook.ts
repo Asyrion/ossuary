@@ -22,12 +22,15 @@ if (typeof location !== 'undefined') {
   else if (q) console.warn(`?pixel=${q}: use off or one of ${P.lines.join(', ')}`);
 }
 
-/** The pixel grid for a drawing buffer of `w` × `h` device pixels and about `lines` rows: `f` device pixels to a game
-    pixel (whole), and the grid's size. */
+/** The pixel grid for a drawing buffer of `w` × `h` device pixels and at most `lines` rows: `f` device pixels to a game
+    pixel (whole, rounded up, so a smaller window keeps the look rather than turning sharp), and the grid's size. */
 export function pixelGrid(w: number, h: number, lines: number) {
-  const f = Math.max(1, Math.round(h / lines));
+  const f = Math.max(1, Math.ceil(h / lines - 1e-6));
   return { w: Math.ceil(w / f), h: Math.ceil(h / f), f };
 }
+let drawn = 0;
+/** The rows the pixel look drew last (the choice, rounded to whole screen pixels in this window); 0 when off. */
+export const drawnRows = () => look.lines ? drawn : 0;
 /** How far to move `v` to land on a multiple of `step`. */
 export const snapBy = (v: number, step: number) => Math.round(v / step) * step - v;
 
@@ -76,7 +79,7 @@ const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), blit); quad.frustumCu
     nearest whole pixel of the grid along its own right and up, after it has been placed. */
 export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.OrthographicCamera) {
   renderer.getDrawingBufferSize(buffer);
-  const g = pixelGrid(buffer.x, buffer.y, look.lines);
+  const g = pixelGrid(buffer.x, buffer.y, look.lines); drawn = g.h;
   if (!target || target.width !== g.w || target.height !== g.h) {
     target?.depthTexture?.dispose(); target?.dispose();
     target = new THREE.WebGLRenderTarget(g.w, g.h, { type: THREE.UnsignedByteType, colorSpace: THREE.SRGBColorSpace, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: true, samples: 0 });

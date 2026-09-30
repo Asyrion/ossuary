@@ -208,7 +208,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   lightning and waves.
 - The pixel look (the game's look since 2026-09-30, on by default at 540 lines, `CFG.pixelLook.start`; chosen in M3.5
   step 2; `src/render/pixelLook.ts`, tuning in `CFG.pixelLook`): the scene drawn into
-  a target 720, 540, 360, 270 or 180 lines tall (rounded so a game pixel is a whole number of screen pixels) with no smoothing, the camera snapped to its grid, and blown up to the window in
+  a target of at most 720, 540, 360, 270 or 180 lines (a game pixel a whole number of screen pixels, rounded up, so a
+  smaller window keeps the look at fewer rows; `drawnRows()` and the dev menu say how many) with no smoothing, the camera snapped to its grid, and blown up to the window in
   whole pixels by one full-screen pass (outlines from depth, light in bands); the HUD stays sharp. The scene is tone-mapped
   and encoded by its own shaders (the target flagged as an XR target, stored as plain RGBA8), so it blends as on the canvas.
   `draw()` in `render/renderer.ts` picks it; draw calls are counted per frame over both passes (`renderer.info`

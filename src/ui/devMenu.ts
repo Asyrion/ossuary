@@ -18,7 +18,7 @@ import { giveResources, spawnPickup } from '../items/pickups';
 import { makeEnemy } from '../actors/enemies';
 import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
 import { assetList, assetsOn, setAssetsOn } from '../assets/models';
-import { pixelLook, setPixelLook } from '../render/pixelLook';
+import { drawnRows, pixelLook, setPixelLook } from '../render/pixelLook';
 import { FAMILIAR_OPTIONS, MODEL_OPTIONS, removeModelOptions, showFamiliarOptions, showModelOptions } from '../actors/modelOptions';
 import { EFFECT_OPTIONS, removeEffectOptions, showEffectOptions } from '../magic/effectOptions';
 import { CFG } from '../config';
@@ -293,7 +293,7 @@ function refresh() {
   assetBtn.textContent = assetsOn() ? S.assetsOn : S.assetsOff; assetBtn.classList.toggle('on', assetsOn()); assetBtn.disabled = !list.some(a => a.status === 'loaded');
   fpsBtn.textContent = DEV.fps ? S.fpsOn : S.fpsOff; fpsBtn.classList.toggle('on', DEV.fps);
   const look = pixelLook();
-  pxBtn.textContent = S.pixelLines(look.lines); pxBtn.classList.toggle('on', !!look.lines);
+  pxBtn.textContent = S.pixelLines(look.lines, drawnRows()); pxBtn.classList.toggle('on', !!look.lines);
   lineBtn.textContent = look.outline ? S.outlinesOn : S.outlinesOff; lineBtn.classList.toggle('on', look.outline); lineBtn.disabled = !look.lines;
   bandBtn.textContent = look.bands ? S.bandsOn : S.bandsOff; bandBtn.classList.toggle('on', look.bands); bandBtn.disabled = !look.lines;
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
