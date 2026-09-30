@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Vec2 } from '../types';
 import { scene } from '../render/renderer';
-import { glow } from '../render/materials';
+import { glow, mergeStill } from '../render/materials';
 import { SCHOOL_LIGHT, box, lit, part, runeRing, shine } from '../render/arcane';
 
 const Y = .6, MAX_RINGS = 6, EMBERS = 12, TILT: [number, number, number] = [Math.PI / 4, 0, 0]; // (the camera looks down at 45°)
@@ -35,6 +35,7 @@ function build(): Lance {
   const embers = Array.from({ length: EMBERS }, () => part(beam, new THREE.OctahedronGeometry(.03), emberMat, [0, 0, 0]));
   const tip = glow(E, 1, .9); root.add(tip);
   const ringMats = [...rings, gather].map(r => (r.children[0] as THREE.Mesh).material as THREE.MeshBasicMaterial);
+  for (const r of [...rings, gather]) mergeStill(r); // (a ring and its runes share one material: one draw each, turned as one)
   const fades = [...[coreMat, sheathMat, outerMat, emberMat, ...ringMats].map(m => ({ m, full: m.opacity })), { m: tip.material, full: .9 }];
   scene.add(root);
   return { root, beam, core, sheath, outer, rings, gather, embers, tip, fades, tinted: [sheathMat, ...ringMats, tip.material], dir: { x: 1, z: 0 }, len: 1, t: 0, on: false };
@@ -61,8 +62,8 @@ function step(L: Lance, dt: number) {
   for (const f of L.fades) f.m.opacity = f.full * k;
   L.rings.forEach((r, i) => { r.rotation.y = t * (4 + i); r.scale.setScalar(.6 + rise * .4); });
   // the rune ring at the hand flares out as the lance leaves it
-  const g = Math.min(1, t / .25); L.gather.visible = g < 1; L.gather.scale.setScalar(.5 + g * .8); L.gather.rotation.y = t * 10;
-  L.embers.forEach((e, i) => { const u = (i / EMBERS + t * 1.4) % 1, a = u * 18 + i; e.position.set(u * L.len, Math.cos(a) * .17, Math.sin(a) * .17); });
+  const g = Math.min(1, t / C.flare); L.gather.visible = g < 1; L.gather.scale.setScalar(.5 + g * .8); L.gather.rotation.y = t * 10;
+  L.embers.forEach((e, i) => { const u = (i / EMBERS + t * C.embers) % 1, a = u * 18 + i; e.position.set(u * L.len, Math.cos(a) * .17, Math.sin(a) * .17); });
   L.tip.scale.setScalar(.8 + k * .4);
 }
 

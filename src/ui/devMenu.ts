@@ -210,7 +210,7 @@ function build() {
     fpsBtn = btn('', () => { DEV.fps = !DEV.fps; }),
   );
 
-  // the pixel look (M3.5 step 2's style test): the rows of pixels, outlines, light in bands; kept in this browser
+  // the pixel look (the game's look, M3.5 step 2): the rows of pixels, outlines, light in bands; kept in this browser
   const px = section(p, S.pixel);
   px.append(
     pxBtn = btn('', () => { const ls = [0, ...CFG.pixelLook.lines]; setPixelLook({ lines: ls[(ls.indexOf(pixelLook().lines) + 1) % ls.length] }); }),
