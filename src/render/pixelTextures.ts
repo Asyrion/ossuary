@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { CFG } from '../config';
 import type { FloorLook, RoomType } from '../types';
 import { mulberry } from '../util';
-import type { WallKind } from '../world/kitData';
+import type { FloorKind, WallKind } from '../world/kitData';
 import { renderer } from './renderer';
 import { MARKED_ROOMS, cacheFloor, cachedFloor, drawMarks } from './textures';
 
@@ -264,21 +264,33 @@ function skull(px: Px, x: number, y: number) {
   for (let u = 1; u < 6; u++) px.mul(x + u, y + 7, .55);
 }
 
-/** A room's floor in the room kit's style, over its `mask` (rows of tiles): slabs of stone (most a tile, some two or
-    four), bevelled and mottled, cracked and chipped here and there; stains in dither, bones and a skull or two, the
-    edges darkened towards the walls, and the special room's marks. Boss rooms lean red, treasure rooms warmer. */
-export function pixelFloorTexture(seed: number, kind: RoomType, look: FloorLook, mask: boolean[][]) {
-  const W = mask[0].length, H = mask.length, [TX, TY] = CFG.roomKit.texel;
-  const key = 'kit' + seed + kind + look.name + JSON.stringify(look.floor) + W + 'x' + H, hit = cachedFloor(key); if (hit) return hit;
-  const cw = W * TX, ch = H * TY, px = new Px(cw, ch), R = mulberry(seed);
-  const inside = (c: number, r: number) => !!mask[r]?.[c];
-  const area = mask.flat().filter(Boolean).length / (13 * 7), n = (count: number) => Math.round(count * area);
-  const [b0, b1, b2] = look.floor.base;
-  const base: RGB = kind === 'boss' ? [b0 - 2, b1 - 10, b2 - 6] : kind === 'treasure' ? [b0 + 8, b1 + 6, b2] : kind === 'secret' ? [b0 - 8, b1 - 4, b2 + 6] : kind === 'shrine' ? [b0 + 10, b1 + 8, b2 + 4] : [b0, b1, b2];
-  const mortar = hex(look.floor.mortar);
-  px.fill(mortar);
-  // the slabs: most a tile, some two tiles long or wide, a few four
-  const taken = mask.map(row => row.map(() => false)), free = (c: number, r: number) => inside(c, r) && !taken[r][c];
+/** What paving and scattering a floor draws with: the picture (and its glow, for embers), the room's random stream, its
+    size in texels, which tiles are inside, its colours. */
+interface FloorCtx { px: Px; glow: Px | null; R: () => number; cw: number; ch: number; TX: number; TY: number; inside: (c: number, r: number) => boolean; base: RGB; mortar: RGB; look: FloorLook; n: (count: number) => number }
+
+/** A slab of stone from (x0, y0), `sw` × `sh` texels (its joint on the right and below): bevelled, mottled, pitted,
+    now and then cracked or chipped. */
+function slab(f: FloorCtx, x0: number, y0: number, sw: number, sh: number, tone = 1) {
+  const { px, R, base, mortar } = f;
+  const v = R() * 22 - 11, c = scale([base[0] + v, base[1] + v, base[2] + v * .8], tone * (R() < .12 ? .88 : 1.06)), fw = sw - 2, fh = sh - 2, s = Math.floor(R() * 1e6);
+  for (let fy = 0; fy < fh; fy++) for (let fx = 0; fx < fw; fx++) {
+    if ((fx === 0 || fx === fw - 1) && (fy === 0 || fy === fh - 1)) continue; // rounded corners
+    const x = x0 + 1 + fx, y = y0 + 1 + fy, cell = hash(Math.floor(fx / 5), Math.floor(fy / 4), s), n = hash(x, y, 11);
+    let k = fy === 0 ? 1.3 : fy === fh - 1 || fy === fh - 2 && fx > 0 ? .72 : fx === 0 ? 1.12 : fx === fw - 1 ? .8 : 1; // the bevel (the lower lip two texels)
+    if (cell > .5 && bayer(x, y) < (cell - .5) * 1.8) k *= .9; else if (cell < .18 && bayer(x, y) < (.18 - cell) * 3) k *= 1.07; // mottled
+    if (n < .045) k *= .78; else if (n > .975) k *= 1.14; // pits and grit
+    px.set(x, y, scale(c, k));
+  }
+  if (R() < .28) { // a crack from an edge, with a lit lip below it
+    let x = x0 + 2 + Math.floor(R() * (fw - 4)), y = y0 + 1; const steps = 6 + Math.floor(R() * 12), drift = R() < .5 ? -1 : 1;
+    for (let i = 0; i < steps && y < y0 + fh; i++) { px.mul(x, y, .55); px.mul(x, y + 1, 1.1); if (R() < .6) x += R() < .75 ? drift : -drift; else y++; }
+  }
+  if (R() < .2) { const x = x0 + 2 + Math.floor(R() * (fw - 4)), bottom = R() < .5, y = bottom ? y0 + fh - 1 : y0 + 1; px.set(x, y, mortar); px.set(x + 1, y, mortar); px.mul(x, y + (bottom ? -1 : 1), .75); } // a chip
+}
+
+/** Flagstones over the room's tiles: most a tile, some two tiles long or wide, a few four; `taken` tiles are left. */
+function flags(f: FloorCtx, taken: boolean[][]) {
+  const { R, inside, TX, TY } = f, H = taken.length, W = taken[0].length, free = (c: number, r: number) => inside(c, r) && !taken[r][c];
   for (let r = 0; r < H; r++) for (let c = 0; c < W; c++) {
     if (!free(c, r)) continue;
     let w = 1, h = 1; const roll = R();
@@ -286,27 +298,129 @@ export function pixelFloorTexture(seed: number, kind: RoomType, look: FloorLook,
     else if (roll < .2 && free(c + 1, r)) w = 2;
     else if (roll < .3 && free(c, r + 1)) h = 2;
     for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) taken[r + j][c + i] = true;
-    slab(c * TX, r * TY, w * TX, h * TY);
+    slab(f, c * TX, r * TY, w * TX, h * TY);
   }
-  function slab(x0: number, y0: number, sw: number, sh: number) {
-    const v = R() * 22 - 11, tone = R() < .12 ? .88 : 1.06, c = scale([base[0] + v, base[1] + v, base[2] + v * .8], tone), fw = sw - 2, fh = sh - 2, s = Math.floor(R() * 1e6);
-    for (let fy = 0; fy < fh; fy++) for (let fx = 0; fx < fw; fx++) {
-      if ((fx === 0 || fx === fw - 1) && (fy === 0 || fy === fh - 1)) continue; // rounded corners
-      const x = x0 + 1 + fx, y = y0 + 1 + fy, cell = hash(Math.floor(fx / 5), Math.floor(fy / 4), s), n = hash(x, y, 11);
-      let k = fy === 0 ? 1.3 : fy === fh - 1 || fy === fh - 2 && fx > 0 ? .72 : fx === 0 ? 1.12 : fx === fw - 1 ? .8 : 1; // the bevel (the lower lip two texels)
-      if (cell > .5 && bayer(x, y) < (cell - .5) * 1.8) k *= .9; else if (cell < .18 && bayer(x, y) < (.18 - cell) * 3) k *= 1.07; // mottled
-      if (n < .045) k *= .78; else if (n > .975) k *= 1.14; // pits and grit
-      px.set(x, y, scale(c, k));
+}
+
+/** Each kind of floor's paving, over the whole room. */
+const PAVING: Record<FloorKind, (f: FloorCtx, mask: boolean[][]) => void> = {
+  flags(f, mask) { flags(f, mask.map(row => row.map(() => false))); },
+  graves(f, mask) { // flagstones, with grave slabs set among them: an incised border, a cross at the head, lines of an inscription
+    const { R, inside, TX, TY, px } = f, taken = mask.map(row => row.map(() => false)), H = mask.length, W = mask[0].length;
+    for (let k = 0, tries = 0; k < Math.max(1, f.n(3)) && tries < 60; tries++) {
+      const long = R() < .6, c = Math.floor(R() * W), r = Math.floor(R() * H), w = long ? 1 : 2, h = long ? 2 : 1;
+      let ok = true; for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) ok &&= inside(c + i, r + j) && !taken[r + j][c + i];
+      if (!ok) continue;
+      for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) taken[r + j][c + i] = true;
+      const x0 = c * TX, y0 = r * TY, sw = w * TX, sh = h * TY; slab(f, x0, y0, sw, sh, 1.12);
+      const cut = (x: number, y: number) => { px.mul(x, y, .6); px.mul(x + 1, y + 1, 1.15); }; // incised: dark, with a lit edge below and right
+      for (let x = x0 + 5; x < x0 + sw - 6; x++) { cut(x, y0 + 4); cut(x, y0 + sh - 6); }
+      for (let y = y0 + 4; y < y0 + sh - 5; y++) { cut(x0 + 5, y); cut(x0 + sw - 7, y); }
+      const [hx, hy, len] = long ? [x0 + sw / 2, y0 + 16, 12] : [x0 + 16, y0 + sh / 2, 10]; // the cross at its head
+      for (let i = -len / 2; i <= len / 2; i++) cut(Math.round(hx), Math.round(hy + i - 2));
+      for (let i = -len / 3; i <= len / 3; i++) cut(Math.round(hx + i), Math.round(hy - len / 4));
+      for (let l = 0; l < 4; l++) { // the inscription, worn
+        const [lx, ly, ll] = long ? [x0 + 10, y0 + 34 + l * 7, sw - 20] : [x0 + 30, y0 + 9 + l * 5, sw - 40];
+        for (let i = 0; i < ll; i++) if (hash(lx + i, ly, 7) < .6) px.mul(lx + i, ly, .7);
+      }
     }
-    if (R() < .28) { // a crack from an edge, with a lit lip below it
-      let x = x0 + 2 + Math.floor(R() * (fw - 4)), y = y0 + 1; const steps = 6 + Math.floor(R() * 12), drift = R() < .5 ? -1 : 1;
-      for (let i = 0; i < steps && y < y0 + fh; i++) { px.mul(x, y, .55); px.mul(x, y + 1, 1.1); if (R() < .6) x += R() < .75 ? drift : -drift; else y++; }
+    flags(f, taken);
+  },
+  cobbles(f) { // rounded setts of different sizes in loose rows, lit from above, with the look's growth in their joints
+    const { px, R, cw, ch, base } = f, moss = csv(f.look.floor.stain);
+    for (let y0 = 0; y0 < ch; y0 += 7) {
+      let x0 = -Math.floor(R() * 8);
+      while (x0 < cw) {
+        const w = 6 + Math.floor(R() * 5), h = 5 + Math.floor(R() * 2), dy = Math.floor(R() * 2), v = R() * 28 - 14, c: RGB = [base[0] + v, base[1] + v, base[2] + v * .8];
+        for (let fy = 0; fy < h; fy++) for (let fx = 0; fx < w - 1; fx++) {
+          const ex = Math.min(fx, w - 2 - fx), ey = Math.min(fy, h - 1 - fy);
+          if (ex + ey < 2 && !(ex === 1 && ey === 1)) continue; // (the corners rounded off)
+          const k = fy === 0 || (fy === 1 && ex === 0) ? 1.28 : fy === h - 1 ? .7 : fx === w - 2 ? .82 : fx <= 1 && fy <= 2 ? 1.12 : 1;
+          px.set(x0 + fx, y0 + dy + fy, scale(c, k * (hash(x0 + fx, y0 + fy, 21) < .05 ? .82 : 1)));
+        }
+        x0 += w;
+      }
     }
-    if (R() < .2) { const x = x0 + 2 + Math.floor(R() * (fw - 4)), bottom = R() < .5, y = bottom ? y0 + fh - 1 : y0 + 1; px.set(x, y, mortar); px.set(x + 1, y, mortar); px.mul(x, y + (bottom ? -1 : 1), .75); } // a chip
-  }
+    for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) { const c = px.get(x, y); if (c[0] === f.mortar[0] && c[1] === f.mortar[1] && hash(x, y, 22) < .35) px.set(x, y, scale(moss, .7)); } // growth in the joints
+  },
+  mosaic(f) { // a sunken mosaic, dulled by the water: medallions of rings and crosses on a lattice, tesserae missing, patches gone
+    const { px, R, cw, ch, TX, TY, base } = f, T = 4;
+    const dull = (c: RGB): RGB => [c[0] * .55 + base[0] * .45, c[1] * .55 + base[1] * .45, c[2] * .55 + base[2] * .45];
+    const cream = dull([150, 144, 122]), teal = dull([46, 104, 100]), ochre = dull([140, 106, 60]), blue = dull([40, 60, 86]);
+    const holes: [number, number, number][] = Array.from({ length: f.n(4) }, () => [R() * cw, R() * ch, 10 + R() * 16]);
+    for (let ty = 0; ty < ch; ty += T) for (let tx = 0; tx < cw; tx += T) {
+      const u = (tx + 2) / TX, v = (ty + 2) / TY, cu = ((u % 4) + 4) % 4 - 2, cv = ((v % 4) + 4) % 4 - 2, r = Math.hypot(cu, cv);
+      const lat = (a: number) => ((a % 1) + 1) % 1 < .1;
+      let c = Math.abs(r - 1.4) < .16 ? ochre : r < 1.4 && (Math.abs(cu) < .12 || Math.abs(cv) < .12) ? blue : r < 1.4 ? teal : lat(u + v) || lat(u - v) ? teal : cream;
+      const gone = hash(tx, ty, 31) < .06 || holes.some(([hx, hy, hr]) => Math.hypot(tx - hx, (ty - hy) * TX / TY) < hr * (.7 + hash(tx, ty, 32) * .5));
+      if (gone) continue; // (the bed shows through: the mortar)
+      c = scale(c, .85 + hash(tx, ty, 33) * .25);
+      for (let j = 0; j < T; j++) for (let i = 0; i < T; i++) px.set(tx + i, ty + j, scale(c, i === T - 1 || j === T - 1 ? .72 : j === 0 ? 1.1 : 1)); // (the grout a darker shade, not a black grid)
+    }
+  },
+  basalt(f) { // plates of black basalt split along irregular seams, embers glowing in some of them
+    const { px, glow, cw, ch, base } = f, G = 18, cells = new Map<string, [number, number]>(), dark: RGB = scale([base[0], base[1] + 2, base[2] + 8], .5);
+    // each plate's point, jittered but not so far that two crowd into a sliver of a plate
+    const pt = (i: number, j: number) => { const k = i + ',' + j; let p = cells.get(k); if (!p) { p = [(i + .25 + hash(i, j, 41) * .5) * G, (j + .25 + hash(i, j, 42) * .5) * G * .72]; cells.set(k, p); } return p; };
+    for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+      const i0 = Math.floor(x / G), j0 = Math.floor(y / (G * .72));
+      let d1 = 1e9, d2 = 1e9, a = [0, 0], b = [0, 0];
+      for (let j = j0 - 2; j <= j0 + 2; j++) for (let i = i0 - 1; i <= i0 + 1; i++) { // (two rows each way: the rows are squeezed, so a nearer point can sit two away)
+        const p = pt(i, j), d = Math.hypot(x - p[0], (y - p[1]) * 1.3);
+        if (d < d1) { d2 = d1; b = a; d1 = d; a = [i, j]; } else if (d < d2) { d2 = d; b = [i, j]; }
+      }
+      if (d2 - d1 < 1.6) { // a seam
+        const hot = hash(Math.min(a[0] * 97 + a[1], b[0] * 97 + b[1]), Math.max(a[0] * 97 + a[1], b[0] * 97 + b[1]), 43);
+        if (hot < .14 && glow) { const k = .45 + .4 * hash(x, y, 44); px.set(x, y, [160 * k + 60, 60 * k + 20, 14]); glow.set(x, y, [255 * k, 100 * k, 16]); } else px.set(x, y, scale(f.mortar, .8));
+        continue;
+      }
+      const k = (d2 - d1 < 3.5 ? .85 : 1) * (.85 + hash(a[0], a[1], 45) * .3) * (hash(x, y, 46) < .05 ? .8 : 1); // (darker at its edges)
+      px.set(x, y, scale(dark, k));
+    }
+  },
+  herringbone(f) { // bricks in herringbone, some charred black
+    const { px, cw, ch, base } = f, C = 6, brick: RGB = [base[0] * .6 + 110 * .4, base[1] * .6 + 58 * .4, base[2] * .6 + 44 * .4];
+    for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+      const i = Math.floor(x / C), j = Math.floor(y / C), d = ((i - j) % 4 + 4) % 4;
+      const [ai, aj, horiz] = d === 0 ? [i, j, true] : d === 1 ? [i - 1, j, true] : d === 3 ? [i, j, false] : [i, j - 1, false];
+      const lx = x - ai * C, ly = y - aj * C, w = horiz ? 2 * C : C, h = horiz ? C : 2 * C;
+      if (lx === 0 || ly === 0) continue; // (the joint: mortar)
+      const n = hash(ai, aj, 51), c = n < .18 ? scale(brick, .45) : scale(brick, .85 + n * .3);
+      const k = ly === 1 ? 1.22 : ly === h - 1 ? .74 : lx === 1 ? 1.08 : lx === w - 1 ? .84 : 1;
+      px.set(x, y, scale(c, k * (hash(x, y, 52) < .05 ? .8 : 1)));
+    }
+  },
+};
+
+/** A room's floor in the room kit's style, over its `mask` (rows of tiles): paved in the room's kind of floor, stained in
+    dither; puddles, ash and embers, or bones and a skull or two, as its look says; the edges darkened towards the walls,
+    and the special room's marks. Boss rooms lean red, treasure rooms warmer. Embers glow (`glow`, an emissive map). */
+export function pixelFloorTexture(seed: number, kind: RoomType, look: FloorLook, mask: boolean[][]): { map: THREE.Texture; glow?: THREE.Texture } {
+  const W = mask[0].length, H = mask.length, [TX, TY] = CFG.roomKit.texel, paving = look.kinds?.floor ?? 'flags';
+  const key = 'kit' + seed + kind + look.name + paving + JSON.stringify(look.floor) + W + 'x' + H, hit = cachedFloor(key);
+  if (hit) return { map: hit, glow: cachedFloor(key + '#glow') };
+  const cw = W * TX, ch = H * TY, px = new Px(cw, ch), R = mulberry(seed);
+  const inside = (c: number, r: number) => !!mask[r]?.[c];
+  const area = mask.flat().filter(Boolean).length / (13 * 7), n = (count: number) => Math.round(count * area);
+  const [b0, b1, b2] = look.floor.base;
+  const base: RGB = kind === 'boss' ? [b0 - 2, b1 - 10, b2 - 6] : kind === 'treasure' ? [b0 + 8, b1 + 6, b2] : kind === 'secret' ? [b0 - 8, b1 - 4, b2 + 6] : kind === 'shrine' ? [b0 + 10, b1 + 8, b2 + 4] : [b0, b1, b2];
+  const mortar = hex(look.floor.mortar), embers = paving === 'basalt' || look.floor.decor === 'ash';
+  const glow = embers ? new Px(cw, ch) : null;
+  px.fill(mortar); glow?.fill([0, 0, 0]);
+  const f: FloorCtx = { px, glow, R, cw, ch, TX, TY, inside, base, mortar, look, n };
+  PAVING[paving](f, mask);
   // stains in dither: moss, damp or blood
   const stain = csv(kind === 'boss' ? '60,14,10' : look.floor.stain);
   for (let k = 0; k < n(7); k++) { const r = (26 + R() * 60), x = R() * cw, y = R() * ch; px.blotch(x, y, r, r * TY / TX, .75, (u, v) => { if (inside(Math.floor(u / TX), Math.floor(v / TY))) px.mix(u, v, stain, .3); }); }
+  if (look.floor.decor === 'puddles') for (let k = 0; k < n(6); k++) { // standing water: dark, a lit rim along its far edge, a streak of reflection
+    const x = R() * cw, y = R() * ch, rx = 14 + R() * 30, ry = rx * (.35 + R() * .2);
+    px.blotch(x, y, rx, ry, 1.6, (u, v) => px.mix(u, v, [12, 22, 26], .62));
+    for (let u = Math.floor(x - rx * .7); u < x + rx * .7; u++) { const v = Math.round(y - ry * Math.sqrt(Math.max(0, 1 - ((u - x) / rx) ** 2)) + 1); if (bayer(u, v) < .7) px.mix(u, v, [150, 200, 210], .4); }
+    for (let u = Math.floor(x - rx * .35); u < x - rx * .05; u++) px.mix(u, Math.round(y - ry * .3), [190, 230, 235], .25);
+  } else if (look.floor.decor === 'ash') { // ash drifts, and embers glowing in them
+    for (let k = 0; k < n(9); k++) { const r = 14 + R() * 34; px.blotch(R() * cw, R() * ch, r, r * .6, 1, (u, v) => px.mix(u, v, [34, 30, 28], .5)); }
+    for (let k = 0; k < n(70); k++) { const x = Math.floor(R() * cw), y = Math.floor(R() * ch), hot = .5 + R() * .5; px.set(x, y, [200 + 55 * hot, 70 + 60 * hot, 20]); glow?.set(x, y, [255 * hot, 120 * hot, 20]); }
+  }
   // the special room's marks, hardened into whole texels: drawn on a layer, each texel on or off (laid down last)
   const marks: { on: Uint8Array; c: RGB; alpha: number }[] = [], marked = new Uint8Array(cw * ch);
   if (MARKED_ROOMS.has(kind)) {
@@ -346,6 +460,6 @@ export function pixelFloorTexture(seed: number, kind: RoomType, look: FloorLook,
     }
   }
   for (const m of marks) for (let i = 0; i < m.on.length; i++) if (m.on[i]) px.mix(i % cw, Math.floor(i / cw), m.c, m.alpha); // the marks, last
-  const t = texture(px.canvas());
-  return cacheFloor(key, t);
+  const map = cacheFloor(key, texture(px.canvas()));
+  return { map, glow: glow ? cacheFloor(key + '#glow', texture(glow.canvas())) : undefined };
 }
