@@ -38,10 +38,11 @@ import { inflict } from '../magic/statusFx';
 import type { StatusKind } from '../magic/spellData';
 import { TEMPLATE_DEFS } from '../world/templates';
 import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
+import { KIT_PARTS, kindsOf, type KitPart, type Kinds } from '../world/kitData';
 import { renderHearts, renderItems, renderMinimap, toast } from './hud';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
 let spellSlot = 0, knowBox: HTMLElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
@@ -106,6 +107,8 @@ function goTo(r: Room) {
 export function useAssets(on: boolean) { setAssetsOn(on); renderItems(); rebuildFloor(); }
 /** The room kit (M3.5 step 3's proof) on or off: this floor is built again in the new or the old look, to compare. */
 export function useRoomKit(on: boolean) { DEV.roomKit = on; rebuildFloor(); }
+/** The room kit's kinds forced on every room of this floor (or drawn per room again, for a part left out): built again. */
+export function forceKinds(k: Partial<Kinds>) { DEV.kitKinds = { ...k }; rebuildFloor(); }
 /** This floor built again on its seed (the same rooms and boss), and the mage back in the room they were in. */
 function rebuildFloor() {
   if (G.state === 'title') return;
@@ -230,7 +233,14 @@ function build() {
 
   // the room kit (M3.5 step 3's proof): the pieces built in code, or the old ones to compare; the fire objects to look at
   const kit = section(pages.look, S.kit);
-  kit.append(el('p', 'dv-info', S.kitNote), kitBtn = btn('', () => useRoomKit(!DEV.roomKit)), btn(S.fireHere, () => {
+  // each part's kind: drawn per room, or one stepped through the floor's list and forced on every room, to compare
+  for (const part of KIT_PARTS) kitPartBtns[part] = btn('', () => {
+    const list = kindsOf(FLOORS[G.run.floor].look.kit!, part), at = list.indexOf(DEV.kitKinds[part] as never);
+    DEV.kitKinds = { ...DEV.kitKinds, [part]: list[at + 1] }; // (past the last: drawn per room again)
+    if (!DEV.kitKinds[part]) delete DEV.kitKinds[part];
+    rebuildFloor();
+  });
+  kit.append(el('p', 'dv-info', S.kitNote), kitBtn = btn('', () => useRoomKit(!DEV.roomKit)), ...KIT_PARTS.map(p => kitPartBtns[p]), btn(S.fireHere, () => {
     closeDev();
     for (const [kind, dx, dz, lit] of [['brazier', -1.4, -1.8, false], ['brazier', 0, -2.2, true], ['candles', 1.3, -1.8, false], ['candles', 2.4, -2.2, true]] as const) {
       const q = freeSpotNear(G.current, player.x + dx, player.z + dz);
@@ -305,6 +315,10 @@ function refresh() {
   assetBox.replaceChildren(...(list.length ? list.map(a => el('div', '', S.assetRow(a.where, S.assetStatus[a.status], a.triangles))) : [el('div', '', S.noAssets)]));
   assetBtn.textContent = assetsOn() ? S.assetsOn : S.assetsOff; assetBtn.classList.toggle('on', assetsOn()); assetBtn.disabled = !list.some(a => a.status === 'loaded');
   kitBtn.textContent = DEV.roomKit ? S.kitNew : S.kitOld; kitBtn.classList.toggle('on', DEV.roomKit);
+  for (const part of KIT_PARTS) {
+    const b = kitPartBtns[part], kind = cur.look.kinds?.[part];
+    b.textContent = S.kitPart(part, kind ? S.kitKinds[kind] ?? kind : '-', !!DEV.kitKinds[part]); b.classList.toggle('on', !!DEV.kitKinds[part]); b.disabled = !DEV.roomKit || !kind;
+  }
   fpsBtn.textContent = DEV.fps ? S.fpsOn : S.fpsOff; fpsBtn.classList.toggle('on', DEV.fps);
   const look = pixelLook();
   pxBtn.textContent = S.pixelLines(look.lines, drawnRows(renderer.getDrawingBufferSize(new Vector2()).y)); pxBtn.classList.toggle('on', !!look.lines);

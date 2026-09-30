@@ -8,6 +8,7 @@ import type { StatusState } from './magic/status';
 import type { StatusKind } from './magic/spellData';
 import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
 import type { Drop, Item, Ware } from './items/loot';
+import type { Kinds, KitWeights } from './world/kitData';
 
 export type Side = 'n' | 's' | 'e' | 'w';
 export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine' | 'library';
@@ -31,6 +32,10 @@ export interface FloorLook {
   torch: { style: 'bracket' | 'lantern' | 'brazier'; flame: string; light: string; intensity: number };
   /** Hemisphere sky and ground colours, and the moonlight. */
   light: { sky: string; ground: string; moon: string };
+  /** The room kit's kinds of wall, floor, wall light and brazier, weighted (world/kitData.ts). */
+  kit?: KitWeights;
+  /** The kinds this room drew from `kit` (set when the room is built). */
+  kinds?: Kinds;
 }
 
 /** A doorway: (x, z) is its middle on this room's inside edge; `link` is the matching door in `nb`. */

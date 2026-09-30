@@ -18,6 +18,7 @@
     "boss": {"pool": ["warden"], "hpMul": 1.0, "speedMul": 1.0, "shotSpeedMul": 1.0, "summons": 2, "volleys": 3},
     "look": {
       "name": "crypt",
+      "kit": {"wall": {"bricks": 3, "ashlar": 2, "bones": 1}, "floor": {"flags": 3, "cobbles": 2, "graves": 1}, "torch": {"bracket": 3, "candelabra": 2, "skull": 1}, "brazier": {"tripod": 2, "font": 1, "basket": 1}},
       "floor": {"base": [72, 66, 58], "mortar": "#17120e", "stain": "38,54,30", "decor": "bones", "bones": 5},
       "wall": {"brick": [76, 68, 60], "mortar": "#1e1813", "stains": "none", "dress": {"pilaster": 3, "niches": {"skull": 3, "candle": 3, "bones": 2, "urn": 1, "empty": 1}}},
       "torch": {"style": "bracket", "flame": "#ffc36a", "light": "#ff9a3c", "intensity": 1.0},
@@ -43,6 +44,7 @@
     "boss": {"pool": ["abbess", "pyre"], "hpMul": 1.0, "speedMul": 1.0, "shotSpeedMul": 1.0, "summons": 2, "volleys": 3},
     "look": {
       "name": "drowned",
+      "kit": {"wall": {"bricks": 3, "tide": 2, "rubble": 2}, "floor": {"flags": 3, "cobbles": 2, "mosaic": 1}, "torch": {"lantern": 3, "witchlight": 2, "candelabra": 1}, "brazier": {"column": 2, "tripod": 1, "basket": 1}},
       "floor": {"base": [62, 66, 62], "mortar": "#101412", "stain": "34,60,50", "decor": "puddles", "bones": 2},
       "wall": {"brick": [64, 68, 62], "mortar": "#131714", "stains": "moss", "dress": {"pilaster": 4, "niches": {"urn": 3, "skull": 2, "empty": 3, "candle": 1}}},
       "torch": {"style": "lantern", "flame": "#a8f0e0", "light": "#d0c8a8", "intensity": 0.85},
@@ -68,6 +70,7 @@
     "boss": {"pool": ["abbess", "pyre"], "hpMul": 1.25, "speedMul": 1.1, "shotSpeedMul": 1.15, "summons": 3, "volleys": 4},
     "look": {
       "name": "burning",
+      "kit": {"wall": {"bricks": 3, "basalt": 2, "beams": 2}, "floor": {"flags": 3, "basalt": 2, "herringbone": 2}, "torch": {"brazier": 3, "basket": 2, "mask": 1}, "brazier": {"tripod": 2, "plinth": 1, "cauldron": 1}},
       "floor": {"base": [70, 60, 54], "mortar": "#140d0a", "stain": "48,26,16", "decor": "ash", "bones": 3},
       "wall": {"brick": [74, 60, 52], "mortar": "#170e0b", "stains": "soot", "dress": {"pilaster": 3, "niches": {"skull": 3, "bones": 3, "candle": 2, "empty": 1}}},
       "torch": {"style": "brazier", "flame": "#ff7a2a", "light": "#ff9048", "intensity": 1.1},
