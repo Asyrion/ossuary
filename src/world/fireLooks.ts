@@ -143,8 +143,8 @@ const TORCHES: Record<TorchKind, TorchBuild> = {
     mesh(holder, GEO.disc, MAT.gilt, 0, 1.28, .03); mesh(holder, GEO.rivet, MAT.gilt, 0, .8, .035);
     mesh(holder, GEO.arm, MAT.gilt, 0, .86, .07).scale.z = .7; mesh(holder, GEO.pan, MAT.gilt, 0, .9, .13);
     mesh(holder, GEO.candle, t.wax ? waxFor(t.wax) : MAT.wax, 0, 1.08, .13).scale.set(.9, .34, .9);
-    lit.add(makeFire([{ x: 0, y: 1.25, z: .13, h: .2, w: .09 }], pal, 3, .35));
-    return at(glow(pal.body, 1.2, .8), 0, 1.32, .15);
+    lit.add(makeFire([{ x: 0, y: 1.25, z: .13, h: .2, w: .09 }], pal, 3, .3));
+    return at(glow(pal.body, .85, .55), 0, 1.32, .15); // (small: the gilt plate behind must still show)
   },
   crown(holder, lit, pal, t) { // the Reliquary's: a small crown of candles, a gilt ring hung from a bracket, five candles on its rim
     mesh(holder, GEO.plate, MAT.gilt, 0, 1.2, .015).scale.set(.6, .7, 1); mesh(holder, GEO.arm, MAT.gilt, 0, 1.3, .1).scale.z = .9;
@@ -172,8 +172,8 @@ const TORCHES: Record<TorchKind, TorchBuild> = {
     mesh(holder, GEO.shelf, MAT.darkStone, 0, .8, .09).scale.set(1.4, 1.2, 1.3);
     [[.84, 1.05, 0], [.91, .9, .2], [.98, .75, -.3]].forEach(([y, s, r]) => { const m = mesh(holder, GEO.flat, MAT.darkStone, 0, y, .1); m.scale.set(s, 1, s * .9); m.rotation.y = r; });
     mesh(holder, GEO.flat, MAT.stone, 0, 1.04, .1).scale.set(.6, .8, .55);
-    lit.add(makeFire([{ x: 0, y: 1.06, z: .1, h: .24, w: .1, tongues: 2 }], pal, 3, .3));
-    return at(glow(pal.body, 1.2, .8), 0, 1.18, .12);
+    lit.add(makeFire([{ x: 0, y: 1.06, z: .1, h: .24, w: .1, tongues: 2 }], pal, 3, .25));
+    return at(glow(pal.body, .8, .55), 0, 1.18, .12); // (small: the stones under it must still show)
   },
   basket(holder, lit, pal) { // an iron fire basket hanging on a short chain from a bracket
     mesh(holder, GEO.plate, MAT.iron, 0, 1.18, .015).scale.set(.7, .9, 1);
