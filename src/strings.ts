@@ -43,12 +43,16 @@ export const STR = {
     ['The Ossuary', 'Beneath the old chapel of Eda'],
     ['The Drowned Catacombs', "Where the chapel's water gathers"],
     ['The Burning Scriptorium', 'Where the chapel kept its books'],
+    ['The Gilded Reliquary', 'Where the chapel hid its relics'],
+    ["The Ferryman's Shore", 'Where the dead wait to cross'],
   ] as Banner[],
   /** The bosses: name and line on the boss bar banner, the banner when it calls help, the one when it dies. */
   bosses: {
     warden: { name: 'The Hollow Warden', sub: 'Keeper of the lower vault', summon: 'The warden calls its dead', dead: 'The warden is still' },
     abbess: { name: 'The Drowned Abbess', sub: 'She still keeps the hours below', summon: 'The abbess calls the drowned lights', dead: 'The abbess sinks for good' },
     pyre: { name: 'The Pyre Knight', sub: 'Sworn to the burning books', summon: 'The knight calls the hounds', dead: 'The knight burns out' },
+    hart: { name: 'The Hallowed Hart', sub: "It keeps the relics' light", summon: 'The hart calls its fawns', dead: 'The hart lies down at last' },
+    angler: { name: 'The Deep Angler', sub: 'Its light calls the dead astray', summon: 'The angler calls the dark', dead: "The angler's light goes out" },
   },
   banner: {
     wayDown: 'A way down has opened',
@@ -303,7 +307,7 @@ export const STR = {
     } as Record<string, string>,
     fpsOn: 'Frame readout: shown', fpsOff: 'Frame readout: hidden',
     artifactGallery: 'Artifacts (the room kit\'s: built in code, their icons rendered from them)', artifactsNote: 'Every artifact floating ahead of the mage in rows (foci, passives, cursed), to look at; they can\'t be taken',
-    bossLooks: 'The Hollow Warden\'s looks (the floor-1 boss, built in code: choose one)', wardenWears: (name: string) => `The Warden wears: ${name}`,
+    bossLooks: 'The bosses built in code: the Hollow Warden\'s three looks (the floor-1 boss: choose one), and the bosses of floors 4 and 5', wardenWears: (name: string) => `The Warden wears: ${name}`,
     options: 'Enemy model options (looks only)', familiars: 'Familiar options (looks only)', effects: 'Spell effect options (looks only)', showOptions: 'Stand them here', takeOptions: 'Take them away', floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
     pixel: 'Pixel look', pixelLines: (lines: number, drawn: number) => !lines ? 'Pixels: off' : drawn && drawn !== lines ? `Pixels: ${lines} lines (${drawn} in this window)` : `Pixels: ${lines} lines`,
     outlinesOn: 'Outlines: on', outlinesOff: 'Outlines: off', bandsOn: 'Light in bands: on', bandsOff: 'Light in bands: off',

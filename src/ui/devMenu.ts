@@ -228,7 +228,7 @@ function build() {
     makeEnemy(pickFoe(floor.foes, 'H', Math.random, true), q.x, q.z, floorHp(), undefined, { champion: true });
   }));
   // the foes built in code (M4), by floor, from data/foes.json; and one of them in every fight, to test it
-  for (const floor of [1, 2, 3]) {
+  for (const floor of FLOORS.map((_, i) => i + 1)) {
     const row = FOE_IDS.filter(id => FOES[id].floor === floor);
     if (row.length) foes.append(el('p', 'dv-info', S.foesOfFloor(floor)), ...row.map(id => btn(STR.options[id].name, () => { const q = ahead(3); makeEnemy(id, q.x, q.z, floorHp()); })));
   }
@@ -291,11 +291,11 @@ function build() {
 
   // enemy model options (looks only, for the owner to choose from): a row of them ahead of the mage
   const opts = section(pages.galleries, S.options);
-  opts.append(el('p', 'dv-info', [1, 2, 3].map(f => S.floorOptions(f, MODEL_OPTIONS.filter(o => o.floor === f).map(o => STR.options[o.id].name).join(', '))).join(' · ')), btn(S.showOptions, () => { closeDev(); showModelOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
+  opts.append(el('p', 'dv-info', [...new Set(MODEL_OPTIONS.map(o => o.floor))].sort((a, b) => a - b).map(f => S.floorOptions(f, MODEL_OPTIONS.filter(o => o.floor === f).map(o => STR.options[o.id].name).join(', '))).join(' · ')), btn(S.showOptions, () => { closeDev(); showModelOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
 
   // the Hollow Warden's looks (M4): the three ahead of the mage, and the one it wears in its fight (a new floor 1 shows it)
   const bl = section(pages.galleries, S.bossLooks);
-  bl.append(el('p', 'dv-info', BOSS_LOOKS.map(o => `${STR.bossLooks[o.id].name}: ${STR.bossLooks[o.id].note}`).join(' · ')),
+  bl.append(el('p', 'dv-info', [...BOSS_LOOKS.map(o => `${STR.bossLooks[o.id].name}: ${STR.bossLooks[o.id].note}`), STR.bosses.hart.name, STR.bosses.angler.name].join(' · ')),
     btn(S.showOptions, () => { closeDev(); showBossLooks(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)),
     lookBtn = btn('', () => { const i = BOSS_LOOKS.findIndex(o => o.id === bossLook()); setBossLook(BOSS_LOOKS[(i + 1) % BOSS_LOOKS.length].id); refresh(); }));
   // familiar options (looks only, the owner's drawings built in code): in a row ahead of the mage

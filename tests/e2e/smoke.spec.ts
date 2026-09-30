@@ -184,6 +184,53 @@ for (const boss of ['abbess', 'pyre']) test(`the ${boss} boss dives or leaps out
   expect(errors).toEqual([]);
 });
 
+test('a run is five floors: the Gilded Reliquary and the Ferryman\'s Shore below the Scriptorium, and the Shore\'s boss wins it', async ({ page }) => {
+  const errors = await start(page, '?seed=DEEP01&floor=3');
+  type G2 = GameHooks & { descend(): void; run: { boss: string } };
+  const floors = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as G2, seen: { floor: number; boss: string; shrines: number; banner: string }[] = [];
+    const note = () => seen.push({ floor: g.floor, boss: g.run.boss, shrines: g.rooms().filter(r => r.type === 'shrine').length, banner: document.querySelector('#banner .t')?.textContent ?? '' });
+    g.descend(); g.sim(.2, true); note(); // (from the Scriptorium down to the Reliquary)
+    g.descend(); g.sim(.2, true); note(); // (and on to the Shore)
+    return seen;
+  });
+  expect(floors.map(f => [f.floor, f.boss, f.shrines, f.banner])).toEqual([[3, 'hart', 1, 'The Gilded Reliquary'], [4, 'angler', 0, "The Ferryman's Shore"]]); // (a shrine on floor 4 as on floor 2)
+  await page.screenshot({ path: 'test-results/smoke-floor5.png' });
+  const end = await page.evaluate(() => { const g = (window as unknown as W).__game as G2; g.descend(); g.sim(.2); return { state: g.state, floor: document.getElementById('endFloor')!.textContent }; });
+  expect(end).toEqual({ state: 'end', floor: '5 of 5' });
+  expect(errors).toEqual([]);
+});
+
+for (const boss of ['hart', 'angler']) test(`the ${boss === 'hart' ? 'Hallowed Hart' : 'Deep Angler'}, built in code, fights as it should and can be beaten`, async ({ page }) => {
+  const errors = await start(page, `?room=boss_open&boss=${boss}&floor=${boss === 'hart' ? 4 : 5}`);
+  type Boss = Foe & { type: string; state: string; hp: number; summoned?: boolean; st: number; cycle: number; bossAff?: { weak: string; resist: string }; parts?: Record<string, unknown> };
+  type G2 = GameHooks & { hit(i: number, dmg: number, school?: string): number; player: GameHooks['player'] & { invuln: number } };
+  const result = await page.evaluate(() => {
+    const w = window as unknown as W, g = w.__game as G2;
+    g.warp(1);
+    const foe = g.enemies.find(e => e.isBoss) as Boss, i = g.enemies.indexOf(foe);
+    // its weakness and resistance
+    g.sim(.7); const hp0 = foe.hp; g.hit(i, 4, foe.bossAff!.weak); const weak = hp0 - foe.hp; const hp1 = foe.hp; g.hit(i, 4, foe.bossAff!.resist); const resist = hp1 - foe.hp;
+    // the angler's lure draws the mage in: stand three tiles off, and let it pull
+    let drawn = 0;
+    if (foe.type === 'angler') {
+      g.player.x = foe.x; g.player.z = foe.z + 3; foe.state = 'pull'; foe.st = 1.5; (foe as Boss & { fireT: number }).fireT = foe.hp;
+      const d0 = Math.hypot(g.player.x - foe.x, g.player.z - foe.z); g.sim(.5); drawn = d0 - Math.hypot(g.player.x - foe.x, g.player.z - foe.z);
+    }
+    const states = new Set<string>(); let called = false, seconds = 0;
+    for (; seconds < 240 && g.enemies.length; seconds += .25) { w.__fight(.25); states.add(foe.state); called ||= !!foe.summoned; }
+    g.sim(0.5);
+    const spots = (g.current as RoomView & { spots: unknown[] }).spots;
+    return { type: foe.type, weak, resist, drawn, seconds, states: [...states], called, left: g.enemies.length, cleared: g.current.cleared, choice: spots.length };
+  });
+  console.log(`${boss} beaten in ${result.seconds.toFixed(1)} s of game time; states seen: ${result.states.join(', ')}`);
+  expect(result).toMatchObject({ type: boss, called: true, left: 0, cleared: true, choice: 2 });
+  expect(result.weak).toBeCloseTo(6); expect(result.resist).toBeCloseTo(2); // (half again, and half)
+  expect(result.states).toEqual(expect.arrayContaining(boss === 'hart' ? ['walk', 'aim', 'charge', 'spokes', 'windStamp'] : ['drift', 'lure', 'spit', 'windRing']));
+  if (boss === 'angler') expect(result.drawn).toBeGreaterThan(.5);
+  expect(errors).toEqual([]);
+});
+
 test('the Hollow Warden wears the look chosen for it, its shots in its school\'s light, and can be beaten', async ({ page }) => {
   const LIGHT: Record<string, number> = { bellWarden: 0xf0e070, motherOfSpores: 0xa266ff, hollowOwl: 0xffd878 }; // (SCHOOL_LIGHT: storm, umbral, hallow)
   type Boss = Foe & { type: string; state: string; summoned?: boolean; mats: unknown[]; eye?: object; ring?: object; halo?: object; model: { traverse(f: (o: { isMesh?: boolean; isSprite?: boolean; isPoints?: boolean }) => void): void } };
@@ -213,13 +260,13 @@ test('the Hollow Warden wears the look chosen for it, its shots in its school\'s
   });
   expect(fight).toMatchObject({ called: true, left: 0, cleared: true });
   expect(fight.states).toEqual(expect.arrayContaining(['walk', 'windAim', 'windBurst', 'volley']));
-  // the dev menu's gallery stands the three, and the switch is remembered in this browser
+  // the dev menu's gallery stands the three (with the other bosses built in code), and the switch is remembered in this browser
   const gallery = await page.evaluate(() => {
     const g = (window as unknown as W).__game as G2, ids = g.bossLooks().map(o => o.id);
     g.sim(.2, true); g.setBossLook('bellWarden');
     return { ids, look: g.bossLook, kept: localStorage.getItem('ossuary.bossLook') };
   });
-  expect(gallery).toEqual({ ids: ['bellWarden', 'motherOfSpores', 'hollowOwl'], look: 'bellWarden', kept: 'bellWarden' });
+  expect(gallery).toEqual({ ids: ['bellWarden', 'motherOfSpores', 'hollowOwl', 'hart', 'angler'], look: 'bellWarden', kept: 'bellWarden' }); // (and the bosses of floors 4 and 5, M4.1)
   for (const e of errors) expect(e).toEqual([]);
 });
 
@@ -242,7 +289,7 @@ test('the end screen sums up the run, and replays its seed', async ({ page }) =>
   const won = await summary();
   expect(won.obols).toBeGreaterThanOrEqual(5);
   await page.screenshot({ path: 'test-results/smoke-end.png' });
-  expect(won).toMatchObject({ shown: true, floor: '1 of 3', kills: '3', seed: 'ENDRUN', carried: 2 }); // twin staff replaced the wand
+  expect(won).toMatchObject({ shown: true, floor: '1 of 5', kills: '3', seed: 'ENDRUN', carried: 2 }); // twin staff replaced the wand
   expect(won.time).toMatch(/^\d+:\d\d$/);
 
   // replay: a full run on the same seed; then fall in its first fight
@@ -256,7 +303,7 @@ test('the end screen sums up the run, and replays its seed', async ({ page }) =>
   });
   expect(replay).toEqual({ state: 'play', seed: 'ENDRUN', after: 'end' });
   const lost = await summary();
-  expect(lost).toMatchObject({ shown: true, floor: '1 of 3', seed: 'ENDRUN', carried: 1 });
+  expect(lost).toMatchObject({ shown: true, floor: '1 of 5', seed: 'ENDRUN', carried: 1 });
   expect(lost.title).not.toBe(won.title);
   expect(errors).toEqual([]);
 });

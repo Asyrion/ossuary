@@ -12,7 +12,14 @@
      calls the floor's flyers below half health, and surfaces with a second ring.
    Pyre Knight: stalks; crouches and leaps at where the mage stood (the landing spot glows) and lands
      with a shockwave ring; charges in a line until a wall or rock stuns him; sprays cones of embers;
-     calls the floor's heavies below half health, and his landings send a second ring. */
+     calls the floor's heavies below half health, and his landings send a second ring.
+   Hallowed Hart (floor 4, M4.1, built in code): walks at the mage; lowers its antlers while the way it will run lights up
+     on the floor, then charges along it (a wall stuns it); turns in place firing spokes of light (six below half health);
+     rears and stamps a ring of motes (a second ring below half); calls the floor's flyers, its fawns, below half health.
+   Deep Angler (floor 5, M4.1, built in code): floats a few tiles off, circling; its lure brightens, then draws the mage in
+     towards its opening jaws until it bites (striking it hard enough meanwhile makes it flinch and let go); spits volleys
+     of shadow that hex; puffs up and breathes a ring of dark motes (a second ring below half); calls the floor's flyers
+     below half health. Both have a weakness and a resistance (CFG.enemy). */
 import * as THREE from 'three';
 import { CFG, type BossType } from '../config';
 import { callFoe, type Role } from './foeData';
@@ -24,21 +31,22 @@ import { glow } from '../render/materials';
 import { FLOORS } from '../world/generate';
 import { freeSpotNear, isFreeAt } from '../world/rooms';
 import { spawnShot } from '../combat/projectiles';
+import { hurtPlayer } from '../combat/damage';
 import { burst } from '../combat/fx';
 import { banner } from '../ui/hud';
 import { makeEnemy, stdMat } from './enemies';
-import { bossLook, buildBossLook } from './bossLooks';
+import { anglerLook, bossLook, buildBossLook, hartLook } from './bossLooks';
 import { mergeRig } from '../render/rig';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { ease, lerp } from '../util';
 
 type Add = (geo: THREE.BufferGeometry, mat: THREE.Material, px: number, py: number, pz: number, sx?: number, sy?: number, sz?: number) => THREE.Mesh;
 
-const SHOT = { warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a };
+const SHOT: Partial<Record<BossType, number>> = { warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a };
 /** A boss's shots: in its school's light when it is built in code, else its own colour. */
-const shotColor = (e: Enemy) => e.bossSchool ? SCHOOL_LIGHT[e.bossSchool] : SHOT[e.type as BossType];
+const shotColor = (e: Enemy) => e.bossSchool ? SCHOOL_LIGHT[e.bossSchool] : SHOT[e.type as BossType] ?? 0xffffff;
 /** Who each boss calls below half health. */
-const SUMMONS: Record<BossType, Role> = { warden: 'R', abbess: 'W', pyre: 'H' };
+const SUMMONS: Record<BossType, Role> = { warden: 'R', abbess: 'W', pyre: 'H', hart: 'W', angler: 'W' };
 
 /** A flat ring lying on the floor (the abbess's ripple, the knight's landing mark), hidden at first. */
 function floorRing(e: Enemy, color: number, radius: number) {
@@ -57,6 +65,15 @@ export function buildBoss(e: Enemy, add: Add) {
     e.model = L.group; e.idle = L.idle; e.shadow = L.shadow; e.bossSchool = L.school; e.body.add(L.group);
     e.eye = L.parts.eye; e.ring = L.parts.ring; e.halo = L.parts.halo;
     e.state = 'walk'; e.st = 2.2;
+  } else if (e.type === 'hart' || e.type === 'angler') { // built in code (M4.1): the bosses of floors 4 and 5
+    const L = e.type === 'hart' ? hartLook() : anglerLook(), P = L.parts, C = CFG.enemy[e.type];
+    const keep = e.type === 'hart' ? [P.eye, P.ring, P.head, ...P.legs.children] : [P.eye, P.ring, P.lure];
+    e.mats = mergeRig(L.group, L.idle, 'boss:' + e.type, keep);
+    for (const m of e.mats) m.userData.base = m.emissive.clone();
+    e.model = L.group; e.idle = L.idle; e.shadow = L.shadow; e.bossSchool = L.school; e.body.add(L.group);
+    e.eye = P.eye; e.ring = P.ring; e.halo = P.halo; e.parts = P; e.bossAff = { weak: C.weak, resist: C.resist };
+    if (e.type === 'hart') { e.parts.lane = lane(e); e.dir = { x: 0, z: 1 }; e.state = 'walk'; e.st = 2; }
+    else { e.flying = true; e.state = 'drift'; e.st = 2.2; }
   } else if (e.type === 'abbess') {
     // a drowned nun: a bell of wet robes, a veiled pale face, a verdigris halo, lamp-green eyes
     const robe = stdMat(0x1d3431, { roughness: .55 }), hem = stdMat(0x28463f, { roughness: .6 }), pale = stdMat(0xc3cdbd), weed = stdMat(0x3f5a2c);
@@ -94,6 +111,14 @@ export function buildBoss(e: Enemy, add: Add) {
   }
 }
 
+/** The hart's lane: a strip of its light on the floor, pointing where it will charge, hidden at first (in the boss's
+    group, which only moves; `rotation.y` turns it and `scale.z` sets its length). */
+function lane(e: Enemy) {
+  const g = new THREE.Group(), strip = new THREE.Mesh(new THREE.PlaneGeometry(.8, 1).translate(0, .5, 0), new THREE.MeshBasicMaterial({ color: SCHOOL_LIGHT.hallow, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, blending: THREE.AdditiveBlending }));
+  strip.rotation.x = Math.PI / 2; g.position.y = .03; g.add(strip); g.visible = false; e.group.add(g);
+  return g;
+}
+
 /** Below half health a boss calls its helpers, once; they have the floor's enemy health. */
 function callHelp(e: Enemy) {
   e.summoned = true; Sfx.at(e.x, e.z).boom(); G.shake = .25; banner(STR.bosses[e.type as BossType].summon, '');
@@ -107,12 +132,12 @@ function callHelp(e: Enemy) {
 function ringOfShots(e: Enemy, n: number, speed: number, offset: number, size = 1.25) {
   for (let i = 0; i < n; i++) { const a = offset + i / n * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(a), Math.sin(a), speed, shotColor(e), .9, size); }
 }
-/** `count` shots spread over `spread` radians around the direction to the mage. */
-function fan(e: Enemy, count: number, spread: number, speed: number, turn: number, from = .8) {
+/** `count` shots spread over `spread` radians around the direction to the mage; `o`, what they carry (the angler's hex). */
+function fan(e: Enemy, count: number, spread: number, speed: number, turn: number, from = .8, o: { hex?: number } = {}) {
   const base = Math.atan2(player.z - e.z, player.x - e.x) + turn, ux = Math.cos(base), uz = Math.sin(base);
   for (let i = 0; i < count; i++) {
     const a = base + (count > 1 ? (i / (count - 1) - .5) * spread : 0);
-    spawnShot(e.x + ux * from, e.z + uz * from, Math.cos(a), Math.sin(a), speed, shotColor(e), 1, 1.1);
+    spawnShot(e.x + ux * from, e.z + uz * from, Math.cos(a), Math.sin(a), speed, shotColor(e), 1, 1.1, o);
   }
 }
 /** A second ring a moment later, if the boss is still alive and the fight still on. */
@@ -127,12 +152,18 @@ export function updateBoss(e: Enemy, dt: number, ux: number, uz: number): number
   if (e.type === 'warden') updateWarden(e, dt, ux, uz);
   else if (e.type === 'abbess') updateAbbess(e, dt, ux, uz);
   else if (e.type === 'pyre') return updateKnight(e, dt, ux, uz);
+  else if (e.type === 'hart') return updateHart(e, dt, ux, uz);
+  else if (e.type === 'angler') return updateAngler(e, dt, ux, uz);
   return undefined;
 }
 
 /** After a boss has moved: the knight's landing mark stays put on the floor, and a charging knight that
     ran into something (a wall, rock, pit or closed door) is stunned. */
 export function afterBossMove(e: Enemy, hit: boolean) {
+  if (e.type === 'hart' && hit && e.state === 'charge') { // the hart ran its antlers into the wall
+    e.state = 'stun'; e.st = 1.2; e.vx = e.vz = 0; G.shake = Math.max(G.shake, .35); Sfx.at(e.x, e.z).boom(); Sfx.at(e.x, e.z).rubble();
+    burst(e.x + e.dir!.x * .8, 1.6, e.z + e.dir!.z * .8, SCHOOL_LIGHT.hallow, 18, 3, .06);
+  }
   if (e.type !== 'pyre') return;
   const mark = e.marker!;
   if (mark.visible && e.target) mark.position.set(e.target.x - e.x, .03, e.target.z - e.z);
@@ -285,6 +316,126 @@ function updateKnight(e: Enemy, dt: number, ux: number, uz: number): number | un
   } else if (e.state === 'recover') {
     e.vx = e.vz = 0; e.body.scale.y = 1 - .15 * Math.max(0, e.st) / .7;
     if (e.st <= 0) { e.body.scale.y = 1; e.state = 'stalk'; e.st = 1.6; }
+  }
+  return undefined;
+}
+
+function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | undefined {
+  const C = CFG.enemy.hart, B = e.bossCfg, shotMul = B?.shotSpeedMul ?? 1, speedMul = B?.speedMul ?? 1;
+  const hurt = e.hp / e.maxHp < .5, P = e.parts!, laneG = P.lane, laneMat = (laneG.children[0] as THREE.Mesh).material as THREE.MeshBasicMaterial;
+  const halo = e.halo!, eye = e.eye!, winding = e.state.startsWith('wind') || e.state === 'aim';
+  e.idle?.(e.t); e.ring!.rotation.z += dt * (winding ? 5 : 1.2);
+  const trot = (rate: number, amp: number) => P.legs.children.forEach((l, i) => { l.rotation.x = Math.sin(e.t * rate + (i === 0 || i === 3 ? 0 : Math.PI)) * amp; });
+  if (e.state === 'walk') {
+    const sp = C.speed * speedMul * (hurt ? 1.2 : 1); e.vx = ux * sp; e.vz = uz * sp; trot(9, .45);
+    P.head.rotation.x = lerp(P.head.rotation.x, 0, .15); eye.scale.setScalar(1); halo.material.opacity = .35;
+    if (e.st <= 0) {
+      e.cycle = e.cycle! + 1; e.state = ['aim', 'windSpokes', 'windStamp'][e.cycle % 3];
+      e.st = e.state === 'aim' ? .8 : e.state === 'windSpokes' ? .6 : .55;
+      if (e.state === 'aim') { laneG.visible = true; Sfx.at(e.x, e.z).hartBellow(); }
+    }
+  } else if (e.state === 'aim') { // it lowers its antlers, and the way it will run lights up on the floor
+    e.vx = e.vz = 0; trot(0, 0); const k = 1 - Math.max(0, e.st) / .8;
+    P.head.rotation.x = .55 * k; eye.scale.setScalar(1 + k * .5); halo.material.opacity = .35 + k * .5;
+    e.dir = { x: ux, z: uz }; laneG.rotation.y = Math.atan2(ux, uz); laneMat.opacity = .12 + k * .4;
+    let len = .5; while (len < 9 && isFreeAt(G.current, e.x + ux * len, e.z + uz * len)) len += .25; laneG.scale.z = len; // (up to the wall or rock it will meet)
+    if (e.st <= 0) { e.state = 'charge'; e.st = 2.4; laneG.visible = false; Sfx.at(e.x, e.z).hartCharge(); }
+    return Math.atan2(ux, uz);
+  } else if (e.state === 'charge') {
+    const d = e.dir!; e.vx = d.x * C.charge * speedMul; e.vz = d.z * C.charge * speedMul; trot(20, .75);
+    if (Math.random() < dt * 25) burst(e.x, .1, e.z, SCHOOL_LIGHT.hallow, 1, 1, .04);
+    if (e.st <= 0) { e.state = 'walk'; e.st = 1.6; }
+    return Math.atan2(d.x, d.z);
+  } else if (e.state === 'stun') { // its antlers in the wall: dazed, and open to bolts
+    e.vx = e.vz = 0; trot(0, 0); P.head.rotation.x = .55 + Math.sin(e.t * 20) * .08;
+    if (e.st <= 0) { e.state = 'walk'; e.st = 1.6; }
+    return e.face;
+  } else if (e.state === 'windSpokes') { // its candles flare
+    e.vx = e.vz = 0; trot(0, 0); const k = 1 - Math.max(0, e.st) / .6;
+    halo.material.opacity = .35 + k * .6; eye.scale.setScalar(1 + k * .5);
+    if (e.st <= 0) { e.state = 'spokes'; e.st = 2.6; e.fireT = 0; e.spin = Math.random() * Math.PI; Sfx.at(e.x, e.z).hartSpokes(); }
+  } else if (e.state === 'spokes') { // it turns, and light streams out along its spokes
+    e.vx = e.vz = 0; e.spin = e.spin! + dt * 1.3; e.fireT = e.fireT! - dt;
+    if (e.fireT <= 0) {
+      e.fireT = .16; const n = hurt ? 6 : 4;
+      for (let i = 0; i < n; i++) { const a = e.spin + i / n * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(a), Math.sin(a), 3.1 * shotMul, shotColor(e), 1, 1.05); }
+    }
+    if (e.st <= 0) { e.state = 'walk'; e.st = 1.8; }
+    return e.face + dt * 1.3;
+  } else if (e.state === 'windStamp') { // it rears
+    e.vx = e.vz = 0; trot(0, 0); const k = 1 - Math.max(0, e.st) / .55;
+    P.body.rotation.x = -.3 * k; P.body.position.z = -.25 * k; halo.material.opacity = .35 + k * .6;
+    if (e.st <= 0) {
+      P.body.rotation.x = 0; P.body.position.z = 0;
+      const off = Math.random() * Math.PI;
+      ringOfShots(e, 18, 3 * shotMul, off, 1.1);
+      if (hurt) laterRing(e, .3, 18, 2.6 * shotMul, off + Math.PI / 18);
+      burst(e.x, .2, e.z, SCHOOL_LIGHT.hallow, 26, 4, .07); Sfx.at(e.x, e.z).boom(); G.shake = .3;
+      e.state = 'recover'; e.st = .6;
+    }
+  } else if (e.state === 'recover') {
+    e.vx = e.vz = 0;
+    if (e.st <= 0) { e.state = 'walk'; e.st = 1.8; }
+  }
+  return undefined;
+}
+
+function updateAngler(e: Enemy, dt: number, ux: number, uz: number): number | undefined {
+  const C = CFG.enemy.angler, B = e.bossCfg, shotMul = B?.shotSpeedMul ?? 1, speedMul = B?.speedMul ?? 1;
+  const hurt = e.hp / e.maxHp < .5, P = e.parts!, lureGlow = P.lureGlow as THREE.Sprite, eye = e.eye!;
+  const d = Math.hypot(player.x - e.x, player.z - e.z), winding = e.state.startsWith('wind') || e.state === 'lure' || e.state === 'pull';
+  e.idle?.(e.t); e.ring!.rotation.z += dt * (winding ? 5 : 1);
+  if (e.state === 'drift') { // it keeps a few tiles off, circling
+    const want = d > 3.6 ? 1 : d < 2.4 ? -1 : 0, sp = C.speed * speedMul;
+    e.vx = (ux * want - uz * .6) * sp; e.vz = (uz * want + ux * .6) * sp;
+    P.lure.scale.setScalar(1); lureGlow.material.opacity = .6; lureGlow.scale.setScalar(1.7); eye.scale.setScalar(1); e.halo!.material.opacity = .35; P.body.scale.setScalar(1);
+    if (e.st <= 0) {
+      e.cycle = e.cycle! + 1; e.state = ['lure', 'windSpit', 'lure', 'windRing'][e.cycle % 4];
+      e.st = e.state === 'lure' ? .8 : e.state === 'windSpit' ? .5 : .6;
+      if (e.state === 'lure') Sfx.at(e.x, e.z).anglerHum();
+    }
+  } else if (e.state === 'lure') { // its lure brightens: the cue to get clear
+    e.vx = e.vz = 0; const k = 1 - Math.max(0, e.st) / .8;
+    P.lure.scale.setScalar(1 + k * .8); lureGlow.material.opacity = .6 + k * .4; lureGlow.scale.setScalar(1.7 + k * 1.8); eye.scale.setScalar(1 + k * .4);
+    if (e.st <= 0) { e.state = 'pull'; e.st = C.pullTime; e.fireT = e.hp; }
+  } else if (e.state === 'pull') { // it draws the mage in towards its opening jaws
+    e.vx = e.vz = 0; player.pull.x -= ux * C.pull; player.pull.z -= uz * C.pull;
+    P.jaw.rotation.x = .55; lureGlow.material.opacity = .85 + Math.sin(e.t * 20) * .15;
+    if (Math.random() < dt * 30) { const k = Math.random(); burst(lerp(player.x, e.x, k), .9, lerp(player.z, e.z, k), SCHOOL_LIGHT.umbral, 1, .5, .04); } // (the dark streams in)
+    if (e.fireT! - e.hp >= e.maxHp * C.flinch) { e.state = 'flinch'; e.st = .8; Sfx.at(e.x, e.z).hit(); } // struck hard enough, it lets go
+    else if (d < C.reach || e.st <= 0) { e.state = 'bite'; e.st = .3; }
+  } else if (e.state === 'bite') { // the jaws snap shut on what is in front of them
+    e.vx = e.vz = 0; P.jaw.rotation.x = .55 * Math.max(0, e.st) / .3;
+    if (e.st <= 0) {
+      Sfx.at(e.x, e.z).bite(); burst(e.x + ux * .9, .9, e.z + uz * .9, 0xece6f4, 10, 2, .04);
+      if (d < C.reach + .3) hurtPlayer(2, e.x, e.z);
+      e.state = 'recover'; e.st = .7;
+    }
+  } else if (e.state === 'flinch') { // its lure dims and it shakes off the blow
+    e.vx = e.vz = 0; lureGlow.material.opacity = .2; P.lure.scale.setScalar(.8); P.body.position.x = Math.sin(e.t * 40) * .05;
+    if (e.st <= 0) { P.body.position.x = 0; e.state = 'drift'; e.st = 1.6; }
+  } else if (e.state === 'windSpit') { // it gathers the dark in its mouth
+    e.vx = e.vz = 0; const k = 1 - Math.max(0, e.st) / .5; P.jaw.rotation.x = .3 * k; e.halo!.material.opacity = .35 + k * .5;
+    if (e.st <= 0) { e.state = 'spit'; e.volleys = B?.volleys ?? 3; e.st = 0; }
+  } else if (e.state === 'spit') { // volleys of shadow that hex
+    e.vx = e.vz = 0;
+    if (e.st <= 0) {
+      fan(e, 3, .55, 3.3 * shotMul, e.volleys! % 2 ? .12 : -.12, .9, { hex: 10 }); Sfx.at(e.x, e.z).spit();
+      e.volleys = e.volleys! - 1; e.st = .45; if (e.volleys <= 0) { e.state = 'drift'; e.st = 2; }
+    }
+  } else if (e.state === 'windRing') { // it puffs itself up
+    e.vx = e.vz = 0; const k = 1 - Math.max(0, e.st) / .6; P.body.scale.setScalar(1 + k * .18); e.halo!.material.opacity = .35 + k * .6;
+    if (e.st <= 0) {
+      P.body.scale.setScalar(1);
+      const off = Math.random() * Math.PI;
+      ringOfShots(e, 16, 2.7 * shotMul, off, 1.2);
+      if (hurt) laterRing(e, .35, 16, 2.3 * shotMul, off + Math.PI / 16);
+      burst(e.x, 1.2, e.z, SCHOOL_LIGHT.umbral, 24, 3.5, .07); Sfx.at(e.x, e.z).boom(); G.shake = .25;
+      e.state = 'recover'; e.st = .6;
+    }
+  } else if (e.state === 'recover') {
+    e.vx = e.vz = 0;
+    if (e.st <= 0) { e.state = 'drift'; e.st = 2; }
   }
   return undefined;
 }

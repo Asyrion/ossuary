@@ -5,6 +5,7 @@
    Templates name roles, not foes (`R` a walker, `W` a flyer or shooter, `H` a charger or heavy); each floor fills them
    from its own foes, weighted (`foes` in data/floors.json). */
 import foesData from '../../data/foes.json';
+import floorsData from '../../data/floors.json';
 import { CFG, type EnemyType } from '../config';
 import { SCHOOLS, type School, type StatusKind } from '../magic/spellData';
 
@@ -51,7 +52,7 @@ export function validateFoes(defs: Record<string, FoeDef> = FOES) {
   const errors: string[] = [];
   for (const [id, d] of Object.entries(defs)) {
     const at = (m: string) => errors.push(`${id}: ${m}`);
-    if (![1, 2, 3].includes(d.floor)) at(`floor ${d.floor}`);
+    if (!Number.isInteger(d.floor) || d.floor < 1 || d.floor > floorsData.length) at(`floor ${d.floor}`); // (a floor of the run's)
     for (const k of ['school', 'weak', 'resist'] as const) if (!SCHOOLS.includes(d[k])) at(`${k} ${d[k]}`);
     if (d.weak === d.resist) at('weak to what it resists');
     for (const k of ['hp', 'r', 'speed'] as const) if (!(d[k] > 0)) at(`${k} ${d[k]}`);

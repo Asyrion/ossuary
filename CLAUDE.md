@@ -16,7 +16,7 @@ log; its Sound section does the same for sound (sources and their licences, the 
 When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M4 built (enemies in code, `docs/M4-plan.md`): the foe framework and all ten foes (every floor's fights, a boss's helpers, a vault's warden and the ossuary's rising bones are foes in code; the wisp and crypt hound gone, the rotling kept as a plain test foe) and the floor-1 boss built in code in three looks, the owner to choose one (the Galleries tab); the owner's play-test next; M3.5 signed off by the owner 2026-09-30 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 1080 lines since the proof's play-test), step 3 under way: the room kit redone in code in the new style (the proof accepted 2026-09-30; variety built: three kinds of wall, floor, wall light and brazier per floor, drawn per room; every mechanism, object, door, niche and artifact rebuilt, the list done, then pickups, chests and the special rooms' pieces; the owner's review next); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M4.1 under way (two floors deeper, `docs/M4.1-plan.md`, the owner's ask of 2026-09-30): steps 1 and 2 built (a run of five floors, the Gilded Reliquary and the Ferryman's Shore, with a boss each built in code, the Hallowed Hart and the Deep Angler; their foes stand in as rotlings until steps 5 and 6); M4 built (enemies in code, `docs/M4-plan.md`): the foe framework and all ten foes (every floor's fights, a boss's helpers, a vault's warden and the ossuary's rising bones are foes in code; the wisp and crypt hound gone, the rotling kept as a plain test foe) and the floor-1 boss built in code in three looks, the owner to choose one (the Galleries tab); the owner's play-test next; M3.5 signed off by the owner 2026-09-30 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 1080 lines since the proof's play-test), step 3 under way: the room kit redone in code in the new style (the proof accepted 2026-09-30; variety built: three kinds of wall, floor, wall light and brazier per floor, drawn per room; every mechanism, object, door, niche and artifact rebuilt, the list done, then pickups, chests and the special rooms' pieces; the owner's review next); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -143,7 +143,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
 - URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
-  every floor's boss that one (warden, abbess, pyre), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
+  every floor's boss that one (warden, abbess, pyre, hart, angler), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
   keys and glyphs, `?spells=arc` starts with spells in the slots, `?theme=ossuary` puts every fight in one theme's rooms, `?foe=sporeling` fills every fight with one foe in code, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=1080`, `720`, `540`, `360` or `270` sets its rows), `?kit=old` builds the rooms in the old look (before the room kit). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
   vault, a secret room (behind a cracked wall), a shrine (`?room=shrine_henge`) or a library
   (`?room=library_plain`) next to the start.
@@ -315,8 +315,13 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   Mother of Spores, Hollow Owl; names in `STR.bossLooks`), each giving its fight the parts it moves (`eye`, `ring`, `halo`)
   and its school, whose light its shots take (`bossSchool`); its still parts merged by `mergeRig` (about 20 draw calls).
   The one it wears is the owner's choice for now: the dev menu's Galleries tab stands the three and switches it
-  (`ossuary.bossLook` in the browser; `__game.bossLooks()`, `__game.bossLook`, `__game.setBossLook(id)`). The abbess and
-  the knight are still placeholder shapes. A boss with `hidden` set (the abbess under the floor, the knight in mid-leap)
+  (`ossuary.bossLook` in the browser; `__game.bossLooks()`, `__game.bossLook`, `__game.setBossLook(id)`). The bosses of
+  floors 4 and 5 (M4.1) are built in code the same way (`hartLook`, `anglerLook` in `bossLooks.ts`; `updateHart`,
+  `updateAngler`): the Hallowed Hart charges along a lane lit on the floor (`parts.lane`), turns firing spokes of light
+  (`spin`) and stamps rings; the Deep Angler draws the mage in with its lure (`player.pull`, spent each step) until it
+  bites or flinches, spits hexing volleys and breathes rings. They have a weakness and a resistance (`weak`/`resist` in
+  `CFG.enemy`, `bossAff` on the boss, read by `damageEnemy`; the bestiary keeps bosses beside foes), and the Galleries tab
+  stands them beside the Warden's looks (`ALL_BOSS_LOOKS`). The abbess and the knight are still placeholder shapes. A boss with `hidden` set (the abbess under the floor, the knight in mid-leap)
   can't be hit and doesn't hurt on contact.
 - Gameplay delays (the warden's second ring, the pause before the death screen) run on simulation time,
   so they pause with the game and advance under `__game.sim()`.
@@ -432,6 +437,9 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
 - **M4 Enemies in code** (the owner's decision, 2026-09-29, instead of Tripo): the ten enemy options (GDD: Enemies built in
   code; four on floor 1, three on each other floor) made foes with behaviour, health, sounds and elemental affinities, and a
   boss built the same way.
+- **M4.1 Two floors deeper** (the owner's ask, 2026-09-30, before M4.5): floors 4 and 5 (the Gilded Reliquary, the
+  Ferryman's Shore) with their room kit, eight foes and two bosses in code, two themes; Hallow and Umbral spells and
+  statuses; soul motes; twelve artifacts; steps in `docs/M4.1-plan.md`.
 - **M4.5 Bestiary** (decided 2026-09-30): a whole host more creatures built in code (small critters, fantasy creatures,
   elementals) and new kinds of enemy behaviour, each a look in the dev menu's gallery first, chosen by the owner, then a
   foe (GDD: The Bestiary; ideas in `docs/ideas.md`, Bestiary).

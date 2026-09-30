@@ -22,6 +22,11 @@ export const CFG = {
     warden: { hp: 120, r: 0.78, speed: 1.15 },
     abbess: { hp: 120, r: 0.7, speed: .95, dive: 2.7, under: 1.8 }, // dive: speed of her ripple; under: seconds below
     pyre: { hp: 135, r: 0.72, speed: 1.25, charge: 8.2 },
+    // floors 4 and 5 (M4.1), built in code, with a weakness and a resistance like the foes: the hart's charge speed; the
+    // angler's pull on the mage (units a second), how long it pulls, how close its bite reaches, and the share of its
+    // health that, struck off while it pulls, makes it flinch
+    hart: { hp: 150, r: 0.85, speed: 1.35, charge: 8.6, weak: 'umbral' as const, resist: 'hallow' as const },
+    angler: { hp: 165, r: 0.9, speed: 1.1, pull: 2.6, pullTime: 2.4, reach: 1.7, flinch: .06, weak: 'hallow' as const, resist: 'umbral' as const },
   },
   // what the foes in code do to the mage (M4): chilled by cold breath and rime, this much slower; a salamander's burning
   // ground burns the mage within `groundReach` (plus half the mage's size) and licks up a flame `groundLicks` times a
@@ -172,5 +177,5 @@ export const CFG = {
 
 export type EnemyType = keyof typeof CFG.enemy;
 /** Enemy types that are bosses; each floor draws its boss from a pool of these (data/floors.json). */
-export const BOSS_TYPES = ['warden', 'abbess', 'pyre'] as const satisfies readonly EnemyType[];
+export const BOSS_TYPES = ['warden', 'abbess', 'pyre', 'hart', 'angler'] as const satisfies readonly EnemyType[];
 export type BossType = (typeof BOSS_TYPES)[number];
