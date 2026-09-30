@@ -17,7 +17,8 @@ import './render/lights';
 import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { arrowOrder, initKeyboard, initTouch, keys, type InputActions } from './input';
 import { initScreens, showScreen } from './ui/screens';
-import { closeDev, devOpen, showAssetsHere, toggleDev, useAssets, useRoomKit } from './ui/devMenu';
+import { closeDev, devOpen, forceKinds, showAssetsHere, toggleDev, useAssets, useRoomKit } from './ui/devMenu';
+import type { Kinds } from './world/kitData';
 import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPad, openInventory } from './ui/inventory';
 import { setHeroInfo, updateVision } from './ui/hud';
 import { giveById } from './items/artifacts';
@@ -154,6 +155,10 @@ function installDevHooks() {
         turn it on or off (this floor is built again to compare). */
     get roomKit() { return DEV.roomKit; },
     useRoomKit: (on: boolean) => useRoomKit(on),
+    /** The kinds of wall, floor, wall light and brazier the room the mage is in drew (the room kit's variety). */
+    get kinds() { return G.current.look.kinds ? { ...G.current.look.kinds } : null; },
+    /** Force kinds on every room of this floor, e.g. forceKinds({ wall: 'ashlar' }) ({} to draw per room again); built again. */
+    forceKinds: (k: Partial<Kinds>) => forceKinds(k),
     /** The pixel look (a style test): rows of pixels (0 off), outlines, light in bands; set any of them. */
     get pixelLook() { return { ...pixelLook() }; },
     /** Enemy model options (looks only): stand them (or those named) ahead of the mage, a row per floor; returns where

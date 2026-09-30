@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import { CFG } from '../config';
 import type { FloorLook, RoomType } from '../types';
 import { mulberry } from '../util';
+import type { WallKind } from '../world/kitData';
 import { renderer } from './renderer';
 import { MARKED_ROOMS, cacheFloor, cachedFloor, drawMarks } from './textures';
 
@@ -49,47 +50,194 @@ class Px {
   canvas() { const c = document.createElement('canvas'); c.width = this.w; c.height = this.h; c.getContext('2d')!.putImageData(new ImageData(this.d, this.w, this.h), 0, 0); return c; }
 }
 
-function texture(c: HTMLCanvasElement) {
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+function texture(c: HTMLCanvasElement, srgb = true) {
+  const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace;
   t.magFilter = THREE.NearestFilter; t.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
   return t;
 }
 
 /* ---------- walls ---------- */
 
-const brickCache = new Map<string, THREE.CanvasTexture>();
-/** Bricks in a floor's colours, bevelled (lit along the top, shadowed below), with chips, cracks and darker stones;
-    damp in the crypt, moss or soot where the look says. Two units across, eight courses down; kept per look. The wall's
-    UVs run a unit to 1, so the texture repeats every 2 units across and every `8 × 8 / texel[1]` down. */
-export function pixelBrickTexture(wall: FloorLook['wall']) {
-  const key = JSON.stringify(wall), hit = brickCache.get(key); if (hit) return hit;
-  const [TX, TY] = CFG.roomKit.texel, W = TX * 2, BH = 8, H = BH * 8, BW = W / 4;
-  const px = new Px(W, H, true), R = mulberry(5), mortar = hex(wall.mortar), base = wall.brick as RGB;
-  px.fill(mortar);
-  for (let row = 0; row < H / BH; row++) for (let i = 0; i < 4; i++) {
-    const x0 = i * BW + (row % 2 ? BW / 2 : 0), y0 = row * BH, fw = BW - 1, fh = BH - 1, v = R() * 24 - 12, dark = R() < .1 ? .82 : 1;
-    const c = scale([base[0] + v, base[1] + v, base[2] + v * .8], dark);
-    for (let fy = 0; fy < fh; fy++) for (let fx = 0; fx < fw; fx++) {
-      const x = x0 + 1 + fx, y = y0 + 1 + fy, n = hash(x, y, 5);
-      let k = fy === 0 ? 1.22 : fy === fh - 1 ? .76 : fx === 0 ? 1.08 : fx === fw - 1 ? .84 : 1; // the bevel
-      if (n < .07) k *= .8; else if (n > .96) k *= 1.12; // pits and grit
-      px.set(x, y, scale(c, k));
-    }
-    if (R() < .3) { const right = R() < .5, x = x0 + 1 + (right ? fw - 1 : 0), y = y0 + 1; px.set(x, y, mortar); px.mul(x + (right ? -1 : 1), y, .75); px.mul(x, y + 1, .75); } // a chipped corner
-    if (R() < .14) { let x = x0 + 3 + Math.floor(R() * (fw - 6)); for (let y = y0 + 1; y < y0 + BH - 1; y++) { px.mul(x, y, .6); if (R() < .5) x += R() < .5 ? -1 : 1; } } // a crack
+/** A block of stone or brick from (x0, y0), `w` × `h` texels with its joint on the left and top: bevelled (lit along
+    the top, shadowed below), pitted and gritty. `s` seeds its grain. */
+function block(px: Px, x0: number, y0: number, w: number, h: number, c: RGB, s: number, lip = 1) {
+  const fw = w - 1, fh = h - 1;
+  for (let fy = 0; fy < fh; fy++) for (let fx = 0; fx < fw; fx++) {
+    const x = x0 + 1 + fx, y = y0 + 1 + fy, n = hash(x, y, s);
+    let k = fy < lip ? 1.22 : fy >= fh - lip ? .76 : fx === 0 ? 1.08 : fx === fw - 1 ? .84 : 1; // the bevel
+    if (n < .07) k *= .8; else if (n > .96) k *= 1.12; // pits and grit
+    px.set(x, y, scale(c, k));
   }
-  const S = mulberry(9);
-  if (wall.stains === 'moss') { // green growth in dither, and dark drip lines
-    const moss: RGB = [46, 84, 62];
-    for (let k = 0; k < 12; k++) px.blotch(S() * W, S() * H, 6 + S() * 10, 5 + S() * 8, .9, (x, y) => px.mix(x, y, moss, .5));
+}
+/** A chipped corner and, now and then, a crack down the block. */
+function wear(px: Px, R: () => number, x0: number, y0: number, w: number, h: number, mortar: RGB, crack = .14) {
+  const fw = w - 1;
+  if (R() < .3) { const right = R() < .5, x = x0 + 1 + (right ? fw - 1 : 0), y = y0 + 1; px.set(x, y, mortar); px.mul(x + (right ? -1 : 1), y, .75); px.mul(x, y + 1, .75); }
+  if (fw > 8 && R() < crack) { let x = x0 + 3 + Math.floor(R() * (fw - 6)); for (let y = y0 + 1; y < y0 + h - 1; y++) { px.mul(x, y, .6); if (R() < .5) x += R() < .5 ? -1 : 1; } }
+}
+/** Lengths that add up to `total`, each between `min` and `max` (a course of blocks that tiles across). */
+function lengths(R: () => number, total: number, min: number, max: number) {
+  const out: number[] = []; let left = total;
+  while (left > 0) { let l = Math.round(min + R() * (max - min)); if (left - l < min) l = left; out.push(l); left -= l; }
+  return out;
+}
+const tint = (base: readonly number[], v: number, k = 1): RGB => scale([base[0] + v, base[1] + v, base[2] + v * .8], k);
+
+type WallArt = { px: Px; glow?: Px };
+/** Each kind of wall, drawn over a tile two units across; the height is the kind's own (the texture repeats down). */
+const WALLS: Record<WallKind, (wall: FloorLook['wall'], W: number) => WallArt> = {
+  bricks(wall, W) { // courses of bricks in running bond
+    const BH = 8, H = BH * 8, BW = W / 4, px = new Px(W, H, true), R = mulberry(5), mortar = hex(wall.mortar);
+    px.fill(mortar);
+    for (let row = 0; row < H / BH; row++) for (let i = 0; i < 4; i++) {
+      const x0 = i * BW + (row % 2 ? BW / 2 : 0), y0 = row * BH;
+      block(px, x0, y0, BW, BH, tint(wall.brick, R() * 24 - 12, R() < .1 ? .82 : 1), 5); wear(px, R, x0, y0, BW, BH, mortar);
+    }
+    return { px };
+  },
+  ashlar(wall, W) { // big dressed blocks in courses of two heights, some tooled with fine diagonal chisel marks
+    const courses = [16, 12, 16, 20], H = 64, px = new Px(W, H, true), R = mulberry(15), mortar = hex(wall.mortar);
+    px.fill(mortar);
+    let y0 = 0;
+    for (const ch of courses) {
+      let x0 = Math.floor(R() * 20);
+      for (const l of lengths(R, W, 22, 42)) {
+        const c = tint(wall.brick, R() * 20 - 6, 1.05);
+        block(px, x0, y0, l, ch, c, 15, 2); wear(px, R, x0, y0, l, ch, mortar, .1);
+        if (R() < .45) for (let fy = 3; fy < ch - 3; fy++) for (let fx = 3; fx < l - 3; fx++) if ((fx + fy) % 4 === 0) px.mul(x0 + fx, y0 + fy, .93); // tooling
+        x0 += l;
+      }
+      y0 += ch;
+    }
+    return { px };
+  },
+  bones(wall, W) { // an ossuary's wall: a row of skulls between rows of stacked bone ends, the dark behind them
+    const H = 52, px = new Px(W, H, true), R = mulberry(25), dark: RGB = scale(hex(wall.mortar), .7), bone = tint(wall.brick, 0, 1).map((v, i) => v * .35 + [205, 192, 164][i] * .65) as RGB;
+    px.fill(dark);
+    const SK = ['..XXXXX..', '.XXXXXXX.', 'XXXXXXXXX', 'XOOXXXOOX', 'XOOXXXOOX', 'XXXXNXXXX', '.XXXXXXX.', '..XTXTX..'];
+    const skulls = (y0: number, off: number) => {
+      for (let i = 0; i < W / 12; i++) {
+        const x0 = i * 12 + off, k = .8 + R() * .3;
+        SK.forEach((row, v) => [...row].forEach((ch, u) => {
+          if (ch === '.') return;
+          const lit = v <= 1 || u <= 1 ? 1.15 : v >= 6 || u >= 7 ? .78 : 1;
+          px.set(x0 + u + 1, y0 + v + 1, ch === 'X' || ch === 'T' ? scale(bone, k * lit) : scale(dark, .6));
+        }));
+      }
+    };
+    const ends = (y0: number, off: number) => { // the knuckle ends of long bones, stacked
+      for (let i = 0; i < W / 6; i++) {
+        const x0 = i * 6 + off, k = .75 + R() * .3;
+        for (let v = 0; v < 4; v++) for (let u = 0; u < 5; u++) {
+          if ((v === 0 || v === 3) && (u === 0 || u === 4)) continue;
+          px.set(x0 + u, y0 + v, scale(bone, k * (v === 0 ? 1.15 : v === 3 ? .75 : u === 4 ? .85 : 1)));
+        }
+        if (R() < .3) px.set(x0 + 2, y0 + 1, scale(bone, .55)); // a marrow hole
+      }
+    };
+    skulls(0, 0); for (let r = 0; r < 3; r++) ends(10 + r * 5, (r % 2) * 3);
+    skulls(26, 6); for (let r = 0; r < 3; r++) ends(36 + r * 5, (r % 2) * 3 + 1);
+    return { px };
+  },
+  tide(wall, W) { // big blocks with the drowned floor's water line: stained and furred below it, bright algae along it
+    const H = 48, px = new Px(W, H, true), R = mulberry(35), mortar = hex(wall.mortar), line = H - 14; // (the line 0.4 units up)
+    px.fill(mortar);
+    let y0 = 0;
+    for (const ch of [12, 12, 12, 12]) {
+      let x0 = Math.floor(R() * 16);
+      for (const l of lengths(R, W, 20, 36)) { block(px, x0, y0, l, ch, tint(wall.brick, R() * 18 - 9), 35, 1); wear(px, R, x0, y0, l, ch, mortar, .08); x0 += l; }
+      y0 += ch;
+    }
+    const water: RGB = [22, 46, 40], algae: RGB = [120, 150, 70];
+    for (let y = line; y < H; y++) for (let x = 0; x < W; x++) px.mix(x, y, water, .45 + (y - line) / (H - line) * .2);
+    for (let x = 0; x < W; x++) { const wob = Math.round(Math.sin(x * .4) * .8); px.mix(x, line + wob, algae, .7); if (bayer(x, 0) < .5) px.mix(x, line + wob + 1, algae, .35); }
+    for (let k = 0; k < 40; k++) { const x = Math.floor(R() * W), y = line + 2 + Math.floor(R() * (H - line - 3)); px.mix(x, y, [170, 175, 160], .6); px.mul(x, y + 1, .7); } // barnacles
+    for (let k = 0; k < 8; k++) { const x = Math.floor(R() * W); for (let y = line - 1 - Math.floor(R() * 10); y < line; y++) px.mul(x, y, .8); } // drips
+    return { px };
+  },
+  rubble(wall, W) { // rounded field stones of all sizes packed in mortar, moss in the joints
+    const H = 48, px = new Px(W, H, true), R = mulberry(45), mortar = hex(wall.mortar);
+    px.fill(mortar);
+    for (let row = 0; row < 6; row++) {
+      let x = Math.floor(R() * 8);
+      while (x < W + 4) {
+        const rx = 4 + R() * 4, ry = 3 + R() * 1.5, cx = x + rx, cy = row * 8 + 4 + (R() - .5) * 2, c = tint(wall.brick, R() * 26 - 13);
+        for (let v = Math.floor(-ry); v <= ry; v++) for (let u = Math.floor(-rx); u <= rx; u++) {
+          const d = (u / rx) ** 2 + (v / ry) ** 2; if (d > 1) continue;
+          const lit = -u / rx * .25 - v / ry * .45, k = lit > .22 ? 1.2 : lit > 0 ? 1.05 : lit > -.25 ? .92 : .78; // (lit from above, in four bands)
+          px.set(Math.round(cx + u), Math.round(cy + v), scale(c, k * (hash(Math.round(cx + u), Math.round(cy + v), 45) < .06 ? .82 : 1)));
+        }
+        x += rx * 2 + 1;
+      }
+    }
+    const moss: RGB = [52, 90, 58], m = hex(wall.mortar);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const c = px.get(x, y); if (Math.abs(c[0] - m[0]) + Math.abs(c[1] - m[1]) < 6 && bayer(x, y) < .45) px.set(x, y, scale(moss, .6 + hash(x, y, 46) * .4)); }
+    return { px };
+  },
+  basalt(wall, W) { // columns of black basalt, their faces lit on one side, embers glowing in some of the seams
+    const H = 48, px = new Px(W, H, true), glow = new Px(W, H, true), R = mulberry(55), seam: RGB = scale(hex(wall.mortar), .8);
+    px.fill(seam); glow.fill([0, 0, 0]);
+    const dark = tint(wall.brick, 0, .55).map((v, i) => v + [0, 2, 8][i]) as RGB;
+    let x0 = 0;
+    for (const cw of lengths(R, W, 9, 14)) {
+      let y0 = Math.floor(R() * 10) - 10;
+      while (y0 < H) {
+        const sh = 10 + Math.floor(R() * 16), c = scale(dark, .85 + R() * .3);
+        for (let y = y0 + 1; y < y0 + sh; y++) for (let x = x0 + 1; x < x0 + cw; x++) {
+          const u = x - x0 - 1, k = u === 0 ? 1.45 : u === 1 ? 1.2 : u === cw - 2 ? .7 : y === y0 + 1 ? 1.15 : 1; // (a prism: lit on its left face)
+          px.set(x, y, scale(c, k * (hash(x, y, 55) < .05 ? .8 : 1)));
+        }
+        y0 += sh;
+      }
+      if (R() < .4) { // an ember seam, smouldering in stretches
+        const from = Math.floor(R() * H), len = 8 + Math.floor(R() * 16);
+        for (let i = 0; i < len; i++) { const y = from + i, hot = Math.sin(i / len * Math.PI) * (.7 + .3 * Math.sin(i * 1.3)); px.set(x0, y, [120 + 110 * hot, 40 + 70 * hot, 16]); glow.set(x0, y, [255 * hot, 110 * hot, 20 * hot]); }
+      }
+      x0 += cw;
+    }
+    return { px, glow };
+  },
+  beams(wall, W) { // courses of sooty stone with a charred beam laid through them, embers smouldering in its cracks
+    const H = 48, px = new Px(W, H, true), glow = new Px(W, H, true), R = mulberry(65), mortar = hex(wall.mortar);
+    px.fill(mortar); glow.fill([0, 0, 0]);
+    const stone = (y0: number, h: number) => { let x0 = Math.floor(R() * 12); for (const l of lengths(R, W, 14, 26)) { block(px, x0, y0, l, h, tint(wall.brick, R() * 20 - 10, .9), 65); wear(px, R, x0, y0, l, h, mortar); x0 += l; } };
+    stone(0, 10); stone(10, 10); stone(30, 9); stone(39, 9); // (the beam between: rows 20 to 29)
+    const wood: RGB = [78, 50, 32];
+    for (let y = 20; y < 30; y++) for (let x = 0; x < W; x++) {
+      const grain = Math.sin(x * .35 + y * 1.7 + Math.sin(x * .07) * 3), k = y === 20 ? 1.45 : y === 21 ? 1.2 : y === 29 ? .5 : grain > .6 ? .72 : 1;
+      px.set(x, y, scale(wood, k * (.85 + hash(x, y, 66) * .3)));
+    }
+    for (let k = 0; k < 7; k++) { // cracks in the char, smouldering
+      let x = Math.floor(R() * W); const y = 23 + Math.floor(R() * 5), len = 4 + Math.floor(R() * 8);
+      for (let i = 0; i < len; i++, x++) { const hot = .5 + R() * .5; px.set(x, y, [150 + 90 * hot, 50 + 40 * hot, 10]); glow.set(x, y, [230 * hot, 90 * hot, 10]); }
+    }
+    return { px, glow };
+  },
+};
+
+/** Stains over any wall in the look's kind: moss and drip lines (damp), black smears (scorched) or darker patches. */
+function stainWall(px: Px, stains: FloorLook['wall']['stains']) {
+  const S = mulberry(9), W = px.w, H = px.h;
+  if (stains === 'moss') {
+    for (let k = 0; k < 12; k++) px.blotch(S() * W, S() * H, 6 + S() * 10, 5 + S() * 8, .9, (x, y) => px.mix(x, y, [46, 84, 62], .5));
     for (let k = 0; k < 10; k++) { const x = Math.floor(S() * W), y0 = Math.floor(S() * H), len = 6 + Math.floor(S() * 16); for (let y = y0; y < y0 + len; y++) px.mul(x, y, .65); }
-  } else if (wall.stains === 'soot') { // scorched: black smears
+  } else if (stains === 'soot') {
     for (let k = 0; k < 10; k++) px.blotch(S() * W, S() * H, 8 + S() * 14, 6 + S() * 10, 1, (x, y) => px.mix(x, y, [6, 4, 3], .6));
-  } else { // damp: a few darker patches
+  } else {
     for (let k = 0; k < 6; k++) px.blotch(S() * W, S() * H, 6 + S() * 10, 4 + S() * 6, .7, (x, y) => px.mul(x, y, .86));
   }
-  const t = texture(px.canvas()); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1 / 2, TY / H);
-  brickCache.set(key, t); return t;
+}
+
+const wallCache = new Map<string, { map: THREE.CanvasTexture; glow?: THREE.CanvasTexture }>();
+/** A wall of `kind` in a floor's colours, with the look's stains; its glow (ember seams) where the kind has one. Two units
+    across, repeating down every few courses; kept per look and kind. The wall's UVs run a unit to 1. */
+export function pixelWallTexture(wall: FloorLook['wall'], kind: WallKind = 'bricks') {
+  const key = JSON.stringify(wall) + kind, hit = wallCache.get(key); if (hit) return hit;
+  const [TX, TY] = CFG.roomKit.texel, art = WALLS[kind](wall, TX * 2);
+  stainWall(art.px, wall.stains);
+  const tile = (p: Px, srgb: boolean) => { const t = texture(p.canvas(), srgb); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(1 / 2, TY / p.h); return t; };
+  const out = { map: tile(art.px, true), glow: art.glow && tile(art.glow, true) };
+  wallCache.set(key, out); return out;
 }
 
 /* ---------- floors ---------- */

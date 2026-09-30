@@ -4,6 +4,7 @@ import { Rng } from './rng';
 import type { FloorPlan } from './world/generate';
 import type { Bolt, Enemy, Glyph, Particle, Pickup, Player, Trapdoor, Room, Shot, Transition } from './types';
 import type * as THREE from 'three';
+import type { Kinds } from './world/kitData';
 
 export type GameState = 'title' | 'play' | 'pause' | 'dying' | 'end';
 
@@ -46,7 +47,9 @@ export const G = {
     `doors` moves every door off the middle of its edge where it fits, or none, in the floors made from now on. */
 export const DEV = { god: false, mana: false, fps: false, moveClip: 'run' as 'run' | 'walkInStep' | 'walkNatural', doors: 'data' as 'data' | 'shifted' | 'middle',
   /** The room kit in code (M3.5 step 3's proof: the fire objects, the crypt's floor and walls); off keeps the old looks. */
-  roomKit: true };
+  roomKit: true,
+  /** Kinds of the room kit forced on every room of the floor (the dev menu's Look tab), to compare; else each room draws. */
+  kitKinds: {} as Partial<Kinds> };
 
 export const player: Player = {
   dead: false, x: 0, z: 0, vx: 0, vz: 0, r: CFG.hero.radius, hp: 6, maxHp: 6, invuln: 0, fireCd: 0, eye: 1, yawA: 0, blessed: 0,

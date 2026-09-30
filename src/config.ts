@@ -132,8 +132,9 @@ export const CFG = {
   pixelLook: { lines: [1080, 720, 540, 360, 270], start: 1080, outlineGap: 0.3, outlineDark: 0.72, bands: 7 },
   // the room kit's floors and walls (render/pixelTextures.ts, M3.5 step 3): texels to a unit across and down the screen.
   // At 540 lines a one-cell room shows a unit as about 62 × 44 pixels (the floor seen from 45° above), a great hall as
-  // 50 × 35; 48 × 34 keeps a texel square on screen and at least a pixel in both (at 1080 lines a texel is 2 to 3)
-  roomKit: { texel: [48, 34] as [number, number] },
+  // 50 × 35; 48 × 34 keeps a texel square on screen and at least a pixel in both (at 1080 lines a texel is 2 to 3);
+  // and how brightly embers glow in the walls and floors that have them (basalt seams, charred beams)
+  roomKit: { texel: [48, 34] as [number, number], glow: 0.9 },
   // the spells' looks (magic/spellFx.ts, docs/effects.md), in seconds unless said: the Cinder Lance (how long it shows,
   // how quickly it swells to full, when it starts to fade, how long the rune ring at the hand flares, the space between
   // its rune rings in units, how fast its embers run down it in lengths a second); how long a bolt's impact flares, a

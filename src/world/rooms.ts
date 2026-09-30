@@ -31,6 +31,7 @@ import { dressNorthWall } from './dressing';
 import { torchLook } from './fireLooks';
 import { buildProps } from './props';
 import { THEMES, themedLook } from './themeData';
+import { pickKinds } from './kitData';
 import { dressTheme } from './themes';
 import { floorTile, modelFor, sealedLook } from '../assets/models';
 
@@ -50,7 +51,8 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   const cx = minX + w / 2, cz = minZ + h / 2;
   const floorLook = FLOORS[Math.min(floorIndex, FLOORS.length - 1)].look;
   const theme = def.theme ? THEMES.get(def.theme) : undefined; // a themed room dresses the floor's look its own way
-  const look = plan.type === 'secret' ? secretLook(floorLook) : plan.type === 'shrine' ? shrineLook(floorLook) : themedLook(floorLook, theme);
+  const dressed = plan.type === 'secret' ? secretLook(floorLook) : plan.type === 'shrine' ? shrineLook(floorLook) : themedLook(floorLook, theme);
+  const look: FloorLook = dressed.kit ? { ...dressed, kinds: pickKinds(dressed.kit, plan.seed, DEV.kitKinds) } : dressed; // (the room kit's kinds, drawn on its seed)
   const room: Room = {
     plan, template, look, theme, type: plan.type, gx: plan.anchor.gx, gy: plan.anchor.gy, cx, cz,
     // the room's inside: its shape, less the tiles the template carves into wall
@@ -434,10 +436,10 @@ function placeTorches(room: Room, run: WallRun, across0: number) {
   }
 }
 
-/** The room kit's walls are drawn for the crypt so far (the proof, M3.5 step 3); other looks keep the old. */
-export const kitWalls = (look: FloorLook) => DEV.roomKit && look.name === 'crypt';
-/** ...and its floor too, unless a made floor tile (data/assets.json) paints it. */
-export const kitFloor = (look: FloorLook) => kitWalls(look) && !floorTile(look.name);
+/** The kind of wall the room kit draws for a room (M3.5 step 3), or false for the old look. */
+export const kitWalls = (look: FloorLook) => DEV.roomKit && !!look.kinds && look.kinds.wall;
+/** Whether the room kit draws the floor too: not where a made floor tile (data/assets.json) paints it. */
+export const kitFloor = (look: FloorLook) => !!kitWalls(look) && !floorTile(look.name);
 
 /** A light on a wall, in the floor's style: iron bracket (crypt), cage lantern (drowned) or brazier (burning).
     Built facing south and turned to face the room along `normal`. */

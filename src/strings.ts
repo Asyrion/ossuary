@@ -286,6 +286,13 @@ export const STR = {
     assetRow: (where: string, status: string, tris?: number) => `${where}: ${status}${tris ? `, ${tris.toLocaleString('en')} triangles` : ''}`,
     kit: 'Room kit (built in code)', kitNote: 'The proof: wall torches, braziers and candle stands, and the crypt\'s floor and walls in pixel art',
     kitNew: 'Room kit: new (built in code)', kitOld: 'Room kit: old (to compare)', fireHere: 'Fire objects here (cold and lit)',
+    kitPart: (part: string, kind: string, forced: boolean) => `${({ wall: 'Walls', floor: 'Floor', torch: 'Wall lights', brazier: 'Braziers' } as Record<string, string>)[part]}: ${kind}${forced ? ' (every room)' : ' (this room drew)'}`,
+    kitKinds: {
+      bricks: 'bricks', ashlar: 'ashlar', bones: 'bone wall', tide: 'tide-marked blocks', rubble: 'rubble stone', basalt: 'basalt', beams: 'charred beams',
+      flags: 'flagstones', cobbles: 'cobbles', graves: 'grave slabs', mosaic: 'sunken mosaic', herringbone: 'herringbone brick',
+      bracket: 'iron bracket', skull: 'skull sconce', candelabra: 'wall candelabra', lantern: 'cage lantern', witchlight: 'witchlight', brazier: 'wall brazier', mask: 'beast mask', basket: 'fire basket',
+      tripod: 'iron tripod', font: 'stone font', column: 'verdigris column', plinth: 'pyre plinth', cauldron: 'cauldron',
+    } as Record<string, string>,
     fpsOn: 'Frame readout: shown', fpsOff: 'Frame readout: hidden',
     options: 'Enemy model options (looks only)', familiars: 'Familiar options (looks only)', effects: 'Spell effect options (looks only)', showOptions: 'Stand them here', takeOptions: 'Take them away', floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
     pixel: 'Pixel look', pixelLines: (lines: number, drawn: number) => !lines ? 'Pixels: off' : drawn && drawn !== lines ? `Pixels: ${lines} lines (${drawn} in this window)` : `Pixels: ${lines} lines`,

@@ -1,8 +1,10 @@
 import * as THREE from 'three';
+import { CFG } from '../config';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { FloorLook } from '../types';
 import { brickTexture, glowTex, shadowTex } from './textures';
-import { pixelBrickTexture } from './pixelTextures';
+import { pixelWallTexture } from './pixelTextures';
+import type { WallKind } from '../world/kitData';
 
 /** Box whose UVs are scaled by face size, so the brick texture tiles at 1 repeat per unit. */
 export function boxUV(w: number, h: number, d: number) {
@@ -45,11 +47,12 @@ for (const m of [M.wallTop, M.threshold, M.rock, M.stone, M.tomb, M.clay, M.urnS
 
 const wallCache = new Map<string, THREE.Material[]>();
 /** Box materials for walls in a floor's look (brick sides, dark tops), shared by every room of that look; `kit` for the
-    room kit's pixel bricks. */
-export function wallMaterials(wall: FloorLook['wall'], kit = false) {
+    room kit's pixel walls of that kind (glowing where the kind has embers in it). */
+export function wallMaterials(wall: FloorLook['wall'], kit?: WallKind | false) {
   const key = JSON.stringify(wall) + kit; let mats = wallCache.get(key);
   if (!mats) {
-    const brick = markShared(new THREE.MeshStandardMaterial({ map: kit ? pixelBrickTexture(wall) : brickTexture(wall), roughness: .95 }));
+    const art = kit ? pixelWallTexture(wall, kit) : null;
+    const brick = markShared(new THREE.MeshStandardMaterial(art ? { map: art.map, roughness: .95, ...(art.glow && { emissive: 0xffffff, emissiveMap: art.glow, emissiveIntensity: CFG.roomKit.glow }) } : { map: brickTexture(wall), roughness: .95 }));
     mats = [brick, brick, M.wallTop, M.wallTop, brick, brick]; wallCache.set(key, mats);
   }
   return mats;
@@ -58,7 +61,7 @@ export function wallMaterials(wall: FloorLook['wall'], kit = false) {
 const cappedCache = new Map<string, THREE.Material[]>();
 /** Walls carved inside a room (a partition, a pier, a cut corner): brick sides under a cap of dressed stone, so a
     low one reads as masonry rather than a hole in the floor. */
-export function cappedWallMaterials(wall: FloorLook['wall'], kit = false) {
+export function cappedWallMaterials(wall: FloorLook['wall'], kit?: WallKind | false) {
   const key = JSON.stringify(wall) + kit; let mats = cappedCache.get(key);
   if (!mats) {
     const [brick] = wallMaterials(wall, kit), [r, g, b] = wall.brick.map(v => Math.min(255, Math.round(v * .6)));
