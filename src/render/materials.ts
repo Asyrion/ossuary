@@ -122,6 +122,7 @@ export const glowPaint = (color: number) => { const m = new THREE.MeshBasicMater
 function faceShade(pos: THREE.BufferAttribute | THREE.InterleavedBufferAttribute, i: number, piece: number, mottle: number) {
   const a = new THREE.Vector3().fromBufferAttribute(pos, i), b = new THREE.Vector3().fromBufferAttribute(pos, i + 1), c = new THREE.Vector3().fromBufferAttribute(pos, i + 2);
   const n = b.sub(a).cross(c.sub(a)).normalize(), k = Math.round(n.x * 40) * 7.13 + Math.round(n.y * 40) * 13.7 + Math.round(n.z * 40) * 3.31 + piece * 41.9;
+  if (!Number.isFinite(k)) return 1; // (a face with no area, at a lathe's axis or a sphere's pole)
   const h = Math.sin(k) * 43758.5453; return 1 + (h - Math.floor(h) - .5) * 2 * mottle;
 }
 
