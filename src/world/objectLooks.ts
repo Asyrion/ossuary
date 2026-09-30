@@ -23,7 +23,7 @@ const hex = (c: string) => new THREE.Color(c).getHex();
 /** What rocks are mixed towards from the floor's stone, so they stand out on it. */
 const ROCK_GREY = 0x8a8680;
 
-const C = {
+export const C = {
   bone: 0xd6cab0, boneOld: 0xbcae92, dust: 0x3a322a, socket: 0x16100c,
   burlap: 0x9a8460, burlapDark: 0x857050, burlapLight: 0xa89070, rope: 0xd0b888, ropeDark: 0x8a6e48, patch: 0x5a4a3c, grain: 0xc8b890,
   oak: 0x6a4a2c, oakDark: 0x4a3220, iron: 0x46424a, oil: 0x17110c, warn: 0xb04a22,
@@ -65,19 +65,19 @@ function longBone(len: number) {
   const knobs = [-1, 1].flatMap(e => [-1, 1].map(s => new THREE.SphereGeometry(.033, 5, 4).translate(s * .022, e * len / 2, 0)));
   return joinAll([new THREE.CylinderGeometry(.022, .026, len, 5), ...knobs]);
 }
-const put = (m: THREE.Object3D, rx = 0, ry = 0, rz = 0, s: number | [number, number, number] = 1) => {
+export const put = (m: THREE.Object3D, rx = 0, ry = 0, rz = 0, s: number | [number, number, number] = 1) => {
   m.rotation.set(rx, ry, rz); if (typeof s === 'number') m.scale.setScalar(s); else m.scale.set(...s); return m;
 };
 /** A skull at (x, y, z), turned `ry` (0 faces the camera) and tipped `rx`. */
-function skull(g: THREE.Object3D, x: number, y: number, z: number, ry: number, rx = 0, s = 1, color = C.bone) {
+export function skull(g: THREE.Object3D, x: number, y: number, z: number, ry: number, rx = 0, s = 1, color = C.bone) {
   const k = new THREE.Group(); k.position.set(x, y, z); put(k, rx, ry, 0, s);
   mesh(k, GEO.skull, tone(color, .05)); mesh(k, GEO.sockets, tone(C.socket)); g.add(k); return k;
 }
 /** A long bone lying down at (x, y, z), turned `ry` about the upright. */
-const bone = (g: THREE.Object3D, x: number, y: number, z: number, ry: number, tilt = 0, short = false, color = C.bone) =>
+export const bone = (g: THREE.Object3D, x: number, y: number, z: number, ry: number, tilt = 0, short = false, color = C.bone) =>
   put(mesh(g, short ? GEO.boneShort : GEO.bone, tone(color, .05), x, y, z), 0, ry, Math.PI / 2 + tilt);
 /** A box `w` × `h` × `d` at (x, y, z). */
-const box = (g: THREE.Object3D, w: number, h: number, d: number, mat: THREE.Material, x: number, y: number, z: number) => put(mesh(g, GEO.block, mat, x, y, z), 0, 0, 0, [w, h, d]);
+export const box = (g: THREE.Object3D, w: number, h: number, d: number, mat: THREE.Material, x: number, y: number, z: number) => put(mesh(g, GEO.block, mat, x, y, z), 0, 0, 0, [w, h, d]);
 
 /* ---------- the objects (props.ts) ---------- */
 
@@ -421,8 +421,8 @@ export function urnLook(R: R, look: FloorLook, sealed: boolean, ward: number) {
   g.rotation.y = R() * .6 - .3; // (the ward's runes face the camera)
   g.add(blob(.8)); return g;
 }
-const URN_BODY = shared(lathe([[0, 0], [.1, 0], [.115, .025], [.095, .05], [.17, .12], [.235, .24], [.25, .3], [.225, .38], [.16, .45], [.105, .49], [.1, .52], [.13, .545], [.12, .56], [0, .56]], 12));
-const URN_LID = shared(lathe([[.118, .56], [.1, .585], [.05, .62], [0, .625]], 12));
+export const URN_BODY = shared(lathe([[0, 0], [.1, 0], [.115, .025], [.095, .05], [.17, .12], [.235, .24], [.25, .3], [.225, .38], [.16, .45], [.105, .49], [.1, .52], [.13, .545], [.12, .56], [0, .56]], 12));
+export const URN_LID = shared(lathe([[.118, .56], [.1, .585], [.05, .62], [0, .625]], 12));
 const URN_HANDLE = shared(new THREE.TorusGeometry(.05, .014, 4, 8, Math.PI));
 
 /** An artifact's pedestal: a stepped base, a turned column, a round top with golden runes glowing round its rim. */

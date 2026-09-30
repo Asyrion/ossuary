@@ -6,11 +6,12 @@
 import * as THREE from 'three';
 import type { FloorLook, NicheKind, Room } from '../types';
 import { H_TALL } from './dims';
-import { markShared } from '../render/materials';
+import { markShared, mergeStill } from '../render/materials';
 import type { FlameSpec } from '../render/fire';
 import { DEV } from '../state';
 import { mulberry } from '../util';
 import { candleFire } from './objectLooks';
+import { nicheLook, pilasterLook } from './wallLooks';
 
 
 const geo = <T extends THREE.BufferGeometry>(g: T) => { g.userData.shared = true; return g; };
@@ -56,20 +57,22 @@ export function dressNorthWall(room: Room, face: number, x0: number, x1: number,
   const clear = (x: number, need: number) => x - need >= x0 && x + need <= x1 && avoid.every(a => Math.abs(x - a.x) >= a.room + need);
   const spots: number[] = [];
   for (let x = Math.floor(x0) + .5; x < x1; x++) spots.push(x);
-  const add = (mesh: THREE.Object3D, x: number) => { mesh.position.x += x - room.cx; mesh.position.z += face - room.cz; room.group.add(mesh); };
+  const kit = DEV.roomKit && !!room.look.kinds, wall = kit ? new THREE.Group() : room.group; // (the room kit's: the wall's dressing merged into one)
+  const add = (mesh: THREE.Object3D, x: number) => { mesh.position.x += x - room.cx; mesh.position.z += face - room.cz; wall.add(mesh); };
   const niches = Object.entries(dress.niches) as [NicheKind, number][], total = niches.reduce((s, [, w]) => s + w, 0);
   const eyes = room.theme?.watchers ? (room.eyes ??= new THREE.MeshBasicMaterial({ color: 0x000000 })) : undefined; // an ossuary's skulls watch
-  const flames: FlameSpec[] | undefined = DEV.roomKit && room.look.kinds ? [] : undefined; // (the room kit's: every candle's flame on this wall in one fire)
+  const flames: FlameSpec[] | undefined = kit ? [] : undefined; // (the room kit's: every candle's flame on this wall in one fire)
   spots.forEach((x, i) => {
-    if (dress.pilaster && (i + 1) % dress.pilaster === 0) { if (clear(x, .25)) add(pilaster(room.look), x); return; }
+    if (dress.pilaster && (i + 1) % dress.pilaster === 0) { if (clear(x, .25)) add(kit ? pilasterLook(room.look) : pilaster(room.look), x); return; }
     if (!total || !clear(x, .32) || R() < .35) return;
     let pick = R() * total, kind: NicheKind = niches[0][0];
     for (const [k, w] of niches) { pick -= w; if (pick <= 0) { kind = k; break; } }
     const n = flames?.length ?? 0;
-    add(niche(kind, R, stone(room.look), eyes, flames), x);
+    add(kit ? nicheLook(kind, R, room.look, eyes, flames) : niche(kind, R, stone(room.look), eyes, flames), x);
     for (const f of flames?.slice(n) ?? []) { f.x += x - room.cx; f.z += face - room.cz; }
   });
   if (flames?.length) room.group.add(candleFire(flames, room.look));
+  if (kit && wall.children.length) { mergeStill(wall); room.group.add(wall); }
 }
 
 /** A spell was cast in `room`: if its skulls watch (an ossuary), their eyes take the spell's colour. */

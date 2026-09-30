@@ -106,7 +106,8 @@ The target is 60 fps on integrated graphics (CLAUDE.md, Working agreements).
 
 The room's pieces follow this style too (`docs/M3.5-plan.md`): the fire objects and every floor's floors and walls
 (`fireLooks.ts`, `pixelTextures.ts`), the mechanisms (`mechLooks.ts`) and the objects and piles, rocks, pillars, tombs,
-urns, pedestals and the bone altar (`objectLooks.ts`), from the shared parts in `kitParts.ts`.
+urns, pedestals and the bone altar (`objectLooks.ts`), the doors, gates, niches and pilasters (`wallLooks.ts`), from the
+shared parts in `kitParts.ts`.
 
 - **Fire** is `makeFire` in `src/render/fire.ts`. Give it the flames (base, height, width, tongues) and a palette
   (`firePalette(flame, light)`); it returns a group that moves by itself. Show or hide the group; never scale it from
@@ -126,6 +127,9 @@ urns, pedestals and the bone altar (`objectLooks.ts`), from the shared parts in 
   - What glows but doesn't move (a glowcap's cap, a rune on a page, a ward's runes) is `glowTone`: one more call.
 - **Turn lathe shapes from the bottom up.** `LatheGeometry` faces outwards only when its outline climbs; an outline
   given from the top down turns the shape inside out (the first bell showed its inside).
+- **Seen from above, depth reads as height.** A piece on top of a tall wall shows its top faces, so keep them shallow
+  (a door's arch is a ring on the room's face, not the wall's depth) and paint the tops of wall-deep pieces the walls'
+  black (a door's lintel and jambs).
 - **Light is thin on what faces south or stands tall:** the torches hang on the north walls, below a pillar's top. Paint
   such pieces a shade lighter than they would be, and give tops bevels that catch the light from above.
 - **Take the floor's colours:** stone from its walls' brick (`stoneOf`), wax and fire from its torch, an urn's clay from

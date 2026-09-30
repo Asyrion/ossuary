@@ -30,6 +30,7 @@ import { subtractRect, wallRects, type Rect } from './walls';
 import { dressNorthWall } from './dressing';
 import { torchLook } from './fireLooks';
 import { pillarLook, rockLook, tombLook, urnLook } from './objectLooks';
+import { doorLook } from './wallLooks';
 import { buildProps } from './props';
 import { THEMES, themedLook } from './themeData';
 import { pickKinds } from './kitData';
@@ -514,6 +515,8 @@ function addTorch(room: Room, x: number, z: number, normal: [number, number], t:
 
 /** A doorway on `side` whose middle (on the room's inside edge) is at world (x, z): posts, lintel, threshold,
     the mark above it for special rooms, and the bars that rise while enemies live. */
+/** How a door built facing +z (the room kit's) is turned to face into the room from each wall. */
+const DOOR_TURN: Record<Side, number> = { n: 0, s: Math.PI, w: Math.PI / 2, e: -Math.PI / 2 };
 function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number, z: number): Door {
   if (style === 'secret') return buildCrackedWall(room, side, nb, x, z); // a hidden doorway: the wall carries on
   const ns = isNS(side), [dx, dz] = SIDE_DIR[side];
@@ -526,6 +529,12 @@ function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number
     m.position.set(p.x, y0 + h / 2, p.z); room.group.add(m);
   };
   const h = wallHeight(side), fm = M.frame[style];
+  if (kitPieces(room)) { // the room kit's door and gate (wallLooks.ts), turned to face into the room
+    const barH = side === 's' ? H_LOW + .1 : h - .25, { frame, bars } = doorLook(style, room.look, h, side === 's', side === 'n', barH), p = at(0, 0);
+    for (const g of [frame, bars]) { g.position.set(p.x, 0, p.z); g.rotation.y = DOOR_TURN[side]; room.group.add(g); }
+    bars.position.y = -barH - .05;
+    return { side, nb, x, z, bars, barH, open: true, style, box: { x: wx, z: wz, hx: ns ? DH : WT / 2, hz: ns ? WT / 2 : DH } };
+  }
   const pH = h + (side === 's' ? .05 : .12);
   // the posts reach a hair into the doorway, so their faces sit in front of the walls' cut ends rather than in the
   // same plane (two faces in one plane flicker as the camera moves)
