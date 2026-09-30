@@ -17,7 +17,7 @@ import './render/lights';
 import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { arrowOrder, initKeyboard, initTouch, keys, type InputActions } from './input';
 import { initScreens, showScreen } from './ui/screens';
-import { closeDev, devOpen, forceKinds, showAssetsHere, toggleDev, useAssets, useRoomKit } from './ui/devMenu';
+import { closeDev, devOpen, forceKinds, objectsHere, showAssetsHere, toggleDev, useAssets, useRoomKit } from './ui/devMenu';
 import type { Kinds } from './world/kitData';
 import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPad, openInventory } from './ui/inventory';
 import { setHeroInfo, updateVision } from './ui/hud';
@@ -173,6 +173,8 @@ function installDevHooks() {
     setPixelLook: (change: Partial<PixelLook>) => setPixelLook(change),
     /** Ahead of the mage: a plain and a sealed urn, and an artifact on a pedestal (one with a made model if any). */
     showAssets: () => showAssetsHere(),
+    /** Every object and pile, and two urns, in rows ahead of the mage (the dev menu's "Objects here"). */
+    objectsHere: () => objectsHere(),
     /** What the last frame cost the GPU (draw calls, triangles) and what is held in memory (geometries, textures). */
     renderInfo: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures }),
     lightLevels,

@@ -104,8 +104,9 @@ The target is 60 fps on integrated graphics (CLAUDE.md, Working agreements).
 
 ## The room kit (M3.5 step 3)
 
-The room's pieces follow this style too, starting with the proof: the fire objects and the crypt's floor and walls
-(`docs/M3.5-plan.md`).
+The room's pieces follow this style too (`docs/M3.5-plan.md`): the fire objects and every floor's floors and walls
+(`fireLooks.ts`, `pixelTextures.ts`), the mechanisms (`mechLooks.ts`) and the objects and piles, rocks, pillars, tombs,
+urns, pedestals and the bone altar (`objectLooks.ts`), from the shared parts in `kitParts.ts`.
 
 - **Fire** is `makeFire` in `src/render/fire.ts`. Give it the flames (base, height, width, tongues) and a palette
   (`firePalette(flame, light)`); it returns a group that moves by itself. Show or hide the group; never scale it from
@@ -116,9 +117,19 @@ The room's pieces follow this style too, starting with the proof: the fire objec
   Don't make the sheath added light: in front of a torch-lit wall, added layers go white.
 - **Build objects upright.** The camera looks down at 45°, so whatever leans out towards it drops down the screen. A wall
   torch's flame goes above its bracket and close to the wall.
-- **Paint still pieces** (`paint(color)` in `render/materials.ts`, not a material each). `mergeStill` bakes them into one
-  mesh, so an object's still body is one draw call. Only what moves, lights up or glows keeps its own mesh, named in
-  `userData.parts`.
+- **Paint still pieces** (`tone(color, mottle, metal)` in `kitParts.ts`, or `paint` in `render/materials.ts`; not a
+  material each). `mergeStill` bakes them into one mesh, so an object's still body is one draw call. Only what moves or
+  lights up keeps its own mesh, named in `userData.parts`.
+  - `mottle` shades each flat face of a piece a little lighter or darker: stone, wood, bark and cloth look hewn and worn.
+  - `metal` is how metallic it is, painted into the vertices too: iron and bronze .3 or more, the rest 0. A matte piece
+    catches more light; stone, wood and bone painted as metal come out dark.
+  - What glows but doesn't move (a glowcap's cap, a rune on a page, a ward's runes) is `glowTone`: one more call.
+- **Turn lathe shapes from the bottom up.** `LatheGeometry` faces outwards only when its outline climbs; an outline
+  given from the top down turns the shape inside out (the first bell showed its inside).
+- **Light is thin on what faces south or stands tall:** the torches hang on the north walls, below a pillar's top. Paint
+  such pieces a shade lighter than they would be, and give tops bevels that catch the light from above.
+- **Take the floor's colours:** stone from its walls' brick (`stoneOf`), wax and fire from its torch, an urn's clay from
+  `urn` in its look; moss on the drowned floor, soot on the burning one (`wall.stains`).
 - **Floors and walls are pixel art at the game's pixel size**, drawn texel by texel in `src/render/pixelTextures.ts`
   (`CFG.roomKit.texel`, 48 × 34 texels a unit):
   - bevels one or two texels deep;

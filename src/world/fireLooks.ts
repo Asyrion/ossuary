@@ -153,7 +153,7 @@ const eyeCache = new Map<number, THREE.Material>();
 const eyeFor = (c: number) => eyeCache.get(c) ?? (eyeCache.set(c, markShared(new THREE.MeshBasicMaterial({ color: new THREE.Color(c).lerp(new THREE.Color(0xffffff), .3) }))), eyeCache.get(c)!);
 const glassCache = new Map<number, THREE.Material>(), waxCache = new Map<string, THREE.Material>();
 /** Wax of a floor's colour (painted: merged into the stand's body). */
-const waxFor = (hex: string) => waxCache.get(hex) ?? (waxCache.set(hex, paint(new THREE.Color(hex).getHex())), waxCache.get(hex)!);
+export const waxFor = (hex: string) => waxCache.get(hex) ?? (waxCache.set(hex, paint(new THREE.Color(hex).getHex())), waxCache.get(hex)!);
 const glassFor = (c: number, opacity = .2) => { const k = c * 10 + opacity * 100; return glassCache.get(k) ?? (glassCache.set(k, markShared(new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false }))), glassCache.get(k)!); };
 
 /** A standing brazier of the room's kind (kitData.ts): each floor offers two or three. Every one carries runes (their own

@@ -7,7 +7,10 @@ import * as THREE from 'three';
 import type { FloorLook, NicheKind, Room } from '../types';
 import { H_TALL } from './dims';
 import { markShared } from '../render/materials';
+import type { FlameSpec } from '../render/fire';
+import { DEV } from '../state';
 import { mulberry } from '../util';
+import { candleFire } from './objectLooks';
 
 
 const geo = <T extends THREE.BufferGeometry>(g: T) => { g.userData.shared = true; return g; };
@@ -56,13 +59,17 @@ export function dressNorthWall(room: Room, face: number, x0: number, x1: number,
   const add = (mesh: THREE.Object3D, x: number) => { mesh.position.x += x - room.cx; mesh.position.z += face - room.cz; room.group.add(mesh); };
   const niches = Object.entries(dress.niches) as [NicheKind, number][], total = niches.reduce((s, [, w]) => s + w, 0);
   const eyes = room.theme?.watchers ? (room.eyes ??= new THREE.MeshBasicMaterial({ color: 0x000000 })) : undefined; // an ossuary's skulls watch
+  const flames: FlameSpec[] | undefined = DEV.roomKit && room.look.kinds ? [] : undefined; // (the room kit's: every candle's flame on this wall in one fire)
   spots.forEach((x, i) => {
     if (dress.pilaster && (i + 1) % dress.pilaster === 0) { if (clear(x, .25)) add(pilaster(room.look), x); return; }
     if (!total || !clear(x, .32) || R() < .35) return;
     let pick = R() * total, kind: NicheKind = niches[0][0];
     for (const [k, w] of niches) { pick -= w; if (pick <= 0) { kind = k; break; } }
-    add(niche(kind, R, stone(room.look), eyes), x);
+    const n = flames?.length ?? 0;
+    add(niche(kind, R, stone(room.look), eyes, flames), x);
+    for (const f of flames?.slice(n) ?? []) { f.x += x - room.cx; f.z += face - room.cz; }
   });
+  if (flames?.length) room.group.add(candleFire(flames, room.look));
 }
 
 /** A spell was cast in `room`: if its skulls watch (an ossuary), their eyes take the spell's colour. */
@@ -76,8 +83,9 @@ function pilaster(look: FloorLook) {
   g.add(shaft, base, cap); return g;
 }
 
-/** A niche: a dark arched recess framed in stone, with a sill and what the floor keeps in it. */
-function niche(kind: NicheKind, R: () => number, frame: THREE.Material, eyes?: THREE.Material) {
+/** A niche: a dark arched recess framed in stone, with a sill and what the floor keeps in it. With `flames`, a candle's
+    flame is put there (where it burns, from the niche's middle) for the room kit's fire, not built. */
+function niche(kind: NicheKind, R: () => number, frame: THREE.Material, eyes?: THREE.Material, flames?: FlameSpec[]) {
   const g = new THREE.Group(), y0 = .42;
   const recess = new THREE.Mesh(G.recess, dark); recess.position.set(0, y0, .004);
   const rim = new THREE.Mesh(G.rim, frame); rim.position.set(0, y0 + .6 - .23, .02);
@@ -94,8 +102,9 @@ function niche(kind: NicheKind, R: () => number, frame: THREE.Material, eyes?: T
   } else if (kind === 'candle') {
     for (const dx of R() < .5 ? [0] : [-.09, .07]) {
       const c = new THREE.Mesh(G.candle, waxMat); c.position.set(dx, on + .065, .06);
-      const f = new THREE.Mesh(G.flame, flameMat); f.position.set(dx, on + .16, .06);
-      g.add(c, f);
+      g.add(c);
+      if (flames) flames.push({ x: dx, y: on + .13, z: .06, h: .12, w: .06, beat: flames.length * 1.7 }); // (the room kit's fire, lit where the niche stands)
+      else { const f = new THREE.Mesh(G.flame, flameMat); f.position.set(dx, on + .16, .06); g.add(f); }
     }
   } else if (kind === 'bell') { // a small hand bell of bronze
     const b = new THREE.Mesh(G.handbell, bronzeMat); b.scale.setScalar(1.5); b.position.set(0, on, .06); g.add(b);

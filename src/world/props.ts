@@ -7,11 +7,11 @@
      a cloud of spores that flashes when fire finds it;
    - fire (anything that calls `fireAt`) burns roots, briars, cobwebs and sacks away, and it spreads between them;
    - cobwebs slow whoever walks through them; briars sting the mage and walking foes.
-   Placeholder shapes, sharing their geometries and materials, until the objects come from Tripo. */
+   The room kit's looks are in objectLooks.ts (M3.5 step 3); the placeholder shapes here stay for `DEV.roomKit` off. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { PropBox, PropState, Room, RockBox, SporeCloud, FloorLook } from '../types';
-import { G, player } from '../state';
+import { DEV, G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { M, blob, boxUV, disposeTree, glow, markShared, mergeStill } from '../render/materials';
 import { addDecal, burst } from '../combat/fx';
@@ -26,6 +26,7 @@ import { MECH_LOOKS, elementAt, strikeMechanism } from './mechanisms';
 import type { StatusKind } from '../magic/spellData';
 import { addPool, fireAt } from './pools';
 import { scrollsBroken } from './themes';
+import { OBJECT_LOOKS, burningFire } from './objectLooks';
 
 const P = CFG.props;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, SPORE = 0x9fe8b0, BONE = 0xd8ccb2;
@@ -183,11 +184,14 @@ export function buildProps(room: Room) {
   }
 }
 
+/** Whether a room's objects are the room kit's (objectLooks.ts). */
+const kitObjects = (room: Room) => DEV.roomKit && !!room.look.kinds;
+
 /** An object on tile (c, r) (a pew `len` tiles long from there). */
 export function addProp(room: Room, kind: PropKind, c: number, r: number, len = 1) {
   const def = PROPS[kind], R = mulberry(c * 97 + r * 13 + room.plan.seed);
   const a = worldOf(room, c, r), x = a.x + (len - 1) / 2, z = a.z;
-  const mesh = (isMechanism(kind) ? MECH_LOOKS[kind] : LOOKS[kind])(R, len, room.look); mergeStill(mesh); // a few draw calls, not a dozen
+  const mesh = (isMechanism(kind) ? MECH_LOOKS[kind] : kitObjects(room) ? OBJECT_LOOKS[kind] : LOOKS[kind])(R, len, room.look); mergeStill(mesh); // a few draw calls, not a dozen
   mesh.position.set(x - room.cx, 0, z - room.cz); room.group.add(mesh);
   const tiles = Array.from({ length: len }, (_, i) => ({ c: c + i, r }));
   for (const tl of tiles) room.template.tiles[tl.r][tl.c] = kind;
@@ -283,8 +287,9 @@ export function burnPropsAt(x: number, z: number, r = 0) {
 
 function ignite(room: Room, box: PropBox) {
   const p = box.prop; p.burning = P.burn[p.kind] ?? 1;
-  const f = new THREE.Group(), cone = new THREE.Mesh(GEO.flame, MAT.flame); cone.position.y = .25;
-  const gl = glow(FIRE, 1.4, .8); gl.position.y = .35; f.add(cone, gl);
+  const f = new THREE.Group(), gl = glow(FIRE, 1.4, .8); gl.position.y = .35;
+  if (kitObjects(room)) { f.add(burningFire(p.kind, p.tiles.length), gl); f.userData.fire = true; } // (the kit's fire moves by itself)
+  else { const cone = new THREE.Mesh(GEO.flame, MAT.flame); cone.position.y = .25; f.add(cone, gl); }
   f.position.set(box.x - room.cx, 0, box.z - room.cz); room.group.add(f); p.flame = f;
   burst(box.x, .3, box.z, FIRE, 6, 2, .06); Sfx.at(box.x, box.z).catchFire();
 }
@@ -341,7 +346,7 @@ export function updateProps(dt: number) {
   for (const box of (room.props ?? []).filter(b => b.prop.burning > 0)) {
     const p = box.prop;
     if (Math.random() < dt * 8) riseMote(box.x + (Math.random() - .5) * .6, .3, box.z + (Math.random() - .5) * .6, EMBER, .45);
-    if (p.flame) p.flame.scale.setScalar(.8 + Math.sin(performance.now() * .02 + box.x) * .15);
+    if (p.flame && !p.flame.userData.fire) p.flame.scale.setScalar(.8 + Math.sin(performance.now() * .02 + box.x) * .15);
     if (spread) {
       for (const e of G.enemies) if (!e.dead && e.spawn <= 0 && !e.hidden && !e.flying && standsIn(box, e.x, e.z)) inflict(e, { burn: 1 });
       if (standsIn(box, player.x, player.z)) hurtPlayer(1, box.x, box.z);

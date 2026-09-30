@@ -3,10 +3,10 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { ArtifactSpot, Room } from '../types';
-import { G, player } from '../state';
+import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { M, blob, glow } from '../render/materials';
+import { M, blob, glow, mergeStill } from '../render/materials';
 import { burst } from '../combat/fx';
 import { HEART_PATH, banner, renderHearts, renderItems, renderMinimap, toast } from '../ui/hud';
 import { START_FOCUS, artifact, computeStats, pickArtifact, type ArtifactDef, type Pool } from './artifactData';
@@ -14,6 +14,7 @@ import { giveResources } from './pickups';
 import { artifactLore } from '../ui/lore';
 import { dress } from '../actors/costume';
 import { modelFor } from '../assets/models';
+import { altarLook, pedestalLook } from '../world/objectLooks';
 
 const hex = (c: string) => new THREE.Color(c).getHex();
 
@@ -136,7 +137,12 @@ function priceTag() {
 export function placeArtifact(room: Room, def: ArtifactDef, x: number, z: number, opts: { altar?: boolean } = {}): ArtifactSpot {
   const pedestal = new THREE.Group(); pedestal.position.set(x - room.cx, 0, z - room.cz);
   let price: ArtifactSpot['price'];
-  if (opts.altar) {
+  const kit = DEV.roomKit && !!room.look.kinds; // (the room kit's pedestal and altar: objectLooks.ts)
+  if (opts.altar && kit) {
+    const look = altarLook(room.look); mergeStill(look); pedestal.add(look);
+    const tag = priceTag(); tag.position.y = 1.75; pedestal.add(tag);
+    price = { hearts: 1, tag };
+  } else if (opts.altar) {
     const slab = new THREE.Mesh(new THREE.BoxGeometry(1, .55, .6), M.rock); slab.position.y = .28;
     const top = new THREE.Mesh(new THREE.BoxGeometry(1.08, .08, .68), M.bone); top.position.y = .6;
     pedestal.add(slab, top, blob(1.6));
@@ -152,8 +158,9 @@ export function placeArtifact(room: Room, def: ArtifactDef, x: number, z: number
     const tag = priceTag(); tag.position.y = 1.75; pedestal.add(tag);
     price = { hearts: 1, tag };
   } else {
-    const model = modelFor('props', 'pedestal'); // a made pedestal (M3.5), or the stone column
+    const model = modelFor('props', 'pedestal'); // a made pedestal (M3.5), the room kit's, or the stone column
     if (model) pedestal.add(model, blob(1.3));
+    else if (kit) { const look = pedestalLook(room.look); mergeStill(look); pedestal.add(look); }
     else {
       const col = new THREE.Mesh(new THREE.CylinderGeometry(.3, .38, .6, 8), M.rock); col.position.y = .3;
       const top = new THREE.Mesh(new THREE.CylinderGeometry(.42, .42, .1, 8), M.rock); top.position.y = .64;

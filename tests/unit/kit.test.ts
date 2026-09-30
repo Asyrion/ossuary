@@ -39,6 +39,12 @@ describe('the room kit\'s kinds (M3.5 step 3)', () => {
     expect({ ...forced, wall: free.wall }).toEqual(free);
   });
 
+  it('every floor names its pottery (the room kit\'s urns: clay and bands) and its candles\' wax', () => {
+    for (const f of FLOORS) {
+      for (const c of [f.look.urn?.clay, f.look.urn?.band, f.look.torch.wax]) expect(c, f.look.name).toMatch(/^#[0-9a-f]{6}$/i);
+    }
+  });
+
   it('names unknown kinds and empty parts', () => {
     expect(validateKit('x', { wall: { marble: 1 } } as unknown as KitWeights)).toEqual(expect.arrayContaining([
       'look "x": kit.wall names unknown kind "marble"', 'look "x": kit.floor lists no kinds']));
