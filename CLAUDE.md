@@ -194,7 +194,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   the validator), items and containers the first time in a run (`STR.lore.items`, one for every drop). Anything
   new the mage can take (spells in M3, potions in M5) gets lore and shows it through `showLore`. The lore is a
   placeholder until the Eda lore arrives: keep it to the dungeon (chapel, crypts, sextons, pilgrims, the
-  Ferryman) and invent no gods, factions or places.
+  Ferryman) and invent no gods, factions or places. Since the owner's lore drop (2026-09-30; GDD: Vision, Setting) it may
+  also name what the GDD adopted from it: the Gate of Uzulim and its Wardens, their vault, the Pass of Buluiain, Kaelith
+  the Shadow Sentinel, and Asyrion (the mage); the rest of the owner's names wait for M8.
 - The inventory (`src/ui/inventory.ts`; I or Tab, the gamepad's View button, or the pause menu) pauses the game and
   lists what the mage carries and knows in tabs: artifacts (with their stat changes and a curse's price), spells
   (the two slots, then a book by school, M3.7), items (hearts, mana, soul motes, obols, keys, glyphs) and the mage's own numbers;
@@ -469,6 +471,12 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
 - **M4.1 Two floors deeper** (the owner's ask, 2026-09-30, before M4.5): floors 4 and 5 (the Gilded Reliquary, the
   Ferryman's Shore) with their room kit, eight foes and two bosses in code, two themes; Hallow and Umbral spells and
   statuses; soul motes; twelve artifacts; steps in `docs/M4.1-plan.md`.
+- **M4.2 Beneath the Gate** (the owner's ask, 2026-09-30, from their Eda lore drop): the setting in the game's text (the
+  Wardens' vault beneath the Gate of Uzulim, Asyrion, Kaelith), six pieces from the lore that answer to magic (watching
+  statues, sapping obelisks, the drinking ward, rope bridges, currents and waterfalls, candle stands in water), the
+  Wandering Merchant of Belerial, three bosses in code (the War-Tiger, the Pillar Dragon, the Twin Guardians) and Fen-Nex;
+  steps in `docs/M4.2-plan.md`. The lore's other ideas went into M4.6 (Asyrion's arc, Boketto's look), M5 (Dr. Jelly's
+  laboratory, the Verdant school) and M7 (the Vigil at the cave mouth, Kaelith).
 - **M4.5 Bestiary** (decided 2026-09-30): a whole host more creatures built in code (small critters, fantasy creatures,
   elementals) and new kinds of enemy behaviour, each a look in the dev menu's gallery first, chosen by the owner, then a
   foe (GDD: The Bestiary; ideas in `docs/ideas.md`, Bestiary).
