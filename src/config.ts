@@ -133,9 +133,9 @@ export const CFG = {
   knowledge: { usedCasts: 10, pageReach: 2 },
   // locked vaults: glyph blasts that force the ward, and where the warden rises (room-relative z)
   vault: { blastsToForce: 2, wardenAt: -1.8 },
-  // M4.2: the Wandering Merchant: the chance an ordinary room's cleared fight calls him (once a run), from which floor
-  // (0-based); seconds riding in from the door; where he stops (from the room's middle), how far in front of him and
-  // how far apart his wares lie; the box his beast blocks
+  // M4.2: the Wandering Merchant: the chance an ordinary room's cleared fight calls the merchant (once a run), from which floor
+  // (0-based); seconds riding in from the door; where the beast stops (from the room's middle), how far in front of it
+  // and how far apart the wares lie; the box the beast blocks
   wanderer: { chance: .14, fromFloor: 1, rideTime: 2.4, standAt: -1.3, waresAt: 1.85, spacing: 1.55, block: [.95, .5] as [number, number] },
   // secret rooms: the pale blue light of the forgotten mage's cell (torch flame and light colours, torch
   // brightness), and how often dust drifts from a cracked wall (seconds, least and most)

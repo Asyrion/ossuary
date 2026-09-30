@@ -272,7 +272,7 @@ const sounds = {
   wardDrink() { tone('sine', 660, 220, .35, .06); tone('sine', 990, 330, .3, .03, .04); hiss(.25, .03, 'bandpass', 1400); },
   wardBurst() { tone('sine', 110, 55, .6, .12); [880, 1320, 1760].forEach((f, i) => tone('triangle', f, f * .6, .5, .04, i * .06)); hiss(.5, .1, 'highpass', 2500); },
   wardlingSwell() { tone('sine', 300, 700, .5, .04); },
-  // the Wandering Merchant (M4.2): the bell on his staff as he rides in; his crow
+  // the Wandering Merchant (M4.2): the bell on the merchant's staff, riding in; the crow
   wandererBell() { [1320, 1760, 1480].forEach((f, i) => tone('triangle', f, f * .98, .5, .04, i * .18)); },
   crow() { tone('sawtooth', 620, 380, .18, .05); tone('sawtooth', 580, 360, .16, .04, .22); },
   wardlingShot() { tone('triangle', 700, 260, .15, .05); hiss(.1, .04, 'bandpass', 1800); },

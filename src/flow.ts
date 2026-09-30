@@ -158,7 +158,7 @@ function showRooms(...list: Room[]) { for (const r of G.rooms) r.group.visible =
 
 export function enterRoom(room: Room) {
   const firstVisit = !room.visited;
-  wandererLeaves(room); // (the Wandering Merchant stays in the room he came to)
+  wandererLeaves(room); // (the Wandering Merchant stays in the room it rode into)
   G.current = room; room.visited = true; room.known = true; showRooms(room);
   for (const d of doorsOf(room)) if (!d.secret || d.secret.open) d.nb.known = true; // not what's behind a cracked wall
   applyRoomTorches(room.look); resetTorchLights(room.torches, player.x, player.z);
