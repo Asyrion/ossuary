@@ -24,7 +24,7 @@ import { spawnPickup } from '../items/pickups';
 import { mulberry } from '../util';
 import { PROPS, isMechanism, type MechanismKind, type PropKind } from './propData';
 import { MECH_LOOKS, elementAt, strikeMechanism } from './mechanisms';
-import type { StatusKind } from '../magic/spellData';
+import type { SpellStatus } from '../magic/spellData';
 import { addPool, fireAt } from './pools';
 import { scrollsBroken } from './themes';
 import { OBJECT_LOOKS, burningFire } from './objectLooks';
@@ -199,8 +199,8 @@ export function addProp(room: Room, kind: PropKind, c: number, r: number, len = 
   mesh.position.set(x - room.cx, 0, z - room.cz); room.group.add(mesh);
   const tiles = Array.from({ length: len }, (_, i) => ({ c: c + i, r }));
   for (const tl of tiles) room.template.tiles[tl.r][tl.c] = kind;
-  const prop: PropState = { kind, hits: def.hits, burning: 0, tiles, mesh, parts: mesh.userData.parts };
-  const half = kind === 'cask' ? .3 : kind === 'roots' ? .42 : kind === 'candles' ? .22 : kind === 'lodestone' || kind === 'rune' ? .32 : kind === 'bell' ? .45 : .38;
+  const prop: PropState = { kind, hits: def.hits, burning: 0, tiles, mesh, parts: mesh.userData.parts, ward: mesh.userData.ward };
+  const half = kind === 'cask' ? .3 : kind === 'roots' ? .42 : kind === 'candles' ? .22 : kind === 'lodestone' || kind === 'rune' || kind === 'obelisk' ? .32 : kind === 'bell' ? .45 : .38;
   const box: PropBox = { x, z, hx: len > 1 ? len / 2 - .06 : half, hz: kind === 'pew' ? .3 : kind === 'boat' ? .34 : half, hp: def.hits, breakable: false, mesh, tile: { c, r }, prop };
   (room.props ??= []).push(box);
   if (def.class === 'hanging') { /* over the floor: nothing blocks, only bolts reach it (mechanisms.ts) */ }
@@ -221,7 +221,7 @@ export function removeProp(room: Room, box: PropBox) {
 /* ---------- what bolts and blasts do ---------- */
 
 /** A bolt (or, with `blast`, a glyph's blast) struck an object. Returns whether it broke. */
-export function strikeProp(room: Room, rock: RockBox, blast: boolean, status?: Partial<Record<StatusKind, number>>) {
+export function strikeProp(room: Room, rock: RockBox, blast: boolean, status?: Partial<Record<SpellStatus, number>>) {
   const box = rock as PropBox, p = box.prop; if (!p || !room.props?.includes(box)) return false;
   if (status?.burn && PROPS[p.kind].burns && p.burning <= 0) ignite(room, box); // a burning bolt sets it alight
   if (isMechanism(p.kind)) { strikeMechanism(room, box, blast, status); return false; } // bells ring, runes charge...

@@ -12,6 +12,12 @@
    - Hanging censer: a bolt through its chain brings it down on what is under it, spilling burning oil.
    - Reliquary: sealed until the room's candle stands are all lit; then it opens.
    - Dead tree: burns (like roots, longer).
+   - Watching statue (M4.2, from the Eda lore): a Warden's statue whose head follows the mage; while a fight lasts, the
+     mage standing in its sight (no pillar, rock or ice between) charges it, and full, it marks where the mage stands
+     and a ray strikes there a moment later. A hex (a Hex Bolt, Grasp of the Grave's hands) blinds it for a while.
+   - Sapping obelisk (M4.2): its field weakens the cantrip of the mage standing in it and drains their mana. Its ward
+     answers to one school, shown in its runes; that school landing on it (a bolt carrying it, fire, frost or shock,
+     holy ground or a pillar of light, darkness) breaks the ward, and the field goes out.
    The room kit's looks are in fireLooks.ts, mechLooks.ts and objectLooks.ts (the dead tree); the placeholder shapes here
    stay for `DEV.roomKit` off. Their geometries and materials are shared, but for a rune stone's rune (a charge colours
    it) and a dead tree's branches (each grown its own way); both are disposed with the object. */
@@ -25,11 +31,13 @@ import { M, blob, disposeTree, glow, markShared } from '../render/materials';
 import { setDarkness } from '../render/lights';
 import { burst } from '../combat/fx';
 import { damageEnemy, hurtPlayer } from '../combat/damage';
+import { SCHOOL_LIGHT } from '../render/arcane';
+import { boxAt } from './collision';
 import { inflict } from '../magic/statusFx';
 import { newStatus } from '../magic/status';
 import { riseMote } from '../magic/shapes';
-import { strikeFx } from '../magic/spellFx';
-import type { StatusKind } from '../magic/spellData';
+import { ringFx, strikeFx } from '../magic/spellFx';
+import { SCHOOLS, elemental, type School, type SpellStatus, type StatusKind } from '../magic/spellData';
 import { LOOT, rollTable } from '../items/loot';
 import { soulsHere } from '../items/souls';
 import { spawnPickup } from '../items/pickups';
@@ -39,13 +47,15 @@ import { addPool, fireAt } from './pools';
 import { removeProp } from './props';
 import type { MechanismKind } from './propData';
 import { RUNE_LIT, brazierLook, candleStandLook } from './fireLooks';
-import { bellLook, censerLook, censerPot, lodestoneLook, reliquaryLook, runeStoneLook, updateMechLook } from './mechLooks';
+import { EYE_BLIND, EYE_DIM, EYE_LIT, bellLook, censerLook, censerPot, lodestoneLook, obeliskLook, reliquaryLook, runeStoneLook, statueLook, updateMechLook } from './mechLooks';
 import { treeLook } from './objectLooks';
 
 const C = CFG.mech;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, GOLD = 0xffd98a;
 const CHAIN = 7.5; // a censer's chain runs up out of sight, into the dark under the vault
 export const SCHOOL_COLOR: Record<StatusKind, number> = { burn: 0xff7a2a, chill: 0x4aa8ff, shock: 0xf0e070 };
+/** The school each status carries (an obelisk's ward answers to one). */
+const STATUS_SCHOOL: Record<SpellStatus, School> = { burn: 'ember', chill: 'frost', shock: 'storm', sanct: 'hallow', hex: 'umbral', root: 'umbral' };
 
 /* ---------- looks ---------- */
 
@@ -157,6 +167,12 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
     }
     g.add(blob(1.2)); return g;
   },
+  // M4.2: built in the room kit's style whatever the look (they came after it)
+  statue() { return kitLook(statueLook()); },
+  obelisk(R) { // its ward's school, drawn on the room's seed, colours its runes and its field
+    const ward = SCHOOLS[Math.floor(R() * SCHOOLS.length)], g = kitLook(obeliskLook(SCHOOL_LIGHT[ward], C.obelisk.reach));
+    g.userData.ward = ward; return g;
+  },
 };
 
 /* ---------- what reaches them ---------- */
@@ -173,23 +189,40 @@ export function elementAt(kind: StatusKind, x: number, z: number, r = 0) {
     if (kind === 'burn' && (p.kind === 'brazier' || p.kind === 'candles') && !p.lit && near(box, x, z, C.kindle + r)) light(room, box);
     else if (p.kind === 'rune' && !p.school && near(box, x, z, C.runeCatch + r)) charge(box, kind);
     else if (kind === 'shock' && p.kind === 'lodestone' && near(box, x, z, C.lodeCatch + r)) leap(room, box);
+    else if (p.kind === 'obelisk' && p.ward === STATUS_SCHOOL[kind] && near(box, x, z, C.obelisk.catch + r)) breakWard(box);
   }
   if (kind === 'burn') for (const e of G.enemies) if (e.entombed && e.asleep && Math.hypot(e.x - x, e.z - z) < C.thawReach + r) e.asleep = false; // thawed
 }
 
 /** Holy light lands at (x, z) within `r` (M4.1: Consecrate's ground, Judgement's pillar): candle stands kindle, as the
-    chapel's did for its prayers; nothing else answers to it. */
+    chapel's did for its prayers, and an obelisk warded in Hallow breaks its ward (M4.2). */
 export function hallowAt(x: number, z: number, r = 0) {
   const room = G.current;
-  for (const box of room.props ?? []) if (box.prop.kind === 'candles' && !box.prop.lit && near(box, x, z, C.kindle + r)) light(room, box);
+  for (const box of room.props ?? []) {
+    if (box.prop.kind === 'candles' && !box.prop.lit && near(box, x, z, C.kindle + r)) light(room, box);
+    else if (box.prop.kind === 'obelisk' && box.prop.ward === 'hallow' && near(box, x, z, C.obelisk.catch + r)) breakWard(box);
+  }
+}
+/** Darkness lands at (x, z) within `r` (M4.2: Grasp of the Grave's hands): a watching statue there is blinded, and an
+    obelisk warded in Umbral breaks its ward. */
+export function umbralAt(x: number, z: number, r = 0) {
+  for (const box of G.current.props ?? []) {
+    if (box.prop.kind === 'statue' && near(box, x, z, C.statue.umbralCatch + r)) blind(box);
+    else if (box.prop.kind === 'obelisk' && box.prop.ward === 'umbral' && near(box, x, z, C.obelisk.catch + r)) breakWard(box);
+  }
 }
 
 /** A bolt or a blast struck a mechanism. Returns whether it was one (so it neither breaks nor clunks). */
-export function strikeMechanism(room: Room, box: PropBox, blast: boolean, status?: Partial<Record<StatusKind, number>>) {
+export function strikeMechanism(room: Room, box: PropBox, blast: boolean, status?: Partial<Record<SpellStatus, number>>) {
   const p = box.prop;
   switch (p.kind) {
     case 'bell': ring(room, box); return true;
-    case 'rune': { const k = (Object.keys(status ?? {}) as StatusKind[])[0]; if (k && !p.school) charge(box, k); else burst(box.x, .7, box.z, 0x8a8078, 3, 1.2, .04); return true; }
+    case 'rune': { const k = (Object.keys(elemental(status) ?? {}) as StatusKind[])[0]; if (k && !p.school) charge(box, k); else burst(box.x, .7, box.z, 0x8a8078, 3, 1.2, .04); return true; }
+    case 'statue': if (status?.hex || status?.root) blind(box); else burst(box.x, 1.2, box.z, 0x8a8078, 3, 1.2, .04); return true;
+    case 'obelisk':
+      if (!p.broken && (Object.keys(status ?? {}) as SpellStatus[]).some(k => STATUS_SCHOOL[k] === p.ward)) breakWard(box);
+      else { burst(box.x, 1.2, box.z, p.broken ? 0x8a8078 : SCHOOL_LIGHT[p.ward ?? 'umbral'], 4, 1.2, .04); if (!p.broken) Sfx.at(box.x, box.z).wardTink(); }
+      return true;
     case 'lodestone': if (status?.shock) leap(room, box); else burst(box.x, .7, box.z, 0x8a8078, 3, 1.2, .04); return true;
     case 'candles':
       if (blast) { removeProp(room, box); burst(box.x, .8, box.z, MAT.wax.color.getHex(), 10, 2, .05); fireAt(box.x, box.z, .6); checkCandles(room); } // knocked over, burning wax
@@ -325,6 +358,105 @@ function censerLands(f: (typeof falling)[number]) {
   fireAt(x, z, .8);
 }
 
+/* ---------- M4.2: the watching statue and the sapping obelisk ---------- */
+
+const S = C.statue, dim = new THREE.Color(EYE_DIM), bright = new THREE.Color(EYE_LIT);
+const eyesOf = (p: PropBox['prop']) => p.parts?.head?.userData.eyes as THREE.MeshBasicMaterial | undefined;
+
+/** A hex reaches a watching statue: its eyes go dark and its charge is lost, for a while. */
+function blind(box: PropBox) {
+  const p = box.prop, was = (p.blind ?? 0) > 0;
+  p.blind = S.blind; p.charge = 0; p.aim = undefined;
+  eyesOf(p)?.color.setHex(EYE_BLIND); if (p.parts?.gaze) p.parts.gaze.visible = false;
+  burst(box.x, 1.55, box.z, SCHOOL_LIGHT.umbral, 12, 1.4, .045);
+  if (!was) Sfx.at(box.x, box.z).statueBlind();
+}
+
+/** Nothing tall between the statue and (x, z): walls, rocks, pillars, other statues, a spell's ice. */
+function inSight(room: Room, box: PropBox, x: number, z: number) {
+  const solids = [...room.walls, ...room.rocks, ...(room.barriers ?? [])].filter(b => b !== box);
+  const dx = x - box.x, dz = z - box.z, n = Math.ceil(Math.hypot(dx, dz) / .2);
+  for (let i = 1; i < n; i++) if (boxAt(box.x + dx * i / n, box.z + dz * i / n, solids)) return false;
+  return true;
+}
+
+/** A watching statue each step: its head follows the mage; while the fight lasts, the mage in its sight charges it, and
+    full it marks where they stand; the ray strikes there after a moment, hurting what stands in it. */
+function updateStatue(room: Room, box: PropBox, dt: number, fighting: boolean) {
+  const p = box.prop, head = p.parts?.head, gaze = p.parts?.gaze as THREE.Line | undefined;
+  const dx = player.x - box.x, dz = player.z - box.z, blind = (p.blind ?? 0) > 0;
+  if (blind && (p.blind! -= dt) <= 0) { p.blind = 0; eyesOf(p)?.color.setHex(EYE_DIM); }
+  if (head && !blind) { // (the neck turns so far and no further)
+    const want = Math.max(-1.3, Math.min(1.3, Math.atan2(dx, dz)));
+    head.rotation.y += (want - head.rotation.y) * Math.min(1, dt * 5);
+  }
+  const sees = fighting && !blind && !player.dead && Math.hypot(dx, dz) < S.reach && inSight(room, box, player.x, player.z);
+  if (p.aim) {
+    if ((p.aim.t -= dt) <= 0) { strikeRay(box, p.aim.x, p.aim.z); p.aim = undefined; p.charge = 0; p.cd = S.rest; }
+  } else if ((p.cd ?? 0) <= 0) {
+    p.charge = sees ? Math.min(S.charge, (p.charge ?? 0) + dt) : Math.max(0, (p.charge ?? 0) - dt * S.cool);
+    if (p.charge >= S.charge) { // its gaze settles: the spot is marked
+      p.aim = { x: player.x, z: player.z, t: S.delay };
+      ringFx(player.x, .06, player.z, EYE_LIT, S.radius * 2.4, S.radius * .5, S.delay, true);
+      Sfx.at(box.x, box.z).statueMark();
+    }
+  }
+  const k = Math.min(1, (p.charge ?? 0) / S.charge);
+  if (!blind) eyesOf(p)?.color.lerpColors(dim, bright, p.aim ? 1 : k);
+  if (gaze) {
+    gaze.visible = !blind && (sees || !!p.aim) && k > .05;
+    if (gaze.visible) {
+      const to = p.aim ?? player, pos = gaze.geometry.attributes.position as THREE.BufferAttribute;
+      pos.setXYZ(0, Math.sin(head?.rotation.y ?? 0) * .18, 1.5, Math.cos(head?.rotation.y ?? 0) * .18); pos.setXYZ(1, to.x - box.x, .5, to.z - box.z); pos.needsUpdate = true;
+      (gaze.material as THREE.LineBasicMaterial).opacity = .15 + .6 * k;
+    }
+  }
+}
+/** The statue's ray lands at (x, z): what stands there is struck (the mage, and foes too). */
+function strikeRay(box: PropBox, x: number, z: number) {
+  strikeFx({ x: box.x, y: 1.55, z: box.z }, { x, y: .05, z }, EYE_LIT);
+  ringFx(x, .06, z, EYE_LIT, .2, S.radius * 1.2, .35, true); burst(x, .3, z, EYE_LIT, 16, 2.2, .05);
+  Sfx.at(x, z).statueRay();
+  if (!player.dead && Math.hypot(player.x - x, player.z - z) < S.radius) hurtPlayer(S.hurt, box.x, box.z);
+  for (const e of G.enemies) if (!e.dead && e.spawn <= 0 && !e.hidden && !e.flying && Math.hypot(e.x - x, e.z - z) < S.radius + e.r) damageEnemy(e, S.damage, 0, 0, 0, 'spell', 'hallow');
+}
+
+/** An obelisk's ward breaks: its runes and shard go dull, and its field goes out. */
+function breakWard(box: PropBox) {
+  const p = box.prop; if (p.broken) return;
+  p.broken = true;
+  const color = SCHOOL_LIGHT[p.ward ?? 'umbral'];
+  for (const k of ['runes', 'crystal']) ((p.parts?.[k] as THREE.Mesh | undefined)?.material as THREE.MeshBasicMaterial | undefined)?.color.setHex(0x2e2a34);
+  if (p.parts?.field) p.parts.field.visible = false;
+  if (p.parts?.glow) p.parts.glow.visible = false;
+  burst(box.x, 2.2, box.z, color, 22, 2.6, .05); ringFx(box.x, .06, box.z, color, .3, C.obelisk.reach, .5, true);
+  Sfx.at(box.x, box.z).wardShatter(); toast(STR.mech.wardBroken, 2.5);
+  if (sapping === box) sapping = null;
+}
+
+/** The unbroken obelisk whose field the mage stands in, if any (set each step). */
+let sapping: PropBox | null = null, tether = 0;
+const told = new WeakSet<Room>();
+/** What the cantrip's blows are worth where the mage stands: less inside a sapping obelisk's field (M4.2). */
+export const sapMul = () => sapping ? C.obelisk.sap : 1;
+/** The mage inside an obelisk's field: mana drains, and pale threads run from them to its point. */
+function updateSapping(room: Room, dt: number) {
+  sapping = null;
+  if (player.dead) return;
+  for (const box of room.props ?? []) {
+    const p = box.prop;
+    if (p.kind !== 'obelisk' || p.broken) continue;
+    const inside = Math.hypot(player.x - box.x, player.z - box.z) < C.obelisk.reach;
+    if (p.parts?.field) ((p.parts.field as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = inside ? .55 + Math.sin(G.simClock * 8) * .15 : .35;
+    if (inside && !sapping) sapping = box;
+  }
+  if (!sapping) return;
+  player.mana = Math.max(0, player.mana - C.obelisk.drain * dt);
+  const color = SCHOOL_LIGHT[sapping.prop.ward ?? 'umbral'];
+  if ((tether -= dt) <= 0) { tether = .3; strikeFx({ x: sapping.x, y: 2.2, z: sapping.z }, { x: player.x, y: .9, z: player.z }, color, .22, true); }
+  if (!told.has(room)) { told.add(room); toast(STR.mech.sapped(STR.schools[sapping.prop.ward ?? 'umbral']), 4); }
+}
+
 /* ---------- rings of light ---------- */
 
 const waves: { room: Room; ring: THREE.Mesh; t: number; to: number }[] = [];
@@ -339,9 +471,11 @@ function wave(room: Room, x: number, z: number, color: number, to: number) {
 
 export function updateMechanisms(dt: number) {
   const room = G.current, fighting = room.locked && G.enemies.some(e => !e.dead && e.spawn <= 0);
+  updateSapping(room, dt);
   for (const box of room.props ?? []) {
     const p = box.prop;
     if (p.cd && p.cd > 0) p.cd = Math.max(0, p.cd - dt);
+    if (p.kind === 'statue') updateStatue(room, box, dt, fighting);
     if (p.parts && box.mesh?.userData.kit) updateMechLook(p.parts, G.simClock, box.x);
     if (p.kind === 'brazier' && p.lit && p.parts?.flame && !p.parts.flame.userData.fire) { p.parts.flame.scale.set(1, .85 + Math.sin(G.simClock * 17 + box.x) * .15, 1); if (Math.random() < dt * 4) riseMote(box.x, 1.1, box.z, EMBER, .4); }
     if (p.kind === 'bell' && p.parts?.swing) { p.t = (p.t ?? 99) + dt; p.parts.swing.rotation.z = Math.sin(p.t * 9) * .35 * Math.exp(-p.t * 1.2); }
@@ -366,10 +500,10 @@ export function updateMechanisms(dt: number) {
 }
 
 /** A new floor: nothing left falling or ringing from the last one. */
-export function clearMechanisms() { falling.length = 0; for (const w of waves) (w.ring.material as THREE.Material).dispose(); waves.length = 0; }
+export function clearMechanisms() { falling.length = 0; for (const w of waves) (w.ring.material as THREE.Material).dispose(); waves.length = 0; sapping = null; }
 
-/** Dev menu and tests: fire, frost or shock at (x, z), as a spell landing there would. */
-export function elementDev(kind: StatusKind, x: number, z: number) {
-  if (kind === 'burn') fireAt(x, z, .6); else elementAt(kind, x, z, .6);
-  burst(x, .4, z, SCHOOL_COLOR[kind], 8, 1.6, .05);
+/** Dev menu and tests: fire, frost or shock at (x, z), as a spell landing there would; or (M4.2) holy light or darkness. */
+export function elementDev(kind: StatusKind | 'sanct' | 'hex', x: number, z: number) {
+  if (kind === 'burn') fireAt(x, z, .6); else if (kind === 'sanct') hallowAt(x, z, .6); else if (kind === 'hex') umbralAt(x, z, .6); else elementAt(kind, x, z, .6);
+  burst(x, .4, z, kind === 'sanct' ? SCHOOL_LIGHT.hallow : kind === 'hex' ? SCHOOL_LIGHT.umbral : SCHOOL_COLOR[kind], 8, 1.6, .05);
 }

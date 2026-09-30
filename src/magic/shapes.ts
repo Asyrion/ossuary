@@ -23,7 +23,7 @@ import { fireSpellBolt, strikeSolid } from '../combat/projectiles';
 import { detonateGlyph } from '../combat/glyphs';
 import { blockers, boxAt, pointInBoxes } from '../world/collision';
 import { fireAt, frostAt } from '../world/pools';
-import { hallowAt } from '../world/mechanisms';
+import { hallowAt, umbralAt } from '../world/mechanisms';
 import { canAct } from './status';
 import type { Shape, SpellDef } from './spellData';
 import { flash, inflict } from './statusFx';
@@ -454,6 +454,7 @@ function updateGrasps(dt: number) {
         if (!alive(e) || e.flying || Math.hypot(e.x - g.x, e.z - g.z) > P.radius + e.r) continue;
         damageEnemy(e, g.def.damage, 0, 0, 0, 'spell', g.def.school); inflict(e, g.def.status); burst(e.x, .3, e.z, hex(g.def.color), 6, 1.4, .03);
       }
+      umbralAt(g.x, g.z, P.radius); // (the dark blinds a watching statue, breaks an obelisk's umbral ward)
       Sfx.at(g.x, g.z).graspClose();
     }
     const k = g.t < P.delay ? g.t / P.delay : g.t < life ? 1 : 1 - (g.t - life) / .3;

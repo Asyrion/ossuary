@@ -221,6 +221,9 @@ export const STR = {
     blessed: (n: number) => `The candles bless your next ${n} casts`,
     reliquary: 'The reliquary opens to the candle-light',
     darkLifted: 'The candle-light drives off the dark',
+    /** M4.2: the mage steps into a sapping obelisk's field, the first time in a room; its ward breaks. */
+    sapped: (school: string) => `The obelisk saps your magic. ${school} breaks its ward`,
+    wardBroken: "The obelisk's ward breaks: its field goes out",
   },
   /** A themed room, the first time the mage enters it (M3.6; the names are in data/themes.json). */
   themeEntered: (name: string) => name,
@@ -367,8 +370,8 @@ export const STR = {
     spells: 'Spells (click to learn into the slot)', slot: 'Slot', mana: 'Mana', fullMana: 'Full mana', manaOn: 'Endless mana: on', manaOff: 'Endless mana: off', forget: 'Forget spells',
     page: 'Drop a grimoire page', noPage: 'No spell left to learn',
     themes: 'Themed rooms (a test room of each)', objects: 'Objects (put down ahead)', noRoom: 'No free floor there',
-    propNames: { bones: 'Bone pile', skulls: 'Skull heap', sacks: 'Grave sacks', cask: 'Oil cask', rubble: 'Rubble', roots: 'Grave roots', briar: 'Thorn briar', web: 'Cobwebs', glowcap: 'Glowcaps', pew: 'Pew', desk: 'Desk', scrolls: 'Scroll heap', hoard: 'Offering heap', boat: 'Moored boat', brazier: 'Brazier', candles: 'Candle stand', bell: 'Bell', rune: 'Rune stone', lodestone: 'Lodestone', censer: 'Hanging censer', reliquary: 'Reliquary', tree: 'Dead tree' } as Record<string, string>,
-    kindle: 'Fire ahead', frost: 'Frost ahead', shock: 'Shock ahead',
+    propNames: { bones: 'Bone pile', skulls: 'Skull heap', sacks: 'Grave sacks', cask: 'Oil cask', rubble: 'Rubble', roots: 'Grave roots', briar: 'Thorn briar', web: 'Cobwebs', glowcap: 'Glowcaps', pew: 'Pew', desk: 'Desk', scrolls: 'Scroll heap', hoard: 'Offering heap', boat: 'Moored boat', brazier: 'Brazier', candles: 'Candle stand', bell: 'Bell', rune: 'Rune stone', lodestone: 'Lodestone', censer: 'Hanging censer', reliquary: 'Reliquary', tree: 'Dead tree', statue: 'Watching statue', obelisk: 'Sapping obelisk' } as Record<string, string>,
+    kindle: 'Fire ahead', frost: 'Frost ahead', shock: 'Shock ahead', hallowAhead: 'Holy light ahead', umbralAhead: 'Darkness ahead',
     pools: 'Water and oil (this room)', ignite: 'Set the oil alight', freezeWater: 'Freeze the water', shockWater: 'Shock the water',
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
     foes: 'Foes (they leave the doors open)', championHeavy: 'A champion of this floor\'s heavies',

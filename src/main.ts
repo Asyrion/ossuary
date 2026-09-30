@@ -55,7 +55,7 @@ import { pixelLook, setPixelLook, type PixelLook } from './render/pixelLook';
 import { removeModelOptions, showBossLooks, showFamiliarOptions, showModelOptions } from './actors/modelOptions';
 import { bossLook, setBossLook, type BossLookId } from './actors/bossLooks';
 import { removeEffectOptions, showEffectOptions } from './magic/effectOptions';
-import { elementDev } from './world/mechanisms';
+import { elementDev, sapMul } from './world/mechanisms';
 import { forgetKnowledge, knowledgeNow, setStage } from './magic/memory';
 import type { Stage } from './magic/knowledge';
 import type { PropKind } from './world/propData';
@@ -253,10 +253,13 @@ function installDevHooks() {
     get pickups() { return G.pickups; }, get glyphs() { return G.glyphs; }, get shots() { return G.shots; },
     /** Put one of the rooms' objects down at (x, z) (on free floor), e.g. prop('cask'); the objects in the room. */
     prop(kind: PropKind, x = player.x, z = player.z - 1.5) { return !!placeProp(kind, x, z); },
-    get props() { return (G.current.props ?? []).map(b => ({ kind: b.prop.kind, x: b.x, z: b.z, burning: b.prop.burning, hits: b.prop.hits, lit: !!b.prop.lit, school: b.prop.school ?? null, cd: b.prop.cd ?? 0 })); },
+    get props() { return (G.current.props ?? []).map(b => ({ kind: b.prop.kind, x: b.x, z: b.z, burning: b.prop.burning, hits: b.prop.hits, lit: !!b.prop.lit, school: b.prop.school ?? null, cd: b.prop.cd ?? 0,
+      charge: b.prop.charge ?? 0, blind: b.prop.blind ?? 0, aiming: !!b.prop.aim, ward: b.prop.ward ?? null, broken: !!b.prop.broken })); },
+    /** M4.2: whether the mage stands in a sapping obelisk's field (what the cantrip's blows are worth there). */
+    get sap() { return sapMul(); },
     /** Fire, frost or shock landing at (x, z), as a spell's would: lights braziers and candles, charges rune stones,
         sets lodestones leaping. */
-    element: (kind: StatusKind, x = player.x, z = player.z - 1.5) => elementDev(kind, x, z),
+    element: (kind: StatusKind | 'sanct' | 'hex', x = player.x, z = player.z - 1.5) => elementDev(kind, x, z),
     get spores() { return (G.current.spores ?? []).length; },
     /** Fire reaches (x, z) and `r` round it, as a burning bolt or a blast would: oil, roots, briars, webs, spores. */
     burn(x: number, z: number, r = 0) { fireAt(x, z, r); },

@@ -82,6 +82,9 @@ export interface PropState {
   /** Mechanisms (world/mechanisms.ts): a brazier's or candle stand's fire; the school a rune stone is charged with;
       seconds until it can act again, and its own clock; parts of its look that move or light up. */
   lit?: boolean; school?: StatusKind; cd?: number; t?: number; parts?: Record<string, THREE.Object3D>;
+  /** M4.2: a watching statue's charge (seconds of gaze), the seconds it stays blind, and the spot its ray will strike;
+      a sapping obelisk's ward (the school that breaks it) and whether it is broken. */
+  charge?: number; blind?: number; aim?: { x: number; z: number; t: number }; ward?: School; broken?: boolean;
 }
 /** An object in the room, with its box (how it blocks depends on its class: rocks, `lows`, or `soft`). */
 export type PropBox = RockBox & { prop: PropState };

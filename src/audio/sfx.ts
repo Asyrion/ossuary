@@ -255,6 +255,12 @@ const sounds = {
   bite() { tone('square', 320, 70, .09, .09); hiss(.12, .12, 'bandpass', 1300); },
   spit() { hiss(.14, .08, 'bandpass', 650); tone('sine', 280, 110, .16, .05); },
   drakeLand() { tone('sine', 90, 40, .4, .14); hiss(.35, .1, 'highpass', 3500); [2637, 2093].forEach((f, i) => tone('triangle', f, f * .7, .3, .03, i * .04)); },
+  // M4.2's pieces from the lore: a watching statue's gaze settling on the mage and its ray; a hex blinding it; an
+  // obelisk's ward breaking
+  statueMark() { tone('sine', 220, 440, .7, .05); tone('triangle', 330, 660, .7, .025, .05); hiss(.6, .02, 'highpass', 4000); },
+  statueRay() { hiss(.25, .12, 'highpass', 3000); tone('sawtooth', 1320, 180, .25, .05); tone('sine', 660, 330, .4, .04); },
+  statueBlind() { tone('sine', 520, 130, .5, .05); hiss(.4, .04, 'lowpass', 900); },
+  wardShatter() { [1568, 1175, 880, 659].forEach((f, i) => tone('triangle', f, f * .8, .35, .035, i * .05)); hiss(.4, .08, 'highpass', 3000); },
 };
 type Sounds = typeof sounds;
 /** Sounds of the interface (picking things up, refusals, learning): their own bus, never positioned. */

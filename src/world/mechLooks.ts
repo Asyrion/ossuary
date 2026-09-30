@@ -138,10 +138,72 @@ export function reliquaryLook() {
 }
 const GEM = markShared(lit(0xc03848));
 
+/* ---------- M4.2, from the Eda lore ---------- */
+
+const STATUE = {
+  plinth: shared(new THREE.BoxGeometry(.72, .24, .62)), step: shared(new THREE.BoxGeometry(.8, .06, .7)),
+  robe: shared(new THREE.LatheGeometry([[.3, 0], [.31, .08], [.26, .5], [.22, .9], [.24, 1.08], [.2, 1.2], [.08, 1.26], [0, 1.27]].map(([x, y]) => new THREE.Vector2(x, y)), 8)),
+  fold: shared(new THREE.BoxGeometry(.035, .86, .05)),
+  hood: shared(new THREE.SphereGeometry(.19, 10, 7, 0, Math.PI * 2, 0, Math.PI * .62).scale(1, 1.2, 1.05)), peak: shared(new THREE.ConeGeometry(.08, .16, 6)),
+  face: shared(new THREE.CircleGeometry(.11, 10).scale(1, 1.25, 1)), eye: shared(new THREE.SphereGeometry(.022, 5, 4)),
+  blade: shared(new THREE.BoxGeometry(.05, .84, .018)), guard: shared(new THREE.BoxGeometry(.26, .04, .05)), grip: shared(new THREE.CylinderGeometry(.018, .018, .14, 5)),
+  pommel: shared(new THREE.SphereGeometry(.035, 6, 4)), hands: shared(new THREE.SphereGeometry(.07, 7, 5).scale(1.3, .8, .9)),
+};
+
+/** The watching statue (M4.2): a hooded Warden of Uzulim in stone, hands on a sword point down, on a plinth. Its head
+    (`head`) turns to follow the mage; its eyes (`eyes`, their own material) kindle as its gaze charges and go dark when a
+    hex blinds it; the gaze itself (`gaze`, a line to the mage, its own geometry) shows while it charges. */
+export function statueLook() {
+  const g = new THREE.Group();
+  mesh(g, STATUE.step, MAT.darkStone, 0, .03, 0); mesh(g, STATUE.plinth, MAT.darkStone, 0, .18, 0);
+  const body = new THREE.Group(); body.position.y = .3; g.add(body);
+  mesh(body, STATUE.robe, MAT.stone);
+  for (let i = 0; i < 5; i++) { const a = Math.PI / 2 + (i - 2) * .42; mesh(body, STATUE.fold, MAT.darkStone, Math.cos(a) * .27, .44, Math.sin(a) * .27).rotation.set(0, -a + Math.PI / 2, -.05 * (i - 2)); } // (the robe's folds)
+  mesh(body, STATUE.blade, MAT.iron, 0, .5, .3).rotation.x = -.08; mesh(body, STATUE.guard, MAT.iron, 0, .93, .27);
+  mesh(body, STATUE.grip, MAT.darkBronze, 0, 1.02, .27); mesh(body, STATUE.pommel, MAT.darkBronze, 0, 1.1, .27); mesh(body, STATUE.hands, MAT.stone, 0, 1.0, .25);
+  const head = new THREE.Group(); head.position.y = 1.52;
+  mesh(head, STATUE.hood, MAT.stone, 0, -.06, 0); mesh(head, STATUE.peak, MAT.stone, 0, .19, -.05).rotation.x = -.35;
+  mesh(head, STATUE.face, MAT.socket, 0, -.04, .17);
+  const eyeMat = new THREE.MeshBasicMaterial({ color: EYE_DIM }), eyes = new THREE.Group(); // (its own: the gaze kindles it)
+  mesh(eyes, STATUE.eye, eyeMat, -.045, -.02, .18); mesh(eyes, STATUE.eye, eyeMat, .045, -.02, .18);
+  head.add(eyes); head.userData.parts = { eyes }; mergeStill(head); head.userData.eyes = eyeMat;
+  const gaze = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3(0, 0, 1)]),
+    new THREE.LineBasicMaterial({ color: EYE_LIT, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  gaze.frustumCulled = false; gaze.visible = false;
+  g.add(head, gaze, blob(1));
+  return { group: g, parts: { head, gaze } };
+}
+export const EYE_DIM = 0x5a4a2a, EYE_LIT = 0xffd878, EYE_BLIND = 0x3a2458;
+
+const OBELISK = {
+  base: shared(new THREE.BoxGeometry(.64, .16, .64)), shaft: shared(new THREE.CylinderGeometry(.12, .21, 1.7, 4).rotateY(Math.PI / 4)),
+  cap: shared(new THREE.ConeGeometry(.17, .26, 4).rotateY(Math.PI / 4)), crystal: shared(new THREE.OctahedronGeometry(.09, 0).scale(.8, 1.5, .8)),
+  // runes cut down the face turned to the camera, each set on the tapering face at its height (the shaft narrows from
+  // .21 at its foot, y .16, to .12 at its point, y 1.86; a four-sided face lies at the radius times cos 45°)
+  runes: shared(joinAll([0, 1, 2].map(i => { const y = .5 + i * .42, r = .21 - .09 * (y - .16) / 1.7; return runeStrokes(.2 - i * .025).rotateX(-.04).translate(0, y, r * Math.SQRT1_2 + .012); }))),
+  field: shared(new THREE.RingGeometry(.94, 1, 48).rotateX(-Math.PI / 2)),
+};
+
+/** The sapping obelisk (M4.2): a black stone needle on a plinth, runes of its ward's school cut down its face (`runes`)
+    and a shard of it floating over the point (`crystal`), and on the floor the edge of its field (`field`, `reach`
+    across). The runes, the shard and the field have their own materials, dulled when the ward breaks. */
+export function obeliskLook(color: number, reach: number) {
+  const g = new THREE.Group();
+  mesh(g, OBELISK.base, MAT.darkStone, 0, .08, 0); mesh(g, OBELISK.shaft, MAT.lode, 0, 1.01, 0); mesh(g, OBELISK.cap, MAT.lode, 0, 1.99, 0);
+  const runes = mesh(g, OBELISK.runes, lit(color));
+  const crystal = mesh(g, OBELISK.crystal, lit(color), 0, 2.3, 0);
+  const field = mesh(g, OBELISK.field, new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .4, blending: THREE.AdditiveBlending, depthWrite: false }), 0, .03, 0);
+  field.scale.setScalar(reach);
+  const gl = glow(color, 1.2, .6); gl.position.y = 2.3;
+  g.add(gl, blob(.8));
+  return { group: g, parts: { runes, crystal, field, glow: gl } };
+}
+
 /** Each step: the moving magic of the room kit's mechanisms (the charged stone's runes, the floating shard, the turning
     seal). `t` is the time; `x` sets each apart. */
 export function updateMechLook(parts: Record<string, THREE.Object3D>, t: number, x: number) {
   if (parts.aura?.visible) parts.aura.rotation.y = t * 1.4 + x;
   if (parts.shard) { parts.shard.rotation.y = t * .5 + x; parts.shard.position.y = .98 + Math.sin(t * 1.6 + x) * .03; }
   if (parts.seal) { parts.seal.rotation.y = t * .35 + x; parts.seal.position.y = .65 + Math.sin(t * 1.1 + x) * .02; }
+  if (parts.crystal) { parts.crystal.rotation.y = t * .8 + x; parts.crystal.position.y = 2.3 + Math.sin(t * 1.4 + x) * .05; }
 }
