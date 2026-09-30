@@ -31,8 +31,8 @@ export const CFG = {
   // what the foes in code do to the mage (M4): chilled by cold breath and rime, this much slower; a salamander's burning
   // ground burns the mage within `groundReach` (plus half the mage's size) and licks up a flame `groundLicks` times a
   // second; foes' embers and cold touch what they pass every `touchEvery` seconds, within `emberReach` and `coldReach`;
-  // the dev hook's test shot (`__game.shoot`) flies at `testShot`
-  afflict: { chillSlow: .4, groundReach: .3, groundLicks: .7, touchEvery: .1, emberReach: .2, coldReach: .1, testShot: 3.8 },
+  // the dev hook's test shot (`__game.shoot`) flies at `testShot`; a storm ray's sparks arm after `sparkArm` seconds
+  afflict: { chillSlow: .4, groundReach: .3, groundLicks: .7, sparkArm: .35, touchEvery: .1, emberReach: .2, coldReach: .1, testShot: 3.8 },
   // a foe's weakness and resistance (M4; GDD: Enemy affinities): the damage of its weak school and of its resisted one
   affinity: { weak: 1.5, resist: .5 },
   // champion rooms: one enemy is bigger, tinted, tougher and a little faster, and drops a heart

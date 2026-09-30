@@ -214,7 +214,11 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `blinker` (Hex Imp: its `hex` shot drains mana), `drake` (Rime Drakeling, the elite: breath, flight, a frost ring); floor 4's
   (M4.1): `scamper` (Wickmouse: cover to cover, a dart; its candle falls burning, a behaviour's `die` through `foeDied`),
   `chimer` (Chime Bat: a closing ring marks the mage's spot, then a spark strikes it), `gargoyle` (Gargoyle Whelp: stone
-  that turns most of a blow, two pounces landing in frost), `healer` (Moonstag Fawn: keeps off, heals the hurt round it).
+  that turns most of a blow, two pounces landing in frost), `healer` (Moonstag Fawn: keeps off, heals the hurt round it);
+  floor 5's: `burrower` (Rootling: a mound under the floor that bursts up under the mage; burning, it stays up), `glider`
+  (Storm Ray: passes laying sparks, `laySpark`, that arm and sting; `__game.sparkGround`), `absorber` (Void Mote: swallows
+  the cantrip through a behaviour's `struck` hook in `damageEnemy`, spills it back as a ring, then hangs open),
+  `shell` (Lantern Tortoise, the elite: hides, spins off the walls, lies dizzy). `__game.hit(i, dmg, school, by)`.
   Templates' `R W H` are roles now: each floor fills them from `foes` in
   `data/floors.json`, on the room's seed, one elite a room at most (`buildRoom`); `?foe=sporeling` (`DEV.foe`, the dev
   menu's Fights switch) puts one foe in every fight. Damage carries a school (`damageEnemy`'s last argument: spells by

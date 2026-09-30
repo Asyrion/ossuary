@@ -21,7 +21,7 @@ import { gainMana } from '../magic/spells';
 import { damageTakenMul } from '../magic/status';
 import { dummyHit, floatText, inflict, shockLeap } from '../magic/statusFx';
 import { fireAt } from '../world/pools';
-import { foeDied } from '../actors/foes';
+import { foeDied, foeStruck } from '../actors/foes';
 
 /** Hurt a foe, knocking it along (dx, dz); `kbMul` scales the knockback (the Ram's Skull on bolts); `by` says
     what struck it (a foe the cantrip puts to rest gives mana back); `school`, the magic it struck with, if any: a foe in
@@ -35,6 +35,7 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
     if (foundAffinity(e.foe?.id ?? e.type as BossType, aff > 1 ? 'weak' : 'resist')) { floatText(e.x, 1.5, e.z, aff > 1 ? STR.foes.weak : STR.foes.resists, aff > 1 ? 0xffd070 : 0xa8a0b8); Sfx.at(e.x, e.z).affinity(aff > 1); }
   }
   if (by === 'spell') dmg *= player.stats.spellDamage; // Crown of Thorns
+  if (e.foe) { dmg = foeStruck(e, dmg, by); if (dmg <= 0) { e.flash = .09; return; } } // (a void mote swallows the cantrip)
   e.hp -= dmg; e.flash = .09; e.lastHit = by; e.asleep = false; // a sleeper wakes
   if (e.type === 'dummy') { e.hp = e.maxHp; dummyHit(e, dmg); } // the training dummy never falls
   shockLeap(e, dmg); // a shocked foe passes part of the hit on

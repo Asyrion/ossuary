@@ -59,7 +59,7 @@ import type { Stage } from './magic/knowledge';
 import type { PropKind } from './world/propData';
 import { FOE_IDS, isFoe, type FoeType, type School } from './actors/foeData';
 import { bestiary, forgetBestiary } from './actors/bestiary';
-import { burningGround } from './actors/foes';
+import { burningGround, sparkGround } from './actors/foes';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
@@ -221,11 +221,11 @@ function installDevHooks() {
         foe in the room, e.g. inflict({ burn: 3 }). */
     spawn(kind: FoeType, x = player.x, z = player.z - 2.5) { return makeEnemy(kind, x, z, 1); },
     /** Strike the room's foe `i` for `dmg`, of `school` if given (M4: its weakness and resistance count). */
-    hit: (i: number, dmg: number, school?: School) => { const e = G.enemies[i]; if (e) damageEnemy(e, dmg, 0, 0, 0, 'spell', school); return e?.hp; },
+    hit: (i: number, dmg: number, school?: School, by: 'spell' | 'cantrip' = 'spell') => { const e = G.enemies[i]; if (e) damageEnemy(e, dmg, 0, 0, 0, by, school); return e?.hp; },
     /** What the mage has found of the foes (M4), kept between runs; forget it all. */
     get bestiary() { return bestiary(); }, forgetBestiary: () => forgetBestiary(),
     /** Patches of ground a salamander has set burning in this room (M4). */
-    get burningGround() { return burningGround(); },
+    get burningGround() { return burningGround(); }, get sparkGround() { return sparkGround(); },
     inflict(status: Partial<Record<StatusKind, number>>) { for (const e of G.enemies) inflict(e, status); },
     /** Fire a foe's shot from (x, z) along (dx, dz) (a wall of ice stops it); seconds of the Static Mantle left. */
     shoot(x: number, z: number, dx: number, dz: number) { const l = Math.hypot(dx, dz) || 1; spawnShot(x, z, dx / l, dz / l, CFG.afflict.testShot, 0xb784ff, .8); },

@@ -50,6 +50,11 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   chimer: ['orbit', 'orbitSpeed', 'chimeEvery', 'chimeTell', 'strikeDelay', 'mark', 'range'],
   gargoyle: ['wake', 'lonely', 'rest', 'tell', 'crouch', 'leap', 'reach', 'pounces', 'ring', 'shotSpeed', 'chill', 'guard'],
   healer: ['keep', 'healEvery', 'healTell', 'healRange', 'healShare'],
+  // floor 5 (M4.1)
+  burrower: ['up', 'dig', 'under', 'burrowSpeed', 'tell', 'reach', 'motes', 'shotSpeed'],
+  glider: ['turn', 'overshoot', 'passSpeed', 'sparkEvery', 'sparkTime'],
+  absorber: ['keep', 'hold', 'tell', 'perBolt', 'shotSpeed', 'spent', 'open'],
+  shell: ['walk', 'hide', 'spinSpeed', 'spinTime', 'bounces', 'dizzy', 'guard', 'open', 'bounceShots', 'shotSpeed', 'chill'],
 };
 
 /** What is wrong with the foes' data (an empty list when nothing is). */
