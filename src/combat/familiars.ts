@@ -16,6 +16,7 @@ import { firePalette, makeFire } from '../render/fire';
 import { burst } from './fx';
 import { damageEnemy } from './damage';
 import { fireSecondary } from './projectiles';
+import { updateFennex } from './fennex';
 
 const A = CFG.artifacts;
 let moth: { g: THREE.Group; wings: THREE.Mesh[]; t: number; cd: number } | null = null;
@@ -105,6 +106,7 @@ function nearestFoe(x: number, z: number, reach: number) {
 /** Move the companions with the mage; `acting` is false while paused, in a pan or dying (they only hover). */
 export function updateFamiliars(dt: number, now: number, acting: boolean) {
   const fx = player.stats.effects;
+  updateFennex(dt, acting); // (M4.2: Fen-Nex, combat/fennex.ts)
   if (fx.has('moth')) {
     moth ??= makeMoth();
     const M_ = A.moth, a = now * 1.7;

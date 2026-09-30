@@ -169,6 +169,13 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
       stick(g, [s * .01, .09, 0], [s * .05, .17, .02], .004, tone(0x4a3a2a));
     }
   },
+  foxrune(g, c) { // a disc of indigo stone, a fox's face cut in it in rune-light (leaning back, to face the room)
+    g = lean(g);
+    put(mesh(g, cyl(.16, .16, .05, 14), tone(0x2a2260, .08), 0, 0, 0), Math.PI / 2, 0, 0);
+    mesh(g, new THREE.TorusGeometry(.16, .014, 4, 20), tone(GOLD, .05, .45), 0, 0, 0);
+    for (const s of [-1, 1]) { put(mesh(g, new THREE.ConeGeometry(.045, .1, 3), glowTone(c), s * .06, .07, .03), 0, 0, -s * .3); mesh(g, ball(.018, 5, 4), glowTone(c), s * .045, 0, .03); }
+    put(mesh(g, new THREE.ConeGeometry(.05, .1, 3), glowTone(c), 0, -.055, .03), 0, 0, Math.PI);
+  },
   skull(g, c) { // a weeping skull, its tears glowing
     skull(g, 0, 0, 0, 0, 0, 1.3, c);
     for (const s of [-1, 1]) for (const [dy, r] of [[-.07, .014], [-.12, .01]]) mesh(g, ball(r, 5, 4), glowTone(shade(c, 1.2)), s * .06, dy, .15);

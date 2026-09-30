@@ -87,6 +87,8 @@ export const STR = {
   health: (hp: number, max: number, souls = 0) => `Health ${hp} of ${max} hearts` + (souls ? `, ${souls} soul mote${souls > 1 ? 's' : ''}` : ''),
   purse: (coins: number, keys: number, glyphs: number) => `${coins} obols, ${keys} bone keys, ${glyphs} blast glyphs`,
   toast: {
+    /** M4.2: Fen-Nex grows (to its second stage, then its full shape). */
+    fennexGrows: ['Fen-Nex has grown', 'Fen-Nex comes into its full shape'],
     fullHealth: 'You are already at full health', fullMana: 'Your mana is already full',
     fullSouls: 'You can keep no more soul motes', shardIdle: 'Your spells are ready and your mana full: the shard has nothing to give',
     soulBurned: 'Short of mana, the spell burned a soul mote for the rest',
@@ -335,6 +337,7 @@ export const STR = {
   /** Familiar options (actors/modelOptions.ts): the owner's drawings, built in code; placeholder names. */
   familiars: {
     runeFox: { name: 'Rune Fox', note: 'A spectral fox with runes along its flanks and a starry tail (the owner\'s drawing)' },
+    fenNex: { name: 'Fen-Nex', note: 'The Rune Fox in its full shape: a long white beast, flame-tipped feathers, plated legs with red runes' },
   } as Record<string, { name: string; note: string }>,
   /** Spell effect options (magic/effectOptions.ts): names and what each shows. */
   effects: {
@@ -395,7 +398,7 @@ export const STR = {
     pools: 'Water and oil (this room)', ignite: 'Set the oil alight', freezeWater: 'Freeze the water', shockWater: 'Shock the water',
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
     foes: 'Foes (they leave the doors open)', championHeavy: 'A champion of this floor\'s heavies',
-    wardFoe: 'Ward the nearest foe (it drinks spells)', wanderer: 'The Wandering Merchant, here', noFoe: 'No foe in the room',
+    wardFoe: 'Ward the nearest foe (it drinks spells)', fennex: 'Fen-Nex', growFennex: 'Grow Fen-Nex a stage', noFennex: 'Fen-Nex is not bound (take the Rune of Fen-Nex)', wanderer: 'The Wandering Merchant, here', noFoe: 'No foe in the room',
     foesOfFloor: (floor: number) => floor ? `Floor ${floor}'s foes, built in code:` : 'The Wardlings, let out by drinking wards:', foesAsFloor: 'Fights: each floor\'s own foes', foeEverywhere: (name: string) => `Fights: ${name} in every one`,
     bestiaryNote: 'Weaknesses and resistances found are kept between runs (the bestiary to come).', forgetBestiary: 'Forget the bestiary',
     foeNames: { rotling: 'Rotling (a plain foe, for testing)', dummy: 'Training dummy' } as Record<string, string>,

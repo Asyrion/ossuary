@@ -14,7 +14,7 @@ export type Pool = 'treasure' | 'ordeal' | 'boss' | 'altar' | 'drop' | 'merchant
 export type ArtifactKind = 'focus' | 'passive' | 'cursed';
 /** Behaviours implemented in code, switched on by artifacts. */
 export type Effect = 'pitWalker' | 'fullHeal' | 'deathBurst' | 'hurtRing' | 'rockBreaker' | 'vision'
-  | 'crit' | 'split' | 'leech' | 'moth' | 'orbital' | 'unhurtHeal' | 'bloodTithe'
+  | 'crit' | 'split' | 'leech' | 'moth' | 'fennex' | 'orbital' | 'unhurtHeal' | 'bloodTithe'
   | 'freeVault' | 'ferryman' | 'glyphWard' | 'graveLantern' | 'pedlar'
   | 'emberBolts' | 'vigil' | 'frostbite' | 'stormglass' | 'thurible' | 'witchKnot' | 'noRegen'
   | 'lodestar' | 'stillCandles' | 'choir' | 'echo' | 'bloodMoon' | 'saltCircle' | 'halo' | 'soulLantern' | 'antler'
@@ -46,7 +46,7 @@ export interface ArtifactDef {
 }
 
 export const POOLS: Pool[] = ['treasure', 'ordeal', 'boss', 'altar', 'drop', 'merchant', 'secret', 'vault'];
-const EFFECTS: Effect[] = ['pitWalker', 'fullHeal', 'deathBurst', 'hurtRing', 'rockBreaker', 'vision', 'crit', 'split', 'leech', 'moth', 'orbital', 'unhurtHeal', 'bloodTithe',
+const EFFECTS: Effect[] = ['pitWalker', 'fullHeal', 'deathBurst', 'hurtRing', 'rockBreaker', 'vision', 'crit', 'split', 'leech', 'moth', 'fennex', 'orbital', 'unhurtHeal', 'bloodTithe',
   'freeVault', 'ferryman', 'glyphWard', 'graveLantern', 'pedlar', 'emberBolts', 'vigil', 'frostbite', 'stormglass', 'thurible', 'witchKnot', 'noRegen',
   'lodestar', 'stillCandles', 'choir', 'echo', 'bloodMoon', 'saltCircle', 'halo', 'soulLantern', 'antler', 'gravemonger', 'noClearHearts', 'dearHearts', 'lastRite'];
 const STAT_KEYS: StatKey[] = ['damage', 'damageMul', 'fireDelayMul', 'speed', 'speedMul', 'boltScale', 'hearts', 'invuln', 'pierce', 'shotSpeedMul', 'rangeMul', 'knockbackMul', 'obolDamage', 'blastMul', 'mana', 'spellDamageMul', 'killMana'];

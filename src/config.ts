@@ -171,6 +171,11 @@ export const CFG = {
     split: { angle: 0.7, damageMul: 0.5, range: 3.2 },                  // Cracked Mirror: two halves, this far apart (radians)
     wave: { amp: 0.45, freq: 3.2 },                                     // Serpent Rod: how far bolts swing, and how often (per tile)
     leech: { every: 10 },                                               // Leech Jar: foes put to rest per half heart
+    // Fen-Nex (M4.2): its size at each stage; how far behind the mage it keeps, how fast it runs and darts; how far off it
+    // spies prey (plus its stage), and past how far from the mage it comes back to their side; its bite (every so often, the
+    // cantrip's damage times `mul` at each stage) and its full shape's breath of Ember
+    fennex: { scale: [.62, .9, .8], heel: .9, speed: 4.2, dash: 8, reach: 4, leash: 9, bite: { every: 1.3, mul: [.6, .85, 1.1] },
+      breath: { every: 3.2, range: 3.2, count: 5, spread: .6, speed: 7, mul: .45, burn: 2 } },
     moth: { every: 1.1, range: 7, damageMul: 0.45, orbit: 0.85, speed: 7 }, // Candle Moth: seconds between stings, reach
     skull: { orbit: 1.15, spin: 2.6, damage: 3, every: 0.45, reach: 0.34 }, // Weeping Skull: radius, radians/s, bite and its rest
     wardingBand: { fuse: 1 },                                           // Warding Band: the glyph's fuse (s)

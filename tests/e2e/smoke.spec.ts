@@ -363,6 +363,31 @@ test('the Twin Guardians wake together; one strikes while the other shields it, 
   expect(errors).toEqual([]);
 });
 
+test('Fen-Nex: the Rune of Fen-Nex binds it at the mage\'s heel; it bites foes, grows a stage a floor, and in its full shape breathes Ember', async ({ page }) => {
+  const errors = await start(page, '?seed=FENNEX&give=fennex_rune'); // (a run, not a test room: it goes down)
+  type G2 = GameHooks & { fennex: { stage: number; x: number; z: number; hunting: boolean } | null; growFennex(): void; descend(): void; clearRoom(): void; spawn(kind: string, x?: number, z?: number): Foe & { hp: number; maxHp: number; status?: { burn: number } } };
+  const result = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as G2, out: Record<string, unknown> = {};
+    g.clearRoom(); g.sim(.6);
+    const near = () => Math.hypot(g.fennex!.x - g.player.x, g.fennex!.z - g.player.z);
+    out.bound = g.fennex?.stage; out.heel = near() < 2;
+    g.player.x += 2; g.sim(1.5); out.follows = near() < 2; // (it keeps at the mage's heel)
+    const foe = g.spawn('rotling', g.player.x + 3, g.player.z); foe.hp = foe.maxHp = 999; g.sim(.3);
+    let hunted = false; for (let i = 0; i < 60; i++) { g.player.hp = g.player.maxHp; g.sim(.05); hunted ||= g.fennex!.hunting; }
+    out.hunted = hunted; out.bitten = foe.hp < 999;
+    g.clearRoom(); g.descend(); g.sim(.3); out.second = g.fennex?.stage; // (a floor deeper, it has grown)
+    g.descend(); g.sim(.3); out.full = g.fennex?.stage; out.toast = document.getElementById('toast')?.textContent;
+    // in its full shape it breathes Ember at a foe near it
+    const f = g.fennex!, close = g.spawn('rotling', f.x + 1.6, f.z); close.hp = close.maxHp = 999; g.sim(.3);
+    let burned = false; for (let i = 0; i < 90 && !burned; i++) { g.player.hp = g.player.maxHp; g.sim(.05); burned = (close.status?.burn ?? 0) > 0; }
+    out.burned = burned;
+    return out;
+  });
+  expect(result).toMatchObject({ bound: 1, heel: true, follows: true, hunted: true, bitten: true, second: 2, full: 3, burned: true });
+  expect(result.toast).toMatch(/Fen-Nex/);
+  expect(errors).toEqual([]);
+});
+
 test('the Hollow Warden wears the look chosen for it, its shots in its school\'s light, and can be beaten', async ({ page }) => {
   const LIGHT: Record<string, number> = { bellWarden: 0xf0e070, motherOfSpores: 0xa266ff, hollowOwl: 0xffd878 }; // (SCHOOL_LIGHT: storm, umbral, hallow)
   type Boss = Foe & { type: string; state: string; summoned?: boolean; mats: unknown[]; eye?: object; ring?: object; halo?: object; model: { traverse(f: (o: { isMesh?: boolean; isSprite?: boolean; isPoints?: boolean }) => void): void } };
@@ -2572,7 +2597,7 @@ test('the room kit\'s artifacts: every one built in code, the HUD\'s icons rende
   });
   const errors = await start(page, '?seed=K3F9QX&give=twin_staff,ember_sigil,rams_skull,leech_jar,crown_of_thorns,hungering_tome');
   const n = await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; const n = g.artifactGallery(); g.sim(.3, true); return n; });
-  expect(n).toBe(57); // (every artifact, as the room kit builds it)
+  expect(n).toBe(58); // (every artifact, as the room kit builds it)
   await page.screenshot({ path: 'test-results/room-kit-artifacts.png' });
   const kit = await icons();
   expect(kit.images).toBe(6); // (the twin staff, now the focus, and five more, each rendered from its model)
@@ -2941,7 +2966,7 @@ test('the pixel look: on from the URL, drawn with outlines and light in bands, t
     const g = (window as unknown as { __game: GP & { takeModelOptions(): void; familiarOptions(): { id: string }[] } }).__game;
     g.takeModelOptions(); g.setPixelLook({ lines: 360 }); const at = g.familiarOptions(); g.sim(.5, true); g.setPixelLook({ lines: 0 }); return at.map(a => a.id);
   });
-  expect(familiars).toEqual(['runeFox']);
+  expect(familiars).toEqual(['runeFox', 'fenNex']); // (M4.2: the Rune Fox is Fen-Nex, and its full shape beside it)
   // and the spell effect options, each playing its cast over and over
   const played = await page.evaluate(() => {
     const g = (window as unknown as { __game: GP & { takeModelOptions(): void; effectOptions(): { id: string }[] } }).__game;

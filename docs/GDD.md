@@ -548,7 +548,8 @@ model is made from the sheets (docs/assets.md); the pieces that change are built
 Fen-Nex, Asyrion's companion: an artifact binds it as a small rune fox that runs at the mage's heel and bites; as the run
 goes on (floors cleared) it grows into its full shape, a long white beast between fox, cat and dragon, its fur blown back
 into flame-tipped feathers, its legs plated dark blue with red spiral runes, and it breathes Ember. Three beast artifacts
-make its pelt a transformation (the Beastcaller's look takes it).
+make its pelt a transformation (the Beastcaller's look takes it). As built (M4.2 step 9): the Rune of Fen-Nex binds it; it
+grows a stage a floor (the rune fox, full-grown with a burning bite, then its full shape that also breathes Ember).
 
 **Artifact data shape**
 
