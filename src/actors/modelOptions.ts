@@ -513,6 +513,32 @@ function lanternTortoise(): Built {
   } };
 }
 
+/* ---------- the Wardlings (M4.2): what a drinking ward drank, let out ---------- */
+
+/** Let out of a drinking ward (world/vault.ts, actors/wardShield.ts), one for each school: a round drop of liquid light in
+    its school's colour with a bright core and big eyes, floating inside a turning ring of its runes, its school's crest on
+    top: a flame, ice spikes, a crest of sparks, a halo, little horns. */
+function wardling(school: School): Built {
+  const L = SCHOOL_LIGHT[school], g = new THREE.Group(), body = new THREE.Group(); body.position.y = .85; g.add(body);
+  part(body, sphere(.25, 14, 10), std(new THREE.Color(L).multiplyScalar(.7).getHex(), { emissive: L, emissiveIntensity: .35, roughness: .4 }), [0, 0, 0]); // the drop of light
+  part(body, sphere(.06, 8, 6), shine(0xffffff, .55), [-.11, .12, .16]);                                                                              // a gleam on it
+  const eyes = bigEyes(body, .085, .04, .2, .062);
+  const ring = new THREE.Group(); ring.rotation.x = 1.25; body.add(ring);
+  runeRing(ring, L, .4, [0, 0, 0], 5);
+  const crest = new THREE.Group(); crest.position.y = .24; body.add(crest);
+  const pale = lit(new THREE.Color(L).lerp(new THREE.Color(0xffffff), .45).getHex());
+  if (school === 'ember') { part(crest, new THREE.ConeGeometry(.07, .22, 6), pale, [0, .1, 0]); for (const s of [-1, 1]) part(crest, new THREE.ConeGeometry(.045, .13, 5), lit(L), [.07 * s, .05, 0], { rot: [0, 0, -.4 * s] }); }
+  else if (school === 'frost') for (const a of [-.5, 0, .5]) part(crest, new THREE.ConeGeometry(.035, .2, 4), pale, [Math.sin(a) * .1, .08, 0], { rot: [0, 0, -a] });
+  else if (school === 'storm') for (const [x, y, r] of [[-.05, .06, .6], [.02, .1, -.6], [.06, .16, .6]] as V3[]) part(crest, box(.03, .1, .03), pale, [x, y, 0], { rot: [0, 0, r] });
+  else if (school === 'hallow') part(crest, new THREE.TorusGeometry(.13, .018, 4, 18), pale, [0, .1, 0], { rot: [Math.PI / 2, 0, 0] });
+  else for (const s of [-1, 1]) part(crest, new THREE.ConeGeometry(.04, .16, 5), std(0x1a1024), [.1 * s, .02, 0], { rot: [0, 0, -.5 * s] });
+  const specks = motes(body, L, 4, .42, 0, .02);
+  const light = glow(L, 1.1, .5); body.add(light);
+  return { group: g, shadow: .5, parts: { body, light }, idle: t => {
+    ring.rotation.z = t * 1.6; body.position.y = .85 + Math.sin(t * 2.1) * .05; body.scale.setScalar(1); crest.rotation.y = Math.sin(t * 1.3) * .3; specks(t, 1.4); blink(eyes, t, 3.6);
+  } };
+}
+
 export const MODEL_OPTIONS = [
   { id: 'sporeling', floor: 1, school: 'umbral', build: sporeling }, { id: 'vesperMoth', floor: 1, school: 'hallow', build: vesperMoth },
   { id: 'runeBeetle', floor: 1, school: 'storm', build: runeBeetle }, { id: 'urnMimic', floor: 1, school: 'ember', build: urnMimic },
@@ -524,7 +550,11 @@ export const MODEL_OPTIONS = [
   { id: 'gargoyleWhelp', floor: 4, school: 'frost', build: gargoyleWhelp }, { id: 'moonstagFawn', floor: 4, school: 'hallow', build: moonstagFawn },
   { id: 'rootling', floor: 5, school: 'umbral', build: rootling }, { id: 'stormRay', floor: 5, school: 'storm', build: stormRay },
   { id: 'voidMote', floor: 5, school: 'umbral', build: voidMote }, { id: 'lanternTortoise', floor: 5, school: 'frost', build: lanternTortoise },
-] as const satisfies readonly { id: string; floor: 1 | 2 | 3 | 4 | 5; school: School; build: () => Built }[];
+  // M4.2: the Wardlings, no floor's own (0): a drinking ward lets them out
+  { id: 'wardEmber', floor: 0, school: 'ember', build: () => wardling('ember') }, { id: 'wardFrost', floor: 0, school: 'frost', build: () => wardling('frost') },
+  { id: 'wardStorm', floor: 0, school: 'storm', build: () => wardling('storm') }, { id: 'wardHallow', floor: 0, school: 'hallow', build: () => wardling('hallow') },
+  { id: 'wardUmbral', floor: 0, school: 'umbral', build: () => wardling('umbral') },
+] as const satisfies readonly { id: string; floor: 0 | 1 | 2 | 3 | 4 | 5; school: School; build: () => Built }[];
 export type ModelOptionId = (typeof MODEL_OPTIONS)[number]['id'];
 
 /* ---------- familiars ---------- */
@@ -614,10 +644,12 @@ let clock = 0;
     crypt's nearest), on free floor; returns where each stands. */
 export function showModelOptions(room: Room, x: number, z: number, only?: readonly string[]) {
   const gap = 1.7, out: { id: string; floor: number; x: number; z: number }[] = [];
-  for (const floor of [...new Set(MODEL_OPTIONS.map(o => o.floor))].sort((a, b) => a - b)) {
-    const row = MODEL_OPTIONS.filter(o => o.floor === floor && (!only || only.includes(o.id)));
+  const picked = MODEL_OPTIONS.filter(o => !only || only.includes(o.id));
+  const floors = [...new Set(picked.map(o => o.floor))].sort((a, b) => (a || 99) - (b || 99)); // (the Wardlings, no floor's, last)
+  for (const [r, floor] of floors.entries()) {
+    const row = picked.filter(o => o.floor === floor);
     row.forEach((o, i) => {
-      const at = only ? freeSpotNear(room, x, z - 1.8) : freeSpotNear(room, x + (i - (row.length - 1) / 2) * gap, z - 1.8 - (floor - 1) * 1.7);
+      const at = freeSpotNear(room, x + (i - (row.length - 1) / 2) * gap, z - 1.8 - r * 1.7);
       const b = o.build(); mergeRig(b.group, b.idle, o.id); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
       shown.push({ room, group: b.group, idle: b.idle }); out.push({ id: o.id, floor, x: at.x, z: at.z });
     });

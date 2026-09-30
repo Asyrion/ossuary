@@ -2,6 +2,7 @@
 import type * as THREE from 'three';
 import { enterTheme } from './world/themes';
 import { clearMechanisms } from './world/mechanisms';
+import { resetWardShields } from './actors/wardShield';
 import { clearModelOptions } from './actors/modelOptions';
 import { clearEffectOptions } from './magic/effectOptions';
 import { CFG, type BossType } from './config';
@@ -55,7 +56,7 @@ export function setNextRun(opts: RunOptions) { nextRun = opts; }
 const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
 
 function clearEntities() {
-  clearMechanisms(); clearModelOptions(); clearEffectOptions(); clearRite(); clearSpellFx(); clearStatusFx(); clearPages(); clearProjectiles(); clearGlyphs(); pressed.glyph = false; pressed.spells = [false, false];
+  clearMechanisms(); resetWardShields(); clearModelOptions(); clearEffectOptions(); clearRite(); clearSpellFx(); clearStatusFx(); clearPages(); clearProjectiles(); clearGlyphs(); pressed.glyph = false; pressed.spells = [false, false];
   for (const p of G.particles) { scene.remove(p.m); p.m.material.dispose(); } G.particles.length = 0;
   clearEnemies();
   for (const p of G.pickups) { scene.remove(p.g); disposeTree(p.g); } G.pickups.length = 0;
@@ -178,7 +179,7 @@ export function enterRoom(room: Room) {
   if (firstVisit && room.type === 'secret') banner(...STR.banner.secret);
   if (room.type === 'shrine') enterShrine(room, firstVisit);
   if (room.type === 'library') enterLibrary(room, firstVisit);
-  if (firstVisit && room.type === 'vault') banner(...(room.warden ? STR.banner.vaultWarden : STR.banner.vault));
+  if (firstVisit && room.type === 'vault') banner(...(room.drunk ? STR.banner.vaultWardling(STR.schools[room.drunk]) : room.warden ? STR.banner.vaultWarden : STR.banner.vault));
   if (firstVisit && room.quietHeart) { const p = freeSpotNear(room, room.cx, room.cz); spawnHeart(p.x, p.z, 2); }
   // a treasure room with nothing left to find offers a full heart instead
   if (firstVisit && room.type === 'treasure' && !room.spots.length) spawnHeart(room.cx, room.cz, 2);

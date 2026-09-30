@@ -16,6 +16,7 @@ import { CAST, clearShapes, leaveRoomShapes, updateShapes } from './shapes';
 import { skullsWatch } from '../world/dressing';
 import { castSpellOnce, learnedSpell } from './memory';
 import { burnSoul } from '../items/souls';
+import { drinkSpell, wardNear } from '../world/vault';
 
 /* ---------- mana ---------- */
 
@@ -54,7 +55,9 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   if (player.spellCd[slot] > 0) { Sfx.spellFail(); flashMana(slot, 'cooldown'); return false; }
   const cost = spellCost(def), short = player.mana < cost && !DEV.mana;
   if (short && !player.souls.length) { Sfx.spellFail(); flashMana(slot, 'mana'); return false; } // (with a soul mote, it burns for the rest)
-  if (!CAST[def.shape](def, aimDir(cast))) { Sfx.spellFail(); flashMana(slot, 'target'); return false; }
+  const ward = wardNear(); // (M4.2: a sealed vault's ward near the mage drinks the spell instead)
+  if (ward) drinkSpell(ward, def);
+  else if (!CAST[def.shape](def, aimDir(cast))) { Sfx.spellFail(); flashMana(slot, 'target'); return false; }
   if (short) burnSoul();
   if (!DEV.mana) gainMana(-cost);
   player.spellCd[slot] = def.cooldown;

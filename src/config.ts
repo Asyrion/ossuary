@@ -92,6 +92,9 @@ export const CFG = {
     // how close its school must land to break its ward
     obelisk: { reach: 2.8, sap: .5, drain: 5, catch: 1 },
   },
+  // M4.2: the drinking ward: how close to a sealed vault door a spell is drunk; the mana of spells a vault's ward holds, and
+  // a foe's shield (the foe's blows it drinks, as damage); where the Wardling rises beside a foe whose shield broke
+  ward: { reach: 4, need: 60, foeNeed: 60, beside: 1.2 },
   themes: { wakeReach: 2.6, riseAfter: 10, riseEvery: 6, riseMost: 3, pageChance: .3, caveReach: 3.5, caveStones: 3, caveDelay: .8, caveDamage: 8, daylightClear: 3, bedrollClear: 2,
     // M4.1: the drowned climb out of the landing's river this long into a fight, then this often, at most this many
     drownAfter: 5, drownEvery: 7, drownMost: 3 },

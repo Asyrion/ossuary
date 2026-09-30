@@ -28,7 +28,7 @@ const ICE = 0xbfe6ff, FIRE = 0xff7a2a, SPARK = 0xf0e890, GOLD = SCHOOL_LIGHT.hal
 
 /** Apply a spell's statuses to a foe, and carry out what they set off. */
 export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> | undefined) {
-  if (!status || e.dead) return;
+  if (!status || e.dead || e.ward) return; // (M4.2: a drinking ward keeps statuses off the foe inside it)
   for (const [kind, amount] of Object.entries(status) as [SpellStatus, number][]) {
     if (e.dead) return;
     const res = applyStatus(e.status ??= newStatus(), kind, amount, !!e.isBoss);

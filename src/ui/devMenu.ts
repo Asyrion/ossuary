@@ -10,6 +10,7 @@ import { THEME_DEFS } from '../world/themeData';
 import { placeProp } from '../world/props';
 import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
+import { wardFoe } from '../actors/wardShield';
 import { STR } from '../strings';
 import { FOES, FOE_IDS, pickFoe } from '../actors/foeData';
 import { forgetBestiary } from '../actors/bestiary';
@@ -93,6 +94,8 @@ function showTab(t: Tab) {
 }
 /** Somewhere free just ahead of the mage. */
 const ahead = (d = 1.5) => freeSpotNear(G.current, player.x, player.z - d);
+/** The living foe nearest the mage. */
+const nearestFoe = () => G.enemies.filter(e => !e.dead).sort((a, b) => Math.hypot(a.x - player.x, a.z - player.z) - Math.hypot(b.x - player.x, b.z - player.z))[0];
 
 /** Go to a room: into it, or, for a vault still sealed, to the room outside it, a couple of steps from the
     warded door (to try a key, a blast or the Sexton's Keyring on it). The secret room opens as the mage
@@ -232,10 +235,12 @@ function build() {
     makeEnemy(pickFoe(floor.foes, 'H', Math.random, true), q.x, q.z, floorHp(), undefined, { champion: true });
   }));
   // the foes built in code (M4), by floor, from data/foes.json; and one of them in every fight, to test it
-  for (const floor of FLOORS.map((_, i) => i + 1)) {
+  for (const floor of [...FLOORS.map((_, i) => i + 1), 0]) { // (0: the Wardlings, no floor's own)
     const row = FOE_IDS.filter(id => FOES[id].floor === floor);
     if (row.length) foes.append(el('p', 'dv-info', S.foesOfFloor(floor)), ...row.map(id => btn(STR.options[id].name, () => { const q = ahead(3); makeEnemy(id, q.x, q.z, floorHp()); })));
   }
+  // the drinking ward as a foe's shield (M4.2): round the foe nearest the mage
+  foes.append(btn(S.wardFoe, () => { const e = nearestFoe(); if (e) wardFoe(e); else toast(S.noFoe, 2); }));
   foes.append(el('p', 'dv-info', S.bestiaryNote), foeBtn = btn('', () => { // (the floor is built again with it)
     const list = [undefined, ...FOE_IDS], at = list.indexOf(DEV.foe); DEV.foe = list[(at + 1) % list.length]; rebuildFloor(); refresh();
   }), btn(S.forgetBestiary, () => { forgetBestiary(); refresh(); }));
