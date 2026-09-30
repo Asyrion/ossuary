@@ -19,7 +19,12 @@
    Deep Angler (floor 5, M4.1, built in code): floats a few tiles off, circling; its lure brightens, then draws the mage in
      towards its opening jaws until it bites (striking it hard enough meanwhile makes it flinch and let go); spits volleys
      of shadow that hex; puffs up and breathes a ring of dark motes (a second ring below half); calls the floor's flyers
-     below half health. Both have a weakness and a resistance (CFG.enemy). */
+     below half health. Both have a weakness and a resistance (CFG.enemy).
+   War-Tiger (M4.2, from the Eda lore, built in code): stands as a statue in its hall until the mage comes near or strikes
+     it; prowls at the mage, circling it at claw reach; crouches, the spot it will land on marked, and pounces there (a
+     wall stuns it), throwing frost shards as it lands; swipes a fan of claws when the mage is close; roars a ring (a
+     second below half health); calls the floor's walkers below half health. Its four plates let only part of a blow through; a glyph's blast, a Shatter (a
+     shock on its rimed plates) or enough blows turned knock one off, and each lost leaves it faster and more open. */
 import * as THREE from 'three';
 import { CFG, type BossType } from '../config';
 import { callFoe, type Role } from './foeData';
@@ -34,8 +39,9 @@ import { spawnShot } from '../combat/projectiles';
 import { hurtPlayer } from '../combat/damage';
 import { burst } from '../combat/fx';
 import { banner } from '../ui/hud';
+import { floatText } from '../magic/statusFx';
 import { makeEnemy, stdMat } from './enemies';
-import { anglerLook, bossLook, buildBossLook, hartLook } from './bossLooks';
+import { anglerLook, bossLook, buildBossLook, hartLook, tigerLook } from './bossLooks';
 import { mergeRig } from '../render/rig';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { ease, lerp } from '../util';
@@ -46,7 +52,7 @@ const SHOT: Partial<Record<BossType, number>> = { warden: 0xff6a3a, abbess: 0x6f
 /** A boss's shots: in its school's light when it is built in code, else its own colour. */
 const shotColor = (e: Enemy) => e.bossSchool ? SCHOOL_LIGHT[e.bossSchool] : SHOT[e.type as BossType] ?? 0xffffff;
 /** Who each boss calls below half health. */
-const SUMMONS: Record<BossType, Role> = { warden: 'R', abbess: 'W', pyre: 'H', hart: 'W', angler: 'W' };
+const SUMMONS: Record<BossType, Role> = { warden: 'R', abbess: 'W', pyre: 'H', hart: 'W', angler: 'W', tiger: 'R' };
 
 /** A flat ring lying on the floor (the abbess's ripple, the knight's landing mark), hidden at first. */
 function floorRing(e: Enemy, color: number, radius: number) {
@@ -74,6 +80,14 @@ export function buildBoss(e: Enemy, add: Add) {
     e.eye = P.eye; e.ring = P.ring; e.halo = P.halo; e.parts = P; e.bossAff = { weak: C.weak, resist: C.resist };
     if (e.type === 'hart') { e.parts.lane = lane(e); e.dir = { x: 0, z: 1 }; e.state = 'walk'; e.st = 2; }
     else { e.flying = true; e.state = 'drift'; e.st = 2.2; }
+  } else if (e.type === 'tiger') { // built in code (M4.2): a statue in its hall until the mage comes near
+    const L = tigerLook(), P = L.parts, C = CFG.enemy.tiger;
+    e.mats = mergeRig(L.group, L.idle, 'boss:tiger', [P.eye, P.ring, P.head, P.jaw, P.tail, P.rime, ...P.legs.children, P.plate0, P.plate1, P.plate2, P.plate3]);
+    for (const m of e.mats) m.userData.base = m.emissive.clone();
+    e.model = L.group; e.idle = L.idle; e.shadow = L.shadow; e.bossSchool = L.school; e.body.add(L.group);
+    e.eye = P.eye; e.ring = P.ring; e.halo = P.halo; e.parts = P; e.bossAff = { weak: C.weak, resist: C.resist };
+    e.plates = C.plates; e.worn = 0; e.guard = C.guard; e.marker = floorRing(e, SCHOOL_LIGHT.frost, .8);
+    e.contact = 0; e.state = 'statue'; e.st = Infinity; P.ring.visible = P.rime.visible = false; P.halo.material.opacity = 0; P.eye.scale.set(1, .15, 1);
   } else if (e.type === 'abbess') {
     // a drowned nun: a bell of wet robes, a veiled pale face, a verdigris halo, lamp-green eyes
     const robe = stdMat(0x1d3431, { roughness: .55 }), hem = stdMat(0x28463f, { roughness: .6 }), pale = stdMat(0xc3cdbd), weed = stdMat(0x3f5a2c);
@@ -154,6 +168,7 @@ export function updateBoss(e: Enemy, dt: number, ux: number, uz: number): number
   else if (e.type === 'pyre') return updateKnight(e, dt, ux, uz);
   else if (e.type === 'hart') return updateHart(e, dt, ux, uz);
   else if (e.type === 'angler') return updateAngler(e, dt, ux, uz);
+  else if (e.type === 'tiger') return updateTiger(e, dt, ux, uz);
   return undefined;
 }
 
@@ -163,6 +178,14 @@ export function afterBossMove(e: Enemy, hit: boolean) {
   if (e.type === 'hart' && hit && e.state === 'charge') { // the hart ran its antlers into the wall
     e.state = 'stun'; e.st = 1.2; e.vx = e.vz = 0; G.shake = Math.max(G.shake, .35); Sfx.at(e.x, e.z).boom(); Sfx.at(e.x, e.z).rubble();
     burst(e.x + e.dir!.x * .8, 1.6, e.z + e.dir!.z * .8, SCHOOL_LIGHT.hallow, 18, 3, .06);
+  }
+  if (e.type === 'tiger') { // the spot it pounces at stays put on the floor; a pounce into a wall or rock stuns it
+    if (e.marker!.visible && e.target) e.marker!.position.set(e.target.x - e.x, .03, e.target.z - e.z);
+    if (!hit || e.state !== 'pounce') return;
+    e.state = 'stun'; e.st = 1.3; e.vx = e.vz = 0; e.marker!.visible = false; e.parts!.body.position.y = 0;
+    G.shake = Math.max(G.shake, .35); Sfx.at(e.x, e.z).boom(); Sfx.at(e.x, e.z).rubble();
+    burst(e.x, .8, e.z, SCHOOL_LIGHT.frost, 16, 3, .06);
+    return;
   }
   if (e.type !== 'pyre') return;
   const mark = e.marker!;
@@ -436,6 +459,106 @@ function updateAngler(e: Enemy, dt: number, ux: number, uz: number): number | un
   } else if (e.state === 'recover') {
     e.vx = e.vz = 0;
     if (e.st <= 0) { e.state = 'drift'; e.st = 2; }
+  }
+  return undefined;
+}
+
+const PLATE_COLOR = [0xae783c, 0xae783c, 0x9c968a, 0xae783c]; // (bronze pauldrons, the stone slab, the bronze brow)
+/** A plate knocked off the War-Tiger (a glyph's blast, a Shatter on its rimed plates, or enough blows turned): one fewer
+    to turn a blow, and it is faster for it. */
+export function breakPlate(e: Enemy) {
+  if (!e.plates || e.dead) return;
+  const C = CFG.enemy.tiger, i = C.plates - e.plates, p = e.parts![`plate${i}`], at = p.getWorldPosition(new THREE.Vector3());
+  e.plates--; e.worn = 0; e.guard = C.guard + (1 - C.guard) * (1 - e.plates / C.plates); p.visible = false;
+  burst(at.x, at.y, at.z, PLATE_COLOR[i], 18, 3.2, .08); burst(at.x, at.y, at.z, SCHOOL_LIGHT.frost, 8, 2, .04);
+  floatText(e.x, 2.1, e.z, STR.bosses.tiger.plate, 0xe0b070); Sfx.at(e.x, e.z).plateBreak(); G.shake = Math.max(G.shake, .2);
+  if (e.state === 'statue') e.st = -1; // (it wakes, if it stood as stone: its clock is endless until then)
+}
+/** A blow its plates turned (`turned`, the share they kept out): enough of them and a plate gives. */
+export function wearPlates(e: Enemy, turned: number) {
+  if (!e.plates) return;
+  e.worn = (e.worn ?? 0) + turned;
+  if (e.worn >= CFG.enemy.tiger.wear) breakPlate(e);
+}
+
+function updateTiger(e: Enemy, dt: number, ux: number, uz: number): number | undefined {
+  const C = CFG.enemy.tiger, B = e.bossCfg, shotMul = B?.shotSpeedMul ?? 1, speedMul = B?.speedMul ?? 1;
+  const hurt = e.hp / e.maxHp < .5, P = e.parts!, halo = e.halo!, eye = e.eye!, mark = e.marker!, markMat = mark.material as THREE.MeshBasicMaterial;
+  const d = Math.hypot(player.x - e.x, player.z - e.z), quick = 1 + C.plateSpeed * (C.plates - e.plates!); // (each plate lost, faster)
+  const stride = (rate: number, amp: number) => P.legs.children.forEach((l, i) => { l.rotation.x = Math.sin(e.t * rate + (i === 0 || i === 3 ? 0 : Math.PI)) * amp; });
+  const relax = () => { P.head.rotation.x = lerp(P.head.rotation.x, 0, .15); P.jaw.rotation.x = lerp(P.jaw.rotation.x, 0, .2); P.body.position.y = lerp(P.body.position.y, 0, .2); };
+  if (e.state === 'statue') { // still as stone: its eyes shut, no light about it, until the mage comes near or strikes it
+    e.vx = e.vz = e.kx = e.kz = 0;
+    if (d < C.wake || e.hp < e.maxHp || e.st < 0) {
+      e.state = 'wake'; e.st = .9; e.contact = 2; P.ring.visible = P.rime.visible = true; eye.scale.setScalar(1);
+      Sfx.at(e.x, e.z).tigerRoar(); Sfx.at(e.x, e.z).rubble(); G.shake = .3; burst(e.x, 1, e.z, 0x9c968a, 26, 2.6, .07);
+    }
+    return e.face;
+  }
+  const winding = e.state === 'crouch' || e.state.startsWith('wind');
+  e.idle?.(e.t); e.ring!.rotation.z += dt * (winding ? 5 : 1.2);
+  if (e.state === 'wake') { // the stone gives: it shakes itself and roars
+    e.vx = e.vz = 0; const k = 1 - Math.max(0, e.st) / .9;
+    P.body.position.x = Math.sin(e.t * 40) * .03 * (1 - k); P.head.rotation.x = -.4 * Math.sin(k * Math.PI); P.jaw.rotation.x = .6 * Math.sin(k * Math.PI);
+    halo.material.opacity = .35 * k;
+    if (e.st <= 0) { P.body.position.x = 0; e.state = 'prowl'; e.st = 1.2; }
+  } else if (e.state === 'prowl') {
+    const sp = C.speed * speedMul * quick * (hurt ? 1.15 : 1), side = e.cycle! % 2 ? .5 : -.5;
+    if (d > C.swipe.reach * .75) { e.vx = ux * sp; e.vz = uz * sp; } else { e.vx = -uz * sp * side; e.vz = ux * sp * side; } // (in reach of its claws, it circles the mage rather than walking into them)
+    stride(8 * quick, .5);
+    relax(); eye.scale.setScalar(1); halo.material.opacity = .35;
+    if (d < C.swipe.reach && e.st > .8) e.st = .8; // (close enough to swipe: it doesn't wait long)
+    if (e.st <= 0) { // every third a roar; else a swipe when the mage is close, a pounce when not
+      e.cycle = e.cycle! + 1;
+      if (!(e.cycle % 3)) { e.state = 'windRoar'; e.st = C.roar.tell; Sfx.at(e.x, e.z).tigerRoar(); }
+      else if (d < C.swipe.reach + .4) { e.state = 'windSwipe'; e.st = C.swipe.tell; }
+      else { const p = freeSpotNear(G.current, player.x, player.z); e.target = { x: p.x, z: p.z }; e.state = 'crouch'; e.st = C.pounce.tell; mark.visible = true; Sfx.at(e.x, e.z).charge(); }
+    }
+  } else if (e.state === 'crouch') { // it sinks low, tail lashing, the spot it will land on marked on the floor
+    e.vx = e.vz = 0; stride(0, 0); const k = 1 - Math.max(0, e.st) / C.pounce.tell;
+    P.body.position.y = -.14 * k; P.head.rotation.x = .2 * k; P.tail.rotation.y = Math.sin(e.t * 22) * .7;
+    eye.scale.setScalar(1 + k * .4); halo.material.opacity = .35 + k * .5; markMat.opacity = .3 + k * .5;
+    const t = e.target!;
+    if (e.st <= 0) { e.state = 'pounce'; e.st = C.pounce.time; e.from = { x: e.x, z: e.z }; Sfx.at(e.x, e.z).leap(); }
+    return Math.atan2(t.x - e.x, t.z - e.z);
+  } else if (e.state === 'pounce') { // a bound onto the mark, forelegs out
+    const t = e.target!, f = e.from!, dx = t.x - e.x, dz = t.z - e.z, left = Math.hypot(dx, dz), all = Math.hypot(t.x - f.x, t.z - f.z) || 1;
+    const k = Math.min(1, 1 - left / all), sp = C.pounce.speed * speedMul;
+    P.body.position.y = 4 * .45 * k * (1 - k); P.legs.children.forEach((l, i) => { l.rotation.x = i < 2 ? -.9 : .8; });
+    markMat.opacity = .5 + Math.abs(Math.sin(e.t * 16)) * .5;
+    if (left < .3 || e.st <= 0) { // it lands, and frost flies from its plates
+      e.vx = e.vz = 0; P.body.position.y = 0; mark.visible = false; stride(0, 0);
+      const S = C.pounce, off = Math.random() * Math.PI;
+      for (let i = 0; i < S.shards; i++) { const a = off + i / S.shards * Math.PI * 2; spawnShot(e.x, e.z, Math.cos(a), Math.sin(a), S.shardSpeed * shotMul, shotColor(e), .5, 1, { chill: S.chill }); }
+      burst(e.x, .2, e.z, SCHOOL_LIGHT.frost, 22, 3.5, .06); Sfx.at(e.x, e.z).drakeLand(); G.shake = .3;
+      e.state = 'recover'; e.st = .6;
+    } else { e.vx = dx / left * sp; e.vz = dz / left * sp; }
+    return Math.atan2(dx, dz);
+  } else if (e.state === 'windSwipe') { // it rears a forepaw, claws out
+    e.vx = e.vz = 0; stride(0, 0); const k = 1 - Math.max(0, e.st) / C.swipe.tell;
+    P.legs.children[1].rotation.x = -1.3 * k; P.head.rotation.x = .15 * k; eye.scale.setScalar(1 + k * .5); halo.material.opacity = .35 + k * .5;
+    if (e.st <= 0) {
+      const S = C.swipe; fan(e, S.count, S.spread, S.speed * shotMul, 0, .9); Sfx.at(e.x, e.z).claw();
+      burst(e.x + ux * 1.1, .7, e.z + uz * 1.1, 0xf4f0e8, 10, 2.4, .04);
+      e.state = 'recover'; e.st = .5;
+    }
+  } else if (e.state === 'windRoar') { // head up, jaws wide
+    e.vx = e.vz = 0; stride(0, 0); const k = 1 - Math.max(0, e.st) / C.roar.tell;
+    P.head.rotation.x = -.45 * k; P.jaw.rotation.x = .6 * k; halo.material.opacity = .35 + k * .6; P.body.position.x = Math.sin(e.t * 45) * .02 * k;
+    if (e.st <= 0) {
+      P.body.position.x = 0;
+      const S = C.roar, off = Math.random() * Math.PI; ringOfShots(e, S.count, S.speed * shotMul, off, 1.15);
+      if (hurt) laterRing(e, .3, S.count, S.later * shotMul, off + Math.PI / S.count);
+      burst(e.x, 1.2, e.z, SCHOOL_LIGHT.frost, 24, 3.5, .07); Sfx.at(e.x, e.z).boom(); G.shake = .3;
+      e.state = 'recover'; e.st = .6;
+    }
+  } else if (e.state === 'stun') { // it ran into the wall: dazed, and open
+    e.vx = e.vz = 0; stride(0, 0); P.head.rotation.z = Math.sin(e.t * 20) * .12;
+    if (e.st <= 0) { P.head.rotation.z = 0; e.state = 'prowl'; e.st = 1.6 / quick; }
+    return e.face;
+  } else if (e.state === 'recover') {
+    e.vx = e.vz = 0; stride(0, 0); relax();
+    if (e.st <= 0) { e.state = 'prowl'; e.st = 1.8 / quick; }
   }
   return undefined;
 }

@@ -307,7 +307,7 @@ function build() {
 
   // the Hollow Warden's looks (M4): the three ahead of the mage, and the one it wears in its fight (a new floor 1 shows it)
   const bl = section(pages.galleries, S.bossLooks);
-  bl.append(el('p', 'dv-info', [...BOSS_LOOKS.map(o => `${STR.bossLooks[o.id].name}: ${STR.bossLooks[o.id].note}`), STR.bosses.hart.name, STR.bosses.angler.name].join(' · ')),
+  bl.append(el('p', 'dv-info', [...BOSS_LOOKS.map(o => `${STR.bossLooks[o.id].name}: ${STR.bossLooks[o.id].note}`), STR.bosses.hart.name, STR.bosses.angler.name, STR.bosses.tiger.name].join(' · ')),
     btn(S.showOptions, () => { closeDev(); showBossLooks(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)),
     lookBtn = btn('', () => { const i = BOSS_LOOKS.findIndex(o => o.id === bossLook()); setBossLook(BOSS_LOOKS[(i + 1) % BOSS_LOOKS.length].id); refresh(); }));
   // familiar options (looks only, the owner's drawings built in code): in a row ahead of the mage

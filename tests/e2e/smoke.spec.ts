@@ -231,6 +231,50 @@ for (const boss of ['hart', 'angler']) test(`the ${boss === 'hart' ? 'Hallowed H
   expect(errors).toEqual([]);
 });
 
+test('the War-Tiger stands as a statue until the mage comes near, loses its plates to a glyph, a Shatter and blows, and can be beaten', async ({ page }) => {
+  const errors = await start(page, '?room=boss_open&boss=tiger&floor=4');
+  type Boss = Foe & { type: string; state: string; st: number; cycle: number; hp: number; maxHp: number; contact: number; plates: number; guard: number; summoned?: boolean; bossAff: { weak: string; resist: string } };
+  type G2 = GameHooks & { hit(i: number, dmg: number, school?: string): number; inflict(s: Record<string, number>): void; glyphs: { x: number; z: number }[]; shots: { chill?: number }[] };
+  const still = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as G2; g.warp(1); g.sim(.7, true);
+    const e = g.enemies.find(f => f.isBoss) as Boss, far = Math.hypot(g.player.x - e.x, g.player.z - e.z);
+    g.sim(1.5); const x0 = e.x, z0 = e.z;
+    g.player.x = e.x; g.player.z = e.z + 3.4; g.sim(.5); // (not quite near enough)
+    return { far: far > 3, state: e.state, contact: e.contact, moved: Math.hypot(e.x - x0, e.z - z0), plates: e.plates, guard: e.guard };
+  });
+  expect(still).toEqual({ far: true, state: 'statue', contact: 0, moved: 0, plates: 4, guard: .4 });
+  await page.keyboard.press('Space'); // a glyph chalked while it stands, then moved beside it: the blast knocks a plate off and wakes it
+  const plates = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as G2, e = g.enemies.find(f => f.isBoss) as Boss, i = g.enemies.indexOf(e), seen: Record<string, unknown> = {};
+    g.sim(.05); g.glyphs[0].x = e.x + 1.2; g.glyphs[0].z = e.z;
+    for (let k = 0; k < 40 && e.plates === 4; k++) g.sim(.05);
+    g.sim(.1); seen.glyph = [e.plates, e.state]; g.player.hp = g.player.maxHp; g.sim(1);
+    g.inflict({ chill: 2 }); g.inflict({ shock: 1 }); seen.shatter = e.plates; // (a shock on its rimed plates)
+    seen.guard = e.guard;
+    const hp0 = e.hp; g.hit(i, 4, e.bossAff.weak); seen.weak = (hp0 - e.hp) / e.guard; const hp1 = e.hp; g.hit(i, 4, e.bossAff.resist); seen.resist = (hp1 - e.hp) / e.guard;
+    for (let k = 0; k < 20 && e.plates === 2; k++) g.hit(i, 6); seen.worn = e.plates; // (blows turned wear a plate through)
+    // with the mage across the room, it crouches and pounces at where they stood, throwing frost as it lands
+    const room = g.current, states = new Set<string>(); let frost = false;
+    g.player.x = room.cx - 5; g.player.z = room.cz; e.x = room.cx + 3; e.z = room.cz; e.state = 'prowl'; e.st = 0; e.cycle = 0;
+    for (let k = 0; k < 50; k++) { g.player.hp = g.player.maxHp; g.sim(.05); states.add(e.state); frost ||= g.shots.some(sh => sh.chill); }
+    seen.pounced = ['crouch', 'pounce'].every(st => states.has(st)) && (states.has('recover') || states.has('stun')); seen.frost = frost;
+    return seen;
+  });
+  expect(plates).toMatchObject({ glyph: [3, 'wake'], shatter: 2, guard: .7, worn: 1, pounced: true, frost: true });
+  expect(plates.weak).toBeCloseTo(6); expect(plates.resist).toBeCloseTo(2); // (half again, and half, of what gets through)
+  const result = await page.evaluate(() => {
+    const w = window as unknown as W, g = w.__game as G2, foe = g.enemies.find(e => e.isBoss) as Boss;
+    const states = new Set<string>(); let called = false, seconds = 0;
+    for (; seconds < 240 && g.enemies.length; seconds += .25) { w.__fight(.25); states.add(foe.state); called ||= !!foe.summoned; }
+    g.sim(0.5);
+    return { seconds, states: [...states], called, left: g.enemies.length, cleared: g.current.cleared };
+  });
+  console.log(`tiger beaten in ${result.seconds.toFixed(1)} s of game time; states seen: ${result.states.join(', ')}`);
+  expect(result).toMatchObject({ called: true, left: 0, cleared: true });
+  expect(result.states).toEqual(expect.arrayContaining(['prowl', 'windSwipe', 'windRoar']));
+  expect(errors).toEqual([]);
+});
+
 test('the Hollow Warden wears the look chosen for it, its shots in its school\'s light, and can be beaten', async ({ page }) => {
   const LIGHT: Record<string, number> = { bellWarden: 0xf0e070, motherOfSpores: 0xa266ff, hollowOwl: 0xffd878 }; // (SCHOOL_LIGHT: storm, umbral, hallow)
   type Boss = Foe & { type: string; state: string; summoned?: boolean; mats: unknown[]; eye?: object; ring?: object; halo?: object; model: { traverse(f: (o: { isMesh?: boolean; isSprite?: boolean; isPoints?: boolean }) => void): void } };
@@ -266,7 +310,7 @@ test('the Hollow Warden wears the look chosen for it, its shots in its school\'s
     g.sim(.2, true); g.setBossLook('bellWarden');
     return { ids, look: g.bossLook, kept: localStorage.getItem('ossuary.bossLook') };
   });
-  expect(gallery).toEqual({ ids: ['bellWarden', 'motherOfSpores', 'hollowOwl', 'hart', 'angler'], look: 'bellWarden', kept: 'bellWarden' }); // (and the bosses of floors 4 and 5, M4.1)
+  expect(gallery).toEqual({ ids: ['bellWarden', 'motherOfSpores', 'hollowOwl', 'hart', 'angler', 'tiger'], look: 'bellWarden', kept: 'bellWarden' }); // (and the bosses of floors 4 and 5, M4.1, and the Eda lore's, M4.2)
   for (const e of errors) expect(e).toEqual([]);
 });
 

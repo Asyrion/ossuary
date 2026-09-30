@@ -54,6 +54,7 @@ export const STR = {
     pyre: { name: 'The Pyre Knight', sub: 'Sworn to the burning books', summon: 'The knight calls the hounds', dead: 'The knight burns out' },
     hart: { name: 'The Hallowed Hart', sub: "It keeps the relics' light", summon: 'The hart calls its fawns', dead: 'The hart lies down at last' },
     angler: { name: 'The Deep Angler', sub: 'Its light calls the dead astray', summon: 'The angler calls the dark', dead: "The angler's light goes out" },
+    tiger: { name: 'The War-Tiger', sub: 'The Wardens set it at the vault, and it never left its post', summon: 'Its roar wakes the halls', dead: 'The tiger lies down at its post', plate: 'A plate falls' },
   },
   banner: {
     wayDown: 'A way down has opened',

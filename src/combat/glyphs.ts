@@ -28,6 +28,7 @@ import { giveResources, isContainer, openContainer } from '../items/pickups';
 import { damageEnemy, hurtPlayer } from './damage';
 import { addDecal, burst } from './fx';
 import { clamp } from '../util';
+import { breakPlate } from '../actors/bosses';
 import { fireAt } from '../world/pools';
 
 const C = CFG.glyph;
@@ -102,6 +103,7 @@ function blast(x: number, z: number, color: number, R: number) {
     const ux = d > .01 ? dx / d : 1, uz = d > .01 ? dz / d : 0;
     damageEnemy(e, C.damage, ux, uz);
     if (!e.isBoss) { e.kx += ux * C.knockback; e.kz += uz * C.knockback; }
+    else if (e.plates) breakPlate(e); // (M4.2: the War-Tiger loses a plate)
   }
   for (const rock of room.rocks.slice()) {
     if (!touches(rock, x, z, R)) continue;

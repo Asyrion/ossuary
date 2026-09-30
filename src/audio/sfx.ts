@@ -254,6 +254,10 @@ const sounds = {
   anglerHum() { tone('sine', 147, 139, 1.8, .07); tone('sine', 220, 208, 1.6, .045, .1); tone('triangle', 441, 417, 1.3, .02, .2); },
   bite() { tone('square', 320, 70, .09, .09); hiss(.12, .12, 'bandpass', 1300); },
   spit() { hiss(.14, .08, 'bandpass', 650); tone('sine', 280, 110, .16, .05); },
+  // M4.2's bosses: the War-Tiger's roar (stone giving as it wakes), and a plate knocked off it, bronze or stone
+  tigerRoar() { tone('sawtooth', 110, 70, .9, .06); tone('sine', 165, 98, 1, .08); hiss(.8, .08, 'lowpass', 900); hiss(.5, .03, 'highpass', 3500, .1); },
+  claw() { for (let i = 0; i < 3; i++) hiss(.09, .09, 'bandpass', 2600 - i * 350, i * .035); tone('sawtooth', 420, 130, .14, .03); },
+  plateBreak() { [1480, 1975, 2490].forEach((f, i) => tone('triangle', f, f * .96, .5 - i * .1, .04, i * .01)); tone('sine', 220, 90, .3, .07); hiss(.3, .08, 'bandpass', 1600); },
   drakeLand() { tone('sine', 90, 40, .4, .14); hiss(.35, .1, 'highpass', 3500); [2637, 2093].forEach((f, i) => tone('triangle', f, f * .7, .3, .03, i * .04)); },
   // M4.2's pieces from the lore: a watching statue's gaze settling on the mage and its ray; a hex blinding it; an
   // obelisk's ward breaking

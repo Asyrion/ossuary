@@ -22,6 +22,7 @@ import { STATUS_KINDS, type SpellStatus, type StatusKind } from './spellData';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { touchPools } from '../world/pools';
 import { ringFx, strikeFx } from './spellFx';
+import { breakPlate } from '../actors/bosses';
 
 const R = MAGIC.reactions;
 const ICE = 0xbfe6ff, FIRE = 0xff7a2a, SPARK = 0xf0e890, GOLD = SCHOOL_LIGHT.hallow, VIOLET = SCHOOL_LIGHT.umbral, BLACKFIRE = 0x8a3ae0;
@@ -31,6 +32,7 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
   if (!status || e.dead || e.ward) return; // (M4.2: a drinking ward keeps statuses off the foe inside it)
   for (const [kind, amount] of Object.entries(status) as [SpellStatus, number][]) {
     if (e.dead) return;
+    if (kind === 'shock' && e.plates && (e.status?.chill ?? 0) >= MAGIC.chill.bossMaxStacks) { e.status!.chill = 0; react(e, 'shatter'); breakPlate(e); continue; } // (M4.2: a shock on the War-Tiger's rimed plates shatters one)
     const res = applyStatus(e.status ??= newStatus(), kind, amount, !!e.isBoss);
     if (res.froze) { Sfx.at(e.x, e.z).freeze(); burst(e.x, .6, e.z, ICE, 12, 1.6, .05); }
     if (res.stunned) burst(e.x, .9, e.z, SPARK, 6, 2, .03);
@@ -153,6 +155,7 @@ const tint = new THREE.Color();
     tint with each chill stack, a flickering ember glow while burning, a flicker of yellow while shocked. */
 export function statusTint(e: Enemy, now: number): [THREE.Color, number] | null {
   if (e.statue) return [tint.setHex(0xa88a4a), .7]; // a treasury's guardian stands gilded, a statue until its gold is taken
+  if (e.type === 'tiger' && e.state === 'statue') return [tint.setHex(0x8a94a4), .45]; // (the War-Tiger, stone until it wakes)
   const s = e.status; if (!s) return null;
   if (s.frozen > 0) return [tint.setHex(0x4a8ad8), .85];
   if (s.burn > 0 && s.black) return [tint.setHex(0x6a1ac0), .5 + Math.sin(now * 17 + e.x) * .2];
