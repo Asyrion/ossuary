@@ -502,9 +502,9 @@ whatever model is loaded.
 Twenty-one notes from the owner's Eda vault: characters (Asyrion, Boketto the Storm Caller, a Cloud Forest Wizard, a
 Wandering Merchant of Belerial), cultures (the Huruhui, the nomads of Belerial), creatures (Fen-Nex, the War-Tigers and
 other creatures of the Longwood) and places (the Longwood and its World Trees, the Ruins of Lukuku, the Plains of
-Belerial, the Swamps of Ulum, Gekiryu, Dr. Jelly's House, and the two gates of the Pass of Buluiain). Only the text was
-read: the notes embed images that aren't in the PR, and about half of them are an image and a link. What follows is what
-the text suggests for the game; none of it is design until it moves into the GDD, and the in-game names stay
+Belerial, the Swamps of Ulum, Gekiryu, Dr. Jelly's House, and the two gates of the Pass of Buluiain). The notes embed
+images that aren't in the PR (about half of them are an image and a link); the owner shared five of them in the session,
+read below. What follows is what the text and those images suggest for the game; none of it is design until it moves into the GDD, and the in-game names stay
 placeholders until the owner picks which lore goes in (M8).
 
 ### Where the dungeon is: beneath the Gate of Uzulim
@@ -577,6 +577,28 @@ turned dark". The Gate of Uzulim is the bridge: it is where that harmony keeps t
 keeps out. The Huruhui and the Longwood work best as the world above and the lost layers below (their ruins, their
 roots), not as the tone of the crypts. The placeholder lore's rule (the dungeon only, no gods, factions or places) can
 loosen as the owner decides which of these the game names.
+
+### From the images the owner shared (five of them, 2026-09-30)
+
+- **Asyrion** (the fire mage): long black hair, a dark coat worked all over in bronze filigree, a flame held in one hand;
+  round him, rune orbs glowing red in thin gold circles, and white arcs of wind. It is our mage already: fire in the
+  hand (Ember), runes in circles (the blast glyphs and the ward circles), wind at his back (Storm). Ideas: the hero model
+  for Tripo from this sheet; the cantrip's bolt a flame and the glyphs drawn as his red rune orbs in gold rings; an
+  artifact or costume aura of two or three rune orbs that circle the mage in gold rings and go off like glyphs when a
+  foe touches one; and, for "assassin", a first strike on a foe that hasn't seen the mage (asleep, a statue, in the dark
+  variant) that lands as a crit.
+- **The cave mouth over the valley** (sunlight through a cave onto a green canyon and a river): the way out. The
+  Vigil could be this cave mouth above the Huruhui valleys, the runs going down behind it; and the last floor could end
+  here, the trapdoor replaced by daylight at the end of the dark (the cloister garth's daylight already draws it).
+- **The riders of Belerial** (wide hats, ponchos and fur, a helm of horns, and a horned, long-faced beast with a gem at
+  its breast) and **the nomads on the road** (riders in bone masks, and a tall walker with a stag's skull for a face,
+  great horns and a staff, a herd behind). The skull masks and horns are the darkest thing in the drop and sit well in
+  the crypts: the Wandering Merchant as the skull-faced walker with a pack beast (a second trader, or the Bound Shade's
+  replacement); a masked rider as a boss (the Horned Rider, charging as the Hart does, with its beast); bone masks as a
+  costume slot (head) for M4.6; the beast as a mount or a pack animal in the Vigil.
+- **The great gate** (towers either side of an arch as tall as a hill, stairs up to it, a snowy peak framed in it, yellow
+  plains before it): the Gates of Belerial, or Belregi's. A title screen or the Vigil's threshold; in the dungeon, the
+  vault's warded door (M2) and the boss doors could borrow its towers and arch in the room kit.
 
 ### Placeholders the drop could fill (for M8)
 
