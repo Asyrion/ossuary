@@ -41,7 +41,7 @@ describe('the room kit\'s kinds (M3.5 step 3)', () => {
 
   it('every floor names its pottery (the room kit\'s urns: clay and bands) and its candles\' wax', () => {
     for (const f of FLOORS) {
-      for (const c of [f.look.urn?.clay, f.look.urn?.band, f.look.torch.wax]) expect(c, f.look.name).toMatch(/^#[0-9a-f]{6}$/i);
+      for (const c of [f.look.urn.clay, f.look.urn.band, f.look.torch.wax]) expect(c, f.look.name).toMatch(/^#[0-9a-f]{6}$/i);
     }
   });
 

@@ -34,7 +34,7 @@ export interface FloorLook {
   /** Hemisphere sky and ground colours, and the moonlight. */
   light: { sky: string; ground: string; moon: string };
   /** The floor's pottery: an urn's clay and its painted bands (the room kit's urns). */
-  urn?: { clay: string; band: string };
+  urn: { clay: string; band: string };
   /** The room kit's kinds of wall, floor, wall light and brazier, weighted (world/kitData.ts). */
   kit?: KitWeights;
   /** The kinds this room drew from `kit` (set when the room is built). */
