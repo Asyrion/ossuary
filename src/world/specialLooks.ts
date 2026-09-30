@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import type { FloorLook } from '../types';
 import { blob, glow, glowShared, mergeStill } from '../render/materials';
+import { mulberry } from '../util';
 import { firePalette, makeFire } from '../render/fire';
 import { curve, glowTone, mesh, rough, runeStrokes, shade, shared, stoneOf, taperTube, tone } from './kitParts';
 import { C, box, candleFire, put, skull } from './objectLooks';
@@ -19,7 +20,7 @@ const cyl = (r0: number, r1: number, h: number, seg = 8) => new THREE.CylinderGe
 const tube = (g: THREE.Object3D, pts: number[][], r0: number, r1: number, mat: THREE.Material, segs = 8) => mesh(g, taperTube(curve(pts), segs, r0, r1, 5), mat);
 const metal = (c: number) => tone(c, .05, .45);
 
-const IRON = 0x5e5a62, GILT = 0xc49a4a, GHOST = 0x6fe0c8, GHOST_DIM = 0x3a8a7c, ROBE = 0x3a3e50, ROBE_DARK = 0x262836, VOID = 0x040306;
+const IRON = 0x5e5a62, GILT = 0xc49a4a, GHOST = 0x6fe0c8, GHOST_DIM = 0x3a8a7c, ROBE = 0x444a62, ROBE_DARK = 0x262836, VOID = 0x040306;
 const GEO = { rune: shared(runeStrokes(.1)), link: shared(new THREE.TorusGeometry(.035, .009, 3, 8)), smallRune: shared(runeStrokes(.07)) };
 
 /* ---------- the merchant's shade ---------- */
@@ -53,9 +54,10 @@ export function shadeLook(ward: number) {
   mesh(lamp, new THREE.ConeGeometry(.1, .07, 6), metal(IRON), 0, .08, 0); mesh(lamp, cyl(.09, .08, .025, 6), metal(IRON), 0, -.11, 0);
   for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; mesh(lamp, cyl(.008, .008, .16, 3), metal(IRON), Math.cos(a) * .075, -.03, Math.sin(a) * .075); }
   const fire = makeFire([{ x: 0, y: -.1, z: 0, h: .13, w: .07 }], firePalette(0xe0fff4, GHOST), 0);
-  const light = glow(0xa8f0e0, .9, .8); light.position.y = -.04; fire.add(light); lamp.add(fire);
+  const light = glowShared(0xa8f0e0, .9, .8); light.position.y = -.04; fire.add(light); lamp.add(fire);
   // the eyes and the shade's pale aura
-  const eyes = [-.07, .07].map(x => { const e = glow(0xb8fff0, .17, 1); e.position.set(x, 1.42, .34); body.add(e); return e; });
+  for (const x of [-.07, .07]) put(mesh(body, new THREE.SphereGeometry(.024, 5, 4), glowTone(0xe8fffa), x, 1.42, .31), 0, 0, 0, [1.2, .8, .6]); // (bright cores, crisp at any size)
+  const eyes = [-.07, .07].map(x => { const e = glow(0xb8fff0, .22, 1); e.position.set(x, 1.42, .34); body.add(e); return e; });
   const aura = glowShared(GHOST, 2.8, .38); aura.position.y = .9; body.add(aura);
   body.userData.parts = { fire }; mergeStill(body);
   // the circle it is bound to, and the chains of ward light that hold it there
@@ -98,9 +100,9 @@ export function lecternLook(look: FloorLook) {
 
 /** A bookcase 1.5 wide against the north wall: sides, a cornice and a plinth, three shelves of books of every height and
     colour (a gilt band on each spine, a gap where one was taken, one leaning, a few lying in a stack), and now and then a
-    skull or a candle stub among them. `seed` picks the books. Built facing +z, its back on z = -.17. */
+    skull on top. `seed` picks the books. Built facing +z, its back on z = -.17. */
 export function bookcaseLook(seed: number) {
-  let s = seed * 7919 + 17; const R = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const R = mulberry(seed);
   const g = new THREE.Group(), wood = tone(OAK, .1), dark = tone(OAK_DARK, .08), gilt = tone(GILT, 0, .4);
   box(g, 1.4, 1.2, .02, tone(0x1a120c), 0, .62, -.16);
   for (const x of [-.72, .72]) box(g, .06, 1.25, .34, wood, x, .625, 0);
@@ -138,7 +140,7 @@ export function offeringStoneLook(look: FloorLook, turn: number, curse: number) 
   mesh(stone, rough(cyl(.29, .27, .08, 6), .015, 8), tone(shade(st, 1.12), .08), 0, .76, 0);
   if (look.wall.stains === 'moss') for (let i = 0; i < 4; i++) { const a = i * 1.7 + turn; put(mesh(g, new THREE.SphereGeometry(.09, 6, 3), tone(C.moss, .1), Math.cos(a) * .29, .03, Math.sin(a) * .29), 0, 0, 0, [1.3, .45, 1]); }
   put(mesh(g, GEO.rune, glowTone(curse), 0, .42, .26), -.12, 0, 0, 1.6);
-  const gl = glow(curse, .7, .35); gl.position.set(0, .42, .32); g.add(gl);
+  const gl = glowShared(curse, .45, .25); gl.position.set(0, .42, .32); g.add(gl);
   g.add(blob(1.1)); mergeStill(g);
   return g;
 }
@@ -148,12 +150,12 @@ export function offeringStoneLook(look: FloorLook, turn: number, curse: number) 
 /** The padlock hanging on a vault's warded door: a black iron body with its shackle, a keyhole, and the ward's rune
     glowing on it (`ward`, its colour). As in vault.ts: centred on its body, `.2` wide. */
 export function padlockLook(ward: number) {
-  const g = new THREE.Group(), iron = metal(0x3e3a42);
+  const g = new THREE.Group(), iron = tone(0x2c2a30, .05, .25);
   const s = new THREE.Shape(); s.moveTo(-.1, .08); s.lineTo(.1, .08); s.lineTo(.1, -.02); s.quadraticCurveTo(.1, -.09, 0, -.1); s.quadraticCurveTo(-.1, -.09, -.1, -.02); s.lineTo(-.1, .08);
   mesh(g, new THREE.ExtrudeGeometry(s, { depth: .05, bevelEnabled: true, bevelThickness: .01, bevelSize: .01, bevelSegments: 1, curveSegments: 5 }).translate(0, 0, -.025), iron);
-  mesh(g, new THREE.TorusGeometry(.065, .02, 5, 12, Math.PI), metal(IRON), 0, .085, 0);
+  mesh(g, new THREE.TorusGeometry(.065, .02, 5, 12, Math.PI), tone(0x3a3840, .05, .3), 0, .085, 0);
   box(g, .025, .045, .012, tone(VOID), 0, -.035, .04);
-  put(mesh(g, GEO.smallRune, glowTone(ward), 0, .025, .042), 0, 0, 0, .9);
+  put(mesh(g, GEO.smallRune, glowTone(ward), 0, .02, .042), 0, 0, 0, 1.3);
   mergeStill(g);
   return g;
 }
