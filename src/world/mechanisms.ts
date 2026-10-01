@@ -62,6 +62,8 @@ import { dragonBell } from '../actors/pillarDragon';
 import { steamBetween } from '../magic/steam';
 
 const C = CFG.mech;
+/** The schools an obelisk's ward may hold: those that reach a mechanism (M5's Verdant, growth, reaches none). */
+const WARDS = SCHOOLS.filter(s => s !== 'verdant');
 const FIRE = 0xff7a2a, EMBER = 0xffc060, GOLD = 0xffd98a, BLACKFIRE = 0xb070ff;
 /** A brazier's flames burning with Blackfire (M4.10): a pale violet core in a deep violet sheath, a near-black edge. */
 const BLACK_FLAMES: FirePalette = { core: 0xeedcff, body: 0x9a48f0, edge: 0x2a0c48, ember: 0xc890ff };
@@ -191,7 +193,7 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
   // M4.2: built in the room kit's style whatever the look (they came after it)
   statue() { return kitLook(statueLook()); },
   obelisk(R) { // its ward's school, drawn on the room's seed, colours its runes and its field
-    const ward = SCHOOLS[Math.floor(R() * SCHOOLS.length)], g = kitLook(obeliskLook(ward, C.obelisk.reach));
+    const ward = WARDS[Math.floor(R() * WARDS.length)], g = kitLook(obeliskLook(ward, C.obelisk.reach));
     g.userData.ward = ward; return g;
   },
 };

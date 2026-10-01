@@ -207,7 +207,7 @@ export const OBJECT_LOOKS = {
     put(mesh(g, GEO.mound, tone(C.earth, .1), 0, 0, 0), 0, 0, 0, [.62, .8, .66]);
     for (let i = 0; i < 9; i++) { // the leaves, out from the middle and lying back towards the floor
       const a = i / 9 * Math.PI * 2 + R() * .5, leaf = new THREE.Group(); leaf.position.set(0, .05 + R() * .05, 0); leaf.rotation.y = a; g.add(leaf);
-      put(mesh(leaf, GEO.broadLeaf, tone(i % 3 ? C.green : C.greenDark, .12)), -.35 - R() * .35, 0, 0, .9 + R() * .4);
+      put(mesh(leaf, GEO.broadLeaf, tone(i % 3 ? C.green : C.greenDark, .12)), .08 + R() * .16, 0, 0, 1 + R() * .4); // (tipped down: a positive turn about x lowers the tip)
     }
     const blooms = [[0, .46, 0], [.17, .34, .08], [-.16, .36, .06], [.08, .28, -.15], [-.07, .3, .17]];
     blooms.forEach(([x, h, z], i) => {
@@ -220,7 +220,7 @@ export const OBJECT_LOOKS = {
       mesh(bloom, GEO.bulb, glowTone(C.heart), 0, .012, 0).scale.setScalar(s * .75);
       specs.push({ x: x1, y: h + .02, z: z1, h: .08, w: .1 });
     });
-    const pollen = makeMotes(specs, C.pollen, 8, .6, .3), gl = glow(0xf0e070, .9, .4); gl.position.y = .35;
+    const pollen = makeMotes(specs, C.pollen, 8, .6, .3), gl = glow(0xf0e070, .6, .22); gl.position.y = .35; // (a soft glow: a bed of them stays calm)
     g.add(pollen, gl);
     g.userData.parts = { pollen }; // (kept apart: it moves by itself)
     return g;

@@ -44,7 +44,7 @@ import { giveResources, spawnPickup } from './items/pickups';
 import { openSecretRoom } from './world/secret';
 import { cleanseAtOnce, riteState } from './world/shrine';
 import { SPELLS, type SpellStatus, type StatusKind } from './magic/spellData';
-import { inflict } from './magic/statusFx';
+import { inflict, pollenNow } from './magic/statusFx';
 import { makeEnemy, spawnFoe } from './actors/enemies';
 import { attuneTo, castSpell, learnSpell } from './magic/spells';
 import { mantleLeft, wardLeft } from './magic/shapes';
@@ -280,6 +280,7 @@ function installDevHooks() {
     get bestiary() { return bestiary(); }, forgetBestiary: () => forgetBestiary(), findCounters: () => findEveryCounter(), // (M4.7: every counter found)
     /** Patches of ground a salamander has set burning in this room (M4). */
     get burningGround() { return burningGround(); }, get sparkGround() { return sparkGround(); },
+    get pollen() { return pollenNow(); }, // (M5: Pollen Spark's clouds in the room)
     get steam() { return steamCount(); }, steamAt(x: number, z: number) { steamAt(x, z); }, inSteam(x: number, z: number) { return inSteam(x, z); }, // (Steam's clouds in the room, 2026-10-01)
     /** M4.5: the webs, ink and rime on the floor of the current room; a glyph's blast at (x, z). */
     get ground() { return { web: groundCount('web'), ink: groundCount('ink'), rime: groundCount('rime'), blackice: groundCount('blackice'), blackiceDrawn: groundDrawn('blackice') }; }, blast: (x: number, z: number) => blastAt(x, z),

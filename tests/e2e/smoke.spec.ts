@@ -2048,7 +2048,7 @@ test('the Alchemist (M5 step 8): the Satchel adds a belt slot, the Taster\'s Spo
 
 test('Verdant (M5 step 9): the Thorn Snare holds and overgrows, the Living Wall rises and burns down, the Pollen Cloud mends; an overgrown foe flowers as it falls (once a room); its five reactions go off', async ({ page }) => {
   const errors = await start(page, '?room=crypt_a&seed=VERD1&spells=thorn_snare,living_wall');
-  type GV = GP & { clearRoom(): void; current: { cx: number; cz: number; barriers?: unknown[] }; burn(x: number, z: number, r: number): void; inflict(s: Record<string, number>): void;
+  type GV = GP & { clearRoom(): void; current: { cx: number; cz: number; barriers?: unknown[] }; burn(x: number, z: number, r: number): void; inflict(s: Record<string, number>): void; element(kind: string, x: number, z: number): void;
     hit(i: number, dmg: number, school?: string): void; reaction(r: string): void; reactions: string[]; forgetReactions(): void };
   const r = await page.evaluate(() => {
     const g = (window as unknown as W).__game as unknown as GV, P = g.player;
@@ -2063,11 +2063,13 @@ test('Verdant (M5 step 9): the Thorn Snare holds and overgrows, the Living Wall 
     P.hp = 3; g.inflict({ grow: 4 }); g.hit(0, 9999); g.sim(.2); const once = P.hp; g.hit(0, 9999); g.sim(.2); const twice = P.hp;
     // the Pollen Cloud mends once
     g.learn('pollen_cloud', 0); P.hp = 3; g.sim(1); g.cast(0, { x: 0, z: -1 }); g.sim(.6); const pollen = P.hp;
-    return { snared, wall, burnt, once, twice, pollen };
+    // pollen is no holy ground: darkness on it sets off no Eclipse
+    g.forgetReactions(); g.element('hex', P.x, P.z); g.sim(.2); const eclipse = g.reactions.includes('eclipse');
+    return { snared, wall, burnt, once, twice, pollen, eclipse };
   });
   expect(r.snared).toEqual([{ grow: true, root: true }, { grow: true, root: true }, { grow: true, root: true }]);
   expect(r.wall).toBeGreaterThan(0); expect(r.burnt).toBe(0);
-  expect([r.once, r.twice]).toEqual([4, 4]); expect(r.pollen).toBe(4);
+  expect([r.once, r.twice]).toEqual([4, 4]); expect(r.pollen).toBe(4); expect(r.eclipse).toBe(false);
   await page.evaluate(() => (window as unknown as W).__game.sim(.05, true));
   await page.screenshot({ path: 'test-results/verdant.png' });
   // the five reactions that make the wheel whole
@@ -2146,9 +2148,10 @@ test('the inventory lists what the mage carries and knows, in tabs, and describe
   await expect(detail).toContainText('Spell damage ×1.5');
   await expect(detail.locator('.chip.bad')).toContainText('Hearts -1'); // its price
   // E turns to the spells: the two slots, then a book by school (a school opens with its first spell learned), with a
-  // sealed entry for each spell not met yet; then M4.8's wheel of the ten reactions and M4.10's seventeen weaves and chains
+  // sealed entry for each spell not met yet; then the wheel of the fifteen reactions (M4.8's ten, M5's Verdant five) and
+  // M4.10's seventeen weaves and chains
   await page.keyboard.press('KeyE');
-  await expect(tiles).toHaveCount(35);
+  await expect(tiles).toHaveCount(40);
   await expect(page.locator('#invList .sec')).toHaveText(['Carried', 'Ember', 'Frost', 'Storm', 'Reactions', 'Weaves and chains']);
   await page.keyboard.press('ArrowRight');
   await expect(detail).toContainText('Pyre Seal');
@@ -3290,7 +3293,7 @@ test('foes in code (M4): floor 1\'s moth loops, scatters light and is lured by a
 test('foes in code (M4): floor 2\'s toad leaps and breathes cold that chills; the lurker lives in water, rises, spits and dives out of reach, and is trapped when its pool freezes; the jelly drifts close and pulses light', async ({ page }) => {
   type Foe = { type: string; state: string; x: number; z: number; hp: number; hidden?: boolean; model: { position: { y: number } } };
   type GF = { sim(sec: number, draw?: boolean): void; warp(id: number): void; hit(i: number, dmg: number, school?: string): number; pool(what: string): void;
-    player: { x: number; z: number; hp: number; maxHp: number; invuln: number; chill: number }; enemies: Foe[]; shots: { chill?: number }[];
+    player: { x: number; z: number; hp: number; maxHp: number; invuln: number; chill: number }; enemies: Foe[]; shots: { chill?: number; x: number; z: number; vx: number; vz: number }[];
     current: { pools?: { kind: string; state: string }[] } };
   // the toad
   const errors = await start(page, '?seed=K3F9QX&floor=2&foe=mireToad');
@@ -3301,7 +3304,11 @@ test('foes in code (M4): floor 2\'s toad leaps and breathes cold that chills; th
       const e = g.enemies[0]; g.player.x = e.x + 2.2; g.player.z = e.z; // (close enough for it to breathe)
       g.sim(.05); seen.add(e.state); high = Math.max(high, e.model.position.y); cold = Math.max(cold, g.shots.filter(s => s.chill).length);
     }
-    for (let i = 0; i < 20 && !g.player.chill; i++) { g.player.invuln = 0; g.sim(.05); } // (in the cone's way)
+    for (let i = 0; i < 20 && !g.player.chill; i++) { // (in the cone's way: on a cold shot's path, wherever the toad landed, clear of its touch)
+      const e = g.enemies[0], s = g.shots.find(o => o.chill);
+      if (s) { const v = Math.hypot(s.vx, s.vz) || 1, d = Math.max(1.3, Math.hypot(s.x - e.x, s.z - e.z) + .3); g.player.x = e.x + s.vx / v * d; g.player.z = e.z + s.vz / v * d; }
+      g.player.invuln = 0; g.sim(.05);
+    }
     return { seen: [...seen].sort(), high, cold, chilled: g.player.chill > 0 };
   });
   expect(toad.seen).toEqual(expect.arrayContaining(['sit', 'crouch', 'leap', 'puff'])); expect(toad.high).toBeGreaterThan(.3);

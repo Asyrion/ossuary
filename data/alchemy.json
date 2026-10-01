@@ -17,14 +17,14 @@
     "liquidEmber": {
       "name": "Liquid Ember", "color": "#ff7a2a", "weight": 10,
       "drink": { "effect": "emberCantrip", "seconds": 20 },
-      "throw": { "effect": "firePool", "seconds": 5, "school": "ember" },
+      "throw": { "effect": "firePool", "seconds": 5, "burn": 3, "school": "ember" },
       "text": { "drink": "Your cantrip burns for 20 seconds", "throw": "A pool of fire for 5 seconds" },
       "lore": "Salt from the braziers, ground with bone and stoppered hot. The cork is always scorched."
     },
     "frostbrew": {
       "name": "Frostbrew", "color": "#8fd8ff", "weight": 10,
       "drink": { "effect": "frostWard", "seconds": 20, "speed": 0.2 },
-      "throw": { "effect": "freezeSplash", "seconds": 2, "school": "frost" },
+      "throw": { "effect": "freezeSplash", "seconds": 2, "chill": 3, "school": "frost" },
       "text": { "drink": "No chill takes you, and you move faster, for 20 seconds", "throw": "Freezes everything in the splash for 2 seconds" },
       "lore": "Rimewater and a breath of light. It frosts the glass from the inside."
     },
