@@ -7,6 +7,7 @@ import { glowTone, tone } from '../world/kitParts';
 import { bakeOnHead, hang, offSide, onHead, sideX, wrist, type Fit, type Side } from './costumeFit';
 import type { CostumeId, Worn } from './costumeData';
 import { TRANSFORM_BUILD } from './transformPieces';
+import { ARC_BUILD } from './arcPieces';
 
 const wool = markShared(new THREE.MeshStandardMaterial({ color: 0x4e1a25, roughness: 1, emissive: 0x140508 }));
 const lining = markShared(new THREE.MeshStandardMaterial({ color: 0x2a1014, roughness: 1, side: THREE.BackSide }));
@@ -17,7 +18,7 @@ const shell = (geo: THREE.BufferGeometry) => {
 };
 
 export const BUILD: Record<CostumeId, (f: Fit, w: Worn) => THREE.Object3D[]> = {
-  ...TRANSFORM_BUILD, // (M4.6: the transformations' looks, transformPieces.ts)
+  ...TRANSFORM_BUILD, ...ARC_BUILD, // (M4.6: the transformations' looks, transformPieces.ts; Asyrion's arc, arcPieces.ts)
   /** A pilgrim's hood: a cowl round the head, open at the face, with a long tail down the back (a liripipe),
       and a short dagged mantle over the shoulders. */
   hood(f) {

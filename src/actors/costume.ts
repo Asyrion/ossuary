@@ -20,6 +20,7 @@ import { disposeTree, glowShared, mergeStill } from '../render/materials';
 import { burst } from '../combat/fx';
 import { strikeFx } from '../magic/spellFx';
 import { TRANSFORMS, isTransform } from '../items/transformData';
+import { arcNow } from '../items/arc';
 import type { Emit } from './transformPieces';
 import { castSide, hang, measure, offSide, sideX, type Fit, type Side } from './costumeFit';
 import { BUILD } from './costumePieces';
@@ -46,7 +47,7 @@ export function fitCostumes(holder: THREE.Object3D) {
 export function dress() {
   if (!model || !fit) return;
   const look = G.run.transforms.at(-1);
-  const want = wornLooks([player.focus, ...player.items, ...tried].map(id => artifact(id)), player.cleansed, look);
+  const want = wornLooks([player.focus, ...player.items, ...tried].map(id => artifact(id)), player.cleansed, look, arcNow());
   const keyOf = (w: Worn) => `${w.piece}:${w.from}:${w.cursed}:${w.cleansed}`;
   for (const [slot, on] of [...worn]) if (!want.some(w => w.slot === slot && keyOf(w) === on.key)) takeOff(slot);
   for (const w of want) if (!worn.has(w.slot)) {

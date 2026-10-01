@@ -6,8 +6,10 @@
    manacles) or a slot where the artifact's own model is carried (a lantern at the belt, a sigil on the back): `"belt"`.
    Every focus is held in the casting hand besides, which is not a slot. */
 
-export type CostumeSlot = 'head' | 'face' | 'shoulders' | 'back' | 'hands' | 'belt' | 'feet' | 'aura';
-export const COSTUME_SLOTS: readonly CostumeSlot[] = ['head', 'face', 'shoulders', 'back', 'hands', 'belt', 'feet', 'aura'];
+export type CostumeSlot = 'head' | 'face' | 'shoulders' | 'back' | 'hands' | 'belt' | 'feet' | 'aura' | 'orbit' | 'offhand';
+/** The slots: the GDD's seven and the feet; `orbit` (what circles the mage) and `offhand` (what the hand that doesn't cast
+    holds) are Asyrion's arc's alone. */
+export const COSTUME_SLOTS: readonly CostumeSlot[] = ['head', 'face', 'shoulders', 'back', 'hands', 'belt', 'feet', 'aura', 'orbit', 'offhand'];
 /** Where an artifact's own model can be carried (`"costume": "belt"`), and the slot each spot fills: on a shoulder or
     hung on the chest (a pendant), on the back, at the off hand's wrist, at the hip. */
 export const CARRY = { shoulder: 'shoulders', chest: 'shoulders', back: 'back', wrist: 'hands', belt: 'belt' } as const satisfies Record<string, CostumeSlot>;
@@ -28,20 +30,29 @@ export const COSTUME_PIECES = {
   stormMarks: { slot: 'face', transform: true }, stormSpirals: { slot: 'hands', transform: true }, lightWings: { slot: 'back', transform: true },
   shadowCloak: { slot: 'back', transform: true }, shadowEyes: { slot: 'face', transform: true }, grimoire: { slot: 'back', transform: true },
   emberSteps: { slot: 'feet', transform: true }, aura: { slot: 'aura', transform: true },
-} as const satisfies Record<string, { slot: CostumeSlot; curse?: true; transform?: true }>;
+  // Asyrion's arc (ARC_PIECES): the chaos mage's bronze-worked bracers, a dark coat's collar and shoulders, red rune orbs in
+  // gold rings, and a flame in the off hand with arcs of wind (`arc`: theirs alone)
+  bracers: { slot: 'hands', arc: true }, chaosCollar: { slot: 'shoulders', arc: true }, runeOrbs: { slot: 'orbit', arc: true }, chaosFlame: { slot: 'offhand', arc: true },
+} as const satisfies Record<string, { slot: CostumeSlot; curse?: true; transform?: true; arc?: true }>;
 export type CostumeId = keyof typeof COSTUME_PIECES;
 
 export const isPiece = (id: string): id is CostumeId => id in COSTUME_PIECES;
 export const isCarry = (id: string): id is CarrySpot => id in CARRY;
 /** Whether an artifact's `costume` names something it can wear (not a transformation's own piece). */
-export const isCostume = (id: string) => (isPiece(id) && !('transform' in COSTUME_PIECES[id])) || isCarry(id);
+export const isCostume = (id: string) => (isPiece(id) && !('transform' in COSTUME_PIECES[id]) && !('arc' in COSTUME_PIECES[id])) || isCarry(id);
 /** The slot a `costume` fills. */
 export const slotOf = (costume: string): CostumeSlot => isPiece(costume) ? COSTUME_PIECES[costume].slot : CARRY[costume as CarrySpot];
 
 /** A piece worn: in `slot`, from artifact `from` (or from transformation `from`, `transform` set); `piece` is the piece
     built for the body, or `carried` (the artifact's own model, `at` where); `cursed` while a cursed artifact is
     uncleansed, `cleansed` once a shrine has cleansed it. */
-export interface Worn { slot: CostumeSlot; piece: CostumeId | 'carried'; at?: CarrySpot; from: string; cursed: boolean; cleansed: boolean; transform?: true }
+export interface Worn { slot: CostumeSlot; piece: CostumeId | 'carried'; at?: CarrySpot; from: string; cursed: boolean; cleansed: boolean; transform?: true; arc?: true }
+
+/** Asyrion's arc (M4.6; GDD: Artifacts, Asyrion's arc): the chaos mage's pieces each stage brings, in the slots no artifact
+    or transformation holds. */
+export const ARC_PIECES: readonly (readonly CostumeId[])[] = [['bracers'], ['chaosCollar'], ['runeOrbs'], ['chaosFlame']];
+/** The arc's stage for `held` artifacts: how many of the thresholds `at` (CFG.arc.at) it has reached. */
+export const arcStage = (held: number, at: readonly number[]) => at.filter(n => held >= n).length;
 
 /** What each transformation's look puts on (M4.6; docs/M4.6-plan.md, The transformations): pieces built for it, or an
     artifact's own model carried somewhere (the Pilgrim's lantern). Over what the artifacts show in those slots. */
@@ -56,10 +67,12 @@ export const TRANSFORM_LOOKS: Record<string, readonly (CostumeId | { at: CarrySp
   beastcaller: ['antlers', 'aura'],
 };
 
-/** What shows for what the mage holds, in pickup order: one piece per slot, the one taken last winning it (a crown taken
-    after the hood replaces the hood); then the look of transformation `look` (the latest formed) over them. */
-export function wornLooks(held: readonly { id: string; costume?: string; kind?: string }[], cleansed: readonly string[] = [], look?: string): Worn[] {
+/** What shows for what the mage holds, in pickup order: the arc's pieces up to stage `arc` where nothing else is worn; one
+    piece per slot, the one taken last winning it (a crown taken after the hood replaces the hood); then the look of
+    transformation `look` (the latest formed) over them. */
+export function wornLooks(held: readonly { id: string; costume?: string; kind?: string }[], cleansed: readonly string[] = [], look?: string, arc = 0): Worn[] {
   const bySlot = new Map<CostumeSlot, Worn>();
+  for (const p of ARC_PIECES.slice(0, arc).flat()) bySlot.set(COSTUME_PIECES[p].slot, { slot: COSTUME_PIECES[p].slot, piece: p, from: 'arc', cursed: false, cleansed: false, arc: true });
   for (const a of held) {
     if (!a.costume || !isCostume(a.costume)) continue;
     const wasCleansed = cleansed.includes(a.id);

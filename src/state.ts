@@ -44,6 +44,7 @@ export const G = {
     wanderer: new Rng(0), wandererMet: false,
     /** M4.2: the floor Fen-Nex was bound on (it grows a stage a floor), while it is. */ fennexFrom: undefined as number | undefined,
     /** M4.6: the transformations formed this run, in order (the latest wears its look; every gift stays). */ transforms: [] as TransformId[],
+    /** M4.6: the stage of Asyrion's arc reached this run (each said once in a line). */ arc: 0,
   },
   shake: 0,
   simClock: 0,
@@ -52,7 +53,7 @@ export const G = {
 /** Dev menu switches (ui/devMenu.ts): god mode keeps the mage from harm; endless mana never runs out; `moveClip`
     tries the walk clip for all movement (with its feet in step, or at a natural pace), to compare with the run;
     `doors` moves every door off the middle of its edge where it fits, or none, in the floors made from now on. */
-export const DEV = { god: false, mana: false, fps: false, moveClip: 'run' as 'run' | 'walkInStep' | 'walkNatural', doors: 'data' as 'data' | 'shifted' | 'middle',
+export const DEV = { /** M4.6: Asyrion's arc forced to a stage (the dev menu), else from what is held. */ arc: undefined as number | undefined, god: false, mana: false, fps: false, moveClip: 'run' as 'run' | 'walkInStep' | 'walkNatural', doors: 'data' as 'data' | 'shifted' | 'middle',
   /** The room kit in code (M3.5 step 3's proof: the fire objects, the crypt's floor and walls); off keeps the old looks. */
   roomKit: true,
   /** Kinds of the room kit forced on every room of the floor (the dev menu's Look tab), to compare; else each room draws. */
