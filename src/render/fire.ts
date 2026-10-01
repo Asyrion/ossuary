@@ -104,6 +104,19 @@ export function makeFire(specs: FlameSpec[], pal: FirePalette, embers = 0, rise 
   return g;
 }
 
+/** Turn a fire made by `makeFire` to `pal` where it stands (its geometries are its own): M4.10's brazier taken by darkness
+    burns with Blackfire. Each part takes its colour by its material; embers keep their few bright ones. */
+export function recolourFire(fire: THREE.Object3D, pal: FirePalette) {
+  const by = new Map<THREE.Material, number>([[MAT.sheath, pal.body], [MAT.core, pal.core], [MAT.edge, pal.edge], [MAT.ember, pal.ember]]);
+  fire.traverse(o => {
+    const m = o as THREE.Mesh, hex = m.isMesh ? by.get(m.material as THREE.Material) : undefined, a = m.geometry?.getAttribute('color') as THREE.BufferAttribute | undefined;
+    if (hex === undefined || !a) return;
+    const c = new THREE.Color(hex);
+    for (let i = 0; i < a.count; i++) a.setXYZ(i, c.r, c.g, c.b);
+    a.needsUpdate = true;
+  });
+}
+
 /** Motes without a fire (a glowcap's spores): `n` of them rising `rise` from over `specs` (only their places and sizes
     count), `speed` times as fast as a fire's embers. One draw call; they move by themselves. */
 export function makeMotes(specs: FlameSpec[], color: number, n: number, rise = .5, speed = 1) {
