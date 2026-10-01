@@ -228,7 +228,8 @@ for (const boss of ['hart', 'angler']) test(`the ${boss === 'hart' ? 'Hallowed H
       const d0 = Math.hypot(g.player.x - foe.x, g.player.z - foe.z); g.sim(.5); drawn = d0 - Math.hypot(g.player.x - foe.x, g.player.z - foe.z);
     }
     const states = new Set<string>(); let called = false, seconds = 0;
-    for (; seconds < 240 && g.enemies.length; seconds += .25) { w.__fight(.25); states.add(foe.state); called ||= !!foe.summoned; }
+    // (every step: a charge that meets a wall at once lasts less than a quarter second, and the fight is random)
+    for (; seconds < 240 && g.enemies.length; seconds += .05) { w.__fight(.05); states.add(foe.state); called ||= !!foe.summoned; }
     g.sim(0.5);
     const spots = (g.current as RoomView & { spots: unknown[] }).spots;
     return { type: foe.type, weak, resist, drawn, seconds, states: [...states], called, left: g.enemies.length, cleared: g.current.cleared, choice: spots.length };

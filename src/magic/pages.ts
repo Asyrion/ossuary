@@ -14,7 +14,7 @@ import { M, basicMat, blob, disposeTree, glowShared, markShared, mergeStill } fr
 import { bookcaseLook, lecternLook } from '../world/specialLooks';
 import { hashString } from '../rng';
 import { burst } from '../combat/fx';
-import { banner, hidePrompt, renderMinimap, showPrompt, spellIcon, spellIconSvg, toast } from '../ui/hud';
+import { banner, hidePrompt, line, renderMinimap, showPrompt, spellIcon, spellIconSvg, toast } from '../ui/hud';
 import { giveResources } from '../items/pickups';
 import { coinTag } from '../items/merchant';
 import { LOOT } from '../items/loot';
@@ -176,7 +176,9 @@ function layLibrary(room: Room) {
   const [dx, dz] = door ? SIDE_DIR[door.side] : [0, 1], ns = dx === 0; // into the room is (-dx, -dz)
   const along = ns ? { x: 1, z: 0 } : { x: 0, z: 1 }, gap = ns ? C.spacing : C.spacingShort;
   const mid = { x: room.cx - dx * (ns ? 0 : C.rowInShort), z: room.cz - dz * (ns ? C.rowIn : 0) };
-  const gr = LOOT.grimoire, lectern = pickPages(G.run.pages, player.spells, gr.lecterns, [], SPELL_DEFS, floorLean()); // (M4.9: leaning to what the floor's foes are weak to)
+  const gr = LOOT.grimoire, lean = floorLean(), lectern = pickPages(G.run.pages, player.spells, gr.lecterns, [], SPELL_DEFS, lean); // (M4.9: leaning to what the floor's foes are weak to)
+  const leant = lean.length && lectern.length && lean.includes(spell(lectern[0]).school) && !player.spells.some(id => id && lean.includes(spell(id).school));
+  if (leant && !G.run.hinted.has('lean')) { G.run.hinted.add('lean'); line(STR.curve.leans, CFG.afflict.lineShow); } // (the first time in a run, a line says so)
   const set: Page[] = lectern.map((id, i) => {
     const k = i - (lectern.length - 1) / 2, p = freeSpotNear(room, mid.x + along.x * k * gap, mid.z + along.z * k * gap);
     return addPage(room, id, p.x, p.z, 'lectern');

@@ -4,9 +4,10 @@
    magic that moves: runes orbit a charged stone, the lodestone's shard floats and turns, the reliquary's seal of
    candle-light turns round it (`updateMechLook`). `DEV.roomKit` off keeps the old looks. */
 import * as THREE from 'three';
+import type { FloorLook } from '../types';
 import { blob, glow, markShared, mergeStill } from '../render/materials';
 import { SCHOOL_LIGHT, lit, shine, type School } from '../render/arcane';
-import { MAT, joinAll, mesh, runeStrokes, shared, tone } from './kitParts';
+import { MAT, joinAll, mesh, runeStrokes, shared, stoneOf, tone } from './kitParts';
 
 const GOLD = 0xffd98a;
 const GEO = {
@@ -222,21 +223,21 @@ const SLUICE = {
   post: shared(new THREE.BoxGeometry(.24, 1.5, .32)), lintel: shared(new THREE.BoxGeometry(1.14, .22, .36)), sill: shared(new THREE.BoxGeometry(1.14, .1, .44)),
   bar: shared(new THREE.CylinderGeometry(.026, .026, 1.1, 5)), rail: shared(new THREE.BoxGeometry(.66, .055, .06)),
   wheel: shared(new THREE.TorusGeometry(.14, .026, 4, 12)), spoke: shared(new THREE.BoxGeometry(.26, .022, .022)), hub: shared(new THREE.CylinderGeometry(.035, .035, .1, 6).rotateX(Math.PI / 2)),
-  fall: shared(new THREE.PlaneGeometry(.6, 1.15)), foam: shared(new THREE.RingGeometry(.08, .42, 16).rotateX(-Math.PI / 2)),
+  fall: shared(new THREE.PlaneGeometry(.6, .56)), foam: shared(new THREE.RingGeometry(.08, .42, 16).rotateX(-Math.PI / 2)),
 };
 /** The sluice gate (M4.9): an iron gate (`gate`) in a stone frame, a wheel on the lintel (`wheel`) that turns as it lifts,
     and, while it stands open, water falling through it (`fall`) into foam (`foam`), each with its own material. */
-export function sluiceLook() {
-  const g = new THREE.Group(), stone = tone(0x8e877a, .14);
+export function sluiceLook(look?: FloorLook) {
+  const g = new THREE.Group(), stone = tone(stoneOf(look, 1.15), .16); // (the floor's own wall stone)
   mesh(g, SLUICE.post, stone, -.44, .75, 0); mesh(g, SLUICE.post, stone, .44, .75, 0); mesh(g, SLUICE.lintel, stone, 0, 1.56, 0); mesh(g, SLUICE.sill, MAT.darkStone, 0, .05, 0);
   const gate = new THREE.Group();
   for (let i = 0; i < 5; i++) mesh(gate, SLUICE.bar, MAT.iron, -.25 + i * .125, .62, 0);
   mesh(gate, SLUICE.rail, MAT.iron, 0, .26, 0); mesh(gate, SLUICE.rail, MAT.iron, 0, .98, 0);
   const wheel = new THREE.Group(); wheel.position.set(0, 1.8, .08);
   mesh(wheel, SLUICE.wheel, MAT.iron); mesh(wheel, SLUICE.spoke, MAT.iron); mesh(wheel, SLUICE.spoke, MAT.iron).rotation.z = Math.PI / 2; mesh(wheel, SLUICE.hub, MAT.darkBronze);
-  const fall = new THREE.Mesh(SLUICE.fall, new THREE.MeshBasicMaterial({ color: 0xbfe4f4, transparent: true, opacity: .6, side: THREE.DoubleSide, depthWrite: false }));
-  fall.position.set(0, .64, .22); fall.visible = false;
-  const foam = new THREE.Mesh(SLUICE.foam, new THREE.MeshBasicMaterial({ color: 0xeaf6ff, transparent: true, opacity: .65, depthWrite: false }));
+  const fall = new THREE.Mesh(SLUICE.fall, new THREE.MeshBasicMaterial({ color: 0x5aa8d0, transparent: true, opacity: .55, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })); // (light, not a grey panel)
+  fall.position.set(0, .3, .22); fall.visible = false;
+  const foam = new THREE.Mesh(SLUICE.foam, new THREE.MeshBasicMaterial({ color: 0xd8f0ff, transparent: true, opacity: .6, depthWrite: false, blending: THREE.AdditiveBlending })); // (white spray, never a dark ring)
   foam.position.set(0, .045, .5); foam.visible = false;
   g.add(gate, wheel, fall, foam, blob(1.1));
   return { group: g, parts: { gate, wheel, fall, foam } };

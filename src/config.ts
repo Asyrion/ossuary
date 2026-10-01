@@ -67,11 +67,11 @@ export const CFG = {
   // song makes the foes round it; how much grip the mage keeps on a rime snail's trail; the health an elemental drinks from
   // each stack of its own school's status; how fast the mage walks in a basilisk's stare
   bestiary: { webSlow: .45, inkSlow: .65, songHaste: 1.4, rimeGrip: 3.5, statusHeal: 2, gazeSlow: .3 },
-  // foes in each other's ground (M4.7): how often the ground's harm comes again, the burn, shock and sting it brings, a
-  // spark's damage, and how far ahead a golem or elemental looks to step round it
   /** M4.9 The curve: a floor leans its library to a school its foes are weak to when that many of them are (`lean`), and
       walls off a school when that many resist or drink it (`wall`, its banner's line); a hex's debt lasts `hexDebt` s. */
-  curve: { lean: .3, wall: .45, hexDebt: 8, trail: 7 },
+  curve: { lean: .3, wall: .45, hexDebt: 8, trail: 7, trailStep: .045, lineShow: 4.5, extraAt: [-.9, .7] as [number, number] }, // (trail: motes in a hex's trail back to its thrower, trailStep the seconds between them; lineShow: the floor's warning; extraAt: where an extra foe stands beside the one it copies)
+  // foes in each other's ground (M4.7): how often the ground's harm comes again, the burn, shock and sting it brings, a
+  // spark's damage, and how far ahead a golem or elemental looks to step round it
   foeGround: { every: .5, burn: 1.5, shock: .4, sparkDamage: 2, sting: 1.5, look: .75, lookAt: [.5, 1], steer: [.7, -.7, 1.4, -1.4] },
   // how the Stormcharged and Hallowed mantles look apart (M4.7): the storm's segments of lightning at most, its bolts round
   // the ring and arcs on the body, how often they crackle anew, its cloud's size and height over the head and how often it
@@ -141,7 +141,7 @@ export const CFG = {
     obelisk: { reach: 2.8, sap: .5, drain: 5, catch: 1 },
     // M4.9: a sluice gate: seconds the room's water stays drained once it opens; how often the water foes in the mud are
     // driven up again; seconds before it can be opened again once shut
-    sluice: { open: 8, drive: .5, rest: 3 },
+    sluice: { open: 8, drive: .5, rest: 3, lift: .42 }, // (lift: how far the gate rises)
   },
   // M4.2: the drinking ward: how close to a sealed vault door a spell is drunk; the mana of spells a vault's ward holds, and
   // a foe's shield (the foe's blows it drinks, as damage); where the Wardling rises beside a foe whose shield broke

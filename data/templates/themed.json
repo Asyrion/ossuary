@@ -325,7 +325,7 @@
     ".............xxxxxxxxxxxxxxx"
   ] },
   { "id": "lodestone_cistern", "shape": "standard", "types": ["normal"], "difficulty": 2, "theme": "cistern", "grid": [
-    "~~~~.....~~~~",
+    "~~~~Z....~~~~",
     "~~y.W~~~~~y~~",
     ".~~~~~~~~~~~.",
     "..~.~~.~~R~..",

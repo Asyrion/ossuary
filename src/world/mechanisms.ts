@@ -95,7 +95,7 @@ const kitLook = (k: { group: THREE.Group; parts: Record<string, THREE.Object3D> 
 
 type Look = (R: () => number, len: number, look?: FloorLook) => THREE.Group;
 export const MECH_LOOKS: Record<MechanismKind, Look> = {
-  sluice() { return kitLook(sluiceLook()); }, // (M4.9: built in code only)
+  sluice(_R, _len, look) { return kitLook(sluiceLook(look)); }, // (M4.9: built in code only)
   brazier(_R, _len, look) { // an iron bowl of coals on three legs; its fire shows once lit
     if (DEV.roomKit && look?.kinds) return kitLook(brazierLook(look.kinds.brazier));
     const g = new THREE.Group();
@@ -533,8 +533,9 @@ function updateSluice(room: Room, box: PropBox, dt: number) {
   }
   if (!parts) return;
   const lift = open ? 1 : 0, gate = parts.gate;
-  gate.position.y += (lift * .95 - gate.position.y) * Math.min(1, dt * 4);
-  if (open || Math.abs(gate.position.y - lift * .95) > .01) parts.wheel.rotation.z += dt * (open ? 3 : -3) * Math.min(1, Math.abs(gate.position.y - lift * .95) * 4 + (open ? .3 : 0));
+  const up = lift * C.sluice.lift; // (it lifts under its lintel, leaving a gap the water falls through)
+  gate.position.y += (up - gate.position.y) * Math.min(1, dt * 4);
+  if (open || Math.abs(gate.position.y - up) > .01) parts.wheel.rotation.z += dt * (open ? 3 : -3) * Math.min(1, Math.abs(gate.position.y - up) * 4 + (open ? .3 : 0));
   parts.fall.visible = parts.foam.visible = open;
   if (open) { parts.fall.scale.y = .92 + Math.sin(G.simClock * 23 + box.x) * .08; parts.foam.scale.setScalar(.9 + Math.sin(G.simClock * 9) * .1); if (Math.random() < dt * 10) burst(box.x + (Math.random() - .5) * .5, .1, box.z + .5, 0xd8f0ff, 1, 1, .03); }
 }

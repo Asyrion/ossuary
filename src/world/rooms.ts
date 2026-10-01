@@ -110,7 +110,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   // deeper floors' fights now and then gain one more of their walkers or fliers (M4.9's pressure)
   if (plan.variant !== 'quiet' && plan.type !== 'boss' && !DEV.foe && room.waves[0]) {
     const wave = room.waves[0], i = extraSlot(wave, P.extra, mulberry(plan.seed ^ 0x3c1b));
-    if (i >= 0) { const f = wave[i], p = freeSpotNear(room, f.x - .9, f.z + .7); wave.push({ ...f, kind: pickFoe(table, f.role as Role, pick, true, true), x: p.x, z: p.z }); }
+    if (i >= 0) { const f = wave[i], p = freeSpotNear(room, f.x + CFG.curve.extraAt[0], f.z + CFG.curve.extraAt[1]); wave.push({ ...f, kind: pickFoe(table, f.role as Role, pick, true, true), x: p.x, z: p.z }); }
   }
   if (plan.variant === 'quiet') quieten(room);
   room.cleared = room.waves.length === 0;
@@ -507,11 +507,14 @@ export function buildWallsAndDoors(room: Room) {
     const face = minZ + run.line + WT;
     const avoid = [...room.doors.filter(d => d.side === 'n' && Math.abs(d.z - face) < .1).map(d => ({ x: d.x, room: DH + .3 })),
       ...room.torches.filter(t => Math.abs(t.z - (face + .6)) < .1).map(t => ({ x: t.x, room: .3 })),
-      ...falls.filter(f => f.side === 'n').map(f => ({ x: minX + (f.i0 + f.i1) / 2, room: (f.i1 - f.i0) / 2 + .3 }))];
+      ...falls.filter(f => f.side === 'n').map(f => ({ x: minX + (f.i0 + f.i1) / 2, room: (f.i1 - f.i0) / 2 + .3 })),
+      ...sluices(room).map(b => ({ x: b.x, room: .9 }))]; // (M4.9: a sluice gate's frame stands against it)
     dressNorthWall(room, face, minX + run.i0, minX + run.i1, avoid);
   }
 }
 
+/** The room's sluice gates (M4.9): torches and the wall's dressing keep clear of them. */
+const sluices = (room: Room) => (room.props ?? []).filter(b => b.prop.kind === 'sluice');
 /** Torches along a wall run: on every north wall, and on long east/west walls (tall rooms). */
 function placeTorches(room: Room, run: WallRun, across0: number, falls: ReturnType<typeof fallRuns>) {
   const ns = isNS(run.facing);
@@ -522,7 +525,8 @@ function placeTorches(room: Room, run: WallRun, across0: number, falls: ReturnTy
   const count = ns ? Math.max(1, Math.round(len / 6.5)) : Math.floor(len / 8);
   const spots = count === 1 ? [len / 2] : ns ? Array.from({ length: count }, (_, i) => 3 + i * (len - 6) / (count - 1)) : Array.from({ length: count }, (_, i) => (i + .5) * len / count);
   const inTheWay = [...room.doors.filter(d => d.side === run.facing).map(d => ({ at: ns ? d.x : d.z, half: DH })), // doors, and waterfalls (M4.2)
-    ...falls.filter(f => f.side === run.facing).map(f => ({ at: base + (f.i0 + f.i1) / 2, half: (f.i1 - f.i0) / 2 }))];
+    ...falls.filter(f => f.side === run.facing).map(f => ({ at: base + (f.i0 + f.i1) / 2, half: (f.i1 - f.i0) / 2 })),
+    ...(run.facing === 'n' ? sluices(room).map(b => ({ at: b.x, half: .6 })) : [])]; // (and sluice gates, M4.9)
   const face = run.facing === 'n' ? across0 + WT : run.facing === 'w' ? across0 + WT : across0; // the wall's inner face
   for (let s of spots) {
     let at = inner0 + s;
