@@ -69,7 +69,9 @@ export const CFG = {
   bestiary: { webSlow: .45, inkSlow: .65, songHaste: 1.4, rimeGrip: 3.5, statusHeal: 2, gazeSlow: .3 },
   // foes in each other's ground (M4.7): how often the ground's harm comes again, the burn, shock and sting it brings, a
   // spark's damage, and how far ahead a golem or elemental looks to step round it
-  foeGround: { every: .5, burn: 1.5, shock: .4, sparkDamage: 2, sting: 1.5, look: .75 },
+  foeGround: { every: .5, burn: 1.5, shock: .4, sparkDamage: 2, sting: 1.5, look: .75, lookAt: [.5, 1], steer: [.7, -.7, 1.4, -1.4] },
+  // rooms with a pair (M4.7): how far beside the first foe the second is set
+  pairs: { gap: 1.1 },
   // a foe's weakness and resistance (M4; GDD: Enemy affinities): the damage of its weak school and of its resisted one; an
   // elemental's (M4.5): its weakness's, and the share of a blow of its own school it drinks as health
   affinity: { weak: 1.5, resist: .5, elemental: 2, drink: .5 },
@@ -101,7 +103,7 @@ export const CFG = {
     // M4.2: half hearts a fall through a burnt rope bridge takes from the mage
     fallHurt: 2,
     webSlow: .45, briarHurt: 1, briarDamage: 2, caskSpill: 3,
-    spores: { time: 4, reach: 1.3, damage: 6, burn: 2, mageHurt: 1 },
+    spores: { time: 4, reach: 1.3, stingReach: 1.04, damage: 6, burn: 2, mageHurt: 1 }, // (stingReach: where a stinging cloud's thick enough to sting)
   },
   // themed rooms' twists (M3.6, world/themes.ts): how close the mage comes before a sleeper wakes; when the ossuary's
   // piles start rising (seconds into the fight), how often, and how many at most; the chance a scriptorium's scroll heap

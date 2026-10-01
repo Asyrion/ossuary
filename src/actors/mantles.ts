@@ -19,7 +19,7 @@ import { ringFx, strikeFx } from '../magic/spellFx';
 import { floatText } from '../magic/statusFx';
 import { gainMana } from '../magic/spells';
 import { hexDrained } from '../ui/afflictions';
-import { toast } from '../ui/hud';
+import { line } from '../ui/hud';
 import { layFire, laySpark } from './foes';
 import { mantleSchool, type MantleId } from './mantleData';
 
@@ -35,7 +35,7 @@ export function giveMantle(e: Enemy, id: MantleId) {
   e.aura?.material.color.set(light);
   e.mantleRing = runeRing(e.group, light, e.r * 1.35 / e.scale, [0, .04, 0], 6, [0, 0, 0], lit(light)); // (in its colour, not added light, which a lit floor washes white)
   after(.7, () => { if (e.mantle === id && !e.dead) floatText(e.x, 1.9, e.z, STR.foes.mantles[id].name, light); });
-  if (!G.run.hinted.has('mantle:' + id)) { G.run.hinted.add('mantle:' + id); after(.7, () => toast(STR.foes.mantles[id].line, CFG.afflict.lineShow)); }
+  if (!G.run.hinted.has('mantle:' + id)) { G.run.hinted.add('mantle:' + id); after(.7, () => line(STR.foes.mantles[id].line, CFG.afflict.lineShow)); }
 }
 
 /** A status of the school that strips it landed on `e`: the mantle goes, the champion is stunned and open a while. */
@@ -86,13 +86,22 @@ export function updateMantles(dt: number) {
     if (!e.mantle || e.dead || e.spawn > 0) continue;
     e.mantleT = (e.mantleT ?? 0) - dt;
     if (e.mantleRing) e.mantleRing.rotation.y += dt * .8;
+    // (Stormcharged and Hallowed are near in colour: the storm's ring flickers and throws sparks, the holy one's breathes
+    // and sheds motes, so the two read apart)
+    if (e.mantle === 'stormcharged') {
+      if (e.mantleRing) e.mantleRing.visible = Math.floor(G.simClock * 13 + e.x * 3) % 5 !== 0;
+      if (Math.random() < dt * 4) burst(e.x + (Math.random() - .5) * e.r * 2, .15, e.z + (Math.random() - .5) * e.r * 2, SCHOOL_LIGHT.storm, 2, 2.2, .025);
+    } else if (e.mantle === 'hallowed') {
+      if (e.mantleRing) e.mantleRing.scale.setScalar(1 + Math.sin(G.simClock * 2.4) * .08);
+      if (Math.random() < dt * 2.5) burst(e.x + (Math.random() - .5) * e.r * 1.6, .3, e.z + (Math.random() - .5) * e.r * 1.6, SCHOOL_LIGHT.hallow, 1, .5, .03);
+    }
     if (e.mantle === 'kindled' && e.mantleT <= 0 && Math.hypot(e.vx, e.vz) > .3 && !e.hidden) { e.mantleT = M.kindled.trailEvery; layFire(G.current, e.x, e.z, M.kindled.trailTime, e.foe?.id); }
     if (e.mantle === 'hallowed' && e.mantleT <= 0) {
-      e.mantleT = 1;
+      e.mantleT = M.hallowed.mendEvery;
       if ((e.status?.sanct ?? 0) > 0) continue; // (its own school's light on it stills its mending)
       for (const o of G.enemies) {
         if (o === e || o.dead || o.hidden || o.hp >= o.maxHp || !canHeal(o.status) || Math.hypot(o.x - e.x, o.z - e.z) > M.hallowed.mendReach) continue;
-        o.hp = Math.min(o.maxHp, o.hp + M.hallowed.mend * (o.isBoss ? .3 : 1)); burst(o.x, .9, o.z, SCHOOL_LIGHT.hallow, 5, 1.2, .03);
+        o.hp = Math.min(o.maxHp, o.hp + M.hallowed.mend * (o.isBoss ? M.hallowed.bossShare : 1)); burst(o.x, .9, o.z, SCHOOL_LIGHT.hallow, 5, 1.2, .03);
       }
     }
   }

@@ -35,7 +35,7 @@ export function steamBetween(x0: number, z0: number, x1: number, z1: number) {
   return clouds.some(c => {
     if (c.room !== G.current) return false;
     const k = Math.max(0, Math.min(1, ((c.x - x0) * dx + (c.z - z0) * dz) / l2));
-    return Math.hypot(x0 + dx * k - c.x, z0 + dz * k - c.z) < c.r * .85;
+    return Math.hypot(x0 + dx * k - c.x, z0 + dz * k - c.z) < c.r * S.sight; // (the thick of it)
   });
 }
 /** The clouds in the current room (tests, the dev menu). */

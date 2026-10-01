@@ -298,6 +298,11 @@ export function hidePrompt() { el.prompt.classList.remove('on'); }
 export function toast(msg: string, dur = 3) { el.toast.textContent = msg; el.toast.classList.add('on'); toastT = dur; }
 /** Whether a toast is showing now (a first-time line waits for it rather than cut it short). */
 export const toastShowing = () => toastT > 0;
+/** A first-time line (what a mantle, a pair or the ground does, M4.7): shown now, or after the line showing, never cutting
+    it short; several wait their turn. A new run drops any still waiting. */
+const waiting: { msg: string; dur: number }[] = [];
+export function line(msg: string, dur = 3.5) { if (toastT > 0) waiting.push({ msg, dur }); else toast(msg, dur); }
+export function clearLines() { waiting.length = 0; }
 const dimAt = new THREE.Vector3();
 export function updateHud(dt: number) {
   updateMagicHud();
@@ -307,7 +312,7 @@ export function updateHud(dt: number) {
   const stone = player.stone > 0 ? '1' : '0'; if (el.stone.style.opacity !== stone) el.stone.style.opacity = stone; // (a basilisk's stare: grey at the rim)
   if (player.dim > 0) { dimAt.set(player.x, .6, player.z).project(camera); el.dim.style.setProperty('--x', `${(dimAt.x + 1) * 50}%`); el.dim.style.setProperty('--y', `${(1 - dimAt.y) * 50}%`); }
   if (bannerT > 0) { bannerT -= dt; if (bannerT <= 0) el.banner.classList.remove('on'); }
-  if (toastT > 0) { toastT -= dt; if (toastT <= 0) el.toast.classList.remove('on'); }
+  if (toastT > 0) { toastT -= dt; if (toastT <= 0) { el.toast.classList.remove('on'); const next = waiting.shift(); if (next) toast(next.msg, next.dur); } }
 }
 
 /** Cut to black and fade back in, to cover building a new floor. */

@@ -235,7 +235,7 @@ function updateAbbess(e: Enemy, dt: number, ux: number, uz: number) {
   } else if (e.state === 'sink') { // down into the water under the floor
     e.vx = e.vz = 0; const k = 1 - Math.max(0, e.st) / .7; pose(0, -.3, 1);
     e.body.position.y = -2.4 * k * k; ripple.visible = true; mat.opacity = k * .8; ripple.scale.setScalar(.8 + k * .3);
-    if (k > .5 && !e.hidden) { e.hidden = true; burst(e.x, .1, e.z, SCHOOL_LIGHT.frost, 16, 2.4, .06); }
+    if (k > .5 && !e.hidden) { e.hidden = true; e.model!.visible = false; burst(e.x, .1, e.z, SCHOOL_LIGHT.frost, 16, 2.4, .06); } // (gone below: nothing of it shows through the floor's edge)
     if (e.st <= 0) { e.state = 'under'; e.st = C.under; e.flying = true; }
   } else if (e.state === 'under') { // a ripple gliding after the mage, under rocks and pits alike
     const d = Math.hypot(player.x - e.x, player.z - e.z);
@@ -248,7 +248,7 @@ function updateAbbess(e: Enemy, dt: number, ux: number, uz: number) {
     ripple.scale.setScalar(1.1 + k * 1.1); mat.opacity = .5 + Math.abs(Math.sin(e.t * 18)) * .5;
     if (e.st <= 0) {
       if (!isFreeAt(G.current, e.x, e.z)) { const p = freeSpotNear(G.current, e.x, e.z); e.x = p.x; e.z = p.z; }
-      e.hidden = false; e.flying = false; e.body.position.y = 0; ripple.visible = false;
+      e.hidden = false; e.flying = false; e.body.position.y = 0; ripple.visible = false; e.model!.visible = true;
       const off = Math.random() * Math.PI;
       ringOfShots(e, 12, 3.2 * shotMul, off);
       if (hurt) laterRing(e, .3, 12, 2.8 * shotMul, off + Math.PI / 12);

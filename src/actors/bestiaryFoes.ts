@@ -183,7 +183,7 @@ const dropper: Behaviour = {
       e.vx = e.vz = 0; e.cycle! -= dt; e.tele = ramp(e.cycle!, num(P.spitTell));
       if (e.cycle! <= 0) {
         const tx = player.x + player.vx * .4, tz = player.z + player.vz * .4, at = freeSpotNear(room, tx, tz);
-        lob(room, e.x, e.z, at.x, at.z, 0xd8d0e8, .55, (x, z) => { layGround(room, 'web', x, z, num(P.webSize), num(P.webTime)); burst(x, .1, z, 0xd8d0e8, 6, 1.2, .03); Sfx.at(x, z).webLand(); }, 1, .8);
+        lob(room, e.x, e.z, at.x, at.z, 0xd8d0e8, .55, (x, z) => { layGround(room, 'web', x, z, num(P.webSize), num(P.webTime), e.foe!.id); burst(x, .1, z, 0xd8d0e8, 6, 1.2, .03); Sfx.at(x, z).webLand(); }, 1, .8);
         Sfx.at(e.x, e.z).webSpit(); e.state = 'ground'; e.tele = 0; e.fireT = span(P.spitEvery);
       }
     } else if (e.state === 'climb') {
@@ -730,7 +730,7 @@ const djinn: Behaviour = { // the Cinder Djinn (an elemental: Ember feeds it, Fr
     if ((e.tick! -= dt) <= 0) { e.tick = .25; fireAt(e.x, e.z, .2); } // (the oil it crosses catches)
     if ((e.fireT! -= dt) <= 0 && a.dist < num(P.hurlRange)) { // an arc of fire, landing burning where the mage stood
       e.fireT = span(P.hurlEvery); Sfx.at(e.x, e.z).djinnHurl();
-      lob(room, e.x, e.z, player.x, player.z, 0xff7a2a, num(P.hurlTime), (x, z) => { layFire(room, x, z, num(P.fireTime)); burst(x, .2, z, 0xff7a2a, 10, 2, .05); Sfx.at(x, z).flare(); }, 1.6, 1.4);
+      lob(room, e.x, e.z, player.x, player.z, 0xff7a2a, num(P.hurlTime), (x, z) => { layFire(room, x, z, num(P.fireTime), e.foe!.id); burst(x, .2, z, 0xff7a2a, 10, 2, .05); Sfx.at(x, z).flare(); }, 1.6, 1.4);
     }
   },
   afflicted(e, kind, P) { // frost snuffs it to a cinder for a while
@@ -1103,7 +1103,7 @@ const hearth: Behaviour = { // the Hearth Golem (an elemental: Ember feeds it, F
         e.fireT = span(P.throwEvery); Sfx.at(e.x, e.z).djinnHurl();
         for (let i = 0; i < num(P.coals); i++) {
           const ang = Math.random() * Math.PI * 2, r = i === 0 ? 0 : Math.random() * num(P.spread), tx = player.x + Math.cos(ang) * r, tz = player.z + Math.sin(ang) * r;
-          lob(room, e.x, e.z, tx, tz, 0xff5a10, num(P.flight) + i * .08, (x, z) => { layFire(room, x, z, num(P.fireTime)); burst(x, .2, z, 0xff7a2a, 8, 1.8, .05); }, 1.8, 1.1);
+          lob(room, e.x, e.z, tx, tz, 0xff5a10, num(P.flight) + i * .08, (x, z) => { layFire(room, x, z, num(P.fireTime), e.foe!.id); burst(x, .2, z, 0xff7a2a, 8, 1.8, .05); }, 1.8, 1.1);
         }
       }
     } else if (e.state === 'out') { // put out: it makes for a brazier to stoke itself again

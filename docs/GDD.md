@@ -1356,7 +1356,7 @@ something the mage learns, and makes foes part of the room, not only in it.
   foes are iced in or driven up). The word rises each time, the first time ever a chime and a line; the Foes tab shows
   each foe met by floor, then the bosses, its weakness and resistance once found (an elemental's "Drinks"), and its
   counters found or sealed.
-- *Pairs.* Two or three a floor, a fight rolling one one time in ten on floor 1 up to one in five on floor 5; the pair
+- *Pairs.* Two or three a floor, a fight rolling one one time in ten on floor 1 up to a little more than one in five on floor 5; the pair
   takes the first two places of the first wave, the second beside the first, and its line says what they do together
   the first time in a run.
 
