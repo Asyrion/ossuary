@@ -1,9 +1,8 @@
 # Ossuary: project brief for Claude Code
 
 Ossuary is a hobby desktop-browser game: a top-down roguelike in the style of The Binding of Isaac, set in
-the owner's fantasy world **Eda** (high fantasy turned dark, medieval). The mage, Asyrion the apprentice,
-is built in code from the owner's picture (`docs/Characters/asyrion-apprentice.webp`, 2026-10-01; the Tripo model of the
-play-tests stays a switch away); everything else is built in code too (the owner's decision, 2026-09-30). The owner (Azyrion) designs; you build.
+the owner's fantasy world **Eda** (high fantasy turned dark, medieval). The mage is made in **Tripo3D**
+and exported as GLB; everything else is built in code (the owner's decision, 2026-09-30). The owner (Azyrion) designs; you build.
 
 **`docs/GDD.md` is the source of truth for game design.** Read the relevant section before starting a
 milestone; if this file disagrees with it on design, the GDD wins. `docs/ideas.md` is an idea bank of
@@ -338,13 +337,6 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   pilings walls, boards and shingle floors, pole and cairn lights, boat and urn braziers; its `salt` stains). The dev menu's Look tab steps each part's kind on every room of the floor
   (`DEV.kitKinds`, cleared on a new floor or run); `__game.kinds` reads the room's, `__game.forceKinds({ wall: 'ashlar' })`
   forces them.
-- The mage is Asyrion the apprentice built in code (`src/actors/apprentice.ts`, from the owner's picture): a rig of bones
-  named as Mixamo names them, rigid parts on each bone merged per bone (about twenty draw calls), and clips made in code from
-  poses (`idle_breathe`, `run_cycle`, `walk_cycle`, `cast_spell`, `sigil_chalk`, `hit_recoil`, `death_fall`, `death_collapse`,
-  `drink_potion`, `eat_snack`), so `setHero` and heroAnim.ts play them as a Tripo model's; its run and walk carry their own
-  speeds (`ANIM_SPEEDS`, `PreparedHero.speeds`). Chalking a glyph plays the `sigil` gesture (a role of its own in
-  clipRoles.ts). `?hero=glb` or the dev menu's Mage tab switches to the Tripo model below (`wearHero`, remembered as
-  `ossuary.hero`); costume parts are tagged `userData.costume`, told apart from the model's own parts on a bone.
 - `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
   1,024 px JPEG textures). Clips: `standing_relax`, `run`, `walk` (slow movement), `cast_a_spell`,
   `hit_to_body_01`, `fall` and `defeat_03` (two deaths, one at random), `Drink Potion` (when healed) and
