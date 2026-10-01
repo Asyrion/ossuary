@@ -2069,7 +2069,7 @@ test('themed rooms (M4.1): the treasury\'s guardians stand as statues until thei
 test('room variants: ambush, champion, dark and quiet', async ({ page }) => {
   const errors = await start(page, '?room=crypt_b&variant=ambush');
   const result = await page.evaluate(() => {
-    type E = { champion?: boolean; type: string; maxHp: number; x: number; z: number };
+    type E = { champion?: boolean; mantle?: string; type: string; maxHp: number; x: number; z: number };
     type Rm = { locked: boolean; ambush?: string; torches: { lit: boolean }[]; waves: { role: string }[][] };
     const g = (window as unknown as W).__game as unknown as {
       startGame(o: object): void; warp(id: number): void; sim(s: number): void; keys: Set<string>;
@@ -2089,7 +2089,7 @@ test('room variants: ambush, champion, dark and quiet', async ({ page }) => {
     const light = g.lightLevels();
     // quiet: at most two weak enemies
     g.startGame({ testTemplate: 'crypt_c', testVariant: 'quiet' }); g.warp(1); g.sim(.2);
-    return { armed, sprung, champions: champ.length, hpRatio: champ[0].maxHp / peer!.maxHp, lit: g.current.torches.length,
+    return { armed, sprung, champions: champ.length, mantle: champ[0].mantle, hpRatio: champ[0].maxHp / peer!.maxHp, lit: g.current.torches.length,
       darkTorches: light.torches.reduce((a, b) => a + b, 0), hemi: light.hemi, quiet: g.enemies.map(e => e.type), quietRoles: g.current.waves.flat().map(f => f.role) };
   });
   expect(result.armed).toEqual({ foes: 0, locked: false });
@@ -2097,6 +2097,7 @@ test('room variants: ambush, champion, dark and quiet', async ({ page }) => {
   expect(result.sprung.locked).toBe(true);
   expect(result.sprung.nearest).toBeGreaterThan(2);
   expect(result.champions).toBe(1);
+  expect(['kindled', 'rimebound', 'stormcharged', 'hallowed', 'hexbound']).toContain(result.mantle); // (M4.7: in one of the floor's mantles)
   expect(result.hpRatio).toBeCloseTo(2);
   expect(result.darkTorches).toBe(0);
   expect(result.hemi).toBeLessThan(.6);
@@ -3439,5 +3440,51 @@ test('the bestiary (M4.5), floor 5: the glacier golem turns blows from the front
   expect(r.pangolin).toMatchObject({ glanced: 0, open: 8 }); expect((r.pangolin as { dim: number }).dim).toBeGreaterThan(0);
   expect(r.hare).toMatchObject({ leapt: true }); expect((r.hare as { rime: number }).rime).toBeGreaterThan(0); expect((r.hare as { shards: number }).shards).toBeGreaterThan(0);
   expect(r.manticore).toMatchObject({ volleyed: true, pounced: true, aimedHoly: false });
+  expect(errors).toEqual([]);
+});
+
+test('champion mantles (M4.7): each does its own, keeps its own school off, and the school that strips it unbinds it, stunned and open', async ({ page }) => {
+  const errors = await start(page, '?room=great_hall&floor=2');
+  const r = await page.evaluate(() => {
+    type Ch = Foe & { mantle?: string; unbound?: number; hp: number; status?: { stun: number; burn: number; chill: number } };
+    type G2 = GameHooks & { champion(kind: string, mantle?: string, x?: number, z?: number): Ch; spawn(kind: string, x?: number, z?: number): Ch; clearRoom(): void; inflict(s: Record<string, number>): void; hit(i: number, dmg: number, school?: string, by?: string): number; burningGround: number; sparkGround: number; mana(v?: number): number; shots: { chill?: number; hex?: number }[]; player: GameHooks['player'] & { invuln: number; chill: number } };
+    const g = (window as unknown as W).__game as G2, P = g.player, R: Record<string, Record<string, unknown>> = {};
+    const fresh = (m: string, kind = 'sporeling') => { g.clearRoom(); g.sim(.2); const e = g.champion(kind, m, P.x, P.z - 2.5); g.sim(.8); return e; };
+    const stripped = (e: Ch) => ({ mantle: e.mantle ?? null, stunned: (e.status?.stun ?? 0) > 0, open: (e.unbound ?? 0) > 0 });
+    const keep = (s: number) => { for (let k = 0; k < s / .05; k++) { P.hp = P.maxHp; P.invuln = 9; g.sim(.05); } };
+    // Kindled: burning ground behind it, no burn on it; frost unbinds it, and an unbound champion takes a quarter more
+    let e = fresh('kindled'); keep(3);
+    R.kindled = { trail: g.burningGround > 0 };
+    g.inflict({ burn: 3 }); R.kindled.burning = e.status?.burn ?? 0;
+    g.inflict({ chill: 1 }); Object.assign(R.kindled, stripped(e));
+    const hp0 = e.hp; g.hit(g.enemies.indexOf(e), 8, undefined, 'cantrip'); R.kindled.took = +(hp0 - e.hp).toFixed(2);
+    // Rimebound: no chill on it; its touch chills the mage; its shots chill (a Hex Imp's carry its hex and the cold); fire unbinds it
+    e = fresh('rimebound'); g.inflict({ chill: 3 }); R.rimebound = { chilled: e.status?.chill ?? 0 };
+    P.invuln = 0; P.chill = 0; P.x = e.x; P.z = e.z; g.sim(.05); R.rimebound.touch = P.chill > 0; P.x += 3; P.hp = P.maxHp;
+    g.inflict({ burn: 2 }); Object.assign(R.rimebound, stripped(e));
+    const imp = fresh('rimebound', 'hexImp'); let shot: { chill?: number; hex?: number } | undefined;
+    for (let k = 0; k < 240 && !shot && imp.mantle; k++) { P.hp = P.maxHp; P.invuln = 9; g.sim(.05); shot = g.shots[0]; }
+    R.rimebound.shot = { chill: (shot?.chill ?? 0) > 0, hex: (shot?.hex ?? 0) > 0 };
+    // Stormcharged: struck, a spark under the mage; frost unbinds it
+    e = fresh('stormcharged'); g.hit(g.enemies.indexOf(e), 1, undefined, 'cantrip'); R.stormcharged = { spark: g.sparkGround > 0 };
+    g.inflict({ chill: 1 }); Object.assign(R.stormcharged, stripped(e));
+    // Hallowed: mends a hurt foe beside it; darkness unbinds it
+    e = fresh('hallowed'); const hurt = g.spawn('sporeling', e.x + 1.2, e.z); g.sim(.8); g.hit(g.enemies.indexOf(hurt), 4, undefined, 'cantrip');
+    const low = hurt.hp; keep(2.2); R.hallowed = { mended: hurt.hp > low };
+    g.inflict({ hex: 1 }); Object.assign(R.hallowed, stripped(e));
+    // Hexbound: falling, its curse drains the mage's mana if it stays inside; holy light unbinds it, and then it doesn't
+    e = fresh('hexbound'); P.x = e.x + 1; P.z = e.z; g.mana(100); P.invuln = 9; g.hit(g.enemies.indexOf(e), 999, undefined, 'cantrip'); g.sim(1);
+    R.hexbound = { drained: Math.round(100 - g.mana()) };
+    e = fresh('hexbound'); g.inflict({ sanct: 2 }); Object.assign(R.hexbound, stripped(e));
+    P.x = e.x + 1; P.z = e.z; g.mana(100); P.invuln = 9; g.hit(g.enemies.indexOf(e), 999, undefined, 'cantrip'); g.sim(1); R.hexbound.drainedAfter = Math.round(100 - g.mana());
+    return R;
+  });
+  const unbound = { mantle: null, stunned: true, open: true };
+  expect(r.kindled).toEqual({ trail: true, burning: 0, ...unbound, took: 10 });
+  expect(r.rimebound).toEqual({ chilled: 0, touch: true, ...unbound, shot: { chill: true, hex: true } });
+  expect(r.stormcharged).toEqual({ spark: true, ...unbound });
+  expect(r.hallowed).toEqual({ mended: true, ...unbound });
+  expect(r.hexbound.drained).toBeGreaterThan(8);
+  expect(r.hexbound).toMatchObject({ ...unbound, drainedAfter: 0 });
   expect(errors).toEqual([]);
 });

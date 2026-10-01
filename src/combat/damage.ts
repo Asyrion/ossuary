@@ -29,6 +29,7 @@ import { SOUL_COLOR } from '../items/loot';
 import { drinkBlow } from '../actors/wardShield';
 import { wearPlates } from '../actors/bosses';
 import { glance, twinFell } from '../actors/twinGuardians';
+import { mantleFell, mantleStruck } from '../actors/mantles';
 
 /** Hurt a foe, knocking it along (dx, dz); `kbMul` scales the knockback (the Ram's Skull on bolts); `by` says
     what struck it (a foe the cantrip puts to rest gives mana back); `school`, the magic it struck with, if any: a foe in
@@ -37,7 +38,7 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   if (e.spawn > 0 || e.dead || e.hidden) return;
   if (e.ward && by === 'spell') { drinkBlow(e, dmg, school); return; } // (M4.2: its ward drinks the spells that strike it)
   if (e.glance && by === 'cantrip') { glance(e); return; } // (a Twin Guardian's shield turns bolts)
-  const raw = dmg * damageTakenMul(e.status); dmg = raw * (e.guard ?? 1); // a frozen foe cracks; a shut mimic's clay turns half a blow
+  const raw = dmg * damageTakenMul(e.status) * (e.unbound ? MAGIC.unbound.damageMul : 1); dmg = raw * (e.guard ?? 1); // a frozen foe cracks; a shut mimic's clay turns half a blow
   if (e.plates) wearPlates(e, raw - dmg); // (M4.2: the War-Tiger's plates turn most of it, and wear)
   const aff = affinityMul(e.foe ?? e.bossAff, school); // (the bosses of floors 4 and 5 have theirs too)
   if (aff < 0) { drink(e, -dmg * aff); return; } // (M4.5: an elemental drinks its own school)
@@ -48,6 +49,7 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   if (by === 'spell') dmg *= player.stats.spellDamage; // Crown of Thorns
   if (e.foe) { dmg = foeStruck(e, dmg, by, dx, dz, school); if (dmg <= 0) { e.flash = .09; return; } } // (a void mote swallows the cantrip)
   e.hp -= dmg; e.flash = .09; e.lastHit = by; e.asleep = false; // a sleeper wakes
+  if (by && e.mantle) mantleStruck(e); // (M4.7: a Stormcharged champion sparks back)
   const hexed = e.status?.hex ?? 0; // (before the blow spends a stack: a foe that falls with enough leaves a soul mote)
   if (by) { // a hexed foe gives back mana for each stack a blow spends (M4.1); a foe marked by the Ferryman's Toll pays its toll
     let back = spendHex(e.status) * (player.stats.effects.has('soulLantern') ? CFG.artifacts.soulLantern.hexMul : 1); // (half again with the Ferryman's Lantern)
@@ -82,6 +84,7 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
   if (withBoss) { burst(e.x, .45, e.z, gibOf(e), 12, 3, .08); return; } // its master fell: it crumbles, and drops nothing
   burst(e.x, e.isBoss ? 1 : .45, e.z, gibOf(e), e.isBoss ? 60 : 16, e.isBoss ? 6 : 3.5, e.isBoss ? .12 : .08);
   if (e.foe) { burst(e.x, .5, e.z, SCHOOL_LIGHT[e.foe.school], 10, 2.2, .04); foeDied(e); } // (its school's light goes out of it; what it leaves behind)
+  if (e.mantle) mantleFell(e); // (M4.7: a Hexbound champion's curse)
   if (e.toll) payToll(e); // marked by the Ferryman's Toll: it pays in obols, and its hex spreads
   if (hexed >= MAGIC.hex.soulAt && e.type !== 'dummy' && G.run.drops.chance(Math.min(1, CFG.souls.hexChance * soulsHere()))) { // deep in a hex, its soul stays: a black mote
     const p = freeSpotNear(G.current, e.x, e.z); spawnPickup('blackSoul', p.x, p.z, { rise: true });

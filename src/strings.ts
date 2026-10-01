@@ -175,7 +175,19 @@ export const STR = {
   /** Reactions name themselves in the air; statuses as the training dummy lists them. */
   reactions: { shatter: 'Shatter', overload: 'Overload', eclipse: 'Eclipse', blackfire: 'Blackfire', steam: 'Steam' } as Record<string, string>,
   /** Over a foe struck by its weakness or its resistance, the first time (M4; GDD: Enemy affinities). */
-  foes: { weak: 'Weak', resists: 'Resists', drinks: 'Drinks it' },
+  foes: {
+    weak: 'Weak', resists: 'Resists', drinks: 'Drinks it',
+    /** Champion mantles (M4.7, actors/mantles.ts): the word over a stripped champion, the word when a mantle turns a
+        status, each mantle's name (risen over the champion as it comes) and its line the first time in a run. */
+    unbound: 'Unbound!', shrugs: 'Unmoved',
+    mantles: {
+      kindled: { name: 'Kindled', line: 'A Kindled champion: fire can\'t touch it, and it leaves the floor burning. Frost unbinds it.' },
+      rimebound: { name: 'Rimebound', line: 'A Rimebound champion: cold can\'t touch it, and its blows chill. Fire unbinds it.' },
+      stormcharged: { name: 'Stormcharged', line: 'A Stormcharged champion: strike it and the floor under you sparks. Frost unbinds it.' },
+      hallowed: { name: 'Hallowed', line: 'A Hallowed champion mends the foes round it. Darkness unbinds it.' },
+      hexbound: { name: 'Hexbound', line: 'A Hexbound champion: its shots drink mana, and it curses the ground it falls on. Holy light unbinds it.' },
+    } as Record<string, { name: string; line: string }>,
+  },
   /** Grimoire pages: the question a page asks when both slots are full, and what's left behind. */
   pages: {
     ask: (name: string) => `Learn ${name} in place of`,
@@ -455,6 +467,7 @@ export const STR = {
     pools: 'Water and oil (this room)', ignite: 'Set the oil alight', freezeWater: 'Freeze the water', shockWater: 'Shock the water',
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
     foes: 'Foes (they leave the doors open)', championHeavy: 'A champion of this floor\'s heavies',
+    mantles: 'A champion of this floor\'s heavies, in a mantle (M4.7; the school that strips it unbinds it):',
     afflictions: 'Afflictions (each shows its chip beside the mana bar)', afflictNames: { hexed: 'A hexing blow', chill: 'Chill', stone: 'Heavy as stone', dim: 'Dimmed sight', hints: 'Their lines again' },
     wardFoe: 'Ward the nearest foe (it drinks spells)', fennex: 'Fen-Nex', growFennex: 'Grow Fen-Nex a stage', noFennex: 'Fen-Nex is not bound (take the Rune of Fen-Nex)', wanderer: 'The Wandering Merchant, here', noFoe: 'No foe in the room',
     foesOfFloor: (floor: number) => floor ? `Floor ${floor}'s foes, built in code:` : 'The Wardlings, let out by drinking wards:', foesAsFloor: 'Fights: each floor\'s own foes', foeEverywhere: (name: string) => `Fights: ${name} in every one`,

@@ -13,13 +13,15 @@ import { hurtPlayer } from '../combat/damage';
 import { onWaveCleared } from '../flow';
 import { angleLerp } from '../util';
 import { afterBossMove, buildBoss, updateBoss } from './bosses';
-import { canAct, speedFactor } from '../magic/status';
+import { MAGIC, canAct, speedFactor } from '../magic/status';
 import { statusTint } from '../magic/statusFx';
 import { mantleShields } from '../magic/shapes';
 import { wadeAt } from '../world/pools';
 import { saltHolds } from '../combat/familiars';
 import { packOf, songHaste } from './bestiaryFoes';
 import { clearSteam } from '../magic/steam';
+import { giveMantle } from './mantles';
+import type { MantleId } from './mantleData';
 
 export function stdMat(color: number, extra: THREE.MeshStandardMaterialParameters = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: .85, flatShading: true, ...extra });
@@ -30,7 +32,7 @@ export function stdMat(color: number, extra: THREE.MeshStandardMaterialParameter
    tests' target) and the training dummy (the dev menu's: it stands still and never falls). */
 /** Spawn an enemy. `hpMul` scales health (deeper floors); `boss` tunes the floor's boss; a champion
     (champion rooms) is bigger, glows, has more health and moves a little faster. */
-export function makeEnemy(type: FoeType, x: number, z: number, hpMul = 1, boss?: BossConfig, opts: { champion?: boolean } = {}) {
+export function makeEnemy(type: FoeType, x: number, z: number, hpMul = 1, boss?: BossConfig, opts: { champion?: boolean; mantle?: MantleId } = {}) {
   const def = isFoe(type) ? FOES[type] : undefined, C = def ?? CFG.enemy[type as EnemyType], CH = CFG.champion;
   const hp = C.hp * hpMul * (boss?.hpMul ?? 1) * (opts.champion ? CH.hpMul : 1);
   const e: Enemy = {
@@ -64,6 +66,7 @@ export function makeEnemy(type: FoeType, x: number, z: number, hpMul = 1, boss?:
   if (opts.champion) { // an ember glow in the body and a pulsing aura around it
     for (const m of e.mats) { m.userData.base = new THREE.Color(CH.tint); m.emissive.set(CH.tint); }
     e.aura = glow(CH.aura, 1.6, .5); e.aura.position.y = .5; e.group.add(e.aura);
+    if (opts.mantle) giveMantle(e, opts.mantle); // (M4.7: in its school's light)
   }
   e.group.add(blob(e.shadow ?? C.r * 3)); e.group.position.set(e.x, 0, e.z); e.group.scale.setScalar(.01); scene.add(e.group);
   G.enemies.push(e); return e;
@@ -71,7 +74,7 @@ export function makeEnemy(type: FoeType, x: number, z: number, hpMul = 1, boss?:
 
 /** Spawn foe `type` at (x, z) as makeEnemy does, or, for one that comes in a pack (M4.5: a firefly swarm), the whole pack
     round it, sharing one mind; returns the first. `roll` (0 to 1) sizes the pack: a room's fights pass one from its seed. */
-export function spawnFoe(type: FoeType, x: number, z: number, hpMul = 1, opts: { champion?: boolean } = {}, roll: () => number = Math.random) {
+export function spawnFoe(type: FoeType, x: number, z: number, hpMul = 1, opts: { champion?: boolean; mantle?: MantleId } = {}, roll: () => number = Math.random) {
   const pack = isFoe(type) ? FOES[type].pack : undefined;
   if (!pack) return makeEnemy(type, x, z, hpMul, undefined, opts);
   const n = pack[0] + Math.floor(roll() * (pack[1] - pack[0] + 1));
@@ -126,7 +129,7 @@ export function updateEnemies(dt: number) {
     }
     // contact damage (not from a boss under the floor or in the air, nor from a foe frozen in ice or stunned, nor
     // through the Static Mantle)
-    if (!e.hidden && acts && e.contact && Math.hypot(player.x - e.x, player.z - e.z) < player.r + e.r * .9 && !mantleShields(e)) hurtPlayer(e.contact, e.x, e.z);
+    if (!e.hidden && acts && e.contact && Math.hypot(player.x - e.x, player.z - e.z) < player.r + e.r * .9 && !mantleShields(e) && hurtPlayer(e.contact, e.x, e.z) && e.mantle === 'rimebound') player.chill = Math.max(player.chill, MAGIC.mantles.rimebound.chill); // (M4.7: a Rimebound touch chills)
   }
   // keep walkers from stacking
   const es = G.enemies;

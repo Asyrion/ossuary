@@ -39,7 +39,7 @@ import { glow } from '../render/materials';
 import { scene } from '../render/renderer';
 import { glowTex } from '../render/textures';
 import { burst } from '../combat/fx';
-import { spawnShot } from '../combat/projectiles';
+import { shotsBy, spawnShot } from '../combat/projectiles';
 import { addSpores } from '../world/props';
 import { addPool, fireAt, frostAt, poolAt, shockAt } from '../world/pools';
 import { ringFx, strikeFx } from '../magic/spellFx';
@@ -82,7 +82,8 @@ export function buildFoe(e: Enemy, def: FoeDef) {
 /** One step of foe `e` (it can act): its behaviour, then its idle, then the parts its behaviour poses; returns where it
     faces. */
 export function updateFoe(e: Enemy, dt: number, a: Aim) {
-  const def = e.foe!, B = BEHAVIOURS[def.behaviour], face = B.step(e, dt, a, def.params, G.current);
+  const def = e.foe!, B = BEHAVIOURS[def.behaviour];
+  shotsBy(e); const face = B.step(e, dt, a, def.params, G.current); shotsBy(); // (what it shoots carries its mantle, M4.7)
   e.at! += dt * (e.animRate ?? 1);
   e.idle!(e.at!); B.pose?.(e, def.params);
   return face;

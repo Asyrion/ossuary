@@ -26,6 +26,8 @@ import { ringFx, strikeFx } from './spellFx';
 import { breakPlate } from '../actors/bosses';
 import { foeAfflicted } from '../actors/foes';
 import { steamAt } from './steam';
+import { mantleImmune, stripsMantle } from '../actors/mantleData';
+import { shrugOff, unbind } from '../actors/mantles';
 
 const R = MAGIC.reactions;
 const ICE = 0xbfe6ff, FIRE = 0xff7a2a, SPARK = 0xf0e890, GOLD = SCHOOL_LIGHT.hallow, VIOLET = SCHOOL_LIGHT.umbral, BLACKFIRE = 0x8a3ae0, STEAM = 0xe8f2f8;
@@ -35,6 +37,10 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
   if (!status || e.dead || e.ward) return; // (M4.2: a drinking ward keeps statuses off the foe inside it)
   for (const [kind, amount] of Object.entries(status) as [SpellStatus, number][]) {
     if (e.dead) return;
+    if (e.mantle) { // (M4.7: a champion's mantle keeps its own school's status off, and the school that strips it unbinds it)
+      if (mantleImmune(e.mantle, kind)) { shrugOff(e); continue; }
+      if (stripsMantle(e.mantle, kind)) unbind(e);
+    }
     if (kind === 'shock' && e.plates && (e.status?.chill ?? 0) >= MAGIC.chill.bossMaxStacks) { e.status!.chill = 0; react(e, 'shatter'); breakPlate(e); continue; } // (M4.2: a shock on the War-Tiger's rimed plates shatters one)
     if (drinksStatus(e.foe, kind)) { // (M4.5: an elemental drinks its own school's status; the ground under it still hears it)
       drink(e, amount * CFG.bestiary.statusHeal); foeAfflicted(e, kind); if ((STATUS_KINDS as string[]).includes(kind)) touchPools(e, kind as StatusKind); continue;

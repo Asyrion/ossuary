@@ -170,6 +170,9 @@ const sounds = {
   gong() { tone('sine', 98, 98, 1.6, .14); tone('sine', 196, 194, 1, .06); tone('triangle', 263, 260, .6, .03); hiss(.4, .05, 'bandpass', 600); },
   darkness() { hiss(1, .07, 'lowpass', 400); tone('sine', 180, 120, 1, .03); },
   champion() { tone('sawtooth', 80, 60, .5, .08); hiss(.4, .06, 'lowpass', 300); },
+  // champion mantles (M4.7): a mantle torn off (a snap and a falling chime), and a Hexbound's curse closing
+  unbound() { hiss(.18, .12, 'highpass', 2600); tone('triangle', 990, 330, .35, .06); tone('sine', 165, 110, .5, .08, .05); },
+  curse() { tone('sine', 140, 70, .7, .08); hiss(.6, .05, 'lowpass', 500); tone('sawtooth', 210, 190, .4, .02, .1); },
   bell() { tone('sine', 196, 196, 1.2, .12); tone('sine', 392, 392, .8, .05); tone('triangle', 588, 588, .5, .03); },
   // the foes built in code (M4): critters squeak and pop rather than groan; each attack's warning and its blow in the
   // palette of its school (Umbral: low, hollow, breathy)
