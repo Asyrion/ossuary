@@ -1644,10 +1644,10 @@ test('the inventory lists what the mage carries and knows, in tabs, and describe
   await expect(detail).toContainText('Spell damage ×1.5');
   await expect(detail.locator('.chip.bad')).toContainText('Hearts -1'); // its price
   // E turns to the spells: the two slots, then a book by school (a school opens with its first spell learned), with a
-  // sealed entry for each spell not met yet
+  // sealed entry for each spell not met yet; last, M4.8's wheel of the ten reactions
   await page.keyboard.press('KeyE');
-  await expect(tiles).toHaveCount(8);
-  await expect(page.locator('#invList .sec')).toHaveText(['Carried', 'Ember', 'Frost', 'Storm']);
+  await expect(tiles).toHaveCount(18);
+  await expect(page.locator('#invList .sec')).toHaveText(['Carried', 'Ember', 'Frost', 'Storm', 'Reactions']);
   await page.keyboard.press('ArrowRight');
   await expect(detail).toContainText('Pyre Seal');
   await expect(detail).toContainText('Ember spell');
@@ -3571,5 +3571,79 @@ test('rooms with a pair (M4.7): some fights roll two foes made to work together,
   expect(r).not.toBeNull();
   expect(r!.near).toBe(true);
   expect(r!.toast.length).toBeGreaterThan(10); // (its line)
+  expect(errors).toEqual([]);
+});
+
+test('the full wheel (M4.8): Searing opens a shut eye, a Prism splits a bolt in three, Verdict strikes every sanctified foe, Black Ice slides foes (not the mage) and fire melts it, a Void Spark carries hexes and its marked give mana; a shock through burning oil and a hex on holy ground react; the book\'s wheel fills in', async ({ page }) => {
+  type E = Foe & { hp: number; maxHp: number; state?: string; guard?: number; target?: { x: number; z: number }; slide?: unknown; status?: Record<string, number> };
+  type GW = Omit<GameHooks, 'enemies' | 'player'> & { enemies: E[]; player: GameHooks['player'] & { invuln: number }; clearRoom(): void; spawn(kind: string, x?: number, z?: number): E;
+    inflict(s: Record<string, number>): void; hit(i: number, dmg: number, school?: string, by?: string): number; reaction(r: string, x?: number, z?: number): number[];
+    reactions: string[]; forgetReactions(): void; bolts: { secondary: boolean }[]; spellFx: { strikes: number }; mana(v?: number): number; learn(id: string, slot: number): void;
+    cast(slot: number): boolean; layGround(kind: string, x: number, z: number, by?: string): void; foeGround(i: number): { slide: boolean }; ground: Record<string, number>;
+    burn(x: number, z: number, r?: number): void; steamAt(x: number, z: number): void; element(kind: string, x: number, z: number): void;
+    pool(what: string): void; pools: { kind: string; state: string; tiles: { x: number; z: number }[] }[] };
+  const errors = await start(page, '?seed=K3F9QX&room=great_hall&variant=quiet');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GW }).__game, P = g.player; P.maxHp = P.hp = 99; P.invuln = 999; g.warp(1); g.sim(.6); g.clearRoom(); g.sim(.3); g.forgetReactions();
+    const at = (e: E) => g.enemies.indexOf(e), fresh = () => { g.clearRoom(); g.sim(.1); };
+    // Searing: a shut Radiant Eye turns half a blow; seared, a full one
+    const eye = g.spawn('radiantEye', P.x + 3, P.z - 1); g.sim(.8); eye.hp = eye.maxHp = 200;
+    let h = eye.hp; g.hit(at(eye), 10); const shutTook = h - eye.hp, shut = eye.state === 'shut';
+    g.inflict({ sanct: 3 }); g.inflict({ burn: 4 }); const seared = eye.status?.seared ?? 0;
+    eye.state = 'shut'; eye.guard = .5; h = eye.hp; g.hit(at(eye), 10); const searedTook = h - eye.hp;
+    // the eye, open, loses the mage behind steam: it strikes where they last showed
+    eye.status = undefined; eye.state = 'track'; (eye as { st?: number }).st = 5; eye.target = undefined; g.sim(.05); const was = { ...eye.target! };
+    g.steamAt((eye.x + P.x) / 2, (eye.z + P.z) / 2); P.x += 1.5; g.sim(.1); const lost = Math.hypot(eye.target!.x - was.x, eye.target!.z - was.z) < .01; P.x -= 1.5;
+    fresh();
+    // Prism: frozen in holy light, a dummy splits the cantrip in three
+    const prismAt = g.reaction('prism', P.x, P.z - 3)[0], prism = (g.enemies[prismAt].status?.prism ?? 0) > 0;
+    g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); for (let k = 0; k < 20 && !g.bolts.length; k++) g.sim(.02); g.keys.delete('ArrowUp'); g.arrowOrder.length = 0; // (one bolt)
+    let split = 0; for (let k = 0; k < 40 && !split; k++) { g.sim(.02); split = g.bolts.filter(b => b.secondary).length; }
+    fresh();
+    // Verdict: three sanctified, one shocked: lightning on all three
+    const s0 = g.spellFx.strikes, vd = g.reaction('verdict'), stunned = vd.filter(i => (g.enemies[i].status?.stun ?? 0) > 0).length, strikes = g.spellFx.strikes - s0;
+    fresh();
+    // Black Ice: under a chilled foe hexed; a walker on it slides, the mage crosses it at full speed, fire melts it
+    g.reaction('blackice', P.x, P.z - 3); const black = g.ground.blackice; fresh();
+    const walker = g.spawn('runeBeetle', P.x + 2, P.z - 3); g.sim(.8); g.layGround('blackice', walker.x, walker.z); g.sim(.1); const slides = g.foeGround(at(walker)).slide;
+    fresh(); const ice = { x: P.x, z: P.z - 1.2 }; g.layGround('blackice', ice.x, ice.z); const z0 = P.z; g.keys.add('KeyW'); g.sim(.6); g.keys.delete('KeyW'); const walked = z0 - P.z;
+    g.burn(ice.x, ice.z, .5); g.sim(.1); const melted = g.ground.blackice;
+    fresh();
+    // Void Spark: hexed, shocked: the spark leaps, carrying a hex; a marked foe falling gives mana
+    const vs = g.reaction('voidspark'), carried = vs.slice(1).filter(i => (g.enemies[i].status?.hex ?? 0) > 0 && (g.enemies[i].status?.voidT ?? 0) > 0).length;
+    fresh(); const marked = g.spawn('rotling', P.x + 2, P.z - 2); g.sim(.8); g.inflict({ shock: 1 }); marked.status!.voidT = 4; g.mana(0); g.hit(at(marked), 999); const mana = g.mana();
+    fresh();
+    // a hex on Consecrate's holy ground: everyone standing in it under a black sun
+    g.learn('consecrate', 0); g.mana(999); const a = g.spawn('rotling', P.x + .8, P.z), b = g.spawn('rotling', P.x - .8, P.z); g.sim(.8); a.hp = b.hp = 99;
+    g.cast(0); g.sim(.2); g.element('hex', P.x, P.z); g.sim(.05);
+    const eclipsed = [a, b].filter(e => (e.status?.eclipse ?? 0) > 0).length;
+    return { shut, shutTook, seared, searedTook, lost, prism, split, stunned, strikes, black, slides, walked, melted, carried, mana, eclipsed, found: g.reactions };
+  });
+  expect(r.shut).toBe(true); expect(r.seared).toBeGreaterThan(0); expect(r.searedTook).toBeCloseTo(r.shutTook * 2, 1);
+  expect(r.lost).toBe(true);
+  expect(r.prism).toBe(true); expect(r.split).toBe(3);
+  expect(r.stunned).toBe(3); expect(r.strikes).toBeGreaterThanOrEqual(3);
+  expect(r.black).toBe(1); expect(r.slides).toBe(true); expect(r.walked).toBeGreaterThan(1.2); expect(r.melted).toBe(0);
+  expect(r.carried).toBe(2); expect(r.mana).toBeGreaterThanOrEqual(6);
+  expect(r.eclipsed).toBe(2);
+  expect(r.found).toEqual(expect.arrayContaining(['searing', 'prism', 'verdict', 'blackice', 'voidspark', 'eclipse']));
+  // a shock through burning oil: an Overload at the pool's middle, the fire blown out
+  errors.push(...await start(page, '?seed=K3F9QX&room=oil_and_water'));
+  const oil = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GW }).__game; g.player.maxHp = g.player.hp = 99; g.warp(1); g.sim(.6); g.clearRoom(); g.sim(.3); g.forgetReactions();
+    const pool = g.pools.find(p => p.kind === 'oil')!, t = pool.tiles[0];
+    g.burn(t.x, t.z, .3); g.sim(.2); const lit = g.pools.find(p => p.kind === 'oil')!.state;
+    g.pool('shock'); g.sim(.05); // (a shock run through every pool in the room)
+    return { lit, after: g.pools.find(p => p.kind === 'oil')!.state, found: g.reactions };
+  });
+  expect(oil).toEqual({ lit: 'burning', after: 'spent', found: ['overload'] });
+  // the book: a wheel of every pair, the ones found lit
+  await page.evaluate(() => { const g = (window as unknown as { __game: GW }).__game; g.learn('arc', 0); });
+  await page.keyboard.press('i'); await page.keyboard.press('e');
+  const tiles = page.locator('#invList .tile');
+  await tiles.nth(await tiles.count() - 9).click(); // (the wheel's second entry: Overload)
+  await expect(page.locator('#invDetail h3')).toHaveText('Overload');
+  await expect(page.locator('#invDetail .wheel svg line')).toHaveCount(10);
+  await page.keyboard.press('Escape');
   expect(errors).toEqual([]);
 });

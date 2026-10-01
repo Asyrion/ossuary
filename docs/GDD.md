@@ -384,6 +384,11 @@ pollen, a wall of living wood. Its sound: wood and breath, reeds and seed pods.
 | Ember + Storm | Overload: small explosion, knockback |
 | Hallow + Umbral | Eclipse: the enemy is removed from the fight for 3 s, then takes all stored damage |
 | Umbral + Ember | Blackfire: burn that never goes out until the enemy dies |
+| Ember + Hallow | Searing: the foe's guard burnt away a while (built, M4.8) |
+| Frost + Hallow | Prism: a frozen, sanctified foe splits the cantrip in three (built, M4.8) |
+| Storm + Hallow | Verdict: lightning on every sanctified foe in the room (built, M4.8) |
+| Frost + Umbral | Black Ice: ice under the foe where walkers slide and can't stop (built, M4.8) |
+| Storm + Umbral | Void Spark: a spark that leaps, carrying a hex; each it marks gives mana as it falls (built, M4.8) |
 
 **Hallow and Umbral as built (M4.1).** Sanctified: for a few seconds the foe takes a quarter more damage from everything
 and nothing heals it. Hex: stacks (up to five) that fade a while after the last; each blow the mage lands on a hexed foe
@@ -399,6 +404,25 @@ on still water boils a little. Foes inside the cloud can't aim (their shots go u
 the mage through it: the Basilisk's stare, the Radiant Eye's ray and a watching statue's charge all lose it. Water under
 it is scalded and what hides there comes up. `src/magic/steam.ts`; tuning in `data/magic.json`; the dev menu's Magic tab
 has "Steam ahead".
+
+**The full wheel as built (M4.8).** Every pair of the five schools reacts, on a foe and, for three of them, on the floor.
+Searing (a burning foe sanctified, or a sanctified one set burning): struck for 4 in holy fire, and for 4 s its guard is
+gone, so shut shells, lids, clay and a lit Hearth Golem take full blows (one rule in `damageEnemy`); a War-Tiger loses a
+plate at once. Prism (a frozen foe sanctified, or a sanctified one frozen): while the ice holds it glints every colour,
+and each cantrip bolt that strikes it breaks into three of the rainbow's colours, one on and one 24° to either side, each
+at 70% for 4.5 tiles. Verdict (a sanctified foe shocked, or a shocked one sanctified): lightning falls on it and on every
+other sanctified foe in the room, each struck for 8 and stunned for half a second. Black Ice (a chilled or frozen foe
+hexed, or a hexed one chilled): a glassy violet-black patch 1.15 tiles across for 7 s; every walking foe on it slides,
+its grip a fifth of rime's, so it can hardly turn or stop; the mage crosses it at full speed, and fire melts it. Void
+Spark (a hexed foe shocked, or a shocked one hexed): the spark leaps to the three foes nearest within 3.4 tiles, striking
+each for 4 and laying a hex stack on it, and marks them for 5 s; a marked foe that falls gives 6 mana. On the floor, a
+shock through burning oil is an Overload at the pool's middle that blows the fire out, and a hex landing on Consecrate's
+holy ground (Grasp of the Grave's hands, a hexing bolt crossing it, a hex on a foe standing in it) darkens the ground at
+once and takes everyone standing in it under a black sun. The first time ever a reaction goes off its name rises larger;
+the spells tab's book ends with the wheel: an entry for each pair, lit once found (kept between runs in the browser,
+`ossuary.reactions`), its chord drawn on a wheel of the schools whose sixth spoke, Verdant's, is sealed until M5. A
+spell's panel marks the reactions it can set off that are not found yet. The dev menu's Magic tab has "Reactions here"
+(each set off on training dummies ahead) and finds or forgets them; tuning in `data/magic.json`.
 
 **Rooms react to magic.** Oil puddles ignite, water conducts shock across the whole puddle, braziers lit by Ember empower Ember spells in that room, cobwebs burn away to open shortcuts, gravestones can be shattered by Frost. This is the main systemic difference from Isaac and gives room templates a second purpose.
 
@@ -1168,7 +1192,7 @@ Audio is designed for headphones first: every sound has a position in the room, 
 | Hallow | Bells, choir, warm tones | Single bell | Choir pad | Bright chord | Low hum |
 | Umbral | Whispers, reversed sounds, sub-bass | Reversed breath | Whispering trail | Deep thud | Faint whisper on hexed enemies |
 
-Reactions (steam, shatter, overload, eclipse, blackfire) each get their own signature sound, louder than a normal hit, so a combo feels like a reward.
+Reactions (steam, shatter, overload, eclipse, blackfire; M4.8's searing, prism, verdict, black ice and void spark) each get their own signature sound, louder than a normal hit, so a combo feels like a reward.
 
 **Other effect families**
 
@@ -1293,8 +1317,8 @@ tools/             prepare-asset script
 After M4.5 the owner asked for a review of the recent work, for open ends in its mechanics and balance, and for ideas
 that add depth to what is already in the game. The fixes are in Combat and enemies (The review of 2026-10-01). What is
 left open, and the milestones that deepen the systems already built rather than adding new ones, follow. The owner
-approved M4.7 on 2026-10-01 and it was built the same day (M4.7 as built, below); M4.8 to M4.10 wait on their yes, and
-their place in the order is the owner's to move (before or after M4.6).
+approved M4.7 on 2026-10-01 and it was built the same day (M4.7 as built, below), then asked for M4.8 to M4.10 to follow
+(2026-10-01); M4.8 is built (The full wheel as built, in Magic system).
 
 **The open ends, and the owner's answers (2026-10-01).** The review measured six; the owner answered each.
 
@@ -1362,7 +1386,7 @@ something the mage learns, and makes foes part of the room, not only in it.
 
 ### M4.8 The full wheel: every pair of schools reacts
 
-Five schools make ten pairs; five react today (Shatter, Overload, Eclipse, Blackfire, and Steam since 2026-10-01). This
+**Built 2026-10-01**, as below (numbers in Magic system, The full wheel as built). Five schools make ten pairs; five reacted before it (Shatter, Overload, Eclipse, Blackfire, and Steam since 2026-10-01). This
 milestone builds the other five, so any two schools on a foe or a tile do something, and the mage learns them like spells. M5's Verdant
 brings three reactions of its own (with Ember, Frost and Storm); its pairs with Hallow and Umbral are left to design with
 it, so the wheel is whole again by M5's end.
@@ -1467,7 +1491,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4.5 Bestiary | A living dungeon | More critters, fantasy creatures and elementals built in code, and new kinds of enemy behaviour, spread over the floors; each drawn up as a look, chosen by the owner, then made a foe (Combat and enemies: The Bestiary; ideas in `docs/ideas.md`, decided 2026-09-30) |
 | M4.6 Costumes and transformations | You can see your build | Most artifacts wear a costume piece built in code; transformations when three artifacts of a kind are held, Boketto's look for the Stormcaller; Asyrion's arc from apprentice to chaos mage (Artifacts: Costumes and transformations; decided 2026-09-30, its place in the order the owner's to move) |
 | M4.7 Living foes | Foes you read and outwit | Champions wear a school's mantle that the opposite school strips; the ground foes leave works on foes as on the mage; counters found fill a Foes tab, kept between runs; rooms that roll a pair of foes made to work together (Depth for what's built; approved and built 2026-10-01, `docs/M4.7-plan.md`) |
-| M4.8 The full wheel | Every pair of schools reacts | Five new reactions (Searing, Prism, Verdict, Black Ice, Void Spark) beside Steam (built 2026-10-01), on foes and on tiles; reactions found mark the spell book's wheel (Depth for what's built; proposed 2026-10-01, `docs/M4.8-plan.md`) |
+| M4.8 The full wheel | Every pair of schools reacts | Five new reactions (Searing, Prism, Verdict, Black Ice, Void Spark) beside Steam, on foes and on tiles; reactions found mark the spell book's wheel (Depth for what's built; built 2026-10-01, `docs/M4.8-plan.md`) |
 | M4.9 The curve | Harder for the right reasons | Pressure dials per floor in data; libraries and merchants lean to the floor's weakness; a hex's drain traced to its foe; the sluice for water rooms; `npm run balance` measuring every foe (Depth for what's built; proposed 2026-10-01, `docs/M4.9-plan.md`) |
 | M4.10 Weaves | Combinations beyond pairs | Ten weaves (a spell striking what another left: the Steam Curtain, the Overload Seal, Eclipse Ground...), seven chains (a reaction's leavings met by a third school: Thundercloud, Incense, Miasma...), the room's mechanisms joining in; Verdant's Bloom and Blight designed for M5 (Depth for what's built; proposed 2026-10-01 at the owner's ask, `docs/M4.10-plan.md`) |
 | M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |

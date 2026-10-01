@@ -164,16 +164,33 @@ export const STR = {
     sealedText: (school: string) => `A ${school} spell you have not come across. Libraries, bosses and now and then a fight leave pages.`,
     notCarried: 'Known, but not in a slot. A page of it, or a library, puts it back.',
     sets: 'What it sets off',
+    /** The book's wheel of reactions (M4.8): every pair of schools, found or not yet. */
+    wheel: 'Reactions',
+    pair: (a: string, b: string) => `${a} and ${b}`,
+    unfound: 'Not yet found',
+    unfoundText: (a: string, b: string) => `What ${a} and ${b} do when they meet on one foe. Set them off together to find out.`,
+    foundOf: (n: number, of: number) => `${n} of ${of} reactions found. The sixth school's spoke is sealed.`,
+    notFound: 'not yet found',
+    /** Where a reaction happens besides on a foe (M4.8's tile reactions). */
+    onTiles: { steam: 'Fire on frozen water, or frost on burning oil, sets it off too.', overload: 'A shock through burning oil sets it off too, blowing the fire out.', eclipse: 'A hex on Consecrate\'s holy ground sets it off on all who stand in it, and the ground goes dark.' } as Record<string, string>,
     /** A reaction the spell can set off, with the school whose status completes it. */
     reaction: (name: string, school: string, what: string) => `${name}, with ${school}: ${what}`,
     reactionText: {
       shatter: 'a frozen foe shocked, or a shocked foe frozen, bursts into shards',
       overload: 'a burning foe shocked, or a shocked foe set alight, explodes',
+      eclipse: 'a sanctified foe hexed, or a hexed one sanctified, is taken under a black sun, then struck',
+      blackfire: 'a hexed foe set alight, or a burning one hexed, burns with a fire that never goes out',
+      steam: 'a chilled foe set alight, or a burning one chilled, goes up in steam: nothing inside can aim or see',
+      searing: 'a sanctified foe set alight, or a burning one sanctified, has its guard burnt away a while',
+      prism: 'a frozen foe sanctified, or a sanctified one frozen, splits the bolts that strike it in three',
+      verdict: 'a sanctified foe shocked, or a shocked one sanctified, calls lightning down on every sanctified foe',
+      blackice: 'a hexed foe chilled, or a chilled one hexed, lays black ice under it, where foes slide and can\'t stop',
+      voidspark: 'a hexed foe shocked, or a shocked one hexed, throws a spark that leaps, hexing; each it marks gives mana as it falls',
     } as Record<string, string>,
   },
   manaLabel: (mana: number, max: number) => `Mana ${Math.round(mana)} of ${max}`,
   /** Reactions name themselves in the air; statuses as the training dummy lists them. */
-  reactions: { shatter: 'Shatter', overload: 'Overload', eclipse: 'Eclipse', blackfire: 'Blackfire', steam: 'Steam' } as Record<string, string>,
+  reactions: { shatter: 'Shatter', overload: 'Overload', eclipse: 'Eclipse', blackfire: 'Blackfire', steam: 'Steam', searing: 'Searing', prism: 'Prism', verdict: 'Verdict', blackice: 'Black Ice', voidspark: 'Void Spark' } as Record<string, string>,
   /** Over a foe struck by its weakness or its resistance, the first time (M4; GDD: Enemy affinities). */
   foes: {
     weak: 'Weak', resists: 'Resists', drinks: 'Drinks it',
@@ -521,7 +538,8 @@ export const STR = {
     /** The on-screen readout: frame rate, and what the last frame drew. */
     frameInfo: (fps: number, calls: number, tris: number) => `${fps} fps · ${calls} draw calls · ${tris.toLocaleString('en')} triangles`,
     knowledge: 'Spell knowledge', knowAll: 'Know every spell', forgetKnowledge: 'Forget all knowledge',
-    knowledgeInfo: (seen: number, learned: number, used: number) => `Known: ${seen} seen, ${learned} learned, ${used} known well (kept between runs)`,
+    findReactions: 'Find every reaction', forgetReactions: 'Forget the reactions found', reactionsHere: 'Reactions here (on dummies ahead)',
+    knowledgeInfo: (seen: number, learned: number, used: number, reactions: number, of: number) => `Known: ${seen} seen, ${learned} learned, ${used} known well; ${reactions} of ${of} reactions found (kept between runs)`,
     /** On the HUD during play-tests, so the key isn't forgotten. */ hint: 'Dev menu: ` / ^ or F2',
     info: (seed: string, floor: number, room: number, type: string) => `Seed ${seed} · floor ${floor} · room ${room} (${type})`,
     mage: 'The mage', heal: 'Full heal', container: '+1 heart container', resetArtifacts: 'Reset artifacts',

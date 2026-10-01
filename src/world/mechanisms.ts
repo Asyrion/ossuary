@@ -38,7 +38,7 @@ import { glowTex } from '../render/textures';
 import { boxAt } from './collision';
 import { inflict } from '../magic/statusFx';
 import { newStatus } from '../magic/status';
-import { riseMote } from '../magic/shapes';
+import { hexGround, riseMote } from '../magic/shapes';
 import { ringFx, strikeFx } from '../magic/spellFx';
 import { SCHOOLS, elemental, type School, type SpellStatus, type StatusKind } from '../magic/spellData';
 import { LOOT, rollTable } from '../items/loot';
@@ -221,8 +221,9 @@ export function hallowAt(x: number, z: number, r = 0) {
   }
 }
 /** Darkness lands at (x, z) within `r` (M4.2: Grasp of the Grave's hands): a watching statue there is blinded, and an
-    obelisk warded in Umbral breaks its ward. */
+    obelisk warded in Umbral breaks its ward; on Consecrate's holy ground, the ground goes dark (M4.8). */
 export function umbralAt(x: number, z: number, r = 0) {
+  hexGround(x, z); // (M4.8: a hex on holy ground eclipses what stands in it)
   for (const box of G.current.props ?? []) {
     if (box.prop.kind === 'statue' && near(box, x, z, C.statue.umbralCatch + r)) blind(box);
     else if (box.prop.kind === 'obelisk' && box.prop.ward === 'umbral' && near(box, x, z, C.obelisk.catch + r)) breakWard(box);

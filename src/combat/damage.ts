@@ -38,7 +38,7 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   if (e.spawn > 0 || e.dead || e.hidden) return;
   if (e.ward && by === 'spell') { drinkBlow(e, dmg, school); return; } // (M4.2: its ward drinks the spells that strike it)
   if (e.glance && by === 'cantrip') { glance(e); return; } // (a Twin Guardian's shield turns bolts)
-  const raw = dmg * damageTakenMul(e.status) * (e.unbound ? MAGIC.unbound.damageMul : 1); dmg = raw * (e.guard ?? 1); // a frozen foe cracks; a shut mimic's clay turns half a blow
+  const raw = dmg * damageTakenMul(e.status) * (e.unbound ? MAGIC.unbound.damageMul : 1); dmg = raw * ((e.status?.seared ?? 0) > 0 ? 1 : e.guard ?? 1); // a frozen foe cracks; a shut mimic's clay turns half a blow, unless Searing burnt its guard away (M4.8)
   if (e.plates) wearPlates(e, raw - dmg); // (M4.2: the War-Tiger's plates turn most of it, and wear)
   const aff = affinityMul(e.foe ?? e.bossAff, school); // (the bosses of floors 4 and 5 have theirs too)
   if (aff < 0) { drink(e, -dmg * aff); return; } // (M4.5: an elemental drinks its own school)
@@ -86,6 +86,7 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
   if (e.foe) { burst(e.x, .5, e.z, SCHOOL_LIGHT[e.foe.school], 10, 2.2, .04); foeDied(e); } // (its school's light goes out of it; what it leaves behind)
   if (e.mantle) mantleFell(e); // (M4.7: a Hexbound champion's curse)
   if (e.toll) payToll(e); // marked by the Ferryman's Toll: it pays in obols, and its hex spreads
+  if ((e.status?.voidT ?? 0) > 0) { gainMana(MAGIC.reactions.voidspark.mana); burst(e.x, 1, e.z, SCHOOL_LIGHT.umbral, 8, 1.8, .04); } // (M4.8: a Void Spark's mark gives back mana as it falls)
   if (hexed >= MAGIC.hex.soulAt && e.type !== 'dummy' && G.run.drops.chance(Math.min(1, CFG.souls.hexChance * soulsHere()))) { // deep in a hex, its soul stays: a black mote
     const p = freeSpotNear(G.current, e.x, e.z); spawnPickup('blackSoul', p.x, p.z, { rise: true });
   }

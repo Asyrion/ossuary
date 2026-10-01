@@ -27,13 +27,14 @@ import { detonateGlyph, glyphNear } from './glyphs';
 import { burst } from './fx';
 import { GILT_COLOR, type BoltPath } from '../items/artifactData';
 import type { SpellStatus } from '../magic/spellData';
-import { inflict } from '../magic/statusFx';
+import { RAINBOW, inflict } from '../magic/statusFx';
 import { fireAt, frostAt } from '../world/pools';
 import { animateBolt, boltLook, impactFx } from '../magic/spellFx';
 import { gainMana } from '../magic/spells';
 import { hexDrained } from '../ui/afflictions';
 import { inSteam } from '../magic/steam';
 import { MAGIC } from '../magic/status';
+import { hexGround } from '../magic/shapes';
 import { actor } from '../actors/acting';
 
 const BLESSED = 0xfff0b0; // a blessed cast's gold
@@ -125,7 +126,7 @@ export function spawnBurst(x: number, z: number, count: number, offsetAngle = 0)
 /** A single lesser bolt from (x, z) along (dx, dz): the Cracked Mirror's halves, the Candle Moth's sting. */
 export function fireSecondary(x: number, z: number, dx: number, dz: number, o: { damage: number; range: number; scale: number; color: number; speed?: number }) {
   const l = Math.hypot(dx, dz) || 1, v = o.speed ?? player.stats.shotSpeed;
-  makeBolt({ x, z, vx: dx / l * v, vz: dz / l * v, damage: o.damage, range: o.range, scale: o.scale, color: o.color, path: 'straight', pierce: 0, bounces: 0, secondary: true });
+  return makeBolt({ x, z, vx: dx / l * v, vz: dz / l * v, damage: o.damage, range: o.range, scale: o.scale, color: o.color, path: 'straight', pierce: 0, bounces: 0, secondary: true });
 }
 
 /** A spell's bolt from (x, z) along (dx, dz): Rime Shards' splinters, Shatter's shards. It strikes as a spell
@@ -236,6 +237,7 @@ export function updateBolts(dt: number) {
       if (Math.hypot(b.x - e.x, b.z - e.z) >= e.r + b.r || Math.abs(b.y - ey) >= 1.4) continue;
       // the Stormglass Pendant: the cantrip strikes a shocked foe harder
       const glass = !b.spell && player.stats.effects.has('stormglass') && (e.status?.shock ?? 0) > 0;
+      const prism = !b.spell && !b.secondary && (e.status?.prism ?? 0) > 0; // (M4.8: a foe frozen in holy light, before the blow cracks it)
       damageEnemy(e, b.damage * (glass ? CFG.artifacts.stormglass.mul : 1), b.vx / b.speed, b.vz / b.speed, b.spell ? .3 : player.stats.knockback, b.spell ? 'spell' : 'cantrip', schoolOf(b.status));
       if (glass) burst(e.x, .8, e.z, 0xf0e890, 6, 2.2, .03);
       b.hit.add(e);
@@ -247,9 +249,18 @@ export function updateBolts(dt: number) {
         const S = CFG.artifacts.split, base = Math.atan2(b.vz, b.vx);
         for (const sgn of [-1, 1]) {
           const a = base + sgn * S.angle, sx = e.x + Math.cos(a) * (e.r + .2), sz = e.z + Math.sin(a) * (e.r + .2);
-          fireSecondary(sx, sz, Math.cos(a), Math.sin(a), { damage: b.damage * S.damageMul, range: S.range, scale: player.stats.boltScale * .7, color: b.color });
+          fireSecondary(sx, sz, Math.cos(a), Math.sin(a), { damage: b.damage * S.damageMul, range: S.range, scale: player.stats.boltScale * .7, color: b.color }).hit.add(e); // (not the foe it split from, knocked into them)
         }
         burst(e.x, .6, e.z, 0xc8e0e8, 5, 1.6, .03);
+      }
+      // a Prism (M4.8, Frost and Hallow) breaks the cantrip into three, one each way and one on, in the colours of the rainbow
+      if (prism) {
+        const P = MAGIC.reactions.prism, base = Math.atan2(b.vz, b.vx);
+        [-P.angle, 0, P.angle].forEach((d, i) => {
+          const a = base + d, sx = e.x + Math.cos(a) * (e.r + .2), sz = e.z + Math.sin(a) * (e.r + .2);
+          fireSecondary(sx, sz, Math.cos(a), Math.sin(a), { damage: b.damage * P.damageMul, range: P.range, scale: player.stats.boltScale * .75, color: RAINBOW[i * 2] }).hit.add(e);
+        });
+        burst(e.x, .8, e.z, 0xffffff, 6, 1.8, .03); Sfx.at(e.x, e.z).prism();
       }
       if (b.path === 'boomerang') continue;
       if (b.pierce > 0) { b.pierce--; continue; }
@@ -263,6 +274,7 @@ export function updateBolts(dt: number) {
       if (gl) { detonateGlyph(gl); if (b.path !== 'boomerang') kill = true; }
     }
     if (b.status?.chill) frostAt(b.x, b.z); // a frost bolt freezes the water it flies over
+    if (b.status?.hex) hexGround(b.x, b.z); // a hexing bolt over Consecrate's holy ground darkens it (M4.8)
     b.mesh.position.set(b.x, b.y, b.z); b.mesh.children[2].position.y = -b.y + .015; animateBolt(b.mesh, b.x - ox, b.z - oz, dt);
     if (kill) removeBolt(i);
   }

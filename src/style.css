@@ -208,6 +208,9 @@ body.touch.portrait #rotate{display:flex}
 .invDetail .chip.st-burn{color:#ffa060}.invDetail .chip.st-chill{color:#9fd8ff}.invDetail .chip.st-shock{color:#f0e890}
 .invDetail .lbl{margin:4px 0 6px;font:500 12px var(--f-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)}
 .invDetail .note{margin:0 0 8px;font:14px/1.4 var(--f-ui);color:var(--ink-dim);max-width:none}
+.invDetail .note.dim{opacity:.6;font-style:italic}
+.invDetail .wheel{margin:4px 0 10px;display:flex;justify-content:center}
+.invDetail .wheel svg{width:min(220px,100%);height:auto}
 .invDetail .lore{margin:10px 0 0;padding-top:10px;border-top:1px solid var(--line);font:italic 15px/1.45 var(--f-serif);color:var(--ink-dim);max-width:none}
 .card.inv p.invHint{margin:10px 0 0;max-width:none}
 @media (max-width:760px){.invBody{grid-template-columns:1fr;grid-template-rows:auto 1fr}.invList{max-height:180px}}
@@ -223,5 +226,6 @@ body.touch.portrait #rotate{display:flex}
 .pagePanel .chips{margin-bottom:6px;gap:4px}
 .pagePanel .chip{font-size:12px;padding:2px 6px}
 .pagePanel .note{font-size:13px;margin-bottom:4px}
+.pagePanel .note.dim{opacity:.6;font-style:italic}
 .pagePanel .lbl{font-size:11px;margin:4px 0 3px}
 .pagePanel .lore{font-size:13px;margin-top:6px;padding-top:6px}

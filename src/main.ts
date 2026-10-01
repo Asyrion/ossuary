@@ -61,8 +61,10 @@ import { callWanderer, wandererState } from './items/wanderer';
 import { dragonInfo } from './actors/pillarDragon';
 import { fennexInfo, growFennex } from './combat/fennex';
 import { fullness, mostDrunk } from './magic/drinking';
-import { forgetKnowledge, knowledgeNow, setStage } from './magic/memory';
-import type { Stage } from './magic/knowledge';
+import { findEveryReaction, forgetKnowledge, forgetReactions, knowledgeNow, reactionsFound, setStage } from './magic/memory';
+import { REACTION_IDS, type Stage } from './magic/knowledge';
+import { setOffReaction } from './magic/reactionTest';
+import type { Reaction } from './magic/status';
 import type { PropKind } from './world/propData';
 import { FOE_IDS, isFoe, type FoeType, type School } from './actors/foeData';
 import { bestiary, forgetBestiary } from './actors/bestiary';
@@ -233,13 +235,16 @@ function installDevHooks() {
     /** Spell knowledge (M3.7): every spell's stage; bring one to a stage; forget everything (kept between runs). */
     get knowledge() { return knowledgeNow(); },
     know: (id: string, stage: Stage) => setStage(id, stage), forgetKnowledge: () => forgetKnowledge(),
+    /** The reactions found (M4.8's codex, kept between runs); find them all or forget them; set one off on dummies ahead. */
+    get reactions() { return [...reactionsFound()]; }, findReactions: () => findEveryReaction(REACTION_IDS), forgetReactions: () => forgetReactions(),
+    reaction: (r: Reaction, x = player.x, z = player.z - 3) => setOffReaction(r, x, z).map(d => G.enemies.indexOf(d)),
     /** The spell whose panel shows over a page near the mage, and the panel's text. */
     get pagePanel() { return { spell: pagePanelSpell(), text: document.getElementById('pagePanel')?.classList.contains('on') ? document.getElementById('pagePanel')!.textContent : '' }; },
     /** Spawn a foe (e.g. 'dummy', the training dummy) at (x, z), or ahead of the mage; put statuses on every
         foe in the room, e.g. inflict({ burn: 3 }). */
     spawn(kind: FoeType, x = player.x, z = player.z - 2.5) { return spawnFoe(kind, x, z, 1); }, // (a swarm comes whole)
     champion(kind: FoeType, mantle?: MantleId, x = player.x, z = player.z - 2.5) { return makeEnemy(kind, x, z, 1, undefined, { champion: true, mantle }); }, // (M4.7: a champion, in a mantle if named)
-    layGround(kind: 'web' | 'ink' | 'rime' | 'fire' | 'spark' | 'spores', x: number, z: number, by?: string) { layDevGround(kind, x, z, by); }, // (M4.7: ground left by a foe of kind `by`)
+    layGround(kind: 'web' | 'ink' | 'rime' | 'blackice' | 'fire' | 'spark' | 'spores', x: number, z: number, by?: string) { layDevGround(kind, x, z, by); }, // (M4.7: ground left by a foe of kind `by`)
     foeGround(i: number) { const e = G.enemies[i]; return e && { pace: groundPace(e), at: e.inGround, slide: !!e.slide }; }, // (M4.7: what the ground under foe i does to it)
     /** Strike the room's foe `i` for `dmg`, of `school` if given (M4: its weakness and resistance count). */
     hit: (i: number, dmg: number, school?: School, by: 'spell' | 'cantrip' = 'spell', dx = 0, dz = 0) => { const e = G.enemies[i]; if (e) damageEnemy(e, dmg, dx, dz, 0, by, school); return e?.hp; }, // (dx, dz: the way the blow travels)
@@ -249,7 +254,7 @@ function installDevHooks() {
     get burningGround() { return burningGround(); }, get sparkGround() { return sparkGround(); },
     get steam() { return steamCount(); }, steamAt(x: number, z: number) { steamAt(x, z); }, inSteam(x: number, z: number) { return inSteam(x, z); }, // (Steam's clouds in the room, 2026-10-01)
     /** M4.5: the webs, ink and rime on the floor of the current room; a glyph's blast at (x, z). */
-    get ground() { return { web: groundCount('web'), ink: groundCount('ink'), rime: groundCount('rime') }; }, blast: (x: number, z: number) => blastAt(x, z),
+    get ground() { return { web: groundCount('web'), ink: groundCount('ink'), rime: groundCount('rime'), blackice: groundCount('blackice') }; }, blast: (x: number, z: number) => blastAt(x, z),
     /** The simulation's clock (seconds), against which timed states are kept (a lark's song). */
     get clock() { return G.simClock; },
     inflict(status: Partial<Record<SpellStatus, number>>) { for (const e of G.enemies) inflict(e, status); },

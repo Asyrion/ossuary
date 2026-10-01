@@ -10,9 +10,9 @@ import { $ } from '../util';
 import { artifact, focusPattern, halveStat, type StatKey } from '../items/artifactData';
 import { LOOT, SOULS } from '../items/loot';
 import { SCHOOLS, SPELL_DEFS, spell } from '../magic/spellData';
-import { atLeast } from '../magic/knowledge';
-import { castsOf, stage } from '../magic/memory';
-import { esc, head, spellSheet } from './spellPanel';
+import { REACTION_IDS, atLeast } from '../magic/knowledge';
+import { castsOf, reactionsFound, stage } from '../magic/memory';
+import { esc, head, reactionIcon, reactionSheet, spellSheet } from './spellPanel';
 import { showScreen } from './screens';
 import { artifactIcon, soulSvg, spellIcon } from './hud';
 import { itemIcon } from './lore';
@@ -101,7 +101,8 @@ function artifactEntries(): Entry[] {
 
 /** The spells tab (M3.7): the two carried slots, then a book by school. A school shows once a spell of it is learned,
     with every spell of it the mage has met (carried ones marked Q or E, given-up ones and ones only seen dimmed) and a
-    sealed entry for each one not met yet; each described as far as the mage knows it (ui/spellPanel.ts). */
+    sealed entry for each one not met yet; each described as far as the mage knows it (ui/spellPanel.ts). Last, M4.8's
+    wheel of reactions: one entry for each pair of schools, found or not yet. */
 function spellEntries(): Entry[] {
   const keys = STR.controls.spellsKeys.split(' and '), pads = STR.controls.spellsPad.split(' and '), K = STR.knowledge;
   const sheet = (id: string, note = '') => spellSheet(spell(id), stage(id), note, castsOf(id));
@@ -129,7 +130,12 @@ function spellEntries(): Entry[] {
       });
     });
   }
-  return [...slots, ...book];
+  // the wheel of reactions (M4.8): every pair of the schools, lit as found, once the book is open or one is found
+  const found = reactionsFound(), wheel: Entry[] = book.length || found.length ? REACTION_IDS.map((r, i) => ({
+    icon: reactionIcon(r, found.includes(r)), label: found.includes(r) ? STR.reactions[r] : K.unfound, dim: !found.includes(r),
+    section: i === 0 ? K.wheel : undefined, detail: () => reactionSheet(r),
+  })) : [];
+  return [...slots, ...book, ...wheel];
 }
 /** A page not found yet: a sealed leaf. */
 const SEALED = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M13 7h17l7 7v27H13z" fill="#3a3128" stroke="#7a6a52" stroke-width="2"/><circle cx="25" cy="27" r="6" fill="#6a2a20" stroke="#a8503c" stroke-width="1.5"/><path d="M22 27h6M25 24v6" stroke="#e0b08a" stroke-width="1.4"/></svg>';

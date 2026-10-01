@@ -23,6 +23,19 @@ export function learnedSpell(id: string) { if (learn(kn, id)) save(); }
 /** It was cast: returns whether that made it known well (used) just now. */
 export function castSpellOnce(id: string) { const was = stage(id); cast(kn, id); dirty = true; if (stage(id) !== was) save(); return was !== 'used' && stage(id) === 'used'; }
 
+/* The reactions found (M4.8's codex): kept beside the spells, in their own key. */
+const RKEY = 'ossuary.reactions';
+let found: string[] = [];
+try { const v = JSON.parse(localStorage.getItem(RKEY) ?? '[]'); if (Array.isArray(v)) found = v.filter(x => typeof x === 'string'); } catch { /* none kept */ }
+const saveFound = () => { try { localStorage.setItem(RKEY, JSON.stringify(found)); } catch { /* kept this session */ } };
+/** Reaction `r` went off: returns whether it was the first time ever (its name rises larger, and the book marks it). */
+export function foundReaction(r: string) { if (found.includes(r)) return false; found.push(r); saveFound(); return true; }
+/** The reactions found so far. */
+export const reactionsFound = (): readonly string[] => found;
+/** The dev menu and tests: every reaction found, or none. */
+export function findEveryReaction(all: readonly string[]) { found = [...all]; saveFound(); }
+export function forgetReactions() { found = []; saveFound(); }
+
 /** The dev menu and tests: every spell known well; nothing known; one spell brought to a stage. */
 export function knowEvery() { for (const s of SPELL_DEFS) reach(kn, s.id, 'used', C.usedCasts); save(); }
 export function forgetKnowledge() { kn = {}; save(); }

@@ -16,14 +16,24 @@
           (a boss only struck); Blackfire (Umbral + Ember) when a hexed foe catches fire or a burning one is hexed: a
           burn that never goes out while the foe lives; Steam (Ember + Frost, 2026-10-01) when a chilled or frozen foe
           catches fire or a burning one is chilled: the fire and the cold go up as a cloud of steam round it (foes inside
-          can't aim, eyes can't see through it; statusFx.ts and magic/steam.ts), the foe scalded. Each uses up the statuses
-          that met. */
+          can't aim, eyes can't see through it; statusFx.ts and magic/steam.ts), the foe scalded.
+   M4.8, the full wheel (every pair of the five schools reacts): Searing (Ember + Hallow) when a sanctified foe catches fire
+          or a burning one is sanctified: holy fire burns its guard away a while (`seared`: every blow lands whole);
+          Prism (Frost + Hallow) when a frozen foe is sanctified or a sanctified one freezes: while it stays frozen, the
+          cantrip's bolts that strike it split in three (`prism`); Verdict (Storm + Hallow) when a sanctified foe is
+          shocked or a shocked one sanctified: lightning from above strikes every sanctified foe in the room; Black Ice
+          (Frost + Umbral) when a hexed foe is chilled or a chilled one hexed: black ice under it, where foes slide and
+          can't stop; Void Spark (Storm + Umbral) when a hexed foe is shocked or a shocked one hexed: the spark leaps to
+          the foes near, carrying a hex to each, and each that falls marked (`voidT`) gives the mage mana.
+   Each uses up the statuses that met (Prism keeps the ice, which it is). */
 import magicData from '../../data/magic.json';
 import type { SpellStatus } from './spellData';
 
 export const MAGIC = magicData;
 export type MagicTuning = typeof magicData;
-export type Reaction = 'shatter' | 'overload' | 'eclipse' | 'blackfire' | 'steam';
+export type Reaction = 'shatter' | 'overload' | 'eclipse' | 'blackfire' | 'steam' | 'searing' | 'prism' | 'verdict' | 'blackice' | 'voidspark';
+/** Every reaction, and the two statuses that set it off (the wheel: each pair of the five schools, M4.8). */
+export const REACTIONS: Record<Reaction, [SpellStatus, SpellStatus]> = { shatter: ['chill', 'shock'], overload: ['burn', 'shock'], eclipse: ['sanct', 'hex'], blackfire: ['burn', 'hex'], steam: ['burn', 'chill'], searing: ['burn', 'sanct'], prism: ['chill', 'sanct'], verdict: ['shock', 'sanct'], blackice: ['chill', 'hex'], voidspark: ['shock', 'hex'] };
 
 export interface StatusState {
   /** Seconds left burning, and until the next burn tick. */ burn: number; burnTick: number;
@@ -34,8 +44,9 @@ export interface StatusState {
   /** Hex stacks, and seconds before they fade. */ hex: number; hexT: number;
   /** Seconds left rooted. */ root: number;
   /** Seconds left eclipsed (out of the fight), and whether its burn is blackfire (it never goes out). */ eclipse: number; black: boolean;
+  /** M4.8: seconds left seared (no guard), a prism (frozen and holy), and marked by a void spark. */ seared: number; prism: number; voidT: number;
 }
-export const newStatus = (): StatusState => ({ burn: 0, burnTick: 0, chill: 0, chillT: 0, frozen: 0, guard: 0, shock: 0, stun: 0, stunGuard: 0, sanct: 0, hex: 0, hexT: 0, root: 0, eclipse: 0, black: false });
+export const newStatus = (): StatusState => ({ burn: 0, burnTick: 0, chill: 0, chillT: 0, frozen: 0, guard: 0, shock: 0, stun: 0, stunGuard: 0, sanct: 0, hex: 0, hexT: 0, root: 0, eclipse: 0, black: false, seared: 0, prism: 0, voidT: 0 });
 
 /** What applying a status did. */
 export interface Applied { froze?: boolean; stunned?: boolean; reaction?: Reaction }
@@ -50,6 +61,7 @@ export function applyStatus(s: StatusState, kind: SpellStatus, amount: number, b
       if (s.frozen > 0) s.guard = T.chill.refreezeGuard;
       s.chill = 0; s.chillT = 0; s.frozen = 0; return { reaction: 'steam' };
     }
+    if (s.sanct > 0) { s.sanct = 0; s.seared = T.reactions.searing.time; return { reaction: 'searing' }; } // fire on holy light: its guard burns away
     if (s.burn <= 0) s.burnTick = T.burn.tick;
     s.burn = Math.max(s.burn, amount);
     return {};
@@ -57,22 +69,29 @@ export function applyStatus(s: StatusState, kind: SpellStatus, amount: number, b
   if (kind === 'chill') {
     if (s.frozen > 0) return {};
     if (s.burn > 0 && !s.black) { s.burn = 0; s.burnTick = 0; return { reaction: 'steam' }; } // cold on fire: steam (blackfire never goes out)
+    if (s.hex > 0) { s.hex = 0; s.hexT = 0; return { reaction: 'blackice' }; } // cold on a hex: black ice under it
     s.chill += amount; s.chillT = T.chill.stackTime;
     if (boss) { s.chill = Math.min(s.chill, T.chill.bossMaxStacks); return {}; }
     if (s.chill < T.chill.freezeAt || s.guard > 0) { s.chill = Math.min(s.chill, T.chill.freezeAt - 1); return {}; }
     s.chill = 0;
     if (s.shock > 0) { s.shock = 0; return { reaction: 'shatter' }; } // frozen while shocked: it shatters at once
     s.frozen = T.chill.freezeTime;
+    if (s.sanct > 0) { s.sanct = 0; s.prism = s.frozen; return { froze: true, reaction: 'prism' }; } // frozen in holy light: a prism
     return { froze: true };
   }
   if (kind === 'sanct') {
     if (s.hex > 0) { s.hex = 0; return eclipse(s, boss, T); }
+    if (s.burn > 0 && !s.black) { s.burn = 0; s.burnTick = 0; s.seared = T.reactions.searing.time; return { reaction: 'searing' }; }
+    if (s.frozen > 0) { s.prism = s.frozen; return { reaction: 'prism' }; }
+    if (s.shock > 0) { s.shock = 0; return { reaction: 'verdict' }; }
     s.sanct = Math.max(s.sanct, amount);
     return {};
   }
   if (kind === 'hex') {
     if (s.sanct > 0) { s.sanct = 0; return eclipse(s, boss, T); }
     if (s.burn > 0 && !s.black) { s.black = true; return { reaction: 'blackfire' }; }
+    if (s.chill > 0 || s.frozen > 0) { s.chill = 0; s.chillT = 0; return { reaction: 'blackice' }; } // (a frozen foe keeps its ice)
+    if (s.shock > 0) { s.shock = 0; s.voidT = T.reactions.voidspark.time; return { reaction: 'voidspark' }; }
     s.hex = Math.min(T.hex.max, s.hex + amount); s.hexT = T.hex.time;
     return {};
   }
@@ -83,6 +102,8 @@ export function applyStatus(s: StatusState, kind: SpellStatus, amount: number, b
   // shock
   if (s.frozen > 0) { s.frozen = 0; s.guard = T.chill.refreezeGuard; return { reaction: 'shatter' }; }
   if (s.burn > 0) { s.burn = 0; s.black = false; return { reaction: 'overload' }; }
+  if (s.sanct > 0) { s.sanct = 0; return { reaction: 'verdict' }; }
+  if (s.hex > 0) { s.hex = 0; s.hexT = 0; s.voidT = T.reactions.voidspark.time; return { reaction: 'voidspark' }; }
   s.shock = Math.max(s.shock, amount);
   if (boss && s.stunGuard > 0) return {};
   s.stun = T.shock.stun;
@@ -116,6 +137,9 @@ export function tickStatus(s: StatusState, dt: number, T: MagicTuning = MAGIC): 
   if (s.sanct > 0) s.sanct = Math.max(0, s.sanct - dt);
   if (s.hex > 0) { s.hexT -= dt; if (s.hexT <= 0) { s.hex = 0; s.hexT = 0; } }
   if (s.root > 0) s.root = Math.max(0, s.root - dt);
+  if (s.seared > 0) s.seared = Math.max(0, s.seared - dt);
+  if (s.voidT > 0) s.voidT = Math.max(0, s.voidT - dt);
+  if (s.prism > 0) s.prism = s.frozen > 0 ? Math.max(0, s.prism - dt) : 0; // (a prism while the ice lasts)
   return { burnDamage, thawed, eclipsed };
 }
 

@@ -17,7 +17,7 @@ import { hearGround } from '../world/groundHooks';
 import { actingKind } from './acting';
 import { counterAt } from './counters';
 
-export type GroundKind = 'web' | 'ink' | 'rime';
+export type GroundKind = 'web' | 'ink' | 'rime' | 'blackice'; // (black ice: M4.8's reaction, Frost and Umbral)
 interface Patch { room: Room; kind: GroundKind; x: number; z: number; r: number; t: number; life: number; by?: string }
 const patches: Patch[] = [];
 const MAX = 48; // (of each kind)
@@ -32,7 +32,7 @@ function webGeometry() {
   }
   const g = mergeGeometries(parts)!; for (const p of parts) p.dispose(); return g;
 }
-const meshes: Record<GroundKind, THREE.InstancedMesh | null> = { web: null, ink: null, rime: null };
+const meshes: Record<GroundKind, THREE.InstancedMesh | null> = { web: null, ink: null, rime: null, blackice: null };
 function meshOf(kind: GroundKind) {
   const had = meshes[kind]; if (had) return had;
   const geo = kind === 'web' ? webGeometry() : new THREE.CircleGeometry(1, 16).rotateX(-Math.PI / 2);
@@ -40,6 +40,7 @@ function meshOf(kind: GroundKind) {
   // black; rime a faint frost-blue that overlapping patches don't stack into a white plank)
   const mat = kind === 'web' ? new THREE.MeshBasicMaterial({ color: 0xd8d0e8, transparent: true, opacity: .55, depthWrite: false })
     : kind === 'rime' ? new THREE.MeshStandardMaterial({ color: 0x8fc8ec, emissive: 0x123450, roughness: .45, metalness: .1, transparent: true, opacity: .28, alphaMap: glowTex, depthWrite: false })
+    : kind === 'blackice' ? new THREE.MeshStandardMaterial({ color: 0x3a2a5a, emissive: 0x1e0e3a, roughness: .05, metalness: .55, transparent: true, opacity: .7, alphaMap: glowTex, depthWrite: false }) // (glassy violet-black, glinting: never a pit's flat black)
     : new THREE.MeshStandardMaterial({ color: 0x4a3480, emissive: 0x1c0e3a, roughness: .1, metalness: .4, transparent: true, opacity: .62, alphaMap: glowTex, depthWrite: false });
   const m = new THREE.InstancedMesh(geo, mat, MAX); m.count = 0; m.frustumCulled = false; m.renderOrder = 1; scene.add(m);
   return meshes[kind] = m;
@@ -54,14 +55,16 @@ export function layGround(room: Room, kind: GroundKind, x: number, z: number, r:
     (M4.7): its own kind's patches don't hold it. */
 export function stickyAt(x: number, z: number, who?: string) {
   let k = 1;
-  for (const p of patches) if (p.kind !== 'rime' && p.room === G.current && (!who || p.by !== who) && Math.hypot(x - p.x, z - p.z) < p.r) k = Math.min(k, p.kind === 'web' ? CFG.bestiary.webSlow : CFG.bestiary.inkSlow);
+  for (const p of patches) if ((p.kind === 'web' || p.kind === 'ink') && p.room === G.current && (!who || p.by !== who) && Math.hypot(x - p.x, z - p.z) < p.r) k = Math.min(k, p.kind === 'web' ? CFG.bestiary.webSlow : CFG.bestiary.inkSlow);
   return k;
 }
 /** The web or ink (x, z) in the current room lies in, if any (what slows the mage there, for the chip that says so). */
 export function stuckIn(x: number, z: number): 'web' | 'ink' | undefined {
-  for (const p of patches) if (p.kind !== 'rime' && p.room === G.current && Math.hypot(x - p.x, z - p.z) < p.r) return p.kind;
+  for (const p of patches) if ((p.kind === 'web' || p.kind === 'ink') && p.room === G.current && Math.hypot(x - p.x, z - p.z) < p.r) return p.kind;
   return undefined;
 }
+/** Whether (x, z) in the current room is on black ice (M4.8): foes slide on it and can't stop; the mage crosses it. */
+export const blackIceAt = (x: number, z: number) => patches.some(p => p.kind === 'blackice' && p.room === G.current && Math.hypot(x - p.x, z - p.z) < p.r);
 /** The patch (web, ink or rime) at (x, z) in the current room that isn't of the kind `who` (M4.7: foes in each other's
     ground), if any. */
 export function patchAt(x: number, z: number, who?: string): GroundKind | undefined {

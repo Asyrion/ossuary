@@ -140,6 +140,12 @@ const sounds = {
   freeze() { tone('sine', 2637, 1760, .25, .04); tone('triangle', 1318, 988, .3, .04, .03); hiss(.2, .05, 'highpass', 5000); },
   thaw() { tone('sine', 988, 1318, .2, .02); hiss(.15, .03, 'highpass', 4000); },
   steam() { hiss(.7, .12, 'highpass', 4200); hiss(.5, .06, 'bandpass', 1400, .05); tone('sine', 260, 180, .25, .03); },
+  // M4.8's reactions, each in both its schools' palettes
+  searing() { hiss(.5, .1, 'bandpass', 900); tone('triangle', 784, 1046, .4, .07); tone('sine', 523, 523, .6, .04, .08); },
+  prism() { [1318, 1568, 1976, 2349].forEach((f, i) => tone('sine', f, f, .35, .04, i * .05)); hiss(.2, .03, 'highpass', 6000); },
+  verdict() { hiss(.3, .16, 'highpass', 2500); tone('square', 220, 60, .5, .07); tone('triangle', 659, 880, .7, .06, .05); },
+  blackice() { tone('sine', 165, 110, .6, .07); hiss(.4, .05, 'highpass', 5000, .05); tone('triangle', 988, 740, .3, .03, .08); },
+  voidspark() { hiss(.15, .1, 'highpass', 3500); tone('sawtooth', 330, 110, .4, .05); tone('sine', 98, 70, .6, .05, .06); },
   shatter() { hiss(.35, .14, 'highpass', 3500); [2637, 3136, 2093, 3520].forEach((f, i) => tone('triangle', f, f * .8, .18, .04, i * .03)); tone('sine', 196, 98, .3, .08); },
   overload() { hiss(.6, .16, 'lowpass', 700); tone('sine', 110, 40, .6, .18); tone('square', 1800, 300, .2, .04); hiss(.3, .08, 'highpass', 3000, .05); },
   // water and oil
