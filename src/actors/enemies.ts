@@ -60,7 +60,7 @@ export function makeEnemy(type: FoeType, x: number, z: number, hpMul = 1, boss?:
     add(new THREE.SphereGeometry(.17, 10, 8), sack, 0, 1.2, 0);
     add(new THREE.CylinderGeometry(.28, .32, .08, 10), wood, 0, .04, 0);
     e.contact = 0;
-  } else if ((BOSS_TYPES as readonly string[]).includes(type)) buildBoss(e, add);
+  } else if ((BOSS_TYPES as readonly string[]).includes(type)) buildBoss(e);
   if (opts.champion) { // an ember glow in the body and a pulsing aura around it
     for (const m of e.mats) { m.userData.base = new THREE.Color(CH.tint); m.emissive.set(CH.tint); }
     e.aura = glow(CH.aura, 1.6, .5); e.aura.position.y = .5; e.group.add(e.aura);

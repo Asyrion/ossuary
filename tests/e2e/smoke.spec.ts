@@ -172,12 +172,13 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
   expect(errors).toEqual([]);
 });
 
-for (const boss of ['abbess', 'pyre']) test(`the ${boss} boss dives or leaps out of reach and can be beaten`, async ({ page }) => {
+for (const boss of ['abbess', 'pyre']) test(`the ${boss} boss, built in code, dives or leaps out of reach and can be beaten`, async ({ page }) => {
   const errors = await start(page, `?room=boss_open&boss=${boss}`);
   const result = await page.evaluate(() => {
     const w = window as unknown as W, g = w.__game;
     g.warp(1);
-    const foe = g.enemies.find(e => e.isBoss) as Foe & { type: string; state: string; hidden?: boolean };
+    const foe = g.enemies.find(e => e.isBoss) as Foe & { type: string; state: string; hidden?: boolean; bossSchool?: string; bossAff?: { weak: string; resist: string }; parts?: Record<string, unknown> };
+    const look = { school: foe.bossSchool, aff: foe.bossAff, parts: Object.keys(foe.parts ?? {}).length > 5 };
     const states = new Set<string>(); let hidden = false, seconds = 0;
     for (; seconds < 240 && g.enemies.length; seconds += .25) {
       w.__fight(.25);
@@ -185,10 +186,11 @@ for (const boss of ['abbess', 'pyre']) test(`the ${boss} boss dives or leaps out
     }
     g.sim(0.5);
     const spots = (g.current as RoomView & { spots: unknown[] }).spots;
-    return { type: foe.type, seconds, states: [...states], hidden, left: g.enemies.length, cleared: g.current.cleared, choice: spots.length };
+    return { type: foe.type, look, seconds, states: [...states], hidden, left: g.enemies.length, cleared: g.current.cleared, choice: spots.length };
   });
   console.log(`${boss} beaten in ${result.seconds.toFixed(1)} s of game time; states seen: ${result.states.join(', ')}`);
   expect(result).toMatchObject({ type: boss, hidden: true, left: 0, cleared: true, choice: 2 });
+  expect(result.look).toEqual(boss === 'abbess' ? { school: 'frost', aff: { weak: 'storm', resist: 'frost' }, parts: true } : { school: 'ember', aff: { weak: 'frost', resist: 'ember' }, parts: true });
   expect(errors).toEqual([]);
 });
 
@@ -446,7 +448,7 @@ test('the Hollow Warden wears the look chosen for it, its shots in its school\'s
     g.sim(.2, true); g.setBossLook('bellWarden');
     return { ids, look: g.bossLook, kept: localStorage.getItem('ossuary.bossLook') };
   });
-  expect(gallery).toEqual({ ids: ['bellWarden', 'motherOfSpores', 'hollowOwl', 'hart', 'angler', 'tiger', 'dragon', 'twins'], look: 'bellWarden', kept: 'bellWarden' }); // (and the bosses of floors 4 and 5, M4.1, and the Eda lore's, M4.2)
+  expect(gallery).toEqual({ ids: ['bellWarden', 'motherOfSpores', 'hollowOwl', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins'], look: 'bellWarden', kept: 'bellWarden' }); // (and the bosses of floors 2 and 3, remade in code, of floors 4 and 5, M4.1, and the Eda lore's, M4.2)
   for (const e of errors) expect(e).toEqual([]);
 });
 

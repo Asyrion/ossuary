@@ -1,5 +1,5 @@
-/* Bosses: the Hollow Warden built in code (M4: one of three looks, bossLooks.ts, for the owner to choose); the others
-   placeholder primitive shapes until theirs are built. A floor draws its boss from the pool
+/* Bosses, all built in code (bossLooks.ts; the Hollow Warden in one of three looks for the owner to choose, M4; the abbess
+   and the knight remade in code 2026-10-01). A floor draws its boss from the pool
    in data/floors.json, never one the run has already met; the floor's boss block scales its health,
    speed and shot speed, how many foes it calls and how often it repeats its aimed attack.
 
@@ -7,12 +7,13 @@
 
    Hollow Warden: walks at the mage; a ring of 12 shots (a second ring below 60%); aimed 3-shot volleys;
      calls the floor's walkers below half health.
-   Drowned Abbess: drifts; wails fans of aimed shots; sinks into the floor and follows the mage as a
-     ripple that can't be hurt, then a widening ring warns where she surfaces with a ring of shots;
-     calls the floor's flyers below half health, and surfaces with a second ring.
-   Pyre Knight: stalks; crouches and leaps at where the mage stood (the landing spot glows) and lands
-     with a shockwave ring; charges in a line until a wall or rock stuns him; sprays cones of embers;
-     calls the floor's heavies below half health, and his landings send a second ring.
+   Drowned Abbess (Frost; a great pale cave olm): drifts; opens its jaw and spreads its gills, then wails fans of aimed
+     shots; sinks into the floor and follows the mage as a ripple that can't be hurt, then a widening ring warns where it
+     surfaces with a ring of shots; calls the floor's flyers below half health, and surfaces with a second ring.
+   Pyre Knight (Ember; a hollow suit of plate full of fire): stalks; crouches and leaps at where the mage stood (the
+     landing spot glows) and lands blade first with a shockwave ring; levels its sword and charges in a line until a wall
+     or rock stuns it; raises its sword and sweeps cones of embers; calls the floor's heavies below half health, and its
+     landings send a second ring. Both have a weakness and a resistance (CFG.enemy), as the bosses below them do.
    Hallowed Hart (floor 4, M4.1, built in code): walks at the mage; lowers its antlers while the way it will run lights up
      on the floor, then charges along it (a wall stuns it); turns in place firing spokes of light (six below half health);
      rears and stamps a ring of motes (a second ring below half); calls the floor's flyers, its fawns, below half health.
@@ -32,7 +33,6 @@ import type { Enemy } from '../types';
 import { G, after, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { glow } from '../render/materials';
 import { FLOORS } from '../world/generate';
 import { freeSpotNear, isFreeAt } from '../world/rooms';
 import { spawnShot } from '../combat/projectiles';
@@ -40,19 +40,16 @@ import { hurtPlayer } from '../combat/damage';
 import { burst } from '../combat/fx';
 import { banner } from '../ui/hud';
 import { floatText } from '../magic/statusFx';
-import { makeEnemy, stdMat } from './enemies';
-import { anglerLook, bossLook, buildBossLook, hartLook, tigerLook } from './bossLooks';
+import { makeEnemy } from './enemies';
+import { abbessLook, anglerLook, bossLook, buildBossLook, hartLook, pyreKnightLook, tigerLook } from './bossLooks';
 import { mergeRig } from '../render/rig';
 import { buildDragon, dragonMoved, updateDragon } from './pillarDragon';
 import { buildTwin, updateTwin } from './twinGuardians';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { ease, lerp } from '../util';
 
-type Add = (geo: THREE.BufferGeometry, mat: THREE.Material, px: number, py: number, pz: number, sx?: number, sy?: number, sz?: number) => THREE.Mesh;
-
-const SHOT: Partial<Record<BossType, number>> = { warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a };
-/** A boss's shots: in its school's light when it is built in code, else its own colour. */
-const shotColor = (e: Enemy) => e.bossSchool ? SCHOOL_LIGHT[e.bossSchool] : SHOT[e.type as BossType] ?? 0xffffff;
+/** A boss's shots: in its school's light. */
+const shotColor = (e: Enemy) => SCHOOL_LIGHT[e.bossSchool ?? 'ember'];
 /** Who each boss calls below half health. */
 const SUMMONS: Record<BossType, Role> = { warden: 'R', abbess: 'W', pyre: 'H', hart: 'W', angler: 'W', tiger: 'R', dragon: 'W', twins: 'H' };
 
@@ -64,7 +61,7 @@ function floorRing(e: Enemy, color: number, radius: number) {
 }
 
 /** Build a boss's body and set its first state. */
-export function buildBoss(e: Enemy, add: Add) {
+export function buildBoss(e: Enemy) {
   e.contact = 2; e.isBoss = true; e.cycle = 0; e.summoned = false;
   if (e.type === 'warden') { // built in code (M4): the look chosen in the dev menu (bossLooks.ts), its still parts merged
     const id = bossLook(), L = buildBossLook(id);
@@ -92,40 +89,15 @@ export function buildBoss(e: Enemy, add: Add) {
     e.contact = 0; e.state = 'statue'; e.st = Infinity; P.ring.visible = P.rime.visible = false; P.halo.material.opacity = 0; P.eye.scale.set(1, .15, 1);
   } else if (e.type === 'dragon') buildDragon(e); // built in code (M4.2): its fight is pillarDragon.ts
   else if (e.type === 'twins') buildTwin(e); // built in code (M4.2): the pair's fight is twinGuardians.ts
-  else if (e.type === 'abbess') {
-    // a drowned nun: a bell of wet robes, a veiled pale face, a verdigris halo, lamp-green eyes
-    const robe = stdMat(0x1d3431, { roughness: .55 }), hem = stdMat(0x28463f, { roughness: .6 }), pale = stdMat(0xc3cdbd), weed = stdMat(0x3f5a2c);
-    add(new THREE.ConeGeometry(.8, 1.55, 12), robe, 0, .78, 0);
-    add(new THREE.CylinderGeometry(.82, .86, .16, 12), hem, 0, .08, 0);
-    add(new THREE.SphereGeometry(.3, 12, 10), pale, 0, 1.62, .04, 1, 1.1, .95);
-    add(new THREE.ConeGeometry(.42, .75, 12), hem, 0, 1.78, -.06);                          // veil
-    for (const s of [-1, 1]) {
-      add(new THREE.SphereGeometry(.11, 8, 6), pale, s * .34, 1.1, .38);                    // hands folded
-      add(new THREE.CylinderGeometry(.03, .015, .7, 5), weed, s * .5, .9, .25).rotation.z = s * .2; // weed hanging off the robe
-    }
-    e.eye = add(new THREE.BoxGeometry(.24, .05, .04), new THREE.MeshBasicMaterial({ color: 0x8ff7e8 }), 0, 1.64, .32);
-    e.ring = new THREE.Mesh(new THREE.TorusGeometry(.5, .03, 6, 32), new THREE.MeshBasicMaterial({ color: 0x6fe8d8, transparent: true, opacity: .75 }));
-    e.ring.position.set(0, 1.7, -.3); e.body.add(e.ring);
-    e.halo = glow(0x3fd8c8, 2.1, .35); e.halo.position.set(0, 1.5, -.2); e.body.add(e.halo);
-    e.marker = floorRing(e, 0x6fe8d8, .75);
-    e.state = 'drift'; e.st = 2;
-  } else if (e.type === 'pyre') {
-    // a knight in blackened plate, glowing at the seams, a flame for a plume, a great sword
-    const plate = stdMat(0x2b2626, { metalness: .6, roughness: .45, emissive: 0x2a0c02 }), dark = stdMat(0x151212, { metalness: .5 }), steel = stdMat(0x8a8078, { metalness: .8, roughness: .3 });
-    add(new THREE.BoxGeometry(.9, .9, .6), plate, 0, 1.05, 0);
-    for (const s of [-1, 1]) {
-      add(new THREE.BoxGeometry(.3, .62, .34), dark, s * .24, .31, 0);                     // legs
-      add(new THREE.SphereGeometry(.3, 8, 6), plate, s * .6, 1.4, 0, 1, .75, 1);           // pauldrons
-      add(new THREE.BoxGeometry(.2, .6, .22), dark, s * .62, .98, .05);                    // arms
-    }
-    add(new THREE.CylinderGeometry(.26, .3, .46, 8), plate, 0, 1.74, 0);                    // helm
-    e.eye = add(new THREE.BoxGeometry(.34, .05, .05), new THREE.MeshBasicMaterial({ color: 0xffa040 }), 0, 1.76, .29);
-    e.core = add(new THREE.ConeGeometry(.17, .55, 7), new THREE.MeshBasicMaterial({ color: 0xff7a2a }), 0, 2.23, 0); // plume of flame
-    const blade = add(new THREE.BoxGeometry(.12, 1.35, .05), steel, .82, .86, .28); blade.rotation.x = .35;
-    add(new THREE.BoxGeometry(.4, .07, .1), dark, .82, 1.5, .08);                           // cross guard
-    e.halo = glow(0xff5a1a, 2.3, .35); e.halo.position.set(0, 1.6, -.2); e.body.add(e.halo);
-    e.marker = floorRing(e, 0xff5a2a, .85);
-    e.dir = { x: 0, z: 1 }; e.state = 'stalk'; e.st = 1.8;
+  else if (e.type === 'abbess' || e.type === 'pyre') { // remade in code (2026-10-01): the bosses of floors 2 and 3
+    const abbess = e.type === 'abbess', L = abbess ? abbessLook() : pyreKnightLook(), P = L.parts, C = CFG.enemy[e.type];
+    const keep = abbess ? [P.eye, ...P.eye.children, P.ring, P.jaw, P.gillL, P.gillR] : [P.eye, P.ring, P.arms, P.legL, P.legR];
+    e.mats = mergeRig(L.group, L.idle, 'boss:' + e.type, keep);
+    for (const m of e.mats) m.userData.base = m.emissive.clone();
+    e.model = L.group; e.idle = L.idle; e.shadow = L.shadow; e.bossSchool = L.school; e.body.add(L.group);
+    e.eye = P.eye; e.ring = P.ring; e.halo = P.halo; e.parts = P; e.bossAff = { weak: C.weak, resist: C.resist };
+    e.marker = floorRing(e, SCHOOL_LIGHT[L.school], abbess ? .75 : .85);
+    if (abbess) { e.state = 'drift'; e.st = 2; } else { e.dir = { x: 0, z: 1 }; e.state = 'stalk'; e.st = 1.8; }
   }
 }
 
@@ -201,7 +173,7 @@ export function afterBossMove(e: Enemy, hit: boolean) {
   if (!hit || e.state !== 'charge') return;
   e.state = 'stun'; e.st = 1.1; e.vx = e.vz = 0; e.body.rotation.x = 0;
   G.shake = Math.max(G.shake, .35); Sfx.at(e.x, e.z).boom(); Sfx.at(e.x, e.z).rubble();
-  burst(e.x + e.dir!.x * .7, .8, e.z + e.dir!.z * .7, 0xff9a3a, 18, 3, .07);
+  burst(e.x + e.dir!.x * .7, .8, e.z + e.dir!.z * .7, SCHOOL_LIGHT.ember, 18, 3, .07);
 }
 
 function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
@@ -239,34 +211,39 @@ function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
 
 function updateAbbess(e: Enemy, dt: number, ux: number, uz: number) {
   const C = CFG.enemy.abbess, B = e.bossCfg, shotMul = B?.shotSpeedMul ?? 1, speedMul = B?.speedMul ?? 1;
-  const hurt = e.hp / e.maxHp < .5, ripple = e.marker!, mat = ripple.material as THREE.MeshBasicMaterial;
-  e.ring!.rotation.z += dt * 1.5; e.halo!.material.opacity = .35;
+  const hurt = e.hp / e.maxHp < .5, ripple = e.marker!, mat = ripple.material as THREE.MeshBasicMaterial, P = e.parts!;
+  e.idle?.(e.t); e.ring!.rotation.z += dt * 1.5; e.halo!.material.opacity = .35;
+  // its jaw, gills and eyes: open and spread as it wails, shut again as it drifts
+  const settle = 1 - Math.exp(-dt * 6), pose = (jaw: number, gills: number, eyes: number) => {
+    P.jaw.rotation.x = lerp(P.jaw.rotation.x, jaw, settle); P.gillL.rotation.z = lerp(P.gillL.rotation.z, -gills, settle); P.gillR.rotation.z = -P.gillL.rotation.z;
+    for (const c of e.eye!.children) c.scale.setScalar(lerp(c.scale.x, eyes, settle));
+  };
   if (e.state === 'drift') {
     e.vx = ux * C.speed * speedMul; e.vz = uz * C.speed * speedMul;
-    e.body.position.y = .08 + Math.sin(e.t * 2.2) * .06; e.eye!.scale.setScalar(1);
+    e.body.position.y = .08 + Math.sin(e.t * 2.2) * .06; pose(0, 0, 1);
     if (e.st <= 0) { e.cycle = e.cycle! + 1; if (e.cycle % 2) { e.state = 'wail'; e.st = .6; Sfx.at(e.x, e.z).wail(); } else { e.state = 'sink'; e.st = .7; Sfx.at(e.x, e.z).dive(); } }
-  } else if (e.state === 'wail') { // telegraph: the eyes flare and she trembles
+  } else if (e.state === 'wail') { // telegraph: its jaw opens, its gills spread, its eyes flare and it trembles
     e.vx = e.vz = 0; const k = 1 - e.st / .6;
-    e.eye!.scale.set(1 + k, 1 + k * 2, 1); e.halo!.material.opacity = .35 + k * .6; e.body.position.x = Math.sin(e.t * 45) * .03;
+    pose(.5 * k, .6 * k, 1 + k * 1.4); e.halo!.material.opacity = .35 + k * .6; e.body.position.x = Math.sin(e.t * 45) * .03;
     if (e.st <= 0) { e.body.position.x = 0; e.state = 'fans'; e.volleys = B?.volleys ?? 3; e.st = 0; }
   } else if (e.state === 'fans') {
-    e.vx = e.vz = 0;
+    e.vx = e.vz = 0; pose(.4, .5, 1.8);
     if (e.st <= 0) {
-      fan(e, 5, 1, 3.5 * shotMul, e.volleys! % 2 ? .1 : -.1, .6); Sfx.at(e.x, e.z).enemyShot();
+      fan(e, 5, 1, 3.5 * shotMul, e.volleys! % 2 ? .1 : -.1, .6); Sfx.at(e.x, e.z).enemyShot(); P.jaw.rotation.x = .6;
       e.volleys = e.volleys! - 1; e.st = .42; if (e.volleys <= 0) { e.state = 'drift'; e.st = 2; }
     }
   } else if (e.state === 'sink') { // down into the water under the floor
-    e.vx = e.vz = 0; const k = 1 - Math.max(0, e.st) / .7;
+    e.vx = e.vz = 0; const k = 1 - Math.max(0, e.st) / .7; pose(0, -.3, 1);
     e.body.position.y = -2.4 * k * k; ripple.visible = true; mat.opacity = k * .8; ripple.scale.setScalar(.8 + k * .3);
-    if (k > .5 && !e.hidden) { e.hidden = true; burst(e.x, .1, e.z, 0x6fe8d8, 16, 2.4, .06); }
+    if (k > .5 && !e.hidden) { e.hidden = true; burst(e.x, .1, e.z, SCHOOL_LIGHT.frost, 16, 2.4, .06); }
     if (e.st <= 0) { e.state = 'under'; e.st = C.under; e.flying = true; }
   } else if (e.state === 'under') { // a ripple gliding after the mage, under rocks and pits alike
     const d = Math.hypot(player.x - e.x, player.z - e.z);
     e.vx = ux * C.dive * speedMul; e.vz = uz * C.dive * speedMul;
     mat.opacity = .55 + Math.sin(e.t * 8) * .15; ripple.scale.setScalar(1.1 + Math.sin(e.t * 6) * .08);
-    if (Math.random() < dt * 10) burst(e.x + (Math.random() - .5), .05, e.z + (Math.random() - .5), 0x6fe8d8, 1, .6, .04);
+    if (Math.random() < dt * 10) burst(e.x + (Math.random() - .5), .05, e.z + (Math.random() - .5), SCHOOL_LIGHT.frost, 1, .6, .04);
     if (e.st <= 0 || d < .4) { e.state = 'rise'; e.st = .75; Sfx.at(e.x, e.z).charge(); }
-  } else if (e.state === 'rise') { // the ring widens where she will come up: the mage's cue to step away
+  } else if (e.state === 'rise') { // the ring widens where it will come up: the mage's cue to step away
     e.vx = e.vz = 0; const k = 1 - Math.max(0, e.st) / .75;
     ripple.scale.setScalar(1.1 + k * 1.1); mat.opacity = .5 + Math.abs(Math.sin(e.t * 18)) * .5;
     if (e.st <= 0) {
@@ -275,23 +252,28 @@ function updateAbbess(e: Enemy, dt: number, ux: number, uz: number) {
       const off = Math.random() * Math.PI;
       ringOfShots(e, 12, 3.2 * shotMul, off);
       if (hurt) laterRing(e, .3, 12, 2.8 * shotMul, off + Math.PI / 12);
-      burst(e.x, .3, e.z, 0x6fe8d8, 30, 4, .08); Sfx.at(e.x, e.z).surface(); G.shake = .3;
+      burst(e.x, .3, e.z, SCHOOL_LIGHT.frost, 30, 4, .08); Sfx.at(e.x, e.z).surface(); G.shake = .3;
+      P.jaw.rotation.x = .6; P.gillL.rotation.z = -.7; P.gillR.rotation.z = .7; // (it bursts up with its jaw wide and its gills flung out)
       e.state = 'recover'; e.st = .7;
     }
   } else if (e.state === 'recover') { // a moment to strike back
-    e.vx = e.vz = 0; e.body.position.y = .08;
+    e.vx = e.vz = 0; e.body.position.y = .08; pose(0, 0, 1);
     if (e.st <= 0) { e.state = 'drift'; e.st = hurt ? 1.4 : 2; }
   }
 }
 
 function updateKnight(e: Enemy, dt: number, ux: number, uz: number): number | undefined {
   const C = CFG.enemy.pyre, B = e.bossCfg, shotMul = B?.shotSpeedMul ?? 1, speedMul = B?.speedMul ?? 1;
-  const hurt = e.hp / e.maxHp < .5, mark = e.marker!, mat = mark.material as THREE.MeshBasicMaterial;
-  e.core!.scale.set(1, .85 + Math.sin(e.t * 17) * .12 + Math.sin(e.t * 29) * .08, 1); // the plume flickers
-  e.halo!.material.opacity = .35;
+  const hurt = e.hp / e.maxHp < .5, mark = e.marker!, mat = mark.material as THREE.MeshBasicMaterial, P = e.parts!;
+  e.idle?.(e.t); e.ring!.rotation.z += dt * 1.2; e.halo!.material.opacity = .35;
+  // its arms carry the sword: low before it as it stalks, levelled as it aims and charges, overhead as it winds up, swung
+  // down as it sprays; its legs stride as it stalks and tuck as it leaps
+  const settle = (to: number, rate = 10) => { P.arms.rotation.x = lerp(P.arms.rotation.x, to, 1 - Math.exp(-dt * rate)); };
+  const stride = (amp: number, tuck = 0) => { const a = Math.sin(e.t * 5) * amp; P.legL.rotation.x = a - tuck; P.legR.rotation.x = -a + tuck * .6; };
   if (e.state === 'stalk') {
     const sp = C.speed * speedMul * (hurt ? 1.25 : 1);
     e.vx = ux * sp; e.vz = uz * sp; e.body.position.y = Math.abs(Math.sin(e.t * 5)) * .05; e.body.scale.y = 1; e.eye!.scale.setScalar(1);
+    settle(0, 6); stride(.4);
     if (e.st <= 0) {
       e.cycle = e.cycle! + 1;
       const next = ['leap', 'spray', 'charge', 'spray'][e.cycle % 4];
@@ -303,49 +285,49 @@ function updateKnight(e: Enemy, dt: number, ux: number, uz: number): number | un
     }
   } else if (e.state === 'crouch') {
     e.vx = e.vz = 0; const k = 1 - Math.max(0, e.st) / .55;
-    e.body.scale.y = 1 - .22 * k; mat.opacity = .3 + k * .5;
+    e.body.scale.y = 1 - .22 * k; mat.opacity = .3 + k * .5; settle(-.3); stride(0);
     if (e.st <= 0) { e.state = 'air'; e.st = .85; e.from = { x: e.x, z: e.z }; e.hidden = true; e.flying = true; e.body.scale.y = 1; Sfx.at(e.x, e.z).leap(); }
   } else if (e.state === 'air') { // an arc over everything onto the mark
     const k = 1 - Math.max(0, e.st) / .85, t = e.target!, f = e.from!;
     e.vx = e.vz = 0; e.kx = e.kz = 0;
     e.x = lerp(f.x, t.x, ease(k)); e.z = lerp(f.z, t.z, ease(k));
-    e.body.position.y = 4 * 2.6 * k * (1 - k);
+    e.body.position.y = 4 * 2.6 * k * (1 - k); settle(-1.4, 6); stride(0, .5);
     mat.opacity = .5 + Math.abs(Math.sin(e.t * 16)) * .5; mark.scale.setScalar(1 + (1 - k) * .4);
     if (e.st <= 0) {
       e.x = t.x; e.z = t.z; e.body.position.y = 0; e.hidden = false; e.flying = false; mark.visible = false; mark.scale.setScalar(1);
       const off = Math.random() * Math.PI;
       ringOfShots(e, 14, 3.4 * shotMul, off);
       if (hurt) laterRing(e, .3, 14, 2.9 * shotMul, off + Math.PI / 14);
-      burst(e.x, .2, e.z, 0x5a4a40, 30, 4.5, .09); burst(e.x, .4, e.z, 0xff9a3a, 14, 3, .06);
-      Sfx.at(e.x, e.z).boom(); Sfx.at(e.x, e.z).rubble(); G.shake = .45;
+      burst(e.x, .2, e.z, 0x5a4a40, 30, 4.5, .09); burst(e.x, .4, e.z, SCHOOL_LIGHT.ember, 14, 3, .06);
+      Sfx.at(e.x, e.z).boom(); Sfx.at(e.x, e.z).rubble(); G.shake = .45; P.arms.rotation.x = .3; stride(0); // (it lands blade first)
       e.state = 'recover'; e.st = .7;
     }
   } else if (e.state === 'aim') { // turns on the mage, shaking, visor flaring; the line is set at the end
     e.vx = e.vz = 0; const k = 1 - Math.max(0, e.st) / .6;
     e.eye!.scale.set(1 + k, 1 + k * 2, 1); e.halo!.material.opacity = .35 + k * .6; e.body.position.x = Math.sin(e.t * 50) * .03;
-    e.dir = { x: ux, z: uz };
+    e.dir = { x: ux, z: uz }; settle(-.4); stride(0);
     if (e.st <= 0) { e.body.position.x = 0; e.state = 'charge'; e.st = 2.2; }
   } else if (e.state === 'charge') {
-    const d = e.dir!; e.vx = d.x * C.charge * speedMul; e.vz = d.z * C.charge * speedMul; e.body.rotation.x = .2;
-    if (Math.random() < dt * 30) burst(e.x, .15, e.z, 0xff7a2a, 1, 1, .05);
+    const d = e.dir!; e.vx = d.x * C.charge * speedMul; e.vz = d.z * C.charge * speedMul; e.body.rotation.x = .2; settle(-.4); stride(.7);
+    if (Math.random() < dt * 30) burst(e.x, .15, e.z, SCHOOL_LIGHT.ember, 1, 1, .05);
     if (e.st <= 0) { e.state = 'stalk'; e.st = 1.6; e.body.rotation.x = 0; }
     return Math.atan2(d.x, d.z);
   } else if (e.state === 'stun') { // ran into a wall: dazed and open to bolts
-    e.vx = e.vz = 0; e.body.rotation.z = Math.sin(e.t * 20) * .08;
+    e.vx = e.vz = 0; e.body.rotation.z = Math.sin(e.t * 20) * .08; settle(.35); stride(0);
     if (e.st <= 0) { e.body.rotation.z = 0; e.state = 'stalk'; e.st = 1.6; }
     return e.face;
   } else if (e.state === 'windSpray') {
     e.vx = e.vz = 0; const k = 1 - Math.max(0, e.st) / .45;
-    e.eye!.scale.set(1 + k, 1 + k, 1); e.halo!.material.opacity = .35 + k * .6;
+    e.eye!.scale.set(1 + k, 1 + k, 1); e.halo!.material.opacity = .35 + k * .6; settle(-1.7, 12); stride(0);
     if (e.st <= 0) { e.state = 'spray'; e.volleys = B?.volleys ?? 3; e.st = 0; }
   } else if (e.state === 'spray') {
-    e.vx = e.vz = 0;
+    e.vx = e.vz = 0; settle(-1.2, 9);
     if (e.st <= 0) {
-      fan(e, 5, .9, 4.2 * shotMul, e.volleys! % 2 ? .09 : -.09); Sfx.at(e.x, e.z).ember();
+      fan(e, 5, .9, 4.2 * shotMul, e.volleys! % 2 ? .09 : -.09); Sfx.at(e.x, e.z).ember(); P.arms.rotation.x = .2; // (each sweep of the blade throws its embers)
       e.volleys = e.volleys! - 1; e.st = .34; if (e.volleys <= 0) { e.state = 'stalk'; e.st = 2; }
     }
   } else if (e.state === 'recover') {
-    e.vx = e.vz = 0; e.body.scale.y = 1 - .15 * Math.max(0, e.st) / .7;
+    e.vx = e.vz = 0; e.body.scale.y = 1 - .15 * Math.max(0, e.st) / .7; settle(0, 3);
     if (e.st <= 0) { e.body.scale.y = 1; e.state = 'stalk'; e.st = 1.6; }
   }
   return undefined;

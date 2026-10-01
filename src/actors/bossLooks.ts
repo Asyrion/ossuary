@@ -15,6 +15,9 @@ import * as THREE from 'three';
 import { glow } from '../render/materials';
 import { lay, neck, spiral, type P3 } from './dragonPath';
 import { SCHOOL_LIGHT, bigEyes, box, circle, limb, lit, motes, part, rune, runeRing, sphere, std, type School, type V3 } from '../render/arcane';
+import { gloss, joint, jointed, slitEyes, spike, thin, tube } from './beastParts';
+import { curve } from '../world/kitParts';
+import { EMBER_FIRE, makeFire, makeMotes, type FlameSpec } from '../render/fire';
 
 /** A built boss look: its group, how it idles, its shadow, the parts the fight moves (the Warden's three, and any a
     boss's own fight moves besides) and its school. */
@@ -451,15 +454,156 @@ export function twinPairLook(): BossBuilt {
   return { ...a, group: g, shadow: 4, idle: t => { a.idle(t); b.idle(t + 1.7); } };
 }
 
+/** The Drowned Abbess (floor 2 or 3's boss, Frost; remade in code 2026-10-01, the owner's ask): a great pale cave olm,
+    soft and pale, rearing out of the water under the floor, its long tail curled behind it. Feathery gills glowing
+    with cold light hang round its head like a wimple and a veil, and its little forelegs are folded before its chest as
+    if at prayer, which is why the sextons called it the Abbess; it smiles a wide mouth of fine teeth. Its fight (bosses.ts)
+    opens its jaw and spreads its gills as it wails, flares its eyes, and sinks it into the floor. */
+export function abbessLook(): BossBuilt {
+  const F = SCHOOL_LIGHT.frost, g = new THREE.Group(), skin = gloss(0xe2d6d6, .5, .08), pale = std(0xf6eeea), finM = thin(0xe6c4c8), spotM = lit(0xbfe9ff);
+  const mouthM = lit(0x2c1624), tooth = std(0xf4f0e8, { roughness: .35 }), stalkM = lit(0x3f9ad0), frondM = lit(F), tipM = lit(0xe2f6ff);
+  const body = new THREE.Group(); g.add(body);
+  // the tail, curled on the floor behind it, a soft fin along its top and freckles of cold light
+  const tail = joint(body, [0, .3, -.2]), tailPts: V3[] = [[0, 0, 0], [0, -.04, -.6], [-.42, -.12, -1.05], [-.28, -.18, -1.5], [.2, -.2, -1.74]], tc = curve(tailPts);
+  tube(tail, tailPts, .42, .05, skin, 18, 8);
+  for (let i = 1; i < 10; i++) {
+    const k = i / 11, p = tc.getPoint(k), d = tc.getTangent(k), r = .42 - .37 * k;
+    part(tail, sphere(.2, 6, 5), finM, [p.x, p.y + r * .85, p.z], { rot: [0, Math.atan2(d.x, d.z), 0], scale: [.12, 1 - k * .6, 1.2] });
+    if (i % 2) part(tail, sphere(.035, 5, 4), spotM, [p.x + r * .5, p.y + r * .55, p.z]);
+  }
+  // the body, rearing up from the floor to the head; a pale belly
+  tube(body, [[0, .25, -.25], [0, .7, -.02], [0, 1.15, .2], [0, 1.44, .38]], .5, .32, skin, 12, 10);
+  part(body, sphere(.42, 12, 10), pale, [0, .8, .2], { scale: [.9, 1.25, .6] });
+  for (const s of [-1, 1]) {
+    // the forelegs folded before the chest, the hands meeting as if at prayer; the hind legs splayed on the floor
+    jointed(body, [[.3 * s, 1.18, .3], [.42 * s, .9, .5], [.08 * s, 1.02, .66]], .08, .05, skin);
+    for (let f = 0; f < 3; f++) limb(body, [.08 * s, 1.02, .66], [.03 * s, 1.1 + f * .04, .7 + f * .015], .02, pale, .012);
+    jointed(body, [[.38 * s, .35, -.12], [.72 * s, .24, .06], [.86 * s, .04, .26]], .12, .07, skin);
+    part(body, sphere(.12, 8, 6), pale, [.9 * s, .03, .34], { scale: [1.2, .3, 1.1] });
+  }
+  for (let i = 0; i < 5; i++) part(body, sphere(.04, 5, 4), spotM, [(i % 2 ? .16 : -.16), .55 + i * .2, -.2 + i * .1]);
+  // the head: broad and flat, held up so its face shows, a wide smile of fine teeth, eyes of cold light
+  const head = joint(body, [0, 1.62, .5], [-.35, 0, 0]);
+  part(head, sphere(.44, 14, 10), skin, [0, 0, 0], { scale: [1.3, .62, 1.1] });
+  part(head, new THREE.TorusGeometry(.44, .075, 4, 18, Math.PI), mouthM, [0, -.08, 0], { rot: [Math.PI / 2, 0, 0], scale: [1.25, 1.06, 1] });
+  for (let i = 1; i < 12; i++) { const a = i / 12 * Math.PI; part(head, new THREE.ConeGeometry(.035, i % 2 ? .15 : .1, 4), tooth, [Math.cos(a) * .58, -.1, Math.sin(a) * .5], { rot: [Math.PI, 0, 0] }); }
+  const jaw = joint(head, [0, -.08, -.1]);
+  part(jaw, sphere(.32, 12, 8), pale, [0, -.04, .24], { scale: [1.5, .45, 1.15] });
+  for (let i = 1; i < 9; i++) { const a = i / 9 * Math.PI; part(jaw, new THREE.ConeGeometry(.02, .06, 4), tooth, [Math.cos(a) * .44, .03, .1 + Math.sin(a) * .36]); }
+  const eye = joint(head, [0, .1, .36]);
+  slitEyes(eye, .32, 0, .02, .16, F, .5, .4); // (narrow, cold, slanted down to the middle)
+  const eyeGlow = glow(F, 1.1, .45); eyeGlow.position.set(0, 0, .08); eye.add(eyeGlow);
+  for (let i = 0; i < 4; i++) part(head, sphere(.03, 5, 4), spotM, [(i - 1.5) * .14, .26, -.1 - (i % 2) * .08]);
+  // the gills: three plumes a side, sweeping up over the head, out, and down to the shoulders like a veil; each a stalk
+  // feathered along its length, its tips bright
+  const gills = [-1, 1].map(s => {
+    const gj = joint(head, [.5 * s, .04, -.12]);
+    for (const [up, out] of [[.55, .32], [.12, .55], [-.42, .45]] as [number, number][]) {
+      const pts: V3[] = [[0, 0, 0], [out * .45 * s, up * .5 + .04, -.1], [out * .85 * s, up * .85, -.28], [out * s, up - .1 * Math.sign(up), -.46]], c = curve(pts);
+      tube(gj, pts, .09, .04, stalkM, 8, 6);
+      for (let k = 1; k <= 6; k++) {
+        const p = c.getPoint(k / 7), len = .24 - k * .018;
+        for (const v of [-1, 1]) spike(gj, [p.x, p.y, p.z], [p.x + .05 * s, p.y + v * len, p.z - .07], .045, k > 4 ? tipM : frondM);
+      }
+    }
+    return gj;
+  });
+  const ring = haloRing(g, F, .85, 1.95, .05);
+  const halo = glow(F, 3.4, .35); halo.position.set(0, 1.6, 0); g.add(halo);
+  const drips = motes(g, F, 8, 1.3, 1.2, .03);
+  return { group: g, shadow: 2.4, school: 'frost', parts: { eye, ring, halo, body, head, jaw, gillL: gills[0], gillR: gills[1], eyeGlow }, idle: t => {
+    body.rotation.z = Math.sin(t * .9) * .04; head.rotation.z = Math.sin(t * .7 + 1) * .06; head.rotation.x = -.35 + Math.sin(t * 1.1) * .04;
+    gills.forEach((gj, i) => { gj.rotation.y = Math.sin(t * 1.6 + i * Math.PI) * .12; gj.rotation.x = Math.sin(t * 2.1 + i) * .06; });
+    tail.rotation.y = Math.sin(t * 1.2) * .1; drips(t, .4);
+  } };
+}
+
+/** The Pyre Knight (floor 2 or 3's boss, Ember; remade in code 2026-10-01, the owner's ask): a suit of blackened plate as
+    tall as a door with no one inside it, only fire: it glows at every joint and through a crack in its breastplate, and
+    pours up out of its helm as out of a brazier ringed with iron spikes. A greatsword whose fuller runs molten burns in
+    both its gauntlets, and its cloak smoulders along the hem. Its fight (bosses.ts) strides its legs as it stalks, levels
+    its blade as it aims and charges, raises it overhead and swings it down as it sprays embers, and widens the slit of
+    its visor. */
+export function pyreKnightLook(): BossBuilt {
+  const E = SCHOOL_LIGHT.ember, g = new THREE.Group(), plate = gloss(0x3c3430, .4, .6), dark = std(0x1c1716, { metalness: .5, roughness: .55 }), trim = gloss(0x9a8472, .32, .7);
+  const seam = lit(0xff8a34), molten = lit(0xffc36a), steel = gloss(0x9a8c80, .3, .8), cloth = thin(0x3a1612, { roughness: .9 });
+  const body = new THREE.Group(); g.add(body);
+  // the legs, each a pivot at the hip: cuisse, a knee cop with the fire showing behind it, greave, a sabaton
+  const legs = [-1, 1].map(s => {
+    const l = joint(body, [.26 * s, 1.0, 0]);
+    limb(l, [0, 0, 0], [0, -.45, .05], .17, plate, .14);
+    part(l, sphere(.14, 8, 6), trim, [0, -.47, .08]); part(l, sphere(.1, 6, 5), seam, [0, -.47, -.04]);
+    limb(l, [0, -.5, .05], [0, -.88, 0], .14, plate, .12);
+    part(l, box(.22, .12, .38), dark, [0, -.94, .08]);
+    return l;
+  });
+  // a skirt of plates over the hips, a ring of fire at the waist
+  for (let i = -3; i <= 3; i++) { const a = i * .42; part(body, box(.2, .34, .05), i % 2 ? trim : plate, [Math.sin(a) * .38, .98, Math.cos(a) * .38 - .02], { rot: [-.2, a, 0] }); }
+  part(body, new THREE.TorusGeometry(.36, .05, 5, 18), seam, [0, 1.14, 0], { rot: [Math.PI / 2, 0, 0] });
+  // the breastplate: a ridge down the middle, a crack the fire shows through
+  part(body, sphere(.5, 14, 10), plate, [0, 1.55, 0], { scale: [1.05, 1.1, .75] });
+  part(body, box(.05, .62, .05), trim, [0, 1.56, .36], { rot: [.1, 0, 0] });
+  for (const [x, y, rz] of [[.12, 1.72, .5], [.16, 1.56, -.4], [.1, 1.42, .3], [.2, 1.36, -.6]] as V3[]) part(body, box(.035, .17, .03), molten, [x, y, .36 - (1.72 - y) * .05], { rot: [0, .35, rz] });
+  part(body, new THREE.CylinderGeometry(.25, .3, .18, 10), dark, [0, 2.06, 0]);
+  // the pauldrons: three shells each, layered, a spike on the top
+  for (const s of [-1, 1]) for (let i = 0; i < 3; i++) {
+    part(body, new THREE.SphereGeometry(.32 - i * .05, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), i ? plate : trim, [.56 * s, 1.92 - i * .13, 0], { rot: [0, 0, -s * (.35 + i * .12)], scale: [1, .7, 1.1] });
+    if (!i) spike(body, [.62 * s, 2.1, 0], [.74 * s, 2.42, -.05], .06, trim);
+  }
+  // the helm: a great helm open at the crown like a brazier, iron spikes round its rim, fire pouring up out of it; the
+  // slit of its visor burning
+  const helm = joint(body, [0, 2.3, 0]);
+  part(helm, new THREE.CylinderGeometry(.28, .25, .48, 10), plate, [0, 0, 0]);
+  part(helm, new THREE.TorusGeometry(.28, .035, 4, 16), trim, [0, .24, 0], { rot: [Math.PI / 2, 0, 0] });
+  for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; spike(helm, [Math.sin(a) * .28, .24, Math.cos(a) * .28], [Math.sin(a) * .36, .46, Math.cos(a) * .36], .04, dark); }
+  part(helm, box(.06, .3, .04), trim, [0, -.06, .27]);
+  const eye = joint(helm, [0, .04, .27]);
+  part(eye, box(.34, .05, .03), molten, [0, 0, 0]);
+  const pyre = makeFire([{ x: 0, y: .2, z: 0, h: .75, w: .42, tongues: 3 }], EMBER_FIRE, 10, .9); helm.add(pyre);
+  // the arms hold the greatsword before it, point forward and down (the fight raises and swings them, the sword with them)
+  const arms = joint(body, [0, 1.86, 0]);
+  for (const s of [-1, 1]) {
+    limb(arms, [.56 * s, -.02, 0], [.46 * s, -.45, .25], .13, plate, .12);
+    part(arms, sphere(.09, 6, 5), seam, [.46 * s, -.45, .25]);
+    limb(arms, [.46 * s, -.45, .25], [.12 * s, -.62, .56], .12, plate, .11);
+    part(arms, sphere(.12, 8, 6), dark, [.09 * s, -.64, .6], { scale: [1, .9, 1.2] });
+  }
+  const sword = joint(arms, [0, -.64, .6], [2, 0, 0]);
+  part(sword, box(.16, 1.45, .045), steel, [0, .8, 0]);
+  part(sword, box(.045, 1.22, .055), molten, [0, .76, 0]);
+  part(sword, new THREE.ConeGeometry(.08, .22, 4), steel, [0, 1.63, 0], { rot: [0, Math.PI / 4, 0], scale: [1, 1, .3] });
+  part(sword, box(.52, .07, .1), dark, [0, .06, 0]);
+  for (const s of [-1, 1]) part(sword, sphere(.05, 6, 5), trim, [.27 * s, .09, 0]);
+  part(sword, new THREE.CylinderGeometry(.035, .035, .34, 6), dark, [0, -.13, 0]);
+  part(sword, sphere(.06, 6, 5), trim, [0, -.32, 0]);
+  const blaze = makeFire([.45, .8, 1.15, 1.45].map((y, i) => ({ x: 0, y: -.42 * y, z: .91 * y, h: .34 - i * .03, w: .15 })), EMBER_FIRE, 6, .6);
+  blaze.rotation.x = -2; sword.add(blaze); // (in the sword's frame turned back upright, so the flames still rise)
+  // the cloak, down its back from the shoulders, its tattered hem smouldering
+  const cloak = joint(body, [0, 1.95, -.05]);
+  part(cloak, new THREE.CylinderGeometry(.5, .78, 1.75, 12, 1, true, Math.PI - 1.15, 2.3), cloth, [0, -.88, 0]);
+  const hem: FlameSpec[] = [];
+  for (let i = 0; i < 11; i++) {
+    const a = Math.PI - 1.1 + i / 10 * 2.2, x = Math.sin(a) * .78, z = Math.cos(a) * .78;
+    part(cloak, new THREE.ConeGeometry(.08, .2 + (i % 3) * .06, 4), i % 2 ? seam : cloth, [x, -1.78, z], { rot: [Math.PI, 0, 0] });
+    if (i % 3 === 1) hem.push({ x, y: -1.8, z, h: .15, w: .3 });
+  }
+  cloak.add(makeMotes(hem, E, 14, 1.2));
+  const ring = haloRing(g, E, .8, 2.45, -.5);
+  const halo = glow(E, 3.3, .35); halo.position.set(0, 1.8, -.2); g.add(halo);
+  return { group: g, shadow: 2.3, school: 'ember', parts: { eye, ring, halo, body, helm, arms, sword, legL: legs[0], legR: legs[1] }, idle: t => {
+    body.position.y = Math.sin(t * 1.6) * .015; cloak.rotation.x = .04 + Math.sin(t * 1.3) * .04; helm.rotation.y = Math.sin(t * .6) * .08;
+  } };
+}
+
 /** The looks, for the owner to choose (the dev menu's Galleries tab stands them ahead of the mage, and picks the one the
     Hollow Warden wears in its fight). */
 export const BOSS_LOOKS = [
   { id: 'bellWarden', build: bellWarden }, { id: 'motherOfSpores', build: motherOfSpores }, { id: 'hollowOwl', build: hollowOwl },
 ] as const;
 export type BossLookId = (typeof BOSS_LOOKS)[number]['id'];
-/** Every boss built in code, for the Galleries tab: the Warden's three looks, the bosses of floors 4 and 5, then the
-    bosses from the Eda lore (M4.2). */
-export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [...BOSS_LOOKS, { id: 'hart', build: hartLook }, { id: 'angler', build: anglerLook }, { id: 'tiger', build: tigerLook }, { id: 'dragon', build: dragonLook }, { id: 'twins', build: twinPairLook }];
+/** Every boss built in code, for the Galleries tab: the Warden's three looks, the bosses of floors 2 and 3, of floors 4
+    and 5, then the bosses from the Eda lore (M4.2). */
+export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [...BOSS_LOOKS, { id: 'abbess', build: abbessLook }, { id: 'pyre', build: pyreKnightLook }, { id: 'hart', build: hartLook }, { id: 'angler', build: anglerLook }, { id: 'tiger', build: tigerLook }, { id: 'dragon', build: dragonLook }, { id: 'twins', build: twinPairLook }];
 
 /** The look the Hollow Warden wears until the owner chooses: picked in the dev menu, remembered in this browser. */
 const LOOK_KEY = 'ossuary.bossLook', FIRST: BossLookId = 'motherOfSpores';
