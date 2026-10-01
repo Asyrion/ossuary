@@ -110,6 +110,12 @@ const REAGENT_BUILD: Record<ReagentId, (g: THREE.Group, c: number) => void> = {
     mesh(g, lathe([[0, -.12], [.05, -.12], [.06, -.09], [.06, .08], [.03, .1], [.03, .12], [0, .12]], 8), glowTone(c));
     mesh(g, cyl(.035, .032, .04, 6), tone(0xe8f4ff, .05), 0, .14, 0);
   },
+  bloomPetal(g, c) { // a bloom of rose petals round a glowing gold heart, on a green leaf
+    put(mesh(g, new THREE.SphereGeometry(1, 7, 4), tone(0x5e8a34, .1), 0, -.07, .01), -.15, .4, 0, [.07, .014, .13]);
+    for (let k = 0; k < 5; k++) { const p = new THREE.Group(); p.rotation.y = k / 5 * Math.PI * 2; g.add(p); put(mesh(p, new THREE.SphereGeometry(1, 6, 4), tone(c, .06), 0, -.03, .05), -.45, 0, 0, [.04, .014, .065]); }
+    mesh(g, new THREE.SphereGeometry(.03, 6, 4), glowTone(0xf0d860), 0, -.02, 0);
+    g.add(glowShared(c, .5, .35));
+  },
   wardensAsh(g, c) { // a little urn of heavy grey ash, a ward-blue rune on it
     mesh(g, lathe([[0, -.1], [.06, -.1], [.09, -.05], [.09, .03], [.06, .07], [.065, .09], [0, .09]], 9), tone(CLAY, .14));
     mesh(g, cyl(.06, .06, .01, 9), tone(c, .1), 0, .09, 0);

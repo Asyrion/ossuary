@@ -776,7 +776,7 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
 
 **Their looks** are built in code: reagents and potion bottles are small props; bottles can share one mesh with shuffled colours.
 
-**M5 as built, steps 1 to 8 (2026-10-01; `docs/M5-plan.md`, its decisions taken as proposed, the owner to change any).**
+**M5 as built, steps 1 to 9 (2026-10-01; `docs/M5-plan.md`, its decisions taken as proposed, the owner to change any).**
 - *The data.* The twelve potions, six reagents and seventeen recipes are data (`data/alchemy.json`), each potion with its
   drink and throw effect and their numbers; the validator refuses a broken one.
 - *Bottles.* Six shapes built in code (flask, vial, jar, teardrop, skull, bulb), twelve of fourteen liquid colours: each
@@ -838,6 +838,26 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
   shoulder). Three of the four transform the mage: a bandolier of five vials of every colour across the chest, a stained
   apron at the waist and a green aura; every potion thrown splits in two as it leaves the hand, the bottles landing two
   tiles apart across the aim, each a whole splash.
+- *Verdant* (step 9), the sixth school, in a spring green, its sound wood and breath. Its status, *Overgrown*: vines that
+  slow a foe by 15% at once and 15% more each second they hold, up to 60% (a boss half as much), green vines on the foe;
+  a foe that falls overgrown flowers ("It flowers"), mending half a heart, once a room. Its five reactions make the wheel
+  whole (all fifteen pairs of the six schools react; the book's wheel has six spokes): *Wildfire* (Ember: the burn runs
+  along the vines to every overgrown foe in the room), *Frostbloom* (Frost: ice flowers open and shatter 0.6 s later,
+  cutting and chilling the foes round it), *Pollen Spark* (Storm: a cloud of pollen that shocks the foes in it for 3 s),
+  *Bloom* (Hallow: the foe flowers, and its lily mends half a heart as it falls, beyond the room's one flower) and *Blight*
+  (Umbral: the vines rot to thorns that hex it and creep to the nearest other foe, overgrowing it). Three spells on shapes
+  that were there: the *Thorn Snare* (thorns burst from the floor where the mage aims and close, holding and overgrowing
+  the foes there), the *Pollen Cloud* (golden pollen round the mage for 5 s that overgrows the foes in it and mends half a
+  heart once) and the *Living Wall* (trunks of living wood that stop foes and their shots, not the mage's bolts, and
+  overgrow the foes that touch them; fire burns it down). A Wardling of Verdant drinks it at a vault's ward, a rune stone
+  takes its emblem, and the spell marks rise with it.
+- *The overgrown garden* (step 9), a themed room on floors 1 to 3 (its floor always cobbles, moss and small flowers over
+  it, a pond, briars and roots): flowering plants (`F`) stand in beds; a bolt or a blast bursts one in petals and a ring of
+  pollen that overgrows every foe within 1.8 tiles for 4 s, and fire burns one away. Its twist: the garden grows, Overgrown
+  holding 1.75 times as long on its foes ("The garden holds it" rises the first time in a room). Verdant's reagent, *Bloom
+  Petal* (healing and growth): a flowering plant leaves one six times in ten, a foe of Verdant or one that falls overgrown
+  leaves one as other foes leave theirs. With Grave Moss it brews a Healing Draught, with Wisp Essence a Mana Tonic, with
+  Ember Salt Liquid Ember, and with Warden's Ash a Giant's Brew; the merchant and the jelly globes may have it too.
 
 ## RPG progression
 
@@ -1682,7 +1702,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4.9 The curve | Harder for the right reasons | Pressure dials per floor in data; libraries and merchants lean to the floor's weakness; a hex's drain traced to its foe; the sluice for water rooms; `npm run balance` measuring every foe (Depth for what's built; proposed 2026-10-01, `docs/M4.9-plan.md`) |
 | M4.10 Weaves | Combinations beyond pairs | Ten weaves (a spell striking what another left: the Steam Curtain, the Overload Seal, Eclipse Ground...), seven chains (a reaction's leavings met by a third school: Thundercloud, Incense, Miasma...), the room's mechanisms joining in; Verdant's Bloom and Blight designed for M5 (Depth for what's built; built 2026-10-01 at the owner's ask, `docs/M4.10-plan.md`) |
 | M4.11 Spell marks | You can see your magic | **Built 2026-10-01** (Spells: Spell marks; the owner's ask). The slotted spells shown at the hands with their state, attunement, a master's ring, the knowledge circle |
-| M5 Alchemy | The second game | **Under way** (`docs/M5-plan.md`; Potions and alchemy, M5 as built): steps 1 to 8 built (the data, the belt, drinking and throwing, reagents, Dr. Jelly's laboratory and brewing, the jelly serpent, the Alchemist). Potion belt, drink or throw, identification, 6 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
+| M5 Alchemy | The second game | **Under way** (`docs/M5-plan.md`; Potions and alchemy, M5 as built): steps 1 to 9 built (the data, the belt, drinking and throwing, reagents, Dr. Jelly's laboratory and brewing, the jelly serpent, the Alchemist, Verdant and its gardens). Potion belt, drink or throw, identification, 7 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
 | M7 Descent and the Vigil | A full run with a reason to return | Final boss (Kaelith, the Shadow Sentinel); the Vigil (RPG progression: Between runs) at the cave mouth over the valleys: freed shades as townspeople with dialogue (Boketto, the Cloud Forest Wizard, the Huruhui foragers), its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines; a won run ends in daylight |
 | M8 Eda | It is Eda | Lore names, floor biomes, adaptive music, ambience beds and final mix |

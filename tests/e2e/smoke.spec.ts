@@ -2081,6 +2081,39 @@ test('Verdant (M5 step 9): the Thorn Snare holds and overgrows, the Living Wall 
   expect(errors).toEqual([]);
 });
 
+test('the overgrown garden (M5 step 9): a flowering plant struck bursts into pollen that overgrows the foes near, longer in the garden, its word rising once; it leaves Bloom Petal, as an overgrown foe does; fire burns it', async ({ page }) => {
+  const errors = await start(page, '?room=garden_beds&seed=GARD1');
+  type B = { x: number; z: number; prop: { kind: string; burning: number } };
+  type GG = GP & { clearRoom(): void; current: { theme?: { id: string; twist: string }; props?: B[]; gardenSaid?: boolean }; keys: Set<string>; arrowOrder: string[];
+    reagentsAlways(on: boolean): void; pickups: { kind: string; reagent?: string }[]; burn(x: number, z: number, r: number): void; hit(i: number, dmg: number, school?: string): void };
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GG, P = g.player;
+    g.warp(1); g.sim(.3); g.clearRoom(); g.sim(.2); P.invuln = 99; g.reagentsAlways(true);
+    const theme = g.current.theme, blossoms = () => (g.current.props ?? []).filter(b => b.prop.kind === 'blossom');
+    const b = blossoms()[0], before = blossoms().length;
+    P.x = b.x - 2; P.z = b.z;
+    g.spawn('rotling'); g.spawn('rotling'); g.sim(.8);
+    g.enemies.forEach((e, i) => { const f = e as unknown as { x: number; z: number; hp: number; maxHp: number; speed: number }; f.x = b.x + .4; f.z = b.z + (i ? .9 : -.9); f.hp = f.maxHp = 300; f.speed = 0; });
+    g.keys.add('ArrowRight'); g.arrowOrder.push('ArrowRight'); g.sim(.3); g.keys.delete('ArrowRight'); g.arrowOrder.length = 0; g.sim(.15);
+    const grow = g.enemies.map(e => e.status?.grow ?? 0), said = !!g.current.gardenSaid;
+    const petals = g.pickups.filter(p => p.kind === 'reagent' && p.reagent === 'bloomPetal').length;
+    // an overgrown foe falling leaves Bloom Petal too
+    g.hit(0, 9999); g.sim(.3); const fell = g.pickups.filter(p => p.kind === 'reagent' && p.reagent === 'bloomPetal').length;
+    // fire burns a flowering plant away
+    const c = blossoms()[0]; g.burn(c.x, c.z, .1); g.sim(.1); const burning = c.prop.burning > 0; g.sim(2);
+    g.reagentsAlways(false);
+    return { theme: theme && { id: theme.id, twist: theme.twist }, before, after: blossoms().length, grow, said, petals, fell, burning };
+  });
+  expect(r.theme).toEqual({ id: 'garden', twist: 'garden' });
+  expect(r.before).toBe(10); expect(r.after).toBe(8); // (one burst, one burnt)
+  for (const t of r.grow) expect(t).toBeGreaterThan(6); // (4 seconds, ×1.75 in the garden)
+  expect(r.said).toBe(true);
+  expect(r.petals).toBe(1); expect(r.fell).toBe(2); expect(r.burning).toBe(true);
+  await page.evaluate(() => (window as unknown as W).__game.sim(.05, true));
+  await page.screenshot({ path: 'test-results/garden.png' });
+  expect(errors).toEqual([]);
+});
+
 test('the pause menu sets the volumes, and the browser remembers them; positioned effects play without errors', async ({ page }) => {
   const errors = await start(page, '?room=crypt_a&seed=VOL1&spells=arc');
   // a fight: hits, deaths and a spell, all panned to where they happen
@@ -3048,12 +3081,12 @@ test('the room kit\'s objects: every pile and object, urns, pedestals, pillars a
       burning: !!sack.prop.flame, kitFire: !!sack.prop.flame?.userData.fire, calls,
     };
   });
-  const kinds = ['boat', 'bones', 'briar', 'bridge', 'cask', 'desk', 'globe', 'glowcap', 'hoard', 'pew', 'roots', 'rubble', 'sacks', 'scrolls', 'skulls', 'tree', 'web'];
+  const kinds = ['blossom', 'boat', 'bones', 'briar', 'bridge', 'cask', 'desk', 'globe', 'glowcap', 'hoard', 'pew', 'roots', 'rubble', 'sacks', 'scrolls', 'skulls', 'tree', 'web'];
   for (const floor of [1, 2, 3, 4, 5]) {
     const errors = await start(page, `?seed=K3F9QX&floor=${floor}`);
     const kit = await objects();
     expect(kit.kinds, `floor ${floor}`).toEqual(kinds);
-    expect(kit).toMatchObject({ painted: 16, urns: 4, urnsPainted: 4, pedestal: true, burning: true, kitFire: true }); // (all but the cobweb, drawn in pixel art; two urns each from both buttons)
+    expect(kit).toMatchObject({ painted: 17, urns: 4, urnsPainted: 4, pedestal: true, burning: true, kitFire: true }); // (all but the cobweb, drawn in pixel art; two urns each from both buttons)
     expect(kit.calls).toBeLessThan(260);
     if (floor === 1) await page.screenshot({ path: 'test-results/room-kit-objects.png' });
     // a room of pillars and a tomb
@@ -3068,7 +3101,7 @@ test('the room kit\'s objects: every pile and object, urns, pedestals, pillars a
   }
   // off: the old looks, nothing painted
   await start(page, '?seed=K3F9QX&kit=old');
-  expect(await objects()).toMatchObject({ kinds, painted: 4, urnsPainted: 0, pedestal: false, burning: true, kitFire: false }); // (M4.1's heap and boat, M4.2's bridge and M5's jelly globe have only the kit's look)
+  expect(await objects()).toMatchObject({ kinds, painted: 5, urnsPainted: 0, pedestal: false, burning: true, kitFire: false }); // (M4.1's heap and boat, M4.2's bridge and M5's jelly globe and flowering plant have only the kit's look)
 });
 
 test('the room kit\'s doors, gates, niches and pilasters: built in code, one mesh a gate, fewer draw calls, and the gate still rises', async ({ page }) => {

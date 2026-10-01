@@ -91,6 +91,7 @@
     "boneDust": { "name": "Bone Dust", "color": "#d8ccb0", "leans": "Strength and grave magic", "lore": "Ground from the old dead, who no longer need it, and the stone things that walk." },
     "emberSalt": { "name": "Ember Salt", "color": "#ff8a3a", "leans": "Fire", "lore": "The crust that forms on a brazier's rim, and in the cinders of things that burned." },
     "rimewater": { "name": "Rimewater", "color": "#9ad8f0", "leans": "Frost", "lore": "Water that froze and would not thaw. It stays cold in a closed hand." },
+    "bloomPetal": { "name": "Bloom Petal", "color": "#f0a8c8", "leans": "Healing and growth", "lore": "A petal from a garden that grows where no sun has reached in an age. Pressed in a book, it would not wilt." },
     "wardensAsh": { "name": "Warden's Ash", "color": "#a89070", "leans": "Rare potions", "lore": "What is left when a guardian of the vault falls. It is heavier than ash should be.", "rare": true }
   },
   "recipes": [
@@ -105,20 +106,24 @@
     { "of": ["graveMoss", "emberSalt"], "makes": "bitterRemedy" },
     { "of": ["boneDust", "wispEssence"], "makes": "hexBrew" },
     { "of": ["graveMoss", "boneDust"], "makes": "graveDraught" },
+    { "of": ["bloomPetal", "graveMoss"], "makes": "healing" },
+    { "of": ["bloomPetal", "wispEssence"], "makes": "mana" },
+    { "of": ["bloomPetal", "emberSalt"], "makes": "liquidEmber" },
     { "of": ["wardensAsh", "wispEssence"], "makes": "echoes" },
     { "of": ["wardensAsh", "boneDust"], "makes": "giants" },
     { "of": ["wardensAsh", "emberSalt"], "makes": "bottledStorm" },
     { "of": ["wardensAsh", "rimewater"], "makes": "shadowstep" },
     { "of": ["wardensAsh", "graveMoss"], "makes": "healing" },
+    { "of": ["wardensAsh", "bloomPetal"], "makes": "giants" },
     { "of": ["wardensAsh", "wardensAsh"], "makes": "echoes" }
   ],
   "sources": {
-    "schools": { "ember": "emberSalt", "frost": "rimewater", "hallow": "wispEssence", "storm": "wispEssence", "umbral": "boneDust" },
+    "schools": { "ember": "emberSalt", "frost": "rimewater", "hallow": "wispEssence", "storm": "wispEssence", "umbral": "boneDust", "verdant": "bloomPetal" },
     "foes": {
       "sporeling": "graveMoss", "rootling": "graveMoss", "puffcap": "graveMoss", "cryptSpider": "graveMoss", "moonstagFawn": "graveMoss",
       "rubbleCrab": "boneDust", "rubbleGolem": "boneDust", "rubbleStone": "boneDust", "lodestoneGolem": "boneDust", "gargoyleWhelp": "boneDust", "saltGolem": "boneDust", "glacierGolem": "rimewater", "hearthGolem": "emberSalt"
     },
-    "objects": { "bones": "boneDust", "skulls": "boneDust", "roots": "graveMoss", "glowcap": "graveMoss", "sacks": "graveMoss", "brazier": "emberSalt", "cask": "emberSalt" },
+    "objects": { "bones": "boneDust", "skulls": "boneDust", "roots": "graveMoss", "glowcap": "graveMoss", "sacks": "graveMoss", "brazier": "emberSalt", "cask": "emberSalt", "blossom": "bloomPetal" },
     "boss": "wardensAsh"
   },
   "bottles": {

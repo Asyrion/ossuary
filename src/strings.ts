@@ -408,7 +408,7 @@ export const STR = {
   },
   statusNames: { burn: 'Burn', chill: 'Chill', frozen: 'Frozen', shock: 'Shock', sanct: 'Sanctified', hex: 'Hex', root: 'Rooted', grow: 'Overgrown', bloom: 'Overgrown, flowering' } as Record<string, string>,
   /** M5: an overgrown foe falling flowers (statusFx.ts's `flowerFell`). */
-  grow: { flower: 'It flowers', lily: 'A lily' },
+  grow: { flower: 'It flowers', lily: 'A lily', garden: 'The garden holds it' },
   /** The boss bar while a shrine draws a curse out. */
   curseOf: (name: string) => `The curse of the ${name}`,
   /** The lore card shown on picking something up (ui/lore.ts). Artifacts keep their lore in data/artifacts.json;
@@ -704,7 +704,7 @@ export const STR = {
     spells: 'Spells (click to learn into the slot)', slot: 'Slot', mana: 'Mana', fullMana: 'Full mana', manaOn: 'Endless mana: on', manaOff: 'Endless mana: off', forget: 'Forget spells',
     page: 'Drop a grimoire page', noPage: 'No spell left to learn',
     themes: 'Themed rooms (a test room of each)', objects: 'Objects (put down ahead)', noRoom: 'No free floor there',
-    propNames: { bones: 'Bone pile', skulls: 'Skull heap', sacks: 'Grave sacks', cask: 'Oil cask', rubble: 'Rubble', roots: 'Grave roots', briar: 'Thorn briar', web: 'Cobwebs', glowcap: 'Glowcaps', pew: 'Pew', desk: 'Desk', scrolls: 'Scroll heap', hoard: 'Offering heap', boat: 'Moored boat', brazier: 'Brazier', candles: 'Candle stand', bell: 'Bell', rune: 'Rune stone', lodestone: 'Lodestone', censer: 'Hanging censer', reliquary: 'Reliquary', tree: 'Dead tree', statue: 'Watching statue', obelisk: 'Sapping obelisk', bridge: 'Rope bridge', wetCandles: 'Candle stand in water', sluice: 'Sluice gate' } as Record<string, string>,
+    propNames: { bones: 'Bone pile', skulls: 'Skull heap', sacks: 'Grave sacks', cask: 'Oil cask', rubble: 'Rubble', roots: 'Grave roots', briar: 'Thorn briar', web: 'Cobwebs', glowcap: 'Glowcaps', pew: 'Pew', desk: 'Desk', scrolls: 'Scroll heap', blossom: 'Flowering plant', hoard: 'Offering heap', boat: 'Moored boat', brazier: 'Brazier', candles: 'Candle stand', bell: 'Bell', rune: 'Rune stone', lodestone: 'Lodestone', censer: 'Hanging censer', reliquary: 'Reliquary', tree: 'Dead tree', statue: 'Watching statue', obelisk: 'Sapping obelisk', bridge: 'Rope bridge', wetCandles: 'Candle stand in water', sluice: 'Sluice gate' } as Record<string, string>,
     kindle: 'Fire ahead', frost: 'Frost ahead', shock: 'Shock ahead', hallowAhead: 'Holy light ahead', umbralAhead: 'Darkness ahead', steamAhead: 'Steam ahead',
     pools: 'Water and oil (this room)', ignite: 'Set the oil alight', freezeWater: 'Freeze the water', shockWater: 'Shock the water',
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,

@@ -5,7 +5,8 @@
    - pages        a scroll heap in the scriptorium sometimes hides a torn grimoire page;
    - sleepers     the pilgrims' rest's foes sleep until hurt, or until the mage comes close;
    - caveIn       a glyph's blast in the collapsed crypt brings more of the ceiling down: stones fall round it a moment
-                  later (their shadows show where), hurting what they land on and leaving rubble. */
+                  later (their shadows show where), hurting what they land on and leaving rubble;
+   - garden       (M5) the overgrown garden's Overgrown holds longer (`inflict` in magic/statusFx.ts, `CFG.themes.gardenGrow`). */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import { callFoe } from '../actors/foeData';
@@ -24,7 +25,8 @@ import { mulberry } from '../util';
 import { FLOORS } from './generate';
 import { addProp, removeProp } from './props';
 import type { ScatterKind } from './themeData';
-import { candleFire } from './objectLooks';
+import { candleFire, put } from './objectLooks';
+import { mesh, tone } from './kitParts';
 import { waxFor } from './fireLooks';
 
 const C = CFG.themes;
@@ -52,6 +54,11 @@ const GEO = {
   coin: shared(new THREE.CylinderGeometry(.07, .07, .012, 9)), pole: shared(new THREE.CylinderGeometry(.035, .05, 1.8, 6)), arm: shared(new THREE.BoxGeometry(.34, .04, .04)),
   lamp: shared(new THREE.CylinderGeometry(.07, .06, .16, 6)), cap: shared(new THREE.ConeGeometry(.09, .08, 6)),
   patch: shared(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2)), shaft: shared(new THREE.CylinderGeometry(.5, .75, 6, 12, 1, true)), rope: shared(new THREE.CylinderGeometry(.02, .02, 3.2, 4)), tuft: shared(new THREE.ConeGeometry(.05, .16, 6)),
+};
+/** The garden's flowers (M5): a blade of grass, a stem and a bloom, and the colours the blooms come in. */
+const FLOWER = {
+  blade: shared(new THREE.ConeGeometry(.018, .16, 3).translate(0, .08, 0)), stem: shared(new THREE.CylinderGeometry(.008, .01, 1, 4).translate(0, .5, 0)),
+  head: shared(new THREE.SphereGeometry(.03, 6, 4).scale(1, .6, 1)), colours: [0xf0a8c8, 0xfae6ee, 0xf0d860, 0xc8a0f0],
 };
 let patchTex: THREE.CanvasTexture | null = null;
 /** A soft round blotch, for moss and stains. */
@@ -174,6 +181,17 @@ const DRESS: Record<ScatterKind, Dress> = {
     const gl = glow(0x9ad0ff, 1.1, .55); gl.position.set(.3, 1.55, 0); g.add(gl);
     g.rotation.y = R() * 6; g.add(blob(.5));
     return g;
+  },
+  // M5: the overgrown garden's flowers: a tuft of grass and small blooms on short stems, rose, pale and gold
+  flowers(R) {
+    const g = new THREE.Group();
+    for (let i = 0; i < 3; i++) put(mesh(g, FLOWER.blade, tone(i % 2 ? 0x5e8a34 : 0x4a7428, .1), (R() - .5) * .2, 0, (R() - .5) * .2), (R() - .5) * .5, R() * 6, (R() - .5) * .5);
+    for (let i = 0, n = 3 + Math.floor(R() * 3); i < n; i++) {
+      const x = (R() - .5) * .6, z = (R() - .5) * .6, h = .07 + R() * .1;
+      put(mesh(g, FLOWER.stem, tone(0x6a9a3a, .06), x, 0, z), 0, 0, 0, [1, h, 1]);
+      mesh(g, FLOWER.head, tone(FLOWER.colours[Math.floor(R() * FLOWER.colours.length)], .06), x, h, z);
+    }
+    mergeStill(g); return g;
   },
 };
 

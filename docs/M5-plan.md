@@ -128,6 +128,14 @@ Bottled Storm); an unknown pair that matches no recipe brews a Volatile Mixture.
      garden grows, Overgrown lasting longer on foes there. Overgrown foes and Verdant spells may leave Bloom Petal too.
    Each part gets its dev menu entries, unit and browser tests, and the GDD as built. The Huruhui, the school's people in
    the owner's lore, stay out of the game's text until M8.
+   *Built (2026-10-01):* all four parts. 9a to 9c as planned (GDD: M5 as built, Verdant). 9d: the overgrown garden
+   (`garden`, two templates, `garden_beds` and `garden_long`, on floors 1 to 3, its floor pinned to cobbles so it reads as
+   a garden on the burning floor too; moss, leaves and a new scatter of small flowers), the flowering plant (`blossom`,
+   `F`: a low object a bolt or blast bursts into pollen, overgrowing the foes within 1.8 tiles for 4 s; fire burns it), its
+   twist (`garden`: Overgrown ×1.75 there, `CFG.themes.gardenGrow`, a word the first time in a room) and Bloom Petal (a
+   plant leaves one six times in ten, `CFG.alchemy.reagent.blossom`; Verdant's foes and a foe that falls overgrown leave
+   it as other foes leave theirs; with Warden's Ash it brews a Giant's Brew, growth, so the Ash still makes a strong potion
+   with every reagent).
 10. **Close**: the GDD as built, CLAUDE.md, the rules reviewer, a room sweep, screenshots for the owner, the play-test
     build.
 

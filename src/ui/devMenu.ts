@@ -163,8 +163,8 @@ export function showAssetsHere() {
     to look at the room kit's objects (or, with the room kit off, the old ones) in any room. */
 export function objectsHere() {
   const kinds = PROP_KINDS.filter(k => !isMechanism(k) || k === 'tree'), room = G.current;
-  kinds.forEach((k, i) => { const q = freeSpotNear(room, player.x + (i % 8 - 3.5) * 1.1, player.z - 1.8 - Math.floor(i / 8) * 1.4); placeProp(k, q.x, q.z); }); // (eight a row: two rows fit a room)
-  for (const [dx, sealed] of [[-.6, false], [.6, true]] as const) { const q = freeSpotNear(room, player.x + dx, player.z - 1.8 - Math.ceil(kinds.length / 8) * 1.4); placeUrn(q.x, q.z, sealed); }
+  kinds.forEach((k, i) => { const q = freeSpotNear(room, player.x + (i % 9 - 4) * 1.05, player.z - 1.8 - Math.floor(i / 9) * 1.4); placeProp(k, q.x, q.z); }); // (nine a row: two rows fit a room)
+  for (const [dx, sealed] of [[-.6, false], [.6, true]] as const) { const q = freeSpotNear(room, player.x + dx, player.z - 1.8 - Math.ceil(kinds.length / 9) * 1.4); placeUrn(q.x, q.z, sealed); }
 }
 
 /** Ahead of the mage, in a row: one of every drop and a gilded chest, to look at the room kit's pickups and containers (or,

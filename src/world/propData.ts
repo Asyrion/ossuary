@@ -9,7 +9,7 @@
 import type { TableName } from '../items/loot';
 
 export type PropKind = 'bones' | 'skulls' | 'sacks' | 'cask' | 'rubble' | 'roots' | 'briar' | 'web' | 'glowcap' | 'pew' | 'desk' | 'scrolls'
-  | 'hoard' | 'boat' | 'bridge' | 'globe' | MechanismKind;
+  | 'hoard' | 'boat' | 'bridge' | 'globe' | 'blossom' | MechanismKind;
 /** The mechanisms (M3.6 step 4, world/mechanisms.ts): objects that answer to magic with more than breaking or burning. */
 export type MechanismKind = 'brazier' | 'candles' | 'bell' | 'rune' | 'lodestone' | 'censer' | 'reliquary' | 'tree' | 'statue' | 'obelisk' | 'wetCandles' | 'sluice';
 export type PropClass = 'tall' | 'low' | 'soft' | 'hanging';
@@ -43,6 +43,9 @@ export const PROPS: Record<PropKind, PropDef> = {
   // M5: a glass globe of glowing jelly on a stand, in Dr. Jelly's laboratory: a bolt bursts it, and out spills a jelly or a
   // reagent (world/laboratory.ts)
   globe: { char: 'J', class: 'tall', hits: 1, blast: true, burns: false },
+  // M5, Verdant: a flowering plant in an overgrown garden: a bolt or a blast bursts it into pollen that overgrows the foes
+  // near, and now and then it leaves Bloom Petal (props.ts, `blossomBurst`); fire burns it
+  blossom: { char: 'F', class: 'low', hits: 1, blast: true, burns: true },
   // mechanisms (world/mechanisms.ts)
   brazier: { char: 'f', class: 'low', hits: 0, blast: false, burns: false },
   candles: { char: 'l', class: 'low', hits: 0, blast: true, burns: false },

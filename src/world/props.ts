@@ -18,6 +18,8 @@ import { addDecal, burst } from '../combat/fx';
 import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { inflict } from '../magic/statusFx';
 import { riseMote } from '../magic/shapes';
+import { ringFx } from '../magic/spellFx';
+import { SCHOOL_LIGHT } from '../render/arcane';
 import { LOOT, rollTable } from '../items/loot';
 import { objectReagent } from '../items/reagents';
 import { JELLY, globeLook } from './labLooks';
@@ -36,7 +38,7 @@ import { actingKind } from '../actors/acting';
 import { counterAt } from '../actors/counters';
 
 const P = CFG.props;
-const FIRE = 0xff7a2a, EMBER = 0xffc060, SPORE = 0x9fe8b0, BONE = 0xd8ccb2;
+const FIRE = 0xff7a2a, EMBER = 0xffc060, SPORE = 0x9fe8b0, BONE = 0xd8ccb2, PETAL = 0xf0a8c8, POLLEN = 0xf0e890;
 
 /* ---------- looks ---------- */
 
@@ -162,7 +164,7 @@ const LOOKS: Record<Exclude<PropKind, MechanismKind>, Look> = {
     return g;
   },
   // M4.1's objects have only the room kit's look
-  hoard: R => OBJECT_LOOKS.hoard(R), boat: (R, len) => OBJECT_LOOKS.boat(R, len), bridge: (R, len) => OBJECT_LOOKS.bridge(R, len),
+  hoard: R => OBJECT_LOOKS.hoard(R), blossom: R => OBJECT_LOOKS.blossom(R), boat: (R, len) => OBJECT_LOOKS.boat(R, len), bridge: (R, len) => OBJECT_LOOKS.bridge(R, len),
   pew(_R, len) { // a bench facing north, towards where a chapel's altar would stand: seat, back on the south side, ends
     const g = new THREE.Group(), L = len - .12;
     const seat = new THREE.Mesh(boxUV(L, .07, .42), MAT.wood); seat.position.set(0, .34, -.05);
@@ -260,11 +262,21 @@ function breakProp(room: Room, box: PropBox) {
     case 'scrolls': burst(x, .3, z, 0xd8cbaa, 12, 1.8, .05); sfx.sack(); scrollsBroken(room, x, z); break;
     case 'briar': case 'web': burst(x, .25, z, kind === 'web' ? 0xe8e8f0 : 0x2e3a22, 8, 1.4, .04); sfx.tear(); break;
     case 'hoard': burst(x, .3, z, 0xffd27a, 16, 2.4, .05); burst(x, .15, z, 0xc8a04a, 10, 1.2, .05); sfx.coin(true); break;
+    case 'blossom': blossomBurst(x, z); break;
     case 'globe': burst(x, .7, z, JELLY, 20, 2.6, .06); burst(x, .5, z, 0xd8e8f0, 10, 2, .03); sfx.globeBreak(); globeBurst(room, x, z); break; // (M5: out spills a jelly or a reagent)
     default: burst(x, .3, z, 0x8a8078, 8, 1.6, .05);
   }
   if (def.loot) for (const item of rollTable(G.run.drops, def.loot, LOOT, soulsHere())) spawnPickup(item, x, z, { rise: true });
   objectReagent(kind, x, z); // (M5: now and then the reagent it held)
+}
+
+/** A flowering plant bursts (M5, Verdant): petals and a ring of pollen, and every foe in its reach overgrown. */
+function blossomBurst(x: number, z: number) {
+  const B = P.blossom;
+  burst(x, .4, z, PETAL, 14, 1.8, .05); burst(x, .6, z, POLLEN, 18, 1.4, .04);
+  ringFx(x, .05, z, SCHOOL_LIGHT.verdant, .2, B.reach, CFG.spellFx.shockwave, true);
+  for (const e of G.enemies) if (!e.dead && e.spawn <= 0 && !e.hidden && Math.hypot(e.x - x, e.z - z) < B.reach + e.r) inflict(e, { grow: B.grow });
+  Sfx.at(x, z).pollenCloud();
 }
 
 /** A broken cask's oil: its own tile and a few of the free floor tiles beside it, spreading outwards. */
