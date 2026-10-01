@@ -655,6 +655,30 @@ hand, red rune orbs circling in thin gold rings, white arcs of wind): the more o
 now; levels from M6), the more of the fire mage's pieces replace the apprentice's, slot by slot, as costumes do. The Tripo
 model is made from the sheets (docs/assets.md); the pieces that change are built in code.
 
+**M4.6 as built (2026-10-01; `docs/M4.6-plan.md`, its decisions taken as proposed, the owner to change any).**
+- *Costumes.* Eight slots (the seven above and the feet) and the focus, always held in the casting hand. 52 of the 57
+  artifacts show: their own model carried at a spot (belt, back, shoulder, chest, wrist) or a piece built for the body
+  (crowns, halo, antlers, masks, lens, third eye, feathers, stole, manacles, ring, band, beads, knot, boots). A cursed
+  piece glows red and weeps until cleansed; then it takes its cleansed look (the thorns flower, the mask is pushed up,
+  the chains break, the stole turns white).
+- *Transformations.* The table above, the Alchemist waiting for M5, each counting the artifacts tagged with its `family`
+  (4 to 6 each). The latest formed wears its look over the artifacts' pieces in those slots, with an aura in its light and
+  the robes tinted towards it. The Stormcaller's look is built from Boketto's (marks of storm on the face, black spirals
+  down the arms, eyes that flare blue when a Storm spell is cast) but does not whiten the model's hair. Every gift formed
+  stays. The gifts as built: the Pyromancer's embers, where a cantrip bolt strikes, burn foes and never the mage; the
+  Stormcaller's leap comes on every fifth bolt that strikes; the Lightbearer floats over pits and water (no wading, no
+  current); the Shadowstep blinks 2.4 tiles on Shift or the right trigger, every 1.6 s, briefly untouchable, and a
+  blink pressed too soon fizzles; the Runescribe's rune bursts 0.55 s after a strike for 60% of the bolt; the Pilgrim's
+  map is shown as each floor begins, cracked walls glow, and the mage walks 12% faster; the Beastcaller has one more
+  moth, and every familiar strikes half again as hard.
+- *Asyrion's arc.* Four stages at 3, 6, 9 and 12 artifacts held (every one taken, and the focus unless it is the first
+  wand): bronze-worked bracers; the dark coat's collar and shoulders; three red rune orbs in gold rings circling at the
+  chest; a flame in the off hand and white arcs of wind. Each fills its slot only where no artifact or transformation
+  does (the orbs and the flame have slots of their own). Each stage says so in a line the first time it is reached in a
+  run.
+- *Frame cost.* Every slot filled adds about 21 draw calls; the arc's last stage about 20 more; a transformation's look a
+  few more over what it replaces.
+
 **Fen-Nex** (the owner's Fen-Nex, "fox man", adopted 2026-09-30). The Rune Fox familiar built from the owner's drawing is
 Fen-Nex, Asyrion's companion: an artifact binds it as a small rune fox that runs at the mage's heel and bites; as the run
 goes on (floors cleared) it grows into its full shape, a long white beast between fox, cat and dragon, its fur blown back
@@ -1552,7 +1576,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4.1 Two floors deeper | A longer descent | Floors 4 and 5 with their own looks, room kit, foes, bosses and themes; Hallow and Umbral spells and statuses; soul motes; twelve more artifacts (the owner's ask, 2026-09-30; `docs/M4.1-plan.md`) |
 | M4.2 Beneath the Gate | The vault has a story | The Eda setting in the game's text (the Gate of Uzulim, its Wardens, Kaelith, Asyrion); the six pieces from the lore (watching statues, sapping obelisks, the drinking ward, rope bridges, currents and waterfalls, candle stands in water); the Wandering Merchant of Belerial; three bosses (the War-Tiger, the Pillar Dragon, the Twin Guardians); Fen-Nex as the familiar that grows (adopted 2026-09-30; `docs/M4.2-plan.md`) |
 | M4.5 Bestiary | A living dungeon | More critters, fantasy creatures and elementals built in code, and new kinds of enemy behaviour, spread over the floors; each drawn up as a look, chosen by the owner, then made a foe (Combat and enemies: The Bestiary; ideas in `docs/ideas.md`, decided 2026-09-30) |
-| M4.6 Costumes and transformations | You can see your build | Most artifacts wear a costume piece built in code; transformations when three artifacts of a kind are held, Boketto's look for the Stormcaller; Asyrion's arc from apprentice to chaos mage (Artifacts: Costumes and transformations; decided 2026-09-30, its place in the order the owner's to move) |
+| M4.6 Costumes and transformations | You can see your build | **Built 2026-10-01** (Artifacts: M4.6 as built). Most artifacts wear a costume piece built in code; transformations when three artifacts of a kind are held, Boketto's look for the Stormcaller; Asyrion's arc from apprentice to chaos mage (Artifacts: Costumes and transformations; decided 2026-09-30, its place in the order the owner's to move) |
 | M4.7 Living foes | Foes you read and outwit | Champions wear a school's mantle that the opposite school strips; the ground foes leave works on foes as on the mage; counters found fill a Foes tab, kept between runs; rooms that roll a pair of foes made to work together (Depth for what's built; approved and built 2026-10-01, `docs/M4.7-plan.md`) |
 | M4.8 The full wheel | Every pair of schools reacts | Five new reactions (Searing, Prism, Verdict, Black Ice, Void Spark) beside Steam, on foes and on tiles; reactions found mark the spell book's wheel (Depth for what's built; built 2026-10-01, `docs/M4.8-plan.md`) |
 | M4.9 The curve | Harder for the right reasons | Pressure dials per floor in data; libraries and merchants lean to the floor's weakness; a hex's drain traced to its foe; the sluice for water rooms; `npm run balance` measuring every foe (Depth for what's built; proposed 2026-10-01, `docs/M4.9-plan.md`) |
