@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
-import { G } from '../state';
+import { DEV, G, player } from '../state';
 import type { Room } from '../types';
 import { $, reduceMotion } from '../util';
 import { drawPixelLook, pixelLook } from './pixelLook';
@@ -52,9 +52,18 @@ export function cameraTargetFor(room: Pick<Room, 'bounds' | 'plan'>, px: number,
   return { x: fit(x0, x1, halfW, px), z: fit(z0, z1, halfD, pz) };
 }
 
+/** M4.6: the camera close on the mage, or back to the room's view. */
+export function setCloseUp(on: boolean) { DEV.closeUp = on; if (!on && G.current) setViewScale(viewScaleFor(G.current)); }
+
 export function placeCamera() {
   const s = reduceMotion ? 0 : G.shake;
   const sx = (Math.random() - .5) * s, sz = (Math.random() - .5) * s;
+  if (DEV.closeUp) { // (M4.6: close on the mage, to see what is worn)
+    const y = CFG.costume.closeUp.y;
+    camera.position.set(player.x, y, player.z).addScaledVector(CAM_DIR, 40); camera.lookAt(player.x, y, player.z);
+    if (camera.zoom !== CFG.costume.closeUp.zoom) { camera.zoom = CFG.costume.closeUp.zoom; camera.updateProjectionMatrix(); }
+    return;
+  }
   camera.position.set(camTarget.x + sx, 0, camTarget.z + sz).addScaledVector(CAM_DIR, 40);
   camera.lookAt(camTarget.x + sx, 0, camTarget.z + sz);
 }

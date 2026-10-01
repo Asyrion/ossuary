@@ -12,6 +12,7 @@ import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
 import { wardFoe } from '../actors/wardShield';
 import { fennexInfo, growFennex } from '../combat/fennex';
+import { heldNow, takeAllOff, triedOn, tryOn, wornNow } from '../actors/costume';
 import { callWanderer } from '../items/wanderer';
 import { STR, foeName } from '../strings';
 import { FOES, FOE_IDS, pickFoe, type FoeType } from '../actors/foeData';
@@ -26,7 +27,7 @@ import { makeEnemy, spawnFoe } from '../actors/enemies';
 import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
 import { assetList, assetsOn, setAssetsOn } from '../assets/models';
 import { Vector2 } from 'three';
-import { renderer } from '../render/renderer';
+import { renderer, setCloseUp } from '../render/renderer';
 import { drawnRows, pixelLook, setPixelLook } from '../render/pixelLook';
 import { FAMILIAR_OPTIONS, MODEL_OPTIONS, removeModelOptions, showBestiary, showBossLooks, showFamiliarOptions, showModelOptions } from '../actors/modelOptions';
 import { BESTIARY_OPTIONS } from '../actors/bestiaryLooks';
@@ -60,7 +61,7 @@ import { lureTest } from '../actors/foeGround';
 import { floorLean, floorWalls, warnFloor } from '../world/curve';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
 let spellSlot = 0, knowBox: HTMLElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
@@ -225,6 +226,10 @@ function build() {
     btn(S.afflictNames.dim, () => { player.dim = 3; }), btn(S.afflictNames.hints, () => { for (const k of [...G.run.hinted]) if (k.startsWith('afflict:')) G.run.hinted.delete(k); }));
   // Fen-Nex (M4.2): bound by its artifact above; grown a stage here, as if a floor had gone by
   section(pages.mage, S.fennex).append(btn(S.growFennex, () => { if (fennexInfo()) growFennex(); else toast(S.noFennex, 2); }));
+  // costumes (M4.6): any artifact's piece tried on as if held (a focus held in the casting hand), or all taken off
+  const cost = section(pages.mage, S.costumes);
+  cost.append(costInfo = el('p', 'dv-info'), btn(S.takeAllOff, () => { takeAllOff(); refresh(); }), closeBtn = btn(S.closeUp, () => { setCloseUp(!DEV.closeUp); refresh(); }));
+  costBox = section(pages.mage, S.costumesTry);
 
   // spells: every one in the data, learned into the chosen slot; mana
   spellBox = section(pages.magic, S.spells);
@@ -436,6 +441,14 @@ function refresh() {
     b.classList.toggle('on', held);
     return b;
   }));
+  costBox.replaceChildren(...ARTIFACT_DEFS.filter(a => a.costume || a.kind === 'focus').map(a => {
+    const b = btn(a.name, () => { tryOn(a.id); refresh(); }, a.costume ? S.costumeAt(a.costume) : S.costumeHeld);
+    const dot = el('i'); dot.style.background = a.color; b.prepend(dot);
+    b.classList.toggle('on', triedOn().includes(a.id));
+    return b;
+  }));
+  costInfo.textContent = S.costumeInfo(wornNow(), heldNow() ?? '');
+  closeBtn.classList.toggle('on', DEV.closeUp);
   const rooms = G.rooms.filter(r => r.type !== 'normal').sort((a, b) => a.plan.dist - b.plan.dist);
   const secret = G.rooms.find(r => r.type === 'secret');
   const dials = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].pressure, names = (l: string[]) => l.map(s => STR.schools[s]).join(', ');

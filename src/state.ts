@@ -56,7 +56,9 @@ export const DEV = { god: false, mana: false, fps: false, moveClip: 'run' as 'ru
   /** Kinds of the room kit forced on every room of the floor (the dev menu's Look tab), to compare; else each room draws. */
   kitKinds: {} as Partial<Kinds>,
   /** One foe in every template role on every floor (`?foe=`, the dev menu), to test it; else each floor fills its roles. */
-  foe: undefined as FoeId | undefined };
+  foe: undefined as FoeId | undefined,
+  /** M4.6: the camera close on the mage (the dev menu's Costumes section), to see what is worn; `CFG.costume.closeUp`. */
+  closeUp: false };
 
 export const player: Player = {
   dead: false, x: 0, z: 0, vx: 0, vz: 0, r: CFG.hero.radius, hp: 6, maxHp: 6, invuln: 0, fireCd: 0, eye: 1, yawA: 0, blessed: 0,
