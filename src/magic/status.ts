@@ -82,7 +82,7 @@ export function applyStatus(s: StatusState, kind: SpellStatus, amount: number, b
   if (kind === 'sanct') {
     if (s.hex > 0) { s.hex = 0; return eclipse(s, boss, T); }
     if (s.burn > 0 && !s.black) { s.burn = 0; s.burnTick = 0; s.seared = T.reactions.searing.time; return { reaction: 'searing' }; }
-    if (s.frozen > 0) { s.prism = s.frozen; return { reaction: 'prism' }; }
+    if (s.frozen > 0) { const was = s.prism > 0; s.prism = s.frozen; return was ? {} : { reaction: 'prism' }; } // (a prism already: it stays one, quietly)
     if (s.shock > 0) { s.shock = 0; return { reaction: 'verdict' }; }
     s.sanct = Math.max(s.sanct, amount);
     return {};

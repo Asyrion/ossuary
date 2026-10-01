@@ -32,6 +32,17 @@ function webGeometry() {
   }
   const g = mergeGeometries(parts)!; for (const p of parts) p.dispose(); return g;
 }
+/** An alpha map that fades from the middle to nothing at the edge (alpha maps read the green channel, so the falloff is in
+    the colour, not the alpha). Made once. */
+let edgeKept: THREE.CanvasTexture | null = null;
+function edgeTex() {
+  if (edgeKept) return edgeKept;
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const g = c.getContext('2d')!, grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, '#fff'); grad.addColorStop(.62, '#e0e0e0'); grad.addColorStop(1, '#000');
+  g.fillStyle = grad; g.fillRect(0, 0, 64, 64);
+  return edgeKept = new THREE.CanvasTexture(c);
+}
 const meshes: Record<GroundKind, THREE.InstancedMesh | null> = { web: null, ink: null, rime: null, blackice: null };
 function meshOf(kind: GroundKind) {
   const had = meshes[kind]; if (had) return had;
@@ -40,7 +51,7 @@ function meshOf(kind: GroundKind) {
   // black; rime a faint frost-blue that overlapping patches don't stack into a white plank)
   const mat = kind === 'web' ? new THREE.MeshBasicMaterial({ color: 0xd8d0e8, transparent: true, opacity: .55, depthWrite: false })
     : kind === 'rime' ? new THREE.MeshStandardMaterial({ color: 0x8fc8ec, emissive: 0x123450, roughness: .45, metalness: .1, transparent: true, opacity: .28, alphaMap: glowTex, depthWrite: false })
-    : kind === 'blackice' ? new THREE.MeshStandardMaterial({ color: 0x3a2a5a, emissive: 0x1e0e3a, roughness: .05, metalness: .55, transparent: true, opacity: .7, alphaMap: glowTex, depthWrite: false }) // (glassy violet-black, glinting: never a pit's flat black)
+    : kind === 'blackice' ? new THREE.MeshStandardMaterial({ color: 0x2e3a6e, emissive: 0x1c2a5c, roughness: .12, metalness: 0, transparent: true, opacity: .78, alphaMap: edgeTex(), depthWrite: false }) // (M4.8: glassy indigo, cooler than ink's violet, its edge fading and glints on it: never a pit's flat black)
     : new THREE.MeshStandardMaterial({ color: 0x4a3480, emissive: 0x1c0e3a, roughness: .1, metalness: .4, transparent: true, opacity: .62, alphaMap: glowTex, depthWrite: false });
   const m = new THREE.InstancedMesh(geo, mat, MAX); m.count = 0; m.frustumCulled = false; m.renderOrder = 1; scene.add(m);
   return meshes[kind] = m;
@@ -75,6 +86,8 @@ export function patchAt(x: number, z: number, who?: string): GroundKind | undefi
 export const slipAt = (x: number, z: number, who?: string) => patches.some(p => p.kind === 'rime' && p.room === G.current && (!who || p.by !== who) && Math.hypot(x - p.x, z - p.z) < p.r);
 /** The patches of `kind` in the current room (tests). */
 export const groundCount = (kind: GroundKind) => patches.filter(p => p.kind === kind && p.room === G.current).length;
+/** How many patches of `kind` the floor draws now (M4.8: the tests check black ice shows, not only that it is there). */
+export const groundDrawn = (kind: GroundKind) => meshes[kind]?.count ?? 0;
 
 // fire burns a web away and melts rime
 hearGround((kind, x, z, r) => {
@@ -111,11 +124,12 @@ const m4 = new THREE.Matrix4(), q0 = new THREE.Quaternion(), v3 = new THREE.Vect
 export function updateGround(dt: number) {
   updateSpikes(dt);
   for (let i = patches.length - 1; i >= 0; i--) { const p = patches[i]; p.t -= dt; if (p.t <= 0 || p.room !== G.current) patches.splice(i, 1); }
-  for (const kind of ['web', 'ink', 'rime'] as const) {
+  for (const kind of ['web', 'ink', 'rime', 'blackice'] as const) {
     const list = patches.filter(p => p.kind === kind);
     if (!list.length && !meshes[kind]?.count) continue;
     const mesh = meshOf(kind);
-    list.forEach((p, i) => { const k = Math.min(1, p.t / .5, (p.life - p.t) / .25 + .3); mesh.setMatrixAt(i, m4.compose(v3.set(p.x, kind === 'web' ? .03 : kind === 'rime' ? .025 : .02, p.z), q0, s3.set(p.r * k, 1, p.r * k))); });
+    list.forEach((p, i) => { const k = Math.min(1, p.t / .5, (p.life - p.t) / .25 + .3); mesh.setMatrixAt(i, m4.compose(v3.set(p.x, kind === 'web' ? .03 : kind === 'rime' ? .025 : kind === 'blackice' ? .022 : .02, p.z), q0, s3.set(p.r * k, 1, p.r * k))); });
+    if (kind === 'blackice') for (const p of list) if (Math.random() < dt * 3 * p.r) { const a = Math.random() * Math.PI * 2, d = Math.random() * p.r * .8; burst(p.x + Math.cos(a) * d, .05, p.z + Math.sin(a) * d, 0xe4f0ff, 1, .25, .025); } // (M4.8: glints, so it reads as ice)
     mesh.count = list.length; mesh.instanceMatrix.needsUpdate = true;
   }
   for (let i = lobs.length - 1; i >= 0; i--) {

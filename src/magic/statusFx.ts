@@ -90,9 +90,11 @@ function react(e: Enemy, r: Reaction) {
   if (r === 'verdict') { // lightning from above on every sanctified foe in the room, and on this one
     const V = R.verdict;
     for (const o of [e, ...G.enemies.filter(o => o !== e && !o.dead && !o.hidden && (o.status?.sanct ?? 0) > 0)]) {
-      strikeFx({ x: o.x, y: 4.5, z: o.z }, { x: o.x, y: .1, z: o.z }, 0xfff0a0, CFG.spellFx.strike);
+      strikeFx({ x: o.x, y: 4.5, z: o.z }, { x: o.x, y: .1, z: o.z }, 0xfff0a0, CFG.spellFx.strike); flash(o.x, o.z, 0xfff0a0, .6);
+      for (let y = .4; y < 4.4; y += .5) burst(o.x, y, o.z, y < 2 ? 0xfff0a0 : GOLD, 1, .35, .05); // (a pillar of light down to it, reading at any scale)
       burst(o.x, .3, o.z, GOLD, 12, 2.4, .05); ringFx(o.x, .05, o.z, SPARK, .2, 1, CFG.spellFx.shockwave, true);
-      (o.status ??= newStatus()).stun = Math.max(o.status.stun, V.stun); damageEnemy(o, V.damage, 0, 0, 0, 'spell', 'storm');
+      const st = o.status ??= newStatus(); st.sanct = 0; if (!o.isBoss) st.stun = Math.max(st.stun, V.stun); // (its holy light spent: one Verdict each; a boss isn't stunned)
+      damageEnemy(o, V.damage, 0, 0, 0, 'spell', 'storm');
     }
     Sfx.at(e.x, e.z).verdict(); G.shake = Math.max(G.shake, .25);
     return;
@@ -163,7 +165,7 @@ export function overloadAt(x: number, z: number, e?: Enemy) {
 }
 
 /** A reaction on the floor rather than on a foe (M4.8: a shock through burning oil, a hex on holy ground): its name rises
-    there, in gold the first time ever, as on a foe. */
+    there, larger the first time ever, as on a foe. */
 export function tileReaction(r: Reaction, x: number, z: number) {
   floatText(x, 1.3, z, STR.reactions[r], REACT_COLOR[r], foundReaction(r) ? 52 : 44);
 }
@@ -217,6 +219,7 @@ export function updateStatuses(dt: number, now: number) {
     if (s.burn > 0 && Math.random() < dt * 14) burst(e.x + (Math.random() - .5) * e.r, y + .2, e.z + (Math.random() - .5) * e.r, s.black ? (Math.random() < .5 ? BLACKFIRE : 0x2a0a4a) : Math.random() < .5 ? FIRE : 0xffc060, 1, .7, .05);
     if (s.hex > 0 && Math.random() < dt * 3 * s.hex) burst(e.x + (Math.random() - .5) * e.r * 1.6, y + .35, e.z + (Math.random() - .5) * e.r * 1.6, VIOLET, 1, .5, .03);
     if (s.sanct > 0 && Math.random() < dt * 6) burst(e.x + (Math.random() - .5) * e.r * 1.6, y + .5, e.z + (Math.random() - .5) * e.r * 1.6, GOLD, 1, .8, .03);
+    if (s.prism > 0 && Math.random() < dt * 10) burst(e.x + (Math.random() - .5) * e.r * 1.8, y + .2 + Math.random() * .5, e.z + (Math.random() - .5) * e.r * 1.8, RAINBOW[Math.floor(Math.random() * RAINBOW.length)], 1, .9, .035); // (M4.8: a prism throws colours)
     if (s.root > 0 && Math.random() < dt * 5) burst(e.x + (Math.random() - .5) * e.r * 2, .08, e.z + (Math.random() - .5) * e.r * 2, 0x2a0a4a, 1, .4, .04);
     if ((s.shock > 0 || s.stun > 0) && Math.random() < dt * 8) burst(e.x + (Math.random() - .5) * e.r * 2, y + .3, e.z + (Math.random() - .5) * e.r * 2, SPARK, 2, 2.4, .025);
     if (e.type === 'dummy') dummyLabel(e, now);
@@ -232,8 +235,9 @@ export function statusTint(e: Enemy, now: number): [THREE.Color, number] | null 
   if (e.type === 'tiger' && e.state === 'statue') return [tint.setHex(0x8a94a4), .45]; // (the War-Tiger, stone until it wakes)
   if (e.foe && e.state === 'rock') return [tint.setHex(0x4a4440), .8]; // (M4.5: a magma ooze frozen hard)
   const s = e.status; if (!s) return null;
-  if (s.prism > 0) return [tint.setHSL((now * .7 + e.x * .1) % 1, .75, .6), .9]; // (M4.8: frozen in holy light, it glints every colour)
+  if (s.prism > 0) return [tint.setHSL((now * .7 + e.x * .1) % 1, .95, .58), 1]; // (M4.8: frozen in holy light, it glints every colour)
   if (s.seared > 0) return [tint.setHex(0xffa030), .55 + Math.sin(now * 11) * .2]; // (its guard burnt away: cracked gold)
+  if (s.voidT > 0) return [tint.setHex(Math.sin(now * 19) > .6 ? 0xf0e890 : 0x9a5ae0), .5]; // (a Void Spark's mark: violet, sparking; it pays mana as it falls)
   if (s.frozen > 0) return [tint.setHex(0x4a8ad8), .85];
   if (s.burn > 0 && s.black) return [tint.setHex(0x6a1ac0), .5 + Math.sin(now * 17 + e.x) * .2];
   if (s.burn > 0) return [tint.setHex(0xff5a10), .45 + Math.sin(now * 17 + e.x) * .2];

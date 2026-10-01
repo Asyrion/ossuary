@@ -63,9 +63,9 @@ export function reactionWheel(chosen?: Reaction) {
   }).join('');
   const dots = SPOKES.map(k => {
     const p = spoke(k), sealed = k === 'verdant', fill = sealed ? '#2a241c' : css(SCHOOL_LIGHT[k as keyof typeof SCHOOL_LIGHT]);
-    const name = sealed ? '?' : STR.schools[k] ?? k;
+    const name = STR.knowledge.spoke[k] ?? k;
     return `<circle cx="${p.x}" cy="${p.y}" r="15" fill="${fill}" stroke="${sealed ? '#5e4d39' : '#17110c'}" stroke-width="2"${sealed ? ' stroke-dasharray="3 3"' : ''}/>`
-      + `<text x="${p.x}" y="${p.y + 4.5}" text-anchor="middle" font-size="${sealed ? 14 : 11}" font-weight="700" fill="${sealed ? '#7a6a52' : '#17110c'}">${esc(sealed ? name : name.slice(0, 2))}</text>`;
+      + `<text x="${p.x}" y="${p.y + 4.5}" text-anchor="middle" font-size="${sealed ? 14 : 11}" font-weight="700" fill="${sealed ? '#7a6a52' : '#17110c'}">${esc(name)}</text>`;
   }).join('');
   return `<div class="wheel"><svg viewBox="0 0 200 200" role="img" aria-label="${esc(STR.knowledge.wheel)}">${chords}${dots}</svg></div>`;
 }

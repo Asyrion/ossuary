@@ -70,7 +70,7 @@ import { FOE_IDS, isFoe, type FoeType, type School } from './actors/foeData';
 import { bestiary, forgetBestiary } from './actors/bestiary';
 import { findEveryCounter } from './actors/counters';
 import { burningGround, sparkGround } from './actors/foes';
-import { groundCount } from './actors/bestiaryGround';
+import { groundCount, groundDrawn } from './actors/bestiaryGround';
 import { blastAt } from './combat/glyphs';
 import { inSteam, steamAt, steamCount } from './magic/steam';
 import type { MantleId } from './actors/mantleData';
@@ -254,7 +254,7 @@ function installDevHooks() {
     get burningGround() { return burningGround(); }, get sparkGround() { return sparkGround(); },
     get steam() { return steamCount(); }, steamAt(x: number, z: number) { steamAt(x, z); }, inSteam(x: number, z: number) { return inSteam(x, z); }, // (Steam's clouds in the room, 2026-10-01)
     /** M4.5: the webs, ink and rime on the floor of the current room; a glyph's blast at (x, z). */
-    get ground() { return { web: groundCount('web'), ink: groundCount('ink'), rime: groundCount('rime'), blackice: groundCount('blackice') }; }, blast: (x: number, z: number) => blastAt(x, z),
+    get ground() { return { web: groundCount('web'), ink: groundCount('ink'), rime: groundCount('rime'), blackice: groundCount('blackice'), blackiceDrawn: groundDrawn('blackice') }; }, blast: (x: number, z: number) => blastAt(x, z),
     /** The simulation's clock (seconds), against which timed states are kept (a lark's song). */
     get clock() { return G.simClock; },
     inflict(status: Partial<Record<SpellStatus, number>>) { for (const e of G.enemies) inflict(e, status); },
