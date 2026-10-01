@@ -13,6 +13,9 @@ import { scene } from '../render/renderer';
 import { glowShared, markShared } from '../render/materials';
 import { glowTex } from '../render/textures';
 import { burst } from '../combat/fx';
+import { layBlackFire } from './foes';
+import { MAGIC } from '../magic/status';
+import { weaveAt } from '../magic/weaveFx';
 import { hearGround } from '../world/groundHooks';
 import { actingKind } from './acting';
 import { counterAt } from './counters';
@@ -96,9 +99,19 @@ hearGround((kind, x, z, r) => {
     const p = patches[i];
     if (p.kind === 'ink' || p.room !== G.current || Math.hypot(x - p.x, z - p.z) > r + p.r) continue;
     patches.splice(i, 1);
-    if (p.kind === 'web') { burst(p.x, .1, p.z, 0xff9a3a, 8, 1.6, .04); Sfx.at(p.x, p.z).webBurn(); if (p.by) counterAt(p.by, 'burnt', p.x, p.z); } else { burst(p.x, .1, p.z, 0xd4ecf8, 5, 1.2, .04); Sfx.at(p.x, p.z).thaw(); }
+    if (p.kind === 'web') { burst(p.x, .1, p.z, 0xff9a3a, 8, 1.6, .04); Sfx.at(p.x, p.z).webBurn(); if (p.by) counterAt(p.by, 'burnt', p.x, p.z); }
+    else if (p.kind === 'blackice') blackMelt(p.room, p.x, p.z, p.r); // (M4.10: it melts into ground burning with Blackfire)
+    else { burst(p.x, .1, p.z, 0xd4ecf8, 5, 1.2, .04); Sfx.at(p.x, p.z).thaw(); }
   }
 });
+
+/** Black Melt (M4.10): black ice caught by fire melts into ground that burns with Blackfire, patch by patch over it. */
+function blackMelt(room: Room, x: number, z: number, r: number) {
+  const T = MAGIC.weaves.blackMelt.time;
+  layBlackFire(room, x, z, T);
+  for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; layBlackFire(room, x + Math.cos(a) * r * .6, z + Math.sin(a) * r * .6, T); }
+  burst(x, .2, z, 0xb070ff, 14, 1.8, .05); weaveAt('blackMelt', x, z);
+}
 
 /* ---------- lobs: thrown in an arc to land on a spot ---------- */
 

@@ -36,8 +36,11 @@ import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { glowTex } from '../render/textures';
 import { boxAt } from './collision';
-import { floatText, inflict } from '../magic/statusFx';
-import { newStatus } from '../magic/status';
+import { floatText, inflict, tileReaction } from '../magic/statusFx';
+import { chargeSteam } from '../magic/steam';
+import { REACTIONS, type Reaction } from '../magic/status';
+import { laySpark } from '../actors/foes';
+import { MAGIC, newStatus } from '../magic/status';
 import { hexGround, riseMote } from '../magic/shapes';
 import { ringFx, strikeFx } from '../magic/spellFx';
 import { SCHOOLS, elemental, type School, type SpellStatus, type StatusKind } from '../magic/spellData';
@@ -57,7 +60,7 @@ import { dragonBell } from '../actors/pillarDragon';
 import { steamBetween } from '../magic/steam';
 
 const C = CFG.mech;
-const FIRE = 0xff7a2a, EMBER = 0xffc060, GOLD = 0xffd98a;
+const FIRE = 0xff7a2a, EMBER = 0xffc060, GOLD = 0xffd98a, BLACKFIRE = 0xb070ff;
 const CHAIN = 7.5; // a censer's chain runs up out of sight, into the dark under the vault
 export const SCHOOL_COLOR: Record<StatusKind, number> = { burn: 0xff7a2a, chill: 0x4aa8ff, shock: 0xf0e070 };
 /** The school each status carries (an obelisk's ward answers to one). */
@@ -203,11 +206,13 @@ const isStand = (kind: string) => kind === 'candles' || kind === 'wetCandles';
     braziers and candle stands catch fire, rune stones take a charge, lodestones leap, the ice round a frozen foe melts. */
 export function elementAt(kind: StatusKind, x: number, z: number, r = 0) {
   const room = G.current;
+  if (kind === 'shock') chargeSteam(x, z, 'storm'); // (M4.10: a storm in steam makes a thundercloud)
   for (const box of room.props ?? []) {
     const p = box.prop;
     if (kind === 'burn' && (p.kind === 'brazier' || isStand(p.kind)) && !p.lit && near(box, x, z, C.kindle + r)) light(room, box);
-    else if (p.kind === 'rune' && !p.school && near(box, x, z, C.runeCatch + r)) charge(box, kind);
+    else if (p.kind === 'rune' && near(box, x, z, C.runeCatch + r)) { if (!p.school) charge(box, kind); else if (p.school !== kind) runeReaction(room, box, kind); } // (M4.10: a second school sets off their reaction at its foot)
     else if (kind === 'shock' && p.kind === 'lodestone' && near(box, x, z, C.lodeCatch + r)) leap(room, box);
+    else if (kind === 'shock' && p.kind === 'bell' && near(box, x, z, C.runeCatch + r)) { if (ring(room, box)) sparkRing(room, box); } // (M4.10: a shock beside a bell rings it, and it rings out sparks)
     else if (p.kind === 'obelisk' && p.ward === STATUS_SCHOOL[kind] && near(box, x, z, C.obelisk.catch + r)) breakWard(box);
   }
   if (kind === 'burn') for (const e of G.enemies) if (e.entombed && e.asleep && Math.hypot(e.x - x, e.z - z) < C.thawReach + r) e.asleep = false; // thawed
@@ -217,6 +222,7 @@ export function elementAt(kind: StatusKind, x: number, z: number, r = 0) {
     chapel's did for its prayers, and an obelisk warded in Hallow breaks its ward (M4.2). */
 export function hallowAt(x: number, z: number, r = 0) {
   const room = G.current;
+  chargeSteam(x, z, 'hallow'); // (M4.10: holy light in steam is incense)
   for (const box of room.props ?? []) {
     if (isStand(box.prop.kind) && !box.prop.lit && near(box, x, z, C.kindle + r)) light(room, box);
     else if (box.prop.kind === 'obelisk' && box.prop.ward === 'hallow' && near(box, x, z, C.obelisk.catch + r)) breakWard(box);
@@ -226,7 +232,9 @@ export function hallowAt(x: number, z: number, r = 0) {
     obelisk warded in Umbral breaks its ward; on Consecrate's holy ground, the ground goes dark (M4.8). */
 export function umbralAt(x: number, z: number, r = 0) {
   hexGround(x, z); // (M4.8: a hex on holy ground eclipses what stands in it)
+  chargeSteam(x, z, 'umbral'); // (M4.10: darkness in steam is a miasma)
   for (const box of G.current.props ?? []) {
+    if (box.prop.kind === 'brazier' && box.prop.lit && !box.prop.black && near(box, x, z, C.kindle + r)) blacken(box); // (M4.10: a lit brazier takes the dark, and burns with Blackfire)
     if (box.prop.kind === 'statue' && near(box, x, z, C.statue.umbralCatch + r)) blind(box);
     else if (box.prop.kind === 'obelisk' && box.prop.ward === 'umbral' && near(box, x, z, C.obelisk.catch + r)) breakWard(box);
   }
@@ -236,9 +244,9 @@ export function umbralAt(x: number, z: number, r = 0) {
 export function strikeMechanism(room: Room, box: PropBox, blast: boolean, status?: Partial<Record<SpellStatus, number>>) {
   const p = box.prop;
   switch (p.kind) {
-    case 'bell': ring(room, box); return true;
+    case 'bell': if (ring(room, box) && status?.shock) sparkRing(room, box); return true; // (M4.10: rung by a shock, it rings out sparks)
     case 'sluice': openSluice(room, box); return true;
-    case 'rune': { const k = (Object.keys(elemental(status) ?? {}) as StatusKind[])[0]; if (k && !p.school) charge(box, k); else burst(box.x, .7, box.z, 0x8a8078, 3, 1.2, .04); return true; }
+    case 'rune': { const k = (Object.keys(elemental(status) ?? {}) as StatusKind[])[0]; if (k && !p.school) charge(box, k); else if (k && p.school !== k) runeReaction(room, box, k); else burst(box.x, .7, box.z, 0x8a8078, 3, 1.2, .04); return true; }
     case 'statue': if (status?.hex || status?.root) blind(box); else burst(box.x, 1.2, box.z, 0x8a8078, 3, 1.2, .04); return true;
     case 'obelisk':
       if (!p.broken && (Object.keys(status ?? {}) as SpellStatus[]).some(k => STATUS_SCHOOL[k] === p.ward)) breakWard(box);
@@ -264,7 +272,8 @@ export function boltThrough(b: Bolt) {
   for (const box of room.props ?? []) {
     const p = box.prop;
     if (p.kind === 'brazier' && Math.hypot(b.x - box.x, b.z - box.z) < C.brazierCatch) {
-      if (p.lit && !b.status?.burn) { b.status = { ...b.status, burn: C.brazierBurn }; b.kindled = true; burst(b.x, .7, b.z, FIRE, 6, 1.6, .045); Sfx.at(b.x, b.z).catchFire(); }
+      if (p.lit && !b.status?.burn) { b.status = { ...b.status, burn: C.brazierBurn, ...(p.black && { hex: 1 }) }; b.kindled = true; burst(b.x, .7, b.z, p.black ? BLACKFIRE : FIRE, 6, 1.6, .045); Sfx.at(b.x, b.z).catchFire(); } // (a black brazier's fire carries a hex: M4.10)
+      else if (p.lit && b.status?.hex && !p.black) blacken(box); // (a hexing bolt through a lit brazier turns its fire black)
       else if (!p.lit && b.status?.burn) light(room, box);
     } else if (p.kind === 'censer' && Math.hypot(b.x - box.x, b.z - box.z) < C.censerCatch) dropCenser(room, box);
   }
@@ -272,6 +281,31 @@ export function boltThrough(b: Bolt) {
 }
 
 /* ---------- what they do ---------- */
+
+/** M4.10, the room joins in: a lit brazier taken by darkness burns with Blackfire (a violet glow over its fire), and the
+    bolts it sets alight carry a hex. Its name rises as Blackfire's does on a foe. */
+function blacken(box: PropBox) {
+  const p = box.prop; p.black = true;
+  const gl = glow(BLACKFIRE, 1.4, .8); gl.position.y = 1.05; box.mesh?.add(gl); p.parts = { ...p.parts, blackGlow: gl };
+  burst(box.x, 1, box.z, BLACKFIRE, 14, 1.8, .05); tileReaction('blackfire', box.x, box.z); Sfx.at(box.x, box.z).blackfire();
+}
+/** M4.10: a rune stone charged with one school, struck by another, sets off their reaction at its foot: on every foe in its
+    reach (both statuses laid on in turn), and its name rises there even with none; then it holds the new school. */
+function runeReaction(room: Room, box: PropBox, kind: StatusKind) {
+  const was = box.prop.school!, r = (Object.keys(REACTIONS) as Reaction[]).find(k => REACTIONS[k].includes(was) && REACTIONS[k].includes(kind));
+  if (!r) return;
+  tileReaction(r, box.x, box.z); ringFx(box.x, .05, box.z, SCHOOL_COLOR[kind], .3, C.runeReach, CFG.spellFx.shockwave, true);
+  for (const e of G.enemies) if (!e.dead && e.spawn <= 0 && !e.hidden && Math.hypot(e.x - box.x, e.z - box.z) < C.runeReach + e.r) {
+    inflict(e, { [was]: was === 'chill' ? MAGIC.chill.freezeAt : 2 }); inflict(e, { [kind]: kind === 'chill' ? MAGIC.chill.freezeAt : 2 }); // (cold enough to freeze, so Shatter can go off)
+  }
+  charge(box, kind); void room;
+}
+/** M4.10: a bell rung by a shock rings out a ring of sparks round it (armed in a moment, stinging what stands in them). */
+function sparkRing(room: Room, box: PropBox) {
+  const n = 10, d = 1.7;
+  for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; laySpark(room, box.x + Math.cos(a) * d, box.z + Math.sin(a) * d, 6, ''); }
+  ringFx(box.x, .05, box.z, SCHOOL_LIGHT.storm, .3, d + .3, CFG.spellFx.shockwave, true);
+}
 
 function light(room: Room, box: PropBox) {
   const p = box.prop; p.lit = true;
@@ -310,7 +344,7 @@ function openReliquary(room: Room, box: PropBox) {
     settle before it rings again. */
 function ring(room: Room, box: PropBox) {
   const p = box.prop;
-  if ((p.cd ?? 0) > 0) { Sfx.at(box.x, box.z).wardTink(); return; }
+  if ((p.cd ?? 0) > 0) { Sfx.at(box.x, box.z).wardTink(); return false; }
   p.cd = C.bellCooldown; p.t = 0;
   for (const e of G.enemies) {
     if (e.dead || e.spawn > 0 || e.hidden || e.isBoss) continue;
@@ -319,6 +353,7 @@ function ring(room: Room, box: PropBox) {
   }
   dragonBell(); // (M4.2: the Pillar Dragon loses its hold)
   wave(room, box.x, box.z, GOLD, 9); Sfx.at(box.x, box.z).toll(); G.shake = Math.max(G.shake, .12);
+  return true;
 }
 
 /** A rune stone takes the school that reached it, and glows in its colour (`quiet`: as the room is built). */

@@ -87,6 +87,27 @@ export const STR = {
   drop: 'Release to play as this model',
   health: (hp: number, max: number, souls = 0) => `Health ${hp} of ${max} hearts` + (souls ? `, ${souls} soul mote${souls > 1 ? 's' : ''}` : ''),
   purse: (coins: number, keys: number, glyphs: number) => `${coins} obols, ${keys} bone keys, ${glyphs} blast glyphs`,
+  /** M4.10: weaves (a spell striking what another left) and chains (a reaction's leavings meeting a third school): the name
+      that rises, and what the book says of each once found. */
+  weaves: {
+    steamCurtain: { name: 'Steam Curtain', text: 'Cinder Lance through a Glacial Wall turns the wall to a curtain of steam: shots through it go wide, and eyes can\'t see through it.' },
+    conductor: { name: 'Conductor', text: 'Arc through a foe at a Glacial Wall runs along the wall: every foe touching it is shocked, and the wall bursts into chilling shards.' },
+    overloadSeal: { name: 'Overload Seal', text: 'Arc through a foe in a Pyre Seal sets the seal off at once: an Overload over its whole circle.' },
+    blackPyre: { name: 'Black Pyre', text: 'A Hex Bolt across a Pyre Seal\'s burning ground turns it black: what burns there burns with Blackfire.' },
+    eclipseGround: { name: 'Eclipse Ground', text: 'Grasp of the Grave on Consecrate\'s holy ground takes every foe in it under a black sun that strikes half again as hard.' },
+    hallowedHail: { name: 'Hallowed Hail', text: 'Rime Shards fired across holy ground sanctify what they strike.' },
+    lanternFan: { name: 'Lantern Fan', text: 'Cinder Lance through a Wardlight mote: every mote throws a thinner beam outward.' },
+    liveWade: { name: 'Live Wade', text: 'Wading with the Static Mantle about the mage: the water shocks the foes in it every second, sparing the mage.' },
+    refraction: { name: 'Refraction', text: 'Judgement falling by a Glacial Wall breaks into rays along it, striking and sanctifying the foes at the wall.' },
+    tollChain: { name: 'Toll Chain', text: 'Arc leaping from a foe marked by the Ferryman\'s Toll carries the mark to each foe it reaches.' },
+    thundercloud: { name: 'Thundercloud', text: 'Storm in a cloud of steam charges it: it shocks the foes inside every second.' },
+    incense: { name: 'Incense', text: 'Holy light in a cloud of steam: it sanctifies the foes inside, and mends the mage once if it stands in it.' },
+    miasma: { name: 'Miasma', text: 'Darkness in a cloud of steam: a black fog that hexes the foes inside every second.' },
+    blackMelt: { name: 'Black Melt', text: 'Fire on black ice melts it into ground that burns with Blackfire.' },
+    hailburst: { name: 'Hailburst', text: 'An Overload going off among chilled foes or ice throws out shards that chill.' },
+    moltenGlass: { name: 'Molten Glass', text: 'Shatter\'s shards caught by fire fall glowing to the floor and burn what walks there.' },
+    corona: { name: 'Corona', text: 'Storm reaching a black sun: when it sets, its blow leaps as lightning to each foe near.' },
+  } as Record<string, { name: string; text: string }>,
   /** M4.9 The curve: a floor that walls off the one school the mage carries says so as the mage arrives (world/curve.ts),
       and the first time holy light gives back what a hex took. */
   curve: {
@@ -177,6 +198,12 @@ export const STR = {
     sets: 'What it sets off',
     /** The book's wheel of reactions (M4.8): every pair of schools, found or not yet. */
     wheel: 'Reactions',
+    /** M4.10: the book's weaves and chains, found or sealed; a spell's panel lists the weaves it takes part in. */
+    weavesSec: 'Weaves and chains', weaveKind: { weave: 'Weave', chain: 'Chain' } as Record<string, string>,
+    weaveSealed: (kind: string, a: string, b: string) => `A ${kind.toLowerCase()} of ${a} and ${b} not yet found.`,
+    weaveSealedText: (kind: string) => kind === 'Weave' ? 'One spell striking what another left in the room. Try your spells on each other\'s work.' : 'What a reaction leaves behind, met by a third school.',
+    weavesFoundOf: (n: number, of: number) => `${n} of ${of} weaves and chains found.`,
+    weavesLbl: 'Weaves it takes part in',
     /** Each school's spoke on the wheel, in two letters (Verdant's sealed until M5). */
     spoke: { ember: 'Em', frost: 'Fr', storm: 'St', hallow: 'Ha', umbral: 'Um', verdant: '?' } as Record<string, string>,
     pair: (a: string, b: string) => `${a} and ${b}`,
@@ -552,6 +579,8 @@ export const STR = {
     frameInfo: (fps: number, calls: number, tris: number) => `${fps} fps · ${calls} draw calls · ${tris.toLocaleString('en')} triangles`,
     knowledge: 'Spell knowledge', knowAll: 'Know every spell', forgetKnowledge: 'Forget all knowledge',
     findReactions: 'Find every reaction', forgetReactions: 'Forget the reactions found', reactionsHere: 'Reactions here (on dummies ahead)',
+    weavesHere: 'Weaves and chains here (set up ahead)', findWeaves: 'Find every weave', forgetWeaves: 'Forget the weaves found',
+    weavesInfo: (n: number, of: number) => `Weaves and chains: ${n} of ${of} found.`,
     knowledgeInfo: (seen: number, learned: number, used: number, reactions: number, of: number) => `Known: ${seen} seen, ${learned} learned, ${used} known well; ${reactions} of ${of} reactions found (kept between runs)`,
     /** On the HUD during play-tests, so the key isn't forgotten. */ hint: 'Dev menu: ` / ^ or F2',
     info: (seed: string, floor: number, room: number, type: string) => `Seed ${seed} · floor ${floor} · room ${room} (${type})`,

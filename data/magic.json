@@ -17,6 +17,25 @@
     "blackice": { "size": 1.15, "time": 7, "grip": 0.7 },
     "voidspark": { "time": 5, "leaps": 3, "range": 3.4, "damage": 4, "mana": 6 }
   },
+  "weaves": {
+    "steamCurtain": { "size": 1.15 },
+    "conductor": { "reach": 0.8, "damage": 6, "shards": 3, "shardDamage": 4, "shardRange": 4, "shardSpeed": 9, "chill": 1 },
+    "overloadSeal": { "radiusMul": 1 },
+    "blackPyre": { "reach": 0.4 },
+    "eclipseGround": { "damageMul": 1.5 },
+    "hallowedHail": { "sanct": 2 },
+    "lanternFan": { "damageMul": 0.5, "range": 4, "width": 0.3 },
+    "liveWade": { "every": 1, "damage": 3 },
+    "refraction": { "reach": 1.2, "damage": 10, "sanct": 2 },
+    "tollChain": {},
+    "thundercloud": { "every": 1, "damage": 3, "shock": 1 },
+    "incense": { "every": 1, "sanct": 2, "heal": 1 },
+    "miasma": { "every": 1, "hex": 1 },
+    "blackMelt": { "time": 5 },
+    "hailburst": { "shards": 8, "damage": 4, "range": 3.5, "speed": 9, "chill": 1 },
+    "moltenGlass": { "time": 4 },
+    "corona": { "reach": 3.5, "share": 0.5 }
+  },
   "mantles": {
     "kindled": { "school": "ember", "stripBy": "frost", "immune": "burn", "trailEvery": 0.4, "trailTime": 3 },
     "rimebound": { "school": "frost", "stripBy": "ember", "immune": "chill", "chill": 2 },

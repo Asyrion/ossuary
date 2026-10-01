@@ -25,11 +25,12 @@ import { fireSpellBolt } from '../combat/projectiles';
 import { MAGIC, applyStatus, consumeShock, newStatus, tickStatus, type Reaction } from './status';
 import { STATUS_KINDS, type SpellStatus, type StatusKind } from './spellData';
 import { SCHOOL_LIGHT } from '../render/arcane';
-import { touchPools } from '../world/pools';
+import { poolAt, touchPools } from '../world/pools';
 import { ringFx, strikeFx } from './spellFx';
 import { breakPlate } from '../actors/bosses';
 import { foeAfflicted } from '../actors/foes';
-import { steamAt } from './steam';
+import { chargeSteam, steamAt } from './steam';
+import { weaveAt } from './weaveFx';
 import { layGround } from '../actors/bestiaryGround';
 import { foundReaction } from './memory';
 import { mantleImmune, stripsMantle } from '../actors/mantleData';
@@ -61,7 +62,11 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
     if (res.reaction) react(e, res.reaction);
     foeAfflicted(e, kind); // (M4.5: what its behaviour does about it)
     if ((STATUS_KINDS as string[]).includes(kind)) touchPools(e, kind as StatusKind); // oil catches fire, water freezes or carries the shock
-    else if (kind === 'hex') { burst(e.x, .8, e.z, VIOLET, 4, 1.2, .03); if (!e.flying) hexGround(e.x, e.z); } else if (kind === 'sanct') burst(e.x, .8, e.z, GOLD, 4, 1.2, .03);
+    if (kind === 'shock' || kind === 'sanct' || kind === 'hex') chargeSteam(e.x, e.z, kind === 'shock' ? 'storm' : kind === 'sanct' ? 'hallow' : 'umbral'); // (M4.10: a school landing in steam charges it)
+    if (kind === 'shock') for (const o of G.enemies) if (o !== e && !o.dead && !o.corona && (o.status?.eclipse ?? 0) > 0 && Math.hypot(o.x - e.x, o.z - e.z) < MAGIC.weaves.corona.reach) { // (M4.10, Corona)
+      o.corona = true; sparkLine(e, o); weaveAt('corona', o.x, o.z);
+    }
+    if (kind === 'hex') { burst(e.x, .8, e.z, VIOLET, 4, 1.2, .03); if (!e.flying) hexGround(e.x, e.z); } else if (kind === 'sanct') burst(e.x, .8, e.z, GOLD, 4, 1.2, .03);
   }
 }
 
@@ -136,7 +141,7 @@ function react(e: Enemy, r: Reaction) {
     const S = R.shatter;
     for (let i = 0; i < S.shards; i++) {
       const a = i / S.shards * Math.PI * 2 + .3, x = e.x + Math.cos(a) * (e.r + .25), z = e.z + Math.sin(a) * (e.r + .25);
-      fireSpellBolt(x, z, Math.cos(a), Math.sin(a), { damage: S.shardDamage, range: S.shardRange, scale: .8, color: ICE, speed: 9, shard: true });
+      fireSpellBolt(x, z, Math.cos(a), Math.sin(a), { damage: S.shardDamage, range: S.shardRange, scale: .8, color: ICE, speed: 9, shard: true, shatter: true });
     }
     burst(e.x, .6, e.z, ICE, 24, 3, .06); burst(e.x, .6, e.z, 0xffffff, 10, 2, .04);
     ringFx(e.x, .6, e.z, 0xffffff, .15, 1.1, CFG.spellFx.flash); ringFx(e.x, .05, e.z, ICE, .2, 1.5, CFG.spellFx.shockwave, true); // a flash, and frost thrown out over the floor
@@ -147,8 +152,8 @@ function react(e: Enemy, r: Reaction) {
 
 /** An Overload's blast at (x, z): foes thrown out and struck, a shockwave and a flash. Set off by a burning foe shocked or
     a shocked one set burning (`e`, which it doesn't throw), and by a shock through burning oil (M4.8, in `pools.ts`). */
-export function overloadAt(x: number, z: number, e?: Enemy) {
-  const O = R.overload;
+export function overloadAt(x: number, z: number, e?: Enemy, radius = R.overload.radius) {
+  const O = { ...R.overload, radius };
   flash(x, z, 0xffb050, O.radius);
   for (const o of G.enemies) {
     if (o.dead || o.spawn > 0 || o.hidden) continue;
@@ -162,6 +167,14 @@ export function overloadAt(x: number, z: number, e?: Enemy) {
   ringFx(x, .05, z, FIRE, .3, O.radius, CFG.spellFx.shockwave, true); ringFx(x, .7, z, 0xffe080, .2, 1.2, CFG.spellFx.flash); // the shockwave, and a flash
   for (let i = 0; i < 3; i++) { const a = Math.random() * Math.PI * 2, d = O.radius * (.4 + Math.random() * .4); strikeFx({ x, y: .7, z }, { x: x + Math.cos(a) * d, y: .2 + Math.random() * .6, z: z + Math.sin(a) * d }, SPARK, CFG.spellFx.crackle, true); }
   Sfx.at(x, z).overload(); G.shake = Math.max(G.shake, .35);
+  // (M4.10, Hailburst: among chilled foes or ice, the blast throws out shards that chill)
+  const cold = G.enemies.some(o => o !== e && !o.dead && Math.hypot(o.x - x, o.z - z) < O.radius + o.r && ((o.status?.chill ?? 0) > 0 || (o.status?.frozen ?? 0) > 0))
+    || (G.current.barriers ?? []).some(b => Math.hypot(b.x - x, b.z - z) < O.radius) || poolAt(x, z)?.state === 'frozen';
+  if (cold) {
+    const H = MAGIC.weaves.hailburst;
+    for (let i = 0; i < H.shards; i++) { const a = i / H.shards * Math.PI * 2 + .2; fireSpellBolt(x + Math.cos(a) * .4, z + Math.sin(a) * .4, Math.cos(a), Math.sin(a), { damage: H.damage, range: H.range, speed: H.speed, color: ICE, status: { chill: H.chill }, shard: true }); }
+    weaveAt('hailburst', x, z);
+  }
 }
 
 /** A reaction on the floor rather than on a foe (M4.8: a shock through burning oil, a hex on holy ground): its name rises
@@ -185,7 +198,13 @@ function endEclipse(e: Enemy) {
   if (e.sun) { e.group.remove(e.sun); disposeTree(e.sun); e.sun = undefined; } // (the sphere is shared; sprites' geometry is everyone's)
   e.hidden = false; e.body.visible = true;
   burst(e.x, .8, e.z, 0x2a0a4a, 16, 2.4, .05); burst(e.x, .8, e.z, GOLD, 10, 2, .04);
-  damageEnemy(e, R.eclipse.damage, 0, 0, 0, 'spell');
+  const blow = R.eclipse.damage * (e.eclipseMul ?? 1); e.eclipseMul = undefined; // (M4.10: Eclipse Ground's strikes half again as hard)
+  if (e.corona) { // (M4.10, Corona: the blow leaps as lightning to each foe near)
+    e.corona = false;
+    for (const o of G.enemies) if (o !== e && !o.dead && !o.hidden && o.spawn <= 0 && Math.hypot(o.x - e.x, o.z - e.z) < MAGIC.weaves.corona.reach) { sparkLine(e, o); damageEnemy(o, blow * MAGIC.weaves.corona.share, 0, 0, 0, 'spell', 'storm'); }
+    Sfx.at(e.x, e.z).overload();
+  }
+  damageEnemy(e, blow, 0, 0, 0, 'spell');
 }
 
 /* ---------- every step ---------- */

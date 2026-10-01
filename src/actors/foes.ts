@@ -156,14 +156,14 @@ const nearestWater = (room: Room, x: number, z: number) => waterTiles(room).map(
 
 /* ---------- what foes leave on the floor: burning ground (a salamander's trail), sparks (a storm ray's line) ---------- */
 
-type HazardKind = 'fire' | 'spark';
+type HazardKind = 'fire' | 'spark' | 'blackfire'; // (blackfire: M4.10's Black Melt)
 const hazards: { room: Room; x: number; z: number; t: number; life: number; kind: HazardKind; armed?: boolean; by?: string }[] = [];
 const MAX_HAZARDS = 96; // (of each kind)
 /** Each kind's patches' glow on the floor, drawn at once (one instanced mesh a kind: a room of salamanders stays cheap). */
-const hazardGlow: Record<HazardKind, THREE.InstancedMesh | null> = { fire: null, spark: null };
+const hazardGlow: Record<HazardKind, THREE.InstancedMesh | null> = { fire: null, spark: null, blackfire: null };
 function hazardMesh(kind: HazardKind) {
   const had = hazardGlow[kind]; if (had) return had;
-  const geo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), mat = new THREE.MeshBasicMaterial({ map: glowTex, color: kind === 'fire' ? 0xff6a20 : SCHOOL_LIGHT.storm, transparent: true, opacity: .8, blending: THREE.AdditiveBlending, depthWrite: false });
+  const geo = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), mat = new THREE.MeshBasicMaterial({ map: glowTex, color: kind === 'fire' ? 0xff6a20 : kind === 'blackfire' ? 0x9a4aff : SCHOOL_LIGHT.storm, transparent: true, opacity: .8, blending: THREE.AdditiveBlending, depthWrite: false });
   const mesh = new THREE.InstancedMesh(geo, mat, MAX_HAZARDS); mesh.count = 0; mesh.frustumCulled = false; mesh.renderOrder = 2; scene.add(mesh);
   return hazardGlow[kind] = mesh;
 }
@@ -174,8 +174,10 @@ function lay(room: Room, x: number, z: number, time: number, kind: HazardKind, b
 /** A patch of burning ground at (x, z) for `time` seconds: it lights what burns there (oil, roots, braziers), and burns
     the mage who stands in it. */
 export function layFire(room: Room, x: number, z: number, time: number, by = actingKind()) { lay(room, x, z, time, 'fire', by); fireAt(x, z, .15); }
+/** Ground burning with Blackfire (M4.10, Black Melt: fire on black ice): it burns like fire, and what catches it burns black. */
+export function layBlackFire(room: Room, x: number, z: number, time: number) { lay(room, x, z, time, 'blackfire', ''); fireAt(x, z, .15); }
 /** Whether ground is burning within `r` of (x, z) in the current room (M4.5: rime wolves scatter from it). */
-export const burningNear = (x: number, z: number, r: number) => hazards.some(h => h.kind === 'fire' && h.room === G.current && Math.hypot(h.x - x, h.z - z) < r);
+export const burningNear = (x: number, z: number, r: number) => hazards.some(h => h.kind !== 'spark' && h.room === G.current && Math.hypot(h.x - x, h.z - z) < r);
 /** A patch of sparks at (x, z) for `time` seconds: crackling at first, then armed (`CFG.afflict.sparkArm`): it shocks the
     water there and hurts the mage who stands in it. */
 export function laySpark(room: Room, x: number, z: number, time: number, by = actingKind()) { lay(room, x, z, time, 'spark', by); }
@@ -183,7 +185,7 @@ export function laySpark(room: Room, x: number, z: number, time: number, by = ac
     spark, that isn't its own kind's. */
 export function hazardAt(x: number, z: number, who?: string): HazardKind | undefined {
   const reach = CFG.afflict.groundReach;
-  for (const h of hazards) if (h.room === G.current && h.by !== (who ?? '-') && (h.kind === 'fire' || h.armed) && Math.hypot(h.x - x, h.z - z) < reach) return h.kind;
+  for (const h of hazards) if (h.room === G.current && h.by !== (who ?? '-') && (h.kind !== 'spark' || h.armed) && Math.hypot(h.x - x, h.z - z) < reach) return h.kind;
   return undefined;
 }
 const m4 = new THREE.Matrix4(), q0 = new THREE.Quaternion(), v3 = new THREE.Vector3(), s3 = new THREE.Vector3();
@@ -198,8 +200,9 @@ export function updateFoeHazards(dt: number) {
     const h = hazards[i]; h.t -= dt;
     if (h.t <= 0 || h.room !== G.current) { hazards.splice(i, 1); continue; }
     const near = Math.hypot(player.x - h.x, player.z - h.z) < A.groundReach + player.r * .5;
-    if (h.kind === 'fire') {
-      if (Math.random() < dt * A.groundLicks * Math.min(1, h.t)) flame(h.x + (Math.random() - .5) * .3, h.z + (Math.random() - .5) * .3, Math.random() < .6 ? 0xff7a2a : 0xffc060, .3 + Math.random() * .2);
+    if (h.kind !== 'spark') {
+      const black = h.kind === 'blackfire';
+      if (Math.random() < dt * A.groundLicks * Math.min(1, h.t)) flame(h.x + (Math.random() - .5) * .3, h.z + (Math.random() - .5) * .3, black ? (Math.random() < .6 ? 0xb070ff : 0x2a0a4a) : Math.random() < .6 ? 0xff7a2a : 0xffc060, .3 + Math.random() * .2);
       if (near) hurtPlayer(1, h.x, h.z);
     } else {
       const armed = h.life - h.t >= A.sparkArm;
@@ -208,14 +211,14 @@ export function updateFoeHazards(dt: number) {
       if (armed && near) hurtPlayer(1, h.x, h.z);
     }
   }
-  if (!hazards.length && !hazardGlow.fire?.count && !hazardGlow.spark?.count) return; // (none to draw)
-  for (const kind of ['fire', 'spark'] as const) {
+  if (!hazards.length && !hazardGlow.fire?.count && !hazardGlow.spark?.count && !hazardGlow.blackfire?.count) return; // (none to draw)
+  for (const kind of ['fire', 'spark', 'blackfire'] as const) {
     const list = hazards.filter(h => h.kind === kind);
     if (!list.length && !hazardGlow[kind]?.count) continue;
     const mesh = hazardMesh(kind);
     list.forEach((h, i) => {
-      const k = Math.min(1, h.t / .4) * (kind === 'fire' ? .85 + Math.sin(G.simClock * 11 + i) * .15 : h.armed ? .9 + Math.sin(G.simClock * 30 + i) * .1 : .45);
-      mesh.setMatrixAt(i, m4.compose(v3.set(h.x, .04, h.z), q0, s3.setScalar((kind === 'fire' ? .75 : .6) * k)));
+      const k = Math.min(1, h.t / .4) * (kind !== 'spark' ? .85 + Math.sin(G.simClock * 11 + i) * .15 : h.armed ? .9 + Math.sin(G.simClock * 30 + i) * .1 : .45);
+      mesh.setMatrixAt(i, m4.compose(v3.set(h.x, .04, h.z), q0, s3.setScalar((kind !== 'spark' ? .75 : .6) * k)));
     });
     mesh.count = list.length; mesh.instanceMatrix.needsUpdate = true;
   }

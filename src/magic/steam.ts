@@ -5,14 +5,25 @@
    'steam'). Each cloud is a few soft puffs, drifting up and thinning out. */
 import * as THREE from 'three';
 import type { Room } from '../types';
-import { G } from '../state';
+import { G, player } from '../state';
 import { scene } from '../render/renderer';
 import { glowTex } from '../render/textures';
 import { MAGIC } from './status';
 import { groundHears } from '../world/groundHooks';
+import { damageEnemy } from '../combat/damage';
+import { burst } from '../combat/fx';
+import { renderHearts } from '../ui/hud';
+import { inflict } from './statusFx';
+import { strikeFx } from './spellFx';
+import { weaveAt } from './weaveFx';
 
 const S = MAGIC.reactions.steam, PUFFS = 7;
-interface Cloud { room: Room; x: number; z: number; r: number; t: number; life: number; puffs: THREE.Sprite[]; mat: THREE.SpriteMaterial }
+interface Cloud { room: Room; x: number; z: number; r: number; t: number; life: number; puffs: THREE.Sprite[]; mat: THREE.SpriteMaterial;
+  /** M4.10: the school that charged it (Thundercloud, Incense, Miasma), its clock, and whether its incense has mended the mage. */ school?: Charge; tick?: number; mended?: boolean }
+/** The schools a cloud takes (M4.10's chains), what each makes of it, and its colour. */
+export type Charge = 'storm' | 'hallow' | 'umbral';
+const CHAIN: Record<Charge, 'thundercloud' | 'incense' | 'miasma'> = { storm: 'thundercloud', hallow: 'incense', umbral: 'miasma' };
+const TINT: Record<Charge, number> = { storm: 0xf4eeb0, hallow: 0xffe8a8, umbral: 0x5a4078 };
 const clouds: Cloud[] = [];
 
 /** A cloud of steam at (x, z) in the current room, `r` across (the reaction's, by default), for `time` seconds. */
@@ -25,6 +36,30 @@ export function steamAt(x: number, z: number, r = S.radius, time = S.time) {
   });
   clouds.push({ room, x, z, r, t: time, life: time, puffs, mat });
   groundHears('steam', x, z, r); // (scalded water: what hides in it comes up)
+}
+
+/** A school lands at (x, z) (M4.10): a cloud there not yet charged takes it: Storm makes it a thundercloud, Hallow incense,
+    Umbral a miasma. Returns whether one did. */
+export function chargeSteam(x: number, z: number, school: Charge) {
+  const c = clouds.find(c => c.room === G.current && !c.school && Math.hypot(x - c.x, z - c.z) < c.r);
+  if (!c) return false;
+  c.school = school; c.tick = 0; c.mat.color.setHex(TINT[school]);
+  weaveAt(CHAIN[school], c.x, c.z);
+  return true;
+}
+/** Each second, a charged cloud does its school's work on the foes inside (and incense mends the mage once). */
+function chargedTick(c: Cloud) {
+  const W = MAGIC.weaves, T = W[CHAIN[c.school!]];
+  c.tick = T.every;
+  for (const e of G.enemies) {
+    if (e.dead || e.hidden || e.spawn > 0 || Math.hypot(e.x - c.x, e.z - c.z) > c.r + e.r * .5) continue;
+    if (c.school === 'storm') { strikeFx({ x: c.x, y: 1.4, z: c.z }, { x: e.x, y: .7, z: e.z }, 0xf0e890, .2, true); damageEnemy(e, W.thundercloud.damage, 0, 0, 0, 'spell', 'storm'); inflict(e, { shock: W.thundercloud.shock }); }
+    else if (c.school === 'hallow') inflict(e, { sanct: W.incense.sanct });
+    else inflict(e, { hex: W.miasma.hex });
+  }
+  if (c.school === 'hallow' && !c.mended && player.hp < player.maxHp && Math.hypot(player.x - c.x, player.z - c.z) < c.r) {
+    c.mended = true; player.hp = Math.min(player.maxHp, player.hp + W.incense.heal); renderHearts(); burst(player.x, .9, player.z, 0xffe8a8, 10, 1.4, .04);
+  }
 }
 
 /** Whether (x, z) in the current room is inside a cloud of steam. */
@@ -50,6 +85,8 @@ export function updateSteam(dt: number) {
     const k = c.t / c.life, here = c.room === G.current;
     c.mat.opacity = Math.min(1, (1 - k) * 6) * Math.min(1, k * 2.5) * .5; // (it billows up, then thins out)
     for (const s of c.puffs) { s.visible = here; s.position.y += s.userData.rise * dt; s.scale.setScalar(c.r * (1.1 + (1 - k) * .5)); }
+    if (c.school && here && (c.tick = (c.tick ?? 0) - dt) <= 0) chargedTick(c);
+    if (c.school === 'storm' && here && Math.random() < dt * 6) burst(c.x + (Math.random() - .5) * c.r, 1 + Math.random() * .6, c.z + (Math.random() - .5) * c.r, 0xf0e890, 1, 1.4, .025); // (a thundercloud crackles)
   }
 }
 /** A new floor or run: every cloud goes. */

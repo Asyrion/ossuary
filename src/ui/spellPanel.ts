@@ -8,7 +8,9 @@ import { spellCost } from '../magic/cost';
 import type { SpellDef } from '../magic/spellData';
 import { type Stage, REACTION_IDS, atLeast, reactionSchools, reactionsOf } from '../magic/knowledge';
 import type { Reaction } from '../magic/status';
-import { reactionsFound } from '../magic/memory';
+import { reactionsFound, weavesFound } from '../magic/memory';
+import { WEAVES, WEAVE_IDS, weavesOf, type WeaveId } from '../magic/weaves';
+import type { School } from '../magic/spellData';
 import { SCHOOL_LIGHT } from '../render/arcane';
 
 export const esc = (t: string) => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
@@ -35,6 +37,10 @@ export function spellSheet(def: SpellDef, stage: Stage, note = '', casts = 0) {
   if (sets.length) html += `<p class="lbl">${esc(K.sets)}</p>` + sets.map(r => found.includes(r.reaction)
     ? `<p class="note">${esc(K.reaction(STR.reactions[r.reaction], STR.schools[r.with], K.reactionText[r.reaction]))}</p>`
     : `<p class="note dim">${esc(K.reaction(STR.reactions[r.reaction], STR.schools[r.with], K.notFound))}</p>`).join('');
+  const woven = weavesOf(def), wf = weavesFound(); // (M4.10: the weaves it takes part in, found or not yet)
+  if (woven.length) html += `<p class="lbl">${esc(K.weavesLbl)}</p>` + woven.map(id => wf.includes(id)
+    ? `<p class="note">${esc(STR.weaves[id].name)}: ${esc(STR.weaves[id].text)}</p>`
+    : `<p class="note dim">${esc(K.unfound)}</p>`).join('');
   return html + `<p class="lore">${esc(def.lore)}</p>`; // (upgraded, M6: what changed it goes here)
 }
 
@@ -46,8 +52,11 @@ const SPOKES = ['ember', 'frost', 'storm', 'verdant', 'umbral', 'hallow'] as con
 const spoke = (school: string) => { const a = -Math.PI / 2 + SPOKES.indexOf(school as typeof SPOKES[number]) * Math.PI / 3; return { x: 100 + Math.cos(a) * 72, y: 100 + Math.sin(a) * 72 }; };
 
 /** A reaction's tile: the two schools' lights overlapping (found), or two hollow rings (not yet). */
-export function reactionIcon(r: Reaction, found: boolean) {
-  const [a, b] = reactionSchools(r).map(k => css(SCHOOL_LIGHT[k]));
+export const reactionIcon = (r: Reaction, found: boolean) => pairIcon(reactionSchools(r), found);
+/** Two schools' lights overlapping (found), or two hollow rings (not yet): a reaction's tile, or a weave's (M4.10). */
+export function pairIcon(schools: readonly [School, School], found: boolean, ring = false) {
+  const [a, b] = schools.map(k => css(SCHOOL_LIGHT[k]));
+  if (ring && found) return `<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="24" r="10" fill="none" stroke="${a}" stroke-width="4"/><circle cx="30" cy="24" r="10" fill="none" stroke="${b}" stroke-width="4"/></svg>`; // (a weave: two rings linked)
   return found
     ? `<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="24" r="11" fill="${a}" opacity=".85"/><circle cx="30" cy="24" r="11" fill="${b}" opacity=".85" style="mix-blend-mode:screen"/><circle cx="24" cy="24" r="3" fill="#fff8e0"/></svg>`
     : `<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="24" r="10" fill="none" stroke="${a}" stroke-width="2" opacity=".5"/><circle cx="30" cy="24" r="10" fill="none" stroke="${b}" stroke-width="2" opacity=".5"/></svg>`;
@@ -79,4 +88,16 @@ export function reactionSheet(r: Reaction) {
     : `<p class="effect">${esc(K.unfoundText(a, b))}</p>`;
   return head(reactionIcon(r, on), on ? STR.reactions[r] : K.unfound, K.pair(a, b)) + body + reactionWheel(r)
     + `<p class="note">${esc(K.foundOf(found.filter(f => (REACTION_IDS as string[]).includes(f)).length, REACTION_IDS.length))}</p>`;
+}
+
+/* ---------- weaves and chains (M4.10) ---------- */
+
+/** Weave or chain `id` described in the book: found, what it does; not yet, which two schools make it. */
+export function weaveSheet(id: WeaveId) {
+  const K = STR.knowledge, w = WEAVES[id], on = weavesFound().includes(id), kind = K.weaveKind[w.kind];
+  const [a, b] = w.schools.map(k => STR.schools[k]);
+  return head(pairIcon(w.schools, on, w.kind === 'weave'), on ? STR.weaves[id].name : K.unfound, `${kind} · ${K.pair(a, b)}`)
+    + `<p class="effect">${esc(on ? STR.weaves[id].text : K.weaveSealedText(kind))}</p>`
+    + (on ? '' : `<p class="note">${esc(K.weaveSealed(kind, a, b))}</p>`)
+    + `<p class="note">${esc(K.weavesFoundOf(weavesFound().length, WEAVE_IDS.length))}</p>`;
 }

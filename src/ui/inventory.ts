@@ -11,8 +11,9 @@ import { artifact, focusPattern, halveStat, type StatKey } from '../items/artifa
 import { LOOT, SOULS } from '../items/loot';
 import { SCHOOLS, SPELL_DEFS, spell } from '../magic/spellData';
 import { REACTION_IDS, atLeast } from '../magic/knowledge';
-import { castsOf, reactionsFound, stage } from '../magic/memory';
-import { esc, head, reactionIcon, reactionSheet, spellSheet } from './spellPanel';
+import { castsOf, reactionsFound, stage, weavesFound } from '../magic/memory';
+import { esc, head, pairIcon, reactionIcon, reactionSheet, spellSheet, weaveSheet } from './spellPanel';
+import { WEAVES, WEAVE_IDS } from '../magic/weaves';
 import { showScreen } from './screens';
 import { artifactIcon, soulSvg, spellIcon } from './hud';
 import { itemIcon } from './lore';
@@ -135,7 +136,11 @@ function spellEntries(): Entry[] {
     icon: reactionIcon(r, found.includes(r)), label: found.includes(r) ? STR.reactions[r] : K.unfound, dim: !found.includes(r),
     section: i === 0 ? K.wheel : undefined, detail: () => reactionSheet(r),
   })) : [];
-  return [...slots, ...book, ...wheel];
+  const woven = weavesFound(), weaves: Entry[] = book.length || woven.length ? WEAVE_IDS.map((id, i) => ({ // (M4.10)
+    icon: pairIcon(WEAVES[id].schools, woven.includes(id), WEAVES[id].kind === 'weave'), label: woven.includes(id) ? STR.weaves[id].name : K.unfound, dim: !woven.includes(id),
+    section: i === 0 ? K.weavesSec : undefined, detail: () => weaveSheet(id),
+  })) : [];
+  return [...slots, ...book, ...wheel, ...weaves];
 }
 /** A page not found yet: a sealed leaf. */
 const SEALED = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M13 7h17l7 7v27H13z" fill="#3a3128" stroke="#7a6a52" stroke-width="2"/><circle cx="25" cy="27" r="6" fill="#6a2a20" stroke="#a8503c" stroke-width="1.5"/><path d="M22 27h6M25 24v6" stroke="#e0b08a" stroke-width="1.4"/></svg>';

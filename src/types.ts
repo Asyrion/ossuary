@@ -89,6 +89,7 @@ export interface PropState {
       a sapping obelisk's ward (the school that breaks it) and whether it is broken. */
   charge?: number; blind?: number; aim?: { x: number; z: number; t: number }; ward?: School; broken?: boolean;
   /** M4.9: seconds a sluice gate stands open (the room's water drained). */ open?: number;
+  /** M4.10: a brazier burning with Blackfire (darkness took its fire). */ black?: boolean;
 }
 /** An object in the room, with its box (how it blocks depends on its class: rocks, `lows`, or `soft`). */
 export type PropBox = RockBox & { prop: PropState };
@@ -193,6 +194,8 @@ export interface Enemy extends Circle {
   /** A gilded treasury's guardian, standing like a statue until its gold is taken (M4.1, themes.ts). */ statue?: boolean;
   /** Marked by the Ferryman's Toll (M4.1, shapes.ts): mana back for each blow (at most every so often: `tollNext`), obols and a spreading hex if it falls. */ toll?: { mana: number; obols: number; spread: number; spreadRange: number }; tollNext?: number;
   /** Eclipsed (M4.1): the black sun hung over it while it is out of the fight. */ sun?: THREE.Object3D;
+  /** M4.10: what an eclipse's blow is worth as it ends (Eclipse Ground: half again), and whether Storm reached its black sun
+      (Corona: the blow leaps as lightning). */ eclipseMul?: number; corona?: boolean;
   /** Bosses: out of reach (under the floor, in the air), so neither hurt nor hurting. */ hidden?: boolean;
   /** Floor ring (the abbess's ripple, the knight's landing mark); where a leap started. */ marker?: THREE.Mesh; from?: Vec2;
   /** Called by a boss; falls when the boss does. */ servant?: boolean;
@@ -228,6 +231,8 @@ export interface Bolt extends Circle {
   /** A spell's bolt (Rime Shards, Shatter's shards): its hits are spell hits, with the spell's statuses. */ spell?: boolean;
   status?: Partial<Record<SpellStatus, number>>;
   /** Set alight flying through a brazier's flame (M3.6): it trails embers. */ kindled?: boolean;
+  /** A splinter of ice rather than an orb (Rime Shards, the Shatter's). */ shard?: boolean;
+  /** M4.10: one of the Shatter's shards (fire catches it as molten glass); a shard sanctified crossing holy ground. */ shatter?: boolean; hallowed?: boolean;
   /** M4.1: the Pendulum of Hours' turn (radians a second); seconds left hanging as a Lodestar Wand's star; whether it has
       echoed off a wall already (the Echo Stone). */ curve?: number; star?: number; echoed?: boolean;
 }

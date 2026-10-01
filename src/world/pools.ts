@@ -9,7 +9,7 @@
    upstream feeds it. */
 import * as THREE from 'three';
 import { groundHears } from './groundHooks';
-import { steamAt } from '../magic/steam';
+import { chargeSteam, steamAt } from '../magic/steam';
 import { CFG } from '../config';
 import type { Enemy, Pool, Room } from '../types';
 import { G, player } from '../state';
@@ -35,7 +35,7 @@ const LOOK = {
   frozen: { color: 0xc4e6f6, emissive: 0x2a4e6e, roughness: .2, metalness: .1, opacity: .9 },
   oil: { color: 0x3a2e20, emissive: 0x140e08, roughness: .55, metalness: .1, opacity: .92 }, // (dull brown: black read as a pit, a sharp glint as fire)
   burning: { color: 0x2a1208, emissive: 0xff6a1a, roughness: .7, metalness: 0, opacity: .96 },
-  mud: { color: 0x4a3a28, emissive: 0x0c0804, roughness: .92, metalness: 0, opacity: .9 }, // (M4.9: drained by a sluice; brown and wet, never a pit's black)
+  mud: { color: 0x4a3a28, emissive: 0x0c0804, roughness: .42, metalness: .12, opacity: .9 }, // (M4.9: drained by a sluice; brown and wet, never a pit's black)
 };
 function dress(p: Pool) {
   const L = p.state === 'frozen' ? LOOK.frozen : p.state === 'burning' ? LOOK.burning : p.kind === 'water' ? p.mud ? LOOK.mud : LOOK.water : LOOK.oil;
@@ -269,8 +269,9 @@ export function frostAt(x: number, z: number, r = 0) {
 }
 /** Shock reaches (x, z): if that's in water, it runs through the whole pool, to every foe standing in it and the
     mage too. `from` is spared (it has its shock already). */
-export function shockAt(x: number, z: number, from?: Enemy) {
+export function shockAt(x: number, z: number, from?: Enemy, spareMage = false) {
   groundHears('shock', x, z);
+  chargeSteam(x, z, 'storm'); // (M4.10: a storm in steam makes a thundercloud)
   elementAt('shock', x, z); // lodestones leap, a rune stone takes storm
   const p = poolAt(x, z);
   if (p?.kind === 'oil' && p.state === 'burning') { // (M4.8: a shock through burning oil is an Overload at the pool's middle, which blows the fire out)
@@ -285,7 +286,7 @@ export function shockAt(x: number, z: number, from?: Enemy) {
     if (e === from || e.dead || e.spawn > 0 || e.hidden || e.flying || !inPool(p, e.x, e.z)) continue;
     damageEnemy(e, C.shockDamage, 0, 0, 0, 'spell', 'storm'); inflict(e, { shock: C.shockSpread });
   }
-  if (inPool(p, player.x, player.z)) hurtPlayer(C.mageHurt, player.x, player.z + .01);
+  if (!spareMage && inPool(p, player.x, player.z)) hurtPlayer(C.mageHurt, player.x, player.z + .01); // (M4.10's Live Wade spares the mage)
   for (const t of p.tiles) burst(t.x, .2, t.z, SPARK, 3, 2.4, .03);
   Sfx.at(x, z).sizzle();
 }
