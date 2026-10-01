@@ -1,6 +1,6 @@
 # M5 Alchemy: plan
 
-**Status: under way (2026-10-01): steps 1 to 9 built (GDD: Potions and alchemy, M5 as built); the close next.** GDD: Potions and alchemy; the roadmap's M5 row. The second game inside a run: every
+**Status: built (2026-10-01): steps 1 to 10, closed with the reviews, the GDD as built and a sweep of the rooms; the owner's play-test next (GDD: Potions and alchemy, M5 as built).** GDD: Potions and alchemy; the roadmap's M5 row. The second game inside a run: every
 potion has a drink effect on the mage and a throw effect on the room, found potions are unidentified, and the mage brews
 their own from reagents at an alchemy table in Dr. Jelly's laboratory. The second half is the sixth school, Verdant, and
 its garden rooms (GDD: Magic system, A sixth school), planned in its own section when the first half is built.
@@ -138,6 +138,13 @@ Bottled Storm); an unknown pair that matches no recipe brews a Volatile Mixture.
    with every reagent).
 10. **Close**: the GDD as built, CLAUDE.md, the rules reviewer, a room sweep, screenshots for the owner, the play-test
     build.
+    *Built (2026-10-01):* the rules reviewer's four blocking findings fixed (Verdant's pollen and living wood kept out of
+    Hallow's and Frost's weaves, a lab globe's jelly locking the room, no Verdant obelisk ward) and its smaller ones (potion
+    throws keep the boss rules, the aim ring shows a split throw and the Retort's splash, the dev menu's Overgrown, a line
+    of lore kept to the dungeon, stale numbers); the room sweep found nothing blocking (its polish: the flowering plant's
+    leaves and glow, the old line on the serpent's breakout, Dr. Jelly ducking lower, all done); a contact sheet for the
+    owner; the unit and browser suites green (348 and 104, a toad test that failed by luck made sure). The play-test build
+    ships when the owner asks.
 
 **Done when** potions are found, carried, drunk and thrown with their effects shown, brewed from reagents at Dr. Jelly's
 table and remembered between runs, and every new piece has its dev menu entry, tests and pixel-art look.

@@ -776,7 +776,7 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
 
 **Their looks** are built in code: reagents and potion bottles are small props; bottles can share one mesh with shuffled colours.
 
-**M5 as built, steps 1 to 9 (2026-10-01; `docs/M5-plan.md`, its decisions taken as proposed, the owner to change any).**
+**M5 as built, steps 1 to 10 (2026-10-01; `docs/M5-plan.md`, its decisions taken as proposed, the owner to change any).**
 - *The data.* The twelve potions, seven reagents (six, and Verdant's Bloom Petal from step 9) and twenty-one recipes are data (`data/alchemy.json`), each potion with its
   drink and throw effect and their numbers; the validator refuses a broken one.
 - *Bottles.* Six shapes built in code (flask, vial, jar, teardrop, skull, bulb), twelve of fourteen liquid colours: each
@@ -1707,7 +1707,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4.9 The curve | Harder for the right reasons | Pressure dials per floor in data; libraries and merchants lean to the floor's weakness; a hex's drain traced to its foe; the sluice for water rooms; `npm run balance` measuring every foe (Depth for what's built; proposed 2026-10-01, `docs/M4.9-plan.md`) |
 | M4.10 Weaves | Combinations beyond pairs | Ten weaves (a spell striking what another left: the Steam Curtain, the Overload Seal, Eclipse Ground...), seven chains (a reaction's leavings met by a third school: Thundercloud, Incense, Miasma...), the room's mechanisms joining in; Verdant's Bloom and Blight designed for M5 (Depth for what's built; built 2026-10-01 at the owner's ask, `docs/M4.10-plan.md`) |
 | M4.11 Spell marks | You can see your magic | **Built 2026-10-01** (Spells: Spell marks; the owner's ask). The slotted spells shown at the hands with their state, attunement, a master's ring, the knowledge circle |
-| M5 Alchemy | The second game | **Under way** (`docs/M5-plan.md`; Potions and alchemy, M5 as built): steps 1 to 9 built (the data, the belt, drinking and throwing, reagents, Dr. Jelly's laboratory and brewing, the jelly serpent, the Alchemist, Verdant and its gardens). Potion belt, drink or throw, identification, 7 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
+| M5 Alchemy | The second game | **Built** (2026-10-01, `docs/M5-plan.md`; Potions and alchemy, M5 as built; the owner's play-test next): steps 1 to 10 (the data, the belt, drinking and throwing, reagents, Dr. Jelly's laboratory and brewing, the jelly serpent, the Alchemist, Verdant and its gardens, the close). Potion belt, drink or throw, identification, 7 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
 | M7 Descent and the Vigil | A full run with a reason to return | Final boss (Kaelith, the Shadow Sentinel); the Vigil (RPG progression: Between runs) at the cave mouth over the valleys: freed shades as townspeople with dialogue (Boketto, the Cloud Forest Wizard, the Huruhui foragers), its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines; a won run ends in daylight |
 | M8 Eda | It is Eda | Lore names, floor biomes, adaptive music, ambience beds and final mix |

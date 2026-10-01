@@ -83,7 +83,7 @@ export function updateLab(now: number) {
   const lab = G.current.lab; if (!lab) return;
   const body = lab.jelly.g.userData.body as THREE.Object3D, jelly = lab.jelly.g.userData.jelly as THREE.Object3D, duck = G.current.locked;
   body.position.y = duck ? Math.sin(now * 40) * .01 : Math.sin(now * 2.1) * .02;
-  body.scale.y += ((duck ? .55 : 1) - body.scale.y) * .15;
+  body.scale.y += ((duck ? CFG.alchemy.lab.duck : 1) - body.scale.y) * .15; // (low enough that the table hides him from the camera)
   const want = Math.atan2(player.x - lab.jelly.x, player.z - lab.jelly.z) - lab.jelly.g.rotation.y;
   body.rotation.y += (Math.atan2(Math.sin(want), Math.cos(want)) - body.rotation.y) * .06;
   jelly.scale.set(1 + Math.sin(now * 5) * .08, 1 - Math.sin(now * 5) * .08, 1 + Math.sin(now * 5) * .08);
