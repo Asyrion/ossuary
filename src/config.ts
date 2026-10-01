@@ -76,6 +76,18 @@ export const CFG = {
   foeGround: { every: .5, burn: 1.5, shock: .4, sparkDamage: 2, sting: 1.5, look: .75, lookAt: [.5, 1], steer: [.7, -.7, 1.4, -1.4] },
   // a leap or a dash with stone in its way turns off by the least of these (radians, either side) that is clear (wayRound)
   foeWay: { turns: [.6, 1.1, 1.6] },
+  /** M4.6 transformations (items/transforms.ts): how long the banner stays; the gifts: the Pyromancer's embers (seconds they
+      burn), the Frostborn's chill on a touch (stacks, and how often one foe can be chilled so), the Stormcaller's leap (every
+      how many bolts, how far, and the share of the bolt's blow), the Shadowstep's blink (how far, how often, and how long
+      the mage can't be struck), the Runescribe's rune (how soon it bursts, how far, the share of the bolt's blow), the
+      Pilgrim's step, the Lightbearer's float (how high, and its bob), the Beastcaller's familiars (how many more, and how
+      much harder they strike); and how far the robes are tinted towards the transformation's light. */
+  transform: {
+    banner: 3.2,
+    ember: { time: 1.6 }, frost: { chill: 1, every: .8 }, storm: { every: 5, reach: 4.5, share: .8 },
+    blink: { dist: 2.4, every: 1.6, invuln: .25 }, rune: { delay: .55, reach: 1.1, share: .6 },
+    pilgrim: { speed: 1.12 }, float: { lift: .14, bob: .035 }, beast: { more: 1, damageMul: 1.5 }, tint: .3,
+  },
   /** M4.6 costumes (actors/costume.ts): the focus held in the casting hand (its scale, where along it the hand grips: 0 its
       middle, negative below; how far it leans forward and out), each spot's scale for an artifact's own model carried
       there, and a cursed piece's glow (a share of its height) and how often it weeps a red drop. */

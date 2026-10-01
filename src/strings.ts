@@ -21,6 +21,7 @@ export const STR = {
     /** Play-test aid, like STR.dev.hint: remove with it. */
     spells: 'Spells', spellsKeys: 'Q and E', spellsPad: 'LB and RB', spellsTouch: '–',
     inventory: 'Inventory', inventoryKeys: 'I or Tab', inventoryPad: 'View', inventoryTouch: '–',
+    blink: 'Blink (a Shadowstep\'s)', blinkKeys: 'Shift', blinkPad: 'Right trigger', blinkTouch: '–',
     dev: 'Dev menu', devKeys: '` / ^ or F2', devPad: '–', devTouch: '–',
   },
   chalk: { walk: 'walk', cast: 'cast', glyph: 'glyph', space: 'SPACE', touchMove: 'left thumb moves', touchShoot: 'right thumb shoots',
@@ -87,6 +88,18 @@ export const STR = {
   drop: 'Release to play as this model',
   health: (hp: number, max: number, souls = 0) => `Health ${hp} of ${max} hearts` + (souls ? `, ${souls} soul mote${souls > 1 ? 's' : ''}` : ''),
   purse: (coins: number, keys: number, glyphs: number) => `${coins} obols, ${keys} bone keys, ${glyphs} blast glyphs`,
+  /** M4.6: transformations (three artifacts of a family): the name, the gift in a line (the banner's and the lore card's),
+      and its lore. Placeholders until M8. */
+  transforms: {
+    pyromancer: { name: 'Pyromancer', gift: 'Your bolts leave embers where they strike', lore: 'Three fires held close, and the robes begin to smoulder. Down here the dark learns to keep its distance from you.' },
+    frostborn: { name: 'Frostborn', gift: 'Foes that touch you are chilled', lore: 'The cold of the drowned crypts has made its home in you. Your breath fogs, and whatever lays hands on you stiffens.' },
+    stormcaller: { name: 'Stormcaller', gift: 'Every fifth bolt that strikes leaps to a second foe', lore: 'Black spirals run down your arms, and the storm\'s light marks your face. When a storm is called, your eyes answer it.' },
+    lightbearer: { name: 'Lightbearer', gift: 'You float over pits and water', lore: 'Candle-light gathers at your back like wings. The pilgrims said the faithful walk where the floor has fallen away.' },
+    shadowstep: { name: 'Shadowstep', gift: 'Shift or the right trigger: a short blink the way you move', lore: 'A cloak of shadow, and eyes that catch the violet of a hex. Between one step and the next, you are somewhere else.' },
+    runescribe: { name: 'Runescribe', gift: 'Your bolts leave a rune that bursts a moment later', lore: 'Chalk, contract and chisel: the Wardens\' scribes cut their seals this way. Every mark you leave keeps its word.' },
+    pilgrim: { name: 'Pilgrim', gift: 'The floor\'s map is shown, cracked walls glow, and you walk faster', lore: 'Hood, boots and beads, a crook to lean on. The pilgrims who came to the chapel above never lost their way below it.' },
+    beastcaller: { name: 'Beastcaller', gift: 'One more familiar, and your familiars strike harder', lore: 'Moth, skull and fox keep closer now. Antlers rise from your brow, and small lights circle you like a herd at dusk.' },
+  } as Record<string, { name: string; gift: string; lore: string }>,
   /** M4.10: weaves (a spell striking what another left) and chains (a reaction's leavings meeting a third school): the name
       that rises, and what the book says of each once found. */
   weaves: {
@@ -327,7 +340,7 @@ export const STR = {
       items and containers are described here, the first time in a run. Placeholder lore until the Eda lore
       arrives. */
   lore: {
-    kinds: { focus: 'Focus', passive: 'Artifact', cursed: 'Cursed artifact' } as Record<string, string>,
+    kinds: { focus: 'Focus', passive: 'Artifact', cursed: 'Cursed artifact', transform: 'Transformation' } as Record<string, string>,
     items: {
       coin: {
         name: 'Grave obol', kind: 'Coin', effect: 'Spent at the merchant and the shrine',
@@ -609,6 +622,8 @@ export const STR = {
     wardFoe: 'Ward the nearest foe (it drinks spells)', costumes: 'Costumes', costumesTry: 'Try a piece on (as if held; again to take it off)', takeAllOff: 'Take all off', closeUp: 'Close-up on the mage',
     costumeAt: (spot: string) => `Worn: ${spot}`, costumeHeld: 'Held in the casting hand',
     costumeInfo: (worn: string[], held: string) => `Wearing: ${worn.length ? worn.join(', ') : 'nothing'} · holding: ${held || 'nothing'}`,
+    transforms: 'Transformations (three of a family form one; here at once, with its banner)', clearTransforms: 'Undo them all',
+    transformInfo: (formed: string[], blink: number) => `Formed: ${formed.length ? formed.join(', ') : 'none'} (the last wears its look)${blink > 0 ? ` · blink rests ${blink.toFixed(1)} s` : ''}`,
     fennex: 'Fen-Nex', growFennex: 'Grow Fen-Nex a stage', noFennex: 'Fen-Nex is not bound (take the Rune of Fen-Nex)', wanderer: 'The Wandering Merchant, here', noFoe: 'No foe in the room',
     foesOfFloor: (floor: number) => floor ? `Floor ${floor}'s foes, built in code:` : 'The Wardlings, let out by drinking wards:', foesAsFloor: 'Fights: each floor\'s own foes', foeEverywhere: (name: string) => `Fights: ${name} in every one`,
     bestiaryNote: 'Weaknesses and resistances found are kept between runs (the bestiary to come).', forgetBestiary: 'Forget the bestiary',

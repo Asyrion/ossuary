@@ -1,7 +1,7 @@
 import type { Vec2 } from '../types';
 import { pressed, type InputActions } from './index';
 
-export const pad = { move: { x: 0, z: 0 }, shoot: null as Vec2 | null, startWas: false, glyphWas: false, spellWas: [false, false], menuWas: new Set<number>() };
+export const pad = { move: { x: 0, z: 0 }, shoot: null as Vec2 | null, startWas: false, glyphWas: false, blinkWas: false, spellWas: [false, false], menuWas: new Set<number>() };
 /** Buttons menus may use: B, LB, RB, View and the d-pad. */
 const MENU_BUTTONS = [1, 4, 5, 8, 12, 13, 14, 15];
 
@@ -27,6 +27,9 @@ export function pollGamepad(act: InputActions) {
   const glyph = b(6); // left trigger: chalk a blast glyph
   if (glyph && !pad.glyphWas && act.playing()) pressed.glyph = true;
   pad.glyphWas = glyph;
+  const blink = b(7); // right trigger: the Shadowstep's blink (M4.6)
+  if (blink && !pad.blinkWas && act.playing()) pressed.blink = true;
+  pad.blinkWas = blink;
   for (const i of [0, 1]) { // shoulder buttons: LB and RB cast the spells in slots 1 and 2
     const on = b(4 + i);
     if (on && !pad.spellWas[i] && act.playing()) pressed.spells[i] = true;

@@ -3,7 +3,8 @@ import { CFG } from '../../src/config';
 import { Rng } from '../../src/rng';
 import { ARTIFACT_DEFS, DEFAULT_BOLT_COLOR, GILT_COLOR, START_FOCUS, computeStats, halveStat, pickArtifact, validateArtifacts } from '../../src/items/artifactData';
 import { DROPS } from '../../src/items/loot';
-import { COSTUME_PIECES, isCostume, slotOf, wornIds, wornLooks, wornPieces } from '../../src/actors/costumeData';
+import { COSTUME_PIECES, TRANSFORM_LOOKS, isCostume, slotOf, wornIds, wornLooks, wornPieces } from '../../src/actors/costumeData';
+import { TRANSFORMS, TRANSFORM_IDS, TRANSFORM_NEEDS, formed, giftEffects, validateFamilies } from '../../src/items/transformData';
 import { STR } from '../../src/strings';
 
 const base = CFG.hero;
@@ -119,8 +120,44 @@ describe('costumes', () => {
     const shown = ARTIFACT_DEFS.filter(a => !a.start && (a.costume || a.kind === 'focus'));
     expect(shown.length).toBeGreaterThanOrEqual(50);
     for (const a of ARTIFACT_DEFS) if (a.costume) expect(isCostume(a.costume), a.id).toBe(true);
-    for (const id of Object.keys(COSTUME_PIECES)) expect(ARTIFACT_DEFS.some(a => a.costume === id), `${id} worn by none`).toBe(true);
+    for (const [id, p] of Object.entries(COSTUME_PIECES)) expect('transform' in p ? Object.values(TRANSFORM_LOOKS).some(l => l.includes(id as never)) : ARTIFACT_DEFS.some(a => a.costume === id), `${id} worn by none`).toBe(true);
+    expect(isCostume('flameCrown')).toBe(false); // (a transformation's own: no artifact wears it)
     for (const [id, p] of Object.entries(COSTUME_PIECES)) if ('curse' in p) expect(ARTIFACT_DEFS.filter(a => a.costume === id).every(a => a.kind === 'cursed'), id).toBe(true);
+  });
+});
+
+// M4.6: three artifacts of a family transform the mage for the rest of the run
+describe('transformations', () => {
+  const def = (id: string) => ARTIFACT_DEFS.find(a => a.id === id)!;
+  it('forms at three of a family, in the order the third was taken, and stays formed', () => {
+    const pyro = ARTIFACT_DEFS.filter(a => a.family === 'pyromancer').slice(0, TRANSFORM_NEEDS), frost = ARTIFACT_DEFS.filter(a => a.family === 'frostborn').slice(0, TRANSFORM_NEEDS);
+    expect(formed(pyro.slice(0, 2))).toEqual([]);
+    expect(formed([...pyro.slice(0, 2), ...frost, pyro[2]])).toEqual(['frostborn', 'pyromancer']);
+    expect(formed([pyro[0], pyro[0], pyro[1]])).toEqual([]); // (the same artifact twice counts once)
+    expect(formed([], ['pilgrim'])).toEqual(['pilgrim']); // (an artifact given up since: it stays)
+    expect(formed([def('apprentice_wand')])).toEqual([]);
+  });
+  it('every transformation has its family of at least three and a gift no artifact gives; the data passes its checks', () => {
+    expect(validateFamilies(ARTIFACT_DEFS)).toEqual([]);
+    for (const t of TRANSFORM_IDS) {
+      expect(ARTIFACT_DEFS.filter(a => a.family === t).length, t).toBeGreaterThanOrEqual(TRANSFORM_NEEDS);
+      expect(TRANSFORMS[t].gift.length, t).toBeGreaterThan(0);
+      expect(STR.transforms[t], t).toMatchObject({ name: expect.any(String), gift: expect.any(String), lore: expect.any(String) });
+    }
+    expect(validateFamilies([{ id: 'x', family: 'alchemist' }]).some(e => e.includes('alchemist'))).toBe(true);
+    expect(validateArtifacts([...ARTIFACT_DEFS, { ...def('ember_sigil'), id: 'bad', effects: ['blink'] }]).some(e => e.includes('gift'))).toBe(true);
+    expect([...giftEffects(['lightbearer', 'pilgrim'])].sort()).toEqual(['float', 'graveLantern', 'pilgrimPath', 'pitWalker']);
+  });
+  it('the latest formed wears its look over the artifacts\' pieces in those slots, its aura in the aura slot', () => {
+    const held = ['pilgrims_cowl', 'mana_lantern', 'ember_sigil'].map(def);
+    const worn = wornLooks(held, [], 'pyromancer');
+    expect(worn.map(w => [w.slot, w.piece])).toEqual([['head', 'flameCrown'], ['back', 'carried'], ['belt', 'carried'], ['feet', 'emberSteps'], ['aura', 'aura']]);
+    expect(worn.find(w => w.slot === 'aura')).toMatchObject({ from: 'pyromancer', transform: true });
+    expect(wornLooks(held, [], 'pilgrim').find(w => w.slot === 'belt')).toMatchObject({ piece: 'carried', at: 'belt', from: 'grave_lantern' });
+    for (const t of TRANSFORM_IDS) {
+      expect(TRANSFORM_LOOKS[t], t).toBeDefined();
+      for (const p of TRANSFORM_LOOKS[t]) if (typeof p === 'string') expect(COSTUME_PIECES[p], `${t}: ${p}`).toBeDefined(); else expect(ARTIFACT_DEFS.some(a => a.id === p.from), `${t}: ${p.from}`).toBe(true);
+    }
   });
 });
 

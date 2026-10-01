@@ -1,3 +1,4 @@
+import type { TransformId } from './items/transformData';
 import { CFG, type BossType } from './config';
 import { START_FOCUS, computeStats } from './items/artifactData';
 import { Rng } from './rng';
@@ -42,6 +43,7 @@ export const G = {
     /** M4.2: the seeded stream for the Wandering Merchant (when the merchant comes, what is for sale), and whether the merchant has come. */
     wanderer: new Rng(0), wandererMet: false,
     /** M4.2: the floor Fen-Nex was bound on (it grows a stage a floor), while it is. */ fennexFrom: undefined as number | undefined,
+    /** M4.6: the transformations formed this run, in order (the latest wears its look; every gift stays). */ transforms: [] as TransformId[],
   },
   shake: 0,
   simClock: 0,

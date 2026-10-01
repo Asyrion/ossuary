@@ -66,6 +66,12 @@ const sounds = {
   hurt() { tone('sawtooth', 240, 80, .3, .12); hiss(.2, .12, 'lowpass', 500); },
   door(open: boolean) { hiss(.35, .09, 'lowpass', 260); tone('square', open ? 70 : 90, open ? 110 : 55, .3, .04); },
   pickup() { tone('sine', 660, 660, .1, .1); tone('sine', 990, 990, .18, .09, .09); },
+  /** M4.6: a transformation formed: a rising chord with a shimmer over it. */
+  transform() { [392, 523, 659, 784, 1046, 1318].forEach((f, i) => tone('triangle', f, f * 1.01, .5, .07, i * .07)); tone('sine', 2093, 1568, .6, .03, .45); },
+  /** M4.6's gifts: the Shadowstep's blink (a rush of air, falling), the Runescribe's rune bursting, the Frostborn's touch. */
+  blink() { hiss(.18, .1, 'highpass', 1800); tone('sine', 880, 220, .2, .06); },
+  runeBurst() { tone('triangle', 660, 990, .12, .05); hiss(.14, .07, 'bandpass', 2200); },
+  rimeTouch() { hiss(.1, .05, 'highpass', 4000); tone('sine', 1760, 1320, .1, .03); },
   relic() { [523, 659, 784, 1046].forEach((f, i) => tone('triangle', f, f, .35, .08, i * .09)); },
   enemyShot() { tone('sine', 420, 180, .18, .05); },
   boom() { tone('sine', 110, 40, .45, .22); hiss(.4, .1, 'lowpass', 400); },

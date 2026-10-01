@@ -35,6 +35,7 @@ import { giveById, offerGuaranteed, offerOptional, offerSecondChoice, placeArtif
 import { banner, fadeFromBlack, hideBossBar, renderHearts, renderMinimap, resetHearts, showBossBar, toast, line, clearLines } from './ui/hud';
 import { resetAfflictions } from './ui/afflictions';
 import { warnFloor } from './world/curve';
+import { pilgrimMap } from './items/gifts';
 import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
 import { clearSpellFx, forgetSpells, gainMana, leaveRoomSpells, learnSpell } from './magic/spells';
@@ -91,7 +92,7 @@ export function buildFloor(index: number) {
   G.current = start; player.x = start.cx; player.z = start.cz + .6; player.vx = player.vz = 0;
   aimCamera(start); setDarkness(0, true);
   G.trans = null; hideBossBar();
-  enterRoom(start);
+  enterRoom(start); pilgrimMap(); // (M4.6: the Pilgrim knows the floor's way)
   if (G.state === 'play') { banner(...STR.floors[Math.min(index, STR.floors.length - 1)]); warnFloor(index); } // (M4.9: a floor that walls off the mage's one school says so)
 }
 
@@ -108,7 +109,7 @@ function newRun(seed: string): typeof G.run {
   return {
     seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [],
     budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1, riteFloor: -99, loreSeen: new Set(), hinted: new Set(), pages: Rng.from(seed, 'pages'), forgotten: [],
-    wanderer: Rng.from(seed, 'wanderer'), wandererMet: false, fennexFrom: undefined,
+    wanderer: Rng.from(seed, 'wanderer'), wandererMet: false, fennexFrom: undefined, transforms: [],
   };
 }
 

@@ -23,6 +23,7 @@ import { clearSteam } from '../magic/steam';
 import { giveMantle } from './mantles';
 import { groundHarm, groundPace, groundSlide, steerAround } from './foeGround';
 import type { MantleId } from './mantleData';
+import { touched } from '../items/gifts';
 
 export function stdMat(color: number, extra: THREE.MeshStandardMaterialParameters = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: .85, flatShading: true, ...extra });
@@ -131,7 +132,10 @@ export function updateEnemies(dt: number) {
     }
     // contact damage (not from a boss under the floor or in the air, nor from a foe frozen in ice or stunned, nor
     // through the Static Mantle)
-    if (!e.hidden && acts && e.contact && Math.hypot(player.x - e.x, player.z - e.z) < player.r + e.r * .9 && !mantleShields(e) && hurtPlayer(e.contact, e.x, e.z) && e.mantle === 'rimebound') player.chill = Math.max(player.chill, MAGIC.mantles.rimebound.chill); // (M4.7: a Rimebound touch chills)
+    if (!e.hidden && acts && e.contact && Math.hypot(player.x - e.x, player.z - e.z) < player.r + e.r * .9 && !mantleShields(e)) {
+      if (hurtPlayer(e.contact, e.x, e.z) && e.mantle === 'rimebound') player.chill = Math.max(player.chill, MAGIC.mantles.rimebound.chill); // (M4.7: a Rimebound touch chills)
+      touched(e); // (M4.6: and the Frostborn chills what touches them)
+    }
   }
   if (dt > 0) for (const e of [...G.enemies]) groundHarm(e, dt); // (M4.7: another kind's burning ground, sparks and spores)
   // keep walkers from stacking

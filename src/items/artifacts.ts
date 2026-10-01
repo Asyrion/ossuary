@@ -1,5 +1,6 @@
 /* Artifacts in the world: pedestals, taking them (and swapping foci), the per-floor budget, and applying
    what the mage holds to their stats. The data and the combining rules are in artifactData.ts. */
+import { announce, giftsFor, updateTransforms } from './transforms';
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { ArtifactSpot, Room } from '../types';
@@ -23,13 +24,15 @@ const hex = (c: string) => new THREE.Color(c).getHex();
 
 /** Recompute the mage's stats from what they hold; heart containers gained come filled. */
 export function refreshStats() {
-  const before = player.maxHp;
+  const before = player.maxHp, fresh = updateTransforms(); // (M4.6: three of a family transform the mage)
   player.stats = computeStats(player.focus, player.items, { ...CFG.hero, hearts: CFG.hero.hearts - player.heartsPaid }, player.cleansed, player.coins);
+  giftsFor(player.stats);
   player.maxHp = player.stats.maxHp;
   if (player.maxHp > before) player.hp += player.maxHp - before;
   player.hp = Math.min(player.hp, player.maxHp);
   player.mana = Math.min(player.mana, player.stats.maxMana);
   renderHearts(); renderItems(); dress();
+  for (const t of fresh) announce(t);
 }
 
 /** Start a run holding only the starting focus. */

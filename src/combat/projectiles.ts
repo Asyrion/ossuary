@@ -28,6 +28,7 @@ import { burst } from './fx';
 import { GILT_COLOR, type BoltPath } from '../items/artifactData';
 import type { SpellStatus } from '../magic/spellData';
 import { RAINBOW, inflict } from '../magic/statusFx';
+import { cantripStruck } from '../items/gifts';
 import { fireAt, frostAt } from '../world/pools';
 import { animateBolt, boltLook, impactFx } from '../magic/spellFx';
 import { gainMana } from '../magic/spells';
@@ -242,6 +243,7 @@ export function updateBolts(dt: number) {
       damageEnemy(e, b.damage * (glass ? CFG.artifacts.stormglass.mul : 1), b.vx / b.speed, b.vz / b.speed, b.spell ? .3 : player.stats.knockback, b.spell ? 'spell' : 'cantrip', schoolOf(b.status));
       if (glass) burst(e.x, .8, e.z, 0xf0e890, 6, 2.2, .03);
       b.hit.add(e);
+      if (!b.spell && !b.secondary) cantripStruck(e, e.x, e.z, b.damage); // (M4.6: the transformations' gifts)
       if (b.status) inflict(e, b.status);
       if (!b.spell && !e.haloed && !e.dead && player.stats.effects.has('halo')) { e.haloed = true; inflict(e, { sanct: CFG.artifacts.halo.sanct }); } // the Gilded Halo: the first bolt sanctifies
       if (b.crit) burst(e.x, .7, e.z, CFG.artifacts.crit.color, 8, 2.4, .05);

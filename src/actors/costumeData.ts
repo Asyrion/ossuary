@@ -21,29 +21,54 @@ export const COSTUME_PIECES = {
   feathers: { slot: 'shoulders' }, stole: { slot: 'shoulders', curse: true },
   manacles: { slot: 'hands', curse: true }, frostRing: { slot: 'hands' }, band: { slot: 'hands' }, beads: { slot: 'hands' }, knot: { slot: 'hands' },
   boots: { slot: 'feet' },
-} as const satisfies Record<string, { slot: CostumeSlot; curse?: true }>;
+  // M4.6's transformations' own (TRANSFORM_LOOKS): crowns of flame and ice, rime on the shoulders, marks of storm on the face
+  // and spirals down the arms, wings of candle-light, a cloak of shadow and violet eyes, a floating grimoire, burning
+  // footsteps, and the aura in the transformation's light (`transform`: theirs alone, no artifact's `costume`)
+  flameCrown: { slot: 'head', transform: true }, iceCrown: { slot: 'head', transform: true }, rimeMantle: { slot: 'shoulders', transform: true },
+  stormMarks: { slot: 'face', transform: true }, stormSpirals: { slot: 'hands', transform: true }, lightWings: { slot: 'back', transform: true },
+  shadowCloak: { slot: 'back', transform: true }, shadowEyes: { slot: 'face', transform: true }, grimoire: { slot: 'back', transform: true },
+  emberSteps: { slot: 'feet', transform: true }, aura: { slot: 'aura', transform: true },
+} as const satisfies Record<string, { slot: CostumeSlot; curse?: true; transform?: true }>;
 export type CostumeId = keyof typeof COSTUME_PIECES;
 
 export const isPiece = (id: string): id is CostumeId => id in COSTUME_PIECES;
 export const isCarry = (id: string): id is CarrySpot => id in CARRY;
-/** Whether an artifact's `costume` names something it can wear. */
-export const isCostume = (id: string) => isPiece(id) || isCarry(id);
+/** Whether an artifact's `costume` names something it can wear (not a transformation's own piece). */
+export const isCostume = (id: string) => (isPiece(id) && !('transform' in COSTUME_PIECES[id])) || isCarry(id);
 /** The slot a `costume` fills. */
 export const slotOf = (costume: string): CostumeSlot => isPiece(costume) ? COSTUME_PIECES[costume].slot : CARRY[costume as CarrySpot];
 
-/** A piece worn: in `slot`, from artifact `from`; `piece` is the piece built for the body, or `carried` (the artifact's own
-    model, `at` where); `cursed` while a cursed artifact is uncleansed, `cleansed` once a shrine has cleansed it. */
-export interface Worn { slot: CostumeSlot; piece: CostumeId | 'carried'; at?: CarrySpot; from: string; cursed: boolean; cleansed: boolean }
+/** A piece worn: in `slot`, from artifact `from` (or from transformation `from`, `transform` set); `piece` is the piece
+    built for the body, or `carried` (the artifact's own model, `at` where); `cursed` while a cursed artifact is
+    uncleansed, `cleansed` once a shrine has cleansed it. */
+export interface Worn { slot: CostumeSlot; piece: CostumeId | 'carried'; at?: CarrySpot; from: string; cursed: boolean; cleansed: boolean; transform?: true }
+
+/** What each transformation's look puts on (M4.6; docs/M4.6-plan.md, The transformations): pieces built for it, or an
+    artifact's own model carried somewhere (the Pilgrim's lantern). Over what the artifacts show in those slots. */
+export const TRANSFORM_LOOKS: Record<string, readonly (CostumeId | { at: CarrySpot; from: string })[]> = {
+  pyromancer: ['flameCrown', 'emberSteps', 'aura'],
+  frostborn: ['iceCrown', 'rimeMantle', 'aura'],
+  stormcaller: ['stormMarks', 'stormSpirals', 'aura'],
+  lightbearer: ['halo', 'lightWings', 'aura'],
+  shadowstep: ['shadowCloak', 'shadowEyes', 'aura'],
+  runescribe: ['grimoire', 'aura'],
+  pilgrim: ['hood', 'boots', { at: 'belt', from: 'grave_lantern' }, 'aura'],
+  beastcaller: ['antlers', 'aura'],
+};
 
 /** What shows for what the mage holds, in pickup order: one piece per slot, the one taken last winning it (a crown taken
-    after the hood replaces the hood). */
-export function wornLooks(held: readonly { id: string; costume?: string; kind?: string }[], cleansed: readonly string[] = []): Worn[] {
+    after the hood replaces the hood); then the look of transformation `look` (the latest formed) over them. */
+export function wornLooks(held: readonly { id: string; costume?: string; kind?: string }[], cleansed: readonly string[] = [], look?: string): Worn[] {
   const bySlot = new Map<CostumeSlot, Worn>();
   for (const a of held) {
     if (!a.costume || !isCostume(a.costume)) continue;
     const wasCleansed = cleansed.includes(a.id);
     const piece = isPiece(a.costume) ? a.costume : 'carried';
     bySlot.set(slotOf(a.costume), { slot: slotOf(a.costume), piece, ...(piece === 'carried' && { at: a.costume as CarrySpot }), from: a.id, cursed: a.kind === 'cursed' && !wasCleansed, cleansed: wasCleansed });
+  }
+  for (const p of (look && TRANSFORM_LOOKS[look]) || []) {
+    if (typeof p === 'string') bySlot.set(COSTUME_PIECES[p].slot, { slot: COSTUME_PIECES[p].slot, piece: p, from: look!, cursed: false, cleansed: false, transform: true });
+    else bySlot.set(CARRY[p.at], { slot: CARRY[p.at], piece: 'carried', at: p.at, from: p.from, cursed: false, cleansed: false, transform: true });
   }
   return COSTUME_SLOTS.flatMap(s => bySlot.get(s) ?? []);
 }

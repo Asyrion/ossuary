@@ -30,7 +30,7 @@ export interface InputActions {
 
 /** One-shot presses, set by the keyboard or gamepad while playing and consumed by the game: a glyph, and a
     spell from slot 1 (Q, LB) or 2 (E, RB). */
-export const pressed = { glyph: false, spells: [false, false] };
+export const pressed = { glyph: false, spells: [false, false], blink: false };
 
 /** Movement from all devices combined, length at most 1. */
 export function moveInput(): Vec2 {

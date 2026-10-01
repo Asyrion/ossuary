@@ -4,8 +4,9 @@
 import * as THREE from 'three';
 import { glowShared, markShared, mergeStill } from '../render/materials';
 import { glowTone, tone } from '../world/kitParts';
-import { hang, offSide, onHead, sideX, type Fit, type Side } from './costumeFit';
+import { bakeOnHead, hang, offSide, onHead, sideX, wrist, type Fit, type Side } from './costumeFit';
 import type { CostumeId, Worn } from './costumeData';
+import { TRANSFORM_BUILD } from './transformPieces';
 
 const wool = markShared(new THREE.MeshStandardMaterial({ color: 0x4e1a25, roughness: 1, emissive: 0x140508 }));
 const lining = markShared(new THREE.MeshStandardMaterial({ color: 0x2a1014, roughness: 1, side: THREE.BackSide }));
@@ -15,16 +16,8 @@ const shell = (geo: THREE.BufferGeometry) => {
   const g = new THREE.Group(); g.add(new THREE.Mesh(geo, wool), new THREE.Mesh(geo, lining)); return g;
 };
 
-export /** Bake a group built in the unit head's frame (the head's ellipsoid a unit sphere, the face towards +z) onto the head:
-    every mesh's own place and turn into its geometry, then onto the ellipsoid. */
-function bakeOnHead(g: THREE.Group, f: Fit) {
-  g.updateMatrixWorld(true);
-  g.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) onHead(m.geometry.applyMatrix4(m.matrixWorld), f); });
-  g.traverse(o => { o.position.set(0, 0, 0); o.rotation.set(0, 0, 0); o.scale.set(1, 1, 1); o.updateMatrix(); });
-  return g;
-}
-
 export const BUILD: Record<CostumeId, (f: Fit, w: Worn) => THREE.Object3D[]> = {
+  ...TRANSFORM_BUILD, // (M4.6: the transformations' looks, transformPieces.ts)
   /** A pilgrim's hood: a cowl round the head, open at the face, with a long tail down the back (a liripipe),
       and a short dagged mantle over the shoulders. */
   hood(f) {
@@ -247,10 +240,3 @@ export const BUILD: Record<CostumeId, (f: Fit, w: Worn) => THREE.Object3D[]> = {
   },
 };
 
-/** A wrist (in the model's frame, at rest): where it is, the forearm's axis there, and the turn that sets a ring's axis
-    (+z) along it. */
-function wrist(f: Fit, s: Side) {
-  const pos = f.hand[s].pos.clone(), axis = pos.clone().sub(f.hand[s].fore).normalize();
-  const back = pos.clone().addScaledVector(axis, -.06);
-  return { pos: back, axis, q: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), axis) };
-}

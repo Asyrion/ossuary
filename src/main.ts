@@ -39,7 +39,7 @@ import { inflict } from './magic/statusFx';
 import { makeEnemy, spawnFoe } from './actors/enemies';
 import { castSpell, learnSpell } from './magic/spells';
 import { mantleLeft, wardLeft } from './magic/shapes';
-import { saltCircle } from './combat/familiars';
+import { mothCount, saltCircle } from './combat/familiars';
 import { fxShowing } from './magic/spellFx';
 import { answerPage, dropPage, pagePanelSpell } from './magic/pages';
 import { fireAt, poolsDo } from './world/pools';
@@ -47,7 +47,10 @@ import { spawnShot } from './combat/projectiles';
 import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
 import { isTouch } from './util';
-import { heldNow, takeAllOff, tryOn, wornDetail, wornNow } from './actors/costume';
+import { heldNow, robeTint, takeAllOff, tryOn, wornDetail, wornNow } from './actors/costume';
+import { clearTransforms, formTransform } from './items/transforms';
+import { blinkRest } from './items/gifts';
+import type { TransformId } from './items/transformData';
 import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
 import { assetList, assetsOn, loadAssets } from './assets/models';
@@ -312,6 +315,10 @@ function installDevHooks() {
     /** The costume pieces the mage wears (a hood, from the Pilgrim's Cowl; an artifact's id for one carried at a spot),
         and the focus held in the casting hand (M4.6); try a piece on as if held, or take all off. */
     get costume() { return wornNow(); }, get costumeDetail() { return wornDetail(); }, get held() { return heldNow(); }, wear: (id: string) => tryOn(id), takeAllOff: () => takeAllOff(), closeUp: (on = true) => setCloseUp(on),
+    /** The run's transformations (M4.6), the latest last; form one at once, or undo them all; the blink's rest; how far the
+        robes are tinted. */
+    get transforms() { return [...G.run.transforms]; }, transform: (id: TransformId) => formTransform(id), clearTransforms: () => clearTransforms(),
+    get blinkRest() { return blinkRest(); }, get robeTint() { return robeTint(); }, get moths() { return mothCount(); },
   };
 }
 

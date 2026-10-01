@@ -6,14 +6,21 @@
    Two kinds of piece: those built for the body (`BUILD`: the hood), and an artifact's own model carried at a spot (`carry`:
    a lantern at the hip, a sigil on the back, a pendant on the chest; `artifactLook`, as on its pedestal). The focus is held
    in the hand the cast clip thrusts (`castHandName`), following the hand each step (`updateCostumes`) and kept upright. A
-   cursed artifact's piece glows red and weeps until a shrine cleanses it. */
+   cursed artifact's piece glows red and weeps until a shrine cleanses it.
+
+   The latest transformation formed (`G.run.transforms`) wears its look over them (TRANSFORM_LOOKS, transformPieces.ts),
+   and the robes take a tint of its light (`tintRobes`). What its pieces mark moves here each step: the aura turns, the
+   grimoire bobs, wings beat, footsteps burn, breath frosts, sparks crackle, and a Stormcaller's eyes flare (`flareEyes`). */
 import * as THREE from 'three';
-import { player } from '../state';
+import { G, player } from '../state';
 import { CFG } from '../config';
 import { artifact } from '../items/artifactData';
 import { artifactLook, CURSED_RED } from '../items/artifactLooks';
 import { disposeTree, glowShared, mergeStill } from '../render/materials';
 import { burst } from '../combat/fx';
+import { strikeFx } from '../magic/spellFx';
+import { TRANSFORMS, isTransform } from '../items/transformData';
+import type { Emit } from './transformPieces';
 import { castSide, hang, measure, offSide, sideX, type Fit, type Side } from './costumeFit';
 import { BUILD } from './costumePieces';
 import { COSTUME_SLOTS, wornIds, wornLooks, type CarrySpot, type Worn } from './costumeData';
@@ -25,6 +32,8 @@ const worn = new Map<string, { key: string; w: Worn; parts: THREE.Object3D[] }>(
 let held: { id: string; part: THREE.Object3D } | null = null;
 /** The dev menu's try-on: artifacts whose pieces show as if held (after what is held). */
 const tried: string[] = [];
+/** What moves by itself in what is worn (found when it is put on): turning, bobbing, beating, letting out motes, flaring. */
+let movers: THREE.Object3D[] = [];
 
 /** A new model: measure it (in its rest pose, so before any clip plays) and put on what the mage wears. */
 export function fitCostumes(holder: THREE.Object3D) {
@@ -36,17 +45,48 @@ export function fitCostumes(holder: THREE.Object3D) {
 /** Put on the pieces the mage's artifacts call for, and take off those they no longer do; the focus in the casting hand. */
 export function dress() {
   if (!model || !fit) return;
-  const want = wornLooks([player.focus, ...player.items, ...tried].map(id => artifact(id)), player.cleansed);
+  const look = G.run.transforms.at(-1);
+  const want = wornLooks([player.focus, ...player.items, ...tried].map(id => artifact(id)), player.cleansed, look);
   const keyOf = (w: Worn) => `${w.piece}:${w.from}:${w.cursed}:${w.cleansed}`;
   for (const [slot, on] of [...worn]) if (!want.some(w => w.slot === slot && keyOf(w) === on.key)) takeOff(slot);
   for (const w of want) if (!worn.has(w.slot)) {
     const parts = w.piece === 'carried' ? carry(fit, w) : BUILD[w.piece](fit, w);
-    for (const p of parts) if (p.userData.follow) model.add(p); // (a part that hangs straight down whatever the arm does: placed each step)
+    for (const p of parts) { p.userData.costume = true; if (p.userData.follow || p.userData.float) model.add(p); } // (a part that hangs straight down whatever the arm does, or floats by the mage: placed each step)
     worn.set(w.slot, { key: keyOf(w), w, parts });
   }
   const focus = [...tried].reverse().find(id => artifact(id).kind === 'focus') ?? player.focus;
-  if (held?.id !== focus) { dropFocus(); held = { id: focus, part: holdFocus(focus) }; }
+  if (held?.id !== focus) { dropFocus(); held = { id: focus, part: holdFocus(focus) }; held.part.userData.costume = true; }
+  movers = [];
+  for (const { parts } of worn.values()) for (const p of parts) p.traverse(o => { const u = o.userData; if (u.spin || u.bob || u.flap || u.emit || u.eyes !== undefined) movers.push(o); });
+  tintRobes(look && isTransform(look) ? TRANSFORMS[look].light : null);
 }
+
+/** The robes tinted towards `light` (a transformation's), or back to their own: every material of the model itself (not
+    what is worn), its colour kept the first time. */
+function tintRobes(light: number | null) {
+  const to = new THREE.Color(light ?? 0xffffff), k = light === null ? 0 : CFG.transform.tint;
+  const walk = (o: THREE.Object3D) => {
+    if (o.userData.costume) return;
+    const m = o as THREE.Mesh;
+    if (m.isMesh) for (const mat of [m.material].flat() as THREE.MeshStandardMaterial[]) {
+      if (!mat.color || mat.userData.shared) continue;
+      const own = (mat.userData.robe ??= mat.color.clone()) as THREE.Color;
+      mat.color.copy(own).lerp(to, k);
+    }
+    o.children.forEach(walk);
+  };
+  if (model) walk(model);
+}
+/** The tint on the robes now (for the tests): how far the model's first own material is from its colour. */
+export function robeTint() {
+  let d = 0;
+  model?.traverse(o => { const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined; if (!d && m?.userData?.robe) d = Math.abs(m.color.r - m.userData.robe.r) + Math.abs(m.color.g - m.userData.robe.g) + Math.abs(m.color.b - m.userData.robe.b); });
+  return d;
+}
+
+let flare = 0;
+/** A Storm spell cast: the Stormcaller's eyes flare blue. */
+export const flareEyes = () => { flare = 1; };
 
 /** The pieces the mage wears now, as ids (a built piece's, or the carrying artifact's), and the focus held. */
 const bySlot = () => [...worn.values()].sort((a, b) => COSTUME_SLOTS.indexOf(a.w.slot) - COSTUME_SLOTS.indexOf(b.w.slot));
@@ -84,9 +124,32 @@ export function updateCostumes(dt: number) {
     if (bone) { bone.updateWorldMatrix(true, false); model.worldToLocal(bone.getWorldPosition(v)); p.position.copy(v); } else p.position.copy(fit.hand[fl.side].pos);
     if (fl.drop) p.scale.y = Math.max(.05, p.position.y / fl.drop); // (a chain to the floor, from wherever the wrist is)
   }
+  moveWorn(dt);
   if ((dripT -= dt) <= 0) {
     dripT = CFG.costume.curse.drip;
     for (const { w, parts } of worn.values()) if (w.cursed) for (const p of parts) { p.getWorldPosition(v); burst(v.x, v.y, v.z, p.userData.drip ?? CURSED_RED, 1, .4, .025); }
+  }
+}
+
+const emitT = new WeakMap<THREE.Object3D, number>(), w3 = new THREE.Vector3();
+/** What moves in what is worn: the aura and runes turn, the grimoire bobs, wings beat, eyes flare and fade, and markers let
+    out motes (footsteps while walking, breath, sparks). */
+function moveWorn(dt: number) {
+  const now = G.simClock, walking = Math.hypot(player.vx, player.vz) > .6;
+  flare = Math.max(0, flare - dt * 1.4);
+  for (const o of movers) {
+    const u = o.userData;
+    if (u.spin) o.rotation.y += u.spin * dt;
+    if (u.bob) { o.position.y = u.bob.y + Math.sin(now * u.bob.rate) * u.bob.amp; o.rotation.y += dt * .6; }
+    if (u.flap) o.rotation.y = u.flap * (.15 + Math.sin(now * 2.4) * .18);
+    if (u.eyes !== undefined) { const s = o as THREE.Sprite; s.material.opacity = u.eyes + (1 - u.eyes) * flare; }
+    const e = u.emit as Emit | undefined; if (!e) continue;
+    if (e.kind === 'steps' && !walking) continue;
+    const t = (emitT.get(o) ?? 0) - dt; emitT.set(o, t > 0 ? t : e.every * (.7 + Math.random() * .6)); if (t > 0) continue;
+    o.getWorldPosition(w3);
+    if (e.kind === 'steps') burst(w3.x, w3.y + .04, w3.z, e.color, 3, .6, .028);
+    else if (e.kind === 'breath') burst(w3.x, w3.y, w3.z, e.color, 6, .45, .03);
+    else { const a = Math.random() * Math.PI * 2, b = a + 1 + Math.random() * 2; strikeFx({ x: w3.x + Math.cos(a) * .35, y: w3.y * (.4 + Math.random() * .7), z: w3.z + Math.sin(a) * .35 }, { x: w3.x + Math.cos(b) * .4, y: w3.y * (.3 + Math.random() * .8), z: w3.z + Math.sin(b) * .4 }, e.color, .12, true); }
   }
 }
 

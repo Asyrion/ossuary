@@ -9,6 +9,7 @@ import artifactsData from '../../data/artifacts.json';
 import type { Rng } from '../rng';
 import type { Resource } from './loot';
 import { isCostume } from '../actors/costumeData';
+import { validateFamilies } from './transformData';
 
 export type Pool = 'treasure' | 'ordeal' | 'boss' | 'altar' | 'drop' | 'merchant' | 'secret' | 'vault';
 export type ArtifactKind = 'focus' | 'passive' | 'cursed';
@@ -18,7 +19,9 @@ export type Effect = 'pitWalker' | 'fullHeal' | 'deathBurst' | 'hurtRing' | 'roc
   | 'freeVault' | 'ferryman' | 'glyphWard' | 'graveLantern' | 'pedlar'
   | 'emberBolts' | 'vigil' | 'frostbite' | 'stormglass' | 'thurible' | 'witchKnot' | 'noRegen'
   | 'lodestar' | 'stillCandles' | 'choir' | 'echo' | 'bloodMoon' | 'saltCircle' | 'halo' | 'soulLantern' | 'antler'
-  | 'gravemonger' | 'noClearHearts' | 'dearHearts' | 'lastRite';
+  | 'gravemonger' | 'noClearHearts' | 'dearHearts' | 'lastRite'
+  /** Transformations' gifts (M4.6, items/transformData.ts): not on artifacts, added when one forms. */
+  | 'emberStrike' | 'frostTouch' | 'stormLeap' | 'float' | 'blink' | 'runeBurst' | 'pilgrimPath' | 'beastcaller';
 /** Additive unless the name ends in Mul (multiplied). `obolDamage` is cantrip damage per ten obols held;
     `spellDamageMul` multiplies what spells do; `killMana` is mana back for every foe put to rest. */
 export type StatKey = 'damage' | 'damageMul' | 'fireDelayMul' | 'speed' | 'speedMul' | 'boltScale' | 'hearts' | 'invuln' | 'pierce'
@@ -42,6 +45,7 @@ export interface ArtifactDef {
   /** Obols, keys or glyphs handed over once, when the artifact is taken. */ gives?: Partial<Record<Resource, number>>;
   focus?: Partial<FocusPattern>; start?: boolean;
   /** A piece the mage wears while holding it (actors/costumeData.ts). */ costume?: string;
+  /** The transformation it counts towards (M4.6, items/transformData.ts): three of a family transform the mage. */ family?: string;
   /** Pedestal gem and HUD icon colour; icon key for the HUD. */ color: string; icon: string;
 }
 
@@ -49,6 +53,8 @@ export const POOLS: Pool[] = ['treasure', 'ordeal', 'boss', 'altar', 'drop', 'me
 const EFFECTS: Effect[] = ['pitWalker', 'fullHeal', 'deathBurst', 'hurtRing', 'rockBreaker', 'vision', 'crit', 'split', 'leech', 'moth', 'fennex', 'orbital', 'unhurtHeal', 'bloodTithe',
   'freeVault', 'ferryman', 'glyphWard', 'graveLantern', 'pedlar', 'emberBolts', 'vigil', 'frostbite', 'stormglass', 'thurible', 'witchKnot', 'noRegen',
   'lodestar', 'stillCandles', 'choir', 'echo', 'bloodMoon', 'saltCircle', 'halo', 'soulLantern', 'antler', 'gravemonger', 'noClearHearts', 'dearHearts', 'lastRite'];
+/** Effects only a transformation's gift brings, never an artifact. */
+const GIFTS: Effect[] = ['emberStrike', 'frostTouch', 'stormLeap', 'float', 'blink', 'runeBurst', 'pilgrimPath', 'beastcaller'];
 const STAT_KEYS: StatKey[] = ['damage', 'damageMul', 'fireDelayMul', 'speed', 'speedMul', 'boltScale', 'hearts', 'invuln', 'pierce', 'shotSpeedMul', 'rangeMul', 'knockbackMul', 'obolDamage', 'blastMul', 'mana', 'spellDamageMul', 'killMana'];
 const RESOURCE_KEYS: Resource[] = ['coins', 'keys', 'glyphs'];
 const PATHS: BoltPath[] = ['straight', 'bounce', 'boomerang', 'wave', 'homing', 'swing'];
@@ -153,6 +159,7 @@ export function validateArtifacts(defs: ArtifactDef[] = ARTIFACT_DEFS): string[]
   for (const a of defs) {
     const at = `artifact "${a.id}"`;
     if (ids.has(a.id)) errs.push(`${at} is listed twice`); ids.add(a.id);
+    if (a.effects?.some(e => GIFTS.includes(e))) errs.push(`${at} has a transformation's gift as an effect`);
     if (!a.name || !a.text) errs.push(`${at} needs a name and a text`);
     if (!(a.lore?.length >= 60 && a.lore.length <= 260)) errs.push(`${at} needs lore of 60 to 260 characters`);
     if (!['focus', 'passive', 'cursed'].includes(a.kind)) errs.push(`${at} has unknown kind "${a.kind}"`);
@@ -169,5 +176,6 @@ export function validateArtifacts(defs: ArtifactDef[] = ARTIFACT_DEFS): string[]
     if (a.costume !== undefined && !isCostume(a.costume)) errs.push(`${at} wears unknown costume "${a.costume}"`);
   }
   if (defs.filter(a => a.start).length !== 1) errs.push('exactly one artifact must be the starting focus');
+  errs.push(...validateFamilies(defs));
   return errs;
 }
