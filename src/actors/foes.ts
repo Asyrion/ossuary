@@ -91,7 +91,7 @@ export function updateFoe(e: Enemy, dt: number, a: Aim) {
   return face;
 }
 /** A water foe comes up out of hiding (`driven`): spray, a cry, and, if steam drove it, a scald. */
-export function drivenUp(e: Enemy, why: 'blast' | 'steam' | 'shock') {
+export function drivenUp(e: Enemy, why: 'blast' | 'steam' | 'shock' | 'sluice') {
   burst(e.x, .4, e.z, why === 'shock' ? 0xf0e890 : 0xd8f0ff, 16, 2.4, .06); Sfx.at(e.x, e.z).lurkerRise();
   if (why === 'steam') damageEnemy(e, MAGIC.reactions.steam.damage, 0, 0, 0, 'spell');
 }
@@ -105,6 +105,14 @@ hearGround((kind, x, z, r) => {
     if (pool === there || Math.hypot(e.x - x, e.z - z) < r + CFG.surface.driveReach) B!.driven!(e, e.foe!.params, kind);
   }
 });
+/** An open sluice (M4.9) has drained the room's water to mud: every water foe hiding in it is driven up (called again and
+    again while it stands open, so none hides for long). */
+export function driveUpAll(why: 'sluice') {
+  for (const e of G.enemies) {
+    const B = !e.dead && e.hidden && e.foe ? BEHAVIOURS[e.foe.behaviour] : undefined;
+    if (B?.driven && poolAt(e.x, e.z)?.kind === 'water') B.driven(e, e.foe!.params, why);
+  }
+}
 /** A blow lands on a foe in code: how much of it its behaviour lets through (0: none, it was swallowed or turned). */
 export function foeStruck(e: Enemy, dmg: number, by: Enemy['lastHit'], dx = 0, dz = 0, school?: School) { const B = e.foe && BEHAVIOURS[e.foe.behaviour]; return B?.struck ? B.struck(e, dmg, by, e.foe!.params, dx, dz, school) : dmg; }
 /** A glyph's blast reaches a foe in code (M4.5: a rubble crab is flipped). */

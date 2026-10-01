@@ -26,7 +26,8 @@ import { learnSpell } from './spells';
 import { castsOf, sawSpell, stage } from './memory';
 import { spellSheet } from '../ui/spellPanel';
 import { camera, canvas } from '../render/renderer';
-import { pickPages, shelfPages, spell } from './spellData';
+import { SPELL_DEFS, pickPages, shelfPages, spell } from './spellData';
+import { floorLean } from '../world/curve';
 
 const C = CFG.library;
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -175,7 +176,7 @@ function layLibrary(room: Room) {
   const [dx, dz] = door ? SIDE_DIR[door.side] : [0, 1], ns = dx === 0; // into the room is (-dx, -dz)
   const along = ns ? { x: 1, z: 0 } : { x: 0, z: 1 }, gap = ns ? C.spacing : C.spacingShort;
   const mid = { x: room.cx - dx * (ns ? 0 : C.rowInShort), z: room.cz - dz * (ns ? C.rowIn : 0) };
-  const gr = LOOT.grimoire, lectern = pickPages(G.run.pages, player.spells, gr.lecterns);
+  const gr = LOOT.grimoire, lectern = pickPages(G.run.pages, player.spells, gr.lecterns, [], SPELL_DEFS, floorLean()); // (M4.9: leaning to what the floor's foes are weak to)
   const set: Page[] = lectern.map((id, i) => {
     const k = i - (lectern.length - 1) / 2, p = freeSpotNear(room, mid.x + along.x * k * gap, mid.z + along.z * k * gap);
     return addPage(room, id, p.x, p.z, 'lectern');
@@ -199,7 +200,7 @@ export function enterLibrary(room: Room, firstVisit: boolean) {
     mage doesn't know (none when there is none left to learn). */
 export function dropPage(room: Room, x: number, z: number, id?: string) {
   const skip = (room.pages ?? []).filter(p => !p.gone).map(p => p.spell);
-  const pick = id ?? pickPages(G.run.pages, player.spells, 1, skip)[0];
+  const pick = id ?? pickPages(G.run.pages, player.spells, 1, skip, SPELL_DEFS, floorLean())[0];
   if (!pick) return null;
   const p = freeSpotNear(room, x, z), page = addPage(room, pick, p.x, p.z, 'loose');
   burst(p.x, .6, p.z, hex(spell(pick).color), 12, 1.6, .04); Sfx.pageDrop();

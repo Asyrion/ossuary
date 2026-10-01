@@ -11,7 +11,7 @@ import type { TableName } from '../items/loot';
 export type PropKind = 'bones' | 'skulls' | 'sacks' | 'cask' | 'rubble' | 'roots' | 'briar' | 'web' | 'glowcap' | 'pew' | 'desk' | 'scrolls'
   | 'hoard' | 'boat' | 'bridge' | MechanismKind;
 /** The mechanisms (M3.6 step 4, world/mechanisms.ts): objects that answer to magic with more than breaking or burning. */
-export type MechanismKind = 'brazier' | 'candles' | 'bell' | 'rune' | 'lodestone' | 'censer' | 'reliquary' | 'tree' | 'statue' | 'obelisk' | 'wetCandles';
+export type MechanismKind = 'brazier' | 'candles' | 'bell' | 'rune' | 'lodestone' | 'censer' | 'reliquary' | 'tree' | 'statue' | 'obelisk' | 'wetCandles' | 'sluice';
 export type PropClass = 'tall' | 'low' | 'soft' | 'hanging';
 
 export interface PropDef {
@@ -54,9 +54,11 @@ export const PROPS: Record<PropKind, PropDef> = {
   obelisk: { char: '!', class: 'tall', hits: 0, blast: false, burns: false },
   // a candle stand standing in water: its tile is part of the pool round it
   wetCandles: { char: 'L', class: 'low', hits: 0, blast: true, burns: false },
+  // M4.9: a sluice gate in a water room: a bolt or a blast opens it, and the room's water drains to mud a while
+  sluice: { char: 'Z', class: 'tall', hits: 0, blast: false, burns: false },
 };
 export const PROP_KINDS = Object.keys(PROPS) as PropKind[];
 export const PROP_OF_CHAR: Record<string, PropKind> = Object.fromEntries(PROP_KINDS.map(k => [PROPS[k].char, k]));
 export const isProp = (tile: string): tile is PropKind => tile in PROPS;
-export const MECHANISMS: MechanismKind[] = ['brazier', 'candles', 'bell', 'rune', 'lodestone', 'censer', 'reliquary', 'tree', 'statue', 'obelisk', 'wetCandles'];
+export const MECHANISMS: MechanismKind[] = ['brazier', 'candles', 'bell', 'rune', 'lodestone', 'censer', 'reliquary', 'tree', 'statue', 'obelisk', 'wetCandles', 'sluice'];
 export const isMechanism = (k: string): k is MechanismKind => (MECHANISMS as string[]).includes(k);

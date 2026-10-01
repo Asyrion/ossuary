@@ -217,3 +217,27 @@ export function updateMechLook(parts: Record<string, THREE.Object3D>, t: number,
   if (parts.seal) { parts.seal.rotation.y = t * .35 + x; parts.seal.position.y = .65 + Math.sin(t * 1.1 + x) * .02; }
   if (parts.crystal) { parts.crystal.rotation.y = t * .8 + x; parts.crystal.position.y = 2.3 + Math.sin(t * 1.4 + x) * .05; }
 }
+
+const SLUICE = {
+  post: shared(new THREE.BoxGeometry(.24, 1.5, .32)), lintel: shared(new THREE.BoxGeometry(1.14, .22, .36)), sill: shared(new THREE.BoxGeometry(1.14, .1, .44)),
+  bar: shared(new THREE.CylinderGeometry(.026, .026, 1.1, 5)), rail: shared(new THREE.BoxGeometry(.66, .055, .06)),
+  wheel: shared(new THREE.TorusGeometry(.14, .026, 4, 12)), spoke: shared(new THREE.BoxGeometry(.26, .022, .022)), hub: shared(new THREE.CylinderGeometry(.035, .035, .1, 6).rotateX(Math.PI / 2)),
+  fall: shared(new THREE.PlaneGeometry(.6, 1.15)), foam: shared(new THREE.RingGeometry(.08, .42, 16).rotateX(-Math.PI / 2)),
+};
+/** The sluice gate (M4.9): an iron gate (`gate`) in a stone frame, a wheel on the lintel (`wheel`) that turns as it lifts,
+    and, while it stands open, water falling through it (`fall`) into foam (`foam`), each with its own material. */
+export function sluiceLook() {
+  const g = new THREE.Group(), stone = tone(0x8e877a, .14);
+  mesh(g, SLUICE.post, stone, -.44, .75, 0); mesh(g, SLUICE.post, stone, .44, .75, 0); mesh(g, SLUICE.lintel, stone, 0, 1.56, 0); mesh(g, SLUICE.sill, MAT.darkStone, 0, .05, 0);
+  const gate = new THREE.Group();
+  for (let i = 0; i < 5; i++) mesh(gate, SLUICE.bar, MAT.iron, -.25 + i * .125, .62, 0);
+  mesh(gate, SLUICE.rail, MAT.iron, 0, .26, 0); mesh(gate, SLUICE.rail, MAT.iron, 0, .98, 0);
+  const wheel = new THREE.Group(); wheel.position.set(0, 1.8, .08);
+  mesh(wheel, SLUICE.wheel, MAT.iron); mesh(wheel, SLUICE.spoke, MAT.iron); mesh(wheel, SLUICE.spoke, MAT.iron).rotation.z = Math.PI / 2; mesh(wheel, SLUICE.hub, MAT.darkBronze);
+  const fall = new THREE.Mesh(SLUICE.fall, new THREE.MeshBasicMaterial({ color: 0xbfe4f4, transparent: true, opacity: .6, side: THREE.DoubleSide, depthWrite: false }));
+  fall.position.set(0, .64, .22); fall.visible = false;
+  const foam = new THREE.Mesh(SLUICE.foam, new THREE.MeshBasicMaterial({ color: 0xeaf6ff, transparent: true, opacity: .65, depthWrite: false }));
+  foam.position.set(0, .045, .5); foam.visible = false;
+  g.add(gate, wheel, fall, foam, blob(1.1));
+  return { group: g, parts: { gate, wheel, fall, foam } };
+}

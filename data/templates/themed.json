@@ -126,7 +126,7 @@
     "..............u............."
   ] },
   { "id": "cistern_steps", "shape": "standard", "types": ["normal"], "difficulty": 2, "theme": "cistern", "grid": [
-    "~~~~.....~~~~",
+    "~~~~Z....~~~~",
     "~~.W~~.~~R.~~",
     ".~~~i~~~i~~~.",
     "..~.~~.~~.~..",
