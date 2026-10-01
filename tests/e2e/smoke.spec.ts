@@ -1693,6 +1693,29 @@ test('transformations (M4.6): three of a family transform the mage, said in a ba
   expect(errors).toEqual([]);
 });
 
+test("Asyrion's arc (M4.6): with more artifacts held the chaos mage's pieces arrive, each stage said once in a line, and the dev menu steps through them", async ({ page }) => {
+  const errors = await start(page, '?room=great_hall&variant=quiet&seed=ARC1');
+  type GA = GameHooks & { give(...ids: string[]): void; costume: string[]; arc: { stage: number; held: number; reached: number }; setArc(n?: number): void; clearRoom(): void; closeUp(on?: boolean): void };
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GA, out: Record<string, unknown> = {};
+    g.warp(1); g.sim(.3, true); g.clearRoom(); g.sim(.3, true);
+    g.give('bone_lens', 'leech_jar'); g.sim(.1, true); out.two = { ...g.arc, worn: g.costume };
+    g.give('misers_purse'); g.sim(.1, true); out.three = { ...g.arc, worn: g.costume, line: document.querySelector('#toast')?.textContent };
+    g.give('sextons_keyring', 'mana_lantern', 'pedlars_scale', 'ferrymans_obol', 'masons_chisel', 'cracked_mirror'); g.sim(.1, true); out.nine = { ...g.arc, worn: g.costume };
+    g.setArc(4); g.sim(.1, true); out.forced = { ...g.arc, worn: g.costume }; g.setArc(undefined); g.sim(.1, true); out.back = g.arc.stage;
+    return out;
+  });
+  expect(r.two).toMatchObject({ stage: 0, held: 2, reached: 0 }); expect((r.two as { worn: string[] }).worn).not.toContain('bracers');
+  expect(r.three).toMatchObject({ stage: 1, held: 3, reached: 1, line: 'Bronze closes round your forearms. The apprentice is giving way.' });
+  expect((r.three as { worn: string[] }).worn).toContain('bracers');
+  expect(r.nine).toMatchObject({ stage: 3, held: 9, reached: 3 }); expect((r.nine as { worn: string[] }).worn).toContain('runeOrbs');
+  expect(r.forced).toMatchObject({ stage: 4, reached: 3 }); expect((r.forced as { worn: string[] }).worn).toEqual(expect.arrayContaining(['runeOrbs', 'chaosFlame']));
+  expect(r.back).toBe(3);
+  await page.evaluate(() => { const g = (window as unknown as W).__game as GA; g.setArc(4); g.closeUp(true); g.sim(4, true); });
+  await page.screenshot({ path: 'test-results/arc.png' });
+  expect(errors).toEqual([]);
+});
+
 test('the pause menu sets the volumes, and the browser remembers them; positioned effects play without errors', async ({ page }) => {
   const errors = await start(page, '?room=crypt_a&seed=VOL1&spells=arc');
   // a fight: hits, deaths and a spell, all panned to where they happen

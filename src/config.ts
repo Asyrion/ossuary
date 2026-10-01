@@ -91,6 +91,9 @@ export const CFG = {
   /** M4.6 costumes (actors/costume.ts): the focus held in the casting hand (its scale, where along it the hand grips: 0 its
       middle, negative below; how far it leans forward and out), each spot's scale for an artifact's own model carried
       there, and a cursed piece's glow (a share of its height) and how often it weeps a red drop. */
+  /** M4.6 Asyrion's arc (items/arc.ts): how many artifacts held bring each stage of the chaos mage's pieces, and how long
+      each stage's line stays. */
+  arc: { at: [3, 6, 9, 12], line: 4.5 },
   costume: {
     focus: { scale: 1.05, grip: -.22, lean: .35, tilt: .18 },
     carry: { belt: { scale: .42 }, back: { scale: .62 }, shoulder: { scale: .48 }, chest: { scale: .36 }, wrist: { scale: .34 } },

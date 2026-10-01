@@ -47,9 +47,10 @@ import { spawnShot } from './combat/projectiles';
 import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
 import { isTouch } from './util';
-import { heldNow, robeTint, takeAllOff, tryOn, wornDetail, wornNow } from './actors/costume';
+import { dress, heldNow, robeTint, takeAllOff, tryOn, wornDetail, wornNow } from './actors/costume';
 import { clearTransforms, formTransform } from './items/transforms';
 import { blinkRest } from './items/gifts';
+import { arcHeld, arcNow } from './items/arc';
 import type { TransformId } from './items/transformData';
 import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
@@ -319,6 +320,9 @@ function installDevHooks() {
         robes are tinted. */
     get transforms() { return [...G.run.transforms]; }, transform: (id: TransformId) => formTransform(id), clearTransforms: () => clearTransforms(),
     get blinkRest() { return blinkRest(); }, get robeTint() { return robeTint(); }, get moths() { return mothCount(); },
+    /** Asyrion's arc (M4.6): the stage now, the artifacts that count, the stage reached this run; force a stage (or `undefined`
+        for as held). */
+    get arc() { return { stage: arcNow(), held: arcHeld(), reached: G.run.arc }; }, setArc: (n?: number) => { DEV.arc = n; dress(); },
   };
 }
 

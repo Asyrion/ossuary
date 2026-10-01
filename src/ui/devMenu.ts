@@ -12,10 +12,11 @@ import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
 import { wardFoe } from '../actors/wardShield';
 import { fennexInfo, growFennex } from '../combat/fennex';
-import { heldNow, takeAllOff, triedOn, tryOn, wornNow } from '../actors/costume';
+import { dress, heldNow, takeAllOff, triedOn, tryOn, wornNow } from '../actors/costume';
 import { clearTransforms, formTransform } from '../items/transforms';
 import { TRANSFORM_IDS } from '../items/transformData';
 import { blinkRest } from '../items/gifts';
+import { arcHeld, arcNow } from '../items/arc';
 import { callWanderer } from '../items/wanderer';
 import { STR, foeName } from '../strings';
 import { FOES, FOE_IDS, pickFoe, type FoeType } from '../actors/foeData';
@@ -64,7 +65,7 @@ import { lureTest } from '../actors/foeGround';
 import { floorLean, floorWalls, warnFloor } from '../world/curve';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
 let spellSlot = 0, knowBox: HTMLElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
@@ -232,6 +233,9 @@ function build() {
   // costumes (M4.6): any artifact's piece tried on as if held (a focus held in the casting hand), or all taken off
   const cost = section(pages.mage, S.costumes);
   cost.append(costInfo = el('p', 'dv-info'), btn(S.takeAllOff, () => { takeAllOff(); refresh(); }), closeBtn = btn(S.closeUp, () => { setCloseUp(!DEV.closeUp); refresh(); }));
+  // Asyrion's arc (M4.6): a stage forced, or from what is held
+  const arcRow = section(pages.mage, S.arc);
+  arcRow.append(arcInfo = el('p', 'dv-info'), ...[undefined, 0, 1, 2, 3, 4].map(n => { const b = btn(n === undefined ? S.arcHeld : S.arcStage(n), () => { DEV.arc = n; dress(); refresh(); }); b.dataset.arc = String(n); return b; }));
   costBox = section(pages.mage, S.costumesTry);
   // transformations (M4.6): each formed at once (its banner, lore card, gift and look), or all undone
   transBox = section(pages.mage, S.transforms);
@@ -455,6 +459,8 @@ function refresh() {
   }));
   costInfo.textContent = S.costumeInfo(wornNow(), heldNow() ?? '');
   transInfo.textContent = S.transformInfo(G.run.transforms.map(t => STR.transforms[t].name), blinkRest());
+  arcInfo.textContent = S.arcInfo(arcNow(), arcHeld(), DEV.arc !== undefined);
+  arcInfo.parentElement?.querySelectorAll<HTMLButtonElement>('button[data-arc]').forEach(b => b.classList.toggle('on', b.dataset.arc === String(DEV.arc)));
   transBox.querySelectorAll<HTMLButtonElement>('button[data-t]').forEach(b => b.classList.toggle('on', G.run.transforms.includes(b.dataset.t as never)));
   closeBtn.classList.toggle('on', DEV.closeUp);
   const rooms = G.rooms.filter(r => r.type !== 'normal').sort((a, b) => a.plan.dist - b.plan.dist);

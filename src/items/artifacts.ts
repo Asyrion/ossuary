@@ -17,6 +17,7 @@ import { dress } from '../actors/costume';
 import { modelFor } from '../assets/models';
 import { altarLook, pedestalLook } from '../world/objectLooks';
 import { CURSED_RED, artifactLook } from './artifactLooks';
+import { updateArc } from './arc';
 
 const hex = (c: string) => new THREE.Color(c).getHex();
 
@@ -33,6 +34,7 @@ export function refreshStats() {
   player.mana = Math.min(player.mana, player.stats.maxMana);
   renderHearts(); renderItems(); dress();
   for (const t of fresh) announce(t);
+  updateArc(); // (M4.6: Asyrion grows towards the chaos mage)
 }
 
 /** Start a run holding only the starting focus. */

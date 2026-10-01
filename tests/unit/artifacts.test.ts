@@ -3,7 +3,7 @@ import { CFG } from '../../src/config';
 import { Rng } from '../../src/rng';
 import { ARTIFACT_DEFS, DEFAULT_BOLT_COLOR, GILT_COLOR, START_FOCUS, computeStats, halveStat, pickArtifact, validateArtifacts } from '../../src/items/artifactData';
 import { DROPS } from '../../src/items/loot';
-import { COSTUME_PIECES, TRANSFORM_LOOKS, isCostume, slotOf, wornIds, wornLooks, wornPieces } from '../../src/actors/costumeData';
+import { ARC_PIECES, COSTUME_PIECES, TRANSFORM_LOOKS, arcStage, isCostume, slotOf, wornIds, wornLooks, wornPieces } from '../../src/actors/costumeData';
 import { TRANSFORMS, TRANSFORM_IDS, TRANSFORM_NEEDS, formed, giftEffects, validateFamilies } from '../../src/items/transformData';
 import { STR } from '../../src/strings';
 
@@ -120,7 +120,7 @@ describe('costumes', () => {
     const shown = ARTIFACT_DEFS.filter(a => !a.start && (a.costume || a.kind === 'focus'));
     expect(shown.length).toBeGreaterThanOrEqual(50);
     for (const a of ARTIFACT_DEFS) if (a.costume) expect(isCostume(a.costume), a.id).toBe(true);
-    for (const [id, p] of Object.entries(COSTUME_PIECES)) expect('transform' in p ? Object.values(TRANSFORM_LOOKS).some(l => l.includes(id as never)) : ARTIFACT_DEFS.some(a => a.costume === id), `${id} worn by none`).toBe(true);
+    for (const [id, p] of Object.entries(COSTUME_PIECES)) expect('transform' in p ? Object.values(TRANSFORM_LOOKS).some(l => l.includes(id as never)) : 'arc' in p ? ARC_PIECES.flat().includes(id as never) : ARTIFACT_DEFS.some(a => a.costume === id), `${id} worn by none`).toBe(true);
     expect(isCostume('flameCrown')).toBe(false); // (a transformation's own: no artifact wears it)
     for (const [id, p] of Object.entries(COSTUME_PIECES)) if ('curse' in p) expect(ARTIFACT_DEFS.filter(a => a.costume === id).every(a => a.kind === 'cursed'), id).toBe(true);
   });
@@ -158,6 +158,25 @@ describe('transformations', () => {
       expect(TRANSFORM_LOOKS[t], t).toBeDefined();
       for (const p of TRANSFORM_LOOKS[t]) if (typeof p === 'string') expect(COSTUME_PIECES[p], `${t}: ${p}`).toBeDefined(); else expect(ARTIFACT_DEFS.some(a => a.id === p.from), `${t}: ${p.from}`).toBe(true);
     }
+  });
+});
+
+// M4.6: Asyrion grows towards the chaos mage as the artifacts held add up
+describe("Asyrion's arc", () => {
+  const def = (id: string) => ARTIFACT_DEFS.find(a => a.id === id)!;
+  it('reaches a stage at each threshold, four at most', () => {
+    const at = CFG.arc.at;
+    expect([0, 2, 3, 5, 6, 9, 11, 12, 30].map(n => arcStage(n, at))).toEqual([0, 0, 1, 1, 2, 3, 3, 4, 4]);
+    expect(ARC_PIECES.length).toBe(at.length);
+  });
+  it("puts the chaos mage's pieces on only where nothing else is worn: an artifact's piece or a transformation's look wins the slot", () => {
+    expect(wornIds(wornLooks([], [], undefined, 4))).toEqual(['chaosCollar', 'bracers', 'runeOrbs', 'chaosFlame']);
+    expect(wornIds(wornLooks([], [], undefined, 2))).toEqual(['chaosCollar', 'bracers']);
+    expect(wornIds(wornLooks([def('frostbitten_ring')], [], undefined, 4))).toEqual(['chaosCollar', 'frostRing', 'runeOrbs', 'chaosFlame']);
+    expect(wornIds(wornLooks([], [], 'stormcaller', 4))).toEqual(['stormMarks', 'chaosCollar', 'stormSpirals', 'aura', 'runeOrbs', 'chaosFlame']);
+    expect(wornLooks([], [], undefined, 1)[0]).toMatchObject({ piece: 'bracers', from: 'arc', arc: true });
+    expect(isCostume('bracers')).toBe(false); // (the arc's own: no artifact wears it)
+    expect(STR.arc.length).toBe(ARC_PIECES.length);
   });
 });
 

@@ -100,6 +100,13 @@ export const STR = {
     pilgrim: { name: 'Pilgrim', gift: 'The floor\'s map is shown, cracked walls glow, and you walk faster', lore: 'Hood, boots and beads, a crook to lean on. The pilgrims who came to the chapel above never lost their way below it.' },
     beastcaller: { name: 'Beastcaller', gift: 'One more familiar, and your familiars strike harder', lore: 'Moth, skull and fox keep closer now. Antlers rise from your brow, and small lights circle you like a herd at dusk.' },
   } as Record<string, { name: string; gift: string; lore: string }>,
+  /** M4.6: Asyrion's arc, a line as each stage is reached (the apprentice growing towards the chaos mage). */
+  arc: [
+    'Bronze closes round your forearms. The apprentice is giving way.',
+    'A dark coat settles on your shoulders, worked in bronze.',
+    'Red runes kindle in rings of gold and begin to circle you.',
+    'Fire wakes in your empty hand, and the wind turns about you. Asyrion, chaos mage.',
+  ],
   /** M4.10: weaves (a spell striking what another left) and chains (a reaction's leavings meeting a third school): the name
       that rises, and what the book says of each once found. */
   weaves: {
@@ -623,6 +630,8 @@ export const STR = {
     costumeAt: (spot: string) => `Worn: ${spot}`, costumeHeld: 'Held in the casting hand',
     costumeInfo: (worn: string[], held: string) => `Wearing: ${worn.length ? worn.join(', ') : 'nothing'} · holding: ${held || 'nothing'}`,
     transforms: 'Transformations (three of a family form one; here at once, with its banner)', clearTransforms: 'Undo them all',
+    arc: 'Asyrion\'s arc (the chaos mage\'s pieces, at 3, 6, 9 and 12 artifacts held)', arcHeld: 'As held', arcStage: (n: number) => n ? `Stage ${n}` : 'Apprentice',
+    arcInfo: (stage: number, held: number, forced: boolean) => `Stage ${stage} of 4${forced ? ' (forced here)' : ''} · ${held} artifact${held === 1 ? '' : 's'} held`,
     transformInfo: (formed: string[], blink: number) => `Formed: ${formed.length ? formed.join(', ') : 'none'} (the last wears its look)${blink > 0 ? ` · blink rests ${blink.toFixed(1)} s` : ''}`,
     fennex: 'Fen-Nex', growFennex: 'Grow Fen-Nex a stage', noFennex: 'Fen-Nex is not bound (take the Rune of Fen-Nex)', wanderer: 'The Wandering Merchant, here', noFoe: 'No foe in the room',
     foesOfFloor: (floor: number) => floor ? `Floor ${floor}'s foes, built in code:` : 'The Wardlings, let out by drinking wards:', foesAsFloor: 'Fights: each floor\'s own foes', foeEverywhere: (name: string) => `Fights: ${name} in every one`,
