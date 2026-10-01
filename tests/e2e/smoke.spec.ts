@@ -2796,8 +2796,8 @@ test('the room kit\'s artifacts: every one built in code, the HUD\'s icons rende
     const imgs = [...document.querySelectorAll('#items svg image')] as SVGImageElement[], paths = document.querySelectorAll('#items svg path').length;
     const sizes = await Promise.all(imgs.map(i => new Promise<number[]>(ok => { const im = new Image(); im.onload = () => {
       const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const g = c.getContext('2d')!; g.drawImage(im, 0, 0);
-      const d = g.getImageData(0, 0, c.width, c.height).data; let solid = 0; for (let k = 3; k < d.length; k += 4) if (d[k] > 200) solid++;
-      ok([im.width, solid]); }; im.src = i.getAttribute('href')!; })));
+      const d = g.getImageData(0, 0, c.width, c.height).data; let solid = 0, soft = 0; for (let k = 3; k < d.length; k += 4) { if (d[k] > 200) solid++; else if (d[k] > 0) soft++; }
+      ok([im.width, solid, soft]); }; im.src = i.getAttribute('href')!; })));
     return { images: imgs.length, paths, sizes };
   });
   const errors = await start(page, '?seed=K3F9QX&give=twin_staff,ember_sigil,rams_skull,leech_jar,crown_of_thorns,hungering_tome');
@@ -2806,7 +2806,8 @@ test('the room kit\'s artifacts: every one built in code, the HUD\'s icons rende
   await page.screenshot({ path: 'test-results/room-kit-artifacts.png' });
   const kit = await icons();
   expect(kit.images).toBe(6); // (the twin staff, now the focus, and five more, each rendered from its model)
-  for (const [w, solid] of kit.sizes) { expect(w).toBe(48); expect(solid).toBeGreaterThan(40); }
+  // pixel art at about the artifact's own size in the room (2026-10-01): every pixel drawn or clear, none soft
+  for (const [w, solid, soft] of kit.sizes) { expect(w).toBe(24); expect(solid).toBeGreaterThan(15); expect(soft).toBe(0); }
   await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.takeArtifactGallery(); g.useRoomKit(false); });
   const old = await icons();
   expect(old.images).toBe(0); expect(old.paths).toBeGreaterThan(0); // (the drawn icons again)
@@ -3145,9 +3146,25 @@ test('foes in code (M4.1): floor 5\'s rootling burrows and bursts up (fire keeps
   for (const e of [e1, e2, e3, e4]) expect(e).toEqual([]);
 });
 
-test('the pixel look: on from the URL, drawn with outlines and light in bands, then off again, and the enemy and spell effect options, without errors', async ({ page }) => {
-  type Look = { lines: number; outline: boolean; bands: boolean };
-  type GP = { sim(sec: number, draw?: boolean): void; pixelLook: Look; setPixelLook(l: Partial<Look>): void; renderInfo(): { calls: number } };
+test('the pixel look: at the texel from the start, the rows of earlier from the URL, drawn with outlines and light in bands, then off again; the mage in pixel art; and the enemy and spell effect options, without errors', async ({ page }) => {
+  type Look = { lines: number | 'texel'; outline: boolean; bands: boolean };
+  type GP = { sim(sec: number, draw?: boolean): void; pixelLook: Look; pixelRows: number; setPixelLook(l: Partial<Look>): void; renderInfo(): { calls: number };
+    heroPixel: boolean; setHeroPixel(on: boolean): void; hero: { model: { traverse(f: (o: { material?: { type: string } }) => void): void } } };
+  // by default a game pixel is one of the room kit's texels: the view (8.7 units tall) is some 420 rows, whatever the window
+  const texel = await (async () => {
+    await start(page, '?seed=K3F9QX');
+    return page.evaluate(() => {
+      const g = (window as unknown as { __game: GP }).__game; g.sim(.1, true);
+      const types = new Set<string>(); g.hero.model.traverse(o => { if (o.material) types.add(o.material.type); });
+      const pixel = { on: g.heroPixel, types: [...types] }; g.setHeroPixel(false); const made = new Set<string>(); g.hero.model.traverse(o => { if (o.material) made.add(o.material.type); });
+      g.setHeroPixel(true);
+      return { look: g.pixelLook, rows: g.pixelRows, pixel, made: [...made] };
+    });
+  })();
+  expect(texel.look).toEqual({ lines: 'texel', outline: true, bands: false });
+  expect(texel.rows).toBeGreaterThan(400); expect(texel.rows).toBeLessThan(440);
+  expect(texel.pixel).toEqual({ on: true, types: ['MeshToonMaterial'] }); // (the mage's colours baked, a few of them, light in bands)
+  expect(texel.made).toEqual(['MeshStandardMaterial']); // (and as made, to compare)
   const errors = await start(page, '?seed=K3F9QX&pixel=270');
   const r = await page.evaluate(() => {
     const g = (window as unknown as { __game: GP }).__game, out: { look: Look; calls: number }[] = [];
@@ -3159,7 +3176,7 @@ test('the pixel look: on from the URL, drawn with outlines and light in bands, t
   expect(r[0].look.lines).toBe(270);
   expect(r[1].look).toEqual({ lines: 270, outline: true, bands: true });
   expect(r[2].look.lines).toBe(360); expect(r[3].look.lines).toBe(0);
-  expect(r[1].calls).toBe(r[3].calls + 1); // (the scene, then the blow-up to the window)
+  expect(r[1].calls).toBe(r[3].calls + 2); // (the scene, its shading at the grid's size, then the blow-up to the window)
   // the enemy model options (looks only) stand ahead of the mage and idle, in the pixel look
   const shown = await page.evaluate(() => {
     const g = (window as unknown as { __game: GP & { modelOptions(): { id: string }[] } }).__game;

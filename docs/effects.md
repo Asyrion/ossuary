@@ -37,9 +37,12 @@ own looks are in `src/magic/spellFx.ts`.
 7. **Colour: one school, white for heat.** The school's light (below) and the spell's `color` in `data/spells.json`
    carry it, with white or cream for cores. A second colour is used sparingly: the lance's red edge, Overload's gold
    flash.
-8. **Size for the pixel look.**
-   - At 540 lines a unit of the room is about 50 game pixels (at 270, the lowest offered, about 25).
-   - Parts thinner than about 0.04 units flicker or vanish at 270, and 0.03 at 360; build for 360.
+8. **Size for the pixel look.** Everything is drawn at the room kit's texel (2026-10-01): a unit of the room is 48 game
+   pixels across, whatever the window.
+   - A part thinner than about 0.025 units (a game pixel and a bit) flickers as it moves; build for that.
+   - A glow uses the shared stepped glow (`glowTex` through `glow` and `glowShared`): its fade comes in a few flat rings,
+     as pixel art draws a glow. Don't draw a smooth radial gradient for a new one.
+   - At 270 lines, the coarsest offered, a unit is about 25 game pixels: check a new effect there once too.
    - Keep silhouettes clear.
    - Keep added light that passes over a character at an opacity of 0.6 or less, or the mage washes out to white.
    - Check every effect over a dark floor and a lit one.
@@ -163,7 +166,7 @@ shared parts in `kitParts.ts`.
    `CFG.spellFx`.
 3. **Call it from the spell's shape** in `shapes.ts` (or from `projectiles.ts` or `statusFx.ts`). What the spell does stays
    there; only the look moves.
-4. **Screenshot it in the pixel look** at 540 lines, and once at 360:
+4. **Screenshot it in the pixel look** at the texel (the default), and once at 270:
    - in all four directions;
    - over a dark floor and a lit one;
    - with the mage and foes near it.

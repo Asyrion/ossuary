@@ -32,7 +32,7 @@ mage climbs back to.
 - **Growth you can feel.** RPG levels and choices inside a run; knowledge (recipes, spells, bestiary), the freed dead and a few powers that carry over between runs.
 - **Alchemy as a second game.** Unknown potions to identify, reagents to harvest, recipes to discover. Every potion can be drunk or thrown.
 - **Eda, not Isaac.** The room structure is borrowed; the world, magic schools, creatures and tone come from Eda. Medieval high fantasy turned dark: crypts, chapels, relics, the unquiet dead.
-- **A pixel-art diorama.** Each room is a candle-lit cutaway diorama drawn in pixel-art 3D: models and torchlight drawn small and blown up in whole pixels, with outlines.
+- **A pixel-art diorama.** Each room is a candle-lit cutaway diorama drawn in pixel-art 3D: everything (the room, the mage, foes, artifacts and spells) drawn at one pixel size, the room kit's texel, and blown up, with outlines.
 - **Tripo in, game out.** Any model exported to the checklist drops into the game without hand-fixing.
 
 **What separates Ossuary from an Isaac clone**
@@ -1161,7 +1161,7 @@ a hallowed or black soul mote (7), the crow's map (5) and, while there is one to
 
 ## Art, camera and audio
 
-The look is a candle-lit cutaway diorama in pixel-art 3D: dark stone rooms, warm torchlight and chibi characters, drawn small and blown up in whole pixels, with outlines.
+The look is a candle-lit cutaway diorama in pixel-art 3D: dark stone rooms, warm torchlight and chibi characters, everything drawn at one pixel size (the room kit's texel) and blown up, with outlines.
 
 - **Camera:** orthographic, tilted 45° from horizontal, fixed per room; it pans between rooms in 0.42 s. Only the current room is drawn.
 - **Scale:** 1 tile = 1 unit. The hero is 1.3 units tall; enemies 0.4 to 1.2 (the critters built in code mostly under 0.9); bosses about 2.
@@ -1184,6 +1184,14 @@ The look is a candle-lit cutaway diorama in pixel-art 3D: dark stone rooms, warm
 | 270 | 270 | 240 | 270 |
 
 At 180 small objects stop reading, so it is no longer offered. Tiles, icons and effects are drawn as pixel art; concept art for Tripo stays clean cartoon. The game starts in it; the dev menu and `?pixel=` still switch it (`src/render/pixelLook.ts`). It replaces the painted-miniature direction, and the house style in `docs/assets.md` follows it.
+
+**One pixel for everything (the owner, 2026-10-01).** At 1080 lines on a 1080p screen a game pixel is a screen pixel, so from the room kit's proof on only what was drawn texel by texel (the floors and walls) looked like pixel art: the mage, foes, artifacts, costumes, transformations and spells were drawn at full resolution, and the mage's painted texture read as a smooth render on a pixel-art floor. The owner asked for everything in the one pixel-art look. Since then:
+
+- **The game starts at the texel.** A game pixel is one of the room kit's texels (a 48th of a unit across, a floor texel's height down the screen), so everything is drawn at the floors' and walls' pixel size and they land on the grid texel for texel: about 420 rows in a one-cell room whatever the window, about 2.6 screen pixels a game pixel at 1080p and 2 in a great hall. That doesn't fall on whole screen pixels, so the blow-up is a sharp one (each pixel the same size, its edges blended over one screen pixel), and the camera glides between pixels while the room stays on its texels. The rows of earlier (1080 to 270) stay in the dev menu.
+- **The mage in pixel art.** The Tripo model stays (the owner's choice), its texture (a thousand small islands of fine strokes, which broke into speckle and mush some 45 pixels tall) baked into its vertices and cut down to 20 colours, its light in four flat bands, as pixel art keeps them. The dev menu's Look tab shows it as made, to compare.
+- **Glows and shadows in steps.** Every glow (artifacts, torches, spells, motes) and the shadows under things fade in a few flat rings, as pixel art draws them.
+- **Icons in pixel art.** An artifact's icon is pixel art at about its size in the room (24 pixels), hard-edged and outlined, shown in whole steps.
+- **The rule from here:** anything new is drawn in the game at the texel, so it is pixel art by being there; its glows use the stepped glow, its icon is made the same way. The HUD's text and drawn icons stay sharp.
 
 **Identity note.** The current hero is close to the Isaac art style. Fine for a hobby prototype; if the game is ever published, characters and art need their own look.
 
@@ -1596,7 +1604,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M1 Core loop | Runs feel different | Three generated floors with varied maps, room counts and room shapes; a different boss on each floor; 50+ room templates; room variants from quiet to ordeal, and bone altars; 3 to 5 artifacts per floor from 10 artifacts and 3 foci as data |
 | M2 Plunder | Exploration pays | Obols, bone keys and blast glyphs; merchant, secret room, locked vault and shrine cleansing; urns and chests |
 | M3 Magic | Magic is the build | Mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room |
-| M3.5 The look | One set | The asset pipeline's tooling (built); the pixel look (decided; 1080 lines by default); the room kit (objects, mechanisms, floors and walls) redone in code in the style of the spell effects, at 60 fps; Tripo kept for special models such as the mage (the owner's decision 2026-09-30, `docs/M3.5-plan.md`) |
+| M3.5 The look | One set | The asset pipeline's tooling (built); the pixel look (decided; at the room kit's texel since 2026-10-01, one pixel for everything); the room kit (objects, mechanisms, floors and walls) redone in code in the style of the spell effects, at 60 fps; Tripo kept for special models such as the mage (the owner's decision 2026-09-30, `docs/M3.5-plan.md`) |
 | M3.6 Rooms of Eda | Places, not arenas | Carved outlines, dressed walls and doors off the middle; twelve themed rooms with their own objects and twists; new objects and piles, and mechanisms that answer to magic (`docs/M3.6-plan.md`) |
 | M3.7 Spell knowledge | Know your spells | Panels over grimoire pages and in the inventory that fill in as spells are seen, learned, used and later upgraded; the spells tab by school; knowledge kept between runs (Spells: Spell knowledge) |
 | M4 Enemies in code | Own creatures | The ten enemies built in code (Enemies built in code: four on floor 1, three on each of the others) as foes with behaviour, health, sounds and elemental affinities, and a boss built the same way (the owner chose code over Tripo, 2026-09-29) |
