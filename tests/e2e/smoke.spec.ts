@@ -2660,7 +2660,7 @@ test('made assets: missing and broken files, and ?assets=off, leave the placehol
 });
 
 test('the room kit: torches, braziers and candle stands built in code, the crypt\'s floor and walls in pixel art, and the old look to compare', async ({ page }) => {
-  type Mat = { map?: { magFilter: number } };
+  type Mat = { map?: { magFilter: number }; transparent?: boolean };
   type O = { userData: Record<string, unknown>; visible: boolean; traverse(f: (o: O & { material?: Mat | Mat[] }) => void): void };
   type Box = { x: number; z: number; prop: { kind: string; lit?: boolean; parts?: Record<string, O & { material?: { color: { getHex(): number } } }> } };
   type GR = { sim(sec: number, draw?: boolean): void; roomKit: boolean; useRoomKit(on: boolean): void; prop(kind: string, x: number, z: number): boolean;
@@ -2672,7 +2672,7 @@ test('the room kit: torches, braziers and candle stands built in code, the crypt
     g.prop('brazier', p.x - 1.5, p.z - 1.8); g.prop('candles', p.x + 1.5, p.z - 1.8);
     for (const b of g.current.props ?? []) g.burn(b.x, b.z, .3);
     g.sim(.6, true);
-    let nearest = 0; g.current.group.traverse(o => { if ([o.material ?? []].flat().some(m => m.map?.magFilter === 1003)) nearest++; }); // (NearestFilter: the pixel floor and walls)
+    let nearest = 0; g.current.group.traverse(o => { if ([o.material ?? []].flat().some(m => m.map?.magFilter === 1003 && !m.transparent)) nearest++; }); // (NearestFilter: the pixel floor and walls; not the stepped glows and shadows)
     const brazier = g.current.props!.find(b => b.prop.kind === 'brazier')!, stand = g.current.props!.find(b => b.prop.kind === 'candles')!;
     return {
       kit: g.roomKit, nearest, torches: g.current.torches.length, fire: g.current.torches.every(t => !!t.flame.userData.fire),
@@ -3149,14 +3149,17 @@ test('foes in code (M4.1): floor 5\'s rootling burrows and bursts up (fire keeps
 test('the pixel look: at the texel from the start, the rows of earlier from the URL, drawn with outlines and light in bands, then off again; the mage in pixel art; and the enemy and spell effect options, without errors', async ({ page }) => {
   type Look = { lines: number | 'texel'; outline: boolean; bands: boolean };
   type GP = { sim(sec: number, draw?: boolean): void; pixelLook: Look; pixelRows: number; setPixelLook(l: Partial<Look>): void; renderInfo(): { calls: number };
-    heroPixel: boolean; setHeroPixel(on: boolean): void; hero: { model: { traverse(f: (o: { material?: { type: string } }) => void): void } } };
+    heroPixel: boolean; setHeroPixel(on: boolean): void; hero: { model: { traverse(f: (o: { material?: { type: string }; userData?: { pixel?: unknown } }) => void): void } } };
   // by default a game pixel is one of the room kit's texels: the view (8.7 units tall) is some 420 rows, whatever the window
+  let first: string[] = [];
   const texel = await (async () => {
-    await start(page, '?seed=K3F9QX');
+    first = await start(page, '?seed=K3F9QX');
     return page.evaluate(() => {
       const g = (window as unknown as { __game: GP }).__game; g.sim(.1, true);
-      const types = new Set<string>(); g.hero.model.traverse(o => { if (o.material) types.add(o.material.type); });
-      const pixel = { on: g.heroPixel, types: [...types] }; g.setHeroPixel(false); const made = new Set<string>(); g.hero.model.traverse(o => { if (o.material) made.add(o.material.type); });
+      // (the model's own meshes, each baked with both looks; not what it wears or holds)
+      const own = (f: (type: string) => void) => g.hero.model.traverse(o => { if (o.material && o.userData?.pixel) f(o.material.type); });
+      const types = new Set<string>(); own(t => types.add(t));
+      const pixel = { on: g.heroPixel, types: [...types] }; g.setHeroPixel(false); const made = new Set<string>(); own(t => made.add(t));
       g.setHeroPixel(true);
       return { look: g.pixelLook, rows: g.pixelRows, pixel, made: [...made] };
     });
@@ -3165,6 +3168,7 @@ test('the pixel look: at the texel from the start, the rows of earlier from the 
   expect(texel.rows).toBeGreaterThan(400); expect(texel.rows).toBeLessThan(440);
   expect(texel.pixel).toEqual({ on: true, types: ['MeshToonMaterial'] }); // (the mage's colours baked, a few of them, light in bands)
   expect(texel.made).toEqual(['MeshStandardMaterial']); // (and as made, to compare)
+  expect(first).toEqual([]);
   const errors = await start(page, '?seed=K3F9QX&pixel=270');
   const r = await page.evaluate(() => {
     const g = (window as unknown as { __game: GP }).__game, out: { look: Look; calls: number }[] = [];

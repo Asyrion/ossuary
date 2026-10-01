@@ -5,7 +5,7 @@ import { LINES, gridFor, pixelGrid, pixelLook, snapBy, texelPixel } from '../../
 describe('the pixel look', () => {
   it('is the game\'s look: on from the start, at the texel (the room kit\'s), with outlines; the rows of earlier offered too', () => {
     expect(CFG.pixelLook.start).toBe('texel');
-    expect(LINES).toEqual(['texel', ...CFG.pixelLook.lines]);
+    expect(LINES).toEqual(['texel', 'fine', ...CFG.pixelLook.lines]);
     expect(pixelLook()).toEqual({ lines: 'texel', outline: true, bands: false });
   });
   it('at the texel, a game pixel is a room-kit texel: a 48th of a unit across, and down the screen as much as a floor texel seen at 45°', () => {

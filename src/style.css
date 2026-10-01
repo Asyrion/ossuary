@@ -52,8 +52,9 @@ body{font-family:var(--f-ui);color:var(--ink);-webkit-user-select:none;user-sele
 #spells .slot.poor svg{opacity:.35}
 #spells .slot.flash{border-color:#e05a4a;box-shadow:0 0 8px rgba(224,90,74,.8)}
 #items{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 114px);display:flex;gap:6px}
-#items svg{width:24px;height:24px;padding:2px;filter:drop-shadow(0 0 6px rgba(255,170,60,.6))}
-#items svg.focus{border:1px solid rgba(232,220,194,.45);border-radius:4px;padding:2px;background:rgba(10,8,6,.45)}
+/* artifact icons are 24-pixel pixel art (artifactIcons.ts): each box's content (border-box: less its padding and border) a whole multiple */
+#items svg{width:28px;height:28px;padding:2px;filter:drop-shadow(0 0 6px rgba(255,170,60,.6))}
+#items svg.focus{border:1px solid rgba(232,220,194,.45);border-radius:4px;padding:1px;background:rgba(10,8,6,.45)}
 #items svg.cursed{filter:drop-shadow(0 0 5px rgba(200,30,20,.9))}
 #items svg.cleansed{filter:drop-shadow(0 0 5px rgba(240,230,200,.75))}
 #purse{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 152px);display:flex;flex-direction:column;gap:2px;font:700 16px var(--f-ui);color:#efe2c3;text-shadow:0 2px 2px #000}
@@ -103,7 +104,7 @@ body.touch #devHint{display:none}
 .summary .seed{letter-spacing:.12em;user-select:text;-webkit-user-select:text}
 .carried{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 16px}
 .carried li{display:inline-flex;align-items:center;gap:6px;font-size:16px;font-weight:500}
-.carried svg{width:28px;height:28px;flex:none;padding:3px;border-radius:4px;background:#17110c}
+.carried svg{width:30px;height:30px;flex:none;padding:3px;border-radius:4px;background:#17110c}
 .carried svg.focus{outline:1px solid var(--amber);outline-offset:-1px}
 .carried svg.cursed{box-shadow:0 0 0 1px #b0201a,0 0 6px rgba(200,30,20,.8)}
 .carried svg.cleansed{box-shadow:0 0 0 1px #cfc4a8,0 0 6px rgba(240,230,200,.5)}
@@ -118,7 +119,7 @@ body.touch.portrait #rotate{display:flex}
 /* the lore card: centred, a little below the middle of the screen (clear of the banner above and the toast below) */
 #lore{position:absolute;left:50%;top:60%;width:min(440px,80vw);display:flex;gap:14px;align-items:flex-start;padding:14px 16px 12px;background:rgba(12,9,7,.86);border:1px solid #5e4d39;border-top-color:#8a7254;border-radius:3px;box-shadow:0 6px 18px rgba(0,0,0,.55);opacity:0;transform:translate(-50%,-50%) translateY(10px);transition:opacity .35s,transform .35s;pointer-events:none}
 #lore.on{opacity:1;transform:translate(-50%,-50%)}
-#loreIcon svg{width:48px;height:48px;flex:none;padding:4px;border-radius:4px;background:#17110c;filter:drop-shadow(0 0 6px rgba(255,170,60,.35))}
+#loreIcon svg{width:56px;height:56px;flex:none;padding:4px;border-radius:4px;background:#17110c;filter:drop-shadow(0 0 6px rgba(255,170,60,.35))}
 #loreIcon svg.focus{outline:1px solid var(--amber);outline-offset:-1px}
 #loreIcon svg.cursed{box-shadow:0 0 0 1px #b0201a,0 0 8px rgba(200,30,20,.8)}
 #lore .tx{min-width:0}
@@ -194,7 +195,7 @@ body.touch.portrait #rotate{display:flex}
 .invList.rows .tile .n{position:static;font-size:15px}
 .invDetail{overflow:auto;padding:16px 18px;background:rgba(0,0,0,.18);border:1px solid var(--line);border-radius:3px;color:var(--ink)}
 .invDetail .top{display:flex;gap:14px;align-items:center;margin-bottom:10px}
-.invDetail .big svg{width:64px;height:64px;padding:6px;border-radius:4px;background:#17110c;filter:drop-shadow(0 0 6px rgba(255,170,60,.3))}
+.invDetail .big svg{width:60px;height:60px;padding:6px;border-radius:4px;background:#17110c;filter:drop-shadow(0 0 6px rgba(255,170,60,.3))}
 .invDetail .big svg.focus{outline:1px solid var(--amber);outline-offset:-1px}
 .invDetail .big svg.cursed{box-shadow:0 0 0 1px #b0201a,0 0 8px rgba(200,30,20,.8)}
 .invDetail h3{margin:0;font-family:var(--f-display);font-weight:400;font-size:22px;line-height:1.15}
