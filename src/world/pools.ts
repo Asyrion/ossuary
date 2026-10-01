@@ -9,6 +9,7 @@
    upstream feeds it. */
 import * as THREE from 'three';
 import { groundHears } from './groundHooks';
+import { steamAt } from '../magic/steam';
 import { CFG } from '../config';
 import type { Enemy, Pool, Room } from '../types';
 import { G, player } from '../state';
@@ -250,14 +251,15 @@ export function fireAt(x: number, z: number, r = 0) {
   burnPropsAt(x, z, r); // roots, briars, cobwebs and sacks catch; glowcap spores flash
   for (const p of poolsNear(x, z, r)) {
     if (p.kind === 'oil' && p.state === 'still') ignite(p);
-    else if (p.state === 'frozen') { p.state = 'still'; dress(p); Sfx.at(x, z).thaw(); for (const t of p.tiles) burst(t.x, .15, t.z, WATER, 2, 1.2, .04); }
+    else if (p.state === 'frozen') { p.state = 'still'; dress(p); Sfx.at(x, z).thaw(); for (const t of p.tiles) burst(t.x, .15, t.z, WATER, 2, 1.2, .04); steamAt(x, z); } // (fire on ice: it goes up in steam)
   }
 }
 /** Frost reaches (x, z) and `r` around it: water there freezes over, and ice already there keeps. */
 export function frostAt(x: number, z: number, r = 0) {
   groundHears('frost', x, z, r);
   elementAt('chill', x, z, r); // a rune stone takes frost
-  for (const p of poolsNear(x, z, r)) if (p.kind === 'water' && p.state === 'frozen') p.t = Math.max(p.t, C.iceTime);
+  for (const p of poolsNear(x, z, r)) if (p.kind === 'oil' && p.state === 'burning') { spend(G.current, p); steamAt(x, z); Sfx.at(x, z).steam(); } // (frost on burning oil: the fire dies in a burst of steam)
+  else if (p.kind === 'water' && p.state === 'frozen') p.t = Math.max(p.t, C.iceTime);
   else if (p.kind === 'water' && p.state === 'still') {
     p.state = 'frozen'; p.t = C.iceTime; dress(p); Sfx.at(x, z).freeze();
     for (const t of p.tiles) burst(t.x, .2, t.z, ICE, 3, 1.4, .045);

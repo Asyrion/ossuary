@@ -69,6 +69,7 @@ import { bestiary, forgetBestiary } from './actors/bestiary';
 import { burningGround, sparkGround } from './actors/foes';
 import { groundCount } from './actors/bestiaryGround';
 import { blastAt } from './combat/glyphs';
+import { inSteam, steamAt, steamCount } from './magic/steam';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
@@ -240,6 +241,7 @@ function installDevHooks() {
     get bestiary() { return bestiary(); }, forgetBestiary: () => forgetBestiary(),
     /** Patches of ground a salamander has set burning in this room (M4). */
     get burningGround() { return burningGround(); }, get sparkGround() { return sparkGround(); },
+    get steam() { return steamCount(); }, steamAt(x: number, z: number) { steamAt(x, z); }, inSteam(x: number, z: number) { return inSteam(x, z); }, // (Steam's clouds in the room, 2026-10-01)
     /** M4.5: the webs, ink and rime on the floor of the current room; a glyph's blast at (x, z). */
     get ground() { return { web: groundCount('web'), ink: groundCount('ink'), rime: groundCount('rime') }; }, blast: (x: number, z: number) => blastAt(x, z),
     /** The simulation's clock (seconds), against which timed states are kept (a lark's song). */

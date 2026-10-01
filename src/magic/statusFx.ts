@@ -25,9 +25,10 @@ import { touchPools } from '../world/pools';
 import { ringFx, strikeFx } from './spellFx';
 import { breakPlate } from '../actors/bosses';
 import { foeAfflicted } from '../actors/foes';
+import { steamAt } from './steam';
 
 const R = MAGIC.reactions;
-const ICE = 0xbfe6ff, FIRE = 0xff7a2a, SPARK = 0xf0e890, GOLD = SCHOOL_LIGHT.hallow, VIOLET = SCHOOL_LIGHT.umbral, BLACKFIRE = 0x8a3ae0;
+const ICE = 0xbfe6ff, FIRE = 0xff7a2a, SPARK = 0xf0e890, GOLD = SCHOOL_LIGHT.hallow, VIOLET = SCHOOL_LIGHT.umbral, BLACKFIRE = 0x8a3ae0, STEAM = 0xe8f2f8;
 
 /** Apply a spell's statuses to a foe, and carry out what they set off. */
 export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> | undefined) {
@@ -62,7 +63,7 @@ export function shockLeap(e: Enemy, dmg: number) {
 }
 
 function react(e: Enemy, r: Reaction) {
-  floatText(e.x, 1.7, e.z, STR.reactions[r], r === 'shatter' ? ICE : r === 'eclipse' ? 0xd8b0ff : r === 'blackfire' ? 0xb070ff : 0xffc060);
+  floatText(e.x, 1.7, e.z, STR.reactions[r], r === 'shatter' ? ICE : r === 'eclipse' ? 0xd8b0ff : r === 'blackfire' ? 0xb070ff : r === 'steam' ? STEAM : 0xffc060);
   if (r === 'eclipse') { // taken out of the fight under a black sun (a boss only struck, at once)
     burst(e.x, .9, e.z, VIOLET, 18, 2.6, .05); burst(e.x, .9, e.z, GOLD, 12, 2.2, .04); ringFx(e.x, .9, e.z, GOLD, .2, 1.3, CFG.spellFx.flash);
     Sfx.at(e.x, e.z).eclipse();
@@ -71,6 +72,11 @@ function react(e: Enemy, r: Reaction) {
     return;
   }
   if (r === 'blackfire') { burst(e.x, .7, e.z, BLACKFIRE, 18, 2.4, .05); Sfx.at(e.x, e.z).blackfire(); return; }
+  if (r === 'steam') { // fire and cold go up together: a cloud round the foe (nothing inside can aim, no eye sees through it), the foe scalded
+    removeIce(e); steamAt(e.x, e.z); burst(e.x, .6, e.z, STEAM, 20, 2.2, .07); ringFx(e.x, .1, e.z, STEAM, .3, R.steam.radius, CFG.spellFx.shockwave, true);
+    Sfx.at(e.x, e.z).steam(); damageEnemy(e, R.steam.damage, 0, 0, 0, 'spell');
+    return;
+  }
   if (r === 'shatter') {
     removeIce(e);
     const S = R.shatter;

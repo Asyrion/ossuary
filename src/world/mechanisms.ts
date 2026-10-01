@@ -46,13 +46,14 @@ import { soulsHere } from '../items/souls';
 import { spawnPickup } from '../items/pickups';
 import { toast } from '../ui/hud';
 import { freeSpotNear } from './rooms';
-import { addPool, fireAt } from './pools';
+import { addPool, fireAt, frostAt } from './pools';
 import { removeProp } from './props';
 import type { MechanismKind } from './propData';
 import { RUNE_LIT, brazierLook, candleStandLook } from './fireLooks';
 import { EYE_BLIND, EYE_DIM, EYE_LIT, bellLook, censerLook, censerPot, lodestoneLook, obeliskLook, reliquaryLook, runeStoneLook, statueLook, updateMechLook } from './mechLooks';
 import { treeLook } from './objectLooks';
 import { dragonBell } from '../actors/pillarDragon';
+import { steamBetween } from '../magic/steam';
 
 const C = CFG.mech;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, GOLD = 0xffd98a;
@@ -414,7 +415,7 @@ function updateStatue(room: Room, box: PropBox, dt: number, fighting: boolean) {
     const want = Math.max(-1.3, Math.min(1.3, Math.atan2(dx, dz)));
     head.rotation.y += (want - head.rotation.y) * Math.min(1, dt * 5);
   }
-  const sees = fighting && !blind && !player.dead && Math.hypot(dx, dz) < S.reach && inSight(room, box, player.x, player.z);
+  const sees = fighting && !blind && !player.dead && Math.hypot(dx, dz) < S.reach && inSight(room, box, player.x, player.z) && !steamBetween(box.x, box.z, player.x, player.z); // (steam hides the mage from it)
   if (p.aim) {
     if ((p.aim.t -= dt) <= 0) { strikeRay(box, p.aim.x, p.aim.z); p.aim = undefined; p.charge = 0; p.cd = S.rest; }
   } else if ((p.cd ?? 0) <= 0) {
@@ -563,6 +564,6 @@ export function clearMechanisms() {
 
 /** Dev menu and tests: fire, frost or shock at (x, z), as a spell landing there would; or (M4.2) holy light or darkness. */
 export function elementDev(kind: StatusKind | 'sanct' | 'hex', x: number, z: number) {
-  if (kind === 'burn') fireAt(x, z, .6); else if (kind === 'sanct') hallowAt(x, z, .6); else if (kind === 'hex') umbralAt(x, z, .6); else elementAt(kind, x, z, .6);
+  if (kind === 'burn') fireAt(x, z, .6); else if (kind === 'chill') frostAt(x, z, .6); else if (kind === 'sanct') hallowAt(x, z, .6); else if (kind === 'hex') umbralAt(x, z, .6); else elementAt(kind, x, z, .6); // (frost as a spell's lands: on the floor too)
   burst(x, .4, z, kind === 'sanct' ? SCHOOL_LIGHT.hallow : kind === 'hex' ? SCHOOL_LIGHT.umbral : SCHOOL_COLOR[kind], 8, 1.6, .05);
 }

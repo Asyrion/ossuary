@@ -173,7 +173,7 @@ export const STR = {
   },
   manaLabel: (mana: number, max: number) => `Mana ${Math.round(mana)} of ${max}`,
   /** Reactions name themselves in the air; statuses as the training dummy lists them. */
-  reactions: { shatter: 'Shatter', overload: 'Overload', eclipse: 'Eclipse', blackfire: 'Blackfire' } as Record<string, string>,
+  reactions: { shatter: 'Shatter', overload: 'Overload', eclipse: 'Eclipse', blackfire: 'Blackfire', steam: 'Steam' } as Record<string, string>,
   /** Over a foe struck by its weakness or its resistance, the first time (M4; GDD: Enemy affinities). */
   foes: { weak: 'Weak', resists: 'Resists', drinks: 'Drinks it' },
   /** Grimoire pages: the question a page asks when both slots are full, and what's left behind. */
@@ -451,7 +451,7 @@ export const STR = {
     page: 'Drop a grimoire page', noPage: 'No spell left to learn',
     themes: 'Themed rooms (a test room of each)', objects: 'Objects (put down ahead)', noRoom: 'No free floor there',
     propNames: { bones: 'Bone pile', skulls: 'Skull heap', sacks: 'Grave sacks', cask: 'Oil cask', rubble: 'Rubble', roots: 'Grave roots', briar: 'Thorn briar', web: 'Cobwebs', glowcap: 'Glowcaps', pew: 'Pew', desk: 'Desk', scrolls: 'Scroll heap', hoard: 'Offering heap', boat: 'Moored boat', brazier: 'Brazier', candles: 'Candle stand', bell: 'Bell', rune: 'Rune stone', lodestone: 'Lodestone', censer: 'Hanging censer', reliquary: 'Reliquary', tree: 'Dead tree', statue: 'Watching statue', obelisk: 'Sapping obelisk', bridge: 'Rope bridge', wetCandles: 'Candle stand in water' } as Record<string, string>,
-    kindle: 'Fire ahead', frost: 'Frost ahead', shock: 'Shock ahead', hallowAhead: 'Holy light ahead', umbralAhead: 'Darkness ahead',
+    kindle: 'Fire ahead', frost: 'Frost ahead', shock: 'Shock ahead', hallowAhead: 'Holy light ahead', umbralAhead: 'Darkness ahead', steamAhead: 'Steam ahead',
     pools: 'Water and oil (this room)', ignite: 'Set the oil alight', freezeWater: 'Freeze the water', shockWater: 'Shock the water',
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
     foes: 'Foes (they leave the doors open)', championHeavy: 'A champion of this floor\'s heavies',

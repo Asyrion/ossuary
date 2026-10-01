@@ -3104,6 +3104,39 @@ test('what is done to the mage shows beside the mana bar: a hexing blow (with th
   expect(errors).toEqual([]);
 });
 
+test('Steam (Ember + Frost): a chilled foe set burning goes up in steam, scalded; shots thrown out of it go wide; fire on ice and frost on burning oil steam too', async ({ page }) => {
+  type S = { x: number; z: number; vx: number; vz: number };
+  type GS = { sim(sec: number, draw?: boolean): void; warp(id: number): void; clearRoom(): void; spawn(kind: string, x?: number, z?: number): { hp: number; status?: { chill: number; burn: number } };
+    inflict(s: Record<string, number>): void; steam: number; steamAt(x: number, z: number): void; shoot(x: number, z: number, dx: number, dz: number): void; shots: S[];
+    pool(kind: string): void; pools: { kind: string; state: string; tiles: { x: number; z: number }[] }[]; burn(x: number, z: number, r?: number): void; element(kind: string, x: number, z: number): void;
+    player: { x: number; z: number; hp: number; maxHp: number; invuln: number } };
+  const errors = await start(page, '?seed=K3F9QX&room=great_hall&variant=quiet');
+  const foe = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GS }).__game; g.player.maxHp = g.player.hp = 99; g.warp(1); g.sim(.6); g.clearRoom(); g.sim(.3);
+    const e = g.spawn('rotling', g.player.x + 3, g.player.z); g.sim(.8); const hp = e.hp;
+    g.inflict({ chill: 1 }); g.inflict({ burn: 3 }); g.sim(.05);
+    const steam = g.steam, after = { chill: e.status?.chill, burn: e.status?.burn, scalded: hp - e.hp };
+    // shots thrown from inside a cloud go wide; from outside, straight
+    const spread = (x: number, z: number) => { let worst = 0; for (let i = 0; i < 24; i++) { const n = g.shots.length; g.shoot(x, z, 1, 0); const s = g.shots[n]; worst = Math.max(worst, Math.abs(Math.atan2(s.vz, s.vx))); } return worst; };
+    g.steamAt(g.player.x - 3, g.player.z - 2); const inside = spread(g.player.x - 3, g.player.z - 2), outside = spread(g.player.x - 7, g.player.z - 3); // (clear of both clouds)
+    return { steam, after, inside, outside };
+  });
+  expect(foe.steam).toBeGreaterThanOrEqual(1); expect(foe.after).toMatchObject({ chill: 0, burn: 0 }); expect(foe.after.scalded).toBeGreaterThan(0);
+  expect(foe.inside).toBeGreaterThan(.2); expect(foe.outside).toBeLessThan(.01);
+  errors.push(...await start(page, '?seed=K3F9QX&room=oil_and_water'));
+  const tiles = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GS }).__game; g.player.maxHp = g.player.hp = 99; g.warp(1); g.sim(.6); g.clearRoom(); g.sim(.3);
+    const water = g.pools.find(p => p.kind === 'water')!, oil = g.pools.find(p => p.kind === 'oil')!;
+    g.pool('frost'); const s0 = g.steam; g.burn(water.tiles[0].x, water.tiles[0].z, .3); const iceSteams = g.steam - s0;
+    const oilNow = () => g.pools.find(p => p.kind === 'oil')!.state; // (the hook reads them afresh each time)
+    g.burn(oil.tiles[0].x, oil.tiles[0].z, .3); g.sim(.2); const lit = oilNow(); const s1 = g.steam;
+    g.element('chill', oil.tiles[0].x, oil.tiles[0].z); g.sim(.05);
+    return { iceSteams, lit, oilSteams: g.steam - s1, oil: oilNow() };
+  });
+  expect(tiles).toMatchObject({ lit: 'burning', oil: 'spent' }); expect(tiles.iceSteams).toBeGreaterThan(0); expect(tiles.oilSteams).toBeGreaterThan(0);
+  expect(errors).toEqual([]);
+});
+
 test('a pack\'s size comes from the room\'s seed: a replayed seed brings the same swarms', async ({ page }) => {
   const sizes = async () => {
     const errors = await start(page, '?seed=K3F9QX&room=crypt_b&foe=fireflySwarm');

@@ -14,13 +14,16 @@
           when a burning foe is shocked or a shocked foe catches fire; Eclipse (Hallow + Umbral) when a sanctified foe is
           hexed or a hexed one sanctified: it is taken out of the fight for a moment under a black sun, then struck
           (a boss only struck); Blackfire (Umbral + Ember) when a hexed foe catches fire or a burning one is hexed: a
-          burn that never goes out while the foe lives. Each uses up the statuses that met. */
+          burn that never goes out while the foe lives; Steam (Ember + Frost, 2026-10-01) when a chilled or frozen foe
+          catches fire or a burning one is chilled: the fire and the cold go up as a cloud of steam round it (foes inside
+          can't aim, eyes can't see through it; statusFx.ts and magic/steam.ts), the foe scalded. Each uses up the statuses
+          that met. */
 import magicData from '../../data/magic.json';
 import type { SpellStatus } from './spellData';
 
 export const MAGIC = magicData;
 export type MagicTuning = typeof magicData;
-export type Reaction = 'shatter' | 'overload' | 'eclipse' | 'blackfire';
+export type Reaction = 'shatter' | 'overload' | 'eclipse' | 'blackfire' | 'steam';
 
 export interface StatusState {
   /** Seconds left burning, and until the next burn tick. */ burn: number; burnTick: number;
@@ -43,12 +46,17 @@ export function applyStatus(s: StatusState, kind: SpellStatus, amount: number, b
   if (kind === 'burn') {
     if (s.shock > 0) { s.shock = 0; return { reaction: 'overload' }; }
     if (s.hex > 0 && !s.black) { s.hex = 0; s.black = true; s.burn = Math.max(s.burn, amount); s.burnTick = T.burn.tick; return { reaction: 'blackfire' }; }
+    if (s.chill > 0 || s.frozen > 0) { // fire on cold: both go up as steam (a frozen foe thaws, guarded a while from freezing again)
+      if (s.frozen > 0) s.guard = T.chill.refreezeGuard;
+      s.chill = 0; s.chillT = 0; s.frozen = 0; return { reaction: 'steam' };
+    }
     if (s.burn <= 0) s.burnTick = T.burn.tick;
     s.burn = Math.max(s.burn, amount);
     return {};
   }
   if (kind === 'chill') {
     if (s.frozen > 0) return {};
+    if (s.burn > 0 && !s.black) { s.burn = 0; s.burnTick = 0; return { reaction: 'steam' }; } // cold on fire: steam (blackfire never goes out)
     s.chill += amount; s.chillT = T.chill.stackTime;
     if (boss) { s.chill = Math.min(s.chill, T.chill.bossMaxStacks); return {}; }
     if (s.chill < T.chill.freezeAt || s.guard > 0) { s.chill = Math.min(s.chill, T.chill.freezeAt - 1); return {}; }

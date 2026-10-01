@@ -45,8 +45,8 @@ describe('spell knowledge (M3.7)', () => {
   });
 
   it('tells the reactions a spell can set off from its statuses', () => {
-    expect(reactionsOf({ status: { chill: 1 } })).toEqual([{ reaction: 'shatter', with: 'storm' }]);
-    expect(reactionsOf({ status: { burn: 3 } })).toEqual([{ reaction: 'overload', with: 'storm' }, { reaction: 'blackfire', with: 'umbral' }]);
+    expect(reactionsOf({ status: { chill: 1 } })).toEqual([{ reaction: 'shatter', with: 'storm' }, { reaction: 'steam', with: 'ember' }]);
+    expect(reactionsOf({ status: { burn: 3 } })).toEqual([{ reaction: 'overload', with: 'storm' }, { reaction: 'blackfire', with: 'umbral' }, { reaction: 'steam', with: 'frost' }]);
     expect(reactionsOf({ status: { sanct: 2 } })).toEqual([{ reaction: 'eclipse', with: 'umbral' }]); // (Hallow and Umbral, M4.1)
     expect(reactionsOf({ status: { root: 2, hex: 1 } })).toEqual([{ reaction: 'eclipse', with: 'hallow' }, { reaction: 'blackfire', with: 'ember' }]);
     expect(reactionsOf({ status: { shock: 1 } })).toEqual([{ reaction: 'shatter', with: 'frost' }, { reaction: 'overload', with: 'ember' }]);
