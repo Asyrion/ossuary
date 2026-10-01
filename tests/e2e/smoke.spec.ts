@@ -3035,8 +3035,9 @@ test('foes in code (M4): floor 3\'s salamander lays burning ground that burns th
   const drake = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 90; g.warp(1); g.sim(.3);
     const e = g.enemies[0], seen = new Set<string>(); let rime = 0, high = 0, flew = false;
-    for (let i = 0; i < 400 && !(seen.has('inhale') && seen.has('land') && rime); i++) {
-      g.player.x = e.x + 2.5; g.player.z = e.z; g.sim(.05); seen.add(e.state); rime = Math.max(rime, g.shots.filter(s => s.chill).length);
+    // (every step: a short flight to a spot near the mage can be over within a 0.05 s slice)
+    for (let i = 0; i < 1200 && !(seen.has('inhale') && seen.has('fly') && seen.has('land') && rime); i++) {
+      g.player.x = e.x + 2.5; g.player.z = e.z; g.sim(1 / 60); seen.add(e.state); rime = Math.max(rime, g.shots.filter(s => s.chill).length);
       high = Math.max(high, e.model.position.y); flew ||= e.flying;
     }
     return { seen: [...seen].sort(), rime, high, flew };
