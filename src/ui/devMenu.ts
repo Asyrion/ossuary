@@ -27,7 +27,8 @@ import { assetList, assetsOn, setAssetsOn } from '../assets/models';
 import { Vector2 } from 'three';
 import { renderer } from '../render/renderer';
 import { drawnRows, pixelLook, setPixelLook } from '../render/pixelLook';
-import { FAMILIAR_OPTIONS, MODEL_OPTIONS, removeModelOptions, showBossLooks, showFamiliarOptions, showModelOptions } from '../actors/modelOptions';
+import { FAMILIAR_OPTIONS, MODEL_OPTIONS, removeModelOptions, showBestiary, showBossLooks, showFamiliarOptions, showModelOptions } from '../actors/modelOptions';
+import { BESTIARY_OPTIONS } from '../actors/bestiaryLooks';
 import { BOSS_LOOKS, bossLook, setBossLook } from '../actors/bossLooks';
 import { EFFECT_OPTIONS, removeEffectOptions, showEffectOptions } from '../magic/effectOptions';
 import { CFG } from '../config';
@@ -314,6 +315,10 @@ function build() {
     btn(S.showOptions, () => { closeDev(); showBossLooks(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)),
     lookBtn = btn('', () => { const i = BOSS_LOOKS.findIndex(o => o.id === bossLook()); setBossLook(BOSS_LOOKS[(i + 1) % BOSS_LOOKS.length].id); refresh(); }));
   // familiar options (looks only, the owner's drawings built in code): in a row ahead of the mage
+  // the bestiary's candidates (M4.5): looks only, in rows by kind, each named with the fight it would bring
+  const best = section(pages.galleries, S.bestiary);
+  best.append(el('p', 'dv-info', (['critter', 'creature', 'elemental'] as const).map(k => `${S.bestiaryKinds[k]}: ${BESTIARY_OPTIONS.filter(o => o.kind === k).map(o => STR.bestiary[o.id].name).join(', ')}`).join(' · ')),
+    btn(S.showOptions, () => { closeDev(); showBestiary(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
   const fam = section(pages.galleries, S.familiars);
   fam.append(el('p', 'dv-info', FAMILIAR_OPTIONS.map(o => STR.familiars[o.id].name).join(', ')), btn(S.showOptions, () => { closeDev(); showFamiliarOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
 

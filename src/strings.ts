@@ -1,5 +1,6 @@
 /* Every player-facing string, so the placeholder names can be swapped for Eda lore in one place.
    Artifact names and pickup lines live with the artifact data in data/artifacts.json. */
+import type { BestiaryOptionId } from './actors/bestiaryLooks';
 type Banner = [title: string, subtitle: string];
 
 export const STR = {
@@ -335,6 +336,40 @@ export const STR = {
     hollowOwl: { name: 'Hollow Owl', note: 'Hallow: a round barn owl the size of a wardrobe, a crown of candles, wings folded like a cloak' },
   } as Record<string, { name: string; note: string }>,
   /** Familiar options (actors/modelOptions.ts): the owner's drawings, built in code; placeholder names. */
+  /** The bestiary's candidates (M4.5, actors/bestiaryLooks.ts): names (placeholders) and the fight each would bring. */
+  bestiary: {
+    inkling: { name: 'Inkling', fight: 'Splitter: crawls out of scroll heaps, leaves a slowing smear, splits in two when struck' },
+    rimeSnail: { name: 'Rime Snail', fight: 'Trapper: slow, leaves frost that freezes water; turns its ice shell to bolts' },
+    spiderling: { name: 'Spiderling', fight: 'Ambusher: drops from the ceiling on a thread; its webs slow; burn the web' },
+    fireflyCloud: { name: 'Firefly Cloud', fight: 'Swarm: pulses as one, blinds when swatted, scatters and gathers; Arc leaps through it' },
+    rubbleCrab: { name: 'Rubble Crab', fight: 'Shielded: hides among piles in a shell of rubble; a blast flips it on its back' },
+    dustPuff: { name: 'Dust Puff', fight: 'Chaser: rolls at the mage and bursts into a dark cloud that hides the room' },
+    frostHare: { name: 'Frost Hare', fight: 'Kiter: long bounds, hard to hit, slides on ice; chilled, it can be caught' },
+    puffcap: { name: 'Puffcap', fight: 'Mine: swells and bursts into spores when the mage comes close' },
+    emberWasp: { name: 'Ember Wasp', fight: 'Summoner: streams from a nest in a wall; fire on the nest ends the stream' },
+    glassNewt: { name: 'Glass Newt', fight: 'Leech: its bite chills and drains mana, given back when it is put to rest' },
+    basiliskHatchling: { name: 'Basilisk Hatchling', fight: 'Gaze: a telegraphed stare that slows the mage while it lasts; break its line' },
+    grimoireMimic: { name: 'Grimoire Mimic', fight: 'Mimic: a book on a lectern that flaps and bites; drops a grimoire page' },
+    brineSerpent: { name: 'Brine Serpent', fight: 'Turret: coils up out of a pool and spits; freezing the pool traps it' },
+    phoenixChick: { name: 'Phoenix Chick', fight: 'Elite: rises again from its ashes once, unless the ashes are frozen first' },
+    griffinFledgling: { name: 'Griffin Fledgling', fight: 'Elite flier: circles high, then swoops along a line marked on the floor' },
+    shadowFox: { name: 'Shadow Fox', fight: 'Blinker: from shadow to shadow; a lit brazier or a lifted dark keeps it in the open' },
+    harpyChick: { name: 'Harpy Chick', fight: 'Diver: dives from above; its screech scatters chalked glyphs' },
+    saltGolemling: { name: 'Salt Golemling', fight: 'Blocker: slow, stands in the way of bolts; melts in fire' },
+    cinderSprite: { name: 'Cinder Sprite', fight: 'Elemental: flits about lighting oil and braziers; burning heals it, frost hurts it twice' },
+    magmaBlob: { name: 'Magma Blob', fight: 'Splitter: splits when struck, each part leaving burning ground; frozen, it shatters' },
+    hearthGolem: { name: 'Hearth Golem', fight: 'Elite: a walking brazier; frost must put its fire out before it can be hurt' },
+    snowballSprite: { name: 'Snowball Sprite', fight: 'Roller: grows as it rolls at the mage and bursts into a chill' },
+    glacierGolem: { name: 'Glacier Golem', fight: 'Elite blocker: slow, turns bolts; storm on it while frozen shatters it' },
+    sparkSprite: { name: 'Spark Sprite', fight: 'Bouncer: zips in straight lines from wall to wall, turning at each' },
+    thunderhead: { name: 'Thunderhead', fight: 'Hazard: rains sparks where the mage stands; water under it carries them' },
+    lodestoneGolem: { name: 'Lodestone Golem', fight: 'Magnet: bends the mage\'s bolts towards itself; strike the others first' },
+    choirWisp: { name: 'Choir Wisp', fight: 'Support: its song makes the foes near it strike harder until it is silenced' },
+    radiantOrb: { name: 'Radiant Orb', fight: 'Flare: drifts and flares, blinding for a moment; look away' },
+    gloomSprite: { name: 'Gloom Sprite', fight: 'Darkener: the room darkens round it as it moves; light puts it out' },
+    puddleElemental: { name: 'Puddle Elemental', fight: 'Water: a walking pool; shock runs through it, frozen it is ice to stand on' },
+    rubbleGolem: { name: 'Rubble Golem', fight: 'Breaker: a blast breaks it into stones that roll at the mage' },
+  } satisfies Record<BestiaryOptionId, { name: string; fight: string }>, // (every candidate named, with the fight it would bring)
   familiars: {
     runeFox: { name: 'Rune Fox', note: 'A spectral fox with runes along its flanks and a starry tail (the owner\'s drawing)' },
     fenNex: { name: 'Fen-Nex', note: 'The Rune Fox in its full shape: a long white beast, flame-tipped feathers, plated legs with red runes' },
@@ -372,7 +407,7 @@ export const STR = {
     fpsOn: 'Frame readout: shown', fpsOff: 'Frame readout: hidden',
     artifactGallery: 'Artifacts (the room kit\'s: built in code, their icons rendered from them)', artifactsNote: 'Every artifact floating ahead of the mage in rows (foci, passives, cursed), to look at; they can\'t be taken',
     bossLooks: 'The bosses built in code: the Hollow Warden\'s three looks (the floor-1 boss: choose one), and the bosses of floors 4 and 5', wardenWears: (name: string) => `The Warden wears: ${name}`,
-    options: 'Enemy model options (looks only)', familiars: 'Familiar options (looks only)', effects: 'Spell effect options (looks only)', showOptions: 'Stand them here', takeOptions: 'Take them away', floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
+    options: 'Enemy model options (looks only)', familiars: 'Familiar options (looks only)', bestiary: 'Bestiary candidates (M4.5, looks only: choose which become foes)', bestiaryKinds: { critter: 'Critters', creature: 'Fantasy creatures', elemental: 'Elementals' } as Record<string, string>, effects: 'Spell effect options (looks only)', showOptions: 'Stand them here', takeOptions: 'Take them away', floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
     pixel: 'Pixel look', pixelLines: (lines: number, drawn: number) => !lines ? 'Pixels: off' : drawn && drawn !== lines ? `Pixels: ${lines} lines (${drawn} in this window)` : `Pixels: ${lines} lines`,
     outlinesOn: 'Outlines: on', outlinesOff: 'Outlines: off', bandsOn: 'Light in bands: on', bandsOff: 'Light in bands: off',
     /** The on-screen readout: frame rate, and what the last frame drew. */
