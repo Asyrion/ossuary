@@ -13,7 +13,7 @@
      longer than the floor above, every room the bot could not clear in `limit` s, and page errors.
 
    OSSUARY_URL points at another server; PW_CHROMIUM at a Chromium binary (cloud sessions). */
-import { chromium, type Page } from '@playwright/test';
+import { chromium, type Browser, type Page } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 import { FOES as FOE_DEFS } from '../src/actors/foeData';
 
@@ -155,14 +155,36 @@ async function fightFloor(page: Page, floor: number, build: string, seed: number
   return out;
 }
 
-async function runs(page: Page) {
+/** Every floor of every seed with every build. A page that crashes (a headless browser can, an hour or more into a pass) is
+    replaced by a fresh one and the floor fought again, at most `CRASHES` times. */
+const CRASHES = 3;
+async function runs(first: Page, reopen: () => Promise<Page>, errors: string[]) {
   const fl = floors ?? [1, 2, 3, 4, 5], rows: RoomRow[] = [], started = Date.now();
+  let page = first, crashes = 0;
   for (let s = 0; s < seeds; s++) for (const f of fl) for (const build of schools) {
-    const got = await fightFloor(page, f, build, s); rows.push(...got);
+    let got: RoomRow[];
+    try { got = await fightFloor(page, f, build, s); } catch (e) {
+      if (!/crashed|closed/i.test(String(e)) || ++crashes > CRASHES) throw e;
+      console.log(`(the page crashed on seed ${s}, floor ${f}, ${build}: a fresh page, and the floor again)`); errors.push(`the page crashed on seed ${s}, floor ${f}, ${build} (fought again on a fresh page)`);
+      await page.close().catch(() => undefined); page = await reopen(); got = await fightFloor(page, f, build, s);
+    }
+    rows.push(...got);
     const fights = got.filter(r => r.type !== 'boss'), boss = got.find(r => r.type === 'boss'), dnf = got.filter(r => r.left.length);
     console.log(`seed ${s} f${f} ${build.padEnd(8)} ${fights.length} rooms, mean ${mean(fights.map(r => r.t)).toFixed(1)} s, hearts ${fights.reduce((a, r) => a + r.lost, 0)}, boss ${boss ? boss.t + ' s' : '-'}${dnf.length ? `, not cleared: ${dnf.map(r => `${r.template} [${r.left.join(' ')}]`).join('; ')}` : ''}`);
   }
   return { rows, secs: (Date.now() - started) / 1000 };
+}
+
+/** A page with the game started and the bot in it. */
+async function openPage(browser: Browser, errors: string[]) {
+  const page = await browser.newPage({ viewport: { width: 640, height: 360 } });
+  page.on('pageerror', e => errors.push(String(e)));
+  await page.addInitScript('window.__manual = true; window.__name = f => f'); // (__name: what tsx wraps named functions in, which the page lacks)
+  await page.goto(BASE + '?room=great_hall&variant=quiet');
+  await page.waitForFunction(() => !!(window as unknown as { __game?: unknown }).__game, null, { timeout: 60_000 });
+  await page.click('#btnStart');
+  await page.evaluate(installBot);
+  return page;
 }
 
 /** The runs' report: each floor's mean room and boss by build, how it grows from the floor above, and what was not cleared. */
@@ -190,15 +212,9 @@ function runsReport(rows: RoomRow[], secs: number, errors: string[]) {
 
 async function main() {
   const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM || undefined, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-  const page = await browser.newPage({ viewport: { width: 640, height: 360 } });
-  const errors: string[] = []; page.on('pageerror', e => errors.push(String(e)));
-  await page.addInitScript('window.__manual = true; window.__name = f => f'); // (__name: what tsx wraps named functions in, which the page lacks)
-  await page.goto(BASE + '?room=great_hall&variant=quiet');
-  await page.waitForFunction(() => !!(window as unknown as { __game?: unknown }).__game, null, { timeout: 60_000 });
-  await page.click('#btnStart');
-  await page.evaluate(installBot);
+  const errors: string[] = [], page = await openPage(browser, errors);
   if (runsMode) {
-    const { rows, secs } = await runs(page);
+    const { rows, secs } = await runs(page, () => openPage(browser, errors), errors);
     await browser.close();
     const md = runsReport(rows, secs, errors);
     if (!narrowed || args.includes('--write')) { writeFileSync('docs/balance-runs.md', md); console.log('wrote docs/balance-runs.md'); }
