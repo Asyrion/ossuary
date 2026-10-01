@@ -1408,7 +1408,7 @@ it, so the wheel is whole again by M5's end.
 
 ### M4.9 The curve: harder for the right reasons
 
-Floors 2 to 5 differ from floor 1 mostly by their foes and their health (×1.15 to ×1.6). This milestone makes the descent's
+**Built 2026-10-01** (M4.9 as built, below). Floors 2 to 5 differ from floor 1 mostly by their foes and their health (×1.15 to ×1.6). This milestone makes the descent's
 pressure a set of dials, and gives every build a way through.
 
 - **Pressure dials** per floor in `data/floors.json`: foes added to a room, the elite and champion chances, waves in an
@@ -1428,6 +1428,30 @@ pressure a set of dials, and gives every build a way through.
 - **A balance bot in the repo.** The bot of M4.5's balance pass becomes `npm run balance` (`tools/balance.ts`): it
   fights each foe alone on its floor, with and without a school's spells, and writes time to kill and hearts lost to
   `docs/balance.md`, flagging any foe past twice its floor's middle. Tuning is measured, not guessed.
+
+**M4.9 as built (2026-10-01).**
+
+- *Pressure dials* (`pressure` per floor in `data/floors.json`; the variants' champion share and M4.7's pair chance were
+  already per floor): one more walker or flier in 0% of fights on floor 1, 10%, 18%, 25% and 33% on floor 5 (never the boss,
+  a heavy, an elite or a pack, set beside the one it copies); elites weighed ×1, 1.1, 1.2, 1.3, 1.4 (one a room still);
+  ordeals one wave more on floors 4 and 5. A unit test holds every dial rising floor by floor.
+- *The floor teaches its counter.* A floor's weaknesses are worked out from its rolls (each role alike, each foe by its
+  weight): a library's lecterns, and a page a boss or a fight drops, offer first a school at least 30% of its foes are weak
+  to (floor 1 Ember or Frost, floor 2 Storm, floors 3 and 4 Frost, floor 5 Ember) while the mage holds no spell of one. A
+  floor where 45% or more of the foes resist or drink the one school the mage carries says so as the mage arrives (floor 1
+  Storm: "Shell and stone down here turn the storm"; floor 2 Frost; floor 3 Ember: "The heat down here feeds on fire").
+  The merchant sells no pages, so it doesn't lean.
+- *Hex reads.* The mana a hexing blow takes runs from the mage back to the foe that threw it in violet motes, and a Hallow
+  spell cast within 8 s gives it back (gold over the mage; the first time in a run, a line).
+- *The sluice gate* (`Z` in a template; the drowned floor's four water rooms have one against the north wall): a bolt or a
+  blast lifts its iron gate, water falls through it, and the room's water drains to brown mud for 8 s ("Drained" rises over
+  it): wading still slows, and every water foe in it is driven up and kept up. Then the gate drops and the water comes back;
+  it rests 3 s before it lifts again.
+- *The balance bot* (`npm run balance`, against a running server; `-- floor=3 foe=hydra school=frost seeds=1`): every
+  foe alone, two seeds, the cantrip and each school's two spells. Its first run (`docs/balance.md`): most foes fall in
+  1 to 3 s to a build with spells; the elites (the Phoenix, the Hearth and Glacier Golems, the Griffin) take 5 to 18 s; the
+  bot never brings up a water foe without a spell that finds it (it chalks no glyphs), and a cantrip alone struggles to
+  line up on the circling Phoenix. Nothing was retuned from it yet: the owner's play-test decides (floor 3 may be hard).
 
 ### M4.10 Weaves: spells meet spells, reactions meet a third school
 

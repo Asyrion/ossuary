@@ -29,7 +29,8 @@ const floors = opt('floor')?.split(',').map(Number), only = opt('foe')?.split(',
 const seeds = Number(opt('seeds') ?? 2), limit = Number(opt('limit') ?? 40), narrowed = !!(floors || only || opt('school'));
 const ids = Object.keys(FOES).filter(id => FOES[id].floor >= 1 && !SKIP.has(id) && (!floors || floors.includes(FOES[id].floor)) && (!only || only.includes(id)));
 
-/** The bot, put into the page: it lines up with the nearest foe and casts at it (backing off when close), and casts its
+/** The bot, put into the page: it lines up with the nearest foe and casts at it (closing in when out of reach, backing off
+    when close), and casts its
     spells at it whenever they are ready. Returns the seconds the fight took (`limit` if it never ended) and the half
     hearts it cost; the mage is healed when low, so a hard foe shows as hearts lost rather than as a death. */
 function installBot() {
@@ -53,9 +54,11 @@ function installBot() {
         codes.push(Math.abs(dx) > Math.abs(dz) ? (dx < 0 ? 'ArrowLeft' : 'ArrowRight') : (dz < 0 ? 'ArrowUp' : 'ArrowDown'));
       } else if (Math.abs(dx) <= Math.abs(dz)) {
         if (dx > .2) codes.push('KeyD'); else if (dx < -.2) codes.push('KeyA');
+        if (d > 5) codes.push(dz < 0 ? 'KeyW' : 'KeyS'); // (out of the cantrip's reach: closer)
         codes.push(dz < 0 ? 'ArrowUp' : 'ArrowDown');
       } else {
         if (dz > .2) codes.push('KeyS'); else if (dz < -.2) codes.push('KeyW');
+        if (d > 5) codes.push(dx < 0 ? 'KeyA' : 'KeyD');
         codes.push(dx < 0 ? 'ArrowLeft' : 'ArrowRight');
       }
       hold(codes);
@@ -116,7 +119,7 @@ function report(rows: Row[], secs: number) {
   const builds = [...new Set(rows.map(r => r.build))], fl = [...new Set(rows.map(r => r.floor))].sort();
   const cell = (r?: Row) => !r ? '' : `${r.t.some(t => t >= limit) ? 'DNF ' : ''}${mean(r.t).toFixed(1)} s · ${mean(r.lost).toFixed(1)} ♥`;
   const flags: string[] = [];
-  let md = `# Balance\n\nWritten by \`npm run balance\` (tools/balance.ts, M4.9). Every foe fought alone in a great hall on its own floor by a bot that walks, shoots and casts its two spells whenever they are ready; ${seeds} seed(s) each, fights cut off at ${limit} s (DNF). Each cell: the mean time to put it down · the mean hearts it cost. Flagged: a foe taking more than twice its floor's median, a school whose median on a floor is more than twice the floor's. Last run: ${new Date().toISOString().slice(0, 10)}, ${Math.round(secs / 60)} min.\n`;
+  let md = `# Balance\n\nWritten by \`npm run balance\` (tools/balance.ts, M4.9). Every foe fought alone in a great hall on its own floor by a bot that walks, shoots and casts its two spells whenever they are ready; ${seeds} seed(s) each, fights cut off at ${limit} s (DNF). Each cell: the mean time to put it down · the mean hearts it cost. Flagged: a foe taking more than twice its floor's median, a school whose median on a floor is more than twice the floor's. Last run: ${new Date().toISOString().slice(0, 10)}, ${Math.round(secs / 60)} min.\n\n**Reading it.** The bot casts in four directions as the mage does and walks in when out of reach, but it chalks no glyphs and stands in no steam: a foe hiding in water (the Cistern Lurker, the Brine Serpent) shows as DNF unless its spells bring it up, though a player has a blast, steam, a shock or a sluice to do it. A foe circling the mage (the Phoenix) is hard for it to line up on. Elites take longer by design. Each fight is one foe alone, so the floors' pressure dials (more foes, more elites) don't show here.\n`;
   for (const f of fl) {
     const here = rows.filter(r => r.floor === f), floorMed = median(here.map(r => mean(r.t)));
     md += `\n## Floor ${f} (median ${floorMed.toFixed(1)} s)\n\n| Foe | ${builds.join(' | ')} |\n| --- | ${builds.map(() => '---').join(' | ')} |\n`;
