@@ -76,7 +76,7 @@ function installBot() {
     g.arrowOrder.length = 0; const a = codes.find(c => c.startsWith('Arrow')); if (a) g.arrowOrder.push(a);
   };
   const fight = (lim: number, spells: number, done: () => boolean) => {
-    let t = 0, lost = 0, idle = 0, aside = 0, way = 1, tries = 0, last: E | undefined, lastHp = 0;
+    let t = 0, lost = 0, idle = 0, aside = 0, way = 1, tries = 0, flip = false, last: E | undefined, lastHp = 0;
     const room = g.current;
     for (; t < lim && !done(); t += .05) {
       const p = g.player, before = p.hp, codes: string[] = [];
@@ -90,18 +90,21 @@ function installBot() {
         if (dz > .3) codes.push('KeyS'); else if (dz < -.3) codes.push('KeyW');
       } else {
         const dx = e.x - p.x, dz = e.z - p.z, d = Math.hypot(dx, dz);
-        const struck = e === last && e.hp < lastHp; if (struck) tries = 0;
+        const struck = e === last && e.hp < lastHp; if (struck) tries = 0; if (e !== last) flip = false;
         idle = e === last && !struck && e.spawn <= 0 && !e.hidden ? idle + .05 : 0; last = e; lastHp = e.hp; // (a foe under water can't be struck: no cover to step round)
-        // striking nothing (cover between): step aside, further each time, and the other way after two tries
-        if (idle > 1.5 && aside <= 0) { tries++; if (tries % 3 === 0) way = -way; aside = Math.min(2, .5 + .4 * tries); idle = 0; }
+        // striking nothing (cover between): step aside, further each time, and the other way after two tries; every other
+        // try, line up on the other axis, kept while it strikes (a nest in a side wall behind a row of pillars is struck
+        // only from beside it)
+        if (idle > 1.5 && aside <= 0) { tries++; if (tries % 3 === 0) way = -way; if (tries % 2 === 0) flip = !flip; aside = Math.min(2, .5 + .4 * tries); idle = 0; }
+        const vert = (Math.abs(dx) <= Math.abs(dz)) !== flip;
         if (aside > 0) {
           aside -= .05;
-          if (Math.abs(dx) <= Math.abs(dz)) { codes.push(way > 0 ? 'KeyD' : 'KeyA'); codes.push(dz < 0 ? 'ArrowUp' : 'ArrowDown'); }
+          if (vert) { codes.push(way > 0 ? 'KeyD' : 'KeyA'); codes.push(dz < 0 ? 'ArrowUp' : 'ArrowDown'); }
           else { codes.push(way > 0 ? 'KeyS' : 'KeyW'); codes.push(dx < 0 ? 'ArrowLeft' : 'ArrowRight'); }
         } else if (d < 1.4) {
           codes.push(dx > 0 ? 'KeyA' : 'KeyD', dz > 0 ? 'KeyW' : 'KeyS');
           codes.push(Math.abs(dx) > Math.abs(dz) ? (dx < 0 ? 'ArrowLeft' : 'ArrowRight') : (dz < 0 ? 'ArrowUp' : 'ArrowDown'));
-        } else if (Math.abs(dx) <= Math.abs(dz)) {
+        } else if (vert) {
           if (dx > .2) codes.push('KeyD'); else if (dx < -.2) codes.push('KeyA');
           if (d > 5) codes.push(dz < 0 ? 'KeyW' : 'KeyS');
           codes.push(dz < 0 ? 'ArrowUp' : 'ArrowDown');

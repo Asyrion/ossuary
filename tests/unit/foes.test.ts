@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BOSS_TYPES, CFG } from '../../src/config';
-import { BEHAVIOUR_PARAMS, FOES, FOE_IDS, ROLES, affinityMul, callFoe, drinksStatus, isFoe, pickFoe, schoolOf, validateFoes, type FoeDef, type RoleTable } from '../../src/actors/foeData';
+import { BEHAVIOUR_PARAMS, FOES, FOE_IDS, ROLES, affinityMul, callFoe, comesMany, drinksStatus, isFoe, pickFoe, schoolOf, validateFoes, type FoeDef, type RoleTable } from '../../src/actors/foeData';
 import { FLOORS } from '../../src/world/generate';
 
 describe('the foes built in code (M4)', () => {
@@ -71,9 +71,11 @@ describe('the foes built in code (M4)', () => {
     } finally { (FOES as Record<string, FoeDef>).sporeling = was; }
   });
 
-  it('passes a pack over when asked while another can fill the role (one pack a room)', () => {
+  it('passes a pack over when asked while another can fill the role (one pack a room; a nest counts as one)', () => {
     let seed = 5; const R = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    const [f1, , , , f5] = FLOORS;
+    const [f1, , f3, , f5] = FLOORS;
+    expect(comesMany('waspNest') && comesMany('rimeWolf') && !comesMany('emberWasp') && !comesMany('phoenix')).toBe(true);
+    expect(Array.from({ length: 200 }, () => pickFoe(f3.foes, 'W', R, false, true))).not.toContain('waspNest');
     expect(Array.from({ length: 200 }, () => pickFoe(f1.foes, 'W', R, false, true))).not.toContain('fireflySwarm');
     expect(Array.from({ length: 200 }, () => pickFoe(f5.foes, 'R', R, false, true))).not.toContain('rimeWolf');
     expect(new Set(Array.from({ length: 400 }, () => pickFoe(f5.foes, 'R', R)))).toContain('rimeWolf'); // (the first may be one)
