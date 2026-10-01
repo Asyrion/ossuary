@@ -104,3 +104,20 @@ export const onHead = (geo: THREE.BufferGeometry, f: Fit) => {
   const { centre, radii } = f.head;
   geo.scale(radii.x, radii.y, radii.z); geo.translate(centre.x, centre.y, centre.z); geo.computeVertexNormals(); return geo;
 };
+
+/** Bake a group built in the unit head's frame (the head's ellipsoid a unit sphere, the face towards +z) onto the head:
+    every mesh's own place and turn into its geometry, then onto the ellipsoid. */
+export function bakeOnHead(g: THREE.Group, f: Fit) {
+  g.updateMatrixWorld(true);
+  g.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) onHead(m.geometry.applyMatrix4(m.matrixWorld), f); });
+  g.traverse(o => { o.position.set(0, 0, 0); o.rotation.set(0, 0, 0); o.scale.set(1, 1, 1); o.updateMatrix(); });
+  return g;
+}
+
+/** A wrist (in the model's frame, at rest): where it is, the forearm's axis there, and the turn that sets a ring's axis
+    (+z) along it. */
+export function wrist(f: Fit, s: Side) {
+  const pos = f.hand[s].pos.clone(), axis = pos.clone().sub(f.hand[s].fore).normalize();
+  const back = pos.clone().addScaledVector(axis, -.06);
+  return { pos: back, axis, q: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), axis) };
+}

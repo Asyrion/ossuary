@@ -12,6 +12,7 @@ import { shootDir } from '../input';
 import { angleLerp, lerp } from '../util';
 import { findMiniatureBase } from './baseDetect';
 import { dress, fitCostumes, updateCostumes } from './costume';
+import { floatLift } from '../items/gifts';
 import { buildHeroAnim, playCast, playDeath, playGesture, playHit, resetAnim, updateHeroAnim, type HeroAnim } from './heroAnim';
 
 export const hero = {
@@ -117,7 +118,7 @@ export function heroVisual(dt: number, now: number) {
   else if (sd && G.state === 'play') targetYaw = Math.atan2(sd.x, sd.z);
   else if (moving > .4) targetYaw = Math.atan2(player.vx, player.vz);
   player.yawA = angleLerp(player.yawA, targetYaw, 1 - Math.exp(-16 * dt));
-  hero.root.position.set(player.x, 0, player.z); hero.yaw.rotation.y = player.yawA;
+  hero.root.position.set(player.x, player.dead ? 0 : floatLift(now), player.z); hero.yaw.rotation.y = player.yawA; // (M4.6: the Lightbearer floats)
   const sp = moving / CFG.hero.speed;
   const lean = hero.lean;
   if (hero.anim) updateHeroAnim(hero.anim, dt, player.dead ? 0 : sp);

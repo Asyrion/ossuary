@@ -18,6 +18,7 @@ import { castSpellOnce, learnedSpell } from './memory';
 import { burnSoul } from '../items/souls';
 import { drinkSpell, wardNear } from '../world/vault';
 import { hexGiveBack } from '../ui/afflictions';
+import { flareEyes } from '../actors/costume';
 
 /* ---------- mana ---------- */
 
@@ -62,6 +63,7 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   if (short) burnSoul();
   if (!DEV.mana) gainMana(-cost);
   if (def.school === 'hallow') hexGiveBack(); // (M4.9: holy light gives back what a hex just took)
+  if (def.school === 'storm') flareEyes(); // (M4.6: a Stormcaller's eyes flare)
   player.spellCd[slot] = def.cooldown;
   skullsWatch(G.current, def.color); // an ossuary's skulls take the spell's colour
   if (castSpellOnce(id)) toast(STR.knowledge.knownWell(def.name), 3); // cast enough times: its lore and reactions are known

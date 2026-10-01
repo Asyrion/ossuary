@@ -13,6 +13,9 @@ import { DEV, G, player } from '../state';
 import { wardFoe } from '../actors/wardShield';
 import { fennexInfo, growFennex } from '../combat/fennex';
 import { heldNow, takeAllOff, triedOn, tryOn, wornNow } from '../actors/costume';
+import { clearTransforms, formTransform } from '../items/transforms';
+import { TRANSFORM_IDS } from '../items/transformData';
+import { blinkRest } from '../items/gifts';
 import { callWanderer } from '../items/wanderer';
 import { STR, foeName } from '../strings';
 import { FOES, FOE_IDS, pickFoe, type FoeType } from '../actors/foeData';
@@ -61,7 +64,7 @@ import { lureTest } from '../actors/foeGround';
 import { floorLean, floorWalls, warnFloor } from '../world/curve';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
 let spellSlot = 0, knowBox: HTMLElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
@@ -230,6 +233,9 @@ function build() {
   const cost = section(pages.mage, S.costumes);
   cost.append(costInfo = el('p', 'dv-info'), btn(S.takeAllOff, () => { takeAllOff(); refresh(); }), closeBtn = btn(S.closeUp, () => { setCloseUp(!DEV.closeUp); refresh(); }));
   costBox = section(pages.mage, S.costumesTry);
+  // transformations (M4.6): each formed at once (its banner, lore card, gift and look), or all undone
+  transBox = section(pages.mage, S.transforms);
+  transBox.append(transInfo = el('p', 'dv-info'), btn(S.clearTransforms, () => { clearTransforms(); refresh(); }), ...TRANSFORM_IDS.map(t => { const b = btn(STR.transforms[t].name, () => { formTransform(t); refresh(); }, STR.transforms[t].gift); b.dataset.t = t; return b; }));
 
   // spells: every one in the data, learned into the chosen slot; mana
   spellBox = section(pages.magic, S.spells);
@@ -448,6 +454,8 @@ function refresh() {
     return b;
   }));
   costInfo.textContent = S.costumeInfo(wornNow(), heldNow() ?? '');
+  transInfo.textContent = S.transformInfo(G.run.transforms.map(t => STR.transforms[t].name), blinkRest());
+  transBox.querySelectorAll<HTMLButtonElement>('button[data-t]').forEach(b => b.classList.toggle('on', G.run.transforms.includes(b.dataset.t as never)));
   closeBtn.classList.toggle('on', DEV.closeUp);
   const rooms = G.rooms.filter(r => r.type !== 'normal').sort((a, b) => a.plan.dist - b.plan.dist);
   const secret = G.rooms.find(r => r.type === 'secret');

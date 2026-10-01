@@ -203,7 +203,7 @@ export function updateFoeHazards(dt: number) {
     if (h.kind !== 'spark') {
       const black = h.kind === 'blackfire';
       if (Math.random() < dt * A.groundLicks * Math.min(1, h.t)) flame(h.x + (Math.random() - .5) * .3, h.z + (Math.random() - .5) * .3, black ? (Math.random() < .6 ? 0xb070ff : 0x2a0a4a) : Math.random() < .6 ? 0xff7a2a : 0xffc060, .3 + Math.random() * .2);
-      if (near) hurtPlayer(1, h.x, h.z);
+      if (near && h.by !== 'mage') hurtPlayer(1, h.x, h.z); // (the Pyromancer's own embers spare them: M4.6)
     } else {
       const armed = h.life - h.t >= A.sparkArm;
       if (armed && !h.armed) { h.armed = true; shockAt(h.x, h.z); }

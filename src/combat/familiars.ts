@@ -19,11 +19,13 @@ import { fireSecondary } from './projectiles';
 import { updateFennex } from './fennex';
 
 const A = CFG.artifacts;
-let moth: { g: THREE.Group; wings: THREE.Mesh[]; t: number; cd: number } | null = null;
+type Moth = { g: THREE.Group; wings: THREE.Mesh[]; t: number; cd: number };
+/** The Candle Moth, and the Beastcaller's (M4.6: one more, in its light). */
+const moths: Moth[] = [];
 let skull: { g: THREE.Group; tear: THREE.Sprite; a: number; bitten: Map<Enemy, number> } | null = null;
 
-function makeMoth() {
-  const g = new THREE.Group(), mat = new THREE.MeshBasicMaterial({ color: 0xf0e8c8, transparent: true, opacity: .85, side: THREE.DoubleSide });
+function makeMoth(color = 0xf0e8c8): Moth {
+  const g = new THREE.Group(), mat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .85, side: THREE.DoubleSide });
   const wings = [-1, 1].map(s => {
     const w = new THREE.Mesh(new THREE.CircleGeometry(.13, 10), mat); w.scale.set(1, .7, 1); w.position.x = s * .1; w.rotation.x = -Math.PI / 2; return w;
   });
@@ -93,6 +95,12 @@ export const saltCircle = () => salt && !salt.gone ? { x: salt.x, z: salt.z, t: 
 
 const drop = (o: { g: THREE.Group } | null) => { if (o) { scene.remove(o.g); disposeTree(o.g); } return null; };
 
+/** How many moths flutter about the mage (the Candle Moth's, the Beastcaller's). */
+export const mothCount = () => moths.length;
+/** How much harder the familiars strike: the Beastcaller's (M4.6). */
+export const familiarMul = () => player.stats.effects.has('beastcaller') ? CFG.transform.beast.damageMul : 1;
+/** The Beastcaller's moth: in the beastcaller's light. */
+const BEAST_MOTH = 0xf0c890;
 /** The nearest foe the moth can see: in this room, awake, within reach. */
 function nearestFoe(x: number, z: number, reach: number) {
   let best: Enemy | null = null, bd = reach;
@@ -107,22 +115,25 @@ function nearestFoe(x: number, z: number, reach: number) {
 export function updateFamiliars(dt: number, now: number, acting: boolean) {
   const fx = player.stats.effects;
   updateFennex(dt, acting); // (M4.2: Fen-Nex, combat/fennex.ts)
-  if (fx.has('moth')) {
-    moth ??= makeMoth();
-    const M_ = A.moth, a = now * 1.7;
-    moth.g.position.set(player.x + Math.cos(a) * M_.orbit, 1.15 + Math.sin(now * 5) * .08, player.z + Math.sin(a) * M_.orbit * .8);
+  // the Candle Moth, and the Beastcaller's one more (M4.6), each on its own side of the circle
+  const want = (fx.has('moth') ? 1 : 0) + (fx.has('beastcaller') ? CFG.transform.beast.more : 0);
+  while (moths.length > want) drop(moths.pop()!);
+  while (moths.length < want) moths.push(makeMoth(moths.length || !fx.has('moth') ? BEAST_MOTH : 0xf0e8c8)); // (the Candle Moth first, pale)
+  moths.forEach((moth, k) => {
+    const M_ = A.moth, a = now * 1.7 + k * Math.PI * 2 / moths.length;
+    moth.g.position.set(player.x + Math.cos(a) * M_.orbit, 1.15 + Math.sin(now * 5 + k) * .08, player.z + Math.sin(a) * M_.orbit * .8);
     moth.g.rotation.y = -a;
-    for (const [i, w] of moth.wings.entries()) w.rotation.z = (i ? 1 : -1) * (.3 + Math.abs(Math.sin(now * 22)) * .9);
+    for (const [i, w] of moth.wings.entries()) w.rotation.z = (i ? 1 : -1) * (.3 + Math.abs(Math.sin(now * 22 + k)) * .9);
     if (acting) {
       moth.cd -= dt;
       const foe = moth.cd <= 0 ? nearestFoe(moth.g.position.x, moth.g.position.z, M_.range) : null;
       if (foe) {
         moth.cd = M_.every; const p = moth.g.position;
-        fireSecondary(p.x, p.z, foe.x - p.x, foe.z - p.z, { damage: player.stats.damage * M_.damageMul, range: M_.range + 1, scale: .55, color: 0xffe8a8, speed: M_.speed });
+        fireSecondary(p.x, p.z, foe.x - p.x, foe.z - p.z, { damage: player.stats.damage * M_.damageMul * familiarMul(), range: M_.range + 1, scale: .55, color: 0xffe8a8, speed: M_.speed });
         Sfx.moth();
       }
     }
-  } else moth = drop(moth);
+  });
 
   if (fx.has('orbital')) {
     skull ??= makeSkull();
@@ -140,7 +151,7 @@ export function updateFamiliars(dt: number, now: number, acting: boolean) {
         if (e.dead || e.spawn > 0 || e.hidden) continue;
         const last = skull.bitten.get(e) ?? -Infinity;
         if (now - last < S.every || Math.hypot(e.x - x, e.z - z) > e.r + S.reach) continue;
-        skull.bitten.set(e, now); damageEnemy(e, S.damage, (e.x - player.x) / S.orbit, (e.z - player.z) / S.orbit, .4); Sfx.skullBite();
+        skull.bitten.set(e, now); damageEnemy(e, S.damage * familiarMul(), (e.x - player.x) / S.orbit, (e.z - player.z) / S.orbit, .4); Sfx.skullBite();
       }
       for (const e of skull.bitten.keys()) if (e.dead) skull.bitten.delete(e);
     }

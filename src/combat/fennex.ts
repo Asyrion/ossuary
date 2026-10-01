@@ -19,6 +19,7 @@ import { toast } from '../ui/hud';
 import { burst } from './fx';
 import { damageEnemy } from './damage';
 import { fireSpellBolt } from './projectiles';
+import { familiarMul } from './familiars';
 import { angleLerp } from '../util';
 
 const F = CFG.artifacts.fennex;
@@ -62,7 +63,7 @@ export function updateFennex(dt: number, acting: boolean) {
     tx = f.prey.x; tz = f.prey.z; sp = speedOf(F.dash);
     if (Math.hypot(tx - f.x, tz - f.z) < f.prey.r + .35) {
       const e = f.prey, dx = e.x - f.x, dz = e.z - f.z, d = Math.hypot(dx, dz) || 1;
-      damageEnemy(e, player.stats.damage * F.bite.mul[stage - 1], dx / d, dz / d, .4, undefined, stage > 1 ? 'ember' : undefined);
+      damageEnemy(e, player.stats.damage * F.bite.mul[stage - 1] * familiarMul(), dx / d, dz / d, .4, undefined, stage > 1 ? 'ember' : undefined);
       burst(e.x, .5, e.z, stage > 1 ? SCHOOL_LIGHT.ember : 0x8ff0ff, 8, 1.6, .04); Sfx.at(e.x, e.z).bite();
       f.prey = null; f.cd = F.bite.every;
     }

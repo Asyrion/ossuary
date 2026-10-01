@@ -129,7 +129,7 @@ function flow(room: Room, f: Flow, dt: number) {
   const [dx, dz] = FLOW[f], F = CFG.flow;
   for (const p of room.pools ?? []) if (p.kind === 'water' && p.state === 'still' && p.mat.map) { p.mat.map.offset.x -= dx * F.carry * dt / 2; p.mat.map.offset.y += dz * F.carry * dt / 2; }
   for (const w of room.falls ?? []) w.tex.offset.y += dt * 1.2;
-  if (!player.dead && running(player.x, player.z)) { player.x += dx * F.carry * dt; player.z += dz * F.carry * dt; collide(player, blockers(room, 'player')); }
+  if (!player.dead && !player.stats.effects.has('float') && running(player.x, player.z)) { player.x += dx * F.carry * dt; player.z += dz * F.carry * dt; collide(player, blockers(room, 'player')); }
   let walls: ReturnType<typeof blockers> | null = null; // (worked out once a step, for every walker the water carries)
   for (const e of G.enemies) {
     if (e.dead || e.spawn > 0 || e.flying || e.hidden || !running(e.x, e.z)) continue;
@@ -339,7 +339,7 @@ export function updatePools(dt: number, now: number, acting: boolean) {
     if ((p.t -= dt) <= 0) spend(room, p);
   }
   // wading
-  if (acting && wadeAt(player.x, player.z) < 1 && Math.hypot(player.vx, player.vz) > 1 && (splashT -= dt) <= 0) {
+  if (acting && !player.stats.effects.has('float') && wadeAt(player.x, player.z) < 1 && Math.hypot(player.vx, player.vz) > 1 && (splashT -= dt) <= 0) {
     splashT = .32; Sfx.wade(); burst(player.x, .08, player.z, WATER, 3, 1.2, .035);
   }
 }

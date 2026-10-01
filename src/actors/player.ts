@@ -16,6 +16,7 @@ import { wadeAt } from '../world/pools';
 import { slipAt, stickyAt } from './bestiaryGround';
 import { checkVaultDoors } from '../world/vault';
 import { descend, tryTransition } from '../flow';
+import { blink, updateGifts } from '../items/gifts';
 import { clamp, lerp } from '../util';
 
 export function updatePlayer(dt: number) {
@@ -31,7 +32,7 @@ export function updatePlayer(dt: number) {
     }
   }
   const k = 1 - Math.exp(-(cur.theme?.twist === 'rime' ? CFG.mech.rimeGrip : slipAt(player.x, player.z) ? CFG.bestiary.rimeGrip : 14) * dt); // rime underfoot (the frozen mausoleum's, a rime snail's trail): the mage slides
-  const st = player.stats, speed = st.speed * wadeAt(player.x, player.z) * snagAt(player.x, player.z) * stickyAt(player.x, player.z) * (player.chill > 0 ? 1 - CFG.afflict.chillSlow : 1) * (player.stone > 0 ? CFG.bestiary.gazeSlow : 1); // slower wading through water, or cobwebs, a spider's web or ink (M4.5), or chilled, or in a basilisk's stare
+  const st = player.stats, speed = st.speed * (st.effects.has('float') ? 1 : wadeAt(player.x, player.z)) * snagAt(player.x, player.z) * stickyAt(player.x, player.z) * (player.chill > 0 ? 1 - CFG.afflict.chillSlow : 1) * (player.stone > 0 ? CFG.bestiary.gazeSlow : 1); // slower wading through water (unless floating: M4.6), or cobwebs, a spider's web or ink (M4.5), or chilled, or in a basilisk's stare
   player.vx = lerp(player.vx, mv.x * speed, k); player.vz = lerp(player.vz, mv.z * speed, k);
   if (Math.hypot(player.pull.x, player.pull.z) > CFG.afflict.drawnMin) player.drawn = CFG.afflict.drawnShow; // (shown beside the mana bar)
   player.x += (player.vx + player.pull.x) * dt; player.z += (player.vz + player.pull.z) * dt; player.pull.x = player.pull.z = 0; // (a lure's draw: spent each step)
@@ -45,6 +46,8 @@ export function updatePlayer(dt: number) {
   player.fireCd -= dt;
   if (aim && player.fireCd <= 0) { spawnBolt(); player.fireCd = st.fireDelay * (bloodMoon() ? CFG.artifacts.bloodMoon.fireDelayMul : 1); } // (quicker in the Blood Moon's hour)
   if (pressed.glyph) { pressed.glyph = false; placeGlyph(); }
+  if (pressed.blink) { pressed.blink = false; blink(mv); } // (M4.6: the Shadowstep's)
+  updateGifts(dt);
   // a spell key answers a grimoire page's question, if one is asking; otherwise it casts
   for (const i of [0, 1]) if (pressed.spells[i]) { pressed.spells[i] = false; if (!answerPage(i)) castSpell(i, aim); }
   if (player.invuln > 0) player.invuln -= dt;

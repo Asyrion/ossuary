@@ -1644,6 +1644,55 @@ test('costumes (M4.6): the focus is held in the casting hand, artifacts show on 
   expect(errors).toEqual([]);
 });
 
+test('transformations (M4.6): three of a family transform the mage, said in a banner and a lore card, with a look and a gift; the gifts stay as others form', async ({ page }) => {
+  const errors = await start(page, '?room=great_hall&variant=quiet&seed=TRANS1');
+  type GT = GameHooks & { give(...ids: string[]): void; transform(id: string): boolean; transforms: string[]; costume: string[]; robeTint: number; blinkRest: number; burningGround: number; moths: number;
+    spawn(kind: string, x?: number, z?: number): void; clearRoom(): void; closeUp(on?: boolean): void;
+    player: { x: number; z: number; hp: number; maxHp: number; stats: { effects: Set<string> } }; enemies: { dead?: boolean; x: number; z: number; hp: number; maxHp: number; vx: number; vz: number }[] };
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GT, out: Record<string, unknown> = {};
+    g.warp(1); g.sim(.3, true); g.clearRoom(); g.sim(.3, true);
+    // two of the Pyromancer's family: nothing yet; the third forms it
+    g.give('ember_sigil', 'thurible_of_ash'); g.sim(.1, true); out.two = g.transforms;
+    g.give('blood_moon_pendant'); g.sim(.1, true);
+    out.formed = g.transforms; out.banner = document.querySelector('#banner .t')?.textContent; out.lore = document.querySelector('#loreName')?.textContent;
+    out.look = g.costume; out.tint = g.robeTint > .05;
+    // its gift: a bolt that strikes leaves embers, which never burn the mage
+    g.spawn('rotling', g.player.x, g.player.z - 2.5); const foe = g.enemies[g.enemies.length - 1]; foe.hp = foe.maxHp = 200; const at = { x: foe.x, z: foe.z };
+    const ground = g.burningGround, hp = g.player.hp;
+    g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp');
+    for (let i = 0; i < 12; i++) { g.sim(.05, true); foe.x = at.x; foe.z = at.z; foe.vx = foe.vz = 0; }
+    g.keys.delete('ArrowUp'); g.arrowOrder.length = 0;
+    out.embers = g.burningGround > ground; out.hurt = hp - g.player.hp;
+    // a second: the Shadowstep's look over the Pyromancer's, both gifts kept; Shift blinks the way the mage walks
+    g.transform('shadowstep'); g.sim(.1, true); out.both = g.transforms; out.look2 = g.costume;
+    out.gifts = ['emberStrike', 'blink'].map(e => g.player.stats.effects.has(e));
+    return out;
+  });
+  expect(r.two).toEqual([]);
+  expect(r.formed).toEqual(['pyromancer']);
+  expect(r.banner).toBe('Pyromancer'); expect(r.lore).toBe('Pyromancer');
+  expect(r.look).toEqual(expect.arrayContaining(['flameCrown', 'emberSteps', 'aura'])); expect(r.tint).toBe(true);
+  expect(r.embers).toBe(true); expect(r.hurt).toBe(0);
+  expect(r.both).toEqual(['pyromancer', 'shadowstep']); expect(r.look2).toEqual(expect.arrayContaining(['shadowCloak', 'shadowEyes', 'aura'])); expect(r.look2).not.toContain('flameCrown');
+  expect(r.gifts).toEqual([true, true]);
+  const x0 = await page.evaluate(() => (window as unknown as W).__game.player.x);
+  await page.keyboard.down('KeyD'); await page.keyboard.press('ShiftLeft');
+  await page.evaluate(() => (window as unknown as W).__game.sim(.05, true));
+  await page.keyboard.up('KeyD');
+  const blink = await page.evaluate(() => { const g = (window as unknown as W).__game as GT; return { x: g.player.x, rest: g.blinkRest }; });
+  expect(blink.x - x0).toBeGreaterThan(2); expect(blink.rest).toBeGreaterThan(1);
+  // the Pilgrim maps the floor at once; the Beastcaller brings one more moth
+  const more = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GT; g.transform('pilgrim'); g.transform('beastcaller'); g.sim(.1, true);
+    return { mapped: (g.rooms() as unknown as { known?: boolean; plan: { type: string } }[]).every(r => r.plan.type === 'secret' || r.known), moths: g.moths };
+  });
+  expect(more).toEqual({ mapped: true, moths: 1 });
+  await page.evaluate(() => { const g = (window as unknown as W).__game as GT; g.clearRoom(); g.closeUp(true); g.sim(5, true); });
+  await page.screenshot({ path: 'test-results/transformations.png' });
+  expect(errors).toEqual([]);
+});
+
 test('the pause menu sets the volumes, and the browser remembers them; positioned effects play without errors', async ({ page }) => {
   const errors = await start(page, '?room=crypt_a&seed=VOL1&spells=arc');
   // a fight: hits, deaths and a spell, all panned to where they happen
