@@ -30,6 +30,7 @@ import { updateStatusFx, updateStatuses } from './magic/statusFx';
 import { updateFamiliars } from './combat/familiars';
 import { pollGamepad, type InputActions } from './input';
 import { updateFrameInfo, updateHud, updateVision } from './ui/hud';
+import { updateAfflictions } from './ui/afflictions';
 import { updateLore } from './ui/lore';
 import { ease, lerp } from './util';
 import { camTarget, cameraTargetFor, draw, setViewScale } from './render/renderer';
@@ -77,7 +78,7 @@ function updateWorldFx(dt: number, now: number) {
   const tf = .92 + Math.sin(now * 13) * .05 + Math.sin(now * 23) * .04;
   updateTorchLights(G.current.torches, player.x, player.z, dt, tf);
   G.shake = Math.max(0, G.shake - dt * 1.4);
-  updateHud(dt); updateLore(dt);
+  updateHud(dt); updateAfflictions(); updateLore(dt); // (what is being done to the mage, beside the mana bar)
 }
 
 function frame(nowMs: number) {

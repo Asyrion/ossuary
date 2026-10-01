@@ -87,6 +87,24 @@ export const STR = {
   drop: 'Release to play as this model',
   health: (hp: number, max: number, souls = 0) => `Health ${hp} of ${max} hearts` + (souls ? `, ${souls} soul mote${souls > 1 ? 's' : ''}` : ''),
   purse: (coins: number, keys: number, glyphs: number) => `${coins} obols, ${keys} bone keys, ${glyphs} blast glyphs`,
+  /** What is being done to the mage (ui/afflictions.ts): the chips beside the mana bar, and the line said the first time
+      each comes in a run (the sapping obelisk says its own). */
+  afflict: {
+    hexed: (n: number) => `Hexed −${n} mana`,
+    label: { chill: 'Chilled', stone: 'Heavy as stone', dim: 'Sight dimmed', web: 'Webbed', ink: 'Ink-slowed', snag: 'Snagged',
+      slide: 'Sliding', drawn: 'Drawn in', sapped: 'Sapped' } as Record<string, string>,
+    why: {
+      hexed: 'A hexed blow drew mana out of you.',
+      chill: 'Cold in your bones: you move slower until it thaws.',
+      stone: 'A stare turns your limbs heavy as stone while it holds you. Break its sight.',
+      dim: 'Something stings your eyes: your sight closes in for a while.',
+      web: 'Webs cling to your feet. Fire burns them away.',
+      ink: 'Ink drags at your steps.',
+      snag: 'Cobwebs snag you. Fire burns them away.',
+      slide: 'Rime underfoot: you slide. Fire melts it.',
+      drawn: 'Something draws you towards it.',
+    } as Record<string, string | undefined>,
+  },
   toast: {
     /** M4.2: Fen-Nex grows (to its second stage, then its full shape). */
     fennexGrows: ['Fen-Nex has grown', 'Fen-Nex comes into its full shape'],
@@ -437,6 +455,7 @@ export const STR = {
     pools: 'Water and oil (this room)', ignite: 'Set the oil alight', freezeWater: 'Freeze the water', shockWater: 'Shock the water',
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
     foes: 'Foes (they leave the doors open)', championHeavy: 'A champion of this floor\'s heavies',
+    afflictions: 'Afflictions (each shows its chip beside the mana bar)', afflictNames: { hexed: 'A hexing blow', chill: 'Chill', stone: 'Heavy as stone', dim: 'Dimmed sight', hints: 'Their lines again' },
     wardFoe: 'Ward the nearest foe (it drinks spells)', fennex: 'Fen-Nex', growFennex: 'Grow Fen-Nex a stage', noFennex: 'Fen-Nex is not bound (take the Rune of Fen-Nex)', wanderer: 'The Wandering Merchant, here', noFoe: 'No foe in the room',
     foesOfFloor: (floor: number) => floor ? `Floor ${floor}'s foes, built in code:` : 'The Wardlings, let out by drinking wards:', foesAsFloor: 'Fights: each floor\'s own foes', foeEverywhere: (name: string) => `Fights: ${name} in every one`,
     bestiaryNote: 'Weaknesses and resistances found are kept between runs (the bestiary to come).', forgetBestiary: 'Forget the bestiary',

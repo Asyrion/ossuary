@@ -60,7 +60,9 @@ export const CFG = {
   // ground burns the mage within `groundReach` (plus half the mage's size) and licks up a flame `groundLicks` times a
   // second; foes' embers and cold touch what they pass every `touchEvery` seconds, within `emberReach` and `coldReach`;
   // the dev hook's test shot (`__game.shoot`) flies at `testShot`; a storm ray's sparks arm after `sparkArm` seconds
-  afflict: { chillSlow: .4, groundReach: .3, groundLicks: .7, sparkArm: .35, touchEvery: .1, emberReach: .2, coldReach: .1, testShot: 3.8 },
+  // (hexShow: seconds the hexed chip stays beside the mana bar after a hexing blow; drawnMin: how strong a pull must be,
+  // units a second, to show the drawn-in chip, which stays drawnShow seconds; lineShow: seconds each first-time line stays)
+  afflict: { chillSlow: .4, groundReach: .3, groundLicks: .7, sparkArm: .35, touchEvery: .1, emberReach: .2, coldReach: .1, testShot: 3.8, hexShow: 2.5, drawnMin: .4, drawnShow: .5, lineShow: 3.5 },
   // M4.5's bestiary: how fast the mage walks through a spider's web and an ink octopus's smear; how much faster a lark's
   // song makes the foes round it; how much grip the mage keeps on a rime snail's trail; the health an elemental drinks from
   // each stack of its own school's status; how fast the mage walks in a basilisk's stare

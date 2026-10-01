@@ -41,6 +41,7 @@ import { SPELL_DEFS } from '../magic/spellData';
 import { forgetSpells, gainMana, learnSpell } from '../magic/spells';
 import { forgetKnowledge, knowEvery, knowledgeNow } from '../magic/memory';
 import { dropPage } from '../magic/pages';
+import { hexDrained } from './afflictions';
 import { fireAt, poolsDo } from '../world/pools';
 import { inflict } from '../magic/statusFx';
 import type { SpellStatus, StatusKind } from '../magic/spellData';
@@ -208,6 +209,11 @@ function build() {
 
   // artifacts: every one in the data, marked when held
   artBox = section(pages.mage, S.artifacts);
+  // afflictions (2026-10-01): each one landed on the mage, to see its chip beside the mana bar and its line
+  const aff = section(pages.mage, S.afflictions);
+  aff.append(btn(S.afflictNames.hexed, () => { const took = Math.min(player.mana, 8); gainMana(-8); hexDrained(took); }),
+    btn(S.afflictNames.chill, () => { player.chill = 3; }), btn(S.afflictNames.stone, () => { player.stone = 3; }),
+    btn(S.afflictNames.dim, () => { player.dim = 3; }), btn(S.afflictNames.hints, () => { for (const k of [...G.run.hinted]) if (k.startsWith('afflict:')) G.run.hinted.delete(k); }));
   // Fen-Nex (M4.2): bound by its artifact above; grown a stage here, as if a floor had gone by
   section(pages.mage, S.fennex).append(btn(S.growFennex, () => { if (fennexInfo()) growFennex(); else toast(S.noFennex, 2); }));
 
