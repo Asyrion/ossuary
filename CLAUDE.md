@@ -155,7 +155,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   charges its rune stones with frost (`chargeRunes`) and lets the mage slide; an ossuary's skull niches watch (`watchers` on a theme; `skullsWatch` from `castSpell`).
   `__game.element('burn' | 'chill' | 'shock' | 'sanct' | 'hex', x, z)` lands a status there, as the dev menu's Fire, Frost,
   Shock, Holy light and Darkness buttons do; `__game.props` reads `lit`, `school` and `cd` too (and a statue's `charge`,
-  `blind` and `aiming`, an obelisk's `ward` and `broken`), `__game.sap` the cantrip's worth where the mage stands.
+  `blind` and `aiming`, an obelisk's `ward` and `broken`, a sluice's `open`, a brazier's `black`), `__game.sap` the cantrip's worth where the mage stands.
 - Themed rooms (M3.6): themes are data in `data/themes.json` (look changes, floor scatter, a twist, rock and tomb looks),
   read by the pure `src/world/themeData.ts` (`themedLook`, `validateThemes`); a template's `theme` makes it a themed
   room (all in `data/templates/themed.json`); floors draw on them with `themeChance` and `themes` in

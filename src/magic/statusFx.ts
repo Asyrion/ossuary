@@ -16,7 +16,7 @@ import { CFG } from '../config';
 import { G } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { scene } from '../render/renderer';
+import { TILT, scene } from '../render/renderer';
 import { disposeTree, glow, markShared } from '../render/materials';
 import { burst } from '../combat/fx';
 import { damageEnemy, drink } from '../combat/damage';
@@ -269,7 +269,7 @@ export function statusTint(e: Enemy, now: number): [THREE.Color, number] | null 
 
 /* ---------- floating words, sparks and flashes ---------- */
 
-const floats: { s: THREE.Sprite; t: number; y: number }[] = [];
+const floats: { s: THREE.Sprite; t: number; y: number; name: boolean }[] = [];
 const textTex = new Map<string, THREE.CanvasTexture>();
 function textTexture(text: string, color: number, size = 44) {
   const key = `${text}|${color}|${size}`;
@@ -288,8 +288,23 @@ function textTexture(text: string, color: number, size = 44) {
 /** A word rising from a spot and fading: a reaction's name, a hit on the dummy. */
 export function floatText(x: number, y: number, z: number, text: string, color: number, size = 44) {
   const map = textTexture(text, color, size), s = new THREE.Sprite(new THREE.SpriteMaterial({ map, transparent: true, depthWrite: false, depthTest: false }));
-  s.scale.set(1.6 * (map.userData.wide ?? 1), .4, 1); s.position.set(x, y, z); s.renderOrder = 10; scene.add(s);
-  floats.push({ s, t: 0, y });
+  const w = 1.6 * (map.userData.wide ?? 1), name = size >= 44; // (a name: a reaction's, a weave's, a weakness's; not a hit's number)
+  if (name) y = clearOfNames(x, y, z, w);
+  s.scale.set(w, .4, 1); s.position.set(x, y, z); s.renderOrder = 10; scene.add(s);
+  floats.push({ s, t: 0, y, name });
+}
+/** How high (x, y, z) stands on the screen (the camera looks down at TILT). */
+const onScreen = (y: number, z: number) => y * Math.cos(TILT) - z * Math.sin(TILT);
+/** Names rising at once from the same spot stack rather than overlap (M4.10: a weave over the reaction it came from): the
+    height on screen for a name `w` wide at (x, y, z), lifted over any name just risen there. */
+function clearOfNames(x: number, y: number, z: number, w: number) {
+  const gap = CFG.spellFx.nameGap;
+  for (let k = 0; k < 4; k++) {
+    const at = onScreen(y, z), over = floats.find(f => f.name && f.t < CFG.spellFx.nameStack && Math.abs(f.s.position.x - x) < (w + f.s.scale.x) * .45 && Math.abs(onScreen(f.s.position.y, f.s.position.z) - at) < gap);
+    if (!over) break;
+    y += (onScreen(over.s.position.y, over.s.position.z) + gap - at) / Math.cos(TILT);
+  }
+  return y;
 }
 function updateFloats(dt: number) {
   for (let i = floats.length - 1; i >= 0; i--) {

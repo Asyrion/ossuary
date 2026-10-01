@@ -95,14 +95,16 @@ export const groundDrawn = (kind: GroundKind) => meshes[kind]?.count ?? 0;
 // fire burns a web away and melts rime
 hearGround((kind, x, z, r) => {
   if (kind !== 'fire') return;
+  const melted: Patch[] = []; // (Black Melt's own fire is heard here again: it melts after the loop)
   for (let i = patches.length - 1; i >= 0; i--) {
     const p = patches[i];
     if (p.kind === 'ink' || p.room !== G.current || Math.hypot(x - p.x, z - p.z) > r + p.r) continue;
     patches.splice(i, 1);
     if (p.kind === 'web') { burst(p.x, .1, p.z, 0xff9a3a, 8, 1.6, .04); Sfx.at(p.x, p.z).webBurn(); if (p.by) counterAt(p.by, 'burnt', p.x, p.z); }
-    else if (p.kind === 'blackice') blackMelt(p.room, p.x, p.z, p.r); // (M4.10: it melts into ground burning with Blackfire)
+    else if (p.kind === 'blackice') melted.push(p); // (M4.10: it melts into ground burning with Blackfire)
     else { burst(p.x, .1, p.z, 0xd4ecf8, 5, 1.2, .04); Sfx.at(p.x, p.z).thaw(); }
   }
+  for (const p of melted) blackMelt(p.room, p.x, p.z, p.r);
 });
 
 /** Black Melt (M4.10): black ice caught by fire melts into ground that burns with Blackfire, patch by patch over it. */

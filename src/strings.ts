@@ -201,7 +201,7 @@ export const STR = {
     /** M4.10: the book's weaves and chains, found or sealed; a spell's panel lists the weaves it takes part in. */
     weavesSec: 'Weaves and chains', weaveKind: { weave: 'Weave', chain: 'Chain' } as Record<string, string>,
     weaveSealed: (kind: string, a: string, b: string) => `A ${kind.toLowerCase()} of ${a} and ${b} not yet found.`,
-    weaveSealedText: (kind: string) => kind === 'Weave' ? 'One spell striking what another left in the room. Try your spells on each other\'s work.' : 'What a reaction leaves behind, met by a third school.',
+    weaveSealedText: (kind: string) => kind === 'weave' ? 'One spell striking what another left in the room. Try your spells on each other\'s work.' : 'What a reaction leaves behind, met by a third school.',
     weavesFoundOf: (n: number, of: number) => `${n} of ${of} weaves and chains found.`,
     weavesLbl: 'Weaves it takes part in',
     /** Each school's spoke on the wheel, in two letters (Verdant's sealed until M5). */

@@ -97,7 +97,7 @@ export function weaveSheet(id: WeaveId) {
   const K = STR.knowledge, w = WEAVES[id], on = weavesFound().includes(id), kind = K.weaveKind[w.kind];
   const [a, b] = w.schools.map(k => STR.schools[k]);
   return head(pairIcon(w.schools, on, w.kind === 'weave'), on ? STR.weaves[id].name : K.unfound, `${kind} · ${K.pair(a, b)}`)
-    + `<p class="effect">${esc(on ? STR.weaves[id].text : K.weaveSealedText(kind))}</p>`
+    + `<p class="effect">${esc(on ? STR.weaves[id].text : K.weaveSealedText(w.kind))}</p>`
     + (on ? '' : `<p class="note">${esc(K.weaveSealed(kind, a, b))}</p>`)
     + `<p class="note">${esc(K.weavesFoundOf(weavesFound().length, WEAVE_IDS.length))}</p>`;
 }
