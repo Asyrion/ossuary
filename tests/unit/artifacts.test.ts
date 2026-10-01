@@ -3,7 +3,7 @@ import { CFG } from '../../src/config';
 import { Rng } from '../../src/rng';
 import { ARTIFACT_DEFS, DEFAULT_BOLT_COLOR, GILT_COLOR, START_FOCUS, computeStats, halveStat, pickArtifact, validateArtifacts } from '../../src/items/artifactData';
 import { DROPS } from '../../src/items/loot';
-import { ARC_PIECES, COSTUME_PIECES, TRANSFORM_LOOKS, arcStage, isCostume, slotOf, wornIds, wornLooks, wornPieces } from '../../src/actors/costumeData';
+import { ARC_PIECES, COSTUME_PIECES, SHOWS_OTHERWISE, TRANSFORM_LOOKS, arcStage, isCostume, slotOf, wornIds, wornLooks, wornPieces } from '../../src/actors/costumeData';
 import { TRANSFORMS, TRANSFORM_IDS, TRANSFORM_NEEDS, formed, giftEffects, validateFamilies } from '../../src/items/transformData';
 import { STR } from '../../src/strings';
 
@@ -114,6 +114,13 @@ describe('costumes', () => {
     expect(chain).toMatchObject({ slot: 'hands', piece: 'manacles', cursed: true, cleansed: false });
     expect(wornLooks([def('chain_of_the_penitent')], ['chain_of_the_penitent'])[0]).toMatchObject({ cursed: false, cleansed: true });
     expect(wornLooks([def('mana_lantern')], ['mana_lantern'])[0].cursed).toBe(false); // (only a cursed artifact shows a curse)
+  });
+
+  it('every artifact shows on the mage (a piece, or held in the hand) or says what shows instead, and the validator asks a new one to decide', () => {
+    for (const a of ARTIFACT_DEFS) if (!a.start) expect(!!a.costume || a.kind === 'focus' || a.id in SHOWS_OTHERWISE, a.id).toBe(true);
+    for (const id of Object.keys(SHOWS_OTHERWISE)) expect(ARTIFACT_DEFS.some(a => a.id === id), id).toBe(true);
+    const bare = { ...def('mana_lantern'), id: 'new_one', costume: undefined };
+    expect(validateArtifacts([...ARTIFACT_DEFS, bare]).some(e => e.includes('new_one') && e.includes("doesn't show"))).toBe(true);
   });
 
   it('most artifacts show on the mage: a piece, or held in the hand (every focus)', () => {

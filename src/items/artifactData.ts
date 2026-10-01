@@ -8,7 +8,7 @@
 import artifactsData from '../../data/artifacts.json';
 import type { Rng } from '../rng';
 import type { Resource } from './loot';
-import { isCostume } from '../actors/costumeData';
+import { SHOWS_OTHERWISE, isCostume } from '../actors/costumeData';
 import { validateFamilies } from './transformData';
 
 export type Pool = 'treasure' | 'ordeal' | 'boss' | 'altar' | 'drop' | 'merchant' | 'secret' | 'vault';
@@ -174,6 +174,8 @@ export function validateArtifacts(defs: ArtifactDef[] = ARTIFACT_DEFS): string[]
     if (!/^#[0-9a-f]{6}$/i.test(a.color) || (a.boltColor && !/^#[0-9a-f]{6}$/i.test(a.boltColor))) errs.push(`${at} has a bad colour`);
     if (!a.start && !a.pools.length) errs.push(`${at} is in no pool, so it can never appear`);
     if (a.costume !== undefined && !isCostume(a.costume)) errs.push(`${at} wears unknown costume "${a.costume}"`);
+    if (!a.costume && a.kind !== 'focus' && !a.start && !(a.id in SHOWS_OTHERWISE)) errs.push(`${at} doesn't show on the mage: give it a costume, or say in SHOWS_OTHERWISE (costumeData.ts) what shows instead`);
+    if (a.costume && a.id in SHOWS_OTHERWISE) errs.push(`${at} wears a costume and shows otherwise too`);
   }
   if (defs.filter(a => a.start).length !== 1) errs.push('exactly one artifact must be the starting focus');
   errs.push(...validateFamilies(defs));

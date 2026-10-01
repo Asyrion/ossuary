@@ -59,7 +59,10 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   full shape; `__game.fennex`, `__game.growFennex()` and the dev menu's Mage tab grow it.
   New artifacts are data plus, for a new mechanic, an `Effect` or stat key in `artifactData.ts`, a look in
   `src/items/artifactLooks.ts` (its HUD icon is rendered from it) and a drawn icon in `hud.ts` for the room kit off (57
-  artifacts and the starting wand; more ideas in `docs/ideas.md`). M4.1's twelve: the Pendulum of Hours (the `swing` path,
+  artifacts and the starting wand; more ideas in `docs/ideas.md`), and how it shows on the mage (the owner's ask,
+  2026-10-01; GDD: Artifacts, Costumes): a `costume` (a piece built for the body or a spot for its own model, chosen by
+  what it stands for), held as a focus, or a line in `SHOWS_OTHERWISE` (costumeData.ts) saying what shows instead; the
+  validator refuses an artifact that hasn't decided. M4.1's twelve: the Pendulum of Hours (the `swing` path,
   `curve` on a bolt) and the Lodestar Wand (`star`: bolts hang where their range ends), the Echo Stone (`echoed`), the Gilded
   Halo (`haloed`) and the Hart's Antler in `projectiles.ts`; the Twin Vigil Candles and the Salt Circle from `player.still`,
   drawn in `familiars.ts` (`saltHolds`, `__game.salt`); the Blood Moon Pendant (`bloodMoon()`), the Ossuary Choir
