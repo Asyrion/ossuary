@@ -20,6 +20,7 @@ import { boltThrough, sapMul } from '../world/mechanisms';
 import { hollowRing } from '../world/secret';
 import { strikeWisp } from '../world/shrine';
 import { shootDir } from '../input';
+import { emberCantrip, unseen } from '../items/potionFx';
 import { heroCast } from '../actors/hero';
 import { schoolOf } from '../actors/foeData';
 import { damageEnemy, hurtPlayer } from './damage';
@@ -83,7 +84,7 @@ export function spawnBolt() {
   const slots = p.count === 1 ? [0] : Array.from({ length: p.count }, (_, i) => i - (p.count - 1) / 2);
   // Raven's Eye: now and then the whole cast strikes thrice as hard, bigger and white-hot
   const crit = st.effects.has('crit') && Math.random() < A.crit.chance;
-  // the Emberwood Wand sets foes burning; the Frostbitten Ring chills with every fifth cast
+  // the Emberwood Wand (or Liquid Ember, drunk: M5) sets foes burning; the Frostbitten Ring chills with every fifth cast
   const frost = st.effects.has('frostbite') && ++casts % A.frostbite.every === 0;
   // a chapel's blessing: the next few casts strike harder, in gold
   const blessed = player.blessed > 0; if (blessed) player.blessed--;
@@ -91,7 +92,7 @@ export function spawnBolt() {
   // Moon Pendant quickens a hurt one
   const lance = st.effects.has('antler') && ++antlerCasts % A.antler.every === 0;
   const steady = st.effects.has('stillCandles') && player.still >= A.still.after, moon = bloodMoon();
-  const statusOf = { ...(st.effects.has('emberBolts') ? { burn: A.emberwood.burn } : {}), ...(frost ? { chill: A.frostbite.chill } : {}), ...(lance ? { sanct: A.antler.sanct } : {}) };
+  const statusOf = { ...(st.effects.has('emberBolts') || emberCantrip() ? { burn: A.emberwood.burn } : {}), ...(frost ? { chill: A.frostbite.chill } : {}), ...(lance ? { sanct: A.antler.sanct } : {}) };
   const status = Object.keys(statusOf).length ? statusOf : undefined;
   const dmgMul = (steady ? A.candles.damageMul : 1) * (lance ? A.antler.damageMul : 1) * sapMul(), speedMul = moon ? A.bloodMoon.shotSpeedMul : 1;
   for (const k of slots) {
@@ -143,7 +144,7 @@ export function spawnShot(x: number, z: number, dx: number, dz: number, speed: n
   const m = actor()?.mantle; // (M4.7: a Rimebound champion's shots chill, a Hexbound one's drink mana)
   if (m === 'rimebound') o = { ...o, chill: Math.max(o.chill ?? 0, MAGIC.mantles.rimebound.chill) };
   else if (m === 'hexbound') o = { ...o, hex: Math.max(o.hex ?? 0, MAGIC.mantles.hexbound.hex) };
-  if (inSteam(x, z)) { const a = (Math.random() - .5) * 2 * MAGIC.reactions.steam.spread, c = Math.cos(a), n = Math.sin(a); [dx, dz] = [dx * c - dz * n, dz * c + dx * n]; } // (thrown out of steam, it can't be aimed)
+  if (inSteam(x, z) || unseen()) { const a = (Math.random() - .5) * 2 * MAGIC.reactions.steam.spread, c = Math.cos(a), n = Math.sin(a); [dx, dz] = [dx * c - dz * n, dz * c + dx * n]; } // (thrown out of steam, or at a mage unseen under the Shadowstep Tincture: M5, it can't be aimed)
   const mesh = new THREE.Group();
   const sh = blob(.4); sh.position.y = -y + .015;
   mesh.add(new THREE.Mesh(sphereGeo(.13 * size), basicMat(color)), glowShared(color, .9 * size, .9), sh);

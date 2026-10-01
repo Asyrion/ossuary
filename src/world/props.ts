@@ -19,6 +19,7 @@ import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { inflict } from '../magic/statusFx';
 import { riseMote } from '../magic/shapes';
 import { LOOT, rollTable } from '../items/loot';
+import { objectReagent } from '../items/reagents';
 import { soulsHere } from '../items/souls';
 import { spawnPickup } from '../items/pickups';
 import { mulberry } from '../util';
@@ -259,6 +260,7 @@ function breakProp(room: Room, box: PropBox) {
     default: burst(x, .3, z, 0x8a8078, 8, 1.6, .05);
   }
   if (def.loot) for (const item of rollTable(G.run.drops, def.loot, LOOT, soulsHere())) spawnPickup(item, x, z, { rise: true });
+  objectReagent(kind, x, z); // (M5: now and then the reagent it held)
 }
 
 /** A broken cask's oil: its own tile and a few of the free floor tiles beside it, spreading outwards. */

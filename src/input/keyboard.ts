@@ -1,4 +1,5 @@
-import { pressed, type InputActions } from './index';
+import { CFG } from '../config';
+import { potionHold, pressed, releasePotion, type InputActions } from './index';
 
 export const keys = new Set<string>();
 /** Held arrow keys in press order; the most recent one sets the shot direction. */
@@ -19,11 +20,16 @@ export function initKeyboard(act: InputActions) {
     if (e.code === 'Space' && act.playing()) pressed.glyph = true; // chalk a blast glyph
     if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && act.playing()) pressed.blink = true; // the Shadowstep's blink (M4.6)
     if ((e.code === 'KeyQ' || e.code === 'KeyE') && act.playing()) pressed.spells[e.code === 'KeyQ' ? 0 : 1] = true; // cast a spell
+    if (e.code === 'KeyR' && act.playing()) potionHold.since = performance.now(); // a potion: tap to drink, hold to throw (M5)
+    if (e.code === 'KeyF' && act.playing()) pressed.nextPotion += 1;
     if (e.code === 'Enter' || e.code === 'Space') act.confirm();
     if (e.code === 'KeyM') act.toggleSound();
   });
-  window.addEventListener('keyup', e => { keys.delete(e.code); const i = arrowOrder.indexOf(e.code); if (i >= 0) arrowOrder.splice(i, 1); });
-  const release = () => { keys.clear(); arrowOrder.length = 0; act.autoPause(); };
+  window.addEventListener('keyup', e => {
+    keys.delete(e.code); const i = arrowOrder.indexOf(e.code); if (i >= 0) arrowOrder.splice(i, 1);
+    if (e.code === 'KeyR' && act.playing()) releasePotion(performance.now(), CFG.alchemy.hold);
+  });
+  const release = () => { keys.clear(); arrowOrder.length = 0; potionHold.since = 0; act.autoPause(); };
   window.addEventListener('blur', release);
   document.addEventListener('visibilitychange', () => { if (document.hidden) act.autoPause(); });
 }

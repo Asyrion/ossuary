@@ -1773,6 +1773,133 @@ test('spell marks (M4.11): each slotted spell shows at its hand (ready, cooling,
   expect(errors).toEqual([]);
 });
 
+/* M5 (docs/M5-plan.md): the potion belt, and what potions do drunk and thrown. */
+type Belt = { ids: string[]; at: number; slots: number; known: boolean[]; reagents: Record<string, number>; html: string };
+type GP = Omit<GameHooks, 'enemies' | 'player'> & { belt: Belt; potionFx: Record<string, number | string | null>; bottles: Record<string, { shape: string; liquid: string }>; throws: { flying: number; storms: number; thrall: boolean };
+  givePotion(id: string): boolean; usePotion(how: 'drink' | 'throw'): boolean; choosePotion(d: number): void; identifyAll(): void; forgetPotions(): void;
+  drop(kind: string, x?: number, z?: number, o?: { potion?: string }): void; pickups: { kind: string; potion?: string; reagent?: string; x: number; z: number }[]; spawn(kind: string): void; clearRoom(): void;
+  player: GameHooks['player'] & { aim: { x: number; z: number }; mana: number }; mana(v?: number): number; learn(id: string, slot: number): void; cast(slot: number, dir?: { x: number; z: number }): boolean;
+  enemies: (Foe & { status?: Record<string, number>; giant?: boolean; hp: number })[] };
+
+test('the potion belt (M5): potions start unknown in their bottles; R tapped drinks and held throws, F chooses; drinking or throwing one identifies it; a full belt leaves a potion where it lies; the inventory has a Potions tab', async ({ page }) => {
+  const errors = await start(page, '?seed=BELT1&variant=quiet&potions=healing,liquidEmber,hexBrew&spells=cinder_lance');
+  await page.evaluate(() => { const g = (window as unknown as W).__game as GP; g.forgetPotions(); g.sim(6); g.player.hp = 2; });
+  const first = await page.evaluate(() => { const g = (window as unknown as W).__game as GP; return { belt: g.belt, bottles: g.bottles }; });
+  expect(first.belt).toMatchObject({ ids: ['healing', 'liquidEmber', 'hexBrew'], at: 0, slots: 3, known: [false, false, false] });
+  expect(await page.locator('#belt .bslot img.px').count()).toBe(3);
+  expect(await page.locator('#belt .bslot i').count()).toBe(3); // (each marked unknown)
+  expect(new Set(Object.values(first.bottles).map(b => b.liquid)).size).toBe(12); // (every potion its own colour)
+  const icon = await page.locator('#belt .bslot img').first().evaluate(i => [(i as HTMLImageElement).naturalWidth, getComputedStyle(i).imageRendering]);
+  expect(icon).toEqual([24, 'pixelated']);
+  // a tap of R drinks the chosen potion (the Healing Draught): healed, known
+  await page.keyboard.down('KeyR'); await page.keyboard.up('KeyR');
+  const drunk = await page.evaluate(() => { const g = (window as unknown as W).__game as GP; g.sim(.1); return { hp: g.player.hp, belt: g.belt.ids, line: document.querySelector('#toast')?.textContent, lore: document.querySelector('#lore')?.textContent }; });
+  expect(drunk.hp).toBe(4); expect(drunk.belt).toEqual(['liquidEmber', 'hexBrew']);
+  expect(drunk.line).toContain('Healing Draught'); expect(drunk.lore).toContain('Healing Draught');
+  // F chooses the next; held, R throws it where the mage aims (a ring shows where), and the splash hexes the foe there
+  await page.keyboard.down('KeyF'); await page.keyboard.up('KeyF');
+  await page.evaluate(() => { const g = (window as unknown as W).__game as GP; g.sim(.05); g.spawn('dummy'); g.sim(.6); g.player.aim = { x: 0, z: -1 }; const e = g.enemies[0]; e.x = g.player.x; e.z = g.player.z - 4.4; });
+  expect(await page.evaluate(() => ((window as unknown as W).__game as GP).belt.at)).toBe(1);
+  await page.keyboard.down('KeyR');
+  await page.evaluate(() => { const t = performance.now(); while (performance.now() - t < 350) { /* held past the throw's moment */ } });
+  await page.keyboard.up('KeyR');
+  const thrown = await page.evaluate(() => { const g = (window as unknown as W).__game as GP; g.sim(.05); const flying = g.throws.flying; g.sim(.6); return { flying, hex: g.enemies[0].status?.hex ?? 0, belt: g.belt.ids, known: g.belt.known }; });
+  expect(thrown.flying).toBe(1); expect(thrown.hex).toBeGreaterThanOrEqual(3); expect(thrown.belt).toEqual(['liquidEmber']); expect(thrown.known).toEqual([false]);
+  // a full belt leaves a potion lying, and says so once
+  const full = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GP; g.sim(5); g.givePotion('mana'); g.givePotion('frostbrew');
+    g.drop('potion', g.player.x, g.player.z, { potion: 'healing' }); g.sim(.8);
+    return { belt: g.belt.ids.length, lying: g.pickups.filter(p => p.kind === 'potion').length, line: document.querySelector('#toast')?.textContent };
+  });
+  expect(full).toMatchObject({ belt: 3, lying: 1 }); expect(full.line).toContain('belt is full');
+  // the inventory's Potions tab: the belt, then every potion, those known by name
+  await page.keyboard.press('KeyI');
+  await page.locator('#invTabs button', { hasText: 'Potions' }).click();
+  await expect(page.locator('#invList .sec', { hasText: 'Belt' })).toBeVisible();
+  await expect(page.locator('#invList .tile[title="Healing Draught"]')).toHaveCount(1); // (known now: in the book of potions)
+  await page.screenshot({ path: 'test-results/potions-tab.png' });
+  await page.keyboard.press('KeyI');
+  expect(errors).toEqual([]);
+});
+
+test('potions drunk and thrown (M5): each drink does its own and shows a chip while it lasts (the cantrip burns, spells are free, one echoes, a giant, unseen, reversed, a curse\'s price lifted); each throw lands its splash through the magic hooks', async ({ page }) => {
+  const errors = await start(page, '?seed=BELT2&variant=quiet&spells=cinder_lance,arc&give=gravemongers_contract');
+  const drink = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GP, P = g.player, out: Record<string, unknown> = {};
+    g.forgetPotions(); g.sim(1);
+    const sip = (id: string) => { g.givePotion(id); g.usePotion('drink'); g.sim(.1); };
+    P.hp = 2; g.mana(10); sip('mana'); out.mana = Math.round(P.mana);
+    sip('liquidEmber'); sip('frostbrew'); sip('bottledStorm'); sip('echoes'); sip('shadowstep'); sip('bitterRemedy');
+    out.fx = { ...g.potionFx }; out.chips = document.getElementById('afflict')?.textContent;
+    const before = Math.round(P.mana); g.cast(0, { x: 0, z: -1 }); g.sim(.1); out.free = [Math.round(P.mana) >= before, g.potionFx.free, g.potionFx.echo]; // (no mana spent: it only came back)
+    sip('giants'); out.giant = g.potionFx.scale;
+    const x0 = P.x; sip('hexBrew'); g.keys.add('KeyD'); g.sim(.4); g.keys.delete('KeyD'); out.reversed = P.x < x0 - .3;
+    g.sim(6); P.hp = 3; sip('graveDraught'); out.grave = [P.hp, (g as unknown as { souls: string[] }).souls.length];
+    g.warp(1); g.sim(.6); out.shrunk = g.potionFx.scale;
+    return out;
+  });
+  expect(drink.mana).toBe(60);
+  expect(drink.fx).toMatchObject({ remedy: 'gravemongers_contract', free: 3, echo: 1 });
+  for (const k of ['ember', 'frost', 'unseen']) expect((drink.fx as Record<string, number>)[k]).toBeGreaterThan(0);
+  for (const chip of ['Liquid Ember', 'Frostbrew', 'Free spells ×3', 'Echoing', 'Unseen', 'Remedied']) expect(drink.chips).toContain(chip);
+  expect(drink.free).toEqual([true, 2, 0]); // (a free cast spent, the echo too)
+  expect(drink.giant).toBeCloseTo(1.25); expect(drink.reversed).toBe(true);
+  expect(drink.grave).toEqual([2, 1]); expect(drink.shrunk).toBe(1);
+  const thrown = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GP, P = g.player, out: Record<string, unknown> = {};
+    g.clearRoom(); g.sim(.2);
+    for (const id of ['mana', 'liquidEmber', 'frostbrew', 'bottledStorm', 'giants', 'hexBrew', 'graveDraught']) {
+      for (const e of g.enemies) e.dead = true;
+      g.sim(.05); g.spawn('dummy'); g.sim(.6); P.aim = { x: 0, z: -1 };
+      const e = g.enemies.filter(f => !f.dead)[0]; e.x = P.x; e.z = P.z - 4.4;
+      g.givePotion(id); g.usePotion('throw'); g.sim(.55);
+      const st = e.status ?? {};
+      out[id] = { stun: st.stun > 0, burn: st.burn > 0, frozen: st.frozen > 0, shock: st.shock > 0, hex: st.hex ?? 0, giant: !!e.giant, ...g.throws };
+      g.sim(3.5);
+    }
+    return out;
+  });
+  expect(thrown.mana).toMatchObject({ stun: true });
+  expect(thrown.liquidEmber).toMatchObject({ burn: true });
+  expect(thrown.frostbrew).toMatchObject({ frozen: true });
+  expect(thrown.bottledStorm).toMatchObject({ storms: 1 });
+  expect(thrown.giants).toMatchObject({ giant: true });
+  expect((thrown.hexBrew as { hex: number }).hex).toBeGreaterThanOrEqual(3);
+  expect(thrown.graveDraught).toMatchObject({ thrall: true });
+  expect(errors).toEqual([]);
+});
+
+test('reagents (M5): a fallen foe leaves its own kind\'s, else its school\'s, Ember Salt if it died burning; a boss always leaves Warden\'s Ash; walked over, they go into the pouch, each one\'s card the first time', async ({ page }) => {
+  const errors = await start(page, '?seed=REAG2&variant=quiet&boss=warden');
+  type GR = GP & { reagentsAlways(on: boolean): void; hit(i: number, dmg: number, school?: string): number; inflict(s: Record<string, number>): void };
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GR, out: Record<string, unknown> = {};
+    g.sim(1); g.reagentsAlways(true);
+    for (const k of ['sporeling', 'vesperMoth', 'mireToad']) g.spawn(k);
+    g.sim(.8);
+    const live = g.enemies.filter(e => !e.dead);
+    g.hit(g.enemies.indexOf(live[0]), 9999); g.hit(g.enemies.indexOf(live[1]), 9999); g.sim(.05);
+    g.inflict({ burn: 3 }); g.hit(g.enemies.indexOf(live[2]), 9999); g.sim(.8); // (the toad dies burning)
+    out.dropped = g.pickups.filter(p => p.kind === 'reagent').map(p => p.reagent);
+    for (const p of g.pickups.filter(q => q.kind === 'reagent')) { g.player.x = p.x; g.player.z = p.z; g.sim(.1); }
+    out.pouch = g.belt.reagents; out.lore = document.querySelector('#lore')?.textContent;
+    g.reagentsAlways(false);
+    g.warp(g.rooms().find(q => q.type === 'boss')!.plan.id); g.sim(2.5);
+    const boss = g.enemies.findIndex(e => e.isBoss && !e.dead); g.hit(boss, 1e6); g.sim(1.5);
+    out.ash = g.pickups.filter(p => p.kind === 'reagent').map(p => p.reagent);
+    return out;
+  });
+  expect(r.dropped).toEqual(expect.arrayContaining(['graveMoss', 'wispEssence', 'emberSalt']));
+  expect(r.pouch).toMatchObject({ graveMoss: 1, wispEssence: 1, emberSalt: 1 });
+  expect(r.lore).toContain('Reagent');
+  expect(r.ash).toContain('wardensAsh');
+  await page.keyboard.press('KeyI'); await page.locator('#invTabs button', { hasText: 'Potions' }).click();
+  await expect(page.locator('#invList .sec', { hasText: 'Reagents' })).toBeVisible();
+  await expect(page.locator('#invList .tile[title="Grave Moss"] .n')).toHaveText('1');
+  await page.keyboard.press('KeyI');
+  expect(errors).toEqual([]);
+});
+
 test('the pause menu sets the volumes, and the browser remembers them; positioned effects play without errors', async ({ page }) => {
   const errors = await start(page, '?room=crypt_a&seed=VOL1&spells=arc');
   // a fight: hits, deaths and a spell, all panned to where they happen
@@ -2831,7 +2958,7 @@ test('the room kit\'s pickups and special rooms: every drop, coffers and chests 
   })()`) as Promise<{ laid: { kind: string; painted: boolean }[]; opened: number; boxes: number; spilled: number }>;
   const errors = await start(page, '?seed=K3F9QX');
   const kit = await drops();
-  expect(kit.laid.map(d => d.kind).sort()).toEqual(['blackSoul', 'chest', 'chest', 'coffer', 'coin', 'glyph', 'halfHeart', 'hallowedSoul', 'heart', 'key', 'mana', 'paleSoul', 'purse', 'shard']);
+  expect(kit.laid.map(d => d.kind).sort()).toEqual(['blackSoul', 'chest', 'chest', 'coffer', 'coin', 'glyph', 'halfHeart', 'hallowedSoul', 'heart', 'key', 'mana', 'paleSoul', 'potion', 'purse', 'reagent', 'shard']);
   expect(kit.laid.every(d => d.painted)).toBe(true);
   expect(kit).toMatchObject({ boxes: 3, opened: 3 }); expect(kit.spilled).toBeGreaterThan(0); // (a key each for the chests; the gilded one's relic is an artifact, not a pickup)
   await page.screenshot({ path: 'test-results/room-kit-drops.png' });
@@ -2855,7 +2982,7 @@ test('the room kit\'s pickups and special rooms: every drop, coffers and chests 
   // off: the old pickups, nothing painted
   await start(page, '?seed=K3F9QX&kit=old');
   const old = await drops();
-  expect(old.laid.filter(d => d.painted).map(d => d.kind).sort()).toEqual(['blackSoul', 'hallowedSoul', 'paleSoul', 'shard']); // (M4.1's items have only the kit's look)
+  expect(old.laid.filter(d => d.painted).map(d => d.kind).sort()).toEqual(['blackSoul', 'hallowedSoul', 'paleSoul', 'potion', 'reagent', 'shard']); // (M4.1's and M5's items have only the kit's look)
   expect(old).toMatchObject({ boxes: 3, opened: 3 });
   expect(errors).toEqual([]);
 });

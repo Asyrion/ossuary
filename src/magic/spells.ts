@@ -4,7 +4,7 @@
    spent. Each spell's `shape` (data/spells.json) is a function in magic/shapes.ts. */
 import { CFG } from '../config';
 import type { Vec2 } from '../types';
-import { DEV, G, player } from '../state';
+import { DEV, G, after, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { heroCast } from '../actors/hero';
@@ -20,6 +20,7 @@ import { drinkSpell, wardNear } from '../world/vault';
 import { hexGiveBack } from '../ui/afflictions';
 import { flareEyes } from '../actors/costume';
 import { knownWellNow } from '../actors/spellMarks';
+import { spendFreeCast, takeEcho } from '../items/potionFx';
 
 /* ---------- mana ---------- */
 
@@ -69,6 +70,8 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   else if (!CAST[def.shape](def, aimDir(cast))) { Sfx.spellFail(); flashMana(slot, 'target'); return false; }
   if (short) burnSoul();
   if (!DEV.mana) gainMana(-cost);
+  spendFreeCast(); // (M5: the Bottled Storm's)
+  if (!ward && takeEcho()) { const room = G.current; after(CFG.alchemy.echoAfter, () => { if (G.current === room && !player.dead) CAST[def.shape](def, aimDir(cast)); }); } // (M5: the Philter of Echoes casts it again)
   if (def.school === 'hallow') hexGiveBack(); // (M4.9: holy light gives back what a hex just took)
   if (def.school === 'storm') flareEyes(); // (M4.6: a Stormcaller's eyes flare)
   player.spellCd[slot] = def.cooldown;

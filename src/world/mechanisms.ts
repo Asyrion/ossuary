@@ -24,6 +24,7 @@
    stay for `DEV.roomKit` off. Their geometries and materials are shared, but for a rune stone's rune (a charge colours
    it) and a dead tree's branches (each grown its own way); both are disposed with the object. */
 import * as THREE from 'three';
+import { objectReagent } from '../items/reagents';
 import { CFG } from '../config';
 import type { Bolt, Box, FloorLook, Pool, PropBox, Room } from '../types';
 import { DEV, G, player } from '../state';
@@ -327,6 +328,7 @@ function light(room: Room, box: PropBox) {
   if (p.parts?.runes) ((p.parts.runes as THREE.Mesh).material as THREE.MeshBasicMaterial).color.setHex(RUNE_LIT); // the brazier's runes kindle
   burst(box.x, 1, box.z, FIRE, 6, 1.6, .05); Sfx.at(box.x, box.z).catchFire();
   if (p.parts?.waterGlow) p.parts.waterGlow.visible = true; // (a stand in water lights the water round it)
+  if (p.kind === 'brazier' && !p.salted) { p.salted = true; objectReagent('brazier', box.x, box.z + .8); } // (M5: its first fire may leave Ember Salt)
   if (isStand(p.kind)) checkCandles(room);
 }
 

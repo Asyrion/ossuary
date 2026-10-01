@@ -11,6 +11,7 @@ import type { Room } from './types';
 import { DEV, G, after, clearTimers, player } from './state';
 import { STR } from './strings';
 import { Rng, newSeed } from './rng';
+import { bottlesFor, isPotion } from './items/alchemyData';
 import { Sfx } from './audio/sfx';
 import { camTarget, cameraTargetFor, scene, setViewScale, viewScale, viewScaleFor } from './render/renderer';
 import { applyFloorLook, applyRoomTorches, resetTorchLights, setDarkness } from './render/lights';
@@ -31,7 +32,7 @@ import { pressed } from './input';
 import { giveResources, makeTrapdoor, resetResources, spawnHeart, spawnPickup } from './items/pickups';
 import { LOOT, rollRoomClear, type Resource } from './items/loot';
 import { hallowedMend, resetSouls, soulsHere } from './items/souls';
-import { giveById, offerGuaranteed, offerOptional, offerSecondChoice, placeArtifact, resetArtifacts, resetBudget } from './items/artifacts';
+import { giveById, offerGuaranteed, offerOptional, offerSecondChoice, placeArtifact, refreshStats, resetArtifacts, resetBudget } from './items/artifacts';
 import { banner, fadeFromBlack, hideBossBar, renderHearts, renderMinimap, resetHearts, showBossBar, toast, line, clearLines } from './ui/hud';
 import { resetAfflictions } from './ui/afflictions';
 import { warnFloor } from './world/curve';
@@ -39,6 +40,8 @@ import { pilgrimMap, resetGifts } from './items/gifts';
 import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
 import { clearSpellFx, forgetSpells, gainMana, leaveRoomSpells, learnSpell } from './magic/spells';
+import { addPotion, renderBelt, resetPotions } from './items/potions';
+import { clearThrows } from './items/potionThrow';
 import { clearStatusFx } from './magic/statusFx';
 import { clearPages, dropPage, enterLibrary, maybeDropPage } from './magic/pages';
 import { resetClock } from './loop';
@@ -52,6 +55,7 @@ export interface RunOptions {
   seed?: string; floor?: number; testTemplate?: string; testVariant?: RoomVariant; give?: string[]; boss?: BossType;
   /** Extra obols, keys and glyphs to start with. */ loot?: Partial<Record<Resource, number>>;
   /** Spells to start with, in slot order. */ spells?: string[];
+  /** Potions to start with in the belt (M5). */ potions?: string[];
   /** Every fight on every floor in a room of this theme (M3.6). */ theme?: string;
 }
 let nextRun: RunOptions = {};
@@ -61,7 +65,7 @@ export function setNextRun(opts: RunOptions) { nextRun = opts; }
 const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
 
 function clearEntities() {
-  clearMechanisms(); resetWardShields(); clearWanderer(); clearModelOptions(); clearEffectOptions(); clearRite(); clearSpellFx(); clearStatusFx(); clearPages(); clearProjectiles(); clearGlyphs(); pressed.glyph = false; pressed.spells = [false, false];
+  clearMechanisms(); resetWardShields(); clearWanderer(); clearModelOptions(); clearEffectOptions(); clearRite(); clearSpellFx(); clearStatusFx(); clearPages(); clearProjectiles(); clearGlyphs(); clearThrows(); pressed.glyph = false; pressed.spells = [false, false]; pressed.potion = null; pressed.nextPotion = 0;
   for (const p of G.particles) { scene.remove(p.m); p.m.material.dispose(); } G.particles.length = 0;
   clearEnemies();
   for (const p of G.pickups) { scene.remove(p.g); disposeTree(p.g); } G.pickups.length = 0;
@@ -97,10 +101,11 @@ export function buildFloor(index: number) {
 }
 
 export function resetPlayer() {
-  Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0, blessed: 0, dim: 0, chill: 0, stone: 0, pull: { x: 0, z: 0 }, hexed: 0, drained: 0, hexDebt: 0, hexDebtUntil: 0, drawn: 0 });
+  Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0, blessed: 0, dim: 0, chill: 0, stone: 0, pull: { x: 0, z: 0 }, hexed: 0, drained: 0, hexDebt: 0, hexDebtUntil: 0, drawn: 0, belt: [], beltAt: 0, reagents: {} });
   heroReset();
   resetHearts(); resetArtifacts(); resetResources(); resetSouls(); resetAfflictions(); clearLines(); resetGifts();
   forgetSpells(); player.mana = player.stats.maxMana;
+  resetPotions(); renderBelt(); // (M5: an empty belt, nothing drunk)
 }
 
 /** Start a new run: a fresh seed unless one was requested. */
@@ -110,6 +115,7 @@ function newRun(seed: string): typeof G.run {
     seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [],
     budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1, riteFloor: -99, loreSeen: new Set(), hinted: new Set(), pages: Rng.from(seed, 'pages'), forgotten: [],
     wanderer: Rng.from(seed, 'wanderer'), wandererMet: false, fennexFrom: undefined, transforms: [], arc: 0, attuned: [],
+    bottles: bottlesFor(Rng.from(seed, 'bottles').int(0, 2 ** 30)), identified: [], alchemy: Rng.from(seed, 'alchemy'), reagents: Rng.from(seed, 'reagents'), remedy: null,
   };
 }
 
@@ -121,6 +127,7 @@ export function startGame(opts?: RunOptions) {
   Sfx.init(); resetPlayer(); hideLore(); G.stats.time = 0; G.stats.kills = 0; G.stats.obols = 0;
   if (o.give?.length) giveById(o.give);
   if (o.loot) giveResources(o.loot);
+  o.potions?.forEach(id => { if (isPotion(id)) addPotion(id); });
   o.spells?.slice(0, 2).forEach((id, i) => learnSpell(id, i, true));
   showScreen(null); G.state = 'play';
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, o.floor ?? 0)));
@@ -138,6 +145,7 @@ export function prepareTitle() {
 export function descend() {
   if (testTemplate || G.run.floor >= FLOORS.length - 1) { endGame(true); return; }
   Sfx.descend(); hallowedMend(); // the hallowed soul motes give back half a heart each, at every floor's end
+  if (G.run.remedy) { G.run.remedy = null; refreshStats(false); } // (M5: a Bitter Remedy lasts until the floor ends)
   fadeFromBlack(); DEV.kitKinds = {};
   buildFloor(G.run.floor + 1);
 }

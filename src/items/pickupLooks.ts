@@ -40,7 +40,7 @@ const extrude = (s: THREE.Shape, depth: number, bevel: number) => new THREE.Extr
 function facing(g: THREE.Group) { const f = new THREE.Group(); f.rotation.x = -TILT; g.add(f); return f; }
 
 type Build = (g: THREE.Group) => void;
-const ITEMS: Record<Item, Build> = {
+const ITEMS: Record<Exclude<Item, 'potion' | 'reagent'>, Build> = { // (M5's potions and reagents: alchemyLooks.ts)
   heart: g => heart(g, false),
   halfHeart: g => heart(g, true),
   coin(g) { obol(g, 1); g.add(glowShared(GOLD, .8, .6)); },
@@ -118,9 +118,9 @@ function obol(g: THREE.Object3D, s: number) {
   for (const z of [-1, 1]) put(mesh(o, GEO.stamp, metal(shade(OBOL, .72)), 0, 0, z * .018), 0, z < 0 ? Math.PI : 0, 0);
 }
 
-const items = new Map<Item, THREE.Object3D>();
+const items = new Map<string, THREE.Object3D>();
 /** A pickup's look (a copy: its merged geometry and its materials shared with every other of the kind). */
-export function itemLook(kind: Item) {
+export function itemLook(kind: Exclude<Item, 'potion' | 'reagent'>) {
   let t = items.get(kind);
   if (!t) { const g = new THREE.Group(); ITEMS[kind](g); t = keep(g); items.set(kind, t); }
   return t.clone();
@@ -178,7 +178,7 @@ const SEAL_RUNE = shared(runeStrokes(.045));
 
 /** A look merged (the parts that move, `moving` each merged on its own, `apart` left as they are) and kept to be copied: its geometry marked shared,
     so taking one copy away frees nothing the others use. */
-function keep(g: THREE.Group, moving: THREE.Object3D[] = [], apart: THREE.Object3D[] = []) {
+export function keep(g: THREE.Group, moving: THREE.Object3D[] = [], apart: THREE.Object3D[] = []) {
   for (const m of moving) mergeStill(m);
   g.userData.parts = Object.fromEntries([...moving, ...apart].map((m, i) => [i, m]));
   mergeStill(g); delete g.userData.parts; // (a copy copies its userData through JSON: objects left in it would be written out every time)

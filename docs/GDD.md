@@ -774,6 +774,38 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
 
 **Their looks** are built in code: reagents and potion bottles are small props; bottles can share one mesh with shuffled colours.
 
+**M5 as built, steps 1 to 5 (2026-10-01; `docs/M5-plan.md`, its decisions taken as proposed, the owner to change any).**
+- *The data.* The twelve potions, six reagents and seventeen recipes are data (`data/alchemy.json`), each potion with its
+  drink and throw effect and their numbers; the validator refuses a broken one.
+- *Bottles.* Six shapes built in code (flask, vial, jar, teardrop, skull, bulb), twelve of fourteen liquid colours: each
+  potion in a run its own colour, each shape on two potions, dealt on the run's seed. The belly is the glowing
+  draught itself, so its colour reads at the texel; the HUD's bottle is rendered from the model in pixel art (24 px).
+- *The belt.* Three slots under the spell slots (four with the Alchemist's Satchel, M5 step 8), the chosen one lit, an
+  unknown one marked "?". R tapped drinks the chosen potion, held past a quarter second shows a ring where it will land
+  (in its colour once it is known) and throws it on release; F (the d-pad's left and right) chooses another; the d-pad's
+  up is R. A full belt leaves a potion where it lies and says so once a run. Potions drop from cleared rooms, coffers and
+  chests (`potion` in `data/loot.json`); the merchant sells them from step 5.
+- *Identification.* A potion drunk or thrown is known for the rest of the run (a line says so, and its card shows what it
+  was); one ever brewed (step 6) is known in every run. The inventory's Potions tab lists the belt, the pouch and every
+  potion known, the rest sealed.
+- *Drinks* (each shows a chip beside the mana bar while it lasts): Liquid Ember makes the cantrip burn; Frostbrew keeps
+  chill off and quickens; the Bottled Storm's three casts cost no mana; the Philter of Echoes casts the next spell again
+  0.3 s later; the Giant's Brew makes the mage a quarter bigger, half again as strong and slower until the next room; the
+  Shadowstep Tincture makes foes' shots go wide and their touch miss for 4 s; the Bitter Remedy lifts the newest curse's
+  price until the floor ends; the Volatile Mixture is another potion's drink at random; the Hex Brew reverses movement and
+  casting for 5 s; the Grave Draught takes half a heart for a pale soul mote (XP waits for M6).
+- *Throws* land through the spells' hooks, so they light oil, freeze water and set off reactions like any spell: holy
+  light that heals the mage in the splash, a daze, a pool of fire, a freeze, a storm striking for 3 s, foes striking each
+  other, foes grown slow and big, a cloud of darkness (steam's kind, so shots from it go wide), every status cleared, a
+  glyph's blast, a hex, and a skeleton that fights for the mage until the room is quiet.
+- *Reagents* go into the pouch (no limit; the inventory's Potions tab), each one's card the first time in a run. A fallen
+  foe leaves its reagent one time in eight: its own kind's where it has one (Sporelings, Rootlings and the other growing
+  things Grave Moss; crabs and golems Bone Dust), else its school's (Ember Salt, Rimewater, Wisp Essence for Hallow and
+  Storm, Bone Dust for Umbral), and Ember Salt if it died burning. A boss always leaves Warden's Ash. A broken bone pile,
+  skull heap, grave root, glowcap, grave sack or oil cask leaves its reagent three times in ten, and a brazier's first fire
+  may leave Ember Salt. The merchant sells potions (4 obols) and reagents (2, never Warden's Ash). The Alchemist's Satchel
+  will make them come more often (step 8).
+
 ## RPG progression
 
 Growth happens on two timescales: levels, attributes and boons inside a run (lost on death), and knowledge, unlocks and a few powers at the Vigil between runs (kept). Power mostly stays inside the run; the few powers kept are offset by deeper floors and the vows.
@@ -1617,7 +1649,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4.9 The curve | Harder for the right reasons | Pressure dials per floor in data; libraries and merchants lean to the floor's weakness; a hex's drain traced to its foe; the sluice for water rooms; `npm run balance` measuring every foe (Depth for what's built; proposed 2026-10-01, `docs/M4.9-plan.md`) |
 | M4.10 Weaves | Combinations beyond pairs | Ten weaves (a spell striking what another left: the Steam Curtain, the Overload Seal, Eclipse Ground...), seven chains (a reaction's leavings met by a third school: Thundercloud, Incense, Miasma...), the room's mechanisms joining in; Verdant's Bloom and Blight designed for M5 (Depth for what's built; built 2026-10-01 at the owner's ask, `docs/M4.10-plan.md`) |
 | M4.11 Spell marks | You can see your magic | **Built 2026-10-01** (Spells: Spell marks; the owner's ask). The slotted spells shown at the hands with their state, attunement, a master's ring, the knowledge circle |
-| M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
+| M5 Alchemy | The second game | **Under way** (`docs/M5-plan.md`; Potions and alchemy, M5 as built): steps 1 to 5 built (the data, the belt, drinking and throwing, reagents). Potion belt, drink or throw, identification, 6 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
 | M7 Descent and the Vigil | A full run with a reason to return | Final boss (Kaelith, the Shadow Sentinel); the Vigil (RPG progression: Between runs) at the cave mouth over the valleys: freed shades as townspeople with dialogue (Boketto, the Cloud Forest Wizard, the Huruhui foragers), its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines; a won run ends in daylight |
 | M8 Eda | It is Eda | Lore names, floor biomes, adaptive music, ambience beds and final mix |

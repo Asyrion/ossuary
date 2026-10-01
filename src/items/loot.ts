@@ -8,9 +8,10 @@ import type { Rng } from '../rng';
 
 export type Resource = 'coins' | 'keys' | 'glyphs';
 export const RESOURCES: Resource[] = ['coins', 'keys', 'glyphs'];
-/** Things picked up by walking over them. M4.1 adds the soul motes (pale, black and hallowed) and the lodestone shard. */
-export type Item = 'halfHeart' | 'heart' | 'coin' | 'purse' | 'key' | 'glyph' | 'mana' | 'paleSoul' | 'blackSoul' | 'hallowedSoul' | 'shard';
-export const ITEMS: Item[] = ['halfHeart', 'heart', 'coin', 'purse', 'key', 'glyph', 'mana', 'paleSoul', 'blackSoul', 'hallowedSoul', 'shard'];
+/** Things picked up by walking over them. M4.1 adds the soul motes (pale, black and hallowed) and the lodestone shard; M5
+    a potion (which one is dealt when it drops, from the run's alchemy stream) and a reagent. */
+export type Item = 'halfHeart' | 'heart' | 'coin' | 'purse' | 'key' | 'glyph' | 'mana' | 'paleSoul' | 'blackSoul' | 'hallowedSoul' | 'shard' | 'potion' | 'reagent';
+export const ITEMS: Item[] = ['halfHeart', 'heart', 'coin', 'purse', 'key', 'glyph', 'mana', 'paleSoul', 'blackSoul', 'hallowedSoul', 'shard', 'potion', 'reagent'];
 
 /** Soul motes (M4.1; GDD: Items): pale flames kept beside the hearts that take a hit before the hearts do. A pale one
     guards one hit; a black one guards one and hexes the room when it goes; a hallowed one goes last, and gives back half
@@ -72,8 +73,9 @@ export interface LootData extends Record<TableName, LootTable> {
 }
 export const LOOT = lootData as LootData;
 
-/** What an item gives: half hearts, or resources. */
-export function dropValue(d: Item, loot: LootData = LOOT): { hearts?: number; mana?: number; soul?: Soul; shard?: number } & Partial<Record<Resource, number>> {
+/** What an item gives: half hearts, mana, a soul mote, a shard's mana, a potion for the belt or a reagent for the pouch,
+    or resources. */
+export function dropValue(d: Item, loot: LootData = LOOT): { hearts?: number; mana?: number; soul?: Soul; shard?: number; potion?: number; reagent?: number } & Partial<Record<Resource, number>> {
   switch (d) {
     case 'halfHeart': return { hearts: 1 };
     case 'heart': return { hearts: 2 };
@@ -86,6 +88,8 @@ export function dropValue(d: Item, loot: LootData = LOOT): { hearts?: number; ma
     case 'blackSoul': return { soul: 'black' };
     case 'hallowedSoul': return { soul: 'hallowed' };
     case 'shard': return { shard: loot.shard };
+    case 'potion': return { potion: 1 };
+    case 'reagent': return { reagent: 1 };
   }
 }
 

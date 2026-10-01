@@ -138,6 +138,14 @@ const sounds = {
   learn() { [392, 523, 659, 784].forEach((f, i) => tone('triangle', f, f * 1.01, .5, .05, i * .06)); hiss(.5, .03, 'highpass', 4500, .1); },
   spellFail() { tone('sine', 220, 160, .12, .05); hiss(.08, .03, 'lowpass', 900); },
   manaVial() { tone('sine', 880, 1320, .18, .05); tone('sine', 1320, 1760, .22, .03, .06); },
+  // M5: potions and reagents. A bottle taken clinks; a reagent rustles; a draught is gulped; a thrown bottle whistles,
+  // shatters and splashes; the belt's choice ticks like glass
+  bottle() { tone('sine', 1760, 1700, .08, .05); tone('sine', 2350, 2300, .1, .03, .05); },
+  reagent() { hiss(.14, .05, 'bandpass', 2400); tone('triangle', 520, 480, .1, .03); },
+  drink() { for (let i = 0; i < 3; i++) tone('sine', 220 + i * 30, 180 + i * 30, .09, .06, i * .11); hiss(.3, .02, 'lowpass', 600); },
+  throwPotion() { hiss(.22, .04, 'bandpass', 1800); tone('sine', 700, 1100, .18, .02); },
+  bottleBreak() { hiss(.25, .12, 'highpass', 3200); tone('triangle', 2600, 1800, .12, .05); tone('triangle', 3100, 2100, .1, .04, .03); hiss(.4, .06, 'lowpass', 900, .05); },
+  potionChoose() { tone('sine', 1320, 1320, .05, .04); },
   // Ember: crackle and whoosh
   lance() { hiss(.35, .13, 'bandpass', 1400); tone('sawtooth', 220, 70, .3, .05); hiss(.12, .06, 'highpass', 4000, .03); crackles(5, .3, .05); },
   sealPlace() { tone('sine', 196, 294, .5, .06); tone('triangle', 392, 588, .4, .03, .05); hiss(.4, .04, 'bandpass', 900); },
@@ -401,7 +409,7 @@ const sounds = {
 };
 type Sounds = typeof sounds;
 /** Sounds of the interface (picking things up, refusals, learning): their own bus, never positioned. */
-const UI_SOUNDS = new Set<keyof Sounds>(['pickup', 'relic', 'coin', 'key', 'glyphPickup', 'noGlyph', 'learn', 'spellFail', 'refuse', 'purchase', 'pageAsk']);
+const UI_SOUNDS = new Set<keyof Sounds>(['potionChoose', 'pickup', 'relic', 'coin', 'key', 'glyphPickup', 'noGlyph', 'learn', 'spellFail', 'refuse', 'purchase', 'pageAsk']);
 /** Every sound, sending its tones to its bus, or to a panner at `place` when there is one. */
 function route(place?: { x: number; z: number; on: boolean }): Sounds {
   const out = {} as Record<string, (...a: never[]) => void>;

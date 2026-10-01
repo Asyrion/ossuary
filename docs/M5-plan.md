@@ -1,6 +1,6 @@
 # M5 Alchemy: plan
 
-**Status: under way (2026-10-01).** GDD: Potions and alchemy; the roadmap's M5 row. The second game inside a run: every
+**Status: under way (2026-10-01): steps 1 to 5 built (GDD: Potions and alchemy, M5 as built).** GDD: Potions and alchemy; the roadmap's M5 row. The second game inside a run: every
 potion has a drink effect on the mage and a throw effect on the room, found potions are unidentified, and the mage brews
 their own from reagents at an alchemy table in Dr. Jelly's laboratory. The second half is the sixth school, Verdant, and
 its garden rooms (GDD: Magic system, A sixth school), planned in its own section when the first half is built.
@@ -25,8 +25,9 @@ its garden rooms (GDD: Magic system, A sixth school), planned in its own section
    stained coat, goggles, a jelly in a jar for a familiar), who identifies a potion and trades recipes for obols.
 9. **What a run knows and what is kept:** a potion identified in a run stays identified for that run; a recipe brewed is
    kept between runs (`ossuary.recipes`, as spell knowledge is) and keeps its potion identified in every run after.
-10. **Bottles are pixel art like everything else** (the GDD's one pixel for everything): five bottle shapes built in code,
-    their glass and liquid colours shuffled per run on the run's seed; their HUD icons made as the artifacts' are.
+10. **Bottles are pixel art like everything else** (the GDD's one pixel for everything): six bottle shapes built in code,
+    their liquid colours (each potion its own) and shapes shuffled per run on the run's seed; their HUD icons made as the
+    artifacts' are.
 
 ## The pieces
 
