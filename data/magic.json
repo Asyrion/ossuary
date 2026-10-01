@@ -5,6 +5,8 @@
   "sanct": { "damageMul": 1.25 },
   "hex": { "max": 5, "time": 6, "manaPerStack": 3, "soulAt": 3 },
   "root": { "bossMax": 0.6 },
+  "grow": { "slow": 0.15, "ramp": 0.15, "maxSlow": 0.6, "bossMul": 0.5, "flowerHeal": 1 },
+  "verdant": { "wallTouch": 0.5 },
   "reactions": {
     "shatter": { "damage": 12, "shards": 6, "shardDamage": 5, "shardRange": 2.6 },
     "overload": { "damage": 10, "radius": 1.8, "knockback": 6 },
@@ -15,7 +17,12 @@
     "prism": { "angle": 0.42, "damageMul": 0.7, "range": 4.5 },
     "verdict": { "damage": 8, "stun": 0.5 },
     "blackice": { "size": 1.15, "time": 7, "grip": 0.7 },
-    "voidspark": { "time": 5, "leaps": 3, "range": 3.4, "damage": 4, "mana": 6 }
+    "voidspark": { "time": 5, "leaps": 3, "range": 3.4, "damage": 4, "mana": 6 },
+    "wildfire": { "burn": 3, "damage": 4 },
+    "frostbloom": { "delay": 0.6, "radius": 1.6, "damage": 9, "chill": 2 },
+    "pollenspark": { "radius": 1.5, "time": 3, "every": 0.5, "damage": 2, "shock": 1 },
+    "bloom": { "heal": 1 },
+    "blight": { "hex": 3, "reach": 4.5, "grow": 3 }
   },
   "weaves": {
     "steamCurtain": { "size": 1.15 },

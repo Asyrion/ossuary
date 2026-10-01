@@ -263,7 +263,7 @@ export const STR = {
     curseEscaped: (name: string) => `The curse slips back into the ${name}. Walk into its stone to try again.`,
   },
   /** The schools of magic, and how a spell's lore card names it and says what it does. */
-  schools: { ember: 'Ember', frost: 'Frost', storm: 'Storm', hallow: 'Hallow', umbral: 'Umbral' } as Record<string, string>,
+  schools: { ember: 'Ember', frost: 'Frost', storm: 'Storm', hallow: 'Hallow', umbral: 'Umbral', verdant: 'Verdant' } as Record<string, string>,
   spellKind: (school: string) => `${school} spell`,
   spellEffect: (text: string, mana: number, cooldown: number) => `${text}. ${mana} mana, every ${cooldown} s`,
   /** Spell knowledge (M3.7). */
@@ -284,8 +284,8 @@ export const STR = {
     weaveSealedText: (kind: string) => kind === 'weave' ? 'One spell striking what another left in the room. Try your spells on each other\'s work.' : 'What a reaction leaves behind, met by a third school.',
     weavesFoundOf: (n: number, of: number) => `${n} of ${of} weaves and chains found.`,
     weavesLbl: 'Weaves it takes part in',
-    /** Each school's spoke on the wheel, in two letters (Verdant's sealed until M5). */
-    spoke: { ember: 'Em', frost: 'Fr', storm: 'St', hallow: 'Ha', umbral: 'Um', verdant: '?' } as Record<string, string>,
+    /** Each school's spoke on the wheel, in two letters. */
+    spoke: { ember: 'Em', frost: 'Fr', storm: 'St', hallow: 'Ha', umbral: 'Um', verdant: 'Ve' } as Record<string, string>,
     pair: (a: string, b: string) => `${a} and ${b}`,
     unfound: 'Not yet found',
     unfoundText: (a: string, b: string) => `What ${a} and ${b} do when they meet on one foe. Set them off together to find out.`,
@@ -306,11 +306,17 @@ export const STR = {
       verdict: 'a sanctified foe shocked, or a shocked one sanctified, calls lightning down on every sanctified foe',
       blackice: 'a hexed foe chilled, or a chilled one hexed, lays black ice under it, where foes slide and can\'t stop',
       voidspark: 'a hexed foe shocked, or a shocked one hexed, throws a spark that leaps, hexing; each it marks gives mana as it falls',
+      wildfire: 'an overgrown foe set alight, or a burning one overgrown, sends the fire along the vines to every overgrown foe',
+      frostbloom: 'an overgrown foe chilled, or a chilled one overgrown, grows ice flowers that shatter on the foes round it',
+      pollenspark: 'an overgrown foe shocked, or a shocked one overgrown, leaves a cloud of pollen that shocks the foes inside it',
+      bloom: 'an overgrown foe sanctified, or a sanctified one overgrown, flowers: as it falls, its lily mends you',
+      blight: 'an overgrown foe hexed, or a hexed one overgrown, rots to thorns that hex it and creep to the nearest foe',
     } as Record<string, string>,
   },
   manaLabel: (mana: number, max: number) => `Mana ${Math.round(mana)} of ${max}`,
   /** Reactions name themselves in the air; statuses as the training dummy lists them. */
-  reactions: { shatter: 'Shatter', overload: 'Overload', eclipse: 'Eclipse', blackfire: 'Blackfire', steam: 'Steam', searing: 'Searing', prism: 'Prism', verdict: 'Verdict', blackice: 'Black Ice', voidspark: 'Void Spark' } as Record<string, string>,
+  reactions: { shatter: 'Shatter', overload: 'Overload', eclipse: 'Eclipse', blackfire: 'Blackfire', steam: 'Steam', searing: 'Searing', prism: 'Prism', verdict: 'Verdict', blackice: 'Black Ice', voidspark: 'Void Spark',
+    wildfire: 'Wildfire', frostbloom: 'Frostbloom', pollenspark: 'Pollen Spark', bloom: 'Bloom', blight: 'Blight' } as Record<string, string>,
   /** Over a foe struck by its weakness or its resistance, the first time (M4; GDD: Enemy affinities). */
   foes: {
     weak: 'Weak', resists: 'Resists', drinks: 'Drinks it',
@@ -400,7 +406,9 @@ export const STR = {
     known: (name: string) => `You already know ${name}`,
     left: (name: string, kind: string) => kind === 'loose' ? `The page of ${name} lies where the new one was` : `The page of ${name} stays on the lectern: take it back while you are here`,
   },
-  statusNames: { burn: 'Burn', chill: 'Chill', frozen: 'Frozen', shock: 'Shock', sanct: 'Sanctified', hex: 'Hex', root: 'Rooted' } as Record<string, string>,
+  statusNames: { burn: 'Burn', chill: 'Chill', frozen: 'Frozen', shock: 'Shock', sanct: 'Sanctified', hex: 'Hex', root: 'Rooted', grow: 'Overgrown', bloom: 'Overgrown, flowering' } as Record<string, string>,
+  /** M5: an overgrown foe falling flowers (statusFx.ts's `flowerFell`). */
+  grow: { flower: 'It flowers', lily: 'A lily' },
   /** The boss bar while a shrine draws a curse out. */
   curseOf: (name: string) => `The curse of the ${name}`,
   /** The lore card shown on picking something up (ui/lore.ts). Artifacts keep their lore in data/artifacts.json;
@@ -586,6 +594,7 @@ export const STR = {
     wardFrost: { name: 'Frost Wardling', note: 'From a drinking ward full of Frost: a drop of cold light crowned with ice; its volleys chill' },
     wardStorm: { name: 'Storm Wardling', note: 'From a drinking ward full of Storm: a drop of lightning with a crest of sparks; wide, fast volleys' },
     wardHallow: { name: 'Hallow Wardling', note: 'From a drinking ward full of Hallow: a drop of gold under a halo; it lets its light go in a ring' },
+    wardVerdant: { name: 'Verdant Wardling', note: 'From a drinking ward full of Verdant: a drop of green light with a sprout for a crest; its volleys spread wide' },
     wardUmbral: { name: 'Umbral Wardling', note: 'From a drinking ward full of Umbral: a drop of dark light with little horns; its volleys hex' },
   } as Record<string, { name: string; note: string }>,
   /** The Hollow Warden's looks built in code (M4, actors/bossLooks.ts), for the owner to choose; placeholder names. */

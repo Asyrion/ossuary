@@ -58,5 +58,20 @@
     "damage": 4, "status": { "hex": 1 }, "params": { "range": 8, "life": 6, "mana": 4, "obols": 1, "spread": 2, "spreadRange": 2.6 },
     "tags": ["target", "economy"], "color": "#b88aff", "icon": "toll",
     "text": "Mark the nearest foe with the Ferryman's due: blows on it give back mana, and if it falls it pays an obol and its hex spreads",
-    "lore": "Every soul crosses with a coin on its tongue. Mark a foe with the Ferryman's due and it pays while it lives; if it falls with the mark still on it, the coin is yours." }
+    "lore": "Every soul crosses with a coin on its tongue. Mark a foe with the Ferryman's due and it pays while it lives; if it falls with the mark still on it, the coin is yours." },
+  { "id": "thorn_snare", "name": "Thorn Snare", "school": "verdant", "shape": "grasp", "mana": 28, "cooldown": 9,
+    "damage": 4, "status": { "root": 1.6, "grow": 4 }, "params": { "ahead": 3, "radius": 1.5, "delay": 0.4 },
+    "tags": ["area", "control"], "color": "#9ae04a", "icon": "thorns",
+    "text": "Thorns burst from the floor where you aim and close: every foe there is held, and the vines that stay slow it more the longer they hold",
+    "lore": "In the valleys they never fenced a field. They asked the hedge to stand up where the wolves came through, and the hedge, being asked kindly, did." },
+  { "id": "pollen_cloud", "name": "Pollen Cloud", "school": "verdant", "shape": "zone", "mana": 32, "cooldown": 12,
+    "damage": 1, "status": { "grow": 3 }, "params": { "radius": 1.8, "life": 5, "every": 0.6, "heal": 1 },
+    "tags": ["area", "ground"], "color": "#d8e070", "icon": "pollen",
+    "text": "A cloud of golden pollen round you: the foes in it are overgrown, and breathing it mends you a little",
+    "lore": "Spring comes late below the Gate, and this is the whole of it: one breath of a meadow, held for a moment in the dark." },
+  { "id": "living_wall", "name": "Living Wall", "school": "verdant", "shape": "wall", "mana": 30, "cooldown": 10,
+    "damage": 4, "status": { "grow": 3 }, "params": { "ahead": 2, "width": 3, "life": 6, "burst": 1.3 },
+    "tags": ["wall", "control"], "color": "#7ac04a", "icon": "livingwall",
+    "text": "Trunks of living wood rise ahead and stop foes and their shots, but not your bolts; the foes that touch them are overgrown. Fire burns it down",
+    "lore": "A wall that grows is a wall that forgives: it bends where a stone wall would crack. It does not forgive fire." }
 ]

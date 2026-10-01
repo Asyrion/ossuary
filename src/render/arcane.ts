@@ -5,8 +5,8 @@ import * as THREE from 'three';
 
 export type V3 = [number, number, number];
 
-/** Each school's light: the rune, crystal, mote and spell colour. Hallow and Umbral are the schools still to come. */
-export const SCHOOL_LIGHT = { ember: 0xff7a2a, frost: 0x7fd4ff, storm: 0xf0e070, hallow: 0xffd878, umbral: 0xa266ff } as const;
+/** Each school's light: the rune, crystal, mote and spell colour (M5: Verdant's spring green). */
+export const SCHOOL_LIGHT = { ember: 0xff7a2a, frost: 0x7fd4ff, storm: 0xf0e070, hallow: 0xffd878, umbral: 0xa266ff, verdant: 0x9ae04a } as const;
 export type School = keyof typeof SCHOOL_LIGHT;
 
 /** A flat-shaded surface, as the placeholder foes have. */

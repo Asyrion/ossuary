@@ -4,9 +4,10 @@
 import spellsData from '../../data/spells.json';
 import type { Rng } from '../rng';
 
-/** The schools of magic (GDD: Magic system). M3 brings Ember, Frost and Storm; Hallow and Umbral follow. */
-export type School = 'ember' | 'frost' | 'storm' | 'hallow' | 'umbral';
-export const SCHOOLS: School[] = ['ember', 'frost', 'storm', 'hallow', 'umbral'];
+/** The schools of magic (GDD: Magic system). M3 brings Ember, Frost and Storm; M4.1 Hallow and Umbral; M5 the sixth,
+    Verdant. */
+export type School = 'ember' | 'frost' | 'storm' | 'hallow' | 'umbral' | 'verdant';
+export const SCHOOLS: School[] = ['ember', 'frost', 'storm', 'hallow', 'umbral', 'verdant'];
 /** How a spell behaves; each is a function in magic/shapes.ts. M4.1's Hallow and Umbral bring the last six. */
 export type Shape = 'beam' | 'placed' | 'shotgun' | 'wall' | 'chain' | 'self' | 'zone' | 'smite' | 'orbit' | 'bolt' | 'grasp' | 'mark';
 export const SHAPES: Shape[] = ['beam', 'placed', 'shotgun', 'wall', 'chain', 'self', 'zone', 'smite', 'orbit', 'bolt', 'grasp', 'mark'];
@@ -29,9 +30,9 @@ export const SHAPE_PARAMS: Record<Shape, string[]> = {
 export type StatusKind = 'burn' | 'chill' | 'shock';
 export const STATUS_KINDS: StatusKind[] = ['burn', 'chill', 'shock'];
 /** Every status a spell can apply, with how many stacks or how strongly: the elements, and Hallow's Sanctified (seconds),
-    Umbral's Hex (stacks) and the grave's hold, Root (seconds), from M4.1. */
-export type SpellStatus = StatusKind | 'sanct' | 'hex' | 'root';
-export const SPELL_STATUSES: SpellStatus[] = [...STATUS_KINDS, 'sanct', 'hex', 'root'];
+    Umbral's Hex (stacks) and the grave's hold, Root (seconds), from M4.1; M5's Verdant Overgrown (`grow`, seconds). */
+export type SpellStatus = StatusKind | 'sanct' | 'hex' | 'root' | 'grow';
+export const SPELL_STATUSES: SpellStatus[] = [...STATUS_KINDS, 'sanct', 'hex', 'root', 'grow'];
 /** Only the elemental part of a set of statuses (what rooms, props and mechanisms hear). */
 export const elemental = (s?: Partial<Record<SpellStatus, number>>) => s && Object.fromEntries(Object.entries(s).filter(([k]) => (STATUS_KINDS as string[]).includes(k))) as Partial<Record<StatusKind, number>>;
 

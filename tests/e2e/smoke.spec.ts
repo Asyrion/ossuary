@@ -1766,7 +1766,7 @@ test('spell marks (M4.11): each slotted spell shows at its hand (ready, cooling,
   expect(r.handsLine).toContain('Your spells show at your hands');
   expect(r.unattuned).toBeNull(); expect(r.attuned).toBe('ember'); expect(r.line).toContain('Attuned to Ember');
   expect(r.ringBefore).toEqual([false, false]); expect(r.ringAfter).toEqual([true, true]); expect(r.mastered).toEqual(['ember']);
-  expect(r.circle).toMatchObject({ shown: true, known: [2, 0, 1, 0, 0], mastered: ['ember'] });
+  expect(r.circle).toMatchObject({ shown: true, known: [2, 0, 1, 0, 0, 0], mastered: ['ember'] }); // (M5: Verdant's arc, sixth)
   await page.evaluate(() => { const g = (window as unknown as W).__game as GM; g.closeUp(true); g.sim(.2, true); });
   await page.screenshot({ path: 'test-results/spell-marks.png' });
   await page.evaluate(() => ((window as unknown as W).__game as GM).forgetKnowledge());
@@ -2043,6 +2043,41 @@ test('the Alchemist (M5 step 8): the Satchel adds a belt slot, the Taster\'s Spo
   });
   expect(t.flying).toBe(2); expect(t.cut).toBeGreaterThanOrEqual(6);
   await page.evaluate(() => ((window as unknown as W).__game as unknown as GA).forgetPotions());
+  expect(errors).toEqual([]);
+});
+
+test('Verdant (M5 step 9): the Thorn Snare holds and overgrows, the Living Wall rises and burns down, the Pollen Cloud mends; an overgrown foe flowers as it falls (once a room); its five reactions go off', async ({ page }) => {
+  const errors = await start(page, '?room=crypt_a&seed=VERD1&spells=thorn_snare,living_wall');
+  type GV = GP & { clearRoom(): void; current: { cx: number; cz: number; barriers?: unknown[] }; burn(x: number, z: number, r: number): void; inflict(s: Record<string, number>): void;
+    hit(i: number, dmg: number, school?: string): void; reaction(r: string): void; reactions: string[]; forgetReactions(): void };
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GV, P = g.player;
+    g.forgetReactions(); g.warp(1); g.sim(.3); g.clearRoom(); g.sim(.2); g.mana(200); P.x = g.current.cx; P.z = g.current.cz + 2;
+    for (let i = 0; i < 3; i++) g.spawn('rotling');
+    g.sim(.7); g.enemies.forEach((e, i) => { const f = e as unknown as { x: number; z: number; hp: number; maxHp: number }; f.x = P.x - 1 + i; f.z = P.z - 3; f.hp = f.maxHp = 200; });
+    g.cast(0, { x: 0, z: -1 }); g.sim(.6);
+    const snared = g.enemies.map(e => ({ grow: (e.status?.grow ?? 0) > 0, root: (e.status?.root ?? 0) > 0 }));
+    g.sim(1.5); g.cast(1, { x: 0, z: -1 }); g.sim(.5); const wall = g.current.barriers?.length ?? 0;
+    g.burn(P.x, P.z - 2, .5); g.sim(.2); const burnt = g.current.barriers?.length ?? 0;
+    // the flower: an overgrown foe falling mends half a heart, once a room
+    P.hp = 3; g.inflict({ grow: 4 }); g.hit(0, 9999); g.sim(.2); const once = P.hp; g.hit(0, 9999); g.sim(.2); const twice = P.hp;
+    // the Pollen Cloud mends once
+    g.learn('pollen_cloud', 0); P.hp = 3; g.sim(1); g.cast(0, { x: 0, z: -1 }); g.sim(.6); const pollen = P.hp;
+    return { snared, wall, burnt, once, twice, pollen };
+  });
+  expect(r.snared).toEqual([{ grow: true, root: true }, { grow: true, root: true }, { grow: true, root: true }]);
+  expect(r.wall).toBeGreaterThan(0); expect(r.burnt).toBe(0);
+  expect([r.once, r.twice]).toEqual([4, 4]); expect(r.pollen).toBe(4);
+  await page.evaluate(() => (window as unknown as W).__game.sim(.05, true));
+  await page.screenshot({ path: 'test-results/verdant.png' });
+  // the five reactions that make the wheel whole
+  const found = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GV;
+    for (const r of ['wildfire', 'frostbloom', 'pollenspark', 'bloom', 'blight']) { g.clearRoom(); g.sim(2); g.reaction(r); g.sim(1); }
+    return g.reactions;
+  });
+  expect(found).toEqual(expect.arrayContaining(['wildfire', 'frostbloom', 'pollenspark', 'bloom', 'blight']));
+  await page.evaluate(() => ((window as unknown as W).__game as unknown as GV).forgetReactions());
   expect(errors).toEqual([]);
 });
 
@@ -3460,7 +3495,7 @@ test('the pixel look: at the texel from the start, the rows of earlier from the 
     const g = (window as unknown as { __game: GP & { modelOptions(): { id: string }[] } }).__game;
     g.setPixelLook({ lines: 270 }); const at = g.modelOptions(); g.sim(.5, true); g.setPixelLook({ lines: 0 }); return at.map(a => a.id);
   });
-  expect(shown.length).toBe(23); // (M4.2: the five Wardlings too)
+  expect(shown.length).toBe(24); // (M4.2: the five Wardlings too; M5: Verdant's)
   // and the familiar options (the owner's drawings built in code): the Rune Fox
   const familiars = await page.evaluate(() => {
     const g = (window as unknown as { __game: GP & { takeModelOptions(): void; familiarOptions(): { id: string }[] } }).__game;
@@ -4097,9 +4132,9 @@ test('the full wheel (M4.8): Searing opens a shut eye, a Prism splits a bolt in 
   await page.evaluate(() => { const g = (window as unknown as { __game: GW }).__game; g.learn('arc', 0); });
   await page.keyboard.press('i'); await page.keyboard.press('e');
   const tiles = page.locator('#invList .tile');
-  await tiles.nth(await tiles.count() - 9 - 17).click(); // (the wheel's second entry: Overload; M4.10's seventeen weaves come after it)
+  await tiles.nth(await tiles.count() - 14 - 17).click(); // (the wheel's second entry of fifteen, M5: Overload; M4.10's seventeen weaves come after it)
   await expect(page.locator('#invDetail h3')).toHaveText('Overload');
-  await expect(page.locator('#invDetail .wheel svg line')).toHaveCount(10);
+  await expect(page.locator('#invDetail .wheel svg line')).toHaveCount(15); // (every pair of the six schools, M5)
   await page.keyboard.press('Escape');
   expect(errors).toEqual([]);
 });

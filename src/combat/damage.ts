@@ -23,7 +23,7 @@ import { rollEnemyDrop } from '../items/loot';
 import { freeSpotNear } from '../world/rooms';
 import { gainMana } from '../magic/spells';
 import { MAGIC, damageTakenMul, spendHex } from '../magic/status';
-import { dummyHit, floatText, inflict, shockLeap } from '../magic/statusFx';
+import { dummyHit, floatText, flowerFell, inflict, shockLeap } from '../magic/statusFx';
 import { fireAt } from '../world/pools';
 import { foeDied, foeStruck } from '../actors/foes';
 import { payToll } from '../magic/shapes';
@@ -89,6 +89,7 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
   burst(e.x, e.isBoss ? 1 : .45, e.z, gibOf(e), e.isBoss ? 60 : 16, e.isBoss ? 6 : 3.5, e.isBoss ? .12 : .08);
   if (e.foe) { burst(e.x, .5, e.z, SCHOOL_LIGHT[e.foe.school], 10, 2.2, .04); foeDied(e); } // (its school's light goes out of it; what it leaves behind)
   if (e.mantle) mantleFell(e); // (M4.7: a Hexbound champion's curse)
+  if ((e.status?.grow ?? 0) > 0 || e.status?.bloom) flowerFell(e); // (M5: overgrown, it flowers; a lily mends besides)
   if (e.toll) payToll(e); // marked by the Ferryman's Toll: it pays in obols, and its hex spreads
   if ((e.status?.voidT ?? 0) > 0) { gainMana(MAGIC.reactions.voidspark.mana); burst(e.x, 1, e.z, SCHOOL_LIGHT.umbral, 8, 1.8, .04); } // (M4.8: a Void Spark's mark gives back mana as it falls)
   if (hexed >= MAGIC.hex.soulAt && e.type !== 'dummy' && G.run.drops.chance(Math.min(1, CFG.souls.hexChance * soulsHere()))) { // deep in a hex, its soul stays: a black mote

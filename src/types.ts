@@ -155,6 +155,7 @@ export interface Room {
     /** M5 step 7: the vat window's cracks (bolts), when the last was counted (sim time), whether it is broken (the serpent
         out, here or on a floor before), and whether a brew has stirred the serpent. */ cracks: number; crackAt: number; broken: boolean; stirred: boolean };
   /** Foes put to rest here towards the Ossuary Choir's next hymn (M4.1). */ choir?: number;
+  /** M5: an overgrown foe has flowered here (its flower mends once a room). */ flowered?: boolean;
   /** Water and oil on the floor (world/pools.ts), and which pool each tile belongs to ([row][col]). */
   pools?: Pool[]; poolGrid?: (Pool | undefined)[][];
 }

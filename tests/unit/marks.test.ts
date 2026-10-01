@@ -23,7 +23,7 @@ describe('spell marks', () => {
   it('the knowledge circle has an arc per school, a spell lit when known well, and a school known in full closes its arc', () => {
     const stages: Record<string, Stage> = { cinder_lance: 'used', pyre_seal: 'upgraded', rime_shards: 'used', glacial_wall: 'learned', arc: 'seen' };
     const circle = circleOf(SPELL_DEFS, id => stages[id] ?? 'unknown');
-    expect(circle.map(a => a.school)).toEqual(['ember', 'frost', 'storm', 'hallow', 'umbral']);
+    expect(circle.map(a => a.school)).toEqual(['ember', 'frost', 'storm', 'hallow', 'umbral', 'verdant']);
     expect(circle[0]).toMatchObject({ mastered: true, spells: [{ id: 'cinder_lance', known: true }, { id: 'pyre_seal', known: true }] });
     expect(circle[1].mastered).toBe(false); expect(circle[1].spells.filter(s => s.known).map(s => s.id)).toEqual(['rime_shards']);
     expect(masteredSchools(circle)).toEqual(['ember']);

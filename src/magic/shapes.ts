@@ -30,7 +30,9 @@ import { flash, inflict, overloadAt, tileReaction } from './statusFx';
 import { steamAt } from './steam';
 import { weaveAt } from './weaveFx';
 import { burningNear, layFire } from '../actors/foes';
-import { consecrateFx, graspFx, hideSpellFx, iceColumn, lanceFx, mantleFx, ringFx, sealFx, smiteFx, strikeFx, tollFx, updateSpellFx, wardFx } from './spellFx';
+import { consecrateFx, graspFx, hideSpellFx, iceColumn, lanceFx, mantleFx, pollenFx, ringFx, sealFx, smiteFx, strikeFx, thornFx, tollFx, updateSpellFx, wardFx, woodColumn } from './spellFx';
+import { hearGround } from '../world/groundHooks';
+import { SCHOOL_LIGHT } from '../render/arcane';
 import { counter } from '../actors/counters';
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -278,7 +280,8 @@ const shotgun: Cast = (def, dir) => {
 /** A wall of ice crystals across the cast direction, a little ahead of the mage (nearer when something is in the
     way), stopping at walls and rocks. It stops the mage, foes and their shots, not the mage's bolts; when its
     time is up it shatters, striking and chilling every foe near it. */
-const walls: { def: SpellDef; room: Room; boxes: Box[]; g: THREE.Group; columns: THREE.Group[]; t: number }[] = [];
+const walls: { def: SpellDef; room: Room; boxes: Box[]; g: THREE.Group; columns: THREE.Group[]; t: number; touch?: number }[] = [];
+const LEAF = SCHOOL_LIGHT.verdant, BARK = 0x6a4a2a;
 const ICE_HALF = .27;
 const wall: Cast = (def, dir) => {
   const P = def.params, room = G.current, solids = blockers(room, 'bolt');
@@ -294,18 +297,19 @@ const wall: Cast = (def, dir) => {
     if (pointInBoxes(x, z, ICE_HALF * .5, solids)) break;
     spots.push({ x, z, k });
   }
-  // (its look: a pillar of ice for each spot, rising from the middle outwards; iceColumn in spellFx.ts)
-  const g = new THREE.Group(), columns: THREE.Group[] = [], boxes: Box[] = [];
+  // (its look: a pillar of ice for each spot, rising from the middle outwards; iceColumn in spellFx.ts; M5's Living Wall, a
+  // trunk of living wood, woodColumn)
+  const g = new THREE.Group(), columns: THREE.Group[] = [], boxes: Box[] = [], wood = def.school === 'verdant';
   for (const p of spots) {
-    const c = iceColumn(p.x, p.z, .8 + Math.random() * .45); c.rotation.set((Math.random() - .5) * .16, Math.random() * Math.PI * 2, (Math.random() - .5) * .16);
+    const c = wood ? woodColumn(p.x, p.z, .75 + Math.random() * .4) : iceColumn(p.x, p.z, .8 + Math.random() * .45); c.rotation.set((Math.random() - .5) * .16, Math.random() * Math.PI * 2, (Math.random() - .5) * .16);
     c.userData.delay = p.k * CFG.spellFx.wallStagger; c.scale.y = .01; g.add(c); columns.push(c);
     boxes.push({ x: p.x, z: p.z, hx: ICE_HALF, hz: ICE_HALF });
-    burst(p.x, .3, p.z, ICE, 3, 1.8, .045); frostAt(p.x, p.z, .25); // water it stands in freezes
+    if (wood) burst(p.x, .3, p.z, LEAF, 3, 1.6, .045); else { burst(p.x, .3, p.z, ICE, 3, 1.8, .045); frostAt(p.x, p.z, .25); } // water it stands in freezes
   }
   scene.add(g);
   room.barriers = [...(room.barriers ?? []), ...boxes];
-  walls.push({ def, room, boxes, g, columns, t: 0 });
-  Sfx.wallRise();
+  walls.push({ def, room, boxes, g, columns, t: 0, touch: wood ? 0 : undefined });
+  if (wood) Sfx.woodRise(); else Sfx.wallRise();
   return true;
 };
 function updateWalls(dt: number) {
@@ -317,6 +321,10 @@ function updateWalls(dt: number) {
       c.scale.y = Math.max(.01, up * (left < .6 ? .85 + left / .6 * .15 : 1));
     }
     const shiver = left < .6 ? (Math.random() - .5) * .05 : 0; w.g.position.set(shiver, 0, -shiver);
+    if (w.touch !== undefined && (w.touch -= dt) <= 0) { // (M5: living wood overgrows the foes that touch it)
+      w.touch = MAGIC.verdant.wallTouch;
+      for (const e of G.enemies) if (alive(e) && !e.flying && w.boxes.some(b => Math.abs(e.x - b.x) < b.hx + e.r + .15 && Math.abs(e.z - b.z) < b.hz + e.r + .15)) { inflict(e, w.def.status); burst(e.x, .4, e.z, LEAF, 3, 1, .03); }
+    }
     if (left <= 0) { dropWall(w); walls.splice(i, 1); }
   }
 }
@@ -334,10 +342,21 @@ function dropWall(w: (typeof walls)[number], quiet = false) {
     damageEnemy(e, def.damage, u.x, u.z, .6, 'spell', def.school);
     inflict(e, def.status);
   }
-  for (const b of w.boxes) { burst(b.x, .5, b.z, ICE, 6, 2.6, .06); burst(b.x, .8, b.z, 0xffffff, 2, 2, .04); }
-  const mid = w.boxes[0]; ringFx(mid.x, .05, mid.z, ICE, .3, P.burst + .6, CFG.spellFx.shockwave, true); // (the first box is the middle)
-  Sfx.at(w.boxes[0].x, w.boxes[0].z).wallShatter(); G.shake = Math.max(G.shake, .12);
+  const wood = def.school === 'verdant', c1 = wood ? LEAF : ICE, c2 = wood ? BARK : 0xffffff; // (M5: living wood withers into leaves and bark)
+  for (const b of w.boxes) { burst(b.x, .5, b.z, c1, 6, 2.6, .06); burst(b.x, .8, b.z, c2, 2, 2, .04); }
+  const mid = w.boxes[0]; ringFx(mid.x, .05, mid.z, c1, .3, P.burst + .6, CFG.spellFx.shockwave, true); // (the first box is the middle)
+  if (wood) Sfx.at(mid.x, mid.z).wallWither(); else Sfx.at(mid.x, mid.z).wallShatter(); G.shake = Math.max(G.shake, .12);
 }
+/* (M5: fire burns a wall of living wood down where it reaches it, at once and quietly but for the flames) */
+hearGround((kind, x, z, r) => {
+  if (kind !== 'fire') return;
+  for (let i = walls.length - 1; i >= 0; i--) {
+    const w = walls[i];
+    if (w.def.school !== 'verdant' || w.room !== G.current || !w.boxes.some(b => Math.hypot(b.x - x, b.z - z) < r + .55)) continue;
+    for (const b of w.boxes) { burst(b.x, .6, b.z, 0xff7a2a, 8, 2.2, .06); burst(b.x, .9, b.z, 0xffc060, 4, 1.6, .05); }
+    Sfx.at(w.boxes[0].x, w.boxes[0].z).ignite(); dropWall(w, true); walls.splice(i, 1);
+  }
+});
 
 /* ---------- self: Static Mantle ---------- */
 
@@ -395,9 +414,10 @@ function endMantle(quiet: boolean) {
     what flies above), and the mage in it is healed once. */
 const zones: { def: SpellDef; x: number; z: number; t: number; tick: number; healed: boolean; fx: ReturnType<typeof consecrateFx> }[] = [];
 const zone: Cast = def => {
-  zones.push({ def, x: player.x, z: player.z, t: 0, tick: 0, healed: false, fx: consecrateFx(player.x, player.z, def.params.radius, hex(def.color)) });
-  hallowAt(player.x, player.z, def.params.radius); // holy ground kindles the candle stands on it
-  burst(player.x, .2, player.z, hex(def.color), 14, 2, .04); Sfx.consecrate();
+  const pollen = def.school === 'verdant'; // (M5: Verdant's Pollen Cloud is a zone of pollen, not holy ground)
+  zones.push({ def, x: player.x, z: player.z, t: 0, tick: 0, healed: false, fx: (pollen ? pollenFx : consecrateFx)(player.x, player.z, def.params.radius, hex(def.color)) });
+  if (!pollen) hallowAt(player.x, player.z, def.params.radius); // holy ground kindles the candle stands on it
+  burst(player.x, .2, player.z, hex(def.color), 14, 2, .04); if (pollen) Sfx.pollenCloud(); else Sfx.consecrate();
   return true;
 };
 function updateZones(dt: number) {
@@ -553,8 +573,9 @@ const grasps: { def: SpellDef; x: number; z: number; t: number; closed: boolean;
 const grasp: Cast = (def, dir) => {
   const P = def.params, near = pickTarget(player.x, player.z, dir, P.ahead + P.radius);
   const at = near ? { x: near.x, z: near.z } : freeSpotNear(G.current, player.x + dir.x * P.ahead, player.z + dir.z * P.ahead);
-  grasps.push({ def, x: at.x, z: at.z, t: 0, closed: false, fx: graspFx(at.x, at.z, P.radius, hex(def.color)) });
-  Sfx.at(at.x, at.z).graspRise();
+  const thorns = def.school === 'verdant'; // (M5: Verdant's Thorn Snare rises as thorns, not hands)
+  grasps.push({ def, x: at.x, z: at.z, t: 0, closed: false, fx: (thorns ? thornFx : graspFx)(at.x, at.z, P.radius, hex(def.color)) });
+  if (thorns) Sfx.at(at.x, at.z).thornRise(); else Sfx.at(at.x, at.z).graspRise();
   return true;
 };
 function updateGrasps(dt: number) {
@@ -562,13 +583,15 @@ function updateGrasps(dt: number) {
     const g = grasps[i], P = g.def.params; g.t += dt;
     const hold = g.def.status?.root ?? 2, life = P.delay + hold;
     if (!g.closed && g.t >= P.delay) {
-      g.closed = true; graspHexing = true; // (its hex, on a foe or on the ground, is the Grasp's: on holy ground, Eclipse Ground)
+      const thorns = g.def.school === 'verdant';
+      g.closed = true; graspHexing = !thorns; // (its hex, on a foe or on the ground, is the Grasp's: on holy ground, Eclipse Ground)
       for (const e of G.enemies) {
         if (!alive(e) || e.flying || Math.hypot(e.x - g.x, e.z - g.z) > P.radius + e.r) continue;
         damageEnemy(e, g.def.damage, 0, 0, 0, 'spell', g.def.school); inflict(e, g.def.status); burst(e.x, .3, e.z, hex(g.def.color), 6, 1.4, .03);
       }
-      umbralAt(g.x, g.z, P.radius); graspHexing = false; // (the dark blinds a watching statue, breaks an obelisk's umbral ward; on holy ground, Eclipse Ground: M4.10)
-      Sfx.at(g.x, g.z).graspClose();
+      if (thorns) Sfx.at(g.x, g.z).thornClose();
+      else { umbralAt(g.x, g.z, P.radius); Sfx.at(g.x, g.z).graspClose(); } // (the dark blinds a watching statue, breaks an obelisk's umbral ward; on holy ground, Eclipse Ground: M4.10)
+      graspHexing = false;
     }
     const k = g.t < P.delay ? g.t / P.delay : g.t < life ? 1 : 1 - (g.t - life) / .3;
     if (k <= 0 && g.t > life) { g.fx.drop(); grasps.splice(i, 1); continue; }

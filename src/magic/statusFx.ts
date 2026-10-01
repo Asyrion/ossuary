@@ -9,13 +9,18 @@
    M4.8, the full wheel: Searing cracks a foe gold (its guard burnt away, a War-Tiger's plate knocked off), a Prism glints
    every colour while it stays frozen (statusTint; projectiles.ts splits the bolts that strike it), Verdict strikes every
    sanctified foe in the room from above, Black Ice is laid under the foe (actors/bestiaryGround.ts), Void Spark leaps to
-   the foes near, carrying a hex. */
+   the foes near, carrying a hex. M5, Verdant: an overgrown foe is wound in green vines (leaves drift off it) and flowers
+   when it falls (`flowerFell`: half a heart for the mage, once a room); its five reactions: Wildfire runs the burn along
+   the vines to every overgrown foe, Frostbloom opens ice flowers that shatter a moment later, Pollen Spark leaves a cloud
+   of pollen that shocks the foes inside it (`pollenClouds`), Bloom makes the foe a lily that mends the mage as it falls,
+   and Blight rots the vines to thorns that hex it and creep to the nearest other foe. */
 import * as THREE from 'three';
 import type { Enemy } from '../types';
 import { CFG } from '../config';
-import { G } from '../state';
+import { G, after, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
+import { renderHearts } from '../ui/hud';
 import { TILT, scene } from '../render/renderer';
 import { disposeTree, glow, markShared } from '../render/materials';
 import { burst } from '../combat/fx';
@@ -39,9 +44,11 @@ import { hexGround } from './shapes';
 
 const R = MAGIC.reactions;
 const ICE = 0xbfe6ff, FIRE = 0xff7a2a, SPARK = 0xf0e890, GOLD = SCHOOL_LIGHT.hallow, VIOLET = SCHOOL_LIGHT.umbral, BLACKFIRE = 0x8a3ae0, STEAM = 0xe8f2f8, SEAR = 0xffb24a, BLACKICE = 0x5a3a9a;
+const LEAF = SCHOOL_LIGHT.verdant, VINE = 0x3a7a2a, PETAL = 0xf8c8e0, POLLEN = 0xe8e070, THORN = 0x5a3a4a;
 export const RAINBOW = [0xff6a6a, 0xffc06a, 0xf0f07a, 0x7ae88a, 0x7ac8ff, 0xb08aff];
 /** Each reaction's colour, for its rising name. */
-const REACT_COLOR: Record<Reaction, number> = { shatter: ICE, overload: 0xffc060, eclipse: 0xd8b0ff, blackfire: 0xb070ff, steam: STEAM, searing: SEAR, prism: 0xe8f8ff, verdict: 0xfff0a0, blackice: 0xb8a0ff, voidspark: 0xc890ff };
+const REACT_COLOR: Record<Reaction, number> = { shatter: ICE, overload: 0xffc060, eclipse: 0xd8b0ff, blackfire: 0xb070ff, steam: STEAM, searing: SEAR, prism: 0xe8f8ff, verdict: 0xfff0a0, blackice: 0xb8a0ff, voidspark: 0xc890ff,
+  wildfire: 0xffa040, frostbloom: 0xd8f4ff, pollenspark: POLLEN, bloom: PETAL, blight: 0xb890c8 };
 
 /** Apply a spell's statuses to a foe, and carry out what they set off. */
 export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> | undefined) {
@@ -131,6 +138,7 @@ function react(e: Enemy, r: Reaction) {
     return;
   }
   if (r === 'blackfire') { burst(e.x, .7, e.z, BLACKFIRE, 18, 2.4, .05); Sfx.at(e.x, e.z).blackfire(); return; }
+  if (verdantReact(e, r)) return; // (M5: Verdant's five)
   if (r === 'steam') { // fire and cold go up together: a cloud round the foe (nothing inside can aim, no eye sees through it), the foe scalded
     removeIce(e); steamAt(e.x, e.z); burst(e.x, .6, e.z, STEAM, 20, 2.2, .07); ringFx(e.x, .1, e.z, STEAM, .3, R.steam.radius, CFG.spellFx.shockwave, true);
     Sfx.at(e.x, e.z).steam(); damageEnemy(e, R.steam.damage, 0, 0, 0, 'spell');
@@ -148,6 +156,87 @@ function react(e: Enemy, r: Reaction) {
     Sfx.at(e.x, e.z).shatter(); G.shake = Math.max(G.shake, .2);
     damageEnemy(e, S.damage, 0, 0, 0, 'spell');
   } else overloadAt(e.x, e.z, e);
+}
+
+/* ---------- M5: Verdant's vines and their reactions ---------- */
+
+const live = (o: Enemy) => !o.dead && !o.hidden && o.spawn <= 0;
+/** Verdant's five reactions, set off on `e`; false for the others. */
+function verdantReact(e: Enemy, r: Reaction) {
+  if (r === 'wildfire') { // the fire runs along the vines to every overgrown foe in the room
+    const W = R.wildfire;
+    for (const o of G.enemies) {
+      if (o === e || !live(o) || (o.status?.grow ?? 0) <= 0) continue;
+      const st = o.status!; st.grow = 0; st.growHeld = 0; if (st.burn <= 0) st.burnTick = MAGIC.burn.tick; st.burn = Math.max(st.burn, W.burn);
+      strikeFx({ x: e.x, y: .3, z: e.z }, { x: o.x, y: .3, z: o.z }, FIRE, CFG.spellFx.chain, true); burst(o.x, .5, o.z, FIRE, 10, 2, .05);
+      damageEnemy(o, W.damage, 0, 0, 0, 'spell', 'ember');
+    }
+    burst(e.x, .5, e.z, FIRE, 16, 2.4, .06); burst(e.x, .3, e.z, LEAF, 8, 1.6, .04); Sfx.at(e.x, e.z).wildfire();
+    damageEnemy(e, W.damage, 0, 0, 0, 'spell', 'ember');
+    return true;
+  }
+  if (r === 'frostbloom') { // ice flowers open on it, and shatter a moment later, cutting and chilling the foes round it
+    const F = R.frostbloom, x = e.x, z = e.z, room = G.current;
+    burst(x, .7, z, ICE, 12, 1.2, .04); burst(x, .7, z, PETAL, 6, 1, .04); Sfx.at(x, z).frostbloom();
+    after(F.delay, () => {
+      if (G.current !== room) return; // (the mage has gone on)
+      const at = e.dead ? { x, z } : e;
+      burst(at.x, .6, at.z, ICE, 22, 3, .05); burst(at.x, .6, at.z, 0xffffff, 8, 2.4, .04); ringFx(at.x, .05, at.z, ICE, .2, F.radius, CFG.spellFx.shockwave, true);
+      for (const o of [...G.enemies]) if (live(o) && Math.hypot(o.x - at.x, o.z - at.z) < F.radius + o.r) { damageEnemy(o, F.damage, 0, 0, 0, 'spell', 'frost'); if (!o.dead) inflict(o, { chill: F.chill }); }
+      Sfx.at(at.x, at.z).shatter();
+    });
+    return true;
+  }
+  if (r === 'pollenspark') { // a cloud of pollen round it that shocks the foes inside for a few seconds
+    pollenClouds.push({ x: e.x, z: e.z, t: R.pollenspark.time, next: 0, room: G.current });
+    burst(e.x, .6, e.z, POLLEN, 24, 1.6, .05); burst(e.x, .8, e.z, SPARK, 8, 2.2, .03); Sfx.at(e.x, e.z).pollenspark();
+    return true;
+  }
+  if (r === 'bloom') { burst(e.x, .9, e.z, PETAL, 16, 1.6, .045); burst(e.x, 1, e.z, GOLD, 8, 1.4, .035); Sfx.at(e.x, e.z).bloom(); return true; } // (it flowers: a lily as it falls)
+  if (r === 'blight') { // the vines rot to thorns that hex it, and creep to the nearest other foe
+    const B = R.blight, o = G.enemies.filter(f => f !== e && live(f) && Math.hypot(f.x - e.x, f.z - e.z) < B.reach).sort((a, b) => Math.hypot(a.x - e.x, a.z - e.z) - Math.hypot(b.x - e.x, b.z - e.z))[0];
+    burst(e.x, .5, e.z, THORN, 14, 1.8, .05); burst(e.x, .7, e.z, VIOLET, 8, 1.4, .04); if (!e.flying) hexGround(e.x, e.z); Sfx.at(e.x, e.z).blight();
+    if (o) { // (laid straight on: thorns and a hex, no reaction of their own)
+      const st = o.status ??= newStatus(); st.hex = Math.min(MAGIC.hex.max, st.hex + B.hex); st.hexT = MAGIC.hex.time; if (st.grow <= 0) st.growHeld = 0; st.grow = Math.max(st.grow, B.grow);
+      for (let k = 1; k <= 6; k++) { const t = k / 6; burst(e.x + (o.x - e.x) * t, .12, e.z + (o.z - e.z) * t, k % 2 ? THORN : VINE, 2, .5, .04); }
+    }
+    return true;
+  }
+  return false;
+}
+
+/** Pollen Spark's clouds: where each hangs, how long it has left, its next shock (and the room it is in). */
+const pollenClouds: { x: number; z: number; t: number; next: number; room: object }[] = [];
+function updatePollen(dt: number) {
+  const P = R.pollenspark;
+  for (let i = pollenClouds.length - 1; i >= 0; i--) {
+    const c = pollenClouds[i]; c.t -= dt; c.next -= dt;
+    if (c.t <= 0 || c.room !== G.current) { pollenClouds.splice(i, 1); continue; }
+    if (Math.random() < dt * 18) { const a = Math.random() * Math.PI * 2, d = Math.random() * P.radius; burst(c.x + Math.cos(a) * d, .3 + Math.random() * .9, c.z + Math.sin(a) * d, Math.random() < .8 ? POLLEN : LEAF, 1, .3, .04); }
+    if (c.next > 0) continue;
+    c.next = P.every;
+    for (const o of [...G.enemies]) if (live(o) && Math.hypot(o.x - c.x, o.z - c.z) < P.radius + o.r) {
+      strikeFx({ x: c.x, y: 1, z: c.z }, { x: o.x, y: .7, z: o.z }, SPARK, CFG.spellFx.crackle, true);
+      damageEnemy(o, P.damage, 0, 0, 0, 'spell', 'storm'); const st = o.status ??= newStatus(); st.shock = Math.max(st.shock, P.shock); // (marked, as a shock does; no reaction of its own)
+    }
+    Sfx.at(c.x, c.z).sizzle();
+  }
+}
+/** Dev hook: the pollen clouds hanging in the room. */
+export const pollenNow = () => pollenClouds.length;
+
+/** A foe falls overgrown: it flowers. Its flower mends half a heart (once a room); a lily (Bloom) mends besides, every time. */
+export function flowerFell(e: Enemy) {
+  const s = e.status; if (!s || (s.grow <= 0 && !s.bloom)) return;
+  const room = G.current, lily = s.bloom, first = !room.flowered;
+  if (!lily && !first) { burst(e.x, .3, e.z, LEAF, 8, 1.2, .04); return; }
+  if (!lily) room.flowered = true;
+  const heal = lily ? R.bloom.heal : MAGIC.grow.flowerHeal;
+  burst(e.x, .4, e.z, lily ? PETAL : LEAF, 18, 1.6, .05); burst(e.x, .6, e.z, lily ? 0xffffff : PETAL, 10, 1.2, .04);
+  floatText(e.x, 1.2, e.z, lily ? STR.grow.lily : STR.grow.flower, lily ? PETAL : LEAF, 40);
+  for (let k = 1; k <= 5; k++) after(k * .06, () => { const t = k / 5; burst(e.x + (player.x - e.x) * t, .7, e.z + (player.z - e.z) * t, PETAL, 2, .5, .04); });
+  if (player.hp < player.maxHp) { player.hp = Math.min(player.maxHp, player.hp + heal); renderHearts(); floatText(player.x, 1.8, player.z, '+', 0xff8a8a, 40); }
+  Sfx.at(e.x, e.z).bloom();
 }
 
 /** An Overload's blast at (x, z): foes thrown out and struck, a shockwave and a flash. Set off by a burning foe shocked or
@@ -240,9 +329,12 @@ export function updateStatuses(dt: number, now: number) {
     if (s.sanct > 0 && Math.random() < dt * 6) burst(e.x + (Math.random() - .5) * e.r * 1.6, y + .5, e.z + (Math.random() - .5) * e.r * 1.6, GOLD, 1, .8, .03);
     if (s.prism > 0 && Math.random() < dt * 10) burst(e.x + (Math.random() - .5) * e.r * 1.8, y + .2 + Math.random() * .5, e.z + (Math.random() - .5) * e.r * 1.8, RAINBOW[Math.floor(Math.random() * RAINBOW.length)], 1, .9, .035); // (M4.8: a prism throws colours)
     if (s.root > 0 && Math.random() < dt * 5) burst(e.x + (Math.random() - .5) * e.r * 2, .08, e.z + (Math.random() - .5) * e.r * 2, 0x2a0a4a, 1, .4, .04);
+    if (s.grow > 0 && Math.random() < dt * 7) burst(e.x + (Math.random() - .5) * e.r * 2, .1 + Math.random() * y, e.z + (Math.random() - .5) * e.r * 2, Math.random() < .6 ? LEAF : VINE, 1, .35, .04); // (M5: vines, leaves drifting off)
+    if (s.bloom && Math.random() < dt * 3) burst(e.x + (Math.random() - .5) * e.r, y + .45, e.z + (Math.random() - .5) * e.r, PETAL, 1, .4, .035);
     if ((s.shock > 0 || s.stun > 0) && Math.random() < dt * 8) burst(e.x + (Math.random() - .5) * e.r * 2, y + .3, e.z + (Math.random() - .5) * e.r * 2, SPARK, 2, 2.4, .025);
     if (e.type === 'dummy') dummyLabel(e, now);
   }
+  updatePollen(dt);
   updateFloats(dt);
 }
 
@@ -258,6 +350,7 @@ export function statusTint(e: Enemy, now: number): [THREE.Color, number] | null 
   if (s.seared > 0) return [tint.setHex(0xffa030), .55 + Math.sin(now * 11) * .2]; // (its guard burnt away: cracked gold)
   if (s.voidT > 0) return [tint.setHex(Math.sin(now * 19) > .6 ? 0xf0e890 : 0x9a5ae0), .5]; // (a Void Spark's mark: violet, sparking; it pays mana as it falls)
   if (s.frozen > 0) return [tint.setHex(0x4a8ad8), .85];
+  if (s.grow > 0) return [tint.setHex(s.bloom ? 0xd890b8 : 0x4aa83a), .35 + Math.min(.3, s.growHeld * .08)]; // (M5: green as the vines hold, deeper the longer; a lily pink)
   if (s.burn > 0 && s.black) return [tint.setHex(0x6a1ac0), .5 + Math.sin(now * 17 + e.x) * .2];
   if (s.burn > 0) return [tint.setHex(0xff5a10), .45 + Math.sin(now * 17 + e.x) * .2];
   if (s.sanct > 0) return [tint.setHex(0xc89a30), .45 + Math.sin(now * 6) * .1];
@@ -343,6 +436,7 @@ function dummyLabel(e: Enemy, _now: number) {
   if (s.sanct > 0) parts.push(STR.statusNames.sanct);
   if (s.hex > 0) parts.push(`${STR.statusNames.hex} ${s.hex}`);
   if (s.root > 0) parts.push(STR.statusNames.root);
+  if (s.grow > 0) parts.push(s.bloom ? STR.statusNames.bloom : STR.statusNames.grow);
   const text = parts.join(' · ');
   if (e.label?.userData.text === text) return;
   if (e.label) { e.group.remove(e.label); e.label.material.dispose(); e.label = undefined; }

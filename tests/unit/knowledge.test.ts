@@ -45,12 +45,13 @@ describe('spell knowledge (M3.7)', () => {
   });
 
   it('tells the reactions a spell can set off from its statuses', () => {
-    // (the wheel, M4.8: each status is half of four reactions, one with each other school)
-    expect(reactionsOf({ status: { chill: 1 } })).toEqual([{ reaction: 'shatter', with: 'storm' }, { reaction: 'steam', with: 'ember' }, { reaction: 'prism', with: 'hallow' }, { reaction: 'blackice', with: 'umbral' }]);
-    expect(reactionsOf({ status: { burn: 3 } })).toEqual([{ reaction: 'overload', with: 'storm' }, { reaction: 'blackfire', with: 'umbral' }, { reaction: 'steam', with: 'frost' }, { reaction: 'searing', with: 'hallow' }]);
-    expect(reactionsOf({ status: { sanct: 2 } })).toEqual([{ reaction: 'eclipse', with: 'umbral' }, { reaction: 'searing', with: 'ember' }, { reaction: 'prism', with: 'frost' }, { reaction: 'verdict', with: 'storm' }]);
-    expect(reactionsOf({ status: { root: 2, hex: 1 } })).toEqual([{ reaction: 'eclipse', with: 'hallow' }, { reaction: 'blackfire', with: 'ember' }, { reaction: 'blackice', with: 'frost' }, { reaction: 'voidspark', with: 'storm' }]);
-    expect(reactionsOf({ status: { shock: 1 } })).toEqual([{ reaction: 'shatter', with: 'frost' }, { reaction: 'overload', with: 'ember' }, { reaction: 'verdict', with: 'hallow' }, { reaction: 'voidspark', with: 'umbral' }]);
+    // (the wheel, M4.8: each status is half of a reaction with each other school; M5's Verdant makes it five)
+    expect(reactionsOf({ status: { chill: 1 } })).toEqual([{ reaction: 'shatter', with: 'storm' }, { reaction: 'steam', with: 'ember' }, { reaction: 'prism', with: 'hallow' }, { reaction: 'blackice', with: 'umbral' }, { reaction: 'frostbloom', with: 'verdant' }]);
+    expect(reactionsOf({ status: { burn: 3 } })).toEqual([{ reaction: 'overload', with: 'storm' }, { reaction: 'blackfire', with: 'umbral' }, { reaction: 'steam', with: 'frost' }, { reaction: 'searing', with: 'hallow' }, { reaction: 'wildfire', with: 'verdant' }]);
+    expect(reactionsOf({ status: { sanct: 2 } })).toEqual([{ reaction: 'eclipse', with: 'umbral' }, { reaction: 'searing', with: 'ember' }, { reaction: 'prism', with: 'frost' }, { reaction: 'verdict', with: 'storm' }, { reaction: 'bloom', with: 'verdant' }]);
+    expect(reactionsOf({ status: { root: 2, hex: 1 } })).toEqual([{ reaction: 'eclipse', with: 'hallow' }, { reaction: 'blackfire', with: 'ember' }, { reaction: 'blackice', with: 'frost' }, { reaction: 'voidspark', with: 'storm' }, { reaction: 'blight', with: 'verdant' }]);
+    expect(reactionsOf({ status: { shock: 1 } })).toEqual([{ reaction: 'shatter', with: 'frost' }, { reaction: 'overload', with: 'ember' }, { reaction: 'verdict', with: 'hallow' }, { reaction: 'voidspark', with: 'umbral' }, { reaction: 'pollenspark', with: 'verdant' }]);
+    expect(reactionsOf({ status: { grow: 3 } })).toEqual([{ reaction: 'wildfire', with: 'ember' }, { reaction: 'frostbloom', with: 'frost' }, { reaction: 'pollenspark', with: 'storm' }, { reaction: 'bloom', with: 'hallow' }, { reaction: 'blight', with: 'umbral' }]);
     expect(reactionsOf({})).toEqual([]);
     // every spell in the data with a status can set off at least one reaction
     for (const s of SPELL_DEFS) if (Object.values(s.status ?? {}).some(v => v > 0)) expect(reactionsOf(s).length, s.id).toBeGreaterThan(0);

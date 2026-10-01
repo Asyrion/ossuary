@@ -10,7 +10,7 @@ import { CFG, type EnemyType } from '../config';
 import { SCHOOLS, type School, type SpellStatus } from '../magic/spellData';
 
 export type { School } from '../magic/spellData';
-const STATUS_SCHOOL: Record<SpellStatus, School> = { burn: 'ember', chill: 'frost', shock: 'storm', sanct: 'hallow', hex: 'umbral', root: 'umbral' };
+const STATUS_SCHOOL: Record<SpellStatus, School> = { burn: 'ember', chill: 'frost', shock: 'storm', sanct: 'hallow', hex: 'umbral', root: 'umbral', grow: 'verdant' };
 /** The school a hit carries from the statuses it brings (a burning bolt is Ember's), if any. */
 export const schoolOf = (status?: Partial<Record<SpellStatus, number>>) => {
   const k = status && (Object.keys(status) as SpellStatus[]).find(s => (status[s] ?? 0) > 0);

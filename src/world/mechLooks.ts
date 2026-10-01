@@ -186,13 +186,14 @@ const OBELISK = {
 };
 
 /** Each school's sign, floating over an obelisk's point so its ward reads at a glance (Hallow's gold and Storm's yellow
-    are close): a flame, a snowflake, a lightning bolt, a halo, a crescent. */
+    are close): a flame, a snowflake, a lightning bolt, a halo, a crescent; M5's Verdant a leaf on its stem. */
 const EMBLEM: Record<School, THREE.BufferGeometry> = {
   ember: shared(joinAll([new THREE.ConeGeometry(.09, .26, 6), new THREE.ConeGeometry(.05, .16, 5).translate(.06, -.04, 0), new THREE.ConeGeometry(.05, .14, 5).translate(-.06, -.05, 0)])),
   frost: shared(joinAll([0, 1, 2].map(i => new THREE.BoxGeometry(.03, .28, .03).rotateZ(i * Math.PI / 3)))),
   storm: shared(joinAll([new THREE.BoxGeometry(.04, .16, .03).rotateZ(-.5).translate(.02, .08, 0), new THREE.BoxGeometry(.12, .035, .03).translate(0, 0, 0), new THREE.BoxGeometry(.04, .16, .03).rotateZ(-.5).translate(-.02, -.08, 0)])),
   hallow: shared(joinAll([new THREE.TorusGeometry(.11, .018, 4, 18).rotateX(Math.PI / 2).translate(0, .1, 0), new THREE.OctahedronGeometry(.05, 0)])),
   umbral: shared(new THREE.TorusGeometry(.1, .032, 4, 12, Math.PI * 1.3).rotateZ(Math.PI * .85)),
+  verdant: shared(joinAll([new THREE.SphereGeometry(.1, 6, 4).scale(.55, 1.3, .25).rotateZ(-.5).translate(.03, .05, 0), new THREE.BoxGeometry(.025, .16, .025).rotateZ(.3).translate(-.02, -.08, 0)])),
 };
 
 /** The sapping obelisk (M4.2): a black stone needle on a plinth, runes of its ward's school cut down its face (`runes`)
