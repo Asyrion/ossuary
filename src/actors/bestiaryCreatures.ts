@@ -193,7 +193,7 @@ export function radiantEye(): Built {
     return w;
   });
   const wings = [[1, .4], [-1, .4], [1, -.5], [-1, -.5]].map(([s, tilt]) => { const w = featherWing(core, s as 1 | -1, [.18 * s, tilt * .3, -.15], .55, wingM, tipM, 7, .45); w.rotation.z = tilt * s; return w; });
-  return { group: g, shadow: 1, parts: { core, eye }, idle: t => {
+  return { group: g, shadow: 1, parts: { core, eye, lidTop: lids[0].l, lidBottom: lids[1].l }, idle: t => {
     core.position.y = 1.05 + Math.sin(t * 1.5) * .05; wheels.forEach((w, i) => { w.rotation.z = t * (.6 + i * .15) * (i % 2 ? -1 : 1); });
     eye.rotation.y = Math.sin(t * .7) * .35; eye.rotation.x = Math.sin(t * .9) * .15;
     const open = t % 5 < .2 ? .2 : 1; lids.forEach(({ l, s }) => { l.rotation.x = s * (1 - open) * .9; });

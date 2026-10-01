@@ -3207,3 +3207,64 @@ test('the bestiary (M4.5), floor 3: the nest lets out wasps and only fire harms 
   expect(r.rubble).toMatchObject({ slammed: true, stones: 3, broken: true, back: 'walk', left: 0, putDown: true });
   expect(errors).toEqual([]);
 });
+
+test('the bestiary (M4.5), floor 4: the griffin soars out of reach, swoops down a marked line and buffets (a hex grounds it); the eye shut takes half, open fires its ray (a hex shuts it); the harpy screeches glyphs away and dives; the lodestone golem draws the mage, bends bolts and drinks storm; the hearth golem turns blows while lit (frost puts it out); the shadow fox blinks shadow to shadow (holy light holds it); the scarab throws its snowball (fire melts it)', async ({ page }) => {
+  type Foe = { type: string; state: string; x: number; z: number; hp: number; maxHp: number; hidden?: boolean; dead?: boolean };
+  type GF = { sim(sec: number, draw?: boolean): void; warp(id: number): void; hit(i: number, dmg: number, school?: string): number;
+    spawn(kind: string, x?: number, z?: number): Foe; inflict(s: Record<string, number>): void; clearRoom(): void; burn(x: number, z: number, r?: number): void;
+    burningGround: number; glyphs: { x: number; z: number }[]; bolts: { vx: number }[]; shots: unknown[]; keys: Set<string>; arrowOrder: string[];
+    player: { x: number; z: number; vx: number; vz: number; hp: number; maxHp: number; invuln: number; chill: number }; enemies: Foe[] };
+  const errors = await start(page, '?seed=K3F9QX&floor=4&room=great_hall&variant=quiet&loot=glyphs:9');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 99; g.warp(1); g.sim(.5);
+    const x0 = g.player.x, z0 = g.player.z, home = () => Object.assign(g.player, { x: x0, z: z0, vx: 0, vz: 0 });
+    const meet = (id: string, secs: number, every?: (e: Foe) => void, dx = 3) => {
+      g.clearRoom(); g.sim(.3); home(); g.player.hp = 99; g.spawn('dummy', g.player.x - 5, g.player.z - 2.5);
+      const e = g.spawn(id, g.player.x + dx, g.player.z); g.sim(.7); const seen = new Set<string>(); let hurt = 0;
+      for (let i = 0; i < secs * 20; i++) { g.player.invuln = 0; const before = g.player.hp; g.sim(.05); hurt += before - g.player.hp; g.player.hp = 99; seen.add(e.state); every?.(e); }
+      return { e, i: g.enemies.indexOf(e), seen, hurt };
+    };
+    const R: Record<string, unknown> = {};
+    // the griffin: soaring, blows can't reach it; it swoops down its line, lands and buffets the mage away; hexed, it comes down
+    { let aloft = -1, pushed = 0; const { e, seen } = meet('griffin', 9, f => { if (f.state === 'soar' && aloft < 0) { const hp = f.hp; g.hit(g.enemies.indexOf(f), 3); aloft = hp - f.hp; } if (f.state === 'claw') pushed = Math.max(pushed, Math.hypot(g.player.x - x0, g.player.z - z0)); });
+      for (let k = 0; k < 200 && e.state !== 'soar'; k++) g.sim(.05); g.inflict({ hex: 2 }); g.sim(.1);
+      R.griffin = { swooped: seen.has('mark') && seen.has('swoop') && seen.has('claw'), aloft, pushed, hexed: e.state, reachable: !e.hidden }; }
+    // the eye: shut, half a blow; open, all of it; its ray strikes where the mage stood; a hex shuts it
+    { const { e, seen, hurt } = meet('radiantEye', 8); for (let k = 0; k < 100 && e.state !== 'shut'; k++) g.sim(.05); let hp = e.hp; g.hit(g.enemies.indexOf(e), 4); const shut = hp - e.hp;
+      for (let k = 0; k < 100 && e.state !== 'track'; k++) g.sim(.05); hp = e.hp; g.hit(g.enemies.indexOf(e), 4); const open = hp - e.hp; g.inflict({ hex: 2 }); g.sim(.05);
+      R.eye = { fired: seen.has('aim'), hurt, shut, open, hexed: e.state }; }
+    // the harpy: perched, it screeches, and a glyph chalked near it is blown away; then it dives
+    { const { e, seen } = meet('harpy', 6); for (let k = 0; k < 200 && e.state !== 'perch'; k++) g.sim(.05);
+      Object.assign(g.player, { x: e.x + (e.x > x0 ? -1.2 : 1.2), z: e.z });
+      window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' })); g.sim(.05); window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' })); g.sim(.05);
+      const gl = g.glyphs[g.glyphs.length - 1], at = gl ? [gl.x, gl.z] : [0, 0];
+      for (let k = 0; k < 100 && e.state !== 'screech'; k++) { g.sim(.05); g.player.hp = 99; } g.sim(.3);
+      R.harpy = { dived: seen.has('dive'), chalked: !!gl, blown: gl ? Math.hypot(gl.x - at[0], gl.z - at[1]) : 0 }; }
+    // the lodestone golem (an elemental): it draws the mage; a bolt flying past bends towards it; storm feeds it
+    { g.clearRoom(); g.sim(.3); home(); const e = g.spawn('lodestoneGolem', g.player.x + 4, g.player.z); g.sim(.8); const px = g.player.x; g.sim(.5); const drawn = g.player.x - px;
+      e.x = g.player.x + 2; e.z = g.player.z - 1; g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); g.sim(.1); g.keys.delete('ArrowUp'); g.arrowOrder.length = 0;
+      let bent = 0; for (let k = 0; k < 10; k++) { g.sim(.03); for (const b of g.bolts) bent = Math.max(bent, b.vx); }
+      const i = g.enemies.indexOf(e); e.hp = e.maxHp / 2; let hp = e.hp; g.hit(i, 2, 'storm'); const storm = e.hp - hp; hp = e.hp; g.hit(i, 2, 'frost');
+      R.magnet = { drawn, bent, storm, frost: hp - e.hp }; }
+    // the hearth golem (an elemental): coals land burning; lit, a blow barely tells; frost puts it out, and it lights again
+    { let burning = 0; const { e, i } = meet('hearthGolem', 6, () => { burning = Math.max(burning, g.burningGround); }); let hp = e.hp; g.hit(i, 5); const lit = hp - e.hp;
+      g.inflict({ chill: 1 }); g.sim(.1); const out = e.state; hp = e.hp; g.hit(g.enemies.indexOf(e), 5); const cold = hp - e.hp; g.sim(5);
+      R.hearth = { burning, lit, out, cold, again: e.state }; }
+    // the shadow fox: into one shadow and out of another, and a bite; holy light holds it in the open
+    { const { e, seen, hurt } = meet('shadowFox', 8); g.inflict({ sanct: 3 }); const held = new Set<string>(); for (let k = 0; k < 60; k++) { g.sim(.05); held.add(e.state); }
+      R.fox = { blinked: seen.has('gone') && seen.has('emerge') && seen.has('bite'), hurt, held: [...held] }; }
+    // the rime scarab: its snowball grows, is thrown and bursts cold; fire melts the ball
+    { let chill = 0; const { e, seen } = meet('rimeScarab', 8, () => { chill = Math.max(chill, g.player.chill); });
+      for (let k = 0; k < 100 && e.state !== 'push'; k++) g.sim(.05); g.burn(e.x, e.z, .5); g.sim(.1); R.scarab = { threw: seen.has('heave') && seen.has('bare'), chill, melted: e.state }; }
+    return R;
+  });
+  expect(r.griffin).toMatchObject({ swooped: true, aloft: 0, hexed: 'claw', reachable: true }); expect((r.griffin as { pushed: number }).pushed).toBeGreaterThan(.5);
+  expect(r.eye).toMatchObject({ fired: true, shut: 2, open: 4, hexed: 'shut' });
+  expect(r.harpy).toMatchObject({ dived: true, chalked: true }); expect((r.harpy as { blown: number }).blown).toBeGreaterThan(1);
+  const m = r.magnet as { drawn: number; bent: number; storm: number; frost: number };
+  expect(m.drawn).toBeGreaterThan(.1); expect(m.bent).toBeGreaterThan(1); expect(m.storm).toBeGreaterThan(0); expect(m.frost).toBeCloseTo(4);
+  expect(r.hearth).toMatchObject({ lit: 1, out: 'out', cold: 5, again: 'lit' }); expect((r.hearth as { burning: number }).burning).toBeGreaterThan(0);
+  expect(r.fox).toMatchObject({ blinked: true, held: ['prowl'] }); expect((r.fox as { hurt: number }).hurt).toBeGreaterThan(0);
+  expect(r.scarab).toMatchObject({ threw: true, melted: 'bare' }); expect((r.scarab as { chill: number }).chill).toBeGreaterThan(0);
+  expect(errors).toEqual([]);
+});

@@ -91,7 +91,7 @@
     "shrine": true,
     "library": true,
     "vaultWarden": "gargoyleWhelp",
-    "foes": {"R": [["wickmouse", 1]], "W": [["chimeBat", 3], ["moonstagFawn", 1]], "H": [["gargoyleWhelp", 1]]},
+    "foes": {"R": [["wickmouse", 1.5], ["lodestoneGolem", 1], ["shadowFox", 1], ["rimeScarab", 1]], "W": [["chimeBat", 2], ["moonstagFawn", 1], ["radiantEye", 1], ["harpy", 1]], "H": [["gargoyleWhelp", 1.5], ["griffin", 0.6], ["hearthGolem", 0.6]]},
     "secretArtifactChance": 0.5,
     "souls": 2.5,
     "bossHallChance": 0.45,
