@@ -137,6 +137,17 @@ describe('Hallow and Umbral (M4.1)', () => {
     expect(applyStatus(b, 'sanct', 2, true).reaction).toBe('eclipse'); expect(b.eclipse).toBe(0); // (a boss is only struck)
   });
 
+  it('steam: fire meets cold (either way round), both going up; a frozen foe thaws, guarded from freezing again; blackfire stays', () => {
+    const a = newStatus(); applyStatus(a, 'chill', 1, false);
+    expect(applyStatus(a, 'burn', 3, false)).toEqual({ reaction: 'steam' }); expect(a.chill).toBe(0); expect(a.burn).toBe(0);
+    const b = newStatus(); applyStatus(b, 'burn', 3, false);
+    expect(applyStatus(b, 'chill', 1, false)).toEqual({ reaction: 'steam' }); expect(b.burn).toBe(0); expect(b.chill).toBe(0);
+    const c = newStatus(); for (let i = 0; i < T.chill.freezeAt; i++) applyStatus(c, 'chill', 1, false); expect(c.frozen).toBeGreaterThan(0);
+    expect(applyStatus(c, 'burn', 3, false)).toEqual({ reaction: 'steam' }); expect(c.frozen).toBe(0); expect(c.guard).toBe(T.chill.refreezeGuard);
+    const d = newStatus(); applyStatus(d, 'hex', 1, false); applyStatus(d, 'burn', 3, false); expect(d.black).toBe(true);
+    expect(applyStatus(d, 'chill', 1, false)).toEqual({}); expect(d.burn).toBeGreaterThan(0); // (blackfire never goes out)
+  });
+
   it('blackfire: hex meets burn (either way round), and the burn never goes out', () => {
     for (const [first, second] of [['hex', 'burn'], ['burn', 'hex']] as const) {
       const s = newStatus(); applyStatus(s, first, 2, false);

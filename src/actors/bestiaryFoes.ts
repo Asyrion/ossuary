@@ -113,6 +113,7 @@ import { addPool, fireAt, frostAt, poolAt, shockAt } from '../world/pools';
 import { boxAt } from '../world/collision';
 import { hearGround } from '../world/groundHooks';
 import { ringFx, strikeFx } from '../magic/spellFx';
+import { steamBetween } from '../magic/steam';
 import { mantleShields } from '../magic/shapes';
 import { crumble, damageEnemy, hurtPlayer } from '../combat/damage';
 import { dropPage } from '../magic/pages';
@@ -813,8 +814,9 @@ const phoenix: Behaviour = {
   die(e) { ashes(e, false); },
 };
 
-/** Nothing tall between (x0, z0) and (x1, z1) in `room`: walls, rocks, pillars, a spell's ice. */
+/** Nothing tall between (x0, z0) and (x1, z1) in `room`: walls, rocks, pillars, a spell's ice, nor steam hanging there. */
 function clearSight(room: Room, x0: number, z0: number, x1: number, z1: number) {
+  if (steamBetween(x0, z0, x1, z1)) return false;
   const dx = x1 - x0, dz = z1 - z0, n = Math.ceil(Math.hypot(dx, dz) / .2);
   for (let i = 1; i < n; i++) { const x = x0 + dx * i / n, z = z0 + dz * i / n; if (boxAt(x, z, room.walls) || boxAt(x, z, room.rocks) || boxAt(x, z, room.barriers ?? [])) return false; }
   return true;
@@ -1002,8 +1004,8 @@ const eye: Behaviour = { // the Radiant Eye
     if (e.state === 'shut') { // shut, its lids turn half of every blow
       e.guard = num(P.guard);
       if (e.st <= 0 && !((e.status?.hex ?? 0) > 0)) { e.state = 'track'; e.st = num(P.track); e.guard = 1; Sfx.at(e.x, e.z).eyeOpen(); }
-    } else if (e.state === 'track') { // open, it follows the mage
-      e.target = { x: player.x, z: player.z }; e.tele = ramp(e.st, num(P.track));
+    } else if (e.state === 'track') { // open, it follows the mage (not into steam: there it loses them, and strikes where they last showed)
+      if (!e.target || !steamBetween(e.x, e.z, player.x, player.z)) e.target = { x: player.x, z: player.z }; e.tele = ramp(e.st, num(P.track));
       if (e.st <= 0) { e.state = 'aim'; e.st = num(P.delay); e.tele = 0; ringFx(player.x, .04, player.z, light(e), .7, .45, num(P.delay), true, .8); Sfx.at(e.x, e.z).eyeCharge(); } // (where the mage stood: the ray comes there)
     } else if (e.state === 'aim') {
       if (e.st <= 0) {

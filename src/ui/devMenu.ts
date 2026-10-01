@@ -42,6 +42,7 @@ import { forgetSpells, gainMana, learnSpell } from '../magic/spells';
 import { forgetKnowledge, knowEvery, knowledgeNow } from '../magic/memory';
 import { dropPage } from '../magic/pages';
 import { hexDrained } from './afflictions';
+import { steamAt } from '../magic/steam';
 import { fireAt, poolsDo } from '../world/pools';
 import { inflict } from '../magic/statusFx';
 import type { SpellStatus, StatusKind } from '../magic/spellData';
@@ -261,6 +262,7 @@ function build() {
   for (const kind of PROP_KINDS) objs.append(btn(S.propNames[kind], () => { const q = ahead(1.5); if (!placeProp(kind, q.x, q.z)) toast(S.noRoom, 2); }));
   // fire, frost or shock landing just ahead, as a spell's would: to light braziers and candles, charge runes, set lodestones leaping
   for (const [kind, label] of [['burn', S.kindle], ['chill', S.frost], ['shock', S.shock], ['sanct', S.hallowAhead], ['hex', S.umbralAhead]] as [StatusKind | 'sanct' | 'hex', string][]) objs.append(btn(label, () => { const q = ahead(1.5); elementDev(kind, q.x, q.z); }));
+  objs.append(btn(S.steamAhead, () => { const q = ahead(1.5); steamAt(q.x, q.z); })); // (Steam, Ember + Frost: foes inside can't aim, eyes can't see through it)
 
   // statuses on every foe in the room: to see them, and to set off reactions by hand
   const sts = section(pages.magic, S.statuses);

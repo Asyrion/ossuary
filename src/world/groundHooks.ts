@@ -1,7 +1,7 @@
 /* What lands on the ground (M4.5): fire, frost and shock report where they land (world/pools.ts: `fireAt`, `frostAt`,
    `shockAt`), and what lies on the floor hears it here without the pools knowing of it: a crypt spider's webs burn, an
-   ink octopus's smears freeze. */
-export type GroundElement = 'fire' | 'frost' | 'shock';
+   ink octopus's smears freeze. Steam (magic/steam.ts) reports where it rises: scalded water gives up what hides in it. */
+export type GroundElement = 'fire' | 'frost' | 'shock' | 'steam';
 type Hearer = (kind: GroundElement, x: number, z: number, r: number) => void;
 const hearers: Hearer[] = [];
 /** Listen for the elements landing on the ground. */

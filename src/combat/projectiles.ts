@@ -32,6 +32,8 @@ import { fireAt, frostAt } from '../world/pools';
 import { animateBolt, boltLook, impactFx } from '../magic/spellFx';
 import { gainMana } from '../magic/spells';
 import { hexDrained } from '../ui/afflictions';
+import { inSteam } from '../magic/steam';
+import { MAGIC } from '../magic/status';
 
 const BLESSED = 0xfff0b0; // a blessed cast's gold
 
@@ -134,6 +136,7 @@ export function fireSpellBolt(x: number, z: number, dx: number, dz: number, o: {
 
 /** Enemy projectile. */
 export function spawnShot(x: number, z: number, dx: number, dz: number, speed: number, color: number, y = .55, size = 1, o: { fire?: boolean; chill?: number; hex?: number } = {}) {
+  if (inSteam(x, z)) { const a = (Math.random() - .5) * 2 * MAGIC.reactions.steam.spread, c = Math.cos(a), n = Math.sin(a); [dx, dz] = [dx * c - dz * n, dz * c + dx * n]; } // (thrown out of steam, it can't be aimed)
   const mesh = new THREE.Group();
   const sh = blob(.4); sh.position.y = -y + .015;
   mesh.add(new THREE.Mesh(sphereGeo(.13 * size), basicMat(color)), glowShared(color, .9 * size, .9), sh);

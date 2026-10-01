@@ -19,6 +19,7 @@ import { mantleShields } from '../magic/shapes';
 import { wadeAt } from '../world/pools';
 import { saltHolds } from '../combat/familiars';
 import { packOf, songHaste } from './bestiaryFoes';
+import { clearSteam } from '../magic/steam';
 
 export function stdMat(color: number, extra: THREE.MeshStandardMaterialParameters = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: .85, flatShading: true, ...extra });
@@ -79,7 +80,7 @@ export function spawnFoe(type: FoeType, x: number, z: number, hpMul = 1, opts: {
 }
 
 export function clearEnemies() {
-  clearFoeHazards();
+  clearFoeHazards(); clearSteam(); // (and the steam a fight raised)
   for (const e of G.enemies) { scene.remove(e.group); disposeTree(e.group); }
   G.enemies.length = 0;
 }

@@ -22,6 +22,7 @@ import { updateShop } from './items/merchant';
 import { updateWanderer } from './items/wanderer';
 import { hidePagePanel, updatePagePanel, updatePages } from './magic/pages';
 import { updatePools } from './world/pools';
+import { updateSteam } from './magic/steam';
 import { updateVaultSeals } from './world/vault';
 import { updateSecretWalls } from './world/secret';
 import { updateShrine } from './world/shrine';
@@ -73,7 +74,7 @@ function updateWorldFx(dt: number, now: number) {
   if (G.state === 'play' && !G.trans) updatePagePanel(); else hidePagePanel(); // a spell's panel over the page near the mage (M3.7)
   updateFamiliars(dt, now, G.state === 'play' && !G.trans);
   updateShrine(dt, now, G.state === 'play' && !G.trans);
-  updateMagic(dt, G.state === 'play' && !G.trans); updateStatusFx(dt); updatePools(dt, now, G.state === 'play' && !G.trans);
+  updateMagic(dt, G.state === 'play' && !G.trans); updateStatusFx(dt); updatePools(dt, now, G.state === 'play' && !G.trans); updateSteam(G.state === 'play' ? dt : 0);
   if (G.state === 'play' && !G.trans) { updateProps(dt); updateThemes(dt); updateMechanisms(dt); updateWardShields(G.simClock); updateModelOptions(dt, G.current); updateEffectOptions(dt, G.current); } // burning, briars, spores; sleepers, rising bones; bells, runes, censers
   const tf = .92 + Math.sin(now * 13) * .05 + Math.sin(now * 23) * .04;
   updateTorchLights(G.current.torches, player.x, player.z, dt, tf);

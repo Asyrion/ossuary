@@ -62,11 +62,11 @@ const SCHOOL_OF = { burn: 'ember', chill: 'frost', shock: 'storm', sanct: 'hallo
 /** The reactions a spell can set off with another school's status (magic/status.ts): a frozen foe shocked, or a
     shocked foe frozen, shatters; a burning foe shocked, or a shocked foe set burning, overloads; a sanctified foe
     hexed, or a hexed one sanctified, is eclipsed; a hexed foe set burning, or a burning one hexed, burns with
-    blackfire. */
+    blackfire; a chilled foe set burning, or a burning one chilled, goes up in steam. */
 export function reactionsOf(def: Pick<SpellDef, 'status'>): { reaction: Reaction; with: School }[] {
   const has = (k: keyof typeof SCHOOL_OF) => (def.status?.[k] ?? 0) > 0, out: { reaction: Reaction; with: School }[] = [];
-  if (has('chill')) out.push({ reaction: 'shatter', with: SCHOOL_OF.shock });
-  if (has('burn')) out.push({ reaction: 'overload', with: SCHOOL_OF.shock }, { reaction: 'blackfire', with: SCHOOL_OF.hex });
+  if (has('chill')) out.push({ reaction: 'shatter', with: SCHOOL_OF.shock }, { reaction: 'steam', with: SCHOOL_OF.burn });
+  if (has('burn')) out.push({ reaction: 'overload', with: SCHOOL_OF.shock }, { reaction: 'blackfire', with: SCHOOL_OF.hex }, { reaction: 'steam', with: SCHOOL_OF.chill });
   if (has('shock')) out.push({ reaction: 'shatter', with: SCHOOL_OF.chill }, { reaction: 'overload', with: SCHOOL_OF.burn });
   if (has('sanct')) out.push({ reaction: 'eclipse', with: SCHOOL_OF.hex });
   if (has('hex')) out.push({ reaction: 'eclipse', with: SCHOOL_OF.sanct }, { reaction: 'blackfire', with: SCHOOL_OF.burn });
