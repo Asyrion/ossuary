@@ -68,11 +68,11 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   swarm: ['keep', 'wheel', 'drift', 'orbit', 'spin', 'streamEvery', 'tell', 'dash', 'dashTime', 'gap', 'flash'],
   singer: ['fly', 'giveUp', 'perch', 'songEvery', 'songRange', 'hasteTime', 'flee', 'diveTell', 'dive', 'diveTime'],
   mantis: ['keep', 'stalk', 'tell', 'lunge', 'lungeTime', 'open', 'parryArc', 'parrySpeed'],
-  crab: ['wake', 'rise', 'hideGuard', 'guard', 'keep', 'turn', 'sparkEvery', 'tell', 'sparkSpeed', 'pinchEvery', 'pinch', 'pinchTime', 'flipped', 'flipGuard'],
+  crab: ['wake', 'rise', 'hideGuard', 'guard', 'keep', 'turn', 'sparkEvery', 'tell', 'sparkSpeed', 'pinchEvery', 'pinch', 'pinchTime', 'flipped', 'flipGuard', 'lonely'],
   // floor 2
   snail: ['trailEvery', 'rimeSize', 'rimeTime', 'spitEvery', 'spitRange', 'shotSpeed', 'chill', 'shellAt', 'shellTime', 'shellGuard', 'crackTime', 'crackGuard'],
   newt: ['poolSize', 'roam', 'under', 'reach', 'patience', 'hunt', 'lunge', 'lungeTime', 'chill', 'land', 'stun'],
-  serpent: ['poolSize', 'under', 'rise', 'up', 'volleys', 'volleyGap', 'shots', 'spread', 'shotSpeed', 'trapped'],
+  serpent: ['poolSize', 'under', 'rise', 'up', 'volleys', 'volleyGap', 'shots', 'spread', 'shotSpeed', 'trapped', 'lost'],
   wave: ['pourEvery', 'pourMax', 'slamEvery', 'slamRange', 'tell', 'ring', 'shotSpeed', 'ice', 'shatter'],
   cloud: ['rest', 'over', 'gather', 'rain', 'sparks', 'reach', 'sparkTime'],
   darter: ['hover', 'aim', 'dash', 'dashMax', 'sparkEvery', 'sparkTime'],
@@ -93,7 +93,7 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   harpy: ['perchH', 'perch', 'screechAt', 'screech', 'screechRange', 'push', 'tell', 'dive', 'diveTime'],
   magnet: ['pullRange', 'pull', 'bendRange', 'bend', 'ring', 'turn'],
   hearth: ['guard', 'throwEvery', 'throwRange', 'coals', 'spread', 'flight', 'fireTime', 'out'],
-  shade: ['prowl', 'near', 'far', 'light', 'sink', 'gone', 'emerge', 'bite', 'biteTime'],
+  shade: ['prowl', 'near', 'far', 'light', 'sink', 'gone', 'emerge', 'bite', 'biteTime', 'lurk'],
   roller: ['ball0', 'grow', 'launchAt', 'range', 'tell', 'flight', 'ring', 'shotSpeed', 'chill', 'bare', 'quick', 'weak'],
   // floor 5
   glacier: ['stompEvery', 'stompRange', 'tell', 'spikes', 'spikeEvery', 'gap', 'hit', 'arc', 'front', 'frozen', 'shatter'],
@@ -148,10 +148,12 @@ export function callFoe(table: RoleTable, role: Role, R: () => number): FoeType 
 /** A floor's roles: for each, the foes that fill it and how often (weights). */
 export type RoleTable = Record<Role, [FoeType, number][]>;
 /** The foe that fills `role` on a floor, picked by `R` (0 to 1) from its weighted list; with `noElite`, an elite is
-    passed over while anything else could fill it. */
-export function pickFoe(table: RoleTable, role: Role, R: () => number, noElite = false): FoeType {
+    passed over while anything else could fill it, and with `noPack`, one that comes as a pack (a room has one of each at
+    most). */
+export function pickFoe(table: RoleTable, role: Role, R: () => number, noElite = false, noPack = false): FoeType {
   let list = table[role];
   if (noElite) { const plain = list.filter(([id]) => !(isFoe(id) && FOES[id].elite)); if (plain.length) list = plain; }
+  if (noPack) { const lone = list.filter(([id]) => !(isFoe(id) && FOES[id].pack)); if (lone.length) list = lone; }
   const total = list.reduce((s, [, w]) => s + w, 0);
   let x = R() * total;
   for (const [id, w] of list) { if (x < w) return id; x -= w; }

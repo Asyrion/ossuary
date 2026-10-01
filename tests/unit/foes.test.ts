@@ -71,6 +71,15 @@ describe('the foes built in code (M4)', () => {
     } finally { (FOES as Record<string, FoeDef>).sporeling = was; }
   });
 
+  it('passes a pack over when asked while another can fill the role (one pack a room)', () => {
+    let seed = 5; const R = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const [f1, , , , f5] = FLOORS;
+    expect(Array.from({ length: 200 }, () => pickFoe(f1.foes, 'W', R, false, true))).not.toContain('fireflySwarm');
+    expect(Array.from({ length: 200 }, () => pickFoe(f5.foes, 'R', R, false, true))).not.toContain('rimeWolf');
+    expect(new Set(Array.from({ length: 400 }, () => pickFoe(f5.foes, 'R', R)))).toContain('rimeWolf'); // (the first may be one)
+    expect(pickFoe({ ...f5.foes, R: [['rimeWolf', 1]] } as RoleTable, 'R', R, false, true)).toBe('rimeWolf'); // (nothing else can fill it)
+  });
+
   it('calls up neither an elite nor a mimic in the middle of a fight, unless nothing else fills the role', () => {
     let seed = 11; const R = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     const [f1, , f3] = FLOORS, called = (table: RoleTable, role: 'R' | 'W' | 'H') => new Set(Array.from({ length: 300 }, () => callFoe(table, role, R)));

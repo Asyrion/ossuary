@@ -196,7 +196,7 @@ function spawnWave(room: Room, ambush = false) {
   const mortal = foes.filter(f => f.kind !== 'boss');
   const championRoom = room.plan.variant === 'champion' || room.warden; // a forced vault's warden is a champion
   const champion = championRoom && room.wave === 0 && mortal.length ? mortal[Math.floor(mulberry(room.plan.seed)() * mortal.length)] : null;
-  let mimics = 0; const taken: { x: number; z: number }[] = [];
+  let mimics = 0; const taken: { x: number; z: number }[] = [], packs = mulberry((room.plan.seed ^ 0x5ac5) + room.wave); // (a pack's size, from the room's seed)
   for (const f of foes) {
     let { x, z } = f;
     if (ambush) {
@@ -206,7 +206,7 @@ function spawnWave(room: Room, ambush = false) {
     }
     if (f.kind === 'urnMimic' && !ambush) { ({ x, z } = mimicSpot(room, x, z, mimics++, taken)); taken.push({ x, z }); } // (it waits among the urns, as one of them)
     if (f.kind === 'boss') makeEnemy(G.run.boss, x, z, 1, cfg.boss);
-    else spawnFoe(f.kind, x, z, cfg.enemyHp, { champion: f === champion }); // (a swarm comes whole)
+    else spawnFoe(f.kind, x, z, cfg.enemyHp, { champion: f === champion }, packs); // (a swarm comes whole)
   }
   if (champion) Sfx.champion();
 }

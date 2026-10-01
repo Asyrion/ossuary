@@ -69,11 +69,11 @@ export function makeEnemy(type: FoeType, x: number, z: number, hpMul = 1, boss?:
 }
 
 /** Spawn foe `type` at (x, z) as makeEnemy does, or, for one that comes in a pack (M4.5: a firefly swarm), the whole pack
-    round it, sharing one mind; returns the first. */
-export function spawnFoe(type: FoeType, x: number, z: number, hpMul = 1, opts: { champion?: boolean } = {}) {
+    round it, sharing one mind; returns the first. `roll` (0 to 1) sizes the pack: a room's fights pass one from its seed. */
+export function spawnFoe(type: FoeType, x: number, z: number, hpMul = 1, opts: { champion?: boolean } = {}, roll: () => number = Math.random) {
   const pack = isFoe(type) ? FOES[type].pack : undefined;
   if (!pack) return makeEnemy(type, x, z, hpMul, undefined, opts);
-  const n = pack[0] + Math.floor(Math.random() * (pack[1] - pack[0] + 1));
+  const n = pack[0] + Math.floor(roll() * (pack[1] - pack[0] + 1));
   let first = true;
   return packOf(n, x, z, (px, pz) => { const e = makeEnemy(type, px, pz, hpMul, undefined, first ? opts : {}); first = false; return e; });
 }
@@ -103,12 +103,12 @@ export function updateEnemies(dt: number) {
       e.vx = (ux - uz * wob) * sp; e.vz = (uz + ux * wob) * sp;
       e.body.rotation.z = Math.sin(e.t * 6) * .08; e.body.position.y = Math.abs(Math.sin(e.t * 6)) * .04;
     } else if (e.isBoss) faceTo = updateBoss(e, dt, ux, uz) ?? faceTo;
-    e.vx *= slow; e.vz *= slow;
-    if (!e.flying) { const w = wadeAt(e.x, e.z) * snagAt(e.x, e.z); e.vx *= w; e.vz *= w; } // walkers wade through water, snag in cobwebs
-    // integrate + knockback
+    // integrate + knockback: its pace this step is chill's slowing, walkers wading through water or snagged in cobwebs, and
+    // a lark's song or a wolf's howl hastening it (M4.5), all on its step, not its velocity, which many foes build on (one
+    // easing in would be slowed again every step, far past the factor)
+    const pace = slow * songHaste(e) * (e.flying ? 1 : wadeAt(e.x, e.z) * snagAt(e.x, e.z));
     e.kx *= Math.exp(-8 * dt); e.kz *= Math.exp(-8 * dt);
-    const haste = songHaste(e); // (a lark's song or a wolf's howl hastens its step, M4.5: not its velocity, which some foes build on)
-    e.x += (e.vx * haste + e.kx) * dt; e.z += (e.vz * haste + e.kz) * dt;
+    e.x += (e.vx * pace + e.kx) * dt; e.z += (e.vz * pace + e.kz) * dt;
     const hit = collide(e, e.flying ? walls : solids);
     saltHolds(e); // (the Salt Circle keeps walkers out)
     if (e.isBoss) afterBossMove(e, hit);

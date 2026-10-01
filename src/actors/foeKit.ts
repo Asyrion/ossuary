@@ -27,3 +27,9 @@ export interface Behaviour {
 export const num = (v: number | number[]) => v as number, span = (v: number | number[]) => rand(...(v as [number, number]));
 /** A foe's school's light. */
 export const light = (e: Enemy) => SCHOOL_LIGHT[e.foe!.school];
+/** How far through a wind-up of `of` seconds a foe is with `left` to go, 0 to 1 (its telegraph's swell). */
+export const ramp = (left: number, of: number) => Math.min(1, 1 - left / of);
+/** Straight along the foe's `dir` at `speed` (a dash, a lunge, a dive), its haste and slows on it; the way it faces. */
+export function rush(e: Enemy, speed: number) { e.vx = e.dir!.x * speed * e.speedMul; e.vz = e.dir!.z * speed * e.speedMul; return Math.atan2(e.dir!.x, e.dir!.z); }
+/** Slow to a stop, `k` the rate (higher, sooner). */
+export function brake(e: Enemy, k: number, dt: number) { const f = Math.exp(-k * dt); e.vx *= f; e.vz *= f; }

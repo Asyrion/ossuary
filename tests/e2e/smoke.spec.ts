@@ -3068,10 +3068,12 @@ test('the bestiary (M4.5), floor 1: the spider drops from out of reach and spits
     g.clearRoom(); g.sim(.2);
     const crab = g.spawn('rubbleCrab', g.player.x + 4, g.player.z); g.sim(.8); const hidden = crab.state, chp = crab.hp;
     g.hit(g.enemies.indexOf(crab), 10); const hidTook = chp - crab.hp; g.sim(.6);
-    g.blast(crab.x, crab.z); g.sim(.05);
-    return { sung, hushed, front, back, chilled, parries: m.count, hidden, hidTook, flipped: crab.state };
+    g.blast(crab.x, crab.z); g.sim(.05); const flipped = crab.state;
+    g.clearRoom(); g.sim(.2); const lone = g.spawn('rubbleCrab', g.player.x + 6, g.player.z); g.sim(1.5); const waits = lone.state; g.sim(4); // (far from the mage, the last in the room: it doesn't wait for ever)
+    return { sung, hushed, front, back, chilled, parries: m.count, hidden, hidTook, flipped, waits, alone: lone.state };
   });
-  expect(last).toMatchObject({ sung: true, hushed: true, front: 0, back: 3, chilled: 3, parries: 1, hidden: 'hidden', flipped: 'flipped' });
+  expect(last).toMatchObject({ sung: true, hushed: true, front: 0, back: 3, chilled: 3, parries: 1, hidden: 'hidden', flipped: 'flipped', waits: 'hidden' });
+  expect(last.alone).not.toBe('hidden');
   expect(last.hidTook).toBeCloseTo(3);
   for (const e of [e1, e2, e3, e4]) expect(e).toEqual([]);
 });
@@ -3213,7 +3215,7 @@ test('the bestiary (M4.5), floor 4: the griffin soars out of reach, swoops down 
   type Foe = { type: string; state: string; x: number; z: number; hp: number; maxHp: number; hidden?: boolean; dead?: boolean };
   type GF = { sim(sec: number, draw?: boolean): void; warp(id: number): void; hit(i: number, dmg: number, school?: string): number;
     spawn(kind: string, x?: number, z?: number): Foe; inflict(s: Record<string, number>): void; clearRoom(): void; burn(x: number, z: number, r?: number): void;
-    burningGround: number; glyphs: { x: number; z: number }[]; bolts: { vx: number }[]; shots: unknown[]; keys: Set<string>; arrowOrder: string[];
+    prop(kind: string, x: number, z: number): boolean; burningGround: number; glyphs: { x: number; z: number }[]; bolts: { vx: number }[]; shots: unknown[]; keys: Set<string>; arrowOrder: string[];
     player: { x: number; z: number; vx: number; vz: number; hp: number; maxHp: number; invuln: number; chill: number }; enemies: Foe[] };
   const errors = await start(page, '?seed=K3F9QX&floor=4&room=great_hall&variant=quiet&loot=glyphs:9');
   const r = await page.evaluate(() => {
@@ -3255,7 +3257,12 @@ test('the bestiary (M4.5), floor 4: the griffin soars out of reach, swoops down 
     // the shadow fox: into one shadow and out of another, and a bite; holy light holds it in the open
     { const { e, seen, hurt } = meet('shadowFox', 8); Object.assign(e, { state: 'prowl', st: 0, hidden: false }); // (out in the open, whatever it was doing)
       g.inflict({ sanct: 3 }); const held = new Set<string>(); for (let k = 0; k < 60; k++) { g.sim(.05); held.add(e.state); }
-      R.fox = { blinked: seen.has('gone') && seen.has('emerge') && seen.has('bite'), hurt, held: [...held] }; }
+      R.fox = { blinked: seen.has('gone') && seen.has('emerge') && seen.has('bite'), hurt, held: [...held] };
+      // a lit brazier whose light reaches the whole hall: no shadow near the mage, so it waits in the dark, and in the end
+      // rises in the light
+      g.prop('brazier', x0 + 2, z0 - 2); g.burn(x0 + 2, z0 - 2, .3); const P = (e as unknown as { foe: { params: { light: number } } }).foe.params, reach = P.light; P.light = 99;
+      Object.assign(e, { state: 'gone', st: 0, cycle: 0, hidden: true }); g.sim(1); const waits = e.state;
+      for (let k = 0; k < 80 && e.state === 'gone'; k++) g.sim(.05); P.light = reach; R.foxLit = { waits, rose: e.state }; }
     // the rime scarab: its snowball grows, is thrown and bursts cold; fire melts the ball
     { let chill = 0; const { e, seen } = meet('rimeScarab', 8, () => { chill = Math.max(chill, g.player.chill); });
       for (let k = 0; k < 100 && e.state !== 'push'; k++) g.sim(.05); g.burn(e.x, e.z, .5); g.sim(.1); R.scarab = { threw: seen.has('heave') && seen.has('bare'), chill, melted: e.state }; }
@@ -3268,6 +3275,7 @@ test('the bestiary (M4.5), floor 4: the griffin soars out of reach, swoops down 
   expect(m.drawn).toBeGreaterThan(.1); expect(m.bent).toBeGreaterThan(1); expect(m.storm).toBeGreaterThan(0); expect(m.frost).toBeCloseTo(4);
   expect(r.hearth).toMatchObject({ out: 'out', cold: 5, again: 'lit' }); expect((r.hearth as { lit: number }).lit).toBeLessThan(2.5); expect((r.hearth as { burning: number }).burning).toBeGreaterThan(0);
   expect(r.fox).toMatchObject({ blinked: true, held: ['prowl'] }); expect((r.fox as { hurt: number }).hurt).toBeGreaterThan(0);
+  expect(r.foxLit).toMatchObject({ waits: 'gone' }); expect((r.foxLit as { rose: string }).rose).not.toBe('gone');
   expect(r.scarab).toMatchObject({ threw: true, melted: 'bare' }); expect((r.scarab as { chill: number }).chill).toBeGreaterThan(0);
   expect(errors).toEqual([]);
 });
