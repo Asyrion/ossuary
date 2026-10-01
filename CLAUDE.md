@@ -16,7 +16,7 @@ log; its Sound section does the same for sound (sources and their licences, the 
 When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
 
-## Current state: M4.1 built (two floors deeper, `docs/M4.1-plan.md`, the owner's ask of 2026-09-30): steps 1 to 10 built (a run of five floors, the Gilded Reliquary and the Ferryman's Shore, each with its room kit, four foes and a boss built in code, the Hallowed Hart and the Deep Angler; Hallow and Umbral magic: six spells, Sanctified, Hex and Root, Eclipse and Blackfire; soul motes and the lodestone shard; twelve artifacts; two themes, the Gilded Treasury and the Ferry Landing); closed with the reviews, the GDD as built and a sweep of the rooms, and shipped; M4.2 Beneath the Gate under way (`docs/M4.2-plan.md`, from the owner's Eda lore drop): step 1 built (the setting in the game's text: the title's `place`, the banners, the Warden, the end screen and some lore), step 2 built (watching statues and sapping obelisks), step 3 built (the drinking ward and the five Wardlings), step 4 built (rope bridges, currents and waterfalls, candle stands in water), step 5 built (the Wandering Merchant of Belerial), step 6 built (the War-Tiger), step 7 built (the Pillar Dragon), step 8 built (the Twin Guardians), step 9 built (Fen-Nex), closed with the reviews, the GDD as built and a sweep of the rooms, and shipped (2026-10-01); M4.5 Bestiary under way (`docs/M4.5-plan.md`): the owner took all thirty-one and asked for four more and a redesign (2026-10-01: fantasy animals and creatures, readable, fierce, their real size, no undead); the thirty-five looks redone and approved by the owner, the foes made floor by floor: all five floors built, balanced by a bot's pass and reviewed, then a review at the owner's ask (2026-10-01: slows by their factor, one pack a room, no foe waiting for ever) that proposed M4.7 to M4.9; a code-built mage tried and reverted at the owner's ask (2026-10-01); M4 built (enemies in code, `docs/M4-plan.md`): the foe framework and all ten foes (every floor's fights, a boss's helpers, a vault's warden and the ossuary's rising bones are foes in code; the wisp and crypt hound gone, the rotling kept as a plain test foe) and the floor-1 boss built in code in three looks, the owner to choose one (the Galleries tab); the owner's play-test next; M3.5 signed off by the owner 2026-09-30 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 1080 lines since the proof's play-test), step 3 under way: the room kit redone in code in the new style (the proof accepted 2026-09-30; variety built: three kinds of wall, floor, wall light and brazier per floor, drawn per room; every mechanism, object, door, niche and artifact rebuilt, the list done, then pickups, chests and the special rooms' pieces; the owner's review next); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
+## Current state: M4.1 built (two floors deeper, `docs/M4.1-plan.md`, the owner's ask of 2026-09-30): steps 1 to 10 built (a run of five floors, the Gilded Reliquary and the Ferryman's Shore, each with its room kit, four foes and a boss built in code, the Hallowed Hart and the Deep Angler; Hallow and Umbral magic: six spells, Sanctified, Hex and Root, Eclipse and Blackfire; soul motes and the lodestone shard; twelve artifacts; two themes, the Gilded Treasury and the Ferry Landing); closed with the reviews, the GDD as built and a sweep of the rooms, and shipped; M4.2 Beneath the Gate under way (`docs/M4.2-plan.md`, from the owner's Eda lore drop): step 1 built (the setting in the game's text: the title's `place`, the banners, the Warden, the end screen and some lore), step 2 built (watching statues and sapping obelisks), step 3 built (the drinking ward and the five Wardlings), step 4 built (rope bridges, currents and waterfalls, candle stands in water), step 5 built (the Wandering Merchant of Belerial), step 6 built (the War-Tiger), step 7 built (the Pillar Dragon), step 8 built (the Twin Guardians), step 9 built (Fen-Nex), closed with the reviews, the GDD as built and a sweep of the rooms, and shipped (2026-10-01); M4.5 Bestiary under way (`docs/M4.5-plan.md`): the owner took all thirty-one and asked for four more and a redesign (2026-10-01: fantasy animals and creatures, readable, fierce, their real size, no undead); the thirty-five looks redone and approved by the owner, the foes made floor by floor: all five floors built, balanced by a bot's pass and reviewed, then a review at the owner's ask (2026-10-01: slows by their factor, one pack a room, no foe waiting for ever) that proposed M4.7 to M4.9; a code-built mage tried and reverted at the owner's ask (2026-10-01); the owner's answers to the review built (2026-10-01): what is done to the mage shown beside the mana bar, every build bringing the water foes up, Steam, and the Drowned Abbess and the Pyre Knight remade in code; M4.10 Weaves proposed; M4.7 Living foes approved and under way (`docs/M4.7-plan.md`); M4 built (enemies in code, `docs/M4-plan.md`): the foe framework and all ten foes (every floor's fights, a boss's helpers, a vault's warden and the ossuary's rising bones are foes in code; the wisp and crypt hound gone, the rotling kept as a plain test foe) and the floor-1 boss built in code in three looks, the owner to choose one (the Galleries tab); the owner's play-test next; M3.5 signed off by the owner 2026-09-30 (the look, `docs/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look, on by default at 1080 lines since the proof's play-test), step 3 under way: the room kit redone in code in the new style (the proof accepted 2026-09-30; variety built: three kinds of wall, floor, wall light and brazier per floor, drawn per room; every mechanism, object, door, niche and artifact rebuilt, the list done, then pickups, chests and the special rooms' pieces; the owner's review next); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/M3.7-plan.md`); M3.6 built (`docs/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/M2-plan.md`); M1 built (`docs/M1-plan.md`)
 
 The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
 generated three-floor runs. See `README.md` for scripts and deployment.
@@ -93,11 +93,15 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   are refused in the merchant's shop. A new spell of a known shape is a new entry; a new shape is a function in
   `CAST`. The HUD's mana bar and slots are in `hud.ts` (`renderSpells`, `spellIcon`).
   Statuses (Burn, Chill with freeze, Shock; M4.1: Sanctified, Hex and Root, `SpellStatus`) and the reactions (Shatter,
-  Overload; M4.1: Eclipse, Hallow and Umbral, and Blackfire, Umbral and Ember) are rules in the pure
+  Overload; M4.1: Eclipse, Hallow and Umbral, and Blackfire, Umbral and Ember; 2026-10-01: Steam, Ember and Frost) are rules in the pure
   `src/magic/status.ts` (tuning in `data/magic.json`, unit-tested) carried out by `src/magic/statusFx.ts`
   (`inflict(foe, status)`, looks, burn damage, the shock's leap, reactions, the eclipse's black sun); enemies read `canAct`
   and `speedFactor`, `damageEnemy` applies `damageTakenMul` and the leap, and gives back mana for a hex (`spendHex`); a
-  sanctified foe can't be healed (`canHeal`). Props and mechanisms hear only the elemental ones (`elemental()`). The training dummy (`dummy` in
+  sanctified foe can't be healed (`canHeal`). Steam's cloud is `src/magic/steam.ts` (`steamAt`, `inSteam`: a shooter in it
+  shoots wide in `spawnShot`; `steamBetween`: eyes and statues lose the mage across it); fire on frozen water, frost on
+  burning oil and fire on still water make it too (`pools.ts`), and over water it brings up what hides there (`hearGround`'s
+  `steam`; a glyph's blast is heard as `blast`, a shocked pool read in the behaviour: a hiding foe's `driven` hook, `drivenUp`
+  in `foes.ts`); `__game.steam`, `__game.steamAt(x, z)`, the dev menu's "Steam ahead". Props and mechanisms hear only the elemental ones (`elemental()`). The training dummy (`dummy` in
   `CFG.enemy`) never falls and shows its hits and statuses.
   Soul motes (M4.1, `src/items/souls.ts`): `player.souls` (pale, black, hallowed) drawn after the hearts, taking a hit
   before them (`guardHit` in `hurtPlayer`; which goes first is the pure `soulToLose` in `loot.ts`); a black one hexes the
@@ -443,8 +447,10 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   built raises the second (`e.twin` both ways); statues until the mage comes near, their heads turning after them; one
   strikes (slam, gaze) while the other holds its post shielding, bolts glancing off it (`e.glance`, in `damageEnemy`) and a
   drinking ward drinking spells (`wardFoe` with a size; `unwardFoe` when the shield passes across every `swap` seconds);
-  one bar for both, and `killEnemy` rewards only the second to fall (`twinFell`: the other rages). The abbess and the
-  knight are still placeholder shapes. A boss with `hidden` set (the abbess under the floor, the knight in mid-leap)
+  one bar for both, and `killEnemy` rewards only the second to fall (`twinFell`: the other rages). The Drowned Abbess and
+  the Pyre Knight were remade in code on 2026-10-01 (`abbessLook`: a great cave olm, Frost, its jaw, gills and eyes posed by
+  `updateAbbess`; `pyreKnightLook`: a hollow knight of fire, Ember, its arms, sword and legs posed by `updateKnight`, its fire
+  `makeFire`); every boss is built in code now, each with a weakness and a resistance. A boss with `hidden` set (the abbess under the floor, the knight in mid-leap)
   can't be hit and doesn't hurt on contact.
 - Gameplay delays (the warden's second ring, the pause before the death screen) run on simulation time,
   so they pause with the game and advance under `__game.sim()`.
@@ -537,6 +543,11 @@ after `CFG.hero.fidget` seconds standing still). A rig with no death clip topple
 - Hearts can't be picked up at full health, mana vials at full mana, soul motes past `CFG.souls.max`, a lodestone shard
   with the spells ready and mana full (the first time in a run a message says why); while the mage knows no spell, loot
   drops an obol in place of a mana vial or a shard (`spawnPickup`). Doors lock while enemies live.
+- Nothing silent (the owner's rule, 2026-10-01; GDD pillar): every mechanic shows the player it is happening, even if only
+  in a word or a cryptic line. What holds the mage shows as chips beside the mana bar with a first-time line each
+  (`src/ui/afflictions.ts`: `afflictions()`, `hexDrained`; labels and lines in `STR.afflict`; a new affliction gets a chip,
+  a colour and a line there); a reaction's, weakness's or counter's word rises over the foe. A new mechanic isn't done
+  until it shows.
 - Placeholder names (Ossuary, the ten foes in code (Sporeling to Rime Drakeling) and M4.1's eight (Wickmouse to Lantern
   Tortoise), Hollow Warden, Drowned Abbess, Pyre Knight, the Hallowed Hart, the Deep Angler, Ember Sigil) will be replaced with Eda lore later; keep all player-facing strings in one place to make that easy.
 
@@ -575,11 +586,13 @@ ships placeholder sounds for what it adds; spatial audio and the mixer arrive wi
   foe (GDD: The Bestiary; ideas in `docs/ideas.md`, Bestiary).
 - **M4.6 Costumes and transformations** (decided 2026-09-30): most artifacts wear a costume piece built in code;
   three artifacts of a kind transform the mage (a look and a gift; GDD: Artifacts, Costumes and transformations).
-- **M4.7 Living foes, M4.8 The full wheel, M4.9 The curve** (proposed 2026-10-01 in the review after M4.5, waiting on the
-  owner's yes; GDD: Depth for what's built): champions' school mantles, foes in each other's ground, counters found in a
-  Foes tab and rooms with a pair (`docs/M4.7-plan.md`); Steam and five new reactions on foes and tiles, and a wheel of the
-  reactions found (`docs/M4.8-plan.md`); pressure dials per floor, libraries leaning to a floor's weakness, a hex's drain
-  shown, the sluice for water rooms and `npm run balance` (`docs/M4.9-plan.md`).
+- **M4.7 Living foes, M4.8 The full wheel, M4.9 The curve, M4.10 Weaves** (proposed 2026-10-01 in the review after M4.5;
+  M4.7 approved the same day, the others waiting on the owner's yes; GDD: Depth for what's built): champions' school
+  mantles, foes in each other's ground, counters found in a Foes tab and rooms with a pair (`docs/M4.7-plan.md`); five new
+  reactions beside Steam (built) on foes and tiles, and a wheel of the reactions found (`docs/M4.8-plan.md`); pressure
+  dials per floor, libraries leaning to a floor's weakness, a hex's drain traced to its foe, the sluice for water rooms and
+  `npm run balance` (`docs/M4.9-plan.md`); weaves (a spell striking what another left) and chains (a reaction's leavings
+  met by a third school), and Verdant's Bloom and Blight designed for M5 (`docs/M4.10-plan.md`, the owner's ask).
 - **M5 Alchemy:** potion belt, drink or throw, identification, 4 reagents, alchemy table.
 - **M6 RPG growth:** XP, levels, attributes, 12 boons, runes and waystones.
 - **M7 Descent and the Vigil:** final boss; the hub between runs, decided 2026-09-29 (GDD: RPG progression, Between runs:
