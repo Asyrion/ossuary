@@ -150,6 +150,7 @@ export interface Pool {
   kind: 'water' | 'oil'; tiles: { c: number; r: number; x: number; z: number }[];
   /** Still; water frozen over, or oil burning, for a while (`t` seconds left); oil burnt away. */ state: 'still' | 'frozen' | 'burning' | 'spent'; t: number;
   /** Seconds the water still crackles with a shock (it won't spread one again meanwhile); the burn's next tick. */ charged: number; tick: number;
+  /** The sim time before which fire on this water won't boil it into steam again (2026-10-01). */ boilAt?: number;
   mesh: THREE.Mesh; mat: THREE.MeshStandardMaterial;
 }
 

@@ -252,6 +252,7 @@ export function fireAt(x: number, z: number, r = 0) {
   for (const p of poolsNear(x, z, r)) {
     if (p.kind === 'oil' && p.state === 'still') ignite(p);
     else if (p.state === 'frozen') { p.state = 'still'; dress(p); Sfx.at(x, z).thaw(); for (const t of p.tiles) burst(t.x, .15, t.z, WATER, 2, 1.2, .04); steamAt(x, z); } // (fire on ice: it goes up in steam)
+    else if (p.kind === 'water' && p.state === 'still' && G.simClock >= (p.boilAt ?? 0)) { p.boilAt = G.simClock + C.boilEvery; steamAt(x, z, C.boilSteam); Sfx.at(x, z).steam(); } // (fire on water boils it: steam, now and then a pool)
   }
 }
 /** Frost reaches (x, z) and `r` around it: water there freezes over, and ice already there keeps. */

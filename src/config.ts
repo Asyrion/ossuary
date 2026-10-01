@@ -88,7 +88,7 @@ export const CFG = {
   // mage, how long a shocked pool crackles, and the drowned floor's puddles (how many per fight, tiles each)
   // M4.2: how fast a current carries the mage and walking foes, bolts and shots over it, and pickups lying in it (units a second)
   flow: { carry: 1.7, bolts: 1.1, pickups: 1.3 },
-  surface: { wade: .6, oilBurn: 5, iceTime: 8, groundBurn: 2, tick: .25, mageHurt: 1, charged: .5, shockSpread: 1.5, shockDamage: 2, puddles: [1, 2] as [number, number], puddleSize: [2, 4] as [number, number] },
+  surface: { wade: .6, oilBurn: 5, iceTime: 8, groundBurn: 2, tick: .25, mageHurt: 1, charged: .5, shockSpread: 1.5, shockDamage: 2, puddles: [1, 2] as [number, number], puddleSize: [2, 4] as [number, number], boilEvery: 2.5, boilSteam: 1.3, driveReach: 1 }, // (boilEvery: seconds before fire on a pool of water boils it into steam again; boilSteam: that cloud's size; driveReach: how far beyond a blast or a cloud a water foe hiding in other water is driven up)
   // the rooms' objects (M3.6, world/props.ts): how long each flammable one burns (seconds), how often burning spreads
   // to what burns beside it, cobwebs' slowing, the briar's sting (half hearts to the mage, damage a second to walkers),
   // the oil a broken cask spills (tiles beyond its own), and glowcap spores (how long a cloud hangs, its reach, the
