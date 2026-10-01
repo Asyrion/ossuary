@@ -31,7 +31,7 @@
      comes nearest the mage; then it lunges out and bites, and the bite chills. On dry floor it scurries, seen, and makes
      for the water again. A shock through its pool, or the pool frozen over, shows and stuns it.
    Serpent (the Brine Serpent) lives in water, as the lurker does: it slides beneath it to the place nearest the mage (or,
-     kept from it a while, rises where it is), rises in coils and spits fans of cold brine, and sinks again. Freezing its
+     kept from it a while, the water nearest itself), rises in coils and spits fans of cold brine, and sinks again. Freezing its
      pool traps it above the ice.
    Wave (the Puddle Elemental, an elemental: Frost feeds it, Ember hurts it twice over) walks at the mage leaving water on
      the floor behind it, rears and crashes in a ring of brine. Chill feeds it but freezes it where it stands (the water
@@ -371,7 +371,7 @@ const crab: Behaviour = {
     e.st -= dt;
     if (e.state === 'hidden') { // a heap of rubble
       e.vx = e.vz = 0; e.guard = num(P.hideGuard);
-      const still = !othersAwake(e); e.fireT = still ? e.fireT! + dt : 0; // (the last one in the room, it doesn't wait for ever)
+      const still = !othersAwake(e); e.fireT = still ? e.fireT! + dt : 0; // (nothing else awake in the room but crabs: it doesn't wait for ever)
       if (a.dist < num(P.wake) || e.hp < e.maxHp || e.fireT > num(P.lonely)) { e.state = 'rise'; e.st = num(P.rise); Sfx.at(e.x, e.z).crabWake(); burst(e.x, .2, e.z, 0x7a746c, 10, 1.6, .05); }
       return e.face;
     }
@@ -499,7 +499,9 @@ const serpent: Behaviour = {
       const t = e.target!; steer(e, t.x, t.z, e.foe!.speed * e.speedMul, dt, .2);
       if (Math.random() < dt * 6) burst(e.x, .05, e.z, 0x9fe4ff, 1, .5, .03);
       if (frozen) { e.state = 'trapped'; e.st = num(P.trapped); submerge(e, false); e.open = 1; e.cycle = 1; e.fireT = .4; e.vx = e.vz = 0; Sfx.at(e.x, e.z).freeze(); return; }
-      if (e.st <= 0 && Math.hypot(t.x - e.x, t.z - e.z) < .3 || e.st < -num(P.lost)) { e.state = 'rise'; e.st = num(P.rise); e.vx = e.vz = 0; Sfx.at(e.x, e.z).serpentRise(); }
+      if (e.st < -num(P.lost) && !e.count) { // kept from that place a while: the water nearest itself instead (and kept from that too, it rises where it is)
+        const w = nearestWaterTo(room, e.x, e.z); e.target = w ? { x: w.x, z: w.z } : { x: e.x, z: e.z }; e.st = 0; e.count = 1;
+      } else if (e.st <= 0 && Math.hypot(t.x - e.x, t.z - e.z) < .3 || e.st < -num(P.lost)) { e.state = 'rise'; e.st = num(P.rise); e.vx = e.vz = 0; Sfx.at(e.x, e.z).serpentRise(); }
     } else if (e.state === 'rise') {
       e.vx = e.vz = 0; e.open = ramp(e.st, num(P.rise)); e.tele = e.open;
       if (e.open > .5 && e.hidden) submerge(e, false);
@@ -517,7 +519,7 @@ const serpent: Behaviour = {
     } else if (e.state === 'sink') {
       e.vx = e.vz = 0; e.open = Math.max(0, e.st / (num(P.rise) * .7));
       if (e.open < .5 && !e.hidden) submerge(e, true);
-      if (e.st <= 0) { e.state = 'under'; e.st = span(P.under); const t = nearestWaterTo(room, player.x, player.z); e.target = t ? { x: t.x, z: t.z } : { x: e.x, z: e.z }; }
+      if (e.st <= 0) { e.state = 'under'; e.st = span(P.under); e.count = 0; const t = nearestWaterTo(room, player.x, player.z); e.target = t ? { x: t.x, z: t.z } : { x: e.x, z: e.z }; }
     }
   },
   pose(e) {
