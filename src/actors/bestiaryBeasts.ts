@@ -78,17 +78,25 @@ export function inkOctopus(): Built {
   } };
 }
 
+/** One lantern beetle as long as a hand, its tail glowing (a firefly swarm's member as a foe, and seven of them in the
+    swarm's look). */
+function beetle(parent: THREE.Object3D, M: { shell: THREE.Material; cap: THREE.Material; tail: THREE.Material; wing: THREE.Material }) {
+  const b = joint(parent, [0, 0, 0]); b.scale.setScalar(1.35);
+  part(b, sphere(.05, 8, 6), M.shell, [0, 0, .04], { scale: [1, .8, 1.1] });
+  part(b, sphere(.032, 6, 5), M.shell, [0, -.005, .1]);
+  for (const s of [-1, 1]) { limb(b, [.015 * s, .02, .12], [.06 * s, .06, .2], .004, M.shell); part(b, sphere(.042, 6, 5), M.cap, [.035 * s, .025, -.01], { rot: [0, 0, .5 * s], scale: [.7, .4, 1.5] }); }
+  part(b, sphere(.06, 8, 6), M.tail, [0, -.01, -.07], { scale: [1, .85, 1.45] });
+  const wings = [-1, 1].map(s => part(b, sphere(.06, 6, 4), M.wing, [.06 * s, .03, -.02], { rot: [0, .3 * s, 0], scale: [1.2, .1, .7] }));
+  return { b, wings };
+}
+const beetleMats = () => ({ shell: gloss(0x2a2014, .4, .3), cap: gloss(0x4a3418, .35, .35), tail: lit(H), wing: shine(0xfff0c8, .35) });
+
 /** Floor 1, Hallow: a swarm of lantern beetles as long as a hand, their glowing tails pulsing as one. */
 export function fireflySwarm(): Built {
-  const g = new THREE.Group(), cloud = joint(g, [0, .75, 0]), shell = gloss(0x2a2014, .4, .3), cap = gloss(0x4a3418, .35, .35), tail = lit(H), wingM = shine(0xfff0c8, .35);
+  const g = new THREE.Group(), cloud = joint(g, [0, .75, 0]), M = beetleMats();
   const halo = glow(H, 1.8, .22); cloud.add(halo);
   const bugs = Array.from({ length: 7 }, (_, i) => {
-    const b = joint(cloud, [0, 0, 0]); b.scale.setScalar(1.35);
-    part(b, sphere(.05, 8, 6), shell, [0, 0, .04], { scale: [1, .8, 1.1] });
-    part(b, sphere(.032, 6, 5), shell, [0, -.005, .1]);
-    for (const s of [-1, 1]) { limb(b, [.015 * s, .02, .12], [.06 * s, .06, .2], .004, shell); part(b, sphere(.042, 6, 5), cap, [.035 * s, .025, -.01], { rot: [0, 0, .5 * s], scale: [.7, .4, 1.5] }); }
-    part(b, sphere(.06, 8, 6), tail, [0, -.01, -.07], { scale: [1, .85, 1.45] });
-    const wings = [-1, 1].map(s => part(b, sphere(.06, 6, 4), wingM, [.06 * s, .03, -.02], { rot: [0, .3 * s, 0], scale: [1.2, .1, .7] }));
+    const { b, wings } = beetle(cloud, M);
     const gl = glow(H, .38, .6); gl.position.set(0, 0, -.07); b.add(gl);
     return { b, wings, gl, i };
   });
@@ -100,6 +108,16 @@ export function fireflySwarm(): Built {
       for (const w of wings) w.rotation.z = Math.sin(t * 40 + i) * .5;
       gl.material.opacity = .35 + .35 * Math.max(0, Math.sin(t * 2.4 - i * .7));
     });
+  } };
+}
+/** One beetle of the swarm, as the foe it is: it hovers, its wings a blur, its tail glowing. */
+export function fireflyBeetle(): Built {
+  const g = new THREE.Group(), body = joint(g, [0, .75, 0]), M = beetleMats(), { b, wings } = beetle(body, M);
+  b.scale.setScalar(1.7);
+  const gl = glow(H, .6, .7); gl.position.set(0, -.01, -.12); body.add(gl);
+  return { group: g, shadow: .35, parts: { body }, idle: t => {
+    body.position.y = .75 + Math.sin(t * 3.1) * .06; for (const w of wings) w.rotation.z = Math.sin(t * 40) * .5;
+    gl.material.opacity = .45 + .3 * Math.max(0, Math.sin(t * 2.4));
   } };
 }
 

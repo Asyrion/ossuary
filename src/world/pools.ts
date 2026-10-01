@@ -8,6 +8,7 @@
    bolts and shots flying over it, and pickups lying in it, downstream; frozen, it stops. A waterfall down the wall
    upstream feeds it. */
 import * as THREE from 'three';
+import { groundHears } from './groundHooks';
 import { CFG } from '../config';
 import type { Enemy, Pool, Room } from '../types';
 import { G, player } from '../state';
@@ -245,6 +246,7 @@ const inPool = (p: Pool, x: number, z: number) => poolAt(x, z) === p;
 
 /** Fire reaches (x, z) and `r` around it: oil there catches alight, ice melts. */
 export function fireAt(x: number, z: number, r = 0) {
+  groundHears('fire', x, z, r); // (M4.5: a spider's webs burn)
   burnPropsAt(x, z, r); // roots, briars, cobwebs and sacks catch; glowcap spores flash
   for (const p of poolsNear(x, z, r)) {
     if (p.kind === 'oil' && p.state === 'still') ignite(p);
@@ -253,6 +255,7 @@ export function fireAt(x: number, z: number, r = 0) {
 }
 /** Frost reaches (x, z) and `r` around it: water there freezes over, and ice already there keeps. */
 export function frostAt(x: number, z: number, r = 0) {
+  groundHears('frost', x, z, r);
   elementAt('chill', x, z, r); // a rune stone takes frost
   for (const p of poolsNear(x, z, r)) if (p.kind === 'water' && p.state === 'frozen') p.t = Math.max(p.t, C.iceTime);
   else if (p.kind === 'water' && p.state === 'still') {
@@ -263,6 +266,7 @@ export function frostAt(x: number, z: number, r = 0) {
 /** Shock reaches (x, z): if that's in water, it runs through the whole pool, to every foe standing in it and the
     mage too. `from` is spared (it has its shock already). */
 export function shockAt(x: number, z: number, from?: Enemy) {
+  groundHears('shock', x, z);
   elementAt('shock', x, z); // lodestones leap, a rune stone takes storm
   const p = poolAt(x, z);
   if (!p || p.kind !== 'water' || p.state !== 'still' || p.charged > 0) return;

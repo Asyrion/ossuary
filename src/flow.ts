@@ -22,7 +22,7 @@ import { clearRite, enterShrine } from './world/shrine';
 import { FLOORS, generateFloor, pickBoss, testPlan, type RoomVariant } from './world/generate';
 import { DH } from './world/dims';
 import { SIDE_DIR } from './world/shapes';
-import { clearEnemies, makeEnemy } from './actors/enemies';
+import { clearEnemies, makeEnemy, spawnFoe } from './actors/enemies';
 import { heroDrink, heroReset } from './actors/hero';
 import { payBloodTithe } from './combat/damage';
 import { clearProjectiles } from './combat/projectiles';
@@ -206,7 +206,7 @@ function spawnWave(room: Room, ambush = false) {
     }
     if (f.kind === 'urnMimic' && !ambush) { ({ x, z } = mimicSpot(room, x, z, mimics++, taken)); taken.push({ x, z }); } // (it waits among the urns, as one of them)
     if (f.kind === 'boss') makeEnemy(G.run.boss, x, z, 1, cfg.boss);
-    else makeEnemy(f.kind, x, z, cfg.enemyHp, undefined, { champion: f === champion });
+    else spawnFoe(f.kind, x, z, cfg.enemyHp, { champion: f === champion }); // (a swarm comes whole)
   }
   if (champion) Sfx.champion();
 }

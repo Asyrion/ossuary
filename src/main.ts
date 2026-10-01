@@ -36,7 +36,7 @@ import { openSecretRoom } from './world/secret';
 import { cleanseAtOnce, riteState } from './world/shrine';
 import { SPELLS, type SpellStatus, type StatusKind } from './magic/spellData';
 import { inflict } from './magic/statusFx';
-import { makeEnemy } from './actors/enemies';
+import { spawnFoe } from './actors/enemies';
 import { castSpell, learnSpell } from './magic/spells';
 import { mantleLeft, wardLeft } from './magic/shapes';
 import { saltCircle } from './combat/familiars';
@@ -231,7 +231,7 @@ function installDevHooks() {
     get pagePanel() { return { spell: pagePanelSpell(), text: document.getElementById('pagePanel')?.classList.contains('on') ? document.getElementById('pagePanel')!.textContent : '' }; },
     /** Spawn a foe (e.g. 'dummy', the training dummy) at (x, z), or ahead of the mage; put statuses on every
         foe in the room, e.g. inflict({ burn: 3 }). */
-    spawn(kind: FoeType, x = player.x, z = player.z - 2.5) { return makeEnemy(kind, x, z, 1); },
+    spawn(kind: FoeType, x = player.x, z = player.z - 2.5) { return spawnFoe(kind, x, z, 1); }, // (a swarm comes whole)
     /** Strike the room's foe `i` for `dmg`, of `school` if given (M4: its weakness and resistance count). */
     hit: (i: number, dmg: number, school?: School, by: 'spell' | 'cantrip' = 'spell') => { const e = G.enemies[i]; if (e) damageEnemy(e, dmg, 0, 0, 0, by, school); return e?.hp; },
     /** What the mage has found of the foes (M4), kept between runs; forget it all. */

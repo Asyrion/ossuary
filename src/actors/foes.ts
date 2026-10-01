@@ -51,32 +51,21 @@ import { inflict } from '../magic/statusFx';
 import { canHeal } from '../magic/status';
 import { lerp, mulberry, rand } from '../util';
 import { MODEL_OPTIONS } from './modelOptions';
+import { BESTIARY_OPTIONS, FOE_LOOKS } from './bestiaryLooks';
+import { BESTIARY_BEHAVIOURS, clearGround, updateGround } from './bestiaryFoes';
+import { light, num, span, type Aim, type Behaviour } from './foeKit';
 import { metFoe } from './bestiary';
 import type { FoeDef, School } from './foeData';
 import { CFG } from '../config';
 
-/** Where the mage is from the foe: the unit direction and the distance. */
-export interface Aim { ux: number; uz: number; dist: number }
-type Params = FoeDef['params'];
-interface Behaviour {
-  /** Its first state and timers. */ init(e: Enemy, P: Params): void;
-  /** One step: sets its velocity (and its state); returns the way it should face, if not at the mage. */
-  step(e: Enemy, dt: number, a: Aim, P: Params, room: Room): number | void;
-  /** After its idle: the parts it moves itself. */ pose?(e: Enemy, P: Params): void;
-  /** It ran into a wall or a rock this step (`hit`), or didn't. */ bump?(e: Enemy, hit: boolean, P: Params): void;
-  /** The lurker's: up out of the water. */ surface?(e: Enemy, P: Params): void;
-  /** As it falls (the wickmouse's candle). */ die?(e: Enemy, P: Params): void;
-  /** A blow lands on it: how much of `dmg` it takes (a void mote swallows the cantrip's bolts). */ struck?(e: Enemy, dmg: number, by: Enemy['lastHit'], P: Params): number;
-}
-const num = (v: number | number[]) => v as number, span = (v: number | number[]) => rand(...(v as [number, number]));
-const light = (e: Enemy) => SCHOOL_LIGHT[e.foe!.school];
+export type { Aim } from './foeKit';
 
 /** Build foe `def` into `e`: its model, merged, in `e.body`; its surfaces that a hit or a status lights. */
 export function buildFoe(e: Enemy, def: FoeDef) {
-  const opt = MODEL_OPTIONS.find(o => o.id === def.id);
-  if (!opt) throw new Error(`foe ${def.id}: no model option of that id`);
-  const b = opt.build();
-  e.mats = mergeRig(b.group, b.idle, def.id, Object.values(b.parts ?? {}));
+  const look = def.look ?? def.id, build = MODEL_OPTIONS.find(o => o.id === look)?.build ?? BESTIARY_OPTIONS.find(o => o.id === look)?.build ?? FOE_LOOKS[look];
+  if (!build) throw new Error(`foe ${def.id}: no look ${look}`); // (M4's model options, M4.5's bestiary, or a look of its own)
+  const b = build();
+  e.mats = mergeRig(b.group, b.idle, look, Object.values(b.parts ?? {}));
   for (const m of e.mats) m.userData.base = m.emissive.clone();
   e.foe = def; e.model = b.group; e.idle = b.idle; e.parts = b.parts; e.at = Math.random() * 4; e.tele = 0; e.shadow = b.shadow;
   e.flying = def.flying; e.contact = def.contact;
@@ -96,7 +85,9 @@ export function updateFoe(e: Enemy, dt: number, a: Aim) {
   return face;
 }
 /** A blow lands on a foe in code: how much of it its behaviour lets through (0: none, it was swallowed or turned). */
-export function foeStruck(e: Enemy, dmg: number, by: Enemy['lastHit']) { const B = e.foe && BEHAVIOURS[e.foe.behaviour]; return B?.struck ? B.struck(e, dmg, by, e.foe!.params) : dmg; }
+export function foeStruck(e: Enemy, dmg: number, by: Enemy['lastHit'], dx = 0, dz = 0) { const B = e.foe && BEHAVIOURS[e.foe.behaviour]; return B?.struck ? B.struck(e, dmg, by, e.foe!.params, dx, dz) : dmg; }
+/** A glyph's blast reaches a foe in code (M4.5: a rubble crab is flipped). */
+export function foeBlasted(e: Enemy) { if (e.foe) BEHAVIOURS[e.foe.behaviour].blasted?.(e, e.foe.params); }
 /** A foe in code has fallen: what its behaviour leaves behind. */
 export function foeDied(e: Enemy) { if (e.foe) BEHAVIOURS[e.foe.behaviour].die?.(e, e.foe.params); }
 /** After it moved: whether it ran into a wall or a rock. */
@@ -161,6 +152,7 @@ const company: Enemy[] = [];
 /** Every step: burning ground glows, now and then a flame licks up, it burns the mage in it, and it goes out; sparks
     crackle, arm and sting. */
 export function updateFoeHazards(dt: number) {
+  updateGround(dt); // (M4.5: webs, ink and what is thrown in an arc)
   const A = CFG.afflict;
   for (let i = hazards.length - 1; i >= 0; i--) {
     const h = hazards[i]; h.t -= dt;
@@ -189,7 +181,7 @@ export function updateFoeHazards(dt: number) {
   }
 }
 /** A new floor: the ground stops burning and sparking. */
-export function clearFoeHazards() { hazards.length = 0; for (const m of Object.values(hazardGlow)) if (m) m.count = 0; }
+export function clearFoeHazards() { hazards.length = 0; for (const m of Object.values(hazardGlow)) if (m) m.count = 0; clearGround(); }
 /** The burning ground and the sparks in the current room (tests). */
 export const burningGround = () => hazards.filter(h => h.kind === 'fire' && h.room === G.current).length;
 export const sparkGround = () => hazards.filter(h => h.kind === 'spark' && h.room === G.current).length;
@@ -200,6 +192,7 @@ const litFires = (room: Room) => (room.props ?? []).filter((b: PropBox) => (b.pr
 /* ---------- behaviours ---------- */
 
 const BEHAVIOURS: Record<string, Behaviour> = {
+  ...BESTIARY_BEHAVIOURS, // (M4.5: actors/bestiaryFoes.ts)
   hopper: {
     init(e, P) { e.state = 'hop'; e.fireT = span(P.puffEvery) * .6; },
     step(e, dt, a, P, room) {

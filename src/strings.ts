@@ -457,6 +457,8 @@ export const STR = {
     `${label}: ${tris.toLocaleString()} triangles${stripped ? ', base removed' : ''}` +
     `${skinned ? ', rigged' : ', static (procedural animation)'}${clips ? `. Clips used: ${clips}` : ''}.`,
 };
+/** A foe's name: M4's (STR.options) or M4.5's bestiary's (STR.bestiary). */
+export const foeName = (id: string) => STR.options[id]?.name ?? (STR.bestiary as Record<string, { name: string }>)[id]?.name ?? id;
 
 /** Fill every element with a data-s="path.to.string" attribute. */
 export function applyStrings(root: ParentNode = document) {

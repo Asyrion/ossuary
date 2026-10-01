@@ -23,6 +23,8 @@ export interface FoeDef {
   id: FoeId; floor: number; school: School; weak: School; resist: School;
   hp: number; r: number; speed: number; contact: number; flying: boolean;
   /** Only one in a room (the Rime Drakeling); the rest of its role's picks go to the others. */ elite?: boolean;
+  /** M4.5: the look it wears if not the one of its own id (a firefly swarm's beetle), and how many come together (a swarm,
+      a pack), sharing one mind. */ look?: string; pack?: [number, number];
   behaviour: string; params: Record<string, number | number[]>;
   /** The colour of what flies from it when it falls, and of the stain it leaves (none for what leaves none). */ gib: string; stain: string | null;
 }
@@ -57,6 +59,14 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   shell: ['walk', 'hide', 'spinSpeed', 'spinTime', 'bounces', 'dizzy', 'guard', 'open', 'bounceShots', 'shotSpeed', 'chill'],
   // M4.2: the Wardlings a drinking ward lets out (and, by school, `fire`, `chill`, `hex` on their shots, `ring` of them)
   wardling: ['keep', 'orbitSpeed', 'volleyEvery', 'tell', 'shots', 'spread', 'shotSpeed'],
+  // M4.5's bestiary (actors/bestiaryFoes.ts), floor 1
+  dropper: ['hang', 'creep', 'height', 'tell', 'drop', 'ground', 'spitEvery', 'spitTell', 'spitRange', 'webSize', 'webTime', 'climb'],
+  splitter: ['smearEvery', 'smearSize', 'smearTime', 'cloudEvery', 'cloudTell', 'dim', 'splitAt', 'splitScale', 'splitHp', 'crack'],
+  tome: ['wake', 'lonely', 'rise', 'guard', 'keep', 'riffleEvery', 'tell', 'pages', 'spread', 'pageSpeed', 'biteEvery', 'bite', 'biteTime', 'pageChance'],
+  swarm: ['keep', 'wheel', 'drift', 'orbit', 'spin', 'streamEvery', 'tell', 'dash', 'dashTime', 'gap', 'flash'],
+  singer: ['fly', 'perch', 'songEvery', 'songRange', 'hasteTime', 'flee', 'diveTell', 'dive', 'diveTime'],
+  mantis: ['keep', 'stalk', 'tell', 'lunge', 'lungeTime', 'open', 'parryArc', 'parrySpeed'],
+  crab: ['wake', 'rise', 'hideGuard', 'guard', 'keep', 'turn', 'sparkEvery', 'tell', 'sparkSpeed', 'pinchEvery', 'pinch', 'pinchTime', 'flipped', 'flipGuard'],
 };
 
 /** What is wrong with the foes' data (an empty list when nothing is). */
@@ -73,6 +83,7 @@ export function validateFoes(defs: Record<string, FoeDef> = FOES) {
     if (!need) at(`behaviour ${d.behaviour}`);
     else for (const p of need) if (d.params[p] === undefined) at(`${d.behaviour} needs ${p}`);
     if (!/^#[0-9a-f]{6}$/i.test(d.gib) || (d.stain !== null && !/^#[0-9a-f]{6}$/i.test(d.stain))) at('gib or stain colour');
+    if (d.pack && !(d.pack[0] >= 1 && d.pack[1] >= d.pack[0])) at(`pack ${d.pack}`);
   }
   return errors;
 }
@@ -83,10 +94,12 @@ export function affinityMul(def: Pick<FoeDef, 'weak' | 'resist'> | undefined, sc
   return school === def.weak ? CFG.affinity.weak : school === def.resist ? CFG.affinity.resist : 1;
 }
 
+/** Behaviours that wait in disguise until the mage comes near: an urn, a book, a heap of rubble. */
+const WAITERS = ['mimic', 'tome', 'crab'];
 /** A foe of `role` for the floor to call up in the middle of a fight (a boss's helpers, the ossuary's rising bones):
-    never an elite, nor one that waits in disguise. */
+    never an elite, nor one that waits in disguise, nor one that comes as a pack (M4.5's swarm). */
 export function callFoe(table: RoleTable, role: Role, R: () => number): FoeType {
-  const list = table[role].filter(([id]) => !(isFoe(id) && (FOES[id].elite || FOES[id].behaviour === 'mimic')));
+  const list = table[role].filter(([id]) => !(isFoe(id) && (FOES[id].elite || WAITERS.includes(FOES[id].behaviour) || FOES[id].pack)));
   return pickFoe({ ...table, [role]: list.length ? list : table[role] }, role, R, true);
 }
 

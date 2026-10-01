@@ -18,6 +18,7 @@ import { statusTint } from '../magic/statusFx';
 import { mantleShields } from '../magic/shapes';
 import { wadeAt } from '../world/pools';
 import { saltHolds } from '../combat/familiars';
+import { packOf, songHaste } from './bestiaryFoes';
 
 export function stdMat(color: number, extra: THREE.MeshStandardMaterialParameters = {}) {
   return new THREE.MeshStandardMaterial({ color, roughness: .85, flatShading: true, ...extra });
@@ -67,6 +68,16 @@ export function makeEnemy(type: FoeType, x: number, z: number, hpMul = 1, boss?:
   G.enemies.push(e); return e;
 }
 
+/** Spawn foe `type` at (x, z) as makeEnemy does, or, for one that comes in a pack (M4.5: a firefly swarm), the whole pack
+    round it, sharing one mind; returns the first. */
+export function spawnFoe(type: FoeType, x: number, z: number, hpMul = 1, opts: { champion?: boolean } = {}) {
+  const pack = isFoe(type) ? FOES[type].pack : undefined;
+  if (!pack) return makeEnemy(type, x, z, hpMul, undefined, opts);
+  const n = pack[0] + Math.floor(Math.random() * (pack[1] - pack[0] + 1));
+  let first = true;
+  return packOf(n, x, z, (px, pz) => { const e = makeEnemy(type, px, pz, hpMul, undefined, first ? opts : {}); first = false; return e; });
+}
+
 export function clearEnemies() {
   clearFoeHazards();
   for (const e of G.enemies) { scene.remove(e.group); disposeTree(e.group); }
@@ -92,7 +103,7 @@ export function updateEnemies(dt: number) {
       e.vx = (ux - uz * wob) * sp; e.vz = (uz + ux * wob) * sp;
       e.body.rotation.z = Math.sin(e.t * 6) * .08; e.body.position.y = Math.abs(Math.sin(e.t * 6)) * .04;
     } else if (e.isBoss) faceTo = updateBoss(e, dt, ux, uz) ?? faceTo;
-    e.vx *= slow; e.vz *= slow;
+    const haste = songHaste(e); e.vx *= slow * haste; e.vz *= slow * haste; // (a lark's song hastens it, M4.5)
     if (!e.flying) { const w = wadeAt(e.x, e.z) * snagAt(e.x, e.z); e.vx *= w; e.vz *= w; } // walkers wade through water, snag in cobwebs
     // integrate + knockback
     e.kx *= Math.exp(-8 * dt); e.kz *= Math.exp(-8 * dt);

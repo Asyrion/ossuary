@@ -61,6 +61,9 @@ export const CFG = {
   // second; foes' embers and cold touch what they pass every `touchEvery` seconds, within `emberReach` and `coldReach`;
   // the dev hook's test shot (`__game.shoot`) flies at `testShot`; a storm ray's sparks arm after `sparkArm` seconds
   afflict: { chillSlow: .4, groundReach: .3, groundLicks: .7, sparkArm: .35, touchEvery: .1, emberReach: .2, coldReach: .1, testShot: 3.8 },
+  // M4.5's bestiary: how fast the mage walks through a spider's web and an ink octopus's smear; how much faster a lark's
+  // song makes the foes round it
+  bestiary: { webSlow: .45, inkSlow: .65, songHaste: 1.4 },
   // a foe's weakness and resistance (M4; GDD: Enemy affinities): the damage of its weak school and of its resisted one
   affinity: { weak: 1.5, resist: .5 },
   // champion rooms: one enemy is bigger, tinted, tougher and a little faster, and drops a heart

@@ -30,6 +30,7 @@ import { addDecal, burst } from './fx';
 import { clamp } from '../util';
 import { breakPlate } from '../actors/bosses';
 import { dragonBlast } from '../actors/pillarDragon';
+import { foeBlasted } from '../actors/foes';
 import { fireAt } from '../world/pools';
 
 const C = CFG.glyph;
@@ -105,6 +106,7 @@ function blast(x: number, z: number, color: number, R: number) {
     damageEnemy(e, C.damage, ux, uz);
     if (!e.isBoss) { e.kx += ux * C.knockback; e.kz += uz * C.knockback; }
     else if (e.plates) breakPlate(e); // (M4.2: the War-Tiger loses a plate)
+    foeBlasted(e); // (M4.5: a rubble crab is flipped)
   }
   for (const rock of room.rocks.slice()) {
     if (!touches(rock, x, z, R)) continue;

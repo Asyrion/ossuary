@@ -13,7 +13,7 @@ import { DEV, G, player } from '../state';
 import { wardFoe } from '../actors/wardShield';
 import { fennexInfo, growFennex } from '../combat/fennex';
 import { callWanderer } from '../items/wanderer';
-import { STR } from '../strings';
+import { STR, foeName } from '../strings';
 import { FOES, FOE_IDS, pickFoe } from '../actors/foeData';
 import { forgetBestiary } from '../actors/bestiary';
 import { ARTIFACT_DEFS, START_FOCUS, artifact } from '../items/artifactData';
@@ -21,7 +21,7 @@ import { giveById, grantArtifact, placeArtifact, refreshStats, removeArtifactGal
 import { DROPS, RESOURCES, SOULS, soulItem, type Drop, type Resource } from '../items/loot';
 import { gainSoul, hallowedMend, resetSouls } from '../items/souls';
 import { giveResources, spawnPickup } from '../items/pickups';
-import { makeEnemy } from '../actors/enemies';
+import { makeEnemy, spawnFoe } from '../actors/enemies';
 import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
 import { assetList, assetsOn, setAssetsOn } from '../assets/models';
 import { Vector2 } from 'three';
@@ -242,7 +242,7 @@ function build() {
   // the foes built in code (M4), by floor, from data/foes.json; and one of them in every fight, to test it
   for (const floor of [...FLOORS.map((_, i) => i + 1), 0]) { // (0: the Wardlings, no floor's own)
     const row = FOE_IDS.filter(id => FOES[id].floor === floor);
-    if (row.length) foes.append(el('p', 'dv-info', S.foesOfFloor(floor)), ...row.map(id => btn(STR.options[id].name, () => { const q = ahead(3); makeEnemy(id, q.x, q.z, floorHp()); })));
+    if (row.length) foes.append(el('p', 'dv-info', S.foesOfFloor(floor)), ...row.map(id => btn(foeName(id), () => { const q = ahead(3); spawnFoe(id, q.x, q.z, floorHp()); })));
   }
   // the drinking ward as a foe's shield (M4.2): round the foe nearest the mage
   foes.append(btn(S.wardFoe, () => { const e = nearestFoe(); if (e) wardFoe(e); else toast(S.noFoe, 2); }));
@@ -366,7 +366,7 @@ function refresh() {
   info.textContent = S.info(G.run.seed, G.run.floor + 1, cur.plan.id, S.roomNames[cur.type] ?? cur.type);
   godBtn.textContent = DEV.god ? S.godOn : S.godOff; godBtn.classList.toggle('on', DEV.god);
   lookBtn.textContent = S.wardenWears(STR.bossLooks[bossLook()].name);
-  foeBtn.textContent = DEV.foe ? S.foeEverywhere(STR.options[DEV.foe].name) : S.foesAsFloor; foeBtn.classList.toggle('on', !!DEV.foe);
+  foeBtn.textContent = DEV.foe ? S.foeEverywhere(foeName(DEV.foe)) : S.foesAsFloor; foeBtn.classList.toggle('on', !!DEV.foe);
   moveBtn.textContent = S.moveClip[DEV.moveClip]; moveBtn.classList.toggle('on', DEV.moveClip !== 'run');
   doorBtn.textContent = S.doors[DEV.doors]; doorBtn.classList.toggle('on', DEV.doors !== 'data');
   manaBtn.textContent = DEV.mana ? S.manaOn : S.manaOff; manaBtn.classList.toggle('on', DEV.mana);

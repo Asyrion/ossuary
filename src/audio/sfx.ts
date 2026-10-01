@@ -276,6 +276,34 @@ const sounds = {
   wandererBell() { [1320, 1760, 1480].forEach((f, i) => tone('triangle', f, f * .98, .5, .04, i * .18)); },
   crow() { tone('sawtooth', 620, 380, .18, .05); tone('sawtooth', 580, 360, .16, .04, .22); },
   wardlingShot() { tone('triangle', 700, 260, .15, .05); hiss(.1, .04, 'bandpass', 1800); },
+  // M4.5's bestiary, floor 1. Umbral: a spider's thread and fall, webs; ink; a grimoire's covers and pages
+  spiderTell() { hiss(.5, .03, 'highpass', 4500); tone('sine', 1800, 2400, .45, .012); },
+  spiderLand() { tone('sine', 140, 60, .2, .1); for (let i = 0; i < 4; i++) hiss(.04, .05, 'bandpass', 3000 + i * 400, i * .03); },
+  spiderClimb() { hiss(.5, .03, 'highpass', 4000); tone('sine', 2400, 1800, .45, .01); },
+  webSpit() { hiss(.15, .07, 'bandpass', 1600); tone('sine', 420, 260, .12, .03); },
+  webLand() { hiss(.12, .05, 'bandpass', 2200); },
+  webBurn() { crackles(8, .4, .05); hiss(.35, .06, 'highpass', 2600); },
+  inkSwell() { tone('sine', 90, 140, .55, .06); hiss(.5, .04, 'lowpass', 600); },
+  inkSquirt() { hiss(.4, .14, 'lowpass', 800); tone('sine', 120, 60, .3, .07); },
+  inkSplit() { hiss(.3, .12, 'lowpass', 900); tone('sine', 200, 90, .25, .07); tone('sine', 260, 120, .25, .05, .06); },
+  inkCrack() { [1760, 1320, 2093].forEach((f, i) => tone('triangle', f, f * .8, .3, .035, i * .04)); hiss(.25, .07, 'highpass', 3000); },
+  bookWake() { hiss(.4, .07, 'bandpass', 2600); tone('sine', 160, 240, .35, .04); },
+  pageRiffle() { for (let i = 0; i < 8; i++) hiss(.03, .05, 'bandpass', 3200 + Math.random() * 1500, i * .045); },
+  bookSnap() { hiss(.06, .12, 'bandpass', 900); tone('square', 180, 90, .08, .06); },
+  // Hallow: the swarm's glow and stream, a beetle going out; the lark's song and cry
+  swarmGlow() { [1319, 1568, 1976].forEach((f, i) => tone('sine', f, f * 1.02, .55, .02, i * .08)); },
+  swarmStream() { hiss(.5, .05, 'highpass', 5000); [2349, 2637, 2960, 3136].forEach((f, i) => tone('triangle', f, f, .1, .02, i * .09)); },
+  fireflyPop() { tone('sine', 2093, 3136, .12, .04); hiss(.1, .03, 'highpass', 6000); },
+  larkSong() { const n = [1568, 1760, 2093, 1976]; n.forEach((f, i) => tone('sine', f, f * 1.06, .14, .03, i * .1)); },
+  larkCry() { tone('triangle', 2093, 2793, .2, .05); tone('triangle', 2637, 1976, .25, .04, .18); },
+  wingBeat() { for (let i = 0; i < 3; i++) hiss(.07, .05, 'lowpass', 900, i * .09); },
+  // Storm: a mantis rearing, slashing, parrying; a rubble crab waking, snapping, flipped
+  mantisRear() { tone('sawtooth', 300, 700, .45, .03); hiss(.4, .03, 'highpass', 3500); },
+  mantisSlash() { hiss(.14, .12, 'highpass', 2800); tone('sawtooth', 1400, 300, .14, .04); },
+  mantisParry() { tone('square', 2400, 1600, .07, .04); tone('triangle', 3136, 2637, .2, .03, .02); hiss(.08, .06, 'highpass', 4000); },
+  crabWake() { hiss(.35, .1, 'lowpass', 500); for (let i = 0; i < 4; i++) tone('square', 300 + i * 40, 200, .04, .03, i * .06); },
+  crabSnap() { tone('square', 900, 400, .05, .05); hiss(.05, .08, 'bandpass', 2000); },
+  crabFlip() { tone('sine', 160, 70, .3, .1); hiss(.3, .1, 'lowpass', 700); for (let i = 0; i < 3; i++) tone('square', 500, 300, .04, .03, .1 + i * .07); },
 };
 type Sounds = typeof sounds;
 /** Sounds of the interface (picking things up, refusals, learning): their own bus, never positioned. */

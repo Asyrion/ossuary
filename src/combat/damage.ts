@@ -45,7 +45,7 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
     if (foundAffinity(e.foe?.id ?? e.type as BossType, aff > 1 ? 'weak' : 'resist')) { floatText(e.x, 1.5, e.z, aff > 1 ? STR.foes.weak : STR.foes.resists, aff > 1 ? 0xffd070 : 0xa8a0b8); Sfx.at(e.x, e.z).affinity(aff > 1); }
   }
   if (by === 'spell') dmg *= player.stats.spellDamage; // Crown of Thorns
-  if (e.foe) { dmg = foeStruck(e, dmg, by); if (dmg <= 0) { e.flash = .09; return; } } // (a void mote swallows the cantrip)
+  if (e.foe) { dmg = foeStruck(e, dmg, by, dx, dz); if (dmg <= 0) { e.flash = .09; return; } } // (a void mote swallows the cantrip)
   e.hp -= dmg; e.flash = .09; e.lastHit = by; e.asleep = false; // a sleeper wakes
   const hexed = e.status?.hex ?? 0; // (before the blow spends a stack: a foe that falls with enough leaves a soul mote)
   if (by) { // a hexed foe gives back mana for each stack a blow spends (M4.1); a foe marked by the Ferryman's Toll pays its toll
