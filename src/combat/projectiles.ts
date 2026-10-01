@@ -34,7 +34,7 @@ import { gainMana } from '../magic/spells';
 import { hexDrained } from '../ui/afflictions';
 import { inSteam } from '../magic/steam';
 import { MAGIC } from '../magic/status';
-import { hexGround } from '../magic/shapes';
+import { boltOverGround, hexGround } from '../magic/shapes';
 import { actor } from '../actors/acting';
 
 const BLESSED = 0xfff0b0; // a blessed cast's gold
@@ -56,7 +56,7 @@ function makeBolt(s: BoltSpec) {
   const b: Bolt = {
     x: s.x, z: s.z, y, vx: s.vx, vz: s.vz, speed: Math.hypot(s.vx, s.vz), dist: 0, range: s.range, r: .12 * s.scale, mesh,
     damage: s.damage, color: s.color, path: s.path, pierce: s.pierce, bounces: s.bounces, returning: false, hit: new Set(), secondary: s.secondary, crit: s.crit,
-    spell: s.spell, status: s.status,
+    spell: s.spell, status: s.status, shard: s.shard,
   };
   if (s.path === 'wave') { const v = Math.hypot(s.vx, s.vz) || 1; b.wave = { ox: s.x, oz: s.z, px: -s.vz / v, pz: s.vx / v }; }
   if (s.path === 'swing' && s.swing) { // the Pendulum of Hours: out to one side, turning evenly to meet the aim again where its range ends
@@ -131,9 +131,10 @@ export function fireSecondary(x: number, z: number, dx: number, dz: number, o: {
 
 /** A spell's bolt from (x, z) along (dx, dz): Rime Shards' splinters, Shatter's shards. It strikes as a spell
     (no mana back for the kill) and puts the spell's statuses on what it hits. */
-export function fireSpellBolt(x: number, z: number, dx: number, dz: number, o: { damage: number; range: number; speed: number; color: number; scale?: number; status?: Partial<Record<SpellStatus, number>>; shard?: boolean }) {
+export function fireSpellBolt(x: number, z: number, dx: number, dz: number, o: { damage: number; range: number; speed: number; color: number; scale?: number; status?: Partial<Record<SpellStatus, number>>; shard?: boolean; shatter?: boolean }) {
   const l = Math.hypot(dx, dz) || 1;
   makeBolt({ x, z, vx: dx / l * o.speed, vz: dz / l * o.speed, damage: o.damage, range: o.range, scale: o.scale ?? .8, color: o.color, path: 'straight', pierce: 0, bounces: 0, secondary: true, spell: true, status: o.status, shard: o.shard });
+  if (o.shatter) G.bolts[G.bolts.length - 1].shatter = true; // (M4.10: fire catches these as molten glass)
 }
 
 /** Enemy projectile. */
@@ -275,6 +276,7 @@ export function updateBolts(dt: number) {
     }
     if (b.status?.chill) frostAt(b.x, b.z); // a frost bolt freezes the water it flies over
     if (b.status?.hex) hexGround(b.x, b.z); // a hexing bolt over Consecrate's holy ground darkens it (M4.8)
+    if (b.spell) boltOverGround(b); // (M4.10: a Hex Bolt across a seal, shards across holy ground or into fire)
     b.mesh.position.set(b.x, b.y, b.z); b.mesh.children[2].position.y = -b.y + .015; animateBolt(b.mesh, b.x - ox, b.z - oz, dt);
     if (kill) removeBolt(i);
   }

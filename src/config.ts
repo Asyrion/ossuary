@@ -258,6 +258,7 @@ export const CFG = {
     impact: 0.22, strike: 0.22, chain: 0.3, crackle: 0.25, ring: 0.3, flash: 0.3, shockwave: 0.45,
     seal: { rise: 0.15, crown: 0.5, pillar: 0.7, star: 0.6 },
     wallRise: 0.25, wallStagger: 0.03,
+    weaveName: 2, // (M4.10: seconds before the same weave's name rises again, for those that go on and on)
   },
   lights: {
     hemi: 1.57, moon: 1.26,

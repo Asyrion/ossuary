@@ -1645,10 +1645,10 @@ test('the inventory lists what the mage carries and knows, in tabs, and describe
   await expect(detail).toContainText('Spell damage ×1.5');
   await expect(detail.locator('.chip.bad')).toContainText('Hearts -1'); // its price
   // E turns to the spells: the two slots, then a book by school (a school opens with its first spell learned), with a
-  // sealed entry for each spell not met yet; last, M4.8's wheel of the ten reactions
+  // sealed entry for each spell not met yet; then M4.8's wheel of the ten reactions and M4.10's seventeen weaves and chains
   await page.keyboard.press('KeyE');
-  await expect(tiles).toHaveCount(18);
-  await expect(page.locator('#invList .sec')).toHaveText(['Carried', 'Ember', 'Frost', 'Storm', 'Reactions']);
+  await expect(tiles).toHaveCount(35);
+  await expect(page.locator('#invList .sec')).toHaveText(['Carried', 'Ember', 'Frost', 'Storm', 'Reactions', 'Weaves and chains']);
   await page.keyboard.press('ArrowRight');
   await expect(detail).toContainText('Pyre Seal');
   await expect(detail).toContainText('Ember spell');
@@ -2139,9 +2139,9 @@ test('mechanisms: a lit brazier sets bolts alight, runes take a school, bells st
     stand(1, 0); shootEast(.1); out.rootsLit = (g.props.find(p => p.kind === 'roots') as unknown as { burning: number } | undefined)?.burning ?? 0;
     // a dead tree burns longer than roots
     put('tree', 11, 4); g.element('burn', at(11, 4).x, at(11, 4).z); g.sim(4.5); out.treeAt4 = !!find('tree', 11, 4); g.sim(2.5); out.treeAt7 = !!find('tree', 11, 4);
-    // frost reaching an uncharged rune stone charges it with frost; a charged one keeps its school
+    // frost reaching an uncharged rune stone charges it with frost; a second school sets off their reaction and the stone takes it (M4.10)
     put('rune', 11, 1); g.element('chill', at(11, 1).x, at(11, 1).z); out.frostRune = find('rune', 11, 1)?.school;
-    g.element('shock', at(11, 1).x, at(11, 1).z); out.frostRuneKept = find('rune', 11, 1)?.school;
+    g.element('shock', at(11, 1).x, at(11, 1).z); out.frostRuneTurned = find('rune', 11, 1)?.school;
     // a bolt rings the bell: every foe reels, and the bell must settle before it rings again
     put('bell', 4, 5); const dummy = g.spawn('dummy', at(10, 6).x, at(10, 6).z); g.sim(1);
     stand(1, 5); shootEast(.1); out.stunned = (dummy.status?.stun ?? 0) > 0; out.bellCd = (find('bell', 4, 5)?.cd ?? 0) > 0;
@@ -2160,7 +2160,7 @@ test('mechanisms: a lit brazier sets bolts alight, runes take a school, bells st
     return out;
   });
   expect(result).toMatchObject({
-    brazierDark: false, brazierLit: true, rune: 'burn', runeStands: true, frostRune: 'chill', frostRuneKept: 'chill', treeAt4: true, treeAt7: false,
+    brazierDark: false, brazierLit: true, rune: 'burn', runeStands: true, frostRune: 'chill', frostRuneTurned: 'shock', treeAt4: true, treeAt7: false,
     stunned: true, bellCd: true, leapt: true, lodeCd: true, censerHung: true, censer: false, crushed: true, oil: ['burning'],
   });
   expect(result.rootsLit).toBeGreaterThan(0);
@@ -3642,7 +3642,7 @@ test('the full wheel (M4.8): Searing opens a shut eye, a Prism splits a bolt in 
   await page.evaluate(() => { const g = (window as unknown as { __game: GW }).__game; g.learn('arc', 0); });
   await page.keyboard.press('i'); await page.keyboard.press('e');
   const tiles = page.locator('#invList .tile');
-  await tiles.nth(await tiles.count() - 9).click(); // (the wheel's second entry: Overload)
+  await tiles.nth(await tiles.count() - 9 - 17).click(); // (the wheel's second entry: Overload; M4.10's seventeen weaves come after it)
   await expect(page.locator('#invDetail h3')).toHaveText('Overload');
   await expect(page.locator('#invDetail .wheel svg line')).toHaveCount(10);
   await page.keyboard.press('Escape');
@@ -3680,5 +3680,41 @@ test('the curve (M4.9): an open sluice drains a water room to mud and keeps its 
   });
   expect(back.hexed).toBeLessThan(56); // (8 taken, a little mana back as time passes)
   expect(back.after).toBeCloseTo(back.hexed - 35 + 8, 0);
+  expect(errors).toEqual([]);
+});
+
+test('weaves and chains (M4.10): each one set up and struck goes off, its name rises and the book keeps it; the room joins in (a rune stone struck by a second school, a bell rung by a shock, a brazier taken by darkness)', async ({ page }) => {
+  type GW = { sim(s: number, draw?: boolean): void; warp(id: number): void; clearRoom(): void; startGame(o: object): void; weave(id: string): void; weaves: string[]; forgetWeaves(): void;
+    player: { x: number; z: number; hp: number; maxHp: number; invuln: number }; steam: number; enemies: { dead?: boolean; status?: Record<string, number> }[];
+    prop(kind: string, x?: number, z?: number): unknown; props: { kind: string; x: number; z: number; school: string | null; lit: boolean }[]; element(kind: string, x: number, z: number): void;
+    sparkGround: number };
+  const errors = await start(page, '?room=great_hall&variant=quiet');
+  const ids = ['steamCurtain', 'conductor', 'overloadSeal', 'blackPyre', 'eclipseGround', 'hallowedHail', 'lanternFan', 'liveWade', 'refraction', 'tollChain', 'thundercloud', 'incense', 'miasma', 'blackMelt', 'hailburst', 'moltenGlass', 'corona'];
+  const r = await page.evaluate(ids => {
+    const g = (window as unknown as { __game: GW }).__game, out: Record<string, number> = {};
+    for (const id of ids) {
+      g.startGame({ seed: 'WV1', testTemplate: 'great_hall', testVariant: 'quiet' }); g.warp(1); g.sim(.6); g.clearRoom(); g.sim(.3);
+      g.player.maxHp = g.player.hp = 99; g.player.invuln = 99; g.forgetWeaves();
+      g.weave(id); let t = 0; for (; t < 6 && !g.weaves.includes(id); t += .05) g.sim(.05);
+      out[id] = g.weaves.includes(id) ? t : -1;
+      if (id === 'steamCurtain') out.curtainClouds = g.steam;
+    }
+    return out;
+  }, ids);
+  for (const id of ids) expect(r[id], id).toBeGreaterThanOrEqual(0);
+  expect(r.curtainClouds).toBeGreaterThan(1); // (a cloud for each block of the wall)
+  // the room joins in
+  const room = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GW }).__game, P = g.player;
+    g.startGame({ seed: 'WV2', testTemplate: 'great_hall', testVariant: 'quiet' }); g.warp(1); g.sim(.6); g.clearRoom(); g.sim(.3); P.maxHp = P.hp = 99; P.invuln = 99;
+    const at = { x: P.x, z: P.z - 2.5 };
+    g.prop('rune', at.x, at.z); g.element('burn', at.x, at.z); const charged = g.props.find(p => p.kind === 'rune')!.school;
+    g.element('chill', at.x, at.z); g.sim(.05); const recharged = g.props.find(p => p.kind === 'rune')!.school;
+    g.prop('brazier', at.x + 2, at.z); g.element('burn', at.x + 2, at.z); g.sim(.05); g.element('hex', at.x + 2, at.z); g.sim(.05);
+    const br = g.props.find(p => p.kind === 'brazier')! as unknown as { lit: boolean; black: boolean };
+    g.prop('bell', at.x - 2.5, at.z); const s0 = g.sparkGround; g.element('shock', at.x - 2.5, at.z); g.sim(.05);
+    return { charged, recharged, lit: br.lit, black: br.black, sparks: g.sparkGround - s0 };
+  });
+  expect(room).toMatchObject({ charged: 'burn', recharged: 'chill', lit: true, black: true }); expect(room.sparks).toBeGreaterThanOrEqual(8);
   expect(errors).toEqual([]);
 });

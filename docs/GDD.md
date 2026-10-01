@@ -1318,7 +1318,7 @@ After M4.5 the owner asked for a review of the recent work, for open ends in its
 that add depth to what is already in the game. The fixes are in Combat and enemies (The review of 2026-10-01). What is
 left open, and the milestones that deepen the systems already built rather than adding new ones, follow. The owner
 approved M4.7 on 2026-10-01 and it was built the same day (M4.7 as built, below), then asked for M4.8 to M4.10 to follow
-(2026-10-01); M4.8 is built (The full wheel as built, in Magic system).
+(2026-10-01); M4.8, M4.9 and M4.10 are built (The full wheel as built, in Magic system; M4.9 and M4.10 as built, below).
 
 **The open ends, and the owner's answers (2026-10-01).** The review measured six; the owner answered each.
 
@@ -1440,13 +1440,17 @@ pressure a set of dials, and gives every build a way through.
   to (floor 1 Ember or Frost, floor 2 Storm, floors 3 and 4 Frost, floor 5 Ember) while the mage holds no spell of one. A
   floor where 45% or more of the foes resist or drink the one school the mage carries says so as the mage arrives (floor 1
   Storm: "Shell and stone down here turn the storm"; floor 2 Frost; floor 3 Ember: "The heat down here feeds on fire").
-  The merchant sells no pages, so it doesn't lean.
-- *Hex reads.* The mana a hexing blow takes runs from the mage back to the foe that threw it in violet motes, and a Hallow
+  The first time in a run a library leans, a line says one page answers what lives on the floor. The merchant sells no
+  pages, so it doesn't lean.
+- *Hex reads.* The mana a hexing blow takes (a foe's shot or a boss's) runs from the mage back to the foe that threw it in violet motes, and a Hallow
   spell cast within 8 s gives it back (gold over the mage; the first time in a run, a line).
-- *The sluice gate* (`Z` in a template; the drowned floor's four water rooms have one against the north wall): a bolt or a
-  blast lifts its iron gate, water falls through it, and the room's water drains to brown mud for 8 s ("Drained" rises over
-  it): wading still slows, and every water foe in it is driven up and kept up. Then the gate drops and the water comes back;
-  it rests 3 s before it lifts again.
+- *The sluice gate* (`Z` in a template): seven water rooms have one against the north wall, in the floor's own stone
+  (`flooded_crypt`, `drowned_pools`, `flooded_hall`, `oil_and_water`, `mill_race`, and the cisterns `cistern_steps` and
+  `lodestone_cistern`); the great cistern has none (its north wall is all door lanes), nor the landing's river. A bolt or a
+  blast lifts its iron gate under its lintel, water falls through the gap, and the room's water drains to wet brown mud for
+  8 s ("Drained" rises over it): wading still slows, and every water foe in it is driven up and kept up. Then the gate drops
+  and the water comes back; it rests 3 s before it lifts again. Torches and the wall's niches keep clear of it. In the rooms
+  without one, the blast, steam and a shock still bring a water foe up.
 - *The balance bot* (`npm run balance`, against a running server; `-- floor=3 foe=hydra school=frost seeds=1`): every
   foe alone, two seeds, the cantrip and each school's two spells. Its first run (`docs/balance.md`): most foes fall in
   1 to 3 s to a build with spells; the elites (the Phoenix, the Hearth and Glacier Golems, the Griffin) take 5 to 18 s; the
@@ -1455,7 +1459,7 @@ pressure a set of dials, and gives every build a way through.
 
 ### M4.10 Weaves: spells meet spells, reactions meet a third school
 
-The owner asked for more combinations like Steam (2026-10-01). M4.8 makes every pair of schools react on a foe or a tile.
+**Built 2026-10-01** (M4.10 as built, below). The owner asked for more combinations like Steam (2026-10-01). M4.8 makes every pair of schools react on a foe or a tile.
 This milestone goes a step further in two ways, and designs the last two pairs of the six-school wheel for M5. Every
 weave and chain has its name rise when it happens and is marked in the spell book once found (Nothing silent).
 
@@ -1496,6 +1500,41 @@ pairs of the six schools react.
 and bolts through it carry a hex; a rune stone struck by two schools in turn sets off their reaction at its foot; a bell
 rung by a shock rings a ring of sparks.
 
+**M4.10 as built (2026-10-01).** All ten weaves and seven chains above, and the room joining in, as the tables say, with
+these numbers and choices (tuning in `weaves` in `data/magic.json`). Weaves cost nothing beyond the two spells (decision 2
+as proposed); the lasting spell is spent where the weave consumes it (the wall in a Steam Curtain or a Conductor, the
+seal in an Overload Seal, the holy ground in Eclipse Ground), and kept where it isn't (Black Pyre, Hallowed Hail, the
+motes, the mantle, Refraction's wall).
+
+- *Steam Curtain:* a cloud 2.3 tiles across on every block of the wall, for the wall's time left. *Conductor:* every foe
+  within 0.8 of the wall is struck for 6 and shocked; each block throws a chilling shard each way across the wall.
+  *Overload Seal:* an Overload the seal's size. *Black Pyre:* a Hex Bolt crossing the erupted seal's ground; its flames go
+  violet and what burns in it burns black. *Eclipse Ground:* the Grasp's hands closing on Consecrate's ground take it
+  dark at once (it is spent) and every foe standing in it goes under a black sun whose blow strikes half again as hard.
+  *Hallowed Hail:* each shard crossing holy ground carries Sanctified (2 s). *Lantern Fan:* the lance through a mote (it
+  must reach it); every mote throws a beam 4 tiles outward at half the lance's damage. *Live Wade:* wading in still water
+  inside the mantle shocks the pool once a second, the mage spared. *Refraction:* the pillar within 1.2 of the wall lights
+  every block of it, striking (10) and sanctifying foes at the wall. *Toll Chain:* every foe the chain leaps through takes
+  the toll's mark.
+- *Chains:* a cloud of steam takes the first of Storm, Hallow or Umbral that lands in it (a status on a foe inside, a
+  shock through water, holy light, darkness): a thundercloud (yellow, crackling) strikes (3) and shocks the foes inside
+  each second, incense (gold) sanctifies them and mends the mage half a heart once, a miasma (violet) hexes them. Black
+  Melt: fire on black ice lays ground burning with Blackfire (violet) in its place for 5 s. Hailburst: an Overload with a
+  chilled or frozen foe, an ice wall or frozen water in its reach throws eight chilling shards. Molten Glass: a Shatter's
+  shard crossing fire (burning ground, burning oil, a seal's ground) falls there as burning ground for 4 s. Corona: a
+  shock landing within 3.5 of a black sun marks it; when the eclipse ends its blow leaps as lightning at half to every
+  foe near.
+- *The room joins in:* darkness on a lit brazier, or a hexing bolt through it, turns its fire black (a violet glow, the
+  name Blackfire rising), and the bolts it lights carry a hex; a rune stone charged with one school and struck or reached
+  by another sets off their reaction at its foot (on the foes in its reach, its name rising even with none) and takes the
+  new school; a bell rung by a shock, or a shock landing beside it, rings out a ring of sparks.
+- *The book:* the spells tab closes with the weaves and chains, each found or sealed (its two schools named), kept between
+  runs (`ossuary.weaves`); a spell's panel lists the weaves it takes part in. A weave's name rises in pale gold, a chain's
+  in pale blue, larger the first time ever, at most once every 2 s for those that go on; each sounds both its schools. The
+  wheel itself keeps the reactions; the weaves are a list beside it.
+- *The dev menu:* Magic's "Weaves and chains here" sets each up ahead of the mage and sets it off; the knowledge row finds
+  or forgets them.
+
 ## Roadmap and milestones
 
 Milestones 1 to 3 decide whether the game is fun: the loop and its variety, exploration worth the risk, and magic as the build. Everything after them deepens it. Milestones have no dates, since this is a hobby project.
@@ -1517,7 +1556,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4.7 Living foes | Foes you read and outwit | Champions wear a school's mantle that the opposite school strips; the ground foes leave works on foes as on the mage; counters found fill a Foes tab, kept between runs; rooms that roll a pair of foes made to work together (Depth for what's built; approved and built 2026-10-01, `docs/M4.7-plan.md`) |
 | M4.8 The full wheel | Every pair of schools reacts | Five new reactions (Searing, Prism, Verdict, Black Ice, Void Spark) beside Steam, on foes and on tiles; reactions found mark the spell book's wheel (Depth for what's built; built 2026-10-01, `docs/M4.8-plan.md`) |
 | M4.9 The curve | Harder for the right reasons | Pressure dials per floor in data; libraries and merchants lean to the floor's weakness; a hex's drain traced to its foe; the sluice for water rooms; `npm run balance` measuring every foe (Depth for what's built; proposed 2026-10-01, `docs/M4.9-plan.md`) |
-| M4.10 Weaves | Combinations beyond pairs | Ten weaves (a spell striking what another left: the Steam Curtain, the Overload Seal, Eclipse Ground...), seven chains (a reaction's leavings met by a third school: Thundercloud, Incense, Miasma...), the room's mechanisms joining in; Verdant's Bloom and Blight designed for M5 (Depth for what's built; proposed 2026-10-01 at the owner's ask, `docs/M4.10-plan.md`) |
+| M4.10 Weaves | Combinations beyond pairs | Ten weaves (a spell striking what another left: the Steam Curtain, the Overload Seal, Eclipse Ground...), seven chains (a reaction's leavings met by a third school: Thundercloud, Incense, Miasma...), the room's mechanisms joining in; Verdant's Bloom and Blight designed for M5 (Depth for what's built; built 2026-10-01 at the owner's ask, `docs/M4.10-plan.md`) |
 | M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
 | M7 Descent and the Vigil | A full run with a reason to return | Final boss (Kaelith, the Shadow Sentinel); the Vigil (RPG progression: Between runs) at the cave mouth over the valleys: freed shades as townspeople with dialogue (Boketto, the Cloud Forest Wizard, the Huruhui foragers), its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines; a won run ends in daylight |

@@ -48,6 +48,16 @@ function spot(x: number, z: number) {
   return pan;
 }
 
+/** A school's note (M4.10's weaves): Ember a crackling rise, Frost a high chime, Storm a buzz, Hallow a bright bell,
+    Umbral a low hum. */
+function schoolNote(school: string, delay: number) {
+  if (school === 'ember') { tone('sawtooth', 220, 440, .3, .05, delay); crackles(3, .25, .03); }
+  else if (school === 'frost') tone('sine', 1318, 1568, .35, .05, delay);
+  else if (school === 'storm') { tone('square', 880, 660, .2, .04, delay); hiss(.12, .05, 'highpass', 4000, delay); }
+  else if (school === 'hallow') tone('triangle', 784, 784, .5, .06, delay);
+  else tone('sine', 110, 82, .5, .08, delay);
+}
+
 const sounds = {
   shoot() { tone('triangle', 660, 320, .09, .09); hiss(.05, .04, 'highpass', 3000); },
   splash() { hiss(.06, .05, 'bandpass', 1800); },
@@ -150,6 +160,8 @@ const sounds = {
   overload() { hiss(.6, .16, 'lowpass', 700); tone('sine', 110, 40, .6, .18); tone('square', 1800, 300, .2, .04); hiss(.3, .08, 'highpass', 3000, .05); },
   // water and oil
   ignite() { hiss(.7, .16, 'lowpass', 1100); tone('sine', 80, 160, .5, .08); crackles(10, .7, .05); },
+  /** M4.10: a weave or a chain, in both its schools' palettes, one after the other. */
+  weave(a: string, b: string) { for (const [s, d] of [[a, 0], [b, .12]] as [string, number][]) schoolNote(s, d); hiss(.3, .05, 'bandpass', 1600, .05); },
   /** M4.9: a sluice gate lifts (iron and a rush of water) or drops shut. */
   sluice(open: boolean) { if (open) { tone('square', 110, 80, .35, .04); hiss(1.2, .1, 'bandpass', 700, .1); } else { tone('square', 90, 60, .2, .05); hiss(.4, .05, 'bandpass', 500); } },
   sizzle() { hiss(.35, .1, 'highpass', 4200); tone('square', 2400, 500, .15, .03); crackles(6, .3, .04); },

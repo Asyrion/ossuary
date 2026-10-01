@@ -17,12 +17,12 @@ import { inflict } from '../magic/statusFx';
 import { MAGIC } from '../magic/status';
 import { addSpores, stingAt } from '../world/props';
 import { blackIceAt, layGround, patchAt, slipAt, stickyAt } from './bestiaryGround';
-import { hazardAt, layFire, laySpark } from './foes';
+import { hazardAt, layBlackFire, layFire, laySpark } from './foes';
 import { spawnFoe } from './enemies';
 
-export type Ground = 'web' | 'ink' | 'rime' | 'blackice' | 'fire' | 'spark' | 'spores';
+export type Ground = 'web' | 'ink' | 'rime' | 'blackice' | 'fire' | 'blackfire' | 'spark' | 'spores';
 /** The school each ground is of: a foe of that school is at home in it (black ice, a reaction's, is no one's home). */
-const SCHOOL: Record<Ground, string> = { web: 'umbral', ink: 'umbral', rime: 'frost', blackice: '', fire: 'ember', spark: 'storm', spores: 'umbral' };
+const SCHOOL: Record<Ground, string> = { web: 'umbral', ink: 'umbral', rime: 'frost', blackice: '', fire: 'ember', blackfire: '', spark: 'storm', spores: 'umbral' };
 const kindOf = (e: Enemy) => e.foe?.id;
 /** Whether ground `g` leaves `e` be (it is of `e`'s school). */
 const home = (e: Enemy, g: Ground) => e.foe?.school === SCHOOL[g];
@@ -34,7 +34,7 @@ function foulAt(e: Enemy, x: number, z: number) {
   return (!!h && !home(e, h)) || (!!p && !home(e, p)) || (stingAt(x, z, who) && !home(e, 'spores'));
 }
 /** Each ground's colour, for the puff as a foe steps into it. */
-const COLOR: Record<Ground, number> = { web: 0xd8d0e8, ink: 0x8a72c8, rime: 0x9fd0ee, blackice: 0x6a4aa8, fire: 0xff7a2a, spark: SCHOOL_LIGHT.storm, spores: 0x8a6aa8 };
+const COLOR: Record<Ground, number> = { web: 0xd8d0e8, ink: 0x8a72c8, rime: 0x9fd0ee, blackice: 0x6a4aa8, fire: 0xff7a2a, blackfire: 0xb070ff, spark: SCHOOL_LIGHT.storm, spores: 0x8a6aa8 };
 /** The ground at (x, z) that a foe of kind `who` would fall foul of, if any. */
 const groundAt = (x: number, z: number, who?: string): Ground | undefined => hazardAt(x, z, who) ?? patchAt(x, z, who) ?? (stingAt(x, z, who) ? 'spores' : undefined);
 
@@ -76,8 +76,8 @@ export function groundHarm(e: Enemy, dt: number) {
   }
   e.inGround = at;
   e.groundT = (e.groundT ?? 0) - dt; if (e.groundT > 0) return;
-  const h = at === 'fire' || at === 'spark' ? at : undefined;
-  if (h === 'fire') inflict(e, { burn: F.burn });
+  const h = at === 'fire' || at === 'blackfire' || at === 'spark' ? at : undefined;
+  if (h === 'fire' || h === 'blackfire') { inflict(e, { burn: F.burn }); if (h === 'blackfire' && e.status && e.status.burn > 0) e.status.black = true; } // (M4.10: Black Melt's ground burns black)
   else if (h === 'spark') { inflict(e, { shock: F.shock }); damageEnemy(e, F.sparkDamage, 0, 0, 0, undefined, 'storm'); }
   else if (at === 'spores') damageEnemy(e, F.sting, 0, 0, 0);
   else return;
@@ -89,6 +89,7 @@ export function groundHarm(e: Enemy, dt: number) {
 export function layDevGround(kind: Ground, x: number, z: number, by?: string) {
   const room = G.current;
   if (kind === 'fire') layFire(room, x, z, 10, by);
+  else if (kind === 'blackfire') layBlackFire(room, x, z, 10);
   else if (kind === 'spark') laySpark(room, x, z, 10, by);
   else if (kind === 'spores') addSpores(room, x, z, { color: 0x8a6aa8, sting: 1, by });
   else layGround(room, kind, x, z, .75, 14, by);

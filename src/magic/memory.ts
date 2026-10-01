@@ -36,6 +36,17 @@ export const reactionsFound = (): readonly string[] => found;
 export function findEveryReaction(all: readonly string[]) { found = [...all]; saveFound(); }
 export function forgetReactions() { found = []; saveFound(); }
 
+/* The weaves and chains found (M4.10's codex), in their own key. */
+const WKEY = 'ossuary.weaves';
+let woven: string[] = [];
+try { const v = JSON.parse(localStorage.getItem(WKEY) ?? '[]'); if (Array.isArray(v)) woven = v.filter(x => typeof x === 'string'); } catch { /* none kept */ }
+const saveWoven = () => { try { localStorage.setItem(WKEY, JSON.stringify(woven)); } catch { /* kept this session */ } };
+/** Weave or chain `id` went off: whether it was the first time ever. */
+export function foundWeave(id: string) { if (woven.includes(id)) return false; woven.push(id); saveWoven(); return true; }
+export const weavesFound = (): readonly string[] => woven;
+export function findEveryWeave(all: readonly string[]) { woven = [...all]; saveWoven(); }
+export function forgetWeaves() { woven = []; saveWoven(); }
+
 /** The dev menu and tests: every spell known well; nothing known; one spell brought to a stage. */
 export function knowEvery() { for (const s of SPELL_DEFS) reach(kn, s.id, 'used', C.usedCasts); save(); }
 export function forgetKnowledge() { kn = {}; save(); }
