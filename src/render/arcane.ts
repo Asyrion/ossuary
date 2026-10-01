@@ -100,5 +100,28 @@ export function lightningBolt(parent: THREE.Object3D, color: number, n = 8, widt
     },
   };
 }
+/** Many jagged bolts at once, drawn as instances (two draw calls whatever their number, up to `max` segments): crackling
+    electricity round a Stormcharged champion (M4.7). Each flicker: `begin`, a `bolt` per bolt (from a to b in `segs`
+    segments, jittered by `rnd`), `end`. */
+export function lightningField(parent: THREE.Object3D, color: number, max = 64, width = .024) {
+  const geo = box(1, 1, 1), core = new THREE.InstancedMesh(geo, shine(0xffffff, 1), max), sheath = new THREE.InstancedMesh(geo, shine(color, .55), max);
+  for (const m of [core, sheath]) { m.count = 0; m.frustumCulled = false; m.renderOrder = 7; parent.add(m); }
+  const mat = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), a = new THREE.Vector3(), b = new THREE.Vector3(), d = new THREE.Vector3(), side = new THREE.Vector3(), mid = new THREE.Vector3(), sc = new THREE.Vector3(), next = new THREE.Vector3();
+  let n = 0;
+  return {
+    begin() { n = 0; },
+    bolt(from: V3, to: V3, segs: number, jitter: number, rnd: () => number) {
+      a.set(...from); b.set(...to); side.subVectors(b, a).cross(Y); if (side.lengthSq() < 1e-6) side.set(1, 0, 0); side.normalize(); p.copy(a);
+      for (let i = 0; i < segs && n < max; i++) {
+        next.lerpVectors(a, b, (i + 1) / segs);
+        if (i < segs - 1) { next.addScaledVector(side, (rnd() - .5) * jitter * 2); next.y += (rnd() - .5) * jitter * 2; }
+        d.subVectors(next, p); const len = d.length(); mid.copy(p).addScaledVector(d, .5); q.setFromUnitVectors(Y, d.normalize());
+        core.setMatrixAt(n, mat.compose(mid, q, sc.set(width, len * 1.12, width))); sheath.setMatrixAt(n, mat.compose(mid, q, sc.set(width * 2.4, len * 1.12, width * 2.4))); n++;
+        p.copy(next);
+      }
+    },
+    end() { core.count = sheath.count = n; core.instanceMatrix.needsUpdate = sheath.instanceMatrix.needsUpdate = true; },
+  };
+}
 /** A flat ring of light on the floor (or turned by `rot`), for waves and shocks: grow it with scale, fade its opacity. */
 export const wave = (parent: THREE.Object3D, color: number, at: V3, rot: V3 = [-Math.PI / 2, 0, 0]) => part(parent, new THREE.RingGeometry(.85, 1, 40), shine(color, .8), at, { rot });

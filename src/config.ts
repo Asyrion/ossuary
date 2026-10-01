@@ -70,6 +70,10 @@ export const CFG = {
   // foes in each other's ground (M4.7): how often the ground's harm comes again, the burn, shock and sting it brings, a
   // spark's damage, and how far ahead a golem or elemental looks to step round it
   foeGround: { every: .5, burn: 1.5, shock: .4, sparkDamage: 2, sting: 1.5, look: .75, lookAt: [.5, 1], steer: [.7, -.7, 1.4, -1.4] },
+  // how the Stormcharged and Hallowed mantles look apart (M4.7): the storm's segments of lightning at most, its bolts round
+  // the ring and arcs on the body, how often they crackle anew, its cloud's size and height over the head and how often it
+  // strikes; the halo's size and height over the head
+  mantleLooks: { storm: { segments: 40, ringBolts: 7, arcs: 3, flicker: .07, cloudSize: .55, cloudOver: .55, strikeEvery: 1.4 }, halo: { size: .26, over: .28 } },
   // rooms with a pair (M4.7): how far beside the first foe the second is set
   pairs: { gap: 1.1 },
   // a foe's weakness and resistance (M4; GDD: Enemy affinities): the damage of its weak school and of its resisted one; an
