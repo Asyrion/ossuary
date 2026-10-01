@@ -163,7 +163,7 @@ export const TRANSFORM_BUILD = {
     const floor = glowShared(light, r * 3.2, .22); floor.position.y = .05; g.add(floor);
     const rise = { pyromancer: [14, 1.1, 1.2], frostborn: [10, .9, .5], stormcaller: [8, 1, .9], lightbearer: [12, 1.3, .7], shadowstep: [10, .8, .6], runescribe: [6, .9, .6], pilgrim: [6, 1, .5], beastcaller: [10, 1.2, .8] }[t];
     g.add(makeMotes(Array.from({ length: 6 }, (_, i) => { const a = i / 6 * Math.PI * 2; return { x: Math.cos(a) * r * .8, y: .05, z: Math.sin(a) * r * .8, h: .1, w: .12 }; }), t === 'shadowstep' ? 0x7a4ac8 : light, rise[0], rise[1], rise[2]));
-    if (t === 'runescribe') { const runes = new THREE.Group(); runeRing(runes, light, r * .85, [0, (f.hips.max.y + f.hips.min.y) / 2, 0], 6, [0, 0, 0], sheen(light, .55)); runes.userData.spin = -.9; g.add(runes); }
+    if (t === 'runescribe') { const runes = new THREE.Group(); runeRing(runes, light, r * .85, [0, (f.hips.max.y + f.hips.min.y) / 2, 0], 6, [0, 0, 0], sheen(light, .38)); runes.userData.spin = -.9; g.add(runes); }
     if (t === 'stormcaller') g.add(marker(mid.set(0, f.chest.max.y, 0), { kind: 'sparks', color: light, every: .7 }));
     return [g];
   },
