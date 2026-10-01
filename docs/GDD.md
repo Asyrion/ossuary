@@ -309,6 +309,10 @@ on 2026-10-01 and reverted at the owner's ask the same day.
   the water nearest the mage, makes for the water nearest itself (and kept from that too, rises where it is). Each could
   have held a room's doors shut.
 - **Songs don't reach bosses**: a Choir Lark called up as a boss's helper hastens the helpers, not the boss.
+- **What the room inspector found:** an Ink Octopus's ink beside a pit read as more pit (it is a violet sheen now, fading
+  at its edges), a Rime Snail's trail stacked into a white plank (fainter and bluer), a wasps' nest set over a niche (a
+  nest or a harpy's perch keeps off the north wall's niches), and a Glass Newt stunned by slipping past its own pool's
+  edge (only ice or a shock stuns it).
 - **Smaller things:** the Shadow Fox rises within its reach of the mage (a free spot past a pillar could leave its bite
   short); the shared parts of the bestiary's looks (a spider's thread, a basilisk's stare) are built once; the dashes,
   brakes and wind-ups of the thirty-five share three helpers in `foeKit.ts`.

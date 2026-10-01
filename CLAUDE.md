@@ -313,7 +313,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   enemies.ts makes a pack whole (its size from the room's seed); a room rolls one pack at most, as one elite (`pickFoe`'s
   `noPack`), and quiet rooms none; `callFoe` passes over waiters (mimic, tome, crab) and packs. Slows (chill, wading,
   cobwebs) and a song's haste scale a foe's step in `updateEnemies` (`pace`), never its velocity, which many behaviours
-  build on; `rush`, `brake` and `ramp` in `foeKit.ts` are a behaviour's dash, brake and wind-up. A foe's look is the model
+  build on; `rush`, `brake` and `ramp` in `foeKit.ts` are a behaviour's dash, brake and wind-up. The tall walls' pilasters and niches are
+  kept in `room.dressed` (from `dressNorthWall`), and `againstWall` keeps a nest or a perch off them. A foe's look is the model
   option, the bestiary look or `FOE_LOOKS` entry of its id or `look`. `__game.ground` reads the webs, ink and rime,
   `__game.blast(x, z)` sets off a glyph's blast, `__game.clock` reads the sim clock, `__game.hit(i, dmg, school, by, dx, dz)`
   strikes from a direction.

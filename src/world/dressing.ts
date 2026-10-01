@@ -58,7 +58,7 @@ export function dressNorthWall(room: Room, face: number, x0: number, x1: number,
   const spots: number[] = [];
   for (let x = Math.floor(x0) + .5; x < x1; x++) spots.push(x);
   const kit = DEV.roomKit && !!room.look.kinds, wall = kit ? new THREE.Group() : room.group; // (the room kit's: the wall's dressing merged into one)
-  const add = (mesh: THREE.Object3D, x: number) => { mesh.position.x += x - room.cx; mesh.position.z += face - room.cz; wall.add(mesh); };
+  const add = (mesh: THREE.Object3D, x: number) => { mesh.position.x += x - room.cx; mesh.position.z += face - room.cz; wall.add(mesh); (room.dressed ??= []).push({ x, z: face }); };
   const niches = Object.entries(dress.niches) as [NicheKind, number][], total = niches.reduce((s, [, w]) => s + w, 0);
   const eyes = room.theme?.watchers ? (room.eyes ??= new THREE.MeshBasicMaterial({ color: 0x000000 })) : undefined; // an ossuary's skulls watch
   const flames: FlameSpec[] | undefined = kit ? [] : undefined; // (the room kit's: every candle's flame on this wall in one fire)

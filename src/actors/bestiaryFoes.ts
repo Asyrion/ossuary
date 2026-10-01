@@ -456,13 +456,15 @@ const newt: Behaviour = {
   },
   step(e, dt, a, P, room) {
     e.st -= dt; const pool = poolAt(e.x, e.z);
-    if (e.state === 'swim') { // a ripple under the water, edging to where the water comes nearest the mage
+    if (e.state === 'swim') { // a ripple under the water, edging to where its pool comes nearest the mage
       e.kx = e.kz = 0;
-      const t = nearestWaterTo(room, player.x, player.z, true) ?? { x: e.x, z: e.z }; steer(e, t.x, t.z, e.foe!.speed * e.speedMul, dt);
-      if (Math.random() < dt * 5) burst(e.x, .04, e.z, 0xbfe8ff, 1, .5, .03);
-      if (!pool || pool.state !== 'still' || pool.charged > 0) { // shocked or frozen over: shown, and dazed
+      if (pool && (pool.state !== 'still' || pool.charged > 0)) { // shocked or frozen over: shown, and dazed
         e.state = 'stunned'; e.st = num(P.stun); submerge(e, false); e.contact = 0; e.vx = e.vz = 0; Sfx.at(e.x, e.z).newtStun(); burst(e.x, .3, e.z, SCHOOL_LIGHT.frost, 10, 1.8, .04); return;
       }
+      let t = nearestWaterTo(room, e.x, e.z, true) ?? { x: e.x, z: e.z }; // (slipped past its pool's edge: back into it)
+      if (pool) { let d0 = Infinity; for (const w of pool.tiles) { const d = Math.hypot(w.x - player.x, w.z - player.z); if (d < d0) { d0 = d; t = w; } } } // (it keeps to its own pool)
+      steer(e, t.x, t.z, e.foe!.speed * e.speedMul, dt);
+      if (Math.random() < dt * 5) burst(e.x, .04, e.z, 0xbfe8ff, 1, .5, .03);
       if (e.st <= 0 && a.dist < num(P.reach)) { e.state = 'lunge'; e.st = num(P.lungeTime); e.dir = { x: a.ux, z: a.uz }; submerge(e, false); e.contact = 0; Sfx.at(e.x, e.z).newtLunge(); burst(e.x, .2, e.z, 0xbfe8ff, 10, 2, .04); }
       else if (e.st < -num(P.patience)) { e.state = 'hunt'; e.st = num(P.hunt); submerge(e, false); burst(e.x, .2, e.z, 0xbfe8ff, 10, 2, .04); } // (the mage keeps off the water: it comes out after it)
     } else if (e.state === 'hunt') { // out on dry floor, seen, scurrying at the mage until it can lunge
@@ -636,11 +638,18 @@ const mine: Behaviour = {
 
 /* ---------- floor 3 ---------- */
 
-/** A spot against the stone wall nearest (x, z) in `room` (not the low south wall), and the way out from it. */
+/** A spot against the stone wall nearest (x, z) in `room` (not the low south wall), and the way out from it; on the north
+    wall, along it to a bare stretch, clear of its pilasters and niches. */
 function againstWall(room: Room, x: number, z: number) {
   const b = room.bounds, sides = [
     { d: x - b.minX, x: b.minX + .55, z, ox: 1, oz: 0 }, { d: b.maxX - x, x: b.maxX - .55, z, ox: -1, oz: 0 }, { d: z - b.minZ, x, z: b.minZ + .55, ox: 0, oz: 1 },
-  ].sort((p, q) => p.d - q.d)[0], at = freeSpotNear(room, sides.x, sides.z);
+  ].sort((p, q) => p.d - q.d)[0];
+  if (sides.oz === 1) {
+    const dressed = (room.dressed ?? []).filter(w => Math.abs(w.z - sides.z) < 1.5);
+    const off = [0, .7, -.7, 1.4, -1.4, 2.1, -2.1, 2.8, -2.8].find(o => dressed.every(w => Math.abs(w.x - (sides.x + o)) > .75));
+    sides.x += off ?? 0;
+  }
+  const at = freeSpotNear(room, sides.x, sides.z);
   return { x: at.x, z: at.z, ox: sides.ox, oz: sides.oz };
 }
 /** The live foes `e` made (a nest's wasps, a golem's stones). */
