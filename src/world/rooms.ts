@@ -15,7 +15,7 @@ import { burst } from '../combat/fx';
 import { mulberry } from '../util';
 import { DH, H_LOW, H_TALL, HD, HW, PX, PZ, WT } from './dims';
 import { FLOORS, type PlannedRoom } from './generate';
-import { FOES, isFoe, pickFoe } from '../actors/foeData';
+import { FOES, isFoe, pairRoom, pickFoe } from '../actors/foeData';
 import { OPPOSITE, SHAPES, SIDE_DIR, cellHalfExtents, shapeMask, shapeSize } from './shapes';
 import { TEMPLATES, fallRuns, growPuddles, parseTemplate, tombRuns } from './templates';
 import { buildPools } from './pools';
@@ -100,6 +100,11 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
     if (kind !== 'boss' && isFoe(kind) && FOES[kind].pack) pack = true;
     return { kind, role: f.kind, ...toWorld(room, f.c, f.r) };
   }));
+  // some fights roll a pair (M4.7): two foes made to work together, the second set beside the first
+  if (plan.variant !== 'quiet' && !DEV.foe && room.waves[0]) {
+    const wave = room.waves[0], at = pairRoom(wave, FLOORS[Math.min(floorIndex, FLOORS.length - 1)].pairs, table, mulberry(plan.seed ^ 0x9a17));
+    if (at) { const [a, b] = at, p = freeSpotNear(room, wave[a].x + 1.1, wave[a].z); wave[b].x = p.x; wave[b].z = p.z; room.pair = [wave[a].kind, wave[b].kind]; }
+  }
   if (plan.variant === 'quiet') quieten(room);
   room.cleared = room.waves.length === 0;
   if (plan.type === 'treasure') addPedestal(room);

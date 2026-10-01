@@ -3551,3 +3551,25 @@ test('counters found (M4.7): a hex grounds a griffin, its word rises, the bestia
   await expect(page.locator('#invDetail .chip').first()).toContainText('Weak to ?'); // (its weakness not found yet)
   expect(errors).toEqual([]);
 });
+
+test('rooms with a pair (M4.7): some fights roll two foes made to work together, set side by side, and the first time in a run a line says what they do', async ({ page }) => {
+  const errors = await start(page, '?floor=3');
+  const r = await page.evaluate(() => {
+    type Rm = { plan: { id: number }; pair?: [string, string] };
+    type G2 = Omit<GameHooks, 'rooms' | 'enemies'> & { startGame(o: object): void; rooms(): Rm[]; enemies: (Foe & { foe?: { id: string } })[]; player: GameHooks['player'] & { invuln: number } };
+    const g = (window as unknown as W).__game as unknown as G2;
+    for (let s = 0; s < 40; s++) { // (a floor 3 rolls a pair in about one fight in five: a few seeds find one)
+      g.startGame({ seed: 'PAIR' + s, floor: 2 });
+      const room = g.rooms().find(x => x.pair);
+      if (!room) continue;
+      g.warp(room.plan.id); g.player.invuln = 99; g.sim(1.2);
+      const [a, b] = room.pair!, A = g.enemies.find(e => e.foe?.id === a), B = g.enemies.find(e => e.foe?.id === b && e !== A);
+      return { seed: s, pair: room.pair, near: !!A && !!B && Math.hypot(A.x - B.x, A.z - B.z) < 2.6, toast: document.getElementById('toast')?.textContent ?? '' };
+    }
+    return null;
+  });
+  expect(r).not.toBeNull();
+  expect(r!.near).toBe(true);
+  expect(r!.toast.length).toBeGreaterThan(10); // (its line)
+  expect(errors).toEqual([]);
+});

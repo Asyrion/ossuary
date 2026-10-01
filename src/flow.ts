@@ -212,6 +212,8 @@ function spawnWave(room: Room, ambush = false) {
     else spawnFoe(f.kind, x, z, cfg.enemyHp, f === champion ? { champion: true, mantle } : {}, packs); // (a swarm comes whole)
   }
   if (champion) Sfx.champion();
+  const pair = room.wave === 0 && room.pair, key = pair && 'pair:' + pair.join('+'); // (M4.7: the first time in a run, a pair says what it does together)
+  if (key && !G.run.hinted.has(key) && STR.foes.pairs[pair.join('+')]) { G.run.hinted.add(key); after(.8, () => toast(STR.foes.pairs[pair.join('+')], CFG.afflict.lineShow)); }
 }
 
 /** Ambush rooms spring once the mage is committed: near the middle, or well away from every door. */

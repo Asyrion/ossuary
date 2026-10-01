@@ -53,3 +53,27 @@ describe('counters (M4.7)', () => {
     expect(countersOf('mireToad')).toEqual([]);
   });
 });
+
+describe('rooms with a pair (M4.7)', () => {
+  it('every floor\'s pairs name foes, and a pair takes the first two slots, keeping one elite and one pack a room, on hundreds of seeds', async () => {
+    const { FOES, isFoe, pairRoom, validatePairs } = await import('../../src/actors/foeData');
+    const mulberry = (a: number) => () => { a |= 0; a = a + 0x6d2b79f5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; // (util.ts's, which needs a window)
+    expect(validatePairs(floors as never)).toEqual([]);
+    floors.forEach((f, fi) => {
+      let paired = 0;
+      for (let seed = 1; seed <= 400; seed++) {
+        const R = mulberry(seed * 977 + fi), roles = ['R', 'W', 'H', 'R', 'W'];
+        const wave = roles.map(role => ({ kind: (f.foes as unknown as Record<string, [string, number][]>)[role][0][0], role }));
+        const at = pairRoom(wave, f.pairs as never, f.foes as never, R);
+        if (!at) continue;
+        paired++;
+        expect(at).toEqual([0, 1]);
+        expect(f.pairs!.list.some(([a, b]) => wave[0].kind === a && wave[1].kind === b)).toBe(true);
+        const elites = wave.filter(w => isFoe(w.kind) && FOES[w.kind].elite).length, packs = wave.filter(w => isFoe(w.kind) && FOES[w.kind].pack).length;
+        expect(elites).toBeLessThanOrEqual(1); expect(packs).toBeLessThanOrEqual(1);
+      }
+      expect(paired / 400).toBeGreaterThan(f.pairs!.chance * .5); expect(paired / 400).toBeLessThan(f.pairs!.chance * 1.6);
+    });
+    expect(pairRoom([{ kind: 'boss', role: 'R' }, { kind: 'sporeling', role: 'R' }], { chance: 1, list: [['cryptSpider', 'inkOctopus', 1]] }, floors[0].foes as never, () => 0)).toBeUndefined(); // (one slot besides the boss: no pair)
+  });
+});

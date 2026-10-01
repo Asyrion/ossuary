@@ -133,6 +133,7 @@ export interface Room {
   spots: ArtifactSpot[];
   /** The merchant's wares and the shade himself. */ wares?: WareSpot[]; shade?: THREE.Group;
   /** A locked vault forced open by blasts: its warden, a champion, rises when the mage comes in. */ warden?: boolean;
+  /** The pair of foes made to work together its first wave rolled (M4.7), if any. */ pair?: [string, string];
   /** M4.2: its ward burst full of this school: a Wardling of it is the warden. */ drunk?: School;
   /** M4.2: the tiles its pits' dark covers (a rope bridge's chasm too), drawn joined. */ pitTiles?: { c: number; r: number }[];
   /** M4.2: the way its water flows (from the template), and the waterfalls feeding it. */ flow?: Flow; falls?: { mesh: THREE.Mesh; tex: THREE.Texture }[];
