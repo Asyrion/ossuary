@@ -388,6 +388,20 @@ test('Fen-Nex: the Rune of Fen-Nex binds it at the mage\'s heel; it bites foes, 
   expect(errors).toEqual([]);
 });
 
+test('the bestiary\'s candidates (M4.5): thirty-one looks in rows by kind, each named with the fight it would bring, inside the room', async ({ page }) => {
+  const errors = await start(page, '?room=crypt_a');
+  type GB = GameHooks & { clearRoom(): void; bestiaryOptions(ids?: string[]): { id: string; x: number; z: number }[]; takeModelOptions(): void; current: RoomView & { bounds: { minX: number; maxX: number; minZ: number; maxZ: number } } };
+  const shown = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GB; g.warp(1); g.clearRoom(); g.sim(.3);
+    const all = g.bestiaryOptions(); g.sim(.5, true); const b = g.current.bounds;
+    const inside = all.every(o => o.x > b.minX && o.x < b.maxX && o.z > b.minZ && o.z < b.maxZ);
+    g.takeModelOptions(); const some = g.bestiaryOptions(['inkling', 'cinderSprite']); g.sim(.2, true); g.takeModelOptions();
+    return { n: all.length, ids: new Set(all.map(o => o.id)).size, inside, some: some.map(o => o.id) };
+  });
+  expect(shown).toEqual({ n: 31, ids: 31, inside: true, some: ['inkling', 'cinderSprite'] });
+  expect(errors).toEqual([]);
+});
+
 test('the Hollow Warden wears the look chosen for it, its shots in its school\'s light, and can be beaten', async ({ page }) => {
   const LIGHT: Record<string, number> = { bellWarden: 0xf0e070, motherOfSpores: 0xa266ff, hollowOwl: 0xffd878 }; // (SCHOOL_LIGHT: storm, umbral, hallow)
   type Boss = Foe & { type: string; state: string; summoned?: boolean; mats: unknown[]; eye?: object; ring?: object; halo?: object; model: { traverse(f: (o: { isMesh?: boolean; isSprite?: boolean; isPoints?: boolean }) => void): void } };

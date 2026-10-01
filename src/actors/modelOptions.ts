@@ -12,6 +12,7 @@ import { blob, disposeTree, glow } from '../render/materials';
 import { freeSpotNear } from '../world/rooms';
 import { mergeRig } from '../render/rig';
 import { ALL_BOSS_LOOKS } from './bossLooks';
+import { BESTIARY_OPTIONS } from './bestiaryLooks';
 import { SCHOOL_LIGHT, bigEyes, box, circle, crystal, limb, lit, motes, part, rune, runeRing, shine, sphere, std, type School, type V3 } from '../render/arcane';
 
 /** A built option: its group, how it idles, the size of the shadow under it, and the parts a foe's behaviour moves beyond
@@ -742,6 +743,21 @@ export function showBossLooks(room: Room, x: number, z: number, only?: readonly 
     shown.push({ room, group: b.group, idle: b.idle });
     return { id: o.id, x: at.x, z: at.z };
   });
+}
+/** Stand the bestiary's candidates (M4.5; every one, or those in `only`) ahead of world (x, z) in `room`: a row for each
+    kind (critters, fantasy creatures, elementals), nearest the mage first. */
+export function showBestiary(room: Room, x: number, z: number, only?: readonly string[]) {
+  const out: { id: string; x: number; z: number }[] = [];
+  const rows = (['critter', 'creature', 'elemental'] as const).map(kind => BESTIARY_OPTIONS.filter(o => o.kind === kind && (!only || only.includes(o.id)))).filter(l => l.length);
+  rows.forEach((list, row) => {
+    const across = Math.min(list.length, 7);
+    list.forEach((o, i) => {
+      const at = freeSpotNear(room, x + ((i % across) - (across - 1) / 2) * 1.5, z - 1.6 - row * 1.9 - Math.floor(i / across) * .95);
+      const b = o.build(); mergeRig(b.group, b.idle, 'bestiary:' + o.id); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
+      shown.push({ room, group: b.group, idle: b.idle }); out.push({ id: o.id, x: at.x, z: at.z });
+    });
+  });
+  return out;
 }
 /** Every step: the options in the room shown move as they idle. */
 export function updateModelOptions(dt: number, current: Room) {
