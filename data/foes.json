@@ -206,7 +206,7 @@
     "floor": 1, "school": "storm", "weak": "frost", "resist": "storm",
     "hp": 14, "r": 0.5, "speed": 2, "contact": 1, "flying": false,
     "behaviour": "crab",
-    "params": {"wake": 2.4, "rise": 0.4, "hideGuard": 0.3, "guard": 0.5, "keep": [1.8, 3.2], "turn": [1.2, 2.2], "sparkEvery": [2.2, 3.2], "tell": 0.45, "sparkSpeed": 4, "pinchEvery": [3, 4.5], "pinch": 4.6, "pinchTime": 0.5, "flipped": 3, "flipGuard": 1.6},
+    "params": {"wake": 2.4, "rise": 0.4, "hideGuard": 0.3, "guard": 0.5, "keep": [1.8, 3.2], "turn": [1.2, 2.2], "sparkEvery": [2.2, 3.2], "tell": 0.45, "sparkSpeed": 4, "pinchEvery": [3, 4.5], "pinch": 4.6, "pinchTime": 0.5, "flipped": 3, "flipGuard": 1.6, "lonely": 4},
     "gib": "#b8744a", "stain": "#1a120c"
   },
   "rimeSnail": {
@@ -227,7 +227,7 @@
     "floor": 2, "school": "frost", "weak": "storm", "resist": "frost",
     "hp": 20, "r": 0.45, "speed": 2, "contact": 1, "flying": false,
     "behaviour": "serpent",
-    "params": {"poolSize": 2, "under": [1.6, 2.6], "rise": 0.6, "up": 2.2, "volleys": 3, "volleyGap": 0.45, "shots": 5, "spread": 0.22, "shotSpeed": 3.8, "trapped": 3},
+    "params": {"poolSize": 2, "under": [1.6, 2.6], "rise": 0.6, "up": 2.2, "volleys": 3, "volleyGap": 0.45, "shots": 5, "spread": 0.22, "shotSpeed": 3.8, "trapped": 3, "lost": 2.5},
     "gib": "#7fd4c8", "stain": "#10303a"
   },
   "puddleElemental": {
@@ -360,7 +360,7 @@
     "floor": 4, "school": "umbral", "weak": "hallow", "resist": "umbral",
     "hp": 12, "r": 0.36, "speed": 2.6, "contact": 1, "flying": false,
     "behaviour": "shade",
-    "params": {"prowl": [1.4, 2.4], "near": 1.4, "far": 3, "light": 2.2, "sink": 0.4, "gone": 0.8, "emerge": 0.3, "bite": 7, "biteTime": 0.3},
+    "params": {"prowl": [1.4, 2.4], "near": 1.4, "far": 3, "light": 2.2, "sink": 0.4, "gone": 0.8, "emerge": 0.3, "bite": 7, "biteTime": 0.36, "lurk": 2.5},
     "gib": "#3a2a4a", "stain": "#14101c"
   },
   "rimeScarab": {

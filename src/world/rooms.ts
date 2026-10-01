@@ -91,12 +91,13 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   if (theme?.twist === 'rime') chargeRunes(room, 'chill'); // the frozen mausoleum's rune stones hold frost
   dressTheme(room); // a themed room's scatter: candles, pages, moss, bedrolls, daylight...
   drawPits(room); mergePits(room); buildPools(room);
-  // the template's roles filled with the floor's foes, on the room's seed (one elite at most)
+  // the template's roles filled with the floor's foes, on the room's seed (one elite at most, and one pack: M4.5)
   const pick = mulberry(plan.seed ^ 0xf0e5), table = FLOORS[Math.min(floorIndex, FLOORS.length - 1)].foes;
-  let elite = false;
+  let elite = false, pack = false;
   room.waves = template.waves.map(wv => wv.map(f => {
-    const kind = f.kind === 'boss' ? 'boss' : DEV.foe ?? pickFoe(table, f.kind, pick, elite);
+    const kind = f.kind === 'boss' ? 'boss' : DEV.foe ?? pickFoe(table, f.kind, pick, elite, pack);
     if (kind !== 'boss' && isFoe(kind) && FOES[kind].elite) elite = true;
+    if (kind !== 'boss' && isFoe(kind) && FOES[kind].pack) pack = true;
     return { kind, role: f.kind, ...toWorld(room, f.c, f.r) };
   }));
   if (plan.variant === 'quiet') quieten(room);
@@ -133,11 +134,11 @@ function maskGeometry(mask: boolean[][], w: number, h: number) {
   return g;
 }
 
-/** Quiet rooms keep none, one or two of the template's weak enemies (walkers and flyers, never a heavy or an elite),
-    and often a heart. */
+/** Quiet rooms keep none, one or two of the template's weak enemies (walkers and flyers, never a heavy, an elite or a
+    pack), and often a heart. */
 function quieten(room: Room) {
   const R = mulberry(room.plan.seed ^ 0x51ee7);
-  const weak = (room.waves[0] ?? []).filter(f => (f.role === 'R' || f.role === 'W') && !(isFoe(f.kind) && FOES[f.kind].elite));
+  const weak = (room.waves[0] ?? []).filter(f => (f.role === 'R' || f.role === 'W') && !(isFoe(f.kind) && (FOES[f.kind].elite || FOES[f.kind].pack)));
   for (let i = weak.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [weak[i], weak[j]] = [weak[j], weak[i]]; }
   const keep = Math.min(weak.length, Math.floor(R() * (CFG.quiet.maxEnemies + 1)));
   room.waves = keep ? [weak.slice(0, keep)] : [];
