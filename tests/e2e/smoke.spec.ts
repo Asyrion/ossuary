@@ -394,7 +394,7 @@ test('the bestiary\'s candidates (M4.5): thirty-one looks in rows by kind, each 
   const shown = await page.evaluate(() => {
     const g = (window as unknown as W).__game as GB; g.warp(1); g.clearRoom(); g.sim(.3);
     const all = g.bestiaryOptions(); g.sim(.5, true); const b = g.current.bounds;
-    const inside = all.every(o => o.x > b.minX && o.x < b.maxX && o.z > b.minZ && o.z < b.maxZ);
+    const inside = all.every(o => o.x > b.minX && o.x < b.maxX && o.z > b.minZ && o.z < b.maxZ) && all.every((o, i) => all.every((q, j) => i === j || Math.hypot(o.x - q.x, o.z - q.z) >= 1)); // (and none on another)
     g.takeModelOptions(); const some = g.bestiaryOptions(['inkling', 'cinderSprite']); g.sim(.2, true); g.takeModelOptions();
     return { n: all.length, ids: new Set(all.map(o => o.id)).size, inside, some: some.map(o => o.id) };
   });
