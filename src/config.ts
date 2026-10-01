@@ -67,6 +67,9 @@ export const CFG = {
   // song makes the foes round it; how much grip the mage keeps on a rime snail's trail; the health an elemental drinks from
   // each stack of its own school's status; how fast the mage walks in a basilisk's stare
   bestiary: { webSlow: .45, inkSlow: .65, songHaste: 1.4, rimeGrip: 3.5, statusHeal: 2, gazeSlow: .3 },
+  // foes in each other's ground (M4.7): how often the ground's harm comes again, the burn, shock and sting it brings, a
+  // spark's damage, and how far ahead a golem or elemental looks to step round it
+  foeGround: { every: .5, burn: 1.5, shock: .4, sparkDamage: 2, sting: 1.5, look: .75 },
   // a foe's weakness and resistance (M4; GDD: Enemy affinities): the damage of its weak school and of its resisted one; an
   // elemental's (M4.5): its weakness's, and the share of a blow of its own school it drinks as health
   affinity: { weak: 1.5, resist: .5, elemental: 2, drink: .5 },

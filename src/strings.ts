@@ -180,6 +180,8 @@ export const STR = {
     /** Champion mantles (M4.7, actors/mantles.ts): the word over a stripped champion, the word when a mantle turns a
         status, each mantle's name (risen over the champion as it comes) and its line the first time in a run. */
     unbound: 'Unbound!', shrugs: 'Unmoved',
+    /** M4.7: the first time in a run a foe steps into another kind's ground. */
+    groundLine: 'Foes fall foul of each other\'s ground: webs and ink hold them, rime trips them, fire and sparks burn them.',
     mantles: {
       kindled: { name: 'Kindled', line: 'A Kindled champion: fire can\'t touch it, and it leaves the floor burning. Frost unbinds it.' },
       rimebound: { name: 'Rimebound', line: 'A Rimebound champion: cold can\'t touch it, and its blows chill. Fire unbinds it.' },
@@ -468,6 +470,7 @@ export const STR = {
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
     foes: 'Foes (they leave the doors open)', championHeavy: 'A champion of this floor\'s heavies',
     mantles: 'A champion of this floor\'s heavies, in a mantle (M4.7; the school that strips it unbinds it):',
+    lureTest: 'Lure test: fire, webs and rime between you and wolves and a golem',
     afflictions: 'Afflictions (each shows its chip beside the mana bar)', afflictNames: { hexed: 'A hexing blow', chill: 'Chill', stone: 'Heavy as stone', dim: 'Dimmed sight', hints: 'Their lines again' },
     wardFoe: 'Ward the nearest foe (it drinks spells)', fennex: 'Fen-Nex', growFennex: 'Grow Fen-Nex a stage', noFennex: 'Fen-Nex is not bound (take the Rune of Fen-Nex)', wanderer: 'The Wandering Merchant, here', noFoe: 'No foe in the room',
     foesOfFloor: (floor: number) => floor ? `Floor ${floor}'s foes, built in code:` : 'The Wardlings, let out by drinking wards:', foesAsFloor: 'Fights: each floor\'s own foes', foeEverywhere: (name: string) => `Fights: ${name} in every one`,

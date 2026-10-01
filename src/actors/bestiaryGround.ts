@@ -14,9 +14,10 @@ import { glowShared, markShared } from '../render/materials';
 import { glowTex } from '../render/textures';
 import { burst } from '../combat/fx';
 import { hearGround } from '../world/groundHooks';
+import { actingKind } from './acting';
 
 export type GroundKind = 'web' | 'ink' | 'rime';
-interface Patch { room: Room; kind: GroundKind; x: number; z: number; r: number; t: number; life: number }
+interface Patch { room: Room; kind: GroundKind; x: number; z: number; r: number; t: number; life: number; by?: string }
 const patches: Patch[] = [];
 const MAX = 48; // (of each kind)
 
@@ -43,15 +44,16 @@ function meshOf(kind: GroundKind) {
   return meshes[kind] = m;
 }
 
-/** A patch of `kind` at (x, z), `r` across, for `time` seconds. */
-export function layGround(room: Room, kind: GroundKind, x: number, z: number, r: number, time: number) {
+/** A patch of `kind` at (x, z), `r` across, for `time` seconds; `by`, the kind of foe that left it (M4.7: it spares its own). */
+export function layGround(room: Room, kind: GroundKind, x: number, z: number, r: number, time: number, by = actingKind()) {
   const mine = patches.filter(p => p.kind === kind); if (mine.length >= MAX) patches.splice(patches.indexOf(mine[0]), 1);
-  patches.push({ room, kind, x, z, r, t: time, life: time });
+  patches.push({ room, kind, x, z, r, t: time, life: time, by });
 }
-/** How fast one can walk at (x, z) in the current room: slower through webs and ink (1: not at all). */
-export function stickyAt(x: number, z: number) {
+/** How fast one can walk at (x, z) in the current room: slower through webs and ink (1: not at all). `who`, a foe's kind
+    (M4.7): its own kind's patches don't hold it. */
+export function stickyAt(x: number, z: number, who?: string) {
   let k = 1;
-  for (const p of patches) if (p.kind !== 'rime' && p.room === G.current && Math.hypot(x - p.x, z - p.z) < p.r) k = Math.min(k, p.kind === 'web' ? CFG.bestiary.webSlow : CFG.bestiary.inkSlow);
+  for (const p of patches) if (p.kind !== 'rime' && p.room === G.current && (!who || p.by !== who) && Math.hypot(x - p.x, z - p.z) < p.r) k = Math.min(k, p.kind === 'web' ? CFG.bestiary.webSlow : CFG.bestiary.inkSlow);
   return k;
 }
 /** The web or ink (x, z) in the current room lies in, if any (what slows the mage there, for the chip that says so). */
@@ -59,8 +61,14 @@ export function stuckIn(x: number, z: number): 'web' | 'ink' | undefined {
   for (const p of patches) if (p.kind !== 'rime' && p.room === G.current && Math.hypot(x - p.x, z - p.z) < p.r) return p.kind;
   return undefined;
 }
-/** Whether (x, z) in the current room is on rime, where the mage slides. */
-export const slipAt = (x: number, z: number) => patches.some(p => p.kind === 'rime' && p.room === G.current && Math.hypot(x - p.x, z - p.z) < p.r);
+/** The patch (web, ink or rime) at (x, z) in the current room that isn't of the kind `who` (M4.7: foes in each other's
+    ground), if any. */
+export function patchAt(x: number, z: number, who?: string): GroundKind | undefined {
+  for (const p of patches) if (p.room === G.current && (!who || p.by !== who) && Math.hypot(x - p.x, z - p.z) < p.r) return p.kind;
+  return undefined;
+}
+/** Whether (x, z) in the current room is on rime, where the mage slides; `who`, a foe's kind (M4.7): not on its own. */
+export const slipAt = (x: number, z: number, who?: string) => patches.some(p => p.kind === 'rime' && p.room === G.current && (!who || p.by !== who) && Math.hypot(x - p.x, z - p.z) < p.r);
 /** The patches of `kind` in the current room (tests). */
 export const groundCount = (kind: GroundKind) => patches.filter(p => p.kind === kind && p.room === G.current).length;
 

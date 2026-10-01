@@ -3488,3 +3488,37 @@ test('champion mantles (M4.7): each does its own, keeps its own school off, and 
   expect(r.hexbound).toMatchObject({ ...unbound, drainedAfter: 0 });
   expect(errors).toEqual([]);
 });
+
+test('foes in each other\'s ground (M4.7): webs and ink hold a walker, rime trips it, fire and sparks burn it, spores sting it; its own kind\'s spares it; a golem goes round', async ({ page }) => {
+  const errors = await start(page, '?room=great_hall&floor=3');
+  const r = await page.evaluate(() => {
+    type F = Foe & { hp: number; maxHp: number; status?: { burn: number; shock: number }; vx: number; vz: number };
+    type G2 = GameHooks & { spawn(kind: string, x?: number, z?: number): F; clearRoom(): void; inflict(s: Record<string, number>): void; layGround(kind: string, x: number, z: number, by?: string): void; foeGround(i: number): { pace: number; at?: string; slide: boolean }; player: GameHooks['player'] & { invuln: number } };
+    const g = (window as unknown as W).__game as G2, P = g.player, R: Record<string, unknown> = {};
+    const keep = (s: number) => { for (let k = 0; k < s / .05; k++) { P.hp = P.maxHp; P.invuln = 9; g.sim(.05); } };
+    const on = (ground: string, by: string, kind = 'sporeling') => { g.clearRoom(); g.sim(.2); const x = P.x, z = P.z - 4; const e = g.spawn(kind, x, z); g.sim(.7); e.x = x; e.z = z; g.layGround(ground, x, z, by); g.sim(.05); return e; };
+    // webs and ink hold a walker of another kind, not its own
+    let e = on('web', 'cryptSpider'); R.web = g.foeGround(g.enemies.indexOf(e));
+    e = on('ink', 'inkOctopus'); R.ink = g.foeGround(g.enemies.indexOf(e));
+    e = on('ink', 'inkOctopus', 'inkOctopus'); R.ownInk = g.foeGround(g.enemies.indexOf(e));
+    // fire burns it, sparks shock and hurt it, spores sting it
+    e = on('fire', 'magmaOoze'); keep(.6); R.fire = (e.status?.burn ?? 0) > 0;
+    e = on('fire', 'sporeling'); keep(.6); R.ownFire = (e.status?.burn ?? 0) > 0;
+    e = on('spark', 'thunderhead'); g.inflict({ root: 3 }); const hp0 = e.hp; keep(1.2); R.spark = e.hp < hp0; // (held on the spot until the spark arms)
+    e = on('spores', 'puffcap'); g.inflict({ root: 3 }); const hp1 = e.hp; keep(.7); R.spores = e.hp < hp1; // (stung again while it stays)
+    // rime: a walker on another kind's rime slides
+    e = on('rime', 'rimeSnail', 'runeBeetle'); keep(.3); R.rime = g.foeGround(g.enemies.indexOf(e))?.slide ?? 'gone';
+    // a golem goes round a band of burning ground between it and the mage, never into it
+    g.clearRoom(); g.sim(.2);
+    const gx = P.x, gz = P.z - 7; for (let k = -3; k <= 3; k++) g.layGround('fire', gx + k * .5, P.z - 3.5, 'magmaOoze');
+    const golem = g.spawn('rubbleGolem', gx, gz); const d0 = Math.hypot(golem.x - P.x, golem.z - P.z); let burnt = false;
+    for (let k = 0; k < 160 && !golem.dead; k++) { P.hp = P.maxHp; P.invuln = 9; g.sim(.05); const i = g.enemies.indexOf(golem); burnt ||= g.foeGround(i)?.at === 'fire'; }
+    R.golem = { burnt, closer: d0 - Math.hypot(golem.x - P.x, golem.z - P.z) > 1.5 };
+    return R;
+  });
+  expect(r.web).toMatchObject({ pace: .45, at: 'web' });
+  expect(r.ink).toMatchObject({ pace: .65, at: 'ink' });
+  expect(r.ownInk).toMatchObject({ pace: 1 });
+  expect(r).toMatchObject({ fire: true, ownFire: false, spark: true, spores: true, rime: true, golem: { burnt: false, closer: true } });
+  expect(errors).toEqual([]);
+});

@@ -51,6 +51,7 @@ import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
 import { KIT_PARTS, kindsOf, type KitPart, type Kinds } from '../world/kitData';
 import { renderHearts, renderItems, renderMinimap, toast } from './hud';
 import { MANTLE_IDS } from '../actors/mantleData';
+import { lureTest } from '../actors/foeGround';
 
 const S = STR.dev;
 let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
@@ -247,6 +248,8 @@ function build() {
     const q = ahead(3), floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
     makeEnemy(pickFoe(floor.foes, 'H', Math.random, true), q.x, q.z, floorHp(), undefined, { champion: true });
   }));
+  // foes in each other's ground (M4.7): a band of fire, webs and rime between the mage and a wolf pack and a salt golem
+  foes.append(btn(S.lureTest, () => { closeDev(); lureTest(player.x, player.z); }));
   // a champion in each school's mantle (M4.7): the floor's heavy, wearing it
   foes.append(el('p', 'dv-info', S.mantles), ...MANTLE_IDS.map(id => btn(STR.foes.mantles[id].name, () => {
     const q = ahead(3), floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
