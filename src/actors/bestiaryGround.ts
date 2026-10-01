@@ -11,6 +11,7 @@ import { CFG } from '../config';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { glowShared, markShared } from '../render/materials';
+import { glowTex } from '../render/textures';
 import { burst } from '../combat/fx';
 import { hearGround } from '../world/groundHooks';
 
@@ -33,9 +34,11 @@ const meshes: Record<GroundKind, THREE.InstancedMesh | null> = { web: null, ink:
 function meshOf(kind: GroundKind) {
   const had = meshes[kind]; if (had) return had;
   const geo = kind === 'web' ? webGeometry() : new THREE.CircleGeometry(1, 16).rotateX(-Math.PI / 2);
+  // (ink and rime fade at their edges, so neither reads as a hole in the floor: ink a glossy violet sheen, never a pit's
+  // black; rime a faint frost-blue that overlapping patches don't stack into a white plank)
   const mat = kind === 'web' ? new THREE.MeshBasicMaterial({ color: 0xd8d0e8, transparent: true, opacity: .55, depthWrite: false })
-    : kind === 'rime' ? new THREE.MeshStandardMaterial({ color: 0xd4ecf8, emissive: 0x2a4a60, roughness: .08, metalness: .2, transparent: true, opacity: .62, depthWrite: false })
-    : new THREE.MeshStandardMaterial({ color: 0x1a1030, roughness: .12, metalness: .35, transparent: true, opacity: .85, depthWrite: false });
+    : kind === 'rime' ? new THREE.MeshStandardMaterial({ color: 0x8fc8ec, emissive: 0x123450, roughness: .45, metalness: .1, transparent: true, opacity: .28, alphaMap: glowTex, depthWrite: false })
+    : new THREE.MeshStandardMaterial({ color: 0x4a3480, emissive: 0x1c0e3a, roughness: .1, metalness: .4, transparent: true, opacity: .62, alphaMap: glowTex, depthWrite: false });
   const m = new THREE.InstancedMesh(geo, mat, MAX); m.count = 0; m.frustumCulled = false; m.renderOrder = 1; scene.add(m);
   return meshes[kind] = m;
 }

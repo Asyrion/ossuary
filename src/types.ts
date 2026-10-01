@@ -119,6 +119,8 @@ export interface Room {
   /** A themed room's theme (M3.6, world/themeData.ts). */ theme?: ThemeDef;
   /** Every candle stand in the room lit (M3.6 mechanisms): what that does has happened. */ candlesLit?: boolean;
   /** The eyes of an ossuary's skull niches, one material lit in the last spell's colour (M3.6). */ eyes?: THREE.MeshBasicMaterial;
+  /** Where the tall walls' pilasters and niches stand (world x on the wall face at world z), so what a foe sets in a wall
+      or perches on keeps off them (M4.5: a wasps' nest, a harpy). */ dressed?: { x: number; z: number }[];
   /** Enemies to spawn, wave by wave (ordeals have 2 or 3 waves, other fights 1), in world positions. */
   /** Each wave's foes: what the floor put in each template role (or the boss), and where. */
   waves: { kind: FoeType | 'boss'; role: FoeKind; x: number; z: number }[][];
