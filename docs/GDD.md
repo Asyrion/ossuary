@@ -1293,8 +1293,8 @@ tools/             prepare-asset script
 After M4.5 the owner asked for a review of the recent work, for open ends in its mechanics and balance, and for ideas
 that add depth to what is already in the game. The fixes are in Combat and enemies (The review of 2026-10-01). What is
 left open, and the milestones that deepen the systems already built rather than adding new ones, follow. The owner
-approved M4.7 on 2026-10-01; M4.8 to M4.10 wait on their yes, and their place in the order is the owner's to move
-(before or after M4.6).
+approved M4.7 on 2026-10-01 and it was built the same day (M4.7 as built, below); M4.8 to M4.10 wait on their yes, and
+their place in the order is the owner's to move (before or after M4.6).
 
 **The open ends, and the owner's answers (2026-10-01).** The review measured six; the owner answered each.
 
@@ -1335,6 +1335,30 @@ something the mage learns, and makes foes part of the room, not only in it.
   wolves, a Moonstag Fawn behind a Gargoyle Whelp, a Cinder Djinn lighting braziers that drive the Gloom Ravens off (a
   pair that works against itself). A floor's rolls name pairs (`pairs` in `data/floors.json`, weighted), and a room that
   rolls one places them together, so a few fights a floor are a small puzzle to read.
+
+**M4.7 as built (2026-10-01, approved and built the same day; `docs/M4.7-plan.md`).**
+
+- *Mantles.* A champion draws its mantle from its floor's weights (`mantles` in `data/floors.json`; tuning in
+  `data/magic.json`): its aura and body glow in the school's light, a ring of runes turns under it, and its mantle's name
+  rises as it comes; the first time in a run a line says what the mantle does and what unbinds it. Kindled leaves burning
+  ground as it goes and can't burn; Rimebound's touch and shots chill, and it can't be chilled; Stormcharged throws a
+  spark under the mage when struck (now and then); Hallowed mends the foes within 3 tiles (a boss a little), not while it
+  is sanctified; Hexbound's shots drink mana, and as it falls its curse closes on the ground round it, draining the
+  mage's mana if they stay inside. What strips each: Frost the Kindled and the Stormcharged (as chill stills the storm
+  creatures), Ember the Rimebound, Umbral the Hallowed, Hallow the Hexbound. Unbound, the champion is stunned 1.6 s and
+  takes a quarter more for 3 s. A Hexbound champion unbound before it falls doesn't curse.
+- *Ground.* Every patch, fire, spark and cloud knows the kind of foe that left it and spares that kind; a foe is also at
+  home in ground of its own school (a Frost foe on rime, an Ember one in fire, a Storm one on sparks, an Umbral one in
+  webs, ink and spores). Fliers and bosses pass over it. A puff in the ground's colour shows a foe stepping in, and the
+  first time in a run a line says foes fall foul of each other's ground. The golems and the elementals look two points
+  ahead and go round.
+- *Counters.* Thirty-eight foes have one or two (the Storm Mantis is numbed by cold and flanked from behind; the water
+  foes are iced in or driven up). The word rises each time, the first time ever a chime and a line; the Foes tab shows
+  each foe met by floor, then the bosses, its weakness and resistance once found (an elemental's "Drinks"), and its
+  counters found or sealed.
+- *Pairs.* Two or three a floor, a fight rolling one one time in ten on floor 1 up to one in five on floor 5; the pair
+  takes the first two places of the first wave, the second beside the first, and its line says what they do together
+  the first time in a run.
 
 ### M4.8 The full wheel: every pair of schools reacts
 
@@ -1442,7 +1466,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4.2 Beneath the Gate | The vault has a story | The Eda setting in the game's text (the Gate of Uzulim, its Wardens, Kaelith, Asyrion); the six pieces from the lore (watching statues, sapping obelisks, the drinking ward, rope bridges, currents and waterfalls, candle stands in water); the Wandering Merchant of Belerial; three bosses (the War-Tiger, the Pillar Dragon, the Twin Guardians); Fen-Nex as the familiar that grows (adopted 2026-09-30; `docs/M4.2-plan.md`) |
 | M4.5 Bestiary | A living dungeon | More critters, fantasy creatures and elementals built in code, and new kinds of enemy behaviour, spread over the floors; each drawn up as a look, chosen by the owner, then made a foe (Combat and enemies: The Bestiary; ideas in `docs/ideas.md`, decided 2026-09-30) |
 | M4.6 Costumes and transformations | You can see your build | Most artifacts wear a costume piece built in code; transformations when three artifacts of a kind are held, Boketto's look for the Stormcaller; Asyrion's arc from apprentice to chaos mage (Artifacts: Costumes and transformations; decided 2026-09-30, its place in the order the owner's to move) |
-| M4.7 Living foes | Foes you read and outwit | Champions wear a school's mantle that the opposite school strips; the ground foes leave works on foes as on the mage; counters found fill a Foes tab, kept between runs; rooms that roll a pair of foes made to work together (Depth for what's built; approved 2026-10-01, `docs/M4.7-plan.md`) |
+| M4.7 Living foes | Foes you read and outwit | Champions wear a school's mantle that the opposite school strips; the ground foes leave works on foes as on the mage; counters found fill a Foes tab, kept between runs; rooms that roll a pair of foes made to work together (Depth for what's built; approved and built 2026-10-01, `docs/M4.7-plan.md`) |
 | M4.8 The full wheel | Every pair of schools reacts | Five new reactions (Searing, Prism, Verdict, Black Ice, Void Spark) beside Steam (built 2026-10-01), on foes and on tiles; reactions found mark the spell book's wheel (Depth for what's built; proposed 2026-10-01, `docs/M4.8-plan.md`) |
 | M4.9 The curve | Harder for the right reasons | Pressure dials per floor in data; libraries and merchants lean to the floor's weakness; a hex's drain traced to its foe; the sluice for water rooms; `npm run balance` measuring every foe (Depth for what's built; proposed 2026-10-01, `docs/M4.9-plan.md`) |
 | M4.10 Weaves | Combinations beyond pairs | Ten weaves (a spell striking what another left: the Steam Curtain, the Overload Seal, Eclipse Ground...), seven chains (a reaction's leavings met by a third school: Thundercloud, Incense, Miasma...), the room's mechanisms joining in; Verdant's Bloom and Blight designed for M5 (Depth for what's built; proposed 2026-10-01 at the owner's ask, `docs/M4.10-plan.md`) |
