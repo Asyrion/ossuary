@@ -15,7 +15,7 @@ import { G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { burst } from '../combat/fx';
-import { banner, hideBossBar, line, showBossBar } from '../ui/hud';
+import { banner, clearLines, hideBossBar, line, showBossBar } from '../ui/hud';
 import { makeEnemy, spawnFoe } from '../actors/enemies';
 import { nearestJelly, pourJelly } from '../actors/jellySerpent';
 import { spawnPickup } from '../items/pickups';
@@ -89,7 +89,7 @@ export function updateLab(now: number) {
   jelly.scale.set(1 + Math.sin(now * 5) * .08, 1 - Math.sin(now * 5) * .08, 1 + Math.sin(now * 5) * .08);
   const serpent = lab.vat.userData.serpent as THREE.Object3D, head = lab.vat.userData.head as THREE.Object3D | undefined;
   serpent.rotation.y = Math.sin(now * .35) * .5; serpent.position.y = .2 + Math.sin(now * .8) * .04;
-  if (head) head.position.y = .85 + Math.sin(now * 1.3) * .06;
+  if (head) { head.position.y = head.userData.y + Math.sin(now * 1.3) * .04; head.rotation.z = Math.sin(now * .9) * .2; }
 }
 
 /* ---------- the jelly serpent's vat (M5 step 7) ---------- */
@@ -139,7 +139,8 @@ export function breakOut(room: Room = G.current): Enemy | null {
   if (labOpen()) closeLab();
   lab.broken = true; G.run.serpent = 'out';
   const u = lab.vat.userData, w = windowAt(room);
-  (u.glass as THREE.Object3D).visible = (u.serpent as THREE.Object3D).visible = false; for (const c of u.cracks as THREE.Object3D[]) c.visible = false;
+  (u.glass as THREE.Object3D).visible = (u.serpent as THREE.Object3D).visible = (u.bars as THREE.Object3D).visible = false; (u.shards as THREE.Object3D).visible = true;
+  for (const c of u.cracks as THREE.Object3D[]) c.visible = false;
   (u.back as THREE.Mesh).material = glowTone(VAT_EMPTY); (u.glow as THREE.Sprite).material.opacity = .15;
   burst(w.x, .6, w.z + .3, 0xe8fff0, 30, 3.5, .06); burst(w.x, .4, w.z + .5, JELLY, 36, 3.2, .08); Sfx.at(w.x, w.z).vatBurst(); G.shake = Math.max(G.shake, .45);
   pourJelly(room, w.x, w.z + .6, V().flood, mulberry(room.plan.seed ^ 0x5e1));
@@ -147,6 +148,7 @@ export function breakOut(room: Room = G.current): Enemy | null {
   const e = makeEnemy('serpent', at.x, at.z, FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].enemyHp);
   e.labBoss = true;
   room.locked = true; setDoors(room, false);
+  clearLines(); // (the cracks' pleas, and his greeting, are past)
   showBossBar(STR.bosses.serpent.name, e); banner(STR.bosses.serpent.name, STR.bosses.serpent.sub); line(`${STR.lab.out} ${STR.lab.duck}`, 4);
   return e;
 }

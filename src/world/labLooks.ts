@@ -17,7 +17,7 @@ const tube = (g: THREE.Object3D, pts: number[][], r0: number, r1: number, mat: T
 const metal = (c: number) => tone(c, .05, .5);
 
 /** The laboratory's colours: its jelly, the glass, iron, copper and the old oak of the table. */
-export const JELLY = 0x7ae070, JELLY_DEEP = 0x2e8a4a, JELLY_PALE = 0xc8ffb0, VAT_EMPTY = 0x0e2a16;
+export const JELLY = 0x7ae070, JELLY_DEEP = 0x2e8a4a, JELLY_PALE = 0xc8ffb0, VAT_DEEP = 0x123a1c, VAT_EMPTY = 0x0e2a16; // (the vat's jelly darker than the serpent in it, so it shows)
 const GLASS = 0x9ebed8, IRON = 0x3a383c, COPPER = 0xa8683a, OAK = 0x5a3e26, OAK_DARK = 0x3e2a1a, COAT = 0x6e6656, STAIN = 0x4e7a2e, SKIN = 0xd8b496;
 
 /** A glass globe of glowing jelly on a three-legged iron stand, bubbles hanging in it. */
@@ -89,7 +89,7 @@ export function drJellyLook() {
 
 /** The glass of the vat window, and the cracks a bolt leaves in it: shared by every laboratory. */
 let glassMat: THREE.MeshBasicMaterial | null = null, crackMat: THREE.MeshBasicMaterial | null = null;
-const glassOf = () => glassMat ??= markShared(new THREE.MeshBasicMaterial({ color: JELLY_PALE, transparent: true, opacity: .16, depthWrite: false }));
+const glassOf = () => glassMat ??= markShared(new THREE.MeshBasicMaterial({ color: JELLY_PALE, transparent: true, opacity: .1, depthWrite: false }));
 const crackOf = () => crackMat ??= markShared(new THREE.MeshBasicMaterial({ color: 0xf0fff0 }));
 
 /** The arched window on the north wall: a deep stone frame and leaded panes, the vat's dark green jelly behind, the jelly
@@ -102,28 +102,33 @@ export function vatWindowLook(stone: number, w = 2, broken = false) {
   const D = .26, F = .1; // (the frame's depth, and the middle of it, out from the wall)
   // the frame: jambs and an arch of voussoirs standing out from the wall, so the serpent sits inside it; the sill
   for (const s of [-1, 1]) box(g, .16, spring - .1, D, st, s * (r + .02), (spring - .1) / 2 + .1, F);
-  for (let i = 0; i <= 8; i++) { const a = Math.PI * i / 8, x = Math.cos(a) * (r + .02), y = spring + Math.sin(a) * r * .4; put(box(g, .2, .12, D + .01, i % 2 ? dark : st, x, y, F), 0, 0, a - Math.PI / 2, [.2, .12, D + .01]); }
+  for (let i = 0; i <= 8; i++) { const a = Math.PI * i / 8, x = Math.cos(a) * (r + .04), y = spring + Math.sin(a) * (r * .4 + .02); put(box(g, .3, .14, D + .01, i % 2 ? dark : st, x, y, F), 0, 0, a - Math.PI / 2, [.3, .14, D + .01]); } // (voussoirs wide enough to meet: one arch)
   box(g, w + .3, .1, D + .08, st, 0, .08, F + .02);
   const pane = new THREE.Shape(); pane.moveTo(-r, .15); pane.lineTo(r, .15); pane.lineTo(r, spring); pane.absellipse(0, spring, r, r * .4, 0, Math.PI, false, 0); pane.lineTo(-r, .15);
   mergeStill(g);
   // the vat behind: dark jelly, darker still when it stands empty (its own mesh, to darken when the serpent breaks out)
-  const back = mesh(g, new THREE.ShapeGeometry(pane, 12), glowTone(broken ? VAT_EMPTY : JELLY_DEEP), 0, 0, -.02);
+  const back = mesh(g, new THREE.ShapeGeometry(pane, 12), glowTone(broken ? VAT_EMPTY : VAT_DEEP), 0, 0, -.02);
   // the serpent: rings of jelly coiled in the vat, its head raised, two pale eyes (gone when it is out)
   const serpent = new THREE.Group(); serpent.position.set(0, .16, .08); serpent.visible = !broken; g.add(serpent);
   const ring = new THREE.TorusGeometry(.085, .055, 5, 10);
   for (let i = 0; i < 12; i++) { const a = i * .6, rr = .42 - i * .02; const m = mesh(serpent, ring, glowTone(i % 2 ? JELLY : 0x5ac860), Math.cos(a) * rr, .06 + i * .035, Math.sin(a) * rr * .12); m.rotation.y = a; }
-  const head = new THREE.Group(); head.position.set(.05, .55, .02); serpent.add(head);
-  put(mesh(head, new THREE.SphereGeometry(.12, 8, 6), glowTone(JELLY)), 0, 0, 0, [1.3, .8, .7]);
-  for (const x of [-.06, .06]) mesh(head, new THREE.SphereGeometry(.025, 5, 4), glowTone(0xf0ffe0), x, .03, .07);
   mergeStill(serpent);
+  const head = new THREE.Group(); head.position.set(.05, .52, .02); head.userData.y = .52; serpent.add(head); // (apart from the coil, so it can lift and sway)
+  put(mesh(head, new THREE.SphereGeometry(.12, 8, 6), glowTone(JELLY_PALE)), 0, 0, 0, [1.3, .8, .7]);
+  for (const x of [-.06, .06]) mesh(head, new THREE.SphereGeometry(.03, 5, 4), glowTone(0x0e2a16), x, .03, .08);
+  mergeStill(head);
   // the glass in front of it, the lead between the panes, and the cracks bolts leave
   const front = new THREE.Group(); g.add(front);
   const glass = new THREE.Mesh(new THREE.ShapeGeometry(pane, 12), glassOf()); glass.position.z = .2; glass.visible = !broken; front.add(glass);
-  const bars = new THREE.Group(); front.add(bars);
+  const bars = new THREE.Group(); bars.visible = !broken; front.add(bars);
   for (let i = 1; i < 4; i++) { const x = -r + i * w / 4, top = spring + Math.sqrt(Math.max(0, 1 - (x / r) ** 2)) * r * .4 - .02; box(bars, .025, top - .15, .03, lead, x, (top - .15) / 2 + .15, .21); }
   for (let i = 1; i < 3; i++) box(bars, w, .025, .03, lead, 0, .15 + i * .26, .21);
-  if (broken) for (let i = 0; i < 6; i++) { const x = -r + .1 + (i % 3) * .15 + (i > 2 ? w - .5 : 0), y = .2 + ((i * 37) % 5) * .05; put(mesh(bars, new THREE.ConeGeometry(.05, .2, 3), tone(0xb8d8c0, .05, .3), x, y, .21), 0, 0, (i % 2 ? .3 : -.3) + Math.PI); } // (shards left in the frame)
   mergeStill(bars);
+  // once broken: the lead twisted away, shards of glass left in the frame
+  const shards = new THREE.Group(); shards.visible = broken; front.add(shards);
+  for (let i = 0; i < 8; i++) { const x = -r + .08 + (i % 4) * .1 + (i > 3 ? w - .46 : 0), y = .2 + ((i * 37) % 5) * .07; put(mesh(shards, new THREE.ConeGeometry(.05, .24, 3), tone(0xb8d8c0, .05, .3), x, y, .21), 0, 0, (i % 2 ? .35 : -.35) + Math.PI); }
+  for (const [x, y, a] of [[-r, .45, .5], [r, .4, -.6], [-r + .1, .8, -.3]]) put(box(shards, .4, .025, .03, lead, x + (x < 0 ? .2 : -.2), y, .21), 0, 0, a, [.4, .025, .03]);
+  mergeStill(shards);
   // three stages of cracks, spreading from where the bolts strike (low in the middle of the glass)
   const cracks = [0, 1, 2].map(k => {
     const c = new THREE.Group(); c.visible = false; front.add(c);
@@ -134,7 +139,7 @@ export function vatWindowLook(stone: number, w = 2, broken = false) {
     }
     mergeStill(c); return c;
   });
-  const gl = glow(JELLY, w * 1.1, broken ? .15 : .45); gl.position.set(0, h * .55, .25); g.add(gl);
-  g.userData = { serpent, head, glow: gl, glass, cracks, back };
+  const gl = glow(JELLY, w * 1.1, broken ? .15 : .3); gl.position.set(0, h * .55, .25); g.add(gl);
+  g.userData = { serpent, head, glow: gl, glass, cracks, back, bars, shards };
   return g;
 }
