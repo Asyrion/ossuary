@@ -48,9 +48,9 @@ The GDD's art direction, as rules for images:
   game's torchlight adds the warmth.
 - **Even, flat lighting on textures.** The game lights every scene itself; light or shadow baked into a
   texture fights it. Ask for soft, even studio light and no cast shadows.
-- **Readable from above and far away.** The camera looks down at 45° from about eight tiles away, and at 540
-  lines a prop is 20 to 40 game pixels tall (the mage about 64). Big shapes, clear silhouettes and a few flat
-  colours matter; detail smaller than a hand at the object's scale is lost.
+- **Readable from above and far away.** The camera looks down at 45° from about eight tiles away, and at the
+  texel (the game's grid since 2026-10-01) a prop is 15 to 30 game pixels tall (the mage about 45). Big shapes, clear
+  silhouettes and a few flat colours matter; detail smaller than a hand at the object's scale is lost.
 - **Avoid:** text and letters, modern or sci-fi materials, bright saturated colours, outlines drawn into a
   texture (the game draws its own), busy noise, anything that only works from one angle.
 
