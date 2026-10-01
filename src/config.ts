@@ -107,7 +107,7 @@ export const CFG = {
     ring: { radius: .085, spin: 2.2 },
     aura: { motes: 16, radius: .32, glow: 1.5 },
     circle: { radius: .6, out: .09, rune: .085, gap: .06, after: 1, fadeIn: .6, fadeOut: .25, spin: .15 },
-    rise: { ember: .4, frost: -.3, storm: .15, hallow: .35, umbral: -.25 } as Record<string, number>,
+    rise: { ember: .4, frost: -.3, storm: .15, hallow: .35, umbral: -.25, verdant: .2 } as Record<string, number>, // (M5: Verdant's leaves drift up slowly)
     line: 4,
   },
   /** M4.6 Asyrion's arc (items/arc.ts): how many artifacts held bring each stage of the chaos mage's pieces, and how long

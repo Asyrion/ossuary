@@ -21,6 +21,12 @@ export const RECIPES: Record<Reaction, { dummies?: number; all?: Step; steps: St
   verdict: { dummies: 3, all: { sanct: 3 }, steps: [{ shock: 1 }] },
   blackice: { steps: [{ chill: 1 }, { hex: 1 }] },
   voidspark: { dummies: 3, steps: [{ hex: 1 }, { shock: 1 }] },
+  // M5, Verdant's five (Wildfire wants overgrown foes to run to; Blight, one to creep to)
+  wildfire: { dummies: 3, all: { grow: 4 }, steps: [{ burn: 4 }] },
+  frostbloom: { dummies: 2, steps: [{ grow: 4 }, { chill: 1 }] },
+  pollenspark: { dummies: 2, steps: [{ grow: 4 }, { shock: 1 }] },
+  bloom: { steps: [{ grow: 4 }, { sanct: 3 }] },
+  blight: { dummies: 2, steps: [{ grow: 4 }, { hex: 1 }] },
 };
 
 /** Set `r` off at (x, z): its dummies stand in a row there, and the first is given the statuses that make it. */

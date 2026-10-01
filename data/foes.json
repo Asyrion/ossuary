@@ -160,6 +160,13 @@
     "params": {"keep": 3.2, "orbitSpeed": 0.9, "volleyEvery": [2.2, 3], "tell": 0.6, "shots": 3, "spread": 0.35, "shotSpeed": 3.4, "hex": 8},
     "gib": "#c8a0ff", "stain": null
   },
+  "wardVerdant": {
+    "floor": 0, "school": "verdant", "weak": "ember", "resist": "verdant",
+    "hp": 16, "r": 0.32, "speed": 2.2, "contact": 1, "flying": true,
+    "behaviour": "wardling",
+    "params": {"keep": 3.2, "orbitSpeed": 0.9, "volleyEvery": [2.2, 3], "tell": 0.6, "shots": 5, "spread": 0.6, "shotSpeed": 3},
+    "gib": "#b8f08a", "stain": null
+  },
   "cryptSpider": {
     "floor": 1, "school": "umbral", "weak": "ember", "resist": "umbral",
     "hp": 10, "r": 0.45, "speed": 2.6, "contact": 1, "flying": false,

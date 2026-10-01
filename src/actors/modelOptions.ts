@@ -518,7 +518,7 @@ function lanternTortoise(): Built {
 
 /** Let out of a drinking ward (world/vault.ts, actors/wardShield.ts), one for each school: a round drop of liquid light in
     its school's colour with a bright core and big eyes, floating inside a turning ring of its runes, its school's crest on
-    top: a flame, ice spikes, a crest of sparks, a halo, little horns. */
+    top: a flame, ice spikes, a crest of sparks, a halo, little horns, a sprout (M5's Verdant). */
 function wardling(school: School): Built {
   const L = SCHOOL_LIGHT[school], g = new THREE.Group(), body = new THREE.Group(); body.position.y = .85; g.add(body);
   const drop = school === 'storm' ? 0x5a6ab8 : new THREE.Color(L).multiplyScalar(.7).getHex(); // (Storm's a thundercloud: its yellow is too near Hallow's gold)
@@ -533,6 +533,7 @@ function wardling(school: School): Built {
   else if (school === 'frost') for (const a of [-.5, 0, .5]) part(crest, new THREE.ConeGeometry(.035, .2, 4), pale, [Math.sin(a) * .1, .08, 0], { rot: [0, 0, -a] });
   else if (school === 'storm') for (const [x, y, r] of [[-.05, .06, .6], [.02, .1, -.6], [.06, .16, .6]] as V3[]) part(crest, box(.03, .1, .03), pale, [x, y, 0], { rot: [0, 0, r] });
   else if (school === 'hallow') part(crest, new THREE.TorusGeometry(.13, .018, 4, 18), pale, [0, .1, 0], { rot: [Math.PI / 2, 0, 0] });
+  else if (school === 'verdant') for (const s of [-1, 1]) part(crest, sphere(.06, 6, 4), pale, [.06 * s, .08, 0], { rot: [0, 0, -.6 * s], scale: [.6, 1.6, .25] }); // (M5: a sprout of two leaves)
   else for (const s of [-1, 1]) part(crest, new THREE.ConeGeometry(.04, .16, 5), std(0x1a1024), [.1 * s, .02, 0], { rot: [0, 0, -.5 * s] });
   const specks = motes(body, L, 4, .42, 0, .02);
   const light = glow(L, 1.1, .5); body.add(light);
@@ -555,7 +556,7 @@ export const MODEL_OPTIONS = [
   // M4.2: the Wardlings, no floor's own (0): a drinking ward lets them out
   { id: 'wardEmber', floor: 0, school: 'ember', build: () => wardling('ember') }, { id: 'wardFrost', floor: 0, school: 'frost', build: () => wardling('frost') },
   { id: 'wardStorm', floor: 0, school: 'storm', build: () => wardling('storm') }, { id: 'wardHallow', floor: 0, school: 'hallow', build: () => wardling('hallow') },
-  { id: 'wardUmbral', floor: 0, school: 'umbral', build: () => wardling('umbral') },
+  { id: 'wardUmbral', floor: 0, school: 'umbral', build: () => wardling('umbral') }, { id: 'wardVerdant', floor: 0, school: 'verdant', build: () => wardling('verdant') },
 ] as const satisfies readonly { id: string; floor: 0 | 1 | 2 | 3 | 4 | 5; school: School; build: () => Built }[];
 export type ModelOptionId = (typeof MODEL_OPTIONS)[number]['id'];
 

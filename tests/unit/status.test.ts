@@ -187,9 +187,9 @@ describe('the full wheel (M4.8): every pair of the five schools reacts', () => {
     expect(applyStatus(s, 'shock', 1, false)).toEqual({ reaction: 'voidspark' }); expect(s).toMatchObject({ hex: 0, voidT: T.reactions.voidspark.time });
     s = newStatus(); applyStatus(s, 'shock', 1, false); expect(applyStatus(s, 'hex', 1, false).reaction).toBe('voidspark');
   });
-  it('every pair of statuses of two schools reacts, one way or the other', async () => {
+  it('every pair of statuses of two schools reacts, one way or the other (M5: of six, with Verdant\'s Overgrown)', async () => {
     const { REACTIONS } = await import('../../src/magic/status');
-    const kinds = ['burn', 'chill', 'shock', 'sanct', 'hex'] as const;
+    const kinds = ['burn', 'chill', 'shock', 'sanct', 'hex', 'grow'] as const;
     for (const a of kinds) for (const b of kinds) {
       if (a === b) continue;
       // (chill meets shock and holy light once it freezes, as Shatter always has: it is laid on till it does)
@@ -206,5 +206,29 @@ describe('the full wheel (M4.8): every pair of the five schools reacts', () => {
     expect(applyStatus(s, 'sanct', 3, false)).toEqual({ reaction: 'prism' });
     expect(applyStatus(s, 'sanct', 3, false)).toEqual({});
     expect(s.prism).toBeGreaterThan(0);
+  });
+});
+
+describe('Verdant (M5): Overgrown and its five reactions', () => {
+  it('vines slow a foe a little at once and more the longer they hold, a boss half as much, and wither', () => {
+    const s = newStatus(); expect(applyStatus(s, 'grow', 3, false)).toEqual({});
+    const first = speedFactor(s); expect(first).toBeCloseTo(1 - T.grow.slow);
+    tickStatus(s, 2); expect(speedFactor(s)).toBeLessThan(first); expect(speedFactor(s)).toBeGreaterThanOrEqual(1 - T.grow.maxSlow);
+    expect(speedFactor(s, T, true)).toBeGreaterThan(speedFactor(s));
+    tickStatus(s, 2); expect(s.grow).toBe(0); expect(speedFactor(s)).toBe(1);
+  });
+  it('fire, cold, a shock and a hex on the vines set off Wildfire, Frostbloom, Pollen Spark and Blight, spending them', () => {
+    for (const [k, r] of [['burn', 'wildfire'], ['chill', 'frostbloom'], ['shock', 'pollenspark'], ['hex', 'blight']] as const) {
+      const s = newStatus(); applyStatus(s, 'grow', 3, false);
+      expect(applyStatus(s, k, k === 'chill' ? 1 : 2, false).reaction, k).toBe(r); expect(s.grow, k).toBe(0);
+    }
+    const w = newStatus(); applyStatus(w, 'grow', 3, false); applyStatus(w, 'burn', 2, false); expect(w.burn).toBeGreaterThan(0); // (the foe burns too)
+    const b = newStatus(); applyStatus(b, 'grow', 3, false); applyStatus(b, 'hex', 1, false); expect(b.hex).toBeGreaterThan(1); // (thorns: more hex)
+  });
+  it('holy light on the vines makes it flower once (Bloom), keeping both', () => {
+    const s = newStatus(); applyStatus(s, 'grow', 3, false);
+    expect(applyStatus(s, 'sanct', 2, false)).toEqual({ reaction: 'bloom' }); expect(s).toMatchObject({ bloom: true }); expect(s.grow).toBeGreaterThan(0); expect(s.sanct).toBeGreaterThan(0);
+    expect(applyStatus(s, 'sanct', 2, false)).toEqual({});
+    const t = newStatus(); applyStatus(t, 'sanct', 2, false); expect(applyStatus(t, 'grow', 3, false)).toEqual({ reaction: 'bloom' });
   });
 });

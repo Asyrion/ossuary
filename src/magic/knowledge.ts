@@ -57,8 +57,8 @@ export function parse(text: string | null | undefined): Knowledge {
 }
 
 /** The school whose status each status is (Burn is Ember's, Chill Frost's, Shock Storm's, Sanctified Hallow's, Hex
-    Umbral's). */
-const SCHOOL_OF = { burn: 'ember', chill: 'frost', shock: 'storm', sanct: 'hallow', hex: 'umbral' } as const;
+    Umbral's, Overgrown Verdant's). */
+const SCHOOL_OF = { burn: 'ember', chill: 'frost', shock: 'storm', sanct: 'hallow', hex: 'umbral', grow: 'verdant' } as const;
 /** The two schools whose statuses meet in reaction `r` (the wheel's chord between them, M4.8). */
 export const reactionSchools = (r: Reaction): [School, School] => REACTIONS[r].map(k => SCHOOL_OF[k as keyof typeof SCHOOL_OF]) as [School, School];
 /** Every reaction, in the table's order (the book's wheel lists them so). */

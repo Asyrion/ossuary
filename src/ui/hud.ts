@@ -102,6 +102,10 @@ const SPELL_ICONS: Record<string, string> = {
   hexbolt: `<path d="M3 21l7-7" ${S}/><circle cx="14" cy="10" r="5.5" fill="currentColor"/><circle cx="14" cy="10" r="1.8" fill="#120a1c"/>`,
   grasp: `<path d="M7 20v-7M10 20V8M13 20V7M16 20v-9M19 20v-5" ${S}/><path d="M4 21h17" ${S}/>`,
   toll: `<circle cx="12" cy="12" r="8" ${S}/><rect x="9.5" y="9.5" width="5" height="5" fill="currentColor"/>`,
+  // Verdant (M5)
+  thorns: `<path d="M5 21c1-6 4-9 7-11M19 21c-1-6-4-9-7-11M12 21V5" ${S}/><path d="M8 13l-2-1M16 13l2-1M12 9l-2-2M12 9l2-2" ${S}/><path d="M3 21h18" ${S}/>`,
+  pollen: `<circle cx="12" cy="13" r="3" fill="currentColor"/><circle cx="6" cy="8" r="1.4" fill="currentColor"/><circle cx="18" cy="7" r="1.6" fill="currentColor"/><circle cx="7" cy="18" r="1.2" fill="currentColor"/><circle cx="17" cy="18" r="1.4" fill="currentColor"/><circle cx="12" cy="4" r="1.1" fill="currentColor"/>`,
+  livingwall: `<path d="M3 21h18M6 21v-9M12 21V9M18 21v-8" ${S}/><circle cx="6" cy="9" r="3" ${S}/><circle cx="12" cy="6" r="3.2" ${S}/><circle cx="18" cy="10" r="2.8" ${S}/>`,
 };
 /** A spell's icon as inline SVG in its colour. */
 export function spellIcon(id: string) {

@@ -8,7 +8,7 @@ export interface Drink {
   /** What it drank of each school, and the school it drank last (ties go to it). */ by: Record<School, number>; last?: School;
 }
 
-export const newDrink = (need: number): Drink => ({ need, total: 0, by: { ember: 0, frost: 0, storm: 0, hallow: 0, umbral: 0 } });
+export const newDrink = (need: number): Drink => ({ need, total: 0, by: { ember: 0, frost: 0, storm: 0, hallow: 0, umbral: 0, verdant: 0 } });
 
 /** The ward drinks `amount` of `school`. Returns whether it is full now. */
 export function drink(d: Drink, school: School, amount: number) {
@@ -27,4 +27,4 @@ export function mostDrunk(d: Drink): School {
 }
 
 /** The Wardling that rises from a ward full of each school (data/foes.json). */
-export const WARDLING = { ember: 'wardEmber', frost: 'wardFrost', storm: 'wardStorm', hallow: 'wardHallow', umbral: 'wardUmbral' } as const satisfies Record<School, string>;
+export const WARDLING = { ember: 'wardEmber', frost: 'wardFrost', storm: 'wardStorm', hallow: 'wardHallow', umbral: 'wardUmbral', verdant: 'wardVerdant' } as const satisfies Record<School, string>;

@@ -354,6 +354,61 @@ export function graspFx(x: number, z: number, radius: number, color: number) {
   };
 }
 
+/* ---------- Verdant (M5) ---------- */
+
+/** The Thorn Snare at (x, z): a ring of turned earth on the floor and thorny vines bursting out of it, green at the tips;
+    `set(k)` raises them (0 to 1), `drop` takes them away (graspFx's way). */
+export function thornFx(x: number, z: number, radius: number, color: number) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
+  const earth = new THREE.Mesh(keep('fx.disc', () => new THREE.CircleGeometry(1, 28).rotateX(-Math.PI / 2)), new THREE.MeshBasicMaterial({ color: 0x1e160c, transparent: true, opacity: .65, depthWrite: false }));
+  earth.scale.setScalar(radius); earth.position.y = .013; g.add(earth);
+  const rimMat = shine(color, .6), rim = part(g, keep('fx.graspRim', () => new THREE.RingGeometry(.92, 1, 36).rotateX(-Math.PI / 2)), rimMat, [0, .016, 0]); rim.scale.setScalar(radius);
+  const vine = std(0x2e5a22, { emissive: 0x0c2208 }), thorn = std(0x8a7a5a), tipMat = lit(color);
+  const vines = Array.from({ length: 7 }, (_, i) => {
+    const a = i / 7 * Math.PI * 2 + .4, r = i % 2 ? radius * .6 : radius * .3, v = new THREE.Group(); v.position.set(Math.cos(a) * r, 0, Math.sin(a) * r); v.rotation.y = -a; g.add(v);
+    const lean = (i % 3 - 1) * .35;
+    part(v, keep('fx.vine', () => new THREE.CylinderGeometry(.025, .06, .55, 5).translate(0, .27, 0)), vine, [0, 0, 0], { rot: [0, 0, lean] });
+    for (let k = 0; k < 3; k++) part(v, keep('fx.thorn', () => new THREE.ConeGeometry(.02, .09, 4).rotateZ(-Math.PI / 2)), thorn, [Math.sin(lean) * -.15 * (k + 1) + .03 * (k % 2 ? 1 : -1), .12 + k * .14, 0], { rot: [0, k * 1.9, 0] });
+    part(v, keep('fx.leaf', () => new THREE.SphereGeometry(1, 5, 3).scale(.035, .06, .012)), tipMat, [-Math.sin(lean) * .55, .55, 0]);
+    return v;
+  });
+  return {
+    set(k: number) { vines.forEach((v, i) => { v.position.y = -.55 + Math.min(1, k * (1.1 + (i % 3) * .1)) * .55; v.scale.setScalar(Math.max(.01, k)); }); rimMat.opacity = .6 * Math.min(1, k * 2); (earth.material as THREE.MeshBasicMaterial).opacity = .65 * Math.min(1, k * 2); },
+    drop() { scene.remove(g); disposeTree(g); },
+  };
+}
+
+/** The Pollen Cloud round (x, z): a soft golden-green haze on the floor and grains of pollen drifting and turning up
+    through it, a petal now and then; `update` fades it by `fade`, `drop` takes it away (consecrateFx's way). */
+export function pollenFx(x: number, z: number, radius: number, color: number) {
+  const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
+  const haze = new THREE.Mesh(keep('fx.disc', () => new THREE.CircleGeometry(1, 28).rotateX(-Math.PI / 2)), shine(0xe8e070, .14)); haze.scale.setScalar(radius); haze.position.y = .012; g.add(haze);
+  const lineMat = shine(color, .4), circ = circle(g, color, radius, lineMat); mergeStill(circ);
+  const warm = glow(0xe8e070, radius * 2.4, .28); warm.position.y = .5; g.add(warm);
+  const grainMat = lit(0xf0e890), petalMat = lit(0xf8c8e0);
+  const grains = Array.from({ length: 16 }, (_, i) => { const m = new THREE.Mesh(octa(), i % 5 ? grainMat : petalMat); m.scale.setScalar(i % 5 ? .03 : .045); m.userData.a = i * 2.4; m.userData.r = Math.sqrt((i + .5) / 16) * radius * .95; g.add(m); return m; });
+  return {
+    update(t: number, fade: number) {
+      lineMat.opacity = .35 * fade; (haze.material as THREE.MeshBasicMaterial).opacity = (.12 + Math.sin(t * 3) * .03) * fade; warm.material.opacity = .28 * fade; circ.rotation.y = t * .25;
+      grains.forEach((m, i) => { const u = (t * .3 + i / 16) % 1, a = (m.userData.a as number) + t * .6, r = m.userData.r as number; m.position.set(Math.cos(a) * r, .1 + u * 1.3 + Math.sin(t * 2 + i) * .05, Math.sin(a) * r); m.rotation.set(t * 2 + i, t * 3, 0); m.visible = fade > .05; });
+    },
+    drop() { scene.remove(g); disposeTree(g); },
+  };
+}
+
+/** A trunk of living wood for the Living Wall at (x, z), `h` tall: bark round a paler heart, roots spread at its foot and
+    leaves bursting from its crown (iceColumn's way). */
+export function woodColumn(x: number, z: number, h: number) {
+  const g = new THREE.Group(); g.position.set(x, 0, z);
+  const bark = keep('fx.bark', () => std(0x5a3e24, { roughness: .95 })), leaf = keep('fx.leafMat', () => std(0x5aa83a, { emissive: 0x1a4a10, roughness: .8 }));
+  const trunk = new THREE.Mesh(keep('fx.trunk', () => new THREE.CylinderGeometry(.13, .2, 1, 7).translate(0, .5, 0)), bark); trunk.scale.y = h; g.add(trunk);
+  for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + .4, r = new THREE.Mesh(keep('fx.root', () => new THREE.ConeGeometry(.06, .34, 4).rotateZ(Math.PI / 2).translate(.17, .03, 0)), bark); r.rotation.y = a; g.add(r); }
+  for (const [dx, dy, dz, s] of [[0, 0, 0, .2], [.1, -.08, .06, .14], [-.1, -.06, -.04, .15]] as V3[] | number[][]) { const c = new THREE.Mesh(keep('fx.crown', () => new THREE.IcosahedronGeometry(1, 0)), leaf); c.scale.setScalar(s as number); c.position.set(dx as number, h + (dy as number), dz as number); g.add(c); }
+  const bud = new THREE.Mesh(octa(), keep('fx.bud', () => lit(0xd8f8a0))); bud.scale.set(.04, .07, .04); bud.position.set(.08, h * .6, .15); g.add(bud);
+  const moss = new THREE.Mesh(keep('fx.frostPatch', () => new THREE.CircleGeometry(.34, 12).rotateX(-Math.PI / 2)), keep('fx.moss', () => shine(SCHOOL_LIGHT.verdant, .3))); moss.position.y = .02; g.add(moss);
+  return g;
+}
+
 /** The Ferryman's Toll: a coin of shadow with a violet rim turning over the foe it marks; `at` moves it, `drop` takes it. */
 export function tollFx(color: number) {
   const g = new THREE.Group(); scene.add(g);

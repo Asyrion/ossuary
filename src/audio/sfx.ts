@@ -55,6 +55,7 @@ function schoolNote(school: string, delay: number) {
   else if (school === 'frost') tone('sine', 1318, 1568, .35, .05, delay);
   else if (school === 'storm') { tone('square', 880, 660, .2, .04, delay); hiss(.12, .05, 'highpass', 4000, delay); }
   else if (school === 'hallow') tone('triangle', 784, 784, .5, .06, delay);
+  else if (school === 'verdant') { tone('triangle', 392, 466, .35, .05, delay); hiss(.25, .04, 'bandpass', 900, delay); } // (M5: a reed's breath)
   else tone('sine', 110, 82, .5, .08, delay);
 }
 
@@ -178,6 +179,18 @@ const sounds = {
   prism() { [1318, 1568, 1976, 2349].forEach((f, i) => tone('sine', f, f, .35, .04, i * .05)); hiss(.2, .03, 'highpass', 6000); },
   verdict() { hiss(.3, .16, 'highpass', 2500); tone('square', 220, 60, .5, .07); tone('triangle', 659, 880, .7, .06, .05); },
   blackice() { tone('sine', 165, 110, .6, .07); hiss(.4, .05, 'highpass', 5000, .05); tone('triangle', 988, 740, .3, .03, .08); },
+  // M5, Verdant (wood and breath, reeds and seed pods): its spells
+  thornRise() { hiss(.35, .06, 'lowpass', 900); tone('sawtooth', 90, 160, .3, .04); },
+  thornClose() { for (let i = 0; i < 4; i++) tone('square', 260 + i * 60, 140, .06, .03, i * .03); hiss(.2, .07, 'bandpass', 1800); },
+  pollenCloud() { hiss(.8, .05, 'bandpass', 2400); tone('triangle', 392, 523, .5, .04); tone('triangle', 494, 659, .45, .03, .15); },
+  woodRise() { tone('sawtooth', 70, 140, .45, .07); hiss(.4, .06, 'lowpass', 500); for (let i = 0; i < 3; i++) tone('square', 180 + i * 40, 120, .05, .03, .1 + i * .08); },
+  wallWither() { hiss(.5, .07, 'lowpass', 700); tone('sine', 160, 70, .5, .05); },
+  // M5, Verdant: its reactions
+  wildfire() { hiss(.5, .12, 'bandpass', 1400); tone('sawtooth', 180, 90, .45, .05); crackles(8, .45, .05); },
+  frostbloom() { tone('triangle', 1760, 2349, .2, .04); tone('sine', 1175, 1568, .25, .04, .08); hiss(.15, .04, 'highpass', 5000); },
+  pollenspark() { hiss(.4, .07, 'bandpass', 3200); tone('square', 1900, 900, .18, .025); crackles(5, .3, .03); },
+  bloom() { tone('sine', 523, 784, .3, .05); tone('sine', 659, 988, .35, .04, .1); tone('triangle', 1047, 1319, .3, .03, .2); },
+  blight() { tone('sawtooth', 140, 70, .45, .05); hiss(.35, .06, 'lowpass', 600); tone('sine', 220, 165, .3, .03, .1); },
   voidspark() { hiss(.15, .1, 'highpass', 3500); tone('sawtooth', 330, 110, .4, .05); tone('sine', 98, 70, .6, .05, .06); },
   shatter() { hiss(.35, .14, 'highpass', 3500); [2637, 3136, 2093, 3520].forEach((f, i) => tone('triangle', f, f * .8, .18, .04, i * .03)); tone('sine', 196, 98, .3, .08); },
   overload() { hiss(.6, .16, 'lowpass', 700); tone('sine', 110, 40, .6, .18); tone('square', 1800, 300, .2, .04); hiss(.3, .08, 'highpass', 3000, .05); },

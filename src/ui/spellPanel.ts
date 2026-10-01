@@ -47,7 +47,7 @@ export function spellSheet(def: SpellDef, stage: Stage, note = '', casts = 0) {
 /* ---------- the wheel of reactions (M4.8) ---------- */
 
 const css = (c: number) => '#' + c.toString(16).padStart(6, '0');
-/** Where each school sits on the wheel: six spokes, Verdant's (M5) sealed at the foot. */
+/** Where each school sits on the wheel: six spokes, Verdant's (M5) at the foot. */
 const SPOKES = ['ember', 'frost', 'storm', 'verdant', 'umbral', 'hallow'] as const;
 const spoke = (school: string) => { const a = -Math.PI / 2 + SPOKES.indexOf(school as typeof SPOKES[number]) * Math.PI / 3; return { x: 100 + Math.cos(a) * 72, y: 100 + Math.sin(a) * 72 }; };
 
@@ -62,7 +62,7 @@ export function pairIcon(schools: readonly [School, School], found: boolean, rin
     : `<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="24" r="10" fill="none" stroke="${a}" stroke-width="2" opacity=".5"/><circle cx="30" cy="24" r="10" fill="none" stroke="${b}" stroke-width="2" opacity=".5"/></svg>`;
 }
 
-/** The wheel of the schools: a chord for every reaction, lit once found, `chosen` drawn bold; Verdant's spoke sealed. */
+/** The wheel of the schools: a chord for every reaction, lit once found, `chosen` drawn bold. */
 export function reactionWheel(chosen?: Reaction) {
   const found = reactionsFound();
   const chords = REACTION_IDS.map(r => {
@@ -71,7 +71,7 @@ export function reactionWheel(chosen?: Reaction) {
     return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${stroke}" stroke-width="${pick ? 4 : on ? 2.2 : 1.2}"${on ? '' : ` stroke-dasharray="${pick ? '7 5' : '4 4'}"`} opacity="${pick || on ? 1 : .75}"/>`;
   }).join('');
   const dots = SPOKES.map(k => {
-    const p = spoke(k), sealed = k === 'verdant', fill = sealed ? '#2a241c' : css(SCHOOL_LIGHT[k as keyof typeof SCHOOL_LIGHT]);
+    const p = spoke(k), sealed = false, fill = sealed ? '#2a241c' : css(SCHOOL_LIGHT[k as keyof typeof SCHOOL_LIGHT]);
     const name = STR.knowledge.spoke[k] ?? k;
     return `<circle cx="${p.x}" cy="${p.y}" r="15" fill="${fill}" stroke="${sealed ? '#5e4d39' : '#17110c'}" stroke-width="2"${sealed ? ' stroke-dasharray="3 3"' : ''}/>`
       + `<text x="${p.x}" y="${p.y + 4.5}" text-anchor="middle" font-size="${sealed ? 14 : 11}" font-weight="700" fill="${sealed ? '#7a6a52' : '#17110c'}">${esc(name)}</text>`;
