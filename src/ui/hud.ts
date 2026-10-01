@@ -313,7 +313,8 @@ export const toastShowing = () => toastT > 0;
     it short; several wait their turn. A new run drops any still waiting. */
 const waiting: { msg: string; dur: number }[] = [];
 export function line(msg: string, dur = 3.5) { if (toastT > 0) waiting.push({ msg, dur }); else toast(msg, dur); }
-export function clearLines() { waiting.length = 0; }
+/** Drop the lines waiting and the one showing (a new run; the jelly serpent breaking out, which says its own). */
+export function clearLines() { waiting.length = 0; toastT = 0; el.toast.classList.remove('on'); }
 const dimAt = new THREE.Vector3();
 export function updateHud(dt: number) {
   updateMagicHud();

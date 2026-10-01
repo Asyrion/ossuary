@@ -296,7 +296,7 @@ export const CFG = {
   // chance a fallen foe or a broken object leaves its reagent (items/reagents.ts; the Alchemist's Satchel's more), what Dr.
   // Jelly asks for a recipe (obols), the laboratory's: how near the table or Dr. Jelly opens the table, how far behind the
   // table Dr. Jelly stands, the chance a burst jelly globe lets out a jelly (else a reagent), how far its vat window keeps
-  // from a door in the north wall; the jelly serpent's vat (M5 step 7): bolts that crack its window open (`cracks`, a
+  // from a door in the north wall, how low Dr. Jelly crouches while the room is locked (his height); the jelly serpent's vat (M5 step 7): bolts that crack its window open (`cracks`, a
   // crack counted at most every `crackGap` seconds), the chance a run's serpent is restless (it breaks out by itself
   // `restlessAfter` seconds after the first brew in its laboratory), the jelly it floods the room with (tiles); how
   // long the potion key is held before it throws rather than drinks (seconds); a throw's reach, its flight (seconds) and
@@ -304,7 +304,7 @@ export const CFG = {
   // many seconds after the cast; the Grave Draught's thrall (its pace, a blow, seconds between blows, how near it strikes);
   // M5 step 8: the Cracked Retort's splash (times as wide) and its glass's cut, and how far apart the Alchemist's split
   // bottles land (across the aim)
-  alchemy: { belt: 3, bottleScale: 1.45, reagentScale: 1.8, reagent: { foe: 0.12, object: 0.3, blossom: 0.6, satchelMul: 1.3 }, recipePrice: 6, lab: { reach: 0.55, jellyAt: 1.6, globeJelly: 0.4, windowClear: 2.5 }, vat: { cracks: 3, crackGap: 0.25, restless: 0.35, restlessAfter: 1.4, flood: 30 }, hold: 0.25, reach: 4.5, flight: 0.45, arc: 1.1, splash: 1.1, echoMul: 6, echoAfter: 0.3, thrall: { speed: 2.4, damage: 7, every: 0.7, near: 0.7 }, retort: { splashMul: 1.5, cut: 6 }, split: 2 },
+  alchemy: { belt: 3, bottleScale: 1.45, reagentScale: 1.8, reagent: { foe: 0.12, object: 0.3, blossom: 0.6, satchelMul: 1.3 }, recipePrice: 6, lab: { reach: 0.55, jellyAt: 1.6, globeJelly: 0.4, windowClear: 2.5, duck: 0.3 }, vat: { cracks: 3, crackGap: 0.25, restless: 0.35, restlessAfter: 1.4, flood: 30 }, hold: 0.25, reach: 4.5, flight: 0.45, arc: 1.1, splash: 1.1, echoMul: 6, echoAfter: 0.3, thrall: { speed: 2.4, damage: 7, every: 0.7, near: 0.7 }, retort: { splashMul: 1.5, cut: 6 }, split: 2 },
   // the mage in the pixel-art look (actors/heroPixel.ts, 2026-10-01): its texture baked into its vertices (each the mean of
   // the texels within `sample` of where it lies) and cut down to `colours`; light in the `tones` (darkest first, a toon
   // ramp's steps) with `glow` of its own colour as self-light, as the model had, so it reads in dark rooms
