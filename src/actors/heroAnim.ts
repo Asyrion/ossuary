@@ -8,7 +8,7 @@ import { DEV } from '../state';
 import { clamp, lerp } from '../util';
 import { HIPS_OFFSET_LIMIT, HIPS_RE, assignRoles, hipsOffset, type Role } from './clipRoles';
 
-export type Gesture = 'drink' | 'eat';
+export type Gesture = 'drink' | 'eat' | 'sigil';
 export interface HeroAnim {
   mixer: THREE.AnimationMixer; roles: Partial<Record<Role, THREE.AnimationClip>>;
   /** Blend weights: moving, casting, hit, gesture. */ m: number; c: number; h: number; g: number;
@@ -20,6 +20,7 @@ export interface HeroAnim {
   /** Death clips; one is picked at random. */ deaths: { action: THREE.AnimationAction; len: number }[];
   gestures: Partial<Record<Gesture, { action: THREE.AnimationAction; len: number; speed: number }>>; gesture?: THREE.AnimationAction;
   /** Seconds standing still, and when the mage next eats something. */ still: number; fidgetAt: number;
+  /** How fast the run and walk play at full speed: the model's own (a hero built in code), else CFG.hero's. */ speeds: { run: number; walk: number };
 }
 
 const UPPER_RE = /spine|chest|neck|head|shoulder|clavicle|arm|hand|thumb|index|middle|ring|pinky/i;
@@ -109,16 +110,16 @@ export function peakWindow(root: THREE.Object3D, clip: THREE.AnimationClip, befo
 const fidgetDelay = () => CFG.hero.fidget[0] + Math.random() * (CFG.hero.fidget[1] - CFG.hero.fidget[0]);
 
 /** Build the layered animation controller for a rigged model. */
-export function buildHeroAnim(holder: THREE.Object3D, clips: THREE.AnimationClip[]): HeroAnim {
+export function buildHeroAnim(holder: THREE.Object3D, clips: THREE.AnimationClip[], speeds = { run: CFG.hero.runAnimSpeed, walk: CFG.hero.walkAnimSpeed }): HeroAnim {
   const roles = assignRoles(clips, c => c.name);
-  for (const k of ['run', 'walk', 'cast', 'hit', 'death', 'deathAlt', 'drink', 'eat'] as const) {
+  for (const k of ['run', 'walk', 'cast', 'hit', 'death', 'deathAlt', 'drink', 'eat', 'sigil'] as const) {
     const c = roles[k]; if (c && c !== roles.idle) roles[k] = centreHips(c, holder, roles.idle);
   }
   const mixer = new THREE.AnimationMixer(holder);
   const act = (clip: THREE.AnimationClip, loop = true) => {
     const a = mixer.clipAction(clip); a.setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce, Infinity); a.clampWhenFinished = !loop; return a;
   };
-  const A: HeroAnim = { mixer, m: 0, c: 0, h: 0, g: 0, castLeft: 0, hitLeft: 0, gestLeft: 0, dead: false, roles, castLen: 0, hitLen: 0, deaths: [], gestures: {}, still: 0, fidgetAt: fidgetDelay() };
+  const A: HeroAnim = { mixer, m: 0, c: 0, h: 0, g: 0, castLeft: 0, hitLeft: 0, gestLeft: 0, dead: false, roles, castLen: 0, hitLen: 0, deaths: [], gestures: {}, still: 0, fidgetAt: fidgetDelay(), speeds };
   if (roles.run && roles.idle) {
     A.idleL = act(bodyPart(roles.idle, false)); A.idleU = act(bodyPart(roles.idle, true));
     A.runL = act(bodyPart(roles.run, false)); A.runU = act(bodyPart(roles.run, true));
@@ -139,6 +140,8 @@ export function buildHeroAnim(holder: THREE.Object3D, clips: THREE.AnimationClip
     A.gestures.drink = { action: act(bodyPart(sub, true, 'drink_upper'), false), len: sub.duration, speed: CFG.hero.drinkSpeed };
   }
   if (roles.eat) A.gestures.eat = { action: act(bodyPart(alignUpperToHips(roles.eat, holder, roles.run), true, 'eat_upper'), false), len: roles.eat.duration, speed: 1 };
+  // chalking a glyph: bent low over it, a hand tracing the circle (the legs go on as they were)
+  if (roles.sigil) A.gestures.sigil = { action: act(bodyPart(roles.sigil, true, 'sigil_upper'), false), len: roles.sigil.duration, speed: CFG.hero.sigilSpeed };
   return A;
 }
 
@@ -180,7 +183,7 @@ export function updateHeroAnim(A: HeroAnim, dt: number, sp: number) {
   const k = 1 - Math.exp(-12 * dt), H = CFG.hero;
   A.m = lerp(A.m, sp > .12 ? 1 : 0, k);
   A.castLeft -= dt; A.hitLeft -= dt; A.gestLeft -= dt;
-  if (sp > .12 || A.castLeft > 0) A.gestLeft = Math.min(A.gestLeft, 0); // moving or casting puts the flask or the bite away
+  if ((sp > .12 || A.castLeft > 0) && A.gesture !== A.gestures.sigil?.action) A.gestLeft = Math.min(A.gestLeft, 0); // moving or casting puts the flask or the bite away (not the chalk)
   A.c = A.castLeft > 0 ? lerp(A.c, 1, 1 - Math.exp(-30 * dt)) : lerp(A.c, 0, 1 - Math.exp(-10 * dt));
   A.h = A.hitLeft > 0 ? lerp(A.h, 1, 1 - Math.exp(-30 * dt)) : lerp(A.h, 0, 1 - Math.exp(-8 * dt));
   A.g = A.gestLeft > 0 ? lerp(A.g, 1, 1 - Math.exp(-14 * dt)) : lerp(A.g, 0, 1 - Math.exp(-8 * dt));
@@ -201,8 +204,8 @@ export function updateHeroAnim(A: HeroAnim, dt: number, sp: number) {
     A.walkL?.setEffectiveWeight(A.m * (1 - rs) * live); A.walkU?.setEffectiveWeight(A.m * (1 - rs) * bu * live);
     A.cast?.setEffectiveWeight(cw * live); A.hit?.setEffectiveWeight(hw * live); A.gesture?.setEffectiveWeight(gw * live);
     const s = clamp(sp, 0, 1.2);
-    A.runL.timeScale = A.runU.timeScale = Math.max(.8, H.runAnimSpeed * s);
-    if (A.walkL && A.walkU) A.walkL.timeScale = A.walkU.timeScale = Math.max(.6, (DEV.moveClip === 'walkNatural' ? H.walkNatural : H.walkAnimSpeed) * s);
+    A.runL.timeScale = A.runU.timeScale = Math.max(.8, A.speeds.run * s);
+    if (A.walkL && A.walkU) A.walkL.timeScale = A.walkU.timeScale = Math.max(.6, (DEV.moveClip === 'walkNatural' ? H.walkNatural : A.speeds.walk) * s);
   }
   A.mixer.update(dt);
 }

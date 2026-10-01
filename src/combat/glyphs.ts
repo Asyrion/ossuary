@@ -31,6 +31,7 @@ import { clamp } from '../util';
 import { breakPlate } from '../actors/bosses';
 import { dragonBlast } from '../actors/pillarDragon';
 import { foeBlasted } from '../actors/foes';
+import { heroSigil } from '../actors/hero';
 import { fireAt } from '../world/pools';
 
 const C = CFG.glyph;
@@ -75,7 +76,7 @@ export function placeGlyph() {
   const gl = glow(color, 1.4, .5); gl.position.y = .15;
   g.add(rune, reach, gl); scene.add(g);
   G.glyphs.push({ x: player.x, z: player.z, t: 0, fuse, fuseMax: fuse, radius, color, g, rune, reach, glow: gl, lastTick: 0, spent: false });
-  burst(player.x, .1, player.z, color, 6, 1.2, .04); Sfx.inscribe();
+  burst(player.x, .1, player.z, color, 6, 1.2, .04); Sfx.inscribe(); heroSigil(); // (the mage bends to chalk it)
   if (warded) wardRing(player.x, player.z);
   return true;
 }

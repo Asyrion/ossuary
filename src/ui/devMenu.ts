@@ -47,10 +47,11 @@ import type { SpellStatus, StatusKind } from '../magic/spellData';
 import { TEMPLATE_DEFS } from '../world/templates';
 import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
 import { KIT_PARTS, kindsOf, type KitPart, type Kinds } from '../world/kitData';
-import { renderHearts, renderItems, renderMinimap, toast } from './hud';
+import { renderHearts, renderItems, renderMinimap, setHeroInfo, toast } from './hud';
+import { hero, heroChoice, wearHero } from '../actors/hero';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, heroBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
 let spellSlot = 0, knowBox: HTMLElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
@@ -183,6 +184,8 @@ function build() {
     godBtn = btn('', () => { DEV.god = !DEV.god; toast(DEV.god ? S.godOn : S.godOff, 2); }),
     // which clip the mage moves with: the run, or the walk (in step, or at a natural pace), to compare
     moveBtn = btn('', () => { const order = ['run', 'walkInStep', 'walkNatural'] as const; DEV.moveClip = order[(order.indexOf(DEV.moveClip) + 1) % order.length]; toast(S.moveClip[DEV.moveClip], 2); }),
+    // which model the mage wears: Asyrion built in code, or the Tripo model (remembered in the browser)
+    heroBtn = btn('', () => { const next = heroChoice() === 'apprentice' ? 'glb' : 'apprentice'; void wearHero(next, true).then(() => { setHeroInfo(hero.info); toast(S.heroModel[next], 2); refresh(); }); }),
     btn(S.resetArtifacts, () => resetArtifacts()),
     // curses to try the shrine with, and cleansing one at once (no fight, no obols)
     btn(S.takeCurse, () => {
@@ -367,6 +370,7 @@ function refresh() {
   godBtn.textContent = DEV.god ? S.godOn : S.godOff; godBtn.classList.toggle('on', DEV.god);
   lookBtn.textContent = S.wardenWears(STR.bossLooks[bossLook()].name);
   foeBtn.textContent = DEV.foe ? S.foeEverywhere(foeName(DEV.foe)) : S.foesAsFloor; foeBtn.classList.toggle('on', !!DEV.foe);
+  heroBtn.textContent = S.heroModel[heroChoice()];
   moveBtn.textContent = S.moveClip[DEV.moveClip]; moveBtn.classList.toggle('on', DEV.moveClip !== 'run');
   doorBtn.textContent = S.doors[DEV.doors]; doorBtn.classList.toggle('on', DEV.doors !== 'data');
   manaBtn.textContent = DEV.mana ? S.manaOn : S.manaOff; manaBtn.classList.toggle('on', DEV.mana);
