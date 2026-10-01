@@ -94,7 +94,7 @@ export const CFG = {
       and their size, the gap between arcs, how long the mage stands still before it shows, how fast it fades in and out,
       its turn), each school's motion (how far its motes travel, up or down), and how long a mark's first line stays. */
   marks: {
-    hand: { size: .34, motes: 7, ready: 1, dim: .25, lift: .04, flash: .26, spark: .45 },
+    hand: { size: .34, motes: 7, ready: 1, dim: .25, lift: .04, flash: .26, spark: .45, pulse: 3, shimmer: 6, shimmerBy: .06, flicker: 9, grey: .7, cooling: .7 },
     ring: { radius: .085, spin: 2.2 },
     aura: { motes: 16, radius: .32, glow: 1.5 },
     circle: { radius: .6, out: .09, rune: .085, gap: .06, after: 1, fadeIn: .6, fadeOut: .25, spin: .15 },

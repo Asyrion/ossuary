@@ -104,6 +104,8 @@ export const STR = {
   marks: {
     attuned: (school: string) => `Attuned to ${school}: both your spells are of one school, and its light gathers about you.`,
     mastered: (school: string) => `You know every ${school} spell well: its ring turns at your wrist.`,
+    hands: 'Your spells show at your hands: bright when ready, faint while they gather again, grey when your mana falls short.',
+    circle: 'Standing still, what you know shows round your feet: a rune for every spell you know well.',
   },
   /** M4.6: Asyrion's arc, a line as each stage is reached (the apprentice growing towards the chaos mage). */
   arc: [
