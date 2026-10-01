@@ -296,6 +296,8 @@ export function banner(t: string, s = '', dur = 2.6) {
 export function showPrompt(html: string) { el.prompt.innerHTML = html; el.prompt.classList.add('on'); }
 export function hidePrompt() { el.prompt.classList.remove('on'); }
 export function toast(msg: string, dur = 3) { el.toast.textContent = msg; el.toast.classList.add('on'); toastT = dur; }
+/** Whether a toast is showing now (a first-time line waits for it rather than cut it short). */
+export const toastShowing = () => toastT > 0;
 const dimAt = new THREE.Vector3();
 export function updateHud(dt: number) {
   updateMagicHud();

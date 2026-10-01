@@ -175,6 +175,7 @@ export interface Enemy extends Circle {
   /** A champion's school mantle (M4.7, actors/mantles.ts), its ring of runes, the seconds until it acts again (a trail
       of fire, a spark), and the seconds left open after it was stripped. */ mantle?: MantleId; mantleRing?: THREE.Object3D; mantleT?: number; unbound?: number; saidAt?: number;
   /** In another kind's ground (M4.7): the way it slides on rime, and the seconds before the ground harms it again. */ slide?: { x: number; z: number }; groundT?: number; inGround?: string;
+  /** A Gloom Raven driven off by a light (M4.7: its counter's word rises as it turns away). */ shunned?: boolean;
   /** M4.2: a drinking ward round it (actors/wardShield.ts): what it has drunk, and its light. */ ward?: { drink: Drink; fx: THREE.Mesh };
   // type-specific parts and AI state
   halo?: THREE.Sprite; target?: Vec2; fireT?: number; dir?: Vec2;

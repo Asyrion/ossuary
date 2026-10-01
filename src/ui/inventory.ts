@@ -1,10 +1,11 @@
-/* The inventory: what the mage carries and knows, in tabs (artifacts, spells, items, the mage's own numbers), the
+/* The inventory: what the mage carries and knows, in tabs (artifacts, spells, items, the mage's own numbers, and M4.7's
+   foes met), the
    chosen entry described in a panel beside them: its icon, name and kind, what it does, its numbers and its lore.
    Opened with I or Tab (the gamepad's View button), or from the pause menu; the game waits while it's open.
    Arrows choose, Q and E (LB and RB) change tabs, and I, Tab or Esc (B) close it again. */
 import { CFG } from '../config';
 import { G, player } from '../state';
-import { STR } from '../strings';
+import { STR, foeName } from '../strings';
 import { $ } from '../util';
 import { artifact, focusPattern, halveStat, type StatKey } from '../items/artifactData';
 import { LOOT, SOULS } from '../items/loot';
@@ -15,9 +16,14 @@ import { esc, head, spellSheet } from './spellPanel';
 import { showScreen } from './screens';
 import { artifactIcon, soulSvg, spellIcon } from './hud';
 import { itemIcon } from './lore';
+import { FOES, FOE_IDS } from '../actors/foeData';
+import { bestiary } from '../actors/bestiary';
+import { countersOf } from '../actors/counterData';
+import { SCHOOL_LIGHT } from '../render/arcane';
+import { BOSS_TYPES } from '../config';
 
-type Tab = 'artifacts' | 'spells' | 'items' | 'mage';
-const TABS: Tab[] = ['artifacts', 'spells', 'items', 'mage'];
+type Tab = 'artifacts' | 'spells' | 'items' | 'mage' | 'foes';
+const TABS: Tab[] = ['artifacts', 'spells', 'items', 'mage', 'foes'];
 /** One entry in a tab: a tile (or a row, in the mage's tab) and what the panel says of it. */
 interface Entry { icon: string; label: string; badge?: string; corner?: string; dim?: boolean; section?: string; detail: () => string }
 
@@ -27,7 +33,7 @@ const num = (v: number, d = 1) => String(+v.toFixed(d));
 const halves = (h: number) => h % 2 ? `${h > 1 ? Math.floor(h / 2) : ''}½` : String(h / 2);
 
 let open = false, tab: Tab = 'artifacts', back: 'pause' | 'play' = 'play';
-const chosen: Record<Tab, number> = { artifacts: 0, spells: 0, items: 0, mage: 0 };
+const chosen: Record<Tab, number> = { artifacts: 0, spells: 0, items: 0, mage: 0, foes: 0 };
 let actions: { resume(): void } = { resume: () => {} };
 
 /** How to go back to the game when the inventory closes (flow's resume, from main.ts). */
@@ -54,6 +60,7 @@ function entries(t: Tab): Entry[] {
   if (t === 'artifacts') return artifactEntries();
   if (t === 'spells') return spellEntries();
   if (t === 'items') return itemEntries();
+  if (t === 'foes') return foeEntries();
   return mageEntries();
 }
 
@@ -170,6 +177,41 @@ function mageEntries(): Entry[] {
   ];
 }
 
+/** A foe's tile: a dark face with two eyes in its school's light. */
+const foeIcon = (color: string) => `<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="25" r="17" fill="#1c1820" stroke="${color}" stroke-width="2.5"/><path d="M14 18l6 3M34 18l-6 3" stroke="${color}" stroke-width="2" stroke-linecap="round"/><ellipse cx="18.5" cy="25" rx="3" ry="2" fill="${color}"/><ellipse cx="29.5" cy="25" rx="3" ry="2" fill="${color}"/><path d="M17 33q7 4 14 0" stroke="${color}" stroke-width="1.6" fill="none"/></svg>`;
+const css = (n: number) => '#' + n.toString(16).padStart(6, '0');
+
+/** The Foes tab (M4.7): every foe the mage has met, by floor, then the bosses: its weakness and resistance once found
+    (an elemental drinks its own school), and its counters, found ones described and the rest sealed. Kept between runs
+    (actors/bestiary.ts); M7's bestiary at the Vigil grows from it. */
+function foeEntries(): Entry[] {
+  const book = bestiary(), F = I().foes, chip = (label: string, found: boolean, school: string, good: boolean) =>
+    `<span class="chip${found ? good ? ' good' : ' bad' : ''}">${esc(label)} ${esc(found ? STR.schools[school] : F.unknown)}</span>`;
+  const met = FOE_IDS.filter(id => book[id]?.met).sort((a, b) => (FOES[a].floor || 9) - (FOES[b].floor || 9));
+  const out: Entry[] = met.map((id, k) => {
+    const def = FOES[id], rec = book[id], all = countersOf(id), found = rec.counters ?? [], icon = foeIcon(css(SCHOOL_LIGHT[def.school]));
+    const where = F.floor(def.floor), newFloor = k === 0 || FOES[met[k - 1]].floor !== def.floor;
+    return {
+      icon, label: foeName(id), badge: all.length ? `${found.filter(c => all.includes(c)).length}/${all.length}` : undefined, section: newFloor ? where : undefined,
+      detail: () => head(icon, foeName(id), F.kind(STR.schools[def.school], where))
+        + `<div class="chips">${chip(F.weak, rec.weak, def.weak, true)}${chip(def.elemental ? F.drinks : F.resist, rec.resist, def.resist, false)}</div>`
+        + `<p class="lbl">${esc(F.counters)}</p>`
+        + (all.length ? all.map(c => found.includes(c) ? `<p class="effect"><b>${esc(STR.foes.counters[c])}</b> ${esc(STR.foes.counterLines[id][c])}</p>` : `<p class="note">${esc(F.sealed)}</p>`).join('') : `<p class="note">${esc(F.noCounter)}</p>`),
+    };
+  });
+  const bosses = BOSS_TYPES.filter(b => book[b]?.met);
+  bosses.forEach((b, k) => {
+    const C = CFG.enemy[b] as { weak?: string; resist?: string }, rec = book[b], school = C.weak ? css(0xd8c8a8) : '#a89878', icon = foeIcon(school);
+    out.push({
+      icon, label: STR.bosses[b].name, section: k === 0 ? F.bosses : undefined,
+      detail: () => head(icon, STR.bosses[b].name, STR.bosses[b].sub)
+        + (C.weak && C.resist ? `<div class="chips">${chip(F.weak, rec.weak, C.weak, true)}${chip(F.resist, rec.resist, C.resist, false)}</div>` : ''),
+    });
+  });
+  if (!out.length) out.push({ icon: foeIcon('#5a5060'), label: F.noneMet, dim: true, detail: () => `<p class="effect">${esc(F.noneMet)}</p>` });
+  return out;
+}
+
 /* ---------- drawing and choosing ---------- */
 
 function render() {
@@ -216,7 +258,7 @@ export function inventoryKey(code: string, playing: boolean) {
   else if (code === 'ArrowDown' || code === 'KeyS') move(0, 1);
   else if (code === 'KeyQ') turn(-1);
   else if (code === 'KeyE') turn(1);
-  else if (/^Digit[1-4]$/.test(code)) { tab = TABS[Number(code.slice(5)) - 1]; render(); }
+  else if (/^Digit[1-5]$/.test(code)) { tab = TABS[Number(code.slice(5)) - 1]; render(); }
   else return false;
   return true;
 }

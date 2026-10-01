@@ -28,6 +28,7 @@ import { canAct } from './status';
 import type { Shape, SpellDef } from './spellData';
 import { flash, inflict } from './statusFx';
 import { consecrateFx, graspFx, hideSpellFx, iceColumn, lanceFx, mantleFx, ringFx, sealFx, smiteFx, strikeFx, tollFx, updateSpellFx, wardFx } from './spellFx';
+import { counter } from '../actors/counters';
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 const FIRE = 0xff7a2a, EMBER = 0xffc060, ICE = 0xbfe6ff;
@@ -91,6 +92,7 @@ const chain: Cast = (def, dir) => {
     from = to;
   });
   Sfx.at(first.x, first.z).arc(path.length);
+  const swarm = path.filter(e => e.foe?.behaviour === 'swarm'); if (swarm.length > 1) counter(swarm[1], 'chained'); // (M4.7: it leapt through a swarm)
   return true;
 };
 

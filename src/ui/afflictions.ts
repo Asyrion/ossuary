@@ -9,7 +9,7 @@ import { stuckIn, slipAt } from '../actors/bestiaryGround';
 import { snagAt } from '../world/props';
 import { sapMul } from '../world/mechanisms';
 import { floatText } from '../magic/statusFx';
-import { toast } from './hud';
+import { toast, toastShowing } from './hud';
 
 export type Affliction = 'hexed' | 'chill' | 'stone' | 'dim' | 'web' | 'ink' | 'snag' | 'slide' | 'drawn' | 'sapped';
 /** Each one's colour (its school's light where it has one). */
@@ -47,7 +47,7 @@ let shown = '', lineUntil = 0;
     one at a time (several coming at once wait their turn, each long enough to read). */
 export function updateAfflictions() {
   const now = afflictions();
-  if (G.simClock >= lineUntil) for (const a of now) {
+  if (G.simClock >= lineUntil && !toastShowing()) for (const a of now) { // (a line already showing, a shrine's or a room's, isn't cut short)
     const why = STR.afflict.why[a]; if (!why || G.run.hinted.has(`afflict:${a}`)) continue;
     G.run.hinted.add(`afflict:${a}`); toast(why, CFG.afflict.lineShow); lineUntil = G.simClock + CFG.afflict.lineShow; break;
   }

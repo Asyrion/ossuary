@@ -41,6 +41,7 @@ import { glowTex } from '../render/textures';
 import { burst } from '../combat/fx';
 import { spawnShot } from '../combat/projectiles';
 import { actAs, actingKind } from './acting';
+import { counter } from './counters';
 import { addSpores } from '../world/props';
 import { addPool, fireAt, frostAt, poolAt, shockAt } from '../world/pools';
 import { ringFx, strikeFx } from '../magic/spellFx';
@@ -252,7 +253,8 @@ const BEHAVIOURS: Record<string, Behaviour> = {
       if ((e.st -= dt) <= 0) {
         e.st = num(P.relure);
         const fire = litFires(room).map(b => ({ x: b.x, z: b.z, d: Math.hypot(b.x - e.x, b.z - e.z) })).sort((p, q) => p.d - q.d)[0];
-        e.target = fire && fire.d < num(P.lureReach) && Math.random() < num(P.lure) ? { x: fire.x, z: fire.z } : undefined;
+        const was = e.target; e.target = fire && fire.d < num(P.lureReach) && Math.random() < num(P.lure) ? { x: fire.x, z: fire.z } : undefined;
+        if (e.target && !was) counter(e, 'lured');
         if (e.target && e.state === 'flare') { e.state = 'loop'; e.tele = 0; }
       }
       const lured = e.target, cx = lured?.x ?? player.x, cz = lured?.z ?? player.z;
@@ -315,7 +317,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
     },
     bump(e, hit, P) {
       if (!hit) return;
-      if (e.state === 'charge') { e.state = 'stun'; e.st = num(P.stun); e.fireT = 0; G.shake = Math.max(G.shake, .12); Sfx.at(e.x, e.z).beetleThud(); burst(e.x, .3, e.z, 0x8a7a6a, 8, 1.4, .05); }
+      if (e.state === 'charge') { e.state = 'stun'; e.st = num(P.stun); e.fireT = 0; G.shake = Math.max(G.shake, .12); Sfx.at(e.x, e.z).beetleThud(); burst(e.x, .3, e.z, 0x8a7a6a, 8, 1.4, .05); counter(e, 'dazed'); }
       else if (e.state === 'wander') e.dir = { x: -e.dir!.x, z: -e.dir!.z };
     },
     pose(e) {
@@ -335,7 +337,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
         e.fireT = stillness ? (e.fireT ?? 0) + dt : 0;
         if (a.dist < num(P.wake) || e.hp < e.maxHp || e.fireT > num(P.lonely) * (1 + (e.x * 7.3 % 1 + 1) % 1 * .6)) {
           e.state = 'peek'; e.st = num(P.tell); e.contact = e.foe!.contact; e.animRate = 1;
-          burst(e.x, .45, e.z, 0xb0603c, 8, 1.6, .05); Sfx.at(e.x, e.z).mimicWake();
+          burst(e.x, .45, e.z, 0xb0603c, 8, 1.6, .05); Sfx.at(e.x, e.z).mimicWake(); if (e.hp < e.maxHp) counter(e, 'unmasked');
         }
         return e.face;
       }
@@ -418,7 +420,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
     driven(e, P, why) {
       if (e.state !== 'under' && e.state !== 'dive') return;
       this.surface!(e, P); e.state = 'trapped'; e.st = num(P.stranded); e.open = 1; e.cycle = 1; e.fireT = .7; e.vx = e.vz = 0; e.tele = 0;
-      drivenUp(e, why);
+      drivenUp(e, why); counter(e, 'driven');
     },
     step(e, dt, a, P, room) {
       e.st -= dt; e.kx = e.kz = 0; // (anchored in its pool)
@@ -428,7 +430,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
         const t = e.target!, dx = t.x - e.x, dz = t.z - e.z, d = Math.hypot(dx, dz);
         const sp = e.foe!.speed * e.speedMul; e.vx = d > .05 ? dx / d * sp : 0; e.vz = d > .05 ? dz / d * sp : 0;
         if (Math.random() < dt * 6) burst(e.x, .05, e.z, 0x9fe8ff, 1, .5, .03); // (ripples where it goes)
-        if (frozen) { this.surface!(e, P); e.state = 'trapped'; e.st = num(P.trapped); Sfx.at(e.x, e.z).freeze(); return; }
+        if (frozen) { this.surface!(e, P); e.state = 'trapped'; e.st = num(P.trapped); Sfx.at(e.x, e.z).freeze(); counter(e, 'iced'); return; }
         if (e.st <= 0 && d < .3) { e.state = 'rise'; e.st = num(P.rise); e.vx = e.vz = 0; Sfx.at(e.x, e.z).lurkerRise(); }
       } else if (e.state === 'rise') {
         e.vx = e.vz = 0; e.open = Math.min(1, 1 - e.st / num(P.rise)); e.tele = e.open;
@@ -590,7 +592,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
       } else if (e.state === 'under') { // a mound creeping after the mage
         const sp = num(P.burrowSpeed) * e.speedMul; e.vx = a.ux * sp; e.vz = a.uz * sp;
         if (Math.random() < dt * 8) burst(e.x, .05, e.z, 0x3a3028, 1, .6, .04); // (earth thrown up)
-        if (burning) { this.surface!(e, P); e.state = 'dazed'; e.st = 1.2; burst(e.x, .4, e.z, 0xff9a3a, 10, 1.6, .05); Sfx.at(e.x, e.z).dig(); } // fire on its mound drives it up
+        if (burning) { this.surface!(e, P); e.state = 'dazed'; e.st = 1.2; burst(e.x, .4, e.z, 0xff9a3a, 10, 1.6, .05); Sfx.at(e.x, e.z).dig(); counter(e, 'smoked'); } // fire on its mound drives it up
         else if (a.dist < .5 || e.st <= 0) { e.state = 'rumble'; e.st = num(P.tell); e.vx = e.vz = 0; ringFx(e.x, .05, e.z, light(e), .8, .25, num(P.tell), true); Sfx.at(e.x, e.z).rumble(); }
       } else if (e.state === 'rumble') { // the ground shakes where it will come up
         e.vx = e.vz = 0;

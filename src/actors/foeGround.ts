@@ -1,9 +1,10 @@
 /* Foes in each other's ground (M4.7 step 2, docs/M4.7-plan.md; GDD: Depth for what's built). What the bestiary leaves on
    the floor works on foes as it does on the mage: webs and ink slow a walker, rime makes it slide, burning ground sets it
    burning, an armed spark shocks it, a Sporeling's or a Puffcap's spores sting it. A foe's own ground spares it and its
-   kind (each patch, fire, spark and cloud knows whose it is: actors/acting.ts). Beasts blunder in; golems
-   (`avoidsGround`) and elementals look a step ahead and go round. Fliers and bosses pass over it all. Tuning in
-   `CFG.foeGround`. */
+   kind (each patch, fire, spark and cloud knows whose it is: actors/acting.ts), and a foe is at home in ground of its own
+   school (a Frost foe on rime, an Ember one in fire, a Storm one on sparks, an Umbral one in webs, ink and spores). Beasts
+   blunder in; golems (`avoidsGround`) and elementals look a step ahead and go round. Fliers and bosses pass over it all.
+   Tuning in `CFG.foeGround`. */
 import type { Enemy } from '../types';
 import { G } from '../state';
 import { CFG } from '../config';
@@ -18,28 +19,34 @@ import { layGround, patchAt, slipAt, stickyAt } from './bestiaryGround';
 import { hazardAt, layFire, laySpark } from './foes';
 import { spawnFoe } from './enemies';
 
+type Ground = 'web' | 'ink' | 'rime' | 'fire' | 'spark' | 'spores';
+/** The school each ground is of: a foe of that school is at home in it. */
+const SCHOOL: Record<Ground, string> = { web: 'umbral', ink: 'umbral', rime: 'frost', fire: 'ember', spark: 'storm', spores: 'umbral' };
 const kindOf = (e: Enemy) => e.foe?.id;
+/** Whether ground `g` leaves `e` be (it is of `e`'s school). */
+const home = (e: Enemy, g: Ground) => e.foe?.school === SCHOOL[g];
 /** Whether `e` walks the ground at all (fliers, bosses and those hidden under it don't). */
 const walks = (e: Enemy) => !!e.foe && !e.flying && !e.isBoss && !e.hidden;
-/** Whether something at (x, z) would hold or hurt a foe of kind `who`. */
-const foulAt = (x: number, z: number, who?: string) => !!hazardAt(x, z, who) || stickyAt(x, z, who) < 1 || slipAt(x, z, who) || stingAt(x, z, who);
-
-type Ground = 'web' | 'ink' | 'rime' | 'fire' | 'spark' | 'spores';
+/** Whether something at (x, z) would hold or hurt `e` (another kind's, not of its school). */
+function foulAt(e: Enemy, x: number, z: number) {
+  const who = kindOf(e), h = hazardAt(x, z, who), p = patchAt(x, z, who);
+  return (!!h && !home(e, h)) || (!!p && !home(e, p)) || (stingAt(x, z, who) && !home(e, 'spores'));
+}
 /** Each ground's colour, for the puff as a foe steps into it. */
 const COLOR: Record<Ground, number> = { web: 0xd8d0e8, ink: 0x8a72c8, rime: 0x9fd0ee, fire: 0xff7a2a, spark: SCHOOL_LIGHT.storm, spores: 0x8a6aa8 };
 /** The ground at (x, z) that a foe of kind `who` would fall foul of, if any. */
 const groundAt = (x: number, z: number, who?: string): Ground | undefined => hazardAt(x, z, who) ?? patchAt(x, z, who) ?? (stingAt(x, z, who) ? 'spores' : undefined);
 
 /** How much the ground at its feet holds `e` back this step (1: not at all): another kind's web or ink. */
-export const groundPace = (e: Enemy) => walks(e) ? stickyAt(e.x, e.z, kindOf(e)) : 1;
+export const groundPace = (e: Enemy) => walks(e) && !home(e, 'web') ? stickyAt(e.x, e.z, kindOf(e)) : 1;
 
 /** A golem or an elemental about to step into another kind's ground goes round it: the first way, a little to either side,
     that is clear, or it waits a moment. It never stops while it stands in it (it walks out). */
 export function steerAround(e: Enemy) {
   if (!walks(e) || !(e.foe!.avoidsGround || e.foe!.elemental)) return;
-  const sp = Math.hypot(e.vx, e.vz), who = kindOf(e), look = CFG.foeGround.look;
-  if (sp < .2 || foulAt(e.x, e.z, who)) return;
-  const a0 = Math.atan2(e.vz, e.vx), clear = (a: number) => [.5, 1].every(k => !foulAt(e.x + Math.cos(a) * look * k, e.z + Math.sin(a) * look * k, who)); // (two points on the way: a near patch isn't stepped over)
+  const sp = Math.hypot(e.vx, e.vz), look = CFG.foeGround.look;
+  if (sp < .2 || foulAt(e, e.x, e.z)) return;
+  const a0 = Math.atan2(e.vz, e.vx), clear = (a: number) => [.5, 1].every(k => !foulAt(e, e.x + Math.cos(a) * look * k, e.z + Math.sin(a) * look * k)); // (two points on the way: a near patch isn't stepped over)
   if (clear(a0)) return;
   for (const d of [.7, -.7, 1.4, -1.4]) if (clear(a0 + d)) { e.vx = Math.cos(a0 + d) * sp; e.vz = Math.sin(a0 + d) * sp; return; }
   e.vx = e.vz = 0;
@@ -47,7 +54,7 @@ export function steerAround(e: Enemy) {
 
 /** On another kind's rime, `e` slides: what it means to do comes in slowly, as for the mage (`CFG.bestiary.rimeGrip`). */
 export function groundSlide(e: Enemy, dt: number) {
-  if (!walks(e) || !slipAt(e.x, e.z, kindOf(e))) { e.slide = undefined; return; }
+  if (!walks(e) || home(e, 'rime') || !slipAt(e.x, e.z, kindOf(e))) { e.slide = undefined; return; }
   const k = 1 - Math.exp(-CFG.bestiary.rimeGrip * dt), was = e.slide ?? { x: e.vx, z: e.vz };
   e.slide = { x: was.x + (e.vx - was.x) * k, z: was.z + (e.vz - was.z) * k };
   e.vx = e.slide.x; e.vz = e.slide.z;
@@ -58,7 +65,7 @@ export function groundSlide(e: Enemy, dt: number) {
     ground sets it burning, an armed spark shocks and hurts it, spores sting it. */
 export function groundHarm(e: Enemy, dt: number) {
   if (!walks(e) || e.dead || e.spawn > 0) { e.inGround = undefined; return; }
-  const F = CFG.foeGround, who = kindOf(e), at = groundAt(e.x, e.z, who);
+  const F = CFG.foeGround, who = kindOf(e), found = groundAt(e.x, e.z, who), at = found && !home(e, found) ? found : undefined;
   if (at && at !== e.inGround) {
     burst(e.x, .3, e.z, COLOR[at], 8, 1.4, .04);
     if (!G.run.hinted.has('foeGround')) { G.run.hinted.add('foeGround'); toast(STR.foes.groundLine, CFG.afflict.lineShow); }
@@ -68,7 +75,7 @@ export function groundHarm(e: Enemy, dt: number) {
   const h = at === 'fire' || at === 'spark' ? at : undefined;
   if (h === 'fire') inflict(e, { burn: F.burn });
   else if (h === 'spark') { inflict(e, { shock: F.shock }); damageEnemy(e, F.sparkDamage, 0, 0, 0, undefined, 'storm'); }
-  else if (stingAt(e.x, e.z, who)) damageEnemy(e, F.sting, 0, 0, 0);
+  else if (at === 'spores') damageEnemy(e, F.sting, 0, 0, 0);
   else return;
   e.groundT = F.every;
 }

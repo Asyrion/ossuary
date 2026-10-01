@@ -16,6 +16,7 @@ import { callWanderer } from '../items/wanderer';
 import { STR, foeName } from '../strings';
 import { FOES, FOE_IDS, pickFoe } from '../actors/foeData';
 import { forgetBestiary } from '../actors/bestiary';
+import { findEveryCounter } from '../actors/counters';
 import { ARTIFACT_DEFS, START_FOCUS, artifact } from '../items/artifactData';
 import { giveById, grantArtifact, placeArtifact, refreshStats, removeArtifactGallery, resetArtifacts, showArtifactGallery } from '../items/artifacts';
 import { DROPS, RESOURCES, SOULS, soulItem, type Drop, type Resource } from '../items/loot';
@@ -264,7 +265,7 @@ function build() {
   foes.append(btn(S.wardFoe, () => { const e = nearestFoe(); if (e) wardFoe(e); else toast(S.noFoe, 2); }));
   foes.append(el('p', 'dv-info', S.bestiaryNote), foeBtn = btn('', () => { // (the floor is built again with it)
     const list = [undefined, ...FOE_IDS], at = list.indexOf(DEV.foe); DEV.foe = list[(at + 1) % list.length]; rebuildFloor(); refresh();
-  }), btn(S.forgetBestiary, () => { forgetBestiary(); refresh(); }));
+  }), btn(S.findCounters, () => { findEveryCounter(); refresh(); }), btn(S.forgetBestiary, () => { forgetBestiary(); refresh(); }));
 
   // the rooms' objects (M3.6), put down just ahead of the mage
   const objs = section(pages.foes, S.objects);
