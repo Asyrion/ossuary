@@ -2915,12 +2915,12 @@ test('the room kit\'s objects: every pile and object, urns, pedestals, pillars a
       burning: !!sack.prop.flame, kitFire: !!sack.prop.flame?.userData.fire, calls,
     };
   });
-  const kinds = ['boat', 'bones', 'briar', 'bridge', 'cask', 'desk', 'glowcap', 'hoard', 'pew', 'roots', 'rubble', 'sacks', 'scrolls', 'skulls', 'tree', 'web'];
+  const kinds = ['boat', 'bones', 'briar', 'bridge', 'cask', 'desk', 'globe', 'glowcap', 'hoard', 'pew', 'roots', 'rubble', 'sacks', 'scrolls', 'skulls', 'tree', 'web'];
   for (const floor of [1, 2, 3, 4, 5]) {
     const errors = await start(page, `?seed=K3F9QX&floor=${floor}`);
     const kit = await objects();
     expect(kit.kinds, `floor ${floor}`).toEqual(kinds);
-    expect(kit).toMatchObject({ painted: 15, urns: 4, urnsPainted: 4, pedestal: true, burning: true, kitFire: true }); // (all but the cobweb, drawn in pixel art; two urns each from both buttons)
+    expect(kit).toMatchObject({ painted: 16, urns: 4, urnsPainted: 4, pedestal: true, burning: true, kitFire: true }); // (all but the cobweb, drawn in pixel art; two urns each from both buttons)
     expect(kit.calls).toBeLessThan(260);
     if (floor === 1) await page.screenshot({ path: 'test-results/room-kit-objects.png' });
     // a room of pillars and a tomb
@@ -2935,7 +2935,7 @@ test('the room kit\'s objects: every pile and object, urns, pedestals, pillars a
   }
   // off: the old looks, nothing painted
   await start(page, '?seed=K3F9QX&kit=old');
-  expect(await objects()).toMatchObject({ kinds, painted: 3, urnsPainted: 0, pedestal: false, burning: true, kitFire: false }); // (M4.1's heap and boat and M4.2's bridge have only the kit's look)
+  expect(await objects()).toMatchObject({ kinds, painted: 4, urnsPainted: 0, pedestal: false, burning: true, kitFire: false }); // (M4.1's heap and boat, M4.2's bridge and M5's jelly globe have only the kit's look)
 });
 
 test('the room kit\'s doors, gates, niches and pilasters: built in code, one mesh a gate, fewer draw calls, and the gate still rises', async ({ page }) => {
