@@ -55,7 +55,7 @@ import { lerp, mulberry, rand } from '../util';
 import { MODEL_OPTIONS } from './modelOptions';
 import { BESTIARY_OPTIONS, FOE_LOOKS } from './bestiaryLooks';
 import { BESTIARY_BEHAVIOURS, clearGround, updateGround } from './bestiaryFoes';
-import { light, num, span, type Aim, type Behaviour } from './foeKit';
+import { light, num, span, wayRound, type Aim, type Behaviour } from './foeKit';
 import { metFoe } from './bestiary';
 import type { FoeDef, School } from './foeData';
 import type { SpellStatus } from '../magic/spellData';
@@ -388,8 +388,8 @@ const BEHAVIOURS: Record<string, Behaviour> = {
         }
       } else if (e.state === 'crouch') { e.vx = e.vz = 0; if (e.st <= 0) {
         // a leap at the mage, no further than it can jump
-        const d = Math.min(a.dist, num(P.reach)), T = num(P.leap);
-        e.dir = { x: a.ux * d / T, z: a.uz * d / T }; e.state = 'leap'; e.st = T; e.cycle! -= 1; Sfx.at(e.x, e.z).toadLeap();
+        const d = Math.min(a.dist, num(P.reach)), T = num(P.leap), w = wayRound(e, a.ux, a.uz, d); // (round stone in the way, not into it)
+        e.dir = { x: w.x * d / T, z: w.z * d / T }; e.state = 'leap'; e.st = T; e.cycle! -= 1; Sfx.at(e.x, e.z).toadLeap();
       } } else if (e.state === 'leap') {
         e.vx = e.dir!.x * e.speedMul; e.vz = e.dir!.z * e.speedMul;
         if (e.st <= 0) { e.state = 'sit'; e.st = span(P.sit); burst(e.x, .1, e.z, 0x6a8a8a, 6, 1.2, .05); Sfx.at(e.x, e.z).toadLand(); }

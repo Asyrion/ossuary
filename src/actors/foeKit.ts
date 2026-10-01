@@ -3,6 +3,9 @@
 import type { Enemy, Room } from '../types';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { rand } from '../util';
+import { G } from '../state';
+import { CFG } from '../config';
+import { blockers } from '../world/collision';
 import type { FoeDef, School } from './foeData';
 import type { SpellStatus } from '../magic/spellData';
 
@@ -35,3 +38,22 @@ export const ramp = (left: number, of: number) => Math.min(1, 1 - left / of);
 export function rush(e: Enemy, speed: number) { e.vx = e.dir!.x * speed * e.speedMul; e.vz = e.dir!.z * speed * e.speedMul; return Math.atan2(e.dir!.x, e.dir!.z); }
 /** Slow to a stop, `k` the rate (higher, sooner). */
 export function brake(e: Enemy, k: number, dt: number) { const f = Math.exp(-k * dt); e.vx *= f; e.vz *= f; }
+
+const sides = new WeakMap<Enemy, number>();
+/** The way for `e` to leap or dash `d` towards (ux, uz) without landing in stone: straight on if a walker's way is clear,
+    else turned off to one side (each foe keeps to its own side, so it doesn't dither), the least turn that is clear
+    (`CFG.foeWay.turns`). A leaper pressed against a tomb with the mage beyond goes round it, not into it for ever. */
+export function wayRound(e: Enemy, ux: number, uz: number, d: number) {
+  const solid = blockers(G.current, 'walker'), n = Math.max(2, Math.ceil(d / .2));
+  const clear = (x: number, z: number) => {
+    for (let i = 1; i <= n; i++) { const px = e.x + x * d * i / n, pz = e.z + z * d * i / n; if (solid.some(b => Math.abs(px - b.x) < b.hx + e.r && Math.abs(pz - b.z) < b.hz + e.r)) return false; }
+    return true;
+  };
+  if (clear(ux, uz)) return { x: ux, z: uz };
+  let side = sides.get(e); if (!side) sides.set(e, side = Math.random() < .5 ? 1 : -1);
+  for (const t of CFG.foeWay.turns) for (const s of [side, -side]) {
+    const c = Math.cos(t * s), sn = Math.sin(t * s), x = ux * c - uz * sn, z = ux * sn + uz * c;
+    if (clear(x, z)) return { x, z };
+  }
+  return { x: ux, z: uz };
+}
