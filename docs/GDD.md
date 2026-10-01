@@ -304,9 +304,10 @@ on 2026-10-01 and reverted at the owner's ask the same day.
   scale the foe's step, never its velocity: one stack is 78% for every foe.
 - **One pack a room**, as one elite: a second wolf pack or firefly swarm in a room's roll goes to another foe, a pack's
   size comes from the room's seed (a replayed seed fights the same packs), and quiet rooms keep no pack.
-- **No foe waits for ever.** The Rubble Crab wakes when it is the last one in the room still waiting (as the urn and the
-  book do); the Shadow Fox, finding no shadow near the mage for a while, rises in the light; the Brine Serpent, kept from
-  the water nearest the mage, rises where it is. Each could have held a room's doors shut.
+- **No foe waits for ever.** The Rubble Crab wakes once nothing else in the room is awake (crabs aside), as the urn and the
+  book do; the Shadow Fox, finding no shadow near the mage for a while, rises in the light; the Brine Serpent, kept from
+  the water nearest the mage, makes for the water nearest itself (and kept from that too, rises where it is). Each could
+  have held a room's doors shut.
 - **Songs don't reach bosses**: a Choir Lark called up as a boss's helper hastens the helpers, not the boss.
 - **Smaller things:** the Shadow Fox rises within its reach of the mage (a free spot past a pillar could leave its bite
   short); the shared parts of the bestiary's looks (a spider's thread, a basilisk's stare) are built once; the dashes,
@@ -1308,8 +1309,9 @@ something the mage learns, and makes foes part of the room, not only in it.
 ### M4.8 The full wheel: every pair of schools reacts
 
 Five schools make ten pairs; four react today (Shatter, Overload, Eclipse, Blackfire). This milestone builds Steam and
-the other five, so any two schools on a foe or a tile do something, and the mage learns them like spells. With M5's
-Verdant and its three reactions, the wheel stays complete.
+the other five, so any two schools on a foe or a tile do something, and the mage learns them like spells. M5's Verdant
+brings three reactions of its own (with Ember, Frost and Storm); its pairs with Hallow and Umbral are left to design with
+it, so the wheel is whole again by M5's end.
 
 | Combination | Reaction | What it does |
 | --- | --- | --- |

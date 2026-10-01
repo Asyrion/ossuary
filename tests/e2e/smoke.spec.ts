@@ -34,7 +34,7 @@ async function start(page: Page, query: string) {
       g.arrowOrder.length = 0; const a = codes.find(c => c.startsWith('Arrow')); if (a) g.arrowOrder.push(a);
     };
     w.__fight = (limit: number) => {
-      let t = 0;
+      let t = 0, stuck = 0, idle = 0, lineUp = 0, was = { x: g.player.x, z: g.player.z }, last: unknown, lastHp = 0;
       for (; t < limit && g.enemies.length; t += 0.05) {
         g.player.hp = g.player.maxHp; // these tests check the loop, not survival (hits still knock the hero back)
         const p = g.player;
@@ -43,7 +43,11 @@ async function start(page: Page, query: string) {
         const e = g.enemies.filter(f => !f.dead).sort((a, b) => +!!(a as { glance?: boolean }).glance - +!!(b as { glance?: boolean }).glance || Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0];
         if (!e) { hold([]); g.sim(0.05); continue; }
         const dx = e.x - p.x, dz = e.z - p.z, codes: string[] = [];
-        if (Math.hypot(dx, dz) < (e.isBoss ? 1.6 : .9)) {
+        // backing off into a corner goes nowhere (and a foe on the diagonal is never struck), and a foe that takes no harm
+        // for a while isn't being struck: line up with it a while instead
+        const hp = (e as unknown as { hp: number }).hp; idle = e === last && hp >= lastHp ? idle + 0.05 : 0; last = e; lastHp = hp;
+        if (stuck > .5 || idle > 2) { lineUp = 1.5; stuck = idle = 0; }
+        if (Math.hypot(dx, dz) < (e.isBoss ? 1.6 : .9) && lineUp <= 0) {
           codes.push(dx > 0 ? 'KeyA' : 'KeyD', dz > 0 ? 'KeyW' : 'KeyS');
           codes.push(Math.abs(dx) > Math.abs(dz) ? (dx < 0 ? 'ArrowLeft' : 'ArrowRight') : (dz < 0 ? 'ArrowUp' : 'ArrowDown'));
         } else if (Math.abs(dx) <= Math.abs(dz)) {
@@ -53,7 +57,8 @@ async function start(page: Page, query: string) {
           if (dz > .2) codes.push('KeyS'); else if (dz < -.2) codes.push('KeyW');
           codes.push(dx < 0 ? 'ArrowLeft' : 'ArrowRight');
         }
-        hold(codes); g.sim(0.05);
+        hold(codes); g.sim(0.05); lineUp -= 0.05;
+        stuck = Math.hypot(p.x - was.x, p.z - was.z) < .01 ? stuck + 0.05 : 0; was = { x: p.x, z: p.z };
       }
       hold([]); return t;
     };
@@ -3078,6 +3083,22 @@ test('the bestiary (M4.5), floor 1: the spider drops from out of reach and spits
   for (const e of [e1, e2, e3, e4]) expect(e).toEqual([]);
 });
 
+test('a pack\'s size comes from the room\'s seed: a replayed seed brings the same swarms', async ({ page }) => {
+  const sizes = async () => {
+    const errors = await start(page, '?seed=K3F9QX&room=crypt_b&foe=fireflySwarm');
+    const n = await page.evaluate(() => {
+      const g = (window as unknown as W).__game; g.warp(1); g.sim(.8);
+      const packs: { members: unknown[] }[] = [];
+      for (const e of g.enemies as unknown as { pack?: { members: unknown[] } }[]) if (e.pack && !packs.includes(e.pack)) packs.push(e.pack);
+      return packs.map(p => p.members.length);
+    });
+    return { errors, n };
+  };
+  const a = await sizes(), b = await sizes();
+  expect(a.n.length).toBeGreaterThan(1); expect(b.n).toEqual(a.n); // (each swarm as big as the first time, in the same order)
+  expect([...a.errors, ...b.errors]).toEqual([]);
+});
+
 test('the bestiary (M4.5), floor 2: the snail leaves rime and hides in its shell (fire cracks it); the walking wave pours water, drinks frost and shatters; the newt lunges out of water and chills (a shock shows it); the serpent rises and is trapped by ice; the thunderhead rains sparks and drinks storm; the darter dashes (chilled, it hangs); the puffcap bursts (fire pops it)', async ({ page }) => {
   type Foe = { type: string; state: string; x: number; z: number; hp: number; maxHp: number; hidden?: boolean; dead?: boolean };
   type GF = { sim(sec: number, draw?: boolean): void; warp(id: number): void; hit(i: number, dmg: number, school?: string): number;
@@ -3110,7 +3131,10 @@ test('the bestiary (M4.5), floor 2: the snail leaves rime and hides in its shell
       g.pool('shock'); g.sim(.1); R.newt = { hidden, chill, under, shocked: e.state, shown: !e.hidden }; }
     // the serpent: it rises and spits; its pool frozen, it is trapped above the ice
     { let shots = 0; const { e, seen } = meet('brineSerpent', 6, f => f.state === 'up' && shots > 0, () => { shots = Math.max(shots, g.shots.length); });
-      g.pool('frost'); g.sim(1.5); R.serpent = { up: seen.has('up'), shots, trapped: e.state }; }
+      // kept from the place it makes for (beyond the wall), it doesn't slide beneath for ever: it makes for the water nearest
+      // itself, and rises there
+      Object.assign(e, { state: 'under', st: 0, count: 0, target: { x: e.x + 40, z: e.z } }); const lost = new Set<string>(); for (let k = 0; k < 160 && !lost.has('rise'); k++) { g.sim(.05); lost.add(e.state); }
+      g.pool('frost'); g.sim(1.5); R.serpent = { up: seen.has('up'), shots, lost: lost.has('rise'), trapped: e.state }; }
     // the thunderhead (an elemental): over the mage it gathers and rains sparks; storm feeds it, frost hurts it twice over
     { let sparks = 0; const { e, i, seen } = meet('thunderhead', 8, () => sparks > 0, () => { sparks = Math.max(sparks, g.sparkGround); });
       e.hp = e.maxHp / 2; let hp = e.hp; g.hit(i, 2, 'storm'); const storm = e.hp - hp; hp = e.hp; g.hit(i, 2, 'frost');
@@ -3128,7 +3152,7 @@ test('the bestiary (M4.5), floor 2: the snail leaves rime and hides in its shell
   });
   expect(r.snail).toMatchObject({ shut: 'shell', burnt: 'cracked' }); expect((r.snail as { rime: number }).rime).toBeGreaterThan(0); expect((r.snail as { took: number }).took).toBeLessThan(1);
   expect(r.newt).toMatchObject({ hidden: true, under: true, shocked: 'stunned', shown: true }); expect((r.newt as { chill: number }).chill).toBeGreaterThan(0);
-  expect(r.serpent).toMatchObject({ up: true, trapped: 'trapped' }); expect((r.serpent as { shots: number }).shots).toBeGreaterThan(0);
+  expect(r.serpent).toMatchObject({ up: true, lost: true, trapped: 'trapped' }); expect((r.serpent as { shots: number }).shots).toBeGreaterThan(0);
   const w = r.wave as { poured: number; frost: number; ember: number; plain: number; shattered: number };
   expect(r.wave).toMatchObject({ reared: true, iced: 'ice', after: 'walk' }); expect(w.poured).toBeGreaterThan(0);
   expect(w.frost).toBeGreaterThan(0); expect(w.ember).toBeCloseTo(w.plain * 2); expect(w.shattered).toBeGreaterThan(.5);
