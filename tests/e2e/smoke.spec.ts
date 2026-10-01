@@ -388,17 +388,18 @@ test('Fen-Nex: the Rune of Fen-Nex binds it at the mage\'s heel; it bites foes, 
   expect(errors).toEqual([]);
 });
 
-test('the bestiary\'s candidates (M4.5): thirty-one looks in rows by kind, each named with the fight it would bring, inside the room', async ({ page }) => {
-  const errors = await start(page, '?room=crypt_a');
+test('the bestiary (M4.5): thirty-five looks in rows by kind, each named with the fight it brings, apart from each other inside a great hall', async ({ page }) => {
+  const errors = await start(page, '?room=great_hall&variant=quiet');
   type GB = GameHooks & { clearRoom(): void; bestiaryOptions(ids?: string[]): { id: string; x: number; z: number }[]; takeModelOptions(): void; current: RoomView & { bounds: { minX: number; maxX: number; minZ: number; maxZ: number } } };
   const shown = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as GB; g.warp(1); g.clearRoom(); g.sim(.3);
-    const all = g.bestiaryOptions(); g.sim(.5, true); const b = g.current.bounds;
-    const inside = all.every(o => o.x > b.minX && o.x < b.maxX && o.z > b.minZ && o.z < b.maxZ) && all.every((o, i) => all.every((q, j) => i === j || Math.hypot(o.x - q.x, o.z - q.z) >= 1)); // (and none on another)
-    g.takeModelOptions(); const some = g.bestiaryOptions(['inkling', 'cinderSprite']); g.sim(.2, true); g.takeModelOptions();
+    const g = (window as unknown as W).__game as GB; g.warp(1); g.sim(.3); g.clearRoom(); g.sim(.3);
+    const b = g.current.bounds; g.player.x = (b.minX + b.maxX) / 2; g.player.z = b.maxZ - .8;
+    const all = g.bestiaryOptions(); g.sim(.5, true);
+    const inside = all.every(o => o.x > b.minX && o.x < b.maxX && o.z > b.minZ && o.z < b.maxZ) && all.every((o, i) => all.every((q, j) => i === j || Math.hypot(o.x - q.x, o.z - q.z) >= 1.5)); // (and none on another)
+    g.takeModelOptions(); const some = g.bestiaryOptions(['cryptSpider', 'cinderDjinn']); g.sim(.2, true); g.takeModelOptions();
     return { n: all.length, ids: new Set(all.map(o => o.id)).size, inside, some: some.map(o => o.id) };
   });
-  expect(shown).toEqual({ n: 31, ids: 31, inside: true, some: ['inkling', 'cinderSprite'] });
+  expect(shown).toEqual({ n: 35, ids: 35, inside: true, some: ['cryptSpider', 'cinderDjinn'] });
   expect(errors).toEqual([]);
 });
 
