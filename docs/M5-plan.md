@@ -100,6 +100,34 @@ Bottled Storm); an unknown pair that matches no recipe brews a Volatile Mixture.
    in the family; the transformation's bandolier and apron, and the split throw (`splitThrow`, `CFG.alchemy.split`).
 9. **Verdant** (the second half, planned here when step 8 is built): Overgrown, three spells, the five reactions that
    make the wheel whole, garden rooms and their reagent, its sound.
+   *Planned (2026-10-01, when step 8 was built; GDD: Magic system, A sixth school; M4.10's Bloom and Blight).* Verdant
+   is the sixth school: growth, roots and pollen, in a spring green, its sound wood and breath (reeds, seed pods). Built in
+   four parts:
+   - **9a. The school and Overgrown.** `verdant` joins the schools everywhere they are listed (its light, its name, the
+     wheel's sixth spoke unsealed, a rune stone's emblem, the spell marks' motion, a Wardling of its own for the drinking
+     ward). Its status, Overgrown (`grow`, seconds): vines that slow a foe more the longer they hold (from a little to
+     more than half), shown on the foe as green vines; a foe that falls overgrown flowers, and the flower mends half a
+     heart (once a room). Bosses are slowed half as much.
+   - **9b. The five reactions** that make the wheel whole (all fifteen pairs of the six schools react), pure rules in
+     status.ts with their unit tests, effects in statusFx.ts, names, lines, sounds and a recipe each for the dev menu's
+     "Reactions here": *Wildfire* (Verdant + Ember: the burn runs along the vines to every overgrown foe in the room),
+     *Frostbloom* (Verdant + Frost: ice flowers open on the foe and shatter a moment later, chilling and cutting the foes
+     round it), *Pollen Spark* (Verdant + Storm: a cloud of pollen round the foe that shocks the foes inside it for a few
+     seconds), *Bloom* (Verdant + Hallow: the foe flowers; when it falls its lily mends half a heart, beyond the room's
+     one flower) and *Blight* (Verdant + Umbral: the vines rot to thorns that hex the foe and creep to the nearest other
+     foe, overgrowing it).
+   - **9c. Three spells** on shapes that exist, each with its own look in the effects' style: *Thorn Snare* (Grasp's
+     shape: thorns burst from the floor where the mage aims and close, rooting and overgrowing the foes there), *Pollen
+     Cloud* (Consecrate's: a cloud of golden pollen round the mage for a few seconds that overgrows foes in it and mends
+     half a heart once) and *Living Wall* (the Glacial Wall's: trunks of living wood that stop foes and their shots, and
+     overgrow the foes that touch them; fire burns it down). Pages for them come in libraries as every spell's do.
+   - **9d. Garden rooms and their reagent.** A themed room, the overgrown garden (`garden` in data/themes.json, on floors
+     1 to 3): moss and flowers over the floor, flowering plants (a new object) that burst into pollen when struck (the
+     foes near overgrown) and leave the school's reagent, *Bloom Petal* (leaning to healing and growth; brewed with Grave
+     Moss into a Healing Draught, with Wisp Essence into a Mana Tonic, with Ember Salt into Liquid Ember). Its twist: the
+     garden grows, Overgrown lasting longer on foes there. Overgrown foes and Verdant spells may leave Bloom Petal too.
+   Each part gets its dev menu entries, unit and browser tests, and the GDD as built. The Huruhui, the school's people in
+   the owner's lore, stay out of the game's text until M8.
 10. **Close**: the GDD as built, CLAUDE.md, the rules reviewer, a room sweep, screenshots for the owner, the play-test
     build.
 
