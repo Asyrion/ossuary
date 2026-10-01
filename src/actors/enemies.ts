@@ -103,11 +103,12 @@ export function updateEnemies(dt: number) {
       e.vx = (ux - uz * wob) * sp; e.vz = (uz + ux * wob) * sp;
       e.body.rotation.z = Math.sin(e.t * 6) * .08; e.body.position.y = Math.abs(Math.sin(e.t * 6)) * .04;
     } else if (e.isBoss) faceTo = updateBoss(e, dt, ux, uz) ?? faceTo;
-    const haste = songHaste(e); e.vx *= slow * haste; e.vz *= slow * haste; // (a lark's song hastens it, M4.5)
+    e.vx *= slow; e.vz *= slow;
     if (!e.flying) { const w = wadeAt(e.x, e.z) * snagAt(e.x, e.z); e.vx *= w; e.vz *= w; } // walkers wade through water, snag in cobwebs
     // integrate + knockback
     e.kx *= Math.exp(-8 * dt); e.kz *= Math.exp(-8 * dt);
-    e.x += (e.vx + e.kx) * dt; e.z += (e.vz + e.kz) * dt;
+    const haste = songHaste(e); // (a lark's song or a wolf's howl hastens its step, M4.5: not its velocity, which some foes build on)
+    e.x += (e.vx * haste + e.kx) * dt; e.z += (e.vz * haste + e.kz) * dt;
     const hit = collide(e, e.flying ? walls : solids);
     saltHolds(e); // (the Salt Circle keeps walkers out)
     if (e.isBoss) afterBossMove(e, hit);

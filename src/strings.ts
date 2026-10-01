@@ -341,7 +341,7 @@ export const STR = {
     cryptSpider: { name: 'Crypt Spider', fight: 'Ambusher: hangs out of reach on a thread, drops where the mage stands, spits webs that slow; fire burns a web' },
     inkOctopus: { name: 'Ink Octopus', fight: 'Splitter: crawls out of scroll heaps, leaves ink that slows, splits in two when struck; frozen, it shatters' },
     grimoireMimic: { name: 'Grimoire Mimic', fight: 'Mimic: lies shut as a book, wakes to fly, bite and riffle fans of cutting pages; may leave a grimoire page' },
-    fireflySwarm: { name: 'Firefly Swarm', fight: 'Swarm: seven lantern beetles with one mind, one blow each; streams at the mage; Arc leaps through them' },
+    fireflySwarm: { name: 'Firefly Swarm', fight: 'Swarm: five to seven lantern beetles with one mind, one blow each; streams at the mage; Arc leaps through them' },
     choirLark: { name: 'Choir Lark', fight: 'Support: sings from a high perch, hastening the foes round it; a hex silences it' },
     stormMantis: { name: 'Storm Mantis', fight: 'Mirror: parries bolts from the front, lunges, open from behind after; chilled, it can\'t parry' },
     rubbleCrab: { name: 'Rubble Crab', fight: 'Shielded: sits as rubble until the mage is near; its shell turns bolts; a blast flips it' },
@@ -411,7 +411,7 @@ export const STR = {
     fpsOn: 'Frame readout: shown', fpsOff: 'Frame readout: hidden',
     artifactGallery: 'Artifacts (the room kit\'s: built in code, their icons rendered from them)', artifactsNote: 'Every artifact floating ahead of the mage in rows (foci, passives, cursed), to look at; they can\'t be taken',
     bossLooks: 'The bosses built in code: the Hollow Warden\'s three looks (the floor-1 boss: choose one), and the bosses of floors 4 and 5', wardenWears: (name: string) => `The Warden wears: ${name}`,
-    options: 'Enemy model options (looks only)', familiars: 'Familiar options (looks only)', bestiary: 'The bestiary (M4.5, looks only: thirty-five to become foes)', bestiaryKinds: { beast: 'Beasts', creature: 'Creatures of myth', elemental: 'Elementals and golems' } as Record<string, string>, effects: 'Spell effect options (looks only)', showOptions: 'Stand them here', takeOptions: 'Take them away', floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
+    options: 'Enemy model options (looks only)', familiars: 'Familiar options (looks only)', bestiary: 'The bestiary (M4.5: the thirty-five as they look, all of them foes now)', bestiaryKinds: { beast: 'Beasts', creature: 'Creatures of myth', elemental: 'Elementals and golems' } as Record<string, string>, effects: 'Spell effect options (looks only)', showOptions: 'Stand them here', takeOptions: 'Take them away', floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
     pixel: 'Pixel look', pixelLines: (lines: number, drawn: number) => !lines ? 'Pixels: off' : drawn && drawn !== lines ? `Pixels: ${lines} lines (${drawn} in this window)` : `Pixels: ${lines} lines`,
     outlinesOn: 'Outlines: on', outlinesOff: 'Outlines: off', bandsOn: 'Light in bands: on', bandsOff: 'Light in bands: off',
     /** The on-screen readout: frame rate, and what the last frame drew. */
