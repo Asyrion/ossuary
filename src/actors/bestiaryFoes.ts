@@ -315,7 +315,7 @@ const crab: Behaviour = {
   },
   pose(e) {
     const flipped = e.state === 'flipped', hid = e.state === 'hidden' ? 1 : e.state === 'rise' ? Math.max(0, e.st / .4) : 0;
-    e.model!.rotation.z = flipped ? Math.PI : 0; e.model!.position.y = flipped ? .62 : -hid * .18;
+    e.model!.rotation.z = flipped ? Math.PI : 0; e.model!.position.y = flipped ? .62 : -hid * .3; // (hidden, sunk to its shell in the rubble)
     e.parts!.big.visible = e.parts!.small.visible = hid < .5;
   },
 };

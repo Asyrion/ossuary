@@ -269,6 +269,19 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   blow that lands (`hurtPlayer` says whether it did). The dev menu's
   Foes lists each floor's foes from the data; `__game.spawn('sporeling')`, `__game.hit(i, dmg, school)`,
   `__game.bestiary`, `__game.forgetBestiary()`, `__game.burningGround`.
+- M4.5's bestiary as foes (`docs/M4.5-plan.md`; floor 1 built): behaviours in `src/actors/bestiaryFoes.ts`, spread into
+  `foes.ts`'s, written against `foeKit.ts` (`Behaviour`: a blow's direction reaches `struck`, a glyph's blast `blasted`).
+  Floor 1's: `dropper` (Crypt Spider: hangs `hidden` on a thread, drops, spits web gobs), `splitter` (Ink Octopus: smears
+  ink, splits in two at half, cracks when chilled), `tome` (Grimoire Mimic: shut as a book, `guard`, wakes to fly and riffle
+  pages; may leave a grimoire page), `swarm` (Firefly Swarm: `pack` in the data, members sharing one mind, `e.pack`),
+  `singer` (Choir Lark: perches and sings, `sung` hastens the foes round it, `songHaste`; hushed while hexed), `mantis`
+  (Storm Mantis: parries the cantrip at its front, lunges, open after), `crab` (Rubble Crab: hidden as rubble, flipped by a
+  blast). What they leave and throw is `src/actors/bestiaryGround.ts`: webs and ink (`stickyAt` slows the mage; fire burns a
+  web, heard through `world/groundHooks.ts`, which fireAt, frostAt and shockAt call) and lobs (`lob`). `spawnFoe` in
+  enemies.ts makes a pack whole; `callFoe` passes over waiters (mimic, tome, crab) and packs. A foe's look is the model
+  option, the bestiary look or `FOE_LOOKS` entry of its id or `look`. `__game.ground` reads the webs and ink,
+  `__game.blast(x, z)` sets off a glyph's blast, `__game.clock` reads the sim clock, `__game.hit(i, dmg, school, by, dx, dz)`
+  strikes from a direction.
 - Spell effect options (`src/magic/effectOptions.ts`, the owner's request): the spells' effects redone in the same style,
   each a looping demo of one cast worked out from the time (the cantrip, Cinder Lance, Pyre Seal, Rime Shards, Glacial
   Wall, Arc, Static Mantle, Shatter, Overload, and previews of Hallow and Umbral); the dev menu plays them ahead of the

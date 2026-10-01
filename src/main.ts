@@ -67,6 +67,8 @@ import type { PropKind } from './world/propData';
 import { FOE_IDS, isFoe, type FoeType, type School } from './actors/foeData';
 import { bestiary, forgetBestiary } from './actors/bestiary';
 import { burningGround, sparkGround } from './actors/foes';
+import { groundCount } from './actors/bestiaryGround';
+import { blastAt } from './combat/glyphs';
 
 
 const input: InputActions = {
@@ -226,11 +228,15 @@ function installDevHooks() {
         foe in the room, e.g. inflict({ burn: 3 }). */
     spawn(kind: FoeType, x = player.x, z = player.z - 2.5) { return spawnFoe(kind, x, z, 1); }, // (a swarm comes whole)
     /** Strike the room's foe `i` for `dmg`, of `school` if given (M4: its weakness and resistance count). */
-    hit: (i: number, dmg: number, school?: School, by: 'spell' | 'cantrip' = 'spell') => { const e = G.enemies[i]; if (e) damageEnemy(e, dmg, 0, 0, 0, by, school); return e?.hp; },
+    hit: (i: number, dmg: number, school?: School, by: 'spell' | 'cantrip' = 'spell', dx = 0, dz = 0) => { const e = G.enemies[i]; if (e) damageEnemy(e, dmg, dx, dz, 0, by, school); return e?.hp; }, // (dx, dz: the way the blow travels)
     /** What the mage has found of the foes (M4), kept between runs; forget it all. */
     get bestiary() { return bestiary(); }, forgetBestiary: () => forgetBestiary(),
     /** Patches of ground a salamander has set burning in this room (M4). */
     get burningGround() { return burningGround(); }, get sparkGround() { return sparkGround(); },
+    /** M4.5: the webs and ink on the floor of the current room; a glyph's blast at (x, z). */
+    get ground() { return { web: groundCount('web'), ink: groundCount('ink') }; }, blast: (x: number, z: number) => blastAt(x, z),
+    /** The simulation's clock (seconds), against which timed states are kept (a lark's song). */
+    get clock() { return G.simClock; },
     inflict(status: Partial<Record<SpellStatus, number>>) { for (const e of G.enemies) inflict(e, status); },
     /** Fire a foe's shot from (x, z) along (dx, dz) (a wall of ice stops it); seconds of the Static Mantle and of
         Wardlight left. */

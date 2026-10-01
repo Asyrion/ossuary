@@ -81,6 +81,9 @@ export function placeGlyph() {
   return true;
 }
 
+/** A glyph's blast at (x, z), as one of the mage's would be (dev hooks and tests). */
+export const blastAt = (x: number, z: number) => blast(x, z, player.stats.boltColor, C.radius * player.stats.blastMul);
+
 /** The first live glyph within `r` of (x, z). */
 export function glyphNear(x: number, z: number, r = C.boltReach) {
   return G.glyphs.find(gl => !gl.spent && Math.hypot(gl.x - x, gl.z - z) < r);

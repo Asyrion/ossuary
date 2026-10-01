@@ -3007,3 +3007,70 @@ test('the pixel look: on from the URL, drawn with outlines and light in bands, t
   await page.screenshot({ path: 'test-results/pixel-look.png' });
   expect(errors).toEqual([]);
 });
+
+test('the bestiary (M4.5), floor 1: the spider drops from out of reach and spits webs that slow (fire burns them); the octopus splits, or cracks when chilled; the grimoire lies shut; the swarm comes whole; the lark hastens; the mantis parries from the front; the crab hides and is flipped', async ({ page }) => {
+  type Foe = { type: string; state: string; x: number; z: number; hp: number; maxHp: number; hidden?: boolean; scale: number; sung?: number; count?: number; face: number; pack?: { members: unknown[] } };
+  type GF = { sim(sec: number, draw?: boolean): void; warp(id: number): void; hit(i: number, dmg: number, school?: string, by?: string, dx?: number, dz?: number): number;
+    spawn(kind: string, x?: number, z?: number): Foe; inflict(s: Record<string, number>): void; burn(x: number, z: number, r?: number): void; blast(x: number, z: number): void;
+    ground: { web: number; ink: number }; clock: number; clearRoom(): void;
+    player: { x: number; z: number; hp: number; maxHp: number; invuln: number }; enemies: Foe[]; shots: unknown[] };
+  // the spider: out of reach while it hangs, then down, webbing the floor; fire burns the webs
+  const e1 = await start(page, '?seed=K3F9QX&floor=1&foe=cryptSpider');
+  const spider = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 99; g.warp(1); g.sim(.3);
+    const e = g.enemies[0], hp0 = e.hp, hangHit = e.state === 'hang' ? hp0 - g.hit(0, 5) : -1;
+    const seen = new Set<string>(); let webs = 0;
+    for (let i = 0; i < 260 && webs < 1; i++) { g.player.invuln = 0; g.sim(.05); g.enemies.forEach(f => seen.add(f.state)); webs = g.ground.web; }
+    g.burn(g.player.x, g.player.z, 6); g.sim(.1);
+    return { hangHit, seen: [...seen].sort(), webs, burnt: g.ground.web };
+  });
+  expect(spider.hangHit).toBe(0); expect(spider.seen).toEqual(expect.arrayContaining(['drop', 'ground', 'spit'])); expect(spider.webs).toBeGreaterThan(0); expect(spider.burnt).toBe(0);
+  // the octopus: struck to half it splits in two smaller ones; chilled, it cracks instead
+  const e2 = await start(page, '?seed=K3F9QX&floor=1&foe=inkOctopus');
+  const octo = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.warp(1); g.sim(.8); g.clearRoom(); g.sim(.2);
+    const a = g.spawn('inkOctopus', g.player.x + 3, g.player.z); g.sim(.8); const i = g.enemies.indexOf(a);
+    g.hit(i, a.maxHp * .6); g.sim(.4); const split = g.enemies.filter(f => f.type === 'inkOctopus').length, small = a.scale;
+    g.sim(1); const ink = g.ground.ink;
+    g.clearRoom(); g.sim(.2); const b = g.spawn('inkOctopus', g.player.x + 3, g.player.z); g.sim(.8); g.inflict({ chill: 2 });
+    g.hit(g.enemies.indexOf(b), b.maxHp * .6); g.sim(.2);
+    return { split, small, ink, chilled: g.enemies.filter(f => f.type === 'inkOctopus').length };
+  });
+  expect(octo.split).toBe(2); expect(octo.small).toBeLessThan(1); expect(octo.ink).toBeGreaterThan(0); expect(octo.chilled).toBe(1);
+  // the grimoire lies shut, turning half a blow; near it, it wakes and flies; the swarm comes whole, one blow each
+  const e3 = await start(page, '?seed=K3F9QX&floor=1');
+  const more = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 99; g.warp(1); g.sim(.8); g.clearRoom(); g.sim(.2);
+    const book = g.spawn('grimoireMimic', g.player.x + 4, g.player.z); g.sim(.3); const shut = book.state, i = g.enemies.indexOf(book);
+    const hp0 = book.hp; g.hit(i, 4); const took = hp0 - book.hp;
+    g.player.x = book.x - 1; let woke = ''; for (let k = 0; k < 40 && !woke; k++) { g.sim(.05); if (book.state === 'fly') woke = book.state; }
+    g.clearRoom(); g.sim(.2);
+    const first = g.spawn('fireflySwarm', g.player.x + 3, g.player.z); g.sim(.8); const n = g.enemies.filter(f => f.type === 'fireflySwarm').length;
+    g.hit(g.enemies.indexOf(first), 2); g.sim(.1); const after = g.enemies.filter(f => f.type === 'fireflySwarm').length;
+    return { shut, took, woke, n, pack: first.pack?.members.length, after };
+  });
+  expect(more).toMatchObject({ shut: 'shut', took: 2, woke: 'fly' }); expect(more.n).toBeGreaterThanOrEqual(5); expect(more.pack).toBe(more.n); expect(more.after).toBe(more.n - 1);
+  // the lark sings to the foes round it (not while hexed); the mantis parries a bolt at its front, not one from behind
+  // nor while chilled; the crab hides as rubble, then a blast flips it
+  const e4 = await start(page, '?seed=K3F9QX&floor=1');
+  const last = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 99; g.warp(1); g.sim(.8); g.clearRoom(); g.sim(.2);
+    const lark = g.spawn('choirLark', g.player.x + 4, g.player.z - 1); const rot = g.spawn('rotling', g.player.x + 4, g.player.z + 1);
+    let sung = false; for (let k = 0; k < 200 && !sung; k++) { g.player.invuln = 0; g.sim(.05); rot.x = lark.x + .8; rot.z = lark.z; sung = (rot.sung ?? 0) > g.clock; }
+    g.inflict({ hex: 3 }); rot.sung = 0; let hushed = true; for (let k = 0; k < 40; k++) { g.sim(.05); rot.x = lark.x + .8; rot.z = lark.z; if ((rot.sung ?? 0) > g.clock && lark.state === 'perch') hushed = false; }
+    g.clearRoom(); g.sim(.2);
+    const m = g.spawn('stormMantis', g.player.x + 2.5, g.player.z); g.sim(.9); const i = g.enemies.indexOf(m);
+    m.state = 'stalk'; const fx = Math.sin(m.face), fz = Math.cos(m.face), hp0 = m.hp;
+    g.hit(i, 3, undefined, 'cantrip', -fx, -fz); const front = hp0 - m.hp;
+    g.hit(i, 3, undefined, 'cantrip', fx, fz); const back = hp0 - m.hp;
+    g.inflict({ chill: 2 }); m.state = 'stalk'; g.hit(i, 3, undefined, 'cantrip', -Math.sin(m.face), -Math.cos(m.face)); const chilled = hp0 - m.hp - back;
+    g.clearRoom(); g.sim(.2);
+    const crab = g.spawn('rubbleCrab', g.player.x + 4, g.player.z); g.sim(.8); const hidden = crab.state, chp = crab.hp;
+    g.hit(g.enemies.indexOf(crab), 10); const hidTook = chp - crab.hp; g.sim(.6);
+    g.blast(crab.x, crab.z); g.sim(.05);
+    return { sung, hushed, front, back, chilled, parries: m.count, hidden, hidTook, flipped: crab.state };
+  });
+  expect(last).toMatchObject({ sung: true, hushed: true, front: 0, back: 3, chilled: 3, parries: 1, hidden: 'hidden', flipped: 'flipped' });
+  expect(last.hidTook).toBeCloseTo(3);
+  for (const e of [e1, e2, e3, e4]) expect(e).toEqual([]);
+});
