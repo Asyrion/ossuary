@@ -79,6 +79,7 @@ export const STR = {
     gildedRelic: ['A relic in the reliquary', 'Fortune favours the bold'] as Banner,
     secret: ['A forgotten cell', 'A Warden studied the dark here, long ago'] as Banner,
     library: ['The Library', 'Torn pages whisper on their lecterns'] as Banner,
+    laboratory: ["Dr. Jelly's Laboratory", 'Two reagents in, one potion out'] as Banner,
     pageFalls: ['A torn page', 'It whispers of a spell'] as Banner,
     shrine: (price: number): Banner => ['A shrine', `For ${price} obols it cleanses a curse`],
     riteBegins: ['The curse fights back', 'Strike it down inside the circle'] as Banner,
@@ -151,6 +152,29 @@ export const STR = {
   /** What is being done to the mage (ui/afflictions.ts): the chips beside the mana bar, and the line said the first time
       each comes in a run (the sapping obelisk says its own). */
   /** M5: potions and reagents (items/potions.ts, potionThrow.ts). */
+  /** M5 step 6: Dr. Jelly's laboratory and its alchemy table (world/laboratory.ts, ui/alchemyTable.ts, items/brewing.ts). */
+  lab: {
+    title: 'The alchemy table',
+    tabs: { brew: 'Brew', identify: 'Dr. Jelly looks', recipes: 'Recipes' } as Record<string, string>,
+    hint: 'Arrows choose · Enter takes it · Q and E (LB and RB) change tabs · Esc closes',
+    greet: 'Dr. Jelly: "Visitors! Two reagents in the mortar, and we shall see what we shall see."',
+    mortar: 'The mortar', empty: 'empty', pickTwo: 'Choose two reagents from your pouch: Enter puts one in the mortar, Enter on the flask brews.',
+    brewTile: 'Brew', clearTile: 'Empty the mortar', noReagents: 'Your pouch is empty. Foes and broken things leave reagents; the merchant sells them.',
+    pair: (a: string, b: string) => `${a} + ${b}`,
+    brews: (name: string) => `Makes ${name}, as you brewed or learned it before.`,
+    experiment: 'An experiment: no recipe you know. It may be one, or it may come out a Volatile Mixture.',
+    needTwo: 'Two reagents first.',
+    brewed: (name: string) => `Brewed: ${name}.`, failed: 'It fizzes, smokes and settles: a Volatile Mixture.',
+    newPotion: (name: string) => `A new recipe: ${name}. You will know it in every run.`,
+    newRecipe: (a: string, b: string, name: string) => `${a} and ${b} make ${name}: written into your book.`,
+    beltFull: 'Your belt is full: the potion is set by the table.',
+    identifyText: 'Dr. Jelly will look at one potion of yours a visit, for nothing: choose one you don\'t know.',
+    identifyUsed: 'Dr. Jelly has looked at one already. "Come back another time."', identifyNone: 'Nothing in your belt that you don\'t know.',
+    recipesText: (price: number) => `Dr. Jelly sells the recipe for a potion: ${price} obols. What you brew or buy is kept between runs.`,
+    recipePrice: (price: number) => `${price} obols`, recipeKnownNote: 'Known',
+    recipeBought: (a: string, b: string, name: string) => `Dr. Jelly whispers it: ${a} and ${b} make ${name}.`,
+    jellyKind: 'The alchemist',
+  },
   alchemy: {
     unknown: 'Unknown potion', drink: 'Drunk', throw: 'Thrown', reagentKind: 'Reagent',
     kind: (bad?: boolean) => bad ? 'Potion (better thrown)' : 'Potion',
@@ -466,6 +490,7 @@ export const STR = {
       sealed: 'Not known yet', sealedText: 'A potion you have not identified. Its bottle looks different every run.',
       knownHow: (brewed: boolean) => brewed ? 'Known from your own brewing' : 'Identified this run',
       noReagents: 'No reagents yet. Foes and broken things leave them; they are brewed into potions.', held: (n: number) => `${n} held`,
+      recipes: 'Recipes', recipe: (a: string, b: string) => `${a} + ${b}`, noRecipes: 'No recipes yet. Brew at the alchemy table in Dr. Jelly\'s laboratory, or buy one from him: what you learn is kept between runs.',
     },
     /** The Foes tab (M4.7): every foe met, what was found of it, its counters found and sealed (kept between runs). */
     foes: {
@@ -675,6 +700,7 @@ export const STR = {
     potionsHere: 'Every potion here', identifyAll: 'Identify all', forgetPotions: 'Forget what is known (this run and brewed)',
     emptyBelt: 'Empty the belt', drinkChosen: 'Drink the chosen', throwChosen: 'Throw the chosen', reagentsAll: 'Each reagent ×3',
     reagentsOn: 'Reagents: every foe and object leaves one', reagentsOff: 'Reagents: now and then, as in play',
+    openTable: 'Open the alchemy table here',
     afflictions: 'Afflictions (each shows its chip beside the mana bar)', afflictNames: { hexed: 'A hexing blow', chill: 'Chill', stone: 'Heavy as stone', dim: 'Dimmed sight', hints: 'Their lines again' },
     wardFoe: 'Ward the nearest foe (it drinks spells)', costumes: 'Costumes', costumesTry: 'Try a piece on (as if held; again to take it off)', takeAllOff: 'Take all off', closeUp: 'Close-up on the mage',
     costumeAt: (spot: string) => `Worn: ${spot}`, costumeHeld: 'Held in the casting hand',
@@ -695,7 +721,7 @@ export const STR = {
     warnFloor: 'Say what this floor walls off', noWall: 'This floor walls off none of the spells carried',
     revealCracks: 'Reveal cracked walls', openSecret: 'Open the secret room',
     cleanse: 'Cleanse a curse', takeCurse: 'Take a curse', noCurse: 'No curse to cleanse', allCurses: 'You hold every curse', cleansed: 'cleansed',
-    roomNames: { start: 'Start', normal: 'Normal', treasure: 'Treasure', boss: 'Boss', ordeal: 'Ordeal', altar: 'Bone altar', merchant: 'Merchant', vault: 'Vault', secret: 'Secret room', shrine: 'Shrine', library: 'Library' } as Record<string, string>,
+    roomNames: { start: 'Start', normal: 'Normal', treasure: 'Treasure', boss: 'Boss', ordeal: 'Ordeal', altar: 'Bone altar', merchant: 'Merchant', vault: 'Vault', secret: 'Secret room', shrine: 'Shrine', library: 'Library', laboratory: "Dr. Jelly's laboratory" } as Record<string, string>,
     test: 'Test a room', template: 'Room template', variant: 'Variant', play: 'Play it',
     variants: { normal: 'Normal', quiet: 'Quiet', champion: 'Champion', ambush: 'Ambush', dark: 'Dark' } as Record<string, string>,
     bosses: 'Fight a boss', newRun: 'New run', floorN: (n: number) => `Floor ${n}`,

@@ -38,6 +38,7 @@ export interface FloorConfig {
   /** Chance the floor has a locked vault. */ vaultChance: number;
   /** Whether the floor has a shrine, where curses are cleansed (GDD: 1 on floor 2). */ shrine: boolean;
   /** Whether the floor has a library, where grimoire pages teach spells (GDD: one on every floor). */ library: boolean;
+  /** Whether the floor has Dr. Jelly's laboratory, with its alchemy table (M5: floors 1 and 3). */ laboratory?: boolean;
   /** Chance the secret room holds an artifact (outside the budget) rather than a hoard. */ secretArtifactChance: number;
   /** The champion that rises in a vault forced open with glyphs. */ vaultWarden: FoeType;
   /** How much likelier soul motes are in the floor's loot than on the first floors (M4.1: the deep floors give more;
@@ -237,9 +238,42 @@ export function generateFloor(rng: Rng, cfg: FloorConfig, index: number, library
     assignTemplates(rng, rooms, cfg, index, library);
     // a stream of its own, so shifting doors doesn't change anything else about the floor
     assignDoorShifts(new Rng(rooms.reduce((a, r) => (a ^ r.seed) * 31 >>> 0, 0x5d0025)), rooms, cfg.doorShift, library);
+    // M5: Dr. Jelly's laboratory comes on top of the room count, last and on a stream of its own (the rest of the floor is as
+    // it would be without it)
+    if (cfg.laboratory) placeLaboratory(new Rng(rooms.reduce((a, r) => (a ^ r.seed) * 17 >>> 0, 0x1ab0)), rooms, library);
     return { index, rooms, startId: 0, bossId: boss, attempts };
   }
   throw new Error('floor generation failed after 500 attempts');
+}
+
+/** M5: Dr. Jelly's laboratory: one more one-cell room, on a free cell beside an ordinary fight room at least a step from
+    the start (so the rooms beside the start keep their ways), with one door into it; a cell beside no other room if there
+    is one, so it is a dead end. None when there is no such cell. */
+export function placeLaboratory(rng: Rng, rooms: PlannedRoom[], library: TemplateDef[] = TEMPLATE_DEFS) {
+  const pool = library.filter(t => t.shape === 'standard' && t.types.includes('laboratory'));
+  const owner = new Map<string, number>();
+  rooms.forEach((r, i) => r.cells.forEach(c => owner.set(key(c.gx, c.gy), i)));
+  const spots: { cell: Cell; from: PlannedRoom; at: Cell; side: Side; alone: boolean }[] = [];
+  for (const r of rooms) {
+    if (r.type !== 'normal' || r.dist < 1) continue;
+    for (const c of r.cells) for (const s of SIDES) {
+      const n = step(c, s);
+      if (!inBounds(n) || owner.has(key(n.gx, n.gy)) || !allowsSide(r.shape, s)) continue;
+      const alone = SIDES.every(t => { const m = step(n, t); return (m.gx === c.gx && m.gy === c.gy) || !owner.has(key(m.gx, m.gy)); });
+      spots.push({ cell: n, from: r, at: c, side: s, alone });
+    }
+  }
+  const lone = spots.filter(p => p.alone), pick = (lone.length ? lone : spots);
+  if (!pick.length || !pool.length) return null;
+  const p = rng.pick(pick), id = rooms.length;
+  p.from.doors.push({ gx: p.at.gx, gy: p.at.gy, side: p.side, to: id, shift: 0 }); // (in the middle of its edge)
+  const lab: PlannedRoom = {
+    id, type: 'laboratory', shape: 'standard', cells: [p.cell], anchor: p.cell, dist: p.from.dist + 1, templateId: rng.pick(pool).id,
+    mirrorX: false, mirrorY: false, variant: 'normal', artifact: false, seed: rng.int(1, 2 ** 30),
+    doors: [{ gx: p.cell.gx, gy: p.cell.gy, side: OPPOSITE[p.side], to: p.from.id, shift: 0 }],
+  };
+  rooms.push(lab);
+  return lab;
 }
 
 /** Normal rooms roll a variant from the floor's weights; the rooms next to the start on floor 1 are never hard. */

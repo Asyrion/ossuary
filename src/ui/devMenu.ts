@@ -29,6 +29,7 @@ import { DROPS, RESOURCES, SOULS, soulItem, type Drop, type Resource } from '../
 import { POTIONS, POTION_IDS, REAGENT_IDS } from '../items/alchemyData';
 import { addPotion, addReagent, beltSlots, identify, knownPotion, renderBelt, usePotion } from '../items/potions';
 import { brewedPotions, forgetBrews } from '../items/alchemyMemory';
+import { openLab } from './alchemyTable';
 import { gainSoul, hallowedMend, resetSouls } from '../items/souls';
 import { giveResources, spawnPickup } from '../items/pickups';
 import { makeEnemy, spawnFoe } from '../actors/enemies';
@@ -236,7 +237,8 @@ function build() {
     btn(S.emptyBelt, () => { player.belt.length = 0; player.beltAt = 0; renderBelt(); }),
     btn(S.drinkChosen, () => { closeDev(); usePotion('drink'); }), btn(S.throwChosen, () => { closeDev(); usePotion('throw'); }),
     btn(S.reagentsAll, () => { for (const r of REAGENT_IDS) addReagent(r, 3); }),
-    reagentBtn = btn('', () => { DEV.reagents = !DEV.reagents; }));
+    reagentBtn = btn('', () => { DEV.reagents = !DEV.reagents; }),
+    btn(S.openTable, () => { closeDev(); openLab('brew'); }));
   const alchBox = el('div', 'dv-row'); alch.parentElement!.append(alchBox); // (a second row: one button a potion)
   alchBox.append(...POTION_IDS.map(id => {
     const b = btn(POTIONS[id].name, () => { if (!addPotion(id)) toast(STR.alchemy.full, 2); }, `${POTIONS[id].text.drink} · ${POTIONS[id].text.throw}`);

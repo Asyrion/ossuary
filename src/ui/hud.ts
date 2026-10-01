@@ -274,6 +274,10 @@ export function renderMinimap() {
       mg.beginPath(); mg.moveTo(cx, cy - 3); mg.lineTo(cx - 8, cy - 6); mg.lineTo(cx - 8, cy + 4); mg.lineTo(cx, cy + 7); mg.lineTo(cx + 8, cy + 4); mg.lineTo(cx + 8, cy - 6); mg.fill();
       mg.strokeStyle = '#3a2a1c'; mg.lineWidth = 1.5; mg.beginPath(); mg.moveTo(cx, cy - 3); mg.lineTo(cx, cy + 7); mg.stroke();
     }
+    if (r.type === 'laboratory') { // (M5) a round flask of green jelly
+      mg.fillStyle = '#7ae070'; mg.beginPath(); mg.arc(cx, cy + 2, 5.5, 0, 7); mg.fill();
+      mg.fillRect(cx - 1.8, cy - 7, 3.6, 6); mg.fillStyle = '#c8ffb0'; mg.fillRect(cx - 3, cy - 8, 6, 2);
+    }
     if (r.type === 'treasure') {
       mg.fillStyle = r.spots.some(s => !s.taken) ? '#e8b04a' : '#6a5a3a';
       mg.beginPath(); mg.moveTo(cx, cy - 8); mg.lineTo(cx + 7, cy); mg.lineTo(cx, cy + 8); mg.lineTo(cx - 7, cy); mg.fill();

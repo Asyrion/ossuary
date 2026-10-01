@@ -1,6 +1,6 @@
 # M5 Alchemy: plan
 
-**Status: under way (2026-10-01): steps 1 to 5 built (GDD: Potions and alchemy, M5 as built).** GDD: Potions and alchemy; the roadmap's M5 row. The second game inside a run: every
+**Status: under way (2026-10-01): steps 1 to 6 built (GDD: Potions and alchemy, M5 as built).** GDD: Potions and alchemy; the roadmap's M5 row. The second game inside a run: every
 potion has a drink effect on the mage and a throw effect on the room, found potions are unidentified, and the mage brews
 their own from reagents at an alchemy table in Dr. Jelly's laboratory. The second half is the sixth school, Verdant, and
 its garden rooms (GDD: Magic system, A sixth school), planned in its own section when the first half is built.
@@ -81,6 +81,15 @@ Bottled Storm); an unknown pair that matches no recipe brews a Volatile Mixture.
    reagent), recipes kept between runs and written into the book (the inventory).
 7. **The jelly serpent**: once a run it may break out of its vat as a boss, flooding the room with jelly that slows and
    carries a shock; built in code like the other bosses.
+   *As designed (2026-10-01, before building it):* the serpent breaks out once a run at most: when the mage cracks the vat
+   window with three bolts (a fight they choose), or by itself after the first brew in a laboratory whose serpent the
+   run rolled restless (CFG). The glass bursts, green jelly floods part of the room (pools of water marked `jelly`: slower
+   to wade, a shock runs through them as through water, frost freezes them), the doors lock and Dr. Jelly ducks behind his
+   table. The serpent (a boss built in code: a head and a chain of jelly rings that follow it) swims submerged through the
+   jelly where bolts can't reach it, surfaces to lunge or spit slowing globs; a shock through its jelly or a freeze traps it
+   at the surface, open; out of the jelly it slows. Weak to Storm, resisting Frost. Fallen, it leaves Warden's Ash, a rare
+   potion and Dr. Jelly's thanks (a recipe for free); it is not the floor's boss (no trapdoor). `?boss=serpent` and the dev
+   menu's boss fights put it in a boss room, its own jelly poured round it.
 8. **The Alchemist**: the Alchemist's Satchel and two more artifacts of the family, each showing on the mage; the
    Alchemist transformation (a bandolier of vials and a stained apron; thrown potions split in two).
 9. **Verdant** (the second half, planned here when step 8 is built): Overgrown, three spells, the five reactions that

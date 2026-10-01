@@ -93,10 +93,10 @@ describe('floor generator', () => {
   const SEEDS = 400;
 
   it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i follows the rules on %# seeds', (floorNo, cfg) => {
-    let altars = 0, vaults = 0, secrets = 0, secretArtifacts = 0, roomCount = 0, bigRooms = 0, bossHalls = 0;
+    let altars = 0, vaults = 0, secrets = 0, secretArtifacts = 0, roomCount = 0, bigRooms = 0, bossHalls = 0, labs = 0;
     for (let s = 0; s < SEEDS; s++) {
       const plan = generateFloor(Rng.from('T' + s, 'floor' + floorNo), cfg, floorNo - 1);
-      const n = plan.rooms.filter(r => r.type !== 'secret').length; // the secret room comes on top
+      const n = plan.rooms.filter(r => r.type !== 'secret' && r.type !== 'laboratory').length; // the secret room comes on top, as does a laboratory (M5)
       expect(n).toBeGreaterThanOrEqual(cfg.rooms[0]);
       expect(n).toBeLessThanOrEqual(cfg.rooms[1]);
       const count = (t: string) => plan.rooms.filter(r => r.type === t).length;
@@ -106,6 +106,9 @@ describe('floor generator', () => {
       expect(count('secret')).toBeLessThanOrEqual(1);
       expect(count('shrine')).toBe(cfg.shrine ? 1 : 0); // on floor 2, where it takes a dead end of its own
       expect(count('library')).toBe(1); // on every floor (GDD: first spell no later than the first library)
+      expect(count('laboratory')).toBeLessThanOrEqual(cfg.laboratory ? 1 : 0); // (M5: Dr. Jelly's, on floors 1 and 3, in a spare dead end)
+      for (const r of plan.rooms.filter(x => x.type === 'laboratory')) { expect(r.dist).toBeGreaterThanOrEqual(2); expect(r.shape).toBe('standard'); expect(r.artifact).toBe(false); }
+      labs += count('laboratory');
       altars += count('altar'); vaults += count('vault'); secrets += count('secret');
       // artifacts: the guaranteed sources always; optional ones share what's left of the budget, and an
       // altar is only placed with an artifact to offer
@@ -145,7 +148,7 @@ describe('floor generator', () => {
       if (hidden) {
         const open = new Set([plan.startId]), q = [plan.rooms[plan.startId]];
         while (q.length) for (const id of nbs(q.pop()!)) if (id !== hidden.id && !open.has(id)) { open.add(id); q.push(plan.rooms[id]); }
-        expect(open.size).toBe(n);
+        expect(open.size).toBe(n + count('laboratory'));
         expect(hidden.shape).toBe('standard');
         expect(nbs(hidden).length).toBeGreaterThanOrEqual(2);
         for (const id of nbs(hidden)) expect(SECRET_SHUNS).not.toContain(plan.rooms[id].type);
@@ -174,6 +177,7 @@ describe('floor generator', () => {
     expect(Math.abs(vaults / SEEDS - cfg.vaultChance)).toBeLessThan(.08);
     // nearly every floor has a secret room; about half of them hold an artifact
     expect(secrets / SEEDS).toBeGreaterThan(.95);
+    if (cfg.laboratory) expect(labs / SEEDS).toBeGreaterThan(.9); // (nearly every floor 1 and 3 has a spare dead end for it)
     expect(Math.abs(secretArtifacts / secrets - cfg.secretArtifactChance)).toBeLessThan(.1);
     // about a third of the rooms take a larger or narrow shape; some bosses get a great hall
     const share = bigRooms / roomCount;

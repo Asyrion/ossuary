@@ -20,6 +20,8 @@ import { inflict } from '../magic/statusFx';
 import { riseMote } from '../magic/shapes';
 import { LOOT, rollTable } from '../items/loot';
 import { objectReagent } from '../items/reagents';
+import { JELLY, globeLook } from './labLooks';
+import { globeBurst } from './laboratory';
 import { soulsHere } from '../items/souls';
 import { spawnPickup } from '../items/pickups';
 import { mulberry } from '../util';
@@ -75,6 +77,7 @@ function webMaterial() {
 
 type Look = (R: () => number, len: number, look?: FloorLook) => THREE.Group;
 const LOOKS: Record<Exclude<PropKind, MechanismKind>, Look> = {
+  globe: R => globeLook(R), // (M5: the laboratory's; the room kit's look in both)
   bones(R) {
     const g = new THREE.Group();
     for (let i = 0; i < 7; i++) {
@@ -257,6 +260,7 @@ function breakProp(room: Room, box: PropBox) {
     case 'scrolls': burst(x, .3, z, 0xd8cbaa, 12, 1.8, .05); sfx.sack(); scrollsBroken(room, x, z); break;
     case 'briar': case 'web': burst(x, .25, z, kind === 'web' ? 0xe8e8f0 : 0x2e3a22, 8, 1.4, .04); sfx.tear(); break;
     case 'hoard': burst(x, .3, z, 0xffd27a, 16, 2.4, .05); burst(x, .15, z, 0xc8a04a, 10, 1.2, .05); sfx.coin(true); break;
+    case 'globe': burst(x, .7, z, JELLY, 20, 2.6, .06); burst(x, .5, z, 0xd8e8f0, 10, 2, .03); sfx.globeBreak(); globeBurst(room, x, z); break; // (M5: out spills a jelly or a reagent)
     default: burst(x, .3, z, 0x8a8078, 8, 1.6, .05);
   }
   if (def.loot) for (const item of rollTable(G.run.drops, def.loot, LOOT, soulsHere())) spawnPickup(item, x, z, { rise: true });

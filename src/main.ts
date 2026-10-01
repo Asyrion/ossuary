@@ -5,6 +5,7 @@ import { POTION_IDS, isPotion, type PotionId, type ReagentId } from './items/alc
 import { addPotion, addReagent, beltSlots, choosePotion, identify, knownPotion, potionFx, renderBelt, usePotion } from './items/potions';
 import { throwsNow } from './items/potionThrow';
 import { forgetBrews } from './items/alchemyMemory';
+import { buyRecipe, jellyIdentifies, knownRecipes } from './items/brewing';
 import '@fontsource/cinzel/600.css';
 import '@fontsource/cinzel/700.css';
 import '@fontsource/alegreya/400.css';
@@ -25,6 +26,7 @@ import { initScreens, showScreen } from './ui/screens';
 import { closeDev, devOpen, dropsHere, forceKinds, objectsHere, showAssetsHere, toggleDev, useAssets, useRoomKit } from './ui/devMenu';
 import type { Kinds } from './world/kitData';
 import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPad, openInventory } from './ui/inventory';
+import { brewAtTable, closeLab, initLab, labKey, labNow, labOpen, labPad, openLab, type LabTab } from './ui/alchemyTable';
 import { setHeroInfo, updateVision } from './ui/hud';
 import { giveById, removeArtifactGallery, showArtifactGallery } from './items/artifacts';
 import { ARTIFACTS } from './items/artifactData';
@@ -92,14 +94,15 @@ const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
 const input: InputActions = {
   unlockAudio: () => Sfx.init(),
-  togglePause: () => { if (devOpen()) closeDev(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
+  togglePause: () => { if (devOpen()) closeDev(); else if (labOpen()) closeLab(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
   confirm: () => { if (G.state === 'title' || G.state === 'end') startGame(); },
-  startButton: () => { if (devOpen()) closeDev(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else startGame(); },
+  startButton: () => { if (devOpen()) closeDev(); else if (labOpen()) closeLab(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else startGame(); },
   toggleSound,
   autoPause: () => { if (G.state === 'play') pause(); },
   toggleDev: () => { if (inventoryOpen()) closeInventory(); toggleDev(); },
   inventoryKey: code => {
     if (devOpen()) return false;
+    if (labOpen()) return labKey(code); // (M5: the alchemy table takes its keys first)
     const used = inventoryKey(code, G.state === 'play');
     if (used === 'open') { pause(); openInventory('play'); return true; }
     if (!used && code === 'KeyI' && G.state === 'pause') { openInventory('pause'); return true; } // from the pause menu
@@ -107,6 +110,7 @@ const input: InputActions = {
   },
   padButton: i => {
     if (devOpen()) return false;
+    if (labOpen()) return labPad(i);
     if (inventoryOpen()) return inventoryPad(i);
     if (i !== 8) return false; // View opens the inventory, while playing or paused
     if (G.state === 'play') { pause(); openInventory('play'); return true; }
@@ -345,6 +349,11 @@ function installDevHooks() {
     givePotion: (id: PotionId) => addPotion(id), giveReagent: (id: ReagentId, n = 1) => addReagent(id, n),
     usePotion: (how: 'drink' | 'throw') => usePotion(how), choosePotion: (d: number) => choosePotion(d),
     reagentsAlways: (on: boolean) => { DEV.reagents = on; },
+    // M5 step 6: Dr. Jelly's laboratory: the table's screen (open, tab, mortar), the room's table and Dr. Jelly, the recipes
+    // known; open or close the table, brew two reagents at it, buy a recipe, have Dr. Jelly look at a potion
+    get lab() { const l = G.current.lab; return { ...labNow(), here: !!l, table: l && { ...l.table }, jelly: l && { x: l.jelly.x, z: l.jelly.z }, identified: l?.identified ?? false, recipes: knownRecipes() }; },
+    openLab: (t: LabTab = 'brew') => openLab(t), closeLab: () => closeLab(),
+    brew: (a: ReagentId, b: ReagentId) => brewAtTable(a, b), buyRecipe: (id: PotionId) => buyRecipe(id), jellyIdentifies: (id: PotionId) => jellyIdentifies(id),
     identifyAll: () => { for (const id of POTION_IDS) identify(id); }, forgetPotions: () => { G.run.identified.length = 0; forgetBrews(); renderBelt(); },
     get blinkRest() { return blinkRest(); }, get robeTint() { return robeTint(); }, get moths() { return mothCount(); },
     /** Asyrion's arc (M4.6): the stage now, the artifacts that count, the stage reached this run; force a stage (or `undefined`
@@ -362,7 +371,7 @@ async function boot() {
     start: () => startGame(), replay: () => startGame({ seed: G.run.seed }), resume, toggleSound,
     pauseIfPlaying: () => { if (G.state === 'play') pause(); },
   });
-  initInventory({ resume });
+  initInventory({ resume }); initLab({ pause, resume });
   // the chalk texture in the start room is drawn with Cinzel, so load its weights first
   const chalkFonts = Promise.all(['600 16px "Cinzel"', '700 16px "Cinzel"'].map(f => document.fonts.load(f)));
   const assets = loadAssets(); // (models, tiles and icons from data/assets.json: before the first floor is built)

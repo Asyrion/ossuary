@@ -13,8 +13,8 @@ import type { Drop, Item, Soul, Ware } from './items/loot';
 import type { Kinds, KitWeights } from './world/kitData';
 
 export type Side = 'n' | 's' | 'e' | 'w';
-export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine' | 'library';
-export type DoorStyle = 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine' | 'library';
+export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine' | 'library' | 'laboratory';
+export type DoorStyle = 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine' | 'library' | 'laboratory';
 export interface Vec2 { x: number; z: number }
 /** Axis-aligned box on the floor plane: centre and half extents. */
 export interface Box { x: number; z: number; hx: number; hz: number }
@@ -147,6 +147,11 @@ export interface Room {
   shrine?: { mat: THREE.MeshBasicMaterial; motes: THREE.Sprite[]; stones: OfferingStone[] };
   /** Grimoire pages: a library's lecterns and shelf (laid out on the first visit), a boss's page, a dropped one. */
   pages?: Page[];
+  /** M5: Dr. Jelly's laboratory (world/laboratory.ts): where its table and Dr. Jelly stand, the vat window's look, whether a
+      potion was identified free this visit, and whether walking up to the table or to Dr. Jelly opens the table again
+      (after stepping away). */
+  lab?: { table: { x: number; z: number; hx: number; hz: number }; jelly: { x: number; z: number; g: THREE.Object3D }; vat: THREE.Object3D; tableLook: THREE.Object3D;
+    identified: boolean; armedTable: boolean; armedJelly: boolean };
   /** Foes put to rest here towards the Ossuary Choir's next hymn (M4.1). */ choir?: number;
   /** Water and oil on the floor (world/pools.ts), and which pool each tile belongs to ([row][col]). */
   pools?: Pool[]; poolGrid?: (Pool | undefined)[][];

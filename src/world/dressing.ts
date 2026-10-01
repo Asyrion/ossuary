@@ -52,7 +52,7 @@ function stone(look: FloorLook) {
 /** Dress a stretch of tall wall facing south into the room: its inner face at world z `face`, spanning world
     x [x0, x1]; `avoid` are world x positions to keep clear (doors, torches), each with how much room it needs. */
 export function dressNorthWall(room: Room, face: number, x0: number, x1: number, avoid: { x: number; room: number }[]) {
-  const dress = room.look.wall.dress; if (!dress || room.type === 'library') return; // (its shelves line the north wall)
+  const dress = room.look.wall.dress; if (!dress || room.type === 'library' || room.type === 'laboratory') return; // (its shelves line the north wall; the vat window fills a laboratory's)
   const R = mulberry(room.plan.seed ^ Math.round(face * 131 + x0 * 7));
   const clear = (x: number, need: number) => x - need >= x0 && x + need <= x1 && avoid.every(a => Math.abs(x - a.x) >= a.room + need);
   const spots: number[] = [];

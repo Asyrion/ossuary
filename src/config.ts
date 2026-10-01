@@ -280,11 +280,13 @@ export const CFG = {
   // so many flat steps, as pixel art draws them
   pixelLook: { lines: [1080, 720, 540, 360, 270], start: 'texel' as const, outlineGap: 0.3, outlineDark: 0.72, bands: 7, glowSteps: 5, shadowSteps: 3 },
   // alchemy (M5, items/potions.ts and potionThrow.ts; docs/M5-plan.md): the belt's slots, a bottle's and a reagent's size as built, the
-  // chance a fallen foe or a broken object leaves its reagent (items/reagents.ts; the Alchemist's Satchel's more), how
+  // chance a fallen foe or a broken object leaves its reagent (items/reagents.ts; the Alchemist's Satchel's more), what Dr.
+  // Jelly asks for a recipe (obols), the laboratory's: how near the table or Dr. Jelly opens the table, how far behind the
+  // table Dr. Jelly stands, the chance a burst jelly globe lets out a jelly (else a reagent); how
   // long the potion key is held before it throws rather than drinks (seconds); a throw's reach, its flight (seconds) and
   // how high it arcs, the splash's reach; a foe in a Philter's splash strikes another this many times its touch, and a drunk Philter's echo comes so
   // many seconds after the cast; the Grave Draught's thrall (its pace, a blow, seconds between blows, how near it strikes)
-  alchemy: { belt: 3, bottleScale: 1.45, reagentScale: 1.8, reagent: { foe: 0.12, object: 0.3, satchelMul: 1.3 }, hold: 0.25, reach: 4.5, flight: 0.45, arc: 1.1, splash: 1.1, echoMul: 6, echoAfter: 0.3, thrall: { speed: 2.4, damage: 7, every: 0.7, near: 0.7 } },
+  alchemy: { belt: 3, bottleScale: 1.45, reagentScale: 1.8, reagent: { foe: 0.12, object: 0.3, satchelMul: 1.3 }, recipePrice: 6, lab: { reach: 0.55, jellyAt: 1.6, globeJelly: 0.4 }, hold: 0.25, reach: 4.5, flight: 0.45, arc: 1.1, splash: 1.1, echoMul: 6, echoAfter: 0.3, thrall: { speed: 2.4, damage: 7, every: 0.7, near: 0.7 } },
   // the mage in the pixel-art look (actors/heroPixel.ts, 2026-10-01): its texture baked into its vertices (each the mean of
   // the texels within `sample` of where it lies) and cut down to `colours`; light in the `tones` (darkest first, a toon
   // ramp's steps) with `glow` of its own colour as self-light, as the model had, so it reads in dark rooms
