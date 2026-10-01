@@ -105,7 +105,7 @@ const chain: Cast = (def, dir) => {
     Seal), a foe marked by the Ferryman's Toll among those it leapt through (Toll Chain). */
 function chainWeaves(path: Enemy[]) {
   const room = G.current, W = MAGIC.weaves;
-  const wall = walls.find(w => w.room === room && path.some(e => w.boxes.some(b => Math.hypot(e.x - b.x, e.z - b.z) < ICE_HALF + e.r + W.conductor.reach)));
+  const wall = walls.find(w => iceWall(w) && w.room === room && path.some(e => w.boxes.some(b => Math.hypot(e.x - b.x, e.z - b.z) < ICE_HALF + e.r + W.conductor.reach)));
   if (wall) conductor(wall);
   const seal = seals.find(s => path.some(e => Math.hypot(e.x - s.x, e.z - s.z) < s.def.params.radius));
   if (seal) { seal.fx.drop(); seals.splice(seals.indexOf(seal), 1); overloadAt(seal.x, seal.z, undefined, seal.def.params.radius * W.overloadSeal.radiusMul); weaveAt('overloadSeal', seal.x, seal.z); }
@@ -152,7 +152,7 @@ const beam: Cast = (def, dir) => {
   }
   igniteGlyphs((x, z) => { const t = along(x, z); return t > 0 && t < len && side(x, z) < CFG.glyph.boltReach; }, true);
   // (M4.10: through a Glacial Wall, the wall turns to a curtain of steam; through a Wardlight mote, every mote throws a beam)
-  const wall = walls.find(w => w.room === room && w.boxes.some(b => { const t = along(b.x, b.z); return t > 0 && t < len && side(b.x, b.z) < ICE_HALF + P.width; }));
+  const wall = walls.find(w => iceWall(w) && w.room === room && w.boxes.some(b => { const t = along(b.x, b.z); return t > 0 && t < len && side(b.x, b.z) < ICE_HALF + P.width; }));
   if (wall) steamCurtain(wall);
   const motes = wardMotes();
   if (motes.some(m => { const t = along(m.x, m.z); return t > 0 && t < len && side(m.x, m.z) < MAGIC.weaves.lanternFan.catch; })) lanternFan(def, motes);
@@ -281,6 +281,8 @@ const shotgun: Cast = (def, dir) => {
     way), stopping at walls and rocks. It stops the mage, foes and their shots, not the mage's bolts; when its
     time is up it shatters, striking and chilling every foe near it. */
 const walls: { def: SpellDef; room: Room; boxes: Box[]; g: THREE.Group; columns: THREE.Group[]; t: number; touch?: number }[] = [];
+/** Only a wall of ice weaves (Conductor, the Steam Curtain, Refraction); M5's living wood burns instead. */
+const iceWall = (w: { def: SpellDef }) => w.def.school !== 'verdant';
 const LEAF = SCHOOL_LIGHT.verdant, BARK = 0x6a4a2a;
 const ICE_HALF = .27;
 const wall: Cast = (def, dir) => {
@@ -413,6 +415,8 @@ function endMantle(quiet: boolean) {
 /** Holy ground at the mage's feet for a while: every few moments it strikes and sanctifies the foes standing in it (not
     what flies above), and the mage in it is healed once. */
 const zones: { def: SpellDef; x: number; z: number; t: number; tick: number; healed: boolean; fx: ReturnType<typeof consecrateFx> }[] = [];
+/** Only holy ground takes a hex (Eclipse) or sanctifies shards (Hallowed Hail); M5's pollen is no holy ground. */
+const holyZone = (z: { def: SpellDef }) => z.def.school === 'hallow';
 const zone: Cast = def => {
   const pollen = def.school === 'verdant'; // (M5: Verdant's Pollen Cloud is a zone of pollen, not holy ground)
   zones.push({ def, x: player.x, z: player.z, t: 0, tick: 0, healed: false, fx: (pollen ? pollenFx : consecrateFx)(player.x, player.z, def.params.radius, hex(def.color)) });
@@ -444,7 +448,7 @@ let graspHexing = false;
     every foe standing in it is taken under a black sun (an Eclipse each). Reached from `umbralAt`, a hexing bolt crossing
     it and a hex on a foe standing in it. */
 export function hexGround(x: number, z: number) {
-  const i = zones.findIndex(o => Math.hypot(x - o.x, z - o.z) < o.def.params.radius);
+  const i = zones.findIndex(o => holyZone(o) && Math.hypot(x - o.x, z - o.z) < o.def.params.radius);
   if (i < 0) return;
   const g = zones[i], P = g.def.params, woven = graspHexing; zones.splice(i, 1); g.fx.drop(); // (spent first: the hexes it lays below find no ground)
   if (woven) weaveAt('eclipseGround', g.x, g.z); else tileReaction('eclipse', g.x, g.z); // (M4.10: the Grasp's hands on holy ground weave Eclipse Ground)
@@ -462,7 +466,7 @@ export function hexGround(x: number, z: number) {
 export function boltOverGround(b: Bolt) {
   const W = MAGIC.weaves;
   if (b.status?.hex) for (const s of seals) if (s.erupted && !s.black && Math.hypot(b.x - s.x, b.z - s.z) < s.def.params.radius + W.blackPyre.reach) { s.black = true; burst(s.x, .3, s.z, BLACKFIRE, 18, 2, .05); weaveAt('blackPyre', s.x, s.z); }
-  if (b.shard && !b.shatter && !b.hallowed) for (const z of zones) if (Math.hypot(b.x - z.x, b.z - z.z) < z.def.params.radius) {
+  if (b.shard && !b.shatter && !b.hallowed) for (const z of zones) if (holyZone(z) && Math.hypot(b.x - z.x, b.z - z.z) < z.def.params.radius) {
     b.hallowed = true; b.status = { ...b.status, sanct: W.hallowedHail.sanct }; burst(b.x, .6, b.z, 0xffe6a0, 3, 1, .03); weaveAt('hallowedHail', b.x, b.z); break;
   }
   if (b.shatter && (burningNear(b.x, b.z, W.moltenGlass.catch) || poolAt(b.x, b.z)?.state === 'burning' || seals.some(s => s.erupted && Math.hypot(b.x - s.x, b.z - s.z) < s.def.params.radius))) {
@@ -498,7 +502,7 @@ function updateSmites(dt: number, now: number) {
       }
       burst(s.x, .4, s.z, hex(s.def.color), 24, 3.4, .06); ringFx(s.x, .05, s.z, hex(s.def.color), .2, P.radius * 1.8, CFG.spellFx.shockwave, true);
       hallowAt(s.x, s.z, P.radius); // (and the pillar kindles candles where it falls)
-      const wall = walls.find(w => w.room === G.current && w.boxes.some(b => Math.hypot(b.x - s.x, b.z - s.z) < P.radius + MAGIC.weaves.refraction.reach));
+      const wall = walls.find(w => iceWall(w) && w.room === G.current && w.boxes.some(b => Math.hypot(b.x - s.x, b.z - s.z) < P.radius + MAGIC.weaves.refraction.reach));
       if (wall) refraction(s, wall); // (M4.10: by a Glacial Wall, it breaks into rays along it)
       Sfx.at(s.x, s.z).judgement(); G.shake = Math.max(G.shake, .25);
       continue;

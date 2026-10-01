@@ -12,7 +12,7 @@ import { burst } from '../combat/fx';
 import { damageEnemy } from '../combat/damage';
 import { blastAt } from '../combat/glyphs';
 import { inflict, floatText } from '../magic/statusFx';
-import { newStatus } from '../magic/status';
+import { MAGIC, newStatus } from '../magic/status';
 import { ringFx, strikeFx } from '../magic/spellFx';
 import { steamAt } from '../magic/steam';
 import { aimDir } from '../magic/spells';
@@ -40,14 +40,18 @@ export function landing() {
   return { x: Math.min(b.maxX - .3, Math.max(b.minX + .3, player.x + d.x * A.reach)), z: Math.min(b.maxZ - .3, Math.max(b.minZ + .3, player.z + d.z * A.reach)) };
 }
 
+/** Where a throw lands: once, or (the Alchemist's split) twice, `CFG.alchemy.split` apart across the aim. */
+function landings() {
+  const to = landing(), b = G.current.bounds;
+  if (!player.stats.effects.has('splitThrow')) return [to];
+  const dx = to.x - player.x, dz = to.z - player.z, d = Math.hypot(dx, dz) || 1, px = -dz / d * A.split / 2, pz = dx / d * A.split / 2;
+  return [-1, 1].map(s => ({ x: Math.min(b.maxX - .3, Math.max(b.minX + .3, to.x + px * s)), z: Math.min(b.maxZ - .3, Math.max(b.minZ + .3, to.z + pz * s)) }));
+}
+
 /** Throw a potion: its bottle flies off in an arc. The Alchemist's gift (M5 step 8, `splitThrow`) splits it in two in
     the air: two bottles, landing `CFG.alchemy.split` apart across the aim, each a whole splash. */
 export function throwPotion(id: PotionId) {
-  const to = landing(), b = G.current.bounds;
-  const lands = !player.stats.effects.has('splitThrow') ? [to] : (() => {
-    const dx = to.x - player.x, dz = to.z - player.z, d = Math.hypot(dx, dz) || 1, px = -dz / d * A.split / 2, pz = dx / d * A.split / 2;
-    return [-1, 1].map(s => ({ x: Math.min(b.maxX - .3, Math.max(b.minX + .3, to.x + px * s)), z: Math.min(b.maxZ - .3, Math.max(b.minZ + .3, to.z + pz * s)) }));
-  })();
+  const lands = landings();
   for (const at of lands) { const g = bottleLook(G.run.bottles[id]); g.position.set(player.x, 1, player.z); scene.add(g); flights.push({ id, g, x0: player.x, z0: player.z, x1: at.x, z1: at.z, t: 0, room: G.current }); }
   if (lands.length > 1) burst(player.x, 1.2, player.z, 0x7ae070, 6, 1.2, .03); // (the bottle splits as it leaves the hand)
   Sfx.throwPotion();
@@ -64,11 +68,17 @@ const THROW: Record<ThrowEffect, (x: number, z: number, r: number, def: PotionDe
     hallowAt(x, z, r);
     if (mageIn(x, z, r)) { player.hp = Math.min(player.maxHp, player.hp + num(def.throw.halves)); renderHearts(); floatText(player.x, 1.8, player.z, '+', 0xff8a8a, 40); }
   },
-  daze(x, z, r, def) { for (const e of near(x, z, r)) { const s = e.status ??= newStatus(); s.stun = Math.max(s.stun, num(def.throw.seconds)); floatText(e.x, 1.4, e.z, '…', 0x9ec8ff, 30); } },
-  firePool(x, z, r, def) { fireAt(x, z, r); layFire(G.current, x, z, num(def.throw.seconds), undefined); for (const e of near(x, z, r)) inflict(e, { burn: 3 }); },
-  freezeSplash(x, z, r, def) {
+  daze(x, z, r, def) { // (a boss as a shock's stun: then a guard before another lands)
+    for (const e of near(x, z, r)) {
+      const s = e.status ??= newStatus();
+      if (e.isBoss) { if (s.stunGuard > 0) continue; s.stunGuard = MAGIC.shock.bossStunGuard; }
+      s.stun = Math.max(s.stun, num(def.throw.seconds)); floatText(e.x, 1.4, e.z, '…', 0x9ec8ff, 30);
+    }
+  },
+  firePool(x, z, r, def) { fireAt(x, z, r); layFire(G.current, x, z, num(def.throw.seconds), undefined); for (const e of near(x, z, r)) inflict(e, { burn: num(def.throw.burn) }); },
+  freezeSplash(x, z, r, def) { // (a boss is never frozen, as by chill: it only takes the chill)
     frostAt(x, z, r);
-    for (const e of near(x, z, r)) { inflict(e, { chill: 3 }); const s = e.status ??= newStatus(); s.frozen = Math.max(s.frozen, num(def.throw.seconds)); }
+    for (const e of near(x, z, r)) { inflict(e, { chill: num(def.throw.chill) }); if (e.dead || e.isBoss) continue; const s = e.status ??= newStatus(); s.frozen = Math.max(s.frozen, num(def.throw.seconds)); }
   },
   stormSplash(x, z, _r, def) { storms.push({ x, z, t: num(def.throw.seconds), next: 0, def, room: G.current }); shockAt(x, z, undefined, true); },
   echoSplash(x, z, r) { // each foe in the splash strikes the nearest other foe, as hard as its own touch
@@ -148,7 +158,7 @@ function updateThrall(dt: number) {
 
 /* ---------- the aim, the flights, the storms ---------- */
 
-let marker: THREE.Mesh | null = null;
+const markers: THREE.Mesh[] = [];
 /** Every step: bottles in flight arc and land; a bottled storm strikes; the thrall fights; and while the potion key is held
     (long enough to throw), a ring shows where the chosen potion will land. */
 export function updateThrows(dt: number) {
@@ -174,20 +184,25 @@ export function updateThrows(dt: number) {
     shockAt(tx, tz, undefined, true);
   }
   updateThrall(dt);
-  // the aim: a ring where it will land, in the potion's colour once it is known
+  // the aim: a ring where it will land (two for a split throw, as wide as the Retort makes the splash), in the potion's
+  // colour once it is known
   const aiming = potionHold.since > 0 && performance.now() - potionHold.since > A.hold * 1000 && player.belt.length > 0;
   if (aiming) {
-    if (!marker) { marker = new THREE.Mesh(new THREE.RingGeometry(.86, 1, 28).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .55, depthWrite: false })); marker.renderOrder = 4; scene.add(marker); }
-    const id = player.belt[Math.min(player.beltAt, player.belt.length - 1)] as PotionId;
-    (marker.material as THREE.MeshBasicMaterial).color.set(isKnown(id, G.run.identified, brewedPotions()) ? col(POTIONS[id]) : 0xffffff);
-    const to = landing(); marker.position.set(to.x, .05, to.z); marker.scale.setScalar(A.splash); marker.visible = true;
-  } else if (marker) marker.visible = false;
+    if (!markers.length) {
+      const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .55, depthWrite: false }), geo = new THREE.RingGeometry(.86, 1, 28).rotateX(-Math.PI / 2);
+      for (let i = 0; i < 2; i++) { const m = new THREE.Mesh(geo, mat); m.renderOrder = 4; m.visible = false; scene.add(m); markers.push(m); }
+    }
+    const id = player.belt[Math.min(player.beltAt, player.belt.length - 1)] as PotionId, lands = landings();
+    (markers[0].material as THREE.MeshBasicMaterial).color.set(isKnown(id, G.run.identified, brewedPotions()) ? col(POTIONS[id]) : 0xffffff);
+    const r = A.splash * (player.stats.effects.has('retort') ? A.retort.splashMul : 1);
+    markers.forEach((m, i) => { const at = lands[i]; m.visible = !!at; if (at) { m.position.set(at.x, .05, at.z); m.scale.setScalar(r); } });
+  } else for (const m of markers) m.visible = false;
 }
 
 /** A new room or run: nothing left in the air, no storm, no thrall. */
 export function clearThrows() {
   for (const f of flights) { scene.remove(f.g); disposeTree(f.g); }
-  flights.length = 0; storms.length = 0; dropThrall(); if (marker) marker.visible = false;
+  flights.length = 0; storms.length = 0; dropThrall(); for (const m of markers) m.visible = false;
 }
 /** For the tests: what is in the air, the storms, and the thrall. */
 export const throwsNow = () => ({ flying: flights.length, storms: storms.length, thrall: !!thrall });

@@ -341,7 +341,7 @@ function build() {
 
   // statuses on every foe in the room: to see them, and to set off reactions by hand
   const sts = section(pages.magic, S.statuses);
-  for (const [kind, amount] of [['burn', 4], ['chill', 1], ['shock', 2], ['sanct', 3], ['hex', 1], ['root', 2]] as [SpellStatus, number][]) {
+  for (const [kind, amount] of [['burn', 4], ['chill', 1], ['shock', 2], ['sanct', 3], ['hex', 1], ['root', 2], ['grow', 4]] as [SpellStatus, number][]) { // (M5: Overgrown)
     sts.append(btn(S.inflictOn(STR.statusNames[kind]), () => { for (const e of G.enemies) inflict(e, { [kind]: amount }); }));
   }
 

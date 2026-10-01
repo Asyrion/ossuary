@@ -5,7 +5,7 @@ import { LOOT, priceOf, rollWares } from '../../src/items/loot';
 
 // M5 (docs/M5-plan.md; GDD: Potions and alchemy): the potions, reagents and recipes as data
 describe('alchemy', () => {
-  it('the data is whole: twelve potions, six reagents, every potion but the failed brew has a recipe', () => {
+  it('the data is whole: twelve potions, seven reagents, every potion but the failed brew has a recipe', () => {
     expect(validateAlchemy()).toEqual([]);
     expect(POTION_IDS).toHaveLength(12);
     expect(REAGENT_IDS).toEqual(['graveMoss', 'wispEssence', 'boneDust', 'emberSalt', 'rimewater', 'bloomPetal', 'wardensAsh']);

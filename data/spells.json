@@ -63,7 +63,7 @@
     "damage": 4, "status": { "root": 1.6, "grow": 4 }, "params": { "ahead": 3, "radius": 1.5, "delay": 0.4 },
     "tags": ["area", "control"], "color": "#9ae04a", "icon": "thorns",
     "text": "Thorns burst from the floor where you aim and close: every foe there is held, and the vines that stay slow it more the longer they hold",
-    "lore": "In the valleys they never fenced a field. They asked the hedge to stand up where the wolves came through, and the hedge, being asked kindly, did." },
+    "lore": "The sextons never fenced the old graves. They asked the briars to stand up where the diggers came through, and the briars, being asked kindly, did." },
   { "id": "pollen_cloud", "name": "Pollen Cloud", "school": "verdant", "shape": "zone", "mana": 32, "cooldown": 12,
     "damage": 1, "status": { "grow": 3 }, "params": { "radius": 1.8, "life": 5, "every": 0.6, "heal": 1 },
     "tags": ["area", "ground"], "color": "#d8e070", "icon": "pollen",

@@ -16,7 +16,7 @@ export const DRINK_PARAMS: Record<DrinkEffect, string[]> = {
   giant: ['damage', 'speed', 'scale'], unseen: ['seconds'], remedy: [], random: [], reversed: ['seconds'], graveSip: ['halves'],
 };
 export const THROW_PARAMS: Record<ThrowEffect, string[]> = {
-  healSplash: ['halves'], daze: ['seconds'], firePool: ['seconds'], freezeSplash: ['seconds'], stormSplash: ['seconds', 'every', 'damage'],
+  healSplash: ['halves'], daze: ['seconds'], firePool: ['seconds', 'burn'], freezeSplash: ['seconds', 'chill'], stormSplash: ['seconds', 'every', 'damage'],
   echoSplash: [], giantSplash: ['speed', 'scale'], darkSplash: ['seconds'], cleanseSplash: [], explode: [], hexSplash: ['stacks'], raiseThrall: [],
 };
 

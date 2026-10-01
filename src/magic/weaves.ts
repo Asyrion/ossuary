@@ -46,6 +46,7 @@ const LEFT_BY_SHAPE: Partial<Record<SpellDef['shape'], Left>> = { wall: 'wall', 
 /** The weaves a spell takes part in (M3.7's panels list them): what it leaves that another strikes, or what it strikes. A
     Hex Bolt is the only bolt that weaves; chains are a reaction's, not a spell's. */
 export function weavesOf(def: Pick<SpellDef, 'shape' | 'school'>): WeaveId[] {
+  if (def.school === 'verdant') return []; // (M5: Verdant's spells share shapes with others', but pollen, thorns and living wood weave nothing yet)
   const left = LEFT_BY_SHAPE[def.shape];
   return WEAVE_IDS.filter(id => {
     const w = WEAVES[id]; if (w.kind !== 'weave') return false;

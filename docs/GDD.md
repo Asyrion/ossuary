@@ -777,7 +777,7 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
 **Their looks** are built in code: reagents and potion bottles are small props; bottles can share one mesh with shuffled colours.
 
 **M5 as built, steps 1 to 9 (2026-10-01; `docs/M5-plan.md`, its decisions taken as proposed, the owner to change any).**
-- *The data.* The twelve potions, six reagents and seventeen recipes are data (`data/alchemy.json`), each potion with its
+- *The data.* The twelve potions, seven reagents (six, and Verdant's Bloom Petal from step 9) and twenty-one recipes are data (`data/alchemy.json`), each potion with its
   drink and throw effect and their numbers; the validator refuses a broken one.
 - *Bottles.* Six shapes built in code (flask, vial, jar, teardrop, skull, bulb), twelve of fourteen liquid colours: each
   potion in a run its own colour, each shape on two potions, dealt on the run's seed. The belly is the glowing
@@ -799,9 +799,11 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
 - *Throws* land through the spells' hooks, so they light oil, freeze water and set off reactions like any spell: holy
   light that heals the mage in the splash, a daze, a pool of fire, a freeze, a storm striking for 3 s, foes striking each
   other, foes grown slow and big, a cloud of darkness (steam's kind, so shots from it go wide), every status cleared, a
-  glyph's blast, a hex, and a skeleton that fights for the mage until the room is quiet.
+  glyph's blast, a hex, and a skeleton that fights for the mage until the room is quiet. Bosses keep their rules: a freeze
+  only chills one, and a daze stuns one as a shock does, with the same guard before the next. The aim ring shows where
+  each bottle lands (two for the Alchemist's split throw) and how wide it splashes (wider with the Cracked Retort).
 - *Reagents* go into the pouch (no limit; the inventory's Potions tab), each one's card the first time in a run. A fallen
-  foe leaves its reagent one time in eight: its own kind's where it has one (Sporelings, Rootlings and the other growing
+  foe leaves its reagent about one time in eight (12%): its own kind's where it has one (Sporelings, Rootlings and the other growing
   things Grave Moss; crabs and golems Bone Dust), else its school's (Ember Salt, Rimewater, Wisp Essence for Hallow and
   Storm, Bone Dust for Umbral), and Ember Salt if it died burning. A boss always leaves Warden's Ash. A broken bone pile,
   skull heap, grave root, glowcap, grave sack or oil cask leaves its reagent three times in ten, and a brazier's first fire
@@ -815,7 +817,8 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
   table if the belt is full) and is known from then on; brewed once, it is known in every run. Walking up to Dr. Jelly
   opens it at his recipes: each potion's for 6 obols (the pair, kept between runs). Once a visit he looks at an unknown
   potion in the belt for nothing. A bolt or a blast bursts a jelly globe: a Lantern Jelly drifts out four times in ten,
-  else a reagent drops. The inventory's Potions tab lists the recipes known. The vat window stands in the middle of the
+  else a reagent drops, and a jelly let out shuts the laboratory's doors until it is put to rest. The inventory's Potions
+  tab lists the recipes known. The vat window stands in the middle of the
   north wall, or beside a door there.
 - *The jelly serpent* (step 7) breaks out of its vat once a run at most: when three bolts crack its window (each crack
   shows in the glass, and Dr. Jelly pleads), or by itself a moment after the first brew in a run whose serpent is restless
@@ -832,7 +835,7 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
   floor after keeps an empty vat. As a floor's boss (`?boss=serpent`, the dev menu's boss fights) it pours its own jelly
   round it and falls to a trapdoor like the others.
 - *The Alchemist* (step 8): three artifacts of the family, each showing on the mage, and the Leech Jar counted with
-  them (a jar of the trade): the Alchemist's Satchel (one more potion in the belt, reagents a third more often; carried at
+  them (a jar of the trade): the Alchemist's Satchel (one more potion in the belt, reagents three tenths more often; carried at
   the hip), the Taster's Spoon (every potion carried is known; a silver spoon on a cord at the chest) and the Cracked
   Retort (thrown potions splash half again as wide, and the glass cuts the foes in the splash for 6; carried at the
   shoulder). Three of the four transform the mage: a bandolier of five vials of every colour across the chest, a stained
@@ -850,7 +853,9 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
   the foes there), the *Pollen Cloud* (golden pollen round the mage for 5 s that overgrows the foes in it and mends half a
   heart once) and the *Living Wall* (trunks of living wood that stop foes and their shots, not the mage's bolts, and
   overgrow the foes that touch them; fire burns it down). A Wardling of Verdant drinks it at a vault's ward, a rune stone
-  takes its emblem, and the spell marks rise with it.
+  takes its emblem, and the spell marks rise with it. Pollen is no holy ground and living wood no ice: neither takes part
+  in M4.10's weaves (a hex on the cloud sets off no Eclipse, and a Cinder Lance burns the wall down rather than turning
+  it to steam), and an obelisk's ward is never Verdant, since growth reaches no mechanism.
 - *The overgrown garden* (step 9), a themed room on floors 1 to 3 (its floor always cobbles, moss and small flowers over
   it, a pond, briars and roots): flowering plants (`F`) stand in beds; a bolt or a blast bursts one in petals and a ring of
   pollen that overgrows every foe within 1.8 tiles for 4 s, and fire burns one away. Its twist: the garden grows, Overgrown
@@ -1397,7 +1402,7 @@ A full five-floor game needs roughly 85 3D models, about 300 sound files, 5 musi
 
 **Visual effects** (code and particles, no Tripo): cantrip bolts per focus, 15 spell effects, 5 status visuals, 5 reaction bursts, potion splashes, level-up glow, portal and waystone.
 
-**2D and interface:** icons for about 15 spells, 25 artifacts, 12 potions (plus unknown bottles), 6 reagents, 6 runes and 12 boons; floor and wall textures per biome (procedural now, painted later); fonts already chosen.
+**2D and interface:** icons for about 15 spells, 25 artifacts, 12 potions (plus unknown bottles), 7 reagents, 6 runes and 12 boons; floor and wall textures per biome (procedural now, painted later); fonts already chosen.
 
 **Sourcing options (to decide)**
 

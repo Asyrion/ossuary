@@ -168,9 +168,14 @@ export function serpentFell(e: Enemy) {
   });
 }
 
-/** A jelly globe bursts at (x, z): now and then a jelly drifts out of it, else a reagent drops. */
+/** A jelly globe bursts at (x, z): now and then a jelly drifts out of it, else a reagent drops. A jelly let out shuts the
+    laboratory's doors until it is put to rest, as any fight does (and Dr. Jelly ducks behind the table). */
 export function globeBurst(room: Room, x: number, z: number) {
-  if (G.run.reagents.chance(L().globeJelly)) { spawnFoe('lanternJelly', x, z, 1); burst(x, .6, z, JELLY, 10, 1.4, .05); return; }
+  if (G.run.reagents.chance(L().globeJelly)) {
+    spawnFoe('lanternJelly', x, z, 1); burst(x, .6, z, JELLY, 10, 1.4, .05);
+    if (room === G.current && !room.locked) { room.locked = true; setDoors(room, false); }
+    return;
+  }
   const p = freeSpotNear(room, x, z), r = COMMON_REAGENTS[G.run.reagents.int(0, COMMON_REAGENTS.length - 1)];
   spawnPickup('reagent', p.x, p.z, { reagent: r, rise: true });
 }
