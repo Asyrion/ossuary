@@ -75,6 +75,15 @@ export const CFG = {
   foeGround: { every: .5, burn: 1.5, shock: .4, sparkDamage: 2, sting: 1.5, look: .75, lookAt: [.5, 1], steer: [.7, -.7, 1.4, -1.4] },
   // a leap or a dash with stone in its way turns off by the least of these (radians, either side) that is clear (wayRound)
   foeWay: { turns: [.6, 1.1, 1.6] },
+  /** M4.6 costumes (actors/costume.ts): the focus held in the casting hand (its scale, where along it the hand grips: 0 its
+      middle, negative below; how far it leans forward and out), each spot's scale for an artifact's own model carried
+      there, and a cursed piece's glow (a share of its height) and how often it weeps a red drop. */
+  costume: {
+    focus: { scale: 1.05, grip: -.22, lean: .35, tilt: .18 },
+    carry: { belt: { scale: .42 }, back: { scale: .62 }, shoulder: { scale: .48 }, chest: { scale: .36 }, wrist: { scale: .34 } },
+    curse: { glow: 2.2, drip: .35 },
+    closeUp: { zoom: 4.5, y: .75 }, // (the dev menu's close-up on the mage: how near, and how high it looks)
+  },
   // how the Stormcharged and Hallowed mantles look apart (M4.7): the storm's segments of lightning at most, its bolts round
   // the ring and arcs on the body, how often they crackle anew, its cloud's size and height over the head and how often it
   // strikes; the halo's size and height over the head

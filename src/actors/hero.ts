@@ -11,7 +11,7 @@ import { M, blob } from '../render/materials';
 import { shootDir } from '../input';
 import { angleLerp, lerp } from '../util';
 import { findMiniatureBase } from './baseDetect';
-import { fitCostumes } from './costume';
+import { dress, fitCostumes, updateCostumes } from './costume';
 import { buildHeroAnim, playCast, playDeath, playGesture, playHit, resetAnim, updateHeroAnim, type HeroAnim } from './heroAnim';
 
 export const hero = {
@@ -81,6 +81,7 @@ export function setHero(prep: PreparedHero, gltf: Pick<GLTF, 'animations'>, labe
   fitCostumes(prep.holder); // measured in the rest pose, before a clip moves the bones
   const clips = (gltf.animations || []).slice();
   if (prep.skinned && clips.length) hero.anim = buildHeroAnim(prep.holder, clips);
+  dress(); // (the cast clip has shown which hand thrusts: the focus is held in it)
   const roles = hero.anim?.roles ?? {};
   const clipList = Object.entries(roles).filter(([, c]) => c).map(([k, c]) => `${k}: ${c!.name.replace(/\.\d+$/, '')}`).join(', ');
   hero.info = STR.heroInfo(label, prep.tris, prep.stripped, prep.skinned, clipList);
@@ -120,6 +121,7 @@ export function heroVisual(dt: number, now: number) {
   const sp = moving / CFG.hero.speed;
   const lean = hero.lean;
   if (hero.anim) updateHeroAnim(hero.anim, dt, player.dead ? 0 : sp);
+  updateCostumes(dt); // (M4.6: the focus follows the casting hand; cursed pieces weep)
   if (player.dead && !hero.anim?.deaths.length) { // a static model, or a rig with no death clip: just topple over
     lean.rotation.x = lerp(lean.rotation.x, 1.45, 1 - Math.exp(-6 * dt)); lean.position.y = lerp(lean.position.y, .1, 1 - Math.exp(-6 * dt));
   } else if (!hero.anim) {

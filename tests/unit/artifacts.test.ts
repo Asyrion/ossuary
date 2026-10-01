@@ -3,7 +3,7 @@ import { CFG } from '../../src/config';
 import { Rng } from '../../src/rng';
 import { ARTIFACT_DEFS, DEFAULT_BOLT_COLOR, GILT_COLOR, START_FOCUS, computeStats, halveStat, pickArtifact, validateArtifacts } from '../../src/items/artifactData';
 import { DROPS } from '../../src/items/loot';
-import { wornPieces } from '../../src/actors/costumeData';
+import { COSTUME_PIECES, isCostume, slotOf, wornIds, wornLooks, wornPieces } from '../../src/actors/costumeData';
 import { STR } from '../../src/strings';
 
 const base = CFG.hero;
@@ -94,6 +94,33 @@ describe('costumes', () => {
 
   it('the Pilgrim\'s Cowl puts on the hood', () => {
     expect(wornPieces(['apprentice_wand', 'pilgrims_cowl'].map(id => ARTIFACT_DEFS.find(a => a.id === id)!.costume))).toEqual(['hood']);
+  });
+
+  // M4.6: pieces built for the body and an artifact's own model carried at a spot, one per slot
+  const def = (id: string) => ARTIFACT_DEFS.find(a => a.id === id)!;
+  it('carries an artifact\'s own model at its spot, a built piece in its slot, and the one taken last wins the slot', () => {
+    const worn = wornLooks(['mana_lantern', 'ember_sigil', 'pilgrims_cowl', 'rams_skull', 'stormglass_pendant'].map(def));
+    expect(worn.map(w => [w.slot, w.piece, w.at ?? null, w.from])).toEqual([
+      ['head', 'hood', null, 'pilgrims_cowl'], ['shoulders', 'carried', 'chest', 'stormglass_pendant'], ['back', 'carried', 'back', 'ember_sigil'], ['belt', 'carried', 'belt', 'mana_lantern'],
+    ]); // (the pendant, taken after the ram's skull, wins the shoulders)
+    expect(wornIds(worn)).toEqual(['hood', 'stormglass_pendant', 'ember_sigil', 'mana_lantern']);
+    expect(slotOf('belt')).toBe('belt'); expect(slotOf('chest')).toBe('shoulders'); expect(slotOf('manacles')).toBe('hands');
+    expect(isCostume('wrist')).toBe(true); expect(isCostume('aura')).toBe(false); expect(isCostume('tiara')).toBe(false);
+  });
+
+  it('shows a cursed artifact\'s curse on its piece until a shrine cleanses it', () => {
+    const [chain] = wornLooks([def('chain_of_the_penitent')]);
+    expect(chain).toMatchObject({ slot: 'hands', piece: 'manacles', cursed: true, cleansed: false });
+    expect(wornLooks([def('chain_of_the_penitent')], ['chain_of_the_penitent'])[0]).toMatchObject({ cursed: false, cleansed: true });
+    expect(wornLooks([def('mana_lantern')], ['mana_lantern'])[0].cursed).toBe(false); // (only a cursed artifact shows a curse)
+  });
+
+  it('most artifacts show on the mage: a piece, or held in the hand (every focus)', () => {
+    const shown = ARTIFACT_DEFS.filter(a => !a.start && (a.costume || a.kind === 'focus'));
+    expect(shown.length).toBeGreaterThanOrEqual(50);
+    for (const a of ARTIFACT_DEFS) if (a.costume) expect(isCostume(a.costume), a.id).toBe(true);
+    for (const id of Object.keys(COSTUME_PIECES)) expect(ARTIFACT_DEFS.some(a => a.costume === id), `${id} worn by none`).toBe(true);
+    for (const [id, p] of Object.entries(COSTUME_PIECES)) if ('curse' in p) expect(ARTIFACT_DEFS.filter(a => a.costume === id).every(a => a.kind === 'cursed'), id).toBe(true);
   });
 });
 

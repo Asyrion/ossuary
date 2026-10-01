@@ -1,169 +1,137 @@
-/* Costumes: pieces that artifacts put on the mage (costumeData.ts says which show), fitted to whatever model is
-   loaded. Each part hangs from a bone of the rig, so it follows every clip; it is fitted once, in the rig's rest
-   pose, to the part of the body it covers (the head and hair that the head bone moves, the chest and shoulders).
-   A static model (no rig) wears its pieces on the model itself, fitted to the top of its silhouette.
-   Placeholder shapes until costume pieces come from Tripo (docs/assets.md). */
+/* Costumes (M4.6, docs/M4.6-plan.md): what artifacts put on the mage (costumeData.ts says which show), fitted to whatever
+   model is loaded. Each part hangs from a bone of the rig, so it follows every clip; it is fitted once, in the rig's rest
+   pose, to the part of the body it covers (the head and hair the head bone moves, the chest and shoulders, the hips, the
+   hands and feet). A static model (no rig) wears its pieces on the model itself, fitted to its silhouette.
+
+   Two kinds of piece: those built for the body (`BUILD`: the hood), and an artifact's own model carried at a spot (`carry`:
+   a lantern at the hip, a sigil on the back, a pendant on the chest; `artifactLook`, as on its pedestal). The focus is held
+   in the hand the cast clip thrusts (`castHandName`), following the hand each step (`updateCostumes`) and kept upright. A
+   cursed artifact's piece glows red and weeps until a shrine cleanses it. */
 import * as THREE from 'three';
 import { player } from '../state';
+import { CFG } from '../config';
 import { artifact } from '../items/artifactData';
-import { wornPieces, type CostumeId } from './costumeData';
-
-/** Where a part hangs: a bone (or the model itself) and that bone's rest pose in the model's frame. */
-interface Anchor { parent: THREE.Object3D; rest: THREE.Matrix4 }
-/** A model measured in its rest pose, in the frame of the holder that prepareHero made (hero units, feet at 0,
-    facing +z). */
-interface Fit {
-  head: { box: THREE.Box3; centre: THREE.Vector3; radii: THREE.Vector3 }; headAt: Anchor;
-  chest: THREE.Box3; chestAt: Anchor;
-}
-
-const wool = new THREE.MeshStandardMaterial({ color: 0x4e1a25, roughness: 1, emissive: 0x140508 });
-const lining = new THREE.MeshStandardMaterial({ color: 0x2a1014, roughness: 1, side: THREE.BackSide });
-const trim = new THREE.MeshStandardMaterial({ color: 0x8a6a3a, roughness: .8, emissive: 0x140e06 });
+import { artifactLook, CURSED_RED } from '../items/artifactLooks';
+import { disposeTree, glowShared, mergeStill } from '../render/materials';
+import { burst } from '../combat/fx';
+import { castSide, hang, measure, offSide, sideX, type Fit, type Side } from './costumeFit';
+import { BUILD } from './costumePieces';
+import { COSTUME_SLOTS, wornIds, wornLooks, type CarrySpot, type Worn } from './costumeData';
 
 let model: THREE.Object3D | null = null, fit: Fit | null = null;
-const worn = new Map<CostumeId, THREE.Object3D[]>();
+/** What is worn in each slot: its key (what it is, and its curse) and its parts. */
+const worn = new Map<string, { key: string; w: Worn; parts: THREE.Object3D[] }>();
+/** The focus held, and the artifact it is. */
+let held: { id: string; part: THREE.Object3D } | null = null;
+/** The dev menu's try-on: artifacts whose pieces show as if held (after what is held). */
+const tried: string[] = [];
 
 /** A new model: measure it (in its rest pose, so before any clip plays) and put on what the mage wears. */
 export function fitCostumes(holder: THREE.Object3D) {
-  for (const id of [...worn.keys()]) takeOff(id);
+  for (const slot of [...worn.keys()]) takeOff(slot);
+  dropFocus();
   model = holder; fit = measure(holder); dress();
 }
 
-/** Put on the pieces the mage's artifacts call for, and take off those they no longer do. */
+/** Put on the pieces the mage's artifacts call for, and take off those they no longer do; the focus in the casting hand. */
 export function dress() {
   if (!model || !fit) return;
-  const want = wornPieces([player.focus, ...player.items].map(id => artifact(id).costume));
-  for (const id of [...worn.keys()]) if (!want.includes(id)) takeOff(id);
-  for (const id of want) if (!worn.has(id)) worn.set(id, BUILD[id](fit));
-}
-
-/** The pieces the mage wears now (for the dev hooks and tests). */
-export const wornNow = () => [...worn.keys()];
-
-function takeOff(id: CostumeId) {
-  for (const part of worn.get(id) ?? []) {
-    part.removeFromParent();
-    part.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).geometry.dispose(); });
+  const want = wornLooks([player.focus, ...player.items, ...tried].map(id => artifact(id)), player.cleansed);
+  const keyOf = (w: Worn) => `${w.piece}:${w.from}:${w.cursed}:${w.cleansed}`;
+  for (const [slot, on] of [...worn]) if (!want.some(w => w.slot === slot && keyOf(w) === on.key)) takeOff(slot);
+  for (const w of want) if (!worn.has(w.slot)) {
+    const parts = w.piece === 'carried' ? carry(fit, w) : BUILD[w.piece](fit, w);
+    for (const p of parts) if (p.userData.follow) model.add(p); // (a part that hangs straight down whatever the arm does: placed each step)
+    worn.set(w.slot, { key: keyOf(w), w, parts });
   }
-  worn.delete(id);
+  const focus = [...tried].reverse().find(id => artifact(id).kind === 'focus') ?? player.focus;
+  if (held?.id !== focus) { dropFocus(); held = { id: focus, part: holdFocus(focus) }; }
 }
 
-/* ---------- measuring ---------- */
+/** The pieces the mage wears now, as ids (a built piece's, or the carrying artifact's), and the focus held. */
+const bySlot = () => [...worn.values()].sort((a, b) => COSTUME_SLOTS.indexOf(a.w.slot) - COSTUME_SLOTS.indexOf(b.w.slot));
+export const wornNow = () => wornIds(bySlot().map(o => o.w));
+export const heldNow = () => held?.id ?? null;
+/** What is worn in each slot, with its curse (for the tests): the rule's entries, and how many parts each hangs. */
+export const wornDetail = () => bySlot().map(o => ({ ...o.w, parts: o.parts.length, bones: o.parts.map(p => p.parent?.name ?? '') }));
 
-const boneNamed = (root: THREE.Object3D, re: RegExp) => {
-  let found: THREE.Object3D | null = null;
-  root.traverse(o => { if (!found && (o as THREE.Bone).isBone && re.test(o.name)) found = o; });
-  return found as THREE.Object3D | null;
-};
+/** The dev menu's try-on: show artifact `id`'s piece (or hold the focus) as if it were held, or stop. */
+export function tryOn(id: string) { const i = tried.indexOf(id); if (i >= 0) tried.splice(i, 1); else tried.push(id); dress(); return i < 0; }
+export function takeAllOff() { tried.length = 0; dress(); }
+export const triedOn = () => [...tried];
 
-function measure(holder: THREE.Object3D): Fit {
-  holder.updateMatrixWorld(true);
-  const toHolder = holder.matrixWorld.clone().invert();
-  const headBone = boneNamed(holder, /head$/i);
-  const chestBone = boneNamed(holder, /(spine2|upperchest|chest)$/i) ?? headBone?.parent?.parent ?? null;
-  const anchor = (bone: THREE.Object3D | null): Anchor => bone
-    ? { parent: bone, rest: toHolder.clone().multiply(bone.matrixWorld) }
-    : { parent: holder, rest: new THREE.Matrix4() };
-  // the bones whose vertices make up the head (and hair), and the chest and shoulders
-  const headSet = new Set<THREE.Object3D>(), chestSet = new Set<THREE.Object3D>();
-  headBone?.traverse(o => headSet.add(o));
-  if (chestBone) { chestSet.add(chestBone); for (const c of chestBone.children) if (/neck|shoulder|clavicle/i.test(c.name)) chestSet.add(c); }
-  const headPts: THREE.Vector3[] = [], chest = new THREE.Box3(), all = new THREE.Box3();
-  const v = new THREE.Vector3();
-  holder.traverse(o => {
-    const mesh = o as THREE.SkinnedMesh; if (!mesh.isMesh) return;
-    const pos = mesh.geometry.attributes.position, si = mesh.geometry.attributes.skinIndex, sw = mesh.geometry.attributes.skinWeight;
-    const bones = mesh.isSkinnedMesh ? mesh.skeleton.bones : null;
-    for (let i = 0; i < pos.count; i++) {
-      mesh.getVertexPosition(i, v); v.applyMatrix4(mesh.matrixWorld).applyMatrix4(toHolder); all.expandByPoint(v);
-      if (!bones || !si || !sw) continue;
-      let best = 0; for (let k = 1; k < 4; k++) if (sw.getComponent(i, k) > sw.getComponent(i, best)) best = k;
-      const bone = bones[si.getComponent(i, best)];
-      if (headSet.has(bone)) headPts.push(v.clone()); else if (chestSet.has(bone)) chest.expandByPoint(v);
-    }
-  });
-  const size = all.getSize(new THREE.Vector3());
-  if (headPts.length < 20) { // no rig, or no head bone: the head is the top of the silhouette (chibi heads are big)
-    headPts.length = 0;
-    const top = all.clone(); top.min.y = all.max.y - size.y * .38;
-    const c = top.getCenter(new THREE.Vector3()), h = top.getSize(new THREE.Vector3()).multiplyScalar(.5);
-    for (let k = 0; k < 64; k++) headPts.push(new THREE.Vector3(c.x + h.x * Math.cos(k * .7), c.y + h.y * Math.sin(k * 1.3), c.z + h.z * Math.sin(k * .7)));
+function takeOff(slot: string) {
+  for (const part of worn.get(slot)?.parts ?? []) { part.removeFromParent(); disposeTree(part); }
+  worn.delete(slot);
+}
+function dropFocus() { if (held) { held.part.removeFromParent(); disposeTree(held.part); held = null; } }
+
+/* ---------- every step ---------- */
+
+const v = new THREE.Vector3();
+let dripT = 0;
+/** Each step: the focus follows the casting hand, upright and leaning a little forward; a cursed piece weeps. */
+export function updateCostumes(dt: number) {
+  if (!model || !fit) return;
+  if (held) {
+    const C = CFG.costume.focus, side = castSide(), bone = fit.hand[side].bone;
+    if (bone) { bone.updateWorldMatrix(true, false); model.worldToLocal(bone.getWorldPosition(v)); held.part.position.copy(v); }
+    else held.part.position.copy(fit.hand[side].pos);
+    held.part.rotation.set(C.lean, 0, side === 'R' ? C.tilt : -C.tilt);
   }
-  if (chest.isEmpty()) { chest.copy(all); chest.max.y = all.max.y - size.y * .38; chest.min.y = chest.max.y - size.y * .2; }
-  const box = new THREE.Box3().setFromPoints(headPts), centre = box.getCenter(new THREE.Vector3());
-  const half = box.getSize(new THREE.Vector3()).multiplyScalar(.5);
-  // grow the ellipsoid inside the head's box until nearly all of the head (spiky hair too) is inside it
-  const d = headPts.map(p => Math.hypot((p.x - centre.x) / half.x, (p.y - centre.y) / half.y, (p.z - centre.z) / half.z)).sort((a, b) => a - b);
-  const k = Math.max(1, d[Math.floor(d.length * .96)]) * 1.04;
-  return { head: { box, centre, radii: half.multiplyScalar(k) }, headAt: anchor(headBone), chest, chestAt: anchor(chestBone) };
+  for (const { parts } of worn.values()) for (const p of parts) { // (the parts that follow a wrist, hanging straight down)
+    const fl = p.userData.follow as { side: Side; drop?: number } | undefined, bone = fl && fit.hand[fl.side].bone; if (!fl) continue;
+    if (bone) { bone.updateWorldMatrix(true, false); model.worldToLocal(bone.getWorldPosition(v)); p.position.copy(v); } else p.position.copy(fit.hand[fl.side].pos);
+    if (fl.drop) p.scale.y = Math.max(.05, p.position.y / fl.drop); // (a chain to the floor, from wherever the wrist is)
+  }
+  if ((dripT -= dt) <= 0) {
+    dripT = CFG.costume.curse.drip;
+    for (const { w, parts } of worn.values()) if (w.cursed) for (const p of parts) { p.getWorldPosition(v); burst(v.x, v.y, v.z, p.userData.drip ?? CURSED_RED, 1, .4, .025); }
+  }
 }
 
-/* ---------- pieces ---------- */
+/* ---------- carried pieces and the focus ---------- */
 
-/** Hang a part built in the model's frame from an anchor, so that it sits where it was built in the rest pose. */
-function hang(at: Anchor, part: THREE.Object3D) {
-  at.rest.clone().invert().decompose(part.position, part.quaternion, part.scale);
-  at.parent.add(part); return part;
+/** An artifact's own model (as on its pedestal), merged, scaled to `scale` and moved so that the point `top` (0 its middle,
+    .5 its top) sits at the origin; with a red glow while it is cursed. `upright`: the slant it is shown at on its pedestal
+    (a wand or a spear laid aslant) taken out, to be held. */
+function ownLook(id: string, scale: number, top: number, cursed: boolean, upright = false) {
+  const def = artifact(id), look = artifactLook(def.icon, def.color);
+  if (upright) for (const c of look.children) c.rotation.z = 0;
+  mergeStill(look); look.scale.setScalar(scale);
+  const h = new THREE.Box3().setFromObject(look).getSize(new THREE.Vector3()).y;
+  look.position.y = -h * top;
+  const g = new THREE.Group(); g.add(look);
+  if (cursed) { const gl = glowShared(CURSED_RED, h * CFG.costume.curse.glow, .55); gl.position.y = look.position.y; g.add(gl); }
+  return g;
 }
 
-const shell = (geo: THREE.BufferGeometry) => {
-  const g = new THREE.Group(); g.add(new THREE.Mesh(geo, wool), new THREE.Mesh(geo, lining)); return g;
-};
+/** Where each spot is on the body (in the model's frame, at rest), what it hangs from, and how the model is turned there. */
+function spot(f: Fit, at: CarrySpot) {
+  const ch = f.chest, cc = ch.getCenter(new THREE.Vector3()), cs = ch.getSize(new THREE.Vector3());
+  const hc = f.hips.getCenter(new THREE.Vector3()), hs = f.hips.getSize(new THREE.Vector3()), off = sideX(offSide());
+  switch (at) {
+    case 'belt': return { anchor: f.hipsAt, pos: new THREE.Vector3(hc.x + off * (hs.x * .5 + .02), f.hips.max.y - hs.y * .2, hc.z + hs.z * .15), turn: new THREE.Euler(0, off * .5, 0), top: .5 };
+    case 'back': return { anchor: f.chestAt, pos: new THREE.Vector3(cc.x, cc.y, ch.min.z - .05), turn: new THREE.Euler(.15, Math.PI, 0), top: 0 };
+    case 'shoulder': return { anchor: f.chestAt, pos: new THREE.Vector3(cc.x + off * cs.x * .42, ch.max.y + .02, cc.z), turn: new THREE.Euler(0, off * .4, -off * .3), top: -.35 };
+    case 'chest': return { anchor: f.chestAt, pos: new THREE.Vector3(cc.x, ch.max.y - cs.y * .45, ch.max.z + .02), turn: new THREE.Euler(-.1, 0, 0), top: .5 };
+    case 'wrist': { const s = offSide(); return { anchor: f.hand[s].at, pos: f.hand[s].pos.clone(), turn: new THREE.Euler(0, 0, sideX(s) * Math.PI / 2), top: 0 }; }
+  }
+}
 
-/** Geometry in the unit sphere's frame, moved onto the head's ellipsoid. */
-const onHead = (geo: THREE.BufferGeometry, f: Fit) => {
-  const { centre, radii } = f.head;
-  geo.scale(radii.x, radii.y, radii.z); geo.translate(centre.x, centre.y, centre.z); geo.computeVertexNormals(); return geo;
-};
+/** An artifact's own model carried at its spot. */
+function carry(f: Fit, w: Worn): THREE.Object3D[] {
+  const S = spot(f, w.at!), C = CFG.costume.carry[w.at!];
+  const piece = ownLook(w.from, C.scale, S.top, w.cursed);
+  piece.position.copy(S.pos); piece.rotation.copy(S.turn);
+  const outer = new THREE.Group(); outer.add(piece);
+  return [hang(S.anchor, outer)];
+}
 
-const BUILD: Record<CostumeId, (f: Fit) => THREE.Object3D[]> = {
-  /** A pilgrim's hood: a cowl round the head, open at the face, with a long tail down the back (a liripipe),
-      and a short dagged mantle over the shoulders. */
-  hood(f) {
-    const open = .8 * Math.PI, edge = .4 * Math.PI, low = .8 * Math.PI; // face opening; where the cap ends; the cowl's hem
-    // the cowl: a cap and a skirt round the head, drawn up into a soft peak at the back and falling in folds
-    const peak = new THREE.Vector3(0, .75, -.66).normalize(), n = new THREE.Vector3();
-    const drape = (geo: THREE.BufferGeometry) => {
-      const pos = geo.attributes.position;
-      for (let k = 0; k < pos.count; k++) {
-        n.fromBufferAttribute(pos, k).normalize();
-        const theta = Math.acos(THREE.MathUtils.clamp(n.y, -1, 1));
-        const fold = theta > edge ? .045 * Math.sin(Math.atan2(n.z, n.x) * 9) * Math.min(1, (theta - edge) / .3) : 0;
-        n.multiplyScalar(1 + .45 * Math.max(0, n.dot(peak)) ** 6 + fold);
-        pos.setXYZ(k, n.x, n.y, n.z);
-      }
-      return geo;
-    };
-    const cowl = new THREE.Group();
-    cowl.add(shell(onHead(drape(new THREE.SphereGeometry(1, 32, 10, 0, Math.PI * 2, 0, edge)), f)));
-    cowl.add(shell(onHead(drape(new THREE.SphereGeometry(1, 32, 8, Math.PI / 2 + open / 2, Math.PI * 2 - open, edge, low - edge)), f)));
-    // a rolled edge round the face opening: up one side, across the brow, down the other
-    const onSphere = (phi: number, theta: number) => new THREE.Vector3(-Math.cos(phi) * Math.sin(theta), Math.cos(theta), Math.sin(phi) * Math.sin(theta));
-    const a0 = Math.PI / 2 - open / 2, a1 = Math.PI / 2 + open / 2, rimPts: THREE.Vector3[] = [];
-    for (let i = 0; i <= 4; i++) rimPts.push(onSphere(a0, low - (low - edge) * i / 4));
-    for (let i = 1; i < 8; i++) rimPts.push(onSphere(a0 + (a1 - a0) * i / 8, edge));
-    for (let i = 0; i <= 4; i++) rimPts.push(onSphere(a1, edge + (low - edge) * i / 4));
-    cowl.add(new THREE.Mesh(onHead(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(rimPts), 40, .06, 5, false), f), trim));
-    // the tail (a liripipe), hanging down the back and tapering
-    const path = new THREE.CatmullRomCurve3([[0, .55, -.8], [0, .1, -1.06], [0, -.4, -1.12], [0, -.95, -1.02]].map(p => new THREE.Vector3(...p)));
-    const tail = new THREE.TubeGeometry(path, 12, .22, 8, false);
-    const tp = tail.attributes.position, c = new THREE.Vector3(), p = new THREE.Vector3();
-    for (let i = 0; i <= 12; i++) {
-      path.getPointAt(i / 12, c);
-      for (let j = 0; j <= 8; j++) { const k = i * 9 + j; p.fromBufferAttribute(tp, k).sub(c).multiplyScalar(1 - .85 * i / 12).add(c); tp.setXYZ(k, p.x, p.y, p.z); }
-    }
-    cowl.add(shell(onHead(tail, f)));
-    // the mantle: a cone round the neck, flaring over the shoulders, with a dagged hem
-    const { box } = f.head, ch = f.chest, cc = ch.getCenter(new THREE.Vector3()), cs = ch.getSize(new THREE.Vector3());
-    const top = box.min.y + (box.max.y - box.min.y) * .12, bottom = Math.min(top - .12, cc.y - cs.y * .15);
-    const mantle = new THREE.CylinderGeometry(1, 1, 1, 24, 1, true), mp = mantle.attributes.position;
-    for (let k = 0; k < mp.count; k++) {
-      const up = mp.getY(k) > 0, a = Math.atan2(mp.getZ(k), mp.getX(k)), tooth = (k % 2) * .05;
-      const rx = up ? f.head.radii.x * .55 : Math.max(cs.x * .5, f.head.radii.x * .8) * 1.08, rz = up ? f.head.radii.z * .5 : Math.max(cs.z * .5, f.head.radii.z * .6) * 1.25;
-      mp.setXYZ(k, cc.x + rx * Math.cos(a), up ? top : bottom - tooth, cc.z + rz * Math.sin(a));
-    }
-    mantle.computeVertexNormals();
-    return [hang(f.headAt, cowl), hang(f.chestAt, shell(mantle))];
-  },
-};
+/** The focus, its own model, in the model's frame (it follows the hand each step: `updateCostumes`). */
+function holdFocus(id: string) {
+  const part = ownLook(id, CFG.costume.focus.scale, CFG.costume.focus.grip, false, true);
+  part.position.copy(fit!.hand[castSide()].pos); model!.add(part);
+  return part;
+}
+

@@ -1613,6 +1613,37 @@ test('the Pilgrim\'s Cowl puts a hood on the mage, hung from the head bone, and 
   expect(errors).toEqual([]);
 });
 
+test('costumes (M4.6): the focus is held in the casting hand, artifacts show on the mage in their slots (their own model at a spot, or a piece built for the body), and a cursed piece changes once cleansed', async ({ page }) => {
+  const errors = await start(page, '?seed=COST01');
+  type Worn = { slot: string; piece: string; from: string; cursed: boolean; cleansed: boolean; parts: number; bones: string[] };
+  type GC = GameHooks & { give(...ids: string[]): void; cleanse(): void; costume: string[]; costumeDetail: Worn[]; held: string | null; renderInfo(): { calls: number };
+    hero: { model: { traverse(f: (o: { isBone?: boolean; name: string; getWorldPosition(v: unknown): { x: number; y: number; z: number } }) => void): void } }; camera: { position: { constructor: new () => unknown } } };
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GC, out: Record<string, unknown> = {};
+    g.sim(.3, true); out.start = { worn: g.costume, held: g.held }; const calls0 = g.renderInfo().calls;
+    g.give('twin_staff', 'mana_lantern', 'ember_sigil', 'stormglass_pendant', 'crown_of_thorns', 'pilgrims_boots', 'chain_of_the_penitent');
+    g.sim(.3, true);
+    out.held = g.held; out.worn = g.costumeDetail.map(w => [w.slot, w.piece === 'carried' ? w.from : w.piece, w.bones[0]]);
+    out.cursed = g.costumeDetail.filter(w => w.cursed).map(w => w.piece);
+    out.calls = g.renderInfo().calls - calls0;
+    g.cleanse(); g.cleanse(); g.sim(.1);
+    out.cleansed = g.costumeDetail.filter(w => w.cleansed).map(w => w.piece); out.stillCursed = g.costumeDetail.filter(w => w.cursed).length;
+    return out;
+  });
+  expect(r.start).toEqual({ worn: [], held: 'apprentice_wand' });
+  expect(r.held).toBe('twin_staff');
+  expect(r.worn).toEqual([
+    ['head', 'thorns', 'mixamorigHead'], ['shoulders', 'stormglass_pendant', 'mixamorigSpine2'], ['back', 'ember_sigil', 'mixamorigSpine2'],
+    ['hands', 'manacles', 'mixamorigLeftHand'], ['belt', 'mana_lantern', 'mixamorigHips'], ['feet', 'boots', 'mixamorigLeftFoot'],
+  ]);
+  expect(r.cursed).toEqual(['thorns', 'manacles']);
+  expect(r.cleansed).toEqual(['thorns', 'manacles']); expect(r.stillCursed).toBe(0); // (cleansed at a shrine: their cleansed looks)
+  expect(r.calls).toBeLessThan(20); // (every slot filled and the focus held: a few draw calls each)
+  await page.evaluate(() => { const g = (window as unknown as W & { __game: { closeUp(on?: boolean): void } }).__game; g.closeUp(true); g.sim(.05, true); });
+  await page.screenshot({ path: 'test-results/costumes.png' });
+  expect(errors).toEqual([]);
+});
+
 test('the pause menu sets the volumes, and the browser remembers them; positioned effects play without errors', async ({ page }) => {
   const errors = await start(page, '?room=crypt_a&seed=VOL1&spells=arc');
   // a fight: hits, deaths and a spell, all panned to where they happen

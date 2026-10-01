@@ -73,6 +73,9 @@ export function centreHips(clip: THREE.AnimationClip, root: THREE.Object3D, refC
   return new THREE.AnimationClip(clip.name, clip.duration, clip.tracks.map(t => t === tr ? nt : t));
 }
 
+let castHand = '';
+/** The bone of the hand the cast clip thrusts forward (found by `castWindow`): the focus is held in it (M4.6). */
+export const castHandName = () => castHand;
 /** Find the moment a hand thrusts forward fastest; that's the "release" we replay on every shot. */
 export function castWindow(root: THREE.Object3D, clip: THREE.AnimationClip): [number, number] {
   const hands: THREE.Object3D[] = []; root.traverse(o => { if ((o as THREE.Bone).isBone && /hand$/i.test(o.name)) hands.push(o); });
@@ -83,7 +86,7 @@ export function castWindow(root: THREE.Object3D, clip: THREE.AnimationClip): [nu
   for (let t = 0; t <= clip.duration; t += dt) {
     mx.setTime(t); root.updateMatrixWorld(true);
     const zs = hands.map(h => h.getWorldPosition(v).applyMatrix4(inv).z);
-    if (prev) { const p = prev; zs.forEach((z, i) => { const vel = (z - p[i]) / dt; if (vel > best) { best = vel; bt = t; } }); }
+    if (prev) { const p = prev; zs.forEach((z, i) => { const vel = (z - p[i]) / dt; if (vel > best) { best = vel; bt = t; castHand = hands[i].name; } }); }
     prev = zs;
   }
   mx.stopAllAction(); mx.uncacheRoot(root);

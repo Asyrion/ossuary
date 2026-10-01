@@ -12,7 +12,7 @@ import './style.css';
 import { DEV, G, player } from './state';
 import { applyStrings } from './strings';
 import { Sfx } from './audio/sfx';
-import { camera, canvas, draw, renderer, resize } from './render/renderer';
+import { camera, canvas, draw, renderer, resize, setCloseUp } from './render/renderer';
 import './render/lights';
 import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { arrowOrder, initKeyboard, initTouch, keys, type InputActions } from './input';
@@ -47,7 +47,7 @@ import { spawnShot } from './combat/projectiles';
 import { lightLevels } from './render/lights';
 import { TEMPLATES } from './world/templates';
 import { isTouch } from './util';
-import { wornNow } from './actors/costume';
+import { heldNow, takeAllOff, tryOn, wornDetail, wornNow } from './actors/costume';
 import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
 import { assetList, assetsOn, loadAssets } from './assets/models';
@@ -309,8 +309,9 @@ function installDevHooks() {
     get spores() { return (G.current.spores ?? []).length; },
     /** Fire reaches (x, z) and `r` round it, as a burning bolt or a blast would: oil, roots, briars, webs, spores. */
     burn(x: number, z: number, r = 0) { fireAt(x, z, r); },
-    /** The costume pieces the mage wears (a hood, from the Pilgrim's Cowl). */
-    get costume() { return wornNow(); },
+    /** The costume pieces the mage wears (a hood, from the Pilgrim's Cowl; an artifact's id for one carried at a spot),
+        and the focus held in the casting hand (M4.6); try a piece on as if held, or take all off. */
+    get costume() { return wornNow(); }, get costumeDetail() { return wornDetail(); }, get held() { return heldNow(); }, wear: (id: string) => tryOn(id), takeAllOff: () => takeAllOff(), closeUp: (on = true) => setCloseUp(on),
   };
 }
 
