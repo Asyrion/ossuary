@@ -206,7 +206,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   placeholder until the Eda lore arrives: keep it to the dungeon (chapel, crypts, sextons, pilgrims, the
   Ferryman) and invent no gods, factions or places. Since the owner's lore drop (2026-09-30; GDD: Vision, Setting) it may
   also name what the GDD adopted from it: the Gate of Uzulim and its Wardens, their vault, the Pass of Buluiain, Kaelith
-  the Shadow Sentinel, and Asyrion (the mage); the rest of the owner's names wait for M8.
+  the Shadow Sentinel, Asyrion (the mage), Belerial (where the Wandering Merchant comes from) and Fen-Nex (Asyrion's
+  companion, the Rune Fox; the owner's ask of 2026-10-01); the rest of the owner's names wait for M8.
 - The inventory (`src/ui/inventory.ts`; I or Tab, the gamepad's View button, or the pause menu) pauses the game and
   lists what the mage carries and knows in tabs: artifacts (with their stat changes and a curse's price), spells
   (the two slots, then a book by school, M3.7), items (hearts, mana, soul motes, obols, keys, glyphs) and the mage's own numbers;
