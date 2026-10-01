@@ -177,6 +177,18 @@ artifacts the GDD already plans for M2 (the economy seven) or M3 (Burn, Chill, S
 | Gravemonger's Contract | Cursed | Gift: every foe put to rest drops an obol. Price: room clears never drop hearts, and hearts cost twice as much at the merchant | A bargain with those who rob the dead; the shrine cleanses it (M2 step 5) |
 | The Last Rite | Cursed | Gift: once per floor, a killing blow is refused and the mage rises with half a heart. Price: one heart container less | A rite read too early; the mage walks with one foot in the grave |
 
+**How the ones still to build would show on the mage** (proposed 2026-10-01, after M4.6; every new artifact decides,
+GDD: Artifacts, Costumes):
+- *Reaper's Crescent* (focus): held, a sexton's short haft with a crescent blade of pale light that brightens as it
+  sweeps.
+- *Turning Ward*: on the off wrist, a bronze bracer with a ring of ward-light turning round it; a turned shot flashes it.
+- *Weaver's Thread*: at the belt, a spool of glowing thread, a loose end trailing to the nearest glyph.
+- *Undertaker's Ledger*: at the belt, the ledger on its chain, pages riffling when a foe is put to rest.
+- *Mirrored Shade*: nothing on the mage; the shade across the room is the look (`SHOWS_OTHERWISE`).
+- *Widow's Veil* (cursed): over the face, a black lace veil; cleansed, it is lifted back over the head.
+- *Talismans*: worn on a cord at the throat (the chest spot), one at a time; asleep it is dull, awake it glows in the
+  light of what it feeds on.
+
 ## Rooms of Eda (play-test, 2026-09-28)
 
 The first play-test's clearest finding: rooms feel and look too much like Isaac. Four things make them so: plain

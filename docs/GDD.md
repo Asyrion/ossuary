@@ -635,6 +635,12 @@ Picking up an artifact shows on the mage, as Isaac's items do, but in a high fan
   the rest of the run. The look takes several slots, an aura and a tint of the robes. A banner and a lore card name
   it, and the mage gains a gift in its spirit (as Isaac's transformations do, with a magic take). Sets (above) keep
   their bonus; a transformation counts any artifacts of its kind. Proposed, to be chosen with the owner:
+- **Every artifact to come shows too** (the owner's ask, 2026-10-01). A new artifact is designed with its look on the
+  mage, chosen by what it stands for: a piece built for the body (a crown, a mask, cuffs), its own model carried at a spot
+  (a lantern at the belt, a sigil on the back, a pendant on the chest), held (every focus), or nothing when it already
+  shows round the mage (a companion, flames at the shoulders, a ring at the feet), named in `SHOWS_OTHERWISE`. A rule or a
+  bargain with no shape (a better price at the merchant, a ledger of debts) is best carried as the object it is. The
+  validator refuses an artifact that hasn't decided.
 
 | Transformation | Kind | The look | The gift |
 | --- | --- | --- | --- |

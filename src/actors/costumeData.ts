@@ -38,6 +38,17 @@ export type CostumeId = keyof typeof COSTUME_PIECES;
 
 export const isPiece = (id: string): id is CostumeId => id in COSTUME_PIECES;
 export const isCarry = (id: string): id is CarrySpot => id in CARRY;
+/** The artifacts that wear nothing because they already show round the mage, and what shows instead. Every other
+    artifact has a `costume` or is a focus (held in the casting hand): a new artifact decides which, and the validator
+    (`validateArtifacts`) refuses one that hasn't (the owner's ask, 2026-10-01: keep artifacts showing on the mage). */
+export const SHOWS_OTHERWISE: Readonly<Record<string, string>> = {
+  candle_moth: 'the moth fluttering round the mage',
+  weeping_skull: 'the skull circling the mage',
+  fennex_rune: "Fen-Nex at the mage's heel",
+  twin_vigil_candles: 'the two flames at the shoulders',
+  salt_circle: 'the ring of salt at the feet',
+};
+
 /** Whether an artifact's `costume` names something it can wear (not a transformation's own piece). */
 export const isCostume = (id: string) => (isPiece(id) && !('transform' in COSTUME_PIECES[id]) && !('arc' in COSTUME_PIECES[id])) || isCarry(id);
 /** The slot a `costume` fills. */
