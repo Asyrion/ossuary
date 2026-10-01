@@ -33,8 +33,10 @@ async function start(page: Page, query: string) {
       for (const c of codes) g.keys.add(c);
       g.arrowOrder.length = 0; const a = codes.find(c => c.startsWith('Arrow')); if (a) g.arrowOrder.push(a);
     };
+    // (what it remembers lasts across calls: a test may fight in short slices)
+    let stuck = 0, idle = 0, lineUp = 0, was = { x: g.player.x, z: g.player.z }, last: unknown, lastHp = 0;
     w.__fight = (limit: number) => {
-      let t = 0, stuck = 0, idle = 0, lineUp = 0, was = { x: g.player.x, z: g.player.z }, last: unknown, lastHp = 0;
+      let t = 0;
       for (; t < limit && g.enemies.length; t += 0.05) {
         g.player.hp = g.player.maxHp; // these tests check the loop, not survival (hits still knock the hero back)
         const p = g.player;
