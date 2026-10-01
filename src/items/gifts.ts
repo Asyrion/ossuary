@@ -74,6 +74,8 @@ export function touched(e: Enemy) {
 let blinkCd = 0;
 /** Each step: the blink's rest. */
 export function updateGifts(dt: number) { if (blinkCd > 0) blinkCd -= dt; }
+/** A new run: the Stormcaller's count and the blink's rest start afresh. */
+export function resetGifts() { struck = 0; blinkCd = 0; }
 /** The Shadowstep's blink (Shift, RT): a short step through the dark the way the mage moves (or aims, standing), stopping
     short of walls, rocks, pits and shut doors; for a moment nothing can strike the mage. Too soon, it fizzles. */
 export function blink(move: { x: number; z: number }) {

@@ -35,7 +35,7 @@ import { giveById, offerGuaranteed, offerOptional, offerSecondChoice, placeArtif
 import { banner, fadeFromBlack, hideBossBar, renderHearts, renderMinimap, resetHearts, showBossBar, toast, line, clearLines } from './ui/hud';
 import { resetAfflictions } from './ui/afflictions';
 import { warnFloor } from './world/curve';
-import { pilgrimMap } from './items/gifts';
+import { pilgrimMap, resetGifts } from './items/gifts';
 import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
 import { clearSpellFx, forgetSpells, gainMana, leaveRoomSpells, learnSpell } from './magic/spells';
@@ -99,7 +99,7 @@ export function buildFloor(index: number) {
 export function resetPlayer() {
   Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0, blessed: 0, dim: 0, chill: 0, stone: 0, pull: { x: 0, z: 0 }, hexed: 0, drained: 0, hexDebt: 0, hexDebtUntil: 0, drawn: 0 });
   heroReset();
-  resetHearts(); resetArtifacts(); resetResources(); resetSouls(); resetAfflictions(); clearLines();
+  resetHearts(); resetArtifacts(); resetResources(); resetSouls(); resetAfflictions(); clearLines(); resetGifts();
   forgetSpells(); player.mana = player.stats.maxMana;
 }
 

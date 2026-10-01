@@ -17,6 +17,7 @@ import { burst } from './fx';
 import { damageEnemy } from './damage';
 import { fireSecondary } from './projectiles';
 import { updateFennex } from './fennex';
+import { TRANSFORMS } from '../items/transformData';
 
 const A = CFG.artifacts;
 type Moth = { g: THREE.Group; wings: THREE.Mesh[]; t: number; cd: number };
@@ -99,8 +100,8 @@ const drop = (o: { g: THREE.Group } | null) => { if (o) { scene.remove(o.g); dis
 export const mothCount = () => moths.length;
 /** How much harder the familiars strike: the Beastcaller's (M4.6). */
 export const familiarMul = () => player.stats.effects.has('beastcaller') ? CFG.transform.beast.damageMul : 1;
-/** The Beastcaller's moth: in the beastcaller's light. */
-const BEAST_MOTH = 0xf0c890;
+/** The Beastcaller's moth: in the Beastcaller's light. */
+const BEAST_MOTH = TRANSFORMS.beastcaller.light;
 /** The nearest foe the moth can see: in this room, awake, within reach. */
 function nearestFoe(x: number, z: number, reach: number) {
   let best: Enemy | null = null, bd = reach;
@@ -117,8 +118,10 @@ export function updateFamiliars(dt: number, now: number, acting: boolean) {
   updateFennex(dt, acting); // (M4.2: Fen-Nex, combat/fennex.ts)
   // the Candle Moth, and the Beastcaller's one more (M4.6), each on its own side of the circle
   const want = (fx.has('moth') ? 1 : 0) + (fx.has('beastcaller') ? CFG.transform.beast.more : 0);
-  while (moths.length > want) drop(moths.pop()!);
-  while (moths.length < want) moths.push(makeMoth(moths.length || !fx.has('moth') ? BEAST_MOTH : 0xf0e8c8)); // (the Candle Moth first, pale)
+  if (moths.length !== want) { // (made afresh when the count changes: the Candle Moth first and pale, the Beastcaller's in its light)
+    while (moths.length) drop(moths.pop()!);
+    for (let k = 0; k < want; k++) moths.push(makeMoth(k === 0 && fx.has('moth') ? 0xf0e8c8 : BEAST_MOTH));
+  }
   moths.forEach((moth, k) => {
     const M_ = A.moth, a = now * 1.7 + k * Math.PI * 2 / moths.length;
     moth.g.position.set(player.x + Math.cos(a) * M_.orbit, 1.15 + Math.sin(now * 5 + k) * .08, player.z + Math.sin(a) * M_.orbit * .8);

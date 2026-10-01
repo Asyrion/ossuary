@@ -83,17 +83,17 @@ export const CFG = {
       Pilgrim's step, the Lightbearer's float (how high, and its bob), the Beastcaller's familiars (how many more, and how
       much harder they strike); and how far the robes are tinted towards the transformation's light. */
   transform: {
-    banner: 3.2,
+    banner: 3.2, after: 1.8, // (after: seconds between an artifact's own card and the transformation it completes)
     ember: { time: 1.6 }, frost: { chill: 1, every: .8 }, storm: { every: 5, reach: 4.5, share: .8 },
     blink: { dist: 2.4, every: 1.6, invuln: .25 }, rune: { delay: .55, reach: 1.1, share: .6 },
     pilgrim: { speed: 1.12 }, float: { lift: .14, bob: .035 }, beast: { more: 1, damageMul: 1.5 }, tint: .3,
   },
-  /** M4.6 costumes (actors/costume.ts): the focus held in the casting hand (its scale, where along it the hand grips: 0 its
-      middle, negative below; how far it leans forward and out), each spot's scale for an artifact's own model carried
-      there, and a cursed piece's glow (a share of its height) and how often it weeps a red drop. */
   /** M4.6 Asyrion's arc (items/arc.ts): how many artifacts held bring each stage of the chaos mage's pieces, and how long
       each stage's line stays. */
   arc: { at: [3, 6, 9, 12], line: 4.5 },
+  /** M4.6 costumes (actors/costume.ts): the focus held in the casting hand (its scale, where along it the hand grips: 0 its
+      middle, negative below; how far it leans forward and out), each spot's scale for an artifact's own model carried
+      there, and a cursed piece's glow (a share of its height) and how often it weeps a red drop. */
   costume: {
     focus: { scale: 1.05, grip: -.22, lean: .35, tilt: .18 },
     carry: { belt: { scale: .42 }, back: { scale: .62 }, shoulder: { scale: .48 }, chest: { scale: .36 }, wrist: { scale: .34 } },
