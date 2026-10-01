@@ -22,7 +22,7 @@ import { line } from '../ui/hud';
 import { ringFx, strikeFx } from '../magic/spellFx';
 import { SPELL_DEFS, spell, type School } from '../magic/spellData';
 import { spellCost } from '../magic/cost';
-import { stage } from '../magic/memory';
+import { knowledgeVersion, stage } from '../magic/memory';
 import { attunedTo, circleOf, handState, masteredSchools, type CircleArc, type HandState } from '../magic/marksData';
 import { castSide, offSide } from './costumeFit';
 import { handAt } from './costume';
@@ -94,8 +94,15 @@ function buildCircle(arcs: CircleArc[], key: string) {
   return { key, root, mats: [mat], arcs };
 }
 
-/** What the mage knows now, as the circle's arcs and a key that changes when it does. */
-function knowledge() { const arcs = circleOf(SPELL_DEFS, stage); return { arcs, key: arcs.map(a => a.spells.map(s => +s.known).join('')).join('|') }; }
+/** What the mage knows now, as the circle's arcs and a key that changes when it does; worked out again only when what is
+    known changes (`knowledgeVersion`). */
+let known: { version: number; arcs: CircleArc[]; key: string } | null = null;
+function knowledge() {
+  if (known?.version !== knowledgeVersion()) { const arcs = circleOf(SPELL_DEFS, stage); known = { version: knowledgeVersion(), arcs, key: arcs.map(a => a.spells.map(s => +s.known).join('')).join('|') }; }
+  return known;
+}
+/** A mark's line, the first time it shows in a run. */
+const firstTime = (what: string, text: string) => { const k = 'marks:' + what; if (!G.run.hinted.has(k)) { G.run.hinted.add(k); line(text, M.line); } };
 
 /** Each step: the marks follow the mage and show what their spells and knowledge are. */
 export function updateSpellMarks(dt: number) {
@@ -107,14 +114,14 @@ export function updateSpellMarks(dt: number) {
     if (!def || off) { if (hands[slot]) hands[slot]!.root.visible = false; continue; }
     const h = hands[slot] ??= buildHand(def.id, def.school);
     if (!handAt(slot === 0 ? castSide() : offSide(), v)) { h.root.visible = false; continue; }
-    h.root.visible = true; h.root.position.copy(v); h.root.position.y += M.hand.lift;
+    h.root.visible = true; h.root.position.copy(v); h.root.position.y += M.hand.lift; firstTime('hands', STR.marks.hands);
     const cost = spellCost(def), st = handState(player.spellCd[slot], def.cooldown, player.mana >= cost || player.souls.length > 0, cost > 0 ? player.mana / cost : 1);
     if (st.state === 'ready' && h.was !== 'ready') { h.pulse = 1; ringFx(v.x, v.y + M.hand.lift, v.z, SCHOOL_LIGHT[h.school], .03, M.hand.flash, .3); } // (ready again: a flash)
-    h.was = st.state; h.pulse = Math.max(0, h.pulse - dt * 3);
+    h.was = st.state; h.pulse = Math.max(0, h.pulse - dt * M.hand.pulse);
     const mat = h.glow.material, color = SCHOOL_LIGHT[h.school];
-    if (st.state === 'ready') { mat.color.set(color); mat.opacity = M.hand.ready + Math.sin(now * 6 + slot) * .06; }
-    else if (st.state === 'cooling') { mat.color.set(color); mat.opacity = M.hand.dim + (M.hand.ready - M.hand.dim) * st.fill * .7; }
-    else { mat.color.set(color).lerp(grey, .7); mat.opacity = M.hand.dim * (.6 + .4 * Math.abs(Math.sin(now * 9))); }
+    if (st.state === 'ready') { mat.color.set(color); mat.opacity = M.hand.ready + Math.sin(now * M.hand.shimmer + slot) * M.hand.shimmerBy; }
+    else if (st.state === 'cooling') { mat.color.set(color); mat.opacity = M.hand.dim + (M.hand.ready - M.hand.dim) * st.fill * M.hand.cooling; }
+    else { mat.color.set(color).lerp(grey, M.hand.grey); mat.opacity = M.hand.dim * (.6 + .4 * Math.abs(Math.sin(now * M.hand.flicker))); }
     h.glow.scale.setScalar(M.hand.size * (st.state === 'ready' ? 1 : .7 + .3 * st.fill) * (1 + h.pulse * .8));
     h.motes.visible = st.state === 'ready';
     if (h.school === 'storm' && st.state === 'ready' && (h.spark -= dt) <= 0) { // (sparks crackling between the fingers)
@@ -135,6 +142,7 @@ export function updateSpellMarks(dt: number) {
   const want = !off && player.still > M.circle.after && arcs.some(a => a.spells.some(s => s.known));
   circleFade = Math.max(0, Math.min(1, circleFade + (want ? dt / M.circle.fadeIn : -dt / M.circle.fadeOut)));
   if (circleFade > 0) {
+    firstTime('circle', STR.marks.circle);
     circle ??= buildCircle(arcs, key);
     circle.root.visible = true; circle.root.position.set(player.x, .02, player.z); circle.root.rotation.y += dt * M.circle.spin;
     for (const m of circle.mats) m.opacity = circleFade;

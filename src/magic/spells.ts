@@ -29,12 +29,6 @@ export function gainMana(n: number) { player.mana = Math.max(0, Math.min(player.
 /* ---------- slots ---------- */
 
 /** Learn a spell into a slot (the first empty one unless `slot` says); returns the spell it replaced. */
-/** The dev menu's (M4.11): both slots filled with a school's spells, attuning the mage to it, and mana full. */
-export function attuneTo(school: School) {
-  SPELL_DEFS.filter(s => s.school === school).slice(0, 2).forEach((s, i) => learnSpell(s.id, i, true));
-  player.mana = player.stats.maxMana;
-}
-
 export function learnSpell(id: string, slot?: number, silent = false): string | null {
   const def = spell(id);
   const at = slot ?? Math.max(0, player.spells.indexOf(null));
@@ -47,6 +41,12 @@ export function learnSpell(id: string, slot?: number, silent = false): string | 
     showLore({ name: def.name, kind: STR.spellKind(STR.schools[def.school]), effect: STR.spellEffect(def.text, def.mana, def.cooldown), lore: def.lore, icon: spellIcon(def.id) });
   }
   return replaced;
+}
+
+/** The dev menu's (M4.11): both slots filled with a school's spells, attuning the mage to it, and mana full. */
+export function attuneTo(school: School) {
+  SPELL_DEFS.filter(s => s.school === school).slice(0, 2).forEach((s, i) => learnSpell(s.id, i, true));
+  player.mana = player.stats.maxMana;
 }
 /** Forget every spell (a new run, or the dev menu). */
 export function forgetSpells() { player.spells = [null, null]; player.spellCd = [0, 0]; renderSpells(); }

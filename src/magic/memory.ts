@@ -9,9 +9,12 @@ const KEY = 'ossuary.knowledge', C = CFG.knowledge;
 let kn: Knowledge = {};
 try { kn = parse(localStorage.getItem(KEY)); } catch { /* no storage: start from nothing */ }
 let dirty = false; // casts counted since the last save (saved when a stage changes, and when the page goes)
-function save() { dirty = false; try { localStorage.setItem(KEY, JSON.stringify(kn)); } catch { /* not kept, still known this session */ } }
+let version = 0; // (counts the changes to what is known: M4.11's spell marks rebuild only when it moves)
+function save() { dirty = false; version++; try { localStorage.setItem(KEY, JSON.stringify(kn)); } catch { /* not kept, still known this session */ } }
 if (typeof window !== 'undefined') window.addEventListener('pagehide', () => { if (dirty) save(); });
 
+/** A number that changes whenever any spell's stage does (the spell marks read it before recomputing). */
+export const knowledgeVersion = () => version;
 /** How well the mage knows spell `id`. */
 export const stage = (id: string): Stage => stageOf(kn[id], C.usedCasts);
 /** Times cast, over all runs. */

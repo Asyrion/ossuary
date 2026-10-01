@@ -9,7 +9,7 @@ interface GameHooks {
   hero: { info: string }; keys: Set<string>; arrowOrder: string[];
   warp(id: number): void; sim(sec: number, draw?: boolean): void;
 }
-type W = { __game: GameHooks; __manual: boolean; __fight(limit: number): number };
+type W = { __game: GameHooks; __manual: boolean; __fight(limit: number, step?: number): number };
 
 /** Collect console errors, open the game and press Descend. */
 async function start(page: Page, query: string) {
@@ -35,19 +35,19 @@ async function start(page: Page, query: string) {
     };
     // (what it remembers lasts across calls: a test may fight in short slices)
     let stuck = 0, idle = 0, lineUp = 0, was = { x: g.player.x, z: g.player.z }, last: unknown, lastHp = 0;
-    w.__fight = (limit: number) => {
+    w.__fight = (limit: number, step = .05) => { // (`step`: how long each slice is; a test that watches every step passes one)
       let t = 0;
-      for (; t < limit && g.enemies.length; t += 0.05) {
+      for (; t < limit && g.enemies.length; t += step) {
         g.player.hp = g.player.maxHp; // these tests check the loop, not survival (hits still knock the hero back)
         const p = g.player;
         // a foe killed by a bolt stays in the list, marked dead, until the next step
         // (a foe whose shield turns bolts, a Twin Guardian, only when there's nothing else)
         const e = g.enemies.filter(f => !f.dead).sort((a, b) => +!!(a as { glance?: boolean }).glance - +!!(b as { glance?: boolean }).glance || Math.hypot(a.x - p.x, a.z - p.z) - Math.hypot(b.x - p.x, b.z - p.z))[0];
-        if (!e) { hold([]); g.sim(0.05); continue; }
+        if (!e) { hold([]); g.sim(step); continue; }
         const dx = e.x - p.x, dz = e.z - p.z, codes: string[] = [];
         // backing off into a corner goes nowhere (and a foe on the diagonal is never struck), and a foe that takes no harm
         // for a while isn't being struck: line up with it a while instead
-        const hp = (e as unknown as { hp: number }).hp; idle = e === last && hp >= lastHp ? idle + 0.05 : 0; last = e; lastHp = hp;
+        const hp = (e as unknown as { hp: number }).hp; idle = e === last && hp >= lastHp ? idle + step : 0; last = e; lastHp = hp;
         if (stuck > .5 || idle > 2) { lineUp = 1.5; stuck = idle = 0; }
         if (Math.hypot(dx, dz) < (e.isBoss ? 1.6 : .9) && lineUp <= 0) {
           codes.push(dx > 0 ? 'KeyA' : 'KeyD', dz > 0 ? 'KeyW' : 'KeyS');
@@ -59,8 +59,8 @@ async function start(page: Page, query: string) {
           if (dz > .2) codes.push('KeyS'); else if (dz < -.2) codes.push('KeyW');
           codes.push(dx < 0 ? 'ArrowLeft' : 'ArrowRight');
         }
-        hold(codes); g.sim(0.05); lineUp -= 0.05;
-        stuck = Math.hypot(p.x - was.x, p.z - was.z) < .01 ? stuck + 0.05 : 0; was = { x: p.x, z: p.z };
+        hold(codes); g.sim(step); lineUp -= step;
+        stuck = Math.hypot(p.x - was.x, p.z - was.z) < .01 ? stuck + step : 0; was = { x: p.x, z: p.z };
       }
       hold([]); return t;
     };
@@ -228,8 +228,8 @@ for (const boss of ['hart', 'angler']) test(`the ${boss === 'hart' ? 'Hallowed H
       const d0 = Math.hypot(g.player.x - foe.x, g.player.z - foe.z); g.sim(.5); drawn = d0 - Math.hypot(g.player.x - foe.x, g.player.z - foe.z);
     }
     const states = new Set<string>(); let called = false, seconds = 0;
-    // (every step: a charge that meets a wall at once lasts less than a quarter second, and the fight is random)
-    for (; seconds < 240 && g.enemies.length; seconds += .05) { w.__fight(.05); states.add(foe.state); called ||= !!foe.summoned; }
+    // (every step: a charge that meets a wall at once can last a step or two, and the fight is random)
+    for (; seconds < 240 && g.enemies.length; seconds += 1 / 60) { w.__fight(1 / 60, 1 / 60); states.add(foe.state); called ||= !!foe.summoned; }
     g.sim(0.5);
     const spots = (g.current as RoomView & { spots: unknown[] }).spots;
     return { type: foe.type, weak, resist, drawn, seconds, states: [...states], called, left: g.enemies.length, cleared: g.current.cleared, choice: spots.length };
@@ -1747,11 +1747,13 @@ test('spell marks (M4.11): each slotted spell shows at its hand (ready, cooling,
     g.forgetKnowledge(); g.warp(1); g.sim(.3, true); g.clearRoom(); g.sim(.3, true);
     out.none = g.spellMarks.hands;
     g.learn('arc', 0); g.learn('cinder_lance', 1); g.mana(100); g.sim(.2, true); out.ready = g.spellMarks.hands.map(h => h && [h.school, h.state]);
+    out.handsLine = document.querySelector('#toast')?.textContent; // (the first time they show, a line says what they tell)
     g.cast(1, { x: 0, z: -1 }); g.sim(.1, true); out.cooling = g.spellMarks.hands[1]?.state;
     g.sim(2.5, true); out.back = g.spellMarks.hands[1]?.state;
     g.mana(0); g.sim(.1, true); out.short = g.spellMarks.hands.map(h => h?.state); g.mana(100);
     out.unattuned = g.spellMarks.attuned;
-    g.attune('ember'); g.sim(.2, true); out.attuned = g.spellMarks.attuned; out.line = document.querySelector('#toast')?.textContent;
+    g.attune('ember'); g.sim(.2, true); out.attuned = g.spellMarks.attuned;
+    g.sim(1.5, true); out.line = document.querySelector('#toast')?.textContent; // (after the hands' line, never cutting it short)
     out.ringBefore = g.spellMarks.hands.map(h => h?.ring);
     g.know('cinder_lance', 'used'); g.know('pyre_seal', 'used'); g.know('arc', 'used'); g.sim(.1, true);
     out.ringAfter = g.spellMarks.hands.map(h => h?.ring); out.mastered = g.spellMarks.circle.mastered;
@@ -1761,6 +1763,7 @@ test('spell marks (M4.11): each slotted spell shows at its hand (ready, cooling,
   expect(r.none).toEqual([null, null]);
   expect(r.ready).toEqual([['storm', 'ready'], ['ember', 'ready']]);
   expect(r.cooling).toBe('cooling'); expect(r.back).toBe('ready'); expect(r.short).toEqual(['short', 'short']);
+  expect(r.handsLine).toContain('Your spells show at your hands');
   expect(r.unattuned).toBeNull(); expect(r.attuned).toBe('ember'); expect(r.line).toContain('Attuned to Ember');
   expect(r.ringBefore).toEqual([false, false]); expect(r.ringAfter).toEqual([true, true]); expect(r.mastered).toEqual(['ember']);
   expect(r.circle).toMatchObject({ shown: true, known: [2, 0, 1, 0, 0], mastered: ['ember'] });
