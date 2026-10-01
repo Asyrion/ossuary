@@ -120,7 +120,7 @@
     "shrine": false,
     "library": true,
     "vaultWarden": "lanternTortoise",
-    "foes": {"R": [["rootling", 1]], "W": [["stormRay", 2], ["voidMote", 1]], "H": [["lanternTortoise", 1], ["rootling", 1]]},
+    "foes": {"R": [["rootling", 1.5], ["rimeWolf", 1], ["frostJackalope", 1]], "W": [["stormRay", 2], ["voidMote", 1], ["gloomRaven", 1]], "H": [["lanternTortoise", 1], ["rootling", 1], ["glacierGolem", 0.6], ["hydra", 0.6], ["dustPangolin", 1], ["manticore", 1]]},
     "secretArtifactChance": 0.6,
     "souls": 3,
     "bossHallChance": 0.5,

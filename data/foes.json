@@ -369,5 +369,54 @@
     "behaviour": "roller",
     "params": {"ball0": 0.2, "grow": 0.18, "launchAt": 0.7, "range": 6, "tell": 0.5, "flight": 0.9, "ring": 10, "shotSpeed": 3.2, "chill": 1.2, "bare": 3, "quick": 2, "weak": 1.4},
     "gib": "#9ab8c8", "stain": "#1a2a34"
+  },
+  "glacierGolem": {
+    "floor": 5, "school": "frost", "weak": "ember", "resist": "frost", "elemental": true,
+    "hp": 40, "r": 0.65, "speed": 0.85, "contact": 1, "flying": false, "elite": true,
+    "behaviour": "glacier",
+    "params": {"stompEvery": [2.8, 3.8], "stompRange": 6, "tell": 0.7, "spikes": 7, "spikeEvery": 0.09, "gap": 0.65, "hit": 0.55, "arc": 0.9, "front": 0.15, "frozen": 3, "shatter": 0.35},
+    "gib": "#cfeaf8", "stain": "#1a3a4a"
+  },
+  "hydra": {
+    "floor": 5, "school": "umbral", "weak": "ember", "resist": "frost",
+    "hp": 42, "r": 0.65, "speed": 0.8, "contact": 1, "flying": false, "elite": true,
+    "behaviour": "hydra",
+    "params": {"headHp": 9, "regrow": 3.5, "attackEvery": 2.4, "keep": 2.2, "biteReach": 1.7, "shotSpeed": 3.6, "hex": 8},
+    "gib": "#2a3a2e", "stain": "#141c16"
+  },
+  "gloomRaven": {
+    "floor": 5, "school": "umbral", "weak": "hallow", "resist": "umbral",
+    "hp": 11, "r": 0.36, "speed": 2.6, "contact": 1, "flying": true,
+    "behaviour": "raven",
+    "params": {"wheel": [2.4, 3.4], "keep": 3.2, "gloom": 2.2, "dim": 0.6, "light": 2.6, "cawEvery": [2.2, 3], "shots": 3, "spread": 0.3, "shotSpeed": 3.4, "hex": 6, "tell": 0.5, "dive": 8, "diveTime": 0.6},
+    "gib": "#3a2a4a", "stain": null
+  },
+  "rimeWolf": {
+    "floor": 5, "school": "frost", "weak": "ember", "resist": "frost",
+    "hp": 10, "r": 0.4, "speed": 3, "contact": 1, "flying": false, "pack": [2, 3],
+    "behaviour": "wolf",
+    "params": {"keep": 2.6, "spin": 0.6, "lungeEvery": [1.4, 2.2], "tell": 0.45, "lunge": 8, "lungeTime": 0.35, "howlEvery": [5, 7], "haste": 2, "fear": 1.2, "scatter": 1.6},
+    "gib": "#c8d8e4", "stain": "#2a3440"
+  },
+  "dustPangolin": {
+    "floor": 5, "school": "umbral", "weak": "storm", "resist": "frost",
+    "hp": 20, "r": 0.48, "speed": 1.2, "contact": 1, "flying": false,
+    "behaviour": "pangolin",
+    "params": {"walk": [1.4, 2.2], "range": 7, "tell": 0.5, "roll": 7, "rollMax": 2.2, "daze": 2.2, "dust": 3.5, "dim": 1.5, "glance": 0.5, "open": 2},
+    "gib": "#9a8a72", "stain": "#2a2418"
+  },
+  "frostJackalope": {
+    "floor": 5, "school": "frost", "weak": "ember", "resist": "frost",
+    "hp": 11, "r": 0.34, "speed": 2.4, "contact": 1, "flying": false,
+    "behaviour": "kiter",
+    "params": {"watch": [0.8, 1.4], "keep": 3.6, "leap": 7, "leapTime": 0.45, "stampEvery": [1.8, 2.6], "range": 7, "shards": 5, "spread": 0.22, "shotSpeed": 3.8, "chill": 1, "rime": 0.6, "rimeTime": 4, "fear": 1.2, "slide": 1.6},
+    "gib": "#e4eef6", "stain": "#2a3440"
+  },
+  "manticore": {
+    "floor": 5, "school": "umbral", "weak": "hallow", "resist": "ember",
+    "hp": 30, "r": 0.6, "speed": 1.6, "contact": 1, "flying": false,
+    "behaviour": "manticore",
+    "params": {"keep": 3.6, "volleyEvery": [2.2, 3], "tailTell": 0.55, "spikes": 5, "spread": 0.18, "shotSpeed": 4, "hex": 8, "pounceEvery": [3, 4.5], "pounceRange": 5, "crouch": 0.5, "pounceTime": 0.55, "pounceMax": 5, "landHit": 1},
+    "gib": "#8a5a3a", "stain": "#2a1a14"
   }
 }

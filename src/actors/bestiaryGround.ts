@@ -89,6 +89,7 @@ export function fallOn(room: Room, x: number, z: number, dur: number, land: (x: 
 const m4 = new THREE.Matrix4(), q0 = new THREE.Quaternion(), v3 = new THREE.Vector3(), s3 = new THREE.Vector3();
 /** Every step: patches fade and go; lobs fly and land. */
 export function updateGround(dt: number) {
+  updateSpikes(dt);
   for (let i = patches.length - 1; i >= 0; i--) { const p = patches[i]; p.t -= dt; if (p.t <= 0 || p.room !== G.current) patches.splice(i, 1); }
   for (const kind of ['web', 'ink', 'rime'] as const) {
     const list = patches.filter(p => p.kind === kind);
@@ -110,4 +111,23 @@ export function updateGround(dt: number) {
 export function clearGround() {
   patches.length = 0; for (const m of Object.values(meshes)) if (m) m.count = 0;
   for (const l of lobs) scene.remove(l.m); lobs.length = 0;
+  for (const s of spikes) scene.remove(s.m); spikes.length = 0;
+}
+
+/* ---------- ice spikes: a glacier golem's stomp ---------- */
+
+const spikeGeo = new THREE.ConeGeometry(.2, 1, 5).translate(0, .5, 0), spikeMat = new THREE.MeshStandardMaterial({ color: 0xcfeaf8, emissive: 0x1e5a8a, roughness: .15, metalness: .2, transparent: true, opacity: .9, flatShading: true });
+const spikes: { room: Room; m: THREE.Mesh; t: number }[] = [];
+const SPIKE_LIFE = .7;
+/** An ice spike thrust up from the floor at (x, z), gone again in a moment. */
+export function spikeAt(room: Room, x: number, z: number) {
+  const m = new THREE.Mesh(spikeGeo, spikeMat); m.position.set(x, 0, z); m.rotation.set((Math.random() - .5) * .3, Math.random() * 3, (Math.random() - .5) * .3); m.scale.set(1, .01, 1); scene.add(m);
+  spikes.push({ room, m, t: 0 });
+}
+function updateSpikes(dt: number) {
+  for (let i = spikes.length - 1; i >= 0; i--) {
+    const s = spikes[i]; s.t += dt;
+    if (s.t > SPIKE_LIFE || s.room !== G.current) { scene.remove(s.m); spikes.splice(i, 1); continue; }
+    s.m.scale.y = Math.min(1, s.t / .1) * Math.min(1, (SPIKE_LIFE - s.t) / .25) * .9 + .01; // (up fast, down slow)
+  }
 }
