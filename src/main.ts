@@ -66,6 +66,7 @@ import type { Stage } from './magic/knowledge';
 import type { PropKind } from './world/propData';
 import { FOE_IDS, isFoe, type FoeType, type School } from './actors/foeData';
 import { bestiary, forgetBestiary } from './actors/bestiary';
+import { findEveryCounter } from './actors/counters';
 import { burningGround, sparkGround } from './actors/foes';
 import { groundCount } from './actors/bestiaryGround';
 import { blastAt } from './combat/glyphs';
@@ -243,7 +244,7 @@ function installDevHooks() {
     /** Strike the room's foe `i` for `dmg`, of `school` if given (M4: its weakness and resistance count). */
     hit: (i: number, dmg: number, school?: School, by: 'spell' | 'cantrip' = 'spell', dx = 0, dz = 0) => { const e = G.enemies[i]; if (e) damageEnemy(e, dmg, dx, dz, 0, by, school); return e?.hp; }, // (dx, dz: the way the blow travels)
     /** What the mage has found of the foes (M4), kept between runs; forget it all. */
-    get bestiary() { return bestiary(); }, forgetBestiary: () => forgetBestiary(),
+    get bestiary() { return bestiary(); }, forgetBestiary: () => forgetBestiary(), findCounters: () => findEveryCounter(), // (M4.7: every counter found)
     /** Patches of ground a salamander has set burning in this room (M4). */
     get burningGround() { return burningGround(); }, get sparkGround() { return sparkGround(); },
     get steam() { return steamCount(); }, steamAt(x: number, z: number) { steamAt(x, z); }, inSteam(x: number, z: number) { return inSteam(x, z); }, // (Steam's clouds in the room, 2026-10-01)

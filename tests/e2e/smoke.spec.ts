@@ -1059,9 +1059,11 @@ test('statuses: chill freezes and stops a foe, Shatter and Overload go off, boss
     const g = (window as unknown as W).__game as unknown as G10, P = g.player; g.sim(1);
     const warden = g.spawn('warden', P.x - 3, P.z - 3), dummy = g.spawn('dummy', P.x + 3, P.z - 3); g.sim(.8);
     for (let i = 0; i < 4; i++) g.inflict({ chill: 1 });
+    const wardenFrozen = (warden.status?.frozen ?? 0) > 0, wardenChill = warden.status?.chill;
+    for (let k = 0; k < 70; k++) { (P as unknown as { invuln: number }).invuln = 9; g.sim(.05); } // (the cold thaws: fire now is a burn, not Steam)
     g.inflict({ burn: 2 }); dummy.hp = 1; g.sim(.6);
     const d = g.enemies.find(e => e.type === 'dummy')!;
-    return { wardenFrozen: (warden.status?.frozen ?? 0) > 0, wardenChill: warden.status?.chill, dummyHp: d.hp, dummyMax: d.maxHp, label: d.label?.userData.text };
+    return { wardenFrozen, wardenChill, dummyHp: d.hp, dummyMax: d.maxHp, label: d.label?.userData.text };
   });
   expect(boss).toMatchObject({ wardenFrozen: false, wardenChill: 2 });
   expect(boss.dummyHp).toBe(boss.dummyMax);
@@ -2726,7 +2728,7 @@ test('foes in code (M4): the Sporeling fills the fights, hops, swells and puffs 
   expect(r.swelled).toBe(true); expect(r.puffed).toBe(true);
   expect(r.dim).toBeGreaterThan(1);
   expect(r.weak).toBeCloseTo(3); expect(r.resist).toBeCloseTo(1); expect(r.plain).toBeCloseTo(2);
-  expect(r.book).toEqual({ met: true, weak: true, resist: true });
+  expect(r.book).toMatchObject({ met: true, weak: true, resist: true }); // (and, M4.7, the counters found)
   expect(r.mats).toBeGreaterThan(0); // (its merged surfaces flash when hit)
   await page.screenshot({ path: 'test-results/foes-sporeling.png' });
   expect(errors).toEqual([]);
@@ -3489,25 +3491,27 @@ test('champion mantles (M4.7): each does its own, keeps its own school off, and 
   expect(errors).toEqual([]);
 });
 
-test('foes in each other\'s ground (M4.7): webs and ink hold a walker, rime trips it, fire and sparks burn it, spores sting it; its own kind\'s spares it; a golem goes round', async ({ page }) => {
+test('foes in each other\'s ground (M4.7): webs and ink hold a walker, rime trips it, fire and sparks burn it, spores sting it; its own kind\'s and its own school\'s spare it; a golem goes round', async ({ page }) => {
   const errors = await start(page, '?room=great_hall&floor=3');
   const r = await page.evaluate(() => {
     type F = Foe & { hp: number; maxHp: number; status?: { burn: number; shock: number }; vx: number; vz: number };
     type G2 = GameHooks & { spawn(kind: string, x?: number, z?: number): F; clearRoom(): void; inflict(s: Record<string, number>): void; layGround(kind: string, x: number, z: number, by?: string): void; foeGround(i: number): { pace: number; at?: string; slide: boolean }; player: GameHooks['player'] & { invuln: number } };
     const g = (window as unknown as W).__game as G2, P = g.player, R: Record<string, unknown> = {};
     const keep = (s: number) => { for (let k = 0; k < s / .05; k++) { P.hp = P.maxHp; P.invuln = 9; g.sim(.05); } };
-    const on = (ground: string, by: string, kind = 'sporeling') => { g.clearRoom(); g.sim(.2); const x = P.x, z = P.z - 4; const e = g.spawn(kind, x, z); g.sim(.7); e.x = x; e.z = z; g.layGround(ground, x, z, by); g.sim(.05); return e; };
+    // (a Frost foe by default: at home on rime, not in webs, ink, fire, sparks or spores)
+    const on = (ground: string, by: string, kind = 'rimeSnail') => { g.clearRoom(); g.sim(.2); const x = P.x, z = P.z - 4; const e = g.spawn(kind, x, z); g.sim(.7); e.x = x; e.z = z; g.layGround(ground, x, z, by); g.sim(.05); return e; };
     // webs and ink hold a walker of another kind, not its own
     let e = on('web', 'cryptSpider'); R.web = g.foeGround(g.enemies.indexOf(e));
     e = on('ink', 'inkOctopus'); R.ink = g.foeGround(g.enemies.indexOf(e));
     e = on('ink', 'inkOctopus', 'inkOctopus'); R.ownInk = g.foeGround(g.enemies.indexOf(e));
     // fire burns it, sparks shock and hurt it, spores sting it
     e = on('fire', 'magmaOoze'); keep(.6); R.fire = (e.status?.burn ?? 0) > 0;
-    e = on('fire', 'sporeling'); keep(.6); R.ownFire = (e.status?.burn ?? 0) > 0;
+    e = on('fire', 'sporeling', 'sporeling'); keep(.6); R.ownFire = (e.status?.burn ?? 0) > 0;
     e = on('spark', 'thunderhead'); g.inflict({ root: 3 }); const hp0 = e.hp; keep(1.2); R.spark = e.hp < hp0; // (held on the spot until the spark arms)
     e = on('spores', 'puffcap'); g.inflict({ root: 3 }); const hp1 = e.hp; keep(.7); R.spores = e.hp < hp1; // (stung again while it stays)
-    // rime: a walker on another kind's rime slides
+    // rime: a walker on another kind's rime slides; a Frost foe is at home on it
     e = on('rime', 'rimeSnail', 'runeBeetle'); keep(.3); R.rime = g.foeGround(g.enemies.indexOf(e))?.slide ?? 'gone';
+    e = on('rime', 'frostJackalope'); keep(.3); R.homeRime = g.foeGround(g.enemies.indexOf(e))?.slide ?? 'gone';
     // a golem goes round a band of burning ground between it and the mage, never into it
     g.clearRoom(); g.sim(.2);
     const gx = P.x, gz = P.z - 7; for (let k = -3; k <= 3; k++) g.layGround('fire', gx + k * .5, P.z - 3.5, 'magmaOoze');
@@ -3519,6 +3523,31 @@ test('foes in each other\'s ground (M4.7): webs and ink hold a walker, rime trip
   expect(r.web).toMatchObject({ pace: .45, at: 'web' });
   expect(r.ink).toMatchObject({ pace: .65, at: 'ink' });
   expect(r.ownInk).toMatchObject({ pace: 1 });
-  expect(r).toMatchObject({ fire: true, ownFire: false, spark: true, spores: true, rime: true, golem: { burnt: false, closer: true } });
+  expect(r).toMatchObject({ fire: true, ownFire: false, spark: true, spores: true, rime: true, homeRime: false, golem: { burnt: false, closer: true } });
+  expect(errors).toEqual([]);
+});
+
+test('counters found (M4.7): a hex grounds a griffin, its word rises, the bestiary keeps it, and the inventory\'s Foes tab opens its line', async ({ page }) => {
+  const errors = await start(page, '?room=great_hall&floor=4');
+  const r = await page.evaluate(() => {
+    type G2 = GameHooks & { forgetBestiary(): void; spawn(kind: string, x?: number, z?: number): Foe & { state: string }; inflict(s: Record<string, number>): void; bestiary: Record<string, { met: boolean; counters: string[] }>; player: GameHooks['player'] & { invuln: number } };
+    const g = (window as unknown as W).__game as G2, P = g.player;
+    g.forgetBestiary();
+    const e = g.spawn('griffin', P.x, P.z - 4); for (let k = 0; k < 30; k++) { P.invuln = 9; g.sim(.05); }
+    const before = [...(g.bestiary.griffin.counters ?? [])];
+    g.inflict({ hex: 1 }); g.sim(.1);
+    return { before, after: g.bestiary.griffin.counters, state: e.state, toast: document.getElementById('toast')?.textContent ?? '' };
+  });
+  expect(r).toMatchObject({ before: [], after: ['grounded'], state: 'claw' });
+  expect(r.toast).toContain('A hex grounds it');
+  // the Foes tab: the griffin met, one counter of one found, its line open
+  await page.keyboard.press('KeyI');
+  await page.locator('#invTabs button', { hasText: 'Foes' }).click();
+  const tile = page.locator('#invList .tile[title="Griffin"]');
+  await expect(tile).toHaveCount(1);
+  await expect(tile.locator('.n')).toHaveText('1/1');
+  await tile.click();
+  await expect(page.locator('#invDetail')).toContainText('Grounded! A hex grounds it.');
+  await expect(page.locator('#invDetail .chip').first()).toContainText('Weak to ?'); // (its weakness not found yet)
   expect(errors).toEqual([]);
 });

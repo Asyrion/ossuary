@@ -30,6 +30,7 @@ import { scrollsBroken } from './themes';
 import { OBJECT_LOOKS, burningFire } from './objectLooks';
 import { addPit, freeSpotNear, openChasm } from './rooms';
 import { actingKind } from '../actors/acting';
+import { counterAt } from '../actors/counters';
 
 const P = CFG.props;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, SPORE = 0x9fe8b0, BONE = 0xd8ccb2;
@@ -335,7 +336,7 @@ function dropSpores(room: Room, s: SporeCloud) { room.group.remove(s.g); dispose
 
 /** Fire found a cloud of spores: it flashes, burning every foe in reach, and the mage too if they stand in it. */
 function flash(room: Room, s: SporeCloud) {
-  dropSpores(room, s);
+  dropSpores(room, s); if (s.by) counterAt(s.by, 'flashed', s.x, s.z); // (M4.7: a Sporeling's counter)
   const S = P.spores;
   for (const e of G.enemies) {
     if (e.dead || e.spawn > 0 || e.hidden) continue;

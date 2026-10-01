@@ -43,3 +43,13 @@ describe('champion mantles (M4.7)', () => {
     expect(validateMantles(bad, [{ mantles: { glowing: 1 } }])).toEqual(['kindled: stripped by its own school', 'kindled: immune to what strips it', 'rimebound: immune to what strips it', 'floor 1: mantle glowing 1']);
   });
 });
+
+describe('counters (M4.7)', () => {
+  it('each foe\'s counters have a word, and name foes that exist', async () => {
+    const { validateCounters, countersOf } = await import('../../src/actors/counterData');
+    expect(validateCounters()).toEqual([]);
+    expect(countersOf('griffin')).toEqual(['grounded']);
+    expect(countersOf('stormMantis')).toEqual(['numbed', 'flanked']);
+    expect(countersOf('mireToad')).toEqual([]);
+  });
+});

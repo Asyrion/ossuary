@@ -15,6 +15,7 @@ import { glowTex } from '../render/textures';
 import { burst } from '../combat/fx';
 import { hearGround } from '../world/groundHooks';
 import { actingKind } from './acting';
+import { counterAt } from './counters';
 
 export type GroundKind = 'web' | 'ink' | 'rime';
 interface Patch { room: Room; kind: GroundKind; x: number; z: number; r: number; t: number; life: number; by?: string }
@@ -79,7 +80,7 @@ hearGround((kind, x, z, r) => {
     const p = patches[i];
     if (p.kind === 'ink' || p.room !== G.current || Math.hypot(x - p.x, z - p.z) > r + p.r) continue;
     patches.splice(i, 1);
-    if (p.kind === 'web') { burst(p.x, .1, p.z, 0xff9a3a, 8, 1.6, .04); Sfx.at(p.x, p.z).webBurn(); } else { burst(p.x, .1, p.z, 0xd4ecf8, 5, 1.2, .04); Sfx.at(p.x, p.z).thaw(); }
+    if (p.kind === 'web') { burst(p.x, .1, p.z, 0xff9a3a, 8, 1.6, .04); Sfx.at(p.x, p.z).webBurn(); if (p.by) counterAt(p.by, 'burnt', p.x, p.z); } else { burst(p.x, .1, p.z, 0xd4ecf8, 5, 1.2, .04); Sfx.at(p.x, p.z).thaw(); }
   }
 });
 

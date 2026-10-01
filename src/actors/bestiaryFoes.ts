@@ -122,6 +122,7 @@ import { makeEnemy } from './enemies';
 import { fallOn, layGround, lob, slipAt, spikeAt } from './bestiaryGround';
 import { burningNear, drivenUp, layFire, laySpark } from './foes';
 import { brake, light, num, ramp, rush, span, type Aim, type Behaviour, type Params } from './foeKit';
+import { counter } from './counters';
 
 export { clearGround, updateGround } from './bestiaryGround';
 
@@ -215,7 +216,7 @@ const splitter: Behaviour = {
   },
   struck(e, dmg, _by, P, dx, dz) {
     if (!splitsNow(e, dmg, P)) return dmg;
-    if ((e.status?.chill ?? 0) > 0) { burst(e.x, .4, e.z, SCHOOL_LIGHT.frost, 12, 2, .05); Sfx.at(e.x, e.z).inkCrack(); return dmg * num(P.crack); } // (chilled, it cracks instead of splitting)
+    if ((e.status?.chill ?? 0) > 0) { burst(e.x, .4, e.z, SCHOOL_LIGHT.frost, 12, 2, .05); Sfx.at(e.x, e.z).inkCrack(); counter(e, 'cracked'); return dmg * num(P.crack); } // (chilled, it cracks instead of splitting)
     halve(e, P, dx, dz, 0x2a1848); Sfx.at(e.x, e.z).inkSplit(); // (it becomes the one half, and the other slides away across the floor)
     return 0;
   },
@@ -228,7 +229,7 @@ const tome: Behaviour = {
     if (e.state === 'shut') { // a book on the floor
       e.vx = e.vz = 0; e.guard = num(P.guard); e.animRate = 0;
       const still = !othersAwake(e); e.fireT = still ? e.fireT! + dt : 0;
-      if (a.dist < num(P.wake) || e.hp < e.maxHp || e.fireT > num(P.lonely)) { e.state = 'wake'; e.st = num(P.rise); Sfx.at(e.x, e.z).bookWake(); burst(e.x, .3, e.z, 0xe6d8b8, 8, 1.4, .04); }
+      if (a.dist < num(P.wake) || e.hp < e.maxHp || e.fireT > num(P.lonely)) { e.state = 'wake'; e.st = num(P.rise); Sfx.at(e.x, e.z).bookWake(); burst(e.x, .3, e.z, 0xe6d8b8, 8, 1.4, .04); if (e.hp < e.maxHp) counter(e, 'unmasked'); }
       return e.face;
     }
     if (e.state === 'wake') { e.vx = e.vz = 0; e.open = 1 - Math.max(0, e.st / num(P.rise)); if (e.st <= 0) { e.state = 'fly'; e.flying = true; e.contact = e.foe!.contact; e.guard = 1; e.animRate = 1; e.fireT = span(P.riffleEvery); e.cycle = span(P.biteEvery); } return; }
@@ -316,7 +317,8 @@ const singer: Behaviour = {
     if (e.state === 'perch') { // it sings: rings of song, and the foes round it are hastened, unless a hex has silenced it
       brake(e, 8, dt); e.st -= dt;
       const hushed = (e.status?.hex ?? 0) > 0;
-      if ((e.fireT! -= dt) <= 0 && !hushed) {
+      if ((e.fireT! -= dt) <= 0 && hushed) { e.fireT = num(P.songEvery); counter(e, 'hushed'); } // (it opens its beak, and nothing comes)
+      if ((e.fireT!) <= 0 && !hushed) {
         e.fireT = num(P.songEvery); ringFx(e.x, .9, e.z, light(e), .3, num(P.songRange), .8, true, .7); Sfx.at(e.x, e.z).larkSong();
         for (const o of G.enemies) if (o !== e && !o.dead && !o.isBoss && Math.hypot(o.x - e.x, o.z - e.z) < num(P.songRange)) { o.sung = G.simClock + num(P.hasteTime); burst(o.x, .8, o.z, light(e), 2, 1, .03); }
       }
@@ -356,8 +358,9 @@ const mantis: Behaviour = {
     }
   },
   struck(e, dmg, by, P, dx, dz) {
-    if (by !== 'cantrip' || (e.state !== 'stalk' && e.state !== 'rear') || (e.status?.chill ?? 0) > 0 || (e.status?.shock ?? 0) > 0) return dmg;
-    const f = facing(e); if (dx * f.x + dz * f.z > -num(P.parryArc)) return dmg; // (from the side or behind, it lands)
+    if (by !== 'cantrip' || (e.state !== 'stalk' && e.state !== 'rear')) return dmg;
+    const f = facing(e); if (dx * f.x + dz * f.z > -num(P.parryArc)) { counter(e, 'flanked'); return dmg; } // (from the side or behind, it lands)
+    if ((e.status?.chill ?? 0) > 0 || (e.status?.shock ?? 0) > 0) { counter(e, 'numbed'); return dmg; } // (chilled or shocked, it can't parry)
     e.count = (e.count ?? 0) + 1; e.face += (Math.random() - .5) * .3;
     const ux = player.x - e.x, uz = player.z - e.z, d = Math.hypot(ux, uz) || 1;
     shoot(e, ux / d, uz / d, num(P.parrySpeed), .55); burst(e.x + f.x * .4, .8, e.z + f.z * .4, light(e), 8, 2.2, .035); Sfx.at(e.x, e.z).mantisParry();
@@ -398,7 +401,7 @@ const crab: Behaviour = {
   },
   blasted(e, P) {
     if (e.state === 'hidden' || e.state === 'rise') return;
-    e.state = 'flipped'; e.st = num(P.flipped); e.vx = e.vz = 0; burst(e.x, .4, e.z, 0x8e877c, 12, 2.2, .05); Sfx.at(e.x, e.z).crabFlip();
+    e.state = 'flipped'; e.st = num(P.flipped); e.vx = e.vz = 0; burst(e.x, .4, e.z, 0x8e877c, 12, 2.2, .05); Sfx.at(e.x, e.z).crabFlip(); counter(e, 'flipped');
   },
   pose(e, P) {
     const flipped = e.state === 'flipped', hid = e.state === 'hidden' ? 1 : e.state === 'rise' ? Math.max(0, e.st / num(P.rise)) : 0;
@@ -440,7 +443,7 @@ const snail: Behaviour = {
       if (e.cycle! >= num(P.shellAt)) { e.state = 'shell'; e.st = num(P.shellTime); e.cycle = 0; e.guard = num(P.shellGuard); Sfx.at(e.x, e.z).snailHide(); }
     } else if (e.state === 'shell') { // withdrawn: blows glance off the ice; fire cracks it
       e.vx = e.vz = 0;
-      if ((e.status?.burn ?? 0) > 0) { e.state = 'cracked'; e.st = num(P.crackTime); e.guard = num(P.crackGuard); burst(e.x, .6, e.z, SCHOOL_LIGHT.frost, 16, 2.4, .06); Sfx.at(e.x, e.z).snailCrack(); }
+      if ((e.status?.burn ?? 0) > 0) { e.state = 'cracked'; e.st = num(P.crackTime); e.guard = num(P.crackGuard); burst(e.x, .6, e.z, SCHOOL_LIGHT.frost, 16, 2.4, .06); Sfx.at(e.x, e.z).snailCrack(); counter(e, 'cracked'); }
       else if (e.st <= 0) { e.state = 'crawl'; e.guard = 1; }
     } else if (e.state === 'cracked') { e.vx = e.vz = 0; if (e.st <= 0) { e.state = 'crawl'; e.guard = 1; } }
   },
@@ -460,7 +463,7 @@ const newt: Behaviour = {
     if (e.state === 'swim') { // a ripple under the water, edging to where its pool comes nearest the mage
       e.kx = e.kz = 0;
       if (pool && (pool.state !== 'still' || pool.charged > 0)) { // shocked or frozen over: shown, and dazed
-        e.state = 'stunned'; e.st = num(P.stun); submerge(e, false); e.contact = 0; e.vx = e.vz = 0; Sfx.at(e.x, e.z).newtStun(); burst(e.x, .3, e.z, SCHOOL_LIGHT.frost, 10, 1.8, .04); return;
+        e.state = 'stunned'; e.st = num(P.stun); submerge(e, false); e.contact = 0; e.vx = e.vz = 0; Sfx.at(e.x, e.z).newtStun(); burst(e.x, .3, e.z, SCHOOL_LIGHT.frost, 10, 1.8, .04); counter(e, 'flushed'); return;
       }
       let t = nearestWaterTo(room, e.x, e.z, true) ?? { x: e.x, z: e.z }; // (slipped past its pool's edge: back into it)
       if (pool) { let d0 = Infinity; for (const w of pool.tiles) { const d = Math.hypot(w.x - player.x, w.z - player.z); if (d < d0) { d0 = d; t = w; } } } // (it keeps to its own pool)
@@ -489,7 +492,7 @@ const newt: Behaviour = {
   /** Blasted or scalded out of its water: shown, and dazed, as a shocked pool leaves it. */
   driven(e, P, why) {
     if (e.state !== 'swim') return;
-    e.state = 'stunned'; e.st = num(P.stun); submerge(e, false); e.contact = 0; e.vx = e.vz = 0; drivenUp(e, why);
+    e.state = 'stunned'; e.st = num(P.stun); submerge(e, false); e.contact = 0; e.vx = e.vz = 0; drivenUp(e, why); counter(e, why === 'shock' ? 'flushed' : 'driven');
   },
   pose(e) { e.model!.visible = !e.hidden; },
 };
@@ -507,7 +510,7 @@ const serpent: Behaviour = {
     if (e.state === 'under') { // beneath the water, sliding to the place in it nearest the mage
       const t = e.target!; steer(e, t.x, t.z, e.foe!.speed * e.speedMul, dt, .2);
       if (Math.random() < dt * 6) burst(e.x, .05, e.z, 0x9fe4ff, 1, .5, .03);
-      if (frozen) { e.state = 'trapped'; e.st = num(P.trapped); submerge(e, false); e.open = 1; e.cycle = 1; e.fireT = .4; e.vx = e.vz = 0; Sfx.at(e.x, e.z).freeze(); return; }
+      if (frozen) { e.state = 'trapped'; e.st = num(P.trapped); submerge(e, false); e.open = 1; e.cycle = 1; e.fireT = .4; e.vx = e.vz = 0; Sfx.at(e.x, e.z).freeze(); counter(e, 'iced'); return; }
       if (e.st < -num(P.lost) && !e.count) { // kept from that place a while: the water nearest itself instead (and kept from that too, it rises where it is)
         const w = nearestWaterTo(room, e.x, e.z); e.target = w ? { x: w.x, z: w.z } : { x: e.x, z: e.z }; e.st = 0; e.count = 1;
       } else if (e.st <= 0 && Math.hypot(t.x - e.x, t.z - e.z) < .3 || e.st < -num(P.lost)) { e.state = 'rise'; e.st = num(P.rise); e.vx = e.vz = 0; Sfx.at(e.x, e.z).serpentRise(); }
@@ -534,7 +537,7 @@ const serpent: Behaviour = {
   /** Blasted, scalded or shocked up out of its water: coiled in the open a while (it still spits), then it sinks. */
   driven(e, P, why) {
     if (e.state !== 'under' && e.state !== 'sink') return;
-    e.state = 'trapped'; e.st = num(P.stranded); submerge(e, false); e.open = 1; e.cycle = 1; e.fireT = .7; e.vx = e.vz = 0; e.tele = 0; drivenUp(e, why);
+    e.state = 'trapped'; e.st = num(P.stranded); submerge(e, false); e.open = 1; e.cycle = 1; e.fireT = .7; e.vx = e.vz = 0; e.tele = 0; drivenUp(e, why); counter(e, 'driven');
   },
   pose(e) {
     const o = e.open ?? 0, p = e.parts!;
@@ -580,7 +583,7 @@ const wave: Behaviour = {
     if (kind === 'chill' && e.state !== 'ice') { if (!poolAt(e.x, e.z)) pour(G.current, e.x, e.z, 0); frostAt(e.x, e.z); return; } // (it drinks the cold, but the water it stands in stiffens, and it with it)
     if (kind !== 'shock' || e.state !== 'ice') return;
     encase(e, false); e.state = 'walk'; e.contact = e.foe!.contact; e.fireT = span(P.slamEvery);
-    burst(e.x, .8, e.z, 0xcfeaf8, 24, 3, .07); Sfx.at(e.x, e.z).iceShatter();
+    burst(e.x, .8, e.z, 0xcfeaf8, 24, 3, .07); Sfx.at(e.x, e.z).iceShatter(); counter(e, 'shattered');
     damageEnemy(e, e.maxHp * num(P.shatter), 0, 0, 0, 'spell', 'storm');
   },
   die(e) { encase(e, false); },
@@ -614,6 +617,7 @@ const darter: Behaviour = {
     e.st -= dt;
     if (e.state === 'hover') { // hanging in the air at the turn; chilled, it hangs on
       brake(e, 6, dt);
+      if (e.st <= 0 && (e.status?.chill ?? 0) > 0) counter(e, 'numbed');
       if (e.st <= 0 && !((e.status?.chill ?? 0) > 0)) {
         const t = Math.atan2(a.uz, a.ux) + (Math.random() - .5) * 2 * num(P.aim); e.dir = { x: Math.cos(t), z: Math.sin(t) };
         e.state = 'dash'; e.st = num(P.dashMax); e.tick = 0; Sfx.at(e.x, e.z).darterZip();
@@ -632,7 +636,7 @@ const mine: Behaviour = {
   init(e) { e.state = 'shamble'; },
   step(e, dt, a, P, room) {
     e.st -= dt;
-    if ((e.status?.burn ?? 0) > 0 && e.state !== 'pop') { e.state = 'pop'; e.st = .15; e.tele = 1; e.vx = e.vz = 0; } // (fire bursts it where it stands, and burns its spores)
+    if ((e.status?.burn ?? 0) > 0 && e.state !== 'pop' && e.state !== 'gone') { e.state = 'pop'; e.st = .15; e.tele = 1; e.vx = e.vz = 0; counter(e, 'popped'); } // (fire bursts it where it stands, and burns its spores)
     if (e.state === 'shamble') {
       const wob = Math.sin(e.t * 2.2) * .6, sp = e.foe!.speed * e.speedMul; e.vx = (a.ux - a.uz * wob) * sp; e.vz = (a.uz + a.ux * wob) * sp;
       if (a.dist < num(P.trigger)) { e.state = 'swell'; e.st = num(P.tell); Sfx.at(e.x, e.z).sporeSwell(); }
@@ -680,7 +684,7 @@ const nest: Behaviour = { // the Ember Wasps' nest
     }
     return Math.atan2(e.dir!.x, e.dir!.z);
   },
-  struck(_e, dmg, _by, P, _dx, _dz, school) { return school === 'ember' ? dmg : dmg * num(P.guard); }, // (paper: fire burns it, little else harms it)
+  struck(e, dmg, _by, P, _dx, _dz, school) { if (school === 'ember') counter(e, 'burnt'); return school === 'ember' ? dmg : dmg * num(P.guard); }, // (paper: fire burns it, little else harms it)
 };
 
 const wasp: Behaviour = { // the Ember Wasp
@@ -731,7 +735,7 @@ const djinn: Behaviour = { // the Cinder Djinn (an elemental: Ember feeds it, Fr
   },
   afflicted(e, kind, P) { // frost snuffs it to a cinder for a while
     if (kind !== 'chill' || e.state === 'cinder') return;
-    e.state = 'cinder'; e.st = num(P.snuff); e.flying = false; e.contact = 0; e.vx = e.vz = 0; burst(e.x, .4, e.z, 0x5a5048, 12, 1.6, .05); Sfx.at(e.x, e.z).djinnSnuff();
+    e.state = 'cinder'; e.st = num(P.snuff); e.flying = false; e.contact = 0; e.vx = e.vz = 0; burst(e.x, .4, e.z, 0x5a5048, 12, 1.6, .05); Sfx.at(e.x, e.z).djinnSnuff(); counter(e, 'snuffed');
   },
   pose(e) { if (e.state === 'cinder') { e.parts!.body.scale.setScalar(.55); e.parts!.body.position.y = .12; } },
 };
@@ -759,7 +763,7 @@ const ooze: Behaviour = { // the Magma Ooze (an elemental: Ember feeds it, Frost
     if (!splitsNow(e, dmg, P)) return dmg;
     halve(e, P, dx, dz, 0xff6a20); Sfx.at(e.x, e.z).magmaSplit(); return 0;
   },
-  afflicted(e, kind, P) { if (kind === 'chill' && e.state !== 'rock') { e.state = 'rock'; e.st = num(P.rock); e.contact = 0; e.vx = e.vz = 0; burst(e.x, .4, e.z, 0x8a8478, 10, 1.4, .05); Sfx.at(e.x, e.z).freeze(); } },
+  afflicted(e, kind, P) { if (kind === 'chill' && e.state !== 'rock') { counter(e, 'cooled'); e.state = 'rock'; e.st = num(P.rock); e.contact = 0; e.vx = e.vz = 0; burst(e.x, .4, e.z, 0x8a8478, 10, 1.4, .05); Sfx.at(e.x, e.z).freeze(); } },
   pose(e) { e.animRate = e.state === 'rock' ? 0 : 1; }, // (hard, it stops churning)
 };
 
@@ -775,7 +779,7 @@ function ashes(e: Enemy, on: boolean) {
 /** Its ashes put out (frozen, or scattered by a blast): it can't rise again, and falls for good. */
 function snuffAshes(e: Enemy) {
   if (e.state !== 'ashes' || e.dead) return;
-  e.gen = 2; ashes(e, false); burst(e.x, .3, e.z, 0x8a8478, 16, 2, .05); Sfx.at(e.x, e.z).djinnSnuff();
+  e.gen = 2; ashes(e, false); burst(e.x, .3, e.z, 0x8a8478, 16, 2, .05); Sfx.at(e.x, e.z).djinnSnuff(); counter(e, 'quenched');
   damageEnemy(e, e.hp + 1, 0, 0);
 }
 // frost reaching a phoenix's ashes puts them out
@@ -864,7 +868,7 @@ const basilisk: Behaviour = {
       return look;
     }
   },
-  afflicted(e, kind, P) { if (kind === 'sanct' && e.state !== 'stalk') { e.state = 'stalk'; e.st = span(P.gazeEvery); e.tele = 0; burst(e.x, 1, e.z, SCHOOL_LIGHT.hallow, 10, 1.8, .04); Sfx.at(e.x, e.z).basiliskBlind(); } },
+  afflicted(e, kind, P) { if (kind === 'sanct' && e.state !== 'stalk') { counter(e, 'blinded'); e.state = 'stalk'; e.st = span(P.gazeEvery); e.tele = 0; burst(e.x, 1, e.z, SCHOOL_LIGHT.hallow, 10, 1.8, .04); Sfx.at(e.x, e.z).basiliskBlind(); } },
   pose(e, P) {
     const fan = stareFan(e, P) as THREE.Mesh, m = fan.material as THREE.MeshBasicMaterial;
     m.opacity = e.state === 'gaze' ? .32 + Math.sin(e.t * 18) * .06 : e.state === 'flare' ? .08 * (e.tele ?? 0) : 0; fan.visible = m.opacity > 0;
@@ -874,6 +878,7 @@ const basilisk: Behaviour = {
 
 const bodyguard: Behaviour = { // the Salt Golem
   init(e, P) { e.state = 'guard'; e.fireT = span(P.slamEvery); },
+  afflicted(e, kind) { if (kind === 'burn') counter(e, 'melting'); }, // (its wax joints run: it slows)
   step(e, dt, a, P) {
     e.st -= dt;
     const melt = (e.status?.burn ?? 0) > 0 ? num(P.melt) : 1, sp = e.foe!.speed * e.speedMul * melt; // (fire melts the wax in its joints)
@@ -938,7 +943,7 @@ const breaker: Behaviour = { // the Rubble Golem
     if (e.state === 'broken' || e.dead) return;
     const n = num(P.stones), hp = e.hp / n;
     for (let i = 0; i < n; i++) { const t = i / n * Math.PI * 2, at = freeSpotNear(G.current, e.x + Math.cos(t) * .7, e.z + Math.sin(t) * .7), s = makeEnemy('rubbleStone', at.x, at.z, e.maxHp / e.foe!.hp); s.owner = e; s.hp = s.maxHp = hp; s.spawn = .1; s.kx = Math.cos(t) * 4; s.kz = Math.sin(t) * 4; }
-    e.state = 'broken'; e.st = num(P.reform); e.hidden = true; e.contact = 0; e.tele = 0;
+    e.state = 'broken'; e.st = num(P.reform); e.hidden = true; e.contact = 0; e.tele = 0; counter(e, 'broken');
     burst(e.x, .6, e.z, 0x7a746a, 26, 3, .07); Sfx.at(e.x, e.z).golemBreak();
   },
   pose(e) { e.model!.visible = e.state !== 'broken'; if (e.state === 'slam') e.parts!.torso.rotation.x -= (e.tele ?? 0) * .35; },
@@ -1000,7 +1005,7 @@ const griffin: Behaviour = {
   afflicted(e, kind, P) { // a hex grounds it
     if (kind !== 'hex' || e.state === 'claw') return;
     clearLine(e); aloft(e, false); e.state = 'claw'; e.st = span(P.claw); e.tick = .6; e.fireT = 0; e.tele = 0;
-    burst(e.x, 1, e.z, SCHOOL_LIGHT.umbral, 14, 2, .05); Sfx.at(e.x, e.z).griffinCry();
+    burst(e.x, 1, e.z, SCHOOL_LIGHT.umbral, 14, 2, .05); Sfx.at(e.x, e.z).griffinCry(); counter(e, 'grounded');
   },
   bump(e, hit, P) { if (hit && e.state === 'swoop' && e.st < num(P.swoopTime) - .2) { clearLine(e); e.state = 'claw'; e.st = span(P.claw); e.tick = 0; e.fireT = 0; } },
   pose(e) { e.model!.position.y = e.height ?? 0; if (e.state === 'mark') e.parts!.head.rotation.x += (e.tele ?? 0) * .4; },
@@ -1026,7 +1031,7 @@ const eye: Behaviour = { // the Radiant Eye
       }
     }
   },
-  afflicted(e, kind, P) { if (kind === 'hex' && e.state !== 'shut') { e.state = 'shut'; e.st = span(P.shut); e.guard = num(P.guard); e.tele = 0; Sfx.at(e.x, e.z).bookSnap(); } }, // (a hex closes it)
+  afflicted(e, kind, P) { if (kind === 'hex' && e.state !== 'shut') { counter(e, 'shut'); e.state = 'shut'; e.st = span(P.shut); e.guard = num(P.guard); e.tele = 0; Sfx.at(e.x, e.z).bookSnap(); } }, // (a hex closes it)
   pose(e) { const shut = e.state === 'shut' ? 1 : 0, p = e.parts!; p.lidTop.rotation.x = .9 * shut; p.lidBottom.rotation.x = -.9 * shut; },
 };
 
@@ -1111,7 +1116,7 @@ const hearth: Behaviour = { // the Hearth Golem (an elemental: Ember feeds it, F
   },
   afflicted(e, kind, P) { // frost puts its fire out for a while
     if (kind !== 'chill' || e.state !== 'lit') return;
-    e.state = 'out'; e.st = num(P.out); e.guard = 1; burst(e.x, 1.2, e.z, 0xd8dce0, 18, 2, .06); Sfx.at(e.x, e.z).djinnSnuff();
+    e.state = 'out'; e.st = num(P.out); e.guard = 1; burst(e.x, 1.2, e.z, 0xd8dce0, 18, 2, .06); Sfx.at(e.x, e.z).djinnSnuff(); counter(e, 'doused');
   },
   pose(e) { const lit = e.state !== 'out', p = e.parts!; p.flames.visible = p.fireIn.visible = p.heat.visible = p.crown.visible = lit; },
 };
@@ -1146,7 +1151,7 @@ const shade: Behaviour = { // the Shadow Fox
       if (e.st <= 0 && !held && inShadow(room, e.x, e.z, P)) { e.state = 'sink'; e.st = num(P.sink); Sfx.at(e.x, e.z).foxSink(); }
     } else if (e.state === 'sink') { // into its shadow
       e.vx = e.vz = 0; e.tele = ramp(e.st, num(P.sink));
-      if (held) { e.state = 'prowl'; e.st = span(P.prowl); e.tele = 0; }
+      if (held) { e.state = 'prowl'; e.st = span(P.prowl); e.tele = 0; counter(e, 'held'); }
       else if (e.st <= 0) { e.state = 'gone'; e.st = num(P.gone) * (room.plan.variant === 'dark' ? .5 : 1); e.cycle = 0; e.hidden = true; e.contact = 0; e.tele = 0; burst(e.x, .3, e.z, SCHOOL_LIGHT.umbral, 10, 1.4, .04); }
     } else if (e.state === 'gone') { // and out of another, near the mage
       e.vx = e.vz = e.kx = e.kz = 0;
@@ -1174,7 +1179,7 @@ const shade: Behaviour = { // the Shadow Fox
 /** A rime scarab's snowball melts (fire on it or near it): it is left without one, quick and weak. */
 function meltBall(e: Enemy, P: Params) {
   if (e.state === 'bare' || e.dead) return;
-  e.state = 'bare'; e.st = num(P.bare); e.cycle = 0; e.tele = 0; burst(e.x, .4, e.z, 0xd8eef8, 14, 1.8, .05); Sfx.at(e.x, e.z).thaw();
+  e.state = 'bare'; e.st = num(P.bare); e.cycle = 0; e.tele = 0; burst(e.x, .4, e.z, 0xd8eef8, 14, 1.8, .05); Sfx.at(e.x, e.z).thaw(); counter(e, 'melted');
 }
 const roller: Behaviour = { // the Rime Scarab
   init(e, P) { e.state = 'push'; e.cycle = num(P.ball0); },
@@ -1243,7 +1248,7 @@ const glacier: Behaviour = { // the Glacier Golem (an elemental: Frost feeds it,
     if (kind === 'chill' && e.state !== 'frozen') { e.state = 'frozen'; e.st = num(P.frozen); e.contact = 0; e.vx = e.vz = 0; e.tele = 0; encase(e, true, 1.5); Sfx.at(e.x, e.z).freeze(); }
     else if (kind === 'shock' && e.state === 'frozen') {
       encase(e, false); e.state = 'walk'; e.contact = e.foe!.contact; e.fireT = span(P.stompEvery);
-      burst(e.x, 1, e.z, 0xcfeaf8, 30, 3.4, .08); Sfx.at(e.x, e.z).iceShatter(); damageEnemy(e, e.maxHp * num(P.shatter), 0, 0, 0, 'spell', 'storm');
+      burst(e.x, 1, e.z, 0xcfeaf8, 30, 3.4, .08); Sfx.at(e.x, e.z).iceShatter(); counter(e, 'shattered'); damageEnemy(e, e.maxHp * num(P.shatter), 0, 0, 0, 'spell', 'storm');
     }
   },
   pose(e) { e.animRate = e.state === 'frozen' ? 0 : 1; lean(e.parts!.torso, e.state === 'stomp' ? -(e.tele ?? 0) * .3 : 0); },
@@ -1255,7 +1260,7 @@ interface Head { hp: number; up: boolean; cut: number; seared: boolean }
 const hydraHeads = new WeakMap<Enemy, Head[]>();
 const headsOf = (e: Enemy) => hydraHeads.get(e)!;
 /** Fire on a hydra sears its fresh stumps: they won't grow back. */
-function sear(e: Enemy) { for (const h of headsOf(e)) if (!h.up && h.cut > 0 && !h.seared) { h.seared = true; burst(e.x, 1, e.z, 0xff7a2a, 10, 1.8, .05); Sfx.at(e.x, e.z).webBurn(); } }
+function sear(e: Enemy) { for (const h of headsOf(e)) if (!h.up && h.cut > 0 && !h.seared) { h.seared = true; burst(e.x, 1, e.z, 0xff7a2a, 10, 1.8, .05); Sfx.at(e.x, e.z).webBurn(); counter(e, 'seared'); } }
 const hydra: Behaviour = {
   init(e, P) { const hp = num(P.headHp) * e.maxHp / e.foe!.hp; hydraHeads.set(e, [0, 1, 2, 3, 4].map(i => ({ hp, up: i < 3, cut: 0, seared: false }))); e.state = 'walk'; e.fireT = num(P.attackEvery); e.cycle = 0; e.count = 0; },
   step(e, dt, a, P) {
@@ -1308,8 +1313,9 @@ const raven: Behaviour = { // the Gloom Raven
     const sp = e.foe!.speed * e.speedMul, lamp = lightNear(room, e.x, e.z, num(P.light));
     if (a.dist < num(P.gloom)) player.dim = Math.max(player.dim, num(P.dim)); // (in its gloom the mage's sight darkens)
     if (e.state === 'wheel') {
-      if (lamp) { const dx = e.x - lamp.x, dz = e.z - lamp.z, d = Math.hypot(dx, dz) || 1; e.vx = dx / d * sp; e.vz = dz / d * sp; } // (lights drive it off)
+      if (lamp) { const dx = e.x - lamp.x, dz = e.z - lamp.z, d = Math.hypot(dx, dz) || 1; e.vx = dx / d * sp; e.vz = dz / d * sp; if (!e.shunned) counter(e, 'drivenOff'); } // (lights drive it off)
       else circle(e, a, num(P.keep) - .6, num(P.keep) + .6, sp, e.cycle!);
+      e.shunned = !!lamp;
       if ((e.fireT! -= dt) <= 0 && !lamp) { // it caws: hexing shots
         e.fireT = span(P.cawEvery); const n = num(P.shots), base = Math.atan2(a.uz, a.ux);
         for (let i = 0; i < n; i++) { const t = base + (i - (n - 1) / 2) * num(P.spread); shoot(e, Math.cos(t), Math.sin(t), num(P.shotSpeed), .7, { hex: num(P.hex) }); }
@@ -1341,7 +1347,7 @@ function wolfMind(p: Pack, dt: number, P: Params) {
 /** Fire under (x, z): burning ground (a foe's trail, thrown coals) or burning oil. */
 const fireUnder = (x: number, z: number, r: number) => burningNear(x, z, r) || poolAt(x, z)?.state === 'burning';
 /** A rime wolf scattered by fire: it runs from the mage for a while. */
-function scatter(e: Enemy) { if (e.state === 'flee' || e.dead) return; e.state = 'flee'; e.st = num(e.foe!.params.scatter); Sfx.at(e.x, e.z).wolfWhimper(); }
+function scatter(e: Enemy) { if (e.state === 'flee' || e.dead) return; e.state = 'flee'; e.st = num(e.foe!.params.scatter); Sfx.at(e.x, e.z).wolfWhimper(); counter(e, 'scattered'); }
 // fire landing near a rime wolf scatters it
 hearGround((kind, x, z, r) => {
   if (kind !== 'fire') return;
@@ -1389,7 +1395,7 @@ const pangolin: Behaviour = { // the Dust Pangolin
   },
   bump(e, hit, P) { // a wall: dazed in a cloud of dust that dims the sight, open to harm
     if (!hit || e.state !== 'roll' || e.st > num(P.rollMax) - .15) return;
-    e.state = 'dazed'; e.st = num(P.daze); e.vx = e.vz = 0; burst(e.x, .4, e.z, 0x9a8a72, 30, 3, .08); Sfx.at(e.x, e.z).rubbleSlam();
+    e.state = 'dazed'; e.st = num(P.daze); e.vx = e.vz = 0; burst(e.x, .4, e.z, 0x9a8a72, 30, 3, .08); Sfx.at(e.x, e.z).rubbleSlam(); counter(e, 'dazed');
     if (Math.hypot(player.x - e.x, player.z - e.z) < num(P.dust)) player.dim = Math.max(player.dim, num(P.dim));
   },
   struck(e, dmg, by, P) {
@@ -1409,6 +1415,7 @@ const kiter: Behaviour = { // the Frost Jackalope
     const pinned = fireUnder(e.x, e.z, num(P.fear)), slick = slipAt(e.x, e.z) || poolAt(e.x, e.z)?.state === 'frozen' ? num(P.slide) : 1; // (burning ground stops its leaps; on rime or ice it slides quick)
     if (e.state === 'watch') { // side to side at its distance
       e.vx = -a.uz * e.cycle! * sp * .6 * slick; e.vz = a.ux * e.cycle! * sp * .6 * slick;
+      if (a.dist < num(P.keep) && e.st <= 0 && pinned) counter(e, 'pinned'); // (it would bound away, but the fire holds it)
       if (a.dist < num(P.keep) && e.st <= 0 && !pinned) { // it bounds away
         const t = Math.atan2(-a.uz, -a.ux) + (Math.random() - .5) * 1.2; e.dir = { x: Math.cos(t), z: Math.sin(t) }; e.state = 'leap'; e.st = num(P.leapTime); Sfx.at(e.x, e.z).wingBeat();
       }
@@ -1457,7 +1464,7 @@ const manticore: Behaviour = {
       return Math.atan2(e.dir!.x, e.dir!.z);
     }
   },
-  afflicted(e, kind, P) { if (kind === 'sanct' && e.state === 'aim') { e.state = 'stalk'; e.tele = 0; e.fireT = span(P.volleyEvery); burst(e.x, 1.2, e.z, SCHOOL_LIGHT.hallow, 10, 1.8, .04); } },
+  afflicted(e, kind, P) { if (kind === 'sanct' && e.state === 'aim') { counter(e, 'stilled'); e.state = 'stalk'; e.tele = 0; e.fireT = span(P.volleyEvery); burst(e.x, 1.2, e.z, SCHOOL_LIGHT.hallow, 10, 1.8, .04); } },
   pose(e) { const p = e.parts!; e.model!.position.y = e.height ?? 0; if (e.state === 'aim') { p.tail.rotation.x -= (e.tele ?? 0) * .5; p.tip.rotation.x -= (e.tele ?? 0) * .6; } },
 };
 
