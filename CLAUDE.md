@@ -421,12 +421,13 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   420 rows in a one-cell room, `drawnRows()`, `__game.pixelRows`). Three passes: the scene into the grid (`target`, with its
   depth; both targets only grow, each frame drawing into the corner it needs), the grid shaded at its own size (`shade`:
   outlines from depth, light in bands), and a sharp blow-up to the window (`blit`: pixels of one size, edges blended over
-  one screen pixel, the camera's part-pixel put back so it glides). The rows of earlier (1080 to 270, whole screen pixels,
-  `pixelGrid`) stay in the dev menu's cycle (`LINES`). The scene is tone-mapped and encoded by its own shaders (the target
+  one screen pixel, the camera's part-pixel put back so it glides). `'fine'` is half a texel a pixel (a floor texel
+  2 × 2 game pixels, about 840 rows). The rows of earlier (1080 to 270, whole screen pixels, `pixelGrid`) stay in the dev
+  menu's cycle (`LINES`) and are drawn exactly as before (the grid the window's, each pixel copied whole, no glide). The scene is tone-mapped and encoded by its own shaders (the target
   flagged as an XR target, stored as plain RGBA8), so it blends as on the canvas; the HUD stays sharp. `draw()` in
   `render/renderer.ts` picks it; draw calls are counted per frame over all passes (`renderer.info` reset in `draw()`). The
   dev menu switches it, remembered in the browser (`ossuary.look`, with the default it was chosen against: a new default
-  shows once); `?pixel=texel`, `?pixel=off` or `?pixel=720`; `__game.pixelLook` reads it and
+  shows once); `?pixel=texel`, `?pixel=fine`, `?pixel=off` or `?pixel=720`; `__game.pixelLook` reads it and
   `__game.setPixelLook({ lines, outline, bands })` sets it. What keeps the rest pixel art: the mage in pixel art
   (`src/actors/heroPixel.ts`: its texture baked into its vertices and cut to `CFG.heroPixel.colours` by the pure
   `src/render/palette.ts`, median cut and k-means in OKLab with hue counted over; a toon material in `tones`; both looks
