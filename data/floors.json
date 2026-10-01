@@ -35,7 +35,7 @@
     "shrine": true,
     "library": true,
     "vaultWarden": "mireToad",
-    "foes": {"R": [["mireToad", 1]], "W": [["lanternJelly", 3], ["cisternLurker", 1]], "H": [["mireToad", 1], ["cisternLurker", 1]]},
+    "foes": {"R": [["mireToad", 1.5], ["glassNewt", 1], ["puffcap", 1]], "W": [["lanternJelly", 2], ["cisternLurker", 1], ["puddleElemental", 1], ["thunderhead", 0.8], ["stormDarter", 1]], "H": [["mireToad", 1], ["cisternLurker", 1], ["rimeSnail", 1], ["brineSerpent", 1]]},
     "secretArtifactChance": 0.5,
     "bossHallChance": 0.4,
     "doorShift": 0.5,

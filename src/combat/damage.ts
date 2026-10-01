@@ -40,6 +40,7 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   const raw = dmg * damageTakenMul(e.status); dmg = raw * (e.guard ?? 1); // a frozen foe cracks; a shut mimic's clay turns half a blow
   if (e.plates) wearPlates(e, raw - dmg); // (M4.2: the War-Tiger's plates turn most of it, and wear)
   const aff = affinityMul(e.foe ?? e.bossAff, school); // (the bosses of floors 4 and 5 have theirs too)
+  if (aff < 0) { drink(e, -dmg * aff); return; } // (M4.5: an elemental drinks its own school)
   if (aff !== 1) {
     dmg *= aff;
     if (foundAffinity(e.foe?.id ?? e.type as BossType, aff > 1 ? 'weak' : 'resist')) { floatText(e.x, 1.5, e.z, aff > 1 ? STR.foes.weak : STR.foes.resists, aff > 1 ? 0xffd070 : 0xa8a0b8); Sfx.at(e.x, e.z).affinity(aff > 1); }
@@ -59,6 +60,12 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   Sfx.at(e.x, e.z).hit();
   if (e.isBoss) updateBossBar(e.twin ? { hp: Math.max(0, e.hp) + Math.max(0, e.twin.hp), maxHp: e.maxHp + e.twin.maxHp } : e); // (the twins share one bar)
   if (e.hp <= 0) killEnemy(e, false, hexed);
+}
+
+/** An elemental drinks a blow of its own school (M4.5): it heals by `hp`, in its light, and the first time the word rises. */
+export function drink(e: Enemy, hp: number) {
+  e.hp = Math.min(e.maxHp, e.hp + hp); e.flash = .09; burst(e.x, .8, e.z, SCHOOL_LIGHT[e.foe!.school], 5, 1.4, .03);
+  if (foundAffinity(e.foe!.id, 'resist')) { floatText(e.x, 1.5, e.z, STR.foes.drinks, SCHOOL_LIGHT[e.foe!.school]); Sfx.at(e.x, e.z).affinity(false); }
 }
 
 const GIB_COLOR: Record<keyof typeof CFG.enemy, number> = { rotling: 0x7f8a60, dummy: 0xc8a860, warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a, hart: 0xffe8b0, angler: 0x8a6ad8, tiger: 0xd8e8f4, dragon: 0xe07a2c, twins: 0xc2ae8a };

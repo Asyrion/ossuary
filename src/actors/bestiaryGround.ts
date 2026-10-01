@@ -1,5 +1,6 @@
 /* What M4.5's foes leave on the ground and throw (docs/M4.5-plan.md): a crypt spider's webs and an ink octopus's smears,
-   which slow the mage who walks through them (fire burns a web away), and lobs, anything thrown in an arc to land on a
+   which slow the mage who walks through them (fire burns a web away), a rime snail's trail of rime, on which the mage
+   slides (fire melts it), and lobs, anything thrown in an arc to land on a
    spot (a spider's web gob; later floors' snowballs and coals). Each kind of patch is drawn at once, one instanced mesh
    a kind, so a room full of them stays cheap. */
 import * as THREE from 'three';
@@ -13,7 +14,7 @@ import { glowShared } from '../render/materials';
 import { burst } from '../combat/fx';
 import { hearGround } from '../world/groundHooks';
 
-export type GroundKind = 'web' | 'ink';
+export type GroundKind = 'web' | 'ink' | 'rime';
 interface Patch { room: Room; kind: GroundKind; x: number; z: number; r: number; t: number; life: number }
 const patches: Patch[] = [];
 const MAX = 48; // (of each kind)
@@ -28,11 +29,12 @@ function webGeometry() {
   }
   const g = mergeGeometries(parts)!; for (const p of parts) p.dispose(); return g;
 }
-const meshes: Record<GroundKind, THREE.InstancedMesh | null> = { web: null, ink: null };
+const meshes: Record<GroundKind, THREE.InstancedMesh | null> = { web: null, ink: null, rime: null };
 function meshOf(kind: GroundKind) {
   const had = meshes[kind]; if (had) return had;
   const geo = kind === 'web' ? webGeometry() : new THREE.CircleGeometry(1, 16).rotateX(-Math.PI / 2);
   const mat = kind === 'web' ? new THREE.MeshBasicMaterial({ color: 0xd8d0e8, transparent: true, opacity: .55, depthWrite: false })
+    : kind === 'rime' ? new THREE.MeshStandardMaterial({ color: 0xd4ecf8, emissive: 0x2a4a60, roughness: .08, metalness: .2, transparent: true, opacity: .62, depthWrite: false })
     : new THREE.MeshStandardMaterial({ color: 0x1a1030, roughness: .12, metalness: .35, transparent: true, opacity: .85, depthWrite: false });
   const m = new THREE.InstancedMesh(geo, mat, MAX); m.count = 0; m.frustumCulled = false; m.renderOrder = 1; scene.add(m);
   return meshes[kind] = m;
@@ -46,19 +48,22 @@ export function layGround(room: Room, kind: GroundKind, x: number, z: number, r:
 /** How fast one can walk at (x, z) in the current room: slower through webs and ink (1: not at all). */
 export function stickyAt(x: number, z: number) {
   let k = 1;
-  for (const p of patches) if (p.room === G.current && Math.hypot(x - p.x, z - p.z) < p.r) k = Math.min(k, p.kind === 'web' ? CFG.bestiary.webSlow : CFG.bestiary.inkSlow);
+  for (const p of patches) if (p.kind !== 'rime' && p.room === G.current && Math.hypot(x - p.x, z - p.z) < p.r) k = Math.min(k, p.kind === 'web' ? CFG.bestiary.webSlow : CFG.bestiary.inkSlow);
   return k;
 }
+/** Whether (x, z) in the current room is on rime, where the mage slides. */
+export const slipAt = (x: number, z: number) => patches.some(p => p.kind === 'rime' && p.room === G.current && Math.hypot(x - p.x, z - p.z) < p.r);
 /** The patches of `kind` in the current room (tests). */
 export const groundCount = (kind: GroundKind) => patches.filter(p => p.kind === kind && p.room === G.current).length;
 
-// fire burns a web away
+// fire burns a web away and melts rime
 hearGround((kind, x, z, r) => {
   if (kind !== 'fire') return;
   for (let i = patches.length - 1; i >= 0; i--) {
     const p = patches[i];
-    if (p.kind !== 'web' || p.room !== G.current || Math.hypot(x - p.x, z - p.z) > r + p.r) continue;
-    patches.splice(i, 1); burst(p.x, .1, p.z, 0xff9a3a, 8, 1.6, .04); Sfx.at(p.x, p.z).webBurn();
+    if (p.kind === 'ink' || p.room !== G.current || Math.hypot(x - p.x, z - p.z) > r + p.r) continue;
+    patches.splice(i, 1);
+    if (p.kind === 'web') { burst(p.x, .1, p.z, 0xff9a3a, 8, 1.6, .04); Sfx.at(p.x, p.z).webBurn(); } else { burst(p.x, .1, p.z, 0xd4ecf8, 5, 1.2, .04); Sfx.at(p.x, p.z).thaw(); }
   }
 });
 
@@ -79,11 +84,11 @@ const m4 = new THREE.Matrix4(), q0 = new THREE.Quaternion(), v3 = new THREE.Vect
 /** Every step: patches fade and go; lobs fly and land. */
 export function updateGround(dt: number) {
   for (let i = patches.length - 1; i >= 0; i--) { const p = patches[i]; p.t -= dt; if (p.t <= 0 || p.room !== G.current) patches.splice(i, 1); }
-  for (const kind of ['web', 'ink'] as const) {
+  for (const kind of ['web', 'ink', 'rime'] as const) {
     const list = patches.filter(p => p.kind === kind);
     if (!list.length && !meshes[kind]?.count) continue;
     const mesh = meshOf(kind);
-    list.forEach((p, i) => { const k = Math.min(1, p.t / .5, (p.life - p.t) / .25 + .3); mesh.setMatrixAt(i, m4.compose(v3.set(p.x, kind === 'web' ? .03 : .02, p.z), q0, s3.set(p.r * k, 1, p.r * k))); });
+    list.forEach((p, i) => { const k = Math.min(1, p.t / .5, (p.life - p.t) / .25 + .3); mesh.setMatrixAt(i, m4.compose(v3.set(p.x, kind === 'web' ? .03 : kind === 'rime' ? .025 : .02, p.z), q0, s3.set(p.r * k, 1, p.r * k))); });
     mesh.count = list.length; mesh.instanceMatrix.needsUpdate = true;
   }
   for (let i = lobs.length - 1; i >= 0; i--) {

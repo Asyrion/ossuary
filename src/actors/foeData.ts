@@ -25,6 +25,8 @@ export interface FoeDef {
   /** Only one in a room (the Rime Drakeling); the rest of its role's picks go to the others. */ elite?: boolean;
   /** M4.5: the look it wears if not the one of its own id (a firefly swarm's beetle), and how many come together (a swarm,
       a pack), sharing one mind. */ look?: string; pack?: [number, number];
+  /** M4.5: an elemental (GDD: The Bestiary). Its own school (which it resists) heals it, blows and statuses alike, and its
+      weakness hurts it twice over. */ elemental?: boolean;
   behaviour: string; params: Record<string, number | number[]>;
   /** The colour of what flies from it when it falls, and of the stain it leaves (none for what leaves none). */ gib: string; stain: string | null;
 }
@@ -67,6 +69,14 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   singer: ['fly', 'perch', 'songEvery', 'songRange', 'hasteTime', 'flee', 'diveTell', 'dive', 'diveTime'],
   mantis: ['keep', 'stalk', 'tell', 'lunge', 'lungeTime', 'open', 'parryArc', 'parrySpeed'],
   crab: ['wake', 'rise', 'hideGuard', 'guard', 'keep', 'turn', 'sparkEvery', 'tell', 'sparkSpeed', 'pinchEvery', 'pinch', 'pinchTime', 'flipped', 'flipGuard'],
+  // floor 2
+  snail: ['trailEvery', 'rimeSize', 'rimeTime', 'spitEvery', 'spitRange', 'shotSpeed', 'chill', 'shellAt', 'shellTime', 'shellGuard', 'crackTime', 'crackGuard'],
+  newt: ['poolSize', 'roam', 'under', 'reach', 'patience', 'hunt', 'lunge', 'lungeTime', 'chill', 'land', 'stun'],
+  serpent: ['poolSize', 'under', 'rise', 'up', 'volleys', 'volleyGap', 'shots', 'spread', 'shotSpeed', 'trapped'],
+  wave: ['pourEvery', 'pourMax', 'slamEvery', 'slamRange', 'tell', 'ring', 'shotSpeed', 'ice', 'shatter'],
+  cloud: ['rest', 'over', 'gather', 'rain', 'sparks', 'reach', 'sparkTime'],
+  darter: ['hover', 'aim', 'dash', 'dashMax', 'sparkEvery', 'sparkTime'],
+  mine: ['trigger', 'tell', 'dim', 'ring', 'shotSpeed'],
 };
 
 /** What is wrong with the foes' data (an empty list when nothing is). */
@@ -84,15 +94,20 @@ export function validateFoes(defs: Record<string, FoeDef> = FOES) {
     else for (const p of need) if (d.params[p] === undefined) at(`${d.behaviour} needs ${p}`);
     if (!/^#[0-9a-f]{6}$/i.test(d.gib) || (d.stain !== null && !/^#[0-9a-f]{6}$/i.test(d.stain))) at('gib or stain colour');
     if (d.pack && !(d.pack[0] >= 1 && d.pack[1] >= d.pack[0])) at(`pack ${d.pack}`);
+    if (d.elemental && d.resist !== d.school) at('an elemental resists (drinks) its own school');
   }
   return errors;
 }
 
-/** Damage of `school` to a foe: half again from its weakness, half from its resistance, as it is otherwise. */
-export function affinityMul(def: Pick<FoeDef, 'weak' | 'resist'> | undefined, school?: School) {
+/** Damage of `school` to a foe: half again from its weakness, half from its resistance, as it is otherwise. An elemental
+    (M4.5) takes twice from its weakness, and its own school heals it: a negative share (part of the blow, as health). */
+export function affinityMul(def: Pick<FoeDef, 'weak' | 'resist'> & { elemental?: boolean } | undefined, school?: School) {
   if (!def || !school) return 1;
+  if (def.elemental) return school === def.weak ? CFG.affinity.elemental : school === def.resist ? -CFG.affinity.drink : 1;
   return school === def.weak ? CFG.affinity.weak : school === def.resist ? CFG.affinity.resist : 1;
 }
+/** Whether a status of `status`'s school feeds an elemental instead of taking hold (a Thunderhead drinks a shock). */
+export const drinksStatus = (def: Pick<FoeDef, 'resist'> & { elemental?: boolean } | undefined, status: SpellStatus) => !!def?.elemental && STATUS_SCHOOL[status] === def.resist;
 
 /** Behaviours that wait in disguise until the mage comes near: an urn, a book, a heap of rubble. */
 const WAITERS = ['mimic', 'tome', 'crab'];

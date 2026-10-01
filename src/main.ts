@@ -240,8 +240,8 @@ function installDevHooks() {
     get bestiary() { return bestiary(); }, forgetBestiary: () => forgetBestiary(),
     /** Patches of ground a salamander has set burning in this room (M4). */
     get burningGround() { return burningGround(); }, get sparkGround() { return sparkGround(); },
-    /** M4.5: the webs and ink on the floor of the current room; a glyph's blast at (x, z). */
-    get ground() { return { web: groundCount('web'), ink: groundCount('ink') }; }, blast: (x: number, z: number) => blastAt(x, z),
+    /** M4.5: the webs, ink and rime on the floor of the current room; a glyph's blast at (x, z). */
+    get ground() { return { web: groundCount('web'), ink: groundCount('ink'), rime: groundCount('rime') }; }, blast: (x: number, z: number) => blastAt(x, z),
     /** The simulation's clock (seconds), against which timed states are kept (a lark's song). */
     get clock() { return G.simClock; },
     inflict(status: Partial<Record<SpellStatus, number>>) { for (const e of G.enemies) inflict(e, status); },

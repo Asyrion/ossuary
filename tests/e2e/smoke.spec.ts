@@ -3074,3 +3074,64 @@ test('the bestiary (M4.5), floor 1: the spider drops from out of reach and spits
   expect(last.hidTook).toBeCloseTo(3);
   for (const e of [e1, e2, e3, e4]) expect(e).toEqual([]);
 });
+
+test('the bestiary (M4.5), floor 2: the snail leaves rime and hides in its shell (fire cracks it); the walking wave pours water, drinks frost and shatters; the newt lunges out of water and chills (a shock shows it); the serpent rises and is trapped by ice; the thunderhead rains sparks and drinks storm; the darter dashes (chilled, it hangs); the puffcap bursts (fire pops it)', async ({ page }) => {
+  type Foe = { type: string; state: string; x: number; z: number; hp: number; maxHp: number; hidden?: boolean; dead?: boolean };
+  type GF = { sim(sec: number, draw?: boolean): void; warp(id: number): void; hit(i: number, dmg: number, school?: string): number;
+    spawn(kind: string, x?: number, z?: number): Foe; inflict(s: Record<string, number>): void; clearRoom(): void; pool(what: string): void;
+    ground: { rime: number }; pools: unknown[]; sparkGround: number; spores: number;
+    player: { x: number; z: number; hp: number; maxHp: number; invuln: number; chill: number; dim: number }; enemies: Foe[]; shots: unknown[] };
+  const errors = await start(page, '?seed=K3F9QX&floor=2&room=great_hall&variant=quiet');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 99; g.warp(1); g.sim(.5);
+    /** One foe 3 tiles from the mage (a training dummy keeps the room's fight going), run for up to `secs` or until `until`. */
+    const meet = (id: string, secs: number, until?: (e: Foe) => boolean, every?: (e: Foe) => void) => {
+      g.clearRoom(); g.sim(.3); g.player.hp = 99; g.spawn('dummy', g.player.x - 5, g.player.z - 2.5);
+      const e = g.spawn(id, g.player.x + 3, g.player.z); g.sim(.7); const seen = new Set<string>();
+      for (let i = 0; i < secs * 20 && !until?.(e); i++) { g.player.invuln = 0; g.sim(.05); seen.add(e.state); every?.(e); }
+      return { e, i: g.enemies.indexOf(e), seen };
+    };
+    const R: Record<string, unknown> = {};
+    // the snail: a trail of rime; struck often, into its shell (a blow barely tells); fire cracks it
+    { const { e, i, seen } = meet('rimeSnail', 2.5); R.snail = { seen: [...seen], rime: g.ground.rime };
+      g.hit(i, 8); g.sim(.1); const shut = e.state, hp = e.hp; g.hit(i, 4); const took = hp - e.hp; g.inflict({ burn: 2 }); g.sim(.1);
+      Object.assign(R.snail as object, { shut, took, burnt: e.state }); }
+    // the walking wave (an elemental, met before the others' pools lie frozen): water behind it; frost feeds it, Ember hurts it twice over; chilled, it is ice, and a shock shatters it
+    { const pools = g.pools.length; const { e, i, seen } = meet('puddleElemental', 5, f => f.state === 'rear');
+      e.hp = e.maxHp / 2; let hp = e.hp; g.hit(i, 2, 'frost'); const frost = e.hp - hp; hp = e.hp; g.hit(i, 2, 'ember'); const ember = hp - e.hp; hp = e.hp; g.hit(i, 2); const plain = hp - e.hp;
+      e.hp = e.maxHp; g.inflict({ chill: 2 }); g.sim(.2); const iced = e.state; hp = e.hp; g.inflict({ shock: 1 }); g.sim(.05);
+      R.wave = { poured: g.pools.length - pools, reared: seen.has('rear'), frost, ember, plain, iced, shattered: (hp - e.hp) / e.maxHp, after: e.state }; }
+    // the newt: hidden in water (its own pool, the hall's being far), out at the mage, a bite that chills; a shock shows it
+    { let chill = 0; const { e, seen } = meet('glassNewt', 10, () => chill > 0, () => { chill = Math.max(chill, g.player.chill); });
+      const hidden = seen.has('swim'); for (let k = 0; k < 160 && e.state !== 'swim'; k++) g.sim(.05); const under = e.hidden;
+      g.pool('shock'); g.sim(.1); R.newt = { hidden, chill, under, shocked: e.state, shown: !e.hidden }; }
+    // the serpent: it rises and spits; its pool frozen, it is trapped above the ice
+    { let shots = 0; const { e, seen } = meet('brineSerpent', 6, f => f.state === 'up' && shots > 0, () => { shots = Math.max(shots, g.shots.length); });
+      g.pool('frost'); g.sim(1.5); R.serpent = { up: seen.has('up'), shots, trapped: e.state }; }
+    // the thunderhead (an elemental): over the mage it gathers and rains sparks; storm feeds it, frost hurts it twice over
+    { let sparks = 0; const { e, i, seen } = meet('thunderhead', 8, () => sparks > 0, () => { sparks = Math.max(sparks, g.sparkGround); });
+      e.hp = e.maxHp / 2; let hp = e.hp; g.hit(i, 2, 'storm'); const storm = e.hp - hp; hp = e.hp; g.hit(i, 2, 'frost');
+      R.cloud = { gathered: seen.has('gather'), sparks, storm, frost: hp - e.hp }; }
+    // the darter: a dash leaves sparks; chilled, it hangs in the air
+    { let sparks = 0; const { e } = meet('stormDarter', 6, () => sparks > 0, () => { sparks = Math.max(sparks, g.sparkGround); });
+      for (let k = 0; k < 40 && e.state !== 'hover'; k++) g.sim(.05); g.inflict({ chill: 1 }); const seen = new Set<string>(); for (let k = 0; k < 30; k++) { g.sim(.05); seen.add(e.state); }
+      R.darter = { sparks, chilled: [...seen] }; }
+    // the puffcap: it shambles up, swells and bursts in stinging spores; burning, it pops where it stands and leaves none
+    { let dim = 0; const { e, seen } = meet('puffcap', 6, f => !!f.dead, () => { dim = Math.max(dim, g.player.dim); }); for (let k = 0; k < 30; k++) { g.player.invuln = 0; g.sim(.05); dim = Math.max(dim, g.player.dim); }
+      const burst = { swelled: seen.has('swell'), gone: !!e.dead, spores: g.spores, dim };
+      g.clearRoom(); g.sim(4.5); g.spawn('dummy', g.player.x - 5, g.player.z - 2.5); const f = g.spawn('puffcap', g.player.x + 4, g.player.z); g.sim(.7); g.inflict({ burn: 1 }); g.sim(.4); // (once the first cloud has gone)
+      R.puff = { ...burst, popped: !!f.dead, popSpores: g.spores }; }
+    return R;
+  });
+  expect(r.snail).toMatchObject({ shut: 'shell', burnt: 'cracked' }); expect((r.snail as { rime: number }).rime).toBeGreaterThan(0); expect((r.snail as { took: number }).took).toBeLessThan(1);
+  expect(r.newt).toMatchObject({ hidden: true, under: true, shocked: 'stunned', shown: true }); expect((r.newt as { chill: number }).chill).toBeGreaterThan(0);
+  expect(r.serpent).toMatchObject({ up: true, trapped: 'trapped' }); expect((r.serpent as { shots: number }).shots).toBeGreaterThan(0);
+  const w = r.wave as { poured: number; frost: number; ember: number; plain: number; shattered: number };
+  expect(r.wave).toMatchObject({ reared: true, iced: 'ice', after: 'walk' }); expect(w.poured).toBeGreaterThan(0);
+  expect(w.frost).toBeGreaterThan(0); expect(w.ember).toBeCloseTo(w.plain * 2); expect(w.shattered).toBeGreaterThan(.5);
+  const c = r.cloud as { sparks: number; storm: number; frost: number };
+  expect(r.cloud).toMatchObject({ gathered: true }); expect(c.sparks).toBeGreaterThan(0); expect(c.storm).toBeGreaterThan(0); expect(c.frost).toBeCloseTo(4);
+  expect((r.darter as { sparks: number }).sparks).toBeGreaterThan(0); expect(r.darter).toMatchObject({ chilled: ['hover'] });
+  expect(r.puff).toMatchObject({ swelled: true, gone: true, spores: 1, popped: true, popSpores: 0 }); expect((r.puff as { dim: number }).dim).toBeGreaterThan(0);
+  expect(errors).toEqual([]);
+});

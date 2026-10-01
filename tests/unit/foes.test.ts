@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BOSS_TYPES, CFG } from '../../src/config';
-import { BEHAVIOUR_PARAMS, FOES, FOE_IDS, ROLES, affinityMul, callFoe, isFoe, pickFoe, schoolOf, validateFoes, type FoeDef, type RoleTable } from '../../src/actors/foeData';
+import { BEHAVIOUR_PARAMS, FOES, FOE_IDS, ROLES, affinityMul, callFoe, drinksStatus, isFoe, pickFoe, schoolOf, validateFoes, type FoeDef, type RoleTable } from '../../src/actors/foeData';
 import { FLOORS } from '../../src/world/generate';
 
 describe('the foes built in code (M4)', () => {
@@ -22,6 +22,19 @@ describe('the foes built in code (M4)', () => {
     expect(affinityMul(def, 'storm')).toBe(1);
     expect(affinityMul(def)).toBe(1);             // (the cantrip carries no school)
     expect(affinityMul(undefined, 'ember')).toBe(1); // (the placeholders have no affinities)
+  });
+
+  it('an elemental (M4.5) drinks its own school, blows and statuses, and takes twice from its weakness', () => {
+    const cloud = FOES.thunderhead, wave = FOES.puddleElemental;
+    expect(cloud.elemental && wave.elemental).toBe(true);
+    expect(affinityMul(cloud, 'storm')).toBe(-CFG.affinity.drink); // (a negative share: health)
+    expect(affinityMul(cloud, 'frost')).toBe(CFG.affinity.elemental);
+    expect(affinityMul(cloud, 'ember')).toBe(1);
+    expect(affinityMul(wave, 'frost')).toBeLessThan(0); expect(affinityMul(wave, 'ember')).toBe(2);
+    expect(drinksStatus(cloud, 'shock')).toBe(true); expect(drinksStatus(cloud, 'chill')).toBe(false);
+    expect(drinksStatus(wave, 'chill')).toBe(true); expect(drinksStatus(FOES.rimeSnail, 'chill')).toBe(false); // (not an elemental: frost is only resisted)
+    const bad = { ...FOES.thunderhead, resist: 'hallow' } as FoeDef;
+    expect(validateFoes({ bad }).some(e => e.includes('drinks'))).toBe(true);
   });
 
   it('a hit carries the school of the statuses it brings', () => {

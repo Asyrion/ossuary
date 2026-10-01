@@ -304,6 +304,22 @@ const sounds = {
   crabWake() { hiss(.35, .1, 'lowpass', 500); for (let i = 0; i < 4; i++) tone('square', 300 + i * 40, 200, .04, .03, i * .06); },
   crabSnap() { tone('square', 900, 400, .05, .05); hiss(.05, .08, 'bandpass', 2000); },
   crabFlip() { tone('sine', 160, 70, .3, .1); hiss(.3, .1, 'lowpass', 700); for (let i = 0; i < 3; i++) tone('square', 500, 300, .04, .03, .1 + i * .07); },
+  // floor 2. Frost: a snail's spit, its shell shutting and cracking; a newt's lunge and daze; a serpent rising and spitting
+  snailSpit() { hiss(.15, .06, 'bandpass', 1800); tone('sine', 900, 500, .15, .03); },
+  snailHide() { tone('sine', 300, 150, .25, .06); hiss(.2, .05, 'lowpass', 800); tone('triangle', 1760, 1568, .2, .02, .08); },
+  snailCrack() { [1568, 1175, 2093].forEach((f, i) => tone('triangle', f, f * .75, .3, .035, i * .05)); hiss(.3, .08, 'highpass', 2800); },
+  newtLunge() { hiss(.25, .1, 'bandpass', 1200); tone('sine', 400, 900, .15, .04); },
+  newtStun() { tone('square', 1200, 600, .1, .03); tone('triangle', 2400, 1800, .25, .03, .05); },
+  serpentRise() { hiss(.6, .12, 'lowpass', 700); tone('sine', 90, 220, .6, .07); crackles(3, .4, .03); },
+  serpentSpit() { hiss(.2, .1, 'bandpass', 1400); tone('sine', 600, 300, .18, .04); },
+  // water: a walking wave rearing and crashing, and shattered in its ice
+  waveRear() { hiss(.7, .08, 'lowpass', 500); tone('sine', 80, 200, .7, .06); },
+  waveCrash() { hiss(.6, .2, 'lowpass', 1200); tone('sine', 140, 50, .4, .1); },
+  iceShatter() { [2093, 1568, 2637, 1175].forEach((f, i) => tone('triangle', f, f * .7, .35, .04, i * .04)); hiss(.45, .12, 'highpass', 3000); tone('sine', 120, 50, .3, .08); },
+  // Storm: a thunderhead gathering and its thunder; a darter's dash
+  thunderGather() { tone('sine', 50, 70, 1, .08); hiss(.9, .05, 'lowpass', 300); },
+  thunder() { hiss(1.2, .22, 'lowpass', 400); tone('sawtooth', 70, 35, .8, .07); crackles(6, .3, .05); },
+  darterZip() { tone('sawtooth', 600, 1400, .2, .03); hiss(.2, .05, 'highpass', 4000); },
 };
 type Sounds = typeof sounds;
 /** Sounds of the interface (picking things up, refusals, learning): their own bus, never positioned. */

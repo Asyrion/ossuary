@@ -15,7 +15,8 @@ import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { disposeTree, glow, markShared } from '../render/materials';
 import { burst } from '../combat/fx';
-import { damageEnemy } from '../combat/damage';
+import { damageEnemy, drink } from '../combat/damage';
+import { drinksStatus } from '../actors/foeData';
 import { fireSpellBolt } from '../combat/projectiles';
 import { MAGIC, applyStatus, consumeShock, newStatus, tickStatus, type Reaction } from './status';
 import { STATUS_KINDS, type SpellStatus, type StatusKind } from './spellData';
@@ -23,6 +24,7 @@ import { SCHOOL_LIGHT } from '../render/arcane';
 import { touchPools } from '../world/pools';
 import { ringFx, strikeFx } from './spellFx';
 import { breakPlate } from '../actors/bosses';
+import { foeAfflicted } from '../actors/foes';
 
 const R = MAGIC.reactions;
 const ICE = 0xbfe6ff, FIRE = 0xff7a2a, SPARK = 0xf0e890, GOLD = SCHOOL_LIGHT.hallow, VIOLET = SCHOOL_LIGHT.umbral, BLACKFIRE = 0x8a3ae0;
@@ -33,10 +35,14 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
   for (const [kind, amount] of Object.entries(status) as [SpellStatus, number][]) {
     if (e.dead) return;
     if (kind === 'shock' && e.plates && (e.status?.chill ?? 0) >= MAGIC.chill.bossMaxStacks) { e.status!.chill = 0; react(e, 'shatter'); breakPlate(e); continue; } // (M4.2: a shock on the War-Tiger's rimed plates shatters one)
+    if (drinksStatus(e.foe, kind)) { // (M4.5: an elemental drinks its own school's status; the ground under it still hears it)
+      drink(e, amount * CFG.bestiary.statusHeal); foeAfflicted(e, kind); if ((STATUS_KINDS as string[]).includes(kind)) touchPools(e, kind as StatusKind); continue;
+    }
     const res = applyStatus(e.status ??= newStatus(), kind, amount, !!e.isBoss);
     if (res.froze) { Sfx.at(e.x, e.z).freeze(); burst(e.x, .6, e.z, ICE, 12, 1.6, .05); }
     if (res.stunned) burst(e.x, .9, e.z, SPARK, 6, 2, .03);
     if (res.reaction) react(e, res.reaction);
+    foeAfflicted(e, kind); // (M4.5: what its behaviour does about it)
     if ((STATUS_KINDS as string[]).includes(kind)) touchPools(e, kind as StatusKind); // oil catches fire, water freezes or carries the shock
     else if (kind === 'hex') burst(e.x, .8, e.z, VIOLET, 4, 1.2, .03); else if (kind === 'sanct') burst(e.x, .8, e.z, GOLD, 4, 1.2, .03);
   }
