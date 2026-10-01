@@ -3085,6 +3085,25 @@ test('the bestiary (M4.5), floor 1: the spider drops from out of reach and spits
   for (const e of [e1, e2, e3, e4]) expect(e).toEqual([]);
 });
 
+test('what is done to the mage shows beside the mana bar: a hexing blow (with the mana it took), chill and a basilisk\'s stone; each says what it is the first time', async ({ page }) => {
+  type GA = { sim(sec: number, draw?: boolean): void; warp(id: number): void; clearRoom(): void; spawn(kind: string, x?: number, z?: number): unknown;
+    shoot(x: number, z: number, dx: number, dz: number, o?: { hex?: number }): void; ground: { web: number };
+    player: { x: number; z: number; mana: number; hp: number; maxHp: number; invuln: number; chill: number; stone: number } };
+  const errors = await start(page, '?seed=K3F9QX&room=great_hall&variant=quiet');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GA }).__game, chips = () => document.getElementById('afflict')!.textContent ?? '', line = () => document.getElementById('toast')!.textContent ?? '';
+    g.player.maxHp = g.player.hp = 12; g.warp(1); g.sim(.6); g.clearRoom(); g.sim(.3);
+    const mana0 = g.player.mana; g.shoot(g.player.x + 2, g.player.z, -1, 0, { hex: 8 }); g.sim(.6);
+    const hex = { chips: chips(), took: mana0 - g.player.mana, line: line() };
+    g.sim(4); g.player.chill = 2; g.player.stone = 2; g.sim(.05); const both = chips(); g.sim(2.5);
+    const cleared = chips();
+    return { hex, both, cleared };
+  });
+  expect(r.hex.took).toBeGreaterThan(6.5); expect(r.hex.chips).toContain('Hexed −8 mana'); // (mana comes back a little while the shot flies) expect(r.hex.line).toContain('hexed blow');
+  expect(r.both).toContain('Chilled'); expect(r.both).toContain('Heavy as stone'); expect(r.cleared).toBe('');
+  expect(errors).toEqual([]);
+});
+
 test('a pack\'s size comes from the room\'s seed: a replayed seed brings the same swarms', async ({ page }) => {
   const sizes = async () => {
     const errors = await start(page, '?seed=K3F9QX&room=crypt_b&foe=fireflySwarm');

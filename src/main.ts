@@ -247,7 +247,7 @@ function installDevHooks() {
     inflict(status: Partial<Record<SpellStatus, number>>) { for (const e of G.enemies) inflict(e, status); },
     /** Fire a foe's shot from (x, z) along (dx, dz) (a wall of ice stops it); seconds of the Static Mantle and of
         Wardlight left. */
-    shoot(x: number, z: number, dx: number, dz: number) { const l = Math.hypot(dx, dz) || 1; spawnShot(x, z, dx / l, dz / l, CFG.afflict.testShot, 0xb784ff, .8); },
+    shoot(x: number, z: number, dx: number, dz: number, o: Parameters<typeof spawnShot>[8] = {}) { const l = Math.hypot(dx, dz) || 1; spawnShot(x, z, dx / l, dz / l, CFG.afflict.testShot, 0xb784ff, .8, undefined, o); }, // (o: what the shot carries, `{ hex: 8 }`)
     get mantle() { return mantleLeft(); }, get ward() { return wardLeft(); },
     /** The Salt Circle lying round the mage (M4.1): where, and how long; null when none. */
     get salt() { return saltCircle(); },

@@ -265,4 +265,6 @@ export interface Player extends Circle {
   /** Seconds the mage stays chilled (cold breath, rime, M4): slower (`CFG.afflict.chillSlow`), frost at the view's rim. */ chill: number;
   /** Seconds the mage stays heavy as stone in a basilisk's stare (M4.5): much slower (`CFG.bestiary.gazeSlow`). */ stone: number;
   /** A drift the mage is drawn along this step, over what they walk (the Deep Angler's lure, M4.1); spent each step. */ pull: { x: number; z: number };
+  /** Seconds the hexed chip shows, and the mana the last hexing blow took (ui/afflictions.ts). */ hexed: number; drained: number;
+  /** Seconds the drawn-in chip shows, after a pull worth showing (a lure, a lodestone golem, a griffin's wings). */ drawn: number;
 }

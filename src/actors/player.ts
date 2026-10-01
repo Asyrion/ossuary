@@ -33,6 +33,7 @@ export function updatePlayer(dt: number) {
   const k = 1 - Math.exp(-(cur.theme?.twist === 'rime' ? CFG.mech.rimeGrip : slipAt(player.x, player.z) ? CFG.bestiary.rimeGrip : 14) * dt); // rime underfoot (the frozen mausoleum's, a rime snail's trail): the mage slides
   const st = player.stats, speed = st.speed * wadeAt(player.x, player.z) * snagAt(player.x, player.z) * stickyAt(player.x, player.z) * (player.chill > 0 ? 1 - CFG.afflict.chillSlow : 1) * (player.stone > 0 ? CFG.bestiary.gazeSlow : 1); // slower wading through water, or cobwebs, a spider's web or ink (M4.5), or chilled, or in a basilisk's stare
   player.vx = lerp(player.vx, mv.x * speed, k); player.vz = lerp(player.vz, mv.z * speed, k);
+  if (Math.hypot(player.pull.x, player.pull.z) > CFG.afflict.drawnMin) player.drawn = CFG.afflict.drawnShow; // (shown beside the mana bar)
   player.x += (player.vx + player.pull.x) * dt; player.z += (player.vz + player.pull.z) * dt; player.pull.x = player.pull.z = 0; // (a lure's draw: spent each step)
   collide(player, blockers(cur, 'player', st.effects.has('pitWalker')));
   player.still = Math.hypot(player.vx, player.vz) < CFG.artifacts.still.speed ? player.still + dt : 0; // (the Twin Vigil Candles, the Salt Circle)
@@ -50,6 +51,8 @@ export function updatePlayer(dt: number) {
   if (player.dim > 0) player.dim = Math.max(0, player.dim - dt);
   if (player.chill > 0) player.chill = Math.max(0, player.chill - dt);
   if (player.stone > 0) player.stone = Math.max(0, player.stone - dt);
+  if (player.hexed > 0) player.hexed = Math.max(0, player.hexed - dt);
+  if (player.drawn > 0) player.drawn = Math.max(0, player.drawn - dt);
   // artifacts and the trapdoor down
   checkArtifactPickup(); checkWares(); checkPages(); checkVaultDoors(); checkShrine();
   const trapdoor = G.trapdoor;

@@ -54,6 +54,11 @@ export function stickyAt(x: number, z: number) {
   for (const p of patches) if (p.kind !== 'rime' && p.room === G.current && Math.hypot(x - p.x, z - p.z) < p.r) k = Math.min(k, p.kind === 'web' ? CFG.bestiary.webSlow : CFG.bestiary.inkSlow);
   return k;
 }
+/** The web or ink (x, z) in the current room lies in, if any (what slows the mage there, for the chip that says so). */
+export function stuckIn(x: number, z: number): 'web' | 'ink' | undefined {
+  for (const p of patches) if (p.kind !== 'rime' && p.room === G.current && Math.hypot(x - p.x, z - p.z) < p.r) return p.kind;
+  return undefined;
+}
 /** Whether (x, z) in the current room is on rime, where the mage slides. */
 export const slipAt = (x: number, z: number) => patches.some(p => p.kind === 'rime' && p.room === G.current && Math.hypot(x - p.x, z - p.z) < p.r);
 /** The patches of `kind` in the current room (tests). */

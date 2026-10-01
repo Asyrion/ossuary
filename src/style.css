@@ -27,6 +27,7 @@ body{font-family:var(--f-ui);color:var(--ink);-webkit-user-select:none;user-sele
 /* sight dimmed by a Sporeling's spores (M4): the edges of the view darken, violet-black */
 /* chilled by cold breath or rime (M4): frost at the rim of the view */
 #chill{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 55%,rgba(170,215,255,.28) 78%,rgba(225,245,255,.62));opacity:0;transition:opacity .25s}
+#stone{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 58%,rgba(120,112,100,.3) 80%,rgba(70,64,58,.62));opacity:0;transition:opacity .25s}
 #dim{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at var(--x,50%) var(--y,50%),transparent 9vh,rgba(22,8,34,.72) 30vh,rgba(8,2,14,.95) 62vh);opacity:0}
 #hud{position:fixed;inset:0;pointer-events:none}
 #hearts{position:absolute;left:calc(env(safe-area-inset-left,0px) + 16px);top:calc(env(safe-area-inset-top,0px) + 14px);display:flex;gap:4px}
@@ -37,6 +38,10 @@ body{font-family:var(--f-ui);color:var(--ink);-webkit-user-select:none;user-sele
 #mana{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 50px);width:150px;height:8px;border:1px solid #0b0a14;background:#10121e;border-radius:2px;box-shadow:0 2px 0 rgba(0,0,0,.5);overflow:hidden}
 #mana i{display:block;height:100%;width:100%;background:linear-gradient(#8fc0ff,#3a6fd8);transform-origin:left;transition:background .2s}
 #mana.flash i{background:linear-gradient(#ff9a8a,#c83a2a)}
+#mana.hexed i{background:linear-gradient(#d8b0ff,#7a3ad8)}
+#mana.hexed{box-shadow:0 0 8px rgba(183,132,255,.85),0 2px 0 rgba(0,0,0,.5)}
+#afflict{position:absolute;left:calc(env(safe-area-inset-left,0px) + 176px);top:calc(env(safe-area-inset-top,0px) + 45px);display:flex;flex-wrap:wrap;gap:4px;max-width:46vw;pointer-events:none}
+#afflict span{font:600 11px var(--f-ui);color:#efe6d6;background:rgba(10,8,16,.72);border:1px solid rgba(0,0,0,.6);border-left:3px solid var(--c);border-radius:2px;padding:1px 6px 2px;text-shadow:0 1px 1px #000;white-space:nowrap}
 #spells{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 66px);display:flex;gap:8px}
 #spells .slot{position:relative;width:40px;height:40px;border:1px solid #5e4d39;border-radius:4px;background:rgba(10,8,6,.6);overflow:hidden}
 #spells .slot svg{position:absolute;inset:5px;width:30px;height:30px;filter:drop-shadow(0 0 5px currentColor)}
