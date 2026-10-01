@@ -44,7 +44,7 @@ import { addSpores } from '../world/props';
 import { addPool, fireAt, frostAt, poolAt, shockAt } from '../world/pools';
 import { ringFx, strikeFx } from '../magic/spellFx';
 import { updateBossBar } from '../ui/hud';
-import { hurtPlayer } from '../combat/damage';
+import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { freeSpotNear, randomSpot } from '../world/rooms';
 import { flame } from '../magic/shapes';
 import { inflict } from '../magic/statusFx';
@@ -58,6 +58,8 @@ import { metFoe } from './bestiary';
 import type { FoeDef, School } from './foeData';
 import type { SpellStatus } from '../magic/spellData';
 import { CFG } from '../config';
+import { MAGIC } from '../magic/status';
+import { hearGround } from '../world/groundHooks';
 
 export type { Aim } from './foeKit';
 
@@ -85,6 +87,21 @@ export function updateFoe(e: Enemy, dt: number, a: Aim) {
   e.idle!(e.at!); B.pose?.(e, def.params);
   return face;
 }
+/** A water foe comes up out of hiding (`driven`): spray, a cry, and, if steam drove it, a scald. */
+export function drivenUp(e: Enemy, why: 'blast' | 'steam' | 'shock') {
+  burst(e.x, .4, e.z, why === 'shock' ? 0xf0e890 : 0xd8f0ff, 16, 2.4, .06); Sfx.at(e.x, e.z).lurkerRise();
+  if (why === 'steam') damageEnemy(e, MAGIC.reactions.steam.damage, 0, 0, 0, 'spell');
+}
+// a glyph's blast in a water foe's pool, or steam over it, drives it up (any build can bring one up: 2026-10-01)
+hearGround((kind, x, z, r) => {
+  if (kind !== 'blast' && kind !== 'steam') return;
+  const there = poolAt(x, z);
+  for (const e of G.enemies) {
+    const B = !e.dead && e.hidden && e.foe ? BEHAVIOURS[e.foe.behaviour] : undefined, pool = B?.driven ? poolAt(e.x, e.z) : undefined;
+    if (!pool || pool.kind !== 'water') continue;
+    if (pool === there || Math.hypot(e.x - x, e.z - z) < r + CFG.surface.driveReach) B!.driven!(e, e.foe!.params, kind);
+  }
+});
 /** A blow lands on a foe in code: how much of it its behaviour lets through (0: none, it was swallowed or turned). */
 export function foeStruck(e: Enemy, dmg: number, by: Enemy['lastHit'], dx = 0, dz = 0, school?: School) { const B = e.foe && BEHAVIOURS[e.foe.behaviour]; return B?.struck ? B.struck(e, dmg, by, e.foe!.params, dx, dz, school) : dmg; }
 /** A glyph's blast reaches a foe in code (M4.5: a rubble crab is flipped). */
@@ -388,9 +405,16 @@ const BEHAVIOURS: Record<string, Behaviour> = {
       } else { const t = nearestWater(room, e.x, e.z); if (t) { e.x = t.x; e.z = t.z; } }
       e.state = 'under'; e.st = span(P.under) * .5; e.hidden = true; e.flying = true; e.contact = 0; e.target = { x: e.x, z: e.z };
     },
+    /** Blasted, scalded or shocked up out of its water: it lies in the open a while (it still spits), then dives. */
+    driven(e, P, why) {
+      if (e.state !== 'under' && e.state !== 'dive') return;
+      this.surface!(e, P); e.state = 'trapped'; e.st = num(P.stranded); e.open = 1; e.cycle = 1; e.fireT = .7; e.vx = e.vz = 0; e.tele = 0;
+      drivenUp(e, why);
+    },
     step(e, dt, a, P, room) {
       e.st -= dt; e.kx = e.kz = 0; // (anchored in its pool)
       const frozen = poolAt(e.x, e.z)?.state === 'frozen';
+      if (e.state === 'under' && (poolAt(e.x, e.z)?.charged ?? 0) > 0) { this.driven!(e, P, 'shock'); return; } // (a shock through its water)
       if (e.state === 'under') { // out of reach, it slides beneath the water to somewhere else in it
         const t = e.target!, dx = t.x - e.x, dz = t.z - e.z, d = Math.hypot(dx, dz);
         const sp = e.foe!.speed * e.speedMul; e.vx = d > .05 ? dx / d * sp : 0; e.vz = d > .05 ? dz / d * sp : 0;

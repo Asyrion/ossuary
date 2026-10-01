@@ -120,7 +120,7 @@ import { dropPage } from '../magic/pages';
 import { lerp } from '../util';
 import { makeEnemy } from './enemies';
 import { fallOn, layGround, lob, slipAt, spikeAt } from './bestiaryGround';
-import { burningNear, layFire, laySpark } from './foes';
+import { burningNear, drivenUp, layFire, laySpark } from './foes';
 import { brake, light, num, ramp, rush, span, type Aim, type Behaviour, type Params } from './foeKit';
 
 export { clearGround, updateGround } from './bestiaryGround';
@@ -486,6 +486,11 @@ const newt: Behaviour = {
       if (Math.hypot(t.x - e.x, t.z - e.z) < .3 && pool?.state === 'still' && !(pool.charged > 0)) { e.state = 'swim'; e.st = span(P.under); submerge(e, true); }
     }
   },
+  /** Blasted or scalded out of its water: shown, and dazed, as a shocked pool leaves it. */
+  driven(e, P, why) {
+    if (e.state !== 'swim') return;
+    e.state = 'stunned'; e.st = num(P.stun); submerge(e, false); e.contact = 0; e.vx = e.vz = 0; drivenUp(e, why);
+  },
   pose(e) { e.model!.visible = !e.hidden; },
 };
 
@@ -498,6 +503,7 @@ const serpent: Behaviour = {
   step(e, dt, a, P, room) {
     e.st -= dt; e.kx = e.kz = 0; // (anchored in its pool)
     const frozen = poolAt(e.x, e.z)?.state === 'frozen';
+    if (e.state === 'under' && (poolAt(e.x, e.z)?.charged ?? 0) > 0) { this.driven!(e, P, 'shock'); return; } // (a shock through its water)
     if (e.state === 'under') { // beneath the water, sliding to the place in it nearest the mage
       const t = e.target!; steer(e, t.x, t.z, e.foe!.speed * e.speedMul, dt, .2);
       if (Math.random() < dt * 6) burst(e.x, .05, e.z, 0x9fe4ff, 1, .5, .03);
@@ -524,6 +530,11 @@ const serpent: Behaviour = {
       if (e.open < .5 && !e.hidden) submerge(e, true);
       if (e.st <= 0) { e.state = 'under'; e.st = span(P.under); e.count = 0; const t = nearestWaterTo(room, player.x, player.z); e.target = t ? { x: t.x, z: t.z } : { x: e.x, z: e.z }; }
     }
+  },
+  /** Blasted, scalded or shocked up out of its water: coiled in the open a while (it still spits), then it sinks. */
+  driven(e, P, why) {
+    if (e.state !== 'under' && e.state !== 'sink') return;
+    e.state = 'trapped'; e.st = num(P.stranded); submerge(e, false); e.open = 1; e.cycle = 1; e.fireT = .7; e.vx = e.vz = 0; e.tele = 0; drivenUp(e, why);
   },
   pose(e) {
     const o = e.open ?? 0, p = e.parts!;

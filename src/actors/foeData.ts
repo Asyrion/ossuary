@@ -44,7 +44,7 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   charger: ['sight', 'lineUp', 'tell', 'charge', 'stun', 'sparkSpeed'],
   mimic: ['wake', 'lonely', 'tell', 'shots', 'spread', 'shotSpeed', 'hop', 'shut', 'guard'],
   leaper: ['sit', 'crouch', 'leap', 'reach', 'leapsPerBreath', 'breathRange', 'breathTell', 'shots', 'cone', 'shotSpeed', 'chill'],
-  lurker: ['under', 'rise', 'volley', 'volleyGap', 'shotSpeed', 'up', 'trapped', 'poolSize'],
+  lurker: ['under', 'rise', 'volley', 'volleyGap', 'shotSpeed', 'up', 'trapped', 'poolSize', 'stranded'],
   drifter: ['pulseRange', 'pulseEvery', 'pulseTell', 'pulseRadius'],
   scurrier: ['zig', 'angle', 'pause', 'pauseTime', 'trailEvery', 'trailTime'],
   blinker: ['hover', 'vanish', 'gone', 'near', 'raise', 'shotSpeed', 'hex'],
@@ -72,7 +72,7 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   // floor 2
   snail: ['trailEvery', 'rimeSize', 'rimeTime', 'spitEvery', 'spitRange', 'shotSpeed', 'chill', 'shellAt', 'shellTime', 'shellGuard', 'crackTime', 'crackGuard'],
   newt: ['poolSize', 'roam', 'under', 'reach', 'patience', 'hunt', 'lunge', 'lungeTime', 'chill', 'land', 'stun'],
-  serpent: ['poolSize', 'under', 'rise', 'up', 'volleys', 'volleyGap', 'shots', 'spread', 'shotSpeed', 'trapped', 'lost'],
+  serpent: ['poolSize', 'under', 'rise', 'up', 'volleys', 'volleyGap', 'shots', 'spread', 'shotSpeed', 'trapped', 'lost', 'stranded'],
   wave: ['pourEvery', 'pourMax', 'slamEvery', 'slamRange', 'tell', 'ring', 'shotSpeed', 'ice', 'shatter'],
   cloud: ['rest', 'over', 'gather', 'rain', 'sparks', 'reach', 'sparkTime'],
   darter: ['hover', 'aim', 'dash', 'dashMax', 'sparkEvery', 'sparkTime'],

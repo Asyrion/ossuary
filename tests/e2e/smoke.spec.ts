@@ -3137,6 +3137,30 @@ test('Steam (Ember + Frost): a chilled foe set burning goes up in steam, scalded
   expect(errors).toEqual([]);
 });
 
+test('any build can bring a water foe up: a glyph\'s blast in its water, fire boiling it to steam (a scald), or a shock through it', async ({ page }) => {
+  type F = { state: string; hidden?: boolean; hp: number; x: number; z: number; dead?: boolean };
+  type GW = { sim(sec: number): void; warp(id: number): void; clearRoom(): void; spawn(kind: string, x?: number, z?: number): F; blast(x: number, z: number): void;
+    burn(x: number, z: number, r?: number): void; pool(kind: string): void; enemies: F[]; player: { x: number; z: number; hp: number; maxHp: number; invuln: number } };
+  const errors = await start(page, '?seed=K3F9QX&floor=2&room=great_hall&variant=quiet');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GW }).__game; g.player.maxHp = g.player.hp = 99; g.warp(1); g.sim(.6);
+    const out: Record<string, { hidden: boolean; up: string; shown: boolean; scald?: number }> = {};
+    for (const id of ['cisternLurker', 'brineSerpent', 'glassNewt']) for (const way of ['blast', 'steam', 'shock']) {
+      g.clearRoom(); g.sim(.3); const e = g.spawn(id, g.player.x + 5, g.player.z - 3); g.sim(.9);
+      for (let k = 0; k < 60 && !e.hidden; k++) { g.player.hp = 99; g.sim(.05); } // (until it is under)
+      const hidden = !!e.hidden, hp = e.hp;
+      if (way === 'blast') g.blast(e.x, e.z); else if (way === 'steam') g.burn(e.x, e.z, .3); else g.pool('shock');
+      g.sim(.05); out[`${id}:${way}`] = { hidden, up: e.state, shown: !e.hidden, scald: way === 'steam' ? hp - e.hp : undefined };
+    }
+    return out;
+  });
+  for (const [k, v] of Object.entries(r)) {
+    expect(v.hidden, `${k} hid`).toBe(true); expect(v.shown, `${k} came up (${v.up})`).toBe(true);
+    if (k.endsWith('steam')) expect(v.scald, `${k} scalded`).toBeGreaterThan(0);
+  }
+  expect(errors).toEqual([]);
+});
+
 test('a pack\'s size comes from the room\'s seed: a replayed seed brings the same swarms', async ({ page }) => {
   const sizes = async () => {
     const errors = await start(page, '?seed=K3F9QX&room=crypt_b&foe=fireflySwarm');
