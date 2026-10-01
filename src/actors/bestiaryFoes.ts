@@ -108,7 +108,7 @@ import { glowTex } from '../render/textures';
 import { burst } from '../combat/fx';
 import { spawnShot } from '../combat/projectiles';
 import { addSpores } from '../world/props';
-import { freeSpotNear } from '../world/rooms';
+import { freeSpotNear, isFreeAt } from '../world/rooms';
 import { addPool, fireAt, frostAt, poolAt, shockAt } from '../world/pools';
 import { boxAt } from '../world/collision';
 import { hearGround } from '../world/groundHooks';
@@ -654,25 +654,35 @@ const mine: Behaviour = {
 
 /* ---------- floor 3 ---------- */
 
-/** A spot against the stone wall nearest (x, z) in `room` (not the low south wall), and the way out from it; on the north
-    wall, along it to a bare stretch, clear of its pilasters and niches. */
-function againstWall(room: Room, x: number, z: number) {
-  const b = room.bounds, sides = [
+/** A spot against the stone wall nearest (x, z) in `room` (not the low south wall), and the way out from it: on floor with
+    the wall behind, clear of the north wall's pilasters and niches, open to the room `wallOpen` units in front (no pillar or
+    tomb hiding it from the mage's bolts) and `wallApart` from `others` (another nest). Along the nearest wall first, then
+    the others; the nearest free spot if no wall has one. */
+function againstWall(room: Room, x: number, z: number, others: readonly { x: number; z: number }[] = []) {
+  const b = room.bounds, C = CFG.bestiary, sides = [
     { d: x - b.minX, x: b.minX + .55, z, ox: 1, oz: 0 }, { d: b.maxX - x, x: b.maxX - .55, z, ox: -1, oz: 0 }, { d: z - b.minZ, x, z: b.minZ + .55, ox: 0, oz: 1 },
-  ].sort((p, q) => p.d - q.d)[0];
-  if (sides.oz === 1) {
-    const dressed = (room.dressed ?? []).filter(w => Math.abs(w.z - sides.z) < 1.5);
-    const off = [0, .7, -.7, 1.4, -1.4, 2.1, -2.1, 2.8, -2.8].find(o => dressed.every(w => Math.abs(w.x - (sides.x + o)) > .75));
-    sides.x += off ?? 0;
+  ].sort((p, q) => p.d - q.d);
+  const solid = (px: number, pz: number) => room.rocks.some(r => Math.abs(px - r.x) < r.hx + .25 && Math.abs(pz - r.z) < r.hz + .25);
+  const inside = (px: number, pz: number) => px > b.minX && px < b.maxX && pz > b.minZ && pz < b.maxZ && room.template.tiles[Math.floor(pz - b.minZ)]?.[Math.floor(px - b.minX)] !== 'void';
+  for (const s of sides) {
+    const dressed = s.oz === 1 ? (room.dressed ?? []).filter(w => Math.abs(w.z - s.z) < 1.5) : [];
+    for (const o of [0, .7, -.7, 1.4, -1.4, 2.1, -2.1, 2.8, -2.8, 3.5, -3.5, 4.2, -4.2, 4.9, -4.9]) {
+      const px = s.x + (s.oz ? o : 0), pz = s.z + (s.ox ? o : 0);
+      if (!isFreeAt(room, px, pz) || inside(px - s.ox * .9, pz - s.oz * .9)) continue; // (on floor, the wall behind it)
+      if (dressed.some(w => Math.abs(w.x - px) < .75) || others.some(n => Math.hypot(n.x - px, n.z - pz) < C.wallApart)) continue;
+      let open = true;
+      for (let t = .5; t <= C.wallOpen && open; t += .3) { const qx = px + s.ox * t, qz = pz + s.oz * t; if (!inside(qx, qz) || solid(qx, qz)) open = false; }
+      if (open) return { x: px, z: pz, ox: s.ox, oz: s.oz };
+    }
   }
-  const at = freeSpotNear(room, sides.x, sides.z);
-  return { x: at.x, z: at.z, ox: sides.ox, oz: sides.oz };
+  const s = sides[0], at = freeSpotNear(room, s.x, s.z);
+  return { x: at.x, z: at.z, ox: s.ox, oz: s.oz };
 }
 /** The live foes `e` made (a nest's wasps, a golem's stones). */
 const broodOf = (e: Enemy) => G.enemies.filter(o => o.owner === e && !o.dead);
 
 const nest: Behaviour = { // the Ember Wasps' nest
-  init(e, P) { const w = againstWall(G.current, e.x, e.z); e.x = w.x; e.z = w.z; e.dir = { x: w.ox, z: w.oz }; e.fireT = num(P.first); e.contact = 0; },
+  init(e, P) { const w = againstWall(G.current, e.x, e.z, G.enemies.filter(o => o !== e && !o.dead && o.foe?.behaviour === 'nest')); e.x = w.x; e.z = w.z; e.dir = { x: w.ox, z: w.oz }; e.fireT = num(P.first); e.contact = 0; },
   step(e, dt, _a, P) {
     e.vx = e.vz = e.kx = e.kz = 0; // (set in the wall)
     if ((e.fireT! -= dt) <= 0) {

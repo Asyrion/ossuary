@@ -15,7 +15,7 @@ import { burst } from '../combat/fx';
 import { mulberry } from '../util';
 import { DH, H_LOW, H_TALL, HD, HW, PX, PZ, WT } from './dims';
 import { FLOORS, type PlannedRoom } from './generate';
-import { FOES, extraSlot, isFoe, pairRoom, pickFoe, type FoeType, type Role } from '../actors/foeData';
+import { FOES, comesMany, extraSlot, isFoe, pairRoom, pickFoe, type FoeType, type Role } from '../actors/foeData';
 import { OPPOSITE, SHAPES, SIDE_DIR, cellHalfExtents, shapeMask, shapeSize } from './shapes';
 import { TEMPLATES, fallRuns, growPuddles, parseTemplate, tombRuns } from './templates';
 import { buildPools } from './pools';
@@ -91,13 +91,13 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   if (theme?.twist === 'rime') chargeRunes(room, 'chill'); // the frozen mausoleum's rune stones hold frost
   dressTheme(room); // a themed room's scatter: candles, pages, moss, bedrolls, daylight...
   drawPits(room); mergePits(room); buildPools(room);
-  // the template's roles filled with the floor's foes, on the room's seed (one elite at most, and one pack: M4.5)
+  // the template's roles filled with the floor's foes, on the room's seed (one elite at most, and one pack or nest: M4.5)
   const floorCfg = FLOORS[Math.min(floorIndex, FLOORS.length - 1)], pick = mulberry(plan.seed ^ 0xf0e5), table = floorCfg.foes, P = floorCfg.pressure;
   let elite = false, pack = false;
   const fill = (f: (typeof template.waves)[number][number]) => {
     const kind: FoeType | 'boss' = f.kind === 'boss' ? 'boss' : DEV.foe ?? pickFoe(table, f.kind, pick, elite, pack, P.eliteMul); // (deeper, elites come more often: M4.9)
     if (kind !== 'boss' && isFoe(kind) && FOES[kind].elite) elite = true;
-    if (kind !== 'boss' && isFoe(kind) && FOES[kind].pack) pack = true;
+    if (kind !== 'boss' && comesMany(kind)) pack = true;
     return { kind, role: f.kind, ...toWorld(room, f.c, f.r) };
   };
   room.waves = template.waves.map(wv => wv.map(fill));
@@ -150,7 +150,7 @@ function maskGeometry(mask: boolean[][], w: number, h: number) {
     pack), and often a heart. */
 function quieten(room: Room) {
   const R = mulberry(room.plan.seed ^ 0x51ee7);
-  const weak = (room.waves[0] ?? []).filter(f => (f.role === 'R' || f.role === 'W') && !(isFoe(f.kind) && (FOES[f.kind].elite || FOES[f.kind].pack)));
+  const weak = (room.waves[0] ?? []).filter(f => (f.role === 'R' || f.role === 'W') && !(isFoe(f.kind) && FOES[f.kind].elite) && !comesMany(f.kind));
   for (let i = weak.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [weak[i], weak[j]] = [weak[j], weak[i]]; }
   const keep = Math.min(weak.length, Math.floor(R() * (CFG.quiet.maxEnemies + 1)));
   room.waves = keep ? [weak.slice(0, keep)] : [];

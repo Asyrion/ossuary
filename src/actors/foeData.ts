@@ -37,6 +37,8 @@ export type FoeType = EnemyType | FoeId;
 export const FOES = Object.fromEntries(Object.entries(foesData).map(([id, d]) => [id, { id, ...d }])) as unknown as Record<FoeId, FoeDef>;
 export const FOE_IDS = Object.keys(FOES) as FoeId[];
 export const isFoe = (type: string): type is FoeId => type in FOES;
+/** Whether a foe comes as many: a pack (M4.5's swarm, the wolves), or a nest that lets out its brood. A room rolls one. */
+export const comesMany = (type: string) => isFoe(type) && (!!FOES[type].pack || FOES[type].params.brood !== undefined);
 
 /** The parameters each behaviour needs (actors/foes.ts); the validator checks every foe has them. */
 export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
@@ -149,12 +151,12 @@ export function callFoe(table: RoleTable, role: Role, R: () => number): FoeType 
 /** A floor's roles: for each, the foes that fill it and how often (weights). */
 export type RoleTable = Record<Role, [FoeType, number][]>;
 /** The foe that fills `role` on a floor, picked by `R` (0 to 1) from its weighted list; with `noElite`, an elite is
-    passed over while anything else could fill it, and with `noPack`, one that comes as a pack (a room has one of each at
-    most); `eliteMul` weighs the elites (M4.9's pressure: deeper floors' come more often). */
+    passed over while anything else could fill it, and with `noPack`, one that comes as many (a pack or a nest: a room has
+    one of each at most); `eliteMul` weighs the elites (M4.9's pressure: deeper floors' come more often). */
 export function pickFoe(table: RoleTable, role: Role, R: () => number, noElite = false, noPack = false, eliteMul = 1): FoeType {
   let list = table[role];
   if (noElite) { const plain = list.filter(([id]) => !(isFoe(id) && FOES[id].elite)); if (plain.length) list = plain; }
-  if (noPack) { const lone = list.filter(([id]) => !(isFoe(id) && FOES[id].pack)); if (lone.length) list = lone; }
+  if (noPack) { const lone = list.filter(([id]) => !comesMany(id)); if (lone.length) list = lone; }
   if (eliteMul !== 1) list = list.map(([id, w]): [FoeType, number] => [id, isFoe(id) && FOES[id].elite ? w * eliteMul : w]); // (M4.9: deeper floors' elites come more often)
   const total = list.reduce((s, [, w]) => s + w, 0);
   let x = R() * total;
@@ -178,11 +180,11 @@ export function pairRoom(wave: Slot[], pairs: PairTable | undefined, table: Role
   for (const p of pairs.list) { if (x < p[2]) { pair = p; break; } x -= p[2]; }
   const [a, b] = free;
   wave[a].kind = pair[0]; wave[b].kind = pair[1];
-  let elite = [pair[0], pair[1]].some(k => isFoe(k) && FOES[k].elite), pack = [pair[0], pair[1]].some(k => isFoe(k) && FOES[k].pack);
+  let elite = [pair[0], pair[1]].some(k => isFoe(k) && FOES[k].elite), pack = [pair[0], pair[1]].some(comesMany);
   for (const i of free.slice(2)) {
-    const k = wave[i].kind, isElite = isFoe(k) && !!FOES[k].elite, isPack = isFoe(k) && !!FOES[k].pack;
+    const k = wave[i].kind, isElite = isFoe(k) && !!FOES[k].elite, isPack = comesMany(k);
     if ((isElite && elite) || (isPack && pack)) wave[i].kind = pickFoe(table, wave[i].role as Role, R, true, true);
-    elite ||= isFoe(wave[i].kind) && !!FOES[wave[i].kind as FoeId].elite; pack ||= isFoe(wave[i].kind) && !!FOES[wave[i].kind as FoeId].pack;
+    elite ||= isFoe(wave[i].kind) && !!FOES[wave[i].kind as FoeId].elite; pack ||= comesMany(wave[i].kind);
   }
   return [a, b];
 }
@@ -211,7 +213,7 @@ export interface Pressure { extra: number; eliteMul: number; ordealWaves: number
     (one of its walkers or fliers, never the boss, a heavy, an elite or a pack); -1 for none. `R` from the room's seed. Pure. */
 export function extraSlot(wave: Slot[], extra: number, R: () => number): number {
   if (!(extra > 0) || R() >= extra) return -1;
-  const ok = wave.map((f, i) => (f.role === 'R' || f.role === 'W') && f.kind !== 'boss' && !(isFoe(f.kind) && (FOES[f.kind].elite || FOES[f.kind].pack)) ? i : -1).filter(i => i >= 0);
+  const ok = wave.map((f, i) => (f.role === 'R' || f.role === 'W') && f.kind !== 'boss' && !(isFoe(f.kind) && FOES[f.kind].elite) && !comesMany(f.kind) ? i : -1).filter(i => i >= 0);
   return ok.length ? ok[Math.floor(R() * ok.length)] : -1;
 }
 /** What is wrong with the floors' pressure (empty when all is well). */

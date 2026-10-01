@@ -65,8 +65,9 @@ export const CFG = {
   afflict: { chillSlow: .4, groundReach: .3, groundLicks: .7, sparkArm: .35, touchEvery: .1, emberReach: .2, coldReach: .1, testShot: 3.8, hexShow: 2.5, drawnMin: .4, drawnShow: .5, lineShow: 3.5 },
   // M4.5's bestiary: how fast the mage walks through a spider's web and an ink octopus's smear; how much faster a lark's
   // song makes the foes round it; how much grip the mage keeps on a rime snail's trail; the health an elemental drinks from
-  // each stack of its own school's status; how fast the mage walks in a basilisk's stare
-  bestiary: { webSlow: .45, inkSlow: .65, songHaste: 1.4, rimeGrip: 3.5, statusHeal: 2, gazeSlow: .3 },
+  // each stack of its own school's status; how fast the mage walks in a basilisk's stare; a nest's or a perch's spot in the
+  // wall: open to the room `wallOpen` units in front (no pillar hiding it from bolts) and `wallApart` from another nest
+  bestiary: { webSlow: .45, inkSlow: .65, songHaste: 1.4, rimeGrip: 3.5, statusHeal: 2, gazeSlow: .3, wallOpen: 2.6, wallApart: 2.2 },
   /** M4.9 The curve: a floor leans its library to a school its foes are weak to when that many of them are (`lean`), and
       walls off a school when that many resist or drink it (`wall`, its banner's line); a hex's debt lasts `hexDebt` s. */
   curve: { lean: .3, wall: .45, hexDebt: 8, trail: 7, trailStep: .045, lineShow: 4.5, extraAt: [-.9, .7] as [number, number] }, // (trail: motes in a hex's trail back to its thrower, trailStep the seconds between them; lineShow: the floor's warning; extraAt: where an extra foe stands beside the one it copies)
