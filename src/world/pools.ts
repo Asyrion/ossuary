@@ -38,7 +38,7 @@ const LOOK = {
   burning: { color: 0x2a1208, emissive: 0xff6a1a, roughness: .7, metalness: 0, opacity: .96 },
   mud: { color: 0x4a3a28, emissive: 0x0c0804, roughness: .42, metalness: .12, opacity: .9 }, // (M4.9: drained by a sluice; brown and wet, never a pit's black)
   jelly: { color: 0x3a9446, emissive: 0x0e3a16, roughness: .62, metalness: 0, opacity: .84 }, // (M5: the serpent's jelly, glowing a little green; dull, so a torch's glint doesn't read as fire)
-  frozenJelly: { color: 0xc4ecc8, emissive: 0x2a5a36, roughness: .2, metalness: .1, opacity: .9 },
+  frozenJelly: { color: 0xc4ecc8, emissive: 0x2a5a36, roughness: .55, metalness: 0, opacity: .9 }, // (dull too: no torch glints)
 };
 function dress(p: Pool) {
   const L = p.state === 'frozen' ? p.jelly ? LOOK.frozenJelly : LOOK.frozen : p.state === 'burning' ? LOOK.burning : p.kind === 'water' ? p.jelly ? LOOK.jelly : p.mud ? LOOK.mud : LOOK.water : LOOK.oil;

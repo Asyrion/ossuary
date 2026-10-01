@@ -77,7 +77,7 @@ const shadowGeo = new THREE.PlaneGeometry(1, 1); shadowGeo.rotateX(-Math.PI / 2)
 const shadowMat = markShared(new THREE.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false }));
 /** Soft blob shadow on the floor. */
 export function blob(size: number) {
-  const m = new THREE.Mesh(shadowGeo, shadowMat); m.scale.set(size, 1, size); m.position.y = 0.012; m.renderOrder = 1; return m;
+  const m = new THREE.Mesh(shadowGeo, shadowMat); m.scale.set(size, 1, size); m.position.y = 0.012; m.renderOrder = 1; m.userData.blob = true; return m;
 }
 
 const cache = new Map<string, { userData: Record<string, unknown> }>();

@@ -54,8 +54,8 @@ export function buildSerpent(e: Enemy, tx = 0, tz = -1) {
   const chain = new THREE.Group(); chain.add(body.group); chain.position.set(-e.x, 0, -e.z); e.group.add(chain);
   const ripple = new THREE.Mesh(new THREE.TorusGeometry(.6, .05, 6, 32), new THREE.MeshBasicMaterial({ color: SERPENT.pale, transparent: true, opacity: 0, depthWrite: false }));
   ripple.rotation.x = -Math.PI / 2; ripple.position.y = .03; ripple.visible = false; e.group.add(ripple);
-  const len = body.n * body.spacing + 1, trail: P3[] = [];
-  for (let k = 12; k >= 0; k--) trail.push([e.x + tx * len * k / 12, 0, e.z + tz * len * k / 12]);
+  const len = body.n * body.spacing + 1, trail: P3[] = [], b = G.current.bounds, wall = .8; // (no deeper than the wall is thick: beyond it the tail would show above the wall)
+  for (let k = 12; k >= 0; k--) trail.push([Math.min(b.maxX + wall, Math.max(b.minX - wall, e.x + tx * len * k / 12)), 0, Math.min(b.maxZ + wall, Math.max(b.minZ - wall, e.z + tz * len * k / 12))]);
   const k: Coil = { body, chain, ripple, trail, at: [], depth: 0, puddles: 0, dir: { x: 0, z: 1 }, volleys: 0, trap: null };
   coils.set(e, k);
   if (!jellyAt(e.x, e.z)) pourJelly(G.current, e.x, e.z, C.flood);
@@ -115,6 +115,7 @@ export function updateSerpent(e: Enemy, dt: number, ux: number, uz: number): num
   const k = coils.get(e)!, P = e.parts!, hurt = e.hp / e.maxHp < .5, quick = hurt ? C.hurtQuick : 1, shotMul = e.bossCfg?.shotSpeedMul ?? 1;
   const ripple = k.ripple, rmat = ripple.material as THREE.MeshBasicMaterial, d = Math.hypot(player.x - e.x, player.z - e.z);
   e.idle?.(e.t); e.halo!.material.opacity = UNDER.has(e.state) ? 0 : .3;
+  for (const c of e.group.children) if (c.userData.blob) c.visible = !e.hidden; // (under the jelly it casts no shadow, which would read as a hole)
   const settle = 1 - Math.exp(-dt * 8);
   // a shock through its jelly, or the jelly freezing over it, while it is in it, traps it at the surface
   const pool = poolAt(e.x, e.z);
