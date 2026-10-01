@@ -10,7 +10,7 @@ import { G } from '../state';
 import { CFG } from '../config';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
-import { glowShared } from '../render/materials';
+import { glowShared, markShared } from '../render/materials';
 import { burst } from '../combat/fx';
 import { hearGround } from '../world/groundHooks';
 
@@ -71,16 +71,16 @@ hearGround((kind, x, z, r) => {
 
 interface Lob { room: Room; fx: number; fz: number; tx: number; tz: number; t: number; dur: number; h: number; m: THREE.Object3D; land: (x: number, z: number) => void; fall?: boolean }
 const lobs: Lob[] = [];
-const lobGeo = new THREE.SphereGeometry(.11, 8, 6), lobMats = new Map<number, THREE.MeshBasicMaterial>();
+const lobGeo = markShared(new THREE.SphereGeometry(.11, 8, 6)), lobMats = new Map<number, THREE.MeshBasicMaterial>();
 /** Throw something of `color` from (fx, fz) to land on (tx, tz) after `dur` seconds, as high as `h` at the top of its arc;
     `land` is called where it lands (unless the mage has left the room). */
 export function lob(room: Room, fx: number, fz: number, tx: number, tz: number, color: number, dur: number, land: (x: number, z: number) => void, h = 1.2, size = 1) {
-  let mat = lobMats.get(color); if (!mat) lobMats.set(color, mat = new THREE.MeshBasicMaterial({ color }));
+  let mat = lobMats.get(color); if (!mat) lobMats.set(color, mat = markShared(new THREE.MeshBasicMaterial({ color })));
   const m = new THREE.Group(); m.add(new THREE.Mesh(lobGeo, mat), glowShared(color, .55, .7)); m.scale.setScalar(size); scene.add(m);
   lobs.push({ room, fx, fz, tx, tz, t: 0, dur, h, m, land });
 }
 /** A stone dropped from `h` up onto (x, z), landing after `dur` seconds (a rubble golem's slam brings the roof down). */
-const stoneGeo = new THREE.DodecahedronGeometry(.26, 0), stoneMat = new THREE.MeshStandardMaterial({ color: 0x6a645c, roughness: .95, flatShading: true });
+const stoneGeo = markShared(new THREE.DodecahedronGeometry(.26, 0)), stoneMat = markShared(new THREE.MeshStandardMaterial({ color: 0x6a645c, roughness: .95, flatShading: true }));
 export function fallOn(room: Room, x: number, z: number, dur: number, land: (x: number, z: number) => void, h = 4) {
   const m = new THREE.Mesh(stoneGeo, stoneMat); m.rotation.set(Math.random() * 3, Math.random() * 3, 0); scene.add(m);
   lobs.push({ room, fx: x, fz: z, tx: x, tz: z, t: 0, dur, h, m, land, fall: true });
@@ -116,7 +116,7 @@ export function clearGround() {
 
 /* ---------- ice spikes: a glacier golem's stomp ---------- */
 
-const spikeGeo = new THREE.ConeGeometry(.2, 1, 5).translate(0, .5, 0), spikeMat = new THREE.MeshStandardMaterial({ color: 0xcfeaf8, emissive: 0x1e5a8a, roughness: .15, metalness: .2, transparent: true, opacity: .9, flatShading: true });
+const spikeGeo = markShared(new THREE.ConeGeometry(.2, 1, 5).translate(0, .5, 0)), spikeMat = markShared(new THREE.MeshStandardMaterial({ color: 0xcfeaf8, emissive: 0x1e5a8a, roughness: .15, metalness: .2, transparent: true, opacity: .9, flatShading: true }));
 const spikes: { room: Room; m: THREE.Mesh; t: number }[] = [];
 const SPIKE_LIFE = .7;
 /** An ice spike thrust up from the floor at (x, z), gone again in a moment. */

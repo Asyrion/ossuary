@@ -164,21 +164,21 @@
     "floor": 1, "school": "umbral", "weak": "ember", "resist": "umbral",
     "hp": 10, "r": 0.45, "speed": 2.6, "contact": 1, "flying": false,
     "behaviour": "dropper",
-    "params": {"hang": [1.6, 2.6], "creep": 3.4, "height": 2.6, "tell": 0.7, "drop": 0.35, "ground": [3.5, 5], "spitEvery": [1.6, 2.4], "spitTell": 0.35, "spitRange": 6, "webSize": 0.85, "webTime": 6, "climb": 0.6},
+    "params": {"hang": [1.6, 2.6], "creep": 3.4, "over": 1.2, "wait": 2, "height": 2.6, "tell": 0.7, "drop": 0.35, "ground": [3.5, 5], "spitEvery": [1.6, 2.4], "spitTell": 0.35, "spitRange": 6, "webSize": 0.85, "webTime": 6, "climb": 0.6},
     "gib": "#6a4a7a", "stain": "#140e1a"
   },
   "inkOctopus": {
     "floor": 1, "school": "umbral", "weak": "frost", "resist": "umbral",
     "hp": 14, "r": 0.42, "speed": 1.5, "contact": 1, "flying": false,
     "behaviour": "splitter",
-    "params": {"smearEvery": 0.45, "smearSize": 0.55, "smearTime": 4, "cloudEvery": [4.5, 6.5], "cloudTell": 0.6, "dim": 1.5, "splitAt": 0.5, "splitScale": 0.7, "splitHp": 0.38, "crack": 1.5},
+    "params": {"smearEvery": 0.45, "smearSize": 0.55, "smearTime": 4, "cloudEvery": [4.5, 6.5], "cloudRange": 4.5, "cloudTell": 0.6, "dim": 1.5, "splitAt": 0.5, "splitScale": 0.7, "splitHp": 0.38, "crack": 1.5},
     "gib": "#4a2f70", "stain": "#0e0818"
   },
   "grimoireMimic": {
     "floor": 1, "school": "umbral", "weak": "ember", "resist": "storm",
     "hp": 14, "r": 0.4, "speed": 2.4, "contact": 1, "flying": false,
     "behaviour": "tome",
-    "params": {"wake": 2.4, "lonely": 3, "rise": 0.5, "guard": 0.5, "keep": [2.5, 4], "riffleEvery": [2.2, 3.2], "tell": 0.55, "pages": 5, "spread": 0.26, "pageSpeed": 4.4, "biteEvery": [3, 4.5], "bite": 6.5, "biteTime": 0.4, "pageChance": 0.25},
+    "params": {"wake": 2.4, "lonely": 3, "rise": 0.5, "guard": 0.5, "keep": [2.5, 4], "riffleEvery": [2.2, 3.2], "tell": 0.55, "pages": 5, "spread": 0.26, "pageSpeed": 4.4, "biteEvery": [3, 4.5], "biteRange": 4, "bite": 6.5, "biteTime": 0.4, "pageChance": 0.25},
     "gib": "#e6d8b8", "stain": null
   },
   "fireflySwarm": {
@@ -192,7 +192,7 @@
     "floor": 1, "school": "hallow", "weak": "umbral", "resist": "hallow",
     "hp": 8, "r": 0.3, "speed": 3, "contact": 1, "flying": true,
     "behaviour": "singer",
-    "params": {"fly": 4, "perch": [3.5, 5], "songEvery": 1.1, "songRange": 4.5, "hasteTime": 1.5, "flee": 2.6, "diveTell": 0.6, "dive": 6.5, "diveTime": 0.5},
+    "params": {"fly": 4, "giveUp": 4, "perch": [3.5, 5], "songEvery": 1.1, "songRange": 4.5, "hasteTime": 1.5, "flee": 2.6, "diveTell": 0.6, "dive": 6.5, "diveTime": 0.5},
     "gib": "#f0dcae", "stain": null
   },
   "stormMantis": {
@@ -325,7 +325,7 @@
     "floor": 4, "school": "hallow", "weak": "umbral", "resist": "storm",
     "hp": 34, "r": 0.55, "speed": 3.2, "contact": 1, "flying": true, "elite": true,
     "behaviour": "griffin",
-    "params": {"soar": [2.4, 3.4], "high": 2.8, "past": 2.5, "tell": 0.7, "swoop": 9, "swoopTime": 1.2, "claw": [2.4, 3.2], "buffetReach": 2.2, "buffetEvery": 1.4, "buffetTime": 0.3, "buffet": 7, "rise": 0.8},
+    "params": {"soar": [2.4, 3.4], "near": 1.2, "far": 2.6, "high": 2.8, "past": 2.5, "tell": 0.7, "swoop": 9, "swoopTime": 1.2, "claw": [2.4, 3.2], "buffetReach": 2.2, "buffetEvery": 1.4, "buffetTime": 0.3, "buffet": 7, "rise": 0.8},
     "gib": "#e8d8a8", "stain": "#3a2e14"
   },
   "radiantEye": {

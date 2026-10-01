@@ -62,11 +62,11 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   // M4.2: the Wardlings a drinking ward lets out (and, by school, `fire`, `chill`, `hex` on their shots, `ring` of them)
   wardling: ['keep', 'orbitSpeed', 'volleyEvery', 'tell', 'shots', 'spread', 'shotSpeed'],
   // M4.5's bestiary (actors/bestiaryFoes.ts), floor 1
-  dropper: ['hang', 'creep', 'height', 'tell', 'drop', 'ground', 'spitEvery', 'spitTell', 'spitRange', 'webSize', 'webTime', 'climb'],
-  splitter: ['smearEvery', 'smearSize', 'smearTime', 'cloudEvery', 'cloudTell', 'dim', 'splitAt', 'splitScale', 'splitHp', 'crack'],
-  tome: ['wake', 'lonely', 'rise', 'guard', 'keep', 'riffleEvery', 'tell', 'pages', 'spread', 'pageSpeed', 'biteEvery', 'bite', 'biteTime', 'pageChance'],
+  dropper: ['hang', 'creep', 'over', 'wait', 'height', 'tell', 'drop', 'ground', 'spitEvery', 'spitTell', 'spitRange', 'webSize', 'webTime', 'climb'],
+  splitter: ['smearEvery', 'smearSize', 'smearTime', 'cloudEvery', 'cloudRange', 'cloudTell', 'dim', 'splitAt', 'splitScale', 'splitHp', 'crack'],
+  tome: ['wake', 'lonely', 'rise', 'guard', 'keep', 'riffleEvery', 'tell', 'pages', 'spread', 'pageSpeed', 'biteEvery', 'biteRange', 'bite', 'biteTime', 'pageChance'],
   swarm: ['keep', 'wheel', 'drift', 'orbit', 'spin', 'streamEvery', 'tell', 'dash', 'dashTime', 'gap', 'flash'],
-  singer: ['fly', 'perch', 'songEvery', 'songRange', 'hasteTime', 'flee', 'diveTell', 'dive', 'diveTime'],
+  singer: ['fly', 'giveUp', 'perch', 'songEvery', 'songRange', 'hasteTime', 'flee', 'diveTell', 'dive', 'diveTime'],
   mantis: ['keep', 'stalk', 'tell', 'lunge', 'lungeTime', 'open', 'parryArc', 'parrySpeed'],
   crab: ['wake', 'rise', 'hideGuard', 'guard', 'keep', 'turn', 'sparkEvery', 'tell', 'sparkSpeed', 'pinchEvery', 'pinch', 'pinchTime', 'flipped', 'flipGuard'],
   // floor 2
@@ -88,7 +88,7 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   breaker: ['slamEvery', 'slamRange', 'tell', 'rocks', 'spread', 'fall', 'hit', 'stones', 'reform', 'gather'],
   stone: [],
   // floor 4
-  griffin: ['soar', 'high', 'past', 'tell', 'swoop', 'swoopTime', 'claw', 'buffetReach', 'buffetEvery', 'buffetTime', 'buffet', 'rise'],
+  griffin: ['soar', 'near', 'far', 'high', 'past', 'tell', 'swoop', 'swoopTime', 'claw', 'buffetReach', 'buffetEvery', 'buffetTime', 'buffet', 'rise'],
   eye: ['shut', 'guard', 'keep', 'track', 'delay', 'hit'],
   harpy: ['perchH', 'perch', 'screechAt', 'screech', 'screechRange', 'push', 'tell', 'dive', 'diveTime'],
   magnet: ['pullRange', 'pull', 'bendRange', 'bend', 'ring', 'turn'],

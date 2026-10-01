@@ -133,6 +133,11 @@ function circle(e: Enemy, a: Aim, near: number, far: number, speed: number, turn
   const vx = a.ux * rad - a.uz * side * turn, vz = a.uz * rad + a.ux * side * turn, n = Math.hypot(vx, vz) || 1;
   e.vx = vx / n * speed; e.vz = vz / n * speed;
 }
+/** Set part `o`'s tilt (rotation.x) to its rest, the look's own (kept the first time), plus `by`: for a part its look's idle
+    leaves still, so a pose's offset doesn't pile up step on step. */
+function lean(o: THREE.Object3D, by: number) { o.userData.rx ??= o.rotation.x; o.rotation.x = o.userData.rx + by; }
+/** The same for how far forward a part reaches (position.z). */
+function thrust(o: THREE.Object3D, by: number) { o.userData.pz ??= o.position.z; o.position.z = o.userData.pz + by; }
 /** The way `e` faces (body.rotation.y) as a direction on the floor. */
 const facing = (e: Enemy) => ({ x: Math.sin(e.face), z: Math.cos(e.face) });
 /** A shot from `e` at the mage, a little ahead of it. */
@@ -153,7 +158,7 @@ const dropper: Behaviour = {
     e.st -= dt;
     if (e.state === 'hang') { // up out of reach, creeping after the mage; only its shadow and thread show where
       steer(e, player.x, player.z, num(P.creep) * e.speedMul, dt, .4);
-      if (e.st <= 0 && a.dist < 1.2 || e.st < -2) { e.state = 'tell'; e.st = num(P.tell); Sfx.at(e.x, e.z).spiderTell(); }
+      if (e.st <= 0 && a.dist < num(P.over) || e.st < -num(P.wait)) { e.state = 'tell'; e.st = num(P.tell); Sfx.at(e.x, e.z).spiderTell(); }
     } else if (e.state === 'tell') { // it stops above the spot, the shadow darkening
       e.vx = e.vz = 0; e.tele = Math.min(1, 1 - e.st / num(P.tell));
       if (e.st <= 0) { e.state = 'drop'; e.st = num(P.drop); e.tele = 0; }
@@ -194,7 +199,7 @@ const splitter: Behaviour = {
     if (e.state === 'crawl') {
       const surge = .55 + .45 * Math.max(0, Math.sin(e.t * 3)), sp = e.foe!.speed * e.speedMul * surge; // (in surges, as its arms pull)
       e.vx = a.ux * sp; e.vz = a.uz * sp;
-      if ((e.fireT! -= dt) <= 0 && a.dist < 4.5) { e.state = 'squirt'; e.st = num(P.cloudTell); Sfx.at(e.x, e.z).inkSwell(); }
+      if ((e.fireT! -= dt) <= 0 && a.dist < num(P.cloudRange)) { e.state = 'squirt'; e.st = num(P.cloudTell); Sfx.at(e.x, e.z).inkSwell(); }
     } else if (e.state === 'squirt') {
       e.vx = e.vz = 0; e.st -= dt; e.tele = Math.min(1, 1 - e.st / num(P.cloudTell));
       if (e.st <= 0) {
@@ -225,7 +230,7 @@ const tome: Behaviour = {
     if (e.state === 'fly') {
       const keep = P.keep as number[]; circle(e, a, keep[0], keep[1], e.foe!.speed * e.speedMul, Math.sin(e.t * .4) > 0 ? 1 : -1);
       if ((e.fireT! -= dt) <= 0) { e.state = 'riffle'; e.st = num(P.tell); Sfx.at(e.x, e.z).pageRiffle(); }
-      else if ((e.cycle! -= dt) <= 0 && a.dist < 4) { e.state = 'bite'; e.st = num(P.biteTime); e.dir = { x: a.ux, z: a.uz }; Sfx.at(e.x, e.z).bookSnap(); }
+      else if ((e.cycle! -= dt) <= 0 && a.dist < num(P.biteRange)) { e.state = 'bite'; e.st = num(P.biteTime); e.dir = { x: a.ux, z: a.uz }; Sfx.at(e.x, e.z).bookSnap(); }
     } else if (e.state === 'riffle') { // it hangs open, pages fluttering, then throws them
       e.vx *= Math.exp(-6 * dt); e.vz *= Math.exp(-6 * dt); e.tele = Math.min(1, 1 - e.st / num(P.tell));
       if (e.st <= 0) {
@@ -289,8 +294,8 @@ const swarm: Behaviour = {
 function perchSpot(room: Room, e: Enemy) {
   const b = room.bounds, pillars = room.rocks.filter(r => r.pillar).map(r => ({ x: r.x, z: r.z + r.hz + .5 }));
   const walls = Array.from({ length: 8 }, () => { const side = Math.floor(Math.random() * 4), t = Math.random(); return side === 0 ? { x: lerp(b.minX + 1, b.maxX - 1, t), z: b.minZ + .7 } : side === 1 ? { x: lerp(b.minX + 1, b.maxX - 1, t), z: b.maxZ - .7 } : side === 2 ? { x: b.minX + .7, z: lerp(b.minZ + 1, b.maxZ - 1, t) } : { x: b.maxX - .7, z: lerp(b.minZ + 1, b.maxZ - 1, t) }; });
-  const all = [...pillars, ...walls].filter(q => Math.hypot(q.x - player.x, q.z - player.z) > 3.5 && Math.hypot(q.x - e.x, q.z - e.z) > 1.5);
-  return all[Math.floor(Math.random() * all.length)] ?? { x: room.cx, z: room.cz };
+  const all = [...pillars, ...walls].map(q => freeSpotNear(room, q.x, q.z)).filter(q => Math.hypot(q.x - player.x, q.z - player.z) > 3.5 && Math.hypot(q.x - e.x, q.z - e.z) > 1.5); // (on the floor, in a carved room too)
+  return all[Math.floor(Math.random() * all.length)] ?? freeSpotNear(room, room.cx, room.cz);
 }
 const singer: Behaviour = {
   init(e) { e.state = 'fly'; e.target = undefined; e.fireT = 0; e.cycle = 0; },
@@ -298,7 +303,7 @@ const singer: Behaviour = {
     const alone = !othersAwake(e);
     if (alone && e.state !== 'dive' && e.state !== 'rise') { e.state = 'rise'; e.st = num(P.diveTell); Sfx.at(e.x, e.z).larkCry(); }
     if (e.state === 'fly') {
-      e.target ??= perchSpot(room, e);
+      if (!e.target || (e.tick = (e.tick ?? 0) - dt) <= 0) { e.target = perchSpot(room, e); e.tick = num(P.giveUp); } // (a perch it can't reach, it gives up on)
       steer(e, e.target.x, e.target.z, num(P.fly) * e.speedMul, dt, .3);
       if (Math.hypot(e.target.x - e.x, e.target.z - e.z) < .3) { e.state = 'perch'; e.st = span(P.perch); e.fireT = .3; }
       return Math.atan2(e.vx, e.vz);
@@ -830,7 +835,7 @@ const basilisk: Behaviour = {
   pose(e, P) {
     const fan = stareFan(e, P) as THREE.Mesh, m = fan.material as THREE.MeshBasicMaterial;
     m.opacity = e.state === 'gaze' ? .32 + Math.sin(e.t * 18) * .06 : e.state === 'flare' ? .08 * (e.tele ?? 0) : 0; fan.visible = m.opacity > 0;
-    if (e.state === 'flare') e.parts!.head.rotation.x -= (e.tele ?? 0) * .25;
+    lean(e.parts!.head, e.state === 'flare' ? -(e.tele ?? 0) * .25 : 0);
   },
 };
 
@@ -855,7 +860,7 @@ const bodyguard: Behaviour = { // the Salt Golem
       }
     }
   },
-  pose(e) { if (e.state === 'slam') e.parts!.torso.rotation.x -= (e.tele ?? 0) * .3; },
+  pose(e) { lean(e.parts!.torso, e.state === 'slam' ? -(e.tele ?? 0) * .3 : 0); },
 };
 
 const breaker: Behaviour = { // the Rubble Golem
@@ -917,10 +922,13 @@ const stone: Behaviour = { // a rubble golem's rolling stone
 
 /* ---------- floor 4 ---------- */
 
-/** A line marked on the floor of the current room from (x0, z0) to (x1, z1), in `color` (where a griffin will swoop). */
+/** A line marked on the floor of the current room from (x0, z0) to (x1, z1), in `color` (where a griffin will swoop): one
+    shared strip, stretched, and one material a colour. */
+const lineGeo = markShared(new THREE.PlaneGeometry(.5, 1).rotateX(-Math.PI / 2)), lineMats = new Map<number, THREE.Material>();
 function floorLine(x0: number, z0: number, x1: number, z1: number, color: number) {
   const room = G.current, len = Math.hypot(x1 - x0, z1 - z0) || .01;
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(.5, len).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .4, blending: THREE.AdditiveBlending, depthWrite: false }));
+  let mat = lineMats.get(color); if (!mat) lineMats.set(color, mat = markShared(new THREE.MeshBasicMaterial({ color, transparent: true, opacity: .4, blending: THREE.AdditiveBlending, depthWrite: false })));
+  const m = new THREE.Mesh(lineGeo, mat); m.scale.z = len;
   m.position.set((x0 + x1) / 2 - room.cx, .03, (z0 + z1) / 2 - room.cz); m.rotation.y = Math.atan2(x1 - x0, z1 - z0); m.renderOrder = 2; room.group.add(m);
   return m;
 }
@@ -934,7 +942,7 @@ const griffin: Behaviour = {
     e.st -= dt;
     const sp = e.foe!.speed * e.speedMul;
     if (e.state === 'soar') { // circling high over the mage
-      circle(e, a, 1.2, 2.6, sp, e.cycle!); e.height = lerp(e.height ?? 0, num(P.high), Math.min(1, dt * 2));
+      circle(e, a, num(P.near), num(P.far), sp, e.cycle!); e.height = lerp(e.height ?? 0, num(P.high), Math.min(1, dt * 2));
       if (e.st <= 0) { // it marks a line through where the mage stands
         const l = Math.max(a.dist, .5), ux = (player.x - e.x) / l, uz = (player.z - e.z) / l, end = freeSpotNear(room, player.x + ux * num(P.past), player.z + uz * num(P.past));
         e.state = 'mark'; e.st = num(P.tell); e.dir = { x: ux, z: uz }; e.target = { x: end.x, z: end.z }; clearLine(e); e.extra = floorLine(e.x, e.z, end.x, end.z, light(e)); Sfx.at(e.x, e.z).griffinCry();
@@ -1023,7 +1031,7 @@ const harpy: Behaviour = {
     }
   },
   bump(e, hit, P) { if (hit && e.state === 'dive' && e.st < num(P.diveTime) - .15) { const w = againstWall(G.current, e.x, e.z); e.target = { x: w.x, z: w.z }; e.state = 'fly'; } },
-  pose(e) { e.model!.position.y = e.height ?? 0; if (e.state === 'screech') e.parts!.head.rotation.x -= .4; },
+  pose(e) { e.model!.position.y = e.height ?? 0; lean(e.parts!.head, e.state === 'screech' ? -.4 : 0); },
 };
 
 /** Bolts that have met a lodestone golem's orbiting stones (each is turned or let through once). */
@@ -1203,7 +1211,7 @@ const glacier: Behaviour = { // the Glacier Golem (an elemental: Frost feeds it,
       burst(e.x, 1, e.z, 0xcfeaf8, 30, 3.4, .08); Sfx.at(e.x, e.z).iceShatter(); damageEnemy(e, e.maxHp * num(P.shatter), 0, 0, 0, 'spell', 'storm');
     }
   },
-  pose(e) { e.animRate = e.state === 'frozen' ? 0 : 1; if (e.state === 'stomp') e.parts!.torso.rotation.x -= (e.tele ?? 0) * .3; },
+  pose(e) { e.animRate = e.state === 'frozen' ? 0 : 1; lean(e.parts!.torso, e.state === 'stomp' ? -(e.tele ?? 0) * .3 : 0); },
   die(e) { encase(e, false); },
 };
 
@@ -1241,7 +1249,7 @@ const hydra: Behaviour = {
   afflicted(e, kind) { if (kind === 'burn') sear(e); },
   pose(e) {
     const p = e.parts!; headsOf(e).forEach((h, i) => { p[`neck${i}`].visible = h.up; p[`stump${i}`].visible = !h.up && (h.cut > 0 || h.seared); });
-    const k = e.count ?? 0; if (p[`head${k}`] && e.tele) p[`head${k}`].position.z += e.tele * .25;
+    for (let i = 0; i < 5; i++) thrust(p[`head${i}`], i === (e.count ?? 0) ? (e.tele ?? 0) * .25 : 0); // (the head that strikes, thrust out)
   },
 };
 
@@ -1327,7 +1335,7 @@ const wolf: Behaviour = { // the Rime Wolf
       return Math.atan2(-a.ux, -a.uz);
     }
   },
-  pose(e) { if (e.state === 'tell') e.parts!.head.rotation.x -= (e.tele ?? 0) * .3; if ((e.sung ?? 0) > G.simClock) e.parts!.tail.rotation.x = -.4; },
+  pose(e) { if (e.state === 'tell') e.parts!.head.rotation.x -= (e.tele ?? 0) * .3; lean(e.parts!.tail, (e.sung ?? 0) > G.simClock ? -.4 : 0); }, // (the head's tilt its idle sets; the tail up while hastened)
 };
 
 const pangolin: Behaviour = { // the Dust Pangolin

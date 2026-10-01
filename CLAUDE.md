@@ -231,7 +231,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `__game.familiarOptions(ids?)`, names in `STR.familiars`. M4.5's bestiary (`src/actors/bestiaryLooks.ts`,
   `BESTIARY_OPTIONS`: thirty-five, seven a floor; beasts in `bestiaryBeasts.ts`, creatures of myth in `bestiaryCreatures.ts`,
   elementals and golems in `bestiaryElementals.ts`, from the parts in `beastParts.ts`: tapered tubes, jointed legs, feathered
-  and membrane wings, pincers, spikes, slit eyes) are looks until each becomes a foe; the Galleries tab stands them in rows
+  and membrane wings, pincers, spikes, slit eyes) are the looks of M4.5's foes (below); the Galleries tab stands them in rows
   by kind, turned to show their side, at their real size (a great hall holds them all: `?room=great_hall`; `showBestiary`,
   `__game.bestiaryOptions(ids?)`), names and the fight each brings in `STR.bestiary`.
 - Foes in code (M4, `docs/M4-plan.md`): the enemy model options made foes. What each is lives in `data/foes.json` (floor,

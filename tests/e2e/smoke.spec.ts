@@ -3239,6 +3239,7 @@ test('the bestiary (M4.5), floor 4: the griffin soars out of reach, swoops down 
       Object.assign(g.player, { x: e.x + (e.x > x0 ? -1.2 : 1.2), z: e.z });
       window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' })); g.sim(.05); window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' })); g.sim(.05);
       const gl = g.glyphs[g.glyphs.length - 1], at = gl ? [gl.x, gl.z] : [0, 0];
+      Object.assign(e, { state: 'perch', st: 3, fireT: .2 }); // (it screeches now, before the glyph's fuse runs out)
       for (let k = 0; k < 100 && e.state !== 'screech'; k++) { g.sim(.05); g.player.hp = 99; } g.sim(.3);
       R.harpy = { dived: seen.has('dive'), chalked: !!gl, blown: gl ? Math.hypot(gl.x - at[0], gl.z - at[1]) : 0 }; }
     // the lodestone golem (an elemental): it draws the mage; a bolt flying past bends towards it; storm feeds it
@@ -3252,7 +3253,8 @@ test('the bestiary (M4.5), floor 4: the griffin soars out of reach, swoops down 
       g.inflict({ chill: 1 }); g.sim(.1); const out = e.state; hp = e.hp; g.hit(g.enemies.indexOf(e), 5); const cold = hp - e.hp; g.sim(5);
       R.hearth = { burning, lit, out, cold, again: e.state }; }
     // the shadow fox: into one shadow and out of another, and a bite; holy light holds it in the open
-    { const { e, seen, hurt } = meet('shadowFox', 8); g.inflict({ sanct: 3 }); const held = new Set<string>(); for (let k = 0; k < 60; k++) { g.sim(.05); held.add(e.state); }
+    { const { e, seen, hurt } = meet('shadowFox', 8); Object.assign(e, { state: 'prowl', st: 0, hidden: false }); // (out in the open, whatever it was doing)
+      g.inflict({ sanct: 3 }); const held = new Set<string>(); for (let k = 0; k < 60; k++) { g.sim(.05); held.add(e.state); }
       R.fox = { blinked: seen.has('gone') && seen.has('emerge') && seen.has('bite'), hurt, held: [...held] }; }
     // the rime scarab: its snowball grows, is thrown and bursts cold; fire melts the ball
     { let chill = 0; const { e, seen } = meet('rimeScarab', 8, () => { chill = Math.max(chill, g.player.chill); });
