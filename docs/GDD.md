@@ -1480,6 +1480,14 @@ pressure a set of dials, and gives every build a way through.
   1 to 3 s to a build with spells; the elites (the Phoenix, the Hearth and Glacier Golems, the Griffin) take 5 to 18 s; the
   bot never brings up a water foe without a spell that finds it (it chalks no glyphs), and a cantrip alone struggles to
   line up on the circling Phoenix. Nothing was retuned from it yet: the owner's play-test decides (floor 3 may be hard).
+- *Whole runs* (`npm run balance -- runs`, 2026-10-01; `docs/balance-runs.md`): every fight room of each floor, three
+  seeds, each build, cleared room by room (90 s a room). It found wasp nests set in the wall behind a pillar (out of reach
+  of a straight bolt, letting wasps out for ever) and two nests stacked in one narrow shaft; a nest now sits where the room
+  is open in front of it, away from another, and counts as a pack (one a room). Floor 3 then fell from 5.4 to 4.5 hearts a
+  room and every room cleared. Still standing out, for the owner's play-test: floor 3 costs the bot more hearts than floor
+  4 (4.5 against 3.0 a room, mostly burning ground it doesn't step out of); on floor 5 the Frost Jackalope (it bounds away
+  from a mage who comes near; only burning ground pins it) and the Void Mote (it swallows the cantrip) are often left
+  standing by builds without their counter.
 
 ### M4.10 Weaves: spells meet spells, reactions meet a third school
 
