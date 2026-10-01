@@ -30,6 +30,7 @@ import { POTIONS, POTION_IDS, REAGENT_IDS } from '../items/alchemyData';
 import { addPotion, addReagent, beltSlots, identify, knownPotion, renderBelt, usePotion } from '../items/potions';
 import { brewedPotions, forgetBrews } from '../items/alchemyMemory';
 import { openLab } from './alchemyTable';
+import { breakOut, crackVat } from '../world/laboratory';
 import { gainSoul, hallowedMend, resetSouls } from '../items/souls';
 import { giveResources, spawnPickup } from '../items/pickups';
 import { makeEnemy, spawnFoe } from '../actors/enemies';
@@ -238,7 +239,11 @@ function build() {
     btn(S.drinkChosen, () => { closeDev(); usePotion('drink'); }), btn(S.throwChosen, () => { closeDev(); usePotion('throw'); }),
     btn(S.reagentsAll, () => { for (const r of REAGENT_IDS) addReagent(r, 3); }),
     reagentBtn = btn('', () => { DEV.reagents = !DEV.reagents; }),
-    btn(S.openTable, () => { closeDev(); openLab('brew'); }));
+    btn(S.openTable, () => { closeDev(); openLab('brew'); }),
+    // M5 step 7: the jelly serpent's vat in a laboratory: crack its window as a bolt does, let it out, make it restless
+    btn(S.crackVat, () => { closeDev(); if (!crackVat()) toast(S.noVat, 2); }),
+    btn(S.serpentOut, () => { closeDev(); if (!breakOut()) toast(S.noVat, 2); }),
+    btn(S.restless, () => { G.run.restless = !G.run.restless; }));
   const alchBox = el('div', 'dv-row'); alch.parentElement!.append(alchBox); // (a second row: one button a potion)
   alchBox.append(...POTION_IDS.map(id => {
     const b = btn(POTIONS[id].name, () => { if (!addPotion(id)) toast(STR.alchemy.full, 2); }, `${POTIONS[id].text.drink} · ${POTIONS[id].text.throw}`);
@@ -464,7 +469,7 @@ function refresh() {
   lineBtn.textContent = look.outline ? S.outlinesOn : S.outlinesOff; lineBtn.classList.toggle('on', look.outline); lineBtn.disabled = !look.lines;
   bandBtn.textContent = look.bands ? S.bandsOn : S.bandsOff; bandBtn.classList.toggle('on', look.bands); bandBtn.disabled = !look.lines;
   reagentBtn.textContent = DEV.reagents ? S.reagentsOn : S.reagentsOff; reagentBtn.classList.toggle('on', DEV.reagents);
-  alchInfo.textContent = S.alchemyInfo(player.belt.length, beltSlots(), POTION_IDS.filter(knownPotion).length, POTION_IDS.length, brewedPotions().length);
+  alchInfo.textContent = S.alchemyInfo(player.belt.length, beltSlots(), POTION_IDS.filter(knownPotion).length, POTION_IDS.length, brewedPotions().length, S.serpentState[G.run.serpent], G.run.restless);
   heroPxBtn.textContent = heroPixel() ? S.heroPixelOn : S.heroPixelOff; heroPxBtn.classList.toggle('on', heroPixel());
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
   knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'), reactionsFound().length, REACTION_IDS.length) + ' ' + S.weavesInfo(weavesFound().length, WEAVE_IDS.length);

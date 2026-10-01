@@ -147,6 +147,11 @@ const sounds = {
   /** M5 step 6: a brew at the alchemy table (bubbling, then a bright note as it settles); a jelly globe bursting (glass and
       a wet slap). */
   brew() { for (let i = 0; i < 5; i++) tone('sine', 300 + i * 70, 520 + i * 60, .08, .04, i * .07); hiss(.45, .03, 'lowpass', 700); tone('triangle', 880, 1320, .3, .05, .38); },
+  // the jelly serpent (M5 step 7): its vat window cracking, bursting, its hiss as it rises, a glob of jelly landing
+  glassCrack() { tone('triangle', 3200, 2400, .08, .05); tone('triangle', 2400, 1900, .1, .04, .05); hiss(.12, .06, 'highpass', 4200, .02); },
+  vatBurst() { hiss(.5, .16, 'highpass', 2800); tone('triangle', 2800, 1400, .25, .06); tone('sine', 120, 45, .6, .2, .05); hiss(.9, .1, 'lowpass', 600, .1); },
+  serpentHiss() { hiss(.55, .09, 'bandpass', 2600); tone('sine', 180, 120, .4, .05); },
+  glob() { hiss(.16, .08, 'lowpass', 900); tone('sine', 240, 90, .14, .07); },
   globeBreak() { hiss(.22, .1, 'highpass', 3000); tone('triangle', 2200, 1500, .12, .05); tone('sine', 160, 70, .3, .1, .04); hiss(.35, .05, 'lowpass', 500, .05); },
   bottleBreak() { hiss(.25, .12, 'highpass', 3200); tone('triangle', 2600, 1800, .12, .05); tone('triangle', 3100, 2100, .1, .04, .03); hiss(.4, .06, 'lowpass', 900, .05); },
   potionChoose() { tone('sine', 1320, 1320, .05, .04); },

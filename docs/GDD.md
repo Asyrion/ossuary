@@ -774,7 +774,7 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
 
 **Their looks** are built in code: reagents and potion bottles are small props; bottles can share one mesh with shuffled colours.
 
-**M5 as built, steps 1 to 6 (2026-10-01; `docs/M5-plan.md`, its decisions taken as proposed, the owner to change any).**
+**M5 as built, steps 1 to 7 (2026-10-01; `docs/M5-plan.md`, its decisions taken as proposed, the owner to change any).**
 - *The data.* The twelve potions, six reagents and seventeen recipes are data (`data/alchemy.json`), each potion with its
   drink and throw effect and their numbers; the validator refuses a broken one.
 - *Bottles.* Six shapes built in code (flask, vial, jar, teardrop, skull, bulb), twelve of fourteen liquid colours: each
@@ -813,7 +813,22 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
   table if the belt is full) and is known from then on; brewed once, it is known in every run. Walking up to Dr. Jelly
   opens it at his recipes: each potion's for 6 obols (the pair, kept between runs). Once a visit he looks at an unknown
   potion in the belt for nothing. A bolt or a blast bursts a jelly globe: a Lantern Jelly drifts out four times in ten,
-  else a reagent drops. The inventory's Potions tab lists the recipes known.
+  else a reagent drops. The inventory's Potions tab lists the recipes known. The vat window stands in the middle of the
+  north wall, or beside a door there.
+- *The jelly serpent* (step 7) breaks out of its vat once a run at most: when three bolts crack its window (each crack
+  shows in the glass, and Dr. Jelly pleads), or by itself a moment after the first brew in a run whose serpent is restless
+  (about one run in three; a line says it stirs). The glass bursts, some thirty tiles of jelly flood the room, the doors
+  lock and Dr. Jelly crouches low. Jelly is water that is green and slower to wade (a chip, "In jelly", says so); a shock
+  runs through it and frost freezes it as through water. The serpent (a boss built in code: a blunt jelly head with great
+  pale eyes and a crest of fins, its body a chain of jelly rings following its head) swims under the jelly, where no bolt
+  reaches it, a ripple and the humps of its rings showing; it rises where a ring of bubbles widens, then lunges at a mage
+  near enough or rears and spits three globs that land as puddles of jelly (more to swim in), stays up a moment and dives
+  again. Out of the jelly (a lunge onto the floor, or its jelly frozen over) it crawls back slowly, open. A shock through
+  its jelly traps it at the surface, stunned and hurt ("Shocked through"), as its jelly freezing over does ("Frozen in");
+  below half health it comes up with a ring of jelly. Weak to Storm, resisting Frost. Fallen, it leaves Warden's Ash, a
+  rare potion and Dr. Jelly's thanks, a recipe for nothing, and no trapdoor (it is no floor's boss); a laboratory on a
+  floor after keeps an empty vat. As a floor's boss (`?boss=serpent`, the dev menu's boss fights) it pours its own jelly
+  round it and falls to a trapdoor like the others.
 
 ## RPG progression
 
@@ -1658,7 +1673,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4.9 The curve | Harder for the right reasons | Pressure dials per floor in data; libraries and merchants lean to the floor's weakness; a hex's drain traced to its foe; the sluice for water rooms; `npm run balance` measuring every foe (Depth for what's built; proposed 2026-10-01, `docs/M4.9-plan.md`) |
 | M4.10 Weaves | Combinations beyond pairs | Ten weaves (a spell striking what another left: the Steam Curtain, the Overload Seal, Eclipse Ground...), seven chains (a reaction's leavings met by a third school: Thundercloud, Incense, Miasma...), the room's mechanisms joining in; Verdant's Bloom and Blight designed for M5 (Depth for what's built; built 2026-10-01 at the owner's ask, `docs/M4.10-plan.md`) |
 | M4.11 Spell marks | You can see your magic | **Built 2026-10-01** (Spells: Spell marks; the owner's ask). The slotted spells shown at the hands with their state, attunement, a master's ring, the knowledge circle |
-| M5 Alchemy | The second game | **Under way** (`docs/M5-plan.md`; Potions and alchemy, M5 as built): steps 1 to 6 built (the data, the belt, drinking and throwing, reagents, Dr. Jelly's laboratory and brewing). Potion belt, drink or throw, identification, 6 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
+| M5 Alchemy | The second game | **Under way** (`docs/M5-plan.md`; Potions and alchemy, M5 as built): steps 1 to 7 built (the data, the belt, drinking and throwing, reagents, Dr. Jelly's laboratory and brewing, the jelly serpent). Potion belt, drink or throw, identification, 6 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
 | M7 Descent and the Vigil | A full run with a reason to return | Final boss (Kaelith, the Shadow Sentinel); the Vigil (RPG progression: Between runs) at the cave mouth over the valleys: freed shades as townspeople with dialogue (Boketto, the Cloud Forest Wizard, the Huruhui foragers), its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines; a won run ends in daylight |
 | M8 Eda | It is Eda | Lore names, floor biomes, adaptive music, ambience beds and final mix |

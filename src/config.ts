@@ -53,6 +53,15 @@ export const CFG = {
     // its drinking ward holding `wardNeed`, `wardSize` across; they trade the shield every `swap` seconds; the striker pauses `pause` between
     // blows: its slam (a tell, a ring of stone, a blow within `reach`) and its gaze (a tell, then `count` shots of gold,
     // `every` apart); the striker stops `keep` from the mage, and the shielder's touch is only `shieldContact`. The last one standing rages: `speed` times faster, its waits `quick` times as long
+    // the jelly serpent (M5 step 7): it swims hidden through its jelly at `swim` for `under` seconds (`hurtQuick` times as
+    // long below half health), rises where it will come up (a `tell`), then lunges at a mage within `reach` (a tell, then
+    // `speed` for `time`) or spits `spit.count` globs `spit.every` apart (each landing in `flight` s, half a heart to the
+    // mage where it lands, and a puddle of jelly, `spit.puddles` in the room at most); stays up `open` seconds; out of the
+    // jelly it crawls at `crawl`. A shock through its jelly, or the jelly freezing, traps it at the surface for `trapped`
+    // seconds (a shock hurts it `shock` too); below half health it surfaces with a `ring` of jelly. `flood`: the tiles of
+    // jelly poured round it where it has none (a floor's boss)
+    serpent: { hp: 95, r: .55, speed: 0, weak: 'storm' as const, resist: 'frost' as const, swim: 3.4, under: 2.2, hurtQuick: .7, crawl: 1.1, reach: 3.4, tell: .6, open: 1.5, trapped: 3, shock: 6, flood: 34,
+      lunge: { tell: .4, speed: 8.5, time: .42 }, spit: { count: 3, every: .28, flight: .7, spread: 1.6, puddles: 6 }, ring: { count: 10, speed: 2.6 } },
     twins: { hp: 65, r: .9, speed: 1.1, keep: 1.5, shieldContact: 1, weak: 'frost' as const, resist: 'hallow' as const, wake: 3.2, apart: 3.4, swap: 6, guardSpeed: 2.8, wardNeed: 45, wardSize: 1.3, pause: 1.4,
       slam: { tell: .65, count: 12, speed: 3, reach: 1.9, hurt: 1 }, gaze: { tell: .7, count: 6, every: .1, speed: 5.5 }, rage: { speed: 1.4, quick: .7 } },
   },
@@ -140,7 +149,7 @@ export const CFG = {
   // mage, how long a shocked pool crackles, and the drowned floor's puddles (how many per fight, tiles each)
   // M4.2: how fast a current carries the mage and walking foes, bolts and shots over it, and pickups lying in it (units a second)
   flow: { carry: 1.7, bolts: 1.1, pickups: 1.3 },
-  surface: { wade: .6, oilBurn: 5, iceTime: 8, groundBurn: 2, tick: .25, mageHurt: 1, charged: .5, shockSpread: 1.5, shockDamage: 2, puddles: [1, 2] as [number, number], puddleSize: [2, 4] as [number, number], boilEvery: 2.5, boilSteam: 1.3, driveReach: 1 }, // (boilEvery: seconds before fire on a pool of water boils it into steam again; boilSteam: that cloud's size; driveReach: how far beyond a blast or a cloud a water foe hiding in other water is driven up)
+  surface: { wade: .6, jellyWade: .42, oilBurn: 5, iceTime: 8, groundBurn: 2, tick: .25, mageHurt: 1, charged: .5, shockSpread: 1.5, shockDamage: 2, puddles: [1, 2] as [number, number], puddleSize: [2, 4] as [number, number], boilEvery: 2.5, boilSteam: 1.3, driveReach: 1 }, // (jellyWade: M5, walking through the jelly serpent's jelly; boilEvery: seconds before fire on a pool of water boils it into steam again; boilSteam: that cloud's size; driveReach: how far beyond a blast or a cloud a water foe hiding in other water is driven up)
   // the rooms' objects (M3.6, world/props.ts): how long each flammable one burns (seconds), how often burning spreads
   // to what burns beside it, cobwebs' slowing, the briar's sting (half hearts to the mage, damage a second to walkers),
   // the oil a broken cask spills (tiles beyond its own), and glowcap spores (how long a cloud hangs, its reach, the
@@ -282,11 +291,14 @@ export const CFG = {
   // alchemy (M5, items/potions.ts and potionThrow.ts; docs/M5-plan.md): the belt's slots, a bottle's and a reagent's size as built, the
   // chance a fallen foe or a broken object leaves its reagent (items/reagents.ts; the Alchemist's Satchel's more), what Dr.
   // Jelly asks for a recipe (obols), the laboratory's: how near the table or Dr. Jelly opens the table, how far behind the
-  // table Dr. Jelly stands, the chance a burst jelly globe lets out a jelly (else a reagent); how
+  // table Dr. Jelly stands, the chance a burst jelly globe lets out a jelly (else a reagent), how far its vat window keeps
+  // from a door in the north wall; the jelly serpent's vat (M5 step 7): bolts that crack its window open (`cracks`, a
+  // crack counted at most every `crackGap` seconds), the chance a run's serpent is restless (it breaks out by itself
+  // `restlessAfter` seconds after the first brew in its laboratory), the jelly it floods the room with (tiles); how
   // long the potion key is held before it throws rather than drinks (seconds); a throw's reach, its flight (seconds) and
   // how high it arcs, the splash's reach; a foe in a Philter's splash strikes another this many times its touch, and a drunk Philter's echo comes so
   // many seconds after the cast; the Grave Draught's thrall (its pace, a blow, seconds between blows, how near it strikes)
-  alchemy: { belt: 3, bottleScale: 1.45, reagentScale: 1.8, reagent: { foe: 0.12, object: 0.3, satchelMul: 1.3 }, recipePrice: 6, lab: { reach: 0.55, jellyAt: 1.6, globeJelly: 0.4 }, hold: 0.25, reach: 4.5, flight: 0.45, arc: 1.1, splash: 1.1, echoMul: 6, echoAfter: 0.3, thrall: { speed: 2.4, damage: 7, every: 0.7, near: 0.7 } },
+  alchemy: { belt: 3, bottleScale: 1.45, reagentScale: 1.8, reagent: { foe: 0.12, object: 0.3, satchelMul: 1.3 }, recipePrice: 6, lab: { reach: 0.55, jellyAt: 1.6, globeJelly: 0.4, windowClear: 2.5 }, vat: { cracks: 3, crackGap: 0.25, restless: 0.35, restlessAfter: 1.4, flood: 30 }, hold: 0.25, reach: 4.5, flight: 0.45, arc: 1.1, splash: 1.1, echoMul: 6, echoAfter: 0.3, thrall: { speed: 2.4, damage: 7, every: 0.7, near: 0.7 } },
   // the mage in the pixel-art look (actors/heroPixel.ts, 2026-10-01): its texture baked into its vertices (each the mean of
   // the texels within `sample` of where it lies) and cut down to `colours`; light in the `tones` (darkest first, a toon
   // ramp's steps) with `glow` of its own colour as self-light, as the model had, so it reads in dark rooms
@@ -328,6 +340,7 @@ export const CFG = {
 };
 
 export type EnemyType = keyof typeof CFG.enemy;
-/** Enemy types that are bosses; each floor draws its boss from a pool of these (data/floors.json). */
-export const BOSS_TYPES = ['warden', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins'] as const satisfies readonly EnemyType[];
+/** Enemy types that are bosses; each floor draws its boss from a pool of these (data/floors.json). The jelly serpent (M5)
+    is in no pool: it breaks out of its vat in Dr. Jelly's laboratory (or comes with `?boss=serpent` and the dev menu). */
+export const BOSS_TYPES = ['warden', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins', 'serpent'] as const satisfies readonly EnemyType[];
 export type BossType = (typeof BOSS_TYPES)[number];

@@ -1,13 +1,14 @@
 /* What is being done to the mage, shown (the owner's rule, 2026-10-01: every mechanic tells the player what is going on,
    even if only in a word): a row of chips beside the mana bar, one for each affliction holding the mage now (hexed, with
-   the mana it took; chilled; heavy as stone; sight dimmed; webbed or inked; snagged; sliding; drawn in; sapped; M5: what a
-   potion drunk leaves, while it lasts), and the first time each comes in a run, a line that says what it is. */
+   the mana it took; chilled; heavy as stone; sight dimmed; webbed or inked; snagged; sliding; drawn in; sapped; M5: wading
+   in the jelly serpent's jelly, and what a potion drunk leaves, while it lasts), and the first time each comes in a run, a line that says what it is. */
 import { G, player } from '../state';
 import { CFG } from '../config';
 import { STR } from '../strings';
 import { stuckIn, slipAt } from '../actors/bestiaryGround';
 import { snagAt } from '../world/props';
 import { sapMul } from '../world/mechanisms';
+import { jellyAt } from '../world/pools';
 import { floatText } from '../magic/statusFx';
 import { line, toast, toastShowing } from './hud';
 import { after } from '../state';
@@ -16,12 +17,12 @@ import { gainMana } from '../magic/spells';
 import { potionFx } from '../items/potionFx';
 import { POTIONS } from '../items/alchemyData';
 
-export type Affliction = 'hexed' | 'chill' | 'stone' | 'dim' | 'web' | 'ink' | 'snag' | 'slide' | 'drawn' | 'sapped'
+export type Affliction = 'hexed' | 'chill' | 'stone' | 'dim' | 'web' | 'ink' | 'snag' | 'slide' | 'drawn' | 'sapped' | 'jelly'
   | 'ember' | 'frost' | 'free' | 'echo' | 'giant' | 'unseen' | 'reversed' | 'remedy';
 /** Each one's colour (its school's light where it has one; M5's, the potion's that left it). */
 const COLOR: Record<Affliction, string> = {
   hexed: '#b784ff', chill: '#a8d8ff', stone: '#b8b0a4', dim: '#8a6aa8', web: '#d8d0e8', ink: '#8a72c8', snag: '#c8c0b0',
-  slide: '#9fd0ee', drawn: '#ffd27a', sapped: '#9a7ad8',
+  slide: '#9fd0ee', drawn: '#ffd27a', sapped: '#9a7ad8', jelly: '#7ae070',
   ember: POTIONS.liquidEmber.color, frost: POTIONS.frostbrew.color, free: POTIONS.bottledStorm.color, echo: POTIONS.echoes.color,
   giant: POTIONS.giants.color, unseen: '#9a82d0', reversed: '#a070c8', remedy: POTIONS.bitterRemedy.color,
 };
@@ -54,6 +55,7 @@ export function afflictions(): Affliction[] {
   if (G.current?.theme?.twist === 'rime' || slipAt(x, z)) out.push('slide');
   if (player.drawn > 0) out.push('drawn');
   if (sapMul() < 1) out.push('sapped');
+  if (jellyAt(x, z) && !player.stats.effects.has('float')) out.push('jelly'); // (M5: the jelly serpent's)
   // M5: what a potion drunk leaves on the mage, while it lasts
   const f = potionFx;
   if (f.ember > 0) out.push('ember'); if (f.frost > 0) out.push('frost'); if (f.free > 0) out.push('free'); if (f.echo > 0) out.push('echo');

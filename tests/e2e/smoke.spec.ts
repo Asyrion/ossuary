@@ -449,7 +449,7 @@ test('the Hollow Warden wears the look chosen for it, its shots in its school\'s
     g.sim(.2, true); g.setBossLook('bellWarden');
     return { ids, look: g.bossLook, kept: localStorage.getItem('ossuary.bossLook') };
   });
-  expect(gallery).toEqual({ ids: ['bellWarden', 'motherOfSpores', 'hollowOwl', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins'], look: 'bellWarden', kept: 'bellWarden' }); // (and the bosses of floors 2 and 3, remade in code, of floors 4 and 5, M4.1, and the Eda lore's, M4.2)
+  expect(gallery).toEqual({ ids: ['bellWarden', 'motherOfSpores', 'hollowOwl', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins', 'serpent'], look: 'bellWarden', kept: 'bellWarden' }); // (and the bosses of floors 2 and 3, remade in code, of floors 4 and 5, M4.1, the Eda lore's, M4.2, and the jelly serpent, M5)
   for (const e of errors) expect(e).toEqual([]);
 });
 
@@ -1945,6 +1945,77 @@ test('Dr. Jelly\'s laboratory (M5): the table opens when walked up to; two reage
   });
   expect(globe.after).toBe(globe.before - 1); expect(globe.spilled).toBe(1);
   await page.evaluate(() => ((window as unknown as W).__game as unknown as GL).forgetPotions());
+  expect(errors).toEqual([]);
+});
+
+test('the jelly serpent (M5): three bolts crack the vat window and it breaks out, flooding the room with jelly and locking the doors; under the jelly no bolt reaches it; a shock through its jelly or a freeze traps it at the surface; fallen, it leaves Warden\'s Ash, a rare potion and a free recipe, and no trapdoor; a restless one breaks out after a brew; as a floor\'s boss it pours its own jelly', async ({ page }) => {
+  const errors = await start(page, '?seed=SERP1&room=lab_plain');
+  type Info = { serpent: { state: string; hidden: boolean; x: number; z: number; hp: number; maxHp: number; trap: string | null; under: string | null } | null; jelly: number; frozen: number; run: string; restless: boolean; cracks: number; broken: boolean };
+  type GS = GP & { serpent: Info; crackVat(): boolean; breakVat(): boolean; restless: boolean; pool(what: string): void; element(k: string, x: number, z: number): void;
+    rooms(): { type: string; cx: number; cz: number; bounds: { minZ: number }; plan: { id: number } }[]; current: { locked?: boolean; type: string }; hit(i: number, dmg: number, school?: string): void;
+    lab: { recipes: { potion: string }[]; open: boolean }; openLab(t: string): void; closeLab(): void; brew(a: string, b: string): void; giveReagent(id: string, n: number): void; forgetPotions(): void; keys: Set<string>; arrowOrder: string[] };
+  await page.evaluate(() => localStorage.removeItem('ossuary.recipes'));
+  // three bolts at the vat window (from under it, beside Dr. Jelly), a crack each, and it breaks out
+  const out = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player, lab = g.rooms().find(r => r.type === 'laboratory');
+    g.warp(lab.plan.id); g.sim(.5); P.x = lab.cx + .9; P.z = lab.bounds.minZ + .7; g.sim(.1); // (under the window, out of Dr. Jelly's reach)
+    const fire = () => { P.fireCd = 0; g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); g.sim(1 / 60); g.keys.delete('ArrowUp'); g.arrowOrder.length = 0; g.sim(.4); };
+    fire(); const one = g.serpent.cracks; fire(); const two = g.serpent.cracks; fire();
+    return { one, two, after: g.serpent, locked: g.current.locked };
+  })()`) as { one: number; two: number; after: Info; locked: boolean };
+  expect([out.one, out.two]).toEqual([1, 2]);
+  expect(out.after).toMatchObject({ run: 'out', broken: true, cracks: 3 });
+  expect(out.after.jelly).toBeGreaterThanOrEqual(25); expect(out.after.serpent).toBeTruthy(); expect(out.locked).toBe(true);
+  await expect(page.locator('#bossbar')).toHaveClass(/on/);
+  // under the jelly it can't be struck; a shock through its jelly traps it at the surface (and hurts it), as a freeze does
+  const traps = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GS, until = (st: string) => { for (let i = 0; i < 80 && g.serpent.serpent!.state !== st; i++) g.sim(.1); return g.serpent.serpent!; };
+    const under = until('swim'), hp = under.hp, i = g.enemies.findIndex(e => (e as unknown as { type: string }).type === 'serpent');
+    g.pool('shock'); g.sim(.05); const shocked = g.serpent.serpent!;
+    g.sim(3.2); const s2 = until('swim'); g.element('chill', s2.x, s2.z); g.sim(.05); const frozen = g.serpent.serpent!;
+    return { hidden: under.hidden, shocked: { state: shocked.state, trap: shocked.trap, hidden: shocked.hidden, lost: hp - shocked.hp }, frozen: { state: frozen.state, trap: frozen.trap }, i };
+  });
+  expect(traps.hidden).toBe(true);
+  expect(traps.shocked).toMatchObject({ state: 'trapped', trap: 'shock', hidden: false }); expect(traps.shocked.lost).toBeGreaterThan(0);
+  expect(traps.frozen).toMatchObject({ state: 'trapped', trap: 'frost' });
+  await page.evaluate(() => (window as unknown as W).__game.sim(.05, true));
+  await page.screenshot({ path: 'test-results/jelly-serpent.png' });
+  // fallen: Warden's Ash, a rare potion, Dr. Jelly's recipe; the doors open and no trapdoor (it is no floor's boss)
+  const fell = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GS, i = g.enemies.findIndex(e => (e as unknown as { type: string }).type === 'serpent');
+    g.hit(i, 9999, 'storm'); g.sim(2);
+    return { run: g.serpent.run, locked: !!g.current.locked, pickups: g.pickups.map(p => p.kind + ':' + (p.potion ?? p.reagent ?? '')), recipes: g.lab.recipes.length, trapdoor: (g as unknown as { trapdoor: boolean }).trapdoor };
+  });
+  expect(fell).toMatchObject({ run: 'slain', locked: false, recipes: 1, trapdoor: false });
+  expect(fell.pickups).toContain('reagent:wardensAsh');
+  expect(fell.pickups.some(p => /^potion:(bottledStorm|echoes|giants)$/.test(p))).toBe(true);
+  expect(await page.evaluate(() => ((window as unknown as W).__game as unknown as GS).breakVat())).toBe(false); // (once a run)
+  // a restless serpent breaks out by itself, a little after the first brew (once the table is closed)
+  errors.push(...await start(page, '?seed=SERP2&room=lab_plain'));
+  const restless = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GS, lab = g.rooms().find(r => r.type === 'laboratory')!;
+    g.warp(lab.plan.id); g.sim(.5); g.restless = true; g.giveReagent('graveMoss', 2); g.openLab('brew'); g.brew('graveMoss', 'graveMoss'); g.sim(3);
+    const waiting = g.serpent.run; g.closeLab(); g.sim(3.5);
+    return { waiting, after: g.serpent.run, locked: !!g.current.locked };
+  });
+  expect(restless).toEqual({ waiting: 'caged', after: 'out', locked: true });
+  await page.evaluate(() => { localStorage.removeItem('ossuary.recipes'); ((window as unknown as W).__game as unknown as GS).forgetPotions(); });
+  expect(errors).toEqual([]);
+});
+
+test('the jelly serpent as a floor\'s boss (M5: ?boss=serpent) pours its own jelly round it, and falls to a trapdoor as bosses do', async ({ page }) => {
+  const errors = await start(page, '?seed=SERPB&boss=serpent');
+  type GS = GP & { serpent: { serpent: { state: string } | null; jelly: number; run: string }; rooms(): { type: string; plan: { id: number } }[]; current: { locked?: boolean }; hit(i: number, dmg: number, school?: string): void };
+  const boss = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GS, b = g.rooms().find(r => r.type === 'boss')!;
+    g.warp(b.plan.id); g.sim(2); return { s: g.serpent, locked: !!g.current.locked, bar: document.querySelector('#bossname')?.textContent };
+  });
+  expect(boss.s.jelly).toBeGreaterThanOrEqual(25); expect(boss.s.serpent).toBeTruthy(); expect(boss.locked).toBe(true); expect(boss.bar).toBe('The Jelly Serpent');
+  const fell = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GS, i = g.enemies.findIndex(e => (e as unknown as { type: string }).type === 'serpent');
+    (g.enemies[i] as unknown as { hidden: boolean }).hidden = false; g.hit(i, 9999, 'storm'); g.sim(1.5); return { locked: !!g.current.locked, banner: document.querySelector('#banner .t')?.textContent, run: g.serpent.run, trapdoor: (g as unknown as { trapdoor: boolean }).trapdoor };
+  });
+  expect(fell).toEqual({ locked: false, banner: 'The serpent melts back into jelly', run: 'caged', trapdoor: true }); // (the vat's own serpent is still in its vat)
   expect(errors).toEqual([]);
 });
 

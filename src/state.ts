@@ -52,6 +52,9 @@ export const G = {
         (its own, so the other drops replay as before). */
     bottles: bottlesFor(0), identified: [] as PotionId[], alchemy: new Rng(0), reagents: new Rng(0),
     /** M5: the curse whose price a Bitter Remedy lifts until the floor ends. */ remedy: null as string | null,
+    /** M5 step 7: the jelly serpent, in its vat until it breaks out (once a run at most), then slain or not; and whether it
+        is restless this run (rolled on the seed: it breaks out by itself after the first brew in its laboratory). */
+    serpent: 'caged' as 'caged' | 'out' | 'slain', restless: false,
   },
   shake: 0,
   simClock: 0,
