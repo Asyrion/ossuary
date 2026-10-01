@@ -162,6 +162,7 @@ const tint = new THREE.Color();
 export function statusTint(e: Enemy, now: number): [THREE.Color, number] | null {
   if (e.statue) return [tint.setHex(0xa88a4a), .7]; // a treasury's guardian stands gilded, a statue until its gold is taken
   if (e.type === 'tiger' && e.state === 'statue') return [tint.setHex(0x8a94a4), .45]; // (the War-Tiger, stone until it wakes)
+  if (e.foe && e.state === 'rock') return [tint.setHex(0x4a4440), .8]; // (M4.5: a magma ooze frozen hard)
   const s = e.status; if (!s) return null;
   if (s.frozen > 0) return [tint.setHex(0x4a8ad8), .85];
   if (s.burn > 0 && s.black) return [tint.setHex(0x6a1ac0), .5 + Math.sin(now * 17 + e.x) * .2];

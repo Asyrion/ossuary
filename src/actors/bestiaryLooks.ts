@@ -6,9 +6,9 @@
    the Galleries tab stands them in rows by kind. */
 import type { School } from '../render/arcane';
 import type { Built } from './beastParts';
-import { cryptSpider, inkOctopus, fireflySwarm, fireflyBeetle, choirLark, stormMantis, rubbleCrab, rimeSnail, glassNewt, stormDarter, puffcap, emberWasp, rimeScarab, gloomRaven, rimeWolf, dustPangolin, frostJackalope } from './bestiaryBeasts';
+import { cryptSpider, inkOctopus, fireflySwarm, fireflyBeetle, choirLark, stormMantis, rubbleCrab, rimeSnail, glassNewt, stormDarter, puffcap, emberWasp, rimeScarab, gloomRaven, rimeWolf, dustPangolin, frostJackalope, waspNest } from './bestiaryBeasts';
 import { grimoireMimic, brineSerpent, phoenix, basilisk, griffin, radiantEye, harpy, shadowFox, hydra, manticore } from './bestiaryCreatures';
-import { puddleElemental, thunderhead, cinderDjinn, magmaOoze, saltGolem, rubbleGolem, lodestoneGolem, hearthGolem, glacierGolem } from './bestiaryElementals';
+import { puddleElemental, thunderhead, cinderDjinn, magmaOoze, saltGolem, rubbleGolem, lodestoneGolem, hearthGolem, glacierGolem, rubbleStone } from './bestiaryElementals';
 
 export type { Built };
 export type BestiaryKind = 'beast' | 'creature' | 'elemental';
@@ -53,5 +53,6 @@ export const BESTIARY_OPTIONS = [
   { id: 'manticore', kind: 'creature', school: 'umbral', floor: 5, build: manticore },
 ] as const satisfies readonly { id: string; kind: BestiaryKind; school: School; floor: number; elite?: boolean; build: () => Built }[];
 export type BestiaryOptionId = (typeof BESTIARY_OPTIONS)[number]['id'];
-/** Looks a foe wears that the gallery doesn't stand (data/foes.json's `look`): one beetle of the firefly swarm. */
-export const FOE_LOOKS: Record<string, () => Built> = { fireflyBeetle };
+/** Looks a foe wears that the gallery doesn't stand (data/foes.json's `look`, or its id): one beetle of the firefly swarm,
+    a wasps' nest, a rubble golem's rolling stone. */
+export const FOE_LOOKS: Record<string, () => Built> = { fireflyBeetle, waspNest, rubbleStone };

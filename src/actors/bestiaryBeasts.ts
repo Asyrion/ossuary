@@ -511,3 +511,18 @@ export function frostJackalope(): Built {
     breath.material.opacity = .15 + .1 * Math.sin(t * 2);
   } };
 }
+
+/** The Ember Wasp's nest, as the foe it is (floor 3): a papery hive set against a wall, banded grey and tan, its mouth
+    glowing with the embers of the brood inside. */
+export function waspNest(): Built {
+  const g = new THREE.Group(), body = joint(g, [0, 0, 0]), paper = std(0x9a8a72, { roughness: 1 }), band = std(0x6e604e, { roughness: 1 }), mouth = std(0x1a0e08);
+  const profile = [[0, .05], [.3, .12], [.44, .4], [.46, .7], [.4, 1], [.26, 1.22], [.1, 1.32], [0, 1.34]].map(([r, y]) => new THREE.Vector2(r, y));
+  part(body, new THREE.LatheGeometry(profile, 12), paper, [0, 0, 0], { scale: [1, 1, .8] });
+  for (let i = 0; i < 5; i++) { const y = .25 + i * .22, r = [.36, .44, .46, .42, .3][i]; part(body, new THREE.TorusGeometry(r, .035, 4, 14), band, [0, y, 0], { rot: [Math.PI / 2, 0, 0], scale: [1, .8, 1] }); }
+  part(body, sphere(.13, 8, 6), mouth, [0, .55, .33], { scale: [1, .8, .45] });
+  const brood = glow(E, .6, .7); brood.position.set(0, .55, .36); body.add(brood);
+  part(body, new THREE.CylinderGeometry(.05, .08, .3, 6), band, [0, 1.42, -.05]); // (where it hangs from the stone)
+  return { group: g, shadow: .9, parts: { body }, idle: t => {
+    body.scale.set(1 + Math.sin(t * 1.4) * .015, 1, 1); brood.material.opacity = .45 + .3 * Math.max(0, Math.sin(t * 3.1));
+  } };
+}

@@ -75,7 +75,8 @@ describe('the foes built in code (M4)', () => {
     let seed = 11; const R = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     const [f1, , f3] = FLOORS, called = (table: RoleTable, role: 'R' | 'W' | 'H') => new Set(Array.from({ length: 300 }, () => callFoe(table, role, R)));
     expect([...called(f1.foes, 'H')].sort()).toEqual(['runeBeetle', 'stormMantis']); // (floor 1's heavies: not the mimics waiting as urns and books)
-    expect([...called(f3.foes, 'H')]).toEqual(['cinderSalamander']); // (floor 3's: the drakeling is an elite)
+    expect([...called(f3.foes, 'H')].sort()).toEqual(['basilisk', 'cinderSalamander', 'rubbleGolem', 'saltGolem']); // (floor 3's: the drakeling and the phoenix are elites)
+    expect([...called(f3.foes, 'W')].sort()).toEqual(['cinderDjinn', 'hexImp']); // (not the wasps' nest, set in its wall)
     expect([...called(f1.foes, 'R')].sort()).toEqual(['cryptSpider', 'sporeling']); // (not the crab waiting as rubble)
     expect([...called(f1.foes, 'W')]).not.toContain('fireflySwarm'); // (a swarm comes whole, or not at all)
     const mimicsOnly = { ...f1.foes, H: [['urnMimic', 1]] } as RoleTable, eliteOnly = { ...f3.foes, H: [['rimeDrakeling', 1]] } as RoleTable;

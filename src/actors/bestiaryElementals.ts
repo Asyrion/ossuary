@@ -295,3 +295,11 @@ export function glacierGolem(): Built {
     mist.forEach((m, i) => { const k = (t * .25 + i / 3) % 1; m.position.set(Math.sin(i * 2.1) * .5, .08 + k * .2, Math.cos(i * 2.1) * .4); m.scale.setScalar(1 + k * 1.5); (m.material as THREE.MeshBasicMaterial).opacity = .12 * (1 - k); });
   } };
 }
+
+/** One of the stones a rubble golem breaks into (floor 3): a boulder rolling on its own, a seam of storm light across it. */
+export function rubbleStone(): Built {
+  const g = new THREE.Group(), body = joint(g, [0, .26, 0]), stone = std(0x7a746a, { roughness: 1 }), seam = lit(0xffd890);
+  part(body, rough(new THREE.DodecahedronGeometry(.27, 1), .04, 7), stone, [0, 0, 0]);
+  part(body, new THREE.TorusGeometry(.27, .018, 4, 16), seam, [0, 0, 0], { rot: [0, Math.PI / 2, .3] });
+  return { group: g, shadow: .6, parts: { body }, idle: () => { /* (it rolls as it goes: its behaviour turns it) */ } };
+}

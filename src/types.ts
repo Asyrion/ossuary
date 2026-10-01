@@ -199,6 +199,7 @@ export interface Enemy extends Circle {
       hastens it; a splitter's generation (0 whole, 1 split); how high its model hangs (a spider on its thread); a piece its
       behaviour adds (the thread); a count its behaviour keeps (a mantis's parries). */
   pack?: Pack; sung?: number; gen?: number; height?: number; extra?: THREE.Object3D; count?: number;
+  /** M4.5: the foe that made it (a nest's wasp, a rubble golem's stone). */ owner?: Enemy;
 }
 /** A pack of foes with one mind (M4.5: the firefly swarm): its members, the point they wheel round and where it is heading
     round the mage, what it is doing and for how long, the step it was last worked out on, and where a stream is aimed. */
@@ -260,5 +261,6 @@ export interface Player extends Circle {
   /** Derived from the base stats and the artifacts held (items/artifactData.ts computeStats). */ stats: Stats;
   /** Seconds the mage's sight stays dimmed (a Sporeling's spores, M4): the edges of the view darken. */ dim: number;
   /** Seconds the mage stays chilled (cold breath, rime, M4): slower (`CFG.afflict.chillSlow`), frost at the view's rim. */ chill: number;
+  /** Seconds the mage stays heavy as stone in a basilisk's stare (M4.5): much slower (`CFG.bestiary.gazeSlow`). */ stone: number;
   /** A drift the mage is drawn along this step, over what they walk (the Deep Angler's lure, M4.1); spent each step. */ pull: { x: number; z: number };
 }

@@ -3135,3 +3135,75 @@ test('the bestiary (M4.5), floor 2: the snail leaves rime and hides in its shell
   expect(r.puff).toMatchObject({ swelled: true, gone: true, spores: 1, popped: true, popSpores: 0 }); expect((r.puff as { dim: number }).dim).toBeGreaterThan(0);
   expect(errors).toEqual([]);
 });
+
+test('the bestiary (M4.5), floor 3: the nest lets out wasps and only fire harms it; the djinn lights braziers and frost snuffs it; the ooze burns the floor, splits and hardens; the phoenix rises once from its ashes unless they are frozen; the basilisk stares (a tall thing blocks it); the salt golem guards and fire slows it; the rubble golem drops stones and breaks to a blast', async ({ page }) => {
+  type Foe = { type: string; state: string; x: number; z: number; hp: number; maxHp: number; hidden?: boolean; dead?: boolean; st: number; cycle?: number; dir?: { x: number; z: number } };
+  type GF = { sim(sec: number, draw?: boolean): void; warp(id: number): void; hit(i: number, dmg: number, school?: string): number;
+    spawn(kind: string, x?: number, z?: number): Foe; inflict(s: Record<string, number>): void; clearRoom(): void; blast(x: number, z: number): void;
+    prop(kind: string, x: number, z: number): boolean; props: { kind: string; lit: boolean }[]; burningGround: number;
+    player: { x: number; z: number; hp: number; maxHp: number; invuln: number; stone: number }; enemies: Foe[] };
+  const errors = await start(page, '?seed=K3F9QX&floor=3&room=great_hall&variant=quiet');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 99; g.warp(1); g.sim(.5);
+    const x0 = g.player.x, z0 = g.player.z, home = () => Object.assign(g.player, { x: x0, z: z0, vx: 0, vz: 0 }); // (each meeting from the same spot)
+    const meet = (id: string, secs: number, every?: (e: Foe) => void, dx = 3) => {
+      g.clearRoom(); g.sim(.3); home(); g.player.hp = 99; g.spawn('dummy', g.player.x - 5, g.player.z - 2.5);
+      const e = g.spawn(id, g.player.x + dx, g.player.z); g.sim(.7); const seen = new Set<string>();
+      let hurt = 0; for (let i = 0; i < secs * 20; i++) { g.player.invuln = 0; const before = g.player.hp; g.sim(.05); hurt += before - g.player.hp; g.player.hp = 99; seen.add(e.state); every?.(e); } // (kept alive: burning ground every step)
+      return { e, i: g.enemies.indexOf(e), seen, hurt };
+    };
+    const R: Record<string, unknown> = {};
+    // the nest: set in a wall, it lets out wasps that dash to sting; fire harms it, anything else barely
+    { let wasps = 0; const dashed = new Set<string>(); const { e, i } = meet('waspNest', 8, () => { const w = g.enemies.filter(f => f.type === 'emberWasp' && !f.dead); wasps = Math.max(wasps, w.length); w.forEach(f => dashed.add(f.state)); });
+      let hp = e.hp; g.hit(i, 4); const plain = hp - e.hp; hp = e.hp; g.hit(i, 4, 'ember'); R.nest = { wasps, dash: dashed.has('dash'), plain, ember: hp - e.hp }; }
+    // the djinn (an elemental): brazier to brazier, lighting them; Ember feeds it, Frost hurts it twice over and snuffs it
+    { g.clearRoom(); g.sim(.3); home(); const placed = [g.prop('brazier', g.player.x + 3, g.player.z - 2), g.prop('brazier', g.player.x - 3, g.player.z - 2)].filter(Boolean).length;
+      let burning = 0; const { e, i } = meet('cinderDjinn', 8, () => { burning = Math.max(burning, g.burningGround); });
+      e.hp = e.maxHp / 2; let hp = e.hp; g.hit(i, 2, 'ember'); const ember = e.hp - hp; hp = e.hp; g.hit(i, 2, 'frost'); const frost = hp - e.hp; g.inflict({ chill: 1 }); g.sim(.1);
+      R.djinn = { placed, lit: g.props.filter(p => p.kind === 'brazier' && p.lit).length, burning, ember, frost, snuffed: e.state }; }
+    // the ooze: burning ground behind it; struck to half, two; chilled, rock, and a blow shatters it
+    { let burning = 0; const { e, i } = meet('magmaOoze', 3, () => { burning = Math.max(burning, g.burningGround); });
+      g.hit(i, e.maxHp * .6); g.sim(.3); const split = g.enemies.filter(f => f.type === 'magmaOoze' && !f.dead).length;
+      g.inflict({ chill: 1 }); g.sim(.1); const rock = e.state, hp = e.hp; g.hit(g.enemies.indexOf(e), 1); R.ooze = { burning, split, rock, took: hp - e.hp }; }
+    // the phoenix: it dives in a burning line; felled, ashes that blows don't touch; it rises once, and frozen ashes stay down
+    { let burning = 0; const { e, i, seen } = meet('phoenix', 8, () => { burning = Math.max(burning, g.burningGround); });
+      g.hit(i, 999); g.sim(.1); const ashes = e.state, down = !!e.dead, hp = e.hp; g.hit(g.enemies.indexOf(e), 5); const untouched = e.hp === hp;
+      g.sim(4.2); const risen = e.state, share = e.hp / e.maxHp; g.hit(g.enemies.indexOf(e), 999); g.sim(.1); const gone = !!e.dead;
+      const f = g.spawn('phoenix', g.player.x + 3, g.player.z); g.sim(.8); g.hit(g.enemies.indexOf(f), 999); g.sim(.1); g.inflict({ chill: 1 }); g.sim(.1);
+      R.phoenix = { dived: seen.has('dive'), burning, ashes, down, untouched, risen, share, gone, frozen: !!f.dead }; }
+    // the basilisk: its crest flares and it stares; the mage in its stare is heavy as stone; a tall thing between, and it can't
+    { const { e, seen } = meet('basilisk', 8);
+      const stare = () => { // (a stare swept across the mage from 3 tiles off)
+        home(); g.player.stone = 0; Object.assign(e, { x: g.player.x + 3, z: g.player.z, vx: 0, vz: 0, state: 'gaze', st: 1.6, cycle: -Math.PI / 2, dir: { x: 1, z: 0 } });
+        let stone = 0; for (let k = 0; k < 30; k++) { g.sim(.05); stone = Math.max(stone, g.player.stone); } return stone;
+      };
+      const stone = stare(); g.prop('reliquary', g.player.x + 1.5, g.player.z); const blocked = stare();
+      R.basilisk = { stared: seen.has('flare') && seen.has('gaze'), stone, blocked }; }
+    // the salt golem: between the mage and the foe beyond; burning, its wax joints slow it
+    { g.clearRoom(); g.sim(.3); home(); const d = g.spawn('dummy', g.player.x + 5, g.player.z), e = g.spawn('saltGolem', g.player.x + 1, g.player.z - 2.5); // (from the north: the hall's south wall is close)
+      const off = () => Math.abs(e.z - g.player.z) + Math.max(0, g.player.x - e.x, e.x - d.x); // (how far from the line between the mage and the dummy)
+      const from = off(); g.sim(4); const between = off() < Math.min(1, from * .5);
+      g.clearRoom(); g.sim(.3); home(); const s = g.spawn('saltGolem', g.player.x + 4.5, g.player.z); g.sim(.8);
+      let x0 = s.x; g.sim(.5); const walk = Math.abs(s.x - x0); g.inflict({ burn: 3 }); x0 = s.x; g.sim(.5); R.salt = { between, walk, melting: Math.abs(s.x - x0) }; }
+    // the rubble golem: its slam drops stones round the mage; a blast breaks it into stones that come back together,
+    // unless they are put down
+    { const { e, seen, hurt } = meet('rubbleGolem', 6); g.blast(e.x, e.z); g.sim(.1);
+      const stones = g.enemies.filter(f => f.type === 'rubbleStone' && !f.dead).length, broken = e.hidden;
+      g.sim(8); const back = e.state, left = g.enemies.filter(f => f.type === 'rubbleStone' && !f.dead).length;
+      g.blast(e.x, e.z); g.sim(.1); for (const s of g.enemies.filter(f => f.type === 'rubbleStone' && !f.dead)) g.hit(g.enemies.indexOf(s), 99); g.sim(.2);
+      R.rubble = { slammed: seen.has('slam'), hurt, stones, broken, back, left, putDown: !!e.dead }; }
+    return R;
+  });
+  expect(r.nest).toMatchObject({ dash: true }); const n = r.nest as { wasps: number; plain: number; ember: number };
+  expect(n.wasps).toBeGreaterThan(0); expect(n.plain).toBeLessThan(1); expect(n.ember).toBeGreaterThan(4);
+  const d = r.djinn as { placed: number; lit: number; burning: number; ember: number; frost: number };
+  expect(r.djinn).toMatchObject({ snuffed: 'cinder' }); expect(d.lit).toBe(d.placed); expect(d.burning).toBeGreaterThan(0); expect(d.ember).toBeGreaterThan(0); expect(d.frost).toBeCloseTo(4);
+  expect(r.ooze).toMatchObject({ split: 2, rock: 'rock' }); expect((r.ooze as { burning: number }).burning).toBeGreaterThan(0); expect((r.ooze as { took: number }).took).toBeCloseTo(2.5);
+  expect(r.phoenix).toMatchObject({ dived: true, ashes: 'ashes', down: false, untouched: true, risen: 'circle', gone: true, frozen: true });
+  expect((r.phoenix as { share: number }).share).toBeCloseTo(.5); expect((r.phoenix as { burning: number }).burning).toBeGreaterThan(0);
+  expect((r.basilisk as { stone: number }).stone).toBeGreaterThan(0); expect(r.basilisk).toMatchObject({ stared: true, blocked: 0 });
+  const s = r.salt as { between: boolean; walk: number; melting: number };
+  expect(s.between).toBe(true); expect(s.melting).toBeLessThan(s.walk * .7);
+  expect(r.rubble).toMatchObject({ slammed: true, stones: 3, broken: true, back: 'walk', left: 0, putDown: true });
+  expect(errors).toEqual([]);
+});

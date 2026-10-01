@@ -86,7 +86,7 @@ export function updateFoe(e: Enemy, dt: number, a: Aim) {
   return face;
 }
 /** A blow lands on a foe in code: how much of it its behaviour lets through (0: none, it was swallowed or turned). */
-export function foeStruck(e: Enemy, dmg: number, by: Enemy['lastHit'], dx = 0, dz = 0) { const B = e.foe && BEHAVIOURS[e.foe.behaviour]; return B?.struck ? B.struck(e, dmg, by, e.foe!.params, dx, dz) : dmg; }
+export function foeStruck(e: Enemy, dmg: number, by: Enemy['lastHit'], dx = 0, dz = 0, school?: School) { const B = e.foe && BEHAVIOURS[e.foe.behaviour]; return B?.struck ? B.struck(e, dmg, by, e.foe!.params, dx, dz, school) : dmg; }
 /** A glyph's blast reaches a foe in code (M4.5: a rubble crab is flipped). */
 export function foeBlasted(e: Enemy) { if (e.foe) BEHAVIOURS[e.foe.behaviour].blasted?.(e, e.foe.params); }
 /** A status took hold on a foe in code (M4.5: a walking wave's ice shatters to a shock). */
@@ -145,7 +145,7 @@ function lay(room: Room, x: number, z: number, time: number, kind: HazardKind) {
 }
 /** A patch of burning ground at (x, z) for `time` seconds: it lights what burns there (oil, roots, braziers), and burns
     the mage who stands in it. */
-function layFire(room: Room, x: number, z: number, time: number) { lay(room, x, z, time, 'fire'); fireAt(x, z, .15); }
+export function layFire(room: Room, x: number, z: number, time: number) { lay(room, x, z, time, 'fire'); fireAt(x, z, .15); }
 /** A patch of sparks at (x, z) for `time` seconds: crackling at first, then armed (`CFG.afflict.sparkArm`): it shocks the
     water there and hurts the mage who stands in it. */
 export function laySpark(room: Room, x: number, z: number, time: number) { lay(room, x, z, time, 'spark'); }
