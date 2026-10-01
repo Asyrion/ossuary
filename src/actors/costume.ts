@@ -89,6 +89,15 @@ let flare = 0;
 /** A Storm spell cast: the Stormcaller's eyes flare blue. */
 export const flareEyes = () => { flare = 1; };
 
+/** Where hand `side` is in the world now (its bone's place, or its rest spot on a static model), into `out`; false before
+    a model is fitted (M4.11: the spell marks follow the hands). */
+export function handAt(side: Side, out: THREE.Vector3) {
+  if (!model || !fit) return false;
+  const bone = fit.hand[side].bone;
+  if (bone) { bone.updateWorldMatrix(true, false); bone.getWorldPosition(out); } else { model.updateWorldMatrix(true, false); model.localToWorld(out.copy(fit.hand[side].pos)); }
+  return true;
+}
+
 /** The pieces the mage wears now, as ids (a built piece's, or the carrying artifact's), and the focus held. */
 const bySlot = () => [...worn.values()].sort((a, b) => COSTUME_SLOTS.indexOf(a.w.slot) - COSTUME_SLOTS.indexOf(b.w.slot));
 export const wornNow = () => wornIds(bySlot().map(o => o.w));

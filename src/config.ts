@@ -88,6 +88,19 @@ export const CFG = {
     blink: { dist: 2.4, every: 1.6, invuln: .25 }, rune: { delay: .55, reach: 1.1, share: .6 },
     pilgrim: { speed: 1.12 }, float: { lift: .14, bob: .035 }, beast: { more: 1, damageMul: 1.5 }, tint: .3,
   },
+  /** M4.11 spell marks (actors/spellMarks.ts): a spell in hand (its light's size, motes, brightness ready and cooling, how
+      far above the hand, the ready flash's reach, how often a Storm spell crackles), the master's ring (radius, turn), the
+      attunement aura (motes, how far round the mage, its glow), the knowledge circle (radius, how far out its runes stand
+      and their size, the gap between arcs, how long the mage stands still before it shows, how fast it fades in and out,
+      its turn), each school's motion (how far its motes travel, up or down), and how long a mark's first line stays. */
+  marks: {
+    hand: { size: .34, motes: 7, ready: 1, dim: .25, lift: .04, flash: .26, spark: .45 },
+    ring: { radius: .085, spin: 2.2 },
+    aura: { motes: 16, radius: .32, glow: 1.5 },
+    circle: { radius: .6, out: .09, rune: .085, gap: .06, after: 1, fadeIn: .6, fadeOut: .25, spin: .15 },
+    rise: { ember: .4, frost: -.3, storm: .15, hallow: .35, umbral: -.25 } as Record<string, number>,
+    line: 4,
+  },
   /** M4.6 Asyrion's arc (items/arc.ts): how many artifacts held bring each stage of the chaos mage's pieces, and how long
       each stage's line stays. */
   arc: { at: [3, 6, 9, 12], line: 4.5 },

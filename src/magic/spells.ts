@@ -10,7 +10,7 @@ import { Sfx } from '../audio/sfx';
 import { heroCast } from '../actors/hero';
 import { flashMana, renderSpells, spellIcon, toast } from '../ui/hud';
 import { showLore } from '../ui/lore';
-import { manaRegen, spell } from './spellData';
+import { SPELL_DEFS, manaRegen, spell, type School } from './spellData';
 import { spellCost } from './cost';
 import { CAST, clearShapes, leaveRoomShapes, updateShapes } from './shapes';
 import { skullsWatch } from '../world/dressing';
@@ -19,6 +19,7 @@ import { burnSoul } from '../items/souls';
 import { drinkSpell, wardNear } from '../world/vault';
 import { hexGiveBack } from '../ui/afflictions';
 import { flareEyes } from '../actors/costume';
+import { knownWellNow } from '../actors/spellMarks';
 
 /* ---------- mana ---------- */
 
@@ -28,6 +29,12 @@ export function gainMana(n: number) { player.mana = Math.max(0, Math.min(player.
 /* ---------- slots ---------- */
 
 /** Learn a spell into a slot (the first empty one unless `slot` says); returns the spell it replaced. */
+/** The dev menu's (M4.11): both slots filled with a school's spells, attuning the mage to it, and mana full. */
+export function attuneTo(school: School) {
+  SPELL_DEFS.filter(s => s.school === school).slice(0, 2).forEach((s, i) => learnSpell(s.id, i, true));
+  player.mana = player.stats.maxMana;
+}
+
 export function learnSpell(id: string, slot?: number, silent = false): string | null {
   const def = spell(id);
   const at = slot ?? Math.max(0, player.spells.indexOf(null));
@@ -66,7 +73,7 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   if (def.school === 'storm') flareEyes(); // (M4.6: a Stormcaller's eyes flare)
   player.spellCd[slot] = def.cooldown;
   skullsWatch(G.current, def.color); // an ossuary's skulls take the spell's colour
-  if (castSpellOnce(id)) toast(STR.knowledge.knownWell(def.name), 3); // cast enough times: its lore and reactions are known
+  if (castSpellOnce(id)) { toast(STR.knowledge.knownWell(def.name), 3); knownWellNow(def.school); } // cast enough times: its lore and reactions are known (and perhaps its whole school: M4.11)
   heroCast();
   return true;
 }

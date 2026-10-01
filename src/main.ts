@@ -37,7 +37,7 @@ import { cleanseAtOnce, riteState } from './world/shrine';
 import { SPELLS, type SpellStatus, type StatusKind } from './magic/spellData';
 import { inflict } from './magic/statusFx';
 import { makeEnemy, spawnFoe } from './actors/enemies';
-import { castSpell, learnSpell } from './magic/spells';
+import { attuneTo, castSpell, learnSpell } from './magic/spells';
 import { mantleLeft, wardLeft } from './magic/shapes';
 import { mothCount, saltCircle } from './combat/familiars';
 import { fxShowing } from './magic/spellFx';
@@ -51,6 +51,7 @@ import { dress, heldNow, robeTint, takeAllOff, tryOn, wornDetail, wornNow } from
 import { clearTransforms, formTransform } from './items/transforms';
 import { blinkRest } from './items/gifts';
 import { arcHeld, arcNow } from './items/arc';
+import { marksNow } from './actors/spellMarks';
 import type { TransformId } from './items/transformData';
 import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
@@ -319,6 +320,9 @@ function installDevHooks() {
     /** The run's transformations (M4.6), the latest last; form one at once, or undo them all; the blink's rest; how far the
         robes are tinted. */
     get transforms() { return [...G.run.transforms]; }, transform: (id: TransformId) => formTransform(id), clearTransforms: () => clearTransforms(),
+    /** M4.11 spell marks: what the slotted spells and the knowledge show on the mage; attune to a school (both its spells
+        in the slots). */
+    get spellMarks() { return marksNow(); }, attune: (school: School) => attuneTo(school),
     get blinkRest() { return blinkRest(); }, get robeTint() { return robeTint(); }, get moths() { return mothCount(); },
     /** Asyrion's arc (M4.6): the stage now, the artifacts that count, the stage reached this run; force a stage (or `undefined`
         for as held). */

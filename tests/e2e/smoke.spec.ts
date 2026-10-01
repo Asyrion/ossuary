@@ -1737,6 +1737,39 @@ test("Asyrion's arc (M4.6): with more artifacts held the chaos mage's pieces arr
   expect(errors).toEqual([]);
 });
 
+test('spell marks (M4.11): each slotted spell shows at its hand (ready, cooling, short of mana), both of one school attune the mage, a school known in full rings the wrist, and standing still shows the knowledge circle', async ({ page }) => {
+  const errors = await start(page, '?room=great_hall&variant=quiet&seed=MARK1');
+  type Hand = { spell: string; school: string; state: string; glow: number; ring: boolean } | null;
+  type GM = GameHooks & { spellMarks: { hands: Hand[]; attuned: string | null; circle: { shown: boolean; known: number[]; mastered: string[] } }; attune(s: string): void;
+    learn(id: string, slot: number): void; cast(slot: number, dir?: { x: number; z: number }): boolean; mana(v?: number): number; know(id: string, stage: string): void; forgetKnowledge(): void; clearRoom(): void; closeUp(on?: boolean): void };
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GM, out: Record<string, unknown> = {};
+    g.forgetKnowledge(); g.warp(1); g.sim(.3, true); g.clearRoom(); g.sim(.3, true);
+    out.none = g.spellMarks.hands;
+    g.learn('arc', 0); g.learn('cinder_lance', 1); g.mana(100); g.sim(.2, true); out.ready = g.spellMarks.hands.map(h => h && [h.school, h.state]);
+    g.cast(1, { x: 0, z: -1 }); g.sim(.1, true); out.cooling = g.spellMarks.hands[1]?.state;
+    g.sim(2.5, true); out.back = g.spellMarks.hands[1]?.state;
+    g.mana(0); g.sim(.1, true); out.short = g.spellMarks.hands.map(h => h?.state); g.mana(100);
+    out.unattuned = g.spellMarks.attuned;
+    g.attune('ember'); g.sim(.2, true); out.attuned = g.spellMarks.attuned; out.line = document.querySelector('#toast')?.textContent;
+    out.ringBefore = g.spellMarks.hands.map(h => h?.ring);
+    g.know('cinder_lance', 'used'); g.know('pyre_seal', 'used'); g.know('arc', 'used'); g.sim(.1, true);
+    out.ringAfter = g.spellMarks.hands.map(h => h?.ring); out.mastered = g.spellMarks.circle.mastered;
+    g.sim(.4, true); out.early = g.spellMarks.circle.shown; g.sim(1.5, true); out.circle = g.spellMarks.circle;
+    return out;
+  });
+  expect(r.none).toEqual([null, null]);
+  expect(r.ready).toEqual([['storm', 'ready'], ['ember', 'ready']]);
+  expect(r.cooling).toBe('cooling'); expect(r.back).toBe('ready'); expect(r.short).toEqual(['short', 'short']);
+  expect(r.unattuned).toBeNull(); expect(r.attuned).toBe('ember'); expect(r.line).toContain('Attuned to Ember');
+  expect(r.ringBefore).toEqual([false, false]); expect(r.ringAfter).toEqual([true, true]); expect(r.mastered).toEqual(['ember']);
+  expect(r.circle).toMatchObject({ shown: true, known: [2, 0, 1, 0, 0], mastered: ['ember'] });
+  await page.evaluate(() => { const g = (window as unknown as W).__game as GM; g.closeUp(true); g.sim(.2, true); });
+  await page.screenshot({ path: 'test-results/spell-marks.png' });
+  await page.evaluate(() => ((window as unknown as W).__game as GM).forgetKnowledge());
+  expect(errors).toEqual([]);
+});
+
 test('the pause menu sets the volumes, and the browser remembers them; positioned effects play without errors', async ({ page }) => {
   const errors = await start(page, '?room=crypt_a&seed=VOL1&spells=arc');
   // a fight: hits, deaths and a spell, all panned to where they happen
