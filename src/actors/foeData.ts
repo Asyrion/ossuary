@@ -95,6 +95,14 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   hearth: ['guard', 'throwEvery', 'throwRange', 'coals', 'spread', 'flight', 'fireTime', 'out'],
   shade: ['prowl', 'near', 'far', 'light', 'sink', 'gone', 'emerge', 'bite', 'biteTime'],
   roller: ['ball0', 'grow', 'launchAt', 'range', 'tell', 'flight', 'ring', 'shotSpeed', 'chill', 'bare', 'quick', 'weak'],
+  // floor 5
+  glacier: ['stompEvery', 'stompRange', 'tell', 'spikes', 'spikeEvery', 'gap', 'hit', 'arc', 'front', 'frozen', 'shatter'],
+  hydra: ['headHp', 'regrow', 'attackEvery', 'keep', 'biteReach', 'shotSpeed', 'hex'],
+  raven: ['wheel', 'keep', 'gloom', 'dim', 'light', 'cawEvery', 'shots', 'spread', 'shotSpeed', 'hex', 'tell', 'dive', 'diveTime'],
+  wolf: ['keep', 'spin', 'lungeEvery', 'tell', 'lunge', 'lungeTime', 'howlEvery', 'haste', 'fear', 'scatter'],
+  pangolin: ['walk', 'range', 'tell', 'roll', 'rollMax', 'daze', 'dust', 'dim', 'glance', 'open'],
+  kiter: ['watch', 'keep', 'leap', 'leapTime', 'stampEvery', 'range', 'shards', 'spread', 'shotSpeed', 'chill', 'rime', 'rimeTime', 'fear', 'slide'],
+  manticore: ['keep', 'volleyEvery', 'tailTell', 'spikes', 'spread', 'shotSpeed', 'hex', 'pounceEvery', 'pounceRange', 'crouch', 'pounceTime', 'pounceMax', 'landHit'],
 };
 
 /** What is wrong with the foes' data (an empty list when nothing is). */

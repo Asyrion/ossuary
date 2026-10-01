@@ -354,6 +354,19 @@ const sounds = {
   harpyScreech() { tone('sawtooth', 1800, 2600, .35, .06); tone('square', 2200, 1400, .4, .03, .05); hiss(.4, .06, 'highpass', 4000); },
   foxSink() { tone('sine', 300, 90, .35, .05); hiss(.3, .04, 'lowpass', 500); },
   foxRise() { tone('sine', 90, 300, .3, .05); hiss(.25, .04, 'lowpass', 700); },
+  // floor 5. Frost: a glacier golem's stomp, a jackalope's stamp, a wolf's howl and whimper. Umbral: a hydra spitting,
+  // a head cut off and growing back; a raven's caw; a pangolin rolling; a manticore's tail and pounce
+  glacierStomp() { tone('sine', 70, 35, .5, .14); [1760, 2093, 1568].forEach((f, i) => tone('triangle', f, f * .8, .25, .025, .1 + i * .07)); },
+  hareStamp() { tone('sine', 200, 90, .12, .06); [2349, 1976].forEach((f, i) => tone('triangle', f, f * .85, .15, .02, i * .04)); },
+  wolfHowl() { tone('sawtooth', 300, 520, .5, .03); tone('sine', 520, 440, .8, .04, .4); },
+  wolfWhimper() { tone('sine', 900, 600, .2, .03); tone('sine', 800, 550, .2, .025, .2); },
+  hydraSpit() { hiss(.2, .09, 'bandpass', 1400); tone('sine', 300, 180, .2, .04); },
+  hydraCut() { hiss(.3, .14, 'bandpass', 900); tone('sawtooth', 400, 120, .35, .05); },
+  hydraRegrow() { hiss(.5, .06, 'lowpass', 600); tone('sine', 110, 260, .6, .05); tone('sine', 130, 300, .6, .04, .15); },
+  ravenCaw() { tone('sawtooth', 640, 380, .2, .06); tone('sawtooth', 600, 360, .18, .05, .25); },
+  pangolinRoll() { for (let i = 0; i < 6; i++) hiss(.08, .05, 'lowpass', 700, i * .07); tone('sine', 120, 160, .4, .04); },
+  manticoreTail() { tone('sawtooth', 220, 440, .4, .04); hiss(.3, .03, 'highpass', 4000); },
+  manticorePounce() { tone('sawtooth', 180, 90, .3, .07); hiss(.3, .1, 'lowpass', 900); },
 };
 type Sounds = typeof sounds;
 /** Sounds of the interface (picking things up, refusals, learning): their own bus, never positioned. */

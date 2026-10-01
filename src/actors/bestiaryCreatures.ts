@@ -267,8 +267,9 @@ export function hydra(): Built {
     for (const k of [-1, 0, 1]) spike(l, [.18 * s, -.42, .08], [.22 * s + k * .05, -.42, .22], .025, claw);
     return l;
   }));
-  const necks = [[-1, .1, 1.62], [0, .16, 1.95], [1, .1, 1.7]].map(([s, z, h], i) => {
-    const n = joint(body, [s * .22, .7, .3]);
+  // three necks, and two more that a cut head grows back as (hidden until then); a stump at each neck's root
+  const necks = [[-1, .1, 1.62], [0, .16, 1.95], [1, .1, 1.7], [-1.7, -.02, 1.4], [1.7, -.02, 1.45]].map(([s, z, h], i) => {
+    const n = joint(body, [s * .22, .7, .3]); n.visible = i < 3;
     const tip: V3 = [s * .5, h - .7, z + .1];
     tube(n, [[0, 0, 0], [s * .1, .3, .14], [s * .3, (h - .7) * .55, z + .06], [s * .48, (h - .7) * .85, z - .06], tip], .16, .1, hide, 14, 7);
     for (let k = 0; k < 4; k++) { const u = (k + 1) / 5; spike(n, [s * .3 * u, (h - .7) * u, z * u - .08], [s * .3 * u, (h - .7) * u + .02, z * u - .18], .03, dark); }
@@ -279,9 +280,12 @@ export function hydra(): Built {
     for (const t of [-1, 1]) { spike(head, [.045 * t, -.04, .2], [.04 * t, -.12, .22], .015, fang); spike(jaw, [.035 * t, 0, .18], [.035 * t, .07, .2], .012, fang); spike(head, [.07 * t, .06, -.02], [.1 * t, .16, -.14], .025, dark); }
     slitEyes(head, .075, .05, .1, .035, 0xc58aff, .6, .35);
     const drip = part(jaw, sphere(.03, 5, 4), venom, [0, -.05, .2], { scale: [1, 1.6, 1] });
-    return { n, head, jaw, drip, i };
+    const stump = joint(body, [s * .22, .7, .3]); stump.visible = false;
+    part(stump, new THREE.CylinderGeometry(.11, .16, .22, 8), hide, [s * .05, .1, .05]); part(stump, new THREE.CircleGeometry(.11, 8), std(0x6a1a2a), [s * .05, .215, .05], { rot: [-Math.PI / 2, 0, 0] });
+    return { n, head, jaw, drip, i, stump };
   });
-  return { group: g, shadow: 1.8, parts: { body }, idle: t => {
+  const heads = Object.fromEntries(necks.flatMap(({ n, head, stump, i }) => [[`neck${i}`, n], [`head${i}`, head], [`stump${i}`, stump]]));
+  return { group: g, shadow: 1.8, parts: { body, ...heads }, idle: t => {
     body.position.y = Math.sin(t * 1.2) * .01;
     necks.forEach(({ n, head, jaw, drip, i }) => { n.rotation.z = Math.sin(t * 1.1 + i * 2) * .08; n.rotation.x = Math.sin(t * .9 + i * 1.3) * .06; head.rotation.y = Math.sin(t * .8 + i) * .3; jaw.rotation.x = .3 + Math.max(0, Math.sin(t * 1.6 + i * 2.1)) * .4; drip.position.y = -.05 - ((t * .6 + i / 3) % 1) * .2; });
     legs.forEach((l, i) => { l.rotation.y = Math.sin(t * 1.2 + i) * .03; });

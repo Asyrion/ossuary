@@ -146,6 +146,8 @@ function lay(room: Room, x: number, z: number, time: number, kind: HazardKind) {
 /** A patch of burning ground at (x, z) for `time` seconds: it lights what burns there (oil, roots, braziers), and burns
     the mage who stands in it. */
 export function layFire(room: Room, x: number, z: number, time: number) { lay(room, x, z, time, 'fire'); fireAt(x, z, .15); }
+/** Whether ground is burning within `r` of (x, z) in the current room (M4.5: rime wolves scatter from it). */
+export const burningNear = (x: number, z: number, r: number) => hazards.some(h => h.kind === 'fire' && h.room === G.current && Math.hypot(h.x - x, h.z - z) < r);
 /** A patch of sparks at (x, z) for `time` seconds: crackling at first, then armed (`CFG.afflict.sparkArm`): it shocks the
     water there and hurts the mage who stands in it. */
 export function laySpark(room: Room, x: number, z: number, time: number) { lay(room, x, z, time, 'spark'); }
