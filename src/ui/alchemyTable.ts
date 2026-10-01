@@ -15,6 +15,7 @@ import { POTIONS, REAGENTS, REAGENT_IDS, type PotionId, type ReagentId } from '.
 import { bottleIconUrl, reagentIconUrl } from '../items/alchemyLooks';
 import { knownPotion, potionName } from '../items/potions';
 import { RECIPE_POTIONS, brewNow, buyRecipe, canBrew, jellyIdentifies, knownBrew, knownRecipes } from '../items/brewing';
+import { stirAfterBrew } from '../world/laboratory';
 
 export type LabTab = 'brew' | 'identify' | 'recipes';
 const TABS: LabTab[] = ['brew', 'identify', 'recipes'];
@@ -73,7 +74,7 @@ function entries(t: LabTab): Entry[] {
     }));
     if (!held.length) out.push({ icon: SEALED, label: L.noReagents, dim: true, detail: () => `<p class="effect">${esc(L.noReagents)}</p>` });
     out.push({ icon: FLASK, label: L.brewTile, dim: mortar.length < 2, detail: () => head(FLASK, L.brewTile, '') + mortarHtml() + (mortar.length < 2 ? `<p class="note">${esc(L.needTwo)}</p>` : ''),
-      act: () => { if (mortar.length < 2 || !canBrew(mortar[0], mortar[1])) { Sfx.spellFail(); return; } const lab = G.current.lab; brewNow(mortar[0], mortar[1], lab?.table.x ?? player.x, lab?.table.z ?? player.z); mortar = []; } });
+      act: () => { if (mortar.length < 2 || !canBrew(mortar[0], mortar[1])) { Sfx.spellFail(); return; } const lab = G.current.lab; brewNow(mortar[0], mortar[1], lab?.table.x ?? player.x, lab?.table.z ?? player.z); mortar = []; stirAfterBrew(); } });
     out.push({ icon: CLEAR, label: L.clearTile, dim: !mortar.length, detail: () => head(CLEAR, L.clearTile, '') + mortarHtml(), act: () => { mortar = []; } });
     return out;
   }

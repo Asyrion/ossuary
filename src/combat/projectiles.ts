@@ -15,6 +15,7 @@ import { scene } from '../render/renderer';
 import { basicMat, blob, glowShared, sphereGeo } from '../render/materials';
 import { blockers, boxAt } from '../world/collision';
 import { WARD_COLOR, hitRock, strikeUrn } from '../world/rooms';
+import { vatStruck } from '../world/laboratory';
 import { strikeProp } from '../world/props';
 import { boltThrough, sapMul } from '../world/mechanisms';
 import { hollowRing } from '../world/secret';
@@ -165,6 +166,7 @@ export function strikeSolid(room: Room, box: Box, x: number, y: number, z: numbe
   const rock = box as RockBox;
   if (rock.urn) strikeUrn(room, rock, false);                                             // any bolt breaks an urn
   else if (rock.prop) strikeProp(room, rock, false, status);                              // piles break, bells ring, runes charge
+  else if (room.lab && !door) vatStruck(room, x, z);                                       // (M5: the jelly serpent's vat window cracks)
   return rock;
 }
 

@@ -117,6 +117,7 @@ function newRun(seed: string): typeof G.run {
     budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1, riteFloor: -99, loreSeen: new Set(), hinted: new Set(), pages: Rng.from(seed, 'pages'), forgotten: [],
     wanderer: Rng.from(seed, 'wanderer'), wandererMet: false, fennexFrom: undefined, transforms: [], arc: 0, attuned: [],
     bottles: bottlesFor(Rng.from(seed, 'bottles').int(0, 2 ** 30)), identified: [], alchemy: Rng.from(seed, 'alchemy'), reagents: Rng.from(seed, 'reagents'), remedy: null,
+    serpent: 'caged', restless: Rng.from(seed, 'serpent').chance(CFG.alchemy.vat.restless),
   };
 }
 
@@ -341,7 +342,7 @@ export function tryTransition() {
 
 /** Dev hook: finish the current room's fight at once (every wave), as if the last enemy had fallen. */
 export function clearRoom() {
-  const hadBoss = G.enemies.some(e => e.isBoss);
+  const hadBoss = G.enemies.some(e => e.isBoss && !e.labBoss); // (M5: the jelly serpent out of its vat is no floor's boss)
   clearEnemies();
   const room = G.current;
   if (room.ambush === 'armed') { room.ambush = 'sprung'; onRoomCleared(room); return; }

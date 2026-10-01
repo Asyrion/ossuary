@@ -7,6 +7,7 @@ import { OPPOSITE, SIDE_DIR, allowsSide, shapeCells } from '../../src/world/shap
 import { TEMPLATE_DEFS, growPuddles, parseTemplate, poolsOf, tombRuns, validateTemplate } from '../../src/world/templates';
 import { validateThemes } from '../../src/world/themeData';
 import { isFoe } from '../../src/actors/foeData';
+import { floodTiles } from '../../src/world/flood';
 
 describe('room templates', () => {
   it.each(TEMPLATE_DEFS.map(d => [d.id, d] as const))('%s is valid', (_id, def) => {
@@ -350,5 +351,31 @@ describe('bosses', () => {
 
   it('falls back to the whole pool once every boss in it has been met', () => {
     expect(pickBoss(new Rng(1), ['warden'], ['warden'])).toBe('warden');
+  });
+});
+
+describe('jelly floods (M5 step 7: the jelly serpent)', () => {
+  // a 13 × 7 room: open floor but for a rock in the middle and a pillar at (2, 1)
+  const W = 13, H = 7, blocked = new Set(['6,3', '2,1']), open = (c: number, r: number) => !blocked.has(c + ',' + r);
+  const joined = (tiles: { c: number; r: number }[]) => { // every tile reached from the first through the others, side by side
+    const left = new Set(tiles.map(t => t.c + ',' + t.r)), queue = [tiles[0]]; left.delete(tiles[0].c + ',' + tiles[0].r);
+    while (queue.length) { const t = queue.pop()!; for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = (t.c + dc) + ',' + (t.r + dr); if (left.delete(k)) queue.push({ c: t.c + dc, r: t.r + dr }); } }
+    return left.size === 0;
+  };
+  it('covers open floor only, as many tiles as asked, joined side by side, each once', () => {
+    for (let seed = 1; seed < 60; seed++) {
+      const rng = new Rng(seed), tiles = floodTiles(open, 6, 0, 30, () => rng.next(), W, H);
+      expect(tiles.length).toBe(30);
+      expect(new Set(tiles.map(t => t.c + ',' + t.r)).size).toBe(30);
+      for (const t of tiles) { expect(open(t.c, t.r)).toBe(true); expect(t.c >= 0 && t.c < W && t.r >= 0 && t.r < H).toBe(true); }
+      expect(joined(tiles)).toBe(true);
+      expect(tiles[0]).toEqual({ c: 6, r: 0 }); // (it pours in where it starts)
+    }
+  });
+  it('starts from the nearest open tile when the spot is blocked, and stops when the floor runs out', () => {
+    expect(floodTiles(open, 6, 3, 1, () => .5, W, H)[0]).not.toEqual({ c: 6, r: 3 });
+    expect(Math.hypot(floodTiles(open, 6, 3, 1, () => .5, W, H)[0].c - 6, floodTiles(open, 6, 3, 1, () => .5, W, H)[0].r - 3)).toBeLessThanOrEqual(Math.SQRT2);
+    expect(floodTiles(open, 0, 0, 500, Math.random, W, H).length).toBe(W * H - blocked.size);
+    expect(floodTiles(() => false, 0, 0, 10, Math.random, W, H)).toEqual([]);
   });
 });

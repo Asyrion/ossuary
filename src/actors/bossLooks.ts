@@ -18,6 +18,7 @@ import { SCHOOL_LIGHT, bigEyes, box, circle, limb, lit, motes, part, rune, runeR
 import { gloss, joint, jointed, slitEyes, spike, thin, tube } from './beastParts';
 import { curve } from '../world/kitParts';
 import { EMBER_FIRE, makeFire, makeMotes, type FlameSpec } from '../render/fire';
+import { serpentLook } from './serpentLooks';
 
 /** A built boss look: its group, how it idles, its shadow, the parts the fight moves (the Warden's three, and any a
     boss's own fight moves besides) and its school. */
@@ -603,7 +604,7 @@ export const BOSS_LOOKS = [
 export type BossLookId = (typeof BOSS_LOOKS)[number]['id'];
 /** Every boss built in code, for the Galleries tab: the Warden's three looks, the bosses of floors 2 and 3, of floors 4
     and 5, then the bosses from the Eda lore (M4.2). */
-export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [...BOSS_LOOKS, { id: 'abbess', build: abbessLook }, { id: 'pyre', build: pyreKnightLook }, { id: 'hart', build: hartLook }, { id: 'angler', build: anglerLook }, { id: 'tiger', build: tigerLook }, { id: 'dragon', build: dragonLook }, { id: 'twins', build: twinPairLook }];
+export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [...BOSS_LOOKS, { id: 'abbess', build: abbessLook }, { id: 'pyre', build: pyreKnightLook }, { id: 'hart', build: hartLook }, { id: 'angler', build: anglerLook }, { id: 'tiger', build: tigerLook }, { id: 'dragon', build: dragonLook }, { id: 'twins', build: twinPairLook }, { id: 'serpent', build: serpentLook }];
 
 /** The look the Hollow Warden wears until the owner chooses: picked in the dev menu, remembered in this browser. */
 const LOOK_KEY = 'ossuary.bossLook', FIRST: BossLookId = 'motherOfSpores';

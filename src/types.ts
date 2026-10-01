@@ -151,7 +151,9 @@ export interface Room {
       potion was identified free this visit, and whether walking up to the table or to Dr. Jelly opens the table again
       (after stepping away). */
   lab?: { table: { x: number; z: number; hx: number; hz: number }; jelly: { x: number; z: number; g: THREE.Object3D }; vat: THREE.Object3D; tableLook: THREE.Object3D;
-    identified: boolean; armedTable: boolean; armedJelly: boolean };
+    identified: boolean; armedTable: boolean; armedJelly: boolean;
+    /** M5 step 7: the vat window's cracks (bolts), when the last was counted (sim time), whether it is broken (the serpent
+        out, here or on a floor before), and whether a brew has stirred the serpent. */ cracks: number; crackAt: number; broken: boolean; stirred: boolean };
   /** Foes put to rest here towards the Ossuary Choir's next hymn (M4.1). */ choir?: number;
   /** Water and oil on the floor (world/pools.ts), and which pool each tile belongs to ([row][col]). */
   pools?: Pool[]; poolGrid?: (Pool | undefined)[][];
@@ -165,6 +167,7 @@ export interface Pool {
   /** The sim time before which fire on this water won't boil it into steam again (2026-10-01). */ boilAt?: number;
   mesh: THREE.Mesh; mat: THREE.MeshStandardMaterial;
   /** M4.9: drained to mud by an open sluice (still slow to wade; nothing hides in it). */ mud?: boolean;
+  /** M5: the jelly serpent's jelly (water, green and slower to wade; it swims in it). */ jelly?: boolean;
 }
 
 /** A grimoire page (magic/pages.ts): on a library's lectern, on its shelf for obols, or lying loose. */
@@ -178,6 +181,7 @@ export interface Page {
 
 export interface Enemy extends Circle {
   /** M5: grown by a thrown Giant's Brew (slower and bigger, once). */ giant?: boolean;
+  /** M5 step 7: the jelly serpent out of its vat: a boss with its own rewards (world/laboratory.ts), not the floor's. */ labBoss?: boolean;
   type: FoeType; vx: number; vz: number; kx: number; kz: number; hp: number; maxHp: number;
   flying: boolean; spawn: number; t: number; flash: number; mats: THREE.MeshStandardMaterial[];
   group: THREE.Group; body: THREE.Group; face: number; contact: number; state: string; st: number;

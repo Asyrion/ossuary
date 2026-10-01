@@ -25,7 +25,9 @@
      it; prowls at the mage, circling it at claw reach; crouches, the spot it will land on marked, and pounces there (a
      wall stuns it), throwing frost shards as it lands; swipes a fan of claws when the mage is close; roars a ring (a
      second below half health); calls the floor's walkers below half health. Its four plates let only part of a blow through; a glyph's blast, a Shatter (a
-     shock on its rimed plates) or enough blows turned knock one off, and each lost leaves it faster and more open. */
+     shock on its rimed plates) or enough blows turned knock one off, and each lost leaves it faster and more open.
+   The jelly serpent (M5, out of its vat in Dr. Jelly's laboratory, or a floor's boss with `?boss=serpent`) is
+     jellySerpent.ts: it swims hidden through its jelly, rises to lunge or spit globs, and a shock or a freeze traps it. */
 import * as THREE from 'three';
 import { CFG, type BossType } from '../config';
 import { callFoe, type Role } from './foeData';
@@ -45,6 +47,7 @@ import { abbessLook, anglerLook, bossLook, buildBossLook, hartLook, pyreKnightLo
 import { mergeRig } from '../render/rig';
 import { buildDragon, dragonMoved, updateDragon } from './pillarDragon';
 import { buildTwin, updateTwin } from './twinGuardians';
+import { buildSerpent, serpentMoved, updateSerpent } from './jellySerpent';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { ease, lerp } from '../util';
 import { actAs } from './acting';
@@ -52,7 +55,7 @@ import { actAs } from './acting';
 /** A boss's shots: in its school's light. */
 const shotColor = (e: Enemy) => SCHOOL_LIGHT[e.bossSchool ?? 'ember'];
 /** Who each boss calls below half health. */
-const SUMMONS: Record<BossType, Role> = { warden: 'R', abbess: 'W', pyre: 'H', hart: 'W', angler: 'W', tiger: 'R', dragon: 'W', twins: 'H' };
+const SUMMONS: Record<BossType, Role> = { warden: 'R', abbess: 'W', pyre: 'H', hart: 'W', angler: 'W', tiger: 'R', dragon: 'W', twins: 'H', serpent: 'W' };
 
 /** A flat ring lying on the floor (the abbess's ripple, the knight's landing mark), hidden at first. */
 function floorRing(e: Enemy, color: number, radius: number) {
@@ -90,6 +93,7 @@ export function buildBoss(e: Enemy) {
     e.contact = 0; e.state = 'statue'; e.st = Infinity; P.ring.visible = P.rime.visible = false; P.halo.material.opacity = 0; P.eye.scale.set(1, .15, 1);
   } else if (e.type === 'dragon') buildDragon(e); // built in code (M4.2): its fight is pillarDragon.ts
   else if (e.type === 'twins') buildTwin(e); // built in code (M4.2): the pair's fight is twinGuardians.ts
+  else if (e.type === 'serpent') buildSerpent(e); // built in code (M5): out of its vat (world/laboratory.ts), its fight is jellySerpent.ts
   else if (e.type === 'abbess' || e.type === 'pyre') { // remade in code (2026-10-01): the bosses of floors 2 and 3
     const abbess = e.type === 'abbess', L = abbess ? abbessLook() : pyreKnightLook(), P = L.parts, C = CFG.enemy[e.type];
     const keep = abbess ? [P.eye, ...P.eye.children, P.ring, P.jaw, P.gillL, P.gillR] : [P.eye, P.ring, P.arms, P.legL, P.legR];
@@ -153,6 +157,7 @@ function stepBoss(e: Enemy, dt: number, ux: number, uz: number): number | undefi
   else if (e.type === 'tiger') return updateTiger(e, dt, ux, uz);
   else if (e.type === 'dragon') return updateDragon(e, dt);
   else if (e.type === 'twins') return updateTwin(e, dt, ux, uz);
+  else if (e.type === 'serpent') return updateSerpent(e, dt, ux, uz);
   return undefined;
 }
 
@@ -164,6 +169,7 @@ export function afterBossMove(e: Enemy, hit: boolean) {
     burst(e.x + e.dir!.x * .8, 1.6, e.z + e.dir!.z * .8, SCHOOL_LIGHT.hallow, 18, 3, .06);
   }
   if (e.type === 'dragon') { dragonMoved(e); return; } // (its body, laid in the world, stays where it lies)
+  if (e.type === 'serpent') { serpentMoved(e); return; } // (and the serpent's, along the trail its head leaves)
   if (e.type === 'tiger') { // the spot it pounces at stays put on the floor; a pounce into a wall or rock stuns it
     if (e.marker!.visible && e.target) e.marker!.position.set(e.target.x - e.x, .03, e.target.z - e.z);
     if (!hit || e.state !== 'pounce') return;

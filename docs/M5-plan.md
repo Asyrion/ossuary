@@ -1,6 +1,6 @@
 # M5 Alchemy: plan
 
-**Status: under way (2026-10-01): steps 1 to 6 built (GDD: Potions and alchemy, M5 as built).** GDD: Potions and alchemy; the roadmap's M5 row. The second game inside a run: every
+**Status: under way (2026-10-01): steps 1 to 7 built (GDD: Potions and alchemy, M5 as built).** GDD: Potions and alchemy; the roadmap's M5 row. The second game inside a run: every
 potion has a drink effect on the mage and a throw effect on the room, found potions are unidentified, and the mage brews
 their own from reagents at an alchemy table in Dr. Jelly's laboratory. The second half is the sixth school, Verdant, and
 its garden rooms (GDD: Magic system, A sixth school), planned in its own section when the first half is built.
@@ -90,6 +90,9 @@ Bottled Storm); an unknown pair that matches no recipe brews a Volatile Mixture.
    at the surface, open; out of the jelly it slows. Weak to Storm, resisting Frost. Fallen, it leaves Warden's Ash, a rare
    potion and Dr. Jelly's thanks (a recipe for free); it is not the floor's boss (no trapdoor). `?boss=serpent` and the dev
    menu's boss fights put it in a boss room, its own jelly poured round it.
+   *Built (2026-10-01)* as designed: `actors/jellySerpent.ts` (the fight), `actors/serpentLooks.ts` (the look),
+   `world/flood.ts` (which tiles a flood covers, pure), jelly pools in `world/pools.ts`, the vat in `world/laboratory.ts`.
+   Also fixed on the way: a boss put to rest from above half health no longer calls its helpers in its last step.
 8. **The Alchemist**: the Alchemist's Satchel and two more artifacts of the family, each showing on the mage; the
    Alchemist transformation (a bandolier of vials and a stained apron; thrown potions split in two).
 9. **Verdant** (the second half, planned here when step 8 is built): Overgrown, three spells, the five reactions that

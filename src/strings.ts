@@ -60,6 +60,8 @@ export const STR = {
     angler: { name: 'The Deep Angler', sub: 'Its light calls the dead astray', summon: 'The angler calls the dark', dead: "The angler's light goes out" },
     tiger: { name: 'The War-Tiger', sub: 'The Wardens set it at the vault, and it never left its post', summon: 'Its roar wakes the halls', dead: 'The tiger lies down at its post', plate: 'A plate falls' },
     dragon: { name: 'The Pillar Dragon', sub: "It coils where the Wardens' columns still stand", summon: 'The dragon calls the dark down', dead: 'The dragon slides from the columns at last', fall: 'Knocked down' },
+    serpent: { name: 'The Jelly Serpent', sub: "Dr. Jelly's pet, grown far too big for its vat", summon: "Its thrashing calls the halls' lights", dead: 'The serpent melts back into jelly',
+      shocked: 'Shocked through', frozen: 'Frozen in', stranded: 'Stranded' },
     twins: { name: 'The Twin Guardians', sub: 'They crouched in the towers of the Gate, and followed the Wardens down', summon: 'The guardians call the halls to arms', dead: 'The guardians are stone again', rage: 'The last guardian rages' },
   },
   banner: {
@@ -174,6 +176,13 @@ export const STR = {
     recipePrice: (price: number) => `${price} obols`, recipeKnownNote: 'Known',
     recipeBought: (a: string, b: string, name: string) => `Dr. Jelly whispers it: ${a} and ${b} make ${name}.`,
     jellyKind: 'The alchemist',
+    // M5 step 7: the jelly serpent's vat
+    cracks: ['A crack runs through the vat window. Dr. Jelly: "Careful! Careful with the glass!"', 'The crack spreads. Dr. Jelly: "Stop! It has been restless all week!"'],
+    stirs: 'Something stirs in the vat. Dr. Jelly: "Oh dear. It smelled the brew."',
+    out: 'The glass bursts and the jelly serpent pours out!', duck: 'Dr. Jelly ducks behind his table.',
+    thanks: (a: string, b: string, name: string) => `Dr. Jelly: "My poor pet! Well, a promise is a promise: ${a} and ${b} make ${name}."`,
+    thanksAll: 'Dr. Jelly: "My poor pet! I have no recipe left to teach you: take this for your trouble."',
+    emptyVat: 'The vat stands empty, its window boarded with cracked glass. Dr. Jelly: "Never again."',
   },
   alchemy: {
     unknown: 'Unknown potion', drink: 'Drunk', throw: 'Thrown', reagentKind: 'Reagent',
@@ -189,7 +198,7 @@ export const STR = {
     hexed: (n: number) => `Hexed −${n} mana`,
     free: (n: number) => `Free spells ×${n}`,
     label: { chill: 'Chilled', stone: 'Heavy as stone', dim: 'Sight dimmed', web: 'Webbed', ink: 'Ink-slowed', snag: 'Snagged',
-      slide: 'Sliding', drawn: 'Drawn in', sapped: 'Sapped',
+      slide: 'Sliding', drawn: 'Drawn in', sapped: 'Sapped', jelly: 'In jelly',
       // M5: what a potion drunk leaves on the mage
       ember: 'Liquid Ember', frost: 'Frostbrew', free: 'Free spells', echo: 'Echoing', giant: 'Giant', unseen: 'Unseen', reversed: 'Reversed', remedy: 'Remedied' } as Record<string, string>,
     why: {
@@ -202,6 +211,7 @@ export const STR = {
       snag: 'Cobwebs snag you. Fire burns them away.',
       slide: 'Rime underfoot: you slide. Fire melts it.',
       drawn: 'Something draws you towards it.',
+      jelly: 'Jelly drags at your legs, and a shock runs through it as through water. Frost sets it hard.',
       reversed: 'A hex in the bottle: your hands and feet go the wrong way until it wears off.',
       unseen: 'Darkness drinks you in: foes lose you, and nothing they throw finds you on purpose.',
     } as Record<string, string | undefined>,
@@ -696,7 +706,9 @@ export const STR = {
     /** M5: alchemy (Mage tab): each potion into the belt (its true name; the HUD shows it as the mage knows it), all laid
         out ahead, what is known, the belt used. */
     alchemy: 'Alchemy (potions into the belt; R drinks, hold R throws, F chooses)',
-    alchemyInfo: (belt: number, slots: number, known: number, all: number, brewed: number) => `Belt ${belt}/${slots} · known ${known}/${all} · brewed ever ${brewed}`,
+    alchemyInfo: (belt: number, slots: number, known: number, all: number, brewed: number, serpent: string, restless: boolean) => `Belt ${belt}/${slots} · known ${known}/${all} · brewed ever ${brewed} · the serpent ${serpent}${restless ? ', restless' : ''}`,
+    serpentState: { caged: 'in its vat', out: 'out', slain: 'slain' } as Record<string, string>,
+    crackVat: 'Crack the vat window', serpentOut: 'Let the jelly serpent out', restless: 'Restless serpent: on / off', noVat: 'No laboratory here, or its serpent is out already',
     potionsHere: 'Every potion here', identifyAll: 'Identify all', forgetPotions: 'Forget what is known (this run and brewed)',
     emptyBelt: 'Empty the belt', drinkChosen: 'Drink the chosen', throwChosen: 'Throw the chosen', reagentsAll: 'Each reagent ×3',
     reagentsOn: 'Reagents: every foe and object leaves one', reagentsOff: 'Reagents: now and then, as in play',

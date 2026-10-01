@@ -13,6 +13,7 @@ import { scene } from '../render/renderer';
 import { disposeTree } from '../render/materials';
 import { heroDie, heroHit } from '../actors/hero';
 import { endGame, onBossDead } from '../flow';
+import { serpentFell } from '../world/laboratory';
 import { banner, flashHurt, renderHearts, updateBossBar } from '../ui/hud';
 import { ringFx } from '../magic/spellFx';
 import { addDecal, burst } from './fx';
@@ -73,8 +74,8 @@ export function drink(e: Enemy, hp: number) {
   if (foundAffinity(e.foe!.id, 'resist')) { floatText(e.x, 1.5, e.z, STR.foes.drinks, SCHOOL_LIGHT[e.foe!.school]); Sfx.at(e.x, e.z).affinity(false); }
 }
 
-const GIB_COLOR: Record<keyof typeof CFG.enemy, number> = { rotling: 0x7f8a60, dummy: 0xc8a860, warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a, hart: 0xffe8b0, angler: 0x8a6ad8, tiger: 0xd8e8f4, dragon: 0xe07a2c, twins: 0xc2ae8a };
-const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = { rotling: 0x1d2414, dummy: null, warden: 0x2a0a06, abbess: 0x0c2622, pyre: 0x1a0c06, hart: 0x3a2e14, angler: 0x140c24, tiger: 0x1c2a36, dragon: 0x2a1a14, twins: 0x3a3226 };
+const GIB_COLOR: Record<keyof typeof CFG.enemy, number> = { rotling: 0x7f8a60, dummy: 0xc8a860, warden: 0xff6a3a, abbess: 0x6fe8d8, pyre: 0xff9a3a, hart: 0xffe8b0, angler: 0x8a6ad8, tiger: 0xd8e8f4, dragon: 0xe07a2c, twins: 0xc2ae8a, serpent: 0x7ae070 };
+const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = { rotling: 0x1d2414, dummy: null, warden: 0x2a0a06, abbess: 0x0c2622, pyre: 0x1a0c06, hart: 0x3a2e14, angler: 0x140c24, tiger: 0x1c2a36, dragon: 0x2a1a14, twins: 0x3a3226, serpent: 0x1e4a24 };
 /** What flies from a foe when it falls, and the stain it leaves: a foe in code's own (data/foes.json), else the old. */
 const gibOf = (e: Enemy) => e.foe ? new THREE.Color(e.foe.gib).getHex() : GIB_COLOR[e.type as EnemyType];
 const stainOf = (e: Enemy) => e.foe ? (e.foe.stain && new THREE.Color(e.foe.stain).getHex()) : STAIN_COLOR[e.type as EnemyType];
@@ -112,7 +113,8 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
   if (e.isBoss && e.twin && !e.twin.dead) { Sfx.at(e.x, e.z).boom(); G.shake = .45; twinFell(e.twin); } // (one twin down: the other fights on, raging)
   else if (e.isBoss) {
     for (const s of G.enemies) if (s.servant && !s.dead) killEnemy(s, true);
-    Sfx.at(e.x, e.z).boom(); G.shake = .55; onBossDead();
+    Sfx.at(e.x, e.z).boom(); G.shake = .55;
+    if (e.labBoss) serpentFell(e); else onBossDead(); // (M5: the jelly serpent out of its vat has its own rewards, and no trapdoor)
   } else { if (e.foe) Sfx.at(e.x, e.z).critterDie(); else Sfx.at(e.x, e.z).die(); G.shake = Math.max(G.shake, .08); }
 }
 

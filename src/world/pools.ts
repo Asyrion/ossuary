@@ -6,7 +6,8 @@
    while, crossed at full speed and conducting nothing, and fire melts it again. Flyers are above it all.
    M4.2 (from the Eda lore): a room's water can run (the template's `current`): it carries the mage and walking foes,
    bolts and shots flying over it, and pickups lying in it, downstream; frozen, it stops. A waterfall down the wall
-   upstream feeds it. */
+   upstream feeds it. M5: jelly (the jelly serpent's, `jelly` on a pool of water) is water that is green and slower to
+   wade; a shock runs through it and frost freezes it as through water. */
 import * as THREE from 'three';
 import { groundHears } from './groundHooks';
 import { chargeSteam, steamAt } from '../magic/steam';
@@ -27,7 +28,7 @@ import { blockers, collide } from './collision';
 import { fallRuns, type Flow } from './templates';
 
 const C = CFG.surface;
-const FIRE = 0xff7a2a, EMBER = 0xffc060, ICE = 0xbfe6ff, SPARK = 0xf0e890, WATER = 0x5a8a9a;
+const FIRE = 0xff7a2a, EMBER = 0xffc060, ICE = 0xbfe6ff, SPARK = 0xf0e890, WATER = 0x5a8a9a, JELLY = 0x7ae070;
 
 /** How each state looks: colour, glow, gloss and opacity over the floor. */
 const LOOK = {
@@ -36,9 +37,11 @@ const LOOK = {
   oil: { color: 0x3a2e20, emissive: 0x140e08, roughness: .55, metalness: .1, opacity: .92 }, // (dull brown: black read as a pit, a sharp glint as fire)
   burning: { color: 0x2a1208, emissive: 0xff6a1a, roughness: .7, metalness: 0, opacity: .96 },
   mud: { color: 0x4a3a28, emissive: 0x0c0804, roughness: .42, metalness: .12, opacity: .9 }, // (M4.9: drained by a sluice; brown and wet, never a pit's black)
+  jelly: { color: 0x3a9446, emissive: 0x0e3a16, roughness: .62, metalness: 0, opacity: .84 }, // (M5: the serpent's jelly, glowing a little green; dull, so a torch's glint doesn't read as fire)
+  frozenJelly: { color: 0xc4ecc8, emissive: 0x2a5a36, roughness: .2, metalness: .1, opacity: .9 },
 };
 function dress(p: Pool) {
-  const L = p.state === 'frozen' ? LOOK.frozen : p.state === 'burning' ? LOOK.burning : p.kind === 'water' ? p.mud ? LOOK.mud : LOOK.water : LOOK.oil;
+  const L = p.state === 'frozen' ? p.jelly ? LOOK.frozenJelly : LOOK.frozen : p.state === 'burning' ? LOOK.burning : p.kind === 'water' ? p.jelly ? LOOK.jelly : p.mud ? LOOK.mud : LOOK.water : LOOK.oil;
   const surface = p.state === 'frozen' ? p.mat.userData.ice as THREE.Texture : p.mat.userData.detail as THREE.Texture; // ice is cracked, not rippled
   if (surface && p.mat.map !== surface) { p.mat.map = surface; p.mat.emissiveMap = surface; }
   p.mat.color.setHex(L.color); p.mat.emissive.setHex(L.emissive); p.mat.roughness = L.roughness; p.mat.metalness = L.metalness; p.mat.opacity = L.opacity;
@@ -143,13 +146,14 @@ function flow(room: Room, f: Flow, dt: number) {
   }
 }
 
-/** A new pool poured into the room while it is played (a broken oil cask's spill): its tiles become the pool's. */
-export function addPool(room: Room, kind: Pool['kind'], tiles: { c: number; r: number }[]) {
+/** A new pool poured into the room while it is played (a broken oil cask's spill; M5: the jelly serpent's jelly, `jelly`):
+    its tiles become the pool's. */
+export function addPool(room: Room, kind: Pool['kind'], tiles: { c: number; r: number }[], o: { jelly?: boolean } = {}) {
   if (!tiles.length) return;
   const { minX, minZ } = room.bounds;
   room.pools ??= []; room.poolGrid ??= room.template.tiles.map(row => row.map(() => undefined));
   const { mesh, mat } = poolMesh(room, tiles);
-  const p: Pool = { kind, tiles: tiles.map(t => ({ ...t, x: minX + t.c + .5, z: minZ + t.r + .5 })), state: 'still', t: 0, charged: 0, tick: 0, mesh, mat };
+  const p: Pool = { kind, tiles: tiles.map(t => ({ ...t, x: minX + t.c + .5, z: minZ + t.r + .5 })), state: 'still', t: 0, charged: 0, tick: 0, mesh, mat, jelly: o.jelly };
   dress(p); room.group.add(mesh); room.pools.push(p);
   for (const t of tiles) { room.poolGrid[t.r][t.c] = p; room.template.tiles[t.r][t.c] = kind; }
   return p;
@@ -233,10 +237,15 @@ export function poolAt(x: number, z: number, room = G.current) {
   const p = room.poolGrid?.[Math.floor(z - room.bounds.minZ)]?.[Math.floor(x - room.bounds.minX)];
   return p && p.state !== 'spent' ? p : undefined;
 }
-/** How fast one can walk at (x, z): slower wading through water that isn't frozen. */
+/** How fast one can walk at (x, z): slower wading through water that isn't frozen, slower still through jelly (M5). */
 export function wadeAt(x: number, z: number) {
   const p = poolAt(x, z);
-  return p?.kind === 'water' && p.state === 'still' ? C.wade : 1;
+  return p?.kind === 'water' && p.state === 'still' ? p.jelly ? C.jellyWade : C.wade : 1;
+}
+/** M5: the jelly at (x, z) that isn't frozen, if any (the jelly serpent swims in it; the mage is held in it). */
+export function jellyAt(x: number, z: number, room = G.current) {
+  const p = poolAt(x, z, room);
+  return p?.jelly && p.state === 'still' ? p : undefined;
 }
 /** Pools with a tile within `r` of (x, z). */
 function poolsNear(x: number, z: number, r: number) {
@@ -340,7 +349,7 @@ export function updatePools(dt: number, now: number, acting: boolean) {
   }
   // wading
   if (acting && !player.stats.effects.has('float') && wadeAt(player.x, player.z) < 1 && Math.hypot(player.vx, player.vz) > 1 && (splashT -= dt) <= 0) {
-    splashT = .32; Sfx.wade(); burst(player.x, .08, player.z, WATER, 3, 1.2, .035);
+    splashT = .32; Sfx.wade(); burst(player.x, .08, player.z, poolAt(player.x, player.z)?.jelly ? JELLY : WATER, 3, 1.2, .035);
   }
 }
 

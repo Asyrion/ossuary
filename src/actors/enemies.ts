@@ -95,6 +95,7 @@ export function updateEnemies(dt: number) {
   const cur = G.current;
   const walls = blockers(cur, 'flyer'), solids = blockers(cur, 'walker');
   for (const e of G.enemies) {
+    if (e.dead) continue; // (put to rest since the last step, by a bolt or a dev hook: it acts no more, nor calls help)
     // frozen or stunned foes don't move or act; chilled ones move slower
     const acts = canAct(e.status) && !e.asleep, slow = speedFactor(e.status);
     if (acts) e.t += dt;

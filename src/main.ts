@@ -26,6 +26,8 @@ import { initScreens, showScreen } from './ui/screens';
 import { closeDev, devOpen, dropsHere, forceKinds, objectsHere, showAssetsHere, toggleDev, useAssets, useRoomKit } from './ui/devMenu';
 import type { Kinds } from './world/kitData';
 import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPad, openInventory } from './ui/inventory';
+import { serpentInfo } from './actors/jellySerpent';
+import { breakOut, crackVat } from './world/laboratory';
 import { brewAtTable, closeLab, initLab, labKey, labNow, labOpen, labPad, openLab, type LabTab } from './ui/alchemyTable';
 import { setHeroInfo, updateVision } from './ui/hud';
 import { giveById, removeArtifactGallery, showArtifactGallery } from './items/artifacts';
@@ -353,6 +355,12 @@ function installDevHooks() {
     // known; open or close the table, brew two reagents at it, buy a recipe, have Dr. Jelly look at a potion
     get lab() { const l = G.current.lab; return { ...labNow(), here: !!l, table: l && { ...l.table }, jelly: l && { x: l.jelly.x, z: l.jelly.z }, identified: l?.identified ?? false, recipes: knownRecipes() }; },
     openLab: (t: LabTab = 'brew') => openLab(t), closeLab: () => closeLab(),
+    // M5 step 7: the jelly serpent: its state, whether it is under, where, its trap, and the jelly in the room (tiles, frozen);
+    // the vat's cracks and whether it is broken; crack the vat window as a bolt does, or let the serpent out at once
+    get serpent() { const l = G.current.lab; return { ...serpentInfo(), run: G.run.serpent, restless: G.run.restless, cracks: l?.cracks ?? 0, broken: l?.broken ?? false }; },
+    crackVat: () => crackVat(), breakVat: () => !!breakOut(), set restless(on: boolean) { G.run.restless = on; },
+    /** Whether a trapdoor lies open on this floor (a floor's boss fell; the serpent out of its vat leaves none). */
+    get trapdoor() { return !!G.trapdoor; },
     brew: (a: ReagentId, b: ReagentId) => brewAtTable(a, b), buyRecipe: (id: PotionId) => buyRecipe(id), jellyIdentifies: (id: PotionId) => jellyIdentifies(id),
     identifyAll: () => { for (const id of POTION_IDS) identify(id); }, forgetPotions: () => { G.run.identified.length = 0; forgetBrews(); renderBelt(); },
     get blinkRest() { return blinkRest(); }, get robeTint() { return robeTint(); }, get moths() { return mothCount(); },
