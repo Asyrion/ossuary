@@ -22,6 +22,8 @@ export const STR = {
     spells: 'Spells', spellsKeys: 'Q and E', spellsPad: 'LB and RB', spellsTouch: '–',
     inventory: 'Inventory', inventoryKeys: 'I or Tab', inventoryPad: 'View', inventoryTouch: '–',
     blink: 'Blink (a Shadowstep\'s)', blinkKeys: 'Shift', blinkPad: 'Right trigger', blinkTouch: '–',
+    potion: 'Potion: tap to drink, hold to throw; choose', potionHotkeys: 'R; F', potionPad: 'D-pad up; left and right', potionTouch: '–',
+    /** The belt's own label (the HUD). */ potionKeys: 'R · F',
     dev: 'Dev menu', devKeys: '` / ^ or F2', devPad: '–', devTouch: '–',
   },
   chalk: { walk: 'walk', cast: 'cast', glyph: 'glyph', space: 'SPACE', touchMove: 'left thumb moves', touchShoot: 'right thumb shoots',
@@ -148,10 +150,24 @@ export const STR = {
   },
   /** What is being done to the mage (ui/afflictions.ts): the chips beside the mana bar, and the line said the first time
       each comes in a run (the sapping obelisk says its own). */
+  /** M5: potions and reagents (items/potions.ts, potionThrow.ts). */
+  alchemy: {
+    unknown: 'Unknown potion', drink: 'Drunk', throw: 'Thrown', reagentKind: 'Reagent',
+    kind: (bad?: boolean) => bad ? 'Potion (better thrown)' : 'Potion',
+    leans: (s: string) => `Brews towards ${s.toLowerCase()}`,
+    identified: (name: string) => `You know it now: ${name}.`,
+    empty: 'Your belt is empty. Potions are found in the dungeon, or brewed from reagents.',
+    full: 'Your belt is full: drink or throw one to make room.',
+    noCurse: 'Bitter, and nothing to cure: no curse holds you.',
+    remedied: (name: string) => `The ${name}'s price is lifted until the floor ends.`,
+  },
   afflict: {
     hexed: (n: number) => `Hexed −${n} mana`,
+    free: (n: number) => `Free spells ×${n}`,
     label: { chill: 'Chilled', stone: 'Heavy as stone', dim: 'Sight dimmed', web: 'Webbed', ink: 'Ink-slowed', snag: 'Snagged',
-      slide: 'Sliding', drawn: 'Drawn in', sapped: 'Sapped' } as Record<string, string>,
+      slide: 'Sliding', drawn: 'Drawn in', sapped: 'Sapped',
+      // M5: what a potion drunk leaves on the mage
+      ember: 'Liquid Ember', frost: 'Frostbrew', free: 'Free spells', echo: 'Echoing', giant: 'Giant', unseen: 'Unseen', reversed: 'Reversed', remedy: 'Remedied' } as Record<string, string>,
     why: {
       hexed: 'A hexed blow drew mana out of you.',
       chill: 'Cold in your bones: you move slower until it thaws.',
@@ -162,6 +178,8 @@ export const STR = {
       snag: 'Cobwebs snag you. Fire burns them away.',
       slide: 'Rime underfoot: you slide. Fire melts it.',
       drawn: 'Something draws you towards it.',
+      reversed: 'A hex in the bottle: your hands and feet go the wrong way until it wears off.',
+      unseen: 'Darkness drinks you in: foes lose you, and nothing they throw finds you on purpose.',
     } as Record<string, string | undefined>,
   },
   toast: {
@@ -404,6 +422,14 @@ export const STR = {
         name: 'Hallowed soul mote', kind: 'Soul', effect: 'Takes a hit only when no other mote is left; each floor it lives through gives back half a heart',
         lore: 'A pilgrim who died with a prayer still on their lips. It goes last, as the faithful always did, and at every stair down it gives a little of its warmth to you.',
       },
+      potion: {
+        name: 'Unknown potion', kind: 'Potion', effect: 'Tap R to drink it, or hold R and let go to throw it where you aim; once used, you know it',
+        lore: 'Stoppered by someone who knew what it was. The bottles change with every descent: only drinking, throwing or an alchemist tells them apart.',
+      },
+      reagent: {
+        name: 'Reagent', kind: 'Reagent', effect: 'Kept in your pouch; two brew a potion at an alchemy table',
+        lore: 'What the dungeon leaves of what it kills, and of what grows in it.',
+      },
       shard: {
         name: 'Lodestone shard', kind: 'Magic', effect: 'Ends every spell\'s cooldown and restores 25 mana; left lying while your spells are ready and your mana full',
         lore: 'A splinter of the stones the Wardens set in the vault walls to hold the old wards. It still pulls: at magic, at breath, at whatever the mage has spent.',
@@ -431,7 +457,16 @@ export const STR = {
   /** The inventory (I or Tab, the gamepad's View button, or from the pause menu): what the mage carries and knows. */
   inv: {
     title: 'Inventory',
-    tabs: { artifacts: 'Artifacts', spells: 'Spells', items: 'Items', mage: 'The mage', foes: 'Foes' } as Record<string, string>,
+    tabs: { artifacts: 'Artifacts', spells: 'Spells', potions: 'Potions', items: 'Items', mage: 'The mage', foes: 'Foes' } as Record<string, string>,
+    /** The Potions tab (M5): the belt, the pouch of reagents, and every potion known (this run, or ever brewed). */
+    potions: {
+      belt: 'Belt', pouch: 'Reagents', known: 'Potions known', chosen: 'Chosen', slot: (n: number) => `Belt slot ${n}`,
+      emptySlot: 'Empty', emptyText: 'Potions are found in fights, coffers and chests. Tap R to drink the chosen one, hold R to throw it, F to choose another.',
+      unknownText: 'Drink it or throw it to learn what it is: once you know it, every bottle of it shows its name until the run ends. A potion you have brewed is known in every run.',
+      sealed: 'Not known yet', sealedText: 'A potion you have not identified. Its bottle looks different every run.',
+      knownHow: (brewed: boolean) => brewed ? 'Known from your own brewing' : 'Identified this run',
+      noReagents: 'No reagents yet. Foes and broken things leave them; they are brewed into potions.', held: (n: number) => `${n} held`,
+    },
     /** The Foes tab (M4.7): every foe met, what was found of it, its counters found and sealed (kept between runs). */
     foes: {
       floor: (n: number) => n ? `Floor ${n}` : 'From the wards', bosses: 'Bosses',
@@ -620,7 +655,7 @@ export const STR = {
     give: (n: number, what: string) => `+${n} ${what}${n === 1 ? '' : 's'}`,
     names: { coins: 'obol', keys: 'key', glyphs: 'glyph' } as Record<string, string>,
     drops: 'Drop ahead of the mage', gildedChest: 'Gilded chest', loreAgain: 'Describe items again', loreAgainTitle: 'Items and containers show their lore card again the next time one is taken',
-    dropNames: { halfHeart: 'Half heart', heart: 'Heart', coin: 'Obol', purse: 'Purse', key: 'Bone key', glyph: 'Glyph stone', mana: 'Mana vial', paleSoul: 'Pale soul mote', blackSoul: 'Black soul mote', hallowedSoul: 'Hallowed soul mote', shard: 'Lodestone shard', coffer: 'Coffer', chest: 'Reliquary chest' } as Record<string, string>,
+    dropNames: { halfHeart: 'Half heart', heart: 'Heart', coin: 'Obol', purse: 'Purse', key: 'Bone key', glyph: 'Glyph stone', mana: 'Mana vial', paleSoul: 'Pale soul mote', blackSoul: 'Black soul mote', hallowedSoul: 'Hallowed soul mote', shard: 'Lodestone shard', potion: 'Potion (dealt at random)', reagent: 'Reagent (at random)', coffer: 'Coffer', chest: 'Reliquary chest' } as Record<string, string>,
     spells: 'Spells (click to learn into the slot)', slot: 'Slot', mana: 'Mana', fullMana: 'Full mana', manaOn: 'Endless mana: on', manaOff: 'Endless mana: off', forget: 'Forget spells',
     page: 'Drop a grimoire page', noPage: 'No spell left to learn',
     themes: 'Themed rooms (a test room of each)', objects: 'Objects (put down ahead)', noRoom: 'No free floor there',
@@ -633,6 +668,13 @@ export const STR = {
     lureTest: 'Lure test: fire, webs and rime between you and wolves and a golem',
     findCounters: 'Find every counter',
     pairs: 'Pairs (M4.7; a fight may roll one, the two made to work together), ahead of you:',
+    /** M5: alchemy (Mage tab): each potion into the belt (its true name; the HUD shows it as the mage knows it), all laid
+        out ahead, what is known, the belt used. */
+    alchemy: 'Alchemy (potions into the belt; R drinks, hold R throws, F chooses)',
+    alchemyInfo: (belt: number, slots: number, known: number, all: number, brewed: number) => `Belt ${belt}/${slots} · known ${known}/${all} · brewed ever ${brewed}`,
+    potionsHere: 'Every potion here', identifyAll: 'Identify all', forgetPotions: 'Forget what is known (this run and brewed)',
+    emptyBelt: 'Empty the belt', drinkChosen: 'Drink the chosen', throwChosen: 'Throw the chosen', reagentsAll: 'Each reagent ×3',
+    reagentsOn: 'Reagents: every foe and object leaves one', reagentsOff: 'Reagents: now and then, as in play',
     afflictions: 'Afflictions (each shows its chip beside the mana bar)', afflictNames: { hexed: 'A hexing blow', chill: 'Chill', stone: 'Heavy as stone', dim: 'Dimmed sight', hints: 'Their lines again' },
     wardFoe: 'Ward the nearest foe (it drinks spells)', costumes: 'Costumes', costumesTry: 'Try a piece on (as if held; again to take it off)', takeAllOff: 'Take all off', closeUp: 'Close-up on the mage',
     costumeAt: (spot: string) => `Worn: ${spot}`, costumeHeld: 'Held in the casting hand',
@@ -660,7 +702,7 @@ export const STR = {
     keep: ' Keep artifacts, obols, keys and glyphs when starting',
   },
   /** What a merchant's ware is called in messages. */
-  wares: { heart: 'heart', halfHeart: 'half heart', key: 'bone key', glyph: 'glyph stone', coin: 'obol', purse: 'purse', mana: 'mana vial', paleSoul: 'pale soul mote', blackSoul: 'black soul mote', hallowedSoul: 'hallowed soul mote', shard: 'lodestone shard', map: "the crow's map", secret: "the crow's secret" } as Record<string, string>,
+  wares: { heart: 'heart', halfHeart: 'half heart', key: 'bone key', glyph: 'glyph stone', coin: 'obol', purse: 'purse', mana: 'mana vial', paleSoul: 'pale soul mote', blackSoul: 'black soul mote', hallowedSoul: 'hallowed soul mote', shard: 'lodestone shard', potion: 'potion', reagent: 'reagent', map: "the crow's map", secret: "the crow's secret" } as Record<string, string>,
   heroInfo: (label: string, tris: number, stripped: boolean, skinned: boolean, clips: string) =>
     `${label}: ${tris.toLocaleString()} triangles${stripped ? ', base removed' : ''}` +
     `${skinned ? ', rigged' : ', static (procedural animation)'}${clips ? `. Clips used: ${clips}` : ''}.`,

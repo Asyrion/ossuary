@@ -17,6 +17,8 @@ import { renderMinimap, toast } from '../ui/hud';
 import { WARD_COLOR as WARD } from '../world/rooms';
 import { grantArtifact, makeArtifactVisual, offerGuaranteed } from './artifacts';
 import { cantUse, giveResources, itemVisual, useItem } from './pickups';
+import { COMMON_REAGENTS, REAGENTS, pickPotion, type PotionId, type ReagentId } from './alchemyData';
+import { addPotion, addReagent, potionName } from './potions';
 import { soulsHere } from './souls';
 import { itemLore, type LoreItem } from '../ui/lore';
 import { LOOT, priceOf, rollWares, type Item, type Ware } from './loot';
@@ -118,15 +120,17 @@ export function buildShop(room: Room) {
 export function layWare(room: Room, ware: Ware, def: ArtifactDef | undefined, x: number, z: number, price: number): WareSpot {
   const g = new THREE.Group(); g.position.set(x - room.cx, 0, z - room.cz);
   const circle = wardCircle();
-  const item = ware === 'artifact' ? makeArtifactVisual(def!) : ware === 'map' || ware === 'secret' ? crowWareLook(ware) : itemVisual(ware);
+  // (M5: which potion or reagent it is, dealt from the shop's stream)
+  const potion = ware === 'potion' ? pickPotion(G.run.loot) : undefined, reagent = ware === 'reagent' ? COMMON_REAGENTS[G.run.loot.int(0, COMMON_REAGENTS.length - 1)] : undefined;
+  const item = ware === 'artifact' ? makeArtifactVisual(def!) : ware === 'map' || ware === 'secret' ? crowWareLook(ware) : itemVisual(ware, potion ?? reagent);
   if (ware !== 'artifact') item.scale.multiplyScalar(1.35);
   const tag = coinTag(price); tag.position.y = 1.85;
   g.add(circle, item, tag); room.group.add(g);
-  return { ware, def, price, x, z, g, item, circle, tag, tagPrice: price, sold: false, armed: true };
+  return { ware, def, price, x, z, g, item, circle, tag, tagPrice: price, sold: false, armed: true, potion, reagent };
 }
 
 /** What he says when the mage couldn't use a ware now. */
-const REFUSE = { whole: () => STR.toast.wareWhole, brimming: () => STR.toast.wareBrimming, full: () => STR.toast.wareFull, souls: () => STR.toast.wareSouls, idle: () => STR.toast.wareIdle };
+const REFUSE = { whole: () => STR.toast.wareWhole, brimming: () => STR.toast.wareBrimming, full: () => STR.toast.wareFull, souls: () => STR.toast.wareSouls, idle: () => STR.toast.wareIdle, belt: () => STR.alchemy.full };
 function refuse(w: WareSpot, msg: string) {
   toast(msg, 3.2); Sfx.refuse();
   if (w.circle) burst(w.x, .2, w.z, WARD, 6, 1.2, .04);
@@ -155,6 +159,8 @@ function buy(w: WareSpot) {
       return;
     }
   } else if (w.ware === 'map' || w.ware === 'secret') crowTells(w.ware);
+  else if (w.potion) { addPotion(w.potion as PotionId); toast(STR.toast.bought(potionName(w.potion as PotionId)), 2.5); } // (M5: into the belt; its card the first time)
+  else if (w.reagent) { addReagent(w.reagent as ReagentId); toast(STR.toast.bought(REAGENTS[w.reagent as ReagentId].name), 2.5); }
   else {
     useItem(w.ware as Item);
     toast(STR.toast.bought(STR.wares[w.ware]), 2.5); itemLore(w.ware as LoreItem);

@@ -20,6 +20,8 @@ export type Effect = 'pitWalker' | 'fullHeal' | 'deathBurst' | 'hurtRing' | 'roc
   | 'emberBolts' | 'vigil' | 'frostbite' | 'stormglass' | 'thurible' | 'witchKnot' | 'noRegen'
   | 'lodestar' | 'stillCandles' | 'choir' | 'echo' | 'bloodMoon' | 'saltCircle' | 'halo' | 'soulLantern' | 'antler'
   | 'gravemonger' | 'noClearHearts' | 'dearHearts' | 'lastRite'
+  /** M5: the Alchemist's Satchel's (one more potion in the belt). */
+  | 'satchel'
   /** Transformations' gifts (M4.6, items/transformData.ts): not on artifacts, added when one forms. */
   | 'emberStrike' | 'frostTouch' | 'stormLeap' | 'float' | 'blink' | 'runeBurst' | 'pilgrimPath' | 'beastcaller';
 /** Additive unless the name ends in Mul (multiplied). `obolDamage` is cantrip damage per ten obols held;
@@ -101,7 +103,8 @@ export const halveStat = (k: StatKey, v: number) => k.endsWith('Mul') ? 1 + (v -
 
 /** The mage's stats for a focus plus the other artifacts held (in pickup order); cursed artifacts in
     `cleansed` have lost their price and half their gift. `coins` (obols held) matters to the Miser's Purse. */
-export function computeStats(focusId: string, itemIds: readonly string[], base: BaseStats, cleansed: readonly string[] = [], coins = 0): Stats {
+/** `lifted`: curses whose price is lifted for now with their gift kept whole (M5: a Bitter Remedy, until the floor ends). */
+export function computeStats(focusId: string, itemIds: readonly string[], base: BaseStats, cleansed: readonly string[] = [], coins = 0, lifted: readonly string[] = []): Stats {
   const focus = artifact(focusId); const pattern = focusPattern(focus);
   const add: Record<StatKey, number> = { damage: 0, damageMul: 1, fireDelayMul: 1, speed: 0, speedMul: 1, boltScale: 0, hearts: 0, invuln: 0, pierce: 0, shotSpeedMul: 1, rangeMul: 1, knockbackMul: 1, obolDamage: 0, blastMul: 1, mana: 0, spellDamageMul: 1, killMana: 0 };
   const effects = new Set<Effect>(); let boltColor = DEFAULT_BOLT_COLOR;
@@ -115,7 +118,7 @@ export function computeStats(focusId: string, itemIds: readonly string[], base: 
     };
     apply(def.stats, clean);
     for (const e of def.effects ?? []) effects.add(e);
-    if (def.curse && !clean) { apply(def.curse.stats); for (const e of def.curse.effects ?? []) effects.add(e); }
+    if (def.curse && !clean && !lifted.includes(id)) { apply(def.curse.stats); for (const e of def.curse.effects ?? []) effects.add(e); }
     if (def.boltColor) boltColor = parseInt(def.boltColor.slice(1), 16);
   }
   // the Miser's Purse: harder bolts, turning gold, for every ten obols held

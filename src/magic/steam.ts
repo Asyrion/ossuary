@@ -28,16 +28,17 @@ const CHAIN: Record<Charge, 'thundercloud' | 'incense' | 'miasma'> = { storm: 't
 const TINT: Record<Charge, number> = { storm: 0xf4eeb0, hallow: 0xffe8a8, umbral: 0x5a4078 };
 const clouds: Cloud[] = [];
 
-/** A cloud of steam at (x, z) in the current room, `r` across (the reaction's, by default), for `time` seconds. */
-export function steamAt(x: number, z: number, r = S.radius, time = S.time) {
-  const room = G.current, mat = new THREE.SpriteMaterial({ map: glowTex, color: 0xe8f2f8, transparent: true, opacity: 0, depthWrite: false });
+/** A cloud of steam at (x, z) in the current room, `r` across (the reaction's, by default), for `time` seconds. M5: a
+    `dark` one (a thrown Shadowstep Tincture) is darkness, not steam: foes in it can't aim either, but water keeps still. */
+export function steamAt(x: number, z: number, r = S.radius, time = S.time, dark = false) {
+  const room = G.current, mat = new THREE.SpriteMaterial({ map: glowTex, color: dark ? 0x2a1a40 : 0xe8f2f8, transparent: true, opacity: 0, depthWrite: false });
   const puffs = Array.from({ length: PUFFS }, (_, i) => {
     const s = new THREE.Sprite(mat), a = i / PUFFS * Math.PI * 2, d = r * (.25 + .45 * ((i * 37) % 7) / 7);
     s.position.set(x + Math.cos(a) * d, .5 + (i % 3) * .35, z + Math.sin(a) * d); s.scale.setScalar(r * 1.1); s.renderOrder = 6;
     s.userData.rise = .15 + (i % 4) * .06; scene.add(s); return s;
   });
   clouds.push({ room, x, z, r, t: time, life: time, puffs, mat });
-  groundHears('steam', x, z, r); // (scalded water: what hides in it comes up)
+  if (!dark) groundHears('steam', x, z, r); // (scalded water: what hides in it comes up)
 }
 
 /** A school lands at (x, z) (M4.10): a cloud there not yet charged takes it: Storm makes it a thundercloud, Hallow incense,

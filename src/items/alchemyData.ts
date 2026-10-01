@@ -43,6 +43,8 @@ export const POTIONS = Object.fromEntries(Object.entries(D.potions).map(([id, p]
 export const POTION_IDS = Object.keys(POTIONS) as PotionId[];
 export const REAGENTS = Object.fromEntries(Object.entries(D.reagents).map(([id, r]) => [id, { id, ...r }])) as Record<ReagentId, ReagentDef>;
 export const REAGENT_IDS = Object.keys(REAGENTS) as ReagentId[];
+/** The reagents a shop or a dealt drop may be: all but the rare (Warden's Ash, which only bosses leave). */
+export const COMMON_REAGENTS = REAGENT_IDS.filter(r => !REAGENTS[r].rare);
 export const RECIPES: readonly Recipe[] = D.recipes;
 export const BOTTLE_SHAPES = D.bottles.shapes;
 export const isPotion = (id: string): id is PotionId => id in POTIONS;
@@ -73,7 +75,7 @@ export function validateAlchemy(d = D): string[] {
   }
   for (const id of potions) if (id !== 'volatile' && !d.recipes.some(r => r.makes === id)) errs.push(`potion ${id}: no recipe`);
   for (const [k, v] of [...Object.entries(d.sources.schools), ...Object.entries(d.sources.foes), ...Object.entries(d.sources.objects), ['boss', d.sources.boss]]) if (!reagents.includes(v)) errs.push(`source ${k}: ${v} is no reagent`);
-  if (d.bottles.shapes.length * d.bottles.liquids.length < potions.length) errs.push('too few bottles for the potions');
+  if (d.bottles.liquids.length < potions.length) errs.push('too few liquid colours: each potion has its own');
   if (d.bottles.liquids.some(c => !/^#[0-9a-f]{6}$/i.test(c))) errs.push('bottle liquid colours');
   return errs;
 }
@@ -89,18 +91,17 @@ export function brew(a: ReagentId, b: ReagentId): { potion: PotionId; recipe: bo
   return r ? { potion: r.makes, recipe: true } : { potion: 'volatile', recipe: false };
 }
 
-/** A run's bottles: each potion a shape and a liquid colour, no two alike, shuffled on the run's seed (so the same seed
-    deals the same bottles, as Isaac's pills). */
+/** A run's bottles: each potion a shape and a liquid colour, no two of them the same colour, the shapes dealt as evenly as
+    they go (twelve potions over six shapes: two of each), shuffled on the run's seed (so the same seed deals the same
+    bottles, as Isaac's pills). */
 export interface Bottle { shape: string; liquid: string }
 export function bottlesFor(seed: number): Record<PotionId, Bottle> {
-  const rng = new Rng(seed ^ 0xb077e5), all: Bottle[] = [];
-  for (const shape of BOTTLE_SHAPES) for (const liquid of D.bottles.liquids) all.push({ shape, liquid });
-  for (let i = all.length - 1; i > 0; i--) { const j = rng.int(0, i); [all[i], all[j]] = [all[j], all[i]]; }
-  // (shapes spread first: a run deals as many shapes as it can before it repeats one)
-  const byShape = BOTTLE_SHAPES.map(s => all.filter(b => b.shape === s)), dealt: Bottle[] = [];
-  for (let k = 0; dealt.length < POTION_IDS.length; k++) for (const list of byShape) if (list[k] && dealt.length < POTION_IDS.length) dealt.push(list[k]);
-  const order = POTION_IDS.slice(); for (let i = order.length - 1; i > 0; i--) { const j = rng.int(0, i); [order[i], order[j]] = [order[j], order[i]]; }
-  return Object.fromEntries(order.map((id, i) => [id, dealt[i]])) as Record<PotionId, Bottle>;
+  const rng = new Rng(seed ^ 0xb077e5), n = POTION_IDS.length;
+  const shuffle = <T>(a: T[]) => { for (let i = a.length - 1; i > 0; i--) { const j = rng.int(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const liquids = shuffle(D.bottles.liquids.slice()).slice(0, n);
+  const shapes = shuffle(Array.from({ length: n }, (_, i) => BOTTLE_SHAPES[i % BOTTLE_SHAPES.length]));
+  const order = shuffle(POTION_IDS.slice());
+  return Object.fromEntries(order.map((id, i) => [id, { shape: shapes[i], liquid: liquids[i] }])) as Record<PotionId, Bottle>;
 }
 
 /** Whether a potion shows what it is: identified this run (drunk, thrown, at a table), or ever brewed (kept between runs). */

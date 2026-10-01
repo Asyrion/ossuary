@@ -26,6 +26,9 @@ import { offerBeyondBudget, placeArtifact, refreshStats } from './artifacts';
 import { itemLore, type LoreItem } from '../ui/lore';
 import { gainMana } from '../magic/spells';
 import { containerLook, itemLook } from './pickupLooks';
+import { bottleLook, reagentLook } from './alchemyLooks';
+import { COMMON_REAGENTS, pickPotion, type PotionId, type ReagentId } from './alchemyData';
+import { addPotion, addReagent, beltSlots } from './potions';
 
 const GOLD = 0xffd27a;
 export const isContainer = (kind: Drop): kind is 'coffer' | 'chest' => kind === 'coffer' || kind === 'chest';
@@ -74,8 +77,11 @@ function makeParts() {
   };
 }
 
-/** How an item looks, on the floor or floating over a merchant's ward circle (the room kit's: pickupLooks.ts). */
-export function itemVisual(kind: Item): THREE.Object3D {
+/** How an item looks, on the floor or floating over a merchant's ward circle (the room kit's: pickupLooks.ts). A potion
+    is its bottle as this run deals it (`id` names the potion), a reagent its own (M5, alchemyLooks.ts). */
+export function itemVisual(kind: Item, id?: string): THREE.Object3D {
+  if (kind === 'potion') return bottleLook(G.run.bottles[(id ?? 'healing') as PotionId]);
+  if (kind === 'reagent') return reagentLook((id ?? 'graveMoss') as ReagentId);
   if (DEV.roomKit || isSoul(kind) || kind === 'shard') return itemLook(kind); // (M4.1's items have only the kit's look)
   const P = parts ??= makeParts();
   if (kind === 'heart' || kind === 'halfHeart') {
@@ -131,8 +137,9 @@ function containerVisual(kind: 'coffer' | 'chest', gilded = false): { g: THREE.O
 /** Drop something on the floor at (x, z): it falls in from above, or rises out of a broken urn (`rise`).
     A coffer or a chest is filled when it appears; a chest is gilded by chance unless `gilded` says. A mana vial
     becomes an obol while the mage knows no spell (nothing would spend its mana), as does a lodestone shard, unless `asIs`
-    (the dev menu). */
-export function spawnPickup(kind: Drop, x: number, z: number, opts: { rise?: boolean; gilded?: boolean; asIs?: boolean } = {}) {
+    (the dev menu). M5: a potion is dealt from the run's alchemy stream unless `potion` names it; a reagent is one at random
+    unless `reagent` does. */
+export function spawnPickup(kind: Drop, x: number, z: number, opts: { rise?: boolean; gilded?: boolean; asIs?: boolean; potion?: PotionId; reagent?: ReagentId } = {}) {
   if ((kind === 'mana' || kind === 'shard') && !opts.asIs && !player.spells.some(Boolean)) kind = 'coin';
   const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
   if (isContainer(kind)) {
@@ -141,8 +148,10 @@ export function spawnPickup(kind: Drop, x: number, z: number, opts: { rise?: boo
     G.pickups.push({ kind, x, z, r: .4, g, m: v.g, t: 0, drop: .5, contents: gilded ? [] : rollTable(G.run.drops, kind, LOOT, soulsHere()), lid: v.lid, ward: v.ward, armed: true, gilded });
     return;
   }
-  const m = itemVisual(kind); m.position.y = .35; g.add(m, blob(.55));
-  const p: Pickup = { kind, x, z, r: .3, g, m, t: Math.random() * 6, drop: .5 };
+  const potion = kind === 'potion' ? opts.potion ?? pickPotion(G.run.alchemy) : undefined;
+  const reagent = kind === 'reagent' ? opts.reagent ?? COMMON_REAGENTS[G.run.alchemy.int(0, COMMON_REAGENTS.length - 1)] : undefined;
+  const m = itemVisual(kind, potion ?? reagent); m.position.y = .35; g.add(m, blob(.55));
+  const p: Pickup = { kind, x, z, r: .3, g, m, t: Math.random() * 6, drop: .5, potion, reagent };
   if (opts.rise) { p.rise = glow(0xd8e6ff, .8, .8); p.rise.position.y = .2; g.add(p.rise); p.drop = .6; }
   G.pickups.push(p);
 }
@@ -195,16 +204,20 @@ export function resetResources() { for (const k of RESOURCES) player[k] = LOOT.s
 const SOUND: Record<Item, () => void> = {
   halfHeart: () => Sfx.pickup(), heart: () => Sfx.pickup(), coin: () => Sfx.coin(), purse: () => Sfx.coin(true), key: () => Sfx.key(), glyph: () => Sfx.glyphPickup(), mana: () => Sfx.manaVial(),
   paleSoul: () => Sfx.soulTake(), blackSoul: () => Sfx.soulTake(), hallowedSoul: () => Sfx.soulTake(), shard: () => Sfx.shard(),
+  potion: () => Sfx.bottle(), reagent: () => Sfx.reagent(),
 };
 const SPARK: Record<Item, number> = {
   halfHeart: 0xe0473a, heart: 0xe0473a, coin: 0xffd27a, purse: 0xffd27a, key: 0xf0e6cc, glyph: 0xff9a3a, mana: 0x6fa8ff,
   paleSoul: SOUL_COLOR.pale, blackSoul: SOUL_COLOR.black, hallowedSoul: SOUL_COLOR.hallowed, shard: 0x7aa8ff,
+  potion: 0xd8e8f0, reagent: 0x9ac070,
 };
 
 /** Why the mage can't use an item now (the merchant says it too), or null when they can: whole, brimming with mana,
-    at the cap, holding all the soul motes they can keep, or with nothing a shard could give. */
-export function cantUse(kind: Item): 'whole' | 'brimming' | 'full' | 'souls' | 'idle' | null {
+    at the cap, holding all the soul motes they can keep, with nothing a shard could give, or (M5) a full belt. */
+export function cantUse(kind: Item): 'whole' | 'brimming' | 'full' | 'souls' | 'idle' | 'belt' | null {
   const v = dropValue(kind);
+  if (v.potion) return player.belt.length >= beltSlots() ? 'belt' : null;
+  if (v.reagent) return null; // (the pouch holds any number)
   if (v.hearts) return player.hp >= player.maxHp ? 'whole' : null;
   if (v.mana) return player.mana >= player.stats.maxMana ? 'brimming' : null;
   if (v.soul) return player.souls.length >= CFG.souls.max ? 'souls' : null;
@@ -227,6 +240,10 @@ export function useItem(kind: Item) {
     below the most kept, a shard while a spell cools down or mana is short. */
 function take(p: Pickup, kind: Item) {
   if (cantUse(kind)) return false;
+  if (kind === 'potion' || kind === 'reagent') { // (M5: into the belt or the pouch, with its own card the first time)
+    if (p.potion) addPotion(p.potion as PotionId); else if (p.reagent) addReagent(p.reagent as ReagentId);
+    SOUND[kind](); burst(p.x, .4, p.z, SPARK[kind], 8, 2, .05); return true;
+  }
   useItem(kind);
   const coins = dropValue(kind).coins; if (coins) { G.stats.obols += coins; goldTaken(G.current); } // for the end screen; a treasury's guardians wake
   SOUND[kind](); burst(p.x, .4, p.z, SPARK[kind], 8, 2, .05);
@@ -234,9 +251,9 @@ function take(p: Pickup, kind: Item) {
   return true;
 }
 
-/** A heart at full health, a mana vial at full mana, a soul mote with all the motes kept, a shard with nothing to give:
-    say so, once a run for each. */
-const HINTS = { whole: () => STR.toast.fullHealth, brimming: () => STR.toast.fullMana, souls: () => STR.toast.fullSouls, idle: () => STR.toast.shardIdle };
+/** A heart at full health, a mana vial at full mana, a soul mote with all the motes kept, a shard with nothing to give, a
+    potion with the belt full: say so, once a run for each. */
+const HINTS = { whole: () => STR.toast.fullHealth, brimming: () => STR.toast.fullMana, souls: () => STR.toast.fullSouls, idle: () => STR.toast.shardIdle, belt: () => STR.alchemy.full };
 function hintFull(kind: Item) {
   const why = cantUse(kind);
   if (!why || why === 'full' || G.run.hinted.has(why)) return;

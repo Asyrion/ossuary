@@ -17,6 +17,7 @@ import { slipAt, stickyAt } from './bestiaryGround';
 import { checkVaultDoors } from '../world/vault';
 import { descend, tryTransition } from '../flow';
 import { blink, updateGifts } from '../items/gifts';
+import { choosePotion, potionSpeedMul, usePotion } from '../items/potions';
 import { clamp, lerp } from '../util';
 
 export function updatePlayer(dt: number) {
@@ -32,7 +33,7 @@ export function updatePlayer(dt: number) {
     }
   }
   const k = 1 - Math.exp(-(cur.theme?.twist === 'rime' ? CFG.mech.rimeGrip : slipAt(player.x, player.z) ? CFG.bestiary.rimeGrip : 14) * dt); // rime underfoot (the frozen mausoleum's, a rime snail's trail): the mage slides
-  const st = player.stats, speed = st.speed * (st.effects.has('float') ? 1 : wadeAt(player.x, player.z)) * snagAt(player.x, player.z) * stickyAt(player.x, player.z) * (player.chill > 0 ? 1 - CFG.afflict.chillSlow : 1) * (player.stone > 0 ? CFG.bestiary.gazeSlow : 1); // slower wading through water (unless floating: M4.6), or cobwebs, a spider's web or ink (M4.5), or chilled, or in a basilisk's stare
+  const st = player.stats, speed = st.speed * (st.effects.has('float') ? 1 : wadeAt(player.x, player.z)) * snagAt(player.x, player.z) * stickyAt(player.x, player.z) * (player.chill > 0 ? 1 - CFG.afflict.chillSlow : 1) * (player.stone > 0 ? CFG.bestiary.gazeSlow : 1) * potionSpeedMul(); // slower wading through water (unless floating: M4.6), or cobwebs, a spider's web or ink (M4.5), or chilled, or in a basilisk's stare; M5: quicker under the Frostbrew, slower as a giant
   player.vx = lerp(player.vx, mv.x * speed, k); player.vz = lerp(player.vz, mv.z * speed, k);
   if (Math.hypot(player.pull.x, player.pull.z) > CFG.afflict.drawnMin) player.drawn = CFG.afflict.drawnShow; // (shown beside the mana bar)
   player.x += (player.vx + player.pull.x) * dt; player.z += (player.vz + player.pull.z) * dt; player.pull.x = player.pull.z = 0; // (a lure's draw: spent each step)
@@ -50,6 +51,9 @@ export function updatePlayer(dt: number) {
   updateGifts(dt);
   // a spell key answers a grimoire page's question, if one is asking; otherwise it casts
   for (const i of [0, 1]) if (pressed.spells[i]) { pressed.spells[i] = false; if (!answerPage(i)) castSpell(i, aim); }
+  // M5: the potion belt (a tap drinks the chosen potion, a hold throws it; another key chooses)
+  if (pressed.nextPotion) { choosePotion(pressed.nextPotion); pressed.nextPotion = 0; }
+  if (pressed.potion) { usePotion(pressed.potion); pressed.potion = null; }
   if (player.invuln > 0) player.invuln -= dt;
   if (player.dim > 0) player.dim = Math.max(0, player.dim - dt);
   if (player.chill > 0) player.chill = Math.max(0, player.chill - dt);

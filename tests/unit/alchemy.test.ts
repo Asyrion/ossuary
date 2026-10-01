@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { BOTTLE_SHAPES, POTIONS, POTION_IDS, RECIPES, REAGENT_IDS, bottlesFor, brew, isKnown, pairKey, pickPotion, reagentFor, recipeFor, validateAlchemy } from '../../src/items/alchemyData';
+import { BOTTLE_SHAPES, COMMON_REAGENTS, POTIONS, POTION_IDS, RECIPES, REAGENT_IDS, bottlesFor, brew, isKnown, pairKey, pickPotion, reagentFor, recipeFor, validateAlchemy } from '../../src/items/alchemyData';
 import { Rng } from '../../src/rng';
+import { LOOT, priceOf, rollWares } from '../../src/items/loot';
 
 // M5 (docs/M5-plan.md; GDD: Potions and alchemy): the potions, reagents and recipes as data
 describe('alchemy', () => {
@@ -18,7 +19,7 @@ describe('alchemy', () => {
       sources: { schools: {}, foes: { f: 'nothing' }, objects: {}, boss: 'r' }, bottles: { shapes: [], liquids: [] } }));
     const errs = validateAlchemy(bad).join('\n');
     expect(errs).toMatch(/colour red/); expect(errs).toMatch(/weight/); expect(errs).toMatch(/drink effect fly/); expect(errs).toMatch(/throw needs seconds/);
-    expect(errs).toMatch(/makes nope/); expect(errs).toMatch(/second recipe/); expect(errs).toMatch(/source f/); expect(errs).toMatch(/too few bottles/);
+    expect(errs).toMatch(/makes nope/); expect(errs).toMatch(/second recipe/); expect(errs).toMatch(/source f/); expect(errs).toMatch(/too few liquid colours/);
   });
 
   it('brewing: the GDD\'s recipes, the order not counted, and a pair with none fails into a Volatile Mixture', () => {
@@ -37,8 +38,8 @@ describe('alchemy', () => {
     const a = bottlesFor(1234), b = bottlesFor(1234), c = bottlesFor(98765);
     expect(a).toEqual(b);
     expect(a).not.toEqual(c);
-    const keys = POTION_IDS.map(id => a[id].shape + a[id].liquid);
-    expect(new Set(keys).size).toBe(POTION_IDS.length);
+    const liquids = POTION_IDS.map(id => a[id].liquid);
+    expect(new Set(liquids).size).toBe(POTION_IDS.length); // (no two the same colour)
     const shapes = POTION_IDS.map(id => a[id].shape);
     for (const s of BOTTLE_SHAPES) expect(shapes.filter(x => x === s).length).toBe(2); // (twelve potions over six shapes)
     // over many seeds, a potion's bottle doesn't give it away
@@ -69,5 +70,14 @@ describe('alchemy', () => {
     for (let i = 0; i < 4000; i++) { const p = pickPotion(rng); n[p] = (n[p] ?? 0) + 1; }
     for (const id of POTION_IDS) expect(n[id]).toBeGreaterThan(0);
     expect(n.healing).toBeGreaterThan(n.echoes * 2);
+  });
+
+  it('potions turn up after fights and in coffers and chests, and shops stock potions (4 obols) and reagents (2), never Warden\'s Ash', () => {
+    for (const w of [LOOT.roomClear.weights, LOOT.coffer.weights, LOOT.chest.weights]) expect(w.potion).toBeGreaterThan(0);
+    expect([priceOf('potion'), priceOf('reagent')]).toEqual([4, 2]);
+    const rng = new Rng(7), seen = new Set<string>();
+    for (let i = 0; i < 300; i++) for (const w of rollWares(rng, false)) seen.add(w);
+    expect(seen.has('potion') && seen.has('reagent')).toBe(true);
+    expect(COMMON_REAGENTS).not.toContain('wardensAsh');
   });
 });

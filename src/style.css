@@ -51,13 +51,23 @@ body{font-family:var(--f-ui);color:var(--ink);-webkit-user-select:none;user-sele
 #spells .slot.empty{opacity:.45}
 #spells .slot.poor svg{opacity:.35}
 #spells .slot.flash{border-color:#e05a4a;box-shadow:0 0 8px rgba(224,90,74,.8)}
-#items{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 114px);display:flex;gap:6px}
+/* M5: the potion belt under the spell slots (a slot for each potion it holds, the chosen one lit, an unknown one marked;
+   its keys beside it); the bottles are 24 px pixel art, drawn at that size */
+#belt{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 112px);display:flex;align-items:center;gap:4px}
+#belt .bslot{position:relative;width:32px;height:32px;border:1px solid #4a3d2e;border-radius:3px;background:rgba(10,8,6,.55);display:grid;place-items:center}
+#belt .bslot img{width:24px;height:24px}
+#belt .bslot.on{border-color:#e8dcc2;box-shadow:0 0 6px rgba(232,220,194,.55)}
+#belt .bslot.empty{opacity:.4}
+#belt .bslot i{position:absolute;right:1px;bottom:-1px;font:700 11px var(--f-ui);font-style:normal;color:#e8dcc2;text-shadow:0 1px 1px #000}
+#belt b{margin-left:4px;font:700 10px var(--f-ui);color:#9a8a70;text-shadow:0 1px 1px #000;white-space:nowrap}
+img.px{image-rendering:pixelated}
+#items{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 152px);display:flex;gap:6px}
 /* artifact icons are 24-pixel pixel art (artifactIcons.ts): each box's content (border-box: less its padding and border) a whole multiple */
 #items svg{width:28px;height:28px;padding:2px;filter:drop-shadow(0 0 6px rgba(255,170,60,.6))}
 #items svg.focus{border:1px solid rgba(232,220,194,.45);border-radius:4px;padding:1px;background:rgba(10,8,6,.45)}
 #items svg.cursed{filter:drop-shadow(0 0 5px rgba(200,30,20,.9))}
 #items svg.cleansed{filter:drop-shadow(0 0 5px rgba(240,230,200,.75))}
-#purse{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 152px);display:flex;flex-direction:column;gap:2px;font:700 16px var(--f-ui);color:#efe2c3;text-shadow:0 2px 2px #000}
+#purse{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 190px);display:flex;flex-direction:column;gap:2px;font:700 16px var(--f-ui);color:#efe2c3;text-shadow:0 2px 2px #000}
 #purse span{display:flex;align-items:center;gap:6px}
 #purse svg{width:20px;height:20px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.8))}
 #purse b{font-variant-numeric:tabular-nums;letter-spacing:.04em}
@@ -120,6 +130,7 @@ body.touch.portrait #rotate{display:flex}
 #lore{position:absolute;left:50%;top:60%;width:min(440px,80vw);display:flex;gap:14px;align-items:flex-start;padding:14px 16px 12px;background:rgba(12,9,7,.86);border:1px solid #5e4d39;border-top-color:#8a7254;border-radius:3px;box-shadow:0 6px 18px rgba(0,0,0,.55);opacity:0;transform:translate(-50%,-50%) translateY(10px);transition:opacity .35s,transform .35s;pointer-events:none}
 #lore.on{opacity:1;transform:translate(-50%,-50%)}
 #loreIcon svg{width:56px;height:56px;flex:none;padding:4px;border-radius:4px;background:#17110c;filter:drop-shadow(0 0 6px rgba(255,170,60,.35))}
+#loreIcon img{width:56px;height:56px;flex:none;padding:4px;border-radius:4px;background:#17110c} /* (M5's bottles and reagents: 24 px pixel art at twice its size) */
 #loreIcon svg.focus{outline:1px solid var(--amber);outline-offset:-1px}
 #loreIcon svg.cursed{box-shadow:0 0 0 1px #b0201a,0 0 8px rgba(200,30,20,.8)}
 #lore .tx{min-width:0}
@@ -183,6 +194,7 @@ body.touch.portrait #rotate{display:flex}
 .invList .sec:first-child{margin-top:0}
 .invList .tile{position:relative;width:68px;height:68px;display:grid;place-items:center;padding:0;background:#17110c;border:1px solid #3a2e22;border-radius:4px;cursor:pointer;color:#e8dcc2}
 .invList .tile svg{width:48px;height:48px}
+.invList .tile img{width:48px;height:48px}
 .invList .tile svg.focus{outline:1px solid var(--amber);outline-offset:-1px}
 .invList .tile svg.cursed{box-shadow:0 0 0 1px #b0201a,0 0 8px rgba(200,30,20,.8);border-radius:3px}
 .invList .tile[aria-selected="true"]{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber),0 0 12px rgba(232,166,76,.35)}
@@ -196,6 +208,7 @@ body.touch.portrait #rotate{display:flex}
 .invDetail{overflow:auto;padding:16px 18px;background:rgba(0,0,0,.18);border:1px solid var(--line);border-radius:3px;color:var(--ink)}
 .invDetail .top{display:flex;gap:14px;align-items:center;margin-bottom:10px}
 .invDetail .big svg{width:60px;height:60px;padding:6px;border-radius:4px;background:#17110c;filter:drop-shadow(0 0 6px rgba(255,170,60,.3))}
+.invDetail .big img{width:60px;height:60px;padding:6px;border-radius:4px;background:#17110c}
 .invDetail .big svg.focus{outline:1px solid var(--amber);outline-offset:-1px}
 .invDetail .big svg.cursed{box-shadow:0 0 0 1px #b0201a,0 0 8px rgba(200,30,20,.8)}
 .invDetail h3{margin:0;font-family:var(--f-display);font-weight:400;font-size:22px;line-height:1.15}

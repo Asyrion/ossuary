@@ -1,5 +1,5 @@
-/* The inventory: what the mage carries and knows, in tabs (artifacts, spells, items, the mage's own numbers, and M4.7's
-   foes met), the
+/* The inventory: what the mage carries and knows, in tabs (artifacts, spells, M5's potions, items, the mage's own numbers,
+   and M4.7's foes met), the
    chosen entry described in a panel beside them: its icon, name and kind, what it does, its numbers and its lore.
    Opened with I or Tab (the gamepad's View button), or from the pause menu; the game waits while it's open.
    Arrows choose, Q and E (LB and RB) change tabs, and I, Tab or Esc (B) close it again. */
@@ -22,9 +22,13 @@ import { bestiary } from '../actors/bestiary';
 import { countersOf } from '../actors/counterData';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { BOSS_TYPES } from '../config';
+import { POTIONS, POTION_IDS, REAGENTS, REAGENT_IDS, type PotionId } from '../items/alchemyData';
+import { bottleIconUrl, reagentIconUrl } from '../items/alchemyLooks';
+import { beltSlots, knownPotion, potionName } from '../items/potions';
+import { brewedPotions } from '../items/alchemyMemory';
 
-type Tab = 'artifacts' | 'spells' | 'items' | 'mage' | 'foes';
-const TABS: Tab[] = ['artifacts', 'spells', 'items', 'mage', 'foes'];
+type Tab = 'artifacts' | 'spells' | 'potions' | 'items' | 'mage' | 'foes';
+const TABS: Tab[] = ['artifacts', 'spells', 'potions', 'items', 'mage', 'foes'];
 /** One entry in a tab: a tile (or a row, in the mage's tab) and what the panel says of it. */
 interface Entry { icon: string; label: string; badge?: string; corner?: string; dim?: boolean; section?: string; detail: () => string }
 
@@ -34,7 +38,7 @@ const num = (v: number, d = 1) => String(+v.toFixed(d));
 const halves = (h: number) => h % 2 ? `${h > 1 ? Math.floor(h / 2) : ''}½` : String(h / 2);
 
 let open = false, tab: Tab = 'artifacts', back: 'pause' | 'play' = 'play';
-const chosen: Record<Tab, number> = { artifacts: 0, spells: 0, items: 0, mage: 0, foes: 0 };
+const chosen: Record<Tab, number> = { artifacts: 0, spells: 0, potions: 0, items: 0, mage: 0, foes: 0 };
 let actions: { resume(): void } = { resume: () => {} };
 
 /** How to go back to the game when the inventory closes (flow's resume, from main.ts). */
@@ -60,6 +64,7 @@ export function closeInventory() {
 function entries(t: Tab): Entry[] {
   if (t === 'artifacts') return artifactEntries();
   if (t === 'spells') return spellEntries();
+  if (t === 'potions') return potionEntries();
   if (t === 'items') return itemEntries();
   if (t === 'foes') return foeEntries();
   return mageEntries();
@@ -144,6 +149,38 @@ function spellEntries(): Entry[] {
 }
 /** A page not found yet: a sealed leaf. */
 const SEALED = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M13 7h17l7 7v27H13z" fill="#3a3128" stroke="#7a6a52" stroke-width="2"/><circle cx="25" cy="27" r="6" fill="#6a2a20" stroke="#a8503c" stroke-width="1.5"/><path d="M22 27h6M25 24v6" stroke="#e0b08a" stroke-width="1.4"/></svg>';
+
+/** The Potions tab (M5): the belt's slots (the chosen one marked), the reagents in the pouch, then every potion as known:
+    its bottle this run, what it does drunk and thrown, and how it is known; one not known yet is sealed. */
+function potionEntries(): Entry[] {
+  const P = I().potions, img = (src: string) => `<img class="px" src="${src}" alt="">`;
+  const card = (id: PotionId, note: string) => {
+    const def = POTIONS[id], icon = img(bottleIconUrl(G.run.bottles[id]));
+    if (!knownPotion(id)) return head(icon, STR.alchemy.unknown, note) + `<p class="effect">${esc(P.unknownText)}</p>`;
+    return head(icon, def.name, `${STR.alchemy.kind(def.bad)} · ${note}`)
+      + `<p class="effect"><b>${esc(STR.alchemy.drink)}</b> ${esc(def.text.drink)}</p><p class="effect"><b>${esc(STR.alchemy.throw)}</b> ${esc(def.text.throw)}</p><p class="lore">${esc(def.lore)}</p>`;
+  };
+  const at = Math.min(player.beltAt, player.belt.length - 1);
+  const belt: Entry[] = Array.from({ length: beltSlots() }, (_, k) => {
+    const id = player.belt[k] as PotionId | undefined, section = k === 0 ? P.belt : undefined;
+    if (!id) return { icon: SEALED_SLOT, label: P.emptySlot, dim: true, section, detail: () => head(SEALED_SLOT, P.slot(k + 1), P.emptySlot) + `<p class="effect">${esc(P.emptyText)}</p>` };
+    return { icon: img(bottleIconUrl(G.run.bottles[id])), label: potionName(id), corner: knownPotion(id) ? undefined : '?', badge: k === at ? '•' : undefined, section,
+      detail: () => card(id, k === at ? `${P.slot(k + 1)} · ${P.chosen}` : P.slot(k + 1)) };
+  });
+  const held = REAGENT_IDS.filter(r => (player.reagents[r] ?? 0) > 0);
+  const pouch: Entry[] = held.length ? held.map((r, k) => {
+    const def = REAGENTS[r], icon = img(reagentIconUrl(r)), n = player.reagents[r];
+    return { icon, label: def.name, badge: String(n), section: k === 0 ? P.pouch : undefined,
+      detail: () => head(icon, def.name, `${STR.alchemy.reagentKind} · ${P.held(n)}`) + `<p class="effect">${esc(STR.alchemy.leans(def.leans))}</p><p class="lore">${esc(def.lore)}</p>` };
+  }) : [{ icon: SEALED_SLOT, label: P.pouch, dim: true, section: P.pouch, detail: () => `<p class="effect">${esc(P.noReagents)}</p>` }];
+  const brewed = brewedPotions();
+  const known: Entry[] = POTION_IDS.map((id, k) => knownPotion(id)
+    ? { icon: img(bottleIconUrl(G.run.bottles[id])), label: POTIONS[id].name, section: k === 0 ? P.known : undefined, detail: () => card(id, P.knownHow(brewed.includes(id) && !G.run.identified.includes(id))) }
+    : { icon: SEALED, label: P.sealed, dim: true, section: k === 0 ? P.known : undefined, detail: () => head(SEALED, P.sealed, STR.alchemy.kind()) + `<p class="effect">${esc(P.sealedText)}</p>` });
+  return [...belt, ...pouch, ...known];
+}
+/** An empty belt slot or pouch: a dashed ring. */
+const SEALED_SLOT = '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="13" fill="none" stroke="#5a4a38" stroke-width="2" stroke-dasharray="4 4"/></svg>';
 
 function itemEntries(): Entry[] {
   const M = CFG.mana, st = player.stats;
@@ -269,7 +306,7 @@ export function inventoryKey(code: string, playing: boolean) {
   else if (code === 'ArrowDown' || code === 'KeyS') move(0, 1);
   else if (code === 'KeyQ') turn(-1);
   else if (code === 'KeyE') turn(1);
-  else if (/^Digit[1-5]$/.test(code)) { tab = TABS[Number(code.slice(5)) - 1]; render(); }
+  else if (/^Digit[1-6]$/.test(code)) { tab = TABS[Number(code.slice(5)) - 1]; render(); }
   else return false;
   return true;
 }

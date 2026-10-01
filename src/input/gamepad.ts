@@ -1,7 +1,8 @@
 import type { Vec2 } from '../types';
-import { pressed, type InputActions } from './index';
+import { CFG } from '../config';
+import { potionHold, pressed, releasePotion, type InputActions } from './index';
 
-export const pad = { move: { x: 0, z: 0 }, shoot: null as Vec2 | null, startWas: false, glyphWas: false, blinkWas: false, spellWas: [false, false], menuWas: new Set<number>() };
+export const pad = { move: { x: 0, z: 0 }, shoot: null as Vec2 | null, startWas: false, glyphWas: false, blinkWas: false, spellWas: [false, false], menuWas: new Set<number>(), potionWas: false, chooseWas: {} as Record<number, boolean> };
 /** Buttons menus may use: B, LB, RB, View and the d-pad. */
 const MENU_BUTTONS = [1, 4, 5, 8, 12, 13, 14, 15];
 
@@ -34,6 +35,16 @@ export function pollGamepad(act: InputActions) {
     const on = b(4 + i);
     if (on && !pad.spellWas[i] && act.playing()) pressed.spells[i] = true;
     pad.spellWas[i] = on;
+  }
+  // M5: the d-pad's up uses the chosen potion (tap to drink, hold to throw), its left and right choose another
+  const pot = b(12);
+  if (pot && !pad.potionWas && act.playing()) potionHold.since = performance.now();
+  if (!pot && pad.potionWas && act.playing()) releasePotion(performance.now(), CFG.alchemy.hold);
+  pad.potionWas = pot;
+  for (const [i, d] of [[14, -1], [15, 1]] as const) {
+    const on = b(i);
+    if (on && !pad.chooseWas[i] && act.playing()) pressed.nextPotion += d;
+    pad.chooseWas[i] = on;
   }
   const start = b(9);
   if (start && !pad.startWas) { act.unlockAudio(); act.startButton(); }

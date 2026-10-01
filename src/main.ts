@@ -1,6 +1,10 @@
 /* Boot: wire input and UI, build the floor, load the hero, start the loop, expose dev hooks. */
 // fonts are bundled with the game (Fontsource), so starting it makes no requests to Google
 import '@fontsource/cinzel/400.css';
+import { POTION_IDS, isPotion, type PotionId, type ReagentId } from './items/alchemyData';
+import { addPotion, addReagent, beltSlots, choosePotion, identify, knownPotion, potionFx, renderBelt, usePotion } from './items/potions';
+import { throwsNow } from './items/potionThrow';
+import { forgetBrews } from './items/alchemyMemory';
 import '@fontsource/cinzel/600.css';
 import '@fontsource/cinzel/700.css';
 import '@fontsource/alegreya/400.css';
@@ -152,6 +156,9 @@ function readUrlOptions() {
   const spells = (q.get('spells') ?? '').split(',').map(s => s.trim()).filter(Boolean);
   const badSpells = spells.filter(id => !SPELLS.has(id));
   if (badSpells.length) console.warn(`?spells: unknown ${badSpells.join(', ')}. Known: ${[...SPELLS.keys()].join(', ')}`);
+  const potions = (q.get('potions') ?? '').split(',').map(s => s.trim()).filter(Boolean); // (M5: potions to start with in the belt)
+  const badPotions = potions.filter(id => !isPotion(id));
+  if (badPotions.length) console.warn(`?potions: unknown ${badPotions.join(', ')}. Known: ${POTION_IDS.join(', ')}`);
   if (room && !TEMPLATES.has(room)) console.warn(`?room=${room}: no such template. Known: ${[...TEMPLATES.keys()].join(', ')}`);
   const unknown = give.filter(id => !ARTIFACTS.has(id));
   if (unknown.length) console.warn(`?give: unknown ${unknown.join(', ')}. Known: ${[...ARTIFACTS.keys()].join(', ')}`);
@@ -162,7 +169,7 @@ function readUrlOptions() {
     testVariant: variant && VARIANTS.includes(variant) ? variant : undefined,
     give: give.filter(id => ARTIFACTS.has(id)),
     boss: bossOk ? boss! : undefined,
-    loot, spells: spells.filter(id => SPELLS.has(id)),
+    loot, spells: spells.filter(id => SPELLS.has(id)), potions: potions.filter(isPotion),
     theme: theme && THEMES.has(theme) ? theme : undefined,
   });
 }
@@ -231,9 +238,9 @@ function installDevHooks() {
     /** Drop a pickup (halfHeart, heart, coin, purse, key, glyph, mana, the soul motes paleSoul, blackSoul and
         hallowedSoul, shard, coffer, chest) at (x, z), or just ahead of the mage; a chest is plain unless `gilded` is set; `asLoot` drops it as loot would (a mana vial turns into an
         obol while the mage knows no spell). */
-    drop(kind: Drop, x = player.x, z = player.z - 1.5, opts: { gilded?: boolean; asLoot?: boolean } = {}) {
+    drop(kind: Drop, x = player.x, z = player.z - 1.5, opts: { gilded?: boolean; asLoot?: boolean; potion?: PotionId; reagent?: ReagentId } = {}) {
       if (!DROPS.includes(kind)) throw new Error(`drop: use one of ${DROPS.join(', ')}`);
-      spawnPickup(kind, x, z, { gilded: opts.gilded ?? false, asIs: !opts.asLoot });
+      spawnPickup(kind, x, z, { gilded: opts.gilded ?? false, asIs: !opts.asLoot, potion: opts.potion, reagent: opts.reagent });
     },
     /** The soul motes held, in the order taken (M4.1); give one (false when as many are kept as can be); a floor's end
         for the hallowed ones (the half hearts they gave back). */
@@ -329,6 +336,16 @@ function installDevHooks() {
     /** M4.11 spell marks: what the slotted spells and the knowledge show on the mage; attune to a school (both its spells
         in the slots). */
     get spellMarks() { return marksNow(); }, attune: (school: School) => attuneTo(school),
+    // M5: the potion belt (ids, the chosen one), what each potion is (known or not, its bottle), what a drink left on the
+    // mage, what is in the air; give, use and choose as the keys do
+    get belt() { return { ids: [...player.belt], at: player.beltAt, slots: beltSlots(), known: player.belt.map(id => knownPotion(id as PotionId)), reagents: { ...player.reagents }, html: document.getElementById('belt')?.innerHTML ?? '' }; },
+    get potionFx() { return { ...potionFx, remedy: G.run.remedy, scale: hero.root.scale.x }; },
+    get bottles() { return G.run.bottles; },
+    get throws() { return throwsNow(); },
+    givePotion: (id: PotionId) => addPotion(id), giveReagent: (id: ReagentId, n = 1) => addReagent(id, n),
+    usePotion: (how: 'drink' | 'throw') => usePotion(how), choosePotion: (d: number) => choosePotion(d),
+    reagentsAlways: (on: boolean) => { DEV.reagents = on; },
+    identifyAll: () => { for (const id of POTION_IDS) identify(id); }, forgetPotions: () => { G.run.identified.length = 0; forgetBrews(); renderBelt(); },
     get blinkRest() { return blinkRest(); }, get robeTint() { return robeTint(); }, get moths() { return mothCount(); },
     /** Asyrion's arc (M4.6): the stage now, the artifacts that count, the stage reached this run; force a stage (or `undefined`
         for as held). */

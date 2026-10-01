@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { foeReagent } from '../items/reagents';
+import { giantDamageMul } from '../items/potionFx';
 import { CFG, type BossType, type EnemyType } from '../config';
 import { STR } from '../strings';
 import { SCHOOL_LIGHT } from '../render/arcane';
@@ -47,6 +49,7 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
     if (foundAffinity(e.foe?.id ?? e.type as BossType, aff > 1 ? 'weak' : 'resist')) { floatText(e.x, 1.5, e.z, aff > 1 ? STR.foes.weak : STR.foes.resists, aff > 1 ? 0xffd070 : 0xa8a0b8); Sfx.at(e.x, e.z).affinity(aff > 1); }
   }
   if (by === 'spell') dmg *= player.stats.spellDamage; // Crown of Thorns
+  if (by === 'cantrip' || by === 'spell') dmg *= giantDamageMul(); // (M5: the Giant's Brew, drunk)
   if (e.foe) { dmg = foeStruck(e, dmg, by, dx, dz, school); if (dmg <= 0) { e.flash = .09; return; } } // (a void mote swallows the cantrip)
   e.hp -= dmg; e.flash = .09; e.lastHit = by; e.asleep = false; // a sleeper wakes
   if (by && e.mantle) mantleStruck(e); // (M4.7: a Stormcharged champion sparks back)
@@ -104,6 +107,7 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
     if (G.run.drops.chance(A.chance * (clean ? .5 : 1))) { const p = freeSpotNear(G.current, e.x, e.z); spawnPickup('coin', p.x, p.z); }
   }
   const drop = e.isBoss ? null : rollEnemyDrop(G.run.drops); // now and then an obol
+  if (!(e.isBoss && e.twin && !e.twin.dead)) foeReagent(e); // (M5: now and then a reagent; a boss's every time, the second twin's)
   if (drop) { const p = freeSpotNear(G.current, e.x, e.z); spawnPickup(drop, p.x, p.z); }
   if (e.isBoss && e.twin && !e.twin.dead) { Sfx.at(e.x, e.z).boom(); G.shake = .45; twinFell(e.twin); } // (one twin down: the other fights on, raging)
   else if (e.isBoss) {

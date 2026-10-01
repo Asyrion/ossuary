@@ -1,6 +1,7 @@
 import type { TransformId } from './items/transformData';
 import { CFG, type BossType } from './config';
 import { START_FOCUS, computeStats } from './items/artifactData';
+import { bottlesFor, type PotionId } from './items/alchemyData';
 import { Rng } from './rng';
 import type { FloorPlan } from './world/generate';
 import type { Bolt, Enemy, Glyph, Particle, Pickup, Player, Trapdoor, Room, Shot, Transition } from './types';
@@ -46,6 +47,11 @@ export const G = {
     /** M4.6: the transformations formed this run, in order (the latest wears its look; every gift stays). */ transforms: [] as TransformId[],
     /** M4.6: the stage of Asyrion's arc reached this run (each said once in a line). */ arc: 0,
     /** M4.11: the schools the mage has been attuned to this run (each said once). */ attuned: [] as string[],
+    /** M5: the run's bottles (each potion's shape and draught, shuffled on the seed), the potions identified this run,
+        the seeded stream for which potion or reagent a drop is, and the one for whether a foe or an object leaves a reagent
+        (its own, so the other drops replay as before). */
+    bottles: bottlesFor(0), identified: [] as PotionId[], alchemy: new Rng(0), reagents: new Rng(0),
+    /** M5: the curse whose price a Bitter Remedy lifts until the floor ends. */ remedy: null as string | null,
   },
   shake: 0,
   simClock: 0,
@@ -62,13 +68,16 @@ export const DEV = { /** M4.6: Asyrion's arc forced to a stage (the dev menu), e
   /** One foe in every template role on every floor (`?foe=`, the dev menu), to test it; else each floor fills its roles. */
   foe: undefined as FoeId | undefined,
   /** M4.6: the camera close on the mage (the dev menu's Costumes section), to see what is worn; `CFG.costume.closeUp`. */
-  closeUp: false };
+  closeUp: false,
+  /** M5: every fallen foe and broken object leaves its reagent (the dev menu's Alchemy), to test where they come from. */
+  reagents: false };
 
 export const player: Player = {
   dead: false, x: 0, z: 0, vx: 0, vz: 0, r: CFG.hero.radius, hp: 6, maxHp: 6, invuln: 0, fireCd: 0, eye: 1, yawA: 0, blessed: 0,
   squash: 0, bob: 0, focus: START_FOCUS, items: [], heartsPaid: 0, cleansed: [], stats: computeStats(START_FOCUS, [], CFG.hero),
   coins: 0, keys: 0, glyphs: 0, souls: [], still: 0,
   mana: CFG.hero.mana, spells: [null, null], spellCd: [0, 0], aim: { x: 0, z: -1 }, dim: 0, chill: 0, stone: 0, pull: { x: 0, z: 0 }, hexed: 0, drained: 0, hexDebt: 0, hexDebtUntil: 0, drawn: 0,
+  belt: [], beltAt: 0, reagents: {},
 };
 
 /* Gameplay timers run on simulation time (not setTimeout), so they pause with the game and

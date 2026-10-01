@@ -72,6 +72,7 @@ export interface WareSpot {
   g: THREE.Group; item: THREE.Object3D; circle?: THREE.Object3D; tag?: THREE.Object3D;
   sold: boolean; /** Refuses again only after the mage steps away. */ armed: boolean;
   /** The price its tag shows (the Pedlar's Scale lowers it). */ tagPrice?: number;
+  /** M5: which potion or reagent it is. */ potion?: string; reagent?: string;
 }
 /** A wall light; dark rooms have their torches out (`lit` false). (x, z) is where its light sits. */
 export interface Torch { flame: THREE.Object3D; glow: THREE.Sprite; x: number; z: number; lit: boolean }
@@ -90,6 +91,7 @@ export interface PropState {
   charge?: number; blind?: number; aim?: { x: number; z: number; t: number }; ward?: School; broken?: boolean;
   /** M4.9: seconds a sluice gate stands open (the room's water drained). */ open?: number;
   /** M4.10: a brazier burning with Blackfire (darkness took its fire). */ black?: boolean;
+  /** M5: a brazier lit once already (its first fire may leave Ember Salt, items/reagents.ts). */ salted?: boolean;
 }
 /** An object in the room, with its box (how it blocks depends on its class: rocks, `lows`, or `soft`). */
 export type PropBox = RockBox & { prop: PropState };
@@ -170,6 +172,7 @@ export interface Page {
 }
 
 export interface Enemy extends Circle {
+  /** M5: grown by a thrown Giant's Brew (slower and bigger, once). */ giant?: boolean;
   type: FoeType; vx: number; vz: number; kx: number; kz: number; hp: number; maxHp: number;
   flying: boolean; spawn: number; t: number; flash: number; mats: THREE.MeshStandardMaterial[];
   group: THREE.Group; body: THREE.Group; face: number; contact: number; state: string; st: number;
@@ -252,6 +255,7 @@ export interface Pickup extends Circle {
       refuse the mage again (only after they step away). */
   contents?: Item[]; opened?: boolean; lid?: THREE.Object3D; ward?: THREE.Object3D; armed?: boolean;
   /** A gilded reliquary chest: a relic inside (an artifact outside the floor's budget); only a key opens it. */ gilded?: boolean;
+  /** M5: which potion a bottle is, which reagent a reagent is. */ potion?: string; reagent?: string;
 }
 /** A blast glyph chalked on the floor: it flares when `fuse` runs out or one of the mage's bolts strikes it. */
 /** A chalked glyph: its fuse and how long it was (the Warding Band's is shorter), and how far its blast reaches
@@ -284,4 +288,6 @@ export interface Player extends Circle {
   /** Seconds the hexed chip shows, and the mana the last hexing blow took (ui/afflictions.ts). */ hexed: number; drained: number;
   /** M4.9: what the last hex took, which a Hallow cast before `hexDebtUntil` (sim time) gives back. */ hexDebt: number; hexDebtUntil: number;
   /** Seconds the drawn-in chip shows, after a pull worth showing (a lure, a lodestone golem, a griffin's wings). */ drawn: number;
+  /** M5: the potions carried in the belt (PotionIds, the order taken), the one chosen, and the reagents in the pouch (how
+      many of each). */ belt: string[]; beltAt: number; reagents: Record<string, number>;
 }

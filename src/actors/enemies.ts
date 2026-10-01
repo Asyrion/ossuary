@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { unseen } from '../items/potionFx';
 import { snagAt } from '../world/props';
 import { BOSS_TYPES, CFG, type EnemyType } from '../config';
 import { FOES, isFoe, type FoeType } from './foeData';
@@ -131,8 +132,8 @@ export function updateEnemies(dt: number) {
       poseFoe(e);
     }
     // contact damage (not from a boss under the floor or in the air, nor from a foe frozen in ice or stunned, nor
-    // through the Static Mantle)
-    if (!e.hidden && acts && e.contact && Math.hypot(player.x - e.x, player.z - e.z) < player.r + e.r * .9 && !mantleShields(e)) {
+    // through the Static Mantle, nor while the mage is unseen under the Shadowstep Tincture: M5)
+    if (!e.hidden && acts && e.contact && !unseen() && Math.hypot(player.x - e.x, player.z - e.z) < player.r + e.r * .9 && !mantleShields(e)) {
       if (hurtPlayer(e.contact, e.x, e.z) && e.mantle === 'rimebound') player.chill = Math.max(player.chill, MAGIC.mantles.rimebound.chill); // (M4.7: a Rimebound touch chills)
       touched(e); // (M4.6: and the Frostborn chills what touches them)
     }

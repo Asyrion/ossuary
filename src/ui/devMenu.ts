@@ -26,6 +26,9 @@ import { findEveryCounter } from '../actors/counters';
 import { ARTIFACT_DEFS, START_FOCUS, artifact } from '../items/artifactData';
 import { giveById, grantArtifact, placeArtifact, refreshStats, removeArtifactGallery, resetArtifacts, showArtifactGallery } from '../items/artifacts';
 import { DROPS, RESOURCES, SOULS, soulItem, type Drop, type Resource } from '../items/loot';
+import { POTIONS, POTION_IDS, REAGENT_IDS } from '../items/alchemyData';
+import { addPotion, addReagent, beltSlots, identify, knownPotion, renderBelt, usePotion } from '../items/potions';
+import { brewedPotions, forgetBrews } from '../items/alchemyMemory';
 import { gainSoul, hallowedMend, resetSouls } from '../items/souls';
 import { giveResources, spawnPickup } from '../items/pickups';
 import { makeEnemy, spawnFoe } from '../actors/enemies';
@@ -68,7 +71,7 @@ import { floorLean, floorWalls, warnFloor } from '../world/curve';
 
 const S = STR.dev;
 let panel: HTMLElement | null = null, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
-let spellSlot = 0, knowBox: HTMLElement;
+let spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
 type Tab = (typeof TABS)[number];
@@ -222,6 +225,23 @@ function build() {
   for (const d of DROPS) drops.append(btn(S.dropNames[d] ?? d, () => { const q = ahead(); spawnPickup(d as Drop, q.x, q.z, { gilded: false, asIs: true }); }));
   drops.append(btn(S.gildedChest, () => { const q = ahead(); spawnPickup('chest', q.x, q.z, { gilded: true }); }));
   drops.append(btn(S.loreAgain, () => G.run.loreSeen.clear(), S.loreAgainTitle)); // their lore cards show again
+
+  // alchemy (M5): each potion into the belt, every potion laid out ahead, what is known identified or forgotten, the belt
+  // used as R and F use it, and reagents into the pouch
+  const alch = section(pages.mage, S.alchemy);
+  alch.append(alchInfo = el('p', 'dv-info'),
+    btn(S.potionsHere, () => POTION_IDS.forEach((id, i) => { const q = freeSpotNear(G.current, player.x + (i % 6 - 2.5) * .8, player.z - 1.4 - Math.floor(i / 6) * .9); spawnPickup('potion', q.x, q.z, { potion: id }); })),
+    btn(S.identifyAll, () => { for (const id of POTION_IDS) identify(id); }),
+    btn(S.forgetPotions, () => { G.run.identified.length = 0; forgetBrews(); renderBelt(); }),
+    btn(S.emptyBelt, () => { player.belt.length = 0; player.beltAt = 0; renderBelt(); }),
+    btn(S.drinkChosen, () => { closeDev(); usePotion('drink'); }), btn(S.throwChosen, () => { closeDev(); usePotion('throw'); }),
+    btn(S.reagentsAll, () => { for (const r of REAGENT_IDS) addReagent(r, 3); }),
+    reagentBtn = btn('', () => { DEV.reagents = !DEV.reagents; }));
+  const alchBox = el('div', 'dv-row'); alch.parentElement!.append(alchBox); // (a second row: one button a potion)
+  alchBox.append(...POTION_IDS.map(id => {
+    const b = btn(POTIONS[id].name, () => { if (!addPotion(id)) toast(STR.alchemy.full, 2); }, `${POTIONS[id].text.drink} · ${POTIONS[id].text.throw}`);
+    const dot = el('i'); dot.style.background = POTIONS[id].color; b.prepend(dot); return b;
+  }));
 
   // artifacts: every one in the data, marked when held
   artBox = section(pages.mage, S.artifacts);
@@ -441,6 +461,8 @@ function refresh() {
   pxBtn.textContent = S.pixelLines(look.lines, drawnRows()); pxBtn.classList.toggle('on', !!look.lines);
   lineBtn.textContent = look.outline ? S.outlinesOn : S.outlinesOff; lineBtn.classList.toggle('on', look.outline); lineBtn.disabled = !look.lines;
   bandBtn.textContent = look.bands ? S.bandsOn : S.bandsOff; bandBtn.classList.toggle('on', look.bands); bandBtn.disabled = !look.lines;
+  reagentBtn.textContent = DEV.reagents ? S.reagentsOn : S.reagentsOff; reagentBtn.classList.toggle('on', DEV.reagents);
+  alchInfo.textContent = S.alchemyInfo(player.belt.length, beltSlots(), POTION_IDS.filter(knownPotion).length, POTION_IDS.length, brewedPotions().length);
   heroPxBtn.textContent = heroPixel() ? S.heroPixelOn : S.heroPixelOff; heroPxBtn.classList.toggle('on', heroPixel());
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
   knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'), reactionsFound().length, REACTION_IDS.length) + ' ' + S.weavesInfo(weavesFound().length, WEAVE_IDS.length);

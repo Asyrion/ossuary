@@ -29,7 +29,7 @@ const hex = (c: string) => new THREE.Color(c).getHex();
     once unless `announceNow` is false (an artifact taken shows its own banner and card first: `grantArtifact`). */
 export function refreshStats(announceNow = true): TransformId[] {
   const before = player.maxHp, fresh = updateTransforms(); // (M4.6: three of a family transform the mage)
-  player.stats = computeStats(player.focus, player.items, { ...CFG.hero, hearts: CFG.hero.hearts - player.heartsPaid }, player.cleansed, player.coins);
+  player.stats = computeStats(player.focus, player.items, { ...CFG.hero, hearts: CFG.hero.hearts - player.heartsPaid }, player.cleansed, player.coins, G.run.remedy ? [G.run.remedy] : []);
   giftsFor(player.stats);
   player.maxHp = player.stats.maxHp;
   if (player.maxHp > before) player.hp += player.maxHp - before;
