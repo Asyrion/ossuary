@@ -31,6 +31,7 @@ import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { M, blob, disposeTree, glow, markShared } from '../render/materials';
 import { setDarkness } from '../render/lights';
+import { recolourFire, type FirePalette } from '../render/fire';
 import { burst } from '../combat/fx';
 import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { SCHOOL_LIGHT } from '../render/arcane';
@@ -61,6 +62,8 @@ import { steamBetween } from '../magic/steam';
 
 const C = CFG.mech;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, GOLD = 0xffd98a, BLACKFIRE = 0xb070ff;
+/** A brazier's flames burning with Blackfire (M4.10): a pale violet core in a deep violet sheath, a near-black edge. */
+const BLACK_FLAMES: FirePalette = { core: 0xeedcff, body: 0x9a48f0, edge: 0x2a0c48, ember: 0xc890ff };
 const CHAIN = 7.5; // a censer's chain runs up out of sight, into the dark under the vault
 export const SCHOOL_COLOR: Record<StatusKind, number> = { burn: 0xff7a2a, chill: 0x4aa8ff, shock: 0xf0e070 };
 /** The school each status carries (an obelisk's ward answers to one). */
@@ -286,6 +289,8 @@ export function boltThrough(b: Bolt) {
     bolts it sets alight carry a hex. Its name rises as Blackfire's does on a foe. */
 function blacken(box: PropBox) {
   const p = box.prop; p.black = true;
+  if (p.parts?.flame?.userData.fire) recolourFire(p.parts.flame, BLACK_FLAMES); // (the room kit's fire: its flames go violet, so it reads at a glance)
+  if (p.parts?.glow) p.parts.glow.visible = false; // (its warm light gives way to the dark one)
   const gl = glow(BLACKFIRE, 1.4, .8); gl.position.y = 1.05; box.mesh?.add(gl); p.parts = { ...p.parts, blackGlow: gl };
   burst(box.x, 1, box.z, BLACKFIRE, 14, 1.8, .05); tileReaction('blackfire', box.x, box.z); Sfx.at(box.x, box.z).blackfire();
 }
