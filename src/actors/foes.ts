@@ -56,6 +56,7 @@ import { BESTIARY_BEHAVIOURS, clearGround, updateGround } from './bestiaryFoes';
 import { light, num, span, type Aim, type Behaviour } from './foeKit';
 import { metFoe } from './bestiary';
 import type { FoeDef, School } from './foeData';
+import type { SpellStatus } from '../magic/spellData';
 import { CFG } from '../config';
 
 export type { Aim } from './foeKit';
@@ -88,6 +89,8 @@ export function updateFoe(e: Enemy, dt: number, a: Aim) {
 export function foeStruck(e: Enemy, dmg: number, by: Enemy['lastHit'], dx = 0, dz = 0) { const B = e.foe && BEHAVIOURS[e.foe.behaviour]; return B?.struck ? B.struck(e, dmg, by, e.foe!.params, dx, dz) : dmg; }
 /** A glyph's blast reaches a foe in code (M4.5: a rubble crab is flipped). */
 export function foeBlasted(e: Enemy) { if (e.foe) BEHAVIOURS[e.foe.behaviour].blasted?.(e, e.foe.params); }
+/** A status took hold on a foe in code (M4.5: a walking wave's ice shatters to a shock). */
+export function foeAfflicted(e: Enemy, kind: SpellStatus) { if (e.foe && !e.dead) BEHAVIOURS[e.foe.behaviour].afflicted?.(e, kind, e.foe.params); }
 /** A foe in code has fallen: what its behaviour leaves behind. */
 export function foeDied(e: Enemy) { if (e.foe) BEHAVIOURS[e.foe.behaviour].die?.(e, e.foe.params); }
 /** After it moved: whether it ran into a wall or a rock. */
@@ -145,7 +148,7 @@ function lay(room: Room, x: number, z: number, time: number, kind: HazardKind) {
 function layFire(room: Room, x: number, z: number, time: number) { lay(room, x, z, time, 'fire'); fireAt(x, z, .15); }
 /** A patch of sparks at (x, z) for `time` seconds: crackling at first, then armed (`CFG.afflict.sparkArm`): it shocks the
     water there and hurts the mage who stands in it. */
-function laySpark(room: Room, x: number, z: number, time: number) { lay(room, x, z, time, 'spark'); }
+export function laySpark(room: Room, x: number, z: number, time: number) { lay(room, x, z, time, 'spark'); }
 const m4 = new THREE.Matrix4(), q0 = new THREE.Quaternion(), v3 = new THREE.Vector3(), s3 = new THREE.Vector3();
 /** The foes round a fawn this step (reused, not made anew every frame). */
 const company: Enemy[] = [];

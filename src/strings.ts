@@ -157,7 +157,7 @@ export const STR = {
   /** Reactions name themselves in the air; statuses as the training dummy lists them. */
   reactions: { shatter: 'Shatter', overload: 'Overload', eclipse: 'Eclipse', blackfire: 'Blackfire' } as Record<string, string>,
   /** Over a foe struck by its weakness or its resistance, the first time (M4; GDD: Enemy affinities). */
-  foes: { weak: 'Weak', resists: 'Resists' },
+  foes: { weak: 'Weak', resists: 'Resists', drinks: 'Drinks it' },
   /** Grimoire pages: the question a page asks when both slots are full, and what's left behind. */
   pages: {
     ask: (name: string) => `Learn ${name} in place of`,

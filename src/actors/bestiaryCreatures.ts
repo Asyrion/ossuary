@@ -54,7 +54,7 @@ function pool(parent: THREE.Object3D, r: number) {
     its neck and a fanged, finned head. */
 export function brineSerpent(): Built {
   const g = new THREE.Group(), scale = gloss(0x2a5e58, .35, .2), belly = std(0xa8c8b4), fin = thin(0x7fd4ff, { transparent: true, opacity: .8, roughness: .3 }), fang = std(0xf0ece0);
-  const ripples = pool(g, .8);
+  const water = joint(g, [0, 0, 0]), ripples = pool(water, .8); // (its pool, a part of its own: the foe keeps it at the floor while it sinks)
   const body = joint(g, [0, 0, 0]);
   tube(body, [[.5, -.15, -.5], [.6, .25, -.3], [.62, .3, -.05], [.6, -.15, .15]], .12, .09, scale, 10, 7);
   tube(body, [[-.55, -.1, -.1], [-.62, .14, -.32], [-.48, .3, -.5]], .07, .015, scale, 8, 5);
@@ -71,7 +71,7 @@ export function brineSerpent(): Built {
   for (const s of [-1, 1]) { spike(head, [.05 * s, -.04, .22], [.045 * s, -.13, .24], .016, fang); spike(jaw, [.04 * s, 0, .22], [.04 * s, .08, .25], .013, fang); }
   slitEyes(head, .09, .06, .12, .042, F, .6, .3);
   for (const s of [-1, 1]) { const f = joint(head, [.12 * s, .02, -.06], [0, .5 * s, 0]); for (let k = 0; k < 3; k++) part(f, new THREE.ConeGeometry(.05, .24, 3), fin, [.06 * s, .02 + k * .05, -.06], { rot: [-1.2 + k * .25, 0, -.9 * s], scale: [1, 1, .15] }); }
-  return { group: g, shadow: 0, parts: { neck, head, jaw }, idle: t => {
+  return { group: g, shadow: 0, parts: { body, neck, head, jaw, pool: water }, idle: t => {
     neck.rotation.z = Math.sin(t * 1.1) * .06; neck.rotation.x = Math.sin(t * .8) * .04; head.rotation.y = Math.sin(t * .9) * .2;
     jaw.rotation.x = .25 + Math.max(0, Math.sin(t * 1.8)) * .35;
     ripples.forEach((r, i) => { const k = (t * .4 + i / 2) % 1; r.scale.setScalar(.35 + k * .55); (r.material as THREE.MeshBasicMaterial).opacity = .4 * (1 - k); });
