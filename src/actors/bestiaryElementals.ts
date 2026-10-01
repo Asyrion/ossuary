@@ -258,7 +258,7 @@ export function hearthGolem(): Built {
     part(a, rough(new THREE.BoxGeometry(.24, .22, .26, 2, 2, 2), .03, s + 3), stone, [.15 * s, -.74, .12]);
     return a;
   });
-  return { group: g, shadow: 1.4, parts: { body, torso, head }, idle: t => {
+  return { group: g, shadow: 1.4, parts: { body, torso, head, flames, fireIn, heat, crown }, idle: t => {
     torso.rotation.y = Math.sin(t * .7) * .08; arms.forEach((a, i) => { a.rotation.x = Math.sin(t * 1.1 + i * Math.PI) * .1; });
     flames.scale.set(1, 1 + Math.sin(t * 7) * .12, 1); fireIn.scale.y = 1 + Math.sin(t * 8 + 1) * .15;
     heat.material.opacity = .45 + .12 * Math.sin(t * 5); crown.material.opacity = .45 + .15 * Math.sin(t * 6 + 2);

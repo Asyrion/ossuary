@@ -345,6 +345,15 @@ const sounds = {
   rockShatter() { hiss(.4, .14, 'bandpass', 1600); tone('sine', 160, 60, .3, .09); crackles(6, .25, .05); },
   golemBreak() { tone('sine', 90, 40, .5, .14); hiss(.6, .16, 'lowpass', 900); crackles(8, .4, .05); },
   golemReform() { for (let i = 0; i < 4; i++) tone('sine', 140 - i * 15, 90, .12, .06, i * .08); hiss(.4, .06, 'lowpass', 600); },
+  // floor 4. Hallow: a griffin's cry; an eye opening, charging and loosing its ray. Storm: a harpy's screech. Umbral: a
+  // shadow fox sinking into the dark and rising out of it
+  griffinCry() { tone('sawtooth', 1200, 700, .35, .05); tone('triangle', 1600, 1100, .3, .03, .1); },
+  eyeOpen() { tone('sine', 660, 990, .3, .03); hiss(.2, .02, 'highpass', 5000); },
+  eyeCharge() { tone('sine', 880, 1760, .5, .03); tone('triangle', 1320, 2640, .5, .015); },
+  eyeRay() { tone('sawtooth', 1760, 440, .3, .05); hiss(.3, .08, 'highpass', 3000); },
+  harpyScreech() { tone('sawtooth', 1800, 2600, .35, .06); tone('square', 2200, 1400, .4, .03, .05); hiss(.4, .06, 'highpass', 4000); },
+  foxSink() { tone('sine', 300, 90, .35, .05); hiss(.3, .04, 'lowpass', 500); },
+  foxRise() { tone('sine', 90, 300, .3, .05); hiss(.25, .04, 'lowpass', 700); },
 };
 type Sounds = typeof sounds;
 /** Sounds of the interface (picking things up, refusals, learning): their own bus, never positioned. */

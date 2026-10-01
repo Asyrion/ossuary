@@ -320,5 +320,54 @@
     "behaviour": "stone",
     "params": {},
     "gib": "#7a746a", "stain": null
+  },
+  "griffin": {
+    "floor": 4, "school": "hallow", "weak": "umbral", "resist": "storm",
+    "hp": 34, "r": 0.55, "speed": 3.2, "contact": 1, "flying": true, "elite": true,
+    "behaviour": "griffin",
+    "params": {"soar": [2.4, 3.4], "high": 2.8, "past": 2.5, "tell": 0.7, "swoop": 9, "swoopTime": 1.2, "claw": [2.4, 3.2], "buffetReach": 2.2, "buffetEvery": 1.4, "buffetTime": 0.3, "buffet": 7, "rise": 0.8},
+    "gib": "#e8d8a8", "stain": "#3a2e14"
+  },
+  "radiantEye": {
+    "floor": 4, "school": "hallow", "weak": "umbral", "resist": "hallow",
+    "hp": 16, "r": 0.4, "speed": 1.4, "contact": 1, "flying": true,
+    "behaviour": "eye",
+    "params": {"shut": [1.8, 2.8], "guard": 0.5, "keep": 4, "track": 1.2, "delay": 0.6, "hit": 0.8},
+    "gib": "#f6f0e0", "stain": null
+  },
+  "harpy": {
+    "floor": 4, "school": "storm", "weak": "frost", "resist": "storm",
+    "hp": 14, "r": 0.38, "speed": 2.8, "contact": 1, "flying": true,
+    "behaviour": "harpy",
+    "params": {"perchH": 1.4, "perch": [2, 3], "screechAt": 0.8, "screech": 0.5, "screechRange": 3.2, "push": 1.6, "tell": 0.5, "dive": 8, "diveTime": 0.75},
+    "gib": "#a89878", "stain": null
+  },
+  "lodestoneGolem": {
+    "floor": 4, "school": "storm", "weak": "frost", "resist": "storm", "elemental": true,
+    "hp": 24, "r": 0.55, "speed": 1, "contact": 1, "flying": false,
+    "behaviour": "magnet",
+    "params": {"pullRange": 6, "pull": 0.9, "bendRange": 3.2, "bend": 2.6, "ring": 1.1, "turn": 0.5},
+    "gib": "#6a6e78", "stain": "#22242a"
+  },
+  "hearthGolem": {
+    "floor": 4, "school": "ember", "weak": "frost", "resist": "ember", "elemental": true,
+    "hp": 36, "r": 0.6, "speed": 1, "contact": 1, "flying": false, "elite": true,
+    "behaviour": "hearth",
+    "params": {"guard": 0.2, "throwEvery": [2.6, 3.4], "throwRange": 7, "coals": 3, "spread": 1.6, "flight": 0.9, "fireTime": 2.6, "out": 4},
+    "gib": "#ff7a2a", "stain": "#2a120a"
+  },
+  "shadowFox": {
+    "floor": 4, "school": "umbral", "weak": "hallow", "resist": "umbral",
+    "hp": 12, "r": 0.36, "speed": 2.6, "contact": 1, "flying": false,
+    "behaviour": "shade",
+    "params": {"prowl": [1.4, 2.4], "near": 1.4, "far": 3, "light": 2.2, "sink": 0.4, "gone": 0.8, "emerge": 0.3, "bite": 7, "biteTime": 0.3},
+    "gib": "#3a2a4a", "stain": "#14101c"
+  },
+  "rimeScarab": {
+    "floor": 4, "school": "frost", "weak": "ember", "resist": "frost",
+    "hp": 14, "r": 0.4, "speed": 1.3, "contact": 1, "flying": false,
+    "behaviour": "roller",
+    "params": {"ball0": 0.2, "grow": 0.18, "launchAt": 0.7, "range": 6, "tell": 0.5, "flight": 0.9, "ring": 10, "shotSpeed": 3.2, "chill": 1.2, "bare": 3, "quick": 2, "weak": 1.4},
+    "gib": "#9ab8c8", "stain": "#1a2a34"
   }
 }

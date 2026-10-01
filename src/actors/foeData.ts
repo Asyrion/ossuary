@@ -87,6 +87,14 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   bodyguard: ['slamEvery', 'slamRange', 'tell', 'ring', 'shotSpeed', 'gap', 'melt'],
   breaker: ['slamEvery', 'slamRange', 'tell', 'rocks', 'spread', 'fall', 'hit', 'stones', 'reform', 'gather'],
   stone: [],
+  // floor 4
+  griffin: ['soar', 'high', 'past', 'tell', 'swoop', 'swoopTime', 'claw', 'buffetReach', 'buffetEvery', 'buffetTime', 'buffet', 'rise'],
+  eye: ['shut', 'guard', 'keep', 'track', 'delay', 'hit'],
+  harpy: ['perchH', 'perch', 'screechAt', 'screech', 'screechRange', 'push', 'tell', 'dive', 'diveTime'],
+  magnet: ['pullRange', 'pull', 'bendRange', 'bend', 'ring', 'turn'],
+  hearth: ['guard', 'throwEvery', 'throwRange', 'coals', 'spread', 'flight', 'fireTime', 'out'],
+  shade: ['prowl', 'near', 'far', 'light', 'sink', 'gone', 'emerge', 'bite', 'biteTime'],
+  roller: ['ball0', 'grow', 'launchAt', 'range', 'tell', 'flight', 'ring', 'shotSpeed', 'chill', 'bare', 'quick', 'weak'],
 };
 
 /** What is wrong with the foes' data (an empty list when nothing is). */
