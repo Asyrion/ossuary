@@ -3604,7 +3604,7 @@ test('the full wheel (M4.8): Searing opens a shut eye, a Prism splits a bolt in 
     const s0 = g.spellFx.strikes, vd = g.reaction('verdict'), stunned = vd.filter(i => (g.enemies[i].status?.stun ?? 0) > 0).length, strikes = g.spellFx.strikes - s0;
     fresh();
     // Black Ice: under a chilled foe hexed; a walker on it slides, the mage crosses it at full speed, fire melts it
-    g.reaction('blackice', P.x, P.z - 3); const black = g.ground.blackice; fresh();
+    g.reaction('blackice', P.x, P.z - 3); g.sim(.05); const black = g.ground.blackice, drawn = g.ground.blackiceDrawn; fresh();
     const walker = g.spawn('runeBeetle', P.x + 2, P.z - 3); g.sim(.8); g.layGround('blackice', walker.x, walker.z); g.sim(.1); const slides = g.foeGround(at(walker)).slide;
     fresh(); const ice = { x: P.x, z: P.z - 1.2 }; g.layGround('blackice', ice.x, ice.z); const z0 = P.z; g.keys.add('KeyW'); g.sim(.6); g.keys.delete('KeyW'); const walked = z0 - P.z;
     g.burn(ice.x, ice.z, .5); g.sim(.1); const melted = g.ground.blackice;
@@ -3617,13 +3617,13 @@ test('the full wheel (M4.8): Searing opens a shut eye, a Prism splits a bolt in 
     g.learn('consecrate', 0); g.mana(999); const a = g.spawn('rotling', P.x + .8, P.z), b = g.spawn('rotling', P.x - .8, P.z); g.sim(.8); a.hp = b.hp = 99;
     g.cast(0); g.sim(.2); g.element('hex', P.x, P.z); g.sim(.05);
     const eclipsed = [a, b].filter(e => (e.status?.eclipse ?? 0) > 0).length;
-    return { shut, shutTook, seared, searedTook, lost, prism, split, stunned, strikes, black, slides, walked, melted, carried, mana, eclipsed, found: g.reactions };
+    return { shut, shutTook, seared, searedTook, lost, prism, split, stunned, strikes, black, drawn, slides, walked, melted, carried, mana, eclipsed, found: g.reactions };
   });
   expect(r.shut).toBe(true); expect(r.seared).toBeGreaterThan(0); expect(r.searedTook).toBeCloseTo(r.shutTook * 2, 1);
   expect(r.lost).toBe(true);
   expect(r.prism).toBe(true); expect(r.split).toBe(3);
   expect(r.stunned).toBe(3); expect(r.strikes).toBeGreaterThanOrEqual(3);
-  expect(r.black).toBe(1); expect(r.slides).toBe(true); expect(r.walked).toBeGreaterThan(1.2); expect(r.melted).toBe(0);
+  expect(r.black).toBe(1); expect(r.drawn).toBe(1); expect(r.slides).toBe(true); expect(r.walked).toBeGreaterThan(1.2); expect(r.melted).toBe(0);
   expect(r.carried).toBe(2); expect(r.mana).toBeGreaterThanOrEqual(6);
   expect(r.eclipsed).toBe(2);
   expect(r.found).toEqual(expect.arrayContaining(['searing', 'prism', 'verdict', 'blackice', 'voidspark', 'eclipse']));

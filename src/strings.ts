@@ -166,6 +166,8 @@ export const STR = {
     sets: 'What it sets off',
     /** The book's wheel of reactions (M4.8): every pair of schools, found or not yet. */
     wheel: 'Reactions',
+    /** Each school's spoke on the wheel, in two letters (Verdant's sealed until M5). */
+    spoke: { ember: 'Em', frost: 'Fr', storm: 'St', hallow: 'Ha', umbral: 'Um', verdant: '?' } as Record<string, string>,
     pair: (a: string, b: string) => `${a} and ${b}`,
     unfound: 'Not yet found',
     unfoundText: (a: string, b: string) => `What ${a} and ${b} do when they meet on one foe. Set them off together to find out.`,

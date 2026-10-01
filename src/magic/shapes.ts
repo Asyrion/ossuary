@@ -24,7 +24,7 @@ import { detonateGlyph } from '../combat/glyphs';
 import { blockers, boxAt, pointInBoxes } from '../world/collision';
 import { fireAt, frostAt } from '../world/pools';
 import { hallowAt, umbralAt } from '../world/mechanisms';
-import { canAct } from './status';
+import { canAct, newStatus } from './status';
 import type { Shape, SpellDef } from './spellData';
 import { flash, inflict, tileReaction } from './statusFx';
 import { consecrateFx, graspFx, hideSpellFx, iceColumn, lanceFx, mantleFx, ringFx, sealFx, smiteFx, strikeFx, tollFx, updateSpellFx, wardFx } from './spellFx';
@@ -367,7 +367,7 @@ export function hexGround(x: number, z: number) {
   tileReaction('eclipse', g.x, g.z);
   ringFx(g.x, .05, g.z, 0x6a3aa8, .3, P.radius, CFG.spellFx.shockwave, true); burst(g.x, .3, g.z, 0x2a0a4a, 20, 2.4, .06); burst(g.x, .3, g.z, hex(g.def.color), 10, 2, .04);
   for (const e of G.enemies) if (alive(e) && !e.flying && Math.hypot(e.x - g.x, e.z - g.z) < P.radius + e.r * .5) {
-    if (!((e.status?.sanct ?? 0) > 0)) inflict(e, { sanct: 1 });
+    const st = e.status ??= newStatus(); st.sanct = Math.max(st.sanct, 1); // (laid straight on, so a burning or frozen foe isn't seared or a prism instead)
     inflict(e, { hex: 1 });
   }
 }

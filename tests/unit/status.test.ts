@@ -200,4 +200,11 @@ describe('the full wheel (M4.8): every pair of the five schools reacts', () => {
       expect(REACTIONS[r!].slice().sort(), `${a} then ${b}`).toEqual([a, b].sort());
     }
   });
+  it('holy light on a prism keeps it one without setting it off again (M4.8 review)', () => {
+    const s = newStatus();
+    for (let k = 0; k < MAGIC.chill.freezeAt; k++) applyStatus(s, 'chill', 1, false);
+    expect(applyStatus(s, 'sanct', 3, false)).toEqual({ reaction: 'prism' });
+    expect(applyStatus(s, 'sanct', 3, false)).toEqual({});
+    expect(s.prism).toBeGreaterThan(0);
+  });
 });

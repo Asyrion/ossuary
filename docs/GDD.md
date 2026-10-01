@@ -412,13 +412,13 @@ plate at once. Prism (a frozen foe sanctified, or a sanctified one frozen): whil
 and each cantrip bolt that strikes it breaks into three of the rainbow's colours, one on and one 24° to either side, each
 at 70% for 4.5 tiles. Verdict (a sanctified foe shocked, or a shocked one sanctified): lightning falls on it and on every
 other sanctified foe in the room, each struck for 8 and stunned for half a second. Black Ice (a chilled or frozen foe
-hexed, or a hexed one chilled): a glassy violet-black patch 1.15 tiles across for 7 s; every walking foe on it slides,
+hexed, or a hexed one chilled): a glassy indigo patch that glints, 2.3 tiles across, for 7 s; every walking foe on it slides,
 its grip a fifth of rime's, so it can hardly turn or stop; the mage crosses it at full speed, and fire melts it. Void
 Spark (a hexed foe shocked, or a shocked one hexed): the spark leaps to the three foes nearest within 3.4 tiles, striking
 each for 4 and laying a hex stack on it, and marks them for 5 s; a marked foe that falls gives 6 mana. On the floor, a
 shock through burning oil is an Overload at the pool's middle that blows the fire out, and a hex landing on Consecrate's
 holy ground (Grasp of the Grave's hands, a hexing bolt crossing it, a hex on a foe standing in it) darkens the ground at
-once and takes everyone standing in it under a black sun. The first time ever a reaction goes off its name rises larger;
+once and takes everyone standing in it under a black sun. The first time ever a reaction goes off its name rises larger than it does after;
 the spells tab's book ends with the wheel: an entry for each pair, lit once found (kept between runs in the browser,
 `ossuary.reactions`), its chord drawn on a wheel of the schools whose sixth spoke, Verdant's, is sealed until M5. A
 spell's panel marks the reactions it can set off that are not found yet. The dev menu's Magic tab has "Reactions here"

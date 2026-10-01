@@ -38,7 +38,7 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   if (e.spawn > 0 || e.dead || e.hidden) return;
   if (e.ward && by === 'spell') { drinkBlow(e, dmg, school); return; } // (M4.2: its ward drinks the spells that strike it)
   if (e.glance && by === 'cantrip') { glance(e); return; } // (a Twin Guardian's shield turns bolts)
-  const raw = dmg * damageTakenMul(e.status) * (e.unbound ? MAGIC.unbound.damageMul : 1); dmg = raw * ((e.status?.seared ?? 0) > 0 ? 1 : e.guard ?? 1); // a frozen foe cracks; a shut mimic's clay turns half a blow, unless Searing burnt its guard away (M4.8)
+  const raw = dmg * damageTakenMul(e.status) * (e.unbound ? MAGIC.unbound.damageMul : 1); dmg = raw * ((e.status?.seared ?? 0) > 0 ? Math.max(1, e.guard ?? 1) : e.guard ?? 1); // a frozen foe cracks; a shut mimic's clay turns half a blow, unless Searing burnt its guard away (M4.8; an opening, a flipped crab's, stays)
   if (e.plates) wearPlates(e, raw - dmg); // (M4.2: the War-Tiger's plates turn most of it, and wear)
   const aff = affinityMul(e.foe ?? e.bossAff, school); // (the bosses of floors 4 and 5 have theirs too)
   if (aff < 0) { drink(e, -dmg * aff); return; } // (M4.5: an elemental drinks its own school)
