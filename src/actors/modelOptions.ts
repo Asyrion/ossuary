@@ -9,7 +9,7 @@
 import * as THREE from 'three';
 import type { Room } from '../types';
 import { blob, disposeTree, glow } from '../render/materials';
-import { freeSpotNear } from '../world/rooms';
+import { freeSpotNear, isFreeAt } from '../world/rooms';
 import { mergeRig } from '../render/rig';
 import { ALL_BOSS_LOOKS } from './bossLooks';
 import { BESTIARY_OPTIONS } from './bestiaryLooks';
@@ -744,6 +744,17 @@ export function showBossLooks(room: Room, x: number, z: number, only?: readonly 
     return { id: o.id, x: at.x, z: at.z };
   });
 }
+/** The nearest open floor to (x, z), searching outwards half a tile at a time, at least a tile from every spot `taken`
+    (so a crowd of looks never stands one on another); the nearest open floor at all if the room has no such place. */
+function clearSpot(room: Room, x: number, z: number, taken: readonly { x: number; z: number }[]) {
+  const b = room.bounds;
+  for (let ring = 0; ring < 24; ring++) for (let dz = -ring; dz <= ring; dz++) for (let dx = -ring; dx <= ring; dx++) {
+    if (Math.max(Math.abs(dx), Math.abs(dz)) !== ring) continue;
+    const px = x + dx * .5, pz = z + dz * .5;
+    if (px > b.minX + .5 && px < b.maxX - .5 && pz > b.minZ + .5 && pz < b.maxZ - .5 && isFreeAt(room, px, pz) && taken.every(q => Math.hypot(q.x - px, q.z - pz) >= 1)) return { x: px, z: pz };
+  }
+  return freeSpotNear(room, x, z);
+}
 /** Stand the bestiary's candidates (M4.5; every one, or those in `only`) ahead of world (x, z) in `room`: a row for each
     kind (critters, fantasy creatures, elementals), nearest the mage first. */
 export function showBestiary(room: Room, x: number, z: number, only?: readonly string[]) {
@@ -752,7 +763,8 @@ export function showBestiary(room: Room, x: number, z: number, only?: readonly s
   rows.forEach((list, row) => {
     const across = Math.min(list.length, 7);
     list.forEach((o, i) => {
-      const at = freeSpotNear(room, x + ((i % across) - (across - 1) / 2) * 1.5, z - 1.6 - row * 1.9 - Math.floor(i / across) * .95);
+      const wx = x + ((i % across) - (across - 1) / 2) * 1.5, wz = z - 1.6 - row * 1.9 - Math.floor(i / across) * .95;
+      const at = clearSpot(room, wx, wz, out);
       const b = o.build(); mergeRig(b.group, b.idle, 'bestiary:' + o.id); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
       shown.push({ room, group: b.group, idle: b.idle }); out.push({ id: o.id, x: at.x, z: at.z });
     });
