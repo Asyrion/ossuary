@@ -424,7 +424,6 @@ export const STR = {
     godOn: 'God mode: on', godOff: 'God mode: off',
     doors: { data: 'Doors: as the floor has them', shifted: 'Doors: off the middle', middle: 'Doors: in the middle' } as Record<string, string>,
     moveClip: { run: 'Moving: run clip', walkInStep: 'Moving: walk clip, feet in step', walkNatural: 'Moving: walk clip, natural pace' } as Record<string, string>,
-    heroModel: { apprentice: 'Model: Asyrion, built in code', glb: 'Model: the Tripo model (GLB)' } as Record<string, string>,
     resources: 'Obols, keys, glyphs and soul motes', emptyPurse: 'Empty the purse', giveSoul: (name: string) => `+ ${name}`, noSouls: 'No soul motes', floorEnd: "A floor's end (hallowed motes mend)",
     give: (n: number, what: string) => `+${n} ${what}${n === 1 ? '' : 's'}`,
     names: { coins: 'obol', keys: 'key', glyphs: 'glyph' } as Record<string, string>,
@@ -454,8 +453,6 @@ export const STR = {
   },
   /** What a merchant's ware is called in messages. */
   wares: { heart: 'heart', halfHeart: 'half heart', key: 'bone key', glyph: 'glyph stone', coin: 'obol', purse: 'purse', mana: 'mana vial', paleSoul: 'pale soul mote', blackSoul: 'black soul mote', hallowedSoul: 'hallowed soul mote', shard: 'lodestone shard', map: "the crow's map", secret: "the crow's secret" } as Record<string, string>,
-  /** The mage built in code (actors/apprentice.ts), as the hero report names it. */
-  apprenticeLabel: 'Asyrion (built in code)',
   heroInfo: (label: string, tris: number, stripped: boolean, skinned: boolean, clips: string) =>
     `${label}: ${tris.toLocaleString()} triangles${stripped ? ', base removed' : ''}` +
     `${skinned ? ', rigged' : ', static (procedural animation)'}${clips ? `. Clips used: ${clips}` : ''}.`,

@@ -57,9 +57,6 @@ const boneNamed = (root: THREE.Object3D, re: RegExp) => {
   return found as THREE.Object3D | null;
 };
 
-/** The bone a rigid part hangs from, if any. */
-const boneOf = (o: THREE.Object3D) => { let p = o.parent; while (p && !(p as THREE.Bone).isBone) p = p.parent; return p; };
-
 function measure(holder: THREE.Object3D): Fit {
   holder.updateMatrixWorld(true);
   const toHolder = holder.matrixWorld.clone().invert();
@@ -77,10 +74,9 @@ function measure(holder: THREE.Object3D): Fit {
   holder.traverse(o => {
     const mesh = o as THREE.SkinnedMesh; if (!mesh.isMesh) return;
     const pos = mesh.geometry.attributes.position, si = mesh.geometry.attributes.skinIndex, sw = mesh.geometry.attributes.skinWeight;
-    const bones = mesh.isSkinnedMesh ? mesh.skeleton.bones : null, onBone = bones ? null : boneOf(mesh); // (a rigid part on a bone: a hero built in code)
+    const bones = mesh.isSkinnedMesh ? mesh.skeleton.bones : null;
     for (let i = 0; i < pos.count; i++) {
       mesh.getVertexPosition(i, v); v.applyMatrix4(mesh.matrixWorld).applyMatrix4(toHolder); all.expandByPoint(v);
-      if (onBone) { if (headSet.has(onBone)) headPts.push(v.clone()); else if (chestSet.has(onBone)) chest.expandByPoint(v); continue; }
       if (!bones || !si || !sw) continue;
       let best = 0; for (let k = 1; k < 4; k++) if (sw.getComponent(i, k) > sw.getComponent(i, best)) best = k;
       const bone = bones[si.getComponent(i, best)];
@@ -108,7 +104,6 @@ function measure(holder: THREE.Object3D): Fit {
 /** Hang a part built in the model's frame from an anchor, so that it sits where it was built in the rest pose. */
 function hang(at: Anchor, part: THREE.Object3D) {
   at.rest.clone().invert().decompose(part.position, part.quaternion, part.scale);
-  part.userData.costume = true; // (told apart from the model's own parts on the same bone: a hero built in code)
   at.parent.add(part); return part;
 }
 

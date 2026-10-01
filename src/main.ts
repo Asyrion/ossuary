@@ -14,7 +14,7 @@ import { applyStrings } from './strings';
 import { Sfx } from './audio/sfx';
 import { camera, canvas, draw, renderer, resize } from './render/renderer';
 import './render/lights';
-import { hero, heroChoice, wearHero } from './actors/hero';
+import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { arrowOrder, initKeyboard, initTouch, keys, type InputActions } from './input';
 import { initScreens, showScreen } from './ui/screens';
 import { closeDev, devOpen, dropsHere, forceKinds, objectsHere, showAssetsHere, toggleDev, useAssets, useRoomKit } from './ui/devMenu';
@@ -70,6 +70,7 @@ import { burningGround, sparkGround } from './actors/foes';
 import { groundCount } from './actors/bestiaryGround';
 import { blastAt } from './combat/glyphs';
 
+const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
 const input: InputActions = {
   unlockAudio: () => Sfx.init(),
@@ -98,7 +99,13 @@ const input: InputActions = {
 };
 
 async function loadDefaultHero() {
-  await wearHero(heroChoice()); // (Asyrion built in code, or the Tripo model: ?hero=glb, the dev menu)
+  try {
+    const res = await fetch(HERO_URL);
+    if (!res.ok) throw new Error(`${HERO_URL}: HTTP ${res.status}`);
+    await loadHeroBuffer(await res.arrayBuffer(), 'hero_default.glb');
+  } catch (e) {
+    console.error(e); setHero(fallbackHero(), { animations: [] }, 'fallback');
+  }
   setHeroInfo(hero.info);
 }
 

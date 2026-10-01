@@ -9,7 +9,6 @@ export const CFG = {
     walkToRun: [.12, .3] as [number, number], // between these fractions of full speed the walk hands over to the run
     walkNatural: 2.2,   // dev menu comparison: the walk's playback at full speed at a natural pace (the feet slide)
     drinkSpeed: 1.4,    // playback speed of the draught when the mage is healed
-    sigilSpeed: 1.6,    // playback speed of chalking a glyph (a model with a sigil clip: Asyrion, built in code)
     fidget: [9, 16] as [number, number], // seconds standing still before the mage eats something
   },
   // mana (GDD: Magic system): regained each second out of a fight and in one, and for each foe the cantrip
