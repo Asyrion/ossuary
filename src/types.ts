@@ -1,4 +1,5 @@
 import type * as THREE from 'three';
+import type { MantleId } from './actors/mantleData';
 import type { PropKind } from './world/propData';
 import type { ThemeDef } from './world/themeData';
 import type { BossConfig, PlannedRoom } from './world/generate';
@@ -170,6 +171,8 @@ export interface Enemy extends Circle {
   dead?: boolean; isBoss?: boolean; bossCfg?: BossConfig;
   /** Size and speed factors (champions are bigger and faster); the champion's glow. */ scale: number; speedMul: number;
   champion?: boolean; aura?: THREE.Sprite;
+  /** A champion's school mantle (M4.7, actors/mantles.ts), its ring of runes, the seconds until it acts again (a trail
+      of fire, a spark), and the seconds left open after it was stripped. */ mantle?: MantleId; mantleRing?: THREE.Object3D; mantleT?: number; unbound?: number; saidAt?: number;
   /** M4.2: a drinking ward round it (actors/wardShield.ts): what it has drunk, and its light. */ ward?: { drink: Drink; fx: THREE.Mesh };
   // type-specific parts and AI state
   halo?: THREE.Sprite; target?: Vec2; fireT?: number; dir?: Vec2;

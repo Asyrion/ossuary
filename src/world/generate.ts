@@ -50,6 +50,7 @@ export interface FloorConfig {
   themeChance: number; themes: Record<string, number>;
   /** Relative weights of room shapes for new rooms. */ shapes: Partial<Record<ShapeId, number>>;
   /** Relative weights of the variants a normal room can roll. */ variants: Partial<Record<RoomVariant, number>>;
+  /** Relative weights of the school mantles a champion here wears (M4.7, actors/mantleData.ts). */ mantles?: Partial<Record<string, number>>;
   templateWeights: Record<string, number>;
   boss: BossConfig;
   look: FloorLook;

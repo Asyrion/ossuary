@@ -36,7 +36,7 @@ import { openSecretRoom } from './world/secret';
 import { cleanseAtOnce, riteState } from './world/shrine';
 import { SPELLS, type SpellStatus, type StatusKind } from './magic/spellData';
 import { inflict } from './magic/statusFx';
-import { spawnFoe } from './actors/enemies';
+import { makeEnemy, spawnFoe } from './actors/enemies';
 import { castSpell, learnSpell } from './magic/spells';
 import { mantleLeft, wardLeft } from './magic/shapes';
 import { saltCircle } from './combat/familiars';
@@ -70,6 +70,7 @@ import { burningGround, sparkGround } from './actors/foes';
 import { groundCount } from './actors/bestiaryGround';
 import { blastAt } from './combat/glyphs';
 import { inSteam, steamAt, steamCount } from './magic/steam';
+import type { MantleId } from './actors/mantleData';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
@@ -235,6 +236,7 @@ function installDevHooks() {
     /** Spawn a foe (e.g. 'dummy', the training dummy) at (x, z), or ahead of the mage; put statuses on every
         foe in the room, e.g. inflict({ burn: 3 }). */
     spawn(kind: FoeType, x = player.x, z = player.z - 2.5) { return spawnFoe(kind, x, z, 1); }, // (a swarm comes whole)
+    champion(kind: FoeType, mantle?: MantleId, x = player.x, z = player.z - 2.5) { return makeEnemy(kind, x, z, 1, undefined, { champion: true, mantle }); }, // (M4.7: a champion, in a mantle if named)
     /** Strike the room's foe `i` for `dmg`, of `school` if given (M4: its weakness and resistance count). */
     hit: (i: number, dmg: number, school?: School, by: 'spell' | 'cantrip' = 'spell', dx = 0, dz = 0) => { const e = G.enemies[i]; if (e) damageEnemy(e, dmg, dx, dz, 0, by, school); return e?.hp; }, // (dx, dz: the way the blow travels)
     /** What the mage has found of the foes (M4), kept between runs; forget it all. */

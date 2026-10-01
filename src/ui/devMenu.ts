@@ -50,6 +50,7 @@ import { TEMPLATE_DEFS } from '../world/templates';
 import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
 import { KIT_PARTS, kindsOf, type KitPart, type Kinds } from '../world/kitData';
 import { renderHearts, renderItems, renderMinimap, toast } from './hud';
+import { MANTLE_IDS } from '../actors/mantleData';
 
 const S = STR.dev;
 let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
@@ -246,6 +247,11 @@ function build() {
     const q = ahead(3), floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
     makeEnemy(pickFoe(floor.foes, 'H', Math.random, true), q.x, q.z, floorHp(), undefined, { champion: true });
   }));
+  // a champion in each school's mantle (M4.7): the floor's heavy, wearing it
+  foes.append(el('p', 'dv-info', S.mantles), ...MANTLE_IDS.map(id => btn(STR.foes.mantles[id].name, () => {
+    const q = ahead(3), floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
+    makeEnemy(pickFoe(floor.foes, 'H', Math.random, true), q.x, q.z, floorHp(), undefined, { champion: true, mantle: id });
+  })));
   // the foes built in code (M4), by floor, from data/foes.json; and one of them in every fight, to test it
   for (const floor of [...FLOORS.map((_, i) => i + 1), 0]) { // (0: the Wardlings, no floor's own)
     const row = FOE_IDS.filter(id => FOES[id].floor === floor);

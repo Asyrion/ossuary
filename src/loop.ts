@@ -36,6 +36,7 @@ import { updateLore } from './ui/lore';
 import { ease, lerp } from './util';
 import { camTarget, cameraTargetFor, draw, setViewScale } from './render/renderer';
 import { checkAmbush, enterRoom } from './flow';
+import { updateMantles } from './actors/mantles';
 
 export const STEP = 1 / 60;
 const MAX_FRAME = 1 / 30;
@@ -59,7 +60,7 @@ export function step(dt: number) {
       if (tr.t >= tr.dur) { G.trans = null; player.vx *= .5; player.vz *= .5; enterRoom(tr.nb); }
     } else if (G.state === 'play') {
       G.stats.time += dt;
-      updatePlayer(dt); checkAmbush(); updateEnemies(dt); updateStatuses(dt, now); updateBolts(dt); updateShots(dt); updateGlyphs(dt); updatePickups(dt);
+      updatePlayer(dt); checkAmbush(); updateEnemies(dt); updateMantles(dt); updateStatuses(dt, now); updateBolts(dt); updateShots(dt); updateGlyphs(dt); updatePickups(dt);
       // in rooms larger than the view the camera follows the mage, stopping at the walls
       const t = cameraTargetFor(G.current, player.x, player.z), k = 1 - Math.exp(-8 * dt);
       camTarget.x += (t.x - camTarget.x) * k; camTarget.z += (t.z - camTarget.z) * k;
