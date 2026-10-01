@@ -172,7 +172,7 @@ export interface Enemy extends Circle {
   champion?: boolean; aura?: THREE.Sprite;
   /** M4.2: a drinking ward round it (actors/wardShield.ts): what it has drunk, and its light. */ ward?: { drink: Drink; fx: THREE.Mesh };
   // type-specific parts and AI state
-  core?: THREE.Mesh; halo?: THREE.Sprite; target?: Vec2; fireT?: number; dir?: Vec2;
+  halo?: THREE.Sprite; target?: Vec2; fireT?: number; dir?: Vec2;
   eye?: THREE.Object3D; ring?: THREE.Object3D; cycle?: number; summoned?: boolean; volleys?: number;
   /** A boss built in code (M4: the Hollow Warden's looks, bossLooks.ts): its school, whose light its shots take. */ bossSchool?: School;
   /** The bosses of floors 4 and 5 (M4.1): their weakness and resistance; the hart's turning spokes. */ bossAff?: { weak: School; resist: School }; spin?: number;

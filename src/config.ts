@@ -21,8 +21,8 @@ export const CFG = {
     dummy: { hp: 1000, r: 0.34, speed: 0 },  // the dev menu's training dummy: stands still, never falls
     // bosses (each floor's boss block in data/floors.json scales them)
     warden: { hp: 120, r: 0.78, speed: 1.15 },
-    abbess: { hp: 120, r: 0.7, speed: .95, dive: 2.7, under: 1.8 }, // dive: speed of her ripple; under: seconds below
-    pyre: { hp: 135, r: 0.72, speed: 1.25, charge: 8.2 },
+    abbess: { hp: 120, r: 0.7, speed: .95, dive: 2.7, under: 1.8, weak: 'storm' as const, resist: 'frost' as const }, // dive: speed of her ripple; under: seconds below
+    pyre: { hp: 135, r: 0.72, speed: 1.25, charge: 8.2, weak: 'frost' as const, resist: 'ember' as const },
     // floors 4 and 5 (M4.1), built in code, with a weakness and a resistance like the foes: the hart's charge speed; the
     // angler's pull on the mage (units a second), how long it pulls, how close its bite reaches, and the share of its
     // health that, struck off while it pulls, makes it flinch
