@@ -63,7 +63,7 @@
     "shrine": false,
     "library": true,
     "vaultWarden": "cinderSalamander",
-    "foes": {"R": [["cinderSalamander", 1]], "W": [["hexImp", 1]], "H": [["rimeDrakeling", 1], ["cinderSalamander", 1]]},
+    "foes": {"R": [["cinderSalamander", 1.5], ["magmaOoze", 1]], "W": [["hexImp", 1.5], ["waspNest", 0.8], ["cinderDjinn", 1]], "H": [["rimeDrakeling", 1], ["cinderSalamander", 1], ["phoenix", 0.7], ["basilisk", 1], ["saltGolem", 1], ["rubbleGolem", 1]]},
     "secretArtifactChance": 0.5,
     "bossHallChance": 0.4,
     "doorShift": 0.5,

@@ -320,6 +320,31 @@ const sounds = {
   thunderGather() { tone('sine', 50, 70, 1, .08); hiss(.9, .05, 'lowpass', 300); },
   thunder() { hiss(1.2, .22, 'lowpass', 400); tone('sawtooth', 70, 35, .8, .07); crackles(6, .3, .05); },
   darterZip() { tone('sawtooth', 600, 1400, .2, .03); hiss(.2, .05, 'highpass', 4000); },
+  // floor 3. Ember: wasps let out of their nest and curling to sting; a djinn lighting, hurling, snuffed; fire thrown and
+  // landing; a magma ooze splitting; a phoenix's cry and dive, its fall to ashes and its rising
+  waspOut() { for (let i = 0; i < 4; i++) tone('sawtooth', 220 + i * 30, 260 + i * 30, .12, .02, i * .05); hiss(.2, .03, 'bandpass', 1800); },
+  waspTell() { tone('sawtooth', 320, 520, .3, .025); },
+  djinnLight() { hiss(.3, .08, 'bandpass', 1200); tone('sine', 300, 600, .25, .04); crackles(4, .3, .03); },
+  djinnHurl() { hiss(.3, .1, 'lowpass', 1400); tone('sine', 500, 200, .25, .05); },
+  djinnSnuff() { hiss(.45, .1, 'highpass', 3000); tone('sine', 400, 120, .35, .04); },
+  flare() { hiss(.3, .09, 'bandpass', 900); crackles(3, .25, .03); },
+  magmaSplit() { hiss(.3, .1, 'lowpass', 600); tone('sine', 120, 60, .3, .08); crackles(5, .3, .04); },
+  phoenixCry() { tone('sawtooth', 900, 1500, .3, .04); tone('triangle', 1800, 2400, .35, .03, .12); },
+  phoenixDive() { hiss(.5, .14, 'lowpass', 1800); tone('sawtooth', 700, 250, .4, .04); },
+  phoenixFall() { tone('triangle', 1400, 400, .6, .05); hiss(.6, .08, 'lowpass', 800); },
+  phoenixRise() { hiss(.7, .14, 'bandpass', 1000); [523, 784, 1047, 1568].forEach((f, i) => tone('triangle', f, f * 1.02, .5, .04, i * .1)); },
+  // Umbral: a basilisk's crest, its stare, blinded by holy light
+  basiliskCrest() { tone('sawtooth', 120, 240, .5, .04); hiss(.4, .03, 'highpass', 4500); },
+  basiliskGaze() { tone('sine', 70, 60, 1.2, .07); tone('triangle', 466, 440, 1.2, .015); },
+  basiliskBlind() { tone('triangle', 1760, 1320, .3, .03); tone('sawtooth', 300, 150, .3, .04); },
+  // stone and salt: golems raising their fists and slamming, stones falling and shattering, a golem breaking and coming together
+  saltRaise() { tone('sine', 90, 140, .45, .06); hiss(.4, .03, 'lowpass', 500); },
+  saltSlam() { tone('sine', 110, 45, .35, .12); hiss(.35, .12, 'bandpass', 2400); },
+  rubbleSlam() { tone('sine', 80, 35, .45, .14); hiss(.5, .14, 'lowpass', 700); },
+  rockFall() { tone('sine', 140, 50, .25, .1); hiss(.25, .1, 'lowpass', 900); },
+  rockShatter() { hiss(.4, .14, 'bandpass', 1600); tone('sine', 160, 60, .3, .09); crackles(6, .25, .05); },
+  golemBreak() { tone('sine', 90, 40, .5, .14); hiss(.6, .16, 'lowpass', 900); crackles(8, .4, .05); },
+  golemReform() { for (let i = 0; i < 4; i++) tone('sine', 140 - i * 15, 90, .12, .06, i * .08); hiss(.4, .06, 'lowpass', 600); },
 };
 type Sounds = typeof sounds;
 /** Sounds of the interface (picking things up, refusals, learning): their own bus, never positioned. */

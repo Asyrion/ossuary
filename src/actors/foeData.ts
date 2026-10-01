@@ -77,6 +77,16 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
   cloud: ['rest', 'over', 'gather', 'rain', 'sparks', 'reach', 'sparkTime'],
   darter: ['hover', 'aim', 'dash', 'dashMax', 'sparkEvery', 'sparkTime'],
   mine: ['trigger', 'tell', 'dim', 'ring', 'shotSpeed'],
+  // floor 3 (and what two of them make: a nest's wasps, a golem's stones)
+  nest: ['first', 'every', 'brood', 'guard'],
+  wasp: ['hover', 'keep', 'tell', 'dash', 'dashTime', 'burn'],
+  djinn: ['hurlEvery', 'hurlRange', 'hurlTime', 'fireTime', 'keep', 'rest', 'heal', 'snuff'],
+  ooze: ['trailEvery', 'trailTime', 'splitAt', 'splitScale', 'splitHp', 'rock', 'shatter'],
+  phoenix: ['circleTime', 'orbit', 'featherEvery', 'feathers', 'spread', 'featherSpeed', 'tell', 'dive', 'diveTime', 'fireEvery', 'fireTime', 'rebirth', 'reborn', 'ring'],
+  basilisk: ['gazeEvery', 'keep', 'range', 'tell', 'gaze', 'cone', 'sweep', 'hold'],
+  bodyguard: ['slamEvery', 'slamRange', 'tell', 'ring', 'shotSpeed', 'gap', 'melt'],
+  breaker: ['slamEvery', 'slamRange', 'tell', 'rocks', 'spread', 'fall', 'hit', 'stones', 'reform', 'gather'],
+  stone: [],
 };
 
 /** What is wrong with the foes' data (an empty list when nothing is). */
@@ -109,10 +119,11 @@ export function affinityMul(def: Pick<FoeDef, 'weak' | 'resist'> & { elemental?:
 /** Whether a status of `status`'s school feeds an elemental instead of taking hold (a Thunderhead drinks a shock). */
 export const drinksStatus = (def: Pick<FoeDef, 'resist'> & { elemental?: boolean } | undefined, status: SpellStatus) => !!def?.elemental && STATUS_SCHOOL[status] === def.resist;
 
-/** Behaviours that wait in disguise until the mage comes near: an urn, a book, a heap of rubble. */
-const WAITERS = ['mimic', 'tome', 'crab'];
+/** Behaviours that wait in disguise until the mage comes near (an urn, a book, a heap of rubble), and a nest set in a wall
+    letting out its brood (M4.5). */
+const WAITERS = ['mimic', 'tome', 'crab', 'nest'];
 /** A foe of `role` for the floor to call up in the middle of a fight (a boss's helpers, the ossuary's rising bones):
-    never an elite, nor one that waits in disguise, nor one that comes as a pack (M4.5's swarm). */
+    never an elite, nor one that waits in disguise or lets out others, nor one that comes as a pack (M4.5's swarm). */
 export function callFoe(table: RoleTable, role: Role, R: () => number): FoeType {
   const list = table[role].filter(([id]) => !(isFoe(id) && (FOES[id].elite || WAITERS.includes(FOES[id].behaviour) || FOES[id].pack)));
   return pickFoe({ ...table, [role]: list.length ? list : table[role] }, role, R, true);

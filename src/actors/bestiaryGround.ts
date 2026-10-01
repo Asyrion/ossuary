@@ -1,7 +1,7 @@
 /* What M4.5's foes leave on the ground and throw (docs/M4.5-plan.md): a crypt spider's webs and an ink octopus's smears,
    which slow the mage who walks through them (fire burns a web away), a rime snail's trail of rime, on which the mage
    slides (fire melts it), and lobs, anything thrown in an arc to land on a
-   spot (a spider's web gob; later floors' snowballs and coals). Each kind of patch is drawn at once, one instanced mesh
+   spot (a spider's web gob; later floors' snowballs and coals), and stones dropped from above (a rubble golem's). Each kind of patch is drawn at once, one instanced mesh
    a kind, so a room full of them stays cheap. */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -69,7 +69,7 @@ hearGround((kind, x, z, r) => {
 
 /* ---------- lobs: thrown in an arc to land on a spot ---------- */
 
-interface Lob { room: Room; fx: number; fz: number; tx: number; tz: number; t: number; dur: number; h: number; m: THREE.Object3D; land: (x: number, z: number) => void }
+interface Lob { room: Room; fx: number; fz: number; tx: number; tz: number; t: number; dur: number; h: number; m: THREE.Object3D; land: (x: number, z: number) => void; fall?: boolean }
 const lobs: Lob[] = [];
 const lobGeo = new THREE.SphereGeometry(.11, 8, 6), lobMats = new Map<number, THREE.MeshBasicMaterial>();
 /** Throw something of `color` from (fx, fz) to land on (tx, tz) after `dur` seconds, as high as `h` at the top of its arc;
@@ -78,6 +78,12 @@ export function lob(room: Room, fx: number, fz: number, tx: number, tz: number, 
   let mat = lobMats.get(color); if (!mat) lobMats.set(color, mat = new THREE.MeshBasicMaterial({ color }));
   const m = new THREE.Group(); m.add(new THREE.Mesh(lobGeo, mat), glowShared(color, .55, .7)); m.scale.setScalar(size); scene.add(m);
   lobs.push({ room, fx, fz, tx, tz, t: 0, dur, h, m, land });
+}
+/** A stone dropped from `h` up onto (x, z), landing after `dur` seconds (a rubble golem's slam brings the roof down). */
+const stoneGeo = new THREE.DodecahedronGeometry(.26, 0), stoneMat = new THREE.MeshStandardMaterial({ color: 0x6a645c, roughness: .95, flatShading: true });
+export function fallOn(room: Room, x: number, z: number, dur: number, land: (x: number, z: number) => void, h = 4) {
+  const m = new THREE.Mesh(stoneGeo, stoneMat); m.rotation.set(Math.random() * 3, Math.random() * 3, 0); scene.add(m);
+  lobs.push({ room, fx: x, fz: z, tx: x, tz: z, t: 0, dur, h, m, land, fall: true });
 }
 
 const m4 = new THREE.Matrix4(), q0 = new THREE.Quaternion(), v3 = new THREE.Vector3(), s3 = new THREE.Vector3();
@@ -94,7 +100,7 @@ export function updateGround(dt: number) {
   for (let i = lobs.length - 1; i >= 0; i--) {
     const l = lobs[i]; l.t += dt;
     const k = Math.min(1, l.t / l.dur);
-    l.m.position.set(l.fx + (l.tx - l.fx) * k, .4 + Math.sin(k * Math.PI) * l.h, l.fz + (l.tz - l.fz) * k);
+    l.m.position.set(l.fx + (l.tx - l.fx) * k, l.fall ? .25 + l.h * (1 - k * k) : .4 + Math.sin(k * Math.PI) * l.h, l.fz + (l.tz - l.fz) * k);
     if (k < 1 && l.room === G.current) continue;
     scene.remove(l.m); lobs.splice(i, 1);
     if (l.room === G.current) l.land(l.tx, l.tz);

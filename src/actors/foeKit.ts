@@ -3,7 +3,7 @@
 import type { Enemy, Room } from '../types';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { rand } from '../util';
-import type { FoeDef } from './foeData';
+import type { FoeDef, School } from './foeData';
 import type { SpellStatus } from '../magic/spellData';
 
 /** Where the mage is from the foe: the unit direction and the distance. */
@@ -17,8 +17,9 @@ export interface Behaviour {
   /** It ran into a wall or a rock this step (`hit`), or didn't. */ bump?(e: Enemy, hit: boolean, P: Params): void;
   /** The lurker's: up out of the water. */ surface?(e: Enemy, P: Params): void;
   /** As it falls (the wickmouse's candle). */ die?(e: Enemy, P: Params): void;
-  /** A blow lands on it, travelling (dx, dz): how much of `dmg` it takes (a void mote swallows the cantrip's bolts, a
-      mantis parries from the front). */ struck?(e: Enemy, dmg: number, by: Enemy['lastHit'], P: Params, dx: number, dz: number): number;
+  /** A blow lands on it, travelling (dx, dz), of `school` if it carries one: how much of `dmg` it takes (a void mote
+      swallows the cantrip's bolts, a mantis parries from the front, a wasps' nest takes only fire). */
+  struck?(e: Enemy, dmg: number, by: Enemy['lastHit'], P: Params, dx: number, dz: number, school?: School): number;
   /** A glyph's blast reaches it (M4.5: a rubble crab is flipped on its back). */ blasted?(e: Enemy, P: Params): void;
   /** A status landed on it (or, on an elemental, was drunk), even while it can't act (a walking wave freezes to a chill and
       its ice shatters to a shock). */ afflicted?(e: Enemy, kind: SpellStatus, P: Params): void;

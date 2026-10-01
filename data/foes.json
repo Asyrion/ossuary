@@ -257,5 +257,68 @@
     "behaviour": "mine",
     "params": {"trigger": 1.2, "tell": 0.8, "dim": 2, "ring": 8, "shotSpeed": 3},
     "gib": "#9a7ab8", "stain": "#2a1a3a"
+  },
+  "waspNest": {
+    "floor": 3, "school": "ember", "weak": "ember", "resist": "storm",
+    "hp": 18, "r": 0.45, "speed": 0.1, "contact": 0, "flying": false,
+    "behaviour": "nest",
+    "params": {"first": 0.6, "every": [2.4, 3.4], "brood": 3, "guard": 0.15},
+    "gib": "#9a8a72", "stain": "#2a2018"
+  },
+  "emberWasp": {
+    "floor": 3, "school": "ember", "weak": "frost", "resist": "ember",
+    "hp": 3.5, "r": 0.24, "speed": 2.6, "contact": 1, "flying": true,
+    "behaviour": "wasp",
+    "params": {"hover": [1.2, 2], "keep": 2.6, "tell": 0.45, "dash": 7.5, "dashTime": 0.45, "burn": 1.6},
+    "gib": "#ffb040", "stain": null
+  },
+  "cinderDjinn": {
+    "floor": 3, "school": "ember", "weak": "frost", "resist": "ember", "elemental": true,
+    "hp": 14, "r": 0.35, "speed": 2.6, "contact": 1, "flying": true,
+    "behaviour": "djinn",
+    "params": {"hurlEvery": [2.6, 3.6], "hurlRange": 7, "hurlTime": 0.8, "fireTime": 2.4, "keep": 3.6, "rest": 0.6, "heal": 3, "snuff": 3},
+    "gib": "#ffa040", "stain": null
+  },
+  "magmaOoze": {
+    "floor": 3, "school": "ember", "weak": "frost", "resist": "ember", "elemental": true,
+    "hp": 18, "r": 0.48, "speed": 1.3, "contact": 1, "flying": false,
+    "behaviour": "ooze",
+    "params": {"trailEvery": 0.35, "trailTime": 2.2, "splitAt": 0.5, "splitScale": 0.7, "splitHp": 0.38, "rock": 3, "shatter": 2.5},
+    "gib": "#ff6a20", "stain": "#2a0c04"
+  },
+  "phoenix": {
+    "floor": 3, "school": "ember", "weak": "frost", "resist": "ember",
+    "hp": 32, "r": 0.5, "speed": 3, "contact": 1, "flying": true, "elite": true,
+    "behaviour": "phoenix",
+    "params": {"circleTime": [2.2, 3.2], "orbit": 3.4, "featherEvery": [1.6, 2.4], "feathers": 5, "spread": 0.2, "featherSpeed": 3.6, "tell": 0.6, "dive": 8, "diveTime": 0.7, "fireEvery": 0.08, "fireTime": 2.2, "rebirth": 4, "reborn": 0.5, "ring": 10},
+    "gib": "#ffb040", "stain": "#2a1a10"
+  },
+  "basilisk": {
+    "floor": 3, "school": "umbral", "weak": "hallow", "resist": "umbral",
+    "hp": 24, "r": 0.5, "speed": 1.4, "contact": 1, "flying": false,
+    "behaviour": "basilisk",
+    "params": {"gazeEvery": [2.6, 3.6], "keep": 4, "range": 6, "tell": 0.7, "gaze": 1.6, "cone": 0.32, "sweep": 0.7, "hold": 0.35},
+    "gib": "#6a8a4a", "stain": "#1a2410"
+  },
+  "saltGolem": {
+    "floor": 3, "school": "frost", "weak": "ember", "resist": "storm",
+    "hp": 28, "r": 0.55, "speed": 1.2, "contact": 1, "flying": false,
+    "behaviour": "bodyguard",
+    "params": {"slamEvery": [2.8, 3.8], "slamRange": 3, "tell": 0.6, "ring": 10, "shotSpeed": 3, "gap": 1.2, "melt": 0.45},
+    "gib": "#f0ead8", "stain": "#4a4438"
+  },
+  "rubbleGolem": {
+    "floor": 3, "school": "storm", "weak": "storm", "resist": "ember",
+    "hp": 32, "r": 0.6, "speed": 0.9, "contact": 1, "flying": false,
+    "behaviour": "breaker",
+    "params": {"slamEvery": [3, 4], "slamRange": 5, "tell": 0.7, "rocks": 4, "spread": 2.2, "fall": 0.9, "hit": 0.6, "stones": 3, "reform": 4, "gather": 3},
+    "gib": "#7a746a", "stain": "#2a2620"
+  },
+  "rubbleStone": {
+    "floor": 3, "school": "storm", "weak": "storm", "resist": "ember",
+    "hp": 6, "r": 0.3, "speed": 2.2, "contact": 1, "flying": false,
+    "behaviour": "stone",
+    "params": {},
+    "gib": "#7a746a", "stain": null
   }
 }

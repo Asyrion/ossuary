@@ -93,7 +93,7 @@ export function buildFloor(index: number) {
 }
 
 export function resetPlayer() {
-  Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0, blessed: 0, dim: 0, chill: 0, pull: { x: 0, z: 0 } });
+  Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0, blessed: 0, dim: 0, chill: 0, stone: 0, pull: { x: 0, z: 0 } });
   heroReset();
   resetHearts(); resetArtifacts(); resetResources(); resetSouls();
   forgetSpells(); player.mana = player.stats.maxMana;

@@ -46,7 +46,7 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
     if (foundAffinity(e.foe?.id ?? e.type as BossType, aff > 1 ? 'weak' : 'resist')) { floatText(e.x, 1.5, e.z, aff > 1 ? STR.foes.weak : STR.foes.resists, aff > 1 ? 0xffd070 : 0xa8a0b8); Sfx.at(e.x, e.z).affinity(aff > 1); }
   }
   if (by === 'spell') dmg *= player.stats.spellDamage; // Crown of Thorns
-  if (e.foe) { dmg = foeStruck(e, dmg, by, dx, dz); if (dmg <= 0) { e.flash = .09; return; } } // (a void mote swallows the cantrip)
+  if (e.foe) { dmg = foeStruck(e, dmg, by, dx, dz, school); if (dmg <= 0) { e.flash = .09; return; } } // (a void mote swallows the cantrip)
   e.hp -= dmg; e.flash = .09; e.lastHit = by; e.asleep = false; // a sleeper wakes
   const hexed = e.status?.hex ?? 0; // (before the blow spends a stack: a foe that falls with enough leaves a soul mote)
   if (by) { // a hexed foe gives back mana for each stack a blow spends (M4.1); a foe marked by the Ferryman's Toll pays its toll
@@ -73,6 +73,9 @@ const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = { rotling: 0x
 /** What flies from a foe when it falls, and the stain it leaves: a foe in code's own (data/foes.json), else the old. */
 const gibOf = (e: Enemy) => e.foe ? new THREE.Color(e.foe.gib).getHex() : GIB_COLOR[e.type as EnemyType];
 const stainOf = (e: Enemy) => e.foe ? (e.foe.stain && new THREE.Color(e.foe.stain).getHex()) : STAIN_COLOR[e.type as EnemyType];
+
+/** A foe goes without falling (M4.5: a rubble golem takes its stones back): gone, leaving nothing, not counted as slain. */
+export function crumble(e: Enemy) { e.dead = true; scene.remove(e.group); disposeTree(e.group); }
 
 function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
   e.dead = true; scene.remove(e.group); disposeTree(e.group); G.stats.kills++;
