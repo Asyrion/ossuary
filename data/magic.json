@@ -24,8 +24,8 @@
     "blackPyre": { "reach": 0.4 },
     "eclipseGround": { "damageMul": 1.5 },
     "hallowedHail": { "sanct": 2 },
-    "lanternFan": { "damageMul": 0.5, "range": 4, "width": 0.3 },
-    "liveWade": { "every": 1, "damage": 3 },
+    "lanternFan": { "damageMul": 0.5, "range": 4, "width": 0.3, "catch": 0.3 },
+    "liveWade": { "every": 1 },
     "refraction": { "reach": 1.2, "damage": 10, "sanct": 2 },
     "tollChain": {},
     "thundercloud": { "every": 1, "damage": 3, "shock": 1 },
@@ -33,7 +33,7 @@
     "miasma": { "every": 1, "hex": 1 },
     "blackMelt": { "time": 5 },
     "hailburst": { "shards": 8, "damage": 4, "range": 3.5, "speed": 9, "chill": 1 },
-    "moltenGlass": { "time": 4 },
+    "moltenGlass": { "time": 4, "catch": 0.5 },
     "corona": { "reach": 3.5, "share": 0.5 }
   },
   "mantles": {

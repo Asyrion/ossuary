@@ -3716,5 +3716,20 @@ test('weaves and chains (M4.10): each one set up and struck goes off, its name r
     return { charged, recharged, lit: br.lit, black: br.black, sparks: g.sparkGround - s0 };
   });
   expect(room).toMatchObject({ charged: 'burn', recharged: 'chill', lit: true, black: true }); expect(room.sparks).toBeGreaterThanOrEqual(8);
+  // once, not without end: a rune stone's reaction with a foe in its reach (the statuses it lays come back to the stone), and
+  // fire on black ice lying over other ground (its melt's own fire is heard by the same fire)
+  const once = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GW & { spawn(kind: string, x: number, z: number): { status?: Record<string, number> }; layGround(kind: string, x: number, z: number): void; burn(x: number, z: number, r?: number): void; burningGround: number } }).__game, P = g.player;
+    g.startGame({ seed: 'WV3', testTemplate: 'great_hall', testVariant: 'quiet' }); g.warp(1); g.sim(.6); g.clearRoom(); g.sim(.3); P.maxHp = P.hp = 99; P.invuln = 99;
+    const at = { x: P.x, z: P.z - 2.5 };
+    g.prop('rune', at.x, at.z); g.element('chill', at.x, at.z); const d = g.spawn('dummy', at.x + .8, at.z); g.sim(1);
+    g.element('burn', at.x, at.z); g.sim(.05);
+    const school = g.props.find(p => p.kind === 'rune')!.school, steamed = g.steam > 0; void d; // (frozen, then burnt: Steam rises from it)
+    const b0 = g.burningGround, ice = { x: at.x - 3.5, z: at.z };
+    g.layGround('blackice', ice.x, ice.z); g.layGround('blackice', ice.x + .4, ice.z); g.layGround('web', ice.x, ice.z + .4);
+    g.burn(ice.x, ice.z, 1); g.sim(.05);
+    return { school, steamed, melted: g.burningGround - b0 };
+  });
+  expect(once).toMatchObject({ school: 'burn', steamed: true }); expect(once.melted).toBeGreaterThanOrEqual(14); // (two melts of seven patches each)
   expect(errors).toEqual([]);
 });

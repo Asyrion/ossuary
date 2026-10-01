@@ -153,7 +153,7 @@ const beam: Cast = (def, dir) => {
   const wall = walls.find(w => w.room === room && w.boxes.some(b => { const t = along(b.x, b.z); return t > 0 && t < len && side(b.x, b.z) < ICE_HALF + P.width; }));
   if (wall) steamCurtain(wall);
   const motes = wardMotes();
-  if (motes.some(m => { const t = along(m.x, m.z); return t > 0 && t < len && side(m.x, m.z) < .45; })) lanternFan(def, motes);
+  if (motes.some(m => { const t = along(m.x, m.z); return t > 0 && t < len && side(m.x, m.z) < MAGIC.weaves.lanternFan.catch; })) lanternFan(def, motes);
   for (let t = 0; t < len; t += .3) fireAt(sx + dir.x * t, sz + dir.z * t); // and oil along it
   lanceFx(sx, sz, dir, len, color);
   for (let t = .4; t < len; t += .6) burst(sx + dir.x * t, .6, sz + dir.z * t, t % 1.2 < .6 ? FIRE : EMBER, 2, 1.4, .045);
@@ -445,7 +445,7 @@ export function boltOverGround(b: Bolt) {
   if (b.shard && !b.shatter && !b.hallowed) for (const z of zones) if (Math.hypot(b.x - z.x, b.z - z.z) < z.def.params.radius) {
     b.hallowed = true; b.status = { ...b.status, sanct: W.hallowedHail.sanct }; burst(b.x, .6, b.z, 0xffe6a0, 3, 1, .03); weaveAt('hallowedHail', b.x, b.z); break;
   }
-  if (b.shatter && (burningNear(b.x, b.z, .5) || poolAt(b.x, b.z)?.state === 'burning' || seals.some(s => s.erupted && Math.hypot(b.x - s.x, b.z - s.z) < s.def.params.radius))) {
+  if (b.shatter && (burningNear(b.x, b.z, W.moltenGlass.catch) || poolAt(b.x, b.z)?.state === 'burning' || seals.some(s => s.erupted && Math.hypot(b.x - s.x, b.z - s.z) < s.def.params.radius))) {
     layFire(G.current, b.x, b.z, W.moltenGlass.time, ''); burst(b.x, .2, b.z, 0xffd8a0, 8, 1.4, .04); b.dist = b.range; // (it falls where the fire caught it)
     weaveAt('moltenGlass', b.x, b.z);
   }

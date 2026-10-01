@@ -226,7 +226,7 @@ export function updateFoeHazards(dt: number) {
 /** A new floor: the ground stops burning and sparking. */
 export function clearFoeHazards() { hazards.length = 0; for (const m of Object.values(hazardGlow)) if (m) m.count = 0; clearGround(); }
 /** The burning ground and the sparks in the current room (tests). */
-export const burningGround = () => hazards.filter(h => h.kind === 'fire' && h.room === G.current).length;
+export const burningGround = () => hazards.filter(h => h.kind !== 'spark' && h.room === G.current).length; // (Blackfire's too, M4.10)
 export const sparkGround = () => hazards.filter(h => h.kind === 'spark' && h.room === G.current).length;
 
 /** The lit braziers and candle stands in `room` (a moth is lured to them). */

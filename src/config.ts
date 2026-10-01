@@ -126,6 +126,9 @@ export const CFG = {
     kindle: .6, brazierBurn: 3, blessCasts: 6, blessMul: 1.6, bellStun: 1.8, bellCooldown: 7,
     runeEvery: 2.2, runeReach: 2.4, runeAmount: 1, lodeCatch: 1.3, lodeReach: 8, lodeDamage: 5, lodeCooldown: 1.2,
     censerReach: 1, censerDamage: 10, censerBurn: 3, censerSpill: 2, rimeGrip: 3.5,
+    // M4.10: the stacks of each school a rune stone's reaction lays on the foes in its reach (Chill as many as freeze); the
+    // sparks a bell rung by a shock rings out (how many, how far round it, how long they lie)
+    runeStacks: 2, bellSparks: { n: 10, d: 1.7, time: 6 },
     // how close a bolt passes to catch a brazier's fire or cut a censer's chain; a status to charge a rune stone; fire
     // to thaw an entombed foe; how wide a lodestone's arc hurts (plus a foe's radius); a falling censer hurts the mage
     brazierCatch: .45, censerCatch: .35, runeCatch: .9, thawReach: 1.2, lodeWidth: .6, censerHitsMage: .7,
@@ -259,6 +262,7 @@ export const CFG = {
     seal: { rise: 0.15, crown: 0.5, pillar: 0.7, star: 0.6 },
     wallRise: 0.25, wallStagger: 0.03,
     weaveName: 2, // (M4.10: seconds before the same weave's name rises again, for those that go on and on)
+    nameGap: .44, nameStack: .5, // (a name rising where another rose under `nameStack` s ago stands `nameGap` above it on screen)
   },
   lights: {
     hemi: 1.57, moon: 1.26,

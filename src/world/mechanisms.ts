@@ -291,19 +291,26 @@ function blacken(box: PropBox) {
 }
 /** M4.10: a rune stone charged with one school, struck by another, sets off their reaction at its foot: on every foe in its
     reach (both statuses laid on in turn), and its name rises there even with none; then it holds the new school. */
+let runeReacting = false;
 function runeReaction(room: Room, box: PropBox, kind: StatusKind) {
+  if (runeReacting) return; // (the statuses it lays on its foes reach the stone again through touchPools: once is enough)
   const was = box.prop.school!, r = (Object.keys(REACTIONS) as Reaction[]).find(k => REACTIONS[k].includes(was) && REACTIONS[k].includes(kind));
   if (!r) return;
-  tileReaction(r, box.x, box.z); ringFx(box.x, .05, box.z, SCHOOL_COLOR[kind], .3, C.runeReach, CFG.spellFx.shockwave, true);
-  for (const e of G.enemies) if (!e.dead && e.spawn <= 0 && !e.hidden && Math.hypot(e.x - box.x, e.z - box.z) < C.runeReach + e.r) {
-    inflict(e, { [was]: was === 'chill' ? MAGIC.chill.freezeAt : 2 }); inflict(e, { [kind]: kind === 'chill' ? MAGIC.chill.freezeAt : 2 }); // (cold enough to freeze, so Shatter can go off)
-  }
-  charge(box, kind); void room;
+  runeReacting = true;
+  try {
+    tileReaction(r, box.x, box.z); ringFx(box.x, .05, box.z, SCHOOL_COLOR[kind], .3, C.runeReach, CFG.spellFx.shockwave, true);
+    const stacks = (k: StatusKind) => k === 'chill' ? MAGIC.chill.freezeAt : C.runeStacks; // (cold enough to freeze, so Shatter can go off)
+    for (const e of G.enemies) if (!e.dead && e.spawn <= 0 && !e.hidden && Math.hypot(e.x - box.x, e.z - box.z) < C.runeReach + e.r) {
+      inflict(e, { [was]: stacks(was) }); inflict(e, { [kind]: stacks(kind) });
+    }
+    charge(box, kind);
+  } finally { runeReacting = false; }
+  void room;
 }
 /** M4.10: a bell rung by a shock rings out a ring of sparks round it (armed in a moment, stinging what stands in them). */
 function sparkRing(room: Room, box: PropBox) {
-  const n = 10, d = 1.7;
-  for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; laySpark(room, box.x + Math.cos(a) * d, box.z + Math.sin(a) * d, 6, ''); }
+  const { n, d, time } = C.bellSparks;
+  for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; laySpark(room, box.x + Math.cos(a) * d, box.z + Math.sin(a) * d, time, ''); }
   ringFx(box.x, .05, box.z, SCHOOL_LIGHT.storm, .3, d + .3, CFG.spellFx.shockwave, true);
 }
 
