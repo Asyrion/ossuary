@@ -33,9 +33,14 @@ and for making a matching asset later.
 The GDD's art direction, as rules for images:
 
 - **A candle-lit cutaway diorama in pixel-art 3D** (the GDD's look, decided 2026-09-30). The game draws every model
-  at 1080 lines at most (720 on a 1440p screen) and blows it up in whole pixels, with outlines; tiles, icons and effects are drawn as pixel art, and
-  concept art for Tripo is clean cartoon: clear shapes, slightly exaggerated proportions (chibi for characters),
-  flat areas of colour, gentle edge highlights. Not photorealistic, not glossy.
+  at the room kit's texel (since 2026-10-01: a 48th of a unit a game pixel, the floors' and walls' own) and blows it
+  up, with outlines; tiles, icons and effects are drawn as pixel art, and concept art for Tripo is clean cartoon:
+  clear shapes, slightly exaggerated proportions (chibi for characters), flat areas of colour, gentle edge highlights.
+  Not photorealistic, not glossy.
+- **A Tripo model in the game** is drawn as pixel art too: its texture baked into its vertices and cut down to a few
+  colours, its light in flat bands (`src/actors/heroPixel.ts` does it for the mage; a boss from Tripo would go the same
+  way). A model reads best there when its colours sit in large flat areas: fine painted strokes are lost at some 45
+  pixels tall, and many tiny texture islands can't be shrunk cleanly.
 - **Materials:** worn stone, old bone, dark iron, tarnished brass and bronze, wax, clay, parchment, rotting
   wood, verdigris.
 - **Palette:** worn stone browns, torch amber for the mage's magic, verdigris greens for the undead, violet for

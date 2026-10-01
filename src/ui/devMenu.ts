@@ -31,9 +31,10 @@ import { giveResources, spawnPickup } from '../items/pickups';
 import { makeEnemy, spawnFoe } from '../actors/enemies';
 import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
 import { assetList, assetsOn, setAssetsOn } from '../assets/models';
-import { Vector2 } from 'three';
-import { renderer, setCloseUp } from '../render/renderer';
-import { drawnRows, pixelLook, setPixelLook } from '../render/pixelLook';
+import { setCloseUp } from '../render/renderer';
+import { LINES, drawnRows, pixelLook, setPixelLook } from '../render/pixelLook';
+import { heroPixel, setHeroPixel } from '../actors/heroPixel';
+import { hero } from '../actors/hero';
 import { FAMILIAR_OPTIONS, MODEL_OPTIONS, removeModelOptions, showBestiary, showBossLooks, showFamiliarOptions, showModelOptions } from '../actors/modelOptions';
 import { BESTIARY_OPTIONS } from '../actors/bestiaryLooks';
 import { BOSS_LOOKS, bossLook, setBossLook } from '../actors/bossLooks';
@@ -66,7 +67,7 @@ import { lureTest } from '../actors/foeGround';
 import { floorLean, floorWalls, warnFloor } from '../world/curve';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
 let spellSlot = 0, knowBox: HTMLElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
@@ -325,9 +326,11 @@ function build() {
   // the pixel look (the game's look, M3.5 step 2): the rows of pixels, outlines, light in bands; kept in this browser
   const px = section(pages.look, S.pixel);
   px.append(
-    pxBtn = btn('', () => { const ls = [0, ...CFG.pixelLook.lines]; setPixelLook({ lines: ls[(ls.indexOf(pixelLook().lines) + 1) % ls.length] }); }),
+    pxBtn = btn('', () => { const ls = [...LINES, 0]; setPixelLook({ lines: ls[(ls.indexOf(pixelLook().lines) + 1) % ls.length] }); }),
     lineBtn = btn('', () => setPixelLook({ outline: !pixelLook().outline })),
     bandBtn = btn('', () => setPixelLook({ bands: !pixelLook().bands })),
+    // the mage in the pixel-art look (its colours baked, a few of them, light in bands), or the model as made, to compare
+    heroPxBtn = btn('', () => { setHeroPixel(hero.model, !heroPixel()); dress(); }),
   );
 
   // the room kit (M3.5 step 3's proof): the pieces built in code, or the old ones to compare; the fire objects to look at
@@ -435,9 +438,10 @@ function refresh() {
   }
   fpsBtn.textContent = DEV.fps ? S.fpsOn : S.fpsOff; fpsBtn.classList.toggle('on', DEV.fps);
   const look = pixelLook();
-  pxBtn.textContent = S.pixelLines(look.lines, drawnRows(renderer.getDrawingBufferSize(new Vector2()).y)); pxBtn.classList.toggle('on', !!look.lines);
+  pxBtn.textContent = S.pixelLines(look.lines, drawnRows()); pxBtn.classList.toggle('on', !!look.lines);
   lineBtn.textContent = look.outline ? S.outlinesOn : S.outlinesOff; lineBtn.classList.toggle('on', look.outline); lineBtn.disabled = !look.lines;
   bandBtn.textContent = look.bands ? S.bandsOn : S.bandsOff; bandBtn.classList.toggle('on', look.bands); bandBtn.disabled = !look.lines;
+  heroPxBtn.textContent = heroPixel() ? S.heroPixelOn : S.heroPixelOff; heroPxBtn.classList.toggle('on', heroPixel());
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
   knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'), reactionsFound().length, REACTION_IDS.length) + ' ' + S.weavesInfo(weavesFound().length, WEAVE_IDS.length);
   spellBox.replaceChildren(...SPELL_DEFS.map(s => {

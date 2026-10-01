@@ -14,6 +14,7 @@ import { findMiniatureBase } from './baseDetect';
 import { dress, fitCostumes, updateCostumes } from './costume';
 import { floatLift } from '../items/gifts';
 import { updateSpellMarks } from './spellMarks';
+import { bakeHeroPixel } from './heroPixel';
 import { buildHeroAnim, playCast, playDeath, playGesture, playHit, resetAnim, updateHeroAnim, type HeroAnim } from './heroAnim';
 
 export const hero = {
@@ -59,6 +60,7 @@ export function prepareHero(gltf: GLTF): PreparedHero {
       if ('emissiveMap' in m) { m.emissiveMap = m.map; m.emissive.set(0xffffff); m.emissiveIntensity = .14; m.needsUpdate = true; }
     }
   });
+  bakeHeroPixel(obj); // (the pixel-art look: its colours in its vertices, a few of them, light in bands)
   const holder = new THREE.Group(); holder.add(obj);
   return { holder, skinned, stripped, tris: Math.round(tris) };
 }

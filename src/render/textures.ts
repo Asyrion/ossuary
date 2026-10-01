@@ -4,6 +4,7 @@ import { STR } from '../strings';
 import { isTouch, mulberry } from '../util';
 import { renderer } from './renderer';
 import { floorTile } from '../assets/models';
+import { CFG } from '../config';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -22,16 +23,24 @@ function rrect(g: Ctx, x: number, y: number, w: number, h: number, r: number) {
   g.quadraticCurveTo(x + w, y + h, x + w - r, y + h); g.lineTo(x + r, y + h); g.quadraticCurveTo(x, y + h, x, y + h - r);
   g.lineTo(x, y + r); g.quadraticCurveTo(x, y, x + r, y); g.closePath();
 }
-function radial(stops: [number, string][], srgb: boolean) {
-  const [c, g] = makeCanvas(64, 64);
-  const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-  for (const [o, col] of stops) gr.addColorStop(o, col);
-  g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
-  return canvasTex(c, srgb);
-}
 
-export const glowTex = radial([[0, 'rgba(255,255,255,1)'], [.35, 'rgba(255,255,255,.45)'], [1, 'rgba(255,255,255,0)']], true);
-export const shadowTex = radial([[0, 'rgba(0,0,0,.75)'], [.6, 'rgba(0,0,0,.35)'], [1, 'rgba(0,0,0,0)']], false);
+/** A round fade in flat steps, as pixel art draws a glow or a shadow (2026-10-01: everything in the one pixel-art look):
+    `alpha(d)` the fade from the middle (d 0) to the rim (1), held in `steps` levels; drawn crisp up close. */
+function stepped(rgb: string, alpha: (d: number) => number, steps: number) {
+  const N = 64, [c, g] = makeCanvas(N, N), img = g.createImageData(N, N), [r, gr, b] = rgb.split(',').map(Number);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const d = Math.hypot(x + .5 - N / 2, y + .5 - N / 2) / (N / 2), a = d >= 1 ? 0 : Math.ceil(alpha(d) * steps - 1e-6) / steps, k = (y * N + x) * 4;
+    img.data[k] = r; img.data[k + 1] = gr; img.data[k + 2] = b; img.data[k + 3] = Math.round(a * 255);
+  }
+  g.putImageData(img, 0, 0);
+  const t = canvasTex(c, true); t.magFilter = THREE.NearestFilter; return t;
+}
+const fade = (pts: [number, number][]) => (d: number) => { // (straight between the points given)
+  for (let i = 1; i < pts.length; i++) if (d <= pts[i][0]) { const [d0, a0] = pts[i - 1], [d1, a1] = pts[i]; return a0 + (a1 - a0) * (d - d0) / (d1 - d0); }
+  return 0;
+};
+export const glowTex = stepped('255,255,255', fade([[0, 1], [.35, .45], [1, 0]]), CFG.pixelLook.glowSteps);
+export const shadowTex = stepped('0,0,0', fade([[0, .75], [.6, .35], [1, 0]]), CFG.pixelLook.shadowSteps);
 
 /** The blast glyph's rune: two rings, a seven-pointed star and ticks between the rings, centred at (0, 0) and
     `r` in radius. */

@@ -600,8 +600,9 @@ export const STR = {
     artifactGallery: 'Artifacts (the room kit\'s: built in code, their icons rendered from them)', artifactsNote: 'Every artifact floating ahead of the mage in rows (foci, passives, cursed), to look at; they can\'t be taken',
     bossLooks: 'The bosses built in code: the Hollow Warden\'s three looks (the floor-1 boss: choose one), and the bosses of the floors below', wardenWears: (name: string) => `The Warden wears: ${name}`,
     options: 'Enemy model options (looks only)', familiars: 'Familiar options (looks only)', bestiary: 'The bestiary (M4.5: the thirty-five as they look, all of them foes now)', bestiaryKinds: { beast: 'Beasts', creature: 'Creatures of myth', elemental: 'Elementals and golems' } as Record<string, string>, effects: 'Spell effect options (looks only)', showOptions: 'Stand them here', takeOptions: 'Take them away', floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
-    pixel: 'Pixel look', pixelLines: (lines: number, drawn: number) => !lines ? 'Pixels: off' : drawn && drawn !== lines ? `Pixels: ${lines} lines (${drawn} in this window)` : `Pixels: ${lines} lines`,
+    pixel: 'Pixel look', pixelLines: (lines: number | 'texel', drawn: number) => !lines ? 'Pixels: off' : lines === 'texel' ? `Pixels: a texel each${drawn ? ` (${drawn} rows here)` : ''}` : drawn && drawn !== lines ? `Pixels: ${lines} lines (${drawn} in this window)` : `Pixels: ${lines} lines`,
     outlinesOn: 'Outlines: on', outlinesOff: 'Outlines: off', bandsOn: 'Light in bands: on', bandsOff: 'Light in bands: off',
+    heroPixelOn: 'Mage: pixel art', heroPixelOff: 'Mage: as made',
     /** The on-screen readout: frame rate, and what the last frame drew. */
     frameInfo: (fps: number, calls: number, tris: number) => `${fps} fps · ${calls} draw calls · ${tris.toLocaleString('en')} triangles`,
     knowledge: 'Spell knowledge', knowAll: 'Know every spell', forgetKnowledge: 'Forget all knowledge',

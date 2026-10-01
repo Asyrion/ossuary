@@ -269,25 +269,32 @@ export const CFG = {
     gravemonger: { chance: 0.5, heartPriceMul: 2 },                     // Gravemonger's Contract: a foe's obol (halved when cleansed); the merchant's hearts
     lastRite: { rise: 1, every: 1, everyCleansed: 2 },                  // The Last Rite: half hearts risen with; floors between refusals (cleansed: more)
   },
-  // the pixel look (render/pixelLook.ts, the game's look since 2026-09-30): the rows of pixels it offers and the one it
-  // starts at (1080 since the play-test of the room kit's proof, 2026-09-30; 540 before it: at 270, then 360, the mage
-  // and small things didn't read full-screen on a high-resolution monitor). The offers are the rows that fall on whole screen pixels on the owner's
-  // screens: 540 draws 540 rows at 1080p and 4K and 480 at 1440p; 720 draws 720 at 1440p and 4K; 1080 draws 1080 on
-  // a 4K screen only; 360 and 270 are coarser. Outlines where a nearer surface stands more than outlineGap units before a
-  // farther one (darkened by outlineDark), and light bands
-  pixelLook: { lines: [1080, 720, 540, 360, 270], start: 1080, outlineGap: 0.3, outlineDark: 0.72, bands: 7 },
+  // the pixel look (render/pixelLook.ts, the game's look since 2026-09-30): the grid it starts on and the rows it offers
+  // besides. It starts at the texel (2026-10-01, the owner: everything in the one pixel-art look): a game pixel is one of
+  // the room kit's texels (roomKit.texel below), so everything is drawn at the floors' and walls' pixel size, about 2.6
+  // screen pixels at 1080p in a one-cell room and 2 in a great hall. The rows offered besides fall on whole screen
+  // pixels: 1080 (the default from the room kit's proof until then: at 1080p the screen's own pixels, so only what was
+  // drawn texel by texel looked like pixel art), 720, 540 (the default before that), 360 and 270 (too coarse full-screen
+  // on a high-resolution monitor). Outlines where a nearer surface stands more than outlineGap units before a farther one
+  // (darkened by outlineDark), and light bands; a glow's fade (render/textures.ts, every glow sprite) and a shadow's held in
+  // so many flat steps, as pixel art draws them
+  pixelLook: { lines: [1080, 720, 540, 360, 270], start: 'texel' as const, outlineGap: 0.3, outlineDark: 0.72, bands: 7, glowSteps: 5, shadowSteps: 3 },
+  // the mage in the pixel-art look (actors/heroPixel.ts, 2026-10-01): its texture baked into its vertices (each the mean of
+  // the texels within `sample` of where it lies) and cut down to `colours`; light in the `tones` (darkest first, a toon
+  // ramp's steps) with `glow` of its own colour as self-light, as the model had, so it reads in dark rooms
+  heroPixel: { colours: 20, refine: 8, chroma: 3, tones: [.06, .16, .5, .95], glow: .14, sample: 1 },
   // the room kit (M3.5 step 3): the floors' and walls' texels to a unit across and down the screen (render/pixelTextures.ts;
   // at 540 lines a one-cell room shows a unit as about 62 × 44 pixels, the floor seen from 45° above, a great hall as
   // 50 × 35; 48 × 34 keeps a texel square on screen and at least a pixel in both, at 1080 lines 2 to 3), how brightly
   // embers glow in the walls and floors that have them (basalt seams, charred beams), a floor's the less in a dark room;
   // the artifacts built in code: how much larger than built they float, how far a tall one is lifted clear of its pedestal
-  // (its half height past this); their HUD icons (items/artifactIcons.ts): drawn at `size` pixels and scaled to `out`,
-  // turned (x, y) to the camera, the margin round them, the light (fill, key, the rim in the artifact's colour), and the
-  // alpha below which a pixel beside one above `solid` is outlined
+  // (its half height past this); their HUD icons (items/artifactIcons.ts): drawn at `size` pixels and made pixel art of
+  // `out` (shown at whole multiples), turned (x, y) to the camera, the margin round them, the light (fill, key, the rim in
+  // the artifact's colour), and how much of an icon pixel must be drawn (its alpha, 0 to 255) for it to be `solid`
   roomKit: {
     texel: [48, 34] as [number, number], glow: 0.6, glowDark: 0.5,
     artifactScale: 1.2, artifactClear: .24,
-    icon: { size: 96, out: 48, turn: [.35, -.55] as [number, number], margin: 1.12, fill: 1.6, key: 2.4, rim: 1.6, edge: 60, solid: 140 },
+    icon: { size: 96, out: 24, turn: [.35, -.55] as [number, number], margin: 1.12, fill: 1.6, key: 2.4, rim: 1.6, solid: 110 },
   },
   // the spells' looks (magic/spellFx.ts, docs/effects.md), in seconds unless said: the Cinder Lance (how long it shows,
   // how quickly it swells to full, when it starts to fade, how long the rune ring at the hand flares, the space between

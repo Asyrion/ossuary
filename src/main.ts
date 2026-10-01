@@ -15,6 +15,7 @@ import { Sfx } from './audio/sfx';
 import { camera, canvas, draw, renderer, resize, setCloseUp } from './render/renderer';
 import './render/lights';
 import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
+import { heroPixel, setHeroPixel } from './actors/heroPixel';
 import { arrowOrder, initKeyboard, initTouch, keys, type InputActions } from './input';
 import { initScreens, showScreen } from './ui/screens';
 import { closeDev, devOpen, dropsHere, forceKinds, objectsHere, showAssetsHere, toggleDev, useAssets, useRoomKit } from './ui/devMenu';
@@ -56,7 +57,7 @@ import type { TransformId } from './items/transformData';
 import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
 import { assetList, assetsOn, loadAssets } from './assets/models';
-import { pixelLook, setPixelLook, type PixelLook } from './render/pixelLook';
+import { drawnRows, pixelLook, setPixelLook, type PixelLook } from './render/pixelLook';
 import { removeModelOptions, showBestiary, showBossLooks, showFamiliarOptions, showModelOptions } from './actors/modelOptions';
 import { bossLook, setBossLook, type BossLookId } from './actors/bossLooks';
 import { removeEffectOptions, showEffectOptions } from './magic/effectOptions';
@@ -189,8 +190,13 @@ function installDevHooks() {
     get kinds() { return G.current.look.kinds ? { ...G.current.look.kinds } : null; },
     /** Force kinds on every room of this floor, e.g. forceKinds({ wall: 'ashlar' }) ({} to draw per room again); built again. */
     forceKinds: (k: Partial<Kinds>) => forceKinds(k),
-    /** The pixel look (a style test): rows of pixels (0 off), outlines, light in bands; set any of them. */
+    /** The pixel look: its grid ('texel', rows of pixels, or 0 for off), outlines, light in bands; set any of them. */
     get pixelLook() { return { ...pixelLook() }; },
+    /** The rows of game pixels the pixel look drew in the last frame (at the texel: the view's height in texels). */
+    get pixelRows() { return drawnRows(); },
+    /** The mage in the pixel-art look (its colours baked, a few of them, light in bands), or as made; switch it. */
+    get heroPixel() { return heroPixel(); },
+    setHeroPixel: (on: boolean) => { setHeroPixel(hero.model, on); dress(); },
     /** Every artifact floating ahead of the mage, as the room kit builds them (the dev menu's artifact gallery); how many;
         and taken away again. */
     artifactGallery: () => showArtifactGallery(G.current, player.x, player.z),

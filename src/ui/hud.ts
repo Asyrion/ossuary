@@ -187,7 +187,7 @@ export function artifactIcon(id: string, isFocus: boolean, cleansed = player.cle
   const cls = isFocus ? 'focus' : clean ? 'cleansed' : def.kind === 'cursed' ? 'cursed' : '';
   const text = clean ? def.curse!.cleansed : def.text;
   const url = iconUrl(id) ?? (DEV.roomKit ? artifactIconUrl(def) : null); // (a painted icon, M3.5; the room kit's, rendered from its model; or the drawn one)
-  const art = url ? `<image href="${url}" width="24" height="24"/>` : ICONS[def.icon] ?? ICONS.sigil;
+  const art = url ? `<image href="${url}" width="24" height="24" style="image-rendering:pixelated"/>` : ICONS[def.icon] ?? ICONS.sigil;
   return `<svg viewBox="0 0 24 24" class="${cls}" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${text}\n\n${def.lore}</title>${art}</svg>`;
 }
 /** The focus followed by every other artifact held. */

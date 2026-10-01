@@ -1,7 +1,7 @@
 /* The artifacts' HUD icons in the room kit's style (M3.5 step 3): each rendered from its model (artifactLooks.ts), so the
    icon is the thing the mage picked up. The model is lit from above and in front, with a rim of its own colour behind
-   it, turned three-quarters to the camera; drawn at `SIZE`, scaled down to `OUT` pixels and outlined in dark, as the
-   pixel look outlines the scene. Rendered the first time it is asked for and kept (a data URL), so the HUD pays once. */
+   it, turned three-quarters to the camera; drawn at `SIZE`, and made pixel art of `OUT` pixels (about the artifact's own
+   size in the room at the pixel look's texel), outlined in dark, as the pixel look outlines the scene. Rendered the first time it is asked for and kept (a data URL), so the HUD pays once. */
 import * as THREE from 'three';
 import { renderer } from '../render/renderer';
 import { CFG } from '../config';
@@ -41,17 +41,23 @@ export function artifactIconUrl(def: ArtifactDef) {
   const url = toIcon(px); cache.set(def.id, url); return url;
 }
 
-/** The rendered pixels (bottom row first) to a small PNG: turned upright, scaled down, and outlined. */
+/** The rendered pixels (bottom row first) to a small pixel-art PNG (2026-10-01, everything in the one pixel-art look): each
+    icon pixel the mean of the rendered block under it (weighted by how much is drawn there), drawn or not (no soft
+    edge), and outlined in dark, as the pixel look outlines the scene. Shown in whole steps (`image-rendering: pixelated`). */
 function toIcon(px: Uint8Array) {
-  const big = document.createElement('canvas'); big.width = big.height = SIZE;
-  const img = new ImageData(SIZE, SIZE);
-  for (let y = 0; y < SIZE; y++) img.data.set(px.subarray((SIZE - 1 - y) * SIZE * 4, (SIZE - y) * SIZE * 4), y * SIZE * 4);
-  big.getContext('2d')!.putImageData(img, 0, 0);
   const out = document.createElement('canvas'); out.width = out.height = OUT;
-  const g = out.getContext('2d')!; g.imageSmoothingQuality = 'high'; g.drawImage(big, 1, 1, OUT - 2, OUT - 2);
-  const d = g.getImageData(0, 0, OUT, OUT), a = (x: number, y: number) => x < 0 || y < 0 || x >= OUT || y >= OUT ? 0 : d.data[(y * OUT + x) * 4 + 3];
+  const g = out.getContext('2d')!, d = g.createImageData(OUT, OUT), k = SIZE / (OUT - 2); // (a pixel of margin all round, for the outline)
+  for (let y = 0; y < OUT - 2; y++) for (let x = 0; x < OUT - 2; x++) {
+    let r = 0, gr = 0, b = 0, a = 0, n = 0;
+    for (let v = Math.floor(y * k); v < Math.floor((y + 1) * k); v++) for (let u = Math.floor(x * k); u < Math.floor((x + 1) * k); u++) {
+      const i = ((SIZE - 1 - v) * SIZE + u) * 4, w = px[i + 3]; r += px[i] * w; gr += px[i + 1] * w; b += px[i + 2] * w; a += w; n++;
+    }
+    if (a / n < I.solid) continue; // (too little drawn here: left clear)
+    d.data.set([r / a, gr / a, b / a, 255], ((y + 1) * OUT + x + 1) * 4);
+  }
+  const solid = (x: number, y: number) => x >= 0 && y >= 0 && x < OUT && y < OUT && d.data[(y * OUT + x) * 4 + 3] === 255;
   const edge: number[] = [];
-  for (let y = 0; y < OUT; y++) for (let x = 0; x < OUT; x++) if (a(x, y) < I.edge && (a(x - 1, y) > I.solid || a(x + 1, y) > I.solid || a(x, y - 1) > I.solid || a(x, y + 1) > I.solid)) edge.push((y * OUT + x) * 4);
+  for (let y = 0; y < OUT; y++) for (let x = 0; x < OUT; x++) if (!solid(x, y) && (solid(x - 1, y) || solid(x + 1, y) || solid(x, y - 1) || solid(x, y + 1))) edge.push((y * OUT + x) * 4);
   for (const i of edge) d.data.set(OUTLINE, i);
   g.putImageData(d, 0, 0);
   return out.toDataURL('image/png');
