@@ -3,7 +3,7 @@
 import '@fontsource/cinzel/400.css';
 import { POTION_IDS, isPotion, type PotionId, type ReagentId } from './items/alchemyData';
 import { addPotion, addReagent, beltSlots, choosePotion, identify, knownPotion, potionFx, renderBelt, usePotion } from './items/potions';
-import { throwsNow } from './items/potionThrow';
+import { throwsNow, flightsNow } from './items/potionThrow';
 import { forgetBrews } from './items/alchemyMemory';
 import { buyRecipe, jellyIdentifies, knownRecipes } from './items/brewing';
 import '@fontsource/cinzel/600.css';
@@ -347,7 +347,7 @@ function installDevHooks() {
     get belt() { return { ids: [...player.belt], at: player.beltAt, slots: beltSlots(), known: player.belt.map(id => knownPotion(id as PotionId)), reagents: { ...player.reagents }, html: document.getElementById('belt')?.innerHTML ?? '' }; },
     get potionFx() { return { ...potionFx, remedy: G.run.remedy, scale: hero.root.scale.x }; },
     get bottles() { return G.run.bottles; },
-    get throws() { return throwsNow(); },
+    get throws() { return throwsNow(); }, get flights() { return flightsNow(); },
     givePotion: (id: PotionId) => addPotion(id), giveReagent: (id: ReagentId, n = 1) => addReagent(id, n),
     usePotion: (how: 'drink' | 'throw') => usePotion(how), choosePotion: (d: number) => choosePotion(d),
     reagentsAlways: (on: boolean) => { DEV.reagents = on; },

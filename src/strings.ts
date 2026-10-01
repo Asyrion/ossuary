@@ -104,6 +104,7 @@ export const STR = {
     runescribe: { name: 'Runescribe', gift: 'Your bolts leave a rune that bursts a moment later', lore: 'Chalk, contract and chisel: the Wardens\' scribes cut their seals this way. Every mark you leave keeps its word.' },
     pilgrim: { name: 'Pilgrim', gift: 'The floor\'s map is shown, cracked walls glow, and you walk faster', lore: 'Hood, boots and beads, a crook to lean on. The pilgrims who came to the chapel above never lost their way below it.' },
     beastcaller: { name: 'Beastcaller', gift: 'One more familiar, and your familiars strike harder', lore: 'Moth, skull and fox keep closer now. Antlers rise from your brow, and small lights circle you like a herd at dusk.' },
+    alchemist: { name: 'Alchemist', gift: 'Every potion you throw splits in two', lore: 'A bandolier of vials across your chest, an apron stained every colour a draught can be. Dr. Jelly would call it a good start.' },
   } as Record<string, { name: string; gift: string; lore: string }>,
   /** M4.11: spell marks, a line the first time each shows (both spells of one school; a school known in full). */
   marks: {

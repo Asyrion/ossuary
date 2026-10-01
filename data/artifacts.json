@@ -79,7 +79,7 @@
     "lore": "The skull of the ram that led the chapel's flock, its horns worn smooth by a lifetime of shoving. Its stubbornness outlived it, and passes into every bolt you cast.",
     "text": "Your bolts hurl foes back", "pools": ["treasure", "ordeal", "drop", "merchant"],
     "stats": { "knockbackMul": 2.6, "damage": 0.5 }, "color": "#c8b89a", "icon": "ram" },
-  { "id": "leech_jar", "costume": "belt", "name": "Leech Jar", "kind": "passive",
+  { "id": "leech_jar", "family": "alchemist", "costume": "belt", "name": "Leech Jar", "kind": "passive",
     "lore": "A barber-surgeon's jar, stoppered with wax. The leeches inside died long ago, but their hunger did not, and now and then it shares what it takes from your foes.",
     "text": "Every tenth foe put to rest gives back half a heart", "pools": ["treasure", "ordeal", "vault", "secret"],
     "effects": ["leech"], "color": "#b83a3a", "icon": "jar" },
@@ -253,5 +253,17 @@
     "lore": "The words the abbesses said over the dying, written on a strip of linen. Read over you in advance, they hold death off once for every floor you go down, and take a little of your heart to do it.",
     "text": "Once a floor, a killing blow is refused and you rise with half a heart, but you lose a heart", "pools": ["altar", "secret", "boss"],
     "effects": ["lastRite"], "curse": { "stats": { "hearts": -1 }, "cleansed": "Once every two floors, a killing blow is refused" },
-    "color": "#d8d0c0", "icon": "lastrite" }
+    "color": "#d8d0c0", "icon": "lastrite" },
+  { "id": "alchemists_satchel", "family": "alchemist", "costume": "belt", "name": "Alchemist's Satchel", "kind": "passive",
+    "lore": "A satchel of oiled leather, stained green inside, its pockets sewn to the shape of bottles. Whoever carried it last went through the dungeon picking at everything.",
+    "text": "One more potion in your belt, and reagents come more often", "pools": ["treasure", "merchant", "vault", "secret"],
+    "effects": ["satchel"], "color": "#8a6a3a", "icon": "satchel" },
+  { "id": "tasters_spoon", "family": "alchemist", "costume": "chest", "name": "Taster's Spoon", "kind": "passive",
+    "lore": "A silver spoon on a cord, worn thin at the bowl. A tongue that has tasted enough of them knows a draught before it is drunk.",
+    "text": "Every potion you carry is known", "pools": ["treasure", "merchant", "ordeal"],
+    "effects": ["taster"], "color": "#c8d0d8", "icon": "spoon" },
+  { "id": "cracked_retort", "family": "alchemist", "costume": "shoulder", "name": "Cracked Retort", "kind": "passive",
+    "lore": "A glass retort with a crack along its neck, still warm from a fire long out. Whatever is thrown from it bursts wider than it should, and the glass bites.",
+    "text": "Thrown potions splash half again as wide, and their glass cuts the foes in the splash", "pools": ["treasure", "ordeal", "boss", "secret"],
+    "effects": ["retort"], "color": "#7ae070", "icon": "retort" }
 ]

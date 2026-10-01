@@ -128,6 +128,7 @@ export function updatePotions(dt: number) {
   if (f.frost > 0) player.chill = 0;
   inputFx.reversed = f.reversed > 0;
   if (f.giant && G.current !== giantIn) { f.giant = 0; setGiant(false); }
+  if (player.stats.effects.has('taster')) for (const id of player.belt as PotionId[]) if (!knownPotion(id)) identify(id); // (M5 step 8: the Taster's Spoon)
 }
 
 /** The HUD's belt: a slot for each potion it can hold, the chosen one lit, an unknown one marked; its keys. */

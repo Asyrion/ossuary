@@ -155,6 +155,25 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     skull(g, 0, 0, 0, 0, 0, 1.1, c);
     for (const s of [-1, 1]) { const pts: number[][] = []; for (let i = 0; i <= 10; i++) { const t = i / 10, a = t * Math.PI * 1.6; pts.push([s * (.1 + Math.sin(a) * .09 + t * .05), .08 + Math.cos(a) * .09 - t * .05, -.02 + t * .06]); } tube(g, pts, .035, .012, tone(shade(c, .75), .1), 16); }
   },
+  satchel(g, c) { // M5: a satchel of oiled leather, its flap buckled, two bottles poking out of it
+    box(g, .3, .22, .12, tone(c, .1), 0, -.04, 0); box(g, .31, .1, .13, tone(shade(c, .8), .1), 0, .04, .005);
+    box(g, .05, .06, .02, metal(BRASS), 0, .0, .07);
+    for (const [x, col] of [[-.07, 0x7ae070], [.06, 0xe0475a]] as [number, number][]) { mesh(g, cyl(.025, .025, .12, 6), glowTone(col), x, .11, -.02); mesh(g, cyl(.018, .018, .03, 5), tone(0x8a6a44, .1), x, .18, -.02); }
+    put(mesh(g, new THREE.TorusGeometry(.13, .014, 4, 12, Math.PI), tone(shade(c, .8), .1), 0, .07, 0), 0, 0, 0);
+  },
+  spoon(g, c) { // M5: a silver spoon on a cord, worn thin at the bowl
+    put(mesh(g, ball(.07, 10, 6), metal(c), 0, -.12, .01), 0, 0, 0, [1, 1.35, .35]);
+    stick(g, [0, -.04, 0], [0, .17, 0], .012, metal(c));
+    mesh(g, ball(.022, 6, 4), metal(c), 0, .18, 0);
+    put(mesh(g, new THREE.TorusGeometry(.05, .008, 4, 12), tone(0x6a5a3e, .1), 0, .24, 0), 0, 0, 0);
+  },
+  retort(g, c) { // M5: a glass retort, a crack along its neck, a little green still in its belly
+    mesh(g, ball(.13, 12, 9), glowTone(shade(c, .75)), -.06, -.06, 0);
+    mesh(g, ball(.135, 12, 9), tone(0xd8e8f0, .04, .3), -.06, -.05, -.01).scale.set(1, 1, .4);
+    tube(g, [[-.02, .05, 0], [.06, .14, 0], [.16, .12, 0], [.24, .02, 0]], .045, .018, glowTone(shade(c, .9)), 10);
+    put(box(g, .1, .01, .01, tone(0x203018), .1, .13, .03), 0, 0, .5, [.1, .01, .01]);
+    mesh(g, cyl(.11, .13, .03, 8), metal(IRON), -.06, -.2, 0);
+  },
   jar(g, c) { // a leech in a jar, the jar corked
     mesh(g, lathe([[0, -.16], [.1, -.16], [.11, -.12], [.11, .08], [.08, .12], [.07, .15], [0, .15]], 10), glowTone(0x6a3a3a), 0, 0, 0);
     tube(g, [[-.05, -.1, .1], [.03, -.04, .11], [-.02, .03, .11], [.04, .07, .1]], .025, .018, tone(c, .1), 10);
