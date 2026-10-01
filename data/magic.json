@@ -10,7 +10,12 @@
     "overload": { "damage": 10, "radius": 1.8, "knockback": 6 },
     "eclipse": { "time": 2, "damage": 18 },
     "blackfire": { "dps": 3 },
-    "steam": { "damage": 6, "radius": 1.7, "time": 4.5, "spread": 1.1, "sight": 0.85 }
+    "steam": { "damage": 6, "radius": 1.7, "time": 4.5, "spread": 1.1, "sight": 0.85 },
+    "searing": { "time": 4, "damage": 4 },
+    "prism": { "angle": 0.42, "damageMul": 0.7, "range": 4.5 },
+    "verdict": { "damage": 8, "stun": 0.5 },
+    "blackice": { "size": 1.15, "time": 7, "grip": 0.7 },
+    "voidspark": { "time": 5, "leaps": 3, "range": 3.4, "damage": 4, "mana": 6 }
   },
   "mantles": {
     "kindled": { "school": "ember", "stripBy": "frost", "immune": "burn", "trailEvery": 0.4, "trailTime": 3 },

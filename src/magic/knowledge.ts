@@ -2,7 +2,7 @@
    page is first approached, learned when a page of it is taken, used after enough casts over all runs, and upgraded
    when runes or school mastery change it (M6). What each stage shows is in ui/spellPanel.ts. These are the pure rules
    (unit-tested); magic/memory.ts keeps them in the browser between runs. */
-import type { Reaction } from './status';
+import { REACTIONS, type Reaction } from './status';
 import type { School, SpellDef } from './spellData';
 
 export type Stage = 'unknown' | 'seen' | 'learned' | 'used' | 'upgraded';
@@ -59,16 +59,21 @@ export function parse(text: string | null | undefined): Knowledge {
 /** The school whose status each status is (Burn is Ember's, Chill Frost's, Shock Storm's, Sanctified Hallow's, Hex
     Umbral's). */
 const SCHOOL_OF = { burn: 'ember', chill: 'frost', shock: 'storm', sanct: 'hallow', hex: 'umbral' } as const;
-/** The reactions a spell can set off with another school's status (magic/status.ts): a frozen foe shocked, or a
-    shocked foe frozen, shatters; a burning foe shocked, or a shocked foe set burning, overloads; a sanctified foe
-    hexed, or a hexed one sanctified, is eclipsed; a hexed foe set burning, or a burning one hexed, burns with
-    blackfire; a chilled foe set burning, or a burning one chilled, goes up in steam. */
+/** The two schools whose statuses meet in reaction `r` (the wheel's chord between them, M4.8). */
+export const reactionSchools = (r: Reaction): [School, School] => REACTIONS[r].map(k => SCHOOL_OF[k as keyof typeof SCHOOL_OF]) as [School, School];
+/** Every reaction, in the table's order (the book's wheel lists them so). */
+export const REACTION_IDS = Object.keys(REACTIONS) as Reaction[];
+/** The reactions a spell can set off with another school's status (magic/status.ts's `REACTIONS`, the wheel of every
+    pair of the five schools, M4.8): for each status it brings, each reaction that status is half of, and the school of
+    the other half. */
 export function reactionsOf(def: Pick<SpellDef, 'status'>): { reaction: Reaction; with: School }[] {
-  const has = (k: keyof typeof SCHOOL_OF) => (def.status?.[k] ?? 0) > 0, out: { reaction: Reaction; with: School }[] = [];
-  if (has('chill')) out.push({ reaction: 'shatter', with: SCHOOL_OF.shock }, { reaction: 'steam', with: SCHOOL_OF.burn });
-  if (has('burn')) out.push({ reaction: 'overload', with: SCHOOL_OF.shock }, { reaction: 'blackfire', with: SCHOOL_OF.hex }, { reaction: 'steam', with: SCHOOL_OF.chill });
-  if (has('shock')) out.push({ reaction: 'shatter', with: SCHOOL_OF.chill }, { reaction: 'overload', with: SCHOOL_OF.burn });
-  if (has('sanct')) out.push({ reaction: 'eclipse', with: SCHOOL_OF.hex });
-  if (has('hex')) out.push({ reaction: 'eclipse', with: SCHOOL_OF.sanct }, { reaction: 'blackfire', with: SCHOOL_OF.burn });
+  const has = (k: string) => (def.status?.[k as keyof typeof def.status] ?? 0) > 0, out: { reaction: Reaction; with: School }[] = [];
+  for (const k of Object.keys(SCHOOL_OF) as (keyof typeof SCHOOL_OF)[]) {
+    if (!has(k)) continue;
+    for (const [r, [a, b]] of Object.entries(REACTIONS) as [Reaction, [string, string]][]) {
+      if (a === k) out.push({ reaction: r, with: SCHOOL_OF[b as keyof typeof SCHOOL_OF] });
+      else if (b === k) out.push({ reaction: r, with: SCHOOL_OF[a as keyof typeof SCHOOL_OF] });
+    }
+  }
   return out.filter((r, i) => out.findIndex(o => o.reaction === r.reaction && o.with === r.with) === i);
 }

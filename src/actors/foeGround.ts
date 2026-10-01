@@ -14,14 +14,15 @@ import { burst } from '../combat/fx';
 import { line } from '../ui/hud';
 import { damageEnemy } from '../combat/damage';
 import { inflict } from '../magic/statusFx';
+import { MAGIC } from '../magic/status';
 import { addSpores, stingAt } from '../world/props';
-import { layGround, patchAt, slipAt, stickyAt } from './bestiaryGround';
+import { blackIceAt, layGround, patchAt, slipAt, stickyAt } from './bestiaryGround';
 import { hazardAt, layFire, laySpark } from './foes';
 import { spawnFoe } from './enemies';
 
-type Ground = 'web' | 'ink' | 'rime' | 'fire' | 'spark' | 'spores';
-/** The school each ground is of: a foe of that school is at home in it. */
-const SCHOOL: Record<Ground, string> = { web: 'umbral', ink: 'umbral', rime: 'frost', fire: 'ember', spark: 'storm', spores: 'umbral' };
+export type Ground = 'web' | 'ink' | 'rime' | 'blackice' | 'fire' | 'spark' | 'spores';
+/** The school each ground is of: a foe of that school is at home in it (black ice, a reaction's, is no one's home). */
+const SCHOOL: Record<Ground, string> = { web: 'umbral', ink: 'umbral', rime: 'frost', blackice: '', fire: 'ember', spark: 'storm', spores: 'umbral' };
 const kindOf = (e: Enemy) => e.foe?.id;
 /** Whether ground `g` leaves `e` be (it is of `e`'s school). */
 const home = (e: Enemy, g: Ground) => e.foe?.school === SCHOOL[g];
@@ -33,7 +34,7 @@ function foulAt(e: Enemy, x: number, z: number) {
   return (!!h && !home(e, h)) || (!!p && !home(e, p)) || (stingAt(x, z, who) && !home(e, 'spores'));
 }
 /** Each ground's colour, for the puff as a foe steps into it. */
-const COLOR: Record<Ground, number> = { web: 0xd8d0e8, ink: 0x8a72c8, rime: 0x9fd0ee, fire: 0xff7a2a, spark: SCHOOL_LIGHT.storm, spores: 0x8a6aa8 };
+const COLOR: Record<Ground, number> = { web: 0xd8d0e8, ink: 0x8a72c8, rime: 0x9fd0ee, blackice: 0x6a4aa8, fire: 0xff7a2a, spark: SCHOOL_LIGHT.storm, spores: 0x8a6aa8 };
 /** The ground at (x, z) that a foe of kind `who` would fall foul of, if any. */
 const groundAt = (x: number, z: number, who?: string): Ground | undefined => hazardAt(x, z, who) ?? patchAt(x, z, who) ?? (stingAt(x, z, who) ? 'spores' : undefined);
 
@@ -52,10 +53,13 @@ export function steerAround(e: Enemy) {
   e.vx = e.vz = 0;
 }
 
-/** On another kind's rime, `e` slides: what it means to do comes in slowly, as for the mage (`CFG.bestiary.rimeGrip`). */
+/** On another kind's rime, `e` slides: what it means to do comes in slowly, as for the mage (`CFG.bestiary.rimeGrip`). On
+    black ice (M4.8's reaction, Frost and Umbral) every walker slides, and far longer: it can hardly stop or turn
+    (`blackice.grip` in data/magic.json). */
 export function groundSlide(e: Enemy, dt: number) {
-  if (!walks(e) || home(e, 'rime') || !slipAt(e.x, e.z, kindOf(e))) { e.slide = undefined; return; }
-  const k = 1 - Math.exp(-CFG.bestiary.rimeGrip * dt), was = e.slide ?? { x: e.vx, z: e.vz };
+  const black = walks(e) && blackIceAt(e.x, e.z);
+  if (!black && (!walks(e) || home(e, 'rime') || !slipAt(e.x, e.z, kindOf(e)))) { e.slide = undefined; return; }
+  const k = 1 - Math.exp(-(black ? MAGIC.reactions.blackice.grip : CFG.bestiary.rimeGrip) * dt), was = e.slide ?? { x: e.vx, z: e.vz };
   e.slide = { x: was.x + (e.vx - was.x) * k, z: was.z + (e.vz - was.z) * k };
   e.vx = e.slide.x; e.vz = e.slide.z;
 }

@@ -26,7 +26,7 @@ import { fireAt, frostAt } from '../world/pools';
 import { hallowAt, umbralAt } from '../world/mechanisms';
 import { canAct } from './status';
 import type { Shape, SpellDef } from './spellData';
-import { flash, inflict } from './statusFx';
+import { flash, inflict, tileReaction } from './statusFx';
 import { consecrateFx, graspFx, hideSpellFx, iceColumn, lanceFx, mantleFx, ringFx, sealFx, smiteFx, strikeFx, tollFx, updateSpellFx, wardFx } from './spellFx';
 import { counter } from '../actors/counters';
 
@@ -354,6 +354,21 @@ function updateZones(dt: number) {
     if (!z.healed && player.hp < player.maxHp && Math.hypot(player.x - z.x, player.z - z.z) < P.radius) {
       z.healed = true; player.hp = Math.min(player.maxHp, player.hp + P.heal); renderHearts(); heroDrink(); burst(player.x, .9, player.z, hex(z.def.color), 10, 1.4, .04);
     }
+  }
+}
+
+/** A hex lands on holy ground at (x, z) (M4.8's tile reaction, Hallow and Umbral): the ground goes dark at once, and
+    every foe standing in it is taken under a black sun (an Eclipse each). Reached from `umbralAt`, a hexing bolt crossing
+    it and a hex on a foe standing in it. */
+export function hexGround(x: number, z: number) {
+  const i = zones.findIndex(o => Math.hypot(x - o.x, z - o.z) < o.def.params.radius);
+  if (i < 0) return;
+  const g = zones[i], P = g.def.params; zones.splice(i, 1); g.fx.drop(); // (spent first: the hexes it lays below find no ground)
+  tileReaction('eclipse', g.x, g.z);
+  ringFx(g.x, .05, g.z, 0x6a3aa8, .3, P.radius, CFG.spellFx.shockwave, true); burst(g.x, .3, g.z, 0x2a0a4a, 20, 2.4, .06); burst(g.x, .3, g.z, hex(g.def.color), 10, 2, .04);
+  for (const e of G.enemies) if (alive(e) && !e.flying && Math.hypot(e.x - g.x, e.z - g.z) < P.radius + e.r * .5) {
+    if (!((e.status?.sanct ?? 0) > 0)) inflict(e, { sanct: 1 });
+    inflict(e, { hex: 1 });
   }
 }
 

@@ -17,7 +17,7 @@ import { Sfx } from '../audio/sfx';
 import { floorOwnedTexture } from '../render/textures';
 import { addDecal, burst } from '../combat/fx';
 import { damageEnemy, hurtPlayer } from '../combat/damage';
-import { inflict } from '../magic/statusFx';
+import { inflict, overloadAt, tileReaction } from '../magic/statusFx';
 import { riseMote } from '../magic/shapes';
 import type { StatusKind } from '../magic/spellData';
 import { poolsOf } from './templates';
@@ -272,6 +272,11 @@ export function shockAt(x: number, z: number, from?: Enemy) {
   groundHears('shock', x, z);
   elementAt('shock', x, z); // lodestones leap, a rune stone takes storm
   const p = poolAt(x, z);
+  if (p?.kind === 'oil' && p.state === 'burning') { // (M4.8: a shock through burning oil is an Overload at the pool's middle, which blows the fire out)
+    const mx = p.tiles.reduce((a, t) => a + t.x, 0) / p.tiles.length, mz = p.tiles.reduce((a, t) => a + t.z, 0) / p.tiles.length;
+    spend(G.current, p); tileReaction('overload', mx, mz); overloadAt(mx, mz);
+    return;
+  }
   if (!p || p.kind !== 'water' || p.state !== 'still' || p.charged > 0) return;
   p.charged = C.charged;
   douseStandsIn(p); // (M4.2: candle stands standing in it go out)

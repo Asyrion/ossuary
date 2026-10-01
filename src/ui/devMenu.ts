@@ -40,7 +40,9 @@ import { openSecretRoom, revealCracks } from '../world/secret';
 import { cleanseAtOnce } from '../world/shrine';
 import { SPELL_DEFS } from '../magic/spellData';
 import { forgetSpells, gainMana, learnSpell } from '../magic/spells';
-import { forgetKnowledge, knowEvery, knowledgeNow } from '../magic/memory';
+import { findEveryReaction, forgetKnowledge, forgetReactions, knowEvery, knowledgeNow, reactionsFound } from '../magic/memory';
+import { REACTION_IDS } from '../magic/knowledge';
+import { setOffReaction } from '../magic/reactionTest';
 import { dropPage } from '../magic/pages';
 import { hexDrained } from './afflictions';
 import { steamAt } from '../magic/steam';
@@ -236,7 +238,11 @@ function build() {
   );
   // spell knowledge (M3.7): kept between runs in this browser
   const know = section(pages.magic, S.knowledge);
-  know.append(knowBox = el('p', 'dv-info'), btn(S.knowAll, () => { knowEvery(); refresh(); }), btn(S.forgetKnowledge, () => { forgetKnowledge(); refresh(); }));
+  know.append(knowBox = el('p', 'dv-info'), btn(S.knowAll, () => { knowEvery(); refresh(); }), btn(S.forgetKnowledge, () => { forgetKnowledge(); refresh(); }),
+    btn(S.findReactions, () => { findEveryReaction(REACTION_IDS); refresh(); }), btn(S.forgetReactions, () => { forgetReactions(); refresh(); })); // (M4.8: the book's wheel)
+  // every reaction (M4.8), set off on training dummies just ahead
+  const reacts = section(pages.magic, S.reactionsHere);
+  for (const r of REACTION_IDS) reacts.append(btn(STR.reactions[r], () => { closeDev(); const q = ahead(3); setOffReaction(r, q.x, q.z); }, STR.knowledge.reactionText[r]));
   // water and oil in this room (the test rooms with them are on the Rooms & runs tab)
   const pools = section(pages.magic, S.pools);
   pools.append(btn(S.ignite, () => poolsDo('fire')), btn(S.freezeWater, () => poolsDo('frost')), btn(S.shockWater, () => poolsDo('shock')));
@@ -407,7 +413,7 @@ function refresh() {
   lineBtn.textContent = look.outline ? S.outlinesOn : S.outlinesOff; lineBtn.classList.toggle('on', look.outline); lineBtn.disabled = !look.lines;
   bandBtn.textContent = look.bands ? S.bandsOn : S.bandsOff; bandBtn.classList.toggle('on', look.bands); bandBtn.disabled = !look.lines;
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
-  knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'));
+  knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'), reactionsFound().length, REACTION_IDS.length);
   spellBox.replaceChildren(...SPELL_DEFS.map(s => {
     const b = btn(s.name, () => learnSpell(s.id, spellSlot), `${STR.schools[s.school]}: ${s.text}`);
     const dot = el('i'); dot.style.background = s.color; b.prepend(dot);

@@ -6,7 +6,10 @@ import { CFG } from '../config';
 import { spellIcon } from './hud';
 import { spellCost } from '../magic/cost';
 import type { SpellDef } from '../magic/spellData';
-import { type Stage, atLeast, reactionsOf } from '../magic/knowledge';
+import { type Stage, REACTION_IDS, atLeast, reactionSchools, reactionsOf } from '../magic/knowledge';
+import type { Reaction } from '../magic/status';
+import { reactionsFound } from '../magic/memory';
+import { SCHOOL_LIGHT } from '../render/arcane';
 
 export const esc = (t: string) => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 /** A panel's head: its icon, name and kind. */
@@ -28,6 +31,52 @@ export function spellSheet(def: SpellDef, stage: Stage, note = '', casts = 0) {
     + statuses.map(([k]) => `<p class="note">${esc(I.statusText[k] ?? '')}</p>`).join('');
   if (!used) return html + `<p class="note">${esc(K.castMore(Math.max(1, CFG.knowledge.usedCasts - casts)))}</p>`;
   const sets = reactionsOf(def);
-  if (sets.length) html += `<p class="lbl">${esc(K.sets)}</p>` + sets.map(r => `<p class="note">${esc(K.reaction(STR.reactions[r.reaction], STR.schools[r.with], K.reactionText[r.reaction]))}</p>`).join('');
+  const found = reactionsFound(); // (M4.8: the ones not yet found are marked so, and dimmed)
+  if (sets.length) html += `<p class="lbl">${esc(K.sets)}</p>` + sets.map(r => found.includes(r.reaction)
+    ? `<p class="note">${esc(K.reaction(STR.reactions[r.reaction], STR.schools[r.with], K.reactionText[r.reaction]))}</p>`
+    : `<p class="note dim">${esc(K.reaction(STR.reactions[r.reaction], STR.schools[r.with], K.notFound))}</p>`).join('');
   return html + `<p class="lore">${esc(def.lore)}</p>`; // (upgraded, M6: what changed it goes here)
+}
+
+/* ---------- the wheel of reactions (M4.8) ---------- */
+
+const css = (c: number) => '#' + c.toString(16).padStart(6, '0');
+/** Where each school sits on the wheel: six spokes, Verdant's (M5) sealed at the foot. */
+const SPOKES = ['ember', 'frost', 'storm', 'verdant', 'umbral', 'hallow'] as const;
+const spoke = (school: string) => { const a = -Math.PI / 2 + SPOKES.indexOf(school as typeof SPOKES[number]) * Math.PI / 3; return { x: 100 + Math.cos(a) * 72, y: 100 + Math.sin(a) * 72 }; };
+
+/** A reaction's tile: the two schools' lights overlapping (found), or two hollow rings (not yet). */
+export function reactionIcon(r: Reaction, found: boolean) {
+  const [a, b] = reactionSchools(r).map(k => css(SCHOOL_LIGHT[k]));
+  return found
+    ? `<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="24" r="11" fill="${a}" opacity=".85"/><circle cx="30" cy="24" r="11" fill="${b}" opacity=".85" style="mix-blend-mode:screen"/><circle cx="24" cy="24" r="3" fill="#fff8e0"/></svg>`
+    : `<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="24" r="10" fill="none" stroke="${a}" stroke-width="2" opacity=".5"/><circle cx="30" cy="24" r="10" fill="none" stroke="${b}" stroke-width="2" opacity=".5"/></svg>`;
+}
+
+/** The wheel of the schools: a chord for every reaction, lit once found, `chosen` drawn bold; Verdant's spoke sealed. */
+export function reactionWheel(chosen?: Reaction) {
+  const found = reactionsFound();
+  const chords = REACTION_IDS.map(r => {
+    const [a, b] = reactionSchools(r).map(spoke), on = found.includes(r), pick = r === chosen;
+    const stroke = pick ? '#e8a640' : on ? '#b8843a' : '#6e5a42'; // (amber: readable on the dark card and the light one)
+    return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${stroke}" stroke-width="${pick ? 4 : on ? 2.2 : 1.2}"${on ? '' : ` stroke-dasharray="${pick ? '7 5' : '4 4'}"`} opacity="${pick || on ? 1 : .75}"/>`;
+  }).join('');
+  const dots = SPOKES.map(k => {
+    const p = spoke(k), sealed = k === 'verdant', fill = sealed ? '#2a241c' : css(SCHOOL_LIGHT[k as keyof typeof SCHOOL_LIGHT]);
+    const name = sealed ? '?' : STR.schools[k] ?? k;
+    return `<circle cx="${p.x}" cy="${p.y}" r="15" fill="${fill}" stroke="${sealed ? '#5e4d39' : '#17110c'}" stroke-width="2"${sealed ? ' stroke-dasharray="3 3"' : ''}/>`
+      + `<text x="${p.x}" y="${p.y + 4.5}" text-anchor="middle" font-size="${sealed ? 14 : 11}" font-weight="700" fill="${sealed ? '#7a6a52' : '#17110c'}">${esc(sealed ? name : name.slice(0, 2))}</text>`;
+  }).join('');
+  return `<div class="wheel"><svg viewBox="0 0 200 200" role="img" aria-label="${esc(STR.knowledge.wheel)}">${chords}${dots}</svg></div>`;
+}
+
+/** Reaction `r` described in the book: found, what it does (and where else it happens); not yet, which two schools make it. */
+export function reactionSheet(r: Reaction) {
+  const K = STR.knowledge, found = reactionsFound(), on = found.includes(r);
+  const [a, b] = reactionSchools(r).map(k => STR.schools[k]), what = K.reactionText[r];
+  const body = on
+    ? `<p class="effect">${esc(what.charAt(0).toUpperCase() + what.slice(1))}.</p>` + (K.onTiles[r] ? `<p class="note">${esc(K.onTiles[r])}</p>` : '')
+    : `<p class="effect">${esc(K.unfoundText(a, b))}</p>`;
+  return head(reactionIcon(r, on), on ? STR.reactions[r] : K.unfound, K.pair(a, b)) + body + reactionWheel(r)
+    + `<p class="note">${esc(K.foundOf(found.filter(f => (REACTION_IDS as string[]).includes(f)).length, REACTION_IDS.length))}</p>`;
 }

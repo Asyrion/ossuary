@@ -158,3 +158,46 @@ describe('Hallow and Umbral (M4.1)', () => {
     }
   });
 });
+
+describe('the full wheel (M4.8): every pair of the five schools reacts', () => {
+  it('Searing: fire on holy light (or holy light on fire) burns the guard away a while', () => {
+    let s = newStatus(); applyStatus(s, 'sanct', 3, false);
+    expect(applyStatus(s, 'burn', 2, false)).toEqual({ reaction: 'searing' }); expect(s).toMatchObject({ sanct: 0, burn: 0, seared: T.reactions.searing.time });
+    s = newStatus(); applyStatus(s, 'burn', 2, false);
+    expect(applyStatus(s, 'sanct', 3, false).reaction).toBe('searing'); expect(s.burn).toBe(0);
+    tickStatus(s, T.reactions.searing.time + .1); expect(s.seared).toBe(0);
+  });
+  it('Prism: a frozen foe sanctified, or a sanctified one freezing, is a prism while the ice lasts', () => {
+    let s = newStatus(); for (let i = 0; i < T.chill.freezeAt; i++) applyStatus(s, 'chill', 1, false);
+    expect(s.frozen).toBeGreaterThan(0);
+    expect(applyStatus(s, 'sanct', 3, false)).toEqual({ reaction: 'prism' }); expect(s.prism).toBeCloseTo(s.frozen);
+    s = newStatus(); applyStatus(s, 'sanct', 3, false); let last = {};
+    for (let i = 0; i < T.chill.freezeAt; i++) last = applyStatus(s, 'chill', 1, false);
+    expect(last).toEqual({ froze: true, reaction: 'prism' }); expect(s.sanct).toBe(0);
+    tickStatus(s, T.chill.freezeTime + .1); expect(s.prism).toBe(0); // (the ice gone, the prism with it)
+  });
+  it('Verdict, Black Ice and Void Spark', () => {
+    let s = newStatus(); applyStatus(s, 'sanct', 3, false);
+    expect(applyStatus(s, 'shock', 1, false)).toEqual({ reaction: 'verdict' }); expect(s.sanct).toBe(0);
+    s = newStatus(); applyStatus(s, 'shock', 1, false); expect(applyStatus(s, 'sanct', 2, false).reaction).toBe('verdict');
+    s = newStatus(); applyStatus(s, 'hex', 2, false);
+    expect(applyStatus(s, 'chill', 1, false)).toEqual({ reaction: 'blackice' }); expect(s).toMatchObject({ hex: 0, chill: 0 });
+    s = newStatus(); applyStatus(s, 'chill', 1, false); expect(applyStatus(s, 'hex', 1, false).reaction).toBe('blackice');
+    s = newStatus(); applyStatus(s, 'hex', 2, false);
+    expect(applyStatus(s, 'shock', 1, false)).toEqual({ reaction: 'voidspark' }); expect(s).toMatchObject({ hex: 0, voidT: T.reactions.voidspark.time });
+    s = newStatus(); applyStatus(s, 'shock', 1, false); expect(applyStatus(s, 'hex', 1, false).reaction).toBe('voidspark');
+  });
+  it('every pair of statuses of two schools reacts, one way or the other', async () => {
+    const { REACTIONS } = await import('../../src/magic/status');
+    const kinds = ['burn', 'chill', 'shock', 'sanct', 'hex'] as const;
+    for (const a of kinds) for (const b of kinds) {
+      if (a === b) continue;
+      // (chill meets shock and holy light once it freezes, as Shatter always has: it is laid on till it does)
+      const lay = (k: typeof kinds[number]) => { let r: string | undefined; for (let i = 0; i < (k === 'chill' ? T.chill.freezeAt : 1) && !r; i++) r = applyStatus(s, k, k === 'chill' ? 1 : 2, false).reaction; return r; };
+      const s = newStatus(); lay(a);
+      const r = lay(b) as keyof typeof REACTIONS | undefined;
+      expect(r, `${a} then ${b}`).toBeDefined();
+      expect(REACTIONS[r!].slice().sort(), `${a} then ${b}`).toEqual([a, b].sort());
+    }
+  });
+});

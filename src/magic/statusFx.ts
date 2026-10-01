@@ -5,7 +5,11 @@
    burning foe apart and throws everything near it back. M4.1 adds Hallow's and Umbral's: a sanctified foe glows gold,
    a hexed one violet, a rooted one is held by the shadow at its feet; Eclipse hangs a black sun over a foe it takes out
    of the fight and strikes it when it comes back, Blackfire burns violet and never goes out. Reactions name themselves
-   in the air, so players learn them. The training dummy (dev menu) shows its statuses and every hit it takes. */
+   in the air, so players learn them. The training dummy (dev menu) shows its statuses and every hit it takes.
+   M4.8, the full wheel: Searing cracks a foe gold (its guard burnt away, a War-Tiger's plate knocked off), a Prism glints
+   every colour while it stays frozen (statusTint; projectiles.ts splits the bolts that strike it), Verdict strikes every
+   sanctified foe in the room from above, Black Ice is laid under the foe (actors/bestiaryGround.ts), Void Spark leaps to
+   the foes near, carrying a hex. */
 import * as THREE from 'three';
 import type { Enemy } from '../types';
 import { CFG } from '../config';
@@ -26,11 +30,17 @@ import { ringFx, strikeFx } from './spellFx';
 import { breakPlate } from '../actors/bosses';
 import { foeAfflicted } from '../actors/foes';
 import { steamAt } from './steam';
+import { layGround } from '../actors/bestiaryGround';
+import { foundReaction } from './memory';
 import { mantleImmune, stripsMantle } from '../actors/mantleData';
 import { shrugOff, unbind } from '../actors/mantles';
+import { hexGround } from './shapes';
 
 const R = MAGIC.reactions;
-const ICE = 0xbfe6ff, FIRE = 0xff7a2a, SPARK = 0xf0e890, GOLD = SCHOOL_LIGHT.hallow, VIOLET = SCHOOL_LIGHT.umbral, BLACKFIRE = 0x8a3ae0, STEAM = 0xe8f2f8;
+const ICE = 0xbfe6ff, FIRE = 0xff7a2a, SPARK = 0xf0e890, GOLD = SCHOOL_LIGHT.hallow, VIOLET = SCHOOL_LIGHT.umbral, BLACKFIRE = 0x8a3ae0, STEAM = 0xe8f2f8, SEAR = 0xffb24a, BLACKICE = 0x5a3a9a;
+export const RAINBOW = [0xff6a6a, 0xffc06a, 0xf0f07a, 0x7ae88a, 0x7ac8ff, 0xb08aff];
+/** Each reaction's colour, for its rising name. */
+const REACT_COLOR: Record<Reaction, number> = { shatter: ICE, overload: 0xffc060, eclipse: 0xd8b0ff, blackfire: 0xb070ff, steam: STEAM, searing: SEAR, prism: 0xe8f8ff, verdict: 0xfff0a0, blackice: 0xb8a0ff, voidspark: 0xc890ff };
 
 /** Apply a spell's statuses to a foe, and carry out what they set off. */
 export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> | undefined) {
@@ -51,7 +61,7 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
     if (res.reaction) react(e, res.reaction);
     foeAfflicted(e, kind); // (M4.5: what its behaviour does about it)
     if ((STATUS_KINDS as string[]).includes(kind)) touchPools(e, kind as StatusKind); // oil catches fire, water freezes or carries the shock
-    else if (kind === 'hex') burst(e.x, .8, e.z, VIOLET, 4, 1.2, .03); else if (kind === 'sanct') burst(e.x, .8, e.z, GOLD, 4, 1.2, .03);
+    else if (kind === 'hex') { burst(e.x, .8, e.z, VIOLET, 4, 1.2, .03); if (!e.flying) hexGround(e.x, e.z); } else if (kind === 'sanct') burst(e.x, .8, e.z, GOLD, 4, 1.2, .03);
   }
 }
 
@@ -69,7 +79,43 @@ export function shockLeap(e: Enemy, dmg: number) {
 }
 
 function react(e: Enemy, r: Reaction) {
-  floatText(e.x, 1.7, e.z, STR.reactions[r], r === 'shatter' ? ICE : r === 'eclipse' ? 0xd8b0ff : r === 'blackfire' ? 0xb070ff : r === 'steam' ? STEAM : 0xffc060);
+  floatText(e.x, 1.7, e.z, STR.reactions[r], REACT_COLOR[r], foundReaction(r) ? 52 : 44); // (bigger the first time ever, M4.8's codex)
+  if (r === 'searing') { // holy fire: its guard burns away a while (damageEnemy reads `seared`), a War-Tiger loses a plate
+    burst(e.x, .8, e.z, SEAR, 18, 2.4, .05); burst(e.x, 1, e.z, GOLD, 10, 1.6, .04); ringFx(e.x, .8, e.z, SEAR, .2, 1.1, CFG.spellFx.flash);
+    if (e.plates) breakPlate(e);
+    Sfx.at(e.x, e.z).searing(); damageEnemy(e, R.searing.damage, 0, 0, 0, 'spell', 'hallow');
+    return;
+  }
+  if (r === 'prism') { burst(e.x, .8, e.z, 0xffffff, 10, 1.8, .04); for (const c of RAINBOW) burst(e.x, .9, e.z, c, 3, 2.2, .03); Sfx.at(e.x, e.z).prism(); return; }
+  if (r === 'verdict') { // lightning from above on every sanctified foe in the room, and on this one
+    const V = R.verdict;
+    for (const o of [e, ...G.enemies.filter(o => o !== e && !o.dead && !o.hidden && (o.status?.sanct ?? 0) > 0)]) {
+      strikeFx({ x: o.x, y: 4.5, z: o.z }, { x: o.x, y: .1, z: o.z }, 0xfff0a0, CFG.spellFx.strike);
+      burst(o.x, .3, o.z, GOLD, 12, 2.4, .05); ringFx(o.x, .05, o.z, SPARK, .2, 1, CFG.spellFx.shockwave, true);
+      (o.status ??= newStatus()).stun = Math.max(o.status.stun, V.stun); damageEnemy(o, V.damage, 0, 0, 0, 'spell', 'storm');
+    }
+    Sfx.at(e.x, e.z).verdict(); G.shake = Math.max(G.shake, .25);
+    return;
+  }
+  if (r === 'blackice') { // black ice under it: foes on it slide and can't stop (the mage crosses it as stone)
+    layGround(G.current, 'blackice', e.x, e.z, R.blackice.size, R.blackice.time, '');
+    burst(e.x, .2, e.z, BLACKICE, 16, 2, .05); burst(e.x, .3, e.z, ICE, 8, 1.6, .04); Sfx.at(e.x, e.z).blackice();
+    return;
+  }
+  if (r === 'voidspark') { // the spark leaps to the foes near, each carrying a hex; each marked, and falling, gives mana
+    const VS = R.voidspark, near = G.enemies.filter(o => o !== e && !o.dead && !o.hidden && o.spawn <= 0 && Math.hypot(o.x - e.x, o.z - e.z) < VS.range)
+      .sort((a, b) => Math.hypot(a.x - e.x, a.z - e.z) - Math.hypot(b.x - e.x, b.z - e.z)).slice(0, VS.leaps);
+    let from = e;
+    for (const o of near) {
+      strikeFx({ x: from.x, y: .8, z: from.z }, { x: o.x, y: .8, z: o.z }, VIOLET, CFG.spellFx.chain, true);
+      damageEnemy(o, VS.damage, 0, 0, 0, 'spell', 'storm'); burst(o.x, .8, o.z, VIOLET, 6, 1.6, .04); // (struck first, so the blow doesn't spend the hex it carries)
+      if (o.dead) continue;
+      const st = o.status ??= newStatus(); st.hex = Math.min(MAGIC.hex.max, st.hex + 1); st.hexT = MAGIC.hex.time; st.voidT = Math.max(st.voidT, VS.time); // (a hex carried, laid straight on: no reaction of its own)
+      from = o;
+    }
+    burst(e.x, .8, e.z, VIOLET, 14, 2.2, .05); burst(e.x, .8, e.z, SPARK, 8, 2, .04); Sfx.at(e.x, e.z).voidspark();
+    return;
+  }
   if (r === 'eclipse') { // taken out of the fight under a black sun (a boss only struck, at once)
     burst(e.x, .9, e.z, VIOLET, 18, 2.6, .05); burst(e.x, .9, e.z, GOLD, 12, 2.2, .04); ringFx(e.x, .9, e.z, GOLD, .2, 1.3, CFG.spellFx.flash);
     Sfx.at(e.x, e.z).eclipse();
@@ -94,22 +140,32 @@ function react(e: Enemy, r: Reaction) {
     ringFx(e.x, .6, e.z, 0xffffff, .15, 1.1, CFG.spellFx.flash); ringFx(e.x, .05, e.z, ICE, .2, 1.5, CFG.spellFx.shockwave, true); // a flash, and frost thrown out over the floor
     Sfx.at(e.x, e.z).shatter(); G.shake = Math.max(G.shake, .2);
     damageEnemy(e, S.damage, 0, 0, 0, 'spell');
-  } else {
-    const O = R.overload;
-    flash(e.x, e.z, 0xffb050, O.radius);
-    for (const o of G.enemies) {
-      if (o.dead || o.spawn > 0 || o.hidden) continue;
-      const dx = o.x - e.x, dz = o.z - e.z, d = Math.hypot(dx, dz);
-      if (d > O.radius + o.r) continue;
-      const ux = d > .01 ? dx / d : 1, uz = d > .01 ? dz / d : 0;
-      damageEnemy(o, O.damage, ux, uz, 0, 'spell');
-      if (!o.isBoss && o !== e) { o.kx += ux * O.knockback; o.kz += uz * O.knockback; }
-    }
-    burst(e.x, .6, e.z, FIRE, 22, 4, .07); burst(e.x, .8, e.z, SPARK, 14, 3.5, .04);
-    ringFx(e.x, .05, e.z, FIRE, .3, O.radius, CFG.spellFx.shockwave, true); ringFx(e.x, .7, e.z, 0xffe080, .2, 1.2, CFG.spellFx.flash); // the shockwave, and a flash
-    for (let i = 0; i < 3; i++) { const a = Math.random() * Math.PI * 2, d = O.radius * (.4 + Math.random() * .4); strikeFx({ x: e.x, y: .7, z: e.z }, { x: e.x + Math.cos(a) * d, y: .2 + Math.random() * .6, z: e.z + Math.sin(a) * d }, SPARK, CFG.spellFx.crackle, true); }
-    Sfx.at(e.x, e.z).overload(); G.shake = Math.max(G.shake, .35);
+  } else overloadAt(e.x, e.z, e);
+}
+
+/** An Overload's blast at (x, z): foes thrown out and struck, a shockwave and a flash. Set off by a burning foe shocked or
+    a shocked one set burning (`e`, which it doesn't throw), and by a shock through burning oil (M4.8, in `pools.ts`). */
+export function overloadAt(x: number, z: number, e?: Enemy) {
+  const O = R.overload;
+  flash(x, z, 0xffb050, O.radius);
+  for (const o of G.enemies) {
+    if (o.dead || o.spawn > 0 || o.hidden) continue;
+    const dx = o.x - x, dz = o.z - z, d = Math.hypot(dx, dz);
+    if (d > O.radius + o.r) continue;
+    const ux = d > .01 ? dx / d : 1, uz = d > .01 ? dz / d : 0;
+    damageEnemy(o, O.damage, ux, uz, 0, 'spell');
+    if (!o.isBoss && o !== e) { o.kx += ux * O.knockback; o.kz += uz * O.knockback; }
   }
+  burst(x, .6, z, FIRE, 22, 4, .07); burst(x, .8, z, SPARK, 14, 3.5, .04);
+  ringFx(x, .05, z, FIRE, .3, O.radius, CFG.spellFx.shockwave, true); ringFx(x, .7, z, 0xffe080, .2, 1.2, CFG.spellFx.flash); // the shockwave, and a flash
+  for (let i = 0; i < 3; i++) { const a = Math.random() * Math.PI * 2, d = O.radius * (.4 + Math.random() * .4); strikeFx({ x, y: .7, z }, { x: x + Math.cos(a) * d, y: .2 + Math.random() * .6, z: z + Math.sin(a) * d }, SPARK, CFG.spellFx.crackle, true); }
+  Sfx.at(x, z).overload(); G.shake = Math.max(G.shake, .35);
+}
+
+/** A reaction on the floor rather than on a foe (M4.8: a shock through burning oil, a hex on holy ground): its name rises
+    there, in gold the first time ever, as on a foe. */
+export function tileReaction(r: Reaction, x: number, z: number) {
+  floatText(x, 1.3, z, STR.reactions[r], REACT_COLOR[r], foundReaction(r) ? 52 : 44);
 }
 
 /** Eclipse's black sun: a dark orb in a crown of gold light (Hallow round Umbral), made for each foe it takes. */
@@ -176,6 +232,8 @@ export function statusTint(e: Enemy, now: number): [THREE.Color, number] | null 
   if (e.type === 'tiger' && e.state === 'statue') return [tint.setHex(0x8a94a4), .45]; // (the War-Tiger, stone until it wakes)
   if (e.foe && e.state === 'rock') return [tint.setHex(0x4a4440), .8]; // (M4.5: a magma ooze frozen hard)
   const s = e.status; if (!s) return null;
+  if (s.prism > 0) return [tint.setHSL((now * .7 + e.x * .1) % 1, .75, .6), .9]; // (M4.8: frozen in holy light, it glints every colour)
+  if (s.seared > 0) return [tint.setHex(0xffa030), .55 + Math.sin(now * 11) * .2]; // (its guard burnt away: cracked gold)
   if (s.frozen > 0) return [tint.setHex(0x4a8ad8), .85];
   if (s.burn > 0 && s.black) return [tint.setHex(0x6a1ac0), .5 + Math.sin(now * 17 + e.x) * .2];
   if (s.burn > 0) return [tint.setHex(0xff5a10), .45 + Math.sin(now * 17 + e.x) * .2];
