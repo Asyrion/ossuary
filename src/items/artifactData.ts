@@ -20,10 +20,12 @@ export type Effect = 'pitWalker' | 'fullHeal' | 'deathBurst' | 'hurtRing' | 'roc
   | 'emberBolts' | 'vigil' | 'frostbite' | 'stormglass' | 'thurible' | 'witchKnot' | 'noRegen'
   | 'lodestar' | 'stillCandles' | 'choir' | 'echo' | 'bloodMoon' | 'saltCircle' | 'halo' | 'soulLantern' | 'antler'
   | 'gravemonger' | 'noClearHearts' | 'dearHearts' | 'lastRite'
-  /** M5: the Alchemist's Satchel's (one more potion in the belt). */
-  | 'satchel'
-  /** Transformations' gifts (M4.6, items/transformData.ts): not on artifacts, added when one forms. */
-  | 'emberStrike' | 'frostTouch' | 'stormLeap' | 'float' | 'blink' | 'runeBurst' | 'pilgrimPath' | 'beastcaller';
+  /** M5: the Alchemist's Satchel's (one more potion in the belt), the Taster's Spoon's (every potion carried known), the
+      Cracked Retort's (a wider splash whose glass cuts). */
+  | 'satchel' | 'taster' | 'retort'
+  /** Transformations' gifts (M4.6, items/transformData.ts): not on artifacts, added when one forms; M5's Alchemist's
+      `splitThrow` (a thrown potion splits in two). */
+  | 'emberStrike' | 'frostTouch' | 'stormLeap' | 'float' | 'blink' | 'runeBurst' | 'pilgrimPath' | 'beastcaller' | 'splitThrow';
 /** Additive unless the name ends in Mul (multiplied). `obolDamage` is cantrip damage per ten obols held;
     `spellDamageMul` multiplies what spells do; `killMana` is mana back for every foe put to rest. */
 export type StatKey = 'damage' | 'damageMul' | 'fireDelayMul' | 'speed' | 'speedMul' | 'boltScale' | 'hearts' | 'invuln' | 'pierce'
@@ -54,9 +56,10 @@ export interface ArtifactDef {
 export const POOLS: Pool[] = ['treasure', 'ordeal', 'boss', 'altar', 'drop', 'merchant', 'secret', 'vault'];
 const EFFECTS: Effect[] = ['pitWalker', 'fullHeal', 'deathBurst', 'hurtRing', 'rockBreaker', 'vision', 'crit', 'split', 'leech', 'moth', 'fennex', 'orbital', 'unhurtHeal', 'bloodTithe',
   'freeVault', 'ferryman', 'glyphWard', 'graveLantern', 'pedlar', 'emberBolts', 'vigil', 'frostbite', 'stormglass', 'thurible', 'witchKnot', 'noRegen',
-  'lodestar', 'stillCandles', 'choir', 'echo', 'bloodMoon', 'saltCircle', 'halo', 'soulLantern', 'antler', 'gravemonger', 'noClearHearts', 'dearHearts', 'lastRite'];
+  'lodestar', 'stillCandles', 'choir', 'echo', 'bloodMoon', 'saltCircle', 'halo', 'soulLantern', 'antler', 'gravemonger', 'noClearHearts', 'dearHearts', 'lastRite',
+  'satchel', 'taster', 'retort'];
 /** Effects only a transformation's gift brings, never an artifact. */
-const GIFTS: Effect[] = ['emberStrike', 'frostTouch', 'stormLeap', 'float', 'blink', 'runeBurst', 'pilgrimPath', 'beastcaller'];
+const GIFTS: Effect[] = ['emberStrike', 'frostTouch', 'stormLeap', 'float', 'blink', 'runeBurst', 'pilgrimPath', 'beastcaller', 'splitThrow'];
 const STAT_KEYS: StatKey[] = ['damage', 'damageMul', 'fireDelayMul', 'speed', 'speedMul', 'boltScale', 'hearts', 'invuln', 'pierce', 'shotSpeedMul', 'rangeMul', 'knockbackMul', 'obolDamage', 'blastMul', 'mana', 'spellDamageMul', 'killMana'];
 const RESOURCE_KEYS: Resource[] = ['coins', 'keys', 'glyphs'];
 const PATHS: BoltPath[] = ['straight', 'bounce', 'boomerang', 'wave', 'homing', 'swing'];

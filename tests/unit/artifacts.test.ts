@@ -25,9 +25,9 @@ describe('lore', () => {
 describe('artifact data', () => {
   it('is valid', () => expect(validateArtifacts()).toEqual([]));
 
-  it('holds the M1 set, the 13 added after M2 step 4, the 7 economy artifacts, the 10 of M3, the Pilgrim\'s Cowl, M4.1\'s 12 and M4.2\'s Rune of Fen-Nex: 57 besides the starting wand', () => {
-    expect(ARTIFACT_DEFS.filter(a => !a.start)).toHaveLength(57);
-    expect(ARTIFACT_DEFS.filter(a => a.kind !== 'focus')).toHaveLength(47);
+  it('holds the M1 set, the 13 added after M2 step 4, the 7 economy artifacts, the 10 of M3, the Pilgrim\'s Cowl, M4.1\'s 12, M4.2\'s Rune of Fen-Nex and M5\'s three of the Alchemist: 60 besides the starting wand', () => {
+    expect(ARTIFACT_DEFS.filter(a => !a.start)).toHaveLength(60);
+    expect(ARTIFACT_DEFS.filter(a => a.kind !== 'focus')).toHaveLength(50);
     expect(ARTIFACT_DEFS.filter(a => a.kind === 'focus' && !a.start)).toHaveLength(10);
     expect(ARTIFACT_DEFS.filter(a => a.kind === 'cursed')).toHaveLength(8);
   });

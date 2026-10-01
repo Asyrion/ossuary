@@ -3,7 +3,7 @@
    (an effect in `player.stats.effects`, from `giftEffects`). Pure: the table, which have formed, and the checks. */
 import type { Effect } from './artifactData';
 
-export type TransformId = 'pyromancer' | 'frostborn' | 'stormcaller' | 'lightbearer' | 'shadowstep' | 'runescribe' | 'pilgrim' | 'beastcaller';
+export type TransformId = 'pyromancer' | 'frostborn' | 'stormcaller' | 'lightbearer' | 'shadowstep' | 'runescribe' | 'pilgrim' | 'beastcaller' | 'alchemist';
 /** Each transformation: its school's light (its aura, the tint of the robes), and the effects its gift adds. */
 export const TRANSFORMS: Record<TransformId, { light: number; gift: Effect[] }> = {
   pyromancer: { light: 0xff7a2a, gift: ['emberStrike'] },
@@ -14,6 +14,7 @@ export const TRANSFORMS: Record<TransformId, { light: number; gift: Effect[] }> 
   runescribe: { light: 0x6ae0c8, gift: ['runeBurst'] },
   pilgrim: { light: 0xd8b070, gift: ['graveLantern', 'pilgrimPath'] },
   beastcaller: { light: 0xf0c890, gift: ['beastcaller'] },
+  alchemist: { light: 0x7ae070, gift: ['splitThrow'] }, // (M5: thrown potions split in two)
 };
 export const TRANSFORM_IDS = Object.keys(TRANSFORMS) as TransformId[];
 export const isTransform = (id: string): id is TransformId => id in TRANSFORMS;

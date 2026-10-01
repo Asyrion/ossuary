@@ -2019,6 +2019,33 @@ test('the jelly serpent as a floor\'s boss (M5: ?boss=serpent) pours its own jel
   expect(errors).toEqual([]);
 });
 
+test('the Alchemist (M5 step 8): the Satchel adds a belt slot, the Taster\'s Spoon knows every potion carried, the Cracked Retort\'s wider splash cuts; three of the family transform the mage (a bandolier and an apron) and a thrown potion splits in two', async ({ page }) => {
+  const errors = await start(page, '?room=crypt_a&seed=ALCH8&potions=healing,liquidEmber');
+  type GA = GP & { belt: { slots: number; known: boolean[] }; give(...ids: string[]): void; transforms: string[]; costume: string[]; current: { cx: number; cz: number } };
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GA; g.forgetPotions(); g.warp(1); g.sim(.5);
+    const before = { slots: g.belt.slots, known: [...g.belt.known] };
+    g.give('alchemists_satchel'); g.sim(.1); const slots = g.belt.slots;
+    g.give('tasters_spoon'); g.sim(.1); const known = [...g.belt.known];
+    g.give('cracked_retort'); g.sim(.3);
+    return { before, slots, known, transforms: g.transforms, costume: g.costume };
+  });
+  expect(r.before).toEqual({ slots: 3, known: [false, false] });
+  expect(r.slots).toBe(4); expect(r.known).toEqual([true, true]);
+  expect(r.transforms).toEqual(['alchemist']); expect(r.costume).toEqual(expect.arrayContaining(['bandolier', 'apron', 'aura']));
+  // a throw splits in two bottles across the aim, and where they land the retort's glass cuts
+  const t = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GA, P = g.player;
+    g.clearRoom(); P.x = g.current.cx; P.z = g.current.cz + 2; g.sim(.3); g.spawn('rotling'); g.sim(.7); // (a rotling made sturdy: the dummy never loses health)
+    const d = g.enemies[g.enemies.length - 1] as unknown as { x: number; z: number; hp: number; maxHp: number }; d.hp = d.maxHp = 200; d.x = P.x; d.z = P.z - 4.5; g.sim(.05);
+    const hp = d.hp; P.aim = { x: 0, z: -1 }; g.usePotion('throw'); const flying = g.throws.flying; g.sim(.8);
+    return { flying, cut: hp - d.hp };
+  });
+  expect(t.flying).toBe(2); expect(t.cut).toBeGreaterThanOrEqual(6);
+  await page.evaluate(() => ((window as unknown as W).__game as unknown as GA).forgetPotions());
+  expect(errors).toEqual([]);
+});
+
 test('the pause menu sets the volumes, and the browser remembers them; positioned effects play without errors', async ({ page }) => {
   const errors = await start(page, '?room=crypt_a&seed=VOL1&spells=arc');
   // a fight: hits, deaths and a spell, all panned to where they happen
@@ -3048,7 +3075,7 @@ test('the room kit\'s artifacts: every one built in code, the HUD\'s icons rende
   });
   const errors = await start(page, '?seed=K3F9QX&give=twin_staff,ember_sigil,rams_skull,leech_jar,crown_of_thorns,hungering_tome');
   const n = await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; const n = g.artifactGallery(); g.sim(.3, true); return n; });
-  expect(n).toBe(58); // (every artifact, as the room kit builds it)
+  expect(n).toBe(61); // (every artifact, as the room kit builds it)
   await page.screenshot({ path: 'test-results/room-kit-artifacts.png' });
   const kit = await icons();
   expect(kit.images).toBe(6); // (the twin staff, now the focus, and five more, each rendered from its model)

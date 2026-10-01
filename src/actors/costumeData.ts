@@ -30,6 +30,8 @@ export const COSTUME_PIECES = {
   stormMarks: { slot: 'face', transform: true }, stormSpirals: { slot: 'hands', transform: true }, lightWings: { slot: 'back', transform: true },
   shadowCloak: { slot: 'back', transform: true }, shadowEyes: { slot: 'face', transform: true }, grimoire: { slot: 'back', transform: true },
   emberSteps: { slot: 'feet', transform: true }, aura: { slot: 'aura', transform: true },
+  // M5's Alchemist: a bandolier of vials across the chest, a stained apron at the waist
+  bandolier: { slot: 'shoulders', transform: true }, apron: { slot: 'belt', transform: true },
   // Asyrion's arc (ARC_PIECES): the chaos mage's bronze-worked bracers, a dark coat's collar and shoulders, red rune orbs in
   // gold rings, and a flame in the off hand with arcs of wind (`arc`: theirs alone)
   bracers: { slot: 'hands', arc: true }, chaosCollar: { slot: 'shoulders', arc: true }, runeOrbs: { slot: 'orbit', arc: true }, chaosFlame: { slot: 'offhand', arc: true },
@@ -76,6 +78,7 @@ export const TRANSFORM_LOOKS: Record<string, readonly (CostumeId | { at: CarrySp
   runescribe: ['grimoire', 'aura'],
   pilgrim: ['hood', 'boots', { at: 'belt', from: 'grave_lantern' }, 'aura'],
   beastcaller: ['antlers', 'aura'],
+  alchemist: ['bandolier', 'apron', 'aura'],
 };
 
 /** What shows for what the mage holds, in pickup order: the arc's pieces up to stage `arc` where nothing else is worn; one

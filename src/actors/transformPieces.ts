@@ -153,6 +153,38 @@ export const TRANSFORM_BUILD = {
     const g = new THREE.Group(); g.position.copy(at); g.add(book); g.userData.float = true; g.userData.bob = { y: at.y, amp: .04, rate: 1.7 };
     return [g];
   },
+  /** The Alchemist's bandolier (M5): a leather strap from the shoulder down across the chest to the hip, five vials of
+      every colour in its loops. */
+  bandolier(f: Fit) {
+    const g = new THREE.Group(), { cc, cs } = chestOf(f), front = f.chest.max.z + .015, leather = tone(0x5a3a22, .12), brass = tone(0xb08a48, .08, .5);
+    const a = new THREE.Vector3(cc.x + cs.x * .42, f.chest.max.y - cs.y * .05, front - .02), b = new THREE.Vector3(cc.x - cs.x * .46, f.hips.max.y - .02, Math.max(front, f.hips.max.z + .02));
+    const strap = new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(a, b), 1, .028, 4, false), leather); strap.scale.z = 1; g.add(strap);
+    const back = new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(a.clone().setZ(f.chest.min.z - .015), b.clone().setZ(f.hips.min.z - .015)), 1, .026, 4, false), leather); g.add(back);
+    [0xe0475a, 0x4a8cff, 0x7ae070, 0xff9a2a, 0xb49aff].forEach((c, i) => {
+      const k = .18 + i * .16, p = a.clone().lerp(b, k); p.z += .03;
+      const vial = new THREE.Mesh(new THREE.CylinderGeometry(.024, .024, .085, 6), glowTone(c)); vial.position.copy(p); g.add(vial);
+      const cork = new THREE.Mesh(new THREE.CylinderGeometry(.016, .016, .02, 5), tone(0x8a6a44, .1)); cork.position.copy(p).add(new THREE.Vector3(0, .052, 0)); g.add(cork);
+      const loop = new THREE.Mesh(new THREE.BoxGeometry(.06, .016, .02), leather); loop.position.copy(p).add(new THREE.Vector3(0, -.01, -.012)); g.add(loop);
+    });
+    const buckle = new THREE.Mesh(new THREE.TorusGeometry(.03, .009, 4, 10), brass); buckle.position.copy(a.clone().lerp(b, .5)).add(new THREE.Vector3(0, 0, .02)); g.add(buckle);
+    mergeStill(g);
+    return [hang(f.chestAt, g)];
+  },
+  /** The Alchemist's apron (M5): stained cloth from the waist to the knees in front, tied at the back, splashed green and
+      violet. */
+  apron(f: Fit) {
+    const g = new THREE.Group(), hc = f.hips.getCenter(new THREE.Vector3()), hs = f.hips.getSize(new THREE.Vector3()), cloth = tone(0xc8b88e, .14);
+    const top = f.hips.max.y + .03, len = Math.max(.3, top - f.all.min.y) * .55, w = hs.x * .95, z = f.hips.max.z + .025;
+    const shape = new THREE.Shape(); shape.moveTo(-w * .42, 0); shape.lineTo(w * .42, 0); shape.lineTo(w * .55, -len); shape.lineTo(-w * .55, -len); shape.lineTo(-w * .42, 0);
+    const front = new THREE.Mesh(new THREE.ShapeGeometry(shape), cloth); front.position.set(hc.x, top, z); front.rotation.x = .08; g.add(front);
+    const tie = new THREE.Mesh(new THREE.TorusGeometry(1, .018, 4, 20), tone(0x6a5a3e, .1)); tie.rotation.x = Math.PI / 2; tie.scale.set(hs.x * .55, Math.max(hs.z, .1) * .62, 1); tie.position.set(hc.x, top, hc.z); g.add(tie);
+    for (const [x, y, r, c] of [[-.3, -.3, .032, 0x6a9a4a], [.22, -.55, .036, 0x7a6a9a], [.05, -.82, .026, 0x6a9a4a], [-.15, -.62, .024, 0x9a6a4a]] as [number, number, number, number][]) {
+      const stain = new THREE.Mesh(new THREE.CircleGeometry(r, 7), tone(c, .1)); stain.position.set(hc.x + x * w, top + y * len, z + .004 + .08 * Math.sin(.08) * -y); stain.rotation.x = .08; g.add(stain);
+    }
+    const pocket = new THREE.Mesh(new THREE.PlaneGeometry(w * .3, len * .2), tone(0xa8976e, .12)); pocket.position.set(hc.x + w * .18, top - len * .35, z + .006); pocket.rotation.x = .08; g.add(pocket);
+    mergeStill(g);
+    return [hang(f.hipsAt, g)];
+  },
   /** The aura of transformation `w.from`, in its light, round the mage's feet and body (not a bone's: `float`). A ring on the
       floor, turning, and what rises in it: embers, frost, sparks crackling, candle-light, shadow, runes circling, motes. */
   aura(f: Fit, w: Worn) {
@@ -161,7 +193,7 @@ export const TRANSFORM_BUILD = {
     const ring = new THREE.Mesh(new THREE.RingGeometry(r * .92, r, 40), sheen(light, .32)); ring.rotation.x = -Math.PI / 2; ring.position.y = .03;
     const turn = new THREE.Group(); turn.add(ring); turn.userData.spin = .4; g.add(turn);
     const floor = glowShared(light, r * 3.2, .22); floor.position.y = .05; g.add(floor);
-    const rise = { pyromancer: [14, 1.1, 1.2], frostborn: [10, .9, .5], stormcaller: [8, 1, .9], lightbearer: [12, 1.3, .7], shadowstep: [10, .8, .6], runescribe: [6, .9, .6], pilgrim: [6, 1, .5], beastcaller: [10, 1.2, .8] }[t];
+    const rise = { pyromancer: [14, 1.1, 1.2], frostborn: [10, .9, .5], stormcaller: [8, 1, .9], lightbearer: [12, 1.3, .7], shadowstep: [10, .8, .6], runescribe: [6, .9, .6], pilgrim: [6, 1, .5], beastcaller: [10, 1.2, .8], alchemist: [8, .9, .6] }[t];
     g.add(makeMotes(Array.from({ length: 6 }, (_, i) => { const a = i / 6 * Math.PI * 2; return { x: Math.cos(a) * r * .8, y: .05, z: Math.sin(a) * r * .8, h: .1, w: .12 }; }), t === 'shadowstep' ? 0x7a4ac8 : light, rise[0], rise[1], rise[2]));
     if (t === 'runescribe') { const runes = new THREE.Group(); runeRing(runes, light, r * .85, [0, (f.hips.max.y + f.hips.min.y) / 2, 0], 6, [0, 0, 0], sheen(light, .38)); runes.userData.spin = -.9; g.add(runes); }
     if (t === 'stormcaller') g.add(marker(mid.set(0, f.chest.max.y, 0), { kind: 'sparks', color: light, every: .7 }));

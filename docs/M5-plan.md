@@ -1,6 +1,6 @@
 # M5 Alchemy: plan
 
-**Status: under way (2026-10-01): steps 1 to 7 built (GDD: Potions and alchemy, M5 as built).** GDD: Potions and alchemy; the roadmap's M5 row. The second game inside a run: every
+**Status: under way (2026-10-01): steps 1 to 8 built (GDD: Potions and alchemy, M5 as built).** GDD: Potions and alchemy; the roadmap's M5 row. The second game inside a run: every
 potion has a drink effect on the mage and a throw effect on the room, found potions are unidentified, and the mage brews
 their own from reagents at an alchemy table in Dr. Jelly's laboratory. The second half is the sixth school, Verdant, and
 its garden rooms (GDD: Magic system, A sixth school), planned in its own section when the first half is built.
@@ -95,6 +95,9 @@ Bottled Storm); an unknown pair that matches no recipe brews a Volatile Mixture.
    Also fixed on the way: a boss put to rest from above half health no longer calls its helpers in its last step.
 8. **The Alchemist**: the Alchemist's Satchel and two more artifacts of the family, each showing on the mage; the
    Alchemist transformation (a bandolier of vials and a stained apron; thrown potions split in two).
+   *Built (2026-10-01):* the Alchemist's Satchel (one more belt slot, reagents more often), the Taster's Spoon (every
+   potion carried known) and the Cracked Retort (a splash half again as wide whose glass cuts), with the Leech Jar counted
+   in the family; the transformation's bandolier and apron, and the split throw (`splitThrow`, `CFG.alchemy.split`).
 9. **Verdant** (the second half, planned here when step 8 is built): Overgrown, three spells, the five reactions that
    make the wheel whole, garden rooms and their reagent, its sound.
 10. **Close**: the GDD as built, CLAUDE.md, the rules reviewer, a room sweep, screenshots for the owner, the play-test

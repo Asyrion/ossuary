@@ -608,6 +608,8 @@ The generator places the three guaranteed sources first, then gives artifacts to
 | Thurible of Ash | Burning enemies spread Burn when they die | M3 |
 | Witch's Knot | Spells cost 20% less at half health or below (below half alone was too rare with 3 hearts) | M3 |
 | Alchemist's Satchel | Potion belt +1 slot, reagents drop 30% more often | M5 |
+| Taster's Spoon | Every potion carried is known | M5 |
+| Cracked Retort | Thrown potions splash half again as wide, and their glass cuts the foes in the splash | M5 |
 
 **Cursed artifacts**
 
@@ -680,7 +682,7 @@ model is made from the sheets (docs/assets.md); the pieces that change are built
   (crowns, halo, antlers, masks, lens, third eye, feathers, stole, manacles, ring, band, beads, knot, boots). A cursed
   piece glows red and weeps until cleansed; then it takes its cleansed look (the thorns flower, the mask is pushed up,
   the chains break, the stole turns white).
-- *Transformations.* The table above, the Alchemist waiting for M5, each counting the artifacts tagged with its `family`
+- *Transformations.* The table above (the Alchemist built with M5, step 8), each counting the artifacts tagged with its `family`
   (4 to 6 each). The latest formed wears its look over the artifacts' pieces in those slots, with an aura in its light and
   the robes tinted towards it. The Stormcaller's look is built from Boketto's (marks of storm on the face, black spirals
   down the arms, eyes that flare blue when a Storm spell is cast) but does not whiten the model's hair. Every gift formed
@@ -774,7 +776,7 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
 
 **Their looks** are built in code: reagents and potion bottles are small props; bottles can share one mesh with shuffled colours.
 
-**M5 as built, steps 1 to 7 (2026-10-01; `docs/M5-plan.md`, its decisions taken as proposed, the owner to change any).**
+**M5 as built, steps 1 to 8 (2026-10-01; `docs/M5-plan.md`, its decisions taken as proposed, the owner to change any).**
 - *The data.* The twelve potions, six reagents and seventeen recipes are data (`data/alchemy.json`), each potion with its
   drink and throw effect and their numbers; the validator refuses a broken one.
 - *Bottles.* Six shapes built in code (flask, vial, jar, teardrop, skull, bulb), twelve of fourteen liquid colours: each
@@ -829,6 +831,13 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
   rare potion and Dr. Jelly's thanks, a recipe for nothing, and no trapdoor (it is no floor's boss); a laboratory on a
   floor after keeps an empty vat. As a floor's boss (`?boss=serpent`, the dev menu's boss fights) it pours its own jelly
   round it and falls to a trapdoor like the others.
+- *The Alchemist* (step 8): three artifacts of the family, each showing on the mage, and the Leech Jar counted with
+  them (a jar of the trade): the Alchemist's Satchel (one more potion in the belt, reagents a third more often; carried at
+  the hip), the Taster's Spoon (every potion carried is known; a silver spoon on a cord at the chest) and the Cracked
+  Retort (thrown potions splash half again as wide, and the glass cuts the foes in the splash for 6; carried at the
+  shoulder). Three of the four transform the mage: a bandolier of five vials of every colour across the chest, a stained
+  apron at the waist and a green aura; every potion thrown splits in two as it leaves the hand, the bottles landing two
+  tiles apart across the aim, each a whole splash.
 
 ## RPG progression
 
@@ -1673,7 +1682,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4.9 The curve | Harder for the right reasons | Pressure dials per floor in data; libraries and merchants lean to the floor's weakness; a hex's drain traced to its foe; the sluice for water rooms; `npm run balance` measuring every foe (Depth for what's built; proposed 2026-10-01, `docs/M4.9-plan.md`) |
 | M4.10 Weaves | Combinations beyond pairs | Ten weaves (a spell striking what another left: the Steam Curtain, the Overload Seal, Eclipse Ground...), seven chains (a reaction's leavings met by a third school: Thundercloud, Incense, Miasma...), the room's mechanisms joining in; Verdant's Bloom and Blight designed for M5 (Depth for what's built; built 2026-10-01 at the owner's ask, `docs/M4.10-plan.md`) |
 | M4.11 Spell marks | You can see your magic | **Built 2026-10-01** (Spells: Spell marks; the owner's ask). The slotted spells shown at the hands with their state, attunement, a master's ring, the knowledge circle |
-| M5 Alchemy | The second game | **Under way** (`docs/M5-plan.md`; Potions and alchemy, M5 as built): steps 1 to 7 built (the data, the belt, drinking and throwing, reagents, Dr. Jelly's laboratory and brewing, the jelly serpent). Potion belt, drink or throw, identification, 6 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
+| M5 Alchemy | The second game | **Under way** (`docs/M5-plan.md`; Potions and alchemy, M5 as built): steps 1 to 8 built (the data, the belt, drinking and throwing, reagents, Dr. Jelly's laboratory and brewing, the jelly serpent, the Alchemist). Potion belt, drink or throw, identification, 6 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
 | M7 Descent and the Vigil | A full run with a reason to return | Final boss (Kaelith, the Shadow Sentinel); the Vigil (RPG progression: Between runs) at the cave mouth over the valleys: freed shades as townspeople with dialogue (Boketto, the Cloud Forest Wizard, the Huruhui foragers), its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines; a won run ends in daylight |
 | M8 Eda | It is Eda | Lore names, floor biomes, adaptive music, ambience beds and final mix |

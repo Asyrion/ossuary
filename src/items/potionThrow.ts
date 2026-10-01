@@ -40,10 +40,16 @@ export function landing() {
   return { x: Math.min(b.maxX - .3, Math.max(b.minX + .3, player.x + d.x * A.reach)), z: Math.min(b.maxZ - .3, Math.max(b.minZ + .3, player.z + d.z * A.reach)) };
 }
 
-/** Throw a potion: its bottle flies off in an arc. */
+/** Throw a potion: its bottle flies off in an arc. The Alchemist's gift (M5 step 8, `splitThrow`) splits it in two in
+    the air: two bottles, landing `CFG.alchemy.split` apart across the aim, each a whole splash. */
 export function throwPotion(id: PotionId) {
-  const to = landing(), g = bottleLook(G.run.bottles[id]); g.position.set(player.x, 1, player.z); scene.add(g);
-  flights.push({ id, g, x0: player.x, z0: player.z, x1: to.x, z1: to.z, t: 0, room: G.current });
+  const to = landing(), b = G.current.bounds;
+  const lands = !player.stats.effects.has('splitThrow') ? [to] : (() => {
+    const dx = to.x - player.x, dz = to.z - player.z, d = Math.hypot(dx, dz) || 1, px = -dz / d * A.split / 2, pz = dx / d * A.split / 2;
+    return [-1, 1].map(s => ({ x: Math.min(b.maxX - .3, Math.max(b.minX + .3, to.x + px * s)), z: Math.min(b.maxZ - .3, Math.max(b.minZ + .3, to.z + pz * s)) }));
+  })();
+  for (const at of lands) { const g = bottleLook(G.run.bottles[id]); g.position.set(player.x, 1, player.z); scene.add(g); flights.push({ id, g, x0: player.x, z0: player.z, x1: at.x, z1: at.z, t: 0, room: G.current }); }
+  if (lands.length > 1) burst(player.x, 1.2, player.z, 0x7ae070, 6, 1.2, .03); // (the bottle splits as it leaves the hand)
   Sfx.throwPotion();
 }
 
@@ -94,11 +100,14 @@ const THROW: Record<ThrowEffect, (x: number, z: number, r: number, def: PotionDe
 
 /** A bottle lands: it shatters, its splash rings out in its colour, and its throw effect lands there. */
 function splash(f: Flight) {
-  const def = POTIONS[f.id], c = col(def), r = A.splash;
+  const def = POTIONS[f.id], c = col(def), retort = player.stats.effects.has('retort'), r = A.splash * (retort ? A.retort.splashMul : 1);
   Sfx.at(f.x1, f.z1).bottleBreak();
-  ringFx(f.x1, .08, f.z1, c, .2, r, .45, true); burst(f.x1, .3, f.z1, c, 18, 2.6, .05); burst(f.x1, .2, f.z1, 0xd8e8f0, 8, 2, .03); // (glass)
+  ringFx(f.x1, .08, f.z1, c, .2, r, .45, true); burst(f.x1, .3, f.z1, c, 18, 2.6, .05); burst(f.x1, .2, f.z1, 0xd8e8f0, retort ? 16 : 8, retort ? 3 : 2, .03); // (glass)
+  if (retort) for (const e of near(f.x1, f.z1, r)) damageEnemy(e, A.retort.cut, 0, 0, 0, 'spell'); // (M5 step 8: the Cracked Retort's glass cuts)
   THROW[def.throw.effect](f.x1, f.z1, r, def);
 }
+/** Dev hook: the bottles in the air, and where each will land. */
+export const flightsNow = () => flights.map(f => ({ id: f.id, x: f.x1, z: f.z1 }));
 
 /* ---------- the Grave Draught's thrall ---------- */
 
