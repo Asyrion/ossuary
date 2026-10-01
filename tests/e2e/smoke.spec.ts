@@ -1688,6 +1688,27 @@ test('transformations (M4.6): three of a family transform the mage, said in a ba
     return { mapped: (g.rooms() as unknown as { known?: boolean; plan: { type: string } }[]).every(r => r.plan.type === 'secret' || r.known), moths: g.moths };
   });
   expect(more).toEqual({ mapped: true, moths: 1 });
+  // the other gifts, each on a fresh run: foes pinned where they stand, the mage kept alive
+  type Foe = { x: number; z: number; vx: number; vz: number; hp: number; maxHp: number; status?: { chill?: number } };
+  const gifts = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GT & { startGame(o: object): void; draw(): void; enemies: Foe[]; hero: { root: { position: { y: number } } }; player: { invuln: number } }, out: Record<string, unknown> = {};
+    const pinned: [Foe, number, number][] = [];
+    const step = (t: number) => { for (let k = 0; k < Math.round(t / .05); k++) { g.sim(.05, true); for (const [e, x, z] of pinned) { e.x = x; e.z = z; e.vx = e.vz = 0; } } };
+    const foe = (x: number, z: number) => { g.spawn('rotling', x, z); const e = g.enemies[g.enemies.length - 1]; e.hp = e.maxHp = 200; pinned.push([e, x, z]); return e; };
+    const shoot = (n: number) => { for (let i = 0; i < n; i++) { g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); step(.05); g.keys.delete('ArrowUp'); g.arrowOrder.length = 0; step(.5); } };
+    const fresh = (t: string) => { g.startGame({ seed: 'TRANS2', testTemplate: 'great_hall', testVariant: 'quiet' }); g.warp(1); g.sim(.3, true); g.clearRoom(); g.sim(.3, true); pinned.length = 0; g.player.hp = g.player.maxHp = 12; g.transform(t); g.sim(.2, true); };
+    fresh('frostborn'); const toucher = foe(g.player.x + .35, g.player.z); step(1.2); out.chilled = (toucher.status?.chill ?? 0) > 0; // (it touched the mage: chilled)
+    fresh('stormcaller'); foe(g.player.x, g.player.z - 2.5); const other = foe(g.player.x + 2, g.player.z - 2.5); step(.8);
+    const h0 = other.hp; shoot(4); const h4 = other.hp; shoot(1); step(.2); out.leap = { firstFour: h0 - h4, fifth: h4 - other.hp > 0 };
+    fresh('runescribe'); const marked = foe(g.player.x, g.player.z - 2.5); step(.8); g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); step(.05); g.keys.delete('ArrowUp'); g.arrowOrder.length = 0;
+    let t = 0; while (marked.hp === marked.maxHp && t < 1) { step(.05); t += .05; } const bolt = marked.maxHp - marked.hp; step(.8); out.rune = { bolt: bolt > 0, burst: marked.maxHp - marked.hp > bolt };
+    fresh('lightbearer'); step(.5); g.draw(); out.float = { lifted: g.hero.root.position.y > .05, pits: g.player.stats.effects.has('pitWalker') };
+    fresh('pyromancer'); const target = foe(g.player.x, g.player.z - 1.4), at = { x: target.x, z: target.z }; step(.6); shoot(1);
+    pinned[0][1] = at.x + 4; step(.05); g.player.x = at.x; g.player.z = at.z; g.player.invuln = 0; const hp = g.player.hp; step(.5);
+    out.ownEmbers = { burning: g.burningGround > 0, hurt: hp - g.player.hp }; // (standing in its own embers)
+    return out;
+  });
+  expect(gifts).toEqual({ chilled: true, leap: { firstFour: 0, fifth: true }, rune: { bolt: true, burst: true }, float: { lifted: true, pits: true }, ownEmbers: { burning: true, hurt: 0 } });
   await page.evaluate(() => { const g = (window as unknown as W).__game as GT; g.clearRoom(); g.closeUp(true); g.sim(5, true); });
   await page.screenshot({ path: 'test-results/transformations.png' });
   expect(errors).toEqual([]);

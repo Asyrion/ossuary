@@ -676,8 +676,8 @@ model is made from the sheets (docs/assets.md); the pieces that change are built
   chest; a flame in the off hand and white arcs of wind. Each fills its slot only where no artifact or transformation
   does (the orbs and the flame have slots of their own). Each stage says so in a line the first time it is reached in a
   run.
-- *Frame cost.* Every slot filled adds about 21 draw calls; the arc's last stage about 20 more; a transformation's look a
-  few more over what it replaces.
+- *Frame cost.* Filling every slot at once adds about 21 draw calls in all (68 to 89); the arc's last stage about 20 more;
+  a transformation's look a few more over what it replaces.
 
 **Fen-Nex** (the owner's Fen-Nex, "fox man", adopted 2026-09-30). The Rune Fox familiar built from the owner's drawing is
 Fen-Nex, Asyrion's companion: an artifact binds it as a small rune fox that runs at the mage's heel and bites; as the run

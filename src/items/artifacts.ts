@@ -1,10 +1,9 @@
 /* Artifacts in the world: pedestals, taking them (and swapping foci), the per-floor budget, and applying
    what the mage holds to their stats. The data and the combining rules are in artifactData.ts. */
-import { announce, giftsFor, updateTransforms } from './transforms';
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { ArtifactSpot, Room } from '../types';
-import { DEV, G, player } from '../state';
+import { DEV, G, after, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { M, blob, disposeTree, glow, glowShared, mergeStill } from '../render/materials';
@@ -18,13 +17,17 @@ import { modelFor } from '../assets/models';
 import { altarLook, pedestalLook } from '../world/objectLooks';
 import { CURSED_RED, artifactLook } from './artifactLooks';
 import { updateArc } from './arc';
+import { announce, giftsFor, updateTransforms } from './transforms';
+import type { TransformId } from './transformData';
 
 const hex = (c: string) => new THREE.Color(c).getHex();
 
 /* ---------- stats ---------- */
 
 /** Recompute the mage's stats from what they hold; heart containers gained come filled. */
-export function refreshStats() {
+/** Recompute the mage's stats from what is held (and dress them); returns the transformations newly formed, announced at
+    once unless `announceNow` is false (an artifact taken shows its own banner and card first: `grantArtifact`). */
+export function refreshStats(announceNow = true): TransformId[] {
   const before = player.maxHp, fresh = updateTransforms(); // (M4.6: three of a family transform the mage)
   player.stats = computeStats(player.focus, player.items, { ...CFG.hero, hearts: CFG.hero.hearts - player.heartsPaid }, player.cleansed, player.coins);
   giftsFor(player.stats);
@@ -33,8 +36,9 @@ export function refreshStats() {
   player.hp = Math.min(player.hp, player.maxHp);
   player.mana = Math.min(player.mana, player.stats.maxMana);
   renderHearts(); renderItems(); dress();
-  for (const t of fresh) announce(t);
+  if (announceNow) for (const t of fresh) announce(t);
   updateArc(); // (M4.6: Asyrion grows towards the chaos mage)
+  return fresh;
 }
 
 /** Start a run holding only the starting focus. */
@@ -57,9 +61,11 @@ export function grantArtifact(def: ArtifactDef, silent = false): ArtifactDef | n
   else player.items.push(def.id);
   G.run.seen.add(def.id);
   if (def.gives) giveResources(def.gives); // the Sexton's Keyring's keys, the Glyphwright's Chalk's glyphs
-  refreshStats();
+  const formed = refreshStats(false);
   if (def.effects?.includes('fullHeal')) { player.hp = player.maxHp; renderHearts(); }
   if (!silent) { banner(def.name, def.text); artifactLore(def); if (def.kind === 'cursed') Sfx.cursed(); else Sfx.relic(); }
+  // a transformation it completes is named after the artifact's own banner and card (M4.6), one after another
+  formed.forEach((t, i) => { if (silent && !i) announce(t); else after((silent ? 0 : CFG.transform.after) + i * CFG.transform.banner, () => announce(t)); });
   return replaced;
 }
 
