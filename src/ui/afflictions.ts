@@ -32,7 +32,7 @@ export function hexDrained(n: number, from?: { x: number; z: number; dead?: bool
   floatText(player.x, 1.7, player.z, `−${Math.round(n)}`, 0xb784ff, 40);
   if (from) { // (motes from the mage to the thrower, one after another, following it if it moves)
     const sx = player.x, sz = player.z, k = CFG.curve.trail;
-    for (let i = 1; i <= k; i++) after(i * .045, () => { if (from.dead) return; const t = i / k; burst(sx + (from.x - sx) * t, 1 - .4 * t, sz + (from.z - sz) * t, 0xb784ff, 2, .6, .035); });
+    for (let i = 1; i <= k; i++) after(i * CFG.curve.trailStep, () => { if (from.dead) return; const t = i / k; burst(sx + (from.x - sx) * t, 1 - .4 * t, sz + (from.z - sz) * t, 0xb784ff, 2, .6, .035); });
   }
   const bar = document.getElementById('mana'); if (bar) { bar.classList.add('hexed'); setTimeout(() => bar.classList.remove('hexed'), 420); }
 }

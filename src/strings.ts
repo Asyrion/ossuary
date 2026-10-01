@@ -95,6 +95,7 @@ export const STR = {
       hallow: 'The light down here is its own.', umbral: 'The dark down here drinks the dark.',
     } as Record<string, string>,
     giveBack: 'Holy light gives back what a hex took.',
+    leans: 'One page here answers what lives on this floor.',
     drained: 'Drained',
   },
   /** What is being done to the mage (ui/afflictions.ts): the chips beside the mana bar, and the line said the first time

@@ -47,6 +47,7 @@ import { buildDragon, dragonMoved, updateDragon } from './pillarDragon';
 import { buildTwin, updateTwin } from './twinGuardians';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { ease, lerp } from '../util';
+import { actAs } from './acting';
 
 /** A boss's shots: in its school's light. */
 const shotColor = (e: Enemy) => SCHOOL_LIGHT[e.bossSchool ?? 'ember'];
@@ -138,6 +139,10 @@ function laterRing(e: Enemy, delay: number, n: number, speed: number, offset: nu
 
 /** One step of a boss's behaviour. Returns the way it should face, when that isn't towards the mage. */
 export function updateBoss(e: Enemy, dt: number, ux: number, uz: number): number | undefined {
+  actAs(e); const face = stepBoss(e, dt, ux, uz); actAs(); // (what it throws is its own: M4.9, a hex's mana runs back to it)
+  return face;
+}
+function stepBoss(e: Enemy, dt: number, ux: number, uz: number): number | undefined {
   e.st -= dt;
   if (!e.summoned && e.hp / e.maxHp < .5 && !e.hidden) callHelp(e);
   if (e.type === 'warden') updateWarden(e, dt, ux, uz);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import floors from '../../data/floors.json';
-import { extraSlot, floorWeakness, leanSchools, pickFoe, wallsOff, type RoleTable } from '../../src/actors/foeData';
+import { extraSlot, floorWeakness, leanSchools, pickFoe, validatePressure, wallsOff, type RoleTable } from '../../src/actors/foeData';
 import { pickPages, SPELL_DEFS, spell } from '../../src/magic/spellData';
 import { CFG } from '../../src/config';
 
@@ -16,6 +16,8 @@ describe('the curve (M4.9): pressure dials', () => {
       const a = dial(floors[i - 1]), b = dial(floors[i]);
       b.forEach((x, k) => expect(x, `floor ${i + 1}, dial ${k}`).toBeGreaterThanOrEqual(a[k]));
     }
+    expect(validatePressure(floors)).toEqual([]);
+    expect(validatePressure([{ pressure: { extra: 2, eliteMul: 0, ordealWaves: .5 } }, {}])).toEqual(['floor 1: extra 2', 'floor 1: eliteMul 0', 'floor 1: ordealWaves 0.5', 'floor 2: no pressure']);
     expect(floors[0].pressure).toEqual({ extra: 0, eliteMul: 1, ordealWaves: 0 }); // (floor 1 is as it was)
     expect(floors[4].pressure.extra).toBeGreaterThan(.25);
   });

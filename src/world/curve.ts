@@ -6,7 +6,7 @@ import { CFG } from '../config';
 import { STR } from '../strings';
 import { FLOORS } from './generate';
 import { floorWeakness, leanSchools, wallsOff } from '../actors/foeData';
-import { spell, type School } from '../magic/spellData';
+import { SCHOOLS, spell, type School } from '../magic/spellData';
 import { line } from '../ui/hud';
 
 const floorOf = (i: number) => FLOORS[Math.min(Math.max(0, i), FLOORS.length - 1)];
@@ -15,7 +15,7 @@ export const weaknessOf = (i = G.run.floor) => floorWeakness(floorOf(i).foes);
 /** The schools floor `i`'s pages lean to. */
 export const floorLean = (i = G.run.floor) => leanSchools(weaknessOf(i));
 /** The schools floor `i` walls off: most of its foes resist or drink them. */
-export const floorWalls = (i = G.run.floor) => (['ember', 'frost', 'storm', 'hallow', 'umbral'] as School[]).filter(s => wallsOff(weaknessOf(i), s));
+export const floorWalls = (i = G.run.floor) => SCHOOLS.filter(s => wallsOff(weaknessOf(i), s));
 /** The school all the mage's carried spells are of, if they are all of one. */
 function onlySchool(): School | undefined {
   const s = [...new Set(player.spells.filter((id): id is string => !!id).map(id => spell(id).school))];
@@ -26,6 +26,6 @@ function onlySchool(): School | undefined {
 export function warnFloor(i = G.run.floor) {
   const s = onlySchool();
   if (!s || !floorWalls(i).includes(s)) return undefined;
-  line(STR.curve.walls[s], CFG.afflict.lineShow * 1.3);
+  line(STR.curve.walls[s], CFG.curve.lineShow);
   return s;
 }
