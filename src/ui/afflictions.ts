@@ -9,7 +9,10 @@ import { stuckIn, slipAt } from '../actors/bestiaryGround';
 import { snagAt } from '../world/props';
 import { sapMul } from '../world/mechanisms';
 import { floatText } from '../magic/statusFx';
-import { toast, toastShowing } from './hud';
+import { line, toast, toastShowing } from './hud';
+import { after } from '../state';
+import { burst } from '../combat/fx';
+import { gainMana } from '../magic/spells';
 
 export type Affliction = 'hexed' | 'chill' | 'stone' | 'dim' | 'web' | 'ink' | 'snag' | 'slide' | 'drawn' | 'sapped';
 /** Each one's colour (its school's light where it has one). */
@@ -19,11 +22,18 @@ const COLOR: Record<Affliction, string> = {
 };
 
 /** A hexing blow took `n` mana (M4: a Hex Imp's shot; M4.5: a hydra's venom, a raven's caw, a manticore's spikes): the
-    mana bar flashes violet, the loss rises over the mage, and the chip says how much. */
-export function hexDrained(n: number) {
+    mana bar flashes violet, the loss rises over the mage, and the chip says how much. M4.9: the mana it took runs back in
+    a violet trail to the foe that threw it (`from`), and the mage's next Hallow cast within `CFG.curve.hexDebt` seconds
+    gives it back (`hexGiveBack`). */
+export function hexDrained(n: number, from?: { x: number; z: number; dead?: boolean }) {
   if (n <= 0) return;
   player.hexed = CFG.afflict.hexShow; player.drained = Math.round(n);
+  player.hexDebt = Math.round(n); player.hexDebtUntil = G.simClock + CFG.curve.hexDebt;
   floatText(player.x, 1.7, player.z, `−${Math.round(n)}`, 0xb784ff, 40);
+  if (from) { // (motes from the mage to the thrower, one after another, following it if it moves)
+    const sx = player.x, sz = player.z, k = CFG.curve.trail;
+    for (let i = 1; i <= k; i++) after(i * .045, () => { if (from.dead) return; const t = i / k; burst(sx + (from.x - sx) * t, 1 - .4 * t, sz + (from.z - sz) * t, 0xb784ff, 2, .6, .035); });
+  }
   const bar = document.getElementById('mana'); if (bar) { bar.classList.add('hexed'); setTimeout(() => bar.classList.remove('hexed'), 420); }
 }
 
@@ -59,3 +69,14 @@ export function updateAfflictions() {
 }
 /** A new run: the chips start empty. */
 export function resetAfflictions() { shown = ''; lineUntil = 0; const box = document.getElementById('afflict'); if (box) box.innerHTML = ''; }
+
+/** A Hallow spell cast (M4.9): if a hex took mana a moment ago, the light gives it back, in gold over the mage, and the
+    first time in a run a line says so. Returns what it gave back. */
+export function hexGiveBack() {
+  const n = player.hexDebt;
+  if (!(n > 0) || G.simClock > player.hexDebtUntil) return 0;
+  player.hexDebt = 0; gainMana(n);
+  floatText(player.x, 1.7, player.z, `+${n}`, 0xffe6a0, 40); burst(player.x, .9, player.z, 0xffe6a0, 10, 1.6, .04);
+  if (!G.run.hinted.has('hexBack')) { G.run.hinted.add('hexBack'); line(STR.curve.giveBack, CFG.afflict.lineShow); }
+  return n;
+}

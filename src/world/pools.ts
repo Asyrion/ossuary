@@ -35,9 +35,10 @@ const LOOK = {
   frozen: { color: 0xc4e6f6, emissive: 0x2a4e6e, roughness: .2, metalness: .1, opacity: .9 },
   oil: { color: 0x3a2e20, emissive: 0x140e08, roughness: .55, metalness: .1, opacity: .92 }, // (dull brown: black read as a pit, a sharp glint as fire)
   burning: { color: 0x2a1208, emissive: 0xff6a1a, roughness: .7, metalness: 0, opacity: .96 },
+  mud: { color: 0x4a3a28, emissive: 0x0c0804, roughness: .92, metalness: 0, opacity: .9 }, // (M4.9: drained by a sluice; brown and wet, never a pit's black)
 };
 function dress(p: Pool) {
-  const L = p.state === 'frozen' ? LOOK.frozen : p.state === 'burning' ? LOOK.burning : p.kind === 'water' ? LOOK.water : LOOK.oil;
+  const L = p.state === 'frozen' ? LOOK.frozen : p.state === 'burning' ? LOOK.burning : p.kind === 'water' ? p.mud ? LOOK.mud : LOOK.water : LOOK.oil;
   const surface = p.state === 'frozen' ? p.mat.userData.ice as THREE.Texture : p.mat.userData.detail as THREE.Texture; // ice is cracked, not rippled
   if (surface && p.mat.map !== surface) { p.mat.map = surface; p.mat.emissiveMap = surface; }
   p.mat.color.setHex(L.color); p.mat.emissive.setHex(L.emissive); p.mat.roughness = L.roughness; p.mat.metalness = L.metalness; p.mat.opacity = L.opacity;
@@ -346,6 +347,11 @@ export function updatePools(dt: number, now: number, acting: boolean) {
 function spend(room: Room, p: Pool) {
   p.state = 'spent'; room.group.remove(p.mesh); p.mesh.geometry.dispose(); p.mat.dispose();
   for (const t of p.tiles) { addDecal(t.x, t.z, 0x0a0806, .75); room.poolGrid![t.r][t.c] = undefined; }
+}
+
+/** An open sluice (M4.9) drains `room`'s water to mud, or lets it back. */
+export function setMud(room: Room, on: boolean) {
+  for (const p of room.pools ?? []) if (p.kind === 'water' && p.state !== 'spent') { p.mud = on; dress(p); }
 }
 
 /** Dev menu: set every pool of oil in the room alight, freeze every pool of water, or shock them. */

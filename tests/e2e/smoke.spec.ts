@@ -3647,3 +3647,37 @@ test('the full wheel (M4.8): Searing opens a shut eye, a Prism splits a bolt in 
   await page.keyboard.press('Escape');
   expect(errors).toEqual([]);
 });
+
+test('the curve (M4.9): an open sluice drains a water room to mud and keeps its lurker up; a floor that walls off the mage\'s one school says so and its library leans to a counter; holy light gives back what a hex took', async ({ page }) => {
+  type GC = { sim(s: number, draw?: boolean): void; warp(id: number): void; clearRoom(): void; spawn(kind: string, x?: number, z?: number): { hidden?: boolean; state?: string };
+    props: { kind: string; x: number; z: number; open: number }[]; pools: { mud: boolean }[]; blast(x: number, z: number): void; pages: { spell: string; kind: string }[];
+    player: { x: number; z: number; hp: number; maxHp: number; invuln: number }; learn(id: string, slot: number): void; cast(slot: number): boolean; mana(v?: number): number;
+    shoot(x: number, z: number, dx: number, dz: number, o?: { hex?: number }): void; startGame(o: object): void };
+  const errors = await start(page, '?room=flooded_hall&floor=2&variant=quiet');
+  const sl = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GC }).__game, P = g.player; P.maxHp = P.hp = 99; P.invuln = 999; g.warp(1); g.sim(.6); g.clearRoom(); g.sim(.3);
+    const s = g.props.find(b => b.kind === 'sluice')!, lurk = g.spawn('cisternLurker', P.x, P.z - 2.5); g.sim(1.5);
+    const hid = !!lurk.hidden; g.blast(s.x, s.z); g.sim(.4);
+    const up = !lurk.hidden, open = g.props.find(b => b.kind === 'sluice')!.open, mud = g.pools.some(p => p.mud);
+    g.sim(4); const stillUp = !lurk.hidden; // (it would have dived by now: the open sluice keeps it up)
+    g.sim(5); return { hid, up, open, mud, stillUp, shut: g.props.find(b => b.kind === 'sluice')!.open, water: !g.pools.some(p => p.mud) };
+  });
+  expect(sl).toMatchObject({ hid: true, up: true, mud: true, stillUp: true, shut: 0, water: true }); expect(sl.open).toBeGreaterThan(5);
+  // floor 3 with only Ember spells: its banner's line says the heat feeds on fire, and its library offers a Frost page
+  errors.push(...await start(page, '?floor=3&spells=cinder_lance,pyre_seal&room=library_plain'));
+  const lib = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GC }).__game; g.sim(1); const said = document.getElementById('toast')?.textContent ?? '';
+    g.warp(1); g.sim(.5); return { said, pages: g.pages.filter(p => p.kind === 'lectern').map(p => p.spell) };
+  });
+  expect(lib.said).toContain('heat');
+  expect(lib.pages.some(id => ['rime_shards', 'glacial_wall'].includes(id))).toBe(true);
+  // a hex takes mana; a Hallow cast gives it back
+  const back = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GC }).__game, P = g.player; P.invuln = 0; g.clearRoom(); g.sim(.3); g.learn('consecrate', 0); g.mana(60);
+    g.shoot(P.x + 2, P.z, -1, 0, { hex: 8 }); for (let k = 0; k < 40 && g.mana() > 55; k++) g.sim(.05);
+    const hexed = g.mana(); g.cast(0); return { hexed, after: g.mana() };
+  });
+  expect(back.hexed).toBeLessThan(56); // (8 taken, a little mana back as time passes)
+  expect(back.after).toBeCloseTo(back.hexed - 35 + 8, 0);
+  expect(errors).toEqual([]);
+});

@@ -15,7 +15,7 @@ import { burst } from '../combat/fx';
 import { mulberry } from '../util';
 import { DH, H_LOW, H_TALL, HD, HW, PX, PZ, WT } from './dims';
 import { FLOORS, type PlannedRoom } from './generate';
-import { FOES, isFoe, pairRoom, pickFoe } from '../actors/foeData';
+import { FOES, extraSlot, isFoe, pairRoom, pickFoe, type FoeType, type Role } from '../actors/foeData';
 import { OPPOSITE, SHAPES, SIDE_DIR, cellHalfExtents, shapeMask, shapeSize } from './shapes';
 import { TEMPLATES, fallRuns, growPuddles, parseTemplate, tombRuns } from './templates';
 import { buildPools } from './pools';
@@ -92,18 +92,25 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   dressTheme(room); // a themed room's scatter: candles, pages, moss, bedrolls, daylight...
   drawPits(room); mergePits(room); buildPools(room);
   // the template's roles filled with the floor's foes, on the room's seed (one elite at most, and one pack: M4.5)
-  const pick = mulberry(plan.seed ^ 0xf0e5), table = FLOORS[Math.min(floorIndex, FLOORS.length - 1)].foes;
+  const floorCfg = FLOORS[Math.min(floorIndex, FLOORS.length - 1)], pick = mulberry(plan.seed ^ 0xf0e5), table = floorCfg.foes, P = floorCfg.pressure;
   let elite = false, pack = false;
-  room.waves = template.waves.map(wv => wv.map(f => {
-    const kind = f.kind === 'boss' ? 'boss' : DEV.foe ?? pickFoe(table, f.kind, pick, elite, pack);
+  const fill = (f: (typeof template.waves)[number][number]) => {
+    const kind: FoeType | 'boss' = f.kind === 'boss' ? 'boss' : DEV.foe ?? pickFoe(table, f.kind, pick, elite, pack, P.eliteMul); // (deeper, elites come more often: M4.9)
     if (kind !== 'boss' && isFoe(kind) && FOES[kind].elite) elite = true;
     if (kind !== 'boss' && isFoe(kind) && FOES[kind].pack) pack = true;
     return { kind, role: f.kind, ...toWorld(room, f.c, f.r) };
-  }));
+  };
+  room.waves = template.waves.map(wv => wv.map(fill));
+  if (plan.type === 'ordeal') for (let k = 0; k < P.ordealWaves && template.waves.length; k++) room.waves.push(template.waves[template.waves.length - 1].map(fill)); // (an ordeal deeper down gains waves: its last, drawn afresh)
   // some fights roll a pair (M4.7): two foes made to work together, the second set beside the first
   if (plan.variant !== 'quiet' && !DEV.foe && room.waves[0]) {
     const wave = room.waves[0], at = pairRoom(wave, FLOORS[Math.min(floorIndex, FLOORS.length - 1)].pairs, table, mulberry(plan.seed ^ 0x9a17));
     if (at) { const [a, b] = at, p = freeSpotNear(room, wave[a].x + CFG.pairs.gap, wave[a].z); wave[b].x = p.x; wave[b].z = p.z; room.pair = [wave[a].kind, wave[b].kind]; }
+  }
+  // deeper floors' fights now and then gain one more of their walkers or fliers (M4.9's pressure)
+  if (plan.variant !== 'quiet' && plan.type !== 'boss' && !DEV.foe && room.waves[0]) {
+    const wave = room.waves[0], i = extraSlot(wave, P.extra, mulberry(plan.seed ^ 0x3c1b));
+    if (i >= 0) { const f = wave[i], p = freeSpotNear(room, f.x - .9, f.z + .7); wave.push({ ...f, kind: pickFoe(table, f.role as Role, pick, true, true), x: p.x, z: p.z }); }
   }
   if (plan.variant === 'quiet') quieten(room);
   room.cleared = room.waves.length === 0;

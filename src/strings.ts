@@ -87,6 +87,16 @@ export const STR = {
   drop: 'Release to play as this model',
   health: (hp: number, max: number, souls = 0) => `Health ${hp} of ${max} hearts` + (souls ? `, ${souls} soul mote${souls > 1 ? 's' : ''}` : ''),
   purse: (coins: number, keys: number, glyphs: number) => `${coins} obols, ${keys} bone keys, ${glyphs} blast glyphs`,
+  /** M4.9 The curve: a floor that walls off the one school the mage carries says so as the mage arrives (world/curve.ts),
+      and the first time holy light gives back what a hex took. */
+  curve: {
+    walls: {
+      ember: 'The heat down here feeds on fire.', frost: 'The cold down here is at home in frost.', storm: 'Shell and stone down here turn the storm.',
+      hallow: 'The light down here is its own.', umbral: 'The dark down here drinks the dark.',
+    } as Record<string, string>,
+    giveBack: 'Holy light gives back what a hex took.',
+    drained: 'Drained',
+  },
   /** What is being done to the mage (ui/afflictions.ts): the chips beside the mana bar, and the line said the first time
       each comes in a run (the sapping obelisk says its own). */
   afflict: {
@@ -214,7 +224,7 @@ export const STR = {
       vesperMoth: { lured: 'A lit brazier or candle draws it off to circle the flame, and burn.' },
       runeBeetle: { dazed: 'Let it charge into a wall: it lies dazed, its wing-cases open.' },
       urnMimic: { unmasked: 'Strike the urns: one of them wakes before it is ready.' },
-      cisternLurker: { iced: 'Freeze its water: it is trapped in the ice.', driven: 'A blast, steam or a shock in its water drives it up.' },
+      cisternLurker: { iced: 'Freeze its water: it is trapped in the ice.', driven: 'A blast, steam or a shock in its water drives it up, and an open sluice keeps it up.' },
       rootling: { smoked: 'Set its mound alight: it climbs out, dazed.' },
       cryptSpider: { burnt: 'Fire burns its webs away.' },
       inkOctopus: { cracked: 'Chilled, it cracks under a blow instead of splitting in two.' },
@@ -224,8 +234,8 @@ export const STR = {
       stormMantis: { numbed: 'Chilled or shocked, it can\'t parry.', flanked: 'From the side or behind, its blades don\'t turn the bolt.' },
       rubbleCrab: { flipped: 'A glyph\'s blast throws it on its back.' },
       rimeSnail: { cracked: 'Fire cracks its shell of ice.' },
-      glassNewt: { flushed: 'Shock or freeze its water: it is shown and stunned.', driven: 'A blast or steam in its water drives it up.' },
-      brineSerpent: { iced: 'Freeze its water: it is trapped in the ice.', driven: 'A blast, steam or a shock in its water drives it up.' },
+      glassNewt: { flushed: 'Shock or freeze its water: it is shown and stunned.', driven: 'A blast or steam in its water drives it up, and an open sluice keeps it up.' },
+      brineSerpent: { iced: 'Freeze its water: it is trapped in the ice.', driven: 'A blast, steam or a shock in its water drives it up, and an open sluice keeps it up.' },
       puddleElemental: { shattered: 'Freeze it, then shock it: the ice shatters.' },
       stormDarter: { numbed: 'Chilled, it hangs in the air, slow.' },
       puffcap: { popped: 'Fire pops it where it stands, before it can swell.' },
@@ -556,7 +566,7 @@ export const STR = {
     spells: 'Spells (click to learn into the slot)', slot: 'Slot', mana: 'Mana', fullMana: 'Full mana', manaOn: 'Endless mana: on', manaOff: 'Endless mana: off', forget: 'Forget spells',
     page: 'Drop a grimoire page', noPage: 'No spell left to learn',
     themes: 'Themed rooms (a test room of each)', objects: 'Objects (put down ahead)', noRoom: 'No free floor there',
-    propNames: { bones: 'Bone pile', skulls: 'Skull heap', sacks: 'Grave sacks', cask: 'Oil cask', rubble: 'Rubble', roots: 'Grave roots', briar: 'Thorn briar', web: 'Cobwebs', glowcap: 'Glowcaps', pew: 'Pew', desk: 'Desk', scrolls: 'Scroll heap', hoard: 'Offering heap', boat: 'Moored boat', brazier: 'Brazier', candles: 'Candle stand', bell: 'Bell', rune: 'Rune stone', lodestone: 'Lodestone', censer: 'Hanging censer', reliquary: 'Reliquary', tree: 'Dead tree', statue: 'Watching statue', obelisk: 'Sapping obelisk', bridge: 'Rope bridge', wetCandles: 'Candle stand in water' } as Record<string, string>,
+    propNames: { bones: 'Bone pile', skulls: 'Skull heap', sacks: 'Grave sacks', cask: 'Oil cask', rubble: 'Rubble', roots: 'Grave roots', briar: 'Thorn briar', web: 'Cobwebs', glowcap: 'Glowcaps', pew: 'Pew', desk: 'Desk', scrolls: 'Scroll heap', hoard: 'Offering heap', boat: 'Moored boat', brazier: 'Brazier', candles: 'Candle stand', bell: 'Bell', rune: 'Rune stone', lodestone: 'Lodestone', censer: 'Hanging censer', reliquary: 'Reliquary', tree: 'Dead tree', statue: 'Watching statue', obelisk: 'Sapping obelisk', bridge: 'Rope bridge', wetCandles: 'Candle stand in water', sluice: 'Sluice gate' } as Record<string, string>,
     kindle: 'Fire ahead', frost: 'Frost ahead', shock: 'Shock ahead', hallowAhead: 'Holy light ahead', umbralAhead: 'Darkness ahead', steamAhead: 'Steam ahead',
     pools: 'Water and oil (this room)', ignite: 'Set the oil alight', freezeWater: 'Freeze the water', shockWater: 'Shock the water',
     artifacts: 'Artifacts (click to take)', kinds: { focus: 'focus', passive: 'passive', cursed: 'cursed' } as Record<string, string>,
@@ -572,6 +582,8 @@ export const STR = {
     foeNames: { rotling: 'Rotling (a plain foe, for testing)', dummy: 'Training dummy' } as Record<string, string>,
     statuses: 'Statuses on the foes here', inflictOn: (name: string) => `${name} them`,
     floor: 'This floor', sealed: 'sealed', hidden: 'hidden', clear: 'End this fight', reveal: 'Reveal the map', nextFloor: 'Next floor',
+    dials: (extra: number, elite: number, waves: number, lean: string, walls: string) => `Pressure (M4.9): one more foe in ${Math.round(extra * 100)}% of fights, elites ×${elite}, ordeals +${waves} wave${waves === 1 ? '' : 's'}. Pages lean to ${lean || 'nothing'}; walls off ${walls || 'nothing'}.`,
+    warnFloor: 'Say what this floor walls off', noWall: 'This floor walls off none of the spells carried',
     revealCracks: 'Reveal cracked walls', openSecret: 'Open the secret room',
     cleanse: 'Cleanse a curse', takeCurse: 'Take a curse', noCurse: 'No curse to cleanse', allCurses: 'You hold every curse', cleansed: 'cleansed',
     roomNames: { start: 'Start', normal: 'Normal', treasure: 'Treasure', boss: 'Boss', ordeal: 'Ordeal', altar: 'Bone altar', merchant: 'Merchant', vault: 'Vault', secret: 'Secret room', shrine: 'Shrine', library: 'Library' } as Record<string, string>,

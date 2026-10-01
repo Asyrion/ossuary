@@ -36,7 +36,7 @@ import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { glowTex } from '../render/textures';
 import { boxAt } from './collision';
-import { inflict } from '../magic/statusFx';
+import { floatText, inflict } from '../magic/statusFx';
 import { newStatus } from '../magic/status';
 import { hexGround, riseMote } from '../magic/shapes';
 import { ringFx, strikeFx } from '../magic/spellFx';
@@ -46,11 +46,12 @@ import { soulsHere } from '../items/souls';
 import { spawnPickup } from '../items/pickups';
 import { toast } from '../ui/hud';
 import { freeSpotNear } from './rooms';
-import { addPool, fireAt, frostAt } from './pools';
+import { addPool, fireAt, frostAt, setMud } from './pools';
 import { removeProp } from './props';
 import type { MechanismKind } from './propData';
 import { RUNE_LIT, brazierLook, candleStandLook } from './fireLooks';
-import { EYE_BLIND, EYE_DIM, EYE_LIT, bellLook, censerLook, censerPot, lodestoneLook, obeliskLook, reliquaryLook, runeStoneLook, statueLook, updateMechLook } from './mechLooks';
+import { EYE_BLIND, EYE_DIM, EYE_LIT, bellLook, censerLook, censerPot, lodestoneLook, obeliskLook, reliquaryLook, runeStoneLook, sluiceLook, statueLook, updateMechLook } from './mechLooks';
+import { driveUpAll } from '../actors/foes';
 import { treeLook } from './objectLooks';
 import { dragonBell } from '../actors/pillarDragon';
 import { steamBetween } from '../magic/steam';
@@ -94,6 +95,7 @@ const kitLook = (k: { group: THREE.Group; parts: Record<string, THREE.Object3D> 
 
 type Look = (R: () => number, len: number, look?: FloorLook) => THREE.Group;
 export const MECH_LOOKS: Record<MechanismKind, Look> = {
+  sluice() { return kitLook(sluiceLook()); }, // (M4.9: built in code only)
   brazier(_R, _len, look) { // an iron bowl of coals on three legs; its fire shows once lit
     if (DEV.roomKit && look?.kinds) return kitLook(brazierLook(look.kinds.brazier));
     const g = new THREE.Group();
@@ -235,6 +237,7 @@ export function strikeMechanism(room: Room, box: PropBox, blast: boolean, status
   const p = box.prop;
   switch (p.kind) {
     case 'bell': ring(room, box); return true;
+    case 'sluice': openSluice(room, box); return true;
     case 'rune': { const k = (Object.keys(elemental(status) ?? {}) as StatusKind[])[0]; if (k && !p.school) charge(box, k); else burst(box.x, .7, box.z, 0x8a8078, 3, 1.2, .04); return true; }
     case 'statue': if (status?.hex || status?.root) blind(box); else burst(box.x, 1.2, box.z, 0x8a8078, 3, 1.2, .04); return true;
     case 'obelisk':
@@ -508,6 +511,34 @@ function wave(room: Room, x: number, z: number, color: number, to: number) {
   ring.position.set(x - room.cx, .08, z - room.cz); room.group.add(ring); waves.push({ room, ring, t: 0, to });
 }
 
+/* ---------- the sluice gate (M4.9) ---------- */
+
+/** A bolt or a blast strikes a sluice gate: it lifts, and the room's water drains to mud for `CFG.mech.sluice.open`
+    seconds: wading still slows, but nothing can hide in it (the water foes are driven up, and kept up). */
+function openSluice(room: Room, box: PropBox) {
+  const p = box.prop, S = C.sluice;
+  if ((p.open ?? 0) > 0 || (p.cd ?? 0) > 0) { burst(box.x, 1, box.z, 0x8a8078, 3, 1.2, .04); return; } // (open already, or just shut)
+  p.open = S.open; p.t = 0; setMud(room, true); driveUpAll('sluice');
+  floatText(box.x, 2.1, box.z, STR.curve.drained, 0xbfe4f4, 40); burst(box.x, .6, box.z + .4, 0xbfe4f4, 18, 2.2, .05);
+  Sfx.at(box.x, box.z).sluice(true);
+}
+/** Each step of an open sluice: the gate lifts and the wheel turns, water falls through, the water foes stay driven up;
+    when its time is up it drops, and the water comes back. */
+function updateSluice(room: Room, box: PropBox, dt: number) {
+  const p = box.prop, parts = p.parts, S = C.sluice, open = (p.open ?? 0) > 0;
+  if (open) {
+    p.open! -= dt; p.t = (p.t ?? 0) + dt;
+    if (p.t >= S.drive) { p.t = 0; driveUpAll('sluice'); }
+    if (p.open! <= 0) { p.open = 0; p.cd = S.rest; setMud(room, false); burst(box.x, .3, box.z + .4, 0x5a8a9a, 12, 1.6, .05); Sfx.at(box.x, box.z).sluice(false); }
+  }
+  if (!parts) return;
+  const lift = open ? 1 : 0, gate = parts.gate;
+  gate.position.y += (lift * .95 - gate.position.y) * Math.min(1, dt * 4);
+  if (open || Math.abs(gate.position.y - lift * .95) > .01) parts.wheel.rotation.z += dt * (open ? 3 : -3) * Math.min(1, Math.abs(gate.position.y - lift * .95) * 4 + (open ? .3 : 0));
+  parts.fall.visible = parts.foam.visible = open;
+  if (open) { parts.fall.scale.y = .92 + Math.sin(G.simClock * 23 + box.x) * .08; parts.foam.scale.setScalar(.9 + Math.sin(G.simClock * 9) * .1); if (Math.random() < dt * 10) burst(box.x + (Math.random() - .5) * .5, .1, box.z + .5, 0xd8f0ff, 1, 1, .03); }
+}
+
 /* ---------- every step ---------- */
 
 export function updateMechanisms(dt: number) {
@@ -517,6 +548,7 @@ export function updateMechanisms(dt: number) {
     const p = box.prop;
     if (p.cd && p.cd > 0) p.cd = Math.max(0, p.cd - dt);
     if (p.kind === 'statue') updateStatue(room, box, dt, fighting);
+    if (p.kind === 'sluice') updateSluice(room, box, dt);
     if (p.parts && box.mesh?.userData.kit) updateMechLook(p.parts, G.simClock, box.x);
     if (p.kind === 'brazier' && p.lit && p.parts?.flame && !p.parts.flame.userData.fire) { p.parts.flame.scale.set(1, .85 + Math.sin(G.simClock * 17 + box.x) * .15, 1); if (Math.random() < dt * 4) riseMote(box.x, 1.1, box.z, EMBER, .4); }
     if (p.kind === 'bell' && p.parts?.swing) { p.t = (p.t ?? 99) + dt; p.parts.swing.rotation.z = Math.sin(p.t * 9) * .35 * Math.exp(-p.t * 1.2); }

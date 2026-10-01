@@ -145,7 +145,7 @@ export function spawnShot(x: number, z: number, dx: number, dz: number, speed: n
   const mesh = new THREE.Group();
   const sh = blob(.4); sh.position.y = -y + .015;
   mesh.add(new THREE.Mesh(sphereGeo(.13 * size), basicMat(color)), glowShared(color, .9 * size, .9), sh);
-  scene.add(mesh); G.shots.push({ x, z, y, vx: dx * speed, vz: dz * speed, r: .14 * size, color, mesh, fire: o.fire, fireT: 0, chill: o.chill, hex: o.hex });
+  scene.add(mesh); G.shots.push({ x, z, y, vx: dx * speed, vz: dz * speed, r: .14 * size, color, mesh, fire: o.fire, fireT: 0, chill: o.chill, hex: o.hex, from: actor() });
 }
 
 export function clearProjectiles() {
@@ -302,7 +302,7 @@ export function updateShots(dt: number) {
     if ((s.fire || s.chill) && (s.fireT = (s.fireT ?? 0) - dt) <= 0) { const A = CFG.afflict; s.fireT = A.touchEvery; if (s.fire) fireAt(s.x, s.z, A.emberReach); else frostAt(s.x, s.z, A.coldReach); } // an ember lights what it passes, cold freezes it
     let kill = !!boxAt(s.x, s.z, solids);
     if (!kill && boxAt(s.x, s.z, ice)) { kill = true; burst(s.x, s.y, s.z, 0xbfe6ff, 5, 1.4, .04); Sfx.at(s.x, s.z).wardTink(); } // a wall of ice stops foes' shots
-    if (!kill && Math.hypot(player.x - s.x, player.z - s.z) < player.r + s.r) { if (hurtPlayer(1, s.x - s.vx, s.z - s.vz)) { if (s.chill) player.chill = Math.max(player.chill, s.chill); if (s.hex) { const took = Math.min(player.mana, s.hex); gainMana(-s.hex); hexDrained(took); burst(player.x, .9, player.z, 0x8a5acf, 10, 1.8, .04); } } kill = true; } // (a blow the mage shrugs off brings no cold nor hex)
+    if (!kill && Math.hypot(player.x - s.x, player.z - s.z) < player.r + s.r) { if (hurtPlayer(1, s.x - s.vx, s.z - s.vz)) { if (s.chill) player.chill = Math.max(player.chill, s.chill); if (s.hex) { const took = Math.min(player.mana, s.hex); gainMana(-s.hex); hexDrained(took, s.from); burst(player.x, .9, player.z, 0x8a5acf, 10, 1.8, .04); } } kill = true; } // (a blow the mage shrugs off brings no cold nor hex)
     if (kill) { scene.remove(s.mesh); G.shots.splice(i, 1); burst(s.x, s.y, s.z, s.color, 4, 1.2, .05); }
   }
 }

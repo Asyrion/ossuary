@@ -88,6 +88,7 @@ export interface PropState {
   /** M4.2: a watching statue's charge (seconds of gaze), the seconds it stays blind, and the spot its ray will strike;
       a sapping obelisk's ward (the school that breaks it) and whether it is broken. */
   charge?: number; blind?: number; aim?: { x: number; z: number; t: number }; ward?: School; broken?: boolean;
+  /** M4.9: seconds a sluice gate stands open (the room's water drained). */ open?: number;
 }
 /** An object in the room, with its box (how it blocks depends on its class: rocks, `lows`, or `soft`). */
 export type PropBox = RockBox & { prop: PropState };
@@ -155,6 +156,7 @@ export interface Pool {
   /** Seconds the water still crackles with a shock (it won't spread one again meanwhile); the burn's next tick. */ charged: number; tick: number;
   /** The sim time before which fire on this water won't boil it into steam again (2026-10-01). */ boilAt?: number;
   mesh: THREE.Mesh; mat: THREE.MeshStandardMaterial;
+  /** M4.9: drained to mud by an open sluice (still slow to wade; nothing hides in it). */ mud?: boolean;
 }
 
 /** A grimoire page (magic/pages.ts): on a library's lectern, on its shelf for obols, or lying loose. */
@@ -234,6 +236,7 @@ export interface Shot extends Circle {
   /** An ember (a mimic's, M4): it lights what burns along its way, oil, braziers and roots. */ fire?: boolean; fireT?: number;
   /** Cold (a toad's breath, M4): it freezes the water it passes and chills the mage it strikes this many seconds. */ chill?: number;
   /** A hex (an imp's flame, M4): it drains this much mana from the mage it strikes. */ hex?: number;
+  /** The foe that threw it (M4.9: a hex's mana runs back to it). */ from?: Enemy;
 }
 export interface Particle { m: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>; vx: number; vy: number; vz: number; life: number }
 /** Something lying on the floor to pick up; `m` is the part that bobs and spins, `drop` the fall-in time left. */
@@ -274,5 +277,6 @@ export interface Player extends Circle {
   /** Seconds the mage stays heavy as stone in a basilisk's stare (M4.5): much slower (`CFG.bestiary.gazeSlow`). */ stone: number;
   /** A drift the mage is drawn along this step, over what they walk (the Deep Angler's lure, M4.1); spent each step. */ pull: { x: number; z: number };
   /** Seconds the hexed chip shows, and the mana the last hexing blow took (ui/afflictions.ts). */ hexed: number; drained: number;
+  /** M4.9: what the last hex took, which a Hallow cast before `hexDebtUntil` (sim time) gives back. */ hexDebt: number; hexDebtUntil: number;
   /** Seconds the drawn-in chip shows, after a pull worth showing (a lure, a lodestone golem, a griffin's wings). */ drawn: number;
 }

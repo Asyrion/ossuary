@@ -22,7 +22,7 @@ export interface Behaviour {
   struck?(e: Enemy, dmg: number, by: Enemy['lastHit'], P: Params, dx: number, dz: number, school?: School): number;
   /** A glyph's blast reaches it (M4.5: a rubble crab is flipped on its back). */ blasted?(e: Enemy, P: Params): void;
   /** Hidden in water, it is driven up out of it (2026-10-01): a glyph's blast in its water, steam over it (fire boiling it,
-      Ember meeting Frost), or a shock running through it. Any build can bring a water foe up. */ driven?(e: Enemy, P: Params, why: 'blast' | 'steam' | 'shock'): void;
+      Ember meeting Frost), a shock running through it, or (M4.9) a sluice draining it. Any build can bring a water foe up. */ driven?(e: Enemy, P: Params, why: 'blast' | 'steam' | 'shock' | 'sluice'): void;
   /** A status landed on it (or, on an elemental, was drunk), even while it can't act (a walking wave freezes to a chill and
       its ice shatters to a shock). */ afflicted?(e: Enemy, kind: SpellStatus, P: Params): void;
 }

@@ -127,7 +127,7 @@ export function mantleFell(e: Enemy) {
   after(H.curseDelay, () => {
     if (G.current !== room || G.state !== 'play') return;
     burst(x, .3, z, violet, 20, H.curseReach, .05);
-    if (Math.hypot(player.x - x, player.z - z) < H.curseReach) { const took = Math.min(player.mana, H.curse); gainMana(-H.curse); hexDrained(took); }
+    if (Math.hypot(player.x - x, player.z - z) < H.curseReach) { const took = Math.min(player.mana, H.curse); gainMana(-H.curse); hexDrained(took, { x, z }); }
   });
 }
 

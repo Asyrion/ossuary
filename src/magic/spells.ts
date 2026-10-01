@@ -17,6 +17,7 @@ import { skullsWatch } from '../world/dressing';
 import { castSpellOnce, learnedSpell } from './memory';
 import { burnSoul } from '../items/souls';
 import { drinkSpell, wardNear } from '../world/vault';
+import { hexGiveBack } from '../ui/afflictions';
 
 /* ---------- mana ---------- */
 
@@ -60,6 +61,7 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   else if (!CAST[def.shape](def, aimDir(cast))) { Sfx.spellFail(); flashMana(slot, 'target'); return false; }
   if (short) burnSoul();
   if (!DEV.mana) gainMana(-cost);
+  if (def.school === 'hallow') hexGiveBack(); // (M4.9: holy light gives back what a hex just took)
   player.spellCd[slot] = def.cooldown;
   skullsWatch(G.current, def.color); // an ossuary's skulls take the spell's colour
   if (castSpellOnce(id)) toast(STR.knowledge.knownWell(def.name), 3); // cast enough times: its lore and reactions are known

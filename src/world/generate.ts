@@ -12,7 +12,7 @@
    Doors go on every cell edge two rooms share, if both shapes allow that side. Last comes the secret room:
    an empty cell with hidden doorways into two or more rooms (never the boss, the vault or the merchant). */
 import floorsData from '../../data/floors.json';
-import type { FoeType, PairTable, RoleTable } from '../actors/foeData';
+import type { FoeType, PairTable, Pressure, RoleTable } from '../actors/foeData';
 import { CFG, type BossType } from '../config';
 import { Rng } from '../rng';
 import type { FloorLook, RoomType, Side } from '../types';
@@ -52,6 +52,8 @@ export interface FloorConfig {
   /** Relative weights of the variants a normal room can roll. */ variants: Partial<Record<RoomVariant, number>>;
   /** Relative weights of the school mantles a champion here wears (M4.7, actors/mantleData.ts). */ mantles?: Partial<Record<string, number>>;
   /** How often a fight here rolls a pair of foes made to work together, and the pairs (M4.7, `pairRoom` in foeData.ts). */ pairs?: PairTable;
+  /** The descent's pressure dials (M4.9, `Pressure` in foeData.ts): one more foe in a share of fights, likelier elites,
+      more waves in an ordeal. */ pressure: Pressure;
   templateWeights: Record<string, number>;
   boss: BossConfig;
   look: FloorLook;

@@ -55,6 +55,7 @@ import { KIT_PARTS, kindsOf, type KitPart, type Kinds } from '../world/kitData';
 import { renderHearts, renderItems, renderMinimap, toast } from './hud';
 import { MANTLE_IDS } from '../actors/mantleData';
 import { lureTest } from '../actors/foeGround';
+import { floorLean, floorWalls, warnFloor } from '../world/curve';
 
 const S = STR.dev;
 let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
@@ -431,7 +432,10 @@ function refresh() {
   }));
   const rooms = G.rooms.filter(r => r.type !== 'normal').sort((a, b) => a.plan.dist - b.plan.dist);
   const secret = G.rooms.find(r => r.type === 'secret');
+  const dials = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].pressure, names = (l: string[]) => l.map(s => STR.schools[s]).join(', ');
   floorBox.replaceChildren(
+    el('p', 'dv-info', S.dials(dials.extra, dials.eliteMul, dials.ordealWaves, names(floorLean()), names(floorWalls()))), // (M4.9: the descent's dials)
+    btn(S.warnFloor, () => { if (!warnFloor()) toast(S.noWall, 2); }),
     ...rooms.map(r => {
       const note = r.doors.some(d => d.seal?.sealed) ? S.sealed : r.type === 'secret' && !r.found ? S.hidden : '';
       return btn(`${S.roomNames[r.type] ?? r.type}${note ? ` (${note})` : ''}${r === cur ? ' ●' : ''}`, () => goTo(r));

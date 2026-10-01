@@ -271,7 +271,7 @@ function installDevHooks() {
     page(id?: string, x = player.x, z = player.z - 1.5) { return dropPage(G.current, x, z, id)?.spell ?? null; },
     get pages() { return G.current.pages ?? []; }, get forgotten() { return G.run.forgotten; },
     /** The water and oil in the room: kind, state, its tiles' centres. */
-    get pools() { return (G.current.pools ?? []).map(p => ({ kind: p.kind, state: p.state, t: p.t, tiles: p.tiles.map(t => ({ x: t.x, z: t.z })) })); },
+    get pools() { return (G.current.pools ?? []).map(p => ({ kind: p.kind, state: p.state, t: p.t, mud: !!p.mud, tiles: p.tiles.map(t => ({ x: t.x, z: t.z })) })); },
     /** Set the room's oil alight, freeze its water, or shock it (as the dev menu does). */
     pool: (what: 'fire' | 'frost' | 'shock') => poolsDo(what),
     /** Cleanse the oldest curse held at once (no fight, no obols); the shrine's rite under way, if any. */
@@ -280,7 +280,7 @@ function installDevHooks() {
     /** Put one of the rooms' objects down at (x, z) (on free floor), e.g. prop('cask'); the objects in the room. */
     prop(kind: PropKind, x = player.x, z = player.z - 1.5) { return !!placeProp(kind, x, z); },
     get props() { return (G.current.props ?? []).map(b => ({ kind: b.prop.kind, x: b.x, z: b.z, burning: b.prop.burning, hits: b.prop.hits, lit: !!b.prop.lit, school: b.prop.school ?? null, cd: b.prop.cd ?? 0,
-      charge: b.prop.charge ?? 0, blind: b.prop.blind ?? 0, aiming: !!b.prop.aim, ward: b.prop.ward ?? null, broken: !!b.prop.broken })); },
+      charge: b.prop.charge ?? 0, blind: b.prop.blind ?? 0, aiming: !!b.prop.aim, ward: b.prop.ward ?? null, broken: !!b.prop.broken, open: b.prop.open ?? 0 })); }, // (open: M4.9's sluice)
     /** M4.2: whether the mage stands in a sapping obelisk's field (what the cantrip's blows are worth there). */
     get sap() { return sapMul(); },
     /** M4.2: the drinking wards: every vault's on the floor (sealed or not, how full, what it drank most, the vault's

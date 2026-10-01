@@ -14,6 +14,7 @@
     "compare": "tsx tools/compare-prototype.ts",
     "inspect": "tsx tools/inspect-rooms.ts",
     "review-checks": "tsx tools/review-checks.ts",
+    "balance": "tsx tools/balance.ts",
     "test:unit": "vitest run",
     "test:e2e": "playwright test"
   },

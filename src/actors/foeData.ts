@@ -150,11 +150,12 @@ export function callFoe(table: RoleTable, role: Role, R: () => number): FoeType 
 export type RoleTable = Record<Role, [FoeType, number][]>;
 /** The foe that fills `role` on a floor, picked by `R` (0 to 1) from its weighted list; with `noElite`, an elite is
     passed over while anything else could fill it, and with `noPack`, one that comes as a pack (a room has one of each at
-    most). */
-export function pickFoe(table: RoleTable, role: Role, R: () => number, noElite = false, noPack = false): FoeType {
+    most); `eliteMul` weighs the elites (M4.9's pressure: deeper floors' come more often). */
+export function pickFoe(table: RoleTable, role: Role, R: () => number, noElite = false, noPack = false, eliteMul = 1): FoeType {
   let list = table[role];
   if (noElite) { const plain = list.filter(([id]) => !(isFoe(id) && FOES[id].elite)); if (plain.length) list = plain; }
   if (noPack) { const lone = list.filter(([id]) => !(isFoe(id) && FOES[id].pack)); if (lone.length) list = lone; }
+  if (eliteMul !== 1) list = list.map(([id, w]): [FoeType, number] => [id, isFoe(id) && FOES[id].elite ? w * eliteMul : w]); // (M4.9: deeper floors' elites come more often)
   const total = list.reduce((s, [, w]) => s + w, 0);
   let x = R() * total;
   for (const [id, w] of list) { if (x < w) return id; x -= w; }
@@ -200,3 +201,48 @@ export function validatePairs(floors: readonly { pairs?: PairTable }[]) {
   });
   return out;
 }
+
+/* ---------- M4.9 The curve ---------- */
+
+/** A floor's pressure (M4.9's dials, `pressure` in data/floors.json): the share of fights whose first wave gains one more
+    walker or flier, how much likelier its elites are, and the waves an ordeal gains. They rise from floor to floor. */
+export interface Pressure { extra: number; eliteMul: number; ordealWaves: number }
+/** Whether a fight's first wave gains one more foe (M4.9): with chance `extra`, the slot whose role the new one copies
+    (one of its walkers or fliers, never the boss, a heavy, an elite or a pack); -1 for none. `R` from the room's seed. Pure. */
+export function extraSlot(wave: Slot[], extra: number, R: () => number): number {
+  if (!(extra > 0) || R() >= extra) return -1;
+  const ok = wave.map((f, i) => (f.role === 'R' || f.role === 'W') && f.kind !== 'boss' && !(isFoe(f.kind) && (FOES[f.kind].elite || FOES[f.kind].pack)) ? i : -1).filter(i => i >= 0);
+  return ok.length ? ok[Math.floor(R() * ok.length)] : -1;
+}
+/** What is wrong with the floors' pressure (empty when all is well). */
+export function validatePressure(floors: readonly { pressure?: Pressure }[]) {
+  const out: string[] = [];
+  floors.forEach((f, i) => {
+    const p = f.pressure; if (!p) { out.push(`floor ${i + 1}: no pressure`); return; }
+    if (!(p.extra >= 0 && p.extra <= 1)) out.push(`floor ${i + 1}: extra ${p.extra}`);
+    if (!(p.eliteMul > 0)) out.push(`floor ${i + 1}: eliteMul ${p.eliteMul}`);
+    if (!(Number.isInteger(p.ordealWaves) && p.ordealWaves >= 0)) out.push(`floor ${i + 1}: ordealWaves ${p.ordealWaves}`);
+  });
+  return out;
+}
+
+/** What a floor's foes are weak to, resist and drink (an elemental, its own school), each a share from 0 to 1 of the
+    floor's rolls: each role counts alike, each foe in it by its weight. Pure (M4.9: the floor teaches its counter). */
+export interface Weakness { weak: Record<School, number>; resist: Record<School, number>; drink: Record<School, number> }
+export function floorWeakness(table: RoleTable): Weakness {
+  const zero = () => Object.fromEntries(SCHOOLS.map(s => [s, 0])) as Record<School, number>;
+  const out: Weakness = { weak: zero(), resist: zero(), drink: zero() }, roles = (Object.keys(table) as Role[]).filter(r => table[r].length);
+  for (const role of roles) {
+    const list = table[role].filter(([id]) => isFoe(id)), total = list.reduce((s, [, w]) => s + w, 0);
+    for (const [id, w] of list) {
+      const d = FOES[id as FoeId], share = w / total / roles.length;
+      out.weak[d.weak] += share;
+      (d.elemental ? out.drink : out.resist)[d.resist] += share;
+    }
+  }
+  return out;
+}
+/** The schools a floor's foes are weak to, most first: those at least `CFG.curve.lean` of them are. */
+export const leanSchools = (w: Weakness): School[] => SCHOOLS.filter(s => w.weak[s] >= CFG.curve.lean).sort((a, b) => w.weak[b] - w.weak[a]);
+/** Whether a floor walls off `school`: at least `CFG.curve.wall` of its foes resist or drink it. */
+export const wallsOff = (w: Weakness, school: School) => w.resist[school] + w.drink[school] >= CFG.curve.wall;

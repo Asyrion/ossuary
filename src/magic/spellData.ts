@@ -83,10 +83,15 @@ export const manaRegen = (dt: number, fighting: boolean, t: ManaTuning) => dt * 
 /* ---------- grimoire pages (GDD: Spells) ---------- */
 
 /** Up to `count` spells for grimoire pages: none the mage knows or `skip` lists, each of a different school while
-    the schools go round, then any. */
-export function pickPages(rng: Pick<Rng, 'shuffle'>, known: readonly (string | null)[], count: number, skip: readonly string[] = [], defs: SpellDef[] = SPELL_DEFS): string[] {
+    the schools go round, then any. `lean` (M4.9): the schools the floor's foes are weak to; while the mage holds none of
+    them, the first page is of one. */
+export function pickPages(rng: Pick<Rng, 'shuffle'>, known: readonly (string | null)[], count: number, skip: readonly string[] = [], defs: SpellDef[] = SPELL_DEFS, lean: readonly string[] = []): string[] {
   const pool = rng.shuffle(defs.filter(s => !known.includes(s.id) && !skip.includes(s.id)));
   const out: SpellDef[] = [];
+  // (M4.9: a mage holding no spell of a school the floor's foes are weak to is offered one first)
+  const leans = lean.length && !known.some(id => id && lean.includes(defs.find(d => d.id === id)?.school ?? ''));
+  const first = leans ? pool.find(s => lean.includes(s.school)) : undefined;
+  if (first && count > 0) out.push(first);
   for (const s of pool) if (out.length < count && !out.some(o => o.school === s.school)) out.push(s);
   for (const s of pool) if (out.length < count && !out.includes(s)) out.push(s);
   return out.map(s => s.id);
