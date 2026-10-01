@@ -26,6 +26,9 @@ mage climbs back to.
 
 - **Magic is the build.** Spells, runes, artifacts and potions interact with each other and with the room. The fun is discovering combinations, not collecting stat-ups.
 - **Readable twin-stick combat.** Fixed rooms, four-direction casting, clear telegraphs. Every hit the player takes should feel fair.
+- **Nothing silent** (the owner's rule, 2026-10-01). Every mechanic tells the player that it is happening, even if only
+  in a word or a cryptic line: what holds the mage shows beside the mana bar, a reaction's or a weakness's name rises
+  over the foe, a counter found says so. A new mechanic is not done until it shows.
 - **Growth you can feel.** RPG levels and choices inside a run; knowledge (recipes, spells, bestiary), the freed dead and a few powers that carry over between runs.
 - **Alchemy as a second game.** Unknown potions to identify, reagents to harvest, recipes to discover. Every potion can be drunk or thrown.
 - **Eda, not Isaac.** The room structure is borrowed; the world, magic schools, creatures and tone come from Eda. Medieval high fantasy turned dark: crypts, chapels, relics, the unquiet dead.
@@ -130,6 +133,13 @@ Planned inputs for the magic layer: spell 1 and 2 on Q and E (LB and RB) and pot
 
 Hearts can't be picked up at full health. The hero faces the cast direction while casting, otherwise the move direction.
 
+**What is done to the mage shows** (built 2026-10-01, from the owner's answer to the review: "Nothing silent" above). A row
+of chips beside the mana bar names each thing holding the mage now, in its school's colour: *Hexed* with the mana the
+last blow took (the bar flashes violet and the loss rises over the mage), *Chilled*, *Heavy as stone*, *Sight dimmed*,
+*Webbed* or *Ink-slowed*, *Snagged*, *Sliding*, *Drawn in* (the Angler's lure, a Lodestone Golem, a Griffin's wings) and
+*Sapped* (an obelisk's field). The first time each comes in a run, a line says what it is ("A hexed blow drew mana out
+of you."), one line at a time. `src/ui/afflictions.ts`; the dev menu's Mage tab lists them and sets each.
+
 **Animation mapping.** Legs play idle, walk or run by speed; the upper body can overlay a cast, a hit reaction or a gesture (drinking, eating); death plays on the whole body. Extras are used when a model has them.
 
 | Game state | Clip | Body part | Notes |
@@ -163,8 +173,8 @@ foes rather than the three)
 | Wisp | 7 | Flies over rocks, drifts, fires an aimed orb every 2 to 3 s | Fly with shot |
 | Crypt hound | 12 | Wanders; charges when lined up with the player; stunned on impact | Charger |
 | Hollow Warden (boss) | 120 | Walks, 12-shot radial burst, three aimed 3-shot volleys; summons two Rotlings below 50% | Floor 1 boss |
-| Drowned Abbess (boss, M1) | 120 | Drifts; wails fans of aimed shots; sinks into the floor and follows the mage as a ripple that can't be hurt, then a widening ring marks where she surfaces with a ring of shots; summons Wisps below 50% | Pin |
-| Pyre Knight (boss, M1) | 135 | Stalks; leaps at where the mage stands (the landing spot glows) and lands with a shockwave ring; charges in a line until a wall stuns him; sprays cones of embers; summons Crypt hounds below 50% | Monstro |
+| Drowned Abbess (boss, M1; built in code 2026-10-01) | 120 | A great pale cave olm (Frost) whose glowing gills hang like a veil. Drifts; opens its jaw and wails fans of aimed shots; sinks into the floor and follows the mage as a ripple that can't be hurt, then a widening ring marks where it surfaces with a ring of shots; calls the floor's flyers below 50%. Weak to Storm, resists Frost | Pin |
+| Pyre Knight (boss, M1; built in code 2026-10-01) | 135 | A hollow suit of blackened plate full of fire (Ember), a burning greatsword. Stalks; leaps at where the mage stands (the landing spot glows) and lands blade first with a shockwave ring; levels its sword and charges in a line until a wall stuns it; raises it and sweeps cones of embers; calls the floor's heavies below 50%. Weak to Frost, resists Ember | Monstro |
 
 When a boss falls, the foes it called fall with it, so no fight drags on while its rewards rise.
 
@@ -208,7 +218,7 @@ round the mage or round a lit brazier or candle stand and scatters light motes; 
 throws a spark when it stuns itself on a wall; the Urn Mimic waits beside the room's urns as one of them and spits embers
 that light oil; the Mire Toad leaps and breathes cold that chills the mage and freezes water; the Cistern Lurker lives
 under water (bringing a pool where the room has none), rises to spit sparks, is hurt through a shocked pool and trapped
-by a frozen one; the Lantern Jelly drifts over rocks and pulses light; the Cinder Salamander zigzags and leaves burning
+by a frozen one (since 2026-10-01 any build can bring it up: see Every build brings the water foes up); the Lantern Jelly drifts over rocks and pulses light; the Cinder Salamander zigzags and leaves burning
 ground; the Hex Imp blinks about and throws a hex that drains mana; the Rime Drakeling stalks, breathes rime, and flies
 across the room to land in a ring of frost. Every attack has its tell and a sound in its school's palette. Each foe takes
 +50% from its weakness and −50% from its resistance, and the first time the mage finds one the word rises over the foe;
@@ -317,6 +327,13 @@ on 2026-10-01 and reverted at the owner's ask the same day.
   short); the shared parts of the bestiary's looks (a spider's thread, a basilisk's stare) are built once; the dashes,
   brakes and wind-ups of the thirty-five share three helpers in `foeKit.ts`.
 
+**Every build brings the water foes up** (built 2026-10-01, the owner's answer to the review). The Cistern Lurker, the
+Brine Serpent and the Glass Newt hide in water, and Frost (freezing it) was the only sure way to bring them up. Now each
+school has one, and the glyph is everyone's: a glyph's blast in their water, or near them, throws them up; fire on their
+water boils it to steam, which scalds them (Steam's damage) and brings them up; a shock through it brings them up as it
+always hurt them. Brought up, the Lurker and the Serpent lie stranded for 3 s (`stranded` in `data/foes.json`), the Newt
+stunned, and each is open to every blow. Fire on still water steams at most once every 2.5 s a pool (`CFG.surface`).
+
 **Spell effects in the same style (decided 2026-09-30).** The owner liked the Cinder Lance in the new style, so every
 spell's effect is redone in it, and `docs/effects.md` is the guide for every effect to come.
 
@@ -354,14 +371,15 @@ The mage has three layers of magic: a free cantrip that is always firing, two ac
 reagents). Growth, roots, pollen and healing: the school the valleys practise. Its status, *Overgrown*: vines that slow a
 foe more the longer they hold, and flower when it falls (a little healing for the mage, once a room). Reactions to
 design with it: Verdant + Ember, *Wildfire* (the burn runs to every overgrown foe); Verdant + Frost, *Frostbloom* (ice
-flowers that shatter); Verdant + Storm, *Pollen spark* (a cloud of pollen that shocks). Spells to design: a snare of
-thorns, a cloud of healing pollen, a wall of living wood. Its sound: wood and breath, reeds and seed pods.
+flowers that shatter); Verdant + Storm, *Pollen spark* (a cloud of pollen that shocks); and, designed with M4.10,
+Verdant + Hallow, *Bloom*, and Verdant + Umbral, *Blight*. Spells to design: a snare of thorns, a cloud of healing
+pollen, a wall of living wood. Its sound: wood and breath, reeds and seed pods.
 
 **Element reactions** (two effects on the same enemy or tile)
 
 | Combination | Reaction |
 | --- | --- |
-| Ember + Frost | Steam cloud: enemies inside can't aim |
+| Ember + Frost | Steam cloud: enemies inside can't aim; eyes can't see through it (built 2026-10-01) |
 | Frost + Storm | Shatter: frozen enemy explodes into ice shards |
 | Ember + Storm | Overload: small explosion, knockback |
 | Hallow + Umbral | Eclipse: the enemy is removed from the fight for 3 s, then takes all stored damage |
@@ -374,6 +392,14 @@ Root (Umbral's hands): held where it stands, still striking; a boss only for a m
 fight for 2 s under a black sun, nothing reaching it, then struck for 18 (a boss is only struck). Blackfire: a violet
 burn that never goes out while the foe lives. Tuning in `data/magic.json`.
 
+**Steam as built (2026-10-01, the owner's ask).** A chilled or frozen foe set burning, or a burning foe chilled, puts
+both out and steams: a scald (6) and a cloud 1.7 tiles across for 4.5 s (a Blackfire's burn doesn't go out, so it doesn't
+steam). The floor makes it too: fire on frozen water melts it to steam, frost on burning oil snuffs it to steam, and fire
+on still water boils a little. Foes inside the cloud can't aim (their shots go up to 1.1 radians wide), and eyes can't see
+the mage through it: the Basilisk's stare, the Radiant Eye's ray and a watching statue's charge all lose it. Water under
+it is scalded and what hides there comes up. `src/magic/steam.ts`; tuning in `data/magic.json`; the dev menu's Magic tab
+has "Steam ahead".
+
 **Rooms react to magic.** Oil puddles ignite, water conducts shock across the whole puddle, braziers lit by Ember empower Ember spells in that room, cobwebs burn away to open shortcuts, gravestones can be shattered by Frost. This is the main systemic difference from Isaac and gives room templates a second purpose.
 
 **As built in M3** (numbers in `data/spells.json`, `data/magic.json` and `CFG`; see `docs/M3-plan.md`):
@@ -384,7 +410,8 @@ burn that never goes out while the foe lives. Tuning in `data/magic.json`.
   take ×1.5 and can't act), then 1.5 s before it can freeze again. Shock: a 0.35 s stun, and the next hit on the foe
   leaps half its damage to a neighbour. Bosses slow (two stacks at most) but never freeze, and are stunned at most
   once every 3 s.
-- Shatter and Overload are the two reactions; Steam waits. Reaction names rise in the air so players learn them.
+- Shatter and Overload are the two reactions; Steam waits (built 2026-10-01, below). Reaction names rise in the air so
+  players learn them.
 - Rooms that react: oil burns for 5 s (walking foes on it burn, the mage in it is hurt) and is then spent; water is
   shallow (wading at 60% speed), carries a shock to everything standing in it, the mage too, and freezes over from
   Frost into ice crossed at full speed; fire melts it. The drowned floor grows real puddles in its fights.
@@ -958,7 +985,7 @@ Between two cells of the same room, the two wall tiles become floor, which is wh
 - **Secret room (M2):** one per floor, in an empty cell with hidden doorways into two or more rooms (the cell that could open into the most rooms wins). It never opens into the boss room (no way round the fight), a locked vault (no way round its ward) or the merchant (whose warded shop won't let a glyph be chalked). It comes on top of the floor's room count, and the other rooms keep their distances from the start as if it weren't there.
 - **Shapes:** while growing the map, the walk sometimes places a larger shape when the cells it needs are free.
 - **Difficulty:** floor 1 is easy, and each later floor raises the baseline a little (harder templates, about 15% more enemy health per floor). Within a floor, rooms vary randomly around the baseline rather than rising steadily, and variants push single rooms clearly above or below it; deeper floors roll more hard variants. The rooms next to the start on floor 1 are never hard variants. All numbers are found by play-testing.
-- **Between floors:** the boss opens a trapdoor; stepping in starts the next floor (waystones join in M6). Beating the last floor's boss wins the run (floor 3's until M4.1, floor 5's since). Each floor draws its boss from a pool in `data/floors.json`, never one the run has already met, and scales it (health, speed, shot speed, summons, volleys). Until M4's bosses arrive (built in code, like its enemies), the bosses are placeholder shapes: the Hollow Warden on floor 1, the Drowned Abbess and the Pyre Knight on floors 2 and 3 in either order.
+- **Between floors:** the boss opens a trapdoor; stepping in starts the next floor (waystones join in M6). Beating the last floor's boss wins the run (floor 3's until M4.1, floor 5's since). Each floor draws its boss from a pool in `data/floors.json`, never one the run has already met, and scales it (health, speed, shot speed, summons, volleys). Every boss is built in code since 2026-10-01 (the Drowned Abbess and the Pyre Knight were the last placeholder shapes): the Hollow Warden on floor 1, the Drowned Abbess and the Pyre Knight on floors 2 and 3 in either order, with the War-Tiger and the Twin Guardians joining floor 3's pool (M4.2).
 - **Seeds:** every run has a seed, shown in the pause menu, so a run can be replayed and bugs reproduced.
 - **End of a run:** won or lost, the end screen sums up the run: the deepest floor, the time, foes put to rest, obols found, every artifact carried (cursed ones ringed in red, cleansed ones in pale gold) and the seed, with a button to replay the same seed.
 - **Floor looks:** each floor already looks a little different, as placeholders until the biome pass (M8): floor 1 has warm stone and iron torches, floor 2 cool damp stone with moss, puddles and cage lanterns, floor 3 scorched brick with soot, ash and braziers; from M4.1 floor 4 (the Gilded Reliquary) pale limestone and marble, gold and candle wax in white-gold light, and floor 5 (the Ferryman's Shore) black slate, wet stone, tarred boards and salt under pale teal and violet spirit fire. Colours and torch styles live in `data/floors.json`.
@@ -1261,31 +1288,30 @@ tools/             prepare-asset script
 
 **Proven techniques to carry over:** layered hero animation (legs vs upper body), automatic clip recognition by name, the cast release window found from hand motion, hip-offset re-centring, miniature-base removal for static models, drag-and-drop model swapping for quick Tripo tests.
 
-## Depth for what's built (proposed 2026-10-01)
+## Depth for what's built (proposed 2026-10-01; M4.7 approved the same day)
 
 After M4.5 the owner asked for a review of the recent work, for open ends in its mechanics and balance, and for ideas
 that add depth to what is already in the game. The fixes are in Combat and enemies (The review of 2026-10-01). What is
-left open, and three milestones that deepen the systems already built rather than adding new ones, follow. They wait on
-the owner's yes; their place in the order is the owner's to move (before or after M4.6).
+left open, and the milestones that deepen the systems already built rather than adding new ones, follow. The owner
+approved M4.7 on 2026-10-01; M4.8 to M4.10 wait on their yes, and their place in the order is the owner's to move
+(before or after M4.6).
 
-**Open ends to watch in the play-test** (measured, not yet changed):
+**The open ends, and the owner's answers (2026-10-01).** The review measured six; the owner answered each.
 
 - **Floor 3 feeds on fire.** Weighted by the floor's rolls, about half of floor 3's foes resist Ember and a quarter drink
-  it (the elementals), so three in four shrug off a mage built on Ember, on the floor after the one where the first
-  spells come. Floor 2 does the same to Frost (more than half resist it). The cantrip stays neutral, so no fight is
-  closed, but the build of the first two floors can stall on the third. M4.9's leaning libraries answer it if the
-  play-test shows it.
-- **Water foes without Frost.** The Cistern Lurker, Brine Serpent and Glass Newt hide in water; a mage with no Frost
-  waits for them to surface. A bot that doesn't freeze pools outlasts their fights by far. That is their fight, but M4.9
-  gives water rooms a way for every build (the sluice).
-- **Hex drain doesn't read.** Floor 5 brings many hexing shots (the Hydra, the Gloom Raven, the Manticore and the Deep
-  Angler's volleys), as the Hex Imp does on floor 3. The drain is bounded: only a blow that lands takes mana, 6 to 10, at
-  most once a second through the mage's grace. But the mana bar only drops, with nothing to say why. M4.9 shows it.
-- **Hallow and Umbral have few foes weak to them** on floors 1 to 3 (the Choir Lark to Umbral, the Basilisk to Hallow),
-  so the two schools that M4.1 added pay off mostly on floors 4 and 5. M4.7's champion mantles and M4.8's reactions give them work everywhere.
-- **The Drowned Abbess and the Pyre Knight** are still placeholder shapes beside bosses built in code. They wait for a
-  look of their own, as the Warden had.
-- **Steam** (Ember + Frost) is in the reaction table but not built, since M3. M4.8 builds it.
+  it (the elementals), so three in four shrug off a mage built on Ember. *The owner: it may be hard; change it only if it
+  proves nearly impossible.* Left as it is; M4.9's balance bot and the play-test measure it.
+- **Water foes without Frost.** *The owner: there must be another way.* Built: a glyph's blast, fire boiling the water to
+  steam, or a shock through it brings them up (Combat and enemies: Every build brings the water foes up).
+- **Hex drain doesn't read.** *The owner: show it, and let every mechanic say what is going on, even cryptically.* Built:
+  the chips beside the mana bar and the first-time lines (Player: What is done to the mage shows), and the rule is a
+  pillar now (Nothing silent).
+- **Hallow and Umbral have few foes weak to them** on floors 1 to 3. *The owner: fine for now; look again if it becomes a
+  problem.* M4.7's champion mantles and M4.8's reactions give them work everywhere meanwhile.
+- **The Drowned Abbess and the Pyre Knight** were placeholder shapes. *The owner: remake them, and change them later if
+  they don't please.* Built in code: a great cave olm and a hollow knight of fire (Combat and enemies, the bosses' table).
+- **Steam** (Ember + Frost) was in the table but not built. *The owner: build it, and design more combinations like it.*
+  Built (Magic system: Steam as built); the further combinations are M4.10 below.
 
 ### M4.7 Living foes: foes you read and outwit
 
@@ -1312,14 +1338,14 @@ something the mage learns, and makes foes part of the room, not only in it.
 
 ### M4.8 The full wheel: every pair of schools reacts
 
-Five schools make ten pairs; four react today (Shatter, Overload, Eclipse, Blackfire). This milestone builds Steam and
-the other five, so any two schools on a foe or a tile do something, and the mage learns them like spells. M5's Verdant
+Five schools make ten pairs; five react today (Shatter, Overload, Eclipse, Blackfire, and Steam since 2026-10-01). This
+milestone builds the other five, so any two schools on a foe or a tile do something, and the mage learns them like spells. M5's Verdant
 brings three reactions of its own (with Ember, Frost and Storm); its pairs with Hallow and Umbral are left to design with
 it, so the wheel is whole again by M5's end.
 
 | Combination | Reaction | What it does |
 | --- | --- | --- |
-| Ember + Frost | Steam | A cloud where they meet: foes inside can't aim (their shots go wide), and sight-based foes (the Basilisk's stare, the Radiant Eye, a watching statue) lose the mage inside it. Fire on frozen water makes it too. |
+| Ember + Frost | Steam (built 2026-10-01) | A cloud where they meet: foes inside can't aim (their shots go wide), and sight-based foes (the Basilisk's stare, the Radiant Eye, a watching statue) lose the mage inside it. Fire on frozen water makes it too. |
 | Ember + Hallow | Searing | Holy fire burns a foe's guard away for a few seconds: the crab's and snail's shells, the eye's lids, the mimic's clay, the Hearth Golem's fire, a War-Tiger plate. One rule, every guarded foe. |
 | Frost + Hallow | Prism | The foe, frozen and sanctified, is a prism: the cantrip's bolts that strike it split in three. |
 | Storm + Hallow | Verdict | The shock leaps at once to every sanctified foe in the room. |
@@ -1344,14 +1370,59 @@ pressure a set of dials, and gives every build a way through.
   Ember and Frost, floor 2 Storm, floor 3 Frost, floor 4 Frost, floor 5 Ember and Hallow), worked out from the rolls. A floor
   whose foes resist or drink the school the mage's spells lean on says so in its banner's line ("The heat here feeds on
   fire").
-- **Hex reads.** A hexing blow that lands flashes the mana bar violet, the mana it took runs out of the bar in a violet
-  trail to the foe that threw it, and the first time in a run a line says what happened. A hexed mage's next Hallow cast
-  gives back what the last blow took.
+- **Hex reads.** Built in part on 2026-10-01: a hexing blow that lands flashes the mana bar violet, the loss rises over
+  the mage, a chip says how much, and the first time in a run a line says what happened. Still to build: the mana it
+  took runs out of the bar in a violet trail to the foe that threw it, and a hexed mage's next Hallow cast gives back
+  what the last blow took.
 - **The sluice.** A mechanism for water rooms: a bolt or a blast opens it and a pool drains to mud for a while (wading
-  still slows, but nothing hides in it). Any build can bring the water foes up.
+  still slows, but nothing hides in it). Every build can already bring the water foes up (2026-10-01); the sluice stays
+  as a piece for water rooms, a way to win the water itself.
 - **A balance bot in the repo.** The bot of M4.5's balance pass becomes `npm run balance` (`tools/balance.ts`): it
   fights each foe alone on its floor, with and without a school's spells, and writes time to kill and hearts lost to
   `docs/balance.md`, flagging any foe past twice its floor's middle. Tuning is measured, not guessed.
+
+### M4.10 Weaves: spells meet spells, reactions meet a third school
+
+The owner asked for more combinations like Steam (2026-10-01). M4.8 makes every pair of schools react on a foe or a tile.
+This milestone goes a step further in two ways, and designs the last two pairs of the six-school wheel for M5. Every
+weave and chain has its name rise when it happens and is marked in the spell book once found (Nothing silent).
+
+**Weaves: what one spell leaves in the room, struck by another.** The lasting spells (the ice wall, the seal and its
+ground, holy ground, the motes, the mantle, a toll's mark) each answer to the spells that strike them.
+
+| Spells | Weave | What it does |
+| --- | --- | --- |
+| Glacial Wall + Cinder Lance | Steam Curtain | The lance melts the wall into a curtain of steam for the wall's time left: shots through it go wide, and eyes can't see through it. |
+| Glacial Wall + Arc | Conductor | The chain runs along the wall: every foe touching it is shocked, and the wall bursts outward in shards that chill. |
+| Pyre Seal + Arc | Overload Seal | The seal bursts at once: an Overload over its whole circle, throwing every foe out of it. |
+| Pyre Seal + Hex Bolt | Black Pyre | The seal's burning ground burns black for its time left: what burns in it burns with Blackfire. |
+| Consecrate + Grasp of the Grave | Eclipse Ground | Hands that rise in holy ground pull each foe they hold under a black sun (an Eclipse each). |
+| Consecrate + Rime Shards | Hallowed Hail | Shards fired across holy ground come out of it sanctifying what they strike. |
+| Wardlight + Cinder Lance | Lantern Fan | The lance passing through a mote splits off a thinner beam through each of them. |
+| Static Mantle + water | Live Wade | While the mantle holds, water the mage wades in shocks the foes in it once a second (the mage spared). |
+| Judgement + Glacial Wall | Refraction | The pillar of light striking the wall breaks into rays along its length. |
+| Ferryman's Toll + Arc | Toll Chain | The chain carries the toll's mark to each foe it leaps to. |
+
+**Chains: what a reaction leaves, met by a third school.**
+
+| Left by | Meets | Chain | What it does |
+| --- | --- | --- | --- |
+| A steam cloud | Storm | Thundercloud | The cloud is charged: it shocks every foe inside once a second for its time left. |
+| A steam cloud | Hallow | Incense | The cloud sanctifies the foes inside, and mends half a heart of the mage once if it stands in it. |
+| A steam cloud | Umbral | Miasma | A black fog: foes inside take a hex stack a second and lose the mage, as in steam. |
+| Black Ice (M4.8) | Ember | Black Melt | It melts into a black pool that burns with Blackfire, as oil burns. |
+| An Overload's blast | Frost | Hailburst | The blast throws ice shards that chill. |
+| Shatter's shards | Ember | Molten Glass | Shards caught by fire lie glowing on the floor a few seconds, burning walkers. |
+| An Eclipse's black sun | Storm | Corona | When the stored damage falls, it leaps as lightning to each foe near. |
+
+**Verdant's last two pairs** (designed now, built with M5): Verdant + Hallow, *Bloom*: an overgrown foe sanctified
+flowers, and when it falls its lily mends half a heart (once a room). Verdant + Umbral, *Blight*: the vines rot to
+thorns that hex the foe and creep to the nearest other foe. With Wildfire, Frostbloom and Pollen Spark, all fifteen
+pairs of the six schools react.
+
+**The room joins in** (smaller, through the hooks mechanisms already hear): a brazier lit by Blackfire burns violet
+and bolts through it carry a hex; a rune stone struck by two schools in turn sets off their reaction at its foot; a bell
+rung by a shock rings a ring of sparks.
 
 ## Roadmap and milestones
 
@@ -1371,9 +1442,10 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4.2 Beneath the Gate | The vault has a story | The Eda setting in the game's text (the Gate of Uzulim, its Wardens, Kaelith, Asyrion); the six pieces from the lore (watching statues, sapping obelisks, the drinking ward, rope bridges, currents and waterfalls, candle stands in water); the Wandering Merchant of Belerial; three bosses (the War-Tiger, the Pillar Dragon, the Twin Guardians); Fen-Nex as the familiar that grows (adopted 2026-09-30; `docs/M4.2-plan.md`) |
 | M4.5 Bestiary | A living dungeon | More critters, fantasy creatures and elementals built in code, and new kinds of enemy behaviour, spread over the floors; each drawn up as a look, chosen by the owner, then made a foe (Combat and enemies: The Bestiary; ideas in `docs/ideas.md`, decided 2026-09-30) |
 | M4.6 Costumes and transformations | You can see your build | Most artifacts wear a costume piece built in code; transformations when three artifacts of a kind are held, Boketto's look for the Stormcaller; Asyrion's arc from apprentice to chaos mage (Artifacts: Costumes and transformations; decided 2026-09-30, its place in the order the owner's to move) |
-| M4.7 Living foes | Foes you read and outwit | Champions wear a school's mantle that the opposite school strips; the ground foes leave works on foes as on the mage; counters found fill a Foes tab, kept between runs; rooms that roll a pair of foes made to work together (Depth for what's built; proposed 2026-10-01, `docs/M4.7-plan.md`) |
-| M4.8 The full wheel | Every pair of schools reacts | Steam and five new reactions (Searing, Prism, Verdict, Black Ice, Void Spark) on foes and on tiles; reactions found mark the spell book's wheel (Depth for what's built; proposed 2026-10-01, `docs/M4.8-plan.md`) |
-| M4.9 The curve | Harder for the right reasons | Pressure dials per floor in data; libraries and merchants lean to the floor's weakness; a hex's drain shown; the sluice for water rooms; `npm run balance` measuring every foe (Depth for what's built; proposed 2026-10-01, `docs/M4.9-plan.md`) |
+| M4.7 Living foes | Foes you read and outwit | Champions wear a school's mantle that the opposite school strips; the ground foes leave works on foes as on the mage; counters found fill a Foes tab, kept between runs; rooms that roll a pair of foes made to work together (Depth for what's built; approved 2026-10-01, `docs/M4.7-plan.md`) |
+| M4.8 The full wheel | Every pair of schools reacts | Five new reactions (Searing, Prism, Verdict, Black Ice, Void Spark) beside Steam (built 2026-10-01), on foes and on tiles; reactions found mark the spell book's wheel (Depth for what's built; proposed 2026-10-01, `docs/M4.8-plan.md`) |
+| M4.9 The curve | Harder for the right reasons | Pressure dials per floor in data; libraries and merchants lean to the floor's weakness; a hex's drain traced to its foe; the sluice for water rooms; `npm run balance` measuring every foe (Depth for what's built; proposed 2026-10-01, `docs/M4.9-plan.md`) |
+| M4.10 Weaves | Combinations beyond pairs | Ten weaves (a spell striking what another left: the Steam Curtain, the Overload Seal, Eclipse Ground...), seven chains (a reaction's leavings met by a third school: Thundercloud, Incense, Miasma...), the room's mechanisms joining in; Verdant's Bloom and Blight designed for M5 (Depth for what's built; proposed 2026-10-01 at the owner's ask, `docs/M4.10-plan.md`) |
 | M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
 | M7 Descent and the Vigil | A full run with a reason to return | Final boss (Kaelith, the Shadow Sentinel); the Vigil (RPG progression: Between runs) at the cave mouth over the valleys: freed shades as townspeople with dialogue (Boketto, the Cloud Forest Wizard, the Huruhui foragers), its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines; a won run ends in daylight |
