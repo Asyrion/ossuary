@@ -2088,7 +2088,7 @@ test('the overgrown garden (M5 step 9): a flowering plant struck bursts into pol
     reagentsAlways(on: boolean): void; pickups: { kind: string; reagent?: string }[]; burn(x: number, z: number, r: number): void; hit(i: number, dmg: number, school?: string): void };
   const r = await page.evaluate(() => {
     const g = (window as unknown as W).__game as unknown as GG, P = g.player;
-    g.warp(1); g.sim(.3); g.clearRoom(); g.sim(.2); P.invuln = 99; g.reagentsAlways(true);
+    g.warp(1); g.sim(.3); g.clearRoom(); g.sim(.2); (P as unknown as { invuln: number }).invuln = 99; g.reagentsAlways(true);
     const theme = g.current.theme, blossoms = () => (g.current.props ?? []).filter(b => b.prop.kind === 'blossom');
     const b = blossoms()[0], before = blossoms().length;
     P.x = b.x - 2; P.z = b.z;
