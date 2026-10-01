@@ -1,6 +1,7 @@
 /* Champion mantles in the game (M4.7, docs/M4.7-plan.md; the rules are actors/mantleData.ts, tuning in data/magic.json).
    A mantled champion shows its school: its aura and the glow in its body in the school's light, a ring of runes turning
-   under it, and its mantle's name rising as it comes (the first time in a run, a line says what the mantle does and what
+   under it (a Stormcharged one a ring of crackling lightning and a thundercloud over it; a Hallowed one a halo too), and
+   its mantle's name rising as it comes (the first time in a run, a line says what the mantle does and what
    unbinds it). Each step a Kindled champion lays burning ground as it goes and a Hallowed one mends the foes round it;
    struck, a Stormcharged one throws a spark under the mage; falling, a Hexbound one curses the ground round it. The status
    of the school that strips it (statusFx.ts's `inflict`) unbinds it: "Unbound!", stunned, and open to every blow for a
@@ -12,7 +13,9 @@ import { CFG } from '../config';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { MAGIC, canHeal, newStatus } from '../magic/status';
-import { SCHOOL_LIGHT, lit, runeRing } from '../render/arcane';
+import { SCHOOL_LIGHT, lightningField, lit, runeRing, sphere, std } from '../render/arcane';
+import { glow } from '../render/materials';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { disposeTree } from '../render/materials';
 import { burst } from '../combat/fx';
 import { ringFx, strikeFx } from '../magic/spellFx';
@@ -33,9 +36,59 @@ export function giveMantle(e: Enemy, id: MantleId) {
   e.mantle = id; e.mantleT = 0;
   for (const m of e.mats) { m.userData.base = tint.clone(); m.emissive.copy(tint); }
   e.aura?.material.color.set(light);
-  e.mantleRing = runeRing(e.group, light, e.r * 1.35 / e.scale, [0, .04, 0], 6, [0, 0, 0], lit(light)); // (in its colour, not added light, which a lit floor washes white)
+  e.mantleRing = id === 'stormcharged' ? stormLook(e, light) : runeRing(e.group, light, e.r * 1.35 / e.scale, [0, .04, 0], 6, [0, 0, 0], lit(light)); // (in its colour, not added light, which a lit floor washes white)
+  if (id === 'hallowed') e.mantleRing.add(haloOver(e, light));
   after(.7, () => { if (e.mantle === id && !e.dead) floatText(e.x, 1.9, e.z, STR.foes.mantles[id].name, light); });
   if (!G.run.hinted.has('mantle:' + id)) { G.run.hinted.add('mantle:' + id); after(.7, () => line(STR.foes.mantles[id].line, CFG.afflict.lineShow)); }
+}
+
+/** How tall `e`'s body stands (for what floats over it). */
+function heightOf(e: Enemy) { const b = new THREE.Box3().setFromObject(e.model ?? e.body); return b.isEmpty() ? 1 : Math.min(2.6, Math.max(.5, b.max.y)); } // (its look, not a spider's thread)
+
+/** A Stormcharged champion's look (Stormcharged and Hallowed are near in colour, so they differ in kind, not only light):
+    no rune ring but a ring of lightning crackling round its feet, arcs crawling up its body, and a small thundercloud over
+    it that strikes down at it now and then (`stormStep`). Drawn as instances: a few draw calls in all. */
+interface Storm { field: ReturnType<typeof lightningField>; cloud: THREE.Group; flash: THREE.Sprite; r: number; top: number; t: number; strike: number; seed: number }
+const storms = new WeakMap<THREE.Object3D, Storm>();
+function stormLook(e: Enemy, light: number) {
+  const g = new THREE.Group(), r = e.r * 1.35 / e.scale, top = heightOf(e), S = CFG.mantleLooks.storm;
+  e.group.add(g);
+  const field = lightningField(g, light, S.segments);
+  const cloud = new THREE.Group(); cloud.position.y = top + S.cloudOver; g.add(cloud);
+  const puffs = [[0, 0, 0, .3], [.26, -.03, .05, .22], [-.25, -.02, -.04, .24], [.08, .08, -.12, .2], [-.08, .02, .16, .18]].map(([x, y, z, k]) => sphere(k * S.cloudSize, 8, 6).translate(x * S.cloudSize, y * S.cloudSize, z * S.cloudSize));
+  const geo = mergeGeometries(puffs)!; for (const p of puffs) p.dispose();
+  cloud.add(new THREE.Mesh(geo, std(0x40465a, { emissive: 0x141824 })));
+  const flash = glow(light, S.cloudSize * 2.2, 0); flash.position.y = -.05; cloud.add(flash);
+  storms.set(g, { field, cloud, flash, r, top, t: 0, strike: S.strikeEvery * Math.random(), seed: Math.random() * 1e6 });
+  return g;
+}
+/** Every step: the lightning crackles anew a dozen times a second, the cloud drifts and now and then strikes down. */
+function stormStep(e: Enemy, dt: number) {
+  const st = e.mantleRing && storms.get(e.mantleRing); if (!st) return;
+  const S = CFG.mantleLooks.storm;
+  st.t -= dt; st.strike -= dt;
+  st.cloud.position.x = Math.sin(G.simClock * .9) * .08; st.cloud.rotation.y += dt * .6;
+  st.flash.material.opacity = Math.max(0, st.flash.material.opacity - dt * 4);
+  if (st.t > 0) return;
+  st.t = S.flicker;
+  let seed = st.seed = (st.seed * 16807 + 1) % 2147483647; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  const f = st.field, r = st.r, a0 = rnd() * Math.PI * 2, n = S.ringBolts, at = (a: number, rr = r): [number, number, number] => [Math.cos(a) * rr, .05, Math.sin(a) * rr];
+  f.begin();
+  for (let i = 0; i < n; i++) if (rnd() < .8) f.bolt(at(a0 + i / n * Math.PI * 2), at(a0 + (i + 1) / n * Math.PI * 2), 2, r * .14, rnd); // (the ring, with gaps)
+  for (let i = 0; i < S.arcs; i++) if (rnd() < .65) { const a = rnd() * Math.PI * 2; f.bolt([Math.cos(a) * r * .3, st.top * (.35 + rnd() * .45), Math.sin(a) * r * .3], at(a + (rnd() - .5), r * .95), 4, .1, rnd); } // (arcs crawling down its body to the ground)
+  if (st.strike <= 0) { // the cloud strikes down at it
+    st.strike = S.strikeEvery * (.6 + rnd() * .8); st.flash.material.opacity = .9;
+    f.bolt([st.cloud.position.x, st.cloud.position.y - .1, 0], [0, st.top * .8, 0], 5, .12, rnd);
+    if (G.current && Math.hypot(player.x - e.x, player.z - e.z) < 9) Sfx.at(e.x, e.z).zap();
+  }
+  f.end();
+}
+/** A Hallowed champion's halo: a ring of gold over its head, as a saint's, breathing with its light. */
+function haloOver(e: Enemy, light: number) {
+  const H = CFG.mantleLooks.halo, top = heightOf(e), m = new THREE.Mesh(new THREE.TorusGeometry(H.size, H.size * .12, 6, 28), lit(light));
+  m.rotation.x = -Math.PI / 2; m.position.y = top + H.over; m.name = 'halo';
+  const g = glow(light, H.size * 3, .35); m.add(g);
+  return m;
 }
 
 /** A status of the school that strips it landed on `e`: the mantle goes, the champion is stunned and open a while. */
@@ -85,13 +138,13 @@ export function updateMantles(dt: number) {
     if (e.unbound) e.unbound = Math.max(0, e.unbound - dt);
     if (!e.mantle || e.dead || e.spawn > 0) continue;
     e.mantleT = (e.mantleT ?? 0) - dt;
-    if (e.mantleRing) e.mantleRing.rotation.y += dt * .8;
-    // (Stormcharged and Hallowed are near in colour: the storm's ring flickers and throws sparks, the holy one's breathes
-    // and sheds motes, so the two read apart)
+    // (Stormcharged and Hallowed are near in colour, so they differ in kind: a storm's crackling ring, arcs and thundercloud;
+    // a saint's rune ring that breathes, a halo over its head and motes rising)
     if (e.mantle === 'stormcharged') {
-      if (e.mantleRing) e.mantleRing.visible = Math.floor(G.simClock * 13 + e.x * 3) % 5 !== 0;
+      stormStep(e, dt);
       if (Math.random() < dt * 4) burst(e.x + (Math.random() - .5) * e.r * 2, .15, e.z + (Math.random() - .5) * e.r * 2, SCHOOL_LIGHT.storm, 2, 2.2, .025);
-    } else if (e.mantle === 'hallowed') {
+    } else if (e.mantleRing) e.mantleRing.rotation.y += dt * .8;
+    if (e.mantle === 'hallowed') {
       if (e.mantleRing) e.mantleRing.scale.setScalar(1 + Math.sin(G.simClock * 2.4) * .08);
       if (Math.random() < dt * 2.5) burst(e.x + (Math.random() - .5) * e.r * 1.6, .3, e.z + (Math.random() - .5) * e.r * 1.6, SCHOOL_LIGHT.hallow, 1, .5, .03);
     }
