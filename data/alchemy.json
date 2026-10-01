@@ -1,0 +1,128 @@
+{
+  "potions": {
+    "healing": {
+      "name": "Healing Draught", "color": "#e0475a", "weight": 16,
+      "drink": { "effect": "heal", "halves": 2 },
+      "throw": { "effect": "healSplash", "halves": 2, "school": "hallow" },
+      "text": { "drink": "Heals a heart", "throw": "Heals you if you stand in the splash" },
+      "lore": "Moss steeped in grave-water until it remembers being green. The sextons kept a flask of it under every bell."
+    },
+    "mana": {
+      "name": "Mana Tonic", "color": "#4a8cff", "weight": 14,
+      "drink": { "effect": "mana", "amount": 50 },
+      "throw": { "effect": "daze", "seconds": 2.5 },
+      "text": { "drink": "50 mana", "throw": "Foes in the splash lose their next attack" },
+      "lore": "Blue, faintly humming, and colder than it should be. The novices drank it to stay awake through the vigil."
+    },
+    "liquidEmber": {
+      "name": "Liquid Ember", "color": "#ff7a2a", "weight": 10,
+      "drink": { "effect": "emberCantrip", "seconds": 20 },
+      "throw": { "effect": "firePool", "seconds": 5, "school": "ember" },
+      "text": { "drink": "Your cantrip burns for 20 seconds", "throw": "A pool of fire for 5 seconds" },
+      "lore": "Salt from the braziers, ground with bone and stoppered hot. The cork is always scorched."
+    },
+    "frostbrew": {
+      "name": "Frostbrew", "color": "#8fd8ff", "weight": 10,
+      "drink": { "effect": "frostWard", "seconds": 20, "speed": 0.2 },
+      "throw": { "effect": "freezeSplash", "seconds": 2, "school": "frost" },
+      "text": { "drink": "No chill takes you, and you move faster, for 20 seconds", "throw": "Freezes everything in the splash for 2 seconds" },
+      "lore": "Rimewater and a breath of light. It frosts the glass from the inside."
+    },
+    "bottledStorm": {
+      "name": "Bottled Storm", "color": "#b49aff", "weight": 6, "rare": true,
+      "drink": { "effect": "freeSpells", "casts": 3 },
+      "throw": { "effect": "stormSplash", "seconds": 3, "every": 0.4, "damage": 6, "school": "storm" },
+      "text": { "drink": "Your next 3 spells are free", "throw": "A lightning storm on the splash for 3 seconds" },
+      "lore": "It knocks against the glass when thunder is near. Never shake it."
+    },
+    "echoes": {
+      "name": "Philter of Echoes", "color": "#e8e0c8", "weight": 6, "rare": true,
+      "drink": { "effect": "echoSpell" },
+      "throw": { "effect": "echoSplash" },
+      "text": { "drink": "Your next spell casts twice", "throw": "Foes in the splash strike each other" },
+      "lore": "A choirmaster's last breath, they say, taken in a bell jar. Speak near it and it answers."
+    },
+    "giants": {
+      "name": "Giant's Brew", "color": "#a8c060", "weight": 6, "rare": true,
+      "drink": { "effect": "giant", "damage": 0.5, "speed": 0.2, "scale": 1.25 },
+      "throw": { "effect": "giantSplash", "speed": 0.35, "scale": 1.3 },
+      "text": { "drink": "Bigger, half again as strong and a little slower, for a room", "throw": "Foes in the splash grow slower and bigger" },
+      "lore": "Bone dust, twice over. It thickens the blood and the bones with it."
+    },
+    "shadowstep": {
+      "name": "Shadowstep Tincture", "color": "#6a4aa8", "weight": 8,
+      "drink": { "effect": "unseen", "seconds": 4 },
+      "throw": { "effect": "darkSplash", "seconds": 6, "school": "umbral" },
+      "text": { "drink": "Foes lose track of you for 4 seconds", "throw": "A cloud of darkness: foes inside can't aim" },
+      "lore": "It drinks the candlelight from the room it is opened in."
+    },
+    "bitterRemedy": {
+      "name": "Bitter Remedy", "color": "#c0a040", "weight": 8,
+      "drink": { "effect": "remedy" },
+      "throw": { "effect": "cleanseSplash" },
+      "text": { "drink": "Your newest curse takes no price until the floor ends", "throw": "Clears every status in the splash" },
+      "lore": "Burnt moss and salt. Nobody drinks it twice by choice."
+    },
+    "volatile": {
+      "name": "Volatile Mixture", "color": "#ff4ad8", "weight": 6,
+      "drink": { "effect": "random" },
+      "throw": { "effect": "explode" },
+      "text": { "drink": "Something else, at random", "throw": "It explodes" },
+      "lore": "What a failed brew becomes. It changes colour when it is not watched."
+    },
+    "hexBrew": {
+      "name": "Hex Brew", "color": "#3a2050", "weight": 8, "bad": true,
+      "drink": { "effect": "reversed", "seconds": 5 },
+      "throw": { "effect": "hexSplash", "stacks": 3, "school": "umbral" },
+      "text": { "drink": "Your hands and feet go the wrong way for 5 seconds", "throw": "Foes in the splash are hexed" },
+      "lore": "A curse with a cork in it. Thrown, it remembers whose curse it is."
+    },
+    "graveDraught": {
+      "name": "Grave Draught", "color": "#7a8a70", "weight": 8, "bad": true,
+      "drink": { "effect": "graveSip", "halves": 1 },
+      "throw": { "effect": "raiseThrall" },
+      "text": { "drink": "Half a heart for a pale soul mote", "throw": "A skeleton rises to fight for you this room" },
+      "lore": "Moss and bone from the same grave. What drinks it is a little more dead; what it is spilled on, a little less."
+    }
+  },
+  "reagents": {
+    "graveMoss": { "name": "Grave Moss", "color": "#6a9a4a", "leans": "Healing", "lore": "It grows only where something was buried with care." },
+    "wispEssence": { "name": "Wisp Essence", "color": "#d8e8ff", "leans": "Mana and echoes", "lore": "The light a creature of light leaves behind. It is warm, and wants to rise." },
+    "boneDust": { "name": "Bone Dust", "color": "#d8ccb0", "leans": "Strength and grave magic", "lore": "Ground from the old dead, who no longer need it, and the stone things that walk." },
+    "emberSalt": { "name": "Ember Salt", "color": "#ff8a3a", "leans": "Fire", "lore": "The crust that forms on a brazier's rim, and in the cinders of things that burned." },
+    "rimewater": { "name": "Rimewater", "color": "#9ad8f0", "leans": "Frost", "lore": "Water that froze and would not thaw. It stays cold in a closed hand." },
+    "wardensAsh": { "name": "Warden's Ash", "color": "#a89070", "leans": "Rare potions", "lore": "What is left when a guardian of the vault falls. It is heavier than ash should be.", "rare": true }
+  },
+  "recipes": [
+    { "of": ["graveMoss", "graveMoss"], "makes": "healing" },
+    { "of": ["wispEssence", "graveMoss"], "makes": "mana" },
+    { "of": ["emberSalt", "boneDust"], "makes": "liquidEmber" },
+    { "of": ["rimewater", "wispEssence"], "makes": "frostbrew" },
+    { "of": ["wispEssence", "emberSalt"], "makes": "bottledStorm" },
+    { "of": ["wispEssence", "wispEssence"], "makes": "echoes" },
+    { "of": ["boneDust", "boneDust"], "makes": "giants" },
+    { "of": ["boneDust", "rimewater"], "makes": "shadowstep" },
+    { "of": ["graveMoss", "emberSalt"], "makes": "bitterRemedy" },
+    { "of": ["boneDust", "wispEssence"], "makes": "hexBrew" },
+    { "of": ["graveMoss", "boneDust"], "makes": "graveDraught" },
+    { "of": ["wardensAsh", "wispEssence"], "makes": "echoes" },
+    { "of": ["wardensAsh", "boneDust"], "makes": "giants" },
+    { "of": ["wardensAsh", "emberSalt"], "makes": "bottledStorm" },
+    { "of": ["wardensAsh", "rimewater"], "makes": "shadowstep" },
+    { "of": ["wardensAsh", "graveMoss"], "makes": "healing" },
+    { "of": ["wardensAsh", "wardensAsh"], "makes": "echoes" }
+  ],
+  "sources": {
+    "schools": { "ember": "emberSalt", "frost": "rimewater", "hallow": "wispEssence", "storm": "wispEssence", "umbral": "boneDust" },
+    "foes": {
+      "sporeling": "graveMoss", "rootling": "graveMoss", "puffcap": "graveMoss", "cryptSpider": "graveMoss", "moonstagFawn": "graveMoss",
+      "rubbleCrab": "boneDust", "rubbleGolem": "boneDust", "rubbleStone": "boneDust", "lodestoneGolem": "boneDust", "gargoyleWhelp": "boneDust", "saltGolem": "boneDust", "glacierGolem": "rimewater", "hearthGolem": "emberSalt"
+    },
+    "objects": { "bones": "boneDust", "skulls": "boneDust", "roots": "graveMoss", "glowcap": "graveMoss", "sacks": "graveMoss", "brazier": "emberSalt", "cask": "emberSalt" },
+    "boss": "wardensAsh"
+  },
+  "bottles": {
+    "shapes": ["flask", "vial", "jar", "tear", "skull", "bulb"],
+    "liquids": ["#e0475a", "#4a8cff", "#ff7a2a", "#8fd8ff", "#b49aff", "#e8e0c8", "#a8c060", "#6a4aa8", "#c0a040", "#ff4ad8", "#3a2050", "#7a8a70", "#40c8a0", "#d86a3a"]
+  }
+}
