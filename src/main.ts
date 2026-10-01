@@ -71,6 +71,7 @@ import { groundCount } from './actors/bestiaryGround';
 import { blastAt } from './combat/glyphs';
 import { inSteam, steamAt, steamCount } from './magic/steam';
 import type { MantleId } from './actors/mantleData';
+import { groundPace, layDevGround } from './actors/foeGround';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
@@ -237,6 +238,8 @@ function installDevHooks() {
         foe in the room, e.g. inflict({ burn: 3 }). */
     spawn(kind: FoeType, x = player.x, z = player.z - 2.5) { return spawnFoe(kind, x, z, 1); }, // (a swarm comes whole)
     champion(kind: FoeType, mantle?: MantleId, x = player.x, z = player.z - 2.5) { return makeEnemy(kind, x, z, 1, undefined, { champion: true, mantle }); }, // (M4.7: a champion, in a mantle if named)
+    layGround(kind: 'web' | 'ink' | 'rime' | 'fire' | 'spark' | 'spores', x: number, z: number, by?: string) { layDevGround(kind, x, z, by); }, // (M4.7: ground left by a foe of kind `by`)
+    foeGround(i: number) { const e = G.enemies[i]; return e && { pace: groundPace(e), at: e.inGround, slide: !!e.slide }; }, // (M4.7: what the ground under foe i does to it)
     /** Strike the room's foe `i` for `dmg`, of `school` if given (M4: its weakness and resistance count). */
     hit: (i: number, dmg: number, school?: School, by: 'spell' | 'cantrip' = 'spell', dx = 0, dz = 0) => { const e = G.enemies[i]; if (e) damageEnemy(e, dmg, dx, dz, 0, by, school); return e?.hp; }, // (dx, dz: the way the blow travels)
     /** What the mage has found of the foes (M4), kept between runs; forget it all. */

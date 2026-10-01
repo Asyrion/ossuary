@@ -302,14 +302,14 @@
   },
   "saltGolem": {
     "floor": 3, "school": "frost", "weak": "ember", "resist": "storm",
-    "hp": 28, "r": 0.55, "speed": 1.2, "contact": 1, "flying": false,
+    "hp": 28, "r": 0.55, "speed": 1.2, "contact": 1, "flying": false, "avoidsGround": true,
     "behaviour": "bodyguard",
     "params": {"slamEvery": [2.8, 3.8], "slamRange": 3, "tell": 0.6, "ring": 10, "shotSpeed": 3, "gap": 1.2, "melt": 0.45},
     "gib": "#f0ead8", "stain": "#4a4438"
   },
   "rubbleGolem": {
     "floor": 3, "school": "storm", "weak": "storm", "resist": "ember",
-    "hp": 32, "r": 0.6, "speed": 0.9, "contact": 1, "flying": false,
+    "hp": 32, "r": 0.6, "speed": 0.9, "contact": 1, "flying": false, "avoidsGround": true,
     "behaviour": "breaker",
     "params": {"slamEvery": [3, 4], "slamRange": 5, "tell": 0.7, "rocks": 4, "spread": 2.2, "fall": 0.9, "hit": 0.6, "stones": 3, "reform": 4, "gather": 3},
     "gib": "#7a746a", "stain": "#2a2620"
@@ -344,14 +344,14 @@
   },
   "lodestoneGolem": {
     "floor": 4, "school": "storm", "weak": "frost", "resist": "storm", "elemental": true,
-    "hp": 24, "r": 0.55, "speed": 1, "contact": 1, "flying": false,
+    "hp": 24, "r": 0.55, "speed": 1, "contact": 1, "flying": false, "avoidsGround": true,
     "behaviour": "magnet",
     "params": {"pullRange": 6, "pull": 0.9, "bendRange": 3.2, "bend": 2.6, "ring": 1.1, "turn": 0.5},
     "gib": "#6a6e78", "stain": "#22242a"
   },
   "hearthGolem": {
     "floor": 4, "school": "ember", "weak": "frost", "resist": "ember", "elemental": true,
-    "hp": 36, "r": 0.6, "speed": 1, "contact": 1, "flying": false, "elite": true,
+    "hp": 36, "r": 0.6, "speed": 1, "contact": 1, "flying": false, "avoidsGround": true, "elite": true,
     "behaviour": "hearth",
     "params": {"guard": 0.35, "throwEvery": [3.2, 4.2], "throwRange": 7, "coals": 3, "spread": 1.6, "flight": 0.9, "fireTime": 2, "out": 4},
     "gib": "#ff7a2a", "stain": "#2a120a"
@@ -372,7 +372,7 @@
   },
   "glacierGolem": {
     "floor": 5, "school": "frost", "weak": "ember", "resist": "frost", "elemental": true,
-    "hp": 40, "r": 0.65, "speed": 0.85, "contact": 1, "flying": false, "elite": true,
+    "hp": 40, "r": 0.65, "speed": 0.85, "contact": 1, "flying": false, "avoidsGround": true, "elite": true,
     "behaviour": "glacier",
     "params": {"stompEvery": [2.8, 3.8], "stompRange": 6, "tell": 0.7, "spikes": 7, "spikeEvery": 0.09, "gap": 0.65, "hit": 0.55, "arc": 0.65, "front": 0.3, "frozen": 3, "shatter": 0.35},
     "gib": "#cfeaf8", "stain": "#1a3a4a"

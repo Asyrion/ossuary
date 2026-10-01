@@ -34,6 +34,7 @@ import { gainMana } from '../magic/spells';
 import { hexDrained } from '../ui/afflictions';
 import { inSteam } from '../magic/steam';
 import { MAGIC } from '../magic/status';
+import { actor } from '../actors/acting';
 
 const BLESSED = 0xfff0b0; // a blessed cast's gold
 
@@ -135,12 +136,8 @@ export function fireSpellBolt(x: number, z: number, dx: number, dz: number, o: {
 }
 
 /** Enemy projectile. */
-/** The foe whose behaviour is stepping now (foes.ts's `updateFoe`): a mantled champion's shots chill or hex (M4.7). */
-let shooter: Enemy | undefined;
-export function shotsBy(e?: Enemy) { shooter = e; }
-
 export function spawnShot(x: number, z: number, dx: number, dz: number, speed: number, color: number, y = .55, size = 1, o: { fire?: boolean; chill?: number; hex?: number } = {}) {
-  const m = shooter?.mantle; // (M4.7: a Rimebound champion's shots chill, a Hexbound one's drink mana)
+  const m = actor()?.mantle; // (M4.7: a Rimebound champion's shots chill, a Hexbound one's drink mana)
   if (m === 'rimebound') o = { ...o, chill: Math.max(o.chill ?? 0, MAGIC.mantles.rimebound.chill) };
   else if (m === 'hexbound') o = { ...o, hex: Math.max(o.hex ?? 0, MAGIC.mantles.hexbound.hex) };
   if (inSteam(x, z)) { const a = (Math.random() - .5) * 2 * MAGIC.reactions.steam.spread, c = Math.cos(a), n = Math.sin(a); [dx, dz] = [dx * c - dz * n, dz * c + dx * n]; } // (thrown out of steam, it can't be aimed)

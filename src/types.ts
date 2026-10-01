@@ -95,6 +95,7 @@ export type PropBox = RockBox & { prop: PropState };
 export interface SporeCloud {
   x: number; z: number; t: number; g: THREE.Group;
   /** A Sporeling's puff (M4): it stings the mage who stands in it, once, and dims their sight this many seconds. */ sting?: number; stung?: boolean;
+  /** The kind of foe that puffed it (M4.7: its own kind isn't stung). */ by?: string;
 }
 /** An artifact on a pedestal. `pair` links the boss's two choices: taking one makes the other vanish. */
 export interface ArtifactSpot {
@@ -173,6 +174,7 @@ export interface Enemy extends Circle {
   champion?: boolean; aura?: THREE.Sprite;
   /** A champion's school mantle (M4.7, actors/mantles.ts), its ring of runes, the seconds until it acts again (a trail
       of fire, a spark), and the seconds left open after it was stripped. */ mantle?: MantleId; mantleRing?: THREE.Object3D; mantleT?: number; unbound?: number; saidAt?: number;
+  /** In another kind's ground (M4.7): the way it slides on rime, and the seconds before the ground harms it again. */ slide?: { x: number; z: number }; groundT?: number; inGround?: string;
   /** M4.2: a drinking ward round it (actors/wardShield.ts): what it has drunk, and its light. */ ward?: { drink: Drink; fx: THREE.Mesh };
   // type-specific parts and AI state
   halo?: THREE.Sprite; target?: Vec2; fireT?: number; dir?: Vec2;

@@ -21,6 +21,7 @@ import { saltHolds } from '../combat/familiars';
 import { packOf, songHaste } from './bestiaryFoes';
 import { clearSteam } from '../magic/steam';
 import { giveMantle } from './mantles';
+import { groundHarm, groundPace, groundSlide, steerAround } from './foeGround';
 import type { MantleId } from './mantleData';
 
 export function stdMat(color: number, extra: THREE.MeshStandardMaterialParameters = {}) {
@@ -110,7 +111,8 @@ export function updateEnemies(dt: number) {
     // integrate + knockback: its pace this step is chill's slowing, walkers wading through water or snagged in cobwebs, and
     // a lark's song or a wolf's howl hastening it (M4.5), all on its step, not its velocity, which many foes build on (one
     // easing in would be slowed again every step, far past the factor)
-    const pace = slow * songHaste(e) * (e.flying ? 1 : wadeAt(e.x, e.z) * snagAt(e.x, e.z));
+    steerAround(e); groundSlide(e, dt); // (M4.7: golems and elementals go round another kind's ground; on its rime a walker slides)
+    const pace = slow * songHaste(e) * (e.flying ? 1 : wadeAt(e.x, e.z) * snagAt(e.x, e.z) * groundPace(e)); // (and another kind's webs and ink hold it)
     e.kx *= Math.exp(-8 * dt); e.kz *= Math.exp(-8 * dt);
     e.x += (e.vx * pace + e.kx) * dt; e.z += (e.vz * pace + e.kz) * dt;
     const hit = collide(e, e.flying ? walls : solids);
@@ -131,6 +133,7 @@ export function updateEnemies(dt: number) {
     // through the Static Mantle)
     if (!e.hidden && acts && e.contact && Math.hypot(player.x - e.x, player.z - e.z) < player.r + e.r * .9 && !mantleShields(e) && hurtPlayer(e.contact, e.x, e.z) && e.mantle === 'rimebound') player.chill = Math.max(player.chill, MAGIC.mantles.rimebound.chill); // (M4.7: a Rimebound touch chills)
   }
+  if (dt > 0) for (const e of [...G.enemies]) groundHarm(e, dt); // (M4.7: another kind's burning ground, sparks and spores)
   // keep walkers from stacking
   const es = G.enemies;
   for (let i = 0; i < es.length; i++) for (let j = i + 1; j < es.length; j++) {

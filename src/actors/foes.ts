@@ -39,7 +39,8 @@ import { glow } from '../render/materials';
 import { scene } from '../render/renderer';
 import { glowTex } from '../render/textures';
 import { burst } from '../combat/fx';
-import { shotsBy, spawnShot } from '../combat/projectiles';
+import { spawnShot } from '../combat/projectiles';
+import { actAs, actingKind } from './acting';
 import { addSpores } from '../world/props';
 import { addPool, fireAt, frostAt, poolAt, shockAt } from '../world/pools';
 import { ringFx, strikeFx } from '../magic/spellFx';
@@ -83,7 +84,7 @@ export function buildFoe(e: Enemy, def: FoeDef) {
     faces. */
 export function updateFoe(e: Enemy, dt: number, a: Aim) {
   const def = e.foe!, B = BEHAVIOURS[def.behaviour];
-  shotsBy(e); const face = B.step(e, dt, a, def.params, G.current); shotsBy(); // (what it shoots carries its mantle, M4.7)
+  actAs(e); const face = B.step(e, dt, a, def.params, G.current); actAs(); // (what it leaves and shoots is its own, M4.7)
   e.at! += dt * (e.animRate ?? 1);
   e.idle!(e.at!); B.pose?.(e, def.params);
   return face;
@@ -110,7 +111,7 @@ export function foeBlasted(e: Enemy) { if (e.foe) BEHAVIOURS[e.foe.behaviour].bl
 /** A status took hold on a foe in code (M4.5: a walking wave's ice shatters to a shock). */
 export function foeAfflicted(e: Enemy, kind: SpellStatus) { if (e.foe && !e.dead) BEHAVIOURS[e.foe.behaviour].afflicted?.(e, kind, e.foe.params); }
 /** A foe in code has fallen: what its behaviour leaves behind. */
-export function foeDied(e: Enemy) { if (e.foe) BEHAVIOURS[e.foe.behaviour].die?.(e, e.foe.params); }
+export function foeDied(e: Enemy) { if (e.foe) { actAs(e); BEHAVIOURS[e.foe.behaviour].die?.(e, e.foe.params); actAs(); } }
 /** After it moved: whether it ran into a wall or a rock. */
 export function bumpFoe(e: Enemy, hit: boolean) { BEHAVIOURS[e.foe!.behaviour].bump?.(e, hit, e.foe!.params); }
 
@@ -147,7 +148,7 @@ const nearestWater = (room: Room, x: number, z: number) => waterTiles(room).map(
 /* ---------- what foes leave on the floor: burning ground (a salamander's trail), sparks (a storm ray's line) ---------- */
 
 type HazardKind = 'fire' | 'spark';
-const hazards: { room: Room; x: number; z: number; t: number; life: number; kind: HazardKind; armed?: boolean }[] = [];
+const hazards: { room: Room; x: number; z: number; t: number; life: number; kind: HazardKind; armed?: boolean; by?: string }[] = [];
 const MAX_HAZARDS = 96; // (of each kind)
 /** Each kind's patches' glow on the floor, drawn at once (one instanced mesh a kind: a room of salamanders stays cheap). */
 const hazardGlow: Record<HazardKind, THREE.InstancedMesh | null> = { fire: null, spark: null };
@@ -157,18 +158,25 @@ function hazardMesh(kind: HazardKind) {
   const mesh = new THREE.InstancedMesh(geo, mat, MAX_HAZARDS); mesh.count = 0; mesh.frustumCulled = false; mesh.renderOrder = 2; scene.add(mesh);
   return hazardGlow[kind] = mesh;
 }
-function lay(room: Room, x: number, z: number, time: number, kind: HazardKind) {
+function lay(room: Room, x: number, z: number, time: number, kind: HazardKind, by = actingKind()) {
   const mine = hazards.filter(h => h.kind === kind); if (mine.length >= MAX_HAZARDS) hazards.splice(hazards.indexOf(mine[0]), 1);
-  hazards.push({ room, x, z, t: time, life: time, kind });
+  hazards.push({ room, x, z, t: time, life: time, kind, by });
 }
 /** A patch of burning ground at (x, z) for `time` seconds: it lights what burns there (oil, roots, braziers), and burns
     the mage who stands in it. */
-export function layFire(room: Room, x: number, z: number, time: number) { lay(room, x, z, time, 'fire'); fireAt(x, z, .15); }
+export function layFire(room: Room, x: number, z: number, time: number, by = actingKind()) { lay(room, x, z, time, 'fire', by); fireAt(x, z, .15); }
 /** Whether ground is burning within `r` of (x, z) in the current room (M4.5: rime wolves scatter from it). */
 export const burningNear = (x: number, z: number, r: number) => hazards.some(h => h.kind === 'fire' && h.room === G.current && Math.hypot(h.x - x, h.z - z) < r);
 /** A patch of sparks at (x, z) for `time` seconds: crackling at first, then armed (`CFG.afflict.sparkArm`): it shocks the
     water there and hurts the mage who stands in it. */
-export function laySpark(room: Room, x: number, z: number, time: number) { lay(room, x, z, time, 'spark'); }
+export function laySpark(room: Room, x: number, z: number, time: number, by = actingKind()) { lay(room, x, z, time, 'spark', by); }
+/** The harm in the ground at (x, z) in the current room for a foe of kind `who` (M4.7): burning ground, or an armed
+    spark, that isn't its own kind's. */
+export function hazardAt(x: number, z: number, who?: string): HazardKind | undefined {
+  const reach = CFG.afflict.groundReach;
+  for (const h of hazards) if (h.room === G.current && h.by !== (who ?? '-') && (h.kind === 'fire' || h.armed) && Math.hypot(h.x - x, h.z - z) < reach) return h.kind;
+  return undefined;
+}
 const m4 = new THREE.Matrix4(), q0 = new THREE.Quaternion(), v3 = new THREE.Vector3(), s3 = new THREE.Vector3();
 /** The foes round a fawn this step (reused, not made anew every frame). */
 const company: Enemy[] = [];

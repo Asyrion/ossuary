@@ -27,6 +27,7 @@ export interface FoeDef {
       a pack), sharing one mind. */ look?: string; pack?: [number, number];
   /** M4.5: an elemental (GDD: The Bestiary). Its own school (which it resists) heals it, blows and statuses alike, and its
       weakness hurts it twice over. */ elemental?: boolean;
+  /** M4.7: it steps round the ground other foes leave (the golems; elementals do too), where beasts blunder in. */ avoidsGround?: boolean;
   behaviour: string; params: Record<string, number | number[]>;
   /** The colour of what flies from it when it falls, and of the stain it leaves (none for what leaves none). */ gib: string; stain: string | null;
 }

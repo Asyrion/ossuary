@@ -62,7 +62,7 @@ export function shrugOff(e: Enemy) {
 export function mantleStruck(e: Enemy) {
   if (e.mantle !== 'stormcharged' || e.dead || (e.mantleT ?? 0) > 0) return;
   const S = M.stormcharged; e.mantleT = S.sparkEvery;
-  laySpark(G.current, player.x, player.z, S.sparkTime); strikeFx({ x: e.x, y: 1, z: e.z }, { x: player.x, y: .05, z: player.z }, SCHOOL_LIGHT.storm, .22, true);
+  laySpark(G.current, player.x, player.z, S.sparkTime, e.foe?.id); strikeFx({ x: e.x, y: 1, z: e.z }, { x: player.x, y: .05, z: player.z }, SCHOOL_LIGHT.storm, .22, true);
   Sfx.at(e.x, e.z).zap();
 }
 
@@ -86,7 +86,7 @@ export function updateMantles(dt: number) {
     if (!e.mantle || e.dead || e.spawn > 0) continue;
     e.mantleT = (e.mantleT ?? 0) - dt;
     if (e.mantleRing) e.mantleRing.rotation.y += dt * .8;
-    if (e.mantle === 'kindled' && e.mantleT <= 0 && Math.hypot(e.vx, e.vz) > .3 && !e.hidden) { e.mantleT = M.kindled.trailEvery; layFire(G.current, e.x, e.z, M.kindled.trailTime); }
+    if (e.mantle === 'kindled' && e.mantleT <= 0 && Math.hypot(e.vx, e.vz) > .3 && !e.hidden) { e.mantleT = M.kindled.trailEvery; layFire(G.current, e.x, e.z, M.kindled.trailTime, e.foe?.id); }
     if (e.mantle === 'hallowed' && e.mantleT <= 0) {
       e.mantleT = 1;
       if ((e.status?.sanct ?? 0) > 0) continue; // (its own school's light on it stills its mending)

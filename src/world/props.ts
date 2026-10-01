@@ -29,6 +29,7 @@ import { addPool, fireAt } from './pools';
 import { scrollsBroken } from './themes';
 import { OBJECT_LOOKS, burningFire } from './objectLooks';
 import { addPit, freeSpotNear, openChasm } from './rooms';
+import { actingKind } from '../actors/acting';
 
 const P = CFG.props;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, SPORE = 0x9fe8b0, BONE = 0xd8ccb2;
@@ -322,11 +323,14 @@ function collapse(room: Room, box: PropBox) {
 
 /** A cloud of spores at (x, z): a broken glowcap's, or a Sporeling's puff (M4: `color` its violet, `sting` the seconds it
     dims the mage's sight who stands in it, with half a heart, once). Fire makes either flash. */
-export function addSpores(room: Room, x: number, z: number, o: { color?: number; sting?: number } = {}) {
+export function addSpores(room: Room, x: number, z: number, o: { color?: number; sting?: number; by?: string } = {}) {
   const g = new THREE.Group(); g.position.set(x - room.cx, 0, z - room.cz);
   for (let i = 0; i < 5; i++) { const s = glow(o.color ?? SPORE, .9 + Math.random() * .6, .35); s.position.set((Math.random() - .5) * 1.4, .3 + Math.random() * .5, (Math.random() - .5) * 1.4); g.add(s); }
-  room.group.add(g); (room.spores ??= []).push({ x, z, t: P.spores.time, g, sting: o.sting });
+  room.group.add(g); (room.spores ??= []).push({ x, z, t: P.spores.time, g, sting: o.sting, by: o.by ?? actingKind() });
 }
+/** Whether a cloud of stinging spores (a Sporeling's or a Puffcap's) hangs over (x, z) in the current room, not of the
+    kind `who` (M4.7: foes are stung by each other's spores, never their own). */
+export const stingAt = (x: number, z: number, who?: string) => (G.current.spores ?? []).some(s => s.sting && s.by !== who && Math.hypot(s.x - x, s.z - z) < P.spores.reach * .8);
 function dropSpores(room: Room, s: SporeCloud) { room.group.remove(s.g); disposeTree(s.g); room.spores = room.spores?.filter(o => o !== s); }
 
 /** Fire found a cloud of spores: it flashes, burning every foe in reach, and the mage too if they stand in it. */
