@@ -516,6 +516,19 @@ it pays an obol and its hex spreads). Lantern of Vigil and Soul Harvest wait.
 - **In the inventory:** the spells tab keeps the two carried slots on top, then one section per school, shown only once a spell of that school has been learned. A school's section lists every spell of it the mage has met (carried ones marked Q or E, given-up ones dimmed) and a sealed blank entry for each one not yet met, so there is more to find. Each entry's description is filled to its stage.
 - **Dev menu:** know every spell, and forget everything.
 
+**Spell marks (M4.11, the owner's ask, built 2026-10-01; `docs/M4.11-plan.md`).** The spells the mage carries and what they
+know show on the mage, small and in each school's light (embers rise, rime falls, sparks crackle, motes drift up, shadow
+sinks). Purely visual for now; attunement or mastery could give something in M6. Each says what it is the first time.
+
+| Mark | Comes from | What shows |
+| --- | --- | --- |
+| Spell in hand | Each slot: Q at the casting hand, E at the off hand | A light with its school's motion. Ready: full. Cooling down: faint, filling back, a flash when ready. Short of mana: grey and flickering. It tells what the HUD's slot tells, where the eye is. |
+| Master's ring | A slotted spell whose whole school is known well (every spell of it at the Used stage) | A thin rune ring turning round that wrist; a line the first time ("You know every Ember spell well") |
+| Attunement | Both slots holding one school's spells | The school's light about the whole mage; a line the first time in a run ("Attuned to Ember") |
+| Knowledge circle | Every spell known well, kept between runs | Standing still a moment: a rune circle at the feet, an arc per school, a rune for each spell known well and a faint tick for each still to know; a school known in full closes its arc in a bright line. It fades as the mage moves. |
+
+Frame cost: all of them at once add about 12 draw calls (the circle is one mesh, its colours in its vertices).
+
 ## Artifacts
 
 Artifacts replace Isaac's items. There are four kinds: one focus that reshapes the cantrip, any number of passive artifacts, cursed artifacts with a price, and sets that reward collecting pieces. The prototype's Ember Sigil becomes the first passive artifact.
@@ -1595,6 +1608,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4.8 The full wheel | Every pair of schools reacts | Five new reactions (Searing, Prism, Verdict, Black Ice, Void Spark) beside Steam, on foes and on tiles; reactions found mark the spell book's wheel (Depth for what's built; built 2026-10-01, `docs/M4.8-plan.md`) |
 | M4.9 The curve | Harder for the right reasons | Pressure dials per floor in data; libraries and merchants lean to the floor's weakness; a hex's drain traced to its foe; the sluice for water rooms; `npm run balance` measuring every foe (Depth for what's built; proposed 2026-10-01, `docs/M4.9-plan.md`) |
 | M4.10 Weaves | Combinations beyond pairs | Ten weaves (a spell striking what another left: the Steam Curtain, the Overload Seal, Eclipse Ground...), seven chains (a reaction's leavings met by a third school: Thundercloud, Incense, Miasma...), the room's mechanisms joining in; Verdant's Bloom and Blight designed for M5 (Depth for what's built; built 2026-10-01 at the owner's ask, `docs/M4.10-plan.md`) |
+| M4.11 Spell marks | You can see your magic | **Built 2026-10-01** (Spells: Spell marks; the owner's ask). The slotted spells shown at the hands with their state, attunement, a master's ring, the knowledge circle |
 | M5 Alchemy | The second game | Potion belt, drink or throw, identification, 4 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
 | M7 Descent and the Vigil | A full run with a reason to return | Final boss (Kaelith, the Shadow Sentinel); the Vigil (RPG progression: Between runs) at the cave mouth over the valleys: freed shades as townspeople with dialogue (Boketto, the Cloud Forest Wizard, the Huruhui foragers), its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines; a won run ends in daylight |

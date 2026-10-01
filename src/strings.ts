@@ -100,6 +100,11 @@ export const STR = {
     pilgrim: { name: 'Pilgrim', gift: 'The floor\'s map is shown, cracked walls glow, and you walk faster', lore: 'Hood, boots and beads, a crook to lean on. The pilgrims who came to the chapel above never lost their way below it.' },
     beastcaller: { name: 'Beastcaller', gift: 'One more familiar, and your familiars strike harder', lore: 'Moth, skull and fox keep closer now. Antlers rise from your brow, and small lights circle you like a herd at dusk.' },
   } as Record<string, { name: string; gift: string; lore: string }>,
+  /** M4.11: spell marks, a line the first time each shows (both spells of one school; a school known in full). */
+  marks: {
+    attuned: (school: string) => `Attuned to ${school}: both your spells are of one school, and its light gathers about you.`,
+    mastered: (school: string) => `You know every ${school} spell well: its ring turns at your wrist.`,
+  },
   /** M4.6: Asyrion's arc, a line as each stage is reached (the apprentice growing towards the chaos mage). */
   arc: [
     'Bronze closes round your forearms. The apprentice is giving way.',
@@ -630,6 +635,8 @@ export const STR = {
     costumeAt: (spot: string) => `Worn: ${spot}`, costumeHeld: 'Held in the casting hand',
     costumeInfo: (worn: string[], held: string) => `Wearing: ${worn.length ? worn.join(', ') : 'nothing'} · holding: ${held || 'nothing'}`,
     transforms: 'Transformations (three of a family form one; here at once, with its banner)', clearTransforms: 'Undo them all',
+    marks: 'Spell marks (M4.11: the spells in hand, attunement, the master\'s ring, the knowledge circle)', attune: (school: string) => `Attune to ${school}`, showCircle: 'Show the knowledge circle (stand still)',
+    marksInfo: (hands: string[], attuned: string, known: number, mastered: string[]) => `Hands: Q ${hands[0]}, E ${hands[1]} · attuned: ${attuned || 'no'} · ${known} spell${known === 1 ? '' : 's'} known well${mastered.length ? ` · mastered: ${mastered.join(', ')}` : ''}`,
     arc: 'Asyrion\'s arc (the chaos mage\'s pieces, at 3, 6, 9 and 12 artifacts held)', arcHeld: 'As held', arcStage: (n: number) => n ? `Stage ${n}` : 'Apprentice',
     arcInfo: (stage: number, held: number, forced: boolean) => `Stage ${stage} of 4${forced ? ' (forced here)' : ''} · ${held} artifact${held === 1 ? '' : 's'} held`,
     transformInfo: (formed: string[], blink: number) => `Formed: ${formed.length ? formed.join(', ') : 'none'} (the last wears its look)${blink > 0 ? ` · blink rests ${blink.toFixed(1)} s` : ''}`,

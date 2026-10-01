@@ -13,6 +13,7 @@ import { angleLerp, lerp } from '../util';
 import { findMiniatureBase } from './baseDetect';
 import { dress, fitCostumes, updateCostumes } from './costume';
 import { floatLift } from '../items/gifts';
+import { updateSpellMarks } from './spellMarks';
 import { buildHeroAnim, playCast, playDeath, playGesture, playHit, resetAnim, updateHeroAnim, type HeroAnim } from './heroAnim';
 
 export const hero = {
@@ -123,6 +124,7 @@ export function heroVisual(dt: number, now: number) {
   const lean = hero.lean;
   if (hero.anim) updateHeroAnim(hero.anim, dt, player.dead ? 0 : sp);
   updateCostumes(dt); // (M4.6: the focus follows the casting hand; cursed pieces weep)
+  updateSpellMarks(dt); // (M4.11: the spells in hand, attunement, the knowledge circle)
   if (player.dead && !hero.anim?.deaths.length) { // a static model, or a rig with no death clip: just topple over
     lean.rotation.x = lerp(lean.rotation.x, 1.45, 1 - Math.exp(-6 * dt)); lean.position.y = lerp(lean.position.y, .1, 1 - Math.exp(-6 * dt));
   } else if (!hero.anim) {

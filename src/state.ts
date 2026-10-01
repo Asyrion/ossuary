@@ -45,6 +45,7 @@ export const G = {
     /** M4.2: the floor Fen-Nex was bound on (it grows a stage a floor), while it is. */ fennexFrom: undefined as number | undefined,
     /** M4.6: the transformations formed this run, in order (the latest wears its look; every gift stays). */ transforms: [] as TransformId[],
     /** M4.6: the stage of Asyrion's arc reached this run (each said once in a line). */ arc: 0,
+    /** M4.11: the schools the mage has been attuned to this run (each said once). */ attuned: [] as string[],
   },
   shake: 0,
   simClock: 0,

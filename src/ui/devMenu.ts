@@ -17,6 +17,7 @@ import { clearTransforms, formTransform } from '../items/transforms';
 import { TRANSFORM_IDS } from '../items/transformData';
 import { blinkRest } from '../items/gifts';
 import { arcHeld, arcNow } from '../items/arc';
+import { marksNow } from '../actors/spellMarks';
 import { callWanderer } from '../items/wanderer';
 import { STR, foeName } from '../strings';
 import { FOES, FOE_IDS, pickFoe, type FoeType } from '../actors/foeData';
@@ -43,8 +44,8 @@ import { SIDE_DIR } from '../world/shapes';
 import type { Room } from '../types';
 import { openSecretRoom, revealCracks } from '../world/secret';
 import { cleanseAtOnce } from '../world/shrine';
-import { SPELL_DEFS } from '../magic/spellData';
-import { forgetSpells, gainMana, learnSpell } from '../magic/spells';
+import { SCHOOLS, SPELL_DEFS } from '../magic/spellData';
+import { attuneTo, forgetSpells, gainMana, learnSpell } from '../magic/spells';
 import { findEveryReaction, findEveryWeave, forgetKnowledge, forgetReactions, forgetWeaves, knowEvery, knowledgeNow, reactionsFound, weavesFound } from '../magic/memory';
 import { WEAVE_IDS } from '../magic/weaves';
 import { setOffWeave } from '../magic/weaveTest';
@@ -65,7 +66,7 @@ import { lureTest } from '../actors/foeGround';
 import { floorLean, floorWalls, warnFloor } from '../world/curve';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement;
 let spellSlot = 0, knowBox: HTMLElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
@@ -259,6 +260,9 @@ function build() {
   know.append(knowBox = el('p', 'dv-info'), btn(S.knowAll, () => { knowEvery(); refresh(); }), btn(S.forgetKnowledge, () => { forgetKnowledge(); refresh(); }),
     btn(S.findReactions, () => { findEveryReaction(REACTION_IDS); refresh(); }), btn(S.forgetReactions, () => { forgetReactions(); refresh(); }), // (M4.8: the book's wheel)
     btn(S.findWeaves, () => { findEveryWeave(WEAVE_IDS); refresh(); }), btn(S.forgetWeaves, () => { forgetWeaves(); refresh(); })); // (M4.10)
+  // spell marks (M4.11): what the slotted spells and the knowledge show on the mage; attune to a school, show the circle
+  const marks = section(pages.magic, S.marks);
+  marks.append(marksInfo = el('p', 'dv-info'), ...SCHOOLS.map(sc => btn(S.attune(STR.schools[sc]), () => { attuneTo(sc); refresh(); })), btn(S.showCircle, () => { player.still = CFG.marks.circle.after + 3; closeDev(); }));
   // every reaction (M4.8), set off on training dummies just ahead
   const reacts = section(pages.magic, S.reactionsHere);
   for (const r of REACTION_IDS) reacts.append(btn(STR.reactions[r], () => { closeDev(); const q = ahead(3); setOffReaction(r, q.x, q.z); }, STR.knowledge.reactionText[r]));
@@ -460,6 +464,7 @@ function refresh() {
   costInfo.textContent = S.costumeInfo(wornNow(), heldNow() ?? '');
   transInfo.textContent = S.transformInfo(G.run.transforms.map(t => STR.transforms[t].name), blinkRest());
   arcInfo.textContent = S.arcInfo(arcNow(), arcHeld(), DEV.arc !== undefined);
+  { const m = marksNow(); marksInfo.textContent = S.marksInfo(m.hands.map(h => h ? `${STR.schools[h.school]} (${h.state}${h.ring ? ', ring' : ''})` : '-'), m.attuned ? STR.schools[m.attuned] : '', m.circle.known.reduce((a, b) => a + b, 0), m.circle.mastered.map(sc => STR.schools[sc])); }
   arcInfo.parentElement?.querySelectorAll<HTMLButtonElement>('button[data-arc]').forEach(b => b.classList.toggle('on', b.dataset.arc === String(DEV.arc)));
   transBox.querySelectorAll<HTMLButtonElement>('button[data-t]').forEach(b => b.classList.toggle('on', G.run.transforms.includes(b.dataset.t as never)));
   closeBtn.classList.toggle('on', DEV.closeUp);
