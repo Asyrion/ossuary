@@ -231,6 +231,20 @@ export const STR = {
       manticore: { stilled: 'Holy light stills its tail.' },
     } as Record<string, Record<string, string>>,
     counterFound: (name: string, line: string) => `${name}: ${line}`,
+    /** Rooms with a pair (M4.7): the line the first time each pair is met in a run, by `foeA+foeB`. */
+    pairs: {
+      'cryptSpider+inkOctopus': 'Webs and ink together: every step here is slow. Fire clears the webs.',
+      'choirLark+stormMantis': 'The lark sings the mantis faster. Hush the lark.',
+      'glassNewt+thunderhead': 'Sparks rain on the newt\'s water. Stay out of it, or shock it yourself.',
+      'puddleElemental+stormDarter': 'The wave pours water, and the darter lays sparks across it.',
+      'saltGolem+basilisk': 'The golem stands before the basilisk. Go round it, or melt it.',
+      'cinderDjinn+magmaOoze': 'The djinn lights the room and the ooze burns it. Frost answers both.',
+      'moonstagFawn+gargoyleWhelp': 'The fawn mends the whelp\'s stone. The fawn first.',
+      'lodestoneGolem+harpy': 'The golem draws you in, and the harpy dives where you are drawn.',
+      'choirLark+rimeWolf': 'The lark sings for the wolves. Hush it, or the pack runs faster.',
+      'cinderDjinn+gloomRaven': 'The djinn lights the braziers the ravens flee. Let it.',
+      'glacierGolem+frostJackalope': 'The golem holds the line while the jackalope runs. Fire stops the running.',
+    } as Record<string, string>,
     /** M4.7: the first time in a run a foe steps into another kind's ground. */
     groundLine: 'Foes fall foul of each other\'s ground: webs and ink hold them, rime trips them, fire and sparks burn them.',
     mantles: {
@@ -530,6 +544,7 @@ export const STR = {
     mantles: 'A champion of this floor\'s heavies, in a mantle (M4.7; the school that strips it unbinds it):',
     lureTest: 'Lure test: fire, webs and rime between you and wolves and a golem',
     findCounters: 'Find every counter',
+    pairs: 'Pairs (M4.7; a fight may roll one, the two made to work together), ahead of you:',
     afflictions: 'Afflictions (each shows its chip beside the mana bar)', afflictNames: { hexed: 'A hexing blow', chill: 'Chill', stone: 'Heavy as stone', dim: 'Dimmed sight', hints: 'Their lines again' },
     wardFoe: 'Ward the nearest foe (it drinks spells)', fennex: 'Fen-Nex', growFennex: 'Grow Fen-Nex a stage', noFennex: 'Fen-Nex is not bound (take the Rune of Fen-Nex)', wanderer: 'The Wandering Merchant, here', noFoe: 'No foe in the room',
     foesOfFloor: (floor: number) => floor ? `Floor ${floor}'s foes, built in code:` : 'The Wardlings, let out by drinking wards:', foesAsFloor: 'Fights: each floor\'s own foes', foeEverywhere: (name: string) => `Fights: ${name} in every one`,

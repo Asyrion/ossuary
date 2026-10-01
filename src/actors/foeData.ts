@@ -160,3 +160,43 @@ export function pickFoe(table: RoleTable, role: Role, R: () => number, noElite =
   for (const [id, w] of list) { if (x < w) return id; x -= w; }
   return list[list.length - 1][0];
 }
+
+/** A floor's pairs (M4.7): how often a fight rolls one, and the pairs, weighted. */
+export interface PairTable { chance: number; list: [string, string, number][] }
+/** A fight's first wave as roles filled (rooms.ts's `buildRoom`): the kinds, and the roles they fill. */
+type Slot = { kind: string; role: string };
+/** Whether a room's first wave rolls a pair (M4.7: two foes made to work together, placed side by side): the pair (by
+    `pairs`' weights) takes the first two of its slots that aren't the boss, and the rest keep the rule of one elite and
+    one pack a room (an elite or a pack among them is drawn again from `table`). `R` from 0 to 1, from the room's seed.
+    Returns the slots the pair took, or nothing when the wave has fewer than two or the roll says none. Pure. */
+export function pairRoom(wave: Slot[], pairs: PairTable | undefined, table: RoleTable, R: () => number): [number, number] | undefined {
+  const free = wave.map((f, i) => f.kind === 'boss' ? -1 : i).filter(i => i >= 0);
+  if (!pairs?.list.length || free.length < 2 || R() >= pairs.chance) return undefined;
+  const total = pairs.list.reduce((s, [, , w]) => s + w, 0);
+  let x = R() * total, pair = pairs.list[pairs.list.length - 1];
+  for (const p of pairs.list) { if (x < p[2]) { pair = p; break; } x -= p[2]; }
+  const [a, b] = free;
+  wave[a].kind = pair[0]; wave[b].kind = pair[1];
+  let elite = [pair[0], pair[1]].some(k => isFoe(k) && FOES[k].elite), pack = [pair[0], pair[1]].some(k => isFoe(k) && FOES[k].pack);
+  for (const i of free.slice(2)) {
+    const k = wave[i].kind, isElite = isFoe(k) && !!FOES[k].elite, isPack = isFoe(k) && !!FOES[k].pack;
+    if ((isElite && elite) || (isPack && pack)) wave[i].kind = pickFoe(table, wave[i].role as Role, R, true, true);
+    elite ||= isFoe(wave[i].kind) && !!FOES[wave[i].kind as FoeId].elite; pack ||= isFoe(wave[i].kind) && !!FOES[wave[i].kind as FoeId].pack;
+  }
+  return [a, b];
+}
+/** What is wrong with the floors' pairs (empty when all is well): an unknown foe, a pair of one foe, a chance outside 0
+    to 1. */
+export function validatePairs(floors: readonly { pairs?: PairTable }[]) {
+  const out: string[] = [];
+  floors.forEach((f, i) => {
+    if (!f.pairs) return;
+    if (!(f.pairs.chance >= 0 && f.pairs.chance <= 1)) out.push(`floor ${i + 1}: pair chance ${f.pairs.chance}`);
+    for (const [a, b, w] of f.pairs.list) {
+      for (const k of [a, b]) if (!isFoe(k)) out.push(`floor ${i + 1}: pair foe ${k}`);
+      if (a === b) out.push(`floor ${i + 1}: a pair of ${a} alone`);
+      if (!(w > 0)) out.push(`floor ${i + 1}: pair weight ${w}`);
+    }
+  });
+  return out;
+}

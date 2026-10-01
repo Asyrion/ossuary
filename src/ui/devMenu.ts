@@ -14,7 +14,7 @@ import { wardFoe } from '../actors/wardShield';
 import { fennexInfo, growFennex } from '../combat/fennex';
 import { callWanderer } from '../items/wanderer';
 import { STR, foeName } from '../strings';
-import { FOES, FOE_IDS, pickFoe } from '../actors/foeData';
+import { FOES, FOE_IDS, pickFoe, type FoeType } from '../actors/foeData';
 import { forgetBestiary } from '../actors/bestiary';
 import { findEveryCounter } from '../actors/counters';
 import { ARTIFACT_DEFS, START_FOCUS, artifact } from '../items/artifactData';
@@ -249,6 +249,11 @@ function build() {
     const q = ahead(3), floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
     makeEnemy(pickFoe(floor.foes, 'H', Math.random, true), q.x, q.z, floorHp(), undefined, { champion: true });
   }));
+  // rooms with a pair (M4.7): each floor's pairs, the two side by side ahead of the mage
+  const pairList = [...new Set(FLOORS.flatMap(f => (f.pairs?.list ?? []).map(([a, b]) => `${a}+${b}`)))];
+  foes.append(el('p', 'dv-info', S.pairs), ...pairList.map(k => btn(k.split('+').map(foeName).join(' + '), () => {
+    const [a, b] = k.split('+') as FoeType[], q = ahead(3.5); spawnFoe(a, q.x - .6, q.z, floorHp()); spawnFoe(b, q.x + .6, q.z, floorHp());
+  })));
   // foes in each other's ground (M4.7): a band of fire, webs and rime between the mage and a wolf pack and a salt golem
   foes.append(btn(S.lureTest, () => { closeDev(); lureTest(player.x, player.z); }));
   // a champion in each school's mantle (M4.7): the floor's heavy, wearing it
