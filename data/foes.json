@@ -197,9 +197,9 @@
   },
   "stormMantis": {
     "floor": 1, "school": "storm", "weak": "frost", "resist": "storm",
-    "hp": 16, "r": 0.38, "speed": 1.9, "contact": 1, "flying": false,
+    "hp": 12, "r": 0.38, "speed": 1.9, "contact": 1, "flying": false,
     "behaviour": "mantis",
-    "params": {"keep": 2.1, "stalk": [1.4, 2.4], "tell": 0.5, "lunge": 8, "lungeTime": 0.32, "open": 1.2, "parryArc": 0.45, "parrySpeed": 4.2},
+    "params": {"keep": 2.1, "stalk": [2, 3], "tell": 0.6, "lunge": 6.5, "lungeTime": 0.32, "open": 1.2, "parryArc": 0.45, "parrySpeed": 4.2},
     "gib": "#b2c272", "stain": "#141c0c"
   },
   "rubbleCrab": {
@@ -211,9 +211,9 @@
   },
   "rimeSnail": {
     "floor": 2, "school": "frost", "weak": "ember", "resist": "frost",
-    "hp": 22, "r": 0.5, "speed": 0.7, "contact": 1, "flying": false,
+    "hp": 18, "r": 0.5, "speed": 0.7, "contact": 1, "flying": false,
     "behaviour": "snail",
-    "params": {"trailEvery": 0.3, "rimeSize": 0.5, "rimeTime": 5, "spitEvery": [2.2, 3.2], "spitRange": 6, "shotSpeed": 3.4, "chill": 1.2, "shellAt": 7, "shellTime": 2.5, "shellGuard": 0.1, "crackTime": 2.2, "crackGuard": 1.5},
+    "params": {"trailEvery": 0.3, "rimeSize": 0.5, "rimeTime": 5, "spitEvery": [2.2, 3.2], "spitRange": 6, "shotSpeed": 3.4, "chill": 1.2, "shellAt": 7, "shellTime": 2.5, "shellGuard": 0.2, "crackTime": 2.2, "crackGuard": 1.5},
     "gib": "#cfe8f4", "stain": "#2a4a60"
   },
   "glassNewt": {
@@ -262,7 +262,7 @@
     "floor": 3, "school": "ember", "weak": "ember", "resist": "storm",
     "hp": 18, "r": 0.45, "speed": 0.1, "contact": 0, "flying": false,
     "behaviour": "nest",
-    "params": {"first": 0.6, "every": [2.4, 3.4], "brood": 3, "guard": 0.15},
+    "params": {"first": 0.6, "every": [2.4, 3.4], "brood": 3, "guard": 0.3},
     "gib": "#9a8a72", "stain": "#2a2018"
   },
   "emberWasp": {
@@ -330,7 +330,7 @@
   },
   "radiantEye": {
     "floor": 4, "school": "hallow", "weak": "umbral", "resist": "hallow",
-    "hp": 16, "r": 0.4, "speed": 1.4, "contact": 1, "flying": true,
+    "hp": 13, "r": 0.4, "speed": 1.4, "contact": 1, "flying": true,
     "behaviour": "eye",
     "params": {"shut": [1.8, 2.8], "guard": 0.5, "keep": 4, "track": 1.2, "delay": 0.6, "hit": 0.8},
     "gib": "#f6f0e0", "stain": null
@@ -353,7 +353,7 @@
     "floor": 4, "school": "ember", "weak": "frost", "resist": "ember", "elemental": true,
     "hp": 36, "r": 0.6, "speed": 1, "contact": 1, "flying": false, "elite": true,
     "behaviour": "hearth",
-    "params": {"guard": 0.2, "throwEvery": [2.6, 3.4], "throwRange": 7, "coals": 3, "spread": 1.6, "flight": 0.9, "fireTime": 2.6, "out": 4},
+    "params": {"guard": 0.35, "throwEvery": [3.2, 4.2], "throwRange": 7, "coals": 3, "spread": 1.6, "flight": 0.9, "fireTime": 2, "out": 4},
     "gib": "#ff7a2a", "stain": "#2a120a"
   },
   "shadowFox": {
@@ -374,7 +374,7 @@
     "floor": 5, "school": "frost", "weak": "ember", "resist": "frost", "elemental": true,
     "hp": 40, "r": 0.65, "speed": 0.85, "contact": 1, "flying": false, "elite": true,
     "behaviour": "glacier",
-    "params": {"stompEvery": [2.8, 3.8], "stompRange": 6, "tell": 0.7, "spikes": 7, "spikeEvery": 0.09, "gap": 0.65, "hit": 0.55, "arc": 0.9, "front": 0.15, "frozen": 3, "shatter": 0.35},
+    "params": {"stompEvery": [2.8, 3.8], "stompRange": 6, "tell": 0.7, "spikes": 7, "spikeEvery": 0.09, "gap": 0.65, "hit": 0.55, "arc": 0.65, "front": 0.3, "frozen": 3, "shatter": 0.35},
     "gib": "#cfeaf8", "stain": "#1a3a4a"
   },
   "hydra": {

@@ -257,6 +257,45 @@ framework on the ten. Each is drawn up in code as a look first (the dev menu's g
 made a foe. The rules of the ten hold: round, readable shapes; big eyes on the critters; a school's light; smaller than
 the mage (elites and bosses aside); a floor each. The ideas to choose from are in `docs/ideas.md` (Bestiary).
 
+The owner's redesign (2026-10-01): all thirty-one candidates and four more, thirty-five, as fantasy animals and
+creatures rather than cute critters: readable at a glance as what they are, fierce, their real size, and no undead. Each
+brings a kind of fight from the idea bank with a magic take that changes it. Elementals follow the idea bank's rule: their
+own school heals them, blows and statuses alike ("Drinks it"), and their weakness hurts them twice over (the Puddle
+Elemental, Thunderhead, Cinder Djinn, Magma Ooze, Lodestone, Hearth and Glacier Golems).
+
+As built (the table and steps in `docs/M4.5-plan.md`), seven a floor beside M4's and M4.1's:
+
+- **Floor 1, the crypt.** The Crypt Spider drops from out of reach and spits webs that slow (fire burns them); the Ink
+  Octopus smears ink that slows and splits at half (chilled, it cracks instead); the Grimoire Mimic lies shut as a book,
+  then flies, riffles cutting pages and bites; the Firefly Swarm is several beetles with one mind; the Choir Lark perches
+  and sings the foes round it faster (a hex silences it); the Storm Mantis parries bolts from the front (chilled, it
+  can't); the Rubble Crab hides as rubble and a glyph's blast flips it.
+- **Floor 2, the drowned.** The Rime Snail leaves rime the mage slides on and hides in an ice shell fire cracks; the Glass
+  Newt swims unseen and lunges with a chilling bite (a shocked or frozen pool shows it); the Brine Serpent rises from its
+  pool to spit brine (ice traps it); the Puddle Elemental pours water as it walks, and frozen, a shock shatters it; the
+  Thunderhead rains sparks over the mage; the Storm Darter dashes laying sparks (chilled, it hangs); the Puffcap bursts in
+  stinging spores (fire pops it early).
+- **Floor 3, the burning crypt.** The Ember Wasps' nest, set in a wall, lets out wasps whose sting burns the ground, and
+  only fire truly harms it; the Cinder Djinn lights braziers and hurls fire (frost snuffs it); the Magma Ooze leaves
+  burning ground, splits, and frozen hard a blow shatters it; the Phoenix (elite) dives in a burning line and rises once
+  from its ashes unless frost or a blast puts them out; the Basilisk's stare makes the mage heavy as stone (anything tall
+  blocks it, holy light blinds it); the Salt Golem stands between the mage and the other foes (fire slows it); the Rubble
+  Golem drops stones from the roof, and a blast breaks it into stones that roll back together unless put down.
+- **Floor 4, the Gilded Reliquary.** The Griffin (elite) soars out of reach and swoops down a marked line (a hex grounds
+  it); the Radiant Eye fires a ray where the mage stood (shut, it takes half; a hex shuts it); the Harpy screeches glyphs
+  away and bolts aside, and dives; the Lodestone Golem draws the mage and bends bolts towards itself (frozen, it can't);
+  the Hearth Golem (elite) turns blows while its fire burns, until frost puts it out; the Shadow Fox blinks from shadow to
+  shadow (lights deny it ground, holy light holds it); the Rime Scarab throws a growing snowball (fire melts it).
+- **Floor 5, the Ferryman's Shore.** The Glacier Golem (elite) turns blows from the front, stomps ice spikes, and frozen
+  stiff a shock shatters it; the Hydra (elite) loses heads that grow back as two unless fire sears the stump; the Gloom
+  Raven darkens the mage's sight and flees light; the Rime Wolves hunt as a pack, howl themselves faster and scatter from
+  fire; the Dust Pangolin rolls (bolts glance off) until a wall dazes it, open to twice the harm; the Frost Jackalope keeps
+  its distance stamping rime (burning ground stops its leaps); the Manticore looses hexing spikes and pounces (holy light
+  stills its tail).
+
+The mage is the Tripo model of the play-tests again: a version of Asyrion built in code from the owner's picture was tried
+on 2026-10-01 and reverted at the owner's ask the same day.
+
 **Spell effects in the same style (decided 2026-09-30).** The owner liked the Cinder Lance in the new style, so every
 spell's effect is redone in it, and `docs/effects.md` is the guide for every effect to come.
 
