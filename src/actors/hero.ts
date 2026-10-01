@@ -12,6 +12,7 @@ import { shootDir } from '../input';
 import { angleLerp, lerp } from '../util';
 import { findMiniatureBase } from './baseDetect';
 import { fitCostumes } from './costume';
+import { buildApprentice } from './apprentice';
 import { buildHeroAnim, playCast, playDeath, playGesture, playHit, resetAnim, updateHeroAnim, type HeroAnim } from './heroAnim';
 
 export const hero = {
@@ -21,7 +22,9 @@ export const hero = {
 hero.root.add(hero.yaw); hero.yaw.add(hero.lean); hero.root.add(blob(.95)); scene.add(hero.root);
 const loader = new GLTFLoader();
 
-interface PreparedHero { holder: THREE.Group; skinned: boolean; stripped: boolean; tris: number }
+/** A model ready to wear: its holder, whether it is rigged, whether a base was cut off, its triangles, and (a hero built
+    in code) how fast its own run and walk play at full speed. */
+export interface PreparedHero { holder: THREE.Group; skinned: boolean; stripped: boolean; tris: number; speeds?: { run: number; walk: number } }
 
 /** Normalise any GLB to CFG.hero.height tall, centred, feet on the floor. */
 export function prepareHero(gltf: GLTF): PreparedHero {
@@ -80,7 +83,7 @@ export function setHero(prep: PreparedHero, gltf: Pick<GLTF, 'animations'>, labe
   hero.anim = null; hero.lean.rotation.set(0, 0, 0); hero.lean.position.set(0, 0, 0);
   fitCostumes(prep.holder); // measured in the rest pose, before a clip moves the bones
   const clips = (gltf.animations || []).slice();
-  if (prep.skinned && clips.length) hero.anim = buildHeroAnim(prep.holder, clips);
+  if (prep.skinned && clips.length) hero.anim = buildHeroAnim(prep.holder, clips, prep.speeds);
   const roles = hero.anim?.roles ?? {};
   const clipList = Object.entries(roles).filter(([, c]) => c).map(([k, c]) => `${k}: ${c!.name.replace(/\.\d+$/, '')}`).join(', ');
   hero.info = STR.heroInfo(label, prep.tris, prep.stripped, prep.skinned, clipList);
@@ -92,6 +95,26 @@ export function loadHeroBuffer(buf: ArrayBuffer, label: string) {
   }, rej));
 }
 
+/** Which model the mage wears: Asyrion built in code (the owner's picture, 2026-10-01), or the Tripo model from the
+    play-tests (public/assets/hero_default.glb). Chosen by `?hero=glb` or the dev menu, remembered in the browser. */
+export type HeroModel = 'apprentice' | 'glb';
+const HERO_KEY = 'ossuary.hero', HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
+export function heroChoice(): HeroModel {
+  const q = new URLSearchParams(location.search).get('hero');
+  if (q === 'glb' || q === 'apprentice') return q;
+  try { return localStorage.getItem(HERO_KEY) === 'glb' ? 'glb' : 'apprentice'; } catch { return 'apprentice'; }
+}
+/** Put the mage in `kind` (and remember it, when `keep`). */
+export async function wearHero(kind: HeroModel, keep = false) {
+  if (keep) try { localStorage.setItem(HERO_KEY, kind); } catch { /* private window: this session only */ }
+  if (kind === 'apprentice') { const a = buildApprentice(); setHero(a.prep, { animations: a.clips }, STR.apprenticeLabel); return; }
+  try {
+    const res = await fetch(HERO_URL);
+    if (!res.ok) throw new Error(`${HERO_URL}: HTTP ${res.status}`);
+    await loadHeroBuffer(await res.arrayBuffer(), 'hero_default.glb');
+  } catch (e) { console.error(e); setHero(fallbackHero(), { animations: [] }, 'fallback'); }
+}
+
 export function fallbackHero(): PreparedHero {
   const g = new THREE.Group(); const body = new THREE.Mesh(new THREE.CapsuleGeometry(.25, .4, 4, 8), M.hero); body.position.y = .5; g.add(body);
   const holder = new THREE.Group(); holder.add(g); return { holder, skinned: false, stripped: false, tris: 0 };
@@ -99,6 +122,8 @@ export function fallbackHero(): PreparedHero {
 
 export function heroCast() { if (hero.anim) playCast(hero.anim, player.stats.fireDelay); }
 export function heroHit() { if (hero.anim) playHit(hero.anim); }
+/** The mage bends to chalk a glyph, when the model has a sigil clip (Asyrion, built in code). */
+export function heroSigil() { if (hero.anim) playGesture(hero.anim, 'sigil'); }
 /** The mage drinks in a heart's warmth (healing), when the model has a drinking clip. */
 export function heroDrink() { if (hero.anim) playGesture(hero.anim, 'drink'); }
 /** Returns how long the death animation takes, in seconds. */

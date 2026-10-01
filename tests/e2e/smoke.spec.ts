@@ -1572,14 +1572,14 @@ test('M3 artifacts: burning and chilling bolts, homing bolts, the pendant, the t
 
 test('the Pilgrim\'s Cowl puts a hood on the mage, hung from the head bone, and it moves with the head', async ({ page }) => {
   const errors = await start(page, '?seed=HOOD01');
-  type Obj = { name: string; isBone?: boolean; isMesh?: boolean; children: Obj[]; traverse(f: (o: Obj) => void): void;
+  type Obj = { name: string; isBone?: boolean; isMesh?: boolean; userData: { costume?: boolean }; children: Obj[]; traverse(f: (o: Obj) => void): void;
     matrixWorld: unknown; getWorldPosition(v: V3): V3; geometry: { boundingSphere: { center: V3 } | null; computeBoundingSphere(): void }; localToWorld(v: V3): V3 };
   type V3 = { x: number; y: number; z: number; clone(): V3; distanceTo(v: V3): number };
   const view = () => page.evaluate(() => {
     const g = (window as unknown as W).__game as GameHooks & { costume: string[]; hero: { model: Obj }; camera: { position: V3 & { constructor: new () => V3 } } };
     let head: Obj | null = null; g.hero.model.traverse(o => { if (!head && o.isBone && /head$/i.test(o.name)) head = o; });
     const h = head as Obj | null; if (!h) return { worn: g.costume, onHead: -1, gap: -1 };
-    const parts = h.children.filter(c => !c.isBone);
+    const parts = h.children.filter(c => c.userData.costume); // (not the model's own parts on the head bone)
     // how far the hood's middle is from the head bone, in the world
     const V = g.camera.position.constructor, at = h.getWorldPosition(new V());
     let gap = -1;
