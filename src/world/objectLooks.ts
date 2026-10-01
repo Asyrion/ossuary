@@ -31,6 +31,7 @@ export const C = {
   bark: 0x5e4834, barkDark: 0x4a3828, earth: 0x2a221a, lichen: 0x7a8466, moss: 0x3a4a2a, hanging: 0x5a6a50,
   cane: 0x847a4c, thorn: 0xe0d0a8, berry: 0x8a1818, leaf: 0x4e4a26,
   stem: 0xd4dcc4, cap: 0x3fb896, capRim: 0x1e6e58, spot: 0xe0fff4, gill: 0x6a8a78, spore: 0x9fe8b0,
+  green: 0x5e8a34, greenDark: 0x3e6424, greenLight: 0x86b048, petal: 0xf0a8c8, petalPale: 0xfae6ee, heart: 0xf0d860, pollen: 0xf0e890,
   wood: 0x6e4c30, woodDark: 0x4e3622, woodLight: 0x82603c, pew: 0xa27450, pewDark: 0x80583a, pewLight: 0xb88a5c, paper: 0xd8cbaa, paperOld: 0xbfae88, leather: 0x5e2620, ink: 0x1a1a24, quill: 0xe8e4d8,
   soot: 0x241e1c, seal: 0x9a1e18, ribbon: 0x7a2a2a, rune: 0x8fd0ff, gold: 0xffd98a, blood: 0xb02a1a, shroud: 0xcfc6b0, linen: 0xa89c84,
 };
@@ -57,6 +58,8 @@ const GEO = {
   stem: shared(new THREE.CylinderGeometry(.022, .032, 1, 6).translate(0, .5, 0)), bulb: shared(new THREE.SphereGeometry(.04, 6, 4).scale(1, .7, 1)),
   patch: shared(new THREE.SphereGeometry(.07, 6, 3).scale(1, .6, .25)),
   gills: shared(new THREE.CircleGeometry(1, 9).rotateX(Math.PI / 2)), spot: shared(new THREE.SphereGeometry(.014, 4, 3)),
+  // a flowering plant's broad leaf (out along +z from its stalk) and a petal (out along +z from the bloom's heart)
+  broadLeaf: shared(new THREE.SphereGeometry(1, 7, 4).scale(.06, .014, .15).translate(0, 0, .12)), petal: shared(new THREE.SphereGeometry(1, 6, 4).scale(.035, .012, .06).translate(0, 0, .05)),
   // a scroll (rolled paper), its knobs, a ribbon, a seal; a loose sheet
   scroll: shared(new THREE.CylinderGeometry(1, 1, 1, 8)), knob: shared(new THREE.CylinderGeometry(.018, .018, .05, 5)), ribbon: shared(new THREE.TorusGeometry(1, .08, 3, 10).rotateY(Math.PI / 2)),
   sealDisc: shared(new THREE.CylinderGeometry(.03, .03, .012, 7)), sheet: shared(new THREE.BoxGeometry(.26, .008, .32)),
@@ -195,6 +198,31 @@ export const OBJECT_LOOKS = {
     const spores = makeMotes(specs, C.spore, 10, .7, .3), gl = glow(0x6fe8c0, 1.2, .55); gl.position.y = .3;
     g.add(spores, gl);
     g.userData.parts = { spores }; // (kept apart: it moves by itself)
+    return g;
+  },
+  /** A flowering plant (M5, the overgrown garden's): broad leaves spread from its foot, stalks rising to five blooms of
+      rose and pale petals round hearts that glow pollen-gold, and pollen drifting up from them. */
+  blossom(R) {
+    const g = new THREE.Group(), specs: FlameSpec[] = [];
+    put(mesh(g, GEO.mound, tone(C.earth, .1), 0, 0, 0), 0, 0, 0, [.62, .8, .66]);
+    for (let i = 0; i < 9; i++) { // the leaves, out from the middle and lying back towards the floor
+      const a = i / 9 * Math.PI * 2 + R() * .5, leaf = new THREE.Group(); leaf.position.set(0, .05 + R() * .05, 0); leaf.rotation.y = a; g.add(leaf);
+      put(mesh(leaf, GEO.broadLeaf, tone(i % 3 ? C.green : C.greenDark, .12)), -.35 - R() * .35, 0, 0, .9 + R() * .4);
+    }
+    const blooms = [[0, .46, 0], [.17, .34, .08], [-.16, .36, .06], [.08, .28, -.15], [-.07, .3, .17]];
+    blooms.forEach(([x, h, z], i) => {
+      const x1 = x + (R() - .5) * .04, z1 = z + (R() - .5) * .04, stalk = curve([[x * .2, .04, z * .2], [x1 * .7, h * .6, z1 * .7], [x1, h, z1]]);
+      mesh(g, taperTube(stalk, 6, .014, .009, 4), tone(C.greenLight, .08));
+      const q = stalk.getPointAt(.55); put(mesh(g, GEO.leaf, tone(C.green, .1), q.x, q.y, q.z), 0, R() * 6, 0, 1.4);
+      const bloom = new THREE.Group(); bloom.position.set(x1, h, z1); bloom.rotation.set(-x1 * 1.2 + .25, 0, z1 * 1.2); g.add(bloom); // (each bloom turned out, a little towards the camera)
+      const s = i ? .78 + R() * .2 : 1.1, colour = i % 2 ? C.petalPale : C.petal;
+      for (let k = 0; k < 5; k++) { const p = new THREE.Group(); p.rotation.y = k / 5 * Math.PI * 2 + R() * .3; bloom.add(p); put(mesh(p, GEO.petal, tone(colour, .06)), -.3, 0, 0, s); }
+      mesh(bloom, GEO.bulb, glowTone(C.heart), 0, .012, 0).scale.setScalar(s * .75);
+      specs.push({ x: x1, y: h + .02, z: z1, h: .08, w: .1 });
+    });
+    const pollen = makeMotes(specs, C.pollen, 8, .6, .3), gl = glow(0xf0e070, .9, .4); gl.position.y = .35;
+    g.add(pollen, gl);
+    g.userData.parts = { pollen }; // (kept apart: it moves by itself)
     return g;
   },
   /** A scribe's sloped desk: legs and stretchers, a ledge along its foot, an open book on it with a rune glowing on its

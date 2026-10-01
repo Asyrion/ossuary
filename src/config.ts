@@ -155,11 +155,13 @@ export const CFG = {
   // the oil a broken cask spills (tiles beyond its own), and glowcap spores (how long a cloud hangs, its reach, the
   // flash when fire finds it: damage to foes, Burn stacks, half hearts to the mage within reach)
   props: {
-    burn: { roots: 3.5, tree: 6, briar: 2, web: .45, sacks: 1.6, desk: 3, scrolls: .7, bridge: 4 } as Record<string, number>, spread: .5,
+    burn: { roots: 3.5, tree: 6, briar: 2, web: .45, sacks: 1.6, desk: 3, scrolls: .7, bridge: 4, blossom: 1.2 } as Record<string, number>, spread: .5,
     // M4.2: half hearts a fall through a burnt rope bridge takes from the mage
     fallHurt: 2,
     webSlow: .45, briarHurt: 1, briarDamage: 2, caskSpill: 3,
     spores: { time: 4, reach: 1.3, stingReach: 1.04, damage: 6, burn: 2, mageHurt: 1 }, // (stingReach: where a stinging cloud's thick enough to sting)
+    // M5: a flowering plant's burst: how far its pollen reaches, and the seconds it overgrows the foes there
+    blossom: { reach: 1.8, grow: 4 },
   },
   // themed rooms' twists (M3.6, world/themes.ts): how close the mage comes before a sleeper wakes; when the ossuary's
   // piles start rising (seconds into the fight), how often, and how many at most; the chance a scriptorium's scroll heap
@@ -200,7 +202,9 @@ export const CFG = {
   ward: { reach: 4, need: 60, foeNeed: 60, beside: 1.2 },
   themes: { wakeReach: 2.6, riseAfter: 10, riseEvery: 6, riseMost: 3, pageChance: .3, caveReach: 3.5, caveStones: 3, caveDelay: .8, caveDamage: 8, daylightClear: 3, bedrollClear: 2,
     // M4.1: the drowned climb out of the landing's river this long into a fight, then this often, at most this many
-    drownAfter: 5, drownEvery: 7, drownMost: 3 },
+    drownAfter: 5, drownEvery: 7, drownMost: 3,
+    // M5: how much longer Overgrown holds on foes in the overgrown garden
+    gardenGrow: 1.75 },
   // the library: how close the mage must come to a page, the gap between lecterns, and how far into the room
   // (from the door) their row stands, for a door on a long side and on a short one
   library: { reach: .4, spacing: 2.3, spacingShort: 1.9, rowIn: 1.1, rowInShort: 2.6 },
@@ -300,7 +304,7 @@ export const CFG = {
   // many seconds after the cast; the Grave Draught's thrall (its pace, a blow, seconds between blows, how near it strikes);
   // M5 step 8: the Cracked Retort's splash (times as wide) and its glass's cut, and how far apart the Alchemist's split
   // bottles land (across the aim)
-  alchemy: { belt: 3, bottleScale: 1.45, reagentScale: 1.8, reagent: { foe: 0.12, object: 0.3, satchelMul: 1.3 }, recipePrice: 6, lab: { reach: 0.55, jellyAt: 1.6, globeJelly: 0.4, windowClear: 2.5 }, vat: { cracks: 3, crackGap: 0.25, restless: 0.35, restlessAfter: 1.4, flood: 30 }, hold: 0.25, reach: 4.5, flight: 0.45, arc: 1.1, splash: 1.1, echoMul: 6, echoAfter: 0.3, thrall: { speed: 2.4, damage: 7, every: 0.7, near: 0.7 }, retort: { splashMul: 1.5, cut: 6 }, split: 2 },
+  alchemy: { belt: 3, bottleScale: 1.45, reagentScale: 1.8, reagent: { foe: 0.12, object: 0.3, blossom: 0.6, satchelMul: 1.3 }, recipePrice: 6, lab: { reach: 0.55, jellyAt: 1.6, globeJelly: 0.4, windowClear: 2.5 }, vat: { cracks: 3, crackGap: 0.25, restless: 0.35, restlessAfter: 1.4, flood: 30 }, hold: 0.25, reach: 4.5, flight: 0.45, arc: 1.1, splash: 1.1, echoMul: 6, echoAfter: 0.3, thrall: { speed: 2.4, damage: 7, every: 0.7, near: 0.7 }, retort: { splashMul: 1.5, cut: 6 }, split: 2 },
   // the mage in the pixel-art look (actors/heroPixel.ts, 2026-10-01): its texture baked into its vertices (each the mean of
   // the texels within `sample` of where it lies) and cut down to `colours`; light in the `tones` (darkest first, a toon
   // ramp's steps) with `glow` of its own colour as self-light, as the model had, so it reads in dark rooms

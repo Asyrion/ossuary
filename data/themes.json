@@ -42,5 +42,9 @@
   { "id": "landing", "name": "Ferry landing", "twist": "drowned",
     "look": { "kit": { "wall": { "pilings": 1 }, "floor": { "boards": 1 } }, "torch": { "flame": "#d8f0ff", "light": "#9ad0e8", "intensity": 0.95 },
       "wall": { "stains": "salt", "dress": { "pilaster": 2, "niches": { "empty": 2, "candle": 1 } } } },
-    "scatter": { "lamps": 2, "ropes": 1 } }
+    "scatter": { "lamps": 2, "ropes": 1 } },
+  { "id": "garden", "name": "Overgrown garden", "twist": "garden",
+    "look": { "kit": { "floor": { "cobbles": 1 } }, "floor": { "stain": "50,82,30" }, "torch": { "flame": "#f8f0c0", "light": "#d8f0a0", "intensity": 1.0 },
+      "wall": { "stains": "moss", "dress": { "pilaster": 2, "niches": { "empty": 3, "urn": 1 } } } },
+    "scatter": { "moss": 6, "flowers": 9, "leaves": 3, "daylight": 1 } }
 ]

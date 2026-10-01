@@ -63,7 +63,8 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
     if (drinksStatus(e.foe, kind)) { // (M4.5: an elemental drinks its own school's status; the ground under it still hears it)
       drink(e, amount * CFG.bestiary.statusHeal); foeAfflicted(e, kind); if ((STATUS_KINDS as string[]).includes(kind)) touchPools(e, kind as StatusKind); continue;
     }
-    const res = applyStatus(e.status ??= newStatus(), kind, amount, !!e.isBoss);
+    const garden = kind === 'grow' && G.current?.theme?.twist === 'garden'; if (garden) gardenHolds(e); // (M5: the garden grows; its vines hold longer)
+    const res = applyStatus(e.status ??= newStatus(), kind, garden ? amount * CFG.themes.gardenGrow : amount, !!e.isBoss);
     if (res.froze) { Sfx.at(e.x, e.z).freeze(); burst(e.x, .6, e.z, ICE, 12, 1.6, .05); }
     if (res.stunned) burst(e.x, .9, e.z, SPARK, 6, 2, .03);
     if (res.reaction) react(e, res.reaction);
@@ -203,6 +204,12 @@ function verdantReact(e: Enemy, r: Reaction) {
     return true;
   }
   return false;
+}
+
+/** The overgrown garden's twist (M5): its vines hold longer; the first time in a room, a word over the foe says so. */
+function gardenHolds(e: Enemy) {
+  const room = G.current; if (room.gardenSaid) return;
+  room.gardenSaid = true; floatText(e.x, 1.3, e.z, STR.grow.garden, LEAF, 40);
 }
 
 /** Pollen Spark's clouds: where each hangs, how long it has left, its next shock (and the room it is in). */

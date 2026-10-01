@@ -21,7 +21,7 @@ export const THROW_PARAMS: Record<ThrowEffect, string[]> = {
 };
 
 export type PotionId = 'healing' | 'mana' | 'liquidEmber' | 'frostbrew' | 'bottledStorm' | 'echoes' | 'giants' | 'shadowstep' | 'bitterRemedy' | 'volatile' | 'hexBrew' | 'graveDraught';
-export type ReagentId = 'graveMoss' | 'wispEssence' | 'boneDust' | 'emberSalt' | 'rimewater' | 'wardensAsh';
+export type ReagentId = 'graveMoss' | 'wispEssence' | 'boneDust' | 'emberSalt' | 'rimewater' | 'bloomPetal' | 'wardensAsh';
 type Params = Record<string, number | string | undefined>;
 export interface PotionDef {
   id: PotionId; name: string;

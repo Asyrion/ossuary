@@ -8,7 +8,7 @@ describe('alchemy', () => {
   it('the data is whole: twelve potions, six reagents, every potion but the failed brew has a recipe', () => {
     expect(validateAlchemy()).toEqual([]);
     expect(POTION_IDS).toHaveLength(12);
-    expect(REAGENT_IDS).toEqual(['graveMoss', 'wispEssence', 'boneDust', 'emberSalt', 'rimewater', 'wardensAsh']);
+    expect(REAGENT_IDS).toEqual(['graveMoss', 'wispEssence', 'boneDust', 'emberSalt', 'rimewater', 'bloomPetal', 'wardensAsh']);
     for (const id of POTION_IDS) if (id !== 'volatile') expect(RECIPES.some(r => r.makes === id)).toBe(true);
     expect(POTIONS.hexBrew.bad && POTIONS.graveDraught.bad).toBe(true); // (still worth throwing)
   });
@@ -32,6 +32,11 @@ describe('alchemy', () => {
     // Warden's Ash with anything brews something strong
     for (const r of REAGENT_IDS) { const p = brew('wardensAsh', r).potion; expect(p).not.toBe('volatile'); }
     expect(recipeFor('rimewater', 'graveMoss')).toBeUndefined();
+    // M5 step 9: Verdant's Bloom Petal leans to healing and growth
+    expect(brew('bloomPetal', 'graveMoss').potion).toBe('healing');
+    expect(brew('wispEssence', 'bloomPetal').potion).toBe('mana');
+    expect(brew('bloomPetal', 'emberSalt').potion).toBe('liquidEmber');
+    expect(brew('bloomPetal', 'rimewater')).toEqual({ potion: 'volatile', recipe: false });
   });
 
   it('bottles: each potion its own, the same seed dealing the same, another seed another; shapes spread before one repeats', () => {
@@ -62,6 +67,8 @@ describe('alchemy', () => {
     expect(reagentFor({ foe: 'warden', boss: true })).toBe('wardensAsh');
     expect(reagentFor({ object: 'bones' })).toBe('boneDust');
     expect(reagentFor({ object: 'pew' })).toBeNull();
+    expect(reagentFor({ object: 'blossom' })).toBe('bloomPetal'); // (M5 step 9: the garden's flowering plants, and Verdant's foes)
+    expect(reagentFor({ foe: 'wardVerdant', school: 'verdant' })).toBe('bloomPetal');
     expect(reagentFor({ foe: 'rotling', school: null })).toBeNull();
   });
 
