@@ -39,7 +39,7 @@ const GEO = {
 const TRIM: Record<DoorStyle, { color: number; metal: number } | null> = {
   normal: null, secret: null, treasure: { color: 0xc49a4a, metal: .5 }, boss: { color: 0x7a1c14, metal: 0 }, ordeal: { color: 0x3a3a42, metal: .5 },
   altar: { color: 0xd6cab0, metal: 0 }, merchant: { color: 0xa27a3e, metal: .4 }, vault: { color: 0x5e5e68, metal: .6 }, shrine: { color: 0xd8d0b8, metal: 0 },
-  library: { color: 0x6e4c30, metal: 0 },
+  library: { color: 0x6e4c30, metal: 0 }, laboratory: { color: 0x4e6a3a, metal: .35 },
 };
 
 /** A door in the room kit's style, built at the door's middle on the wall's centre line, facing +z (into the room), with
@@ -113,6 +113,12 @@ const EMBLEMS: Partial<Record<DoorStyle, (g: THREE.Group, trim: THREE.Material) 
     const light = glowTone(0xf4e2b0); mesh(g, GEO.ring, light, 0, 0, .02);
     for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; put(mesh(g, GEO.smallRune, light, Math.cos(a) * .19, Math.sin(a) * .19, .03), 0, 0, a - Math.PI / 2, .8); }
     const gl = glow(0xffe8b0, .9, .8); gl.position.z = .06; g.add(gl);
+  },
+  laboratory(g) { // a round flask of green jelly, glowing, on a copper ring (M5: Dr. Jelly's laboratory)
+    mesh(g, new THREE.SphereGeometry(.12, 10, 8), glowTone(0x7ae070), 0, -.02, .1);
+    mesh(g, new THREE.CylinderGeometry(.035, .04, .1, 6), tone(0x9ebed8, .04, .35), 0, .13, .1);
+    mesh(g, GEO.ring, tone(0x8a5a30, .06, .6), 0, -.02, .02).scale.setScalar(.75);
+    const gl = glow(0x7ae070, .9, .8); gl.position.z = .14; g.add(gl);
   },
   library(g) { // an open book tipped up to the light, a rune glowing on its page
     const b = new THREE.Group(); b.rotation.x = -.75; g.add(b);

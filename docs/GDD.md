@@ -774,7 +774,7 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
 
 **Their looks** are built in code: reagents and potion bottles are small props; bottles can share one mesh with shuffled colours.
 
-**M5 as built, steps 1 to 5 (2026-10-01; `docs/M5-plan.md`, its decisions taken as proposed, the owner to change any).**
+**M5 as built, steps 1 to 6 (2026-10-01; `docs/M5-plan.md`, its decisions taken as proposed, the owner to change any).**
 - *The data.* The twelve potions, six reagents and seventeen recipes are data (`data/alchemy.json`), each potion with its
   drink and throw effect and their numbers; the validator refuses a broken one.
 - *Bottles.* Six shapes built in code (flask, vial, jar, teardrop, skull, bulb), twelve of fourteen liquid colours: each
@@ -805,6 +805,15 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
   skull heap, grave root, glowcap, grave sack or oil cask leaves its reagent three times in ten, and a brazier's first fire
   may leave Ember Salt. The merchant sells potions (4 obols) and reagents (2, never Warden's Ash). The Alchemist's Satchel
   will make them come more often (step 8).
+- *Dr. Jelly's laboratory* is one more room on floors 1 and 3, on a free cell beside a fight room (a dead end where it can
+  be): the alchemy table in the middle facing the way in, Dr. Jelly behind it, four glass globes of glowing jelly on iron
+  stands, and the great arched window on the north wall where the jelly serpent coils in its vat. Walking up to the table
+  opens it (the game waits): two reagents into the mortar, then the flask brews them; a pair brewed or bought before says
+  what it makes, an unknown pair is an experiment (a recipe, or a Volatile Mixture). The potion goes into the belt (by the
+  table if the belt is full) and is known from then on; brewed once, it is known in every run. Walking up to Dr. Jelly
+  opens it at his recipes: each potion's for 6 obols (the pair, kept between runs). Once a visit he looks at an unknown
+  potion in the belt for nothing. A bolt or a blast bursts a jelly globe: a Lantern Jelly drifts out four times in ten,
+  else a reagent drops. The inventory's Potions tab lists the recipes known.
 
 ## RPG progression
 
@@ -1649,7 +1658,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4.9 The curve | Harder for the right reasons | Pressure dials per floor in data; libraries and merchants lean to the floor's weakness; a hex's drain traced to its foe; the sluice for water rooms; `npm run balance` measuring every foe (Depth for what's built; proposed 2026-10-01, `docs/M4.9-plan.md`) |
 | M4.10 Weaves | Combinations beyond pairs | Ten weaves (a spell striking what another left: the Steam Curtain, the Overload Seal, Eclipse Ground...), seven chains (a reaction's leavings met by a third school: Thundercloud, Incense, Miasma...), the room's mechanisms joining in; Verdant's Bloom and Blight designed for M5 (Depth for what's built; built 2026-10-01 at the owner's ask, `docs/M4.10-plan.md`) |
 | M4.11 Spell marks | You can see your magic | **Built 2026-10-01** (Spells: Spell marks; the owner's ask). The slotted spells shown at the hands with their state, attunement, a master's ring, the knowledge circle |
-| M5 Alchemy | The second game | **Under way** (`docs/M5-plan.md`; Potions and alchemy, M5 as built): steps 1 to 5 built (the data, the belt, drinking and throwing, reagents). Potion belt, drink or throw, identification, 6 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
+| M5 Alchemy | The second game | **Under way** (`docs/M5-plan.md`; Potions and alchemy, M5 as built): steps 1 to 6 built (the data, the belt, drinking and throwing, reagents, Dr. Jelly's laboratory and brewing). Potion belt, drink or throw, identification, 6 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
 | M7 Descent and the Vigil | A full run with a reason to return | Final boss (Kaelith, the Shadow Sentinel); the Vigil (RPG progression: Between runs) at the cave mouth over the valleys: freed shades as townspeople with dialogue (Boketto, the Cloud Forest Wizard, the Huruhui foragers), its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines; a won run ends in daylight |
 | M8 Eda | It is Eda | Lore names, floor biomes, adaptive music, ambience beds and final mix |

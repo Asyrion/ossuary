@@ -1900,6 +1900,54 @@ test('reagents (M5): a fallen foe leaves its own kind\'s, else its school\'s, Em
   expect(errors).toEqual([]);
 });
 
+test('Dr. Jelly\'s laboratory (M5): the table opens when walked up to; two reagents in the mortar brew a potion that is known from then on and its recipe kept; Dr. Jelly looks at one potion a visit and sells recipes; a jelly globe bursts', async ({ page }) => {
+  const errors = await start(page, '?seed=LAB2&room=lab_plain&potions=mana&loot=coins:10');
+  type GL = GP & { lab: { open: boolean; tab: string; mortar: string[]; here: boolean; table: { x: number; z: number; hz: number }; jelly: { x: number; z: number }; identified: boolean; recipes: { a: string; b: string; potion: string }[] };
+    props: { kind: string; x?: number; z?: number }[]; blast(x: number, z: number): void; giveReagent(id: string, n: number): void; player: GP['player'] & { coins: number }; state: string };
+  const g = () => page.evaluate(() => { const g = (window as unknown as W).__game as unknown as GL; return { lab: g.lab, belt: g.belt, coins: g.player.coins, state: g.state, line: document.querySelector('#toast')?.textContent }; });
+  await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as GL; g.forgetPotions(); g.warp(1); g.sim(.5); g.giveReagent('graveMoss', 2); g.giveReagent('wispEssence', 1); g.sim(6); });
+  expect(await page.evaluate(() => document.querySelector('#banner .t')?.textContent)).toBe("Dr. Jelly's Laboratory");
+  // walked up to, the table opens at its Brew tab; two Grave Moss in the mortar, then the flask
+  await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as GL, t = g.lab.table; g.player.x = t.x; g.player.z = t.z + t.hz + .5; g.sim(.1); });
+  expect((await g()).lab).toMatchObject({ open: true, tab: 'brew' });
+  await expect(page.locator('#scrLab')).toBeVisible();
+  await page.keyboard.press('Enter'); await page.keyboard.press('Enter');
+  expect((await g()).lab.mortar).toEqual(['graveMoss', 'graveMoss']);
+  await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight'); await page.keyboard.press('Enter'); // (past the Wisp Essence, to the flask)
+  const brewed = await g();
+  expect(brewed.belt.ids).toEqual(['mana', 'healing']); expect(brewed.belt.known).toEqual([false, true]);
+  expect(brewed.lab.recipes).toEqual([{ a: 'graveMoss', b: 'graveMoss', potion: 'healing' }]);
+  expect(brewed.belt.reagents).toEqual({ wispEssence: 1 });
+  await page.screenshot({ path: 'test-results/alchemy-table.png' });
+  // Dr. Jelly looks at the unknown one, once a visit
+  await page.keyboard.press('KeyE'); await page.keyboard.press('Enter');
+  const looked = await g();
+  expect(looked.lab.identified).toBe(true); expect(looked.belt.known).toEqual([true, true]);
+  // and sells a recipe (6 obols): the Mana Tonic's
+  await page.keyboard.press('KeyE'); await page.keyboard.press('ArrowRight'); await page.keyboard.press('Enter');
+  const bought = await g();
+  expect(bought.coins).toBe(4); expect(bought.lab.recipes.map(r => r.potion).sort()).toEqual(['healing', 'mana']);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('ossuary.recipes') ?? '{}').potions)).toEqual(['healing']); // (kept between runs: the brew, and the bought pair)
+  await page.keyboard.press('Escape');
+  expect(await g()).toMatchObject({ state: 'play', lab: { open: false } });
+  // stepping away and back opens it again; a blast bursts a jelly globe, and a jelly or a reagent comes out of it
+  const again = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GL, t = g.lab.table; g.player.z = t.z + 2.5; g.sim(.2); g.player.z = t.z + t.hz + .5; g.sim(.1);
+    const open = g.lab.open; return open;
+  });
+  expect(again).toBe(true);
+  await page.keyboard.press('Escape');
+  const globe = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as unknown as GL, before = g.props.filter(p => p.kind === 'globe').length, gl = (g.props as unknown as { kind: string; x: number; z: number }[]).find(p => p.kind === 'globe')!;
+    const foes = g.enemies.filter(e => !e.dead).length, reagents = g.pickups.filter(p => p.kind === 'reagent').length;
+    g.player.x = gl.x + 3; g.blast(gl.x, gl.z); g.sim(.8);
+    return { before, after: g.props.filter(p => p.kind === 'globe').length, spilled: g.enemies.filter(e => !e.dead).length - foes + g.pickups.filter(p => p.kind === 'reagent').length - reagents };
+  });
+  expect(globe.after).toBe(globe.before - 1); expect(globe.spilled).toBe(1);
+  await page.evaluate(() => ((window as unknown as W).__game as unknown as GL).forgetPotions());
+  expect(errors).toEqual([]);
+});
+
 test('the pause menu sets the volumes, and the browser remembers them; positioned effects play without errors', async ({ page }) => {
   const errors = await start(page, '?room=crypt_a&seed=VOL1&spells=arc');
   // a fight: hits, deaths and a spell, all panned to where they happen

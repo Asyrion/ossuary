@@ -144,6 +144,10 @@ const sounds = {
   reagent() { hiss(.14, .05, 'bandpass', 2400); tone('triangle', 520, 480, .1, .03); },
   drink() { for (let i = 0; i < 3; i++) tone('sine', 220 + i * 30, 180 + i * 30, .09, .06, i * .11); hiss(.3, .02, 'lowpass', 600); },
   throwPotion() { hiss(.22, .04, 'bandpass', 1800); tone('sine', 700, 1100, .18, .02); },
+  /** M5 step 6: a brew at the alchemy table (bubbling, then a bright note as it settles); a jelly globe bursting (glass and
+      a wet slap). */
+  brew() { for (let i = 0; i < 5; i++) tone('sine', 300 + i * 70, 520 + i * 60, .08, .04, i * .07); hiss(.45, .03, 'lowpass', 700); tone('triangle', 880, 1320, .3, .05, .38); },
+  globeBreak() { hiss(.22, .1, 'highpass', 3000); tone('triangle', 2200, 1500, .12, .05); tone('sine', 160, 70, .3, .1, .04); hiss(.35, .05, 'lowpass', 500, .05); },
   bottleBreak() { hiss(.25, .12, 'highpass', 3200); tone('triangle', 2600, 1800, .12, .05); tone('triangle', 3100, 2100, .1, .04, .03); hiss(.4, .06, 'lowpass', 900, .05); },
   potionChoose() { tone('sine', 1320, 1320, .05, .04); },
   // Ember: crackle and whoosh

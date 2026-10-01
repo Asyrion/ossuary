@@ -26,6 +26,7 @@ import { POTIONS, POTION_IDS, REAGENTS, REAGENT_IDS, type PotionId } from '../it
 import { bottleIconUrl, reagentIconUrl } from '../items/alchemyLooks';
 import { beltSlots, knownPotion, potionName } from '../items/potions';
 import { brewedPotions } from '../items/alchemyMemory';
+import { knownRecipes } from '../items/brewing';
 
 type Tab = 'artifacts' | 'spells' | 'potions' | 'items' | 'mage' | 'foes';
 const TABS: Tab[] = ['artifacts', 'spells', 'potions', 'items', 'mage', 'foes'];
@@ -177,7 +178,12 @@ function potionEntries(): Entry[] {
   const known: Entry[] = POTION_IDS.map((id, k) => knownPotion(id)
     ? { icon: img(bottleIconUrl(G.run.bottles[id])), label: POTIONS[id].name, section: k === 0 ? P.known : undefined, detail: () => card(id, P.knownHow(brewed.includes(id) && !G.run.identified.includes(id))) }
     : { icon: SEALED, label: P.sealed, dim: true, section: k === 0 ? P.known : undefined, detail: () => head(SEALED, P.sealed, STR.alchemy.kind()) + `<p class="effect">${esc(P.sealedText)}</p>` });
-  return [...belt, ...pouch, ...known];
+  const recipes = knownRecipes(), book: Entry[] = recipes.length ? recipes.map((r, k) => {
+    const icon = knownPotion(r.potion) ? img(bottleIconUrl(G.run.bottles[r.potion])) : SEALED_SLOT, name = knownPotion(r.potion) ? POTIONS[r.potion].name : STR.alchemy.unknown;
+    return { icon, label: `${P.recipe(REAGENTS[r.a].name, REAGENTS[r.b].name)} → ${name}`, section: k === 0 ? P.recipes : undefined,
+      detail: () => head(icon, name, P.recipes) + `<p class="effect">${esc(P.recipe(REAGENTS[r.a].name, REAGENTS[r.b].name))}</p>` };
+  }) : [{ icon: SEALED_SLOT, label: P.recipes, dim: true, section: P.recipes, detail: () => `<p class="effect">${esc(P.noRecipes)}</p>` }];
+  return [...belt, ...pouch, ...known, ...book];
 }
 /** An empty belt slot or pouch: a dashed ring. */
 const SEALED_SLOT = '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="13" fill="none" stroke="#5a4a38" stroke-width="2" stroke-dasharray="4 4"/></svg>';

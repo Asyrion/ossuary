@@ -1,6 +1,7 @@
 /* Building rooms from the floor plan: floor, rocks and pits from the template, walls traced along the
    room's outline (any shape), doors on shared cell edges, torches, pedestals and altars. */
 import * as THREE from 'three';
+import { furnishLab } from './laboratory';
 import { CFG } from '../config';
 import type { Box, Door, DoorStyle, FloorLook, RockBox, Room, Side } from '../types';
 import { DEV, G } from '../state';
@@ -121,6 +122,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   if (plan.type === 'secret') fillSecret(room);
   if (plan.type === 'shrine') buildShrine(room);
   if (plan.type === 'library') furnishLibrary(room);
+  if (plan.type === 'laboratory') furnishLab(room); // (M5)
   G.rooms.push(room);
   for (const c of plan.cells) G.roomMap.set(c.gx + ',' + c.gy, room);
   return room;
@@ -478,7 +480,7 @@ export function buildWallsAndDoors(room: Room) {
     const x = pd.gx * PX + dx * hx + (dx ? 0 : shift), z = pd.gy * PZ + dz * hz + (dz ? 0 : shift); // middle of the doorway on the room's inside edge
     const either = (t: string) => room.type === t || nb.type === t;
     const style: DoorStyle = either('secret') ? 'secret' : either('boss') ? 'boss' : either('ordeal') ? 'ordeal' : either('altar') ? 'altar' : either('treasure') ? 'treasure'
-      : either('vault') ? 'vault' : either('merchant') ? 'merchant' : either('shrine') ? 'shrine' : either('library') ? 'library' : 'normal';
+      : either('vault') ? 'vault' : either('merchant') ? 'merchant' : either('shrine') ? 'shrine' : either('library') ? 'library' : either('laboratory') ? 'laboratory' : 'normal';
     room.doors.push(buildDoor(room, pd.side, nb, style, x, z));
   }
   // the walls: rectangles of wall tiles (walls.ts), with the doorways cut out of them
@@ -526,7 +528,8 @@ function placeTorches(room: Room, run: WallRun, across0: number, falls: ReturnTy
   const spots = count === 1 ? [len / 2] : ns ? Array.from({ length: count }, (_, i) => 3 + i * (len - 6) / (count - 1)) : Array.from({ length: count }, (_, i) => (i + .5) * len / count);
   const inTheWay = [...room.doors.filter(d => d.side === run.facing).map(d => ({ at: ns ? d.x : d.z, half: DH })), // doors, and waterfalls (M4.2)
     ...falls.filter(f => f.side === run.facing).map(f => ({ at: base + (f.i0 + f.i1) / 2, half: (f.i1 - f.i0) / 2 })),
-    ...(run.facing === 'n' ? sluices(room).map(b => ({ at: b.x, half: .6 })) : [])]; // (and sluice gates, M4.9)
+    ...(run.facing === 'n' ? sluices(room).map(b => ({ at: b.x, half: .6 })) : []), // (and sluice gates, M4.9)
+    ...(run.facing === 'n' && room.lab ? [{ at: room.cx + room.lab.vat.position.x, half: 1.15 }] : [])]; // (and a laboratory's vat window, M5)
   const face = run.facing === 'n' ? across0 + WT : run.facing === 'w' ? across0 + WT : across0; // the wall's inner face
   for (let s of spots) {
     let at = inner0 + s;
@@ -653,6 +656,10 @@ function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number
     halo.position.set(ep.x, h + .14, ep.z); halo.rotation.y = ns ? 0 : Math.PI / 2;
     const light = glow(0xffe8b0, .9, .8); light.position.copy(halo.position);
     room.group.add(halo, light);
+  } else if (style === 'laboratory') { // (M5) a flask of green jelly
+    const flask = new THREE.Mesh(new THREE.SphereGeometry(.11, 8, 6), basicMat(0x7ae070)); flask.position.set(ep.x, h + .12, ep.z);
+    const light = glow(0x7ae070, .9, .8); light.position.copy(flask.position);
+    room.group.add(flask, light);
   } else if (style === 'library') {
     const book = new THREE.Group(); book.position.set(ep.x, h + .1, ep.z); book.rotation.y = ns ? 0 : Math.PI / 2;
     for (const s of [-1, 1]) { // two leaves of an open book, and its spine

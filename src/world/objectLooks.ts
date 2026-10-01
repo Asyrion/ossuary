@@ -9,6 +9,7 @@
    floor's wax; a rock is mossy on the drowned floor and sooty on the burning one. What each does (blocking, breaking,
    burning) is unchanged (props.ts, rooms.ts, mechanisms.ts, items/artifacts.ts); `DEV.roomKit` off keeps the old looks. */
 import * as THREE from 'three';
+import { globeLook } from './labLooks';
 import type { FloorLook } from '../types';
 import { blob, glow, glowShared, markShared } from '../render/materials';
 import { EMBER_FIRE, firePalette, makeFire, makeMotes, type FlameSpec } from '../render/fire';
@@ -83,6 +84,7 @@ export const box = (g: THREE.Object3D, w: number, h: number, d: number, mat: THR
 
 export type ObjectLook = (R: R, len: number, look?: FloorLook) => THREE.Group;
 export const OBJECT_LOOKS = {
+  globe: (R: () => number) => globeLook(R), // (M5: the laboratory's jelly globe, labLooks.ts)
   /** Long bones and short, a ribcage and a skull on a mound of grave dust. */
   bones(R) {
     const g = new THREE.Group();

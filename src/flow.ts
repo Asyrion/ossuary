@@ -41,6 +41,7 @@ import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
 import { clearSpellFx, forgetSpells, gainMana, leaveRoomSpells, learnSpell } from './magic/spells';
 import { addPotion, renderBelt, resetPotions } from './items/potions';
+import { enterLab } from './world/laboratory';
 import { clearThrows } from './items/potionThrow';
 import { clearStatusFx } from './magic/statusFx';
 import { clearPages, dropPage, enterLibrary, maybeDropPage } from './magic/pages';
@@ -194,6 +195,7 @@ export function enterRoom(room: Room) {
   if (firstVisit && room.type === 'secret') banner(...STR.banner.secret);
   if (room.type === 'shrine') enterShrine(room, firstVisit);
   if (room.type === 'library') enterLibrary(room, firstVisit);
+  if (room.type === 'laboratory') enterLab(room, firstVisit); // (M5: Dr. Jelly looks at one potion again this visit)
   if (firstVisit && room.type === 'vault') banner(...(room.drunk ? STR.banner.vaultWardling(STR.schools[room.drunk]) : room.warden ? STR.banner.vaultWarden : STR.banner.vault));
   if (firstVisit && room.quietHeart) { const p = freeSpotNear(room, room.cx, room.cz); spawnHeart(p.x, p.z, 2); }
   // a treasure room with nothing left to find offers a full heart instead
