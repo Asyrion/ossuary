@@ -13,6 +13,7 @@ import { checkArtifactPickup } from '../items/artifacts';
 import { checkWares } from '../items/merchant';
 import { checkShrine } from '../world/shrine';
 import { wadeAt } from '../world/pools';
+import { stickyAt } from './bestiaryGround';
 import { checkVaultDoors } from '../world/vault';
 import { descend, tryTransition } from '../flow';
 import { clamp, lerp } from '../util';
@@ -30,7 +31,7 @@ export function updatePlayer(dt: number) {
     }
   }
   const k = 1 - Math.exp(-(cur.theme?.twist === 'rime' ? CFG.mech.rimeGrip : 14) * dt); // rime underfoot: the mage slides
-  const st = player.stats, speed = st.speed * wadeAt(player.x, player.z) * snagAt(player.x, player.z) * (player.chill > 0 ? 1 - CFG.afflict.chillSlow : 1); // slower wading through water, or cobwebs, or chilled
+  const st = player.stats, speed = st.speed * wadeAt(player.x, player.z) * snagAt(player.x, player.z) * stickyAt(player.x, player.z) * (player.chill > 0 ? 1 - CFG.afflict.chillSlow : 1); // slower wading through water, or cobwebs, a spider's web or ink (M4.5), or chilled
   player.vx = lerp(player.vx, mv.x * speed, k); player.vz = lerp(player.vz, mv.z * speed, k);
   player.x += (player.vx + player.pull.x) * dt; player.z += (player.vz + player.pull.z) * dt; player.pull.x = player.pull.z = 0; // (a lure's draw: spent each step)
   collide(player, blockers(cur, 'player', st.effects.has('pitWalker')));

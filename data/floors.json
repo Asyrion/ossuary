@@ -7,7 +7,7 @@
     "shrine": false,
     "library": true,
     "vaultWarden": "runeBeetle",
-    "foes": {"R": [["sporeling", 1]], "W": [["vesperMoth", 1]], "H": [["runeBeetle", 3], ["urnMimic", 1]]},
+    "foes": {"R": [["sporeling", 2], ["cryptSpider", 1.5], ["rubbleCrab", 1]], "W": [["vesperMoth", 2], ["inkOctopus", 1], ["fireflySwarm", 1], ["choirLark", 0.8]], "H": [["runeBeetle", 2], ["urnMimic", 1], ["grimoireMimic", 1], ["stormMantis", 1.2]]},
     "secretArtifactChance": 0.5,
     "bossHallChance": 0.4,
     "doorShift": 0.5,

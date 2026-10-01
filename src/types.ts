@@ -195,7 +195,14 @@ export interface Enemy extends Circle {
   /** Its model's parts its behaviour moves (a beetle's wing-cases, a mimic's lid); how open a lid or shell is (0 to 1);
       what it takes of a hit (a shut mimic, half); a behaviour's own clock (a salamander's trail); the glow of its telegraph. */
   parts?: Record<string, THREE.Object3D>; open?: number; guard?: number; tick?: number; teleGlow?: THREE.Sprite;
+  /** M4.5's bestiary (actors/bestiaryFoes.ts): the pack whose one mind it shares (a firefly swarm); until when a lark's song
+      hastens it; a splitter's generation (0 whole, 1 split); how high its model hangs (a spider on its thread); a piece its
+      behaviour adds (the thread); a count its behaviour keeps (a mantis's parries). */
+  pack?: Pack; sung?: number; gen?: number; height?: number; extra?: THREE.Object3D; count?: number;
 }
+/** A pack of foes with one mind (M4.5: the firefly swarm): its members, the point they wheel round and where it is heading
+    round the mage, what it is doing and for how long, the step it was last worked out on, and where a stream is aimed. */
+export interface Pack { members: Enemy[]; cx: number; cz: number; a: number; state: string; st: number; stamp: number; tx: number; tz: number }
 
 export interface Bolt extends Circle {
   y: number; vx: number; vz: number; speed: number; dist: number; range: number; mesh: THREE.Group;
