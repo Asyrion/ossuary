@@ -11,7 +11,7 @@ import { CFG } from '../config';
 import { STR } from '../strings';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { burst } from '../combat/fx';
-import { toast } from '../ui/hud';
+import { line } from '../ui/hud';
 import { damageEnemy } from '../combat/damage';
 import { inflict } from '../magic/statusFx';
 import { addSpores, stingAt } from '../world/props';
@@ -46,9 +46,9 @@ export function steerAround(e: Enemy) {
   if (!walks(e) || !(e.foe!.avoidsGround || e.foe!.elemental)) return;
   const sp = Math.hypot(e.vx, e.vz), look = CFG.foeGround.look;
   if (sp < .2 || foulAt(e, e.x, e.z)) return;
-  const a0 = Math.atan2(e.vz, e.vx), clear = (a: number) => [.5, 1].every(k => !foulAt(e, e.x + Math.cos(a) * look * k, e.z + Math.sin(a) * look * k)); // (two points on the way: a near patch isn't stepped over)
+  const a0 = Math.atan2(e.vz, e.vx), clear = (a: number) => CFG.foeGround.lookAt.every(k => !foulAt(e, e.x + Math.cos(a) * look * k, e.z + Math.sin(a) * look * k)); // (points on the way: a near patch isn't stepped over)
   if (clear(a0)) return;
-  for (const d of [.7, -.7, 1.4, -1.4]) if (clear(a0 + d)) { e.vx = Math.cos(a0 + d) * sp; e.vz = Math.sin(a0 + d) * sp; return; }
+  for (const d of CFG.foeGround.steer) if (clear(a0 + d)) { e.vx = Math.cos(a0 + d) * sp; e.vz = Math.sin(a0 + d) * sp; return; }
   e.vx = e.vz = 0;
 }
 
@@ -68,7 +68,7 @@ export function groundHarm(e: Enemy, dt: number) {
   const F = CFG.foeGround, who = kindOf(e), found = groundAt(e.x, e.z, who), at = found && !home(e, found) ? found : undefined;
   if (at && at !== e.inGround) {
     burst(e.x, .3, e.z, COLOR[at], 8, 1.4, .04);
-    if (!G.run.hinted.has('foeGround')) { G.run.hinted.add('foeGround'); toast(STR.foes.groundLine, CFG.afflict.lineShow); }
+    if (!G.run.hinted.has('foeGround')) { G.run.hinted.add('foeGround'); line(STR.foes.groundLine, CFG.afflict.lineShow); }
   }
   e.inGround = at;
   e.groundT = (e.groundT ?? 0) - dt; if (e.groundT > 0) return;

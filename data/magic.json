@@ -10,13 +10,13 @@
     "overload": { "damage": 10, "radius": 1.8, "knockback": 6 },
     "eclipse": { "time": 2, "damage": 18 },
     "blackfire": { "dps": 3 },
-    "steam": { "damage": 6, "radius": 1.7, "time": 4.5, "spread": 1.1 }
+    "steam": { "damage": 6, "radius": 1.7, "time": 4.5, "spread": 1.1, "sight": 0.85 }
   },
   "mantles": {
     "kindled": { "school": "ember", "stripBy": "frost", "immune": "burn", "trailEvery": 0.4, "trailTime": 3 },
     "rimebound": { "school": "frost", "stripBy": "ember", "immune": "chill", "chill": 2 },
     "stormcharged": { "school": "storm", "stripBy": "frost", "sparkEvery": 1.2, "sparkTime": 2.5 },
-    "hallowed": { "school": "hallow", "stripBy": "umbral", "mendReach": 3, "mend": 1.5 },
+    "hallowed": { "school": "hallow", "stripBy": "umbral", "mendReach": 3, "mend": 1.5, "mendEvery": 1, "bossShare": 0.3 },
     "hexbound": { "school": "umbral", "stripBy": "hallow", "hex": 5, "curseReach": 2.4, "curseDelay": 0.7, "curse": 12 }
   },
   "unbound": { "stun": 1.6, "time": 3, "damageMul": 1.25 }

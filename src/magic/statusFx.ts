@@ -194,19 +194,20 @@ function textTexture(text: string, color: number, size = 44) {
   const key = `${text}|${color}|${size}`;
   let tex = textTex.get(key);
   if (!tex) {
-    const c = document.createElement('canvas'); c.width = 256; c.height = 64; const g = c.getContext('2d')!;
-    g.font = `600 ${size}px Cinzel, Georgia, serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.lineWidth = 6; g.strokeStyle = 'rgba(8,6,4,.9)'; g.strokeText(text, 128, 34);
-    g.fillStyle = `#${color.toString(16).padStart(6, '0')}`; g.fillText(text, 128, 34);
-    tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; textTex.set(key, tex);
+    const c = document.createElement('canvas'), font = `600 ${size}px Cinzel, Georgia, serif`; c.height = 64;
+    let g = c.getContext('2d')!; g.font = font; c.width = Math.max(256, Math.ceil((g.measureText(text).width + 24) / 64) * 64); // (a long word gets a wider canvas, not cut off)
+    g = c.getContext('2d')!; g.font = font; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.lineWidth = 6; g.strokeStyle = 'rgba(8,6,4,.9)'; g.strokeText(text, c.width / 2, 34);
+    g.fillStyle = `#${color.toString(16).padStart(6, '0')}`; g.fillText(text, c.width / 2, 34);
+    tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.userData.wide = c.width / 256; textTex.set(key, tex);
     if (textTex.size > 200) { const first = textTex.keys().next().value!; textTex.get(first)!.dispose(); textTex.delete(first); }
   }
   return tex;
 }
 /** A word rising from a spot and fading: a reaction's name, a hit on the dummy. */
 export function floatText(x: number, y: number, z: number, text: string, color: number, size = 44) {
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: textTexture(text, color, size), transparent: true, depthWrite: false, depthTest: false }));
-  s.scale.set(1.6, .4, 1); s.position.set(x, y, z); s.renderOrder = 10; scene.add(s);
+  const map = textTexture(text, color, size), s = new THREE.Sprite(new THREE.SpriteMaterial({ map, transparent: true, depthWrite: false, depthTest: false }));
+  s.scale.set(1.6 * (map.userData.wide ?? 1), .4, 1); s.position.set(x, y, z); s.renderOrder = 10; scene.add(s);
   floats.push({ s, t: 0, y });
 }
 function updateFloats(dt: number) {
@@ -250,8 +251,8 @@ function dummyLabel(e: Enemy, _now: number) {
   if (e.label?.userData.text === text) return;
   if (e.label) { e.group.remove(e.label); e.label.material.dispose(); e.label = undefined; }
   if (!text) return;
-  const lab = new THREE.Sprite(new THREE.SpriteMaterial({ map: textTexture(text, 0xe8dcc2, 26), transparent: true, depthWrite: false, depthTest: false }));
-  lab.scale.set(2.2, .55, 1); lab.position.y = 2.1; lab.renderOrder = 10; lab.userData.text = text;
+  const map = textTexture(text, 0xe8dcc2, 26), lab = new THREE.Sprite(new THREE.SpriteMaterial({ map, transparent: true, depthWrite: false, depthTest: false }));
+  lab.scale.set(2.2 * (map.userData.wide ?? 1), .55, 1); lab.position.y = 2.1; lab.renderOrder = 10; lab.userData.text = text;
   e.group.add(lab); e.label = lab;
 }
 

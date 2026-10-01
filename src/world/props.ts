@@ -331,7 +331,7 @@ export function addSpores(room: Room, x: number, z: number, o: { color?: number;
 }
 /** Whether a cloud of stinging spores (a Sporeling's or a Puffcap's) hangs over (x, z) in the current room, not of the
     kind `who` (M4.7: foes are stung by each other's spores, never their own). */
-export const stingAt = (x: number, z: number, who?: string) => (G.current.spores ?? []).some(s => s.sting && s.by !== who && Math.hypot(s.x - x, s.z - z) < P.spores.reach * .8);
+export const stingAt = (x: number, z: number, who?: string) => (G.current.spores ?? []).some(s => s.sting && s.by !== who && Math.hypot(s.x - x, s.z - z) < P.spores.stingReach);
 function dropSpores(room: Room, s: SporeCloud) { room.group.remove(s.g); disposeTree(s.g); room.spores = room.spores?.filter(o => o !== s); }
 
 /** Fire found a cloud of spores: it flashes, burning every foe in reach, and the mage too if they stand in it. */
@@ -395,7 +395,7 @@ export function updateProps(dt: number) {
   // spores drift and settle
   for (const s of room.spores ?? []) {
     s.t -= dt; s.g.rotation.y += dt * .4; s.g.position.y = Math.sin(s.t * 2) * .05;
-    if (s.sting && !s.stung && Math.hypot(player.x - s.x, player.z - s.z) < P.spores.reach * .8) { // a Sporeling's spores sting, and dim the sight
+    if (s.sting && !s.stung && Math.hypot(player.x - s.x, player.z - s.z) < P.spores.stingReach) { // a Sporeling's spores sting, and dim the sight
       if (hurtPlayer(1, s.x, s.z)) { s.stung = true; player.dim = Math.max(player.dim, s.sting); } // (while the mage shrugs off blows, the cloud waits)
     }
     for (const c of s.g.children) ((c as THREE.Mesh).material as THREE.Material).opacity = .35 * Math.min(1, s.t);

@@ -101,7 +101,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   shoots wide in `spawnShot`; `steamBetween`: eyes and statues lose the mage across it); fire on frozen water, frost on
   burning oil and fire on still water make it too (`pools.ts`), and over water it brings up what hides there (`hearGround`'s
   `steam`; a glyph's blast is heard as `blast`, a shocked pool read in the behaviour: a hiding foe's `driven` hook, `drivenUp`
-  in `foes.ts`); `__game.steam`, `__game.steamAt(x, z)`, the dev menu's "Steam ahead". Props and mechanisms hear only the elemental ones (`elemental()`). The training dummy (`dummy` in
+  in `foes.ts`); `__game.steam` (the clouds in the room), `__game.steamAt(x, z)`, `__game.inSteam(x, z)`, the dev menu's "Steam ahead". Props and mechanisms hear only the elemental ones (`elemental()`). The training dummy (`dummy` in
   `CFG.enemy`) never falls and shows its hits and statuses.
   Soul motes (M4.1, `src/items/souls.ts`): `player.souls` (pale, black, hallowed) drawn after the hearts, taking a hit
   before them (`guardHit` in `hurtPlayer`; which goes first is the pure `soulToLose` in `loot.ts`); a black one hexes the
@@ -186,7 +186,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `__game.cleanse()` cleanses the oldest curse held at once, `__game.rite` reads the shrine's rite under way,
   `__game.learn('arc', 0)`, `__game.cast(0)` and `__game.mana(50)` learn, cast and set mana,
   `__game.spawn('dummy')` spawns a foe ahead of the mage, `__game.inflict({ chill: 1 })` statuses every foe,
-  `__game.shoot(x, z, dx, dz)` fires a foe's shot, `__game.mantle` and `__game.ward` read the Static Mantle's and Wardlight's seconds left,
+  `__game.shoot(x, z, dx, dz, o)` fires a foe's shot (`o`: `fire`, `chill`, `hex`), `__game.mantle` and `__game.ward` read the Static Mantle's and Wardlight's seconds left,
   `__game.page()` drops a grimoire page, `__game.pages` and `__game.forgotten` read the room's pages and the
   spells given up; `__game.cast(slot)` answers a page that asks, as the key does; `__game.pools` reads the room's
   water and oil, `__game.pool('fire' | 'frost' | 'shock')` sets it alight, freezes or shocks it;

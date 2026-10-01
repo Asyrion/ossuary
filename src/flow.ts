@@ -32,7 +32,7 @@ import { giveResources, makeTrapdoor, resetResources, spawnHeart, spawnPickup } 
 import { LOOT, rollRoomClear, type Resource } from './items/loot';
 import { hallowedMend, resetSouls, soulsHere } from './items/souls';
 import { giveById, offerGuaranteed, offerOptional, offerSecondChoice, placeArtifact, resetArtifacts, resetBudget } from './items/artifacts';
-import { banner, fadeFromBlack, hideBossBar, renderHearts, renderMinimap, resetHearts, showBossBar, toast } from './ui/hud';
+import { banner, fadeFromBlack, hideBossBar, renderHearts, renderMinimap, resetHearts, showBossBar, toast, line, clearLines } from './ui/hud';
 import { resetAfflictions } from './ui/afflictions';
 import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
@@ -97,7 +97,7 @@ export function buildFloor(index: number) {
 export function resetPlayer() {
   Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0, blessed: 0, dim: 0, chill: 0, stone: 0, pull: { x: 0, z: 0 }, hexed: 0, drained: 0, drawn: 0 });
   heroReset();
-  resetHearts(); resetArtifacts(); resetResources(); resetSouls(); resetAfflictions();
+  resetHearts(); resetArtifacts(); resetResources(); resetSouls(); resetAfflictions(); clearLines();
   forgetSpells(); player.mana = player.stats.maxMana;
 }
 
@@ -213,7 +213,7 @@ function spawnWave(room: Room, ambush = false) {
   }
   if (champion) Sfx.champion();
   const pair = room.wave === 0 && room.pair, key = pair && 'pair:' + pair.join('+'); // (M4.7: the first time in a run, a pair says what it does together)
-  if (key && !G.run.hinted.has(key) && STR.foes.pairs[pair.join('+')]) { G.run.hinted.add(key); after(.8, () => toast(STR.foes.pairs[pair.join('+')], CFG.afflict.lineShow)); }
+  if (key && !G.run.hinted.has(key) && STR.foes.pairs[pair.join('+')]) { G.run.hinted.add(key); after(.8, () => line(STR.foes.pairs[pair.join('+')], CFG.afflict.lineShow)); }
 }
 
 /** Ambush rooms spring once the mage is committed: near the middle, or well away from every door. */
