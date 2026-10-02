@@ -18,6 +18,7 @@ import { inflict } from '../magic/statusFx';
 import { ringFx, strikeFx } from '../magic/spellFx';
 import { renderMinimap } from '../ui/hud';
 import { TRANSFORMS } from './transformData';
+import { boonMul } from '../progression/boonHooks';
 
 const T = CFG.transform, has = (e: Effect) => player.stats.effects.has(e);
 const RUNE = TRANSFORMS.runescribe.light, SHADOW = TRANSFORMS.shadowstep.light;
@@ -26,7 +27,7 @@ const RUNE = TRANSFORMS.runescribe.light, SHADOW = TRANSFORMS.shadowstep.light;
 let struck = 0;
 /** A cantrip bolt of `damage` struck foe `e` at (x, z): the Pyromancer's embers, the Stormcaller's leap, the Runescribe's rune. */
 export function cantripStruck(e: Enemy, x: number, z: number, damage: number) {
-  if (has('emberStrike')) layFire(G.current, x, z, T.ember.time, 'mage'); // (the mage's own: they burn foes, never the mage)
+  if (has('emberStrike')) layFire(G.current, x, z, T.ember.time * boonMul('bankedCoals', 'groundMul'), 'mage'); // (the mage's own: they burn foes, never the mage; M6: Banked Coals keeps them longer)
   if (has('stormLeap') && ++struck >= T.storm.every) { struck = 0; leap(e, damage * T.storm.share); }
   if (has('runeBurst')) layRune(x, z, damage * T.rune.share);
 }
