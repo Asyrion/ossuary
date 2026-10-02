@@ -642,20 +642,22 @@ The generator places the three guaranteed sources first, then gives artifacts to
 
 Picking up an artifact shows on the mage, as Isaac's items do, but in a high fantasy and magic way.
 
-- **Costumes.** Most artifacts wear a piece, built in code and hung from a bone of the rig, one per slot: head,
-  face, shoulders, back, hands, belt and aura. The one taken last wins its slot. A cursed artifact shows its curse
+- **Costumes.** An artifact it is logical to wear shows on the mage (the owner, 2026-10-02, after every artifact
+  showing cluttered the mage: clothes, jewellery and what hangs at a belt; a stone, a skull, a bell or a contract
+  doesn't). Its piece is built in code and hung from a bone of the rig, one per slot: head, face, shoulders, back,
+  hands, belt and aura. The one taken last wins its slot. A cursed artifact shows its curse
   (the mask weeps, the chain drags on the floor) until a shrine cleanses it; then its piece changes to its cleansed
   look.
 - **Transformations.** Three artifacts of one kind (a `kind` tag in `data/artifacts.json`) transform the mage for
   the rest of the run. The look takes several slots, an aura and a tint of the robes. A banner and a lore card name
   it, and the mage gains a gift in its spirit (as Isaac's transformations do, with a magic take). Sets (above) keep
   their bonus; a transformation counts any artifacts of its kind. Proposed, to be chosen with the owner:
-- **Every artifact to come shows too** (the owner's ask, 2026-10-01). A new artifact is designed with its look on the
-  mage, chosen by what it stands for: a piece built for the body (a crown, a mask, cuffs), its own model carried at a spot
-  (a lantern at the belt, a sigil on the back, a pendant on the chest), held (every focus), or nothing when it already
-  shows round the mage (a companion, flames at the shoulders, a ring at the feet), named in `SHOWS_OTHERWISE`. A rule or a
-  bargain with no shape (a better price at the merchant, a ledger of debts) is best carried as the object it is. The
-  validator refuses an artifact that hasn't decided.
+- **Every artifact to come decides how it shows** (the owner's ask, 2026-10-01; narrowed 2026-10-02). A new artifact
+  is designed with its look on the mage only where it is logical to wear it: a piece built for the body (a crown, a mask,
+  cuffs, boots), its own model carried at a spot (a lantern or purse at the belt, a pendant on the chest), held (every
+  focus); nothing when it already shows round the mage (a companion, flames at the shoulders, a ring at the feet), named
+  in `SHOWS_OTHERWISE`; or nothing at all (`"costume": "none"`): a charm, a relic, a stone or a bargain with no shape
+  stays in the inventory and the HUD. The validator refuses an artifact that hasn't decided.
 
 | Transformation | Kind | The look | The gift |
 | --- | --- | --- | --- |
@@ -677,9 +679,12 @@ now; levels from M6), the more of the fire mage's pieces replace the apprentice'
 model is made from the sheets (docs/assets.md); the pieces that change are built in code.
 
 **M4.6 as built (2026-10-01; `docs/M4.6-plan.md`, its decisions taken as proposed, the owner to change any).**
-- *Costumes.* Eight slots (the seven above and the feet) and the focus, always held in the casting hand. 52 of the 57
-  artifacts show: their own model carried at a spot (belt, back, shoulder, chest, wrist) or a piece built for the body
-  (crowns, halo, antlers, masks, lens, third eye, feathers, stole, manacles, ring, band, beads, knot, boots). A cursed
+- *Costumes.* Eight slots (the seven above and the feet) and the focus, always held in the casting hand. Cut back on
+  2026-10-02 (the owner: the mage looked cluttered): 19 artifacts wear something, their own model carried at a spot
+  (lanterns, the keyring, the purse and the satchel at the belt; the two pendants on the chest) or a piece built for the
+  body (hood, crown of thorns, halo, mask, lens, stole, manacles, ring, band, beads, boots); 26 wear nothing (`"none"`),
+  among them everything that was carried on the back or a shoulder, the third eye, the feathers, the antlers and the
+  witch's knot; five show round the mage instead. The antlers stay the Beastcaller's. A cursed
   piece glows red and weeps until cleansed; then it takes its cleansed look (the thorns flower, the mask is pushed up,
   the chains break, the stole turns white).
 - *Transformations.* The table above (the Alchemist built with M5, step 8), each counting the artifacts tagged with its `family`
@@ -1704,7 +1709,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4.1 Two floors deeper | A longer descent | Floors 4 and 5 with their own looks, room kit, foes, bosses and themes; Hallow and Umbral spells and statuses; soul motes; twelve more artifacts (the owner's ask, 2026-09-30; `docs/M4.1-plan.md`) |
 | M4.2 Beneath the Gate | The vault has a story | The Eda setting in the game's text (the Gate of Uzulim, its Wardens, Kaelith, Asyrion); the six pieces from the lore (watching statues, sapping obelisks, the drinking ward, rope bridges, currents and waterfalls, candle stands in water); the Wandering Merchant of Belerial; three bosses (the War-Tiger, the Pillar Dragon, the Twin Guardians); Fen-Nex as the familiar that grows (adopted 2026-09-30; `docs/M4.2-plan.md`) |
 | M4.5 Bestiary | A living dungeon | More critters, fantasy creatures and elementals built in code, and new kinds of enemy behaviour, spread over the floors; each drawn up as a look, chosen by the owner, then made a foe (Combat and enemies: The Bestiary; ideas in `docs/ideas.md`, decided 2026-09-30) |
-| M4.6 Costumes and transformations | You can see your build | **Built 2026-10-01** (Artifacts: M4.6 as built). Most artifacts wear a costume piece built in code; transformations when three artifacts of a kind are held, Boketto's look for the Stormcaller; Asyrion's arc from apprentice to chaos mage (Artifacts: Costumes and transformations; decided 2026-09-30, its place in the order the owner's to move) |
+| M4.6 Costumes and transformations | You can see your build | **Built 2026-10-01** (Artifacts: M4.6 as built). Artifacts it is logical to wear show as a costume piece built in code (19 since 2026-10-02); transformations when three artifacts of a kind are held, Boketto's look for the Stormcaller; Asyrion's arc from apprentice to chaos mage (Artifacts: Costumes and transformations; decided 2026-09-30, its place in the order the owner's to move) |
 | M4.7 Living foes | Foes you read and outwit | Champions wear a school's mantle that the opposite school strips; the ground foes leave works on foes as on the mage; counters found fill a Foes tab, kept between runs; rooms that roll a pair of foes made to work together (Depth for what's built; approved and built 2026-10-01, `docs/M4.7-plan.md`) |
 | M4.8 The full wheel | Every pair of schools reacts | Five new reactions (Searing, Prism, Verdict, Black Ice, Void Spark) beside Steam, on foes and on tiles; reactions found mark the spell book's wheel (Depth for what's built; built 2026-10-01, `docs/M4.8-plan.md`) |
 | M4.9 The curve | Harder for the right reasons | Pressure dials per floor in data; libraries and merchants lean to the floor's weakness; a hex's drain traced to its foe; the sluice for water rooms; `npm run balance` measuring every foe (Depth for what's built; proposed 2026-10-01, `docs/M4.9-plan.md`) |

@@ -9,7 +9,7 @@ import { NO_BONUS, type AttrBonus } from '../progression/attributes';
 import artifactsData from '../../data/artifacts.json';
 import type { Rng } from '../rng';
 import type { Resource } from './loot';
-import { SHOWS_OTHERWISE, isCostume } from '../actors/costumeData';
+import { NO_COSTUME, SHOWS_OTHERWISE, isCostume } from '../actors/costumeData';
 import { validateFamilies } from './transformData';
 
 export type Pool = 'treasure' | 'ordeal' | 'boss' | 'altar' | 'drop' | 'merchant' | 'secret' | 'vault';
@@ -49,7 +49,7 @@ export interface ArtifactDef {
   /** Cursed artifacts only: the price on top of the gift. */ curse?: Curse;
   /** Obols, keys or glyphs handed over once, when the artifact is taken. */ gives?: Partial<Record<Resource, number>>;
   focus?: Partial<FocusPattern>; start?: boolean;
-  /** A piece the mage wears while holding it (actors/costumeData.ts). */ costume?: string;
+  /** A piece the mage wears while holding it, or `"none"` (actors/costumeData.ts). */ costume?: string;
   /** The transformation it counts towards (M4.6, items/transformData.ts): three of a family transform the mage. */ family?: string;
   /** Pedestal gem and HUD icon colour; icon key for the HUD. */ color: string; icon: string;
 }
@@ -183,8 +183,9 @@ export function validateArtifacts(defs: ArtifactDef[] = ARTIFACT_DEFS): string[]
     if (a.focus?.path && !PATHS.includes(a.focus.path)) errs.push(`${at} has unknown path "${a.focus.path}"`);
     if (!/^#[0-9a-f]{6}$/i.test(a.color) || (a.boltColor && !/^#[0-9a-f]{6}$/i.test(a.boltColor))) errs.push(`${at} has a bad colour`);
     if (!a.start && !a.pools.length) errs.push(`${at} is in no pool, so it can never appear`);
-    if (a.costume !== undefined && !isCostume(a.costume)) errs.push(`${at} wears unknown costume "${a.costume}"`);
-    if (!a.costume && a.kind !== 'focus' && !a.start && !(a.id in SHOWS_OTHERWISE)) errs.push(`${at} doesn't show on the mage: give it a costume, or say in SHOWS_OTHERWISE (costumeData.ts) what shows instead`);
+    if (a.costume !== undefined && a.costume !== NO_COSTUME && !isCostume(a.costume)) errs.push(`${at} wears unknown costume "${a.costume}"`);
+    if (a.costume === NO_COSTUME && a.kind === 'focus') errs.push(`${at} is a focus: it is held in the hand, so it needs no costume`);
+    if (!a.costume && a.kind !== 'focus' && !a.start && !(a.id in SHOWS_OTHERWISE)) errs.push(`${at} doesn't say how it shows on the mage: give it a costume where it is logical to wear it, "none" where it isn't, or say in SHOWS_OTHERWISE (costumeData.ts) what shows instead`);
     if (a.costume && a.id in SHOWS_OTHERWISE) errs.push(`${at} wears a costume and shows otherwise too`);
   }
   if (defs.filter(a => a.start).length !== 1) errs.push('exactly one artifact must be the starting focus');

@@ -100,13 +100,13 @@ describe('costumes', () => {
   // M4.6: pieces built for the body and an artifact's own model carried at a spot, one per slot
   const def = (id: string) => ARTIFACT_DEFS.find(a => a.id === id)!;
   it('carries an artifact\'s own model at its spot, a built piece in its slot, and the one taken last wins the slot', () => {
-    const worn = wornLooks(['mana_lantern', 'ember_sigil', 'pilgrims_cowl', 'rams_skull', 'stormglass_pendant'].map(def));
+    const worn = wornLooks(['mana_lantern', 'ember_sigil', 'pilgrims_cowl', 'the_last_rite', 'stormglass_pendant'].map(def));
     expect(worn.map(w => [w.slot, w.piece, w.at ?? null, w.from])).toEqual([
-      ['head', 'hood', null, 'pilgrims_cowl'], ['shoulders', 'carried', 'chest', 'stormglass_pendant'], ['back', 'carried', 'back', 'ember_sigil'], ['belt', 'carried', 'belt', 'mana_lantern'],
-    ]); // (the pendant, taken after the ram's skull, wins the shoulders)
-    expect(wornIds(worn)).toEqual(['hood', 'stormglass_pendant', 'ember_sigil', 'mana_lantern']);
+      ['head', 'hood', null, 'pilgrims_cowl'], ['shoulders', 'carried', 'chest', 'stormglass_pendant'], ['belt', 'carried', 'belt', 'mana_lantern'],
+    ]); // (the pendant, taken after the stole, wins the shoulders; the Ember Sigil wears nothing)
+    expect(wornIds(worn)).toEqual(['hood', 'stormglass_pendant', 'mana_lantern']);
     expect(slotOf('belt')).toBe('belt'); expect(slotOf('chest')).toBe('shoulders'); expect(slotOf('manacles')).toBe('hands');
-    expect(isCostume('wrist')).toBe(true); expect(isCostume('aura')).toBe(false); expect(isCostume('tiara')).toBe(false);
+    expect(isCostume('wrist')).toBe(true); expect(isCostume('aura')).toBe(false); expect(isCostume('tiara')).toBe(false); expect(isCostume('none')).toBe(false);
   });
 
   it('shows a cursed artifact\'s curse on its piece until a shrine cleanses it', () => {
@@ -116,17 +116,20 @@ describe('costumes', () => {
     expect(wornLooks([def('mana_lantern')], ['mana_lantern'])[0].cursed).toBe(false); // (only a cursed artifact shows a curse)
   });
 
-  it('every artifact shows on the mage (a piece, or held in the hand) or says what shows instead, and the validator asks a new one to decide', () => {
+  it('every artifact decides how it shows on the mage (a piece, held in the hand, nothing, or what shows instead), and the validator asks a new one to decide', () => {
     for (const a of ARTIFACT_DEFS) if (!a.start) expect(!!a.costume || a.kind === 'focus' || a.id in SHOWS_OTHERWISE, a.id).toBe(true);
+    expect(validateArtifacts(ARTIFACT_DEFS)).toEqual([]);
+    expect(wornLooks([def('echo_stone'), def('harts_antler')])).toEqual([]); // ("none": the mage as it was)
     for (const id of Object.keys(SHOWS_OTHERWISE)) expect(ARTIFACT_DEFS.some(a => a.id === id), id).toBe(true);
     const bare = { ...def('mana_lantern'), id: 'new_one', costume: undefined };
-    expect(validateArtifacts([...ARTIFACT_DEFS, bare]).some(e => e.includes('new_one') && e.includes("doesn't show"))).toBe(true);
+    expect(validateArtifacts([...ARTIFACT_DEFS, bare]).some(e => e.includes('new_one') && e.includes("doesn't say how it shows"))).toBe(true);
   });
 
-  it('most artifacts show on the mage: a piece, or held in the hand (every focus)', () => {
-    const shown = ARTIFACT_DEFS.filter(a => !a.start && (a.costume || a.kind === 'focus'));
-    expect(shown.length).toBeGreaterThanOrEqual(50);
-    for (const a of ARTIFACT_DEFS) if (a.costume) expect(isCostume(a.costume), a.id).toBe(true);
+  it('only what it is logical to wear shows on the mage (the owner, 2026-10-02): a piece, or held in the hand (every focus)', () => {
+    const worn = ARTIFACT_DEFS.filter(a => isCostume(a.costume ?? ''));
+    expect(worn.length).toBeLessThanOrEqual(20);
+    expect(worn.some(a => a.costume === 'back' || a.costume === 'shoulder')).toBe(false); // (nothing carried on the back or perched on a shoulder)
+    for (const a of ARTIFACT_DEFS) if (a.costume) expect(isCostume(a.costume) || a.costume === 'none', a.id).toBe(true);
     for (const [id, p] of Object.entries(COSTUME_PIECES)) expect('transform' in p ? Object.values(TRANSFORM_LOOKS).some(l => l.includes(id as never)) : 'arc' in p ? ARC_PIECES.flat().includes(id as never) : ARTIFACT_DEFS.some(a => a.costume === id), `${id} worn by none`).toBe(true);
     expect(isCostume('flameCrown')).toBe(false); // (a transformation's own: no artifact wears it)
     for (const [id, p] of Object.entries(COSTUME_PIECES)) if ('curse' in p) expect(ARTIFACT_DEFS.filter(a => a.costume === id).every(a => a.kind === 'cursed'), id).toBe(true);
@@ -156,9 +159,9 @@ describe('transformations', () => {
     expect([...giftEffects(['lightbearer', 'pilgrim'])].sort()).toEqual(['float', 'graveLantern', 'pilgrimPath', 'pitWalker']);
   });
   it('the latest formed wears its look over the artifacts\' pieces in those slots, its aura in the aura slot', () => {
-    const held = ['pilgrims_cowl', 'mana_lantern', 'ember_sigil'].map(def);
+    const held = ['pilgrims_cowl', 'mana_lantern', 'stormglass_pendant'].map(def);
     const worn = wornLooks(held, [], 'pyromancer');
-    expect(worn.map(w => [w.slot, w.piece])).toEqual([['head', 'flameCrown'], ['back', 'carried'], ['belt', 'carried'], ['feet', 'emberSteps'], ['aura', 'aura']]);
+    expect(worn.map(w => [w.slot, w.piece])).toEqual([['head', 'flameCrown'], ['shoulders', 'carried'], ['belt', 'carried'], ['feet', 'emberSteps'], ['aura', 'aura']]);
     expect(worn.find(w => w.slot === 'aura')).toMatchObject({ from: 'pyromancer', transform: true });
     expect(wornLooks(held, [], 'pilgrim').find(w => w.slot === 'belt')).toMatchObject({ piece: 'carried', at: 'belt', from: 'grave_lantern' });
     for (const t of TRANSFORM_IDS) {

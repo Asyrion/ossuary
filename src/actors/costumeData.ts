@@ -3,8 +3,9 @@
    built and fitted in costume.ts.
 
    An artifact's `costume` (data/artifacts.json) names either a piece built for the body (the hood, a crown of thorns,
-   manacles) or a slot where the artifact's own model is carried (a lantern at the belt, a sigil on the back): `"belt"`.
-   Every focus is held in the casting hand besides, which is not a slot. */
+   manacles) or a slot where the artifact's own model is carried (a lantern at the belt, a pendant on the chest): `"belt"`;
+   or `"none"`: it leaves the mage as it is (the owner, 2026-10-02: only what it is logical to wear shows, so the mage
+   doesn't drown in pieces). Every focus is held in the casting hand besides, which is not a slot. */
 
 export type CostumeSlot = 'head' | 'face' | 'shoulders' | 'back' | 'hands' | 'belt' | 'feet' | 'aura' | 'orbit' | 'offhand';
 /** The slots: the GDD's seven and the feet; `orbit` (what circles the mage) and `offhand` (what the hand that doesn't cast
@@ -18,14 +19,16 @@ export type CarrySpot = keyof typeof CARRY;
 /** Every piece built for the body, by the id an artifact names in `costume`; `curse`: it has a cursed look and a cleansed
     one (a cursed artifact shows its curse until a shrine cleanses it). */
 export const COSTUME_PIECES = {
-  hood: { slot: 'head' }, thorns: { slot: 'head', curse: true }, halo: { slot: 'head' }, antlers: { slot: 'head' },
-  drownedMask: { slot: 'face', curse: true }, lens: { slot: 'face' }, thirdEye: { slot: 'face' },
-  feathers: { slot: 'shoulders' }, stole: { slot: 'shoulders', curse: true },
-  manacles: { slot: 'hands', curse: true }, frostRing: { slot: 'hands' }, band: { slot: 'hands' }, beads: { slot: 'hands' }, knot: { slot: 'hands' },
+  hood: { slot: 'head' }, thorns: { slot: 'head', curse: true }, halo: { slot: 'head' },
+  drownedMask: { slot: 'face', curse: true }, lens: { slot: 'face' },
+  stole: { slot: 'shoulders', curse: true },
+  manacles: { slot: 'hands', curse: true }, frostRing: { slot: 'hands' }, band: { slot: 'hands' }, beads: { slot: 'hands' },
   boots: { slot: 'feet' },
   // M4.6's transformations' own (TRANSFORM_LOOKS): crowns of flame and ice, rime on the shoulders, marks of storm on the face
   // and spirals down the arms, wings of candle-light, a cloak of shadow and violet eyes, a floating grimoire, burning
-  // footsteps, and the aura in the transformation's light (`transform`: theirs alone, no artifact's `costume`)
+  // footsteps, the Beastcaller's circlet of antlers, and the aura in the transformation's light (`transform`: theirs
+  // alone, no artifact's `costume`)
+  antlers: { slot: 'head', transform: true },
   flameCrown: { slot: 'head', transform: true }, iceCrown: { slot: 'head', transform: true }, rimeMantle: { slot: 'shoulders', transform: true },
   stormMarks: { slot: 'face', transform: true }, stormSpirals: { slot: 'hands', transform: true }, lightWings: { slot: 'back', transform: true },
   shadowCloak: { slot: 'back', transform: true }, shadowEyes: { slot: 'face', transform: true }, grimoire: { slot: 'back', transform: true },
@@ -40,9 +43,12 @@ export type CostumeId = keyof typeof COSTUME_PIECES;
 
 export const isPiece = (id: string): id is CostumeId => id in COSTUME_PIECES;
 export const isCarry = (id: string): id is CarrySpot => id in CARRY;
+/** `costume: "none"`: the artifact leaves the mage as it is. */
+export const NO_COSTUME = 'none';
 /** The artifacts that wear nothing because they already show round the mage, and what shows instead. Every other
-    artifact has a `costume` or is a focus (held in the casting hand): a new artifact decides which, and the validator
-    (`validateArtifacts`) refuses one that hasn't (the owner's ask, 2026-10-01: keep artifacts showing on the mage). */
+    artifact has a `costume` (a piece, a spot, or `"none"`) or is a focus (held in the casting hand): a new artifact
+    decides, and the validator (`validateArtifacts`) refuses one that hasn't (the owner's ask, 2026-10-01; since
+    2026-10-02 a piece only where it is logical to wear the thing: clothes, jewellery, what hangs at a belt). */
 export const SHOWS_OTHERWISE: Readonly<Record<string, string>> = {
   candle_moth: 'the moth fluttering round the mage',
   weeping_skull: 'the skull circling the mage',
@@ -51,7 +57,7 @@ export const SHOWS_OTHERWISE: Readonly<Record<string, string>> = {
   salt_circle: 'the ring of salt at the feet',
 };
 
-/** Whether an artifact's `costume` names something it can wear (not a transformation's own piece). */
+/** Whether an artifact's `costume` names something it can wear (not a transformation's own piece, nor `"none"`). */
 export const isCostume = (id: string) => (isPiece(id) && !('transform' in COSTUME_PIECES[id]) && !('arc' in COSTUME_PIECES[id])) || isCarry(id);
 /** The slot a `costume` fills. */
 export const slotOf = (costume: string): CostumeSlot => isPiece(costume) ? COSTUME_PIECES[costume].slot : CARRY[costume as CarrySpot];

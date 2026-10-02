@@ -94,7 +94,8 @@ export const BUILD: Record<CostumeId, (f: Fit, w: Worn) => THREE.Object3D[]> = {
     const gl = glowShared(0xffd878, radii.x * 2.4, .45); gl.position.copy(ring.position); g.add(gl);
     return [hang(f.headAt, g)];
   },
-  /** The Hart's Antler: a circlet with a small pair of antlers rising from the temples. */
+  /** The Beastcaller's circlet: a small pair of antlers rising from the temples (the Hart's Antler wore it until
+      2026-10-02). */
   antlers(f) {
     const g = new THREE.Group(), bone = tone(0xe8dcc0, .12), at = .42;
     const ring = new THREE.Mesh(new THREE.TorusGeometry(Math.sqrt(1 - at * at) * 1.03, .035, 4, 20), tone(0x8a6a3a, .1, .3)); ring.rotation.x = Math.PI / 2; ring.position.y = at;
@@ -131,30 +132,6 @@ export const BUILD: Record<CostumeId, (f: Fit, w: Worn) => THREE.Object3D[]> = {
     bakeOnHead(g, f);
     mergeStill(g);
     return [hang(f.headAt, g)];
-  },
-  /** The Raven's Eye: a third eye on the brow, lit violet. */
-  thirdEye(f) {
-    const g = new THREE.Group();
-    const lid = new THREE.Mesh(new THREE.SphereGeometry(.16, 10, 6), tone(0x2a1830)); lid.scale.set(1.4, .75, .4); lid.position.set(0, .5, .9); g.add(lid);
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(.11, 10, 6), glowTone(0xc89aff)); eye.scale.set(1.4, .6, .4); eye.position.set(0, .5, .94); g.add(eye);
-    bakeOnHead(g, f);
-    mergeStill(g);
-    const gl = glowShared(0xb070ff, f.head.radii.x * .9, .5); gl.position.copy(f.head.centre).add(new THREE.Vector3(0, f.head.radii.y * .5, f.head.radii.z * .95)); g.add(gl);
-    return [hang(f.headAt, g)];
-  },
-  /** Hawkbone Fletching: a mantle of feathers over the shoulders. */
-  feathers(f) {
-    const g = new THREE.Group(), ch = f.chest, cc = ch.getCenter(new THREE.Vector3()), cs = ch.getSize(new THREE.Vector3());
-    const top = f.head.box.min.y + (f.head.box.max.y - f.head.box.min.y) * .1, rx = Math.max(cs.x * .5, f.head.radii.x * .8) * 1.05, rz = Math.max(cs.z * .5, f.head.radii.z * .6) * 1.2;
-    const quill = new THREE.ConeGeometry(.055, .24, 4); quill.scale(1, 1, .25);
-    for (let row = 0; row < 2; row++) for (let i = 0; i < 16; i++) {
-      const a = (i + row * .5) / 16 * Math.PI * 2, m = new THREE.Mesh(quill.clone(), tone(row ? 0xd8c090 : 0x8a6a48, .15));
-      const out = new THREE.Vector3(Math.cos(a) * rx, 0, Math.sin(a) * rz);
-      m.position.set(cc.x, top - .1 - row * .07, cc.z).add(out.clone().multiplyScalar(.62 + row * .14));
-      m.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), out.clone().normalize().add(new THREE.Vector3(0, -3, 0)).normalize()); g.add(m); // (drooping over the shoulders)
-    }
-    quill.dispose(); mergeStill(g);
-    return [hang(f.chestAt, g)];
   },
   /** The Last Rite: a funeral stole round the neck and down the front, black while cursed, white once cleansed. */
   stole(f, w) {
@@ -214,15 +191,6 @@ export const BUILD: Record<CostumeId, (f: Fit, w: Worn) => THREE.Object3D[]> = {
     for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 4; const m = new THREE.Mesh(new THREE.SphereGeometry(.022, 5, 4), bead); m.position.copy(pos).addScaledVector(axis, -.04 - i * .006).addScaledVector(u, Math.cos(a) * .08).addScaledVector(v, Math.sin(a) * .08); g.add(m); }
     const cross = new THREE.Mesh(new THREE.BoxGeometry(.02, .08, .02), tone(0x8a6a3a, 0, .4)); cross.position.copy(pos).add(new THREE.Vector3(0, -.1, 0)); g.add(cross);
     const bar = new THREE.Mesh(new THREE.BoxGeometry(.05, .02, .02), tone(0x8a6a3a, 0, .4)); bar.position.copy(cross.position).add(new THREE.Vector3(0, .02, 0)); g.add(bar);
-    mergeStill(g);
-    return [hang(f.hand[s].at, g)];
-  },
-  /** The Witch's Knot: a knotted cord round the off wrist, charms of bone and glass hanging from it. */
-  knot(f) {
-    const s = offSide(), g = new THREE.Group(), { pos, q } = wrist(f, s);
-    const cord = new THREE.Mesh(new THREE.TorusKnotGeometry(.07, .014, 30, 4, 2, 5), tone(0x5a2a6a, .1)); cord.position.copy(pos); cord.quaternion.copy(q); g.add(cord);
-    const charms = [glowTone(0xc89aff), tone(0xe8dcc0), tone(0x8a5aa0)];
-    charms.forEach((m, i) => { const c = new THREE.Mesh(i ? new THREE.ConeGeometry(.025, .06, 4) : new THREE.OctahedronGeometry(.03), m); c.position.copy(pos).add(new THREE.Vector3((i - 1) * .05, -.1 - (i % 2) * .03, .02)); g.add(c); });
     mergeStill(g);
     return [hang(f.hand[s].at, g)];
   },
