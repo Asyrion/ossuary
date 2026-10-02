@@ -6,7 +6,7 @@ Delete it, or write it again, at the next handoff.
 
 ## The branch and what is live
 
-- Work is on **`claude/m6-plan-docs-5gjp6c`**, pushed, clean. Its last work commit is M4.12 step 4 (floor 3's four and the nest).
+- Work is on **`claude/m6-plan-docs-5gjp6c`**, pushed, clean. Its last work commit is M4.12 step 5 (floor 4's five).
 - **`main` (the live Pages site) is at `90080f1`**, which has M6 steps 1 to 5. Everything below is on the branch only,
   **not shipped**: ship only when the owner asks (the `ship` skill; the `rules-reviewer` before the PR).
   - M6 step 6 (the general boons) and step 7 (runes on the cast), both built and documented in `docs/M6-plan.md`.
@@ -22,20 +22,20 @@ Delete it, or write it again, at the next handoff.
 
 ## What waits on the owner now
 
-**M4.12 step 4: floor 3's four and the nest** (`src/actors/fantasyFloor3.ts`), sheets sent 2026-10-02. Floors 1 and 2
-were approved the same day (the owner's yes to all) and are done: in `APPROVED`, old builders deleted, `RETIRED` keeping
-their old heights and parts for the contract, the galleries standing the new looks (`lampwyrmSwarm` for the swarm).
-Floor 3's:
+**M4.12 step 5: floor 4's five** (`src/actors/fantasyFloor4.ts`), sheets sent 2026-10-02. Floors 1 to 3 were approved
+the same day (the owner's yes to all) and are done: in `APPROVED`, old builders deleted, `RETIRED` keeping their old
+heights and parts for the contract, the galleries standing the new looks (`lampwyrmSwarm` for the swarm; the lava nest
+in `FOE_LOOKS`). Floor 4's:
 
 | Look id (stays) | Was | Now |
 | --- | --- | --- |
-| `cinderSalamander` | Cinder Salamander | Salamander |
-| `hexImp` | Hex Imp | Hex Imp |
-| `rimeDrakeling` | Rime Drakeling | Rime Drake |
-| `emberWasp` | Ember Wasps | Cinder Hornets |
-| `waspNest` (in `FOE_LOOKS`, no gallery entry) | the wasps' nest | a nest of cooled lava |
+| `wickmouse` | Wickmouse | Candle Kobold |
+| `chimeBat` | Chime Bat | Bell Fiend |
+| `gargoyleWhelp` | Gargoyle Whelp | Gargoyle |
+| `moonstagFawn` | Moonstag Fawn | Pale Unicorn |
+| `rimeScarab` | Rime Scarab | Frost Scarab |
 
-To see them again: `npm run foe-sheet -- floor=3 out=<dir>`, or in the game with `?looks=new`.
+To see them again: `npm run foe-sheet -- floor=4 out=<dir>`, or in the game with `?looks=new`.
 
 **On the owner's yes (per foe):**
 
@@ -99,6 +99,10 @@ To see them again: `npm run foe-sheet -- floor=3 out=<dir>`, or in the game with
   whose colour or opacity changes keeps every mesh using it apart: move repeated small parts (eyes, sacs, wings, arms,
   chains) together under one joint, and pulse a glow sprite instead of a material. Floor 1's Quill Kraken was 54 calls
   against the old 26 until its runes stopped changing colour.
+- **A part holding parts:** `mergeRig` keeps apart only the objects named in `parts` and what the idle moves. A part
+  whose children the behaviour moves (the fawn's `legs`) needs the idle to move each child a little, or they merge into
+  the parent and never move.
+- **A 45° camera sees a face tipped 45° edge-on:** turn what must be seen (a bell's mouth) straight forward or up.
 - **Never run a second Vite server sharing `node_modules`** (a worktree with it linked): both rewrite
   `node_modules/.vite` and the browser tests fail on 403s. Delete `node_modules/.vite` and restart the server if it
   happens. And `pkill -f vite` kills a shell whose command line names `.vite`.

@@ -10,9 +10,10 @@ import type { Built } from './beastParts';
 import { FLOOR1_LOOKS } from './fantasyFloor1';
 import { FLOOR2_LOOKS } from './fantasyFloor2';
 import { FLOOR3_LOOKS } from './fantasyFloor3';
+import { FLOOR4_LOOKS } from './fantasyFloor4';
 
 /** The new looks, by the look id they replace. */
-export const FANTASY_LOOKS: Partial<Record<string, () => Built>> = { ...FLOOR1_LOOKS, ...FLOOR2_LOOKS, ...FLOOR3_LOOKS };
+export const FANTASY_LOOKS: Partial<Record<string, () => Built>> = { ...FLOOR1_LOOKS, ...FLOOR2_LOOKS, ...FLOOR3_LOOKS, ...FLOOR4_LOOKS };
 /** The new looks the owner has approved: the ones the foes wear in the game (floors 1 to 3, 2026-10-02). */
 export const APPROVED: ReadonlySet<string> = new Set<string>([
   'sporeling', 'vesperMoth', 'runeBeetle', 'urnMimic', 'cryptSpider', 'inkOctopus', 'fireflyBeetle', 'choirLark', 'stormMantis', 'rubbleCrab',
