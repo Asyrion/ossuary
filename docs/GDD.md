@@ -1193,7 +1193,7 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 
 **Economy target:** about 12 to 18 obols per floor, so a merchant artifact means saving or skipping hearts. From M2, a room clear drops one pickup about half the time: a heart, obols, a bone key or a glyph stone, now and then a coffer or a reliquary chest. Obols are drawn to the living: from close by they drift to the mage.
 
-**The obol's look** (2026-10-02, from the owner's coins): an obol wears a coin face made from the owner's images (`docs/assets.md`: Coins), drawn at the game's own pixel and tipped to face the camera, so it reads as a coin 28 game pixels across; its icon is on the HUD's counter and the lore card. Seven faces are in the game and the obols wear Star and crystal (a gold rim, a blue star at the heart) until the owner chooses; the dev menu tries the others. The rest wait for coins of their own (`docs/ideas.md`: Coin types).
+**The obol's look** (2026-10-02, from the owner's coins): an obol wears a coin face made from the owner's images (`docs/assets.md`: Coins), tipped to face the camera, 28 game pixels across, its face drawn on the fine layer at half-size pixels so it reads (One pixel for everything: the exception); its icon is on the HUD's counter and the lore card. Seven faces are in the game and the obols wear Star and crystal (a gold rim, a blue star at the heart), the owner's choice; the dev menu tries the others. The rest wait for coins of their own (`docs/ideas.md`: Coin types).
 
 **Blast glyphs**
 
@@ -1284,6 +1284,7 @@ At 180 small objects stop reading, so it is no longer offered. Tiles, icons and 
 - **Glows and shadows in steps.** Every glow (artifacts, torches, spells, motes) and the shadows under things fade in a few flat rings, as pixel art draws them.
 - **Icons in pixel art.** An artifact's icon is pixel art at about its size in the room (24 pixels), hard-edged and outlined, shown in whole steps.
 - **The rule from here:** anything new is drawn in the game at the texel, so it is pixel art by being there; its glows use the stepped glow, its icon is made the same way. The HUD's text and drawn icons stay sharp.
+- **One exception: the coins (the owner, 2026-10-02).** A coin's face is too small at the texel to read, so coins are drawn on a fine layer: the same size in the room, their pixels half as big (two to a game pixel each way), still hard-edged and outlined, laid over the room where nothing stands before them. Nothing else goes on the fine layer without the owner's say.
 
 **Identity note.** The current hero is close to the Isaac art style. Fine for a hobby prototype; if the game is ever published, characters and art need their own look.
 

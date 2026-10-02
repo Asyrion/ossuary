@@ -72,5 +72,6 @@ export function placeCamera() {
     per frame, over both passes of the pixel look. */
 export function draw() {
   renderer.info.reset(); placeCamera();
-  if (pixelLook().lines) drawPixelLook(renderer, scene, camera); else renderer.render(scene, camera);
+  if (pixelLook().lines) drawPixelLook(renderer, scene, camera);
+  else { camera.layers.enableAll(); renderer.render(scene, camera); } // (off: the fine layer with everything else)
 }

@@ -11,7 +11,7 @@
     "floor": { "size": 1024, "folder": "textures" },
     "wall":  { "size": 1024, "folder": "textures" },
     "icon":  { "size": 128, "source": 256, "folder": "icons" },
-    "coin":  { "size": 28, "icon": 24, "source": 512, "folder": "coins" }
+    "coin":  { "size": 56, "icon": 24, "source": 512, "folder": "coins" }
   },
   "props": {},
   "artifacts": {},

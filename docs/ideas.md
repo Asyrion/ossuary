@@ -164,7 +164,7 @@ wear one. The others could be coins with a purpose of their own, each a face and
 - **Silver owl** or **Plain profile** (silver coins): a library's coin, spent on pages and forgotten spells, or a sage's
   token for the grimoire between runs.
 - **Arcane eye** or **Arcane sigil** (rune-ringed coins): vow or omen tokens for the Great Circle (M7), or rune coins for
-  M6's runes; busy at 28 pixels, so best shown larger (the shop, the HUD) or drawn simpler.
+  M6's runes; busy at a coin's size in the room, so best shown larger (the shop, the HUD) or drawn simpler.
 - **A larger coin worth five**, as Isaac's nickel: Star and crystal's gold if the plain obol goes back to the rune, or
   any face with a thicker gold rim.
 

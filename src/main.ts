@@ -66,7 +66,7 @@ import type { TransformId } from './items/transformData';
 import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
 import { assetList, assetsOn, loadAssets } from './assets/models';
-import { drawnRows, pixelLook, setPixelLook, type PixelLook } from './render/pixelLook';
+import { drawnRows, pixelLook, setPixelLook, type PixelLook, fineLayerDrawn } from './render/pixelLook';
 import { removeModelOptions, showBestiary, showBossLooks, showFamiliarOptions, showModelOptions } from './actors/modelOptions';
 import { bossLook, setBossLook, type BossLookId } from './actors/bossLooks';
 import { removeEffectOptions, showEffectOptions } from './magic/effectOptions';
@@ -235,6 +235,8 @@ function installDevHooks() {
     /** The coin face the obols wear (2026-10-02), every face they can wear, wearing another, and all side by side. */
     get obolFace() { return obolFace(); }, get obolFaces() { return obolFaces(); }, wearFace: (id: string) => wearFace(id),
     coinGallery: () => showCoins(), takeCoinGallery: () => takeCoins(),
+    /** Whether the pixel look's fine layer (the coins' finer pixel) drew anything in the last frame. */
+    get fineLayerDrawn() { return fineLayerDrawn(); },
     /** Every object and pile, and two urns, in rows ahead of the mage (the dev menu's "Objects here"). */
     objectsHere: () => objectsHere(),
     dropsHere: () => dropsHere(),
