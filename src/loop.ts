@@ -12,6 +12,7 @@ import { updateRoomFx } from './world/rooms';
 import { heroVisual } from './actors/hero';
 import { updatePlayer } from './actors/player';
 import { Sfx } from './audio/sfx';
+import { updateAudio } from './audio/director';
 import { updateEnemies } from './actors/enemies';
 import { updateBolts, updateShots } from './combat/projectiles';
 import { updateGlyphs } from './combat/glyphs';
@@ -90,6 +91,7 @@ function updateWorldFx(dt: number, now: number) {
   G.shake = Math.max(0, G.shake - dt * 1.4);
   updateInsight(G.state === 'play' ? dt : 0); // (M6: insight's streaks run to the hand)
   updateHud(dt); updateAfflictions(); updateLore(dt); // (what is being done to the mage, beside the mana bar)
+  updateAudio(); // (the soundscapes and the music: what the game is doing chooses them)
 }
 
 function frame(nowMs: number) {

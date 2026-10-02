@@ -90,12 +90,17 @@ import { attrText, pointsToSpend, spendPoint } from '../progression/points';
 import { dealNow, takeBoon } from '../progression/boons';
 import { openLevelUp } from './levelUp';
 import { BOON_DEFS, boon } from '../progression/boonData';
+import { AudioDirector, type Forced } from '../audio/director';
+import { FLOOR_SCAPES, ROOM_SCAPES, THEME_SCAPES } from '../audio/ambienceData';
+import { MOODS, PIECES, type Mood } from '../audio/musicData';
+import { renderAudio } from '../audio/render';
+import { THEMES } from '../world/themeData';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
 let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
-const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
+const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries', 'sound'] as const;
 type Tab = (typeof TABS)[number];
 const TAB_KEY = 'ossuary.devTab';
 let pages: Record<Tab, HTMLElement>, tabBtns: Record<Tab, HTMLButtonElement>;
@@ -455,6 +460,21 @@ function build() {
     fpsBtn = btn('', () => { DEV.fps = !DEV.fps; }),
   );
 
+  // the soundscapes and the music (docs/sound-plan.md): any floor's, a room's or a theme's over it, any piece in any mood
+  const snd: { floor: number; over: string; piece: string; mood: Mood } = { floor: 0, over: '', piece: PIECES[1].id, mood: 'explore' };
+  const playScape = () => AudioDirector.force({ ...AudioDirector.forced, floor: snd.floor, room: snd.over in ROOM_SCAPES ? snd.over : 'normal', theme: snd.over in THEME_SCAPES ? snd.over : undefined });
+  const playMusic = () => AudioDirector.force({ ...AudioDirector.forced, piece: snd.piece, mood: snd.mood });
+  const sc = section(pages.sound, S.scapes);
+  sc.append(soundInfo = el('p', 'dv-info'), el('p', 'dv-info', S.scapeNote),
+    soundBtn = btn('', () => AudioDirector.set(!AudioDirector.on)), btn(S.soundGame, () => AudioDirector.force(null)),
+    ...FLOOR_SCAPES.map((_, i) => btn(STR.floors[i]?.[0] ?? `Floor ${i + 1}`, () => { snd.floor = i; playScape(); })),
+    ...['', ...Object.keys(ROOM_SCAPES), ...Object.keys(THEME_SCAPES)].map(id => btn(S.scapeRoom(id ? S.roomNames[id] ?? THEMES.get(id)?.name ?? id : S.scapeNone), () => { snd.over = id; playScape(); })));
+  const mu = section(pages.sound, S.music);
+  mu.append(...PIECES.map(p => btn(p.name, () => { snd.piece = p.id; playMusic(); })),
+    ...MOODS.map(m => btn(S.moodIs(S.moods[m]), () => { snd.mood = m; playMusic(); })),
+    ...(['cleared', 'death'] as const).map(k => btn(S.stingers[k], () => AudioDirector.stinger(k))),
+    btn(S.savePreview, () => { toast(S.rendering, 2); void savePreview(AudioDirector.forced); }));
+
   // the artifacts as the room kit builds them (looks only), in rows
   const arts = section(pages.galleries, S.artifactGallery);
   arts.append(el('p', 'dv-info', S.artifactsNote), btn(S.showOptions, () => { closeDev(); showArtifactGallery(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeArtifactGallery(G.current)));
@@ -586,6 +606,9 @@ function refresh() {
     return b;
   }));
   costInfo.textContent = S.costumeInfo(wornNow(), heldNow() ?? '');
+  const au = AudioDirector.info;
+  soundInfo.textContent = S.soundInfo(au.ambience?.scape ? `${au.ambience.scape}${au.ambience.room ? ` + ${au.ambience.room}` : ''} (${au.ambience.space.split('|')[0]} s)` : '—', au.music?.piece ? `${au.music.piece}, ${au.music.mood}, bar ${au.music.bar}` : '—');
+  soundBtn.textContent = AudioDirector.on ? S.soundOn : S.soundOff; soundBtn.classList.toggle('on', AudioDirector.on);
   transInfo.textContent = S.transformInfo(G.run.transforms.map(t => STR.transforms[t].name), blinkRest());
   arcInfo.textContent = S.arcInfo(arcNow(), arcHeld(), DEV.arc !== undefined);
   { const m = marksNow(); marksInfo.textContent = S.marksInfo(m.hands.map(h => h ? `${STR.schools[h.school]} (${h.state}${h.ring ? ', ring' : ''})` : '-'), m.attuned ? STR.schools[m.attuned] : '', m.circle.known.reduce((a, b) => a + b, 0), m.circle.mastered.map(sc => STR.schools[sc])); }
@@ -608,4 +631,12 @@ function refresh() {
     btn(DEV.mapFinished ? S.mapFinishedOn : S.mapFinishedOff, () => { DEV.mapFinished = !DEV.mapFinished; renderMinimap(); }), // (2026-10-02: finished rooms marked, or not, to compare)
     btn(S.nextFloor, () => { closeDev(); descend(); }),
   );
+}
+
+/** Render 40 seconds of what the Sound tab has chosen (or floor 1 and its piece) and hand it over as a WAV. */
+async function savePreview(f: Forced | null) {
+  const floor = f?.floor ?? G.run.floor, piece = f?.piece, mood = f?.mood ?? 'explore';
+  const r = await renderAudio({ ambience: f?.floor !== undefined || !piece ? { floor, room: f?.room, theme: f?.theme } : undefined, music: piece ? { piece, mood } : undefined, seconds: 40 });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([r.wav], { type: 'audio/wav' }));
+  a.download = `ossuary-${piece ?? 'floor' + (floor + 1)}-${mood}.wav`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }

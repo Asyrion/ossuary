@@ -1328,7 +1328,7 @@ Audio is designed for headphones first: every sound has a position in the room, 
 - Under one heart, the music thins out and a heartbeat joins.
 - Boss themes are separate pieces with a phase change at 50% health.
 
-**Floor biomes and their soundscapes** (proposal; the biomes themselves are a new idea and need Eda lore). Floors 4 and 5 exist since M4.1 (the Gilded Reliquary and the Ferryman's Shore), with placeholder sounds; the table's floors 4 and 5 are still ideas for their biomes.
+**Floor biomes and their soundscapes** (proposal; the biomes themselves are a new idea and need Eda lore). Floors 4 and 5 exist since M4.1 (the Gilded Reliquary and the Ferryman's Shore); the table's floors 4 and 5 were ideas before them. What was built for the five floors as they are (2026-10-02) is in *Soundscapes and music as built* below and `docs/sound-plan.md`.
 
 | Floor | Biome (placeholder) | Ambience bed | Random one-shots | Music mood |
 | --- | --- | --- | --- | --- |
@@ -1368,9 +1368,27 @@ Reactions (steam, shatter, overload, eclipse, blackfire; M4.8's searing, prism, 
 - Accessibility: important sounds (telegraphs, off-screen spawns, low health) also have a visual cue.
 
 **As built in M3:** the synthesised placeholders run through two buses, effects and interface, under a master, each
-with a slider in the pause menu (remembered in the browser; music and ambience sliders come with M8). Effects that
+with a slider in the pause menu (remembered in the browser; music and ambience joined them on 2026-10-02). Effects that
 happen somewhere in the room are panned left or right of the mage and a little quieter further away (plain stereo;
 HRTF, reverb and the headphones or speakers setting stay for M8).
+
+**Soundscapes and music as built (2026-10-02, the owner's ask; `docs/sound-plan.md`).** Pulled forward from M8 and
+made in code, as everything else is: each sound built the way the real thing makes it (wind as wandering noise, a stream
+as hundreds of bubbles, fire as a roar and clusters of clicks, plucked strings, struck bells with inharmonic partials, a
+choir through the formants of a vowel, drums as a skin). Two more buses, music and ambience, with their sliders.
+- *Soundscapes:* every floor has a space (its reverb), a bed and five or six one-shots placed round the mage (1 the
+  Ossuary: far wind, the hum of stone, drips, settling bones, a far chant, rats, the chapel's bell through the rock; 2 the
+  Drowned Catacombs: running water, a cistern's rumble, a tunnel's whistle, drips, bubbles, sloshing, a bell under water;
+  3 the Burning Scriptorium: a fire's roar and crackle, hot wind through the shelves, pages, groaning beams, embers,
+  collapsing books; 4 the Gilded Reliquary: a marble hall's air and a long, bright space, an organ pipe's hum, golden
+  chimes, coins, a censer's chain, a high voice; 5 the Ferryman's Shore: waves on shingle, the river's pull, a slow
+  sub-pulse, the ferry's bell, whispers of the waiting dead, a moored boat, an oar). The library (dry), the shrine
+  (ringing), Dr. Jelly's laboratory, the shop, a vault and a secret room lay their own over the floor's, eleven themes a
+  touch; the bed ducks while the doors are locked and in a boss's room.
+- *Music:* one piece a floor and the title's theme (Beneath the Gate), each written as data (key, mode, tempo, chords,
+  motifs, voices, drum patterns) and composed a bar at a time while it plays, in four stems (drone, harmony, melody,
+  pulse) at the levels of six moods (title, exploring, a fight, a boss, under a heart, quiet), with a stinger when a fight
+  is won and another at death. Boss themes as their own pieces and the doors as acoustic windows are still to come.
 
 **Technical notes:** Web Audio API through three.js positional audio for effects; ambience and music streamed rather than loaded up front; short effects packed into a few files to cut download size; audio unlocked on the first tap or key press, as browsers require. Files ship as Ogg Vorbis, each synthesised sound staying as the fallback; sources, licences, budgets and the pipeline are in `docs/assets.md` (Sound).
 

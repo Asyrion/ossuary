@@ -1,0 +1,144 @@
+{
+  "_comment": "The soundscapes (docs/sound-plan.md): each floor's space (its reverb), its bed (layers that never stop) and its one-shots (placed at random round the mage, `every` seconds on average, `far` how far off: 0 close, 1 at the edge of hearing). Rooms lay their own over the floor's (`duck` turns the floor's down), and themes add a touch. Read by src/audio/ambienceData.ts.",
+  "floors": [
+    {
+      "id": "ossuary",
+      "space": { "seconds": 2.2, "bright": 0.5 },
+      "bed": [
+        { "kind": "noise", "colour": "brown", "filter": "lowpass", "freq": 170, "q": 0.7, "gain": 0.32 },
+        { "kind": "hum", "freqs": [41.2, 61.7], "gain": 0.035, "beat": 0.07 },
+        { "kind": "noise", "colour": "pink", "filter": "bandpass", "freq": 320, "q": 2.4, "gain": 0.2, "sweep": [170, 620], "gust": { "every": 7, "depth": 0.8 } },
+        { "kind": "noise", "colour": "white", "filter": "bandpass", "freq": 1200, "q": 18, "gain": 0.045, "sweep": [850, 1650], "gust": { "every": 11, "depth": 0.95 } }
+      ],
+      "shots": [
+        { "kind": "drip", "every": 3.5, "gain": 0.5, "far": [0.2, 0.9] },
+        { "kind": "bones", "every": 22, "gain": 0.45, "far": [0.3, 0.8] },
+        { "kind": "chant", "every": 45, "gain": 0.4, "far": [0.8, 1] },
+        { "kind": "rats", "every": 30, "gain": 0.35, "far": [0.3, 0.8] },
+        { "kind": "chapelBell", "every": 75, "gain": 0.5, "far": [0.85, 1] }
+      ]
+    },
+    {
+      "id": "drowned",
+      "space": { "seconds": 3, "bright": 0.3 },
+      "bed": [
+        { "kind": "stream", "rate": 260, "lo": 250, "hi": 2200, "gain": 0.32 },
+        { "kind": "noise", "colour": "brown", "filter": "lowpass", "freq": 120, "q": 0.8, "gain": 0.38, "sweep": [80, 170], "gust": { "every": 9, "depth": 0.35 } },
+        { "kind": "noise", "colour": "white", "filter": "bandpass", "freq": 700, "q": 26, "gain": 0.05, "sweep": [520, 880], "gust": { "every": 12, "depth": 0.9 } }
+      ],
+      "shots": [
+        { "kind": "drip", "every": 1.6, "gain": 0.45, "far": [0.1, 0.9] },
+        { "kind": "bubbles", "every": 9, "gain": 0.4, "far": [0.2, 0.7] },
+        { "kind": "slosh", "every": 12, "gain": 0.4, "far": [0.2, 0.8] },
+        { "kind": "underBell", "every": 60, "gain": 0.45, "far": [0.7, 1] },
+        { "kind": "stones", "every": 35, "gain": 0.45, "far": [0.5, 0.9] }
+      ]
+    },
+    {
+      "id": "burning",
+      "space": { "seconds": 1.6, "bright": 0.25 },
+      "bed": [
+        { "kind": "noise", "colour": "brown", "filter": "lowpass", "freq": 300, "q": 0.9, "gain": 0.34, "sweep": [220, 420], "gust": { "every": 2.5, "depth": 0.45 } },
+        { "kind": "crackle", "rate": 5, "gain": 0.22 },
+        { "kind": "noise", "colour": "pink", "filter": "bandpass", "freq": 900, "q": 3.5, "gain": 0.11, "sweep": [500, 1600], "gust": { "every": 5, "depth": 0.7 } },
+        { "kind": "noise", "colour": "white", "filter": "bandpass", "freq": 2000, "q": 24, "gain": 0.03, "sweep": [1500, 2800], "gust": { "every": 8, "depth": 0.95 } }
+      ],
+      "shots": [
+        { "kind": "pages", "every": 10, "gain": 0.4, "far": [0.2, 0.7] },
+        { "kind": "beam", "every": 18, "gain": 0.45, "far": [0.4, 0.9] },
+        { "kind": "ember", "every": 3.5, "gain": 0.4, "far": [0.1, 0.6] },
+        { "kind": "books", "every": 50, "gain": 0.45, "far": [0.5, 0.9] },
+        { "kind": "flare", "every": 22, "gain": 0.4, "far": [0.5, 1] }
+      ]
+    },
+    {
+      "id": "reliquary",
+      "space": { "seconds": 4.5, "bright": 0.85 },
+      "bed": [
+        { "kind": "noise", "colour": "pink", "filter": "lowpass", "freq": 1100, "q": 0.6, "gain": 0.22, "sweep": [700, 1500], "gust": { "every": 9, "depth": 0.5 } },
+        { "kind": "hum", "freqs": [82.4, 123.5, 164.8, 247], "gain": 0.07, "beat": 0.18 },
+        { "kind": "noise", "colour": "brown", "filter": "bandpass", "freq": 480, "q": 1.1, "gain": 0.16, "gust": { "every": 1.8, "depth": 0.4 } },
+        { "kind": "noise", "colour": "white", "filter": "bandpass", "freq": 7200, "q": 2, "gain": 0.015 }
+      ],
+      "shots": [
+        { "kind": "chimes", "every": 14, "gain": 0.35, "far": [0.3, 0.9] },
+        { "kind": "coins", "every": 20, "gain": 0.35, "far": [0.3, 0.8] },
+        { "kind": "censer", "every": 25, "gain": 0.4, "far": [0.3, 0.8] },
+        { "kind": "highVoice", "every": 40, "gain": 0.32, "far": [0.75, 1] },
+        { "kind": "wax", "every": 8, "gain": 0.35, "far": [0.1, 0.5] }
+      ]
+    },
+    {
+      "id": "shore",
+      "space": { "seconds": 3.5, "bright": 0.2 },
+      "bed": [
+        { "kind": "shore", "period": 7, "gain": 0.42 },
+        { "kind": "noise", "colour": "brown", "filter": "lowpass", "freq": 150, "q": 0.8, "gain": 0.42, "sweep": [100, 210], "gust": { "every": 10, "depth": 0.3 } },
+        { "kind": "noise", "colour": "pink", "filter": "bandpass", "freq": 600, "q": 0.8, "gain": 0.06 }
+      ],
+      "shots": [
+        { "kind": "ferryBell", "every": 55, "gain": 0.5, "far": [0.9, 1] },
+        { "kind": "whispers", "every": 16, "gain": 0.32, "far": [0.4, 1] },
+        { "kind": "boatCreak", "every": 14, "gain": 0.4, "far": [0.3, 0.8] },
+        { "kind": "oar", "every": 30, "gain": 0.35, "far": [0.6, 1] },
+        { "kind": "shingle", "every": 9, "gain": 0.3, "far": [0.2, 0.7] },
+        { "kind": "pulse", "every": 2.4, "steady": true, "gain": 0.3, "far": [1, 1] }
+      ]
+    }
+  ],
+  "rooms": {
+    "library": {
+      "space": { "seconds": 0.8, "bright": 0.3 }, "duck": 0.5,
+      "bed": [{ "kind": "noise", "colour": "pink", "filter": "lowpass", "freq": 900, "q": 0.6, "gain": 0.05 }],
+      "shots": [
+        { "kind": "pages", "every": 7, "gain": 0.35, "far": [0.2, 0.6] },
+        { "kind": "bookThud", "every": 25, "gain": 0.35, "far": [0.3, 0.7] },
+        { "kind": "ember", "every": 12, "gain": 0.15, "far": [0.1, 0.4] }
+      ]
+    },
+    "shrine": {
+      "space": { "seconds": 5, "bright": 0.85 }, "duck": 0.6,
+      "bed": [{ "kind": "hum", "freqs": [220, 221.3, 330.2, 441.1, 659.4], "gain": 0.025, "beat": 0.4 }],
+      "shots": [{ "kind": "chime", "every": 12, "gain": 0.35, "far": [0.2, 0.6] }]
+    },
+    "laboratory": {
+      "duck": 0.7,
+      "bed": [
+        { "kind": "stream", "rate": 24, "lo": 90, "hi": 480, "thick": 0.8, "gain": 0.35 },
+        { "kind": "hum", "freqs": [73.4, 73.9], "gain": 0.035, "beat": 0.5 }
+      ],
+      "shots": [
+        { "kind": "glass", "every": 9, "gain": 0.3, "far": [0.2, 0.6] },
+        { "kind": "gloop", "every": 3, "gain": 0.35, "far": [0.1, 0.5] }
+      ]
+    },
+    "merchant": {
+      "duck": 0.7,
+      "bed": [{ "kind": "hum", "freqs": [110, 164.8, 110.6], "gain": 0.022, "beat": 0.3 }],
+      "shots": [{ "kind": "murmur", "every": 10, "gain": 0.3, "far": [0.2, 0.5] }]
+    },
+    "vault": {
+      "space": { "seconds": 1.2, "bright": 0.4 }, "duck": 0.5,
+      "bed": [{ "kind": "hum", "freqs": [55, 82.5, 110.4], "gain": 0.03, "beat": 0.2 }],
+      "shots": [{ "kind": "dust", "every": 15, "gain": 0.3, "far": [0.2, 0.7] }]
+    },
+    "secret": {
+      "space": { "seconds": 1.2, "bright": 0.3 }, "duck": 0.45,
+      "shots": [{ "kind": "dust", "every": 9, "gain": 0.3, "far": [0.2, 0.7] }]
+    },
+    "boss": { "duck": 0.35 }
+  },
+  "themes": {
+    "garden": { "shots": [{ "kind": "rustle", "every": 6, "gain": 0.3, "far": [0.2, 0.7] }, { "kind": "insect", "every": 9, "gain": 0.2, "far": [0.3, 0.8] }] },
+    "cistern": { "bed": [{ "kind": "stream", "rate": 200, "lo": 300, "hi": 2000, "gain": 0.18 }], "shots": [{ "kind": "drip", "every": 2.5, "gain": 0.4, "far": [0.1, 0.8] }] },
+    "grotto": { "shots": [{ "kind": "drip", "every": 2, "gain": 0.4, "far": [0.1, 0.8] }, { "kind": "bubbles", "every": 14, "gain": 0.3, "far": [0.2, 0.7] }] },
+    "chapel": { "shots": [{ "kind": "choirHum", "every": 35, "gain": 0.3, "far": [0.8, 1] }] },
+    "collapsed": { "shots": [{ "kind": "dust", "every": 7, "gain": 0.3, "far": [0.2, 0.7] }, { "kind": "rubble", "every": 30, "gain": 0.35, "far": [0.4, 0.9] }] },
+    "bells": { "shots": [{ "kind": "chime", "every": 20, "gain": 0.25, "far": [0.4, 0.9] }] },
+    "treasury": { "shots": [{ "kind": "coins", "every": 9, "gain": 0.3, "far": [0.2, 0.7] }, { "kind": "chimes", "every": 18, "gain": 0.25, "far": [0.3, 0.8] }] },
+    "landing": { "bed": [{ "kind": "shore", "period": 6, "gain": 0.25 }] },
+    "mausoleum": { "bed": [{ "kind": "noise", "colour": "pink", "filter": "bandpass", "freq": 500, "q": 3, "gain": 0.08, "sweep": [300, 800], "gust": { "every": 6, "depth": 0.8 } }] },
+    "ossuary": { "shots": [{ "kind": "bones", "every": 10, "gain": 0.35, "far": [0.3, 0.8] }] },
+    "scriptorium": { "shots": [{ "kind": "pages", "every": 9, "gain": 0.3, "far": [0.2, 0.7] }] }
+  }
+}
