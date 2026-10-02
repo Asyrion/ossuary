@@ -6,7 +6,7 @@ Delete it, or write it again, at the next handoff.
 
 ## The branch and what is live
 
-- Work is on **`claude/m6-plan-docs-5gjp6c`**, pushed, clean. Its last work commit is M4.12 step 3 (floor 2's six).
+- Work is on **`claude/m6-plan-docs-5gjp6c`**, pushed, clean. Its last work commit is M4.12 step 4 (floor 3's four and the nest).
 - **`main` (the live Pages site) is at `90080f1`**, which has M6 steps 1 to 5. Everything below is on the branch only,
   **not shipped**: ship only when the owner asks (the `ship` skill; the `rules-reviewer` before the PR).
   - M6 step 6 (the general boons) and step 7 (runes on the cast), both built and documented in `docs/M6-plan.md`.
@@ -22,20 +22,20 @@ Delete it, or write it again, at the next handoff.
 
 ## What waits on the owner now
 
-**M4.12 step 3: floor 2's six new looks** (`src/actors/fantasyFloor2.ts`), sheets sent 2026-10-02. Floor 1's ten were
-approved the same day ("yes to all ten") and are done: in `APPROVED`, old builders deleted, `RETIRED` keeping their old
-heights and parts for the contract, the galleries standing the new looks (`lampwyrmSwarm` for the swarm). Floor 2's:
+**M4.12 step 4: floor 3's four and the nest** (`src/actors/fantasyFloor3.ts`), sheets sent 2026-10-02. Floors 1 and 2
+were approved the same day (the owner's yes to all) and are done: in `APPROVED`, old builders deleted, `RETIRED` keeping
+their old heights and parts for the contract, the galleries standing the new looks (`lampwyrmSwarm` for the swarm).
+Floor 3's:
 
 | Look id (stays) | Was | Now |
 | --- | --- | --- |
-| `mireToad` | Mire Toad | Hoarfrost Toad |
-| `cisternLurker` | Cistern Lurker | Kelpie |
-| `lanternJelly` | Lantern Jelly | Reliquary Medusa |
-| `glassNewt` | Glass Newt | Glass Wyrm |
-| `rimeSnail` | Rime Snail | Rime Crawler |
-| `stormDarter` | Storm Darter | Spark Wyvern |
+| `cinderSalamander` | Cinder Salamander | Salamander |
+| `hexImp` | Hex Imp | Hex Imp |
+| `rimeDrakeling` | Rime Drakeling | Rime Drake |
+| `emberWasp` | Ember Wasps | Cinder Hornets |
+| `waspNest` (in `FOE_LOOKS`, no gallery entry) | the wasps' nest | a nest of cooled lava |
 
-To see them again: `npm run foe-sheet -- floor=2 out=<dir>`, or in the game with `?looks=new`.
+To see them again: `npm run foe-sheet -- floor=3 out=<dir>`, or in the game with `?looks=new`.
 
 **On the owner's yes (per foe):**
 
