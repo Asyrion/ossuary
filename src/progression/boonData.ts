@@ -8,7 +8,7 @@
    Gathering Dark's hex), how long a status holds (`statusMul`: Banked Coals, Perennial, Laid Bare) and which spells a boon
    touches (`touches`, `boonsTouching`: the spell's panel lists them). */
 import boonsData from '../../data/boons.json';
-import { SCHOOLS, SHAPES, SPELL_STATUSES, type School, type Shape, type SpellDef, type SpellStatus } from '../magic/spellData';
+import { SCHOOLS, SHAPES, SPELL_STATUSES, shareStatus, type School, type Shape, type SpellDef, type SpellStatus } from '../magic/spellData';
 import type { MagicTuning } from '../magic/status';
 import { CFG } from '../config';
 
@@ -150,10 +150,5 @@ export const boonsTouching = (def: Pick<SpellDef, 'school' | 'shape' | 'status'>
 
 /* ---------- step 6: the general boons' rules ---------- */
 
-/** Afterglow: the share of a spell's statuses its next cantrip casts carry. Stacks (Chill, Hex) round up, so a spell's one
-    stack still carries one; seconds are shared as they are. */
-export function afterglowOf(status: Partial<Record<SpellStatus, number>> | undefined, share: number) {
-  const out: Partial<Record<SpellStatus, number>> = {};
-  for (const [k, v] of Object.entries(status ?? {}) as [SpellStatus, number][]) out[k] = k === 'chill' || k === 'hex' ? Math.ceil(v * share) : Math.round(v * share * 10) / 10;
-  return out;
-}
+/** Afterglow: the share of a spell's statuses its next cantrip casts carry (spellData.ts's share: stacks rounded up). */
+export const afterglowOf = shareStatus;

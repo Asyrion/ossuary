@@ -14,6 +14,11 @@ describe('spell knowledge (M3.7)', () => {
     cast(kn, 'arc'); expect(stageOf(kn.arc, 10)).toBe('used');
     expect(upgrade(kn, 'arc', 'rune:echo')).toBe(true); expect(upgrade(kn, 'arc', 'rune:echo')).toBe(false);
     expect(stageOf(kn.arc, 10)).toBe('upgraded');
+    // (M6: a rune carved into a spell not yet known well waits for the casts: it reads learned until then)
+    const early: Knowledge = {}; learn(early, 'arc'); upgrade(early, 'arc', 'rune:quicken');
+    expect(stageOf(early.arc, 10)).toBe('learned');
+    for (let i = 0; i < 10; i++) cast(early, 'arc');
+    expect(stageOf(early.arc, 10)).toBe('upgraded');
   });
 
   it('learning a spell sees it too, and casting one learns it (knowledge only grows)', () => {
