@@ -10,6 +10,8 @@ import { PROP_KINDS, isMechanism } from '../world/propData';
 import { THEME_DEFS } from '../world/themeData';
 import { placeProp } from '../world/props';
 import { padsNow } from '../input/gamepad';
+import { FOE_LOOK_MODES } from '../actors/fantasyLooks';
+import { showLookPairs } from '../actors/lookPairs';
 import { jellyGives } from '../world/jellyGives';
 import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
@@ -91,7 +93,7 @@ import { BOON_DEFS, boon } from '../progression/boonData';
 
 const S = STR.dev;
 let panel: HTMLElement | null = null, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
-let levelInfo: HTMLElement, padInfo: HTMLElement, runeInfo: HTMLElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
+let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
 type Tab = (typeof TABS)[number];
@@ -422,6 +424,8 @@ function build() {
     bandBtn = btn('', () => setPixelLook({ bands: !pixelLook().bands })),
     // the mage in the pixel-art look (its colours baked, a few of them, light in bands), or the model as made, to compare
     heroPxBtn = btn('', () => { setHeroPixel(hero.model, !heroPixel()); dress(); }),
+    // M4.12: the foes wear the approved new looks, every new one, or the old ones (new foes take it; a new floor all of them)
+    foeLookBtn = btn('', () => { DEV.foeLooks = FOE_LOOK_MODES[(FOE_LOOK_MODES.indexOf(DEV.foeLooks) + 1) % FOE_LOOK_MODES.length]; rebuildFloor(); }),
   );
 
   // the room kit (M3.5 step 3's proof): the pieces built in code, or the old ones to compare; the fire objects to look at
@@ -467,6 +471,11 @@ function build() {
   const jl = section(pages.galleries, S.jellyLooks);
   jl.append(el('p', 'dv-info', S.jellyNote),
     btn(S.showOptions, () => { closeDev(); showJellyLooks(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
+
+  // M4.12: the foes' old and new looks side by side, a floor at a time, for the owner to compare and approve
+  const lp = section(pages.galleries, S.lookPairs);
+  lp.append(...[1, 2, 3, 4, 5, 0].map(f => btn(S.floorLooks(f), () => { closeDev(); if (!showLookPairs(G.current, player.x, player.z, f).length) toast(S.noNewLooks, 2); })),
+    btn(S.allLooks, () => { closeDev(); if (!showLookPairs(G.current, player.x, player.z).length) toast(S.noNewLooks, 2); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
 
   // the Hollow Warden's looks (M4): the three ahead of the mage, and the one it wears in its fight (a new floor 1 shows it)
   const bl = section(pages.galleries, S.bossLooks);
@@ -551,7 +560,8 @@ function refresh() {
   { const list = padsNow(); padInfo.replaceChildren(...(list.length ? list.map(g => el('div', '', S.padRow(g.index, g.id, g.mapping, g.buttons, g.axes))) : [el('div', '', S.noPads)])); }
   autoBtn.textContent = DEV.autoLevel ? S.autoLevelOn : S.autoLevelOff; autoBtn.classList.toggle('on', !!DEV.autoLevel);
   boonInfo.textContent = S.boonsInfo(Object.entries(G.run.boons).map(([id, r]) => `${boon(id).name}${r > 1 ? ' II' : ''}`).join(', '));
-  heroPxBtn.textContent = heroPixel() ? S.heroPixelOn : S.heroPixelOff; heroPxBtn.classList.toggle('on', heroPixel());
+  heroPxBtn.textContent = heroPixel() ? S.heroPixelOn : S.heroPixelOff;
+  foeLookBtn.textContent = S.foeLooks[DEV.foeLooks]; foeLookBtn.classList.toggle('on', DEV.foeLooks !== 'approved'); heroPxBtn.classList.toggle('on', heroPixel());
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
   knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'), reactionsFound().length, REACTION_IDS.length) + ' ' + S.weavesInfo(weavesFound().length, WEAVE_IDS.length);
   spellBox.replaceChildren(...SPELL_DEFS.map(s => {

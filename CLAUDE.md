@@ -206,6 +206,11 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   face ahead of the mage and take them away.
 - The minimap (`renderMinimap` in hud.ts) marks finished rooms (2026-10-02, the owner's ask): `roomFinished` (been in, cleared, no pickup inside its bounds, no unopened container, artifact or page left), a shade darker and a small tick, redrawn when that changes (`watchFinished`); `DEV.mapFinished` (Rooms & runs) turns it off to compare; `__game.finished`.
 - Gamepads (`src/input/gamepad.ts`): every connected pad read together (sticks from the one pushed furthest, buttons from any), A begins from the title as Start does, A reaches the level-up screen and the alchemy table (`MENU_BUTTONS`), and a pad says by name when the browser first reports it (`initGamepad`, `STR.pad`); `__game.pads` and the dev menu's Gamepads (Rooms & runs) show what the browser reports.
+- M4.12 Fantasy foes (`docs/M4.12-plan.md`): new looks go in `FANTASY_LOOKS` (`src/actors/fantasyLooks.ts`) by the look id they
+  replace and are worn once their id is in `APPROVED` (`DEV.foeLooks`: approved, new or old; `?looks=new`; the Look tab);
+  `src/actors/lookPairs.ts` stands old and new side by side (the Galleries tab, `__game.lookPairs(floor)`) and checks each
+  new look keeps its old look's moving parts and about its height (`lookContract`, a browser test); `npm run foe-sheet --
+  floor=1` shoots the pairs for the owner's review.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons, in six tabs (Mage, Magic, Foes & objects, Rooms & runs, Look, Galleries; `TABS`, names in `STR.dev.tabs`, the
   last one open remembered in the browser as `ossuary.devTab`; a new section goes on the page of the tab it belongs to): heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's

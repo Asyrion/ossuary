@@ -4817,3 +4817,18 @@ test('a merchant\'s ware shows a small panel when the mage comes near (2026-10-0
   expect(seen.far).toBeNull(); expect(seen.shown).toBe(false);
   expect(errors).toEqual([]);
 });
+
+test('fantasy foes (M4.12): every new look keeps the parts its behaviour moves and about its old height, stands beside the old one, and a foe wears it when tried', async ({ page }) => {
+  type GL = { sim(s: number, draw?: boolean): void; spawn(kind: string): void; enemies: { type: string; foe?: { id: string } }[]; player: { invuln: number };
+    lookContract(): { id: string; missing: string[]; oldH: number; newH: number }[]; lookPairs(floor?: number): { id: string }[]; foeLooks: string };
+  const errors = await start(page, '?seed=LOOKS&room=great_hall&looks=new');
+  const r = await page.evaluate(() => {
+    const w = (window as unknown as { __game: GL }).__game; w.player.invuln = 999;
+    const contract = w.lookContract(), pairs = w.lookPairs().map(p => p.id); w.sim(.5, true);
+    return { contract, pairs, mode: w.foeLooks };
+  });
+  expect(r.mode).toBe('new');
+  for (const c of r.contract) { expect(c.missing, c.id).toEqual([]); expect(c.newH / c.oldH, c.id).toBeGreaterThan(.5); expect(c.newH / c.oldH, c.id).toBeLessThan(2.2); }
+  expect(r.pairs.sort()).toEqual(r.contract.map(c => c.id).sort());
+  expect(errors).toEqual([]);
+});
