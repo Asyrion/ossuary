@@ -12,7 +12,7 @@ import { fireAt } from '../world/pools';
 import { renderHearts } from '../ui/hud';
 import type { Enemy, Vec2 } from '../types';
 import { takeBoon } from './boons';
-import { boonRank, magicNow } from './boonHooks';
+import { boonRank, magicNow, votiveCast } from './boonHooks';
 import { BOON_DEFS } from './boonData';
 
 /** The school boons, in the data's order (the dev menu's buttons). */
@@ -36,7 +36,7 @@ export function setOffBoon(id: string) {
     case 'flamekeeper': { dummy(q.x + 2, q.z); placeProp('brazier', px, pz - 1.4); after(.1, () => fireAt(px, pz - 1.4, .5)); break; }
     case 'forkingArc': for (let k = 0; k < 8; k++) dummy(px + (k % 4 - 1.5), pz - 1.6 - Math.floor(k / 4)); after(.1, () => cast('arc')); break; // (a block of eight, each within a leap of another)
     case 'sparkWake': dummy(q.x, q.z); after(.1, () => cast('arc')); break;
-    case 'votiveHeart': hurt(); room.votive = false; room.boonMended = 0; dummy(q.x, q.z); break;
+    case 'votiveHeart': hurt(); room.votive = false; room.boonMended = 0; dummy(q.x, q.z); after(.1, () => { cast('consecrate'); votiveCast(); }); break; // (as castSpell does after a Hallow spell)
     case 'laidBare': { const d = dummy(q.x, q.z); d.guard = .3; inflict(d, { sanct: 4 }, 'mage'); after(.3, () => damageEnemy(d, 10, 0, -1, 0, 'cantrip')); break; }
     case 'thirstingHex': { hurt(); room.boonMended = 0; const d = dummy(q.x, q.z); inflict(d, { hex: 5 }, 'mage'); for (let k = 1; k <= 6; k++) after(k * .2, () => damageEnemy(d, 1, 0, -1, 0, 'cantrip')); break; }
     case 'gatheringDark': { const d = dummy(q.x, q.z); for (let k = 0; k < 9; k++) inflict(d, { hex: 1 }, 'mage'); break; }
