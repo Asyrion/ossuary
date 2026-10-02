@@ -18,11 +18,12 @@ import { SCHOOL_LIGHT, bigEyes, box, circle, limb, lit, motes, part, rune, runeR
 import { gloss, joint, jointed, slitEyes, spike, thin, tube } from './beastParts';
 import { curve } from '../world/kitParts';
 import { EMBER_FIRE, makeFire, makeMotes, type FlameSpec } from '../render/fire';
-import { serpentLook } from './serpentLooks';
+import { serpentHeadOld, serpentLook } from './serpentLooks';
+import { dressedBoss } from './fantasyBosses';
 
 /** A built boss look: its group, how it idles, its shadow, the parts the fight moves (the Warden's three, and any a
     boss's own fight moves besides) and its school. */
-export interface BossBuilt { group: THREE.Group; idle: (t: number) => void; shadow: number; parts: { eye: THREE.Object3D; ring: THREE.Object3D; halo: THREE.Sprite } & Record<string, THREE.Object3D>; school: School }
+export interface BossBuilt { group: THREE.Group; idle: (t: number) => void; shadow: number; parts: { eye: THREE.Object3D; ring: THREE.Object3D; halo: THREE.Sprite } & Record<string, THREE.Object3D>; school: School; key?: string }
 
 const blink = (list: THREE.Object3D[], t: number, every = 3.6) => { const k = t % every; for (const e of list) e.scale.y = k < .14 ? .12 : 1; };
 const smile = (parent: THREE.Object3D, at: V3, r: number, color = 0x2a1418) => part(parent, new THREE.TorusGeometry(r, r * .14, 4, 12, Math.PI), lit(color), at, { rot: [0, 0, Math.PI] });
@@ -134,7 +135,7 @@ function hollowOwl(): BossBuilt {
 
 /** The Hallowed Hart (M4.1, floor 4's boss, Hallow): a great white stag with candles burning in its antlers. Its fight
     (bosses.ts) moves its legs as it trots and charges, its head as it lowers its antlers, and its body as it rears. */
-export function hartLook(): BossBuilt {
+function hartOld(): BossBuilt {
   const H = SCHOOL_LIGHT.hallow, g = new THREE.Group(), coat = std(0xeee6d6), shade = std(0xcdbfa6), hoof = std(0x3a2e24), horn = std(0xe8d4a4, { roughness: .6, metalness: .15 }), wax = std(0xf6ecd6), muzzle = std(0xb8a88e), nose = std(0x2a2020);
   const body = new THREE.Group(); g.add(body);
   part(body, sphere(.75, 16, 12), coat, [0, 1.05, -.05], { scale: [.72, .62, 1.05] });
@@ -184,7 +185,7 @@ export function hartLook(): BossBuilt {
 
 /** The Deep Angler (M4.1, floor 5's boss, Umbral): a great round anglerfish afloat in the mist, needle-toothed, its lure
     a lamp of cold light on a stalk. Its fight moves its jaw as it draws the mage in and bites, and swells its lure. */
-export function anglerLook(): BossBuilt {
+function anglerOld(): BossBuilt {
   const U = SCHOOL_LIGHT.umbral, TEAL = 0x7fe8e0, g = new THREE.Group(), skin = std(0x252c44, { roughness: .6 }), belly = std(0x3e4462), finM = std(0x302a50), mouthM = lit(0x2a0a22), tooth = std(0xece6f4, { roughness: .4 }), stalkM = std(0x1c2032);
   const body = new THREE.Group(); body.position.y = 1.25; g.add(body);
   part(body, sphere(.95, 18, 14), skin, [0, 0, 0], { scale: [1, .88, 1] });
@@ -224,7 +225,7 @@ export function anglerLook(): BossBuilt {
     of frost cut in it. Its fight (bosses.ts) stands it still as a statue, moves its legs as it prowls and pounces, a
     forepaw as it swipes, its head and jaw as it roars; each plate is a part of its own (`plate0` to `plate3`) that a blast,
     a Shatter or enough blows knock off. */
-export function tigerLook(): BossBuilt {
+function tigerOld(): BossBuilt {
   const F = SCHOOL_LIGHT.frost, g = new THREE.Group(), fur = std(0xebe5d8), pale = std(0xf8f4ec), stripe = std(0x4c4c58), nose = std(0x4a2c30), claw = std(0xd8d0c0);
   const bronze = std(0xae783c, { roughness: .4, metalness: .6 }), verd = std(0x5a9a86, { roughness: .7 }), stone = std(0x9c968a, { roughness: .95 }), stoneDark = std(0x6a665e), runeM = lit(F, .95);
   const body = new THREE.Group(); g.add(body);
@@ -310,7 +311,7 @@ const halfBall = (r: number, side: 1 | -1) => new THREE.SphereGeometry(r, 12, 9,
 
 /** The Pillar Dragon's head, facing +z from where its neck joins (the origin): split orange and blue-grey, a cream
     muzzle and beard, antlers, a spiked mane, long whiskers, big eyes; its jaw drops and its maw glows as it breathes. */
-export function dragonHead(): BossBuilt {
+function dragonHeadOld(): BossBuilt {
   const g = new THREE.Group(), orange = std(DRAGON.fire, { roughness: .6 }), blue = std(DRAGON.frost, { roughness: .6 }), cream = std(DRAGON.cream), horn = std(DRAGON.horn, { roughness: .55, metalness: .15 }), dark = std(0x2a1a18);
   const head = new THREE.Group(); g.add(head);
   const split = (parent: THREE.Object3D, r: number, at: V3, scale: V3) => { for (const s of [1, -1] as const) part(parent, halfBall(r, s), s > 0 ? orange : blue, at, { scale }); };
@@ -386,9 +387,10 @@ export function dragonBody(n = 22, spacing = .2): DragonBody {
   } };
 }
 
-/** The Pillar Dragon for the gallery: coiled round a stone column, leaning out (the same path its fight lays it on). */
-export function dragonLook(): BossBuilt {
-  const L = dragonHead(), g = new THREE.Group(), B = dragonBody(), stone = std(0x8a8478);
+/** The Pillar Dragon for the gallery: coiled round a stone column, leaning out (the same path its fight lays it on); `head`
+    its head as built now, or as the pairs ask (lookPairs.ts). */
+export function dragonLook(head: () => BossBuilt = dragonHead): BossBuilt {
+  const L = head(), g = new THREE.Group(), B = dragonBody(), stone = std(0x8a8478);
   part(g, new THREE.CylinderGeometry(.27, .3, 1.55, 10), stone, [0, .78, 0]); part(g, box(.72, .18, .72), stone, [0, 1.62, 0]); part(g, box(.86, .2, .86), stone, [0, .1, 0]);
   const coil = spiral(0, 0, 1.75, Math.PI * .75, { radius: .62, turns: 1.25, drop: 1.2 }), end = coil[coil.length - 1], h: P3 = [.35, 1.6, 1.15];
   B.pose(lay([...neck(h, end, .35), ...coil.slice().reverse()], B.n, B.spacing, .3));
@@ -596,10 +598,17 @@ export function pyreKnightLook(): BossBuilt {
   } };
 }
 
+/** The bosses' looks as they were before M4.12 (by the id `BOSS_FANTASY` keeps their new looks under), for the pairs
+    and the contract (lookPairs.ts). */
+export const OLD_BOSS_LOOKS: Readonly<Record<string, () => BossBuilt>> = { bellWarden, motherOfSpores, hollowOwl, hart: hartOld, angler: anglerOld, tiger: tigerOld, dragonHead: dragonHeadOld, serpentHead: serpentHeadOld };
+/** The bosses of floors 4 and 5 (M4.1), the War-Tiger and the Pillar Dragon's head (M4.2), as they are built now (M4.12:
+    the new look once approved). */
+export const hartLook = dressedBoss('hart', hartOld), anglerLook = dressedBoss('angler', anglerOld), tigerLook = dressedBoss('tiger', tigerOld), dragonHead = dressedBoss('dragonHead', dragonHeadOld);
+
 /** The looks, for the owner to choose (the dev menu's Galleries tab stands them ahead of the mage, and picks the one the
     Hollow Warden wears in its fight). */
 export const BOSS_LOOKS = [
-  { id: 'bellWarden', build: bellWarden }, { id: 'motherOfSpores', build: motherOfSpores }, { id: 'hollowOwl', build: hollowOwl },
+  { id: 'bellWarden', build: dressedBoss('bellWarden', bellWarden) }, { id: 'motherOfSpores', build: dressedBoss('motherOfSpores', motherOfSpores) }, { id: 'hollowOwl', build: dressedBoss('hollowOwl', hollowOwl) },
 ] as const;
 export type BossLookId = (typeof BOSS_LOOKS)[number]['id'];
 /** Every boss built in code, for the Galleries tab: the Warden's three looks, the bosses of floors 2 and 3, of floors 4

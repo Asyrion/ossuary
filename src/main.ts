@@ -36,7 +36,7 @@ import { breakOut, crackVat } from './world/laboratory';
 import { brewAtTable, closeLab, initLab, labKey, labNow, labOpen, labPad, openLab, type LabTab } from './ui/alchemyTable';
 import { warePanelNow } from './ui/warePanel';
 import { FOE_LOOK_MODES, type FoeLooks } from './actors/fantasyLooks';
-import { lookContract, showLookPairs } from './actors/lookPairs';
+import { bossContract, lookContract, showLookPairs } from './actors/lookPairs';
 import { promptShowing, roomFinished, setHeroInfo, toast, updateVision } from './ui/hud';
 import { chooseFor, initLevelUp, levelKey, levelOpen, levelPad, offerNow, openLevelUp } from './ui/levelUp';
 import { giveById, removeArtifactGallery, showArtifactGallery } from './items/artifacts';
@@ -444,8 +444,8 @@ function installDevHooks() {
     /** The gamepads the browser reports (name, layout, buttons held, sticks), as the dev menu's Gamepads shows them. */
     get pads() { return padsNow(); },
     /** M4.12: the old and new looks side by side ahead of the mage (a floor's, or all), what each new look keeps of its old
-        one (`lookContract`), and which looks the foes wear (`foeLooks`: approved, new or old). */
-    lookPairs: (floor?: number, only?: string[]) => showLookPairs(G.current, player.x, player.z, floor, only), lookContract: () => lookContract(),
+        one (`lookContract`; the bosses' as floor -1, `bossContract`), and which looks the foes and bosses wear (`foeLooks`: approved, new or old). */
+    lookPairs: (floor?: number, only?: string[]) => showLookPairs(G.current, player.x, player.z, floor, only), lookContract: () => lookContract(), bossContract: () => bossContract(),
     get foeLooks() { return DEV.foeLooks; }, set foeLooks(m: FoeLooks) { DEV.foeLooks = m; },
     /** The ware whose panel shows over it (2026-10-02): its name, and whether he would refuse it now. */
     get warePanel() { return warePanelNow(); },

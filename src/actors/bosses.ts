@@ -69,7 +69,7 @@ export function buildBoss(e: Enemy) {
   e.contact = 2; e.isBoss = true; e.cycle = 0; e.summoned = false;
   if (e.type === 'warden') { // built in code (M4): the look chosen in the dev menu (bossLooks.ts), its still parts merged
     const id = bossLook(), L = buildBossLook(id);
-    e.mats = mergeRig(L.group, L.idle, 'boss:' + id, [L.parts.eye, L.parts.ring]);
+    e.mats = mergeRig(L.group, L.idle, 'boss:' + id + (L.key ?? ''), [L.parts.eye, L.parts.ring]);
     for (const m of e.mats) m.userData.base = m.emissive.clone();
     e.model = L.group; e.idle = L.idle; e.shadow = L.shadow; e.bossSchool = L.school; e.body.add(L.group);
     e.eye = L.parts.eye; e.ring = L.parts.ring; e.halo = L.parts.halo;
@@ -77,7 +77,7 @@ export function buildBoss(e: Enemy) {
   } else if (e.type === 'hart' || e.type === 'angler') { // built in code (M4.1): the bosses of floors 4 and 5
     const L = e.type === 'hart' ? hartLook() : anglerLook(), P = L.parts, C = CFG.enemy[e.type];
     const keep = e.type === 'hart' ? [P.eye, P.ring, P.head, ...P.legs.children] : [P.eye, P.ring, P.lure];
-    e.mats = mergeRig(L.group, L.idle, 'boss:' + e.type, keep);
+    e.mats = mergeRig(L.group, L.idle, 'boss:' + e.type + (L.key ?? ''), keep);
     for (const m of e.mats) m.userData.base = m.emissive.clone();
     e.model = L.group; e.idle = L.idle; e.shadow = L.shadow; e.bossSchool = L.school; e.body.add(L.group);
     e.eye = P.eye; e.ring = P.ring; e.halo = P.halo; e.parts = P; e.bossAff = { weak: C.weak, resist: C.resist };
@@ -85,7 +85,7 @@ export function buildBoss(e: Enemy) {
     else { e.flying = true; e.state = 'drift'; e.st = 2.2; }
   } else if (e.type === 'tiger') { // built in code (M4.2): a statue in its hall until the mage comes near
     const L = tigerLook(), P = L.parts, C = CFG.enemy.tiger;
-    e.mats = mergeRig(L.group, L.idle, 'boss:tiger', [P.eye, P.ring, P.head, P.jaw, P.tail, P.rime, ...P.legs.children, P.plate0, P.plate1, P.plate2, P.plate3]);
+    e.mats = mergeRig(L.group, L.idle, 'boss:tiger' + (L.key ?? ''), [P.eye, P.ring, P.head, P.jaw, P.tail, P.rime, ...P.legs.children, P.plate0, P.plate1, P.plate2, P.plate3]);
     for (const m of e.mats) m.userData.base = m.emissive.clone();
     e.model = L.group; e.idle = L.idle; e.shadow = L.shadow; e.bossSchool = L.school; e.body.add(L.group);
     e.eye = P.eye; e.ring = P.ring; e.halo = P.halo; e.parts = P; e.bossAff = { weak: C.weak, resist: C.resist };
