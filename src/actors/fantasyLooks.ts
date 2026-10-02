@@ -15,12 +15,13 @@ import { FLOOR5_LOOKS } from './fantasyFloor5';
 
 /** The new looks, by the look id they replace. */
 export const FANTASY_LOOKS: Partial<Record<string, () => Built>> = { ...FLOOR1_LOOKS, ...FLOOR2_LOOKS, ...FLOOR3_LOOKS, ...FLOOR4_LOOKS, ...FLOOR5_LOOKS };
-/** The new looks the owner has approved: the ones the foes wear in the game (floors 1 to 4, 2026-10-02). */
+/** The new looks the owner has approved: the ones the foes wear in the game (floors 1 to 5, 2026-10-02). */
 export const APPROVED: ReadonlySet<string> = new Set<string>([
   'sporeling', 'vesperMoth', 'runeBeetle', 'urnMimic', 'cryptSpider', 'inkOctopus', 'fireflyBeetle', 'choirLark', 'stormMantis', 'rubbleCrab',
   'mireToad', 'cisternLurker', 'lanternJelly', 'glassNewt', 'rimeSnail', 'stormDarter',
   'cinderSalamander', 'hexImp', 'rimeDrakeling', 'emberWasp', 'waspNest',
   'wickmouse', 'chimeBat', 'gargoyleWhelp', 'moonstagFawn', 'rimeScarab',
+  'rootling', 'stormRay', 'voidMote', 'lanternTortoise', 'gloomRaven', 'rimeWolf', 'dustPangolin',
 ]);
 /** What an approved look's old one was, kept once the old builder is deleted (on the owner's yes the galleries stand the new
     look in its place): its height at rest and the parts its behaviour moves, so `lookContract` still holds the new look to
@@ -38,6 +39,9 @@ export const RETIRED: Readonly<Record<string, { h: number; parts: readonly strin
   wickmouse: { h: .73, parts: ['flame'] }, chimeBat: { h: .74, parts: ['bell'] },
   gargoyleWhelp: { h: .82, parts: ['head', 'shine', 'wings', 'wings2', 'eyeL', 'eyeR'] }, moonstagFawn: { h: 1.33, parts: ['head', 'aura', 'legs'] },
   rimeScarab: { h: .9, parts: ['body', 'ball'] },
+  rootling: { h: .97, parts: ['body', 'mound'] }, stormRay: { h: .45, parts: [] }, voidMote: { h: 1.1, parts: ['body'] },
+  lanternTortoise: { h: 1.09, parts: ['head', 'legs', 'light'] }, gloomRaven: { h: 1.37, parts: ['body', 'head'] },
+  rimeWolf: { h: 1.08, parts: ['body', 'head', 'tail'] }, dustPangolin: { h: .83, parts: ['body', 'head'] },
 };
 
 export type FoeLooks = 'approved' | 'new' | 'old';
