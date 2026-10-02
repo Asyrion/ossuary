@@ -221,6 +221,7 @@ const sounds = {
   cursed() { tone('sawtooth', 233, 220, .6, .05); tone('sawtooth', 330, 311, .6, .04); tone('sine', 110, 70, .8, .1); },
   rise() { [392, 523, 659].forEach((f, i) => tone('sine', f, f * 1.01, .4, .06, i * .12)); hiss(.5, .03, 'highpass', 4000); },
   /** M6: insight reaching the hand (soft, a glassy chime), and a level reached (a rising stinger in insight's gold). */
+  attrUp() { tone('sine', 660, 990, .16, .05); tone('triangle', 990, 1320, .2, .03, .06); },
   insight() { tone('sine', 1568, 1760, .12, .025); tone('sine', 2349, 2349, .16, .012, .03); },
   levelUp() { [523, 659, 784, 1046, 1318].forEach((f, i) => tone('triangle', f, f, .35, .06, i * .07)); tone('sine', 262, 262, .9, .07, .1); hiss(.6, .025, 'highpass', 5000); },
   vanish() { tone('sine', 880, 220, .35, .05); hiss(.3, .04, 'highpass', 3000); },
@@ -434,7 +435,7 @@ const sounds = {
 };
 type Sounds = typeof sounds;
 /** Sounds of the interface (picking things up, refusals, learning): their own bus, never positioned. */
-const UI_SOUNDS = new Set<keyof Sounds>(['levelUp', 'potionChoose', 'pickup', 'relic', 'coin', 'key', 'glyphPickup', 'noGlyph', 'learn', 'spellFail', 'refuse', 'purchase', 'pageAsk']);
+const UI_SOUNDS = new Set<keyof Sounds>(['levelUp', 'attrUp', 'potionChoose', 'pickup', 'relic', 'coin', 'key', 'glyphPickup', 'noGlyph', 'learn', 'spellFail', 'refuse', 'purchase', 'pageAsk']);
 /** Every sound, sending its tones to its bus, or to a panner at `place` when there is one. */
 function route(place?: { x: number; z: number; on: boolean }): Sounds {
   const out = {} as Record<string, (...a: never[]) => void>;

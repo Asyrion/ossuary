@@ -86,7 +86,7 @@ export function castSpell(slot: number, cast: Vec2 | null) {
 export function updateMagic(dt: number, acting: boolean) {
   if (acting) {
     const fighting = G.current.locked;
-    if (!player.stats.effects.has('noRegen')) gainMana(manaRegen(dt, fighting, CFG.mana)); // not with the Hungering Tome
+    if (!player.stats.effects.has('noRegen')) gainMana(manaRegen(dt, fighting, CFG.mana) * player.stats.regenMul); // (M6: Will brings it back faster) // not with the Hungering Tome
     if (DEV.mana) player.mana = player.stats.maxMana;
     for (let i = 0; i < player.spellCd.length; i++) player.spellCd[i] = Math.max(0, player.spellCd[i] - dt);
   }

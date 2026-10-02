@@ -5,6 +5,7 @@
    passive and cursed artifacts add modifiers. Everything combines automatically, with no pairings.
    A cursed artifact's gift is its stats and effects, its price the `curse`; cleansed at a shrine, the price
    goes and the gift is halved (GDD: Shrine cleansing). */
+import { NO_BONUS, type AttrBonus } from '../progression/attributes';
 import artifactsData from '../../data/artifacts.json';
 import type { Rng } from '../rng';
 import type { Resource } from './loot';
@@ -89,6 +90,7 @@ export interface Stats {
   /** Heart containers, counted in halves like hp. */ maxHp: number;
   /** The most mana the mage can hold. */ maxMana: number;
   /** What spells do, as a multiple; mana back for every foe put to rest. */ spellDamage: number; killMana: number;
+  /** M6: how fast mana comes back, as a multiple (Will). */ regenMul: number;
   invuln: number; pattern: FocusPattern; effects: Set<Effect>;
 }
 export const DEFAULT_BOLT_COLOR = 0xffcf7a;
@@ -107,7 +109,9 @@ export const halveStat = (k: StatKey, v: number) => k.endsWith('Mul') ? 1 + (v -
 /** The mage's stats for a focus plus the other artifacts held (in pickup order); cursed artifacts in
     `cleansed` have lost their price and half their gift. `coins` (obols held) matters to the Miser's Purse. */
 /** `lifted`: curses whose price is lifted for now with their gift kept whole (M5: a Bitter Remedy, until the floor ends). */
-export function computeStats(focusId: string, itemIds: readonly string[], base: BaseStats, cleansed: readonly string[] = [], coins = 0, lifted: readonly string[] = []): Stats {
+/** `bonus`: M6's attributes (progression/attributes.ts), folded in after the artifacts: half containers and mana added, the
+    multipliers multiplied in. */
+export function computeStats(focusId: string, itemIds: readonly string[], base: BaseStats, cleansed: readonly string[] = [], coins = 0, lifted: readonly string[] = [], bonus: AttrBonus = NO_BONUS): Stats {
   const focus = artifact(focusId); const pattern = focusPattern(focus);
   const add: Record<StatKey, number> = { damage: 0, damageMul: 1, fireDelayMul: 1, speed: 0, speedMul: 1, boltScale: 0, hearts: 0, invuln: 0, pierce: 0, shotSpeedMul: 1, rangeMul: 1, knockbackMul: 1, obolDamage: 0, blastMul: 1, mana: 0, spellDamageMul: 1, killMana: 0 };
   const effects = new Set<Effect>(); let boltColor = DEFAULT_BOLT_COLOR;
@@ -129,15 +133,15 @@ export function computeStats(focusId: string, itemIds: readonly string[], base: 
   if (gilt) boltColor = mix(boltColor, GILT_COLOR, gilt);
   return {
     damage: (base.damage + add.damage + add.obolDamage * tens) * add.damageMul * pattern.damageMul,
-    fireDelay: Math.max(.08, base.fireDelay * add.fireDelayMul),
-    speed: (base.speed + add.speed) * add.speedMul,
+    fireDelay: Math.max(.08, base.fireDelay * add.fireDelayMul * bonus.fireDelayMul),
+    speed: (base.speed + add.speed) * add.speedMul * bonus.speedMul,
     shotSpeed: base.shotSpeed * add.shotSpeedMul,
     range: base.range * pattern.rangeMul * add.rangeMul,
     boltScale: 1 + add.boltScale, boltColor, pierce: add.pierce, knockback: add.knockbackMul,
     obolDamage: add.obolDamage, gilt, blastMul: add.blastMul,
-    maxHp: Math.max(1, base.hearts + add.hearts) * 2,
-    maxMana: Math.max(0, base.mana + add.mana),
-    spellDamage: add.spellDamageMul, killMana: add.killMana,
+    maxHp: Math.max(1, base.hearts + add.hearts) * 2 + bonus.heartHalves,
+    maxMana: Math.max(0, base.mana + add.mana + bonus.mana), regenMul: bonus.regenMul,
+    spellDamage: add.spellDamageMul * bonus.spellDamageMul, killMana: add.killMana,
     invuln: base.invuln + add.invuln,
     pattern, effects,
   };

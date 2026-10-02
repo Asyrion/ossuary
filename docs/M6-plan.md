@@ -1,7 +1,7 @@
 # M6 RPG growth: plan
 
 **Status: approved (2026-10-02) with four changes, the owner taking Claude's recommendations (decisions 6, 8, 10 and 11);
-step 1 built.** GDD: RPG progression, Inside a run; Magic
+steps 1 and 2 built.** GDD: RPG progression, Inside a run; Magic
 system, Runes; Core loop, Game loop changes for the magic RPG (the pacing target); Pickups and room types (the rune, the
 shrine's bargain, the waystone); the roadmap's M6 row ("XP, levels, attributes, 12 boons, runes and waystones").
 
@@ -233,6 +233,15 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
    - **The inventory's "The mage" tab** shows the level, insight and attributes.
    - **Dev menu (Mage tab):** +1 to each attribute; `__game.attrs`, `spend(attr)`.
    - **Tests:** unit tests of `computeStats` with points; a browser test of the half container.
+   *Built (2026-10-02)* as planned: `src/progression/attributes.ts` (pure: `attrBonus`, `freePoints`, `ATTRS`) and
+   `points.ts` (`spendPoint`, `pointsToSpend`; `G.run.attrs`), `computeStats`' last argument (the attributes' own keys stay
+   off artifacts: the validator refuses them), `stats.regenMul` read by the mana's coming back, the half container drawn as
+   half a heart, the inventory's Growth section on "The mage" tab (the level, its insight, the points to spend, each
+   attribute). A point spent rises over the mage in its colour with a chime. The shock's leap passes the blow as dealt
+   (`blow` in `damageEnemy`): the Crown of Thorns' ×1.5 now comes once (a browser test), and a leap no longer carries the
+   first foe's weakness, guard or frozen ×1.5 to the next. The Storm build's balance run after it (`npm run balance --
+   school=storm`, two seeds): the median foe still falls in 1.3 s, as in docs/balance.md; the long fights (the Phoenix, the
+   Lodestone Golem) move within their noise.
 3. **Boons: the data and the deal.** `data/boons.json` holds each boon's id, school or area, effect, params (a school
    boon's rank II params beside its first), how often it may be taken, weight, icon, colour, text and lore. `src/progression/boonData.ts` (new, pure) holds `validateBoons` and
    `dealBoons(state, rng)`, on the run's own `boons` stream, one draw a level.

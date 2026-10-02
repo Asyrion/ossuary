@@ -175,8 +175,8 @@ export function renderHearts() {
   const key = player.hp + '/' + player.maxHp + '/' + player.souls.join(); if (key === lastHearts) return; lastHearts = key;
   let html = '';
   for (let i = 0; i < player.maxHp / 2; i++) {
-    const v = clamp(player.hp - i * 2, 0, 2);
-    html += `<svg viewBox="0 0 24 24"><path d="${HEART_PATH}" fill="#2a1210" stroke="#0b0504" stroke-width="1.6"/>` +
+    const half = player.maxHp - i * 2 === 1, v = clamp(player.hp - i * 2, 0, half ? 1 : 2); // (M6: Vigor's half container, a half heart's outline)
+    html += `<svg viewBox="0 0 24 24"${half ? ' class="half"' : ''}><path d="${HEART_PATH}" fill="#2a1210" stroke="#0b0504" stroke-width="1.6"${half ? ' clip-path="url(#halfclip)"' : ''}/>` +
       (v === 2 ? `<path d="${HEART_PATH}" fill="#c42c1f"/>` : v === 1 ? `<path d="${HEART_PATH}" fill="#c42c1f" clip-path="url(#halfclip)"/>` : '') +
       `<path d="M7 7.2c-1.2.3-2 1.2-2.2 2.4" stroke="rgba(255,220,200,.55)" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>`;
   }

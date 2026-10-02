@@ -1,5 +1,6 @@
 /* Artifacts in the world: pedestals, taking them (and swapping foci), the per-floor budget, and applying
    what the mage holds to their stats. The data and the combining rules are in artifactData.ts. */
+import { attrBonus } from '../progression/attributes';
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { ArtifactSpot, Room } from '../types';
@@ -29,7 +30,7 @@ const hex = (c: string) => new THREE.Color(c).getHex();
     once unless `announceNow` is false (an artifact taken shows its own banner and card first: `grantArtifact`). */
 export function refreshStats(announceNow = true): TransformId[] {
   const before = player.maxHp, fresh = updateTransforms(); // (M4.6: three of a family transform the mage)
-  player.stats = computeStats(player.focus, player.items, { ...CFG.hero, hearts: CFG.hero.hearts - player.heartsPaid }, player.cleansed, player.coins, G.run.remedy ? [G.run.remedy] : []);
+  player.stats = computeStats(player.focus, player.items, { ...CFG.hero, hearts: CFG.hero.hearts - player.heartsPaid }, player.cleansed, player.coins, G.run.remedy ? [G.run.remedy] : [], attrBonus(G.run.attrs)); // (M6: and the attributes)
   giftsFor(player.stats);
   player.maxHp = player.stats.maxHp;
   if (player.maxHp > before) player.hp += player.maxHp - before;

@@ -27,6 +27,9 @@ import { bottleIconUrl, reagentIconUrl } from '../items/alchemyLooks';
 import { beltSlots, knownPotion, potionName } from '../items/potions';
 import { brewedPotions } from '../items/alchemyMemory';
 import { knownRecipes } from '../items/brewing';
+import { ATTRS, type Attr } from '../progression/attributes';
+import { levelProgress } from '../progression/levelData';
+import { pointsToSpend } from '../progression/points';
 
 type Tab = 'artifacts' | 'spells' | 'potions' | 'items' | 'mage' | 'foes';
 const TABS: Tab[] = ['artifacts', 'spells', 'potions', 'items', 'mage', 'foes'];
@@ -214,15 +217,23 @@ function mageEntries(): Entry[] {
     icon: '', label: T[k].name, badge: value,
     detail: () => head('', T[k].name, value) + `<p class="effect">${esc(T[k].text)}</p>` + (base ? `<p class="note">${esc(I().base(base))}</p>` : ''),
   });
+  const lv = levelProgress(G.run.insight), A = STR.attrs, Gr = I().growth, pts = pointsToSpend();
+  const attr = (k: Attr): Entry => ({ // (M6: a point's worth each, and how many are spent)
+    icon: '', label: A[k].name, badge: String(G.run.attrs[k]),
+    detail: () => head('', A[k].name, Gr.points(G.run.attrs[k])) + `<p class="effect">${esc(A[k].text)}</p>`,
+  });
   return [
-    row('damage', num(st.damage), num(H.damage)),
+    { icon: '', label: Gr.level, badge: String(lv.level), section: Gr.title, // (M6: the level, its insight, the points to spend)
+      detail: () => head('', Gr.level, String(lv.level)) + `<p class="effect">${esc(Gr.levelText(Math.round(G.run.insight), lv.span ? Math.ceil(lv.span - lv.into) : 0, pts))}</p>` },
+    ...ATTRS.map(attr),
+    { ...row('damage', num(st.damage), num(H.damage)), section: Gr.numbers },
     row('rate', num(1 / st.fireDelay, 2), num(1 / H.fireDelay, 2)),
     row('boltSpeed', num(st.shotSpeed), num(H.shotSpeed)),
     row('range', num(st.range), num(H.range)),
     row('speed', num(st.speed), num(H.speed)),
     row('hearts', I().of(halves(player.hp), halves(player.maxHp))),
     row('mana', I().of(String(Math.round(player.mana)), String(st.maxMana)), String(H.mana)),
-    row('regen', st.effects.has('noRegen') ? '0 / 0' : `${M.calm} / ${M.fight}`),
+    row('regen', st.effects.has('noRegen') ? '0 / 0' : `${num(M.calm * st.regenMul, 2)} / ${num(M.fight * st.regenMul, 2)}`, `${M.calm} / ${M.fight}`),
     row('spellDamage', `×${num(st.spellDamage, 2)}`, '×1'),
     row('killMana', st.killMana ? `${M.perKill} + ${num(st.killMana)}` : String(M.perKill)),
     row('pattern', `${p.count} · ${p.path === 'straight' ? I().straight : I().paths[p.path] ?? p.path}`),

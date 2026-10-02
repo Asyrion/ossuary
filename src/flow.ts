@@ -52,6 +52,7 @@ import { mimicSpot } from './actors/foes';
 import { pickMantle } from './actors/mantleData';
 import { championIndex, packRoll } from './world/fill';
 import { payBoss, payClear, resetInsight, setLevel } from './progression/insight';
+import { noAttrs } from './progression/attributes';
 
 /** How the next run starts. Set from the URL at boot (?seed, ?floor, ?room, ?variant, ?give, ?boss, ?loot); used once. */
 export interface RunOptions {
@@ -122,7 +123,7 @@ function newRun(seed: string): typeof G.run {
     wanderer: Rng.from(seed, 'wanderer'), wandererMet: false, fennexFrom: undefined, transforms: [], arc: 0, attuned: [],
     bottles: bottlesFor(Rng.from(seed, 'bottles').int(0, 2 ** 30)), identified: [], alchemy: Rng.from(seed, 'alchemy'), reagents: Rng.from(seed, 'reagents'), remedy: null,
     serpent: 'caged', restless: Rng.from(seed, 'serpent').chance(CFG.alchemy.vat.restless),
-    insight: 0, level: 1, pending: 0, potionsUsed: [],
+    insight: 0, level: 1, pending: 0, potionsUsed: [], attrs: noAttrs(),
   };
 }
 

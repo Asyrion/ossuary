@@ -4339,3 +4339,37 @@ test('insight and levels (M6 step 1): a foe put to rest pays its purse as a stre
   expect(potions.end).toMatch(/^5 \(/);
   expect(errors).toEqual([]);
 });
+
+test('attributes (M6 step 2): a level\'s point spent on Vigor, Will, Arcana or Swiftness changes the numbers and says so; two in Vigor draw a half container; points are only the levels\'; a shock\'s leap carries the spell\'s multiplier once', async ({ page }) => {
+  type GA = { sim(s: number, draw?: boolean): void; spend(a: string, free?: boolean): boolean; attrs: Record<string, number>; spawn(kind: string, x?: number, z?: number): { hp: number };
+    hit(i: number, dmg: number, school?: string, by?: string): void; enemies: unknown[]; inflict(s: object): void; give(...ids: string[]): void;
+    player: { x: number; z: number; hp: number; maxHp: number; mana: number; invuln: number; stats: { maxMana: number; spellDamage: number; speed: number; fireDelay: number; regenMul: number } } };
+  const errors = await start(page, '?seed=ATTRS&level=5');
+  const got = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GA }).__game, P = g.player; g.sim(.5);
+    const start = { free: g.attrs.free, maxHp: P.maxHp, maxMana: P.stats.maxMana, spell: P.stats.spellDamage, speed: P.stats.speed, delay: P.stats.fireDelay };
+    g.spend('vigor'); g.spend('vigor'); g.sim(.1); const hearts = [...document.querySelectorAll('#hearts svg:not(.soul)')].map(s => s.classList.contains('half'));
+    const mana0 = P.mana; g.spend('will'); const will = { max: P.stats.maxMana, mana: P.mana - mana0, regen: P.stats.regenMul };
+    g.spend('arcana'); const spell = P.stats.spellDamage, left = g.attrs.free, refused = g.spend('swiftness');
+    g.spend('swiftness', true); // (the dev menu's: without a level's point)
+    return { start, hp: P.hp, maxHp: P.maxHp, hearts, will, spell, left, refused, speed: P.stats.speed, delay: P.stats.fireDelay, after: g.attrs };
+  });
+  expect(got.start.free).toBe(4);
+  expect(got.maxHp).toBe(got.start.maxHp + 1); expect(got.hp).toBe(got.maxHp); // (the half container comes filled)
+  expect(got.hearts).toEqual([false, false, false, true]);
+  expect(got.will).toEqual({ max: got.start.maxMana + 10, mana: 10, regen: 1.05 });
+  expect(got.spell).toBeCloseTo(got.start.spell * 1.06);
+  expect(got.left).toBe(0); expect(got.refused).toBe(false);
+  expect(got.speed).toBeCloseTo(got.start.speed * 1.03); expect(got.delay).toBeCloseTo(got.start.delay * .97);
+  expect(got.after).toMatchObject({ vigor: 2, will: 1, arcana: 1, swiftness: 1, free: 0 });
+  // a shocked foe struck by a spell passes half the blow on, the Crown of Thorns' ×1.5 applied once, at the foe it leaps to
+  errors.push(...await start(page, '?seed=LEAP&give=crown_of_thorns'));
+  const leap = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GA }).__game, P = g.player; P.invuln = 999; g.sim(.3);
+    const a = g.spawn('rotling', P.x - .6, P.z - 2.5), b = g.spawn('rotling', P.x + .6, P.z - 2.5); g.sim(.8);
+    g.inflict({ shock: 1 }); const hp = b.hp; g.hit(g.enemies.indexOf(a as never), 4, 'storm', 'spell'); return { lost: hp - b.hp, mul: P.stats.spellDamage };
+  });
+  expect(leap.mul).toBeCloseTo(1.5);
+  expect(leap.lost).toBeCloseTo(4 * .5 * 1.5); // (before M6 the ×1.5 came twice: 4.5)
+  expect(errors).toEqual([]);
+});
