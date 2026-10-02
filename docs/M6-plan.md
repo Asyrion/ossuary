@@ -314,7 +314,10 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
    strip Hallowed mantles and feed Umbral elementals). Also: `?boons=deepWinter:2,coldSnap`, the Magic tab's "Boons here"
    (`src/progression/boonTest.ts`, `__game.boonHere(id)`), `__game.boons`' `acted` and `said`; words of size 40 (a counter's,
    a flower's) stack with the names rising from the same spot. Browser tests: three, one for the tuning boons, one for the
-   mends and Laid Bare, one for what the boons leave behind.
+   mends and Laid Bare, one for what the boons leave behind. Before shipping (the rules review): the general boons whose
+   hooks are still to come are held out of the deal (`NOT_YET` in boonData.ts; each step takes its own off), a level's
+   screen spends every point it owes (Tempered's three with it), the inventory's "The mage" tab lists the boons taken, and
+   the attributes' words are built from their tuning.
 6. **The six general boons.**
    - **Tempered:** more points on the screen.
    - **Keen Nose:** `knownPotion` reads it.

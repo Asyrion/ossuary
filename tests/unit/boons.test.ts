@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../../src/rng';
 import { SCHOOLS, SPELL_DEFS, pickPages, spell, type School } from '../../src/magic/spellData';
-import { BOON_DEFS, LEAN, boon, boonParams, boonText, boonTuning, boonsTouching, dealBoons, pledgeFor, schoolWeights, statusMul, validateBoons, type BoonDef, type DealState } from '../../src/progression/boonData';
+import { BOON_DEFS, LEAN, boon, boonParams, boonText, boonTuning, boonsTouching, dealBoons, pledgeFor, schoolWeights, statusMul, validateBoons, NOT_YET, type BoonDef, type DealState } from '../../src/progression/boonData';
 import { MAGIC, applyStatus, newStatus, tickStatus } from '../../src/magic/status';
 
 /* M6 step 3: boons as data and the deal (docs/M6-plan.md). */
@@ -66,9 +66,14 @@ describe('the deal', () => {
     expect(cards.map(c => c.id)).toEqual(['tempered']);
   });
   it("keeps Keen Nose from a Taster's Spoon and Second Socket from a run with no waystone ahead", () => {
-    const all = deals(state({ spoon: true, socketable: false }), 400).flat().map(c => c.id);
+    const none = new Set<string>(), all = deals(state({ spoon: true, socketable: false, hold: none }), 400).flat().map(c => c.id);
     expect(all).not.toContain('keenNose'); expect(all).not.toContain('secondSocket');
-    expect(deals(state(), 400).flat().map(c => c.id)).toEqual(expect.arrayContaining(['keenNose', 'secondSocket']));
+    expect(deals(state({ hold: none }), 400).flat().map(c => c.id)).toEqual(expect.arrayContaining(['keenNose', 'secondSocket']));
+  });
+  it('holds back the general boons whose step is yet to come, so no card is dead', () => {
+    const dealt = new Set(deals(state(), 400).flat().map(c => c.id));
+    for (const id of NOT_YET) expect(dealt.has(id)).toBe(false);
+    expect(dealt.has('tempered')).toBe(true);
   });
   it("deals a bargain's two cards from its school", () => {
     for (const cards of deals(state({ only: 'umbral' }), 50)) expect(cards.filter(c => boon(c.id).school === 'umbral')).toHaveLength(2);

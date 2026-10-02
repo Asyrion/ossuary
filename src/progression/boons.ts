@@ -40,13 +40,16 @@ export function dealNow(only?: School | null): Card[] {
 export function takeBoon(id: string, card = true) {
   const def = boon(id), rank = boonRank(id) + 1;
   if (rank > def.max) return false;
-  G.run.boons[id] = rank;
+  G.run.boons[id] = rank; boonsChanged++;
   const pledge = rank === 1 ? pledgeFor(id, slotSchools()) : null;
   if (pledge) { G.run.pledge = pledge; line(STR.boons.pledged(STR.schools[pledge]), CFG.afflict.lineShow); }
   if (card) showLore({ icon: boonIconImg(id, rank), name: rank > 1 ? STR.boons.ranked(def.name) : def.name, kind: def.school ? STR.boons.kindOf(STR.schools[def.school]) : STR.boons.kindGeneral, effect: boonText(id, rank), lore: def.lore });
   refreshStats(false);
   return true;
 }
+
+/** How many times a boon has been taken since the page loaded (a panel showing the boons knows when to change). */
+export let boonsChanged = 0;
 
 /** The boons taken this run, for the dev hooks and the dev menu. */
 export const boonsNow = () => ({ ...G.run.boons });

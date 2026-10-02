@@ -10,6 +10,7 @@
 import boonsData from '../../data/boons.json';
 import { SCHOOLS, SHAPES, SPELL_STATUSES, type School, type Shape, type SpellDef, type SpellStatus } from '../magic/spellData';
 import type { MagicTuning } from '../magic/status';
+import { CFG } from '../config';
 
 export type BoonArea = 'mage' | 'runes' | 'potions' | 'reagents' | 'cantrip';
 export interface BoonDef {
@@ -66,7 +67,7 @@ export function validateBoons(defs: BoonDef[] = BOON_DEFS): string[] {
 /** What a school's weight in the deal comes from: its spells in the slots, its casts this run, its boons taken (rank
     counted) and a pledge. Every school keeps a little (`base`), so any can come. */
 export interface Lean { slots: readonly (School | null | undefined)[]; casts: Partial<Record<School, number>>; taken: Readonly<Record<string, number>>; pledge?: School | null }
-export const LEAN = { base: 1, slot: 3, castsPer: 5, castsMax: 3, boon: 2, pledge: 2 };
+export const LEAN = CFG.boons.lean;
 export function schoolWeights(l: Lean): Record<School, number> {
   const w = {} as Record<School, number>;
   for (const s of SCHOOLS) {
@@ -80,13 +81,17 @@ export function schoolWeights(l: Lean): Record<School, number> {
 /** What a deal reads: the boons taken (their ranks), the school weights, the school both slots hold (attuned), whether the
     Taster's Spoon is held (Keen Nose isn't dealt then) and whether a waystone lies ahead with a spell to carve (Second
     Socket only then); `only`, a bargain's school (step 11): its two cards from that school. */
-export interface DealState { taken: Readonly<Record<string, number>>; weights: Record<School, number>; attuned?: School | null; spoon?: boolean; socketable?: boolean; only?: School | null }
+export interface DealState { taken: Readonly<Record<string, number>>; weights: Record<School, number>; attuned?: School | null; spoon?: boolean; socketable?: boolean; only?: School | null;
+  /** Boons held back from the deal (default `NOT_YET`). */ hold?: ReadonlySet<string> }
+/** General boons whose hooks come with a later step of M6 (Keen Nose to Afterglow in step 6, Second Socket with the runes in
+    step 7): not dealt until they act, so no card is dead. Each step takes its own off this list. */
+export const NOT_YET: ReadonlySet<string> = new Set(['keenNose', 'scavenger', 'brewersBreath', 'afterglow', 'secondSocket']);
 /** A card dealt: the boon, the rank it would reach, and whether the build's lean brought it (its card says so). */
 export interface Card { id: string; rank: number; lean: boolean }
 
 /** Whether `b` can be dealt now. */
 function open(b: BoonDef, s: DealState) {
-  if ((s.taken[b.id] ?? 0) >= b.max) return false;
+  if ((s.taken[b.id] ?? 0) >= b.max || (s.hold ?? NOT_YET).has(b.id)) return false;
   if (b.id === 'keenNose' && s.spoon) return false;
   if (b.id === 'secondSocket' && !s.socketable) return false;
   return true;

@@ -17,6 +17,13 @@ import { boonParams } from './boonData';
 export const ATTR_COLOR: Record<Attr, number> = { vigor: 0xe0473a, arcana: 0xc8a0ff, will: 0x8fc0ff, swiftness: 0xb0e890 };
 
 /** Points the mage has to spend now. */
+const pct = (v: number) => Math.round(v * 100);
+/** What a point in `a` does, in words built from its tuning (`CFG.attributes`). */
+export function attrText(a: Attr) {
+  const A = CFG.attributes, T = STR.attrs;
+  return a === 'vigor' ? T.vigor.text(A.vigor.pointsPerHalf) : a === 'arcana' ? T.arcana.text(pct(A.arcana.spell))
+    : a === 'will' ? T.will.text(A.will.mana, pct(A.will.regen)) : T.swiftness.text(pct(A.swiftness.speed), pct(A.swiftness.delay));
+}
 export const pointsToSpend = () => freePoints(G.run.level, G.run.attrs, boonRank('tempered') * boonParams('tempered', 1).points); // (and Tempered's)
 /** What the attributes give now (for `refreshStats`). */
 export const bonusNow = () => attrBonus(G.run.attrs);

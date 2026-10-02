@@ -4443,6 +4443,25 @@ test('the level-up screen (M6 step 4): a level waits for the fight to be won, th
   expect(errors).toEqual([]);
 });
 
+test('Tempered and the boons taken (M6): a level\'s screen spends every point it owes, Tempered\'s three too, and the inventory\'s mage tab lists the boons', async ({ page }) => {
+  const errors = await start(page, '?seed=TEMP&level=2&autolevel=0&boons=tempered,deepWinter');
+  const w = () => page.evaluate(() => { const g = (window as unknown as { __game: { offer: { open: boolean; phase: string }; attrs: Record<string, number> } }).__game; return { open: g.offer.open, phase: g.offer.phase, attrs: g.attrs }; });
+  await page.evaluate(() => { const g = (window as unknown as { __game: { sim(s: number): void; offer: { open: boolean }; player: { invuln: number } } }).__game; g.player.invuln = 999; for (let k = 0; k < 200 && !g.offer.open; k++) g.sim(1 / 60); });
+  expect((await w()).open).toBe(true);
+  await page.waitForTimeout(450); await page.keyboard.press('Enter'); // (a card)
+  const presses: string[] = [];
+  for (let k = 0; k < 8 && (await w()).open; k++) { presses.push((await w()).phase); await page.waitForTimeout(450); await page.keyboard.press('Enter'); }
+  const after = await w();
+  expect(after.open).toBe(false); expect(after.attrs.free).toBe(0);
+  const spent = ['vigor', 'arcana', 'will', 'swiftness'].reduce((n, k) => n + after.attrs[k], 0);
+  expect(spent).toBeGreaterThanOrEqual(4); expect(presses.every(p => p === 'point')).toBe(true); // (the level's own point and Tempered's three, on one screen)
+  await page.keyboard.press('KeyI');
+  for (let k = 0; k < 4; k++) await page.keyboard.press('KeyE');
+  const list = (await page.locator('#invList').innerText()).toLowerCase(); // (section labels are set in capitals)
+  expect(list).toContain('boons'); expect(list).toContain('tempered'); expect(list).toContain('deep winter');
+  expect(errors).toEqual([]);
+});
+
 /* M6 step 5: the school boons at work. Each case starts its own run with `?boons=`, sets the boon off through the game's own
    hooks, and checks what it did, that its name rose (`said`), its line was said once (`hinted`) and, where cheap, rank II.
    (Written as strings: the page's own JavaScript, `window.__game` untyped. Eight dummies stand in a 4 × 2 block, each

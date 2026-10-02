@@ -29,7 +29,9 @@ import { brewedPotions } from '../items/alchemyMemory';
 import { knownRecipes } from '../items/brewing';
 import { ATTRS, type Attr } from '../progression/attributes';
 import { levelProgress } from '../progression/levelData';
-import { pointsToSpend } from '../progression/points';
+import { attrText, pointsToSpend } from '../progression/points';
+import { boonIconImg } from '../progression/boonLooks';
+import { boon, boonText } from '../progression/boonData';
 
 type Tab = 'artifacts' | 'spells' | 'potions' | 'items' | 'mage' | 'foes';
 const TABS: Tab[] = ['artifacts', 'spells', 'potions', 'items', 'mage', 'foes'];
@@ -220,12 +222,21 @@ function mageEntries(): Entry[] {
   const lv = levelProgress(G.run.insight), A = STR.attrs, Gr = I().growth, pts = pointsToSpend();
   const attr = (k: Attr): Entry => ({ // (M6: a point's worth each, and how many are spent)
     icon: '', label: A[k].name, badge: String(G.run.attrs[k]),
-    detail: () => head('', A[k].name, Gr.points(G.run.attrs[k])) + `<p class="effect">${esc(A[k].text)}</p>`,
+    detail: () => head('', A[k].name, Gr.points(G.run.attrs[k])) + `<p class="effect">${esc(attrText(k))}</p>`,
   });
+  const B = STR.boons, taken = Object.entries(G.run.boons);
+  const boonEntry = ([id, rank]: [string, number], k: number): Entry => { // (M6: each boon taken, its sigil, rank and what it does now)
+    const b = boon(id), name = rank > 1 ? B.ranked(b.name) : b.name, kind = b.school ? B.kindOf(STR.schools[b.school]) : B.kindGeneral, icon = boonIconImg(id, rank);
+    return { icon, label: name, badge: b.max > 2 && rank > 1 ? '×' + rank : undefined, section: k === 0 ? Gr.boons : undefined,
+      detail: () => head(icon, name, kind, false) + `<p class="effect">${esc(boonText(id, rank))}</p>` + (rank > 1 && b.text2 ? `<p class="note">${esc(b.text)}</p>` : '') + `<p class="lore">${esc(b.lore)}</p>` };
+  };
+  const boons: Entry[] = taken.length ? taken.map(boonEntry)
+    : [{ icon: '', label: Gr.noBoons, section: Gr.boons, detail: () => head('', Gr.boons, Gr.noBoons) + `<p class="effect">${esc(Gr.boonsText)}</p>` }];
   return [
     { icon: '', label: Gr.level, badge: String(lv.level), section: Gr.title, // (M6: the level, its insight, the points to spend)
       detail: () => head('', Gr.level, String(lv.level)) + `<p class="effect">${esc(Gr.levelText(Math.round(G.run.insight), lv.span ? Math.ceil(lv.span - lv.into) : 0, pts))}</p>` },
     ...ATTRS.map(attr),
+    ...boons,
     { ...row('damage', num(st.damage), num(H.damage)), section: Gr.numbers },
     row('rate', num(1 / st.fireDelay, 2), num(1 / H.fireDelay, 2)),
     row('boltSpeed', num(st.shotSpeed), num(H.shotSpeed)),
