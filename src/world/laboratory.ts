@@ -29,9 +29,12 @@ import { mulberry } from '../util';
 import { SIDE_DIR } from './shapes';
 import { PX } from './dims';
 import { glowTone, stoneOf } from './kitParts';
+import { disposeTree } from '../render/materials';
 import { freeSpotNear, setDoors } from './rooms';
 import { FLOORS } from './generate';
-import { JELLY, VAT_EMPTY, drJellyLook, tableLook, vatWindowLook } from './labLooks';
+import { JELLY, VAT_EMPTY, tableLook, vatWindowLook } from './labLooks';
+import { drJellyLook, type JellyParts } from './jellyLooks';
+import { jellyGives, updateGives } from './jellyGives';
 import type { Enemy, Room } from '../types';
 
 const L = () => CFG.alchemy.lab;
@@ -78,9 +81,12 @@ export function checkLab() {
 }
 
 /** Every frame: Dr. Jelly bobs and turns to watch the mage, the jelly in its jar wobbles (and while the serpent is loose he
-    crouches low, trembling); the serpent behind the glass turns in its coil and lifts its head. */
+    crouches low, trembling), and he hands over what he gives (jellyGives.ts); the serpent behind the glass turns in its
+    coil and lifts its head. */
 export function updateLab(now: number) {
-  const lab = G.current.lab; if (!lab) return;
+  const lab = G.current.lab;
+  updateGives(G.current, lab?.jelly.g.userData.parts as JellyParts | undefined, now, labOpen() || G.current.locked || G.state !== 'play');
+  if (!lab) return;
   const body = lab.jelly.g.userData.body as THREE.Object3D, jelly = lab.jelly.g.userData.jelly as THREE.Object3D, duck = G.current.locked;
   body.position.y = duck ? Math.sin(now * 40) * .01 : Math.sin(now * 2.1) * .02;
   body.scale.y += ((duck ? CFG.alchemy.lab.duck : 1) - body.scale.y) * .15; // (low enough that the table hides him from the camera)
@@ -90,6 +96,13 @@ export function updateLab(now: number) {
   const serpent = lab.vat.userData.serpent as THREE.Object3D, head = lab.vat.userData.head as THREE.Object3D | undefined;
   serpent.rotation.y = Math.sin(now * .35) * .5; serpent.position.y = .2 + Math.sin(now * .8) * .04;
   if (head) { head.position.y = head.userData.y + Math.sin(now * 1.3) * .04; head.rotation.z = Math.sin(now * .9) * .2; }
+}
+
+/** Dr. Jelly in this laboratory wears another look (the dev menu's switch): built again where he stands. */
+export function relookJelly() {
+  const lab = G.current.lab; if (!lab) return;
+  const old = lab.jelly.g, g = drJellyLook(); g.position.copy(old.position); g.rotation.copy(old.rotation);
+  old.parent?.add(g); old.parent?.remove(old); disposeTree(old); lab.jelly.g = g;
 }
 
 /* ---------- the jelly serpent's vat (M5 step 7) ---------- */
@@ -162,8 +175,8 @@ export function serpentFell(e: Enemy) {
   spawnPickup('potion', p.x, p.z, { potion: rare, rise: true });
   const id = RECIPE_POTIONS.find(r => !recipeKnown(r)), lab = room.lab;
   after(1.2, () => {
-    if (id) { const r = recipeOf(id); learnRecipe(r.of[0], r.of[1], id); line(STR.lab.thanks(REAGENTS[r.of[0]].name, REAGENTS[r.of[1]].name, potionName(id)), 5.5); }
-    else { line(STR.lab.thanksAll, 4.5); for (let i = 0; i < 3; i++) { const q = freeSpotNear(room, (lab?.jelly.x ?? room.cx) + (i - 1) * .7, (lab?.jelly.z ?? room.cz) + .9); spawnPickup('coin', q.x, q.z, { rise: true }); } }
+    if (id) { const r = recipeOf(id); learnRecipe(r.of[0], r.of[1], id); line(STR.lab.thanks(REAGENTS[r.of[0]].name, REAGENTS[r.of[1]].name, potionName(id)), 5.5); jellyGives({ kind: 'recipe' }); }
+    else { line(STR.lab.thanksAll, 4.5); jellyGives({ kind: 'coins' }); for (let i = 0; i < 3; i++) { const q = freeSpotNear(room, (lab?.jelly.x ?? room.cx) + (i - 1) * .7, (lab?.jelly.z ?? room.cz) + .9); spawnPickup('coin', q.x, q.z, { rise: true }); } }
     if (lab) Sfx.at(lab.jelly.x, lab.jelly.z).brew();
   });
 }

@@ -147,6 +147,8 @@ const sounds = {
   throwPotion() { hiss(.22, .04, 'bandpass', 1800); tone('sine', 700, 1100, .18, .02); },
   /** M5 step 6: a brew at the alchemy table (bubbling, then a bright note as it settles); a jelly globe bursting (glass and
       a wet slap). */
+  /** Dr. Jelly holds out what he gives (2026-10-02): a glassy clink and a glint. */
+  jellyGive() { tone('sine', 1175, 1175, .12, .05); tone('sine', 1568, 1568, .22, .04, .08); hiss(.12, .02, 'highpass', 5000, .05); },
   brew() { for (let i = 0; i < 5; i++) tone('sine', 300 + i * 70, 520 + i * 60, .08, .04, i * .07); hiss(.45, .03, 'lowpass', 700); tone('triangle', 880, 1320, .3, .05, .38); },
   // the jelly serpent (M5 step 7): its vat window cracking, bursting, its hiss as it rises, a glob of jelly landing
   glassCrack() { tone('triangle', 3200, 2400, .08, .05); tone('triangle', 2400, 1900, .1, .04, .05); hiss(.12, .06, 'highpass', 4200, .02); },

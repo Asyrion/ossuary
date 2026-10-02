@@ -12,6 +12,7 @@ import { burst } from '../combat/fx';
 import { line } from '../ui/hud';
 import { freeSpotNear } from '../world/rooms';
 import { spawnPickup } from './pickups';
+import { jellyGives } from '../world/jellyGives';
 import { giveResources } from './pickups';
 import { POTIONS, POTION_IDS, RECIPES, REAGENTS, brew, pairKey, type PotionId, type ReagentId } from './alchemyData';
 import { learnRecipe, rememberBrew, triedPair, triedPairs } from './alchemyMemory';
@@ -33,7 +34,10 @@ export function brewNow(a: ReagentId, b: ReagentId, x: number, z: number): Potio
   identify(potion);
   const name = POTIONS[potion].name, c = parseInt(POTIONS[potion].color.slice(1), 16);
   if (!addPotion(potion)) { const p = freeSpotNear(G.current, x, z + 1.1); spawnPickup('potion', p.x, p.z, { potion }); line(STR.lab.beltFull, 3.5); }
-  else if (!G.run.loreSeen.has('brewed:' + potion)) { G.run.loreSeen.add('brewed:' + potion); potionCard(potion); }
+  else {
+    jellyGives({ kind: 'potion', potion }); // (Dr. Jelly corks it and hands it across: the owner's ask, 2026-10-02)
+    if (!G.run.loreSeen.has('brewed:' + potion)) { G.run.loreSeen.add('brewed:' + potion); potionCard(potion); }
+  }
   line(!recipe ? STR.lab.failed : first ? STR.lab.newPotion(name) : !knewPair ? STR.lab.newRecipe(REAGENTS[a].name, REAGENTS[b].name, name) : STR.lab.brewed(name), 4);
   burst(x, 1.2, z, c, 18, 2, .05); burst(x, 1.4, z, 0xc8ffb0, 8, 1.2, .04); Sfx.at(x, z).brew();
   return potion;
@@ -58,7 +62,7 @@ export function buyRecipe(id: PotionId) {
   const r = recipeOf(id), price = A().recipePrice;
   if (!r || recipeKnown(id)) return false;
   if (player.coins < price) { line(STR.toast.tooPoor(price, player.coins), 3); Sfx.refuse(); return false; }
-  giveResources({ coins: -price }); Sfx.purchase(); learnRecipe(r.of[0], r.of[1], id);
+  giveResources({ coins: -price }); Sfx.purchase(); learnRecipe(r.of[0], r.of[1], id); jellyGives({ kind: 'recipe' });
   line(STR.lab.recipeBought(REAGENTS[r.of[0]].name, REAGENTS[r.of[1]].name, potionName(id)), 4.5);
   return true;
 }
@@ -67,7 +71,7 @@ export function buyRecipe(id: PotionId) {
 export function jellyIdentifies(id: PotionId) {
   const lab = G.current.lab;
   if (!lab || lab.identified) return false;
-  lab.identified = true; identify(id); potionCard(id); Sfx.at(lab.jelly.x, lab.jelly.z).brew();
+  lab.identified = true; identify(id); potionCard(id); Sfx.at(lab.jelly.x, lab.jelly.z).brew(); jellyGives({ kind: 'potion', potion: id }); // (he hands it back)
   potionUsed(id); // (M6: named by Dr. Jelly, a kind pays its insight as a first use does)
   return true;
 }

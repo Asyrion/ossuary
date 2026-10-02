@@ -164,6 +164,12 @@ export const STR = {
   /** M5: potions and reagents (items/potions.ts, potionThrow.ts). */
   /** M5 step 6: Dr. Jelly's laboratory and its alchemy table (world/laboratory.ts, ui/alchemyTable.ts, items/brewing.ts). */
   lab: {
+    /** Dr. Jelly's three looks from the owner's pictures (2026-10-02): the owner chooses one (the dev menu). */
+    looks: {
+      alchemist: { name: 'The alchemist', note: 'a green coat and leather apron, white beard, goggles up on a bald crown' },
+      plague: { name: 'The plague doctor', note: 'a grey greatcoat, a wide hat over a hood, a beaked mask with glowing glass eyes' },
+      hatted: { name: 'The hedge wizard', note: 'a brown robe tied with rope, a pointed hat, a beard down to his belt' },
+    } as Record<string, { name: string; note: string }>,
     title: 'The alchemy table',
     tabs: { brew: 'Brew', identify: 'Dr. Jelly looks', recipes: 'Recipes' } as Record<string, string>,
     hint: 'Arrows choose · Enter takes it · Q and E (LB and RB) change tabs · Esc closes',
@@ -772,6 +778,9 @@ export const STR = {
     pads: 'Gamepads', readPads: 'Read the pads again', noPads: 'No gamepad heard: press one of its buttons with this page in front (a browser shows a pad only after that)',
     padRow: (i: number, id: string, mapping: string, buttons: number[], axes: number[]) => `Pad ${i}: ${id} · ${mapping === 'standard' ? 'standard layout' : 'unusual layout'} · held: ${buttons.length ? buttons.join(', ') : 'nothing'} · sticks: ${axes.slice(0, 4).join(' ')}`,
     artifactGallery: 'Artifacts (the room kit\'s: built in code, their icons rendered from them)', artifactsNote: 'Every artifact floating ahead of the mage in rows (foci, passives, cursed), to look at; they can\'t be taken',
+    /** Dr. Jelly (2026-10-02): his three looks, which he wears, and what he hands over. */
+    jellyLooks: "Dr. Jelly's looks (from the owner's pictures; each loops the giving gesture)", jellyWears: (name: string) => `Dr. Jelly wears: ${name}`,
+    jellyGives: { potion: 'Dr. Jelly gives a potion', recipe: 'Dr. Jelly gives a recipe', coins: 'Dr. Jelly gives obols' } as Record<string, string>, noLab: 'No laboratory here: Rooms & runs takes you to this floor\'s',
     bossLooks: 'The bosses built in code: the Hollow Warden\'s three looks (the floor-1 boss: choose one), and the bosses of the floors below', wardenWears: (name: string) => `The Warden wears: ${name}`,
     options: 'Enemy model options (looks only)', familiars: 'Familiar options (looks only)', bestiary: 'The bestiary (M4.5: the thirty-five as they look, all of them foes now)', bestiaryKinds: { beast: 'Beasts', creature: 'Creatures of myth', elemental: 'Elementals and golems' } as Record<string, string>, effects: 'Spell effect options (looks only)', showOptions: 'Stand them here', takeOptions: 'Take them away', floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
     pixel: 'Pixel look', pixelLines: (lines: number | 'texel' | 'fine', drawn: number) => !lines ? 'Pixels: off' : lines === 'texel' ? `Pixels: a texel each${drawn ? ` (${drawn} rows here)` : ''}` : lines === 'fine' ? `Pixels: half a texel each${drawn ? ` (${drawn} rows here)` : ''}` : drawn && drawn !== lines ? `Pixels: ${lines} lines (${drawn} in this window)` : `Pixels: ${lines} lines`,

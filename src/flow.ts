@@ -41,6 +41,7 @@ import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
 import { clearSpellFx, forgetSpells, gainMana, leaveRoomSpells, learnSpell } from './magic/spells';
 import { carve, setSockets } from './magic/runes';
+import { clearGives } from './world/jellyGives';
 import type { RuneId } from './magic/runeData';
 import { addPotion, renderBelt, resetPotions } from './items/potions';
 import { enterLab } from './world/laboratory';
@@ -75,7 +76,7 @@ export function setNextRun(opts: RunOptions) { nextRun = opts; }
 const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
 
 function clearEntities() {
-  clearMechanisms(); resetWardShields(); clearWanderer(); clearModelOptions(); clearEffectOptions(); clearRite(); clearSpellFx(); clearStatusFx(); clearPages(); clearProjectiles(); clearGlyphs(); clearThrows(); pressed.glyph = false; pressed.spells = [false, false]; pressed.potion = null; pressed.nextPotion = 0;
+  clearMechanisms(); resetWardShields(); clearWanderer(); clearModelOptions(); clearEffectOptions(); clearRite(); clearSpellFx(); clearStatusFx(); clearPages(); clearProjectiles(); clearGlyphs(); clearThrows(); clearGives(); pressed.glyph = false; pressed.spells = [false, false]; pressed.potion = null; pressed.nextPotion = 0;
   for (const p of G.particles) { scene.remove(p.m); p.m.material.dispose(); } G.particles.length = 0;
   clearEnemies();
   for (const p of G.pickups) { scene.remove(p.g); disposeTree(p.g); } G.pickups.length = 0;
