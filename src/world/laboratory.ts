@@ -29,7 +29,6 @@ import { mulberry } from '../util';
 import { SIDE_DIR } from './shapes';
 import { PX } from './dims';
 import { glowTone, stoneOf } from './kitParts';
-import { disposeTree } from '../render/materials';
 import { freeSpotNear, setDoors } from './rooms';
 import { FLOORS } from './generate';
 import { JELLY, VAT_EMPTY, tableLook, vatWindowLook } from './labLooks';
@@ -96,13 +95,6 @@ export function updateLab(now: number) {
   const serpent = lab.vat.userData.serpent as THREE.Object3D, head = lab.vat.userData.head as THREE.Object3D | undefined;
   serpent.rotation.y = Math.sin(now * .35) * .5; serpent.position.y = .2 + Math.sin(now * .8) * .04;
   if (head) { head.position.y = head.userData.y + Math.sin(now * 1.3) * .04; head.rotation.z = Math.sin(now * .9) * .2; }
-}
-
-/** Dr. Jelly in this laboratory wears another look (the dev menu's switch): built again where he stands. */
-export function relookJelly() {
-  const lab = G.current.lab; if (!lab) return;
-  const old = lab.jelly.g, g = drJellyLook(); g.position.copy(old.position); g.rotation.copy(old.rotation);
-  old.parent?.add(g); old.parent?.remove(old); disposeTree(old); lab.jelly.g = g;
 }
 
 /* ---------- the jelly serpent's vat (M5 step 7) ---------- */
