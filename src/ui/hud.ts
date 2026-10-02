@@ -5,6 +5,7 @@ import { STR } from '../strings';
 import { CFG } from '../config';
 import { camera, renderer } from '../render/renderer';
 import { iconUrl } from '../assets/models';
+import { obolFace, obolIconUrl } from '../items/obolFace';
 import { artifactIconUrl } from '../items/artifactIcons';
 import { artifact } from '../items/artifactData';
 import { spell } from '../magic/spellData';
@@ -156,6 +157,12 @@ export const RES_ICONS = {
   glyphs: `<circle cx="12" cy="12" r="9" fill="#2b2622" stroke="#6b6158" stroke-width="1.2"/><path d="M${Array.from({ length: 8 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI * 6 / 7; return `${(12 + Math.cos(a) * 6.3).toFixed(2)} ${(12 + Math.sin(a) * 6.3).toFixed(2)}`; }).join('L')}" fill="none" stroke="#ffb04a" stroke-width="1.2" stroke-linejoin="round"/>`,
 };
 
+/** The obol's icon inside a 24 × 24 viewBox: the face the obols wear (2026-10-02, the owner's coins), or the drawn coin. */
+export function coinIconBody() {
+  const url = obolIconUrl();
+  return url ? `<image href="${url}" width="24" height="24" style="image-rendering:pixelated"/>` : RES_ICONS.coins;
+}
+
 const el = {
   purse: $('purse'), mana: $('mana'), manaFill: $('mana').querySelector('i') as HTMLElement,
   hearts: $('hearts'), items: $('items'), bossbar: $('bossbar'), bossname: $('bossname'), banner: $('banner'),
@@ -181,9 +188,9 @@ export function renderHearts() {
 let lastPurse = '';
 /** Obols, bone keys and blast glyphs carried, as icons and two-digit counts. */
 export function renderPurse() {
-  const key = `${player.coins}/${player.keys}/${player.glyphs}`; if (key === lastPurse) return; lastPurse = key;
+  const key = `${player.coins}/${player.keys}/${player.glyphs}/${obolFace()}`; if (key === lastPurse) return; lastPurse = key;
   el.purse.innerHTML = (['coins', 'keys', 'glyphs'] as const).map(k =>
-    `<span class="${k}"><svg viewBox="0 0 24 24" aria-hidden="true">${RES_ICONS[k]}</svg><b>${String(player[k]).padStart(2, '0')}</b></span>`).join('');
+    `<span class="${k}"><svg viewBox="0 0 24 24" aria-hidden="true">${k === 'coins' ? coinIconBody() : RES_ICONS[k]}</svg><b>${String(player[k]).padStart(2, '0')}</b></span>`).join('');
   el.purse.setAttribute('aria-label', STR.purse(player.coins, player.keys, player.glyphs));
 }
 

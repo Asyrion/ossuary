@@ -10,10 +10,21 @@
   "images": {
     "floor": { "size": 1024, "folder": "textures" },
     "wall":  { "size": 1024, "folder": "textures" },
-    "icon":  { "size": 128, "source": 256, "folder": "icons" }
+    "icon":  { "size": 128, "source": 256, "folder": "icons" },
+    "coin":  { "size": 28, "icon": 24, "source": 512, "folder": "coins" }
   },
   "props": {},
   "artifacts": {},
   "floors": {},
-  "icons": {}
+  "icons": {},
+  "coins": {
+    "arcane_eye":    { "face": "coins/arcane_eye.png",    "icon": "coins/arcane_eye-icon.png" },
+    "silver_owl":    { "face": "coins/silver_owl.png",    "icon": "coins/silver_owl-icon.png" },
+    "star_crystal":  { "face": "coins/star_crystal.png",  "icon": "coins/star_crystal-icon.png" },
+    "grave_coin":    { "face": "coins/grave_coin.png",    "icon": "coins/grave_coin-icon.png" },
+    "arcane_sigil":  { "face": "coins/arcane_sigil.png",  "icon": "coins/arcane_sigil-icon.png" },
+    "pale_obol":     { "face": "coins/pale_obol.png",     "icon": "coins/pale_obol-icon.png" },
+    "plain_profile": { "face": "coins/plain_profile.png", "icon": "coins/plain_profile-icon.png" }
+  },
+  "obol": "star_crystal"
 }

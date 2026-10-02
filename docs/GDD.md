@@ -1193,6 +1193,8 @@ Arrives in M2 (Plunder). Three small resources turn exploring into choices: whic
 
 **Economy target:** about 12 to 18 obols per floor, so a merchant artifact means saving or skipping hearts. From M2, a room clear drops one pickup about half the time: a heart, obols, a bone key or a glyph stone, now and then a coffer or a reliquary chest. Obols are drawn to the living: from close by they drift to the mage.
 
+**The obol's look** (2026-10-02, from the owner's coins): an obol wears a coin face made from the owner's images (`docs/assets.md`: Coins), drawn at the game's own pixel and tipped to face the camera, so it reads as a coin 28 game pixels across; its icon is on the HUD's counter and the lore card. Seven faces are in the game and the obols wear Star and crystal (a gold rim, a blue star at the heart) until the owner chooses; the dev menu tries the others. The rest wait for coins of their own (`docs/ideas.md`: Coin types).
+
 **Blast glyphs**
 
 - Chalked at the mage's feet (Space, or LT on a gamepad). The rune turns and flickers faster as its 1.5 s fuse burns down, ticking as it goes, and a faint ring shows how far the blast will reach.

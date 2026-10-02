@@ -45,3 +45,19 @@ export function transparentBorder(p: Pixels) {
   for (let y = 1; y < p.height - 1; y++) { at(0, y); at(p.width - 1, y); }
   return clear / total > .9;
 }
+
+/** A coin on a plain ground (2026-10-02, the owner's coins: white, or cut out): its circle, found as the width of what
+    differs from the ground (the corners' colour, or see-through), centred that far below its top, so a shadow or a
+    piece hanging under it doesn't stretch it; `round` is its height over its width (about 1 for a plain coin). Null when
+    nothing stands on the ground. */
+export function coinCircle(p: Pixels) {
+  const { width: w, height: h, channels: c, data } = p, at = (x: number, y: number) => (y * w + x) * c;
+  const clear = c === 4 && [at(0, 0), at(w - 1, 0), at(0, h - 1), at(w - 1, h - 1)].every(i => data[i + 3] < 16);
+  const ground = [0, 1, 2].map(k => [at(0, 0), at(w - 1, 0), at(0, h - 1), at(w - 1, h - 1)].reduce((s, i) => s + data[i + k], 0) / 4);
+  const isGround = (i: number) => clear ? data[i + 3] < 16 : Math.abs(data[i] - ground[0]) + Math.abs(data[i + 1] - ground[1]) + Math.abs(data[i + 2] - ground[2]) < 24 * 3 || (c === 4 && data[i + 3] < 16);
+  let x0 = w, x1 = -1, y0 = h, y1 = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (!isGround(at(x, y))) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  if (x1 < 0) return null;
+  const d = x1 - x0 + 1;
+  return { cx: (x0 + x1 + 1) / 2, cy: y0 + d / 2, r: d / 2, round: (y1 - y0 + 1) / d };
+}

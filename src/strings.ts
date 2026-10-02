@@ -664,7 +664,10 @@ export const STR = {
   dev: {
     title: 'Dev menu', close: 'Close',
     tabs: { mage: 'Mage', magic: 'Magic', foes: 'Foes & objects', rooms: 'Rooms & runs', look: 'Look', galleries: 'Galleries' },
-    assets: 'Made assets', showAssets: 'Show them here (urns, a pedestal)', assetsOn: 'Made assets: on', assetsOff: 'Made assets: off (placeholders)', noAssets: 'None named in data/assets.json yet',
+    assets: 'Made assets', showAssets: 'Show them here (urns, a pedestal)',
+    obolWears: (face: string) => `Obols wear: ${face}`,
+    coinFaces: { arcane_eye: 'Arcane eye', silver_owl: 'Silver owl', star_crystal: 'Star and crystal', grave_coin: 'Grave coin', arcane_sigil: 'Arcane sigil', pale_obol: 'Pale obol', plain_profile: 'Plain profile', rune: 'the rune (built in code)' } as Record<string, string>,
+    coinGallery: 'Coin faces (the owner\'s coins, drawn at the game\'s pixel)', coinsNote: 'Every coin face side by side ahead of the mage, as the room draws an obol, the rune built in code last; the Look tab\'s Made assets chooses the one the obols wear', assetsOn: 'Made assets: on', assetsOff: 'Made assets: off (placeholders)', noAssets: 'None named in data/assets.json yet',
     assetStatus: { loaded: 'loaded', missing: 'missing', failed: 'failed', off: 'off (?assets=off)' } as Record<string, string>,
     assetRow: (where: string, status: string, tris?: number) => `${where}: ${status}${tris ? `, ${tris.toLocaleString('en')} triangles` : ''}`,
     kit: 'Room kit (built in code)', kitNote: 'Wall lights, braziers, the mechanisms and the rooms\' objects built in code, and every floor\'s floors and walls in pixel art; each room draws its kinds, and the buttons below force one on every room of this floor',
