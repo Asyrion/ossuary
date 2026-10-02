@@ -331,6 +331,23 @@ export const STR = {
     pledgeKept: (school: string) => `The library remembered your pledge: a page of ${school} waits.`,
     attuned: (school: string) => `Attuned: the boons you are offered lean to ${school}.`,
     lean: (school: string) => `Your ${school} draws it`,
+    /** Step 5: the line each school boon says the first time it acts in a run. */
+    acts: {
+      bankedCoals: 'Banked Coals: your fires burn longer.',
+      flamekeeper: 'Flamekeeper: the flames near you feed your mana while the fight lasts.',
+      deepWinter: 'Deep Winter: the cold takes hold sooner. Foes freeze on fewer stacks.',
+      coldSnap: 'Cold Snap: a thawing foe breathes its cold onto the foes beside it.',
+      forkingArc: 'Forking Arc: the lightning forks to more foes.',
+      sparkWake: 'Spark Wake: where your shock stunned a foe, the floor stings foes a while. Never you.',
+      votiveHeart: 'Votive Heart: your first Hallow spell in a fight mended you.',
+      laidBare: 'Laid Bare: holy light strips its guard. Every blow lands whole.',
+      thirstingHex: 'Thirsting Hex: the hexes your blows spent mended you.',
+      gatheringDark: 'Gathering Dark: the hex gathers deeper than before.',
+      seedfall: 'Seedfall: where an overgrown foe fell, a flower grows.',
+      perennial: 'Perennial: the vines hold so long that the foe is rooted.',
+    } as Record<string, string>,
+    mendSpent: 'Your boons have mended all they can in this room.',
+    yours: 'Your boons',
   },
   /** M6: insight (the GDD's XP) and levels; both words placeholders until M8. */
   levels: {
@@ -557,12 +574,20 @@ export const STR = {
     shapes: { beam: 'Beam', placed: 'Seal', shotgun: 'Shards', wall: 'Wall', chain: 'Chain', self: 'Aura' } as Record<string, string>,
     mana: (cost: number, base: number) => cost === base ? `${cost} mana` : `${cost} mana (${base})`,
     cooldown: (s: number) => `every ${s} s`, damage: (d: number) => `${d} damage`,
-    status: { burn: (v: number) => `Burn ${v} s`, chill: (v: number) => `Chill ×${v}`, shock: (v: number) => `Shock ${v} s` } as Record<string, (v: number) => string>,
+    status: { burn: (v: number) => `Burn ${v} s`, chill: (v: number) => `Chill ×${v}`, shock: (v: number) => `Shock ${v} s`,
+      sanct: (v: number) => `Sanctified ${v} s`, hex: (v: number) => `Hex ×${v}`, root: (v: number) => `Root ${v} s`, grow: (v: number) => `Overgrown ${v} s` } as Record<string, (v: number) => string>,
+    /** A status's number changed by a boon (M6 step 5): the number now, and the spell's own beside it. */
+    boosted: (chip: string, base: number) => `${chip} (${base})`,
     statusText: {
       burn: 'Burn: damage over time.',
-      chill: 'Chill: each stack slows; the third freezes, and a frozen foe takes more damage.',
       shock: 'Shock: a brief stun, and the next hit leaps to a foe nearby.',
+      sanct: 'Sanctified: it takes more from every blow, and nothing heals it.',
+      hex: 'Hex: stacks that fade; each blow you land spends one and gives back mana.',
+      root: 'Root: held where it stands, though it can still strike.',
+      grow: 'Overgrown: vines that slow it more the longer they hold.',
     } as Record<string, string>,
+    /** Chill's line, with the stack that freezes (Deep Winter, M6, brings it sooner). */
+    chillText: (at: number) => `Chill: each stack slows; the ${['', 'first', 'second', 'third', 'fourth'][at] ?? `${at}th`} freezes, and a frozen foe takes more damage.`,
     stat: {
       damage: 'Damage', damageMul: 'Damage', fireDelayMul: 'Time between casts', speed: 'Speed', speedMul: 'Speed',
       boltScale: 'Bolt size', hearts: 'Hearts', invuln: 'Grace after a hit', pierce: 'Foes pierced', shotSpeedMul: 'Bolt speed',
@@ -725,6 +750,7 @@ export const STR = {
     frameInfo: (fps: number, calls: number, tris: number) => `${fps} fps · ${calls} draw calls · ${tris.toLocaleString('en')} triangles`,
     knowledge: 'Spell knowledge', knowAll: 'Know every spell', forgetKnowledge: 'Forget all knowledge',
     findReactions: 'Find every reaction', forgetReactions: 'Forget the reactions found', reactionsHere: 'Reactions here (on dummies ahead)',
+    boonsHere: 'Boons here (each taken if need be, set off ahead)',
     weavesHere: 'Weaves and chains here (set up ahead)', findWeaves: 'Find every weave', forgetWeaves: 'Forget the weaves found',
     weavesInfo: (n: number, of: number) => `Weaves and chains: ${n} of ${of} found.`,
     knowledgeInfo: (seen: number, learned: number, used: number, reactions: number, of: number) => `Known: ${seen} seen, ${learned} learned, ${used} known well; ${reactions} of ${of} reactions found (kept between runs)`,

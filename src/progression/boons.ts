@@ -15,12 +15,10 @@ import { FLOORS } from '../world/generate';
 import { spell, type School } from '../magic/spellData';
 import { attunedTo } from '../magic/marksData';
 import { boonIconImg } from './boonLooks';
-import { boon, boonParams, boonText, dealBoons, pledgeFor, schoolWeights, type Card } from './boonData';
+import { boonRank } from './boonHooks';
+import { boon, boonText, dealBoons, pledgeFor, schoolWeights, type Card } from './boonData';
 
-/** The rank of boon `id` taken this run (0 if not). */
-export const boonRank = (id: string) => G.run.boons[id] ?? 0;
-/** Boon `id`'s number `key` at its rank now (0 while it isn't taken). */
-export const boonParam = (id: string, key: string) => { const r = boonRank(id); return r ? boonParams(id, r)[key] ?? 0 : 0; };
+export { boonRank, boonParam } from './boonHooks';
 
 /** The schools of the spells in the slots. */
 const slotSchools = () => player.spells.map(id => id ? spell(id).school : null);

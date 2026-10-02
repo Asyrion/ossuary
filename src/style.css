@@ -245,6 +245,8 @@ body.touch.portrait #rotate{display:flex}
 .invDetail .lbl{margin:4px 0 6px;font:500 12px var(--f-ui);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim)}
 .invDetail .note{margin:0 0 8px;font:14px/1.4 var(--f-ui);color:var(--ink-dim);max-width:none}
 .invDetail .note.dim{opacity:.6;font-style:italic}
+.invDetail .note.boon b,.pagePanel .note.boon b{color:var(--ink)}
+.note.boon i{display:inline-block;width:.62em;height:.62em;border-radius:50%;margin-right:.4em;vertical-align:.02em;box-shadow:0 0 0 1px rgba(0,0,0,.4),0 0 6px var(--c)}
 .invDetail .wheel{margin:4px 0 10px;display:flex;justify-content:center}
 .invDetail .wheel svg{width:min(220px,100%);height:auto}
 .invDetail .lore{margin:10px 0 0;padding-top:10px;border-top:1px solid var(--line);font:italic 15px/1.45 var(--f-serif);color:var(--ink-dim);max-width:none}

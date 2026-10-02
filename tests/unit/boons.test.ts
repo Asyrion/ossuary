@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../../src/rng';
 import { SCHOOLS, SPELL_DEFS, pickPages, spell, type School } from '../../src/magic/spellData';
-import { BOON_DEFS, LEAN, boon, boonParams, boonText, dealBoons, pledgeFor, schoolWeights, validateBoons, type BoonDef, type DealState } from '../../src/progression/boonData';
+import { BOON_DEFS, LEAN, boon, boonParams, boonText, boonTuning, boonsTouching, dealBoons, pledgeFor, schoolWeights, statusMul, validateBoons, type BoonDef, type DealState } from '../../src/progression/boonData';
+import { MAGIC, applyStatus, newStatus, tickStatus } from '../../src/magic/status';
 
 /* M6 step 3: boons as data and the deal (docs/M6-plan.md). */
 const flat = () => schoolWeights({ slots: [null, null], casts: {}, taken: {} });
@@ -90,5 +91,54 @@ describe('the pledge', () => {
       expect(spell(pages[0]).school).toBe(pledge);
       expect(pickPages(Rng.from('PL' + s, 'pages'), [null, null], 3, [], SPELL_DEFS, ['frost'])).toEqual(pickPages(Rng.from('PL' + s, 'pages'), [null, null], 3, [], SPELL_DEFS, ['frost'], null));
     }
+  });
+});
+
+/* M6 step 5: what the school boons change. */
+describe('the boons at work', () => {
+  it('tune the statuses: Deep Winter freezes on two stacks and (II) longer, Gathering Dark gathers more hex and fades slower', () => {
+    expect(boonTuning(MAGIC, {})).toBe(MAGIC);
+    const dw = boonTuning(MAGIC, { deepWinter: 1 }), dw2 = boonTuning(MAGIC, { deepWinter: 2 });
+    expect(dw.chill.freezeAt).toBe(2); expect(dw.chill.freezeTime).toBe(MAGIC.chill.freezeTime);
+    expect(dw2.chill.freezeTime).toBeCloseTo(MAGIC.chill.freezeTime * 1.5);
+    const gd = boonTuning(MAGIC, { gatheringDark: 1 }), gd2 = boonTuning(MAGIC, { gatheringDark: 2 });
+    expect(gd.hex.max).toBe(7); expect(gd2.hex.max).toBe(9); expect(gd2.hex.time).toBeCloseTo(MAGIC.hex.time * 1.66);
+    expect(MAGIC.chill.freezeAt).toBe(3); expect(MAGIC.hex.max).toBe(5); // (the data untouched)
+  });
+  it('freeze on the tuned stacks, never a boss, and a prism takes the tuned ice', () => {
+    const T = boonTuning(MAGIC, { deepWinter: 2 });
+    const s = newStatus();
+    expect(applyStatus(s, 'chill', 1, false, T).froze).toBeFalsy();
+    expect(applyStatus(s, 'chill', 1, false, T).froze).toBe(true); expect(s.frozen).toBeCloseTo(3);
+    tickStatus(s, 3.01, T); // (thawed: a short guard against freezing again)
+    expect(applyStatus(s, 'chill', 2, false, T).froze).toBeFalsy(); expect(s.chill).toBe(1); // (the guard caps it a stack short)
+    const boss = newStatus(); applyStatus(boss, 'chill', 1, true, T); expect(applyStatus(boss, 'chill', 1, true, T).froze).toBeFalsy();
+    const holy = newStatus(); applyStatus(holy, 'sanct', 3, false, T); applyStatus(holy, 'chill', 1, false, T);
+    expect(applyStatus(holy, 'chill', 1, false, T).reaction).toBe('prism'); expect(holy.prism).toBeCloseTo(3);
+  });
+  it('gather hex to the tuned cap, fading slower, Blight to it too', () => {
+    const T = boonTuning(MAGIC, { gatheringDark: 2 }), s = newStatus();
+    for (let k = 0; k < 12; k++) applyStatus(s, 'hex', 1, false, T);
+    expect(s.hex).toBe(9); expect(s.hexT).toBeCloseTo(MAGIC.hex.time * 1.66);
+    tickStatus(s, MAGIC.hex.time + .1, T); expect(s.hex).toBe(9);
+    const b = newStatus(); applyStatus(b, 'hex', 6, false, T); expect(applyStatus(b, 'grow', 3, false, T).reaction).toBe('blight'); expect(b.hex).toBe(9);
+  });
+  it('lengthen Burn, Overgrown and (Laid Bare II) Sanctified', () => {
+    expect(statusMul('burn', {})).toBe(1); expect(statusMul('burn', { bankedCoals: 1 })).toBe(1.5); expect(statusMul('burn', { bankedCoals: 2 })).toBe(2);
+    expect(statusMul('grow', { perennial: 2 })).toBe(2); expect(statusMul('sanct', { laidBare: 1 })).toBe(1); expect(statusMul('sanct', { laidBare: 2 })).toBe(1.5);
+    expect(statusMul('chill', { bankedCoals: 2, perennial: 2, laidBare: 2 })).toBe(1);
+  });
+  it("know which spells they touch, for a spell's panel", () => {
+    const all = Object.fromEntries(BOON_DEFS.map(b => [b.id, 1]));
+    expect(boonsTouching(spell('pyre_seal'), all)).toEqual(['bankedCoals', 'flamekeeper']);
+    expect(boonsTouching(spell('arc'), all)).toEqual(['forkingArc', 'sparkWake']);
+    expect(boonsTouching(spell('grasp_of_the_grave'), all)).toEqual(['thirstingHex', 'gatheringDark']);
+    expect(boonsTouching(spell('arc'), {})).toEqual([]);
+    for (const def of SPELL_DEFS) expect(boonsTouching(def, all).length).toBeGreaterThan(0); // (every spell has a boon to grow it)
+  });
+  it("refuse a school boon that doesn't say what it touches", () => {
+    const deep = BOON_DEFS.find(b => b.id === 'deepWinter')!;
+    expect(validateBoons([...BOON_DEFS.filter(b => b !== deep), { ...deep, touches: undefined }]).join(';')).toMatch(/needs `touches`/);
+    expect(validateBoons([...BOON_DEFS.filter(b => b !== deep), { ...deep, touches: { status: ['frostbite' as never] } }]).join(';')).toMatch(/unknown status/);
   });
 });

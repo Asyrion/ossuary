@@ -41,6 +41,7 @@ import { foundReaction } from './memory';
 import { mantleImmune, stripsMantle } from '../actors/mantleData';
 import { shrugOff, unbind } from '../actors/mantles';
 import { hexGround } from './shapes';
+import { boonActs, boonStatusMul, magicNow } from '../progression/boonHooks';
 
 const R = MAGIC.reactions;
 const ICE = 0xbfe6ff, FIRE = 0xff7a2a, SPARK = 0xf0e890, GOLD = SCHOOL_LIGHT.hallow, VIOLET = SCHOOL_LIGHT.umbral, BLACKFIRE = 0x8a3ae0, STEAM = 0xe8f2f8, SEAR = 0xffb24a, BLACKICE = 0x5a3a9a;
@@ -50,8 +51,10 @@ export const RAINBOW = [0xff6a6a, 0xffc06a, 0xf0f07a, 0x7ae88a, 0x7ac8ff, 0xb08a
 const REACT_COLOR: Record<Reaction, number> = { shatter: ICE, overload: 0xffc060, eclipse: 0xd8b0ff, blackfire: 0xb070ff, steam: STEAM, searing: SEAR, prism: 0xe8f8ff, verdict: 0xfff0a0, blackice: 0xb8a0ff, voidspark: 0xc890ff,
   wildfire: 0xffa040, frostbloom: 0xd8f4ff, pollenspark: POLLEN, bloom: PETAL, blight: 0xb890c8 };
 
-/** Apply a spell's statuses to a foe, and carry out what they set off. */
-export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> | undefined) {
+/** Apply a spell's statuses to a foe, and carry out what they set off. `from` (M6 step 5): `'mage'` when the mage's own
+    magic brings them (Spark Wake hears its stuns), `'snap'` for a thawing foe's breath (Cold Snap). The boons taken
+    lengthen some (Banked Coals, Perennial, Laid Bare) and tune the rest (Deep Winter, Gathering Dark: `magicNow`). */
+export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> | undefined, from?: 'mage' | 'snap') {
   if (!status || e.dead || e.ward) return; // (M4.2: a drinking ward keeps statuses off the foe inside it)
   for (const [kind, amount] of Object.entries(status) as [SpellStatus, number][]) {
     if (e.dead) return;
@@ -64,8 +67,12 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
       drink(e, amount * CFG.bestiary.statusHeal); foeAfflicted(e, kind); if ((STATUS_KINDS as string[]).includes(kind)) touchPools(e, kind as StatusKind); continue;
     }
     const garden = kind === 'grow' && G.current?.theme?.twist === 'garden'; if (garden) gardenHolds(e); // (M5: the garden grows; its vines hold longer)
-    const res = applyStatus(e.status ??= newStatus(), kind, garden ? amount * CFG.themes.gardenGrow : amount, !!e.isBoss);
-    if (res.froze) { Sfx.at(e.x, e.z).freeze(); burst(e.x, .6, e.z, ICE, 12, 1.6, .05); }
+    const st = e.status ??= newStatus(), stacks = st.chill + amount, T = magicNow();
+    const res = applyStatus(st, kind, amount * boonStatusMul(kind) * (garden ? CFG.themes.gardenGrow : 1), !!e.isBoss, T);
+    if (res.froze) {
+      Sfx.at(e.x, e.z).freeze(); burst(e.x, .6, e.z, ICE, 12, 1.6, .05); e.snapped = from === 'snap';
+      if (kind === 'chill' && (stacks < MAGIC.chill.freezeAt || T.chill.freezeTime > MAGIC.chill.freezeTime)) boonActs('deepWinter', e.x, e.z); // (frozen sooner, or longer, than it would have been)
+    }
     if (res.stunned) burst(e.x, .9, e.z, SPARK, 6, 2, .03);
     if (res.reaction) react(e, res.reaction);
     foeAfflicted(e, kind); // (M4.5: what its behaviour does about it)
@@ -125,7 +132,7 @@ function react(e: Enemy, r: Reaction) {
       strikeFx({ x: from.x, y: .8, z: from.z }, { x: o.x, y: .8, z: o.z }, VIOLET, CFG.spellFx.chain, true);
       damageEnemy(o, VS.damage, 0, 0, 0, 'spell', 'storm'); burst(o.x, .8, o.z, VIOLET, 6, 1.6, .04); // (struck first, so the blow doesn't spend the hex it carries)
       if (o.dead) continue;
-      const st = o.status ??= newStatus(); st.hex = Math.min(MAGIC.hex.max, st.hex + 1); st.hexT = MAGIC.hex.time; st.voidT = Math.max(st.voidT, VS.time); // (a hex carried, laid straight on: no reaction of its own)
+      const st = o.status ??= newStatus(), T = magicNow(); st.hex = Math.min(T.hex.max, st.hex + 1); st.hexT = T.hex.time; st.voidT = Math.max(st.voidT, VS.time); // (a hex carried, laid straight on: no reaction of its own)
       from = o;
     }
     burst(e.x, .8, e.z, VIOLET, 14, 2.2, .05); burst(e.x, .8, e.z, SPARK, 8, 2, .04); Sfx.at(e.x, e.z).voidspark();
@@ -168,7 +175,7 @@ function verdantReact(e: Enemy, r: Reaction) {
     const W = R.wildfire;
     for (const o of G.enemies) {
       if (o === e || !live(o) || (o.status?.grow ?? 0) <= 0) continue;
-      const st = o.status!; st.grow = 0; st.growHeld = 0; if (st.burn <= 0) st.burnTick = MAGIC.burn.tick; st.burn = Math.max(st.burn, W.burn);
+      const st = o.status!; st.grow = 0; st.growHeld = 0; if (st.burn <= 0) st.burnTick = MAGIC.burn.tick; st.burn = Math.max(st.burn, W.burn * boonStatusMul('burn'));
       strikeFx({ x: e.x, y: .3, z: e.z }, { x: o.x, y: .3, z: o.z }, FIRE, CFG.spellFx.chain, true); burst(o.x, .5, o.z, FIRE, 10, 2, .05);
       damageEnemy(o, W.damage, 0, 0, 0, 'spell', 'ember');
     }
@@ -198,7 +205,7 @@ function verdantReact(e: Enemy, r: Reaction) {
     const B = R.blight, o = G.enemies.filter(f => f !== e && live(f) && Math.hypot(f.x - e.x, f.z - e.z) < B.reach).sort((a, b) => Math.hypot(a.x - e.x, a.z - e.z) - Math.hypot(b.x - e.x, b.z - e.z))[0];
     burst(e.x, .5, e.z, THORN, 14, 1.8, .05); burst(e.x, .7, e.z, VIOLET, 8, 1.4, .04); if (!e.flying) hexGround(e.x, e.z); Sfx.at(e.x, e.z).blight();
     if (o) { // (laid straight on: thorns and a hex, no reaction of their own)
-      const st = o.status ??= newStatus(); st.hex = Math.min(MAGIC.hex.max, st.hex + B.hex); st.hexT = MAGIC.hex.time; if (st.grow <= 0) st.growHeld = 0; st.grow = Math.max(st.grow, B.grow);
+      const st = o.status ??= newStatus(), T = magicNow(); st.hex = Math.min(T.hex.max, st.hex + B.hex); st.hexT = T.hex.time; if (st.grow <= 0) st.growHeld = 0; st.grow = Math.max(st.grow, B.grow * boonStatusMul('grow'));
       for (let k = 1; k <= 6; k++) { const t = k / 6; burst(e.x + (o.x - e.x) * t, .12, e.z + (o.z - e.z) * t, k % 2 ? THORN : VINE, 2, .5, .04); }
     }
     return true;
