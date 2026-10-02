@@ -75,6 +75,7 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   if (def.school === 'hallow') hexGiveBack(); // (M4.9: holy light gives back what a hex just took)
   if (def.school === 'storm') flareEyes(); // (M4.6: a Stormcaller's eyes flare)
   player.spellCd[slot] = def.cooldown;
+  G.run.casts[def.school] = (G.run.casts[def.school] ?? 0) + 1; // (M6: the boons' deal leans to the schools cast)
   skullsWatch(G.current, def.color); // an ossuary's skulls take the spell's colour
   if (castSpellOnce(id)) { toast(STR.knowledge.knownWell(def.name), 3); knownWellNow(def.school); } // cast enough times: its lore and reactions are known (and perhaps its whole school: M4.11)
   heroCast();

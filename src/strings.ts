@@ -324,12 +324,24 @@ export const STR = {
     swiftness: { name: 'Swiftness', text: 'You move 3% faster and cast the cantrip 3% sooner for each point.' },
     spent: (name: string) => `${name} +1`,
   },
+  /** M6 step 3: boons (names in data/boons.json, placeholders until M8). */
+  boons: {
+    kindOf: (school: string) => `${school} boon`, kindGeneral: 'Boon', ranked: (name: string) => `${name} II`,
+    pledged: (school: string) => `The next library will remember ${school}.`,
+    pledgeKept: (school: string) => `The library remembered your pledge: a page of ${school} waits.`,
+    attuned: (school: string) => `Attuned: the boons you are offered lean to ${school}.`,
+    lean: (school: string) => `Your ${school} draws it`,
+  },
   /** M6: insight (the GDD's XP) and levels; both words placeholders until M8. */
   levels: {
     short: 'Level', up: (n: number) => `Level ${n}`,
     meter: (level: number, next: number) => next > 0 ? `Level ${level}: ${next} insight to the next` : `Level ${level}, the most this run allows`,
     first: "What a foe's magic held passes into your hand: insight. Enough of it, and you grow a level.",
     cap: 'You can learn no more this run.',
+    waits: 'A level waits: when the fight is won, choose its boon.',
+    chooseBoon: 'Choose a boon', choosePoint: (n: number) => `Spend a point on an attribute${n > 1 ? ` (${n} to spend)` : ''}`,
+    attrNow: (n: number) => `${n} point${n === 1 ? '' : 's'} now`,
+    hint: 'Arrows choose · Enter or Space takes · the choice waits for you',
   },
   /** Reactions name themselves in the air; statuses as the training dummy lists them. */
   reactions: { shatter: 'Shatter', overload: 'Overload', eclipse: 'Eclipse', blackfire: 'Blackfire', steam: 'Steam', searing: 'Searing', prism: 'Prism', verdict: 'Verdict', blackice: 'Black Ice', voidspark: 'Void Spark',
@@ -722,6 +734,10 @@ export const STR = {
     godOn: 'God mode: on', godOff: 'God mode: off',
     doors: { data: 'Doors: as the floor has them', shifted: 'Doors: off the middle', middle: 'Doors: in the middle' } as Record<string, string>,
     moveClip: { run: 'Moving: run clip', walkInStep: 'Moving: walk clip, feet in step', walkNatural: 'Moving: walk clip, natural pace' } as Record<string, string>,
+    offerNow: 'Offer boons now (a level waiting)', noLevelWaits: 'No level waits for its choice', autoLevelOn: 'Levels choose for themselves: on', autoLevelOff: 'Levels choose for themselves: off',
+    boons: 'Boons (M6)', dealNow: 'Deal three (as a level would)', noBoons: 'No boons', boonFull: 'Taken as often as it can be',
+    boonsInfo: (list: string) => `Taken: ${list || 'none'}. A button takes a boon (its next rank). A dealt card marked * came from the build's lean.`,
+    pledgeInfo: (school: string) => school ? `Pledged (M6): the next library holds a page of ${school}.` : 'No pledge (M6).',
     plusAttr: (name: string) => `+1 ${name}`, noAttrs: 'No points spent', attrsInfo: (list: string, free: number) => `Attributes: ${list}; ${free} point${free === 1 ? '' : 's'} to spend.`,
     levels: 'Insight and levels (M6)', nextLevel: '+ insight to the next level', maxLevel: 'Level 12', firstLevel: 'Back to level 1',
     levelsInfo: (level: number, insight: number, next: number, pending: number) => `Level ${level}, ${insight} insight${next ? `, ${next} to the next` : ' (the cap)'}; ${pending} level choice${pending === 1 ? '' : 's'} waiting (the level-up screen comes in step 4).`,

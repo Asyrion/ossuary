@@ -19,7 +19,8 @@ async function start(page: Page, query: string) {
   // the tests step the game themselves: no frames drawn in real time from the moment the page loads (with software
   // WebGL on a two-core runner, the title screen drawing flat out slowed every start down)
   await page.addInitScript('window.__manual = true');
-  await page.goto('/' + query);
+  // (M6: levels pass with nothing taken, so a fight cleared changes none of the mage's numbers, unless a test asks otherwise)
+  await page.goto('/' + query + (query.includes('autolevel') ? '' : (query.includes('?') ? '&' : '?') + 'autolevel=skip'));
   await page.waitForFunction(() => !!(window as unknown as W).__game, null, { timeout: 30_000 });
   expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('title');
   expect(await page.evaluate(() => (window as unknown as W).__game.hero.info)).toContain('rigged');
@@ -495,7 +496,7 @@ test('the end screen sums up the run, and replays its seed', async ({ page }) =>
 
 test('the setting (M4.2): the title names the Gate of Uzulim and Asyrion; the first floor opens beneath the Wardens\' chapel, and the Warden is one of them', async ({ page }) => {
   await page.addInitScript('window.__manual = true');
-  await page.goto('/?seed=GATE01');
+  await page.goto('/?seed=GATE01&autolevel=skip');
   await page.waitForFunction(() => !!(window as unknown as W).__game, null, { timeout: 30_000 });
   const title = await page.evaluate(() => ({
     heading: document.querySelector('#scrTitle h1')!.textContent, place: document.querySelector('#scrTitle .place')!.textContent,
@@ -2206,7 +2207,7 @@ test('economy artifacts: the keyring opens a vault, the scale lowers prices, the
   });
   expect(vault).toEqual({ keys: 3, after: 3, sealed: false, free: true }); // three keys on taking it, and none spent
 
-  await page.goto('/?room=merchant_plain&seed=SHOP01&give=pedlars_scale,misers_purse&loot=coins:30');
+  await page.goto('/?room=merchant_plain&seed=SHOP01&give=pedlars_scale,misers_purse&loot=coins:30&autolevel=skip');
   await page.waitForFunction(() => !!(window as unknown as W).__game);
   await page.click('#btnStart');
   const shop = await page.evaluate(() => {
@@ -2241,7 +2242,7 @@ test('economy artifacts: chalk widens blasts, the band spares the mage, the ferr
   expect(blast).toEqual({ fuse: 1, radius: 2.25, hurt: 0, left: 0 });
   // the ferryman: the same fight won on the same seed, with his obol and without, leaves one obol more
   const obolsAfterFight = async (give: string) => {
-    await page.goto(`/?room=crypt_a&seed=ECON03${give}`);
+    await page.goto(`/?room=crypt_a&seed=ECON03${give}&autolevel=skip`);
     await page.waitForFunction(() => !!(window as unknown as W).__game);
     await page.click('#btnStart');
     return page.evaluate(() => {
@@ -4371,5 +4372,73 @@ test('attributes (M6 step 2): a level\'s point spent on Vigor, Will, Arcana or S
   });
   expect(leap.mul).toBeCloseTo(1.5);
   expect(leap.lost).toBeCloseTo(4 * .5 * 1.5); // (before M6 the ×1.5 came twice: 4.5)
+  expect(errors).toEqual([]);
+});
+
+test('boons (M6 step 3): a deal of three leans to the build, a school boon taken before its spells pledges the next library (which keeps it), Tempered gives points, casts count', async ({ page }) => {
+  type GB = { sim(s: number, draw?: boolean): void; warp(id: number): void; deal(): { id: string; rank: number; lean: boolean }[]; giveBoon(id: string): boolean;
+    boons: { taken: Record<string, number>; pledge: string | null; casts: Record<string, number> }; attrs: { free: number }; pages: { spell: string; kind: string }[];
+    learn(id: string, slot: number): void; cast(slot: number): boolean; mana(v?: number): number; player: { invuln: number } };
+  const errors = await start(page, '?seed=BOON1&room=library_plain');
+  const got = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GB }).__game; g.player.invuln = 999; g.sim(.5);
+    const first = g.deal(), again = g.deal();
+    g.giveBoon('seedfall'); g.sim(.1); const pledged = { pledge: g.boons.pledge, said: document.getElementById('toast')?.textContent ?? '', card: document.getElementById('loreName')?.textContent };
+    g.giveBoon('tempered'); const free = g.attrs.free;
+    g.warp(1); g.sim(.6);
+    const lecterns = g.pages.filter(p => p.kind === 'lectern').map(p => p.spell);
+    g.learn('static_mantle', 0); g.mana(200); g.cast(0); g.sim(.2); g.learn('arc', 1); // (a Storm spell in both slots: attuned; the mantle needs no foe)
+    const leaning = Array.from({ length: 8 }, () => g.deal()).flat();
+    return { first, again, pledged, free, lecterns, after: g.boons, leaning };
+  });
+  expect(got.first).toHaveLength(3); expect(new Set(got.first.map(c => c.id)).size).toBe(3);
+  expect(got.again).not.toEqual(got.first); // (each deal its own draw)
+  expect(got.pledged.pledge).toBe('verdant'); expect(got.pledged.said).toContain('Verdant'); expect(got.pledged.card).toBe('Seedfall');
+  expect(got.free).toBe(3);
+  expect(got.lecterns.some(id => ['thorn_snare', 'pollen_cloud', 'living_wall'].includes(id))).toBe(true);
+  expect(got.after.pledge).toBeNull(); expect(got.after.casts.storm).toBe(1);
+  const storm = got.leaning.filter(c => ['forkingArc', 'sparkWake'].includes(c.id));
+  expect(storm.length).toBe(16); expect(storm.every(c => c.lean)).toBe(true); // (attuned: both school cards of every deal are Storm's)
+  expect(errors).toEqual([]);
+});
+
+test('the level-up screen (M6 step 4): a level waits for the fight to be won, then the game pauses for three boons and a point; a key held from the fight can\'t choose, Esc doesn\'t close it, each level waiting comes in turn', async ({ page }) => {
+  type GL = { sim(s: number, draw?: boolean): void; warp(id: number): void; clearRoom(): void; state: string; rooms(): { type: string; cleared: boolean; plan: { id: number } }[];
+    offer: { open: boolean; phase: string; level: number; pending: number; chosen: number; cards: { id: string; rank: number; lean: boolean }[] };
+    boons: { taken: Record<string, number> }; attrs: Record<string, number>; giveInsight(n: number): void; insight: { next: number; pending: number }; player: { invuln: number } };
+  const errors = await start(page, '?seed=LVUP&level=3&autolevel=0');
+  const g = () => page.evaluate(() => (window as unknown as { __game: GL }).__game.offer);
+  const locked = await page.evaluate(() => { // (opened, and Enter at once, as a key mashed from the fight would: locked, it takes nothing)
+    const w = (window as unknown as { __game: GL }).__game; w.player.invuln = 999; for (let k = 0; k < 200 && !w.offer.open; k++) w.sim(1 / 60);
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter' })); return w.offer.phase;
+  });
+  expect(locked).toBe('boon');
+  const first = await g();
+  expect(first).toMatchObject({ open: true, phase: 'boon', level: 2, pending: 2 }); expect(first.cards).toHaveLength(3);
+  expect(await page.evaluate(() => (window as unknown as { __game: GL }).__game.state)).toBe('pause');
+  expect(await page.locator('#scrLevel').isVisible()).toBe(true);
+  await page.waitForTimeout(450); await page.keyboard.press('Escape'); expect((await g()).open).toBe(true);
+  await page.keyboard.press('ArrowRight'); expect((await g()).chosen).toBe(1);
+  await page.keyboard.press('Enter');
+  const taken = await page.evaluate(() => (window as unknown as { __game: GL }).__game.boons.taken);
+  expect(Object.keys(taken)).toContain(first.cards[1].id);
+  expect((await g()).phase).toBe('point');
+  await page.waitForTimeout(450); await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight'); await page.keyboard.press('Enter'); // (Will)
+  const second = await g();
+  expect(second).toMatchObject({ open: true, phase: 'boon', level: 3, pending: 1 });
+  await page.waitForTimeout(450); await page.click('#lvCards .lvCard[data-i="0"]');
+  await page.waitForTimeout(450); await page.keyboard.press('Enter'); // (Vigor)
+  const after = await page.evaluate(() => { const w = (window as unknown as { __game: GL }).__game; return { offer: w.offer, state: w.state, attrs: w.attrs, badge: document.getElementById('level')?.className }; });
+  expect(after.offer).toMatchObject({ open: false, pending: 0 }); expect(after.state).toBe('play');
+  expect(after.attrs).toMatchObject({ will: 1, vigor: 1, free: 0 }); expect(after.badge).not.toContain('waits');
+  // a level reached in a fight waits for its end, its badge glowing and a line saying so the first time
+  const fight = await page.evaluate(() => {
+    const w = (window as unknown as { __game: GL }).__game, room = w.rooms().find(r => r.type === 'normal' && !r.cleared)!;
+    w.warp(room.plan.id); w.sim(.6); w.giveInsight(w.insight.next + 1); w.sim(1.5);
+    const during = { open: w.offer.open, pending: w.insight.pending, badge: document.getElementById('level')?.className, said: (w as unknown as { run: { hinted: Set<string> } }).run.hinted.has('levelWaits') };
+    w.clearRoom(); w.sim(1.2); return { during, open: w.offer.open };
+  });
+  expect(fight.during).toMatchObject({ open: false, pending: 1 }); expect(fight.during.badge).toContain('waits'); expect(fight.during.said).toBe(true); // (its line raised: it shows after the line before it)
+  expect(fight.open).toBe(true);
   expect(errors).toEqual([]);
 });

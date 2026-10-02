@@ -10,12 +10,14 @@ import { burst } from '../combat/fx';
 import { floatText } from '../magic/statusFx';
 import { refreshStats } from '../items/artifacts';
 import { attrBonus, freePoints, type Attr } from './attributes';
+import { boonRank } from './boons';
+import { boonParams } from './boonData';
 
 /** Each attribute's colour as it rises over the mage (and in the inventory). */
 export const ATTR_COLOR: Record<Attr, number> = { vigor: 0xe0473a, arcana: 0xc8a0ff, will: 0x8fc0ff, swiftness: 0xb0e890 };
 
 /** Points the mage has to spend now. */
-export const pointsToSpend = () => freePoints(G.run.level, G.run.attrs);
+export const pointsToSpend = () => freePoints(G.run.level, G.run.attrs, boonRank('tempered') * boonParams('tempered', 1).points); // (and Tempered's)
 /** What the attributes give now (for `refreshStats`). */
 export const bonusNow = () => attrBonus(G.run.attrs);
 

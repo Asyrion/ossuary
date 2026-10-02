@@ -1,7 +1,7 @@
 # M6 RPG growth: plan
 
 **Status: approved (2026-10-02) with four changes, the owner taking Claude's recommendations (decisions 6, 8, 10 and 11);
-steps 1 and 2 built.** GDD: RPG progression, Inside a run; Magic
+steps 1 to 4 built.** GDD: RPG progression, Inside a run; Magic
 system, Runes; Core loop, Game loop changes for the magic RPG (the pacing target); Pickups and room types (the rune, the
 shrine's bargain, the waystone); the roadmap's M6 row ("XP, levels, attributes, 12 boons, runes and waystones").
 
@@ -254,6 +254,12 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
    - **Dev menu (Rooms & runs):** the pledge beside the floor's lean.
    - **Unit tests:** no repeat in a deal, a general card always, Tempered never dealt out, the same state dealing the same
      cards, the lean, a school boon dealt again only as its rank II, and the pledge's page.
+   *Built (2026-10-02):* data/boons.json (eighteen, each school's two with their rank II, all with lore), the pure
+   `src/progression/boonData.ts` (`validateBoons`, `schoolWeights`, `dealBoons`, `pledgeFor`) and the game side
+   `src/progression/boons.ts` (`dealNow`, `takeBoon`; `G.run.boons`, `casts`, `pledge`, `deals`). One change from the plan:
+   the hooks ask `boonRank(id)` and `boonParam(id, key)` rather than tags in `stats.effects`, since a boon has two ranks with
+   their own numbers. The pledge's page is `pickPages`' first (its last argument); Tempered's three points count already.
+   Dev menu (Mage tab): Boons (take each, deal three); Rooms & runs: the pledge beside the floor's lean.
 4. **The level-up screen.** It is `src/ui/levelUp.ts` (new, `#scrLevel`), built as `alchemyTable.ts` is
    (`initLevelUp({ pause, resume })`, keys and pad routed in `main.ts`). It opens only while the game is in play, with no
    doors locked and no other screen open (the table, the inventory, a page's prompt). Otherwise the level waits in
@@ -267,6 +273,13 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
    - **Dev menu (Mage tab):** "Offer boons now", "Choose for me", each boon from the data; `__game.offer`, `chooseBoon(i)`,
      `giveBoon(id)`, `boons`; `?boons=`.
    - **Browser tests:** a level waits for the doors; a held cast key doesn't choose; a choice changes the stats.
+   *Built (2026-10-02):* `src/ui/levelUp.ts` (`#scrLevel`: `checkLevelUp` from the loop, a calm of `CFG.levels.calm`
+   after the fight; the lock of `CFG.levels.lock` counted from when the cards are drawn) and the sigils
+   `src/progression/boonLooks.ts` (a stone medallion, its emblem in strokes of the boon's colour, a second ring at rank II).
+   Arrows or WASD choose and Enter or Space take (the arrows are the cast keys, so the lock is what keeps a key from the
+   fight from choosing). The level badge glows while a level waits, and the first time in a run a line says so.
+   `DEV.autoLevel` is 'choose' (`?autolevel=1`, the dev menu, the balance bot) or 'skip' (`?autolevel=skip`: the browser
+   tests, so a fight cleared changes none of the mage's numbers).
 5. **The twelve school boons**, each through a hook that exists. A boon's name rises the first time it acts in a room,
    with a line the first time in a run (`STR.boons`) and a sound in its school's palette. A spell's panel says what a boon
    does to it this run. The Magic tab's "Boons here" sets each one off on dummies. Each has a browser test.
