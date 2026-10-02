@@ -5,15 +5,15 @@ import * as THREE from 'three';
 import type { Room } from '../types';
 import { FOES } from './foeData';
 import { oldLook } from './foes';
-import { FANTASY_LOOKS } from './fantasyLooks';
+import { FANTASY_LOOKS, RETIRED } from './fantasyLooks';
 import { standLook } from './modelOptions';
 import { freeSpotNear } from '../world/rooms';
 import type { Built } from './beastParts';
 
 /** The look ids of a floor's foes (0: the Wardlings), as the data names them. */
 const floorLooks = (floor: number) => [...new Set(Object.values(FOES).filter(d => d.floor === floor).map(d => d.look ?? d.id))];
-/** Every look id that has a new look waiting, on `floor` or on every floor. */
-export const newLooks = (floor?: number) => (floor === undefined ? Object.keys(FANTASY_LOOKS) : floorLooks(floor)).filter(id => FANTASY_LOOKS[id]);
+/** Every look id that has a new look waiting on the owner (its old one not yet retired), on `floor` or on every floor. */
+export const newLooks = (floor?: number) => (floor === undefined ? Object.keys(FANTASY_LOOKS) : floorLooks(floor)).filter(id => FANTASY_LOOKS[id] && !RETIRED[id]);
 
 /** Stand each of `floor`'s foes that has a new look, the old look to its left and the new to its right, in rows ahead of
     world (x, z) (a great hall holds a floor's: `?room=great_hall`); `only` names the ones to stand. */
@@ -34,10 +34,11 @@ function measure(build: () => Built) {
   b.group.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh && !m.geometry.userData.shared) m.geometry.dispose(); });
   return { h: +(box.max.y - box.min.y).toFixed(2), parts };
 }
-/** For each new look: the parts the old look's behaviour moves that it lacks, and both heights. */
+/** For each new look: the parts the old look's behaviour moves that it lacks, and both heights (an approved look's old
+    ones from `RETIRED`, its builder gone). */
 export function lookContract() {
   return Object.keys(FANTASY_LOOKS).map(id => {
-    const was = measure(oldLook(id)!), now = measure(FANTASY_LOOKS[id]!);
-    return { id, missing: was.parts.filter(p => !now.parts.includes(p)), oldH: was.h, newH: now.h };
+    const retired = RETIRED[id], was = retired ?? measure(oldLook(id)!), now = measure(FANTASY_LOOKS[id]!);
+    return { id, missing: was.parts.filter(p => !now.parts.includes(p)), oldH: was.h, newH: now.h, retired: !!retired };
   });
 }
