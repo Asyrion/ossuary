@@ -11,6 +11,7 @@ import type { Drink } from './magic/drinking';
 import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
 import type { Drop, Item, Soul, Ware } from './items/loot';
 import type { Kinds, KitWeights } from './world/kitData';
+import type { RuneId, Socket } from './magic/runeData';
 
 export type Side = 'n' | 's' | 'e' | 'w';
 export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine' | 'library' | 'laboratory';
@@ -159,7 +160,7 @@ export interface Room {
   /** Foes put to rest here towards the Ossuary Choir's next hymn (M4.1). */ choir?: number;
   /** M5: an overgrown foe has flowered here (its flower mends once a room). */ flowered?: boolean;
   /** M5: the overgrown garden's word has risen here (once a room). */ gardenSaid?: boolean;
-  /** M6 step 5: the boons whose name has risen here (once a room each), the half hearts boons have mended here (Votive
+  /** M6 step 5: the boons (and, step 7, the runes: `rune:<id>`) whose name has risen here (once a room each), the half hearts boons have mended here (Votive
       Heart and Thirsting Hex share them), and whether Votive Heart's mend has come here. */ boonsSaid?: Set<string>; boonMended?: number; votive?: boolean;
   /** Water and oil on the floor (world/pools.ts), and which pool each tile belongs to ([row][col]). */
   pools?: Pool[]; poolGrid?: (Pool | undefined)[][];
@@ -309,4 +310,6 @@ export interface Player extends Circle {
   /** Seconds the drawn-in chip shows, after a pull worth showing (a lure, a lodestone golem, a griffin's wings). */ drawn: number;
   /** M5: the potions carried in the belt (PotionIds, the order taken), the one chosen, and the reagents in the pouch (how
       many of each). */ belt: string[]; beltAt: number; reagents: Record<string, number>;
+  /** M6 step 7: each slot's socket (how many runes it holds, those carved: a new array on every change, so the runed spell's
+      cache knows), and the runes in the pouch (a spell given up sends its runes there). */ sockets: Socket[]; runes: RuneId[];
 }

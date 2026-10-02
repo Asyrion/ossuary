@@ -40,6 +40,8 @@ import { pilgrimMap, resetGifts } from './items/gifts';
 import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
 import { clearSpellFx, forgetSpells, gainMana, leaveRoomSpells, learnSpell } from './magic/spells';
+import { carve, setSockets } from './magic/runes';
+import type { RuneId } from './magic/runeData';
 import { addPotion, renderBelt, resetPotions } from './items/potions';
 import { enterLab } from './world/laboratory';
 import { clearThrows } from './items/potionThrow';
@@ -63,6 +65,7 @@ export interface RunOptions {
   /** Potions to start with in the belt (M5). */ potions?: string[];
   /** The level to start at (M6: its insight, its choices waiting). */ level?: number;
   /** Boons to start with, and the rank of each (M6 step 5: `?boons=deepWinter:2,coldSnap`). */ boons?: Record<string, number>;
+  /** Runes carved into each slot to start with (M6 step 7: `?runes=q:quicken,e:lasting+vein`; a second opens the second socket). */ runes?: RuneId[][];
   /** Every fight on every floor in a room of this theme (M3.6). */ theme?: string;
 }
 let nextRun: RunOptions = {};
@@ -108,7 +111,8 @@ export function buildFloor(index: number) {
 }
 
 export function resetPlayer() {
-  Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0, blessed: 0, dim: 0, chill: 0, stone: 0, pull: { x: 0, z: 0 }, hexed: 0, drained: 0, hexDebt: 0, hexDebtUntil: 0, drawn: 0, belt: [], beltAt: 0, reagents: {} });
+  Object.assign(player, { invuln: 0, fireCd: 0, yawA: 0, blessed: 0, dim: 0, chill: 0, stone: 0, pull: { x: 0, z: 0 }, hexed: 0, drained: 0, hexDebt: 0, hexDebtUntil: 0, drawn: 0, belt: [], beltAt: 0, reagents: {},
+    sockets: [{ size: 1, runes: [] }, { size: 1, runes: [] }], runes: [] }); // (M6: a socket a slot, nothing carved, an empty pouch)
   heroReset();
   resetHearts(); resetArtifacts(); resetResources(); resetSouls(); resetAfflictions(); clearLines(); resetGifts();
   forgetSpells(); player.mana = player.stats.maxMana;
@@ -139,6 +143,7 @@ export function startGame(opts?: RunOptions) {
   if (o.loot) giveResources(o.loot);
   o.potions?.forEach(id => { if (isPotion(id)) addPotion(id); });
   o.spells?.slice(0, 2).forEach((id, i) => learnSpell(id, i, true));
+  o.runes?.slice(0, 2).forEach((ids, slot) => { if (ids.length > 1) setSockets(slot, ids.length); for (const id of ids) carve(slot, id); });
   for (const [id, rank] of Object.entries(o.boons ?? {})) for (let k = 0; k < rank; k++) takeBoon(id, false);
   showScreen(null); G.state = 'play';
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, o.floor ?? 0)));

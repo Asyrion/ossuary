@@ -20,8 +20,8 @@ import { disposeTree, glow, glowShared, mergeStill } from '../render/materials';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { line } from '../ui/hud';
 import { ringFx, strikeFx } from '../magic/spellFx';
-import { SPELL_DEFS, spell, type School } from '../magic/spellData';
-import { spellCost } from '../magic/cost';
+import { SPELL_DEFS, type School } from '../magic/spellData';
+import { payment, slotDef, spellCooldown, spellCost } from '../magic/cost';
 import { knowledgeVersion, stage } from '../magic/memory';
 import { attunedTo, circleOf, handState, masteredSchools, type CircleArc, type HandState } from '../magic/marksData';
 import { castSide, offSide } from './costumeFit';
@@ -109,13 +109,13 @@ export function updateSpellMarks(dt: number) {
   const now = G.simClock, { arcs, key } = knowledge(), mastered = masteredSchools(arcs), off = player.dead;
   // the spells in hand
   for (const slot of [0, 1]) {
-    const id = player.spells[slot], def = id ? spell(id) : null;
+    const id = player.spells[slot], def = slotDef(slot); // (M6: as its runes make it)
     if (hands[slot] && (!def || hands[slot]!.id !== id)) hands[slot] = dropHand(hands[slot]);
     if (!def || off) { if (hands[slot]) hands[slot]!.root.visible = false; continue; }
     const h = hands[slot] ??= buildHand(def.id, def.school);
     if (!handAt(slot === 0 ? castSide() : offSide(), v)) { h.root.visible = false; continue; }
     h.root.visible = true; h.root.position.copy(v); h.root.position.y += M.hand.lift; firstTime('hands', STR.marks.hands);
-    const cost = spellCost(def), st = handState(player.spellCd[slot], def.cooldown, player.mana >= cost || player.souls.length > 0, cost > 0 ? player.mana / cost : 1);
+    const cost = spellCost(def), st = handState(player.spellCd[slot], spellCooldown(def), payment(slot) !== null, cost > 0 ? player.mana / cost : 1);
     if (st.state === 'ready' && h.was !== 'ready') { h.pulse = 1; ringFx(v.x, v.y + M.hand.lift, v.z, SCHOOL_LIGHT[h.school], .03, M.hand.flash, .3); } // (ready again: a flash)
     h.was = st.state; h.pulse = Math.max(0, h.pulse - dt * M.hand.pulse);
     const mat = h.glow.material, color = SCHOOL_LIGHT[h.school];

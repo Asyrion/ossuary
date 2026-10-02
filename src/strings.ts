@@ -359,6 +359,22 @@ export const STR = {
     mendSpent: 'Your boons have mended all they can in this room.',
     yours: 'Your boons',
   },
+  /** M6 step 7: runes (data/runes.json has their names and texts): the line each says the first time it acts in a run, and
+      what a socket says. */
+  runes: {
+    acts: {
+      thrice: 'Thrice: the spell flew three times. Only the middle one carries its statuses.',
+      reprise: 'Reprise: the spell came again, softer.',
+      seeking: 'Seeking: the spell turned towards a foe.',
+      wide: 'Wide: the spell reaches further, and strikes a little softer.',
+      quicken: 'Quicken: the spell is ready again sooner, for more mana.',
+      vein: 'Vein: short of mana, the spell took half a heart for the rest.',
+      lasting: 'Lasting: what the spell leaves lasts longer, for more mana.',
+    } as Record<string, string>,
+    veinLast: 'Vein will not take your last half heart.',
+    toPouch: (names: string) => `${names} went to your pouch.`,
+    refused: { empty: 'No spell in that slot to carve into.', fit: "That rune doesn't fit this spell.", full: 'The socket is full.', twice: 'That rune is carved here already.' } as Record<string, string>,
+  },
   /** M6: insight (the GDD's XP) and levels; both words placeholders until M8. */
   levels: {
     short: 'Level', up: (n: number) => `Level ${n}`,
@@ -786,6 +802,9 @@ export const STR = {
     drops: 'Drop ahead of the mage', gildedChest: 'Gilded chest', loreAgain: 'Describe items again', loreAgainTitle: 'Items and containers show their lore card again the next time one is taken',
     dropNames: { halfHeart: 'Half heart', heart: 'Heart', coin: 'Obol', purse: 'Purse', key: 'Bone key', glyph: 'Glyph stone', mana: 'Mana vial', paleSoul: 'Pale soul mote', blackSoul: 'Black soul mote', hallowedSoul: 'Hallowed soul mote', shard: 'Lodestone shard', potion: 'Potion (dealt at random)', reagent: 'Reagent (at random)', coffer: 'Coffer', chest: 'Reliquary chest' } as Record<string, string>,
     spells: 'Spells (click to learn into the slot)', slot: 'Slot', mana: 'Mana', fullMana: 'Full mana', manaOn: 'Endless mana: on', manaOff: 'Endless mana: off', forget: 'Forget spells',
+    /** M6 step 7: runes carved into the slot chosen above (each fits some shapes: one that doesn't is refused). */
+    runes: 'Runes (carved into the slot chosen above)', clearRunes: 'Clear the socket', socketOne: 'Socket: one rune', socketTwo: 'Socket: two runes (Second Socket)',
+    runesInfo: (slots: string[], pouch: string) => `Q: ${slots[0] || 'nothing carved'} · E: ${slots[1] || 'nothing carved'} · pouch: ${pouch || 'empty'}`,
     page: 'Drop a grimoire page', noPage: 'No spell left to learn',
     themes: 'Themed rooms (a test room of each)', objects: 'Objects (put down ahead)', noRoom: 'No free floor there',
     propNames: { bones: 'Bone pile', skulls: 'Skull heap', sacks: 'Grave sacks', cask: 'Oil cask', rubble: 'Rubble', roots: 'Grave roots', briar: 'Thorn briar', web: 'Cobwebs', glowcap: 'Glowcaps', pew: 'Pew', desk: 'Desk', scrolls: 'Scroll heap', blossom: 'Flowering plant', hoard: 'Offering heap', boat: 'Moored boat', brazier: 'Brazier', candles: 'Candle stand', bell: 'Bell', rune: 'Rune stone', lodestone: 'Lodestone', censer: 'Hanging censer', reliquary: 'Reliquary', tree: 'Dead tree', statue: 'Watching statue', obelisk: 'Sapping obelisk', bridge: 'Rope bridge', wetCandles: 'Candle stand in water', sluice: 'Sluice gate' } as Record<string, string>,

@@ -4532,6 +4532,58 @@ test('the general boons (M6 step 6): Keen Nose knows a potion by smell, Scavenge
   expect(errors).toEqual([]);
 });
 
+test('runes on the cast (M6 step 7): Quicken sooner and dearer on the HUD and in the cast, Lasting holds longer, Wide reaches further, Vein bleeds but never the last half heart, a spell given up sends its runes to the pouch, a runed spell still comes to be known well', async ({ page }) => {
+  type Def = { mana: number; cooldown: number; damage: number; params: Record<string, number> };
+  type GR = { sim(s: number, draw?: boolean): void; cast(slot: number): boolean; mana(n: number): void; learn(id: string, slot: number): void; spawn(kind: string): void;
+    socket(slot: number, id: string | null, size?: number): string | null; mantle: number; knowledge: Record<string, string>;
+    sockets: { slots: { spell: string | null; size: number; runes: string[]; def: Def | null }[]; pouch: string[]; acted: Record<string, number>; said: string[] };
+    player: { x: number; z: number; hp: number; maxHp: number; mana: number; invuln: number; spellCd: number[]; souls: unknown[] };
+    enemies: { type: string; x: number; z: number; status?: Record<string, number> }[]; run: { hinted: Set<string> } };
+  const errors = await start(page, '?seed=RUNES&spells=rime_shards,static_mantle&runes=q:quicken,e:lasting');
+  // Quicken: ready 30% sooner for 20% more mana, on the slot and in the cast; Lasting: the mantle holds half again as long
+  const quick = await page.evaluate(() => {
+    const w = (window as unknown as { __game: GR }).__game; w.player.invuln = 999; w.sim(.1);
+    const before = { ...w.sockets.slots[0] }, small = document.querySelector('#slot0 small')?.textContent;
+    w.mana(60); w.cast(0); const after = { mana: w.player.mana, cd: w.player.spellCd[0] };
+    w.cast(1); w.sim(.1); return { before, small, after, mantle: w.mantle, sockets: w.sockets };
+  });
+  expect(quick.before.runes).toEqual(['quicken']); expect(quick.before.def).toMatchObject({ mana: 18, cooldown: 1.05 }); expect(quick.small).toBe('18');
+  expect(quick.after.cd).toBeCloseTo(1.05, 2); expect(quick.after.mana).toBeCloseTo(60 - 18, 5);
+  expect(quick.sockets.slots[1].def!.params.life).toBe(9); expect(quick.mantle).toBeGreaterThan(8.7);
+  expect(quick.sockets.said).toEqual(expect.arrayContaining(['rune:quicken', 'rune:lasting'])); expect(quick.sockets.acted['rune:quicken']).toBe(1);
+  // a spell given up: its rune goes to the pouch, the socket stays; Wide: the seal's ring half again as wide reaches a dummy 2.4 tiles off
+  const wide = await page.evaluate(() => {
+    const w = (window as unknown as { __game: GR }).__game; w.sim(10);
+    w.learn('pyre_seal', 0); const pouch = [...w.sockets.pouch], socket = w.sockets.slots[0];
+    w.spawn('dummy'); w.sim(.1); const d = w.enemies.find(e => e.type === 'dummy')!;
+    const seal = () => { d.x = w.player.x + 2.4; d.z = w.player.z; if (d.status) d.status.burn = 0; w.player.spellCd[0] = 0; w.mana(60); w.cast(0); w.sim(1.15); return d.status?.burn ?? 0; };
+    const plain = seal(); w.sim(6); w.socket(0, 'wide'); const widened = seal();
+    return { pouch, socket, plain, widened, radius: w.sockets.slots[0].def!.params.radius };
+  });
+  expect(wide.pouch).toEqual(['quicken']); expect(wide.socket).toMatchObject({ spell: 'pyre_seal', size: 1, runes: [] });
+  expect(wide.radius).toBeCloseTo(2.7, 2); expect(wide.plain).toBe(0); expect(wide.widened).toBeGreaterThan(0);
+  // Vein: short of mana, it takes what there is and half a heart; never the last half heart (its line says so, once)
+  const vein = await page.evaluate(() => {
+    const w = (window as unknown as { __game: GR }).__game; w.sim(6);
+    w.learn('arc', 1); w.socket(1, 'vein'); w.player.souls.length = 0; w.player.hp = w.player.maxHp; w.mana(5); w.player.spellCd[1] = 0;
+    const learned = w.knowledge.arc, hp0 = w.player.hp, cast = w.cast(1), paid = { hp: w.player.hp, mana: w.player.mana, cast };
+    w.player.hp = 1; w.mana(5); w.player.spellCd[1] = 0; const refused = w.cast(1);
+    return { learned, hp0, paid, refused, hpLast: w.player.hp, said: w.sockets.said, hinted: w.run.hinted.has('rune:veinLast'), toast: document.getElementById('toast')?.textContent, pouch: w.sockets.pouch };
+  });
+  expect(vein.paid).toEqual({ hp: vein.hp0 - 1, mana: 0, cast: true }); expect(vein.refused).toBe(false); expect(vein.hpLast).toBe(1);
+  expect(vein.said).toContain('rune:vein'); expect(vein.hinted).toBe(true);
+  expect(vein.pouch).toEqual(['quicken', 'lasting']); // (the mantle given up for Arc sent its Lasting there)
+  expect(vein.learned).toBe('learned'); // (carved, but not yet used: Upgraded waits for the tenth cast)
+  // the tenth cast of a runed spell: known well, and its stage Upgraded
+  const known = await page.evaluate(() => {
+    const w = (window as unknown as { __game: GR }).__game; w.player.hp = w.player.maxHp; let said = '';
+    for (let k = 0; k < 15 && w.knowledge.arc === 'learned'; k++) { w.mana(60); w.player.spellCd[1] = 0; w.cast(1); said = document.getElementById('toast')?.textContent ?? ''; w.sim(.05); }
+    return { stage: w.knowledge.arc, said };
+  });
+  expect(known.stage).toBe('upgraded'); expect(known.said).toContain('well now');
+  expect(errors).toEqual([]);
+});
+
 /* M6 step 5: the school boons at work. Each case starts its own run with `?boons=`, sets the boon off through the game's own
    hooks, and checks what it did, that its name rose (`said`), its line was said once (`hinted`) and, where cheap, rank II.
    (Written as strings: the page's own JavaScript, `window.__game` untyped. Eight dummies stand in a 4 × 2 block, each

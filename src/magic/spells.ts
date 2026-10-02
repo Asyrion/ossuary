@@ -9,10 +9,13 @@ import { DEV, G, after, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { heroCast } from '../actors/hero';
-import { flashMana, renderSpells, spellIcon, toast } from '../ui/hud';
+import { flashMana, line, renderSpells, spellIcon, toast } from '../ui/hud';
 import { showLore } from '../ui/lore';
-import { SPELL_DEFS, manaRegen, spell, type School } from './spellData';
-import { spellCost } from './cost';
+import { SPELL_DEFS, manaRegen, spell, type School, type SpellDef } from './spellData';
+import { payment, slotDef, spellCooldown, spellCost } from './cost';
+import { castRunes, runeActs, unslot } from './runes';
+import { rune, type Payment } from './runeData';
+import { bleed } from '../combat/damage';
 import { CAST, clearShapes, flamesNear, leaveRoomShapes, updateShapes } from './shapes';
 import { skullsWatch } from '../world/dressing';
 import { castSpellOnce, learnedSpell } from './memory';
@@ -38,6 +41,7 @@ export function learnSpell(id: string, slot?: number, silent = false): string | 
   const def = spell(id);
   const at = slot ?? Math.max(0, player.spells.indexOf(null));
   const replaced = player.spells[at];
+  if (replaced && replaced !== id) unslot(at); // (M6: its runes go to the pouch; the socket stays the slot's)
   player.spells[at] = id; player.spellCd[at] = 0;
   learnedSpell(id); // known from here on, in every run (M3.7)
   renderSpells();
@@ -53,38 +57,52 @@ export function attuneTo(school: School) {
   SPELL_DEFS.filter(s => s.school === school).slice(0, 2).forEach((s, i) => learnSpell(s.id, i, true));
   player.mana = player.stats.maxMana;
 }
-/** Forget every spell (a new run, or the dev menu). */
-export function forgetSpells() { player.spells = [null, null]; player.spellCd = [0, 0]; renderSpells(); }
+/** Forget every spell (a new run, or the dev menu): their runes go to the pouch (M6), the sockets stay. */
+export function forgetSpells() { unslot(0); unslot(1); player.spells = [null, null]; player.spellCd = [0, 0]; renderSpells(); }
 
 /** Where a spell cast now goes: the held cast direction, or where the mage last aimed or walked. */
 export function aimDir(cast: Vec2 | null): Vec2 { return cast ?? player.aim; }
 
-/** Cast the spell in `slot`, or refuse: no spell there, the merchant's ward, still cooling down, too little
-    mana, nothing to strike. */
+/** Cast the spell in `slot` (as its runes make it, M6), or refuse: no spell there, the merchant's ward, still cooling
+    down, nothing to pay with (mana, Vein's blood, a soul mote), nothing to strike. */
 export function castSpell(slot: number, cast: Vec2 | null) {
-  const id = player.spells[slot];
-  if (!id) { toast(STR.toast.noSpell, 2.5); Sfx.spellFail(); return false; }
-  const def = spell(id);
+  const def = slotDef(slot);
+  if (!def) { toast(STR.toast.noSpell, 2.5); Sfx.spellFail(); return false; }
+  const id = def.id;
   if (G.current.type === 'merchant') { toast(STR.toast.spellWarded, 2.5); Sfx.wardTink(); flashMana(slot, 'target'); return false; }
   if (player.spellCd[slot] > 0) { Sfx.spellFail(); flashMana(slot, 'cooldown'); return false; }
-  const cost = spellCost(def), short = player.mana < cost && !DEV.mana;
-  if (short && !player.souls.length) { Sfx.spellFail(); flashMana(slot, 'mana'); return false; } // (with a soul mote, it burns for the rest)
+  const can = payment(slot);
+  if (!can) { Sfx.spellFail(); flashMana(slot, 'mana'); if (def.runes?.includes('vein')) veinWontBleed(); return false; }
   const ward = wardNear(); // (M4.2: a sealed vault's ward near the mage drinks the spell instead)
   if (ward) drinkSpell(ward, def);
   else if (!CAST[def.shape](def, aimDir(cast))) { Sfx.spellFail(); flashMana(slot, 'target'); return false; }
-  if (short) burnSoul();
-  if (!DEV.mana) gainMana(-cost);
+  pay(def, payment(slot) ?? can); // (asked again: the cast may have given mana back, a foe it felled or a toll paid)
   spendFreeCast(); // (M5: the Bottled Storm's)
-  if (!ward && takeEcho()) { const room = G.current; after(CFG.alchemy.echoAfter, () => { if (G.current === room && !player.dead) CAST[def.shape](def, aimDir(cast)); }); } // (M5: the Philter of Echoes casts it again)
+  if (!ward && takeEcho()) { const room = G.current; after(CFG.alchemy.echoAfter, () => { if (G.current === room && !G.trans && !player.dead) CAST[def.shape](def, aimDir(cast)); }); } // (M5: the Philter of Echoes casts it again)
   if (def.school === 'hallow') { hexGiveBack(); votiveCast(); } // (M4.9: holy light gives back what a hex just took; M6: Votive Heart mends)
   if (def.school === 'storm') flareEyes(); // (M4.6: a Stormcaller's eyes flare)
-  player.spellCd[slot] = def.cooldown;
+  player.spellCd[slot] = spellCooldown(def);
+  castRunes(def); // (M6: Quicken, Wide and Lasting show at the cast)
   G.run.casts[def.school] = (G.run.casts[def.school] ?? 0) + 1; // (M6: the boons' deal leans to the schools cast)
   afterglowCast(def.status, def.color); // (M6: Afterglow)
   skullsWatch(G.current, def.color); // an ossuary's skulls take the spell's colour
   if (castSpellOnce(id)) { toast(STR.knowledge.knownWell(def.name), 3); knownWellNow(def.school); } // cast enough times: its lore and reactions are known (and perhaps its whole school: M4.11)
   heroCast();
   return true;
+}
+
+/** Pay for a cast as `how` says: mana; Vein's half heart for what mana lacks (M6), or a soul mote should the heart have
+    gone in the cast; a soul mote burnt for the rest. */
+function pay(def: SpellDef, how: Payment) {
+  const cost = spellCost(def);
+  if (how === 'mana') { if (!DEV.mana) gainMana(-cost); }
+  else if (how === 'vein') { gainMana(-player.mana); if (bleed(rune('vein').params.halves)) runeActs('vein', def.school); else if (player.souls.length) burnSoul(); }
+  else if (how === 'soul') { burnSoul(); gainMana(-cost); }
+}
+/** Vein refused a cast for the last half heart (a runed spell refused for want of payment can only be that): a line says
+    why, once a run. */
+function veinWontBleed() {
+  if (!G.run.hinted.has('rune:veinLast')) { G.run.hinted.add('rune:veinLast'); line(STR.runes.veinLast, CFG.afflict.lineShow); }
 }
 
 /** Mana comes back (faster out of a fight), cooldowns run down, and effects fade. Runs every step; `acting` is

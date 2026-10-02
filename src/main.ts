@@ -22,6 +22,9 @@ import './render/lights';
 import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { heroPixel, setHeroPixel } from './actors/heroPixel';
 import { arrowOrder, initGamepad, initKeyboard, initTouch, keys, padsNow, type InputActions } from './input';
+import { RUNE_IDS, isRune, type RuneId } from './magic/runeData';
+import { carve, clearRunes, setSockets } from './magic/runes';
+import { slotDef } from './magic/cost';
 import { initScreens, showScreen } from './ui/screens';
 import { closeDev, devOpen, dropsHere, forceKinds, objectsHere, showAssetsHere, showCoins, takeCoins, toggleDev, useAssets, useRoomKit, wearFace } from './ui/devMenu';
 import { obolFace, obolFaces } from './items/obolFace';
@@ -149,7 +152,8 @@ async function loadDefaultHero() {
     in a variant (quiet, champion, ambush, dark), ?give=bone_lens,twin_staff starts the run holding those
     artifacts, ?boss=pyre picks every floor's boss, ?loot=coins:20,glyphs:5 hands out obols, keys and glyphs,
     ?spells=arc starts with spells in the slots, ?theme=ossuary makes every fight one theme's, ?kit=old builds the rooms
-    in the old look (before the room kit), ?boons=deepWinter:2,coldSnap starts with boons taken (M6). */
+    in the old look (before the room kit), ?boons=deepWinter:2,coldSnap starts with boons taken (M6), ?runes=q:quicken,e:lasting+vein
+    with runes carved into the slots' spells (M6 step 7). */
 function readUrlOptions() {
   const q = new URLSearchParams(location.search);
   const kit = q.get('kit');
@@ -182,6 +186,13 @@ function readUrlOptions() {
     const [id, n] = part.split(':'), b = BOONS.get(id), rank = n ? Number(n) : 1;
     if (b && rank >= 1 && rank <= b.max) boons[id] = rank; else console.warn(`?boons: "${part}" should be a boon with a rank up to its most, e.g. deepWinter:2. Known: ${[...BOONS.keys()].join(', ')}`);
   }
+  const runes: RuneId[][] = [[], []]; // (M6 step 7: ?runes=q:quicken,e:lasting+vein carves them into the slots)
+  for (const part of (q.get('runes') ?? '').split(',').map(s => s.trim()).filter(Boolean)) {
+    const [k, list = ''] = part.split(':'), slot = ['q', '0'].includes(k.toLowerCase()) ? 0 : ['e', '1'].includes(k.toLowerCase()) ? 1 : -1;
+    const ids = list.split('+').filter(Boolean), bad = ids.filter(id => !isRune(id));
+    if (slot < 0 || bad.length || ids.length > 2) { console.warn(`?runes: "${part}" should be q: or e: with one or two runes joined by +, e.g. q:quicken or e:lasting+vein. Known: ${RUNE_IDS.join(', ')}`); continue; }
+    runes[slot] = ids as RuneId[];
+  }
   const badPotions = potions.filter(id => !isPotion(id));
   if (badPotions.length) console.warn(`?potions: unknown ${badPotions.join(', ')}. Known: ${POTION_IDS.join(', ')}`);
   if (room && !TEMPLATES.has(room)) console.warn(`?room=${room}: no such template. Known: ${[...TEMPLATES.keys()].join(', ')}`);
@@ -194,7 +205,7 @@ function readUrlOptions() {
     testVariant: variant && VARIANTS.includes(variant) ? variant : undefined,
     give: give.filter(id => ARTIFACTS.has(id)),
     boss: bossOk ? boss! : undefined,
-    loot, spells: spells.filter(id => SPELLS.has(id)), potions: potions.filter(isPotion), level: level >= 1 ? level : undefined, boons,
+    loot, spells: spells.filter(id => SPELLS.has(id)), potions: potions.filter(isPotion), level: level >= 1 ? level : undefined, boons, runes,
     theme: theme && THEMES.has(theme) ? theme : undefined,
   });
 }
@@ -212,6 +223,14 @@ function installDevHooks() {
     /** M6 step 2: the points spent on each attribute and those left to spend; spend one (a level's point, or `free`). */
     get attrs() { return { ...G.run.attrs, free: pointsToSpend() }; }, spend: (attr: Attr, free = false) => spendPoint(attr, free),
     /** M6 step 3: the boons taken (each one's rank), the pledge and the casts by school; deal three as a level would; take one. */
+    /** M6 step 7: each slot's socket (its spell, size and runes, and the spell as they make it), the pouch, and which runes
+        have acted (`acted`, counted) and said their line (`said`). */
+    get sockets() {
+      return { slots: player.sockets.map((k, i) => { const d = slotDef(i); return { spell: player.spells[i], size: k.size, runes: [...k.runes], def: d && { mana: d.mana, cooldown: d.cooldown, damage: d.damage, params: { ...d.params }, status: { ...d.status } } }; }),
+        pouch: [...player.runes], acted: Object.fromEntries(Object.entries(G.run.acted).filter(([k]) => k.startsWith('rune:'))), said: [...G.run.hinted].filter(k => k.startsWith('rune:')) };
+    },
+    /** Carve rune `id` into slot `slot` (null: why not), or empty the socket (`id` null); `size` opens a second socket. */
+    socket: (slot: number, id: RuneId | null, size?: number) => { if (size) setSockets(slot, size); if (!id) { clearRunes(slot); return null; } return carve(slot, id); },
     get boons() { return { taken: boonsNow(), pledge: G.run.pledge, casts: { ...G.run.casts }, acted: boonsActed(), said: boonsSaid() }; }, deal: () => dealNow(), giveBoon: (id: string) => takeBoon(id),
     /** M6 step 5: a school boon taken if need be and set off ahead (the dev menu's "Boons here"); `acted` above counts each
         boon at work this run, `said` the names risen in this room. */

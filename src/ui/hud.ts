@@ -9,7 +9,7 @@ import { obolFace, obolIconUrl } from '../items/obolFace';
 import { artifactIconUrl } from '../items/artifactIcons';
 import { artifact } from '../items/artifactData';
 import { spell } from '../magic/spellData';
-import { spellCost } from '../magic/cost';
+import { slotDef, spellCooldown, spellCost } from '../magic/cost';
 import { $, clamp } from '../util';
 
 /** A soul mote's flame (M4.1), and its colours: fill, rim, and the brighter core. */
@@ -124,7 +124,7 @@ export function renderSpells() {
   player.spells.forEach((id, i) => {
     const slot = $(`slot${i}`), key = STR.controls.spellsKeys.split(' and ')[i] ?? '';
     slot.classList.toggle('empty', !id);
-    slot.innerHTML = id ? `${spellIcon(id)}<i class="cd"></i><b>${key}</b><small>${spell(id).mana}</small>` : `<b>${key}</b>`;
+    slot.innerHTML = id ? `${spellIcon(id)}<i class="cd"></i><b>${key}</b><small>${slotDef(i)!.mana}</small>` : `<b>${key}</b>`; // (M6: as its runes make it)
   });
 }
 let lastMana = -1;
@@ -137,8 +137,8 @@ function updateMagicHud() {
   }
   player.spells.forEach((id, i) => {
     if (!id) return;
-    const slot = $(`slot${i}`), cd = slot.querySelector<HTMLElement>('.cd'), def = spell(id);
-    if (cd) cd.style.height = `${Math.min(1, player.spellCd[i] / def.cooldown) * 100}%`;
+    const slot = $(`slot${i}`), cd = slot.querySelector<HTMLElement>('.cd'), def = slotDef(i)!;
+    if (cd) cd.style.height = `${Math.min(1, player.spellCd[i] / spellCooldown(def)) * 100}%`;
     const cost = Math.round(spellCost(def)), small = slot.querySelector('small');
     if (small && small.textContent !== String(cost)) small.textContent = String(cost); // the Witch's Knot changes it
     slot.classList.toggle('poor', player.mana < spellCost(def));

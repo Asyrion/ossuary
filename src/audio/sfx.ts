@@ -227,6 +227,8 @@ const sounds = {
   insight() { tone('sine', 1568, 1760, .12, .025); tone('sine', 2349, 2349, .16, .012, .03); },
   /** M6 step 5: a boon at work, in its school's palette, a soft bell over it. */
   boon(school: string) { schoolNote(school, 0); tone('sine', 1046, 1046, .3, .03, .08); },
+  /** A rune at work (M6 step 7): a chisel's tick on stone, then the spell's school. */
+  rune(school: string) { hiss(.05, .07, 'bandpass', 2200); tone('triangle', 330, 290, .12, .06); schoolNote(school, .05); },
   levelUp() { [523, 659, 784, 1046, 1318].forEach((f, i) => tone('triangle', f, f, .35, .06, i * .07)); tone('sine', 262, 262, .9, .07, .1); hiss(.6, .025, 'highpass', 5000); },
   vanish() { tone('sine', 880, 220, .35, .05); hiss(.3, .04, 'highpass', 3000); },
   altar() { tone('sine', 70, 40, .18, .2); tone('sine', 70, 40, .18, .16, .22); tone('sine', 147, 147, 1, .06, .1); },

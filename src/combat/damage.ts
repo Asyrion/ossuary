@@ -160,10 +160,14 @@ function leech(e: Enemy) {
 }
 
 /** The Bloodied Covenant: every fight the mage begins takes half a heart, never the last. */
-export function payBloodTithe() {
-  if (!player.stats.effects.has('bloodTithe') || player.hp <= 1) return;
-  player.hp -= 1; renderHearts(); flashHurt(); Sfx.tithe();
+export function payBloodTithe() { if (player.stats.effects.has('bloodTithe')) bleed(1); }
+/** Half hearts paid in blood (the Bloodied Covenant's tithe, M6's Vein rune): never the last; no grace after it, no soul
+    mote spent, nothing the Last Rite turns. Whether it was paid. */
+export function bleed(halves: number) {
+  if (player.hp <= halves) return false;
+  player.hp -= halves; renderHearts(); flashHurt(); Sfx.tithe();
   burst(player.x, .8, player.z, 0x8a1a1a, 14, 2, .06);
+  return true;
 }
 
 /** The Last Rite: whether it will refuse a killing blow now (once a floor; once every two when cleansed). */
