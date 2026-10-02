@@ -200,7 +200,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   fire there and `__game.element('shock', x, z)` lands fire, frost or shock there; `__game.renderInfo()` reads the last
   frame's draw calls and triangles, and the geometries and textures held; `__game.assets` reads the made assets and
   their status, `__game.useAssets(false)` builds the floor again with the placeholders, `__game.showAssets()` puts
-  urns and a pedestal ahead of the mage.
+  urns and a pedestal ahead of the mage; `__game.obolFace` and `__game.obolFaces` read the coin face the obols wear and
+  those they can, `__game.wearFace(id)` changes it, `__game.coinGallery()` and `__game.takeCoinGallery()` stand every
+  face ahead of the mage and take them away.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons, in six tabs (Mage, Magic, Foes & objects, Rooms & runs, Look, Galleries; `TABS`, names in `STR.dev.tabs`, the
   last one open remembered in the browser as `ossuary.devTab`; a new section goes on the page of the tab it belongs to): heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
