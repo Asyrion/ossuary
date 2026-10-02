@@ -768,7 +768,7 @@ export const STR = {
     scapeRoom: (r: string) => `Over it: ${r}`, scapeNone: 'nothing', moodIs: (m: string) => `Mood: ${m}`,
     stingers: { cleared: 'Stinger: room cleared', death: 'Stinger: death' } as Record<string, string>,
     moods: { title: 'title', explore: 'exploring', fight: 'a fight', boss: 'a boss', low: 'under a heart', quiet: 'quiet' } as Record<string, string>,
-    savePreview: 'Save 40 s of what is chosen (a WAV)', rendering: 'Rendering…',
+    savePreview: (s: number) => `Save ${s} s of what is chosen (a WAV)`, rendering: 'Rendering…',
     soundInfo: (amb: string, music: string) => `Ambience: ${amb} · Music: ${music}`,
     assets: 'Made assets', showAssets: 'Show them here (urns, a pedestal)',
     obolWears: (face: string) => `Obols wear: ${face}`,

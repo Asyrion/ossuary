@@ -4,10 +4,11 @@ import { MODES, MOODS, PIECES, barSeconds, chordAt, floorPiece, hits, newCompose
 import { Rand } from '../../src/audio/synth';
 import { THEME_DEFS } from '../../src/world/themeData';
 import { FLOORS } from '../../src/world/generate';
+import { STR } from '../../src/strings';
 
 /* The soundscapes and the music (docs/sound-plan.md): the data checked, and the composer's rules. */
 
-const ROOM_TYPES = ['start', 'normal', 'treasure', 'boss', 'ordeal', 'altar', 'merchant', 'vault', 'secret', 'shrine', 'library', 'laboratory'];
+const ROOM_TYPES = Object.keys(STR.dev.roomNames); // (every room type has a name there)
 
 describe('soundscapes', () => {
   it('every floor has one, and the data passes its checks', () => {

@@ -3,6 +3,7 @@
    (`render.ts`). One-shots are scheduled a little ahead (`pump`), so a hitch in the frame doesn't stutter them. */
 import { floorScape, roomScape, spaceFor, type BedLayer, type Scape, type ShotSpec, type Space } from './ambienceData';
 import { SHOTS } from './ambienceShots';
+import { CFG } from '../config';
 import { Rand, crackleLoop, loopSource, noiseLoop, placed, shoreLoop, spaceImpulse, streamLoop, type Ctx } from './synth';
 
 const impulses = new WeakMap<Ctx, Map<string, AudioBuffer>>();
@@ -76,7 +77,7 @@ export class ScapePlayer {
   }
   private layer(L: BedLayer, t: number) {
     const { ctx } = this, g = ctx.createGain(); g.gain.setValueAtTime(L.gain, t);
-    const send = ctx.createGain(); send.gain.value = .3; g.connect(this.dry); g.connect(send).connect(this.wet);
+    const send = ctx.createGain(); send.gain.value = CFG.audio.bedSend; g.connect(this.dry); g.connect(send).connect(this.wet);
     const off = this.r.next() * 30;
     if (L.kind === 'noise') {
       const src = loopSource(ctx, noiseLoop(ctx, L.colour!), t, off), f = ctx.createBiquadFilter();
@@ -108,22 +109,23 @@ export class AmbienceMix {
   /** Play floor `floor`'s soundscape, and the room's (type, theme) over it, in the right space. */
   set(floor: number, roomType = 'normal', theme?: string, t = this.ctx.currentTime) {
     const over = roomScape(roomType, theme);
+    let changed = false;
     if (floor !== this.floor) {
-      this.floorP?.stop(t, 2.5); this.floor = floor;
+      this.floorP?.stop(t, 2.5); this.floor = floor; changed = true;
       this.floorP = new ScapePlayer(this.ctx, floorScape(floor).id, floorScape(floor), this.dry, this.space.input, ++this.seed).start(t, 3);
     }
     if ((over?.id ?? '') !== (this.roomP?.id ?? '')) {
-      this.roomP?.stop(t, 1.5); this.roomP = over ? new ScapePlayer(this.ctx, over.id, over.scape, this.dry, this.space.input, ++this.seed).start(t, 1.5) : null;
+      this.roomP?.stop(t, 1.5); changed = true;
+      this.roomP = over ? new ScapePlayer(this.ctx, over.id, over.scape, this.dry, this.space.input, ++this.seed).start(t, 1.5) : null;
     }
+    if (!changed) return; // (the director asks every step: only a change does anything)
     this.space.set(spaceFor(floor, over?.scape ?? null), t);
     this.applyDuck(t);
   }
   /** Turn the floor's bed down (a fight, the music taking over), on top of what the room asks. */
   duck(v: number, t = this.ctx.currentTime) { if (Math.abs(v - this.duckV) < .01) return; this.duckV = v; this.applyDuck(t); }
-  private applyDuck(t: number) { this.floorP?.level((this.roomP ? roomScape(this.roomP.id)?.scape.duck ?? THEME_DUCK : 1) * this.duckV, t, 1.5); }
+  private applyDuck(t: number) { this.floorP?.level((this.roomP ? roomScape(this.roomP.id)?.scape.duck ?? CFG.audio.themeDuck : 1) * this.duckV, t, 1.5); }
   pump(until: number) { this.floorP?.pump(until); this.roomP?.pump(until); }
   stop(t = this.ctx.currentTime, fade = 2) { this.floorP?.stop(t, fade); this.roomP?.stop(t, fade); this.floorP = this.roomP = null; this.floor = -1; }
   get info() { return { floor: this.floor, scape: this.floorP?.id ?? null, room: this.roomP?.id ?? null, space: this.space.space, duck: this.duckV }; }
 }
-/** A themed room's touch leaves the floor's bed nearly as it was. */
-const THEME_DUCK = .9;

@@ -36,7 +36,7 @@ effects and ducks a little when the doors lock, when the music takes over.
 
 | Floor | Space | The bed | The one-shots | Under it all |
 | --- | --- | --- | --- | --- |
-| 1 The Ossuary | A stone crypt: 2.2 s, mid-bright | Wind moaning far off through passages, the low hum of stone | Drips into still water; bones settling; a monks' chant far off; rats scurrying; the chapel's bell above, muffled through the rock | Cold, still, old. The quietest floor: silence is part of it |
+| 1 The Ossuary | A stone crypt: 2.2 s, mid-bright | Wind moaning far off through passages, the low hum of stone | Drips into still water; bones settling; the Wardens' chant far off; rats scurrying; the chapel's bell above, muffled through the rock | Cold, still, old. The quietest floor: silence is part of it |
 | 2 The Drowned Catacombs | Flooded tunnels: 3 s, dark and wet | Running water (a stream of bubbles), a deep cistern rumble, a tunnel's whistle as air moves over the water | Many drips; bubbles rising; water sloshing against stone; a bell under water; stones shifting under the flood | Water everywhere, close and far |
 | 3 The Burning Scriptorium | A hall of shelves on fire: 1.6 s, warm and dark (fire eats the echo) | A low roar of fire somewhere, a crackle near, hot wind whistling through the shelves | Pages turning and fluttering in the draught; beams groaning; embers popping; a stack of books collapsing | Restless and hot: never quite still |
 | 4 The Gilded Reliquary | A marble hall: 4.5 s, bright | The air of a vast hall, the faint hum of an organ pipe left sounding somewhere, candle flames | Small golden chimes; coins settling on a heap; a censer's chain creaking as it swings; a high voice far off holding one note; wax dripping | Sacred, cold gold: beautiful, and wrong |
@@ -81,7 +81,7 @@ but always sounds like itself.
 | Fight | The doors locked | The pulse joins; the melody more often, the harmony fuller |
 | Boss | A boss lives | Everything: the pulse doubled, the choir at full voice |
 | Low | Under one heart | The music thins to the drone and a heartbeat joins |
-| Quiet | Paused, dead, the end screen | Fades, leaving the ambience |
+| Quiet | The mage fallen | Fades, leaving the ambience (paused, the music is muffled under the menu; the end screen plays the title's theme) |
 
 Two stingers, in the piece's key: **room cleared** (a short cadence, struck on a bell or the lyre) and **death** (a
 falling phrase as the music stops).
@@ -126,12 +126,13 @@ Built as above, in one go. What to know:
 
 - **Levels are set by measurement, not by ear.** The beds sit at about -25 to -32 dBFS in a preview (the five floors within
   a few dB of each other; the Reliquary's marble hall and the library quieter), the music at about -21 to -26 exploring
-  and -16 to -22 in a boss's fight, a compressor holding the boss's full stems under the effects. The owner's listening sets them for good: every level is a number in the two data files.
+  and -16 to -22 in a boss's fight, a compressor holding the boss's full stems under the effects. The owner's listening sets them for good: each layer's, one-shot's and voice's level is a number in the two data
+  files, and the mix (the music's level, its compressor, the ducks, what goes to the spaces) is in `CFG.audio`.
 - **The music's voices** as built: plucked strings for the lyre, harp, oud and the low strings; struck bells (and the
   Drowned Catacombs' bells heard through water); bowed notes; the choir in "oh", "oo", "ah"; drones of strings, organ,
   horn, wavering water and a deep one; frame drum, taiko, hand drum, timpani and a rowing thump.
 - **Previews:** `npm run render-audio` (or `-- ossuary` for what names it) writes every floor's soundscape, the rooms',
   each piece exploring, fighting and in a boss's fight, and each floor's soundscape and music together (a fight starting
-  at 30 s) to `audio-previews/` as MP3s.
+  at 30 s) to `audio-previews/`, as MP3s when ffmpeg is there (WAVs otherwise).
 - **Still to come** (the GDD's Audio design): boss themes as their own pieces with a phase at half health, the doors as
   acoustic windows, the floor's reverb on the effects, and real recordings where they would do better.

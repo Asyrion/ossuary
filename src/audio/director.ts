@@ -22,11 +22,15 @@ function ensure() {
   const b = Sfx.buses; if (!b) return null;
   if (!amb) {
     amb = new AmbienceMix(b.ctx, b.ambience); mus = new MusicPlayer(b.ctx, b.music);
-    ticker = window.setInterval(() => pump(), 250); // (a hidden tab draws no frames: the bars are still scheduled)
+    ticker = window.setInterval(() => pump(), CFG.audio.tick); // (a hidden tab draws no frames: the bars are still scheduled)
   }
   return b.ctx;
 }
-function pump() { const b = Sfx.buses; if (!b || !amb || !mus) return; const until = b.ctx.currentTime + CFG.audio.ahead; amb.pump(until); mus.pump(until); }
+function pump() {
+  const b = Sfx.buses; if (!b || !amb || !mus) return;
+  const until = b.ctx.currentTime + (document.hidden ? CFG.audio.hiddenAhead : CFG.audio.ahead); // (a hidden tab's timers run once a second)
+  amb.pump(until); mus.pump(until);
+}
 
 /** The mood the game is in: under a heart the music thins; a boss alive; the doors locked; else exploring. */
 function moodNow(): Mood {

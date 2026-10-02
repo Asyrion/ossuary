@@ -1,5 +1,7 @@
 {
-  "_comment": "The music (docs/sound-plan.md): one piece per floor and the title's, each a key (root, a MIDI note) and mode, a tempo (beats a minute) and beats a bar, chords (semitones from the root, and how many bars), motifs (scale steps from where the composer places them, null a rest, and beats), its voices and drum patterns (x accented, o soft, . silent, spread over the bar). The moods set each stem's level. Read by src/audio/musicData.ts.",
+  "_comment": "The music (docs/sound-plan.md): one piece per floor and the title's, each a key (root, a MIDI note) and mode, a tempo (beats a minute) and beats a bar, chords (semitones from the root, and how many bars), motifs (scale steps from where the composer places them, null a rest, and beats), its voices and drum patterns (x accented, o soft, . silent, spread over the bar). `floors` names each floor's piece (past the last, the last's), `title` the title's. The moods set each stem's level. Read by src/audio/musicData.ts.",
+  "floors": ["ossuary", "drowned", "burning", "reliquary", "shore"],
+  "title": "title",
   "moods": {
     "title":   { "drone": 0.7, "harmony": 0.8, "melody": 1,    "pulse": 0 },
     "explore": { "drone": 0.8, "harmony": 0.45, "melody": 0.75, "pulse": 0.4 },
