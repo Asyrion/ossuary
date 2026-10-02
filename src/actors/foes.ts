@@ -157,7 +157,8 @@ const nearestWater = (room: Room, x: number, z: number) => waterTiles(room).map(
 /* ---------- what foes leave on the floor: burning ground (a salamander's trail), sparks (a storm ray's line) ---------- */
 
 type HazardKind = 'fire' | 'spark' | 'blackfire'; // (blackfire: M4.10's Black Melt)
-const hazards: { room: Room; x: number; z: number; t: number; life: number; kind: HazardKind; armed?: boolean; by?: string }[] = [];
+const hazards: { room: Room; x: number; z: number; t: number; life: number; kind: HazardKind; armed?: boolean; by?: string;
+  /** How hard a spark stings a foe standing in it (M6: Spark Wake's; else `CFG.foeGround.sparkDamage`). */ sting?: number }[] = [];
 const MAX_HAZARDS = 96; // (of each kind)
 /** Each kind's patches' glow on the floor, drawn at once (one instanced mesh a kind: a room of salamanders stays cheap). */
 const hazardGlow: Record<HazardKind, THREE.InstancedMesh | null> = { fire: null, spark: null, blackfire: null };
@@ -167,9 +168,9 @@ function hazardMesh(kind: HazardKind) {
   const mesh = new THREE.InstancedMesh(geo, mat, MAX_HAZARDS); mesh.count = 0; mesh.frustumCulled = false; mesh.renderOrder = 2; scene.add(mesh);
   return hazardGlow[kind] = mesh;
 }
-function lay(room: Room, x: number, z: number, time: number, kind: HazardKind, by = actingKind()) {
+function lay(room: Room, x: number, z: number, time: number, kind: HazardKind, by = actingKind(), sting?: number) {
   const mine = hazards.filter(h => h.kind === kind); if (mine.length >= MAX_HAZARDS) hazards.splice(hazards.indexOf(mine[0]), 1);
-  hazards.push({ room, x, z, t: time, life: time, kind, by });
+  hazards.push({ room, x, z, t: time, life: time, kind, by, sting });
 }
 /** A patch of burning ground at (x, z) for `time` seconds: it lights what burns there (oil, roots, braziers), and burns
     the mage who stands in it. */
@@ -180,7 +181,20 @@ export function layBlackFire(room: Room, x: number, z: number, time: number) { l
 export const burningNear = (x: number, z: number, r: number) => hazards.some(h => h.kind !== 'spark' && h.room === G.current && Math.hypot(h.x - x, h.z - z) < r);
 /** A patch of sparks at (x, z) for `time` seconds: crackling at first, then armed (`CFG.afflict.sparkArm`): it shocks the
     water there and hurts the mage who stands in it. */
-export function laySpark(room: Room, x: number, z: number, time: number, by = actingKind()) { lay(room, x, z, time, 'spark', by); }
+export function laySpark(room: Room, x: number, z: number, time: number, by = actingKind(), sting?: number) {
+  if (by === 'mage') { // (M6, Spark Wake: the mage's own spark beside another of theirs keeps that one alight instead)
+    const h = hazards.find(h => h.kind === 'spark' && h.by === 'mage' && h.room === room && Math.hypot(h.x - x, h.z - z) < CFG.boons.sparkMerge);
+    if (h) { h.t = Math.max(h.t, time); h.sting = Math.max(h.sting ?? 0, sting ?? 0); return; }
+  }
+  lay(room, x, z, time, 'spark', by, sting);
+}
+/** How hard the armed spark at (x, z) stings a foe of kind `who` (undefined: the ground's usual). */
+export function sparkSting(x: number, z: number, who?: string) {
+  const reach = CFG.afflict.groundReach;
+  return hazards.find(h => h.kind === 'spark' && h.armed && h.room === G.current && h.by !== (who ?? '-') && Math.hypot(h.x - x, h.z - z) < reach)?.sting;
+}
+/** The mage's own patches of burning ground within `r` of (x, z) (M6, Flamekeeper: the Pyromancer's embers). */
+export const mageFireNear = (x: number, z: number, r: number) => hazards.filter(h => h.kind === 'fire' && h.by === 'mage' && h.room === G.current && Math.hypot(h.x - x, h.z - z) < r);
 /** The harm in the ground at (x, z) in the current room for a foe of kind `who` (M4.7): burning ground, or an armed
     spark, that isn't its own kind's. */
 export function hazardAt(x: number, z: number, who?: string): HazardKind | undefined {
@@ -206,9 +220,9 @@ export function updateFoeHazards(dt: number) {
       if (near && h.by !== 'mage') hurtPlayer(1, h.x, h.z); // (the Pyromancer's own embers spare them: M4.6)
     } else {
       const armed = h.life - h.t >= A.sparkArm;
-      if (armed && !h.armed) { h.armed = true; shockAt(h.x, h.z); }
+      if (armed && !h.armed) { h.armed = true; shockAt(h.x, h.z, undefined, h.by === 'mage'); } // (the mage's own spark spares them in the water too)
       if (Math.random() < dt * (armed ? 3 : 10)) burst(h.x + (Math.random() - .5) * .3, .08, h.z + (Math.random() - .5) * .3, SCHOOL_LIGHT.storm, 1, 1.2, .025);
-      if (armed && near) hurtPlayer(1, h.x, h.z);
+      if (armed && near && h.by !== 'mage') hurtPlayer(1, h.x, h.z); // (M6: Spark Wake's never stings the mage)
     }
   }
   if (!hazards.length && !hazardGlow.fire?.count && !hazardGlow.spark?.count && !hazardGlow.blackfire?.count) return; // (none to draw)
@@ -230,7 +244,7 @@ export const burningGround = () => hazards.filter(h => h.kind !== 'spark' && h.r
 export const sparkGround = () => hazards.filter(h => h.kind === 'spark' && h.room === G.current).length;
 
 /** The lit braziers and candle stands in `room` (a moth is lured to them). */
-const litFires = (room: Room) => (room.props ?? []).filter((b: PropBox) => (b.prop.kind === 'brazier' || b.prop.kind === 'candles' || b.prop.kind === 'wetCandles') && b.prop.lit);
+export const litFires = (room: Room) => (room.props ?? []).filter((b: PropBox) => (b.prop.kind === 'brazier' || b.prop.kind === 'candles' || b.prop.kind === 'wetCandles') && b.prop.lit);
 
 /* ---------- behaviours ---------- */
 

@@ -2,6 +2,7 @@
    cooldown, aimed like the cantrip (the cast direction, or where the mage last walked). Mana comes back over
    time, faster out of a fight, and from every foe the cantrip puts to rest: the dead give back what the spell
    spent. Each spell's `shape` (data/spells.json) is a function in magic/shapes.ts. */
+import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Vec2 } from '../types';
 import { DEV, G, after, player } from '../state';
@@ -12,16 +13,18 @@ import { flashMana, renderSpells, spellIcon, toast } from '../ui/hud';
 import { showLore } from '../ui/lore';
 import { SPELL_DEFS, manaRegen, spell, type School } from './spellData';
 import { spellCost } from './cost';
-import { CAST, clearShapes, leaveRoomShapes, updateShapes } from './shapes';
+import { CAST, clearShapes, flamesNear, leaveRoomShapes, updateShapes } from './shapes';
 import { skullsWatch } from '../world/dressing';
 import { castSpellOnce, learnedSpell } from './memory';
 import { burnSoul } from '../items/souls';
 import { drinkSpell, wardNear } from '../world/vault';
 import { hexGiveBack } from '../ui/afflictions';
-import { flareEyes } from '../actors/costume';
+import { flareEyes, handAt } from '../actors/costume';
+import { castSide } from '../actors/costumeFit';
+import { burst } from '../combat/fx';
 import { knownWellNow } from '../actors/spellMarks';
 import { spendFreeCast, takeEcho } from '../items/potionFx';
-import { votiveCast } from '../progression/boonHooks';
+import { boonActs, boonParam, boonRank, inFight, votiveCast } from '../progression/boonHooks';
 
 /* ---------- mana ---------- */
 
@@ -89,10 +92,27 @@ export function updateMagic(dt: number, acting: boolean) {
   if (acting) {
     const fighting = G.current.locked;
     if (!player.stats.effects.has('noRegen')) gainMana(manaRegen(dt, fighting, CFG.mana) * player.stats.regenMul); // (M6: Will brings it back faster) // not with the Hungering Tome
+    keepFlames(dt); // (M6: Flamekeeper)
     if (DEV.mana) player.mana = player.stats.maxMana;
     for (let i = 0; i < player.spellCd.length; i++) player.spellCd[i] = Math.max(0, player.spellCd[i] - dt);
   }
   updateShapes(dt, acting);
+}
+
+let emberT = 0;
+const hand = new THREE.Vector3(), FLAME = 0xffa040;
+/** Flamekeeper (M6): in a fight, each flame within reach (up to four) gives mana; embers run from each to the casting hand. */
+function keepFlames(dt: number) {
+  if (!boonRank('flamekeeper') || !inFight() || player.mana >= player.stats.maxMana) return;
+  const flames = flamesNear(player.x, player.z, boonParam('flamekeeper', 'reach'), boonParam('flamekeeper', 'most'));
+  if (!flames.length) return;
+  gainMana(flames.length * boonParam('flamekeeper', 'mana') * dt); // (not Will's: its regen is the mana's own coming back)
+  if ((emberT -= dt) <= 0) {
+    emberT = CFG.boons.emberEvery;
+    if (!handAt(castSide(), hand)) hand.set(player.x, 1, player.z);
+    for (const f of flames) for (let k = 1; k <= 4; k++) after(k * .05, () => { const t = k / 5; burst(f.x + (hand.x - f.x) * t, .5 + (hand.y - .5) * t, f.z + (hand.z - f.z) * t, k % 2 ? FLAME : 0xffd080, 1, .4, .035); });
+  }
+  if (!G.current.boonsSaid?.has('flamekeeper')) boonActs('flamekeeper', player.x, player.z);
 }
 
 /** A new floor or run: no spell effects left behind. */

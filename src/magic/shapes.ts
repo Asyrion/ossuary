@@ -29,7 +29,7 @@ import type { Shape, SpellDef } from './spellData';
 import { flash, inflict, overloadAt, tileReaction } from './statusFx';
 import { steamAt } from './steam';
 import { weaveAt } from './weaveFx';
-import { burningNear, layFire } from '../actors/foes';
+import { burningNear, layFire, litFires, mageFireNear } from '../actors/foes';
 import { consecrateFx, graspFx, hideSpellFx, iceColumn, lanceFx, mantleFx, pollenFx, ringFx, sealFx, smiteFx, strikeFx, thornFx, tollFx, updateSpellFx, wardFx, woodColumn } from './spellFx';
 import { hearGround } from '../world/groundHooks';
 import { SCHOOL_LIGHT } from '../render/arcane';
@@ -93,7 +93,7 @@ const chain: Cast = (def, dir) => {
     strikeFx(from, to, color, CFG.spellFx.chain); ringFx(to.x, to.y, to.z, color, .1, .45, CFG.spellFx.flash);
     const dx = e.x - from.x, dz = e.z - from.z, d = Math.hypot(dx, dz) || 1;
     damageEnemy(e, def.damage * Math.pow(P.falloff, i), dx / d, dz / d, .4, 'spell', def.school);
-    inflict(e, def.status);
+    inflict(e, def.status, 'mage');
     burst(to.x, to.y, to.z, color, 8, 2.2, .04);
     from = to;
   });
@@ -121,7 +121,7 @@ function chainWeaves(path: Enemy[]) {
     ways across it in shards that chill. */
 function conductor(w: (typeof walls)[number]) {
   const C = MAGIC.weaves.conductor, a = w.boxes[0], b = w.boxes[w.boxes.length - 1];
-  for (const e of G.enemies) if (alive(e) && w.boxes.some(x => Math.hypot(e.x - x.x, e.z - x.z) < ICE_HALF + e.r + C.reach)) { damageEnemy(e, C.damage, 0, 0, 0, 'spell', 'storm'); inflict(e, { shock: 1 }); }
+  for (const e of G.enemies) if (alive(e) && w.boxes.some(x => Math.hypot(e.x - x.x, e.z - x.z) < ICE_HALF + e.r + C.reach)) { damageEnemy(e, C.damage, 0, 0, 0, 'spell', 'storm'); inflict(e, { shock: 1 }, 'mage'); }
   let ax = 0, az = 0; for (const x of w.boxes) { ax += x.x - a.x; az += x.z - a.z; } // (along the wall; one ice block alone: north and south)
   const l = Math.hypot(ax, az), px = l > .01 ? -az / l : 0, pz = l > .01 ? ax / l : 1;
   for (const x of w.boxes) for (const s of [-1, 1]) fireSpellBolt(x.x + px * s * .35, x.z + pz * s * .35, px * s, pz * s, { damage: C.shardDamage, range: C.shardRange, speed: C.shardSpeed, color: ICE, status: { chill: C.chill }, shard: true });
@@ -247,6 +247,17 @@ function erupt(s: (typeof seals)[number]) {
   burst(s.x, .3, s.z, FIRE, 14, 3.2, .08);
   flash(s.x, s.z, 0xff8a3a, P.radius); ringFx(s.x, .05, s.z, FIRE, P.radius * .3, P.radius * 1.25, CFG.spellFx.shockwave, true);
   Sfx.at(s.x, s.z).sealErupt(); G.shake = Math.max(G.shake, .25);
+}
+
+/** M6, Flamekeeper: the flames within `r` of (x, z), `most` at most: erupted Pyre Seals (their edge within reach), burning oil
+    (a pool once), lit braziers and candle stands, and the mage's own burning ground (the Pyromancer's embers). */
+export function flamesNear(x: number, z: number, r: number, most: number) {
+  const room = G.current, out: Vec2[] = [], add = (p: Vec2) => { if (out.length < most) out.push({ x: p.x, z: p.z }); };
+  for (const s of seals) if (s.erupted && Math.hypot(s.x - x, s.z - z) < r + s.def.params.radius) add(s);
+  for (const p of room.pools ?? []) if (p.kind === 'oil' && p.state === 'burning') { const t = p.tiles.find(t => Math.hypot(t.x - x, t.z - z) < r); if (t) add(t); }
+  for (const b of litFires(room)) if (Math.hypot(b.x - x, b.z - z) < r) add(b);
+  for (const h of mageFireNear(x, z, r)) add(h);
+  return out;
 }
 
 /** Tongues of flame, and motes: glows rising and shrinking away (shared materials, so nothing to free). */
@@ -402,7 +413,7 @@ function updateMantle(dt: number, now: number) {
     m.zapped.set(e, now + P.every);
     strikeFx({ x: player.x, y: .8, z: player.z }, { x: e.x, y: foeY(e), z: e.z }, color);
     damageEnemy(e, m.def.damage, u.x, u.z, 0, 'spell', m.def.school);
-    inflict(e, m.def.status);
+    inflict(e, m.def.status, 'mage');
     if (!e.isBoss) { e.kx += u.x * P.knockback; e.kz += u.z * P.knockback; }
     burst(e.x, foeY(e), e.z, color, 8, 2.4, .035); Sfx.at(e.x, e.z).mantleZap();
   }

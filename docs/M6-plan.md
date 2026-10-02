@@ -1,7 +1,7 @@
 # M6 RPG growth: plan
 
 **Status: approved (2026-10-02) with four changes, the owner taking Claude's recommendations (decisions 6, 8, 10 and 11);
-steps 1 to 4 built.** GDD: RPG progression, Inside a run; Magic
+steps 1 to 5 built.** GDD: RPG progression, Inside a run; Magic
 system, Runes; Core loop, Game loop changes for the magic RPG (the pacing target); Pickups and room types (the rune, the
 shrine's bargain, the waystone); the roadmap's M6 row ("XP, levels, attributes, 12 boons, runes and waystones").
 
@@ -296,6 +296,25 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
      - **Thirsting Hex:** `spendHex`.
      - **Seedfall:** a `blossom` laid with `addProp` where the foe fell.
      - **The mend budget:** `CFG.boons.mendPerRoom`.
+   *Built (2026-10-02)* as planned, after a plan of its own (the owner's ask: plan it first), in four commits. The hooks ask
+   a light `src/progression/boonHooks.ts`: `boonRank`, `boonParam`, `boonMul` (1 while not taken), `magicNow()` (the
+   statuses' tuning with Deep Winter's and Gathering Dark's numbers, made again only when their ranks change), `inFight()`,
+   `boonActs(id, x, z)` (counted; the name rises once a room, the line once a run, `Sfx.boon` in the school's note) and
+   `boonMend` (the room's budget, half a heart; a line the first time it stops one). The pure side in `boonData.ts`:
+   `boonTuning`, `statusMul` and each school boon's `touches` (validated), which the spell's panel reads for its "Your
+   boons" (a status's number as the boons make it, the spell's own beside it; the chill note from the tuned stack; chips
+   for Sanctified, Hex, Root and Overgrown, which showed their keys before). `inflict(e, status, from)` takes who set it off:
+   `'mage'` from the six shocks the mage casts (Arc, Conductor, Static Mantle, the thundercloud, spell bolts, the Bottled
+   Storm), `'snap'` from Cold Snap's breath. Decisions taken in the plan: Votive Heart mends on the first Hallow cast while
+   hurt in a fight; Cold Snap spreads one hop (a foe its breath froze breathes nothing, so Deep Winter II and Cold Snap II
+   can't freeze two foes forever); Seedfall's plants hold no reagent, grow at most four a room, never at a boss's fall, on a
+   pool, by a door, under the mage or at the room's middle; Flamekeeper counts four flames at most (its card says so), the
+   mage's own burning ground being erupted seals and the Pyromancer's embers; Spark Wake's sparks come only from the mage's
+   own shocks, never from a spark's sting; Perennial's root is laid straight on (Root is Umbral's: through `inflict` it would
+   strip Hallowed mantles and feed Umbral elementals). Also: `?boons=deepWinter:2,coldSnap`, the Magic tab's "Boons here"
+   (`src/progression/boonTest.ts`, `__game.boonHere(id)`), `__game.boons`' `acted` and `said`; words of size 40 (a counter's,
+   a flower's) stack with the names rising from the same spot. Browser tests: three, one for the tuning boons, one for the
+   mends and Laid Bare, one for what the boons leave behind.
 6. **The six general boons.**
    - **Tempered:** more points on the screen.
    - **Keen Nose:** `knownPotion` reads it.

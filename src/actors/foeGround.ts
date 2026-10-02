@@ -17,7 +17,7 @@ import { inflict } from '../magic/statusFx';
 import { MAGIC } from '../magic/status';
 import { addSpores, stingAt } from '../world/props';
 import { blackIceAt, layGround, patchAt, slipAt, stickyAt } from './bestiaryGround';
-import { hazardAt, layBlackFire, layFire, laySpark } from './foes';
+import { hazardAt, layBlackFire, layFire, laySpark, sparkSting } from './foes';
 import { spawnFoe } from './enemies';
 
 export type Ground = 'web' | 'ink' | 'rime' | 'blackice' | 'fire' | 'blackfire' | 'spark' | 'spores';
@@ -78,7 +78,7 @@ export function groundHarm(e: Enemy, dt: number) {
   e.groundT = (e.groundT ?? 0) - dt; if (e.groundT > 0) return;
   const h = at === 'fire' || at === 'blackfire' || at === 'spark' ? at : undefined;
   if (h === 'fire' || h === 'blackfire') { inflict(e, { burn: F.burn }); if (h === 'blackfire' && e.status && e.status.burn > 0) e.status.black = true; } // (M4.10: Black Melt's ground burns black)
-  else if (h === 'spark') { inflict(e, { shock: F.shock }); damageEnemy(e, F.sparkDamage, 0, 0, 0, undefined, 'storm'); }
+  else if (h === 'spark') { inflict(e, { shock: F.shock }); damageEnemy(e, sparkSting(e.x, e.z, who) ?? F.sparkDamage, 0, 0, 0, undefined, 'storm'); } // (M6: Spark Wake's stings harder)
   else if (at === 'spores') damageEnemy(e, F.sting, 0, 0, 0);
   else return;
   e.groundT = F.every;

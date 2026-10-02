@@ -33,7 +33,7 @@ export function setOffBoon(id: string) {
     case 'deepWinter': { const d = dummy(q.x, q.z); inflict(d, { chill: 1 }, 'mage'); after(.35, () => inflict(d, { chill: 1 }, 'mage')); break; }
     case 'coldSnap': { const a = dummy(q.x - .55, q.z); dummy(q.x + .55, q.z); for (let k = 0; k < magicNow().chill.freezeAt; k++) inflict(a, { chill: 1 }, 'mage'); break; }
     case 'bankedCoals': { const d = dummy(q.x, q.z); inflict(d, { burn: spell('cinder_lance').status!.burn! }, 'mage'); break; }
-    case 'flamekeeper': { dummy(q.x + 2, q.z); placeProp('brazier', px, pz - 1.4); after(.1, () => fireAt(px, pz - 1.4, .5)); break; }
+    case 'flamekeeper': { dummy(q.x + 2, q.z); placeProp('brazier', px - 1.5, pz - 1.5); after(.1, () => { fireAt(px - 1.5, pz - 1.5, .5); player.mana = 0; }); break; } // (mana spent, so the flame has something to fill)
     case 'forkingArc': for (let k = 0; k < 8; k++) dummy(px + (k % 4 - 1.5), pz - 1.6 - Math.floor(k / 4)); after(.1, () => cast('arc')); break; // (a block of eight, each within a leap of another)
     case 'sparkWake': dummy(q.x, q.z); after(.1, () => cast('arc')); break;
     case 'votiveHeart': hurt(); room.votive = false; room.boonMended = 0; dummy(q.x, q.z); after(.1, () => { cast('consecrate'); votiveCast(); }); break; // (as castSpell does after a Hallow spell)

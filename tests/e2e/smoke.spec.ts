@@ -4520,3 +4520,47 @@ test('the school boons that mend and lay bare (M6 step 5): Votive Heart\'s conta
   expect(got.bare[2]).toBeCloseTo(4, 1); expect(got.bare[3]).toBeCloseTo(6, 1); // (Sanctified half again as long at II)
   expect(errors).toEqual([]);
 });
+
+test('the school boons that leave things behind (M6 step 5): Flamekeeper draws mana from flames near, Cold Snap breathes once, Spark Wake lays sparks that sting foes and never the mage, Seedfall sows a plant that holds no reagent', async ({ page }) => {
+  const errors = await start(page, '?seed=BOON5D');
+  const got = await page.evaluate(`(() => {
+    const g = window.__game, out = {};
+    const fresh = (boons, spells) => { g.startGame({ seed: 'BOON5D', boons, spells }); g.player.invuln = 999; g.sim(.3); };
+    const gain = (boons, n) => { fresh(boons); g.spawn('dummy', g.player.x + 4, g.player.z + 1.5); g.sim(1.2);
+      for (let k = 0; k < n; k++) { const x = g.player.x + (k % 3 - 1), z = g.player.z + (k < 3 ? -1 : 1); g.prop('brazier', x, z); g.element('burn', x, z); }
+      g.sim(.1); const lit = g.props.filter(p => p.kind === 'brazier' && p.lit).length; g.mana(0); g.sim(1); return [lit, g.player.mana]; };
+    out.flames = [gain({}, 1), gain({ flamekeeper: 1 }, 1), gain({ flamekeeper: 1 }, 6)]; out.flameSaid = g.boons.said.includes('flamekeeper');
+    const pair = boons => { fresh(boons); g.spawn('dummy', g.player.x - .5, g.player.z - 2); g.spawn('dummy', g.player.x + .5, g.player.z - 2); g.sim(1.2); return g.enemies.filter(e => e.type === 'dummy'); };
+    let [a, b] = pair({ coldSnap: 1 }); g.boonHere('coldSnap'); g.sim(MAGIC_FREEZE + .2); out.snap1 = { b: b.status && b.status.chill, said: g.boons.said.includes('coldSnap') };
+    [a, b] = pair({ coldSnap: 2, deepWinter: 2 }); g.boonHere('coldSnap'); const froze = [0, 0], was = [0, 0];
+    for (let t = 0; t < 12; t += 1 / 30) { g.sim(1 / 30); [a, b].forEach((d, k) => { const f = d.status ? d.status.frozen : 0; if (f > 0 && was[k] <= 0) froze[k]++; was[k] = f; }); }
+    out.snap2 = { froze, acted: g.boons.acted.coldSnap };
+    fresh({ sparkWake: 1 }, ['arc']); g.spawn('dummy', g.player.x, g.player.z - 2); g.sim(1.2); g.mana(200); g.cast(0, { x: 0, z: -1 });
+    out.sparks = [g.sparkGround]; out.sparkSaid = g.boons.said.includes('sparkWake');
+    const d = g.enemies.find(e => e.type === 'dummy'); g.player.invuln = 0; const hp = g.player.hp; g.player.x = d.x; g.player.z = d.z + .15; g.sim(1); out.mageHurt = hp - g.player.hp; g.player.invuln = 999;
+    fresh({ sparkWake: 1 }, ['arc']); g.spawn('sporeling', g.player.x, g.player.z - 2.4); g.sim(1.2);
+    const sp = g.enemies.find(e => e.type === 'sporeling'); sp.hp = sp.maxHp = 1000; g.inflict({ root: 5 }); g.mana(200); g.cast(0, { x: 0, z: -1 }); const struck = 1000 - sp.hp; g.sim(1.2); out.stung = 1000 - sp.hp - struck;
+    fresh({ seedfall: 1 }); g.reagentsAlways(true); g.spawn('sporeling'); g.sim(1.2); let f = g.enemies.find(e => e.type === 'sporeling');
+    g.inflict({ grow: 3 }); const at = { x: f.x, z: f.z }; g.hit(g.enemies.indexOf(f), 999, 'verdant');
+    let plants = g.props.filter(p => p.kind === 'blossom' && p.sown); out.seed = plants.map(p => ({ near: Math.hypot(p.x - at.x, p.z - at.z), mage: Math.hypot(p.x - g.player.x, p.z - g.player.z), middle: Math.hypot(p.x - g.current.cx, p.z - g.current.cz) }));
+    out.seedSaid = g.boons.said.includes('seedfall'); const reagents = g.pickups.filter(p => p.kind === 'reagent').length;
+    if (plants[0]) g.blast(plants[0].x, plants[0].z); g.sim(.6); out.seedReagent = g.pickups.filter(p => p.kind === 'reagent').length - reagents; out.seedLeft = g.props.filter(p => p.kind === 'blossom').length;
+    g.giveBoon('seedfall'); g.spawn('sporeling'); g.spawn('dummy', g.player.x + 1.4, g.player.z - 2.5); g.sim(1.2); f = g.enemies.find(e => e.type === 'sporeling' && !e.dead);
+    g.inflict({ grow: 3 }); const dm = g.enemies.find(e => e.type === 'dummy'); dm.status.grow = 0; g.hit(g.enemies.indexOf(f), 999, 'verdant');
+    const plant = g.props.find(p => p.kind === 'blossom'); out.burst = [g.props.filter(p => p.kind === 'blossom').length]; if (plant) { dm.x = plant.x + .7; dm.z = plant.z; } g.sim(1.5); out.burst.push(g.props.filter(p => p.kind === 'blossom').length, dm.status.grow > 0);
+    return out;
+  })()`.replace('MAGIC_FREEZE', '2')) as { flames: number[][]; flameSaid: boolean; snap1: { b: number; said: boolean }; snap2: { froze: number[]; acted: number }; sparks: number[]; sparkSaid: boolean; mageHurt: number; stung: number;
+    seed: { near: number; mage: number; middle: number }[]; seedSaid: boolean; seedReagent: number; seedLeft: number; burst: (number | boolean)[] };
+  const [base, one, many] = got.flames;
+  expect(base[0]).toBe(1); expect(one[0]).toBe(1); expect(many[0]).toBe(6);
+  expect(one[1] - base[1]).toBeCloseTo(1, 0); expect(many[1] - base[1]).toBeCloseTo(4, 0); expect(got.flameSaid).toBe(true); // (a mana a second each, up to four flames)
+  expect(got.snap1).toEqual({ b: 1, said: true }); // (a thawing foe breathes a stack onto its neighbour)
+  expect(got.snap2.froze).toEqual([1, 1]); expect(got.snap2.acted).toBe(1); // (one hop: what its breath froze breathes nothing, so they never freeze each other again)
+  expect(got.sparks[0]).toBeGreaterThan(0); expect(got.sparkSaid).toBe(true);
+  expect(got.mageHurt).toBe(0); // (the mage's own spark never stings them)
+  expect(got.stung).toBeGreaterThanOrEqual(3); // (a foe held on it is stung, Spark Wake's 3 a time)
+  expect(got.seed).toHaveLength(1); expect(got.seed[0].near).toBeLessThan(2.1); expect(got.seed[0].mage).toBeGreaterThan(1); expect(got.seed[0].middle).toBeGreaterThan(1.2); expect(got.seedSaid).toBe(true);
+  expect(got.seedReagent).toBe(0); expect(got.seedLeft).toBe(0); // (broken, a sown plant leaves no reagent, even with reagents always dropping)
+  expect(got.burst).toEqual([1, 0, true]); // (at II it bursts by itself, overgrowing the foe near)
+  expect(errors).toEqual([]);
+});
