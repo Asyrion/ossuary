@@ -4,8 +4,7 @@
 import * as THREE from 'three';
 import { glow } from '../render/materials';
 import { SCHOOL_LIGHT, lit, part, shine, sphere, std, type V3 } from '../render/arcane';
-import { rough } from '../world/kitParts';
-import { featherWing, gloss, joint, jointed, slitEyes, spike, tube, type Built } from './beastParts';
+import { featherWing, gloss, joint, slitEyes, spike, tube, type Built } from './beastParts';
 
 const { frost: F, umbral: U } = SCHOOL_LIGHT;
 
@@ -31,35 +30,6 @@ export function puffcap(): Built {
     vents.forEach((v, i) => { v.scale.set(1 + sw * .5, .5, 1 + sw * .5); v.visible = true; void i; });
     legs.forEach((l, i) => { l.rotation.y = Math.sin(t * 2.4 + i) * .08; });
     puff.forEach((p, i) => { const k = (t * .35 + i / 4) % 1; p.position.set(Math.sin(i * 2 + t) * .15, 1.1 + k * .6, Math.cos(i * 2) * .1); (p.material as THREE.MeshBasicMaterial).opacity = .3 * (1 - k); });
-  } };
-}
-
-/** Floor 4, Frost: a scarab as big as a shield, its shell rimed blue, a forked horn and spiked legs, rolling a ball of
-    snow and ice that grows as it goes. */
-export function rimeScarab(): Built {
-  const g = new THREE.Group(), body = joint(g, [0, 0, 0]), shell = gloss(0x3a6a9a, .3, .55), dark = gloss(0x16243a, .35, .45), rime = std(0xe6f4ff), snow = std(0xf4f8ff, { roughness: 1 }), ice = lit(F);
-  part(body, sphere(.3, 12, 8), shell, [0, .3, -.12], { scale: [1, .62, 1.25] });
-  part(body, new THREE.BoxGeometry(.012, .2, .7), dark, [0, .45, -.12]);
-  for (let i = 0; i < 5; i++) part(body, sphere(.04, 5, 4), rime, [(i % 2 ? .1 : -.12) + i * .01, .46, -.3 + i * .1], { scale: [1.5, .3, 1] });
-  part(body, sphere(.19, 10, 8), dark, [0, .3, .22], { scale: [1.15, .7, .8] });
-  const head = joint(body, [0, .27, .36]);
-  part(head, sphere(.1, 8, 6), dark, [0, 0, .02], { scale: [1.2, .6, 1] });
-  tube(head, [[0, .03, .06], [0, .14, .14], [0, .3, .12], [0, .36, .04]], .04, .01, shell, 8, 5);
-  for (const s of [-1, 1]) { spike(head, [0, .27, .12], [.08 * s, .36, .16], .015, shell); spike(head, [.05 * s, -.03, .1], [.02 * s, -.05, .18], .02, dark); }
-  slitEyes(head, .07, .02, .08, .025, F, .7, .2);
-  const legs = [-1, 1].flatMap(s => [[.2, [.28, .4, .38], [.24, .3, .58]], [0, [.38, .28, .02], [.46, 0, .02]], [-.22, [.36, .26, -.34], [.42, 0, -.54]]].map(([z, k, f]) => {
-    const l = joint(body, [.18 * s, .26, z as number]); const kn = k as number[], ft = f as number[];
-    jointed(l, [[0, 0, 0], [(kn[0] - .18) * s, kn[1] - .26, kn[2] - (z as number)], [(ft[0] - .18) * s, ft[1] - .26, ft[2] - (z as number)]], .035, .018, dark, shell);
-    for (let i = 0; i < 2; i++) spike(l, [(kn[0] - .14) * s, kn[1] - .3 - i * .06, kn[2] - (z as number)], [(kn[0] - .08) * s, kn[1] - .3 - i * .06, kn[2] - (z as number)], .012, shell);
-    return l;
-  }));
-  const ball = joint(g, [0, .36, .92]);
-  part(ball, rough(new THREE.IcosahedronGeometry(.36, 1), .04, 5), snow, [0, 0, 0]);
-  for (let i = 0; i < 8; i++) { const a = i * 2.4, b = .4 + (i % 4) * .6, p: V3 = [Math.cos(a) * Math.sin(b) * .36, Math.cos(b) * .36, Math.sin(a) * Math.sin(b) * .36]; part(ball, new THREE.OctahedronGeometry(.06), ice, p, { scale: [.5, 1.2, .5], rot: [a, b, 0] }); }
-  const chill = glow(F, .9, .3); ball.add(chill);
-  return { group: g, shadow: 1.5, parts: { body, ball }, idle: t => {
-    ball.rotation.x = t * .8; body.position.z = Math.sin(t * 1.6) * .03; head.rotation.x = Math.sin(t * 1.6) * .06;
-    legs.forEach((l, i) => { l.rotation.x = Math.sin(t * 3.2 + i * 1.7) * .08; }); chill.material.opacity = .22 + .1 * Math.sin(t * 2);
   } };
 }
 

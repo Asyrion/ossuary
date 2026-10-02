@@ -9,7 +9,8 @@ import type { Built } from './beastParts';
 import { FLOOR1_LOOKS, lampwyrmSwarm } from './fantasyFloor1';
 import { FLOOR2_LOOKS } from './fantasyFloor2';
 import { FLOOR3_LOOKS } from './fantasyFloor3';
-import { puffcap, rimeScarab, gloomRaven, rimeWolf, dustPangolin, frostJackalope } from './bestiaryBeasts';
+import { FLOOR4_LOOKS } from './fantasyFloor4';
+import { puffcap, gloomRaven, rimeWolf, dustPangolin, frostJackalope } from './bestiaryBeasts';
 import { grimoireMimic, brineSerpent, phoenix, basilisk, griffin, radiantEye, harpy, shadowFox, hydra, manticore } from './bestiaryCreatures';
 import { puddleElemental, thunderhead, cinderDjinn, magmaOoze, saltGolem, rubbleGolem, lodestoneGolem, hearthGolem, glacierGolem, rubbleStone } from './bestiaryElementals';
 
@@ -46,7 +47,7 @@ export const BESTIARY_OPTIONS = [
   { id: 'lodestoneGolem', kind: 'elemental', school: 'storm', floor: 4, build: lodestoneGolem },
   { id: 'hearthGolem', kind: 'elemental', school: 'ember', floor: 4, elite: true, build: hearthGolem },
   { id: 'shadowFox', kind: 'creature', school: 'umbral', floor: 4, build: shadowFox },
-  { id: 'rimeScarab', kind: 'beast', school: 'frost', floor: 4, build: rimeScarab },
+  { id: 'rimeScarab', kind: 'beast', school: 'frost', floor: 4, build: FLOOR4_LOOKS.rimeScarab },
   { id: 'glacierGolem', kind: 'elemental', school: 'frost', floor: 5, elite: true, build: glacierGolem },
   { id: 'hydra', kind: 'creature', school: 'umbral', floor: 5, elite: true, build: hydra },
   { id: 'gloomRaven', kind: 'beast', school: 'umbral', floor: 5, build: gloomRaven },
