@@ -39,6 +39,7 @@ import { inSteam } from '../magic/steam';
 import { MAGIC } from '../magic/status';
 import { boltOverGround, hexGround } from '../magic/shapes';
 import { actor } from '../actors/acting';
+import { takeAfterglow } from '../progression/boonHooks';
 
 const BLESSED = 0xfff0b0; // a blessed cast's gold
 
@@ -93,7 +94,8 @@ export function spawnBolt() {
   // Moon Pendant quickens a hurt one
   const lance = st.effects.has('antler') && ++antlerCasts % A.antler.every === 0;
   const steady = st.effects.has('stillCandles') && player.still >= A.still.after, moon = bloodMoon();
-  const statusOf = { ...(st.effects.has('emberBolts') || emberCantrip() ? { burn: A.emberwood.burn } : {}), ...(frost ? { chill: A.frostbite.chill } : {}), ...(lance ? { sanct: A.antler.sanct } : {}) };
+  const glow = takeAfterglow(); // (M6, Afterglow: the last spell's light still in the hand, its statuses carried in part)
+  const statusOf = { ...glow?.status, ...(st.effects.has('emberBolts') || emberCantrip() ? { burn: A.emberwood.burn } : {}), ...(frost ? { chill: A.frostbite.chill } : {}), ...(lance ? { sanct: A.antler.sanct } : {}) };
   const status = Object.keys(statusOf).length ? statusOf : undefined;
   const dmgMul = (steady ? A.candles.damageMul : 1) * (lance ? A.antler.damageMul : 1) * sapMul(), speedMul = moon ? A.bloodMoon.shotSpeedMul : 1;
   for (const k of slots) {
@@ -103,7 +105,7 @@ export function spawnBolt() {
       x: player.x + dx * .3 + px * off, z: player.z + dz * .3 + pz * off, vx: dx * st.shotSpeed * speedMul + ix, vz: dz * st.shotSpeed * speedMul + iz,
       damage: st.damage * (crit ? A.crit.damageMul : 1) * (blessed ? CFG.mech.blessMul : 1) * dmgMul, range: st.range,
       scale: st.boltScale * (crit ? A.crit.scale : 1) * (blessed ? CFG.mech.blessScale : 1) * (lance ? A.antler.scale : 1),
-      color: crit ? A.crit.color : lance ? A.antler.color : frost ? A.frostbite.color : blessed ? BLESSED : moon ? A.bloodMoon.color : st.boltColor,
+      color: crit ? A.crit.color : lance ? A.antler.color : glow ? glow.color : frost ? A.frostbite.color : blessed ? BLESSED : moon ? A.bloodMoon.color : st.boltColor,
       path: p.path, pierce: st.pierce + (lance ? 99 : 0), bounces: p.bounces, secondary: false, crit, status, swing: player.eye,
     });
   }

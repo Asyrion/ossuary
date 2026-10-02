@@ -93,8 +93,8 @@
       "text": "A potion you drink also breathes its throw out round your feet, sparing you",
       "lore": "Dr. Jelly tastes every brew and breathes the rest out in a long sigh. The laboratory's scorched floor shows where." },
     { "id": "afterglow", "name": "Afterglow", "area": "cantrip", "max": 1, "icon": "glow", "color": "#ffe0a0",
-      "params": { "bolts": 3, "share": 0.5 },
-      "text": "After a spell, your next three cantrip bolts carry half its statuses",
+      "params": { "casts": 3, "share": 0.5 },
+      "text": "After a spell, your next three cantrip casts carry half its statuses",
       "lore": "A spell leaves its light in the hand for a while after. A quick caster spends it before it fades." }
   ]
 }

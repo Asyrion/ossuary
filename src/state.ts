@@ -9,7 +9,7 @@ import type * as THREE from 'three';
 import type { Kinds } from './world/kitData';
 import type { FoeId } from './actors/foeData';
 import { noAttrs } from './progression/attributes';
-import type { School } from './magic/spellData';
+import type { School, SpellStatus } from './magic/spellData';
 
 export type GameState = 'title' | 'play' | 'pause' | 'dying' | 'end';
 
@@ -65,6 +65,8 @@ export const G = {
         boon taken before any spell of its school: the next library holds a page of it), and how many deals were drawn. */
     boons: {} as Record<string, number>, casts: {} as Partial<Record<School, number>>, pledge: null as School | null, deals: 0,
     /** M6 step 5: hex stacks spent towards Thirsting Hex's next mend, and how often each boon has acted (the tests). */ thirst: 0, acted: {} as Record<string, number>,
+    /** M6 step 6 (Afterglow): the statuses the next cantrip casts carry from the last spell, how many casts are left, its colour. */
+    afterglow: null as { status: Partial<Record<SpellStatus, number>>; left: number; color: number } | null,
   },
   shake: 0,
   simClock: 0,

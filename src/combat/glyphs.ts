@@ -81,8 +81,9 @@ export function placeGlyph() {
   return true;
 }
 
-/** A glyph's blast at (x, z), as one of the mage's would be (dev hooks and tests). */
-export const blastAt = (x: number, z: number) => blast(x, z, player.stats.boltColor, C.radius * player.stats.blastMul);
+/** A glyph's blast at (x, z), as one of the mage's would be (dev hooks and tests; `spare`: it turns aside from the mage, as
+    Brewer's Breath's does, M6). */
+export const blastAt = (x: number, z: number, spare = false) => blast(x, z, player.stats.boltColor, C.radius * player.stats.blastMul, spare);
 
 /** The first live glyph within `r` of (x, z). */
 export function glyphNear(x: number, z: number, r = C.boltReach) {
@@ -100,7 +101,7 @@ export function detonateGlyph(gl: Glyph) {
 const touches = (b: Box, x: number, z: number, r: number) =>
   Math.hypot(x - clamp(x, b.x - b.hx, b.x + b.hx), z - clamp(z, b.z - b.hz, b.z + b.hz)) < r;
 
-function blast(x: number, z: number, color: number, R: number) {
+function blast(x: number, z: number, color: number, R: number, spare = false) {
   const room = G.current;
   for (const e of G.enemies) {
     if (e.dead || e.spawn > 0 || e.hidden) continue;
@@ -131,7 +132,7 @@ function blast(x: number, z: number, color: number, R: number) {
     if (Math.hypot(s.x - x, s.z - z) < R) { scene.remove(s.mesh); G.shots.splice(i, 1); burst(s.x, s.y, s.z, s.color, 3, 1, .04); }
   }
   for (const o of G.glyphs) if (!o.spent && Math.hypot(o.x - x, o.z - z) <= R) o.fuse = Math.min(o.fuse, C.chainDelay);
-  if (Math.hypot(player.x - x, player.z - z) < R + player.r * .5) { // caught in it: the Warding Band turns it aside
+  if (!spare && Math.hypot(player.x - x, player.z - z) < R + player.r * .5) { // caught in it: the Warding Band turns it aside
     if (player.stats.effects.has('glyphWard')) { wardRing(player.x, player.z); Sfx.wardTink(); } else hurtPlayer(C.selfDamage, x, z);
   }
   // the look: a shockwave out to the reach, a flash, sparks in the bolt colour, dust and a scorch mark

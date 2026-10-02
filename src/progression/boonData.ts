@@ -83,9 +83,9 @@ export function schoolWeights(l: Lean): Record<School, number> {
     Socket only then); `only`, a bargain's school (step 11): its two cards from that school. */
 export interface DealState { taken: Readonly<Record<string, number>>; weights: Record<School, number>; attuned?: School | null; spoon?: boolean; socketable?: boolean; only?: School | null;
   /** Boons held back from the deal (default `NOT_YET`). */ hold?: ReadonlySet<string> }
-/** General boons whose hooks come with a later step of M6 (Keen Nose to Afterglow in step 6, Second Socket with the runes in
-    step 7): not dealt until they act, so no card is dead. Each step takes its own off this list. */
-export const NOT_YET: ReadonlySet<string> = new Set(['keenNose', 'scavenger', 'brewersBreath', 'afterglow', 'secondSocket']);
+/** General boons whose hooks come with a later step of M6 (Second Socket with the runes, step 7): not dealt until they act,
+    so no card is dead. Each step takes its own off this list. */
+export const NOT_YET: ReadonlySet<string> = new Set(['secondSocket']);
 /** A card dealt: the boon, the rank it would reach, and whether the build's lean brought it (its card says so). */
 export interface Card { id: string; rank: number; lean: boolean }
 
@@ -147,3 +147,13 @@ export const touches = (b: BoonDef, def: Pick<SpellDef, 'school' | 'shape' | 'st
 /** The boons taken that change spell `def`, in the order of the data. */
 export const boonsTouching = (def: Pick<SpellDef, 'school' | 'shape' | 'status'>, taken: Readonly<Record<string, number>>) =>
   BOON_DEFS.filter(b => (taken[b.id] ?? 0) > 0 && touches(b, def)).map(b => b.id);
+
+/* ---------- step 6: the general boons' rules ---------- */
+
+/** Afterglow: the share of a spell's statuses its next cantrip casts carry. Stacks (Chill, Hex) round up, so a spell's one
+    stack still carries one; seconds are shared as they are. */
+export function afterglowOf(status: Partial<Record<SpellStatus, number>> | undefined, share: number) {
+  const out: Partial<Record<SpellStatus, number>> = {};
+  for (const [k, v] of Object.entries(status ?? {}) as [SpellStatus, number][]) out[k] = k === 'chill' || k === 'hex' ? Math.ceil(v * share) : Math.round(v * share * 10) / 10;
+  return out;
+}
