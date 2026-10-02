@@ -4,6 +4,7 @@
 import { AmbienceMix } from './ambience';
 import { MusicPlayer } from './music';
 import type { Mood } from './musicData';
+import { CFG } from '../config';
 
 export interface RenderAsk {
   /** A floor's soundscape (0-based), with a room's over it; or a piece of music in a mood; or both at once. */
@@ -21,7 +22,7 @@ export async function renderAudio(ask: RenderAsk, sampleRate = 44100): Promise<R
   const out = ctx.createGain(); out.gain.value = PREVIEW; out.connect(ctx.destination);
   if (ask.ambience) {
     const mix = new AmbienceMix(ctx, out); mix.set(ask.ambience.floor, ask.ambience.room ?? 'normal', ask.ambience.theme, 0);
-    if (ask.music) mix.duck(ask.music.mood === 'boss' ? .5 : ask.music.mood === 'fight' ? .7 : 1, 0);
+    if (ask.music) mix.duck(ask.music.mood === 'boss' ? CFG.audio.bossDuck : ask.music.mood === 'fight' ? CFG.audio.fightDuck : 1, 0);
     mix.pump(ask.seconds);
   }
   if (ask.music) {

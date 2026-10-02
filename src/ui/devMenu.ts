@@ -467,13 +467,13 @@ function build() {
   const sc = section(pages.sound, S.scapes);
   sc.append(soundInfo = el('p', 'dv-info'), el('p', 'dv-info', S.scapeNote),
     soundBtn = btn('', () => AudioDirector.set(!AudioDirector.on)), btn(S.soundGame, () => AudioDirector.force(null)),
-    ...FLOOR_SCAPES.map((_, i) => btn(STR.floors[i]?.[0] ?? `Floor ${i + 1}`, () => { snd.floor = i; playScape(); })),
+    ...FLOOR_SCAPES.map((_, i) => btn(STR.floors[i]?.[0] ?? S.floorN(i + 1), () => { snd.floor = i; playScape(); })),
     ...['', ...Object.keys(ROOM_SCAPES), ...Object.keys(THEME_SCAPES)].map(id => btn(S.scapeRoom(id ? S.roomNames[id] ?? THEMES.get(id)?.name ?? id : S.scapeNone), () => { snd.over = id; playScape(); })));
   const mu = section(pages.sound, S.music);
   mu.append(...PIECES.map(p => btn(p.name, () => { snd.piece = p.id; playMusic(); })),
     ...MOODS.map(m => btn(S.moodIs(S.moods[m]), () => { snd.mood = m; playMusic(); })),
     ...(['cleared', 'death'] as const).map(k => btn(S.stingers[k], () => AudioDirector.stinger(k))),
-    btn(S.savePreview, () => { toast(S.rendering, 2); void savePreview(AudioDirector.forced); }));
+    btn(S.savePreview(CFG.audio.preview), () => { toast(S.rendering, 2); void savePreview(AudioDirector.forced); }));
 
   // the artifacts as the room kit builds them (looks only), in rows
   const arts = section(pages.galleries, S.artifactGallery);
@@ -633,10 +633,10 @@ function refresh() {
   );
 }
 
-/** Render 40 seconds of what the Sound tab has chosen (or floor 1 and its piece) and hand it over as a WAV. */
+/** Render `CFG.audio.preview` seconds of what the Sound tab has chosen (or floor 1 and its piece) and hand it over as a WAV. */
 async function savePreview(f: Forced | null) {
   const floor = f?.floor ?? G.run.floor, piece = f?.piece, mood = f?.mood ?? 'explore';
-  const r = await renderAudio({ ambience: f?.floor !== undefined || !piece ? { floor, room: f?.room, theme: f?.theme } : undefined, music: piece ? { piece, mood } : undefined, seconds: 40 });
+  const r = await renderAudio({ ambience: f?.floor !== undefined || !piece ? { floor, room: f?.room, theme: f?.theme } : undefined, music: piece ? { piece, mood } : undefined, seconds: CFG.audio.preview });
   const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([r.wav], { type: 'audio/wav' }));
   a.download = `ossuary-${piece ?? 'floor' + (floor + 1)}-${mood}.wav`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }

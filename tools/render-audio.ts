@@ -3,19 +3,20 @@
      npm run render-audio -- ossuary      only what names it (a floor's id, a room, a piece)
    It drives the game's own players on an OfflineAudioContext in a browser (`__game.renderAudio`), so a server must be
    running (npm run dev; OSSUARY_URL points at another) and PW_CHROMIUM at a Chromium in a cloud session. Writes WAVs to
-   audio-previews/, or MP3s when ffmpeg is there, and prints each one's peak and loudness. */
+   audio-previews/ (MP3s when ffmpeg is there, else WAVs) and prints each one's peak and loudness. */
 import { chromium } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import music from '../data/music.json';
 
 const BASE = process.env.OSSUARY_URL ?? 'http://localhost:5173/';
 const OUT = 'audio-previews';
-const FLOORS = ['ossuary', 'drowned', 'burning', 'reliquary', 'shore'];
+const FLOORS = music.floors; // (each floor's piece, as its soundscape is named after it)
 type Ask = { ambience?: { floor: number; room?: string; theme?: string }; music?: { piece: string; mood: string; then?: { mood: string; at: number } }; seconds: number };
 
 const jobs: [string, Ask][] = [
-  ['music-title', { music: { piece: 'title', mood: 'title' }, seconds: 70 }],
+  ['music-title', { music: { piece: music.title, mood: 'title' }, seconds: 70 }],
   ...FLOORS.map((f, i): [string, Ask] => [`ambience-${i + 1}-${f}`, { ambience: { floor: i }, seconds: 45 }]),
   ['ambience-room-library', { ambience: { floor: 0, room: 'library' }, seconds: 30 }],
   ['ambience-room-shrine', { ambience: { floor: 1, room: 'shrine' }, seconds: 30 }],

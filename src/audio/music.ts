@@ -6,19 +6,20 @@ import { MODES, MOOD_GAINS, STEMS, barSeconds, newComposer, pieceById, planBar, 
 import { SpaceNode } from './ambience';
 import { Rand, bell, bowed, choir, drone, drum, play, pluck, type Ctx, type DrumKind, type Held } from './synth';
 import type { Space } from './ambienceData';
+import { CFG } from '../config';
 
 interface Playing { piece: Piece; out: GainNode; stems: Record<Stem, GainNode>; drone: Held; st: ComposerState; bar: number; next: number }
 
 export class MusicPlayer {
   readonly out: GainNode; private tone: BiquadFilterNode; readonly space: SpaceNode; private send: GainNode;
-  private cur: Playing | null = null; private moodV: Mood = 'quiet'; private r = new Rand(2026);
+  private cur: Playing | null = null; private moodV: Mood = 'quiet'; private r = new Rand(2026); private muffled = false;
   constructor(private ctx: Ctx, dest: AudioNode) {
-    this.out = ctx.createGain(); this.out.gain.value = .5; this.tone = ctx.createBiquadFilter(); this.tone.type = 'lowpass'; this.tone.frequency.value = 18000;
-    const glue = ctx.createDynamicsCompressor(); // (holds the boss's full stems under the effects)
-    glue.threshold.value = -16; glue.ratio.value = 3.5; glue.knee.value = 10; glue.attack.value = .02; glue.release.value = .3;
+    this.out = ctx.createGain(); this.out.gain.value = CFG.audio.music.level; this.tone = ctx.createBiquadFilter(); this.tone.type = 'lowpass'; this.tone.frequency.value = 18000;
+    const glue = ctx.createDynamicsCompressor(), G = CFG.audio.music.glue; // (holds the boss's full stems under the effects)
+    glue.threshold.value = G.threshold; glue.ratio.value = G.ratio; glue.knee.value = G.knee; glue.attack.value = G.attack; glue.release.value = G.release;
     this.out.connect(this.tone).connect(glue).connect(dest);
     this.space = new SpaceNode(ctx, this.tone, .8); this.space.set({ seconds: 2.6, bright: .45 }, 0, .01);
-    this.send = ctx.createGain(); this.send.gain.value = .55; this.out.connect(this.send).connect(this.space.input);
+    this.send = ctx.createGain(); this.send.gain.value = CFG.audio.music.send; this.out.connect(this.send).connect(this.space.input);
   }
   get piece() { return this.cur?.piece.id ?? null; }
   get bar() { return this.cur?.bar ?? 0; }
@@ -40,7 +41,10 @@ export class MusicPlayer {
     if (m === this.moodV) return; this.moodV = m; this.levels(m, t, m === 'boss' || m === 'fight' ? 1.2 : 2.5);
   }
   /** Muffle the music (the pause menu): a lowpass closing over it. */
-  muffle(on: boolean, t = this.ctx.currentTime) { this.tone.frequency.cancelScheduledValues(t); this.tone.frequency.setTargetAtTime(on ? 700 : 18000, t, .25); }
+  muffle(on: boolean, t = this.ctx.currentTime) {
+    if (on === this.muffled) return; this.muffled = on;
+    this.tone.frequency.cancelScheduledValues(t); this.tone.frequency.setTargetAtTime(on ? CFG.audio.music.muffle : 18000, t, .25);
+  }
   setSpace(sp: Space, t = this.ctx.currentTime) { this.space.set({ seconds: Math.round(Math.max(1.6, sp.seconds * .9) * 10) / 10, bright: sp.bright }, t, 2); }
   stop(t = this.ctx.currentTime, fade = 2.5) { if (this.cur) this.fadeOut(this.cur, t, fade); this.cur = null; this.moodV = 'quiet'; }
   private levels(m: Mood, t: number, ramp: number) {

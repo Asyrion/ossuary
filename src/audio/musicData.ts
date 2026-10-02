@@ -49,9 +49,9 @@ export const PIECES = (data as unknown as { pieces: Piece[] }).pieces;
 export const MOOD_GAINS = (data as unknown as { moods: Record<Mood, Record<Stem, number>> }).moods;
 export const pieceById = (id: string) => PIECES.find(p => p.id === id);
 /** The piece each floor plays (0-based; past the last, the last's) and the title's. */
-export const FLOOR_PIECES = ['ossuary', 'drowned', 'burning', 'reliquary', 'shore'];
+export const FLOOR_PIECES = (data as unknown as { floors: string[] }).floors;
 export const floorPiece = (floor: number) => FLOOR_PIECES[Math.max(0, Math.min(FLOOR_PIECES.length - 1, floor))];
-export const TITLE_PIECE = 'title';
+export const TITLE_PIECE = (data as unknown as { title: string }).title;
 
 export const barSeconds = (p: Piece) => p.beats * 60 / p.tempo;
 export const progressionBars = (p: Piece) => p.chords.reduce((a, c) => a + c.bars, 0);

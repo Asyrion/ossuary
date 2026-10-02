@@ -339,10 +339,18 @@ export const CFG = {
   // M5 step 8: the Cracked Retort's splash (times as wide) and its glass's cut, and how far apart the Alchemist's split
   // bottles land (across the aim)
   alchemy: { belt: 3, bottleScale: 1.45, reagentScale: 1.8, reagent: { foe: 0.12, object: 0.3, blossom: 0.6, satchelMul: 1.3 }, recipePrice: 6, lab: { reach: 0.55, jellyAt: 1.6, globeJelly: 0.4, windowClear: 2.5, duck: 0.3, give: { reach: .35, hold: .6, toss: .4, back: .45, size: .22, arc: .45, shoulder: -2.1, out: -.55, elbow: -.4, lean: .1, nod: .15 } }, vat: { cracks: 3, crackGap: 0.25, restless: 0.35, restlessAfter: 1.4, flood: 30 }, hold: 0.25, reach: 4.5, flight: 0.45, arc: 1.1, splash: 1.1, echoMul: 6, echoAfter: 0.3, thrall: { speed: 2.4, damage: 7, every: 0.7, near: 0.7 }, retort: { splashMul: 1.5, cut: 6 }, split: 2 },
-  // the soundscapes and the music (docs/sound-plan.md, audio/director.ts): scheduled `ahead` seconds before they sound;
-  // the music thins at `lowHp` half-hearts or fewer; the floor's bed ducks to `fightDuck` while the doors are locked and
-  // to `pauseDuck` in the pause menu; a stinger when a fight is won
-  audio: { ahead: 0.6, lowHp: 2, fightDuck: 0.65, bossDuck: 0.45, pauseDuck: 0.5 },
+  // the soundscapes and the music (docs/sound-plan.md, audio/director.ts): scheduled `ahead` seconds before they sound
+  // (`hiddenAhead` in a hidden tab, whose timers run once a second; the scheduler's own timer every `tick` ms); the music
+  // thins at `lowHp` half-hearts or fewer; the floor's bed ducks to `fightDuck` while the doors are locked, `bossDuck`
+  // with a boss alive, `pauseDuck` in the pause menu, and `themeDuck` under a themed room's touch; a bed layer sends
+  // `bedSend` of itself to the space; the music plays at `music.level` (under the bus), `music.send` of it to its space,
+  // muffled to `music.muffle` Hz when paused, through a compressor (`glue`) holding a boss's full stems under the effects;
+  // the dev menu's preview lasts `preview` seconds
+  audio: {
+    ahead: 0.6, hiddenAhead: 1.6, tick: 250, lowHp: 2, fightDuck: 0.65, bossDuck: 0.45, pauseDuck: 0.5, themeDuck: 0.9, bedSend: 0.3,
+    music: { level: 0.5, send: 0.55, muffle: 700, glue: { threshold: -16, ratio: 3.5, knee: 10, attack: 0.02, release: 0.3 } },
+    preview: 40,
+  },
   // the mage in the pixel-art look (actors/heroPixel.ts, 2026-10-01): its texture baked into its vertices (each the mean of
   // the texels within `sample` of where it lies) and cut down to `colours`; light in the `tones` (darkest first, a toon
   // ramp's steps) with `glow` of its own colour as self-light, as the model had, so it reads in dark rooms

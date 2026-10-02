@@ -188,8 +188,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   (`planBar`, `phrase`, `scaleUnder`) and played by `src/audio/music.ts` (`MusicPlayer`: stems, moods, `stinger`).
   `src/audio/director.ts`'s `updateAudio`, from the loop, chooses them from the game (floor, room, doors locked, a boss
   alive, `CFG.audio.lowHp`); it stays off under `window.__manual` (the browser tests) until `__game.audioOn()`. Offline:
-  `src/audio/render.ts` (`renderAudio`, `__game.renderAudio(ask)`) and `npm run render-audio` (needs a server; writes
-  `audio-previews/`). Dev menu: the Sound tab (any floor's soundscape, a room's or theme's over it, any piece in any mood,
+  `src/audio/render.ts` (`renderAudio`, `__game.renderAudio(ask)`) and `npm run render-audio` (`tools/render-audio.ts`;
+  needs a server; writes `audio-previews/`). The mix's numbers are `CFG.audio`. Dev menu: the Sound tab (any floor's soundscape, a room's or theme's over it, any piece in any mood,
   the stingers, a 40 s WAV of what is chosen); `__game.audio`, `forceAudio(f)`. A new one-shot is a kind in `SHOT_KINDS`
   and a recipe in `SHOTS`; a new piece an entry in data/music.json.
 - Tests: `npm run test:unit` (Vitest: generator rules on hundreds of seeds, every template validated),
