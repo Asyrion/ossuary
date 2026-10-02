@@ -145,10 +145,12 @@ const blit = new THREE.ShaderMaterial({
       if (any(lessThan(q, ivec2(0))) || any(greaterThanEqual(q, ivec2(fineSize)))) return false;
       return texelFetch(tFine, q, 0).a > 0.5 && texelFetch(tFineDepth, q, 0).r <= texelFetch(tDepth, q / K, 0).r + 1e-6;
     }
-    // the fine layer over the colour: fine pixel q (its colour c, sampled), or, beside one, its outline
+    // the fine layer over the colour: fine pixel q (its colour c, sampled), or, within a game pixel of one, its outline
+    // (as thick as the grid's)
     vec3 overFine(vec3 col, ivec2 q, vec4 c) {
       if (seen(q)) return col * (1.0 - c.a) + band(c.rgb); // (c is premultiplied: clear pixels are all zero)
-      if (outline > 0.5 && (seen(q + ivec2(1, 0)) || seen(q - ivec2(1, 0)) || seen(q + ivec2(0, 1)) || seen(q - ivec2(0, 1)))) col *= pow(1.0 - dark, 1.0 / 2.2);
+      if (outline > 0.5) for (int d = 1; d <= K; d++)
+        if (seen(q + ivec2(d, 0)) || seen(q - ivec2(d, 0)) || seen(q + ivec2(0, d)) || seen(q - ivec2(0, d))) return col * pow(1.0 - dark, 1.0 / 2.2);
       return col;
     }
     void main() {
