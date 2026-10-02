@@ -18,7 +18,7 @@ const models = new Map<string, THREE.Object3D>(), floors = new Map<string, HTMLI
 /** A coin's face as loaded: the image, and the colour round its edge (the coin's rim, for its edge in the room). */
 export interface CoinFace { img: HTMLImageElement; rim: number }
 const faces = new Map<string, CoinFace>(), coinIcons = new Map<string, string>();
-let info: AssetInfo[] = [], enabled = true, obol: string | null = null;
+let info: AssetInfo[] = [], enabled = true, obol: string | null = null, coinOrder: string[] = [];
 
 /** Load everything the manifest names (or the one ?assets= points to). Never rejects. */
 export async function loadAssets(search = location.search) {
@@ -30,6 +30,7 @@ export async function loadAssets(search = location.search) {
     catch (e) { console.warn(`?assets=${opt}: the manifest could not be read (${String(e)}); using the game's own`); }
   } else if (opt) console.warn(`?assets=${opt}: use off, or a manifest's path ending in .json`);
   const files = manifestFiles(manifest); obol = manifest.obol ?? null;
+  coinOrder = files.filter(f => f.where.startsWith('coins.') && f.where.endsWith('.face')).map(f => f.where.split('.')[1]); // (the faces decode in any order)
   if (!enabled) { info = files.map(f => ({ ...f, status: 'off' })); return; }
   info = await Promise.all(files.map(async f => {
     const url = base + f.file, [group, id] = f.where.split('.') as [string, string];
@@ -107,8 +108,8 @@ function rimOf(img: HTMLImageElement) {
 export const coinFace = (id: string) => enabled ? faces.get(id) ?? null : null;
 /** A coin's icon (its URL), or null. */
 export const coinIconUrl = (id: string) => enabled ? coinIcons.get(id) ?? null : null;
-/** The coins whose faces loaded, in the manifest's order. */
-export const coinIds = () => enabled ? [...faces.keys()] : [];
+/** The coins whose faces loaded, in the manifest's order (not the order they finished decoding in). */
+export const coinIds = () => enabled ? coinOrder.filter(id => faces.has(id)) : [];
 /** The face the manifest has the obols wear (data/assets.json `obol`), or null. */
 export const manifestObol = () => obol;
 
