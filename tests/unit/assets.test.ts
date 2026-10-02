@@ -4,7 +4,8 @@ import { join } from 'node:path';
 import * as THREE from 'three';
 import { Document, type Node } from '@gltf-transform/core';
 import { MeshoptSimplifier } from 'meshoptimizer';
-import { BUDGETS, MANIFEST, manifestFiles, validateManifest, type Manifest } from '../../src/assets/assetData';
+import { BUDGETS, IMAGES, MANIFEST, manifestFiles, validateManifest, type Manifest } from '../../src/assets/assetData';
+import { CFG } from '../../src/config';
 import { facing, measure, prepareModel, type Check } from '../../tools/assetReport';
 import { coinCircle, lightSpread, seamScore, transparentBorder } from '../../tools/imageChecks';
 import artifacts from '../../data/artifacts.json';
@@ -103,6 +104,7 @@ describe('the asset manifest', () => {
   });
   it('coin faces: each names a face and an icon, and the obols wear one of them (2026-10-02)', () => {
     expect(MANIFEST.obol && MANIFEST.coins?.[MANIFEST.obol]).toBeTruthy();
+    expect(IMAGES.coin.size).toBe(CFG.pickups.coinPixels * CFG.pixelLook.fineLayer); // (a face pixel for every pixel of the fine layer)
     const errs = validateManifest({ ...MANIFEST, coins: { 'Pale Obol': { face: 'coins/p.png', icon: 'coins/p-icon.png' }, owl: { face: 'coins/owl.jpg', icon: '../owl.png' } }, obol: 'star_crystal' }, known).join('\n');
     for (const bit of ['coins.Pale Obol: a coin\'s name', 'coins.owl.face: coins/owl.jpg', 'coins.owl.icon: ../owl.png', 'obol: star_crystal is not one of the coins']) expect(errs).toContain(bit);
     expect(manifestFiles({ ...MANIFEST, coins: { owl: { face: 'coins/owl.png', icon: 'coins/owl-icon.png' } } }).filter(f => f.where.startsWith('coins.')).map(f => f.where)).toEqual(['coins.owl.face', 'coins.owl.icon']);

@@ -3,7 +3,7 @@
 
    Usage: npm run prepare-texture -- <image> --kind floor|wall|icon|coin --id <id> [--out <dir>] [--previews <dir>]
      --kind      floor or wall: a seamless 1,024 px tile for a floor look (JPEG); icon: an artifact's icon (PNG); coin: a
-                 coin's face, on a plain ground or cut out (two PNGs: the face at the game's pixel, and its icon)
+                 coin's face, on a plain ground or cut out (two PNGs: the face at the fine layer's pixel, and its icon)
      --id        a floor look's name (crypt, drowned, burning), an artifact's id (ember_sigil) or a coin's name (pale_obol)
      --out       the assets folder to write into (default public/assets)
      --previews  where the previews go (default asset-previews/, which git ignores)
@@ -34,9 +34,10 @@ const w0 = meta.width ?? 0, h0 = meta.height ?? 0;
 
 
 if (kind === 'coin') {
-  // a coin's face: the circle cut from its ground, drawn at the game's pixel (`size` across: one texel a pixel, so a coin
-  // facing the camera shows it pixel for pixel), in a few colours with a hard edge, as the game's pixel art is; and its
-  // icon (`icon` across), the coin a pixel inside its edge and outlined in dark, as the artifacts' icons are
+  // a coin's face: the circle cut from its ground, drawn at the fine layer's pixel (`size` across: the game draws coins
+  // finer than the rest, two pixels to a game pixel, so a coin facing the camera shows it pixel for pixel), in a few
+  // colours with a hard edge, as the game's pixel art is; and its icon (`icon` across), the coin a pixel inside its edge
+  // and outlined in dark, as the artifacts' icons are
   const raw = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const W = raw.info.width, H = raw.info.height, data = raw.data, coin = coinCircle({ data, width: W, height: H, channels: 4 });
   if (!coin) { console.error(`${basename(input)}: no coin found (the image is all one colour)`); process.exit(1); }
@@ -64,16 +65,16 @@ if (kind === 'coin') {
   for (const i of edge) px.set([22, 15, 11, 235], i);
   const iconFile = output.replace(/\.png$/, '-icon.png');
   await sharp(px, { raw: { width: N, height: N, channels: 4 } }).png({ palette: true, colours: 24, dither: 0, compressionLevel: 9 }).toFile(iconFile);
-  // the sheet, on the game's dark background: the face as the room draws it, 8× larger; the icon at 28 px and 44 px, 4× larger
+  // the sheet, on the game's dark background: the face as the room draws it, 4× larger; the icon at 28 px and 44 px, 4× larger
   const on = async (img: Buffer, size: number, k: number) => sharp(await sharp({ create: { width: size, height: size, channels: 4, background: '#1c1814' } })
     .composite([{ input: await sharp(img).resize(size, size, { kernel: 'nearest' }).png().toBuffer() }]).png().toBuffer()).resize(size * k, size * k, { kernel: 'nearest' }).png().toBuffer();
-  const cells = [await on(face, S.size, 8), await on(await sharp(iconFile).toBuffer(), 28, 4), await on(await sharp(iconFile).toBuffer(), 44, 4)];
+  const cells = [await on(face, S.size, 4), await on(await sharp(iconFile).toBuffer(), 28, 4), await on(await sharp(iconFile).toBuffer(), 44, 4)];
   let x = 0; const parts: { input: Buffer; left: number; top: number }[] = [];
   for (const c of cells) { const m = await sharp(c).metadata(); parts.push({ input: c, left: x, top: 0 }); x += m.width! + 12; }
   const sheet = join(previews, `${id}_coin_sheet.png`);
-  await sharp({ create: { width: x, height: S.size * 8, channels: 4, background: '#0c0a08' } }).composite(parts).png().toFile(sheet);
+  await sharp({ create: { width: x, height: Math.max(S.size * 4, 44 * 4), channels: 4, background: '#0c0a08' } }).composite(parts).png().toFile(sheet);
   lines.push(`\nicon: ${relative(process.cwd(), iconFile)} (${kb(iconFile)})`);
-  lines.push(`preview: ${relative(process.cwd(), sheet)} (the face as the room draws it, 8× larger; the icon at 28 px and 44 px, 4× larger)`);
+  lines.push(`preview: ${relative(process.cwd(), sheet)} (the face as the room draws it, 4× larger; the icon at 28 px and 44 px, 4× larger)`);
 } else if (kind === 'icon') {
   // an icon: square with room round the object, transparent background, shipped small
   const raw = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true });

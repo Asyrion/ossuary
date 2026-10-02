@@ -234,8 +234,9 @@ export const CFG = {
   camTiltDeg: 45,
   camHallView: 1.2,    // larger halls: the camera pulls back so the view is this much wider and deeper
   // obols drift to the mage from this close; a coin sways this far (radians) either way as it turns; a coin face's light
-  // from within (2026-10-02: the owner's coins, so a face reads in a dark room)
-  pickups: { obolDrift: 1.8, coinSway: .45, coinGlow: .2 },
+  // from within, and how many game pixels a coin wearing one is across (2026-10-02: the owner's coins; its face is drawn
+  // on the fine layer, pixelLook.fineLayer pixels to each of these)
+  pickups: { obolDrift: 1.8, coinSway: .45, coinGlow: .2, coinPixels: 28 },
   /** Soul motes (M4.1, items/souls.ts): most held; the hex a black one lays on every foe in the room when it goes; the
       chance a foe that falls with enough hex stacks (magic.json's `hex.soulAt`) leaves a black one. */
   souls: { max: 6, blackHex: 2, hexChance: .5 },
@@ -292,8 +293,9 @@ export const CFG = {
   // drawn texel by texel looked like pixel art), 720, 540 (the default before that), 360 and 270 (too coarse full-screen
   // on a high-resolution monitor). Outlines where a nearer surface stands more than outlineGap units before a farther one
   // (darkened by outlineDark), and light bands; a glow's fade (render/textures.ts, every glow sprite) and a shadow's held in
-  // so many flat steps, as pixel art draws them
-  pixelLook: { lines: [1080, 720, 540, 360, 270], start: 'texel' as const, outlineGap: 0.3, outlineDark: 0.72, bands: 7, glowSteps: 5, shadowSteps: 3 },
+  // so many flat steps, as pixel art draws them; the fine layer's pixels to a game pixel each way (pixelLook.ts, FINE:
+  // 2026-10-02, the owner's coins drawn finer than the rest, so their faces read)
+  pixelLook: { lines: [1080, 720, 540, 360, 270], start: 'texel' as const, outlineGap: 0.3, outlineDark: 0.72, bands: 7, glowSteps: 5, shadowSteps: 3, fineLayer: 2 },
   // alchemy (M5, items/potions.ts and potionThrow.ts; docs/M5-plan.md): the belt's slots, a bottle's and a reagent's size as built, the
   // chance a fallen foe or a broken object leaves its reagent (items/reagents.ts; the Alchemist's Satchel's more), what Dr.
   // Jelly asks for a recipe (obols), the laboratory's: how near the table or Dr. Jelly opens the table, how far behind the

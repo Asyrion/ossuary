@@ -236,12 +236,12 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   in `tools/imageChecks.ts`, previews in `asset-previews/`) prepare the owner's files; `tools/make-standins.ts` makes
   the stand-ins in `tests/fixtures/assets/` that the tests load. The dev menu's Made assets section lists them,
   turns them off to compare, shows them ahead of the mage, and puts a frame readout on screen (`DEV.fps`).
-  Coin faces (2026-10-02, the owner's coins in `inspiration/coins/`): `coins` in `data/assets.json` (a face at the game's
-  pixel, 28 across, and a 24 px icon each, from `prepare-texture --kind coin`, `coinCircle` in imageChecks.ts) and `obol`,
-  the face the obols wear (Star and crystal, for the owner to choose); `src/items/obolFace.ts` (`obolFace`, the dev menu's
-  choice kept as `ossuary.obolFace`), `facedObol` in pickupLooks.ts (a coin `FACE_R` across tipped to the camera, the
-  face drawn texel for texel; a purse's coins too), the icon in the HUD's counter and the lore card (`coinIconBody` in
-  hud.ts); the rune obol in code without one. Dev menu: "Obols wear" (Look tab, Made assets), Coin faces (Galleries);
+  Coin faces (2026-10-02, the owner's coins in `inspiration/coins/`): `coins` in `data/assets.json` (a face 56 across and
+  a 24 px icon each, from `prepare-texture --kind coin`, `coinCircle` in imageChecks.ts) and `obol`, the face the obols
+  wear (Star and crystal, the owner's choice); `src/items/obolFace.ts` (`obolFace`, the dev menu's choice kept as
+  `ossuary.obolFace`), `facedObol` in pickupLooks.ts (a coin `CFG.pickups.coinPixels` across tipped to the camera, put on
+  the pixel look's fine layer by `onFine`; a purse's coins wear the face with the purse), the icon in the HUD's counter
+  and the lore card (`coinIconBody` in hud.ts); the rune obol in code without one. Dev menu: "Obols wear" (Look tab, Made assets), Coin faces (Galleries);
   `__game.obolFace`, `obolFaces`, `wearFace(id)`, `coinGallery()`.
 - Enemy model options (`src/actors/modelOptions.ts`, the owner's request; M4 makes them foes): ten critters and small
   fantasy creatures built in code from simple shapes (round, big eyes from `bigEyes`, smaller than the mage; not the dead),
@@ -488,7 +488,12 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   one screen pixel, the camera's part-pixel put back so it glides). `'fine'` is half a texel a pixel (a floor texel
   2 × 2 game pixels, about 840 rows). The rows of earlier (1080 to 270, whole screen pixels, `pixelGrid`) stay in the dev
   menu's cycle (`LINES`) and are drawn exactly as before (the grid the window's, each pixel copied whole, no glide). The
-  owner chose the texel as the default over fine and 1080 after comparing them (2026-10-01). The costume close-up
+  owner chose the texel as the default over fine and 1080 after comparing them (2026-10-01). One exception (the owner,
+  2026-10-02): the fine layer (`FINE`, layer 1), the coins' faces, drawn into their own target at
+  `CFG.pixelLook.fineLayer` (2) pixels to a game pixel with their own depth, and laid over the grid in the blow-up where
+  they stand nearer than what it drew, outlined (`drawFine`, `overFine` in the blit shader; `__game.fineLayerDrawn`);
+  every scene light is on it too (`lit` in lights.ts), and with the look off the camera sees every layer. Nothing else
+  goes on it without the owner's say. The costume close-up
   (`DEV.closeUp`) magnifies the game's own pixels, so it shows what the game shows. The scene is tone-mapped and encoded by its own shaders (the target
   flagged as an XR target, stored as plain RGBA8), so it blends as on the canvas; the HUD stays sharp. `draw()` in
   `render/renderer.ts` picks it; draw calls are counted per frame over all passes (`renderer.info` reset in `draw()`). The

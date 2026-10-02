@@ -9,7 +9,11 @@
    the grid texel for texel. That grid doesn't fall on whole screen pixels (about 2.6 at 1080p), so the blow-up is a sharp
    one: each pixel the same size, its edges blended over one screen pixel, and the camera's step between pixels shown
    smoothly. The rows of earlier (1080 down to 270, whole screen pixels to a game pixel) stay in the dev menu, and
-   ?pixel=720 (or texel, or off). Tuning in CFG.pixelLook. */
+   ?pixel=720 (or texel, or off). Tuning in CFG.pixelLook.
+   One exception (the owner, 2026-10-02): what is on the fine layer (`FINE`: the coins, so their faces read) is drawn
+   into its own target at `CFG.pixelLook.fineLayer` pixels to a game pixel each way, and laid over the grid where it
+   stands nearer than what the grid drew, outlined as the rest is. Its size in the room is unchanged; only its pixels
+   are smaller. The scene's lights are on that layer too (lights.ts). */
 import * as THREE from 'three';
 import { CFG } from '../config';
 
@@ -17,7 +21,10 @@ import { CFG } from '../config';
     of whole screen pixels, or 0 (off). */
 export type Lines = number | 'texel' | 'fine';
 export interface PixelLook { /** the grid: 'texel', rows of pixels on screen, or 0 for off */ lines: Lines; outline: boolean; bands: boolean }
-const P = CFG.pixelLook, KEY = 'ossuary.look';
+const P = CFG.pixelLook, KEY = 'ossuary.look', K = P.fineLayer;
+/** The fine layer: an object's meshes on it (`layers.set(FINE)`) are drawn at the finer pixel (see above), and only
+    there; with the pixel look off, with everything else. */
+export const FINE = 1;
 /** Every grid offered, the texel first. */
 export const LINES: readonly Lines[] = ['texel', 'fine', ...P.lines];
 const offered = (l: unknown): l is Lines => LINES.includes(l as Lines);
@@ -68,9 +75,9 @@ export function setPixelLook(change: Partial<PixelLook>) {
 // Three passes: the scene into the grid (`target`, with its depth); the grid shaded (outlines, bands) into `shaded`, still
 // at the grid's size; and the blow-up to the window. Both targets only grow (in steps of `GROW`), and each frame draws
 // into the corner it needs, so a zoom blending between rooms doesn't make new ones every frame.
-let target: THREE.WebGLRenderTarget | null = null, shaded: THREE.WebGLRenderTarget | null = null;
+let target: THREE.WebGLRenderTarget | null = null, shaded: THREE.WebGLRenderTarget | null = null, fine: THREE.WebGLRenderTarget | null = null;
 const GROW = 64, MARGIN = 2;
-const buffer = new THREE.Vector2(), right = new THREE.Vector3(), up = new THREE.Vector3(), pix = { px: 0, py: 0 }, grid = { w: 0, h: 0 };
+const buffer = new THREE.Vector2(), right = new THREE.Vector3(), up = new THREE.Vector3(), pix = { px: 0, py: 0 }, grid = { w: 0, h: 0 }, clear = new THREE.Color();
 const passScene = new THREE.Scene(), passCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 const shade = new THREE.ShaderMaterial({
   depthTest: false, depthWrite: false, // (three writes it as GLSL 3 under WebGL 2, texelFetch included)
@@ -101,14 +108,31 @@ const shade = new THREE.ShaderMaterial({
 });
 const blit = new THREE.ShaderMaterial({
   depthTest: false, depthWrite: false,
-  uniforms: { tShaded: { value: null }, size: { value: new THREE.Vector2() }, centre: { value: new THREE.Vector2() }, screen: { value: new THREE.Vector2() }, scale: { value: new THREE.Vector2() }, grid: { value: new THREE.Vector2() }, whole: { value: 0 } },
+  uniforms: {
+    tShaded: { value: null }, size: { value: new THREE.Vector2() }, centre: { value: new THREE.Vector2() }, screen: { value: new THREE.Vector2() }, scale: { value: new THREE.Vector2() }, grid: { value: new THREE.Vector2() }, whole: { value: 0 },
+    tFine: { value: null }, tFineDepth: { value: null }, tDepth: { value: null }, fineSize: { value: new THREE.Vector2() }, hasFine: { value: 0 }, outline: { value: 0 }, dark: { value: P.outlineDark },
+  },
   vertexShader: 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
   fragmentShader: /* glsl */ `
     uniform sampler2D tShaded; uniform vec2 size; uniform vec2 centre; uniform vec2 screen; uniform vec2 scale; uniform vec2 grid; uniform float whole;
+    uniform sampler2D tFine; uniform sampler2D tFineDepth; uniform sampler2D tDepth; uniform vec2 fineSize; uniform float hasFine; uniform float outline; uniform float dark;
+    const int K = ${K};
+    // a fine pixel drawn there, and nearer than what the grid drew in its game pixel
+    bool seen(ivec2 q) {
+      if (any(lessThan(q, ivec2(0))) || any(greaterThanEqual(q, ivec2(fineSize)))) return false;
+      return texelFetch(tFine, q, 0).a > 0.5 && texelFetch(tFineDepth, q, 0).r <= texelFetch(tDepth, q / K, 0).r + 1e-6;
+    }
+    // the fine layer over the colour: fine pixel q (its colour c, sampled), or, beside one, its outline
+    vec3 overFine(vec3 col, ivec2 q, vec4 c) {
+      if (seen(q)) return col * (1.0 - c.a) + c.rgb; // (c is premultiplied: clear pixels are all zero)
+      if (outline > 0.5 && (seen(q + ivec2(1, 0)) || seen(q - ivec2(1, 0)) || seen(q + ivec2(0, 1)) || seen(q - ivec2(0, 1)))) col *= pow(1.0 - dark, 1.0 / 2.2);
+      return col;
+    }
     void main() {
       if (whole > 0.5) { // the rows of earlier: each game pixel a whole number of screen pixels, copied as it is
         ivec2 p = min(ivec2(floor(gl_FragCoord.xy * grid / screen)), ivec2(grid) - 1);
         gl_FragColor = vec4(texelFetch(tShaded, p, 0).rgb, 1.0);
+        if (hasFine > 0.5) { ivec2 q = ivec2(floor(gl_FragCoord.xy * grid * float(K) / screen)); gl_FragColor.rgb = overFine(gl_FragColor.rgb, q, texelFetch(tFine, q, 0)); }
         return;
       }
       // at the texel: where this screen pixel falls on the grid (in game pixels), then a sharp blow-up: inside a game
@@ -116,6 +140,10 @@ const blit = new THREE.ShaderMaterial({
       vec2 g = centre + (gl_FragCoord.xy - screen * 0.5) / scale - 0.5;
       vec2 i = floor(g), f = clamp((fract(g) - 0.5) * scale + 0.5, 0.0, 1.0);
       gl_FragColor = vec4(texture2D(tShaded, (i + f + 0.5) / size).rgb, 1.0);
+      if (hasFine > 0.5) { // the fine layer, blown up the same way at its own pixel
+        vec2 gf = (g + 0.5) * float(K) - 0.5, sf = scale / float(K), fi = floor(gf), ff = clamp((fract(gf) - 0.5) * sf + 0.5, 0.0, 1.0);
+        gl_FragColor.rgb = overFine(gl_FragColor.rgb, ivec2(floor(gf + 0.5)), texture2D(tFine, (fi + ff + 0.5) / fineSize));
+      }
     }`,
 });
 const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2)); quad.frustumCulled = false; passScene.add(quad);
@@ -124,7 +152,7 @@ const pass = (renderer: THREE.WebGLRenderer, m: THREE.Material, to: THREE.WebGLR
 function ensure(w: number, h: number) {
   if (target && target.width >= w && target.height >= h) return;
   const W = Math.max(GROW * Math.ceil(w / GROW), target?.width ?? 0), H = Math.max(GROW * Math.ceil(h / GROW), target?.height ?? 0);
-  target?.depthTexture?.dispose(); target?.dispose(); shaded?.dispose();
+  target?.depthTexture?.dispose(); target?.dispose(); shaded?.dispose(); fine?.depthTexture?.dispose(); fine?.dispose();
   target = new THREE.WebGLRenderTarget(W, H, { type: THREE.UnsignedByteType, colorSpace: THREE.SRGBColorSpace, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: true, samples: 0 });
   target.depthTexture = new THREE.DepthTexture(W, H);
   // Blend as the canvas does. three tone-maps and encodes to sRGB in each material's shader only when it draws to the
@@ -137,7 +165,27 @@ function ensure(w: number, h: number) {
   // the shaded grid, filtered linearly for the sharp blow-up's one blended screen pixel (its values already encoded)
   shaded = new THREE.WebGLRenderTarget(W, H, { type: THREE.UnsignedByteType, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false, samples: 0 });
   shaded.texture.internalFormat = 'RGBA8';
-  target.scissorTest = shaded.scissorTest = true;
+  // the fine layer: K × K pixels to each of the grid's, with its own depth (encoded as the scene is; filtered linearly
+  // for the sharp blow-up, read pixel by pixel for its depth)
+  fine = new THREE.WebGLRenderTarget(W * K, H * K, { type: THREE.UnsignedByteType, colorSpace: THREE.SRGBColorSpace, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: true, samples: 0 });
+  fine.depthTexture = new THREE.DepthTexture(W * K, H * K);
+  fine.texture.internalFormat = 'RGBA8';
+  (fine as THREE.WebGLRenderTarget & { isXRRenderTarget: boolean }).isXRRenderTarget = true;
+  target.scissorTest = shaded.scissorTest = fine.scissorTest = true;
+}
+
+/** Whether the fine layer drew anything in the last frame. */
+let fineDrawn = false;
+export const fineLayerDrawn = () => fineDrawn;
+/** The fine layer alone into its target (the grid's `gw` × `gh`, K times finer), on a clear ground: the scene's background
+    left out, its lights kept (they are on the layer too). Whether it drew anything. */
+function drawFine(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, gw: number, gh: number) {
+  fine!.viewport.set(0, 0, gw * K, gh * K); fine!.scissor.set(0, 0, gw * K, gh * K);
+  const bg = scene.background, alpha = renderer.getClearAlpha(), calls = renderer.info.render.calls;
+  renderer.getClearColor(clear); renderer.setClearColor(0x000000, 0); scene.background = null;
+  camera.layers.set(FINE); renderer.setRenderTarget(fine); renderer.render(scene, camera);
+  camera.layers.set(0); scene.background = bg; renderer.setClearColor(clear, alpha);
+  return renderer.info.render.calls > calls;
 }
 
 /** Draw the scene in the pixel look (when it is on: check `pixelLook().lines` first). The camera is moved to the
@@ -162,12 +210,13 @@ export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   camera.position.addScaledVector(right, dr).addScaledVector(up, du); camera.updateMatrixWorld();
   target!.viewport.set(0, 0, gw, gh); target!.scissor.set(0, 0, gw, gh);
   shaded!.viewport.set(0, 0, gw, gh); shaded!.scissor.set(0, 0, gw, gh);
-  if (rows) { renderer.setRenderTarget(target); renderer.render(scene, camera); }
+  camera.layers.set(0); // (the fine layer is drawn on its own: drawFine)
+  if (rows) { renderer.setRenderTarget(target); renderer.render(scene, camera); fineDrawn = drawFine(renderer, scene, camera, gw, gh); }
   else { // the frustum widened to the whole grid (its margin), then put back
     const l = camera.left, r = camera.right, t = camera.top, bt = camera.bottom;
     camera.left = -gw * px * camera.zoom / 2; camera.right = -camera.left; camera.top = gh * py * camera.zoom / 2; camera.bottom = -camera.top;
     camera.updateProjectionMatrix();
-    renderer.setRenderTarget(target); renderer.render(scene, camera);
+    renderer.setRenderTarget(target); renderer.render(scene, camera); fineDrawn = drawFine(renderer, scene, camera, gw, gh);
     camera.left = l; camera.right = r; camera.top = t; camera.bottom = bt; camera.updateProjectionMatrix();
   }
   s.tColor.value = target!.texture; s.tDepth.value = target!.depthTexture; s.grid.value.set(gw, gh);
@@ -175,6 +224,8 @@ export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   pass(renderer, shade, shaded);
   b.tShaded.value = shaded!.texture; b.size.value.set(shaded!.width, shaded!.height); b.screen.value.set(buffer.x, buffer.y);
   b.grid.value.set(gw, gh); b.whole.value = rows ? 1 : 0;
+  b.hasFine.value = fineDrawn ? 1 : 0; b.tFine.value = fine!.texture; b.tFineDepth.value = fine!.depthTexture; b.tDepth.value = target!.depthTexture;
+  b.fineSize.value.set(fine!.width, fine!.height); b.outline.value = look.outline ? 1 : 0;
   // at the texel the window shows the view itself (viewW × viewH): the grid's middle less the part of a pixel moved
   b.centre.value.set(gw / 2 - dr / px, gh / 2 - du / py); b.scale.value.set(buffer.x * px / viewW, buffer.y * py / viewH);
   pass(renderer, blit, null);

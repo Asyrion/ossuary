@@ -2,21 +2,23 @@ import * as THREE from 'three';
 import { CFG } from '../config';
 import type { FloorLook, Torch } from '../types';
 import { scene } from './renderer';
+import { FINE } from './pixelLook';
 
 // Soft fill + cold moon + a pool of four torch lights on the torches nearest the mage + the hero's lantern.
-// The number of lights never changes, so shaders are never rebuilt when rooms change.
+// The number of lights never changes, so shaders are never rebuilt when rooms change. Every light is on the fine layer
+// too (`lit`), so what is drawn there is lit as the rest is (pixelLook.ts); a new light goes through `lit`.
 const L = CFG.lights;
-const hemi = new THREE.HemisphereLight(0x8a7ea0, 0x1d150f, L.hemi); scene.add(hemi);
-const moon = new THREE.DirectionalLight(0xaab6d8, L.moon);
-moon.position.set(-4, 10, 7); scene.add(moon);
+const lit = <T extends THREE.Light>(l: T) => { l.layers.enable(FINE); scene.add(l); return l; };
+const hemi = lit(new THREE.HemisphereLight(0x8a7ea0, 0x1d150f, L.hemi));
+const moon = lit(new THREE.DirectionalLight(0xaab6d8, L.moon));
+moon.position.set(-4, 10, 7);
 
 export const torchLights = [0, 1, 2, 3].map(() => {
-  const l = new THREE.PointLight(0xff9a3c, 0, L.torchDistance, L.torchDecay); scene.add(l); return l;
+  return lit(new THREE.PointLight(0xff9a3c, 0, L.torchDistance, L.torchDecay));
 });
 /** Which torch each light sits on, and how far it has faded in. */
 const slots = torchLights.map(light => ({ light, torch: null as Torch | null, fade: 0 }));
-export const lantern = new THREE.PointLight(0xffc27a, L.lantern, L.lanternDistance, L.lanternDecay);
-scene.add(lantern);
+export const lantern = lit(new THREE.PointLight(0xffc27a, L.lantern, L.lanternDistance, L.lanternDecay));
 
 /** Torch brightness factor of the current floor (CFG.lights.torch × this), and how dark the current room is:
     0 normally, 1 in a dark room (torches out, fill and moonlight low, the lantern a little brighter). */

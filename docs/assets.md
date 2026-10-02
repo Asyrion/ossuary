@@ -94,7 +94,7 @@ several enemies, particles and eight lights. Budgets per kind:
 | Artifact | Ember Sigil on its pedestal | up to 3,000 | 512 px | no | 0.3 to 0.45 units, floating | `public/assets/artifacts/<id>.glb` |
 | Floor and wall texture | crypt flagstones, drowned bricks | | 1,024 × 1,024 seamless tile, colour only (a normal map optional) | | 1 tile of the texture = 1 floor tile | `public/assets/textures/<floor>/<part>.jpg` |
 | Icon | artifacts, later spells and potions | | 256 px source, 128 px shipped, transparent background | | shown at 28 px (HUD) and 44 px (lore card) | `public/assets/icons/<id>.png` |
-| Coin face | the obols, later coins of other kinds | | 512 px or more kept (the coin across), shipped at 28 px (the face) and 24 px (its icon), 16 colours, hard-edged | | a coin 28 game pixels across, facing the camera (0.58 units) | `public/assets/coins/<id>.png`, `<id>-icon.png` |
+| Coin face | the obols, later coins of other kinds | | 512 px or more kept (the coin across), shipped at 56 px (the face) and 24 px (its icon), 16 colours, hard-edged | | a coin 28 game pixels across, facing the camera (0.58 units), its face on the fine layer (two pixels to a game pixel) | `public/assets/coins/<id>.png`, `<id>-icon.png` |
 
 Conventions for models: one object per file, facing +Z (towards the camera), standing on y = 0, centred on
 the origin, real proportions (the game scales a prop to its size above, so absolute size doesn't matter).
@@ -187,16 +187,17 @@ model instead of painted. (Since 2026-09-30 the game's icons are rendered from t
 and seen straight on, on a plain ground (white is fine) or cut out, 512 px or more across.
 `npm run prepare-texture -- <image> --kind coin --id <name>` finds the coin (the circle across its width, so a shadow
 under it is left out; it warns when the coin is taller than wide), cuts it from its ground and writes two PNGs to
-`coins/`: the face at the game's own pixel (`images.coin.size`, 28: one texel of the room kit a pixel, so a coin facing
-the camera is drawn pixel for pixel) in 16 colours with a hard edge, and its 24 px icon outlined in dark as the
+`coins/`: the face at the fine layer's pixel (`images.coin.size`, 56: the game draws a coin's face finer than the rest,
+two pixels to each of its 28 game pixels across, so a coin facing the camera is drawn pixel for pixel; the owner's
+exception to one pixel for everything, 2026-10-02) in 16 colours with a hard edge, and its 24 px icon outlined in dark as the
 artifacts' are. Its sheet in `asset-previews/` shows the face as the room draws it and the icon at 28 and 44 px. A coin
 goes in `data/assets.json` under `coins` by a name of its own, and `obol` names the face the obols wear; the game
-draws the obol as a coin of that size tipped back to the camera, the face on both sides and its edge in the face's rim
-colour, and puts the icon on the HUD's counter, the lore card and the inventory. Without a face loaded, the obol built
+draws the obol as a coin `CFG.pickups.coinPixels` across tipped back to the camera, the face on both sides and its edge
+in the face's rim colour, both on the pixel look's fine layer, and puts the icon on the HUD's counter, the lore card and the inventory. Without a face loaded, the obol built
 in code (a rune stamped on gold) stays. The dev menu's Look tab (Made assets) switches the face the obols wear, kept
 in the browser, and the Galleries tab stands every face side by side (`__game.obolFace`, `wearFace(id)`,
-`coinGallery()`). Fine text and runes don't survive 28 pixels: the coin reads by its rim's colour and the shape at
-its middle.
+`coinGallery()`). Fine text doesn't survive 56 pixels: the coin reads by its rim's colour, the shape at its middle and
+its larger runes.
 
 ## Sound
 
@@ -331,4 +332,4 @@ asset is accepted.
 | Ember Sigil | artifact | gem placeholder | | | dropped 2026-09-30 (built in code) |
 | Crypt floor | texture | procedural floor, floor 1 | | | dropped 2026-09-30 (drawn in code, M3.5 step 3) |
 | Ember Sigil, Bone Lens and Mask of the Drowned icons | icons | SVG placeholders | | | dropped 2026-09-30 (rendered from the models built in code) |
-| Seven coin faces (Arcane eye, Silver owl, Star and crystal, Grave coin, Arcane sigil, Pale obol, Plain profile; `inspiration/coins/`) | coin faces | the obol built in code (Star and crystal worn by the obols) | the owner's images | | in the game 2026-10-02, the obols' face for the owner to choose |
+| Seven coin faces (Arcane eye, Silver owl, Star and crystal, Grave coin, Arcane sigil, Pale obol, Plain profile; `inspiration/coins/`) | coin faces | the obol built in code (Star and crystal worn by the obols) | the owner's images | | in the game 2026-10-02; Star and crystal chosen by the owner, drawn on the fine layer |

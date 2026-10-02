@@ -3003,26 +3003,27 @@ test('made assets: missing and broken files, and ?assets=off, leave the placehol
   expect(errors).toEqual([]); expect(off).toEqual([]);
 });
 
-test('coin faces: the obols wear the owner\'s coin, drawn at the game\'s pixel, in the room, the HUD and the card; the dev menu changes it', async ({ page }) => {
-  type O = { isMesh?: boolean; material?: { map?: { image: { naturalWidth: number; src: string }; magFilter: number } }; traverse(f: (o: O) => void): void };
+test('coin faces: the obols wear the owner\'s coin, drawn on the fine layer, in the room, the HUD and the card; the dev menu changes it', async ({ page }) => {
+  type O = { isMesh?: boolean; layers: { mask: number }; material?: { map?: { image: { naturalWidth: number; src: string }; magFilter: number } }; traverse(f: (o: O) => void): void };
   type GC = { sim(sec: number, draw?: boolean): void; player: { x: number; z: number }; pickups: { kind: string; m: O }[]; drop(kind: string, x: number, z: number): void;
-    obolFace: string; obolFaces: string[]; wearFace(id: string): void; coinGallery(): number; takeCoinGallery(): void };
+    obolFace: string; obolFaces: string[]; wearFace(id: string): void; coinGallery(): number; takeCoinGallery(): void; fineLayerDrawn: boolean };
   const errors = await start(page, '?seed=K3F9QX');
   const look = () => page.evaluate(() => {
-    const g = (window as unknown as { __game: GC }).__game, maps: { w: number; src: string; near: boolean }[] = [];
-    for (const p of g.pickups) if (p.kind === 'coin') p.m.traverse(o => { const m = o.isMesh ? o.material?.map : undefined; if (m) maps.push({ w: m.image.naturalWidth, src: m.image.src.replace(/.*\//, ''), near: m.magFilter === 1003 }); });
+    const g = (window as unknown as { __game: GC }).__game, maps: { w: number; src: string; near: boolean; fine: boolean }[] = [];
+    for (const p of g.pickups) if (p.kind === 'coin') p.m.traverse(o => { const m = o.isMesh ? o.material?.map : undefined; if (m) maps.push({ w: m.image.naturalWidth, src: m.image.src.replace(/.*\//, ''), near: m.magFilter === 1003, fine: o.layers.mask === 2 }); });
     const hud = document.querySelector('#purse .coins image')?.getAttribute('href')?.replace(/.*\//, '') ?? null;
-    return { face: g.obolFace, maps: [...new Map(maps.map(m => [m.src, m])).values()], hud };
+    return { face: g.obolFace, maps: [...new Map(maps.map(m => [m.src, m])).values()], hud, fineDrawn: g.fineLayerDrawn };
   });
   await page.evaluate(() => { const g = (window as unknown as { __game: GC }).__game; g.drop('coin', g.player.x + 2, g.player.z - 2); g.sim(.3, true); });
-  // the manifest's face: 28 pixels across, drawn texel for texel, and its icon on the HUD's counter
-  expect(await look()).toEqual({ face: 'star_crystal', maps: [{ w: 28, src: 'star_crystal.png', near: true }], hud: 'star_crystal-icon.png' });
+  // the manifest's face: 56 pixels across on the fine layer (two to each of the coin's 28 game pixels), drawn pixel for
+  // pixel, and its icon on the HUD's counter
+  expect(await look()).toEqual({ face: 'star_crystal', maps: [{ w: 56, src: 'star_crystal.png', near: true, fine: true }], hud: 'star_crystal-icon.png', fineDrawn: true });
   expect(await page.evaluate(() => (window as unknown as { __game: GC }).__game.obolFaces)).toEqual(['arcane_eye', 'silver_owl', 'star_crystal', 'grave_coin', 'arcane_sigil', 'pale_obol', 'plain_profile', 'rune']);
   // another face: the obol lying there and the counter change with it; the rune: the coin built in code, the drawn icon
   await page.evaluate(() => { const g = (window as unknown as { __game: GC }).__game; g.wearFace('pale_obol'); g.sim(.1, true); });
-  expect(await look()).toEqual({ face: 'pale_obol', maps: [{ w: 28, src: 'pale_obol.png', near: true }], hud: 'pale_obol-icon.png' });
+  expect(await look()).toEqual({ face: 'pale_obol', maps: [{ w: 56, src: 'pale_obol.png', near: true, fine: true }], hud: 'pale_obol-icon.png', fineDrawn: true });
   await page.evaluate(() => { const g = (window as unknown as { __game: GC }).__game; g.wearFace('rune'); g.sim(.1, true); });
-  expect(await look()).toEqual({ face: 'rune', maps: [], hud: null });
+  expect(await look()).toEqual({ face: 'rune', maps: [], hud: null, fineDrawn: false }); // (nothing on the fine layer: the rune is drawn with the rest)
   // the choice is remembered in the browser; the gallery stands every face side by side
   await page.reload(); await page.waitForFunction(() => !!(window as unknown as { __game?: unknown }).__game);
   expect(await page.evaluate(() => (window as unknown as { __game: GC }).__game.obolFace)).toBe('rune');
@@ -3192,8 +3193,8 @@ test('the room kit\'s artifacts: every one built in code, the HUD\'s icons rende
 
 test('the room kit\'s pickups and special rooms: every drop, coffers and chests that still open, the shade, the library, the shrine\'s stones and the vault\'s lock built in code, and the old look to compare', async ({ page }) => {
   type Mat = { vertexColors?: boolean };
-  type O = { traverse(f: (o: O & { material?: Mat | Mat[] }) => void): void };
-  const painted = (o?: O) => { let n = 0; o?.traverse(q => { if ([q.material ?? []].flat().some(m => m.vertexColors)) n++; }); return n; }; // (the room kit's pieces: colours in the vertices)
+  type O = { layers?: { mask: number }; traverse(f: (o: O & { material?: Mat | Mat[] }) => void): void };
+  const painted = (o?: O) => { let n = 0; o?.traverse(q => { if ([q.material ?? []].flat().some(m => m.vertexColors) || q.layers?.mask === 2) n++; }); return n; }; // (the room kit's pieces: colours in the vertices; an obol's coin face, on the fine layer)
   // (evaluated as strings, so the counting function goes along with them)
   const drops = () => page.evaluate(`(() => {
     const g = window.__game, painted = ${painted.toString()};
