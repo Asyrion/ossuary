@@ -74,7 +74,7 @@ export function buildFoe(e: Enemy, def: FoeDef) {
   const look = def.look ?? def.id, build = fantasyLook(look, DEV.foeLooks) ?? oldLook(look); // (M4.12: a new look once approved, or as the switch says)
   if (!build) throw new Error(`foe ${def.id}: no look ${look}`); // (M4's model options, M4.5's bestiary, or a look of its own)
   const b = build();
-  e.mats = mergeRig(b.group, b.idle, look, Object.values(b.parts ?? {}));
+  e.mats = mergeRig(b.group, b.idle, build === oldLook(look) ? look : look + ':new', Object.values(b.parts ?? {})); // (a new look's merge plan kept apart from its old one's)
   for (const m of e.mats) m.userData.base = m.emissive.clone();
   e.foe = def; e.model = b.group; e.idle = b.idle; e.parts = b.parts; e.at = Math.random() * 4; e.tele = 0; e.shadow = b.shadow;
   e.flying = def.flying; e.contact = def.contact;

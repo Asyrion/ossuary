@@ -43,7 +43,7 @@ const light = (kind: 'fire' | 'frost') => kind === 'fire' ? SCHOOL_LIGHT.ember :
     comes down from above onto the pillar nearest where it stands. */
 export function buildDragon(e: Enemy) {
   const L = dragonHead(), P = L.parts, body = dragonBody(), room = G.current;
-  e.mats = mergeRig(L.group, L.idle, 'boss:dragonHead', [P.eye, P.ring, P.head, P.jaw, P.maw]);
+  e.mats = mergeRig(L.group, L.idle, 'boss:dragonHead' + (L.key ?? ''), [P.eye, P.ring, P.head, P.jaw, P.maw]);
   e.mats.push(...body.mats); for (const m of e.mats) m.userData.base = m.emissive.clone();
   e.model = L.group; e.idle = L.idle; e.shadow = L.shadow; e.bossSchool = L.school; e.body.add(L.group);
   e.eye = P.eye; e.ring = P.ring; e.halo = P.halo; e.parts = P; e.bossAff = { weak: C.weak, resist: C.resist };

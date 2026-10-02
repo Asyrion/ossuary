@@ -8,13 +8,14 @@ import { glow } from '../render/materials';
 import { bigEyes, part, sphere, std } from '../render/arcane';
 import { lay, neck, type P3 } from './dragonPath';
 import type { BossBuilt } from './bossLooks';
+import { dressedBoss } from './fantasyBosses';
 
 /** The serpent's colours: its jelly, the deeper green of its core, the pale green of its fins and glints. */
 export const SERPENT = { jelly: 0x6ad868, deep: 0x1e6a34, pale: 0xc8ffb0, core: 0x2a7a3a, glint: 0xe8ffe0 };
 
 /** The head (the boss's look): `head` (sways, lunges), `jaw` (drops open to spit), `eye`, `ring` (bubbles turning round
     the crown) and `halo`; `fins` (the crest, raised as it rises). */
-export function serpentHead(): BossBuilt {
+export function serpentHeadOld(): BossBuilt {
   const g = new THREE.Group(), jelly = std(SERPENT.jelly, { roughness: .28, emissive: SERPENT.deep, emissiveIntensity: .55 });
   const deep = std(SERPENT.deep, { roughness: .4, emissive: SERPENT.deep, emissiveIntensity: .3 }), pale = std(SERPENT.pale, { roughness: .3, emissive: 0x4a8a4a, emissiveIntensity: .5 });
   const head = new THREE.Group(); g.add(head);
@@ -75,9 +76,12 @@ export function serpentBody(n = 16, spacing = .22): SerpentBody {
   } };
 }
 
-/** The jelly serpent for the gallery: its head reared up, its body curled on the floor behind it. */
-export function serpentLook(): BossBuilt {
-  const L = serpentHead(), g = new THREE.Group(), B = serpentBody();
+/** The jelly serpent's head as it is built now (M4.12: its new look once approved). */
+export const serpentHead = dressedBoss('serpentHead', serpentHeadOld);
+
+/** The jelly serpent for the gallery: its head reared up, its body curled on the floor behind it (`head` as the dragon's). */
+export function serpentLook(head: () => BossBuilt = serpentHead): BossBuilt {
+  const L = head(), g = new THREE.Group(), B = serpentBody();
   L.group.position.y = .55; g.add(L.group, B.group);
   const coil: P3[] = []; for (let k = 0; k <= 40; k++) { const s = k / 40, a = Math.PI * .5 + s * Math.PI * 1.7, r = .5 + .55 * s; coil.push([Math.cos(a) * r * 1.2, .2, -.6 + Math.sin(a) * r]); }
   B.pose(lay([...neck([0, .45, -.1], coil[0], .15), ...coil], B.n, B.spacing, .1));

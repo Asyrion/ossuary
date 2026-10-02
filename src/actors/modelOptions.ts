@@ -260,7 +260,7 @@ export function showBossLooks(room: Room, x: number, z: number, only?: readonly 
   const list = ALL_BOSS_LOOKS.filter(o => !only || only.includes(o.id));
   return list.map((o, i) => {
     const at = freeSpotNear(room, x + (i - (list.length - 1) / 2) * 2.9, z - 3);
-    const b = o.build(); mergeRig(b.group, b.idle, 'boss:' + o.id); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
+    const b = o.build(); mergeRig(b.group, b.idle, 'boss:' + o.id + (b.key ?? '')); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
     shown.push({ room, group: b.group, idle: b.idle });
     return { id: o.id, x: at.x, z: at.z };
   });
