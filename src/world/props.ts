@@ -11,7 +11,7 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { PropBox, PropState, Room, RockBox, SporeCloud, FloorLook } from '../types';
-import { DEV, G, player } from '../state';
+import { DEV, G, after, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { M, blob, boxUV, disposeTree, glow, markShared, mergeStill } from '../render/materials';
 import { addDecal, burst } from '../combat/fx';
@@ -33,9 +33,10 @@ import type { SpellStatus } from '../magic/spellData';
 import { addPool, fireAt } from './pools';
 import { scrollsBroken } from './themes';
 import { OBJECT_LOOKS, burningFire } from './objectLooks';
-import { addPit, freeSpotNear, openChasm } from './rooms';
+import { addPit, freeSpotNear, isFreeAt, openChasm } from './rooms';
 import { actingKind } from '../actors/acting';
 import { counterAt } from '../actors/counters';
+import { boonActs, boonParam } from '../progression/boonHooks';
 
 const P = CFG.props;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, SPORE = 0x9fe8b0, BONE = 0xd8ccb2, PETAL = 0xf0a8c8, POLLEN = 0xf0e890;
@@ -267,7 +268,35 @@ function breakProp(room: Room, box: PropBox) {
     default: burst(x, .3, z, 0x8a8078, 8, 1.6, .05);
   }
   if (def.loot) for (const item of rollTable(G.run.drops, def.loot, LOOT, soulsHere())) spawnPickup(item, x, z, { rise: true });
-  objectReagent(kind, x, z); // (M5: now and then the reagent it held)
+  if (!box.prop.sown) objectReagent(kind, x, z); // (M5: now and then the reagent it held; M6: a plant Seedfall sowed holds none)
+}
+
+/** M6, Seedfall: a flowering plant where an overgrown foe fell, on the floor tile nearest the fall that is free (no pool,
+    clear of the mage, the foes, what lies on the floor, the doors' lanes and the room's middle, where a pedestal or the
+    trapdoor rises); none if no tile within `CFG.boons.sowReach` is, or the room holds `seedMax` already. At its second rank
+    it bursts by itself a moment later, while the mage is still in the room. */
+export function sowBlossom(room: Room, x: number, z: number) {
+  const C = CFG.boons, K = C.sowClear;
+  if ((room.props ?? []).filter(b => b.prop.sown).length >= C.seedMax) return null;
+  const c0 = Math.floor(x - room.bounds.minX), r0 = Math.floor(z - room.bounds.minZ), reach = Math.ceil(C.sowReach);
+  let best: { c: number; r: number } | null = null, bd = Infinity;
+  for (let r = r0 - reach; r <= r0 + reach; r++) for (let c = c0 - reach; c <= c0 + reach; c++) {
+    if (room.template.tiles[r]?.[c] !== 'floor' || room.poolGrid?.[r]?.[c]) continue;
+    const w = worldOf(room, c, r), d = Math.hypot(w.x - x, w.z - z);
+    if (d > C.sowReach || d >= bd || !isFreeAt(room, w.x, w.z)) continue;
+    if (Math.hypot(w.x - player.x, w.z - player.z) < K.mage + player.r || Math.hypot(w.x - room.cx, w.z - room.cz) < K.middle) continue;
+    if (room.doors.some(dr => Math.hypot(w.x - dr.x, w.z - dr.z) < K.door)) continue;
+    if (G.enemies.some(o => !o.dead && !o.flying && Math.hypot(o.x - w.x, o.z - w.z) < o.r + K.foe)) continue;
+    if (G.pickups.some(p => Math.hypot(p.x - w.x, p.z - w.z) < .6) || G.glyphs.some(gl => Math.hypot(gl.x - w.x, gl.z - w.z) < .6)) continue;
+    best = { c, r }; bd = d;
+  }
+  if (!best) return null;
+  const box = addProp(room, 'blossom', best.c, best.r); box.prop.sown = true;
+  burst(box.x, .2, box.z, SCHOOL_LIGHT.verdant, 14, 1.6, .05); burst(box.x, .4, box.z, PETAL, 8, 1.2, .04); Sfx.at(box.x, box.z).bloom();
+  boonActs('seedfall', box.x, box.z);
+  const wait = boonParam('seedfall', 'burst');
+  if (wait > 0) after(wait, () => { if (G.current === room && room.props?.includes(box)) breakProp(room, box); });
+  return box;
 }
 
 /** A flowering plant bursts (M5, Verdant): petals and a ring of pollen, and every foe in its reach overgrown. */

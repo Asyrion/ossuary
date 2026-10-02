@@ -33,7 +33,7 @@ import { SCHOOL_LIGHT } from '../render/arcane';
 import { poolAt, touchPools } from '../world/pools';
 import { ringFx, strikeFx } from './spellFx';
 import { breakPlate } from '../actors/bosses';
-import { foeAfflicted } from '../actors/foes';
+import { foeAfflicted, laySpark } from '../actors/foes';
 import { chargeSteam, steamAt } from './steam';
 import { weaveAt } from './weaveFx';
 import { layGround } from '../actors/bestiaryGround';
@@ -73,7 +73,7 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
       Sfx.at(e.x, e.z).freeze(); burst(e.x, .6, e.z, ICE, 12, 1.6, .05); e.snapped = from === 'snap';
       if (kind === 'chill' && (stacks < MAGIC.chill.freezeAt || T.chill.freezeTime > MAGIC.chill.freezeTime)) boonActs('deepWinter', e.x, e.z); // (frozen sooner, or longer, than it would have been)
     }
-    if (res.stunned) burst(e.x, .9, e.z, SPARK, 6, 2, .03);
+    if (res.stunned) { burst(e.x, .9, e.z, SPARK, 6, 2, .03); if (from === 'mage' && boonRank('sparkWake')) sparkWake(e); }
     if (kind === 'burn' && st.burn > 0 && boonRank('bankedCoals')) boonActs('bankedCoals', e.x, e.z); // (M6: it burns longer)
     if (kind === 'hex' && st.hex > MAGIC.hex.max) boonActs('gatheringDark', e.x, e.z); // (M6: deeper than a hex can gather without it)
     if (res.reaction) react(e, res.reaction);
@@ -217,6 +217,24 @@ function verdantReact(e: Enemy, r: Reaction) {
   return false;
 }
 
+/** Spark Wake (M6): a foe the mage's shock stunned leaves a spark on the floor that stings foes, never the mage. */
+function sparkWake(e: Enemy) {
+  laySpark(G.current, e.x, e.z, boonParam('sparkWake', 'seconds'), 'mage', boonParam('sparkWake', 'damage'));
+  burst(e.x, .1, e.z, SPARK, 8, 1.6, .03); boonActs('sparkWake', e.x, e.z);
+}
+/** Cold Snap (M6): a frozen foe thaws and breathes its cold onto the foes within reach (what that freezes breathes nothing). */
+function coldBreath(e: Enemy) {
+  const reach = boonParam('coldSnap', 'reach'), chill = boonParam('coldSnap', 'chill');
+  const near = G.enemies.filter(o => o !== e && live(o) && Math.hypot(o.x - e.x, o.z - e.z) < reach + o.r);
+  burst(e.x, .6, e.z, ICE, 16, 2, .05); burst(e.x, .4, e.z, 0xffffff, 6, 1.4, .04); ringFx(e.x, .05, e.z, ICE, .2, reach, CFG.spellFx.shockwave, true);
+  for (const o of near) {
+    for (let k = 1; k <= 4; k++) burst(e.x + (o.x - e.x) * k / 5, .5, e.z + (o.z - e.z) * k / 5, ICE, 2, .6, .04);
+    inflict(o, { chill }, 'snap');
+  }
+  Sfx.at(e.x, e.z).frostbloom();
+  if (near.length) boonActs('coldSnap', e.x, e.z);
+}
+
 /** How long the vines must hold for their full slow (M6: Perennial roots a foe then). */
 const FULL_GROW = (MAGIC.grow.maxSlow - MAGIC.grow.slow) / MAGIC.grow.ramp;
 /** Perennial: the vines root the foe a moment (laid straight on: Root is Umbral's, and this isn't Umbral's magic). */
@@ -351,6 +369,7 @@ export function updateStatuses(dt: number, now: number) {
     if (e.dead) continue;
     if (s.burn > 0) touchPools(e, 'burn'); // a burning foe walking into oil sets it alight
     if (s.frozen > 0) addIce(e); else if (e.ice) { removeIce(e); if (thawed) Sfx.at(e.x, e.z).thaw(); }
+    if (thawed) { if (!e.snapped && boonRank('coldSnap')) coldBreath(e); e.snapped = false; } // (M6: Cold Snap; a foe a breath froze breathes nothing)
     const y = e.flying ? .85 : .5;
     if (s.burn > 0 && Math.random() < dt * 14) burst(e.x + (Math.random() - .5) * e.r, y + .2, e.z + (Math.random() - .5) * e.r, s.black ? (Math.random() < .5 ? BLACKFIRE : 0x2a0a4a) : Math.random() < .5 ? FIRE : 0xffc060, 1, .7, .05);
     if (s.hex > 0 && Math.random() < dt * 3 * s.hex) burst(e.x + (Math.random() - .5) * e.r * 1.6, y + .35, e.z + (Math.random() - .5) * e.r * 1.6, VIOLET, 1, .5, .03);
@@ -409,7 +428,7 @@ function textTexture(text: string, color: number, size = 44) {
 /** A word rising from a spot and fading: a reaction's name, a hit on the dummy. */
 export function floatText(x: number, y: number, z: number, text: string, color: number, size = 44) {
   const map = textTexture(text, color, size), s = new THREE.Sprite(new THREE.SpriteMaterial({ map, transparent: true, depthWrite: false, depthTest: false }));
-  const w = 1.6 * (map.userData.wide ?? 1), name = size >= 44; // (a name: a reaction's, a weave's, a weakness's; not a hit's number)
+  const w = 1.6 * (map.userData.wide ?? 1), name = size >= 40; // (a name: a reaction's, a weave's, a weakness's, a boon's, a counter's or a flower's word; not a hit's number)
   if (name) y = clearOfNames(x, y, z, w);
   s.scale.set(w, .4, 1); s.position.set(x, y, z); s.renderOrder = 10; scene.add(s);
   floats.push({ s, t: 0, y, name });

@@ -186,7 +186,7 @@ export function updateThrows(dt: number) {
     const hit = near(s.x, s.z, A.splash * 1.4), e = hit[Math.floor(G.run.alchemy.next() * hit.length)];
     const tx = e ? e.x : s.x + (Math.random() - .5) * A.splash * 2, tz = e ? e.z : s.z + (Math.random() - .5) * A.splash * 2;
     strikeFx({ x: tx, y: 3.2, z: tz }, { x: tx, y: .1, z: tz }, 0xb49aff, .18); Sfx.at(tx, tz).throwPotion();
-    if (e) { damageEnemy(e, num(s.def.throw.damage), 0, 0, .3, undefined, 'storm'); inflict(e, { shock: 1 }); }
+    if (e) { damageEnemy(e, num(s.def.throw.damage), 0, 0, .3, undefined, 'storm'); inflict(e, { shock: 1 }, 'mage'); }
     shockAt(tx, tz, undefined, true);
   }
   updateThrall(dt);

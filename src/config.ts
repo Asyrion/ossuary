@@ -133,7 +133,7 @@ export const CFG = {
   // fall and kept `sowClear` tiles from the mage, a door's lane and the room's middle; Spark Wake's spark refreshed rather
   // than laid again within `sparkMerge` of another of the mage's; Flamekeeper's embers run from each flame to the hand
   // every `emberEvery` seconds.
-  boons: { mendPerRoom: 1, seedMax: 4, sowReach: 2, sowClear: { mage: 1, door: 1.2, middle: 1.2 }, sparkMerge: .6, emberEvery: .35 },
+  boons: { mendPerRoom: 1, seedMax: 4, sowReach: 2, sowClear: { mage: 1, door: 1.6, middle: 1.2, foe: .5 }, sparkMerge: .6, emberEvery: .35 },
   /** M4.6 costumes (actors/costume.ts): the focus held in the casting hand (its scale, where along it the hand grips: 0 its
       middle, negative below; how far it leans forward and out), each spot's scale for an artifact's own model carried
       there, and a cursed piece's glow (a share of its height) and how often it weeps a red drop. */

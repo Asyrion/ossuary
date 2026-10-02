@@ -34,7 +34,8 @@ import { wearPlates } from '../actors/bosses';
 import { glance, twinFell } from '../actors/twinGuardians';
 import { mantleFell, mantleStruck } from '../actors/mantles';
 import { payPurse, paySerpent } from '../progression/insight';
-import { boonActs, laidBare, thirstHex } from '../progression/boonHooks';
+import { boonActs, boonRank, laidBare, thirstHex } from '../progression/boonHooks';
+import { sowBlossom } from '../world/props';
 
 /** Hurt a foe, knocking it along (dx, dz); `kbMul` scales the knockback (the Ram's Skull on bolts); `by` says
     what struck it (a foe the cantrip puts to rest gives mana back); `school`, the magic it struck with, if any: a foe in
@@ -96,7 +97,7 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
   payPurse(e); // (M6: its insight runs to the mage's hand)
   if (e.foe) { burst(e.x, .5, e.z, SCHOOL_LIGHT[e.foe.school], 10, 2.2, .04); foeDied(e); } // (its school's light goes out of it; what it leaves behind)
   if (e.mantle) mantleFell(e); // (M4.7: a Hexbound champion's curse)
-  if ((e.status?.grow ?? 0) > 0 || e.status?.bloom) flowerFell(e); // (M5: overgrown, it flowers; a lily mends besides)
+  if ((e.status?.grow ?? 0) > 0 || e.status?.bloom) { flowerFell(e); if (!e.isBoss && boonRank('seedfall')) sowBlossom(G.current, e.x, e.z); } // (M5: overgrown, it flowers; a lily mends besides; M6: Seedfall leaves a plant, before the drops find their spots)
   if (e.toll) payToll(e); // marked by the Ferryman's Toll: it pays in obols, and its hex spreads
   if ((e.status?.voidT ?? 0) > 0) { gainMana(MAGIC.reactions.voidspark.mana); burst(e.x, 1, e.z, SCHOOL_LIGHT.umbral, 8, 1.8, .04); } // (M4.8: a Void Spark's mark gives back mana as it falls)
   if (hexed >= MAGIC.hex.soulAt && e.type !== 'dummy' && G.run.drops.chance(Math.min(1, CFG.souls.hexChance * soulsHere()))) { // deep in a hex, its soul stays: a black mote

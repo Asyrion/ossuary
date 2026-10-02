@@ -56,7 +56,7 @@ function chargedTick(c: Cloud) {
   c.tick = T.every;
   for (const e of G.enemies) {
     if (e.dead || e.hidden || e.spawn > 0 || Math.hypot(e.x - c.x, e.z - c.z) > c.r + e.r * .5) continue;
-    if (c.school === 'storm') { strikeFx({ x: c.x, y: 1.4, z: c.z }, { x: e.x, y: .7, z: e.z }, 0xf0e890, CFG.spellFx.strike, true); damageEnemy(e, W.thundercloud.damage, 0, 0, 0, 'spell', 'storm'); inflict(e, { shock: W.thundercloud.shock }); }
+    if (c.school === 'storm') { strikeFx({ x: c.x, y: 1.4, z: c.z }, { x: e.x, y: .7, z: e.z }, 0xf0e890, CFG.spellFx.strike, true); damageEnemy(e, W.thundercloud.damage, 0, 0, 0, 'spell', 'storm'); inflict(e, { shock: W.thundercloud.shock }, 'mage'); }
     else if (c.school === 'hallow') inflict(e, { sanct: W.incense.sanct });
     else inflict(e, { hex: W.miasma.hex });
   }

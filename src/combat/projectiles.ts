@@ -247,7 +247,7 @@ export function updateBolts(dt: number) {
       if (glass) burst(e.x, .8, e.z, 0xf0e890, 6, 2.2, .03);
       b.hit.add(e);
       if (!b.spell && !b.secondary) cantripStruck(e, e.x, e.z, b.damage); // (M4.6: the transformations' gifts)
-      if (b.status) inflict(e, b.status);
+      if (b.status) inflict(e, b.status, 'mage');
       if (!b.spell && !e.haloed && !e.dead && player.stats.effects.has('halo')) { e.haloed = true; inflict(e, { sanct: CFG.artifacts.halo.sanct }); } // the Gilded Halo: the first bolt sanctifies
       if (b.crit) burst(e.x, .7, e.z, CFG.artifacts.crit.color, 8, 2.4, .05);
       // the Cracked Mirror: a cast bolt splits into two halves that fly on either side of it
