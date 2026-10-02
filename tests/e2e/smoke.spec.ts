@@ -4296,3 +4296,46 @@ test('weaves and chains (M4.10): each one set up and struck goes off, its name r
   expect(once).toMatchObject({ school: 'burn', steamed: true }); expect(once.melted).toBeGreaterThanOrEqual(14); // (two melts of seven patches each)
   expect(errors).toEqual([]);
 });
+
+test('insight and levels (M6 step 1): a foe put to rest pays its purse as a streak to the hand, a fight\'s first clear and a boss pay theirs, levels rise and wait, the HUD shows them, a potion and the Grave Draught pay, ?level starts higher and the end screen says it', async ({ page }) => {
+  type GI = { sim(s: number, draw?: boolean): void; warp(id: number): void; clearRoom(): void; spawn(kind: string, x?: number, z?: number): { maxHp: number };
+    hit(i: number, dmg: number): void; enemies: unknown[]; rooms(): { type: string; cleared: boolean; plan: { id: number } }[]; descend(): void; usePotion(how: string): boolean;
+    insight: { insight: number; level: number; pending: number; next: number; cap: number; potionsUsed: string[]; streaks: number }; giveInsight(n: number): void; setLevel(n: number): void;
+    player: { x: number; z: number; invuln: number } };
+  const errors = await start(page, '?seed=INSIGHT');
+  const got = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GI }).__game; g.player.invuln = 999; g.sim(.3);
+    const at0 = g.insight.insight, foe = g.spawn('sporeling'); g.sim(.8); g.hit(g.enemies.length - 1, 999); g.sim(.05);
+    const purse = g.insight.insight - at0, streaks = g.insight.streaks, said = document.getElementById('toast')?.textContent ?? '';
+    g.sim(1); const landed = g.insight.streaks;
+    const fight = g.rooms().find(r => r.type === 'normal' && !r.cleared)!; g.warp(fight.plan.id); g.sim(.6);
+    const at1 = g.insight.insight; g.clearRoom(); g.sim(.2); const clear = g.insight.insight - at1;
+    g.clearRoom(); const twice = g.insight.insight - at1; // (a room pays its clear once)
+    const boss = g.rooms().find(r => r.type === 'boss')!; g.warp(boss.plan.id); g.sim(1.2);
+    const at2 = g.insight.insight; g.clearRoom(); g.sim(.2); const bossPaid = g.insight.insight - at2;
+    const lv = g.insight; g.giveInsight(lv.next + .5); g.sim(.2);
+    return { purse, hp: foe.maxHp, streaks, landed, said, clear, twice, bossPaid, before: lv, after: g.insight,
+      badge: document.querySelector('#level b')?.textContent, strip: (document.querySelector('#insight i') as HTMLElement).style.transform };
+  });
+  expect(got.purse).toBeCloseTo(got.hp / 4, 3);
+  expect(got.streaks).toBeGreaterThan(0); expect(got.landed).toBe(0);
+  expect(got.said).toContain('insight');
+  expect(got.clear).toBe(4); expect(got.twice).toBe(4);
+  expect(got.bossPaid).toBe(60);
+  expect(got.after.level).toBe(got.before.level + 1); expect(got.after.pending).toBe(got.before.pending + 1);
+  expect(got.badge).toBe(String(got.after.level)); expect(got.strip).toMatch(/scaleX\(0\.0/);
+  // a potion's first use and the Grave Draught's sip; the end screen says the level reached
+  errors.push(...await start(page, '?room=library_plain&potions=graveDraught,healing&level=5'));
+  const potions = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GI }).__game; g.sim(.3);
+    const start = g.insight; g.usePotion('drink'); g.sim(.2); const sip = g.insight.insight - start.insight;
+    g.usePotion('drink'); g.sim(.2); const healing = g.insight.insight - start.insight - sip;
+    g.descend(); return { start, sip, healing, used: g.insight.potionsUsed, end: document.getElementById('endLevel')?.textContent };
+  });
+  expect(potions.start).toMatchObject({ level: 5, pending: 4 });
+  expect(potions.sip).toBe(15 + 4); // (15 × floor 1 for the sip, 4 for the kind's first use)
+  expect(potions.healing).toBe(4);
+  expect(potions.used.sort()).toEqual(['graveDraught', 'healing']);
+  expect(potions.end).toMatch(/^5 \(/);
+  expect(errors).toEqual([]);
+});

@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ossuary</title>
+<link rel="icon" href="data:,"><!-- (no icon yet: keeps the browser from asking for /favicon.ico, a 404) -->
 </head>
 <body>
 <canvas id="game" aria-label="Game view"></canvas>
@@ -14,8 +15,9 @@
 <div id="hud">
   <div id="hearts" aria-label="Health"></div>
   <div id="mana" role="meter" aria-valuemin="0"><i></i></div>
+  <div id="insight" role="meter" aria-valuemin="0"><i></i></div>
   <div id="afflict" role="status" aria-live="polite"></div>
-  <div id="spells"><div class="slot" id="slot0"></div><div class="slot" id="slot1"></div></div>
+  <div id="spells"><div class="slot" id="slot0"></div><div class="slot" id="slot1"></div><div id="level" aria-hidden="true"></div></div>
   <div id="belt" aria-label="Potion belt"></div>
   <div id="items"></div>
   <div id="purse" role="status"></div>
@@ -107,6 +109,7 @@
     <p id="endText"></p>
     <dl class="summary">
       <dt data-s="end.floor"></dt><dd id="endFloor"></dd>
+      <dt data-s="end.level"></dt><dd id="endLevel"></dd>
       <dt data-s="end.time"></dt><dd id="endTime"></dd>
       <dt data-s="end.kills"></dt><dd id="endKills"></dd>
       <dt data-s="end.obols"></dt><dd id="endObols"></dd>

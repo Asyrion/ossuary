@@ -1,7 +1,7 @@
 # M6 RPG growth: plan
 
 **Status: approved (2026-10-02) with four changes, the owner taking Claude's recommendations (decisions 6, 8, 10 and 11);
-step 1 under way.** GDD: RPG progression, Inside a run; Magic
+step 1 built.** GDD: RPG progression, Inside a run; Magic
 system, Runes; Core loop, Game loop changes for the magic RPG (the pacing target); Pickups and room types (the rune, the
 shrine's bargain, the waystone); the roadmap's M6 row ("XP, levels, attributes, 12 boons, runes and waystones").
 
@@ -218,6 +218,11 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
    - **Dev menu (Mage tab), Levels:** an info line, "+ insight to the next level", "Level 12", "Back to level 1";
      `__game.insight`, `level`, `giveInsight(n)`; `?level=N`.
    - **Browser test:** a foe struck down through `__game.hit` pays its purse; a room's clear and a boss pay theirs.
+   *Built (2026-10-02)* as planned. The rooms' roles are filled by a pure `src/world/fill.ts` now (`fillRoles`, from
+   `buildRoom`, in the same order of draws, so seeds replay their fights), so the pacing test measures the curve on the
+   generator itself (300 seeds: every check holds). The streak is a white-hot head and a trail of five in the foe's light;
+   a jump of several levels at once rises as one. Also: an empty icon link in index.html (the browser asked for
+   /favicon.ico, a 404 that failed a browser test).
 2. **Attributes.** `CFG.attributes` holds the per-point numbers. `attrBonus` (pure) is folded into `computeStats` after the
    artifact loop with the same additive and multiplier rules. The new stat keys `heartHalves` and `regenMul` are refused in
    data/artifacts.json by the validator. Spending Will fills the mana it adds (`refreshStats`' clamp stays as it is, so

@@ -113,6 +113,15 @@ export const CFG = {
   /** M4.6 Asyrion's arc (items/arc.ts): how many artifacts held bring each stage of the chaos mage's pieces, and how long
       each stage's line stays. */
   arc: { at: [3, 6, 9, 12], line: 4.5 },
+  // M6 (docs/M6-plan.md): insight, the GDD's XP, and levels. `at`: the insight each level from 2 to the cap needs (the
+  // last is the cap's; the curve measured over 2,000 seeds is the plan's table); a foe's purse is its health on its floor
+  // ÷ `foeDiv`; a room's first clear gives `perFloor` × the floor (an ordeal `ordealMul` times that), as does each potion's
+  // kind first used in a run; the jelly serpent gives its health ÷ `serpentDiv`. Each boss's insight is its floor's
+  // (data/floors.json), the Grave Draught's in data/alchemy.json. `streak`: the light that runs from a fallen foe to the
+  // casting hand (seconds, size, how many fly at once at most, motes in its trail and how far apart, how high it arcs); `gold`: insight's
+  // own light (a foe of no school, a room, a potion); `chimeGap`: seconds between its chimes at least.
+  levels: { at: [20, 70, 145, 240, 340, 450, 700, 1030, 1400, 1780, 2500], foeDiv: 4, perFloor: 4, ordealMul: 2, serpentDiv: 2,
+    streak: { time: .6, size: .36, max: 48, trail: 5, gap: .05, rise: .9 }, gold: 0xe8c878, chimeGap: .12 },
   /** M4.6 costumes (actors/costume.ts): the focus held in the casting hand (its scale, where along it the hand grips: 0 its
       middle, negative below; how far it leans forward and out), each spot's scale for an artifact's own model carried
       there, and a cursed piece's glow (a share of its height) and how often it weeps a red drop. */

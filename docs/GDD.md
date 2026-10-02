@@ -795,7 +795,7 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
   0.3 s later; the Giant's Brew makes the mage a quarter bigger, half again as strong and slower until the next room; the
   Shadowstep Tincture makes foes' shots go wide and their touch miss for 4 s; the Bitter Remedy lifts the newest curse's
   price until the floor ends; the Volatile Mixture is another potion's drink at random; the Hex Brew reverses movement and
-  casting for 5 s; the Grave Draught takes half a heart for a pale soul mote (XP waits for M6).
+  casting for 5 s; the Grave Draught takes half a heart for a pale soul mote (since M6: for 15 insight × the floor, the GDD's XP).
 - *Throws* land through the spells' hooks, so they light oil, freeze water and set off reactions like any spell: holy
   light that heals the mage in the splash, a daze, a pool of fire, a freeze, a storm striking for 3 s, foes striking each
   other, foes grown slow and big, a cloud of darkness (steam's kind, so shots from it go wide), every status cleared, a

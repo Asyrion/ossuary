@@ -5,6 +5,7 @@
    at one potion a visit for free. The rules are pure (alchemyData.ts); this is the game side. */
 import { CFG } from '../config';
 import { G, player } from '../state';
+import { potionUsed } from '../progression/insight';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { burst } from '../combat/fx';
@@ -67,6 +68,7 @@ export function jellyIdentifies(id: PotionId) {
   const lab = G.current.lab;
   if (!lab || lab.identified) return false;
   lab.identified = true; identify(id); potionCard(id); Sfx.at(lab.jelly.x, lab.jelly.z).brew();
+  potionUsed(id); // (M6: named by Dr. Jelly, a kind pays its insight as a first use does)
   return true;
 }
 

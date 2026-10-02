@@ -40,6 +40,13 @@ body{font-family:var(--f-ui);color:var(--ink);-webkit-user-select:none;user-sele
 #mana.flash i{background:linear-gradient(#ff9a8a,#c83a2a)}
 #mana.hexed i{background:linear-gradient(#d8b0ff,#7a3ad8)}
 #mana.hexed{box-shadow:0 0 8px rgba(183,132,255,.85),0 2px 0 rgba(0,0,0,.5)}
+/* M6: the insight strip under the mana bar (gold, full at the cap) and the level beside the spell slots */
+#insight{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 60px);width:150px;height:3px;background:#14110c;border:1px solid #0b0a14;border-top:0;border-radius:0 0 2px 2px;overflow:hidden}
+#insight i{display:block;height:100%;width:100%;background:#e8c878;transform:scaleX(0);transform-origin:left;transition:transform .25s}
+#insight.cap i{background:#fff0c0}
+#level{position:relative;min-width:30px;height:40px;padding:0 3px;border:1px solid #6a5636;border-radius:4px;background:rgba(10,8,6,.6);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;color:#e8c878;text-shadow:0 1px 1px #000}
+#level small{font:700 8px var(--f-ui);letter-spacing:.06em;text-transform:uppercase;color:#b8a07a}
+#level b{font:700 18px var(--f-display)}
 #afflict{position:absolute;left:calc(env(safe-area-inset-left,0px) + 176px);top:calc(env(safe-area-inset-top,0px) + 45px);display:flex;flex-wrap:wrap;gap:4px;max-width:46vw;pointer-events:none}
 #afflict span{font:600 11px var(--f-ui);color:#efe6d6;background:rgba(10,8,16,.72);border:1px solid rgba(0,0,0,.6);border-left:3px solid var(--c);border-radius:2px;padding:1px 6px 2px;text-shadow:0 1px 1px #000;white-space:nowrap}
 #spells{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 66px);display:flex;gap:8px}

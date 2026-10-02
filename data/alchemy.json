@@ -79,9 +79,9 @@
     },
     "graveDraught": {
       "name": "Grave Draught", "color": "#7a8a70", "weight": 8, "bad": true,
-      "drink": { "effect": "graveSip", "halves": 1 },
+      "drink": { "effect": "graveSip", "halves": 1, "insight": 15 },
       "throw": { "effect": "raiseThrall" },
-      "text": { "drink": "Half a heart for a pale soul mote", "throw": "A skeleton rises to fight for you this room" },
+      "text": { "drink": "Half a heart for insight (15 × the floor)", "throw": "A skeleton rises to fight for you this room" },
       "lore": "Moss and bone from the same grave. What drinks it is a little more dead; what it is spilled on, a little less."
     }
   },

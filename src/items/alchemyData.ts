@@ -13,7 +13,7 @@ export type ThrowEffect = 'healSplash' | 'daze' | 'firePool' | 'freezeSplash' | 
 /** The params each effect reads; a potion with that effect must give them all. */
 export const DRINK_PARAMS: Record<DrinkEffect, string[]> = {
   heal: ['halves'], mana: ['amount'], emberCantrip: ['seconds'], frostWard: ['seconds', 'speed'], freeSpells: ['casts'], echoSpell: [],
-  giant: ['damage', 'speed', 'scale'], unseen: ['seconds'], remedy: [], random: [], reversed: ['seconds'], graveSip: ['halves'],
+  giant: ['damage', 'speed', 'scale'], unseen: ['seconds'], remedy: [], random: [], reversed: ['seconds'], graveSip: ['halves', 'insight'],
 };
 export const THROW_PARAMS: Record<ThrowEffect, string[]> = {
   healSplash: ['halves'], daze: ['seconds'], firePool: ['seconds', 'burn'], freezeSplash: ['seconds', 'chill'], stormSplash: ['seconds', 'every', 'damage'],

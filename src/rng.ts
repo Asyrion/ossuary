@@ -2,6 +2,16 @@
    reproducible (floor layouts, loot) takes its own stream derived from it, so adding a random call in
    one system doesn't shift another. Visual effects and enemy wobble keep using Math.random. */
 
+/** Small seeded PRNG, used for procedural textures, rock placement and filling a room's roles (util.ts passes it on). */
+export function mulberry(seed: number) {
+  return () => {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
 /** 32-bit hash of a string (cyrb-style mix). */
 export function hashString(s: string) {
   let h1 = 0xdeadbeef, h2 = 0x41c6ce57;

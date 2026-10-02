@@ -50,6 +50,8 @@ import { $, mulberry } from './util';
 import { burst } from './combat/fx';
 import { mimicSpot } from './actors/foes';
 import { pickMantle } from './actors/mantleData';
+import { championIndex, packRoll } from './world/fill';
+import { payBoss, payClear, resetInsight, setLevel } from './progression/insight';
 
 /** How the next run starts. Set from the URL at boot (?seed, ?floor, ?room, ?variant, ?give, ?boss, ?loot); used once. */
 export interface RunOptions {
@@ -57,6 +59,7 @@ export interface RunOptions {
   /** Extra obols, keys and glyphs to start with. */ loot?: Partial<Record<Resource, number>>;
   /** Spells to start with, in slot order. */ spells?: string[];
   /** Potions to start with in the belt (M5). */ potions?: string[];
+  /** The level to start at (M6: its insight, its choices waiting). */ level?: number;
   /** Every fight on every floor in a room of this theme (M3.6). */ theme?: string;
 }
 let nextRun: RunOptions = {};
@@ -107,6 +110,7 @@ export function resetPlayer() {
   resetHearts(); resetArtifacts(); resetResources(); resetSouls(); resetAfflictions(); clearLines(); resetGifts();
   forgetSpells(); player.mana = player.stats.maxMana;
   resetPotions(); renderBelt(); // (M5: an empty belt, nothing drunk)
+  resetInsight(); // (M6: level 1, no streak in flight)
 }
 
 /** Start a new run: a fresh seed unless one was requested. */
@@ -118,6 +122,7 @@ function newRun(seed: string): typeof G.run {
     wanderer: Rng.from(seed, 'wanderer'), wandererMet: false, fennexFrom: undefined, transforms: [], arc: 0, attuned: [],
     bottles: bottlesFor(Rng.from(seed, 'bottles').int(0, 2 ** 30)), identified: [], alchemy: Rng.from(seed, 'alchemy'), reagents: Rng.from(seed, 'reagents'), remedy: null,
     serpent: 'caged', restless: Rng.from(seed, 'serpent').chance(CFG.alchemy.vat.restless),
+    insight: 0, level: 1, pending: 0, potionsUsed: [],
   };
 }
 
@@ -133,6 +138,7 @@ export function startGame(opts?: RunOptions) {
   o.spells?.slice(0, 2).forEach((id, i) => learnSpell(id, i, true));
   showScreen(null); G.state = 'play';
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, o.floor ?? 0)));
+  if (o.level) setLevel(o.level);
 }
 
 /** Build the first floor of the upcoming run as the title screen's backdrop; startGame keeps its seed. */
@@ -163,7 +169,7 @@ export function endGame(won: boolean) {
   if (won) Sfx.victory(); else Sfx.fallen();
   showEndScreen({
     won, floor: G.run.floor + 1, floors: FLOORS.length, time: G.stats.time, kills: G.stats.kills,
-    seed: G.run.seed, artifacts: [player.focus, ...player.items], cleansed: [...player.cleansed], obols: G.stats.obols,
+    seed: G.run.seed, artifacts: [player.focus, ...player.items], cleansed: [...player.cleansed], obols: G.stats.obols, level: G.run.level, insight: G.run.insight,
   });
 }
 export function toggleSound() { const muted = Sfx.toggle(); $('btnSound').textContent = muted ? STR.pause.soundOff : STR.pause.soundOn; }
@@ -210,9 +216,9 @@ function spawnWave(room: Room, ambush = false) {
   const cfg = floorCfg(), foes = room.waves[room.wave] ?? [];
   const mortal = foes.filter(f => f.kind !== 'boss');
   const championRoom = room.plan.variant === 'champion' || room.warden; // a forced vault's warden is a champion
-  const champion = championRoom && room.wave === 0 && mortal.length ? mortal[Math.floor(mulberry(room.plan.seed)() * mortal.length)] : null;
+  const champion = championRoom && room.wave === 0 && mortal.length ? mortal[championIndex(room.plan.seed, mortal.length)] : null;
   const mantle = champion ? pickMantle(cfg.mantles, mulberry(room.plan.seed ^ 0x3a17)()) : undefined; // (M4.7: in one of the floor's schools)
-  let mimics = 0; const taken: { x: number; z: number }[] = [], packs = mulberry((room.plan.seed ^ 0x5ac5) + room.wave); // (a pack's size, from the room's seed)
+  let mimics = 0; const taken: { x: number; z: number }[] = [], packs = packRoll(room.plan.seed, room.wave); // (a pack's size, from the room's seed)
   for (const f of foes) {
     let { x, z } = f;
     if (ambush) {
@@ -284,6 +290,7 @@ function keepVigil() {
 
 export function onRoomCleared(room: Room) {
   room.cleared = true; room.locked = false; setDoors(room, true); keepOath(room); payFerryman(room); keepVigil();
+  payClear(room); // (M6: a fight's first clear gives insight)
   const loot = G.run.loot;
   if (room.type === 'ordeal') { // the reward rises in the middle of the room
     const def = offerGuaranteed('ordeal');
@@ -302,9 +309,10 @@ export function onRoomCleared(room: Room) {
   maybeWanderer(room); // once a run, the Wandering Merchant rides in (M4.2)
 }
 
-export function onBossDead() {
+/** The floor's boss fell (at `at`, or the room's middle for the dev menu's clear): its rewards and the way down. */
+export function onBossDead(at?: { x: number; z: number }) {
   const cur = G.current;
-  hideBossBar();
+  hideBossBar(); payBoss(at); // (M6: its floor's insight)
   const h = freeSpotNear(cur, cur.cx, cur.cz + 2);
   spawnHeart(h.x, h.z, 2);
   makeTrapdoor(cur.cx, cur.cz); after(.5, () => Sfx.trapdoor());

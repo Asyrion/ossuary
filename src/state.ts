@@ -55,6 +55,9 @@ export const G = {
     /** M5 step 7: the jelly serpent, in its vat until it breaks out (once a run at most), then slain or not; and whether it
         is restless this run (rolled on the seed: it breaks out by itself after the first brew in its laboratory). */
     serpent: 'caged' as 'caged' | 'out' | 'slain', restless: false,
+    /** M6: insight gained this run (the GDD's XP), the level it reached, the levels whose choice still waits (the level-up
+        screen, step 4), and the potions' kinds used this run (each pays the first time). */
+    insight: 0, level: 1, pending: 0, potionsUsed: [] as PotionId[],
   },
   shake: 0,
   simClock: 0,
