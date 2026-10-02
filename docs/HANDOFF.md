@@ -6,7 +6,7 @@ Delete it, or write it again, at the next handoff.
 
 ## The branch and what is live
 
-- Work is on **`claude/m6-plan-docs-5gjp6c`**, pushed, clean. Its last work commit is M4.12 step 6 (floor 5's seven).
+- Work is on **`claude/m6-plan-docs-5gjp6c`**, pushed, clean. Its last work commit is M4.12 step 7 (the Wardlings).
 - **`main` (the live Pages site) is at `593af11`**, shipped 2026-10-02 in [Asyrion/ossuary#33](https://github.com/Asyrion/ossuary/pull/33):
   M6 steps 6 and 7, the gamepad fix, the smaller obol, Dr. Jelly as the plague doctor, the minimap's finished rooms, the
   ware panel, and M4.12 steps 1 to 5 with floors 1 to 3 approved. Another session merged the costumes cut back to 19
@@ -18,23 +18,12 @@ Delete it, or write it again, at the next handoff.
 
 ## What waits on the owner now
 
-**M4.12 step 6: floor 5's seven** (`src/actors/fantasyFloor5.ts`), sheets sent 2026-10-02. Floors 1 to 4 were approved
-the same day (the owner's yes to all) and are done: in `APPROVED`, old builders deleted, `RETIRED` keeping their old
-heights and parts for the contract, the galleries standing the new looks (`lampwyrmSwarm` for the swarm; the lava nest
-in `FOE_LOOKS`). Shipped to `main` and Pages with floors 1 to 3 approved ([Asyrion/ossuary#33](https://github.com/Asyrion/ossuary/pull/33));
-floor 4's approval and floor 5 are on the branch only. Floor 5's:
-
-| Look id (stays) | Was | Now |
-| --- | --- | --- |
-| `rootling` | Rootling | Mandrake |
-| `stormRay` | Storm Ray | Sky Ray |
-| `voidMote` | Void Mote | Void Maw |
-| `lanternTortoise` | Lantern Tortoise | Dragon Turtle |
-| `gloomRaven` | Gloom Raven | Gloom Raven |
-| `rimeWolf` | Rime Wolf | Rime Warg |
-| `dustPangolin` | Dust Pangolin | Tarasque |
-
-To see them again: `npm run foe-sheet -- floor=5 out=<dir>`, or in the game with `?looks=new`.
+**M4.12 step 7: the six Wardlings as ward cores** (`src/actors/fantasyWardlings.ts`, `wardCore(school)`), sheets sent
+2026-10-02 (`npm run foe-sheet -- floor=0`). Every floor's foes were approved the same day (the owner's yes to all, floors 1
+to 5) and are done: in `APPROVED`, old builders deleted, `RETIRED` keeping their old heights and parts for the contract,
+the galleries standing the new looks. The Wardlings' old builder is `wardling(school)` in `modelOptions.ts`, its six
+entries in `MODEL_OPTIONS` (floor 0); on the yes, point them at `WARDLING_LOOKS` and delete `wardling` (and `bigEyes`'s
+import if nothing else there uses it; Fen-Nex, the familiars and the boss looks still use `bigEyes` itself).
 
 **On the owner's yes (per foe):**
 

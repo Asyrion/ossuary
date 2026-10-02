@@ -12,9 +12,10 @@ import { FLOOR2_LOOKS } from './fantasyFloor2';
 import { FLOOR3_LOOKS } from './fantasyFloor3';
 import { FLOOR4_LOOKS } from './fantasyFloor4';
 import { FLOOR5_LOOKS } from './fantasyFloor5';
+import { WARDLING_LOOKS } from './fantasyWardlings';
 
 /** The new looks, by the look id they replace. */
-export const FANTASY_LOOKS: Partial<Record<string, () => Built>> = { ...FLOOR1_LOOKS, ...FLOOR2_LOOKS, ...FLOOR3_LOOKS, ...FLOOR4_LOOKS, ...FLOOR5_LOOKS };
+export const FANTASY_LOOKS: Partial<Record<string, () => Built>> = { ...FLOOR1_LOOKS, ...FLOOR2_LOOKS, ...FLOOR3_LOOKS, ...FLOOR4_LOOKS, ...FLOOR5_LOOKS, ...WARDLING_LOOKS };
 /** The new looks the owner has approved: the ones the foes wear in the game (floors 1 to 5, 2026-10-02). */
 export const APPROVED: ReadonlySet<string> = new Set<string>([
   'sporeling', 'vesperMoth', 'runeBeetle', 'urnMimic', 'cryptSpider', 'inkOctopus', 'fireflyBeetle', 'choirLark', 'stormMantis', 'rubbleCrab',
