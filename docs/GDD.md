@@ -1284,7 +1284,7 @@ At 180 small objects stop reading, so it is no longer offered. Tiles, icons and 
 - **Glows and shadows in steps.** Every glow (artifacts, torches, spells, motes) and the shadows under things fade in a few flat rings, as pixel art draws them.
 - **Icons in pixel art.** An artifact's icon is pixel art at about its size in the room (24 pixels), hard-edged and outlined, shown in whole steps.
 - **The rule from here:** anything new is drawn in the game at the texel, so it is pixel art by being there; its glows use the stepped glow, its icon is made the same way. The HUD's text and drawn icons stay sharp.
-- **One exception: the coins (the owner, 2026-10-02).** A coin's face is too small at the texel to read, so coins are drawn on a fine layer: the same size in the room, their pixels half as big (two to a game pixel each way), still hard-edged and outlined, laid over the room where nothing stands before them. Nothing else goes on the fine layer without the owner's say.
+- **One exception: the coins (the owner, 2026-10-02).** A coin's face is too small at the texel to read, so coins are drawn on a fine layer: the same size in the room, their pixels half as big (two to a game pixel each way), still hard-edged, outlined and banded as the rest, laid over the room where nothing stands before them (a glow, steam or a flame, which hold no depth, shows behind a coin). Nothing else goes on the fine layer without the owner's say.
 
 **Identity note.** The current hero is close to the Isaac art style. Fine for a hobby prototype; if the game is ever published, characters and art need their own look.
 
