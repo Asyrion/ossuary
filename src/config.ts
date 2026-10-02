@@ -128,6 +128,12 @@ export const CFG = {
     streak: { time: .6, size: .36, max: 48, trail: 5, gap: .05, rise: .9 }, gold: 0xe8c878, chimeGap: .12,
     // the level-up screen: seconds of calm after a fight before it opens, and seconds a choice is locked as it opens (a key held from the fight)
     calm: .8, lock: .4 },
+  // M6 step 5, the school boons at work (progression/boonHooks.ts): half hearts boons mend in one room at most (Votive
+  // Heart and Thirsting Hex together); Seedfall's plants, `seedMax` a room at most, sought within `sowReach` tiles of the
+  // fall and kept `sowClear` tiles from the mage, a door's lane and the room's middle; Spark Wake's spark refreshed rather
+  // than laid again within `sparkMerge` of another of the mage's; Flamekeeper's embers run from each flame to the hand
+  // every `emberEvery` seconds.
+  boons: { mendPerRoom: 1, seedMax: 4, sowReach: 2, sowClear: { mage: 1, door: 1.2, middle: 1.2 }, sparkMerge: .6, emberEvery: .35 },
   /** M4.6 costumes (actors/costume.ts): the focus held in the casting hand (its scale, where along it the hand grips: 0 its
       middle, negative below; how far it leans forward and out), each spot's scale for an artifact's own model carried
       there, and a cursed piece's glow (a share of its height) and how often it weeps a red drop. */

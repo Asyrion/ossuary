@@ -225,6 +225,8 @@ const sounds = {
   cardTake() { tone('sine', 784, 1175, .2, .05); tone('triangle', 1175, 1568, .25, .03, .05); },
   attrUp() { tone('sine', 660, 990, .16, .05); tone('triangle', 990, 1320, .2, .03, .06); },
   insight() { tone('sine', 1568, 1760, .12, .025); tone('sine', 2349, 2349, .16, .012, .03); },
+  /** M6 step 5: a boon at work, in its school's palette, a soft bell over it. */
+  boon(school: string) { schoolNote(school, 0); tone('sine', 1046, 1046, .3, .03, .08); },
   levelUp() { [523, 659, 784, 1046, 1318].forEach((f, i) => tone('triangle', f, f, .35, .06, i * .07)); tone('sine', 262, 262, .9, .07, .1); hiss(.6, .025, 'highpass', 5000); },
   vanish() { tone('sine', 880, 220, .35, .05); hiss(.3, .04, 'highpass', 3000); },
   altar() { tone('sine', 70, 40, .18, .2); tone('sine', 70, 40, .18, .16, .22); tone('sine', 147, 147, 1, .06, .1); },

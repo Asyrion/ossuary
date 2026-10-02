@@ -27,6 +27,7 @@ import { POTIONS, isKnown, type PotionDef, type PotionId, type ThrowEffect } fro
 import { brewedPotions } from './alchemyMemory';
 import { bottleLook } from './alchemyLooks';
 import type { Enemy } from '../types';
+import { boonActs, boonMul } from '../progression/boonHooks';
 
 const A = CFG.alchemy;
 interface Flight { id: PotionId; g: THREE.Object3D; x0: number; z0: number; x1: number; z1: number; t: number; room: object }
@@ -78,7 +79,12 @@ const THROW: Record<ThrowEffect, (x: number, z: number, r: number, def: PotionDe
   firePool(x, z, r, def) { fireAt(x, z, r); layFire(G.current, x, z, num(def.throw.seconds), undefined); for (const e of near(x, z, r)) inflict(e, { burn: num(def.throw.burn) }); },
   freezeSplash(x, z, r, def) { // (a boss is never frozen, as by chill: it only takes the chill)
     frostAt(x, z, r);
-    for (const e of near(x, z, r)) { inflict(e, { chill: num(def.throw.chill) }); if (e.dead || e.isBoss) continue; const s = e.status ??= newStatus(); s.frozen = Math.max(s.frozen, num(def.throw.seconds)); }
+    const longer = boonMul('deepWinter', 'frozenMul'); // (M6: Deep Winter's second rank holds its ice longer too)
+    for (const e of near(x, z, r)) {
+      inflict(e, { chill: num(def.throw.chill) }); if (e.dead || e.isBoss) continue;
+      const s = e.status ??= newStatus(); s.frozen = Math.max(s.frozen, num(def.throw.seconds) * longer);
+      if (longer > 1) boonActs('deepWinter', e.x, e.z);
+    }
   },
   stormSplash(x, z, _r, def) { storms.push({ x, z, t: num(def.throw.seconds), next: 0, def, room: G.current }); shockAt(x, z, undefined, true); },
   echoSplash(x, z, r) { // each foe in the splash strikes the nearest other foe, as hard as its own touch

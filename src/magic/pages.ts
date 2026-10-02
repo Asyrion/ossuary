@@ -305,7 +305,7 @@ export function clearPages() { stopAsking(); hidePagePanel(); }
 /* ---------- the panel over a page (M3.7) ---------- */
 
 const panelAt = new THREE.Vector3();
-let shown: { page: Page; stage: string; w: number; h: number } | null = null, view: DOMRect | null = null;
+let shown: { page: Page; stage: string; boons: string; w: number; h: number } | null = null, view: DOMRect | null = null;
 if (typeof window !== 'undefined') window.addEventListener('resize', () => { view = null; });
 /** The nearest page within reach gets a panel over it at the spell's stage; the first time a page is near, its spell
     is seen. Every step while playing (it follows the page on screen as the camera moves). */
@@ -318,10 +318,10 @@ export function updatePagePanel() {
   }
   if (!near) { hidePagePanel(); return; }
   sawSpell(near.spell);
-  const st = stage(near.spell);
-  if (shown?.page !== near || shown.stage !== st) { // new content: measured once here, not every step
+  const st = stage(near.spell), boons = JSON.stringify(G.run.boons); // (M6: a boon taken changes what the panel says)
+  if (shown?.page !== near || shown.stage !== st || shown.boons !== boons) { // new content: measured once here, not every step
     el.innerHTML = spellSheet(spell(near.spell), st, '', castsOf(near.spell)); el.classList.add('on');
-    shown = { page: near, stage: st, w: el.offsetWidth, h: el.offsetHeight };
+    shown = { page: near, stage: st, boons, w: el.offsetWidth, h: el.offsetHeight };
   }
   // over the page if there is room above it on screen, otherwise beside it (the mage comes from below: never there)
   const r = view ??= canvas.getBoundingClientRect(), { w, h } = shown;

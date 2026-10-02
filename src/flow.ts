@@ -53,6 +53,7 @@ import { pickMantle } from './actors/mantleData';
 import { championIndex, packRoll } from './world/fill';
 import { payBoss, payClear, resetInsight, setLevel } from './progression/insight';
 import { noAttrs } from './progression/attributes';
+import { takeBoon } from './progression/boons';
 
 /** How the next run starts. Set from the URL at boot (?seed, ?floor, ?room, ?variant, ?give, ?boss, ?loot); used once. */
 export interface RunOptions {
@@ -61,6 +62,7 @@ export interface RunOptions {
   /** Spells to start with, in slot order. */ spells?: string[];
   /** Potions to start with in the belt (M5). */ potions?: string[];
   /** The level to start at (M6: its insight, its choices waiting). */ level?: number;
+  /** Boons to start with, and the rank of each (M6 step 5: `?boons=deepWinter:2,coldSnap`). */ boons?: Record<string, number>;
   /** Every fight on every floor in a room of this theme (M3.6). */ theme?: string;
 }
 let nextRun: RunOptions = {};
@@ -123,7 +125,7 @@ function newRun(seed: string): typeof G.run {
     wanderer: Rng.from(seed, 'wanderer'), wandererMet: false, fennexFrom: undefined, transforms: [], arc: 0, attuned: [],
     bottles: bottlesFor(Rng.from(seed, 'bottles').int(0, 2 ** 30)), identified: [], alchemy: Rng.from(seed, 'alchemy'), reagents: Rng.from(seed, 'reagents'), remedy: null,
     serpent: 'caged', restless: Rng.from(seed, 'serpent').chance(CFG.alchemy.vat.restless),
-    insight: 0, level: 1, pending: 0, potionsUsed: [], attrs: noAttrs(), boons: {}, casts: {}, pledge: null, deals: 0,
+    insight: 0, level: 1, pending: 0, potionsUsed: [], attrs: noAttrs(), boons: {}, casts: {}, pledge: null, deals: 0, thirst: 0, acted: {},
   };
 }
 
@@ -137,6 +139,7 @@ export function startGame(opts?: RunOptions) {
   if (o.loot) giveResources(o.loot);
   o.potions?.forEach(id => { if (isPotion(id)) addPotion(id); });
   o.spells?.slice(0, 2).forEach((id, i) => learnSpell(id, i, true));
+  for (const [id, rank] of Object.entries(o.boons ?? {})) for (let k = 0; k < rank; k++) takeBoon(id, false);
   showScreen(null); G.state = 'play';
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, o.floor ?? 0)));
   if (o.level) setLevel(o.level);

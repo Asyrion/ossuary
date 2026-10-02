@@ -1,6 +1,7 @@
 /* A spell described as far as the mage knows it (M3.7, GDD: Spells, Spell knowledge). The panel over a grimoire page and
    the inventory's spells tab share it. Seen: name, school, the one-line effect. Learned: its shape, mana, cooldown,
-   damage and statuses. Used: its lore and the reactions it sets off. Upgraded: what changed it (M6). */
+   damage and statuses (M6 step 5: a status's number as the boons taken make it, and those boons). Used: its lore and the
+   reactions it sets off. Upgraded: what changed it (M6). */
 import { STR } from '../strings';
 import { CFG } from '../config';
 import { spellIcon } from './hud';
@@ -10,8 +11,11 @@ import { type Stage, REACTION_IDS, atLeast, reactionSchools, reactionsOf } from 
 import type { Reaction } from '../magic/status';
 import { reactionsFound, weavesFound } from '../magic/memory';
 import { WEAVES, WEAVE_IDS, weavesOf, type WeaveId } from '../magic/weaves';
-import type { School } from '../magic/spellData';
+import type { School, SpellStatus } from '../magic/spellData';
 import { SCHOOL_LIGHT } from '../render/arcane';
+import { G } from '../state';
+import { MAGIC } from '../magic/status';
+import { boon, boonText, boonTuning, boonsTouching, statusMul } from '../progression/boonData';
 
 export const esc = (t: string) => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 /** A panel's head: its icon, name and kind. */
@@ -26,11 +30,15 @@ export function spellSheet(def: SpellDef, stage: Stage, note = '', casts = 0) {
   let html = head(spellIcon(def.id), def.name, learned ? `${school} · ${esc(I.shapes[def.shape] ?? def.shape)}` : school, true)
     + `<p class="effect">${esc(def.text)}</p>`;
   if (!learned) return html + (note ? `<p class="note">${esc(note)}</p>` : '') + `<p class="note">${esc(K.seenOnly)}</p>`;
-  const cost = Math.round(spellCost(def)), statuses = Object.entries(def.status ?? {});
+  const cost = Math.round(spellCost(def)), statuses = Object.entries(def.status ?? {}), taken = G.run.boons;
+  const chip = (k: string, v: number) => { const now = Math.round(v * statusMul(k as SpellStatus, taken) * 10) / 10, t = I.status[k]?.(now) ?? k; return now === v ? t : I.boosted(t, v); };
+  const boons = boonsTouching(def, taken);
   html += `<div class="chips">${[I.mana(cost, def.mana), I.cooldown(def.cooldown), def.damage ? I.damage(def.damage) : ''].filter(Boolean).map(t => `<span class="chip">${esc(t)}</span>`).join('')}`
-    + statuses.map(([k, v]) => `<span class="chip st-${k}">${esc(I.status[k]?.(v) ?? k)}</span>`).join('') + '</div>'
+    + statuses.map(([k, v]) => `<span class="chip st-${k}">${esc(chip(k, v))}</span>`).join('') + '</div>'
     + (note ? `<p class="note">${esc(note)}</p>` : '')
-    + statuses.map(([k]) => `<p class="note">${esc(I.statusText[k] ?? '')}</p>`).join('');
+    + statuses.map(([k]) => `<p class="note">${esc(k === 'chill' ? I.chillText(boonTuning(MAGIC, taken).chill.freezeAt) : I.statusText[k] ?? '')}</p>`).join('')
+    + (boons.length ? `<p class="lbl">${esc(STR.boons.yours)}</p>` + boons.map(id => { const b = boon(id), r = taken[id] ?? 1;
+      return `<p class="note boon" style="--c:${b.color}"><i style="background:${b.color}"></i><b>${esc(r > 1 ? STR.boons.ranked(b.name) : b.name)}</b>: ${esc(boonText(id, r))}</p>`; }).join('') : '');
   if (!used) return html + `<p class="note">${esc(K.castMore(Math.max(1, CFG.knowledge.usedCasts - casts)))}</p>`;
   const sets = reactionsOf(def);
   const found = reactionsFound(); // (M4.8: the ones not yet found are marked so, and dimmed)

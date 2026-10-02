@@ -4442,3 +4442,25 @@ test('the level-up screen (M6 step 4): a level waits for the fight to be won, th
   expect(fight.open).toBe(true);
   expect(errors).toEqual([]);
 });
+
+/* M6 step 5: the school boons at work. Each case starts its own run with `?boons=`, sets the boon off through the game's own
+   hooks, and checks what it did, that its name rose (`said`), its line was said once (`hinted`) and, where cheap, rank II.
+   (Written as strings: the page's own JavaScript, `window.__game` untyped.) */
+
+test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks, and holds the ice longer at II', async ({ page }) => {
+  const errors = await start(page, '?seed=BOON5A&boons=deepWinter');
+  const got = await page.evaluate(`(() => {
+    const g = window.__game; g.player.invuln = 999; g.sim(.3);
+    g.spawn('dummy'); g.sim(1.2);
+    const d = g.enemies.find(e => e.type === 'dummy');
+    g.inflict({ chill: 1 }); const one = d.status.frozen;
+    g.inflict({ chill: 1 }); const two = d.status.frozen;
+    const said = g.boons.said.slice(), told = g.run.hinted.has('boon:deepWinter');
+    g.sim(4); g.giveBoon('deepWinter'); g.inflict({ chill: 1 }); g.inflict({ chill: 1 });
+    return { one, two, said, told, rank2: d.status.frozen, acted: g.boons.acted.deepWinter };
+  })()`) as { one: number; two: number; said: string[]; told: boolean; rank2: number; acted: number };
+  expect(got.one).toBe(0); expect(got.two).toBeCloseTo(2, 1);
+  expect(got.said).toContain('deepWinter'); expect(got.told).toBe(true);
+  expect(got.rank2).toBeCloseTo(3, 1); expect(got.acted).toBe(2);
+  expect(errors).toEqual([]);
+});

@@ -38,6 +38,9 @@ import { clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRu
 import { gainInsight, insightNow, setLevel } from './progression/insight';
 import { pointsToSpend, spendPoint } from './progression/points';
 import { boonsNow, dealNow, takeBoon } from './progression/boons';
+import { BOONS } from './progression/boonData';
+import { boonsActed, boonsSaid } from './progression/boonHooks';
+import { setOffBoon } from './progression/boonTest';
 import type { Attr } from './progression/attributes';
 import { STEP, startLoop, step } from './loop';
 import { cleanSeed } from './rng';
@@ -146,7 +149,7 @@ async function loadDefaultHero() {
     in a variant (quiet, champion, ambush, dark), ?give=bone_lens,twin_staff starts the run holding those
     artifacts, ?boss=pyre picks every floor's boss, ?loot=coins:20,glyphs:5 hands out obols, keys and glyphs,
     ?spells=arc starts with spells in the slots, ?theme=ossuary makes every fight one theme's, ?kit=old builds the rooms
-    in the old look (before the room kit). */
+    in the old look (before the room kit), ?boons=deepWinter:2,coldSnap starts with boons taken (M6). */
 function readUrlOptions() {
   const q = new URLSearchParams(location.search);
   const kit = q.get('kit');
@@ -174,6 +177,11 @@ function readUrlOptions() {
   const level = Number(q.get('level')); // (M6: ?level=5 starts at that level, its choices waiting)
   const auto = q.get('autolevel'); if (auto && auto !== '0') DEV.autoLevel = auto === 'skip' ? 'skip' : 'choose'; // (M6: levels choose for themselves (the bot), or pass (the tests))
   if (q.get('level') && !(level >= 1 && level <= 12)) console.warn(`?level=${q.get('level')}: use 1 to 12`);
+  const boons: Record<string, number> = {}; // (M6 step 5: ?boons=deepWinter:2,coldSnap starts with them taken, at those ranks)
+  for (const part of (q.get('boons') ?? '').split(',').map(s => s.trim()).filter(Boolean)) {
+    const [id, n] = part.split(':'), b = BOONS.get(id), rank = n ? Number(n) : 1;
+    if (b && rank >= 1 && rank <= b.max) boons[id] = rank; else console.warn(`?boons: "${part}" should be a boon with a rank up to its most, e.g. deepWinter:2. Known: ${[...BOONS.keys()].join(', ')}`);
+  }
   const badPotions = potions.filter(id => !isPotion(id));
   if (badPotions.length) console.warn(`?potions: unknown ${badPotions.join(', ')}. Known: ${POTION_IDS.join(', ')}`);
   if (room && !TEMPLATES.has(room)) console.warn(`?room=${room}: no such template. Known: ${[...TEMPLATES.keys()].join(', ')}`);
@@ -186,7 +194,7 @@ function readUrlOptions() {
     testVariant: variant && VARIANTS.includes(variant) ? variant : undefined,
     give: give.filter(id => ARTIFACTS.has(id)),
     boss: bossOk ? boss! : undefined,
-    loot, spells: spells.filter(id => SPELLS.has(id)), potions: potions.filter(isPotion), level: level >= 1 ? level : undefined,
+    loot, spells: spells.filter(id => SPELLS.has(id)), potions: potions.filter(isPotion), level: level >= 1 ? level : undefined, boons,
     theme: theme && THEMES.has(theme) ? theme : undefined,
   });
 }
@@ -204,7 +212,10 @@ function installDevHooks() {
     /** M6 step 2: the points spent on each attribute and those left to spend; spend one (a level's point, or `free`). */
     get attrs() { return { ...G.run.attrs, free: pointsToSpend() }; }, spend: (attr: Attr, free = false) => spendPoint(attr, free),
     /** M6 step 3: the boons taken (each one's rank), the pledge and the casts by school; deal three as a level would; take one. */
-    get boons() { return { taken: boonsNow(), pledge: G.run.pledge, casts: { ...G.run.casts } }; }, deal: () => dealNow(), giveBoon: (id: string) => takeBoon(id),
+    get boons() { return { taken: boonsNow(), pledge: G.run.pledge, casts: { ...G.run.casts }, acted: boonsActed(), said: boonsSaid() }; }, deal: () => dealNow(), giveBoon: (id: string) => takeBoon(id),
+    /** M6 step 5: a school boon taken if need be and set off ahead (the dev menu's "Boons here"); `acted` above counts each
+        boon at work this run, `said` the names risen in this room. */
+    boonHere: (id: string) => setOffBoon(id),
     /** M6 step 4: the level-up screen: what it offers (open, phase, the level, its cards); open it now; choose for a level
         (card i, then attribute a: the screen's or, closed, as `?autolevel` does); levels choose for themselves. */
     get offer() { return offerNow(); }, openLevelUp: () => openLevelUp(), chooseLevel: (i = 0, a?: Attr) => chooseFor(i, a),

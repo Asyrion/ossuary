@@ -158,6 +158,8 @@ export interface Room {
   /** Foes put to rest here towards the Ossuary Choir's next hymn (M4.1). */ choir?: number;
   /** M5: an overgrown foe has flowered here (its flower mends once a room). */ flowered?: boolean;
   /** M5: the overgrown garden's word has risen here (once a room). */ gardenSaid?: boolean;
+  /** M6 step 5: the boons whose name has risen here (once a room each), the half hearts boons have mended here (Votive
+      Heart and Thirsting Hex share them), and whether Votive Heart's mend has come here. */ boonsSaid?: Set<string>; boonMended?: number; votive?: boolean;
   /** Water and oil on the floor (world/pools.ts), and which pool each tile belongs to ([row][col]). */
   pools?: Pool[]; poolGrid?: (Pool | undefined)[][];
 }
@@ -216,6 +218,7 @@ export interface Enemy extends Circle {
   /** Called by a boss; falls when the boss does. */ servant?: boolean;
   /** M6: the insight it pays as it falls (progression/levelData.ts `purseOf`, fixed when it is made); none for one a boss's
       ward broke into (`unpaid`). */ purse?: number; unpaid?: boolean;
+  /** M6 step 5 (Cold Snap): frozen by a thawing foe's breath, so its own thaw breathes nothing. */ snapped?: boolean;
   /** Asleep (a pilgrims' rest's foes, M3.6): does nothing until hurt or until the mage comes close. */ asleep?: boolean;
   /** Held in ice (a frozen mausoleum's foes): asleep until hurt or thawed by fire; the ice around it. */ entombed?: THREE.Object3D;
   /** What struck it last: the cantrip's kills give mana back. */ lastHit?: 'cantrip' | 'spell';

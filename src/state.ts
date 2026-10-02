@@ -64,6 +64,7 @@ export const G = {
     /** M6 step 3: the boons taken (each one's rank), the spells cast by school (the deal leans to them), a pledge (a school
         boon taken before any spell of its school: the next library holds a page of it), and how many deals were drawn. */
     boons: {} as Record<string, number>, casts: {} as Partial<Record<School, number>>, pledge: null as School | null, deals: 0,
+    /** M6 step 5: hex stacks spent towards Thirsting Hex's next mend, and how often each boon has acted (the tests). */ thirst: 0, acted: {} as Record<string, number>,
   },
   shake: 0,
   simClock: 0,
