@@ -6,7 +6,8 @@
    the Galleries tab stands them in rows by kind. */
 import type { School } from '../render/arcane';
 import type { Built } from './beastParts';
-import { cryptSpider, inkOctopus, fireflySwarm, fireflyBeetle, choirLark, stormMantis, rubbleCrab, rimeSnail, glassNewt, stormDarter, puffcap, emberWasp, rimeScarab, gloomRaven, rimeWolf, dustPangolin, frostJackalope, waspNest } from './bestiaryBeasts';
+import { FLOOR1_LOOKS, lampwyrmSwarm } from './fantasyFloor1';
+import { rimeSnail, glassNewt, stormDarter, puffcap, emberWasp, rimeScarab, gloomRaven, rimeWolf, dustPangolin, frostJackalope, waspNest } from './bestiaryBeasts';
 import { grimoireMimic, brineSerpent, phoenix, basilisk, griffin, radiantEye, harpy, shadowFox, hydra, manticore } from './bestiaryCreatures';
 import { puddleElemental, thunderhead, cinderDjinn, magmaOoze, saltGolem, rubbleGolem, lodestoneGolem, hearthGolem, glacierGolem, rubbleStone } from './bestiaryElementals';
 
@@ -16,13 +17,13 @@ export type BestiaryKind = 'beast' | 'creature' | 'elemental';
 /** The thirty-five, floor by floor, each with its kind, school (the light it carries; earth and water borrow Storm's and
     Frost's), floor and whether it is an elite. */
 export const BESTIARY_OPTIONS = [
-  { id: 'cryptSpider', kind: 'beast', school: 'umbral', floor: 1, build: cryptSpider },
-  { id: 'inkOctopus', kind: 'beast', school: 'umbral', floor: 1, build: inkOctopus },
+  { id: 'cryptSpider', kind: 'beast', school: 'umbral', floor: 1, build: FLOOR1_LOOKS.cryptSpider },
+  { id: 'inkOctopus', kind: 'beast', school: 'umbral', floor: 1, build: FLOOR1_LOOKS.inkOctopus },
   { id: 'grimoireMimic', kind: 'creature', school: 'umbral', floor: 1, build: grimoireMimic },
-  { id: 'fireflySwarm', kind: 'beast', school: 'hallow', floor: 1, build: fireflySwarm },
-  { id: 'choirLark', kind: 'beast', school: 'hallow', floor: 1, build: choirLark },
-  { id: 'stormMantis', kind: 'beast', school: 'storm', floor: 1, build: stormMantis },
-  { id: 'rubbleCrab', kind: 'beast', school: 'storm', floor: 1, build: rubbleCrab },
+  { id: 'fireflySwarm', kind: 'beast', school: 'hallow', floor: 1, build: lampwyrmSwarm },
+  { id: 'choirLark', kind: 'beast', school: 'hallow', floor: 1, build: FLOOR1_LOOKS.choirLark },
+  { id: 'stormMantis', kind: 'beast', school: 'storm', floor: 1, build: FLOOR1_LOOKS.stormMantis },
+  { id: 'rubbleCrab', kind: 'beast', school: 'storm', floor: 1, build: FLOOR1_LOOKS.rubbleCrab },
   { id: 'rimeSnail', kind: 'beast', school: 'frost', floor: 2, build: rimeSnail },
   { id: 'glassNewt', kind: 'beast', school: 'frost', floor: 2, build: glassNewt },
   { id: 'brineSerpent', kind: 'creature', school: 'frost', floor: 2, build: brineSerpent },
@@ -55,4 +56,4 @@ export const BESTIARY_OPTIONS = [
 export type BestiaryOptionId = (typeof BESTIARY_OPTIONS)[number]['id'];
 /** Looks a foe wears that the gallery doesn't stand (data/foes.json's `look`, or its id): one beetle of the firefly swarm,
     a wasps' nest, a rubble golem's rolling stone. */
-export const FOE_LOOKS: Record<string, () => Built> = { fireflyBeetle, waspNest, rubbleStone };
+export const FOE_LOOKS: Record<string, () => Built> = { fireflyBeetle: FLOOR1_LOOKS.fireflyBeetle, waspNest, rubbleStone };

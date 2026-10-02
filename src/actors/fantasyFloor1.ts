@@ -32,14 +32,16 @@ export function sporeFiend(): Built {
   for (let i = 0; i < 9; i++) { const a = (i / 8 - .5) * 2.4; spike(body, [Math.sin(a) * .13, .39, .2 + Math.cos(a) * .03], [Math.sin(a) * .11, .29, .27], .018, thorn); spike(body, [Math.sin(a) * .13, .25, .2], [Math.sin(a) * .1, .34, .26], .015, thorn); }
   slitEyes(body, .09, .45, .2, .03, U, .3, .4);
   // the spore sacs along its back
-  const sacs = [[0, .5, -.22, .09], [-.16, .44, -.12, .075], [.17, .45, -.14, .08], [-.08, .4, -.34, .065], [.1, .39, -.32, .06]].map(([x, y, z, r]) => part(body, sphere(r, 7, 5), sac, [x, y, z]));
+  const sacs = joint(body, [0, .44, -.22]); // (they swell as one, so they draw as one)
+  for (const [x, y, z, r] of [[0, .5, -.22, .09], [-.16, .44, -.12, .075], [.17, .45, -.14, .08], [-.08, .4, -.34, .065], [.1, .39, -.32, .06]]) part(sacs, sphere(r, 7, 5), sac, [x, y - .44, z + .22]);
   const under = glow(U, 1.1, .45); under.position.set(0, .4, -.12); body.add(under);
-  const spores = [0, 1, 2, 3, 4].map(() => part(g, sphere(.02, 5, 4), sac, [0, 0, 0]));
+  const drift = joint(g, [0, .5, -.15]); // (the spores rise and turn as one drift, staggered in height)
+  for (let i = 0; i < 5; i++) part(drift, sphere(.02 * (1 - i * .12), 5, 4), sac, [Math.sin(i * 2.3) * .14, i * .11, Math.cos(i * 2.3) * .12]);
   return { group: g, shadow: .7, idle: t => {
     const k = t * 1.3 % 1, up = k < .55 ? Math.sin(k / .55 * Math.PI) : 0, land = k >= .55 && k < .75 ? Math.sin((k - .55) / .2 * Math.PI) : 0;
     body.position.y = up * .12; body.scale.set(1 + land * .1, 1 - land * .14 + up * .04, 1 + land * .1);
-    hood.rotation.x = -up * .15; sacs.forEach((s, i) => s.scale.setScalar(1 + Math.sin(t * 3 + i) * .15)); under.material.opacity = .3 + Math.sin(t * 2.5) * .12;
-    spores.forEach((s, i) => { const q = (t * .45 + i / 5) % 1; s.position.set(Math.sin(i * 2.3) * .14 + Math.sin(q * 7 + i) * .04, .5 + q * .55, -.15 + Math.cos(i * 2.3) * .12); s.scale.setScalar(1 - q * .7); });
+    hood.rotation.x = -up * .15; sacs.scale.setScalar(1 + Math.sin(t * 3) * .1); under.material.opacity = .3 + Math.sin(t * 2.5) * .12;
+    const q = t * .45 % 1; drift.position.y = .5 + q * .11; drift.rotation.y = t * .6; drift.scale.setScalar(1 - q * .25);
   } };
 }
 
@@ -61,20 +63,21 @@ export function seraphMoth(): Built {
     for (let i = 0; i < 5; i++) { const k = .3 + i * .14, at: V3 = [.02 * s + .14 * s * k, .05 + .21 * k, .04]; spike(head, at, [at[0] + .04 * s, at[1] + .03, at[2] - .02], .006, furPale); }
   }
   // six wings in three pairs, each with an eye of pale fire (a ring with a slit for a pupil)
+  const sides = [-1, 1].map(s => joint(body, [.065 * s, .04, 0])); // (each side's three wings beat as one, so they draw as one)
   const wing = (s: number, at: V3, yaw: number, r: number) => {
-    const w = joint(body, at, [0, yaw, 0]);
+    const w = joint(sides[(s + 1) / 2], [at[0] - .065 * s, at[1] - .04, at[2]], [0, yaw, 0]);
     part(w, sphere(r, 12, 6), wingM, [r * .9 * s, 0, 0], { scale: [1, .06, .6] });
     part(w, sphere(r * 1.05, 12, 6), edgeM, [r * .9 * s, -.004, 0], { scale: [1, .05, .65] });
     part(w, new THREE.RingGeometry(r * .16, r * .3, 14), fire, [r * 1.05 * s, r * .07, 0], { rot: [-Math.PI / 2, 0, 0] });
     part(w, new THREE.PlaneGeometry(r * .07, r * .3), lit(0x1a120a), [r * 1.05 * s, r * .07 + .002, 0], { rot: [-Math.PI / 2, 0, 0] });
     return { w, s };
   };
-  const wings = [-1, 1].flatMap(s => [wing(s, [.06 * s, .05, .06], -.55 * s, .2), wing(s, [.07 * s, .04, -.02], -.1 * s, .25), wing(s, [.06 * s, .02, -.11], .5 * s, .17)]);
+  for (const s of [-1, 1]) { wing(s, [.06 * s, .05, .06], -.55 * s, .2); wing(s, [.07 * s, .04, -.02], -.1 * s, .25); wing(s, [.06 * s, .02, -.11], .5 * s, .17); }
   for (const s of [-1, 1]) for (let i = 0; i < 3; i++) jointed(body, [[.04 * s, -.06, .05 - i * .06], [.1 * s, -.14, .07 - i * .07], [.11 * s, -.24, .1 - i * .08]], .009, .005, band);
   const halo = glow(H, .9, .35); body.add(halo);
   return { group: g, shadow: .7, idle: t => {
     body.position.y = .62 + Math.sin(t * 3) * .05 + Math.sin(t * 14) * .01; body.rotation.z = Math.sin(t * 1.3) * .08;
-    wings.forEach(({ w, s }, i) => { w.rotation.z = s * (.25 + Math.sin(t * 13 - (i % 3) * .6) * .5); });
+    sides.forEach((w, i) => { w.rotation.z = (i ? 1 : -1) * (.25 + Math.sin(t * 13) * .5); });
     halo.material.opacity = .25 + Math.sin(t * 4) * .1;
   } };
 }
@@ -170,11 +173,12 @@ export function gloomWeaver(): Built {
     return l;
   }));
   for (const s of [-1, 1]) spike(body, [.05 * s, .27, .32], [.035 * s, .08, .42], .04, fang);
-  const eyes = beads(body, [[-.05, .45, .31], [.05, .45, .31], [-.1, .44, .29], [.1, .44, .29], [-.03, .49, .29], [.03, .49, .29], [-.14, .46, .25], [.14, .46, .25]], .02, 0xc58aff);
+  const eyes = joint(body, [0, .46, .29]); // (they blink as one, so they draw as one)
+  beads(eyes, ([[-.05, .45, .31], [.05, .45, .31], [-.1, .44, .29], [.1, .44, .29], [-.03, .49, .29], [.03, .49, .29], [-.14, .46, .25], [.14, .46, .25]] as V3[]).map(([x, y, z]): V3 => [x, y - .46, z - .29]), .02, 0xc58aff);
   return { group: g, shadow: 1.2, parts: { body, abdomen }, idle: t => {
     body.position.y = Math.sin(t * 2.2) * .012; abdomen.scale.setScalar(1 + Math.sin(t * 1.6) * .03); runeGlow.material.opacity = .3 + Math.sin(t * 2) * .15;
     legGroups.forEach((l, i) => { const ph = (i + (i >= 4 ? 1 : 0)) % 2; l.rotation.x = Math.max(0, Math.sin(t * 3 + ph * Math.PI)) * -.06; });
-    const k = t % 4.2; for (const e of eyes) e.scale.setScalar(k < .1 ? .4 : 1);
+    const k = t % 4.2; eyes.scale.setScalar(k < .1 ? .4 : 1);
   } };
 }
 
@@ -182,6 +186,7 @@ export function gloomWeaver(): Built {
     small eyes, its arms ending in quill nibs, violet runes under its skin. */
 export function quillKraken(): Built {
   const g = new THREE.Group(), ink = gloss(0x1e1430, .2, .15), inner = gloss(0x3a2458, .25, .1), nib = gloss(0xe8dcc8, .3, .2), beakM = gloss(0x14100c, .3, .3), spark = lit(0xb98cff);
+  const pulse = glow(0xb98cff, .9, .3); pulse.position.set(0, .64, -.1); g.add(pulse); // (the runes' pulse, a glow over them)
   part(g, new THREE.CircleGeometry(.62, 16), gloss(0x0a0710, .08, .5), [0, .006, .02], { rot: [-Math.PI / 2, 0, 0], scale: [1, .8, 1] });
   const body = joint(g, [0, 0, 0]);
   const mantle = joint(body, [0, .52, -.1], [-.38, 0, 0]);
@@ -193,21 +198,21 @@ export function quillKraken(): Built {
   for (const s of [-1, 1]) spike(body, [0, .4 + s * .02, .2], [0, .4 - s * .06, .3], .035, beakM);
   part(body, sphere(.09, 8, 6), inner, [0, .4, .16], { scale: [1.3, .7, .7] });
   // eight arms, the front two raised, each ending in a quill's nib
-  const arms = Array.from({ length: 8 }, (_, i) => {
+  const sets = [joint(body, [0, 0, 0]), joint(body, [0, 0, 0])]; // (the arms sway in two sets, so they draw as four meshes, not sixteen)
+  for (let i = 0; i < 8; i++) {
     const a = (i + .5) / 8 * Math.PI * 2, c = Math.sin(a), s = Math.cos(a), front = s > .7;
-    const arm = joint(body, [0, 0, 0]);
+    const arm = sets[i % 2];
     const pts: V3[] = front
       ? [[c * .1, .34, s * .12], [c * .32, .3, s * .4], [c * .44, .5, s * .62], [c * .4, .72, s * .66], [c * .3, .8, s * .56]]
       : [[c * .12, .34, s * .1], [c * .42, .1, s * .4], [c * .68, .03, s * .66], [c * .84, .12, s * .8], [c * .82, .2, s * .76]];
     tube(arm, pts, .08, .016, i % 2 ? ink : inner, 14, 6);
     const end = pts[pts.length - 1], before = pts[pts.length - 2];
     spike(arm, end, [end[0] + (end[0] - before[0]) * 1.4, end[1] + (end[1] - before[1]) * 1.4, end[2] + (end[2] - before[2]) * 1.4], .02, nib);
-    return arm;
-  });
+  }
   return { group: g, shadow: 1.1, parts: { body, mantle }, idle: t => {
     mantle.scale.set(1 + Math.sin(t * 1.8) * .04, 1 - Math.sin(t * 1.8) * .05, 1);
-    arms.forEach((a, i) => { a.rotation.y = Math.sin(t * 1.3 + i * .9) * .07; a.rotation.x = Math.sin(t * 1.7 + i) * .03; });
-    spark.color.setHex(0xb98cff).multiplyScalar(.6 + .4 * Math.sin(t * 2.5));
+    sets.forEach((a, i) => { a.rotation.y = Math.sin(t * 1.3 + i * 2.6) * .07; a.rotation.x = Math.sin(t * 1.7 + i * 2) * .03; });
+    pulse.material.opacity = .18 + .14 * Math.sin(t * 2.5);
   } };
 }
 
@@ -226,6 +231,19 @@ export function lampwyrm(): Built {
   return { group: g, shadow: .35, parts: { body }, idle: t => {
     body.position.y = .75 + Math.sin(t * 3.1) * .06; for (const w of wings) w.rotation.z = Math.sin(t * 38) * .55;
     wyrm.rotation.y = Math.sin(t * 2.2) * .2; gl.material.opacity = .45 + .3 * Math.max(0, Math.sin(t * 2.4));
+  } };
+}
+
+/** The swarm of seven Lampwyrms, as the Galleries tab stands it (the foe is one wyrm; `pack` in the data makes seven). */
+export function lampwyrmSwarm(): Built {
+  const g = new THREE.Group(), halo = glow(H, 1.8, .22); halo.position.y = .75; g.add(halo);
+  const wyrms = Array.from({ length: 7 }, (_, i) => { const w = lampwyrm(); g.add(w.group); return { w, i }; });
+  return { group: g, shadow: 1, idle: t => {
+    halo.material.opacity = .14 + .1 * Math.sin(t * 2);
+    for (const { w, i } of wyrms) {
+      const a = t * (.7 + (i % 3) * .18) + i * 2.4, r = .25 + (i % 3) * .16;
+      w.idle(t + i * .7); w.group.position.set(Math.cos(a) * r, Math.sin(t * 1.4 + i * 1.7) * .22, Math.sin(a) * r * .8); w.group.rotation.y = -a;
+    }
   } };
 }
 
