@@ -18,7 +18,8 @@ import { ALL_BOSS_LOOKS } from './bossLooks';
 import { BESTIARY_OPTIONS } from './bestiaryLooks';
 import { FLOOR1_LOOKS } from './fantasyFloor1';
 import { FLOOR2_LOOKS } from './fantasyFloor2';
-import { SCHOOL_LIGHT, bigEyes, box, circle, crystal, limb, lit, motes, part, rune, runeRing, shine, sphere, std, type School, type V3 } from '../render/arcane';
+import { FLOOR3_LOOKS } from './fantasyFloor3';
+import { SCHOOL_LIGHT, bigEyes, box, crystal, limb, lit, motes, part, rune, runeRing, shine, sphere, std, type School, type V3 } from '../render/arcane';
 
 /** A built option: its group, how it idles, the size of the shadow under it, and the parts a foe's behaviour moves beyond
     its idle (M4: a beetle's wing-cases, a mimic's lid). */
@@ -30,116 +31,6 @@ const blink = (list: THREE.Object3D[], t: number, every = 3.4, at = 0) => { cons
 const smile = (parent: THREE.Object3D, at: V3, r: number, color = 0x2a1418, tilt = 0) => part(parent, new THREE.TorusGeometry(r, r * .14, 4, 10, Math.PI), lit(color), at, { rot: [tilt, 0, Math.PI] });
 
 /* ---------- the options ---------- */
-
-/** Burning floor, Ember: a salamander with glowing spots, a crest of flame down its back and a flame on its tail. */
-function cinderSalamander(): Built {
-  const E = SCHOOL_LIGHT.ember, g = new THREE.Group(), skin = std(0x7a3226), belly = std(0xe07a34), spot = lit(0xffa040), flameM = lit(E), flameCore = lit(0xffd060), body = new THREE.Group(); g.add(body);
-  body.rotation.y = .6; // (turned a little, so its length shows; the head looks back at the camera)
-  const head = new THREE.Group(); head.position.set(0, .15, .3); body.add(head);
-  part(head, sphere(.13, 12, 8), skin, [0, 0, 0], { scale: [1.15, .75, 1.2] });
-  part(head, sphere(.1, 10, 8), belly, [0, -.04, .04], { scale: [1.1, .5, 1.1] });
-  const eyes = bigEyes(head, .072, .07, .07, .052);
-  smile(head, [0, -.01, .15], .05);
-  for (const s of [-1, 1]) part(head, sphere(.022, 5, 4), lit(0xff8a5a), [.1 * s, -.01, .11]);
-  part(body, sphere(.14, 12, 8), skin, [0, .14, .1], { scale: [1, .8, 1.3] });
-  part(body, sphere(.12, 12, 8), skin, [0, .12, -.1], { scale: [1, .8, 1.3] });
-  part(body, sphere(.12, 10, 8), belly, [0, .08, .02], { scale: [.9, .5, 1.6] });
-  for (const [x, y, z] of [[.07, .23, .13], [-.07, .23, .1], [.06, .2, -.06], [-.05, .2, -.14], [.08, .18, -.16]]) part(body, sphere(.022, 5, 4), spot, [x, y, z]);
-  const crest = [[.25, .16, .12], [.23, .03, .1], [.21, -.1, .09]].map(([y, z, h]) => { const c = new THREE.Group(); c.position.set(0, y, z); body.add(c); part(c, new THREE.ConeGeometry(.035, h, 6), flameM, [0, h / 2, 0]); part(c, new THREE.ConeGeometry(.018, h * .55, 5), flameCore, [0, h * .3, .01]); return c; });
-  const tail = [0, 1, 2, 3].map(i => part(body, sphere(.09 - i * .017, 8, 6), skin, [0, .1 - i * .015, -.24 - i * .1]));
-  const tip = new THREE.Group(); body.add(tip);
-  part(tip, new THREE.ConeGeometry(.04, .14, 6), flameM, [0, .07, 0]); part(tip, new THREE.ConeGeometry(.02, .08, 5), flameCore, [0, .04, .01]);
-  const tipGlow = glow(E, .5, .7); tipGlow.position.y = .07; tip.add(tipGlow);
-  for (const [s, z] of [[-1, .16], [1, .16], [-1, -.1], [1, -.1]]) { limb(body, [.1 * s, .12, z], [.2 * s, .04, z + .04], .03, skin); part(body, sphere(.045, 6, 5), skin, [.21 * s, .02, z + .06], { scale: [1.2, .45, 1.2] }); }
-  const heat = glow(E, 1, .35); heat.position.y = .2; body.add(heat);
-  return { group: g, shadow: .7, idle: t => {
-    const curl = (k: number) => -.07 * k * k + Math.sin(t * 2.5 - k * .7) * .03 * k;
-    tail.forEach((m, i) => { m.position.x = curl(i + 1); }); tip.position.set(curl(4.6), .05, -.6);
-    crest.forEach((c, i) => { c.scale.set(1, .8 + Math.sin(t * 11 + i * 2) * .25, 1); });
-    head.rotation.y = -.5 + Math.sin(t * .9) * .2; head.position.y = .15 + Math.sin(t * 1.8) * .01; heat.material.opacity = .3 + Math.sin(t * 3) * .08; blink(eyes, t, 3.2);
-  } };
-}
-
-/** Burning floor, Umbral: a big-eared imp on bat wings over a hex circle, holding up a violet flame; it grins. */
-function hexImp(): Built {
-  const U = SCHOOL_LIGHT.umbral, g = new THREE.Group(), skin = std(0xa07ccc), paler = std(0xc4aee0), dark = std(0x241830), wingM = std(0x3a2250, { side: THREE.DoubleSide }), float = new THREE.Group(); g.add(float);
-  const hex = circle(g, U, .38);
-  const body = new THREE.Group(); body.position.y = .48; float.add(body);
-  part(body, sphere(.11, 10, 8), skin, [0, 0, 0], { scale: [1, 1.1, .9] });
-  part(body, sphere(.07, 8, 6), paler, [0, -.02, .06]);
-  const head = new THREE.Group(); head.position.set(0, .2, .02); body.add(head);
-  part(head, sphere(.17, 12, 10), skin, [0, 0, 0], { scale: [1.1, 1, 1] });
-  for (const s of [-1, 1]) {
-    part(head, new THREE.ConeGeometry(.055, .22, 5), skin, [.19 * s, .03, -.01], { rot: [0, 0, -s * 1.15] });
-    part(head, new THREE.ConeGeometry(.03, .14, 4), std(0xc080a0), [.18 * s, .03, .01], { rot: [0, 0, -s * 1.15] });
-    part(head, new THREE.ConeGeometry(.024, .09, 5), dark, [.06 * s, .15, -.02], { rot: [-.3, 0, -s * .3] });
-  }
-  const eyes = bigEyes(head, .068, .02, .12, .062, 0x2a0c40);
-  smile(head, [0, -.07, .155], .06, 0x1a0a20);
-  part(head, new THREE.ConeGeometry(.012, .035, 4), std(0xf0e8e0), [.03, -.115, .155], { rot: [Math.PI, 0, 0] });
-  const wings = [-1, 1].map(s => {
-    const w = new THREE.Group(); w.position.set(.07 * s, .06, -.08); w.rotation.x = -.5; body.add(w);
-    limb(w, [0, 0, 0], [.3 * s, .16, 0], .013, dark); limb(w, [.3 * s, .16, 0], [.34 * s, -.04, 0], .01, dark); limb(w, [.3 * s, .16, 0], [.22 * s, -.1, 0], .01, dark);
-    part(w, sphere(.16, 10, 6), wingM, [.2 * s, .03, 0], { scale: [1, .75, .06] });
-    return { w, s };
-  });
-  limb(body, [.1, .04, .03], [.2, .14, .12], .025, skin); part(body, sphere(.032, 6, 5), skin, [.2, .15, .12]);
-  limb(body, [-.1, .04, .03], [-.15, -.06, .08], .025, skin); part(body, sphere(.03, 6, 5), skin, [-.15, -.07, .08]);
-  for (const s of [-1, 1]) { limb(body, [.05 * s, -.1, 0], [.07 * s, -.22, .03], .022, skin); part(body, sphere(.03, 6, 5), dark, [.07 * s, -.24, .05], { scale: [1, .6, 1.4] }); }
-  const flame = new THREE.Group(); flame.position.set(.2, .25, .13); body.add(flame);
-  part(flame, new THREE.ConeGeometry(.06, .17, 7), lit(U), [0, 0, 0]); part(flame, new THREE.ConeGeometry(.03, .09, 6), lit(0xe6d4ff), [0, -.03, .01]);
-  const fire = glow(U, .45, .7); flame.add(fire);
-  const tail = [0, 1, 2, 3, 4].map(() => part(body, sphere(.02, 5, 4), skin, [0, 0, 0]));
-  const spade = part(body, new THREE.OctahedronGeometry(.045), dark, [0, 0, 0], { scale: [1, 1, .4] });
-  return { group: g, shadow: .5, idle: t => {
-    float.position.y = Math.sin(t * 2.6) * .06; head.rotation.z = Math.sin(t * 1.1) * .12;
-    wings.forEach(({ w, s }) => { w.rotation.y = s * (.2 + Math.sin(t * 12) * .45); });
-    flame.scale.set(1, .8 + Math.sin(t * 15) * .2, 1); fire.material.opacity = .55 + Math.sin(t * 9) * .12; hex.rotation.y = t * .3;
-    tail.forEach((m, i) => { const k = (i + 1) / 5; m.position.set(Math.sin(t * 2 + k * 3) * .08 * k, -.08 - k * .2, -.08 - Math.sin(k * 2.2) * .12); });
-    spade.position.set(Math.sin(t * 2 + 3.6) * .09, -.3, -.12); spade.rotation.z = Math.sin(t * 2) * .3; blink(eyes, t, 3.5);
-  } };
-}
-
-/** Burning floor, Frost (an elite): a small dragon with ice crystals for horns and spines, on little wings; breathes rime. */
-function rimeDrakeling(): Built {
-  const F = SCHOOL_LIGHT.frost, g = new THREE.Group(), scaleM = std(0x8ab8d8), belly = std(0xdceaf2), wingM = std(0x5a86b0, { side: THREE.DoubleSide }), bone = std(0x3a5a7a), ice = lit(F), body = new THREE.Group(); g.add(body);
-  const ground = circle(g, F, .62);
-  part(body, sphere(.22, 12, 10), scaleM, [0, .3, -.04], { scale: [.95, .95, 1.15] });
-  part(body, sphere(.15, 10, 8), belly, [0, .28, .1], { scale: [1, 1.15, .7] });
-  limb(body, [0, .42, .06], [0, .58, .16], .09, scaleM, .1);
-  const head = new THREE.Group(); head.position.set(0, .66, .2); body.add(head);
-  part(head, sphere(.15, 12, 10), scaleM, [0, 0, 0], { scale: [1.05, .95, 1.05] });
-  part(head, sphere(.1, 10, 8), scaleM, [0, -.04, .13], { scale: [1, .75, 1.1] });
-  for (const s of [-1, 1]) {
-    part(head, sphere(.014, 5, 4), lit(0x1a2a3a), [.035 * s, -.01, .235]);
-    crystal(head, F, [.08 * s, .13, -.08], .17, [-.8, 0, -.3 * s], ice); crystal(head, F, [.14 * s, .02, -.05], .09, [-.3, 0, -1.2 * s], ice);
-  }
-  const eyes = bigEyes(head, .075, .04, .1, .056, 0x10283a);
-  smile(head, [0, -.07, .2], .045, 0x1a2a3a, -.4);
-  for (const [y, z, h] of [[.52, -.06, .12], [.49, -.17, .1], [.42, -.28, .09]]) crystal(body, F, [0, y, z], h, [-.4, 0, 0], ice);
-  const wings = [-1, 1].map(s => {
-    const w = new THREE.Group(); w.position.set(.14 * s, .44, -.1); body.add(w);
-    limb(w, [0, 0, 0], [.3 * s, .2, -.1], .018, bone); crystal(w, F, [.31 * s, .22, -.1], .06, [0, 0, -s], ice);
-    part(w, sphere(.2, 10, 6), wingM, [.17 * s, .05, -.06], { scale: [1, .7, .06], rot: [0, s * .3, 0] });
-    return { w, s };
-  });
-  for (const s of [-1, 1]) {
-    limb(body, [.1 * s, .22, .12], [.12 * s, .03, .18], .04, scaleM); part(body, sphere(.05, 6, 5), belly, [.12 * s, .02, .21], { scale: [1.1, .5, 1.2] });
-    part(body, sphere(.12, 8, 6), scaleM, [.16 * s, .16, -.12], { scale: [.8, 1, 1.2] }); part(body, sphere(.06, 6, 5), belly, [.17 * s, .025, -.02], { scale: [1.1, .45, 1.5] });
-  }
-  const tail = [0, 1, 2, 3, 4].map(i => part(body, sphere(.08 - i * .012, 8, 6), scaleM, [0, 0, 0]));
-  const tailTip = crystal(body, F, [0, 0, 0], .12, [0, 0, 0], ice);
-  const breath = [0, 1, 2, 3].map(() => part(head, sphere(.05, 7, 6), shine(F, .5), [0, 0, 0]));
-  const snow = motes(g, 0xe8f6ff, 5, .5, .7, .014);
-  return { group: g, shadow: .9, parts: { ground }, idle: t => {
-    body.scale.set(1, 1 + Math.sin(t * 1.8) * .02, 1); head.rotation.set(Math.sin(t * 1.1) * .08, Math.sin(t * .7) * .25, Math.sin(t * .9) * .06);
-    wings.forEach(({ w, s }) => { w.rotation.z = s * (.15 + Math.sin(t * 3) * .25); });
-    tail.forEach((m, i) => { const k = i / 4; m.position.set(Math.sin(k * 2.2 + Math.sin(t * 1.5) * .4) * .22 * k, .12 - k * .08, -.26 - k * .22); });
-    tailTip.position.set(Math.sin(2.4 + Math.sin(t * 1.5) * .4) * .26, .05, -.5); tailTip.rotation.set(-1.2, 0, 0);
-    breath.forEach((b, i) => { const q = (t * .35 + i * .05) % 1; b.visible = q < .35; const k = q / .35; b.position.set((i - 1.5) * .03 * k, -.05 + k * .05, .24 + k * .5); b.scale.setScalar(.3 + k * 1.4); (b.material as THREE.MeshBasicMaterial).opacity = .5 * (1 - k); });
-    snow(t, .6); blink(eyes, t, 3.9);
-  } };
-}
 
 /** The options, by floor (names and notes in STR.options): four in the crypt, three drowned, three burning. */
 /* ---------- floor 4, the Gilded Reliquary (M4.1) ---------- */
@@ -357,8 +248,8 @@ export const MODEL_OPTIONS = [
   { id: 'runeBeetle', floor: 1, school: 'storm', build: FLOOR1_LOOKS.runeBeetle }, { id: 'urnMimic', floor: 1, school: 'ember', build: FLOOR1_LOOKS.urnMimic },
   { id: 'mireToad', floor: 2, school: 'frost', build: FLOOR2_LOOKS.mireToad }, { id: 'cisternLurker', floor: 2, school: 'storm', build: FLOOR2_LOOKS.cisternLurker },
   { id: 'lanternJelly', floor: 2, school: 'hallow', build: FLOOR2_LOOKS.lanternJelly },
-  { id: 'cinderSalamander', floor: 3, school: 'ember', build: cinderSalamander }, { id: 'hexImp', floor: 3, school: 'umbral', build: hexImp },
-  { id: 'rimeDrakeling', floor: 3, school: 'frost', build: rimeDrakeling },
+  { id: 'cinderSalamander', floor: 3, school: 'ember', build: FLOOR3_LOOKS.cinderSalamander }, { id: 'hexImp', floor: 3, school: 'umbral', build: FLOOR3_LOOKS.hexImp },
+  { id: 'rimeDrakeling', floor: 3, school: 'frost', build: FLOOR3_LOOKS.rimeDrakeling },
   { id: 'wickmouse', floor: 4, school: 'ember', build: wickmouse }, { id: 'chimeBat', floor: 4, school: 'storm', build: chimeBat },
   { id: 'gargoyleWhelp', floor: 4, school: 'frost', build: gargoyleWhelp }, { id: 'moonstagFawn', floor: 4, school: 'hallow', build: moonstagFawn },
   { id: 'rootling', floor: 5, school: 'umbral', build: rootling }, { id: 'stormRay', floor: 5, school: 'storm', build: stormRay },

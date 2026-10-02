@@ -3,11 +3,11 @@
    `parts`. */
 import * as THREE from 'three';
 import { glow } from '../render/materials';
-import { SCHOOL_LIGHT, limb, lit, part, shine, sphere, std, type V3 } from '../render/arcane';
+import { SCHOOL_LIGHT, lit, part, shine, sphere, std, type V3 } from '../render/arcane';
 import { rough } from '../world/kitParts';
 import { featherWing, gloss, joint, jointed, slitEyes, spike, tube, type Built } from './beastParts';
 
-const { ember: E, frost: F, umbral: U } = SCHOOL_LIGHT;
+const { frost: F, umbral: U } = SCHOOL_LIGHT;
 
 /** Floor 2, Umbral: a puffball fungus the height of a child, walking on roots; its cap is warted and split by a gill-lined
     maw, and spores glow in its vents as it swells. */
@@ -31,36 +31,6 @@ export function puffcap(): Built {
     vents.forEach((v, i) => { v.scale.set(1 + sw * .5, .5, 1 + sw * .5); v.visible = true; void i; });
     legs.forEach((l, i) => { l.rotation.y = Math.sin(t * 2.4 + i) * .08; });
     puff.forEach((p, i) => { const k = (t * .35 + i / 4) % 1; p.position.set(Math.sin(i * 2 + t) * .15, 1.1 + k * .6, Math.cos(i * 2) * .1); (p.material as THREE.MeshBasicMaterial).opacity = .3 * (1 - k); });
-  } };
-}
-
-/** Floor 3, Ember: a wasp as long as a forearm, banded amber and black, wings like fire-glass, a sting that glows. */
-export function emberWasp(): Built {
-  const g = new THREE.Group(), body = joint(g, [0, .85, 0]), black = gloss(0x1a120c, .35, .35), amber = gloss(0xe08a1c, .4, .2), wingM = shine(0xffb060, .32), vein = lit(0xffc070), sting = lit(E);
-  part(body, sphere(.11, 8, 6), black, [0, 0, 0], { scale: [1, .95, 1.25] });
-  const head = joint(body, [0, .02, .16]);
-  part(head, sphere(.085, 8, 6), amber, [0, 0, .02], { scale: [1.1, 1, .9] });
-  for (const s of [-1, 1]) {
-    part(head, new THREE.OctahedronGeometry(.05, 1), lit(E), [.065 * s, .02, .03], { scale: [.8, 1.2, .8] });
-    spike(head, [.03 * s, -.05, .08], [.0, -.09, .13], .018, black);
-    jointed(head, [[.025 * s, .06, .07], [.06 * s, .16, .12], [.12 * s, .2, .22]], .009, .005, black);
-  }
-  limb(body, [0, -.02, -.1], [0, -.05, -.16], .03, black);
-  const tail = joint(body, [0, -.05, -.16], [.35, 0, 0]);
-  [.13, .135, .12, .095, .065].forEach((r, i) => part(tail, sphere(r, 8, 6), i % 2 ? black : amber, [0, 0, -.06 - i * .1], { scale: [1, .9, .9] }));
-  spike(tail, [0, 0, -.5], [0, -.02, -.66], .03, sting);
-  const tipGlow = glow(E, .35, .7); tipGlow.position.set(0, -.02, -.64); tail.add(tipGlow);
-  const wings = [-1, 1].flatMap(s => [[.04, .5], [-.02, .7]].map(([z, sweep], k) => {
-    const w = joint(body, [.06 * s, .08, z]);
-    part(w, sphere(.28 - k * .06, 8, 4), wingM, [.24 * s, .01, -.06], { rot: [0, sweep * s * .6, 0], scale: [1, .03, .26] });
-    part(w, new THREE.BoxGeometry(.4 - k * .1, .006, .01), vein, [.22 * s, .02, -.05], { rot: [0, sweep * s * .6, 0] });
-    return { w, s };
-  }));
-  for (const s of [-1, 1]) for (const z of [.07, 0, -.07]) jointed(body, [[.06 * s, -.07, z], [.12 * s, -.16, z + .03], [.1 * s, -.3, z + .02]], .014, .007, z > 0 ? amber : black);
-  return { group: g, shadow: .8, parts: { body, tail }, idle: t => {
-    body.position.y = .85 + Math.sin(t * 3) * .05; body.rotation.y = Math.sin(t * .9) * .2;
-    wings.forEach(({ w, s }, i) => { w.rotation.z = Math.sin(t * 42 + (i % 2) * 1.2) * .45 * s; });
-    tail.rotation.x = .35 + Math.sin(t * 2.4) * .12; tipGlow.material.opacity = .5 + .3 * Math.sin(t * 6);
   } };
 }
 
@@ -219,20 +189,5 @@ export function frostJackalope(): Built {
     const k = t * .7 % 1, hop = k < .25 ? Math.sin(k / .25 * Math.PI) : 0; body.position.y = hop * .12;
     head.rotation.y = Math.sin(t * 1.3) * .35; ears.forEach((e, i) => { e.rotation.x = -1.15 + Math.sin(t * 2.6 + i) * .08; });
     breath.material.opacity = .15 + .1 * Math.sin(t * 2);
-  } };
-}
-
-/** The Ember Wasp's nest, as the foe it is (floor 3): a papery hive set against a wall, banded grey and tan, its mouth
-    glowing with the embers of the brood inside. */
-export function waspNest(): Built {
-  const g = new THREE.Group(), body = joint(g, [0, 0, 0]), paper = std(0x9a8a72, { roughness: 1 }), band = std(0x6e604e, { roughness: 1 }), mouth = std(0x1a0e08);
-  const profile = [[0, .05], [.3, .12], [.44, .4], [.46, .7], [.4, 1], [.26, 1.22], [.1, 1.32], [0, 1.34]].map(([r, y]) => new THREE.Vector2(r, y));
-  part(body, new THREE.LatheGeometry(profile, 12), paper, [0, 0, 0], { scale: [1, 1, .8] });
-  for (let i = 0; i < 5; i++) { const y = .25 + i * .22, r = [.36, .44, .46, .42, .3][i]; part(body, new THREE.TorusGeometry(r, .035, 4, 14), band, [0, y, 0], { rot: [Math.PI / 2, 0, 0], scale: [1, .8, 1] }); }
-  part(body, sphere(.13, 8, 6), mouth, [0, .55, .33], { scale: [1, .8, .45] });
-  const brood = glow(E, .6, .7); brood.position.set(0, .55, .36); body.add(brood);
-  part(body, new THREE.CylinderGeometry(.05, .08, .3, 6), band, [0, 1.42, -.05]); // (where it hangs from the stone)
-  return { group: g, shadow: .9, parts: { body }, idle: t => {
-    body.scale.set(1 + Math.sin(t * 1.4) * .015, 1, 1); brood.material.opacity = .45 + .3 * Math.max(0, Math.sin(t * 3.1));
   } };
 }
