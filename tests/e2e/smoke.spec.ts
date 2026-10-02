@@ -4443,6 +4443,49 @@ test('the level-up screen (M6 step 4): a level waits for the fight to be won, th
   expect(errors).toEqual([]);
 });
 
+test('gamepads (the owner\'s Elite pad, 2026-10-02): every pad connected is read, so an idle one listed first hides none; a pad heard says so by name; A begins from the title, the left stick moves, LB casts, A takes on the level-up screen', async ({ page }) => {
+  type GP = { state: string; player: { x: number; z: number; invuln: number }; mantle: number; sim(s: number): void;
+    offer: { open: boolean; phase: string }; pads: { index: number; id: string; buttons: number[] }[] };
+  type PW = { __game: GP; __pads: { axes: number[]; buttons: { pressed: boolean }[] }[] };
+  const errors: string[] = [];
+  page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
+  page.on('pageerror', e => errors.push(String(e)));
+  // two pads as a browser may list them: an idle one first (an adapter, a virtual pad), then the one in hand
+  await page.addInitScript(`window.__manual = true;
+    const mk = (index, id) => ({ index, id, connected: true, mapping: 'standard', timestamp: 0, axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, touched: false, value: 0 })) });
+    window.__pads = [mk(0, 'Virtual pad'), mk(1, 'Xbox Elite Series 2 (STANDARD GAMEPAD Vendor: 045e Product: 0b00)')];
+    Object.defineProperty(Navigator.prototype, 'getGamepads', { value: () => window.__pads, configurable: true });`);
+  await page.goto('/?seed=PADS&level=2&autolevel=0&spells=static_mantle');
+  await page.waitForFunction(() => !!(window as unknown as PW).__game, null, { timeout: 30_000 });
+  const title = await page.evaluate(() => {
+    const ev = new Event('gamepadconnected'); Object.defineProperty(ev, 'gamepad', { value: (window as unknown as PW).__pads[1] }); window.dispatchEvent(ev);
+    const w = window as unknown as PW; w.__game.sim(1 / 60);
+    return { state: w.__game.state, toast: document.getElementById('toast')?.textContent, pads: w.__game.pads.map(p => p.id) };
+  });
+  expect(title.state).toBe('title'); expect(title.toast).toContain('Xbox Elite Series 2'); expect(title.toast).toContain('A or Start');
+  expect(title.pads).toHaveLength(2);
+  const play = await page.evaluate(() => { // A on the second pad begins
+    const w = window as unknown as PW, a = w.__pads[1].buttons[0]; a.pressed = true; w.__game.sim(1 / 60); const state = w.__game.state; a.pressed = false; w.__game.sim(1 / 60);
+    w.__game.player.invuln = 999; return state;
+  });
+  expect(play).toBe('play');
+  // the level waiting opens its screen; A takes the boon (after the lock), then the point
+  const levelled = await page.evaluate(() => { const w = window as unknown as PW; for (let k = 0; k < 200 && !w.__game.offer.open; k++) w.__game.sim(1 / 60); return w.__game.offer; });
+  expect(levelled).toMatchObject({ open: true, phase: 'boon' });
+  const pressA = () => page.evaluate(() => { const w = window as unknown as PW, a = w.__pads[1].buttons[0]; a.pressed = true; w.__game.sim(1 / 60); a.pressed = false; w.__game.sim(1 / 60); return w.__game.offer; });
+  await page.waitForTimeout(450); expect((await pressA()).phase).toBe('point');
+  await page.waitForTimeout(450); expect((await pressA()).open).toBe(false);
+  // the left stick of the second pad moves the mage while the first lies idle; LB casts the spell in the first slot
+  const moved = await page.evaluate(() => {
+    const w = window as unknown as PW, g = w.__game, x0 = g.player.x;
+    w.__pads[1].axes[0] = 1; g.sim(.5); w.__pads[1].axes[0] = 0; g.sim(1 / 60);
+    const lb = w.__pads[1].buttons[4]; lb.pressed = true; g.sim(1 / 60); lb.pressed = false; g.sim(.1);
+    return { dx: g.player.x - x0, state: g.state, mantle: g.mantle };
+  });
+  expect(moved.state).toBe('play'); expect(moved.dx).toBeGreaterThan(1); expect(moved.mantle).toBeGreaterThan(0);
+  expect(errors).toEqual([]);
+});
+
 test('Tempered and the boons taken (M6): a level\'s screen spends every point it owes, Tempered\'s three too, and the inventory\'s mage tab lists the boons', async ({ page }) => {
   const errors = await start(page, '?seed=TEMP&level=2&autolevel=0&boons=tempered,deepWinter');
   const w = () => page.evaluate(() => { const g = (window as unknown as { __game: { offer: { open: boolean; phase: string }; attrs: Record<string, number> } }).__game; return { open: g.offer.open, phase: g.offer.phase, attrs: g.attrs }; });

@@ -9,6 +9,7 @@ import { BOSS_TYPES, type BossType, type EnemyType } from '../config';
 import { PROP_KINDS, isMechanism } from '../world/propData';
 import { THEME_DEFS } from '../world/themeData';
 import { placeProp } from '../world/props';
+import { padsNow } from '../input/gamepad';
 import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
 import { wardFoe } from '../actors/wardShield';
@@ -86,7 +87,7 @@ import { BOON_DEFS, boon } from '../progression/boonData';
 
 const S = STR.dev;
 let panel: HTMLElement | null = null, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
-let levelInfo: HTMLElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
+let levelInfo: HTMLElement, padInfo: HTMLElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
 type Tab = (typeof TABS)[number];
@@ -394,6 +395,9 @@ function build() {
   floorBox = section(pages.rooms, S.floor);
   // the Wandering Merchant (M4.2): rides into this room now, whatever the run's luck
   section(pages.rooms, STR.banner.wanderer[0]).append(btn(S.wanderer, () => { closeDev(); callWanderer(); }));
+  // the gamepads the browser reports: name, layout, and what is held (the owner's Elite pad wasn't heard, 2026-10-02)
+  const gp = section(pages.rooms, S.pads);
+  gp.append(padInfo = el('div', 'dv-info'), btn(S.readPads, () => {}));
 
   // the pixel look (the game's look, M3.5 step 2): the rows of pixels, outlines, light in bands; kept in this browser
   const px = section(pages.look, S.pixel);
@@ -522,6 +526,7 @@ function refresh() {
   reagentBtn.textContent = DEV.reagents ? S.reagentsOn : S.reagentsOff; reagentBtn.classList.toggle('on', DEV.reagents);
   alchInfo.textContent = S.alchemyInfo(player.belt.length, beltSlots(), POTION_IDS.filter(knownPotion).length, POTION_IDS.length, brewedPotions().length, S.serpentState[G.run.serpent], G.run.restless);
   { const v = insightNow(); levelInfo.textContent = S.levelsInfo(v.level, Math.round(v.insight), Math.ceil(v.next), v.pending) + ' ' + S.attrsInfo(ATTRS.map(a => `${STR.attrs[a].name} ${G.run.attrs[a]}`).join(', '), pointsToSpend()); }
+  { const list = padsNow(); padInfo.replaceChildren(...(list.length ? list.map(g => el('div', '', S.padRow(g.index, g.id, g.mapping, g.buttons, g.axes))) : [el('div', '', S.noPads)])); }
   autoBtn.textContent = DEV.autoLevel ? S.autoLevelOn : S.autoLevelOff; autoBtn.classList.toggle('on', !!DEV.autoLevel);
   boonInfo.textContent = S.boonsInfo(Object.entries(G.run.boons).map(([id, r]) => `${boon(id).name}${r > 1 ? ' II' : ''}`).join(', '));
   heroPxBtn.textContent = heroPixel() ? S.heroPixelOn : S.heroPixelOff; heroPxBtn.classList.toggle('on', heroPixel());

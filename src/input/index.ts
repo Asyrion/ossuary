@@ -4,7 +4,7 @@ import { pad } from './gamepad';
 import { touch } from './touch';
 
 export { initKeyboard, keys, arrowOrder } from './keyboard';
-export { pollGamepad } from './gamepad';
+export { initGamepad, padsNow, pollGamepad } from './gamepad';
 export { initTouch } from './touch';
 
 /** What input can trigger in the game flow (wired up in main.ts). */
@@ -12,7 +12,7 @@ export interface InputActions {
   unlockAudio(): void;
   /** Esc / P: pause while playing, resume while paused. */
   togglePause(): void;
-  /** Enter / Space: start from the title or end screen. */
+  /** Enter / Space (or a gamepad's A): start from the title or end screen. */
   confirm(): void;
   /** Gamepad Start: pause, resume or start. */
   startButton(): void;

@@ -21,7 +21,7 @@ import { camera, canvas, draw, renderer, resize, setCloseUp } from './render/ren
 import './render/lights';
 import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { heroPixel, setHeroPixel } from './actors/heroPixel';
-import { arrowOrder, initKeyboard, initTouch, keys, type InputActions } from './input';
+import { arrowOrder, initGamepad, initKeyboard, initTouch, keys, padsNow, type InputActions } from './input';
 import { initScreens, showScreen } from './ui/screens';
 import { closeDev, devOpen, dropsHere, forceKinds, objectsHere, showAssetsHere, showCoins, takeCoins, toggleDev, useAssets, useRoomKit, wearFace } from './ui/devMenu';
 import { obolFace, obolFaces } from './items/obolFace';
@@ -30,7 +30,7 @@ import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPa
 import { serpentInfo } from './actors/jellySerpent';
 import { breakOut, crackVat } from './world/laboratory';
 import { brewAtTable, closeLab, initLab, labKey, labNow, labOpen, labPad, openLab, type LabTab } from './ui/alchemyTable';
-import { promptShowing, setHeroInfo, updateVision } from './ui/hud';
+import { promptShowing, setHeroInfo, toast, updateVision } from './ui/hud';
 import { chooseFor, initLevelUp, levelKey, levelOpen, levelPad, offerNow, openLevelUp } from './ui/levelUp';
 import { giveById, removeArtifactGallery, showArtifactGallery } from './items/artifacts';
 import { ARTIFACTS } from './items/artifactData';
@@ -401,6 +401,8 @@ function installDevHooks() {
     crackVat: () => crackVat(), breakVat: () => !!breakOut(), set restless(on: boolean) { G.run.restless = on; },
     /** Whether a trapdoor lies open on this floor (a floor's boss fell; the serpent out of its vat leaves none). */
     get trapdoor() { return !!G.trapdoor; },
+    /** The gamepads the browser reports (name, layout, buttons held, sticks), as the dev menu's Gamepads shows them. */
+    get pads() { return padsNow(); },
     brew: (a: ReagentId, b: ReagentId) => brewAtTable(a, b), buyRecipe: (id: PotionId) => buyRecipe(id), jellyIdentifies: (id: PotionId) => jellyIdentifies(id),
     identifyAll: () => { for (const id of POTION_IDS) identify(id); }, forgetPotions: () => { G.run.identified.length = 0; forgetBrews(); renderBelt(); },
     get blinkRest() { return blinkRest(); }, get robeTint() { return robeTint(); }, get moths() { return mothCount(); },
@@ -414,7 +416,7 @@ async function boot() {
   if (isTouch) document.body.classList.add('touch');
   applyStrings();
   resize(); window.addEventListener('resize', resize);
-  initKeyboard(input); initTouch(canvas, input);
+  initKeyboard(input); initTouch(canvas, input); initGamepad(text => toast(text, 5));
   initScreens({
     start: () => startGame(), replay: () => startGame({ seed: G.run.seed }), resume, toggleSound,
     pauseIfPlaying: () => { if (G.state === 'play') pause(); },
