@@ -13,7 +13,7 @@ import { floatText } from '../magic/statusFx';
 import { heroDrink } from '../actors/hero';
 import { MAGIC, type MagicTuning } from '../magic/status';
 import type { SpellStatus } from '../magic/spellData';
-import { boon, boonParams, boonTuning, statusMul } from './boonData';
+import { afterglowOf, boon, boonParams, boonTuning, statusMul } from './boonData';
 
 /** The rank of boon `id` taken this run (0 if not). */
 export const boonRank = (id: string) => G.run.boons[id] ?? 0;
@@ -88,3 +88,16 @@ export function thirstHex(x: number, z: number) {
 }
 /** Laid Bare: whether a foe's guard is gone (sanctified, the boon taken). */
 export const laidBare = (sanct: number) => sanct > 0 && boonRank('laidBare') > 0;
+
+/** Afterglow (step 6): a spell cast leaves part of its statuses in the hand for the next cantrip casts. */
+export function afterglowCast(status: Partial<Record<SpellStatus, number>> | undefined, color: string) {
+  if (!boonRank('afterglow') || !status || !Object.keys(status).length) return;
+  G.run.afterglow = { status: afterglowOf(status, boonParam('afterglow', 'share')), left: boonParam('afterglow', 'casts'), color: css(color) };
+}
+/** The cantrip's next cast takes the afterglow's statuses, if any are left (its name rises the first time in a room). */
+export function takeAfterglow() {
+  const a = G.run.afterglow; if (!a || a.left <= 0) return null;
+  if (--a.left <= 0) G.run.afterglow = null;
+  boonActs('afterglow');
+  return a;
+}

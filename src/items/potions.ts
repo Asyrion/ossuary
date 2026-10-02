@@ -18,9 +18,10 @@ import { artifact } from './artifactData';
 import { POTIONS, POTION_IDS, REAGENTS, isKnown, type DrinkEffect, type PotionDef, type PotionId, type ReagentId } from './alchemyData';
 import { brewedPotions } from './alchemyMemory';
 import { bottleIconUrl, reagentIconUrl } from './alchemyLooks';
-import { throwPotion } from './potionThrow';
+import { throwPotion, breathe } from './potionThrow';
 import { inputFx } from '../input';
 import { potionFx } from './potionFx';
+import { boonActs, boonRank } from '../progression/boonHooks';
 export { potionFx, emberCantrip, freeCasts, spendFreeCast, takeEcho, giantDamageMul, potionSpeedMul, unseen, reversedControls } from './potionFx';
 
 let giantIn: object | null = null; // (the room the Giant's Brew was drunk in: it wears off in the next)
@@ -29,7 +30,7 @@ export function resetPotions() { Object.assign(potionFx, { ember: 0, frost: 0, f
 /** How many potions the belt holds (CFG.alchemy.belt, one more with the Alchemist's Satchel). */
 export const beltSlots = () => CFG.alchemy.belt + (player.stats.effects.has('satchel') ? 1 : 0);
 /** Whether a potion shows what it is: identified this run, or ever brewed (kept between runs). */
-export const knownPotion = (id: PotionId) => isKnown(id, G.run.identified, brewedPotions());
+export const knownPotion = (id: PotionId) => isKnown(id, G.run.identified, brewedPotions()) || boonRank('keenNose') > 0; // (M6: Keen Nose knows it by its smell)
 /** A potion's name as the mage knows it. */
 export const potionName = (id: PotionId) => knownPotion(id) ? POTIONS[id].name : STR.alchemy.unknown;
 /** The chosen potion, if the belt holds any. */
@@ -53,6 +54,7 @@ export function addPotion(id: PotionId) {
   if (player.belt.length >= beltSlots()) return false;
   player.belt.push(id); if (player.belt.length === 1) player.beltAt = 0;
   if (!G.run.loreSeen.has('potion:' + id)) { G.run.loreSeen.add('potion:' + id); potionCard(id); }
+  if (boonRank('keenNose') && !isKnown(id, G.run.identified, brewedPotions())) boonActs('keenNose'); // (known only by its smell)
   renderBelt(); return true;
 }
 /** Put a reagent in the pouch (no limit); its card the first time each is taken in a run. */
@@ -87,6 +89,7 @@ export function usePotion(how: 'drink' | 'throw') {
     heroDrink(); Sfx.drink(); burst(player.x, 1, player.z, parseInt(def.color.slice(1), 16), 10, 1.6, .04);
     floatText(player.x, 1.8, player.z, def.name, parseInt(def.color.slice(1), 16), 34);
     DRINK[def.drink.effect](def);
+    if (boonRank('brewersBreath')) breathe(id); // (M6: Brewer's Breath)
   } else throwPotion(id);
   identify(id); if (!known) potionCard(id); // (unknown before: what it was, now)
   potionUsed(id); // (M6: each kind's first use in a run gives insight)

@@ -220,6 +220,7 @@ export interface Enemy extends Circle {
   /** M6: the insight it pays as it falls (progression/levelData.ts `purseOf`, fixed when it is made); none for one a boss's
       ward broke into (`unpaid`). */ purse?: number; unpaid?: boolean;
   /** M6 step 5 (Cold Snap): frozen by a thawing foe's breath, so its own thaw breathes nothing. */ snapped?: boolean;
+  /** M6 step 6 (Scavenger): the last blow that struck it was its weakness. */ weakBlow?: boolean;
   /** Asleep (a pilgrims' rest's foes, M3.6): does nothing until hurt or until the mage comes close. */ asleep?: boolean;
   /** Held in ice (a frozen mausoleum's foes): asleep until hurt or thawed by fire; the ice around it. */ entombed?: THREE.Object3D;
   /** What struck it last: the cantrip's kills give mana back. */ lastHit?: 'cantrip' | 'spell';

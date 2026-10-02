@@ -60,7 +60,7 @@ import { attuneTo, forgetSpells, gainMana, learnSpell } from '../magic/spells';
 import { findEveryReaction, findEveryWeave, forgetKnowledge, forgetReactions, forgetWeaves, knowEvery, knowledgeNow, reactionsFound, weavesFound } from '../magic/memory';
 import { WEAVE_IDS } from '../magic/weaves';
 import { setOffWeave } from '../magic/weaveTest';
-import { SCHOOL_BOONS, setOffBoon } from '../progression/boonTest';
+import { BENCH_BOONS, setOffBoon } from '../progression/boonTest';
 import { REACTION_IDS } from '../magic/knowledge';
 import { setOffReaction } from '../magic/reactionTest';
 import { dropPage } from '../magic/pages';
@@ -336,9 +336,9 @@ function build() {
   // every reaction (M4.8), set off on training dummies just ahead
   const reacts = section(pages.magic, S.reactionsHere);
   for (const r of REACTION_IDS) reacts.append(btn(STR.reactions[r], () => { closeDev(); const q = ahead(3); setOffReaction(r, q.x, q.z); }, STR.knowledge.reactionText[r]));
-  // every school boon (M6 step 5), taken if need be and set off just ahead
+  // every boon that acts on something (M6 steps 5 and 6), taken if need be and set off just ahead
   const boonsHere = section(pages.magic, S.boonsHere);
-  for (const id of SCHOOL_BOONS) { const b = boon(id), x = btn(b.name, () => { closeDev(); setOffBoon(id); }, b.text); const dot = el('i'); dot.style.background = b.color; x.prepend(dot); boonsHere.append(x); }
+  for (const id of BENCH_BOONS) { const b = boon(id), x = btn(b.name, () => { closeDev(); setOffBoon(id); }, b.text); const dot = el('i'); dot.style.background = b.color; x.prepend(dot); boonsHere.append(x); }
   // every weave and chain (M4.10), set up just ahead (north of the mage) and set off
   const weaves = section(pages.magic, S.weavesHere);
   for (const w of WEAVE_IDS) weaves.append(btn(STR.weaves[w].name, () => { closeDev(); setOffWeave(w); }, STR.weaves[w].text));

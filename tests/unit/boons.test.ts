@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../../src/rng';
 import { SCHOOLS, SPELL_DEFS, pickPages, spell, type School } from '../../src/magic/spellData';
-import { BOON_DEFS, LEAN, boon, boonParams, boonText, boonTuning, boonsTouching, dealBoons, pledgeFor, schoolWeights, statusMul, validateBoons, NOT_YET, type BoonDef, type DealState } from '../../src/progression/boonData';
+import { BOON_DEFS, LEAN, boon, boonParams, boonText, boonTuning, boonsTouching, dealBoons, pledgeFor, schoolWeights, statusMul, validateBoons, NOT_YET, afterglowOf, type BoonDef, type DealState } from '../../src/progression/boonData';
 import { MAGIC, applyStatus, newStatus, tickStatus } from '../../src/magic/status';
 
 /* M6 step 3: boons as data and the deal (docs/M6-plan.md). */
@@ -145,5 +145,19 @@ describe('the boons at work', () => {
     const deep = BOON_DEFS.find(b => b.id === 'deepWinter')!;
     expect(validateBoons([...BOON_DEFS.filter(b => b !== deep), { ...deep, touches: undefined }]).join(';')).toMatch(/needs `touches`/);
     expect(validateBoons([...BOON_DEFS.filter(b => b !== deep), { ...deep, touches: { status: ['frostbite' as never] } }]).join(';')).toMatch(/unknown status/);
+  });
+});
+
+describe('the general boons (step 6)', () => {
+  it("Afterglow carries half a spell's statuses: stacks rounded up, seconds as they are", () => {
+    expect(afterglowOf({ chill: 1 }, .5)).toEqual({ chill: 1 });
+    expect(afterglowOf({ chill: 2, hex: 3 }, .5)).toEqual({ chill: 1, hex: 2 });
+    expect(afterglowOf({ burn: 3, sanct: 4, root: 1.6, grow: 4, shock: 1 }, .5)).toEqual({ burn: 1.5, sanct: 2, root: .8, grow: 2, shock: .5 });
+    expect(afterglowOf(undefined, .5)).toEqual({});
+  });
+  it('deals them now: only Second Socket waits, for the runes', () => {
+    expect([...NOT_YET]).toEqual(['secondSocket']);
+    const dealt = new Set(deals(state(), 600).flat().map(c => c.id));
+    for (const id of ['keenNose', 'scavenger', 'brewersBreath', 'afterglow']) expect(dealt.has(id)).toBe(true);
   });
 });

@@ -4462,6 +4462,33 @@ test('Tempered and the boons taken (M6): a level\'s screen spends every point it
   expect(errors).toEqual([]);
 });
 
+test('the general boons (M6 step 6): Keen Nose knows a potion by smell, Scavenger takes a reagent from a foe struck by its weakness, Brewer\'s Breath breathes the throw out sparing the mage, Afterglow carries a spell into the cantrip', async ({ page }) => {
+  const errors = await start(page, '?seed=BOON6');
+  const got = await page.evaluate(`(() => {
+    const g = window.__game, out = {};
+    const fresh = (boons, spells) => { g.startGame({ seed: 'BOON6', boons, spells }); g.player.invuln = 999; g.sim(.3); };
+    fresh({}); g.givePotion('volatile'); out.nose = [g.belt.known[0]];
+    fresh({ keenNose: 1 }); g.givePotion('volatile'); out.nose.push(g.belt.known[0], g.boons.said.includes('keenNose'));
+    const reap = (boons, school) => { fresh(boons); for (let k = 0; k < 6; k++) g.spawn('sporeling', g.player.x + (k - 2.5) * 1.1, g.player.z - 2.2); g.sim(1.2);
+      for (const e of g.enemies.filter(e => e.type === 'sporeling')) g.hit(g.enemies.indexOf(e), 999, school); g.sim(.2); out.reapSaid = out.reapSaid || g.run.hinted.has('boon:scavenger'); return g.pickups.filter(p => p.kind === 'reagent').length; };
+    out.reap = [reap({ scavenger: 1 }, 'ember')]; out.reap.push(reap({ scavenger: 1 }, 'frost'));
+    fresh({ brewersBreath: 1 }); g.spawn('dummy', g.player.x + .9, g.player.z); g.sim(1.2); const d = g.enemies.find(e => e.type === 'dummy');
+    g.givePotion('liquidEmber'); g.player.invuln = 0; const hp = g.player.hp; g.usePotion('drink'); g.sim(.2);
+    out.breath = { ground: g.burningGround, burning: d.status ? d.status.burn > 0 : false, said: g.boons.said.includes('brewersBreath') }; g.sim(2); out.breath.hurt = hp - g.player.hp; g.player.invuln = 999;
+    g.givePotion('healing'); g.player.hp = g.player.maxHp - 2; const acted = g.boons.acted.brewersBreath; g.usePotion('drink'); out.breath.healOnly = g.boons.acted.brewersBreath - acted;
+    fresh({ afterglow: 1 }, ['rime_shards']); g.spawn('dummy', g.player.x, g.player.z - 2.5); g.sim(1.2); g.mana(200); g.cast(0, { x: 0, z: -1 }); out.glow = [g.run.afterglow && g.run.afterglow.left];
+    const shoot = () => { g.player.fireCd = 0; g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); g.sim(1 / 60); g.keys.delete('ArrowUp'); g.arrowOrder.length = 0; return g.bolts[g.bolts.length - 1]; };
+    const b1 = shoot(); out.glow.push(JSON.stringify(b1 && b1.status)); shoot(); shoot(); out.glow.push(g.run.afterglow, JSON.stringify(shoot().status), g.boons.said.includes('afterglow'));
+    return out;
+  })()`) as { nose: boolean[]; reap: number[]; reapSaid: boolean; breath: { ground: number; burning: boolean; said: boolean; hurt: number; healOnly: number }; glow: (number | string | null | boolean | undefined)[] };
+  expect(got.nose).toEqual([false, true, true]); // (unknown without it; known by smell with it, and said)
+  expect(got.reap[0]).toBe(6); expect(got.reap[1]).toBeLessThan(6); expect(got.reapSaid).toBe(true); // (every foe struck by its weakness leaves its reagent)
+  expect(got.breath.ground).toBeGreaterThan(0); expect(got.breath.burning).toBe(true); expect(got.breath.said).toBe(true);
+  expect(got.breath.hurt).toBe(0); expect(got.breath.healOnly).toBe(0); // (its fire spares the mage; a healing draught breathes nothing)
+  expect(got.glow[0]).toBe(3); expect(got.glow[1]).toBe('{"chill":1}'); expect(got.glow[2]).toBeNull(); expect(got.glow[3]).toBeUndefined(); expect(got.glow[4]).toBe(true); // (three casts carry half its chill, then it fades)
+  expect(errors).toEqual([]);
+});
+
 /* M6 step 5: the school boons at work. Each case starts its own run with `?boons=`, sets the boon off through the game's own
    hooks, and checks what it did, that its name rose (`said`), its line was said once (`hinted`) and, where cheap, rank II.
    (Written as strings: the page's own JavaScript, `window.__game` untyped. Eight dummies stand in a 4 × 2 block, each

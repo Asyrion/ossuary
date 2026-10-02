@@ -1,7 +1,7 @@
 # M6 RPG growth: plan
 
 **Status: approved (2026-10-02) with four changes, the owner taking Claude's recommendations (decisions 6, 8, 10 and 11);
-steps 1 to 5 built.** GDD: RPG progression, Inside a run; Magic
+steps 1 to 6 built.** GDD: RPG progression, Inside a run; Magic
 system, Runes; Core loop, Game loop changes for the magic RPG (the pacing target); Pickups and room types (the rune, the
 shrine's bargain, the waystone); the roadmap's M6 row ("XP, levels, attributes, 12 boons, runes and waystones").
 
@@ -328,6 +328,15 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
    - **Second Socket:** works from step 7.
 
    Lines, sounds, dev buttons and tests as in step 5.
+   *Built (2026-10-02)* as planned. Tempered's points are spent on the level's own screen (step 5's review). Keen Nose:
+   `knownPotion` reads it (the belt, the inventory, the shop, the aim ring), its name rising when a potion only its smell
+   knows comes into the belt. Scavenger: `damageEnemy` keeps whether the last blow was the foe's weakness (`weakBlow`), and
+   `foeReagent` drops its reagent when the roll fails (the roll still drawn, so seeds replay). Brewer's Breath: `breathe` in
+   potionThrow.ts runs the throw at the feet after the drink, sparing the mage (its fire pool the mage's own, a blast turned
+   aside: `blastAt`'s `spare`); the healing draught breathes nothing. Afterglow: `afterglowCast` from `castSpell` keeps half
+   the spell's statuses (`afterglowOf`, pure: stacks rounded up) for the next three cantrip casts, which take the spell's
+   colour (`takeAfterglow` in `spawnBolt`); its card says casts, not bolts (a fan is one cast). Second Socket stays out of
+   the deal until step 7 (`NOT_YET`). The bench ("Boons here") sets off the four that act on something.
 7. **Runes on the cast.**
    - **7a.** `data/runes.json` and `src/magic/runeData.ts` (new, pure):
      - `validateRunes`: every spell takes three or more.

@@ -23,11 +23,11 @@ import { renderHearts } from '../ui/hud';
 import { disposeTree } from '../render/materials';
 import { mesh, tone } from '../world/kitParts';
 import { potionHold } from '../input';
-import { POTIONS, isKnown, type PotionDef, type PotionId, type ThrowEffect } from './alchemyData';
-import { brewedPotions } from './alchemyMemory';
+import { POTIONS, type PotionDef, type PotionId, type ThrowEffect } from './alchemyData';
 import { bottleLook } from './alchemyLooks';
 import type { Enemy } from '../types';
 import { boonActs, boonMul } from '../progression/boonHooks';
+import { knownPotion } from './potions';
 
 const A = CFG.alchemy;
 interface Flight { id: PotionId; g: THREE.Object3D; x0: number; z0: number; x1: number; z1: number; t: number; room: object }
@@ -76,7 +76,7 @@ const THROW: Record<ThrowEffect, (x: number, z: number, r: number, def: PotionDe
       s.stun = Math.max(s.stun, e.isBoss ? MAGIC.shock.stun : num(def.throw.seconds)); floatText(e.x, 1.4, e.z, '…', 0x9ec8ff, 30);
     }
   },
-  firePool(x, z, r, def) { fireAt(x, z, r); layFire(G.current, x, z, num(def.throw.seconds), undefined); for (const e of near(x, z, r)) inflict(e, { burn: num(def.throw.burn) }); },
+  firePool(x, z, r, def) { fireAt(x, z, r); layFire(G.current, x, z, num(def.throw.seconds), breathing ? 'mage' : undefined); for (const e of near(x, z, r)) inflict(e, { burn: num(def.throw.burn) }); }, // (breathed out: the mage's own fire, which spares them)
   freezeSplash(x, z, r, def) { // (a boss is never frozen, as by chill: it only takes the chill)
     frostAt(x, z, r);
     const longer = boonMul('deepWinter', 'frozenMul'); // (M6: Deep Winter's second rank holds its ice longer too)
@@ -109,10 +109,21 @@ const THROW: Record<ThrowEffect, (x: number, z: number, r: number, def: PotionDe
     if (mageIn(x, z, r)) Object.assign(player, { chill: 0, stone: 0, dim: 0 });
     burst(x, .6, z, 0xf0e0b0, 14, 2, .05);
   },
-  explode(x, z) { blastAt(x, z); },
+  explode(x, z) { blastAt(x, z, breathing); }, // (breathed out, it spares the mage)
   hexSplash(x, z, r, def) { umbralAt(x, z, r); for (const e of near(x, z, r)) inflict(e, { hex: num(def.throw.stacks) }); },
   raiseThrall(x, z) { raiseThrall(x, z); },
 };
+
+/** Brewer's Breath (M6): a potion drunk breathes its throw out round the mage's feet, sparing the mage (their own fire, a blast
+    turned aside); a throw that would only touch the mage (the healing splash) adds nothing. */
+let breathing = false;
+export function breathe(id: PotionId) {
+  const def = POTIONS[id]; if (def.throw.effect === 'healSplash') return;
+  const x = player.x, z = player.z, c = col(def), r = A.splash;
+  ringFx(x, .08, z, c, .2, r, .45, true); burst(x, .5, z, c, 14, 2, .05); burst(x, 1.1, z, 0xf0e8d8, 6, 1.2, .04); // (a breath of it, from the mouth to the floor)
+  breathing = true; try { THROW[def.throw.effect](x, z, r, def); } finally { breathing = false; }
+  boonActs('brewersBreath', x, z);
+}
 
 /** A bottle lands: it shatters, its splash rings out in its colour, and its throw effect lands there. */
 function splash(f: Flight) {
@@ -199,7 +210,7 @@ export function updateThrows(dt: number) {
       for (let i = 0; i < 2; i++) { const m = new THREE.Mesh(geo, mat); m.renderOrder = 4; m.visible = false; scene.add(m); markers.push(m); }
     }
     const id = player.belt[Math.min(player.beltAt, player.belt.length - 1)] as PotionId, lands = landings();
-    (markers[0].material as THREE.MeshBasicMaterial).color.set(isKnown(id, G.run.identified, brewedPotions()) ? col(POTIONS[id]) : 0xffffff);
+    (markers[0].material as THREE.MeshBasicMaterial).color.set(knownPotion(id) ? col(POTIONS[id]) : 0xffffff);
     const r = A.splash * (player.stats.effects.has('retort') ? A.retort.splashMul : 1);
     markers.forEach((m, i) => { const at = lands[i]; m.visible = !!at; if (at) { m.position.set(at.x, .05, at.z); m.scale.setScalar(r); } });
   } else for (const m of markers) m.visible = false;
