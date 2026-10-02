@@ -42,6 +42,7 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   if (e.spawn > 0 || e.dead || e.hidden) return;
   if (e.ward && by === 'spell') { drinkBlow(e, dmg, school); return; } // (M4.2: its ward drinks the spells that strike it)
   if (e.glance && by === 'cantrip') { glance(e); return; } // (a Twin Guardian's shield turns bolts)
+  const blow = dmg; // (the blow as dealt: what a shock's leap passes on, M6: the multipliers are the next foe's to apply)
   const raw = dmg * damageTakenMul(e.status) * (e.unbound ? MAGIC.unbound.damageMul : 1); dmg = raw * ((e.status?.seared ?? 0) > 0 ? Math.max(1, e.guard ?? 1) : e.guard ?? 1); // a frozen foe cracks; a shut mimic's clay turns half a blow, unless Searing burnt its guard away (M4.8; an opening, a flipped crab's, stays)
   if (e.plates) wearPlates(e, raw - dmg); // (M4.2: the War-Tiger's plates turn most of it, and wear)
   const aff = affinityMul(e.foe ?? e.bossAff, school); // (the bosses of floors 4 and 5 have theirs too)
@@ -62,7 +63,7 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
     if (back) { gainMana(back); burst(e.x, 1, e.z, SCHOOL_LIGHT.umbral, 3, 1.4, .03); }
   }
   if (e.type === 'dummy') { e.hp = e.maxHp; dummyHit(e, dmg); } // the training dummy never falls
-  shockLeap(e, dmg); // a shocked foe passes part of the hit on
+  shockLeap(e, blow); // a shocked foe passes part of the hit on (the blow as dealt, so the spell's multipliers apply once, there)
   const kb = (e.isBoss ? .6 : 2.6) * kbMul; e.kx += dx * kb; e.kz += dz * kb;
   Sfx.at(e.x, e.z).hit();
   if (e.isBoss) updateBossBar(e.twin ? { hp: Math.max(0, e.hp) + Math.max(0, e.twin.hp), maxHp: e.maxHp + e.twin.maxHp } : e); // (the twins share one bar)

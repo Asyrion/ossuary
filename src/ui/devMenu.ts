@@ -76,6 +76,8 @@ import { lureTest } from '../actors/foeGround';
 import { floorLean, floorWalls, warnFloor } from '../world/curve';
 import { gainInsight, insightNow, setLevel, toNextLevel } from '../progression/insight';
 import { LEVEL_CAP } from '../progression/levelData';
+import { ATTRS, noAttrs } from '../progression/attributes';
+import { pointsToSpend, spendPoint } from '../progression/points';
 
 const S = STR.dev;
 let panel: HTMLElement | null = null, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
@@ -238,6 +240,8 @@ function build() {
     btn(S.nextLevel, () => gainInsight(toNextLevel() || 10)),
     btn(S.maxLevel, () => setLevel(LEVEL_CAP)),
     btn(S.firstLevel, () => setLevel(1)));
+  for (const a of ATTRS) lv.append(btn(S.plusAttr(STR.attrs[a].name), () => spendPoint(a, true), STR.attrs[a].text)); // (M6 step 2: a point without a level's)
+  lv.append(btn(S.noAttrs, () => { G.run.attrs = noAttrs(); refreshStats(false); }));
   const res = section(pages.mage, S.resources);
   for (const [r, n] of [['coins', 10], ['keys', 1], ['keys', 5], ['glyphs', 1], ['glyphs', 5]] as [Resource, number][]) {
     res.append(btn(S.give(n, S.names[r]), () => giveResources({ [r]: n })));
@@ -501,7 +505,7 @@ function refresh() {
   bandBtn.textContent = look.bands ? S.bandsOn : S.bandsOff; bandBtn.classList.toggle('on', look.bands); bandBtn.disabled = !look.lines;
   reagentBtn.textContent = DEV.reagents ? S.reagentsOn : S.reagentsOff; reagentBtn.classList.toggle('on', DEV.reagents);
   alchInfo.textContent = S.alchemyInfo(player.belt.length, beltSlots(), POTION_IDS.filter(knownPotion).length, POTION_IDS.length, brewedPotions().length, S.serpentState[G.run.serpent], G.run.restless);
-  { const v = insightNow(); levelInfo.textContent = S.levelsInfo(v.level, Math.round(v.insight), Math.ceil(v.next), v.pending); }
+  { const v = insightNow(); levelInfo.textContent = S.levelsInfo(v.level, Math.round(v.insight), Math.ceil(v.next), v.pending) + ' ' + S.attrsInfo(ATTRS.map(a => `${STR.attrs[a].name} ${G.run.attrs[a]}`).join(', '), pointsToSpend()); }
   heroPxBtn.textContent = heroPixel() ? S.heroPixelOn : S.heroPixelOff; heroPxBtn.classList.toggle('on', heroPixel());
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
   knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'), reactionsFound().length, REACTION_IDS.length) + ' ' + S.weavesInfo(weavesFound().length, WEAVE_IDS.length);

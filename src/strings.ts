@@ -315,6 +315,15 @@ export const STR = {
     } as Record<string, string>,
   },
   manaLabel: (mana: number, max: number) => `Mana ${Math.round(mana)} of ${max}`,
+  /** M6 step 2: the four attributes (placeholders until M8; the GDD's Focus is Will: "focus" names what the casting hand
+      holds), and a point spent rising over the mage. */
+  attrs: {
+    vigor: { name: 'Vigor', text: 'Half a heart container for every 2 points.' },
+    arcana: { name: 'Arcana', text: 'Your spells strike 6% harder for each point.' },
+    will: { name: 'Will', text: '10 more mana for each point, and it comes back 5% faster.' },
+    swiftness: { name: 'Swiftness', text: 'You move 3% faster and cast the cantrip 3% sooner for each point.' },
+    spent: (name: string) => `${name} +1`,
+  },
   /** M6: insight (the GDD's XP) and levels; both words placeholders until M8. */
   levels: {
     short: 'Level', up: (n: number) => `Level ${n}`,
@@ -574,6 +583,12 @@ export const STR = {
       grace: { name: 'Grace', text: "Seconds you can't be hurt again after a hit." },
       extra: { name: 'Pierce, knockback, blasts', text: "Foes a bolt passes through, how hard bolts throw foes back, and how far your glyphs' blasts reach." },
     } as Record<string, { name: string; text: string }>,
+    /** M6: the mage tab's growth: the level and its insight, and the attributes' points. */
+    growth: {
+      title: 'Growth', numbers: 'Your numbers', level: 'Level',
+      levelText: (insight: number, next: number, points: number) => `${insight} insight${next ? `, ${next} more to the next level` : ', the most this run allows'}. A level brings a point to spend on an attribute${points ? ` (${points} to spend)` : ''}.`,
+      points: (n: number) => `${n} point${n === 1 ? '' : 's'}`,
+    },
     base: (v: string) => `Base ${v}`,
     straight: 'Straight',
   },
@@ -707,6 +722,7 @@ export const STR = {
     godOn: 'God mode: on', godOff: 'God mode: off',
     doors: { data: 'Doors: as the floor has them', shifted: 'Doors: off the middle', middle: 'Doors: in the middle' } as Record<string, string>,
     moveClip: { run: 'Moving: run clip', walkInStep: 'Moving: walk clip, feet in step', walkNatural: 'Moving: walk clip, natural pace' } as Record<string, string>,
+    plusAttr: (name: string) => `+1 ${name}`, noAttrs: 'No points spent', attrsInfo: (list: string, free: number) => `Attributes: ${list}; ${free} point${free === 1 ? '' : 's'} to spend.`,
     levels: 'Insight and levels (M6)', nextLevel: '+ insight to the next level', maxLevel: 'Level 12', firstLevel: 'Back to level 1',
     levelsInfo: (level: number, insight: number, next: number, pending: number) => `Level ${level}, ${insight} insight${next ? `, ${next} to the next` : ' (the cap)'}; ${pending} level choice${pending === 1 ? '' : 's'} waiting (the level-up screen comes in step 4).`,
     resources: 'Obols, keys, glyphs and soul motes', emptyPurse: 'Empty the purse', giveSoul: (name: string) => `+ ${name}`, noSouls: 'No soul motes', floorEnd: "A floor's end (hallowed motes mend)",

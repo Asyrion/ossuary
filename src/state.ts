@@ -8,6 +8,7 @@ import type { Bolt, Enemy, Glyph, Particle, Pickup, Player, Trapdoor, Room, Shot
 import type * as THREE from 'three';
 import type { Kinds } from './world/kitData';
 import type { FoeId } from './actors/foeData';
+import { noAttrs } from './progression/attributes';
 
 export type GameState = 'title' | 'play' | 'pause' | 'dying' | 'end';
 
@@ -58,6 +59,7 @@ export const G = {
     /** M6: insight gained this run (the GDD's XP), the level it reached, the levels whose choice still waits (the level-up
         screen, step 4), and the potions' kinds used this run (each pays the first time). */
     insight: 0, level: 1, pending: 0, potionsUsed: [] as PotionId[],
+    /** M6 step 2: the points spent on each attribute this run. */ attrs: noAttrs(),
   },
   shake: 0,
   simClock: 0,

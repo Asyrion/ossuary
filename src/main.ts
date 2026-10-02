@@ -35,6 +35,8 @@ import { giveById, removeArtifactGallery, showArtifactGallery } from './items/ar
 import { ARTIFACTS } from './items/artifactData';
 import { clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRun, startGame, toggleSound, warp } from './flow';
 import { gainInsight, insightNow, setLevel } from './progression/insight';
+import { pointsToSpend, spendPoint } from './progression/points';
+import type { Attr } from './progression/attributes';
 import { STEP, startLoop, step } from './loop';
 import { cleanSeed } from './rng';
 import { VARIANTS, planToText, type RoomVariant } from './world/generate';
@@ -194,6 +196,8 @@ function installDevHooks() {
         some (it runs to the hand as a fallen foe's does) or set the level. */
     get insight() { return insightNow(); }, get level() { return G.run.level; },
     giveInsight: (n: number) => gainInsight(n), setLevel: (n: number) => setLevel(n),
+    /** M6 step 2: the points spent on each attribute and those left to spend; spend one (a level's point, or `free`). */
+    get attrs() { return { ...G.run.attrs, free: pointsToSpend() }; }, spend: (attr: Attr, free = false) => spendPoint(attr, free),
     /** The current floor as text: S start, B boss, T treasure, # normal, @ you. */
     map() { return G.run.plan ? planToText(G.run.plan, G.current.plan.id) : ''; },
     /** Run the simulation for `sec` seconds in fixed steps; optionally render once afterwards. */

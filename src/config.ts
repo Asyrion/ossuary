@@ -120,6 +120,10 @@ export const CFG = {
   // (data/floors.json), the Grave Draught's in data/alchemy.json. `streak`: the light that runs from a fallen foe to the
   // casting hand (seconds, size, how many fly at once at most, motes in its trail and how far apart, how high it arcs); `gold`: insight's
   // own light (a foe of no school, a room, a potion); `chimeGap`: seconds between its chimes at least.
+  // M6 step 2, the four attributes (progression/attributes.ts), per point: Vigor half a heart container every
+  // `pointsPerHalf`; Arcana spell damage +`spell`; Will max mana +`mana` and its coming back +`regen`; Swiftness move speed
+  // +`speed` and the cantrip's delay −`delay` (its floor kept). Each in a line with its points, never compounding.
+  attributes: { vigor: { pointsPerHalf: 2 }, arcana: { spell: .06 }, will: { mana: 10, regen: .05 }, swiftness: { speed: .03, delay: .03 } },
   levels: { at: [20, 70, 145, 240, 340, 450, 700, 1030, 1400, 1780, 2500], foeDiv: 4, perFloor: 4, ordealMul: 2, serpentDiv: 2,
     streak: { time: .6, size: .36, max: 48, trail: 5, gap: .05, rise: .9 }, gold: 0xe8c878, chimeGap: .12 },
   /** M4.6 costumes (actors/costume.ts): the focus held in the casting hand (its scale, where along it the hand grips: 0 its
