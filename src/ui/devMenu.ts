@@ -14,6 +14,7 @@ import { DEV, G, player } from '../state';
 import { wardFoe } from '../actors/wardShield';
 import { fennexInfo, growFennex } from '../combat/fennex';
 import { dress, heldNow, takeAllOff, triedOn, tryOn, wornNow } from '../actors/costume';
+import { isCostume } from '../actors/costumeData';
 import { clearTransforms, formTransform } from '../items/transforms';
 import { TRANSFORM_IDS } from '../items/transformData';
 import { blinkRest } from '../items/gifts';
@@ -541,7 +542,7 @@ function refresh() {
     b.classList.toggle('on', held);
     return b;
   }));
-  costBox.replaceChildren(...ARTIFACT_DEFS.filter(a => a.costume || a.kind === 'focus').map(a => {
+  costBox.replaceChildren(...ARTIFACT_DEFS.filter(a => isCostume(a.costume ?? '') || a.kind === 'focus').map(a => {
     const b = btn(a.name, () => { tryOn(a.id); refresh(); }, a.costume ? S.costumeAt(a.costume) : S.costumeHeld);
     const dot = el('i'); dot.style.background = a.color; b.prepend(dot);
     b.classList.toggle('on', triedOn().includes(a.id));

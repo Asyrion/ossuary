@@ -1622,7 +1622,7 @@ test('costumes (M4.6): the focus is held in the casting hand, artifacts show on 
   const r = await page.evaluate(() => {
     const g = (window as unknown as W).__game as GC, out: Record<string, unknown> = {};
     g.sim(.3, true); out.start = { worn: g.costume, held: g.held }; const calls0 = g.renderInfo().calls;
-    g.give('twin_staff', 'mana_lantern', 'ember_sigil', 'stormglass_pendant', 'crown_of_thorns', 'pilgrims_boots', 'chain_of_the_penitent');
+    g.give('twin_staff', 'mana_lantern', 'ember_sigil', 'bone_lens', 'stormglass_pendant', 'crown_of_thorns', 'pilgrims_boots', 'chain_of_the_penitent');
     g.sim(.3, true);
     out.held = g.held; out.worn = g.costumeDetail.map(w => [w.slot, w.piece === 'carried' ? w.from : w.piece, w.bones[0]]);
     out.cursed = g.costumeDetail.filter(w => w.cursed).map(w => w.piece);
@@ -1634,9 +1634,9 @@ test('costumes (M4.6): the focus is held in the casting hand, artifacts show on 
   expect(r.start).toEqual({ worn: [], held: 'apprentice_wand' });
   expect(r.held).toBe('twin_staff');
   expect(r.worn).toEqual([
-    ['head', 'thorns', 'mixamorigHead'], ['shoulders', 'stormglass_pendant', 'mixamorigSpine2'], ['back', 'ember_sigil', 'mixamorigSpine2'],
+    ['head', 'thorns', 'mixamorigHead'], ['face', 'lens', 'mixamorigHead'], ['shoulders', 'stormglass_pendant', 'mixamorigSpine2'],
     ['hands', 'manacles', 'mixamorigLeftHand'], ['belt', 'mana_lantern', 'mixamorigHips'], ['feet', 'boots', 'mixamorigLeftFoot'],
-  ]);
+  ]); // (the Ember Sigil wears nothing: 2026-10-02, only what it is logical to wear shows)
   expect(r.cursed).toEqual(['thorns', 'manacles']);
   expect(r.cleansed).toEqual(['thorns', 'manacles']); expect(r.stillCursed).toBe(0); // (cleansed at a shrine: their cleansed looks)
   expect(r.calls).toBeLessThan(20); // (every slot filled and the focus held: a few draw calls each)
