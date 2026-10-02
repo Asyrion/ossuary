@@ -33,7 +33,7 @@ const smile = (parent: THREE.Object3D, at: V3, r: number, color = 0x2a1418, tilt
 
 /* ---------- the options ---------- */
 
-/* (floors 1 to 4's are creatures of fantasy now, in fantasyFloor1.ts to fantasyFloor4.ts: M4.12) */
+/* (floors 1 to 4's are creatures of fantasy now, in fantasyFloor1.ts to fantasyFloor4.ts: M4.12; floor 5's waiting in fantasyFloor5.ts) */
 
 /* ---------- floor 5, the Ferryman's Shore (M4.1) ---------- */
 

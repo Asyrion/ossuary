@@ -6,36 +6,35 @@ Delete it, or write it again, at the next handoff.
 
 ## The branch and what is live
 
-- Work is on **`claude/m6-plan-docs-5gjp6c`**, pushed, clean. Its last work commit is M4.12 step 5 (floor 4's five).
-- **`main` (the live Pages site) is at `90080f1`**, which has M6 steps 1 to 5. Everything below is on the branch only,
-  **not shipped**: ship only when the owner asks (the `ship` skill; the `rules-reviewer` before the PR).
-  - M6 step 6 (the general boons) and step 7 (runes on the cast), both built and documented in `docs/M6-plan.md`.
-  - The gamepad fix (an Xbox Elite Series 2 didn't work): every connected pad is read, A begins and reaches the menus,
-    and a pad says when it's heard. The owner was told it waits to ship.
-  - The obol made smaller (24 game pixels across, its faces made again at 48).
-  - Dr. Jelly redone as the plague doctor (the owner's pick of three), with his giving animation.
-  - The minimap marks finished rooms (a shade darker, a small tick).
-  - A merchant's ware shows a small panel when the mage comes near.
-  - M4.12's plan (approved), step 1 (the tools) and step 2 (floor 1's ten looks, waiting on the owner).
-- The full browser suite last ran green on the branch after M6 step 7 (120 passed). Since then, each change was checked by
-  its own browser test, and the unit tests (396) pass on `b9d5837`.
+- Work is on **`claude/m6-plan-docs-5gjp6c`**, pushed, clean. Its last work commit is M4.12 step 6 (floor 5's seven).
+- **`main` (the live Pages site) is at `593af11`**, shipped 2026-10-02 in [Asyrion/ossuary#33](https://github.com/Asyrion/ossuary/pull/33):
+  M6 steps 6 and 7, the gamepad fix, the smaller obol, Dr. Jelly as the plague doctor, the minimap's finished rooms, the
+  ware panel, and M4.12 steps 1 to 5 with floors 1 to 3 approved. Another session merged the costumes cut back to 19
+  (`806a34e`) to `main` while that PR was open; the branch was rebased onto it.
+- On the branch only, **not shipped** (ship only when the owner asks: the `ship` skill, the `rules-reviewer` first):
+  floor 4's approval (`467a8a8`) and floor 5's seven looks, waiting on the owner.
+- The full browser suite last ran green on the rebased branch before the merge (121 passed); floor 4's approval and floor
+  5 were checked by the fantasy-foes, bestiary and M4 foe tests and the unit tests (396).
 
 ## What waits on the owner now
 
-**M4.12 step 5: floor 4's five** (`src/actors/fantasyFloor4.ts`), sheets sent 2026-10-02. Floors 1 to 3 were approved
+**M4.12 step 6: floor 5's seven** (`src/actors/fantasyFloor5.ts`), sheets sent 2026-10-02. Floors 1 to 4 were approved
 the same day (the owner's yes to all) and are done: in `APPROVED`, old builders deleted, `RETIRED` keeping their old
 heights and parts for the contract, the galleries standing the new looks (`lampwyrmSwarm` for the swarm; the lava nest
-in `FOE_LOOKS`). Floor 4's:
+in `FOE_LOOKS`). Shipped to `main` and Pages with floors 1 to 3 approved ([Asyrion/ossuary#33](https://github.com/Asyrion/ossuary/pull/33));
+floor 4's approval and floor 5 are on the branch only. Floor 5's:
 
 | Look id (stays) | Was | Now |
 | --- | --- | --- |
-| `wickmouse` | Wickmouse | Candle Kobold |
-| `chimeBat` | Chime Bat | Bell Fiend |
-| `gargoyleWhelp` | Gargoyle Whelp | Gargoyle |
-| `moonstagFawn` | Moonstag Fawn | Pale Unicorn |
-| `rimeScarab` | Rime Scarab | Frost Scarab |
+| `rootling` | Rootling | Mandrake |
+| `stormRay` | Storm Ray | Sky Ray |
+| `voidMote` | Void Mote | Void Maw |
+| `lanternTortoise` | Lantern Tortoise | Dragon Turtle |
+| `gloomRaven` | Gloom Raven | Gloom Raven |
+| `rimeWolf` | Rime Wolf | Rime Warg |
+| `dustPangolin` | Dust Pangolin | Tarasque |
 
-To see them again: `npm run foe-sheet -- floor=4 out=<dir>`, or in the game with `?looks=new`.
+To see them again: `npm run foe-sheet -- floor=5 out=<dir>`, or in the game with `?looks=new`.
 
 **On the owner's yes (per foe):**
 
@@ -103,6 +102,7 @@ To see them again: `npm run foe-sheet -- floor=4 out=<dir>`, or in the game with
   whose children the behaviour moves (the fawn's `legs`) needs the idle to move each child a little, or they merge into
   the parent and never move.
 - **A 45° camera sees a face tipped 45° edge-on:** turn what must be seen (a bell's mouth) straight forward or up.
+- **`pkill -f <pattern>` kills the shell running it** when the pattern is in its own command line (`vite`, `node.*vite`): stop the dev server by its PID instead.
 - **Never run a second Vite server sharing `node_modules`** (a worktree with it linked): both rewrite
   `node_modules/.vite` and the browser tests fail on 403s. Delete `node_modules/.vite` and restart the server if it
   happens. And `pkill -f vite` kills a shell whose command line names `.vite`.
