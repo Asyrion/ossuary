@@ -14,9 +14,9 @@
    into its own target at `CFG.pixelLook.fineLayer` pixels to a game pixel each way, and laid over the grid where it
    stands nearer than what the grid drew, outlined and banded as the rest is. Its size in the room is unchanged; only its
    pixels are smaller. The scene's lights are on that layer too (lights.ts). What writes no depth (glows, steam, fire)
-   shows behind a coin even where it stands before it. The pass runs, and its target is made, only while something
-   marked fine (`markFine`) is shown, and only over the box those things fill on screen (`fineBox`): drawn, cleared and
-   laid over there alone. */
+   shows behind a coin even where it stands before it. Its passes run, and their targets are made, only while something
+   marked fine (`markFine`) is shown, and only over the box those things fill on screen (`fineBox`): drawn, shaded and
+   laid over the window there alone, so the blow-up every screen pixel runs is left as it was. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 
@@ -32,11 +32,15 @@ const fineObjects = new Set<THREE.Object3D>();
 /** Mark `o` as holding what is on the fine layer (pickupLooks.ts does, for every coin it builds), so the fine pass runs
     while it is shown; it is forgotten once it has left the scene. */
 export function markFine(o: THREE.Object3D) { fineObjects.add(o); }
-const box = new THREE.Box3(), corner = new THREE.Vector3(), fineBox = new THREE.Vector4();
-/** The box (in fine pixels, x0 y0 x1 y1, padded for the outline) that what is marked fine and shown in `scene` fills on
-    the grid `gw` × `gh` as `camera` sees it, into `fineBox`; forgetting what has left the scene. False when nothing shows. */
+const box = new THREE.Box3(), corner = new THREE.Vector3(), fineBox = new THREE.Vector4(), areas: THREE.Vector4[] = [];
+let nAreas = 0;
+const overlap = (a: THREE.Vector4, b: THREE.Vector4) => a.x < b.z && b.x < a.z && a.y < b.w && b.y < a.w;
+/** The boxes (in fine pixels, x0 y0 x1 y1, padded for the outline) that what is marked fine and shown in `scene` fills on
+    the grid `gw` × `gh` as `camera` sees it: one to each thing marked, or to each group of them that overlap (`areas`, the
+    first `nAreas`), and all of them (`fineBox`); forgetting what has left the scene. False when nothing shows. */
 function fineShown(scene: THREE.Scene, camera: THREE.Camera, gw: number, gh: number) {
-  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  const pad = K + 2; // (the outline and a pixel's rounding)
+  nAreas = 0;
   for (const o of fineObjects) {
     let p = o, seen = o.visible;
     while (p.parent) { p = p.parent; seen &&= p.visible; }
@@ -49,13 +53,20 @@ function fineShown(scene: THREE.Scene, camera: THREE.Camera, gw: number, gh: num
       a0 = Math.min(a0, gx); a1 = Math.max(a1, gx); b0 = Math.min(b0, gy); b1 = Math.max(b1, gy);
     }
     if (a1 < 0 || b1 < 0 || a0 > gw || b0 > gh) continue; // (off the grid: another room's coin)
-    x0 = Math.min(x0, a0); x1 = Math.max(x1, a1); y0 = Math.min(y0, b0); y1 = Math.max(y1, b1);
+    const a = areas[nAreas] ??= new THREE.Vector4();
+    a.set(Math.max(0, Math.floor(a0 * K) - pad), Math.max(0, Math.floor(b0 * K) - pad), Math.min(gw * K, Math.ceil(a1 * K) + pad), Math.min(gh * K, Math.ceil(b1 * K) + pad));
+    if (a.z > a.x && a.w > a.y) nAreas++;
   }
-  const pad = K + 2; // (the outline and a pixel's rounding)
-  x0 = Math.max(0, Math.floor(x0 * K) - pad); y0 = Math.max(0, Math.floor(y0 * K) - pad);
-  x1 = Math.min(gw * K, Math.ceil(x1 * K) + pad); y1 = Math.min(gh * K, Math.ceil(y1 * K) + pad);
-  fineBox.set(x0, y0, x1, y1);
-  return x1 > x0 && y1 > y0;
+  // boxes that overlap become one, so nothing is laid over twice
+  for (let i = 0; i < nAreas; i++) for (let j = i + 1; j < nAreas; j++) {
+    const a = areas[i], b = areas[j];
+    if (!overlap(a, b)) continue;
+    a.set(Math.min(a.x, b.x), Math.min(a.y, b.y), Math.max(a.z, b.z), Math.max(a.w, b.w));
+    areas[j] = areas[--nAreas]; areas[nAreas] = b; j = i; // (and again from the start, the box having grown)
+  }
+  fineBox.set(Infinity, Infinity, -Infinity, -Infinity);
+  for (let i = 0; i < nAreas; i++) { const a = areas[i]; fineBox.set(Math.min(fineBox.x, a.x), Math.min(fineBox.y, a.y), Math.max(fineBox.z, a.z), Math.max(fineBox.w, a.w)); }
+  return nAreas > 0;
 }
 /** Every grid offered, the texel first. */
 export const LINES: readonly Lines[] = ['texel', 'fine', ...P.lines];
@@ -107,7 +118,8 @@ export function setPixelLook(change: Partial<PixelLook>) {
 // Three passes: the scene into the grid (`target`, with its depth); the grid shaded (outlines, bands) into `shaded`, still
 // at the grid's size; and the blow-up to the window. Both targets only grow (in steps of `GROW`), and each frame draws
 // into the corner it needs, so a zoom blending between rooms doesn't make new ones every frame.
-let target: THREE.WebGLRenderTarget | null = null, shaded: THREE.WebGLRenderTarget | null = null, fine: THREE.WebGLRenderTarget | null = null;
+let target: THREE.WebGLRenderTarget | null = null, shaded: THREE.WebGLRenderTarget | null = null;
+let fine: THREE.WebGLRenderTarget | null = null, over: THREE.WebGLRenderTarget | null = null;
 const GROW = 64, MARGIN = 2;
 const buffer = new THREE.Vector2(), right = new THREE.Vector3(), up = new THREE.Vector3(), pix = { px: 0, py: 0 }, grid = { w: 0, h: 0 }, clear = new THREE.Color();
 const passScene = new THREE.Scene(), passCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -140,14 +152,33 @@ const shade = new THREE.ShaderMaterial({
 });
 const blit = new THREE.ShaderMaterial({
   depthTest: false, depthWrite: false,
-  uniforms: {
-    tShaded: { value: null }, size: { value: new THREE.Vector2() }, centre: { value: new THREE.Vector2() }, screen: { value: new THREE.Vector2() }, scale: { value: new THREE.Vector2() }, grid: { value: new THREE.Vector2() }, whole: { value: 0 },
-    tFine: { value: null }, tFineDepth: { value: null }, tDepth: { value: null }, fineSize: { value: new THREE.Vector2() }, fineBox: { value: fineBox }, hasFine: { value: 0 }, outline: { value: 0 }, dark: { value: P.outlineDark }, bands: { value: 0 }, steps: { value: P.bands },
-  },
+  uniforms: { tShaded: { value: null }, size: { value: new THREE.Vector2() }, centre: { value: new THREE.Vector2() }, screen: { value: new THREE.Vector2() }, scale: { value: new THREE.Vector2() }, grid: { value: new THREE.Vector2() }, whole: { value: 0 } },
   vertexShader: 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
   fragmentShader: /* glsl */ `
     uniform sampler2D tShaded; uniform vec2 size; uniform vec2 centre; uniform vec2 screen; uniform vec2 scale; uniform vec2 grid; uniform float whole;
-    uniform sampler2D tFine; uniform sampler2D tFineDepth; uniform sampler2D tDepth; uniform vec2 fineSize; uniform vec4 fineBox; uniform float hasFine; uniform float outline; uniform float dark;
+    void main() {
+      if (whole > 0.5) { // the rows of earlier: each game pixel a whole number of screen pixels, copied as it is
+        ivec2 p = min(ivec2(floor(gl_FragCoord.xy * grid / screen)), ivec2(grid) - 1);
+        gl_FragColor = vec4(texelFetch(tShaded, p, 0).rgb, 1.0);
+        return;
+      }
+      // at the texel: where this screen pixel falls on the grid (in game pixels), then a sharp blow-up: inside a game
+      // pixel its own colour, blended with the next only over the last screen pixel before the edge (filtered linearly)
+      vec2 g = centre + (gl_FragCoord.xy - screen * 0.5) / scale - 0.5;
+      vec2 i = floor(g), f = clamp((fract(g) - 0.5) * scale + 0.5, 0.0, 1.0);
+      gl_FragColor = vec4(texture2D(tShaded, (i + f + 0.5) / size).rgb, 1.0);
+    }`,
+});
+// The fine layer kept out of the blow-up above, which every screen pixel runs every frame (a software renderer pays for
+// code it skips): it is shaded at its own pixel inside its box (`fineShade`, into `over`: premultiplied, the coin banded,
+// its outline a translucent dark), then laid over the window by a quad covering only that box (`fineOver`); each coin,
+// or group of coins that overlap, has a box of its own (`areas`).
+const fineShade = new THREE.ShaderMaterial({
+  depthTest: false, depthWrite: false,
+  uniforms: { tFine: { value: null }, tFineDepth: { value: null }, tDepth: { value: null }, fineBox: { value: fineBox }, outline: { value: 0 }, dark: { value: P.outlineDark }, bands: { value: 0 }, steps: { value: P.bands } },
+  vertexShader: 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
+  fragmentShader: /* glsl */ `
+    uniform sampler2D tFine; uniform sampler2D tFineDepth; uniform sampler2D tDepth; uniform vec4 fineBox; uniform float outline; uniform float dark;
     uniform float bands; uniform float steps;
     const int K = ${K};
     // light in steps, as the shade pass bands the grid
@@ -163,33 +194,33 @@ const blit = new THREE.ShaderMaterial({
       if (!inBox(q)) return false;
       return texelFetch(tFine, q, 0).a > 0.5 && texelFetch(tFineDepth, q, 0).r <= texelFetch(tDepth, q / K, 0).r + 1e-6;
     }
-    // the fine layer over the colour: fine pixel q (its colour c, sampled), or, within a game pixel of one, its outline
-    // (as thick as the grid's)
-    vec3 overFine(vec3 col, ivec2 q, vec4 c) {
-      if (seen(q)) return col * (1.0 - c.a) + band(c.rgb); // (c is premultiplied: clear pixels are all zero)
-      if (outline > 0.5) for (int d = 1; d <= K; d++)
-        if (seen(q + ivec2(d, 0)) || seen(q - ivec2(d, 0)) || seen(q + ivec2(0, d)) || seen(q - ivec2(0, d))) return col * pow(1.0 - dark, 1.0 / 2.2);
-      return col;
-    }
     void main() {
-      if (whole > 0.5) { // the rows of earlier: each game pixel a whole number of screen pixels, copied as it is
-        ivec2 p = min(ivec2(floor(gl_FragCoord.xy * grid / screen)), ivec2(grid) - 1);
-        gl_FragColor = vec4(texelFetch(tShaded, p, 0).rgb, 1.0);
-        if (hasFine > 0.5) { ivec2 q = ivec2(floor(gl_FragCoord.xy * grid * float(K) / screen)); if (inBox(q)) gl_FragColor.rgb = overFine(gl_FragColor.rgb, q, texelFetch(tFine, q, 0)); }
+      ivec2 q = ivec2(gl_FragCoord.xy);
+      if (seen(q)) { gl_FragColor = vec4(band(texelFetch(tFine, q, 0).rgb), 1.0); return; }
+      gl_FragColor = vec4(0.0);
+      // within a game pixel of a coin, its outline (as thick as the grid's, and as dark)
+      if (outline > 0.5) for (int d = 1; d <= K; d++)
+        if (seen(q + ivec2(d, 0)) || seen(q - ivec2(d, 0)) || seen(q + ivec2(0, d)) || seen(q - ivec2(0, d))) { gl_FragColor.a = 1.0 - pow(1.0 - dark, 1.0 / 2.2); return; }
+    }`,
+});
+const fineOver = new THREE.ShaderMaterial({
+  depthTest: false, depthWrite: false, transparent: true,
+  blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendSrcAlpha: THREE.OneFactor, blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
+  uniforms: { tOver: { value: null }, rect: { value: new THREE.Vector4() }, fineSize: { value: new THREE.Vector2() }, area: { value: new THREE.Vector4() }, centre: { value: new THREE.Vector2() }, screen: { value: new THREE.Vector2() }, scale: { value: new THREE.Vector2() }, grid: { value: new THREE.Vector2() }, whole: { value: 0 } },
+  vertexShader: 'uniform vec4 rect; void main() { gl_Position = vec4(mix(rect.xy, rect.zw, position.xy * 0.5 + 0.5), 0.0, 1.0); }',
+  fragmentShader: /* glsl */ `
+    uniform sampler2D tOver; uniform vec2 fineSize; uniform vec4 area; uniform vec2 centre; uniform vec2 screen; uniform vec2 scale; uniform vec2 grid; uniform float whole;
+    const int K = ${K};
+    void main() {
+      if (whole > 0.5) { // the rows of earlier: each fine pixel copied as it is
+        ivec2 q = clamp(ivec2(floor(gl_FragCoord.xy * grid * float(K) / screen)), ivec2(area.xy), ivec2(area.zw) - 1);
+        gl_FragColor = texelFetch(tOver, q, 0);
         return;
       }
-      // at the texel: where this screen pixel falls on the grid (in game pixels), then a sharp blow-up: inside a game
-      // pixel its own colour, blended with the next only over the last screen pixel before the edge (filtered linearly)
-      vec2 g = centre + (gl_FragCoord.xy - screen * 0.5) / scale - 0.5;
-      vec2 i = floor(g), f = clamp((fract(g) - 0.5) * scale + 0.5, 0.0, 1.0);
-      gl_FragColor = vec4(texture2D(tShaded, (i + f + 0.5) / size).rgb, 1.0);
-      if (hasFine > 0.5) { // the fine layer, blown up the same way at its own pixel, inside its box
-        vec2 gf = (g + 0.5) * float(K) - 0.5; ivec2 q = ivec2(floor(gf + 0.5));
-        if (inBox(q)) {
-          vec2 sf = scale / float(K), fi = floor(gf), ff = clamp((fract(gf) - 0.5) * sf + 0.5, 0.0, 1.0);
-          gl_FragColor.rgb = overFine(gl_FragColor.rgb, q, texture2D(tFine, (fi + ff + 0.5) / fineSize));
-        }
-      }
+      // at the texel: blown up as the grid is, at its own pixel, never reading outside its box
+      vec2 g = centre + (gl_FragCoord.xy - screen * 0.5) / scale - 0.5, gf = (g + 0.5) * float(K) - 0.5;
+      vec2 fi = floor(gf), ff = clamp((fract(gf) - 0.5) * scale / float(K) + 0.5, 0.0, 1.0);
+      gl_FragColor = texture2D(tOver, clamp(fi + ff + 0.5, area.xy + 0.5, area.zw - 0.5) / fineSize);
     }`,
 });
 const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2)); quad.frustumCulled = false; passScene.add(quad);
@@ -198,7 +229,7 @@ const pass = (renderer: THREE.WebGLRenderer, m: THREE.Material, to: THREE.WebGLR
 function ensure(w: number, h: number) {
   if (target && target.width >= w && target.height >= h) return;
   const W = Math.max(GROW * Math.ceil(w / GROW), target?.width ?? 0), H = Math.max(GROW * Math.ceil(h / GROW), target?.height ?? 0);
-  target?.depthTexture?.dispose(); target?.dispose(); shaded?.dispose(); fine?.depthTexture?.dispose(); fine?.dispose();
+  target?.depthTexture?.dispose(); target?.dispose(); shaded?.dispose(); fine?.depthTexture?.dispose(); fine?.dispose(); over?.dispose();
   target = new THREE.WebGLRenderTarget(W, H, { type: THREE.UnsignedByteType, colorSpace: THREE.SRGBColorSpace, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: true, samples: 0 });
   target.depthTexture = new THREE.DepthTexture(W, H);
   // Blend as the canvas does. three tone-maps and encodes to sRGB in each material's shader only when it draws to the
@@ -210,18 +241,21 @@ function ensure(w: number, h: number) {
   (target as THREE.WebGLRenderTarget & { isXRRenderTarget: boolean }).isXRRenderTarget = true;
   // the shaded grid, filtered linearly for the sharp blow-up's one blended screen pixel (its values already encoded)
   shaded = new THREE.WebGLRenderTarget(W, H, { type: THREE.UnsignedByteType, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false, samples: 0 });
-  shaded.texture.internalFormat = 'RGBA8'; fine = null;
+  shaded.texture.internalFormat = 'RGBA8'; fine = over = null;
   target.scissorTest = shaded.scissorTest = true;
 }
-/** The fine layer's target, made the first time it is needed at the grid's size: K × K pixels to each of the grid's, with
-    its own depth (encoded as the scene is; filtered linearly for the sharp blow-up, read pixel by pixel for its depth). */
+/** The fine layer's targets, made the first time they are needed at the grid's size, K × K pixels to each of the grid's:
+    the layer drawn, with its own depth (encoded as the scene is, read pixel by pixel), and the layer shaded (`over`,
+    filtered linearly for the sharp blow-up). */
 function ensureFine() {
   if (fine) return fine;
   const W = target!.width * K, H = target!.height * K;
-  fine = new THREE.WebGLRenderTarget(W, H, { type: THREE.UnsignedByteType, colorSpace: THREE.SRGBColorSpace, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: true, samples: 0 });
+  fine = new THREE.WebGLRenderTarget(W, H, { type: THREE.UnsignedByteType, colorSpace: THREE.SRGBColorSpace, minFilter: THREE.NearestFilter, magFilter: THREE.NearestFilter, depthBuffer: true, samples: 0 });
   fine.depthTexture = new THREE.DepthTexture(W, H);
   fine.texture.internalFormat = 'RGBA8'; fine.scissorTest = true;
   (fine as THREE.WebGLRenderTarget & { isXRRenderTarget: boolean }).isXRRenderTarget = true;
+  over = new THREE.WebGLRenderTarget(W, H, { type: THREE.UnsignedByteType, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false, samples: 0 });
+  over.texture.internalFormat = 'RGBA8'; over.scissorTest = true;
   return fine;
 }
 
@@ -277,9 +311,30 @@ export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   pass(renderer, shade, shaded);
   b.tShaded.value = shaded!.texture; b.size.value.set(shaded!.width, shaded!.height); b.screen.value.set(buffer.x, buffer.y);
   b.grid.value.set(gw, gh); b.whole.value = rows ? 1 : 0;
-  b.hasFine.value = fineDrawn ? 1 : 0; b.outline.value = look.outline ? 1 : 0; b.bands.value = look.bands ? 1 : 0;
-  if (fine) { b.tFine.value = fine.texture; b.tFineDepth.value = fine.depthTexture; b.tDepth.value = target!.depthTexture; b.fineSize.value.set(fine.width, fine.height); }
   // at the texel the window shows the view itself (viewW × viewH): the grid's middle less the part of a pixel moved
   b.centre.value.set(gw / 2 - dr / px, gh / 2 - du / py); b.scale.value.set(buffer.x * px / viewW, buffer.y * py / viewH);
   pass(renderer, blit, null);
+  if (fineDrawn) laidOver(renderer, gw, gh, rows);
+}
+const ndc = (v: number, of: number) => Math.min(1, Math.max(-1, v / of * 2 - 1));
+/** The fine layer shaded at its own pixel inside its boxes, then laid over the window (after the blow-up, blended, with
+    the blow-up's own mapping), by a quad over each box alone. */
+function laidOver(renderer: THREE.WebGLRenderer, gw: number, gh: number, rows: boolean) {
+  const f = fine!, o = over!, u = fineShade.uniforms, v = fineOver.uniforms, b = blit.uniforms;
+  u.tFine.value = f.texture; u.tFineDepth.value = f.depthTexture; u.tDepth.value = target!.depthTexture;
+  u.outline.value = look.outline ? 1 : 0; u.bands.value = look.bands ? 1 : 0;
+  o.viewport.set(0, 0, gw * K, gh * K);
+  for (let i = 0; i < nAreas; i++) { const a = areas[i]; o.scissor.set(a.x, a.y, a.z - a.x, a.w - a.y); pass(renderer, fineShade, o); }
+  v.tOver.value = o.texture; v.fineSize.value.set(o.width, o.height); v.whole.value = rows ? 1 : 0;
+  v.centre.value.copy(b.centre.value); v.scale.value.copy(b.scale.value); v.screen.value.copy(b.screen.value); v.grid.value.set(gw, gh);
+  // each box on the window: from fine pixels back to screen pixels, as the blow-up maps them, a screen pixel wider
+  const sw = buffer.x, sh = buffer.y, c = b.centre.value, k = b.scale.value;
+  const at = rows ? (x: number, y: number) => [x * sw / (gw * K), y * sh / (gh * K)] : (x: number, y: number) => [(x / K - c.x) * k.x + sw / 2, (y / K - c.y) * k.y + sh / 2];
+  const auto = renderer.autoClear; renderer.autoClear = false;
+  for (let i = 0; i < nAreas; i++) {
+    const a = areas[i], [x0, y0] = at(a.x, a.y), [x1, y1] = at(a.z, a.w);
+    v.area.value.copy(a); v.rect.value.set(ndc(x0 - 1, sw), ndc(y0 - 1, sh), ndc(x1 + 1, sw), ndc(y1 + 1, sh));
+    pass(renderer, fineOver, null);
+  }
+  renderer.autoClear = auto;
 }
