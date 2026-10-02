@@ -1949,17 +1949,17 @@ test('Dr. Jelly\'s laboratory (M5): the table opens when walked up to; two reage
   expect(errors).toEqual([]);
 });
 
-test('Dr. Jelly redone (2026-10-02): three looks to choose from, each a figure that turns to the mage; he hands over what he gives once the table shuts (a brewed potion, a recipe), reaching, holding, tossing it to the mage', async ({ page }) => {
+test('Dr. Jelly redone (2026-10-02): the plague doctor, a figure that turns to the mage; he hands over what he gives once the table shuts (a brewed potion, a recipe), reaching, holding, tossing it to the mage', async ({ page }) => {
   type GJ = { sim(s: number, draw?: boolean): void; warp(id: number): void; rooms(): { type: string; plan: { id: number } }[]; player: { x: number; z: number; invuln: number; reagents: Record<string, number> };
-    jellyLooks(): { id: string }[]; jellyLook: string; setJellyLook(id: string): void; giving: { kind: string; phase: string; waiting: number } | null;
+    jellyLooks(): { id: string }[]; giving: { kind: string; phase: string; waiting: number } | null;
     giveReagent(id: string, n: number): void; openLab(t?: string): void; closeLab(): void; brew(a: string, b: string): string | null; buyRecipe(id: string): boolean; loot(r: Record<string, number>): void;
     lab: { here: boolean }; renderInfo(): { calls: number } };
   const errors = await start(page, '?seed=LAB&room=lab_plain');
   const looks = await page.evaluate(() => {
     const w = (window as unknown as { __game: GJ }).__game; w.player.invuln = 999;
-    const stood = w.jellyLooks().map(o => o.id); w.sim(.5, true); return { stood, wears: w.jellyLook };
+    const stood = w.jellyLooks().map(o => o.id); w.sim(.5, true); return { stood };
   });
-  expect(looks.stood).toEqual(['alchemist', 'plague', 'hatted']); expect(looks.wears).toBe('alchemist');
+  expect(looks.stood).toEqual(['plague']);
   // in his laboratory: a brew, then the table shut: he reaches, holds it out, tosses it, and is done
   const phases = await page.evaluate(() => {
     const w = (window as unknown as { __game: GJ }).__game, r = w.rooms().find(q => q.type === 'laboratory')!; w.warp(r.plan.id); w.sim(2.5);
@@ -1970,13 +1970,13 @@ test('Dr. Jelly redone (2026-10-02): three looks to choose from, each a figure t
   });
   expect(phases.whileOpen).toBeNull(); expect(phases.stillOpen).toBeNull(); // (it waits for the table to shut)
   expect(phases.seen).toEqual(['reach', 'hold', 'toss', 'back']); expect(phases.after).toBeNull();
-  // a recipe bought, and another look worn where he stands: he gives again, in his new coat
+  // a recipe bought: he gives again
   const recipe = await page.evaluate(() => {
-    const w = (window as unknown as { __game: GJ }).__game; w.loot({ coins: 30 }); w.setJellyLook('plague');
+    const w = (window as unknown as { __game: GJ }).__game; w.loot({ coins: 30 });
     w.openLab('recipes'); const bought = w.buyRecipe('healing') || w.buyRecipe('frostWard') || w.buyRecipe('hexBrew'); w.closeLab(); w.sim(.3, true);
-    const r = { bought, giving: w.giving, wears: w.jellyLook }; w.setJellyLook('alchemist'); return r;
+    return { bought, giving: w.giving };
   });
-  expect(recipe.bought).toBe(true); expect(recipe.giving).toMatchObject({ kind: 'recipe', phase: 'reach' }); expect(recipe.wears).toBe('plague');
+  expect(recipe.bought).toBe(true); expect(recipe.giving).toMatchObject({ kind: 'recipe', phase: 'reach' });
   expect(errors).toEqual([]);
 });
 

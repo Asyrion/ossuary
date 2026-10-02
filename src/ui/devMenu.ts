@@ -10,7 +10,6 @@ import { PROP_KINDS, isMechanism } from '../world/propData';
 import { THEME_DEFS } from '../world/themeData';
 import { placeProp } from '../world/props';
 import { padsNow } from '../input/gamepad';
-import { JELLY_LOOKS, jellyLook, setJellyLook } from '../world/jellyLooks';
 import { jellyGives } from '../world/jellyGives';
 import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
@@ -35,7 +34,7 @@ import { POTIONS, POTION_IDS, REAGENT_IDS, type PotionId } from '../items/alchem
 import { addPotion, addReagent, beltSlots, identify, knownPotion, renderBelt, usePotion } from '../items/potions';
 import { brewedPotions, forgetBrews } from '../items/alchemyMemory';
 import { openLab } from './alchemyTable';
-import { breakOut, crackVat, relookJelly } from '../world/laboratory';
+import { breakOut, crackVat } from '../world/laboratory';
 import { gainSoul, hallowedMend, resetSouls } from '../items/souls';
 import { giveResources, restyleObols, spawnPickup } from '../items/pickups';
 import { coinGallery } from '../items/pickupLooks';
@@ -92,7 +91,7 @@ import { BOON_DEFS, boon } from '../progression/boonData';
 
 const S = STR.dev;
 let panel: HTMLElement | null = null, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
-let levelInfo: HTMLElement, padInfo: HTMLElement, jellyBtn: HTMLButtonElement, runeInfo: HTMLElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
+let levelInfo: HTMLElement, padInfo: HTMLElement, runeInfo: HTMLElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
 type Tab = (typeof TABS)[number];
@@ -464,11 +463,10 @@ function build() {
   const opts = section(pages.galleries, S.options);
   opts.append(el('p', 'dv-info', [...new Set(MODEL_OPTIONS.map(o => o.floor))].sort((a, b) => a - b).map(f => S.floorOptions(f, MODEL_OPTIONS.filter(o => o.floor === f).map(o => STR.options[o.id].name).join(', '))).join(' · ')), btn(S.showOptions, () => { closeDev(); showModelOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
 
-  // Dr. Jelly's looks (2026-10-02, from the owner's pictures): the three ahead of the mage, each giving; which he wears
+  // Dr. Jelly (2026-10-02, from the owner's pictures: the plague doctor, the owner's choice) ahead of the mage, giving
   const jl = section(pages.galleries, S.jellyLooks);
-  jl.append(el('p', 'dv-info', JELLY_LOOKS.map(id => `${STR.lab.looks[id].name}: ${STR.lab.looks[id].note}`).join(' · ')),
-    btn(S.showOptions, () => { closeDev(); showJellyLooks(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)),
-    jellyBtn = btn('', () => { setJellyLook(JELLY_LOOKS[(JELLY_LOOKS.indexOf(jellyLook()) + 1) % JELLY_LOOKS.length]); relookJelly(); }));
+  jl.append(el('p', 'dv-info', S.jellyNote),
+    btn(S.showOptions, () => { closeDev(); showJellyLooks(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
 
   // the Hollow Warden's looks (M4): the three ahead of the mage, and the one it wears in its fight (a new floor 1 shows it)
   const bl = section(pages.galleries, S.bossLooks);
@@ -527,7 +525,6 @@ function refresh() {
   info.textContent = S.info(G.run.seed, G.run.floor + 1, cur.plan.id, S.roomNames[cur.type] ?? cur.type);
   godBtn.textContent = DEV.god ? S.godOn : S.godOff; godBtn.classList.toggle('on', DEV.god);
   lookBtn.textContent = S.wardenWears(STR.bossLooks[bossLook()].name);
-  jellyBtn.textContent = S.jellyWears(STR.lab.looks[jellyLook()].name);
   foeBtn.textContent = DEV.foe ? S.foeEverywhere(foeName(DEV.foe)) : S.foesAsFloor; foeBtn.classList.toggle('on', !!DEV.foe);
   moveBtn.textContent = S.moveClip[DEV.moveClip]; moveBtn.classList.toggle('on', DEV.moveClip !== 'run');
   doorBtn.textContent = S.doors[DEV.doors]; doorBtn.classList.toggle('on', DEV.doors !== 'data');

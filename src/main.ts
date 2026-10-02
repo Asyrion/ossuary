@@ -21,7 +21,6 @@ import { camera, canvas, draw, renderer, resize, setCloseUp } from './render/ren
 import './render/lights';
 import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { heroPixel, setHeroPixel } from './actors/heroPixel';
-import { jellyLook, setJellyLook, type JellyLook } from './world/jellyLooks';
 import { givingNow, jellyGives, type Gift } from './world/jellyGives';
 import { arrowOrder, initGamepad, initKeyboard, initTouch, keys, padsNow, type InputActions } from './input';
 import { RUNE_IDS, isRune, type RuneId } from './magic/runeData';
@@ -33,7 +32,7 @@ import { obolFace, obolFaces } from './items/obolFace';
 import type { Kinds } from './world/kitData';
 import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPad, openInventory } from './ui/inventory';
 import { serpentInfo } from './actors/jellySerpent';
-import { breakOut, crackVat, relookJelly } from './world/laboratory';
+import { breakOut, crackVat } from './world/laboratory';
 import { brewAtTable, closeLab, initLab, labKey, labNow, labOpen, labPad, openLab, type LabTab } from './ui/alchemyTable';
 import { warePanelNow } from './ui/warePanel';
 import { promptShowing, roomFinished, setHeroInfo, toast, updateVision } from './ui/hud';
@@ -281,10 +280,9 @@ function installDevHooks() {
     /** The bosses built in code (the Hollow Warden's looks, M4, and floors 4 and 5's, M4.1): stand them ahead of the mage; the look the Warden wears in its fight, and choosing it. */
     bossLooks: (ids?: string[]) => showBossLooks(G.current, player.x, player.z, ids),
     get bossLook() { return bossLook(); }, setBossLook: (id: BossLookId) => setBossLook(id),
-    /** Dr. Jelly (2026-10-02): his three looks stood ahead of the mage, the one he wears (and wearing another), a gift
-        handed over in this laboratory, and what he is giving now. */
-    jellyLooks: () => showJellyLooks(G.current, player.x, player.z), get jellyLook() { return jellyLook(); },
-    setJellyLook: (id: JellyLook) => { setJellyLook(id); relookJelly(); }, jellyGive: (gift: Gift) => jellyGives(gift), get giving() { return givingNow(); },
+    /** Dr. Jelly (2026-10-02, the plague doctor): stood ahead of the mage giving, a gift handed over in this laboratory,
+        and what he is giving now. */
+    jellyLooks: () => showJellyLooks(G.current, player.x, player.z), jellyGive: (gift: Gift) => jellyGives(gift), get giving() { return givingNow(); },
     /** Spell effect options (looks only): play them (or those named) ahead of the mage; take them away again. */
     effectOptions: (ids?: string[]) => showEffectOptions(G.current, player.x, player.z, ids),
     takeEffectOptions: () => removeEffectOptions(G.current),
