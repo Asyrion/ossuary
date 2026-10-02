@@ -7,6 +7,7 @@ import { FOES } from './foeData';
 import { oldLook } from './foes';
 import { FANTASY_LOOKS, RETIRED } from './fantasyLooks';
 import { standLook } from './modelOptions';
+import { disposeTree } from '../render/materials';
 import { freeSpotNear } from '../world/rooms';
 import type { Built } from './beastParts';
 
@@ -31,7 +32,7 @@ export function showLookPairs(room: Room, x: number, z: number, floor?: number, 
 function measure(build: () => Built) {
   const b = build(); b.idle(0); b.group.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(b.group), parts = Object.keys(b.parts ?? {});
-  b.group.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh && !m.geometry.userData.shared) m.geometry.dispose(); });
+  disposeTree(b.group); // (its geometries and materials, the shared ones aside)
   return { h: +(box.max.y - box.min.y).toFixed(2), parts };
 }
 /** For each new look: the parts the old look's behaviour moves that it lacks, and both heights (an approved look's old
