@@ -8,9 +8,10 @@
    height (the browser test `lookContract` checks both). */
 import type { Built } from './beastParts';
 import { FLOOR1_LOOKS } from './fantasyFloor1';
+import { FLOOR2_LOOKS } from './fantasyFloor2';
 
 /** The new looks, by the look id they replace. */
-export const FANTASY_LOOKS: Partial<Record<string, () => Built>> = { ...FLOOR1_LOOKS };
+export const FANTASY_LOOKS: Partial<Record<string, () => Built>> = { ...FLOOR1_LOOKS, ...FLOOR2_LOOKS };
 /** The new looks the owner has approved: the ones the foes wear in the game (floor 1's ten, 2026-10-02). */
 export const APPROVED: ReadonlySet<string> = new Set<string>([
   'sporeling', 'vesperMoth', 'runeBeetle', 'urnMimic', 'cryptSpider', 'inkOctopus', 'fireflyBeetle', 'choirLark', 'stormMantis', 'rubbleCrab',
