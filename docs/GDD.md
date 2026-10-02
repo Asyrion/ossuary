@@ -1221,7 +1221,7 @@ room. As built (M4.2 step 5): from the second floor on, an ordinary room's clear
 once a run; the merchant rides in through the door furthest from the mage and lays out a focus the run hasn't met (18 obols),
 a hallowed or black soul mote (7), the crow's map (5) and, while there is one to find, the secret room (8).
 
-**The merchant** (1 per floor, in a dead end). A hooded trader (placeholder): a bound shade who deals in the obols of the dead, with 3 or 4 items per visit; the first is an artifact while the floor's budget allows. His wares float in ward circles that paying breaks: walking into one buys it, or he refuses (too few obols, a heart at full health). His shop is warded: bolts fizzle there and a glyph's chalk won't take, so there is no fighting or robbing him.
+**The merchant** (1 per floor, in a dead end). A hooded trader (placeholder): a bound shade who deals in the obols of the dead, with 3 or 4 items per visit; the first is an artifact while the floor's budget allows. His wares float in ward circles that paying breaks: walking into one buys it, or he refuses (too few obols, a heart at full health). Coming near a ware shows a small panel over it (the owner's ask, 2026-10-02): what it is and does, its price, and why he would refuse it now if he would; the Wandering Merchant's wares too. His shop is warded: bolts fizzle there and a glyph's chalk won't take, so there is no fighting or robbing him.
 
 | Item | Price | Arrives |
 | --- | --- | --- |

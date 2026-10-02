@@ -35,6 +35,7 @@ import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPa
 import { serpentInfo } from './actors/jellySerpent';
 import { breakOut, crackVat, relookJelly } from './world/laboratory';
 import { brewAtTable, closeLab, initLab, labKey, labNow, labOpen, labPad, openLab, type LabTab } from './ui/alchemyTable';
+import { warePanelNow } from './ui/warePanel';
 import { promptShowing, roomFinished, setHeroInfo, toast, updateVision } from './ui/hud';
 import { chooseFor, initLevelUp, levelKey, levelOpen, levelPad, offerNow, openLevelUp } from './ui/levelUp';
 import { giveById, removeArtifactGallery, showArtifactGallery } from './items/artifacts';
@@ -428,6 +429,8 @@ function installDevHooks() {
     get trapdoor() { return !!G.trapdoor; },
     /** The gamepads the browser reports (name, layout, buttons held, sticks), as the dev menu's Gamepads shows them. */
     get pads() { return padsNow(); },
+    /** The ware whose panel shows over it (2026-10-02): its name, and whether he would refuse it now. */
+    get warePanel() { return warePanelNow(); },
     /** The rooms the minimap marks finished (2026-10-02): been in, the fight won, nothing left to take. */
     get finished() { return G.rooms.filter(r => roomFinished(r)).map(r => r.plan.id); },
     brew: (a: ReagentId, b: ReagentId) => brewAtTable(a, b), buyRecipe: (id: PotionId) => buyRecipe(id), jellyIdentifies: (id: PotionId) => jellyIdentifies(id),

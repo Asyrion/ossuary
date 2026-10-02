@@ -367,6 +367,15 @@ export const STR = {
     mendSpent: 'Your boons have mended all they can in this room.',
     yours: 'Your boons',
   },
+  /** The panel over a merchant's ware (2026-10-02): its price, how it is bought, and the crow's two wares (M4.2). */
+  shop: {
+    price: (n: number) => `${n} obols`, was: (n: number) => `(was ${n})`, free: 'Free: yours to take back',
+    walkIn: 'Walk into it to buy it.',
+    crow: {
+      map: { name: "The crow's map", kind: 'What the crow saw', effect: 'Every room of this floor shown on your map' },
+      secret: { name: "The crow's secret", kind: 'What the crow saw', effect: "Where this floor's secret room lies, its cracked walls aglow" },
+    } as Record<string, { name: string; kind: string; effect: string }>,
+  },
   /** M6 step 7: runes (data/runes.json has their names and texts): the line each says the first time it acts in a run, and
       what a socket says. */
   runes: {

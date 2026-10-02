@@ -615,7 +615,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   (`strikeUrn`). The merchant (a bound shade, wares in ward circles, a warded shop) is in
   `src/items/merchant.ts` (M4.2: the Wandering Merchant, `src/items/wanderer.ts`, rides into a cleared ordinary room once a
   run with a focus from far off, a soul mote and the crow's map and secret, laid out by the shade's `layWare`; gone when
-  the mage leaves; `__game.callWanderer()`, `__game.wanderer`), the locked vault (a warded door: a key, or two blasts that wake a warden) in
+  the mage leaves; `__game.callWanderer()`, `__game.wanderer`; a ware near the mage shows a small panel, `src/ui/warePanel.ts`,
+  2026-10-02: what it is, its price and `refusal` from merchant.ts, the reason he would refuse it, `CFG.merchant.panelReach`,
+  `__game.warePanel`), the locked vault (a warded door: a key, or two blasts that wake a warden) in
   `src/world/vault.ts`; stock, prices and the vault's hoard are in `data/loot.json`. Secret rooms (a
   forgotten mage's cell behind cracked walls that ring hollow to bolts and break to a glyph's blast) are in
   `src/world/secret.ts`: the generator adds one per floor on top of the room count, and each hidden doorway

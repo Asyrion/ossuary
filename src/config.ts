@@ -171,7 +171,7 @@ export const CFG = {
   generator: { optionalTries: 400 },
   // the merchant's shop (room-relative z of the shade and the row of wares, the gap between wares), how
   // close the mage must come to buy, and how far a bolt flies in the warded shop before it fizzles
-  merchant: { shadeAt: -1.9, waresAt: .9, spacing: 2.3, reach: .45, boltFizzle: .6 },
+  merchant: { shadeAt: -1.9, waresAt: .9, spacing: 2.3, reach: .45, boltFizzle: .6, panelReach: 1.5 }, // (panelReach, 2026-10-02: how near a ware its panel shows)
   // the lore card on pickup: seconds on screen, at least, a little more per word of lore, and at most
   lore: { least: 4, perWord: .04, most: 6 },
   // water and oil (world/pools.ts): wading speed (the mage and walking foes), seconds oil burns and water stays

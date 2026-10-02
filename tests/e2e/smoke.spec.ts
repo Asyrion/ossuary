@@ -4753,3 +4753,23 @@ test('the minimap marks finished rooms (2026-10-02): been in, the fight won, not
   expect(marks).toEqual({ before: true, lying: false, taken: true });
   expect(errors).toEqual([]);
 });
+
+test('a merchant\'s ware shows a small panel when the mage comes near (2026-10-02): what it is, its price, and why he would refuse it now', async ({ page }) => {
+  type GS = { sim(s: number, draw?: boolean): void; warp(id: number): void; rooms(): { type: string; plan: { id: number } }[]; player: { x: number; z: number; invuln: number; coins: number };
+    current: { wares: { ware: string; x: number; z: number; price: number }[] }; warePanel: { name: string; refused: boolean } | null };
+  const errors = await start(page, '?seed=SHOP&room=merchant_plain&loot=coins:12');
+  const seen = await page.evaluate(() => {
+    const w = (window as unknown as { __game: GS }).__game; w.player.invuln = 999;
+    w.warp(w.rooms().find(r => r.type === 'merchant')!.plan.id); w.sim(2.5, true);
+    const out: { ware: string; panel: GS['warePanel'] }[] = [], text: string[] = [];
+    for (const ware of w.current.wares) { w.player.x = ware.x; w.player.z = ware.z + 1.25; w.sim(.2, true); out.push({ ware: ware.ware, panel: w.warePanel }); text.push(document.getElementById('warePanel')?.textContent ?? ''); }
+    w.player.x = w.current.wares[0].x; w.player.z = w.current.wares[0].z + 3.5; w.sim(.2, true);
+    return { out, text, far: w.warePanel, shown: document.getElementById('warePanel')?.classList.contains('on') };
+  });
+  for (const s of seen.out) expect(s.panel?.name).toBeTruthy();
+  const art = seen.out.findIndex(s => s.ware === 'artifact');
+  if (art >= 0) { expect(seen.out[art].panel!.refused).toBe(true); expect(seen.text[art]).toContain('you carry 12'); } // (15 obols for an artifact)
+  for (const t of seen.text) expect(t).toMatch(/obols|Free/);
+  expect(seen.far).toBeNull(); expect(seen.shown).toBe(false);
+  expect(errors).toEqual([]);
+});

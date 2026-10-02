@@ -55,7 +55,7 @@ function wardCircle() {
 }
 
 /** What a ware costs now: the Pedlar's Scale takes 30% off (a focus left in a broken circle stays free). */
-const priceNow = (w: WareSpot) => {
+export const priceNow = (w: WareSpot) => {
   const dear = (w.ware === 'heart' || w.ware === 'halfHeart') && player.stats.effects.has('dearHearts') ? CFG.artifacts.gravemonger.heartPriceMul : 1; // (the Gravemonger's price)
   const p = w.price * dear;
   return p && player.stats.effects.has('pedlar') ? Math.max(1, Math.round(p * CFG.artifacts.pedlar.priceMul)) : p;
@@ -136,16 +136,20 @@ function refuse(w: WareSpot, msg: string) {
   if (w.circle) burst(w.x, .2, w.z, WARD, 6, 1.2, .04);
 }
 
+/** Why he would refuse ware `w` now, as he says it (null: he would sell it): the crow has nothing to tell (the Wandering
+    Merchant's, M4.2), the mage couldn't use it now, or hasn't the obols. The ware's panel says it before the mage walks in. */
+export function refusal(w: WareSpot): string | null {
+  if (w.ware === 'map' || w.ware === 'secret') return crowRefuses(w.ware);
+  if (w.ware !== 'artifact') { const why = cantUse(w.ware); if (why) return REFUSE[why](); }
+  const price = priceNow(w);
+  return player.coins < price ? STR.toast.tooPoor(price, player.coins) : null;
+}
+
 /** Pay for a ware (or refuse), break its ward and hand it over. A focus bought leaves the old one in the
     empty circle, free to take back. */
 function buy(w: WareSpot) {
-  if (w.ware === 'map' || w.ware === 'secret') { const why = crowRefuses(w.ware); if (why) return refuse(w, why); } // (the Wandering Merchant's crow, M4.2)
-  else if (w.ware !== 'artifact') {
-    const why = cantUse(w.ware);
-    if (why) return refuse(w, REFUSE[why]());
-  }
+  const no = refusal(w); if (no) return refuse(w, no);
   const price = priceNow(w);
-  if (player.coins < price) return refuse(w, STR.toast.tooPoor(price, player.coins));
   if (price) { giveResources({ coins: -price }); Sfx.purchase(); }
   for (const part of [w.circle, w.tag]) if (part) { w.g.remove(part); disposeTree(part); }
   if (w.circle) burst(w.x, .6, w.z, WARD, 16, 2.2, .045);
