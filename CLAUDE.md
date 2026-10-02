@@ -204,6 +204,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   urns and a pedestal ahead of the mage; `__game.obolFace` and `__game.obolFaces` read the coin face the obols wear and
   those they can, `__game.wearFace(id)` changes it, `__game.coinGallery()` and `__game.takeCoinGallery()` stand every
   face ahead of the mage and take them away.
+- Gamepads (`src/input/gamepad.ts`): every connected pad read together (sticks from the one pushed furthest, buttons from any), A begins from the title as Start does, A reaches the level-up screen and the alchemy table (`MENU_BUTTONS`), and a pad says by name when the browser first reports it (`initGamepad`, `STR.pad`); `__game.pads` and the dev menu's Gamepads (Rooms & runs) show what the browser reports.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons, in six tabs (Mage, Magic, Foes & objects, Rooms & runs, Look, Galleries; `TABS`, names in `STR.dev.tabs`, the
   last one open remembered in the browser as `ossuary.devTab`; a new section goes on the page of the tab it belongs to): heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's

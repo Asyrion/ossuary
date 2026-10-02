@@ -12,11 +12,17 @@ export const STR = {
     start: 'Descend',
     note: 'Prototype 0.4. Drop any Tripo .glb onto this page to play as it.',
   },
+  /** A gamepad heard (input/gamepad.ts): by name; one with an unusual layout says its buttons may be off. */
+  pad: {
+    connected: (name: string) => `Gamepad found: ${name}. A or Start (≡) begins.`,
+    unusual: (name: string) => `Gamepad found: ${name}. It reports an unusual layout, so some of its buttons may be off.`,
+  },
   controls: {
     keyboard: 'Keyboard', gamepad: 'Gamepad', touch: 'Touch',
     move: 'Move', moveKeys: 'W A S D', movePad: 'Left stick', moveTouch: 'Left thumb',
     shoot: 'Shoot', shootKeys: 'Arrow keys', shootPad: 'Right stick', shootTouch: 'Right thumb',
     glyph: 'Blast glyph', glyphKeys: 'Space', glyphPad: 'Left trigger', glyphTouch: '–',
+    begin: 'Begin', beginKeys: 'Enter', beginPad: 'A or Start', beginTouch: 'Descend',
     pause: 'Pause', pauseKeys: 'Esc or P', pausePad: 'Start', pauseTouch: 'II button',
     /** Play-test aid, like STR.dev.hint: remove with it. */
     spells: 'Spells', spellsKeys: 'Q and E', spellsPad: 'LB and RB', spellsTouch: '–',
@@ -745,6 +751,8 @@ export const STR = {
       tripod: 'iron tripod', font: 'stone font', column: 'verdigris column', plinth: 'pyre plinth', cauldron: 'cauldron',
     } as Record<string, string>,
     fpsOn: 'Frame readout: shown', fpsOff: 'Frame readout: hidden',
+    pads: 'Gamepads', readPads: 'Read the pads again', noPads: 'No gamepad heard: press one of its buttons with this page in front (a browser shows a pad only after that)',
+    padRow: (i: number, id: string, mapping: string, buttons: number[], axes: number[]) => `Pad ${i}: ${id} · ${mapping === 'standard' ? 'standard layout' : 'unusual layout'} · held: ${buttons.length ? buttons.join(', ') : 'nothing'} · sticks: ${axes.slice(0, 4).join(' ')}`,
     artifactGallery: 'Artifacts (the room kit\'s: built in code, their icons rendered from them)', artifactsNote: 'Every artifact floating ahead of the mage in rows (foci, passives, cursed), to look at; they can\'t be taken',
     bossLooks: 'The bosses built in code: the Hollow Warden\'s three looks (the floor-1 boss: choose one), and the bosses of the floors below', wardenWears: (name: string) => `The Warden wears: ${name}`,
     options: 'Enemy model options (looks only)', familiars: 'Familiar options (looks only)', bestiary: 'The bestiary (M4.5: the thirty-five as they look, all of them foes now)', bestiaryKinds: { beast: 'Beasts', creature: 'Creatures of myth', elemental: 'Elementals and golems' } as Record<string, string>, effects: 'Spell effect options (looks only)', showOptions: 'Stand them here', takeOptions: 'Take them away', floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,

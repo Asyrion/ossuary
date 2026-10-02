@@ -112,8 +112,11 @@ The player moves in eight directions and casts in four, independently, with thre
 | Move | W A S D | Left stick |
 | Cast | Arrow keys (last pressed wins) | Right stick or face buttons |
 | Blast glyph (M2) | Space | Left trigger |
+| Begin a run (title, end screen) | Enter | A or Start |
 | Pause | Esc or P | Start |
 | Mute | M |  |
+
+Every connected gamepad is read together (a browser may list an idle device first), and a pad says by name when the browser first reports it, which it does only once one of its buttons is pressed on the page. A takes on the level-up screen and acts at the alchemy table.
 
 The touch twin-stick from prototype 0.3 stays in the code but is frozen: it isn't extended or tested, and new actions get no touch controls until a mobile port.
 
