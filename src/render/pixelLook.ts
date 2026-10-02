@@ -15,7 +15,8 @@
    stands nearer than what the grid drew, outlined and banded as the rest is. Its size in the room is unchanged; only its
    pixels are smaller. The scene's lights are on that layer too (lights.ts). What writes no depth (glows, steam, fire)
    shows behind a coin even where it stands before it. The pass runs, and its target is made, only while something
-   marked fine (`markFine`) is shown. */
+   marked fine (`markFine`) is shown, and only over the box those things fill on screen (`fineBox`): drawn, cleared and
+   laid over there alone. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 
@@ -31,15 +32,30 @@ const fineObjects = new Set<THREE.Object3D>();
 /** Mark `o` as holding what is on the fine layer (pickupLooks.ts does, for every coin it builds), so the fine pass runs
     while it is shown; it is forgotten once it has left the scene. */
 export function markFine(o: THREE.Object3D) { fineObjects.add(o); }
-/** Whether anything marked fine is shown in `scene` (all its parents visible), forgetting what has left it. */
-function fineShown(scene: THREE.Scene) {
-  let shown = false;
+const box = new THREE.Box3(), corner = new THREE.Vector3(), fineBox = new THREE.Vector4();
+/** The box (in fine pixels, x0 y0 x1 y1, padded for the outline) that what is marked fine and shown in `scene` fills on
+    the grid `gw` × `gh` as `camera` sees it, into `fineBox`; forgetting what has left the scene. False when nothing shows. */
+function fineShown(scene: THREE.Scene, camera: THREE.Camera, gw: number, gh: number) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
   for (const o of fineObjects) {
     let p = o, seen = o.visible;
     while (p.parent) { p = p.parent; seen &&= p.visible; }
-    if (p !== scene) fineObjects.delete(o); else if (seen) shown = true;
+    if (p !== scene) { fineObjects.delete(o); continue; }
+    if (!seen || box.setFromObject(o).isEmpty()) continue;
+    let a0 = Infinity, b0 = Infinity, a1 = -Infinity, b1 = -Infinity;
+    for (let i = 0; i < 8; i++) {
+      corner.set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).project(camera);
+      const gx = (corner.x + 1) / 2 * gw, gy = (corner.y + 1) / 2 * gh;
+      a0 = Math.min(a0, gx); a1 = Math.max(a1, gx); b0 = Math.min(b0, gy); b1 = Math.max(b1, gy);
+    }
+    if (a1 < 0 || b1 < 0 || a0 > gw || b0 > gh) continue; // (off the grid: another room's coin)
+    x0 = Math.min(x0, a0); x1 = Math.max(x1, a1); y0 = Math.min(y0, b0); y1 = Math.max(y1, b1);
   }
-  return shown;
+  const pad = K + 2; // (the outline and a pixel's rounding)
+  x0 = Math.max(0, Math.floor(x0 * K) - pad); y0 = Math.max(0, Math.floor(y0 * K) - pad);
+  x1 = Math.min(gw * K, Math.ceil(x1 * K) + pad); y1 = Math.min(gh * K, Math.ceil(y1 * K) + pad);
+  fineBox.set(x0, y0, x1, y1);
+  return x1 > x0 && y1 > y0;
 }
 /** Every grid offered, the texel first. */
 export const LINES: readonly Lines[] = ['texel', 'fine', ...P.lines];
@@ -126,12 +142,12 @@ const blit = new THREE.ShaderMaterial({
   depthTest: false, depthWrite: false,
   uniforms: {
     tShaded: { value: null }, size: { value: new THREE.Vector2() }, centre: { value: new THREE.Vector2() }, screen: { value: new THREE.Vector2() }, scale: { value: new THREE.Vector2() }, grid: { value: new THREE.Vector2() }, whole: { value: 0 },
-    tFine: { value: null }, tFineDepth: { value: null }, tDepth: { value: null }, fineSize: { value: new THREE.Vector2() }, hasFine: { value: 0 }, outline: { value: 0 }, dark: { value: P.outlineDark }, bands: { value: 0 }, steps: { value: P.bands },
+    tFine: { value: null }, tFineDepth: { value: null }, tDepth: { value: null }, fineSize: { value: new THREE.Vector2() }, fineBox: { value: fineBox }, hasFine: { value: 0 }, outline: { value: 0 }, dark: { value: P.outlineDark }, bands: { value: 0 }, steps: { value: P.bands },
   },
   vertexShader: 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
   fragmentShader: /* glsl */ `
     uniform sampler2D tShaded; uniform vec2 size; uniform vec2 centre; uniform vec2 screen; uniform vec2 scale; uniform vec2 grid; uniform float whole;
-    uniform sampler2D tFine; uniform sampler2D tFineDepth; uniform sampler2D tDepth; uniform vec2 fineSize; uniform float hasFine; uniform float outline; uniform float dark;
+    uniform sampler2D tFine; uniform sampler2D tFineDepth; uniform sampler2D tDepth; uniform vec2 fineSize; uniform vec4 fineBox; uniform float hasFine; uniform float outline; uniform float dark;
     uniform float bands; uniform float steps;
     const int K = ${K};
     // light in steps, as the shade pass bands the grid
@@ -140,9 +156,11 @@ const blit = new THREE.ShaderMaterial({
       float l = dot(c, vec3(0.299, 0.587, 0.114)), s = sqrt(l), q = max(floor(s * steps + 0.5), 1.0) / steps;
       return c * min(q * q / max(l, 1e-4), 4.0);
     }
+    // inside the box the fine layer was drawn in this frame (outside it, its target holds nothing of this frame)
+    bool inBox(ivec2 q) { return all(greaterThanEqual(q, ivec2(fineBox.xy))) && all(lessThan(q, ivec2(fineBox.zw))); }
     // a fine pixel drawn there, and nearer than what the grid drew in its game pixel
     bool seen(ivec2 q) {
-      if (any(lessThan(q, ivec2(0))) || any(greaterThanEqual(q, ivec2(fineSize)))) return false;
+      if (!inBox(q)) return false;
       return texelFetch(tFine, q, 0).a > 0.5 && texelFetch(tFineDepth, q, 0).r <= texelFetch(tDepth, q / K, 0).r + 1e-6;
     }
     // the fine layer over the colour: fine pixel q (its colour c, sampled), or, within a game pixel of one, its outline
@@ -157,7 +175,7 @@ const blit = new THREE.ShaderMaterial({
       if (whole > 0.5) { // the rows of earlier: each game pixel a whole number of screen pixels, copied as it is
         ivec2 p = min(ivec2(floor(gl_FragCoord.xy * grid / screen)), ivec2(grid) - 1);
         gl_FragColor = vec4(texelFetch(tShaded, p, 0).rgb, 1.0);
-        if (hasFine > 0.5) { ivec2 q = ivec2(floor(gl_FragCoord.xy * grid * float(K) / screen)); gl_FragColor.rgb = overFine(gl_FragColor.rgb, q, texelFetch(tFine, q, 0)); }
+        if (hasFine > 0.5) { ivec2 q = ivec2(floor(gl_FragCoord.xy * grid * float(K) / screen)); if (inBox(q)) gl_FragColor.rgb = overFine(gl_FragColor.rgb, q, texelFetch(tFine, q, 0)); }
         return;
       }
       // at the texel: where this screen pixel falls on the grid (in game pixels), then a sharp blow-up: inside a game
@@ -165,9 +183,12 @@ const blit = new THREE.ShaderMaterial({
       vec2 g = centre + (gl_FragCoord.xy - screen * 0.5) / scale - 0.5;
       vec2 i = floor(g), f = clamp((fract(g) - 0.5) * scale + 0.5, 0.0, 1.0);
       gl_FragColor = vec4(texture2D(tShaded, (i + f + 0.5) / size).rgb, 1.0);
-      if (hasFine > 0.5) { // the fine layer, blown up the same way at its own pixel
-        vec2 gf = (g + 0.5) * float(K) - 0.5, sf = scale / float(K), fi = floor(gf), ff = clamp((fract(gf) - 0.5) * sf + 0.5, 0.0, 1.0);
-        gl_FragColor.rgb = overFine(gl_FragColor.rgb, ivec2(floor(gf + 0.5)), texture2D(tFine, (fi + ff + 0.5) / fineSize));
+      if (hasFine > 0.5) { // the fine layer, blown up the same way at its own pixel, inside its box
+        vec2 gf = (g + 0.5) * float(K) - 0.5; ivec2 q = ivec2(floor(gf + 0.5));
+        if (inBox(q)) {
+          vec2 sf = scale / float(K), fi = floor(gf), ff = clamp((fract(gf) - 0.5) * sf + 0.5, 0.0, 1.0);
+          gl_FragColor.rgb = overFine(gl_FragColor.rgb, q, texture2D(tFine, (fi + ff + 0.5) / fineSize));
+        }
       }
     }`,
 });
@@ -207,12 +228,12 @@ function ensureFine() {
 /** Whether the fine layer drew anything in the last frame. */
 let fineDrawn = false;
 export const fineLayerDrawn = () => fineDrawn;
-/** The fine layer alone into its target (the grid's `gw` × `gh`, K times finer), on a clear ground: the scene's background
-    left out, its lights kept (they are on the layer too), its matrices as the grid's pass left them. Whether it drew
-    anything; nothing is done while nothing marked fine is shown. */
+/** The fine layer alone into its target (the grid's `gw` × `gh`, K times finer), on a clear ground, inside the box what
+    is marked fine fills on screen: the scene's background left out, its lights kept (they are on the layer too), its
+    matrices as the grid's pass left them. Whether it drew anything; nothing is done while nothing marked fine is shown. */
 function drawFine(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, gw: number, gh: number) {
-  if (!fineShown(scene)) return false;
-  const f = ensureFine(); f.viewport.set(0, 0, gw * K, gh * K); f.scissor.set(0, 0, gw * K, gh * K);
+  if (!fineShown(scene, camera, gw, gh)) return false;
+  const f = ensureFine(); f.viewport.set(0, 0, gw * K, gh * K); f.scissor.set(fineBox.x, fineBox.y, fineBox.z - fineBox.x, fineBox.w - fineBox.y);
   const bg = scene.background, alpha = renderer.getClearAlpha(), calls = renderer.info.render.calls, auto = scene.matrixWorldAutoUpdate;
   renderer.getClearColor(clear); renderer.setClearColor(0x000000, 0); scene.background = null; scene.matrixWorldAutoUpdate = false;
   camera.layers.set(FINE); renderer.setRenderTarget(f); renderer.render(scene, camera);
