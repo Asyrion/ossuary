@@ -4830,5 +4830,12 @@ test('fantasy foes (M4.12): every new look keeps the parts its behaviour moves a
   expect(r.mode).toBe('new');
   for (const c of r.contract) { expect(c.missing, c.id).toEqual([]); expect(c.newH / c.oldH, c.id).toBeGreaterThan(.5); expect(c.newH / c.oldH, c.id).toBeLessThan(2.2); }
   expect(r.pairs.sort()).toEqual(r.contract.map(c => c.id).sort());
+  // each foe in its new look fights a while (its behaviour moving the new look's parts) without an error
+  const fought = await page.evaluate(ids => {
+    const w = (window as unknown as { __game: GL & { clearRoom(): void; enemies: { type: string; foe?: { id: string }; dead?: boolean }[] } }).__game, seen: string[] = [];
+    for (const id of ids) { w.clearRoom(); w.sim(.2); w.spawn(id); w.sim(3, true); if (w.enemies.some(e => e.foe?.id === id)) seen.push(id); }
+    return seen;
+  }, r.contract.map(c => c.id === 'fireflyBeetle' ? 'fireflySwarm' : c.id));
+  expect(fought.length).toBe(r.contract.length);
   expect(errors).toEqual([]);
 });
