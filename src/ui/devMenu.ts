@@ -598,6 +598,7 @@ function refresh() {
     ...(secret ? [btn(S.revealCracks, () => revealCracks()), btn(S.openSecret, () => openSecretRoom(secret))] : []),
     btn(S.clear, () => clearRoom()),
     btn(S.reveal, () => { for (const r of G.rooms) r.known = true; renderMinimap(); }),
+    btn(DEV.mapFinished ? S.mapFinishedOn : S.mapFinishedOff, () => { DEV.mapFinished = !DEV.mapFinished; renderMinimap(); }), // (2026-10-02: finished rooms marked, or not, to compare)
     btn(S.nextFloor, () => { closeDev(); descend(); }),
   );
 }

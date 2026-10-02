@@ -35,7 +35,7 @@ import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPa
 import { serpentInfo } from './actors/jellySerpent';
 import { breakOut, crackVat, relookJelly } from './world/laboratory';
 import { brewAtTable, closeLab, initLab, labKey, labNow, labOpen, labPad, openLab, type LabTab } from './ui/alchemyTable';
-import { promptShowing, setHeroInfo, toast, updateVision } from './ui/hud';
+import { promptShowing, roomFinished, setHeroInfo, toast, updateVision } from './ui/hud';
 import { chooseFor, initLevelUp, levelKey, levelOpen, levelPad, offerNow, openLevelUp } from './ui/levelUp';
 import { giveById, removeArtifactGallery, showArtifactGallery } from './items/artifacts';
 import { ARTIFACTS } from './items/artifactData';
@@ -428,6 +428,8 @@ function installDevHooks() {
     get trapdoor() { return !!G.trapdoor; },
     /** The gamepads the browser reports (name, layout, buttons held, sticks), as the dev menu's Gamepads shows them. */
     get pads() { return padsNow(); },
+    /** The rooms the minimap marks finished (2026-10-02): been in, the fight won, nothing left to take. */
+    get finished() { return G.rooms.filter(r => roomFinished(r)).map(r => r.plan.id); },
     brew: (a: ReagentId, b: ReagentId) => brewAtTable(a, b), buyRecipe: (id: PotionId) => buyRecipe(id), jellyIdentifies: (id: PotionId) => jellyIdentifies(id),
     identifyAll: () => { for (const id of POTION_IDS) identify(id); }, forgetPotions: () => { G.run.identified.length = 0; forgetBrews(); renderBelt(); },
     get blinkRest() { return blinkRest(); }, get robeTint() { return robeTint(); }, get moths() { return mothCount(); },

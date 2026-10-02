@@ -852,7 +852,7 @@ export const STR = {
     bestiaryNote: 'Weaknesses and resistances found are kept between runs (the bestiary to come).', forgetBestiary: 'Forget the bestiary',
     foeNames: { rotling: 'Rotling (a plain foe, for testing)', dummy: 'Training dummy' } as Record<string, string>,
     statuses: 'Statuses on the foes here', inflictOn: (name: string) => `${name} them`,
-    floor: 'This floor', sealed: 'sealed', hidden: 'hidden', clear: 'End this fight', reveal: 'Reveal the map', nextFloor: 'Next floor',
+    floor: 'This floor', sealed: 'sealed', hidden: 'hidden', clear: 'End this fight', reveal: 'Reveal the map', mapFinishedOn: 'Minimap: finished rooms marked', mapFinishedOff: 'Minimap: finished rooms not marked', nextFloor: 'Next floor',
     dials: (extra: number, elite: number, waves: number, lean: string, walls: string) => `Pressure (M4.9): one more foe in ${Math.round(extra * 100)}% of fights, elites ×${elite}, ordeals +${waves} wave${waves === 1 ? '' : 's'}. Pages lean to ${lean || 'nothing'}; walls off ${walls || 'nothing'}.`,
     warnFloor: 'Say what this floor walls off', noWall: 'This floor walls off none of the spells carried',
     revealCracks: 'Reveal cracked walls', openSecret: 'Open the secret room',

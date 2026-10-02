@@ -1131,7 +1131,7 @@ the table says. The dev menu's rooms show each piece.
 
 Between two cells of the same room, the two wall tiles become floor, which is why two cells make 28 tiles, not 26. Doors sit in the middle of every outer cell edge, including the two edges facing an L's missing corner.
 
-- **Camera:** fixed and fitted in one-cell rooms, as now. In larger rooms it pulls back a little (the view is 20% wider and deeper, `camHallView` in `config.ts`) so halls don't feel too vast, follows the mage and stops at the walls; the zoom blends during the pan between rooms. The minimap shows the whole shape.
+- **Camera:** fixed and fitted in one-cell rooms, as now. In larger rooms it pulls back a little (the view is 20% wider and deeper, `camHallView` in `config.ts`) so halls don't feel too vast, follows the mage and stops at the walls; the zoom blends during the pan between rooms. The minimap shows the whole shape. A finished room (been in, its fight won, nothing left in it to take: no pickup lying, no coffer or chest unopened, no artifact or page left) is drawn a shade darker with a small tick in a corner, so the rooms still holding something stand out (the owner's ask, 2026-10-02: marked, but not invasively); the rooms with marks of their own (shops, altars, vaults, shrines, libraries, the laboratory, the treasure room, ordeals) dim those as before.
 - **Which rooms can be large:** normal rooms and the boss room, which sometimes widens into a great hall. Ordeals stay one cell until they get large templates; start, treasure, bone altar, merchant, secret and vault rooms stay one cell.
 - **Mix:** most rooms stay standard; larger shapes and corridors make up a quarter to a third of a floor, a little more on deeper floors (weights per floor in `data/floors.json`).
 

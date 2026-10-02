@@ -78,6 +78,8 @@ export const G = {
 export const DEV = { /** M4.6: Asyrion's arc forced to a stage (the dev menu), else from what is held. */ arc: undefined as number | undefined, god: false, mana: false, fps: false, moveClip: 'run' as 'run' | 'walkInStep' | 'walkNatural', doors: 'data' as 'data' | 'shifted' | 'middle',
   /** The room kit in code (M3.5 step 3's proof: the fire objects, the crypt's floor and walls); off keeps the old looks. */
   roomKit: true,
+  /** The minimap marks finished rooms (2026-10-02, the owner's ask): the dev menu turns it off to compare. */
+  mapFinished: true,
   /** Kinds of the room kit forced on every room of the floor (the dev menu's Look tab), to compare; else each room draws. */
   kitKinds: {} as Partial<Kinds>,
   /** One foe in every template role on every floor (`?foe=`, the dev menu), to test it; else each floor fills its roles. */
