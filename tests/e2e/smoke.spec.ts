@@ -2344,7 +2344,7 @@ test('the dev menu opens on its key, pauses the game, and hands out what it list
   const click = (text: string) => page.locator('#dev .dv-page:not([hidden]) button', { hasText: text }).first().click();
   const tab = (name: string) => page.locator('#dev .dv-tabs button', { hasText: name }).click();
   // in tabs: the mage's opens first
-  await expect(page.locator('#dev .dv-tabs button')).toHaveText(['Mage', 'Magic', 'Foes & objects', 'Rooms & runs', 'Look', 'Galleries']);
+  await expect(page.locator('#dev .dv-tabs button')).toHaveText(['Mage', 'Magic', 'Foes & objects', 'Rooms & runs', 'Look', 'Galleries', 'Sound']);
   await expect(page.locator('#dev .dv-tab.on')).toHaveText('Mage');
   await click('+10 obols'); await click('+5 keys'); await click('Ember Sigil'); await click('God mode'); await click('Gilded chest');
   const got = await page.evaluate(() => {
