@@ -490,9 +490,10 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   menu's cycle (`LINES`) and are drawn exactly as before (the grid the window's, each pixel copied whole, no glide). The
   owner chose the texel as the default over fine and 1080 after comparing them (2026-10-01). One exception (the owner,
   2026-10-02): the fine layer (`FINE`, layer 1), the coins' faces, drawn into their own target at
-  `CFG.pixelLook.fineLayer` (2) pixels to a game pixel with their own depth, and laid over the grid in the blow-up where
-  they stand nearer than what it drew, outlined (`drawFine`, `overFine` in the blit shader; `__game.fineLayerDrawn`);
-  every scene light is on it too (`lit` in lights.ts), and with the look off the camera sees every layer. Nothing else
+  `CFG.pixelLook.fineLayer` (2) pixels to a game pixel with their own depth, shaded at that pixel where they stand nearer
+  than what the grid drew (outlined, banded) and laid over the window after the blow-up, a box to each coin (`drawFine`,
+  `laidOver`: `fineShade`, `fineOver`; `__game.fineLayerDrawn`). The blow-up itself stays free of it: a software renderer
+  pays for every line of a shader every pixel runs, even a branch it skips. Every scene light is on it too (`lit` in lights.ts), and with the look off the camera sees every layer. Nothing else
   goes on it without the owner's say. The costume close-up
   (`DEV.closeUp`) magnifies the game's own pixels, so it shows what the game shows. The scene is tone-mapped and encoded by its own shaders (the target
   flagged as an XR target, stored as plain RGBA8), so it blends as on the canvas; the HUD stays sharp. `draw()` in
