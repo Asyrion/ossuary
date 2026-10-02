@@ -1,6 +1,6 @@
 /* Dr. Jelly's laboratory in the room kit's style (M5 step 6, docs/M5-plan.md; GDD: Potions and alchemy): the glass globes
-   of glowing jelly on their iron stands, the alchemy table with its alembic, burner and racks, Dr. Jelly (an alchemist in a
-   stained coat and goggles, a jelly in a jar for a familiar) and the great arched window on the north wall, behind which the
+   of glowing jelly on their iron stands, the alchemy table with its alembic, burner and racks, Dr. Jelly (jellyLooks.ts, since the
+   owner's pictures of 2026-10-02) and the great arched window on the north wall, behind which the
    jelly serpent coils in its vat. Built in code as the other pieces are (objectLooks.ts, specialLooks.ts): painted pieces
    merged into a few meshes (`mergeStill`), green glowing jelly as the room's light (no lights are added: a light more
    would make every material compile again). What they do is world/laboratory.ts. */
@@ -18,7 +18,7 @@ const metal = (c: number) => tone(c, .05, .5);
 
 /** The laboratory's colours: its jelly, the glass, iron, copper and the old oak of the table. */
 export const JELLY = 0x7ae070, JELLY_DEEP = 0x2e8a4a, JELLY_PALE = 0xc8ffb0, VAT_DEEP = 0x123a1c, VAT_EMPTY = 0x0e2a16; // (the vat's jelly darker than the serpent in it, so it shows)
-const GLASS = 0x9ebed8, IRON = 0x3a383c, COPPER = 0xa8683a, OAK = 0x5a3e26, OAK_DARK = 0x3e2a1a, COAT = 0x6e6656, STAIN = 0x4e7a2e, SKIN = 0xd8b496;
+const GLASS = 0x9ebed8, IRON = 0x3a383c, COPPER = 0xa8683a, OAK = 0x5a3e26, OAK_DARK = 0x3e2a1a;
 
 /** A glass globe of glowing jelly on a three-legged iron stand, bubbles hanging in it. */
 export function globeLook(R: () => number) {
@@ -56,34 +56,6 @@ export function tableLook() {
   for (const [x, z, a] of [[.05, .2, .3], [.15, .14, -.4]]) put(box(g, .2, .005, .26, tone(0xe0d0aa, .06), x, top + .005, z), 0, a, 0, [.2, .005, .26]);
   const gl = glowShared(JELLY, 1, .3); gl.position.set(ax + .2, top + .45, 0); g.add(gl);
   g.add(blob(1.6)); g.userData.parts = { fire }; mergeStill(g);
-  return g;
-}
-
-/** Dr. Jelly: a stooped alchemist in a long coat stained green, goggles pushed down over the eyes and glowing faintly, a
-    shock of white hair, a jar under one arm with a small jelly in it (two dark eyes) for a familiar. `body` (which bobs and
-    turns to the mage) and `jar` (whose jelly wobbles) in `userData`. */
-export function drJellyLook() {
-  const g = new THREE.Group(), body = new THREE.Group(), coat = tone(COAT, .12), stain = tone(STAIN, .1), skin = tone(SKIN, .08), dark = tone(0x2a2422, .08);
-  mesh(body, lathe([[.3, 0], [.31, .1], [.27, .5], [.24, .8], [.22, 1.0], [.14, 1.08], [0, 1.1]], 12), coat);
-  for (const [y, x, s] of [[.25, .14, .1], [.5, -.12, .08], [.75, .08, .07], [.15, -.2, .06]]) put(mesh(body, new THREE.SphereGeometry(s, 6, 4), stain, x, y, Math.sqrt(Math.max(0, .29 * .29 - x * x)) - .02), 0, 0, 0, [1, 1, .3]);
-  for (const x of [-.1, .1]) mesh(body, cyl(.05, .06, .08, 6), dark, x, .03, .06); // (boots under the hem)
-  // the head: a round face, goggles over the eyes, white hair standing up
-  mesh(body, new THREE.SphereGeometry(.17, 10, 8), skin, 0, 1.24, 0);
-  put(mesh(body, new THREE.TorusGeometry(.17, .025, 4, 14), dark, 0, 1.27, 0), Math.PI / 2, 0, 0, [1, 1, 1]);
-  for (const x of [-.07, .07]) { put(mesh(body, cyl(.055, .055, .05, 10), metal(COPPER), x, 1.27, .15), Math.PI / 2); put(mesh(body, cyl(.042, .042, .02, 10), glowTone(JELLY_PALE), x, 1.27, .18), Math.PI / 2); }
-  for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2; put(mesh(body, new THREE.ConeGeometry(.05, .14, 4), tone(0xeeeae0, .08), Math.cos(a) * .12, 1.38, Math.sin(a) * .12 - .03), Math.sin(a) * .5, 0, -Math.cos(a) * .5); }
-  mesh(body, new THREE.SphereGeometry(.03, 5, 4), skin, 0, 1.2, .17); // (a nose)
-  // the arms: one raised as if explaining, one round the jar
-  tube(body, [[.2, .95, 0], [.32, .8, .1], [.36, .95, .22]], .065, .05, coat); mesh(body, new THREE.SphereGeometry(.045, 6, 4), skin, .37, .99, .24);
-  tube(body, [[-.2, .95, 0], [-.3, .72, .1], [-.18, .62, .22]], .065, .05, coat);
-  const jar = new THREE.Group(); jar.position.set(-.16, .56, .25); body.add(jar);
-  mesh(jar, cyl(.1, .1, .2, 10), tone(GLASS, .04, .35), 0, .1, 0); mesh(jar, cyl(.105, .105, .03, 10), metal(COPPER), 0, .21, 0);
-  const jelly = new THREE.Group(); jelly.position.y = .07; jar.add(jelly);
-  put(mesh(jelly, new THREE.SphereGeometry(.08, 8, 6), glowTone(JELLY)), 0, 0, 0, [1, .75, 1]);
-  for (const x of [-.025, .025]) mesh(jelly, new THREE.SphereGeometry(.012, 4, 3), dark, x, .02, .07);
-  const gl = glowShared(JELLY, .45, .4); gl.position.y = .1; jar.add(gl);
-  body.userData.parts = { jelly }; mergeStill(body);
-  g.add(body, blob(.9)); g.userData = { body, jelly };
   return g;
 }
 

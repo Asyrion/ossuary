@@ -7,6 +7,9 @@
    rows by floor ahead of the mage. Names and notes are placeholders in STR.options. Familiars the mage could bind are
    built the same way, from the owner's drawings (FAMILIAR_OPTIONS, names in STR.familiars). */
 import * as THREE from 'three';
+import { JELLY_LOOKS, drJellyLook, type JellyParts } from '../world/jellyLooks';
+import { givePose } from '../world/jellyGives';
+import { glowTone } from '../world/kitParts';
 import type { Room } from '../types';
 import { blob, disposeTree, glow } from '../render/materials';
 import { freeSpotNear, isFreeAt } from '../world/rooms';
@@ -743,6 +746,17 @@ export function showBossLooks(room: Room, x: number, z: number, only?: readonly 
     const b = o.build(); mergeRig(b.group, b.idle, 'boss:' + o.id); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
     shown.push({ room, group: b.group, idle: b.idle });
     return { id: o.id, x: at.x, z: at.z };
+  });
+}
+/** Stand Dr. Jelly's three looks (world/jellyLooks.ts, the owner's pictures of 2026-10-02) in a row ahead of world (x, z),
+    each looping the giving gesture with a flask of jelly on his palm, so the looks and the gesture are seen together. */
+export function showJellyLooks(room: Room, x: number, z: number) {
+  return JELLY_LOOKS.map((id, i) => {
+    const at = freeSpotNear(room, x + (i - 1) * 1.5, z - 2), g = drJellyLook(id), P = g.userData.parts as JellyParts;
+    const vial = new THREE.Mesh(new THREE.SphereGeometry(.05, 8, 6), glowTone(0x7ae070)); vial.position.y = .05; P.gift.add(vial);
+    g.position.set(at.x - room.cx, 0, at.z - room.cz); room.group.add(g);
+    shown.push({ room, group: g, idle: t => { const c = (t + i * .9) % 3.2, k = c < .5 ? c / .5 : c < 1.6 ? 1 : c < 2.1 ? 1 - (c - 1.6) / .5 : 0; givePose(P, k * k * (3 - 2 * k)); vial.visible = k > .05; P.body.position.y = Math.sin(t * 2.1 + i) * .02; } });
+    return { id, x: at.x, z: at.z };
   });
 }
 /** The nearest open floor to (x, z), searching outwards half a tile at a time, at least `gap` from every spot `taken`

@@ -746,7 +746,10 @@ Potions are the second game inside a run: every potion has a drink effect on the
 
 **Dr. Jelly's laboratory** (the owner's Dr. Jelly's House, adopted 2026-09-30). The alchemy table stands in a
 laboratory lit green: glass globes of glowing jelly on stands, and behind a great arched window a vat where a jelly serpent
-coils. Dr. Jelly, the alchemist who keeps it, identifies a potion and trades recipes. The globes burst to a bolt and spill a
+coils. Dr. Jelly, the alchemist who keeps it, identifies a potion and trades recipes; what he gives (the potion he named or the
+mage brewed, a recipe, his thanks) he hands across the table, reaching out with it on his palm and tossing it over (2026-10-02,
+the owner's ask, with three looks redone from the owner's pictures of alchemists: the alchemist, the plague doctor and the
+hedge wizard, one to be chosen). The globes burst to a bolt and spill a
 jelly (the Lantern Jelly's kin) or a reagent. Once a run the serpent may break out of its vat as a boss, flooding the room
 with jelly that slows and conducts shock.
 

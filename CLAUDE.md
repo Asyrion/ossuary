@@ -435,7 +435,14 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `globeBurst`). `world/laboratory.ts` furnishes it (`furnishLab`: the table facing the door, Dr. Jelly behind it, the vat
   window on the north wall, which torches and the wall's dressing keep clear of; `room.lab`), greets the first visit
   (`enterLab`), opens the table when the mage walks up (`checkLab`) and moves Dr. Jelly and the serpent (`updateLab`); looks
-  in `labLooks.ts`. The table's screen is `ui/alchemyTable.ts` (`#scrLab`, tabs Brew, Dr. Jelly looks, Recipes; `labKey`,
+  in `labLooks.ts`. Dr. Jelly himself (redone from the owner's pictures, 2026-10-02) is `world/jellyLooks.ts`: three looks
+  for the owner to choose (`JELLY_LOOKS`: the alchemist, the plague doctor, the hedge wizard; `ossuary.jellyLook`, the
+  alchemist until chosen), a figure on pivots (`JellyParts`: body, head, each arm's shoulder, elbow and hand, the `gift`
+  on the right palm); what he hands over (a brewed or named potion, a recipe, obols) is `world/jellyGives.ts`
+  (`jellyGives` queues it from brewing.ts and `serpentFell`, played once the table shuts: reach, hold, toss to the mage,
+  back; `givePose`, `CFG.alchemy.lab.give`). Dev menu: Dr. Jelly gives (Mage tab, Alchemy), Dr. Jelly's looks and which he
+  wears (Galleries, each looping the gesture); `__game.jellyLooks()`, `jellyLook`, `setJellyLook(id)`, `jellyGive(gift)`,
+  `giving`. The table's screen is `ui/alchemyTable.ts` (`#scrLab`, tabs Brew, Dr. Jelly looks, Recipes; `labKey`,
   `labPad` from main.ts), the rules `items/brewing.ts` (`brewNow`, `buyRecipe` for `CFG.alchemy.recipePrice`,
   `jellyIdentifies` once a visit, `knownRecipes`; `learnRecipe` in alchemyMemory.ts); the inventory's Potions tab lists the
   recipes known. Dev menu: "Open the alchemy table here"; `?room=lab_plain`; `__game.lab`, `openLab(tab)`, `closeLab()`,

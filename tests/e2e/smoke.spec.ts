@@ -1949,6 +1949,37 @@ test('Dr. Jelly\'s laboratory (M5): the table opens when walked up to; two reage
   expect(errors).toEqual([]);
 });
 
+test('Dr. Jelly redone (2026-10-02): three looks to choose from, each a figure that turns to the mage; he hands over what he gives once the table shuts (a brewed potion, a recipe), reaching, holding, tossing it to the mage', async ({ page }) => {
+  type GJ = { sim(s: number, draw?: boolean): void; warp(id: number): void; rooms(): { type: string; plan: { id: number } }[]; player: { x: number; z: number; invuln: number; reagents: Record<string, number> };
+    jellyLooks(): { id: string }[]; jellyLook: string; setJellyLook(id: string): void; giving: { kind: string; phase: string; waiting: number } | null;
+    giveReagent(id: string, n: number): void; openLab(t?: string): void; closeLab(): void; brew(a: string, b: string): string | null; buyRecipe(id: string): boolean; loot(r: Record<string, number>): void;
+    lab: { here: boolean }; renderInfo(): { calls: number } };
+  const errors = await start(page, '?seed=LAB&room=lab_plain');
+  const looks = await page.evaluate(() => {
+    const w = (window as unknown as { __game: GJ }).__game; w.player.invuln = 999;
+    const stood = w.jellyLooks().map(o => o.id); w.sim(.5, true); return { stood, wears: w.jellyLook };
+  });
+  expect(looks.stood).toEqual(['alchemist', 'plague', 'hatted']); expect(looks.wears).toBe('alchemist');
+  // in his laboratory: a brew, then the table shut: he reaches, holds it out, tosses it, and is done
+  const phases = await page.evaluate(() => {
+    const w = (window as unknown as { __game: GJ }).__game, r = w.rooms().find(q => q.type === 'laboratory')!; w.warp(r.plan.id); w.sim(2.5);
+    w.giveReagent('graveMoss', 1); w.giveReagent('emberSalt', 1); w.openLab('brew'); w.brew('graveMoss', 'emberSalt');
+    const whileOpen = w.giving; w.sim(.5); const stillOpen = w.giving; w.closeLab();
+    const seen: string[] = []; for (let k = 0; k < 150 && (k < 2 || w.giving); k++) { w.sim(1 / 60); const p = w.giving?.phase; if (p && seen.at(-1) !== p) seen.push(p); }
+    return { whileOpen, stillOpen, seen, after: w.giving };
+  });
+  expect(phases.whileOpen).toBeNull(); expect(phases.stillOpen).toBeNull(); // (it waits for the table to shut)
+  expect(phases.seen).toEqual(['reach', 'hold', 'toss', 'back']); expect(phases.after).toBeNull();
+  // a recipe bought, and another look worn where he stands: he gives again, in his new coat
+  const recipe = await page.evaluate(() => {
+    const w = (window as unknown as { __game: GJ }).__game; w.loot({ coins: 30 }); w.setJellyLook('plague');
+    w.openLab('recipes'); const bought = w.buyRecipe('healing') || w.buyRecipe('frostWard') || w.buyRecipe('hexBrew'); w.closeLab(); w.sim(.3, true);
+    const r = { bought, giving: w.giving, wears: w.jellyLook }; w.setJellyLook('alchemist'); return r;
+  });
+  expect(recipe.bought).toBe(true); expect(recipe.giving).toMatchObject({ kind: 'recipe', phase: 'reach' }); expect(recipe.wears).toBe('plague');
+  expect(errors).toEqual([]);
+});
+
 test('the jelly serpent (M5): three bolts crack the vat window and it breaks out, flooding the room with jelly and locking the doors; under the jelly no bolt reaches it; a shock through its jelly or a freeze traps it at the surface; fallen, it leaves Warden\'s Ash, a rare potion and a free recipe, and no trapdoor; a restless one breaks out after a brew; as a floor\'s boss it pours its own jelly', async ({ page }) => {
   const errors = await start(page, '?seed=SERP1&room=lab_plain');
   type Info = { serpent: { state: string; hidden: boolean; x: number; z: number; hp: number; maxHp: number; trap: string | null; under: string | null } | null; jelly: number; frozen: number; run: string; restless: boolean; cracks: number; broken: boolean };
