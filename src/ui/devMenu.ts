@@ -78,10 +78,13 @@ import { gainInsight, insightNow, setLevel, toNextLevel } from '../progression/i
 import { LEVEL_CAP } from '../progression/levelData';
 import { ATTRS, noAttrs } from '../progression/attributes';
 import { pointsToSpend, spendPoint } from '../progression/points';
+import { dealNow, takeBoon } from '../progression/boons';
+import { openLevelUp } from './levelUp';
+import { BOON_DEFS, boon } from '../progression/boonData';
 
 const S = STR.dev;
 let panel: HTMLElement | null = null, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
-let levelInfo: HTMLElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
+let levelInfo: HTMLElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
 type Tab = (typeof TABS)[number];
@@ -241,7 +244,15 @@ function build() {
     btn(S.maxLevel, () => setLevel(LEVEL_CAP)),
     btn(S.firstLevel, () => setLevel(1)));
   for (const a of ATTRS) lv.append(btn(S.plusAttr(STR.attrs[a].name), () => spendPoint(a, true), STR.attrs[a].text)); // (M6 step 2: a point without a level's)
+  lv.append(btn(S.offerNow, () => { closeDev(); if (!openLevelUp()) toast(S.noLevelWaits, 2); }), autoBtn = btn('', () => { DEV.autoLevel = DEV.autoLevel ? false : 'choose'; })); // (M6 step 4)
   lv.append(btn(S.noAttrs, () => { G.run.attrs = noAttrs(); refreshStats(false); }));
+  // M6 step 3: boons: take each (its next rank), deal three as a level would, none
+  const bn = section(pages.mage, S.boons);
+  bn.append(boonInfo = el('p', 'dv-info'),
+    btn(S.dealNow, () => toast(dealNow().map(c => `${boon(c.id).name}${c.rank > 1 ? ' II' : ''}${c.lean ? ' *' : ''}`).join(' · '), 4)),
+    btn(S.noBoons, () => { G.run.boons = {}; G.run.pledge = null; refreshStats(false); }));
+  const bnBox = el('div', 'dv-row'); bn.parentElement!.append(bnBox);
+  for (const b of BOON_DEFS) { const x = btn(b.name, () => { if (!takeBoon(b.id)) toast(S.boonFull, 2); }, b.text); const dot = el('i'); dot.style.background = b.color; x.prepend(dot); bnBox.append(x); }
   const res = section(pages.mage, S.resources);
   for (const [r, n] of [['coins', 10], ['keys', 1], ['keys', 5], ['glyphs', 1], ['glyphs', 5]] as [Resource, number][]) {
     res.append(btn(S.give(n, S.names[r]), () => giveResources({ [r]: n })));
@@ -506,6 +517,8 @@ function refresh() {
   reagentBtn.textContent = DEV.reagents ? S.reagentsOn : S.reagentsOff; reagentBtn.classList.toggle('on', DEV.reagents);
   alchInfo.textContent = S.alchemyInfo(player.belt.length, beltSlots(), POTION_IDS.filter(knownPotion).length, POTION_IDS.length, brewedPotions().length, S.serpentState[G.run.serpent], G.run.restless);
   { const v = insightNow(); levelInfo.textContent = S.levelsInfo(v.level, Math.round(v.insight), Math.ceil(v.next), v.pending) + ' ' + S.attrsInfo(ATTRS.map(a => `${STR.attrs[a].name} ${G.run.attrs[a]}`).join(', '), pointsToSpend()); }
+  autoBtn.textContent = DEV.autoLevel ? S.autoLevelOn : S.autoLevelOff; autoBtn.classList.toggle('on', !!DEV.autoLevel);
+  boonInfo.textContent = S.boonsInfo(Object.entries(G.run.boons).map(([id, r]) => `${boon(id).name}${r > 1 ? ' II' : ''}`).join(', '));
   heroPxBtn.textContent = heroPixel() ? S.heroPixelOn : S.heroPixelOff; heroPxBtn.classList.toggle('on', heroPixel());
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
   knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'), reactionsFound().length, REACTION_IDS.length) + ' ' + S.weavesInfo(weavesFound().length, WEAVE_IDS.length);
@@ -541,7 +554,7 @@ function refresh() {
   const secret = G.rooms.find(r => r.type === 'secret');
   const dials = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].pressure, names = (l: string[]) => l.map(s => STR.schools[s]).join(', ');
   floorBox.replaceChildren(
-    el('p', 'dv-info', S.dials(dials.extra, dials.eliteMul, dials.ordealWaves, names(floorLean()), names(floorWalls()))), // (M4.9: the descent's dials)
+    el('p', 'dv-info', S.dials(dials.extra, dials.eliteMul, dials.ordealWaves, names(floorLean()), names(floorWalls())) + ' ' + S.pledgeInfo(G.run.pledge ? STR.schools[G.run.pledge] : '')), // (M4.9: the descent's dials; M6: a boon's pledge)
     btn(S.warnFloor, () => { if (!warnFloor()) toast(S.noWall, 2); }),
     ...rooms.map(r => {
       const note = r.doors.some(d => d.seal?.sealed) ? S.sealed : r.type === 'secret' && !r.found ? S.hidden : '';

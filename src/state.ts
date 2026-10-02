@@ -9,6 +9,7 @@ import type * as THREE from 'three';
 import type { Kinds } from './world/kitData';
 import type { FoeId } from './actors/foeData';
 import { noAttrs } from './progression/attributes';
+import type { School } from './magic/spellData';
 
 export type GameState = 'title' | 'play' | 'pause' | 'dying' | 'end';
 
@@ -60,6 +61,9 @@ export const G = {
         screen, step 4), and the potions' kinds used this run (each pays the first time). */
     insight: 0, level: 1, pending: 0, potionsUsed: [] as PotionId[],
     /** M6 step 2: the points spent on each attribute this run. */ attrs: noAttrs(),
+    /** M6 step 3: the boons taken (each one's rank), the spells cast by school (the deal leans to them), a pledge (a school
+        boon taken before any spell of its school: the next library holds a page of it), and how many deals were drawn. */
+    boons: {} as Record<string, number>, casts: {} as Partial<Record<School, number>>, pledge: null as School | null, deals: 0,
   },
   shake: 0,
   simClock: 0,
@@ -78,7 +82,11 @@ export const DEV = { /** M4.6: Asyrion's arc forced to a stage (the dev menu), e
   /** M4.6: the camera close on the mage (the dev menu's Costumes section), to see what is worn; `CFG.costume.closeUp`. */
   closeUp: false,
   /** M5: every fallen foe and broken object leaves its reagent (the dev menu's Alchemy), to test where they come from. */
-  reagents: false };
+  reagents: false,
+  /** M6 step 4: levels choose for themselves, without the level-up screen: 'choose' takes the first boon dealt and spends on
+      the attribute with fewest points (`?autolevel=1`, the dev menu, the balance bot); 'skip' lets them pass with nothing
+      taken (`?autolevel=skip`: the browser tests, so a fight cleared changes none of the mage's numbers). */
+  autoLevel: false as false | 'choose' | 'skip' };
 
 export const player: Player = {
   dead: false, x: 0, z: 0, vx: 0, vz: 0, r: CFG.hero.radius, hp: 6, maxHp: 6, invuln: 0, fireCd: 0, eye: 1, yawA: 0, blessed: 0,

@@ -41,6 +41,20 @@ body{font-family:var(--f-ui);color:var(--ink);-webkit-user-select:none;user-sele
 #mana.flash i{background:linear-gradient(#ff9a8a,#c83a2a)}
 #mana.hexed i{background:linear-gradient(#d8b0ff,#7a3ad8)}
 #mana.hexed{box-shadow:0 0 8px rgba(183,132,255,.85),0 2px 0 rgba(0,0,0,.5)}
+/* M6 step 4: the level-up screen: three boon cards (then four attributes) side by side, the chosen one lit in its colour */
+#scrLevel{justify-content:center;background:rgba(0,0,0,.62)}
+.card.lvUp{max-width:880px;width:100%}
+.lvCards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:6px 0 4px}
+.lvCard{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:14px 12px 12px;border:1px solid #3a2f24;border-top:3px solid var(--c);border-radius:3px;background:#17120e;color:#e8dcc2;cursor:pointer;font:15px/1.35 var(--f-ui);min-height:220px}
+.lvCard[aria-selected="true"]{border-color:var(--c);box-shadow:0 0 0 1px var(--c),0 0 18px color-mix(in srgb,var(--c) 45%,transparent);background:#221a13}
+.lvCard img{width:72px;height:72px;image-rendering:pixelated}
+.lvCard b{font:400 22px var(--f-display);color:var(--c)}
+.lvCard small{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#a99b80}
+.lvCard em{font-style:normal;font-size:12px;font-weight:700;color:var(--c)}
+.lvCard i{font:italic 14px/1.35 var(--f-serif);color:#a99b80;margin-top:auto}
+#lvSub{max-width:none}
+.lvAttr{min-height:150px}
+#level.waits{border-color:#e8c878;box-shadow:0 0 8px rgba(232,200,120,.7)}
 /* M6: the insight strip under the mana bar (gold, full at the cap) and the level beside the spell slots */
 #insight{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 60px);width:150px;height:3px;background:#14110c;border:1px solid #0b0a14;border-top:0;border-radius:0 0 2px 2px;overflow:hidden}
 #insight i{display:block;height:100%;width:100%;background:#e8c878;transform:scaleX(0);transform-origin:left;transition:transform .25s}

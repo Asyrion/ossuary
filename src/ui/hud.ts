@@ -313,6 +313,8 @@ export function banner(t: string, s = '', dur = 2.6) {
 /** A question that stays up until answered or walked away from (a grimoire page asking which spell to give up). */
 export function showPrompt(html: string) { el.prompt.innerHTML = html; el.prompt.classList.add('on'); }
 export function hidePrompt() { el.prompt.classList.remove('on'); }
+/** Whether a page's question is up (M6: the level-up screen waits for it). */
+export const promptShowing = () => el.prompt.classList.contains('on');
 export function toast(msg: string, dur = 3) { el.toast.textContent = msg; el.toast.classList.add('on'); toastT = dur; }
 /** Whether a toast is showing now (a first-time line waits for it rather than cut it short). */
 export const toastShowing = () => toastT > 0;

@@ -176,7 +176,8 @@ function layLibrary(room: Room) {
   const [dx, dz] = door ? SIDE_DIR[door.side] : [0, 1], ns = dx === 0; // into the room is (-dx, -dz)
   const along = ns ? { x: 1, z: 0 } : { x: 0, z: 1 }, gap = ns ? C.spacing : C.spacingShort;
   const mid = { x: room.cx - dx * (ns ? 0 : C.rowInShort), z: room.cz - dz * (ns ? C.rowIn : 0) };
-  const gr = LOOT.grimoire, lean = floorLean(), lectern = pickPages(G.run.pages, player.spells, gr.lecterns, [], SPELL_DEFS, lean); // (M4.9: leaning to what the floor's foes are weak to)
+  const gr = LOOT.grimoire, lean = floorLean(), pledge = G.run.pledge, lectern = pickPages(G.run.pages, player.spells, gr.lecterns, [], SPELL_DEFS, lean, pledge); // (M4.9: leaning to what the floor's foes are weak to; M6: a pledge's page first)
+  if (pledge && lectern.some(id => spell(id).school === pledge)) { G.run.pledge = null; line(STR.boons.pledgeKept(STR.schools[pledge]), CFG.afflict.lineShow); } // (the pledge kept, and spent)
   const leant = lean.length && lectern.length && lean.includes(spell(lectern[0]).school) && !player.spells.some(id => id && lean.includes(spell(id).school));
   if (leant && !G.run.hinted.has('lean')) { G.run.hinted.add('lean'); line(STR.curve.leans, CFG.afflict.lineShow); } // (the first time in a run, a line says so)
   const set: Page[] = lectern.map((id, i) => {

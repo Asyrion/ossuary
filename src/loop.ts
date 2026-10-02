@@ -41,6 +41,7 @@ import { updatePotions } from './items/potions';
 import { updateThrows } from './items/potionThrow';
 import { updateLab } from './world/laboratory';
 import { updateInsight } from './progression/insight';
+import { checkLevelUp } from './ui/levelUp';
 
 export const STEP = 1 / 60;
 const MAX_FRAME = 1 / 30;
@@ -65,6 +66,7 @@ export function step(dt: number) {
     } else if (G.state === 'play') {
       G.stats.time += dt;
       updatePlayer(dt); checkAmbush(); updateEnemies(dt); updateMantles(dt); updateStatuses(dt, now); updateBolts(dt); updateShots(dt); updateGlyphs(dt); updatePickups(dt); updatePotions(dt); updateThrows(dt);
+      checkLevelUp(dt); // (M6: a level waiting opens its screen once the fight is won)
       // in rooms larger than the view the camera follows the mage, stopping at the walls
       const t = cameraTargetFor(G.current, player.x, player.z), k = 1 - Math.exp(-8 * dt);
       camTarget.x += (t.x - camTarget.x) * k; camTarget.z += (t.z - camTarget.z) * k;

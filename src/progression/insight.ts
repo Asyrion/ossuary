@@ -97,10 +97,10 @@ let strip: HTMLElement | null = null, badge: HTMLElement | null = null, shown = 
 export function renderInsight() {
   strip ??= $('insight'); badge ??= $('level');
   if (!strip || !badge) return;
-  const p = levelProgress(G.run.insight), k = p.span ? p.into / p.span : 1, key = p.level + ':' + k.toFixed(3);
+  const p = levelProgress(G.run.insight), k = p.span ? p.into / p.span : 1, key = p.level + ':' + k.toFixed(3) + ':' + G.run.pending;
   if (key === shown) return; shown = key;
   (strip.firstElementChild as HTMLElement).style.transform = `scaleX(${k})`;
-  strip.classList.toggle('cap', !p.span);
+  strip.classList.toggle('cap', !p.span); badge.classList.toggle('waits', G.run.pending > 0); // (a level's choice waiting: the badge glows)
   strip.setAttribute('aria-valuenow', String(Math.round(G.run.insight))); strip.setAttribute('aria-label', STR.levels.meter(p.level, Math.round(toNextLevel())));
   badge.innerHTML = `<small>${STR.levels.short}</small><b>${p.level}</b>`; badge.title = STR.levels.meter(p.level, Math.round(toNextLevel()));
 }

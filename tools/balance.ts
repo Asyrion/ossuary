@@ -180,7 +180,7 @@ async function openPage(browser: Browser, errors: string[]) {
   const page = await browser.newPage({ viewport: { width: 640, height: 360 } });
   page.on('pageerror', e => errors.push(String(e)));
   await page.addInitScript('window.__manual = true; window.__name = f => f'); // (__name: what tsx wraps named functions in, which the page lacks)
-  await page.goto(BASE + '?room=great_hall&variant=quiet');
+  await page.goto(BASE + '?room=great_hall&variant=quiet&autolevel=1'); // (M6: levels choose for themselves, no screen in the way)
   await page.waitForFunction(() => !!(window as unknown as { __game?: unknown }).__game, null, { timeout: 60_000 });
   await page.click('#btnStart');
   await page.evaluate(installBot);

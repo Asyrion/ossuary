@@ -30,12 +30,14 @@ import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPa
 import { serpentInfo } from './actors/jellySerpent';
 import { breakOut, crackVat } from './world/laboratory';
 import { brewAtTable, closeLab, initLab, labKey, labNow, labOpen, labPad, openLab, type LabTab } from './ui/alchemyTable';
-import { setHeroInfo, updateVision } from './ui/hud';
+import { promptShowing, setHeroInfo, updateVision } from './ui/hud';
+import { chooseFor, initLevelUp, levelKey, levelOpen, levelPad, offerNow, openLevelUp } from './ui/levelUp';
 import { giveById, removeArtifactGallery, showArtifactGallery } from './items/artifacts';
 import { ARTIFACTS } from './items/artifactData';
 import { clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRun, startGame, toggleSound, warp } from './flow';
 import { gainInsight, insightNow, setLevel } from './progression/insight';
 import { pointsToSpend, spendPoint } from './progression/points';
+import { boonsNow, dealNow, takeBoon } from './progression/boons';
 import type { Attr } from './progression/attributes';
 import { STEP, startLoop, step } from './loop';
 import { cleanSeed } from './rng';
@@ -100,14 +102,15 @@ const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
 const input: InputActions = {
   unlockAudio: () => Sfx.init(),
-  togglePause: () => { if (devOpen()) closeDev(); else if (labOpen()) closeLab(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
+  togglePause: () => { if (devOpen()) closeDev(); else if (levelOpen()) return; else if (labOpen()) closeLab(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
   confirm: () => { if (G.state === 'title' || G.state === 'end') startGame(); },
-  startButton: () => { if (devOpen()) closeDev(); else if (labOpen()) closeLab(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else startGame(); },
+  startButton: () => { if (devOpen()) closeDev(); else if (levelOpen()) return; else if (labOpen()) closeLab(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else startGame(); },
   toggleSound,
   autoPause: () => { if (G.state === 'play') pause(); },
   toggleDev: () => { if (inventoryOpen()) closeInventory(); toggleDev(); },
   inventoryKey: code => {
     if (devOpen()) return false;
+    if (levelOpen()) return levelKey(code); // (M6: the level-up screen's choice waits)
     if (labOpen()) return labKey(code); // (M5: the alchemy table takes its keys first)
     const used = inventoryKey(code, G.state === 'play');
     if (used === 'open') { pause(); openInventory('play'); return true; }
@@ -116,6 +119,7 @@ const input: InputActions = {
   },
   padButton: i => {
     if (devOpen()) return false;
+    if (levelOpen()) return levelPad(i);
     if (labOpen()) return labPad(i);
     if (inventoryOpen()) return inventoryPad(i);
     if (i !== 8) return false; // View opens the inventory, while playing or paused
@@ -168,6 +172,7 @@ function readUrlOptions() {
   if (badSpells.length) console.warn(`?spells: unknown ${badSpells.join(', ')}. Known: ${[...SPELLS.keys()].join(', ')}`);
   const potions = (q.get('potions') ?? '').split(',').map(s => s.trim()).filter(Boolean); // (M5: potions to start with in the belt)
   const level = Number(q.get('level')); // (M6: ?level=5 starts at that level, its choices waiting)
+  const auto = q.get('autolevel'); if (auto && auto !== '0') DEV.autoLevel = auto === 'skip' ? 'skip' : 'choose'; // (M6: levels choose for themselves (the bot), or pass (the tests))
   if (q.get('level') && !(level >= 1 && level <= 12)) console.warn(`?level=${q.get('level')}: use 1 to 12`);
   const badPotions = potions.filter(id => !isPotion(id));
   if (badPotions.length) console.warn(`?potions: unknown ${badPotions.join(', ')}. Known: ${POTION_IDS.join(', ')}`);
@@ -198,6 +203,12 @@ function installDevHooks() {
     giveInsight: (n: number) => gainInsight(n), setLevel: (n: number) => setLevel(n),
     /** M6 step 2: the points spent on each attribute and those left to spend; spend one (a level's point, or `free`). */
     get attrs() { return { ...G.run.attrs, free: pointsToSpend() }; }, spend: (attr: Attr, free = false) => spendPoint(attr, free),
+    /** M6 step 3: the boons taken (each one's rank), the pledge and the casts by school; deal three as a level would; take one. */
+    get boons() { return { taken: boonsNow(), pledge: G.run.pledge, casts: { ...G.run.casts } }; }, deal: () => dealNow(), giveBoon: (id: string) => takeBoon(id),
+    /** M6 step 4: the level-up screen: what it offers (open, phase, the level, its cards); open it now; choose for a level
+        (card i, then attribute a: the screen's or, closed, as `?autolevel` does); levels choose for themselves. */
+    get offer() { return offerNow(); }, openLevelUp: () => openLevelUp(), chooseLevel: (i = 0, a?: Attr) => chooseFor(i, a),
+    set autoLevel(how: false | 'choose' | 'skip') { DEV.autoLevel = how; }, get autoLevel() { return DEV.autoLevel; },
     /** The current floor as text: S start, B boss, T treasure, # normal, @ you. */
     map() { return G.run.plan ? planToText(G.run.plan, G.current.plan.id) : ''; },
     /** Run the simulation for `sec` seconds in fixed steps; optionally render once afterwards. */
@@ -398,6 +409,7 @@ async function boot() {
     pauseIfPlaying: () => { if (G.state === 'play') pause(); },
   });
   initInventory({ resume }); initLab({ pause, resume });
+  initLevelUp({ pause, resume, others: () => labOpen() || inventoryOpen() || devOpen() || promptShowing() }); // (M6)
   // the chalk texture in the start room is drawn with Cinzel, so load its weights first
   const chalkFonts = Promise.all(['600 16px "Cinzel"', '700 16px "Cinzel"'].map(f => document.fonts.load(f)));
   const assets = loadAssets(); // (models, tiles and icons from data/assets.json: before the first floor is built)
