@@ -800,7 +800,7 @@ Bad potions are still useful when thrown, so there is always a reason to pick up
   light that heals the mage in the splash, a daze, a pool of fire, a freeze, a storm striking for 3 s, foes striking each
   other, foes grown slow and big, a cloud of darkness (steam's kind, so shots from it go wide), every status cleared, a
   glyph's blast, a hex, and a skeleton that fights for the mage until the room is quiet. Bosses keep their rules: a freeze
-  only chills one, and a daze stuns one as a shock does, with the same guard before the next. The aim ring shows where
+  only chills one, and a daze stuns one only as briefly as a shock does, with the same guard before the next. The aim ring shows where
   each bottle lands (two for the Alchemist's split throw) and how wide it splashes (wider with the Cracked Retort).
 - *Reagents* go into the pouch (no limit; the inventory's Potions tab), each one's card the first time in a run. A fallen
   foe leaves its reagent about one time in eight (12%): its own kind's where it has one (Sporelings, Rootlings and the other growing

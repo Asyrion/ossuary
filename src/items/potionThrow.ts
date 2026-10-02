@@ -68,11 +68,11 @@ const THROW: Record<ThrowEffect, (x: number, z: number, r: number, def: PotionDe
     hallowAt(x, z, r);
     if (mageIn(x, z, r)) { player.hp = Math.min(player.maxHp, player.hp + num(def.throw.halves)); renderHearts(); floatText(player.x, 1.8, player.z, '+', 0xff8a8a, 40); }
   },
-  daze(x, z, r, def) { // (a boss as a shock's stun: then a guard before another lands)
+  daze(x, z, r, def) { // (a boss only as a shock stuns it, as briefly, then a guard before another lands)
     for (const e of near(x, z, r)) {
       const s = e.status ??= newStatus();
       if (e.isBoss) { if (s.stunGuard > 0) continue; s.stunGuard = MAGIC.shock.bossStunGuard; }
-      s.stun = Math.max(s.stun, num(def.throw.seconds)); floatText(e.x, 1.4, e.z, '…', 0x9ec8ff, 30);
+      s.stun = Math.max(s.stun, e.isBoss ? MAGIC.shock.stun : num(def.throw.seconds)); floatText(e.x, 1.4, e.z, '…', 0x9ec8ff, 30);
     }
   },
   firePool(x, z, r, def) { fireAt(x, z, r); layFire(G.current, x, z, num(def.throw.seconds), undefined); for (const e of near(x, z, r)) inflict(e, { burn: num(def.throw.burn) }); },
