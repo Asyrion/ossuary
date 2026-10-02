@@ -19,7 +19,8 @@ import { BESTIARY_OPTIONS } from './bestiaryLooks';
 import { FLOOR1_LOOKS } from './fantasyFloor1';
 import { FLOOR2_LOOKS } from './fantasyFloor2';
 import { FLOOR3_LOOKS } from './fantasyFloor3';
-import { SCHOOL_LIGHT, bigEyes, box, crystal, limb, lit, motes, part, rune, runeRing, shine, sphere, std, type School, type V3 } from '../render/arcane';
+import { FLOOR4_LOOKS } from './fantasyFloor4';
+import { SCHOOL_LIGHT, bigEyes, box, limb, lit, motes, part, rune, runeRing, shine, sphere, std, type School, type V3 } from '../render/arcane';
 
 /** A built option: its group, how it idles, the size of the shadow under it, and the parts a foe's behaviour moves beyond
     its idle (M4: a beetle's wing-cases, a mimic's lid). */
@@ -32,105 +33,7 @@ const smile = (parent: THREE.Object3D, at: V3, r: number, color = 0x2a1418, tilt
 
 /* ---------- the options ---------- */
 
-/** The options, by floor (names and notes in STR.options): four in the crypt, three drowned, three burning. */
-/* ---------- floor 4, the Gilded Reliquary (M4.1) ---------- */
-
-/** Reliquary, Ember: a round little mouse with a stub of candle burning on its back. */
-function wickmouse(): Built {
-  const E = SCHOOL_LIGHT.ember, g = new THREE.Group(), fur = std(0x8a7a6c), belly = std(0xcdbba4), pink = std(0xd89a92), waxM = std(0xf2e6cc), body = new THREE.Group(); g.add(body);
-  part(body, sphere(.17, 12, 10), fur, [0, .16, -.02], { scale: [1, .85, 1.25] });
-  part(body, sphere(.1, 10, 8), belly, [0, .12, .1], { scale: [1.1, .8, .9] });
-  const head = new THREE.Group(); head.position.set(0, .22, .2); body.add(head);
-  part(head, sphere(.11, 10, 8), fur, [0, 0, 0], { scale: [1, .9, 1.1] });
-  part(head, sphere(.035, 6, 5), pink, [0, -.02, .12]); // (the nose)
-  for (const s of [-1, 1]) { part(head, sphere(.075, 10, 8), fur, [.1 * s, .09, -.03], { scale: [1, 1, .35] }); part(head, sphere(.05, 8, 6), pink, [.1 * s, .09, -.01], { scale: [1, 1, .3] }); }
-  const eyes = bigEyes(head, .05, .03, .08, .042);
-  for (const s of [-1, 1]) for (const z of [.1, -.1]) part(body, sphere(.035, 6, 4), belly, [.09 * s, .02, z], { scale: [1, .6, 1.4] }); // (paws)
-  const tail = new THREE.Group(); tail.position.set(0, .12, -.22); body.add(tail);
-  limb(tail, [0, 0, 0], [0, .06, -.14], .016, pink, .01); limb(tail, [0, .06, -.14], [.04, .14, -.24], .01, pink, .006);
-  // the candle on its back, stuck in a dab of wax, and its flame
-  part(body, sphere(.05, 8, 5), waxM, [0, .3, -.05], { scale: [1.3, .5, 1.3] });
-  part(body, new THREE.CylinderGeometry(.03, .034, .14, 7), waxM, [0, .38, -.05]);
-  const flame = new THREE.Group(); flame.position.set(0, .47, -.05); body.add(flame);
-  part(flame, new THREE.ConeGeometry(.03, .09, 6), lit(E), [0, .02, 0]); part(flame, sphere(.018, 5, 4), lit(0xfff0c0), [0, -.005, 0]);
-  const halo = glow(E, .6, .6); flame.add(halo);
-  return { group: g, shadow: .45, parts: { flame }, idle: t => {
-    body.position.y = Math.abs(Math.sin(t * 9)) * .02; head.rotation.y = Math.sin(t * 2.3) * .25; tail.rotation.y = Math.sin(t * 5) * .5;
-    flame.scale.set(1, .85 + Math.sin(t * 17) * .15, 1); halo.material.opacity = .5 + Math.sin(t * 13) * .1; blink(eyes, t, 3.3);
-  } };
-}
-
-/** Reliquary, Storm: a round bat with great ears, a little bronze bell at its throat that rings for the lightning. */
-function chimeBat(): Built {
-  const S = SCHOOL_LIGHT.storm, g = new THREE.Group(), fur = std(0x4a3e58), furLight = std(0x6a5a7a), wingM = std(0x2e2638), bronze = std(0xb08a40, { roughness: .45, metalness: .5 }), body = new THREE.Group(); body.position.y = .95; g.add(body);
-  part(body, sphere(.17, 12, 10), fur, [0, 0, 0]);
-  part(body, sphere(.11, 10, 8), furLight, [0, -.05, .09], { scale: [1, .9, .7] });
-  for (const s of [-1, 1]) { part(body, new THREE.ConeGeometry(.07, .2, 6), fur, [.1 * s, .18, 0], { rot: [0, 0, -s * .35] }); part(body, new THREE.ConeGeometry(.04, .13, 5), std(0xa87a8a), [.1 * s, .17, .02], { rot: [0, 0, -s * .35] }); }
-  const eyes = bigEyes(body, .065, .04, .13, .055);
-  for (const s of [-1, 1]) part(body, new THREE.ConeGeometry(.012, .035, 4), std(0xf4f0e6), [.03 * s, -.06, .15], { rot: [Math.PI, 0, 0] }); // (two little fangs)
-  const wings = [-1, 1].map(s => {
-    const w = new THREE.Group(); w.position.set(.14 * s, .02, -.02); body.add(w);
-    part(w, new THREE.ConeGeometry(.2, .42, 3), wingM, [.2 * s, -.02, 0], { rot: [0, 0, -s * Math.PI / 2], scale: [1, 1, .12] });
-    limb(w, [0, 0, 0], [.38 * s, .06, 0], .012, fur);
-    return w;
-  });
-  // the bell at its throat on a cord, a storm light at its clapper
-  const bell = new THREE.Group(); bell.position.set(0, -.14, .1); body.add(bell);
-  part(bell, new THREE.CylinderGeometry(.035, .06, .08, 10, 1, true), bronze, [0, -.04, 0]); part(bell, sphere(.036, 8, 6), bronze, [0, 0, 0], { scale: [1, .6, 1] });
-  part(bell, sphere(.018, 6, 4), lit(S), [0, -.08, 0]);
-  const spark = glow(S, .45, .5); spark.position.y = -.08; bell.add(spark);
-  return { group: g, shadow: .5, parts: { bell }, idle: t => {
-    const f = Math.sin(t * 16); wings.forEach((w, i) => { w.rotation.z = (i ? -1 : 1) * f * .6; });
-    body.position.y = .95 + Math.sin(t * 16) * .03 + Math.sin(t * 2) * .05; blink(eyes, t, 3.7);
-    bell.rotation.z = Math.sin(t * 5) * .15; spark.material.opacity = .4 + Math.max(0, Math.sin(t * 9)) * .3;
-  } };
-}
-
-/** Reliquary, Frost: a round stone gargoyle pup, stubby wings folded, little horns; its eyes wake frost-blue. */
-function gargoyleWhelp(): Built {
-  const F = SCHOOL_LIGHT.frost, g = new THREE.Group(), stone = std(0x8a8680, { roughness: .95 }), stoneDark = std(0x5e5a56), body = new THREE.Group(); g.add(body);
-  part(body, sphere(.24, 12, 10), stone, [0, .24, -.02], { scale: [1, .9, 1.05] });
-  const head = new THREE.Group(); head.position.set(0, .44, .12); body.add(head);
-  part(head, sphere(.17, 12, 10), stone, [0, 0, 0], { scale: [1.1, .95, 1] });
-  part(head, sphere(.08, 8, 6), stoneDark, [0, -.06, .13], { scale: [1.2, .7, .8] }); // (the snout)
-  for (const s of [-1, 1]) { part(head, new THREE.ConeGeometry(.035, .14, 5), stoneDark, [.1 * s, .15, -.02], { rot: [-.4, 0, -s * .5] }); part(head, new THREE.ConeGeometry(.05, .12, 4), stone, [.17 * s, .06, -.02], { rot: [0, 0, -s * 1.3] }); }
-  const eyes = bigEyes(head, .075, .03, .12, .055, 0x16283a);
-  const shine = glow(F, .7, 0); shine.position.set(0, .03, .16); head.add(shine);
-  for (const s of [-1, 1]) for (const z of [.14, -.12]) part(body, sphere(.06, 7, 5), stoneDark, [.13 * s, .04, z], { scale: [1, .6, 1.3] }); // (claws)
-  const wings = [-1, 1].map(s => {
-    const w = new THREE.Group(); w.position.set(.16 * s, .34, -.12); body.add(w);
-    part(w, new THREE.ConeGeometry(.14, .3, 3), stoneDark, [.08 * s, .06, -.02], { rot: [.4, 0, -s * .8], scale: [1, 1, .2] });
-    return w;
-  });
-  part(body, new THREE.ConeGeometry(.04, .24, 5), stoneDark, [0, .1, -.3], { rot: [-1.9, 0, 0] });
-  for (let i = 0; i < 3; i++) crystal(body, F, [(i - 1) * .08, .45, -.1 - Math.abs(i - 1) * .04], .09, [-.4, 0, (i - 1) * .3]); // (rime crystals on its back)
-  return { group: g, shadow: .6, parts: { head, shine, wings: wings[0], wings2: wings[1], eyeL: eyes[0], eyeR: eyes[1] }, idle: t => {
-    head.rotation.y = Math.sin(t * .9) * .15; blink(eyes, t, 4.4);
-  } };
-}
-
-/** Reliquary, Hallow: a white fawn, gold-dappled, with glowing nubs of antler; it heals what fights beside it. */
-function moonstagFawn(): Built {
-  const H = SCHOOL_LIGHT.hallow, g = new THREE.Group(), coat = std(0xf0e8da), dapple = lit(0xe6c880), hoof = std(0x6a5a4a), muzzle = std(0xc8b8a0), body = new THREE.Group(); g.add(body);
-  part(body, sphere(.2, 12, 10), coat, [0, .42, -.04], { scale: [.85, .8, 1.3] });
-  for (const [x, y, z] of [[.1, .5, 0], [-.12, .47, -.1], [.08, .45, -.18], [-.05, .54, .08], [.13, .42, -.1]] as V3[]) part(body, sphere(.025, 5, 4), dapple, [x, y, z]);
-  const legs = new THREE.Group(); body.add(legs);
-  for (const [x, z] of [[-.09, .14], [.09, .14], [-.09, -.2], [.09, -.2]] as [number, number][]) { const l = new THREE.Group(); l.position.set(x, .34, z); legs.add(l); limb(l, [0, 0, 0], [0, -.3, 0], .03, coat, .022); part(l, new THREE.CylinderGeometry(.022, .028, .04, 6), hoof, [0, -.32, 0]); }
-  const head = new THREE.Group(); head.position.set(0, .66, .22); body.add(head);
-  limb(body, [0, .5, .12], [0, .64, .2], .07, coat, .06);
-  part(head, sphere(.13, 12, 10), coat, [0, 0, 0], { scale: [.9, .95, 1.1] });
-  part(head, sphere(.065, 8, 6), muzzle, [0, -.05, .11]);
-  part(head, sphere(.018, 5, 4), std(0x2a2020), [0, -.035, .17]);
-  for (const s of [-1, 1]) part(head, new THREE.ConeGeometry(.045, .14, 6), coat, [.13 * s, .06, -.02], { rot: [0, 0, -s * 1.1], scale: [1, 1, .45] });
-  const eyes = bigEyes(head, .07, .025, .08, .05, 0x2a1a10, .3);
-  const antlers = new THREE.Group(); antlers.position.set(0, .12, -.02); head.add(antlers);
-  for (const s of [-1, 1]) { limb(antlers, [.04 * s, 0, 0], [.07 * s, .07, -.01], .014, std(0xe8d4a4)); part(antlers, sphere(.018, 6, 4), lit(H), [.07 * s, .08, -.01]); }
-  const aura = glow(H, .9, .35); aura.position.y = .1; antlers.add(aura);
-  part(body, new THREE.ConeGeometry(.04, .09, 5), coat, [0, .5, -.3], { rot: [-2, 0, 0] });
-  return { group: g, shadow: .5, parts: { head, aura, legs }, idle: t => {
-    head.rotation.x = Math.sin(t * 1.3) * .08; aura.material.opacity = .3 + Math.sin(t * 2.4) * .08; blink(eyes, t, 4);
-  } };
-}
+/* (floors 1 to 4's are creatures of fantasy now, in fantasyFloor1.ts to fantasyFloor4.ts: M4.12) */
 
 /* ---------- floor 5, the Ferryman's Shore (M4.1) ---------- */
 
@@ -250,8 +153,8 @@ export const MODEL_OPTIONS = [
   { id: 'lanternJelly', floor: 2, school: 'hallow', build: FLOOR2_LOOKS.lanternJelly },
   { id: 'cinderSalamander', floor: 3, school: 'ember', build: FLOOR3_LOOKS.cinderSalamander }, { id: 'hexImp', floor: 3, school: 'umbral', build: FLOOR3_LOOKS.hexImp },
   { id: 'rimeDrakeling', floor: 3, school: 'frost', build: FLOOR3_LOOKS.rimeDrakeling },
-  { id: 'wickmouse', floor: 4, school: 'ember', build: wickmouse }, { id: 'chimeBat', floor: 4, school: 'storm', build: chimeBat },
-  { id: 'gargoyleWhelp', floor: 4, school: 'frost', build: gargoyleWhelp }, { id: 'moonstagFawn', floor: 4, school: 'hallow', build: moonstagFawn },
+  { id: 'wickmouse', floor: 4, school: 'ember', build: FLOOR4_LOOKS.wickmouse }, { id: 'chimeBat', floor: 4, school: 'storm', build: FLOOR4_LOOKS.chimeBat },
+  { id: 'gargoyleWhelp', floor: 4, school: 'frost', build: FLOOR4_LOOKS.gargoyleWhelp }, { id: 'moonstagFawn', floor: 4, school: 'hallow', build: FLOOR4_LOOKS.moonstagFawn },
   { id: 'rootling', floor: 5, school: 'umbral', build: rootling }, { id: 'stormRay', floor: 5, school: 'storm', build: stormRay },
   { id: 'voidMote', floor: 5, school: 'umbral', build: voidMote }, { id: 'lanternTortoise', floor: 5, school: 'frost', build: lanternTortoise },
   // M4.2: the Wardlings, no floor's own (0): a drinking ward lets them out
