@@ -12,9 +12,10 @@ import { FLOOR2_LOOKS } from './fantasyFloor2';
 
 /** The new looks, by the look id they replace. */
 export const FANTASY_LOOKS: Partial<Record<string, () => Built>> = { ...FLOOR1_LOOKS, ...FLOOR2_LOOKS };
-/** The new looks the owner has approved: the ones the foes wear in the game (floor 1's ten, 2026-10-02). */
+/** The new looks the owner has approved: the ones the foes wear in the game (floors 1 and 2, 2026-10-02). */
 export const APPROVED: ReadonlySet<string> = new Set<string>([
   'sporeling', 'vesperMoth', 'runeBeetle', 'urnMimic', 'cryptSpider', 'inkOctopus', 'fireflyBeetle', 'choirLark', 'stormMantis', 'rubbleCrab',
+  'mireToad', 'cisternLurker', 'lanternJelly', 'glassNewt', 'rimeSnail', 'stormDarter',
 ]);
 /** What an approved look's old one was, kept once the old builder is deleted (on the owner's yes the galleries stand the new
     look in its place): its height at rest and the parts its behaviour moves, so `lookContract` still holds the new look to
@@ -24,6 +25,9 @@ export const RETIRED: Readonly<Record<string, { h: number; parts: readonly strin
   urnMimic: { h: .91, parts: ['lid', 'peek', 'inside'] }, cryptSpider: { h: .83, parts: ['body', 'abdomen'] }, inkOctopus: { h: 1.12, parts: ['body', 'mantle'] },
   fireflyBeetle: { h: .6, parts: ['body'] }, choirLark: { h: .65, parts: ['body', 'head'] }, stormMantis: { h: 1.7, parts: ['chest', 'head'] },
   rubbleCrab: { h: .67, parts: ['body', 'big', 'small'] },
+  mireToad: { h: .8, parts: ['body', 'throat'] }, cisternLurker: { h: 1.21, parts: ['rise', 'lures', 'lures2', 'disc'] },
+  lanternJelly: { h: .75, parts: ['bell', 'light'] }, glassNewt: { h: .55, parts: ['body', 'head'] }, rimeSnail: { h: 1, parts: ['body', 'head', 'shell'] },
+  stormDarter: { h: .49, parts: ['body'] },
 };
 
 export type FoeLooks = 'approved' | 'new' | 'old';

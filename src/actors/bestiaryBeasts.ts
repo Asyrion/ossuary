@@ -5,94 +5,9 @@ import * as THREE from 'three';
 import { glow } from '../render/materials';
 import { SCHOOL_LIGHT, limb, lit, part, shine, sphere, std, type V3 } from '../render/arcane';
 import { rough } from '../world/kitParts';
-import { beads, featherWing, gloss, joint, jointed, slitEyes, spike, tube, type Built } from './beastParts';
+import { featherWing, gloss, joint, jointed, slitEyes, spike, tube, type Built } from './beastParts';
 
-const { ember: E, frost: F, storm: S, umbral: U } = SCHOOL_LIGHT;
-
-/** Floor 2, Frost: a snail as long as the mage is tall, wet slate-blue, carrying a spiral shell of clear ice with frost
-    crystals grown through it; rime lies where it has crawled. */
-export function rimeSnail(): Built {
-  const g = new THREE.Group(), skin = gloss(0x5d7088, .3, .1), belly = std(0x8a9cb0), ice = std(0x6cb8e8, { roughness: .1, metalness: .15, transparent: true, opacity: .9 });
-  for (let i = 0; i < 4; i++) part(g, new THREE.CircleGeometry(.16 - i * .02, 8), shine(0xd8f0ff, .35 - i * .06), [Math.sin(i * 2) * .04, .006, -.62 - i * .2], { rot: [-Math.PI / 2, 0, 0], scale: [1, 1.5, 1] });
-  const body = joint(g, [0, 0, 0]);
-  const foot = joint(body, [0, 0, 0]);
-  part(foot, sphere(.24, 10, 6), skin, [0, .08, -.08], { scale: [1.05, .42, 2.6] });
-  part(foot, sphere(.24, 10, 6), belly, [0, .04, -.08], { scale: [1.2, .2, 2.7] });
-  const head = joint(body, [0, .14, .32]);
-  tube(head, [[0, 0, -.06], [0, .1, .1], [0, .18, .2]], .14, .1, skin, 6, 8);
-  const stalks = [-1, 1].map(s => { const k = joint(head, [.06 * s, .22, .2]); tube(k, [[0, 0, 0], [.04 * s, .18, .04], [.1 * s, .36, .02]], .024, .012, skin, 6, 4); beads(k, [[.1 * s, .37, .02]], .035, F); return k; });
-  for (const s of [-1, 1]) tube(head, [[.07 * s, .12, .26], [.12 * s, .06, .38]], .018, .008, skin, 4, 4);
-  // the shell: a coil of ice turning in on itself, ribbed where each whorl meets the last
-  // the shell: whorls of ice coiling up into a point, a line of frost-light along the seam between them
-  const shell = joint(body, [0, .2, -.16], [-.25, 0, 0]);
-  const coil: V3[] = [], seam: V3[] = [];
-  for (let i = 0; i <= 48; i++) {
-    const k = i / 48, a = k * Math.PI * 4.4, r = .32 * (1 - k * .9), y = .16 + k * .46;
-    coil.push([Math.cos(a) * r, y, Math.sin(a) * r]); seam.push([Math.cos(a) * (r + .17 * (1 - k * .88)) * .96, y + .02, Math.sin(a) * (r + .17 * (1 - k * .88)) * .96]);
-  }
-  tube(shell, coil, .22, .03, ice, 90, 8);
-  tube(shell, seam.slice(0, 44), .018, .006, lit(F), 90, 4);
-  for (const [p, h, rot] of [[[.4, .3, .12], .24, [.3, 0, -.9]], [[-.36, .32, -.16], .22, [-.4, 0, .9]], [[.1, .44, .3], .18, [.8, 0, -.2]], [[-.12, .42, .3], .16, [.8, 0, .3]]] as [V3, number, V3][]) part(shell, new THREE.OctahedronGeometry(h / 2), lit(F), p, { rot, scale: [.45, 1, .45] });
-  const breath = glow(F, .9, .3); breath.position.set(0, .35, 0); shell.add(breath);
-  return { group: g, shadow: 1.1, parts: { body, head, shell }, idle: t => {
-    const c = Math.sin(t * 1.3); foot.scale.z = 1 + c * .04; head.position.z = .32 + c * .03; shell.position.z = -.16 - c * .01;
-    stalks.forEach((k, i) => { k.rotation.x = Math.sin(t * 1.7 + i * 1.3) * .2; k.rotation.z = Math.sin(t * 1.1 + i) * .12; });
-    breath.material.opacity = .2 + .12 * Math.sin(t * 2);
-  } };
-}
-
-/** Floor 2, Frost: a long newt of living glass, clear enough to see the cold light along its spine; ice grows in a ridge
-    down its back. */
-export function glassNewt(): Built {
-  const g = new THREE.Group(), glass = std(0x6ec4f0, { transparent: true, opacity: .78, roughness: .06, metalness: .15 }), core = lit(F), rim = lit(0xd8f4ff);
-  const body = joint(g, [0, 0, 0]);
-  const spine: V3[] = [[0, .2, .34], [0, .19, .06], [0, .17, -.24], [.05, .12, -.52], [.14, .07, -.8], [.12, .05, -1.02]];
-  tube(body, spine, .19, .025, glass, 16, 8);
-  tube(body, spine.slice(0, 5).map(([x, y, z]) => [x, y + .02, z] as V3), .03, .01, core, 12, 4);
-  const head = joint(body, [0, .2, .4]);
-  part(head, sphere(.16, 10, 8), glass, [0, 0, .08], { scale: [1.05, .55, 1.45] });
-  part(head, new THREE.BoxGeometry(.2, .012, .14), rim, [0, -.03, .16]);
-  slitEyes(head, .075, .055, .13, .04, F, .7, .25);
-  const heart = glow(F, .5, .65); heart.position.set(0, .2, .02); body.add(heart);
-  part(body, sphere(.05, 6, 5), core, [0, .2, .02]);
-  for (let i = 0; i < 8; i++) { const k = i / 8, p = [0, .37 - k * .2, .26 - k * .95] as V3; part(body, new THREE.OctahedronGeometry(.075 - k * .04), rim, [p[0] + k * .06, p[1], p[2]], { scale: [.5, 1.5, .8], rot: [-.4, 0, 0] }); }
-  const legs = [-1, 1].flatMap(s => [[.2, .3], [-.22, -.32]].map(([hz, fz]) => {
-    const l = joint(body, [.1 * s, .16, hz]);
-    jointed(l, [[0, 0, 0], [.22 * s, .06, .02], [.32 * s, -.16, fz - hz]], .06, .035, glass);
-    for (const k of [-1, 0, 1]) spike(l, [.3 * s, -.16, fz - hz], [.36 * s + k * .03, -.16, fz - hz + .06 + k * .02 * s], .012, rim);
-    return l;
-  }));
-  return { group: g, shadow: 1.2, parts: { body, head }, idle: t => {
-    body.rotation.y = Math.sin(t * 1.5) * .06; head.rotation.y = Math.sin(t * .9) * .25; head.rotation.x = Math.sin(t * 1.3) * .05;
-    legs.forEach((l, i) => { l.rotation.y = Math.sin(t * 1.5 + i * Math.PI / 2) * .1; });
-    heart.material.opacity = .45 + .25 * Math.sin(t * 3);
-  } };
-}
-
-/** Floor 2, Storm: a dragonfly with a wingspan wider than the mage's arms, its body a gleaming storm-blue, lightning in its
-    tail's joints and eyes that burn like lamps. */
-export function stormDarter(): Built {
-  const g = new THREE.Group(), body = joint(g, [0, .85, 0]), sheen = gloss(0x2a6a86, .3, .45), dark = gloss(0x16303e, .3, .4), spark = lit(S), wingM = shine(0xdcecff, .32), vein = lit(0xf6f0a8);
-  part(body, sphere(.1, 8, 6), sheen, [0, 0, 0], { scale: [.95, .9, 1.5] });
-  part(body, sphere(.075, 8, 6), dark, [0, .01, .15]);
-  for (const s of [-1, 1]) part(body, new THREE.OctahedronGeometry(.07, 1), spark, [.06 * s, .03, .19], { scale: [.9, 1, 1] });
-  for (const s of [-1, 1]) spike(body, [.025 * s, -.03, .22], [.01 * s, -.07, .27], .018, dark);
-  tube(body, [[0, 0, -.1], [0, -.01, -.4], [0, .02, -.7], [0, .08, -.88]], .05, .02, sheen, 12, 6);
-  for (let i = 0; i < 6; i++) part(body, new THREE.TorusGeometry(.045 - i * .004, .008, 3, 8), spark, [0, -.005 + (i > 3 ? (i - 3) * .02 : 0), -.18 - i * .12], { rot: [0, 0, 0] });
-  const tip = glow(S, .4, .7); tip.position.set(0, .08, -.88); body.add(tip);
-  const wings = [-1, 1].flatMap(s => [[.06, .1], [-.05, -.1]].map(([z, sweep]) => {
-    const w = joint(body, [.05 * s, .05, z]);
-    part(w, sphere(.3, 8, 4), wingM, [.32 * s, 0, 0], { rot: [0, sweep * s, 0], scale: [1, .03, .17] });
-    part(w, new THREE.BoxGeometry(.56, .006, .01), vein, [.32 * s, .005, .01], { rot: [0, sweep * s, 0] });
-    return { w, s };
-  }));
-  for (const s of [-1, 1]) for (const z of [.08, 0, -.06]) jointed(body, [[.04 * s, -.06, z], [.1 * s, -.12, z + .04], [.08 * s, -.2, z + .1]], .012, .006, dark);
-  return { group: g, shadow: .9, parts: { body }, idle: t => {
-    body.position.y = .85 + Math.sin(t * 2.2) * .05; body.rotation.z = Math.sin(t * 1.4) * .06;
-    wings.forEach(({ w, s }, i) => { w.rotation.z = Math.sin(t * 34 + (i % 2) * 1.6) * .35 * s; });
-    tip.material.opacity = Math.floor(t * 10) % 3 === 0 ? .95 : .35;
-  } };
-}
+const { ember: E, frost: F, umbral: U } = SCHOOL_LIGHT;
 
 /** Floor 2, Umbral: a puffball fungus the height of a child, walking on roots; its cap is warted and split by a gill-lined
     maw, and spores glow in its vents as it swells. */
