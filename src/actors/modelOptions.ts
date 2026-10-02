@@ -20,6 +20,7 @@ import { FLOOR1_LOOKS } from './fantasyFloor1';
 import { FLOOR2_LOOKS } from './fantasyFloor2';
 import { FLOOR3_LOOKS } from './fantasyFloor3';
 import { FLOOR4_LOOKS } from './fantasyFloor4';
+import { FLOOR5_LOOKS } from './fantasyFloor5';
 import { SCHOOL_LIGHT, bigEyes, box, limb, lit, motes, part, rune, runeRing, shine, sphere, std, type School, type V3 } from '../render/arcane';
 
 /** A built option: its group, how it idles, the size of the shadow under it, and the parts a foe's behaviour moves beyond
@@ -28,95 +29,10 @@ interface Built { group: THREE.Group; idle: (t: number) => void; shadow: number;
 
 /** Now and then the eyes close for a moment. */
 const blink = (list: THREE.Object3D[], t: number, every = 3.4, at = 0) => { const k = (t + at) % every; for (const e of list) e.scale.y = k < .12 ? .12 : 1; };
-/** A small smile (the lower half of a thin ring), `r` wide, facing +Z. */
-const smile = (parent: THREE.Object3D, at: V3, r: number, color = 0x2a1418, tilt = 0) => part(parent, new THREE.TorusGeometry(r, r * .14, 4, 10, Math.PI), lit(color), at, { rot: [tilt, 0, Math.PI] });
 
 /* ---------- the options ---------- */
 
-/* (floors 1 to 4's are creatures of fantasy now, in fantasyFloor1.ts to fantasyFloor4.ts: M4.12; floor 5's waiting in fantasyFloor5.ts) */
-
-/* ---------- floor 5, the Ferryman's Shore (M4.1) ---------- */
-
-/** Shore, Umbral: a seed-bulb on little root feet, a sprout on its head with violet-lit leaves; it burrows. */
-function rootling(): Built {
-  const U = SCHOOL_LIGHT.umbral, g = new THREE.Group(), bark = std(0x6a5038), barkDark = std(0x3e2e22), leafM = std(0x3e6a44), soil = std(0x2a2420), body = new THREE.Group(); g.add(body);
-  part(body, sphere(.2, 12, 10), bark, [0, .24, 0], { scale: [1, 1.05, .95] });
-  for (let i = 0; i < 5; i++) { const a = i / 5 * Math.PI * 2; part(body, new THREE.BoxGeometry(.012, .3, .012), barkDark, [Math.cos(a) * .17, .26, Math.sin(a) * .17], { rot: [0, -a, .1] }); } // (the bulb's ribs)
-  for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + .4; limb(body, [Math.cos(a) * .12, .08, Math.sin(a) * .12], [Math.cos(a) * .22, 0, Math.sin(a) * .22], .025, barkDark, .012); } // (root feet)
-  const eyes = bigEyes(body, .07, .28, .15, .055);
-  smile(body, [0, .19, .18], .025);
-  const sprout = new THREE.Group(); sprout.position.y = .44; body.add(sprout);
-  limb(sprout, [0, 0, 0], [0, .12, 0], .018, leafM, .012);
-  for (const s of [-1, 1]) { part(sprout, sphere(.07, 8, 6), leafM, [.07 * s, .13, 0], { scale: [1.3, .35, .7], rot: [0, 0, s * .5] }); part(sprout, sphere(.018, 5, 4), lit(U), [.1 * s, .15, .02]); }
-  const shine = glow(U, .6, .4); shine.position.y = .15; sprout.add(shine);
-  const mound = new THREE.Group(); g.add(mound);
-  part(mound, sphere(.3, 10, 6, ), soil, [0, 0, 0], { scale: [1, .28, 1] });
-  for (let i = 0; i < 5; i++) { const a = i * 1.3; part(mound, sphere(.07, 6, 4), soil, [Math.cos(a) * .24, .03, Math.sin(a) * .24], { scale: [1, .5, 1] }); }
-  mound.visible = false;
-  return { group: g, shadow: .5, parts: { body, mound }, idle: t => {
-    body.position.y = Math.abs(Math.sin(t * 6)) * .025; sprout.rotation.z = Math.sin(t * 2.2) * .15; shine.material.opacity = .35 + Math.sin(t * 3) * .1; blink(eyes, t, 3.6);
-  } };
-}
-
-/** Shore, Storm: a small manta of storm-cloud grey gliding over the room, yellow sparks along its wings, a spark at its tail. */
-function stormRay(): Built {
-  const S = SCHOOL_LIGHT.storm, g = new THREE.Group(), skin = std(0x5a6272), belly = std(0xa8b0bc), body = new THREE.Group(); body.position.y = 1.05; g.add(body);
-  part(body, sphere(.2, 12, 8), skin, [0, 0, 0], { scale: [1, .45, 1.1] });
-  part(body, sphere(.16, 10, 6), belly, [0, -.03, .02], { scale: [1, .35, 1] });
-  const wings = [-1, 1].map(s => {
-    const w = new THREE.Group(); w.position.set(.16 * s, 0, 0); body.add(w);
-    part(w, sphere(.2, 10, 6), skin, [.2 * s, 0, -.02], { scale: [1.4, .18, .9] });
-    for (let i = 0; i < 3; i++) part(w, sphere(.022, 5, 4), lit(S), [(.12 + i * .1) * s, .04, .05 - i * .04]);
-    return w;
-  });
-  const eyes = bigEyes(body, .08, .05, .18, .05);
-  const tail = new THREE.Group(); tail.position.set(0, 0, -.2); body.add(tail);
-  limb(tail, [0, 0, 0], [0, -.02, -.45], .02, skin, .006);
-  part(tail, sphere(.03, 6, 4), lit(S), [0, -.02, -.47]);
-  const spark = glow(S, .45, .6); spark.position.set(0, -.02, -.47); tail.add(spark);
-  return { group: g, shadow: .6, idle: t => {
-    wings.forEach((w, i) => { w.rotation.z = (i ? -1 : 1) * Math.sin(t * 3.2) * .35; }); body.position.y = 1.05 + Math.sin(t * 1.6) * .06;
-    tail.rotation.y = Math.sin(t * 2.4) * .3; spark.material.opacity = .4 + Math.max(0, Math.sin(t * 11)) * .4; blink(eyes, t, 4.1);
-  } };
-}
-
-/** Shore, Umbral: a little knot of the dark, a black orb in a spinning ring of violet light, with big eyes; it swallows bolts. */
-function voidMote(): Built {
-  const U = SCHOOL_LIGHT.umbral, g = new THREE.Group(), dark = std(0x120c1c, { roughness: .4 }), body = new THREE.Group(); body.position.y = .9; g.add(body);
-  part(body, sphere(.2, 14, 10), dark, [0, 0, 0]);
-  const ring = new THREE.Group(); body.add(ring); ring.rotation.x = 1.2;
-  part(ring, new THREE.TorusGeometry(.3, .025, 5, 24), lit(U), [0, 0, 0]);
-  part(ring, new THREE.TorusGeometry(.36, .01, 4, 24), shine(U, .6), [0, 0, 0]);
-  const eyes = bigEyes(body, .075, .04, .16, .058, 0x4a2a7a);
-  const core = glow(U, 1.1, .45); body.add(core);
-  const specks = motes(body, U, 5, .45, 0, .02);
-  return { group: g, shadow: .45, parts: { body }, idle: t => {
-    ring.rotation.z = t * 2.2; body.position.y = .9 + Math.sin(t * 1.9) * .05; core.material.opacity = .35 + Math.sin(t * 4) * .1; specks(t, -1.2); blink(eyes, t, 3.9);
-  } };
-}
-
-/** Shore, Frost (elite): a big round tortoise carrying a little shrine of candles on its shell, burning pale. */
-function lanternTortoise(): Built {
-  const F = SCHOOL_LIGHT.frost, g = new THREE.Group(), shellM = std(0x3e5048), plate = std(0x5e7068), skin = std(0x8a9a88), stone = std(0x9aa0a4), waxM = std(0xe8eef0), body = new THREE.Group(); g.add(body);
-  part(body, new THREE.SphereGeometry(.5, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), shellM, [0, .16, 0], { scale: [1, .8, 1.1] });
-  for (let i = 0; i < 7; i++) { const a = i / 6 * Math.PI * 2, r = i ? .3 : 0; part(body, new THREE.CylinderGeometry(.12, .13, .04, 6), plate, [Math.cos(a) * r, .5 - (i ? .1 : 0), Math.sin(a) * r * 1.1], { rot: [i ? (Math.sin(a) * .5) : 0, 0, i ? (-Math.cos(a) * .5) : 0] }); }
-  part(body, new THREE.CylinderGeometry(.52, .52, .06, 16), plate, [0, .15, 0], { scale: [1, 1, 1.1] }); // (the shell's rim)
-  const head = new THREE.Group(); head.position.set(0, .22, .56); body.add(head);
-  part(head, sphere(.15, 10, 8), skin, [0, 0, .05], { scale: [1, .9, 1.15] });
-  const eyes = bigEyes(head, .075, .05, .14, .05);
-  const legs = new THREE.Group(); body.add(legs);
-  for (const [x, z] of [[-.34, .3], [.34, .3], [-.34, -.3], [.34, -.3]] as [number, number][]) part(legs, sphere(.11, 8, 6), skin, [x, .06, z], { scale: [1, .7, 1.1] });
-  // the shrine on its back: a little arch of stone, candles burning pale inside
-  const shrine = new THREE.Group(); shrine.position.set(0, .5, -.02); body.add(shrine);
-  for (const s of [-1, 1]) part(shrine, box(.05, .22, .05), stone, [.1 * s, .11, 0]);
-  part(shrine, new THREE.TorusGeometry(.1, .025, 4, 10, Math.PI), stone, [0, .22, 0]);
-  const flames: THREE.Mesh[] = [];
-  for (const [x, h] of [[-.04, .08], [.035, .06]] as [number, number][]) { part(shrine, new THREE.CylinderGeometry(.018, .02, h, 6), waxM, [x, h / 2, 0]); flames.push(part(shrine, new THREE.ConeGeometry(.02, .06, 6), lit(F), [x, h + .03, 0])); }
-  const light = glow(F, .9, .6); light.position.y = .12; shrine.add(light);
-  return { group: g, shadow: 1, parts: { head, legs, light }, idle: t => {
-    head.rotation.y = Math.sin(t * .8) * .2; head.position.y = .22 + Math.sin(t * 1.3) * .015; flames.forEach((f, i) => { f.scale.set(1, .8 + Math.sin(t * 12 + i * 2) * .2, 1); }); blink(eyes, t, 4.6);
-  } };
-}
+/* (the floors' foes are creatures of fantasy now, in fantasyFloor1.ts to fantasyFloor5.ts: M4.12; the Wardlings below) */
 
 /* ---------- the Wardlings (M4.2): what a drinking ward drank, let out ---------- */
 
@@ -155,8 +71,8 @@ export const MODEL_OPTIONS = [
   { id: 'rimeDrakeling', floor: 3, school: 'frost', build: FLOOR3_LOOKS.rimeDrakeling },
   { id: 'wickmouse', floor: 4, school: 'ember', build: FLOOR4_LOOKS.wickmouse }, { id: 'chimeBat', floor: 4, school: 'storm', build: FLOOR4_LOOKS.chimeBat },
   { id: 'gargoyleWhelp', floor: 4, school: 'frost', build: FLOOR4_LOOKS.gargoyleWhelp }, { id: 'moonstagFawn', floor: 4, school: 'hallow', build: FLOOR4_LOOKS.moonstagFawn },
-  { id: 'rootling', floor: 5, school: 'umbral', build: rootling }, { id: 'stormRay', floor: 5, school: 'storm', build: stormRay },
-  { id: 'voidMote', floor: 5, school: 'umbral', build: voidMote }, { id: 'lanternTortoise', floor: 5, school: 'frost', build: lanternTortoise },
+  { id: 'rootling', floor: 5, school: 'umbral', build: FLOOR5_LOOKS.rootling }, { id: 'stormRay', floor: 5, school: 'storm', build: FLOOR5_LOOKS.stormRay },
+  { id: 'voidMote', floor: 5, school: 'umbral', build: FLOOR5_LOOKS.voidMote }, { id: 'lanternTortoise', floor: 5, school: 'frost', build: FLOOR5_LOOKS.lanternTortoise },
   // M4.2: the Wardlings, no floor's own (0): a drinking ward lets them out
   { id: 'wardEmber', floor: 0, school: 'ember', build: () => wardling('ember') }, { id: 'wardFrost', floor: 0, school: 'frost', build: () => wardling('frost') },
   { id: 'wardStorm', floor: 0, school: 'storm', build: () => wardling('storm') }, { id: 'wardHallow', floor: 0, school: 'hallow', build: () => wardling('hallow') },

@@ -10,7 +10,8 @@ import { FLOOR1_LOOKS, lampwyrmSwarm } from './fantasyFloor1';
 import { FLOOR2_LOOKS } from './fantasyFloor2';
 import { FLOOR3_LOOKS } from './fantasyFloor3';
 import { FLOOR4_LOOKS } from './fantasyFloor4';
-import { puffcap, gloomRaven, rimeWolf, dustPangolin, frostJackalope } from './bestiaryBeasts';
+import { FLOOR5_LOOKS } from './fantasyFloor5';
+import { puffcap, frostJackalope } from './bestiaryBeasts';
 import { grimoireMimic, brineSerpent, phoenix, basilisk, griffin, radiantEye, harpy, shadowFox, hydra, manticore } from './bestiaryCreatures';
 import { puddleElemental, thunderhead, cinderDjinn, magmaOoze, saltGolem, rubbleGolem, lodestoneGolem, hearthGolem, glacierGolem, rubbleStone } from './bestiaryElementals';
 
@@ -50,9 +51,9 @@ export const BESTIARY_OPTIONS = [
   { id: 'rimeScarab', kind: 'beast', school: 'frost', floor: 4, build: FLOOR4_LOOKS.rimeScarab },
   { id: 'glacierGolem', kind: 'elemental', school: 'frost', floor: 5, elite: true, build: glacierGolem },
   { id: 'hydra', kind: 'creature', school: 'umbral', floor: 5, elite: true, build: hydra },
-  { id: 'gloomRaven', kind: 'beast', school: 'umbral', floor: 5, build: gloomRaven },
-  { id: 'rimeWolf', kind: 'beast', school: 'frost', floor: 5, build: rimeWolf },
-  { id: 'dustPangolin', kind: 'beast', school: 'umbral', floor: 5, build: dustPangolin },
+  { id: 'gloomRaven', kind: 'beast', school: 'umbral', floor: 5, build: FLOOR5_LOOKS.gloomRaven },
+  { id: 'rimeWolf', kind: 'beast', school: 'frost', floor: 5, build: FLOOR5_LOOKS.rimeWolf },
+  { id: 'dustPangolin', kind: 'beast', school: 'umbral', floor: 5, build: FLOOR5_LOOKS.dustPangolin },
   { id: 'frostJackalope', kind: 'beast', school: 'frost', floor: 5, build: frostJackalope },
   { id: 'manticore', kind: 'creature', school: 'umbral', floor: 5, build: manticore },
 ] as const satisfies readonly { id: string; kind: BestiaryKind; school: School; floor: number; elite?: boolean; build: () => Built }[];

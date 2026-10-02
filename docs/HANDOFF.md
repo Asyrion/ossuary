@@ -12,7 +12,7 @@ Delete it, or write it again, at the next handoff.
   ware panel, and M4.12 steps 1 to 5 with floors 1 to 3 approved. Another session merged the costumes cut back to 19
   (`806a34e`) to `main` while that PR was open; the branch was rebased onto it.
 - On the branch only, **not shipped** (ship only when the owner asks: the `ship` skill, the `rules-reviewer` first):
-  floor 4's approval (`467a8a8`) and floor 5's seven looks, waiting on the owner.
+  floor 4's and floor 5's approvals (every floor's foes in their new looks), and what comes after them.
 - The full browser suite last ran green on the rebased branch before the merge (121 passed); floor 4's approval and floor
   5 were checked by the fantasy-foes, bestiary and M4 foe tests and the unit tests (396).
 
