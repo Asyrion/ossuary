@@ -16,9 +16,9 @@ const floorLooks = (floor: number) => [...new Set(Object.values(FOES).filter(d =
 export const newLooks = (floor?: number) => (floor === undefined ? Object.keys(FANTASY_LOOKS) : floorLooks(floor)).filter(id => FANTASY_LOOKS[id]);
 
 /** Stand each of `floor`'s foes that has a new look, the old look to its left and the new to its right, in rows ahead of
-    world (x, z) (a great hall holds a floor's: `?room=great_hall`). */
-export function showLookPairs(room: Room, x: number, z: number, floor?: number) {
-  const ids = newLooks(floor), across = Math.max(1, Math.min(4, Math.floor((room.bounds.maxX - room.bounds.minX) / 3.2)));
+    world (x, z) (a great hall holds a floor's: `?room=great_hall`); `only` names the ones to stand. */
+export function showLookPairs(room: Room, x: number, z: number, floor?: number, only?: readonly string[]) {
+  const ids = newLooks(floor).filter(id => !only || only.includes(id)), across = Math.max(1, Math.min(4, Math.floor((room.bounds.maxX - room.bounds.minX) / 3.2)));
   return ids.map((id, i) => {
     const n = Math.min(across, ids.length - Math.floor(i / across) * across), cx = x + ((i % across) - (n - 1) / 2) * 3.2, cz = z - 2 - Math.floor(i / across) * 2.4;
     const a = freeSpotNear(room, cx - .7, cz), b = freeSpotNear(room, cx + .7, cz);

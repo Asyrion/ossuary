@@ -6,9 +6,10 @@
    in the old ones (to compare). Each new look keeps what its behaviour moves: the old look's `parts` by name, and about its
    height (the browser test `lookContract` checks both). */
 import type { Built } from './beastParts';
+import { FLOOR1_LOOKS } from './fantasyFloor1';
 
 /** The new looks, by the look id they replace. */
-export const FANTASY_LOOKS: Partial<Record<string, () => Built>> = {};
+export const FANTASY_LOOKS: Partial<Record<string, () => Built>> = { ...FLOOR1_LOOKS };
 /** The new looks the owner has approved: the ones the foes wear in the game. */
 export const APPROVED: ReadonlySet<string> = new Set<string>([]);
 
