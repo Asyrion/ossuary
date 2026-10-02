@@ -18,11 +18,11 @@ export type Knowledge = Record<string, Known>;
 
 export const blank = (): Known => ({ seen: false, learned: false, casts: 0, upgrades: [] });
 
-/** The stage a record has reached; `usedCasts` casts of a learned spell make it used. */
+/** The stage a record has reached; `usedCasts` casts of a learned spell make it used, and a used spell runes have changed
+    is upgraded (M6: a rune carved into one not yet known well waits for the casts, so "known well" still comes). */
 export function stageOf(k: Known | undefined, usedCasts: number): Stage {
   if (!k) return 'unknown';
-  if (k.upgrades.length) return 'upgraded';
-  if (k.learned) return k.casts >= usedCasts ? 'used' : 'learned';
+  if (k.learned) return k.casts >= usedCasts ? (k.upgrades.length ? 'upgraded' : 'used') : 'learned';
   return k.seen ? 'seen' : 'unknown';
 }
 /** Is stage `s` at `t` or past it? */

@@ -3,7 +3,7 @@
    window or blocked storage starts from nothing and keeps what is learned for the session only. */
 import { CFG } from '../config';
 import { SPELL_DEFS } from './spellData';
-import { type Knowledge, type Stage, blank, cast, learn, parse, reach, see, stageOf } from './knowledge';
+import { type Knowledge, type Stage, atLeast, blank, cast, learn, parse, reach, see, stageOf, upgrade } from './knowledge';
 
 const KEY = 'ossuary.knowledge', C = CFG.knowledge;
 let kn: Knowledge = {};
@@ -24,7 +24,11 @@ export function sawSpell(id: string) { const now = see(kn, id); if (now) save();
 /** A page of it was taken (or the dev menu taught it). */
 export function learnedSpell(id: string) { if (learn(kn, id)) save(); }
 /** It was cast: returns whether that made it known well (used) just now. */
-export function castSpellOnce(id: string) { const was = stage(id); cast(kn, id); dirty = true; if (stage(id) !== was) save(); return was !== 'used' && stage(id) === 'used'; }
+export function castSpellOnce(id: string) { const was = stage(id); cast(kn, id); dirty = true; if (stage(id) !== was) save(); return !atLeast(was, 'used') && atLeast(stage(id), 'used'); } // (M6: an upgraded spell crossing into known well counts too)
+/** M6 step 7: a rune carved into spell `id` changes it (kept between runs: the panel's Upgraded stage says what changed it). */
+export function upgradedSpell(id: string, what: string) { if (upgrade(kn, id, what)) save(); }
+/** What has changed spell `id` over all runs (`rune:<id>` for each rune carved into it). */
+export const upgradesOf = (id: string) => [...(kn[id]?.upgrades ?? [])];
 
 /* The reactions found (M4.8's codex): kept beside the spells, in their own key. */
 const RKEY = 'ossuary.reactions';

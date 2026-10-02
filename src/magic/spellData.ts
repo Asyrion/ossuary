@@ -33,6 +33,13 @@ export const STATUS_KINDS: StatusKind[] = ['burn', 'chill', 'shock'];
     Umbral's Hex (stacks) and the grave's hold, Root (seconds), from M4.1; M5's Verdant Overgrown (`grow`, seconds). */
 export type SpellStatus = StatusKind | 'sanct' | 'hex' | 'root' | 'grow';
 export const SPELL_STATUSES: SpellStatus[] = [...STATUS_KINDS, 'sanct', 'hex', 'root', 'grow'];
+/** A share of a set of statuses (M6: Afterglow's, Reprise's): stacks (Chill, Hex) rounded up, so one stack still carries
+    one; seconds shared as they are, to a tenth. */
+export function shareStatus(status: Partial<Record<SpellStatus, number>> | undefined, share: number) {
+  const out: Partial<Record<SpellStatus, number>> = {};
+  for (const [k, v] of Object.entries(status ?? {}) as [SpellStatus, number][]) out[k] = k === 'chill' || k === 'hex' ? Math.ceil(v * share) : Math.round(v * share * 10) / 10;
+  return out;
+}
 /** Only the elemental part of a set of statuses (what rooms, props and mechanisms hear). */
 export const elemental = (s?: Partial<Record<SpellStatus, number>>) => s && Object.fromEntries(Object.entries(s).filter(([k]) => (STATUS_KINDS as string[]).includes(k))) as Partial<Record<StatusKind, number>>;
 
@@ -44,6 +51,8 @@ export interface SpellDef {
   /** Numbers only the shape reads (range, count, radius, duration...). */ params: Record<string, number>;
   tags: string[]; color: string; icon: string;
   /** What it does, in a few words (the lore card), and its lore. */ text: string; lore: string;
+  /** M6 step 7: on a runed copy (runeData.ts `runedDef`), the runes carved into its slot; on Reprise's second cast, set. */
+  runes?: readonly string[]; reprise?: boolean;
 }
 
 export const SPELL_DEFS = spellsData as unknown as SpellDef[];
