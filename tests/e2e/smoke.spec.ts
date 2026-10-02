@@ -4739,3 +4739,17 @@ test('the school boons that leave things behind (M6 step 5): Flamekeeper draws m
   expect(got.burst).toEqual([1, 0, true]); // (at II it bursts by itself, overgrowing the foe near)
   expect(errors).toEqual([]);
 });
+
+test('the minimap marks finished rooms (2026-10-02): been in, the fight won, nothing left to take; an obol left lying unmarks it until it is taken', async ({ page }) => {
+  type GM = { sim(s: number, draw?: boolean): void; drop(kind: string, x?: number, z?: number): void; finished: number[]; current: { plan: { id: number } }; player: { x: number; z: number; invuln: number } };
+  const errors = await start(page, '?seed=MAPS');
+  const marks = await page.evaluate(() => {
+    const w = (window as unknown as { __game: GM }).__game; w.player.invuln = 999; w.sim(.5);
+    const id = w.current.plan.id, before = w.finished.includes(id);
+    w.drop('coin', w.player.x + 3, w.player.z); w.sim(.6); const lying = w.finished.includes(id);
+    w.player.x += 3; w.sim(1.5); const taken = w.finished.includes(id);
+    return { before, lying, taken };
+  });
+  expect(marks).toEqual({ before: true, lying: false, taken: true });
+  expect(errors).toEqual([]);
+});

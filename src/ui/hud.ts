@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { Enemy } from '../types';
+import type { Enemy, Room } from '../types';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { CFG } from '../config';
@@ -228,6 +228,25 @@ export function updateVision() {
 }
 
 const mm = $<HTMLCanvasElement>('minimap'), mg = mm.getContext('2d')!;
+/** Rooms whose mark on the minimap says already whether they are done (a shop, an altar, a vault, a shrine, a library, a
+    laboratory, the treasure room, an ordeal): the finished mark leaves them be. */
+const OWN_MARK = new Set(['merchant', 'altar', 'vault', 'shrine', 'library', 'laboratory', 'treasure', 'ordeal']);
+/** Whether room `r` is finished (the owner's ask, 2026-10-02): been in, its fight won, and nothing left in it to take (no
+    pickup lying, no coffer or chest unopened, no artifact or page left). The minimap draws it a shade darker with a small
+    tick, so the rooms still holding something stand out. */
+export function roomFinished(r: Room) {
+  if (!r.visited || !r.cleared || r.locked || OWN_MARK.has(r.type)) return false;
+  if (r.spots.some(s => !s.taken) || r.pages?.some(p => !p.gone)) return false;
+  const b = r.bounds;
+  return !G.pickups.some(p => p.x > b.minX && p.x < b.maxX && p.z > b.minZ && p.z < b.maxZ && !(p.contents && p.opened));
+}
+let finishedKey = '', finishedT = 0;
+/** A few times a second: the minimap drawn again when a room becomes finished (its last thing taken) or stops being so. */
+function watchFinished(dt: number) {
+  if ((finishedT -= dt) > 0) return; finishedT = .25;
+  const key = DEV.mapFinished ? G.rooms.map(r => +roomFinished(r)).join('') : '';
+  if (key !== finishedKey) { finishedKey = key; renderMinimap(); }
+}
 /** The map of known rooms around the current one. Rooms are drawn cell by cell, joined where a room spans
     several cells; corridors are drawn narrow. */
 export function renderMinimap() {
@@ -254,9 +273,15 @@ export function renderMinimap() {
   mg.fillStyle = 'rgba(0,0,0,.55)';
   for (const r of shown) for (const [x, y, w, h] of rects(r)) mg.fillRect(x - 3, y - 3, w + 6, h + 6);
   for (const r of shown) {
-    mg.fillStyle = r === cur ? '#efe2c3' : r.visited ? '#a2937a' : '#4d443a';
+    const done = DEV.mapFinished && roomFinished(r);
+    mg.fillStyle = r === cur ? '#efe2c3' : r.visited ? (done ? '#837660' : '#a2937a') : '#4d443a'; // (finished: a shade darker)
     for (const [x, y, w, h] of rects(r)) mg.fillRect(x, y, w, h);
     const m = mid(r), cx = px(m.gx), cy = py(m.gy);
+    if (done) { // a small tick in the corner of its last cell
+      const c = [...r.plan.cells].sort((a, b) => a.gy - b.gy || a.gx - b.gx).at(-1)!, ex = px(c.gx) + cw / 2, ey = py(c.gy) + ch / 2;
+      mg.strokeStyle = r === cur ? '#6a5a44' : '#4a3e30'; mg.lineWidth = 1.6;
+      mg.beginPath(); mg.moveTo(ex - 10, ey - 6); mg.lineTo(ex - 7, ey - 3); mg.lineTo(ex - 3, ey - 9); mg.stroke();
+    }
     if (r.type === 'boss') {
       mg.fillStyle = '#b3261a'; mg.beginPath(); mg.arc(cx, cy - 1, 7, 0, 7); mg.fill();
       mg.fillStyle = '#1a0806'; mg.fillRect(cx - 4, cy - 3, 3, 3); mg.fillRect(cx + 1, cy - 3, 3, 3);
@@ -332,7 +357,7 @@ export function line(msg: string, dur = 3.5) { if (toastT > 0) waiting.push({ ms
 export function clearLines() { waiting.length = 0; toastT = 0; el.toast.classList.remove('on'); }
 const dimAt = new THREE.Vector3();
 export function updateHud(dt: number) {
-  updateMagicHud();
+  updateMagicHud(); watchFinished(dt); // (the minimap's finished rooms)
   // dimmed sight (a Sporeling's spores): darkness closing in round the mage, fading as it wears off
   const dim = Math.min(1, player.dim / .6).toFixed(2); if (el.dim.style.opacity !== dim) el.dim.style.opacity = dim;
   const chill = player.chill > 0 ? '1' : '0'; if (el.chill.style.opacity !== chill) el.chill.style.opacity = chill;
