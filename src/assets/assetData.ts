@@ -4,9 +4,9 @@
 import raw from '../../data/assets.json';
 
 export type ModelKind = 'hero' | 'enemy' | 'boss' | 'prop' | 'large-prop' | 'artifact';
-export type ImageKind = 'floor' | 'wall' | 'icon';
+export type ImageKind = 'floor' | 'wall' | 'icon' | 'coin';
 export const MODEL_KINDS: readonly ModelKind[] = ['hero', 'enemy', 'boss', 'prop', 'large-prop', 'artifact'];
-export const IMAGE_KINDS: readonly ImageKind[] = ['floor', 'wall', 'icon'];
+export const IMAGE_KINDS: readonly ImageKind[] = ['floor', 'wall', 'icon', 'coin'];
 
 export interface Budget {
   /** At most this many triangles. */ triangles: number;
@@ -16,7 +16,7 @@ export interface Budget {
   /** Width over height, at most (a sanity check on proportions). */ maxWidth: number;
   /** Its folder under public/assets/. */ folder: string;
 }
-export interface ImageSpec { /** Pixels across, as shipped. */ size: number; /** Pixels across, as kept by the owner. */ source?: number; folder: string }
+export interface ImageSpec { /** Pixels across, as shipped. */ size: number; /** Pixels across, as kept by the owner. */ source?: number; /** A coin's icon, pixels across. */ icon?: number; folder: string }
 
 /** A model in the game: its file under the manifest's folder, its height in units, and a nudge after centring. */
 export interface ModelEntry { file: string; height: number; /** x, y, z in units */ offset?: [number, number, number]; /** turn, radians */ yaw?: number }
@@ -25,13 +25,16 @@ export interface Manifest {
   /** An artifact's floating model, by artifact id. */ artifacts: Record<string, ModelEntry>;
   /** A floor look's painted floor tile, by look name (data/floors.json); walls stay procedural for now. */ floors: Record<string, { floor: string }>;
   /** An artifact's painted icon, by artifact id. */ icons: Record<string, { file: string }>;
+  /** Coin faces, by a name of their own (2026-10-02, from the owner's coins): the face drawn on a coin in the room, at
+      the game's pixel (`images.coin.size` across), and its icon for the HUD and the lore card. */ coins?: Record<string, { face: string; icon: string }>;
+  /** The coin face the obols wear (one of `coins`); without one, the obol built in code. */ obol?: string;
 }
 
 export const BUDGETS = raw.budgets as Record<ModelKind, Budget>;
 export const IMAGES = raw.images as Record<ImageKind, ImageSpec>;
 /** The placeholders a prop model can take the place of, and the kind each is. */
 export const PROP_SLOTS: Record<string, ModelKind> = { urn: 'prop', pedestal: 'prop' };
-export const MANIFEST: Manifest = { props: raw.props, artifacts: raw.artifacts, floors: raw.floors, icons: raw.icons } as Manifest;
+export const MANIFEST: Manifest = { props: raw.props, artifacts: raw.artifacts, floors: raw.floors, icons: raw.icons, coins: raw.coins, obol: raw.obol } as Manifest;
 
 /** What a manifest names: the known ids it may use. */
 export interface Known { artifacts: ReadonlySet<string>; looks: ReadonlySet<string> }
@@ -57,6 +60,11 @@ export function validateManifest(m: Manifest, known: Known): string[] {
     file(`floors.${look}.floor`, e?.floor, /\.(jpg|png)$/);
   }
   for (const [id, e] of Object.entries(m.icons ?? {})) { if (!known.artifacts.has(id)) errs.push(`icons.${id}: no such artifact`); file(`icons.${id}`, e?.file, /\.png$/); }
+  for (const [id, e] of Object.entries(m.coins ?? {})) {
+    if (!/^[a-z0-9_]+$/.test(id)) errs.push(`coins.${id}: a coin's name is lower case, digits and _`);
+    file(`coins.${id}.face`, e?.face, /\.png$/); file(`coins.${id}.icon`, e?.icon, /\.png$/);
+  }
+  if (m.obol !== undefined && !m.coins?.[m.obol]) errs.push(`obol: ${m.obol} is not one of the coins (${Object.keys(m.coins ?? {}).join(', ')})`);
   return errs;
 }
 
@@ -68,5 +76,6 @@ export function manifestFiles(m: Manifest): { where: string; file: string }[] {
     ...Object.entries(m.artifacts ?? {}).map(([id, e]) => ({ where: `artifacts.${id}`, file: e.file })),
     ...Object.entries(m.floors ?? {}).map(([look, e]) => ({ where: `floors.${look}.floor`, file: e.floor })),
     ...Object.entries(m.icons ?? {}).map(([id, e]) => ({ where: `icons.${id}`, file: e.file })),
+    ...Object.entries(m.coins ?? {}).flatMap(([id, e]) => [{ where: `coins.${id}.face`, file: e.face }, { where: `coins.${id}.icon`, file: e.icon }]),
   ];
 }

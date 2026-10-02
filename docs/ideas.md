@@ -152,6 +152,22 @@ something bad.
 - **Skeleton key:** opens every ward on the floor once. **Hollow key:** opens a cracked wall without a glyph.
 - **Hallowed obol:** offered at the shrine for a small blessing (M6 boons).
 
+### Coin types (the owner's coins, 2026-10-02)
+
+The owner's seven coin faces (`inspiration/coins/`) are all in the game as faces (`docs/assets.md`: Coins); the obols
+wear one. The others could be coins with a purpose of their own, each a face and a rim colour on the same coin:
+
+- **Pale obol** (a pale coin with a helmeted head): the Ferryman's fare, kept for the crossing between runs (M7), or the
+  coin the Ferryman's Toll pays out.
+- **Grave coin** (a dark coin, a skeletal hand and a bone): a black obol, from a foe that falls deep in a hex or from the
+  Gravemonger's Contract; worth more at the shrine, or cursed to spend. Too dark for the floors as it is: brighten it.
+- **Silver owl** or **Plain profile** (silver coins): a library's coin, spent on pages and forgotten spells, or a sage's
+  token for the grimoire between runs.
+- **Arcane eye** or **Arcane sigil** (rune-ringed coins): vow or omen tokens for the Great Circle (M7), or rune coins for
+  M6's runes; busy at 28 pixels, so best shown larger (the shop, the HUD) or drawn simpler.
+- **A larger coin worth five**, as Isaac's nickel: Star and crystal's gold if the plain obol goes back to the rune, or
+  any face with a thicker gold rim.
+
 ## Artifacts (brainstorm, 2026-09-28)
 
 More artifacts for later milestones, after the 13 added on 2026-09-28 (see the GDD's Artifacts). The same

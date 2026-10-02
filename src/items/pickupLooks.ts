@@ -1,16 +1,21 @@
 /* The pickups and containers in the room kit's style (M3.5 step 3; docs/M3.5-plan.md): hearts of blood with a glowing
-   face (a half one broken down the middle), an obol stamped with a rune, a leather purse with a coin in its neck, a mana
+   face (a half one broken down the middle), an obol wearing the owner's coin face (2026-10-02; obolFace.ts) or, without
+   one, stamped with a rune, a leather purse with a coin in its neck, a mana
    vial of blue grave-light, a bone key with a ward-blue stone in its bow, a glyph stone with its rune burning amber; an
    offering coffer (planks, iron bands, a slot for coins) and a reliquary chest (dark wood, bone or gilt bands, a lock
    plate) with its ward seal, a circle of runes. Built once each, merged (`mergeStill`), and cloned: what a pickup is and
    does is unchanged (pickups.ts). `DEV.roomKit` off keeps the old looks. */
 import * as THREE from 'three';
 import { TILT } from '../render/renderer';
-import { blob, glow, glowShared, mergeStill } from '../render/materials';
+import { CFG } from '../config';
+import { IMAGES } from '../assets/assetData';
+import { blob, glow, glowShared, markShared, mergeStill } from '../render/materials';
 import { glowTone, mesh, rough, runeStrokes, shade, shared, tone } from '../world/kitParts';
 import { box, put } from '../world/objectLooks';
 import { WARD_COLOR as WARD } from '../world/rooms';
 import type { Item } from './loot';
+import { obolFaceNow, obolFaces } from './obolFace';
+import { coinFace, type CoinFace } from '../assets/models';
 
 const V = (x: number, y: number) => new THREE.Vector2(x, y);
 /** A shape turned round the upright from its outline, given from the bottom up. */
@@ -43,7 +48,10 @@ type Build = (g: THREE.Group) => void;
 const ITEMS: Record<Exclude<Item, 'potion' | 'reagent'>, Build> = { // (M5's potions and reagents: alchemyLooks.ts)
   heart: g => heart(g, false),
   halfHeart: g => heart(g, true),
-  coin(g) { obol(g, 1); g.add(glowShared(GOLD, .8, .6)); },
+  coin(g) { // a face: the coin tipped back to the camera, at its face's pixel size; the rune: upright, as before
+    const face = obolFaceNow(); if (face) facedObol(facing(g), face, FACE_R); else obol(g, 1);
+    g.add(glowShared(GOLD, .8, .6));
+  },
   purse(g) { // a squat leather pouch drawn shut with cord, its mouth gathered in a frill, obols showing at it and one
     // sewn on each side
     mesh(g, rough(lathe([[0, -.18], [.11, -.175], [.18, -.14], [.215, -.08], [.22, -.02], [.195, .04], [.14, .09], [.075, .112], [.062, .13], [.1, .16], [.15, .2], [.125, .215], [.07, .19], [0, .18]], 11), .02, 5), tone(LEATHER, .16));
@@ -110,20 +118,54 @@ function heart(g: THREE.Group, half: boolean) {
   put(mesh(f, extrude(s, .06, .012), glowTone(RUBY), 0, .01, .04), 0, 0, 0, [.74, .74, 1]);
   put(mesh(f, new THREE.SphereGeometry(.035, 6, 4), glowTone(SHINE), -.15, .12, .085), 0, 0, .6, [1.4, .7, .5]);
 }
-/** An obol `s` times full size: a disc with a raised rim, a rune stamped on both faces. */
-function obol(g: THREE.Object3D, s: number) {
+/** An obol `s` times full size: the coin face it wears (a purse's coins too), or (`face` null) a disc with a raised rim
+    and a rune stamped on both faces. */
+function obol(g: THREE.Object3D, s: number, face = obolFaceNow()) {
   const o = new THREE.Group(); o.scale.setScalar(s); g.add(o);
+  if (face) { facedObol(o, face, .17); return; }
   put(mesh(o, cyl(.17, .17, .035, 16), metal(OBOL)), Math.PI / 2);
   mesh(o, new THREE.TorusGeometry(.165, .02, 4, 18), metal(shade(OBOL, 1.1)));
   for (const z of [-1, 1]) put(mesh(o, GEO.stamp, metal(shade(OBOL, .72)), 0, 0, z * .018), 0, z < 0 ? Math.PI : 0, 0);
 }
 
+/** A coin's radius when it wears a face: its face's pixels the game's own (a texel each, `images.coin.size` across), so a
+    coin facing the camera is drawn pixel for pixel. */
+export const FACE_R = IMAGES.coin.size / 2 / CFG.roomKit.texel[0];
+const faceMats = new Map<string, { face: THREE.Material; edge: THREE.Material }>();
+/** A coin `r` in radius wearing `face` on both sides, facing +z, its edge in the face's rim colour. The face is drawn
+    texel by texel (no smoothing, no mipmaps), lit a little from within so it reads in a dark room. */
+function facedObol(g: THREE.Object3D, face: CoinFace & { id: string }, r: number) {
+  let m = faceMats.get(face.id);
+  if (!m) {
+    const map = new THREE.Texture(face.img); map.colorSpace = THREE.SRGBColorSpace; map.generateMipmaps = false;
+    map.magFilter = map.minFilter = THREE.NearestFilter; map.needsUpdate = true;
+    const look = new THREE.MeshStandardMaterial({ map, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: CFG.pickups.coinGlow, metalness: .25, roughness: .55, alphaTest: .5 });
+    faceMats.set(face.id, m = { face: markShared(look), edge: metal(face.rim) });
+  }
+  for (const z of [-1, 1]) put(mesh(g, new THREE.CircleGeometry(r, 28), m.face, 0, 0, z * .018), 0, z < 0 ? Math.PI : 0, 0);
+  put(mesh(g, new THREE.CylinderGeometry(r, r, .036, 28, 1, true), m.edge), Math.PI / 2);
+}
+
 const items = new Map<string, THREE.Object3D>();
-/** A pickup's look (a copy: its merged geometry and its materials shared with every other of the kind). */
+/** A pickup's look (a copy: its merged geometry and its materials shared with every other of the kind). An obol's and a
+    purse's are kept by the face they wear. */
 export function itemLook(kind: Exclude<Item, 'potion' | 'reagent'>) {
-  let t = items.get(kind);
-  if (!t) { const g = new THREE.Group(); ITEMS[kind](g); t = keep(g); items.set(kind, t); }
+  const key = kind === 'coin' || kind === 'purse' ? `${kind}:${obolFaceNow()?.id ?? 'rune'}` : kind;
+  let t = items.get(key);
+  if (!t) { const g = new THREE.Group(); ITEMS[kind](g); t = keep(g); items.set(key, t); }
   return t.clone();
+}
+
+/** Every coin face the obols can wear, side by side (the dev menu's gallery): each a coin as the room shows it, at its
+    pickup's height, in a row centred on (x, z) in `parent`'s space; the rune last. */
+export function coinGallery(parent: THREE.Object3D, x: number, z: number) {
+  const g = new THREE.Group(), ids = obolFaces(), gap = FACE_R * 2.6;
+  ids.forEach((id, i) => {
+    const c = new THREE.Group(), f = coinFace(id);
+    if (f) facedObol(facing(c), { ...f, id }, FACE_R); else obol(c, 1, null);
+    c.add(glowShared(GOLD, .8, .6)); c.position.set(x + (i - (ids.length - 1) / 2) * gap, .35, z); g.add(c);
+  });
+  mergeStill(g); parent.add(g); return g;
 }
 
 /** A coffer or a chest, merged, its lid on a hinge at the back (`lid`, turned to open) and a chest's ward seal on its

@@ -6,7 +6,7 @@ import { Document, type Node } from '@gltf-transform/core';
 import { MeshoptSimplifier } from 'meshoptimizer';
 import { BUDGETS, MANIFEST, manifestFiles, validateManifest, type Manifest } from '../../src/assets/assetData';
 import { facing, measure, prepareModel, type Check } from '../../tools/assetReport';
-import { lightSpread, seamScore, transparentBorder } from '../../tools/imageChecks';
+import { coinCircle, lightSpread, seamScore, transparentBorder } from '../../tools/imageChecks';
 import artifacts from '../../data/artifacts.json';
 import floors from '../../data/floors.json';
 
@@ -101,6 +101,12 @@ describe('the asset manifest', () => {
     const errs = validateManifest(bad, known).join('\n');
     for (const bit of ['props.vase', 'props.urn: height', 'artifacts.nothing: no such artifact', 'artifacts.nothing: ../x.glb', 'floors.moon: no such floor look', 'floors.moon.floor', 'icons.ember_sigil']) expect(errs).toContain(bit);
   });
+  it('coin faces: each names a face and an icon, and the obols wear one of them (2026-10-02)', () => {
+    expect(MANIFEST.obol && MANIFEST.coins?.[MANIFEST.obol]).toBeTruthy();
+    const errs = validateManifest({ ...MANIFEST, coins: { 'Pale Obol': { face: 'coins/p.png', icon: 'coins/p-icon.png' }, owl: { face: 'coins/owl.jpg', icon: '../owl.png' } }, obol: 'star_crystal' }, known).join('\n');
+    for (const bit of ['coins.Pale Obol: a coin\'s name', 'coins.owl.face: coins/owl.jpg', 'coins.owl.icon: ../owl.png', 'obol: star_crystal is not one of the coins']) expect(errs).toContain(bit);
+    expect(manifestFiles({ ...MANIFEST, coins: { owl: { face: 'coins/owl.png', icon: 'coins/owl-icon.png' } } }).filter(f => f.where.startsWith('coins.')).map(f => f.where)).toEqual(['coins.owl.face', 'coins.owl.icon']);
+  });
   it('budgets are positive for every kind', () => {
     for (const b of Object.values(BUDGETS)) { expect(b.triangles).toBeGreaterThan(0); expect(b.texture).toBeGreaterThan(0); expect(b.height).toBeGreaterThan(0); }
   });
@@ -125,5 +131,23 @@ describe('the texture checks', () => {
   it('an icon cut out from its background has a transparent border', () => {
     const rgba = (clear: boolean) => { const d = new Uint8Array(32 * 32 * 4).fill(200); for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) if (clear && (x < 4 || y < 4 || x > 27 || y > 27)) d[(y * 32 + x) * 4 + 3] = 0; return { data: d, width: 32, height: 32, channels: 4 }; };
     expect(transparentBorder(rgba(true))).toBe(true); expect(transparentBorder(rgba(false))).toBe(false);
+  });
+  it('a coin is found on a white ground or cut out, as the circle across its width, a shadow under it left out', () => {
+    /** A coin of radius 20 at (40, 30) on a 96 × 96 ground, a shadow 8 px deep under it; RGB on white, or RGBA cut out. */
+    const coin = (cut: boolean) => {
+      const c = cut ? 4 : 3, d = new Uint8Array(96 * 96 * c);
+      for (let y = 0; y < 96; y++) for (let x = 0; x < 96; x++) {
+        const i = (y * 96 + x) * c, on = Math.hypot(x + .5 - 40, y + .5 - 30) <= 20, shadow = !on && Math.abs(x + .5 - 40) < 14 && y >= 50 && y < 58;
+        d.set(on ? [190, 150, 60] : shadow ? [120, 120, 120] : cut ? [0, 0, 0] : [255, 255, 255], i);
+        if (cut) d[i + 3] = on || shadow ? 255 : 0;
+      }
+      return { data: d, width: 96, height: 96, channels: c };
+    };
+    for (const cut of [false, true]) {
+      const found = coinCircle(coin(cut))!;
+      expect(found.r).toBeCloseTo(20, 0); expect(found.cx).toBeCloseTo(40, 0); expect(found.cy).toBeCloseTo(30, 0);
+      expect(found.round).toBeGreaterThan(1.1); // (the shadow: taller than wide, reported, and left out of the circle)
+    }
+    expect(coinCircle({ data: new Uint8Array(16 * 16 * 3).fill(255), width: 16, height: 16, channels: 3 })).toBeNull();
   });
 });

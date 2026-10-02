@@ -233,7 +233,9 @@ export const CFG = {
   },
   camTiltDeg: 45,
   camHallView: 1.2,    // larger halls: the camera pulls back so the view is this much wider and deeper
-  pickups: { obolDrift: 1.8 },  // obols drift to the mage from this close
+  // obols drift to the mage from this close; a coin sways this far (radians) either way as it turns; a coin face's light
+  // from within (2026-10-02: the owner's coins, so a face reads in a dark room)
+  pickups: { obolDrift: 1.8, coinSway: .45, coinGlow: .2 },
   /** Soul motes (M4.1, items/souls.ts): most held; the hex a black one lays on every foe in the room when it goes; the
       chance a foe that falls with enough hex stacks (magic.json's `hex.soulAt`) leaves a black one. */
   souls: { max: 6, blackHex: 2, hexChance: .5 },

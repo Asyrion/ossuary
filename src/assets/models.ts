@@ -1,7 +1,8 @@
-/* Loading the assets data/assets.json names (M3.5, docs/assets.md: Pipeline, step 8): models, a floor look's tile and
-   artifacts' icons, at boot, next to the hero. Each model is loaded once, stood on the floor at its height, and every
-   use is a clone sharing its geometry and materials (marked shared, so removing a use frees nothing). A file that is
-   missing or broken leaves its placeholder in place, with a warning in the console, never an error.
+/* Loading the assets data/assets.json names (M3.5, docs/assets.md: Pipeline, step 8): models, a floor look's tile,
+   artifacts' icons and coin faces (2026-10-02), at boot, next to the hero. Each model is loaded once, stood on the
+   floor at its height, and every use is a clone sharing its geometry and materials (marked shared, so removing a use
+   frees nothing). A file that is missing or broken leaves its placeholder in place, with a warning in the console, never
+   an error.
    ?assets=off keeps every placeholder; ?assets=<a manifest's path>.json loads another manifest (the tests' stand-ins).
    The dev menu turns them off and on to compare. */
 import * as THREE from 'three';
@@ -14,7 +15,10 @@ type Group = 'props' | 'artifacts';
 
 const loader = new GLTFLoader();
 const models = new Map<string, THREE.Object3D>(), floors = new Map<string, HTMLImageElement>(), icons = new Map<string, string>();
-let info: AssetInfo[] = [], enabled = true;
+/** A coin's face as loaded: the image, and the colour round its edge (the coin's rim, for its edge in the room). */
+export interface CoinFace { img: HTMLImageElement; rim: number }
+const faces = new Map<string, CoinFace>(), coinIcons = new Map<string, string>();
+let info: AssetInfo[] = [], enabled = true, obol: string | null = null;
 
 /** Load everything the manifest names (or the one ?assets= points to). Never rejects. */
 export async function loadAssets(search = location.search) {
@@ -25,7 +29,7 @@ export async function loadAssets(search = location.search) {
     try { const res = await fetch(opt); if (!res.ok) throw new Error(`${res.status}`); manifest = await res.json() as Manifest; base = opt.replace(/[^/]*$/, ''); }
     catch (e) { console.warn(`?assets=${opt}: the manifest could not be read (${String(e)}); using the game's own`); }
   } else if (opt) console.warn(`?assets=${opt}: use off, or a manifest's path ending in .json`);
-  const files = manifestFiles(manifest);
+  const files = manifestFiles(manifest); obol = manifest.obol ?? null;
   if (!enabled) { info = files.map(f => ({ ...f, status: 'off' })); return; }
   info = await Promise.all(files.map(async f => {
     const url = base + f.file, [group, id] = f.where.split('.') as [string, string];
@@ -40,7 +44,9 @@ export async function loadAssets(search = location.search) {
       }
       const img = new Image(); img.src = url;
       try { await img.decode(); } catch { return (await fetchFile(url)) ? failed(f, 'not an image') : missing(f); }
-      if (group === 'floors') floors.set(id, img); else icons.set(id, url);
+      if (group === 'floors') floors.set(id, img);
+      else if (group === 'coins') { if (f.where.endsWith('.face')) faces.set(id, { img, rim: rimOf(img) }); else coinIcons.set(id, url); }
+      else icons.set(id, url);
       return { ...f, status: 'loaded' as const };
     } catch (e) { return failed(f, String(e)); }
   }));
@@ -84,6 +90,27 @@ export function modelFor(group: Group, id: string): THREE.Object3D | null {
 export const floorTile = (look: string) => enabled ? floors.get(look) ?? null : null;
 /** An artifact's painted icon (its URL), or null for the drawn one. */
 export const iconUrl = (id: string) => enabled ? icons.get(id) ?? null : null;
+
+/** A coin face's rim: the mean colour of its outermost drawn pixels. */
+function rimOf(img: HTMLImageElement) {
+  const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+  const g = c.getContext('2d', { willReadFrequently: true }); if (!g) return 0x8a6a34;
+  g.drawImage(img, 0, 0); const { data, width: w, height: h } = g.getImageData(0, 0, c.width, c.height);
+  const r = Math.min(w, h) / 2, sum = [0, 0, 0]; let n = 0;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = (y * w + x) * 4, d = Math.hypot(x + .5 - w / 2, y + .5 - h / 2);
+    if (data[i + 3] > 128 && d > r - 2.5) { sum[0] += data[i]; sum[1] += data[i + 1]; sum[2] += data[i + 2]; n++; }
+  }
+  return n ? (Math.round(sum[0] / n) << 16) | (Math.round(sum[1] / n) << 8) | Math.round(sum[2] / n) : 0x8a6a34; // (sRGB bytes, as a hex colour is)
+}
+/** A coin's face (2026-10-02), or null when it isn't loaded (the obol built in code stays). */
+export const coinFace = (id: string) => enabled ? faces.get(id) ?? null : null;
+/** A coin's icon (its URL), or null. */
+export const coinIconUrl = (id: string) => enabled ? coinIcons.get(id) ?? null : null;
+/** The coins whose faces loaded, in the manifest's order. */
+export const coinIds = () => enabled ? [...faces.keys()] : [];
+/** The face the manifest has the obols wear (data/assets.json `obol`), or null. */
+export const manifestObol = () => obol;
 
 /** The same model in the dark, bluish stone of a rune-sealed urn: its materials tinted once and shared. */
 const sealedMats = new Map<THREE.Material, THREE.Material>();

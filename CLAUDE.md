@@ -234,6 +234,13 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   in `tools/imageChecks.ts`, previews in `asset-previews/`) prepare the owner's files; `tools/make-standins.ts` makes
   the stand-ins in `tests/fixtures/assets/` that the tests load. The dev menu's Made assets section lists them,
   turns them off to compare, shows them ahead of the mage, and puts a frame readout on screen (`DEV.fps`).
+  Coin faces (2026-10-02, the owner's coins in `inspiration/coins/`): `coins` in `data/assets.json` (a face at the game's
+  pixel, 28 across, and a 24 px icon each, from `prepare-texture --kind coin`, `coinCircle` in imageChecks.ts) and `obol`,
+  the face the obols wear (Star and crystal, for the owner to choose); `src/items/obolFace.ts` (`obolFace`, the dev menu's
+  choice kept as `ossuary.obolFace`), `facedObol` in pickupLooks.ts (a coin `FACE_R` across tipped to the camera, the
+  face drawn texel for texel; a purse's coins too), the icon in the HUD's counter and the lore card (`coinIconBody` in
+  hud.ts); the rune obol in code without one. Dev menu: "Obols wear" (Look tab, Made assets), Coin faces (Galleries);
+  `__game.obolFace`, `obolFaces`, `wearFace(id)`, `coinGallery()`.
 - Enemy model options (`src/actors/modelOptions.ts`, the owner's request; M4 makes them foes): ten critters and small
   fantasy creatures built in code from simple shapes (round, big eyes from `bigEyes`, smaller than the mage; not the dead),
   each with a school's light and a floor (GDD: Enemies built in code), looks only for now, each with an idle motion

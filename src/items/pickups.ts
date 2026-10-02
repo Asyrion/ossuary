@@ -155,6 +155,14 @@ export function spawnPickup(kind: Drop, x: number, z: number, opts: { rise?: boo
   if (opts.rise) { p.rise = glow(0xd8e6ff, .8, .8); p.rise.position.y = .2; g.add(p.rise); p.drop = .6; }
   G.pickups.push(p);
 }
+/** The obols and purses lying in the room dressed again in the face the obols wear now (the dev menu's switch). */
+export function restyleObols() {
+  for (const p of G.pickups) {
+    if (p.kind !== 'coin' && p.kind !== 'purse') continue;
+    const m = itemVisual(p.kind); m.position.copy(p.m.position); m.rotation.copy(p.m.rotation);
+    p.g.remove(p.m); disposeTree(p.m); p.g.add(m); p.m = m; // (its geometry and materials shared with the kept look: nothing freed)
+  }
+}
 /** A heart; value is in halves (1 = half heart, 2 = full). */
 export const spawnHeart = (x: number, z: number, value: number) => spawnPickup(value >= 2 ? 'heart' : 'halfHeart', x, z);
 
@@ -290,7 +298,7 @@ export function updatePickups(dt: number) {
       p.m.position.y = .35 * k; p.rise.position.y = .2 + k * 1.1; p.rise.material.opacity = .8 * (1 - k);
       if (p.drop <= 0) { p.g.remove(p.rise); p.rise.material.dispose(); p.rise = undefined; }
     } else p.m.position.y = .35 + Math.sin(p.t * 3) * .06 + Math.max(0, p.drop) * 1.2;
-    p.m.rotation.y = heart || kind === 'glyph' || kind === 'key' || isSoul(kind) ? Math.sin(p.t * 1.6) * .5 : kind === 'coin' ? Math.sin(p.t * 2.2) * 1.1 : p.t * 2.4;
+    p.m.rotation.y = heart || kind === 'glyph' || kind === 'key' || isSoul(kind) ? Math.sin(p.t * 1.6) * .5 : kind === 'coin' ? Math.sin(p.t * 2.2) * CFG.pickups.coinSway : p.t * 2.4;
     // obols are drawn to the living: from close by they drift to the mage
     if ((kind === 'coin' || kind === 'purse') && p.drop <= 0 && d < CFG.pickups.obolDrift && d > .01 && player.coins < LOOT.cap) {
       const step = Math.min(d, (1.5 + (CFG.pickups.obolDrift - d) * 3) * dt);

@@ -8,7 +8,7 @@ import { G, player } from '../state';
 import { STR } from '../strings';
 import { $ } from '../util';
 import type { ArtifactDef } from '../items/artifactData';
-import { HEART_PATH, RES_ICONS, SOUL_HUES, SOUL_PATH, artifactIcon } from './hud';
+import { HEART_PATH, RES_ICONS, SOUL_HUES, SOUL_PATH, artifactIcon, coinIconBody } from './hud';
 
 export interface LoreEntry { name: string; kind: string; effect: string; lore: string; icon: string }
 /** Things described the first time they're taken in a run: items and containers. */
@@ -34,8 +34,8 @@ const ITEM_ICONS: Record<LoreItem, string> = {
   gilded: svg(box(`<circle cx="12" cy="15" r="2.6" ${S}/>`), '#e8c060'),
 };
 
-/** An item's icon, as on its lore card (the inventory shows them too). */
-export const itemIcon = (item: LoreItem) => ITEM_ICONS[item];
+/** An item's icon, as on its lore card (the inventory shows them too); an obol's is the face the obols wear. */
+export const itemIcon = (item: LoreItem) => item === 'coin' ? svg(coinIconBody()) : ITEM_ICONS[item];
 
 let el: { card: HTMLElement; icon: HTMLElement; name: HTMLElement; kind: HTMLElement; effect: HTMLElement; lore: HTMLElement } | null = null;
 let left = 0;
@@ -60,7 +60,7 @@ export function itemLore(item: LoreItem) {
   if (G.run.loreSeen.has(item)) return;
   G.run.loreSeen.add(item);
   const t = STR.lore.items[item];
-  showLore({ ...t, icon: ITEM_ICONS[item] });
+  showLore({ ...t, icon: itemIcon(item) });
 }
 
 /** The card's time runs only while the game does (not paused, not in the dev menu). */

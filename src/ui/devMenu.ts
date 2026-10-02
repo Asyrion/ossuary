@@ -4,6 +4,7 @@
    the look (the pixel look, made assets); and the galleries of options. A thin layer over the same calls as the dev hooks; its lists come from the data,
    so new artifacts, drops, rooms and bosses show up by themselves. Kept in production builds, like the
    hooks, for testing the deployed site. */
+import type * as THREE from 'three';
 import { BOSS_TYPES, type BossType, type EnemyType } from '../config';
 import { PROP_KINDS, isMechanism } from '../world/propData';
 import { THEME_DEFS } from '../world/themeData';
@@ -32,7 +33,10 @@ import { brewedPotions, forgetBrews } from '../items/alchemyMemory';
 import { openLab } from './alchemyTable';
 import { breakOut, crackVat } from '../world/laboratory';
 import { gainSoul, hallowedMend, resetSouls } from '../items/souls';
-import { giveResources, spawnPickup } from '../items/pickups';
+import { giveResources, restyleObols, spawnPickup } from '../items/pickups';
+import { coinGallery } from '../items/pickupLooks';
+import { obolFace, obolFaces, setObolFace } from '../items/obolFace';
+import { disposeTree } from '../render/materials';
 import { makeEnemy, spawnFoe } from '../actors/enemies';
 import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
 import { assetList, assetsOn, setAssetsOn } from '../assets/models';
@@ -66,14 +70,14 @@ import type { SpellStatus, StatusKind } from '../magic/spellData';
 import { TEMPLATE_DEFS } from '../world/templates';
 import { FLOORS, VARIANTS, type RoomVariant } from '../world/generate';
 import { KIT_PARTS, kindsOf, type KitPart, type Kinds } from '../world/kitData';
-import { renderHearts, renderItems, renderMinimap, toast } from './hud';
+import { renderHearts, renderItems, renderMinimap, renderPurse, toast } from './hud';
 import { MANTLE_IDS } from '../actors/mantleData';
 import { lureTest } from '../actors/foeGround';
 import { floorLean, floorWalls, warnFloor } from '../world/curve';
 
 const S = STR.dev;
 let panel: HTMLElement | null = null, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
-let spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement;
+let spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
 type Tab = (typeof TABS)[number];
@@ -136,7 +140,7 @@ function goTo(r: Room) {
 }
 
 /** Made assets on or off: this floor is built again (`rebuildFloor`), to compare. */
-export function useAssets(on: boolean) { setAssetsOn(on); renderItems(); rebuildFloor(); }
+export function useAssets(on: boolean) { setAssetsOn(on); renderItems(); renderPurse(); rebuildFloor(); }
 /** The room kit (M3.5 step 3's proof) on or off: this floor is built again in the new or the old look, to compare. */
 export function useRoomKit(on: boolean) { DEV.roomKit = on; rebuildFloor(); renderItems(); } // (the HUD's icons too: drawn, or rendered from the kit's models)
 /** The room kit's kinds forced on every room of this floor (or drawn per room again, for a part left out): built again. */
@@ -147,6 +151,19 @@ function rebuildFloor() {
   const id = G.current.plan.id;
   if (G.run.bossesMet.at(-1) === G.run.boss) G.run.bossesMet.pop(); // (built again, the floor draws the same boss)
   buildFloor(G.run.floor); warp(id);
+}
+
+/** The obols wear another coin face (or the rune): those lying in the room and the HUD's counter change with them. */
+export function wearFace(id: string) { setObolFace(id); restyleObols(); renderPurse(); }
+/** Every coin face side by side ahead of the mage (the Galleries tab); `takeCoins` takes them away. */
+export function showCoins() {
+  takeCoins(); const room = G.current;
+  room.group.userData.coinGallery = coinGallery(room.group, player.x - room.cx, player.z - room.cz - 1.6);
+  return obolFaces().length;
+}
+export function takeCoins() {
+  const g = G.current.group.userData.coinGallery as THREE.Object3D | undefined; if (!g) return;
+  g.parent?.remove(g); disposeTree(g); delete G.current.group.userData.coinGallery;
 }
 
 /** Ahead of the mage: a plain and a rune-sealed urn, and an artifact on its pedestal (the first artifact with a made
@@ -383,12 +400,17 @@ function build() {
     assetBox = el('div', 'dv-info'),
     assetBtn = btn('', () => useAssets(!assetsOn())),
     btn(S.showAssets, () => { closeDev(); showAssetsHere(); }),
+    obolBtn = btn('', () => { const all = obolFaces(); wearFace(all[(all.indexOf(obolFace()) + 1) % all.length]); refresh(); }),
     fpsBtn = btn('', () => { DEV.fps = !DEV.fps; }),
   );
 
   // the artifacts as the room kit builds them (looks only), in rows
   const arts = section(pages.galleries, S.artifactGallery);
   arts.append(el('p', 'dv-info', S.artifactsNote), btn(S.showOptions, () => { closeDev(); showArtifactGallery(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeArtifactGallery(G.current)));
+
+  // the coin faces (2026-10-02, the owner's coins): every face side by side ahead of the mage, as the room draws them
+  const coins = section(pages.galleries, S.coinGallery);
+  coins.append(el('p', 'dv-info', S.coinsNote), btn(S.showOptions, () => { closeDev(); showCoins(); }), btn(S.takeOptions, () => takeCoins()));
 
   // enemy model options (looks only, for the owner to choose from): a row of them ahead of the mage
   const opts = section(pages.galleries, S.options);
@@ -457,6 +479,7 @@ function refresh() {
   manaBtn.textContent = DEV.mana ? S.manaOn : S.manaOff; manaBtn.classList.toggle('on', DEV.mana);
   const list = assetList();
   assetBox.replaceChildren(...(list.length ? list.map(a => el('div', '', S.assetRow(a.where, S.assetStatus[a.status], a.triangles))) : [el('div', '', S.noAssets)]));
+  obolBtn.textContent = S.obolWears(S.coinFaces[obolFace()] ?? obolFace()); obolBtn.disabled = obolFaces().length < 2;
   assetBtn.textContent = assetsOn() ? S.assetsOn : S.assetsOff; assetBtn.classList.toggle('on', assetsOn()); assetBtn.disabled = !list.some(a => a.status === 'loaded');
   kitBtn.textContent = DEV.roomKit ? S.kitNew : S.kitOld; kitBtn.classList.toggle('on', DEV.roomKit);
   for (const part of KIT_PARTS) {

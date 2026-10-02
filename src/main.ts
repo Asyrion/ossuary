@@ -23,7 +23,8 @@ import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { heroPixel, setHeroPixel } from './actors/heroPixel';
 import { arrowOrder, initKeyboard, initTouch, keys, type InputActions } from './input';
 import { initScreens, showScreen } from './ui/screens';
-import { closeDev, devOpen, dropsHere, forceKinds, objectsHere, showAssetsHere, toggleDev, useAssets, useRoomKit } from './ui/devMenu';
+import { closeDev, devOpen, dropsHere, forceKinds, objectsHere, showAssetsHere, showCoins, takeCoins, toggleDev, useAssets, useRoomKit, wearFace } from './ui/devMenu';
+import { obolFace, obolFaces } from './items/obolFace';
 import type { Kinds } from './world/kitData';
 import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPad, openInventory } from './ui/inventory';
 import { serpentInfo } from './actors/jellySerpent';
@@ -231,6 +232,9 @@ function installDevHooks() {
     setPixelLook: (change: Partial<PixelLook>) => setPixelLook(change),
     /** Ahead of the mage: a plain and a sealed urn, and an artifact on a pedestal (one with a made model if any). */
     showAssets: () => showAssetsHere(),
+    /** The coin face the obols wear (2026-10-02), every face they can wear, wearing another, and all side by side. */
+    get obolFace() { return obolFace(); }, get obolFaces() { return obolFaces(); }, wearFace: (id: string) => wearFace(id),
+    coinGallery: () => showCoins(), takeCoinGallery: () => takeCoins(),
     /** Every object and pile, and two urns, in rows ahead of the mage (the dev menu's "Objects here"). */
     objectsHere: () => objectsHere(),
     dropsHere: () => dropsHere(),
