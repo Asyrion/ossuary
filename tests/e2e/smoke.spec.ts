@@ -4617,6 +4617,50 @@ test('runes on the cast (M6 step 7): Quicken sooner and dearer on the HUD and in
   expect(known.stage).toBe('upgraded'); expect(known.said).toContain('well now');
   expect(errors).toEqual([]);
 });
+test('runes on the bolts and the second cast (M6 step 7): Thrice fires three (fifteen shards), only the middle carrying statuses; Seeking bends a bolt into a foe off the line and lets the hands reach further; Reprise strikes again, its holy ground mends nothing, its toll marks a second foe, two lances show at once', async ({ page }) => {
+  type Foe = { type: string; x: number; z: number; dead?: boolean; toll?: unknown; status?: Record<string, number> };
+  type GT = { sim(s: number, draw?: boolean): void; cast(slot: number, aim?: { x: number; z: number }): boolean; mana(n: number): void; learn(id: string, slot: number): void; spawn(kind: string): void;
+    socket(slot: number, id: string | null): string | null; givePotion(id: string): void; usePotion(how: string): void;
+    sockets: { acted: Record<string, number> }; spellFx: { lances: number }; bolts: { spell?: boolean; status?: Record<string, number>; damage: number }[];
+    player: { x: number; z: number; hp: number; maxHp: number; invuln: number; spellCd: number[] }; enemies: Foe[]; current: { cx: number; cz: number } };
+  const errors = await start(page, '?seed=RUNES2&spells=hex_bolt,rime_shards&runes=q:thrice,e:thrice');
+  const r = await page.evaluate(() => {
+    const w = (window as unknown as { __game: GT }).__game, N = { x: 0, z: -1 };
+    const ready = (slot: number) => { w.player.spellCd[slot] = 0; w.mana(100); };
+    const home = () => { w.player.x = w.current.cx; w.player.z = w.current.cz + 3; };
+    w.player.invuln = 999; home(); w.sim(.2);
+    const spellBolts = () => w.bolts.filter(b => b.spell);
+    // Thrice
+    ready(0); w.cast(0, N); const hex = spellBolts().map(b => ({ hex: b.status?.hex ?? 0, damage: b.damage })); w.sim(2);
+    ready(1); w.cast(1, N); const shards = spellBolts().length; w.sim(2);
+    // Seeking: a Hex Bolt cast north past a dummy a tile and a half to the side
+    w.socket(0, null); w.spawn('dummy'); w.sim(.1); const d = w.enemies.find(e => e.type === 'dummy')!;
+    const shoot = () => { home(); d.x = w.player.x + 1.5; d.z = w.player.z - 4; if (d.status) d.status.hex = 0; ready(0); w.cast(0, N); w.sim(1.6); return d.status?.hex ?? 0; };
+    const straight = shoot(); w.socket(0, 'seeking'); const seeking = shoot();
+    // the Grasp's hands with Seeking: a foe 5.5 tiles ahead is out of their reach without it
+    w.learn('grasp_of_the_grave', 1);
+    const grasp = () => { home(); d.x = w.player.x; d.z = w.player.z - 5.5; if (d.status) d.status.root = 0; ready(1); w.cast(1, N); w.sim(.6); const rooted = d.status?.root ?? 0; w.sim(3); return rooted; };
+    const near = grasp(); w.socket(1, 'seeking'); const far = grasp();
+    // Reprise: Arc comes again; Consecrate's second ground mends nothing; the Toll's marks a second foe
+    w.learn('arc', 0); w.socket(0, 'reprise'); home(); d.x = w.player.x; d.z = w.player.z - 2; ready(0); w.cast(0, N); w.sim(.8);
+    const reprised = w.sockets.acted['rune:reprise'] ?? 0;
+    w.learn('consecrate', 1); w.socket(1, 'reprise'); w.player.hp = w.player.maxHp - 2; ready(1); w.cast(1, N); w.sim(1.2); const mended = w.player.maxHp - w.player.hp;
+    w.spawn('dummy'); w.sim(.1); const d2 = w.enemies.filter(e => e.type === 'dummy')[1]; d2.x = d.x + 1.2; d2.z = d.z;
+    w.learn('ferrymans_toll', 0); w.socket(0, 'reprise'); ready(0); w.cast(0, N); w.sim(.8); const tolled = w.enemies.filter(e => e.type === 'dummy' && e.toll).length;
+    // two lances at once: the Philter of Echoes and Reprise with the Cinder Lance
+    w.learn('cinder_lance', 1); w.socket(1, 'reprise'); w.givePotion('echoes'); w.usePotion('drink'); w.sim(.2); ready(1); w.cast(1, N);
+    let lances = 0; for (let k = 0; k < 45; k++) { w.sim(1 / 60); lances = Math.max(lances, w.spellFx.lances); }
+    return { hex, shards, straight, seeking, near, far, reprised, mended, tolled, lances, acted: w.sockets.acted };
+  });
+  expect(r.hex.map(b => b.hex)).toEqual([0, 2, 0]); for (const b of r.hex) expect(b.damage).toBeCloseTo(2.8, 1);
+  expect(r.shards).toBe(15);
+  expect(r.straight).toBe(0); expect(r.seeking).toBeGreaterThan(0);
+  expect(r.near).toBe(0); expect(r.far).toBeGreaterThan(0);
+  expect(r.reprised).toBeGreaterThanOrEqual(1); expect(r.mended).toBe(1); expect(r.tolled).toBe(2); expect(r.lances).toBeGreaterThanOrEqual(2);
+  expect(Object.keys(r.acted)).toEqual(expect.arrayContaining(['rune:thrice', 'rune:seeking', 'rune:reprise']));
+  expect(errors).toEqual([]);
+});
+
 
 /* M6 step 5: the school boons at work. Each case starts its own run with `?boons=`, sets the boon off through the game's own
    hooks, and checks what it did, that its name rose (`said`), its line was said once (`hinted`) and, where cheap, rank II.

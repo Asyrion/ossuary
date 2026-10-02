@@ -10,7 +10,7 @@
    - the Cinder Lance (`lanceFx`), the Pyre Seal (`sealFx`), the Glacial Wall's pillars (`iceColumn`) and the Static
      Mantle (`mantleFx`).
 
-   What plays often is built once and kept: rings, lightning and the lance are pooled (hidden when idle, shown again),
+   What plays often is built once and kept: rings, lightning and the lances are pooled (hidden when idle, shown again),
    and bolts share their geometries and, by colour, their materials. Timings in CFG.spellFx. */
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -148,7 +148,8 @@ interface Lance {
   len: number; t: number; on: boolean;
 }
 const LANCE_Y = .6, LANCE_RINGS = 6, EMBERS = 12, RING_TILT: V3 = [Math.PI / 4, 0, 0]; // (a rune ring lies flat: this turns it to the camera)
-let lance: Lance | null = null;
+/** The lances built so far (a pool: an echo or a reprise can show a second while the first still burns, M6). */
+const lances: Lance[] = [];
 function buildLance(): Lance {
   const E = SCHOOL_LIGHT.ember, root = new THREE.Group(), beam = new THREE.Group(); root.add(beam); root.visible = false;
   const coreMat = lit(0xfff0c0, .99), sheathMat = shine(E, .6), outerMat = shine(0xff4a14, .3), emberMat = lit(0xffc060, .99); // (white-hot, then fire, then a red edge)
@@ -169,7 +170,7 @@ function buildLance(): Lance {
 /** The Cinder Lance from (sx, sz) along `dir` for `len` units, in the spell's colour: a white-hot core in a sheath of
     fire and a red edge, rune rings turning along it, embers spiralling down it, a rune ring flaring at the hand. */
 export function lanceFx(sx: number, sz: number, dir: Vec2, len: number, color: number) {
-  const L = lance ??= buildLance();
+  let L = lances.find(l => !l.on); if (!L) lances.push(L = buildLance());
   L.root.position.set(sx, 0, sz); L.beam.position.y = LANCE_Y; L.beam.rotation.y = Math.atan2(-dir.z, dir.x);
   L.len = len; L.t = 0; L.on = true; L.root.visible = true;
   for (const m of L.tinted) m.color.setHex(color);
@@ -429,13 +430,13 @@ export function tollFx(color: number) {
 export function updateSpellFx(dt: number) {
   for (let i = rings.length - 1; i >= 0; i--) if (stepRing(rings[i], dt)) { rings[i].m.visible = false; idleRings.push(rings.splice(i, 1)[0]); }
   for (let i = strikes.length - 1; i >= 0; i--) if (stepStrike(strikes[i], dt)) { strikes[i].root.visible = false; idleStrikes.push(strikes.splice(i, 1)[0]); }
-  if (lance?.on) stepLance(lance, dt);
+  for (const l of lances) if (l.on) stepLance(l, dt);
 }
 /** The mage leaves the room, or a new floor: nothing left showing (all of it back in its pool). */
 export function hideSpellFx() {
   for (const r of rings) { r.m.visible = false; idleRings.push(r); } rings.length = 0;
   for (const s of strikes) { s.root.visible = false; idleStrikes.push(s); } strikes.length = 0;
-  if (lance) { lance.on = false; lance.root.visible = false; }
+  for (const l of lances) { l.on = false; l.root.visible = false; }
 }
 /** What shows now (for the tests): the lance, and how many rings and bolts of lightning. */
-export const fxShowing = () => ({ lance: !!lance?.on, rings: rings.length, strikes: strikes.length });
+export const fxShowing = () => ({ lance: lances.some(l => l.on), lances: lances.filter(l => l.on).length, rings: rings.length, strikes: strikes.length });

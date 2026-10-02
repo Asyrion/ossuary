@@ -14,7 +14,7 @@ import { showLore } from '../ui/lore';
 import { SPELL_DEFS, manaRegen, spell, type School, type SpellDef } from './spellData';
 import { payment, slotDef, spellCooldown, spellCost } from './cost';
 import { castRunes, runeActs, unslot } from './runes';
-import { rune, type Payment } from './runeData';
+import { reprisedDef, rune, type Payment } from './runeData';
 import { bleed } from '../combat/damage';
 import { CAST, clearShapes, flamesNear, leaveRoomShapes, updateShapes } from './shapes';
 import { skullsWatch } from '../world/dressing';
@@ -79,6 +79,10 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   pay(def, payment(slot) ?? can); // (asked again: the cast may have given mana back, a foe it felled or a toll paid)
   spendFreeCast(); // (M5: the Bottled Storm's)
   if (!ward && takeEcho()) { const room = G.current; after(CFG.alchemy.echoAfter, () => { if (G.current === room && !G.trans && !player.dead) CAST[def.shape](def, aimDir(cast)); }); } // (M5: the Philter of Echoes casts it again)
+  if (!ward && def.runes?.includes('reprise')) { // (M6: Reprise casts it again, softer, while the mage is still in the room)
+    const R = rune('reprise').params, room = G.current, again = reprisedDef(def, R.share);
+    after(R.after, () => { if (G.current === room && !G.trans && !player.dead && CAST[def.shape](again, aimDir(cast))) runeActs('reprise', def.school); });
+  }
   if (def.school === 'hallow') { hexGiveBack(); votiveCast(); } // (M4.9: holy light gives back what a hex just took; M6: Votive Heart mends)
   if (def.school === 'storm') flareEyes(); // (M4.6: a Stormcaller's eyes flare)
   player.spellCd[slot] = spellCooldown(def);

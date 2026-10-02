@@ -26,6 +26,8 @@ import { fireAt, frostAt, poolAt, shockAt } from '../world/pools';
 import { hallowAt, umbralAt } from '../world/mechanisms';
 import { MAGIC, canAct, newStatus } from './status';
 import type { Shape, SpellDef } from './spellData';
+import { rune } from './runeData';
+import { runeActs } from './runes';
 import { flash, inflict, overloadAt, tileReaction } from './statusFx';
 import { steamAt } from './steam';
 import { weaveAt } from './weaveFx';
@@ -71,6 +73,21 @@ function igniteGlyphs(touches: (x: number, z: number) => boolean, spareFeet: boo
     if (gl.spent || (spareFeet && Math.hypot(gl.x - player.x, gl.z - player.z) < CFG.glyph.boltArm)) continue;
     if (touches(gl.x, gl.z)) detonateGlyph(gl);
   }
+}
+
+/* ---------- runes on the bolts (M6 step 7) ---------- */
+
+/** Whether a spell's bolts seek (the Seeking rune: they turn towards foes as the Tome's do). */
+const seeks = (def: SpellDef) => !!def.runes?.includes('seeking');
+/** Fire a spell of bolts: once along `dir`, or with Thrice three times in a fan, each at the rune's share of the damage,
+    only the middle one carrying the statuses (a foe struck by all three takes a little more than one). Seeking says so as
+    its bolts leave. */
+function thrice(def: SpellDef, dir: Vec2, fire: (d: Vec2, damage: number, status: SpellDef['status']) => void) {
+  if (seeks(def)) runeActs('seeking', def.school);
+  if (!def.runes?.includes('thrice')) { fire(dir, def.damage, def.status); return; }
+  const T = rune('thrice').params, base = Math.atan2(dir.z, dir.x), mid = (T.copies - 1) / 2;
+  for (let k = 0; k < T.copies; k++) { const a = base + (k - mid) * T.spread; fire({ x: Math.cos(a), z: Math.sin(a) }, Math.round(def.damage * T.damageMul * 10) / 10, k === mid ? def.status : undefined); }
+  runeActs('thrice', def.school);
 }
 
 /* ---------- chain: Arc ---------- */
@@ -281,11 +298,14 @@ function updateFlames(dt: number) {
 
 /** A fan of ice shards from the mage, each a spell bolt that chills what it strikes. */
 const shotgun: Cast = (def, dir) => {
-  const P = def.params, color = hex(def.color), base = Math.atan2(dir.z, dir.x);
-  for (let i = 0; i < P.count; i++) {
-    const a = base + (i - (P.count - 1) / 2) * P.fan, dx = Math.cos(a), dz = Math.sin(a);
-    fireSpellBolt(player.x + dx * .3, player.z + dz * .3, dx, dz, { damage: def.damage, range: P.range, speed: P.speed, color, status: def.status, shard: true });
-  }
+  const P = def.params, color = hex(def.color), seek = seeks(def);
+  thrice(def, dir, (d, damage, status) => { // (M6: Thrice fires three volleys side by side, only the middle one chilling)
+    const base = Math.atan2(d.z, d.x);
+    for (let i = 0; i < P.count; i++) {
+      const a = base + (i - (P.count - 1) / 2) * P.fan, dx = Math.cos(a), dz = Math.sin(a);
+      fireSpellBolt(player.x + dx * .3, player.z + dz * .3, dx, dz, { damage, range: P.range, speed: P.speed, color, status, shard: true, seek });
+    }
+  });
   burst(player.x + dir.x * .4, .7, player.z + dir.z * .4, color, 8, 2, .04);
   Sfx.shards();
   return true;
@@ -452,7 +472,7 @@ function updateZones(dt: number) {
         damageEnemy(e, z.def.damage, 0, 0, 0, 'spell', z.def.school); inflict(e, z.def.status); burst(e.x, .5, e.z, hex(z.def.color), 3, 1.2, .03);
       }
     }
-    if (!z.healed && player.hp < player.maxHp && Math.hypot(player.x - z.x, player.z - z.z) < P.radius) {
+    if (!z.healed && P.heal > 0 && player.hp < player.maxHp && Math.hypot(player.x - z.x, player.z - z.z) < P.radius) { // (a Reprise's ground mends nothing, M6)
       z.healed = true; player.hp = Math.min(player.maxHp, player.hp + P.heal); renderHearts(); heroDrink(); burst(player.x, .9, player.z, hex(z.def.color), 10, 1.4, .04);
     }
   }
@@ -579,8 +599,8 @@ export function wardMotes(): Vec2[] {
 
 /** One slow dark bolt along the cast direction, hexing what it strikes. */
 const boltShape: Cast = (def, dir) => {
-  const P = def.params, color = hex(def.color);
-  fireSpellBolt(player.x + dir.x * .3, player.z + dir.z * .3, dir.x, dir.z, { damage: def.damage, range: P.range, speed: P.speed, color, scale: P.scale, status: def.status });
+  const P = def.params, color = hex(def.color), seek = seeks(def);
+  thrice(def, dir, (d, damage, status) => fireSpellBolt(player.x + d.x * .3, player.z + d.z * .3, d.x, d.z, { damage, range: P.range, speed: P.speed, color, scale: P.scale, status, seek })); // (M6: Thrice, three in a fan)
   burst(player.x + dir.x * .4, .7, player.z + dir.z * .4, color, 8, 1.6, .04); Sfx.hexBolt();
   return true;
 };
@@ -591,7 +611,8 @@ const boltShape: Cast = (def, dir) => {
     in their ring is struck, held where it stands (Root) and hexed. They sink back when the hold is over. */
 const grasps: { def: SpellDef; x: number; z: number; t: number; closed: boolean; fx: ReturnType<typeof graspFx> }[] = [];
 const grasp: Cast = (def, dir) => {
-  const P = def.params, near = pickTarget(player.x, player.z, dir, P.ahead + P.radius);
+  const P = def.params, reach = seeks(def) ? rune('seeking').params.reach : 0, near = pickTarget(player.x, player.z, dir, P.ahead + P.radius + reach); // (M6: Seeking's hands reach further for a foe)
+  if (reach && near && Math.hypot(near.x - player.x, near.z - player.z) > P.ahead + P.radius) runeActs('seeking', def.school, near.x, near.z);
   const at = near ? { x: near.x, z: near.z } : freeSpotNear(G.current, player.x + dir.x * P.ahead, player.z + dir.z * P.ahead);
   const thorns = def.school === 'verdant'; // (M5: Verdant's Thorn Snare rises as thorns, not hands)
   grasps.push({ def, x: at.x, z: at.z, t: 0, closed: false, fx: (thorns ? thornFx : graspFx)(at.x, at.z, P.radius, hex(def.color)) });
@@ -626,7 +647,7 @@ function updateGrasps(dt: number) {
     (`payToll`). */
 const marks: { def: SpellDef; e: Enemy; t: number; fx: ReturnType<typeof tollFx> }[] = [];
 const mark: Cast = (def, dir) => {
-  const P = def.params, e = pickTarget(player.x, player.z, dir, P.range);
+  const P = def.params, e = pickTarget(player.x, player.z, dir, P.range, def.reprise ? new Set(marks.map(m => m.e)) : undefined); // (M6: a Reprise's toll marks another foe)
   if (!e) return false;
   const had = marks.findIndex(m => m.e === e); if (had >= 0) { marks[had].fx.drop(); marks.splice(had, 1); }
   e.toll = { mana: P.mana, obols: P.obols, spread: P.spread, spreadRange: P.spreadRange };
