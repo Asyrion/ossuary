@@ -6,7 +6,7 @@ Delete it, or write it again, at the next handoff.
 
 ## The branch and what is live
 
-- Work is on **`claude/m6-plan-docs-5gjp6c`**, pushed, clean. Its last commit is `b9d5837` (M4.12 step 2).
+- Work is on **`claude/m6-plan-docs-5gjp6c`**, pushed, clean. Its last work commit is `b9d5837` (M4.12 step 2), followed by this handoff.
 - **`main` (the live Pages site) is at `90080f1`**, which has M6 steps 1 to 5. Everything below is on the branch only,
   **not shipped**: ship only when the owner asks (the `ship` skill; the `rules-reviewer` before the PR).
   - M6 step 6 (the general boons) and step 7 (runes on the cast), both built and documented in `docs/M6-plan.md`.
