@@ -184,7 +184,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
   every floor's boss that one (warden, abbess, pyre, hart, angler, tiger, dragon, twins, serpent), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
-  keys and glyphs, `?spells=arc` starts with spells in the slots, `?potions=healing,hexBrew` with potions in the belt (M5), `?level=5` starts at that level (M6), `?boons=deepWinter:2,coldSnap` with boons taken (M6), `?theme=ossuary` puts every fight in one theme's rooms, `?foe=sporeling` fills every fight with one foe in code, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=texel`, the default, or `fine`, or `1080`, `720`, `540`, `360` or `270` sets its grid), `?kit=old` builds the rooms in the old look (before the room kit). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
+  keys and glyphs, `?spells=arc` starts with spells in the slots, `?potions=healing,hexBrew` with potions in the belt (M5), `?level=5` starts at that level (M6), `?boons=deepWinter:2,coldSnap` with boons taken (M6), `?runes=q:quicken,e:lasting+vein` carves runes into the slots (M6), `?looks=new` dresses every foe in its new look, approved or not (`old`: the old looks still waiting; M4.12), `?theme=ossuary` puts every fight in one theme's rooms, `?foe=sporeling` fills every fight with one foe in code, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=texel`, the default, or `fine`, or `1080`, `720`, `540`, `360` or `270` sets its grid), `?kit=old` builds the rooms in the old look (before the room kit). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
   vault, a secret room (behind a cracked wall), a shrine (`?room=shrine_henge`) or a library
   (`?room=library_plain`) or Dr. Jelly's laboratory (`?room=lab_plain`) next to the start.
   `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
@@ -210,7 +210,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   replace and are worn once their id is in `APPROVED` (`DEV.foeLooks`: approved, new or old; `?looks=new`; the Look tab);
   `src/actors/lookPairs.ts` stands old and new side by side (the Galleries tab, `__game.lookPairs(floor)`) and checks each
   new look keeps its old look's moving parts and about its height (`lookContract`, a browser test); `npm run foe-sheet --
-  floor=1` shoots the pairs for the owner's review. On the owner's yes a look's id goes into `APPROVED`, its old builder is
+  floor=1` shoots the pairs for the owner's review; `__game.foeLooks` reads the switch and `__game.lookContract()` the contract.
+  Each floor's looks are their own file (`fantasyFloor1.ts` to `fantasyFloor4.ts`, `FLOORn_LOOKS`). On the owner's yes a look's id goes into `APPROVED`, its old builder is
   deleted (the galleries' entries build the new look; `lampwyrmSwarm` stands for the swarm) and `RETIRED` keeps the old
   height and parts for the contract; the pairs and sheets show only the looks still waiting. Keep a new look's draw calls
   near its old one's: parts that move apart (each mesh a surface its own) cost a call each, so move small repeated parts
