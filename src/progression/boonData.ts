@@ -83,8 +83,9 @@ export function schoolWeights(l: Lean): Record<School, number> {
     Socket only then); `only`, a bargain's school (step 11): its two cards from that school. */
 export interface DealState { taken: Readonly<Record<string, number>>; weights: Record<School, number>; attuned?: School | null; spoon?: boolean; socketable?: boolean; only?: School | null;
   /** Boons held back from the deal (default `NOT_YET`). */ hold?: ReadonlySet<string> }
-/** General boons whose hooks come with a later step of M6 (Second Socket with the runes, step 7): not dealt until they act,
-    so no card is dead. Each step takes its own off this list. */
+/** General boons whose hooks come with a later step of M6 (Second Socket with the waystone, step 9, where its spell is
+    chosen; the dev menu opens a second socket now): not dealt until they act, so no card is dead. Each step takes its own
+    off this list. */
 export const NOT_YET: ReadonlySet<string> = new Set(['secondSocket']);
 /** A card dealt: the boon, the rank it would reach, and whether the build's lean brought it (its card says so). */
 export interface Card { id: string; rank: number; lean: boolean }
