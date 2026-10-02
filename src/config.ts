@@ -262,7 +262,7 @@ export const CFG = {
   // obols drift to the mage from this close; a coin sways this far (radians) either way as it turns; a coin face's light
   // from within, and how many game pixels a coin wearing one is across (2026-10-02: the owner's coins; its face is drawn
   // on the fine layer, pixelLook.fineLayer pixels to each of these)
-  pickups: { obolDrift: 1.8, coinSway: .45, coinGlow: .2, coinPixels: 28 },
+  pickups: { obolDrift: 1.8, coinSway: .45, coinGlow: .2, coinPixels: 24 },
   /** Soul motes (M4.1, items/souls.ts): most held; the hex a black one lays on every foe in the room when it goes; the
       chance a foe that falls with enough hex stacks (magic.json's `hex.soulAt`) leaves a black one. */
   souls: { max: 6, blackHex: 2, hexChance: .5 },
