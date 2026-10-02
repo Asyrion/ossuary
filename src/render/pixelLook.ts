@@ -12,8 +12,10 @@
    ?pixel=720 (or texel, or off). Tuning in CFG.pixelLook.
    One exception (the owner, 2026-10-02): what is on the fine layer (`FINE`: the coins, so their faces read) is drawn
    into its own target at `CFG.pixelLook.fineLayer` pixels to a game pixel each way, and laid over the grid where it
-   stands nearer than what the grid drew, outlined as the rest is. Its size in the room is unchanged; only its pixels
-   are smaller. The scene's lights are on that layer too (lights.ts). */
+   stands nearer than what the grid drew, outlined and banded as the rest is. Its size in the room is unchanged; only its
+   pixels are smaller. The scene's lights are on that layer too (lights.ts). What writes no depth (glows, steam, fire)
+   shows behind a coin even where it stands before it. The pass runs, and its target is made, only while something
+   marked fine (`markFine`) is shown. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 
@@ -25,6 +27,20 @@ const P = CFG.pixelLook, KEY = 'ossuary.look', K = P.fineLayer;
 /** The fine layer: an object's meshes on it (`layers.set(FINE)`) are drawn at the finer pixel (see above), and only
     there; with the pixel look off, with everything else. */
 export const FINE = 1;
+const fineObjects = new Set<THREE.Object3D>();
+/** Mark `o` as holding what is on the fine layer (pickupLooks.ts does, for every coin it builds), so the fine pass runs
+    while it is shown; it is forgotten once it has left the scene. */
+export function markFine(o: THREE.Object3D) { fineObjects.add(o); }
+/** Whether anything marked fine is shown in `scene` (all its parents visible), forgetting what has left it. */
+function fineShown(scene: THREE.Scene) {
+  let shown = false;
+  for (const o of fineObjects) {
+    let p = o, seen = o.visible;
+    while (p.parent) { p = p.parent; seen &&= p.visible; }
+    if (p !== scene) fineObjects.delete(o); else if (seen) shown = true;
+  }
+  return shown;
+}
 /** Every grid offered, the texel first. */
 export const LINES: readonly Lines[] = ['texel', 'fine', ...P.lines];
 const offered = (l: unknown): l is Lines => LINES.includes(l as Lines);
@@ -110,13 +126,20 @@ const blit = new THREE.ShaderMaterial({
   depthTest: false, depthWrite: false,
   uniforms: {
     tShaded: { value: null }, size: { value: new THREE.Vector2() }, centre: { value: new THREE.Vector2() }, screen: { value: new THREE.Vector2() }, scale: { value: new THREE.Vector2() }, grid: { value: new THREE.Vector2() }, whole: { value: 0 },
-    tFine: { value: null }, tFineDepth: { value: null }, tDepth: { value: null }, fineSize: { value: new THREE.Vector2() }, hasFine: { value: 0 }, outline: { value: 0 }, dark: { value: P.outlineDark },
+    tFine: { value: null }, tFineDepth: { value: null }, tDepth: { value: null }, fineSize: { value: new THREE.Vector2() }, hasFine: { value: 0 }, outline: { value: 0 }, dark: { value: P.outlineDark }, bands: { value: 0 }, steps: { value: P.bands },
   },
   vertexShader: 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
   fragmentShader: /* glsl */ `
     uniform sampler2D tShaded; uniform vec2 size; uniform vec2 centre; uniform vec2 screen; uniform vec2 scale; uniform vec2 grid; uniform float whole;
     uniform sampler2D tFine; uniform sampler2D tFineDepth; uniform sampler2D tDepth; uniform vec2 fineSize; uniform float hasFine; uniform float outline; uniform float dark;
+    uniform float bands; uniform float steps;
     const int K = ${K};
+    // light in steps, as the shade pass bands the grid
+    vec3 band(vec3 c) {
+      if (bands < 0.5) return c;
+      float l = dot(c, vec3(0.299, 0.587, 0.114)), s = sqrt(l), q = max(floor(s * steps + 0.5), 1.0) / steps;
+      return c * min(q * q / max(l, 1e-4), 4.0);
+    }
     // a fine pixel drawn there, and nearer than what the grid drew in its game pixel
     bool seen(ivec2 q) {
       if (any(lessThan(q, ivec2(0))) || any(greaterThanEqual(q, ivec2(fineSize)))) return false;
@@ -124,7 +147,7 @@ const blit = new THREE.ShaderMaterial({
     }
     // the fine layer over the colour: fine pixel q (its colour c, sampled), or, beside one, its outline
     vec3 overFine(vec3 col, ivec2 q, vec4 c) {
-      if (seen(q)) return col * (1.0 - c.a) + c.rgb; // (c is premultiplied: clear pixels are all zero)
+      if (seen(q)) return col * (1.0 - c.a) + band(c.rgb); // (c is premultiplied: clear pixels are all zero)
       if (outline > 0.5 && (seen(q + ivec2(1, 0)) || seen(q - ivec2(1, 0)) || seen(q + ivec2(0, 1)) || seen(q - ivec2(0, 1)))) col *= pow(1.0 - dark, 1.0 / 2.2);
       return col;
     }
@@ -164,27 +187,34 @@ function ensure(w: number, h: number) {
   (target as THREE.WebGLRenderTarget & { isXRRenderTarget: boolean }).isXRRenderTarget = true;
   // the shaded grid, filtered linearly for the sharp blow-up's one blended screen pixel (its values already encoded)
   shaded = new THREE.WebGLRenderTarget(W, H, { type: THREE.UnsignedByteType, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: false, samples: 0 });
-  shaded.texture.internalFormat = 'RGBA8';
-  // the fine layer: K × K pixels to each of the grid's, with its own depth (encoded as the scene is; filtered linearly
-  // for the sharp blow-up, read pixel by pixel for its depth)
-  fine = new THREE.WebGLRenderTarget(W * K, H * K, { type: THREE.UnsignedByteType, colorSpace: THREE.SRGBColorSpace, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: true, samples: 0 });
-  fine.depthTexture = new THREE.DepthTexture(W * K, H * K);
-  fine.texture.internalFormat = 'RGBA8';
+  shaded.texture.internalFormat = 'RGBA8'; fine = null;
+  target.scissorTest = shaded.scissorTest = true;
+}
+/** The fine layer's target, made the first time it is needed at the grid's size: K × K pixels to each of the grid's, with
+    its own depth (encoded as the scene is; filtered linearly for the sharp blow-up, read pixel by pixel for its depth). */
+function ensureFine() {
+  if (fine) return fine;
+  const W = target!.width * K, H = target!.height * K;
+  fine = new THREE.WebGLRenderTarget(W, H, { type: THREE.UnsignedByteType, colorSpace: THREE.SRGBColorSpace, minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, depthBuffer: true, samples: 0 });
+  fine.depthTexture = new THREE.DepthTexture(W, H);
+  fine.texture.internalFormat = 'RGBA8'; fine.scissorTest = true;
   (fine as THREE.WebGLRenderTarget & { isXRRenderTarget: boolean }).isXRRenderTarget = true;
-  target.scissorTest = shaded.scissorTest = fine.scissorTest = true;
+  return fine;
 }
 
 /** Whether the fine layer drew anything in the last frame. */
 let fineDrawn = false;
 export const fineLayerDrawn = () => fineDrawn;
 /** The fine layer alone into its target (the grid's `gw` × `gh`, K times finer), on a clear ground: the scene's background
-    left out, its lights kept (they are on the layer too). Whether it drew anything. */
+    left out, its lights kept (they are on the layer too), its matrices as the grid's pass left them. Whether it drew
+    anything; nothing is done while nothing marked fine is shown. */
 function drawFine(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, gw: number, gh: number) {
-  fine!.viewport.set(0, 0, gw * K, gh * K); fine!.scissor.set(0, 0, gw * K, gh * K);
-  const bg = scene.background, alpha = renderer.getClearAlpha(), calls = renderer.info.render.calls;
-  renderer.getClearColor(clear); renderer.setClearColor(0x000000, 0); scene.background = null;
-  camera.layers.set(FINE); renderer.setRenderTarget(fine); renderer.render(scene, camera);
-  camera.layers.set(0); scene.background = bg; renderer.setClearColor(clear, alpha);
+  if (!fineShown(scene)) return false;
+  const f = ensureFine(); f.viewport.set(0, 0, gw * K, gh * K); f.scissor.set(0, 0, gw * K, gh * K);
+  const bg = scene.background, alpha = renderer.getClearAlpha(), calls = renderer.info.render.calls, auto = scene.matrixWorldAutoUpdate;
+  renderer.getClearColor(clear); renderer.setClearColor(0x000000, 0); scene.background = null; scene.matrixWorldAutoUpdate = false;
+  camera.layers.set(FINE); renderer.setRenderTarget(f); renderer.render(scene, camera);
+  camera.layers.set(0); scene.background = bg; scene.matrixWorldAutoUpdate = auto; renderer.setClearColor(clear, alpha);
   return renderer.info.render.calls > calls;
 }
 
@@ -224,8 +254,8 @@ export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   pass(renderer, shade, shaded);
   b.tShaded.value = shaded!.texture; b.size.value.set(shaded!.width, shaded!.height); b.screen.value.set(buffer.x, buffer.y);
   b.grid.value.set(gw, gh); b.whole.value = rows ? 1 : 0;
-  b.hasFine.value = fineDrawn ? 1 : 0; b.tFine.value = fine!.texture; b.tFineDepth.value = fine!.depthTexture; b.tDepth.value = target!.depthTexture;
-  b.fineSize.value.set(fine!.width, fine!.height); b.outline.value = look.outline ? 1 : 0;
+  b.hasFine.value = fineDrawn ? 1 : 0; b.outline.value = look.outline ? 1 : 0; b.bands.value = look.bands ? 1 : 0;
+  if (fine) { b.tFine.value = fine.texture; b.tFineDepth.value = fine.depthTexture; b.tDepth.value = target!.depthTexture; b.fineSize.value.set(fine.width, fine.height); }
   // at the texel the window shows the view itself (viewW × viewH): the grid's middle less the part of a pixel moved
   b.centre.value.set(gw / 2 - dr / px, gh / 2 - du / py); b.scale.value.set(buffer.x * px / viewW, buffer.y * py / viewH);
   pass(renderer, blit, null);

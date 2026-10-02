@@ -8,7 +8,7 @@
 import * as THREE from 'three';
 import { TILT } from '../render/renderer';
 import { CFG } from '../config';
-import { FINE } from '../render/pixelLook';
+import { FINE, markFine } from '../render/pixelLook';
 import { blob, glow, glowShared, markShared, mergeStill } from '../render/materials';
 import { glowTone, mesh, rough, runeStrokes, shade, shared, tone } from '../world/kitParts';
 import { box, put } from '../world/objectLooks';
@@ -122,7 +122,7 @@ function heart(g: THREE.Group, half: boolean) {
     and a rune stamped on both faces. */
 function obol(g: THREE.Object3D, s: number, face = obolFaceNow()) {
   const o = new THREE.Group(); o.scale.setScalar(s); g.add(o);
-  if (face) { facedObol(o, face, .17); return; }
+  if (face) { facedObol(o, face, .17, true); return; }
   put(mesh(o, cyl(.17, .17, .035, 16), metal(OBOL)), Math.PI / 2);
   mesh(o, new THREE.TorusGeometry(.165, .02, 4, 18), metal(shade(OBOL, 1.1)));
   for (const z of [-1, 1]) put(mesh(o, GEO.stamp, metal(shade(OBOL, .72)), 0, 0, z * .018), 0, z < 0 ? Math.PI : 0, 0);
@@ -134,15 +134,16 @@ export const FACE_R = CFG.pickups.coinPixels / 2 / CFG.roomKit.texel[0];
 const faceMats = new Map<string, { face: THREE.Material; edge: THREE.Material }>(), fineMats = new Set<THREE.Material>();
 /** A coin `r` in radius wearing `face` on both sides, facing +z, its edge in the face's rim colour (a material of its
     own, so the edge isn't merged with what else is painted: `onFine` puts the coin on the fine layer). The face is drawn
-    pixel by pixel (no smoothing, no mipmaps), lit a little from within so it reads in a dark room. */
-function facedObol(g: THREE.Object3D, face: CoinFace & { id: string }, r: number) {
-  let m = faceMats.get(face.id);
+    pixel by pixel (no smoothing, no mipmaps), lit a little from within so it reads in a dark room; a `small` coin (a
+    purse's, a few pixels across with the rest of the room) is smoothed down to its size, so it doesn't shimmer. */
+function facedObol(g: THREE.Object3D, face: CoinFace & { id: string }, r: number, small = false) {
+  const key = face.id + (small ? ':small' : ''); let m = faceMats.get(key);
   if (!m) {
-    const map = new THREE.Texture(face.img); map.colorSpace = THREE.SRGBColorSpace; map.generateMipmaps = false;
-    map.magFilter = map.minFilter = THREE.NearestFilter; map.needsUpdate = true;
+    const map = new THREE.Texture(face.img); map.colorSpace = THREE.SRGBColorSpace; map.generateMipmaps = small;
+    map.magFilter = THREE.NearestFilter; map.minFilter = small ? THREE.LinearMipmapLinearFilter : THREE.NearestFilter; map.needsUpdate = true;
     const look = new THREE.MeshStandardMaterial({ map, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: CFG.pickups.coinGlow, metalness: .25, roughness: .55, alphaTest: .5 });
     const edge = new THREE.MeshStandardMaterial({ color: face.rim, metalness: .45, roughness: .5, flatShading: true });
-    faceMats.set(face.id, m = { face: markShared(look), edge: markShared(edge) }); fineMats.add(look).add(edge);
+    faceMats.set(key, m = { face: markShared(look), edge: markShared(edge) }); if (!small) fineMats.add(look).add(edge);
   }
   for (const z of [-1, 1]) put(mesh(g, new THREE.CircleGeometry(r, 28), m.face, 0, 0, z * .018), 0, z < 0 ? Math.PI : 0, 0);
   put(mesh(g, new THREE.CylinderGeometry(r, r, .036, 28, 1, true), m.edge), Math.PI / 2);
@@ -155,11 +156,13 @@ export function itemLook(kind: Exclude<Item, 'potion' | 'reagent'>) {
   const key = kind === 'coin' || kind === 'purse' ? `${kind}:${obolFaceNow()?.id ?? 'rune'}` : kind;
   let t = items.get(key);
   if (!t) { const g = new THREE.Group(); ITEMS[kind](g); t = keep(g); if (kind === 'coin') onFine(t); items.set(key, t); }
-  return t.clone();
+  const c = t.clone(); if (t.userData.fine) markFine(c); return c;
 }
-/** A coin face's meshes in `o` moved to the fine layer (after merging, which makes new meshes): drawn at the finer pixel.
-    A purse's coins stay with the purse. */
-function onFine(o: THREE.Object3D) { o.traverse(c => { const m = c as THREE.Mesh; if (m.isMesh && fineMats.has(m.material as THREE.Material)) m.layers.set(FINE); }); }
+/** A coin face's meshes in `o` moved to the fine layer (after merging, which makes new meshes): drawn at the finer pixel;
+    `o` is marked (`userData.fine`) when it has any. A purse's coins stay with the purse. */
+function onFine(o: THREE.Object3D) {
+  o.traverse(c => { const m = c as THREE.Mesh; if (m.isMesh && fineMats.has(m.material as THREE.Material)) { m.layers.set(FINE); o.userData.fine = true; } });
+}
 
 /** Every coin face the obols can wear, side by side (the dev menu's gallery): each a coin as the room shows it, at its
     pickup's height, in a row centred on (x, z) in `parent`'s space; the rune last. */
@@ -170,7 +173,7 @@ export function coinGallery(parent: THREE.Object3D, x: number, z: number) {
     if (f) facedObol(facing(c), { ...f, id }, FACE_R); else obol(c, 1, null);
     c.add(glowShared(GOLD, .8, .6)); c.position.set(x + (i - (ids.length - 1) / 2) * gap, .35, z); g.add(c);
   });
-  mergeStill(g); onFine(g); parent.add(g); return g;
+  mergeStill(g); onFine(g); markFine(g); parent.add(g); return g;
 }
 
 /** A coffer or a chest, merged, its lid on a hinge at the back (`lid`, turned to open) and a chest's ward seal on its
