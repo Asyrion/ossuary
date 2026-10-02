@@ -207,9 +207,10 @@ mixing rules. The Asset list's Audio table gives the counts. This section says h
 2026-09-29, with the licence terms as they stood that day: **check a source's current terms before downloading or
 subscribing**, since they change (AI music most of all).
 
-Today every sound is synthesised in code (`src/audio/sfx.ts`) and each one stays as its fallback. Real sounds
-replace them in M8 (music, ambience and the final mix), or earlier for single effects once the pipeline below has
-been tried.
+Today every sound is synthesised in code (`src/audio/sfx.ts`) and each one stays as its fallback; since 2026-10-02 the
+soundscapes and the music are made in code too (`docs/sound-plan.md`; `npm run render-audio` writes them to files to
+listen to). Real sounds replace or join them in M8 (the final mix), or earlier for single effects once the pipeline below
+has been tried.
 
 ### Sources
 

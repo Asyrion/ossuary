@@ -110,7 +110,7 @@ falling phrase as the music stops).
   frame doesn't stutter the sound.
 - `src/audio/director.ts`, one call a step from the loop, listens to the game (the state, the floor, the room and its
   doors, a boss alive, the mage's hearts) and tells both what to play.
-- Dev menu (a Sound section): play any floor's ambience, any room's, any piece in any mood, the stingers; `__game.audio`
+- Dev menu (its Sound tab): play any floor's ambience, any room's, any piece in any mood, the stingers; `__game.audio`
   reads what plays; `__game.renderAudio(...)` renders a stretch of any of them to a file, for listening outside the
   game (`tools/render-audio.ts` writes them to `audio-previews/`).
 
@@ -119,3 +119,19 @@ falling phrase as the music stops).
 All of it is Web Audio nodes, cheap next to the drawing: the beds are a handful of looping buffers and filters, the
 one-shots and notes a few nodes each for a few seconds. Plucks, bells and drums are rendered into buffers once per note
 and reused. Nothing is downloaded.
+
+## As built (2026-10-02)
+
+Built as above, in one go. What to know:
+
+- **Levels are set by measurement, not by ear.** The beds sit at about -25 to -32 dBFS in a preview (the five floors within
+  a few dB of each other; the Reliquary's marble hall and the library quieter), the music at about -21 to -26 exploring
+  and -16 to -22 in a boss's fight, a compressor holding the boss's full stems under the effects. The owner's listening sets them for good: every level is a number in the two data files.
+- **The music's voices** as built: plucked strings for the lyre, harp, oud and the low strings; struck bells (and the
+  Drowned Catacombs' bells heard through water); bowed notes; the choir in "oh", "oo", "ah"; drones of strings, organ,
+  horn, wavering water and a deep one; frame drum, taiko, hand drum, timpani and a rowing thump.
+- **Previews:** `npm run render-audio` (or `-- ossuary` for what names it) writes every floor's soundscape, the rooms',
+  each piece exploring, fighting and in a boss's fight, and each floor's soundscape and music together (a fight starting
+  at 30 s) to `audio-previews/` as MP3s.
+- **Still to come** (the GDD's Audio design): boss themes as their own pieces with a phase at half health, the doors as
+  acoustic windows, the floor's reverb on the effects, and real recordings where they would do better.

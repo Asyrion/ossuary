@@ -47,8 +47,10 @@ export function initScreens(act: ScreenActions) {
   $('btnResume').addEventListener('click', () => act.resume());
   $('btnRestart').addEventListener('click', () => act.start());
   $('btnSound').addEventListener('click', () => act.toggleSound());
-  // volumes: master, effects and interface, with a sound of the kind as the slider is let go
-  for (const [id, kind, sample] of [['volMaster', 'master', () => Sfx.hit()], ['volEffects', 'effects', () => Sfx.hit()], ['volInterface', 'interface', () => Sfx.pickup()]] as const) {
+  // volumes: master, effects and interface, with a sound of the kind as the slider is let go; music and ambience (heard
+  // playing under the menu already)
+  const none = () => {};
+  for (const [id, kind, sample] of [['volMaster', 'master', () => Sfx.hit()], ['volEffects', 'effects', () => Sfx.hit()], ['volInterface', 'interface', () => Sfx.pickup()], ['volMusic', 'music', none], ['volAmbience', 'ambience', none]] as const) {
     const input = $<HTMLInputElement>(id); input.value = String(Math.round(Sfx.volumes[kind] * 100));
     input.addEventListener('input', () => Sfx.setVolume(kind, Number(input.value) / 100));
     input.addEventListener('change', () => { Sfx.init(); sample(); });

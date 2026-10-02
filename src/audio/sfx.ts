@@ -2,18 +2,19 @@
    (GDD: Audio design), each with a volume the pause menu sets and the browser remembers. An effect that happens
    somewhere in the room (`Sfx.at(x, z).blast()`) is panned to where it happens and a little quieter the further it
    is, heard from just above the mage (`Sfx.listen`, every step). */
-let ctx: AudioContext | null = null, master: GainNode, fx: GainNode, ui: GainNode, noise: AudioBuffer, muted = false;
+let ctx: AudioContext | null = null, master: GainNode, fx: GainNode, ui: GainNode, music: GainNode, ambience: GainNode, noise: AudioBuffer, muted = false;
 /** Where the tones and hisses of the sound being played go: its bus, or a panner for a positioned effect. */
 let bus: AudioNode | null = null;
 const listener = { x: 0, z: 0 };
 
-export type VolumeKind = 'master' | 'effects' | 'interface';
+export type VolumeKind = 'master' | 'effects' | 'interface' | 'music' | 'ambience';
 const VOLUME_KEY = 'ossuary.volume';
-const volumes: Record<VolumeKind, number> = { master: 1, effects: 1, interface: 1 };
+const volumes: Record<VolumeKind, number> = { master: 1, effects: 1, interface: 1, music: .8, ambience: .8 };
 try { Object.assign(volumes, JSON.parse(localStorage.getItem(VOLUME_KEY) ?? '{}')); } catch { /* private window or blocked storage: defaults */ }
 function applyVolumes() {
   if (!ctx) return;
-  master.gain.value = .45 * volumes.master; fx.gain.value = volumes.effects; ui.gain.value = volumes.interface;
+  master.gain.value = muted ? 0 : .45 * volumes.master; fx.gain.value = volumes.effects; ui.gain.value = volumes.interface;
+  music.gain.value = volumes.music; ambience.gain.value = volumes.ambience;
 }
 
 function init() {
@@ -21,7 +22,8 @@ function init() {
   const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
   if (!AC) return;
   ctx = new AC(); master = ctx.createGain(); master.connect(ctx.destination);
-  fx = ctx.createGain(); fx.connect(master); ui = ctx.createGain(); ui.connect(master); applyVolumes();
+  fx = ctx.createGain(); fx.connect(master); ui = ctx.createGain(); ui.connect(master);
+  music = ctx.createGain(); music.connect(master); ambience = ctx.createGain(); ambience.connect(master); applyVolumes(); // (docs/sound-plan.md)
   noise = ctx.createBuffer(1, ctx.sampleRate * .5, ctx.sampleRate);
   const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
 }
@@ -462,7 +464,9 @@ const here = { x: 0, z: 0, on: true }, positioned = route(here);
 export const Sfx = {
   init,
   get muted() { return muted; },
-  toggle() { muted = !muted; return muted; },
+  toggle() { muted = !muted; applyVolumes(); return muted; },
+  /** The audio context and the music and ambience buses (docs/sound-plan.md), once the first key or click has made them. */
+  get buses() { return ctx ? { ctx, music, ambience } : null; },
   /** Where the mage stands: effects are heard from just above. */
   listen(x: number, z: number) { listener.x = x; listener.z = z; },
   /** The sounds, played at (x, z) in the room: `Sfx.at(foe.x, foe.z).hit()`. */

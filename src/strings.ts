@@ -37,7 +37,7 @@ export const STR = {
   pause: {
     heading: 'Paused', resume: 'Resume', restart: 'Restart run', load: 'Load hero .glb',
     soundOn: 'Sound: on', soundOff: 'Sound: off',
-    master: 'Volume', effects: 'Effects', interface: 'Interface', inventory: 'Inventory (I)',
+    master: 'Volume', effects: 'Effects', interface: 'Interface', music: 'Music', ambience: 'Ambience', inventory: 'Inventory (I)',
   },
   end: {
     won: 'The descent is complete',
@@ -761,7 +761,15 @@ export const STR = {
   /** The dev menu (the key left of 1, or F2): for testing, not for players. */
   dev: {
     title: 'Dev menu', close: 'Close',
-    tabs: { mage: 'Mage', magic: 'Magic', foes: 'Foes & objects', rooms: 'Rooms & runs', look: 'Look', galleries: 'Galleries' },
+    tabs: { mage: 'Mage', magic: 'Magic', foes: 'Foes & objects', rooms: 'Rooms & runs', look: 'Look', galleries: 'Galleries', sound: 'Sound' },
+    // the soundscapes and the music (docs/sound-plan.md)
+    scapes: 'Soundscapes', music: 'Music', soundGame: 'As the game asks', soundOn: 'Soundscapes and music: on', soundOff: 'Soundscapes and music: off',
+    scapeNote: 'Plays here at once, over whatever the game asks for, until "As the game asks". The room or theme plays over the chosen floor.',
+    scapeRoom: (r: string) => `Over it: ${r}`, scapeNone: 'nothing', moodIs: (m: string) => `Mood: ${m}`,
+    stingers: { cleared: 'Stinger: room cleared', death: 'Stinger: death' } as Record<string, string>,
+    moods: { title: 'title', explore: 'exploring', fight: 'a fight', boss: 'a boss', low: 'under a heart', quiet: 'quiet' } as Record<string, string>,
+    savePreview: 'Save 40 s of what is chosen (a WAV)', rendering: 'Rendering…',
+    soundInfo: (amb: string, music: string) => `Ambience: ${amb} · Music: ${music}`,
     assets: 'Made assets', showAssets: 'Show them here (urns, a pedestal)',
     obolWears: (face: string) => `Obols wear: ${face}`,
     coinFaces: { arcane_eye: 'Arcane eye', silver_owl: 'Silver owl', star_crystal: 'Star and crystal', grave_coin: 'Grave coin', arcane_sigil: 'Arcane sigil', pale_obol: 'Pale obol', plain_profile: 'Plain profile', rune: 'the rune (built in code)' } as Record<string, string>,

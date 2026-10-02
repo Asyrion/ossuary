@@ -16,6 +16,7 @@
     "review-checks": "tsx tools/review-checks.ts",
     "balance": "tsx tools/balance.ts",
     "foe-sheet": "tsx tools/foe-sheet.ts",
+    "render-audio": "tsx tools/render-audio.ts",
     "test:unit": "vitest run",
     "test:e2e": "playwright test"
   },

@@ -107,6 +107,8 @@ import { blastAt } from './combat/glyphs';
 import { inSteam, steamAt, steamCount } from './magic/steam';
 import type { MantleId } from './actors/mantleData';
 import { groundPace, layDevGround } from './actors/foeGround';
+import { AudioDirector, type Forced } from './audio/director';
+import { renderAudio, type RenderAsk } from './audio/render';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
@@ -302,6 +304,10 @@ function installDevHooks() {
     objectsHere: () => objectsHere(),
     dropsHere: () => dropsHere(),
     /** What the last frame cost the GPU (draw calls, triangles) and what is held in memory (geometries, textures). */
+    /** The soundscapes and the music (docs/sound-plan.md): what plays; turned on (the browser tests start with it off);
+        forced to a floor's soundscape, a room's, a piece and mood; a stretch of any rendered offline, as a base64 WAV. */
+    get audio() { return AudioDirector.info; }, audioOn: (v = true) => AudioDirector.set(v), forceAudio: (f: Forced | null) => AudioDirector.force(f),
+    renderAudio: async (ask: RenderAsk) => { const r = await renderAudio(ask); let bin = ''; const u8 = new Uint8Array(r.wav); for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode(...u8.subarray(i, i + 0x8000)); return { wav: btoa(bin), seconds: r.seconds, peak: r.peak, rms: r.rms }; },
     renderInfo: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures }),
     lightLevels,
     /** Give the mage artifacts by id, e.g. give('bone_lens', 'twin_staff'). */
