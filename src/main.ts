@@ -34,6 +34,7 @@ import { setHeroInfo, updateVision } from './ui/hud';
 import { giveById, removeArtifactGallery, showArtifactGallery } from './items/artifacts';
 import { ARTIFACTS } from './items/artifactData';
 import { clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRun, startGame, toggleSound, warp } from './flow';
+import { gainInsight, insightNow, setLevel } from './progression/insight';
 import { STEP, startLoop, step } from './loop';
 import { cleanSeed } from './rng';
 import { VARIANTS, planToText, type RoomVariant } from './world/generate';
@@ -164,6 +165,8 @@ function readUrlOptions() {
   const badSpells = spells.filter(id => !SPELLS.has(id));
   if (badSpells.length) console.warn(`?spells: unknown ${badSpells.join(', ')}. Known: ${[...SPELLS.keys()].join(', ')}`);
   const potions = (q.get('potions') ?? '').split(',').map(s => s.trim()).filter(Boolean); // (M5: potions to start with in the belt)
+  const level = Number(q.get('level')); // (M6: ?level=5 starts at that level, its choices waiting)
+  if (q.get('level') && !(level >= 1 && level <= 12)) console.warn(`?level=${q.get('level')}: use 1 to 12`);
   const badPotions = potions.filter(id => !isPotion(id));
   if (badPotions.length) console.warn(`?potions: unknown ${badPotions.join(', ')}. Known: ${POTION_IDS.join(', ')}`);
   if (room && !TEMPLATES.has(room)) console.warn(`?room=${room}: no such template. Known: ${[...TEMPLATES.keys()].join(', ')}`);
@@ -176,7 +179,7 @@ function readUrlOptions() {
     testVariant: variant && VARIANTS.includes(variant) ? variant : undefined,
     give: give.filter(id => ARTIFACTS.has(id)),
     boss: bossOk ? boss! : undefined,
-    loot, spells: spells.filter(id => SPELLS.has(id)), potions: potions.filter(isPotion),
+    loot, spells: spells.filter(id => SPELLS.has(id)), potions: potions.filter(isPotion), level: level >= 1 ? level : undefined,
     theme: theme && THEMES.has(theme) ? theme : undefined,
   });
 }
@@ -187,6 +190,10 @@ function installDevHooks() {
     get state() { return G.state; }, player, get enemies() { return G.enemies; }, get current() { return G.current; },
     get seed() { return G.run.seed; }, get floor() { return G.run.floor; }, get run() { return G.run; }, get bolts() { return G.bolts; },
     rooms: () => G.rooms, startGame, hero, camera, keys, arrowOrder, warp, descend, clearRoom,
+    /** M6: insight and levels: the insight gained, the level, the level choices waiting, insight to the next level; gain
+        some (it runs to the hand as a fallen foe's does) or set the level. */
+    get insight() { return insightNow(); }, get level() { return G.run.level; },
+    giveInsight: (n: number) => gainInsight(n), setLevel: (n: number) => setLevel(n),
     /** The current floor as text: S start, B boss, T treasure, # normal, @ you. */
     map() { return G.run.plan ? planToText(G.run.plan, G.current.plan.id) : ''; },
     /** Run the simulation for `sec` seconds in fixed steps; optionally render once afterwards. */

@@ -12,7 +12,7 @@ import { gainMana } from '../magic/spells';
 import { floatText } from '../magic/statusFx';
 import { line, renderHearts, toast } from '../ui/hud';
 import { showLore } from '../ui/lore';
-import { gainSoul } from './souls';
+import { gainInsight, potionUsed } from '../progression/insight';
 import { refreshStats } from './artifacts';
 import { artifact } from './artifactData';
 import { POTIONS, POTION_IDS, REAGENTS, isKnown, type DrinkEffect, type PotionDef, type PotionId, type ReagentId } from './alchemyData';
@@ -89,6 +89,7 @@ export function usePotion(how: 'drink' | 'throw') {
     DRINK[def.drink.effect](def);
   } else throwPotion(id);
   identify(id); if (!known) potionCard(id); // (unknown before: what it was, now)
+  potionUsed(id); // (M6: each kind's first use in a run gives insight)
   renderBelt(); return true;
 }
 
@@ -114,8 +115,8 @@ const DRINK: Record<DrinkEffect, (def: PotionDef) => void> = {
     DRINK[POTIONS[id].drink.effect](POTIONS[id]);
   },
   reversed(def) { potionFx.reversed = num(def.drink.seconds); },
-  graveSip(def) {
-    player.hp = Math.max(1, player.hp - num(def.drink.halves)); renderHearts(); gainSoul('pale');
+  graveSip(def) { // (M6: insight for the half heart, more the deeper; M5 gave a pale soul mote until M6)
+    player.hp = Math.max(1, player.hp - num(def.drink.halves)); renderHearts(); gainInsight(num(def.drink.insight) * (G.run.floor + 1));
   },
 };
 

@@ -133,6 +133,7 @@ export interface Room {
   /** The wave being fought, and whether the next one is on its way. */ wave: number; wavePending: boolean;
   /** Ambush rooms: waiting for the mage to reach the middle (armed), or already sprung. */ ambush?: 'armed' | 'sprung';
   /** Quiet rooms: a heart waits there on the first visit. */ quietHeart?: boolean;
+  /** M6: its first clear has paid its insight. */ paid?: boolean;
   cleared: boolean; visited: boolean; known: boolean; locked: boolean;
   spots: ArtifactSpot[];
   /** The merchant's wares and the shade himself. */ wares?: WareSpot[]; shade?: THREE.Group;
@@ -213,6 +214,8 @@ export interface Enemy extends Circle {
   /** Bosses: out of reach (under the floor, in the air), so neither hurt nor hurting. */ hidden?: boolean;
   /** Floor ring (the abbess's ripple, the knight's landing mark); where a leap started. */ marker?: THREE.Mesh; from?: Vec2;
   /** Called by a boss; falls when the boss does. */ servant?: boolean;
+  /** M6: the insight it pays as it falls (progression/levelData.ts `purseOf`, fixed when it is made); none for one a boss's
+      ward broke into (`unpaid`). */ purse?: number; unpaid?: boolean;
   /** Asleep (a pilgrims' rest's foes, M3.6): does nothing until hurt or until the mage comes close. */ asleep?: boolean;
   /** Held in ice (a frozen mausoleum's foes): asleep until hurt or thawed by fire; the ice around it. */ entombed?: THREE.Object3D;
   /** What struck it last: the cantrip's kills give mana back. */ lastHit?: 'cantrip' | 'spell';

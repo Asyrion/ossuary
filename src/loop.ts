@@ -40,6 +40,7 @@ import { updateMantles } from './actors/mantles';
 import { updatePotions } from './items/potions';
 import { updateThrows } from './items/potionThrow';
 import { updateLab } from './world/laboratory';
+import { updateInsight } from './progression/insight';
 
 export const STEP = 1 / 60;
 const MAX_FRAME = 1 / 30;
@@ -83,6 +84,7 @@ function updateWorldFx(dt: number, now: number) {
   const tf = .92 + Math.sin(now * 13) * .05 + Math.sin(now * 23) * .04;
   updateTorchLights(G.current.torches, player.x, player.z, dt, tf);
   G.shake = Math.max(0, G.shake - dt * 1.4);
+  updateInsight(G.state === 'play' ? dt : 0); // (M6: insight's streaks run to the hand)
   updateHud(dt); updateAfflictions(); updateLore(dt); // (what is being done to the mage, beside the mana bar)
 }
 

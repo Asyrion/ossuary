@@ -30,7 +30,8 @@ export const HARD_VARIANTS: RoomVariant[] = ['champion', 'ambush', 'dark'];
 /** A floor's boss: drawn from `pool`, then tuned. `summons` is how many foes it calls below half health,
     `volleys` how often it repeats its aimed attack (the warden's volleys, the abbess's fans, the knight's
     ember sprays). */
-export interface BossConfig { pool: BossType[]; hpMul: number; speedMul: number; shotSpeedMul: number; summons: number; volleys: number }
+export interface BossConfig { pool: BossType[]; hpMul: number; speedMul: number; shotSpeedMul: number; summons: number; volleys: number;
+  /** M6: the insight the floor's boss gives when it falls (the same for every boss in the pool). */ insight: number }
 export interface FloorConfig {
   rooms: [number, number];
   enemyHp: number;

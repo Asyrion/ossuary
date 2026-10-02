@@ -756,6 +756,7 @@ function halve(e: Enemy, P: Params, dx: number, dz: number, color: number) {
   e.gen = 1; e.hp = hp; e.scale *= k; e.r *= k; e.kx += -dz * 3; e.kz += dx * 3;
   const at = freeSpotNear(G.current, e.x + dz * .6, e.z - dx * .6), twin = makeEnemy(e.type, at.x, at.z);
   twin.gen = 1; twin.maxHp = e.maxHp; twin.hp = hp; twin.scale = e.scale; twin.r = e.r; twin.spawn = .15; twin.kx = dz * 3; twin.kz = -dx * 3;
+  e.purse = twin.purse = (e.purse ?? 0) / 2; // (M6: the two halves share one purse)
   burst(e.x, .4, e.z, color, 18, 2.4, .06);
 }
 const splitsNow = (e: Enemy, dmg: number, P: Params) => !((e.gen ?? 0) > 0 || e.hp - dmg > e.maxHp * num(P.splitAt) || e.hp - dmg <= 0);

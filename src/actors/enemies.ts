@@ -20,6 +20,8 @@ import { mantleShields } from '../magic/shapes';
 import { wadeAt } from '../world/pools';
 import { saltHolds } from '../combat/familiars';
 import { packOf, songHaste } from './bestiaryFoes';
+import { packCount } from '../world/fill';
+import { purseOf } from '../progression/levelData';
 import { clearSteam } from '../magic/steam';
 import { giveMantle } from './mantles';
 import { groundHarm, groundPace, groundSlide, steerAround } from './foeGround';
@@ -43,6 +45,7 @@ export function makeEnemy(type: FoeType, x: number, z: number, hpMul = 1, boss?:
     flash: 0, mats: [], group: new THREE.Group(), body: new THREE.Group(), face: 0, contact: 1, state: 'idle', st: 0,
     scale: opts.champion ? CH.scale : 1, speedMul: opts.champion ? CH.speedMul : 1, champion: opts.champion,
   };
+  e.purse = boss ? 0 : purseOf(type, hpMul, !!opts.champion); // (M6: the insight it pays as it falls; a boss pays its floor's)
   e.group.add(e.body);
   const add = (geo: THREE.BufferGeometry, mat: THREE.Material, px: number, py: number, pz: number, sx = 1, sy = 1, sz = 1) => {
     const m = new THREE.Mesh(geo, mat); m.position.set(px, py, pz); m.scale.set(sx, sy, sz); e.body.add(m);
@@ -78,9 +81,8 @@ export function makeEnemy(type: FoeType, x: number, z: number, hpMul = 1, boss?:
 /** Spawn foe `type` at (x, z) as makeEnemy does, or, for one that comes in a pack (M4.5: a firefly swarm), the whole pack
     round it, sharing one mind; returns the first. `roll` (0 to 1) sizes the pack: a room's fights pass one from its seed. */
 export function spawnFoe(type: FoeType, x: number, z: number, hpMul = 1, opts: { champion?: boolean; mantle?: MantleId } = {}, roll: () => number = Math.random) {
-  const pack = isFoe(type) ? FOES[type].pack : undefined;
-  if (!pack) return makeEnemy(type, x, z, hpMul, undefined, opts);
-  const n = pack[0] + Math.floor(roll() * (pack[1] - pack[0] + 1));
+  if (!(isFoe(type) && FOES[type].pack)) return makeEnemy(type, x, z, hpMul, undefined, opts);
+  const n = packCount(type, roll);
   let first = true;
   return packOf(n, x, z, (px, pz) => { const e = makeEnemy(type, px, pz, hpMul, undefined, first ? opts : {}); first = false; return e; });
 }

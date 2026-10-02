@@ -57,7 +57,8 @@ function breakWard(e: Enemy, school: School) {
   burst(e.x, .8, e.z, SCHOOL_LIGHT[school], 26, 2.6, .05); Sfx.at(e.x, e.z).wardBurst(); G.shake = Math.max(G.shake, .15);
   toast(STR.toast.shieldBreaks(STR.schools[school]), 3);
   const at = freeSpotNear(G.current, e.x + CFG.ward.beside, e.z), floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
-  makeEnemy(WARDLING[school], at.x, at.z, floor.enemyHp);
+  const ling = makeEnemy(WARDLING[school], at.x, at.z, floor.enemyHp);
+  if (e.isBoss) ling.unpaid = true; // (M6: a Twin Guardian's ward breaks again and again: its Wardlings pay no insight)
 }
 
 /** Lower `e`'s ward without breaking it (a Twin Guardian passing its shield across): no Wardling comes of it. */

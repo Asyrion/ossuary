@@ -38,7 +38,8 @@ export const STR = {
     lost: 'Asyrion fell in the vault',
     wonText: "Every floor of the Wardens' vault cleared, and every keeper put to rest. Below the last, Kaelith's seal still holds.",
     lostText: (floor: number, name: string) => `Asyrion's descent ended on floor ${floor}, ${name}.`,
-    floor: 'Deepest floor', time: 'Time', kills: 'Foes put to rest', obols: 'Obols found', seed: 'Seed', artifacts: 'Artifacts carried',
+    floor: 'Deepest floor', level: 'Level reached', time: 'Time', kills: 'Foes put to rest', obols: 'Obols found', seed: 'Seed', artifacts: 'Artifacts carried',
+    levelValue: (level: number, insight: number) => `${level} (${Math.round(insight)} insight)`,
     floorValue: (floor: number, floors: number) => `${floor} of ${floors}`,
     again: 'Descend again',
     replay: 'Replay this seed',
@@ -314,6 +315,13 @@ export const STR = {
     } as Record<string, string>,
   },
   manaLabel: (mana: number, max: number) => `Mana ${Math.round(mana)} of ${max}`,
+  /** M6: insight (the GDD's XP) and levels; both words placeholders until M8. */
+  levels: {
+    short: 'Level', up: (n: number) => `Level ${n}`,
+    meter: (level: number, next: number) => next > 0 ? `Level ${level}: ${next} insight to the next` : `Level ${level}, the most this run allows`,
+    first: "What a foe's magic held passes into your hand: insight. Enough of it, and you grow a level.",
+    cap: 'You can learn no more this run.',
+  },
   /** Reactions name themselves in the air; statuses as the training dummy lists them. */
   reactions: { shatter: 'Shatter', overload: 'Overload', eclipse: 'Eclipse', blackfire: 'Blackfire', steam: 'Steam', searing: 'Searing', prism: 'Prism', verdict: 'Verdict', blackice: 'Black Ice', voidspark: 'Void Spark',
     wildfire: 'Wildfire', frostbloom: 'Frostbloom', pollenspark: 'Pollen Spark', bloom: 'Bloom', blight: 'Blight' } as Record<string, string>,
@@ -699,6 +707,8 @@ export const STR = {
     godOn: 'God mode: on', godOff: 'God mode: off',
     doors: { data: 'Doors: as the floor has them', shifted: 'Doors: off the middle', middle: 'Doors: in the middle' } as Record<string, string>,
     moveClip: { run: 'Moving: run clip', walkInStep: 'Moving: walk clip, feet in step', walkNatural: 'Moving: walk clip, natural pace' } as Record<string, string>,
+    levels: 'Insight and levels (M6)', nextLevel: '+ insight to the next level', maxLevel: 'Level 12', firstLevel: 'Back to level 1',
+    levelsInfo: (level: number, insight: number, next: number, pending: number) => `Level ${level}, ${insight} insight${next ? `, ${next} to the next` : ' (the cap)'}; ${pending} level choice${pending === 1 ? '' : 's'} waiting (the level-up screen comes in step 4).`,
     resources: 'Obols, keys, glyphs and soul motes', emptyPurse: 'Empty the purse', giveSoul: (name: string) => `+ ${name}`, noSouls: 'No soul motes', floorEnd: "A floor's end (hallowed motes mend)",
     give: (n: number, what: string) => `+${n} ${what}${n === 1 ? '' : 's'}`,
     names: { coins: 'obol', keys: 'key', glyphs: 'glyph' } as Record<string, string>,
