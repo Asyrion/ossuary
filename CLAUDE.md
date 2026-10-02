@@ -501,7 +501,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   Perennial's root and Cold Snap's breath in `updateStatuses`; Spark Wake's sparks (`laySpark`'s `sting`, `sparkSting`,
   sparing the mage); Flamekeeper's `flamesNear` (shapes.ts, `litFires`, `mageFireNear`) in `updateMagic`; Seedfall's
   `sowBlossom` (props.ts, `prop.sown`: no reagent) from `killEnemy`; Votive Heart's containers in `refreshStats`. Tuning
-  `CFG.boons`. Dev menu (Magic tab): Boons here (`src/progression/boonTest.ts`); `__game.boonHere(id)`, `boons.acted`,
+  `CFG.boons` (and the deal's `lean`). General boons whose step is yet to come stay out of the deal (`NOT_YET` in
+  boonData.ts); a level's screen spends every point it owes (`pointsHere`); the inventory's "The mage" tab lists the boons
+  taken. Dev menu (Magic tab): Boons here (`src/progression/boonTest.ts`); `__game.boonHere(id)`, `boons.acted`,
   `boons.said`; `?boons=deepWinter:2,coldSnap`.
 - Spell effect options (`src/magic/effectOptions.ts`, the owner's request): the spells' effects redone in the same style,
   each a looping demo of one cast worked out from the time (the cantrip, Cinder Lance, Pyre Seal, Rime Shards, Glacial

@@ -17,7 +17,7 @@ import { boon, boonText } from '../progression/boonData';
 import { dealNow, takeBoon } from '../progression/boons';
 import { boonIconImg } from '../progression/boonLooks';
 import { ATTRS, type Attr } from '../progression/attributes';
-import { ATTR_COLOR, pointsToSpend, spendPoint } from '../progression/points';
+import { ATTR_COLOR, attrText, pointsToSpend, spendPoint } from '../progression/points';
 import type { Card } from '../progression/boonData';
 import { renderInsight } from '../progression/insight';
 
@@ -69,16 +69,19 @@ function done() {
   if (G.run.pending > 0) deal(); else close();
 }
 
-/** Take the card chosen (a boon), or spend the point on the attribute chosen. */
+/** The points this level's screen spends: all but one for each level still waiting after it (Tempered's three come here). */
+const pointsHere = () => pointsToSpend() - Math.max(0, G.run.pending - 1);
+/** Take the card chosen (a boon), or spend a point on the attribute chosen (again while this level has more). */
 function take() {
   if (performance.now() < lockUntil) return;
   if (phase === 'boon') {
     const c = cards[chosen]; if (!c) return;
     takeBoon(c.id, false); Sfx.cardTake();
-    if (pointsToSpend() > 0) { phase = 'point'; chosen = 0; render(); lock(); } else done();
+    if (pointsHere() > 0) { phase = 'point'; chosen = 0; render(); lock(); } else done();
     return;
   }
-  spendPoint(ATTRS[chosen]); done();
+  spendPoint(ATTRS[chosen]);
+  if (pointsHere() > 0) render(); else done();
 }
 function move(d: number) {
   const n = phase === 'boon' ? cards.length : ATTRS.length; if (!n) return;
@@ -89,8 +92,8 @@ function move(d: number) {
 export function chooseFor(i = 0, attr?: Attr) {
   if (G.run.pending <= 0) return false;
   if (!open) cards = dealNow();
-  const c = cards[Math.min(i, cards.length - 1)]; if (c) takeBoon(c.id, false);
-  if (pointsToSpend() > 0) spendPoint(attr ?? [...ATTRS].sort((a, b) => G.run.attrs[a] - G.run.attrs[b])[0]);
+  const c = cards[Math.min(i, cards.length - 1)]; if (c && (!open || phase === 'boon')) takeBoon(c.id, false); // (on the point's page, its boon is taken already)
+  while (pointsHere() > 0) spendPoint(attr ?? [...ATTRS].sort((a, b) => G.run.attrs[a] - G.run.attrs[b])[0]);
   if (open) { done(); return true; }
   G.run.pending = Math.max(0, G.run.pending - 1); renderInsight(); return true;
 }
@@ -98,7 +101,7 @@ export function chooseFor(i = 0, attr?: Attr) {
 const L = () => STR.levels;
 function render() {
   $('lvTitle').textContent = L().up(levelNow());
-  $('lvSub').textContent = phase === 'boon' ? L().chooseBoon : L().choosePoint(pointsToSpend());
+  $('lvSub').textContent = phase === 'boon' ? L().chooseBoon : L().choosePoint(pointsHere());
   const box = $('lvCards');
   if (phase === 'boon') {
     box.innerHTML = cards.map((c, k) => {
@@ -109,7 +112,7 @@ function render() {
     }).join('');
   } else {
     box.innerHTML = ATTRS.map((a, k) => `<button type="button" class="lvCard lvAttr" data-i="${k}" aria-selected="${k === chosen}" style="--c:#${ATTR_COLOR[a].toString(16).padStart(6, '0')}">`
-      + `<b>${esc(STR.attrs[a].name)}</b><small>${esc(L().attrNow(G.run.attrs[a]))}</small><span>${esc(STR.attrs[a].text)}</span></button>`).join('');
+      + `<b>${esc(STR.attrs[a].name)}</b><small>${esc(L().attrNow(G.run.attrs[a]))}</small><span>${esc(attrText(a))}</span></button>`).join('');
   }
   for (const el of box.querySelectorAll<HTMLButtonElement>('.lvCard')) el.onclick = () => { chosen = Number(el.dataset.i); render(); take(); };
 }

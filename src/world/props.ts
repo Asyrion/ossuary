@@ -287,7 +287,7 @@ export function sowBlossom(room: Room, x: number, z: number) {
     if (Math.hypot(w.x - player.x, w.z - player.z) < K.mage + player.r || Math.hypot(w.x - room.cx, w.z - room.cz) < K.middle) continue;
     if (room.doors.some(dr => Math.hypot(w.x - dr.x, w.z - dr.z) < K.door)) continue;
     if (G.enemies.some(o => !o.dead && !o.flying && Math.hypot(o.x - w.x, o.z - w.z) < o.r + K.foe)) continue;
-    if (G.pickups.some(p => Math.hypot(p.x - w.x, p.z - w.z) < .6) || G.glyphs.some(gl => Math.hypot(gl.x - w.x, gl.z - w.z) < .6)) continue;
+    if (G.pickups.some(p => Math.hypot(p.x - w.x, p.z - w.z) < K.item) || G.glyphs.some(gl => Math.hypot(gl.x - w.x, gl.z - w.z) < K.item)) continue;
     best = { c, r }; bd = d;
   }
   if (!best) return null;

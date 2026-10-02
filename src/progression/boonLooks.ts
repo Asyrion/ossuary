@@ -57,5 +57,3 @@ export function boonLook(id: string, rank = 1) {
 export const boonIconUrl = (id: string, rank = 1) => iconUrlOf(`boon:${id}:${rank >= 2 ? 2 : 1}`, () => boonLook(id, rank), boon(id).color);
 /** The icon as an <img>, shown in whole pixels. */
 export const boonIconImg = (id: string, rank = 1) => `<img class="px" src="${boonIconUrl(id, rank)}" alt="">`;
-/** Every boon icon key (the dev menu's sigils row). */
-export const SIGIL_KEYS = Object.keys(SIGILS);

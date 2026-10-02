@@ -127,13 +127,18 @@ export const CFG = {
   levels: { at: [20, 70, 145, 240, 340, 450, 700, 1030, 1400, 1780, 2500], foeDiv: 4, perFloor: 4, ordealMul: 2, serpentDiv: 2,
     streak: { time: .6, size: .36, max: 48, trail: 5, gap: .05, rise: .9 }, gold: 0xe8c878, chimeGap: .12,
     // the level-up screen: seconds of calm after a fight before it opens, and seconds a choice is locked as it opens (a key held from the fight)
-    calm: .8, lock: .4 },
+    calm: .8, lock: .4,
+    lineFirst: 4.5, lineCap: 4 }, // (how long the first insight's line and the cap's stay)
   // M6 step 5, the school boons at work (progression/boonHooks.ts): half hearts boons mend in one room at most (Votive
   // Heart and Thirsting Hex together); Seedfall's plants, `seedMax` a room at most, sought within `sowReach` tiles of the
   // fall and kept `sowClear` tiles from the mage, a door's lane and the room's middle; Spark Wake's spark refreshed rather
   // than laid again within `sparkMerge` of another of the mage's; Flamekeeper's embers run from each flame to the hand
   // every `emberEvery` seconds.
-  boons: { mendPerRoom: 1, seedMax: 4, sowReach: 2, sowClear: { mage: 1, door: 1.6, middle: 1.2, foe: .5 }, sparkMerge: .6, emberEvery: .35 },
+  boons: { mendPerRoom: 1, seedMax: 4, sowReach: 2, sowClear: { mage: 1, door: 1.6, middle: 1.2, foe: .5, item: .6 }, sparkMerge: .6, emberEvery: .35,
+    // M6 step 3, the deal's lean (progression/boonData.ts): every school's weight starts at `base`, and gains `slot` for each
+    // of its spells in the slots, one for every `castsPer` casts of it this run (`castsMax` at most), `boon` for each rank of
+    // its boons taken and `pledge` for a pledge
+    lean: { base: 1, slot: 3, castsPer: 5, castsMax: 3, boon: 2, pledge: 2 } },
   /** M4.6 costumes (actors/costume.ts): the focus held in the casting hand (its scale, where along it the hand grips: 0 its
       middle, negative below; how far it leans forward and out), each spot's scale for an artifact's own model carried
       there, and a cursed piece's glow (a share of its height) and how often it weeps a red drop. */

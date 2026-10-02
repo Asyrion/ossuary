@@ -30,7 +30,7 @@
      the elite) plods at the mage, hides in its shell (bolts glance off) and spins across the room off the walls, throwing
      frost at each, then lies dizzy, open to harm. */
 import * as THREE from 'three';
-import type { Enemy, PropBox, Room } from '../types';
+import type { Enemy, PropBox, Room, Vec2 } from '../types';
 import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { SCHOOL_LIGHT } from '../render/arcane';
@@ -193,8 +193,11 @@ export function sparkSting(x: number, z: number, who?: string) {
   const reach = CFG.afflict.groundReach;
   return hazards.find(h => h.kind === 'spark' && h.armed && h.room === G.current && h.by !== (who ?? '-') && Math.hypot(h.x - x, h.z - z) < reach)?.sting;
 }
-/** The mage's own patches of burning ground within `r` of (x, z) (M6, Flamekeeper: the Pyromancer's embers). */
-export const mageFireNear = (x: number, z: number, r: number) => hazards.filter(h => h.kind === 'fire' && h.by === 'mage' && h.room === G.current && Math.hypot(h.x - x, h.z - z) < r);
+/** The mage's own patches of burning ground within `r` of (x, z), added to `out` while it holds fewer than `most` (M6,
+    Flamekeeper: the Pyromancer's embers). */
+export function mageFireNear(x: number, z: number, r: number, out: Vec2[], most: number) {
+  for (const h of hazards) if (out.length < most && h.kind === 'fire' && h.by === 'mage' && h.room === G.current && Math.hypot(h.x - x, h.z - z) < r) out.push(h);
+}
 /** The harm in the ground at (x, z) in the current room for a foe of kind `who` (M4.7): burning ground, or an armed
     spark, that isn't its own kind's. */
 export function hazardAt(x: number, z: number, who?: string): HazardKind | undefined {
@@ -244,7 +247,9 @@ export const burningGround = () => hazards.filter(h => h.kind !== 'spark' && h.r
 export const sparkGround = () => hazards.filter(h => h.kind === 'spark' && h.room === G.current).length;
 
 /** The lit braziers and candle stands in `room` (a moth is lured to them). */
-export const litFires = (room: Room) => (room.props ?? []).filter((b: PropBox) => (b.prop.kind === 'brazier' || b.prop.kind === 'candles' || b.prop.kind === 'wetCandles') && b.prop.lit);
+/** Whether an object is a lit brazier or candle stand. */
+export const litFire = (b: PropBox) => (b.prop.kind === 'brazier' || b.prop.kind === 'candles' || b.prop.kind === 'wetCandles') && !!b.prop.lit;
+export const litFires = (room: Room) => (room.props ?? []).filter(litFire);
 
 /* ---------- behaviours ---------- */
 

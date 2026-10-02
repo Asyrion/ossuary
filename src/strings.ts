@@ -318,10 +318,10 @@ export const STR = {
   /** M6 step 2: the four attributes (placeholders until M8; the GDD's Focus is Will: "focus" names what the casting hand
       holds), and a point spent rising over the mage. */
   attrs: {
-    vigor: { name: 'Vigor', text: 'Half a heart container for every 2 points.' },
-    arcana: { name: 'Arcana', text: 'Your spells strike 6% harder for each point.' },
-    will: { name: 'Will', text: '10 more mana for each point, and it comes back 5% faster.' },
-    swiftness: { name: 'Swiftness', text: 'You move 3% faster and cast the cantrip 3% sooner for each point.' },
+    vigor: { name: 'Vigor', text: (points: number) => `Half a heart container for every ${points} points.` },
+    arcana: { name: 'Arcana', text: (pct: number) => `Your spells strike ${pct}% harder for each point.` },
+    will: { name: 'Will', text: (mana: number, pct: number) => `${mana} more mana for each point, and it comes back ${pct}% faster.` },
+    swiftness: { name: 'Swiftness', text: (move: number, cast: number) => `You move ${move}% faster and cast the cantrip ${cast}% sooner for each point.` },
     spent: (name: string) => `${name} +1`,
   },
   /** M6 step 3: boons (names in data/boons.json, placeholders until M8). */
@@ -625,6 +625,7 @@ export const STR = {
       title: 'Growth', numbers: 'Your numbers', level: 'Level',
       levelText: (insight: number, next: number, points: number) => `${insight} insight${next ? `, ${next} more to the next level` : ', the most this run allows'}. A level brings a point to spend on an attribute${points ? ` (${points} to spend)` : ''}.`,
       points: (n: number) => `${n} point${n === 1 ? '' : 's'}`,
+      boons: 'Boons', noBoons: 'No boons yet', boonsText: 'Each level brings a choice of three boons. What you take lasts until the run ends.',
     },
     base: (v: string) => `Base ${v}`,
     straight: 'Straight',
@@ -766,7 +767,7 @@ export const STR = {
     pledgeInfo: (school: string) => school ? `Pledged (M6): the next library holds a page of ${school}.` : 'No pledge (M6).',
     plusAttr: (name: string) => `+1 ${name}`, noAttrs: 'No points spent', attrsInfo: (list: string, free: number) => `Attributes: ${list}; ${free} point${free === 1 ? '' : 's'} to spend.`,
     levels: 'Insight and levels (M6)', nextLevel: '+ insight to the next level', maxLevel: 'Level 12', firstLevel: 'Back to level 1',
-    levelsInfo: (level: number, insight: number, next: number, pending: number) => `Level ${level}, ${insight} insight${next ? `, ${next} to the next` : ' (the cap)'}; ${pending} level choice${pending === 1 ? '' : 's'} waiting (the level-up screen comes in step 4).`,
+    levelsInfo: (level: number, insight: number, next: number, pending: number) => `Level ${level}, ${insight} insight${next ? `, ${next} to the next` : ' (the cap)'}; ${pending} level choice${pending === 1 ? '' : 's'} waiting.`,
     resources: 'Obols, keys, glyphs and soul motes', emptyPurse: 'Empty the purse', giveSoul: (name: string) => `+ ${name}`, noSouls: 'No soul motes', floorEnd: "A floor's end (hallowed motes mend)",
     give: (n: number, what: string) => `+${n} ${what}${n === 1 ? '' : 's'}`,
     names: { coins: 'obol', keys: 'key', glyphs: 'glyph' } as Record<string, string>,

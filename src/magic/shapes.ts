@@ -29,7 +29,7 @@ import type { Shape, SpellDef } from './spellData';
 import { flash, inflict, overloadAt, tileReaction } from './statusFx';
 import { steamAt } from './steam';
 import { weaveAt } from './weaveFx';
-import { burningNear, layFire, litFires, mageFireNear } from '../actors/foes';
+import { burningNear, layFire, litFire, mageFireNear } from '../actors/foes';
 import { consecrateFx, graspFx, hideSpellFx, iceColumn, lanceFx, mantleFx, pollenFx, ringFx, sealFx, smiteFx, strikeFx, thornFx, tollFx, updateSpellFx, wardFx, woodColumn } from './spellFx';
 import { hearGround } from '../world/groundHooks';
 import { SCHOOL_LIGHT } from '../render/arcane';
@@ -251,13 +251,14 @@ function erupt(s: (typeof seals)[number]) {
 
 /** M6, Flamekeeper: the flames within `r` of (x, z), `most` at most: erupted Pyre Seals (their edge within reach), burning oil
     (a pool once), lit braziers and candle stands, and the mage's own burning ground (the Pyromancer's embers). */
-export function flamesNear(x: number, z: number, r: number, most: number) {
-  const room = G.current, out: Vec2[] = [], add = (p: Vec2) => { if (out.length < most) out.push({ x: p.x, z: p.z }); };
-  for (const s of seals) if (s.erupted && Math.hypot(s.x - x, s.z - z) < r + s.def.params.radius) add(s);
-  for (const p of room.pools ?? []) if (p.kind === 'oil' && p.state === 'burning') { const t = p.tiles.find(t => Math.hypot(t.x - x, t.z - z) < r); if (t) add(t); }
-  for (const b of litFires(room)) if (Math.hypot(b.x - x, b.z - z) < r) add(b);
-  for (const h of mageFireNear(x, z, r)) add(h);
-  return out;
+const flamesHere: Vec2[] = [];
+export function flamesNear(x: number, z: number, r: number, most: number) { // (one list kept, filled afresh: it's asked every step of a fight)
+  const room = G.current; flamesHere.length = 0;
+  for (const s of seals) if (flamesHere.length < most && s.erupted && Math.hypot(s.x - x, s.z - z) < r + s.def.params.radius) flamesHere.push(s);
+  for (const p of room.pools ?? []) if (flamesHere.length < most && p.kind === 'oil' && p.state === 'burning') for (const t of p.tiles) if (Math.hypot(t.x - x, t.z - z) < r) { flamesHere.push(t); break; }
+  for (const b of room.props ?? []) if (flamesHere.length < most && litFire(b) && Math.hypot(b.x - x, b.z - z) < r) flamesHere.push(b);
+  mageFireNear(x, z, r, flamesHere, most);
+  return flamesHere;
 }
 
 /** Tongues of flame, and motes: glows rising and shrinking away (shared materials, so nothing to free). */

@@ -78,7 +78,7 @@ import { floorLean, floorWalls, warnFloor } from '../world/curve';
 import { gainInsight, insightNow, setLevel, toNextLevel } from '../progression/insight';
 import { LEVEL_CAP } from '../progression/levelData';
 import { ATTRS, noAttrs } from '../progression/attributes';
-import { pointsToSpend, spendPoint } from '../progression/points';
+import { attrText, pointsToSpend, spendPoint } from '../progression/points';
 import { dealNow, takeBoon } from '../progression/boons';
 import { openLevelUp } from './levelUp';
 import { BOON_DEFS, boon } from '../progression/boonData';
@@ -244,7 +244,7 @@ function build() {
     btn(S.nextLevel, () => gainInsight(toNextLevel() || 10)),
     btn(S.maxLevel, () => setLevel(LEVEL_CAP)),
     btn(S.firstLevel, () => setLevel(1)));
-  for (const a of ATTRS) lv.append(btn(S.plusAttr(STR.attrs[a].name), () => spendPoint(a, true), STR.attrs[a].text)); // (M6 step 2: a point without a level's)
+  for (const a of ATTRS) lv.append(btn(S.plusAttr(STR.attrs[a].name), () => spendPoint(a, true), attrText(a))); // (M6 step 2: a point without a level's)
   lv.append(btn(S.offerNow, () => { closeDev(); if (!openLevelUp()) toast(S.noLevelWaits, 2); }), autoBtn = btn('', () => { DEV.autoLevel = DEV.autoLevel ? false : 'choose'; })); // (M6 step 4)
   lv.append(btn(S.noAttrs, () => { G.run.attrs = noAttrs(); refreshStats(false); }));
   // M6 step 3: boons: take each (its next rank), deal three as a level would, none

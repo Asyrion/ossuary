@@ -35,7 +35,7 @@ export function gainInsight(n: number, x = player.x, z = player.z, color: number
   const was = G.run.level;
   G.run.insight += n; G.run.level = levelFor(G.run.insight);
   launch(x, z, color);
-  if (!told()) { tell(); line(STR.levels.first, 4.5); }
+  if (!told()) { tell(); line(STR.levels.first, L.lineFirst); }
   if (G.run.level > was) leveled(was, G.run.level);
   renderInsight();
 }
@@ -70,7 +70,7 @@ function leveled(from: number, to: number) {
   ringFx(player.x, .06, player.z, L.gold, .3, 1.6, .7, true); ringFx(player.x, .06, player.z, 0xfff4d0, .2, 1, .5, true);
   burst(player.x, .8, player.z, L.gold, 22, 2.2, .05); burst(player.x, 1.6, player.z, 0xfff4d0, 10, 1.2, .04);
   Sfx.levelUp();
-  if (to >= LEVEL_CAP) line(STR.levels.cap, 4);
+  if (to >= LEVEL_CAP) line(STR.levels.cap, L.lineCap);
 }
 
 /** The dev menu: set the level (its insight the level's start); levels gone up wait for their choice as any do. */
