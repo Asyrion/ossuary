@@ -1834,7 +1834,7 @@ test('potions drunk and thrown (M5): each drink does its own and shows a chip wh
     const before = Math.round(P.mana); g.cast(0, { x: 0, z: -1 }); g.sim(.1); out.free = [Math.round(P.mana) >= before, g.potionFx.free, g.potionFx.echo]; // (no mana spent: it only came back)
     sip('giants'); out.giant = g.potionFx.scale;
     const x0 = P.x; sip('hexBrew'); g.keys.add('KeyD'); g.sim(.4); g.keys.delete('KeyD'); out.reversed = P.x < x0 - .3;
-    g.sim(6); P.hp = 3; sip('graveDraught'); out.grave = [P.hp, (g as unknown as { souls: string[] }).souls.length];
+    g.sim(6); P.hp = 3; const ins = (g as unknown as { insight: { insight: number } }).insight.insight; sip('graveDraught'); out.grave = [P.hp, (g as unknown as { souls: string[] }).souls.length, (g as unknown as { insight: { insight: number } }).insight.insight - ins];
     g.warp(1); g.sim(.6); out.shrunk = g.potionFx.scale;
     return out;
   });
@@ -1844,7 +1844,7 @@ test('potions drunk and thrown (M5): each drink does its own and shows a chip wh
   for (const chip of ['Liquid Ember', 'Frostbrew', 'Free spells ×3', 'Echoing', 'Unseen', 'Remedied']) expect(drink.chips).toContain(chip);
   expect(drink.free).toEqual([true, 2, 0]); // (a free cast spent, the echo too)
   expect(drink.giant).toBeCloseTo(1.25); expect(drink.reversed).toBe(true);
-  expect(drink.grave).toEqual([2, 1]); expect(drink.shrunk).toBe(1);
+  expect(drink.grave).toEqual([2, 0, 15 + 4]); expect(drink.shrunk).toBe(1); // (M6: half a heart for insight, 15 on floor 1, and 4 for the kind's first use)
   const thrown = await page.evaluate(() => {
     const g = (window as unknown as W).__game as GP, P = g.player, out: Record<string, unknown> = {};
     g.clearRoom(); g.sim(.2);
