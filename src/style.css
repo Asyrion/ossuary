@@ -73,6 +73,14 @@ body{font-family:var(--f-ui);color:var(--ink);-webkit-user-select:none;user-sele
 #spells .slot.empty{opacity:.45}
 #spells .slot.poor svg{opacity:.35}
 #spells .slot.flash{border-color:#e05a4a;box-shadow:0 0 8px rgba(224,90,74,.8)}
+/* M6 step 7: a pip for each place in the slot's socket (the rune's colour; hollow while empty), and Vein's half heart, lit
+   while it would pay in blood */
+#spells .slot .pips{position:absolute;right:2px;top:2px;display:flex;gap:2px}
+#spells .slot .pips i{width:5px;height:5px;transform:rotate(45deg);background:var(--c);box-shadow:0 0 3px var(--c);border:1px solid #0b0504}
+#spells .slot .pips i.hollow{background:none;box-shadow:none;border-color:#8a7a62}
+#spells .slot svg.blood{inset:auto;left:2px;bottom:2px;width:10px;height:10px;filter:none;opacity:.35}
+#spells .slot.vein svg.blood{opacity:1;filter:drop-shadow(0 0 3px #c42c1f)}
+#spells .slot.vein small{color:#ff8a7a}
 /* M5: the potion belt under the spell slots (a slot for each potion it holds, the chosen one lit, an unknown one marked;
    its keys beside it); the bottles are 24 px pixel art, drawn at that size */
 #belt{position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 112px);display:flex;align-items:center;gap:4px}
@@ -196,6 +204,7 @@ body.touch.portrait #rotate{display:flex}
 #dev .dv-b:hover{background:rgba(232,166,76,.14)}
 #dev .dv-b.on{border-color:var(--amber);background:rgba(232,166,76,.22)}
 #dev .dv-b i{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 1px rgba(0,0,0,.5)}
+#dev .dv-b img.px{width:20px;height:20px;flex:none;margin:-3px 0}
 #dev .dv-b small{color:var(--ink-dim);font-size:11px}
 #dev select{font:13px var(--f-ui);padding:5px 6px;min-height:30px;max-width:100%;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:2px}
 #dev .dv-check{display:flex;align-items:center;gap:6px;margin-top:8px;color:var(--ink-dim);font-size:13px;cursor:pointer}
@@ -246,6 +255,8 @@ body.touch.portrait #rotate{display:flex}
 .invDetail .note{margin:0 0 8px;font:14px/1.4 var(--f-ui);color:var(--ink-dim);max-width:none}
 .invDetail .note.dim{opacity:.6;font-style:italic}
 .invDetail .note.boon b,.pagePanel .note.boon b{color:var(--ink)}
+.note.rune img{width:1.4em;height:1.4em;vertical-align:-.35em;margin-right:.35em}
+.invDetail .note.rune b,.pagePanel .note.rune b{color:var(--ink)}
 .note.boon i{display:inline-block;width:.62em;height:.62em;border-radius:50%;margin-right:.4em;vertical-align:.02em;box-shadow:0 0 0 1px rgba(0,0,0,.4),0 0 6px var(--c)}
 .invDetail .wheel{margin:4px 0 10px;display:flex;justify-content:center}
 .invDetail .wheel svg{width:min(220px,100%);height:auto}

@@ -4545,8 +4545,11 @@ test('runes on the cast (M6 step 7): Quicken sooner and dearer on the HUD and in
     const w = (window as unknown as { __game: GR }).__game; w.player.invuln = 999; w.sim(.1);
     const before = { ...w.sockets.slots[0] }, small = document.querySelector('#slot0 small')?.textContent;
     w.mana(60); w.cast(0); const after = { mana: w.player.mana, cd: w.player.spellCd[0] };
-    w.cast(1); w.sim(.1); return { before, small, after, mantle: w.mantle, sockets: w.sockets };
+    w.cast(1); w.sim(.1, true);
+    const pips = [0, 1].map(i => [...document.querySelectorAll(`#slot${i} .pips i`)].map(p => p.className || 'carved')), hands = (w as unknown as { spellMarks: { hands: ({ specks: number } | null)[] } }).spellMarks.hands.map(h => h?.specks);
+    return { before, small, after, mantle: w.mantle, sockets: w.sockets, pips, hands };
   });
+  expect(quick.pips).toEqual([['carved'], ['carved']]); expect(quick.hands).toEqual([1, 1]); // (a pip on each slot, a speck at each hand)
   expect(quick.before.runes).toEqual(['quicken']); expect(quick.before.def).toMatchObject({ mana: 18, cooldown: 1.05 }); expect(quick.small).toBe('18');
   expect(quick.after.cd).toBeCloseTo(1.05, 2); expect(quick.after.mana).toBeCloseTo(60 - 18, 5);
   expect(quick.sockets.slots[1].def!.params.life).toBe(9); expect(quick.mantle).toBeGreaterThan(8.7);

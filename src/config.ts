@@ -105,6 +105,10 @@ export const CFG = {
   marks: {
     hand: { size: .34, motes: 7, ready: 1, dim: .25, lift: .04, flash: .26, spark: .45, pulse: 3, shimmer: 6, shimmerBy: .06, flicker: 9, grey: .7, cooling: .7 },
     ring: { radius: .085, spin: 2.2 },
+    /** M6 step 7: the runes carved in a slot show at its hand: a speck in each rune's colour (Thrice three, fanned) circling
+        it (`r` out, `spin` a second, Quicken's `quick` times faster; Seeking's wider, swaying), Wide a faint disc under it,
+        Vein's red in the glow (`vein` of it), Lasting's slower fade, Reprise's second, fainter flash `echo` s later. */
+    runes: { r: .085, seek: .13, size: .022, spin: 2.4, quick: 2, disc: .17, discOpacity: .18, vein: .45, lasting: .5, echo: .22 },
     aura: { motes: 16, radius: .32, glow: 1.5 },
     circle: { radius: .6, out: .09, rune: .085, gap: .06, after: 1, fadeIn: .6, fadeOut: .25, spin: .15 },
     rise: { ember: .4, frost: -.3, storm: .15, hallow: .35, umbral: -.25, verdant: .2 } as Record<string, number>, // (M5: Verdant's leaves drift up slowly)

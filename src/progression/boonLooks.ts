@@ -1,17 +1,12 @@
 /* M6 step 4: each boon's sigil, built in code (docs/M6-plan.md): a dark stone medallion with a rim and an emblem drawn in
    strokes of the boon's colour, glowing; a second rank wears a second ring. Its 24 px icon is made through `iconUrlOf`, as
    the artifacts', bottles' and reagents' are (one pixel for everything). Each emblem is a few strokes on a disc of radius
-   1 (y up): lines, circles and arcs. */
+   1 (y up): lines, circles and arcs (render/emblem.ts, shared with the runes' glyphs). */
 import * as THREE from 'three';
 import { iconUrlOf } from '../items/artifactIcons';
+import { A, C, L, emblem, poly, type Stroke } from '../render/emblem';
 import { boon } from './boonData';
 
-/** A stroke: a line from (x0, y0) to (x1, y1), a circle at (x, y) of radius r, or an arc of it from angle a0 to a1. */
-type Stroke = { l: [number, number, number, number] } | { c: [number, number, number] } | { a: [number, number, number, number, number] };
-const L = (x0: number, y0: number, x1: number, y1: number): Stroke => ({ l: [x0, y0, x1, y1] });
-const C = (x: number, y: number, r: number): Stroke => ({ c: [x, y, r] });
-const A = (x: number, y: number, r: number, a0: number, a1: number): Stroke => ({ a: [x, y, r, a0, a1] });
-const poly = (...p: number[]) => { const out: Stroke[] = []; for (let i = 0; i + 3 < p.length; i += 2) out.push(L(p[i], p[i + 1], p[i + 2], p[i + 3])); return out; };
 const PI = Math.PI;
 
 const SIGILS: Record<string, Stroke[]> = {
@@ -41,15 +36,10 @@ export function boonLook(id: string, rank = 1) {
   const def = boon(id), col = new THREE.Color(def.color), g = new THREE.Group();
   const stone = new THREE.MeshStandardMaterial({ color: 0x2a2420, roughness: .9, flatShading: true });
   const glowing = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: .8, roughness: .5 });
-  const add = (geo: THREE.BufferGeometry, m: THREE.Material, x = 0, y = 0, rz = 0) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, .06); o.rotation.z = rz; g.add(o); return o; };
   const disc = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.05, .12, 28), stone); disc.rotation.x = PI / 2; g.add(disc);
   const rim = new THREE.Mesh(new THREE.TorusGeometry(1.05, .07, 6, 36), glowing); g.add(rim);
   if (rank >= 2) { const outer = new THREE.Mesh(new THREE.TorusGeometry(1.24, .07, 6, 36), glowing); g.add(outer); }
-  for (const s of SIGILS[def.icon] ?? SIGILS.glow) {
-    if ('l' in s) { const [x0, y0, x1, y1] = s.l, len = Math.hypot(x1 - x0, y1 - y0); add(new THREE.BoxGeometry(len + W, W, W), glowing, (x0 + x1) / 2, (y0 + y1) / 2, Math.atan2(y1 - y0, x1 - x0)); }
-    else if ('c' in s) { const [x, y, r] = s.c; add(new THREE.TorusGeometry(r, W / 2, 4, 24), glowing, x, y); }
-    else { const [x, y, r, a0, a1] = s.a; add(new THREE.TorusGeometry(r, W / 2, 4, 20, a1 - a0), glowing, x, y, a0); }
-  }
+  emblem(g, SIGILS[def.icon] ?? SIGILS.glow, glowing, W);
   return g;
 }
 

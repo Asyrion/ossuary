@@ -1,12 +1,16 @@
 /* A spell described as far as the mage knows it (M3.7, GDD: Spells, Spell knowledge). The panel over a grimoire page and
    the inventory's spells tab share it. Seen: name, school, the one-line effect. Learned: its shape, mana, cooldown,
    damage and statuses (M6 step 5: a status's number as the boons taken make it, and those boons). Used: its lore and the
-   reactions it sets off. Upgraded: what changed it (M6). */
+   reactions it sets off. Upgraded: what changed it (M6). M6 step 7: a slotted spell is shown as its runes make it (the
+   numbers runed, the base in brackets), with the runes carved in its slot; Upgraded lists the runes it has borne. */
 import { STR } from '../strings';
 import { CFG } from '../config';
 import { spellIcon } from './hud';
 import { spellCost } from '../magic/cost';
 import type { SpellDef } from '../magic/spellData';
+import { rune, runedDef, type RuneId } from '../magic/runeData';
+import { upgradesOf } from '../magic/memory';
+import { runeIconImg } from '../items/runeLooks';
 import { type Stage, REACTION_IDS, atLeast, reactionSchools, reactionsOf } from '../magic/knowledge';
 import type { Reaction } from '../magic/status';
 import { reactionsFound, weavesFound } from '../magic/memory';
@@ -23,9 +27,10 @@ export function head(icon: string, name: string, kind: string, kindIsHtml = fals
   return `<div class="top">${icon ? `<div class="big">${icon}</div>` : ''}<div><h3>${esc(name)}</h3><p class="kind">${kindIsHtml ? kind : esc(kind)}</p></div></div>`;
 }
 
-/** `def` at `stage`, with a note (which slot it is in, that it was given up...). `casts` counts toward knowing it well. */
-export function spellSheet(def: SpellDef, stage: Stage, note = '', casts = 0) {
-  const I = STR.inv, K = STR.knowledge, learned = atLeast(stage, 'learned'), used = atLeast(stage, 'used');
+/** `def` at `stage`, with a note (which slot it is in, that it was given up...). `casts` counts toward knowing it well;
+    `runes` are those carved in its slot (M6 step 7). */
+export function spellSheet(base: SpellDef, stage: Stage, note = '', casts = 0, runes: readonly RuneId[] = []) {
+  const I = STR.inv, K = STR.knowledge, learned = atLeast(stage, 'learned'), used = atLeast(stage, 'used'), def = runedDef(base, runes);
   const school = `<span style="color:${def.color}">${esc(I.school(STR.schools[def.school]))}</span>`;
   let html = head(spellIcon(def.id), def.name, learned ? `${school} · ${esc(I.shapes[def.shape] ?? def.shape)}` : school, true)
     + `<p class="effect">${esc(def.text)}</p>`;
@@ -33,12 +38,15 @@ export function spellSheet(def: SpellDef, stage: Stage, note = '', casts = 0) {
   const cost = Math.round(spellCost(def)), statuses = Object.entries(def.status ?? {}), taken = G.run.boons;
   const chip = (k: string, v: number) => { const now = Math.round(v * statusMul(k as SpellStatus, taken) * 10) / 10, t = I.status[k]?.(now) ?? k; return now === v ? t : I.boosted(t, v); };
   const boons = boonsTouching(def, taken);
-  html += `<div class="chips">${[I.mana(cost, def.mana), I.cooldown(def.cooldown), def.damage ? I.damage(def.damage) : ''].filter(Boolean).map(t => `<span class="chip">${esc(t)}</span>`).join('')}`
+  const was = (t: string, now: number, then: number) => now === then ? t : I.boosted(t, then); // (M6: a rune changed it: the base in brackets)
+  html += `<div class="chips">${[I.mana(cost, base.mana), was(I.cooldown(def.cooldown), def.cooldown, base.cooldown), def.damage ? was(I.damage(def.damage), def.damage, base.damage) : ''].filter(Boolean).map(t => `<span class="chip">${esc(t)}</span>`).join('')}`
     + statuses.map(([k, v]) => `<span class="chip st-${k}">${esc(chip(k, v))}</span>`).join('') + '</div>'
     + (note ? `<p class="note">${esc(note)}</p>` : '')
     + statuses.map(([k]) => `<p class="note">${esc(k === 'chill' ? I.chillText(boonTuning(MAGIC, taken).chill.freezeAt) : I.statusText[k] ?? '')}</p>`).join('')
     + (boons.length ? `<p class="lbl">${esc(STR.boons.yours)}</p>` + boons.map(id => { const b = boon(id), r = taken[id] ?? 1;
-      return `<p class="note boon" style="--c:${b.color}"><i style="background:${b.color}"></i><b>${esc(r > 1 ? STR.boons.ranked(b.name) : b.name)}</b>: ${esc(boonText(id, r))}</p>`; }).join('') : '');
+      return `<p class="note boon" style="--c:${b.color}"><i style="background:${b.color}"></i><b>${esc(r > 1 ? STR.boons.ranked(b.name) : b.name)}</b>: ${esc(boonText(id, r))}</p>`; }).join('') : '')
+    + (runes.length ? `<p class="lbl">${esc(K.runesLbl)}</p>` + runes.map(id => { const r = rune(id);
+      return `<p class="note rune">${runeIconImg(id)}<b>${esc(r.name)}</b>: ${esc(r.text)}</p>`; }).join('') : '');
   if (!used) return html + `<p class="note">${esc(K.castMore(Math.max(1, CFG.knowledge.usedCasts - casts)))}</p>`;
   const sets = reactionsOf(def);
   const found = reactionsFound(); // (M4.8: the ones not yet found are marked so, and dimmed)
@@ -49,7 +57,9 @@ export function spellSheet(def: SpellDef, stage: Stage, note = '', casts = 0) {
   if (woven.length) html += `<p class="lbl">${esc(K.weavesLbl)}</p>` + woven.map(id => wf.includes(id)
     ? `<p class="note">${esc(STR.weaves[id].name)}: ${esc(STR.weaves[id].text)}</p>`
     : `<p class="note dim">${esc(K.unfound)}</p>`).join('');
-  return html + `<p class="lore">${esc(def.lore)}</p>`; // (upgraded, M6: what changed it goes here)
+  const borne = stage === 'upgraded' ? upgradesOf(def.id).filter(u => u.startsWith('rune:')).map(u => u.slice(5)) : []; // (M6: what changed it)
+  if (borne.length) html += `<p class="lbl">${esc(K.upgradedLbl)}</p><p class="note">${esc(K.borne(borne.map(id => rune(id as RuneId).name).join(', ')))}</p>`;
+  return html + `<p class="lore">${esc(def.lore)}</p>`;
 }
 
 /* ---------- the wheel of reactions (M4.8) ---------- */

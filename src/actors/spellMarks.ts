@@ -10,7 +10,7 @@
      spell known well (kept between runs), a school known in full closing its arc.
    All of it in world space (the scene, not the model), so the motes trail as the mage moves. */
 import * as THREE from 'three';
-import { G, player } from '../state';
+import { G, after, player } from '../state';
 import { CFG } from '../config';
 import { STR } from '../strings';
 import { scene } from '../render/renderer';
@@ -26,20 +26,23 @@ import { knowledgeVersion, stage } from '../magic/memory';
 import { attunedTo, circleOf, handState, masteredSchools, type CircleArc, type HandState } from '../magic/marksData';
 import { castSide, offSide } from './costumeFit';
 import { handAt } from './costume';
+import { rune as runeDef } from '../magic/runeData';
 
 const M = CFG.marks;
-interface Hand { id: string; school: School; root: THREE.Group; glow: THREE.Sprite; motes: THREE.Object3D; ring: THREE.Group; was: HandState['state']; pulse: number; spark: number }
+interface Hand { id: string; school: School; root: THREE.Group; glow: THREE.Sprite; motes: THREE.Object3D; ring: THREE.Group; was: HandState['state']; pulse: number; spark: number;
+  /** M6 step 7: the runes it was built with (the socket's array: a new one on every change), their specks, and their spin. */ runes: readonly string[]; specks: THREE.Mesh[]; spin: number }
 const hands: (Hand | null)[] = [null, null];
 let aura: { school: School; root: THREE.Group } | null = null;
 let circle: { key: string; root: THREE.Group; mats: THREE.MeshBasicMaterial[]; arcs: CircleArc[] } | null = null;
 let circleFade = 0;
-const v = new THREE.Vector3(), grey = new THREE.Color(0x8a8a8a);
+const v = new THREE.Vector3(), grey = new THREE.Color(0x8a8a8a), blood = new THREE.Color(0xd02020), veined = new THREE.Color();
 
 /** The motes of a school's motion over (or under) a spot: how far they travel and which way. */
 const motes = (school: School, specs: { x: number; y: number; z: number; h: number; w: number }[], n: number, speed: number) =>
   makeMotes(specs, SCHOOL_LIGHT[school], n, M.rise[school], speed);
 
-function buildHand(id: string, school: School): Hand {
+const R = M.runes;
+function buildHand(id: string, school: School, runes: readonly string[]): Hand {
   const root = new THREE.Group(), color = SCHOOL_LIGHT[school];
   const g = glow(color, M.hand.size, M.hand.ready); root.add(g);
   const m = motes(school, [{ x: 0, y: 0, z: 0, h: .05, w: .07 }], M.hand.motes, 1.2); root.add(m);
@@ -48,8 +51,18 @@ function buildHand(id: string, school: School): Hand {
   turn.add(new THREE.Mesh(new THREE.TorusGeometry(M.ring.radius, .005, 3, 24), mat));
   for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2; rune(turn, color, [Math.cos(a) * M.ring.radius, Math.sin(a) * M.ring.radius, 0], .035, [0, 0, a], mat); }
   mergeStill(turn); ring.rotation.x = Math.PI / 2; root.add(ring);
+  // M6 step 7: a speck for each rune (Thrice three, fanned), and Wide's faint disc under the hand
+  const specks: THREE.Mesh[] = [];
+  runes.forEach((rid, i) => {
+    const mat = new THREE.MeshBasicMaterial({ color: runeDef(rid as never).color, transparent: true, opacity: .95, blending: THREE.AdditiveBlending, depthWrite: false });
+    for (let k = 0; k < (rid === 'thrice' ? 3 : 1); k++) {
+      const sp = new THREE.Mesh(new THREE.OctahedronGeometry(R.size / 2, 0), mat);
+      sp.userData = { a: i / runes.length * Math.PI * 2 + (rid === 'thrice' ? (k - 1) * .45 : 0), r: rid === 'seeking' ? R.seek : R.r }; specks.push(sp); root.add(sp);
+    }
+    if (rid === 'wide') { const disc = new THREE.Mesh(new THREE.RingGeometry(R.disc * .8, R.disc, 20), new THREE.MeshBasicMaterial({ color: runeDef('wide').color, transparent: true, opacity: R.discOpacity, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })); disc.rotation.x = -Math.PI / 2; disc.position.y = -.05; root.add(disc); }
+  });
   scene.add(root);
-  return { id, school, root, glow: g, motes: m, ring, was: 'ready', pulse: 0, spark: 0 };
+  return { id, school, root, glow: g, motes: m, ring, was: 'ready', pulse: 0, spark: 0, runes, specks, spin: 0 };
 }
 function dropHand(h: Hand | null) { if (h) { scene.remove(h.root); disposeTree(h.root); } return null; }
 
@@ -109,16 +122,21 @@ export function updateSpellMarks(dt: number) {
   const now = G.simClock, { arcs, key } = knowledge(), mastered = masteredSchools(arcs), off = player.dead;
   // the spells in hand
   for (const slot of [0, 1]) {
-    const id = player.spells[slot], def = slotDef(slot); // (M6: as its runes make it)
-    if (hands[slot] && (!def || hands[slot]!.id !== id)) hands[slot] = dropHand(hands[slot]);
+    const id = player.spells[slot], def = slotDef(slot), runes = player.sockets[slot]?.runes ?? []; // (M6: as its runes make it)
+    if (hands[slot] && (!def || hands[slot]!.id !== id || hands[slot]!.runes !== runes)) hands[slot] = dropHand(hands[slot]); // (built again when its runes change)
     if (!def || off) { if (hands[slot]) hands[slot]!.root.visible = false; continue; }
-    const h = hands[slot] ??= buildHand(def.id, def.school);
+    const h = hands[slot] ??= buildHand(def.id, def.school, runes);
     if (!handAt(slot === 0 ? castSide() : offSide(), v)) { h.root.visible = false; continue; }
     h.root.visible = true; h.root.position.copy(v); h.root.position.y += M.hand.lift; firstTime('hands', STR.marks.hands);
     const cost = spellCost(def), st = handState(player.spellCd[slot], spellCooldown(def), payment(slot) !== null, cost > 0 ? player.mana / cost : 1);
-    if (st.state === 'ready' && h.was !== 'ready') { h.pulse = 1; ringFx(v.x, v.y + M.hand.lift, v.z, SCHOOL_LIGHT[h.school], .03, M.hand.flash, .3); } // (ready again: a flash)
-    h.was = st.state; h.pulse = Math.max(0, h.pulse - dt * M.hand.pulse);
-    const mat = h.glow.material, color = SCHOOL_LIGHT[h.school];
+    if (st.state === 'ready' && h.was !== 'ready') {
+      h.pulse = 1; ringFx(v.x, v.y + M.hand.lift, v.z, SCHOOL_LIGHT[h.school], .03, M.hand.flash, .3); // (ready again: a flash)
+      if (runes.includes('reprise')) { const at = h.root.position.clone(), c = SCHOOL_LIGHT[h.school]; after(R.echo, () => ringFx(at.x, at.y, at.z, c, .02, M.hand.flash * .75, .3)); } // (M6: Reprise's second, fainter)
+    }
+    h.was = st.state; h.pulse = Math.max(0, h.pulse - dt * M.hand.pulse * (runes.includes('lasting') ? R.lasting : 1)); // (M6: Lasting's slower fade)
+    const mat = h.glow.material, color = runes.includes('vein') ? veined.set(SCHOOL_LIGHT[h.school]).lerp(blood, R.vein).getHex() : SCHOOL_LIGHT[h.school]; // (M6: Vein's red)
+    h.spin += dt * R.spin * (runes.includes('quicken') ? R.quick : 1);
+    for (const sp of h.specks) { const a = sp.userData.a + h.spin, r = sp.userData.r * (sp.userData.r === R.seek ? 1 + Math.sin(now * 3 + sp.userData.a) * .25 : 1); sp.position.set(Math.cos(a) * r, .01 + Math.sin(a * 2) * .015, Math.sin(a) * r); }
     if (st.state === 'ready') { mat.color.set(color); mat.opacity = M.hand.ready + Math.sin(now * M.hand.shimmer + slot) * M.hand.shimmerBy; }
     else if (st.state === 'cooling') { mat.color.set(color); mat.opacity = M.hand.dim + (M.hand.ready - M.hand.dim) * st.fill * M.hand.cooling; }
     else { mat.color.set(color).lerp(grey, M.hand.grey); mat.opacity = M.hand.dim * (.6 + .4 * Math.abs(Math.sin(now * M.hand.flicker))); }
@@ -158,7 +176,7 @@ export function knownWellNow(school: School) {
 export function marksNow() {
   const { arcs } = knowledge();
   return {
-    hands: hands.map(h => h && h.root.visible ? { spell: h.id, school: h.school, state: h.was, glow: +h.glow.material.opacity.toFixed(2), ring: h.ring.visible } : null),
+    hands: hands.map(h => h && h.root.visible ? { spell: h.id, school: h.school, state: h.was, glow: +h.glow.material.opacity.toFixed(2), ring: h.ring.visible, specks: h.specks.length, tint: '#' + h.glow.material.color.getHexString() } : null),
     attuned: aura?.school ?? null, circle: { shown: !!circle?.root.visible, fade: +circleFade.toFixed(2), known: arcs.map(a => a.spells.filter(s => s.known).length), mastered: masteredSchools(arcs) },
   };
 }

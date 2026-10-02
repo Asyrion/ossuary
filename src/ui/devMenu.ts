@@ -60,6 +60,7 @@ import { SCHOOLS, SPELL_DEFS } from '../magic/spellData';
 import { attuneTo, forgetSpells, gainMana, learnSpell } from '../magic/spells';
 import { carve, clearRunes, setSockets } from '../magic/runes';
 import { RUNE_DEFS, rune } from '../magic/runeData';
+import { runeIconImg } from '../items/runeLooks';
 import { findEveryReaction, findEveryWeave, forgetKnowledge, forgetReactions, forgetWeaves, knowEvery, knowledgeNow, reactionsFound, weavesFound } from '../magic/memory';
 import { WEAVE_IDS } from '../magic/weaves';
 import { setOffWeave } from '../magic/weaveTest';
@@ -325,7 +326,7 @@ function build() {
   const runes = section(pages.magic, S.runes);
   runes.append(runeInfo = el('p', 'dv-info'), ...RUNE_DEFS.map(r => {
     const b = btn(r.name, () => { const why = carve(spellSlot, r.id); if (why) toast(STR.runes.refused[why], 2); }, r.text);
-    const dot = el('i'); dot.style.background = r.color; b.prepend(dot); return b;
+    b.insertAdjacentHTML('afterbegin', runeIconImg(r.id)); return b; // (its glyph, as the panel shows it)
   }), btn(S.clearRunes, () => clearRunes(spellSlot)), socketBtn = btn('', () => setSockets(spellSlot, player.sockets[spellSlot].size > 1 ? 1 : 2)));
   const mana = section(pages.magic, S.mana);
   mana.append(
