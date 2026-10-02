@@ -17,6 +17,7 @@ import { mergeRig } from '../render/rig';
 import { ALL_BOSS_LOOKS } from './bossLooks';
 import { BESTIARY_OPTIONS } from './bestiaryLooks';
 import { FLOOR1_LOOKS } from './fantasyFloor1';
+import { FLOOR2_LOOKS } from './fantasyFloor2';
 import { SCHOOL_LIGHT, bigEyes, box, circle, crystal, limb, lit, motes, part, rune, runeRing, shine, sphere, std, type School, type V3 } from '../render/arcane';
 
 /** A built option: its group, how it idles, the size of the shadow under it, and the parts a foe's behaviour moves beyond
@@ -29,87 +30,6 @@ const blink = (list: THREE.Object3D[], t: number, every = 3.4, at = 0) => { cons
 const smile = (parent: THREE.Object3D, at: V3, r: number, color = 0x2a1418, tilt = 0) => part(parent, new THREE.TorusGeometry(r, r * .14, 4, 10, Math.PI), lit(color), at, { rot: [tilt, 0, Math.PI] });
 
 /* ---------- the options ---------- */
-
-/** Drowned floor, Frost: a fat toad with frost crystals growing on its back; it puffs its throat and breathes cold. */
-function mireToad(): Built {
-  const F = SCHOOL_LIGHT.frost, g = new THREE.Group(), skin = std(0x4f7a78), belly = std(0xc4d4c0), spotM = std(0x2f5250), ice = lit(F), body = new THREE.Group(); g.add(body);
-  part(body, sphere(.26, 12, 10), skin, [0, .2, -.04], { scale: [1.1, .72, 1] });
-  part(body, sphere(.2, 12, 10), skin, [0, .25, .14], { scale: [1.15, .7, .95] });
-  const throat = part(body, sphere(.12, 10, 8), belly, [0, .14, .24], { scale: [1.2, .8, .9] });
-  for (const s of [-1, 1]) part(body, sphere(.075, 8, 6), skin, [.1 * s, .33, .15]);
-  const eyes = bigEyes(body, .1, .37, .18, .062, 0x1a1224, .15);
-  part(body, new THREE.TorusGeometry(.2, .01, 4, 16, 1.2), lit(0x1a2a2a), [0, .43, .305], { rot: [0, 0, -Math.PI / 2 - .6] });
-  for (const [x, y, z, h, rx, rz] of [[0, .37, -.08, .17, 0, 0], [-.11, .35, -.02, .12, 0, .45], [.12, .34, -.12, .13, 0, -.45], [-.06, .32, -.22, .1, -.6, .2], [.05, .3, -.26, .09, -.7, -.2]])
-    crystal(body, F, [x, y, z], h, [rx, 0, rz], ice);
-  for (const [x, y, z] of [[.17, .28, -.02], [-.18, .26, -.1], [.08, .3, .06], [.2, .2, -.18]]) part(body, sphere(.03, 6, 5), spotM, [x, y, z]);
-  for (const s of [-1, 1]) {
-    part(body, sphere(.11, 8, 6), skin, [.22 * s, .1, -.12], { scale: [.8, .9, 1.3] });
-    part(body, sphere(.06, 6, 5), skin, [.25 * s, .02, .02], { scale: [1, .4, 1.6] });
-    limb(body, [.14 * s, .14, .18], [.17 * s, .02, .26], .03, skin); part(body, sphere(.045, 6, 5), skin, [.18 * s, .015, .28], { scale: [1.2, .4, 1.2] });
-  }
-  const frost = glow(F, .8, .4); frost.position.set(0, .4, -.12); body.add(frost);
-  const breath = [0, 1, 2].map(() => part(body, sphere(.06, 7, 6), shine(F, .45), [0, 0, 0]));
-  return { group: g, shadow: .75, parts: { body, throat }, idle: t => {
-    const puff = Math.max(0, Math.sin(t * 3.2)); throat.scale.set(1.2 + puff * .35, .8 + puff * .3, .9 + puff * .25);
-    body.scale.set(1, 1 + Math.sin(t * 1.6) * .02, 1); blink(eyes, t, 3.3); frost.material.opacity = .3 + Math.sin(t * 2) * .1;
-    breath.forEach((b, i) => { const q = (t * .45 + i * .08) % 1; b.visible = q < .45; const k = q / .45; b.position.set((i - 1) * .05 * k, .2 + k * .12, .34 + k * .45); b.scale.setScalar(.4 + k * 1.3); (b.material as THREE.MeshBasicMaterial).opacity = .45 * (1 - k); });
-  } };
-}
-
-/** Drowned floor, Storm: a round-headed eel rising from a rune-edged pool, lights along its flanks and a glowing lure on
-    each whisker. */
-function cisternLurker(): Built {
-  const S = SCHOOL_LIGHT.storm, g = new THREE.Group(), hide = std(0x2e6272), belly = std(0x9cc4b8), light = lit(S), fin = shine(0x9fe8ff, .5);
-  const disc = part(g, new THREE.CircleGeometry(.5, 20), std(0x12404a, { roughness: .15, metalness: .2, emissive: 0x06242a }), [0, .012, 0], { rot: [-Math.PI / 2, 0, 0] });
-  const edge = runeRing(g, S, .5, [0, .03, 0], 8);
-  const rise = new THREE.Group(); g.add(rise); // (all of it that rises out of the pool: M4's foe sinks it to dive)
-  const segs: THREE.Mesh[] = [], spots: THREE.Mesh[] = [];
-  for (let i = 0; i < 6; i++) { const r = .14 - i * .01, s = part(rise, sphere(r, 10, 8), i % 2 ? belly : hide, [0, 0, 0]); segs.push(s); if (!(i % 2)) for (const x of [-1, 1]) spots.push(part(s, sphere(.022, 5, 4), light, [r * .9 * x, .03, .03])); }
-  const head = new THREE.Group(); rise.add(head);
-  part(head, sphere(.18, 12, 10), hide, [0, 0, 0], { scale: [1.1, .95, 1] });
-  part(head, sphere(.12, 10, 8), belly, [0, -.06, .07], { scale: [1.2, .7, 1] });
-  const eyes = bigEyes(head, .08, .05, .13, .06);
-  smile(head, [0, -.05, .175], .04);
-  const lures: THREE.Sprite[] = [];
-  for (const s of [-1, 1]) {
-    limb(head, [.11 * s, -.05, .12], [.2 * s, -.1, .17], .012, hide); limb(head, [.2 * s, -.1, .17], [.27 * s, -.03, .2], .01, hide);
-    part(head, sphere(.03, 6, 5), light, [.27 * s, -.03, .2]); const l = glow(S, .3, .8); l.position.set(.27 * s, -.03, .2); head.add(l); lures.push(l);
-    part(head, sphere(.08, 8, 6), fin, [.18 * s, .05, -.03], { scale: [.3, 1, .9], rot: [0, 0, -.6 * s] });
-  }
-  for (let i = 0; i < 3; i++) part(head, new THREE.ConeGeometry(.04, .18, 4), fin, [(i - 1) * .06, .17, -.05], { rot: [-.4, 0, -(i - 1) * .5] });
-  const place = (t: number) => {
-    for (let i = 0; i < 6; i++) { const k = i / 6; segs[i].position.set(Math.sin(t * 1.8 + k * 3) * .1 * (1 - k * .3), .05 + k * .7, -.1 + Math.sin(k * 2.4) * .15); }
-    head.position.set(Math.sin(t * 1.8 + 3) * .07, .84, .04); head.rotation.set(.15 + Math.sin(t * 1.2) * .08, 0, Math.sin(t * .9) * .12);
-    edge.rotation.y = t * .3; blink(eyes, t, 3.6);
-    lures.forEach((l, i) => { l.material.opacity = (Math.floor(t * 6) + i * 2) % 5 ? .8 : .25; });
-    spots.forEach((s, i) => { s.visible = (Math.floor(t * 4) + i) % 5 !== 0; });
-  };
-  place(0);
-  return { group: g, shadow: .5, idle: place, parts: { rise, lures: lures[0], lures2: lures[1], disc } };
-}
-
-/** Drowned floor, Hallow: a jellyfish floating like a lantern, a little flame in its bell and gold light round its rim. */
-function lanternJelly(): Built {
-  const H = SCHOOL_LIGHT.hallow, g = new THREE.Group(), float = new THREE.Group(), tentM = std(0xf0d8a8), tipM = lit(H); g.add(float);
-  const bellM = std(0xf6dca0, { transparent: true, opacity: .6, emissive: 0x5a3a10, roughness: .3, side: THREE.DoubleSide, depthWrite: false });
-  const bell = new THREE.Group(); bell.position.y = .72; float.add(bell);
-  part(bell, new THREE.SphereGeometry(.26, 16, 10, 0, Math.PI * 2, 0, Math.PI * .56), bellM, [0, 0, 0], { scale: [1, .85, 1] });
-  part(bell, new THREE.TorusGeometry(.255, .018, 4, 24), lit(H), [0, -.04, 0], { rot: [Math.PI / 2, 0, 0] });
-  for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; part(bell, sphere(.03, 6, 5), tentM, [Math.cos(a) * .25, -.06, Math.sin(a) * .25]); }
-  const flame = new THREE.Group(); flame.position.y = .02; bell.add(flame);
-  part(flame, new THREE.ConeGeometry(.045, .13, 7), lit(0xfff0b0), [0, 0, 0]); part(flame, new THREE.ConeGeometry(.022, .07, 6), lit(0xffffff), [0, -.02, 0]);
-  const light = glow(H, .6, .5); light.position.y = .02; bell.add(light);
-  const eyes = bigEyes(bell, .08, .04, .22, .05);
-  const tents = Array.from({ length: 6 }, (_, i) => { const a = i / 6 * Math.PI * 2 + .3; return { a, parts: [0, 1, 2, 3, 4].map(j => part(float, sphere(.026 - j * .003, 6, 5), j === 4 ? tipM : tentM, [0, 0, 0])) }; });
-  const place = (t: number) => {
-    const p = Math.sin(t * 2.4); bell.scale.set(1 - p * .06, 1 + p * .08, 1 - p * .06); float.position.y = Math.sin(t * 1.2) * .06 + p * .02;
-    flame.scale.set(1, .85 + Math.sin(t * 13) * .15, 1); light.material.opacity = .45 + Math.sin(t * 9) * .08;
-    for (const { a, parts } of tents) parts.forEach((m, j) => { const sway = Math.sin(t * 2 - j * .8 + a * 3) * .025 * j; m.position.set(Math.cos(a) * (.17 - j * .01) + sway, .64 - j * .085, Math.sin(a) * (.17 - j * .01) + sway * .5); });
-    blink(eyes, t, 4.2);
-  };
-  place(0);
-  return { group: g, shadow: .5, idle: place, parts: { bell, light } };
-}
 
 /** Burning floor, Ember: a salamander with glowing spots, a crest of flame down its back and a flame on its tail. */
 function cinderSalamander(): Built {
@@ -435,8 +355,8 @@ function wardling(school: School): Built {
 export const MODEL_OPTIONS = [
   { id: 'sporeling', floor: 1, school: 'umbral', build: FLOOR1_LOOKS.sporeling }, { id: 'vesperMoth', floor: 1, school: 'hallow', build: FLOOR1_LOOKS.vesperMoth },
   { id: 'runeBeetle', floor: 1, school: 'storm', build: FLOOR1_LOOKS.runeBeetle }, { id: 'urnMimic', floor: 1, school: 'ember', build: FLOOR1_LOOKS.urnMimic },
-  { id: 'mireToad', floor: 2, school: 'frost', build: mireToad }, { id: 'cisternLurker', floor: 2, school: 'storm', build: cisternLurker },
-  { id: 'lanternJelly', floor: 2, school: 'hallow', build: lanternJelly },
+  { id: 'mireToad', floor: 2, school: 'frost', build: FLOOR2_LOOKS.mireToad }, { id: 'cisternLurker', floor: 2, school: 'storm', build: FLOOR2_LOOKS.cisternLurker },
+  { id: 'lanternJelly', floor: 2, school: 'hallow', build: FLOOR2_LOOKS.lanternJelly },
   { id: 'cinderSalamander', floor: 3, school: 'ember', build: cinderSalamander }, { id: 'hexImp', floor: 3, school: 'umbral', build: hexImp },
   { id: 'rimeDrakeling', floor: 3, school: 'frost', build: rimeDrakeling },
   { id: 'wickmouse', floor: 4, school: 'ember', build: wickmouse }, { id: 'chimeBat', floor: 4, school: 'storm', build: chimeBat },

@@ -7,7 +7,8 @@
 import type { School } from '../render/arcane';
 import type { Built } from './beastParts';
 import { FLOOR1_LOOKS, lampwyrmSwarm } from './fantasyFloor1';
-import { rimeSnail, glassNewt, stormDarter, puffcap, emberWasp, rimeScarab, gloomRaven, rimeWolf, dustPangolin, frostJackalope, waspNest } from './bestiaryBeasts';
+import { FLOOR2_LOOKS } from './fantasyFloor2';
+import { puffcap, emberWasp, rimeScarab, gloomRaven, rimeWolf, dustPangolin, frostJackalope, waspNest } from './bestiaryBeasts';
 import { grimoireMimic, brineSerpent, phoenix, basilisk, griffin, radiantEye, harpy, shadowFox, hydra, manticore } from './bestiaryCreatures';
 import { puddleElemental, thunderhead, cinderDjinn, magmaOoze, saltGolem, rubbleGolem, lodestoneGolem, hearthGolem, glacierGolem, rubbleStone } from './bestiaryElementals';
 
@@ -24,12 +25,12 @@ export const BESTIARY_OPTIONS = [
   { id: 'choirLark', kind: 'beast', school: 'hallow', floor: 1, build: FLOOR1_LOOKS.choirLark },
   { id: 'stormMantis', kind: 'beast', school: 'storm', floor: 1, build: FLOOR1_LOOKS.stormMantis },
   { id: 'rubbleCrab', kind: 'beast', school: 'storm', floor: 1, build: FLOOR1_LOOKS.rubbleCrab },
-  { id: 'rimeSnail', kind: 'beast', school: 'frost', floor: 2, build: rimeSnail },
-  { id: 'glassNewt', kind: 'beast', school: 'frost', floor: 2, build: glassNewt },
+  { id: 'rimeSnail', kind: 'beast', school: 'frost', floor: 2, build: FLOOR2_LOOKS.rimeSnail },
+  { id: 'glassNewt', kind: 'beast', school: 'frost', floor: 2, build: FLOOR2_LOOKS.glassNewt },
   { id: 'brineSerpent', kind: 'creature', school: 'frost', floor: 2, build: brineSerpent },
   { id: 'puddleElemental', kind: 'elemental', school: 'frost', floor: 2, build: puddleElemental },
   { id: 'thunderhead', kind: 'elemental', school: 'storm', floor: 2, build: thunderhead },
-  { id: 'stormDarter', kind: 'beast', school: 'storm', floor: 2, build: stormDarter },
+  { id: 'stormDarter', kind: 'beast', school: 'storm', floor: 2, build: FLOOR2_LOOKS.stormDarter },
   { id: 'puffcap', kind: 'beast', school: 'umbral', floor: 2, build: puffcap },
   { id: 'emberWasp', kind: 'beast', school: 'ember', floor: 3, build: emberWasp },
   { id: 'cinderDjinn', kind: 'elemental', school: 'ember', floor: 3, build: cinderDjinn },
