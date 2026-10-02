@@ -96,7 +96,7 @@ export const player: Player = {
   squash: 0, bob: 0, focus: START_FOCUS, items: [], heartsPaid: 0, cleansed: [], stats: computeStats(START_FOCUS, [], CFG.hero),
   coins: 0, keys: 0, glyphs: 0, souls: [], still: 0,
   mana: CFG.hero.mana, spells: [null, null], spellCd: [0, 0], aim: { x: 0, z: -1 }, dim: 0, chill: 0, stone: 0, pull: { x: 0, z: 0 }, hexed: 0, drained: 0, hexDebt: 0, hexDebtUntil: 0, drawn: 0,
-  belt: [], beltAt: 0, reagents: {},
+  belt: [], beltAt: 0, reagents: {}, sockets: [{ size: 1, runes: [] }, { size: 1, runes: [] }], runes: [],
 };
 
 /* Gameplay timers run on simulation time (not setTimeout), so they pause with the game and

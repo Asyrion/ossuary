@@ -58,6 +58,8 @@ import { openSecretRoom, revealCracks } from '../world/secret';
 import { cleanseAtOnce } from '../world/shrine';
 import { SCHOOLS, SPELL_DEFS } from '../magic/spellData';
 import { attuneTo, forgetSpells, gainMana, learnSpell } from '../magic/spells';
+import { carve, clearRunes, setSockets } from '../magic/runes';
+import { RUNE_DEFS, rune } from '../magic/runeData';
 import { findEveryReaction, findEveryWeave, forgetKnowledge, forgetReactions, forgetWeaves, knowEvery, knowledgeNow, reactionsFound, weavesFound } from '../magic/memory';
 import { WEAVE_IDS } from '../magic/weaves';
 import { setOffWeave } from '../magic/weaveTest';
@@ -87,7 +89,7 @@ import { BOON_DEFS, boon } from '../progression/boonData';
 
 const S = STR.dev;
 let panel: HTMLElement | null = null, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
-let levelInfo: HTMLElement, padInfo: HTMLElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
+let levelInfo: HTMLElement, padInfo: HTMLElement, runeInfo: HTMLElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries'] as const;
 type Tab = (typeof TABS)[number];
@@ -317,8 +319,14 @@ function build() {
   spellBox = section(pages.magic, S.spells);
   const slotSel = el('select'); slotSel.setAttribute('aria-label', S.slot);
   for (const [i, k] of STR.controls.spellsKeys.split(' and ').entries()) { const o = el('option', '', `${S.slot} ${k}`); o.value = String(i); slotSel.append(o); }
-  slotSel.addEventListener('change', () => { spellSlot = Number(slotSel.value); });
+  slotSel.addEventListener('change', () => { spellSlot = Number(slotSel.value); refresh(); }); // (the socket's button shows the chosen slot's)
   spellBox.parentElement!.insertBefore(slotSel, spellBox);
+  // runes (M6 step 7): carved into the chosen slot's socket; refused with the reason when one doesn't fit
+  const runes = section(pages.magic, S.runes);
+  runes.append(runeInfo = el('p', 'dv-info'), ...RUNE_DEFS.map(r => {
+    const b = btn(r.name, () => { const why = carve(spellSlot, r.id); if (why) toast(STR.runes.refused[why], 2); }, r.text);
+    const dot = el('i'); dot.style.background = r.color; b.prepend(dot); return b;
+  }), btn(S.clearRunes, () => clearRunes(spellSlot)), socketBtn = btn('', () => setSockets(spellSlot, player.sockets[spellSlot].size > 1 ? 1 : 2)));
   const mana = section(pages.magic, S.mana);
   mana.append(
     btn(S.fullMana, () => gainMana(player.stats.maxMana)),
@@ -526,6 +534,8 @@ function refresh() {
   reagentBtn.textContent = DEV.reagents ? S.reagentsOn : S.reagentsOff; reagentBtn.classList.toggle('on', DEV.reagents);
   alchInfo.textContent = S.alchemyInfo(player.belt.length, beltSlots(), POTION_IDS.filter(knownPotion).length, POTION_IDS.length, brewedPotions().length, S.serpentState[G.run.serpent], G.run.restless);
   { const v = insightNow(); levelInfo.textContent = S.levelsInfo(v.level, Math.round(v.insight), Math.ceil(v.next), v.pending) + ' ' + S.attrsInfo(ATTRS.map(a => `${STR.attrs[a].name} ${G.run.attrs[a]}`).join(', '), pointsToSpend()); }
+  runeInfo.textContent = S.runesInfo(player.sockets.map(k => k.runes.map(id => rune(id).name).join(' + ') + (k.size > 1 ? ` (${k.runes.length}/${k.size})` : '')), player.runes.map(id => rune(id).name).join(', '));
+  socketBtn.textContent = player.sockets[spellSlot].size > 1 ? S.socketTwo : S.socketOne; socketBtn.classList.toggle('on', player.sockets[spellSlot].size > 1);
   { const list = padsNow(); padInfo.replaceChildren(...(list.length ? list.map(g => el('div', '', S.padRow(g.index, g.id, g.mapping, g.buttons, g.axes))) : [el('div', '', S.noPads)])); }
   autoBtn.textContent = DEV.autoLevel ? S.autoLevelOn : S.autoLevelOff; autoBtn.classList.toggle('on', !!DEV.autoLevel);
   boonInfo.textContent = S.boonsInfo(Object.entries(G.run.boons).map(([id, r]) => `${boon(id).name}${r > 1 ? ' II' : ''}`).join(', '));

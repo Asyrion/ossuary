@@ -39,14 +39,19 @@ const css = (c: string) => parseInt(c.slice(1), 16);
 /** Boon `id` at work at (x, z): counted (the tests read it); its name rises there once a room, a line says what it did
     the first time in a run, and its school's note sounds. */
 export function boonActs(id: string, x = player.x, z = player.z) {
-  G.run.acted[id] = (G.run.acted[id] ?? 0) + 1;
-  const room = G.current, said = room.boonsSaid ??= new Set();
-  if (said.has(id)) return;
-  said.add(id);
   const def = boon(id);
-  floatText(x, 1.4, z, def.name, css(def.color), 44); // (a name: it stacks over a reaction's rising from the same spot)
-  if (!G.run.hinted.has('boon:' + id)) { G.run.hinted.add('boon:' + id); line(STR.boons.acts[id] ?? def.text, CFG.afflict.lineShow); }
-  Sfx.at(x, z).boon(def.school ?? 'hallow');
+  actsHere(id, 'boon:' + id, def.name, def.color, STR.boons.acts[id] ?? def.text, x, z, () => Sfx.at(x, z).boon(def.school ?? 'hallow'));
+}
+/** What the mage carries at work at (x, z) (a boon; M6 step 7: a rune): counted under `key` in `G.run.acted`; `name` rises
+    there once a room in `color`, `text` shows the first time in a run (`hint`), and `sound` plays with the name. */
+export function actsHere(key: string, hint: string, name: string, color: string, text: string, x: number, z: number, sound: () => void) {
+  G.run.acted[key] = (G.run.acted[key] ?? 0) + 1;
+  const said = G.current.boonsSaid ??= new Set();
+  if (said.has(key)) return;
+  said.add(key);
+  floatText(x, 1.4, z, name, css(color), 44); // (a name: it stacks over a reaction's rising from the same spot)
+  if (!G.run.hinted.has(hint)) { G.run.hinted.add(hint); line(text, CFG.afflict.lineShow); }
+  sound();
 }
 
 /** Boon `id` mends `halves` half hearts, the light coming from (x, z): not at full health, and no more than
