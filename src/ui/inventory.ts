@@ -117,7 +117,7 @@ function artifactEntries(): Entry[] {
     wheel of reactions: one entry for each pair of schools, found or not yet. */
 function spellEntries(): Entry[] {
   const keys = STR.controls.spellsKeys.split(' and '), pads = STR.controls.spellsPad.split(' and '), K = STR.knowledge;
-  const sheet = (id: string, note = '') => spellSheet(spell(id), stage(id), note, castsOf(id));
+  const sheet = (id: string, note = '') => { const at = player.spells.indexOf(id); return spellSheet(spell(id), stage(id), note, castsOf(id), at >= 0 ? player.sockets[at].runes : []); }; // (M6: a slotted spell as its runes make it)
   const slots: Entry[] = player.spells.map((id, i) => id ? {
     icon: spellIcon(id), label: spell(id).name, corner: keys[i], section: i === 0 ? I().carried : undefined,
     detail: () => sheet(id, `${I().slot(keys[i])} · ${pads[i]}`),

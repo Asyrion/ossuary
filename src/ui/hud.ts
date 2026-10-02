@@ -9,7 +9,8 @@ import { obolFace, obolIconUrl } from '../items/obolFace';
 import { artifactIconUrl } from '../items/artifactIcons';
 import { artifact } from '../items/artifactData';
 import { spell } from '../magic/spellData';
-import { slotDef, spellCooldown, spellCost } from '../magic/cost';
+import { payment, slotDef, spellCooldown, spellCost } from '../magic/cost';
+import { rune } from '../magic/runeData';
 import { $, clamp } from '../util';
 
 /** A soul mote's flame (M4.1), and its colours: fill, rim, and the brighter core. */
@@ -119,12 +120,16 @@ export function spellIconSvg(id: string, color: string) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="128" height="128" style="color:${color}">${SPELL_ICONS[spell(id).icon] ?? SPELL_ICONS.arc}</svg>`;
 }
 
-/** The two spell slots: the spell's icon, its key and its mana cost (empty slots dimmed). */
+/** The two spell slots: the spell's icon, its key and its mana cost (empty slots dimmed); M6 step 7: a pip for each place
+    in the slot's socket, in the colour of the rune carved there (hollow while empty), and Vein's half heart, shown while it
+    would pay. */
 export function renderSpells() {
   player.spells.forEach((id, i) => {
-    const slot = $(`slot${i}`), key = STR.controls.spellsKeys.split(' and ')[i] ?? '';
+    const slot = $(`slot${i}`), key = STR.controls.spellsKeys.split(' and ')[i] ?? '', socket = player.sockets[i];
     slot.classList.toggle('empty', !id);
-    slot.innerHTML = id ? `${spellIcon(id)}<i class="cd"></i><b>${key}</b><small>${slotDef(i)!.mana}</small>` : `<b>${key}</b>`; // (M6: as its runes make it)
+    const pips = socket ? Array.from({ length: socket.size }, (_, k) => { const r = socket.runes[k]; return r ? `<i style="--c:${rune(r).color}"></i>` : '<i class="hollow"></i>'; }).join('') : '';
+    slot.innerHTML = id ? `${spellIcon(id)}<i class="cd"></i><b>${key}</b><small>${slotDef(i)!.mana}</small><span class="pips">${pips}</span>`
+      + (socket?.runes.includes('vein') ? `<svg class="blood" viewBox="0 0 24 24" aria-hidden="true"><path d="${HEART_PATH}" fill="#c42c1f" clip-path="url(#halfclip)"/></svg>` : '') : `<b>${key}</b>`; // (M6: as its runes make it)
   });
 }
 let lastMana = -1;
@@ -142,6 +147,7 @@ function updateMagicHud() {
     const cost = Math.round(spellCost(def)), small = slot.querySelector('small');
     if (small && small.textContent !== String(cost)) small.textContent = String(cost); // the Witch's Knot changes it
     slot.classList.toggle('poor', player.mana < spellCost(def));
+    slot.classList.toggle('vein', payment(i) === 'vein'); // (M6: Vein would pay in blood)
   });
 }
 /** A refused cast: the slot flashes red, and the mana bar too when mana was short. */
