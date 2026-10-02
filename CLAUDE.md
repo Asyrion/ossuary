@@ -238,7 +238,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   in `tools/imageChecks.ts`, previews in `asset-previews/`) prepare the owner's files; `tools/make-standins.ts` makes
   the stand-ins in `tests/fixtures/assets/` that the tests load. The dev menu's Made assets section lists them,
   turns them off to compare, shows them ahead of the mage, and puts a frame readout on screen (`DEV.fps`).
-  Coin faces (2026-10-02, the owner's coins in `inspiration/coins/`): `coins` in `data/assets.json` (a face 56 across and
+  Coin faces (2026-10-02, the owner's coins in `inspiration/coins/`): `coins` in `data/assets.json` (a face 48 across and
   a 24 px icon each, from `prepare-texture --kind coin`, `coinCircle` in imageChecks.ts) and `obol`, the face the obols
   wear (Star and crystal, the owner's choice); `src/items/obolFace.ts` (`obolFace`, the dev menu's choice kept as
   `ossuary.obolFace`), `facedObol` in pickupLooks.ts (a coin `CFG.pickups.coinPixels` across tipped to the camera, put on

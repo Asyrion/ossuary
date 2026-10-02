@@ -3016,13 +3016,13 @@ test('coin faces: the obols wear the owner\'s coin, drawn on the fine layer, in 
     return { face: g.obolFace, maps: [...new Map(maps.map(m => [m.src, m])).values()], hud, fineDrawn: g.fineLayerDrawn };
   });
   await page.evaluate(() => { const g = (window as unknown as { __game: GC }).__game; g.drop('coin', g.player.x + 2, g.player.z - 2); g.sim(.3, true); });
-  // the manifest's face: 56 pixels across on the fine layer (two to each of the coin's 28 game pixels), drawn pixel for
+  // the manifest's face: 48 pixels across on the fine layer (two to each of the coin's 24 game pixels), drawn pixel for
   // pixel, and its icon on the HUD's counter
-  expect(await look()).toEqual({ face: 'star_crystal', maps: [{ w: 56, src: 'star_crystal.png', near: true, fine: true }], hud: 'star_crystal-icon.png', fineDrawn: true });
+  expect(await look()).toEqual({ face: 'star_crystal', maps: [{ w: 48, src: 'star_crystal.png', near: true, fine: true }], hud: 'star_crystal-icon.png', fineDrawn: true });
   expect(await page.evaluate(() => (window as unknown as { __game: GC }).__game.obolFaces)).toEqual(['arcane_eye', 'silver_owl', 'star_crystal', 'grave_coin', 'arcane_sigil', 'pale_obol', 'plain_profile', 'rune']);
   // another face: the obol lying there and the counter change with it; the rune: the coin built in code, the drawn icon
   await page.evaluate(() => { const g = (window as unknown as { __game: GC }).__game; g.wearFace('pale_obol'); g.sim(.1, true); });
-  expect(await look()).toEqual({ face: 'pale_obol', maps: [{ w: 56, src: 'pale_obol.png', near: true, fine: true }], hud: 'pale_obol-icon.png', fineDrawn: true });
+  expect(await look()).toEqual({ face: 'pale_obol', maps: [{ w: 48, src: 'pale_obol.png', near: true, fine: true }], hud: 'pale_obol-icon.png', fineDrawn: true });
   await page.evaluate(() => { const g = (window as unknown as { __game: GC }).__game; g.wearFace('rune'); g.sim(.1, true); });
   expect(await look()).toEqual({ face: 'rune', maps: [], hud: null, fineDrawn: false }); // (nothing on the fine layer: the rune is drawn with the rest)
   // the choice is remembered in the browser; the gallery stands every face side by side
