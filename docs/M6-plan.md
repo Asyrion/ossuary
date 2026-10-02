@@ -1,6 +1,7 @@
 # M6 RPG growth: plan
 
-**Status: proposed (2026-10-02); the owner's review next, nothing built.** GDD: RPG progression, Inside a run; Magic
+**Status: approved (2026-10-02) with four changes, the owner taking Claude's recommendations (decisions 6, 8, 10 and 11);
+step 1 under way.** GDD: RPG progression, Inside a run; Magic
 system, Runes; Core loop, Game loop changes for the magic RPG (the pacing target); Pickups and room types (the rune, the
 shrine's bargain, the waystone); the roadmap's M6 row ("XP, levels, attributes, 12 boons, runes and waystones").
 
@@ -10,9 +11,10 @@ XP); each level up to 12 brings an attribute point and a choice of one boon from
 waystone after each boss; and the shrine opens its heart-for-boon bargain. All of it lasts one run and is lost at death.
 What is kept between runs is M7's Vigil; M6 adds nothing to it beyond the spell knowledge M3.7 already keeps.
 
-## Decisions to take with the owner
+## Decisions (taken with the owner, 2026-10-02)
 
-Each is a proposal with its other way; one word changes it.
+Each was a proposal with its other way. The owner asked for the best player experience and took Claude's
+recommendations: the plan's proposal for nine of them, and a change to four (6, 8, 10 and 11, marked *Changed*).
 
 1. **XP is insight.** It is what the mage learns from the magic of a foe put to rest, a room won or a potion known. A
    falling foe gives up a short streak of its school's light (parchment gold for a foe of no school) that runs into the
@@ -40,13 +42,14 @@ Each is a proposal with its other way; one word changes it.
 5. **A level waits for the fight to end.** Mid-fight, "Level 4" rises over the mage in a stepped glow and a chip waits
    beside the mana bar. The screen opens once the doors open and pauses the game. The mage takes one boon of three, then
    spends the point. Moving chooses, a cast key or Enter takes. *Other way:* open at once, mid-fight.
-6. **Eighteen boons: two for each school and six general.** A run has up to thirteen picks (eleven levels and two
+6. **Eighteen boons: two for each school and six general, and each school boon can be taken twice, stronger the second
+   time** (*Changed*: the owner chose the plan's other way C). A run has up to thirteen picks (eleven levels and two
    bargains). One card of the three is always general, so the deal never runs dry. Tempered can be taken again and
-   again, and Second Socket twice. A run that keeps to one school takes that school's two by about level 4. From then on
-   its deals bring the other schools' boons (its spells change as pages come) and the general ones. A two-school build,
-   the usual one with two slots, has four boons of its own. *Other ways:* (A) twelve, the roadmap's number: one a school
-   with three ranks, and six general. It is less to build, but a school build has only one choice. (C) The eighteen, each
-   school boon taken twice, its second time stronger.
+   again, and Second Socket twice. With only one rank, a one-school build would take its school's two boons by about
+   level 4, and from then on two cards of every three would be other schools': dead picks. With the second rank (rank II,
+   its own numbers in the data, the same icon with a second ring), a two-school build, the usual one with two slots, has
+   eight picks of its own, so the deal keeps feeding the build into floor 4. *Other ways, not taken:* (A) twelve, the
+   roadmap's number: one a school with three ranks, and six general; (B) the eighteen with one rank each.
 7. **The GDD's nine examples are kept in spirit; names that clash are changed** (all placeholders until M8):
    - *Conductor* is an M4.10 weave, so it becomes **Forking Arc**.
    - *Kindling* is too close to the Kindled mantle, so it becomes **Banked Coals**.
@@ -58,8 +61,9 @@ Each is a proposal with its other way; one word changes it.
 8. **The deal leans to the build, and says so.** Each school's weight comes from its spells in the slots, its casts this
    run, its artifacts and its boons taken. An attuned run (both slots of one school) draws both of its non-general cards
    from that school while any are left. A card the lean brought carries a small mark ("Your Ember draws it"). A school boon
-   taken before any spell of that school is a pledge: the next library leans to it. A line says so when the boon is taken
-   ("The next library will remember Ember") and again at the library. So floor 1's first picks still give "a school by
+   taken before any spell of that school is a pledge: the next library holds at least one page of that school
+   (*Changed*: a promise kept, not a lean that could miss). A line says so when the boon is taken ("The next library will
+   remember Ember") and again at the library. So floor 1's first picks still give "a school by
    its boss".
 9. **Runes fit by shape, not by tags** (the GDD said tags; tags stay as description). Read word for word, the GDD's six
    runes give every spell at least three: Echo, Swift and Blood fit any spell. Two changes:
@@ -76,8 +80,9 @@ Each is a proposal with its other way; one word changes it.
      wheel alone.
 
    *Other way:* keep six runes. The mantle and the ward then take two.
-10. **A rune stays with its spell.** A spell given up keeps its rune on its page, and the library sells it back with it. A
-    waystone lifts any rune back into the pouch for nothing. Runes come about five or six a run, against two to four
+10. **A rune goes back to the pouch when its spell is given up** (*Changed*: keeping it on the given-up page would make
+    swapping a runed spell at a library cost the rune, punishing the swap the library is there to offer). It waits in the
+    pouch for the next waystone, and a waystone lifts any rune back into the pouch for nothing. Runes come about five or six a run, against two to four
     sockets:
     - a pair at each waystone (take one, the other crumbles);
     - the merchant, at the GDD's 10 obols;
@@ -90,7 +95,8 @@ Each is a proposal with its other way; one word changes it.
     in the spell's light at the hand. It holds:
     - the GDD's rest: full mana and every cooldown ended, once;
     - carving and lifting runes;
-    - reordering the belt.
+    - reordering the belt, which the inventory's Potions tab also does at any time (*Changed*: kept only for waystones it
+      would be friction with no magic in it).
 
     "Sell or brew" goes: nothing sells to the mage, and brewing is Dr. Jelly's. Omens wait for M7. Floor 5 has none
     until M7 puts Kaelith below. Where no cell is free (under half a percent of seeds), the stone rises in the boss room.
@@ -170,7 +176,8 @@ Each is a proposal with its other way; one word changes it.
 | Brewer's Breath | Potions | A potion drunk also breathes out its throw round the mage's feet, sparing the mage | Drinking becomes a spell too |
 | Afterglow | Cantrip | After a spell, the next three cantrip bolts carry half its statuses | The cantrip follows the hands |
 
-Boons that mend share one budget: half a heart a room at most (`CFG.boons.mendPerRoom`), so three hearts stay dangerous.
+A school boon's rank II is the same boon grown (Banked Coals II: burn lasts twice as long; Deep Winter II: a freeze
+holds half again as long), its numbers in the data; its card says what the second rank adds. Boons that mend share one budget: half a heart a room at most (`CFG.boons.mendPerRoom`), so three hearts stay dangerous.
 
 | Rune | Effect (numbers in data/runes.json) | Takes it (shapes: spells) | At the hand |
 | --- | --- | --- | --- |
@@ -221,18 +228,18 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
    - **The inventory's "The mage" tab** shows the level, insight and attributes.
    - **Dev menu (Mage tab):** +1 to each attribute; `__game.attrs`, `spend(attr)`.
    - **Tests:** unit tests of `computeStats` with points; a browser test of the half container.
-3. **Boons: the data and the deal.** `data/boons.json` holds each boon's id, school or area, effect, params, how often it
-   may be taken, weight, icon, colour, text and lore. `src/progression/boonData.ts` (new, pure) holds `validateBoons` and
+3. **Boons: the data and the deal.** `data/boons.json` holds each boon's id, school or area, effect, params (a school
+   boon's rank II params beside its first), how often it may be taken, weight, icon, colour, text and lore. `src/progression/boonData.ts` (new, pure) holds `validateBoons` and
    `dealBoons(state, rng)`, on the run's own `boons` stream, one draw a level.
-   - **The deal** leans to the build: school weights, the attuned rule, the pledge (`G.run.pledge`, read by `floorLean`
-     for `pickPages`' `lean`), the lean's mark on a card, Keen Nose kept out while the Spoon is held, and Second Socket
+   - **The deal** leans to the build: school weights, the attuned rule, the pledge (`G.run.pledge`: the next library's
+     `pickPages` holds at least one page of that school, then the pledge is spent), the lean's mark on a card, Keen Nose kept out while the Spoon is held, and Second Socket
      only while a waystone lies ahead.
    - **Boon effects** are kept off artifacts as the transformations' `GIFTS` are, and `boonsFor(stats)` (new) adds them
      after `giftsFor` in `refreshStats`, so behaviours keep asking `stats.effects`.
    - **Lines:** the pledge's two lines, and once a run "Attuned: the deal leans to Ember".
    - **Dev menu (Rooms & runs):** the pledge beside the floor's lean.
    - **Unit tests:** no repeat in a deal, a general card always, Tempered never dealt out, the same state dealing the same
-     cards, the lean and the pledge.
+     cards, the lean, a school boon dealt again only as its rank II, and the pledge's page.
 4. **The level-up screen.** It is `src/ui/levelUp.ts` (new, `#scrLevel`), built as `alchemyTable.ts` is
    (`initLevelUp({ pause, resume })`, keys and pad routed in `main.ts`). It opens only while the game is in play, with no
    doors locked and no other screen open (the table, the inventory, a page's prompt). Otherwise the level waits in
@@ -296,15 +303,18 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
      their own after each table's roll, so a seed's chests, hoards and wares stay as they are. `runes` per floor goes in
      data/floors.json, none on floor 5.
    - **The look:** a chip of rune stone (`src/items/runeLooks.ts`, new), its icon through `iconUrlOf`.
-   - **What shows:** lore cards; the pouch and the sockets in the inventory's Spells tab; the page's line naming the rune
-     that stays with it. Sounds for picking one up and the pair's crumble.
+   - **What shows:** lore cards; the pouch and the sockets in the inventory's Spells tab; a line when a spell given up sends
+     its rune back to the pouch. Sounds for picking one up and the pair's crumble.
    - **Dev menu (Mage tab):** a rune in the Drops row.
-   - **Tests:** `loot.test.ts` checks five or six a run; a browser test buys one and gives up a runed spell.
+   - **Tests:** `loot.test.ts` checks five or six a run; a browser test buys one, and gives up a runed spell
+     for a page and finds the rune in the pouch.
 9. **The waystone.** It is `src/world/waystone.ts` (new) and its own look, built from the kit's parts but not the rune
    stone's: a tall menhir with a hollow for each socket, dark until the boss falls, then kindling. It holds:
    - the rest, once, with mana streaming into the hand marks;
    - a spell cast into it (beside `wardNear` in `castSpell`), which is refunded and opens its sockets;
    - the screen `src/ui/waystone.ts` (new, `#scrStone`): the Runes tab (carve, lift out) and the Belt tab.
+
+   The belt's order (`moveInBelt`, new) can also be changed in the inventory's Potions tab at any time.
 
    Lines for the first rest and each carving; sounds `kindle`, `rest`, `carve`. Dev menu (Rooms & runs): "Raise a
    waystone here", "Open the waystone"; `__game.waystone`, `openWaystone(tab)`. It is testable in any boss room before the
