@@ -34,6 +34,7 @@ import { consecrateFx, graspFx, hideSpellFx, iceColumn, lanceFx, mantleFx, polle
 import { hearGround } from '../world/groundHooks';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { counter } from '../actors/counters';
+import { boonActs, boonMul, boonParam } from '../progression/boonHooks';
 
 const hex = (c: string) => parseInt(c.slice(1), 16);
 const FIRE = 0xff7a2a, EMBER = 0xffc060, ICE = 0xbfe6ff, BLACKFIRE = 0xb070ff;
@@ -79,8 +80,8 @@ function igniteGlyphs(touches: (x: number, z: number) => boolean, spareFeet: boo
 const chain: Cast = (def, dir) => {
   const P = def.params, first = pickTarget(player.x, player.z, dir, P.range);
   if (!first) return false;
-  const hit = new Set<Enemy>([first]), path: Enemy[] = [first];
-  for (let i = 0; i < P.jumps; i++) {
+  const hit = new Set<Enemy>([first]), path: Enemy[] = [first], jumps = P.jumps + boonParam('forkingArc', 'jumps'); // (M6: Forking Arc leaps further)
+  for (let i = 0; i < jumps; i++) {
     const last = path[path.length - 1], next = pickTarget(last.x, last.z, dir, P.jumpRange, hit);
     if (!next) break;
     hit.add(next); path.push(next);
@@ -97,6 +98,7 @@ const chain: Cast = (def, dir) => {
     from = to;
   });
   Sfx.at(first.x, first.z).arc(path.length);
+  if (path.length > P.jumps + 1) boonActs('forkingArc', path[P.jumps + 1].x, path[P.jumps + 1].z); // (only once it forked past the spell's own)
   const swarm = path.filter(e => e.foe?.behaviour === 'swarm'); if (swarm.length > 1) counter(swarm[1], 'chained'); // (M4.7: it leapt through a swarm)
   chainWeaves(path);
   return true;
@@ -192,10 +194,11 @@ function lanternFan(def: SpellDef, motes: Vec2[]) {
 /** A seal chalked in fire at the mage's feet: it brightens and turns for a heartbeat, then erupts (a ring of
     flame that strikes, sets burning and throws back every foe in it, and sets off glyphs), and the ground in
     it burns for a while after, setting foes that walk on it burning again. Its look is `sealFx` (spellFx.ts). */
-const seals: { def: SpellDef; x: number; z: number; t: number; fx: ReturnType<typeof sealFx>; erupted: boolean; tick: number; black?: boolean }[] = [];
+const seals: { def: SpellDef; x: number; z: number; t: number; fx: ReturnType<typeof sealFx>; erupted: boolean; tick: number; black?: boolean;
+  /** Seconds its ground burns once erupted (M6: Banked Coals lengthens it, fixed as it erupts). */ ground: number }[] = [];
 const placed: Cast = def => {
   const P = def.params, color = hex(def.color);
-  seals.push({ def, x: player.x, z: player.z, t: 0, fx: sealFx(player.x, player.z, P.radius, color), erupted: false, tick: 0 });
+  seals.push({ def, x: player.x, z: player.z, t: 0, fx: sealFx(player.x, player.z, P.radius, color), erupted: false, tick: 0, ground: P.ground });
   burst(player.x, .1, player.z, color, 10, 1.6, .04); Sfx.sealPlace();
   return true;
 };
@@ -209,7 +212,7 @@ function updateSeals(dt: number) {
       if (s.t >= P.delay) erupt(s);
       continue;
     }
-    const left = P.delay + P.ground - s.t;
+    const left = P.delay + s.ground - s.t;
     if (left <= 0) { s.fx.drop(); seals.splice(i, 1); continue; }
     s.fx.burn(dt, left, s.t);
     // flames lick up from the burning ground, and it sets burning what walks on it (not what flies above)
@@ -226,6 +229,7 @@ function updateSeals(dt: number) {
 function erupt(s: (typeof seals)[number]) {
   const def = s.def, P = def.params;
   s.erupted = true; s.fx.erupt();
+  s.ground = P.ground * boonMul('bankedCoals', 'groundMul'); if (s.ground > P.ground) boonActs('bankedCoals', s.x, s.z); // (M6: its ground burns longer)
   for (const e of G.enemies) {
     if (!alive(e)) continue;
     const u = away(e, s.x, s.z);

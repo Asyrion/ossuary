@@ -26,6 +26,7 @@ import { burnPropsAt } from './props';
 import { douseStandsIn, elementAt } from './mechanisms';
 import { blockers, collide } from './collision';
 import { fallRuns, type Flow } from './templates';
+import { boonActs, boonMul } from '../progression/boonHooks';
 
 const C = CFG.surface;
 const FIRE = 0xff7a2a, EMBER = 0xffc060, ICE = 0xbfe6ff, SPARK = 0xf0e890, WATER = 0x5a8a9a, JELLY = 0x7ae070;
@@ -312,7 +313,9 @@ export function touchPools(e: Enemy, kind: StatusKind) {
 }
 
 function ignite(p: Pool) {
-  p.state = 'burning'; p.t = C.oilBurn; p.tick = 0; dress(p);
+  const longer = boonMul('bankedCoals', 'groundMul'); // (M6: Banked Coals keeps burning oil alight longer)
+  p.state = 'burning'; p.t = C.oilBurn * longer; p.tick = 0; dress(p);
+  if (longer > 1) boonActs('bankedCoals', p.tiles[0].x, p.tiles[0].z);
   for (const t of p.tiles) { burst(t.x, .2, t.z, FIRE, 4, 2.2, .06); riseMote(t.x, .15, t.z, EMBER, .7); }
   Sfx.at(p.tiles[0].x, p.tiles[0].z).ignite(); G.shake = Math.max(G.shake, .12);
 }

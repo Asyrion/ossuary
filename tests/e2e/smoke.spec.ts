@@ -4445,9 +4445,10 @@ test('the level-up screen (M6 step 4): a level waits for the fight to be won, th
 
 /* M6 step 5: the school boons at work. Each case starts its own run with `?boons=`, sets the boon off through the game's own
    hooks, and checks what it did, that its name rose (`said`), its line was said once (`hinted`) and, where cheap, rank II.
-   (Written as strings: the page's own JavaScript, `window.__game` untyped.) */
+   (Written as strings: the page's own JavaScript, `window.__game` untyped. Eight dummies stand in a 4 × 2 block, each
+   within a leap of another.) */
 
-test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks, and holds the ice longer at II', async ({ page }) => {
+test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks and holds longer at II, Banked Coals burns longer, Gathering Dark gathers deeper, Perennial roots, Forking Arc forks', async ({ page }) => {
   const errors = await start(page, '?seed=BOON5A&boons=deepWinter');
   const got = await page.evaluate(`(() => {
     const g = window.__game; g.player.invuln = 999; g.sim(.3);
@@ -4462,5 +4463,29 @@ test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks,
   expect(got.one).toBe(0); expect(got.two).toBeCloseTo(2, 1);
   expect(got.said).toContain('deepWinter'); expect(got.told).toBe(true);
   expect(got.rank2).toBeCloseTo(3, 1); expect(got.acted).toBe(2);
+
+  const more = await page.evaluate(`(() => {
+    const g = window.__game, fresh = (boons, n = 1) => { g.startGame({ seed: 'BOON5B', boons }); g.player.invuln = 999; g.sim(.3); for (let k = 0; k < n; k++) g.spawn('dummy', g.player.x + (k % 4 - 1.5) * (n > 4 ? 1 : 1.2), g.player.z - 2 - Math.floor(k / 4)); g.sim(1.2); return g.enemies.filter(e => e.type === 'dummy'); };
+    const out = {};
+    let [d] = fresh({ bankedCoals: 1 }); g.inflict({ burn: 4 }); out.coals = [d.status.burn]; out.coalsSaid = g.boons.said.includes('bankedCoals');
+    g.giveBoon('bankedCoals'); g.inflict({ burn: 4 }); out.coals.push(d.status.burn);
+    [d] = fresh({ gatheringDark: 1 }); for (let k = 0; k < 12; k++) g.inflict({ hex: 1 }); out.dark = [d.status.hex, d.status.hexT]; out.darkSaid = g.boons.said.includes('gatheringDark');
+    g.giveBoon('gatheringDark'); for (let k = 0; k < 4; k++) g.inflict({ hex: 1 }); out.dark.push(d.status.hex);
+    [d] = fresh({ perennial: 1 }); g.inflict({ grow: 4 }); out.grow = d.status.grow; let rootedAt = -1, roots = 0, was = 0;
+    for (let t = 0; t < 5; t += 1 / 60) { g.sim(1 / 60); if (d.status.root > 0 && was <= 0) { roots++; if (rootedAt < 0) rootedAt = t; } was = d.status.root; }
+    out.root = { rootedAt, roots, said: g.boons.acted.perennial };
+    const ds = fresh({ forkingArc: 1 }, 8); g.learn('arc', 0); g.mana(200); g.cast(0, { x: 0, z: -1 });
+    out.fork = [ds.filter(e => e.status && e.status.shock > 0).length]; out.forkSaid = g.boons.said.includes('forkingArc');
+    const ds2 = fresh({ forkingArc: 2 }, 8); g.learn('arc', 0); g.mana(200); g.cast(0, { x: 0, z: -1 }); out.fork.push(ds2.filter(e => e.status && e.status.shock > 0).length);
+    const three = fresh({ forkingArc: 1 }, 3); g.inflict({ shock: 1 }); three[0].status.shock = 0; three[2].status.shock = 0; for (const e of three) e.lastHit = undefined;
+    g.hit(g.enemies.indexOf(three[1]), 4, undefined, 'cantrip'); out.leap = [three[0].lastHit, three[2].lastHit];
+    return out;
+  })()`) as { coals: number[]; coalsSaid: boolean; dark: number[]; darkSaid: boolean; grow: number; root: { rootedAt: number; roots: number; said: number }; fork: number[]; forkSaid: boolean; leap: (string | undefined)[] };
+  expect(more.coals[0]).toBeCloseTo(6, 1); expect(more.coals[1]).toBeCloseTo(8, 1); expect(more.coalsSaid).toBe(true);
+  expect(more.dark[0]).toBe(7); expect(more.dark[1]).toBeCloseTo(6 * 1.33, 1); expect(more.dark[2]).toBe(9); expect(more.darkSaid).toBe(true);
+  expect(more.grow).toBeCloseTo(6, 1);
+  expect(more.root.roots).toBe(1); expect(more.root.rootedAt).toBeGreaterThan(2.8); expect(more.root.rootedAt).toBeLessThan(3.3); expect(more.root.said).toBe(1);
+  expect(more.fork).toEqual([6, 8]); expect(more.forkSaid).toBe(true); // (Arc's own three jumps, and two more, then four)
+  expect(more.leap).toEqual(['spell', 'spell']); // (the shock's leap reached both neighbours)
   expect(errors).toEqual([]);
 });

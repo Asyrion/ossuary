@@ -27,7 +27,7 @@ import { burst } from '../combat/fx';
 import { damageEnemy, drink } from '../combat/damage';
 import { drinksStatus } from '../actors/foeData';
 import { fireSpellBolt } from '../combat/projectiles';
-import { MAGIC, applyStatus, consumeShock, newStatus, tickStatus, type Reaction } from './status';
+import { MAGIC, applyStatus, consumeShock, newStatus, tickStatus, type Reaction, type StatusState } from './status';
 import { STATUS_KINDS, type SpellStatus, type StatusKind } from './spellData';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { poolAt, touchPools } from '../world/pools';
@@ -41,7 +41,7 @@ import { foundReaction } from './memory';
 import { mantleImmune, stripsMantle } from '../actors/mantleData';
 import { shrugOff, unbind } from '../actors/mantles';
 import { hexGround } from './shapes';
-import { boonActs, boonStatusMul, magicNow } from '../progression/boonHooks';
+import { boonActs, boonParam, boonRank, boonStatusMul, magicNow } from '../progression/boonHooks';
 
 const R = MAGIC.reactions;
 const ICE = 0xbfe6ff, FIRE = 0xff7a2a, SPARK = 0xf0e890, GOLD = SCHOOL_LIGHT.hallow, VIOLET = SCHOOL_LIGHT.umbral, BLACKFIRE = 0x8a3ae0, STEAM = 0xe8f2f8, SEAR = 0xffb24a, BLACKICE = 0x5a3a9a;
@@ -74,6 +74,8 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
       if (kind === 'chill' && (stacks < MAGIC.chill.freezeAt || T.chill.freezeTime > MAGIC.chill.freezeTime)) boonActs('deepWinter', e.x, e.z); // (frozen sooner, or longer, than it would have been)
     }
     if (res.stunned) burst(e.x, .9, e.z, SPARK, 6, 2, .03);
+    if (kind === 'burn' && st.burn > 0 && boonRank('bankedCoals')) boonActs('bankedCoals', e.x, e.z); // (M6: it burns longer)
+    if (kind === 'hex' && st.hex > MAGIC.hex.max) boonActs('gatheringDark', e.x, e.z); // (M6: deeper than a hex can gather without it)
     if (res.reaction) react(e, res.reaction);
     foeAfflicted(e, kind); // (M4.5: what its behaviour does about it)
     if ((STATUS_KINDS as string[]).includes(kind)) touchPools(e, kind as StatusKind); // oil catches fire, water freezes or carries the shock
@@ -85,17 +87,19 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
   }
 }
 
-/** A hit landed on a shocked foe: the mark leaps to the nearest other foe with part of the hit. */
+/** A hit landed on a shocked foe: the mark leaps to the nearest other foe with part of the hit (M6: Forking Arc, to the
+    two or three nearest, each with that part; the list made first, as each blow may move or fell them). */
 export function shockLeap(e: Enemy, dmg: number) {
   if (!consumeShock(e.status)) return;
-  let best: Enemy | null = null, bd = MAGIC.shock.leapRange;
-  for (const o of G.enemies) {
-    if (o === e || o.dead || o.spawn > 0 || o.hidden) continue;
-    const d = Math.hypot(o.x - e.x, o.z - e.z); if (d < bd) { bd = d; best = o; }
+  const R = MAGIC.shock.leapRange, near = G.enemies.filter(o => o !== e && !o.dead && o.spawn <= 0 && !o.hidden && Math.hypot(o.x - e.x, o.z - e.z) < R)
+    .sort((a, b) => Math.hypot(a.x - e.x, a.z - e.z) - Math.hypot(b.x - e.x, b.z - e.z)).slice(0, Math.max(1, boonParam('forkingArc', 'leaps')));
+  for (const o of near) {
+    if (o.dead) continue;
+    const d = Math.hypot(o.x - e.x, o.z - e.z) || 1;
+    sparkLine(e, o);
+    damageEnemy(o, dmg * MAGIC.shock.leapShare, (o.x - e.x) / d, (o.z - e.z) / d, .3, 'spell', 'storm');
   }
-  if (!best) return;
-  sparkLine(e, best);
-  damageEnemy(best, dmg * MAGIC.shock.leapShare, (best.x - e.x) / (bd || 1), (best.z - e.z) / (bd || 1), .3, 'spell', 'storm');
+  if (near.length > 1) boonActs('forkingArc', near[1].x, near[1].z);
 }
 
 function react(e: Enemy, r: Reaction) {
@@ -211,6 +215,15 @@ function verdantReact(e: Enemy, r: Reaction) {
     return true;
   }
   return false;
+}
+
+/** How long the vines must hold for their full slow (M6: Perennial roots a foe then). */
+const FULL_GROW = (MAGIC.grow.maxSlow - MAGIC.grow.slow) / MAGIC.grow.ramp;
+/** Perennial: the vines root the foe a moment (laid straight on: Root is Umbral's, and this isn't Umbral's magic). */
+function perennialRoot(e: Enemy, s: StatusState) {
+  applyStatus(s, 'root', boonParam('perennial', 'root'), !!e.isBoss, magicNow());
+  burst(e.x, .1, e.z, VINE, 14, 1.4, .05); burst(e.x, .3, e.z, LEAF, 10, 1.2, .04); ringFx(e.x, .05, e.z, LEAF, .2, e.r + .5, CFG.spellFx.shockwave, true);
+  Sfx.at(e.x, e.z).bloom(); boonActs('perennial', e.x, e.z);
 }
 
 /** The overgrown garden's twist (M5): its vines hold longer; the first time in a room, a word over the foe says so. */
@@ -330,7 +343,8 @@ export function updateStatuses(dt: number, now: number) {
   for (const e of G.enemies) {
     const s = e.status;
     if (!s || e.dead) continue;
-    const { burnDamage, thawed, eclipsed } = tickStatus(s, dt);
+    const held = s.growHeld, { burnDamage, thawed, eclipsed } = tickStatus(s, dt);
+    if (s.grow > 0 && held < FULL_GROW && s.growHeld >= FULL_GROW && boonRank('perennial')) perennialRoot(e, s); // (M6: held at its full slow, it roots)
     if (eclipsed) endEclipse(e);
     if (s.eclipse > 0) { if (e.sun) e.sun.rotation.y += dt * 2; continue; } // (out of the fight: nothing shows but its sun)
     if (burnDamage > 0) damageEnemy(e, burnDamage, 0, 0, 0, e.lastHit ?? 'spell', 'ember'); // the fire is whoever lit it last
