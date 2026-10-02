@@ -4489,3 +4489,34 @@ test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks 
   expect(more.leap).toEqual(['spell', 'spell']); // (the shock's leap reached both neighbours)
   expect(errors).toEqual([]);
 });
+
+test('the school boons that mend and lay bare (M6 step 5): Votive Heart\'s containers and its mend, Thirsting Hex mends from hex spent, both within a room\'s budget, Laid Bare strips a guard', async ({ page }) => {
+  const errors = await start(page, '?seed=BOON5C');
+  const got = await page.evaluate(`(() => {
+    const g = window.__game, out = {};
+    const fresh = (boons, spells) => { g.startGame({ seed: 'BOON5C', boons, spells }); g.player.invuln = 999; g.sim(.3); g.spawn('dummy'); g.sim(1.2); return g.enemies.find(e => e.type === 'dummy'); };
+    const hitN = (d, n) => { for (let k = 0; k < n; k++) g.hit(g.enemies.indexOf(d), 1, undefined, 'cantrip'); };
+    fresh({ votiveHeart: 1 }, ['wardlight']); out.hearts = [g.player.maxHp];
+    g.player.hp = g.player.maxHp - 2; g.mana(200); g.cast(0); out.votive = [g.player.hp - (g.player.maxHp - 2)]; out.votiveSaid = g.boons.said.includes('votiveHeart');
+    g.sim(14.5); g.mana(200); out.recast = g.cast(0); out.votive.push(g.player.hp - (g.player.maxHp - 2));
+    g.giveBoon('votiveHeart'); out.hearts.push(g.player.maxHp);
+    g.giveBoon('thirstingHex'); g.player.hp = g.player.maxHp - 2; const d0 = g.enemies.find(e => e.type === 'dummy');
+    g.inflict({ hex: 5 }); hitN(d0, 5); g.inflict({ hex: 3 }); hitN(d0, 3); out.spent = { hp: g.player.maxHp - g.player.hp, told: g.run.hinted.has('boonMendSpent') }; // (the room's half heart is Votive's)
+    let d = fresh({ thirstingHex: 1 }); g.player.hp = g.player.maxHp - 3;
+    g.inflict({ hex: 5 }); hitN(d, 5); out.thirst = [g.player.hp]; g.inflict({ hex: 1 }); hitN(d, 1); out.thirst.push(g.player.hp); out.thirstSaid = g.boons.said.includes('thirstingHex');
+    g.giveBoon('thirstingHex'); g.current.boonMended = 0; g.inflict({ hex: 4 }); hitN(d, 3); out.thirst.push(g.player.hp); hitN(d, 1); out.thirst.push(g.player.hp);
+    g.startGame({ seed: 'BOON5C', boons: { laidBare: 1 } }); g.player.invuln = 999; g.sim(.3); g.spawn('rotling'); g.sim(1.2);
+    const r = g.enemies.find(e => e.type === 'rotling'), i = g.enemies.indexOf(r); r.hp = r.maxHp = 1000; r.guard = .3;
+    const before = r.hp; g.hit(i, 10, undefined, 'cantrip'); const guarded = before - r.hp;
+    g.inflict({ sanct: 4 }); const mid = r.hp; g.hit(i, 10, undefined, 'cantrip'); out.bare = [guarded, mid - r.hp, r.status.sanct]; out.bareSaid = g.boons.said.includes('laidBare');
+    g.giveBoon('laidBare'); r.status.sanct = 0; g.inflict({ sanct: 4 }); out.bare.push(r.status.sanct);
+    return out;
+  })()`) as { hearts: number[]; votive: number[]; recast: boolean; votiveSaid: boolean; spent: { hp: number; told: boolean }; thirst: number[]; thirstSaid: boolean; bare: number[]; bareSaid: boolean };
+  expect(got.hearts).toEqual([8, 10]); // (three hearts and one, then two)
+  expect(got.votive).toEqual([1, 1]); expect(got.recast).toBe(true); expect(got.votiveSaid).toBe(true); // (cast again, it mends no more: once a room)
+  expect(got.spent).toEqual({ hp: 2, told: true }); // (eight stacks spent, but this room's mend went to Votive Heart)
+  expect(got.thirst).toEqual([3, 4, 4, 5]); expect(got.thirstSaid).toBe(true); // (every 6 stacks, then every 4)
+  expect(got.bare[0]).toBeCloseTo(3, 1); expect(got.bare[1]).toBeCloseTo(12.5, 1); expect(got.bareSaid).toBe(true); // (its guard gone while sanctified, and holy light's ×1.25)
+  expect(got.bare[2]).toBeCloseTo(4, 1); expect(got.bare[3]).toBeCloseTo(6, 1); // (Sanctified half again as long at II)
+  expect(errors).toEqual([]);
+});

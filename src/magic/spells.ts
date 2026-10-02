@@ -21,6 +21,7 @@ import { hexGiveBack } from '../ui/afflictions';
 import { flareEyes } from '../actors/costume';
 import { knownWellNow } from '../actors/spellMarks';
 import { spendFreeCast, takeEcho } from '../items/potionFx';
+import { votiveCast } from '../progression/boonHooks';
 
 /* ---------- mana ---------- */
 
@@ -72,7 +73,7 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   if (!DEV.mana) gainMana(-cost);
   spendFreeCast(); // (M5: the Bottled Storm's)
   if (!ward && takeEcho()) { const room = G.current; after(CFG.alchemy.echoAfter, () => { if (G.current === room && !player.dead) CAST[def.shape](def, aimDir(cast)); }); } // (M5: the Philter of Echoes casts it again)
-  if (def.school === 'hallow') hexGiveBack(); // (M4.9: holy light gives back what a hex just took)
+  if (def.school === 'hallow') { hexGiveBack(); votiveCast(); } // (M4.9: holy light gives back what a hex just took; M6: Votive Heart mends)
   if (def.school === 'storm') flareEyes(); // (M4.6: a Stormcaller's eyes flare)
   player.spellCd[slot] = def.cooldown;
   G.run.casts[def.school] = (G.run.casts[def.school] ?? 0) + 1; // (M6: the boons' deal leans to the schools cast)

@@ -34,6 +34,7 @@ import { wearPlates } from '../actors/bosses';
 import { glance, twinFell } from '../actors/twinGuardians';
 import { mantleFell, mantleStruck } from '../actors/mantles';
 import { payPurse, paySerpent } from '../progression/insight';
+import { boonActs, laidBare, thirstHex } from '../progression/boonHooks';
 
 /** Hurt a foe, knocking it along (dx, dz); `kbMul` scales the knockback (the Ram's Skull on bolts); `by` says
     what struck it (a foe the cantrip puts to rest gives mana back); `school`, the magic it struck with, if any: a foe in
@@ -43,7 +44,9 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   if (e.ward && by === 'spell') { drinkBlow(e, dmg, school); return; } // (M4.2: its ward drinks the spells that strike it)
   if (e.glance && by === 'cantrip') { glance(e); return; } // (a Twin Guardian's shield turns bolts)
   const blow = dmg; // (the blow as dealt: what a shock's leap passes on, M6: the multipliers are the next foe's to apply)
-  const raw = dmg * damageTakenMul(e.status) * (e.unbound ? MAGIC.unbound.damageMul : 1); dmg = raw * ((e.status?.seared ?? 0) > 0 ? Math.max(1, e.guard ?? 1) : e.guard ?? 1); // a frozen foe cracks; a shut mimic's clay turns half a blow, unless Searing burnt its guard away (M4.8; an opening, a flipped crab's, stays)
+  const seared = (e.status?.seared ?? 0) > 0, bare = !seared && (e.guard ?? 1) < 1 && laidBare(e.status?.sanct ?? 0); // (M6: Laid Bare, holy light strips it as Searing does)
+  const raw = dmg * damageTakenMul(e.status) * (e.unbound ? MAGIC.unbound.damageMul : 1); dmg = raw * (seared || bare ? Math.max(1, e.guard ?? 1) : e.guard ?? 1); // a frozen foe cracks; a shut mimic's clay turns half a blow, unless Searing burnt its guard away (M4.8; an opening, a flipped crab's, stays)
+  if (bare) boonActs('laidBare', e.x, e.z);
   if (e.plates) wearPlates(e, raw - dmg); // (M4.2: the War-Tiger's plates turn most of it, and wear)
   const aff = affinityMul(e.foe ?? e.bossAff, school); // (the bosses of floors 4 and 5 have theirs too)
   if (aff < 0) { drink(e, -dmg * aff); return; } // (M4.5: an elemental drinks its own school)
@@ -58,7 +61,8 @@ export function damageEnemy(e: Enemy, dmg: number, dx: number, dz: number, kbMul
   if (by && e.mantle) mantleStruck(e); // (M4.7: a Stormcharged champion sparks back)
   const hexed = e.status?.hex ?? 0; // (before the blow spends a stack: a foe that falls with enough leaves a soul mote)
   if (by) { // a hexed foe gives back mana for each stack a blow spends (M4.1); a foe marked by the Ferryman's Toll pays its toll
-    let back = spendHex(e.status) * (player.stats.effects.has('soulLantern') ? CFG.artifacts.soulLantern.hexMul : 1); // (half again with the Ferryman's Lantern)
+    const spent = spendHex(e.status); if (spent) thirstHex(e.x, e.z); // (M6: Thirsting Hex drinks the stacks spent)
+    let back = spent * (player.stats.effects.has('soulLantern') ? CFG.artifacts.soulLantern.hexMul : 1); // (half again with the Ferryman's Lantern)
     if (e.toll && G.simClock >= (e.tollNext ?? 0)) { back += e.toll.mana; e.tollNext = G.simClock + CFG.mana.tollEvery; }
     if (back) { gainMana(back); burst(e.x, 1, e.z, SCHOOL_LIGHT.umbral, 3, 1.4, .03); }
   }

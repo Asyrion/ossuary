@@ -20,6 +20,7 @@ import { CURSED_RED, artifactLook } from './artifactLooks';
 import { updateArc } from './arc';
 import { announce, giftsFor, updateTransforms } from './transforms';
 import type { TransformId } from './transformData';
+import { boonParam } from '../progression/boonHooks';
 
 const hex = (c: string) => new THREE.Color(c).getHex();
 
@@ -30,7 +31,7 @@ const hex = (c: string) => new THREE.Color(c).getHex();
     once unless `announceNow` is false (an artifact taken shows its own banner and card first: `grantArtifact`). */
 export function refreshStats(announceNow = true): TransformId[] {
   const before = player.maxHp, fresh = updateTransforms(); // (M4.6: three of a family transform the mage)
-  player.stats = computeStats(player.focus, player.items, { ...CFG.hero, hearts: CFG.hero.hearts - player.heartsPaid }, player.cleansed, player.coins, G.run.remedy ? [G.run.remedy] : [], attrBonus(G.run.attrs)); // (M6: and the attributes)
+  player.stats = computeStats(player.focus, player.items, { ...CFG.hero, hearts: CFG.hero.hearts - player.heartsPaid }, player.cleansed, player.coins, G.run.remedy ? [G.run.remedy] : [], growth()); // (M6: and the attributes, and Votive Heart's containers)
   giftsFor(player.stats);
   player.maxHp = player.stats.maxHp;
   if (player.maxHp > before) player.hp += player.maxHp - before;
@@ -41,6 +42,9 @@ export function refreshStats(announceNow = true): TransformId[] {
   updateArc(); // (M4.6: Asyrion grows towards the chaos mage)
   return fresh;
 }
+
+/** M6: what the mage's growth adds: the attributes, and Votive Heart's heart containers (two halves each). */
+function growth() { const b = attrBonus(G.run.attrs); return { ...b, heartHalves: b.heartHalves + 2 * boonParam('votiveHeart', 'hearts') }; }
 
 /** Start a run holding only the starting focus. */
 export function resetArtifacts() { player.focus = START_FOCUS; player.items = []; player.heartsPaid = 0; player.cleansed = []; refreshStats(); player.hp = player.maxHp; renderHearts(); }
