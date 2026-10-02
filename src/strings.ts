@@ -785,7 +785,7 @@ export const STR = {
     pads: 'Gamepads', readPads: 'Read the pads again', noPads: 'No gamepad heard: press one of its buttons with this page in front (a browser shows a pad only after that)',
     padRow: (i: number, id: string, mapping: string, buttons: number[], axes: number[]) => `Pad ${i}: ${id} · ${mapping === 'standard' ? 'standard layout' : 'unusual layout'} · held: ${buttons.length ? buttons.join(', ') : 'nothing'} · sticks: ${axes.slice(0, 4).join(' ')}`,
     artifactGallery: 'Artifacts (the room kit\'s: built in code, their icons rendered from them)', artifactsNote: 'Every artifact floating ahead of the mage in rows (foci, passives, cursed), to look at; they can\'t be taken',
-    /** Dr. Jelly (2026-10-02): his three looks, which he wears, and what he hands over. */
+    /** Dr. Jelly (2026-10-02): the plague doctor (the owner's pick of three) and what he hands over. */
     jellyLooks: 'Dr. Jelly (the plague doctor, from the owner\'s pictures)', jellyNote: 'He stands ahead of the mage, looping the giving gesture',
     jellyGives: { potion: 'Dr. Jelly gives a potion', recipe: 'Dr. Jelly gives a recipe', coins: 'Dr. Jelly gives obols' } as Record<string, string>, noLab: 'No laboratory here: Rooms & runs takes you to this floor\'s',
     bossLooks: 'The bosses built in code: the Hollow Warden\'s three looks (the floor-1 boss: choose one), and the bosses of the floors below', wardenWears: (name: string) => `The Warden wears: ${name}`,
