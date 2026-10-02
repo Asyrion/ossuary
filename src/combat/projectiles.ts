@@ -136,9 +136,9 @@ export function fireSecondary(x: number, z: number, dx: number, dz: number, o: {
 
 /** A spell's bolt from (x, z) along (dx, dz): Rime Shards' splinters, Shatter's shards. It strikes as a spell
     (no mana back for the kill) and puts the spell's statuses on what it hits. */
-export function fireSpellBolt(x: number, z: number, dx: number, dz: number, o: { damage: number; range: number; speed: number; color: number; scale?: number; status?: Partial<Record<SpellStatus, number>>; shard?: boolean; shatter?: boolean }) {
+export function fireSpellBolt(x: number, z: number, dx: number, dz: number, o: { damage: number; range: number; speed: number; color: number; scale?: number; status?: Partial<Record<SpellStatus, number>>; shard?: boolean; shatter?: boolean; seek?: boolean }) {
   const l = Math.hypot(dx, dz) || 1;
-  makeBolt({ x, z, vx: dx / l * o.speed, vz: dz / l * o.speed, damage: o.damage, range: o.range, scale: o.scale ?? .8, color: o.color, path: 'straight', pierce: 0, bounces: 0, secondary: true, spell: true, status: o.status, shard: o.shard });
+  makeBolt({ x, z, vx: dx / l * o.speed, vz: dz / l * o.speed, damage: o.damage, range: o.range, scale: o.scale ?? .8, color: o.color, path: o.seek ? 'homing' : 'straight' /* (M6: Seeking's bolts turn as the Tome's do) */, pierce: 0, bounces: 0, secondary: true, spell: true, status: o.status, shard: o.shard });
   if (o.shatter) G.bolts[G.bolts.length - 1].shatter = true; // (M4.10: fire catches these as molten glass)
 }
 
