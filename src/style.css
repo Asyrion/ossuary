@@ -267,6 +267,9 @@ body.touch.portrait #rotate{display:flex}
 /* the panel over a grimoire page (M3.7): the inventory's spell description, small, following the page on screen */
 .pagePanel{--ink:#e8dcc2;--ink-dim:#a99b80;--line:#5e4d39;color:var(--ink);position:absolute;left:0;top:0;width:min(300px,42vw);max-height:none;overflow:hidden;padding:10px 12px 8px;background:rgba(12,9,7,.9);border:1px solid #5e4d39;border-top-color:#8a7254;box-shadow:0 6px 18px rgba(0,0,0,.55);transform:translateX(-50%);pointer-events:none;opacity:0;transition:opacity .2s;z-index:3} /* (always a dark card, whatever the page's colour scheme) */
 .pagePanel.on{opacity:1}
+.warePanel{width:min(260px,40vw)}
+.warePanel .chip.price{color:#ffd77a;border-color:#8a6a2a}
+.warePanel .note.refuse{color:#ff9a8a}
 .pagePanel .top{margin-bottom:6px;gap:10px}
 .pagePanel .big svg{width:38px;height:38px;padding:4px}
 .pagePanel h3{font-size:18px}

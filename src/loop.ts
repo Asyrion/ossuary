@@ -31,6 +31,7 @@ import { updateStatusFx, updateStatuses } from './magic/statusFx';
 import { updateFamiliars } from './combat/familiars';
 import { pollGamepad, type InputActions } from './input';
 import { updateFrameInfo, updateHud, updateVision } from './ui/hud';
+import { hideWarePanel, updateWarePanel } from './ui/warePanel';
 import { updateAfflictions } from './ui/afflictions';
 import { updateLore } from './ui/lore';
 import { ease, lerp } from './util';
@@ -79,6 +80,7 @@ export function step(dt: number) {
 function updateWorldFx(dt: number, now: number) {
   updateRoomFx(dt, now); updateLab(now); updateArtifacts(now); updateTrapdoor(dt); updateShop(now); updateWanderer(now, dt); updatePages(dt, now); updateVaultSeals(dt, now); updateSecretWalls(dt, now);
   if (G.state === 'play' && !G.trans) updatePagePanel(); else hidePagePanel(); // a spell's panel over the page near the mage (M3.7)
+  if (G.state === 'play' && !G.trans) updateWarePanel(); else hideWarePanel(); // what a ware near the mage is, before it is bought (2026-10-02)
   updateFamiliars(dt, now, G.state === 'play' && !G.trans);
   updateShrine(dt, now, G.state === 'play' && !G.trans);
   updateMagic(dt, G.state === 'play' && !G.trans); updateStatusFx(dt); updatePools(dt, now, G.state === 'play' && !G.trans); updateSteam(G.state === 'play' ? dt : 0);
