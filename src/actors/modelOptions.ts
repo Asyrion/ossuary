@@ -796,6 +796,14 @@ export function updateModelOptions(dt: number, current: Room) {
   clock += dt;
   for (const s of shown) if (s.room === current) s.idle(clock);
 }
+/** Stand one look built by `build` at world (x, z) in `room`, turned `ry`, merged as a foe's is (M4.12's old and new looks
+    side by side); it idles with the rest and goes with them. Its height and the names of the parts it moves. */
+export function standLook(room: Room, build: () => import('./beastParts').Built, key: string, x: number, z: number, ry = .5) {
+  const b = build(); mergeRig(b.group, b.idle, key, Object.values(b.parts ?? {})); b.group.position.set(x - room.cx, 0, z - room.cz); b.group.rotation.y = ry;
+  if (b.shadow) b.group.add(blob(b.shadow));
+  room.group.add(b.group); shown.push({ room, group: b.group, idle: b.idle });
+  return b;
+}
 /** Take the options shown in `room` away. */
 export function removeModelOptions(room: Room) {
   for (let i = shown.length - 1; i >= 0; i--) if (shown[i].room === room) { room.group.remove(shown[i].group); disposeTree(shown[i].group); shown.splice(i, 1); }

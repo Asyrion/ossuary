@@ -31,7 +31,7 @@
      frost at each, then lies dizzy, open to harm. */
 import * as THREE from 'three';
 import type { Enemy, PropBox, Room, Vec2 } from '../types';
-import { G, player } from '../state';
+import { G, player, DEV } from '../state';
 import { Sfx } from '../audio/sfx';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { mergeRig } from '../render/rig';
@@ -54,6 +54,7 @@ import { canHeal } from '../magic/status';
 import { lerp, mulberry, rand } from '../util';
 import { MODEL_OPTIONS } from './modelOptions';
 import { BESTIARY_OPTIONS, FOE_LOOKS } from './bestiaryLooks';
+import { fantasyLook } from './fantasyLooks';
 import { BESTIARY_BEHAVIOURS, clearGround, updateGround } from './bestiaryFoes';
 import { light, num, span, wayRound, type Aim, type Behaviour } from './foeKit';
 import { metFoe } from './bestiary';
@@ -65,9 +66,12 @@ import { hearGround } from '../world/groundHooks';
 
 export type { Aim } from './foeKit';
 
+/** The look of id `look` as it was before M4.12: an M4 model option, an M4.5 bestiary look, or a look of its own. */
+export const oldLook = (look: string) => MODEL_OPTIONS.find(o => o.id === look)?.build ?? BESTIARY_OPTIONS.find(o => o.id === look)?.build ?? FOE_LOOKS[look];
+
 /** Build foe `def` into `e`: its model, merged, in `e.body`; its surfaces that a hit or a status lights. */
 export function buildFoe(e: Enemy, def: FoeDef) {
-  const look = def.look ?? def.id, build = MODEL_OPTIONS.find(o => o.id === look)?.build ?? BESTIARY_OPTIONS.find(o => o.id === look)?.build ?? FOE_LOOKS[look];
+  const look = def.look ?? def.id, build = fantasyLook(look, DEV.foeLooks) ?? oldLook(look); // (M4.12: a new look once approved, or as the switch says)
   if (!build) throw new Error(`foe ${def.id}: no look ${look}`); // (M4's model options, M4.5's bestiary, or a look of its own)
   const b = build();
   e.mats = mergeRig(b.group, b.idle, look, Object.values(b.parts ?? {}));
