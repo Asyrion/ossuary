@@ -356,6 +356,27 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
    - **Both:** each rune's name rises the first time it acts, with a sound in its spell's palette. Dev menu (Magic tab),
      Runes: give each, carve into Q or E, clear, a second socket; `__game.sockets`, `socket(slot, id)`; `?runes=q:seeking`.
      A browser test for each rune.
+
+   *Built (2026-10-02)* after a plan of its own (the owner's ask), approved with six decisions: the HUD shows each socket
+   as a pip (a diamond in the rune's colour, hollow while empty) and Vein's half heart, the glyphs showing in the panel,
+   the inventory and the dev menu; Vein, short of mana, spends what mana there is and bleeds half a heart for the rest,
+   never the last (a line says so once a run); Thrice on Rime Shards fires three volleys side by side (fifteen shards),
+   only the middle one chilling; no rune twice in one spell; Second Socket stays out of the deal until the waystone (step
+   9), the dev menu opening a slot's second socket now; sockets belong to the slot, so a spell given up or forgotten sends
+   its runes to the pouch (`player.runes`) and the slot keeps its socket. In five commits: the rules (`data/runes.json`,
+   the pure `runeData.ts`: `runedDef`, a frozen copy with its numbers rounded, the base def itself with no rune;
+   `reprisedDef`; `payment`'s order; `canCarve`; knowledge reaching Upgraded only once used, `upgradedSpell` and
+   `upgradesOf`); the sockets and the cast (`slotDef`, cached by the socket's array, `spellCooldown` and `payment(slot)`
+   in cost.ts, read by `castSpell`, the HUD and the hands; `bleed` from the Bloodied Covenant's tithe; `runes.ts`: `carve`,
+   `clearRunes`, `setSockets`, `unslot`, `runeActs` through `actsHere`, shared with the boons, and `Sfx.rune`; the dev
+   menu's Runes, `?runes=q:quicken,e:lasting+vein`, `__game.sockets` and `socket(slot, id, size)`); the look
+   (`items/runeLooks.ts`, a stone with its glyph cut in it, the strokes shared with the boons' sigils in
+   `render/emblem.ts`; the pips; the panel's runed numbers with the base in brackets, the runes carved and, Upgraded, the
+   runes borne; the hands' specks, Wide's disc, Vein's red, Lasting's slower fade, Reprise's second flash); Thrice,
+   Seeking and Reprise (`thrice` and `seeks` in shapes.ts, `fireSpellBolt`'s `seek` taking the Tome's `homing` path, a
+   Grasp reaching `reach` further, Reprise from `castSpell` after the Philter's echo, its holy ground mending nothing and
+   its Toll skipping the foe marked; the lance's look a pool); the docs. Wide and Lasting needed no hook of their own: the
+   shapes that last keep the def they were cast with, and the weaves read it.
 8. **Runes as things.**
    - **The pickup:** `rune` in `ITEMS` and `spawnPickup`; the pouch, `player.runes`. Rune chances are rolled on a stream of
      their own after each table's roll, so a seed's chests, hoards and wares stay as they are. `runes` per floor goes in
