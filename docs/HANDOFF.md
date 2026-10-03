@@ -1,4 +1,4 @@
-# Handoff: where the work stands (2026-10-02)
+# Handoff: where the work stands (2026-10-03)
 
 A note for the next session, so it can pick up exactly where this one stopped. `CLAUDE.md` is still the brief and
 `docs/GDD.md` the design; this file only says what is in flight, what waits on the owner, and what was learned on the way.
@@ -6,8 +6,7 @@ Delete it, or write it again, at the next handoff.
 
 ## The branch and what is live
 
-- Work is on **`claude/m6-plan-docs-5gjp6c`**, pushed, clean. Its last work commit is M4.12 steps 7 and 8 approved (the Wardlings and
-  the bosses' looks worn in the game).
+- Work is on **`claude/m6-plan-docs-5gjp6c`**, pushed, clean. Its last work commit closes M4.12 (step 9).
 - **`main` (the live Pages site) is at `593af11`**, shipped 2026-10-02 in [Asyrion/ossuary#33](https://github.com/Asyrion/ossuary/pull/33):
   M6 steps 6 and 7, the gamepad fix, the smaller obol, Dr. Jelly as the plague doctor, the minimap's finished rooms, the
   ware panel, and M4.12 steps 1 to 5 with floors 1 to 3 approved. Another session merged the costumes cut back to 19
@@ -15,19 +14,20 @@ Delete it, or write it again, at the next handoff.
 - On the branch only, **not shipped** (ship only when the owner asks: the `ship` skill, the `rules-reviewer` first):
   floor 4's and floor 5's approvals (every floor's foes in their new looks), the drakeling test's fix (its flight waits for
   one long enough to rise: the Pages deploy of `593af11` failed on it once and passed on the rerun), and steps 7 and 8
-  (approved 2026-10-03).
+  (approved 2026-10-03) and step 9, the close: M4.12 whole.
 - The full browser suite last ran green on the rebased branch before the merge (121 passed); floor 4's approval and floor
   5 were checked by the fantasy-foes, bestiary and M4 foe tests and the unit tests (396).
 
 ## What waits on the owner now
 
-Nothing from M4.12's looks: the six Wardlings and the eight boss looks were approved on 2026-10-03 and are worn, and the
-owner chose the **Owlbear** for the Hollow Warden (its only look now, `wardenLook`; the other two and the switch dropped).
-Next is step 9, the close (below).
+**M4.12 is built** (2026-10-03): every foe, ward core and boss in its fantasy look, the Warden in the Owlbear, the names
+following the creatures (GDD: Combat and enemies, Fantasy foes). Waiting on the owner: the **play-test**, and their eye on
+the sweep's polish (`asset-previews/sweep/`, not in git): the Gloom Raven and the Mandrake nearly black on floor 5's slate,
+the Hex Imps dark on floor 3's red herringbone, the Deep Angler dark on its floor, each read by its lights. Not shipped:
+ship only when asked (the `ship` skill, the `rules-reviewer` first; it ran on 2026-10-03 and found nothing blocking).
 
-Every foe's look in M4.12 is done: in `APPROVED`, old builders deleted, `RETIRED` keeping their old heights and parts for
-the contract, the galleries standing the new looks. The bosses' old builders are gone too, and with them their switch and
-pairs (nothing left to compare); `fantasyBosses.ts` holds the new ones. The routine below stays for any new look to come.
+The balance bot's table (`docs/balance.md`, 2026-10-03) moved since 2026-10-01 with M5's close and M6 steps 1 to 7, not
+the looks: the Pale Unicorn (`moonstagFawn`, keeps away) now outlasts the bot's cantrip and Frost. One for M6's balance.
 
 **On the owner's yes (per foe; how the floors were done):**
 
@@ -52,7 +52,7 @@ pairs (nothing left to compare); `fantasyBosses.ts` holds the new ones. The rout
 
 ## What comes next (the approved order)
 
-1. **M4.12 steps 3 to 8** (all built and approved), one floor at a time, each ending with its contact sheet for the owner (`docs/M4.12-plan.md`:
+1. ~~M4.12 steps 3 to 8~~ (all built and approved), one floor at a time, each ending with its contact sheet for the owner (`docs/M4.12-plan.md`:
    the rules, and a concept per foe):
    - floor 2's six: Hoarfrost Toad, Kelpie, Reliquary Medusa, Glass Wyrm, Rime Crawler, Spark Wyvern;
    - floor 3's four, and the nest: Salamander, Hex Imp, Rime Drake, Cinder Hornets;
@@ -60,9 +60,8 @@ pairs (nothing left to compare); `fantasyBosses.ts` holds the new ones. The rout
    - floor 5's seven: Mandrake, Sky Ray, Void Maw, Dragon Turtle, Gloom Raven, Rime Warg, Tarasque;
    - the six Wardlings, as ward cores: approved 2026-10-03;
    - the bosses' eight looks: approved 2026-10-03, the Warden wearing the Owlbear.
-2. **M4.12 step 9**, the close (next): the names through `STR`, the reviews, the GDD as built, a room sweep, `npm run balance`
-   to confirm nothing moved, and the owner's play-test.
-3. **M6 step 8 (runes as things)**, then steps 9 to 13 (the waystone, its room, the shrine's bargain, the run around it,
+2. ~~M4.12 step 9~~, the close: built 2026-10-03; the owner's play-test waits.
+3. **M6 step 8 (runes as things)** (next), then steps 9 to 13 (the waystone, its room, the shrine's bargain, the run around it,
    the close), as `docs/M6-plan.md` sets out. The owner asked for steps 5 and 7 each to be planned first, in plan mode,
    before any code. Do the same for step 8 and the waystone.
 
