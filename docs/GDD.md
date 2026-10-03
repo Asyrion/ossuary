@@ -210,6 +210,8 @@ creatures rather than the dead: round, big-eyed and smaller than the mage. All t
 
 The last eight arrived with M4.1 (two floors deeper, `docs/M4.1-plan.md`), four a floor, each a new kind of fight.
 
+These looks and names are as first drawn; M4.12 redid every one as a creature of fantasy (Fantasy foes, below).
+
 Behaviour, health, sounds and the affinities (Enemy affinities, below) are M4's to design; a foe's school is a
 starting point for them.
 
@@ -335,6 +337,32 @@ school has one, and the glyph is everyone's: a glyph's blast in their water, or 
 water boils it to steam, which scalds them (Steam's damage) and brings them up; a shock through it brings them up as it
 always hurt them. Brought up, the Lurker and the Serpent lie stranded for 3 s (`stranded` in `data/foes.json`), the Newt
 stunned, and each is open to every blow. Fire on still water steams at most once every 2.5 s a pool (`CFG.surface`).
+
+**Fantasy foes (M4.12, the owner's ask of 2026-10-02; as built 2026-10-03, `docs/M4.12-plan.md`).** The cute looks of M4
+and M4.1 (round, googly-eyed), the Wardlings, eight boss looks and fourteen of M4.5's plain animals were redone as
+creatures that could only live in Eda: beasts of the old bestiaries or animals magic has changed past anything natural,
+their school in their bodies (runes cut into horn, frost in a stone's cracks, lightning in a hollow bell), small slit eyes
+under a brow and no smiles, judged at play distance in the texel look. Each fight, its data and its counters are unchanged;
+each look keeps the parts its fight moves and about its old height, and within its old draw calls. The owner approved them
+floor by floor, and the names follow the creatures (ids stay):
+
+| Floor | Was | Now |
+| --- | --- | --- |
+| 1 | Sporeling, Vesper Moth, Rune Beetle, Urn Mimic | Spore Fiend, Seraph Moth, Runehorn, Urn Mimic (a fanged lid, ember slits) |
+| 1 | Crypt Spider, Ink Octopus, Firefly Swarm, Choir Lark, Storm Mantis, Rubble Crab | Gloom Weaver, Quill Kraken, Lampwyrms, Caladrius, Mantis Knight, Helm Hermit |
+| 2 | Mire Toad, Cistern Lurker, Lantern Jelly | Hoarfrost Toad, Kelpie, Reliquary Medusa |
+| 2 | Glass Newt, Rime Snail, Storm Darter | Glass Wyrm, Rime Crawler, Spark Wyvern |
+| 3 | Cinder Salamander, Hex Imp, Rime Drakeling, Ember Wasps and their nest | Salamander, Hex Imp, Rime Drake, Cinder Hornets and their nest of cooled lava |
+| 4 | Wickmouse, Chime Bat, Gargoyle Whelp, Moonstag Fawn, Rime Scarab | Candle Kobold, Bell Fiend, Gargoyle, Pale Unicorn, Frost Scarab |
+| 5 | Rootling, Storm Ray, Void Mote, Lantern Tortoise | Mandrake, Sky Ray, Void Maw, Dragon Turtle |
+| 5 | Gloom Raven, Rime Wolf, Dust Pangolin | Gloom Raven (three eyes, smoke-trailing wings), Rime Warg, Tarasque |
+| – | the six Wardlings | the six ward cores: a faceted crystal heart with one slit eye, in a cage of turning runes |
+
+The bosses kept their names and fights: the Hollow Warden wears the Owlbear (above); the Hallowed Hart is a gaunt white
+stag with antlers of light, the Deep Angler a black anglerfish whose lure is its only light, the War-Tiger snarls under a
+white mane, the Pillar Dragon's head is horned with a brow of spines, and the jelly serpent's skull shows through its
+jelly. The twenty-one of M4.5 that were creatures of fantasy already, the Drowned Abbess, the Pyre Knight and the Twin
+Guardians kept their looks; Fen-Nex and the familiars are the owner's drawings and stay as drawn.
 
 **Spell effects in the same style (decided 2026-09-30).** The owner liked the Cinder Lance in the new style, so every
 spell's effect is redone in it, and `docs/effects.md` is the guide for every effect to come.
@@ -1739,7 +1767,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4.9 The curve | Harder for the right reasons | Pressure dials per floor in data; libraries and merchants lean to the floor's weakness; a hex's drain traced to its foe; the sluice for water rooms; `npm run balance` measuring every foe (Depth for what's built; proposed 2026-10-01, `docs/M4.9-plan.md`) |
 | M4.10 Weaves | Combinations beyond pairs | Ten weaves (a spell striking what another left: the Steam Curtain, the Overload Seal, Eclipse Ground...), seven chains (a reaction's leavings met by a third school: Thundercloud, Incense, Miasma...), the room's mechanisms joining in; Verdant's Bloom and Blight designed for M5 (Depth for what's built; built 2026-10-01 at the owner's ask, `docs/M4.10-plan.md`) |
 | M4.11 Spell marks | You can see your magic | **Built 2026-10-01** (Spells: Spell marks; the owner's ask). The slotted spells shown at the hands with their state, attunement, a master's ring, the knowledge circle |
-| M4.12 Fantasy foes | Creatures of Eda, not critters | The 32 cute looks (M4's and M4.1's foes, the Wardlings, eight boss looks) and the 14 plain animals of M4.5 redone as creatures of fantasy, each fight unchanged (the owner's ask, 2026-10-02; approved the same day, after M6 step 7, `docs/M4.12-plan.md`) |
+| M4.12 Fantasy foes | Creatures of Eda, not critters | The 32 cute looks (M4's and M4.1's foes, the Wardlings, eight boss looks) and the 14 plain animals of M4.5 redone as creatures of fantasy, each fight unchanged (the owner's ask, 2026-10-02; approved the same day, after M6 step 7, `docs/M4.12-plan.md`); built and every look approved 2026-10-03, the Warden wearing the Owlbear (Combat and enemies: Fantasy foes) |
 | M5 Alchemy | The second game | **Built** (2026-10-01, `docs/M5-plan.md`; Potions and alchemy, M5 as built; the owner's play-test next): steps 1 to 10 (the data, the belt, drinking and throwing, reagents, Dr. Jelly's laboratory and brewing, the jelly serpent, the Alchemist, Verdant and its gardens, the close). Potion belt, drink or throw, identification, 7 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
 | M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
 | M7 Descent and the Vigil | A full run with a reason to return | Final boss (Kaelith, the Shadow Sentinel); the Vigil (RPG progression: Between runs) at the cave mouth over the valleys: freed shades as townspeople with dialogue (Boketto, the Cloud Forest Wizard, the Huruhui foragers), its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines; a won run ends in daylight |
