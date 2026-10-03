@@ -22,6 +22,8 @@ import { ringFx } from '../magic/spellFx';
 import { floatText } from '../magic/statusFx';
 import { line } from '../ui/hud';
 import { $ } from '../util';
+import { updateArc } from '../items/arc';
+import { dress } from '../actors/costume';
 import { LEVEL_CAP, bossInsight, clearInsight, insightAt, levelFor, levelProgress, potionInsight } from './levelData';
 
 const L = CFG.levels, TOLD = 'ossuary.insightTold';
@@ -71,6 +73,7 @@ function leveled(from: number, to: number) {
   burst(player.x, .8, player.z, L.gold, 22, 2.2, .05); burst(player.x, 1.6, player.z, 0xfff4d0, 10, 1.2, .04);
   Sfx.levelUp();
   if (to >= LEVEL_CAP) line(STR.levels.cap, L.lineCap);
+  const stage = G.run.arc; updateArc(); if (G.run.arc !== stage) dress(); // (M6 step 12: levels count toward Asyrion's arc)
 }
 
 /** The dev menu: set the level (its insight the level's start); levels gone up wait for their choice as any do. */

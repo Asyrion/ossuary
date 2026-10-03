@@ -13,6 +13,7 @@
      longer than the floor above, every room the bot could not clear in `limit` s, and page errors.
 
    OSSUARY_URL points at another server; PW_CHROMIUM at a Chromium binary (cloud sessions). */
+import { levelAtFloor } from '../src/progression/levelData';
 import { chromium, type Browser, type Page } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 import { FOES as FOE_DEFS } from '../src/actors/foeData';
@@ -127,30 +128,32 @@ function installBot() {
   w.__bot = (lim, spells) => fight(lim, spells, () => !g.enemies.some(e => !e.dead && e.type !== 'dummy'));
 }
 
-interface RoomRow { seed: number; floor: number; build: string; type: string; template: string; variant: string; foes: string[]; t: number; lost: number; left: string[] }
+interface RoomRow { seed: number; floor: number; build: string; type: string; template: string; variant: string; foes: string[]; t: number; lost: number; left: string[]; insight: number; level: number; start: number }
 
 /** One floor of one seed's run with one build: every room with a fight, entered in turn (the boss's last). */
 async function fightFloor(page: Page, floor: number, build: string, seed: number): Promise<RoomRow[]> {
-  const rooms = await page.evaluate(({ floor, spells, seed }) => {
+  const start = levelAtFloor(floor - 1); // (M6 step 12: each floor at the level a run expects to reach it at, its levels choosing for themselves)
+  const rooms = await page.evaluate(({ floor, spells, seed, start }) => {
     type R = { cleared: boolean; plan: { id: number; type: string; templateId: string; variant: string }; waves: { kind: string }[][] };
     type G = { startGame(o: object): void; rooms(): R[] };
     const g = (window as unknown as { __game: G }).__game;
-    g.startGame({ seed: 'RUN' + seed, floor: floor - 1, spells });
+    g.startGame({ seed: 'RUN' + seed, floor: floor - 1, spells, level: start > 1 ? start : undefined });
     return g.rooms().filter(r => !r.cleared && r.waves.length && r.plan.type !== 'vault') // (a vault's warden wakes only to a key or blasts)
       .sort((a, b) => +(a.plan.type === 'boss') - +(b.plan.type === 'boss'))
       .map(r => ({ id: r.plan.id, type: r.plan.type, template: r.plan.templateId, variant: r.plan.variant, foes: r.waves.flat().map(w => w.kind) }));
-  }, { floor, spells: BUILDS[build], seed });
+  }, { floor, spells: BUILDS[build], seed, start });
   const out: RoomRow[] = [];
   for (const r of rooms) {
     const res = await page.evaluate(({ id, limit, n }) => {
-      type G = { warp(id: number): void; sim(s: number): void; clearRoom(): void; player: { hp: number; maxHp: number; invuln: number } };
+      type G = { warp(id: number): void; sim(s: number): void; clearRoom(): void; player: { hp: number; maxHp: number; invuln: number }; insight: { insight: number }; level: number };
       const w = window as unknown as { __game: G; __runBot(limit: number, spells: number): { t: number; lost: number; left: string[] } }, g = w.__game;
       g.player.hp = g.player.maxHp; g.warp(id);
-      const r = w.__runBot(limit, n);
+      const before = g.insight.insight, r = w.__runBot(limit, n);
       if (r.left.length) { g.clearRoom(); g.sim(.1); } // (what one room left standing never spoils the next: warp leaves foes behind)
-      return r;
+      g.sim(.2); // (the clear's insight)
+      return { ...r, insight: g.insight.insight - before, level: g.level };
     }, { id: r.id, limit: r.type === 'boss' || r.type === 'ordeal' ? limit * 2 : limit, n: BUILDS[build].length }); // (an ordeal's waves, a boss's phases: twice as long)
-    out.push({ seed, floor, build, ...r, t: res.t, lost: res.lost / 2, left: res.left });
+    out.push({ seed, floor, build, ...r, t: res.t, lost: res.lost / 2, left: res.left, insight: res.insight, level: res.level, start });
   }
   return out;
 }
@@ -192,13 +195,18 @@ function runsReport(rows: RoomRow[], secs: number, errors: string[]) {
   const builds = [...new Set(rows.map(r => r.build))], fl = [...new Set(rows.map(r => r.floor))].sort();
   const fights = (f: number, b?: string) => rows.filter(r => r.floor === f && r.type !== 'boss' && (!b || r.build === b));
   const bosses = (f: number, b?: string) => rows.filter(r => r.floor === f && r.type === 'boss' && (!b || r.build === b));
-  let md = `# Balance: whole floors\n\nWritten by \`npm run balance -- runs\` (tools/balance.ts). ${seeds} seed(s) of a run, each floor started fresh with each build (no artifacts carried), every fight room entered in turn and cleared by the bot (vaults left sealed); a room is cut off at ${limit} s, an ordeal or a boss at ${limit * 2} s. The bot is healed when low, so hard rooms show as hearts lost. Last run: ${new Date().toISOString().slice(0, 10)}, ${Math.round(secs / 60)} min.\n`;
+  let md = `# Balance: whole floors\n\nWritten by \`npm run balance -- runs\` (tools/balance.ts). ${seeds} seed(s) of a run, each floor started fresh with each build at the level a run expects to reach it at (M6 step 12: \`levelAtFloor\`, its levels choosing for themselves; no artifacts carried), every fight room entered in turn and cleared by the bot (vaults left sealed); a room is cut off at ${limit} s, an ordeal or a boss at ${limit * 2} s. The bot is healed when low, so hard rooms show as hearts lost. Last run: ${new Date().toISOString().slice(0, 10)}, ${Math.round(secs / 60)} min.\n`;
   md += `\n## Rooms: mean seconds · hearts lost a room\n\n| Floor | ${builds.join(' | ')} | all | vs floor above |\n| --- | ${builds.map(() => '---').join(' | ')} | --- | --- |\n`;
   let prev = 0;
   for (const f of fl) {
     const all = mean(fights(f).map(r => r.t)), grow = prev ? `×${(all / prev).toFixed(2)}` : '';
     md += `| ${f} | ${builds.map(b => `${mean(fights(f, b).map(r => r.t)).toFixed(1)} · ${mean(fights(f, b).map(r => r.lost)).toFixed(1)}`).join(' | ')} | ${all.toFixed(1)} · ${mean(fights(f).map(r => r.lost)).toFixed(1)} | ${grow} |\n`;
     prev = all;
+  }
+  md += `\n## Insight and levels (M6 step 12)\n\nEach floor's start level, the mean insight a fight room gave (kills and its clear), the boss's, and the level the floor ended at (mean over builds and seeds), against the curve's next start level.\n\n| Floor | start | insight a room | boss | ends at | the curve's next |\n| --- | --- | --- | --- | --- | --- |\n`;
+  for (const f of fl) {
+    const all = rows.filter(r => r.floor === f), boss = bosses(f), ends = [...new Set(all.map(r => r.seed + r.build))].map(k => all.filter(r => r.seed + r.build === k).at(-1)!.level);
+    md += `| ${f} | ${all[0]?.start ?? ''} | ${mean(fights(f).map(r => r.insight)).toFixed(1)} | ${mean(boss.map(r => r.insight)).toFixed(0)} | ${mean(ends).toFixed(1)} | ${f < 5 ? levelAtFloor(f) : 12} |\n`;
   }
   md += `\n## Bosses: mean seconds · hearts lost\n\n| Floor | ${builds.join(' | ')} |\n| --- | ${builds.map(() => '---').join(' | ')} |\n`;
   for (const f of fl) md += `| ${f} | ${builds.map(b => { const r = bosses(f, b); return r.length ? `${mean(r.map(x => x.t)).toFixed(1)} · ${mean(r.map(x => x.lost)).toFixed(1)}` : ''; }).join(' | ')} |\n`;

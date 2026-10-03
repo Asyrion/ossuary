@@ -903,7 +903,7 @@ export const STR = {
     transforms: 'Transformations (three of a family form one; here at once, with its banner)', clearTransforms: 'Undo them all',
     marks: 'Spell marks (M4.11: the spells in hand, attunement, the master\'s ring, the knowledge circle)', attune: (school: string) => `Attune to ${school}`, showCircle: 'Show the knowledge circle (stand still)',
     marksInfo: (hands: string[], attuned: string, known: number, mastered: string[]) => `Hands: Q ${hands[0]}, E ${hands[1]} · attuned: ${attuned || 'no'} · ${known} spell${known === 1 ? '' : 's'} known well${mastered.length ? ` · mastered: ${mastered.join(', ')}` : ''}`,
-    arc: 'Asyrion\'s arc (the chaos mage\'s pieces, at 3, 6, 9 and 12 artifacts held)', arcHeld: 'As held', arcStage: (n: number) => n ? `Stage ${n}` : 'Apprentice',
+    arc: 'Asyrion\'s arc (the chaos mage\'s pieces, at 3, 6, 9 and 12 artifacts held; every three levels count as one)', arcHeld: 'As held', arcStage: (n: number) => n ? `Stage ${n}` : 'Apprentice',
     arcInfo: (stage: number, held: number, forced: boolean) => `Stage ${stage} of 4${forced ? ' (forced here)' : ''} · ${held} artifact${held === 1 ? '' : 's'} held`,
     transformInfo: (formed: string[], blink: number) => `Formed: ${formed.length ? formed.join(', ') : 'none'} (the last wears its look)${blink > 0 ? ` · blink rests ${blink.toFixed(1)} s` : ''}`,
     fennex: 'Fen-Nex', growFennex: 'Grow Fen-Nex a stage', noFennex: 'Fen-Nex is not bound (take the Rune of Fen-Nex)', wanderer: 'The Wandering Merchant, here', noFoe: 'No foe in the room',
@@ -919,7 +919,7 @@ export const STR = {
     roomNames: { start: 'Start', normal: 'Normal', treasure: 'Treasure', boss: 'Boss', ordeal: 'Ordeal', altar: 'Bone altar', merchant: 'Merchant', vault: 'Vault', secret: 'Secret room', shrine: 'Shrine', library: 'Library', laboratory: "Dr. Jelly's laboratory", waystone: 'Waystone room' } as Record<string, string>,
     test: 'Test a room', template: 'Room template', variant: 'Variant', play: 'Play it',
     variants: { normal: 'Normal', quiet: 'Quiet', champion: 'Champion', ambush: 'Ambush', dark: 'Dark' } as Record<string, string>,
-    bosses: 'Fight a boss', newRun: 'New run', floorN: (n: number) => `Floor ${n}`,
+    bosses: 'Fight a boss', newRun: 'New run (a deeper floor at its expected level, its choices waiting)', floorN: (n: number) => `Floor ${n}`,
     keep: ' Keep artifacts, obols, keys and glyphs when starting',
   },
   /** What a merchant's ware is called in messages. */

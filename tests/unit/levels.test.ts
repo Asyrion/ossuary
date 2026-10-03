@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { arcStage } from '../../src/actors/costumeData';
 import { CFG } from '../../src/config';
 import { Rng } from '../../src/rng';
 import { FLOORS, generateFloor } from '../../src/world/generate';
 import { TEMPLATES, parseTemplate } from '../../src/world/templates';
 import { championIndex, fillRoles, packCount, packRoll } from '../../src/world/fill';
 import { FOES } from '../../src/actors/foeData';
-import { LEVEL_CAP, bossInsight, clearInsight, insightAt, levelFor, levelProgress, potionInsight, purseOf } from '../../src/progression/levelData';
+import { LEVEL_CAP, bossInsight, clearInsight, insightAt, levelAtFloor, levelFor, levelProgress, potionInsight, purseOf } from '../../src/progression/levelData';
 
 /* M6 step 1: insight and levels (docs/M6-plan.md). */
 
@@ -86,5 +87,25 @@ describe('the curve (the M6 plan, measured on 300 seeds)', () => {
   it('never reaches the cap before floor 5, and every run reaches it by its boss', () => {
     expect(share(r => r.some(s => s.floor < 4 && levelFor(s.insight) >= LEVEL_CAP))).toBe(0);
     expect(share(r => levelFor(r.at(-1)!.insight) >= LEVEL_CAP)).toBeGreaterThanOrEqual(.97);
+  });
+});
+
+describe('the run around it (M6 step 12)', () => {
+  it("starts a deeper floor at its expected level: 1, 4, 7, 9 and 11", () => {
+    expect([0, 1, 2, 3, 4].map(f => levelAtFloor(f))).toEqual([1, 4, 7, 9, 11]);
+  });
+  it('keeps the floors\' insight within a tenth of the curve measured here', () => {
+    const runs = Array.from({ length: 300 }, (_, i) => runOf('CURVE' + i));
+    const median = (xs: number[]) => { const s = [...xs].sort((a, b) => a - b); return s[Math.floor(s.length / 2)]; };
+    CFG.levels.floorInsight.forEach((want, f) => {
+      const per = runs.map(r => { const at = r.filter(s => s.floor === f), before = r.filter(s => s.floor < f).at(-1)?.insight ?? 0; return at.at(-1)!.insight - before; });
+      expect(Math.abs(median(per) - want) / want).toBeLessThan(.1);
+    });
+  });
+  it('counts every three levels gained as one artifact held toward the arc', () => {
+    const held = (artifacts: number, level: number) => artifacts + Math.floor((level - 1) / CFG.arc.perLevels);
+    expect(arcStage(held(0, 12), CFG.arc.at)).toBe(1); // (a level-12 run with nothing held: the first stage)
+    expect(arcStage(held(0, 9), CFG.arc.at)).toBe(0);
+    expect(arcStage(held(2, 4), CFG.arc.at)).toBe(1);
   });
 });

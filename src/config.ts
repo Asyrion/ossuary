@@ -116,7 +116,7 @@ export const CFG = {
   },
   /** M4.6 Asyrion's arc (items/arc.ts): how many artifacts held bring each stage of the chaos mage's pieces, and how long
       each stage's line stays. */
-  arc: { at: [3, 6, 9, 12], line: 4.5 },
+  arc: { at: [3, 6, 9, 12], line: 4.5, perLevels: 3 }, // (M6 step 12: every three levels gained count as one artifact held)
   // M6 (docs/M6-plan.md): insight, the GDD's XP, and levels. `at`: the insight each level from 2 to the cap needs (the
   // last is the cap's; the curve measured over 2,000 seeds is the plan's table); a foe's purse is its health on its floor
   // ÷ `foeDiv`; a room's first clear gives `perFloor` × the floor (an ordeal `ordealMul` times that), as does each potion's
@@ -128,7 +128,9 @@ export const CFG = {
   // `pointsPerHalf`; Arcana spell damage +`spell`; Will max mana +`mana` and its coming back +`regen`; Swiftness move speed
   // +`speed` and the cantrip's delay −`delay` (its floor kept). Each in a line with its points, never compounding.
   attributes: { vigor: { pointsPerHalf: 2 }, arcana: { spell: .06 }, will: { mana: 10, regen: .05 }, swiftness: { speed: .03, delay: .03 } },
-  levels: { at: [20, 70, 145, 240, 340, 450, 700, 1030, 1400, 1780, 2500], foeDiv: 4, perFloor: 4, ordealMul: 2, serpentDiv: 2,
+  // floorInsight: the insight each floor gives a run that clears it (the medians measured in docs/M6-plan.md, The curve), which
+  // a deeper start's level is drawn from (levelAtFloor; M6 step 12)
+  levels: { at: [20, 80, 170, 280, 395, 520, 810, 1185, 1600, 2025, 2825], floorInsight: [204, 400, 735, 932, 1302], foeDiv: 4, perFloor: 4, ordealMul: 2, serpentDiv: 2,
     streak: { time: .6, size: .36, max: 48, trail: 5, gap: .05, rise: .9 }, gold: 0xe8c878, chimeGap: .12,
     // the level-up screen: seconds of calm after a fight before it opens, and seconds a choice is locked as it opens (a key held from the fight)
     calm: .8, lock: .4,
