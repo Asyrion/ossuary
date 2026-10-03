@@ -18,6 +18,10 @@ Delete it, or write it again, at the next handoff.
 - The full browser suite last ran green on the rebased branch before the merge (121 passed); floor 4's approval and floor
   5 were checked by the fantasy-foes, bestiary and M4 foe tests and the unit tests (396).
 
+- **GitHub milestones** (the owner's rule, 2026-10-03): every roadmap milestone is one on GitHub (M0 to M5 closed, M6 to
+  M8 open). Create a new one with `npm run milestone -- open "M9 Name" "Its goal"` when it enters the roadmap, and close a
+  finished one with `npm run milestone -- close M6` in the step that marks it built (CLAUDE.md, Working agreements).
+
 ## What waits on the owner now
 
 **M4.12 is built** (2026-10-03): every foe, ward core and boss in its fantasy look, the Warden in the Owlbear, the names
