@@ -47,7 +47,7 @@ export function pourJelly(room: Room, x: number, z: number, n: number, rng: () =
     its vat's window, when it breaks out); jelly poured round it if it has none; it rears up, then dives. */
 export function buildSerpent(e: Enemy, tx = 0, tz = -1) {
   const L = serpentHead(), P = L.parts, body = serpentBody();
-  e.mats = mergeRig(L.group, L.idle, 'boss:serpentHead' + (L.key ?? ''), [P.eye, P.ring, P.head, P.jaw, P.fins]);
+  e.mats = mergeRig(L.group, L.idle, 'boss:serpentHead', [P.eye, P.ring, P.head, P.jaw, P.fins]);
   e.mats.push(...body.mats); for (const m of e.mats) m.userData.base = m.emissive.clone();
   e.model = L.group; e.idle = L.idle; e.shadow = L.shadow; e.bossSchool = L.school; e.body.add(L.group);
   e.eye = P.eye; e.ring = P.ring; e.halo = P.halo; e.parts = P; e.bossAff = { weak: C.weak, resist: C.resist };

@@ -11,7 +11,7 @@ import { THEME_DEFS } from '../world/themeData';
 import { placeProp } from '../world/props';
 import { padsNow } from '../input/gamepad';
 import { FOE_LOOK_MODES } from '../actors/fantasyLooks';
-import { BOSSES, showLookPairs } from '../actors/lookPairs';
+import { showLookPairs } from '../actors/lookPairs';
 import { jellyGives } from '../world/jellyGives';
 import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
@@ -499,9 +499,9 @@ function build() {
   jl.append(el('p', 'dv-info', S.jellyNote),
     btn(S.showOptions, () => { closeDev(); showJellyLooks(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
 
-  // M4.12: the foes' old and new looks side by side, a floor at a time (and the bosses'), for the owner to compare and approve
+  // M4.12: the foes' old and new looks side by side, a floor at a time, for the owner to compare and approve
   const lp = section(pages.galleries, S.lookPairs);
-  lp.append(...[1, 2, 3, 4, 5, 0, BOSSES].map(f => btn(S.floorLooks(f), () => { closeDev(); if (!showLookPairs(G.current, player.x, player.z, f).length) toast(S.noNewLooks, 2); })),
+  lp.append(...[1, 2, 3, 4, 5, 0].map(f => btn(S.floorLooks(f), () => { closeDev(); if (!showLookPairs(G.current, player.x, player.z, f).length) toast(S.noNewLooks, 2); })),
     btn(S.allLooks, () => { closeDev(); if (!showLookPairs(G.current, player.x, player.z).length) toast(S.noNewLooks, 2); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
 
   // the Hollow Warden's looks (M4): the three ahead of the mage, and the one it wears in its fight (a new floor 1 shows it)

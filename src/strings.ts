@@ -697,9 +697,9 @@ export const STR = {
   } as Record<string, { name: string; note: string }>,
   /** The Hollow Warden's looks built in code (M4, actors/bossLooks.ts), for the owner to choose; placeholder names. */
   bossLooks: {
-    bellWarden: { name: 'Bell Warden', note: 'Storm: a great beetle under an old cracked bronze bell, peering out from under the lip' },
-    motherOfSpores: { name: 'Mother of Spores', note: 'Umbral: a mushroom as tall as a door, her cap spotted with violet light; the Sporelings she calls are her young' },
-    hollowOwl: { name: 'Hollow Owl', note: 'Hallow: a round barn owl the size of a wardrobe, a crown of candles, wings folded like a cloak' },
+    bellWarden: { name: 'Bell Warden', note: 'Storm: a cracked bronze bell on eight spider legs, one slit eye of storm-light and a fanged maw in its face' },
+    motherOfSpores: { name: 'Spore Matriarch', note: 'Umbral: a hunched fungal crone under a hood of shelf fungus, three violet slits, arms of root; the spore beasts she calls are her young' },
+    hollowOwl: { name: 'Owlbear', note: 'Hallow: a bear\'s hunched body under a scowling owl\'s face, slit eyes of gold, a crown of candles' },
   } as Record<string, { name: string; note: string }>,
   /** Familiar options (actors/modelOptions.ts): the owner's drawings, built in code; placeholder names. */
   /** The bestiary (M4.5, actors/bestiaryLooks.ts): names (placeholders) and the fight each brings. */
@@ -792,8 +792,8 @@ export const STR = {
     fpsOn: 'Frame readout: shown', fpsOff: 'Frame readout: hidden',
     /** M4.12: the foes' looks, old and new. */
     lookPairs: 'Fantasy foes (M4.12): old and new looks side by side, a floor at a time (a great hall holds a floor\'s)', noNewLooks: 'No new looks yet on this floor',
-    floorLooks: (f: number) => f < 0 ? 'Bosses' : f ? `Floor ${f}` : 'Wardlings', allLooks: 'Every floor',
-    foeLooks: { approved: 'Foe and boss looks: as approved (the game)', new: 'Foe and boss looks: every new one (to try)', old: 'Foe and boss looks: the old ones still waiting on a yes (to compare)' } as Record<string, string>,
+    floorLooks: (f: number) => f ? `Floor ${f}` : 'Wardlings', allLooks: 'Every floor',
+    foeLooks: { approved: 'Foe looks: as approved (the game)', new: 'Foe looks: every new one (to try)', old: 'Foe looks: the old ones still waiting on a yes (to compare)' } as Record<string, string>,
     pads: 'Gamepads', readPads: 'Read the pads again', noPads: 'No gamepad heard: press one of its buttons with this page in front (a browser shows a pad only after that)',
     padRow: (i: number, id: string, mapping: string, buttons: number[], axes: number[]) => `Pad ${i}: ${id} · ${mapping === 'standard' ? 'standard layout' : 'unusual layout'} · held: ${buttons.length ? buttons.join(', ') : 'nothing'} · sticks: ${axes.slice(0, 4).join(' ')}`,
     artifactGallery: 'Artifacts (the room kit\'s: built in code, their icons rendered from them)', artifactsNote: 'Every artifact floating ahead of the mage in rows (foci, passives, cursed), to look at; they can\'t be taken',

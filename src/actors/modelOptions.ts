@@ -21,46 +21,17 @@ import { FLOOR2_LOOKS } from './fantasyFloor2';
 import { FLOOR3_LOOKS } from './fantasyFloor3';
 import { FLOOR4_LOOKS } from './fantasyFloor4';
 import { FLOOR5_LOOKS } from './fantasyFloor5';
-import { SCHOOL_LIGHT, bigEyes, box, limb, lit, motes, part, rune, runeRing, shine, sphere, std, type School, type V3 } from '../render/arcane';
+import { WARDLING_LOOKS } from './fantasyWardlings';
+import { box, limb, lit, motes, part, rune, shine, sphere, std, type School } from '../render/arcane';
 
 /** A built option: its group, how it idles, the size of the shadow under it, and the parts a foe's behaviour moves beyond
     its idle (M4: a beetle's wing-cases, a mimic's lid). */
 interface Built { group: THREE.Group; idle: (t: number) => void; shadow: number; parts?: Record<string, THREE.Object3D> }
 
-/** Now and then the eyes close for a moment. */
-const blink = (list: THREE.Object3D[], t: number, every = 3.4, at = 0) => { const k = (t + at) % every; for (const e of list) e.scale.y = k < .12 ? .12 : 1; };
-
 /* ---------- the options ---------- */
 
-/* (the floors' foes are creatures of fantasy now, in fantasyFloor1.ts to fantasyFloor5.ts: M4.12; the Wardlings below) */
-
-/* ---------- the Wardlings (M4.2): what a drinking ward drank, let out ---------- */
-
-/** Let out of a drinking ward (world/vault.ts, actors/wardShield.ts), one for each school: a round drop of liquid light in
-    its school's colour with a bright core and big eyes, floating inside a turning ring of its runes, its school's crest on
-    top: a flame, ice spikes, a crest of sparks, a halo, little horns, a sprout (M5's Verdant). */
-function wardling(school: School): Built {
-  const L = SCHOOL_LIGHT[school], g = new THREE.Group(), body = new THREE.Group(); body.position.y = .85; g.add(body);
-  const drop = school === 'storm' ? 0x5a6ab8 : new THREE.Color(L).multiplyScalar(.7).getHex(); // (Storm's a thundercloud: its yellow is too near Hallow's gold)
-  part(body, sphere(.25, 14, 10), std(drop, { emissive: school === 'storm' ? 0x2a3470 : L, emissiveIntensity: .35, roughness: .4 }), [0, 0, 0]); // the drop of light
-  part(body, sphere(.06, 8, 6), shine(0xffffff, .55), [-.11, .12, .16]);                                                                              // a gleam on it
-  const eyes = bigEyes(body, .085, .04, .2, .062);
-  const ring = new THREE.Group(); ring.rotation.x = 1.25; body.add(ring);
-  runeRing(ring, L, .4, [0, 0, 0], 5);
-  const crest = new THREE.Group(); crest.position.y = .24; body.add(crest);
-  const pale = lit(new THREE.Color(L).lerp(new THREE.Color(0xffffff), .45).getHex());
-  if (school === 'ember') { part(crest, new THREE.ConeGeometry(.07, .22, 6), pale, [0, .1, 0]); for (const s of [-1, 1]) part(crest, new THREE.ConeGeometry(.045, .13, 5), lit(L), [.07 * s, .05, 0], { rot: [0, 0, -.4 * s] }); }
-  else if (school === 'frost') for (const a of [-.5, 0, .5]) part(crest, new THREE.ConeGeometry(.035, .2, 4), pale, [Math.sin(a) * .1, .08, 0], { rot: [0, 0, -a] });
-  else if (school === 'storm') for (const [x, y, r] of [[-.05, .06, .6], [.02, .1, -.6], [.06, .16, .6]] as V3[]) part(crest, box(.03, .1, .03), pale, [x, y, 0], { rot: [0, 0, r] });
-  else if (school === 'hallow') part(crest, new THREE.TorusGeometry(.13, .018, 4, 18), pale, [0, .1, 0], { rot: [Math.PI / 2, 0, 0] });
-  else if (school === 'verdant') for (const s of [-1, 1]) part(crest, sphere(.06, 6, 4), pale, [.06 * s, .08, 0], { rot: [0, 0, -.6 * s], scale: [.6, 1.6, .25] }); // (M5: a sprout of two leaves)
-  else for (const s of [-1, 1]) part(crest, new THREE.ConeGeometry(.04, .16, 5), std(0x1a1024), [.1 * s, .02, 0], { rot: [0, 0, -.5 * s] });
-  const specks = motes(body, L, 4, .42, 0, .02);
-  const light = glow(L, 1.1, .5); body.add(light);
-  return { group: g, shadow: .5, parts: { body, light }, idle: t => {
-    ring.rotation.z = t * 1.6; body.position.y = .85 + Math.sin(t * 2.1) * .05; body.scale.setScalar(1); crest.rotation.y = Math.sin(t * 1.3) * .3; specks(t, 1.4); blink(eyes, t, 3.6);
-  } };
-}
+/* (the floors' foes are creatures of fantasy now, in fantasyFloor1.ts to fantasyFloor5.ts, and the Wardlings ward cores in
+   fantasyWardlings.ts: M4.12) */
 
 export const MODEL_OPTIONS = [
   { id: 'sporeling', floor: 1, school: 'umbral', build: FLOOR1_LOOKS.sporeling }, { id: 'vesperMoth', floor: 1, school: 'hallow', build: FLOOR1_LOOKS.vesperMoth },
@@ -74,9 +45,9 @@ export const MODEL_OPTIONS = [
   { id: 'rootling', floor: 5, school: 'umbral', build: FLOOR5_LOOKS.rootling }, { id: 'stormRay', floor: 5, school: 'storm', build: FLOOR5_LOOKS.stormRay },
   { id: 'voidMote', floor: 5, school: 'umbral', build: FLOOR5_LOOKS.voidMote }, { id: 'lanternTortoise', floor: 5, school: 'frost', build: FLOOR5_LOOKS.lanternTortoise },
   // M4.2: the Wardlings, no floor's own (0): a drinking ward lets them out
-  { id: 'wardEmber', floor: 0, school: 'ember', build: () => wardling('ember') }, { id: 'wardFrost', floor: 0, school: 'frost', build: () => wardling('frost') },
-  { id: 'wardStorm', floor: 0, school: 'storm', build: () => wardling('storm') }, { id: 'wardHallow', floor: 0, school: 'hallow', build: () => wardling('hallow') },
-  { id: 'wardUmbral', floor: 0, school: 'umbral', build: () => wardling('umbral') }, { id: 'wardVerdant', floor: 0, school: 'verdant', build: () => wardling('verdant') },
+  { id: 'wardEmber', floor: 0, school: 'ember', build: WARDLING_LOOKS.wardEmber }, { id: 'wardFrost', floor: 0, school: 'frost', build: WARDLING_LOOKS.wardFrost },
+  { id: 'wardStorm', floor: 0, school: 'storm', build: WARDLING_LOOKS.wardStorm }, { id: 'wardHallow', floor: 0, school: 'hallow', build: WARDLING_LOOKS.wardHallow },
+  { id: 'wardUmbral', floor: 0, school: 'umbral', build: WARDLING_LOOKS.wardUmbral }, { id: 'wardVerdant', floor: 0, school: 'verdant', build: WARDLING_LOOKS.wardVerdant },
 ] as const satisfies readonly { id: string; floor: 0 | 1 | 2 | 3 | 4 | 5; school: School; build: () => Built }[];
 export type ModelOptionId = (typeof MODEL_OPTIONS)[number]['id'];
 
@@ -260,7 +231,7 @@ export function showBossLooks(room: Room, x: number, z: number, only?: readonly 
   const list = ALL_BOSS_LOOKS.filter(o => !only || only.includes(o.id));
   return list.map((o, i) => {
     const at = freeSpotNear(room, x + (i - (list.length - 1) / 2) * 2.9, z - 3);
-    const b = o.build(); mergeRig(b.group, b.idle, 'boss:' + o.id + (b.key ?? '')); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
+    const b = o.build(); mergeRig(b.group, b.idle, 'boss:' + o.id); b.group.position.set(at.x - room.cx, 0, at.z - room.cz); b.group.add(blob(b.shadow)); room.group.add(b.group);
     shown.push({ room, group: b.group, idle: b.idle });
     return { id: o.id, x: at.x, z: at.z };
   });
