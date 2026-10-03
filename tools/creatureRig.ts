@@ -96,8 +96,8 @@ export class Rig {
 }
 
 /** A clip: how long it lasts, whether it loops, and the pose at time `t` (from rest each frame); its events are when
-    its sounds play (a paw down, the roar). */
-export interface ClipDef { duration: number; loop: boolean; pose(rig: Rig, t: number): void; events: { t: number; sound: string; at?: string }[] }
+    its sounds play (a paw down, the roar; `loud` ones at the creature's roar's loudness, CFG.creatures). */
+export interface ClipDef { duration: number; loop: boolean; pose(rig: Rig, t: number): void; events: { t: number; sound: string; at?: string; loud?: boolean }[] }
 
 /** Sample every clip at `fps` and write them into the document as glTF animations (rotations of the bones that move,
     and the translations of `moving`, the bones whose place changes). */

@@ -352,8 +352,10 @@ export const CFG = {
     preview: 40,
   },
   // creatures made in Tripo and animated in code (actors/madeCreatures.ts, docs/creatures.md): the lap walked (its radius),
-  // seconds walking and resting, how long one clip blends into the next, and the loudness of its footsteps and its roar
-  creatures: { lap: 1.3, walkFor: 6, restFor: 1.4, blend: 0.3, stepGain: 0.3, roarGain: 0.4 },
+  // seconds walking and resting (and resting first), how long one clip blends into the next, how fast it turns to the mage
+  // to roar, its shadow's size against its length, where the dev menu stands it from the mage (to the side, and south),
+  // and the loudness of its footsteps and of its loud events (the roar, the slam)
+  creatures: { lap: 1.3, walkFor: 6, restFor: 1.4, firstRest: 0.8, blend: 0.3, turn: 6, shadow: 0.55, standSide: 2.6, standSouth: 0.6, stepGain: 0.3, roarGain: 0.4 },
   // the mage in the pixel-art look (actors/heroPixel.ts, 2026-10-01): its texture baked into its vertices (each the mean of
   // the texels within `sample` of where it lies) and cut down to `colours`; light in the `tones` (darkest first, a toon
   // ramp's steps) with `glow` of its own colour as self-light, as the model had, so it reads in dark rooms
