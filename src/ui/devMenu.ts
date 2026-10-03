@@ -95,12 +95,12 @@ import { AudioDirector, type Forced } from '../audio/director';
 import { FLOOR_SCAPES, ROOM_SCAPES, THEME_SCAPES } from '../audio/ambienceData';
 import { MOODS, PIECES, type Mood } from '../audio/musicData';
 import { renderAudio } from '../audio/render';
-import { CREATURES, roarNow, showCreature, takeCreatures } from '../actors/madeCreatures';
+import { CREATURES, CREATURE_LOOKS, creatureLook, roarNow, setCreatureLook, showCreature, takeCreatures } from '../actors/madeCreatures';
 import { THEMES } from '../world/themeData';
 
 const S = STR.dev;
 let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
-let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, runesBtn: HTMLButtonElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
+let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, runesBtn: HTMLButtonElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement, creatureLookBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries', 'sound'] as const;
 type Tab = (typeof TABS)[number];
@@ -493,6 +493,7 @@ function build() {
   const made = section(pages.galleries, S.creatures);
   made.append(el('p', 'dv-info', S.creaturesNote),
     ...Object.keys(CREATURES).map(id => btn(S.creatureHere(S.creatureNames[id] ?? id), () => { closeDev(); const at = freeSpotNear(G.current, player.x + CFG.creatures.standSide, player.z + CFG.creatures.standSouth); void showCreature(id, G.current, at.x, at.z); })),
+    creatureLookBtn = btn('', () => { void setCreatureLook(CREATURE_LOOKS[(CREATURE_LOOKS.indexOf(creatureLook()) + 1) % CREATURE_LOOKS.length]); refresh(); }),
     btn(S.roarNow, () => { closeDev(); roarNow(); }), btn(S.takeOptions, () => takeCreatures(G.current)));
 
   // the coin faces (2026-10-02, the owner's coins): every face side by side ahead of the mage, as the room draws them
@@ -596,6 +597,7 @@ function refresh() {
   autoBtn.textContent = DEV.autoLevel ? S.autoLevelOn : S.autoLevelOff; autoBtn.classList.toggle('on', !!DEV.autoLevel);
   boonInfo.textContent = S.boonsInfo(Object.entries(G.run.boons).map(([id, r]) => `${boon(id).name}${r > 1 ? ' II' : ''}`).join(', '));
   heroPxBtn.textContent = heroPixel() ? S.heroPixelOn : S.heroPixelOff;
+  creatureLookBtn.textContent = S.creatureLooks[creatureLook()]; creatureLookBtn.classList.toggle('on', creatureLook() !== 'pixel');
   foeLookBtn.textContent = S.foeLooks[DEV.foeLooks]; foeLookBtn.classList.toggle('on', DEV.foeLooks !== 'approved'); heroPxBtn.classList.toggle('on', heroPixel());
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
   knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'), reactionsFound().length, REACTION_IDS.length) + ' ' + S.weavesInfo(weavesFound().length, WEAVE_IDS.length);

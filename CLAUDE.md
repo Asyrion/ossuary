@@ -236,16 +236,21 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   (eyes, sacs, wings, arms) together, and pulse a glow rather than a material's colour (a changing surface stays unmerged).
 - Creatures made in Tripo and animated in code (the owner's experiment, 2026-10-03, the owlbear; its findings and guide go in
   `docs/creatures.md` once the owner calls it a success). `npm run animate-creature -- owlbear <in.glb>`
-  (`tools/animate-creature.ts`) simplifies the mesh to its budget (`budget` per recipe, data/assets.json's kinds), binds its
+  (`tools/animate-creature.ts`) simplifies the mesh to its budget (`budget` per recipe, data/assets.json's kinds), turns the
+  patches Tripo left inside out (`orientOutward` in `tools/orientFaces.ts`: each face by the side its rays get out of the model
+  on; a look built from it is two-sided as Tripo's material is, `bakeHeroPixel` keeping the made material's `side`), binds its
   skin again from the bones' segments (Tripo's auto-rig weights tore the limbs; `reskin` in `tools/creatureRig.ts`), bakes the
   recipe's clips (`tools/creatures/<id>.ts`: which bone is which, the skin rules, `idle`, `walk` on two-bone IK with the paws
-  planted, `roar`) into `public/assets/creatures/<id>.glb`, and writes each clip's length, loop and sound events (`loud` ones
+  planted, `roar`) into `public/assets/creatures/<id>.glb`, pads the texture's islands (`padIslands` in `tools/padIslands.ts`:
+  Tripo leaves no gutter, so its seams bled), keeps the textures as imported in `<id>.full.glb` (the dev menu's comparison,
+  outside the budget), and writes each clip's length, loop and sound events (`loud` ones
   louder) and the walk's speed to `data/creatures.json`. Its sounds are `src/audio/creatureSounds.ts` (`CREATURE_SOUNDS`,
   played through `Sfx.place(x, z)`); in the game `src/actors/madeCreatures.ts` stands it in the pixel-art look (`bakeHeroPixel`),
   walks a lap, turns to roar at the mage and rests, its sounds on its clips' events (tuning `CFG.creatures`); looks only, no
   fight. `npm run creature-preview -- owlbear` (`tools/creature-preview.ts` and `.html`) renders a video with its sounds to
-  `creature-previews/`. Dev menu (Galleries): Animated creatures; `__game.showCreature(id)`, `creatures`, `roarNow()`,
-  `takeCreatures()`.
+  `creature-previews/`. Dev menu (Galleries): Animated creatures, with its look (pixel art, as made, as imported:
+  `setCreatureLook`, `ossuary.creatureLook`); `__game.showCreature(id)`, `creatures` (each one's look and texture size),
+  `roarNow()`, `takeCreatures()`, `creatureLook`, `setCreatureLook(l)`.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons, in seven tabs (Mage, Magic, Foes & objects, Rooms & runs, Look, Galleries, Sound; `TABS`, names in `STR.dev.tabs`, the
   last one open remembered in the browser as `ossuary.devTab`; a new section goes on the page of the tab it belongs to): heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
