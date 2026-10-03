@@ -36,6 +36,8 @@ import { POTIONS, POTION_IDS, REAGENT_IDS, type PotionId } from '../items/alchem
 import { addPotion, addReagent, beltSlots, identify, knownPotion, renderBelt, usePotion } from '../items/potions';
 import { brewedPotions, forgetBrews } from '../items/alchemyMemory';
 import { openLab } from './alchemyTable';
+import { openWaystone } from './waystone';
+import { raiseWaystone } from '../world/waystone';
 import { breakOut, crackVat } from '../world/laboratory';
 import { gainSoul, hallowedMend, resetSouls } from '../items/souls';
 import { giveResources, restyleObols, spawnPickup } from '../items/pickups';
@@ -421,6 +423,10 @@ function build() {
   floorBox = section(pages.rooms, S.floor);
   // the Wandering Merchant (M4.2): rides into this room now, whatever the run's luck
   section(pages.rooms, STR.banner.wanderer[0]).append(btn(S.wanderer, () => { closeDev(); callWanderer(); }));
+  // M6 step 9: the waystone (it rises in the boss room once the boss falls; here, ahead of the mage, kindled at once)
+  section(pages.rooms, STR.waystone.title).append(
+    btn(S.raiseStone, () => { closeDev(); const w = raiseWaystone(G.current, player.x, player.z - 2.2); w.rise = Math.max(w.rise, .999); }),
+    btn(S.openStone, () => { if (!G.current.waystone) { toast(S.noStone, 2); return; } closeDev(); openWaystone('runes'); }));
   // the gamepads the browser reports: name, layout, and what is held (the owner's Elite pad wasn't heard, 2026-10-02)
   const gp = section(pages.rooms, S.pads);
   gp.append(padInfo = el('div', 'dv-info'), btn(S.readPads, () => {}));

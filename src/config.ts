@@ -136,6 +136,10 @@ export const CFG = {
   // M6 step 8: runes as things: how often a dropped rune leans to the spells in the slots (else any of the seven), and the
   // chip's size lying on the floor
   runeDrops: { lean: 2 / 3, chip: .24 },
+  // M6 step 9, the waystone: how near (beside its half-width) the mage must stand to reach it or cast into it, how long it
+  // takes to rise and from how deep, where it rises in the boss room (from the middle), the rest's streaks of mana and the
+  // gap between them, its blocker's half-width
+  waystone: { reach: .75, rise: 1.4, depth: 1.95, at: [0, -3.2], streaks: 7, streakGap: .08, half: .38 },
   // M6 step 5, the school boons at work (progression/boonHooks.ts): half hearts boons mend in one room at most (Votive
   // Heart and Thirsting Hex together); Seedfall's plants, `seedMax` a room at most, sought within `sowReach` tiles of the
   // fall and kept `sowClear` tiles from the mage, a door's lane and the room's middle; Spark Wake's spark refreshed rather

@@ -153,6 +153,11 @@ export interface Room {
   /** M5: Dr. Jelly's laboratory (world/laboratory.ts): where its table and Dr. Jelly stand, the vat window's look, whether a
       potion was identified free this visit, and whether walking up to the table or to Dr. Jelly opens the table again
       (after stepping away). */
+  /** M6 step 9: the waystone risen here (in the boss room after its boss falls, until step 10's room): where, how far it has
+      risen (0 to 1), whether its runes are kindled, its rest taken, the pair it offers (null once one is taken), the walk-up
+      latch, the slot its screen carves into, and its look's parts. */
+  waystone?: { x: number; z: number; rise: number; lit: boolean; rested: boolean; pair: string[] | null; armed: boolean; target: number;
+    look: { group: THREE.Group; parts: { runes: THREE.Group; hollows: THREE.Mesh[]; glow: THREE.Sprite } } };
   lab?: { table: { x: number; z: number; hx: number; hz: number }; jelly: { x: number; z: number; g: THREE.Object3D }; vat: THREE.Object3D; tableLook: THREE.Object3D;
     identified: boolean; armedTable: boolean; armedJelly: boolean;
     /** M5 step 7: the vat window's cracks (bolts), when the last was counted (sim time), whether it is broken (the serpent

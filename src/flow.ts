@@ -58,6 +58,7 @@ import { championIndex, packRoll } from './world/fill';
 import { payBoss, payClear, resetInsight, setLevel } from './progression/insight';
 import { noAttrs } from './progression/attributes';
 import { takeBoon } from './progression/boons';
+import { waystoneAfterBoss } from './world/waystone';
 
 /** How the next run starts. Set from the URL at boot (?seed, ?floor, ?room, ?variant, ?give, ?boss, ?loot); used once. */
 export interface RunOptions {
@@ -129,7 +130,7 @@ function newRun(seed: string): typeof G.run {
     seed, floor: 0, loot: Rng.from(seed, 'loot'), drops: Rng.from(seed, 'drops'), seen: new Set(), plan: null, boss: 'warden', bossesMet: [],
     budget: { used: 0, reserved: 0 }, leech: 0, freeVault: -1, riteFloor: -99, loreSeen: new Set(), hinted: new Set(), pages: Rng.from(seed, 'pages'), forgotten: [],
     wanderer: Rng.from(seed, 'wanderer'), wandererMet: false, fennexFrom: undefined, transforms: [], arc: 0, attuned: [],
-    bottles: bottlesFor(Rng.from(seed, 'bottles').int(0, 2 ** 30)), identified: [], alchemy: Rng.from(seed, 'alchemy'), reagents: Rng.from(seed, 'reagents'), runes: Rng.from(seed, 'runes'), remedy: null,
+    bottles: bottlesFor(Rng.from(seed, 'bottles').int(0, 2 ** 30)), identified: [], alchemy: Rng.from(seed, 'alchemy'), reagents: Rng.from(seed, 'reagents'), runes: Rng.from(seed, 'runes'), socketsOpened: 0, remedy: null,
     serpent: 'caged', restless: Rng.from(seed, 'serpent').chance(CFG.alchemy.vat.restless),
     insight: 0, level: 1, pending: 0, potionsUsed: [], attrs: noAttrs(), boons: {}, casts: {}, pledge: null, deals: 0, thirst: 0, acted: {}, afterglow: null,
   };
@@ -324,6 +325,7 @@ export function onRoomCleared(room: Room) {
 export function onBossDead(at?: { x: number; z: number }) {
   const cur = G.current;
   hideBossBar(); payBoss(at); // (M6: its floor's insight)
+  waystoneAfterBoss(cur); // (M6 step 9: its waystone rises first, at the back, and the gifts keep clear of it)
   const h = freeSpotNear(cur, cur.cx, cur.cz + 2);
   spawnHeart(h.x, h.z, 2);
   makeTrapdoor(cur.cx, cur.cz); after(.5, () => Sfx.trapdoor());

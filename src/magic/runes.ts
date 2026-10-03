@@ -15,7 +15,7 @@ import { LOOT, type RuneOdds } from '../items/loot';
 import { FLOORS } from '../world/generate';
 import { runeIconImg } from '../items/runeLooks';
 import { actsHere } from '../progression/boonHooks';
-import { SHAPE_COUNT, canCarve, pickRune, rune, runeFits, type RuneId } from './runeData';
+import { SHAPE_COUNT, canCarve, pickPair, pickRune, rune, runeFits, type RuneId } from './runeData';
 import { spell, type School, type SpellDef } from './spellData';
 import { upgradedSpell } from './memory';
 
@@ -61,6 +61,21 @@ export const dealRune = (): RuneId => pickRune(G.run.runes, player.spells.filter
 export function addRune(id: RuneId) {
   player.runes.push(id); Sfx.runeTake(); renderSpells();
   if (!G.run.loreSeen.has('rune:' + id)) { G.run.loreSeen.add('rune:' + id); runeCard(id); }
+}
+/** M6 step 9: a waystone's pair, two different runes dealt as one is. */
+export const dealPair = () => pickPair(G.run.runes, player.spells.filter((s): s is string => !!s).map(spell), CFG.runeDrops.lean);
+/** Carve rune `id` from the pouch into slot `slot` (a waystone): null when carved (one taken out of the pouch), else why
+    not, as `carve` says; 'none' when the pouch holds no such rune. */
+export function carveFromPouch(slot: number, id: RuneId): 'empty' | 'fit' | 'full' | 'twice' | 'none' | null {
+  const at = player.runes.indexOf(id); if (at < 0) return 'none';
+  const why = carve(slot, id); if (why) return why;
+  player.runes.splice(at, 1); Sfx.carve(); return null;
+}
+/** Lift rune `id` out of slot `slot`'s socket back into the pouch (a waystone, for nothing); false when it isn't carved there. */
+export function liftRune(slot: number, id: RuneId) {
+  const s = player.sockets[slot]; if (!s.runes.includes(id)) return false;
+  player.sockets[slot] = { size: s.size, runes: s.runes.filter(r => r !== id) }; player.runes.push(id); Sfx.runeTake(); renderSpells();
+  return true;
 }
 /** What rune `id` fits, in words: every spell, or the shapes it takes; and which spells in the hand it fits now. */
 export function runeFitsText(id: RuneId) {

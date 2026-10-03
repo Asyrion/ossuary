@@ -54,6 +54,7 @@ export const G = {
         the seeded stream for which potion or reagent a drop is, and the one for whether a foe or an object leaves a reagent
         (its own, so the other drops replay as before). */
     bottles: bottlesFor(0), identified: [] as PotionId[], alchemy: new Rng(0), reagents: new Rng(0), runes: new Rng(0), // (runes: M6 step 8, its own too)
+    /** M6 step 9: the second sockets Second Socket has opened at waystones (its rank above this: one owed). */ socketsOpened: 0,
     /** M5: the curse whose price a Bitter Remedy lifts until the floor ends. */ remedy: null as string | null,
     /** M5 step 7: the jelly serpent, in its vat until it breaks out (once a run at most), then slain or not; and whether it
         is restless this run (rolled on the seed: it breaks out by itself after the first brew in its laboratory). */

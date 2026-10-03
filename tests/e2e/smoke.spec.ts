@@ -4711,6 +4711,58 @@ test('runes as things (M6 step 8): a rune walked over goes to the pouch with its
   expect(errors2).toEqual([]);
 });
 
+test('the waystone (M6 step 9): it rises where the boss fell and kindles; walking up opens it and rests the mage; one of its pair taken, the other crumbles; a rune carved from the pouch and lifted out; a spell cast into it costs nothing and opens on that spell; Second Socket opens a second socket; the belt reordered here and in the inventory; none on floor 5', async ({ page }) => {
+  type WS = { x: number; z: number; rise: number; lit: boolean; rested: boolean; pair: string[] | null; target: number; screen: { open: boolean; tab: string } };
+  type GS = { sim(s: number, draw?: boolean): void; warp(id: number): void; clearRoom(): void; drop(kind: string, x?: number, z?: number, o?: { rune?: string }): void; cast(slot: number): boolean;
+    waystone: WS | null; stoneTake(i: number): boolean; stoneCarve(slot: number, id: string): string | null; stoneLift(slot: number, id: string): boolean; stoneSocket(slot: number): boolean;
+    moveInBelt(a: number, b: number): boolean; giveBoon(id: string): void; closeWaystone(): void; belt: { ids: string[]; at: number };
+    sockets: { slots: { spell: string | null; size: number; runes: string[] }[]; pouch: string[] };
+    player: { x: number; z: number; mana: number; invuln: number; spellCd: number[]; stats: { maxMana: number } } };
+  const errors = await start(page, '?room=boss_open&boss=warden&seed=STONE9&spells=cinder_lance,arc&potions=healing,hexBrew');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GS }).__game, P = g.player; P.invuln = 999;
+    g.warp(1); g.sim(.3); g.drop('rune', P.x, P.z - 1, { rune: 'quicken' }); g.sim(.3); P.z -= 1; g.sim(.3); // (a rune in the pouch to carve)
+    const before = g.waystone; g.clearRoom(); g.sim(.2); const rising = g.waystone; g.sim(2); const risen = g.waystone!;
+    // walking up: the screen opens, and the rest fills mana and ends the cooldowns
+    P.mana = 0; P.spellCd = [5, 5]; P.x = risen.x; P.z = risen.z + 2.5; g.sim(.1); P.z = risen.z + .9; g.sim(.1);
+    const opened = g.waystone!.screen.open, rest = { mana: P.mana, max: P.stats.maxMana, cd: [...P.spellCd], rested: g.waystone!.rested };
+    // the pair: one taken, the other crumbles
+    const pair = [...risen.pair!]; g.stoneTake(0); const afterTake = { pouch: [...g.sockets.pouch], pair: g.waystone!.pair };
+    // a rune carved from the pouch, then lifted out again
+    const carved = g.stoneCarve(0, 'quicken'), inQ = [...g.sockets.slots[0].runes], pouchCarved = [...g.sockets.pouch];
+    const lifted = g.stoneLift(0, 'quicken'), pouchLifted = [...g.sockets.pouch];
+    g.closeWaystone(); g.sim(.1);
+    // a spell cast into it: nothing paid, the screen on that spell
+    P.mana = 10; P.spellCd = [0, 0]; const cast = g.cast(1), castState = { mana: P.mana, cd: P.spellCd[1], screen: g.waystone!.screen, target: g.waystone!.target };
+    // Second Socket: the boon taken, a second socket opened in E
+    const before2 = g.stoneSocket(1); g.giveBoon('secondSocket'); const opened2 = g.stoneSocket(1), again = g.stoneSocket(0);
+    const moved = g.moveInBelt(0, 1), belt = [...g.belt.ids];
+    g.closeWaystone(); g.sim(.1);
+    return { before, rising: rising && { lit: rising.lit, rise: rising.rise }, risen: { lit: risen.lit }, opened, rest, pair, afterTake, carved, inQ, pouchCarved, lifted, pouchLifted,
+      cast, castState, before2, opened2, again, size: g.sockets.slots[1].size, moved, belt };
+  });
+  expect(r.before).toBeNull(); expect(r.rising).toMatchObject({ lit: false }); expect(r.risen.lit).toBe(true);
+  expect(r.opened).toBe(true); expect(r.rest).toMatchObject({ cd: [0, 0], rested: true }); expect(r.rest.mana).toBe(r.rest.max);
+  expect(r.pair).toHaveLength(2); expect(r.pair[0]).not.toBe(r.pair[1]);
+  expect(r.afterTake.pair).toBeNull(); expect(r.afterTake.pouch).toEqual(['quicken', r.pair[0]]);
+  expect(r.carved).toBeNull(); expect(r.inQ).toEqual(['quicken']); expect(r.pouchCarved).toEqual([r.pair[0]]);
+  expect(r.lifted).toBe(true); expect(r.pouchLifted).toEqual([r.pair[0], 'quicken']);
+  expect(r.cast).toBe(true); expect(r.castState).toMatchObject({ mana: 10, cd: 0, target: 1 }); expect(r.castState.screen.open).toBe(true);
+  expect(r.before2).toBe(false); expect(r.opened2).toBe(true); expect(r.again).toBe(false); expect(r.size).toBe(2);
+  expect(r.moved).toBe(true); expect(r.belt).toEqual(['hexBrew', 'healing']);
+  // the inventory's Potions tab moves them back: Enter on the first slot, then Enter on the second
+  await page.keyboard.press('KeyI'); await page.locator('#invTabs button', { hasText: 'Potions' }).click();
+  await page.keyboard.press('Enter'); await page.keyboard.press('ArrowRight'); await page.keyboard.press('Enter');
+  expect(await page.evaluate(() => (window as unknown as { __game: GS }).__game.belt.ids)).toEqual(['healing', 'hexBrew']);
+  await page.keyboard.press('KeyI');
+  expect(errors).toEqual([]);
+  // floor 5: no waystone (nothing below to carry runes to)
+  const errors5 = await start(page, '?room=boss_open&boss=warden&seed=STONE9&floor=5');
+  const deep = await page.evaluate(() => { const g = (window as unknown as { __game: GS }).__game; g.warp(1); g.sim(.3); g.clearRoom(); g.sim(2); return g.waystone; });
+  expect(deep).toBeNull();
+  expect(errors5).toEqual([]);
+});
+
 test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks and holds longer at II, Banked Coals burns longer, Gathering Dark gathers deeper, Perennial roots, Forking Arc forks', async ({ page }) => {
   const errors = await start(page, '?seed=BOON5A&boons=deepWinter');
   const got = await page.evaluate(`(() => {

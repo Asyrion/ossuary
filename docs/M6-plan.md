@@ -413,6 +413,24 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
    waystone here", "Open the waystone"; `__game.waystone`, `openWaystone(tab)`. It is testable in any boss room before the
    room exists. Browser test: cast Q into it, carve Seeking. The room inspector runs on it (`changed`, `--against
    origin/main`).
+   *Built (2026-10-03)* after a plan of its own (the owner's ask), with three decisions: the pair is offered in the stone's
+   screen, the two side by side and described; walking up opens the screen and a cast into it (free) opens it on that
+   spell; Second Socket comes into the deal now, its socket chosen at the stone. Until step 10 the stone rises in the boss
+   room when the boss falls (`waystoneAfterBoss` from `onBossDead`, before the boss's gifts, at the back of the room), on
+   floors 1 to 4. `src/world/waystone.ts`: `raiseWaystone` (its look `waystoneLook` in mechLooks.ts: a menhir in the
+   floor's stone, two hollows that show the target slot's runes while the screen is open, strokes that kindle gold),
+   `updateWaystone` (it grinds up, then kindles: `Sfx.kindle`), `checkWaystone` (the lab's latch), `castIntoStone` (from
+   `castSpell` before cooldown or payment: nothing paid, a strike of the spell's light), `restAtStone` (the first opening:
+   full mana, every cooldown ended, mana streaks to the hand through insight.ts' `streakTo`, `Sfx.rest`); the pair dealt
+   as it rises (`dealPair`, the pure `pickPair`). `src/ui/waystone.ts` (`#scrStone`, as the alchemy table's): the Runes
+   tab (each slot's sockets: a carved rune lifts back for nothing, `liftRune`; an empty hollow makes its slot the target;
+   Second Socket's owed sockets, `secondSocket`, `G.run.socketsOpened`; the pair, `takeFromStone`, the other crumbling;
+   the pouch, `carveHere` through `carveFromPouch`, `Sfx.carve`) and the Belt tab (`moveInBelt` in potions.ts, which the
+   inventory's Potions tab now does too: Enter picks up, Enter places). Dev menu (Rooms & runs): Raise a waystone here,
+   Open the waystone; `__game.waystone`, `raiseWaystone`, `openWaystone(tab, slot)`, `closeWaystone`, `stoneTake`,
+   `stoneCarve`, `stoneLift`, `stoneSocket`, `moveInBelt`. Tests: `pickPair` (unit), Second Socket dealt (boons.test.ts),
+   a browser test from the boss's fall through the rest, the pair, carving, a cast caught, Second Socket and the belt, and
+   none on floor 5.
 10. **The waystone room.** It is placed by `placeWaystone` in `generate.ts`, after `placeLaboratory`, on a stream not drawn
     from the room list, so every room planned before it, the laboratory too, stays where it was. It opens only into the
     boss room, never beside the secret room, on an edge `doorFits` leaves clear for every boss template.

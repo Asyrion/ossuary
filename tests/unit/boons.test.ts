@@ -155,9 +155,9 @@ describe('the general boons (step 6)', () => {
     expect(afterglowOf({ burn: 3, sanct: 4, root: 1.6, grow: 4, shock: 1 }, .5)).toEqual({ burn: 1.5, sanct: 2, root: .8, grow: 2, shock: .5 });
     expect(afterglowOf(undefined, .5)).toEqual({});
   });
-  it('deals them now: only Second Socket waits, for the runes', () => {
-    expect([...NOT_YET]).toEqual(['secondSocket']);
+  it('deals them now, Second Socket too since the waystone (M6 step 9)', () => {
+    expect([...NOT_YET]).toEqual([]);
     const dealt = new Set(deals(state(), 600).flat().map(c => c.id));
-    for (const id of ['keenNose', 'scavenger', 'brewersBreath', 'afterglow']) expect(dealt.has(id)).toBe(true);
+    for (const id of ['keenNose', 'scavenger', 'brewersBreath', 'afterglow', 'secondSocket']) expect(dealt.has(id)).toBe(true);
   });
 });
