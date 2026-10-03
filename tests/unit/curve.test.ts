@@ -18,7 +18,7 @@ describe('the curve (M4.9): pressure dials', () => {
     }
     expect(validatePressure(floors)).toEqual([]);
     expect(validatePressure([{ pressure: { extra: 2, eliteMul: 0, ordealWaves: .5 } }, {}])).toEqual(['floor 1: extra 2', 'floor 1: eliteMul 0', 'floor 1: ordealWaves 0.5', 'floor 2: no pressure']);
-    expect(floors[0].pressure).toEqual({ extra: 0, eliteMul: 1, ordealWaves: 0 }); // (floor 1 is as it was)
+    expect(floors[0].pressure).toEqual({ extra: .12, eliteMul: 1.1, ordealWaves: 0 }); // (floor 1 as it was until M6 step 12: the owner's ask for harder runs, measured by the bot at its level)
     expect(floors[4].pressure.extra).toBeGreaterThan(.25);
   });
 
