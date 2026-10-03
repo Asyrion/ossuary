@@ -25,10 +25,11 @@ const RECIPES = { owlbear: { ...owlbear, height: 1.45, budget: 'boss' as const }
 
 /** `--bones <in.glb>`: what a new creature's recipe needs to know, read off the model before one is written. Each bone in
     its tree with where its joint stands (the model's frame: x left-right, y up, z forward) and how many vertices Tripo
-    bound to it most; the model's triangles, size and textures. */
+    bound to it most (a node of the tree that no skin uses is marked as not a bone); the model's triangles, size and textures. */
 async function bones(input: string) {
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
   const doc = await io.read(input), rig = new Rig(doc), most = new Map<string, number>();
+  const joint = new Set(doc.getRoot().listSkins().flatMap(s => s.listJoints().map(j => j.getName())));
   let tris = 0;
   for (const skin of doc.getRoot().listSkins()) {
     const joints = skin.listJoints().map(j => j.getName());
@@ -44,13 +45,13 @@ async function bones(input: string) {
   const f = (n: number) => n.toFixed(3).padStart(7);
   const walk = (o: { name: string; children: { name: string }[] }, depth: number) => {
     const at = rig.at(o.name);
-    console.log(`${'  '.repeat(depth)}${o.name.padEnd(24 - Math.min(20, depth * 2))} ${f(at.x)} ${f(at.y)} ${f(at.z)}   ${most.get(o.name) ?? 0} vertices`);
+    console.log(`${'  '.repeat(depth)}${o.name.padEnd(24 - Math.min(20, depth * 2))} ${f(at.x)} ${f(at.y)} ${f(at.z)}   ${joint.has(o.name) ? `${most.get(o.name) ?? 0} vertices` : '(not a bone)'}`);
     for (const c of o.children) walk(c as typeof o, depth + 1);
   };
   console.log(`${input}: ${tris} triangles\nbone                          x       y       z   (where its joint stands; vertices bound to it most)`);
   for (const c of rig.root.children) walk(c, 0);
   for (const t of doc.getRoot().listTextures()) console.log(`texture ${t.getName() || '(unnamed)'}: ${t.getSize()?.join(' x ')} ${t.getMimeType()}, ${(t.getImage()!.byteLength / 1024).toFixed(0)} KB`);
-  for (const m of doc.getRoot().listMaterials()) console.log(`material ${m.getName()}: ${m.getDoubleSided() ? 'two-sided' : 'one-sided'}, ${['base colour', 'normal'].filter((_, i) => i ? m.getNormalTexture() : m.getBaseColorTexture()).join(' and ')} texture`);
+  for (const m of doc.getRoot().listMaterials()) { const tex = ['base colour', 'normal'].filter((_, i) => i ? m.getNormalTexture() : m.getBaseColorTexture()); console.log(`material ${m.getName()}: ${m.getDoubleSided() ? 'two-sided' : 'one-sided'}, ${tex.length ? tex.join(' and ') + ' texture' : 'no textures'}`); }
 }
 
 async function main() {
@@ -73,6 +74,7 @@ async function main() {
   bake(doc, rig, R.CLIPS, R.MOVING);
   const padded = [];
   for (const m of doc.getRoot().listMaterials()) { const t = m.getBaseColorTexture(); if (t) padded.push(await padIslands(doc, t)); }
+  if (tris() > B.triangles) throw new Error(`${id}: ${tris()} triangles, over the ${R.budget} budget of ${B.triangles} (nothing written)`);
   const out = resolve(import.meta.dirname, `../public/assets/creatures/${id}.glb`), full = out.replace(/\.glb$/, '.full.glb');
   mkdirSync(dirname(out), { recursive: true });
   await io.write(full, doc); // (the textures as imported, padded: the dev menu's comparison)
@@ -92,7 +94,6 @@ async function main() {
     budget: R.budget,
   };
   writeFileSync(dataPath, JSON.stringify({ _comment: 'Written by tools/animate-creature.ts (docs/creatures.md): each animated creature\'s file, how tall it stands in the game, its walk\'s speed in model units a second, and its clips with the times their sounds fall.', ...Object.fromEntries(Object.entries(data).filter(([k]) => k !== '_comment')) }, null, 2) + '\n');
-  if (tris() > B.triangles) throw new Error(`${id}: ${tris()} triangles, over the ${R.budget} budget of ${B.triangles}`);
   console.log(`${id}: ${before} -> ${tris()} triangles (${R.budget} budget ${B.triangles}), ${oriented.turned} of ${oriented.faces} faces turned outward (${oriented.patches} patches), ${bound} vertices bound again, ${Object.keys(R.CLIPS).length} clips (${Object.keys(R.CLIPS).join(', ')}), ${padded.map(p => `${p.size} px texture: ${p.filled} texels padded round its islands`).join(', ')}, ${(statSync(out).size / 1024).toFixed(0)} KB -> ${out} (as imported: ${(statSync(full).size / 1024).toFixed(0)} KB)`);
 }
 main().catch(e => { console.error(e); process.exit(1); });

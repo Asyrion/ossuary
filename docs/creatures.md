@@ -13,8 +13,8 @@ or a boss is a later step (see [Next](#next-a-creature-that-fights)).
 What Tripo gives:
 
 - **The rig is usable, the skin is not.** Tripo's auto-rig produced a sensible skeleton: 39 bones for the owlbear, a spine
-  to the head, four legs and toes. They are named only `bone_0` to `bone_38`, so you tell which is which by where each
-  one stands (`--bones`, below).
+  to the head, four legs and toes. They are named only `bone_0` to `bone_38`, plus a `neutral_bone` at the origin, so
+  you tell which is which by where each one stands (`--bones`, below).
   - The skin weights were broken. Each vertex was bound rigidly to a single bone, and half of them (12,507 of 25,475)
     went to `neutral_bone`, which never moves.
   - The legs' upper bones carried no vertices at all; only the toes did. Bending a leg tore the paw off the body.
@@ -119,7 +119,7 @@ In order, it:
 8. writes `public/assets/creatures/<id>.glb`, the game's file;
 9. writes `data/creatures.json`: the files, the height, the walk's speed, each clip's length, loop and events.
 
-It stops with an error if the model is still over its budget. Rerun it after every change to the recipe; it takes a few
+It stops with an error, before writing anything, if the model is still over its budget. Rerun it after every change to the recipe; it takes a few
 seconds.
 
 ### 5. Sounds
