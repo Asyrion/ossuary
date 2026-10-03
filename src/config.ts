@@ -136,6 +136,10 @@ export const CFG = {
   // M6 step 8: runes as things: how often a dropped rune leans to the spells in the slots (else any of the seven), and the
   // chip's size lying on the floor
   runeDrops: { lean: 2 / 3, chip: .24 },
+  // M6 step 11, the shrine's bargain: where its stone stands in the shrine (from the middle: the circle's head), how near (beside
+  // its half-width) the mage must stand to cast into it, its blocker's half-width, and how narrow a gap to the wall behind it
+  // its blocker closes (no space to hide in)
+  bargain: { at: [0, -2.55] as [number, number], reach: .9, half: .3, wallGap: 1.2 },
   // M6 step 9, the waystone: how near (beside its half-width) the mage must stand to reach it or cast into it, how long it
   // takes to rise and from how deep, where it rises in the boss room where a floor has no waystone room (from the middle: to
   // the side and back, out of reach of the page, the pedestals, the heart and the trapdoor), the rest's streaks of mana and
@@ -144,9 +148,6 @@ export const CFG = {
   // dark the room waits until the stone kindles; how far from the middle toward the door the stone stands (so the trapdoor's
   // ring, beyond it, clears the stone's top from the camera); the
   // lane to its door in the boss room that the boss's gifts keep off (how deep, how wide either side, how far aside)
-  // M6 step 11, the shrine's bargain: where its stone stands in the shrine (from the middle: the circle's head), how near (beside
-  // its half-width) the mage must stand to cast into it, its blocker's half-width
-  bargain: { at: [0, -2.55] as [number, number], reach: .9, half: .3 },
   waystone: { reach: .75, rise: 1.4, depth: 1.95, at: [4.4, -1.8], streaks: 7, streakGap: .08, half: .38, trapdoor: [3.5, 2.4], toDoor: [1.5, .8], dark: .55, lane: [4.5, 1.2, 2.6] },
   // M6 step 5, the school boons at work (progression/boonHooks.ts): half hearts boons mend in one room at most (Votive
   // Heart and Thirsting Hex together); Seedfall's plants, `seedMax` a room at most, sought within `sowReach` tiles of the
