@@ -792,6 +792,7 @@ export const STR = {
     creatures: 'Animated creatures (made in Tripo, animated in code)', creatureHere: (name: string) => `${name}: stand it here`, roarNow: 'Roar now',
     creaturesNote: 'Its walk, roar and rest baked by tools/animate-creature.ts; it walks a lap, roars at the mage and rests, its sounds on its paws and its roar. Looks only: no fight.',
     creatureNames: { owlbear: 'Owlbear' } as Record<string, string>,
+    creatureLooks: { pixel: 'Look: pixel art (as the game draws it)', made: 'Look: as made (1,024 px texture, smooth light)', full: 'Look: as imported (textures at their own size, normal map)' } as Record<string, string>,
     scapes: 'Soundscapes', music: 'Music', soundGame: 'As the game asks', soundOn: 'Soundscapes and music: on', soundOff: 'Soundscapes and music: off',
     scapeNote: 'Plays here at once, over whatever the game asks for, until "As the game asks". The room or theme plays over the chosen floor.',
     scapeRoom: (r: string) => `Over it: ${r}`, scapeNone: 'nothing', moodIs: (m: string) => `Mood: ${m}`,

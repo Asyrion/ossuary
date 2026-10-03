@@ -4964,10 +4964,10 @@ test('soundscapes and music (docs/sound-plan.md): the floor and room choose them
   expect(errors).toEqual([]);
 });
 
-test('a creature made in Tripo and animated in code (docs/creatures.md): it stands, walks its lap, roars at the mage, and its clips are baked in', async ({ page }) => {
+test('a creature made in Tripo and animated in code (docs/creatures.md): it stands, walks its lap, roars at the mage, its clips are baked in, and it can be drawn as made or as imported', async ({ page }) => {
   const errors = await start(page, '?seed=OWLB1&room=great_hall&variant=quiet');
-  type C = { id: string; state: string; clip: string; time: number; x: number; z: number };
-  type GC = GameHooks & { showCreature(id?: string, d?: number): Promise<C[]>; creatures: C[]; roarNow(): void; takeCreatures(): void; renderInfo(): { calls: number } };
+  type C = { id: string; look: string; texture: number; state: string; clip: string; time: number; x: number; z: number };
+  type GC = GameHooks & { showCreature(id?: string, d?: number): Promise<C[]>; creatures: C[]; roarNow(): void; takeCreatures(): void; renderInfo(): { calls: number }; setCreatureLook(l: string): Promise<C[]> };
   const r = await page.evaluate(async () => {
     const g = (window as unknown as { __game: GC }).__game, out: Record<string, unknown> = {};
     g.sim(.3, true); const calls0 = g.renderInfo().calls;
@@ -4976,14 +4976,21 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
     g.sim(1, true); out.moved = Math.hypot(g.creatures[0].x - (out.stood as C[])[0].x, g.creatures[0].z - (out.stood as C[])[0].z);
     out.calls = g.renderInfo().calls - calls0;
     g.roarNow(); g.sim(1, true); out.roaring = g.creatures[0];
+    out.full = (await g.setCreatureLook('full'))[0]; out.made = (await g.setCreatureLook('made'))[0]; out.pixel = (await g.setCreatureLook('pixel'))[0];
     g.takeCreatures(); g.sim(.1, true); out.left = g.creatures.length;
     return out;
-  }) as { stood: C[]; walking: C; moved: number; calls: number; roaring: C; left: number };
+  }) as { stood: C[]; walking: C; moved: number; calls: number; roaring: C; full: C; made: C; pixel: C; left: number };
   expect(r.stood).toHaveLength(1); expect(r.stood[0].clip).toBe('idle');
   expect(r.walking).toMatchObject({ state: 'walk', clip: 'walk' });
   expect(r.moved).toBeGreaterThan(.2); // (it walks its lap at the pace its paws set)
   expect(r.calls).toBeLessThan(8); // (one skinned mesh and its shadow)
   expect(r.roaring).toMatchObject({ state: 'roar', clip: 'roar' }); expect(r.roaring.time).toBeGreaterThan(.5);
+  // its looks: the pixel-art look (no texture: its colours baked into its vertices), as made (the game's 1,024 px file) and
+  // as imported (the textures at their own size), each stood again where it first stood
+  expect(r.stood[0]).toMatchObject({ look: 'pixel', texture: 0 });
+  expect(r.full).toMatchObject({ look: 'full', texture: 2048, x: r.stood[0].x, z: r.stood[0].z });
+  expect(r.made).toMatchObject({ look: 'made', texture: 1024 });
+  expect(r.pixel).toMatchObject({ look: 'pixel', texture: 0 });
   expect(r.left).toBe(0);
   expect(errors).toEqual([]);
 });

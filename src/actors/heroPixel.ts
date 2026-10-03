@@ -73,7 +73,7 @@ export function bakeHeroPixel(root: THREE.Object3D) {
     for (let i = 0; i < rgb.length / 3; i++) out.set(linear[index[at + i]], i * 3);
     at += rgb.length / 3;
     mesh.geometry.setAttribute('color', new THREE.BufferAttribute(out, 3));
-    const pixel = new THREE.MeshToonMaterial({ vertexColors: true, gradientMap: toneMap(), color: 0xffffff });
+    const pixel = new THREE.MeshToonMaterial({ vertexColors: true, gradientMap: toneMap(), color: 0xffffff, side: mat.side }); // (two-sided where the model was: Tripo winds some faces inward and marks the material doubleSided)
     const glow = P.glow.toFixed(3);
     pixel.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\n\ttotalEmissiveRadiance += diffuseColor.rgb * ${glow};`); };
     mesh.userData.made = mat; mesh.userData.pixel = pixel;
