@@ -158,7 +158,7 @@ export interface Room {
       latch, the slot its screen carves into, and its look's parts. */
   /** M6 step 11: a shrine's bargain stone: where, whether it waits, is open on a deal (the school cast into it) or was kept
       (once a shrine), the walk-up latch, and its look (its runes' one material). */
-  bargain?: { x: number; z: number; state: 'idle' | 'open' | 'kept'; school: import('./magic/spellData').School | null; armed: boolean; look: { group: THREE.Group; runes: THREE.MeshBasicMaterial } };
+  bargain?: { x: number; z: number; state: 'idle' | 'open' | 'kept'; school: import('./magic/spellData').School | null; armed: boolean; look: { group: THREE.Group; runes: THREE.MeshBasicMaterial; glows?: { price: THREE.Object3D; kept: THREE.Object3D } } };
   waystone?: { x: number; z: number; rise: number; lit: boolean; rested: boolean; pair: string[] | null; armed: boolean; target: number;
     look: { group: THREE.Group; parts: { runes: THREE.Group; hollows: THREE.Mesh[]; glow: THREE.Sprite } } };
   lab?: { table: { x: number; z: number; hx: number; hz: number }; jelly: { x: number; z: number; g: THREE.Object3D }; vat: THREE.Object3D; tableLook: THREE.Object3D;

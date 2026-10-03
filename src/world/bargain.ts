@@ -29,7 +29,9 @@ export function buildBargain(room: Room, lx = C().at[0], lz = C().at[1]) {
   const look = DEV.roomKit ? bargainStoneLook(room.look) : oldLook();
   look.group.position.set(lx, 0, lz); room.group.add(look.group);
   const x = room.cx + lx, z = room.cz + lz;
-  room.rocks.push({ x, z, hx: C().half, hz: C().half, hp: Infinity, breakable: false });
+  const back = Math.max(0, (z - C().half) - (room.cz - room.h / 2)); // (reaching the wall behind it in a shrine: no gap to hide in)
+  const deep = lz < 0 && back < C().wallGap ? back : 0;
+  room.rocks.push({ x, z: z - deep / 2, hx: C().half, hz: C().half + deep / 2, hp: Infinity, breakable: false });
   room.bargain = { x, z, state: 'idle', school: null, armed: true, look };
   return room.bargain;
 }
@@ -41,7 +43,10 @@ function oldLook() {
   group.add(slab, rune);
   return { group, runes: rune.material as THREE.MeshBasicMaterial };
 }
-function setRunes(b: Bargain, color: number) { b.look.runes.color.setHex(color); }
+function setRunes(b: Bargain, color: number) {
+  b.look.runes.color.setHex(color);
+  const gl = b.look.glows; if (gl) { gl.price.visible = color === BARGAIN_RUNES.price; gl.kept.visible = color === BARGAIN_RUNES.kept; }
+}
 
 /** Whether the mage stands within reach of the room's bargain stone. */
 function inReach(b: Bargain) {
