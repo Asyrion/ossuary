@@ -6,41 +6,31 @@ Delete it, or write it again, at the next handoff.
 
 ## The branch and what is live
 
-- Work is on **`claude/m6-plan-docs-5gjp6c`**, pushed, clean. Its last work commit is M4.12 step 8 (the bosses' looks).
+- Work is on **`claude/m6-plan-docs-5gjp6c`**, pushed, clean. Its last work commit is M4.12 steps 7 and 8 approved (the Wardlings and
+  the bosses' looks worn in the game).
 - **`main` (the live Pages site) is at `593af11`**, shipped 2026-10-02 in [Asyrion/ossuary#33](https://github.com/Asyrion/ossuary/pull/33):
   M6 steps 6 and 7, the gamepad fix, the smaller obol, Dr. Jelly as the plague doctor, the minimap's finished rooms, the
   ware panel, and M4.12 steps 1 to 5 with floors 1 to 3 approved. Another session merged the costumes cut back to 19
   (`806a34e`) to `main` while that PR was open; the branch was rebased onto it.
 - On the branch only, **not shipped** (ship only when the owner asks: the `ship` skill, the `rules-reviewer` first):
   floor 4's and floor 5's approvals (every floor's foes in their new looks), the drakeling test's fix (its flight waits for
-  one long enough to rise: the Pages deploy of `593af11` failed on it once and passed on the rerun), and steps 7 and 8.
+  one long enough to rise: the Pages deploy of `593af11` failed on it once and passed on the rerun), and steps 7 and 8
+  (approved 2026-10-03).
 - The full browser suite last ran green on the rebased branch before the merge (121 passed); floor 4's approval and floor
   5 were checked by the fantasy-foes, bestiary and M4 foe tests and the unit tests (396).
 
 ## What waits on the owner now
 
-**M4.12 step 7: the six Wardlings as ward cores** (`src/actors/fantasyWardlings.ts`, `wardCore(school)`), sheets sent
-2026-10-02 (`npm run foe-sheet -- floor=0`). Every floor's foes were approved the same day (the owner's yes to all, floors 1
-to 5) and are done: in `APPROVED`, old builders deleted, `RETIRED` keeping their old heights and parts for the contract,
-the galleries standing the new looks. The Wardlings' old builder is `wardling(school)` in `modelOptions.ts`, its six
-entries in `MODEL_OPTIONS` (floor 0); on the yes, point them at `WARDLING_LOOKS` and delete `wardling` (and `bigEyes`'s
-import if nothing else there uses it; Fen-Nex, the familiars and the boss looks still use `bigEyes` itself).
+**Which of the Hollow Warden's three looks it wears** (Bell Warden, Spore Matriarch, Owlbear). All eight boss looks and
+the six Wardlings were approved on 2026-10-03 and are worn; today the Warden wears what the dev menu chose
+(`ossuary.bossLook`), first the Spore Matriarch (`FIRST` in bossLooks.ts, id `motherOfSpores`). On the answer, set `FIRST`
+to it (the dev menu still cycles the three), or cut `BOSS_LOOKS` to the one and drop the switch; ask which.
 
-**M4.12 step 8: the bosses' eight looks** (`src/actors/fantasyBosses.ts`), sheets sent 2026-10-02 (`npm run foe-sheet --
-floor=boss`), and **which of the Warden's three it wears** (Bell Warden, Spore Matriarch, Owlbear; today it wears what the
-dev menu chose, `ossuary.bossLook`, first the Mother of Spores). On the yes:
+Every foe's look in M4.12 is done: in `APPROVED`, old builders deleted, `RETIRED` keeping their old heights and parts for
+the contract, the galleries standing the new looks. The bosses' old builders are gone too, and with them their switch and
+pairs (nothing left to compare); `fantasyBosses.ts` holds the new ones. The routine below stays for any new look to come.
 
-1. Add the ids to `BOSS_APPROVED` (`bellWarden`, `motherOfSpores`, `hollowOwl`, `hart`, `angler`, `tiger`, `dragonHead`,
-   `serpentHead`); `dressedBoss` then builds the new look wherever the old one was built.
-2. Delete the old builders and their entries in `OLD_BOSS_LOOKS` (bossLooks.ts; `serpentHeadOld` in serpentLooks.ts):
-   `newBossLooks` leaves a boss out of the pairs and `bossContract` once its old builder is gone, so the browser test
-   "fantasy bosses (M4.12)" keeps passing. `dressedBoss('hart', hartOld)` and the rest then become the new builders
-   themselves (`hartLook = hartFierce`...), and `BOSS_FANTASY`, `bossFantasy` and `dressedBoss` can go.
-3. If the owner picks one Warden look, set `FIRST` in bossLooks.ts to it (the dev menu still cycles the three) or cut
-   `BOSS_LOOKS` to the one and drop the switch; ask which.
-4. The bosses' names (`STR.bosses`, `STR.bossLooks`: the Matriarch, the Owlbear) change at the close, with the foes'.
-
-**On the owner's yes (per foe):**
+**On the owner's yes (per foe; how the floors were done):**
 
 1. Add the approved look ids to `APPROVED` in `src/actors/fantasyLooks.ts`. From then on, `buildFoe` dresses that foe in
    its new look.
@@ -63,15 +53,15 @@ dev menu chose, `ossuary.bossLook`, first the Mother of Spores). On the yes:
 
 ## What comes next (the approved order)
 
-1. **M4.12 steps 3 to 8** (all built; 7 and 8 wait on the owner), one floor at a time, each ending with its contact sheet for the owner (`docs/M4.12-plan.md`:
+1. **M4.12 steps 3 to 8** (all built and approved), one floor at a time, each ending with its contact sheet for the owner (`docs/M4.12-plan.md`:
    the rules, and a concept per foe):
    - floor 2's six: Hoarfrost Toad, Kelpie, Reliquary Medusa, Glass Wyrm, Rime Crawler, Spark Wyvern;
    - floor 3's four, and the nest: Salamander, Hex Imp, Rime Drake, Cinder Hornets;
    - floor 4's five: Candle Kobold, Bell Fiend, Gargoyle, Pale Unicorn, Frost Scarab;
    - floor 5's seven: Mandrake, Sky Ray, Void Maw, Dragon Turtle, Gloom Raven, Rime Warg, Tarasque;
-   - the six Wardlings, as ward cores (floor 0 in `lookPairs`): built, waiting;
-   - the bosses' eight looks (`lookPairs(-1)`, `bossContract`, `floor=boss` on the sheets): built, waiting.
-2. **M4.12 step 9**, the close: the names through `STR`, the reviews, the GDD as built, a room sweep, `npm run balance`
+   - the six Wardlings, as ward cores: approved 2026-10-03;
+   - the bosses' eight looks: approved 2026-10-03 (the Warden's look still to choose).
+2. **M4.12 step 9**, the close (next): the names through `STR`, the reviews, the GDD as built, a room sweep, `npm run balance`
    to confirm nothing moved, and the owner's play-test.
 3. **M6 step 8 (runes as things)**, then steps 9 to 13 (the waystone, its room, the shrine's bargain, the run around it,
    the close), as `docs/M6-plan.md` sets out. The owner asked for steps 5 and 7 each to be planned first, in plan mode,

@@ -4819,34 +4819,6 @@ test('a merchant\'s ware shows a small panel when the mage comes near (2026-10-0
   expect(errors).toEqual([]);
 });
 
-test('fantasy bosses (M4.12): every boss\'s new look keeps the parts its fight moves and about its old height, stands beside the old one, and each boss fights in it', async ({ page }) => {
-  type GB = { sim(s: number, draw?: boolean): void; warp(id: number): void; player: { invuln: number; hp: number; maxHp: number }; bossContract(): { id: string; missing: string[]; oldH: number; newH: number }[];
-    lookPairs(floor?: number): { id: string }[]; setBossLook(id: string): void; enemies: { isBoss?: boolean; dead?: boolean; type: string; model?: { traverse(f: (o: { isMesh?: boolean; isSprite?: boolean; isPoints?: boolean }) => void): void } }[] };
-  let errors = await start(page, '?seed=LOOKS&room=great_hall&looks=new');
-  const r = await page.evaluate(() => { const w = (window as unknown as { __game: GB }).__game; w.player.invuln = 999; const contract = w.bossContract(), pairs = w.lookPairs(-1).map(p => p.id); w.sim(.5, true); return { contract, pairs }; });
-  for (const c of r.contract) { expect(c.missing, c.id).toEqual([]); expect(c.newH / c.oldH, c.id).toBeGreaterThan(.6); expect(c.newH / c.oldH, c.id).toBeLessThan(1.6); }
-  expect(r.pairs.sort()).toEqual(r.contract.map(c => c.id).sort());
-  expect(errors).toEqual([]);
-  // each boss whose look waits fights a while in its new one (the Warden in each of its three), its still parts merged
-  const waiting = new Set(r.contract.map(c => c.id)), WARDEN = ['bellWarden', 'motherOfSpores', 'hollowOwl'];
-  const fights = [...WARDEN.filter(id => waiting.has(id)).map(look => ({ boss: 'warden', look })),
-    ...(['hart', 'angler', 'tiger'] as const).filter(b => waiting.has(b)).map(boss => ({ boss, look: '' })),
-    ...(waiting.has('dragonHead') ? [{ boss: 'dragon', look: '' }] : []), ...(waiting.has('serpentHead') ? [{ boss: 'serpent', look: '' }] : [])];
-  for (const { boss, look } of fights) {
-    if (look) await page.addInitScript(`localStorage.setItem('ossuary.bossLook', '${look}')`);
-    errors = await start(page, `?room=boss_open&boss=${boss}&looks=new`);
-    const seen = await page.evaluate(() => {
-      const g = (window as unknown as { __game: GB }).__game; g.warp(1); g.sim(.1, true);
-      const e = g.enemies.find(f => f.isBoss)!; let meshes = 0; e.model?.traverse(o => { if (o.isMesh || o.isSprite || o.isPoints) meshes++; });
-      for (let i = 0; i < 160; i++) { g.player.hp = g.player.maxHp; g.player.invuln = 999; g.sim(.05, i % 20 === 0); }
-      return { type: e.type, meshes };
-    });
-    expect(seen.type, boss).toBe(boss);
-    if (boss === 'warden') expect(seen.meshes, look).toBeLessThanOrEqual(30); // (as the old looks: about twenty draw calls)
-    expect(errors, boss + look).toEqual([]);
-  }
-});
-
 test('fantasy foes (M4.12): every new look keeps the parts its behaviour moves and about its old height, stands beside the old one, and a foe wears it when tried', async ({ page }) => {
   type GL = { sim(s: number, draw?: boolean): void; spawn(kind: string): void; enemies: { type: string; foe?: { id: string } }[]; player: { invuln: number };
     lookContract(): { id: string; missing: string[]; oldH: number; newH: number; retired: boolean }[]; lookPairs(floor?: number): { id: string }[]; foeLooks: string };

@@ -23,6 +23,7 @@ export const APPROVED: ReadonlySet<string> = new Set<string>([
   'cinderSalamander', 'hexImp', 'rimeDrakeling', 'emberWasp', 'waspNest',
   'wickmouse', 'chimeBat', 'gargoyleWhelp', 'moonstagFawn', 'rimeScarab',
   'rootling', 'stormRay', 'voidMote', 'lanternTortoise', 'gloomRaven', 'rimeWolf', 'dustPangolin',
+  'wardEmber', 'wardFrost', 'wardStorm', 'wardHallow', 'wardUmbral', 'wardVerdant',
 ]);
 /** What an approved look's old one was, kept once the old builder is deleted (on the owner's yes the galleries stand the new
     look in its place): its height at rest and the parts its behaviour moves, so `lookContract` still holds the new look to
@@ -43,6 +44,7 @@ export const RETIRED: Readonly<Record<string, { h: number; parts: readonly strin
   rootling: { h: .97, parts: ['body', 'mound'] }, stormRay: { h: .45, parts: [] }, voidMote: { h: 1.1, parts: ['body'] },
   lanternTortoise: { h: 1.09, parts: ['head', 'legs', 'light'] }, gloomRaven: { h: 1.37, parts: ['body', 'head'] },
   rimeWolf: { h: 1.08, parts: ['body', 'head', 'tail'] }, dustPangolin: { h: .83, parts: ['body', 'head'] },
+  ...Object.fromEntries(['wardEmber', 'wardFrost', 'wardStorm', 'wardHallow', 'wardUmbral', 'wardVerdant'].map(id => [id, { h: 1.1, parts: ['body', 'light'] }])),
 };
 
 export type FoeLooks = 'approved' | 'new' | 'old';

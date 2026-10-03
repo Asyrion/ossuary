@@ -1,16 +1,15 @@
 /* M4.12 step 8 (docs/M4.12-plan.md): the bosses' eight cute looks redone as creatures of fantasy, by the rules of
-   fantasyFloor1.ts: each keeps its fight, the parts the fight moves (by the old look's names: `eye`, `ring`, `halo` and a
-   boss's own) and about its height; each faces +Z and stands on y = 0; no round googly eyes; the school in the body. The
-   Hollow Warden's three looks are all redone, the owner to choose one as before (bossLooks.ts' `BOSS_LOOKS`). A look is
-   worn once its id is in `BOSS_APPROVED`, or always under `?looks=new` (`bossFantasy` in bossLooks.ts). Each carries
-   `key: ':new'`, so its merge plan (render/rig.ts) is kept apart from the old look's. */
+   fantasyFloor1.ts, approved by the owner (2026-10-03) and worn since: each keeps its fight, the parts the fight moves (by
+   the old look's names: `eye`, `ring`, `halo` and a boss's own) and about its height; each faces +Z and stands on y = 0;
+   no round googly eyes; the school in the body. The Hollow Warden's three are its `BOSS_LOOKS` (bossLooks.ts), which
+   builds the rest through its own names (`hartLook`, `anglerLook`, `tigerLook`, `dragonHead`), as serpentLooks.ts does
+   the serpent's head. */
 import * as THREE from 'three';
 import { glow } from '../render/materials';
 import { SCHOOL_LIGHT, circle, limb, lit, motes, part, rune, runeRing, sphere, std, type V3 } from '../render/arcane';
 import { rough } from '../world/kitParts';
 import { gloss, joint, jointed, slitEyes, spike, thin, tube } from './beastParts';
 import type { BossBuilt } from './bossLooks';
-import { DEV } from '../state';
 
 const { storm: S, umbral: U, hallow: H, frost: F, ember: E } = SCHOOL_LIGHT;
 
@@ -55,7 +54,7 @@ export function bellWardenFierce(): BossBuilt {
   }));
   const ring = haloRing(g, S, .72, 2.25);
   const halo = glow(S, 3, .35); halo.position.set(0, 1.6, -.3); g.add(halo);
-  return { group: g, shadow: 2.4, school: 'storm', key: ':new', parts: { eye, ring, halo }, idle: t => {
+  return { group: g, shadow: 2.4, school: 'storm', parts: { eye, ring, halo }, idle: t => {
     sets.forEach((l, i) => { l.rotation.y = (i ? 1 : -1) * Math.sin(t * 2.4) * .05; l.position.y = Math.max(0, Math.sin(t * 2.4 + i * Math.PI)) * .04; });
     bell.rotation.z = Math.sin(t * 1.3) * .03; runes.visible = Math.floor(t * 7) % 5 !== 0;
   } };
@@ -98,7 +97,7 @@ export function sporeMatriarch(): BossBuilt {
   }
   const ring = haloRing(g, U, .8, 2.6);
   const halo = glow(U, 3.2, .35); halo.position.set(0, 1.6, -.3); g.add(halo);
-  return { group: g, shadow: 2.4, school: 'umbral', key: ':new', parts: { eye, ring, halo }, idle: t => {
+  return { group: g, shadow: 2.4, school: 'umbral', parts: { eye, ring, halo }, idle: t => {
     const b = Math.sin(t * 1.6); body.scale.set(1 + b * .02, 1 - b * .025, 1 + b * .02); hood.rotation.z = Math.sin(t * 1.1) * .04;
     arms.rotation.y = Math.sin(t * .9) * .05; arms.position.y = Math.sin(t * 1.3) * .03; eyeGlow.material.opacity = .4 + Math.sin(t * 2.2) * .12;
   } };
@@ -135,7 +134,7 @@ export function owlbear(): BossBuilt {
   circle(g, H, 1.3);
   const ring = haloRing(g, H, .8, 2.85);
   const halo = glow(H, 3, .35); halo.position.set(0, 2, -.3); g.add(halo);
-  return { group: g, shadow: 2.2, school: 'hallow', key: ':new', parts: { eye, ring, halo }, idle: t => {
+  return { group: g, shadow: 2.2, school: 'hallow', parts: { eye, ring, halo }, idle: t => {
     head.rotation.y = Math.sin(t * .6) * .25; head.rotation.z = Math.sin(t * .9) * .06; body.position.y = Math.sin(t * 1.4) * .02;
     flames.scale.set(1, .85 + Math.sin(t * 13) * .15, 1); candleGlow.material.opacity = .5 + Math.sin(t * 9) * .08;
   } };
@@ -178,7 +177,7 @@ export function hartFierce(): BossBuilt {
   const ring = haloRing(g, H, .9, 2.7, .5);
   const halo = glow(H, 3.4, .35); halo.position.set(0, 2.2, 0); g.add(halo);
   const dust = motes(g, H, 5, 1.3, 1.5, .03);
-  return { group: g, shadow: 2.4, school: 'hallow', key: ':new', parts: { eye, ring, halo, body, head, antlers, legs }, idle: t => {
+  return { group: g, shadow: 2.4, school: 'hallow', parts: { eye, ring, halo, body, head, antlers, legs }, idle: t => {
     head.position.y = 1.94 + Math.sin(t * 1.4) * .025; body.scale.y = 1 + Math.sin(t * 1.4) * .01; tail.rotation.x = Math.sin(t * 5) * .15;
     candleGlow.material.opacity = .45 + Math.sin(t * 3) * .1; dust(t, .45);
   } };
@@ -211,7 +210,7 @@ export function anglerFierce(): BossBuilt {
   for (const s of [-1, 1]) spike(tail, [0, 0, 0], [0, .5 * s, -.6], .12, finM);
   const ring = haloRing(g, U, .95, 2.55, -.6);
   const halo = glow(U, 3.6, .35); halo.position.set(0, 1.3, -.4); g.add(halo);
-  return { group: g, shadow: 2.5, school: 'umbral', key: ':new', parts: { eye, ring, halo, body, jaw, lure, lureGlow }, idle: t => {
+  return { group: g, shadow: 2.5, school: 'umbral', parts: { eye, ring, halo, body, jaw, lure, lureGlow }, idle: t => {
     body.position.y = 1.25 + Math.sin(t * 1.3) * .08; fins.forEach((f, i) => { f.rotation.y = Math.sin(t * 4 + i * Math.PI) * .45; });
     tail.rotation.y = Math.sin(t * 2.2) * .3; stalk.rotation.x = Math.sin(t * 1.7) * .08; jaw.rotation.x = .06 + Math.sin(t * 1.1) * .05;
   } };
@@ -286,7 +285,7 @@ export function tigerFierce(): BossBuilt {
   const halo = glow(F, 3.4, .35); halo.position.set(0, 1.9, 0); g.add(halo);
   const rime = joint(g, [0, 0, 0]);
   const frost = motes(rime, F, 6, 1.3, 1.2, .03);
-  return { group: g, shadow: 2.5, school: 'frost', key: ':new', parts: { eye, ring, halo, body, head, jaw, legs, tail, rime, plate0: plates[0], plate1: plates[1], plate2: plates[2], plate3: plates[3] }, idle: t => {
+  return { group: g, shadow: 2.5, school: 'frost', parts: { eye, ring, halo, body, head, jaw, legs, tail, rime, plate0: plates[0], plate1: plates[1], plate2: plates[2], plate3: plates[3] }, idle: t => {
     const b = Math.sin(t * 1.8); body.scale.set(1, 1 + b * .015, 1); head.rotation.z = Math.sin(t * .7) * .05;
     tail.rotation.y = Math.sin(t * 1.9) * .35; tail.rotation.x = Math.sin(t * 1.3) * .1; frost(t, .5);
   } };
@@ -318,7 +317,7 @@ export function dragonHeadFierce(): BossBuilt {
   const maw = glow(0xe07a2c, 1.6, 0); maw.position.set(0, -.08, .8); head.add(maw);
   const ring = haloRing(g, E, .42, .82, -.5);
   const halo = glow(0xe07a2c, 2.6, .3); halo.position.set(0, .3, -.2); g.add(halo);
-  return { group: g, shadow: 1.2, school: 'ember', key: ':new', parts: { eye, ring, halo, head, jaw, maw }, idle: t => {
+  return { group: g, shadow: 1.2, school: 'ember', parts: { eye, ring, halo, head, jaw, maw }, idle: t => {
     head.rotation.z = Math.sin(t * 1.2) * .06; head.rotation.x = Math.sin(t * .9) * .05;
   } };
 }
@@ -347,23 +346,7 @@ export function serpentHeadFierce(): BossBuilt {
   const ring = joint(g, [0, .5, -.1]);
   for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2; part(ring, sphere(.035 + (i % 3) * .01, 6, 5), fin, [Math.cos(a) * .42, Math.sin(a * 2) * .04, Math.sin(a) * .42]); }
   const halo = glow(0x6ad868, 2.2, .3); halo.position.set(0, .2, 0); g.add(halo);
-  return { group: g, shadow: 1, school: 'frost', key: ':new', parts: { eye, ring, halo, head, jaw, fins }, idle: t => {
+  return { group: g, shadow: 1, school: 'frost', parts: { eye, ring, halo, head, jaw, fins }, idle: t => {
     head.rotation.z = Math.sin(t * 1.4) * .07; head.rotation.x = Math.sin(t * 1.1) * .05; ring.rotation.y = t * .6;
   } };
 }
-
-/** The bosses' new looks, by the old look's id (the Warden's three by their `BOSS_LOOKS` ids; the dragon's and the
-    serpent's heads, which their fights build with their bodies). */
-export const BOSS_FANTASY: Partial<Record<string, () => BossBuilt>> = {
-  bellWarden: bellWardenFierce, motherOfSpores: sporeMatriarch, hollowOwl: owlbear, hart: hartFierce, angler: anglerFierce,
-  tiger: tigerFierce, dragonHead: dragonHeadFierce, serpentHead: serpentHeadFierce,
-};
-/** The bosses' new looks the owner has approved. */
-export const BOSS_APPROVED: ReadonlySet<string> = new Set<string>([]);
-/** The new look a boss of look `id` wears now (`DEV.foeLooks`, as the foes'), if any: else its old one. */
-export function bossFantasy(id: string): (() => BossBuilt) | undefined {
-  const b = BOSS_FANTASY[id], mode = DEV.foeLooks;
-  return b && (mode === 'new' || (mode === 'approved' && BOSS_APPROVED.has(id))) ? b : undefined;
-}
-/** `old` as the boss of look `id` is built now: its new look once approved (or under `?looks=new`), else `old`. */
-export const dressedBoss = (id: string, old: () => BossBuilt) => (): BossBuilt => (bossFantasy(id) ?? old)();
