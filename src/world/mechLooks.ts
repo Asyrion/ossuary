@@ -243,3 +243,32 @@ export function sluiceLook(look?: FloorLook) {
   g.add(gate, wheel, fall, foam, blob(1.1));
   return { group: g, parts: { gate, wheel, fall, foam } };
 }
+
+/* M6 step 9: the waystone (docs/M6-plan.md, decision 11): a tall menhir in the floor's stone, a hollow cut into its face
+   for each rune socket (two, one above the other), rune strokes down it that kindle to a pale gold once it has risen, a
+   glow over its point. Each hollow and the strokes have their own materials (a carved rune shows in its hollow in the
+   rune's colour while the stone's screen is open). Its face is turned square to the camera. */
+const WAYSTONE = {
+  body: shared(new THREE.LatheGeometry([[.34, 0], [.37, .35], [.34, 1.05], [.27, 1.55], [.15, 1.8], [0, 1.88]].map(([x, y]) => new THREE.Vector2(x, y)), 6)),
+  hollow: shared(new THREE.CircleGeometry(.1, 7)), lip: shared(new THREE.TorusGeometry(.1, .018, 4, 7)),
+  low: shared(runeStrokes(.2)), high: shared(runeStrokes(.15)),
+};
+/** The face of a six-sided lathe turned square to the camera lies at its radius times cos 30°. */
+const faceAt = (y: number) => { const r = y < .35 ? .34 + .03 * y / .35 : y < 1.05 ? .37 - .03 * (y - .35) / .7 : .34 - .07 * (y - 1.05) / .5; return r * Math.cos(Math.PI / 6) + .012; };
+export const WAYSTONE_RUNES = { cold: 0x2a1d16, lit: 0xffd98a };
+export function waystoneLook(look: FloorLook | undefined) {
+  const g = new THREE.Group(), stone = tone(stoneOf(look, 1.15), .16);
+  const body = mesh(g, WAYSTONE.body, stone); body.rotation.y = Math.PI / 6;
+  for (let i = 0; i < 5; i++) { const a = i * 1.3 + .4, r = mesh(g, GEO.rubble, MAT.stone, Math.cos(a) * .45, .05, Math.sin(a) * .42); r.scale.setScalar(.8 + (i % 3) * .3); }
+  const strokesMat = new THREE.MeshBasicMaterial({ color: WAYSTONE_RUNES.cold });
+  const runes = new THREE.Group(); g.add(runes); // (its strokes share one material: kindled, they glow)
+  mesh(runes, WAYSTONE.low, strokesMat, 0, .4, faceAt(.4)); mesh(runes, WAYSTONE.high, strokesMat, 0, 1.44, faceAt(1.44));
+  const hollows = [.78, 1.12].map(y => {
+    const m = mesh(g, WAYSTONE.hollow, new THREE.MeshBasicMaterial({ color: 0x0c0806 }), 0, y, faceAt(y));
+    mesh(g, WAYSTONE.lip, stone, 0, y, faceAt(y) - .004);
+    return m;
+  });
+  const gl = glow(WAYSTONE_RUNES.lit, 1.4, .5); gl.position.y = 1.6; gl.visible = false;
+  g.add(gl, blob(.9));
+  return { group: g, parts: { runes, hollows, glow: gl } };
+}

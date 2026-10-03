@@ -2,7 +2,7 @@
 // fonts are bundled with the game (Fontsource), so starting it makes no requests to Google
 import '@fontsource/cinzel/400.css';
 import { POTION_IDS, isPotion, type PotionId, type ReagentId } from './items/alchemyData';
-import { addPotion, addReagent, beltSlots, choosePotion, identify, knownPotion, potionFx, renderBelt, usePotion } from './items/potions';
+import { addPotion, addReagent, beltSlots, choosePotion, identify, knownPotion, moveInBelt, potionFx, renderBelt, usePotion } from './items/potions';
 import { throwsNow, flightsNow } from './items/potionThrow';
 import { forgetBrews } from './items/alchemyMemory';
 import { buyRecipe, jellyIdentifies, knownRecipes } from './items/brewing';
@@ -24,7 +24,7 @@ import { heroPixel, setHeroPixel } from './actors/heroPixel';
 import { givingNow, jellyGives, type Gift } from './world/jellyGives';
 import { arrowOrder, initGamepad, initKeyboard, initTouch, keys, padsNow, type InputActions } from './input';
 import { RUNE_IDS, isRune, type RuneId } from './magic/runeData';
-import { carve, clearRunes, runeOdds, setSockets } from './magic/runes';
+import { carve, clearRunes, liftRune, runeOdds, setSockets } from './magic/runes';
 import { slotDef } from './magic/cost';
 import { initScreens, showScreen } from './ui/screens';
 import { closeDev, devOpen, dropsHere, forceKinds, objectsHere, rebuildFloor, showAssetsHere, showCoins, takeCoins, toggleDev, useAssets, useRoomKit, wearFace } from './ui/devMenu';
@@ -34,6 +34,8 @@ import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPa
 import { serpentInfo } from './actors/jellySerpent';
 import { breakOut, crackVat } from './world/laboratory';
 import { brewAtTable, closeLab, initLab, labKey, labNow, labOpen, labPad, openLab, type LabTab } from './ui/alchemyTable';
+import { carveHere, closeWaystone, initWaystone, openWaystone, secondSocket, stoneKey, stonePad, takeFromStone, waystoneNow, waystoneOpen, type StoneTab } from './ui/waystone';
+import { raiseWaystone } from './world/waystone';
 import { warePanelNow } from './ui/warePanel';
 import { FOE_LOOK_MODES, type FoeLooks } from './actors/fantasyLooks';
 import { lookContract, showLookPairs } from './actors/lookPairs';
@@ -115,9 +117,9 @@ const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
 const input: InputActions = {
   unlockAudio: () => Sfx.init(),
-  togglePause: () => { if (devOpen()) closeDev(); else if (levelOpen()) return; else if (labOpen()) closeLab(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
+  togglePause: () => { if (devOpen()) closeDev(); else if (levelOpen()) return; else if (labOpen()) closeLab(); else if (waystoneOpen()) closeWaystone(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
   confirm: () => { if (G.state === 'title' || G.state === 'end') startGame(); },
-  startButton: () => { if (devOpen()) closeDev(); else if (levelOpen()) return; else if (labOpen()) closeLab(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else startGame(); },
+  startButton: () => { if (devOpen()) closeDev(); else if (levelOpen()) return; else if (labOpen()) closeLab(); else if (waystoneOpen()) closeWaystone(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else startGame(); },
   toggleSound,
   autoPause: () => { if (G.state === 'play') pause(); },
   toggleDev: () => { if (inventoryOpen()) closeInventory(); toggleDev(); },
@@ -125,6 +127,7 @@ const input: InputActions = {
     if (devOpen()) return false;
     if (levelOpen()) return levelKey(code); // (M6: the level-up screen's choice waits)
     if (labOpen()) return labKey(code); // (M5: the alchemy table takes its keys first)
+    if (waystoneOpen()) return stoneKey(code); // (M6: the waystone's screen, the same)
     const used = inventoryKey(code, G.state === 'play');
     if (used === 'open') { pause(); openInventory('play'); return true; }
     if (!used && code === 'KeyI' && G.state === 'pause') { openInventory('pause'); return true; } // from the pause menu
@@ -134,6 +137,7 @@ const input: InputActions = {
     if (devOpen()) return false;
     if (levelOpen()) return levelPad(i);
     if (labOpen()) return labPad(i);
+    if (waystoneOpen()) return stonePad(i);
     if (inventoryOpen()) return inventoryPad(i);
     if (i !== 8) return false; // View opens the inventory, while playing or paused
     if (G.state === 'play') { pause(); openInventory('play'); return true; }
@@ -428,6 +432,14 @@ function installDevHooks() {
     get throws() { return throwsNow(); }, get flights() { return flightsNow(); },
     givePotion: (id: PotionId) => addPotion(id), giveReagent: (id: ReagentId, n = 1) => addReagent(id, n),
     usePotion: (how: 'drink' | 'throw') => usePotion(how), choosePotion: (d: number) => choosePotion(d),
+    /** M6 step 9: the waystone in this room (where, how far risen, kindled, rested, its pair, the slot it carves into, and
+        its screen), raised ahead of the mage (`raiseWaystone`, kindled at once), its screen opened or closed, the pair
+        taken, a rune carved from the pouch or lifted out, Second Socket's socket opened, the belt reordered. */
+    get waystone() { const w = G.current.waystone; return w ? { x: w.x, z: w.z, rise: w.rise, lit: w.lit, rested: w.rested, pair: w.pair && [...w.pair], target: w.target, screen: waystoneNow() } : null; },
+    raiseWaystone: (x = player.x, z = player.z - 2.2) => { const w = raiseWaystone(G.current, x, z); w.rise = Math.max(w.rise, .999); return true; },
+    openWaystone: (tab: StoneTab = 'runes', slot?: number) => openWaystone(tab, slot), closeWaystone: () => closeWaystone(),
+    stoneTake: (i: number) => takeFromStone(i), stoneCarve: (slot: number, id: RuneId) => carveHere(id, slot), stoneLift: (slot: number, id: RuneId) => liftRune(slot, id),
+    stoneSocket: (slot: number) => secondSocket(slot), moveInBelt: (from: number, to: number) => moveInBelt(from, to),
     reagentsAlways: (on: boolean) => { DEV.reagents = on; },
     /** M6 step 8: a rune wherever one can lie (`DEV.runes`; this floor built again, so a shop restocks), and the chance of
         each here (times the floor's `runes`). */
@@ -471,8 +483,8 @@ async function boot() {
     start: () => startGame(), replay: () => startGame({ seed: G.run.seed }), resume, toggleSound,
     pauseIfPlaying: () => { if (G.state === 'play') pause(); },
   });
-  initInventory({ resume }); initLab({ pause, resume });
-  initLevelUp({ pause, resume, others: () => labOpen() || inventoryOpen() || devOpen() || promptShowing() }); // (M6)
+  initInventory({ resume }); initLab({ pause, resume }); initWaystone({ pause, resume });
+  initLevelUp({ pause, resume, others: () => labOpen() || waystoneOpen() || inventoryOpen() || devOpen() || promptShowing() }); // (M6)
   // the chalk texture in the start room is drawn with Cinzel, so load its weights first
   const chalkFonts = Promise.all(['600 16px "Cinzel"', '700 16px "Cinzel"'].map(f => document.fonts.load(f)));
   const assets = loadAssets(); // (models, tiles and icons from data/assets.json: before the first floor is built)

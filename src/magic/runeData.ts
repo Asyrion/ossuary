@@ -37,6 +37,16 @@ export function pickRune(rng: Rng, slotted: readonly Pick<SpellDef, 'shape'>[], 
   return pool[Math.min(pool.length - 1, Math.floor(at * pool.length))];
 }
 
+/** M6 step 9: a waystone's pair, two different runes dealt as `pickRune` deals one (a twin drawn again, then the next of
+    the seven). */
+export function pickPair(rng: Rng, slotted: readonly Pick<SpellDef, 'shape'>[], lean: number): [RuneId, RuneId] {
+  const a = pickRune(rng, slotted, lean);
+  let b = pickRune(rng, slotted, lean);
+  for (let i = 0; i < 6 && b === a; i++) b = pickRune(rng, slotted, lean);
+  if (b === a) b = RUNE_IDS[(RUNE_IDS.indexOf(a) + 1) % RUNE_IDS.length];
+  return [a, b];
+}
+
 /** A slot's socket: how many runes it holds, and those carved. */
 export interface Socket { size: number; runes: RuneId[] }
 /** Why rune `id` can't be carved into `socket` for spell `def` (null: it can). */

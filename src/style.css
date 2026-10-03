@@ -210,7 +210,7 @@ body.touch.portrait #rotate{display:flex}
 #dev .dv-check{display:flex;align-items:center;gap:6px;margin-top:8px;color:var(--ink-dim);font-size:13px;cursor:pointer}
 
 /* the inventory: tabs, the tiles of the chosen tab, and the panel describing the chosen tile */
-#scrInv,#scrLab{justify-content:center;background:rgba(0,0,0,.62)}
+#scrInv,#scrLab,#scrStone{justify-content:center;background:rgba(0,0,0,.62)}
 .card.inv{max-width:none;width:min(1000px,94vw);height:min(640px,88vh);display:flex;flex-direction:column;padding:20px 24px 14px;background:rgba(14,10,8,.97)}
 @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .card.inv{background:rgba(232,221,196,.98)}}
 :root[data-theme="light"] .card.inv{background:rgba(232,221,196,.98)}

@@ -163,6 +163,26 @@ export const STR = {
       each comes in a run (the sapping obelisk says its own). */
   /** M5: potions and reagents (items/potions.ts, potionThrow.ts). */
   /** M5 step 6: Dr. Jelly's laboratory and its alchemy table (world/laboratory.ts, ui/alchemyTable.ts, items/brewing.ts). */
+  /** M6 step 9: the waystone (placeholder words until M8). */
+  waystone: {
+    title: 'The waystone',
+    tabs: { runes: 'Runes', belt: 'Belt' } as Record<string, string>,
+    hint: 'Arrows choose · Enter takes it · Q and E (LB and RB) change tabs · Esc closes',
+    risen: 'A waystone rises where the boss fell. Walk up to it, or cast into it.',
+    rested: 'The waystone gives back what the fight took: your mana is full and every spell ready.',
+    slot: (key: string, name: string) => `${key} · ${name}`, emptySlot: (key: string) => `${key} · no spell`,
+    hollow: 'An empty socket', hollowText: (name: string) => `Choose a rune from your pouch below to carve it into ${name}.`, target: 'Carving here',
+    carved: (rune: string, spell: string) => `${rune} is carved into ${spell}.`, lifted: (rune: string) => `${rune} is lifted back into your pouch.`,
+    liftText: 'Enter lifts it back into your pouch, for nothing.',
+    offers: 'The stone offers one', takeText: 'Enter takes it into your pouch; the other crumbles.',
+    taken: (took: string, lost: string) => `You take ${took}. ${lost} crumbles to dust.`, offered: 'Already chosen at this stone',
+    socket: 'Second Socket', socketTile: (name: string) => `A second socket in ${name}`, socketText: (name: string) => `Second Socket: Enter opens a second socket in ${name}, so it bears two runes.`,
+    socketOpened: (name: string) => `${name} has a second socket now.`,
+    pouch: 'Your pouch', carveText: (spell: string) => `Enter carves it into ${spell}.`, noTarget: 'No spell in your hand takes a rune here.',
+    noRunes: 'Your pouch is empty', noRunesText: 'Runes lie in secret rooms and gilded chests; the merchant sells them; each waystone offers one.',
+    belt: 'The belt', beltText: 'Enter picks a potion up; Enter on another slot puts it there. The inventory does the same at any time.',
+    holding: (name: string) => `Holding ${name}: Enter on a slot puts it there.`, emptyBelt: 'An empty slot', moved: (name: string) => `${name} moved.`,
+  },
   lab: {
     title: 'The alchemy table',
     tabs: { brew: 'Brew', identify: 'Dr. Jelly looks', recipes: 'Recipes' } as Record<string, string>,
@@ -838,7 +858,7 @@ export const STR = {
     dropNames: { halfHeart: 'Half heart', heart: 'Heart', coin: 'Obol', purse: 'Purse', key: 'Bone key', glyph: 'Glyph stone', mana: 'Mana vial', paleSoul: 'Pale soul mote', blackSoul: 'Black soul mote', hallowedSoul: 'Hallowed soul mote', shard: 'Lodestone shard', potion: 'Potion (dealt at random)', reagent: 'Reagent (at random)', rune: 'Rune (leaning to your spells)', coffer: 'Coffer', chest: 'Reliquary chest' } as Record<string, string>,
     spells: 'Spells (click to learn into the slot)', slot: 'Slot', mana: 'Mana', fullMana: 'Full mana', manaOn: 'Endless mana: on', manaOff: 'Endless mana: off', forget: 'Forget spells',
     /** M6 step 7: runes carved into the slot chosen above (each fits some shapes: one that doesn't is refused). */
-    runes: 'Runes (carved into the slot chosen above)', toPouch: 'Into the pouch, as if found (M6 step 8):', runeAhead: 'A rune ahead (dealt as a drop is)', runesAlwaysOn: 'Runes: wherever one can lie (this floor built again)', runesAlwaysOff: 'Runes: by their chances (this floor built again to switch)', clearRunes: 'Clear the socket', socketOne: 'Socket: one rune', socketTwo: 'Socket: two runes (Second Socket)',
+    runes: 'Runes (carved into the slot chosen above)', toPouch: 'Into the pouch, as if found (M6 step 8):', runeAhead: 'A rune ahead (dealt as a drop is)', raiseStone: 'Raise a waystone here (kindled, a pair dealt)', openStone: 'Open the waystone', noStone: 'No waystone in this room', runesAlwaysOn: 'Runes: wherever one can lie (this floor built again)', runesAlwaysOff: 'Runes: by their chances (this floor built again to switch)', clearRunes: 'Clear the socket', socketOne: 'Socket: one rune', socketTwo: 'Socket: two runes (Second Socket)',
     runesInfo: (slots: string[], pouch: string) => `Q: ${slots[0] || 'nothing carved'} · E: ${slots[1] || 'nothing carved'} · pouch: ${pouch || 'empty'}`,
     page: 'Drop a grimoire page', noPage: 'No spell left to learn',
     themes: 'Themed rooms (a test room of each)', objects: 'Objects (put down ahead)', noRoom: 'No free floor there',

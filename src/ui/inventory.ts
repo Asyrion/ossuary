@@ -24,7 +24,7 @@ import { SCHOOL_LIGHT } from '../render/arcane';
 import { BOSS_TYPES } from '../config';
 import { POTIONS, POTION_IDS, REAGENTS, REAGENT_IDS, type PotionId } from '../items/alchemyData';
 import { bottleIconUrl, reagentIconUrl } from '../items/alchemyLooks';
-import { beltSlots, knownPotion, potionName } from '../items/potions';
+import { beltSlots, knownPotion, moveInBelt, potionName } from '../items/potions';
 import { brewedPotions } from '../items/alchemyMemory';
 import { knownRecipes } from '../items/brewing';
 import { ATTRS, type Attr } from '../progression/attributes';
@@ -39,14 +39,14 @@ import { runeFitsText } from '../magic/runes';
 type Tab = 'artifacts' | 'spells' | 'potions' | 'items' | 'mage' | 'foes';
 const TABS: Tab[] = ['artifacts', 'spells', 'potions', 'items', 'mage', 'foes'];
 /** One entry in a tab: a tile (or a row, in the mage's tab) and what the panel says of it. */
-interface Entry { icon: string; label: string; badge?: string; corner?: string; dim?: boolean; section?: string; detail: () => string }
+interface Entry { icon: string; label: string; badge?: string; corner?: string; dim?: boolean; section?: string; detail: () => string; /** (M6 step 9: what Enter does, where anything) */ act?: () => void }
 
 const I = () => STR.inv;
 const num = (v: number, d = 1) => String(+v.toFixed(d));
 /** Half hearts as hearts: 5 → "2½", 1 → "½". */
 const halves = (h: number) => h % 2 ? `${h > 1 ? Math.floor(h / 2) : ''}½` : String(h / 2);
 
-let open = false, tab: Tab = 'artifacts', back: 'pause' | 'play' = 'play';
+let open = false, tab: Tab = 'artifacts', back: 'pause' | 'play' = 'play', beltHeld: number | null = null; // (M6 step 9: a potion picked up to move in the belt)
 const chosen: Record<Tab, number> = { artifacts: 0, spells: 0, potions: 0, items: 0, mage: 0, foes: 0 };
 let actions: { resume(): void } = { resume: () => {} };
 
@@ -59,7 +59,7 @@ export const inventoryOpen = () => open;
 
 /** Open on the last tab used; `from` says where closing returns to (the pause menu, or straight back to play). */
 export function openInventory(from: 'pause' | 'play') {
-  open = true; back = from;
+  open = true; back = from; beltHeld = null;
   render(); showScreen('inv');
 }
 export function closeInventory() {
@@ -180,9 +180,10 @@ function potionEntries(): Entry[] {
   const at = Math.min(player.beltAt, player.belt.length - 1);
   const belt: Entry[] = Array.from({ length: beltSlots() }, (_, k) => {
     const id = player.belt[k] as PotionId | undefined, section = k === 0 ? P.belt : undefined;
-    if (!id) return { icon: SEALED_SLOT, label: P.emptySlot, dim: true, section, detail: () => head(SEALED_SLOT, P.slot(k + 1), P.emptySlot) + `<p class="effect">${esc(P.emptyText)}</p>` };
-    return { icon: img(bottleIconUrl(G.run.bottles[id])), label: potionName(id), corner: knownPotion(id) ? undefined : '?', badge: k === at ? '•' : undefined, section,
-      detail: () => card(id, k === at ? `${P.slot(k + 1)} · ${P.chosen}` : P.slot(k + 1)) };
+    const act = () => beltAct(k); // (M6 step 9: Enter picks a potion up, Enter on another slot puts it there)
+    if (!id) return { icon: SEALED_SLOT, label: P.emptySlot, dim: true, section, act, detail: () => head(SEALED_SLOT, P.slot(k + 1), P.emptySlot) + `<p class="effect">${esc(beltHeld !== null ? STR.waystone.holding(potionName(player.belt[beltHeld] as PotionId)) : P.emptyText)}</p>` };
+    return { icon: img(bottleIconUrl(G.run.bottles[id])), label: potionName(id), corner: knownPotion(id) ? undefined : '?', badge: beltHeld === k ? '✋' : k === at ? '•' : undefined, section, act,
+      detail: () => card(id, k === at ? `${P.slot(k + 1)} · ${P.chosen}` : P.slot(k + 1)) + `<p class="note">${esc(beltHeld !== null ? STR.waystone.holding(potionName(player.belt[beltHeld] as PotionId)) : STR.waystone.beltText)}</p>` };
   });
   const held = REAGENT_IDS.filter(r => (player.reagents[r] ?? 0) > 0);
   const pouch: Entry[] = held.length ? held.map((r, k) => {
@@ -200,6 +201,11 @@ function potionEntries(): Entry[] {
       detail: () => head(icon, name, P.recipes) + `<p class="effect">${esc(P.recipe(REAGENTS[r.a].name, REAGENTS[r.b].name))}</p>` };
   }) : [{ icon: SEALED_SLOT, label: P.recipes, dim: true, section: P.recipes, detail: () => `<p class="effect">${esc(P.noRecipes)}</p>` }];
   return [...belt, ...pouch, ...known, ...book];
+}
+/** The belt's act: pick the potion in slot `k` up, or put the one held down there. */
+function beltAct(k: number) {
+  if (beltHeld === null) { if (player.belt[k]) beltHeld = k; return; }
+  moveInBelt(beltHeld, k); beltHeld = null;
 }
 /** An empty belt slot or pouch: a dashed ring. */
 const SEALED_SLOT = '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="13" fill="none" stroke="#5a4a38" stroke-width="2" stroke-dasharray="4 4"/></svg>';
@@ -314,7 +320,7 @@ function render() {
   ).join('') : `<p class="sec">${esc(I().none)}</p>`;
   $('invDetail').innerHTML = list[i]?.detail() ?? '';
   for (const b of $('invTabs').querySelectorAll<HTMLButtonElement>('button')) b.onclick = () => { tab = b.dataset.tab as Tab; render(); };
-  for (const b of box.querySelectorAll<HTMLButtonElement>('.tile')) b.onclick = () => { chosen[tab] = Number(b.dataset.i); render(); };
+  for (const b of box.querySelectorAll<HTMLButtonElement>('.tile')) b.onclick = () => { const k = Number(b.dataset.i); if (chosen[tab] === k) act(); else { chosen[tab] = k; render(); } };
   box.querySelector<HTMLElement>('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' });
 }
 
@@ -330,7 +336,9 @@ function move(dx: number, dy: number) {
   const step = dx + dy * columns();
   chosen[tab] = Math.max(0, Math.min(n - 1, chosen[tab] + step)); render();
 }
-function turn(d: number) { tab = TABS[(TABS.indexOf(tab) + d + TABS.length) % TABS.length]; render(); }
+function turn(d: number) { tab = TABS[(TABS.indexOf(tab) + d + TABS.length) % TABS.length]; beltHeld = null; render(); }
+/** Enter on the chosen entry: what it does, if anything (M6 step 9: the belt's order). */
+function act() { const e = entries(tab)[chosen[tab]]; if (e?.act) { e.act(); render(); } }
 
 /** A key while the inventory is open (or I or Tab to open it while playing). Returns true when it was used here. */
 export function inventoryKey(code: string, playing: boolean) {
@@ -345,7 +353,8 @@ export function inventoryKey(code: string, playing: boolean) {
   else if (code === 'ArrowDown' || code === 'KeyS') move(0, 1);
   else if (code === 'KeyQ') turn(-1);
   else if (code === 'KeyE') turn(1);
-  else if (/^Digit[1-6]$/.test(code)) { tab = TABS[Number(code.slice(5)) - 1]; render(); }
+  else if (/^Digit[1-6]$/.test(code)) { tab = TABS[Number(code.slice(5)) - 1]; beltHeld = null; render(); }
+  else if (code === 'Enter' || code === 'Space') act();
   else return false;
   return true;
 }
@@ -354,6 +363,7 @@ export function inventoryKey(code: string, playing: boolean) {
 export function inventoryPad(button: number) {
   if (!open) return false;
   if (button === 1 || button === 8) closeInventory();
+  else if (button === 0) act();
   else if (button === 4) turn(-1); else if (button === 5) turn(1);
   else if (button === 12) move(0, -1); else if (button === 13) move(0, 1);
   else if (button === 14) move(-1, 0); else if (button === 15) move(1, 0);

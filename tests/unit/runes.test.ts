@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { SPELL_DEFS, spell, type Shape } from '../../src/magic/spellData';
-import { RUNE_DEFS, RUNE_IDS, canCarve, payment, pickRune, reprisedDef, runeFits, runedDef, runesFor, validateRunes, type RuneDef } from '../../src/magic/runeData';
+import { RUNE_DEFS, RUNE_IDS, canCarve, payment, pickPair, pickRune, reprisedDef, runeFits, runedDef, runesFor, validateRunes, type RuneDef } from '../../src/magic/runeData';
 import { Rng } from '../../src/rng';
 
 /* M6 step 7: runes, as rules (docs/M6-plan.md, decision 9 and the runes table). */
@@ -113,5 +113,14 @@ describe('pickRune', () => {
     const a = new Rng(5), b = new Rng(5);
     pickRune(a, [spell('cinder_lance')], 2 / 3); pickRune(b, [], 2 / 3);
     expect(a.next()).toBe(b.next());
+  });
+});
+
+/* M6 step 9: a waystone's pair: two different runes, dealt as one is. */
+describe('pickPair', () => {
+  it('deals two different runes, every time, and replays on a seed', () => {
+    const rng = new Rng(3), hand = [spell('arc')];
+    for (let i = 0; i < 500; i++) { const [a, b] = pickPair(rng, hand, 2 / 3); expect(a).not.toBe(b); }
+    expect(pickPair(new Rng(9), hand, 2 / 3)).toEqual(pickPair(new Rng(9), hand, 2 / 3));
   });
 });

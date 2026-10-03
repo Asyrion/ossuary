@@ -19,6 +19,7 @@ import { descend, tryTransition } from '../flow';
 import { blink, updateGifts } from '../items/gifts';
 import { choosePotion, potionSpeedMul, usePotion } from '../items/potions';
 import { checkLab } from '../world/laboratory';
+import { checkWaystone } from '../world/waystone';
 import { clamp, lerp } from '../util';
 
 export function updatePlayer(dt: number) {
@@ -62,7 +63,7 @@ export function updatePlayer(dt: number) {
   if (player.hexed > 0) player.hexed = Math.max(0, player.hexed - dt);
   if (player.drawn > 0) player.drawn = Math.max(0, player.drawn - dt);
   // artifacts and the trapdoor down
-  checkArtifactPickup(); checkWares(); checkPages(); checkVaultDoors(); checkShrine(); checkLab(); // (M5: the alchemy table)
+  checkArtifactPickup(); checkWares(); checkPages(); checkVaultDoors(); checkShrine(); checkLab(); checkWaystone(); // (M5: the alchemy table; M6: the waystone)
   const trapdoor = G.trapdoor;
   if (trapdoor && Math.hypot(player.x - trapdoor.x, player.z - trapdoor.z) < .55) descend();
 }

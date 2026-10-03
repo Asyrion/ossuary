@@ -235,6 +235,11 @@ const sounds = {
   rune(school: string) { hiss(.05, .07, 'bandpass', 2200); tone('triangle', 330, 290, .12, .06); schoolNote(school, .05); },
   /** A rune taken into the pouch (M6 step 8): stone set down on stone, and a low chime as its glyph wakes. */
   runeTake() { hiss(.06, .06, 'bandpass', 1800); tone('triangle', 247, 233, .14, .07); tone('sine', 740, 760, .4, .035, .06); tone('sine', 1109, 1109, .3, .018, .1); },
+  /** M6 step 9, the waystone: risen, its runes kindle (a deep stone hum and a rising chime); the rest (mana pouring back, a
+      long soft swell); a rune carved (a chisel's two strikes into stone, then the glyph's chime). */
+  kindle() { tone('sine', 98, 110, 1.2, .08); tone('triangle', 392, 523, .6, .04, .15); tone('sine', 784, 1046, .8, .025, .35); hiss(.5, .02, 'highpass', 4000, .3); },
+  rest() { for (let i = 0; i < 4; i++) tone('sine', 523 + i * 131, 587 + i * 131, .5, .03, i * .12); tone('sine', 262, 262, 1.4, .05, .05); },
+  carve() { hiss(.05, .09, 'bandpass', 2600); hiss(.05, .08, 'bandpass', 2000, .12); tone('triangle', 220, 196, .16, .07, .1); tone('sine', 880, 900, .5, .03, .22); },
   levelUp() { [523, 659, 784, 1046, 1318].forEach((f, i) => tone('triangle', f, f, .35, .06, i * .07)); tone('sine', 262, 262, .9, .07, .1); hiss(.6, .025, 'highpass', 5000); },
   vanish() { tone('sine', 880, 220, .35, .05); hiss(.3, .04, 'highpass', 3000); },
   altar() { tone('sine', 70, 40, .18, .2); tone('sine', 70, 40, .18, .16, .22); tone('sine', 147, 147, 1, .06, .1); },

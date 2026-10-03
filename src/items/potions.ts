@@ -71,6 +71,17 @@ export function identify(id: PotionId) {
   return !was;
 }
 
+/** M6 step 9: the potion in belt slot `from` moved to slot `to` (the others closing up round it; past the last, it goes
+    last); the chosen one stays chosen. False when there is nothing to move. */
+export function moveInBelt(from: number, to: number) {
+  if (from < 0 || from >= player.belt.length || from === to) return false;
+  const [id] = player.belt.splice(from, 1), at = Math.min(to, player.belt.length), was = player.beltAt;
+  player.belt.splice(at, 0, id);
+  if (was === from) player.beltAt = at; // (the chosen one followed)
+  else { const k = was > from ? was - 1 : was; player.beltAt = k >= at ? k + 1 : k; } // (the chosen one where the others closed up)
+  Sfx.potionChoose(); renderBelt(); return true;
+}
+
 /** Choose the next potion in the belt (`d` 1) or the one before (−1). */
 export function choosePotion(d: number) {
   if (player.belt.length < 2) return;

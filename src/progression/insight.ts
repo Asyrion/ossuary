@@ -113,10 +113,13 @@ const flying: Streak[] = [];
 let mesh: THREE.InstancedMesh | null = null, chimeAt = -1;
 const WHITE = new THREE.Color(0xffffff), hand = new THREE.Vector3(), at = new THREE.Vector3(), scl = new THREE.Vector3(), mat4 = new THREE.Matrix4(), dim = new THREE.Color();
 
-function launch(x: number, z: number, color: number) {
+function launch(x: number, z: number, color: number, y = .7, delay = 0) {
   if (flying.length >= L.streak.max) flying.shift();
-  flying.push({ x, y: .7, z, t: 0, color: new THREE.Color(color) });
+  flying.push({ x, y, z, t: -delay, color: new THREE.Color(color) });
 }
+/** M6 step 9: a streak of `color` from (x, y, z) to the casting hand after `delay` seconds, paying nothing (a waystone's
+    rest sends mana this way). */
+export const streakTo = (x: number, y: number, z: number, color: number, delay = 0) => launch(x, z, color, y, delay);
 /** One instanced mesh for every streak and its trail (one draw call), facing the camera, in the stepped glow. */
 function streakMesh() {
   if (mesh) return mesh;
@@ -142,6 +145,7 @@ export function updateInsight(dt: number) {
   for (let i = flying.length - 1; i >= 0; i--) {
     const s = flying[i]; s.t += dt;
     const k = s.t / S.time;
+    if (k < 0) continue; // (not off yet)
     if (k >= 1) {
       flying.splice(i, 1); burst(hand.x, hand.y, hand.z, s.color.getHex(), 3, .8, .03);
       if (G.simClock - chimeAt > L.chimeGap) { chimeAt = G.simClock; Sfx.insight(); }

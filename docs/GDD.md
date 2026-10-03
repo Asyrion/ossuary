@@ -493,6 +493,14 @@ it is rolled on the run's own stream, so a seed's other drops and wares stay as 
 offered a run, before the waystones' pairs. A spell given up sends its runes back to the pouch. The inventory's Spells tab
 shows each slot's socket and the pouch.
 
+**The waystone (M6 step 9, as built 2026-10-03; decision 11).** Until it has a room of its own (step 10), it rises at the
+back of the boss room when the boss falls, on floors 1 to 4: a menhir of the floor's stone with a hollow for each socket,
+its runes kindling gold. Walking up to it opens its screen; a spell cast into it costs nothing and opens it on that spell.
+The first time, it rests the mage (full mana, every cooldown ended, the mana streaming to the hand). It offers a pair of
+runes, two different ones leaning to the hand: one taken, the other crumbles. Its Runes tab carves a rune from the pouch
+into a spell's socket, lifts one back out for nothing, and opens Second Socket's socket in the spell chosen (both at rank
+II); its Belt tab reorders the potion belt, which the inventory's Potions tab also does at any time.
+
 **Enemy affinities (RPG layer):** every enemy has one weakness (+50% damage) and one resistance (−50%), shown in the bestiary once discovered. Placeholder examples: Rotlings are weak to Ember; Wisps resist Umbral and are weak to Hallow; the Hollow Warden resists Frost. As built in M4, each of the ten foes has its pair (`data/foes.json`, the table in `docs/M4-plan.md`); the bosses of floors 4 and 5 have theirs (M4.1), and so do M4.2's (the War-Tiger weak to Storm and resisting Frost, the Pillar Dragon weak to Umbral and resisting Ember, the Twin Guardians weak to Frost and resisting Hallow).
 
 ## Spells
