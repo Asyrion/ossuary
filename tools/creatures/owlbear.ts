@@ -1,7 +1,7 @@
 /* The owlbear (the owner's Tripo model, 2026-10-03; docs/creatures.md): which of Tripo's bones is which, how its skin is
    bound again, and its three clips. Its frame: x left-right, y up, z forward (the beak at +z); it stands 0.71 high and
    0.98 long in the model's units. Tripo named the bones bone_0 to bone_38; what each is was read from where it sits and
-   what it carries (tools/creatureRig.ts, docs/creatures.md: 2. Read the rig). */
+   what it carries (tools/creatureRig.ts, docs/creatures.md, step 2). */
 import type { ClipDef, LegDef, Rig, SkinBone } from '../creatureRig';
 
 /** The legs: shoulder or hip, elbow or knee, wrist or ankle, and the paw under it. */
