@@ -27,7 +27,8 @@ export async function padIslands(doc: Document, tex: Texture, rings = 64, qualit
         const w0 = ((b[0] - px) * (c[1] - py) - (c[0] - px) * (b[1] - py)) / area, w1 = ((c[0] - px) * (a[1] - py) - (a[0] - px) * (c[1] - py)) / area;
         if (w0 >= 0 && w1 >= 0 && w0 + w1 <= 1) inside[y * W + x] = 1;
       }
-      for (const q of [a, b, c]) inside[Math.min(H - 1, Math.max(0, Math.floor(q[1]))) * W + Math.min(W - 1, Math.max(0, Math.floor(q[0])))] = 1; // (a sliver's corners)
+      const mx = (a[0] + b[0] + c[0]) / 3, my = (a[1] + b[1] + c[1]) / 3; // (a sliver's corners, each nudged into its face, so a corner on an island's edge marks the texel inside)
+      for (const q of [a, b, c]) inside[Math.min(H - 1, Math.max(0, Math.floor(q[1] + (my - q[1]) * 1e-3))) * W + Math.min(W - 1, Math.max(0, Math.floor(q[0] + (mx - q[0]) * 1e-3)))] = 1;
     }
   }
   // grown outward a ring at a time: each texel outside takes the mean of its neighbours already filled

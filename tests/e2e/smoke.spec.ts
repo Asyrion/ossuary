@@ -4977,9 +4977,10 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
     out.calls = g.renderInfo().calls - calls0;
     g.roarNow(); g.sim(1, true); out.roaring = g.creatures[0];
     out.full = (await g.setCreatureLook('full'))[0]; out.made = (await g.setCreatureLook('made'))[0]; out.pixel = (await g.setCreatureLook('pixel'))[0];
+    void g.setCreatureLook('full'); out.quick = await g.setCreatureLook('made'); // (changed again while the last one's file loads: the last look wins)
     g.takeCreatures(); g.sim(.1, true); out.left = g.creatures.length;
     return out;
-  }) as { stood: C[]; walking: C; moved: number; calls: number; roaring: C; full: C; made: C; pixel: C; left: number };
+  }) as { stood: C[]; walking: C; moved: number; calls: number; roaring: C; full: C; made: C; pixel: C; quick: C[]; left: number };
   expect(r.stood).toHaveLength(1); expect(r.stood[0].clip).toBe('idle');
   expect(r.walking).toMatchObject({ state: 'walk', clip: 'walk' });
   expect(r.moved).toBeGreaterThan(.2); // (it walks its lap at the pace its paws set)
@@ -4991,6 +4992,7 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
   expect(r.full).toMatchObject({ look: 'full', texture: 2048, x: r.stood[0].x, z: r.stood[0].z });
   expect(r.made).toMatchObject({ look: 'made', texture: 1024 });
   expect(r.pixel).toMatchObject({ look: 'pixel', texture: 0 });
+  expect(r.quick).toHaveLength(1); expect(r.quick[0]).toMatchObject({ look: 'made', texture: 1024 });
   expect(r.left).toBe(0);
   expect(errors).toEqual([]);
 });
