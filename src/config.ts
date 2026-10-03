@@ -144,6 +144,9 @@ export const CFG = {
   // dark the room waits until the stone kindles; how far from the middle toward the door the stone stands (so the trapdoor's
   // ring, beyond it, clears the stone's top from the camera); the
   // lane to its door in the boss room that the boss's gifts keep off (how deep, how wide either side, how far aside)
+  // M6 step 11, the shrine's bargain: where its stone stands in the shrine (from the middle: the circle's head), how near (beside
+  // its half-width) the mage must stand to cast into it, its blocker's half-width
+  bargain: { at: [0, -2.55] as [number, number], reach: .9, half: .3 },
   waystone: { reach: .75, rise: 1.4, depth: 1.95, at: [4.4, -1.8], streaks: 7, streakGap: .08, half: .38, trapdoor: [3.5, 2.4], toDoor: [1.5, .8], dark: .55, lane: [4.5, 1.2, 2.6] },
   // M6 step 5, the school boons at work (progression/boonHooks.ts): half hearts boons mend in one room at most (Votive
   // Heart and Thirsting Hex together); Seedfall's plants, `seedMax` a room at most, sought within `sowReach` tiles of the

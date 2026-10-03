@@ -4,7 +4,9 @@
    level's point is spent on an attribute; each level waiting comes in turn. Arrows or WASD (the d-pad) choose, Enter or
    Space (A) takes, a card can be clicked; a short lock keeps a key held from the fight from choosing, and Esc doesn't
    close it (the level's choice is the mage's to make). `DEV.autoLevel` (`?autolevel`, the dev menu, the tests and the
-   balance bot) chooses without it: the first card, and the attribute with the fewest points. */
+   balance bot) chooses without it: the first card, and the attribute with the fewest points. M6 step 11: the shrine's
+   bargain deals here too (`openBargainDeal`): three cards from the school cast into its stone, each costing a heart
+   container, no point after; Esc (the pad's B) backs out with nothing paid. */
 import { CFG } from '../config';
 import { DEV, G } from '../state';
 import { STR } from '../strings';
@@ -21,9 +23,11 @@ import { ATTRS, type Attr } from '../progression/attributes';
 import { ATTR_COLOR, attrText, pointsToSpend, spendPoint } from '../progression/points';
 import type { Card } from '../progression/boonData';
 import { renderInsight } from '../progression/insight';
+import { keepBargain, refuseBargain } from '../world/bargain';
+import type { School } from '../magic/spellData';
 
 type Phase = 'boon' | 'point';
-let open = false, phase: Phase = 'boon', cards: Card[] = [], chosen = 0, lockUntil = 0, calm = 0;
+let open = false, phase: Phase = 'boon', cards: Card[] = [], chosen = 0, lockUntil = 0, calm = 0, mode: 'level' | 'bargain' = 'level';
 let actions: { pause(): void; resume(): void; others(): boolean } = { pause: () => {}, resume: () => {}, others: () => false };
 
 /** How the game pauses and goes on, and whether another screen is up (main.ts). */
@@ -32,7 +36,7 @@ export const levelOpen = () => open;
 /** The level whose choice is being made (or waits next). */
 const levelNow = () => G.run.level - G.run.pending + 1;
 /** What the screen shows, for the tests and the dev menu. */
-export const offerNow = () => ({ open, phase, level: levelNow(), pending: G.run.pending, chosen, cards: cards.map(c => ({ ...c })) });
+export const offerNow = () => ({ open, mode, phase, level: levelNow(), pending: G.run.pending, chosen, cards: cards.map(c => ({ ...c })) });
 
 /** Each step while playing: a level waiting opens the screen once the fight is won and a moment has passed. */
 export function checkLevelUp(dt: number) {
@@ -56,7 +60,26 @@ export function openLevelUp() {
   open = true; actions.pause(); showScreen('level'); deal(); Sfx.levelUp();
   return true;
 }
-function close() { open = false; actions.resume(); }
+function close() { open = false; mode = 'level'; actions.resume(); }
+
+/** M6 step 11: the shrine's bargain: three boons, two of `school` (the spell cast into its stone) and one general; taking
+    one pays a heart container (bargain.ts' `keepBargain`). */
+export function openBargainDeal(school: School) {
+  if (open) return false;
+  mode = 'bargain'; open = true; actions.pause(); showScreen('level');
+  cards = dealNow(school); chosen = 0; phase = 'boon'; render(); lock();
+  return true;
+}
+/** Esc while the screen is open: the bargain is backed out of (nothing paid); a level's choice waits. */
+export function levelEsc() {
+  if (!open || mode !== 'bargain') return;
+  refuseBargain(); close(); Sfx.cardTurn();
+}
+/** The tests' and the dev menu's: take the bargain's card `i` now (no lock). */
+export function takeBargainCard(i: number) {
+  if (!open || mode !== 'bargain' || !cards.length) return false;
+  chosen = Math.min(i, cards.length - 1); lockUntil = 0; take(); return true;
+}
 function deal() {
   cards = dealNow(); chosen = 0; phase = cards.length ? 'boon' : 'point';
   if (phase === 'point' && pointsToSpend() <= 0) { done(); return; }
@@ -77,6 +100,7 @@ function take() {
   if (performance.now() < lockUntil) return;
   if (phase === 'boon') {
     const c = cards[chosen]; if (!c) return;
+    if (mode === 'bargain') { Sfx.cardTake(); close(); keepBargain(c.id); return; } // (its own card and line: bargain.ts)
     takeBoon(c.id, false); Sfx.cardTake();
     if (pointsHere() > 0) { phase = 'point'; chosen = 0; render(); lock(); } else done();
     return;
@@ -101,15 +125,17 @@ export function chooseFor(i = 0, attr?: Attr) {
 
 const L = () => STR.levels;
 function render() {
-  $('lvTitle').textContent = L().up(levelNow());
-  $('lvSub').textContent = phase === 'boon' ? L().chooseBoon : L().choosePoint(pointsHere());
+  const bargain = mode === 'bargain';
+  $('lvTitle').textContent = bargain ? STR.bargain.title : L().up(levelNow());
+  $('lvHint').textContent = bargain ? STR.bargain.hint : L().hint;
+  $('lvSub').textContent = bargain ? STR.bargain.sub : phase === 'boon' ? L().chooseBoon : L().choosePoint(pointsHere());
   const box = $('lvCards');
   if (phase === 'boon') {
     box.innerHTML = cards.map((c, k) => {
       const b = boon(c.id), name = c.rank > 1 ? STR.boons.ranked(b.name) : b.name, kind = b.school ? STR.boons.kindOf(STR.schools[b.school]) : STR.boons.kindGeneral;
       return `<button type="button" class="lvCard" data-i="${k}" aria-selected="${k === chosen}" style="--c:${b.color}">${boonIconImg(c.id, c.rank)}`
         + `<b>${esc(name)}</b><small>${esc(kind)}</small><span>${esc(boonText(c.id, c.rank))}</span>`
-        + (c.lean && b.school ? `<em>${esc(STR.boons.lean(STR.schools[b.school]))}</em>` : '') + `<i>${esc(b.lore)}</i></button>`;
+        + (c.lean && b.school && !bargain ? `<em>${esc(STR.boons.lean(STR.schools[b.school]))}</em>` : '') + (bargain ? `<em class="lvPrice">${esc(STR.bargain.price)}</em>` : '') + `<i>${esc(b.lore)}</i></button>`;
     }).join('');
   } else {
     box.innerHTML = ATTRS.map((a, k) => `<button type="button" class="lvCard lvAttr" data-i="${k}" aria-selected="${k === chosen}" style="--c:#${ATTR_COLOR[a].toString(16).padStart(6, '0')}">`
@@ -124,12 +150,14 @@ export function levelKey(code: string) {
   if (code === 'ArrowLeft' || code === 'KeyA' || code === 'ArrowUp' || code === 'KeyW') move(-1);
   else if (code === 'ArrowRight' || code === 'KeyD' || code === 'ArrowDown' || code === 'KeyS') move(1);
   else if (code === 'Enter' || code === 'Space') take();
+  else if (code === 'Escape') levelEsc();
   return true;
 }
 /** A gamepad button newly pressed while the screen is open: the d-pad chooses, A takes. */
 export function levelPad(button: number) {
   if (!open) return false;
   if (button === 0) take();
+  else if (button === 1) levelEsc();
   else if (button === 14 || button === 12) move(-1); else if (button === 15 || button === 13) move(1);
   return true;
 }

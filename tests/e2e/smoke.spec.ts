@@ -4804,6 +4804,45 @@ test('the waystone room (M6 step 10): beside the boss room, empty and dark until
   expect(errors).toEqual([]);
 });
 
+test('the shrine\'s bargain (M6 step 11): a stone at the circle\'s head; walking up says how; a spell cast into it costs nothing and deals two boons of its school and one general; Esc pays nothing; a boon taken costs a heart container and keeps it, once; the last heart is refused', async ({ page }) => {
+  const errors = await start(page, '?room=shrine_henge&spells=cinder_lance,rime_shards');
+  const r = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player; P.invuln = 999;
+    g.warp(1); g.sim(.5); const room = g.current, b0 = g.bargain;
+    const at = [b0.x - room.cx, b0.z - room.cz];
+    P.x = b0.x; P.z = b0.z + 3; g.sim(.1); P.z = b0.z + 1.1; g.sim(.1); const seen = new Set();
+    for (let t = 0; t < 40; t++) { seen.add(document.getElementById('toast').textContent); g.sim(.25); } // (the lines, one after another)
+    const said = [...seen].join(' | ');
+    g.mana(100); const deal = (() => { g.cast(0); g.sim(.05); return { mana: g.player.mana, offer: g.offer, b: g.bargain }; })();
+    g.refuseBargain(); g.sim(.05); const backed = { b: g.bargain, open: g.offer.open, maxHp: P.maxHp };
+    g.cast(1); g.sim(.05); const school2 = g.bargain.school, hp = P.maxHp, card = g.offer.cards[0].id;
+    g.takeBargain(0); g.sim(.1); const kept = { b: g.bargain, open: g.offer.open, maxHp: P.maxHp, rank: g.boons.taken[card] };
+    const before = P.mana; g.player.spellCd = [0, 0]; g.cast(0); g.sim(.05); const plain = { paid: before - P.mana, state: g.bargain.state };
+    return { at, said, deal, backed, school2, hp, kept, plain };
+  })()`) as { at: number[]; said: string; deal: { mana: number; offer: { open: boolean; mode: string; cards: { id: string }[] }; b: { state: string; school: string } };
+    backed: { b: { state: string }; open: boolean; maxHp: number }; school2: string; hp: number; kept: { b: { state: string }; open: boolean; maxHp: number; rank: number }; plain: { paid: number; state: string } };
+  expect(r.at[0]).toBeCloseTo(0, 5); expect(r.at[1]).toBeLessThan(-2); // (at the circle's head)
+  expect(r.said).toContain('cast a spell into it');
+  expect(r.deal.mana).toBe(100); expect(r.deal.offer).toMatchObject({ open: true, mode: 'bargain' }); expect(r.deal.b).toMatchObject({ state: 'open', school: 'ember' });
+  expect(r.deal.offer.cards.map(c => c.id).slice(0, 2).sort()).toEqual(['bankedCoals', 'flamekeeper']); // (two of its school; the third general)
+  expect(r.deal.offer.cards).toHaveLength(3);
+  expect(r.backed).toMatchObject({ b: { state: 'idle' }, open: false, maxHp: r.hp });
+  expect(r.school2).toBe('frost');
+  expect(r.kept).toMatchObject({ b: { state: 'kept' }, open: false, maxHp: r.hp - 2, rank: 1 });
+  expect(r.plain.paid).toBeGreaterThan(0); expect(r.plain.state).toBe('kept'); // (a kept stone lets a cast go on as a cast)
+  expect(errors).toEqual([]);
+  // the last heart: refused
+  const errors2 = await start(page, '?room=shrine_henge&spells=cinder_lance');
+  const last = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player; P.invuln = 999; g.warp(1); g.sim(.5);
+    g.heartsPaid = P.maxHp / 2 - 1; const b = g.bargain; P.x = b.x; P.z = b.z + 1.1; g.sim(.1);
+    g.mana(100); g.cast(0); g.sim(.05);
+    return { maxHp: P.maxHp, state: g.bargain.state, open: g.offer.open, mana: P.mana };
+  })()`) as { maxHp: number; state: string; open: boolean; mana: number };
+  expect(last).toEqual({ maxHp: 2, state: 'idle', open: false, mana: 100 }); // (refused: the cast spent on asking, nothing dealt)
+  expect(errors2).toEqual([]);
+});
+
 test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks and holds longer at II, Banked Coals burns longer, Gathering Dark gathers deeper, Perennial roots, Forking Arc forks', async ({ page }) => {
   const errors = await start(page, '?seed=BOON5A&boons=deepWinter');
   const got = await page.evaluate(`(() => {
