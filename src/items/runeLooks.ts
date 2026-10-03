@@ -1,9 +1,15 @@
 /* M6 step 7: each rune as a stone with its glyph cut in it, glowing in the rune's colour (data/runes.json). Its 24 px icon
    is made through `iconUrlOf`, as the boons' sigils and the artifacts' icons are (one pixel for everything); the spell's
-   panel, the inventory and the dev menu show it, and step 8's runes lying in a room are this look. Each glyph is a few
-   strokes on a disc of radius 1 (render/emblem.ts), angular as runes are cut. */
+   panel, the inventory and the dev menu show it, and step 8's runes lying in a room or over a ward circle are this look
+   made small (`runePickupLook`). Each glyph is a few strokes on a disc of radius 1 (render/emblem.ts), angular as runes are
+   cut. */
 import * as THREE from 'three';
 import { iconUrlOf } from './artifactIcons';
+import { CFG } from '../config';
+import { TILT } from '../render/renderer';
+import { glowShared } from '../render/materials';
+import { glowTone, tone } from '../world/kitParts';
+import { keep } from './pickupLooks';
 import { A, C, L, emblem, poly, type Stroke } from '../render/emblem';
 import { rune, type RuneId } from '../magic/runeData';
 
@@ -36,3 +42,19 @@ export function runeLook(id: RuneId) {
 export const runeIconUrl = (id: RuneId) => iconUrlOf(`rune:${id}`, () => runeLook(id), rune(id).color);
 /** The icon as an <img>, shown in whole pixels. */
 export const runeIconImg = (id: RuneId) => `<img class="px" src="${runeIconUrl(id)}" alt="">`;
+
+const chips = new Map<RuneId, THREE.Object3D>();
+/** Rune `id` lying in a room (M6 step 8): its stone made a chip, tipped to the camera as the flat pickups are, painted as the
+    room kit's pieces are (the stone and its glowing glyph in the vertices, merged), a stepped glow in its colour behind it.
+    Built once a rune and copied. */
+export function runePickupLook(id: RuneId) {
+  let t = chips.get(id);
+  if (!t) {
+    const g = new THREE.Group(), f = new THREE.Group(); f.rotation.x = -TILT; g.add(f);
+    const stone = runeLook(id), col = new THREE.Color(rune(id).color).getHex(); stone.scale.setScalar(CFG.runeDrops.chip); f.add(stone);
+    stone.traverse(o => { const m = o as THREE.Mesh; if (!m.isMesh) return; const was = m.material as THREE.MeshStandardMaterial; m.material = was.emissiveIntensity > 1 ? glowTone(col) : tone(0x5a524a, .2); was.dispose(); });
+    g.add(glowShared(col, .75, .45));
+    chips.set(id, t = keep(g));
+  }
+  return t.clone();
+}

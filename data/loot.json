@@ -21,11 +21,12 @@
   "secretHoard": { "count": [3, 5], "weights": { "coin": 40, "purse": 16, "key": 16, "glyph": 28 } },
   "secretRoom": { "coffers": 2, "chests": 1 },
   "shrine": { "price": 10 },
-  "wanderer": { "prices": { "artifact": 18, "hallowedSoul": 7, "blackSoul": 7, "map": 5, "secret": 8 }, "souls": { "hallowedSoul": 1, "blackSoul": 1 } },
+  "wanderer": { "prices": { "artifact": 18, "hallowedSoul": 7, "blackSoul": 7, "map": 5, "secret": 8, "rune": 12 }, "souls": { "hallowedSoul": 1, "blackSoul": 1 } },
   "grimoire": { "lecterns": 3, "shelf": 2, "rebuy": 7, "clearChance": 0.04 },
+  "runes": { "merchant": 0.5, "secret": 0.5, "wanderer": 0.5, "gilded": 1 },
   "merchant": {
     "wares": [3, 4],
-    "prices": { "artifact": 15, "heart": 3, "key": 5, "glyph": 5, "mana": 3, "paleSoul": 4, "blackSoul": 6, "hallowedSoul": 6, "shard": 4, "potion": 4, "reagent": 2 },
+    "prices": { "artifact": 15, "heart": 3, "key": 5, "glyph": 5, "mana": 3, "paleSoul": 4, "blackSoul": 6, "hallowedSoul": 6, "shard": 4, "potion": 4, "reagent": 2, "rune": 10 },
     "weights": { "heart": 40, "key": 30, "glyph": 30, "mana": 25, "paleSoul": 10, "blackSoul": 5, "hallowedSoul": 5, "shard": 8, "potion": 22, "reagent": 12 }
   }
 }

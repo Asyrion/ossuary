@@ -1,16 +1,21 @@
 /* M6 step 7: runes in play (docs/M6-plan.md, decisions 9 and 10; the rules are runeData.ts). Each slot has a socket (one
    rune, two with Second Socket); a rune carved there changes every cast of the slot's spell, read through `slotDef`
    (cost.ts). The socket belongs to the slot: a spell given up or forgotten sends its runes to the pouch (`player.runes`)
-   and the slot keeps its size, so a swap at a library costs nothing. Until step 8 brings runes to find and step 9 the
-   waystone to carve at, runes are carved from the dev menu and `?runes=`. A rune at work says so (Nothing silent): its
-   name rises once a room, its line the first time in a run, a chisel's tick and the spell's school. */
+   and the slot keeps its size, so a swap at a library costs nothing. Step 8 brings runes to find (`addRune`, dealt by
+   `dealRune` on the run's own stream, leaning to the spells in the slots); until step 9's waystone, runes are carved from
+   the dev menu and `?runes=`. A rune at work says so (Nothing silent): its name rises once a room, its line the first time
+   in a run, a chisel's tick and the spell's school. */
 import { CFG } from '../config';
-import { player } from '../state';
+import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { line, renderSpells } from '../ui/hud';
+import { showLore } from '../ui/lore';
+import { LOOT, type RuneOdds } from '../items/loot';
+import { FLOORS } from '../world/generate';
+import { runeIconImg } from '../items/runeLooks';
 import { actsHere } from '../progression/boonHooks';
-import { canCarve, rune, type RuneId } from './runeData';
+import { SHAPE_COUNT, canCarve, pickRune, rune, runeFits, type RuneId } from './runeData';
 import { spell, type School, type SpellDef } from './spellData';
 import { upgradedSpell } from './memory';
 
@@ -40,8 +45,34 @@ export function unslot(slot: number) {
 }
 function toPouch(ids: RuneId[]) {
   if (!ids.length) return;
-  player.runes.push(...ids);
+  player.runes.push(...ids); Sfx.runeTake();
   line(STR.runes.toPouch(ids.map(id => rune(id).name).join(' and ')), CFG.afflict.lineShow);
+}
+
+/* ---------- M6 step 8: runes as things ---------- */
+
+/** How likely runes are here: the floor's `runes` (none on floor 5) times the chance of `where` in data/loot.json. */
+export const runeOdds = (where: keyof RuneOdds) => LOOT.runes[where] * (FLOORS[G.run.floor]?.runes ?? 1);
+/** Whether a rune lies `where` this time: always drawn from the run's runes stream (a seed replays the same draws). */
+export const runeHere = (where: keyof RuneOdds) => G.run.runes.chance(runeOdds(where)) || DEV.runes;
+/** Which rune a drop or a ware is: two times in three one that fits a spell in the slots, else any of the seven. */
+export const dealRune = (): RuneId => pickRune(G.run.runes, player.spells.filter((s): s is string => !!s).map(spell), CFG.runeDrops.lean);
+/** Rune `id` into the pouch (no limit), with a stone's chime; its card the first time each is taken in a run. */
+export function addRune(id: RuneId) {
+  player.runes.push(id); Sfx.runeTake(); renderSpells();
+  if (!G.run.loreSeen.has('rune:' + id)) { G.run.loreSeen.add('rune:' + id); runeCard(id); }
+}
+/** What rune `id` fits, in words: every spell, or the shapes it takes; and which spells in the hand it fits now. */
+export function runeFitsText(id: RuneId) {
+  const r = rune(id), held = player.spells.filter((s): s is string => !!s).map(spell);
+  const shapes = r.shapes.length >= SHAPE_COUNT ? STR.runes.everySpell : STR.runes.shapesFit(r.shapes.map(s => STR.runes.shapes[s] ?? s));
+  const fits = held.filter(d => runeFits(id, d)).map(d => d.name);
+  return `${shapes} ${held.length ? fits.length ? STR.runes.handFits(fits.join(' and ')) : STR.runes.handFitsNone : ''}`.trim();
+}
+/** A rune's lore card: what it does, what it fits, that a waystone carves it. */
+export function runeCard(id: RuneId) {
+  const r = rune(id);
+  showLore({ name: r.name, kind: STR.runes.kind, effect: `${r.text}. ${runeFitsText(id)} ${STR.runes.carvedAt}`, lore: r.lore, icon: runeIconImg(id) });
 }
 
 /** Rune `id` at work at (x, z) on a spell of `school` (counted as `rune:<id>` in `G.run.acted`). */

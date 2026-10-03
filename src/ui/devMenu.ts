@@ -60,7 +60,7 @@ import { openSecretRoom, revealCracks } from '../world/secret';
 import { cleanseAtOnce } from '../world/shrine';
 import { SCHOOLS, SPELL_DEFS } from '../magic/spellData';
 import { attuneTo, forgetSpells, gainMana, learnSpell } from '../magic/spells';
-import { carve, clearRunes, setSockets } from '../magic/runes';
+import { addRune, carve, clearRunes, setSockets } from '../magic/runes';
 import { RUNE_DEFS, rune } from '../magic/runeData';
 import { runeIconImg } from '../items/runeLooks';
 import { findEveryReaction, findEveryWeave, forgetKnowledge, forgetReactions, forgetWeaves, knowEvery, knowledgeNow, reactionsFound, weavesFound } from '../magic/memory';
@@ -98,7 +98,7 @@ import { THEMES } from '../world/themeData';
 
 const S = STR.dev;
 let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
-let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
+let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, runesBtn: HTMLButtonElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries', 'sound'] as const;
 type Tab = (typeof TABS)[number];
@@ -167,7 +167,7 @@ export function useRoomKit(on: boolean) { DEV.roomKit = on; rebuildFloor(); rend
 /** The room kit's kinds forced on every room of this floor (or drawn per room again, for a part left out): built again. */
 export function forceKinds(k: Partial<Kinds>) { DEV.kitKinds = { ...k }; rebuildFloor(); }
 /** This floor built again on its seed (the same rooms and boss), and the mage back in the room they were in. */
-function rebuildFloor() {
+export function rebuildFloor() {
   if (G.state === 'title') return;
   const id = G.current.plan.id;
   if (G.run.bossesMet.at(-1) === G.run.boss) G.run.bossesMet.pop(); // (built again, the floor draws the same boss)
@@ -340,7 +340,11 @@ function build() {
   runes.append(runeInfo = el('p', 'dv-info'), ...RUNE_DEFS.map(r => {
     const b = btn(r.name, () => { const why = carve(spellSlot, r.id); if (why) toast(STR.runes.refused[why], 2); }, r.text);
     b.insertAdjacentHTML('afterbegin', runeIconImg(r.id)); return b; // (its glyph, as the panel shows it)
-  }), btn(S.clearRunes, () => clearRunes(spellSlot)), socketBtn = btn('', () => setSockets(spellSlot, player.sockets[spellSlot].size > 1 ? 1 : 2)));
+  }), btn(S.clearRunes, () => clearRunes(spellSlot)), socketBtn = btn('', () => setSockets(spellSlot, player.sockets[spellSlot].size > 1 ? 1 : 2)),
+    el('p', 'dv-info', S.toPouch), ...RUNE_DEFS.map(r => { // (M6 step 8: into the pouch, as found, its card the first time)
+      const b = btn(r.name, () => { addRune(r.id); refresh(); }, r.text); b.insertAdjacentHTML('afterbegin', runeIconImg(r.id)); return b;
+    }), btn(S.runeAhead, () => { closeDev(); spawnPickup('rune', player.x, player.z - 1.5, { asIs: true }); }),
+    runesBtn = btn('', () => { DEV.runes = !DEV.runes; rebuildFloor(); refresh(); }));
   const mana = section(pages.magic, S.mana);
   mana.append(
     btn(S.fullMana, () => gainMana(player.stats.maxMana)),
@@ -579,6 +583,7 @@ function refresh() {
   reagentBtn.textContent = DEV.reagents ? S.reagentsOn : S.reagentsOff; reagentBtn.classList.toggle('on', DEV.reagents);
   alchInfo.textContent = S.alchemyInfo(player.belt.length, beltSlots(), POTION_IDS.filter(knownPotion).length, POTION_IDS.length, brewedPotions().length, S.serpentState[G.run.serpent], G.run.restless);
   { const v = insightNow(); levelInfo.textContent = S.levelsInfo(v.level, Math.round(v.insight), Math.ceil(v.next), v.pending) + ' ' + S.attrsInfo(ATTRS.map(a => `${STR.attrs[a].name} ${G.run.attrs[a]}`).join(', '), pointsToSpend()); }
+  runesBtn.textContent = DEV.runes ? S.runesAlwaysOn : S.runesAlwaysOff; runesBtn.classList.toggle('on', DEV.runes);
   runeInfo.textContent = S.runesInfo(player.sockets.map(k => k.runes.map(id => rune(id).name).join(' + ') + (k.size > 1 ? ` (${k.runes.length}/${k.size})` : '')), player.runes.map(id => rune(id).name).join(', '));
   socketBtn.textContent = player.sockets[spellSlot].size > 1 ? S.socketTwo : S.socketOne; socketBtn.classList.toggle('on', player.sockets[spellSlot].size > 1);
   { const list = padsNow(); padInfo.replaceChildren(...(list.length ? list.map(g => el('div', '', S.padRow(g.index, g.id, g.mapping, g.buttons, g.axes))) : [el('div', '', S.noPads)])); }

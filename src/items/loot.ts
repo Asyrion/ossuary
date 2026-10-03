@@ -9,9 +9,10 @@ import type { Rng } from '../rng';
 export type Resource = 'coins' | 'keys' | 'glyphs';
 export const RESOURCES: Resource[] = ['coins', 'keys', 'glyphs'];
 /** Things picked up by walking over them. M4.1 adds the soul motes (pale, black and hallowed) and the lodestone shard; M5
-    a potion (which one is dealt when it drops, from the run's alchemy stream) and a reagent. */
-export type Item = 'halfHeart' | 'heart' | 'coin' | 'purse' | 'key' | 'glyph' | 'mana' | 'paleSoul' | 'blackSoul' | 'hallowedSoul' | 'shard' | 'potion' | 'reagent';
-export const ITEMS: Item[] = ['halfHeart', 'heart', 'coin', 'purse', 'key', 'glyph', 'mana', 'paleSoul', 'blackSoul', 'hallowedSoul', 'shard', 'potion', 'reagent'];
+    a potion (which one is dealt when it drops, from the run's alchemy stream) and a reagent; M6 a rune for the pouch (which
+    one, from the run's runes stream, leaning to the spells in the slots: `pickRune` in magic/runeData.ts). */
+export type Item = 'halfHeart' | 'heart' | 'coin' | 'purse' | 'key' | 'glyph' | 'mana' | 'paleSoul' | 'blackSoul' | 'hallowedSoul' | 'shard' | 'potion' | 'reagent' | 'rune';
+export const ITEMS: Item[] = ['halfHeart', 'heart', 'coin', 'purse', 'key', 'glyph', 'mana', 'paleSoul', 'blackSoul', 'hallowedSoul', 'shard', 'potion', 'reagent', 'rune'];
 
 /** Soul motes (M4.1; GDD: Items): pale flames kept beside the hearts that take a hit before the hearts do. A pale one
     guards one hit; a black one guards one and hexes the room when it goes; a hallowed one goes last, and gives back half
@@ -70,12 +71,18 @@ export interface LootData extends Record<TableName, LootTable> {
   /** Grimoire pages: how many a library's lecterns offer, how many given-up spells its shelf sells back and for how
       many obols, and the chance a cleared room leaves one. */ grimoire: { lecterns: number; shelf: number; rebuy: number; clearChance: number };
   merchant: MerchantData;
+  /** M6 step 8: runes as things. The chance of a rune in each place (each times the floor's `runes`, data/floors.json), all
+      rolled on the run's own runes stream so no other roll moves: an extra ware in a shop, one in a secret room without an
+      artifact, one on the Wandering Merchant's beast, one beside a gilded chest's relic. Its prices are the traders'
+      (`rune` in `merchant.prices` and `wanderer.prices`). */
+  runes: RuneOdds;
 }
+export interface RuneOdds { merchant: number; secret: number; wanderer: number; gilded: number }
 export const LOOT = lootData as LootData;
 
-/** What an item gives: half hearts, mana, a soul mote, a shard's mana, a potion for the belt or a reagent for the pouch,
-    or resources. */
-export function dropValue(d: Item, loot: LootData = LOOT): { hearts?: number; mana?: number; soul?: Soul; shard?: number; potion?: number; reagent?: number } & Partial<Record<Resource, number>> {
+/** What an item gives: half hearts, mana, a soul mote, a shard's mana, a potion for the belt, a reagent or a rune for the
+    pouch, or resources. */
+export function dropValue(d: Item, loot: LootData = LOOT): { hearts?: number; mana?: number; soul?: Soul; shard?: number; potion?: number; reagent?: number; rune?: number } & Partial<Record<Resource, number>> {
   switch (d) {
     case 'halfHeart': return { hearts: 1 };
     case 'heart': return { hearts: 2 };
@@ -90,6 +97,7 @@ export function dropValue(d: Item, loot: LootData = LOOT): { hearts?: number; ma
     case 'shard': return { shard: loot.shard };
     case 'potion': return { potion: 1 };
     case 'reagent': return { reagent: 1 };
+    case 'rune': return { rune: 1 };
   }
 }
 
@@ -127,7 +135,7 @@ export function rollWares(rng: Rng, withArtifact: boolean, loot: LootData = LOOT
   return wares;
 }
 /** A ware's price in obols. */
-export const priceOf = (ware: Ware, loot: LootData = LOOT) => loot.merchant.prices[ware] ?? 0;
+export const priceOf = (ware: Ware, loot: LootData = LOOT) => loot.merchant.prices[ware] ?? 0; // (a rune's too: M6 step 8)
 
 /** Problems in data/loot.json; empty when valid. */
 export function validateLoot(loot: LootData = LOOT): string[] {
@@ -168,6 +176,12 @@ export function validateLoot(loot: LootData = LOOT): string[] {
       const p = m.prices[w as Ware];
       if (!(p !== undefined && Number.isInteger(p) && p > 0)) errs.push(`merchant price for ${w} must be a whole number above 0`);
     }
+  }
+  const r = loot.runes;
+  if (!r) errs.push('the runes are missing');
+  else {
+    for (const [who, p] of [['merchant', m?.prices.rune], ['wanderer', loot.wanderer?.prices.rune]] as const) if (!(p !== undefined && Number.isInteger(p) && p > 0)) errs.push(`the ${who}'s price for a rune must be a whole number above 0`);
+    for (const k of ['merchant', 'secret', 'wanderer', 'gilded'] as const) if (!(r[k] >= 0 && r[k] <= 1)) errs.push(`the runes' ${k} chance must be between 0 and 1`);
   }
   return errs;
 }

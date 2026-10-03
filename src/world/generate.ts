@@ -44,6 +44,8 @@ export interface FloorConfig {
   /** The champion that rises in a vault forced open with glyphs. */ vaultWarden: FoeType;
   /** How much likelier soul motes are in the floor's loot than on the first floors (M4.1: the deep floors give more;
       1 when unset). */ souls?: number;
+  /** M6 step 8: how likely runes are in the floor's loot, times each chance in data/loot.json's `runes` (0 on floor 5:
+      no waystone lies below it to carve them); 1 when unset. */ runes?: number;
   /** The floor's foes by role (M4): what fills a template's walkers (`R`), flyers and shooters (`W`) and chargers and
       heavies (`H`), by weight (actors/foeData.ts). */ foes: RoleTable;
   /** Chance the boss room is widened into a great hall when there is space. */ bossHallChance: number;

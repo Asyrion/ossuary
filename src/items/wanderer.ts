@@ -17,6 +17,7 @@ import { revealCracks } from '../world/secret';
 import { LOOT, type Item, type Ware } from './loot';
 import { pickFocus, type ArtifactDef } from './artifactData';
 import { layWare } from './merchant';
+import { runeHere } from '../magic/runes';
 
 const C = CFG.wanderer;
 type Parts = { beast: THREE.Group; legs: THREE.Object3D[]; head: THREE.Object3D; crow: THREE.Object3D };
@@ -49,6 +50,7 @@ function layOut() {
   list.push({ ware: G.run.wanderer.weighted(LOOT.wanderer.souls as Record<Item, number>) });
   list.push({ ware: 'map' });
   if (!crowRefuses('secret')) list.push({ ware: 'secret' });
+  if (runeHere('wanderer')) list.push({ ware: 'rune' }); // (M6 step 8: half the time a rune in the beast's packs, on the runes' own stream)
   const taken = [h.to]; // (each on open floor, clear of the beast and of each other: never over a pit, a pillar or an obelisk)
   room.wares = list.map((w, i) => {
     const x = h.to.x + (i - (list.length - 1) / 2) * C.spacing, z = h.to.z + C.waresAt;

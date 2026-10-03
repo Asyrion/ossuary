@@ -24,10 +24,10 @@ import { heroPixel, setHeroPixel } from './actors/heroPixel';
 import { givingNow, jellyGives, type Gift } from './world/jellyGives';
 import { arrowOrder, initGamepad, initKeyboard, initTouch, keys, padsNow, type InputActions } from './input';
 import { RUNE_IDS, isRune, type RuneId } from './magic/runeData';
-import { carve, clearRunes, setSockets } from './magic/runes';
+import { carve, clearRunes, runeOdds, setSockets } from './magic/runes';
 import { slotDef } from './magic/cost';
 import { initScreens, showScreen } from './ui/screens';
-import { closeDev, devOpen, dropsHere, forceKinds, objectsHere, showAssetsHere, showCoins, takeCoins, toggleDev, useAssets, useRoomKit, wearFace } from './ui/devMenu';
+import { closeDev, devOpen, dropsHere, forceKinds, objectsHere, rebuildFloor, showAssetsHere, showCoins, takeCoins, toggleDev, useAssets, useRoomKit, wearFace } from './ui/devMenu';
 import { obolFace, obolFaces } from './items/obolFace';
 import type { Kinds } from './world/kitData';
 import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPad, openInventory } from './ui/inventory';
@@ -321,9 +321,9 @@ function installDevHooks() {
     /** Drop a pickup (halfHeart, heart, coin, purse, key, glyph, mana, the soul motes paleSoul, blackSoul and
         hallowedSoul, shard, coffer, chest) at (x, z), or just ahead of the mage; a chest is plain unless `gilded` is set; `asLoot` drops it as loot would (a mana vial turns into an
         obol while the mage knows no spell). */
-    drop(kind: Drop, x = player.x, z = player.z - 1.5, opts: { gilded?: boolean; asLoot?: boolean; potion?: PotionId; reagent?: ReagentId } = {}) {
+    drop(kind: Drop, x = player.x, z = player.z - 1.5, opts: { gilded?: boolean; asLoot?: boolean; potion?: PotionId; reagent?: ReagentId; rune?: RuneId } = {}) {
       if (!DROPS.includes(kind)) throw new Error(`drop: use one of ${DROPS.join(', ')}`);
-      spawnPickup(kind, x, z, { gilded: opts.gilded ?? false, asIs: !opts.asLoot, potion: opts.potion, reagent: opts.reagent });
+      spawnPickup(kind, x, z, { gilded: opts.gilded ?? false, asIs: !opts.asLoot, potion: opts.potion, reagent: opts.reagent, rune: opts.rune });
     },
     /** The soul motes held, in the order taken (M4.1); give one (false when as many are kept as can be); a floor's end
         for the hallowed ones (the half hearts they gave back). */
@@ -429,6 +429,10 @@ function installDevHooks() {
     givePotion: (id: PotionId) => addPotion(id), giveReagent: (id: ReagentId, n = 1) => addReagent(id, n),
     usePotion: (how: 'drink' | 'throw') => usePotion(how), choosePotion: (d: number) => choosePotion(d),
     reagentsAlways: (on: boolean) => { DEV.reagents = on; },
+    /** M6 step 8: a rune wherever one can lie (`DEV.runes`; this floor built again, so a shop restocks), and the chance of
+        each here (times the floor's `runes`). */
+    runesAlways: (on: boolean) => { DEV.runes = on; rebuildFloor(); },
+    get runeOdds() { return { merchant: runeOdds('merchant'), secret: runeOdds('secret'), wanderer: runeOdds('wanderer'), gilded: runeOdds('gilded') }; },
     // M5 step 6: Dr. Jelly's laboratory: the table's screen (open, tab, mortar), the room's table and Dr. Jelly, the recipes
     // known; open or close the table, brew two reagents at it, buy a recipe, have Dr. Jelly look at a potion
     get lab() { const l = G.current.lab; return { ...labNow(), here: !!l, table: l && { ...l.table }, jelly: l && { x: l.jelly.x, z: l.jelly.z }, identified: l?.identified ?? false, recipes: knownRecipes() }; },

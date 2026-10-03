@@ -483,6 +483,16 @@ spell's panel marks the reactions it can set off that are not found yet. The dev
 | Swift | −30% cooldown, +20% mana cost |
 | Blood | Costs half a heart instead of mana when mana runs out |
 
+**Where runes come from (M6 step 8, as built 2026-10-03; `docs/M6-plan.md`, decision 10).** A rune is a chip of the
+Wardens' stone with its glyph glowing; walked over, it goes into the pouch (no limit), with a stone's chime and its card the
+first time each is taken in a run, and waits there for a waystone to carve it. Two times in three it is one that fits a
+spell in the hand, otherwise any of the seven. On floors 1 to 4 (none on floor 5, where no waystone lies below): half the
+merchant's shops lay one as an extra ware at 10 obols, half the secret rooms without an artifact keep one, a gilded
+reliquary chest always lets one out beside its relic, and the Wandering Merchant carries one half the time (12 obols). All of
+it is rolled on the run's own stream, so a seed's other drops and wares stay as they were: about one found and two or three
+offered a run, before the waystones' pairs. A spell given up sends its runes back to the pouch. The inventory's Spells tab
+shows each slot's socket and the pouch.
+
 **Enemy affinities (RPG layer):** every enemy has one weakness (+50% damage) and one resistance (−50%), shown in the bestiary once discovered. Placeholder examples: Rotlings are weak to Ember; Wisps resist Umbral and are weak to Hallow; the Hollow Warden resists Frost. As built in M4, each of the ten foes has its pair (`data/foes.json`, the table in `docs/M4-plan.md`); the bosses of floors 4 and 5 have theirs (M4.1), and so do M4.2's (the War-Tiger weak to Storm and resisting Frost, the Pillar Dragon weak to Umbral and resisting Ember, the Twin Guardians weak to Frost and resisting Hallow).
 
 ## Spells

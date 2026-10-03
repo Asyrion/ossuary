@@ -133,6 +133,9 @@ export const CFG = {
     // the level-up screen: seconds of calm after a fight before it opens, and seconds a choice is locked as it opens (a key held from the fight)
     calm: .8, lock: .4,
     lineFirst: 4.5, lineCap: 4 }, // (how long the first insight's line and the cap's stay)
+  // M6 step 8: runes as things: how often a dropped rune leans to the spells in the slots (else any of the seven), and the
+  // chip's size lying on the floor
+  runeDrops: { lean: 2 / 3, chip: .17 },
   // M6 step 5, the school boons at work (progression/boonHooks.ts): half hearts boons mend in one room at most (Votive
   // Heart and Thirsting Hex together); Seedfall's plants, `seedMax` a room at most, sought within `sowReach` tiles of the
   // fall and kept `sowClear` tiles from the mage, a door's lane and the room's middle; Spark Wake's spark refreshed rather
