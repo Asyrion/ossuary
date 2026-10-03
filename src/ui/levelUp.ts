@@ -15,7 +15,7 @@ import { esc } from './spellPanel';
 import { line } from './hud';
 import { boon, boonText } from '../progression/boonData';
 import { dealNow, takeBoon } from '../progression/boons';
-import { isDevKey } from '../input/keyboard';
+import { isDevKey } from '../input/devKey';
 import { boonIconImg } from '../progression/boonLooks';
 import { ATTRS, type Attr } from '../progression/attributes';
 import { ATTR_COLOR, attrText, pointsToSpend, spendPoint } from '../progression/points';
