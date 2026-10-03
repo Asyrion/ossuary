@@ -1,4 +1,4 @@
-/* Bosses, all built in code (bossLooks.ts; the Hollow Warden in one of three looks for the owner to choose, M4; the abbess
+/* Bosses, all built in code (bossLooks.ts; the Hollow Warden, M4, the Owlbear since M4.12; the abbess
    and the knight remade in code 2026-10-01). A floor draws its boss from the pool
    in data/floors.json, never one the run has already met; the floor's boss block scales its health,
    speed and shot speed, how many foes it calls and how often it repeats its aimed attack.
@@ -43,7 +43,7 @@ import { burst } from '../combat/fx';
 import { banner } from '../ui/hud';
 import { floatText } from '../magic/statusFx';
 import { makeEnemy } from './enemies';
-import { abbessLook, anglerLook, bossLook, buildBossLook, hartLook, pyreKnightLook, tigerLook } from './bossLooks';
+import { abbessLook, anglerLook, hartLook, pyreKnightLook, tigerLook, wardenLook } from './bossLooks';
 import { mergeRig } from '../render/rig';
 import { buildDragon, dragonMoved, updateDragon } from './pillarDragon';
 import { buildTwin, updateTwin } from './twinGuardians';
@@ -67,9 +67,9 @@ function floorRing(e: Enemy, color: number, radius: number) {
 /** Build a boss's body and set its first state. */
 export function buildBoss(e: Enemy) {
   e.contact = 2; e.isBoss = true; e.cycle = 0; e.summoned = false;
-  if (e.type === 'warden') { // built in code (M4): the look chosen in the dev menu (bossLooks.ts), its still parts merged
-    const id = bossLook(), L = buildBossLook(id);
-    e.mats = mergeRig(L.group, L.idle, 'boss:' + id, [L.parts.eye, L.parts.ring]);
+  if (e.type === 'warden') { // built in code (M4; the Owlbear since M4.12, bossLooks.ts), its still parts merged
+    const L = wardenLook();
+    e.mats = mergeRig(L.group, L.idle, 'boss:warden', [L.parts.eye, L.parts.ring]);
     for (const m of e.mats) m.userData.base = m.emissive.clone();
     e.model = L.group; e.idle = L.idle; e.shadow = L.shadow; e.bossSchool = L.school; e.body.add(L.group);
     e.eye = L.parts.eye; e.ring = L.parts.ring; e.halo = L.parts.halo;

@@ -225,8 +225,8 @@ export function showFamiliarOptions(room: Room, x: number, z: number, only?: rea
     return { id: o.id, x: at.x, z: at.z };
   });
 }
-/** Stand the bosses built in code (bossLooks.ts: the Hollow Warden's three looks, M4, and the bosses of floors 4 and 5,
-    M4.1; every one, or those in `only`) in a row ahead of world (x, z). */
+/** Stand the bosses built in code (bossLooks.ts: the Hollow Warden, M4, and the bosses of the floors below and the
+    Eda lore's; every one, or those in `only`) in a row ahead of world (x, z). */
 export function showBossLooks(room: Room, x: number, z: number, only?: readonly string[]) {
   const list = ALL_BOSS_LOOKS.filter(o => !only || only.includes(o.id));
   return list.map((o, i) => {

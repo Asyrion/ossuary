@@ -695,12 +695,6 @@ export const STR = {
     wardVerdant: { name: 'Verdant Wardling', note: 'From a drinking ward full of Verdant: a drop of green light with a sprout for a crest; its volleys spread wide' },
     wardUmbral: { name: 'Umbral Wardling', note: 'From a drinking ward full of Umbral: a drop of dark light with little horns; its volleys hex' },
   } as Record<string, { name: string; note: string }>,
-  /** The Hollow Warden's looks built in code (M4, actors/bossLooks.ts), for the owner to choose; placeholder names. */
-  bossLooks: {
-    bellWarden: { name: 'Bell Warden', note: 'Storm: a cracked bronze bell on eight spider legs, one slit eye of storm-light and a fanged maw in its face' },
-    motherOfSpores: { name: 'Spore Matriarch', note: 'Umbral: a hunched fungal crone under a hood of shelf fungus, three violet slits, arms of root; the spore beasts she calls are her young' },
-    hollowOwl: { name: 'Owlbear', note: 'Hallow: a bear\'s hunched body under a scowling owl\'s face, slit eyes of gold, a crown of candles' },
-  } as Record<string, { name: string; note: string }>,
   /** Familiar options (actors/modelOptions.ts): the owner's drawings, built in code; placeholder names. */
   /** The bestiary (M4.5, actors/bestiaryLooks.ts): names (placeholders) and the fight each brings. */
   bestiary: {
@@ -800,7 +794,7 @@ export const STR = {
     /** Dr. Jelly (2026-10-02): the plague doctor (the owner's pick of three) and what he hands over. */
     jellyLooks: 'Dr. Jelly (the plague doctor, from the owner\'s pictures)', jellyNote: 'He stands ahead of the mage, looping the giving gesture',
     jellyGives: { potion: 'Dr. Jelly gives a potion', recipe: 'Dr. Jelly gives a recipe', coins: 'Dr. Jelly gives obols' } as Record<string, string>, noLab: 'No laboratory here: Rooms & runs takes you to this floor\'s',
-    bossLooks: 'The bosses built in code: the Hollow Warden\'s three looks (the floor-1 boss: choose one), and the bosses of the floors below', wardenWears: (name: string) => `The Warden wears: ${name}`,
+    bossLooks: 'The bosses built in code: the Hollow Warden (the Owlbear), and the bosses of the floors below',
     options: 'Enemy model options (looks only)', familiars: 'Familiar options (looks only)', bestiary: 'The bestiary (M4.5: the thirty-five as they look, all of them foes now)', bestiaryKinds: { beast: 'Beasts', creature: 'Creatures of myth', elemental: 'Elementals and golems' } as Record<string, string>, effects: 'Spell effect options (looks only)', showOptions: 'Stand them here', takeOptions: 'Take them away', floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
     pixel: 'Pixel look', pixelLines: (lines: number | 'texel' | 'fine', drawn: number) => !lines ? 'Pixels: off' : lines === 'texel' ? `Pixels: a texel each${drawn ? ` (${drawn} rows here)` : ''}` : lines === 'fine' ? `Pixels: half a texel each${drawn ? ` (${drawn} rows here)` : ''}` : drawn && drawn !== lines ? `Pixels: ${lines} lines (${drawn} in this window)` : `Pixels: ${lines} lines`,
     outlinesOn: 'Outlines: on', outlinesOff: 'Outlines: off', bandsOn: 'Light in bands: on', bandsOff: 'Light in bands: off',
