@@ -308,7 +308,8 @@ export function updatePickups(dt: number) {
       p.m.position.y = .35 * k; p.rise.position.y = .2 + k * 1.1; p.rise.material.opacity = .8 * (1 - k);
       if (p.drop <= 0) { p.g.remove(p.rise); p.rise.material.dispose(); p.rise = undefined; }
     } else p.m.position.y = .35 + Math.sin(p.t * 3) * .06 + Math.max(0, p.drop) * 1.2;
-    p.m.rotation.y = heart || kind === 'glyph' || kind === 'key' || isSoul(kind) ? Math.sin(p.t * 1.6) * .5 : kind === 'coin' ? Math.sin(p.t * 2.2) * CFG.pickups.coinSway : p.t * 2.4;
+    // (flat things sway, M6's rune too: turned whole, they would go edge-on)
+    p.m.rotation.y = heart || kind === 'glyph' || kind === 'key' || kind === 'rune' || isSoul(kind) ? Math.sin(p.t * 1.6) * .5 : kind === 'coin' ? Math.sin(p.t * 2.2) * CFG.pickups.coinSway : p.t * 2.4;
     // obols are drawn to the living: from close by they drift to the mage
     if ((kind === 'coin' || kind === 'purse') && p.drop <= 0 && d < CFG.pickups.obolDrift && d > .01 && player.coins < LOOT.cap) {
       const step = Math.min(d, (1.5 + (CFG.pickups.obolDrift - d) * 3) * dt);
