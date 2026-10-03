@@ -17,25 +17,29 @@ makes sure the session reads the guide before it starts.
 ```
 New creature from Tripo: [name]. The rigged GLB is attached.
 
-Follow docs/creatures.md, the owlbear's workflow, from step 2 of the guide:
-read its rig with --bones, write its recipe from tools/creatures/owlbear.ts,
-run npm run animate-creature, give it sounds, and add it to the dev menu
-(Galleries, Animated creatures) with its three looks.
+Follow docs/creatures.md, the owlbear's workflow, from step 2 of the guide to
+step 8: read its rig with --bones, write its recipe from tools/creatures/owlbear.ts
+and add it to RECIPES, run npm run animate-creature, give it sounds, name it in
+STR.dev.creatureNames (the dev menu lists it, with its three looks, by itself),
+and give it a row in the asset log.
 
 About it:
 - What it is: [four-legged / two-legged / winged / a serpent / ...], [a line on its character]
 - Size in the game: about [N] tiles tall; budget [enemy, 8,000 triangles / boss, 15,000]
-- Clips: idle, walk and [roar / bite / swipe / charge / ...];
+- Clips: idle, walk and its showpiece, which the game plays as the roar clip:
+  [a roar / a bite / a swipe / a charge / ...];
   how they should feel: [heavy and slow / quick and snapping / ...]
 - Sounds: [its voice, its steps, anything special]; reuse the owlbear's where they fit
 - In the game: looks only for now / [plan it as a foe or boss: where, and what it does]
 
-Send me a preview video (npm run creature-preview) before anything ships.
-I'll check it in the game. Ship only when I say so.
+Send me a preview video (npm run creature-preview, with the dev server up)
+before anything ships. I'll check it in the game. Ship only when I say so.
 ```
 
-A creature on four legs follows the owlbear closely. One on two legs, with wings or with no legs needs its own walk,
-so expect an extra round of previews.
+The game plays three clips by name: `idle`, `walk` and `roar`, so a creature's showpiece (a bite, a swipe) is baked under
+the name `roar`. More clips can be baked, but nothing plays them until a creature fights. A creature on four legs follows
+the owlbear closely. One on two legs, with wings or with no legs needs its own walk, so expect an extra round of
+previews.
 
 ## What we found
 

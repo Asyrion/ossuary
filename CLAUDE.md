@@ -235,8 +235,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   near its old one's: parts that move apart (each mesh a surface its own) cost a call each, so move small repeated parts
   (eyes, sacs, wings, arms) together, and pulse a glow rather than a material's colour (a changing surface stays unmerged).
 - Creatures made in Tripo and animated in code (the owner's experiment of 2026-10-03, the owlbear, called a success the same
-  day: **`docs/creatures.md` holds the findings and the guide for a new one**, and its first section the handover message the owner starts a new session with; `-- --bones <in.glb>` reads a new model's rig
-  first). `npm run animate-creature -- owlbear <in.glb>`
+  day: **`docs/creatures.md` holds the findings and the guide for a new one**, and its first section the handover message
+  the owner starts a new session with; `-- --bones <in.glb>` reads a new model's rig first).
+  `npm run animate-creature -- owlbear <in.glb>`
   (`tools/animate-creature.ts`) simplifies the mesh to its budget (`budget` per recipe, data/assets.json's kinds), turns the
   patches Tripo left inside out (`orientOutward` in `tools/orientFaces.ts`: each face by the side its rays get out of the model
   on; a look built from it is two-sided as Tripo's material is, `bakeHeroPixel` keeping the made material's `side`), binds its
