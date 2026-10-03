@@ -291,7 +291,7 @@ export const STR = {
     hollow: "The wall rings hollow. A glyph's blast would break it.",
     secretFound: 'A hidden way lies open.',
     oathKept: 'The oath holds: half a heart returns.',
-    shrineIdle: 'You carry no curse for the shrine to cleanse. Its bargain stone waits at the circle\'s head.',
+    shrineIdle: 'You carry no curse for the shrine to cleanse. Its bargain stone waits by the circle.',
     shrinePoor: (price: number, coins: number) => `The shrine asks ${price} obols to cleanse a curse; you carry ${coins}.`,
     outsideCircle: 'Outside the circle, your bolts pass through the curse.',
     keyringTurns: "The sexton's keyring turns in the ward: the vault opens.",

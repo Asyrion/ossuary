@@ -137,9 +137,10 @@ export const CFG = {
   // chip's size lying on the floor
   runeDrops: { lean: 2 / 3, chip: .24 },
   // M6 step 11, the shrine's bargain: where its stone stands in the shrine (from the middle: the circle's head), how near (beside
-  // its half-width) the mage must stand to cast into it, its blocker's half-width, and how narrow a gap to the wall behind it
-  // its blocker closes (no space to hide in)
-  bargain: { at: [0, -2.55] as [number, number], reach: .9, half: .3, wallGap: 1.2 },
+  // its half-width) the mage must stand to cast into it, its blocker's half-width, how narrow a gap to the wall behind it
+  // its blocker closes (no space to hide in), how far either side of a doorway's middle its lane runs (the stone stands
+  // elsewhere then: the circle's foot, or beside it), and how far beside the circle that is
+  bargain: { at: [0, -2.55] as [number, number], reach: .9, half: .3, wallGap: 1.2, lane: 1.6, aside: 4.6 },
   // M6 step 9, the waystone: how near (beside its half-width) the mage must stand to reach it or cast into it, how long it
   // takes to rise and from how deep, where it rises in the boss room where a floor has no waystone room (from the middle: to
   // the side and back, out of reach of the page, the pedestals, the heart and the trapdoor), the rest's streaks of mana and

@@ -472,8 +472,8 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
     *Built (2026-10-03)* after a plan of its own, with the owner's two choices: the container is paid only when a boon is
     taken (Esc backs out with nothing paid and the stone waits to be tried again), and only a cast opens it (walking up
     says how).
-    - **The stone:** `src/world/bargain.ts`. `buildBargain` (from `buildShrine`, at `CFG.bargain.at`: the circle's
-      head) and its look `bargainStoneLook` (specialLooks.ts: a stele on a slab, a carved heart and runes on one material,
+    - **The stone:** `src/world/bargain.ts`. `buildBargain` (from `buildShrine`, at `bargainSpot`: the circle's head,
+      or its foot or beside it where a doorway's lane runs there; its blocker reaching the wall behind it) and its look `bargainStoneLook` (specialLooks.ts: a stele on a slab, a carved heart and runes on one material,
       `BARGAIN_RUNES` dark, red, gold). `checkBargain` gives the walk-up line; `castIntoBargain` (from `castSpell` before the
       waystone's catch, cooldown and payment) refuses the last container (`maxHp - 2 < 2`), else strikes the spell's light
       into it, runs the runes red, plays `Sfx.bargain` and opens the deal on its school.

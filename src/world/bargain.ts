@@ -23,15 +23,29 @@ import type { Room } from '../types';
 const C = () => CFG.bargain;
 type Bargain = NonNullable<Room['bargain']>;
 
-/** Stand the bargain stone in `room` at local (lx, lz) (the circle's head in a shrine; ahead of the mage from the dev menu). */
-export function buildBargain(room: Room, lx = C().at[0], lz = C().at[1]) {
+/** Where the stone stands in a shrine: the circle's head (north), or its foot (south) where a doorway's lane would run
+    through the head, or beside the circle (west, east) where both would; local to the room's middle. */
+export function bargainSpot(room: Room): [number, number] {
+  const [ax, az] = C().at, lane = C().lane;
+  const blocked = ([x, z]: [number, number]) => room.plan.doors.some(d => {
+    const shift = d.shift ?? 0;
+    if (d.side === 'n' || d.side === 's') return (d.side === 'n' ? z < 0 : z > 0) && Math.abs(x - shift) < lane;
+    return (d.side === 'w' ? x < 0 : x > 0) && Math.abs(z - shift) < lane;
+  });
+  const spots: [number, number][] = [[ax, az], [ax, -az], [-C().aside, 0], [C().aside, 0]];
+  return spots.find(p => !blocked(p)) ?? spots[0];
+}
+/** Stand the bargain stone in `room` at local (lx, lz) (in a shrine, `bargainSpot`; ahead of the mage from the dev menu). */
+export function buildBargain(room: Room, at?: [number, number]) {
   if (room.bargain) return room.bargain;
+  const [lx, lz] = at ?? bargainSpot(room);
   const look = DEV.roomKit ? bargainStoneLook(room.look) : oldLook();
   look.group.position.set(lx, 0, lz); room.group.add(look.group);
   const x = room.cx + lx, z = room.cz + lz;
-  const back = Math.max(0, (z - C().half) - (room.cz - room.h / 2)); // (reaching the wall behind it in a shrine: no gap to hide in)
-  const deep = lz < 0 && back < C().wallGap ? back : 0;
-  room.rocks.push({ x, z: z - deep / 2, hx: C().half, hz: C().half + deep / 2, hp: Infinity, breakable: false });
+  // its blocker reaches the wall behind it where the gap would be narrow (no space to hide in)
+  const toWall = lz < 0 ? (z - C().half) - (room.cz - room.h / 2) : lz > 0 ? (room.cz + room.h / 2) - (z + C().half) : Infinity;
+  const deep = toWall < C().wallGap ? toWall : 0, dz = lz < 0 ? -deep / 2 : deep / 2;
+  room.rocks.push({ x, z: z + dz, hx: C().half, hz: C().half + deep / 2, hp: Infinity, breakable: false });
   room.bargain = { x, z, state: 'idle', school: null, armed: true, look };
   return room.bargain;
 }
