@@ -228,11 +228,10 @@ across the room to land in a ring of frost. Every attack has its tell and a soun
 what it has found is kept between runs for the bestiary.
 
 **The floor-1 boss built in code (M4, 2026-09-30).** The Hollow Warden keeps its fight (it walks, winds up and bursts a
-ring of shots, fires aimed volleys, calls the floor's walkers below half health) and takes one of three looks drawn up
-for the owner, its shots in its school's light: the **Bell Warden** (Storm; a great beetle under an old cracked bronze
-bell), the **Mother of Spores** (Umbral; a mushroom as tall as a door whose young are the Sporelings it calls) and the
-**Hollow Owl** (Hallow; a round barn owl with a crown of candles). The owner chooses one after the play-test (the dev
-menu's Galleries tab stands them and switches the one the Warden wears).
+ring of shots, fires aimed volleys, calls the floor's walkers below half health), its shots in its school's light. Three
+looks were drawn up for the owner (a bell, a mushroom, an owl), redone as creatures of fantasy in M4.12, and the owner
+chose the **Owlbear** (Hallow; 2026-10-03): a bear's hunched body under a scowling owl's face, slit eyes of gold, a hooked
+beak, ear tufts like horns and a crown of candles. The other two were dropped.
 
 **Bosses from the Eda lore (M4.2, decided 2026-09-30).** Three bosses from the owner's images, built in code like the
 others and drawn into the floors' pools:

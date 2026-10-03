@@ -83,7 +83,6 @@ import { placeProp } from './world/props';
 import { assetList, assetsOn, loadAssets } from './assets/models';
 import { drawnRows, pixelLook, setPixelLook, type PixelLook, fineLayerDrawn } from './render/pixelLook';
 import { removeModelOptions, showBestiary, showBossLooks, showFamiliarOptions, showJellyLooks, showModelOptions } from './actors/modelOptions';
-import { bossLook, setBossLook, type BossLookId } from './actors/bossLooks';
 import { removeEffectOptions, showEffectOptions } from './magic/effectOptions';
 import { elementDev, sapMul } from './world/mechanisms';
 import { wardFoe } from './actors/wardShield';
@@ -287,7 +286,6 @@ function installDevHooks() {
     bestiaryOptions: (ids?: string[]) => showBestiary(G.current, player.x, player.z, ids),
     /** The bosses built in code (the Hollow Warden's looks, M4, and floors 4 and 5's, M4.1): stand them ahead of the mage; the look the Warden wears in its fight, and choosing it. */
     bossLooks: (ids?: string[]) => showBossLooks(G.current, player.x, player.z, ids),
-    get bossLook() { return bossLook(); }, setBossLook: (id: BossLookId) => setBossLook(id),
     /** Dr. Jelly (2026-10-02, the plague doctor): stood ahead of the mage giving, a gift handed over in this laboratory,
         and what he is giving now. */
     jellyLooks: () => showJellyLooks(G.current, player.x, player.z), jellyGive: (gift: Gift) => jellyGives(gift), get giving() { return givingNow(); },

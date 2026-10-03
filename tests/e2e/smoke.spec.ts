@@ -415,25 +415,20 @@ test('the bestiary (M4.5): thirty-five looks in rows by kind, each named with th
   expect(errors).toEqual([]);
 });
 
-test('the Hollow Warden wears the look chosen for it, its shots in its school\'s light, and can be beaten', async ({ page }) => {
-  const LIGHT: Record<string, number> = { bellWarden: 0xf0e070, motherOfSpores: 0xa266ff, hollowOwl: 0xffd878 }; // (SCHOOL_LIGHT: storm, umbral, hallow)
+test('the Hollow Warden wears the Owlbear, its shots in Hallow\'s light, and can be beaten', async ({ page }) => {
   type Boss = Foe & { type: string; state: string; summoned?: boolean; mats: unknown[]; eye?: object; ring?: object; halo?: object; model: { traverse(f: (o: { isMesh?: boolean; isSprite?: boolean; isPoints?: boolean }) => void): void } };
-  type G2 = GameHooks & { bossLook: string; setBossLook(id: string): void; bossLooks(): { id: string }[]; shots: { color: number }[] };
-  const errors: string[][] = [];
-  for (const look of Object.keys(LIGHT)) {
-    await page.addInitScript(`localStorage.setItem('ossuary.bossLook', '${look}')`); // (the later init scripts run last)
-    errors.push(await start(page, '?room=boss_open&boss=warden'));
-    const seen = await page.evaluate(() => {
-      const g = (window as unknown as W).__game as G2; g.warp(1); g.sim(.1, true);
-      const e = g.enemies.find(f => f.isBoss) as Boss;
-      let meshes = 0; e.model.traverse(o => { if (o.isMesh || o.isSprite || o.isPoints) meshes++; });
-      for (let i = 0; i < 300 && !g.shots.length; i++) { g.player.hp = g.player.maxHp; g.sim(.05); }
-      return { look: g.bossLook, type: e.type, parts: !!(e.eye && e.ring && e.halo), lit: e.mats.length > 0, meshes, colors: [...new Set(g.shots.map(s => s.color))] };
-    });
-    expect(seen).toMatchObject({ look, type: 'warden', parts: true, lit: true, colors: [LIGHT[look]] });
-    expect(seen.meshes).toBeLessThanOrEqual(30); // (its still parts merged: about twenty draw calls, not a hundred)
-  }
-  // the last look fights to the end: it walks, bursts rings, fires volleys, calls the floor's walkers, and falls
+  type G2 = GameHooks & { bossLooks(): { id: string }[]; shots: { color: number }[] };
+  const errors = await start(page, '?room=boss_open&boss=warden');
+  const seen = await page.evaluate(() => {
+    const g = (window as unknown as W).__game as G2; g.warp(1); g.sim(.1, true);
+    const e = g.enemies.find(f => f.isBoss) as Boss;
+    let meshes = 0; e.model.traverse(o => { if (o.isMesh || o.isSprite || o.isPoints) meshes++; });
+    for (let i = 0; i < 300 && !g.shots.length; i++) { g.player.hp = g.player.maxHp; g.sim(.05); }
+    return { type: e.type, parts: !!(e.eye && e.ring && e.halo), lit: e.mats.length > 0, meshes, colors: [...new Set(g.shots.map(s => s.color))] };
+  });
+  expect(seen).toMatchObject({ type: 'warden', parts: true, lit: true, colors: [0xffd878] }); // (SCHOOL_LIGHT.hallow)
+  expect(seen.meshes).toBeLessThanOrEqual(30); // (its still parts merged: about a dozen draw calls, not a hundred)
+  // it fights to the end: it walks, bursts rings, fires volleys, calls the floor's walkers, and falls
   const fight = await page.evaluate(() => {
     const w = window as unknown as W, g = w.__game as G2;
     const foe = g.enemies.find(e => e.isBoss) as Boss;
@@ -444,14 +439,10 @@ test('the Hollow Warden wears the look chosen for it, its shots in its school\'s
   });
   expect(fight).toMatchObject({ called: true, left: 0, cleared: true });
   expect(fight.states).toEqual(expect.arrayContaining(['walk', 'windAim', 'windBurst', 'volley']));
-  // the dev menu's gallery stands the three (with the other bosses built in code), and the switch is remembered in this browser
-  const gallery = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as G2, ids = g.bossLooks().map(o => o.id);
-    g.sim(.2, true); g.setBossLook('bellWarden');
-    return { ids, look: g.bossLook, kept: localStorage.getItem('ossuary.bossLook') };
-  });
-  expect(gallery).toEqual({ ids: ['bellWarden', 'motherOfSpores', 'hollowOwl', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins', 'serpent'], look: 'bellWarden', kept: 'bellWarden' }); // (and the bosses of floors 2 and 3, remade in code, of floors 4 and 5, M4.1, the Eda lore's, M4.2, and the jelly serpent, M5)
-  for (const e of errors) expect(e).toEqual([]);
+  // the dev menu's gallery stands every boss built in code
+  const ids = await page.evaluate(() => { const g = (window as unknown as W).__game as G2, ids = g.bossLooks().map(o => o.id); g.sim(.2, true); return ids; });
+  expect(ids).toEqual(['warden', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins', 'serpent']); // (the bosses of floors 2 and 3, remade in code, of floors 4 and 5, M4.1, the Eda lore's, M4.2, and the jelly serpent, M5)
+  expect(errors).toEqual([]);
 });
 
 test('the end screen sums up the run, and replays its seed', async ({ page }) => {

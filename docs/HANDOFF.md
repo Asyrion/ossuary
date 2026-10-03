@@ -21,10 +21,9 @@ Delete it, or write it again, at the next handoff.
 
 ## What waits on the owner now
 
-**Which of the Hollow Warden's three looks it wears** (Bell Warden, Spore Matriarch, Owlbear). All eight boss looks and
-the six Wardlings were approved on 2026-10-03 and are worn; today the Warden wears what the dev menu chose
-(`ossuary.bossLook`), first the Spore Matriarch (`FIRST` in bossLooks.ts, id `motherOfSpores`). On the answer, set `FIRST`
-to it (the dev menu still cycles the three), or cut `BOSS_LOOKS` to the one and drop the switch; ask which.
+Nothing from M4.12's looks: the six Wardlings and the eight boss looks were approved on 2026-10-03 and are worn, and the
+owner chose the **Owlbear** for the Hollow Warden (its only look now, `wardenLook`; the other two and the switch dropped).
+Next is step 9, the close (below).
 
 Every foe's look in M4.12 is done: in `APPROVED`, old builders deleted, `RETIRED` keeping their old heights and parts for
 the contract, the galleries standing the new looks. The bosses' old builders are gone too, and with them their switch and
@@ -60,7 +59,7 @@ pairs (nothing left to compare); `fantasyBosses.ts` holds the new ones. The rout
    - floor 4's five: Candle Kobold, Bell Fiend, Gargoyle, Pale Unicorn, Frost Scarab;
    - floor 5's seven: Mandrake, Sky Ray, Void Maw, Dragon Turtle, Gloom Raven, Rime Warg, Tarasque;
    - the six Wardlings, as ward cores: approved 2026-10-03;
-   - the bosses' eight looks: approved 2026-10-03 (the Warden's look still to choose).
+   - the bosses' eight looks: approved 2026-10-03, the Warden wearing the Owlbear.
 2. **M4.12 step 9**, the close (next): the names through `STR`, the reviews, the GDD as built, a room sweep, `npm run balance`
    to confirm nothing moved, and the owner's play-test.
 3. **M6 step 8 (runes as things)**, then steps 9 to 13 (the waystone, its room, the shrine's bargain, the run around it,

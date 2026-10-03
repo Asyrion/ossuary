@@ -1,9 +1,9 @@
 /* M4.12 step 8 (docs/M4.12-plan.md): the bosses' eight cute looks redone as creatures of fantasy, by the rules of
    fantasyFloor1.ts, approved by the owner (2026-10-03) and worn since: each keeps its fight, the parts the fight moves (by
    the old look's names: `eye`, `ring`, `halo` and a boss's own) and about its height; each faces +Z and stands on y = 0;
-   no round googly eyes; the school in the body. The Hollow Warden's three are its `BOSS_LOOKS` (bossLooks.ts), which
-   builds the rest through its own names (`hartLook`, `anglerLook`, `tigerLook`, `dragonHead`), as serpentLooks.ts does
-   the serpent's head. */
+   no round googly eyes; the school in the body. The Hollow Warden's three were redone and the owner chose the Owlbear
+   (2026-10-03), the others dropped. bossLooks.ts builds them through its own names (`wardenLook`, `hartLook`,
+   `anglerLook`, `tigerLook`, `dragonHead`), as serpentLooks.ts does the serpent's head. */
 import * as THREE from 'three';
 import { glow } from '../render/materials';
 import { SCHOOL_LIGHT, circle, limb, lit, motes, part, rune, runeRing, sphere, std, type V3 } from '../render/arcane';
@@ -11,7 +11,7 @@ import { rough } from '../world/kitParts';
 import { gloss, joint, jointed, slitEyes, spike, thin, tube } from './beastParts';
 import type { BossBuilt } from './bossLooks';
 
-const { storm: S, umbral: U, hallow: H, frost: F, ember: E } = SCHOOL_LIGHT;
+const { umbral: U, hallow: H, frost: F, ember: E } = SCHOOL_LIGHT;
 
 /** The ring of runes behind its head that the fight turns (as bossLooks.ts' own). */
 function haloRing(g: THREE.Object3D, color: number, radius: number, y: number, z = -.35) {
@@ -19,91 +19,7 @@ function haloRing(g: THREE.Object3D, color: number, radius: number, y: number, z
   runeRing(ring, color, radius, [0, 0, 0], 8, [Math.PI / 2, 0, 0], lit(color, .9));
   return ring;
 }
-/** One slit eye in a group `eye` (the fight swells it), an almond of `color` with a dark slit across it, `r` long. */
-function oneEye(parent: THREE.Object3D, at: V3, r: number, color: number, tip: V3 = [0, 0, 0]) {
-  const eye = joint(parent, at, tip);
-  part(eye, sphere(r, 12, 8), lit(new THREE.Color(color).lerp(new THREE.Color(0xffffff), .35).getHex()), [0, 0, 0], { scale: [1, .5, .3] });
-  part(eye, sphere(r * .6, 8, 6), lit(0x08060c), [0, 0, r * .12], { scale: [.2, .9, .3] });
-  return eye;
-}
-
-/** The Bell Warden (Storm): a great bronze bell, cracked and green with age, carried on eight long spider legs; under its
-    rim a maw ringed with fangs and one slit eye looking out, storm-light crackling in the runes round its waist. */
-export function bellWardenFierce(): BossBuilt {
-  const g = new THREE.Group(), bronze = gloss(0x7a5226, .45, .6), verd = std(0x3e7a66, { roughness: .7 }), dark = gloss(0x16141c, .5, .2), fang = gloss(0xd8d0c0, .3, .2), body = joint(g, [0, 0, 0]);
-  const bell = joint(body, [0, .62, -.12], [-.3, 0, 0]); // (tipped back: the maw and the eye look out from under the lip)
-  const profile = [[.98, 0], [.96, .1], [.84, .2], [.72, .45], [.66, .8], [.6, 1.05], [.44, 1.2], [.2, 1.27], [0, 1.28]].map(([x, y]) => new THREE.Vector2(x, y));
-  part(bell, new THREE.LatheGeometry(profile, 20), bronze, [0, 0, 0]);
-  part(bell, new THREE.TorusGeometry(.97, .05, 5, 28), bronze, [0, .03, 0], { rot: [Math.PI / 2, 0, 0] });
-  for (const [y, r] of [[.24, .82], [.9, .63]] as [number, number][]) part(bell, new THREE.TorusGeometry(r, .025, 4, 26), verd, [0, y, 0], { rot: [Math.PI / 2, 0, 0] });
-  for (const [x, y, rz] of [[.35, .95, .5], [.44, .72, -.3], [.5, .52, .4]] as V3[]) part(bell, new THREE.BoxGeometry(.03, .22, .03), lit(S), [x, y, .54 + (1 - y) * .2], { rot: [0, .6, rz] }); // (the crack, storm-light in it)
-  const runes = joint(bell, [0, 0, 0]);
-  for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; rune(runes, S, [Math.sin(a) * .72, .5, Math.cos(a) * .72], .16, [0, a, 0]); }
-  for (const s of [-1, 1]) tube(bell, [[.14 * s, 1.24, 0], [.3 * s, 1.44, -.1], [.36 * s, 1.62, -.3]], .06, .01, verd, 8, 5); // (horns where its rope once hung)
-  // in its face: a maw split across the bronze, fangs above and below and storm-light inside, and one slit eye above it
-  part(bell, sphere(.36, 14, 8), lit(0x0a080e), [0, .3, .7], { scale: [1, .32, .35] });
-  part(bell, sphere(.24, 10, 6), lit(S), [0, .3, .72], { scale: [1, .14, .3] });
-  for (let i = 0; i < 6; i++) { const x = (i / 5 - .5) * .5, z = Math.sqrt(.79 ** 2 - x * x); spike(bell, [x, .4, z], [x * .95, .28, z + .02], .035, fang); spike(bell, [x + .04, .2, z - .01], [(x + .04) * .95, .3, z + .01], .03, fang); }
-  const eye = oneEye(bell, [0, .74, .66], .22, S, [-.15, 0, 0]);
-  const lamp = glow(S, .9, .5); lamp.position.set(0, 0, .1); eye.add(lamp);
-  // eight long legs, in two sets that step by turns
-  const sets = [joint(body, [0, 0, 0]), joint(body, [0, 0, 0])];
-  [-1, 1].forEach(s => [.55, .2, -.2, -.55].forEach((z, i) => {
-    const l = joint(sets[(i + (s > 0 ? 1 : 0)) % 2], [.6 * s, .62, z]);
-    jointed(l, [[0, 0, 0], [.55 * s, .5, z * .4], [1.05 * s, 0, z * .7]], .07, .03, dark, bronze);
-  }));
-  const ring = haloRing(g, S, .72, 2.25);
-  const halo = glow(S, 3, .35); halo.position.set(0, 1.6, -.3); g.add(halo);
-  return { group: g, shadow: 2.4, school: 'storm', parts: { eye, ring, halo }, idle: t => {
-    sets.forEach((l, i) => { l.rotation.y = (i ? 1 : -1) * Math.sin(t * 2.4) * .05; l.position.y = Math.max(0, Math.sin(t * 2.4 + i * Math.PI)) * .04; });
-    bell.rotation.z = Math.sin(t * 1.3) * .03; runes.visible = Math.floor(t * 7) % 5 !== 0;
-  } };
-}
-
-/** The Mother of Spores (Umbral): a hunched fungal matriarch as tall as a door, a hood of shelf fungus gilled beneath
-    over a face of slit eyes and a gilled maw, many long arms of root reaching out, sacs of spores glowing violet on her
-    back, her young sprouting round her feet. */
-export function sporeMatriarch(): BossBuilt {
-  const g = new THREE.Group(), flesh = std(0x5e4a56, { roughness: .95 }), fleshDark = std(0x3a2c38, { roughness: .95 }), hoodM = std(0x7a3e9a, { roughness: .85 }), gill = std(0x2a1634), sac = lit(U), body = joint(g, [0, 0, 0]);
-  part(body, rough(sphere(.55, 14, 10), .03, 2), flesh, [0, .75, -.05], { scale: [1, 1.2, .9] });
-  part(body, new THREE.ConeGeometry(.7, .6, 10, 1, true), fleshDark, [0, .3, 0]); // (a skirt of fungal folds)
-  for (const [x, y, z, r] of [[-.3, 1.2, -.3, .14], [.32, 1.15, -.32, .12], [0, 1.35, -.4, .16], [-.1, .9, -.45, .1], [.22, .85, -.44, .09]]) part(body, sphere(r, 8, 6), sac, [x, y, z]); // (spore sacs on her back)
-  // the hood: shelves of fungus stacked over her face, gilled beneath, tipped back so the face shows from above
-  const hood = joint(body, [0, 1.42, -.16], [-.6, 0, 0]);
-  for (const [y, z, r] of [[0, 0, .75], [.16, -.18, .6], [.3, -.34, .45]] as V3[]) {
-    part(hood, new THREE.SphereGeometry(r, 18, 6, 0, Math.PI * 2, 0, Math.PI / 2), hoodM, [0, y, z], { scale: [1.1, .4, 1] });
-    part(hood, new THREE.CircleGeometry(r, 18), gill, [0, y - .003, z], { rot: [Math.PI / 2, 0, 0], scale: [1.1, 1, 1] });
-    for (let i = 0; i < 9; i++) { const a = (i / 8 - .5) * 3.4, o: V3 = [Math.sin(a) * r * 1.05, y, z + Math.cos(a) * r * .95]; spike(hood, o, [o[0] * 1.2, y + .03, z + (o[2] - z) * 1.2], .05, hoodM); }
-  }
-  for (let i = 0; i < 6; i++) part(hood, sphere(.05, 6, 4), sac, [Math.sin(i * 2.4) * .4, .12, -.1 + Math.cos(i * 2.4) * .3], { scale: [1, .4, 1] });
-  // the face under it: two slits of violet (the eye the fight swells) and a gilled maw
-  const eye = joint(body, [0, 1.12, .48], [-.3, 0, 0]);
-  slitEyes(eye, .16, 0, 0, .1, U, .45, .35); part(eye, sphere(.07, 8, 6), lit(U), [0, .13, -.02], { scale: [.38, 1, .5] }); // (a third, upright, above them)
-  const eyeGlow = glow(U, .8, .5); eye.add(eyeGlow);
-  part(body, new THREE.CircleGeometry(.16, 12), lit(0x12081a), [0, .9, .5], { rot: [-.3, 0, 0], scale: [1.2, .8, 1] });
-  for (let i = 0; i < 7; i++) { const x = (i / 6 - .5) * .36; spike(body, [x, .98, .5], [x * .8, .86, .56], .02, gill); }
-  // many arms of root: three pairs, reaching out and up, fingers like hooks
-  const arms = joint(body, [0, 0, 0]);
-  for (const s of [-1, 1]) for (const [y, reach, up] of [[1.15, .9, .4], [.9, 1.05, .1], [.65, .85, -.15]] as V3[]) {
-    tube(arms, [[.4 * s, y, .1], [.7 * s, y + up * .5, .3], [reach * s, y + up, .4], [(reach + .15) * s, y + up - .1, .55]], .07, .02, fleshDark, 10, 5);
-    for (const k of [-1, 0, 1]) spike(arms, [(reach + .15) * s, y + up - .1, .55], [(reach + .25) * s, y + up - .18 + k * .06, .62], .015, fleshDark);
-  }
-  // her young at her feet
-  for (const [x, z, sc] of [[-.85, .45, .5], [.9, .35, .4], [-.5, -.7, .45], [.65, -.6, .55]] as V3[]) {
-    const m = joint(g, [x, 0, z]); m.scale.setScalar(sc);
-    part(m, sphere(.16, 8, 6), flesh, [0, .2, 0], { scale: [1, 1.2, 1] });
-    part(m, new THREE.SphereGeometry(.28, 12, 6, 0, Math.PI * 2, 0, Math.PI / 2), hoodM, [0, .36, 0], { scale: [1, .45, 1] });
-    part(m, sphere(.05, 6, 4), sac, [0, .44, .15]);
-  }
-  const ring = haloRing(g, U, .8, 2.6);
-  const halo = glow(U, 3.2, .35); halo.position.set(0, 1.6, -.3); g.add(halo);
-  return { group: g, shadow: 2.4, school: 'umbral', parts: { eye, ring, halo }, idle: t => {
-    const b = Math.sin(t * 1.6); body.scale.set(1 + b * .02, 1 - b * .025, 1 + b * .02); hood.rotation.z = Math.sin(t * 1.1) * .04;
-    arms.rotation.y = Math.sin(t * .9) * .05; arms.position.y = Math.sin(t * 1.3) * .03; eyeGlow.material.opacity = .4 + Math.sin(t * 2.2) * .12;
-  } };
-}
-
-/** The Owlbear (Hallow; was the Hollow Owl): a bear's great hunched body under an owl's head, a hooked beak, a disc of
+/** The Hollow Warden's look, the Owlbear (Hallow; was the Hollow Owl, the owner's choice of three, 2026-10-03): a bear's great hunched body under an owl's head, a hooked beak, a disc of
     pale feathers round two slits of gold, ear tufts like horns, clawed forelimbs, a crown of candles burning in its light. */
 export function owlbear(): BossBuilt {
   const g = new THREE.Group(), fur = std(0x4a3c30, { roughness: 1 }), furDark = std(0x2e241c, { roughness: 1 }), feather = std(0x8a7a66), disc = std(0xb8a888), beakM = gloss(0x3a2c18, .35, .3), claw = gloss(0xd8ccb0, .3, .2), wax = std(0xf0e2c6), body = joint(g, [0, 0, 0]);

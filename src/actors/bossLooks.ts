@@ -1,9 +1,9 @@
 /* The bosses built in code. The Hollow Warden's fight (bosses.ts: it walks, winds up and bursts a ring of shots, fires
-   aimed volleys, calls the floor's walkers below half health) wears one of three looks (`BOSS_LOOKS`), each giving it the
-   parts that fight moves: `eye` (swells as it winds up), `ring` (turns, faster while winding), `halo` (brightens), and its
-   school's light for its shots. Since M4.12 (docs/M4.12-plan.md) the three, the Hallowed Hart, the Deep Angler, the
-   War-Tiger, the Pillar Dragon's head and the jelly serpent's head are creatures of fantasy, built in fantasyBosses.ts:
-   the Bell Warden (Storm), the Spore Matriarch (Umbral; `motherOfSpores`) and the Owlbear (Hallow; `hollowOwl`). Here are
+   aimed volleys, calls the floor's walkers below half health) wears the Owlbear (`wardenLook`; the owner's choice of
+   three, 2026-10-03), which gives it the parts that fight moves: `eye` (swells as it winds up), `ring` (turns, faster
+   while winding), `halo` (brightens), and its school's light (Hallow) for its shots. Since M4.12 (docs/M4.12-plan.md) it,
+   the Hallowed Hart, the Deep Angler, the War-Tiger, the Pillar Dragon's head and the jelly serpent's head are creatures of
+   fantasy, built in fantasyBosses.ts. Here are
    the rest: the dragon's body, the Twin Guardians, the Drowned Abbess and the Pyre Knight, and the galleries' lists. Each
    stands on y = 0 facing +Z. Names and notes are placeholders in STR.bossLooks and STR.bosses. */
 import * as THREE from 'three';
@@ -14,7 +14,7 @@ import { gloss, joint, jointed, slitEyes, spike, thin, tube } from './beastParts
 import { curve } from '../world/kitParts';
 import { EMBER_FIRE, makeFire, makeMotes, type FlameSpec } from '../render/fire';
 import { serpentLook } from './serpentLooks';
-import { anglerFierce, bellWardenFierce, dragonHeadFierce, hartFierce, owlbear, sporeMatriarch, tigerFierce } from './fantasyBosses';
+import { anglerFierce, dragonHeadFierce, hartFierce, owlbear, tigerFierce } from './fantasyBosses';
 
 /** A built boss look: its group, how it idles, its shadow, the parts the fight moves (the Warden's three, and any a
     boss's own fight moves besides) and its school. */
@@ -289,21 +289,8 @@ export function pyreKnightLook(): BossBuilt {
     fantasy, built in fantasyBosses.ts. */
 export const hartLook = hartFierce, anglerLook = anglerFierce, tigerLook = tigerFierce, dragonHead = dragonHeadFierce;
 
-/** The looks, for the owner to choose (the dev menu's Galleries tab stands them ahead of the mage, and picks the one the
-    Hollow Warden wears in its fight). */
-export const BOSS_LOOKS = [
-  { id: 'bellWarden', build: bellWardenFierce }, { id: 'motherOfSpores', build: sporeMatriarch }, { id: 'hollowOwl', build: owlbear },
-] as const;
-export type BossLookId = (typeof BOSS_LOOKS)[number]['id'];
-/** Every boss built in code, for the Galleries tab: the Warden's three looks, the bosses of floors 2 and 3, of floors 4
+/** The Hollow Warden's look: the Owlbear (M4.12, the owner's choice, 2026-10-03). */
+export const wardenLook = owlbear;
+/** Every boss built in code, for the Galleries tab: the Hollow Warden, the bosses of floors 2 and 3, of floors 4
     and 5, then the bosses from the Eda lore (M4.2). */
-export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [...BOSS_LOOKS, { id: 'abbess', build: abbessLook }, { id: 'pyre', build: pyreKnightLook }, { id: 'hart', build: hartLook }, { id: 'angler', build: anglerLook }, { id: 'tiger', build: tigerLook }, { id: 'dragon', build: dragonLook }, { id: 'twins', build: twinPairLook }, { id: 'serpent', build: serpentLook }];
-
-/** The look the Hollow Warden wears until the owner chooses: picked in the dev menu, remembered in this browser. */
-const LOOK_KEY = 'ossuary.bossLook', FIRST: BossLookId = 'motherOfSpores';
-let chosen: BossLookId = FIRST;
-try { const v = localStorage.getItem(LOOK_KEY); if (BOSS_LOOKS.some(o => o.id === v)) chosen = v as BossLookId; } catch { /* no storage: the first */ }
-export const bossLook = () => chosen;
-export function setBossLook(id: BossLookId) { chosen = id; try { localStorage.setItem(LOOK_KEY, id); } catch { /* kept this session */ } }
-/** Build the look the Hollow Warden wears now. */
-export const buildBossLook = (id: BossLookId = chosen) => BOSS_LOOKS.find(o => o.id === id)!.build();
+export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [{ id: 'warden', build: wardenLook }, { id: 'abbess', build: abbessLook }, { id: 'pyre', build: pyreKnightLook }, { id: 'hart', build: hartLook }, { id: 'angler', build: anglerLook }, { id: 'tiger', build: tigerLook }, { id: 'dragon', build: dragonLook }, { id: 'twins', build: twinPairLook }, { id: 'serpent', build: serpentLook }];

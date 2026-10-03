@@ -51,7 +51,6 @@ import { heroPixel, setHeroPixel } from '../actors/heroPixel';
 import { hero } from '../actors/hero';
 import { FAMILIAR_OPTIONS, MODEL_OPTIONS, removeModelOptions, showBestiary, showBossLooks, showFamiliarOptions, showJellyLooks, showModelOptions } from '../actors/modelOptions';
 import { BESTIARY_OPTIONS } from '../actors/bestiaryLooks';
-import { BOSS_LOOKS, bossLook, setBossLook } from '../actors/bossLooks';
 import { EFFECT_OPTIONS, removeEffectOptions, showEffectOptions } from '../magic/effectOptions';
 import { CFG } from '../config';
 import { freeSpotNear, placeUrn } from '../world/rooms';
@@ -98,7 +97,7 @@ import { CREATURES, roarNow, showCreature, takeCreatures } from '../actors/madeC
 import { THEMES } from '../world/themeData';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, lookBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
 let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries', 'sound'] as const;
@@ -504,11 +503,10 @@ function build() {
   lp.append(...[1, 2, 3, 4, 5, 0].map(f => btn(S.floorLooks(f), () => { closeDev(); if (!showLookPairs(G.current, player.x, player.z, f).length) toast(S.noNewLooks, 2); })),
     btn(S.allLooks, () => { closeDev(); if (!showLookPairs(G.current, player.x, player.z).length) toast(S.noNewLooks, 2); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
 
-  // the Hollow Warden's looks (M4): the three ahead of the mage, and the one it wears in its fight (a new floor 1 shows it)
+  // the bosses built in code (M4 onwards): every one ahead of the mage
   const bl = section(pages.galleries, S.bossLooks);
-  bl.append(el('p', 'dv-info', [...BOSS_LOOKS.map(o => `${STR.bossLooks[o.id].name}: ${STR.bossLooks[o.id].note}`), STR.bosses.abbess.name, STR.bosses.pyre.name, STR.bosses.hart.name, STR.bosses.angler.name, STR.bosses.tiger.name, STR.bosses.dragon.name, STR.bosses.twins.name].join(' · ')),
-    btn(S.showOptions, () => { closeDev(); showBossLooks(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)),
-    lookBtn = btn('', () => { const i = BOSS_LOOKS.findIndex(o => o.id === bossLook()); setBossLook(BOSS_LOOKS[(i + 1) % BOSS_LOOKS.length].id); refresh(); }));
+  bl.append(el('p', 'dv-info', [STR.bosses.warden.name, STR.bosses.abbess.name, STR.bosses.pyre.name, STR.bosses.hart.name, STR.bosses.angler.name, STR.bosses.tiger.name, STR.bosses.dragon.name, STR.bosses.twins.name].join(' · ')),
+    btn(S.showOptions, () => { closeDev(); showBossLooks(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
   // familiar options (looks only, the owner's drawings built in code): in a row ahead of the mage
   // the bestiary (M4.5): looks only for now, in rows by kind, each named with the fight it brings
   const best = section(pages.galleries, S.bestiary);
@@ -560,7 +558,6 @@ function refresh() {
   const cur = G.current;
   info.textContent = S.info(G.run.seed, G.run.floor + 1, cur.plan.id, S.roomNames[cur.type] ?? cur.type);
   godBtn.textContent = DEV.god ? S.godOn : S.godOff; godBtn.classList.toggle('on', DEV.god);
-  lookBtn.textContent = S.wardenWears(STR.bossLooks[bossLook()].name);
   foeBtn.textContent = DEV.foe ? S.foeEverywhere(foeName(DEV.foe)) : S.foesAsFloor; foeBtn.classList.toggle('on', !!DEV.foe);
   moveBtn.textContent = S.moveClip[DEV.moveClip]; moveBtn.classList.toggle('on', DEV.moveClip !== 'run');
   doorBtn.textContent = S.doors[DEV.doors]; doorBtn.classList.toggle('on', DEV.doors !== 'data');
