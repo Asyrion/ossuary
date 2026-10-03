@@ -462,6 +462,8 @@ function installDevHooks() {
     crackVat: () => crackVat(), breakVat: () => !!breakOut(), set restless(on: boolean) { G.run.restless = on; },
     /** Whether a trapdoor lies open on this floor (a floor's boss fell; the serpent out of its vat leaves none). */
     get trapdoor() { return !!G.trapdoor; },
+    /** Where the trapdoor lies (world x, z) and the room it is in (M6 step 10: the waystone room's, or the boss room's). */
+    get wayDown() { const t = G.trapdoor; return t && { x: t.x, z: t.z, room: G.rooms.find(r => t.x >= r.bounds.minX && t.x <= r.bounds.maxX && t.z >= r.bounds.minZ && t.z <= r.bounds.maxZ)?.type ?? null }; },
     /** The gamepads the browser reports (name, layout, buttons held, sticks), as the dev menu's Gamepads shows them. */
     get pads() { return padsNow(); },
     /** M4.12: the old and new looks side by side ahead of the mage (a floor's, or all), what each new look keeps of its old

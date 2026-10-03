@@ -8,7 +8,7 @@
    outside the floor's budget. */
 import * as THREE from 'three';
 import { CFG } from '../config';
-import type { Pickup } from '../types';
+import type { Pickup, Room } from '../types';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
@@ -327,15 +327,17 @@ export function updatePickups(dt: number) {
   }
 }
 
-/** The way down that opens when the boss dies. */
-export function makeTrapdoor(x: number, z: number) {
+/** The way down that opens when the boss dies, at world (x, z): in `room`'s group when given (drawn only with it: M6 step
+    10's waystone room), else in the scene. */
+export function makeTrapdoor(x: number, z: number, room?: Room) {
   const g = new THREE.Group();
   const ring = new THREE.Mesh(new THREE.TorusGeometry(.7, .06, 8, 40), new THREE.MeshBasicMaterial({ color: 0xffb35a }));
   ring.rotation.x = -Math.PI / 2; ring.position.y = .05;
   const disc = new THREE.Mesh(new THREE.CircleGeometry(.66, 32), new THREE.MeshBasicMaterial({ color: 0x0a0604 }));
   disc.rotation.x = -Math.PI / 2; disc.position.y = .02;
   const gl = glow(0xff8a30, 2.6, .55); gl.position.y = .4;
-  g.add(disc, ring, gl); g.position.set(x, 0, z); scene.add(g);
+  g.add(disc, ring, gl);
+  if (room) { g.position.set(x - room.cx, 0, z - room.cz); room.group.add(g); } else { g.position.set(x, 0, z); scene.add(g); }
   G.trapdoor = { g, x, z, ring, t: 0 };
 }
 

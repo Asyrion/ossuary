@@ -1,16 +1,19 @@
 /* M6 step 9: the waystone (docs/M6-plan.md, decisions 10 and 11; GDD: the rest between floors). A menhir that answers
-   casts: once a floor's boss falls it rises in the boss room (step 10 gives it a room of its own) on floors 1 to 4, and its
-   runes kindle. Walking up to it opens its screen (ui/waystone.ts), with the alchemy table's latch (step away and back);
+   casts. Step 10 gives it a room of its own beside the boss room on floors 1 to 4, holding the way down: the room waits dark
+   and empty until the mage first walks in after the boss falls, then the stone grinds up near its middle (a little toward
+   the door), its runes kindle,
+   the room lightens and the trapdoor opens beyond it, away from the door. Where the generator found no cell for the room,
+   it rises in the boss room as the boss falls (`waystoneAfterBoss`). Walking up to it opens its screen (ui/waystone.ts), with the alchemy table's latch (step away and back);
    a spell cast into it costs nothing and opens the screen on that spell's sockets. The first time it is reached it rests
    the mage: full mana, every cooldown ended, the mana streaming from the stone to the hand. It offers a pair of runes,
    dealt as it rises on the run's runes stream (`dealPair`): one taken, the other crumbles. */
 import * as THREE from 'three';
 import { CFG } from '../config';
-import { G, player } from '../state';
+import { G, after, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { burst } from '../combat/fx';
-import { line } from '../ui/hud';
+import { banner, line, renderMinimap } from '../ui/hud';
 import { dealPair } from '../magic/runes';
 import { rune, type RuneId } from '../magic/runeData';
 import { strikeFx } from '../magic/spellFx';
@@ -20,6 +23,9 @@ import { openWaystone, waystoneOpen } from '../ui/waystone';
 import { WAYSTONE_RUNES, waystoneLook } from './mechLooks';
 import { FLOORS } from './generate';
 import { freeSpotNear } from './rooms';
+import { SIDE_DIR } from './shapes';
+import { makeTrapdoor } from '../items/pickups';
+import { setDarkness } from '../render/lights';
 import type { Room } from '../types';
 
 const C = () => CFG.waystone;
@@ -39,7 +45,38 @@ export function raiseWaystone(room: Room, x: number, z: number) {
   Sfx.at(x, z).crumble(); G.shake = Math.max(G.shake, .25);
   return room.waystone;
 }
-/** A floor's boss has fallen: on floors 1 to 4 its waystone rises to the side at the back of the room (out of reach of the page and the pedestals) (before the boss's gifts are laid,
+/** M6 step 10: the mage walks into the waystone room: its banner the first time; once the floor's boss is down (or on a floor
+    with no boss room, `?room=waystone_plain`), the stone rises near its middle the first time; dark until it has kindled. */
+export function enterWaystone(room: Room, firstVisit: boolean) {
+  if (firstVisit) banner(...STR.banner.waystone);
+  const boss = G.rooms.find(r => r.type === 'boss');
+  if (!room.waystone && (!boss || boss.cleared)) { // (a little toward the door: the way down lies beyond it)
+    const [dx, dz] = SIDE_DIR[room.plan.doors[0]?.side ?? 'n'];
+    raiseWaystone(room, room.cx + dx * C().toDoor[0], room.cz + dz * C().toDoor[1]); line(STR.waystone.risenRoom, CFG.afflict.lineShow);
+  }
+  setDarkness(room.waystone?.lit ? 0 : C().dark);
+}
+/** The floor's waystone room, if the generator found it a cell (floors 1 to 4). */
+export function waystoneRoom() { return G.rooms.find(r => r.type === 'waystone'); }
+/** The boss fell on a floor with a waystone room: the boss room's banner says where the way down lies, and a line which door. */
+export function pointToStone(boss: Room, stone: Room) {
+  const d = boss.plan.doors.find(x => x.to === stone.plan.id);
+  if (d) line(STR.waystone.beyond(STR.waystone.sides[d.side]), CFG.afflict.lineShow);
+}
+
+/** Step 10: (x, z) in the boss room moved off the lane to the waystone room's door, so the boss's gifts never stand in the
+    way to it (`CFG.waystone.lane`: how far into the room the lane runs, how wide it is either side, how far aside a gift
+    goes). */
+export function offLane(boss: Room, stone: Room | undefined, x: number, z: number) {
+  const d = stone && boss.doors.find(o => o.nb === stone); if (!d) return { x, z };
+  const [dx, dz] = SIDE_DIR[d.side], [deep, half, aside] = C().lane;
+  const into = (d.x - x) * dx + (d.z - z) * dz, across = dx ? z - d.z : x - d.x;
+  if (into < 0 || into > deep || Math.abs(across) >= half) return { x, z };
+  const to = (across < 0 ? -1 : 1) * aside;
+  return dx ? { x, z: d.z + to } : { x: d.x + to, z };
+}
+
+/** A floor's boss has fallen where it has no waystone room: on floors 1 to 4 its waystone rises to the side at the back of the room (out of reach of the page and the pedestals) (before the boss's gifts are laid,
     so they keep clear of it). */
 export function waystoneAfterBoss(room: Room) {
   if (G.run.floor >= FLOORS.length - 1) return; // (floor 5: nothing below to carry runes to)
@@ -70,6 +107,14 @@ function kindle(w: NonNullable<Room['waystone']>) {
   ((w.look.parts.runes.children[0] as THREE.Mesh).material as THREE.MeshBasicMaterial).color.setHex(WAYSTONE_RUNES.lit); // (one material for every stroke)
   w.look.parts.glow.visible = true;
   Sfx.at(w.x, w.z).kindle(); burst(w.x, 1.6, w.z, WAYSTONE_RUNES.lit, 18, 1.8, .05);
+  const room = G.current;
+  if (room.type === 'waystone') { setDarkness(0); openWayDown(room); }
+}
+/** Step 10: the trapdoor opens beyond the stone, on the side away from the room's one door. */
+function openWayDown(room: Room) {
+  if (G.trapdoor) return;
+  const [dx, dz] = SIDE_DIR[room.plan.doors[0]?.side ?? 'n'];
+  makeTrapdoor(room.cx - dx * C().trapdoor[0], room.cz - dz * C().trapdoor[1], room); after(.5, () => Sfx.trapdoor());
 }
 
 /** Whether the mage stands within reach of the room's kindled waystone. */
@@ -98,5 +143,5 @@ export function restAtStone() {
   w.rested = true;
   player.mana = player.stats.maxMana; player.spellCd.fill(0);
   for (let i = 0; i < C().streaks; i++) streakTo(w.x + (i % 2 ? .12 : -.12), 1.1 + i * .08, w.z, MANA, i * C().streakGap);
-  Sfx.at(w.x, w.z).rest(); line(STR.waystone.rested, CFG.afflict.lineShow);
+  Sfx.at(w.x, w.z).rest(); line(STR.waystone.rested, CFG.afflict.lineShow); renderMinimap(); // (its mark dims)
 }

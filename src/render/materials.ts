@@ -37,6 +37,7 @@ export const M = {
     shrine: new THREE.MeshStandardMaterial({ color: 0x9a9282, roughness: .8, emissive: 0x16120a }),
     library: new THREE.MeshStandardMaterial({ color: 0x4a3322, roughness: .75, emissive: 0x1c1208 }),
     laboratory: new THREE.MeshStandardMaterial({ color: 0x34402a, roughness: .6, metalness: .3, emissive: 0x0e1a0a }),
+    waystone: new THREE.MeshStandardMaterial({ color: 0x5a5d66, roughness: .85, emissive: 0x14100a }),
   },
   bone: new THREE.MeshStandardMaterial({ color: 0xd8ccb2, roughness: .75, emissive: 0x15100a }),
   gate: new THREE.MeshStandardMaterial({ color: 0x6b5644, roughness: .55, metalness: .5, emissive: 0x1a0f07 }),

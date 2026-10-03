@@ -14,8 +14,8 @@ import type { Kinds, KitWeights } from './world/kitData';
 import type { RuneId, Socket } from './magic/runeData';
 
 export type Side = 'n' | 's' | 'e' | 'w';
-export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine' | 'library' | 'laboratory';
-export type DoorStyle = 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine' | 'library' | 'laboratory';
+export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine' | 'library' | 'laboratory' | 'waystone';
+export type DoorStyle = 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine' | 'library' | 'laboratory' | 'waystone';
 export interface Vec2 { x: number; z: number }
 /** Axis-aligned box on the floor plane: centre and half extents. */
 export interface Box { x: number; z: number; hx: number; hz: number }
@@ -153,7 +153,7 @@ export interface Room {
   /** M5: Dr. Jelly's laboratory (world/laboratory.ts): where its table and Dr. Jelly stand, the vat window's look, whether a
       potion was identified free this visit, and whether walking up to the table or to Dr. Jelly opens the table again
       (after stepping away). */
-  /** M6 step 9: the waystone risen here (in the boss room after its boss falls, until step 10's room): where, how far it has
+  /** M6 step 9: the waystone risen here (step 10: in the waystone room, the first time it is entered after the boss falls; in the boss room as it falls where the floor has none): where, how far it has
       risen (0 to 1), whether its runes are kindled, its rest taken, the pair it offers (null once one is taken), the walk-up
       latch, the slot its screen carves into, and its look's parts. */
   waystone?: { x: number; z: number; rise: number; lit: boolean; rested: boolean; pair: string[] | null; armed: boolean; target: number;
