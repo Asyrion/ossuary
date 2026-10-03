@@ -39,7 +39,9 @@ export function updatePlayer(dt: number) {
   const st = player.stats, speed = st.speed * (st.effects.has('float') ? 1 : wadeAt(player.x, player.z)) * snagAt(player.x, player.z) * stickyAt(player.x, player.z) * (player.chill > 0 ? 1 - CFG.afflict.chillSlow : 1) * (player.stone > 0 ? CFG.bestiary.gazeSlow : 1) * potionSpeedMul(); // slower wading through water (unless floating: M4.6), or cobwebs, a spider's web or ink (M4.5), or chilled, or in a basilisk's stare; M5: quicker under the Frostbrew, slower as a giant
   player.vx = lerp(player.vx, mv.x * speed, k); player.vz = lerp(player.vz, mv.z * speed, k);
   if (Math.hypot(player.pull.x, player.pull.z) > CFG.afflict.drawnMin) player.drawn = CFG.afflict.drawnShow; // (shown beside the mana bar)
+  const was = { x: player.x, z: player.z };
   player.x += (player.vx + player.pull.x) * dt; player.z += (player.vz + player.pull.z) * dt; player.pull.x = player.pull.z = 0; // (a lure's draw: spent each step)
+  if (!Number.isFinite(player.x) || !Number.isFinite(player.z)) { player.x = was.x; player.z = was.z; player.vx = player.vz = 0; } // (a pull gone wrong never loses the mage)
   collide(player, blockers(cur, 'player', st.effects.has('pitWalker')));
   player.still = Math.hypot(player.vx, player.vz) < CFG.artifacts.still.speed ? player.still + dt : 0; // (the Twin Vigil Candles, the Salt Circle)
   if (tryTransition()) return;

@@ -43,9 +43,9 @@ function hiss(dur: number, vol: number, type: BiquadFilterType, freq: number, de
 }
 /** A panner for an effect at (x, z): left or right of the mage, and quieter further away. */
 function spot(x: number, z: number) {
-  const dx = x - listener.x, d = Math.hypot(dx, z - listener.z);
+  const dx = x - listener.x, d = Math.hypot(dx, z - listener.z) || 0;
   const pan = ctx!.createStereoPanner(), g = ctx!.createGain();
-  pan.pan.value = Math.max(-1, Math.min(1, dx / 7)); g.gain.value = 1 / (1 + Math.max(0, d - 2) * .1);
+  pan.pan.value = Number.isFinite(dx) ? Math.max(-1, Math.min(1, dx / 7)) : 0; g.gain.value = 1 / (1 + Math.max(0, d - 2) * .1); // (a sound from nowhere plays in the middle, never throws)
   pan.connect(g).connect(fx);
   return pan;
 }

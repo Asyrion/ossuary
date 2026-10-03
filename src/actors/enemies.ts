@@ -119,9 +119,11 @@ export function updateEnemies(dt: number) {
     steerAround(e); groundSlide(e, dt); // (M4.7: golems and elementals go round another kind's ground; on its rime a walker slides)
     const pace = slow * songHaste(e) * (e.flying ? 1 : wadeAt(e.x, e.z) * snagAt(e.x, e.z) * groundPace(e)); // (and another kind's webs and ink hold it)
     e.kx *= Math.exp(-8 * dt); e.kz *= Math.exp(-8 * dt);
+    const was = { x: e.x, z: e.z };
     e.x += (e.vx * pace + e.kx) * dt; e.z += (e.vz * pace + e.kz) * dt;
     const hit = collide(e, e.flying ? walls : solids);
     saltHolds(e); // (the Salt Circle keeps walkers out)
+    if (!Number.isFinite(e.x) || !Number.isFinite(e.z)) { e.x = was.x; e.z = was.z; e.vx = e.vz = e.kx = e.kz = 0; } // (a step gone wrong, a division by nothing, never loses it from the room)
     if (e.isBoss) afterBossMove(e, hit);
     else if (e.foe) bumpFoe(e, !!hit);
     e.face = angleLerp(e.face, faceTo, 1 - Math.exp(-10 * dt));
