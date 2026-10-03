@@ -749,8 +749,8 @@ model is made from the sheets (docs/assets.md); the pieces that change are built
   blink pressed too soon fizzles; the Runescribe's rune bursts 0.55 s after a strike for 60% of the bolt; the Pilgrim's
   map is shown as each floor begins, cracked walls glow, and the mage walks 12% faster; the Beastcaller has one more
   moth, and every familiar strikes half again as hard.
-- *Asyrion's arc.* Four stages at 3, 6, 9 and 12 artifacts held (every one taken, and the focus unless it is the first
-  wand): bronze-worked bracers; the dark coat's collar and shoulders; three red rune orbs in gold rings circling at the
+- *Asyrion's arc.* Four stages at 3, 6, 9 and 12 artifacts held (every one taken, the focus unless it is the first
+  wand, and since M6 step 12 one for every three levels gained, so a level-12 run with nothing held reaches the first): bronze-worked bracers; the dark coat's collar and shoulders; three red rune orbs in gold rings circling at the
   chest; a flame in the off hand and white arcs of wind. Each fills its slot only where no artifact or transformation
   does (the orbs and the flame have slots of their own). Each stage says so in a line the first time it is reached in a
   run.
