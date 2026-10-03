@@ -8,6 +8,35 @@ records what we found and how to do it again.
 So far the creatures are looks only. They stand in the room, walk, roar and rest, but they don't fight. Making one a foe
 or a boss is a later step (see [Next](#next-a-creature-that-fights)).
 
+## Handing a new model to a new session
+
+A new session doesn't remember the owlbear's conversation, only what is written here. Start it with the message below:
+attach the rigged GLB, fill in the brackets, and delete the choices that don't apply. Naming this file in the message
+makes sure the session reads the guide before it starts.
+
+```
+New creature from Tripo: [name]. The rigged GLB is attached.
+
+Follow docs/creatures.md, the owlbear's workflow, from step 2 of the guide:
+read its rig with --bones, write its recipe from tools/creatures/owlbear.ts,
+run npm run animate-creature, give it sounds, and add it to the dev menu
+(Galleries, Animated creatures) with its three looks.
+
+About it:
+- What it is: [four-legged / two-legged / winged / a serpent / ...], [a line on its character]
+- Size in the game: about [N] tiles tall; budget [enemy, 8,000 triangles / boss, 15,000]
+- Clips: idle, walk and [roar / bite / swipe / charge / ...];
+  how they should feel: [heavy and slow / quick and snapping / ...]
+- Sounds: [its voice, its steps, anything special]; reuse the owlbear's where they fit
+- In the game: looks only for now / [plan it as a foe or boss: where, and what it does]
+
+Send me a preview video (npm run creature-preview) before anything ships.
+I'll check it in the game. Ship only when I say so.
+```
+
+A creature on four legs follows the owlbear closely. One on two legs, with wings or with no legs needs its own walk,
+so expect an extra round of previews.
+
 ## What we found
 
 What Tripo gives:
