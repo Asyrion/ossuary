@@ -41,6 +41,10 @@ The GDD's art direction, as rules for images:
   colours, its light in flat bands (`src/actors/heroPixel.ts` does it for the mage; a boss from Tripo would go the same
   way). A model reads best there when its colours sit in large flat areas: fine painted strokes are lost at some 45
   pixels tall, and many tiny texture islands can't be shrunk cleanly.
+- **A rigged creature from Tripo** (2026-10-03, the owlbear) is animated and voiced in code, not in Tripo:
+  `docs/creatures.md` is its guide (reading the rig, the recipe, `npm run animate-creature`, the preview, the dev menu's
+  three looks). The tool also mends what Tripo's export gets wrong: the skin weights, the faces it leaves inside out and
+  the texture's islands without a gutter.
 - **Materials:** worn stone, old bone, dark iron, tarnished brass and bronze, wax, clay, parchment, rotting
   wood, verdigris.
 - **Palette:** worn stone browns, torch amber for the mage's magic, verdigris greens for the undead, violet for
