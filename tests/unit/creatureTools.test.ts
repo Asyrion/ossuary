@@ -1,10 +1,12 @@
-/* The tools that make a Tripo creature fit for the game (docs/creatures.md): turning inside-out faces outward, and
-   padding a texture's islands. */
+/* The tools that make a Tripo creature fit for the game (docs/creatures.md): turning inside-out faces outward, padding a
+   texture's islands, and turning a model that faces another way to face +z. */
 import { describe, expect, it } from 'vitest';
 import { Document } from '@gltf-transform/core';
 import sharp from 'sharp';
 import { orientOutward } from '../../tools/orientFaces';
 import { padIslands } from '../../tools/padIslands';
+import { faceForward } from '../../tools/creatureRig';
+import * as THREE from 'three';
 
 /** A unit cube about the origin, each side two faces wound outward, with its own corners (as a UV seam splits them). */
 function cube(doc: Document) {
@@ -68,5 +70,30 @@ describe('padIslands', () => {
     expect(r.size).toBe(W); expect(r.filled).toBe(W * W / 2);
     const { data } = await sharp(Buffer.from(tex.getImage()!)).raw().toBuffer({ resolveWithObject: true });
     for (const y of [0, 8, 15]) for (const x of [2, 9, 15]) expect(data[(y * W + x) * 3]).toBeGreaterThan(150); // (the island, and the black beside it now red)
+  });
+});
+
+describe('faceForward', () => {
+  it('turns a skinned model to face +z: its vertices, the top of its skeleton and its bind matrices together', () => {
+    // a snout at +x on a skeleton of two joints (a root at the origin, a head joint at +x), bound in its rest pose
+    const doc = new Document(), buf = doc.createBuffer();
+    const head = doc.createNode('head').setTranslation([0.5, 0.2, 0]), root = doc.createNode('root').addChild(head);
+    const ibms = [new THREE.Matrix4(), new THREE.Matrix4().makeTranslation(0.5, 0.2, 0).invert()].flatMap(m => m.toArray());
+    const skin = doc.createSkin().addJoint(root).addJoint(head).setInverseBindMatrices(doc.createAccessor().setType('MAT4').setArray(new Float32Array(ibms)).setBuffer(buf));
+    const prim = doc.createPrimitive()
+      .setAttribute('POSITION', doc.createAccessor().setType('VEC3').setArray(new Float32Array([1, 0.2, 0])).setBuffer(buf))
+      .setAttribute('NORMAL', doc.createAccessor().setType('VEC3').setArray(new Float32Array([1, 0, 0])).setBuffer(buf));
+    doc.createScene().addChild(root).addChild(doc.createNode('mesh').setMesh(doc.createMesh().addPrimitive(prim)).setSkin(skin));
+    faceForward(doc, -90);
+    const near = (a: number[], b: number[]) => a.forEach((x, i) => expect(x).toBeCloseTo(b[i], 5));
+    near(prim.getAttribute('POSITION')!.getElement(0, []), [0, 0.2, 1]); // (the snout now at +z)
+    near(prim.getAttribute('NORMAL')!.getElement(0, []), [0, 0, 1]);
+    near(head.getTranslation(), [0.5, 0.2, 0]); // (only the skeleton's top is turned; the head follows its parent)
+    // each joint's world matrix times its inverse bind matrix is still the identity: the skin binds as it did
+    const world = (n: typeof root) => new THREE.Matrix4().compose(new THREE.Vector3(...n.getTranslation()), new THREE.Quaternion(...n.getRotation()), new THREE.Vector3(1, 1, 1));
+    const ibm = (i: number) => new THREE.Matrix4().fromArray(skin.getInverseBindMatrices()!.getElement(i, []));
+    near(world(root).multiply(ibm(0)).toArray(), new THREE.Matrix4().toArray());
+    near(world(root).multiply(world(head)).multiply(ibm(1)).toArray(), new THREE.Matrix4().toArray());
+    near(world(root).multiply(world(head)).toArray().slice(12, 15), [0, 0.2, 0.5]); // (the head joint at +z)
   });
 });

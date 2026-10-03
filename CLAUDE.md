@@ -237,6 +237,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
 - Creatures made in Tripo and animated in code (the owner's experiment of 2026-10-03, the owlbear, called a success the same
   day: **`docs/creatures.md` holds the findings and the guide for a new one**, and its handover message, which
   the owner starts a new session with; `-- --bones <in.glb>` reads a new model's rig first).
+  The dragonling (2026-10-03, the owner's second, dog-sized, enemy budget, waiting on the owner's look) is the recipe for a
+  model facing another way (`face`, `faceForward` in creatureRig.ts), on a two-legged rig and in a mid-stride pose (`STANCE`,
+  a leg's `toes`).
   `npm run animate-creature -- owlbear <in.glb>`
   (`tools/animate-creature.ts`) simplifies the mesh to its budget (`budget` per recipe, data/assets.json's kinds), turns the
   patches Tripo left inside out (`orientOutward` in `tools/orientFaces.ts`: each face by the side its rays get out of the model
