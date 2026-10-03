@@ -2331,6 +2331,12 @@ test('the dev menu opens on its key, pauses the game, and hands out what it list
   const errors = await start(page, '?seed=DEVM01');
   await expect(page.locator('#devHint')).toContainText('F2'); // the key is shown on the HUD during play-tests
   await expect(page.locator('#scrTitle .controls')).toContainText('F2'); // and among the controls at the start
+  // a Mac's ISO keyboard (the German one among them) reports the key left of 1 as IntlBackslash: it opens and shuts it too
+  const macKey = () => page.evaluate(() => window.dispatchEvent(new KeyboardEvent('keydown', { code: 'IntlBackslash', key: 'Dead' }))); // (Playwright has no such key: the event as a Mac's browser sends it)
+  await macKey();
+  await expect(page.locator('#dev')).toBeVisible();
+  await macKey();
+  await expect(page.locator('#dev')).toBeHidden();
   await page.keyboard.press('Backquote');
   await expect(page.locator('#dev')).toBeVisible();
   expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('pause');

@@ -2,6 +2,10 @@ import { CFG } from '../config';
 import { potionHold, pressed, releasePotion, type InputActions } from './index';
 
 export const keys = new Set<string>();
+/** The dev menu's keys: the key left of 1 and F2. A Mac with an ISO keyboard (the German one among them) reports the key
+    left of 1 as IntlBackslash, not Backquote (macOS swaps it with the key beside left Shift), and its F2 reaches the browser
+    only with fn held. */
+export const isDevKey = (code: string) => code === 'Backquote' || code === 'IntlBackslash' || code === 'F2';
 /** Held arrow keys in press order; the most recent one sets the shot direction. */
 export const arrowOrder: string[] = [];
 export const ARROWS: Record<string, [number, number]> = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
@@ -13,7 +17,7 @@ export function initKeyboard(act: InputActions) {
     if ((!e.repeat || ARROWS[e.code]) && act.inventoryKey(e.code)) { e.preventDefault(); return; }
     if (ARROWS[e.code] || e.code === 'Space') e.preventDefault();
     if (e.repeat) return;
-    if (e.code === 'Backquote' || e.code === 'F2') { e.preventDefault(); act.toggleDev(); return; }
+    if (isDevKey(e.code)) { e.preventDefault(); act.toggleDev(); return; }
     keys.add(e.code);
     if (ARROWS[e.code]) { const i = arrowOrder.indexOf(e.code); if (i >= 0) arrowOrder.splice(i, 1); arrowOrder.push(e.code); }
     if (e.code === 'Escape' || e.code === 'KeyP') act.togglePause();
