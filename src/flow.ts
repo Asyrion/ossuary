@@ -214,8 +214,8 @@ export function enterRoom(room: Room) {
   if (firstVisit && room.type === 'secret') banner(...STR.banner.secret);
   if (room.type === 'shrine') enterShrine(room, firstVisit);
   if (room.type === 'library') enterLibrary(room, firstVisit);
-  if (room.type === 'laboratory') enterLab(room, firstVisit);
-  if (room.type === 'waystone') enterWaystone(room, firstVisit); // (M6 step 10: the stone rises the first time after the boss) // (M5: Dr. Jelly looks at one potion again this visit)
+  if (room.type === 'laboratory') enterLab(room, firstVisit); // (M5: Dr. Jelly looks at one potion again this visit)
+  if (room.type === 'waystone') enterWaystone(room, firstVisit); // (M6 step 10: the stone rises the first time after the boss)
   if (firstVisit && room.type === 'vault') banner(...(room.drunk ? STR.banner.vaultWardling(STR.schools[room.drunk]) : room.warden ? STR.banner.vaultWarden : STR.banner.vault));
   if (firstVisit && room.quietHeart) { const p = freeSpotNear(room, room.cx, room.cz); spawnHeart(p.x, p.z, 2); }
   // a treasure room with nothing left to find offers a full heart instead

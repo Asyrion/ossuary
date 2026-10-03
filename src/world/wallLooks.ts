@@ -120,10 +120,13 @@ const EMBLEMS: Partial<Record<DoorStyle, (g: THREE.Group, trim: THREE.Material) 
     mesh(g, GEO.ring, tone(0x8a5a30, .06, .6), 0, -.02, .02).scale.setScalar(.75);
     const gl = glow(0x7ae070, .9, .8); gl.position.z = .14; g.add(gl);
   },
-  waystone(g) { // a small menhir of grey stone, a rune burning gold down its face (M6 step 10: the waystone room)
-    put(box(g, .16, .34, .07, tone(0x8e929c, .1), 0, -.02, .05), 0, 0, .06, [.16, .34, .07]);
-    put(mesh(g, GEO.smallRune, glowTone(0xffbe3a), 0, .0, .1), 0, 0, 0, .9);
-    const gl = glow(0xffbe3a, .8, .7); gl.position.z = .14; g.add(gl);
+  waystone(g) { // a menhir of grey stone with a pointed top, a rune burning gold down its face (M6 step 10: the waystone room)
+    const s = new THREE.Group(); s.rotation.x = -.6; s.scale.setScalar(1.35); g.add(s); // (tipped up to the light, as the library's book)
+    const stone = tone(0x7e828c, .1);
+    put(box(s, .24, .4, .08, stone, 0, -.04, .05), 0, 0, .05, [.24, .4, .08]);
+    put(box(s, .17, .17, .08, stone, 0, .16, .05), 0, 0, Math.PI / 4, [.17, .17, .08]); // (its shoulders: a point)
+    put(mesh(s, GEO.rune, glowTone(0xffbe3a), 0, -.03, .1), 0, 0, 0, .95);
+    const gl = glow(0xffbe3a, .35, .45); gl.position.z = .12; g.add(gl);
   },
   library(g) { // an open book tipped up to the light, a rune glowing on its page
     const b = new THREE.Group(); b.rotation.x = -.75; g.add(b);
