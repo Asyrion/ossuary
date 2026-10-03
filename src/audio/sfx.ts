@@ -239,6 +239,8 @@ const sounds = {
   /** M6 step 9, the waystone: risen, its runes kindle (a deep stone hum and a rising chime); the rest (mana pouring back, a
       long soft swell); a rune carved (a chisel's two strikes into stone, then the glyph's chime). */
   kindle() { tone('sine', 98, 110, 1.2, .08); tone('triangle', 392, 523, .6, .04, .15); tone('sine', 784, 1046, .8, .025, .35); hiss(.5, .02, 'highpass', 4000, .3); },
+  bargain() { tone('sine', 73, 65, 1.6, .09); tone('square', 147, 139, .5, .025, .1); tone('triangle', 294, 277, .9, .03, .3); }, // (M6 step 11: a low toll, the price)
+  bargainKept() { [392, 494, 587, 784].forEach((f, i) => tone('triangle', f, f, .5, .04, i * .09)); tone('sine', 196, 196, 1.2, .05); },
   rest() { for (let i = 0; i < 4; i++) tone('sine', 523 + i * 131, 587 + i * 131, .5, .03, i * .12); tone('sine', 262, 262, 1.4, .05, .05); },
   carve() { hiss(.05, .09, 'bandpass', 2600); hiss(.05, .08, 'bandpass', 2000, .12); tone('triangle', 220, 196, .16, .07, .1); tone('sine', 880, 900, .5, .03, .22); },
   levelUp() { [523, 659, 784, 1046, 1318].forEach((f, i) => tone('triangle', f, f, .35, .06, i * .07)); tone('sine', 262, 262, .9, .07, .1); hiss(.6, .025, 'highpass', 5000); },

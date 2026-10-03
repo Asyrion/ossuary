@@ -468,6 +468,24 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
     (`heartsPaid`, never the last). A spell cast into it sets the deal's school, on the run's `boons` stream. The runes run
     red, then gold, with a line and a sound. Dev menu (Rooms & runs): "Bargain here". Browser test: the price, the deal,
     once a shrine. The room inspector runs on `shrine_*`.
+
+    *Built (2026-10-03)* after a plan of its own, with the owner's two choices: the container is paid only when a boon is
+    taken (Esc backs out with nothing paid and the stone waits to be tried again), and only a cast opens it (walking up
+    says how).
+    - **The stone:** `src/world/bargain.ts`. `buildBargain` (from `buildShrine`, at `CFG.bargain.at`: the circle's
+      head) and its look `bargainStoneLook` (specialLooks.ts: a stele on a slab, a carved heart and runes on one material,
+      `BARGAIN_RUNES` dark, red, gold). `checkBargain` gives the walk-up line; `castIntoBargain` (from `castSpell` before the
+      waystone's catch, cooldown and payment) refuses the last container (`maxHp - 2 < 2`), else strikes the spell's light
+      into it, runs the runes red, plays `Sfx.bargain` and opens the deal on its school.
+    - **The deal:** the level-up screen's bargain mode (`openBargainDeal`: `dealNow(school)`, each card's price, no point;
+      `levelEsc` backs out through `refuseBargain`; `takeBargainCard` for the tests). `keepBargain` pays the container
+      (`player.heartsPaid`, as the bone altar does), takes the boon (its card), turns the runes gold
+      (`Sfx.bargainKept`) and keeps the stone shut. The shrine's banner and its minimap mark (bright while the bargain
+      waits) say so.
+    - **Dev menu (Rooms & runs):** "Bargain here", its deal on each school. Hooks: `__game.bargain`, `openBargain(school)`,
+      `takeBargain(i)`, `refuseBargain()`, `heartsPaid = n`.
+    - **Browser test:** the stone's place, the line, a free cast dealing two of its school and one general, Esc, a boon
+      taken for a container, once, and the last heart refused.
 12. **The run around it.**
     - **The arc:** `arcHeld` counts levels (`CFG.arc.perLevels`), and taking a level calls `updateArc`.
     - **Deeper starts:** `levelAtFloor` (pure) and `?level=auto` start a deeper floor at its expected level.

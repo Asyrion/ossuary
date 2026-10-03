@@ -92,7 +92,7 @@ export const STR = {
     laboratory: ["Dr. Jelly's Laboratory", 'Two reagents in, one potion out'] as Banner,
     waystone: ['The Waystone', 'Rest, carve, and go down'] as Banner,
     pageFalls: ['A torn page', 'It whispers of a spell'] as Banner,
-    shrine: (price: number): Banner => ['A shrine', `For ${price} obols it cleanses a curse`],
+    shrine: (price: number): Banner => ['A shrine', `For ${price} obols it cleanses a curse; for a heart it bargains`],
     riteBegins: ['The curse fights back', 'Strike it down inside the circle'] as Banner,
     cleansed: (name: string, text: string): Banner => [`The ${name} is cleansed`, text],
     lastRite: ['The last rite holds', 'Death is refused, this once'] as Banner,
@@ -166,6 +166,16 @@ export const STR = {
   /** M5: potions and reagents (items/potions.ts, potionThrow.ts). */
   /** M5 step 6: Dr. Jelly's laboratory and its alchemy table (world/laboratory.ts, ui/alchemyTable.ts, items/brewing.ts). */
   /** M6 step 9: the waystone (placeholder words until M8). */
+  bargain: {
+    title: "The shrine's bargain",
+    sub: 'Take one: it costs a heart container. Esc leaves the stone as it was.',
+    price: 'Costs a heart container',
+    how: 'The bargain stone: cast a spell into it, and it offers boons of that school for a heart.',
+    refused: 'The stone will not take your last heart.',
+    kept: 'The bargain is kept: a heart for a boon. The stone falls quiet.',
+    backed: 'You step back from the bargain. The stone waits.',
+    hint: 'Arrows choose · Enter or Space takes · Esc steps back, nothing paid',
+  },
   waystone: {
     title: 'The waystone',
     tabs: { runes: 'Runes', belt: 'Belt' } as Record<string, string>,
@@ -281,7 +291,7 @@ export const STR = {
     hollow: "The wall rings hollow. A glyph's blast would break it.",
     secretFound: 'A hidden way lies open.',
     oathKept: 'The oath holds: half a heart returns.',
-    shrineIdle: 'You carry no curse for the shrine to cleanse.',
+    shrineIdle: 'You carry no curse for the shrine to cleanse. Its bargain stone waits at the circle\'s head.',
     shrinePoor: (price: number, coins: number) => `The shrine asks ${price} obols to cleanse a curse; you carry ${coins}.`,
     outsideCircle: 'Outside the circle, your bolts pass through the curse.',
     keyringTurns: "The sexton's keyring turns in the ward: the vault opens.",
@@ -863,7 +873,7 @@ export const STR = {
     dropNames: { halfHeart: 'Half heart', heart: 'Heart', coin: 'Obol', purse: 'Purse', key: 'Bone key', glyph: 'Glyph stone', mana: 'Mana vial', paleSoul: 'Pale soul mote', blackSoul: 'Black soul mote', hallowedSoul: 'Hallowed soul mote', shard: 'Lodestone shard', potion: 'Potion (dealt at random)', reagent: 'Reagent (at random)', rune: 'Rune (leaning to your spells)', coffer: 'Coffer', chest: 'Reliquary chest' } as Record<string, string>,
     spells: 'Spells (click to learn into the slot)', slot: 'Slot', mana: 'Mana', fullMana: 'Full mana', manaOn: 'Endless mana: on', manaOff: 'Endless mana: off', forget: 'Forget spells',
     /** M6 step 7: runes carved into the slot chosen above (each fits some shapes: one that doesn't is refused). */
-    runes: 'Runes (carved into the slot chosen above)', toPouch: 'Into the pouch, as if found (M6 step 8):', runeAhead: 'A rune ahead (dealt as a drop is)', raiseStone: 'Raise a waystone here (kindled, a pair dealt)', openStone: 'Open the waystone', noStone: 'No waystone in this room', runesAlwaysOn: 'Runes: wherever one can lie (this floor built again)', runesAlwaysOff: 'Runes: by their chances (this floor built again to switch)', clearRunes: 'Clear the socket', socketOne: 'Socket: one rune', socketTwo: 'Socket: two runes (Second Socket)',
+    runes: 'Runes (carved into the slot chosen above)', toPouch: 'Into the pouch, as if found (M6 step 8):', runeAhead: 'A rune ahead (dealt as a drop is)', raiseStone: 'Raise a waystone here (kindled, a pair dealt)', openStone: 'Open the waystone', noStone: 'No waystone in this room', bargainHere: 'Bargain here (a bargain stone ahead, waiting)', bargainOn: (school: string) => `Its deal: ${school}`, noBargain: 'No bargain stone waits in this room', runesAlwaysOn: 'Runes: wherever one can lie (this floor built again)', runesAlwaysOff: 'Runes: by their chances (this floor built again to switch)', clearRunes: 'Clear the socket', socketOne: 'Socket: one rune', socketTwo: 'Socket: two runes (Second Socket)',
     runesInfo: (slots: string[], pouch: string) => `Q: ${slots[0] || 'nothing carved'} · E: ${slots[1] || 'nothing carved'} · pouch: ${pouch || 'empty'}`,
     page: 'Drop a grimoire page', noPage: 'No spell left to learn',
     themes: 'Themed rooms (a test room of each)', objects: 'Objects (put down ahead)', noRoom: 'No free floor there',

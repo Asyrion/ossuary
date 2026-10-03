@@ -38,6 +38,7 @@ import { brewedPotions, forgetBrews } from '../items/alchemyMemory';
 import { openLab } from './alchemyTable';
 import { openWaystone } from './waystone';
 import { raiseWaystone } from '../world/waystone';
+import { buildBargain, openBargainHere } from '../world/bargain';
 import { breakOut, crackVat } from '../world/laboratory';
 import { gainSoul, hallowedMend, resetSouls } from '../items/souls';
 import { giveResources, restyleObols, spawnPickup } from '../items/pickups';
@@ -432,6 +433,10 @@ function build() {
   section(pages.rooms, STR.waystone.title).append(
     btn(S.raiseStone, () => { closeDev(); const w = raiseWaystone(G.current, player.x, player.z - 2.2); w.rise = Math.max(w.rise, .999); }),
     btn(S.openStone, () => { if (!G.current.waystone) { toast(S.noStone, 2); return; } closeDev(); openWaystone('runes'); }));
+  // M6 step 11: the shrine's bargain (a stone at every shrine's circle; here, ahead of the mage), and its deal on any school
+  section(pages.rooms, STR.bargain.title).append(
+    btn(S.bargainHere, () => { closeDev(); buildBargain(G.current, player.x - G.current.cx, player.z - 2.2 - G.current.cz); }),
+    ...SCHOOLS.map(s => btn(S.bargainOn(STR.schools[s]), () => { if (!G.current.bargain) { toast(S.noBargain, 2); return; } closeDev(); openBargainHere(s); })));
   // the gamepads the browser reports: name, layout, and what is held (the owner's Elite pad wasn't heard, 2026-10-02)
   const gp = section(pages.rooms, S.pads);
   gp.append(padInfo = el('div', 'dv-info')); // (read again whenever a pad comes or goes while the menu is open)

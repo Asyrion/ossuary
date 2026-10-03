@@ -309,8 +309,8 @@ export function renderMinimap() {
       mg.beginPath(); mg.arc(cx, cy - 2, 3.5, Math.PI, 0); mg.stroke();
       mg.fillRect(cx - 5.5, cy - 2, 11, 8);
     }
-    if (r.type === 'shrine') { // a circle of pale gold, dimmed while there's no curse to cleanse
-      mg.strokeStyle = mg.fillStyle = player.items.some(id => artifact(id).curse && !player.cleansed.includes(id)) ? '#c89a3a' : '#6a6250'; mg.lineWidth = 2;
+    if (r.type === 'shrine') { // a circle of pale gold, dimmed while there's no curse to cleanse and no bargain waiting (M6)
+      mg.strokeStyle = mg.fillStyle = player.items.some(id => artifact(id).curse && !player.cleansed.includes(id)) || (r.bargain?.state ?? 'idle') !== 'kept' ? '#c89a3a' : '#6a6250'; mg.lineWidth = 2;
       mg.beginPath(); mg.arc(cx, cy, 6, 0, 7); mg.stroke();
       mg.beginPath(); mg.arc(cx, cy, 2, 0, 7); mg.fill();
     }

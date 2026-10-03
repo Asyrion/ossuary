@@ -28,6 +28,7 @@ import { burst } from '../combat/fx';
 import { knownWellNow } from '../actors/spellMarks';
 import { spendFreeCast, takeEcho } from '../items/potionFx';
 import { castIntoStone } from '../world/waystone';
+import { castIntoBargain } from '../world/bargain';
 import { afterglowCast, boonActs, boonParam, boonRank, inFight, votiveCast } from '../progression/boonHooks';
 
 /* ---------- mana ---------- */
@@ -71,6 +72,7 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   if (!def) { toast(STR.toast.noSpell, 2.5); Sfx.spellFail(); return false; }
   const id = def.id;
   if (G.current.type === 'merchant') { toast(STR.toast.spellWarded, 2.5); Sfx.wardTink(); flashMana(slot, 'target'); return false; }
+  if (castIntoBargain(slot, def)) return true; // (M6 step 11: a spell cast into a shrine's bargain stone opens its deal on the spell's school)
   if (castIntoStone(slot, def)) return true; // (M6 step 9: a spell cast into a waystone, ready or not, costs nothing and opens its screen on that spell)
   if (player.spellCd[slot] > 0) { Sfx.spellFail(); flashMana(slot, 'cooldown'); return false; }
   const can = payment(slot);

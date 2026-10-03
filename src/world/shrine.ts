@@ -23,6 +23,7 @@ import { CURSED_RED } from '../items/artifactLooks';
 import { giveResources } from '../items/pickups';
 import { LOOT } from '../items/loot';
 import { clamp } from '../util';
+import { buildBargain } from './bargain';
 
 const C = CFG.shrine, HOLY = 0xf4e2b0, CURSE = CURSED_RED, MOTES = 24, STONE_R = .32, FLEE = .5;
 const between = ([lo, hi]: [number, number]) => lo + Math.random() * (hi - lo);
@@ -45,6 +46,7 @@ export function buildShrine(room: Room) {
   g.add(circle, ...motes); room.group.add(g);
   room.shrine = { mat, motes, stones: [] };
   syncStones(room);
+  buildBargain(room); // (M6 step 11: the bargain stone at the circle's head)
 }
 
 function makeStone(room: Room, id: string, slot: number): OfferingStone {

@@ -51,6 +51,7 @@ body{font-family:var(--f-ui);color:var(--ink);-webkit-user-select:none;user-sele
 .lvCard b{font:400 22px var(--f-display);color:var(--c)}
 .lvCard small{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#a99b80}
 .lvCard em{font-style:normal;font-size:12px;font-weight:700;color:var(--c)}
+.lvCard em.lvPrice{color:#e05a4a}
 .lvCard i{font:italic 14px/1.35 var(--f-serif);color:#a99b80;margin-top:auto}
 #lvSub{max-width:none}
 .lvAttr{min-height:150px}

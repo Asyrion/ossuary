@@ -145,6 +145,22 @@ export function offeringStoneLook(look: FloorLook, turn: number, curse: number) 
   return g;
 }
 
+/** M6 step 11: the bargain stone's runes: dark while it waits, red with the price once cast into, gold once kept. */
+export const BARGAIN_RUNES = { idle: 0x6e3628, price: 0xd23a2a, kept: 0xffbe3a };
+/** The bargain stone at the circle's head: a tall stele in the floor's stone on a slab, a heart carved into its face and
+    runes down it, on one material of their own (`runes`, the colour its state gives). */
+export function bargainStoneLook(look: FloorLook) {
+  const g = new THREE.Group(), st = stoneOf(look, 1.3), stone = tone(st, .12), runes = new THREE.MeshBasicMaterial({ color: BARGAIN_RUNES.idle });
+  mesh(g, rough(new THREE.BoxGeometry(.84, .12, .5).translate(0, .06, 0), .02, 3), tone(shade(st, .9), .1));
+  mesh(g, rough(new THREE.CylinderGeometry(.2, .27, 1.3, 4, 3).rotateY(Math.PI / 4).scale(1.2, 1, .55).translate(0, .77, 0), .025, 7), stone);
+  mesh(g, rough(new THREE.ConeGeometry(.24, .26, 4).rotateY(Math.PI / 4).scale(1.2, 1, .55).translate(0, 1.55, 0), .02, 9), stone);
+  const h = new THREE.Shape(); h.moveTo(0, -.09); h.bezierCurveTo(-.13, .01, -.09, .12, 0, .05); h.bezierCurveTo(.09, .12, .13, .01, 0, -.09);
+  mesh(g, new THREE.ExtrudeGeometry(h, { depth: .02, bevelEnabled: false, curveSegments: 6 }), runes, 0, 1.12, .16);
+  for (const y of [.86, .6, .36]) put(mesh(g, GEO.smallRune, runes, 0, y, .17), 0, 0, 0, 1.3);
+  g.add(blob(1.2));
+  return { group: g, runes };
+}
+
 /* ---------- the vault ---------- */
 
 /** The padlock hanging on a vault's warded door: a black iron body with its shackle, a keyhole, and the ward's rune

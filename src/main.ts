@@ -39,9 +39,10 @@ import { raiseWaystone } from './world/waystone';
 import { warePanelNow } from './ui/warePanel';
 import { FOE_LOOK_MODES, type FoeLooks } from './actors/fantasyLooks';
 import { lookContract, showLookPairs } from './actors/lookPairs';
-import { promptShowing, roomFinished, setHeroInfo, toast, updateVision } from './ui/hud';
-import { chooseFor, initLevelUp, levelKey, levelOpen, levelPad, offerNow, openLevelUp } from './ui/levelUp';
-import { giveById, removeArtifactGallery, showArtifactGallery } from './items/artifacts';
+import { promptShowing, renderHearts, roomFinished, setHeroInfo, toast, updateVision } from './ui/hud';
+import { bargainNow, openBargainHere } from './world/bargain';
+import { chooseFor, initLevelUp, levelEsc, levelKey, levelOpen, levelPad, offerNow, openLevelUp, takeBargainCard } from './ui/levelUp';
+import { giveById, refreshStats, removeArtifactGallery, showArtifactGallery } from './items/artifacts';
 import { ARTIFACTS } from './items/artifactData';
 import { clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRun, startGame, toggleSound, warp } from './flow';
 import { gainInsight, insightNow, setLevel } from './progression/insight';
@@ -118,9 +119,9 @@ const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
 const input: InputActions = {
   unlockAudio: () => Sfx.init(),
-  togglePause: () => { if (devOpen()) closeDev(); else if (levelOpen()) return; else if (labOpen()) closeLab(); else if (waystoneOpen()) closeWaystone(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
+  togglePause: () => { if (devOpen()) closeDev(); else if (levelOpen()) levelEsc(); else if (labOpen()) closeLab(); else if (waystoneOpen()) closeWaystone(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
   confirm: () => { if (G.state === 'title' || G.state === 'end') startGame(); },
-  startButton: () => { if (devOpen()) closeDev(); else if (levelOpen()) return; else if (labOpen()) closeLab(); else if (waystoneOpen()) closeWaystone(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else startGame(); },
+  startButton: () => { if (devOpen()) closeDev(); else if (levelOpen()) levelEsc(); else if (labOpen()) closeLab(); else if (waystoneOpen()) closeWaystone(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else startGame(); },
   toggleSound,
   autoPause: () => { if (G.state === 'play') pause(); },
   toggleDev: () => { if (inventoryOpen()) closeInventory(); toggleDev(); },
@@ -442,6 +443,9 @@ function installDevHooks() {
     /** M6 step 9: the waystone in this room (where, how far risen, kindled, rested, its pair, the slot it carves into, and
         its screen), raised ahead of the mage (`raiseWaystone`, kindled at once), its screen opened or closed, the pair
         taken, a rune carved from the pouch or lifted out, Second Socket's socket opened, the belt reordered. */
+    // M6 step 11: the shrine's bargain: its stone (state, school, runes' colour), its deal opened on a school, a card taken
+    // (the heart paid), or backed out of
+    get bargain() { return bargainNow(); }, set heartsPaid(n: number) { player.heartsPaid = n; refreshStats(); renderHearts(); }, openBargain: (s: School) => openBargainHere(s), takeBargain: (i = 0) => takeBargainCard(i), refuseBargain: () => levelEsc(),
     get waystone() { const w = G.current.waystone; return w ? { x: w.x, z: w.z, rise: w.rise, lit: w.lit, rested: w.rested, pair: w.pair && [...w.pair], target: w.target, screen: waystoneNow() } : null; },
     raiseWaystone: (x = player.x, z = player.z - 2.2) => { const w = raiseWaystone(G.current, x, z); w.rise = Math.max(w.rise, .999); return true; },
     openWaystone: (tab: StoneTab = 'runes', slot?: number) => openWaystone(tab, slot), closeWaystone: () => closeWaystone(),
