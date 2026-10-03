@@ -416,9 +416,9 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
    *Built (2026-10-03)* after a plan of its own (the owner's ask), with three decisions: the pair is offered in the stone's
    screen, the two side by side and described; walking up opens the screen and a cast into it (free) opens it on that
    spell; Second Socket comes into the deal now, its socket chosen at the stone. Until step 10 the stone rises in the boss
-   room when the boss falls (`waystoneAfterBoss` from `onBossDead`, before the boss's gifts, at the back of the room), on
-   floors 1 to 4. `src/world/waystone.ts`: `raiseWaystone` (its look `waystoneLook` in mechLooks.ts: a menhir in the
-   floor's stone, two hollows that show the target slot's runes while the screen is open, strokes that kindle gold),
+   room when the boss falls (`waystoneAfterBoss` from `onBossDead`, before the boss's gifts, to the side at the back, clear of the page's reach), on
+   floors 1 to 4. `src/world/waystone.ts`: `raiseWaystone` (its look `waystoneLook` in mechLooks.ts: a menhir of grey
+   stone, two hollows that show the target slot's runes while the screen is open, strokes that kindle gold),
    `updateWaystone` (it grinds up, then kindles: `Sfx.kindle`), `checkWaystone` (the lab's latch), `castIntoStone` (from
    `castSpell` before cooldown or payment: nothing paid, a strike of the spell's light), `restAtStone` (the first opening:
    full mana, every cooldown ended, mana streaks to the hand through insight.ts' `streakTo`, `Sfx.rest`); the pair dealt
