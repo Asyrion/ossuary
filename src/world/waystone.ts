@@ -28,7 +28,7 @@ const MANA = 0x6fa8ff;
 /** Raise a waystone in `room` at (x, z): it climbs out of the floor over `CFG.waystone.rise` seconds, then kindles. */
 export function raiseWaystone(room: Room, x: number, z: number) {
   if (room.waystone) return room.waystone;
-  const look = waystoneLook(room.look);
+  const look = waystoneLook();
   look.group.position.set(x - room.cx, -C().depth, z - room.cz); room.group.add(look.group);
   room.rocks.push({ x, z, hx: C().half, hz: C().half, hp: Infinity, breakable: false });
   if (Math.abs(player.x - x) < C().half + player.r && Math.abs(player.z - z) < C().half + player.r) player.z = z + C().half + player.r + .1; // (never risen around the mage)
@@ -36,7 +36,7 @@ export function raiseWaystone(room: Room, x: number, z: number) {
   Sfx.at(x, z).crumble(); G.shake = Math.max(G.shake, .25);
   return room.waystone;
 }
-/** A floor's boss has fallen: on floors 1 to 4 its waystone rises at the back of the room (before the boss's gifts are laid,
+/** A floor's boss has fallen: on floors 1 to 4 its waystone rises to the side at the back of the room (out of reach of the page and the pedestals) (before the boss's gifts are laid,
     so they keep clear of it). */
 export function waystoneAfterBoss(room: Room) {
   if (G.run.floor >= FLOORS.length - 1) return; // (floor 5: nothing below to carry runes to)

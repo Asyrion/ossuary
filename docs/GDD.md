@@ -494,7 +494,7 @@ offered a run, before the waystones' pairs. A spell given up sends its runes bac
 shows each slot's socket and the pouch.
 
 **The waystone (M6 step 9, as built 2026-10-03; decision 11).** Until it has a room of its own (step 10), it rises at the
-back of the boss room when the boss falls, on floors 1 to 4: a menhir of the floor's stone with a hollow for each socket,
+side of the boss room when the boss falls, on floors 1 to 4: a menhir of grey stone with a hollow for each socket,
 its runes kindling gold. Walking up to it opens its screen; a spell cast into it costs nothing and opens it on that spell.
 The first time, it rests the mage (full mana, every cooldown ended, the mana streaming to the hand). It offers a pair of
 runes, two different ones leaning to the hand: one taken, the other crumbles. Its Runes tab carves a rune from the pouch
