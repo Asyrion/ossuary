@@ -287,7 +287,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   and the lore card (`coinIconBody` in hud.ts); the rune obol in code without one. Dev menu: "Obols wear" (Look tab, Made assets), Coin faces (Galleries);
   `__game.obolFace`, `obolFaces`, `wearFace(id)`, `coinGallery()`.
 - Enemy model options (`src/actors/modelOptions.ts`, the owner's request; M4 makes them foes): ten critters and small
-  fantasy creatures built in code from simple shapes (round, big eyes from `bigEyes`, smaller than the mage; not the dead),
+  fantasy creatures built in code from simple shapes (round, big eyes from `bigEyes`, smaller than the mage; not the dead; since
+  M4.12 they wear the fantasy looks of `fantasyFloor1.ts` to `fantasyFloor5.ts` and `fantasyWardlings.ts`),
   each with a school's light and a floor (GDD: Enemies built in code), looks only for now, each with an idle motion
   (`updateModelOptions` in the loop); the dev menu stands them ahead of the mage in rows by floor, or takes them
   away; `__game.modelOptions(ids?)`, `__game.takeModelOptions()`; names and notes in `STR.options`. Familiars built the
@@ -813,8 +814,8 @@ after `CFG.hero.fidget` seconds standing still). A rig with no death clip topple
   (`src/ui/afflictions.ts`: `afflictions()`, `hexDrained`; labels and lines in `STR.afflict`; a new affliction gets a chip,
   a colour and a line there); a reaction's, weakness's or counter's word rises over the foe. A new mechanic isn't done
   until it shows.
-- Placeholder names (Ossuary, the ten foes in code (Sporeling to Rime Drakeling) and M4.1's eight (Wickmouse to Lantern
-  Tortoise), Hollow Warden, Drowned Abbess, Pyre Knight, the Hallowed Hart, the Deep Angler, Ember Sigil) will be replaced with Eda lore later; keep all player-facing strings in one place to make that easy.
+- Placeholder names (Ossuary, the ten foes in code (Spore Fiend to Rime Drake) and M4.1's eight (Candle Kobold to Dragon
+  Turtle), the names M4.12 gave M4.5's, Hollow Warden, Drowned Abbess, Pyre Knight, the Hallowed Hart, the Deep Angler, Ember Sigil) will be replaced with Eda lore later; keep all player-facing strings in one place to make that easy.
 
 ## After M0: roadmap
 
