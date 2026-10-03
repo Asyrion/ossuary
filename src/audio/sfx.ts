@@ -467,6 +467,9 @@ export const Sfx = {
   toggle() { muted = !muted; applyVolumes(); return muted; },
   /** The audio context and the music and ambience buses (docs/sound-plan.md), once the first key or click has made them. */
   get buses() { return ctx ? { ctx, music, ambience } : null; },
+  /** Where to send a sound built elsewhere (an animated creature's, docs/creatures.md) that happens at (x, z) in the room:
+      panned and quieter further off, on the effects bus; null before the first key or click, or while muted. */
+  place(x: number, z: number): { ctx: AudioContext; out: AudioNode } | null { return ctx && !muted ? { ctx, out: spot(x, z) } : null; },
   /** Where the mage stands: effects are heard from just above. */
   listen(x: number, z: number) { listener.x = x; listener.z = z; },
   /** The sounds, played at (x, z) in the room: `Sfx.at(foe.x, foe.z).hit()`. */

@@ -351,6 +351,9 @@ export const CFG = {
     music: { level: 0.5, send: 0.55, muffle: 700, glue: { threshold: -16, ratio: 3.5, knee: 10, attack: 0.02, release: 0.3 } },
     preview: 40,
   },
+  // creatures made in Tripo and animated in code (actors/madeCreatures.ts, docs/creatures.md): the lap walked (its radius),
+  // seconds walking and resting, how long one clip blends into the next, and the loudness of its footsteps and its roar
+  creatures: { lap: 1.3, walkFor: 6, restFor: 1.4, blend: 0.3, stepGain: 0.3, roarGain: 0.4 },
   // the mage in the pixel-art look (actors/heroPixel.ts, 2026-10-01): its texture baked into its vertices (each the mean of
   // the texels within `sample` of where it lies) and cut down to `colours`; light in the `tones` (darkest first, a toon
   // ramp's steps) with `glow` of its own colour as self-light, as the model had, so it reads in dark rooms

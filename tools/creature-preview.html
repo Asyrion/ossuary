@@ -1,0 +1,67 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Creature preview</title></head>
+<body style="margin:0;background:#1a1714"><canvas id="c"></canvas>
+<script type="module">
+/* The preview of an animated creature (docs/creatures.md), driven by tools/creature-preview.ts: a short scene (it rests,
+   walks across, turns to the viewer, roars, rests), each frame rendered on request and its sounds rendered offline on the
+   same timeline, from the game's own code (src/audio/creatureSounds.ts, the floor's soundscape). */
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import data from '/data/creatures.json';
+import { CREATURE_SOUNDS } from '/src/audio/creatureSounds.ts';
+import { AmbienceMix } from '/src/audio/ambience.ts';
+import { Rand } from '/src/audio/synth.ts';
+import { wav } from '/src/audio/render.ts';
+
+const q = new URLSearchParams(location.search), id = q.get('id') ?? 'owlbear', W = +(q.get('w') ?? 960), H = +(q.get('h') ?? 540), FPS = 30;
+const info = data[id];
+const cv = document.getElementById('c'); cv.width = W; cv.height = H;
+const r = new THREE.WebGLRenderer({ canvas: cv, antialias: true, preserveDrawingBuffer: true }); r.setSize(W, H, false); r.outputColorSpace = THREE.SRGBColorSpace;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x1a1714); scene.fog = new THREE.Fog(0x1a1714, 4, 9);
+scene.add(new THREE.HemisphereLight(0xc8c0b0, 0x2a2420, 1.6));
+const key = new THREE.DirectionalLight(0xffe2bd, 3); key.position.set(-1.5, 2.5, 2); scene.add(key);
+const rim = new THREE.DirectionalLight(0x8899ff, 1.2); rim.position.set(1.5, 1.5, -2); scene.add(rim);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), new THREE.MeshStandardMaterial({ color: 0x3a332c, roughness: 1 })); floor.rotation.x = -Math.PI / 2; scene.add(floor);
+const grid = new THREE.GridHelper(10, 40, 0x4a4238, 0x433c33); grid.position.y = .001; scene.add(grid);
+const cam = new THREE.PerspectiveCamera(30, W / H, .01, 30); cam.position.set(-.25, .82, 2.35); cam.lookAt(-.3, .42, 0);
+
+const g = await new GLTFLoader().loadAsync('/' + info.file);
+const model = g.scene; scene.add(model);
+const mixer = new THREE.AnimationMixer(model), actions = {};
+for (const c of g.animations) { const a = mixer.clipAction(c); a.play(); a.setEffectiveWeight(0); actions[c.name] = a; }
+
+// the scene: [clip, seconds, moving?] in turn; walking carries it along +x at the pace its paws set
+const plan = [['idle', .7], ['walk', info.clips.walk.duration * 2, true], ['idle', .9, false, 'turn'], ['roar', info.clips.roar.duration], ['idle', 1.1]];
+let at = 0; const segs = plan.map(([clip, len, moving, turn]) => { const s = { clip, start: at, len, moving, turn }; at += len; return s; });
+const total = at, BLEND = .25, x0 = -.75, speed = info.walkSpeed;
+const place = t => { let x = x0, heading = Math.PI / 2; for (const s of segs) { const u = Math.min(Math.max(t - s.start, 0), s.len); if (s.moving) x += u * speed; if (s.turn && t > s.start) heading = Math.PI / 2 - .55 * Math.min(1, u / s.len); } return { x, heading }; };
+window.preview = {
+  frames: Math.round(total * FPS), fps: FPS, seconds: total,
+  frame(i) {
+    const t = i / FPS, k = segs.findIndex(s => t < s.start + s.len), cur = segs[k < 0 ? segs.length - 1 : k], prev = segs[k - 1];
+    for (const a of Object.values(actions)) a.setEffectiveWeight(0);
+    const local = (s, tt) => { const c = info.clips[s.clip]; const u = tt - s.start; return c.loop ? u % c.duration : Math.min(u, c.duration - 1e-3); };
+    const w = prev ? Math.min(1, (t - cur.start) / BLEND) : 1;
+    const ac = actions[cur.clip]; ac.time = local(cur, t); ac.setEffectiveWeight(w);
+    if (prev && w < 1) { const ap = actions[prev.clip]; if (ap !== ac) { ap.time = local(prev, t); ap.setEffectiveWeight(1 - w); } }
+    mixer.update(0);
+    const p = place(t); model.position.x = p.x; model.rotation.y = p.heading;
+    r.render(scene, cam);
+  },
+  /** The sounds on the same timeline, with the floor's bed under them, as a base64 WAV. */
+  async audio(gain = 1) {
+    const sr = 44100, ctx = new OfflineAudioContext(2, Math.ceil(total * sr), sr), out = ctx.createGain(); out.gain.value = .8 * gain; out.connect(ctx.destination);
+    const amb = ctx.createGain(); amb.gain.value = .35; amb.connect(out); const mix = new AmbienceMix(ctx, amb); mix.set(0, 'normal', undefined, 0); mix.pump(total);
+    const rr = new Rand(7);
+    for (const s of segs) { const c = info.clips[s.clip]; for (let k = 0; c.loop ? k * c.duration < s.len : k < 1; k++) for (const e of c.events) {
+      const t = s.start + k * c.duration + e.t; if (t >= s.start + s.len || t >= total) continue;
+      const pan = ctx.createStereoPanner(); pan.pan.value = Math.max(-1, Math.min(1, place(t).x * 1.2)); pan.connect(out);
+      CREATURE_SOUNDS[e.sound]?.({ ctx, t, out: pan, r: rr, gain: e.sound === 'roar' || e.sound === 'slam' ? .8 : .6 });
+    } }
+    const buf = await ctx.startRendering(); const u8 = new Uint8Array(wav(buf)); let bin = '';
+    for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode(...u8.subarray(i, i + 0x8000));
+    return btoa(bin);
+  },
+};
+window.ready = true;
+</script></body></html>

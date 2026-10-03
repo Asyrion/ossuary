@@ -5,6 +5,7 @@ import { clearMechanisms } from './world/mechanisms';
 import { resetWardShields } from './actors/wardShield';
 import { clearWanderer, maybeWanderer, wandererLeaves } from './items/wanderer';
 import { clearModelOptions } from './actors/modelOptions';
+import { clearCreatures } from './actors/madeCreatures';
 import { clearEffectOptions } from './magic/effectOptions';
 import { CFG, type BossType } from './config';
 import type { Room } from './types';
@@ -76,7 +77,7 @@ export function setNextRun(opts: RunOptions) { nextRun = opts; }
 const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
 
 function clearEntities() {
-  clearMechanisms(); resetWardShields(); clearWanderer(); clearModelOptions(); clearEffectOptions(); clearRite(); clearSpellFx(); clearStatusFx(); clearPages(); clearProjectiles(); clearGlyphs(); clearThrows(); clearGives(); pressed.glyph = false; pressed.spells = [false, false]; pressed.potion = null; pressed.nextPotion = 0;
+  clearMechanisms(); resetWardShields(); clearWanderer(); clearModelOptions(); clearCreatures(); clearEffectOptions(); clearRite(); clearSpellFx(); clearStatusFx(); clearPages(); clearProjectiles(); clearGlyphs(); clearThrows(); clearGives(); pressed.glyph = false; pressed.spells = [false, false]; pressed.potion = null; pressed.nextPotion = 0;
   for (const p of G.particles) { scene.remove(p.m); p.m.material.dispose(); } G.particles.length = 0;
   clearEnemies();
   for (const p of G.pickups) { scene.remove(p.g); disposeTree(p.g); } G.pickups.length = 0;

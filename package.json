@@ -17,6 +17,8 @@
     "balance": "tsx tools/balance.ts",
     "foe-sheet": "tsx tools/foe-sheet.ts",
     "render-audio": "tsx tools/render-audio.ts",
+    "animate-creature": "tsx tools/animate-creature.ts",
+    "creature-preview": "tsx tools/creature-preview.ts",
     "test:unit": "vitest run",
     "test:e2e": "playwright test"
   },
