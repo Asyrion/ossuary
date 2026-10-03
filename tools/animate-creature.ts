@@ -1,5 +1,6 @@
 /* Animate a rigged creature in code (docs/creatures.md):
      npm run animate-creature -- owlbear path/to/owlbear.glb
+     npm run animate-creature -- --bones path/to/model.glb      (reads a new model's rig, for writing its recipe)
    Reads the owner's Tripo GLB, binds its skin again from the bones (Tripo's auto-rig weights can't bend a limb), bakes
    the clips of its recipe (tools/creatures/<id>.ts) into it as glTF animations, cuts its textures to 1,024 px JPEG and
    writes public/assets/creatures/<id>.glb, with what the game needs to play it (each clip's length, whether it loops,
@@ -22,8 +23,40 @@ import { BUDGETS } from '../src/assets/assetData';
     the budget it keeps to (data/assets.json: a creature the size of a boss keeps a boss's). */
 const RECIPES = { owlbear: { ...owlbear, height: 1.45, budget: 'boss' as const } };
 
+/** `--bones <in.glb>`: what a new creature's recipe needs to know, read off the model before one is written. Each bone in
+    its tree with where its joint stands (the model's frame: x left-right, y up, z forward) and how many vertices Tripo
+    bound to it most; the model's triangles, size and textures. */
+async function bones(input: string) {
+  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
+  const doc = await io.read(input), rig = new Rig(doc), most = new Map<string, number>();
+  let tris = 0;
+  for (const skin of doc.getRoot().listSkins()) {
+    const joints = skin.listJoints().map(j => j.getName());
+    for (const node of doc.getRoot().listNodes()) if (node.getSkin() === skin) for (const p of node.getMesh()!.listPrimitives()) {
+      const J = p.getAttribute('JOINTS_0'), W = p.getAttribute('WEIGHTS_0'); if (!J || !W) continue;
+      for (let i = 0; i < J.getCount(); i++) {
+        const j = J.getElement(i, [0, 0, 0, 0]), w = W.getElement(i, [0, 0, 0, 0]), k = w.indexOf(Math.max(...w));
+        most.set(joints[j[k]], (most.get(joints[j[k]]) ?? 0) + 1);
+      }
+    }
+  }
+  for (const m of doc.getRoot().listMeshes()) for (const p of m.listPrimitives()) tris += (p.getIndices()?.getCount() ?? p.getAttribute('POSITION')!.getCount()) / 3;
+  const f = (n: number) => n.toFixed(3).padStart(7);
+  const walk = (o: { name: string; children: { name: string }[] }, depth: number) => {
+    const at = rig.at(o.name);
+    console.log(`${'  '.repeat(depth)}${o.name.padEnd(24 - Math.min(20, depth * 2))} ${f(at.x)} ${f(at.y)} ${f(at.z)}   ${most.get(o.name) ?? 0} vertices`);
+    for (const c of o.children) walk(c as typeof o, depth + 1);
+  };
+  console.log(`${input}: ${tris} triangles\nbone                          x       y       z   (where its joint stands; vertices bound to it most)`);
+  for (const c of rig.root.children) walk(c, 0);
+  for (const t of doc.getRoot().listTextures()) console.log(`texture ${t.getName() || '(unnamed)'}: ${t.getSize()?.join(' x ')} ${t.getMimeType()}, ${(t.getImage()!.byteLength / 1024).toFixed(0)} KB`);
+  for (const m of doc.getRoot().listMaterials()) console.log(`material ${m.getName()}: ${m.getDoubleSided() ? 'two-sided' : 'one-sided'}, ${['base colour', 'normal'].filter((_, i) => i ? m.getNormalTexture() : m.getBaseColorTexture()).join(' and ')} texture`);
+}
+
 async function main() {
-  const [id, input] = process.argv.slice(2).filter(a => !a.startsWith('-'));
+  const args = process.argv.slice(2).filter(a => !a.startsWith('-'));
+  if (process.argv.includes('--bones')) { if (!args[0]) { console.error('usage: npm run animate-creature -- --bones <in.glb>'); process.exit(1); } return bones(args[0]); }
+  const [id, input] = args;
   const R = RECIPES[id as keyof typeof RECIPES];
   if (!R || !input) { console.error(`usage: npm run animate-creature -- <${Object.keys(RECIPES).join('|')}> <in.glb>`); process.exit(1); }
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'sharp': sharp });
