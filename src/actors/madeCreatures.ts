@@ -38,16 +38,16 @@ interface Shown {
 const loader = new GLTFLoader(), loaded = new Map<string, Promise<GLTF>>(), shown: Shown[] = [], r = new Rand(31);
 
 /** Stand creature `id` in `room` at world (x, z), the south side of the lap it walks: loaded once, a copy each time.
-    Resolves once it stands there. */
-export async function showCreature(id: string, room: Room, x: number, z: number) {
+    Resolves once it stands there, in the look chosen when it was called (`l`). */
+export async function showCreature(id: string, room: Room, x: number, z: number, l = look) {
   const info = CREATURES[id]; if (!info) throw new Error(`no creature "${id}"`);
-  const file = look === 'full' ? info.full : info.file;
+  const file = l === 'full' ? info.full : info.file;
   if (!loaded.has(file)) loaded.set(file, loader.loadAsync(`${import.meta.env.BASE_URL}${file}`).then(g => { g.scene.traverse(o => { const m = (o as THREE.Mesh).material; if (m) (Array.isArray(m) ? m : [m]).forEach(x => x.userData.shared = true); }); return g; })); // (its materials shared by every copy: taking one away leaves them)
   const gltf = await loaded.get(file)!;
   if (!G.rooms.includes(room)) return null; // (the floor changed while it loaded)
   const model = cloneSkinned(gltf.scene) as THREE.Object3D, scale = info.height / info.modelHeight;
   model.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) { m.geometry = m.geometry.clone(); m.frustumCulled = false; } }); // (its own geometry: the bake writes colours into it, and taking it away disposes it)
-  if (look === 'pixel') { // (the pixel-art look, as the mage wears it: its colours in its vertices, light in bands)
+  if (l === 'pixel') { // (the pixel-art look, as the mage wears it: its colours in its vertices, light in bands)
     bakeHeroPixel(model); model.traverse(o => { if (o.userData.pixel) (o as THREE.Mesh).material = o.userData.pixel; });
   }
   model.scale.setScalar(scale);
@@ -55,7 +55,7 @@ export async function showCreature(id: string, room: Room, x: number, z: number)
   group.position.set(x - room.cx, 0, z - room.cz); room.group.add(group);
   const mixer = new THREE.AnimationMixer(model), actions: Record<string, THREE.AnimationAction> = {};
   for (const clip of gltf.animations) { const a = mixer.clipAction(clip); a.setLoop(info.clips[clip.name]?.loop === false ? THREE.LoopOnce : THREE.LoopRepeat, Infinity); a.clampWhenFinished = true; actions[clip.name] = a; }
-  const s: Shown = { id, look, room, stood: { x, z }, group, mixer, actions, state: 'idle', left: CFG.creatures.firstRest, next: ['walk', 'idle', 'roar', 'idle'], at: { x, z: z - CFG.creatures.lap }, angle: 0, last: 0, fresh: true, clip: '', heading: Math.PI / 2 };
+  const s: Shown = { id, look: l, room, stood: { x, z }, group, mixer, actions, state: 'idle', left: CFG.creatures.firstRest, next: ['walk', 'idle', 'roar', 'idle'], at: { x, z: z - CFG.creatures.lap }, angle: 0, last: 0, fresh: true, clip: '', heading: Math.PI / 2 };
   play(s, 'idle'); shown.push(s);
   return s;
 }
@@ -118,12 +118,28 @@ export function takeCreatures(room: Room) {
 }
 /** Draw the creatures in `l` from now on (remembered in this browser): those standing are stood again where they first
     stood, in the new look. */
-export async function setCreatureLook(l: CreatureLook) {
+let changing: Promise<void> = Promise.resolve();
+export function setCreatureLook(l: CreatureLook) {
   look = l;
   try { localStorage.setItem(KEY, l); } catch { /* not remembered */ }
-  const again = shown.map(s => ({ id: s.id, room: s.room, ...s.stood }));
-  for (const room of new Set(again.map(a => a.room))) takeCreatures(room);
-  for (const a of again) await showCreature(a.id, a.room, a.x, a.z);
+  // (one change after another: a change made while the last one's file still loads waits for it, then stands them in the
+  // look chosen last)
+  changing = changing.then(async () => {
+    const now = look, again = shown.map(s => ({ id: s.id, room: s.room, ...s.stood }));
+    for (const room of new Set(again.map(a => a.room))) takeCreatures(room);
+    for (const a of again) await showCreature(a.id, a.room, a.x, a.z, now);
+    if (now !== 'full') for (const info of Object.values(CREATURES)) forget(info.full); // (the textures as imported leave the GPU)
+  });
+  return changing;
+}
+/** Let a loaded file go, with its materials and textures (none of its copies stand any more). */
+function forget(file: string) {
+  const g = loaded.get(file); if (!g) return;
+  loaded.delete(file);
+  void g.then(gltf => gltf.scene.traverse(o => {
+    const m = (o as THREE.Mesh).material; if (!m) return;
+    for (const mat of Array.isArray(m) ? m : [m]) { for (const v of Object.values(mat)) if ((v as THREE.Texture)?.isTexture) (v as THREE.Texture).dispose(); mat.dispose(); }
+  }), () => { /* it never loaded */ });
 }
 /** A new floor: its rooms are gone, and the creatures with them. */
 export function clearCreatures() { shown.length = 0; }
