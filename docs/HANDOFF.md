@@ -11,7 +11,7 @@ Delete it, or write it again, at the next handoff.
   [Asyrion/ossuary#36](https://github.com/Asyrion/ossuary/pull/36), and on top of it another session's owlbear made in
   Tripo (`c42a556`, `020d852`).
 - On the branch only, **not shipped** (ship only when the owner asks: the `ship` skill, the `rules-reviewer` first): M6
-  step 10, the waystone room, and step 11, the shrine's bargain (2026-10-03).
+  step 10, the waystone room, step 11, the shrine's bargain, and step 12, the run around it with harder runs (2026-10-03).
 
 - **GitHub milestones** (the owner's rule, 2026-10-03): every roadmap milestone is one on GitHub (M0 to M5 closed, M6 to
   M8 open). Create a new one with `npm run milestone -- open "M9 Name" "Its goal"` when it enters the roadmap, and close a
@@ -60,8 +60,7 @@ the looks: the Pale Unicorn (`moonstagFawn`, keeps away) now outlasts the bot's 
    - the six Wardlings, as ward cores: approved 2026-10-03;
    - the bosses' eight looks: approved 2026-10-03, the Warden wearing the Owlbear.
 2. ~~M4.12 step 9~~, the close: built 2026-10-03; the owner's play-test waits.
-3. ~~M6 steps 8 to 11 (runes as things, the waystone, its room, the shrine's bargain)~~: built 2026-10-03, each after its plan with the owner. **Step 12, the run around it** (next), then step 13 (the close), as `docs/M6-plan.md` sets out. The owner asked for each M6 step to be planned first, in plan mode,
-   before any code. Do the same for step 12.
+3. ~~M6 steps 8 to 12~~: built 2026-10-03, each after its plan with the owner. **Step 13, the close** (next), as `docs/M6-plan.md` sets out; then close M6 on GitHub (`npm run milestone -- close M6`). The owner's rule from step 12: harder never means foes with more health.
 
 ## How a floor's looks are made (the routine that worked for floor 1)
 

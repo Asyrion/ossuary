@@ -491,6 +491,28 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
     - **Deeper starts:** `levelAtFloor` (pure) and `?level=auto` start a deeper floor at its expected level.
     - **The balance bot:** `tools/balance.ts` writes insight per room and each floor's end level into
       docs/balance-runs.md, and M4.9's dials are checked at those levels, with any changes made in data only.
+
+    *Built (2026-10-03)* after a plan of its own (the owner's choices: a deeper start's choices wait; floors that come out
+    easier get their dials raised), and with the owner's ask made while it was built: **the run had grown too easy**; make
+    it harder with more rooms and scarcer hearts, **never with foes that soak blows**.
+    - **The arc:** `arcHeld` adds `arcLevels()` (every `CFG.arc.perLevels`, 3, levels gained count as one artifact); a level
+      reached calls `updateArc` and dresses the mage when the stage changes (`leveled` in insight.ts).
+    - **Deeper starts:** `levelAtFloor` (levelData.ts) from `CFG.levels.floorInsight` (the measured medians): levels 1, 4,
+      7, 9, 11 at the floors' starts; `?level=auto`, the dev menu's new runs.
+    - **Harder runs:** every floor three more rooms (13 to 17, 16 to 20, 17 to 21, 18 to 22, 18 to 22); hearts half as
+      likely a room (room clears, urns, piles, coffers: 2.7, 3.1, 3.6, 3.8 and 3.5 half hearts a floor, against 4.1, 4.7,
+      5.2, 5.5 and 5.3 before); a room clear drops something half the time (0.65 before); obols kept in the GDD's 12 to 18
+      (fewer from clears, foes, urns; a gilded chest 0.08); the level thresholds scaled to the extra insight (`CFG.levels.at`
+      from 80 on), so floors still end at levels 4, 7, 9 and 11, the cap on floor 5.
+    - **The bot** starts each floor at `levelAtFloor` and reports insight a room and each floor's end level (on the curve
+      exactly: 4.0, 7.0, 9.0, 11.0, 12.0). At their levels floors 1, 3 and 5 came out 10 to 20% easier a room than the
+      level-1 run of 2026-10-01, so every floor's pressure rose (extra 0.12, 0.16, 0.28, 0.32, 0.42; eliteMul 1.1, 1.15,
+      1.3, 1.35, 1.5; floor 1 no longer bare). Verified on four seeds, six builds: a room's seconds · hearts lost are
+      15.0 · 1.0, 17.6 · 1.0, 25.0 · 3.7, 24.9 · 3.6 and 42.5 · 4.9 (15.4 · 0.9, 15.6 · 1.1, 25.1 · 4.5, 25.3 · 3.0 and
+      48.8 · 5.2 at level 1 before): each room as hard at its level as it was at level 1, three more of them a floor and
+      fewer hearts. No foe's health changed.
+    - **Found on the way:** the bot's first full run stopped on a Rootling's dig sound with no position; a sound from
+      nowhere now plays in the middle, and a foe or the mage whose step goes non-finite keeps where it was.
 13. **Close**:
     - the GDD as built, with its stale lines fixed: the pacing target, the waystone's three descriptions, the shrine's
       floors, Hex's "life or mana", the boons' and runes' names, shapes choosing runes, "five schools", the potion key,
