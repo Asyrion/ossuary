@@ -459,7 +459,7 @@ export function buildWallsAndDoors(room: Room) {
     const shift = pd.shift ?? 0; // how far the door has moved along its edge (M3.6)
     const x = pd.gx * PX + dx * hx + (dx ? 0 : shift), z = pd.gy * PZ + dz * hz + (dz ? 0 : shift); // middle of the doorway on the room's inside edge
     const either = (t: string) => room.type === t || nb.type === t;
-    const style: DoorStyle = either('secret') ? 'secret' : either('boss') ? 'boss' : either('ordeal') ? 'ordeal' : either('altar') ? 'altar' : either('treasure') ? 'treasure'
+    const style: DoorStyle = either('secret') ? 'secret' : either('waystone') ? 'waystone' : either('boss') ? 'boss' : either('ordeal') ? 'ordeal' : either('altar') ? 'altar' : either('treasure') ? 'treasure'
       : either('vault') ? 'vault' : either('merchant') ? 'merchant' : either('shrine') ? 'shrine' : either('library') ? 'library' : either('laboratory') ? 'laboratory' : 'normal';
     room.doors.push(buildDoor(room, pd.side, nb, style, x, z));
   }
@@ -636,6 +636,10 @@ function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number
     halo.position.set(ep.x, h + .14, ep.z); halo.rotation.y = ns ? 0 : Math.PI / 2;
     const light = glow(0xffe8b0, .9, .8); light.position.copy(halo.position);
     room.group.add(halo, light);
+  } else if (style === 'waystone') { // (M6 step 10) a small grey menhir, its rune lit gold
+    const stone = new THREE.Mesh(new THREE.BoxGeometry(.14, .3, .08), M.frame.waystone); stone.position.set(ep.x, h + .16, ep.z); stone.rotation.y = ns ? 0 : Math.PI / 2;
+    const light = glow(0xffbe3a, .8, .7); light.position.copy(stone.position);
+    room.group.add(stone, light);
   } else if (style === 'laboratory') { // (M5) a flask of green jelly
     const flask = new THREE.Mesh(new THREE.SphereGeometry(.11, 8, 6), basicMat(0x7ae070)); flask.position.set(ep.x, h + .12, ep.z);
     const light = glow(0x7ae070, .9, .8); light.position.copy(flask.position);

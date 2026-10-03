@@ -8,6 +8,7 @@ interface GameHooks {
   enemies: Foe[]; current: RoomView; rooms(): RoomView[]; map(): string;
   hero: { info: string }; keys: Set<string>; arrowOrder: string[];
   warp(id: number): void; sim(sec: number, draw?: boolean): void;
+  wayDown: { x: number; z: number; room: string | null } | null;
 }
 type W = { __game: GameHooks; __manual: boolean; __fight(limit: number, step?: number): number };
 
@@ -142,13 +143,13 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
   const errors = await start(page, '?seed=SMOKE1');
   const floor1 = await page.evaluate(() => {
     const g = (window as unknown as W).__game;
-    return { seed: g.seed, floor: g.floor, rooms: g.rooms().filter(r => r.type !== 'secret').length, types: g.rooms().map(r => r.type), map: g.map() };
+    return { seed: g.seed, floor: g.floor, rooms: g.rooms().filter(r => !['secret', 'laboratory', 'waystone'].includes(r.type)).length, types: g.rooms().map(r => r.type), map: g.map() };
   });
   expect(floor1.seed).toBe('SMOKE1');
   expect(floor1.floor).toBe(0);
-  expect(floor1.rooms).toBeGreaterThanOrEqual(10); // M3's counts (data/floors.json), the secret room on top
+  expect(floor1.rooms).toBeGreaterThanOrEqual(10); // M3's counts (data/floors.json), the secret room, a laboratory and the waystone room on top
   expect(floor1.rooms).toBeLessThanOrEqual(14);
-  for (const t of ['start', 'boss', 'treasure', 'ordeal', 'merchant', 'library', 'secret']) expect(floor1.types.filter(x => x === t)).toHaveLength(1);
+  for (const t of ['start', 'boss', 'treasure', 'ordeal', 'merchant', 'library', 'secret', 'waystone']) expect(floor1.types.filter(x => x === t)).toHaveLength(1);
 
   const boss = await page.evaluate(() => {
     const w = window as unknown as W, g = w.__game;
@@ -156,18 +157,20 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
     const seconds = w.__fight(180);
     g.sim(0.5);
     const spots = (g.current as RoomView & { spots: { pair?: object }[] }).spots;
-    return { seconds, left: g.enemies.length, cleared: g.current.cleared, choice: spots.length, paired: spots.every(s => !!s.pair) };
+    return { seconds, left: g.enemies.length, cleared: g.current.cleared, choice: spots.length, paired: spots.every(s => !!s.pair), wayDown: g.wayDown };
   });
   console.log(`floor 1 boss beaten in ${boss.seconds.toFixed(1)} s of game time`);
-  expect(boss).toMatchObject({ left: 0, cleared: true, choice: 2, paired: true });
+  expect(boss).toMatchObject({ left: 0, cleared: true, choice: 2, paired: true, wayDown: null }); // (M6 step 10: the way down is in the waystone room)
 
   const floor2 = await page.evaluate(() => {
-    const g = (window as unknown as W).__game, room = g.current;
-    g.player.x = room.cx; g.player.z = room.cz + .3; g.sim(0.2, true); // step onto the trapdoor
-    return { state: g.state, floor: g.floor, rooms: g.rooms().filter(r => r.type !== 'secret').length, current: g.current.type, shrines: g.rooms().filter(r => r.type === 'shrine').length };
+    const g = (window as unknown as W).__game;
+    g.warp(g.rooms().find(r => r.type === 'waystone')!.plan.id); g.sim(2); // the stone rises, kindles, and the trapdoor opens beyond it
+    const down = g.wayDown!;
+    g.player.x = down.x; g.player.z = down.z; g.sim(0.2, true); // step onto the trapdoor
+    return { down: down.room, state: g.state, floor: g.floor, rooms: g.rooms().filter(r => !['secret', 'laboratory', 'waystone'].includes(r.type)).length, current: g.current.type, shrines: g.rooms().filter(r => r.type === 'shrine').length };
   });
   await page.screenshot({ path: 'test-results/smoke-floor2.png' });
-  expect(floor2).toMatchObject({ state: 'play', floor: 1, current: 'start', shrines: 1 }); // the shrine is on floor 2
+  expect(floor2).toMatchObject({ down: 'waystone', state: 'play', floor: 1, current: 'start', shrines: 1 }); // the shrine is on floor 2
   expect(floor2.rooms).toBeGreaterThanOrEqual(13);
   expect(floor2.rooms).toBeLessThanOrEqual(17);
   expect(errors).toEqual([]);
@@ -2026,7 +2029,7 @@ test('the jelly serpent (M5): three bolts crack the vat window and it breaks out
   expect(errors).toEqual([]);
 });
 
-test('the jelly serpent as a floor\'s boss (M5: ?boss=serpent) pours its own jelly round it, and falls to a trapdoor as bosses do', async ({ page }) => {
+test('the jelly serpent as a floor\'s boss (M5: ?boss=serpent) pours its own jelly round it, and falls as bosses do, its way down past the waystone (M6 step 10)', async ({ page }) => {
   const errors = await start(page, '?seed=SERPB&boss=serpent');
   type GS = GP & { serpent: { serpent: { state: string } | null; jelly: number; run: string }; rooms(): { type: string; plan: { id: number } }[]; current: { locked?: boolean }; hit(i: number, dmg: number, school?: string): void };
   const boss = await page.evaluate(() => {
@@ -2036,9 +2039,10 @@ test('the jelly serpent as a floor\'s boss (M5: ?boss=serpent) pours its own jel
   expect(boss.s.jelly).toBeGreaterThanOrEqual(25); expect(boss.s.serpent).toBeTruthy(); expect(boss.locked).toBe(true); expect(boss.bar).toBe('The Jelly Serpent');
   const fell = await page.evaluate(() => {
     const g = (window as unknown as W).__game as unknown as GS, i = g.enemies.findIndex(e => (e as unknown as { type: string }).type === 'serpent');
-    (g.enemies[i] as unknown as { hidden: boolean }).hidden = false; g.hit(i, 9999, 'storm'); g.sim(1.5); return { locked: !!g.current.locked, banner: document.querySelector('#banner .t')?.textContent, run: g.serpent.run, trapdoor: (g as unknown as { trapdoor: boolean }).trapdoor };
+    (g.enemies[i] as unknown as { hidden: boolean }).hidden = false; g.hit(i, 9999, 'storm'); g.sim(1.5); const fell = { locked: !!g.current.locked, banner: document.querySelector('#banner .t')?.textContent, run: g.serpent.run, sub: document.querySelector('#banner .s')?.textContent };
+    g.warp(g.rooms().find(r => r.type === 'waystone')!.plan.id); g.sim(2); return { ...fell, wayDown: g.wayDown?.room };
   });
-  expect(fell).toEqual({ locked: false, banner: 'The serpent melts back into jelly', run: 'caged', trapdoor: true }); // (the vat's own serpent is still in its vat)
+  expect(fell).toEqual({ locked: false, banner: 'The serpent melts back into jelly', sub: 'The way down lies past the waystone', run: 'caged', wayDown: 'waystone' }); // (the vat's own serpent is still in its vat)
   expect(errors).toEqual([]);
 });
 
@@ -4718,7 +4722,7 @@ test('runes as things (M6 step 8): a rune walked over goes to the pouch with its
   expect(errors2).toEqual([]);
 });
 
-test('the waystone (M6 step 9): it rises where the boss fell and kindles; walking up opens it and rests the mage; one of its pair taken, the other crumbles; a rune carved from the pouch and lifted out; a spell cast into it costs nothing and opens on that spell; Second Socket opens a second socket; the belt reordered here and in the inventory; none on floor 5', async ({ page }) => {
+test('the waystone (M6 step 9; where a floor has no waystone room, as under ?room=): it rises where the boss fell and kindles; walking up opens it and rests the mage; one of its pair taken, the other crumbles; a rune carved from the pouch and lifted out; a spell cast into it costs nothing and opens on that spell; Second Socket opens a second socket; the belt reordered here and in the inventory; none on floor 5', async ({ page }) => {
   type WS = { x: number; z: number; rise: number; lit: boolean; rested: boolean; pair: string[] | null; target: number; screen: { open: boolean; tab: string } };
   type GS = { sim(s: number, draw?: boolean): void; warp(id: number): void; clearRoom(): void; drop(kind: string, x?: number, z?: number, o?: { rune?: string }): void; cast(slot: number): boolean;
     waystone: WS | null; stoneTake(i: number): boolean; stoneCarve(slot: number, id: string): string | null; stoneLift(slot: number, id: string): boolean; stoneSocket(slot: number): boolean;
@@ -4768,6 +4772,36 @@ test('the waystone (M6 step 9): it rises where the boss fell and kindles; walkin
   const deep = await page.evaluate(() => { const g = (window as unknown as { __game: GS }).__game; g.warp(1); g.sim(.3); g.clearRoom(); g.sim(2); return g.waystone; });
   expect(deep).toBeNull();
   expect(errors5).toEqual([]);
+});
+
+test('the waystone room (M6 step 10): beside the boss room, empty and dark until the boss falls; then the boss room points to it, the stone rises as the mage walks in, kindles and lights the room, the trapdoor opens beyond it away from the door, and it leads down', async ({ page }) => {
+  const errors = await start(page, '?seed=WAY10&boss=warden&spells=cinder_lance');
+  const r = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player; P.invuln = 999;
+    const stone = g.rooms().find(r => r.type === 'waystone'), boss = g.rooms().find(r => r.type === 'boss');
+    const door = boss.plan.doors.find(d => d.to === stone.plan.id), side = stone.plan.doors[0].side;
+    g.warp(stone.plan.id); g.sim(.5); const early = { stone: g.waystone, wayDown: g.wayDown };
+    g.warp(boss.plan.id); g.sim(.3); g.clearRoom(); g.sim(.2);
+    const sub = document.querySelector('#banner .s')?.textContent, said = new Set();
+    for (let t = 0; t < 40; t++) { said.add(document.getElementById('toast').textContent); g.sim(.25); } // (the lines, one after another)
+    const fell = { wayDown: g.wayDown, stone: g.waystone, sub, line: [...said].join(' | ') };
+    g.warp(stone.plan.id); g.sim(.2); const rising = { lit: g.waystone?.lit, wayDown: g.wayDown };
+    g.sim(2); const w = g.waystone, down = g.wayDown, cx = stone.cx, cz = stone.cz;
+    const dir = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] }[side], away = (down.x - cx) * dir[0] + (down.z - cz) * dir[1];
+    P.mana = 0; P.x = w.x + dir[0] * 2; P.z = w.z + dir[1] * 2; g.sim(.1); P.x = w.x + dir[0] * .9; P.z = w.z + dir[1] * .9; g.sim(.1); const rested = g.waystone.rested; // (from the door's side, the trapdoor beyond)
+    g.closeWaystone(); g.sim(.1);
+    P.x = down.x; P.z = down.z; g.sim(.3, true);
+    return { doorShift: door.shift, early, fell, rising, lit: w.lit, toward: (w.x - cx) * dir[0] + (w.z - cz) * dir[1], down: down.room, away, rested, floor: g.floor, state: g.state };
+  })()`) as { doorShift: number; early: { stone: unknown; wayDown: unknown }; fell: { wayDown: unknown; stone: unknown; sub: string; line: string }; rising: { lit: boolean; wayDown: unknown };
+    lit: boolean; toward: number; down: string; away: number; rested: boolean; floor: number; state: string };
+  expect(r.doorShift).toBe(0);
+  expect(r.early).toEqual({ stone: null, wayDown: null }); // (dev warp before the boss: nothing rises yet)
+  expect(r.fell).toMatchObject({ wayDown: null, stone: null, sub: 'The way down lies past the waystone' }); expect(r.fell.line).toMatch(/Beyond the (north|south|east|west) door, a stone stirs/);
+  expect(r.rising).toEqual({ lit: false, wayDown: null });
+  expect(r.lit).toBe(true); expect(r.toward).toBeGreaterThan(.5); // (the stone a little toward the door, the way down beyond it)
+  expect(r.down).toBe('waystone'); expect(r.away).toBeLessThan(-1.5); expect(r.rested).toBe(true);
+  expect(r).toMatchObject({ floor: 1, state: 'play' });
+  expect(errors).toEqual([]);
 });
 
 test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks and holds longer at II, Banked Coals burns longer, Gathering Dark gathers deeper, Perennial roots, Forking Arc forks', async ({ page }) => {

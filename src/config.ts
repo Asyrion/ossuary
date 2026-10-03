@@ -137,10 +137,14 @@ export const CFG = {
   // chip's size lying on the floor
   runeDrops: { lean: 2 / 3, chip: .24 },
   // M6 step 9, the waystone: how near (beside its half-width) the mage must stand to reach it or cast into it, how long it
-  // takes to rise and from how deep, where it rises in the boss room (from the middle: to the side and back, out of reach of
-  // the page, the pedestals, the heart and the trapdoor), the rest's streaks of mana and the gap between them, its blocker's
-  // half-width
-  waystone: { reach: .75, rise: 1.4, depth: 1.95, at: [4.4, -1.8], streaks: 7, streakGap: .08, half: .38 },
+  // takes to rise and from how deep, where it rises in the boss room where a floor has no waystone room (from the middle: to
+  // the side and back, out of reach of the page, the pedestals, the heart and the trapdoor), the rest's streaks of mana and
+  // the gap between them, its blocker's half-width; step 10's room: how far beyond the stone (away from the door) the
+  // trapdoor opens, across the room for a door in the east or west wall and down it for one in the north or south, and how
+  // dark the room waits until the stone kindles; how far from the middle toward the door the stone stands (so the trapdoor's
+  // ring, beyond it, clears the stone's top from the camera); the
+  // lane to its door in the boss room that the boss's gifts keep off (how deep, how wide either side, how far aside)
+  waystone: { reach: .75, rise: 1.4, depth: 1.95, at: [4.4, -1.8], streaks: 7, streakGap: .08, half: .38, trapdoor: [3.5, 2.4], toDoor: [1.5, .8], dark: .55, lane: [4.5, 1.2, 1.7] },
   // M6 step 5, the school boons at work (progression/boonHooks.ts): half hearts boons mend in one room at most (Votive
   // Heart and Thirsting Hex together); Seedfall's plants, `seedMax` a room at most, sought within `sowReach` tiles of the
   // fall and kept `sowClear` tiles from the mage, a door's lane and the room's middle; Spark Wake's spark refreshed rather

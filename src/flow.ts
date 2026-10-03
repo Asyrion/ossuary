@@ -58,7 +58,7 @@ import { championIndex, packRoll } from './world/fill';
 import { payBoss, payClear, resetInsight, setLevel } from './progression/insight';
 import { noAttrs } from './progression/attributes';
 import { takeBoon } from './progression/boons';
-import { waystoneAfterBoss } from './world/waystone';
+import { enterWaystone, offLane, pointToStone, waystoneAfterBoss, waystoneRoom } from './world/waystone';
 
 /** How the next run starts. Set from the URL at boot (?seed, ?floor, ?room, ?variant, ?give, ?boss, ?loot); used once. */
 export interface RunOptions {
@@ -83,7 +83,7 @@ function clearEntities() {
   clearEnemies();
   for (const p of G.pickups) { scene.remove(p.g); disposeTree(p.g); } G.pickups.length = 0;
   for (const d of G.decals) { scene.remove(d); (d.material as THREE.Material).dispose(); } G.decals.length = 0;
-  if (G.trapdoor) { scene.remove(G.trapdoor.g); disposeTree(G.trapdoor.g); G.trapdoor = null; }
+  if (G.trapdoor) { G.trapdoor.g.removeFromParent(); disposeTree(G.trapdoor.g); G.trapdoor = null; }
 }
 
 /** Tear down the current floor and generate floor `index` (0-based) of this run. */
@@ -214,7 +214,8 @@ export function enterRoom(room: Room) {
   if (firstVisit && room.type === 'secret') banner(...STR.banner.secret);
   if (room.type === 'shrine') enterShrine(room, firstVisit);
   if (room.type === 'library') enterLibrary(room, firstVisit);
-  if (room.type === 'laboratory') enterLab(room, firstVisit); // (M5: Dr. Jelly looks at one potion again this visit)
+  if (room.type === 'laboratory') enterLab(room, firstVisit);
+  if (room.type === 'waystone') enterWaystone(room, firstVisit); // (M6 step 10: the stone rises the first time after the boss) // (M5: Dr. Jelly looks at one potion again this visit)
   if (firstVisit && room.type === 'vault') banner(...(room.drunk ? STR.banner.vaultWardling(STR.schools[room.drunk]) : room.warden ? STR.banner.vaultWarden : STR.banner.vault));
   if (firstVisit && room.quietHeart) { const p = freeSpotNear(room, room.cx, room.cz); spawnHeart(p.x, p.z, 2); }
   // a treasure room with nothing left to find offers a full heart instead
@@ -325,20 +326,25 @@ export function onRoomCleared(room: Room) {
 export function onBossDead(at?: { x: number; z: number }) {
   const cur = G.current;
   hideBossBar(); payBoss(at); // (M6: its floor's insight)
-  waystoneAfterBoss(cur); // (M6 step 9: its waystone rises first, at the back, and the gifts keep clear of it)
-  const h = freeSpotNear(cur, cur.cx, cur.cz + 2);
+  // M6 step 10: the waystone and the way down are in the waystone room beside it; where the floor has none (floor 5, or no
+  // free cell), the way down opens here, and on floors 1 to 4 the stone rises first, at the back, the gifts keeping clear
+  const stone = waystoneRoom();
+  if (!stone) waystoneAfterBoss(cur);
+  const lane = (x: number, z: number) => offLane(cur, stone, x, z); // (the boss's gifts keep off the way to the waystone room)
+  const hs = lane(cur.cx, cur.cz + 2), h = freeSpotNear(cur, hs.x, hs.z);
   spawnHeart(h.x, h.z, 2);
-  makeTrapdoor(cur.cx, cur.cz); after(.5, () => Sfx.trapdoor());
+  if (!stone) { makeTrapdoor(cur.cx, cur.cz); after(.5, () => Sfx.trapdoor()); }
   // the boss leaves a choice of two artifacts: taking one makes the other vanish
   const choice = [offerGuaranteed('boss')];
   if (choice[0]) choice.push(offerSecondChoice('boss'));
   const spots = choice.filter(d => d !== null).map((d, i) => {
-    const p = freeSpotNear(cur, cur.cx + (i ? 2.6 : -2.6), cur.cz);
+    const s = lane(cur.cx + (i ? 2.6 : -2.6), cur.cz), p = freeSpotNear(cur, s.x, s.z);
     return placeArtifact(cur, d, p.x, p.z);
   });
   if (spots.length === 2) { spots[0].pair = spots[1]; spots[1].pair = spots[0]; }
-  dropPage(cur, cur.cx, cur.cz - 2.2); // and a grimoire page beside them
-  banner(STR.bosses[G.run.boss].dead, G.run.floor >= FLOORS.length - 1 ? STR.banner.wayOut : STR.banner.wayDown);
+  const ps = lane(cur.cx, cur.cz - 2.2); dropPage(cur, ps.x, ps.z); // and a grimoire page beside them
+  banner(STR.bosses[G.run.boss].dead, G.run.floor >= FLOORS.length - 1 ? STR.banner.wayOut : stone ? STR.banner.wayStone : STR.banner.wayDown);
+  if (stone) pointToStone(cur, stone);
 }
 
 /** Point the camera straight at where it belongs in `room` (no pan). */

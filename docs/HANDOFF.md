@@ -6,17 +6,12 @@ Delete it, or write it again, at the next handoff.
 
 ## The branch and what is live
 
-- Work is on **`claude/m6-plan-docs-5gjp6c`**, pushed, clean. Its last work commit is M6 step 9 (the waystone).
-- **`main` (the live Pages site) is at `593af11`**, shipped 2026-10-02 in [Asyrion/ossuary#33](https://github.com/Asyrion/ossuary/pull/33):
-  M6 steps 6 and 7, the gamepad fix, the smaller obol, Dr. Jelly as the plague doctor, the minimap's finished rooms, the
-  ware panel, and M4.12 steps 1 to 5 with floors 1 to 3 approved. Another session merged the costumes cut back to 19
-  (`806a34e`) to `main` while that PR was open; the branch was rebased onto it.
-- On the branch only, **not shipped** (ship only when the owner asks: the `ship` skill, the `rules-reviewer` first):
-  floor 4's and floor 5's approvals (every floor's foes in their new looks), the drakeling test's fix (its flight waits for
-  one long enough to rise: the Pages deploy of `593af11` failed on it once and passed on the rerun), and steps 7 and 8
-  (approved 2026-10-03) and step 9, the close: M4.12 whole; then M6 steps 8 and 9, runes as things and the waystone (2026-10-03).
-- The full browser suite last ran green on the rebased branch before the merge (121 passed); floor 4's approval and floor
-  5 were checked by the fantasy-foes, bestiary and M4 foe tests and the unit tests (396).
+- Work is on **`claude/m6-plan-docs-5gjp6c`** (the session branch `claude/m6-plan-docs-5gjp6c-htduau` kept the same).
+- **`main` (the live Pages site)** has M4.12 whole and M6 steps 8 and 9, shipped 2026-10-03 in
+  [Asyrion/ossuary#36](https://github.com/Asyrion/ossuary/pull/36), and on top of it another session's owlbear made in
+  Tripo (`c42a556`, `020d852`).
+- On the branch only, **not shipped** (ship only when the owner asks: the `ship` skill, the `rules-reviewer` first): M6
+  step 10, the waystone room (2026-10-03).
 
 - **GitHub milestones** (the owner's rule, 2026-10-03): every roadmap milestone is one on GitHub (M0 to M5 closed, M6 to
   M8 open). Create a new one with `npm run milestone -- open "M9 Name" "Its goal"` when it enters the roadmap, and close a
@@ -65,8 +60,8 @@ the looks: the Pale Unicorn (`moonstagFawn`, keeps away) now outlasts the bot's 
    - the six Wardlings, as ward cores: approved 2026-10-03;
    - the bosses' eight looks: approved 2026-10-03, the Warden wearing the Owlbear.
 2. ~~M4.12 step 9~~, the close: built 2026-10-03; the owner's play-test waits.
-3. ~~M6 steps 8 and 9 (runes as things, the waystone)~~: built 2026-10-03, each after its plan with the owner. **Step 10, the waystone's room** (next), then steps 11 to 13 (the shrine's bargain, the run around it, the close), as `docs/M6-plan.md` sets out. The owner asked for steps 5, 7, 8 and 9 each to be planned first, in plan mode,
-   before any code. Do the same for the waystone's room (step 10).
+3. ~~M6 steps 8 to 10 (runes as things, the waystone, its room)~~: built 2026-10-03, each after its plan with the owner. **Step 11, the shrine's bargain** (next), then steps 12 and 13 (the run around it, the close), as `docs/M6-plan.md` sets out. The owner asked for each M6 step to be planned first, in plan mode,
+   before any code. Do the same for step 11.
 
 ## How a floor's looks are made (the routine that worked for floor 1)
 

@@ -442,6 +442,28 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
       single door, and every boss template. The smoke test's walk to the way down and its room-count bounds are updated,
       and a browser test runs from the boss to the next floor.
     - **The room inspector** runs on it.
+
+    *Built (2026-10-03)* after a plan of its own, with the owner's two choices: the room waits empty and dark until the
+    mage first walks in after the boss falls, and the stone then rises with the trapdoor beyond it, away from the door.
+    `placeWaystone` (generate.ts) runs after the laboratory on a stream from the boss room's seed. It takes a free cell
+    beside any boss cell (a great hall's too), never touching the secret room, a lone one where there is one; its one door
+    pair has shift 0, which every boss template leaves clear. A free cell is there on over 99% of seeds. `waystone` is in
+    `RoomType` and `DoorStyle`, and floors 1 to 4 have `"waystone": true`. The templates are `waystone_plain` and
+    `waystone_cairns`.
+    - **In the game:** `enterWaystone` (waystone.ts, from `enterRoom`) gives the banner, and on the first entry with the
+      boss down (or no boss room, under `?room=`) `raiseWaystone` near the middle, a little toward the door
+      (`CFG.waystone.toDoor`, so the ring beyond clears the stone's top). The room is dark (`CFG.waystone.dark`) until the
+      stone kindles; then the trapdoor opens beyond it (`CFG.waystone.trapdoor`; `makeTrapdoor`'s `room` puts it in that
+      room's group).
+    - **The boss room:** `onBossDead` gives the boss room neither stone nor trapdoor where there is a waystone room. Its
+      banner says the way down lies past the waystone and a line names the door (`pointToStone`); the gifts step off the
+      lane to that door (`offLane`, `CFG.waystone.lane`). Elsewhere (floor 5, no cell) it does as before.
+    - **Its look:** the door's style `'waystone'` (a grey menhir with a gold rune on the keystone, tested before `'boss'`)
+      and a minimap mark that dims once rested (`OWN_MARK`).
+    - **The dev menu** lists it with the floor's special rooms; `?room=waystone_plain`; `__game.wayDown`.
+    - **Tests:** world.test.ts covers the rules, the plan the same with and without it, its door into every boss template
+      and the rate. The browser tests cover the seeded floor's walk down through it, the serpent-as-boss pointing past it,
+      and the room from the boss's fall to the next floor. Step 9's test stays as the fallback's.
 11. **The shrine's bargain.** A bargain stone stands at the circle's head (`buildShrine`). Its price is a heart container
     (`heartsPaid`, never the last). A spell cast into it sets the deal's school, on the run's `boons` stream. The runes run
     red, then gold, with a line and a sound. Dev menu (Rooms & runs): "Bargain here". Browser test: the price, the deal,

@@ -20,7 +20,7 @@ describe('room templates', () => {
   });
 
   it('cover every room type and normal difficulty the generator asks for', () => {
-    for (const type of ['start', 'treasure', 'boss', 'altar', 'merchant', 'vault', 'secret', 'shrine', 'library'] as const) expect(TEMPLATE_DEFS.some(d => d.types.includes(type))).toBe(true);
+    for (const type of ['start', 'treasure', 'boss', 'altar', 'merchant', 'vault', 'secret', 'shrine', 'library', 'laboratory', 'waystone'] as const) expect(TEMPLATE_DEFS.some(d => d.types.includes(type))).toBe(true);
     for (const d of [1, 2, 3]) expect(TEMPLATE_DEFS.some(t => t.types.includes('normal') && t.difficulty === d)).toBe(true);
     for (const d of [1, 2, 3]) expect(TEMPLATE_DEFS.some(t => t.types.includes('ordeal') && t.difficulty === d)).toBe(true);
   });
@@ -94,10 +94,10 @@ describe('floor generator', () => {
   const SEEDS = 400;
 
   it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i follows the rules on %# seeds', (floorNo, cfg) => {
-    let altars = 0, vaults = 0, secrets = 0, secretArtifacts = 0, roomCount = 0, bigRooms = 0, bossHalls = 0, labs = 0;
+    let altars = 0, vaults = 0, secrets = 0, secretArtifacts = 0, roomCount = 0, bigRooms = 0, bossHalls = 0, labs = 0, stones = 0;
     for (let s = 0; s < SEEDS; s++) {
       const plan = generateFloor(Rng.from('T' + s, 'floor' + floorNo), cfg, floorNo - 1);
-      const n = plan.rooms.filter(r => r.type !== 'secret' && r.type !== 'laboratory').length; // the secret room comes on top, as does a laboratory (M5)
+      const n = plan.rooms.filter(r => r.type !== 'secret' && r.type !== 'laboratory' && r.type !== 'waystone').length; // the secret room comes on top, as do a laboratory (M5) and the waystone room (M6)
       expect(n).toBeGreaterThanOrEqual(cfg.rooms[0]);
       expect(n).toBeLessThanOrEqual(cfg.rooms[1]);
       const count = (t: string) => plan.rooms.filter(r => r.type === t).length;
@@ -110,6 +110,18 @@ describe('floor generator', () => {
       expect(count('laboratory')).toBeLessThanOrEqual(cfg.laboratory ? 1 : 0); // (M5: Dr. Jelly's, on floors 1 and 3, in a spare dead end)
       for (const r of plan.rooms.filter(x => x.type === 'laboratory')) { expect(r.dist).toBeGreaterThanOrEqual(2); expect(r.shape).toBe('standard'); expect(r.artifact).toBe(false); }
       labs += count('laboratory');
+      // M6 step 10: the waystone room, on floors 1 to 4: one cell beside the boss room, opening only into it, never touching the
+      // secret room, its door in the middle of its edge, which the boss room's template leaves clear
+      expect(count('waystone')).toBeLessThanOrEqual(cfg.waystone ? 1 : 0);
+      for (const r of plan.rooms.filter(x => x.type === 'waystone')) {
+        const b = plan.rooms[plan.bossId], hid = plan.rooms.find(x => x.type === 'secret');
+        expect([r.shape, r.artifact, r.dist, r.doors.length, r.doors[0].to, r.doors[0].shift]).toEqual(['standard', false, b.dist + 1, 1, b.id, 0]);
+        const cell = r.cells[0], near = (c: { gx: number; gy: number }) => Math.abs(c.gx - cell.gx) + Math.abs(c.gy - cell.gy) === 1;
+        if (hid) expect(hid.cells.some(near)).toBe(false);
+        const door = b.doors.find(d => d.to === r.id)!;
+        expect(door.shift).toBe(0); expect(doorFits(b, door, 0)).toBe(true);
+      }
+      stones += count('waystone');
       altars += count('altar'); vaults += count('vault'); secrets += count('secret');
       // artifacts: the guaranteed sources always; optional ones share what's left of the budget, and an
       // altar is only placed with an artifact to offer
@@ -149,13 +161,13 @@ describe('floor generator', () => {
       if (hidden) {
         const open = new Set([plan.startId]), q = [plan.rooms[plan.startId]];
         while (q.length) for (const id of nbs(q.pop()!)) if (id !== hidden.id && !open.has(id)) { open.add(id); q.push(plan.rooms[id]); }
-        expect(open.size).toBe(n + count('laboratory'));
+        expect(open.size).toBe(n + count('laboratory') + count('waystone'));
         expect(hidden.shape).toBe('standard');
         expect(nbs(hidden).length).toBeGreaterThanOrEqual(2);
         for (const id of nbs(hidden)) expect(SECRET_SHUNS).not.toContain(plan.rooms[id].type);
       }
       const boss = plan.rooms[plan.bossId];
-      expect(nbs(boss).length).toBe(1);
+      expect(nbs(boss).filter(id => plan.rooms[id].type !== 'waystone').length).toBe(1); // a dead end, but for its waystone room
       expect(['standard', 'great']).toContain(boss.shape);
       expect(boss.dist).toBeGreaterThanOrEqual(2);
       if (boss.shape === 'great') bossHalls++;
@@ -179,6 +191,7 @@ describe('floor generator', () => {
     // nearly every floor has a secret room; about half of them hold an artifact
     expect(secrets / SEEDS).toBeGreaterThan(.95);
     if (cfg.laboratory) expect(labs / SEEDS).toBeGreaterThan(.9); // (nearly every floor 1 and 3 has a spare dead end for it)
+    if (cfg.waystone) expect(stones / SEEDS).toBeGreaterThan(.99); else expect(stones).toBe(0); // (M6: nearly always a free cell beside the boss)
     expect(Math.abs(secretArtifacts / secrets - cfg.secretArtifactChance)).toBeLessThan(.1);
     // about a third of the rooms take a larger or narrow shape; some bosses get a great hall
     const share = bigRooms / roomCount;
@@ -295,6 +308,18 @@ describe('doors off the middle', () => {
     // about half of the doors roll to move, and most of those find somewhere to go
     expect(shifted / doors).toBeGreaterThan(.2);
     expect(shifted / doors).toBeLessThan(.5);
+  });
+
+  it('the waystone room leaves the rest of the floor as it was (M6 step 10)', () => {
+    const without = (plan: ReturnType<typeof generateFloor>) => {
+      const stone = plan.rooms.find(r => r.type === 'waystone')?.id;
+      return plan.rooms.filter(r => r.id !== stone).map(r => [r.type, r.templateId, r.cells, r.seed, r.doors.filter(d => d.to !== stone)]);
+    };
+    for (let f = 0; f < 4; f++) for (let s = 0; s < 60; s++) {
+      const plan = generateFloor(Rng.from('W' + s, 'floor' + f), FLOORS[f], f), none = generateFloor(Rng.from('W' + s, 'floor' + f), { ...FLOORS[f], waystone: false }, f);
+      expect(none.rooms.some(r => r.type === 'waystone')).toBe(false);
+      expect(without(plan)).toEqual(without(none));
+    }
   });
 
   it('leave the rest of the floor as it was', () => {

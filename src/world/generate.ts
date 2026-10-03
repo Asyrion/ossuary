@@ -40,6 +40,7 @@ export interface FloorConfig {
   /** Whether the floor has a shrine, where curses are cleansed (GDD: 1 on floor 2). */ shrine: boolean;
   /** Whether the floor has a library, where grimoire pages teach spells (GDD: one on every floor). */ library: boolean;
   /** Whether the floor has Dr. Jelly's laboratory, with its alchemy table (M5: floors 1 and 3). */ laboratory?: boolean;
+  /** Whether the floor has a waystone room beside its boss room, holding the way down (M6 step 10: floors 1 to 4). */ waystone?: boolean;
   /** Chance the secret room holds an artifact (outside the budget) rather than a hoard. */ secretArtifactChance: number;
   /** The champion that rises in a vault forced open with glyphs. */ vaultWarden: FoeType;
   /** How much likelier soul motes are in the floor's loot than on the first floors (M4.1: the deep floors give more;
@@ -244,9 +245,43 @@ export function generateFloor(rng: Rng, cfg: FloorConfig, index: number, library
     // M5: Dr. Jelly's laboratory comes on top of the room count, last and on a stream of its own (the rest of the floor is as
     // it would be without it)
     if (cfg.laboratory) placeLaboratory(new Rng(rooms.reduce((a, r) => (a ^ r.seed) * 17 >>> 0, 0x1ab0)), rooms, library);
+    // M6 step 10: the waystone room beside the boss room, last, on a stream from the boss room's seed (planned before the
+    // laboratory, so the stone's room is drawn the same with or without one)
+    if (cfg.waystone) placeWaystone(new Rng((rooms[boss].seed ^ 0x57a7e) >>> 0), rooms, library);
     return { index, rooms, startId: 0, bossId: boss, attempts };
   }
   throw new Error('floor generation failed after 500 attempts');
+}
+
+/** M6 step 10: the waystone room: one more one-cell room on a free cell beside the boss room (any of a great hall's
+    cells), opening only into it, never touching the secret room, a lone cell where there is one. Its door is in the middle
+    of its edge, which every boss template leaves clear (`validateTemplate`). Null where no cell is free: the stone then
+    rises in the boss room. */
+export function placeWaystone(rng: Rng, rooms: PlannedRoom[], library: TemplateDef[] = TEMPLATE_DEFS) {
+  const pool = library.filter(t => t.shape === 'standard' && t.types.includes('waystone'));
+  const boss = rooms.find(r => r.type === 'boss'), secret = rooms.find(r => r.type === 'secret');
+  if (!boss || !pool.length) return null;
+  const owner = new Map<string, number>();
+  rooms.forEach((r, i) => r.cells.forEach(c => owner.set(key(c.gx, c.gy), i)));
+  const touches = (n: Cell, r: PlannedRoom | undefined) => !!r && SIDES.some(t => { const m = step(n, t); return r.cells.some(c => c.gx === m.gx && c.gy === m.gy); });
+  const spots: { cell: Cell; at: Cell; side: Side; alone: boolean }[] = [];
+  for (const c of boss.cells) for (const s of SIDES) {
+    const n = step(c, s);
+    if (!inBounds(n) || owner.has(key(n.gx, n.gy)) || !allowsSide(boss.shape, s) || touches(n, secret)) continue;
+    const alone = SIDES.every(t => { const m = step(n, t); return boss.cells.some(b => b.gx === m.gx && b.gy === m.gy) || !owner.has(key(m.gx, m.gy)); });
+    spots.push({ cell: n, at: c, side: s, alone });
+  }
+  const lone = spots.filter(p => p.alone), pick = lone.length ? lone : spots;
+  if (!pick.length) return null;
+  const p = rng.pick(pick), id = rooms.length;
+  boss.doors.push({ gx: p.at.gx, gy: p.at.gy, side: p.side, to: id, shift: 0 });
+  const stone: PlannedRoom = {
+    id, type: 'waystone', shape: 'standard', cells: [p.cell], anchor: p.cell, dist: boss.dist + 1, templateId: rng.pick(pool).id,
+    mirrorX: false, mirrorY: false, variant: 'normal', artifact: false, seed: rng.int(1, 2 ** 30),
+    doors: [{ gx: p.cell.gx, gy: p.cell.gy, side: OPPOSITE[p.side], to: boss.id, shift: 0 }],
+  };
+  rooms.push(stone);
+  return stone;
 }
 
 /** M5: Dr. Jelly's laboratory: one more one-cell room, on a free cell beside an ordinary fight room at least a step from
@@ -392,10 +427,10 @@ export function pickBoss(rng: Rng, pool: readonly BossType[], met: readonly Boss
 }
 
 /** The floor as text, one character per cell: S start, B boss, T treasure, O ordeal, A altar, M merchant,
-    V vault, ? secret, * shrine, L library, # one-cell room, + larger hall, - and | corridors, @ the current room. */
+    V vault, ? secret, * shrine, L library, J laboratory, W waystone, # one-cell room, + larger hall, - and | corridors, @ the current room. */
 export function planToText(plan: FloorPlan, currentId = -1) {
   const grid = Array.from({ length: GRID_H }, () => Array(GRID_W).fill(' '));
-  const mark: Record<string, string> = { start: 'S', boss: 'B', treasure: 'T', ordeal: 'O', altar: 'A', merchant: 'M', vault: 'V', secret: '?', shrine: '*', library: 'L' };
+  const mark: Record<string, string> = { start: 'S', boss: 'B', treasure: 'T', ordeal: 'O', altar: 'A', merchant: 'M', vault: 'V', secret: '?', shrine: '*', library: 'L', laboratory: 'J', waystone: 'W' };
   const shapeMark = (s: ShapeId) => s === 'standard' ? '#' : s === 'corridor_ew' ? '-' : s === 'corridor_ns' ? '|' : '+';
   for (const r of plan.rooms) for (const c of r.cells) grid[c.gy][c.gx] = r.id === currentId ? '@' : mark[r.type] ?? shapeMark(r.shape);
   return grid.map(row => row.join('')).join('\n');

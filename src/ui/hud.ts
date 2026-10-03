@@ -229,8 +229,8 @@ export function updateVision() {
 
 const mm = $<HTMLCanvasElement>('minimap'), mg = mm.getContext('2d')!;
 /** Rooms whose mark on the minimap says already whether they are done (a shop, an altar, a vault, a shrine, a library, a
-    laboratory, the treasure room, an ordeal): the finished mark leaves them be. */
-const OWN_MARK = new Set(['merchant', 'altar', 'vault', 'shrine', 'library', 'laboratory', 'treasure', 'ordeal']);
+    laboratory, a waystone room, the treasure room, an ordeal): the finished mark leaves them be. */
+const OWN_MARK = new Set(['merchant', 'altar', 'vault', 'shrine', 'library', 'laboratory', 'waystone', 'treasure', 'ordeal']);
 /** Whether room `r` is finished (the owner's ask, 2026-10-02): been in, its fight won, and nothing left in it to take (no
     pickup lying, no coffer or chest unopened, no artifact or page left). The minimap draws it a shade darker with a small
     tick, so the rooms still holding something stand out. */
@@ -322,6 +322,11 @@ export function renderMinimap() {
     if (r.type === 'laboratory') { // (M5) a round flask of green jelly
       mg.fillStyle = '#7ae070'; mg.beginPath(); mg.arc(cx, cy + 2, 5.5, 0, 7); mg.fill();
       mg.fillRect(cx - 1.8, cy - 7, 3.6, 6); mg.fillStyle = '#c8ffb0'; mg.fillRect(cx - 3, cy - 8, 6, 2);
+    }
+    if (r.type === 'waystone') { // (M6 step 10) a standing stone with a gold rune, dimmed once it has given its rest
+      const rested = !!r.waystone?.rested;
+      mg.fillStyle = rested ? '#5a5c62' : '#9a9ea8'; mg.beginPath(); mg.moveTo(cx - 4, cy + 7); mg.lineTo(cx - 3.5, cy - 5); mg.lineTo(cx, cy - 8); mg.lineTo(cx + 3.5, cy - 5); mg.lineTo(cx + 4, cy + 7); mg.fill();
+      mg.fillStyle = rested ? '#7a6030' : '#ffbe3a'; mg.fillRect(cx - 1, cy - 4, 2, 7); mg.fillRect(cx - 2.5, cy - 1, 5, 1.6);
     }
     if (r.type === 'treasure') {
       mg.fillStyle = r.spots.some(s => !s.taken) ? '#e8b04a' : '#6a5a3a';
