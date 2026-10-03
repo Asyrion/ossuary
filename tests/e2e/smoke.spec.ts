@@ -4986,8 +4986,11 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
     out.full = (await g.setCreatureLook('full'))[0]; out.made = (await g.setCreatureLook('made'))[0]; out.pixel = (await g.setCreatureLook('pixel'))[0];
     void g.setCreatureLook('full'); out.quick = await g.setCreatureLook('made'); // (changed again while the last one's file loads: the last look wins)
     g.takeCreatures(); g.sim(.1, true); out.left = g.creatures.length;
+    // the dragonling (a model Tripo set facing +x, turned by the tool): it stands, walks and strikes in the same routine
+    out.dragon = await g.showCreature('dragonling', 1.6); g.sim(2.5, true); out.dragonWalk = g.creatures[0];
+    g.roarNow(); g.sim(1, true); out.dragonRoar = g.creatures[0]; g.takeCreatures();
     return out;
-  }) as { stood: C[]; walking: C; moved: number; calls: number; roaring: C; full: C; made: C; pixel: C; quick: C[]; left: number };
+  }) as { stood: C[]; walking: C; moved: number; calls: number; roaring: C; full: C; made: C; pixel: C; quick: C[]; left: number; dragon: C[]; dragonWalk: C; dragonRoar: C };
   expect(r.stood).toHaveLength(1); expect(r.stood[0].clip).toBe('idle');
   expect(r.walking).toMatchObject({ state: 'walk', clip: 'walk' });
   expect(r.moved).toBeGreaterThan(.2); // (it walks its lap at the pace its paws set)
@@ -5001,5 +5004,7 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
   expect(r.pixel).toMatchObject({ look: 'pixel', texture: 0 });
   expect(r.quick).toHaveLength(1); expect(r.quick[0]).toMatchObject({ look: 'made', texture: 1024 });
   expect(r.left).toBe(0);
+  expect(r.dragon).toHaveLength(1); expect(r.dragon[0]).toMatchObject({ id: 'dragonling', look: 'made', clip: 'idle' });
+  expect(r.dragonWalk).toMatchObject({ state: 'walk', clip: 'walk' }); expect(r.dragonRoar).toMatchObject({ state: 'roar', clip: 'roar' });
   expect(errors).toEqual([]);
 });

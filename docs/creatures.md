@@ -1,7 +1,9 @@
 # Creatures from Tripo, animated and voiced in code
 
 A rigged Tripo model gets its clips (idle, walk, roar) and sounds in code, and is shown in the dev menu. The owlbear is
-the first and the template (2026-10-03, approved by the owner). For now creatures are looks only; they don't fight.
+the first and the template (2026-10-03, approved by the owner); the dragonling the second (2026-10-03, a dog-sized
+dragonling, enemy budget: `tools/creatures/dragonling.ts`, the recipe for a model that came facing the wrong way, on a
+two-legged rig, in a mid-stride pose). For now creatures are looks only; they don't fight.
 
 ## Handover message
 
@@ -30,12 +32,23 @@ Send me a preview video before anything ships. Ship only when I say so.
   face outward (`orientOutward`); the look stays two-sided for single-sheet parts such as feather flaps.
 - **Texture seams.** The texture is hundreds of islands with no gutter, so black bled into the seams. The tool pads the
   islands (`padIslands`).
-- **Size.** Over budget (the owlbear had 20,076 triangles). The tool simplifies to the budget, drops the normal map and
-  cuts the textures to 1,024 px.
+- **Facing.** The dragonling came facing +x. A recipe's `face` (degrees about the vertical) turns the model to +z before
+  anything reads it (`faceForward`: its vertices, the skeleton's top joints and the inverse bind matrices together);
+  `--bones --face=-90` reads the rig already turned.
+- **The rig and the pose.** The dragonling, a four-legged beast, was rigged as a two-legged one: its forelegs hang from
+  the chest as arms, its hind legs and tail from the root (`bone_0`), so the root is what moves and the hips (`bone_1`)
+  what pitches the body. Its rest pose was caught mid-stride (one hind leg stretched back with its foot upright, the
+  head turned): the recipe's `STANCE` moves each foot from where Tripo left it to stand square, tips the upright foot to
+  its pair's slope, and turns the head straight in every clip. A digitigrade hind leg is hip, knee and hock in the IK,
+  the foot below the hock its `paw` (kept at its slope) and the toes below that its `toes` (kept flat; `place`'s
+  `toePitch` curls them as the foot lifts).
+- **Size.** Over budget (the owlbear had 20,076 triangles, the dragonling 19,367). The tool simplifies to the budget
+  (again, tighter, while the simplifier stops short of it), drops the normal map and cuts the textures to 1,024 px.
 
 ## Steps
 
-1. **Tripo.** Rest pose, feet on the ground, no base, auto-rig, export GLB with textures. Facing +z, as the owlbear did.
+1. **Tripo.** Rest pose, feet on the ground, no base, auto-rig, export GLB with textures. Facing +z, as the owlbear did
+   (another way is turned by the recipe's `face`).
 2. **Read the rig.** `npm run animate-creature -- --bones <model.glb>` prints each bone's joint position (x left-right,
    y up, z forward) and its vertex count. The spine runs along z, the head is its front end, and the jaw is the low bone
    at the very front. Legs are the chains down to y ≈ 0 (hip, knee, ankle, toes), and the x sign tells left from right.
@@ -46,13 +59,16 @@ Send me a preview video before anything ships. Ship only when I say so.
    - `MOVING`: usually just the pelvis;
    - `CLIPS`: `idle`, `walk`, `roar`, the only names the game plays. Each has `duration`, `loop`, `pose(rig, t)` and
      `events`. A pose uses `rig.turn`, `rig.move`, `rig.update` and `rig.place` (two-bone IK, paws planted);
-   - `WALK_SPEED`.
+   - `WALK_SPEED`;
+   - `face`, if Tripo set it facing other than +z (the dragonling's `-90`).
 
-   Add it to `RECIPES` in `tools/animate-creature.ts` with `height` (tiles) and `budget` (`enemy` or `boss`).
+   Add it to `RECIPES` in `tools/animate-creature.ts` with `height` (tiles) and `budget` (`enemy` or `boss`). For a
+   four-legged model on a two-legged rig or in a pose that isn't at rest, start from `tools/creatures/dragonling.ts`.
 4. **Run it.** `npm run animate-creature -- <id> <model.glb>` writes `public/assets/creatures/<id>.glb`, `<id>.full.glb`
    (textures as imported) and `data/creatures.json`. It stops before writing if the model is over budget.
 5. **Sounds.** Events name sounds in `CREATURE_SOUNDS` (`src/audio/creatureSounds.ts`). Reuse the owlbear's (`pawFront`,
-   `pawRear`, `inhale`, `roar`, `slam`) or add new ones. `loud` events play at `CFG.creatures.roarGain`.
+   `pawRear`, `inhale`, `roar`, `slam`) or the dragonling's (`clawFront`, `clawRear`, `hiss`, `snap`, `shriek`,
+   `chitter`), or add new ones. `loud` events play at `CFG.creatures.roarGain`.
 6. **Preview.** With `npm run dev` running, `npm run creature-preview -- <id>` writes `creature-previews/<id>.mp4`.
 7. **Dev menu.** Add a name in `STR.dev.creatureNames`; the menu lists creatures from the data by itself. It's under
    Galleries → Animated creatures:

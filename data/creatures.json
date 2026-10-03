@@ -61,5 +61,77 @@
       }
     },
     "budget": "boss"
+  },
+  "dragonling": {
+    "file": "assets/creatures/dragonling.glb",
+    "full": "assets/creatures/dragonling.full.glb",
+    "height": 0.55,
+    "modelHeight": 0.978,
+    "modelLength": 0.816,
+    "walkSpeed": 0.4167,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": [
+          {
+            "t": 2.5,
+            "sound": "chitter"
+          }
+        ]
+      },
+      "walk": {
+        "duration": 0.8,
+        "loop": true,
+        "events": [
+          {
+            "t": 0,
+            "sound": "clawRear",
+            "at": "rearLeft"
+          },
+          {
+            "t": 0.2,
+            "sound": "clawFront",
+            "at": "frontLeft"
+          },
+          {
+            "t": 0.4,
+            "sound": "clawRear",
+            "at": "rearRight"
+          },
+          {
+            "t": 0.6,
+            "sound": "clawFront",
+            "at": "frontRight"
+          }
+        ]
+      },
+      "roar": {
+        "duration": 3.1,
+        "loop": false,
+        "events": [
+          {
+            "t": 0.1,
+            "sound": "hiss"
+          },
+          {
+            "t": 0.74,
+            "sound": "snap",
+            "loud": true
+          },
+          {
+            "t": 0.98,
+            "sound": "snap",
+            "loud": true
+          },
+          {
+            "t": 1.4,
+            "sound": "shriek",
+            "loud": true
+          }
+        ]
+      }
+    },
+    "budget": "enemy"
   }
 }

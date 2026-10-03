@@ -11,14 +11,15 @@ export type V3 = [number, number, number];
 const v = (a: readonly number[]) => new THREE.Vector3(a[0], a[1], a[2]);
 
 /** A leg for the IK: the joint it swings from, the knee or elbow, the ankle or wrist whose place is set, and the paw
-    bones below it (kept flat to the ground unless the recipe tips them). */
-export interface LegDef { root: string; mid: string; end: string; paw?: string[] }
+    bones below it (kept flat to the ground unless the recipe tips them), and the toes under those (kept as they lay at
+    rest, tipped only by their own pitch: a hind foot's toes stay flat while its upright foot is tipped). */
+export interface LegDef { root: string; mid: string; end: string; paw?: string[]; toes?: string[] }
 
 export class Rig {
   readonly root = new THREE.Object3D();
   readonly bones = new Map<string, THREE.Object3D>();
   private rest = new Map<string, { q: THREE.Quaternion; p: THREE.Vector3 }>();
-  private legs = new Map<string, LegDef & { pole: THREE.Vector3; foot: THREE.Vector3; pawWorld: THREE.Quaternion[] }>();
+  private legs = new Map<string, LegDef & { pole: THREE.Vector3; foot: THREE.Vector3; pawWorld: THREE.Quaternion[]; toesWorld: THREE.Quaternion[] }>();
 
   constructor(doc: Document) {
     const scene = doc.getRoot().getDefaultScene() ?? doc.getRoot().listScenes()[0];
@@ -69,13 +70,14 @@ export class Rig {
     const line = e.clone().sub(r).normalize(), pole = m.clone().sub(r); pole.sub(line.multiplyScalar(pole.dot(line))).normalize();
     // (the pole in the frame of the root's parent, so it turns with the body)
     const pinv = this.bone(def.root).parent!.getWorldQuaternion(new THREE.Quaternion()).invert();
-    this.legs.set(id, { ...def, pole: pole.applyQuaternion(pinv), foot: e, pawWorld: (def.paw ?? []).map(n => this.bone(n).getWorldQuaternion(new THREE.Quaternion())) });
+    this.legs.set(id, { ...def, pole: pole.applyQuaternion(pinv), foot: e, pawWorld: (def.paw ?? []).map(n => this.bone(n).getWorldQuaternion(new THREE.Quaternion())), toesWorld: (def.toes ?? []).map(n => this.bone(n).getWorldQuaternion(new THREE.Quaternion())) });
   }
   /** Where a leg's ankle or wrist stands at rest. */
   foot(id: string) { return this.legs.get(id)!.foot.clone(); }
   /** Put a leg's ankle or wrist at its rest place moved by `d` (two-bone IK, bending the way it bends at rest), then lay
-      its paw as it lay at rest, tipped by `pitch` degrees about the creature's left-right axis (toes up is positive). */
-  place(id: string, d: readonly number[], pitch = 0) {
+      its paw as it lay at rest, tipped by `pitch` degrees about the creature's left-right axis (toes up is positive), and its
+      toes as they lay at rest, tipped by `toePitch`. */
+  place(id: string, d: readonly number[], pitch = 0, toePitch = 0) {
     const L = this.legs.get(id)!; this.update();
     const root = this.bone(L.root), mid = this.bone(L.mid);
     const R = this.at(L.root), M = this.at(L.mid), E = this.at(L.end), T = L.foot.clone().add(v(d));
@@ -89,10 +91,34 @@ export class Rig {
     this.aim(mid, this.at(L.end), R.clone().add(dir.multiplyScalar(dist))); this.update();
     const tip = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(-pitch));
     (L.paw ?? []).forEach((n, i) => { this.setWorldQuat(this.bone(n), tip.clone().multiply(L.pawWorld[i])); this.update(); });
+    const toeTip = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(-toePitch));
+    (L.toes ?? []).forEach((n, i) => { this.setWorldQuat(this.bone(n), toeTip.clone().multiply(L.toesWorld[i])); this.update(); });
   }
 
   /** The local rotations (and positions) of `names` now. */
   snapshot(names: readonly string[]) { return names.map(n => { const b = this.bone(n); return { q: b.quaternion.toArray() as number[], p: b.position.toArray() as number[] }; }); }
+}
+
+/** Turn a model about the vertical by `deg` before anything reads it, so it faces +z as the recipes and the game expect
+    (Tripo set the owlbear facing +z, the dragonling facing +x): its vertices and normals, the joints at the top of its
+    skeleton (the rest follow them) and every inverse bind matrix, so the skin binds as before in the new frame. */
+export function faceForward(doc: Document, deg: number) {
+  if (!deg) return;
+  const R = new THREE.Matrix4().makeRotationY(THREE.MathUtils.degToRad(deg)), Rinv = R.clone().invert(), rq = new THREE.Quaternion().setFromRotationMatrix(R);
+  const done = new Set<unknown>(), p = new THREE.Vector3(), m = new THREE.Matrix4();
+  for (const mesh of doc.getRoot().listMeshes()) for (const prim of mesh.listPrimitives()) for (const [sem, dir] of [['POSITION', false], ['NORMAL', true]] as const) {
+    const a = prim.getAttribute(sem); if (!a || done.has(a)) continue; done.add(a);
+    for (let i = 0, e = [0, 0, 0]; i < a.getCount(); i++) { a.getElement(i, e); p.fromArray(e); if (dir) p.transformDirection(R); else p.applyMatrix4(R); a.setElement(i, p.toArray()); }
+  }
+  for (const skin of doc.getRoot().listSkins()) {
+    const joints = new Set(skin.listJoints());
+    for (const j of joints) if (!j.listParents().some(n => joints.has(n as never))) { // (a joint whose parent is no joint: the skeleton's top)
+      const t = new THREE.Vector3().fromArray(j.getTranslation()).applyMatrix4(R), q = rq.clone().multiply(new THREE.Quaternion().fromArray(j.getRotation()));
+      j.setTranslation(t.toArray() as [number, number, number]); j.setRotation(q.toArray() as [number, number, number, number]);
+    }
+    const ibm = skin.getInverseBindMatrices(); if (!ibm || done.has(ibm)) continue; done.add(ibm);
+    for (let i = 0, e: number[] = []; i < ibm.getCount(); i++) { m.fromArray(ibm.getElement(i, e)).multiply(Rinv); ibm.setElement(i, m.toArray()); }
+  }
 }
 
 /** A clip: how long it lasts, whether it loops, and the pose at time `t` (from rest each frame); its events are when
