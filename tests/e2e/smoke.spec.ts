@@ -3439,10 +3439,13 @@ test('foes in code (M4): floor 3\'s salamander lays burning ground that burns th
   const drake = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 90; g.warp(1); g.sim(.3);
     const e = g.enemies[0], seen = new Set<string>(); let rime = 0, high = 0, flew = false;
-    // (every step: a short flight to a spot near the mage can be over within a 0.05 s slice; one that short never rises far,
-    // its landing spot drawn at random, so it waits for a flight long enough to lift it)
+    // (every step: a short flight to a spot near the mage can be over within a 0.05 s slice, so as it takes off the mage
+    // stands across the room from it, and its landing spot beside the mage is a long flight away, high enough to see)
+    const cx = (g as unknown as { current: { cx: number } }).current.cx;
     for (let i = 0; i < 3600 && !(seen.has('inhale') && seen.has('fly') && seen.has('land') && rime && high > .5); i++) {
-      g.player.x = e.x + 2.5; g.player.z = e.z; g.sim(1 / 60); seen.add(e.state); rime = Math.max(rime, g.shots.filter(s => s.chill).length);
+      if (e.state === 'takeoff') { g.player.x = cx - Math.sign(e.x - cx || 1) * 4.5; g.player.z = e.z; }
+      else if (e.state !== 'fly' && e.state !== 'land') { g.player.x = e.x + 2.5; g.player.z = e.z; }
+      g.sim(1 / 60); seen.add(e.state); rime = Math.max(rime, g.shots.filter(s => s.chill).length);
       high = Math.max(high, e.model.position.y); flew ||= e.flying;
     }
     return { seen: [...seen].sort(), rime, high, flew };
