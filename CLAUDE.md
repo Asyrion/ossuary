@@ -595,8 +595,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   until it kindles, then `openWayDown`: the trapdoor beyond it in the room's group, `makeTrapdoor`'s `room`); `onBossDead`
   leaves the stone and the trapdoor to it (`waystoneRoom`, `pointToStone`; the gifts kept off its door's lane, `offLane`),
   the old way where a floor has none (`waystoneAfterBoss`); the door's menhir emblem, the minimap's mark. `?room=waystone_plain`,
-  `__game.wayDown`. Step 11, the shrine's bargain: `src/world/bargain.ts` (`buildBargain` from `buildShrine` at the circle's
-  head, `CFG.bargain`; `checkBargain`'s walk-up line; `castIntoBargain` from `castSpell`, first of the catches: the last
+  `__game.wayDown`. Step 11, the shrine's bargain: `src/world/bargain.ts` (`buildBargain` from `buildShrine` at `bargainSpot`, the circle's
+  head unless a doorway's lane runs there, `CFG.bargain`; `checkBargain`'s walk-up line; `castIntoBargain` from `castSpell`, first of the catches: the last
   container refused, else the deal on the spell's school; `keepBargain` pays `player.heartsPaid` and takes the boon,
   `refuseBargain` backs out; `room.bargain`), its look `bargainStoneLook` and `BARGAIN_RUNES` (specialLooks.ts), the deal in
   the level-up screen's bargain mode (`openBargainDeal`, `levelEsc`, `takeBargainCard`; `#lvHint`), `Sfx.bargain`,
