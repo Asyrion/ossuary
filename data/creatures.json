@@ -48,14 +48,17 @@
           },
           {
             "t": 0.8,
-            "sound": "roar"
+            "sound": "roar",
+            "loud": true
           },
           {
             "t": 2.15,
-            "sound": "slam"
+            "sound": "slam",
+            "loud": true
           }
         ]
       }
-    }
+    },
+    "budget": "boss"
   }
 }

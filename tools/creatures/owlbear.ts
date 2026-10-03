@@ -115,7 +115,7 @@ const steps = Object.entries(PHASE).map(([leg, off]) => ({ t: (off % 1) * WALK.c
 export const CLIPS: Record<string, ClipDef> = {
   idle: { duration: IDLE.duration, loop: true, pose: idle, events: [] },
   walk: { duration: WALK.cycle, loop: true, pose: walk, events: steps },
-  roar: { duration: ROAR.duration, loop: false, pose: roar, events: [{ t: 0.15, sound: 'inhale' }, { t: ROAR.roarAt, sound: 'roar' }, { t: ROAR.slamAt, sound: 'slam' }] },
+  roar: { duration: ROAR.duration, loop: false, pose: roar, events: [{ t: 0.15, sound: 'inhale' }, { t: ROAR.roarAt, sound: 'roar', loud: true }, { t: ROAR.slamAt, sound: 'slam', loud: true }] },
 };
 /** How far the walk carries it each second (the stride over the time a paw is down), in the model's units. */
 export const WALK_SPEED = WALK.stride / (WALK.stance * WALK.cycle);

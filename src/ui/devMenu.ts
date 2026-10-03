@@ -483,7 +483,7 @@ function build() {
   // creatures made in Tripo and animated in code (docs/creatures.md): one stood ahead of the mage, walking, roaring, resting
   const made = section(pages.galleries, S.creatures);
   made.append(el('p', 'dv-info', S.creaturesNote),
-    ...Object.keys(CREATURES).map(id => btn(S.creatureHere(S.creatureNames[id] ?? id), () => { closeDev(); const at = freeSpotNear(G.current, player.x + 2.6, player.z + .6); void showCreature(id, G.current, at.x, at.z); })),
+    ...Object.keys(CREATURES).map(id => btn(S.creatureHere(S.creatureNames[id] ?? id), () => { closeDev(); const at = freeSpotNear(G.current, player.x + CFG.creatures.standSide, player.z + CFG.creatures.standSouth); void showCreature(id, G.current, at.x, at.z); })),
     btn(S.roarNow, () => { closeDev(); roarNow(); }), btn(S.takeOptions, () => takeCreatures(G.current)));
 
   // the coin faces (2026-10-02, the owner's coins): every face side by side ahead of the mage, as the room draws them
