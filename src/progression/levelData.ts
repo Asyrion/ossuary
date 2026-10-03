@@ -17,6 +17,10 @@ export function levelFor(insight: number, at: readonly number[] = L.at) {
   for (const need of at) if (insight >= need) level++; else break;
   return level;
 }
+/** The level a run expects to start floor `floor` (0-based) at: what the floors before it give (`CFG.levels.floorInsight`,
+    the measured medians), so a deeper start (`?level=auto`, the dev menu's new runs) begins on the curve (M6 step 12). */
+export const levelAtFloor = (floor: number, perFloor: readonly number[] = L.floorInsight) =>
+  levelFor(perFloor.slice(0, Math.max(0, floor)).reduce((a, b) => a + b, 0));
 /** Where `insight` stands within its level: the level, the insight gained into it and the insight it spans (0 at the cap). */
 export function levelProgress(insight: number, at: readonly number[] = L.at) {
   const level = levelFor(insight, at), from = level > 1 ? at[level - 2] : 0;

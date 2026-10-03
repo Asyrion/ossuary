@@ -1,6 +1,6 @@
 [
   {
-    "rooms": [10, 14],
+    "rooms": [13, 17],
     "enemyHp": 1.0, "pressure": {"extra": 0, "eliteMul": 1, "ordealWaves": 0},
     "altarChance": 0.45,
     "vaultChance": 0.35,
@@ -33,7 +33,7 @@
     }
   },
   {
-    "rooms": [13, 17],
+    "rooms": [16, 20],
     "enemyHp": 1.15, "pressure": {"extra": 0.1, "eliteMul": 1.1, "ordealWaves": 0},
     "altarChance": 0.45,
     "vaultChance": 0.45,
@@ -65,7 +65,7 @@
     }
   },
   {
-    "rooms": [14, 18],
+    "rooms": [17, 21],
     "enemyHp": 1.3, "pressure": {"extra": 0.18, "eliteMul": 1.2, "ordealWaves": 0},
     "altarChance": 0.45,
     "vaultChance": 0.55,
@@ -98,7 +98,7 @@
     }
   },
   {
-    "rooms": [15, 19],
+    "rooms": [18, 22],
     "enemyHp": 1.45, "pressure": {"extra": 0.25, "eliteMul": 1.3, "ordealWaves": 1},
     "altarChance": 0.5,
     "vaultChance": 0.6,
@@ -131,7 +131,7 @@
     }
   },
   {
-    "rooms": [15, 19],
+    "rooms": [18, 22],
     "enemyHp": 1.6, "pressure": {"extra": 0.33, "eliteMul": 1.4, "ordealWaves": 1},
     "altarChance": 0.5,
     "vaultChance": 0.5,

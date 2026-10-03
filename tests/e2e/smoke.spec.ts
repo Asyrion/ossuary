@@ -147,8 +147,8 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
   });
   expect(floor1.seed).toBe('SMOKE1');
   expect(floor1.floor).toBe(0);
-  expect(floor1.rooms).toBeGreaterThanOrEqual(10); // M3's counts (data/floors.json), the secret room, a laboratory and the waystone room on top
-  expect(floor1.rooms).toBeLessThanOrEqual(14);
+  expect(floor1.rooms).toBeGreaterThanOrEqual(13); // the floor's counts (data/floors.json, three more since M6 step 12), the secret room, a laboratory and the waystone room on top
+  expect(floor1.rooms).toBeLessThanOrEqual(17);
   for (const t of ['start', 'boss', 'treasure', 'ordeal', 'merchant', 'library', 'secret', 'waystone']) expect(floor1.types.filter(x => x === t)).toHaveLength(1);
 
   const boss = await page.evaluate(() => {
@@ -171,8 +171,8 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
   });
   await page.screenshot({ path: 'test-results/smoke-floor2.png' });
   expect(floor2).toMatchObject({ down: 'waystone', state: 'play', floor: 1, current: 'start', shrines: 1 }); // the shrine is on floor 2
-  expect(floor2.rooms).toBeGreaterThanOrEqual(13);
-  expect(floor2.rooms).toBeLessThanOrEqual(17);
+  expect(floor2.rooms).toBeGreaterThanOrEqual(16);
+  expect(floor2.rooms).toBeLessThanOrEqual(20);
   expect(errors).toEqual([]);
 });
 
@@ -4841,6 +4841,19 @@ test('the shrine\'s bargain (M6 step 11): a stone at the circle\'s head; walking
   })()`) as { maxHp: number; state: string; open: boolean; mana: number };
   expect(last).toEqual({ maxHp: 2, state: 'idle', open: false, mana: 100 }); // (refused: the cast spent on asking, nothing dealt)
   expect(errors2).toEqual([]);
+});
+
+test('the run around it (M6 step 12): a deeper start begins at its floor\'s expected level, its choices waiting; levels count toward Asyrion\'s arc, three to an artifact', async ({ page }) => {
+  const errors = await start(page, '?floor=4&level=auto');
+  const r = await page.evaluate(`(() => {
+    const g = window.__game; const start = { level: g.level, floor: g.floor };
+    const arc0 = g.arc; g.setLevel(12); g.sim(.1); const arc12 = g.arc;
+    return { start, arc0, arc12 };
+  })()`) as { start: { level: number; floor: number }; arc0: { stage: number; held: number }; arc12: { stage: number; held: number; reached: number } };
+  expect(r.start).toMatchObject({ level: 9, floor: 3 });
+  expect(r.arc0).toMatchObject({ stage: 0, held: 2 }); // (nothing held, level 9: two)
+  expect(r.arc12).toMatchObject({ stage: 1, held: 3, reached: 1 }); // (level 12, nothing held: the first stage)
+  expect(errors).toEqual([]);
 });
 
 test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks and holds longer at II, Banked Coals burns longer, Gathering Dark gathers deeper, Perennial roots, Forking Arc forks', async ({ page }) => {

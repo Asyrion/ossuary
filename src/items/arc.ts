@@ -1,5 +1,5 @@
 /* Asyrion's arc (M4.6, docs/M4.6-plan.md; GDD: Artifacts, Asyrion's arc): the apprentice grows towards the chaos mage as
-   they hold more artifacts (levels will count too, M6). The stage (costumeData.ts's `arcStage`, at `CFG.arc.at`) puts the
+   they hold more artifacts, and as they grow in level (M6 step 12: every `CFG.arc.perLevels` levels gained count as one). The stage (costumeData.ts's `arcStage`, at `CFG.arc.at`) puts the
    chaos mage's pieces on in the slots nothing else holds (costume.ts's `dress`); each stage first reached in a run says so
    in a line (GDD pillar: Nothing silent). The dev menu forces a stage (`DEV.arc`). */
 import { DEV, G, player } from '../state';
@@ -10,8 +10,11 @@ import { line } from '../ui/hud';
 import { arcStage } from '../actors/costumeData';
 import { artifact } from './artifactData';
 
-/** The artifacts the mage holds that count towards the arc: every one taken, and the focus unless it is the first wand. */
-export const arcHeld = () => player.items.length + (artifact(player.focus).start ? 0 : 1);
+/** What counts towards the arc: every artifact taken, the focus unless it is the first wand, and one for every
+    `CFG.arc.perLevels` levels gained (M6; a level-12 run with nothing held reaches the first stage). */
+export const arcHeld = () => player.items.length + (artifact(player.focus).start ? 0 : 1) + arcLevels();
+/** What the levels gained count for (M6 step 12). */
+export const arcLevels = () => Math.floor((G.run.level - 1) / CFG.arc.perLevels);
 /** The arc's stage now: the dev menu's, or from what is held. */
 export const arcNow = () => DEV.arc ?? arcStage(arcHeld(), CFG.arc.at);
 

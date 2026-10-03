@@ -41,6 +41,7 @@ import { FOE_LOOK_MODES, type FoeLooks } from './actors/fantasyLooks';
 import { lookContract, showLookPairs } from './actors/lookPairs';
 import { promptShowing, renderHearts, roomFinished, setHeroInfo, toast, updateVision } from './ui/hud';
 import { bargainNow, openBargainHere } from './world/bargain';
+import { levelAtFloor } from './progression/levelData';
 import { chooseFor, initLevelUp, levelEsc, levelKey, levelOpen, levelPad, offerNow, openLevelUp, takeBargainCard } from './ui/levelUp';
 import { giveById, refreshStats, removeArtifactGallery, showArtifactGallery } from './items/artifacts';
 import { ARTIFACTS } from './items/artifactData';
@@ -192,9 +193,9 @@ function readUrlOptions() {
   const badSpells = spells.filter(id => !SPELLS.has(id));
   if (badSpells.length) console.warn(`?spells: unknown ${badSpells.join(', ')}. Known: ${[...SPELLS.keys()].join(', ')}`);
   const potions = (q.get('potions') ?? '').split(',').map(s => s.trim()).filter(Boolean); // (M5: potions to start with in the belt)
-  const level = Number(q.get('level')); // (M6: ?level=5 starts at that level, its choices waiting)
+  const level = q.get('level') === 'auto' ? levelAtFloor(Math.max(0, Number(q.get('floor') ?? 1) - 1)) : Number(q.get('level')); // (M6: ?level=5 starts at that level, its choices waiting; ?level=auto at the floor's expected level, step 12)
   const auto = q.get('autolevel'); if (auto && auto !== '0') DEV.autoLevel = auto === 'skip' ? 'skip' : 'choose'; // (M6: levels choose for themselves (the bot), or pass (the tests))
-  if (q.get('level') && !(level >= 1 && level <= 12)) console.warn(`?level=${q.get('level')}: use 1 to 12`);
+  if (q.get('level') && !(level >= 1 && level <= 12)) console.warn(`?level=${q.get('level')}: use 1 to 12, or auto`);
   const boons: Record<string, number> = {}; // (M6 step 5: ?boons=deepWinter:2,coldSnap starts with them taken, at those ranks)
   for (const part of (q.get('boons') ?? '').split(',').map(s => s.trim()).filter(Boolean)) {
     const [id, n] = part.split(':'), b = BOONS.get(id), rank = n ? Number(n) : 1;
