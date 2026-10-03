@@ -1,11 +1,8 @@
 import { CFG } from '../config';
 import { potionHold, pressed, releasePotion, type InputActions } from './index';
+import { isDevKey } from './devKey';
 
 export const keys = new Set<string>();
-/** The dev menu's keys: the key left of 1 and F2. A Mac with an ISO keyboard (the German one among them) reports the key
-    left of 1 as IntlBackslash, not Backquote (macOS swaps it with the key beside left Shift), and its F2 reaches the browser
-    only with fn held. */
-export const isDevKey = (code: string) => code === 'Backquote' || code === 'IntlBackslash' || code === 'F2';
 /** Held arrow keys in press order; the most recent one sets the shot direction. */
 export const arrowOrder: string[] = [];
 export const ARROWS: Record<string, [number, number]> = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
