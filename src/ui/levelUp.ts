@@ -15,6 +15,7 @@ import { esc } from './spellPanel';
 import { line } from './hud';
 import { boon, boonText } from '../progression/boonData';
 import { dealNow, takeBoon } from '../progression/boons';
+import { isDevKey } from '../input/keyboard';
 import { boonIconImg } from '../progression/boonLooks';
 import { ATTRS, type Attr } from '../progression/attributes';
 import { ATTR_COLOR, attrText, pointsToSpend, spendPoint } from '../progression/points';
@@ -119,7 +120,7 @@ function render() {
 
 /** A key while the screen is open: true when it was used here (every key is: the choice waits). */
 export function levelKey(code: string) {
-  if (!open || code === 'Backquote' || code === 'F2') return false; // (the dev menu still opens over it)
+  if (!open || isDevKey(code)) return false; // (the dev menu still opens over it)
   if (code === 'ArrowLeft' || code === 'KeyA' || code === 'ArrowUp' || code === 'KeyW') move(-1);
   else if (code === 'ArrowRight' || code === 'KeyD' || code === 'ArrowDown' || code === 'KeyS') move(1);
   else if (code === 'Enter' || code === 'Space') take();
