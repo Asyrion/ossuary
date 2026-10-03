@@ -43,7 +43,17 @@ export function giveMantle(e: Enemy, id: MantleId) {
 }
 
 /** How tall `e`'s body stands (for what floats over it). */
-function heightOf(e: Enemy) { const b = new THREE.Box3().setFromObject(e.model ?? e.body); return b.isEmpty() ? 1 : Math.min(2.6, Math.max(.5, b.max.y)); } // (its look, not a spider's thread)
+/** How tall `e`'s look stands: the top of its meshes (not a spider's thread), its glows left out (a halo round a flame
+    would count as twice the creature). */
+function heightOf(e: Enemy) {
+  const root = e.model ?? e.body, b = new THREE.Box3(), part = new THREE.Box3(); root.updateWorldMatrix(true, true);
+  root.traverse(o => {
+    const m = o as THREE.Mesh; if (!m.isMesh || (o as unknown as THREE.Sprite).isSprite || !o.visible) return;
+    if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
+    b.union(part.copy(m.geometry.boundingBox!).applyMatrix4(m.matrixWorld));
+  });
+  return b.isEmpty() ? 1 : Math.min(2.6, Math.max(.5, b.max.y));
+}
 
 /** A Stormcharged champion's look (Stormcharged and Hallowed are near in colour, so they differ in kind, not only light):
     no rune ring but a ring of lightning crackling round its feet, arcs crawling up its body, and a small thundercloud over
