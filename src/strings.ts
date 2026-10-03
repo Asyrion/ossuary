@@ -180,7 +180,7 @@ export const STR = {
     socketOpened: (name: string) => `${name} has a second socket now.`,
     pouch: 'Your pouch', carveText: (spell: string) => `Enter carves it into ${spell}.`, noTarget: 'No spell in your hand takes a rune here.',
     noRunes: 'Your pouch is empty', noRunesText: 'Runes lie in secret rooms and gilded chests; the merchant sells them; each waystone offers one.',
-    belt: 'The belt', beltText: 'Enter picks a potion up; Enter on another slot puts it there. The inventory does the same at any time.',
+    belt: 'The belt', beltText: 'Enter picks a potion up; Enter on another slot puts it there. The inventory does the same at any time.', beltInv: 'Enter picks a potion up; Enter on another slot puts it there.',
     holding: (name: string) => `Holding ${name}: Enter on a slot puts it there.`, emptyBelt: 'An empty slot', moved: (name: string) => `${name} moved.`,
   },
   lab: {
