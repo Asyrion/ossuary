@@ -4867,3 +4867,27 @@ test('soundscapes and music (docs/sound-plan.md): the floor and room choose them
   expect(await page.locator('#volMusic').count()).toBe(1); expect(await page.locator('#volAmbience').count()).toBe(1);
   expect(errors).toEqual([]);
 });
+
+test('a creature made in Tripo and animated in code (docs/creatures.md): it stands, walks its lap, roars at the mage, and its clips are baked in', async ({ page }) => {
+  const errors = await start(page, '?seed=OWLB1&room=great_hall&variant=quiet');
+  type C = { id: string; state: string; clip: string; time: number; x: number; z: number };
+  type GC = GameHooks & { showCreature(id?: string, d?: number): Promise<C[]>; creatures: C[]; roarNow(): void; takeCreatures(): void; renderInfo(): { calls: number } };
+  const r = await page.evaluate(async () => {
+    const g = (window as unknown as { __game: GC }).__game, out: Record<string, unknown> = {};
+    g.sim(.3, true); const calls0 = g.renderInfo().calls;
+    out.stood = await g.showCreature('owlbear', 1.6);
+    g.sim(2.5, true); out.walking = g.creatures[0];
+    g.sim(1, true); out.moved = Math.hypot(g.creatures[0].x - (out.stood as C[])[0].x, g.creatures[0].z - (out.stood as C[])[0].z);
+    out.calls = g.renderInfo().calls - calls0;
+    g.roarNow(); g.sim(1, true); out.roaring = g.creatures[0];
+    g.takeCreatures(); g.sim(.1, true); out.left = g.creatures.length;
+    return out;
+  }) as { stood: C[]; walking: C; moved: number; calls: number; roaring: C; left: number };
+  expect(r.stood).toHaveLength(1); expect(r.stood[0].clip).toBe('idle');
+  expect(r.walking).toMatchObject({ state: 'walk', clip: 'walk' });
+  expect(r.moved).toBeGreaterThan(.2); // (it walks its lap at the pace its paws set)
+  expect(r.calls).toBeLessThan(8); // (one skinned mesh and its shadow)
+  expect(r.roaring).toMatchObject({ state: 'roar', clip: 'roar' }); expect(r.roaring.time).toBeGreaterThan(.5);
+  expect(r.left).toBe(0);
+  expect(errors).toEqual([]);
+});

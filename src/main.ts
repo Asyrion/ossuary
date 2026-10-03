@@ -108,6 +108,8 @@ import { inSteam, steamAt, steamCount } from './magic/steam';
 import type { MantleId } from './actors/mantleData';
 import { groundPace, layDevGround } from './actors/foeGround';
 import { AudioDirector, type Forced } from './audio/director';
+import { creaturesNow, roarNow, showCreature, takeCreatures } from './actors/madeCreatures';
+import { freeSpotNear } from './world/rooms';
 import { renderAudio, type RenderAsk } from './audio/render';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
@@ -307,6 +309,10 @@ function installDevHooks() {
         forced to a floor's soundscape, a room's, a piece and mood; a stretch of any rendered offline, as a base64 WAV. */
     get audio() { return AudioDirector.info; }, audioOn: (v = true) => AudioDirector.set(v), forceAudio: (f: Forced | null) => AudioDirector.force(f),
     renderAudio: async (ask: RenderAsk) => { const r = await renderAudio(ask); let bin = ''; const u8 = new Uint8Array(r.wav); for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode(...u8.subarray(i, i + 0x8000)); return { wav: btoa(bin), seconds: r.seconds, peak: r.peak, rms: r.rms }; },
+    /** Creatures made in Tripo and animated in code (docs/creatures.md): stand one ahead of the mage (resolves once it
+        stands), what stands, a roar now, and all taken away. */
+    showCreature: async (id = 'owlbear', d = 2.6) => { const at = freeSpotNear(G.current, player.x + d, player.z + .6); await showCreature(id, G.current, at.x, at.z); return creaturesNow(); },
+    get creatures() { return creaturesNow(); }, roarNow: () => roarNow(), takeCreatures: () => takeCreatures(G.current),
     /** What the last frame cost the GPU (draw calls, triangles) and what is held in memory (geometries, textures). */
     renderInfo: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures }),
     lightLevels,

@@ -763,6 +763,10 @@ export const STR = {
     title: 'Dev menu', close: 'Close',
     tabs: { mage: 'Mage', magic: 'Magic', foes: 'Foes & objects', rooms: 'Rooms & runs', look: 'Look', galleries: 'Galleries', sound: 'Sound' },
     // the soundscapes and the music (docs/sound-plan.md)
+    // creatures made in Tripo and animated in code (docs/creatures.md)
+    creatures: 'Animated creatures (made in Tripo, animated in code)', creatureHere: (name: string) => `${name}: stand it here`, roarNow: 'Roar now',
+    creaturesNote: 'Its walk, roar and rest baked by tools/animate-creature.ts; it walks a lap, roars at the mage and rests, its sounds on its paws and its roar. Looks only: no fight.',
+    creatureNames: { owlbear: 'Owlbear' } as Record<string, string>,
     scapes: 'Soundscapes', music: 'Music', soundGame: 'As the game asks', soundOn: 'Soundscapes and music: on', soundOff: 'Soundscapes and music: off',
     scapeNote: 'Plays here at once, over whatever the game asks for, until "As the game asks". The room or theme plays over the chosen floor.',
     scapeRoom: (r: string) => `Over it: ${r}`, scapeNone: 'nothing', moodIs: (m: string) => `Mood: ${m}`,
