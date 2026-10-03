@@ -32,6 +32,9 @@ export function raiseWaystone(room: Room, x: number, z: number) {
   look.group.position.set(x - room.cx, -C().depth, z - room.cz); room.group.add(look.group);
   room.rocks.push({ x, z, hx: C().half, hz: C().half, hp: Infinity, breakable: false });
   if (Math.abs(player.x - x) < C().half + player.r && Math.abs(player.z - z) < C().half + player.r) player.z = z + C().half + player.r + .1; // (never risen around the mage)
+  for (const p of G.pickups) if (Math.abs(p.x - x) < C().half + p.r && Math.abs(p.z - z) < C().half + p.r) { // (nor over what lies there)
+    const at = freeSpotNear(room, p.x, p.z); p.x = at.x; p.z = at.z; p.g.position.set(at.x, p.g.position.y, at.z);
+  }
   room.waystone = { x, z, rise: 0, lit: false, rested: false, pair: dealPair(), armed: false, target: 0, look };
   Sfx.at(x, z).crumble(); G.shake = Math.max(G.shake, .25);
   return room.waystone;
@@ -83,7 +86,7 @@ export function checkWaystone() {
 /** A spell cast from slot `slot` within reach of the stone: caught (nothing is paid), struck into it in the spell's light,
     and the screen opens on that spell's sockets. False when no stone is in reach. */
 export function castIntoStone(slot: number, def: SpellDef) {
-  const w = G.current.waystone; if (!w || !stoneInReach()) return false;
+  const w = G.current.waystone; if (!w || G.current.locked || !stoneInReach()) return false; // (never mid-fight: a spell is a spell then)
   const color = parseInt(def.color.slice(1), 16), at = { x: w.x, y: 1, z: w.z };
   strikeFx({ x: player.x, y: .9, z: player.z }, at, color, .3, true); burst(at.x, at.y, at.z, color, 10, 1.6, .04);
   w.armed = false; openWaystone('runes', slot);

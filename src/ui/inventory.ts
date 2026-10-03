@@ -183,7 +183,7 @@ function potionEntries(): Entry[] {
     const act = () => beltAct(k); // (M6 step 9: Enter picks a potion up, Enter on another slot puts it there)
     if (!id) return { icon: SEALED_SLOT, label: P.emptySlot, dim: true, section, act, detail: () => head(SEALED_SLOT, P.slot(k + 1), P.emptySlot) + `<p class="effect">${esc(beltHeld !== null ? STR.waystone.holding(potionName(player.belt[beltHeld] as PotionId)) : P.emptyText)}</p>` };
     return { icon: img(bottleIconUrl(G.run.bottles[id])), label: potionName(id), corner: knownPotion(id) ? undefined : '?', badge: beltHeld === k ? '✋' : k === at ? '•' : undefined, section, act,
-      detail: () => card(id, k === at ? `${P.slot(k + 1)} · ${P.chosen}` : P.slot(k + 1)) + `<p class="note">${esc(beltHeld !== null ? STR.waystone.holding(potionName(player.belt[beltHeld] as PotionId)) : STR.waystone.beltText)}</p>` };
+      detail: () => card(id, k === at ? `${P.slot(k + 1)} · ${P.chosen}` : P.slot(k + 1)) + `<p class="note">${esc(beltHeld !== null ? STR.waystone.holding(potionName(player.belt[beltHeld] as PotionId)) : STR.waystone.beltInv)}</p>` };
   });
   const held = REAGENT_IDS.filter(r => (player.reagents[r] ?? 0) > 0);
   const pouch: Entry[] = held.length ? held.map((r, k) => {

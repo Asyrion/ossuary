@@ -175,7 +175,7 @@ export function stonePad(button: number) {
 
 /** Take the pair's rune `i` into the pouch; the other crumbles. */
 export function takeFromStone(i: number) {
-  const w = G.current.waystone; if (!w?.pair) return false;
+  const w = G.current.waystone; if (!w?.pair || (i !== 0 && i !== 1)) return false;
   const took = w.pair[i] as RuneId, lost = w.pair[1 - i] as RuneId; w.pair = null;
   addRune(took); Sfx.at(w.x, w.z).crumble(); line(W().taken(rune(took).name, rune(lost).name), CFG.afflict.lineShow);
   if (open) render(); return true;
