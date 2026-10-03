@@ -836,6 +836,8 @@ after `CFG.hero.fidget` seconds standing still). A rig with no death clip topple
 
 Order and scope from `docs/GDD.md` (Roadmap and milestones); details are in the GDD. Every milestone
 ships placeholder sounds for what it adds; spatial audio and the mixer arrive with M3 (GDD: Audio design).
+Every milestone is also a GitHub milestone on Asyrion/ossuary of the same title as the GDD's roadmap table ("M6 RPG
+growth"), open while it is built and closed once finished (the owner's rule, 2026-10-03; see Working agreements).
 
 - **M1 Core loop:** three generated floors (varied maps, room counts and room shapes), 20+ room templates,
   room variants from quiet to ordeal, bone altars, 3 to 5 artifacts per floor from 10 artifacts and 3 foci.
@@ -925,3 +927,11 @@ load when a session starts. In a cloud session the browser for Playwright is und
 - Performance target: 60 fps in desktop browsers on mid-range hardware, including integrated graphics.
   Share geometries and materials for projectiles and particles; dispose what you remove.
 - The owner is an IT professional, comfortable with PowerShell; work on this project is in English.
+- **Milestones live on GitHub too** (the owner's rule, 2026-10-03): every milestone in the GDD's roadmap is a GitHub
+  milestone on Asyrion/ossuary with the same title. When a new milestone is created (added to the roadmap table, with
+  its plan), create it on GitHub in the same step: `npm run milestone -- open "M9 Name" "Its goal"` (the plan's path is
+  found by its number). When a milestone is finished (every step of its plan built, its close included, and marked built
+  in the docs), close it in the same step: `npm run milestone -- close M6`. `npm run milestone -- list` shows them all
+  (○ open, ● closed); `reopen` undoes a close. `tools/milestone.ts` calls the GitHub API with curl: in a cloud session the
+  agent proxy signs it (the GitHub tools here have no milestone action), elsewhere set `GITHUB_TOKEN`. Created on
+  2026-10-03: M0 to M5 (with M4.1 to M4.12) closed, M6, M7 and M8 open.

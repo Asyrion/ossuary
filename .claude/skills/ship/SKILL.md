@@ -23,6 +23,9 @@ In a cloud session, GitHub goes through the `mcp__github__*` tools (no `gh`); lo
 - Run the **rules-reviewer** subagent on `origin/main...HEAD` (see CLAUDE.md, "Agents and skills"), telling it the
   typecheck and unit tests just ran (`--no-tests`), and fix its blocking findings. If the change touched how rooms
   look and no inspection covered it yet, run the **room-inspector** (a routine check on what changed).
+- GitHub milestones (CLAUDE.md, Working agreements): `npm run milestone -- list` matches the roadmap. Every milestone the
+  change adds to the GDD's roadmap is there, and every one it marks built is closed (`npm run milestone -- open` or
+  `close`).
 - `git fetch origin main -q` and check that the branch starts from `origin/main` (`git merge-base --is-ancestor
   origin/main HEAD`). If not, rebase the branch's own commits onto it.
 

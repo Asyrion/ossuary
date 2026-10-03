@@ -1764,7 +1764,7 @@ motes, the mantle, Refraction's wall).
 
 ## Roadmap and milestones
 
-Milestones 1 to 3 decide whether the game is fun: the loop and its variety, exploration worth the risk, and magic as the build. Everything after them deepens it. Milestones have no dates, since this is a hobby project.
+Milestones 1 to 3 decide whether the game is fun: the loop and its variety, exploration worth the risk, and magic as the build. Everything after them deepens it. Milestones have no dates, since this is a hobby project. Each one is also a GitHub milestone on the repository with the same title, open while it is built and closed once finished (`npm run milestone`; CLAUDE.md, Working agreements).
 
 | Milestone | Goal | Done when |
 | --- | --- | --- |
