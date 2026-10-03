@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { SPELL_DEFS, spell, type Shape } from '../../src/magic/spellData';
-import { RUNE_DEFS, canCarve, payment, reprisedDef, runedDef, runesFor, validateRunes, type RuneDef } from '../../src/magic/runeData';
+import { RUNE_DEFS, RUNE_IDS, canCarve, payment, pickRune, reprisedDef, runeFits, runedDef, runesFor, validateRunes, type RuneDef } from '../../src/magic/runeData';
+import { Rng } from '../../src/rng';
 
 /* M6 step 7: runes, as rules (docs/M6-plan.md, decision 9 and the runes table). */
 describe('runes', () => {
@@ -90,5 +91,27 @@ describe('paying for a cast', () => {
     expect(payment({ ...base, mana: 5, vein: true, hp: 1 })).toBeNull();
     expect(payment({ ...base, mana: 5, vein: true, hp: 1, souls: 1 })).toBe('soul');
     expect(payment({ ...base, mana: 5, vein: true, hp: 2 })).toBe('vein');
+  });
+});
+
+/* M6 step 8: which rune a drop or a ware is: two times in three one that fits the hand, else any of the seven. */
+describe('pickRune', () => {
+  it('leans to the spells in the slots, two times in three', () => {
+    const rng = new Rng(7), hand = [spell('cinder_lance')], N = 3000; // (a beam: three runes fit it)
+    let fits = 0;
+    for (let i = 0; i < N; i++) if (runeFits(pickRune(rng, hand, 2 / 3), hand[0])) fits++;
+    const anyFits = runesFor(hand[0]).length / RUNE_IDS.length, expected = 2 / 3 + 1 / 3 * anyFits;
+    expect(fits / N).toBeGreaterThan(expected - .04); expect(fits / N).toBeLessThan(expected + .04);
+  });
+  it('deals any of the seven with nothing in the hand, each about as often', () => {
+    const rng = new Rng(11), seen: Record<string, number> = {};
+    for (let i = 0; i < 7000; i++) { const id = pickRune(rng, [], 2 / 3); seen[id] = (seen[id] ?? 0) + 1; }
+    expect(Object.keys(seen).sort()).toEqual([...RUNE_IDS].sort());
+    for (const n of Object.values(seen)) { expect(n).toBeGreaterThan(800); expect(n).toBeLessThan(1200); }
+  });
+  it('draws the same twice from a stream whatever the hand, so a seed replays', () => {
+    const a = new Rng(5), b = new Rng(5);
+    pickRune(a, [spell('cinder_lance')], 2 / 3); pickRune(b, [], 2 / 3);
+    expect(a.next()).toBe(b.next());
   });
 });

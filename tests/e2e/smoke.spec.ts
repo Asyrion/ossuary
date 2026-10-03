@@ -2170,18 +2170,20 @@ test('the inventory lists what the mage carries and knows, in tabs, and describe
   await expect(detail).toContainText('Crown of Thorns');
   await expect(detail).toContainText('Spell damage ×1.5');
   await expect(detail.locator('.chip.bad')).toContainText('Hearts -1'); // its price
-  // E turns to the spells: the two slots, then a book by school (a school opens with its first spell learned), with a
-  // sealed entry for each spell not met yet; then the wheel of the fifteen reactions (M4.8's ten, M5's Verdant five) and
-  // M4.10's seventeen weaves and chains
+  // E turns to the spells: the two slots, the pouch of runes (M6 step 8: empty, one sealed entry), then a book by school (a
+  // school opens with its first spell learned), with a sealed entry for each spell not met yet; then the wheel of the
+  // fifteen reactions (M4.8's ten, M5's Verdant five) and M4.10's seventeen weaves and chains
   await page.keyboard.press('KeyE');
-  await expect(tiles).toHaveCount(40);
-  await expect(page.locator('#invList .sec')).toHaveText(['Carried', 'Ember', 'Frost', 'Storm', 'Reactions', 'Weaves and chains']);
+  await expect(tiles).toHaveCount(41);
+  await expect(page.locator('#invList .sec')).toHaveText(['Carried', 'The pouch', 'Ember', 'Frost', 'Storm', 'Reactions', 'Weaves and chains']);
   await page.keyboard.press('ArrowRight');
   await expect(detail).toContainText('Pyre Seal');
   await expect(detail).toContainText('Ember spell');
   await expect(detail).toContainText('35 mana');
   await expect(detail).toContainText('Burn 4 s');
   await expect(detail).toContainText('Cast it 10 more times to know it well');
+  await page.keyboard.press('ArrowRight');
+  await expect(detail).toContainText('No runes yet'); // (M6 step 8: the pouch, empty)
   await page.keyboard.press('ArrowRight');
   await expect(detail).toContainText('A page not yet found'); // Cinder Lance, not met
   await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight');
@@ -3231,7 +3233,7 @@ test('the room kit\'s pickups and special rooms: every drop, coffers and chests 
   })()`) as Promise<{ laid: { kind: string; painted: boolean }[]; opened: number; boxes: number; spilled: number }>;
   const errors = await start(page, '?seed=K3F9QX');
   const kit = await drops();
-  expect(kit.laid.map(d => d.kind).sort()).toEqual(['blackSoul', 'chest', 'chest', 'coffer', 'coin', 'glyph', 'halfHeart', 'hallowedSoul', 'heart', 'key', 'mana', 'paleSoul', 'potion', 'purse', 'reagent', 'shard']);
+  expect(kit.laid.map(d => d.kind).sort()).toEqual(['blackSoul', 'chest', 'chest', 'coffer', 'coin', 'glyph', 'halfHeart', 'hallowedSoul', 'heart', 'key', 'mana', 'paleSoul', 'potion', 'purse', 'reagent', 'rune', 'shard']);
   expect(kit.laid.every(d => d.painted)).toBe(true);
   expect(kit).toMatchObject({ boxes: 3, opened: 3 }); expect(kit.spilled).toBeGreaterThan(0); // (a key each for the chests; the gilded one's relic is an artifact, not a pickup)
   await page.screenshot({ path: 'test-results/room-kit-drops.png' });
@@ -3255,7 +3257,7 @@ test('the room kit\'s pickups and special rooms: every drop, coffers and chests 
   // off: the old pickups, nothing painted
   await start(page, '?seed=K3F9QX&kit=old');
   const old = await drops();
-  expect(old.laid.filter(d => d.painted).map(d => d.kind).sort()).toEqual(['blackSoul', 'hallowedSoul', 'paleSoul', 'potion', 'reagent', 'shard']); // (M4.1's and M5's items have only the kit's look)
+  expect(old.laid.filter(d => d.painted).map(d => d.kind).sort()).toEqual(['blackSoul', 'hallowedSoul', 'paleSoul', 'potion', 'reagent', 'rune', 'shard']); // (M4.1's, M5's and M6's items have only the kit's look)
   expect(old).toMatchObject({ boxes: 3, opened: 3 });
   expect(errors).toEqual([]);
 });
@@ -4661,6 +4663,53 @@ test('runes on the bolts and the second cast (M6 step 7): Thrice fires three (fi
    hooks, and checks what it did, that its name rose (`said`), its line was said once (`hinted`) and, where cheap, rank II.
    (Written as strings: the page's own JavaScript, `window.__game` untyped. Eight dummies stand in a 4 × 2 block, each
    within a leap of another.) */
+
+test('runes as things (M6 step 8): a rune walked over goes to the pouch with its card, the merchant sells one at 10 obols as an extra ware, a runed spell given up for a page sends its rune to the pouch, the inventory shows the sockets and the pouch', async ({ page }) => {
+  type Ware = { ware: string; x: number; z: number; price: number; sold: boolean; rune?: string };
+  type GR = { sim(s: number, draw?: boolean): void; warp(id: number): void; drop(kind: string, x?: number, z?: number, o?: { rune?: string }): void; runesAlways(on: boolean): void;
+    page(id?: string, x?: number, z?: number): string | null; cast(slot: number): boolean; runeOdds: Record<string, number>;
+    sockets: { slots: { spell: string | null; size: number; runes: string[] }[]; pouch: string[] }; keys: Set<string>;
+    player: { x: number; z: number; vx: number; vz: number; coins: number; invuln: number; spells: (string | null)[] }; current: { cx: number; cz: number; wares?: Ware[] } };
+  const errors = await start(page, '?room=merchant_plain&seed=RUNES8&spells=cinder_lance&loot=coins:30');
+  // the odds here (floor 1), a rune dropped and walked over: into the pouch, a chime, its card
+  const found = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GR }).__game, P = g.player; P.invuln = 999; g.sim(.2);
+    const odds = g.runeOdds; g.drop('rune', P.x, P.z - 1.2, { rune: 'seeking' }); g.sim(.2);
+    P.z -= 1.2; g.sim(.3);
+    return { odds, pouch: [...g.sockets.pouch], lore: document.querySelector('#lore')?.textContent ?? '' };
+  });
+  expect(found.odds).toMatchObject({ merchant: .5, secret: .5, wanderer: .5, gilded: 1 });
+  expect(found.pouch).toEqual(['seeking']);
+  expect(found.lore).toContain('Seeking'); expect(found.lore).toContain('Rune'); expect(found.lore).toContain('waystone');
+  // the merchant: with runes wherever they can lie, the shop lays one beside the rest; bought for 10 obols into the pouch
+  const shop = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GR }).__game, P = g.player; g.runesAlways(true); g.warp(1); g.sim(.5);
+    const wares = g.current.wares!, w = wares.find(x => x.ware === 'rune')!, coins = P.coins;
+    P.x = w.x; P.z = w.z + 1.6; P.vx = P.vz = 0; g.keys.add('KeyW'); g.sim(.6); g.keys.delete('KeyW'); g.sim(.2); P.z += 1.6; g.sim(.1);
+    g.runesAlways(false);
+    return { n: wares.length, last: wares[wares.length - 1].ware, price: w.price, rune: w.rune, spent: coins - P.coins, sold: w.sold, pouch: [...g.sockets.pouch] };
+  });
+  expect(shop.last).toBe('rune'); expect(shop.n).toBeGreaterThanOrEqual(4); expect(shop.price).toBe(10);
+  expect(shop.spent).toBe(10); expect(shop.sold).toBe(true); expect(shop.pouch).toEqual(['seeking', shop.rune]);
+  expect(errors).toEqual([]);
+  // a runed spell given up for a grimoire page: its rune goes to the pouch, the socket stays
+  const errors2 = await start(page, '?room=library_plain&seed=RUNES8&spells=cinder_lance,arc&runes=q:quicken');
+  const swap = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GR }).__game, P = g.player; P.invuln = 999; g.sim(.2);
+    g.page('rime_shards', P.x, P.z - 1.2); g.sim(.2); P.z -= 1.2; g.sim(.3); g.cast(0); g.sim(.3);
+    return { spells: [...P.spells], pouch: [...g.sockets.pouch], socket: g.sockets.slots[0], line: document.querySelector('#line')?.textContent ?? document.body.textContent };
+  });
+  expect(swap.spells).toEqual(['rime_shards', 'arc']); expect(swap.pouch).toEqual(['quicken']); expect(swap.socket).toMatchObject({ size: 1, runes: [] });
+  // the inventory's Spells tab: each slot's socket, then the pouch
+  await page.keyboard.press('KeyI'); await page.locator('#invTabs button', { hasText: 'Spells' }).click();
+  await expect(page.locator('#invList .sec', { hasText: 'The pouch' })).toBeVisible();
+  await expect(page.locator('#invList .tile[title="Quicken"]')).toBeVisible();
+  await expect(page.locator('#invList .tile[title="Rime Shards"] .n')).toHaveText('◇');
+  await page.locator('#invList .tile[title="Quicken"]').click();
+  await expect(page.locator('#invDetail')).toContainText('A waystone carves it');
+  await page.keyboard.press('KeyI');
+  expect(errors2).toEqual([]);
+});
 
 test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks and holds longer at II, Banked Coals burns longer, Gathering Dark gathers deeper, Perennial roots, Forking Arc forks', async ({ page }) => {
   const errors = await start(page, '?seed=BOON5A&boons=deepWinter');

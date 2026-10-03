@@ -387,6 +387,20 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
    - **Dev menu (Mage tab):** a rune in the Drops row.
    - **Tests:** `loot.test.ts` checks five or six a run; a browser test buys one, and gives up a runed spell
      for a page and finds the rune in the pouch.
+   *Built (2026-10-03)* after a plan of its own (the owner's ask), with three decisions: a rune leans to the build (two
+   times in three one that fits a slotted spell, else any of the seven: `pickRune`, `CFG.runeDrops.lean`); the merchant
+   lays it as an extra ware, so a seed's other wares stay; the pouch shows in the Spells tab. `rune` is an `Item` (the
+   Drops row lists it); `data/loot.json`'s `runes` holds the chances (merchant .5, secret .5, Wanderer .5, gilded 1),
+   `rune` in both traders' prices (10, 12), each floor's `runes` scales them (0 on floor 5); every roll and every rune
+   drawn on the run's own `runes` stream (`runeHere`, `dealRune` in magic/runes.ts), after the table beside it. The
+   pickup is `runePickupLook` (runeLooks.ts: the stone as a chip, painted as the kit's pieces); taking one is `addRune`
+   (`Sfx.runeTake`, its card through `runeCard`, also heard when a given-up spell's runes fall back). The ware panel and
+   the card say what it does, what it fits (`runeFitsText`: shapes, and the spells in the hand) and that a waystone
+   carves it. The inventory's Spells tab shows each slot's socket (◆ carved, ◇ empty) and the pouch. Dev menu (Magic
+   tab, Runes): each rune into the pouch, a rune ahead, runes wherever they can lie (`DEV.runes`, the floor built again);
+   `__game.runesAlways(on)`, `runeOdds`, `drop('rune', x, z, { rune })`. Tests: `pickRune`'s lean and replay
+   (runes.test.ts), the economy's runes a run and the data's checks (loot.test.ts), and a browser test (a rune taken,
+   one bought, a runed spell given up for a page, the Spells tab). The crumble of a waystone's pair waits for step 9.
 9. **The waystone.** It is `src/world/waystone.ts` (new) and its own look, built from the kit's parts but not the rune
    stone's: a tall menhir with a hollow for each socket, dark until the boss falls, then kindling. It holds:
    - the rest, once, with mana streaming into the hand marks;

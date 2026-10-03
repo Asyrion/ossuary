@@ -24,6 +24,8 @@ import { itemLore, type LoreItem } from '../ui/lore';
 import { LOOT, priceOf, rollWares, type Item, type Ware } from './loot';
 import type { ArtifactDef } from './artifactData';
 import { crowRefuses, crowTells } from './wanderer';
+import { addRune, dealRune, runeHere } from '../magic/runes';
+import { rune, type RuneId } from '../magic/runeData';
 
 const C = CFG.merchant;
 
@@ -111,6 +113,7 @@ function makeShade() {
 export function buildShop(room: Room) {
   const def = room.plan.artifact ? offerGuaranteed('merchant') : null;
   const wares = rollWares(G.run.loot, !!def, LOOT, soulsHere());
+  if (runeHere('merchant')) wares.push('rune'); // (M6 step 8: half the shops lay a rune beside the rest, on the runes' own stream)
   room.wares = wares.map((ware, i) => layWare(room, ware, ware === 'artifact' ? def! : undefined, room.cx + (i - (wares.length - 1) / 2) * C.spacing, room.cz + C.waresAt, priceOf(ware)));
   const shade = makeShade(); shade.position.set(0, 0, C.shadeAt); room.group.add(shade); room.shade = shade;
   room.rocks.push({ x: room.cx, z: room.cz + C.shadeAt, hx: .42, hz: .42, hp: Infinity, breakable: false });
@@ -118,15 +121,16 @@ export function buildShop(room: Room) {
 
 /** A ware in its ward circle at (x, z), priced `price` (the shade's, and M4.2's Wandering Merchant's). */
 export function layWare(room: Room, ware: Ware, def: ArtifactDef | undefined, x: number, z: number, price: number): WareSpot {
+  const rune = ware === 'rune' ? dealRune() : undefined; // (M6 step 8: which rune, from the run's runes stream)
   const g = new THREE.Group(); g.position.set(x - room.cx, 0, z - room.cz);
   const circle = wardCircle();
   // (M5: which potion or reagent it is, dealt from the shop's stream)
   const potion = ware === 'potion' ? pickPotion(G.run.loot) : undefined, reagent = ware === 'reagent' ? COMMON_REAGENTS[G.run.loot.int(0, COMMON_REAGENTS.length - 1)] : undefined;
-  const item = ware === 'artifact' ? makeArtifactVisual(def!) : ware === 'map' || ware === 'secret' ? crowWareLook(ware) : itemVisual(ware, potion ?? reagent);
+  const item = ware === 'artifact' ? makeArtifactVisual(def!) : ware === 'map' || ware === 'secret' ? crowWareLook(ware) : itemVisual(ware, potion ?? reagent ?? rune);
   if (ware !== 'artifact') item.scale.multiplyScalar(1.35);
   const tag = coinTag(price); tag.position.y = 1.85;
   g.add(circle, item, tag); room.group.add(g);
-  return { ware, def, price, x, z, g, item, circle, tag, tagPrice: price, sold: false, armed: true, potion, reagent };
+  return { ware, def, price, x, z, g, item, circle, tag, tagPrice: price, sold: false, armed: true, potion, reagent, rune };
 }
 
 /** What he says when the mage couldn't use a ware now. */
@@ -165,6 +169,7 @@ function buy(w: WareSpot) {
   } else if (w.ware === 'map' || w.ware === 'secret') crowTells(w.ware);
   else if (w.potion) { addPotion(w.potion as PotionId); toast(STR.toast.bought(potionName(w.potion as PotionId)), 2.5); } // (M5: into the belt; its card the first time)
   else if (w.reagent) { addReagent(w.reagent as ReagentId); toast(STR.toast.bought(REAGENTS[w.reagent as ReagentId].name), 2.5); }
+  else if (w.rune) { addRune(w.rune as RuneId); toast(STR.toast.bought(rune(w.rune as RuneId).name), 2.5); } // (M6 step 8: into the pouch; its card the first time)
   else {
     useItem(w.ware as Item);
     toast(STR.toast.bought(STR.wares[w.ware]), 2.5); itemLore(w.ware as LoreItem);

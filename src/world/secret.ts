@@ -18,6 +18,7 @@ import { offerBeyondBudget, placeArtifact } from '../items/artifacts';
 import { spawnPickup } from '../items/pickups';
 import { LOOT, rollTable } from '../items/loot';
 import { soulsHere } from '../items/souls';
+import { runeHere } from '../magic/runes';
 import { SIDE_DIR } from './shapes';
 import { DH, H_LOW, H_TALL, WT } from './dims';
 import { WARD_COLOR, freeSpotNear, kitWalls } from './rooms';
@@ -38,6 +39,7 @@ export function fillSecret(room: Room) {
   for (let i = 0; i < S.coffers; i++) { const p = spot(i % 2 ? 2.4 : -2.4, .4); spawnPickup('coffer', p.x, p.z); }
   const hoard = rollTable(G.run.drops, 'secretHoard', LOOT, soulsHere());
   hoard.forEach((item, i) => { const a = .3 + i / hoard.length * Math.PI * 2, p = spot(Math.cos(a) * 1.6, Math.sin(a) * 1.2 + .3); spawnPickup(item, p.x, p.z); });
+  if (runeHere('secret')) { const p = spot(0, 1.4); spawnPickup('rune', p.x, p.z); } // (M6 step 8: half the cells keep a rune, on the runes' own stream)
 }
 
 /* ---------- cracked walls ---------- */

@@ -29,6 +29,9 @@ import { containerLook, itemLook } from './pickupLooks';
 import { bottleLook, reagentLook } from './alchemyLooks';
 import { COMMON_REAGENTS, pickPotion, type PotionId, type ReagentId } from './alchemyData';
 import { addPotion, addReagent, beltSlots } from './potions';
+import { runePickupLook } from './runeLooks';
+import { addRune, dealRune, runeHere } from '../magic/runes';
+import { rune as runeDef, type RuneId } from '../magic/runeData';
 
 const GOLD = 0xffd27a;
 export const isContainer = (kind: Drop): kind is 'coffer' | 'chest' => kind === 'coffer' || kind === 'chest';
@@ -78,10 +81,12 @@ function makeParts() {
 }
 
 /** How an item looks, on the floor or floating over a merchant's ward circle (the room kit's: pickupLooks.ts). A potion
-    is its bottle as this run deals it (`id` names the potion), a reagent its own (M5, alchemyLooks.ts). */
+    is its bottle as this run deals it (`id` names the potion), a reagent its own (M5, alchemyLooks.ts), a rune its chip of
+    stone (M6 step 8, runeLooks.ts). */
 export function itemVisual(kind: Item, id?: string): THREE.Object3D {
   if (kind === 'potion') return bottleLook(G.run.bottles[(id ?? 'healing') as PotionId]);
   if (kind === 'reagent') return reagentLook((id ?? 'graveMoss') as ReagentId);
+  if (kind === 'rune') return runePickupLook((id ?? 'quicken') as RuneId);
   if (DEV.roomKit || isSoul(kind) || kind === 'shard') return itemLook(kind); // (M4.1's items have only the kit's look)
   const P = parts ??= makeParts();
   if (kind === 'heart' || kind === 'halfHeart') {
@@ -139,7 +144,7 @@ function containerVisual(kind: 'coffer' | 'chest', gilded = false): { g: THREE.O
     becomes an obol while the mage knows no spell (nothing would spend its mana), as does a lodestone shard, unless `asIs`
     (the dev menu). M5: a potion is dealt from the run's alchemy stream unless `potion` names it; a reagent is one at random
     unless `reagent` does. */
-export function spawnPickup(kind: Drop, x: number, z: number, opts: { rise?: boolean; gilded?: boolean; asIs?: boolean; potion?: PotionId; reagent?: ReagentId } = {}) {
+export function spawnPickup(kind: Drop, x: number, z: number, opts: { rise?: boolean; gilded?: boolean; asIs?: boolean; potion?: PotionId; reagent?: ReagentId; rune?: RuneId } = {}) {
   if ((kind === 'mana' || kind === 'shard') && !opts.asIs && !player.spells.some(Boolean)) kind = 'coin';
   const g = new THREE.Group(); g.position.set(x, 0, z); scene.add(g);
   if (isContainer(kind)) {
@@ -150,8 +155,9 @@ export function spawnPickup(kind: Drop, x: number, z: number, opts: { rise?: boo
   }
   const potion = kind === 'potion' ? opts.potion ?? pickPotion(G.run.alchemy) : undefined;
   const reagent = kind === 'reagent' ? opts.reagent ?? COMMON_REAGENTS[G.run.alchemy.int(0, COMMON_REAGENTS.length - 1)] : undefined;
-  const m = itemVisual(kind, potion ?? reagent); m.position.y = .35; g.add(m, blob(.55));
-  const p: Pickup = { kind, x, z, r: .3, g, m, t: Math.random() * 6, drop: .5, potion, reagent };
+  const rune = kind === 'rune' ? opts.rune ?? dealRune() : undefined; // (M6 step 8: dealt from the run's runes stream, leaning to the hand)
+  const m = itemVisual(kind, potion ?? reagent ?? rune); m.position.y = .35; g.add(m, blob(.55));
+  const p: Pickup = { kind, x, z, r: .3, g, m, t: Math.random() * 6, drop: .5, potion, reagent, rune };
   if (opts.rise) { p.rise = glow(0xd8e6ff, .8, .8); p.rise.position.y = .2; g.add(p.rise); p.drop = .6; }
   G.pickups.push(p);
 }
@@ -174,6 +180,7 @@ export function openContainer(p: Pickup, burnt = false) {
   p.opened = true;
   itemLore(p.gilded ? 'gilded' : p.kind as LoreItem);
   if (p.ward) { p.ward.parent?.remove(p.ward); disposeTree(p.ward); p.ward = undefined; burst(p.x, .3, p.z, p.gilded ? GOLD : WARD, 12, 2, .04); }
+  if (p.gilded && runeHere('gilded')) { const spot = freeSpotNear(G.current, p.x + 1.1, p.z + .6); spawnPickup('rune', spot.x, spot.z); } // (M6 step 8: a rune rolls out beside what it holds)
   if (p.gilded) { // a relic rises out of it, beyond what the floor's budget allows
     const def = offerBeyondBudget('vault');
     if (def) {
@@ -212,12 +219,12 @@ export function resetResources() { for (const k of RESOURCES) player[k] = LOOT.s
 const SOUND: Record<Item, () => void> = {
   halfHeart: () => Sfx.pickup(), heart: () => Sfx.pickup(), coin: () => Sfx.coin(), purse: () => Sfx.coin(true), key: () => Sfx.key(), glyph: () => Sfx.glyphPickup(), mana: () => Sfx.manaVial(),
   paleSoul: () => Sfx.soulTake(), blackSoul: () => Sfx.soulTake(), hallowedSoul: () => Sfx.soulTake(), shard: () => Sfx.shard(),
-  potion: () => Sfx.bottle(), reagent: () => Sfx.reagent(),
+  potion: () => Sfx.bottle(), reagent: () => Sfx.reagent(), rune: () => {}, // (a rune's chime is addRune's: runes.ts)
 };
 const SPARK: Record<Item, number> = {
   halfHeart: 0xe0473a, heart: 0xe0473a, coin: 0xffd27a, purse: 0xffd27a, key: 0xf0e6cc, glyph: 0xff9a3a, mana: 0x6fa8ff,
   paleSoul: SOUL_COLOR.pale, blackSoul: SOUL_COLOR.black, hallowedSoul: SOUL_COLOR.hallowed, shard: 0x7aa8ff,
-  potion: 0xd8e8f0, reagent: 0x9ac070,
+  potion: 0xd8e8f0, reagent: 0x9ac070, rune: 0xc8b8a0,
 };
 
 /** Why the mage can't use an item now (the merchant says it too), or null when they can: whole, brimming with mana,
@@ -225,7 +232,7 @@ const SPARK: Record<Item, number> = {
 export function cantUse(kind: Item): 'whole' | 'brimming' | 'full' | 'souls' | 'idle' | 'belt' | null {
   const v = dropValue(kind);
   if (v.potion) return player.belt.length >= beltSlots() ? 'belt' : null;
-  if (v.reagent) return null; // (the pouch holds any number)
+  if (v.reagent || v.rune) return null; // (the pouches hold any number)
   if (v.hearts) return player.hp >= player.maxHp ? 'whole' : null;
   if (v.mana) return player.mana >= player.stats.maxMana ? 'brimming' : null;
   if (v.soul) return player.souls.length >= CFG.souls.max ? 'souls' : null;
@@ -251,6 +258,9 @@ function take(p: Pickup, kind: Item) {
   if (kind === 'potion' || kind === 'reagent') { // (M5: into the belt or the pouch, with its own card the first time)
     if (p.potion) addPotion(p.potion as PotionId); else if (p.reagent) addReagent(p.reagent as ReagentId);
     SOUND[kind](); burst(p.x, .4, p.z, SPARK[kind], 8, 2, .05); return true;
+  }
+  if (kind === 'rune') { // (M6 step 8: into the pouch, its chime and its card the first time)
+    const id = (p.rune ?? 'quicken') as RuneId; addRune(id); burst(p.x, .4, p.z, new THREE.Color(runeDef(id).color).getHex(), 10, 2, .05); return true;
   }
   useItem(kind);
   const coins = dropValue(kind).coins; if (coins) { G.stats.obols += coins; goldTaken(G.current); } // for the end screen; a treasury's guardians wake

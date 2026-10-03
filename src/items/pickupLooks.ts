@@ -45,7 +45,7 @@ const extrude = (s: THREE.Shape, depth: number, bevel: number) => new THREE.Extr
 function facing(g: THREE.Group) { const f = new THREE.Group(); f.rotation.x = -TILT; g.add(f); return f; }
 
 type Build = (g: THREE.Group) => void;
-const ITEMS: Record<Exclude<Item, 'potion' | 'reagent'>, Build> = { // (M5's potions and reagents: alchemyLooks.ts)
+const ITEMS: Record<Exclude<Item, 'potion' | 'reagent' | 'rune'>, Build> = { // (M5's potions and reagents: alchemyLooks.ts; M6's runes: runeLooks.ts)
   heart: g => heart(g, false),
   halfHeart: g => heart(g, true),
   coin(g) { // a face: the coin tipped back to the camera, at its face's pixel size; the rune: upright, as before
@@ -152,7 +152,7 @@ function facedObol(g: THREE.Object3D, face: CoinFace & { id: string }, r: number
 const items = new Map<string, THREE.Object3D>();
 /** A pickup's look (a copy: its merged geometry and its materials shared with every other of the kind). An obol's and a
     purse's are kept by the face they wear. */
-export function itemLook(kind: Exclude<Item, 'potion' | 'reagent'>) {
+export function itemLook(kind: Exclude<Item, 'potion' | 'reagent' | 'rune'>) {
   const key = kind === 'coin' || kind === 'purse' ? `${kind}:${obolFaceNow()?.id ?? 'rune'}` : kind;
   let t = items.get(key);
   if (!t) { const g = new THREE.Group(); ITEMS[kind](g); t = keep(g); if (kind === 'coin') onFine(t); items.set(key, t); }

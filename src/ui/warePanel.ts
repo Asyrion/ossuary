@@ -15,6 +15,9 @@ import { knownPotion } from '../items/potions';
 import { bottleIconUrl, reagentIconUrl } from '../items/alchemyLooks';
 import { priceNow, refusal } from '../items/merchant';
 import type { WareSpot } from '../types';
+import { rune, type RuneId } from '../magic/runeData';
+import { runeIconImg } from '../items/runeLooks';
+import { runeFitsText } from '../magic/runes';
 
 const at = new THREE.Vector3();
 let shown: { w: WareSpot; key: string; wd: number; ht: number } | null = null;
@@ -28,6 +31,7 @@ function described(w: WareSpot) {
     if (!knownPotion(id)) { const u = STR.lore.items.potion; return { icon, name: u.name, kind: u.kind, effect: u.effect }; }
     return { icon, name: def.name, kind: STR.alchemy.kind(def.bad), effect: `${STR.alchemy.drink}: ${def.text.drink}. ${STR.alchemy.throw}: ${def.text.throw}.` };
   }
+  if (w.rune) { const id = w.rune as RuneId, r = rune(id); return { icon: runeIconImg(id), name: r.name, kind: STR.runes.kind, effect: `${r.text}. ${runeFitsText(id)}` }; } // (M6 step 8)
   if (w.reagent) { const r = REAGENTS[w.reagent as ReagentId]; return { icon: img(reagentIconUrl(w.reagent as ReagentId)), name: r.name, kind: STR.alchemy.reagentKind, effect: STR.alchemy.leans(r.leans) }; }
   if (w.ware === 'map' || w.ware === 'secret') { const c = STR.shop.crow[w.ware]; return { icon: '', name: c.name, kind: c.kind, effect: c.effect }; }
   const t = STR.lore.items[w.ware as LoreItem]; return { icon: itemIcon(w.ware as LoreItem), name: t.name, kind: t.kind, effect: t.effect };

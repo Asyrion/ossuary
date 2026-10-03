@@ -384,6 +384,13 @@ export const STR = {
     } as Record<string, string>,
     veinLast: 'Vein will not take your last half heart.',
     toPouch: (names: string) => `${names} went to your pouch.`,
+    /** M6 step 8: a rune found, its card and the pouch. */
+    kind: 'Rune', carvedAt: 'A waystone carves it into a spell.',
+    everySpell: 'It fits every spell.', shapesFit: (shapes: string[]) => `It fits ${shapes.length > 1 ? shapes.slice(0, -1).join(', ') + ' and ' + shapes[shapes.length - 1] : shapes[0]}.`,
+    handFits: (names: string) => `In your hand: ${names}.`, handFitsNone: 'It fits neither spell in your hand.',
+    shapes: { beam: 'beams', placed: 'seals', shotgun: 'shards', wall: 'walls', chain: 'chains', self: 'auras', zone: 'fields', smite: 'smites', orbit: 'orbiting motes', bolt: 'bolts', grasp: 'grasping hands', mark: 'marks' } as Record<string, string>,
+    socketLine: (carved: number, size: number) => size > 1 ? `Socket: ${carved} of ${size} runes carved.` : carved ? 'Socket: its rune carved.' : 'Socket: empty. A waystone carves a rune into it.',
+    pouch: 'The pouch', noRunes: 'No runes yet', noRunesText: 'Runes lie in secret rooms and gilded chests, and the merchant sells them. A waystone carves one into a spell.',
     refused: { empty: 'No spell in that slot to carve into.', fit: "That rune doesn't fit this spell.", full: 'The socket is full.', twice: 'That rune is carved here already.' } as Record<string, string>,
   },
   /** M6: insight (the GDD's XP) and levels; both words placeholders until M8. */
@@ -555,6 +562,10 @@ export const STR = {
       reagent: {
         name: 'Reagent', kind: 'Reagent', effect: 'Kept in your pouch; two brew a potion at an alchemy table',
         lore: 'What the dungeon leaves of what it kills, and of what grows in it.',
+      },
+      rune: {
+        name: 'Rune', kind: 'Rune', effect: 'Kept in your pouch; a waystone carves it into a spell, changing every cast of it',
+        lore: 'A chip of the Wardens\' stone with a word cut in it. Set into a spell, the word is said with every casting.',
       },
       shard: {
         name: 'Lodestone shard', kind: 'Magic', effect: 'Ends every spell\'s cooldown and restores 25 mana; left lying while your spells are ready and your mana full',
@@ -824,10 +835,10 @@ export const STR = {
     give: (n: number, what: string) => `+${n} ${what}${n === 1 ? '' : 's'}`,
     names: { coins: 'obol', keys: 'key', glyphs: 'glyph' } as Record<string, string>,
     drops: 'Drop ahead of the mage', gildedChest: 'Gilded chest', loreAgain: 'Describe items again', loreAgainTitle: 'Items and containers show their lore card again the next time one is taken',
-    dropNames: { halfHeart: 'Half heart', heart: 'Heart', coin: 'Obol', purse: 'Purse', key: 'Bone key', glyph: 'Glyph stone', mana: 'Mana vial', paleSoul: 'Pale soul mote', blackSoul: 'Black soul mote', hallowedSoul: 'Hallowed soul mote', shard: 'Lodestone shard', potion: 'Potion (dealt at random)', reagent: 'Reagent (at random)', coffer: 'Coffer', chest: 'Reliquary chest' } as Record<string, string>,
+    dropNames: { halfHeart: 'Half heart', heart: 'Heart', coin: 'Obol', purse: 'Purse', key: 'Bone key', glyph: 'Glyph stone', mana: 'Mana vial', paleSoul: 'Pale soul mote', blackSoul: 'Black soul mote', hallowedSoul: 'Hallowed soul mote', shard: 'Lodestone shard', potion: 'Potion (dealt at random)', reagent: 'Reagent (at random)', rune: 'Rune (leaning to your spells)', coffer: 'Coffer', chest: 'Reliquary chest' } as Record<string, string>,
     spells: 'Spells (click to learn into the slot)', slot: 'Slot', mana: 'Mana', fullMana: 'Full mana', manaOn: 'Endless mana: on', manaOff: 'Endless mana: off', forget: 'Forget spells',
     /** M6 step 7: runes carved into the slot chosen above (each fits some shapes: one that doesn't is refused). */
-    runes: 'Runes (carved into the slot chosen above)', clearRunes: 'Clear the socket', socketOne: 'Socket: one rune', socketTwo: 'Socket: two runes (Second Socket)',
+    runes: 'Runes (carved into the slot chosen above)', toPouch: 'Into the pouch, as if found (M6 step 8):', runeAhead: 'A rune ahead (dealt as a drop is)', runesAlwaysOn: 'Runes: wherever one can lie (this floor built again)', runesAlwaysOff: 'Runes: by their chances (this floor built again to switch)', clearRunes: 'Clear the socket', socketOne: 'Socket: one rune', socketTwo: 'Socket: two runes (Second Socket)',
     runesInfo: (slots: string[], pouch: string) => `Q: ${slots[0] || 'nothing carved'} · E: ${slots[1] || 'nothing carved'} · pouch: ${pouch || 'empty'}`,
     page: 'Drop a grimoire page', noPage: 'No spell left to learn',
     themes: 'Themed rooms (a test room of each)', objects: 'Objects (put down ahead)', noRoom: 'No free floor there',

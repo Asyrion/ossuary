@@ -32,6 +32,9 @@ import { levelProgress } from '../progression/levelData';
 import { attrText, pointsToSpend } from '../progression/points';
 import { boonIconImg } from '../progression/boonLooks';
 import { boon, boonText } from '../progression/boonData';
+import { rune } from '../magic/runeData';
+import { runeIconImg } from '../items/runeLooks';
+import { runeFitsText } from '../magic/runes';
 
 type Tab = 'artifacts' | 'spells' | 'potions' | 'items' | 'mage' | 'foes';
 const TABS: Tab[] = ['artifacts', 'spells', 'potions', 'items', 'mage', 'foes'];
@@ -111,16 +114,17 @@ function artifactEntries(): Entry[] {
   });
 }
 
-/** The spells tab (M3.7): the two carried slots, then a book by school. A school shows once a spell of it is learned,
+/** The spells tab (M3.7): the two carried slots (M6: each with its socket), the pouch of runes (M6 step 8), then a book by school. A school shows once a spell of it is learned,
     with every spell of it the mage has met (carried ones marked Q or E, given-up ones and ones only seen dimmed) and a
     sealed entry for each one not met yet; each described as far as the mage knows it (ui/spellPanel.ts). Last, M4.8's
     wheel of reactions: one entry for each pair of schools, found or not yet. */
 function spellEntries(): Entry[] {
   const keys = STR.controls.spellsKeys.split(' and '), pads = STR.controls.spellsPad.split(' and '), K = STR.knowledge;
   const sheet = (id: string, note = '') => { const at = player.spells.indexOf(id); return spellSheet(spell(id), stage(id), note, castsOf(id), at >= 0 ? player.sockets[at].runes : []); }; // (M6: a slotted spell as its runes make it)
+  const pips = (i: number) => { const k = player.sockets[i]; return '◆'.repeat(k.runes.length) + '◇'.repeat(Math.max(0, k.size - k.runes.length)); }; // (M6 step 8: the socket, as the HUD's pips)
   const slots: Entry[] = player.spells.map((id, i) => id ? {
-    icon: spellIcon(id), label: spell(id).name, corner: keys[i], section: i === 0 ? I().carried : undefined,
-    detail: () => sheet(id, `${I().slot(keys[i])} · ${pads[i]}`),
+    icon: spellIcon(id), label: spell(id).name, corner: keys[i], badge: pips(i), section: i === 0 ? I().carried : undefined,
+    detail: () => sheet(id, `${I().slot(keys[i])} · ${pads[i]}`) + `<p class="effect">${esc(STR.runes.socketLine(player.sockets[i].runes.length, player.sockets[i].size))}</p>`,
   } : {
     icon: '', label: I().empty, corner: keys[i], dim: true, section: i === 0 ? I().carried : undefined,
     detail: () => head('', I().empty, I().slot(keys[i])) + `<p class="effect">${esc(I().emptyText)}</p>`,
@@ -151,7 +155,14 @@ function spellEntries(): Entry[] {
     icon: pairIcon(WEAVES[id].schools, woven.includes(id), WEAVES[id].kind === 'weave'), label: woven.includes(id) ? STR.weaves[id].name : K.unfound, dim: !woven.includes(id),
     section: i === 0 ? K.weavesSec : undefined, detail: () => weaveSheet(id),
   })) : [];
-  return [...slots, ...book, ...wheel, ...weaves];
+  // M6 step 8: the pouch of runes, each with what it does, what it fits, and that a waystone carves it
+  const R = STR.runes, ids = [...new Set(player.runes)];
+  const pouch: Entry[] = ids.length ? ids.map((id, k) => {
+    const r = rune(id), n = player.runes.filter(x => x === id).length, icon = runeIconImg(id);
+    return { icon, label: r.name, badge: n > 1 ? String(n) : undefined, section: k === 0 ? R.pouch : undefined,
+      detail: () => head(icon, r.name, `${R.kind} · ${STR.inv.potions.held(n)}`) + `<p class="effect">${esc(r.text)}.</p><p class="effect">${esc(runeFitsText(id))}</p><p class="effect">${esc(R.carvedAt)}</p><p class="lore">${esc(r.lore)}</p>` };
+  }) : [{ icon: SEALED_SLOT, label: R.noRunes, dim: true, section: R.pouch, detail: () => head(SEALED_SLOT, R.noRunes, R.pouch) + `<p class="effect">${esc(R.noRunesText)}</p>` }];
+  return [...slots, ...pouch, ...book, ...wheel, ...weaves];
 }
 /** A page not found yet: a sealed leaf. */
 const SEALED = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M13 7h17l7 7v27H13z" fill="#3a3128" stroke="#7a6a52" stroke-width="2"/><circle cx="25" cy="27" r="6" fill="#6a2a20" stroke="#a8503c" stroke-width="1.5"/><path d="M22 27h6M25 24v6" stroke="#e0b08a" stroke-width="1.4"/></svg>';

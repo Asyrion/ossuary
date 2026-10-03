@@ -53,7 +53,7 @@ export const G = {
     /** M5: the run's bottles (each potion's shape and draught, shuffled on the seed), the potions identified this run,
         the seeded stream for which potion or reagent a drop is, and the one for whether a foe or an object leaves a reagent
         (its own, so the other drops replay as before). */
-    bottles: bottlesFor(0), identified: [] as PotionId[], alchemy: new Rng(0), reagents: new Rng(0),
+    bottles: bottlesFor(0), identified: [] as PotionId[], alchemy: new Rng(0), reagents: new Rng(0), runes: new Rng(0), // (runes: M6 step 8, its own too)
     /** M5: the curse whose price a Bitter Remedy lifts until the floor ends. */ remedy: null as string | null,
     /** M5 step 7: the jelly serpent, in its vat until it breaks out (once a run at most), then slain or not; and whether it
         is restless this run (rolled on the seed: it breaks out by itself after the first brew in its laboratory). */
@@ -91,6 +91,9 @@ export const DEV = { /** M4.6: Asyrion's arc forced to a stage (the dev menu), e
   closeUp: false,
   /** M5: every fallen foe and broken object leaves its reagent (the dev menu's Alchemy), to test where they come from. */
   reagents: false,
+  /** M6 step 8: a rune lies wherever one can (every shop, secret room, gilded chest and Wanderer; the dev menu's Runes), the
+      chances still drawn so the stream runs as it would. */
+  runes: false,
   /** M6 step 4: levels choose for themselves, without the level-up screen: 'choose' takes the first boon dealt and spends on
       the attribute with fewest points (`?autolevel=1`, the dev menu, the balance bot); 'skip' lets them pass with nothing
       taken (`?autolevel=skip`: the browser tests, so a fight cleared changes none of the mage's numbers). */

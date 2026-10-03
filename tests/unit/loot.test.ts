@@ -134,6 +134,43 @@ describe('economy', () => {
   });
 });
 
+/* M6 step 8: runes as things, rolled on the run's own stream beside the drops (docs/M6-plan.md, decision 10): half the
+   shops lay one as an extra ware, half the secret rooms without an artifact keep one, a gilded chest always lets one out
+   beside its relic, and the Wandering Merchant (once a run at most, all but sure to come) carries one half the time; none
+   on floor 5. With the waystones' four (step 9) a run finds five or six. */
+describe('runes as things (M6 step 8)', () => {
+  it('a run finds one or two and is offered two or three, none on floor 5', () => {
+    const N = 300, R = LOOT.runes;
+    let found = 0, offered = 0, deep = 0;
+    for (let s = 0; s < N; s++) {
+      const runes = Rng.from('ECON' + s, 'runes'), drops = Rng.from('ECON' + s, 'drops');
+      FLOORS.forEach((cfg, f) => {
+        const odds = (p: number) => runes.chance(p * (cfg.runes ?? 1));
+        const plan = generateFloor(Rng.from('ECON' + s, 'floor' + f), cfg, f);
+        for (const r of plan.rooms) {
+          let n = 0, o = 0;
+          if (r.type === 'merchant' && odds(R.merchant)) o++;
+          if (r.type === 'secret' && !r.artifact && odds(R.secret)) n++;
+          if ((r.type === 'secret' && !r.artifact || r.type === 'vault' && !r.artifact) && drops.chance(LOOT.gildedChest) && odds(R.gilded)) n++;
+          found += n; offered += o; if (f === 4) deep += n + o;
+        }
+      });
+      if (runes.chance(R.wanderer)) offered++; // (the Wandering Merchant, on floors 1 to 4 where it comes)
+    }
+    expect(found / N).toBeGreaterThan(.6); expect(found / N).toBeLessThan(1.8);
+    expect(offered / N).toBeGreaterThan(1.5); expect(offered / N).toBeLessThan(3.5);
+    expect(deep).toBe(0);
+    expect(FLOORS[4].runes).toBe(0); for (const f of FLOORS.slice(0, 4)) expect(f.runes ?? 1).toBeGreaterThan(0);
+  });
+  it('a rune is a ware with a price at both traders, and goes to the pouch', () => {
+    expect(priceOf('rune')).toBe(10); expect(LOOT.wanderer.prices.rune).toBeGreaterThan(0);
+    expect(dropValue('rune')).toEqual({ rune: 1 });
+    const bad = { ...LOOT, runes: { merchant: 2, secret: .5, wanderer: .5, gilded: 1 }, wanderer: { ...LOOT.wanderer, prices: { ...LOOT.wanderer.prices, rune: 0 } } } as unknown as LootData;
+    const errs = validateLoot(bad).join('; ');
+    expect(errs).toContain("runes' merchant chance"); expect(errs).toContain("wanderer's price for a rune");
+  });
+});
+
 describe('soul motes and the lodestone shard (M4.1)', () => {
   it('each gives what it is', () => {
     expect(dropValue('paleSoul')).toEqual({ soul: 'pale' });

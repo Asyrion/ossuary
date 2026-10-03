@@ -73,7 +73,7 @@ export interface WareSpot {
   g: THREE.Group; item: THREE.Object3D; circle?: THREE.Object3D; tag?: THREE.Object3D;
   sold: boolean; /** Refuses again only after the mage steps away. */ armed: boolean;
   /** The price its tag shows (the Pedlar's Scale lowers it). */ tagPrice?: number;
-  /** M5: which potion or reagent it is. */ potion?: string; reagent?: string;
+  /** M5: which potion or reagent it is; M6 step 8: which rune. */ potion?: string; reagent?: string; rune?: string;
 }
 /** A wall light; dark rooms have their torches out (`lit` false). (x, z) is where its light sits. */
 export interface Torch { flame: THREE.Object3D; glow: THREE.Sprite; x: number; z: number; lit: boolean }
@@ -275,7 +275,7 @@ export interface Pickup extends Circle {
       refuse the mage again (only after they step away). */
   contents?: Item[]; opened?: boolean; lid?: THREE.Object3D; ward?: THREE.Object3D; armed?: boolean;
   /** A gilded reliquary chest: a relic inside (an artifact outside the floor's budget); only a key opens it. */ gilded?: boolean;
-  /** M5: which potion a bottle is, which reagent a reagent is. */ potion?: string; reagent?: string;
+  /** M5: which potion a bottle is, which reagent a reagent is; M6 step 8: which rune a rune is. */ potion?: string; reagent?: string; rune?: string;
 }
 /** A blast glyph chalked on the floor: it flares when `fuse` runs out or one of the mage's bolts strikes it. */
 /** A chalked glyph: its fuse and how long it was (the Warding Band's is shorter), and how far its blast reaches

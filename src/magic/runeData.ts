@@ -6,6 +6,7 @@
    `payment` is the order a cast is paid in. */
 import runesData from '../../data/runes.json';
 import { SHAPES, SPELL_DEFS, shareStatus, type Shape, type SpellDef, type SpellStatus } from './spellData';
+import type { Rng } from '../rng';
 
 export type RuneId = 'thrice' | 'reprise' | 'seeking' | 'wide' | 'quicken' | 'vein' | 'lasting';
 export const RUNE_IDS: readonly RuneId[] = ['thrice', 'reprise', 'seeking', 'wide', 'quicken', 'vein', 'lasting'];
@@ -14,6 +15,8 @@ export const RUNE_DEFS = runesData.runes as unknown as RuneDef[];
 const BY_ID = new Map(RUNE_DEFS.map(r => [r.id, r]));
 export const rune = (id: RuneId) => { const r = BY_ID.get(id); if (!r) throw new Error(`no rune "${id}"`); return r; };
 export const isRune = (id: string): id is RuneId => BY_ID.has(id as RuneId);
+/** How many shapes there are: a rune taking them all fits every spell. */
+export const SHAPE_COUNT = SHAPES.length;
 
 /** What Wide makes larger in each shape it takes (a wall grows longer: its width across). */
 export const WIDENS: Partial<Record<Shape, string>> = { placed: 'radius', zone: 'radius', smite: 'radius', grasp: 'radius', orbit: 'radius', wall: 'width' };
@@ -24,6 +27,15 @@ export const LASTS: Partial<Record<Shape, string>> = { placed: 'ground', wall: '
 export const runeFits = (id: RuneId, def: Pick<SpellDef, 'shape'>) => rune(id).shapes.includes(def.shape);
 /** The runes spell `def` takes, in the data's order. */
 export const runesFor = (def: Pick<SpellDef, 'shape'>) => RUNE_DEFS.filter(r => r.shapes.includes(def.shape)).map(r => r.id);
+
+/** M6 step 8: which rune a drop or a ware is. With chance `lean` one that fits a spell in `slotted` (when any fits), else
+    any of the seven; both draws are made either way, so a seed replays the same draws whatever the hand. */
+export function pickRune(rng: Rng, slotted: readonly Pick<SpellDef, 'shape'>[], lean: number): RuneId {
+  const leans = rng.next() < lean, at = rng.next();
+  const fitting = RUNE_IDS.filter(id => slotted.some(d => runeFits(id, d)));
+  const pool = leans && fitting.length ? fitting : RUNE_IDS;
+  return pool[Math.min(pool.length - 1, Math.floor(at * pool.length))];
+}
 
 /** A slot's socket: how many runes it holds, and those carved. */
 export interface Socket { size: number; runes: RuneId[] }
