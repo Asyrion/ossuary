@@ -1,8 +1,8 @@
 # Creatures from Tripo, animated and voiced in code
 
 A rigged Tripo model gets its clips (idle, walk, roar) and sounds in code, and is shown in the dev menu. The owlbear is
-the first and the template (2026-10-03, approved by the owner); the dragonling the second (2026-10-03, a dog-sized
-dragonling, enemy budget: `tools/creatures/dragonling.ts`, the recipe for a model that came facing the wrong way, on a
+the first and the template (2026-10-03, approved by the owner); the dragonling the second (2026-10-03, a dragonling
+the size of a horse, 1.8 tiles, boss budget: `tools/creatures/dragonling.ts`, the recipe for a model that came facing the wrong way, on a
 two-legged rig, in a mid-stride pose). For now creatures are looks only; they don't fight.
 
 ## Handover message

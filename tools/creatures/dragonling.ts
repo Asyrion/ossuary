@@ -1,5 +1,5 @@
 /* The dragonling (the owner's Tripo model, 2026-10-03; docs/creatures.md): a four-legged dragonling about the size of a
-   medium dog, its long neck carrying a crested, fanged head. Tripo set it facing +x, so the tool turns it to face +z first
+   horse, its long neck carrying a crested, fanged head. Tripo set it facing +x, so the tool turns it to face +z first
    (`face`); in that frame (x left-right, y up, z forward) it stands 0.98 high and 0.82 long. Tripo rigged it with a
    two-legged skeleton (bone_0 to bone_68): the spine runs up from the hips (bone_1) to the skull (bone_7), the forelegs
    hang from the chest (bone_4) as arms, the hind legs and the short tail from the root (bone_0). Its rest pose is caught
@@ -89,10 +89,10 @@ function stand(rig: Rig, leg: string, d: readonly number[] = [0, 0, 0], pitch = 
 /** The head brought straight (Tripo left it turned a little to its left). */
 const straighten = (rig: Rig) => yaw(rig, NECK, 7);
 
-/** The walk: a quick, prowling lateral-sequence walk (hind then fore on one side, then the other), low and stalking, each
-    foot down for 60% of the cycle; the body bobs twice a cycle and swings over the planted side, the tail sways against
+/** The walk: a prowling lateral-sequence walk (hind then fore on one side, then the other), low and stalking, unhurried
+    for its size (a horse's), each foot down for 62% of the cycle; the body bobs twice a cycle and swings over the planted side, the tail sways against
     it, and the head is held level and still, a hunter's, with a small nod. */
-const WALK = { cycle: 0.8, stance: 0.6, stride: 0.2, lift: { front: 0.055, rear: 0.045 } };
+const WALK = { cycle: 1.05, stance: 0.62, stride: 0.22, lift: { front: 0.055, rear: 0.045 } };
 const PHASE: Record<string, number> = { rearLeft: 0, frontLeft: 0.25, rearRight: 0.5, frontRight: 0.75 };
 function walk(rig: Rig, t: number) {
   const W = WALK, f = t / W.cycle, a = 2 * Math.PI * f;

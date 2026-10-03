@@ -25,7 +25,7 @@ import { BUDGETS } from '../src/assets/assetData';
     tall it stands in the game, and the budget it keeps to (data/assets.json: a creature the size of a boss keeps a boss's). */
 const RECIPES = {
   owlbear: { ...owlbear, face: 0, height: 1.45, budget: 'boss' as const },
-  dragonling: { ...dragonling, height: 0.55, budget: 'enemy' as const }, // (about a medium dog: the owner, 2026-10-03)
+  dragonling: { ...dragonling, height: 1.8, budget: 'boss' as const }, // (about a horse: the owner, 2026-10-03)
 };
 
 /** `--bones <in.glb>`: what a new creature's recipe needs to know, read off the model before one is written. Each bone in
