@@ -1845,6 +1845,7 @@ test('potions drunk and thrown (M5): each drink does its own and shows a chip wh
     g.clearRoom(); g.sim(.2);
     for (const id of ['mana', 'liquidEmber', 'frostbrew', 'bottledStorm', 'giants', 'hexBrew', 'graveDraught']) {
       for (const e of g.enemies) e.dead = true;
+      const room = (g as unknown as { current: { cx: number; cz: number } }).current; P.x = room.cx; P.z = room.cz + 2; // (south of the middle: the dummy ahead stays inside the room)
       g.sim(.05); g.spawn('dummy'); g.sim(.6); P.aim = { x: 0, z: -1 };
       const e = g.enemies.filter(f => !f.dead)[0]; e.x = P.x; e.z = P.z - 4.4;
       g.givePotion(id); g.usePotion('throw'); g.sim(.55);
@@ -3081,7 +3082,8 @@ test('the room kit: torches, braziers and candle stands built in code, the crypt
     current: { group: O; torches: { flame: O; lit: boolean }[]; props?: Box[] }; player: { x: number; z: number } };
   const errors = await start(page, '?seed=K3F9QX');
   const look = () => page.evaluate(() => {
-    const g = (window as unknown as { __game: GR }).__game, p = g.player;
+    const g = (window as unknown as { __game: GR }).__game, p = g.player, room = g.current as unknown as { cx: number; cz: number };
+    p.x = room.cx; p.z = room.cz + .6; // (the room's middle: built again, the mage stands at a door)
     g.prop('brazier', p.x - 1.5, p.z - 1.8); g.prop('candles', p.x + 1.5, p.z - 1.8);
     for (const b of g.current.props ?? []) g.burn(b.x, b.z, .3);
     g.sim(.6, true);
@@ -3506,8 +3508,10 @@ test('foes in code (M4.1): floor 4\'s wickmouse darts and drops its candle burni
   // the fawn heals the hurt round it
   const e4 = await start(page, '?seed=K3F9QX&floor=4&foe=moonstagFawn');
   const fawn = await page.evaluate(() => {
-    const g = (window as unknown as { __game: GF }).__game; g.warp(1); g.sim(.8);
-    g.player.x = g.enemies[0].x + 6; // (far off, so they gather rather than flee)
+    const g = (window as unknown as { __game: GF }).__game, view = g as unknown as { rooms(): { type: string; cx: number; plan: { id: number }; waves: unknown[][]; bounds: { minX: number; maxX: number } }[]; current: { cx: number; bounds: { minX: number; maxX: number } } };
+    const herd = view.rooms().find(r => r.type === 'normal' && (r.waves[0]?.length ?? 0) >= 2)!; // (a fight with two or more of them)
+    g.warp(herd.plan.id); g.sim(.8);
+    const b = view.current.bounds; g.player.x = g.enemies[0].x > view.current.cx ? b.minX + 1 : b.maxX - 1; // (the far side, so they gather rather than flee)
     g.hit(0, 5); const hurt = g.enemies[0].hp; let bowed = false;
     for (let i = 0; i < 200 && g.enemies[0].hp <= hurt; i++) { g.sim(.05); bowed ||= g.enemies.some(e => e.state === 'bow'); }
     return { bowed, healed: g.enemies[0].hp - hurt, n: g.enemies.length };
