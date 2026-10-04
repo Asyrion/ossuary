@@ -89,19 +89,19 @@ flowchart LR
   E --> H[Shrine: cleanse or bargain]
   E --> I[Treasure: artifact]
   E --> J[Boss: artifact + grimoire page]
-  J --> K[Waystone between floors<br/>rest, socket runes]
+  J --> K[Waystone room<br/>rest, carve runes, way down]
 ```
 
 | Loop element | Isaac-style prototype | Magic RPG version |
 | --- | --- | --- |
 | Room reward | Chance of a heart | XP always; reagents from enemies; chance of heart, mana vial or coin |
 | Growth in a run | Items only | Items plus levels: each level offers 3 boons, pick 1 |
-| Special rooms per floor | Treasure, boss | Treasure, ordeal, boss, merchant, secret, library, alchemy table or shrine (alternating); sometimes a bone altar or locked vault |
-| Between floors | Trapdoor, straight on | Waystone room: full mana, socket runes into spells, sell or brew |
+| Special rooms per floor | Treasure, boss | Treasure, ordeal, boss, merchant, secret, library on every floor; Dr. Jelly's laboratory on floors 1 and 3, a shrine on floors 2 and 4, the waystone room on floors 1 to 4; sometimes a bone altar or locked vault |
+| Between floors | Trapdoor, straight on | Waystone room, holding the way down: a rest (full mana, every cooldown ended), a pair of runes, carving and lifting runes, reordering the belt |
 | Death | Everything lost | Run items lost; Arcane Dust, the freed, spell knowledge, discovered recipes and bestiary entries kept; the run's echo waits at the Vigil |
 | Run start | Same hero, same stats | At the Vigil: a discipline, vows and gifts inscribed in the Great Circle, then the Ferryman's crossing |
 
-**Pacing target:** level 2 after the first two rooms, about 3 levels per floor, first active spell no later than the first library or boss. Floor 1 should give a clear build direction (a school) by its boss.
+**Pacing target:** level 2 by the second fight room, about 3 levels a floor on floors 1 and 2 and 2 after (floors ending at levels 4, 7, 9 and 11, the cap of 12 on floor 5; as built in M6), first active spell no later than the first library or boss. Floor 1 should give a clear build direction (a school) by its boss.
 
 ## Player
 
@@ -185,7 +185,7 @@ When a boss falls, the foes it called fall with it, so no fight drags on while i
 models in the pixel look and chose code over Tripo for the enemies. Ten were drawn up as options
 (`src/actors/modelOptions.ts`, shown by the dev menu). On the owner's second look each took its school's light
 (runes, crystals, rune rings, motes, spirit fire); on the third (2026-09-30) they became critters and small fantasy
-creatures rather than the dead: round, big-eyed and smaller than the mage. All ten are divided over the three floors:
+creatures rather than the dead: round, big-eyed and smaller than the mage. All ten are divided over the three floors of that time (five since M4.1):
 
 | Floor | Enemy (placeholder name) | School | The look, and how it could fight |
 | --- | --- | --- | --- |
@@ -373,7 +373,7 @@ spell's effect is redone in it, and `docs/effects.md` is the guide for every eff
 
 ## Magic system
 
-The mage has three layers of magic: a free cantrip that is always firing, two active spell slots paid with mana, and potions. Five schools of magic apply status effects that combine with each other and with the room.
+The mage has three layers of magic: a free cantrip that is always firing, two active spell slots paid with mana, and potions. Six schools of magic (Verdant the sixth since M5) apply status effects that combine with each other and with the room.
 
 **Layers**
 
@@ -381,7 +381,7 @@ The mage has three layers of magic: a free cantrip that is always firing, two ac
 | --- | --- | --- | --- |
 | Cantrip (today's bolt) | Arrow keys, 4 directions | Free | The equipped focus artifact, boons, passive artifacts |
 | Spell 1 and 2 | Q and E / LB and RB | Mana + cooldown | Runes socketed into the spell, school mastery |
-| Potion | F / Y, hold to throw | One potion from the belt | Alchemy boons, some artifacts |
+| Potion | R tapped drinks, held throws; F chooses | One potion from the belt | Alchemy boons, some artifacts |
 
 **Mana:** a blue bar under the hearts, 100 at start. It refills 4 per second out of combat and 1 per second in combat; killing an enemy with the cantrip gives 3. Mana vials drop from rooms like hearts, and like hearts stay on the floor while mana is full; the first time in a run the mage walks into one it can't take (a vial at full mana, a heart at full health) a message says why. While the mage knows no spell nothing spends mana, so loot gives an obol in place of a mana vial until the first spell is learned.
 
@@ -395,7 +395,7 @@ The mage has three layers of magic: a free cantrip that is always firing, two ac
 | Frost | Chill slows; 3 stacks freeze; frozen enemies shatter for bonus damage | Fast enemies | Control |
 | Storm | Shock: chains to nearby enemies, brief stun | Groups, anything wet | Burst |
 | Hallow | Sanctified: takes more damage, can't regenerate | Wraiths, the Warden's kind | Precise, defensive |
-| Umbral | Hex: drains life or mana back to the mage | Living things | Risky, sustain |
+| Umbral | Hex: a hexed foe's blows give mana back to the mage (life too, with Thirsting Hex) | Living things | Risky, sustain |
 
 **A sixth school: Verdant** (adopted 2026-09-30 from the Huruhui's biomancy; designed and built with M5's gardens and
 reagents). Growth, roots, pollen and healing: the school the valleys practise. Its status, *Overgrown*: vines that slow a
@@ -472,16 +472,22 @@ spell's panel marks the reactions it can set off that are not found yet. The dev
 - A cantrip kill gives 3 mana; kills by spells don't (burn keeps whoever lit it). Spells are refused in the
   merchant's warded shop.
 
-**Runes** modify one spell each and are socketed at waystones. Each spell has 1 socket (2 with a boon).
+**Runes** modify one spell each and are carved at waystones. Each spell has 1 socket (2 with Second Socket). As built in M6
+step 7 (`data/runes.json`), seven runes; each fits the spells of the shapes it names, so a spell's shape chooses its runes,
+and no rune is carved twice into one spell:
 
-| Rune | Effect |
-| --- | --- |
-| Split | Projectile spells fire 3 weaker copies in a fan |
-| Echo | The spell repeats 0.5 s later at 50% power |
-| Seeking | Projectiles curve towards enemies |
-| Wide | Area spells +50% radius, −20% damage |
-| Swift | −30% cooldown, +20% mana cost |
-| Blood | Costs half a heart instead of mana when mana runs out |
+| Rune | Effect | Fits |
+| --- | --- | --- |
+| Thrice | The spell flies three times in a fan, each at 40% of its damage; only the middle one carries its statuses | bolt, shotgun |
+| Reprise | Half a second later the spell comes again at half its damage and statuses | all but wall, self and orbit |
+| Seeking | Its bolts curve towards foes; its hands reach further and rise under the foe nearest the aim | bolt, shotgun, grasp |
+| Wide | Its ring, ground, wall or circle is half again as large, and strikes 20% less hard | placed, zone, smite, grasp, wall, orbit |
+| Quicken | Ready again 30% sooner, for 20% more mana | every shape |
+| Vein | Short of mana, it takes what mana there is and half a heart for the rest (never the last) | every shape |
+| Lasting | What the spell leaves lasts half again as long, for 20% more mana | placed, wall, self, zone, orbit, grasp, mark |
+
+A carved rune shows as a pip on the HUD's slot, in the spell's panel and as a speck at the hand. Carved runes are not
+artifacts: they don't count toward the Runescribe's family (Runes and scrolls), whose three are artifacts held.
 
 **Where runes come from (M6 step 8, as built 2026-10-03; `docs/M6-plan.md`, decision 10).** A rune is a chip of the
 Wardens' stone with its glyph glowing; walked over, it goes into the pouch (no limit), with a stone's chime and its card the
@@ -941,21 +947,40 @@ Growth happens on two timescales: levels, attributes and boons inside a run (los
 | Focus | Max mana +10, mana regeneration +5% | 0 |
 | Swiftness | Move speed +3%, cantrip fire delay −3% | 0 |
 
-**Boons (examples)**
+**Boons as built (M6 steps 3 to 6, `data/boons.json`).** Eighteen: two for each of the six schools, each taken up to twice
+(stronger the second time, rank II), and six general. Every deal holds one general card, and leans to the schools in the
+hand, the schools cast and the boons taken (a card that leans says so); with both slots of one school (attuned) two of the
+three are that school's. A school boon taken with no spell of its school in hand pledges the next library to a page of it.
 
-| Boon | Effect |
-| --- | --- |
-| Kindling | Ember: Burn lasts 50% longer |
-| Deep Winter | Frost: freeze needs 2 Chill stacks instead of 3 |
-| Conductor | Storm: chains jump to +2 enemies |
-| Warden's Oath | Hallow: +1 heart container, Hallow spells heal a little |
-| Bloodprice | Umbral: Hex drains +50%; spells can be paid with health |
-| Second Socket | One spell gets a second rune socket |
-| Keen Nose | All potions are identified on sight this run |
-| Scavenger | Reagent drops +50% |
-| Attuned | Choose any attribute: +3 points |
+| Boon | School | Effect (rank I) |
+| --- | --- | --- |
+| Banked Coals | Ember | Burn lasts half again as long on foes, and so do burning oil and the mage's burning ground |
+| Flamekeeper | Ember | In a fight, each flame within 2.5 tiles gives 1 mana a second, up to four |
+| Deep Winter | Frost | Foes freeze at 2 Chill stacks instead of 3 (never a boss) |
+| Cold Snap | Frost | A frozen foe that thaws breathes a Chill stack onto every foe within 1.5 tiles |
+| Forking Arc | Storm | Arc leaps to two more foes, and a shock's leap reaches two foes instead of one |
+| Spark Wake | Storm | A foe a shock stuns leaves a spark on the floor for 3 s that stings foes, never the mage |
+| Votive Heart | Hallow | One more heart container; the first Hallow spell in a fight mends half a heart when hurt |
+| Laid Bare | Hallow | A sanctified foe's guard is gone while it lasts: shells, lids, stone and plates take full blows |
+| Thirsting Hex | Umbral | Every 6 hex stacks the mage's blows spend mend half a heart |
+| Gathering Dark | Umbral | Hex holds 7 stacks instead of 5 and fades a third slower |
+| Seedfall | Verdant | An overgrown foe that falls leaves a flowering plant where it fell |
+| Perennial | Verdant | Overgrown holds half again as long, and a foe held at its full slow is rooted a moment |
+| Tempered | general | Three more attribute points (taken again and again) |
+| Second Socket | general | A spell chosen at the next waystone gets a second rune socket (twice) |
+| Keen Nose | general | Potions are known on sight: on the floor, in the shop and in the Wandering Merchant's packs |
+| Scavenger | general | A foe put to rest by its weakness always leaves its reagent |
+| Brewer's Breath | general | A potion drunk also breathes its throw out round the mage's feet, sparing the mage |
+| Afterglow | general | After a spell, the next three cantrip casts carry half its statuses |
 
-Boons are weighted towards the schools the player already uses, so a build forms by floor 2.
+**Insight and levels as built (M6 steps 1, 2, 4 and 12).** Insight (the GDD's XP) comes from a foe's purse (its health ÷ 4,
+twice for a champion), each fight room's first clear (4 a floor, an ordeal twice), each boss (60, 130, 230, 360, 540), and
+each potion kind's first use. A level reached rises over the mage; its choice waits for the fight to end, then the
+level-up screen pauses the game: one boon of three, then the level's attribute point. The attributes are Vigor, Arcana,
+Will (the Focus above) and Swiftness, as in the table. The curve (`CFG.levels`, measured on the generator): level 2 by the
+second fight room in three runs of four, floors ending at levels 4, 7, 9 and 11, the cap of 12 on floor 5, never before.
+Every three levels gained count as one artifact toward Asyrion's arc. A deeper start (`?level=auto`) begins at the floor's
+expected level, its choices waiting.
 
 **Between runs: the Vigil** (decided with the owner 2026-09-29; built in M7)
 
@@ -1203,7 +1228,7 @@ Between two cells of the same room, the two wall tiles become floor, which is wh
 - **Secret room (M2):** one per floor, in an empty cell with hidden doorways into two or more rooms (the cell that could open into the most rooms wins). It never opens into the boss room (no way round the fight), a locked vault (no way round its ward) or the merchant (whose warded shop won't let a glyph be chalked). It comes on top of the floor's room count, and the other rooms keep their distances from the start as if it weren't there.
 - **Shapes:** while growing the map, the walk sometimes places a larger shape when the cells it needs are free.
 - **Difficulty:** floor 1 is easy, and each later floor raises the baseline a little (harder templates, about 15% more enemy health per floor). Within a floor, rooms vary randomly around the baseline rather than rising steadily, and variants push single rooms clearly above or below it; deeper floors roll more hard variants. The rooms next to the start on floor 1 are never hard variants. All numbers are found by play-testing.
-- **Between floors:** the boss opens a trapdoor; stepping in starts the next floor (waystones join in M6). Beating the last floor's boss wins the run (floor 3's until M4.1, floor 5's since). Each floor draws its boss from a pool in `data/floors.json`, never one the run has already met, and scales it (health, speed, shot speed, summons, volleys). Every boss is built in code since 2026-10-01 (the Drowned Abbess and the Pyre Knight were the last placeholder shapes): the Hollow Warden on floor 1, the Drowned Abbess and the Pyre Knight on floors 2 and 3 in either order, with the War-Tiger and the Twin Guardians joining floor 3's pool (M4.2).
+- **Between floors:** the boss's fall opens the way down; stepping into the trapdoor starts the next floor. Since M6 it lies in the waystone room beside the boss room on floors 1 to 4 (in the boss room on floor 5, or where no cell was free). Beating the last floor's boss wins the run (floor 3's until M4.1, floor 5's since). Each floor draws its boss from a pool in `data/floors.json`, never one the run has already met, and scales it (health, speed, shot speed, summons, volleys). Every boss is built in code since 2026-10-01 (the Drowned Abbess and the Pyre Knight were the last placeholder shapes): the Hollow Warden on floor 1, the Drowned Abbess and the Pyre Knight on floors 2 and 3 in either order, with the War-Tiger and the Twin Guardians joining floor 3's pool (M4.2).
 - **Seeds:** every run has a seed, shown in the pause menu, so a run can be replayed and bugs reproduced.
 - **End of a run:** won or lost, the end screen sums up the run: the deepest floor, the time, foes put to rest, obols found, every artifact carried (cursed ones ringed in red, cleansed ones in pale gold) and the seed, with a button to replay the same seed.
 - **Floor looks:** each floor already looks a little different, as placeholders until the biome pass (M8): floor 1 has warm stone and iron torches, floor 2 cool damp stone with moss, puddles and cage lanterns, floor 3 scorched brick with soot, ash and braziers; from M4.1 floor 4 (the Gilded Reliquary) pale limestone and marble, gold and candle wax in white-gold light, and floor 5 (the Ferryman's Shore) black slate, wet stone, tarred boards and salt under pale teal and violet spirit fire. Colours and torch styles live in `data/floors.json`.
@@ -1236,11 +1261,11 @@ Pickups feed the three resources of a run (health, mana, gold) plus reagents for
 | Merchant | Artifact, hearts, keys and glyphs for obols; stock grows with later milestones | 1 | M2 |
 | Secret room | Behind a cracked wall; obols, glyphs and keys, or an artifact from the secret pool | 1 | M2 |
 | Locked vault | Behind a padlocked door; an artifact while the budget lasts, otherwise a hoard | 0 or 1 | M2 |
-| Shrine | Cleanse a curse for coins; bargain a heart container for a boon from M6 | 1 on floor 2 | M2 |
+| Shrine | Cleanse a curse for coins; bargain a heart container for a boon from M6 | 1 on floors 2 and 4 | M2 |
 | Library | Choose 1 of 3 grimoire pages; rebuy a replaced spell for coins | 1 | M3 |
 | Elemental trial | Room full of oil, water or braziers; clear it with the right school for a bonus reward | Optional, 0 or 1 | M3 |
 | Alchemy table | Brew from reagents, identify one potion for free | 1 on floors 1 and 3 | M5 |
-| Waystone | Between floors: full mana, socket runes, reorder the belt | After each boss | M6 |
+| Waystone | Between floors: a rest, a pair of runes, carving and lifting runes, reordering the belt | Its room beside each boss room, floors 1 to 4 | M6 |
 
 ## Coins, keys and blast glyphs
 
@@ -1296,7 +1321,7 @@ a hallowed or black soul mote (7), the crow's map (5) and, while there is one to
 | Reliquary chest | A bone key, or a blast that burns half of it | Better loot: purses, several keys or glyphs, a full heart | Room clears, secret rooms, vaults |
 | Gilded reliquary (rare chest) | Only a bone key | A relic: an artifact outside the floor's budget | Wherever a reliquary chest turns up |
 
-**Shrine cleansing** (the shrine on floor 2, in a dead end of its own; which floors have one is in `data/floors.json`). For 10 obols (`data/loot.json`), the shrine cleanses one cursed artifact: the drawback goes and the gift is halved (see Artifacts). The room is lit warm white, with a circle of pale runes in the middle of the floor. The mage chooses which curse: each cursed artifact held gets an offering stone, the artifact floating above it; with too few obols, walking into a stone is refused. The curse fights back: walking into its stone draws it out as a wisp that flits about the room, lingering in the circle now and then, and spits at the mage. Bolts pass through it outside the circle and strike it inside (a glyph's blast there strikes twice); four strikes within 10 s put it down, while the motes of light around the circle go out one by one and the curse's strength shows on the boss bar. Then the artifact is cleansed (its red ring in the HUD and on the end screen turns pale), the obols are paid and the stone crumbles. If time runs out, or the mage leaves the room, the wisp flees back into its stone, and the mage can try again.
+**Shrine cleansing** (the shrine on floor 2, and floor 4 since M4.1, in a dead end of its own; which floors have one is in `data/floors.json`). For 10 obols (`data/loot.json`), the shrine cleanses one cursed artifact: the drawback goes and the gift is halved (see Artifacts). The room is lit warm white, with a circle of pale runes in the middle of the floor. The mage chooses which curse: each cursed artifact held gets an offering stone, the artifact floating above it; with too few obols, walking into a stone is refused. The curse fights back: walking into its stone draws it out as a wisp that flits about the room, lingering in the circle now and then, and spits at the mage. Bolts pass through it outside the circle and strike it inside (a glyph's blast there strikes twice); four strikes within 10 s put it down, while the motes of light around the circle go out one by one and the curse's strength shows on the boss bar. Then the artifact is cleansed (its red ring in the HUD and on the end screen turns pale), the obols are paid and the stone crumbles. If time runs out, or the mage leaves the room, the wisp flees back into its stone, and the mage can try again.
 
 **The shrine's bargain (M6 step 11, as built 2026-10-03; decision 12).** Every shrine (floors 2 and 4) has a bargain stone at the head of its circle (at its foot or beside it where a doorway's way in runs there): a stele with a heart carved into it and runes down its face. Walking up to it says how; a spell cast into it costs nothing, its runes run red, and it deals three boons, two of that spell's school and one general (from the rest when that school's are spent), on the level-up screen with each card's price. Taking one pays a heart container, never the last (the stone refuses then), and the runes turn gold: once a shrine. Esc backs out with nothing paid, and the stone waits to be tried again.
 
@@ -1447,7 +1472,7 @@ choir through the formants of a vowel, drums as a skin). Two more buses, music a
 
 A full five-floor game needs roughly 85 3D models, about 300 sound files, 5 music pieces with stems, and about 80 icons. Counts are estimates for the scope in this document; each milestone only needs its own slice.
 
-**Current scope: three floors.** The counts below assume five. With three, the rows that scale with floors (floor music, ambience beds and one-shots, bosses, biome props, footstep surfaces) shrink to about three fifths.
+**Current scope: five floors** (since M4.1). The counts below assume five.
 
 **Audio**
 
@@ -1486,7 +1511,7 @@ A full five-floor game needs roughly 85 3D models, about 300 sound files, 5 musi
 
 **Visual effects** (code and particles, no Tripo): cantrip bolts per focus, 15 spell effects, 5 status visuals, 5 reaction bursts, potion splashes, level-up glow, portal and waystone.
 
-**2D and interface:** icons for about 15 spells, 25 artifacts, 12 potions (plus unknown bottles), 7 reagents, 6 runes and 12 boons; floor and wall textures per biome (procedural now, painted later); fonts already chosen.
+**2D and interface:** icons for about 15 spells, 25 artifacts, 12 potions (plus unknown bottles), 7 reagents, 7 runes and 18 boons (their icons drawn in code: rune strokes and boon sigils); floor and wall textures per biome (procedural now, painted later); fonts already chosen.
 
 **Sourcing options (to decide)**
 
@@ -1526,7 +1551,7 @@ src/
   magic/           spells, runes, mana, schools
   items/           artifacts, sets, curses, pickups, glyphs, merchant stock
   alchemy/         potions, identification, reagents, brewing
-  progression/     XP, levels, attributes, boons, sanctum save
+  progression/     insight (XP), levels, attributes, points, boons (the sanctum save waits for M7's Vigil)
   input/           keyboard, gamepad (touch frozen until a mobile port)
   ui/              HUD, minimap, menus, boon picker, grimoire
   audio/           spatial effects, ambience, adaptive music, mixer
@@ -1793,7 +1818,7 @@ Milestones 1 to 3 decide whether the game is fun: the loop and its variety, expl
 | M4.11 Spell marks | You can see your magic | **Built 2026-10-01** (Spells: Spell marks; the owner's ask). The slotted spells shown at the hands with their state, attunement, a master's ring, the knowledge circle |
 | M4.12 Fantasy foes | Creatures of Eda, not critters | The 32 cute looks (M4's and M4.1's foes, the Wardlings, eight boss looks) and the 14 plain animals of M4.5 redone as creatures of fantasy, each fight unchanged (the owner's ask, 2026-10-02; approved the same day, after M6 step 7, `docs/M4.12-plan.md`); built and every look approved 2026-10-03, the Warden wearing the Owlbear (Combat and enemies: Fantasy foes) |
 | M5 Alchemy | The second game | **Built** (2026-10-01, `docs/M5-plan.md`; Potions and alchemy, M5 as built; the owner's play-test next): steps 1 to 10 (the data, the belt, drinking and throwing, reagents, Dr. Jelly's laboratory and brewing, the jelly serpent, the Alchemist, Verdant and its gardens, the close). Potion belt, drink or throw, identification, 7 reagents, alchemy table in Dr. Jelly's laboratory; the Verdant school and its garden rooms |
-| M6 RPG growth | Growth you can feel | XP, levels, attributes, 12 boons, runes and waystones |
+| M6 RPG growth | Growth you can feel | **Built 2026-10-04** (RPG progression as built): insight and levels, four attributes, 18 boons and the level-up screen, 7 runes found and carved at the waystone, the waystone room, the shrine's bargain, levels toward the arc; harder runs at the owner's ask (more rooms, scarcer hearts, never tougher foes) |
 | M7 Descent and the Vigil | A full run with a reason to return | Final boss (Kaelith, the Shadow Sentinel); the Vigil (RPG progression: Between runs) at the cave mouth over the valleys: freed shades as townspeople with dialogue (Boketto, the Cloud Forest Wizard, the Huruhui foragers), its unfolding, the Great Circle, the Ferryman's crossing, echoes, grimoire, bestiary and disciplines; a won run ends in daylight |
 | M8 Eda | It is Eda | Lore names, floor biomes, adaptive music, ambience beds and final mix |
 
