@@ -54,7 +54,7 @@ lore drop for M7); the rest of the owner's names wait for M8.
   test holds it within 10% of the measured medians). The economy test (`tests/unit/loot.test.ts`) holds obols, hearts and
   relics a floor in the GDD's bands: a change to room counts moves them all.
 - **Generator layouts move with room counts:** browser tests that assumed a seed's layout (which room is where) broke when
-  floors grew. Place the mage relative to the room it is in, and choose rooms by what they hold, not by index.
+  floors grew (five so far, the last two on 2026-10-04: the moths' and the rootlings'). Place the mage relative to the room it is in, and choose rooms by what they hold, not by index.
 
 ## Working notes and pitfalls
 
