@@ -1,4 +1,4 @@
-# Handoff: where the work stands (2026-10-03)
+# Handoff: where the work stands (2026-10-04)
 
 A note for the next session, so it can pick up exactly where this one stopped. `CLAUDE.md` is still the brief and
 `docs/GDD.md` the design; this file only says what is in flight, what waits on the owner, and what was learned on the way.
@@ -6,117 +6,73 @@ Delete it, or write it again, at the next handoff.
 
 ## The branch and what is live
 
-- Work is on **`claude/m6-plan-docs-5gjp6c`** (the session branch `claude/m6-plan-docs-5gjp6c-htduau` kept the same).
-- **`main` (the live Pages site)** has M4.12 whole and M6 steps 8 and 9, shipped 2026-10-03 in
-  [Asyrion/ossuary#36](https://github.com/Asyrion/ossuary/pull/36), and on top of it another session's owlbear made in
-  Tripo (`c42a556`, `020d852`).
-- On the branch only, **not shipped** (ship only when the owner asks: the `ship` skill, the `rules-reviewer` first): M6
-  step 10, the waystone room, step 11, the shrine's bargain, and step 12, the run around it with harder runs (2026-10-03).
+- Work is on **`claude/m6-plan-docs-5gjp6c`** (the session branch `claude/m6-plan-docs-5gjp6c-htduau` kept the same; push
+  both). GitHub prints "Cannot update this protected ref" on a push that went through: check `git log -1 origin/<branch>`.
+- **`main` (the live Pages site)** has M4.12 whole and M6 steps 1 to 9, shipped 2026-10-03 in
+  [Asyrion/ossuary#36](https://github.com/Asyrion/ossuary/pull/36), and another session's owlbear made in Tripo on top.
+- On the branch only, **not shipped**: M6 steps 10 to 13 (the waystone room, the shrine's bargain, the run around it with
+  harder runs, the close). **M6 is built** and closed on GitHub. Ship only when the owner asks: the `ship` skill, with the
+  `rules-reviewer` first (it ran on 2026-10-04 over steps 10 to 13 and found nothing blocking; its nits are fixed).
+- **GitHub milestones** (the owner's rule, 2026-10-03): `npm run milestone -- list`. M0 to M6 closed, M7 and M8 open. A
+  new roadmap milestone is opened in the step that adds it (`npm run milestone -- open "M9 Name" "Its goal"`), a finished
+  one closed in the step that marks it built.
 
-- **GitHub milestones** (the owner's rule, 2026-10-03): every roadmap milestone is one on GitHub (M0 to M5 closed, M6 to
-  M8 open). Create a new one with `npm run milestone -- open "M9 Name" "Its goal"` when it enters the roadmap, and close a
-  finished one with `npm run milestone -- close M6` in the step that marks it built (CLAUDE.md, Working agreements).
+## What waits on the owner
 
-## What waits on the owner now
+- **Ship M6** when they ask (the play-test build). The screenshots of the close went to them in the session: the level-up
+  screen, the runed hands, the waystone room and its screen, the shrine's bargain stone and its deal.
+- **Play-tests:** M6 (levels, boons, runes, the waystone, the bargain, and the harder runs: three more rooms a floor,
+  hearts half as likely, the pressure dials raised; never more foe health, the owner's rule), M4.12's fantasy foes, M5, the
+  soundscapes and music (`docs/sound-plan.md`), M4.6's looks.
+- **Polish the owner may want** (from the sweeps, not blocking): the Gloom Raven and the Mandrake nearly black on floor 5's
+  slate, the Hex Imps dark on floor 3's red herringbone, the Deep Angler dark on its floor. The closing sweep of M6's rooms
+  (2026-10-04) is summed up in `docs/M6-plan.md`, step 13.
+- **Balance to watch:** the Pale Unicorn (`moonstagFawn`) outlasts the bot's cantrip and Frost (`docs/balance.md`). The
+  bot leaves some rooms uncleared (the Frost Jackalope, wasp nests behind cover): the bot's limits, not stuck rooms.
 
-**M4.12 is built** (2026-10-03): every foe, ward core and boss in its fantasy look, the Warden in the Owlbear, the names
-following the creatures (GDD: Combat and enemies, Fantasy foes). Waiting on the owner: the **play-test**, and their eye on
-the sweep's polish (`asset-previews/sweep/`, not in git): the Gloom Raven and the Mandrake nearly black on floor 5's slate,
-the Hex Imps dark on floor 3's red herringbone, the Deep Angler dark on its floor, each read by its lights. Not shipped:
-ship only when asked (the `ship` skill, the `rules-reviewer` first; it ran on 2026-10-03 and found nothing blocking).
+## What comes next
 
-The balance bot's table (`docs/balance.md`, 2026-10-03) moved since 2026-10-01 with M5's close and M6 steps 1 to 7, not
-the looks: the Pale Unicorn (`moonstagFawn`, keeps away) now outlasts the bot's cantrip and Frost. One for M6's balance.
+**M7 Descent and the Vigil** (GDD: Roadmap; RPG progression, Between runs: the Vigil). Plan it with the owner first, in
+plan mode, as every milestone was: a `docs/M7-plan.md` with decisions, pieces and steps, approved before any code. What the
+GDD already holds: the final boss; the hub between runs (shades freed in runs become its townspeople with a small dialogue
+system, or are bound as a familiar for one run; it unfolds to the spells the mage knows; the Great Circle of vows, gifts and
+omens before a run; the Ferryman's crossing as the way down; echoes of past runs; grimoire, bestiary and disciplines);
+permanent upgrades (options first, a few powers, offset by deeper floors and the vows). What M7 takes over from the
+browser's `localStorage`: spell knowledge (`ossuary.knowledge`), the bestiary (`ossuary.bestiary`), reactions, weaves and
+recipes found. The lore it may use: the Vigil at the cave mouth and Kaelith the Shadow Sentinel (adopted from the owner's
+lore drop for M7); the rest of the owner's names wait for M8.
 
-**On the owner's yes (per foe; how the floors were done):**
+## How M6's steps went (the routine that worked)
 
-1. Add the approved look ids to `APPROVED` in `src/actors/fantasyLooks.ts`. From then on, `buildFoe` dresses that foe in
-   its new look.
-2. Fix any foe the owner asked to change, send its sheet again (`only=id1,id2`), and wait for the yes.
-3. The plan says the old looks are deleted on the yes. They are `MODEL_OPTIONS` in `src/actors/modelOptions.ts` (M4's
-   ten: `sporeling`, `vesperMoth`, `runeBeetle`, `urnMimic`) and `BESTIARY_OPTIONS` in `bestiaryLooks.ts` /
-   `bestiaryBeasts.ts` (M4.5's: the other six). Before deleting, mind what reads them:
-   - `oldLook` in `foes.ts`;
-   - `showLookPairs` and `lookContract` in `lookPairs.ts`, and the browser test "fantasy foes (M4.12)", which measures
-     every new look against its old one and expects a pair for each;
-   - the Galleries tab's enemy model options and bestiary rows;
-   - `bigEyes`, which Fen-Nex, the familiars, the boss looks and the serpent still use, so keep it.
-   
-   Done this way for floor 1: point the gallery entry's `build` at the new look, delete the old builder (and the imports
-   it leaves unused), and add the old look's height and parts to `RETIRED` in `fantasyLooks.ts` (measure them with
-   `__game.lookContract()` before deleting). `newLooks` then leaves it out of the pairs and sheets.
-4. The display names change through `STR` at the close (plan step 9). `foeName(id)` in `strings.ts` reads
-   `STR.options[id].name` (M4's foes) or `STR.bestiary[id].name` (M4.5's). Ids never change. If the owner wants the names
-   now, do them with the yes; check `STR.foes.counterLines` and the notes for the old names too.
-
-## What comes next (the approved order)
-
-1. ~~M4.12 steps 3 to 8~~ (all built and approved), one floor at a time, each ending with its contact sheet for the owner (`docs/M4.12-plan.md`:
-   the rules, and a concept per foe):
-   - floor 2's six: Hoarfrost Toad, Kelpie, Reliquary Medusa, Glass Wyrm, Rime Crawler, Spark Wyvern;
-   - floor 3's four, and the nest: Salamander, Hex Imp, Rime Drake, Cinder Hornets;
-   - floor 4's five: Candle Kobold, Bell Fiend, Gargoyle, Pale Unicorn, Frost Scarab;
-   - floor 5's seven: Mandrake, Sky Ray, Void Maw, Dragon Turtle, Gloom Raven, Rime Warg, Tarasque;
-   - the six Wardlings, as ward cores: approved 2026-10-03;
-   - the bosses' eight looks: approved 2026-10-03, the Warden wearing the Owlbear.
-2. ~~M4.12 step 9~~, the close: built 2026-10-03; the owner's play-test waits.
-3. ~~M6 steps 8 to 12~~: built 2026-10-03, each after its plan with the owner. **Step 13, the close** (next), as `docs/M6-plan.md` sets out; then close M6 on GitHub (`npm run milestone -- close M6`). The owner's rule from step 12: harder never means foes with more health.
-
-## How a floor's looks are made (the routine that worked for floor 1)
-
-- Write `src/actors/fantasyFloorN.ts` exporting `FLOORN_LOOKS` (keyed by the old look id), and spread it into
-  `FANTASY_LOOKS` in `fantasyLooks.ts`. `fantasyFloor1.ts` is the model: builders from `beastParts.ts` and
-  `render/arcane.ts` (`joint`, `part`, `tube`, `jointed`, `spike`, `slitEyes`, `beads`, `crystal`, `rune`, `lit`, `glow`).
-  Each builder returns a `Built` (`group`, `shadow`, `parts`, `idle`).
-- **Keep the old look's `parts` by name**, and what its idle and behaviour move. Read the old builder (`modelOptions.ts`
-  or `bestiaryBeasts.ts` / `bestiaryCreatures.ts` / `bestiaryElementals.ts`) and the behaviour's `pose` in
-  `foes.ts` / `bestiaryFoes.ts` first. `foe-sheet` prints each look's missing parts and its height old → new; keep the new
-  height within the test's 0.5× to 2.2× (aim near the old one).
-- Shoot the sheets: the dev server running, then
-  `PW_CHROMIUM=/opt/pw-browsers/chromium npm run foe-sheet -- floor=N out=<scratchpad>/sheet`. Use `only=a,b` while
-  iterating. Look at both sheets: `-texel` (the game's pixel look, blown up 2×, the mage below for scale) and `-off` (a
-  close-up).
-- The browser test "fantasy foes (M4.12)" covers every entry in `FANTASY_LOOKS` by itself: the contract, the pairs, and
-  each foe spawned in its new look and fighting for 3 s. A look id that differs from its foe id needs mapping there (only
-  `fireflyBeetle` → `fireflySwarm` so far; check `look` in `data/foes.json`). Run it with
-  `PW_CHROMIUM=/opt/pw-browsers/chromium npx playwright test -g "fantasy foes"`.
-- **Draw calls:** measure each new look against its old one (spawn it, then hide its group and take the difference in
-  `__game.renderInfo().calls`). Every part that moves on its own is one call per surface it carries, and a material
-  whose colour or opacity changes keeps every mesh using it apart: move repeated small parts (eyes, sacs, wings, arms,
-  chains) together under one joint, and pulse a glow sprite instead of a material. Floor 1's Quill Kraken was 54 calls
-  against the old 26 until its runes stopped changing colour.
-- **A part holding parts:** `mergeRig` keeps apart only the objects named in `parts` and what the idle moves. A part
-  whose children the behaviour moves (the fawn's `legs`) needs the idle to move each child a little, or they merge into
-  the parent and never move.
-- **A 45° camera sees a face tipped 45° edge-on:** turn what must be seen (a bell's mouth) straight forward or up.
-- **`pkill -f <pattern>` kills the shell running it** when the pattern is in its own command line (`vite`, `node.*vite`): stop the dev server by its PID instead.
-- **Never run a second Vite server sharing `node_modules`** (a worktree with it linked): both rewrite
-  `node_modules/.vite` and the browser tests fail on 403s. Delete `node_modules/.vite` and restart the server if it
-  happens. And `pkill -f vite` kills a shell whose command line names `.vite`.
-- Then typecheck (`npx tsc --noEmit -p .`), run the unit tests, commit, push, and send both sheets to the owner (they're
-  for the owner, so send them, don't only mention them). Add a "Built, waiting on the owner's yes" note under the step in
-  `docs/M4.12-plan.md`.
-
-**What reads at play distance** (learned on floor 1, under the 45° camera, at a few dozen game pixels a foe):
-
-- Dark bodies with bright emissive features (runes, crystals, slit eyes, spore sacs) read. Pale or mid-grey bodies wash
-  out into a blob. The first Runehorn and Spore Fiend both did, until their bodies went dark and the glow went up.
-- Shapes that stick out sideways read from above: horns, crests, wings, scythes, a halo. Detail on a face facing forward
-  mostly doesn't.
-- A hat or hood over a face hides it from above; tip it back. A forward reach is invisible; up and out shows.
-- No round googly eyes: slits (`slitEyes`) or small beads (`beads`), lit in the school's light.
+- Each step: plan mode with the owner (two questions at most, the recommended option first), then build, a browser test,
+  the room inspector where rooms look different, a "Built" note under the step in the plan, CLAUDE.md, commit and push.
+- **Balance with the bot:** `PW_CHROMIUM=/opt/pw-browsers/chromium OSSUARY_URL=http://localhost:5173/ npm run balance --
+  runs seeds=4` (about 20 minutes a build; writes `docs/balance-runs.md`). It starts each floor at its level
+  (`levelAtFloor`), so a change to the level curve (`CFG.levels.at`) needs `CFG.levels.floorInsight` checked too (a unit
+  test holds it within 10% of the measured medians). The economy test (`tests/unit/loot.test.ts`) holds obols, hearts and
+  relics a floor in the GDD's bands: a change to room counts moves them all.
+- **Generator layouts move with room counts:** browser tests that assumed a seed's layout (which room is where) broke when
+  floors grew. Place the mage relative to the room it is in, and choose rooms by what they hold, not by index.
 
 ## Working notes and pitfalls
 
 - **Browser tooling:** `PW_CHROMIUM=/opt/pw-browsers/chromium` for every Playwright run, `npm run foe-sheet`,
   `npm run inspect` and `npm run balance`. The last three need the dev server (`npm run dev`, port 5173).
-- **The full browser suite takes about 14 minutes.** Don't edit `src/` while it runs (Vite reloads and tests flake). Run
-  it in the background and wait on it with an until-loop; a foreground `sleep` is blocked.
+- **The full browser suite takes about 15 minutes.** Don't edit `src/` while it, the bot or an inspection runs (Vite
+  reloads and they flake). Run it in the background and wait on it with an until-loop; a foreground `sleep` is blocked.
+- **A `+` in a URL query is a space:** `?runes=e:lasting+vein` arrives as `lasting vein`, so the parser splits on both.
+  Mind it for any new URL option.
 - **`__manual` mode:** the camera moves only when a frame is drawn. Call `__game.sim(t, true)` before projecting anything
   to the screen, or the positions are a frame stale.
 - **Browser tests:** `start(page, query)` adds `autolevel=skip`, so level-up screens never stop a test. Reagent ids are
   camelCase (`graveMoss`, `emberSalt`...); a wrong id throws.
 - **A one-line object literal can't hold a `//` comment**: it comments out the rest of the line. Use `/* */` there.
+- **`pkill -f <pattern>` kills the shell running it** when the pattern is in its own command line (`vite`): stop the dev
+  server by its PID. Never run a second Vite server sharing `node_modules` (both rewrite `node_modules/.vite`).
+- **What reads at play distance** (learned on M4.12's looks, under the 45° camera): dark bodies with bright emissive
+  features read, pale bodies wash out; shapes sticking out sideways read from above, detail on a forward face doesn't; a
+  face tipped 45° is edge-on, so turn what must be seen straight forward or up. Keep draw calls near: parts that move on
+  their own cost a call per surface, and a material whose colour changes keeps its meshes apart (pulse a glow instead).
 - Commits end with the two trailer lines the session gives (Co-Authored-By and Claude-Session), and never name a model.
 - **Owner rules that bite here:**
   - every new feature gets its dev menu entry in the same step;
@@ -124,4 +80,6 @@ the looks: the Pale Unicorn (`moonstagFawn`, keeps away) now outlasts the bot's 
   - one pixel for everything;
   - tuning in `config.ts`, content in `data/`;
   - the owner sees new looks before they replace old ones;
+  - harder never means foes with more health;
+  - milestones on GitHub, opened and closed in the steps that change them;
   - no PR and no shipping unless asked.
