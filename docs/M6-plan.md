@@ -550,7 +550,9 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
       bargain stone 99, a boss room 100.
     - **Screenshots** sent to the owner: the level-up screen, the runed hands, the waystone room (west and north doors) and
       its screen, the shrine's bargain stone and its deal.
-    - **The suites:** 423 unit tests and the browser suite green.
+    - **The suites:** 423 unit tests and 129 browser tests green, and the build. Two foe tests that had passed by luck (the
+      floors' extra rooms moved their layouts) were made sure: the moths circle a mage in the room's middle and their motes
+      are counted as made; the rootlings are set alight twice, so one caught digging climbs out before the watch.
 
 **What could be cut if it runs long**, without hurting the core (one word each): the Lasting rune (keep six), Brewer's
 Breath and Afterglow (sixteen boons), the shrine's bargain, the waystone room (the stone in the boss room).
