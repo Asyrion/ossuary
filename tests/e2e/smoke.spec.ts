@@ -3336,8 +3336,9 @@ test('foes in code (M4): floor 1\'s moth loops, scatters light and is lured by a
   const errors = await start(page, '?seed=K3F9QX&foe=vesperMoth');
   const moth = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.8);
-    let flares = 0, motes = 0;
-    for (let i = 0; i < 90; i++) { const was = g.shots.length; g.sim(.1); flares += g.enemies.filter(e => e.state === 'flare').length ? 1 : 0; motes = Math.max(motes, g.shots.length - was); }
+    g.player.x = g.current.cx; g.player.z = g.current.cz; // (in the room's middle: moths circling the mage by a wall lose motes to it as they scatter)
+    let flares = 0, motes = 0; const old = new Set<object>(g.shots); // (motes counted as they're made: older ones dying in the same step don't hide them)
+    for (let i = 0; i < 90; i++) { g.sim(.1); flares += g.enemies.filter(e => e.state === 'flare').length ? 1 : 0; const made = g.shots.filter(s => !old.has(s)); made.forEach(s => old.add(s)); motes = Math.max(motes, made.length); }
     // a lit brazier in the middle: the moths come to it
     const c = g.current; g.prop('brazier', c.cx, c.cz); const b = g.props.find(p => p.kind === 'brazier')!; g.element('burn', b.x, b.z);
     let near = 0, burned = false;
@@ -3547,7 +3548,7 @@ test('foes in code (M4.1): floor 5\'s rootling burrows and bursts up (fire keeps
     for (let i = 0; i < 160; i++) { g.player.invuln = 0; g.sim(.05); g.enemies.forEach(e => { seen.add(e.state); hid ||= !!e.hidden && e.state === 'under'; }); }
     // burning, they stay above ground
     for (let i = 0; i < 30 && g.enemies.some(e => e.hidden); i++) g.sim(.1);
-    g.inflict({ burn: 6 }); let dug = false; for (let i = 0; i < 60; i++) { g.sim(.05); dug ||= g.enemies.some(e => e.state === 'under' || e.state === 'dig'); }
+    g.inflict({ burn: 6 }); g.sim(1.5); g.inflict({ burn: 6 }); let dug = false; // (set alight, one caught digging or under climbs out first; then it stays up) for (let i = 0; i < 60; i++) { g.sim(.05); dug ||= g.enemies.some(e => e.state === 'under' || e.state === 'dig'); }
     return { seen: [...seen].sort(), hid, dug };
   });
   expect(root.seen).toEqual(expect.arrayContaining(['dig', 'rumble', 'under', 'up'])); expect(root.hid).toBe(true); expect(root.dug).toBe(false);
