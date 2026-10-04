@@ -25,8 +25,10 @@ Delete it, or write it again, at the next handoff.
   hearts half as likely, the pressure dials raised; never more foe health, the owner's rule), M4.12's fantasy foes, M5, the
   soundscapes and music (`docs/sound-plan.md`), M4.6's looks.
 - **Polish the owner may want** (from the sweeps, not blocking): the Gloom Raven and the Mandrake nearly black on floor 5's
-  slate, the Hex Imps dark on floor 3's red herringbone, the Deep Angler dark on its floor. The closing sweep of M6's rooms
-  (2026-10-04) is summed up in `docs/M6-plan.md`, step 13.
+  slate, the Hex Imps dark on floor 3's red herringbone, the Deep Angler dark on its floor. From M6's closing sweep
+  (2026-10-04, `docs/M6-plan.md` step 13; its shots in `test-results/inspect-m6-*`, not in git): the `waystone_cairns`
+  cairns read as rubble while the room waits dark, the bargain stone is brown on floor 1's brown walls (only under
+  `?room=`: shrines are on floors 2 and 4), and foes' dark stains can read as holes in the floor (from before M6).
 - **Balance to watch:** the Pale Unicorn (`moonstagFawn`) outlasts the bot's cantrip and Frost (`docs/balance.md`). The
   bot leaves some rooms uncleared (the Frost Jackalope, wasp nests behind cover): the bot's limits, not stuck rooms.
 

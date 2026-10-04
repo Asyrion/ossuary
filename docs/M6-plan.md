@@ -1,7 +1,7 @@
 # M6 RPG growth: plan
 
 **Status: approved (2026-10-02) with four changes, the owner taking Claude's recommendations (decisions 6, 8, 10 and 11);
-steps 1 to 6 built.** GDD: RPG progression, Inside a run; Magic
+built, steps 1 to 13 (2026-10-04), and closed on GitHub.** GDD: RPG progression, Inside a run; Magic
 system, Runes; Core loop, Game loop changes for the magic RPG (the pacing target); Pickups and room types (the rune, the
 shrine's bargain, the waystone); the roadmap's M6 row ("XP, levels, attributes, 12 boons, runes and waystones").
 
@@ -527,6 +527,30 @@ lines (Nothing silent) and its placeholder sounds. Names marked (new) don't exis
     - the suites green.
 
     The play-test build ships when the owner asks.
+
+    *Built (2026-10-04).* **M6 is built**, and closed on GitHub.
+    - **The GDD as built:** the runes (the seven, the shapes each fits, carved runes outside the Runescribe), the boons
+      (the eighteen), "Insight and levels as built", the loop's special rooms and between floors, the waystone, the
+      pacing target, six schools, Hex, the shrine's floors (2 and 4), the potion key, "three floors" of M4's time, the
+      tech layout's `progression/` (the sanctum save waits for M7), the asset list (18 boons, 7 runes), the roadmap's M6 row.
+    - **The rules reviewer** found nothing blocking. Its nits fixed: the generator's comment on the waystone room's order;
+      the bargain stone opens only when its deal does (no stone left open under another screen); `castIntoBargain`'s
+      unused slot; the arc's levels through the pure `levelsHeld` (costumeData.ts), tested; the dev menu's arc line counts
+      artifacts and levels apart.
+    - **Found on the way:** `?runes=e:lasting+vein` never carved its second rune, since a `+` in an address arrives as a
+      space; the parser splits on both, and a browser test holds it.
+    - **The room sweep** (every waystone and shrine template, every theme, the carved rooms, objects, a floor of each look)
+      found nothing blocking. Fixed: the waystone room's trapdoor showed only half its ring behind the low south wall with a
+      north door (`CFG.waystone.trapdoor` 2.4 → 1.9 down the room); `npm run inspect`'s floor mode now skips level-ups
+      (they covered every shot after a few rooms) and shuts the alchemy table between shots. Polish for the owner: the
+      `waystone_cairns` cairns read as rubble while the room waits dark; the bargain stone is brown on floor 1's brown
+      walls (shrines are on floors 2 and 4, where it reads; floor 1 only under `?room=`); foes' dark stains can read as
+      holes (from before M6).
+    - **The frame cost:** the waystone room with its stone up 74 draw calls (the start room 64), the shrine with its
+      bargain stone 99, a boss room 100.
+    - **Screenshots** sent to the owner: the level-up screen, the runed hands, the waystone room (west and north doors) and
+      its screen, the shrine's bargain stone and its deal.
+    - **The suites:** 423 unit tests and the browser suite green.
 
 **What could be cut if it runs long**, without hurting the core (one word each): the Lasting rune (keep six), Brewer's
 Breath and Afterglow (sixteen boons), the shrine's bargain, the waystone room (the stone in the boss room).
