@@ -245,8 +245,8 @@ export function generateFloor(rng: Rng, cfg: FloorConfig, index: number, library
     // M5: Dr. Jelly's laboratory comes on top of the room count, last and on a stream of its own (the rest of the floor is as
     // it would be without it)
     if (cfg.laboratory) placeLaboratory(new Rng(rooms.reduce((a, r) => (a ^ r.seed) * 17 >>> 0, 0x1ab0)), rooms, library);
-    // M6 step 10: the waystone room beside the boss room, last, on a stream from the boss room's seed (planned before the
-    // laboratory, so the stone's room is drawn the same with or without one)
+    // M6 step 10: the waystone room beside the boss room, last (after the laboratory, which may take a cell beside the boss
+    // room first), on a stream from the boss room's seed
     if (cfg.waystone) placeWaystone(new Rng((rooms[boss].seed ^ 0x57a7e) >>> 0), rooms, library);
     return { index, rooms, startId: 0, bossId: boss, attempts };
   }

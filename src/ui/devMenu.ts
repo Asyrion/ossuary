@@ -22,7 +22,7 @@ import { isCostume } from '../actors/costumeData';
 import { clearTransforms, formTransform } from '../items/transforms';
 import { TRANSFORM_IDS } from '../items/transformData';
 import { blinkRest } from '../items/gifts';
-import { arcHeld, arcNow } from '../items/arc';
+import { arcHeld, arcLevels, arcNow } from '../items/arc';
 import { marksNow } from '../actors/spellMarks';
 import { callWanderer } from '../items/wanderer';
 import { STR, foeName } from '../strings';
@@ -645,7 +645,7 @@ function refresh() {
   soundInfo.textContent = S.soundInfo(au.ambience?.scape ? `${au.ambience.scape}${au.ambience.room ? ` + ${au.ambience.room}` : ''} (${au.ambience.space.split('|')[0]} s)` : '—', au.music?.piece ? `${au.music.piece}, ${au.music.mood}, bar ${au.music.bar}` : '—');
   soundBtn.textContent = AudioDirector.on ? S.soundOn : S.soundOff; soundBtn.classList.toggle('on', AudioDirector.on);
   transInfo.textContent = S.transformInfo(G.run.transforms.map(t => STR.transforms[t].name), blinkRest());
-  arcInfo.textContent = S.arcInfo(arcNow(), arcHeld(), DEV.arc !== undefined);
+  arcInfo.textContent = S.arcInfo(arcNow(), arcHeld(), arcLevels(), DEV.arc !== undefined);
   { const m = marksNow(); marksInfo.textContent = S.marksInfo(m.hands.map(h => h ? `${STR.schools[h.school]} (${h.state}${h.ring ? ', ring' : ''})` : '-'), m.attuned ? STR.schools[m.attuned] : '', m.circle.known.reduce((a, b) => a + b, 0), m.circle.mastered.map(sc => STR.schools[sc])); }
   arcInfo.parentElement?.querySelectorAll<HTMLButtonElement>('button[data-arc]').forEach(b => b.classList.toggle('on', b.dataset.arc === String(DEV.arc)));
   transBox.querySelectorAll<HTMLButtonElement>('button[data-t]').forEach(b => b.classList.toggle('on', G.run.transforms.includes(b.dataset.t as never)));

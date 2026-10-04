@@ -7,14 +7,14 @@ import { CFG } from '../config';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { line } from '../ui/hud';
-import { arcStage } from '../actors/costumeData';
+import { arcStage, levelsHeld } from '../actors/costumeData';
 import { artifact } from './artifactData';
 
 /** What counts towards the arc: every artifact taken, the focus unless it is the first wand, and one for every
     `CFG.arc.perLevels` levels gained (M6; a level-12 run with nothing held reaches the first stage). */
 export const arcHeld = () => player.items.length + (artifact(player.focus).start ? 0 : 1) + arcLevels();
 /** What the levels gained count for (M6 step 12). */
-export const arcLevels = () => Math.floor((G.run.level - 1) / CFG.arc.perLevels);
+export const arcLevels = () => levelsHeld(G.run.level, CFG.arc.perLevels);
 /** The arc's stage now: the dev menu's, or from what is held. */
 export const arcNow = () => DEV.arc ?? arcStage(arcHeld(), CFG.arc.at);
 
