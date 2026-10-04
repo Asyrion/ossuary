@@ -133,7 +133,7 @@ const setUp = ([kind, kinds, warpTo]: readonly [string, readonly string[], numbe
     if (k === 'floor') { floor.push({ x, z }); if (d < bd) { bd = d; best = { x, z }; } }
     if (k === 'pit') pits.push({ x, z });
   }));
-  g.player.x = best.x; g.player.z = best.z; g.sim(1, true); g.player.invuln = 0; g.sim(.02, true); // (drawn, so the camera is in this room before the last step places anything on screen; invulnerable, the mage blinks)
+  g.player.x = best.x; g.player.z = best.z; g.sim(1, true); (g as unknown as { closeLab?(): void }).closeLab?.(); g.player.invuln = 0; g.sim(.02, true); // (drawn, so the camera is in this room before the last step places anything on screen; invulnerable, the mage blinks)
   // every point to find on screen, projected in one pass: the mage's feet and head, pool tiles, floor and pit tiles
   const v = g.camera.position.clone(), W = window.innerWidth, H = window.innerHeight, pools = g.pools;
   const pts: [string, number, number, number][] = [['mage', g.player.x, .2, g.player.z], ['mage', g.player.x, 1.2, g.player.z]];
@@ -204,7 +204,7 @@ async function shoot(url: string, dir: string, list: Shot[], withChecks: boolean
     results.push({ shot: { ...s, name }, file, info: probe.info, flags });
   };
   for (const s of list) {
-    await page.goto(new URL(`${s.query}&seed=${seed}`, url).href);
+    await page.goto(new URL(`${s.query}&seed=${seed}&autolevel=skip`, url).href);
     await page.waitForFunction(() => !!(window as unknown as Hooks).__game, null, { timeout: 90000 }); // (a fresh server optimises its dependencies first)
     await page.waitForFunction(() => String(((window as unknown as Hooks).__game.hero as unknown as { info?: string }).info ?? '').includes('rigged'), null, { timeout: 60000 }); // the hero model loaded
     await page.addStyleTag({ content: '#banner, #lore { display: none !important; }' }); // the floor's title and lore cards would cover the room

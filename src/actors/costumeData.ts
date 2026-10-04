@@ -72,6 +72,8 @@ export interface Worn { slot: CostumeSlot; piece: CostumeId | 'carried'; at?: Ca
 export const ARC_PIECES: readonly (readonly CostumeId[])[] = [['bracers'], ['chaosCollar'], ['runeOrbs'], ['chaosFlame']];
 /** The arc's stage for `held` artifacts: how many of the thresholds `at` (CFG.arc.at) it has reached. */
 export const arcStage = (held: number, at: readonly number[]) => at.filter(n => held >= n).length;
+/** What a level counts for toward the arc (M6 step 12): one artifact held for every `perLevels` levels gained. */
+export const levelsHeld = (level: number, perLevels: number) => Math.floor((level - 1) / perLevels);
 
 /** What each transformation's look puts on (M4.6; docs/M4.6-plan.md, The transformations): pieces built for it, or an
     artifact's own model carried somewhere (the Pilgrim's lantern). Over what the artifacts show in those slots. */

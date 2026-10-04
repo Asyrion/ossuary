@@ -204,7 +204,7 @@ function readUrlOptions() {
   const runes: RuneId[][] = [[], []]; // (M6 step 7: ?runes=q:quicken,e:lasting+vein carves them into the slots)
   for (const part of (q.get('runes') ?? '').split(',').map(s => s.trim()).filter(Boolean)) {
     const [k, list = ''] = part.split(':'), slot = ['q', '0'].includes(k.toLowerCase()) ? 0 : ['e', '1'].includes(k.toLowerCase()) ? 1 : -1;
-    const ids = list.split('+').filter(Boolean), bad = ids.filter(id => !isRune(id));
+    const ids = list.split(/[+ ]/).filter(Boolean), bad = ids.filter(id => !isRune(id));
     if (slot < 0 || bad.length || ids.length > 2) { console.warn(`?runes: "${part}" should be q: or e: with one or two runes joined by +, e.g. q:quicken or e:lasting+vein. Known: ${RUNE_IDS.join(', ')}`); continue; }
     runes[slot] = ids as RuneId[];
   }

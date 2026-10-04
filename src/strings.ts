@@ -904,7 +904,7 @@ export const STR = {
     marks: 'Spell marks (M4.11: the spells in hand, attunement, the master\'s ring, the knowledge circle)', attune: (school: string) => `Attune to ${school}`, showCircle: 'Show the knowledge circle (stand still)',
     marksInfo: (hands: string[], attuned: string, known: number, mastered: string[]) => `Hands: Q ${hands[0]}, E ${hands[1]} · attuned: ${attuned || 'no'} · ${known} spell${known === 1 ? '' : 's'} known well${mastered.length ? ` · mastered: ${mastered.join(', ')}` : ''}`,
     arc: 'Asyrion\'s arc (the chaos mage\'s pieces, at 3, 6, 9 and 12 artifacts held; every three levels count as one)', arcHeld: 'As held', arcStage: (n: number) => n ? `Stage ${n}` : 'Apprentice',
-    arcInfo: (stage: number, held: number, forced: boolean) => `Stage ${stage} of 4${forced ? ' (forced here)' : ''} · ${held} artifact${held === 1 ? '' : 's'} held`,
+    arcInfo: (stage: number, held: number, levels: number, forced: boolean) => `Stage ${stage} of 4${forced ? ' (forced here)' : ''} · ${held} counted (${held - levels} artifact${held - levels === 1 ? '' : 's'} held, ${levels} from levels)`,
     transformInfo: (formed: string[], blink: number) => `Formed: ${formed.length ? formed.join(', ') : 'none'} (the last wears its look)${blink > 0 ? ` · blink rests ${blink.toFixed(1)} s` : ''}`,
     fennex: 'Fen-Nex', growFennex: 'Grow Fen-Nex a stage', noFennex: 'Fen-Nex is not bound (take the Rune of Fen-Nex)', wanderer: 'The Wandering Merchant, here', noFoe: 'No foe in the room',
     foesOfFloor: (floor: number) => floor ? `Floor ${floor}'s foes, built in code:` : 'The ward cores, let out by drinking wards:', foesAsFloor: 'Fights: each floor\'s own foes', foeEverywhere: (name: string) => `Fights: ${name} in every one`,

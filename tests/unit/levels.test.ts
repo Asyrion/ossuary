@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { arcStage } from '../../src/actors/costumeData';
+import { arcStage, levelsHeld } from '../../src/actors/costumeData';
 import { CFG } from '../../src/config';
 import { Rng } from '../../src/rng';
 import { FLOORS, generateFloor } from '../../src/world/generate';
@@ -103,7 +103,7 @@ describe('the run around it (M6 step 12)', () => {
     });
   });
   it('counts every three levels gained as one artifact held toward the arc', () => {
-    const held = (artifacts: number, level: number) => artifacts + Math.floor((level - 1) / CFG.arc.perLevels);
+    const held = (artifacts: number, level: number) => artifacts + levelsHeld(level, CFG.arc.perLevels);
     expect(arcStage(held(0, 12), CFG.arc.at)).toBe(1); // (a level-12 run with nothing held: the first stage)
     expect(arcStage(held(0, 9), CFG.arc.at)).toBe(0);
     expect(arcStage(held(2, 4), CFG.arc.at)).toBe(1);

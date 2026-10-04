@@ -4575,6 +4575,13 @@ test('the general boons (M6 step 6): Keen Nose knows a potion by smell, Scavenge
   expect(errors).toEqual([]);
 });
 
+test('?runes carves two runes into a slot (a + in the address reaches the page as a space)', async ({ page }) => {
+  const errors = await start(page, '?seed=RUNES3&spells=arc,cinder_lance&runes=q:quicken+vein,e:reprise+quicken');
+  const got = await page.evaluate(() => (window as unknown as { __game: { sockets: { slots: { size: number; runes: string[] }[] } } }).__game.sockets.slots.map(s => ({ size: s.size, runes: s.runes })));
+  expect(got).toEqual([{ size: 2, runes: ['quicken', 'vein'] }, { size: 2, runes: ['reprise', 'quicken'] }]);
+  expect(errors).toEqual([]);
+});
+
 test('runes on the cast (M6 step 7): Quicken sooner and dearer on the HUD and in the cast, Lasting holds longer, Wide reaches further, Vein bleeds but never the last half heart, a spell given up sends its runes to the pouch, a runed spell still comes to be known well', async ({ page }) => {
   type Def = { mana: number; cooldown: number; damage: number; params: Record<string, number> };
   type GR = { sim(s: number, draw?: boolean): void; cast(slot: number): boolean; mana(n: number): void; learn(id: string, slot: number): void; spawn(kind: string): void;

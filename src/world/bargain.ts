@@ -74,27 +74,28 @@ export function checkBargain() {
   if (b.armed) { b.armed = false; line(STR.bargain.how, CFG.afflict.lineShow); }
 }
 
-/** A spell cast from slot `slot` within reach of a waiting bargain stone: caught (nothing paid), struck into the stone in the
+/** A spell cast within reach of a waiting bargain stone: caught (nothing paid), struck into the stone in the
     spell's light, its runes run red, and the deal opens on the spell's school. False when no stone waits in reach (a kept one
     lets the cast go on); true for a refusal too (the last heart: the cast is spent on asking). */
-export function castIntoBargain(slot: number, def: SpellDef) {
+export function castIntoBargain(def: SpellDef) {
   const b = G.current.bargain; if (!b || b.state !== 'idle' || riteState() || !inReach(b)) return false;
-  void slot;
   const color = parseInt(def.color.slice(1), 16), at = { x: b.x, y: 1, z: b.z };
   strikeFx({ x: player.x, y: .9, z: player.z }, at, color, .3, true); burst(at.x, at.y, at.z, color, 10, 1.6, .04);
   if (player.maxHp - 2 < 2) { line(STR.bargain.refused, CFG.afflict.lineShow); Sfx.refuse(); return true; } // (never the last container)
   openStone(b, def.school);
   return true;
 }
+/** The deal opened on `school` (not while another screen holds the level-up screen, leaving the stone waiting). */
 function openStone(b: Bargain, school: School) {
+  if (!openBargainDeal(school)) return false;
   b.state = 'open'; b.school = school; setRunes(b, BARGAIN_RUNES.price);
   Sfx.at(b.x, b.z).bargain(); burst(b.x, 1.1, b.z, BARGAIN_RUNES.price, 14, 1.6, .05);
-  openBargainDeal(school);
+  return true;
 }
 /** Open the deal on `school` at the room's stone at once (the dev menu and the tests), or false. */
 export function openBargainHere(school: School) {
   const b = G.current.bargain; if (!b || b.state !== 'idle') return false;
-  openStone(b, school); return true;
+  return openStone(b, school);
 }
 
 /** A boon taken from the bargain's deal: the heart container paid, the boon taken (its card), the runes gold, once a shrine. */
