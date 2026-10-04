@@ -104,6 +104,14 @@ export class Rig {
     skeleton (the rest follow them) and every inverse bind matrix, so the skin binds as before in the new frame. */
 export function faceForward(doc: Document, deg: number) {
   if (!deg) return;
+  // (what it can't turn rightly it refuses: a top joint under a node turned on its own, whose frame the turn would miss,
+  // and tangents, which a normal map would need turned with the normals)
+  for (const skin of doc.getRoot().listSkins()) for (const j of skin.listJoints()) for (const p of j.listParents()) {
+    if (skin.listJoints().includes(p as never) || !('getRotation' in p)) continue;
+    const n = p as unknown as GNode, q = n.getRotation(), t = n.getTranslation(), sc = n.getScale();
+    if (q[3] < 0.99999 || t.some(x => Math.abs(x) > 1e-6) || sc.some(x => Math.abs(x - 1) > 1e-6)) throw new Error(`faceForward: "${j.getName()}" hangs from "${n.getName()}", which is turned or moved itself; turn that node instead`);
+  }
+  if (doc.getRoot().listMeshes().some(m => m.listPrimitives().some(p => p.getAttribute('TANGENT')))) throw new Error('faceForward: the model has tangents, which it does not turn');
   const R = new THREE.Matrix4().makeRotationY(THREE.MathUtils.degToRad(deg)), Rinv = R.clone().invert(), rq = new THREE.Quaternion().setFromRotationMatrix(R);
   const done = new Set<unknown>(), p = new THREE.Vector3(), m = new THREE.Matrix4();
   for (const mesh of doc.getRoot().listMeshes()) for (const prim of mesh.listPrimitives()) for (const [sem, dir] of [['POSITION', false], ['NORMAL', true]] as const) {
