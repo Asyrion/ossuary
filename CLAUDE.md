@@ -246,7 +246,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   shadows and cuts it to a palette (the pure `src/render/texelBake.ts`, `CFG.creatures.texel`) into `<file>.texel.png` and
   `<file>.glow.png`, named as `texel` in data/creatures.json and on data/assets.json's models (and `hero.texel` for a
   baked mage); `src/actors/texturePixel.ts` wears them (`wearTexel`: creatures by default, `ossuary.creatureLook2`; made
-  assets in models.ts; the mage in main.ts once baked; today's mage keeps its vertex look). A unit test fails for any
+  assets in models.ts; the mage in main.ts once baked; the mage keeps its vertex look, the owner's choice of 2026-10-05 after comparing
+  them: its full mesh already carries its detail, and the bake only added speckle). A unit test fails for any
   creature or made model without them (tests/unit/texelBake.test.ts).
   `npm run animate-creature -- owlbear <in.glb>`
   (`tools/animate-creature.ts`) simplifies the mesh to its budget (`budget` per recipe, data/assets.json's kinds), turns the

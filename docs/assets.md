@@ -140,7 +140,9 @@ Nine steps from a brief to an asset in the deployed game. Who does what: **owner
      `<id>.glow.png`. The game wears these, not the 2k texture: Tripo's painted detail doesn't read at the game's size.
 
    The script prints the line for `data/assets.json`, with the model's `texel` (a unit test fails for a model named
-   without it; for the mage, `"hero": { "texel": … }`).
+   without it). For the mage it prints a `"hero": { "texel": … }` line too, but the mage keeps its vertex look (the
+   owner's choice, 2026-10-05, after comparing them: its full mesh already carries its detail, and the bake only added
+   speckle); add that line only if a new mage looks better baked.
 
    **Concept images for Tripo** (2026-10-05): the bake keeps only what the texture holds at about 80 game pixels tall,
    so ask for big flat colour areas and strong light against dark between the parts, bold markings a few texels wide
