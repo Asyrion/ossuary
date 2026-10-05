@@ -40,8 +40,10 @@ obols carried home; all six of the Vigil's extras. The plan's other proposals we
 Kaelith's fight, daylight) before Part B (the keeping, the Vigil as a place, chained shades, townspeople and dialogue,
 gifts and powers, the unfolding, the Great Circle and the Ferryman, echoes, the grimoire and the rest, the close). Steps
 marked (P) in the plan (2, 5, 7 and 10) are planned with the owner in plan mode before any code, as M6's were. **Step 1, the
-Seal, is built** (2026-10-05; the plan's Built note). **Next: step 2, Kaelith's fight**, planned with the owner in plan
-mode first, starting from a sheet of three looks for Kaelith.
+Seal, is built** (2026-10-05; the plan's Built note). **Step 2, Kaelith's fight, is built** (2026-10-05):
+its two looks (the Hooded Sentinel, the Winged Watcher) wait on the owner's choice from the sheet sent
+(`asset-previews/kaelith/`); on it, drop the other look, the switch and its key, as the Warden's were. **Next: step 3,
+daylight.**
 
 `main` was merged into the branch on 2026-10-05 (another session's work: the Chameleon Wyvern, the texel bake, the game's
 first sound files, the dev menu's fixes), so both session branches carry everything; 434 unit tests green after it.

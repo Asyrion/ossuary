@@ -8,7 +8,7 @@ import { G, player } from '../state';
 import { Sfx } from './sfx';
 import { AmbienceMix } from './ambience';
 import { MusicPlayer } from './music';
-import { TITLE_PIECE, floorPiece, type Mood } from './musicData';
+import { BOSS_PIECES, TITLE_PIECE, floorPiece, type Mood } from './musicData';
 import { roomScape, spaceFor } from './ambienceData';
 
 export interface Forced { floor?: number; room?: string; theme?: string; piece?: string; mood?: Mood }
@@ -59,7 +59,7 @@ export function updateAudio() {
     const theme = room?.theme?.id;
     amb.set(floor, room?.type ?? 'normal', theme, t);
     mus.setSpace(spaceFor(floor, roomScape(room?.type ?? 'normal', theme)?.scape ?? null), t);
-    mus.play(floorPiece(floor), mood, t);
+    mus.play(mood === 'boss' && BOSS_PIECES[G.run.boss] ? BOSS_PIECES[G.run.boss] : floorPiece(floor), mood, t); // (M7: Kaelith's theme in its fight)
     amb.duck(G.state === 'pause' ? CFG.audio.pauseDuck : mood === 'boss' ? CFG.audio.bossDuck : mood === 'fight' ? CFG.audio.fightDuck : 1, t);
     mus.muffle(G.state === 'pause', t);
     // a fight won in this room: a stinger; the mage fallen: the death phrase, once

@@ -39,6 +39,8 @@ import { openLab } from './alchemyTable';
 import { openWaystone } from './waystone';
 import { raiseWaystone } from '../world/waystone';
 import { levelAtFloor } from '../progression/levelData';
+import { kaelithInfo, kaelithToPhase, shutAllWards } from '../actors/kaelith';
+import { KAELITH_LOOKS, kaelithLookNow, setKaelithLook } from '../actors/kaelithLooks';
 import { buildBargain, openBargainHere } from '../world/bargain';
 import { breakOut, crackVat } from '../world/laboratory';
 import { gainSoul, hallowedMend, resetSouls } from '../items/souls';
@@ -101,6 +103,7 @@ import { CREATURES, CREATURE_LOOKS, creatureLook, roarNow, setCreatureLook, show
 import { THEMES } from '../world/themeData';
 
 const S = STR.dev;
+let kaelithBox: HTMLElement, kaelithLookBtn: HTMLButtonElement;
 let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, madeLookBtn: HTMLButtonElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
 let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, runesBtn: HTMLButtonElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement, creatureLookBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
@@ -484,6 +487,9 @@ function build() {
     obolBtn = btn('', () => { const all = obolFaces(); wearFace(all[(all.indexOf(obolFace()) + 1) % all.length]); refresh(); }),
     fpsBtn = btn('', () => { DEV.fps = !DEV.fps; }),
   );
+  // M7 step 2: which of its two looks Kaelith wears, until the owner chooses
+  const kl = section(pages.look, S.kaelithLook);
+  kl.append(kaelithLookBtn = btn('', () => { setKaelithLook(KAELITH_LOOKS[(KAELITH_LOOKS.indexOf(kaelithLookNow()) + 1) % KAELITH_LOOKS.length]); }));
 
   // the soundscapes and the music (docs/sound-plan.md): any floor's, a room's or a theme's over it, any piece in any mood
   const snd: { floor: number; over: string; piece: string; mood: Mood } = { floor: 0, over: '', piece: PIECES[1].id, mood: 'explore' };
@@ -532,7 +538,7 @@ function build() {
 
   // the bosses built in code (M4 onwards): every one ahead of the mage
   const bl = section(pages.galleries, S.bossLooks);
-  bl.append(el('p', 'dv-info', [STR.bosses.warden.name, STR.bosses.abbess.name, STR.bosses.pyre.name, STR.bosses.hart.name, STR.bosses.angler.name, STR.bosses.tiger.name, STR.bosses.dragon.name, STR.bosses.twins.name].join(' · ')),
+  bl.append(el('p', 'dv-info', [S.kaelithLooks.hooded, S.kaelithLooks.winged, STR.bosses.warden.name, STR.bosses.abbess.name, STR.bosses.pyre.name, STR.bosses.hart.name, STR.bosses.angler.name, STR.bosses.tiger.name, STR.bosses.dragon.name, STR.bosses.twins.name].join(' · ')),
     btn(S.showOptions, () => { closeDev(); showBossLooks(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
   // the bestiary (M4.5): looks only for now, in rows by kind, each named with the fight it brings
   const best = section(pages.galleries, S.bestiary);
@@ -564,7 +570,12 @@ function build() {
   for (const t of THEME_DEFS) { const first = TEMPLATE_DEFS.find(d => d.theme === t.id); if (first) themes.append(btn(t.name, () => start({ testTemplate: first.id }))); }
 
   const bosses = section(pages.rooms, S.bosses);
-  for (const b of BOSS_TYPES) bosses.append(btn(STR.bosses[b as BossType].name, () => start({ testTemplate: bossRoom(), boss: b })));
+  for (const b of BOSS_TYPES) bosses.append(btn(STR.bosses[b as BossType].name, () => start({ testTemplate: b === 'kaelith' ? 'seal_kaelith' : bossRoom(), boss: b }))); // (M7: Kaelith in its own hall, its ward pillars round it)
+  // M7 step 2: Kaelith's fight: its phase, its wards; to a phase, the wards shut
+  const kae = section(pages.rooms, S.kaelith);
+  kae.append(kaelithBox = el('p', 'dv-info'),
+    btn(S.kaelithPhase2, () => { if (!kaelithToPhase(2)) toast(S.noKaelith, 2); }), btn(S.kaelithPhase3, () => { if (!kaelithToPhase(3)) toast(S.noKaelith, 2); }),
+    btn(S.shutWards, () => { if (!shutAllWards()) toast(S.noKaelith, 2); }));
   const runs = section(pages.rooms, S.newRun);
   FLOORS.forEach((f, i) => runs.append(btn(f.fixed ? S.toSeal : S.floorN(i + 1), () => start({ floor: i, level: levelAtFloor(i) > 1 ? levelAtFloor(i) : undefined })))); // (M6 step 12: at the floor's expected level, its choices waiting)
   const keep = el('label', 'dv-check'); const box = el('input'); box.type = 'checkbox'; box.checked = keepCarried;
@@ -593,6 +604,8 @@ function refresh() {
   assetBox.replaceChildren(...(list.length ? list.map(a => el('div', '', S.assetRow(a.where, S.assetStatus[a.status], a.triangles))) : [el('div', '', S.noAssets)]));
   obolBtn.textContent = S.obolWears(S.coinFaces[obolFace()] ?? obolFace()); obolBtn.disabled = obolFaces().length < 2;
   assetBtn.textContent = assetsOn() ? S.assetsOn : S.assetsOff; assetBtn.classList.toggle('on', assetsOn()); assetBtn.disabled = !list.some(a => a.status === 'loaded');
+  kaelithLookBtn.textContent = S.kaelithWears(S.kaelithLooks[kaelithLookNow()]);
+  const kae = kaelithInfo(); kaelithBox.textContent = kae ? S.kaelithInfo(kae.phase, kae.state, kae.wards.map(w => (w.school ?? '-') + (w.shut ? ' (shut)' : '')).join(', ')) : S.noKaelith;
   madeLookBtn.textContent = S.madeLooks[madeLookNow()]; madeLookBtn.classList.toggle('on', madeLookNow() !== 'texel'); madeLookBtn.disabled = !assetsOn() || !madeLooks();
   kitBtn.textContent = DEV.roomKit ? S.kitNew : S.kitOld; kitBtn.classList.toggle('on', DEV.roomKit);
   for (const part of KIT_PARTS) {

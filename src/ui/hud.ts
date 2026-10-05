@@ -336,7 +336,13 @@ export function renderMinimap() {
 }
 
 export function showBossBar(name: string, e: Pick<Enemy, 'hp' | 'maxHp'>) { el.bossname.textContent = name; updateBossBar(e); el.bossbar.classList.add('on'); }
-export function hideBossBar() { el.bossbar.classList.remove('on'); }
+export function hideBossBar() { el.bossbar.classList.remove('on'); el.bossbar.querySelectorAll('.mark').forEach(m => m.remove()); }
+/** Marks on the boss bar at these shares of its health (M7: Kaelith's phases); none for every other boss. */
+export function bossBarMarks(at: readonly number[]) {
+  const track = el.bossbar.querySelector('.track') as HTMLElement;
+  track.querySelectorAll('.mark').forEach(m => m.remove());
+  for (const f of at) { const m = document.createElement('div'); m.className = 'mark'; m.style.left = f * 100 + '%'; track.append(m); }
+}
 export function updateBossBar(e: Pick<Enemy, 'hp' | 'maxHp'>) {
   (el.bossbar.querySelector('.fill') as HTMLElement).style.width = Math.max(0, e.hp / e.maxHp * 100) + '%';
 }

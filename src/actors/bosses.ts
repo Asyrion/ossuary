@@ -48,6 +48,7 @@ import { mergeRig } from '../render/rig';
 import { buildDragon, dragonMoved, updateDragon } from './pillarDragon';
 import { buildTwin, updateTwin } from './twinGuardians';
 import { buildSerpent, serpentMoved, updateSerpent } from './jellySerpent';
+import { buildKaelith, updateKaelith } from './kaelith';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { ease, lerp } from '../util';
 import { actAs } from './acting';
@@ -55,7 +56,7 @@ import { actAs } from './acting';
 /** A boss's shots: in its school's light. */
 const shotColor = (e: Enemy) => SCHOOL_LIGHT[e.bossSchool ?? 'ember'];
 /** Who each boss calls below half health. */
-const SUMMONS: Record<BossType, Role> = { warden: 'R', abbess: 'W', pyre: 'H', hart: 'W', angler: 'W', tiger: 'R', dragon: 'W', twins: 'H', serpent: 'W' };
+const SUMMONS: Record<BossType, Role> = { warden: 'R', abbess: 'W', pyre: 'H', hart: 'W', angler: 'W', tiger: 'R', dragon: 'W', twins: 'H', serpent: 'W', kaelith: 'R' };
 
 /** A flat ring lying on the floor (the abbess's ripple, the knight's landing mark), hidden at first. */
 function floorRing(e: Enemy, color: number, radius: number) {
@@ -93,6 +94,7 @@ export function buildBoss(e: Enemy) {
     e.contact = 0; e.state = 'statue'; e.st = Infinity; P.ring.visible = P.rime.visible = false; P.halo.material.opacity = 0; P.eye.scale.set(1, .15, 1);
   } else if (e.type === 'dragon') buildDragon(e); // built in code (M4.2): its fight is pillarDragon.ts
   else if (e.type === 'twins') buildTwin(e); // built in code (M4.2): the pair's fight is twinGuardians.ts
+  else if (e.type === 'kaelith') buildKaelith(e); // built in code (M7 step 2): the Seal's boss, its fight kaelith.ts
   else if (e.type === 'serpent') buildSerpent(e); // built in code (M5): out of its vat (world/laboratory.ts), its fight is jellySerpent.ts
   else if (e.type === 'abbess' || e.type === 'pyre') { // remade in code (2026-10-01): the bosses of floors 2 and 3
     const abbess = e.type === 'abbess', L = abbess ? abbessLook() : pyreKnightLook(), P = L.parts, C = CFG.enemy[e.type];
@@ -158,6 +160,7 @@ function stepBoss(e: Enemy, dt: number, ux: number, uz: number): number | undefi
   else if (e.type === 'dragon') return updateDragon(e, dt);
   else if (e.type === 'twins') return updateTwin(e, dt, ux, uz);
   else if (e.type === 'serpent') return updateSerpent(e, dt, ux, uz);
+  else if (e.type === 'kaelith') return updateKaelith(e, dt, ux, uz);
   return undefined;
 }
 

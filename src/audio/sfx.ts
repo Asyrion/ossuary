@@ -249,6 +249,13 @@ const sounds = {
   refuse() { tone('square', 110, 90, .25, .05); tone('square', 104, 85, .25, .05, .16); },
   gong() { tone('sine', 98, 98, 1.6, .14); tone('sine', 196, 194, 1, .06); tone('triangle', 263, 260, .6, .03); hiss(.4, .05, 'bandpass', 600); },
   darkness() { hiss(1, .07, 'lowpass', 400); tone('sine', 180, 120, 1, .03); },
+  // M7 step 2: Kaelith's fight (Umbral's palette: low, breathy, a hollow ring)
+  kaelithSweep() { hiss(.45, .1, 'bandpass', 900); tone('sawtooth', 220, 70, .4, .05); tone('sine', 110, 55, .5, .08, .05); },
+  shadowStep() { hiss(.6, .07, 'lowpass', 500); tone('sine', 140, 60, .6, .07); },
+  sealCrack() { hiss(1.2, .12, 'lowpass', 700); tone('sine', 55, 40, 1.4, .14); tone('square', 90, 60, .5, .03, .2); },
+  wardShut() { tone('triangle', 520, 520, .5, .06); tone('sine', 260, 262, .9, .05, .05); hiss(.2, .04, 'highpass', 3000); },
+  eclipsePull() { tone('sine', 60, 110, 2, .1); hiss(2, .05, 'lowpass', 300); },
+  kneel() { tone('sine', 98, 92, 2.4, .1); tone('sine', 147, 140, 2, .05, .3); hiss(1.4, .05, 'lowpass', 500); },
   sealVoice() { hiss(1.8, .06, 'lowpass', 280); tone('sine', 73, 61, 2, .1); tone('triangle', 110, 92, 1.5, .035, .35); }, // (M7: Kaelith's voice from under the stone)
   champion() { tone('sawtooth', 80, 60, .5, .08); hiss(.4, .06, 'lowpass', 300); },
   // champion mantles (M4.7): a mantle torn off (a snap and a falling chime), and a Hexbound's curse closing

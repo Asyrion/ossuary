@@ -62,6 +62,19 @@ export const CFG = {
     // jelly poured round it where it has none (a floor's boss)
     serpent: { hp: 95, r: .55, speed: 0, weak: 'storm' as const, resist: 'frost' as const, swim: 3.4, under: 2.2, hurtQuick: .7, crawl: 1.1, reach: 3.4, tell: .6, open: 1.5, trapped: 3, shock: 6, flood: 34,
       lunge: { tell: .4, speed: 8.5, time: .42 }, spit: { count: 3, every: .28, flight: .7, spread: 1.6, puddles: 6 }, ring: { count: 10, speed: 2.6 } },
+    // Kaelith, the Shadow Sentinel (M7 step 2, docs/M7-plan.md): the Seal's boss, in three phases (actors/kaelith.ts). It keeps
+    // `keep` from the mage; its sweep (a tell, then `count` blades over `spread`, each hexing `hex`); its volleys (`count`
+    // shots, `every` apart, each hexing); its shadow step (`sink` down, `gone` below, a ring of `cuts` as it rises `near` to
+    // `far` from the mage, never where a light within `light` falls). Phase 2 (`phases[0]` of its health): it holds the seal at
+    // the hall's middle, taking `guard` of each blow, a volley every `holdVolley` s; each ward still open lets out a foe every
+    // `crackEvery` s (at most `hordeMax` alive); all shut, it `reel`s, taking `open` times each blow. Phase 3 (`phases[1]`):
+    // the dark; every `pullEvery` s it pulls the mage (`pull` units a second for `pullTime`) unless they stand within
+    // `candleSafe` of a lit candle stand, then a ring of `ring` blades; its waits `quick` times as long
+    kaelith: { hp: 210, r: .8, speed: 1.3, weak: 'hallow' as const, resist: 'umbral' as const, keep: 2.2, phases: [2 / 3, 1 / 3], quick: .7,
+      sweep: { tell: .7, count: 9, spread: 1.7, speed: 4, hex: 6 }, volley: { tell: .45, count: 3, spread: .5, speed: 4.2, every: .4, hex: 8 },
+      step: { sink: .5, gone: .8, rise: .4, near: 2.2, far: 4.2, light: 2.4, cuts: 8, cutSpeed: 3.2 },
+      guard: .25, holdVolley: 2.4, crackEvery: 5, hordeMax: 4, reel: 4, open: 1.5,
+      pullEvery: 7, pullTime: 2, pull: 2.4, candleSafe: 2.2, ring: { count: 16, speed: 3.2 } },
     twins: { hp: 65, r: .9, speed: 1.1, keep: 1.5, shieldContact: 1, weak: 'frost' as const, resist: 'hallow' as const, wake: 3.2, apart: 3.4, swap: 6, guardSpeed: 2.8, wardNeed: 45, wardSize: 1.3, pause: 1.4,
       slam: { tell: .65, count: 12, speed: 3, reach: 1.9, hurt: 1 }, gaze: { tell: .7, count: 6, every: .1, speed: 5.5 }, rage: { speed: 1.4, quick: .7 } },
   },
@@ -428,5 +441,5 @@ export const CFG = {
 export type EnemyType = keyof typeof CFG.enemy;
 /** Enemy types that are bosses; each floor draws its boss from a pool of these (data/floors.json). The jelly serpent (M5)
     is in no pool: it breaks out of its vat in Dr. Jelly's laboratory (or comes with `?boss=serpent` and the dev menu). */
-export const BOSS_TYPES = ['warden', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins', 'serpent'] as const satisfies readonly EnemyType[];
+export const BOSS_TYPES = ['warden', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins', 'serpent', 'kaelith'] as const satisfies readonly EnemyType[];
 export type BossType = (typeof BOSS_TYPES)[number];

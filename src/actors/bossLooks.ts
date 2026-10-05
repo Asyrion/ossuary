@@ -15,6 +15,7 @@ import { curve } from '../world/kitParts';
 import { EMBER_FIRE, makeFire, makeMotes, type FlameSpec } from '../render/fire';
 import { serpentLook } from './serpentLooks';
 import { anglerFierce, dragonHeadFierce, hartFierce, owlbear, tigerFierce } from './fantasyBosses';
+import { KAELITH_GALLERY } from './kaelithLooks';
 
 /** A built boss look: its group, how it idles, its shadow, the parts the fight moves (the Warden's three, and any a
     boss's own fight moves besides) and its school. */
@@ -293,4 +294,4 @@ export const hartLook = hartFierce, anglerLook = anglerFierce, tigerLook = tiger
 export const wardenLook = owlbear;
 /** Every boss built in code, for the Galleries tab: the Hollow Warden, the bosses of floors 2 and 3, of floors 4
     and 5, then the bosses from the Eda lore (M4.2). */
-export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [{ id: 'warden', build: wardenLook }, { id: 'abbess', build: abbessLook }, { id: 'pyre', build: pyreKnightLook }, { id: 'hart', build: hartLook }, { id: 'angler', build: anglerLook }, { id: 'tiger', build: tigerLook }, { id: 'dragon', build: dragonLook }, { id: 'twins', build: twinPairLook }, { id: 'serpent', build: serpentLook }];
+export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [...KAELITH_GALLERY, { id: 'warden', build: wardenLook }, { id: 'abbess', build: abbessLook }, { id: 'pyre', build: pyreKnightLook }, { id: 'hart', build: hartLook }, { id: 'angler', build: anglerLook }, { id: 'tiger', build: tigerLook }, { id: 'dragon', build: dragonLook }, { id: 'twins', build: twinPairLook }, { id: 'serpent', build: serpentLook }];

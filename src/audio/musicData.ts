@@ -52,6 +52,8 @@ export const pieceById = (id: string) => PIECES.find(p => p.id === id);
 export const FLOOR_PIECES = (data as unknown as { floors: string[] }).floors;
 export const floorPiece = (floor: number) => FLOOR_PIECES[Math.max(0, Math.min(FLOOR_PIECES.length - 1, floor))];
 export const TITLE_PIECE = (data as unknown as { title: string }).title;
+/** M7 step 2: a boss with a theme of its own, played in its fight in place of the floor's piece (Kaelith's). */
+export const BOSS_PIECES = (data as unknown as { bosses?: Record<string, string> }).bosses ?? {};
 
 export const barSeconds = (p: Piece) => p.beats * 60 / p.tempo;
 export const progressionBars = (p: Piece) => p.chords.reduce((a, c) => a + c.bars, 0);

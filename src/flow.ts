@@ -38,6 +38,7 @@ import { banner, fadeFromBlack, hideBossBar, renderHearts, renderMinimap, resetH
 import { resetAfflictions } from './ui/afflictions';
 import { warnFloor } from './world/curve';
 import { arriveAtSeal, atSeal, enterSealRoom } from './world/seal';
+import { kaelithKneels } from './actors/kaelith';
 import { pilgrimMap, resetGifts } from './items/gifts';
 import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
@@ -328,6 +329,7 @@ export function onRoomCleared(room: Room) {
 export function onBossDead(at?: { x: number; z: number }) {
   const cur = G.current;
   hideBossBar(); payBoss(at); // (M6: its floor's insight)
+  if (G.run.boss === 'kaelith') kaelithKneels(at ?? { x: cur.cx, z: cur.cz }); // (M7: it doesn't die: it kneels where it fell)
   // M6 step 10: the waystone and the way down are in the waystone room beside it; where the floor has none (floor 5, or no
   // free cell), the way down opens here, and on floors 1 to 5 the stone rises first, at the back, the gifts keeping clear
   const stone = waystoneRoom();
