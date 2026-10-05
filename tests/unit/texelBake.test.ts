@@ -1,7 +1,12 @@
-/* A Tripo model's painted texture made pixel art at the size the game draws it (render/texelBake.ts, 2026-10-05). */
+/* A Tripo model's painted texture made pixel art at the size the game draws it (render/texelBake.ts, 2026-10-05), and every
+   Tripo model the game shows wearing it. */
 import { describe, expect, it } from 'vitest';
 import { bakeSize, glows, islandLabels, liftShadows, shrink } from '../../src/render/texelBake';
 import { toOklab } from '../../src/render/palette';
+import { MANIFEST } from '../../src/assets/assetData';
+import creatureData from '../../data/creatures.json';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 describe('bakeSize', () => {
   it('shrinks to at least one texel a game pixel, a power of two within its bounds', () => {
@@ -53,5 +58,27 @@ describe('liftShadows', () => {
     const d = toOklab(rgb[0], rgb[1], rgb[2]), l = toOklab(rgb[3], rgb[4], rgb[5]);
     expect(d[0] - L0).toBeGreaterThan(l[0] - L1); // (the dark rose more than the light)
     expect(rgb[2]).toBeGreaterThan(rgb[0]); // (still blue)
+  });
+});
+
+describe('every Tripo model wears its texture as pixel art (the owner, 2026-10-05)', () => {
+  // (animate-creature and prepare-asset bake it; a model named without its files is one that skipped the bake)
+  const has = (f: string) => existsSync(resolve(import.meta.dirname, '../../public', f));
+  it('every animated creature names its baked files, and they are there', () => {
+    const creatures = Object.entries(creatureData).filter(([k]) => k !== '_comment') as [string, { texel?: { file: string; glow: string } }][];
+    expect(creatures.length).toBeGreaterThan(0);
+    for (const [id, c] of creatures) {
+      expect(c.texel, `${id}: run npm run texel-bake -- ${id}`).toBeDefined();
+      expect(has(c.texel!.file) && has(c.texel!.glow), `${id}: its baked files are missing`).toBe(true);
+    }
+  });
+  it('every made model in data/assets.json (and the mage, once baked) names its baked files, and they are there', () => {
+    const models = [...Object.entries(MANIFEST.props), ...Object.entries(MANIFEST.artifacts)];
+    for (const [id, e] of models) {
+      expect(e.texel, `${id}: prepare-asset prints its "texel" line`).toBeDefined();
+      expect(has(`assets/${e.texel!.file}`) && has(`assets/${e.texel!.glow}`), `${id}: its baked files are missing`).toBe(true);
+    }
+    const hero = MANIFEST.hero?.texel;
+    if (hero) expect(has(`assets/${hero.file}`) && has(`assets/${hero.glow}`)).toBe(true);
   });
 });

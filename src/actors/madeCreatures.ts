@@ -2,9 +2,9 @@
    (public/assets/creatures/<id>.glb, data/creatures.json) shown in the room to look at: worn in the pixel-art look as the
    mage is, it walks a lap, stops, turns to the mage and roars, and rests, its sounds falling on its clips' events (a paw
    down, the roar) where it stands. Looks only for now: no fight, no collision. The dev menu's Galleries tab stands one
-   ahead of the mage (`showCreature`), and switches its look (`setCreatureLook`): the pixel-art look the game draws it in, pixel
-   art from its own texture (texturePixel.ts, baked by tools/texel-bake.ts; the owner's comparison, 2026-10-05), the
-   model as made (its 1,024 px texture, lit smoothly), or as imported (the textures at the size Tripo made them, with its
+   ahead of the mage (`showCreature`), and switches its look (`setCreatureLook`): pixel art from its own texture (the look the
+   game draws it in since 2026-10-05: texturePixel.ts, baked by tools/texel-bake.ts), the first pixel-art look (its colours in
+   its vertices), the model as made (its 1,024 px texture, lit smoothly), or as imported (the textures at the size Tripo made them, with its
    normal map: `full` in data/creatures.json, loaded only when asked). */
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
@@ -25,12 +25,13 @@ interface CreatureInfo { file: string; full: string; height: number; modelHeight
 export const CREATURES = Object.fromEntries(Object.entries(data).filter(([k]) => k !== '_comment')) as unknown as Record<string, CreatureInfo>;
 
 type State = 'walk' | 'idle' | 'roar';
-/** How a creature is drawn: the game's pixel-art look (its colours in its vertices), pixel art made from its own texture
-    (texturePixel.ts, 2026-10-05), the model as made, or as imported (its textures' own size). */
-export type CreatureLook = 'pixel' | 'texel' | 'made' | 'full';
-export const CREATURE_LOOKS: readonly CreatureLook[] = ['pixel', 'texel', 'made', 'full'];
-const KEY = 'ossuary.creatureLook';
-let look: CreatureLook = 'pixel';
+/** How a creature is drawn: pixel art made from its own texture (texturePixel.ts; the game's look since 2026-10-05, the
+    owner's choice), the first pixel-art look (its colours in its vertices), the model as made, or as imported (its
+    textures' own size). */
+export type CreatureLook = 'texel' | 'pixel' | 'made' | 'full';
+export const CREATURE_LOOKS: readonly CreatureLook[] = ['texel', 'pixel', 'made', 'full'];
+const KEY = 'ossuary.creatureLook2'; // (a new key: a look chosen before the new default doesn't hide it)
+let look: CreatureLook = 'texel';
 try { const l = localStorage.getItem(KEY) as CreatureLook | null; if (l && CREATURE_LOOKS.includes(l)) look = l; } catch { /* no storage: the pixel-art look */ }
 /** The look the creatures are drawn in. */
 export const creatureLook = () => look;
@@ -51,7 +52,8 @@ export async function showCreature(id: string, room: Room, x: number, z: number,
   const model = cloneSkinned(gltf.scene) as THREE.Object3D, scale = info.height / info.modelHeight;
   model.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) { m.geometry = m.geometry.clone(); m.frustumCulled = false; } }); // (its own geometry: the bake writes colours into it, and taking it away disposes it)
   if (l === 'texel' && info.texel) { // (pixel art from its texture, baked by tools/texel-bake.ts at the size the game draws it)
-    await wearTexel(model, id, info.texel);
+    const base = import.meta.env.BASE_URL;
+    await wearTexel(model, id, { file: base + info.texel.file, glow: base + info.texel.glow });
     if (!G.rooms.includes(room)) return null;
   } else if (l === 'pixel' || l === 'texel') { // (the pixel-art look, as the mage wears it: its colours in its vertices, light in bands)
     bakeHeroPixel(model); model.traverse(o => { if (o.userData.pixel) (o as THREE.Mesh).material = o.userData.pixel; });

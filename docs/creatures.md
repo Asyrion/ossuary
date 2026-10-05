@@ -69,15 +69,17 @@ Send me a preview video before anything ships. Ship only when I say so.
 5. **Sounds.** Events name sounds in `CREATURE_SOUNDS` (`src/audio/creatureSounds.ts`). Reuse the owlbear's (`pawFront`,
    `pawRear`, `inhale`, `roar`, `slam`) or the dragonling's (`clawFront`, `clawRear`, `hiss`, `snap`, `shriek`,
    `chitter`), or add new ones. `loud` events play at `CFG.creatures.roarGain`.
-5b. **Pixel art from its texture.** `npm run texel-bake -- <id>` (animate-creature runs it too) makes the texture pixel
-   art at the size the game draws the creature: `<id>.texel.png` and `<id>.glow.png`, named in `data/creatures.json`'s
-   `texel`. Tuning is `CFG.creatures.texel`. It reads the game's file, so it needs no source model; after changing the
-   tuning or a creature's height, run it again (`-- all` for every creature).
+5b. **Pixel art from its texture** (every Tripo model, the owner's rule of 2026-10-05; the game's look). Step 4 runs it:
+   the texture made pixel art at the size the game draws the creature, `<id>.texel.png` and `<id>.glow.png`, named in
+   `data/creatures.json`'s `texel` (a unit test fails for a creature without them). Tuning is `CFG.creatures.texel`. It
+   reads the game's file, so it needs no source model; after changing the tuning or a creature's height, run
+   `npm run texel-bake -- <id>` (`-- all` for every creature).
 6. **Preview.** With `npm run dev` running, `npm run creature-preview -- <id>` writes `creature-previews/<id>.mp4`.
 7. **Dev menu.** Add a name in `STR.dev.creatureNames`; the menu lists creatures from the data by itself. It's under
    Galleries → Animated creatures:
    - "stand it here", "Roar now", "Take them away";
-   - **Look**, for every creature: pixel art (the game's look), as made (1,024 px) or as imported (`<id>.full.glb`).
+   - **Look**, for every creature: pixel art from its texture (the game's look), pixel art from its vertices (the first
+     look), as made (1,024 px) or as imported (`<id>.full.glb`).
 
    The texel grid is the Look tab's pixel look switch. Hooks: `__game.showCreature(id)`, `creatures`, `roarNow()`,
    `takeCreatures()`, `setCreatureLook(l)`.

@@ -3001,7 +3001,7 @@ test('spell knowledge: a page shows its spell as far as it is known, learning an
 
 test('made assets: the stand-ins load through the manifest and replace their placeholders, and turn off to compare', async ({ page }) => {
   type Info = { where: string; status: string; triangles?: number };
-  type Rock = { urn?: string; mesh?: { traverse(f: (o: { name: string }) => void): void } };
+  type Rock = { urn?: string; mesh?: { traverse(f: (o: { name: string; material?: { isMeshToonMaterial?: boolean; map?: { magFilter: number } } }) => void): void } };
   type GA = { sim(sec: number, draw?: boolean): void; assets: { on: boolean; list: Info[] }; useAssets(on: boolean): void; showAssets(): void;
     current: { rocks: Rock[]; spots: { visual: { traverse(f: (o: { name: string }) => void): void } }[] } };
   const errors = await start(page, '?seed=K3F9QX&give=ember_sigil&assets=/tests/fixtures/assets/assets.json');
@@ -3009,16 +3009,18 @@ test('made assets: the stand-ins load through the manifest and replace their pla
     const g = (window as unknown as { __game: GA }).__game;
     const made = (o?: { traverse(f: (o: { name: string }) => void): void }) => { let found = false; o?.traverse(c => { if (c.name === 'standin') found = true; }); return found; };
     const urns = g.current.rocks.filter(r => r.urn), spot = g.current.spots.at(-1);
-    return { on: g.assets.on, urns: urns.map(r => made(r.mesh)), sigil: made(spot?.visual), icon: [...document.querySelectorAll('#items image')].some(i => !i.getAttribute('href')!.startsWith('data:')) }; // (the painted icon's file, not one the room kit renders)
+    // (each wears its texture as pixel art, as every Tripo model does: a toon material, its baked texture sampled sharp)
+    const pixelArt = (o?: Rock['mesh']) => { let found = false; o?.traverse(c => { if (c.material?.isMeshToonMaterial && c.material.map?.magFilter === 1003) found = true; }); return found; };
+    return { on: g.assets.on, urns: urns.map(r => made(r.mesh)), texel: urns.map(r => pixelArt(r.mesh)), sigil: made(spot?.visual), icon: [...document.querySelectorAll('#items image')].some(i => !i.getAttribute('href')!.startsWith('data:')) }; // (the painted icon's file, not one the room kit renders)
   });
   const list = await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.showAssets(); g.sim(.3, true); return g.assets.list; });
   expect(list.map(a => [a.where, a.status])).toEqual([['props.urn', 'loaded'], ['props.pedestal', 'loaded'], ['artifacts.ember_sigil', 'loaded'], ['floors.crypt.floor', 'loaded'], ['icons.ember_sigil', 'loaded']]);
   expect(list.find(a => a.where === 'props.urn')!.triangles).toBeLessThanOrEqual(2000); // (lowered to its budget by prepare-asset)
-  expect(await look()).toEqual({ on: true, urns: [true, true], sigil: true, icon: true });
+  expect(await look()).toEqual({ on: true, urns: [true, true], texel: [true, true], sigil: true, icon: true });
   await page.screenshot({ path: 'test-results/assets-made.png' });
   // off: the floor is built again with the placeholders
   await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.useAssets(false); g.showAssets(); g.sim(.3, true); });
-  expect(await look()).toEqual({ on: false, urns: [false, false], sigil: false, icon: false });
+  expect(await look()).toEqual({ on: false, urns: [false, false], texel: [false, false], sigil: false, icon: false });
   expect(errors).toEqual([]);
 });
 
@@ -4996,9 +4998,9 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
   expect(r.moved).toBeGreaterThan(.2); // (it walks its lap at the pace its paws set)
   expect(r.calls).toBeLessThan(8); // (one skinned mesh and its shadow)
   expect(r.roaring).toMatchObject({ state: 'roar', clip: 'roar' }); expect(r.roaring.time).toBeGreaterThan(.5);
-  // its looks: the pixel-art look (no texture: its colours baked into its vertices), as made (the game's 1,024 px file) and
+  // its looks: pixel art from its texture (the default), the first pixel-art look (no texture: its colours baked into its vertices), as made (the game's 1,024 px file) and
   // as imported (the textures at their own size), each stood again where it first stood
-  expect(r.stood[0]).toMatchObject({ look: 'pixel', texture: 0 });
+  expect(r.stood[0]).toMatchObject({ look: 'texel' }); expect(r.stood[0].texture).toBeLessThanOrEqual(512); // (the game's look since 2026-10-05: its texture as pixel art)
   expect(r.full).toMatchObject({ look: 'full', texture: 2048, x: r.stood[0].x, z: r.stood[0].z });
   expect(r.made).toMatchObject({ look: 'made', texture: 1024 });
   // pixel art from its own texture (texturePixel.ts): the texture shrunk to the size the game draws it, sampled sharp

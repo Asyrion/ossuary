@@ -239,12 +239,15 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   the owner starts a new session with; `-- --bones <in.glb>` reads a new model's rig first).
   The dragonling (2026-10-03, the owner's second, the size of a horse, 1.8 tiles, boss budget) is the recipe for a
   model facing another way (`face`, `faceForward` in creatureRig.ts), on a two-legged rig and in a mid-stride pose (`STANCE`,
-  a leg's `toes`). Pixel art from a creature's own texture (2026-10-05, the owner: the 2k painted textures don't read at
-  the game's size), a creature look beside the vertex-colour one to compare: `npm run texel-bake -- <id>|all`
-  (`tools/texel-bake.ts`, after every animate-creature) shrinks the game file's texture to at least one texel a game
-  pixel within each UV island, keeps its glowing markings, lifts its painted shadows and cuts it to a palette (the pure
-  `src/render/texelBake.ts`, `CFG.creatures.texel`) into `<id>.texel.png` and `<id>.glow.png` (`texel` in
-  data/creatures.json), worn by `src/actors/texturePixel.ts`.
+  a leg's `toes`). **Every Tripo model wears its texture as pixel art** (the owner's rule, 2026-10-05: the 2k painted
+  textures don't read at the game's size): `tools/texel-bake.ts` (`bakeModelFile`, run by animate-creature and
+  prepare-asset on every model they write; `npm run texel-bake -- <id>|all` or `-- <file.glb> <tiles>`) shrinks the game
+  file's texture to at least one texel a game pixel within each UV island, keeps its glowing markings, lifts its painted
+  shadows and cuts it to a palette (the pure `src/render/texelBake.ts`, `CFG.creatures.texel`) into `<file>.texel.png` and
+  `<file>.glow.png`, named as `texel` in data/creatures.json and on data/assets.json's models (and `hero.texel` for a
+  baked mage); `src/actors/texturePixel.ts` wears them (`wearTexel`: creatures by default, `ossuary.creatureLook2`; made
+  assets in models.ts; the mage in main.ts once baked; today's mage keeps its vertex look). A unit test fails for any
+  creature or made model without them (tests/unit/texelBake.test.ts).
   `npm run animate-creature -- owlbear <in.glb>`
   (`tools/animate-creature.ts`) simplifies the mesh to its budget (`budget` per recipe, data/assets.json's kinds), turns the
   patches Tripo left inside out (`orientOutward` in `tools/orientFaces.ts`: each face by the side its rays get out of the model
@@ -258,8 +261,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   played through `Sfx.place(x, z)`); in the game `src/actors/madeCreatures.ts` stands it in the pixel-art look (`bakeHeroPixel`),
   walks a lap, turns to roar at the mage and rests, its sounds on its clips' events (tuning `CFG.creatures`); looks only, no
   fight. `npm run creature-preview -- owlbear` (`tools/creature-preview.ts` and `.html`) renders a video with its sounds to
-  `creature-previews/`. Dev menu (Galleries): Animated creatures, with its look (pixel art, as made, as imported:
-  `setCreatureLook`, `ossuary.creatureLook`); `__game.showCreature(id)`, `creatures` (each one's look and texture size),
+  `creature-previews/`. Dev menu (Galleries): Animated creatures, with its look (pixel art from its texture, from its vertices, as made, as imported:
+  `setCreatureLook`, `ossuary.creatureLook2`; pixel art from its texture first); `__game.showCreature(id)`, `creatures` (each one's look and texture size),
   `roarNow()`, `takeCreatures()`, `creatureLook`, `setCreatureLook(l)`.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons, in seven tabs (Mage, Magic, Foes & objects, Rooms & runs, Look, Galleries, Sound; `TABS`, names in `STR.dev.tabs`, the

@@ -21,6 +21,8 @@ import { camera, canvas, draw, renderer, resize, setCloseUp } from './render/ren
 import './render/lights';
 import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { heroPixel, setHeroPixel } from './actors/heroPixel';
+import { wearTexel } from './actors/texturePixel';
+import { MANIFEST } from './assets/assetData';
 import { givingNow, jellyGives, type Gift } from './world/jellyGives';
 import { arrowOrder, initGamepad, initKeyboard, initTouch, keys, padsNow, type InputActions } from './input';
 import { RUNE_IDS, isRune, type RuneId } from './magic/runeData';
@@ -152,6 +154,13 @@ async function loadDefaultHero() {
     const res = await fetch(HERO_URL);
     if (!res.ok) throw new Error(`${HERO_URL}: HTTP ${res.status}`);
     await loadHeroBuffer(await res.arrayBuffer(), 'hero_default.glb');
+    // its texture as pixel art, once prepare-asset has baked one (every Tripo model's look, 2026-10-05): the pixel look the
+    // Look tab switches to, in place of its colours in its vertices
+    const t = MANIFEST.hero?.texel, base = `${import.meta.env.BASE_URL}assets/`;
+    if (t && hero.model) await wearTexel(hero.model, 'hero', { file: base + t.file, glow: base + t.glow }, (m, mat) => {
+      const was = m.userData.pixel as { dispose(): void } | undefined; if (was && was !== mat) was.dispose();
+      m.userData.pixel = mat; if (heroPixel()) m.material = mat;
+    }).catch(e => console.warn(`the mage's pixel-art texture could not be loaded (${String(e)}); its colours stay in its vertices`));
   } catch (e) {
     console.error(e); setHero(fallbackHero(), { animations: [] }, 'fallback');
   }

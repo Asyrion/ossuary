@@ -134,10 +134,21 @@ Nine steps from a brief to an asset in the deployed game. Who does what: **owner
      base, and for characters the clips and the roles the game gives them.
 
    A failed check writes nothing and says what to change in Tripo (back to step 5). `--check` only reports.
-   The script prints the line for `data/assets.json`. Textures and icons go through `npm run prepare-texture`
+   - **pixel art from its texture** (every Tripo model, the owner's rule of 2026-10-05): the texture is made pixel art
+     at the size the game draws the model (`tools/texel-bake.ts`: at least one texel a game pixel, averaged within each
+     UV island, glowing markings kept, painted shadows lifted, 24 colours) and written beside it as `<id>.texel.png` and
+     `<id>.glow.png`. The game wears these, not the 2k texture: Tripo's painted detail doesn't read at the game's size.
+
+   The script prints the line for `data/assets.json`, with the model's `texel` (a unit test fails for a model named
+   without it; for the mage, `"hero": { "texel": … }`).
+
+   **Concept images for Tripo** (2026-10-05): the bake keeps only what the texture holds at about 80 game pixels tall,
+   so ask for big flat colour areas and strong light against dark between the parts, bold markings a few texels wide
+   (eyes, stripes, a crest; a thin line vanishes), little shadow or grime painted in (the game shades the model itself),
+   and a silhouette that reads at that size. Textures and icons go through `npm run prepare-texture`
    (below).
 8. **Integrate** (Claude). The file goes to its folder, and a line in `data/assets.json` says which
-   placeholder it replaces and how tall it stands (`props`: the urn and the pedestal; `artifacts`, by artifact
+   placeholder it replaces, how tall it stands and its baked texture (`texel`; `props`: the urn and the pedestal; `artifacts`, by artifact
    id; `floors`, a floor look's tile; `icons`, by artifact id). The game loads it at boot and falls back to
    the placeholder if the file is missing or broken, with a warning in the console. To check it:
    - the dev menu's Made assets section: what loaded, with triangles; "Show them here" puts urns and an
@@ -162,7 +173,8 @@ Nine steps from a brief to an asset in the deployed game. Who does what: **owner
 6. Export `urn.glb`, uploaded with the concept image.
 7. `npm run prepare-asset -- urn.glb --kind prop --id urn`: 1,480 triangles (budget 2,000), 1 texture at 512
    px, 0.62 × 0.63 × 0.61, centred and standing on y = 0 (fixed: it was 0.2 off).
-8. `public/assets/props/urn.glb`, `{ "urn": { "file": "props/urn.glb", "height": 0.6 } }` in
+8. `public/assets/props/urn.glb` (and `urn.texel.png`, `urn.glow.png`), `{ "urn": { "file": "props/urn.glb", "height": 0.6,
+   "texel": { "file": "props/urn.texel.png", "glow": "props/urn.glow.png" } } }` in
    `data/assets.json`; screenshots on floors 1 to 3; a room with eight urns still at 60 fps.
 9. Accepted; `CREDITS.md`: "urn.glb, made by Azyrion in MidJourney (Standard) and Tripo3D (Master)".
 
