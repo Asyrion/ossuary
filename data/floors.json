@@ -141,6 +141,7 @@
     "foes": {"R": [["rootling", 1.5], ["rimeWolf", 1], ["frostJackalope", 1]], "W": [["stormRay", 2], ["voidMote", 1], ["gloomRaven", 1]], "H": [["lanternTortoise", 1], ["rootling", 1], ["glacierGolem", 0.6], ["hydra", 0.6], ["dustPangolin", 1], ["manticore", 1]]},
     "secretArtifactChance": 0.6,
     "runes": 0,
+    "waystone": true,
     "souls": 3,
     "bossHallChance": 0.5,
     "doorShift": 0.5,
@@ -160,6 +161,43 @@
       "torch": {"style": "lantern", "flame": "#b8a8ff", "light": "#8fc8e8", "intensity": 0.9, "wax": "#9a9ab0"},
       "urn": {"clay": "#4a4a56", "band": "#7a6aa8"},
       "light": {"sky": "#7888a2", "ground": "#0c0e16", "moon": "#a8bcea"}
+    }
+  },
+  {
+    "fixed": {"rooms": [
+      {"type": "start", "shape": "standard", "at": [4, 6], "template": "seal_stair"},
+      {"type": "ordeal", "shape": "great", "at": [4, 4], "template": "seal_last_hall"},
+      {"type": "boss", "shape": "great", "at": [5, 2], "template": "seal_kaelith"}
+    ]},
+    "rooms": [3, 3],
+    "enemyHp": 1.6, "pressure": {"extra": 0.42, "eliteMul": 1.5, "ordealWaves": 0},
+    "altarChance": 0,
+    "vaultChance": 0,
+    "shrine": false,
+    "library": false,
+    "vaultWarden": "manticore",
+    "foes": {"R": [["cryptSpider", 1], ["magmaOoze", 1], ["shadowFox", 1], ["rimeWolf", 1], ["rimeScarab", 0.6]], "W": [["hexImp", 1], ["chimeBat", 1], ["gloomRaven", 1], ["stormDarter", 1], ["fireflySwarm", 0.6]], "H": [["runeBeetle", 1], ["stormMantis", 1], ["basilisk", 0.8], ["gargoyleWhelp", 1], ["manticore", 0.8], ["griffin", 0.6]]},
+    "secretArtifactChance": 0,
+    "runes": 0,
+    "souls": 3,
+    "bossHallChance": 0,
+    "doorShift": 0,
+    "themeChance": 0,
+    "themes": {},
+    "shapes": {"standard": 1},
+    "pairs": {"chance": 0.15, "list": [["choirLark", "rimeWolf", 1], ["cinderDjinn", "gloomRaven", 1]]},
+    "mantles": {"hexbound": 2, "kindled": 1, "rimebound": 1, "hallowed": 1, "stormcharged": 1},
+    "variants": {"normal": 1},
+    "templateWeights": {"3": 1},
+    "boss": {"pool": ["hart", "tiger", "twins", "angler", "dragon"], "hpMul": 1.6, "speedMul": 1.2, "shotSpeedMul": 1.25, "summons": 3, "volleys": 5, "insight": 720},
+    "look": {
+      "name": "seal",
+      "kit": {"wall": {"warded": 3, "scoria": 2, "basalt": 1}, "floor": {"sealstone": 3, "flags": 1}, "torch": {"shard": 3, "skull": 1}, "brazier": {"stepped": 2, "plinth": 1}},
+      "floor": {"base": [50, 46, 60], "mortar": "#0c0a12", "stain": "52,36,74", "decor": "bones", "bones": 2},
+      "wall": {"brick": [54, 50, 62], "mortar": "#0a0810", "stains": "none", "dress": {"pilaster": 3, "niches": {"skull": 2, "candle": 3, "empty": 2}}},
+      "torch": {"style": "brazier", "flame": "#d2b0ff", "light": "#a890f0", "intensity": 1.0, "wax": "#4c4258"},
+      "urn": {"clay": "#3c3646", "band": "#8a6ad0"},
+      "light": {"sky": "#8478a0", "ground": "#100c18", "moon": "#c0b0f0"}
     }
   }
 ]

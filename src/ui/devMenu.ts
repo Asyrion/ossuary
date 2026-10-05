@@ -566,7 +566,7 @@ function build() {
   const bosses = section(pages.rooms, S.bosses);
   for (const b of BOSS_TYPES) bosses.append(btn(STR.bosses[b as BossType].name, () => start({ testTemplate: bossRoom(), boss: b })));
   const runs = section(pages.rooms, S.newRun);
-  FLOORS.forEach((_, i) => runs.append(btn(S.floorN(i + 1), () => start({ floor: i, level: levelAtFloor(i) > 1 ? levelAtFloor(i) : undefined })))); // (M6 step 12: at the floor's expected level, its choices waiting)
+  FLOORS.forEach((f, i) => runs.append(btn(f.fixed ? S.toSeal : S.floorN(i + 1), () => start({ floor: i, level: levelAtFloor(i) > 1 ? levelAtFloor(i) : undefined })))); // (M6 step 12: at the floor's expected level, its choices waiting)
   const keep = el('label', 'dv-check'); const box = el('input'); box.type = 'checkbox'; box.checked = keepCarried;
   box.addEventListener('change', () => { keepCarried = box.checked; });
   keep.append(box, document.createTextNode(S.keep)); runs.parentElement!.append(keep);

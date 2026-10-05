@@ -56,7 +56,7 @@ export function enterWaystone(room: Room, firstVisit: boolean) {
   }
   setDarkness(room.waystone?.lit ? 0 : C().dark);
 }
-/** The floor's waystone room, if the generator found it a cell (floors 1 to 4). */
+/** The floor's waystone room, if the generator found it a cell (floors 1 to 5: floor 5's since M7). */
 export function waystoneRoom() { return G.rooms.find(r => r.type === 'waystone'); }
 /** The boss fell on a floor with a waystone room: the boss room's banner says where the way down lies, and a line which door. */
 export function pointToStone(boss: Room, stone: Room) {
@@ -76,10 +76,10 @@ export function offLane(boss: Room, stone: Room | undefined, x: number, z: numbe
   return dx ? { x, z: d.z + to } : { x: d.x + to, z };
 }
 
-/** A floor's boss has fallen where it has no waystone room: on floors 1 to 4 its waystone rises to the side at the back of the room (out of reach of the page and the pedestals) (before the boss's gifts are laid,
+/** A floor's boss has fallen where it has no waystone room: on floors 1 to 5 its waystone rises to the side at the back of the room (out of reach of the page and the pedestals) (before the boss's gifts are laid,
     so they keep clear of it). */
 export function waystoneAfterBoss(room: Room) {
-  if (G.run.floor >= FLOORS.length - 1) return; // (floor 5: nothing below to carry runes to)
+  if (G.run.floor >= FLOORS.length - 1) return; // (the Seal, M7: nothing below to carry runes to)
   const p = freeSpotNear(room, room.cx + C().at[0], room.cz + C().at[1]);
   raiseWaystone(room, p.x, p.z); line(STR.waystone.risen, CFG.afflict.lineShow);
 }

@@ -39,8 +39,9 @@ all four questions: Kaelith first, waiting in the Seal below floor 5 (a fixed le
 obols carried home; all six of the Vigil's extras. The plan's other proposals went with it. Thirteen steps, Part A (the Seal,
 Kaelith's fight, daylight) before Part B (the keeping, the Vigil as a place, chained shades, townspeople and dialogue,
 gifts and powers, the unfolding, the Great Circle and the Ferryman, echoes, the grimoire and the rest, the close). Steps
-marked (P) in the plan (2, 5, 7 and 10) are planned with the owner in plan mode before any code, as M6's were. **Next:
-step 1, the Seal**; stop for the owner before step 2 (Kaelith's look sheet and fight).
+marked (P) in the plan (2, 5, 7 and 10) are planned with the owner in plan mode before any code, as M6's were. **Step 1, the
+Seal, is built** (2026-10-05; the plan's Built note). **Next: step 2, Kaelith's fight**, planned with the owner in plan
+mode first, starting from a sheet of three looks for Kaelith.
 
 `main` was merged into the branch on 2026-10-05 (another session's work: the Chameleon Wyvern, the texel bake, the game's
 first sound files, the dev menu's fixes), so both session branches carry everything; 434 unit tests green after it.

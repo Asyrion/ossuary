@@ -11,6 +11,8 @@ import type { BrazierKind, TorchKind } from './kitData';
 
 export const RUNE_COLD = 0x2a1d16, RUNE_LIT = 0xffa040;
 const CANDLE_FIRE = firePalette(0xffd070, 0xff8428);
+/** Black volcanic glass (M7: the Seal's), painted. */
+const OBSIDIAN = paint(0x241e2e);
 
 const GEO = {
   plate: shared(new THREE.BoxGeometry(.17, .3, .03)), plateTop: shared(new THREE.ConeGeometry(.12, .1, 4).rotateY(Math.PI / 4).scale(1, 1, .25)),
@@ -175,6 +177,15 @@ const TORCHES: Record<TorchKind, TorchBuild> = {
     lit.add(makeFire([{ x: 0, y: 1.06, z: .1, h: .24, w: .1, tongues: 2 }], pal, 3, .25));
     return at(glow(pal.body, .8, .55), 0, 1.18, .12); // (small: the stones under it must still show)
   },
+  shard(holder, lit, pal) { // the Seal's (M7): a shard of black volcanic glass set upright in an iron collar on the wall, a Warden's
+    // rune lit on its face, the seal's pale fire burning at its broken tip
+    mesh(holder, GEO.plate, MAT.blackIron, 0, .78, .015).scale.set(.8, .7, 1); mesh(holder, GEO.arm, MAT.blackIron, 0, .78, .06).scale.z = .6;
+    mesh(holder, GEO.collar, MAT.iron, 0, .8, .1).scale.setScalar(.4);
+    const shard = mesh(holder, GEO.prow, OBSIDIAN, 0, 1.0, .1); shard.scale.set(1.25, 1.45, .9); shard.rotation.z = .08;
+    mesh(lit, GEO.rune, eyeFor(pal.body), .005, .97, .158).scale.setScalar(.7);
+    lit.add(makeFire([{ x: .01, y: 1.2, z: .1, h: .26, w: .1, tongues: 2 }], pal, 3, .3));
+    return at(glow(pal.body, .95, .6), 0, 1.24, .12);
+  },
   basket(holder, lit, pal) { // an iron fire basket hanging on a short chain from a bracket
     mesh(holder, GEO.plate, MAT.iron, 0, 1.18, .015).scale.set(.7, .9, 1);
     mesh(holder, GEO.arm, MAT.iron, 0, 1.28, .1).scale.z = .9; mesh(holder, GEO.chain, MAT.iron, 0, 1.2, .18).scale.y = .15;
@@ -305,6 +316,15 @@ const BRAZIERS: Record<BrazierKind, BrazierBuild> = {
     mesh(g, GEO.coals, MAT.coals, 0, .73, 0).scale.setScalar(.6); coals(g, .75, .15);
     threeRunes(runes, .3, .32, 0, 1);
     return { fire: bigFire(.76, .72, .24), glowY: 1.08 };
+  },
+  stepped(g, runes) { // the Seal's (M7): a bowl of black volcanic glass on three stepped tiers of dark stone, a Warden's rune on the
+    // front of each tier
+    mesh(g, GEO.plinth, MAT.darkStone, 0, .06, 0).scale.set(1.05, .35, 1.05); mesh(g, GEO.plinth, MAT.darkStone, 0, .18, 0).scale.set(.8, .35, .8);
+    mesh(g, GEO.plinth, MAT.stone, 0, .3, 0).scale.set(.55, .35, .55);
+    mesh(g, GEO.wideBowl, OBSIDIAN, 0, .36, 0).scale.setScalar(.85); mesh(g, GEO.rim, MAT.blackIron, 0, .5, 0).scale.setScalar(1.02);
+    mesh(g, GEO.coals, MAT.coals, 0, .48, 0).scale.setScalar(1.1); coals(g, .5, .3);
+    runes.push(runePlace(0, .06, .35, Math.PI / 2, 0, 1), runePlace(0, .18, .27, Math.PI / 2, 0, 1), runePlace(0, .3, .19, Math.PI / 2, 0, .9));
+    return { fire: bigFire(.52, .95, .34), glowY: .95 };
   },
   cauldron(g, runes) { // a black iron cauldron on three stubby legs, handles at its sides, runes round its belly
     for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2 + Math.PI / 2; mesh(g, GEO.stub, MAT.blackIron, Math.cos(a) * .2, .08, Math.sin(a) * .2); }

@@ -83,6 +83,12 @@ function lengths(R: () => number, total: number, min: number, max: number) {
 }
 const tint = (base: readonly number[], v: number, k = 1): RGB => scale([base[0] + v, base[1] + v, base[2] + v * .8], k);
 
+/** The Wardens' glyphs (M7, the Seal's stone): five texels across, cut into its walls and floors; some still hold the seal's
+    violet light. */
+const WARD_GLYPHS = [
+  ['..X..', '.XXX.', 'X.X.X', '..X..', '..X..'], ['X...X', '.X.X.', '..X..', '.X.X.', 'X...X'], ['XXXXX', '..X..', '.XXX.', '..X..', 'XXXXX'],
+  ['.X.X.', '.X.X.', 'XXXXX', '..X..', '.XXX.'], ['..X..', '.X.X.', 'X...X', '.X.X.', '..X..'], ['X.X.X', 'X.X.X', 'XXXXX', '..X..', '..X..'],
+];
 type WallArt = { px: Px; glow?: Px; units?: number }; // (units: how many units across it spans, 2 unless it says)
 /** Each kind of wall, drawn over a tile two units across; the height is the kind's own (the texture repeats down). */
 const WALLS: Record<WallKind, (wall: FloorLook['wall'], W: number) => WallArt> = {
@@ -320,6 +326,36 @@ const WALLS: Record<WallKind, (wall: FloorLook['wall'], W: number) => WallArt> =
     }
     return { px };
   },
+  warded(wall, W) { // the Seal's (M7): great blocks of Uzulim's dark volcanic stone, and between every two courses a band of
+    // the Wardens' glyphs cut into smoother stone, some still holding the seal's violet light (a glow map)
+    const H = 48, px = new Px(W, H, true), glow = new Px(W, H, true), R = mulberry(135), mortar = hex(wall.mortar), stone = tint(wall.brick, 0, .9);
+    px.fill(mortar); glow.fill([0, 0, 0]);
+    const course = (y0: number, h: number) => { let x0 = Math.floor(R() * 24); for (const l of lengths(R, W, 26, 46)) { block(px, x0, y0, l, h, scale(stone, .82 + R() * .26), 135, 1); wear(px, R, x0, y0, l, h, mortar, .2); x0 += l; } };
+    course(0, 18); course(26, 22); // (the band between: rows 18 to 25)
+    const band = scale(stone, 1.12), cut = scale(stone, .42);
+    for (let y = 18; y < 26; y++) for (let x = 0; x < W; x++) px.set(x, y, scale(band, y === 18 ? 1.25 : y === 25 ? .7 : hash(x, y, 136) < .05 ? .88 : 1));
+    for (let gx = 2, i = 0; gx + 5 < W; gx += 8, i++) {
+      const glyph = WARD_GLYPHS[Math.floor(hash(i, 0, 137) * WARD_GLYPHS.length)], lit = hash(i, 1, 138) < .45, k = .55 + hash(i, 2, 139) * .45;
+      glyph.forEach((row, v) => [...row].forEach((ch, u) => {
+        if (ch !== 'X') return;
+        const x = gx + u, y = 19 + v;
+        if (lit) { px.set(x, y, [120 + 70 * k, 90 + 40 * k, 200 + 50 * k]); glow.set(x, y, [150 * k, 100 * k, 255 * k]); } else px.set(x, y, cut);
+        if (!glyph[v + 1]?.[u] || glyph[v + 1][u] !== 'X') px.mul(x, y + 1, 1.15); // (the cut's lower lip catches the light)
+      }));
+    }
+    return { px, glow };
+  },
+  scoria(wall, W) { // the Seal's: rough blocks of scoria, the frothed black-red stone of an old flow, full of holes
+    const H = 48, px = new Px(W, H, true), R = mulberry(145), mortar = hex(wall.mortar), stone = tint([wall.brick[0] + 10, wall.brick[1] - 4, wall.brick[2] - 6], 0, .85);
+    px.fill(mortar);
+    let y0 = 0;
+    for (const ch of [12, 14, 10, 12]) { let x0 = Math.floor(R() * 14); for (const l of lengths(R, W, 12, 24)) { block(px, x0, y0, l, ch, scale(stone, .8 + R() * .32), 145, 1); wear(px, R, x0, y0, l, ch, mortar, .1); x0 += l; } y0 += ch; }
+    for (let k = 0; k < W * H / 26; k++) { // the vesicles: small dark holes, lit along their lower rim
+      const x = Math.floor(R() * W), y = Math.floor(R() * H); if (px.get(x, y)[0] <= mortar[0] + 4) continue;
+      const big = R() < .25; px.mul(x, y, .38); if (big) { px.mul(x + 1, y, .45); px.mul(x, y - 1, .6); } px.mul(x, y + 1, 1.18);
+    }
+    return { px };
+  },
 };
 
 /** Stains over any wall in the look's kind: moss and drip lines (damp), black smears (scorched) or darker patches. */
@@ -506,6 +542,27 @@ const PAVING: Record<FloorKind, (f: FloorCtx, mask: boolean[][]) => void> = {
       px.set(x, y, scale(dark, k));
     }
   },
+  sealstone(f, mask) { // the Seal's (M7): great slabs of dark stone, two tiles a side where they fit, a Warden's glyph cut in some
+    // and a few of those still lit with the seal's violet (the glow map)
+    const { px, glow, R, inside, TX, TY } = f, H = mask.length, W = mask[0].length, taken = mask.map(row => row.map(() => false));
+    const free = (c: number, r: number) => inside(c, r) && !taken[r][c];
+    for (let r = 0; r < H; r++) for (let c = 0; c < W; c++) {
+      if (!free(c, r)) continue;
+      const big = free(c + 1, r) && free(c, r + 1) && free(c + 1, r + 1) && R() < .8, w = big ? 2 : 1, h = big ? 2 : 1;
+      for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) taken[r + j][c + i] = true;
+      slab(f, c * TX, r * TY, w * TX, h * TY, .92);
+      if (!big || R() > .45) continue;
+      const glyph = WARD_GLYPHS[Math.floor(R() * WARD_GLYPHS.length)], lit = R() < .35, k = .5 + R() * .4;
+      const x0 = c * TX + TX - 5, y0 = r * TY + TY - Math.round(5 * TY / TX); // (in the slab's middle, two texels a stroke across, squeezed down as the floor is)
+      glyph.forEach((row, v) => [...row].forEach((ch, u) => {
+        if (ch !== 'X') return;
+        for (let dy = 0; dy < Math.max(1, Math.round(2 * TY / TX)); dy++) for (let dx = 0; dx < 2; dx++) {
+          const x = x0 + u * 2 + dx, y = y0 + Math.round(v * 2 * TY / TX) + dy;
+          if (lit) { px.set(x, y, [110 + 70 * k, 80 + 40 * k, 190 + 50 * k]); glow?.set(x, y, [140 * k, 90 * k, 240 * k]); } else px.mul(x, y, .5);
+        }
+      }));
+    }
+  },
   herringbone(f) { // bricks in herringbone, some charred black
     const { px, cw, ch, base } = f, C = 6, brick: RGB = [base[0] * .6 + 110 * .4, base[1] * .6 + 58 * .4, base[2] * .6 + 44 * .4];
     for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
@@ -585,7 +642,7 @@ export function pixelFloorTexture(seed: number, kind: RoomType, look: FloorLook,
   const area = mask.flat().filter(Boolean).length / (13 * 7), n = (count: number) => Math.round(count * area);
   const [b0, b1, b2] = look.floor.base;
   const base: RGB = kind === 'boss' ? [b0 - 2, b1 - 10, b2 - 6] : kind === 'treasure' ? [b0 + 8, b1 + 6, b2] : kind === 'secret' ? [b0 - 8, b1 - 4, b2 + 6] : kind === 'shrine' ? [b0 + 10, b1 + 8, b2 + 4] : [b0, b1, b2];
-  const mortar = hex(look.floor.mortar), embers = paving === 'basalt' || look.floor.decor === 'ash';
+  const mortar = hex(look.floor.mortar), embers = paving === 'basalt' || paving === 'sealstone' || look.floor.decor === 'ash'; // (M7: the Seal's glyphs glow too)
   const glow = embers ? new Px(cw, ch) : null;
   px.fill(mortar); glow?.fill([0, 0, 0]);
   const f: FloorCtx = { px, glow, R, cw, ch, TX, TY, inside, base, mortar, look, n };

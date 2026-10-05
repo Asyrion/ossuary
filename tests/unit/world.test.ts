@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Rng } from '../../src/rng';
-import { DOOR_SHIFTS, FLOORS, GRID_H, GRID_W, GUARANTEED_SOURCES, HARD_VARIANTS, OPTIONAL_SOURCES, SECRET_SHUNS, SHIFTING, doorFits, generateFloor, pickBoss, planToText, testPlan } from '../../src/world/generate';
+import { DOOR_SHIFTS, FLOORS, GRID_H, GRID_W, fixedPlan, GUARANTEED_SOURCES, HARD_VARIANTS, OPTIONAL_SOURCES, SECRET_SHUNS, SHIFTING, doorFits, generateFloor, pickBoss, planToText, testPlan } from '../../src/world/generate';
 import { CFG } from '../../src/config';
 import { BOSS_TYPES, type BossType } from '../../src/config';
 import { OPPOSITE, SIDE_DIR, allowsSide, shapeCells } from '../../src/world/shapes';
@@ -90,10 +90,13 @@ describe('water and oil', () => {
   });
 });
 
+/** The floors the generator lays out; the Seal (M7) is laid by hand. */
+const GENERATED = FLOORS.filter(f => !f.fixed);
+
 describe('floor generator', () => {
   const SEEDS = 400;
 
-  it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i follows the rules on %# seeds', (floorNo, cfg) => {
+  it.each(GENERATED.map((cfg, i) => [i + 1, cfg] as const))('floor %i follows the rules on %# seeds', (floorNo, cfg) => {
     let altars = 0, vaults = 0, secrets = 0, secretArtifacts = 0, roomCount = 0, bigRooms = 0, bossHalls = 0, labs = 0, stones = 0;
     for (let s = 0; s < SEEDS; s++) {
       const plan = generateFloor(Rng.from('T' + s, 'floor' + floorNo), cfg, floorNo - 1);
@@ -191,7 +194,7 @@ describe('floor generator', () => {
     // nearly every floor has a secret room; about half of them hold an artifact
     expect(secrets / SEEDS).toBeGreaterThan(.95);
     if (cfg.laboratory) expect(labs / SEEDS).toBeGreaterThan(.9); // (nearly every floor 1 and 3 has a spare dead end for it)
-    if (cfg.waystone) expect(stones / SEEDS).toBeGreaterThan(.99); else expect(stones).toBe(0); // (M6: nearly always a free cell beside the boss)
+    if (cfg.waystone) expect(stones / SEEDS).toBeGreaterThanOrEqual(.98); else expect(stones).toBe(0); // (M6: nearly always a free cell beside the boss; floor 5's great halls leave a few seeds none)
     expect(Math.abs(secretArtifacts / secrets - cfg.secretArtifactChance)).toBeLessThan(.1);
     // about a third of the rooms take a larger or narrow shape; some bosses get a great hall
     const share = bigRooms / roomCount;
@@ -220,7 +223,7 @@ describe('floor generator', () => {
   });
 
   it('dresses only normal rooms in variants, harder ones more often on deeper floors', () => {
-    const hardShare = FLOORS.map((cfg, f) => {
+    const hardShare = GENERATED.map((cfg, f) => {
       let normal = 0, hard = 0;
       for (let s = 0; s < 300; s++) {
         const plan = generateFloor(Rng.from('V' + s, 'floor' + f), cfg, f);
@@ -336,7 +339,7 @@ describe('themed rooms', () => {
   });
 
   it('hold about two fights in five, from the floor\'s themes; the rest stay plain', () => {
-    for (const [i, cfg] of FLOORS.entries()) {
+    for (const [i, cfg] of GENERATED.entries()) {
       let fights = 0, themed = 0;
       for (let s = 0; s < 150; s++) for (const r of generateFloor(Rng.from('TH' + s, 'floor' + (i + 1)), cfg, i).rooms) {
         if (r.type !== 'normal') continue;
@@ -402,5 +405,31 @@ describe('jelly floods (M5 step 7: the jelly serpent)', () => {
     expect(Math.hypot(floodTiles(open, 6, 3, 1, () => .5, W, H)[0].c - 6, floodTiles(open, 6, 3, 1, () => .5, W, H)[0].r - 3)).toBeLessThanOrEqual(Math.SQRT2);
     expect(floodTiles(open, 0, 0, 500, Math.random, W, H).length).toBe(W * H - blocked.size);
     expect(floodTiles(() => false, 0, 0, 10, Math.random, W, H)).toEqual([]);
+  });
+});
+
+describe('the Seal (M7 step 1)', () => {
+  const seal = FLOORS.findIndex(f => f.fixed), cfg = FLOORS[seal];
+  it('is the last level, laid by hand: the Stair, the Last Hall and Kaelith\'s Hall, a door between each', () => {
+    expect(seal).toBe(FLOORS.length - 1);
+    for (let s = 0; s < 20; s++) {
+      const plan = generateFloor(Rng.from('SEAL' + s, 'floor' + seal), cfg, seal);
+      expect(plan.rooms.map(r => [r.type, r.shape, r.dist, r.artifact])).toEqual([['start', 'standard', 0, false], ['ordeal', 'great', 1, true], ['boss', 'great', 2, true]]);
+      expect([plan.startId, plan.bossId]).toEqual([0, 2]);
+      const nbs = plan.rooms.map(r => r.doors.map(d => d.to).sort());
+      expect(nbs).toEqual([[1], [0, 2], [1]]); // (one door between each two, none between the Stair and the boss)
+      for (const r of plan.rooms) { expect(TEMPLATE_DEFS.find(t => t.id === r.templateId)!.fixed).toBe(true); for (const d of r.doors) expect(d.shift).toBe(0); }
+      expect(plan.rooms[1].seed).not.toBe(generateFloor(Rng.from('SEAL' + (s + 1), 'floor' + seal), cfg, seal).rooms[1].seed); // (the run's seed still dresses it)
+    }
+  });
+  it('keeps its rooms its own: no generated floor draws them', () => {
+    const fixed = new Set(TEMPLATE_DEFS.filter(t => t.fixed).map(t => t.id));
+    expect([...fixed].sort()).toEqual(['seal_kaelith', 'seal_last_hall', 'seal_stair']);
+    for (let s = 0; s < 60; s++) for (const [i, f] of GENERATED.entries()) for (const r of generateFloor(Rng.from('NF' + s, 'floor' + i), f, i).rooms) expect(fixed.has(r.templateId)).toBe(false);
+    expect(() => fixedPlan(new Rng(1), { ...cfg, fixed: { rooms: [{ type: 'start', shape: 'standard', at: [4, 6], template: 'seal_kaelith' }] } }, seal)).toThrow(/no standard start template/);
+  });
+  it('lies below floor 5, whose boss now has a waystone room before the way down', () => {
+    expect(FLOORS[seal - 1].waystone).toBe(true);
+    expect(cfg.look.name).toBe('seal');
   });
 });

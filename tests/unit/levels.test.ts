@@ -40,7 +40,7 @@ describe('insight', () => {
     expect(clearInsight(2, true)).toBe(24);
     expect(potionInsight(0)).toBe(4);
     const boss = FLOORS.map((_, f) => bossInsight(f));
-    expect(boss).toEqual([60, 130, 230, 360, 540]);
+    expect(boss).toEqual([60, 130, 230, 360, 540, 720]); // (M7: the Seal's boss last)
   });
 });
 
