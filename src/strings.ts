@@ -805,8 +805,8 @@ export const STR = {
     // creatures made in Tripo and animated in code (docs/creatures.md)
     creatures: 'Animated creatures (made in Tripo, animated in code)', creatureHere: (name: string) => `${name}: stand it here`, roarNow: 'Roar now',
     creaturesNote: 'Its walk, roar and rest baked by tools/animate-creature.ts; it walks a lap, roars at the mage and rests, its sounds on its paws and its roar. Looks only: no fight.',
-    creatureNames: { owlbear: 'Owlbear' } as Record<string, string>,
-    creatureLooks: { pixel: 'Look: pixel art (as the game draws it)', made: 'Look: as made (1,024 px texture, smooth light)', full: 'Look: as imported (textures at their own size, normal map)' } as Record<string, string>,
+    creatureNames: { owlbear: 'Owlbear', dragonling: 'Dragonling', chameleon: 'Chameleon Wyvern' } as Record<string, string>,
+    creatureLooks: { texel: 'Look: pixel art from its texture (as the game draws it)', pixel: 'Look: pixel art from its vertices (the first look)', made: 'Look: as made (1,024 px texture, smooth light)', full: 'Look: as imported (textures at their own size, normal map)' } as Record<string, string>,
     scapes: 'Soundscapes', music: 'Music', soundGame: 'As the game asks', soundOn: 'Soundscapes and music: on', soundOff: 'Soundscapes and music: off',
     scapeNote: 'Plays here at once, over whatever the game asks for, until "As the game asks". The room or theme plays over the chosen floor.',
     scapeRoom: (r: string) => `Over it: ${r}`, scapeNone: 'nothing', moodIs: (m: string) => `Mood: ${m}`,
@@ -817,7 +817,7 @@ export const STR = {
     assets: 'Made assets', showAssets: 'Show them here (urns, a pedestal)',
     obolWears: (face: string) => `Obols wear: ${face}`,
     coinFaces: { arcane_eye: 'Arcane eye', silver_owl: 'Silver owl', star_crystal: 'Star and crystal', grave_coin: 'Grave coin', arcane_sigil: 'Arcane sigil', pale_obol: 'Pale obol', plain_profile: 'Plain profile', rune: 'the rune (built in code)' } as Record<string, string>,
-    coinGallery: 'Coin faces (the owner\'s coins, drawn at the game\'s pixel)', coinsNote: 'Every coin face side by side ahead of the mage, as the room draws an obol, the rune built in code last; the Look tab\'s Made assets chooses the one the obols wear', assetsOn: 'Made assets: on', assetsOff: 'Made assets: off (placeholders)', noAssets: 'None named in data/assets.json yet',
+    coinGallery: 'Coin faces (the owner\'s coins, drawn at the game\'s pixel)', coinsNote: 'Every coin face side by side ahead of the mage, as the room draws an obol, the rune built in code last; the Look tab\'s Made assets chooses the one the obols wear', assetsOn: 'Made assets: on', assetsOff: 'Made assets: off (placeholders)', madeLooks: { texel: 'Made assets wear: pixel art from their texture (as the game draws them)', made: 'Made assets wear: their texture as made (to compare)' } as Record<string, string>, noAssets: 'None named in data/assets.json yet',
     assetStatus: { loaded: 'loaded', missing: 'missing', failed: 'failed', off: 'off (?assets=off)' } as Record<string, string>,
     assetRow: (where: string, status: string, tris?: number) => `${where}: ${status}${tris ? `, ${tris.toLocaleString('en')} triangles` : ''}`,
     kit: 'Room kit (built in code)', kitNote: 'Wall lights, braziers, the mechanisms and the rooms\' objects built in code, and every floor\'s floors and walls in pixel art; each room draws its kinds, and the buttons below force one on every room of this floor',
@@ -831,10 +831,10 @@ export const STR = {
     } as Record<string, string>,
     fpsOn: 'Frame readout: shown', fpsOff: 'Frame readout: hidden',
     /** M4.12: the foes' looks, old and new. */
-    lookPairs: 'Fantasy foes (M4.12): old and new looks side by side, a floor at a time (a great hall holds a floor\'s)', noNewLooks: 'No new looks yet on this floor',
+    lookPairs: 'Fantasy foes (M4.12): old and new looks side by side, a floor at a time (a great hall holds a floor\'s)', noNewLooks: 'No new looks yet on this floor', noLooksWaiting: 'Every new look is approved, so there is nothing to compare: these wait for the next new look',
     floorLooks: (f: number) => f ? `Floor ${f}` : 'Ward cores', allLooks: 'Every floor',
-    foeLooks: { approved: 'Foe looks: as approved (the game)', new: 'Foe looks: every new one (to try)', old: 'Foe looks: the old ones still waiting on a yes (to compare)' } as Record<string, string>,
-    pads: 'Gamepads', readPads: 'Read the pads again', noPads: 'No gamepad heard: press one of its buttons with this page in front (a browser shows a pad only after that)',
+    foeLooksAllApproved: 'Foe looks: every new look approved (nothing to compare)', foeLooks: { approved: 'Foe looks: as approved (the game)', new: 'Foe looks: every new one (to try)', old: 'Foe looks: the old ones still waiting on a yes (to compare)' } as Record<string, string>,
+    pads: 'Gamepads', noPads: 'No gamepad heard: press one of its buttons with this page in front (a browser shows a pad only after that)',
     padRow: (i: number, id: string, mapping: string, buttons: number[], axes: number[]) => `Pad ${i}: ${id} · ${mapping === 'standard' ? 'standard layout' : 'unusual layout'} · held: ${buttons.length ? buttons.join(', ') : 'nothing'} · sticks: ${axes.slice(0, 4).join(' ')}`,
     artifactGallery: 'Artifacts (the room kit\'s: built in code, their icons rendered from them)', artifactsNote: 'Every artifact floating ahead of the mage in rows (foci, passives, cursed), to look at; they can\'t be taken',
     /** Dr. Jelly (2026-10-02): the plague doctor (the owner's pick of three) and what he hands over. */

@@ -134,10 +134,22 @@ Nine steps from a brief to an asset in the deployed game. Who does what: **owner
      base, and for characters the clips and the roles the game gives them.
 
    A failed check writes nothing and says what to change in Tripo (back to step 5). `--check` only reports.
-   The script prints the line for `data/assets.json`. Textures and icons go through `npm run prepare-texture`
+   - **pixel art from its texture** (every Tripo model, the owner's rule of 2026-10-05): the texture is made pixel art
+     at the size the game draws the model (`tools/texel-bake.ts`: at least one texel a game pixel, averaged within each
+     UV island, glowing markings kept, painted shadows lifted, 24 colours) and written beside it as `<id>.texel.png` and
+     `<id>.glow.png`. The game wears these, not the 2k texture: Tripo's painted detail doesn't read at the game's size.
+
+   The script prints the line for `data/assets.json`, with the model's `texel` (a unit test fails for a model named
+   without it). The mage alone keeps its vertex look (the owner's choice, 2026-10-05, after comparing them: its full mesh
+   already carries its detail, and the bake only added speckle).
+
+   **Concept images for Tripo** (2026-10-05): the bake keeps only what the texture holds at about 80 game pixels tall,
+   so ask for big flat colour areas and strong light against dark between the parts, bold markings a few texels wide
+   (eyes, stripes, a crest; a thin line vanishes), little shadow or grime painted in (the game shades the model itself),
+   and a silhouette that reads at that size. Textures and icons go through `npm run prepare-texture`
    (below).
 8. **Integrate** (Claude). The file goes to its folder, and a line in `data/assets.json` says which
-   placeholder it replaces and how tall it stands (`props`: the urn and the pedestal; `artifacts`, by artifact
+   placeholder it replaces, how tall it stands and its baked texture (`texel`; `props`: the urn and the pedestal; `artifacts`, by artifact
    id; `floors`, a floor look's tile; `icons`, by artifact id). The game loads it at boot and falls back to
    the placeholder if the file is missing or broken, with a warning in the console. To check it:
    - the dev menu's Made assets section: what loaded, with triangles; "Show them here" puts urns and an
@@ -162,7 +174,8 @@ Nine steps from a brief to an asset in the deployed game. Who does what: **owner
 6. Export `urn.glb`, uploaded with the concept image.
 7. `npm run prepare-asset -- urn.glb --kind prop --id urn`: 1,480 triangles (budget 2,000), 1 texture at 512
    px, 0.62 × 0.63 × 0.61, centred and standing on y = 0 (fixed: it was 0.2 off).
-8. `public/assets/props/urn.glb`, `{ "urn": { "file": "props/urn.glb", "height": 0.6 } }` in
+8. `public/assets/props/urn.glb` (and `urn.texel.png`, `urn.glow.png`), `{ "urn": { "file": "props/urn.glb", "height": 0.6,
+   "texel": { "file": "props/urn.texel.png", "glow": "props/urn.glow.png" } } }` in
    `data/assets.json`; screenshots on floors 1 to 3; a room with eight urns still at 60 fps.
 9. Accepted; `CREDITS.md`: "urn.glb, made by Azyrion in MidJourney (Standard) and Tripo3D (Master)".
 
@@ -211,10 +224,11 @@ mixing rules. The Asset list's Audio table gives the counts. This section says h
 2026-09-29, with the licence terms as they stood that day: **check a source's current terms before downloading or
 subscribing**, since they change (AI music most of all).
 
-Today every sound is synthesised in code (`src/audio/sfx.ts`) and each one stays as its fallback; since 2026-10-02 the
+Today almost every sound is synthesised in code (`src/audio/sfx.ts`) and each one stays as its fallback; since 2026-10-02 the
 soundscapes and the music are made in code too (`docs/sound-plan.md`; `npm run render-audio` writes them to files to
-listen to). Real sounds replace or join them in M8 (the final mix), or earlier for single effects once the pipeline below
-has been tried.
+listen to). Real sounds replace or join them in M8 (the final mix), or earlier for single effects. The first went through
+the pipeline below on 2026-10-05: four for the Chameleon Wyvern from the owner's EDA-ModelWebViewer (its growl, screech
+and two tail slams; see the asset log), with `prepare-sound`, `data/sounds.json` and the game's player (`src/audio/samples.ts`) written for them.
 
 ### Sources
 
@@ -274,7 +288,7 @@ The sound equivalent of the house style: everything happens in small stone rooms
   space.
 - **A sound reference set**, like the image style reference: three to five accepted sounds (for example an Ember
   impact, a Frost cast, a door, a footstep on stone) that every new sound is compared against. It's chosen with the
-  first real sounds.
+  first real sounds of the game's own effects: the Chameleon Wyvern's (2026-10-05) are a creature's voice, not part of it.
 
 | Name | Sounds | Use for | Since |
 | --- | --- | --- | --- |
@@ -292,8 +306,9 @@ The sound equivalent of the house style: everything happens in small stone rooms
 | Music stem | Stereo | 1 to 3 min, loop points on a bar line, every stem of a piece the same length and tempo | | Below effects | Under 3 MB, streamed |
 
 - **Sources:** WAV at 44.1 or 48 kHz, 16 or 24 bit. The owner keeps them; the repository only gets the shipped files.
-- **Shipped format:** Ogg Vorbis (Chrome, Edge and Firefox; Safari since 18.4). The first sounds through the
-  pipeline confirm Safari; an MP3 copy is added if it needs one.
+- **Shipped format:** Ogg Vorbis (Chrome, Edge and Firefox; Safari since 18.4). Safari isn't checked yet (the first
+  sounds, 2026-10-05, were tested in Chromium only); where a file won't decode the game plays the synthesised sound in
+  its place, and an MP3 copy is added if Safari needs one.
 - **Every effect starts at once:** no silence before it, since a late sound feels like lag.
 - **Files:** `public/assets/sounds/<family>/<id>_<n>.ogg`, such as `sounds/frost/cast_1.ogg`, in lower case with
   underscores.
@@ -310,10 +325,16 @@ The same shape as the image pipeline:
 4. **Listening check** (owner, Claude on request). In the game, next to the placeholder it replaces and against the
    house sound. Does it sound like the same stone rooms? Is it clear under a fight?
 5. **Hand over** (owner). The WAV or original file, with its source, author and licence (tool, plan and date for AI).
-6. **Prepare** (Claude). A `prepare-sound` script, written with the first real sounds: converts to Ogg, makes
-   effects mono, trims leading silence, matches loudness, checks a loop's seam, and reports length, size and peak.
-7. **Integrate** (Claude). A line in `data/sounds.json` names the files and variants for a sound. The game plays the
-   file, falling back to the synthesised sound if it's missing or fails to load.
+6. **Prepare** (Claude). `npm run prepare-sound -- <in.wav> <family>/<id>_<n>` (`tools/prepare-sound.ts`, written with
+   the first real sounds; needs ffmpeg): makes it mono, trims the silence before it, sets its peak to -1 dB, encodes Ogg
+   Vorbis at its own sample rate into `public/assets/sounds/`, and reports length, size and peak against an effect's
+   budget. Loudness against the other sounds is the entry's `gain` (step 7), set by listening and measuring in a
+   preview. A loop's seam is checked when the first loop comes.
+7. **Integrate** (Claude). A line in `data/sounds.json` names the files (variants, one chosen at random) and the `gain`
+   of a sound (`src/audio/soundData.ts` checks it; a unit test checks every file ships). `src/audio/samples.ts` loads
+   and decodes them once for each audio context and plays them; a creature's sounds go through `fromFile` in
+   `creatureSounds.ts`, falling back to the synthesised sound while the file loads or if it fails. Effects heard
+   through `Sfx` will take the same path when the first one comes.
 8. **Review and record** (both). Accepted sounds get a row in `CREDITS.md` and in the asset log below.
 
 **Voices and sound bites.** The mage's hurt and death sounds, and later the townspeople of the Vigil (M7), need
@@ -339,3 +360,6 @@ asset is accepted.
 | Ember Sigil, Bone Lens and Mask of the Drowned icons | icons | SVG placeholders | | | dropped 2026-09-30 (rendered from the models built in code) |
 | Seven coin faces (Arcane eye, Silver owl, Star and crystal, Grave coin, Arcane sigil, Pale obol, Plain profile; `inspiration/coins/`) | coin faces | the obol built in code (Star and crystal worn by the obols) | the owner's images | | in the game 2026-10-02; Star and crystal chosen by the owner, drawn on the fine layer; made again at 48 px the same day (the coin a little smaller, at the owner's ask) |
 | Owlbear (`creatures/owlbear.glb`; `owlbear.full.glb` beside it) | creature, boss budget | nothing yet (the owner's experiment, called a success 2026-10-03: animated in code, looks only; `docs/creatures.md`) | Tripo3D (model, rig); code (faces turned outward, skin, clips, padding, sounds; `tools/animate-creature.ts`) | | in the dev menu 2026-10-03 (Galleries, Animated creatures); 14,550 triangles, 1,024 px. `owlbear.full.glb` keeps the textures as imported (2,048 px, normal map, about 4 MB): the dev menu's "as imported" comparison only, outside the budget, loaded only when asked |
+| Dragonling (`creatures/dragonling.glb`; `dragonling.full.glb` beside it) | creature, boss budget | nothing yet (the owner's example of a new creature, 2026-10-03: about a horse, 1.8 tiles, after a first try at a medium dog's size; looks only; `docs/creatures.md`) | Tripo3D (model, rig); code (turned to face +z, skin, stance from a mid-stride pose, clips, padding, sounds; `tools/creatures/dragonling.ts`) | | in the dev menu 2026-10-03 (Galleries, Animated creatures), approved by the owner at horse size the same day; 14,550 triangles (from 19,367), 1,024 px. `dragonling.full.glb` keeps the textures as imported (2,048 px, normal map, about 3.8 MB), outside the budget |
+| Chameleon Wyvern (`creatures/chameleon.glb`; `chameleon.full.glb` beside it) | creature, boss budget | nothing yet (the owner's third creature, 2026-10-05: a feathered wyvern the size of a pony, 1.4 tiles; looks only; `docs/creatures.md`) | Tripo3D (model, rig), the owner's EDA-ModelWebViewer (bones named, weights mended, kept here); code (turned to face +z, its jaw carved from the head, wings laid by direction, clips; `tools/creatures/chameleon.ts`) | | in the dev menu 2026-10-05 (Galleries, Animated creatures); 14,549 triangles (from 19,531), 1,024 px, its texture as pixel art (256 px). `chameleon.full.glb` keeps the textures as imported (2,048 px, normal map, about 3.9 MB), outside the budget |
+| Chameleon Wyvern's sounds (`sounds/chameleon/growl_1.ogg`, `screech_1.ogg`, `slam_1.ogg`, `slam_2.ogg`) | effects, mono | the synthesised `roar`, `shriek` and `slam` (kept as their fallbacks) | The owner's EDA-ModelWebViewer (`web/js/sounds.js`: its growl 2, roar 1, hit 1 and hit 2 for this model), made in code there; ours | | in the game 2026-10-05 through `prepare-sound`: first at the viewer's 22,050 Hz, then made again from its recipe at 48 kHz (the owner's ask; the same seed, so the same sounds; `npm run viewer-sounds`): 17, 17, 12 and 12 KB, peaks at -1 dB, played at `gain` 1, 0.85 and 0.8 (`data/sounds.json`) |

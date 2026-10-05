@@ -237,6 +237,25 @@ generated three-floor runs. See `README.md` for scripts and deployment.
 - Creatures made in Tripo and animated in code (the owner's experiment of 2026-10-03, the owlbear, called a success the same
   day: **`docs/creatures.md` holds the findings and the guide for a new one**, and its handover message, which
   the owner starts a new session with; `-- --bones <in.glb>` reads a new model's rig first).
+  The dragonling (2026-10-03, the owner's second, the size of a horse, 1.8 tiles, boss budget) is the recipe for a
+  model facing another way (`face`, `faceForward` in creatureRig.ts), on a two-legged rig and in a mid-stride pose (`STANCE`,
+  a leg's `toes`). Models come two ways (docs/creatures.md): straight from Tripo (`bone_N`, broken weights: `reskin`), or through
+  the owner's EDA-ModelWebViewer (github.com/Asyrion/EDA-ModelWebViewer: bones named, weights mended, sounds made as WAV
+  files). The Chameleon Wyvern (2026-10-05, the owner's third, a feathered wyvern the size of a pony, 1.4 tiles, boss budget; `tools/creatures/chameleon.ts`) is the recipe for the second way, whose weights are kept
+  (`SKIN` null, `REMAP`, `reskin`'s keeping path), for wings laid by direction (`rig.point`) and for a clip that turns round
+  (the root turned last, `place`'s `turn`); its growl, screech and tail slams are the viewer's sound files, the game's first
+  (`npm run prepare-sound`, `tools/prepare-sound.ts`; `data/sounds.json`, checked by `src/audio/soundData.ts`; `src/audio/samples.ts`: `fromFile` in creatureSounds.ts plays the file, the
+  synthesised sound its fallback; `__game.soundFiles()`), made again at 48 kHz from the viewer's recipe (it writes 22,050 Hz; `npm run viewer-sounds`, `tools/viewer-sounds.ts`). **Every Tripo model wears its texture as pixel art** (the owner's rule, 2026-10-05: the 2k painted
+  textures don't read at the game's size): `tools/texel-bake.ts` (`bakeModelFile`, run by animate-creature and
+  prepare-asset on every model they write; `npm run texel-bake -- <id>|all` or `-- <file.glb> <tiles>`) shrinks the game
+  file's texture to at least one texel a game pixel within each UV island, keeps its glowing markings, lifts its painted
+  shadows and cuts it to a palette (the pure `src/render/texelBake.ts`, `CFG.creatures.texel`) into `<file>.texel.png` and
+  `<file>.glow.png`, named as `texel` in data/creatures.json and on data/assets.json's models; `src/actors/texturePixel.ts` wears them
+  (`wearTexel`: creatures by default, `ossuary.creatureLook2`; made assets in models.ts, both looks kept on the shared
+  geometry, `setMadeLook` and the Look tab's "Made assets wear" switching the floor's to compare (what the mage holds or wears switches when it is next built), `__game.madeLook`, `__game.setMadeLook(l)`). The
+  mage keeps its vertex look, the owner's choice of 2026-10-05 after comparing them: its full mesh already carries its
+  detail, and the bake only added speckle. A unit test fails for any
+  creature or made model without them (tests/unit/texelBake.test.ts).
   `npm run animate-creature -- owlbear <in.glb>`
   (`tools/animate-creature.ts`) simplifies the mesh to its budget (`budget` per recipe, data/assets.json's kinds), turns the
   patches Tripo left inside out (`orientOutward` in `tools/orientFaces.ts`: each face by the side its rays get out of the model
@@ -250,8 +269,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   played through `Sfx.place(x, z)`); in the game `src/actors/madeCreatures.ts` stands it in the pixel-art look (`bakeHeroPixel`),
   walks a lap, turns to roar at the mage and rests, its sounds on its clips' events (tuning `CFG.creatures`); looks only, no
   fight. `npm run creature-preview -- owlbear` (`tools/creature-preview.ts` and `.html`) renders a video with its sounds to
-  `creature-previews/`. Dev menu (Galleries): Animated creatures, with its look (pixel art, as made, as imported:
-  `setCreatureLook`, `ossuary.creatureLook`); `__game.showCreature(id)`, `creatures` (each one's look and texture size),
+  `creature-previews/`. Dev menu (Galleries): Animated creatures, with its look (pixel art from its texture, from its vertices, as made, as imported:
+  `setCreatureLook`, `ossuary.creatureLook2`; pixel art from its texture first); `__game.showCreature(id)`, `creatures` (each one's look and texture size),
   `roarNow()`, `takeCreatures()`, `creatureLook`, `setCreatureLook(l)`.
 - The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
   buttons, in seven tabs (Mage, Magic, Foes & objects, Rooms & runs, Look, Galleries, Sound; `TABS`, names in `STR.dev.tabs`, the
@@ -647,7 +666,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   glow and shadow stepped (`glowTex`, `shadowTex` in `render/textures.ts`, `glowSteps`, `shadowSteps`) and the artifact
   icons pixel art (`toIcon` in `artifactIcons.ts`, 24 pixels, hard-edged, shown pixelated). Anything new is drawn at
   the texel and so is pixel art by being there: its glows use the stepped glow, a new icon is made as the artifacts' are,
-  and a model from Tripo is baked as the mage is.
+  and a model from Tripo wears its texture as pixel art (`tools/texel-bake.ts`, `src/actors/texturePixel.ts`; the mage alone
+  keeps its colours in its vertices).
 - The room kit (M3.5 step 3; `docs/M3.5-plan.md`): the room's pieces redone in code in the style of the spell
   effects. Fire is `src/render/fire.ts` (`makeFire`: layered flames and embers moved on the GPU from `tickFire`, colours in
   the geometry, four shared materials); the fire objects are `src/world/fireLooks.ts` (`torchLook` in each floor's style,

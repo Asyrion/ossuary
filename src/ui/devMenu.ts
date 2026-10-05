@@ -10,7 +10,7 @@ import { PROP_KINDS, isMechanism } from '../world/propData';
 import { THEME_DEFS } from '../world/themeData';
 import { placeProp } from '../world/props';
 import { padsNow } from '../input/gamepad';
-import { FOE_LOOK_MODES } from '../actors/fantasyLooks';
+import { APPROVED, FANTASY_LOOKS, FOE_LOOK_MODES } from '../actors/fantasyLooks';
 import { showLookPairs } from '../actors/lookPairs';
 import { jellyGives } from '../world/jellyGives';
 import { elementDev } from '../world/mechanisms';
@@ -48,7 +48,7 @@ import { obolFace, obolFaces, setObolFace } from '../items/obolFace';
 import { disposeTree } from '../render/materials';
 import { makeEnemy, spawnFoe } from '../actors/enemies';
 import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
-import { assetList, assetsOn, setAssetsOn } from '../assets/models';
+import { assetList, assetsOn, madeLookNow, madeLooks, setAssetsOn, setMadeLook, type MadeLook } from '../assets/models';
 import { setCloseUp } from '../render/renderer';
 import { LINES, drawnRows, pixelLook, setPixelLook } from '../render/pixelLook';
 import { heroPixel, setHeroPixel } from '../actors/heroPixel';
@@ -101,7 +101,7 @@ import { CREATURES, CREATURE_LOOKS, creatureLook, roarNow, setCreatureLook, show
 import { THEMES } from '../world/themeData';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, madeLookBtn: HTMLButtonElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
 let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, runesBtn: HTMLButtonElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement, creatureLookBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries', 'sound'] as const;
@@ -146,6 +146,8 @@ function showTab(t: Tab) {
   for (const k of TABS) { pages[k].hidden = k !== t; tabBtns[k].classList.toggle('on', k === t); tabBtns[k].setAttribute('aria-selected', String(k === t)); }
   try { localStorage.setItem(TAB_KEY, t); } catch { /* not remembered */ }
 }
+/** The new foe looks (M4.12) still waiting on the owner's yes: the foe-look switch and the old-and-new gallery compare them. */
+const looksWaiting = () => Object.keys(FANTASY_LOOKS).filter(id => !APPROVED.has(id));
 /** Somewhere free just ahead of the mage. */
 const ahead = (d = 1.5) => freeSpotNear(G.current, player.x, player.z - d);
 /** The living foe nearest the mage. */
@@ -177,6 +179,9 @@ export function rebuildFloor() {
   if (G.run.bossesMet.at(-1) === G.run.boss) G.run.bossesMet.pop(); // (built again, the floor draws the same boss)
   buildFloor(G.run.floor); warp(id);
 }
+
+/** The made assets drawn in look `l` (their texture as pixel art, or as made) on this floor and from now on, to compare. */
+export function useMadeLook(l: MadeLook) { setMadeLook(l, G.rooms.map(r => r.group)); }
 
 /** The obols wear another coin face (or the rune): those lying in the room and the HUD's counter change with them. */
 export function wearFace(id: string) { setObolFace(id); restyleObols(); renderPurse(); }
@@ -435,7 +440,8 @@ function build() {
     ...SCHOOLS.map(s => btn(S.bargainOn(STR.schools[s]), () => { if (!G.current.bargain) { toast(S.noBargain, 2); return; } closeDev(); openBargainHere(s); })));
   // the gamepads the browser reports: name, layout, and what is held (the owner's Elite pad wasn't heard, 2026-10-02)
   const gp = section(pages.rooms, S.pads);
-  gp.append(padInfo = el('div', 'dv-info'), btn(S.readPads, () => {}));
+  gp.append(padInfo = el('div', 'dv-info')); // (read again whenever a pad comes or goes while the menu is open)
+  for (const ev of ['gamepadconnected', 'gamepaddisconnected']) window.addEventListener(ev, () => { if (devOpen()) refresh(); });
 
   // the pixel look (the game's look, M3.5 step 2): the rows of pixels, outlines, light in bands; kept in this browser
   const px = section(pages.look, S.pixel);
@@ -453,8 +459,9 @@ function build() {
   const kit = section(pages.look, S.kit);
   // each part's kind: drawn per room, or one stepped through the floor's list and forced on every room, to compare
   for (const part of KIT_PARTS) kitPartBtns[part] = btn('', () => {
-    const list = kindsOf(FLOORS[G.run.floor].look.kit!, part), at = list.indexOf(DEV.kitKinds[part] as never);
-    DEV.kitKinds = { ...DEV.kitKinds, [part]: list[at + 1] }; // (past the last: drawn per room again)
+    // (from the kind forced, or the one this room drew: the first click shows the next one)
+    const forced = DEV.kitKinds[part], list = kindsOf(FLOORS[G.run.floor].look.kit!, part), at = list.indexOf((forced ?? G.current.look.kinds?.[part]) as never);
+    DEV.kitKinds = { ...DEV.kitKinds, [part]: forced ? list[at + 1] : list[(at + 1) % list.length] }; // (past the last forced: drawn per room again)
     if (!DEV.kitKinds[part]) delete DEV.kitKinds[part];
     rebuildFloor();
   });
@@ -471,6 +478,8 @@ function build() {
   assets.append(
     assetBox = el('div', 'dv-info'),
     assetBtn = btn('', () => useAssets(!assetsOn())),
+    // (2026-10-05, the owner: every Tripo model wears its texture as pixel art; the props and artifacts as made, to compare)
+    madeLookBtn = btn('', () => useMadeLook(madeLookNow() === 'texel' ? 'made' : 'texel')),
     btn(S.showAssets, () => { closeDev(); showAssetsHere(); }),
     obolBtn = btn('', () => { const all = obolFaces(); wearFace(all[(all.indexOf(obolFace()) + 1) % all.length]); refresh(); }),
     fpsBtn = btn('', () => { DEV.fps = !DEV.fps; }),
@@ -516,19 +525,20 @@ function build() {
     btn(S.showOptions, () => { closeDev(); showJellyLooks(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
 
   // M4.12: the foes' old and new looks side by side, a floor at a time, for the owner to compare and approve
-  const lp = section(pages.galleries, S.lookPairs);
-  lp.append(...[1, 2, 3, 4, 5, 0].map(f => btn(S.floorLooks(f), () => { closeDev(); if (!showLookPairs(G.current, player.x, player.z, f).length) toast(S.noNewLooks, 2); })),
-    btn(S.allLooks, () => { closeDev(); if (!showLookPairs(G.current, player.x, player.z).length) toast(S.noNewLooks, 2); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
+  // (with every new look approved there is nothing to compare: the row waits, disabled, for the next new look)
+  const lp = section(pages.galleries, S.lookPairs), waiting = looksWaiting().length > 0;
+  lp.append(...(waiting ? [] : [el('p', 'dv-info', S.noLooksWaiting)]), ...[...[1, 2, 3, 4, 5, 0].map(f => btn(S.floorLooks(f), () => { closeDev(); if (!showLookPairs(G.current, player.x, player.z, f).length) toast(S.noNewLooks, 2); })),
+    btn(S.allLooks, () => { closeDev(); if (!showLookPairs(G.current, player.x, player.z).length) toast(S.noNewLooks, 2); }), btn(S.takeOptions, () => removeModelOptions(G.current))].map(b => { b.disabled = !waiting; return b; }));
 
   // the bosses built in code (M4 onwards): every one ahead of the mage
   const bl = section(pages.galleries, S.bossLooks);
   bl.append(el('p', 'dv-info', [STR.bosses.warden.name, STR.bosses.abbess.name, STR.bosses.pyre.name, STR.bosses.hart.name, STR.bosses.angler.name, STR.bosses.tiger.name, STR.bosses.dragon.name, STR.bosses.twins.name].join(' · ')),
     btn(S.showOptions, () => { closeDev(); showBossLooks(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
-  // familiar options (looks only, the owner's drawings built in code): in a row ahead of the mage
   // the bestiary (M4.5): looks only for now, in rows by kind, each named with the fight it brings
   const best = section(pages.galleries, S.bestiary);
   best.append(el('p', 'dv-info', (['beast', 'creature', 'elemental'] as const).map(k => `${S.bestiaryKinds[k]}: ${BESTIARY_OPTIONS.filter(o => o.kind === k).map(o => STR.bestiary[o.id].name).join(', ')}`).join(' · ')),
     btn(S.showOptions, () => { closeDev(); showBestiary(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
+  // familiar options (looks only, the owner's drawings built in code): in a row ahead of the mage
   const fam = section(pages.galleries, S.familiars);
   fam.append(el('p', 'dv-info', FAMILIAR_OPTIONS.map(o => STR.familiars[o.id].name).join(', ')), btn(S.showOptions, () => { closeDev(); showFamiliarOptions(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
 
@@ -583,6 +593,7 @@ function refresh() {
   assetBox.replaceChildren(...(list.length ? list.map(a => el('div', '', S.assetRow(a.where, S.assetStatus[a.status], a.triangles))) : [el('div', '', S.noAssets)]));
   obolBtn.textContent = S.obolWears(S.coinFaces[obolFace()] ?? obolFace()); obolBtn.disabled = obolFaces().length < 2;
   assetBtn.textContent = assetsOn() ? S.assetsOn : S.assetsOff; assetBtn.classList.toggle('on', assetsOn()); assetBtn.disabled = !list.some(a => a.status === 'loaded');
+  madeLookBtn.textContent = S.madeLooks[madeLookNow()]; madeLookBtn.classList.toggle('on', madeLookNow() !== 'texel'); madeLookBtn.disabled = !assetsOn() || !madeLooks();
   kitBtn.textContent = DEV.roomKit ? S.kitNew : S.kitOld; kitBtn.classList.toggle('on', DEV.roomKit);
   for (const part of KIT_PARTS) {
     const b = kitPartBtns[part], kind = cur.look.kinds?.[part];
@@ -603,8 +614,9 @@ function refresh() {
   autoBtn.textContent = DEV.autoLevel ? S.autoLevelOn : S.autoLevelOff; autoBtn.classList.toggle('on', !!DEV.autoLevel);
   boonInfo.textContent = S.boonsInfo(Object.entries(G.run.boons).map(([id, r]) => `${boon(id).name}${r > 1 ? ' II' : ''}`).join(', '));
   heroPxBtn.textContent = heroPixel() ? S.heroPixelOn : S.heroPixelOff;
-  creatureLookBtn.textContent = S.creatureLooks[creatureLook()]; creatureLookBtn.classList.toggle('on', creatureLook() !== 'pixel');
-  foeLookBtn.textContent = S.foeLooks[DEV.foeLooks]; foeLookBtn.classList.toggle('on', DEV.foeLooks !== 'approved'); heroPxBtn.classList.toggle('on', heroPixel());
+  creatureLookBtn.textContent = S.creatureLooks[creatureLook()]; creatureLookBtn.classList.toggle('on', creatureLook() !== 'texel');
+  { const waiting = looksWaiting().length > 0; // (every new look approved: the three ways draw the same foes)
+    foeLookBtn.textContent = waiting ? S.foeLooks[DEV.foeLooks] : S.foeLooksAllApproved; foeLookBtn.disabled = !waiting; foeLookBtn.classList.toggle('on', DEV.foeLooks !== 'approved'); } heroPxBtn.classList.toggle('on', heroPixel());
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
   knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'), reactionsFound().length, REACTION_IDS.length) + ' ' + S.weavesInfo(weavesFound().length, WEAVE_IDS.length);
   spellBox.replaceChildren(...SPELL_DEFS.map(s => {
@@ -648,7 +660,10 @@ function refresh() {
       const note = r.doors.some(d => d.seal?.sealed) ? S.sealed : r.type === 'secret' && !r.found ? S.hidden : '';
       return btn(`${S.roomNames[r.type] ?? r.type}${note ? ` (${note})` : ''}${r === cur ? ' ●' : ''}`, () => goTo(r));
     }),
-    ...(secret ? [btn(S.revealCracks, () => revealCracks()), btn(S.openSecret, () => openSecretRoom(secret))] : []),
+    // (only while its doorways are still closed: the cracks to divine, the room to open)
+    ...(secret && secret.doors.some(d => d.secret && !d.secret.open) ? [
+      ...(secret.doors.some(d => d.secret && !d.secret.open && !d.secret.divined) ? [btn(S.revealCracks, () => revealCracks())] : []),
+      btn(S.openSecret, () => openSecretRoom(secret))] : []),
     btn(S.clear, () => clearRoom()),
     btn(S.reveal, () => { for (const r of G.rooms) r.known = true; renderMinimap(); }),
     btn(DEV.mapFinished ? S.mapFinishedOn : S.mapFinishedOff, () => { DEV.mapFinished = !DEV.mapFinished; renderMinimap(); }), // (2026-10-02: finished rooms marked, or not, to compare)

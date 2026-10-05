@@ -1,5 +1,6 @@
 /* Loading the assets data/assets.json names (M3.5, docs/assets.md: Pipeline, step 8): models, a floor look's tile,
-   artifacts' icons and coin faces (2026-10-02), at boot, next to the hero. Each model is loaded once, stood on the
+   artifacts' icons and coin faces (2026-10-02), at boot, next to the hero. A model wears its texture as pixel art
+   (`texel`, baked by prepare-asset; actors/texturePixel.ts). Each model is loaded once, stood on the
    floor at its height, and every use is a clone sharing its geometry and materials (marked shared, so removing a use
    frees nothing). A file that is missing or broken leaves its placeholder in place, with a warning in the console, never
    an error.
@@ -8,6 +9,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MANIFEST, manifestFiles, type Manifest, type ModelEntry } from './assetData';
+import { wearTexel } from '../actors/texturePixel';
 
 export type AssetStatus = 'loaded' | 'missing' | 'failed' | 'off';
 export interface AssetInfo { where: string; file: string; status: AssetStatus; triangles?: number; note?: string }
@@ -39,6 +41,11 @@ export async function loadAssets(search = location.search) {
         const entry = (manifest[group] as Record<string, ModelEntry>)[id], buf = await fetchFile(url);
         if (!buf) return missing(f);
         const gltf = await loader.parseAsync(buf, url.replace(/[^/]*$/, ''));
+        if (entry.texel) await wearTexel(gltf.scene, base + entry.file, { file: base + entry.texel.file, glow: base + entry.texel.glow }, (m, mat) => {
+          // (its texture as pixel art, as every Tripo model wears it; both looks kept on its geometry, which every copy
+          // shares, for the dev menu's comparison)
+          m.geometry.userData.looks = { texel: mat, made: m.material }; (m.material as THREE.Material).userData.shared = true; m.material = mat;
+        }).catch(e => console.warn(`asset ${f.where}: its pixel-art texture could not be loaded (${String(e)}); it wears the texture as made`));
         const { holder, triangles } = standUp(gltf.scene, entry);
         models.set(f.where, holder);
         return { ...f, status: 'loaded' as const, triangles };
@@ -85,8 +92,25 @@ function standUp(scene: THREE.Object3D, e: ModelEntry) {
     is its height. */
 export function modelFor(group: Group, id: string): THREE.Object3D | null {
   const m = enabled ? models.get(`${group}.${id}`) : undefined;
-  return m ? m.clone(true) : null;
+  if (!m) return null;
+  const copy = m.clone(true); if (madeLook !== 'texel') wearLook(copy, madeLook);
+  return copy;
 }
+
+/** How the made assets are drawn: their texture as pixel art (the game's look), or as made, to compare (the dev menu). */
+export type MadeLook = 'texel' | 'made';
+let madeLook: MadeLook = 'texel';
+export const madeLookNow = () => madeLook;
+/** Whether any made asset loaded has its texture as pixel art (the switch has something to switch). */
+export const madeLooks = () => [...models.values()].some(m => { let has = false; m.traverse(o => { if ((o as THREE.Mesh).geometry?.userData.looks) has = true; }); return has; });
+function wearLook(root: THREE.Object3D, l: MadeLook) {
+  root.traverse(o => {
+    const m = o as THREE.Mesh, looks = m.geometry?.userData.looks as Record<MadeLook, THREE.Material> | undefined; if (!looks) return;
+    m.material = m.userData.sealedTint === undefined ? looks[l] : sealedMat(looks[l], m.userData.sealedTint); // (a rune-sealed urn keeps its stone)
+  });
+}
+/** Draw the made assets under `roots` (the floor's rooms) and every one placed from now on in look `l`. */
+export function setMadeLook(l: MadeLook, roots: readonly THREE.Object3D[]) { madeLook = l; for (const r of roots) wearLook(r, l); }
 /** A floor look's painted tile, or null for the procedural floor. */
 export const floorTile = (look: string) => enabled ? floors.get(look) ?? null : null;
 /** An artifact's painted icon (its URL), or null for the drawn one. */
@@ -115,15 +139,16 @@ export const manifestObol = () => obol;
 
 /** The same model in the dark, bluish stone of a rune-sealed urn: its materials tinted once and shared. */
 const sealedMats = new Map<THREE.Material, THREE.Material>();
+function sealedMat(mat: THREE.Material, tint: number) {
+  let t = sealedMats.get(mat);
+  if (!t) { t = mat.clone(); (t as THREE.MeshStandardMaterial).color?.multiply(new THREE.Color(tint)); t.userData.shared = true; sealedMats.set(mat, t); }
+  return t;
+}
 export function sealedLook(model: THREE.Object3D, tint: number) {
   model.traverse(o => {
     const m = o as THREE.Mesh; if (!m.isMesh) return;
-    const swap = (mat: THREE.Material) => {
-      let t = sealedMats.get(mat);
-      if (!t) { t = mat.clone(); (t as THREE.MeshStandardMaterial).color?.multiply(new THREE.Color(tint)); t.userData.shared = true; sealedMats.set(mat, t); }
-      return t;
-    };
-    m.material = Array.isArray(m.material) ? m.material.map(swap) : swap(m.material);
+    m.userData.sealedTint = tint; // (wearLook tints the other look the same)
+    m.material = Array.isArray(m.material) ? m.material.map(t => sealedMat(t, tint)) : sealedMat(m.material, tint);
   });
   return model;
 }

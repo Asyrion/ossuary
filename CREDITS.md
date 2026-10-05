@@ -8,6 +8,7 @@ in. For generated assets, name the tool and the plan it was made on, since right
 | Asset | Source | Licence |
 | --- | --- | --- |
 | `public/assets/hero_default.glb` | Made by Azyrion in Tripo3D | Tripo3D Master plan: commercial rights to creations are the owner's |
+| `public/assets/creatures/owlbear.glb`, `dragonling.glb` and `chameleon.glb` (each with its `.full.glb`) | Made by Azyrion in Tripo3D (2026-10-03, 2026-10-03, 2026-10-05); animated in code | As above |
 
 ## Images and textures
 
@@ -19,7 +20,8 @@ in. For generated assets, name the tool and the plan it was made on, since right
 
 | Asset | Source | Licence |
 | --- | --- | --- |
-| All sound effects | Synthesised in code (`src/audio/sfx.ts`) | Own work |
+| All sound effects but those below | Synthesised in code (`src/audio/sfx.ts`, `src/audio/creatureSounds.ts`) | Own work |
+| `public/assets/sounds/chameleon/growl_1.ogg`, `screech_1.ogg`, `slam_1.ogg`, `slam_2.ogg` | Synthesised in code by Azyrion's EDA-ModelWebViewer (github.com/Asyrion/EDA-ModelWebViewer, `web/js/sounds.js`), made at 48 kHz from its recipe with `tools/viewer-sounds.ts`, 2026-10-05 | Own work |
 
 ## Fonts
 

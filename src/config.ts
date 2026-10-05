@@ -364,17 +364,27 @@ export const CFG = {
   // with a boss alive, `pauseDuck` in the pause menu, and `themeDuck` under a themed room's touch; a bed layer sends
   // `bedSend` of itself to the space; the music plays at `music.level` (under the bus), `music.send` of it to its space,
   // muffled to `music.muffle` Hz when paused, through a compressor (`glue`) holding a boss's full stems under the effects;
-  // the dev menu's preview lasts `preview` seconds
+  // the dev menu's preview lasts `preview` seconds; a sound played from a file (audio/samples.ts) has its pitch moved by up
+  // to `fileSpread` either way each time, so a sound heard again isn't the same
   audio: {
     ahead: 0.6, hiddenAhead: 1.6, tick: 250, lowHp: 2, fightDuck: 0.65, bossDuck: 0.45, pauseDuck: 0.5, themeDuck: 0.9, bedSend: 0.3,
     music: { level: 0.5, send: 0.55, muffle: 700, glue: { threshold: -16, ratio: 3.5, knee: 10, attack: 0.02, release: 0.3 } },
-    preview: 40,
+    preview: 40, fileSpread: 0.03,
   },
   // creatures made in Tripo and animated in code (actors/madeCreatures.ts, docs/creatures.md): the lap walked (its radius),
   // seconds walking and resting (and resting first), how long one clip blends into the next, how fast it turns to the mage
   // to roar, its shadow's size against its length, where the dev menu stands it from the mage (to the side, and south),
   // and the loudness of its footsteps and of its loud events (the roar, the slam)
-  creatures: { lap: 1.3, walkFor: 6, restFor: 1.4, firstRest: 0.8, blend: 0.3, turn: 6, shadow: 0.55, standSide: 2.6, standSouth: 0.6, stepGain: 0.3, roarGain: 0.4 },
+  creatures: {
+    lap: 1.3, walkFor: 6, restFor: 1.4, firstRest: 0.8, blend: 0.3, turn: 6, shadow: 0.55, standSide: 2.6, standSouth: 0.6, stepGain: 0.3, roarGain: 0.4,
+    // the look made from its own texture (actors/texturePixel.ts, render/texelBake.ts, 2026-10-05): the texture shrunk to at
+    // least one texel a game pixel (times `detail`, a power of two within [min, max]; `facing`, the share of its faces
+    // turned to the camera); texels at least `glowLight` light
+    // and `glowChroma` colourful (OKLab) kept where they are `glowShare` of a block, and lit at `glowGain`; its shadows
+    // lifted (lightness to the power `lift`) and its `contrast` set; cut to `colours` (k-means `refine` rounds, hue counted
+    // `chroma` times)
+    texel: { detail: 1, facing: 0.5, min: 64, max: 512, glowLight: 0.65, glowChroma: 0.12, glowShare: 0.2, glowGain: 0.7, lift: 0.8, contrast: 1.1, colours: 24, refine: 8, chroma: 3 },
+  },
   // the mage in the pixel-art look (actors/heroPixel.ts, 2026-10-01): its texture baked into its vertices (each the mean of
   // the texels within `sample` of where it lies) and cut down to `colours`; light in the `tones` (darkest first, a toon
   // ramp's steps) with `glow` of its own colour as self-light, as the model had, so it reads in dark rooms

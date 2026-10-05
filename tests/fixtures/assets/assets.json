@@ -2,17 +2,29 @@
   "props": {
     "urn": {
       "file": "props/urn.glb",
-      "height": 0.6
+      "height": 0.6,
+      "texel": {
+        "file": "props/urn.texel.png",
+        "glow": "props/urn.glow.png"
+      }
     },
     "pedestal": {
       "file": "props/pedestal.glb",
-      "height": 0.7
+      "height": 0.7,
+      "texel": {
+        "file": "props/pedestal.texel.png",
+        "glow": "props/pedestal.glow.png"
+      }
     }
   },
   "artifacts": {
     "ember_sigil": {
       "file": "artifacts/ember_sigil.glb",
-      "height": 0.4
+      "height": 0.4,
+      "texel": {
+        "file": "artifacts/ember_sigil.texel.png",
+        "glow": "artifacts/ember_sigil.glow.png"
+      }
     }
   },
   "floors": {

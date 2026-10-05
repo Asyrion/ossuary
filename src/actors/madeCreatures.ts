@@ -2,8 +2,9 @@
    (public/assets/creatures/<id>.glb, data/creatures.json) shown in the room to look at: worn in the pixel-art look as the
    mage is, it walks a lap, stops, turns to the mage and roars, and rests, its sounds falling on its clips' events (a paw
    down, the roar) where it stands. Looks only for now: no fight, no collision. The dev menu's Galleries tab stands one
-   ahead of the mage (`showCreature`), and switches its look (`setCreatureLook`): the pixel-art look the game draws it in, the
-   model as made (its 1,024 px texture, lit smoothly), or as imported (the textures at the size Tripo made them, with its
+   ahead of the mage (`showCreature`), and switches its look (`setCreatureLook`): pixel art from its own texture (the look the
+   game draws it in since 2026-10-05: texturePixel.ts, baked by tools/texel-bake.ts), the first pixel-art look (its colours in
+   its vertices), the model as made (its 1,024 px texture, lit smoothly), or as imported (the textures at the size Tripo made them, with its
    normal map: `full` in data/creatures.json, loaded only when asked). */
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/addons/loaders/GLTFLoader.js';
@@ -14,20 +15,24 @@ import { G, player } from '../state';
 import type { Room } from '../types';
 import { blob, disposeTree } from '../render/materials';
 import { bakeHeroPixel } from './heroPixel';
+import { wearTexel } from './texturePixel';
 import { Sfx } from '../audio/sfx';
 import { CREATURE_SOUNDS } from '../audio/creatureSounds';
+import { preloadSamples } from '../audio/samples';
 import { Rand } from '../audio/synth';
 
 interface ClipInfo { duration: number; loop: boolean; events: { t: number; sound: string; at?: string; loud?: boolean }[] }
-interface CreatureInfo { file: string; full: string; height: number; modelHeight: number; modelLength: number; walkSpeed: number; clips: Record<string, ClipInfo> }
+interface CreatureInfo { file: string; full: string; height: number; modelHeight: number; modelLength: number; walkSpeed: number; clips: Record<string, ClipInfo>; texel?: { file: string; glow: string; side: number } }
 export const CREATURES = Object.fromEntries(Object.entries(data).filter(([k]) => k !== '_comment')) as unknown as Record<string, CreatureInfo>;
 
 type State = 'walk' | 'idle' | 'roar';
-/** How a creature is drawn: the game's pixel-art look, the model as made, or as imported (its textures' own size). */
-export type CreatureLook = 'pixel' | 'made' | 'full';
-export const CREATURE_LOOKS: readonly CreatureLook[] = ['pixel', 'made', 'full'];
-const KEY = 'ossuary.creatureLook';
-let look: CreatureLook = 'pixel';
+/** How a creature is drawn: pixel art made from its own texture (texturePixel.ts; the game's look since 2026-10-05, the
+    owner's choice), the first pixel-art look (its colours in its vertices), the model as made, or as imported (its
+    textures' own size). */
+export type CreatureLook = 'texel' | 'pixel' | 'made' | 'full';
+export const CREATURE_LOOKS: readonly CreatureLook[] = ['texel', 'pixel', 'made', 'full'];
+const KEY = 'ossuary.creatureLook2'; // (a new key: a look chosen before the new default doesn't hide it)
+let look: CreatureLook = 'texel';
 try { const l = localStorage.getItem(KEY) as CreatureLook | null; if (l && CREATURE_LOOKS.includes(l)) look = l; } catch { /* no storage: the pixel-art look */ }
 /** The look the creatures are drawn in. */
 export const creatureLook = () => look;
@@ -41,13 +46,18 @@ const loader = new GLTFLoader(), loaded = new Map<string, Promise<GLTF>>(), show
     Resolves once it stands there, in the look chosen when it was called (`l`). */
 export async function showCreature(id: string, room: Room, x: number, z: number, l = look) {
   const info = CREATURES[id]; if (!info) throw new Error(`no creature "${id}"`);
-  const file = l === 'full' ? info.full : info.file;
+  const file = l === 'full' ? info.full : info.file, ctx = Sfx.buses?.ctx;
+  if (ctx) void preloadSamples(ctx, Object.values(info.clips).flatMap(c => c.events.map(e => e.sound))); // (its sounds from files ready before it roars)
   if (!loaded.has(file)) loaded.set(file, loader.loadAsync(`${import.meta.env.BASE_URL}${file}`).then(g => { g.scene.traverse(o => { const m = (o as THREE.Mesh).material; if (m) (Array.isArray(m) ? m : [m]).forEach(x => x.userData.shared = true); }); return g; })); // (its materials shared by every copy: taking one away leaves them)
   const gltf = await loaded.get(file)!;
   if (!G.rooms.includes(room)) return null; // (the floor changed while it loaded)
   const model = cloneSkinned(gltf.scene) as THREE.Object3D, scale = info.height / info.modelHeight;
   model.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) { m.geometry = m.geometry.clone(); m.frustumCulled = false; } }); // (its own geometry: the bake writes colours into it, and taking it away disposes it)
-  if (l === 'pixel') { // (the pixel-art look, as the mage wears it: its colours in its vertices, light in bands)
+  if (l === 'texel' && info.texel) { // (pixel art from its texture, baked by tools/texel-bake.ts at the size the game draws it)
+    const base = import.meta.env.BASE_URL;
+    await wearTexel(model, id, { file: base + info.texel.file, glow: base + info.texel.glow });
+    if (!G.rooms.includes(room)) return null;
+  } else if (l === 'pixel' || l === 'texel') { // (the pixel-art look, as the mage wears it: its colours in its vertices, light in bands)
     bakeHeroPixel(model); model.traverse(o => { if (o.userData.pixel) (o as THREE.Mesh).material = o.userData.pixel; });
   }
   model.scale.setScalar(scale);

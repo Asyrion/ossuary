@@ -1,4 +1,5 @@
-/* Tiny WebAudio synth, no sound files. Sounds run through two buses, effects and interface, under a master
+/* Tiny WebAudio synth: every effect made in code (the few sounds played from files, a creature's, go through samples.ts,
+   these as their fallbacks). Sounds run through two buses, effects and interface, under a master
    (GDD: Audio design), each with a volume the pause menu sets and the browser remembers. An effect that happens
    somewhere in the room (`Sfx.at(x, z).blast()`) is panned to where it happens and a little quieter the further it
    is, heard from just above the mage (`Sfx.listen`, every step). */

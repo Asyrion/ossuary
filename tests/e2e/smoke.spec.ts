@@ -2362,6 +2362,7 @@ test('the dev menu opens on its key, pauses the game, and hands out what it list
   await expect(page.locator('#dev button', { hasText: 'Secret room (hidden)' })).toBeVisible();
   await click('Open the secret room');
   await expect(page.locator('#dev button', { hasText: /^Secret room$/ })).toBeVisible();
+  await expect(page.locator('#dev button', { hasText: 'Open the secret room' })).toHaveCount(0); // (open: nothing left to open)
   await page.keyboard.press('Escape'); // closes the menu (not the pause screen) and the game goes on
   await expect(page.locator('#dev')).toBeHidden();
   expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('play');
@@ -3006,24 +3007,38 @@ test('spell knowledge: a page shows its spell as far as it is known, learning an
 
 test('made assets: the stand-ins load through the manifest and replace their placeholders, and turn off to compare', async ({ page }) => {
   type Info = { where: string; status: string; triangles?: number };
-  type Rock = { urn?: string; mesh?: { traverse(f: (o: { name: string }) => void): void } };
-  type GA = { sim(sec: number, draw?: boolean): void; assets: { on: boolean; list: Info[] }; useAssets(on: boolean): void; showAssets(): void;
+  type Rock = { urn?: string; mesh?: { traverse(f: (o: { name: string; material?: { isMeshToonMaterial?: boolean; map?: { magFilter: number } } }) => void): void } }; // (urn: 'plain' or 'sealed')
+  type GA = { sim(sec: number, draw?: boolean): void; assets: { on: boolean; list: Info[] }; useAssets(on: boolean): void; showAssets(): void; madeLook: string; setMadeLook(l: string): void;
     current: { rocks: Rock[]; spots: { visual: { traverse(f: (o: { name: string }) => void): void } }[] } };
   const errors = await start(page, '?seed=K3F9QX&give=ember_sigil&assets=/tests/fixtures/assets/assets.json');
   const look = () => page.evaluate(() => {
     const g = (window as unknown as { __game: GA }).__game;
     const made = (o?: { traverse(f: (o: { name: string }) => void): void }) => { let found = false; o?.traverse(c => { if (c.name === 'standin') found = true; }); return found; };
     const urns = g.current.rocks.filter(r => r.urn), spot = g.current.spots.at(-1);
-    return { on: g.assets.on, urns: urns.map(r => made(r.mesh)), sigil: made(spot?.visual), icon: [...document.querySelectorAll('#items image')].some(i => !i.getAttribute('href')!.startsWith('data:')) }; // (the painted icon's file, not one the room kit renders)
+    // (each wears its texture as pixel art, as every Tripo model does: a toon material, its baked texture sampled sharp)
+    const pixelArt = (o?: Rock['mesh']) => { let found = false; o?.traverse(c => { if (c.material?.isMeshToonMaterial && c.material.map?.magFilter === 1003) found = true; }); return found; };
+    return { on: g.assets.on, urns: urns.map(r => made(r.mesh)), texel: urns.map(r => pixelArt(r.mesh)), sigil: made(spot?.visual), icon: [...document.querySelectorAll('#items image')].some(i => !i.getAttribute('href')!.startsWith('data:')) }; // (the painted icon's file, not one the room kit renders)
   });
   const list = await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.showAssets(); g.sim(.3, true); return g.assets.list; });
   expect(list.map(a => [a.where, a.status])).toEqual([['props.urn', 'loaded'], ['props.pedestal', 'loaded'], ['artifacts.ember_sigil', 'loaded'], ['floors.crypt.floor', 'loaded'], ['icons.ember_sigil', 'loaded']]);
   expect(list.find(a => a.where === 'props.urn')!.triangles).toBeLessThanOrEqual(2000); // (lowered to its budget by prepare-asset)
-  expect(await look()).toEqual({ on: true, urns: [true, true], sigil: true, icon: true });
+  expect(await look()).toEqual({ on: true, urns: [true, true], texel: [true, true], sigil: true, icon: true });
   await page.screenshot({ path: 'test-results/assets-made.png' });
+  // the comparison (the Look tab's "Made assets wear"): their texture as made in this room and in those placed after, then back
+  await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.setMadeLook('made'); g.showAssets(); g.sim(.2, true); });
+  expect(await page.evaluate(() => (window as unknown as { __game: GA }).__game.madeLook)).toBe('made');
+  expect(await look()).toMatchObject({ on: true, texel: [false, false, false, false] });
+  await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.setMadeLook('texel'); g.sim(.2, true); });
+  expect(await look()).toMatchObject({ texel: [true, true, true, true] });
+  // (a rune-sealed urn keeps its dark stone through the switch: never a plain urn's material)
+  expect(await page.evaluate(() => {
+    const g = (window as unknown as { __game: GA }).__game, mats = (r: Rock) => { const s = new Set<unknown>(); r.mesh?.traverse(c => { if (c.material?.isMeshToonMaterial) s.add(c.material); }); return s; };
+    const plain = new Set(g.current.rocks.filter(r => r.urn === 'plain').flatMap(r => [...mats(r)]));
+    return g.current.rocks.filter(r => r.urn === 'sealed').map(r => [...mats(r)].some(m => plain.has(m)));
+  })).toEqual([false, false]);
   // off: the floor is built again with the placeholders
   await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.useAssets(false); g.showAssets(); g.sim(.3, true); });
-  expect(await look()).toEqual({ on: false, urns: [false, false], sigil: false, icon: false });
+  expect(await look()).toEqual({ on: false, urns: [false, false], texel: [false, false], sigil: false, icon: false });
   expect(errors).toEqual([]);
 });
 
@@ -5072,7 +5087,7 @@ test('soundscapes and music (docs/sound-plan.md): the floor and room choose them
 test('a creature made in Tripo and animated in code (docs/creatures.md): it stands, walks its lap, roars at the mage, its clips are baked in, and it can be drawn as made or as imported', async ({ page }) => {
   const errors = await start(page, '?seed=OWLB1&room=great_hall&variant=quiet');
   type C = { id: string; look: string; texture: number; state: string; clip: string; time: number; x: number; z: number };
-  type GC = GameHooks & { showCreature(id?: string, d?: number): Promise<C[]>; creatures: C[]; roarNow(): void; takeCreatures(): void; renderInfo(): { calls: number }; setCreatureLook(l: string): Promise<C[]> };
+  type GC = GameHooks & { showCreature(id?: string, d?: number): Promise<C[]>; creatures: C[]; roarNow(): void; takeCreatures(): void; renderInfo(): { calls: number }; setCreatureLook(l: string): Promise<C[]>; soundFiles(): Promise<Record<string, (number | null)[]>> };
   const r = await page.evaluate(async () => {
     const g = (window as unknown as { __game: GC }).__game, out: Record<string, unknown> = {};
     g.sim(.3, true); const calls0 = g.renderInfo().calls;
@@ -5081,23 +5096,41 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
     g.sim(1, true); out.moved = Math.hypot(g.creatures[0].x - (out.stood as C[])[0].x, g.creatures[0].z - (out.stood as C[])[0].z);
     out.calls = g.renderInfo().calls - calls0;
     g.roarNow(); g.sim(1, true); out.roaring = g.creatures[0];
-    out.full = (await g.setCreatureLook('full'))[0]; out.made = (await g.setCreatureLook('made'))[0]; out.pixel = (await g.setCreatureLook('pixel'))[0];
+    out.full = (await g.setCreatureLook('full'))[0]; out.made = (await g.setCreatureLook('made'))[0]; out.texel = (await g.setCreatureLook('texel'))[0]; out.pixel = (await g.setCreatureLook('pixel'))[0];
     void g.setCreatureLook('full'); out.quick = await g.setCreatureLook('made'); // (changed again while the last one's file loads: the last look wins)
     g.takeCreatures(); g.sim(.1, true); out.left = g.creatures.length;
+    // the dragonling (a model Tripo set facing +x, turned by the tool): it stands, walks and strikes in the same routine
+    out.dragon = await g.showCreature('dragonling', 1.6); g.sim(2.5, true); out.dragonWalk = g.creatures[0];
+    g.roarNow(); g.sim(1, true); out.dragonRoar = g.creatures[0]; g.takeCreatures();
+    // the Chameleon Wyvern (through the owner's viewer, its own weights kept): the same routine, its roar the longest, and its
+    // sounds from files, each decoded
+    out.chameleon = await g.showCreature('chameleon', 1.6); g.sim(2.5, true); out.chameleonWalk = g.creatures[0];
+    g.roarNow(); g.sim(3, true); out.chameleonRoar = g.creatures[0]; g.takeCreatures();
+    out.files = await g.soundFiles();
     return out;
-  }) as { stood: C[]; walking: C; moved: number; calls: number; roaring: C; full: C; made: C; pixel: C; quick: C[]; left: number };
+  }) as { stood: C[]; walking: C; moved: number; calls: number; roaring: C; full: C; made: C; texel: C; pixel: C; quick: C[]; left: number; dragon: C[]; dragonWalk: C; dragonRoar: C; chameleon: C[]; chameleonWalk: C; chameleonRoar: C; files: Record<string, (number | null)[]> };
   expect(r.stood).toHaveLength(1); expect(r.stood[0].clip).toBe('idle');
   expect(r.walking).toMatchObject({ state: 'walk', clip: 'walk' });
   expect(r.moved).toBeGreaterThan(.2); // (it walks its lap at the pace its paws set)
   expect(r.calls).toBeLessThan(8); // (one skinned mesh and its shadow)
   expect(r.roaring).toMatchObject({ state: 'roar', clip: 'roar' }); expect(r.roaring.time).toBeGreaterThan(.5);
-  // its looks: the pixel-art look (no texture: its colours baked into its vertices), as made (the game's 1,024 px file) and
+  // its looks: pixel art from its texture (the default), the first pixel-art look (no texture: its colours baked into its vertices), as made (the game's 1,024 px file) and
   // as imported (the textures at their own size), each stood again where it first stood
-  expect(r.stood[0]).toMatchObject({ look: 'pixel', texture: 0 });
+  expect(r.stood[0]).toMatchObject({ look: 'texel' }); expect(r.stood[0].texture).toBeLessThanOrEqual(512); // (the game's look since 2026-10-05: its texture as pixel art)
   expect(r.full).toMatchObject({ look: 'full', texture: 2048, x: r.stood[0].x, z: r.stood[0].z });
   expect(r.made).toMatchObject({ look: 'made', texture: 1024 });
+  // pixel art from its own texture (texturePixel.ts): the texture shrunk to the size the game draws it, sampled sharp
+  expect(r.texel).toMatchObject({ look: 'texel', x: r.stood[0].x }); expect(r.texel.texture).toBeGreaterThanOrEqual(64); expect(r.texel.texture).toBeLessThanOrEqual(512);
   expect(r.pixel).toMatchObject({ look: 'pixel', texture: 0 });
   expect(r.quick).toHaveLength(1); expect(r.quick[0]).toMatchObject({ look: 'made', texture: 1024 });
   expect(r.left).toBe(0);
+  expect(r.dragon).toHaveLength(1); expect(r.dragon[0]).toMatchObject({ id: 'dragonling', look: 'made', clip: 'idle' });
+  expect(r.dragonWalk).toMatchObject({ state: 'walk', clip: 'walk' }); expect(r.dragonRoar).toMatchObject({ state: 'roar', clip: 'roar' });
+  expect(r.chameleon).toHaveLength(1); expect(r.chameleon[0]).toMatchObject({ id: 'chameleon', look: 'made', clip: 'idle' });
+  expect(r.chameleonWalk).toMatchObject({ state: 'walk', clip: 'walk' }); expect(r.chameleonRoar).toMatchObject({ state: 'roar', clip: 'roar' }); expect(r.chameleonRoar.time).toBeGreaterThan(2.5);
+  // (each file's length as made, give or take the codec's padding)
+  const lengths = { chameleonGrowl: [1.5], chameleonScreech: [1.3], clubSlam: [0.75, 0.75] } as Record<string, number[]>;
+  expect(Object.keys(r.files)).toEqual(Object.keys(lengths));
+  for (const [name, want] of Object.entries(lengths)) want.forEach((s, i) => expect(Math.abs((r.files[name][i] ?? 0) - s), name).toBeLessThan(.05));
   expect(errors).toEqual([]);
 });

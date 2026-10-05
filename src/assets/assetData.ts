@@ -18,8 +18,11 @@ export interface Budget {
 }
 export interface ImageSpec { /** Pixels across, as shipped. */ size: number; /** Pixels across, as kept by the owner. */ source?: number; /** A coin's icon, pixels across. */ icon?: number; folder: string }
 
-/** A model in the game: its file under the manifest's folder, its height in units, and a nudge after centring. */
-export interface ModelEntry { file: string; height: number; /** x, y, z in units */ offset?: [number, number, number]; /** turn, radians */ yaw?: number }
+/** A Tripo model's texture made pixel art (tools/texel-bake.ts, 2026-10-05): its colour and its glow, under the folder. */
+export interface TexelFiles { file: string; glow: string }
+/** A model in the game: its file under the manifest's folder, its height in units, and a nudge after centring; `texel`, its
+    texture as pixel art, which it wears (prepare-asset bakes it for every model it prepares). */
+export interface ModelEntry { file: string; height: number; /** x, y, z in units */ offset?: [number, number, number]; /** turn, radians */ yaw?: number; texel?: TexelFiles }
 export interface Manifest {
   /** Placeholders a model replaces (PROP_SLOTS). */ props: Record<string, ModelEntry>;
   /** An artifact's floating model, by artifact id. */ artifacts: Record<string, ModelEntry>;
@@ -52,7 +55,9 @@ export function validateManifest(m: Manifest, known: Known): string[] {
     if (!(e?.height > 0)) errs.push(`${where}: height must be above 0`);
     if (e?.offset !== undefined && !(Array.isArray(e.offset) && e.offset.length === 3 && e.offset.every(Number.isFinite))) errs.push(`${where}: offset must be [x, y, z]`);
     if (e?.yaw !== undefined && !Number.isFinite(e.yaw)) errs.push(`${where}: yaw must be a number`);
+    if (e?.texel !== undefined) texel(`${where}.texel`, e.texel);
   };
+  const texel = (where: string, t: TexelFiles) => { file(`${where}.file`, t?.file, /\.png$/); file(`${where}.glow`, t?.glow, /\.png$/); };
   for (const [id, e] of Object.entries(m.props ?? {})) { if (!PROP_SLOTS[id]) errs.push(`props.${id}: no such placeholder (${Object.keys(PROP_SLOTS).join(', ')})`); model(`props.${id}`, e); }
   for (const [id, e] of Object.entries(m.artifacts ?? {})) { if (!known.artifacts.has(id)) errs.push(`artifacts.${id}: no such artifact`); model(`artifacts.${id}`, e); }
   for (const [look, e] of Object.entries(m.floors ?? {})) {

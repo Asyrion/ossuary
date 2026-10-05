@@ -1,6 +1,7 @@
 /* Animate a rigged creature in code (docs/creatures.md):
      npm run animate-creature -- owlbear path/to/owlbear.glb
-     npm run animate-creature -- --bones path/to/model.glb      (reads a new model's rig, for writing its recipe)
+     npm run animate-creature -- --bones [--face=-90] path/to/model.glb   (reads a new model's rig, for writing its recipe;
+                                                                          --face turns it to face +z first)
    Reads the owner's Tripo GLB, binds its skin again from the bones (Tripo's auto-rig weights can't bend a limb), bakes
    the clips of its recipe (tools/creatures/<id>.ts) into it as glTF animations, cuts its textures to 1,024 px JPEG and
    writes public/assets/creatures/<id>.glb, with what the game needs to play it (each clip's length, whether it loops,
@@ -13,22 +14,30 @@ import { MeshoptSimplifier } from 'meshoptimizer';
 import sharp from 'sharp';
 import { mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
-import { Rig, bake, reskin } from './creatureRig';
+import { Rig, bake, faceForward, reskin } from './creatureRig';
 import { padIslands } from './padIslands';
 import { orientOutward } from './orientFaces';
 import * as owlbear from './creatures/owlbear';
+import * as dragonling from './creatures/dragonling';
+import * as chameleon from './creatures/chameleon';
 import { BUDGETS } from '../src/assets/assetData';
+import { texelBake } from './texel-bake';
 
-/** Each recipe: its legs, skin, jaw, clips, the bones that move, its walk's speed, how tall it stands in the game, and
-    the budget it keeps to (data/assets.json: a creature the size of a boss keeps a boss's). */
-const RECIPES = { owlbear: { ...owlbear, height: 1.45, budget: 'boss' as const } };
+/** Each recipe: its legs, skin, jaw, clips, the bones that move, its walk's speed, how far it is turned to face +z, how
+    tall it stands in the game, and the budget it keeps to (data/assets.json: a creature the size of a boss keeps a boss's). */
+const RECIPES = {
+  owlbear: { ...owlbear, face: 0, height: 1.45, budget: 'boss' as const },
+  dragonling: { ...dragonling, height: 1.8, budget: 'boss' as const }, // (about a horse: the owner, 2026-10-03)
+  chameleon: { ...chameleon, height: 1.4, budget: 'boss' as const }, // (a pony: the owner, 2026-10-05)
+};
 
 /** `--bones <in.glb>`: what a new creature's recipe needs to know, read off the model before one is written. Each bone in
     its tree with where its joint stands (the model's frame: x left-right, y up, z forward) and how many vertices Tripo
     bound to it most (a node of the tree that no skin uses is marked as not a bone); the model's triangles, size and textures. */
-async function bones(input: string) {
+async function bones(input: string, face: number) {
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
-  const doc = await io.read(input), rig = new Rig(doc), most = new Map<string, number>();
+  const doc = await io.read(input); faceForward(doc, face);
+  const rig = new Rig(doc), most = new Map<string, number>();
   const joint = new Set(doc.getRoot().listSkins().flatMap(s => s.listJoints().map(j => j.getName())));
   let tris = 0;
   for (const skin of doc.getRoot().listSkins()) {
@@ -55,22 +64,25 @@ async function bones(input: string) {
 }
 
 async function main() {
-  const args = process.argv.slice(2).filter(a => !a.startsWith('-'));
-  if (process.argv.includes('--bones')) { if (!args[0]) { console.error('usage: npm run animate-creature -- --bones <in.glb>'); process.exit(1); } return bones(args[0]); }
+  const face = process.argv.find(a => a.startsWith('--face='))?.slice(7);
+  const args = process.argv.slice(2).filter(a => !a.startsWith('-') || /^-\d/.test(a));
+  if (process.argv.includes('--bones')) { if (!args[0]) { console.error('usage: npm run animate-creature -- --bones [--face=<degrees>] <in.glb>'); process.exit(1); } return bones(args[0], +(face ?? 0)); }
   const [id, input] = args;
   const R = RECIPES[id as keyof typeof RECIPES];
   if (!R || !input) { console.error(`usage: npm run animate-creature -- <${Object.keys(RECIPES).join('|')}> <in.glb>`); process.exit(1); }
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'sharp': sharp });
   const doc = await io.read(input);
+  faceForward(doc, R.face); // (turned to face +z, if Tripo set it facing another way)
   // within its budget: the mesh simplified (before its skin is bound again)
   const B = BUDGETS[R.budget], tris = () => doc.getRoot().listMeshes().reduce((n, m) => n + m.listPrimitives().reduce((k, p) => k + (p.getIndices()?.getCount() ?? p.getAttribute('POSITION')!.getCount()) / 3, 0), 0);
   const before = tris();
-  if (before > B.triangles) { await MeshoptSimplifier.ready; await doc.transform(weld(), simplify({ simplifier: MeshoptSimplifier, ratio: B.triangles / before * .97, error: .02, lockBorder: false })); }
+  // (again, a little tighter, while the simplifier stops short of the budget: it stops at its error as well as its ratio)
+  for (let k = 0; k < 4 && tris() > B.triangles; k++) { await MeshoptSimplifier.ready; await doc.transform(weld(), simplify({ simplifier: MeshoptSimplifier, ratio: B.triangles / tris() * .97, error: .02 * 2 ** k, lockBorder: false })); }
   // its faces turned outward (Tripo left patches inside out, lit inward, only drawn because its material is two-sided)
   const oriented = orientOutward(doc);
   const rig = new Rig(doc);
   for (const [leg, def] of Object.entries(R.LEGS)) rig.leg(leg, def);
-  const bound = reskin(doc, rig, R.SKIN, R.jawOf);
+  const bound = reskin(doc, rig, R.SKIN, R.jawOf, 'REMAP' in R ? R.REMAP : undefined);
   bake(doc, rig, R.CLIPS, R.MOVING);
   const padded = [];
   for (const m of doc.getRoot().listMaterials()) { const t = m.getBaseColorTexture(); if (t) padded.push(await padIslands(doc, t)); }
@@ -95,5 +107,6 @@ async function main() {
   };
   writeFileSync(dataPath, JSON.stringify({ _comment: 'Written by tools/animate-creature.ts (docs/creatures.md): each animated creature\'s file, how tall it stands in the game, its walk\'s speed in model units a second, and its clips with the times their sounds fall.', ...Object.fromEntries(Object.entries(data).filter(([k]) => k !== '_comment')) }, null, 2) + '\n');
   console.log(`${id}: ${before} -> ${tris()} triangles (${R.budget} budget ${B.triangles}), ${oriented.turned} of ${oriented.faces} faces turned outward (${oriented.patches} patches), ${bound} vertices bound again, ${Object.keys(R.CLIPS).length} clips (${Object.keys(R.CLIPS).join(', ')}), ${padded.map(p => `${p.size} px texture: ${p.filled} texels padded round its islands`).join(', ')}, ${(statSync(out).size / 1024).toFixed(0)} KB -> ${out} (as imported: ${(statSync(full).size / 1024).toFixed(0)} KB)`);
+  await texelBake(id); // (its texture as pixel art at the size the game draws it: the creature look "pixel art from its texture")
 }
 main().catch(e => { console.error(e); process.exit(1); });
