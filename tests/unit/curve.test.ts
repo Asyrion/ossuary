@@ -13,6 +13,7 @@ describe('the curve (M4.9): pressure dials', () => {
       return [f.pressure.extra, f.pressure.eliteMul, f.pressure.ordealWaves, v.champion / total, f.pairs!.chance];
     };
     for (let i = 1; i < floors.length; i++) {
+      if ('fixed' in floors[i]) continue; // (M7: the Seal is laid by hand, one fight and its boss; no curve to rise on)
       const a = dial(floors[i - 1]), b = dial(floors[i]);
       b.forEach((x, k) => expect(x, `floor ${i + 1}, dial ${k}`).toBeGreaterThanOrEqual(a[k]));
     }

@@ -37,6 +37,7 @@ import { giveById, offerGuaranteed, offerOptional, offerSecondChoice, placeArtif
 import { banner, fadeFromBlack, hideBossBar, renderHearts, renderMinimap, resetHearts, showBossBar, toast, line, clearLines } from './ui/hud';
 import { resetAfflictions } from './ui/afflictions';
 import { warnFloor } from './world/curve';
+import { arriveAtSeal, atSeal, enterSealRoom } from './world/seal';
 import { pilgrimMap, resetGifts } from './items/gifts';
 import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
@@ -110,7 +111,7 @@ export function buildFloor(index: number) {
   aimCamera(start); setDarkness(0, true);
   G.trans = null; hideBossBar();
   enterRoom(start); pilgrimMap(); // (M4.6: the Pilgrim knows the floor's way)
-  if (G.state === 'play') { banner(...STR.floors[Math.min(index, STR.floors.length - 1)]); warnFloor(index); } // (M4.9: a floor that walls off the mage's one school says so)
+  if (G.state === 'play') { banner(...STR.floors[Math.min(index, STR.floors.length - 1)]); warnFloor(index); if (atSeal(index)) arriveAtSeal(); } // (M4.9: a floor that walls off the mage's one school says so; M7: Kaelith speaks at the Seal)
 }
 
 export function resetPlayer() {
@@ -216,6 +217,7 @@ export function enterRoom(room: Room) {
   if (room.type === 'library') enterLibrary(room, firstVisit);
   if (room.type === 'laboratory') enterLab(room, firstVisit); // (M5: Dr. Jelly looks at one potion again this visit)
   if (room.type === 'waystone') enterWaystone(room, firstVisit); // (M6 step 10: the stone rises the first time after the boss)
+  enterSealRoom(room, firstVisit); // (M7: the horde at the Seal's Last Hall)
   if (firstVisit && room.type === 'vault') banner(...(room.drunk ? STR.banner.vaultWardling(STR.schools[room.drunk]) : room.warden ? STR.banner.vaultWarden : STR.banner.vault));
   if (firstVisit && room.quietHeart) { const p = freeSpotNear(room, room.cx, room.cz); spawnHeart(p.x, p.z, 2); }
   // a treasure room with nothing left to find offers a full heart instead
@@ -327,7 +329,7 @@ export function onBossDead(at?: { x: number; z: number }) {
   const cur = G.current;
   hideBossBar(); payBoss(at); // (M6: its floor's insight)
   // M6 step 10: the waystone and the way down are in the waystone room beside it; where the floor has none (floor 5, or no
-  // free cell), the way down opens here, and on floors 1 to 4 the stone rises first, at the back, the gifts keeping clear
+  // free cell), the way down opens here, and on floors 1 to 5 the stone rises first, at the back, the gifts keeping clear
   const stone = waystoneRoom();
   if (!stone) waystoneAfterBoss(cur);
   const lane = (x: number, z: number) => offLane(cur, stone, x, z); // (the boss's gifts keep off the way to the waystone room)

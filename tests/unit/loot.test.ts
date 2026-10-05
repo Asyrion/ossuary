@@ -80,7 +80,7 @@ describe('loot data', () => {
    chest; a secret room without one a hoard, coffers and a chest. With all of them the floors reach the
    GDD's 12 to 18 obols. */
 describe('economy', () => {
-  it.each(FLOORS.map((cfg, i) => [i + 1, cfg] as const))('floor %i: room clears, enemies, urns, containers, vaults and secret rooms', (floorNo, cfg) => {
+  it.each(FLOORS.filter(f => !f.fixed).map((cfg, i) => [i + 1, cfg] as const))('floor %i: room clears, enemies, urns, containers, vaults and secret rooms', (floorNo, cfg) => {
     const N = 300, got = { coins: 0, keys: 0, glyphs: 0, hearts: 0, souls: 0 }, souls = cfg.souls ?? 1; // (the deep floors give more motes)
     let relics = 0;
     const add = (d: Item) => { const v = dropValue(d); for (const k of [...RESOURCES, 'hearts'] as const) got[k] += v[k] ?? 0; if (v.soul) got.souls++; };

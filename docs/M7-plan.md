@@ -1,7 +1,7 @@
 # M7 Descent and the Vigil: plan
 
 **Status: approved (2026-10-05), the owner taking Claude's recommendations on the four questions asked (decisions 1 to 4)
-and the plan's proposals for the rest (decisions 5 to 17); steps not yet built.** GDD: RPG progression, Between runs: the
+and the plan's proposals for the rest (decisions 5 to 17); step 1 built (2026-10-05), step 2 next (planned with the owner first).** GDD: RPG progression, Between runs: the
 Vigil; Vision, Setting (Kaelith, the world above); Core loop, Game loop changes (death, run start); the roadmap's M7 row
 ("Final boss (Kaelith, the Shadow Sentinel); the Vigil at the cave mouth over the valleys: freed shades as townspeople with
 dialogue (Boketto, the Cloud Forest Wizard, the Huruhui foragers), its unfolding, the Great Circle, the Ferryman's
@@ -236,6 +236,44 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
    - **Dev menu:** "To the Seal"; `?floor=6`.
    - **Browser test:** floor 5's boss leads to the waystone room and down to the Seal; the Last Hall's waves are fought;
      every floor's foes appear there.
+
+   *Built (2026-10-05).*
+   - **The plan:** `fixedPlan` in generate.ts lays the rooms from the floor's `fixed` list: doors on every shared edge, kept in
+     the middle; distances walked from the start; the seeds from the run's stream, so a seed still dresses the Seal.
+     - The three templates are marked `fixed` (`seal_stair`, `seal_last_hall`, `seal_kaelith`), and the generated floors
+       never draw them.
+     - The Stair lies under the Last Hall's left cell, and Kaelith's Hall over its right, so there is one door between each
+       two rooms.
+   - **The Last Hall:** a great hall with eight pillars, four rune stones, two braziers, rubble, bones and two candle stands.
+     - Its two waves are filled from the Seal's table, which mixes every floor's foes: walkers from floors 1, 3, 4 and 5,
+       fliers from 1 to 5, and heavies from 1, 3, 4 and 5.
+     - Its foes' health is floor 5's (×1.6), never more, by the owner's rule. Its ordeal's artifact rises as an ordeal's
+       does.
+   - **The voice and the horde:** `src/world/seal.ts` speaks. On arrival, the Seal's banner ("Where Kaelith stands between
+     the horde and the pass"), then Kaelith's voice: `Kaelith: "Go back up, mage. What I hold here stays held."`, with
+     `Sfx.sealVoice`. The first time in the Last Hall: "The horde presses against the seal from below".
+   - **Kaelith's Hall:** until step 2, its boss is drawn from the deeper floors' pools (the Hart, the War-Tiger, the Twin
+     Guardians, the Deep Angler, the Pillar Dragon), one the run hasn't met. It holds four pillars and four candle stands
+     for step 2's fight.
+   - **The Seal's look:**
+     - **walls:** `warded` (great blocks of dark volcanic stone, with a band of the Wardens' glyphs between courses, some lit
+       violet through a glow map) and `scoria` (rough black-red blocks full of holes), with floor 3's `basalt` now and then;
+     - **floor:** `sealstone` (great dark slabs, a glyph cut in some, a few lit), with plain flags now and then. Floor 3's
+       basalt floor was tried and dropped: its ember seams read as a field of red dashes in a great hall;
+     - **light and braziers:** the `shard` wall light (a shard of black glass in an iron collar, its rune and flame lit) and
+       the `stepped` brazier (a black glass bowl on three tiers with a rune on each), under a shadow-violet light;
+     - **sound:** its soundscape ("seal": a deep bed, whispers, an underground bell, stones, dust, a slow pulse) and its piece
+       ("What the Sentinel Holds", A harmonic minor, 42 a minute).
+   - **The win:** it moved with the floors. The Seal is the last level, so its boss's trapdoor ends the run, and floor 5's
+     no longer does.
+   - **The waystone on floor 5:** it rises in its room (the pair offered; floor 5's rune drops stay at 0).
+   - **Dev menu:** the new runs' last button is "To the Seal (below floor 5)", at its expected level; `?floor=6` goes there.
+   - **Tests:**
+     - **Unit:** the Seal laid by hand, three rooms with a door between each, its templates its own; generated floors never
+       draw them; floor 5's waystone. The floor-by-floor tests (the generator's rules, the economy, the dials, the variants,
+       the themes, a floor's own foes) run on the generated floors.
+     - **Browser:** floor 5's waystone room, the way down to the Seal, Kaelith's line, the horde's line, the two waves from
+       two floors or more, and the boss's way out winning the run. The M6 waystone test checks the Seal for no stone.
 2. **(P) Kaelith's fight.**
    - The look sheet comes first: three looks for the owner.
    - Then `src/actors/kaelith.ts` (new), in the boss plug-in shape: `kaelith` in `BOSS_TYPES`, in no pool but the Seal's,

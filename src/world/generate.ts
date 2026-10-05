@@ -40,7 +40,7 @@ export interface FloorConfig {
   /** Whether the floor has a shrine, where curses are cleansed (GDD: 1 on floor 2). */ shrine: boolean;
   /** Whether the floor has a library, where grimoire pages teach spells (GDD: one on every floor). */ library: boolean;
   /** Whether the floor has Dr. Jelly's laboratory, with its alchemy table (M5: floors 1 and 3). */ laboratory?: boolean;
-  /** Whether the floor has a waystone room beside its boss room, holding the way down (M6 step 10: floors 1 to 4). */ waystone?: boolean;
+  /** Whether the floor has a waystone room beside its boss room, holding the way down (M6 step 10: floors 1 to 4; M7: 5 too, the Seal below it). */ waystone?: boolean;
   /** Chance the secret room holds an artifact (outside the budget) rather than a hoard. */ secretArtifactChance: number;
   /** The champion that rises in a vault forced open with glyphs. */ vaultWarden: FoeType;
   /** How much likelier soul motes are in the floor's loot than on the first floors (M4.1: the deep floors give more;
@@ -62,7 +62,11 @@ export interface FloorConfig {
   templateWeights: Record<string, number>;
   boss: BossConfig;
   look: FloorLook;
+  /** M7 step 1: a level laid by hand instead of generated (the Seal below floor 5): each room's type, shape, top-left
+      cell and template; doors on every edge two rooms share, the first room the start. */ fixed?: { rooms: FixedRoom[] };
 }
+/** A room of a fixed level: its type, shape, top-left cell (gx, gy) and template (one marked `fixed` in the data). */
+export interface FixedRoom { type: RoomType; shape: ShapeId; at: [number, number]; template: string }
 
 /** Per-floor settings from data/floors.json, floor 1 first. */
 export const FLOORS = floorsData as unknown as FloorConfig[];
@@ -187,6 +191,8 @@ function secretCell(g: Grid, rng: Rng, type: Map<number, RoomType>): Cell | null
 }
 
 export function generateFloor(rng: Rng, cfg: FloorConfig, index: number, library: TemplateDef[] = TEMPLATE_DEFS): FloorPlan {
+  if (cfg.fixed) return fixedPlan(rng, cfg, index, library);
+  library = library.filter(t => !t.fixed); // (the fixed levels' rooms stay theirs)
   // the optional rooms this floor wants (in a shuffled order, so neither always gets the last dead end);
   // for a while the walk tries again until it leaves them spare dead ends, then makes do with fewer
   const wanted = rng.shuffle<[RoomType, number]>([['altar', cfg.altarChance], ['vault', cfg.vaultChance]]).filter(([, p]) => rng.chance(p)).map(([t]) => t);
@@ -251,6 +257,27 @@ export function generateFloor(rng: Rng, cfg: FloorConfig, index: number, library
     return { index, rooms, startId: 0, bossId: boss, attempts };
   }
   throw new Error('floor generation failed after 500 attempts');
+}
+
+/** M7 step 1: a level laid by hand (`fixed` in its floor's data): its rooms where the data puts them, doors on every edge two
+    of them share, the first the start; the boss's room the boss, its distances walked from the start. Its own seeds come
+    from `rng`, so a run's seed still decides each room's dressing. */
+export function fixedPlan(rng: Rng, cfg: FloorConfig, index: number, library: TemplateDef[] = TEMPLATE_DEFS): FloorPlan {
+  const list = cfg.fixed!.rooms;
+  const layouts = list.map(f => ({ shape: f.shape, cells: shapeCells(f.shape).map(([i, j]) => ({ gx: f.at[0] + i, gy: f.at[1] + j })) }));
+  const doors = computeDoors(layouts), dist = roomDistances(doors);
+  const rooms: PlannedRoom[] = list.map((f, id) => {
+    const def = library.find(t => t.id === f.template);
+    if (!def || def.shape !== f.shape || !def.types.includes(f.type)) throw new Error(`fixed room ${id}: no ${f.shape} ${f.type} template "${f.template}"`);
+    return {
+      id, type: f.type, shape: f.shape, cells: layouts[id].cells, anchor: anchorOf(layouts[id].cells), dist: dist[id],
+      artifact: GUARANTEED_SOURCES.includes(f.type), templateId: f.template, mirrorX: false, mirrorY: false, variant: 'normal',
+      seed: rng.int(1, 2 ** 30), doors: doors[id].map(d => ({ ...d, shift: 0 })),
+    };
+  });
+  const bossId = rooms.findIndex(r => r.type === 'boss');
+  if (rooms[0].type !== 'start' || bossId < 0 || rooms.some(r => r.dist === undefined)) throw new Error('a fixed level needs its start first, a boss, and every room reached');
+  return { index, rooms, startId: 0, bossId, attempts: 1 };
 }
 
 /** M6 step 10: the waystone room: one more one-cell room on a free cell beside the boss room (any of a great hall's

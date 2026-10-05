@@ -1,6 +1,6 @@
 {
   "_comment": "The music (docs/sound-plan.md): one piece per floor and the title's, each a key (root, a MIDI note) and mode, a tempo (beats a minute) and beats a bar, chords (semitones from the root, and how many bars), motifs (scale steps from where the composer places them, null a rest, and beats), its voices and drum patterns (x accented, o soft, . silent, spread over the bar). `floors` names each floor's piece (past the last, the last's), `title` the title's. The moods set each stem's level. Read by src/audio/musicData.ts.",
-  "floors": ["ossuary", "drowned", "burning", "reliquary", "shore"],
+  "floors": ["ossuary", "drowned", "burning", "reliquary", "shore", "seal"],
   "title": "title",
   "moods": {
     "title":   { "drone": 0.7, "harmony": 0.8, "melody": 1,    "pulse": 0 },
@@ -143,6 +143,28 @@
       "bass": { "voice": "bowed", "octave": -1, "gain": 0.5, "fight": "x.....", "boss": "x..x.." },
       "bell": { "midi": 47, "every": 4, "gain": 0.45 },
       "density": { "explore": 0.35, "fight": 0.6, "boss": 0.8 }
+    },
+    {
+      "id": "seal", "name": "What the Sentinel Holds", "tempo": 42, "beats": 4, "root": 45, "mode": "harmonicMinor",
+      "chords": [
+        { "notes": [0, 3, 7], "bars": 2 }, { "notes": [-4, 0, 3], "bars": 2 }, { "notes": [1, 5, 8], "bars": 1 }, { "notes": [-1, 2, 5, 8], "bars": 1 }, { "notes": [0, 3, 7], "bars": 2 }
+      ],
+      "motifs": [
+        [[0, 3], [1, 1], [0, 4]],
+        [[4, 2], [3, 1], [2, 1], [1, 4]],
+        [[-1, 2], [0, 2], [2, 4]],
+        [[4, 1], [5, 1], [6, 2], [4, 4]]
+      ],
+      "drone": { "voice": "deep", "notes": [-12, -5, 0], "gain": 0.46 },
+      "harmony": { "voice": "choir", "octave": 0, "vowel": "u", "spread": 12, "gain": 0.3 },
+      "melody": { "voices": ["underbell", "bowed", "voice"], "octave": 1, "gain": 0.45 },
+      "pulse": [
+        { "drum": "heart", "gain": 0.5, "explore": "x...............", "fight": "x.......x.......", "boss": "x...x...x...x..." },
+        { "drum": "timpani", "gain": 0.6, "fight": "x...............", "boss": "x.......x...o..." }
+      ],
+      "bass": { "voice": "bowed", "octave": -1, "gain": 0.5, "fight": "x...............", "boss": "x.......x......." },
+      "bell": { "midi": 45, "every": 4, "gain": 0.4 },
+      "density": { "explore": 0.3, "fight": 0.55, "boss": 0.8 }
     }
   ]
 }

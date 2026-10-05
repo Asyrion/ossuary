@@ -40,6 +40,7 @@ export interface TemplateDef {
   /** A themed room's theme (world/themeData.ts, data/themes.json). */ theme?: string;
   /** Ordeal rooms: the enemies of each wave. */ waves?: string[][];
   /** M4.2: the way its water flows (a current, fed by a waterfall where it leaves the wall upstream). */ current?: Flow;
+  /** M7: a room of a fixed level only (the Seal's), never drawn for a generated floor. */ fixed?: boolean;
 }
 export type Flow = 'n' | 's' | 'e' | 'w';
 export interface Foe { kind: FoeKind; c: number; r: number }

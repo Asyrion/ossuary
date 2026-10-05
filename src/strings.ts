@@ -57,7 +57,13 @@ export const STR = {
     ['The Burning Scriptorium', 'Where the Wardens kept their books'],
     ['The Gilded Reliquary', 'Where the Wardens sealed what they took'],
     ["The Ferryman's Shore", 'Where the dead wait to cross'],
+    ['The Seal', 'Where Kaelith stands between the horde and the pass'],
   ] as Banner[],
+  /** M7 step 1: the Seal below floor 5 (world/seal.ts): Kaelith's voice the first time down, and the horde at the Last Hall. */
+  seal: {
+    voice: 'Kaelith: "Go back up, mage. What I hold here stays held."',
+    horde: 'The horde presses against the seal from below',
+  },
   /** The bosses: name and line on the boss bar banner, the banner when it calls help, the one when it dies. */
   bosses: {
     warden: { name: 'The Hollow Warden', sub: 'A Warden of Uzulim who never came back up', summon: 'The Warden calls its dead', dead: 'The Warden is still at last' },
@@ -919,7 +925,7 @@ export const STR = {
     roomNames: { start: 'Start', normal: 'Normal', treasure: 'Treasure', boss: 'Boss', ordeal: 'Ordeal', altar: 'Bone altar', merchant: 'Merchant', vault: 'Vault', secret: 'Secret room', shrine: 'Shrine', library: 'Library', laboratory: "Dr. Jelly's laboratory", waystone: 'Waystone room' } as Record<string, string>,
     test: 'Test a room', template: 'Room template', variant: 'Variant', play: 'Play it',
     variants: { normal: 'Normal', quiet: 'Quiet', champion: 'Champion', ambush: 'Ambush', dark: 'Dark' } as Record<string, string>,
-    bosses: 'Fight a boss', newRun: 'New run (a deeper floor at its expected level, its choices waiting)', floorN: (n: number) => `Floor ${n}`,
+    bosses: 'Fight a boss', newRun: 'New run (a deeper floor at its expected level, its choices waiting)', floorN: (n: number) => `Floor ${n}`, toSeal: 'To the Seal (below floor 5)',
     keep: ' Keep artifacts, obols, keys and glyphs when starting',
   },
   /** What a merchant's ware is called in messages. */

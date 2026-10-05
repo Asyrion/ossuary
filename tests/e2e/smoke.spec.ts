@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 
 /* Minimal view of window.__game for the tests. */
 interface Foe { x: number; z: number; spawn: number; dead?: boolean; isBoss?: boolean }
@@ -4749,7 +4750,7 @@ test('runes as things (M6 step 8): a rune walked over goes to the pouch with its
   expect(errors2).toEqual([]);
 });
 
-test('the waystone (M6 step 9; where a floor has no waystone room, as under ?room=): it rises where the boss fell and kindles; walking up opens it and rests the mage; one of its pair taken, the other crumbles; a rune carved from the pouch and lifted out; a spell cast into it costs nothing and opens on that spell; Second Socket opens a second socket; the belt reordered here and in the inventory; none on floor 5', async ({ page }) => {
+test('the waystone (M6 step 9; where a floor has no waystone room, as under ?room=): it rises where the boss fell and kindles; walking up opens it and rests the mage; one of its pair taken, the other crumbles; a rune carved from the pouch and lifted out; a spell cast into it costs nothing and opens on that spell; Second Socket opens a second socket; the belt reordered here and in the inventory; none at the Seal', async ({ page }) => {
   type WS = { x: number; z: number; rise: number; lit: boolean; rested: boolean; pair: string[] | null; target: number; screen: { open: boolean; tab: string } };
   type GS = { sim(s: number, draw?: boolean): void; warp(id: number): void; clearRoom(): void; drop(kind: string, x?: number, z?: number, o?: { rune?: string }): void; cast(slot: number): boolean;
     waystone: WS | null; stoneTake(i: number): boolean; stoneCarve(slot: number, id: string): string | null; stoneLift(slot: number, id: string): boolean; stoneSocket(slot: number): boolean;
@@ -4794,8 +4795,8 @@ test('the waystone (M6 step 9; where a floor has no waystone room, as under ?roo
   expect(await page.evaluate(() => (window as unknown as { __game: GS }).__game.belt.ids)).toEqual(['healing', 'hexBrew']);
   await page.keyboard.press('KeyI');
   expect(errors).toEqual([]);
-  // floor 5: no waystone (nothing below to carry runes to)
-  const errors5 = await start(page, '?room=boss_open&boss=warden&seed=STONE9&floor=5');
+  // the Seal (M7): no waystone (nothing below to carry runes to)
+  const errors5 = await start(page, '?room=boss_open&boss=warden&seed=STONE9&floor=6');
   const deep = await page.evaluate(() => { const g = (window as unknown as { __game: GS }).__game; g.warp(1); g.sim(.3); g.clearRoom(); g.sim(2); return g.waystone; });
   expect(deep).toBeNull();
   expect(errors5).toEqual([]);
@@ -4828,6 +4829,33 @@ test('the waystone room (M6 step 10): beside the boss room, empty and dark until
   expect(r.lit).toBe(true); expect(r.toward).toBeGreaterThan(.5); // (the stone a little toward the door, the way down beyond it)
   expect(r.down).toBe('waystone'); expect(r.away).toBeLessThan(-1.5); expect(r.rested).toBe(true);
   expect(r).toMatchObject({ floor: 1, state: 'play' });
+  expect(errors).toEqual([]);
+});
+
+test('the Seal (M7 step 1): floor 5 has its waystone room and leads down to the Seal, a level of three rooms; Kaelith speaks on arrival; the Last Hall\'s two waves come from every floor; its boss\'s fall opens the way out, and taking it wins the run', async ({ page }) => {
+  const errors = await start(page, '?floor=5&seed=SEAL1&boss=angler');
+  const five = await page.evaluate(`(() => { const g = window.__game; return { floor: g.floor, stone: g.rooms().some(r => r.type === 'waystone') }; })()`) as { floor: number; stone: boolean };
+  expect(five).toEqual({ floor: 4, stone: true }); // (M7: floor 5's boss has a waystone room before the way down)
+  const r = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player; P.invuln = 999; g.descend(); g.sim(.1);
+    const said = new Set(); for (let t = 0; t < 30; t++) { said.add(document.getElementById('toast').textContent); g.sim(.25); }
+    const arrive = { floor: g.floor, banner: document.querySelector('#banner .t').textContent, rooms: g.rooms().map(r => r.type + ':' + r.plan.shape), map: g.map(), said: [...said].join(' | '), look: g.current.look?.name };
+    g.warp(1); g.sim(.2); const hall = new Set(); for (let t = 0; t < 12; t++) { hall.add(document.getElementById('toast').textContent); g.sim(.25); }
+    const kinds = new Set(), seen = new Set(), total = g.current.waves.length;
+    for (let k = 0; k < 400 && !g.current.cleared; k++) { seen.add(g.current.wave); for (const e of g.enemies) if (!e.dead) { kinds.add(e.type); e.hp = Math.min(e.hp, .01); } window.__fight(.5); g.sim(.25); }
+    const waves = seen.size + ':' + total;
+    const cleared = g.current.cleared;
+    g.warp(2); g.sim(.3); const boss = g.enemies.find(e => e.isBoss)?.type; g.clearRoom(); g.sim(.5);
+    const out = g.wayDown; P.x = out.x; P.z = out.z; g.sim(.5);
+    return { arrive, hall: [...hall].join(' | '), kinds: [...kinds], waves, cleared, boss, out: out.room, state: g.state, end: document.getElementById('endTitle').textContent };
+  })()`) as { arrive: { floor: number; banner: string; rooms: string[]; said: string; look: string }; hall: string; kinds: string[]; waves: string; cleared: boolean; boss: string; out: string; state: string; end: string };
+  expect(r.arrive).toMatchObject({ floor: 5, banner: 'The Seal', rooms: ['start:standard', 'ordeal:great', 'boss:great'], look: 'seal' });
+  expect(r.arrive.said).toContain('Kaelith: "Go back up, mage.');
+  expect(r.hall).toContain('The horde presses against the seal');
+  expect(r.waves).toBe('2:2'); expect(r.cleared).toBe(true);
+  const FOES = JSON.parse(readFileSync('data/foes.json', 'utf8')) as Record<string, { floor: number }>;
+  expect(new Set(r.kinds.map(k => FOES[k]?.floor)).size).toBeGreaterThanOrEqual(2); // (the horde from every floor)
+  expect(r.boss).toBe('angler'); expect(r.out).toBe('boss'); expect(r).toMatchObject({ state: 'end', end: 'The descent is complete' });
   expect(errors).toEqual([]);
 });
 

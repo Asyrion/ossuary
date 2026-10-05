@@ -249,6 +249,7 @@ const sounds = {
   refuse() { tone('square', 110, 90, .25, .05); tone('square', 104, 85, .25, .05, .16); },
   gong() { tone('sine', 98, 98, 1.6, .14); tone('sine', 196, 194, 1, .06); tone('triangle', 263, 260, .6, .03); hiss(.4, .05, 'bandpass', 600); },
   darkness() { hiss(1, .07, 'lowpass', 400); tone('sine', 180, 120, 1, .03); },
+  sealVoice() { hiss(1.8, .06, 'lowpass', 280); tone('sine', 73, 61, 2, .1); tone('triangle', 110, 92, 1.5, .035, .35); }, // (M7: Kaelith's voice from under the stone)
   champion() { tone('sawtooth', 80, 60, .5, .08); hiss(.4, .06, 'lowpass', 300); },
   // champion mantles (M4.7): a mantle torn off (a snap and a falling chime), and a Hexbound's curse closing
   unbound() { hiss(.18, .12, 'highpass', 2600); tone('triangle', 990, 330, .35, .06); tone('sine', 165, 110, .5, .08, .05); },
