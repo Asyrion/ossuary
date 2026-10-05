@@ -239,7 +239,12 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   the owner starts a new session with; `-- --bones <in.glb>` reads a new model's rig first).
   The dragonling (2026-10-03, the owner's second, the size of a horse, 1.8 tiles, boss budget) is the recipe for a
   model facing another way (`face`, `faceForward` in creatureRig.ts), on a two-legged rig and in a mid-stride pose (`STANCE`,
-  a leg's `toes`).
+  a leg's `toes`). Pixel art from a creature's own texture (2026-10-05, the owner: the 2k painted textures don't read at
+  the game's size), a creature look beside the vertex-colour one to compare: `npm run texel-bake -- <id>|all`
+  (`tools/texel-bake.ts`, after every animate-creature) shrinks the game file's texture to at least one texel a game
+  pixel within each UV island, keeps its glowing markings, lifts its painted shadows and cuts it to a palette (the pure
+  `src/render/texelBake.ts`, `CFG.creatures.texel`) into `<id>.texel.png` and `<id>.glow.png` (`texel` in
+  data/creatures.json), worn by `src/actors/texturePixel.ts`.
   `npm run animate-creature -- owlbear <in.glb>`
   (`tools/animate-creature.ts`) simplifies the mesh to its budget (`budget` per recipe, data/assets.json's kinds), turns the
   patches Tripo left inside out (`orientOutward` in `tools/orientFaces.ts`: each face by the side its rays get out of the model

@@ -16,7 +16,7 @@ export const heroPixel = () => on;
 
 /** The few tones light falls in on the mage, darkest first. */
 let tones: THREE.DataTexture | null = null;
-function toneMap() {
+export function toneMap() {
   if (tones) return tones;
   const t = CFG.heroPixel.tones, data = new Uint8Array(t.map(v => Math.round(v * 255)));
   tones = new THREE.DataTexture(data, t.length, 1, THREE.RedFormat);

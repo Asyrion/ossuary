@@ -4983,14 +4983,14 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
     g.sim(1, true); out.moved = Math.hypot(g.creatures[0].x - (out.stood as C[])[0].x, g.creatures[0].z - (out.stood as C[])[0].z);
     out.calls = g.renderInfo().calls - calls0;
     g.roarNow(); g.sim(1, true); out.roaring = g.creatures[0];
-    out.full = (await g.setCreatureLook('full'))[0]; out.made = (await g.setCreatureLook('made'))[0]; out.pixel = (await g.setCreatureLook('pixel'))[0];
+    out.full = (await g.setCreatureLook('full'))[0]; out.made = (await g.setCreatureLook('made'))[0]; out.texel = (await g.setCreatureLook('texel'))[0]; out.pixel = (await g.setCreatureLook('pixel'))[0];
     void g.setCreatureLook('full'); out.quick = await g.setCreatureLook('made'); // (changed again while the last one's file loads: the last look wins)
     g.takeCreatures(); g.sim(.1, true); out.left = g.creatures.length;
     // the dragonling (a model Tripo set facing +x, turned by the tool): it stands, walks and strikes in the same routine
     out.dragon = await g.showCreature('dragonling', 1.6); g.sim(2.5, true); out.dragonWalk = g.creatures[0];
     g.roarNow(); g.sim(1, true); out.dragonRoar = g.creatures[0]; g.takeCreatures();
     return out;
-  }) as { stood: C[]; walking: C; moved: number; calls: number; roaring: C; full: C; made: C; pixel: C; quick: C[]; left: number; dragon: C[]; dragonWalk: C; dragonRoar: C };
+  }) as { stood: C[]; walking: C; moved: number; calls: number; roaring: C; full: C; made: C; texel: C; pixel: C; quick: C[]; left: number; dragon: C[]; dragonWalk: C; dragonRoar: C };
   expect(r.stood).toHaveLength(1); expect(r.stood[0].clip).toBe('idle');
   expect(r.walking).toMatchObject({ state: 'walk', clip: 'walk' });
   expect(r.moved).toBeGreaterThan(.2); // (it walks its lap at the pace its paws set)
@@ -5001,6 +5001,8 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
   expect(r.stood[0]).toMatchObject({ look: 'pixel', texture: 0 });
   expect(r.full).toMatchObject({ look: 'full', texture: 2048, x: r.stood[0].x, z: r.stood[0].z });
   expect(r.made).toMatchObject({ look: 'made', texture: 1024 });
+  // pixel art from its own texture (texturePixel.ts): the texture shrunk to the size the game draws it, sampled sharp
+  expect(r.texel).toMatchObject({ look: 'texel', x: r.stood[0].x }); expect(r.texel.texture).toBeGreaterThanOrEqual(64); expect(r.texel.texture).toBeLessThanOrEqual(512);
   expect(r.pixel).toMatchObject({ look: 'pixel', texture: 0 });
   expect(r.quick).toHaveLength(1); expect(r.quick[0]).toMatchObject({ look: 'made', texture: 1024 });
   expect(r.left).toBe(0);

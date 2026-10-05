@@ -20,6 +20,7 @@ import { orientOutward } from './orientFaces';
 import * as owlbear from './creatures/owlbear';
 import * as dragonling from './creatures/dragonling';
 import { BUDGETS } from '../src/assets/assetData';
+import { texelBake } from './texel-bake';
 
 /** Each recipe: its legs, skin, jaw, clips, the bones that move, its walk's speed, how far it is turned to face +z, how
     tall it stands in the game, and the budget it keeps to (data/assets.json: a creature the size of a boss keeps a boss's). */
@@ -104,5 +105,6 @@ async function main() {
   };
   writeFileSync(dataPath, JSON.stringify({ _comment: 'Written by tools/animate-creature.ts (docs/creatures.md): each animated creature\'s file, how tall it stands in the game, its walk\'s speed in model units a second, and its clips with the times their sounds fall.', ...Object.fromEntries(Object.entries(data).filter(([k]) => k !== '_comment')) }, null, 2) + '\n');
   console.log(`${id}: ${before} -> ${tris()} triangles (${R.budget} budget ${B.triangles}), ${oriented.turned} of ${oriented.faces} faces turned outward (${oriented.patches} patches), ${bound} vertices bound again, ${Object.keys(R.CLIPS).length} clips (${Object.keys(R.CLIPS).join(', ')}), ${padded.map(p => `${p.size} px texture: ${p.filled} texels padded round its islands`).join(', ')}, ${(statSync(out).size / 1024).toFixed(0)} KB -> ${out} (as imported: ${(statSync(full).size / 1024).toFixed(0)} KB)`);
+  await texelBake(id); // (its texture as pixel art at the size the game draws it: the creature look "pixel art from its texture")
 }
 main().catch(e => { console.error(e); process.exit(1); });

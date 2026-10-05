@@ -18,6 +18,7 @@
     "foe-sheet": "tsx tools/foe-sheet.ts",
     "render-audio": "tsx tools/render-audio.ts",
     "animate-creature": "tsx tools/animate-creature.ts",
+    "texel-bake": "tsx tools/texel-bake.ts",
     "creature-preview": "tsx tools/creature-preview.ts",
     "milestone": "tsx tools/milestone.ts",
     "test:unit": "vitest run",
