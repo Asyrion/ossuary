@@ -3,6 +3,7 @@
    own context, into its own output. Until a file has loaded, or if it fails, the caller plays the synthesised one. */
 import table from '../../data/sounds.json';
 import { soundsOf } from './soundData';
+import { CFG } from '../config';
 import type { Ctx, Rand } from './synth';
 
 const SOUNDS = soundsOf(table);
@@ -35,7 +36,7 @@ export function playSample(ctx: Ctx, name: string, t: number, out: AudioNode, ga
   const file = s.files[Math.min(s.files.length - 1, Math.floor(r.next() * s.files.length))], p = load(ctx, file);
   if (!p.buffer) { void preloadSamples(ctx, [name]); return false; }
   const src = ctx.createBufferSource(), g = ctx.createGain();
-  src.buffer = p.buffer; src.playbackRate.value = r.range(0.97, 1.03); g.gain.value = s.gain * gain;
+  src.buffer = p.buffer; src.playbackRate.value = r.range(1 - CFG.audio.fileSpread, 1 + CFG.audio.fileSpread); g.gain.value = s.gain * gain;
   src.connect(g).connect(out); src.start(t);
   return true;
 }
