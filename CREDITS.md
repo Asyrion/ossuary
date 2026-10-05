@@ -8,6 +8,7 @@ in. For generated assets, name the tool and the plan it was made on, since right
 | Asset | Source | Licence |
 | --- | --- | --- |
 | `public/assets/hero_default.glb` | Made by Azyrion in Tripo3D | Tripo3D Master plan: commercial rights to creations are the owner's |
+| `public/assets/creatures/owlbear.glb`, `dragonling.glb` and `pukei.glb` (each with its `.full.glb`) | Made by Azyrion in Tripo3D (2026-10-03, 2026-10-03, 2026-10-05); animated in code | As above |
 
 ## Images and textures
 
@@ -19,7 +20,8 @@ in. For generated assets, name the tool and the plan it was made on, since right
 
 | Asset | Source | Licence |
 | --- | --- | --- |
-| All sound effects | Synthesised in code (`src/audio/sfx.ts`) | Own work |
+| All sound effects but those below | Synthesised in code (`src/audio/sfx.ts`, `src/audio/creatureSounds.ts`) | Own work |
+| `public/assets/sounds/pukei/growl_1.ogg`, `screech_1.ogg`, `slam_1.ogg`, `slam_2.ogg` (from the owner's `growl_2.wav`, `roar_1.wav`, `hit_1.wav`, `hit_2.wav`, 2026-10-05) | Handed over by Azyrion; source to be noted | To be noted (docs/assets.md, The licence rule) |
 
 ## Fonts
 

@@ -147,5 +147,81 @@
       "colours": 24,
       "glowing": 147
     }
+  },
+  "pukei": {
+    "file": "assets/creatures/pukei.glb",
+    "full": "assets/creatures/pukei.full.glb",
+    "height": 1.4,
+    "modelHeight": 0.717,
+    "modelLength": 1.1,
+    "walkSpeed": 0.3704,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": [
+          {
+            "t": 2.1,
+            "sound": "chitter"
+          }
+        ]
+      },
+      "walk": {
+        "duration": 0.9,
+        "loop": true,
+        "events": [
+          {
+            "t": 0,
+            "sound": "clawRear",
+            "at": "left"
+          },
+          {
+            "t": 0.45,
+            "sound": "clawRear",
+            "at": "right"
+          }
+        ]
+      },
+      "roar": {
+        "duration": 4.9,
+        "loop": false,
+        "events": [
+          {
+            "t": 0.05,
+            "sound": "pukeiGrowl"
+          },
+          {
+            "t": 0.85,
+            "sound": "pukeiScreech",
+            "loud": true
+          },
+          {
+            "t": 2.85,
+            "sound": "clawRear"
+          },
+          {
+            "t": 3,
+            "sound": "clubSlam",
+            "loud": true
+          },
+          {
+            "t": 3.42,
+            "sound": "clubSlam"
+          },
+          {
+            "t": 4.2,
+            "sound": "clawRear"
+          }
+        ]
+      }
+    },
+    "budget": "boss",
+    "texel": {
+      "file": "assets/creatures/pukei.texel.png",
+      "glow": "assets/creatures/pukei.glow.png",
+      "side": 256,
+      "colours": 24,
+      "glowing": 239
+    }
   }
 }

@@ -1,11 +1,12 @@
 /* The tools that make a Tripo creature fit for the game (docs/creatures.md): turning inside-out faces outward, padding a
-   texture's islands, and turning a model that faces another way to face +z. */
+   texture's islands, turning a model that faces another way to face +z, and keeping a rig's own weights while a jaw is
+   carved out of a head smeared over it. */
 import { describe, expect, it } from 'vitest';
 import { Document } from '@gltf-transform/core';
 import sharp from 'sharp';
 import { orientOutward } from '../../tools/orientFaces';
 import { padIslands } from '../../tools/padIslands';
-import { faceForward } from '../../tools/creatureRig';
+import { Rig, faceForward, reskin } from '../../tools/creatureRig';
 import * as THREE from 'three';
 
 /** A unit cube about the origin, each side two faces wound outward, with its own corners (as a UV seam splits them). */
@@ -95,5 +96,26 @@ describe('faceForward', () => {
     near(world(root).multiply(ibm(0)).toArray(), new THREE.Matrix4().toArray());
     near(world(root).multiply(world(head)).multiply(ibm(1)).toArray(), new THREE.Matrix4().toArray());
     near(world(root).multiply(world(head)).toArray().slice(12, 15), [0, 0.2, 0.5]); // (the head joint at +z)
+  });
+});
+
+describe('reskin, keeping the rig\'s own weights', () => {
+  it('keeps each vertex\'s weights, moves those on a remapped bone to the bone named, and lets the override claim its own', () => {
+    // a skull with a jaw under it, and three vertices: one on the skull, one shared by skull and jaw, one low in the jaw
+    const doc = new Document(), buf = doc.createBuffer();
+    const jaw = doc.createNode('jaw').setTranslation([0, -0.1, 0.1]), skull = doc.createNode('skull').addChild(jaw);
+    const ibms = [new THREE.Matrix4(), new THREE.Matrix4().makeTranslation(0, -0.1, 0.1).invert()].flatMap(m => m.toArray());
+    const skin = doc.createSkin().addJoint(skull).addJoint(jaw).setInverseBindMatrices(doc.createAccessor().setType('MAT4').setArray(new Float32Array(ibms)).setBuffer(buf));
+    const prim = doc.createPrimitive()
+      .setAttribute('POSITION', doc.createAccessor().setType('VEC3').setArray(new Float32Array([0, 0.1, 0, 0, 0, 0.1, 0, -0.2, 0.2])).setBuffer(buf))
+      .setAttribute('JOINTS_0', doc.createAccessor().setType('VEC4').setArray(new Uint16Array([0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0])).setBuffer(buf))
+      .setAttribute('WEIGHTS_0', doc.createAccessor().setType('VEC4').setArray(new Float32Array([1, 0, 0, 0, 0.4, 0.6, 0, 0, 1, 0, 0, 0])).setBuffer(buf));
+    doc.createScene().addChild(skull).addChild(doc.createNode('mesh').setMesh(doc.createMesh().addPrimitive(prim)).setSkin(skin));
+    const moved = reskin(doc, new Rig(doc), null, p => p.y < -0.15 ? 'jaw' : null, { jaw: 'skull' });
+    const at = (i: number) => ({ j: prim.getAttribute('JOINTS_0')!.getElement(i, []), w: prim.getAttribute('WEIGHTS_0')!.getElement(i, []) });
+    expect(at(0)).toEqual({ j: [0, 0, 0, 0], w: [1, 0, 0, 0] }); // (kept as it was)
+    expect(at(1).j[0]).toBe(0); expect(at(1).w[0]).toBeCloseTo(1, 5); // (its jaw share given to the skull)
+    expect(at(2).j[0]).toBe(1); expect(at(2).w[0]).toBe(1); // (claimed by the jaw outright)
+    expect(moved).toBe(2);
   });
 });
