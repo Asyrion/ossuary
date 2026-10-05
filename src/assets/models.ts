@@ -1,5 +1,6 @@
 /* Loading the assets data/assets.json names (M3.5, docs/assets.md: Pipeline, step 8): models, a floor look's tile,
-   artifacts' icons and coin faces (2026-10-02), at boot, next to the hero. Each model is loaded once, stood on the
+   artifacts' icons and coin faces (2026-10-02), at boot, next to the hero. A model wears its texture as pixel art
+   (`texel`, baked by prepare-asset; actors/texturePixel.ts). Each model is loaded once, stood on the
    floor at its height, and every use is a clone sharing its geometry and materials (marked shared, so removing a use
    frees nothing). A file that is missing or broken leaves its placeholder in place, with a warning in the console, never
    an error.
@@ -8,6 +9,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { MANIFEST, manifestFiles, type Manifest, type ModelEntry } from './assetData';
+import { wearTexel } from '../actors/texturePixel';
 
 export type AssetStatus = 'loaded' | 'missing' | 'failed' | 'off';
 export interface AssetInfo { where: string; file: string; status: AssetStatus; triangles?: number; note?: string }
@@ -39,6 +41,8 @@ export async function loadAssets(search = location.search) {
         const entry = (manifest[group] as Record<string, ModelEntry>)[id], buf = await fetchFile(url);
         if (!buf) return missing(f);
         const gltf = await loader.parseAsync(buf, url.replace(/[^/]*$/, ''));
+        if (entry.texel) await wearTexel(gltf.scene, base + entry.file, { file: base + entry.texel.file, glow: base + entry.texel.glow }) // (its texture as pixel art, as every Tripo model wears it)
+          .catch(e => console.warn(`asset ${f.where}: its pixel-art texture could not be loaded (${String(e)}); it wears the texture as made`));
         const { holder, triangles } = standUp(gltf.scene, entry);
         models.set(f.where, holder);
         return { ...f, status: 'loaded' as const, triangles };

@@ -18,6 +18,7 @@ import { mkdirSync, statSync } from 'node:fs';
 import { basename, join, relative, resolve } from 'node:path';
 import { BUDGETS, MODEL_KINDS, type ModelKind } from '../src/assets/assetData';
 import { measure, prepareModel, reportLines } from './assetReport';
+import { bakeModelFile } from './texel-bake';
 
 const args = process.argv.slice(2), opt = (k: string) => { const i = args.indexOf(`--${k}`); return i >= 0 ? args[i + 1] : undefined; };
 const input = args.find((a, i) => /\.glb$/i.test(a) && !args[i - 1]?.startsWith('--'));
@@ -55,8 +56,12 @@ if (!check && !failed) {
   await io.write(output, doc);
   const file = relative(outDir, output).split('\\').join('/');
   console.log(`\nwritten: ${relative(process.cwd(), output)} (${kb(output)})`);
-  if (kind === 'prop' || kind === 'large-prop') console.log(`data/assets.json, "props": "${id}": { "file": "${file}", "height": ${B.height} }   (${id} must be a placeholder the game knows)`);
-  else if (kind === 'artifact') console.log(`data/assets.json, "artifacts": "${id}": { "file": "${file}", "height": ${B.height} }   (${id} is the artifact's id)`);
+  // its texture as pixel art at the size the game draws it, as every Tripo model wears it (2026-10-05; tools/texel-bake.ts)
+  const baked = await bakeModelFile(output, B.height), rel = (f: string) => relative(outDir, f).split('\\').join('/');
+  const texel = baked ? `, "texel": { "file": "${rel(baked.file)}", "glow": "${rel(baked.glow)}" }` : '';
+  if (kind === 'prop' || kind === 'large-prop') console.log(`data/assets.json, "props": "${id}": { "file": "${file}", "height": ${B.height}${texel} }   (${id} must be a placeholder the game knows)`);
+  else if (kind === 'artifact') console.log(`data/assets.json, "artifacts": "${id}": { "file": "${file}", "height": ${B.height}${texel} }   (${id} is the artifact's id)`);
+  else if (kind === 'hero' && baked) console.log(`data/assets.json, "hero": { ${texel.slice(2)} }   (the mage wears it once ${id}.glb is hero_default.glb)`);
 }
 if (failed) console.log(`\n${check ? '' : 'nothing written: '}fix the failed checks (in Tripo or the export) and run it again`);
 process.exit(failed ? 1 : 0);

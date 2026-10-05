@@ -58,8 +58,9 @@ run('prepare-texture.ts', join(RAW, 'ember_sigil_icon.png'), '--kind', 'icon', '
 rmSync(RAW, { recursive: true, force: true });
 
 writeFileSync(join(OUT, 'assets.json'), JSON.stringify({
-  props: { urn: { file: 'props/urn.glb', height: .6 }, pedestal: { file: 'props/pedestal.glb', height: .7 } },
-  artifacts: { ember_sigil: { file: 'artifacts/ember_sigil.glb', height: .4 } },
+  // (prepare-asset baked each one's texture as pixel art beside it, as every Tripo model's is)
+  props: { urn: { file: 'props/urn.glb', height: .6, texel: { file: 'props/urn.texel.png', glow: 'props/urn.glow.png' } }, pedestal: { file: 'props/pedestal.glb', height: .7, texel: { file: 'props/pedestal.texel.png', glow: 'props/pedestal.glow.png' } } },
+  artifacts: { ember_sigil: { file: 'artifacts/ember_sigil.glb', height: .4, texel: { file: 'artifacts/ember_sigil.texel.png', glow: 'artifacts/ember_sigil.glow.png' } } },
   floors: { crypt: { floor: 'textures/crypt/floor.jpg' } },
   icons: { ember_sigil: { file: 'icons/ember_sigil.png' } },
 }, null, 2) + '\n');

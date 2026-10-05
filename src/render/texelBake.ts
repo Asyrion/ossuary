@@ -1,9 +1,11 @@
-/* A model's painted texture made pixel art at the size the game draws it (2026-10-05, the owner: Tripo's 2k painted
-   textures don't read at the game's pixel size), baked once by tools/texel-bake.ts. Pure (no three.js): how big the texture should be for about one of its
-   texels to a game pixel, the texture shrunk to that by averaging blocks of texels (which also smooths away the paint's
-   fine noise), the shadows Tripo painted in lifted (the game's banded light shades it again), and which colours of its
-   palette glow (eyes and bright markings, kept lit so they survive at that size). Colours are sRGB from 0 to 1, three
-   numbers each, flat in one array. */
+/* A Tripo model's painted texture made pixel art at the size the game draws it (2026-10-05, the owner: Tripo's 2k painted
+   textures don't read at the game's pixel size; every model from Tripo gets it), baked once by tools/texel-bake.ts (from
+   animate-creature and prepare-asset). Pure (no three.js): how big the texture should be for at least one of its texels
+   to a game pixel, the texture shrunk to that by averaging blocks of texels within each UV island (which smooths away
+   the paint's fine noise, and keeps the atlas's thousand small islands, unrelated parts of the model, from bleeding into
+   each other), its glowing markings kept (eyes, bright stripes: a sliver of the texture that averaging would wash out),
+   the shadows Tripo painted in lifted (the game's banded light shades it again), and the colours cut to a palette.
+   Colours are sRGB from 0 to 1, three numbers each, flat in one array. */
 import { fromOklab, quantize, toOklab } from './palette';
 
 /** The side of the shrunk texture, a power of two: the texture's side `size` over how many of its texels fall on a game
