@@ -148,9 +148,9 @@
       "glowing": 147
     }
   },
-  "pukei": {
-    "file": "assets/creatures/pukei.glb",
-    "full": "assets/creatures/pukei.full.glb",
+  "chameleon": {
+    "file": "assets/creatures/chameleon.glb",
+    "full": "assets/creatures/chameleon.full.glb",
     "height": 1.4,
     "modelHeight": 0.717,
     "modelLength": 1.1,
@@ -188,11 +188,11 @@
         "events": [
           {
             "t": 0.05,
-            "sound": "pukeiGrowl"
+            "sound": "chameleonGrowl"
           },
           {
             "t": 0.85,
-            "sound": "pukeiScreech",
+            "sound": "chameleonScreech",
             "loud": true
           },
           {
@@ -217,8 +217,8 @@
     },
     "budget": "boss",
     "texel": {
-      "file": "assets/creatures/pukei.texel.png",
-      "glow": "assets/creatures/pukei.glow.png",
+      "file": "assets/creatures/chameleon.texel.png",
+      "glow": "assets/creatures/chameleon.glow.png",
       "side": 256,
       "colours": 24,
       "glowing": 239
