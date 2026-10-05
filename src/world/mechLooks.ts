@@ -199,6 +199,8 @@ const EMBLEM: Record<School, THREE.BufferGeometry> = {
 /** The sapping obelisk (M4.2): a black stone needle on a plinth, runes of its ward's school cut down its face (`runes`)
     and the school's sign floating over the point (`crystal`), and on the floor the edge of its field (`field`, `reach`
     across). The runes, the sign and the field have their own materials, dulled when the ward breaks. */
+/** A ward's emblem (M7 step 2: a ward pillar of Kaelith's wakes in a school of its own). */
+export const emblemOf = (school: School) => EMBLEM[school];
 export function obeliskLook(school: School, reach: number) {
   const g = new THREE.Group(), color = SCHOOL_LIGHT[school];
   mesh(g, OBELISK.base, MAT.darkStone, 0, .08, 0); mesh(g, OBELISK.shaft, MAT.lode, 0, 1.01, 0); mesh(g, OBELISK.cap, MAT.lode, 0, 1.99, 0);

@@ -4833,7 +4833,7 @@ test('the waystone room (M6 step 10): beside the boss room, empty and dark until
 });
 
 test('the Seal (M7 step 1): floor 5 has its waystone room and leads down to the Seal, a level of three rooms; Kaelith speaks on arrival; the Last Hall\'s two waves come from every floor; its boss\'s fall opens the way out, and taking it wins the run', async ({ page }) => {
-  const errors = await start(page, '?floor=5&seed=SEAL1&boss=angler');
+  const errors = await start(page, '?floor=5&seed=SEAL1');
   const five = await page.evaluate(`(() => { const g = window.__game; return { floor: g.floor, stone: g.rooms().some(r => r.type === 'waystone') }; })()`) as { floor: number; stone: boolean };
   expect(five).toEqual({ floor: 4, stone: true }); // (M7: floor 5's boss has a waystone room before the way down)
   const r = await page.evaluate(`(() => {
@@ -4855,7 +4855,51 @@ test('the Seal (M7 step 1): floor 5 has its waystone room and leads down to the 
   expect(r.waves).toBe('2:2'); expect(r.cleared).toBe(true);
   const FOES = JSON.parse(readFileSync('data/foes.json', 'utf8')) as Record<string, { floor: number }>;
   expect(new Set(r.kinds.map(k => FOES[k]?.floor)).size).toBeGreaterThanOrEqual(2); // (the horde from every floor)
-  expect(r.boss).toBe('angler'); expect(r.out).toBe('boss'); expect(r).toMatchObject({ state: 'end', end: 'The descent is complete' });
+  expect(r.boss).toBe('kaelith'); expect(r.out).toBe('boss'); // (M7 step 2: Kaelith, the Seal's boss) expect(r).toMatchObject({ state: 'end', end: 'The descent is complete' });
+  expect(errors).toEqual([]);
+});
+
+test('Kaelith (M7 step 2): the Sentinel stalks, sweeps, fires and steps through shadow; at two thirds the seal cracks, four wards wake in the schools the mage holds and the horde comes out, and with all four shut it reels open; at a third the last light falls and the black sun draws the mage in, but not beside a lit candle; it kneels, and the way out wins the run', async ({ page }) => {
+  const errors = await start(page, '?floor=6&seed=KAE1&spells=cinder_lance,arc');
+  type K = { phase: number; state: string; guard: number; hidden: boolean; wards: { x: number; z: number; school: string | null; shut: boolean }[]; pulling: boolean; safe: boolean; sun: boolean } | null;
+  const r = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player; P.invuln = 999;
+    g.warp(2); P.x = g.current.cx; P.z = g.current.cz + 3.5; g.sim(1, true);
+    const bar = document.querySelectorAll('#bossbar .mark').length, banner1 = document.querySelector('#banner .t').textContent;
+    const states = new Set(); for (let t = 0; t < 60; t++) { P.hp = P.maxHp; g.sim(.25); states.add(g.kaelith.state); }
+    const p1 = g.kaelith;
+    g.kaelithToPhase(2); g.sim(.2, true); const banner2 = document.querySelector('#banner .t').textContent;
+    g.sim(3); const p2 = g.kaelith, hit = (() => { const i = g.enemies.findIndex(e => e.isBoss), e = g.enemies[i], h = e.hp; g.hit(i, 10, 'ember'); return h - e.hp; })();
+    for (let t = 0; t < 30; t++) { P.hp = P.maxHp; g.sim(.25); }
+    const horde = g.enemies.filter(e => !e.dead && !e.isBoss).length;
+    const KIND = { ember: 'burn', frost: 'chill', storm: 'shock', hallow: 'sanct', umbral: 'hex' };
+    for (const w of g.kaelith.wards) g.element(KIND[w.school], w.x, w.z);
+    g.sim(.1); const reel = g.kaelith;
+    g.kaelithToPhase(3); g.sim(.2, true); const banner3 = document.querySelector('#banner .t').textContent;
+    // the pull: away from the candles it draws the mage in; beside a lit stand it doesn't
+    const stands = g.props.filter(p => p.kind === 'candles');
+    const boss = () => g.enemies.find(e => e.isBoss);
+    const pulled = (() => { const b = boss(); P.x = g.current.cx + 6; P.z = g.current.cz; b.state = 'pull'; b.st = 1.5; const d0 = Math.hypot(P.x - b.x, P.z - b.z); g.sim(.5); return d0 - Math.hypot(P.x - b.x, P.z - b.z); })();
+    for (const s of stands) g.element('burn', s.x, s.z);
+    const held = (() => { const b = boss(), s = stands[0]; P.x = s.x + .8; P.z = s.z; b.state = 'pull'; b.st = 1.5; const x0 = P.x, z0 = P.z; g.sim(.5); return { moved: Math.hypot(P.x - x0, P.z - z0), safe: g.kaelith.safe }; })();
+    const p3 = g.kaelith;
+    const i = g.enemies.findIndex(e => e.isBoss); g.enemies[i].hidden = false; g.hit(i, 99999, 'hallow'); g.sim(1, true);
+    const fell = { kaelith: g.kaelith, banner: document.querySelector('#banner .t').textContent, way: g.wayDown };
+    P.x = fell.way.x; P.z = fell.way.z; g.sim(.5);
+    return { bar, banner1, states: [...states], p1, banner2, p2, hit, horde, reel, banner3, pulled, held, p3, fell, state: g.state };
+  })()`) as { bar: number; banner1: string; states: string[]; p1: K; banner2: string; p2: K; hit: number; horde: number; reel: K; banner3: string; pulled: number; held: { moved: number; safe: boolean }; p3: K; fell: { kaelith: K; banner: string; way: { room: string } }; state: string };
+  expect(r.bar).toBe(2); expect(r.banner1).toBe('Kaelith'); // (its bar marks the phases)
+  expect(r.p1!.phase).toBe(1); expect(r.states).toEqual(expect.arrayContaining(['stalk', 'windSweep', 'windVolley', 'sink', 'gone', 'rise']));
+  expect(r.banner2).toBe('The seal cracks');
+  expect(r.p2!.phase).toBe(2); expect(r.p2!.guard).toBe(.25);
+  expect(r.p2!.wards.map(w => w.school).sort()).toEqual(['ember', 'frost', 'hallow', 'storm']); // (Cinder Lance and Arc held: Ember and Storm, then Hallow, then Frost)
+  expect(r.hit).toBeGreaterThan(0); expect(r.hit).toBeLessThan(5); // (a quarter of the blow, holding the seal)
+  expect(r.horde).toBeGreaterThan(0);
+  expect(r.reel!.wards.every(w => w.shut)).toBe(true); expect(r.reel).toMatchObject({ state: 'reel', guard: 1.5 });
+  expect(r.banner3).toBe('The last light'); expect(r.p3).toMatchObject({ phase: 3, sun: true });
+  expect(r.pulled).toBeGreaterThan(.3); expect(r.held.safe).toBe(true); expect(r.held.moved).toBeLessThan(.15);
+  expect(r.fell).toMatchObject({ kaelith: null, banner: 'The seal holds', way: { room: 'boss' } });
+  expect(r.state).toBe('end');
   expect(errors).toEqual([]);
 });
 

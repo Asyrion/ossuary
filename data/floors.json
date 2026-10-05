@@ -189,7 +189,7 @@
     "mantles": {"hexbound": 2, "kindled": 1, "rimebound": 1, "hallowed": 1, "stormcharged": 1},
     "variants": {"normal": 1},
     "templateWeights": {"3": 1},
-    "boss": {"pool": ["hart", "tiger", "twins", "angler", "dragon"], "hpMul": 1.6, "speedMul": 1.2, "shotSpeedMul": 1.25, "summons": 3, "volleys": 5, "insight": 720},
+    "boss": {"pool": ["kaelith"], "hpMul": 1.6, "speedMul": 1.2, "shotSpeedMul": 1.25, "summons": 3, "volleys": 5, "insight": 720},
     "look": {
       "name": "seal",
       "kit": {"wall": {"warded": 3, "scoria": 2, "basalt": 1}, "floor": {"sealstone": 3, "flags": 1}, "torch": {"shard": 3, "skull": 1}, "brazier": {"stepped": 2, "plinth": 1}},

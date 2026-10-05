@@ -289,6 +289,65 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
    - The boss bar marks the phases. Kaelith's lines go in `STR.bosses.kaelith`, and Kaelith's theme in data/music.json.
    - The win moves from floor 5's trapdoor to Kaelith's fall.
    - **Dev menu:** the fight, and a jump to any phase; `?boss=kaelith`.
+
+   *Planned with the owner (2026-10-05):* the owner chose two of four directions for the look, the Hooded Sentinel and the
+   Winged Watcher (the Seal Made Flesh and Shadow and Lantern were left out). Both wear the same fight, and the owner picks
+   one from the sheet.
+
+   *Built (2026-10-05), the look waiting on the owner's choice.*
+   - **The looks:** `src/actors/kaelithLooks.ts` holds both (`hoodedSentinel`, `wingedWatcher`).
+     - **The Hooded Sentinel:** a tall hooded Warden in dark plate, a robe fraying into shadow, violet slits under the
+       cowl, a great glaive held out to the side, three Warden glyphs turning over its head.
+     - **The Winged Watcher:** gaunt plate on long legs, great tattered wings of shadow, the stone mask of the Gate's
+       watching statues with violet slits, a two-handed sword held up and out.
+     - **Their parts:** each carries what the fight moves (`eye`, `ring`, `halo`, `body`, `blade`, `mantle`, `hand`,
+       `head`).
+     - **The switch:** the Look tab's "Kaelith's look" (`ossuary.kaelithLook`, `kaelithLookNow`/`setKaelithLook`); the
+       Galleries tab stands both (`KAELITH_GALLERY` in `ALL_BOSS_LOOKS`).
+     - **The sheet:** `npm run foe-sheet -- bosses=kaelithHooded,kaelithWinged` writes `bosses-texel.png` and
+       `bosses-off.png` (`asset-previews/kaelith/`, sent to the owner).
+     - The first pass was too dark under the cowl: its plate, robe and wings were lifted, and the slits made bigger with a
+       glow behind them.
+   - **The fight:** `src/actors/kaelith.ts` (`buildKaelith`, `updateKaelith`, `kaelithKneels`; dispatched from bosses.ts),
+     its pure rules `src/actors/kaelithData.ts` (`phaseOf`, `sealWards`), tuning `CFG.enemy.kaelith` (hp 210, ×1.6 in the
+     Seal).
+     - **Phase 1:** it stalks at blade's reach (2.2). It sweeps nine hexing blades after a tell (its blade raised, its
+       mantle spread), fires hexing volleys, and steps through shadow (sink, gone, rise in a shadow 2.2 to 4.2 from the mage,
+       a ring of cuts). Light from a lit brazier, candle stand or wall light within 2.4 keeps it from stepping; with nowhere
+       dark it fires instead.
+     - **Phase 2, at ⅔:** "The seal cracks". It goes to the hall's middle and holds the seal: a quarter of each blow, a
+       volley every 2.4 s.
+       - **The wards:** `seal_kaelith`'s four pillars are now sapping obelisks made ward pillars (`sealWard`/`wakeWard` in
+         mechanisms.ts, `prop.seal`: no field, no drain). They are dormant until now, then wake in the schools the mage
+         holds, then Ember and Hallow, then the rest.
+       - **The horde:** each open ward lets out a foe of the Seal's table every 5 s, at most four alive.
+       - **Shutting them:** a ward shuts to its school, or to any glyph's blast. "Shut" rises over it (`wardHooks.shut`).
+         All four shut, it reels for 4 s, taking 1.5 times each blow ("Open"), then fights as in phase 1.
+     - **Phase 3, at ⅓:** "The last light". The hall goes dark (unless every candle stand is already lit, as a dark room
+       does), the wards go out, and a black sun hangs over it.
+       - Every few seconds it pulls the mage for 2 s (the drawn chip shows), then rings out sixteen blades.
+       - Within 2.2 of a lit candle stand the mage isn't drawn, and it steps through the dark everywhere but there. Its waits
+         are shorter (×0.7).
+     - **Its fall:** it kneels (`kaelithKneels` from `onBossDead`): a figure of its look stays where it fell, posed kneeling,
+       its eyes dim; the dark lifts; "The seal holds", and its line ("Then hold it, mage. Hold it better than I could.").
+       The way out (`STR.banner.wayOut`, now "The way out lies open") wins the run until step 3's daylight.
+   - **What shows:**
+     - lines the first time: "Strike each ward with its own school, or a glyph's blast" and "Stand by a lit candle: the
+       dark cannot draw you there";
+     - the boss bar's marks at ⅔ and ⅓ (`bossBarMarks` in hud.ts, cleared with the bar);
+     - the sounds `kaelithSweep`, `shadowStep`, `sealCrack`, `wardShut`, `eclipsePull` and `kneel`;
+     - its theme "The Sentinel" (data/music.json's `bosses`, read by the director in its fight).
+   - **The data:** the Seal's pool is `["kaelith"]`.
+   - **Dev menu:**
+     - Rooms & runs: "Kaelith's fight", its phase and wards, phase 2, phase 3, and shut the wards;
+     - "Fight a boss" puts Kaelith in `seal_kaelith`;
+     - Look: "Kaelith's look";
+     - `__game.kaelith`, `kaelithToPhase(n)`, `shutAllWards()`, `kaelithLook()`, `setKaelithLook(l)`.
+   - **Tests:**
+     - unit: the phases, the wards, the pool;
+     - browser: the whole fight, start to fall: its states, the wards woken in the held schools, a quarter of a blow, the
+       horde, all four shut and the reel, the dark, the pull and the candle's safety, the kneeling, the run won;
+     - the step-1 test's boss is Kaelith now.
 3. **Daylight.**
    - Kaelith kneels and a shaft of light opens. Stepping in plays the cave mouth at dawn, built in code in the pixel look:
      the terrace's edge, the valleys in layered silhouettes, mist and falling water.

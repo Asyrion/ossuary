@@ -91,6 +91,7 @@ export interface PropState {
       a sapping obelisk's ward (the school that breaks it) and whether it is broken. */
   charge?: number; blind?: number; aim?: { x: number; z: number; t: number }; ward?: School; broken?: boolean;
   /** M4.9: seconds a sluice gate stands open (the room's water drained). */ open?: number;
+  /** M7 step 2: one of Kaelith's ward pillars: an obelisk with no field, dormant until the seal cracks (actors/kaelith.ts). */ seal?: boolean;
   /** M4.10: a brazier burning with Blackfire (darkness took its fire). */ black?: boolean;
   /** M5: a brazier lit once already (its first fire may leave Ember Salt, items/reagents.ts). */ salted?: boolean;
   /** M6 step 5: a flowering plant Seedfall sowed (it holds no reagent). */ sown?: boolean;

@@ -55,7 +55,7 @@ import { addPool, fireAt, frostAt, setMud } from './pools';
 import { removeProp } from './props';
 import type { MechanismKind } from './propData';
 import { RUNE_LIT, brazierLook, candleStandLook } from './fireLooks';
-import { EYE_BLIND, EYE_DIM, EYE_LIT, bellLook, censerLook, censerPot, lodestoneLook, obeliskLook, reliquaryLook, runeStoneLook, sluiceLook, statueLook, updateMechLook } from './mechLooks';
+import { EYE_BLIND, EYE_DIM, EYE_LIT, bellLook, censerLook, censerPot, emblemOf, lodestoneLook, obeliskLook, reliquaryLook, runeStoneLook, sluiceLook, statueLook, updateMechLook } from './mechLooks';
 import { driveUpAll } from '../actors/foes';
 import { treeLook } from './objectLooks';
 import { dragonBell } from '../actors/pillarDragon';
@@ -255,6 +255,7 @@ export function strikeMechanism(room: Room, box: PropBox, blast: boolean, status
     case 'rune': { const k = (Object.keys(elemental(status) ?? {}) as StatusKind[])[0]; if (k && !p.school) charge(box, k); else if (k && p.school !== k) runeReaction(room, box, k); else burst(box.x, .7, box.z, 0x8a8078, 3, 1.2, .04); return true; }
     case 'statue': if (status?.hex || status?.root) blind(box); else burst(box.x, 1.2, box.z, 0x8a8078, 3, 1.2, .04); return true;
     case 'obelisk':
+      if (blast && p.seal && !p.broken) { breakWard(box); return true; } // (M7: a glyph's blast shuts any of Kaelith's wards)
       if (!p.broken && (Object.keys(status ?? {}) as SpellStatus[]).some(k => STATUS_SCHOOL[k] === p.ward)) breakWard(box);
       else { burst(box.x, 1.2, box.z, p.broken ? 0x8a8078 : SCHOOL_LIGHT[p.ward ?? 'umbral'], 4, 1.2, .04); if (!p.broken) Sfx.at(box.x, box.z).wardTink(); }
       return true;
@@ -507,12 +508,29 @@ function breakWard(box: PropBox) {
   const p = box.prop; if (p.broken) return;
   p.broken = true;
   const color = SCHOOL_LIGHT[p.ward ?? 'umbral'];
+  dull(p);
+  burst(box.x, 2.2, box.z, color, 22, 2.6, .05); ringFx(box.x, .06, box.z, color, .3, p.seal ? 1.4 : C.obelisk.reach, .5, true);
+  Sfx.at(box.x, box.z).wardShatter();
+  if (p.seal) wardHooks.shut?.(box); else toast(STR.mech.wardBroken, 2.5); // (M7: Kaelith's fight says what a ward shut does)
+  if (sapping === box) sapping = null;
+}
+/** An obelisk's runes and shard gone dull, its field and glow out. */
+function dull(p: PropBox['prop']) {
   for (const k of ['runes', 'crystal']) ((p.parts?.[k] as THREE.Mesh | undefined)?.material as THREE.MeshBasicMaterial | undefined)?.color.setHex(0x2e2a34);
   if (p.parts?.field) p.parts.field.visible = false;
   if (p.parts?.glow) p.parts.glow.visible = false;
-  burst(box.x, 2.2, box.z, color, 22, 2.6, .05); ringFx(box.x, .06, box.z, color, .3, C.obelisk.reach, .5, true);
-  Sfx.at(box.x, box.z).wardShatter(); toast(STR.mech.wardBroken, 2.5);
-  if (sapping === box) sapping = null;
+}
+/** M7 step 2: what hears one of Kaelith's wards shut (its fight, actors/kaelith.ts). */
+export const wardHooks: { shut?: (box: PropBox) => void } = {};
+/** M7 step 2: an obelisk made one of Kaelith's ward pillars: no field, no drain, dormant (dull, as if broken) until it wakes. */
+export function sealWard(box: PropBox) { const p = box.prop; p.seal = true; p.broken = true; p.ward = undefined; dull(p); }
+/** M7 step 2: a ward pillar wakes in `school`: its emblem and runes lit in that school's light (its field stays out). */
+export function wakeWard(box: PropBox, school: School) {
+  const p = box.prop, color = SCHOOL_LIGHT[school]; p.ward = school; p.broken = false;
+  for (const k of ['runes', 'crystal']) ((p.parts?.[k] as THREE.Mesh | undefined)?.material as THREE.MeshBasicMaterial | undefined)?.color.setHex(color);
+  if (p.parts?.crystal) (p.parts.crystal as THREE.Mesh).geometry = emblemOf(school);
+  const gl = p.parts?.glow as THREE.Sprite | undefined; if (gl) { gl.visible = true; gl.material.color.setHex(color); }
+  burst(box.x, 2.2, box.z, color, 14, 2, .05);
 }
 
 /** The unbroken obelisk whose field the mage stands in, if any (set each step). */
@@ -526,7 +544,7 @@ function updateSapping(room: Room, dt: number) {
   if (player.dead) return;
   for (const box of room.props ?? []) {
     const p = box.prop;
-    if (p.kind !== 'obelisk' || p.broken) continue;
+    if (p.kind !== 'obelisk' || p.broken || p.seal) continue;
     const inside = Math.hypot(player.x - box.x, player.z - box.z) < C.obelisk.reach;
     if (p.parts?.field) ((p.parts.field as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = inside ? .55 + Math.sin(G.simClock * 8) * .15 : .35;
     if (inside && !sapping) sapping = box;

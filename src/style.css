@@ -109,6 +109,8 @@ img.px{image-rendering:pixelated}
 #bossname{font-family:var(--f-serif);font-style:italic;font-size:18px;color:#f0d9b4;text-shadow:0 2px 3px #000}
 #bossbar .track{margin-top:4px;height:10px;background:rgba(0,0,0,.65);border:1px solid #6b3024;border-radius:5px;overflow:hidden}
 #bossbar .fill{height:100%;width:100%;background:linear-gradient(#c73a24,#7c1b12);transition:width .15s}
+#bossbar .track{position:relative}
+#bossbar .mark{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#e8dcc8;opacity:.75}
 #banner{position:absolute;left:50%;top:22%;transform:translate(-50%,-8px);text-align:center;opacity:0;transition:opacity .35s,transform .35s;width:min(94vw,860px)}
 #banner.on{opacity:1;transform:translate(-50%,0)}
 #banner .t{font-family:var(--f-display);font-size:clamp(26px,3.8vw,40px);letter-spacing:.02em;color:#f3e2bf;text-shadow:0 3px 0 #000,0 0 18px rgba(0,0,0,.8);line-height:1.1}
