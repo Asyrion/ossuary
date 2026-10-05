@@ -640,7 +640,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   glow and shadow stepped (`glowTex`, `shadowTex` in `render/textures.ts`, `glowSteps`, `shadowSteps`) and the artifact
   icons pixel art (`toIcon` in `artifactIcons.ts`, 24 pixels, hard-edged, shown pixelated). Anything new is drawn at
   the texel and so is pixel art by being there: its glows use the stepped glow, a new icon is made as the artifacts' are,
-  and a model from Tripo is baked as the mage is.
+  and a model from Tripo wears its texture as pixel art (`tools/texel-bake.ts`, `src/actors/texturePixel.ts`; the mage alone
+  keeps its colours in its vertices).
 - The room kit (M3.5 step 3; `docs/M3.5-plan.md`): the room's pieces redone in code in the style of the spell
   effects. Fire is `src/render/fire.ts` (`makeFire`: layered flames and embers moved on the GPU from `tickFire`, colours in
   the geometry, four shared materials); the fire objects are `src/world/fireLooks.ts` (`torchLook` in each floor's style,
