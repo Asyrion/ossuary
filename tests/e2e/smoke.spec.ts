@@ -3002,7 +3002,7 @@ test('spell knowledge: a page shows its spell as far as it is known, learning an
 
 test('made assets: the stand-ins load through the manifest and replace their placeholders, and turn off to compare', async ({ page }) => {
   type Info = { where: string; status: string; triangles?: number };
-  type Rock = { urn?: string; mesh?: { traverse(f: (o: { name: string; material?: { isMeshToonMaterial?: boolean; map?: { magFilter: number } } }) => void): void } };
+  type Rock = { urn?: string; mesh?: { traverse(f: (o: { name: string; material?: { isMeshToonMaterial?: boolean; map?: { magFilter: number } } }) => void): void } }; // (urn: 'plain' or 'sealed')
   type GA = { sim(sec: number, draw?: boolean): void; assets: { on: boolean; list: Info[] }; useAssets(on: boolean): void; showAssets(): void; madeLook: string; setMadeLook(l: string): void;
     current: { rocks: Rock[]; spots: { visual: { traverse(f: (o: { name: string }) => void): void } }[] } };
   const errors = await start(page, '?seed=K3F9QX&give=ember_sigil&assets=/tests/fixtures/assets/assets.json');
@@ -3025,6 +3025,12 @@ test('made assets: the stand-ins load through the manifest and replace their pla
   expect(await look()).toMatchObject({ on: true, texel: [false, false, false, false] });
   await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.setMadeLook('texel'); g.sim(.2, true); });
   expect(await look()).toMatchObject({ texel: [true, true, true, true] });
+  // (a rune-sealed urn keeps its dark stone through the switch: never a plain urn's material)
+  expect(await page.evaluate(() => {
+    const g = (window as unknown as { __game: GA }).__game, mats = (r: Rock) => { const s = new Set<unknown>(); r.mesh?.traverse(c => { if (c.material?.isMeshToonMaterial) s.add(c.material); }); return s; };
+    const plain = new Set(g.current.rocks.filter(r => r.urn === 'plain').flatMap(r => [...mats(r)]));
+    return g.current.rocks.filter(r => r.urn === 'sealed').map(r => [...mats(r)].some(m => plain.has(m)));
+  })).toEqual([false, false]);
   // off: the floor is built again with the placeholders
   await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.useAssets(false); g.showAssets(); g.sim(.3, true); });
   expect(await look()).toEqual({ on: false, urns: [false, false], texel: [false, false], sigil: false, icon: false });

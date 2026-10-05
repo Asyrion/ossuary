@@ -454,8 +454,8 @@ function build() {
   // each part's kind: drawn per room, or one stepped through the floor's list and forced on every room, to compare
   for (const part of KIT_PARTS) kitPartBtns[part] = btn('', () => {
     // (from the kind forced, or the one this room drew: the first click shows the next one)
-    const list = kindsOf(FLOORS[G.run.floor].look.kit!, part), at = list.indexOf((DEV.kitKinds[part] ?? G.current.look.kinds?.[part]) as never);
-    DEV.kitKinds = { ...DEV.kitKinds, [part]: list[at + 1] }; // (past the last: drawn per room again)
+    const forced = DEV.kitKinds[part], list = kindsOf(FLOORS[G.run.floor].look.kit!, part), at = list.indexOf((forced ?? G.current.look.kinds?.[part]) as never);
+    DEV.kitKinds = { ...DEV.kitKinds, [part]: forced ? list[at + 1] : list[(at + 1) % list.length] }; // (past the last forced: drawn per room again)
     if (!DEV.kitKinds[part]) delete DEV.kitKinds[part];
     rebuildFloor();
   });
