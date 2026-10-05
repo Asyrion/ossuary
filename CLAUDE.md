@@ -239,12 +239,14 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   the owner starts a new session with; `-- --bones <in.glb>` reads a new model's rig first).
   The dragonling (2026-10-03, the owner's second, the size of a horse, 1.8 tiles, boss budget) is the recipe for a
   model facing another way (`face`, `faceForward` in creatureRig.ts), on a two-legged rig and in a mid-stride pose (`STANCE`,
-  a leg's `toes`). The Pukei-Pukei (2026-10-05, the owner's third, a feathered wyvern the size of a pony, 1.4 tiles, boss
-  budget; `tools/creatures/pukei.ts`) is the recipe for Tripo's newer named rig, whose weights are kept (`SKIN` null,
-  `REMAP`, `reskin`'s keeping path), for wings laid by direction (`rig.point`) and for a clip that turns round (the root
-  turned last, `place`'s `turn`); its growl, screech and tail slams are the owner's sound files, the game's first
+  a leg's `toes`). Models come two ways (docs/creatures.md): straight from Tripo (`bone_N`, broken weights: `reskin`), or through
+  the owner's EDA-ModelWebViewer (github.com/Asyrion/EDA-ModelWebViewer: bones named, weights mended, sounds made as WAV
+  files). The Chameleon Wyvern (2026-10-05, the owner's third, first named Pukei-Pukei, a feathered wyvern the size of a
+  pony, 1.4 tiles, boss budget; `tools/creatures/chameleon.ts`) is the recipe for the second way, whose weights are kept
+  (`SKIN` null, `REMAP`, `reskin`'s keeping path), for wings laid by direction (`rig.point`) and for a clip that turns round
+  (the root turned last, `place`'s `turn`); its growl, screech and tail slams are the viewer's sound files, the game's first
   (`npm run prepare-sound`, `data/sounds.json`, `src/audio/samples.ts`: `fromFile` in creatureSounds.ts plays the file, the
-  synthesised sound its fallback; `__game.soundFiles()`; their source and licence still to be noted in CREDITS.md). **Every Tripo model wears its texture as pixel art** (the owner's rule, 2026-10-05: the 2k painted
+  synthesised sound its fallback; `__game.soundFiles()`), made again at 48 kHz from the viewer's recipe (it writes 22,050 Hz). **Every Tripo model wears its texture as pixel art** (the owner's rule, 2026-10-05: the 2k painted
   textures don't read at the game's size): `tools/texel-bake.ts` (`bakeModelFile`, run by animate-creature and
   prepare-asset on every model they write; `npm run texel-bake -- <id>|all` or `-- <file.glb> <tiles>`) shrinks the game
   file's texture to at least one texel a game pixel within each UV island, keeps its glowing markings, lifts its painted

@@ -1,5 +1,5 @@
 /* Prepare one of the owner's sounds for the game (docs/assets.md, Sound, Pipeline step 6):
-     npm run prepare-sound -- <in.wav> <family>/<id>_<n>      e.g.  -- growl_2.wav pukei/growl_1
+     npm run prepare-sound -- <in.wav> <family>/<id>_<n>      e.g.  -- growl_2.wav chameleon/growl_1
    writes public/assets/sounds/<family>/<id>_<n>.ogg: mono (the game places it left or right), the silence before it cut
    (every effect starts at once), its peak set to -1 dB, Ogg Vorbis at its own sample rate; then reports its length, size
    and peak against the effects' budget (data/sounds.json names it for the game). Needs ffmpeg on the path. */
@@ -17,7 +17,7 @@ const measure = (args: string[]) => spawnSync('ffmpeg', ['-hide_banner', '-nosta
 function main() {
   const [input, name] = process.argv.slice(2);
   if (!input || !name || !/^[a-z0-9]+\/[a-z0-9]+(_[a-z0-9]+)*_\d+$/.test(name)) {
-    console.error('usage: npm run prepare-sound -- <in.wav> <family>/<id>_<n>   (lower case, such as pukei/growl_1)'); process.exit(1);
+    console.error('usage: npm run prepare-sound -- <in.wav> <family>/<id>_<n>   (lower case, such as chameleon/growl_1)'); process.exit(1);
   }
   const out = resolve(import.meta.dirname, `../public/assets/sounds/${name}.ogg`);
   mkdirSync(dirname(out), { recursive: true });

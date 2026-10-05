@@ -1,12 +1,12 @@
-/* The Pukei-Pukei (the owner's Tripo model, 2026-10-05; docs/creatures.md): a feathered wyvern about the size of a pony,
-   on two legs, its wings its arms (a clawed wrist, four fingers spanning the membrane), a beaked head with its mouth open
-   and its tongue lolling, and a feathered tail ending in a spiked club. Tripo set it turned about 38 degrees to its left,
-   so the tool turns it to face +z first (`face`); in that frame (x left-right, y up, z forward) it stands 0.72 high, its
-   wings raised, and its middle runs at about x = 0.045. Tripo's newer rig named its bones (root, spine, head_01 to head_09,
-   arm_L and arm_R with their fingers, leg_L and leg_R with their toes, tail_01 to tail_07) and weighted them well, so its
-   skin is kept (`SKIN` null), only the head's weights smeared over the chain under it (head_06 to head_09) given to the
-   skull and its lower jaw to the jaw outright. The root stands on the ground under its middle, carrying the legs, the tail
-   and the spine. Read with `npm run animate-creature -- --bones --face=-38`. */
+/* The Chameleon Wyvern (the owner's model from Tripo, 2026-10-05, through their EDA-ModelWebViewer; docs/creatures.md): a
+   feathered wyvern about the size of a pony, on two legs, its wings its arms (a clawed wrist, four fingers spanning the
+   membrane), a beaked head with its mouth open and its tongue lolling, and a feathered tail ending in a spiked club. It
+   came turned about 38 degrees to its left, so the tool turns it to face +z first (`face`); in that frame (x left-right,
+   y up, z forward) it stands 0.72 high, its wings raised, and its middle runs at about x = 0.045. The owner's viewer named
+   its bones (root, spine, head_01 to head_09, arm_L and arm_R with their fingers, leg_L and leg_R with their toes, tail_01
+   to tail_07) and mended their weights, so its skin is kept (`SKIN` null), only the head's weights smeared over the chain
+   under it (head_06 to head_09) given to the skull and its lower jaw to the jaw outright. The root stands on the ground
+   under its middle, carrying the legs, the tail and the spine. Read with `npm run animate-creature -- --bones --face=-38`. */
 import type { ClipDef, LegDef, Rig, SkinBone } from '../creatureRig';
 
 /** Turned this many degrees about the vertical before anything reads it: its body from 38 degrees left of +z to +z. */
@@ -200,7 +200,7 @@ export const CLIPS: Record<string, ClipDef> = {
   walk: { duration: WALK.cycle, loop: true, pose: walk, events: steps },
   roar: {
     duration: ROAR.duration, loop: false, pose: roar, events: [
-      { t: ROAR.growlAt, sound: 'pukeiGrowl' }, { t: ROAR.screechAt, sound: 'pukeiScreech', loud: true },
+      { t: ROAR.growlAt, sound: 'chameleonGrowl' }, { t: ROAR.screechAt, sound: 'chameleonScreech', loud: true },
       { t: ROAR.landAt, sound: 'clawRear' }, { t: ROAR.slamAt, sound: 'clubSlam', loud: true }, { t: ROAR.bounceAt, sound: 'clubSlam' },
       { t: ROAR.backLand, sound: 'clawRear' },
     ],

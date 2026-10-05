@@ -19,7 +19,7 @@ import { padIslands } from './padIslands';
 import { orientOutward } from './orientFaces';
 import * as owlbear from './creatures/owlbear';
 import * as dragonling from './creatures/dragonling';
-import * as pukei from './creatures/pukei';
+import * as chameleon from './creatures/chameleon';
 import { BUDGETS } from '../src/assets/assetData';
 import { texelBake } from './texel-bake';
 
@@ -28,7 +28,7 @@ import { texelBake } from './texel-bake';
 const RECIPES = {
   owlbear: { ...owlbear, face: 0, height: 1.45, budget: 'boss' as const },
   dragonling: { ...dragonling, height: 1.8, budget: 'boss' as const }, // (about a horse: the owner, 2026-10-03)
-  pukei: { ...pukei, height: 1.4, budget: 'boss' as const }, // (a pony: the owner, 2026-10-05)
+  chameleon: { ...chameleon, height: 1.4, budget: 'boss' as const }, // (a pony: the owner, 2026-10-05)
 };
 
 /** `--bones <in.glb>`: what a new creature's recipe needs to know, read off the model before one is written. Each bone in

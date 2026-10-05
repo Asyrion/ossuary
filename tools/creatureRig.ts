@@ -182,9 +182,10 @@ export interface SkinBone { bone: string; from: string | V3; to: string | V3; si
 
 /** New skin weights for every skinned mesh: each vertex blended over the (up to three) nearest bone segments that may
     reach it, by the inverse fourth power of the distance, so joints bend smoothly and limbs keep to themselves.
-    `override` claims vertices outright (a jaw's lower beak). With no `bones` (a rig whose weights Tripo got right, as the
-    Pukei-Pukei's named one), each vertex keeps its weights, those on a bone of `remap` moved to the bone it names (a head
-    smeared over its jaw's bones given to the skull), and `override` claims its own. */
+    `override` claims vertices outright (a jaw's lower beak). With no `bones` (a rig whose weights hold: a model the owner's
+    EDA-ModelWebViewer has named and mended, as the Chameleon Wyvern), each vertex keeps its weights, those on a bone of
+    `remap` moved to the bone it names (a head smeared over its jaw's bones given to the skull), and `override` claims its
+    own. */
 export function reskin(doc: Document, rig: Rig, bones: SkinBone[] | null, override?: (p: THREE.Vector3) => string | null, remap: Record<string, string> = {}) {
   const pt = (x: string | V3) => typeof x === 'string' ? rig.at(x) : v(x);
   const segs = (bones ?? []).map(b => ({ ...b, a: pt(b.from), b: pt(b.to) }));

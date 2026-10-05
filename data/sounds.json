@@ -1,6 +1,6 @@
 {
   "_comment": "Sounds played from files (docs/assets.md, Sound, Pipeline step 7): each by the name the game plays it by, its files (variants, one chosen at random) under public/assets/sounds/, made by tools/prepare-sound.ts, and how loud it plays against the sound it stands in for (gain). The synthesised sound of the same name stays as its fallback, while the file loads or if it fails. Where each came from is in CREDITS.md.",
-  "pukeiGrowl": { "files": ["pukei/growl_1.ogg"], "gain": 1 },
-  "pukeiScreech": { "files": ["pukei/screech_1.ogg"], "gain": 0.85 },
-  "clubSlam": { "files": ["pukei/slam_1.ogg", "pukei/slam_2.ogg"], "gain": 0.8 }
+  "chameleonGrowl": { "files": ["chameleon/growl_1.ogg"], "gain": 1 },
+  "chameleonScreech": { "files": ["chameleon/screech_1.ogg"], "gain": 0.85 },
+  "clubSlam": { "files": ["chameleon/slam_1.ogg", "chameleon/slam_2.ogg"], "gain": 0.8 }
 }
