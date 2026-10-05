@@ -4,11 +4,12 @@
 <script type="module">
 /* The preview of an animated creature (docs/creatures.md), driven by tools/creature-preview.ts: a short scene (it rests,
    walks across, turns to the viewer, roars, rests), each frame rendered on request and its sounds rendered offline on the
-   same timeline, from the game's own code (src/audio/creatureSounds.ts, the floor's soundscape). */
+   same timeline, from the game's own code (src/audio/creatureSounds.ts and the files it plays, the floor's soundscape). */
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import data from '/data/creatures.json';
 import { CREATURE_SOUNDS } from '/src/audio/creatureSounds.ts';
+import { preloadSamples } from '/src/audio/samples.ts';
 import { AmbienceMix } from '/src/audio/ambience.ts';
 import { Rand } from '/src/audio/synth.ts';
 import { wav } from '/src/audio/render.ts';
@@ -53,6 +54,7 @@ window.preview = {
   async audio(gain = 1) {
     const sr = 44100, ctx = new OfflineAudioContext(2, Math.ceil(total * sr), sr), out = ctx.createGain(); out.gain.value = .8 * gain; out.connect(ctx.destination);
     const amb = ctx.createGain(); amb.gain.value = .35; amb.connect(out); const mix = new AmbienceMix(ctx, amb); mix.set(0, 'normal', undefined, 0); mix.pump(total);
+    await preloadSamples(ctx, Object.values(info.clips).flatMap(c => c.events.map(e => e.sound))); // (the sounds played from files, loaded first)
     const rr = new Rand(7);
     for (const s of segs) { const c = info.clips[s.clip]; for (let k = 0; c.loop ? k * c.duration < s.len : k < 1; k++) for (const e of c.events) {
       const t = s.start + k * c.duration + e.t; if (t >= s.start + s.len || t >= total) continue;

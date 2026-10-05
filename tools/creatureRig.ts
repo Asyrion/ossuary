@@ -56,6 +56,12 @@ export class Rig {
     const pq = b.parent!.getWorldQuaternion(new THREE.Quaternion()).invert();
     b.quaternion.copy(pq.multiply(wq)); b.updateMatrixWorld(true);
   }
+  /** Turn bone `name` so the joint of `child` (a bone or node under it) lies along `dir` from its own joint, the shortest
+      way round from where it is (a wing's bones laid along the ways a pose gives them). */
+  point(name: string, child: string, dir: readonly number[]) {
+    this.update(); const b = this.bone(name), o = this.at(name);
+    this.aim(b, this.at(child), o.clone().add(v(dir).normalize())); this.update();
+  }
   /** Turn a bone so the direction from its joint to `from` points at `to` (both in the creature's frame). */
   private aim(b: THREE.Object3D, from: THREE.Vector3, to: THREE.Vector3) {
     const o = b.getWorldPosition(new THREE.Vector3());
@@ -76,8 +82,9 @@ export class Rig {
   foot(id: string) { return this.legs.get(id)!.foot.clone(); }
   /** Put a leg's ankle or wrist at its rest place moved by `d` (two-bone IK, bending the way it bends at rest), then lay
       its paw as it lay at rest, tipped by `pitch` degrees about the creature's left-right axis (toes up is positive), and its
-      toes as they lay at rest, tipped by `toePitch`. */
-  place(id: string, d: readonly number[], pitch = 0, toePitch = 0) {
+      toes as they lay at rest, tipped by `toePitch`; both turned by `turn` degrees about the vertical (a body turned round
+      on the spot, its feet turned with it). */
+  place(id: string, d: readonly number[], pitch = 0, toePitch = 0, turn = 0) {
     const L = this.legs.get(id)!; this.update();
     const root = this.bone(L.root), mid = this.bone(L.mid);
     const R = this.at(L.root), M = this.at(L.mid), E = this.at(L.end), T = L.foot.clone().add(v(d));
@@ -89,9 +96,10 @@ export class Rig {
     const midTo = R.clone().add(dir.clone().multiplyScalar(a * cosA)).add(pole.multiplyScalar(a * sinA));
     this.aim(root, M, midTo); this.update();
     this.aim(mid, this.at(L.end), R.clone().add(dir.multiplyScalar(dist))); this.update();
-    const tip = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(-pitch));
+    const round = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), THREE.MathUtils.degToRad(turn));
+    const tip = round.clone().multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(-pitch)));
     (L.paw ?? []).forEach((n, i) => { this.setWorldQuat(this.bone(n), tip.clone().multiply(L.pawWorld[i])); this.update(); });
-    const toeTip = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(-toePitch));
+    const toeTip = round.clone().multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), THREE.MathUtils.degToRad(-toePitch)));
     (L.toes ?? []).forEach((n, i) => { this.setWorldQuat(this.bone(n), toeTip.clone().multiply(L.toesWorld[i])); this.update(); });
   }
 
@@ -174,10 +182,12 @@ export interface SkinBone { bone: string; from: string | V3; to: string | V3; si
 
 /** New skin weights for every skinned mesh: each vertex blended over the (up to three) nearest bone segments that may
     reach it, by the inverse fourth power of the distance, so joints bend smoothly and limbs keep to themselves.
-    `override` claims vertices outright (a jaw's lower beak). */
-export function reskin(doc: Document, rig: Rig, bones: SkinBone[], override?: (p: THREE.Vector3) => string | null) {
+    `override` claims vertices outright (a jaw's lower beak). With no `bones` (a rig whose weights Tripo got right, as the
+    Pukei-Pukei's named one), each vertex keeps its weights, those on a bone of `remap` moved to the bone it names (a head
+    smeared over its jaw's bones given to the skull), and `override` claims its own. */
+export function reskin(doc: Document, rig: Rig, bones: SkinBone[] | null, override?: (p: THREE.Vector3) => string | null, remap: Record<string, string> = {}) {
   const pt = (x: string | V3) => typeof x === 'string' ? rig.at(x) : v(x);
-  const segs = bones.map(b => ({ ...b, a: pt(b.from), b: pt(b.to) }));
+  const segs = (bones ?? []).map(b => ({ ...b, a: pt(b.from), b: pt(b.to) }));
   const seg = new THREE.Line3(), close = new THREE.Vector3();
   let moved = 0;
   for (const skin of doc.getRoot().listSkins()) {
@@ -188,10 +198,19 @@ export function reskin(doc: Document, rig: Rig, bones: SkinBone[], override?: (p
       for (const prim of node.getMesh()!.listPrimitives()) {
         const pos = prim.getAttribute('POSITION')!, count = pos.getCount();
         const J = new Uint16Array(count * 4), W = new Float32Array(count * 4), p = [0, 0, 0], P = new THREE.Vector3();
+        const J0 = prim.getAttribute('JOINTS_0')!, W0 = prim.getAttribute('WEIGHTS_0')!, j0 = [0, 0, 0, 0], w0 = [0, 0, 0, 0];
         for (let i = 0; i < count; i++) {
           pos.getElement(i, p); P.fromArray(p);
           const own = override?.(P);
           if (own) { J[i * 4] = index(own); W[i * 4] = 1; moved++; continue; }
+          if (!bones) { // (its own weights kept, moved off the bones remapped)
+            J0.getElement(i, j0); W0.getElement(i, w0);
+            const by = new Map<number, number>();
+            for (let k = 0; k < 4; k++) if (w0[k] > 0) { const to = remap[joints[j0[k]]], j = to ? index(to) : j0[k]; by.set(j, (by.get(j) ?? 0) + w0[k]); }
+            [...by].sort((x, y) => y[1] - x[1]).slice(0, 4).forEach(([j, w], k) => { J[i * 4 + k] = j; W[i * 4 + k] = w; });
+            if (j0.some((j, k) => w0[k] > 0 && remap[joints[j]])) moved++;
+            continue;
+          }
           const scored: [number, number][] = [];
           for (const s of segs) {
             if (s.side && P.x * s.side < -.015) continue;

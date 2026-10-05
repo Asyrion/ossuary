@@ -4989,7 +4989,7 @@ test('soundscapes and music (docs/sound-plan.md): the floor and room choose them
 test('a creature made in Tripo and animated in code (docs/creatures.md): it stands, walks its lap, roars at the mage, its clips are baked in, and it can be drawn as made or as imported', async ({ page }) => {
   const errors = await start(page, '?seed=OWLB1&room=great_hall&variant=quiet');
   type C = { id: string; look: string; texture: number; state: string; clip: string; time: number; x: number; z: number };
-  type GC = GameHooks & { showCreature(id?: string, d?: number): Promise<C[]>; creatures: C[]; roarNow(): void; takeCreatures(): void; renderInfo(): { calls: number }; setCreatureLook(l: string): Promise<C[]> };
+  type GC = GameHooks & { showCreature(id?: string, d?: number): Promise<C[]>; creatures: C[]; roarNow(): void; takeCreatures(): void; renderInfo(): { calls: number }; setCreatureLook(l: string): Promise<C[]>; soundFiles(): Promise<Record<string, (number | null)[]>> };
   const r = await page.evaluate(async () => {
     const g = (window as unknown as { __game: GC }).__game, out: Record<string, unknown> = {};
     g.sim(.3, true); const calls0 = g.renderInfo().calls;
@@ -5004,8 +5004,13 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
     // the dragonling (a model Tripo set facing +x, turned by the tool): it stands, walks and strikes in the same routine
     out.dragon = await g.showCreature('dragonling', 1.6); g.sim(2.5, true); out.dragonWalk = g.creatures[0];
     g.roarNow(); g.sim(1, true); out.dragonRoar = g.creatures[0]; g.takeCreatures();
+    // the Pukei-Pukei (Tripo's newer named rig, its own weights kept): the same routine, its roar the longest, and its
+    // sounds from the owner's files, each decoded
+    out.pukei = await g.showCreature('pukei', 1.6); g.sim(2.5, true); out.pukeiWalk = g.creatures[0];
+    g.roarNow(); g.sim(3, true); out.pukeiRoar = g.creatures[0]; g.takeCreatures();
+    out.files = await g.soundFiles();
     return out;
-  }) as { stood: C[]; walking: C; moved: number; calls: number; roaring: C; full: C; made: C; texel: C; pixel: C; quick: C[]; left: number; dragon: C[]; dragonWalk: C; dragonRoar: C };
+  }) as { stood: C[]; walking: C; moved: number; calls: number; roaring: C; full: C; made: C; texel: C; pixel: C; quick: C[]; left: number; dragon: C[]; dragonWalk: C; dragonRoar: C; pukei: C[]; pukeiWalk: C; pukeiRoar: C; files: Record<string, (number | null)[]> };
   expect(r.stood).toHaveLength(1); expect(r.stood[0].clip).toBe('idle');
   expect(r.walking).toMatchObject({ state: 'walk', clip: 'walk' });
   expect(r.moved).toBeGreaterThan(.2); // (it walks its lap at the pace its paws set)
@@ -5023,5 +5028,8 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
   expect(r.left).toBe(0);
   expect(r.dragon).toHaveLength(1); expect(r.dragon[0]).toMatchObject({ id: 'dragonling', look: 'made', clip: 'idle' });
   expect(r.dragonWalk).toMatchObject({ state: 'walk', clip: 'walk' }); expect(r.dragonRoar).toMatchObject({ state: 'roar', clip: 'roar' });
+  expect(r.pukei).toHaveLength(1); expect(r.pukei[0]).toMatchObject({ id: 'pukei', look: 'made', clip: 'idle' });
+  expect(r.pukeiWalk).toMatchObject({ state: 'walk', clip: 'walk' }); expect(r.pukeiRoar).toMatchObject({ state: 'roar', clip: 'roar' }); expect(r.pukeiRoar.time).toBeGreaterThan(2.5);
+  expect(r.files).toEqual({ pukeiGrowl: [1.5], pukeiScreech: [1.31], clubSlam: [0.77, 0.77] });
   expect(errors).toEqual([]);
 });

@@ -3,8 +3,11 @@
    and offline beside the animation for a preview. The owlbear's: heavy padded paws with claws clicking on stone, a breath
    drawn in, a roar that is half a bear's growl and half an owl's screech, and the slam of its forepaws. The dragonling's
    (a beast the size of a horse): heavy scaled feet whose claws strike stone, a reptile's hiss from a big chest, the clack
-   of its jaw snapping shut, a rasping shriek with a rattle in its throat, and a chitter while it rests. */
+   of its jaw snapping shut, a rasping shriek with a rattle in its throat, and a chitter while it rests. The Pukei-Pukei's
+   growl, screech and tail slam are the owner's recorded sounds, the first played from files (samples.ts), these as their
+   fallbacks. */
 import { Rand, crackleLoop, drum, noiseLoop, play, type Ctx } from './synth';
+import { playSample } from './samples';
 
 export interface CreatureCall { ctx: Ctx; t: number; out: AudioNode; r: Rand; gain: number }
 
@@ -124,6 +127,9 @@ function chitter(s: CreatureCall) {
   for (let i = 0; i < n; i++) noise(s, 'white', 'bandpass', s.r.range(1100, 1700), s.r.range(900, 1400), 5, i * s.r.range(.055, .075), .001, .028, .4 * (1 - i / (n + 2)));
 }
 
+/** A sound played from its file (data/sounds.json), the synthesised `fallback` while the file loads or if it fails. */
+const fromFile = (name: string, fallback: (s: CreatureCall) => void) => (s: CreatureCall) => { if (!playSample(s.ctx, name, s.t, s.out, s.gain, s.r)) fallback(s); };
+
 /** Every creature sound, by the name its clip's events give (data/creatures.json). */
 export const CREATURE_SOUNDS: Record<string, (s: CreatureCall) => void> = {
   pawFront: s => paw(s, .85),
@@ -144,4 +150,9 @@ export const CREATURE_SOUNDS: Record<string, (s: CreatureCall) => void> = {
   snap: s => snap(s),
   shriek: s => shriek(s),
   chitter: s => chitter(s),
+  // the Pukei-Pukei's, from the owner's files (2026-10-05): a growl as it crouches, its screech, the club of its tail
+  // slammed down (two variants); each falls back to the nearest synthesised sound
+  pukeiGrowl: fromFile('pukeiGrowl', s => roar(s, 1.2)),
+  pukeiScreech: fromFile('pukeiScreech', s => shriek(s, 1.2)),
+  clubSlam: fromFile('clubSlam', s => CREATURE_SOUNDS.slam(s)),
 };

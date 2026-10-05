@@ -112,6 +112,7 @@ import { AudioDirector, type Forced } from './audio/director';
 import { creatureLook, creaturesNow, roarNow, setCreatureLook, showCreature, takeCreatures, type CreatureLook } from './actors/madeCreatures';
 import { freeSpotNear } from './world/rooms';
 import { renderAudio, type RenderAsk } from './audio/render';
+import { SOUND_FILES, preloadSamples } from './audio/samples';
 
 const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
@@ -319,6 +320,8 @@ function installDevHooks() {
     get creatureLook() { return creatureLook(); }, setCreatureLook: async (l: CreatureLook) => { await setCreatureLook(l); return creaturesNow(); },
     showCreature: async (id = 'owlbear', side = CFG.creatures.standSide) => { const at = freeSpotNear(G.current, player.x + side, player.z + CFG.creatures.standSouth); await showCreature(id, G.current, at.x, at.z); return creaturesNow(); },
     get creatures() { return creaturesNow(); }, roarNow: () => roarNow(), takeCreatures: () => takeCreatures(G.current),
+    // the sounds played from files (data/sounds.json), each loaded and decoded: its seconds, or null where it failed
+    soundFiles: async () => { const ctx = new OfflineAudioContext(1, 44100, 44100), names = Object.keys(SOUND_FILES); const b = await Promise.all(names.map(n => preloadSamples(ctx, [n]))); return Object.fromEntries(names.map((n, i) => [n, b[i].map(x => x && +x.duration.toFixed(2))])); },
     /** What the last frame cost the GPU (draw calls, triangles) and what is held in memory (geometries, textures). */
     renderInfo: () => ({ calls: renderer.info.render.calls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures }),
     lightLevels,

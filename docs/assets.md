@@ -224,10 +224,11 @@ mixing rules. The Asset list's Audio table gives the counts. This section says h
 2026-09-29, with the licence terms as they stood that day: **check a source's current terms before downloading or
 subscribing**, since they change (AI music most of all).
 
-Today every sound is synthesised in code (`src/audio/sfx.ts`) and each one stays as its fallback; since 2026-10-02 the
+Today almost every sound is synthesised in code (`src/audio/sfx.ts`) and each one stays as its fallback; since 2026-10-02 the
 soundscapes and the music are made in code too (`docs/sound-plan.md`; `npm run render-audio` writes them to files to
-listen to). Real sounds replace or join them in M8 (the final mix), or earlier for single effects once the pipeline below
-has been tried.
+listen to). Real sounds replace or join them in M8 (the final mix), or earlier for single effects. The first went through
+the pipeline below on 2026-10-05: the owner's four for the Pukei-Pukei (its growl, screech and two tail slams; see the
+asset log), with `prepare-sound`, `data/sounds.json` and the game's player (`src/audio/samples.ts`) written for them.
 
 ### Sources
 
@@ -323,10 +324,16 @@ The same shape as the image pipeline:
 4. **Listening check** (owner, Claude on request). In the game, next to the placeholder it replaces and against the
    house sound. Does it sound like the same stone rooms? Is it clear under a fight?
 5. **Hand over** (owner). The WAV or original file, with its source, author and licence (tool, plan and date for AI).
-6. **Prepare** (Claude). A `prepare-sound` script, written with the first real sounds: converts to Ogg, makes
-   effects mono, trims leading silence, matches loudness, checks a loop's seam, and reports length, size and peak.
-7. **Integrate** (Claude). A line in `data/sounds.json` names the files and variants for a sound. The game plays the
-   file, falling back to the synthesised sound if it's missing or fails to load.
+6. **Prepare** (Claude). `npm run prepare-sound -- <in.wav> <family>/<id>_<n>` (`tools/prepare-sound.ts`, written with
+   the first real sounds; needs ffmpeg): makes it mono, trims the silence before it, sets its peak to -1 dB, encodes Ogg
+   Vorbis at its own sample rate into `public/assets/sounds/`, and reports length, size and peak against an effect's
+   budget. Loudness against the other sounds is the entry's `gain` (step 7), set by listening and measuring in a
+   preview. A loop's seam is checked when the first loop comes.
+7. **Integrate** (Claude). A line in `data/sounds.json` names the files (variants, one chosen at random) and the `gain`
+   of a sound (`src/audio/soundData.ts` checks it; a unit test checks every file ships). `src/audio/samples.ts` loads
+   and decodes them once for each audio context and plays them; a creature's sounds go through `fromFile` in
+   `creatureSounds.ts`, falling back to the synthesised sound while the file loads or if it fails. Effects heard
+   through `Sfx` will take the same path when the first one comes.
 8. **Review and record** (both). Accepted sounds get a row in `CREDITS.md` and in the asset log below.
 
 **Voices and sound bites.** The mage's hurt and death sounds, and later the townspeople of the Vigil (M7), need
@@ -353,3 +360,5 @@ asset is accepted.
 | Seven coin faces (Arcane eye, Silver owl, Star and crystal, Grave coin, Arcane sigil, Pale obol, Plain profile; `inspiration/coins/`) | coin faces | the obol built in code (Star and crystal worn by the obols) | the owner's images | | in the game 2026-10-02; Star and crystal chosen by the owner, drawn on the fine layer; made again at 48 px the same day (the coin a little smaller, at the owner's ask) |
 | Owlbear (`creatures/owlbear.glb`; `owlbear.full.glb` beside it) | creature, boss budget | nothing yet (the owner's experiment, called a success 2026-10-03: animated in code, looks only; `docs/creatures.md`) | Tripo3D (model, rig); code (faces turned outward, skin, clips, padding, sounds; `tools/animate-creature.ts`) | | in the dev menu 2026-10-03 (Galleries, Animated creatures); 14,550 triangles, 1,024 px. `owlbear.full.glb` keeps the textures as imported (2,048 px, normal map, about 4 MB): the dev menu's "as imported" comparison only, outside the budget, loaded only when asked |
 | Dragonling (`creatures/dragonling.glb`; `dragonling.full.glb` beside it) | creature, boss budget | nothing yet (the owner's example of a new creature, 2026-10-03: about a horse, 1.8 tiles, after a first try at a medium dog's size; looks only; `docs/creatures.md`) | Tripo3D (model, rig); code (turned to face +z, skin, stance from a mid-stride pose, clips, padding, sounds; `tools/creatures/dragonling.ts`) | | in the dev menu 2026-10-03 (Galleries, Animated creatures), approved by the owner at horse size the same day; 14,550 triangles (from 19,367), 1,024 px. `dragonling.full.glb` keeps the textures as imported (2,048 px, normal map, about 3.8 MB), outside the budget |
+| Pukei-Pukei (`creatures/pukei.glb`; `pukei.full.glb` beside it) | creature, boss budget | nothing yet (the owner's third creature, 2026-10-05: a feathered wyvern the size of a pony, 1.4 tiles; looks only; `docs/creatures.md`) | Tripo3D (model, Tripo's newer named rig, its own weights kept); code (turned to face +z, its jaw carved from the head, wings laid by direction, clips; `tools/creatures/pukei.ts`) | | in the dev menu 2026-10-05 (Galleries, Animated creatures); 14,549 triangles (from 19,531), 1,024 px, its texture as pixel art (256 px). `pukei.full.glb` keeps the textures as imported (2,048 px, normal map, about 3.9 MB), outside the budget |
+| Pukei-Pukei's sounds (`sounds/pukei/growl_1.ogg`, `screech_1.ogg`, `slam_1.ogg`, `slam_2.ogg`) | effects, mono | the synthesised `roar`, `shriek` and `slam` (kept as their fallbacks) | The owner's files (`growl_2.wav`, `roar_1.wav`, `hit_1.wav`, `hit_2.wav`; 22,050 Hz, 16 bit; source and licence still to be noted in CREDITS.md) | | in the game 2026-10-05 through `prepare-sound`: 13, 12, 8 and 8 KB, peaks at -1 dB, played at `gain` 1, 0.85 and 0.8 (`data/sounds.json`) |

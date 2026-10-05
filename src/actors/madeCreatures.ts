@@ -18,6 +18,7 @@ import { bakeHeroPixel } from './heroPixel';
 import { wearTexel } from './texturePixel';
 import { Sfx } from '../audio/sfx';
 import { CREATURE_SOUNDS } from '../audio/creatureSounds';
+import { preloadSamples } from '../audio/samples';
 import { Rand } from '../audio/synth';
 
 interface ClipInfo { duration: number; loop: boolean; events: { t: number; sound: string; at?: string; loud?: boolean }[] }
@@ -45,7 +46,8 @@ const loader = new GLTFLoader(), loaded = new Map<string, Promise<GLTF>>(), show
     Resolves once it stands there, in the look chosen when it was called (`l`). */
 export async function showCreature(id: string, room: Room, x: number, z: number, l = look) {
   const info = CREATURES[id]; if (!info) throw new Error(`no creature "${id}"`);
-  const file = l === 'full' ? info.full : info.file;
+  const file = l === 'full' ? info.full : info.file, ctx = Sfx.buses?.ctx;
+  if (ctx) void preloadSamples(ctx, Object.values(info.clips).flatMap(c => c.events.map(e => e.sound))); // (its sounds from files ready before it roars)
   if (!loaded.has(file)) loaded.set(file, loader.loadAsync(`${import.meta.env.BASE_URL}${file}`).then(g => { g.scene.traverse(o => { const m = (o as THREE.Mesh).material; if (m) (Array.isArray(m) ? m : [m]).forEach(x => x.userData.shared = true); }); return g; })); // (its materials shared by every copy: taking one away leaves them)
   const gltf = await loaded.get(file)!;
   if (!G.rooms.includes(room)) return null; // (the floor changed while it loaded)
