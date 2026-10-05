@@ -17,10 +17,11 @@ EDA-ModelWebViewer, for wings, and the first with sound files). For now creature
   `socket_hand_L`) and mended their weights, and it makes the creature's sounds as WAV files (footstep, breath, growl,
   roar, bite and hit, synthesised in its `web/js/sounds.js`). Look at the weights first (a bone's share drawn red) and keep
   them (`SKIN = null`); the sounds go in through `prepare-sound` (step 5). Its sounds come at 22,050 Hz, below the
-  44.1 kHz the asset guide asks for: until the viewer makes them at 48 kHz, make them again from its own recipe at
-  48 kHz (its `SAMPLE_RATE` changed, the same `synthesize(type, voice, hashString(<the model's source file name>),
-  variant)`; the Chameleon Wyvern's came out byte for byte as the owner's at 22,050 Hz, so the 48 kHz ones are the same
-  sounds with their full top end).
+  44.1 kHz the asset guide asks for: until the viewer makes them at 48 kHz, make them again from its own recipe with
+  `npm run viewer-sounds -- <viewer checkout> "<the model's source file name>" <out dir> growl_2 roar_1 ...`
+  (`tools/viewer-sounds.ts`: the viewer's `web/js/sounds.js` run with its `SAMPLE_RATE` at 48,000, seeded by the hash of
+  the source file name as the viewer seeds it; at 22,050 Hz it gives the Chameleon Wyvern's files byte for byte, so the
+  48 kHz ones are the same sounds with their full top end). A voice changed in the viewer's settings isn't read yet.
 
 ## Handover message
 
