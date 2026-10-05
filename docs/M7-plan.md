@@ -274,6 +274,12 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
        the themes, a floor's own foes) run on the generated floors.
      - **Browser:** floor 5's waystone room, the way down to the Seal, Kaelith's line, the horde's line, the two waves from
        two floors or more, and the boss's way out winning the run. The M6 waystone test checks the Seal for no stone.
+   - **The room inspector:** nothing blocking, no console errors. Its polish was taken at once:
+     - a lighter floor and sky;
+     - the `stepped` brazier's middle tier in pale stone and its rim in bronze, since unlit, away from the light, it read as
+       a hole;
+     - pale wax on the candle stands, which were hard to find on the dark floor;
+     - a smaller glow on the `shard` light, which hid the shard and the glyphs round it.
 2. **(P) Kaelith's fight.**
    - The look sheet comes first: three looks for the owner.
    - Then `src/actors/kaelith.ts` (new), in the boss plug-in shape: `kaelith` in `BOSS_TYPES`, in no pool but the Seal's,

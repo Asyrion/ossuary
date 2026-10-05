@@ -184,7 +184,7 @@ const TORCHES: Record<TorchKind, TorchBuild> = {
     const shard = mesh(holder, GEO.prow, OBSIDIAN, 0, 1.0, .1); shard.scale.set(1.25, 1.45, .9); shard.rotation.z = .08;
     mesh(lit, GEO.rune, eyeFor(pal.body), .005, .97, .158).scale.setScalar(.7);
     lit.add(makeFire([{ x: .01, y: 1.2, z: .1, h: .26, w: .1, tongues: 2 }], pal, 3, .3));
-    return at(glow(pal.body, .95, .6), 0, 1.24, .12);
+    return at(glow(pal.body, .7, .42), 0, 1.24, .12); // (small: the shard and the glyphs round it must still show)
   },
   basket(holder, lit, pal) { // an iron fire basket hanging on a short chain from a bracket
     mesh(holder, GEO.plate, MAT.iron, 0, 1.18, .015).scale.set(.7, .9, 1);
@@ -319,9 +319,9 @@ const BRAZIERS: Record<BrazierKind, BrazierBuild> = {
   },
   stepped(g, runes) { // the Seal's (M7): a bowl of black volcanic glass on three stepped tiers of dark stone, a Warden's rune on the
     // front of each tier
-    mesh(g, GEO.plinth, MAT.darkStone, 0, .06, 0).scale.set(1.05, .35, 1.05); mesh(g, GEO.plinth, MAT.darkStone, 0, .18, 0).scale.set(.8, .35, .8);
+    mesh(g, GEO.plinth, MAT.darkStone, 0, .06, 0).scale.set(1.05, .35, 1.05); mesh(g, GEO.plinth, MAT.stone, 0, .18, 0).scale.set(.8, .35, .8); // (pale enough to read on the Seal's dark floor)
     mesh(g, GEO.plinth, MAT.stone, 0, .3, 0).scale.set(.55, .35, .55);
-    mesh(g, GEO.wideBowl, OBSIDIAN, 0, .36, 0).scale.setScalar(.85); mesh(g, GEO.rim, MAT.blackIron, 0, .5, 0).scale.setScalar(1.02);
+    mesh(g, GEO.wideBowl, OBSIDIAN, 0, .36, 0).scale.setScalar(.85); mesh(g, GEO.rim, MAT.bronze, 0, .5, 0).scale.setScalar(1.02);
     mesh(g, GEO.coals, MAT.coals, 0, .48, 0).scale.setScalar(1.1); coals(g, .5, .3);
     runes.push(runePlace(0, .06, .35, Math.PI / 2, 0, 1), runePlace(0, .18, .27, Math.PI / 2, 0, 1), runePlace(0, .3, .19, Math.PI / 2, 0, .9));
     return { fire: bigFire(.52, .95, .34), glowY: .95 };
