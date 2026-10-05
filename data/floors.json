@@ -193,11 +193,11 @@
     "look": {
       "name": "seal",
       "kit": {"wall": {"warded": 3, "scoria": 2, "basalt": 1}, "floor": {"sealstone": 3, "flags": 1}, "torch": {"shard": 3, "skull": 1}, "brazier": {"stepped": 2, "plinth": 1}},
-      "floor": {"base": [50, 46, 60], "mortar": "#0c0a12", "stain": "52,36,74", "decor": "bones", "bones": 2},
+      "floor": {"base": [60, 55, 72], "mortar": "#0c0a12", "stain": "52,36,74", "decor": "bones", "bones": 2},
       "wall": {"brick": [54, 50, 62], "mortar": "#0a0810", "stains": "none", "dress": {"pilaster": 3, "niches": {"skull": 2, "candle": 3, "empty": 2}}},
-      "torch": {"style": "brazier", "flame": "#d2b0ff", "light": "#a890f0", "intensity": 1.0, "wax": "#4c4258"},
+      "torch": {"style": "brazier", "flame": "#b48cff", "light": "#a890f0", "intensity": 1.1, "wax": "#c4b6d4"},
       "urn": {"clay": "#3c3646", "band": "#8a6ad0"},
-      "light": {"sky": "#8478a0", "ground": "#100c18", "moon": "#c0b0f0"}
+      "light": {"sky": "#9c90bc", "ground": "#1c1628", "moon": "#c8baf4"}
     }
   }
 ]
