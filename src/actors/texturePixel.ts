@@ -4,7 +4,8 @@
    draws the model by tools/texel-bake.ts (render/texelBake.ts: shrunk to at least one texel a game pixel within each UV
    island, its glowing markings kept, its painted shadows lifted, cut to a small palette): the colour sampled sharp, lit in
    the same bands as the mage, and the glow lit of its own. Loaded once a model and shared by every copy: the animated
-   creatures (madeCreatures.ts, their default look), the made assets (assets/models.ts) and the mage once one is baked. */
+   creatures (madeCreatures.ts, their default look) and the made assets (assets/models.ts). The mage keeps its colours in its
+   vertices (the owner's choice, 2026-10-05). */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import { toneMap } from './heroPixel';
@@ -31,10 +32,10 @@ export function texelMaterial(key: string, urls: { file: string; glow: string })
   return m;
 }
 
-/** Wear it on every textured mesh under `root` (`each`, if given, decides what wearing means for a mesh: the mage keeps
-    its looks to switch between). */
+/** Wear it on every textured mesh under `root` (`each`, if given, decides what wearing means for a mesh: a made asset
+    keeps both looks to switch between). */
 export async function wearTexel(root: THREE.Object3D, key: string, urls: { file: string; glow: string }, each = (m: THREE.Mesh, mat: THREE.Material) => { m.material = mat; }) {
   const mat = await texelMaterial(key, urls);
-  root.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh && ((m.material as THREE.MeshStandardMaterial).map || m.userData.made?.map)) each(m, mat); });
+  root.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh && (m.material as THREE.MeshStandardMaterial).map) each(m, mat); });
   return mat;
 }

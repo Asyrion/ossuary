@@ -72,13 +72,11 @@ describe('every Tripo model wears its texture as pixel art (the owner, 2026-10-0
       expect(has(c.texel!.file) && has(c.texel!.glow), `${id}: its baked files are missing`).toBe(true);
     }
   });
-  it('every made model in data/assets.json (and the mage, once baked) names its baked files, and they are there', () => {
+  it('every made model in data/assets.json names its baked files, and they are there', () => {
     const models = [...Object.entries(MANIFEST.props), ...Object.entries(MANIFEST.artifacts)];
     for (const [id, e] of models) {
       expect(e.texel, `${id}: prepare-asset prints its "texel" line`).toBeDefined();
       expect(has(`assets/${e.texel!.file}`) && has(`assets/${e.texel!.glow}`), `${id}: its baked files are missing`).toBe(true);
     }
-    const hero = MANIFEST.hero?.texel;
-    if (hero) expect(has(`assets/${hero.file}`) && has(`assets/${hero.glow}`)).toBe(true);
   });
 });

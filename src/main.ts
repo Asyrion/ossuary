@@ -21,15 +21,13 @@ import { camera, canvas, draw, renderer, resize, setCloseUp } from './render/ren
 import './render/lights';
 import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
 import { heroPixel, setHeroPixel } from './actors/heroPixel';
-import { wearTexel } from './actors/texturePixel';
-import { MANIFEST } from './assets/assetData';
 import { givingNow, jellyGives, type Gift } from './world/jellyGives';
 import { arrowOrder, initGamepad, initKeyboard, initTouch, keys, padsNow, type InputActions } from './input';
 import { RUNE_IDS, isRune, type RuneId } from './magic/runeData';
 import { carve, clearRunes, liftRune, runeOdds, setSockets } from './magic/runes';
 import { slotDef } from './magic/cost';
 import { initScreens, showScreen } from './ui/screens';
-import { closeDev, devOpen, dropsHere, forceKinds, objectsHere, rebuildFloor, showAssetsHere, showCoins, takeCoins, toggleDev, useAssets, useRoomKit, wearFace } from './ui/devMenu';
+import { closeDev, devOpen, dropsHere, forceKinds, objectsHere, rebuildFloor, showAssetsHere, showCoins, takeCoins, toggleDev, useAssets, useMadeLook, useRoomKit, wearFace } from './ui/devMenu';
 import { obolFace, obolFaces } from './items/obolFace';
 import type { Kinds } from './world/kitData';
 import { closeInventory, initInventory, inventoryKey, inventoryOpen, inventoryPad, openInventory } from './ui/inventory';
@@ -84,7 +82,7 @@ import { marksNow } from './actors/spellMarks';
 import type { TransformId } from './items/transformData';
 import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
-import { assetList, assetsOn, loadAssets } from './assets/models';
+import { assetList, assetsOn, loadAssets, madeLookNow } from './assets/models';
 import { drawnRows, pixelLook, setPixelLook, type PixelLook, fineLayerDrawn } from './render/pixelLook';
 import { removeModelOptions, showBestiary, showBossLooks, showFamiliarOptions, showJellyLooks, showModelOptions } from './actors/modelOptions';
 import { removeEffectOptions, showEffectOptions } from './magic/effectOptions';
@@ -154,13 +152,6 @@ async function loadDefaultHero() {
     const res = await fetch(HERO_URL);
     if (!res.ok) throw new Error(`${HERO_URL}: HTTP ${res.status}`);
     await loadHeroBuffer(await res.arrayBuffer(), 'hero_default.glb');
-    // its texture as pixel art, once prepare-asset has baked one (every Tripo model's look, 2026-10-05): the pixel look the
-    // Look tab switches to, in place of its colours in its vertices
-    const t = MANIFEST.hero?.texel, base = `${import.meta.env.BASE_URL}assets/`;
-    if (t && hero.model) await wearTexel(hero.model, 'hero', { file: base + t.file, glow: base + t.glow }, (m, mat) => {
-      const was = m.userData.pixel as { dispose(): void } | undefined; if (was && was !== mat) was.dispose();
-      m.userData.pixel = mat; if (heroPixel()) m.material = mat;
-    }).catch(e => console.warn(`the mage's pixel-art texture could not be loaded (${String(e)}); its colours stay in its vertices`));
   } catch (e) {
     console.error(e); setHero(fallbackHero(), { animations: [] }, 'fallback');
   }
@@ -270,6 +261,9 @@ function installDevHooks() {
         (this floor is built again to compare). */
     get assets() { return { on: assetsOn(), list: assetList().map(a => ({ ...a })) }; },
     useAssets: (on: boolean) => useAssets(on),
+    /** How the made assets are drawn (2026-10-05): their texture as pixel art ('texel', the game's look) or as made; set it
+        on this floor's rooms and every one placed from now on, to compare. */
+    get madeLook() { return madeLookNow(); }, setMadeLook: (l: 'texel' | 'made') => useMadeLook(l),
     /** The room kit (M3.5 step 3's proof: fire objects, the crypt's floor and walls built in code): whether it is used;
         turn it on or off (this floor is built again to compare). */
     get roomKit() { return DEV.roomKit; },

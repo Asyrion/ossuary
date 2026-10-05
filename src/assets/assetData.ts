@@ -31,15 +31,13 @@ export interface Manifest {
   /** Coin faces, by a name of their own (2026-10-02, from the owner's coins): the face drawn on a coin in the room, at
       the game's pixel (`images.coin.size` across), and its icon for the HUD and the lore card. */ coins?: Record<string, { face: string; icon: string }>;
   /** The coin face the obols wear (one of `coins`); without one, the obol built in code. */ obol?: string;
-  /** The mage (public/assets/hero_default.glb): its texture as pixel art, once prepare-asset has baked one for it (without
-      one, its colours are baked into its vertices, actors/heroPixel.ts). */ hero?: { texel?: TexelFiles };
 }
 
 export const BUDGETS = raw.budgets as Record<ModelKind, Budget>;
 export const IMAGES = raw.images as Record<ImageKind, ImageSpec>;
 /** The placeholders a prop model can take the place of, and the kind each is. */
 export const PROP_SLOTS: Record<string, ModelKind> = { urn: 'prop', pedestal: 'prop' };
-export const MANIFEST: Manifest = { props: raw.props, artifacts: raw.artifacts, floors: raw.floors, icons: raw.icons, coins: raw.coins, obol: raw.obol, hero: (raw as { hero?: Manifest["hero"] }).hero } as Manifest;
+export const MANIFEST: Manifest = { props: raw.props, artifacts: raw.artifacts, floors: raw.floors, icons: raw.icons, coins: raw.coins, obol: raw.obol } as Manifest;
 
 /** What a manifest names: the known ids it may use. */
 export interface Known { artifacts: ReadonlySet<string>; looks: ReadonlySet<string> }
@@ -71,7 +69,6 @@ export function validateManifest(m: Manifest, known: Known): string[] {
     if (!/^[a-z0-9_]+$/.test(id)) errs.push(`coins.${id}: a coin's name is lower case, digits and _`);
     file(`coins.${id}.face`, e?.face, /\.png$/); file(`coins.${id}.icon`, e?.icon, /\.png$/);
   }
-  if (m.hero?.texel !== undefined) texel('hero.texel', m.hero.texel);
   if (m.obol !== undefined && !m.coins?.[m.obol]) errs.push(`obol: ${m.obol} is not one of the coins (${Object.keys(m.coins ?? {}).join(', ')})`);
   return errs;
 }

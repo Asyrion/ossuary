@@ -41,8 +41,11 @@ export async function loadAssets(search = location.search) {
         const entry = (manifest[group] as Record<string, ModelEntry>)[id], buf = await fetchFile(url);
         if (!buf) return missing(f);
         const gltf = await loader.parseAsync(buf, url.replace(/[^/]*$/, ''));
-        if (entry.texel) await wearTexel(gltf.scene, base + entry.file, { file: base + entry.texel.file, glow: base + entry.texel.glow }) // (its texture as pixel art, as every Tripo model wears it)
-          .catch(e => console.warn(`asset ${f.where}: its pixel-art texture could not be loaded (${String(e)}); it wears the texture as made`));
+        if (entry.texel) await wearTexel(gltf.scene, base + entry.file, { file: base + entry.texel.file, glow: base + entry.texel.glow }, (m, mat) => {
+          // (its texture as pixel art, as every Tripo model wears it; both looks kept on its geometry, which every copy
+          // shares, for the dev menu's comparison)
+          m.geometry.userData.looks = { texel: mat, made: m.material }; m.material = mat;
+        }).catch(e => console.warn(`asset ${f.where}: its pixel-art texture could not be loaded (${String(e)}); it wears the texture as made`));
         const { holder, triangles } = standUp(gltf.scene, entry);
         models.set(f.where, holder);
         return { ...f, status: 'loaded' as const, triangles };
@@ -89,8 +92,22 @@ function standUp(scene: THREE.Object3D, e: ModelEntry) {
     is its height. */
 export function modelFor(group: Group, id: string): THREE.Object3D | null {
   const m = enabled ? models.get(`${group}.${id}`) : undefined;
-  return m ? m.clone(true) : null;
+  if (!m) return null;
+  const copy = m.clone(true); if (madeLook !== 'texel') wearLook(copy, madeLook);
+  return copy;
 }
+
+/** How the made assets are drawn: their texture as pixel art (the game's look), or as made, to compare (the dev menu). */
+export type MadeLook = 'texel' | 'made';
+let madeLook: MadeLook = 'texel';
+export const madeLookNow = () => madeLook;
+/** Whether any made asset loaded has its texture as pixel art (the switch has something to switch). */
+export const madeLooks = () => [...models.values()].some(m => { let has = false; m.traverse(o => { if ((o as THREE.Mesh).geometry?.userData.looks) has = true; }); return has; });
+function wearLook(root: THREE.Object3D, l: MadeLook) {
+  root.traverse(o => { const m = o as THREE.Mesh, looks = m.geometry?.userData.looks as Record<MadeLook, THREE.Material> | undefined; if (looks) m.material = looks[l]; });
+}
+/** Draw the made assets under `roots` (the floor's rooms) and every one placed from now on in look `l`. */
+export function setMadeLook(l: MadeLook, roots: readonly THREE.Object3D[]) { madeLook = l; for (const r of roots) wearLook(r, l); }
 /** A floor look's painted tile, or null for the procedural floor. */
 export const floorTile = (look: string) => enabled ? floors.get(look) ?? null : null;
 /** An artifact's painted icon (its URL), or null for the drawn one. */

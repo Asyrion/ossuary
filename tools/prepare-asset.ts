@@ -61,7 +61,6 @@ if (!check && !failed) {
   const texel = baked ? `, "texel": { "file": "${rel(baked.file)}", "glow": "${rel(baked.glow)}" }` : '';
   if (kind === 'prop' || kind === 'large-prop') console.log(`data/assets.json, "props": "${id}": { "file": "${file}", "height": ${B.height}${texel} }   (${id} must be a placeholder the game knows)`);
   else if (kind === 'artifact') console.log(`data/assets.json, "artifacts": "${id}": { "file": "${file}", "height": ${B.height}${texel} }   (${id} is the artifact's id)`);
-  else if (kind === 'hero' && baked) console.log(`data/assets.json, "hero": { ${texel.slice(2)} }   (the mage wears it once ${id}.glb is hero_default.glb)`);
 }
 if (failed) console.log(`\n${check ? '' : 'nothing written: '}fix the failed checks (in Tripo or the export) and run it again`);
 process.exit(failed ? 1 : 0);
