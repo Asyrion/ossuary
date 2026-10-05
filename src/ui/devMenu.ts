@@ -46,7 +46,7 @@ import { obolFace, obolFaces, setObolFace } from '../items/obolFace';
 import { disposeTree } from '../render/materials';
 import { makeEnemy, spawnFoe } from '../actors/enemies';
 import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
-import { assetList, assetsOn, setAssetsOn } from '../assets/models';
+import { assetList, assetsOn, madeLookNow, madeLooks, setAssetsOn, setMadeLook, type MadeLook } from '../assets/models';
 import { setCloseUp } from '../render/renderer';
 import { LINES, drawnRows, pixelLook, setPixelLook } from '../render/pixelLook';
 import { heroPixel, setHeroPixel } from '../actors/heroPixel';
@@ -99,7 +99,7 @@ import { CREATURES, CREATURE_LOOKS, creatureLook, roarNow, setCreatureLook, show
 import { THEMES } from '../world/themeData';
 
 const S = STR.dev;
-let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
+let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, madeLookBtn: HTMLButtonElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
 let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, runesBtn: HTMLButtonElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement, creatureLookBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries', 'sound'] as const;
@@ -175,6 +175,9 @@ export function rebuildFloor() {
   if (G.run.bossesMet.at(-1) === G.run.boss) G.run.bossesMet.pop(); // (built again, the floor draws the same boss)
   buildFloor(G.run.floor); warp(id);
 }
+
+/** The made assets drawn in look `l` (their texture as pixel art, or as made) on this floor and from now on, to compare. */
+export function useMadeLook(l: MadeLook) { setMadeLook(l, G.rooms.map(r => r.group)); }
 
 /** The obols wear another coin face (or the rune): those lying in the room and the HUD's counter change with them. */
 export function wearFace(id: string) { setObolFace(id); restyleObols(); renderPurse(); }
@@ -465,6 +468,8 @@ function build() {
   assets.append(
     assetBox = el('div', 'dv-info'),
     assetBtn = btn('', () => useAssets(!assetsOn())),
+    // (2026-10-05, the owner: every Tripo model wears its texture as pixel art; the props and artifacts as made, to compare)
+    madeLookBtn = btn('', () => useMadeLook(madeLookNow() === 'texel' ? 'made' : 'texel')),
     btn(S.showAssets, () => { closeDev(); showAssetsHere(); }),
     obolBtn = btn('', () => { const all = obolFaces(); wearFace(all[(all.indexOf(obolFace()) + 1) % all.length]); refresh(); }),
     fpsBtn = btn('', () => { DEV.fps = !DEV.fps; }),
@@ -577,6 +582,7 @@ function refresh() {
   assetBox.replaceChildren(...(list.length ? list.map(a => el('div', '', S.assetRow(a.where, S.assetStatus[a.status], a.triangles))) : [el('div', '', S.noAssets)]));
   obolBtn.textContent = S.obolWears(S.coinFaces[obolFace()] ?? obolFace()); obolBtn.disabled = obolFaces().length < 2;
   assetBtn.textContent = assetsOn() ? S.assetsOn : S.assetsOff; assetBtn.classList.toggle('on', assetsOn()); assetBtn.disabled = !list.some(a => a.status === 'loaded');
+  madeLookBtn.textContent = S.madeLooks[madeLookNow()]; madeLookBtn.classList.toggle('on', madeLookNow() !== 'texel'); madeLookBtn.disabled = !assetsOn() || !madeLooks();
   kitBtn.textContent = DEV.roomKit ? S.kitNew : S.kitOld; kitBtn.classList.toggle('on', DEV.roomKit);
   for (const part of KIT_PARTS) {
     const b = kitPartBtns[part], kind = cur.look.kinds?.[part];

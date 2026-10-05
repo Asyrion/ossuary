@@ -3002,7 +3002,7 @@ test('spell knowledge: a page shows its spell as far as it is known, learning an
 test('made assets: the stand-ins load through the manifest and replace their placeholders, and turn off to compare', async ({ page }) => {
   type Info = { where: string; status: string; triangles?: number };
   type Rock = { urn?: string; mesh?: { traverse(f: (o: { name: string; material?: { isMeshToonMaterial?: boolean; map?: { magFilter: number } } }) => void): void } };
-  type GA = { sim(sec: number, draw?: boolean): void; assets: { on: boolean; list: Info[] }; useAssets(on: boolean): void; showAssets(): void;
+  type GA = { sim(sec: number, draw?: boolean): void; assets: { on: boolean; list: Info[] }; useAssets(on: boolean): void; showAssets(): void; madeLook: string; setMadeLook(l: string): void;
     current: { rocks: Rock[]; spots: { visual: { traverse(f: (o: { name: string }) => void): void } }[] } };
   const errors = await start(page, '?seed=K3F9QX&give=ember_sigil&assets=/tests/fixtures/assets/assets.json');
   const look = () => page.evaluate(() => {
@@ -3018,6 +3018,12 @@ test('made assets: the stand-ins load through the manifest and replace their pla
   expect(list.find(a => a.where === 'props.urn')!.triangles).toBeLessThanOrEqual(2000); // (lowered to its budget by prepare-asset)
   expect(await look()).toEqual({ on: true, urns: [true, true], texel: [true, true], sigil: true, icon: true });
   await page.screenshot({ path: 'test-results/assets-made.png' });
+  // the comparison (the Look tab's "Made assets wear"): their texture as made in this room and in those placed after, then back
+  await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.setMadeLook('made'); g.showAssets(); g.sim(.2, true); });
+  expect(await page.evaluate(() => (window as unknown as { __game: GA }).__game.madeLook)).toBe('made');
+  expect(await look()).toMatchObject({ on: true, texel: [false, false, false, false] });
+  await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.setMadeLook('texel'); g.sim(.2, true); });
+  expect(await look()).toMatchObject({ texel: [true, true, true, true] });
   // off: the floor is built again with the placeholders
   await page.evaluate(() => { const g = (window as unknown as { __game: GA }).__game; g.useAssets(false); g.showAssets(); g.sim(.3, true); });
   expect(await look()).toEqual({ on: false, urns: [false, false], texel: [false, false], sigil: false, icon: false });
