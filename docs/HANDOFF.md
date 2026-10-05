@@ -6,8 +6,8 @@ Delete it, or write it again, at the next handoff.
 
 ## The branch and what is live
 
-- Work is on **`claude/m6-plan-docs-5gjp6c`** (the session branch `claude/m6-plan-docs-5gjp6c-htduau` kept the same; push
-  both). GitHub prints "Cannot update this protected ref" on a push that went through: check `git log -1 origin/<branch>`.
+- Work is on **`claude/m6-plan-docs-5gjp6c`** (since 2026-10-05 the session branch `claude/m7-descent-vigil-plan-8i27rp`
+  is kept the same; push both). GitHub prints "Cannot update this protected ref" on a push that went through: check `git log -1 origin/<branch>`.
 - **`main` (the live Pages site)** has M4.12 whole and M6 steps 1 to 9, shipped 2026-10-03 in
   [Asyrion/ossuary#36](https://github.com/Asyrion/ossuary/pull/36), and another session's owlbear made in Tripo on top.
 - On the branch only, **not shipped**: M6 steps 10 to 13 (the waystone room, the shrine's bargain, the run around it with
@@ -34,15 +34,16 @@ Delete it, or write it again, at the next handoff.
 
 ## What comes next
 
-**M7 Descent and the Vigil** (GDD: Roadmap; RPG progression, Between runs: the Vigil). Plan it with the owner first, in
-plan mode, as every milestone was: a `docs/M7-plan.md` with decisions, pieces and steps, approved before any code. What the
-GDD already holds: the final boss; the hub between runs (shades freed in runs become its townspeople with a small dialogue
-system, or are bound as a familiar for one run; it unfolds to the spells the mage knows; the Great Circle of vows, gifts and
-omens before a run; the Ferryman's crossing as the way down; echoes of past runs; grimoire, bestiary and disciplines);
-permanent upgrades (options first, a few powers, offset by deeper floors and the vows). What M7 takes over from the
-browser's `localStorage`: spell knowledge (`ossuary.knowledge`), the bestiary (`ossuary.bestiary`), reactions, weaves and
-recipes found. The lore it may use: the Vigil at the cave mouth and Kaelith the Shadow Sentinel (adopted from the owner's
-lore drop for M7); the rest of the owner's names wait for M8.
+**M7 Descent and the Vigil is planned**: `docs/M7-plan.md`, approved 2026-10-05. The owner took Claude's recommendation on
+all four questions: Kaelith first, waiting in the Seal below floor 5 (a fixed level of three rooms); Arcane Dust and the
+obols carried home; all six of the Vigil's extras. The plan's other proposals went with it. Thirteen steps, Part A (the Seal,
+Kaelith's fight, daylight) before Part B (the keeping, the Vigil as a place, chained shades, townspeople and dialogue,
+gifts and powers, the unfolding, the Great Circle and the Ferryman, echoes, the grimoire and the rest, the close). Steps
+marked (P) in the plan (2, 5, 7 and 10) are planned with the owner in plan mode before any code, as M6's were. **Next:
+step 1, the Seal**; stop for the owner before step 2 (Kaelith's look sheet and fight).
+
+`main` was merged into the branch on 2026-10-05 (another session's work: the Chameleon Wyvern, the texel bake, the game's
+first sound files, the dev menu's fixes), so both session branches carry everything; 434 unit tests green after it.
 
 ## How M6's steps went (the routine that worked)
 
