@@ -33,7 +33,7 @@ export interface FloorLook {
   floor: { base: RGB; mortar: string; stain: string; decor: 'bones' | 'puddles' | 'ash' | 'wax'; bones: number };
   wall: { brick: RGB; mortar: string; stains: 'none' | 'moss' | 'soot' | 'gilt' | 'salt'; dress?: WallDress };
   /** The floor's lights: the wall torch's old style, its flame and light, and the wax of its candles (the room kit's). */
-  torch: { style: 'bracket' | 'lantern' | 'brazier'; flame: string; light: string; intensity: number; wax?: string };
+  torch: { style: 'bracket' | 'lantern' | 'brazier'; flame: string; light: string; intensity: number; wax?: string; /** M7: a candle stand's own flame and light, where they differ from the wall lights' (the Seal's warm candles under its violet lights) */ candle?: [string, string] };
   /** Hemisphere sky and ground colours, and the moonlight. */
   light: { sky: string; ground: string; moon: string };
   /** The floor's pottery: an urn's clay and its painted bands (the room kit's urns). */

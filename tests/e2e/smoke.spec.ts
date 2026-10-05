@@ -4884,10 +4884,10 @@ test('Kaelith (M7 step 2): the Sentinel stalks, sweeps, fires and steps through 
     const held = (() => { const b = boss(), s = stands[0]; P.x = s.x + .8; P.z = s.z; b.state = 'pull'; b.st = 1.5; const x0 = P.x, z0 = P.z; g.sim(.5); return { moved: Math.hypot(P.x - x0, P.z - z0), safe: g.kaelith.safe }; })();
     const p3 = g.kaelith;
     const i = g.enemies.findIndex(e => e.isBoss); g.enemies[i].hidden = false; g.hit(i, 99999, 'hallow'); g.sim(1, true);
-    const fell = { kaelith: g.kaelith, banner: document.querySelector('#banner .t').textContent, way: g.wayDown };
+    const fell = { kaelith: g.kaelith, banner: document.querySelector('#banner .t').textContent, way: g.wayDown, clear: Math.hypot(g.kaelithKnelt.x - g.wayDown.x, g.kaelithKnelt.z - g.wayDown.z) };
     P.x = fell.way.x; P.z = fell.way.z; g.sim(.5);
     return { bar, banner1, states: [...states], p1, banner2, p2, hit, horde, reel, banner3, pulled, held, p3, fell, state: g.state };
-  })()`) as { bar: number; banner1: string; states: string[]; p1: K; banner2: string; p2: K; hit: number; horde: number; reel: K; banner3: string; pulled: number; held: { moved: number; safe: boolean }; p3: K; fell: { kaelith: K; banner: string; way: { room: string } }; state: string };
+  })()`) as { bar: number; banner1: string; states: string[]; p1: K; banner2: string; p2: K; hit: number; horde: number; reel: K; banner3: string; pulled: number; held: { moved: number; safe: boolean }; p3: K; fell: { kaelith: K; banner: string; way: { room: string }; clear: number }; state: string };
   expect(r.bar).toBe(2); expect(r.banner1).toBe('Kaelith'); // (its bar marks the phases)
   expect(r.p1!.phase).toBe(1); expect(r.states).toEqual(expect.arrayContaining(['stalk', 'windSweep', 'windVolley', 'sink', 'gone', 'rise']));
   expect(r.banner2).toBe('The seal cracks');
@@ -4898,7 +4898,7 @@ test('Kaelith (M7 step 2): the Sentinel stalks, sweeps, fires and steps through 
   expect(r.reel!.wards.every(w => w.shut)).toBe(true); expect(r.reel).toMatchObject({ state: 'reel', guard: 1.5 });
   expect(r.banner3).toBe('The last light'); expect(r.p3).toMatchObject({ phase: 3, sun: true });
   expect(r.pulled).toBeGreaterThan(.3); expect(r.held.safe).toBe(true); expect(r.held.moved).toBeLessThan(.15);
-  expect(r.fell).toMatchObject({ kaelith: null, banner: 'The seal holds', way: { room: 'boss' } });
+  expect(r.fell).toMatchObject({ kaelith: null, banner: 'The seal holds', way: { room: 'boss' } }); expect(r.fell.clear).toBeGreaterThan(3); // (it kneels clear of the way out)
   expect(r.state).toBe('end');
   expect(errors).toEqual([]);
 });

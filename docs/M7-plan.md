@@ -348,6 +348,16 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
      - browser: the whole fight, start to fall: its states, the wards woken in the held schools, a quarter of a blow, the
        horde, all four shut and the reel, the dark, the pull and the candle's safety, the kneeling, the run won;
      - the step-1 test's boss is Kaelith now.
+   - **The room inspector:**
+     - **Blocking, fixed:** the kneeling figure sat on the way out at the hall's middle. It now kneels where it fell unless
+       that lies within 4.4 of the middle (`kneelClear`), and then out past the way out, the heart, the page and the gifts.
+       The browser test holds it more than three tiles from the way out.
+     - **Polish taken:**
+       - in the last light each unlit candle stand shows a wick's warm glow, so it can be found in the dark;
+       - the Seal's candles burn warm (`candle` in a floor look's `torch`), not in the violet of its wall lights, which read
+         like Kaelith's shots.
+     - **Left:** `?room=seal_kaelith` without `&boss=kaelith` shows the pillars as plain sapping obelisks (only in the dev
+       path).
 3. **Daylight.**
    - Kaelith kneels and a shaft of light opens. Stepping in plays the cave mouth at dawn, built in code in the pixel look:
      the terrace's edge, the valleys in layered silhouettes, mist and falling water.

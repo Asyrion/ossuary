@@ -341,7 +341,7 @@ const BRAZIERS: Record<BrazierKind, BrazierBuild> = {
     the crypt's warm, the drowned's pale on tallow, the burning's on dark red wax). `flames` (every candle's flame and the
     glow) shows once lit. */
 export function candleStandLook(R: () => number, t?: FloorLook['torch']) {
-  const pal = t ? torchPalette(t) : CANDLE_FIRE, wax = t?.wax ? waxFor(t.wax) : MAT.wax;
+  const pal = t?.candle ? firePalette(new THREE.Color(t.candle[0]).getHex(), new THREE.Color(t.candle[1]).getHex()) : t ? torchPalette(t) : CANDLE_FIRE, wax = t?.wax ? waxFor(t.wax) : MAT.wax;
   const g = new THREE.Group(), flames = new THREE.Group();
   mesh(g, GEO.foot, MAT.iron, 0, .025, 0);
   for (let i = 0; i < 3; i++) { const a = i / 3 * Math.PI * 2 + Math.PI / 2; mesh(g, GEO.claw, MAT.iron, Math.cos(a) * .2, 0, Math.sin(a) * .2).scale.setScalar(.8); }

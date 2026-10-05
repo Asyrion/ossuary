@@ -1,6 +1,6 @@
 /* Boot: wire input and UI, build the floor, load the hero, start the loop, expose dev hooks. */
 // fonts are bundled with the game (Fontsource), so starting it makes no requests to Google
-import { kaelithInfo, kaelithToPhase, shutAllWards } from './actors/kaelith';
+import { kaelithInfo, kaelithToPhase, kneltAt, shutAllWards } from './actors/kaelith';
 import { kaelithLookNow, setKaelithLook } from './actors/kaelithLooks';
 import '@fontsource/cinzel/400.css';
 import { POTION_IDS, isPotion, type PotionId, type ReagentId } from './items/alchemyData';
@@ -418,7 +418,7 @@ function installDevHooks() {
     callWanderer() { callWanderer(); }, get wanderer() { return wandererState(); },
     /** M4.2: the Pillar Dragon's pillars, whether it is on one, how high its head is, and whether the pillars it raised are up. */
     get dragon() { return dragonInfo(); },
-    get kaelith() { return kaelithInfo(); }, kaelithToPhase, shutAllWards, kaelithLook: () => kaelithLookNow(), setKaelithLook: (l: 'hooded' | 'winged') => setKaelithLook(l), // (M7 step 2: Kaelith's fight and its two looks)
+    get kaelith() { return kaelithInfo(); }, get kaelithKnelt() { return kneltAt; }, kaelithToPhase, shutAllWards, kaelithLook: () => kaelithLookNow(), setKaelithLook: (l: 'hooded' | 'winged') => setKaelithLook(l), // (M7 step 2: Kaelith's fight and its two looks)
     /** M4.2: Fen-Nex (its stage, where it is, whether it hunts), and growing it a stage. */
     get fennex() { return fennexInfo(); }, growFennex() { growFennex(); },
     /** Fire, frost or shock landing at (x, z), as a spell's would: lights braziers and candles, charges rune stones,
