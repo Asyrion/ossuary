@@ -74,7 +74,7 @@ export const CFG = {
       sweep: { tell: .7, count: 9, spread: 1.7, speed: 4, hex: 6 }, volley: { tell: .45, count: 3, spread: .5, speed: 4.2, every: .4, hex: 8 },
       step: { sink: .5, gone: .8, rise: .4, near: 2.2, far: 4.2, light: 2.4, cuts: 8, cutSpeed: 3.2 },
       guard: .25, holdVolley: 2.4, crackEvery: 5, hordeMax: 4, reel: 4, open: 1.5,
-      pullEvery: 7, pullTime: 2, pull: 2.4, candleSafe: 2.2, ring: { count: 16, speed: 3.2 } },
+      pullEvery: 7, pullTime: 2, pull: 2.4, candleSafe: 2.2, ring: { count: 16, speed: 3.2 }, kneelClear: 4.4 }, // (kneelClear: how far from the hall's middle it kneels, clear of the way out and the gifts)
     twins: { hp: 65, r: .9, speed: 1.1, keep: 1.5, shieldContact: 1, weak: 'frost' as const, resist: 'hallow' as const, wake: 3.2, apart: 3.4, swap: 6, guardSpeed: 2.8, wardNeed: 45, wardSize: 1.3, pause: 1.4,
       slam: { tell: .65, count: 12, speed: 3, reach: 1.9, hurt: 1 }, gaze: { tell: .7, count: 6, every: .1, speed: 5.5 }, rage: { speed: 1.4, quick: .7 } },
   },

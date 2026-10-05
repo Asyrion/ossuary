@@ -35,10 +35,12 @@ import { phaseOf, sealWards, type KaelithPhase } from './kaelithData';
 import { mulberry } from '../util';
 import { SPELL_DEFS } from '../magic/spellData';
 
-const C = CFG.enemy.kaelith, U = SCHOOL_LIGHT.umbral;
+const C = CFG.enemy.kaelith, U = SCHOOL_LIGHT.umbral, CANDLE_WICK = 0xffb060;
 /** The fight's own state, beside the foe's (one Kaelith at a time). */
 interface Fight { e: Enemy; phase: KaelithPhase; wards: PropBox[]; cracks: Map<PropBox, number>; pull: number; sun: THREE.Group | null; said: Set<string>; roles: number }
 let fight: Fight | null = null;
+/** Where it knelt (the browser tests read it: clear of the way out). */
+export let kneltAt: { x: number; z: number } | null = null;
 
 /** Build Kaelith in the look the owner's switch names; its hall's ward pillars go dormant until the seal cracks. */
 export function buildKaelith(e: Enemy) {
@@ -191,6 +193,7 @@ function enterPhase(e: Enemy, to: KaelithPhase) {
     banner(S.lastLight, ''); Sfx.at(e.x, e.z).eclipsePull();
     if (!G.current.candlesLit) setDarkness(1);
     f.sun = blackSun(); e.group.add(f.sun);
+    for (const b of G.current.props ?? []) if ((b.prop.kind === 'candles' || b.prop.kind === 'wetCandles') && !b.prop.lit) { const w = glow(CANDLE_WICK, .7, .45); w.position.y = 1; b.prop.mesh.add(w); } // (a wick's glow on each unlit stand: the candles must be found in the dark)
     e.state = 'windPull'; e.st = .8;
   }
 }
@@ -234,12 +237,16 @@ function blackSun() {
 
 /** Kaelith kneels where it fell (`onBossDead`): a figure of its look, posed kneeling, its eyes dim, stays in its hall; the dark
     lifts. */
-export function kaelithKneels(at: { x: number; z: number }) {
+export function kaelithKneels(fell: { x: number; z: number }) {
   const room = G.current, L = kaelithLook(kaelithLookNow()), P = L.parts;
+  // (it kneels where it fell, unless that is where the way out, the heart, the page and the gifts are laid round the hall's
+  // middle: then out past them, on its side of the middle, or north of it)
+  let at = fell; const dx = fell.x - room.cx, dz = fell.z - room.cz, d = Math.hypot(dx, dz);
+  if (d < C.kneelClear) at = freeSpotNear(room, room.cx + (d > .5 ? dx / d : 0) * C.kneelClear, room.cz + (d > .5 ? dz / d : -1) * C.kneelClear);
   L.idle(0);
   P.body.position.y = -.5; P.body.rotation.x = .28; P.head.rotation.x = .55; P.blade.rotation.x = .9; P.hand.rotation.x = -.6; P.eye.scale.setScalar(.35);
   P.ring.visible = false; P.halo.material.opacity = .12;
-  L.group.position.set(at.x - room.cx, 0, at.z - room.cz); room.group.add(L.group);
+  L.group.position.set(at.x - room.cx, 0, at.z - room.cz); room.group.add(L.group); kneltAt = { x: at.x, z: at.z };
   setDarkness(0); Sfx.at(at.x, at.z).kneel();
   line(STR.bosses.kaelith.kneels, 5);
   if (fight) { wardHooks.shut = undefined; fight = null; }
