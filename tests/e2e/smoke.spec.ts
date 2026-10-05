@@ -445,7 +445,7 @@ test('the Hollow Warden wears the Owlbear, its shots in Hallow\'s light, and can
   expect(fight.states).toEqual(expect.arrayContaining(['walk', 'windAim', 'windBurst', 'volley']));
   // the dev menu's gallery stands every boss built in code
   const ids = await page.evaluate(() => { const g = (window as unknown as W).__game as G2, ids = g.bossLooks().map(o => o.id); g.sim(.2, true); return ids; });
-  expect(ids).toEqual(['warden', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins', 'serpent']); // (the bosses of floors 2 and 3, remade in code, of floors 4 and 5, M4.1, the Eda lore's, M4.2, and the jelly serpent, M5)
+  expect(ids).toEqual(['warden', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins', 'serpent', 'kaelithHooded', 'kaelithWinged']); // (the bosses of floors 2 and 3, remade in code, of floors 4 and 5, M4.1, the Eda lore's, M4.2, the jelly serpent, M5, and Kaelith's two looks, M7)
   expect(errors).toEqual([]);
 });
 
