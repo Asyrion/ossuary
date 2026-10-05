@@ -42,6 +42,9 @@ let fight: Fight | null = null;
 /** Where it knelt (the browser tests read it: clear of the way out). */
 export let kneltAt: { x: number; z: number } | null = null;
 
+/** A new floor (and so a new run) forgets the last fight: a death to Kaelith leaves nothing for the next run to read. */
+export function resetKaelith() { fight = null; kneltAt = null; wardHooks.shut = undefined; }
+
 /** Build Kaelith in the look the owner's switch names; its hall's ward pillars go dormant until the seal cracks. */
 export function buildKaelith(e: Enemy) {
   const L = kaelithLook(kaelithLookNow()), P = L.parts;
@@ -188,7 +191,7 @@ function enterPhase(e: Enemy, to: KaelithPhase) {
     e.state = f.wards.length ? 'toSeal' : 'stalk'; e.st = 0; // (a hall without its pillars, the dev menu's: no seal to hold)
   }
   if (to === 3) { // the last light
-    f.phase = 3; e.guard = 1; e.parts!.hand.rotation.x = 0; e.parts!.body.position.y = 0;
+    f.phase = 3; e.guard = 1; e.hidden = false; e.contact = 2; e.parts!.hand.rotation.x = 0; e.parts!.body.position.y = 0;
     for (const w of f.wards) if (!w.prop.broken) { sealWard(w); f.cracks.delete(w); } // (the cracks close, the wards go dark: the seal's fight is over)
     banner(S.lastLight, ''); Sfx.at(e.x, e.z).eclipsePull();
     if (!G.current.candlesLit) setDarkness(1);
@@ -201,12 +204,11 @@ function enterPhase(e: Enemy, to: KaelithPhase) {
 /** The four wards still open let the horde out of their cracks. */
 function updateCracks(e: Enemy, dt: number) {
   const f = fight!, cur = G.current, floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
-  const alive = G.enemies.filter(s => s.servant && !s.dead).length;
   for (const [w, t] of f.cracks) {
     const left = t - dt; f.cracks.set(w, left);
     if (left > 0) continue;
     f.cracks.set(w, C.crackEvery);
-    if (alive >= C.hordeMax) continue;
+    if (G.enemies.filter(s => s.servant && !s.dead).length >= C.hordeMax) continue; // (counted only when a crack is due)
     const role = (['R', 'W', 'H'] as Role[])[f.roles++ % 3], at = freeSpotNear(cur, w.x, w.z + 1.2);
     burst(at.x, .2, at.z, SCHOOL_LIGHT[w.prop.ward ?? 'umbral'], 16, 2.2, .05); Sfx.at(at.x, at.z).rubble();
     makeEnemy(callFoe(floor.foes, role, Math.random), at.x, at.z, floor.enemyHp).servant = true;

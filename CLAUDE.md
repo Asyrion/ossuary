@@ -197,7 +197,7 @@ generated three-floor runs. See `README.md` for scripts and deployment.
 - URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
-  every floor's boss that one (warden, abbess, pyre, hart, angler, tiger, dragon, twins, serpent), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
+  every floor's boss that one (warden, abbess, pyre, hart, angler, tiger, dragon, twins, serpent, kaelith), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
   keys and glyphs, `?spells=arc` starts with spells in the slots, `?potions=healing,hexBrew` with potions in the belt (M5), `?level=5` starts at that level (M6; `?level=auto` at the `?floor`'s expected level), `?boons=deepWinter:2,coldSnap` with boons taken (M6), `?runes=q:quicken,e:lasting+vein` carves runes into the slots (M6), `?looks=new` dresses every foe in its new look, approved or not (`old`: the old looks still waiting; M4.12), `?theme=ossuary` puts every fight in one theme's rooms, `?foe=sporeling` fills every fight with one foe in code, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=texel`, the default, or `fine`, or `1080`, `720`, `540`, `360` or `270` sets its grid), `?kit=old` builds the rooms in the old look (before the room kit). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
   vault, a secret room (behind a cracked wall), a shrine (`?room=shrine_henge`) or a library
   (`?room=library_plain`) or Dr. Jelly's laboratory (`?room=lab_plain`) or a waystone room (`?room=waystone_plain`) next to the start.
@@ -640,7 +640,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   until the owner chooses; `KAELITH_GALLERY`), tuning `CFG.enemy.kaelith`, lines `STR.bosses.kaelith`. Its ward pillars are
   `seal_kaelith`'s obelisks made dormant (`sealWard`, `wakeWard`, `wardHooks` in mechanisms.ts, `prop.seal`); the boss bar's
   marks are `bossBarMarks` (hud.ts); a boss's own theme is `bosses` in data/music.json (`BOSS_PIECES`). `npm run foe-sheet --
-  bosses=a,b` shoots boss looks. Dev menu: Rooms & runs, "Kaelith's fight"; Look, "Kaelith's look"; `?boss=kaelith`.
+  bosses=a,b` shoots boss looks. Dev menu: Rooms & runs, "Kaelith's fight"; Look, "Kaelith's look"; `?boss=kaelith`. `__game.kaelith` (its phase,
+  wards, pull and dark), `kaelithKnelt`, `kaelithToPhase(n)`, `shutAllWards()`, `kaelithLook()`, `setKaelithLook(l)`;
+  `resetKaelith` (from `buildFloor`) forgets the fight on every new floor and run.
 - Spell effect options (`src/magic/effectOptions.ts`, the owner's request): the spells' effects redone in the same style,
   each a looping demo of one cast worked out from the time (the cantrip, Cinder Lance, Pyre Seal, Rime Shards, Glacial
   Wall, Arc, Static Mantle, Shatter, Overload, and previews of Hallow and Umbral); the dev menu plays them ahead of the
