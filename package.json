@@ -12,6 +12,7 @@
     "prepare-asset": "tsx tools/prepare-asset.ts",
     "prepare-texture": "tsx tools/prepare-texture.ts",
     "prepare-sound": "tsx tools/prepare-sound.ts",
+    "viewer-sounds": "tsx tools/viewer-sounds.ts",
     "compare": "tsx tools/compare-prototype.ts",
     "inspect": "tsx tools/inspect-rooms.ts",
     "review-checks": "tsx tools/review-checks.ts",

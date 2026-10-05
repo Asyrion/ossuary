@@ -21,7 +21,7 @@ in. For generated assets, name the tool and the plan it was made on, since right
 | Asset | Source | Licence |
 | --- | --- | --- |
 | All sound effects but those below | Synthesised in code (`src/audio/sfx.ts`, `src/audio/creatureSounds.ts`) | Own work |
-| `public/assets/sounds/chameleon/growl_1.ogg`, `screech_1.ogg`, `slam_1.ogg`, `slam_2.ogg` | Synthesised in code by the owner's EDA-ModelWebViewer (`web/js/sounds.js`), made at 48 kHz from its recipe, 2026-10-05 | Own work |
+| `public/assets/sounds/chameleon/growl_1.ogg`, `screech_1.ogg`, `slam_1.ogg`, `slam_2.ogg` | Synthesised in code by Azyrion's EDA-ModelWebViewer (github.com/Asyrion/EDA-ModelWebViewer, `web/js/sounds.js`), made at 48 kHz from its recipe with `tools/viewer-sounds.ts`, 2026-10-05 | Own work |
 
 ## Fonts
 
