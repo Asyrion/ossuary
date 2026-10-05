@@ -69,6 +69,10 @@ Send me a preview video before anything ships. Ship only when I say so.
 5. **Sounds.** Events name sounds in `CREATURE_SOUNDS` (`src/audio/creatureSounds.ts`). Reuse the owlbear's (`pawFront`,
    `pawRear`, `inhale`, `roar`, `slam`) or the dragonling's (`clawFront`, `clawRear`, `hiss`, `snap`, `shriek`,
    `chitter`), or add new ones. `loud` events play at `CFG.creatures.roarGain`.
+5b. **Pixel art from its texture.** `npm run texel-bake -- <id>` (animate-creature runs it too) makes the texture pixel
+   art at the size the game draws the creature: `<id>.texel.png` and `<id>.glow.png`, named in `data/creatures.json`'s
+   `texel`. Tuning is `CFG.creatures.texel`. It reads the game's file, so it needs no source model; after changing the
+   tuning or a creature's height, run it again (`-- all` for every creature).
 6. **Preview.** With `npm run dev` running, `npm run creature-preview -- <id>` writes `creature-previews/<id>.mp4`.
 7. **Dev menu.** Add a name in `STR.dev.creatureNames`; the menu lists creatures from the data by itself. It's under
    Galleries → Animated creatures:
@@ -92,6 +96,7 @@ A creature on two legs, with wings or with no legs needs its own walk.
 | Preview | `tools/creature-preview.ts` and `.html` |
 | In the game | `src/actors/madeCreatures.ts`, `CFG.creatures`, `bakeHeroPixel` in `src/actors/heroPixel.ts` |
 | Sounds | `src/audio/creatureSounds.ts` |
+| Pixel art from its texture | `tools/texel-bake.ts`, `src/render/texelBake.ts`, `src/actors/texturePixel.ts`, `CFG.creatures.texel` |
 | Tests | `tests/unit/creatureTools.test.ts`; the browser test "a creature made in Tripo…" |
 
 **Next:** a creature that fights would get a behaviour in `foes.ts` or `bosses.ts`, playing `walk` while it moves and its

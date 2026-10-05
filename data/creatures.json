@@ -60,7 +60,14 @@
         ]
       }
     },
-    "budget": "boss"
+    "budget": "boss",
+    "texel": {
+      "file": "assets/creatures/owlbear.texel.png",
+      "glow": "assets/creatures/owlbear.glow.png",
+      "side": 256,
+      "colours": 24,
+      "glowing": 0
+    }
   },
   "dragonling": {
     "file": "assets/creatures/dragonling.glb",
@@ -132,6 +139,13 @@
         ]
       }
     },
-    "budget": "boss"
+    "budget": "boss",
+    "texel": {
+      "file": "assets/creatures/dragonling.texel.png",
+      "glow": "assets/creatures/dragonling.glow.png",
+      "side": 256,
+      "colours": 24,
+      "glowing": 147
+    }
   }
 }
