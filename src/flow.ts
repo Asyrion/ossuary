@@ -38,7 +38,7 @@ import { banner, fadeFromBlack, hideBossBar, renderHearts, renderMinimap, resetH
 import { resetAfflictions } from './ui/afflictions';
 import { warnFloor } from './world/curve';
 import { arriveAtSeal, atSeal, enterSealRoom } from './world/seal';
-import { kaelithKneels } from './actors/kaelith';
+import { kaelithKneels, resetKaelith } from './actors/kaelith';
 import { pilgrimMap, resetGifts } from './items/gifts';
 import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
@@ -110,7 +110,7 @@ export function buildFloor(index: number) {
   const start = G.rooms[plan.startId];
   G.current = start; player.x = start.cx; player.z = start.cz + .6; player.vx = player.vz = 0;
   aimCamera(start); setDarkness(0, true);
-  G.trans = null; hideBossBar();
+  G.trans = null; hideBossBar(); resetKaelith(); // (M7: no fight of Kaelith's outlives its floor)
   enterRoom(start); pilgrimMap(); // (M4.6: the Pilgrim knows the floor's way)
   if (G.state === 'play') { banner(...STR.floors[Math.min(index, STR.floors.length - 1)]); warnFloor(index); if (atSeal(index)) arriveAtSeal(); } // (M4.9: a floor that walls off the mage's one school says so; M7: Kaelith speaks at the Seal)
 }

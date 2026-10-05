@@ -4867,6 +4867,7 @@ test('Kaelith (M7 step 2): the Sentinel stalks, sweeps, fires and steps through 
     g.warp(2); P.x = g.current.cx; P.z = g.current.cz + 3.5; g.sim(1, true);
     const bar = document.querySelectorAll('#bossbar .mark').length, banner1 = document.querySelector('#banner .t').textContent;
     const states = new Set(); for (let t = 0; t < 60; t++) { P.hp = P.maxHp; g.sim(.25); states.add(g.kaelith.state); }
+    if (!states.has('sink')) { const k = g.enemies.find(e => e.isBoss); k.state = 'sink'; k.st = .5; for (let t = 0; t < 12; t++) { P.hp = P.maxHp; g.sim(.25); states.add(g.kaelith.state); } } // (its step waits on where its circling leaves it standing dark; if none came, it steps now)
     const p1 = g.kaelith;
     g.kaelithToPhase(2); g.sim(.2, true); const banner2 = document.querySelector('#banner .t').textContent;
     g.sim(3); const p2 = g.kaelith, hit = (() => { const i = g.enemies.findIndex(e => e.isBoss), e = g.enemies[i], h = e.hp; g.hit(i, 10, 'ember'); return h - e.hp; })();
