@@ -817,10 +817,10 @@ export const STR = {
     } as Record<string, string>,
     fpsOn: 'Frame readout: shown', fpsOff: 'Frame readout: hidden',
     /** M4.12: the foes' looks, old and new. */
-    lookPairs: 'Fantasy foes (M4.12): old and new looks side by side, a floor at a time (a great hall holds a floor\'s)', noNewLooks: 'No new looks yet on this floor',
+    lookPairs: 'Fantasy foes (M4.12): old and new looks side by side, a floor at a time (a great hall holds a floor\'s)', noNewLooks: 'No new looks yet on this floor', noLooksWaiting: 'Every new look is approved, so there is nothing to compare: these wait for the next new look',
     floorLooks: (f: number) => f ? `Floor ${f}` : 'Ward cores', allLooks: 'Every floor',
-    foeLooks: { approved: 'Foe looks: as approved (the game)', new: 'Foe looks: every new one (to try)', old: 'Foe looks: the old ones still waiting on a yes (to compare)' } as Record<string, string>,
-    pads: 'Gamepads', readPads: 'Read the pads again', noPads: 'No gamepad heard: press one of its buttons with this page in front (a browser shows a pad only after that)',
+    foeLooksAllApproved: 'Foe looks: every new look approved (nothing to compare)', foeLooks: { approved: 'Foe looks: as approved (the game)', new: 'Foe looks: every new one (to try)', old: 'Foe looks: the old ones still waiting on a yes (to compare)' } as Record<string, string>,
+    pads: 'Gamepads', noPads: 'No gamepad heard: press one of its buttons with this page in front (a browser shows a pad only after that)',
     padRow: (i: number, id: string, mapping: string, buttons: number[], axes: number[]) => `Pad ${i}: ${id} · ${mapping === 'standard' ? 'standard layout' : 'unusual layout'} · held: ${buttons.length ? buttons.join(', ') : 'nothing'} · sticks: ${axes.slice(0, 4).join(' ')}`,
     artifactGallery: 'Artifacts (the room kit\'s: built in code, their icons rendered from them)', artifactsNote: 'Every artifact floating ahead of the mage in rows (foci, passives, cursed), to look at; they can\'t be taken',
     /** Dr. Jelly (2026-10-02): the plague doctor (the owner's pick of three) and what he hands over. */

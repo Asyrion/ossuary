@@ -2357,6 +2357,7 @@ test('the dev menu opens on its key, pauses the game, and hands out what it list
   await expect(page.locator('#dev button', { hasText: 'Secret room (hidden)' })).toBeVisible();
   await click('Open the secret room');
   await expect(page.locator('#dev button', { hasText: /^Secret room$/ })).toBeVisible();
+  await expect(page.locator('#dev button', { hasText: 'Open the secret room' })).toHaveCount(0); // (open: nothing left to open)
   await page.keyboard.press('Escape'); // closes the menu (not the pause screen) and the game goes on
   await expect(page.locator('#dev')).toBeHidden();
   expect(await page.evaluate(() => (window as unknown as W).__game.state)).toBe('play');
