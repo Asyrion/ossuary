@@ -280,6 +280,8 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
        a hole;
      - pale wax on the candle stands, which were hard to find on the dark floor;
      - a smaller glow on the `shard` light, which hid the shard and the glyphs round it.
+   - **The suites:** 441 unit tests and 130 browser tests green. Two browser tests had counted the run as five floors ("1 of 5"
+     on the end screen, the Shore's boss winning), and now count the Seal.
 2. **(P) Kaelith's fight.**
    - The look sheet comes first: three looks for the owner.
    - Then `src/actors/kaelith.ts` (new), in the boss plug-in shape: `kaelith` in `BOSS_TYPES`, in no pool but the Seal's,
