@@ -199,7 +199,7 @@ for (const boss of ['abbess', 'pyre']) test(`the ${boss} boss, built in code, di
   expect(errors).toEqual([]);
 });
 
-test('a run is five floors: the Gilded Reliquary and the Ferryman\'s Shore below the Scriptorium, and the Shore\'s boss wins it', async ({ page }) => {
+test('a run is five floors and the Seal: the Gilded Reliquary and the Ferryman\'s Shore below the Scriptorium, the Seal below the Shore (M7), whose boss wins it', async ({ page }) => {
   const errors = await start(page, '?seed=DEEP01&floor=3');
   type G2 = GameHooks & { descend(): void; run: { boss: string } };
   const floors = await page.evaluate(() => {
@@ -211,8 +211,8 @@ test('a run is five floors: the Gilded Reliquary and the Ferryman\'s Shore below
   });
   expect(floors.map(f => [f.floor, f.boss, f.shrines, f.banner])).toEqual([[3, expect.stringMatching(/^(hart|tiger)$/), 1, 'The Gilded Reliquary'], [4, expect.stringMatching(/^(angler|dragon)$/), 0, "The Ferryman's Shore"]]); // (a shrine on floor 4 as on floor 2; M4.2's bosses join their pools)
   await page.screenshot({ path: 'test-results/smoke-floor5.png' });
-  const end = await page.evaluate(() => { const g = (window as unknown as W).__game as G2; g.descend(); g.sim(.2); return { state: g.state, floor: document.getElementById('endFloor')!.textContent }; });
-  expect(end).toEqual({ state: 'end', floor: '5 of 5' });
+  const end = await page.evaluate(() => { const g = (window as unknown as W).__game as G2; g.descend(); g.sim(.2, true); const seal = { floor: g.floor, banner: document.querySelector('#banner .t')?.textContent }; g.descend(); g.sim(.2); return { seal, state: g.state, floor: document.getElementById('endFloor')!.textContent }; });
+  expect(end).toEqual({ seal: { floor: 5, banner: 'The Seal' }, state: 'end', floor: '6 of 6' }); // (M7: the Seal below the Shore, the last)
   expect(errors).toEqual([]);
 });
 
@@ -468,7 +468,7 @@ test('the end screen sums up the run, and replays its seed', async ({ page }) =>
   const won = await summary();
   expect(won.obols).toBeGreaterThanOrEqual(5);
   await page.screenshot({ path: 'test-results/smoke-end.png' });
-  expect(won).toMatchObject({ shown: true, floor: '1 of 5', kills: '3', seed: 'ENDRUN', carried: 2 }); // twin staff replaced the wand
+  expect(won).toMatchObject({ shown: true, floor: '1 of 6', kills: '3', seed: 'ENDRUN', carried: 2 }); // twin staff replaced the wand
   expect(won.time).toMatch(/^\d+:\d\d$/);
   expect(won.text).toMatch(/Wardens' vault.*Kaelith's seal/); // (M4.2: the setting in the text)
 
@@ -483,7 +483,7 @@ test('the end screen sums up the run, and replays its seed', async ({ page }) =>
   });
   expect(replay).toEqual({ state: 'play', seed: 'ENDRUN', after: 'end' });
   const lost = await summary();
-  expect(lost).toMatchObject({ shown: true, floor: '1 of 5', seed: 'ENDRUN', carried: 1 });
+  expect(lost).toMatchObject({ shown: true, floor: '1 of 6', seed: 'ENDRUN', carried: 1 });
   expect(lost.title).not.toBe(won.title);
   expect(lost).toMatchObject({ title: 'Asyrion fell in the vault', text: expect.stringMatching(/^Asyrion's descent ended on floor 1, The Ossuary/) });
   expect(errors).toEqual([]);
