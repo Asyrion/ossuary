@@ -597,7 +597,7 @@ function refresh() {
   autoBtn.textContent = DEV.autoLevel ? S.autoLevelOn : S.autoLevelOff; autoBtn.classList.toggle('on', !!DEV.autoLevel);
   boonInfo.textContent = S.boonsInfo(Object.entries(G.run.boons).map(([id, r]) => `${boon(id).name}${r > 1 ? ' II' : ''}`).join(', '));
   heroPxBtn.textContent = heroPixel() ? S.heroPixelOn : S.heroPixelOff;
-  creatureLookBtn.textContent = S.creatureLooks[creatureLook()]; creatureLookBtn.classList.toggle('on', creatureLook() !== 'pixel');
+  creatureLookBtn.textContent = S.creatureLooks[creatureLook()]; creatureLookBtn.classList.toggle('on', creatureLook() !== 'texel');
   foeLookBtn.textContent = S.foeLooks[DEV.foeLooks]; foeLookBtn.classList.toggle('on', DEV.foeLooks !== 'approved'); heroPxBtn.classList.toggle('on', heroPixel());
   const stages = Object.values(knowledgeNow()), count = (...st: string[]) => stages.filter(s => st.includes(s)).length;
   knowBox.textContent = S.knowledgeInfo(count('seen', 'learned', 'used', 'upgraded'), count('learned', 'used', 'upgraded'), count('used', 'upgraded'), reactionsFound().length, REACTION_IDS.length) + ' ' + S.weavesInfo(weavesFound().length, WEAVE_IDS.length);

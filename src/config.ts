@@ -366,11 +366,12 @@ export const CFG = {
   creatures: {
     lap: 1.3, walkFor: 6, restFor: 1.4, firstRest: 0.8, blend: 0.3, turn: 6, shadow: 0.55, standSide: 2.6, standSouth: 0.6, stepGain: 0.3, roarGain: 0.4,
     // the look made from its own texture (actors/texturePixel.ts, render/texelBake.ts, 2026-10-05): the texture shrunk to at
-    // least one texel a game pixel (times `detail`, a power of two within [min, max]); texels at least `glowLight` light
+    // least one texel a game pixel (times `detail`, a power of two within [min, max]; `facing`, the share of its faces
+    // turned to the camera); texels at least `glowLight` light
     // and `glowChroma` colourful (OKLab) kept where they are `glowShare` of a block, and lit at `glowGain`; its shadows
     // lifted (lightness to the power `lift`) and its `contrast` set; cut to `colours` (k-means `refine` rounds, hue counted
     // `chroma` times)
-    texel: { detail: 1, min: 64, max: 512, glowLight: 0.65, glowChroma: 0.12, glowShare: 0.2, glowGain: 0.7, lift: 0.8, contrast: 1.1, colours: 24, refine: 8, chroma: 3 },
+    texel: { detail: 1, facing: 0.5, min: 64, max: 512, glowLight: 0.65, glowChroma: 0.12, glowShare: 0.2, glowGain: 0.7, lift: 0.8, contrast: 1.1, colours: 24, refine: 8, chroma: 3 },
   },
   // the mage in the pixel-art look (actors/heroPixel.ts, 2026-10-01): its texture baked into its vertices (each the mean of
   // the texels within `sample` of where it lies) and cut down to `colours`; light in the `tones` (darkest first, a toon

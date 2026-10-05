@@ -88,15 +88,15 @@ export function liftShadows(rgb: Float32Array, lift: number, contrast = 1) {
   return rgb;
 }
 
-/** The faces' area in texels of a `w` × `h` texture and in game pixels (at `pxPerUnit` game pixels a model unit, about
-    half the faces turned to the camera): positions `pos` (three numbers a vertex), texture coordinates `uv` (two) and
-    triangles `index`. */
-export function faceAreas(pos: ArrayLike<number>, uv: ArrayLike<number>, index: ArrayLike<number>, w: number, h: number, pxPerUnit: number) {
+/** The faces' area in texels of a `w` × `h` texture and in game pixels (at `pxPerUnit` game pixels a model unit, the
+    share `facing` of them turned to the camera): positions `pos` (three numbers a vertex), texture coordinates `uv` (two)
+    and triangles `index`. */
+export function faceAreas(pos: ArrayLike<number>, uv: ArrayLike<number>, index: ArrayLike<number>, w: number, h: number, pxPerUnit: number, facing = .5) {
   let texel = 0, pixel = 0;
   for (let t = 0; t + 2 < index.length; t += 3) {
     const i = index[t], j = index[t + 1], k = index[t + 2];
     const e1 = [0, 1, 2].map(c => pos[j * 3 + c] - pos[i * 3 + c]), e2 = [0, 1, 2].map(c => pos[k * 3 + c] - pos[i * 3 + c]);
-    pixel += Math.hypot(e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]) / 2 * pxPerUnit * pxPerUnit / 2;
+    pixel += Math.hypot(e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]) / 2 * pxPerUnit * pxPerUnit * facing;
     const du1 = (uv[j * 2] - uv[i * 2]) * w, dv1 = (uv[j * 2 + 1] - uv[i * 2 + 1]) * h, du2 = (uv[k * 2] - uv[i * 2]) * w, dv2 = (uv[k * 2 + 1] - uv[i * 2 + 1]) * h;
     texel += Math.abs(du1 * dv2 - du2 * dv1) / 2;
   }
@@ -104,7 +104,7 @@ export function faceAreas(pos: ArrayLike<number>, uv: ArrayLike<number>, index: 
 }
 
 /** The tuning of a bake (CFG.creatures.texel). */
-export interface TexelTuning { detail: number; min: number; max: number; glowLight: number; glowChroma: number; glowShare: number; lift: number; contrast: number; colours: number; refine: number; chroma: number }
+export interface TexelTuning { detail: number; facing: number; min: number; max: number; glowLight: number; glowChroma: number; glowShare: number; lift: number; contrast: number; colours: number; refine: number; chroma: number }
 
 /** A model's texture (`data`, RGBA bytes, `w` × `h`, rows from the image's top) made pixel art for the game: the meshes
     wearing it (`meshes`: positions, texture coordinates with v from the image's top as glTF's, triangles), drawn at
@@ -113,7 +113,7 @@ export interface TexelTuning { detail: number; min: number; max: number; glowLig
 export function bakeTexel(data: ArrayLike<number>, w: number, h: number, meshes: { pos: ArrayLike<number>; uv: ArrayLike<number>; index: ArrayLike<number> }[], pxPerUnit: number, T: TexelTuning) {
   let texel = 0, pixel = 0, labels: Int32Array<ArrayBuffer> | undefined, first = 1;
   for (const m of meshes) {
-    const a = faceAreas(m.pos, m.uv, m.index, w, h, pxPerUnit); texel += a.texel; pixel += a.pixel;
+    const a = faceAreas(m.pos, m.uv, m.index, w, h, pxPerUnit, T.facing); texel += a.texel; pixel += a.pixel;
     ({ labels, next: first } = islandLabels(m.uv, m.index, w, h, labels, first));
   }
   const side = bakeSize(w, texel, pixel, T.detail, T.min, T.max);
