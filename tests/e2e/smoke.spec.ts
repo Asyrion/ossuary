@@ -1924,7 +1924,7 @@ test('Dr. Jelly\'s laboratory (M5): the table opens when walked up to; two reage
   await page.keyboard.press('KeyE'); await page.keyboard.press('ArrowRight'); await page.keyboard.press('Enter');
   const bought = await g();
   expect(bought.coins).toBe(4); expect(bought.lab.recipes.map(r => r.potion).sort()).toEqual(['healing', 'mana']);
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('ossuary.recipes') ?? '{}').potions)).toEqual(['healing']); // (kept between runs: the brew, and the bought pair)
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('ossuary.vigil') ?? '{}').recipes?.potions)).toEqual(['healing']); // (kept between runs, in the Vigil's save since M7 step 4: the brew, and the bought pair)
   await page.keyboard.press('Escape');
   expect(await g()).toMatchObject({ state: 'play', lab: { open: false } });
   // stepping away and back opens it again; a blast bursts a jelly globe, and a jelly or a reagent comes out of it
@@ -1982,7 +1982,7 @@ test('the jelly serpent (M5): three bolts crack the vat window and it breaks out
   type GS = GP & { serpent: Info; crackVat(): boolean; breakVat(): boolean; restless: boolean; pool(what: string): void; element(k: string, x: number, z: number): void;
     rooms(): { type: string; cx: number; cz: number; bounds: { minZ: number }; plan: { id: number } }[]; current: { locked?: boolean; type: string }; hit(i: number, dmg: number, school?: string): void;
     lab: { recipes: { potion: string }[]; open: boolean }; openLab(t: string): void; closeLab(): void; brew(a: string, b: string): void; giveReagent(id: string, n: number): void; forgetPotions(): void; keys: Set<string>; arrowOrder: string[] };
-  await page.evaluate(() => localStorage.removeItem('ossuary.recipes'));
+  await page.evaluate(() => ((window as unknown as W).__game as unknown as GS).forgetPotions());
   // three bolts at the vat window (from under it, beside Dr. Jelly), a crack each, and it breaks out
   const out = await page.evaluate(`(() => {
     const g = window.__game, P = g.player, lab = g.rooms().find(r => r.type === 'laboratory');
@@ -2027,7 +2027,7 @@ test('the jelly serpent (M5): three bolts crack the vat window and it breaks out
     return { waiting, after: g.serpent.run, locked: !!g.current.locked };
   });
   expect(restless).toEqual({ waiting: 'caged', after: 'out', locked: true });
-  await page.evaluate(() => { localStorage.removeItem('ossuary.recipes'); ((window as unknown as W).__game as unknown as GS).forgetPotions(); });
+  await page.evaluate(() => ((window as unknown as W).__game as unknown as GS).forgetPotions());
   expect(errors).toEqual([]);
 });
 

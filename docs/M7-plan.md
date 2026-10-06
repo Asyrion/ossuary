@@ -449,7 +449,8 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
    - **Tests:** unit: the keys taken over, a malformed save made whole, an import refused, the Dust lines and vows, the
      plan's first numbers (a run to floor 3 buys a sigil, a power takes a few runs), the obols home; browser: the keys
      taken over on a first visit, a death to a foe recorded with what struck, the tally on the end screen, the file out
-     and back, the dev menu's Dust.
+     and back, the dev menu's Dust. Dr. Jelly's tests read the recipes from the save now. The suites: 455 unit tests and
+     133 browser tests green.
 5. **(P) The Vigil as a place.**
    - `data/vigil.json` (new) and its templates, built by the rooms, doors and camera with fights off.
    - The Crypt, the Nave and the Landing; waking there; the title leading there after the first run.
