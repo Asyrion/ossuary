@@ -25,7 +25,7 @@ import { blastWisp } from '../world/shrine';
 import { toast } from '../ui/hud';
 import { STR } from '../strings';
 import { giveResources, isContainer, openContainer } from '../items/pickups';
-import { damageEnemy, hurtPlayer } from './damage';
+import { damageEnemy, hurtPlayer, strikeFrom } from './damage';
 import { addDecal, burst } from './fx';
 import { clamp } from '../util';
 import { breakPlate } from '../actors/bosses';
@@ -133,7 +133,7 @@ function blast(x: number, z: number, color: number, R: number, spare = false) {
   }
   for (const o of G.glyphs) if (!o.spent && Math.hypot(o.x - x, o.z - z) <= R) o.fuse = Math.min(o.fuse, C.chainDelay);
   if (!spare && Math.hypot(player.x - x, player.z - z) < R + player.r * .5) { // caught in it: the Warding Band turns it aside
-    if (player.stats.effects.has('glyphWard')) { wardRing(player.x, player.z); Sfx.wardTink(); } else hurtPlayer(C.selfDamage, x, z);
+    if (player.stats.effects.has('glyphWard')) { wardRing(player.x, player.z); Sfx.wardTink(); } else { strikeFrom('glyph'); hurtPlayer(C.selfDamage, x, z); }
   }
   // the look: a shockwave out to the reach, a flash, sparks in the bolt colour, dust and a scorch mark
   const s = shapes(), g = new THREE.Group(); g.position.set(x, 0, z);

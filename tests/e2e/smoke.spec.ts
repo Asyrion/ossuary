@@ -4958,6 +4958,49 @@ test('daylight (M7 step 3): Kaelith\'s way out is a shaft of light; stepping int
   expect(errors).toEqual([]);
 });
 
+test('the keeping (M7 step 4): one save takes over the five keys kept before it; a run ends into it, remembering how it went and what struck last, and brings home its Dust and a tenth of its obols, tallied on the end screen; the save goes out to a file and back; the dev menu gives Dust', async ({ page }) => {
+  await page.addInitScript(() => { if (!localStorage.getItem('ossuary.vigil')) { localStorage.setItem('ossuary.reactions', JSON.stringify(['steam'])); localStorage.setItem('ossuary.recipes', JSON.stringify({ pairs: {}, potions: ['healing'] })); } });
+  const errors = await start(page, '?seed=KEEP1&loot=coins:57');
+  type V = { dust: number; obols: number; runs: number; wins: number; deepest: number; reactions: string[]; recipes: { potions: string[] }; echoes: { seed: string; won: boolean; floor: number; room: string; struck: string | null; carried: string[]; obols: number; dust: number }[] };
+  const r = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player, took = { vigil: g.vigil, stored: !!localStorage.getItem('ossuary.vigil'), reactions: [...g.reactions] };
+    // fall to a foe in the first fight
+    g.warp(g.rooms().find(r => r.type === 'normal' && !r.cleared).plan.id); g.sim(.3);
+    for (const e of g.enemies) e.hp = 0; g.sim(.2); g.clearRoom(); g.sim(.2);
+    const foe = g.spawn('sporeling'); P.hp = 1; P.invuln = 0;
+    for (let t = 0; t < 120 && g.state !== 'end'; t++) { foe.x = P.x + .3; foe.z = P.z; P.invuln = Math.min(P.invuln, .05); g.sim(.25); }
+    const home = document.getElementById('endHome');
+    return { took, state: g.state, vigil: g.vigil, home: home.textContent, hidden: home.hidden };
+  })()`) as { took: { vigil: V; stored: boolean; reactions: string[] }; state: string; vigil: V; home: string; hidden: boolean };
+  expect(r.took.stored).toBe(true);
+  expect(r.took.vigil.reactions).toEqual(['steam']); expect(r.took.vigil.recipes.potions).toEqual(['healing']); expect(r.took.reactions).toContain('steam');
+  expect(r.state).toBe('end');
+  expect(r.vigil).toMatchObject({ runs: 1, wins: 0, deepest: 1, obols: 5 }); // (a tenth of 57, after a death)
+  expect(r.vigil.dust).toBeGreaterThanOrEqual(10); // (floor 1 reached, and any first finds)
+  expect(r.vigil.echoes[0]).toMatchObject({ seed: 'KEEP1', won: false, floor: 1, struck: 'sporeling', obols: 5 });
+  expect(r.vigil.echoes[0].carried.length).toBeGreaterThan(0);
+  expect(r.hidden).toBe(false);
+  expect(r.home).toContain('Carried home'); expect(r.home).toContain('Floor 1 reached'); expect(r.home).toContain('Arcane Dust');
+  expect(r.home).toContain('a tenth of 57'); expect(r.home).toContain('Struck down by');
+  await page.screenshot({ path: 'test-results/keeping-end.png' });
+  // out to a file and back; what is not a save is refused
+  const io = await page.evaluate(`(() => {
+    const g = window.__game, text = g.exportSave(), before = g.vigil;
+    g.wipeSave(); const wiped = g.vigil.runs;
+    const refused = g.importSave('{"hello":1}'), taken = g.importSave(text);
+    return { wiped, refused: refused.length, taken: taken.length, same: JSON.stringify(g.vigil) === JSON.stringify(before), out: document.getElementById('btnSaveOut').textContent, in: document.getElementById('btnSaveIn').textContent };
+  })()`) as { wiped: number; refused: number; taken: number; same: boolean; out: string; in: string };
+  expect(io).toEqual({ wiped: 0, refused: 1, taken: 0, same: true, out: 'Export the Vigil', in: 'Import the Vigil' });
+  // the dev menu gives Dust (from a run)
+  await page.click('#btnAgain');
+  const before = await page.evaluate(() => ((window as unknown as W).__game as unknown as { vigil: V }).vigil.dust);
+  await page.keyboard.press('F2');
+  await page.locator('#dev .dv-tab', { hasText: 'Rooms' }).click();
+  await page.locator('#dev .dv-page:not([hidden]) button', { hasText: '+100 Arcane Dust' }).click();
+  expect(await page.evaluate(() => ((window as unknown as W).__game as unknown as { vigil: V }).vigil.dust)).toBe(before + 100);
+  expect(errors).toEqual([]);
+});
+
 test('the shrine\'s bargain (M6 step 11): a stone at the circle\'s head; walking up says how; a spell cast into it costs nothing and deals two boons of its school and one general; Esc pays nothing; a boon taken costs a heart container and keeps it, once; the last heart is refused', async ({ page }) => {
   const errors = await start(page, '?room=shrine_henge&spells=cinder_lance,rime_shards');
   const r = await page.evaluate(`(() => {

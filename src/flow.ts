@@ -39,6 +39,8 @@ import { resetAfflictions } from './ui/afflictions';
 import { warnFloor } from './world/curve';
 import { arriveAtSeal, atSeal, enterSealRoom } from './world/seal';
 import { kaelithKneels, resetKaelith } from './actors/kaelith';
+import { recordRun, resetRunFirsts, runFirsts } from './vigil/save';
+import { dustFor, obolsHome } from './vigil/vigilData';
 import { daylightHooks, leaveDaylight, openShaft } from './world/daylight';
 import { pilgrimMap, resetGifts } from './items/gifts';
 import { showEndScreen, showScreen } from './ui/screens';
@@ -136,6 +138,7 @@ function newRun(seed: string): typeof G.run {
     bottles: bottlesFor(Rng.from(seed, 'bottles').int(0, 2 ** 30)), identified: [], alchemy: Rng.from(seed, 'alchemy'), reagents: Rng.from(seed, 'reagents'), runes: Rng.from(seed, 'runes'), socketsOpened: 0, remedy: null,
     serpent: 'caged', restless: Rng.from(seed, 'serpent').chance(CFG.alchemy.vat.restless),
     insight: 0, level: 1, pending: 0, potionsUsed: [], attrs: noAttrs(), boons: {}, casts: {}, pledge: null, deals: 0, thirst: 0, acted: {}, afterglow: null,
+    bosses: 0, kaelith: false, struck: null,
   };
 }
 
@@ -144,7 +147,7 @@ export function startGame(opts?: RunOptions) {
   const seed = o.seed || newSeed();
   testTemplate = o.testTemplate; testVariant = o.testVariant; forcedBoss = o.boss; forcedTheme = o.theme;
   G.run = newRun(seed); DEV.kitKinds = {}; // (kinds forced in the dev menu last only for the floor they were forced on)
-  Sfx.init(); resetPlayer(); hideLore(); G.stats.time = 0; G.stats.kills = 0; G.stats.obols = 0;
+  Sfx.init(); resetPlayer(); hideLore(); G.stats.time = 0; G.stats.kills = 0; G.stats.obols = 0; resetRunFirsts();
   if (o.give?.length) giveById(o.give);
   if (o.loot) giveResources(o.loot);
   o.potions?.forEach(id => { if (isPotion(id)) addPotion(id); });
@@ -183,9 +186,15 @@ daylightHooks.done = () => endGame(true); // (M7 step 3: the end screen lies ove
 export function endGame(won: boolean) {
   G.state = 'end'; hideBossBar(); clearPages();
   if (won) Sfx.victory(); else Sfx.fallen();
+  // M7 step 4: what the run brings home (its Dust from each source, its obols), and the run remembered in the save
+  const V = CFG.vigil, floor = G.run.floor + 1, carried = [player.focus, ...player.items];
+  const dust = dustFor({ floor, bosses: G.run.bosses, kaelith: G.run.kaelith, firsts: runFirsts(), freed: 0, vows: 0, echoes: 0 }, V.dust);
+  const obols = obolsHome(player.coins, won, V.obolsAfterDeath);
+  recordRun({ seed: G.run.seed, won, floor, room: G.current?.plan.type ?? '', template: G.current?.plan.templateId ?? '', struck: won ? null : G.run.struck, carried, level: G.run.level, dust: dust.total, obols });
   showEndScreen({
-    won, floor: G.run.floor + 1, floors: FLOORS.length, time: G.stats.time, kills: G.stats.kills,
-    seed: G.run.seed, artifacts: [player.focus, ...player.items], cleansed: [...player.cleansed], obols: G.stats.obols, level: G.run.level, insight: G.run.insight,
+    won, floor, floors: FLOORS.length, time: G.stats.time, kills: G.stats.kills,
+    seed: G.run.seed, artifacts: carried, cleansed: [...player.cleansed], obols: G.stats.obols, level: G.run.level, insight: G.run.insight,
+    home: { dust, carried: player.coins, obols, struck: won ? null : G.run.struck },
   });
 }
 export function toggleSound() { const muted = Sfx.toggle(); $('btnSound').textContent = muted ? STR.pause.soundOff : STR.pause.soundOn; }
@@ -331,6 +340,7 @@ export function onRoomCleared(room: Room) {
 export function onBossDead(at?: { x: number; z: number }) {
   const cur = G.current;
   hideBossBar(); payBoss(at); // (M6: its floor's insight)
+  if (G.run.boss === 'kaelith') G.run.kaelith = true; else G.run.bosses++; // (M7 step 4: Dust for each put to rest)
   if (G.run.boss === 'kaelith') kaelithKneels(at ?? { x: cur.cx, z: cur.cz }); // (M7: it doesn't die: it kneels where it fell)
   // M6 step 10: the waystone and the way down are in the waystone room beside it; where the floor has none (floor 5, or no
   // free cell), the way down opens here, and on floors 1 to 5 the stone rises first, at the back, the gifts keeping clear

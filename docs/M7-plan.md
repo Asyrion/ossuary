@@ -423,6 +423,33 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
    - The end screen's tally shows the Dust and obols carried home, a line for each source.
    - The save's export and import.
    - **Dev menu:** give Dust and obols; a wiped save; a veteran save (every shade freed, every part open).
+
+   *Built (2026-10-06).*
+   - **The save:** `src/vigil/save.ts` keeps one record, `ossuary.vigil` (`SAVE_VERSION` 1), shaped by the pure
+     `src/vigil/vigilData.ts` (`VigilSave`: the five modules' parts, Dust and obols, runs, wins and the deepest floor, the
+     last runs, the artifacts ever carried out, and the Vigil's parts to come, blank until their steps). The first load
+     takes over the five keys (`LEGACY_KEYS`; they stay until the close); `migrate` makes whatever is stored whole, and
+     `validate` refuses what isn't a save.
+   - **The five modules** (magic/memory.ts's knowledge, reactions and weaves, actors/bestiary.ts, items/alchemyMemory.ts)
+     read and write their part through it (`readSlot`, `writeSlot`), keeping their own functions. A spell learned, a
+     reaction, weave, counter or brew found for the first time ever is a first find of the run (`firstFound`).
+   - **The run recorded:** `endGame` brings home the run's Dust (`dustFor`: ten a floor of the deepest reached, a read of
+     the plan's table that keeps a power three or four runs away; 15 a boss, Kaelith 60, 3 a first find; the shades, echoes
+     and vows at 0 until their steps) and its obols (`obolsHome`: all after a win, a tenth after a death), and remembers it
+     (`recordRun`: seed, won, the floor, the room and its template, what struck last, what was carried, the level, the
+     Dust and obols; the last five kept, `CFG.vigil.runsKept`). What struck last is named in `hurtPlayer` (damage.ts:
+     a shot's or glyph's thrower through `strikeFrom`, else the foe acting, else the nearest foe, else the room).
+   - **The end screen's tally** (`#endHome`, `STR.end.home`): "Carried home", a line for each source of Dust, the Dust, the
+     obols carried home (all, or a tenth of how many), and after a death "Struck down by" what it was.
+   - **The file:** the pause menu's "Export the Vigil" writes `ossuary-vigil.json`; "Import the Vigil" reads one back
+     (refused, with why, if it isn't a save) and the page starts again from it.
+   - **Dev menu:** Rooms & runs, "The keeping": the save's counts, +100 Dust, +50 obols, a wiped save and a veteran's
+     (every part open, the candle lit, runs and Dust behind it; the shades freed come with step 6); `__game.vigil`,
+     `giveHome`, `wipeSave`, `veteranSave`, `exportSave`, `importSave`.
+   - **Tests:** unit: the keys taken over, a malformed save made whole, an import refused, the Dust lines and vows, the
+     plan's first numbers (a run to floor 3 buys a sigil, a power takes a few runs), the obols home; browser: the keys
+     taken over on a first visit, a death to a foe recorded with what struck, the tally on the end screen, the file out
+     and back, the dev menu's Dust.
 5. **(P) The Vigil as a place.**
    - `data/vigil.json` (new) and its templates, built by the rooms, doors and camera with fights off.
    - The Crypt, the Nave and the Landing; waking there; the title leading there after the first run.

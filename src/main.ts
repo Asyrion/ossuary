@@ -2,6 +2,7 @@
 // fonts are bundled with the game (Fontsource), so starting it makes no requests to Google
 import { kaelithInfo, kaelithToPhase, kneltAt, shutAllWards } from './actors/kaelith';
 import { daylightInfo, enterDaylight } from './world/daylight';
+import { exportSave, giveHome, importSave, veteranSave, vigil, wipeSave } from './vigil/save';
 import '@fontsource/cinzel/400.css';
 import { POTION_IDS, isPotion, type PotionId, type ReagentId } from './items/alchemyData';
 import { addPotion, addReagent, beltSlots, choosePotion, identify, knownPotion, moveInBelt, potionFx, renderBelt, usePotion } from './items/potions';
@@ -420,6 +421,7 @@ function installDevHooks() {
     get dragon() { return dragonInfo(); },
     get kaelith() { return kaelithInfo(); }, get kaelithKnelt() { return kneltAt; }, kaelithToPhase, shutAllWards, // (M7 step 2: Kaelith's fight)
     get daylight() { return daylightInfo(); }, daylightNow: () => enterDaylight(), // (M7 step 3: a won run's dawn)
+    get vigil() { return JSON.parse(JSON.stringify(vigil())); }, giveHome, wipeSave, veteranSave, exportSave, importSave, // (M7 step 4: the save)
     /** M4.2: Fen-Nex (its stage, where it is, whether it hunts), and growing it a stage. */
     get fennex() { return fennexInfo(); }, growFennex() { growFennex(); },
     /** Fire, frost or shock landing at (x, z), as a spell's would: lights braziers and candles, charges rune stones,

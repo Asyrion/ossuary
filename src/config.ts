@@ -170,6 +170,11 @@ export const CFG = {
   // looks; the mage's walk out of the cave (from how far back, to how far short of the edge, how fast); the timeline (the
   // white fading, the cave's overhang lifting, the end screen laid over it); how fast the mist drifts and the water falls;
   // the dawn's light on the terrace and the mage (fill, sun, their colours; the lantern turned down)
+  // M7 step 4, the keeping (vigil/vigilData.ts): the Arcane Dust a run carries home from each source (each floor reached
+  // pays `floor` × the deepest; a boss put to rest, Kaelith more; each first find in the run; each shade freed; each vow kept
+  // pays a share of the run's Dust once the run reaches `vowFloor`; an echo laid to rest), the share of the obols carried
+  // that come home after a death (all after a win), and how many runs the save keeps (the echoes, step 11)
+  vigil: { dust: { floor: 10, boss: 15, kaelith: 60, first: 3, shade: 20, vow: .25, vowFloor: 3, echo: 10 }, obolsAfterDeath: .1, runsKept: 5 },
   daylight: {
     reach: .7, at: [-400, 0] as [number, number], look: 1.5, walk: { from: 3.4, to: .9, speed: 1.05 },
     flash: 1.2, lift: 3, endAt: 6.5, mist: .18, fall: 1.6,

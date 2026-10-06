@@ -43,8 +43,10 @@ marked (P) in the plan (2, 5, 7 and 10) are planned with the owner in plan mode 
 Seal, is built** (2026-10-05; the plan's Built note). **Step 2, Kaelith's fight, is built** (2026-10-05):
 it wears the Winged Watcher, the owner's choice (2026-10-06; the Hooded Sentinel, the switch and its key went). M6 and
 M7 steps 1 and 2 were shipped on 2026-10-06 (PR #46). **Step 3, daylight, is built** (2026-10-06; the plan's Built note):
-Kaelith's way out is a shaft of light, and a won run ends at the cave mouth at dawn, the end screen over it. **Next: step 4,
-the keeping** (Part B begins: the save, Dust and obols carried home).
+Kaelith's way out is a shaft of light, and a won run ends at the cave mouth at dawn, the end screen over it. **Step 4, the keeping, is
+built** (2026-10-06): one save (`ossuary.vigil`) taking over the five keys, Dust and obols carried home and tallied on the end
+screen, each run remembered with what struck last, the save out to a file and back. **Next: step 5, the Vigil as a place**,
+marked (P): plan it with the owner in plan mode first.
 
 `main` was merged into the branch on 2026-10-05 (another session's work: the Chameleon Wyvern, the texel bake, the game's
 first sound files, the dev menu's fixes), so both session branches carry everything; 434 unit tests green after it.

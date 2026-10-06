@@ -28,6 +28,7 @@ import { fireAt } from '../world/pools';
 import { foeDied, foeStruck } from '../actors/foes';
 import { payToll } from '../magic/shapes';
 import { guardHit, soulsHere } from '../items/souls';
+import { actor } from '../actors/acting';
 import { SOUL_COLOR } from '../items/loot';
 import { drinkBlow } from '../actors/wardShield';
 import { wearPlates } from '../actors/bosses';
@@ -180,8 +181,23 @@ function lastRite() {
 /** Damage the hero by `halves` half-hearts, knocking them away from (fromX, fromZ). Whether the blow reached the mage
     (not shrugged off while invulnerable; in god mode it reaches but costs nothing), for what comes with it (a chill, a
     hex, dimmed sight). */
+/* M7 step 4: what struck the mage last, kept in the run's record (the echoes say it): the foe or boss whose shot or blow it
+   was, else the foe acting, else the nearest foe to where the blow came from, else the room (a briar, a pool, a fall). */
+let striker: string | null = null;
+/** The kind of `e` as the save names it: a boss by its boss, a foe by its id. */
+export const strikerKind = (e: Enemy | undefined) => !e ? null : e.isBoss ? G.run.boss : e.foe?.id ?? e.type;
+/** What throws the next blow (a shot's thrower, the mage's own glyph): `hurtPlayer` names it. */
+export const strikeFrom = (what: string | null) => { striker = what; };
+function struckBy(x: number, z: number) {
+  const named = striker ?? strikerKind(actor()); striker = null; if (named) return named;
+  let best: Enemy | undefined, bd = 1.8;
+  for (const e of G.enemies) { if (e.dead) continue; const d = Math.hypot(e.x - x, e.z - z); if (d < bd) { bd = d; best = e; } }
+  return strikerKind(best) ?? 'room';
+}
+
 export function hurtPlayer(halves: number, fromX: number, fromZ: number): boolean {
-  if (player.invuln > 0 || G.state !== 'play') return false;
+  if (player.invuln > 0 || G.state !== 'play') { striker = null; return false; }
+  G.run.struck = struckBy(fromX, fromZ);
   if (DEV.god) return true;
   const guarded = guardHit(); // a soul mote takes the blow before the hearts do (M4.1)
   if (!guarded) player.hp -= halves;

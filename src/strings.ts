@@ -38,6 +38,9 @@ export const STR = {
     heading: 'Paused', resume: 'Resume', restart: 'Restart run', load: 'Load hero .glb',
     soundOn: 'Sound: on', soundOff: 'Sound: off',
     master: 'Volume', effects: 'Effects', interface: 'Interface', music: 'Music', ambience: 'Ambience', inventory: 'Inventory (I)',
+    // M7 step 4: the save as a file, to carry it to another browser
+    saveOut: 'Export the Vigil', saveIn: 'Import the Vigil', saveFile: 'ossuary-vigil.json',
+    saved: 'The Vigil written to a file', loaded: 'The Vigil read from the file: starting again from it', refused: (why: string) => `Not a save of the Vigil: ${why}`,
   },
   end: {
     won: 'Into the daylight',
@@ -49,6 +52,20 @@ export const STR = {
     floorValue: (floor: number, floors: number) => `${floor} of ${floors}`,
     again: 'Descend again',
     replay: 'Replay this seed',
+    // M7 step 4: what the run brings home, a line for each source of Arcane Dust; the obols; what struck last
+    home: {
+      title: 'Carried home',
+      sources: {
+        floor: (n: number) => `Floor ${n} reached`, bosses: (n: number) => n === 1 ? 'A keeper put to rest' : `${n} keepers put to rest`,
+        kaelith: () => 'Kaelith knelt', firsts: (n: number) => n === 1 ? 'A first find' : `${n} first finds`,
+        freed: (n: number) => n === 1 ? 'A shade freed' : `${n} shades freed`, echoes: (n: number) => n === 1 ? 'An echo laid to rest' : `${n} echoes laid to rest`,
+        vows: (n: number) => n === 1 ? 'A vow kept' : `${n} vows kept`,
+      } as Record<string, (n: number) => string>,
+      dust: 'Arcane Dust',
+      obolsWon: (n: number) => `Obols carried home (all ${n})`, obolsLost: (n: number) => `Obols carried home (a tenth of ${n})`,
+      struck: (what: string) => `Struck down by ${what}`,
+      things: { room: 'the room itself', glyph: 'a glyph of its own' } as Record<string, string>,
+    },
   },
   /** Banner when a floor begins, floor 1 first. */
   floors: [
@@ -931,6 +948,8 @@ export const STR = {
     variants: { normal: 'Normal', quiet: 'Quiet', champion: 'Champion', ambush: 'Ambush', dark: 'Dark' } as Record<string, string>,
     bosses: 'Fight a boss', newRun: 'New run (a deeper floor at its expected level, its choices waiting)', floorN: (n: number) => `Floor ${n}`, toSeal: 'To the Seal (below floor 5)',
     kaelith: "Kaelith's fight (M7 step 2)", kaelithInfo: (phase: number, state: string, wards: string) => `Phase ${phase} · ${state} · wards: ${wards}`, noKaelith: 'No Kaelith in this room',
+    keeping: 'The keeping (M7 step 4)', keepingInfo: (dust: number, obols: number, runs: number, wins: number, deepest: number) => `${dust} Dust · ${obols} obols · ${runs} runs, ${wins} won · deepest floor ${deepest}`,
+    giveDust: '+100 Arcane Dust', giveObols: '+50 obols kept', wipeSave: 'A wiped save', veteranSave: "A veteran's save",
     daylight: 'Daylight (M7 step 3)', daylightNow: 'Daylight now', daylightInfo: (on: boolean, t: number) => on ? `Out at the cave mouth, ${t.toFixed(1)} s` : 'Not in the daylight',
     kaelithPhase2: 'Phase 2: the seal cracks', kaelithPhase3: 'Phase 3: the last light', shutWards: 'Shut the wards',
     keep: ' Keep artifacts, obols, keys and glyphs when starting',

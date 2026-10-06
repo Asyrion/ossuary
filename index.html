@@ -71,6 +71,8 @@
       <button class="act" id="btnRestart" data-s="pause.restart"></button>
       <button class="act" id="btnLoad" data-s="pause.load"></button>
       <button class="act" id="btnSound" data-s="pause.soundOn"></button>
+      <button class="act" id="btnSaveOut" data-s="pause.saveOut"></button>
+      <button class="act" id="btnSaveIn" data-s="pause.saveIn"></button>
     </div>
     <div class="vols">
       <label for="volMaster" data-s="pause.master"></label><input type="range" id="volMaster" min="0" max="100" step="5">
@@ -82,6 +84,7 @@
     <p class="small" id="runInfo"></p>
     <p class="small" id="heroInfo"></p>
     <input type="file" id="fileIn" accept=".glb,model/gltf-binary" hidden>
+    <input type="file" id="saveFile" accept=".json,application/json" hidden>
   </div>
 </div>
 
@@ -139,6 +142,7 @@
       <dt data-s="end.seed"></dt><dd id="endSeed" class="seed"></dd>
       <dt data-s="end.artifacts"></dt><dd><ul id="endItems" class="carried"></ul></dd>
     </dl>
+    <div id="endHome" class="home" hidden></div>
     <div class="btns">
       <button class="act primary" id="btnAgain" data-s="end.again"></button>
       <button class="act" id="btnReplay" data-s="end.replay"></button>

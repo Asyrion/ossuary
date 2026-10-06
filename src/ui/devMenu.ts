@@ -41,6 +41,7 @@ import { raiseWaystone } from '../world/waystone';
 import { levelAtFloor } from '../progression/levelData';
 import { kaelithInfo, kaelithToPhase, shutAllWards } from '../actors/kaelith';
 import { daylightInfo, enterDaylight } from '../world/daylight';
+import { giveHome, veteranSave, vigil, wipeSave } from '../vigil/save';
 import { buildBargain, openBargainHere } from '../world/bargain';
 import { breakOut, crackVat } from '../world/laboratory';
 import { gainSoul, hallowedMend, resetSouls } from '../items/souls';
@@ -103,7 +104,7 @@ import { CREATURES, CREATURE_LOOKS, creatureLook, roarNow, setCreatureLook, show
 import { THEMES } from '../world/themeData';
 
 const S = STR.dev;
-let kaelithBox: HTMLElement, daylightBox: HTMLElement;
+let kaelithBox: HTMLElement, daylightBox: HTMLElement, keepBox: HTMLElement;
 let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, madeLookBtn: HTMLButtonElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
 let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, runesBtn: HTMLButtonElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement, creatureLookBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
@@ -576,6 +577,12 @@ function build() {
   // M7 step 3: a won run's dawn, from wherever the mage is (the end screen follows it, as after Kaelith)
   const day = section(pages.rooms, S.daylight);
   day.append(daylightBox = el('p', 'dv-info'), btn(S.daylightNow, () => { closeDev(); enterDaylight(); }));
+  // M7 step 4: the save that carries from run to run (Dust, obols, the runs remembered); wiped or a veteran's, the page
+  // starts again from it
+  const saved = section(pages.rooms, S.keeping);
+  saved.append(keepBox = el('p', 'dv-info'),
+    btn(S.giveDust, () => { giveHome(100, 0); refresh(); }), btn(S.giveObols, () => { giveHome(0, 50); refresh(); }),
+    btn(S.wipeSave, () => { wipeSave(); location.reload(); }), btn(S.veteranSave, () => { veteranSave(); location.reload(); }));
   const runs = section(pages.rooms, S.newRun);
   FLOORS.forEach((f, i) => runs.append(btn(f.fixed ? S.toSeal : S.floorN(i + 1), () => start({ floor: i, level: levelAtFloor(i) > 1 ? levelAtFloor(i) : undefined })))); // (M6 step 12: at the floor's expected level, its choices waiting)
   const keep = el('label', 'dv-check'); const box = el('input'); box.type = 'checkbox'; box.checked = keepCarried;
@@ -605,6 +612,7 @@ function refresh() {
   obolBtn.textContent = S.obolWears(S.coinFaces[obolFace()] ?? obolFace()); obolBtn.disabled = obolFaces().length < 2;
   assetBtn.textContent = assetsOn() ? S.assetsOn : S.assetsOff; assetBtn.classList.toggle('on', assetsOn()); assetBtn.disabled = !list.some(a => a.status === 'loaded');
   const dl = daylightInfo(); daylightBox.textContent = S.daylightInfo(dl.on, dl.t ?? 0);
+  const v = vigil(); keepBox.textContent = S.keepingInfo(v.dust, v.obols, v.runs, v.wins, v.deepest);
   const kae = kaelithInfo(); kaelithBox.textContent = kae ? S.kaelithInfo(kae.phase, kae.state, kae.wards.map(w => (w.school ?? '-') + (w.shut ? ' (shut)' : '')).join(', ')) : S.noKaelith;
   madeLookBtn.textContent = S.madeLooks[madeLookNow()]; madeLookBtn.classList.toggle('on', madeLookNow() !== 'texel'); madeLookBtn.disabled = !assetsOn() || !madeLooks();
   kitBtn.textContent = DEV.roomKit ? S.kitNew : S.kitOld; kitBtn.classList.toggle('on', DEV.roomKit);

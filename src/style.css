@@ -287,3 +287,10 @@ body.daylight #hud{display:none}
 .pagePanel .note.dim{opacity:.6;font-style:italic}
 .pagePanel .lbl{font-size:11px;margin:4px 0 3px}
 .pagePanel .lore{font-size:13px;margin-top:6px;padding-top:6px}
+/* M7 step 4: the end screen's tally of what the run carries home */
+#endHome{margin:.6rem 0 .2rem;font-size:.92rem}
+#endHome h3{margin:0 0 .3rem;font-size:1rem;letter-spacing:.04em}
+#endHome .tally{list-style:none;margin:0;padding:0}
+#endHome .tally li{display:flex;justify-content:space-between;gap:1rem;padding:.08rem 0;opacity:.85}
+#endHome .tally li.sum{opacity:1;font-weight:600;border-top:1px solid rgba(0,0,0,.15);margin-top:.15rem;padding-top:.2rem}
+#endHome .struck{margin:.35rem 0 0;font-style:italic;opacity:.85}
