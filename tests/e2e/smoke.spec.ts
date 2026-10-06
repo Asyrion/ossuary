@@ -4844,6 +4844,7 @@ test('the Seal (M7 step 1): floor 5 has its waystone room and leads down to the 
     g.warp(1); g.sim(.2); const hall = new Set(); for (let t = 0; t < 12; t++) { hall.add(document.getElementById('toast').textContent); g.sim(.25); }
     const kinds = new Set(), seen = new Set(), total = g.current.waves.length;
     for (let k = 0; k < 400 && !g.current.cleared; k++) { seen.add(g.current.wave); for (const e of g.enemies) if (!e.dead) { kinds.add(e.type); e.hp = Math.min(e.hp, .01); } window.__fight(.5); g.sim(.25); }
+    seen.add(g.current.wave); // (the last wave can come and fall within one round of the loop: the room ends on it)
     const waves = seen.size + ':' + total;
     const cleared = g.current.cleared;
     g.warp(2); g.sim(.3); const boss = g.enemies.find(e => e.isBoss)?.type; g.clearRoom(); g.sim(.5);
