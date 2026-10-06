@@ -360,7 +360,15 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
        path).
    - **The suites:** 444 unit tests and 131 browser tests green. The Warden's test lists the gallery's bosses, and now
      counts Kaelith's two looks. The floor-1 bestiary test failed once in the full run (the Choir Lark hadn't sung within its
-     10 s), then passed three times running alone: a timing flake from before M7, left as it is.
+     10 s), then passed three times running alone.
+   - **The ship's CI (2026-10-06)** found two more:
+     - The lark again. It sings only on a perch it flies to, picked at random, so the test now perches it where it was
+       spawned.
+     - The door test's page never started inside 30 s (`?seed=DOORS1&floor=2`, whose floor the harder runs had redrawn).
+       Its first frame took 15 s: a pool's and a pit's soft outline was a canvas `blur()` filter, rasterised on the GPU,
+       which on a software GPU (the tests' SwiftShader, a machine without a graphics card) cost seconds each. The blur is
+       now done on the CPU (`src/render/softEdge.ts`, a Gaussian in two passes, `CFG.surface.poolBlur` and `pitBlur`): the
+       first frame takes 0.2 s, and the pools and pits look the same (compared shot against shot).
 3. **Daylight.**
    - Kaelith kneels and a shaft of light opens. Stepping in plays the cave mouth at dawn, built in code in the pixel look:
      the terrace's edge, the valleys in layered silhouettes, mist and falling water.
