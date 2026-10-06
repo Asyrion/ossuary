@@ -931,7 +931,6 @@ export const STR = {
     bosses: 'Fight a boss', newRun: 'New run (a deeper floor at its expected level, its choices waiting)', floorN: (n: number) => `Floor ${n}`, toSeal: 'To the Seal (below floor 5)',
     kaelith: "Kaelith's fight (M7 step 2)", kaelithInfo: (phase: number, state: string, wards: string) => `Phase ${phase} · ${state} · wards: ${wards}`, noKaelith: 'No Kaelith in this room',
     kaelithPhase2: 'Phase 2: the seal cracks', kaelithPhase3: 'Phase 3: the last light', shutWards: 'Shut the wards',
-    kaelithLook: "Kaelith's look (the owner's choice of two)", kaelithWears: (name: string) => `Kaelith wears ${name} (from the next fight)`, kaelithLooks: { hooded: 'the Hooded Sentinel', winged: 'the Winged Watcher' } as Record<string, string>,
     keep: ' Keep artifacts, obols, keys and glyphs when starting',
   },
   /** What a merchant's ware is called in messages. */

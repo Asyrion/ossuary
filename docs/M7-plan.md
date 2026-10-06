@@ -294,7 +294,9 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
    Winged Watcher (the Seal Made Flesh and Shadow and Lantern were left out). Both wear the same fight, and the owner picks
    one from the sheet.
 
-   *Built (2026-10-05), the look waiting on the owner's choice.*
+   *Built (2026-10-05). The owner chose the Winged Watcher (2026-10-06): the Hooded Sentinel, the Look tab's switch and its
+   key (`ossuary.kaelithLook`) went; `kaelithLook()` builds the Watcher, the Galleries stand it as `kaelith`, and
+   `npm run foe-sheet -- bosses=kaelith` shoots it.*
    - **The looks:** `src/actors/kaelithLooks.ts` holds both (`hoodedSentinel`, `wingedWatcher`).
      - **The Hooded Sentinel:** a tall hooded Warden in dark plate, a robe fraying into shadow, violet slits under the
        cowl, a great glaive held out to the side, three Warden glyphs turning over its head.
@@ -341,8 +343,8 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
    - **Dev menu:**
      - Rooms & runs: "Kaelith's fight", its phase and wards, phase 2, phase 3, and shut the wards;
      - "Fight a boss" puts Kaelith in `seal_kaelith`;
-     - Look: "Kaelith's look";
-     - `__game.kaelith`, `kaelithToPhase(n)`, `shutAllWards()`, `kaelithLook()`, `setKaelithLook(l)`.
+     - Look: "Kaelith's look" (until the owner's choice);
+     - `__game.kaelith`, `kaelithToPhase(n)`, `shutAllWards()` (and `kaelithLook()`, `setKaelithLook(l)` until the choice).
    - **Tests:**
      - unit: the phases, the wards, the pool;
      - browser: the whole fight, start to fall: its states, the wards woken in the held schools, a quarter of a blow, the
