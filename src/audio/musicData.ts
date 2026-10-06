@@ -54,6 +54,8 @@ export const floorPiece = (floor: number) => FLOOR_PIECES[Math.max(0, Math.min(F
 export const TITLE_PIECE = (data as unknown as { title: string }).title;
 /** M7 step 2: a boss with a theme of its own, played in its fight in place of the floor's piece (Kaelith's). */
 export const BOSS_PIECES = (data as unknown as { bosses?: Record<string, string> }).bosses ?? {};
+/** M7 step 3: the piece a won run's dawn plays, at the cave mouth and under the end screen. */
+export const DAYLIGHT_PIECE = (data as unknown as { daylight: string }).daylight;
 
 export const barSeconds = (p: Piece) => p.beats * 60 / p.tempo;
 export const progressionBars = (p: Piece) => p.chords.reduce((a, c) => a + c.bars, 0);
@@ -146,7 +148,7 @@ export function planBar(p: Piece, bar: number, mood: Mood, st: ComposerState, rn
 export function validateMusic(d = data as unknown as { pieces: Piece[]; moods: Record<Mood, Record<Stem, number>> }): string[] {
   const errs: string[] = [];
   for (const m of MOODS) for (const s of STEMS) if (!(d.moods?.[m]?.[s] >= 0)) errs.push(`mood ${m} needs a gain for ${s}`);
-  for (const id of [...FLOOR_PIECES, TITLE_PIECE]) if (!d.pieces.some(p => p.id === id)) errs.push(`no piece "${id}"`);
+  for (const id of [...FLOOR_PIECES, TITLE_PIECE, DAYLIGHT_PIECE, ...Object.values(BOSS_PIECES)]) if (!d.pieces.some(p => p.id === id)) errs.push(`no piece "${id}"`);
   for (const p of d.pieces) {
     const at = `piece "${p.id}"`;
     if (!p.name) errs.push(`${at} needs a name`);

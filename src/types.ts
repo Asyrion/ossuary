@@ -290,7 +290,7 @@ export interface Pickup extends Circle {
 /** A chalked glyph: its fuse and how long it was (the Warding Band's is shorter), and how far its blast reaches
     (wider with the Glyphwright's Chalk). */
 export interface Glyph { x: number; z: number; t: number; fuse: number; fuseMax: number; radius: number; color: number; g: THREE.Group; rune: THREE.Mesh; reach: THREE.Mesh; glow: THREE.Sprite; lastTick: number; spent: boolean }
-export interface Trapdoor { g: THREE.Group; x: number; z: number; ring: THREE.Mesh; t: number }
+export interface Trapdoor { g: THREE.Group; x: number; z: number; ring: THREE.Mesh; t: number; /** M7 step 3: Kaelith's way out is a shaft of daylight (world/daylight.ts) */ kind?: 'shaft' }
 
 /** The pan between rooms: the mage walks from (fx, fz) to (tx, tz), the camera from (cfx, cfz) to (ctx, ctz)
     and its view scale from vf to vt (larger halls are seen from further back). */

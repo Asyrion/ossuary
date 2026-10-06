@@ -165,6 +165,16 @@ export const CFG = {
   // ring, beyond it, clears the stone's top from the camera); the
   // lane to its door in the boss room that the boss's gifts keep off (how deep, how wide either side, how far aside)
   waystone: { reach: .75, rise: 1.4, depth: 1.95, at: [4.4, -1.8], streaks: 7, streakGap: .08, half: .38, trapdoor: [3.5, 1.9], toDoor: [1.5, .8], dark: .55, lane: [4.5, 1.2, 2.6] },
+  // M7 step 3, daylight (world/daylight.ts): the shaft of light where Kaelith's way out opens (how near the mage steps into
+  // it); the cave mouth at dawn: where it is built, far from every floor (x, z), how far behind the terrace's edge the camera
+  // looks; the mage's walk out of the cave (from how far back, to how far short of the edge, how fast); the timeline (the
+  // white fading, the cave's overhang lifting, the end screen laid over it); how fast the mist drifts and the water falls;
+  // the dawn's light on the terrace and the mage (fill, sun, their colours; the lantern turned down)
+  daylight: {
+    reach: .7, at: [-400, 0] as [number, number], look: 1.5, walk: { from: 3.4, to: .9, speed: 1.05 },
+    flash: 1.2, lift: 3, endAt: 6.5, mist: .18, fall: 1.6,
+    light: { hemi: 2.4, sun: 2.2, sky: '#ffd8b4', ground: '#4a4238', sunColour: '#ffc690', lantern: .25 },
+  },
   // M6 step 5, the school boons at work (progression/boonHooks.ts): half hearts boons mend in one room at most (Votive
   // Heart and Thirsting Hex together); Seedfall's plants, `seedMax` a room at most, sought within `sowReach` tiles of the
   // fall and kept `sowClear` tiles from the mage, a door's lane and the room's middle; Spark Wake's spark refreshed rather

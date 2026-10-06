@@ -9,7 +9,7 @@ interface GameHooks {
   enemies: Foe[]; current: RoomView; rooms(): RoomView[]; map(): string;
   hero: { info: string }; keys: Set<string>; arrowOrder: string[];
   warp(id: number): void; sim(sec: number, draw?: boolean): void;
-  wayDown: { x: number; z: number; room: string | null } | null;
+  wayDown: { x: number; z: number; room: string | null; kind?: string } | null;
 }
 type W = { __game: GameHooks; __manual: boolean; __fight(limit: number, step?: number): number };
 
@@ -470,7 +470,7 @@ test('the end screen sums up the run, and replays its seed', async ({ page }) =>
   await page.screenshot({ path: 'test-results/smoke-end.png' });
   expect(won).toMatchObject({ shown: true, floor: '1 of 6', kills: '3', seed: 'ENDRUN', carried: 2 }); // twin staff replaced the wand
   expect(won.time).toMatch(/^\d+:\d\d$/);
-  expect(won.text).toMatch(/Wardens' vault.*Kaelith's seal/); // (M4.2: the setting in the text)
+  expect(won.text).toMatch(/Kaelith knelt.*Wardens' vault.*dawn/); // (M4.2: the setting in the text; M7 step 3: the won text rewritten)
 
   // replay: a full run on the same seed; then fall in its first fight
   await page.click('#btnReplay');
@@ -4847,16 +4847,18 @@ test('the Seal (M7 step 1): floor 5 has its waystone room and leads down to the 
     const waves = seen.size + ':' + total;
     const cleared = g.current.cleared;
     g.warp(2); g.sim(.3); const boss = g.enemies.find(e => e.isBoss)?.type; g.clearRoom(); g.sim(.5);
-    const out = g.wayDown; P.x = out.x; P.z = out.z; g.sim(.5);
-    return { arrive, hall: [...hall].join(' | '), kinds: [...kinds], waves, cleared, boss, out: out.room, state: g.state, end: document.getElementById('endTitle').textContent };
-  })()`) as { arrive: { floor: number; banner: string; rooms: string[]; said: string; look: string }; hall: string; kinds: string[]; waves: string; cleared: boolean; boss: string; out: string; state: string; end: string };
+    const out = g.wayDown; P.x = out.x; P.z = out.z; g.sim(.5); const stepped = g.state;
+    g.sim(7);
+    return { arrive, hall: [...hall].join(' | '), kinds: [...kinds], waves, cleared, boss, out: out.room, kind: out.kind, stepped, state: g.state, end: document.getElementById('endTitle').textContent };
+  })()`) as { arrive: { floor: number; banner: string; rooms: string[]; said: string; look: string }; hall: string; kinds: string[]; waves: string; cleared: boolean; boss: string; out: string; kind: string; stepped: string; state: string; end: string };
   expect(r.arrive).toMatchObject({ floor: 5, banner: 'The Seal', rooms: ['start:standard', 'ordeal:great', 'boss:great'], look: 'seal' });
   expect(r.arrive.said).toContain('Kaelith: "Go back up, mage.');
   expect(r.hall).toContain('The horde presses against the seal');
   expect(r.waves).toBe('2:2'); expect(r.cleared).toBe(true);
   const FOES = JSON.parse(readFileSync('data/foes.json', 'utf8')) as Record<string, { floor: number }>;
   expect(new Set(r.kinds.map(k => FOES[k]?.floor)).size).toBeGreaterThanOrEqual(2); // (the horde from every floor)
-  expect(r.boss).toBe('kaelith'); expect(r.out).toBe('boss'); // (M7 step 2: Kaelith, the Seal's boss) expect(r).toMatchObject({ state: 'end', end: 'The descent is complete' });
+  expect(r.boss).toBe('kaelith'); expect(r.out).toBe('boss'); // (M7 step 2: Kaelith, the Seal's boss)
+  expect(r).toMatchObject({ kind: 'shaft', stepped: 'daylight', state: 'end', end: 'Into the daylight' }); // (M7 step 3: its way out is daylight, then the run is won)
   expect(errors).toEqual([]);
 });
 
@@ -4889,7 +4891,7 @@ test('Kaelith (M7 step 2): the Sentinel stalks, sweeps, fires and steps through 
     const fell = { kaelith: g.kaelith, banner: document.querySelector('#banner .t').textContent, way: g.wayDown, clear: Math.hypot(g.kaelithKnelt.x - g.wayDown.x, g.kaelithKnelt.z - g.wayDown.z) };
     P.x = fell.way.x; P.z = fell.way.z; g.sim(.5);
     return { bar, banner1, states: [...states], p1, banner2, p2, hit, horde, reel, banner3, pulled, held, p3, fell, state: g.state };
-  })()`) as { bar: number; banner1: string; states: string[]; p1: K; banner2: string; p2: K; hit: number; horde: number; reel: K; banner3: string; pulled: number; held: { moved: number; safe: boolean }; p3: K; fell: { kaelith: K; banner: string; way: { room: string }; clear: number }; state: string };
+  })()`) as { bar: number; banner1: string; states: string[]; p1: K; banner2: string; p2: K; hit: number; horde: number; reel: K; banner3: string; pulled: number; held: { moved: number; safe: boolean }; p3: K; fell: { kaelith: K; banner: string; way: { room: string; kind: string }; clear: number }; state: string };
   expect(r.bar).toBe(2); expect(r.banner1).toBe('Kaelith'); // (its bar marks the phases)
   expect(r.p1!.phase).toBe(1); expect(r.states).toEqual(expect.arrayContaining(['stalk', 'windSweep', 'windVolley', 'sink', 'gone', 'rise']));
   expect(r.banner2).toBe('The seal cracks');
@@ -4900,8 +4902,58 @@ test('Kaelith (M7 step 2): the Sentinel stalks, sweeps, fires and steps through 
   expect(r.reel!.wards.every(w => w.shut)).toBe(true); expect(r.reel).toMatchObject({ state: 'reel', guard: 1.5 });
   expect(r.banner3).toBe('The last light'); expect(r.p3).toMatchObject({ phase: 3, sun: true });
   expect(r.pulled).toBeGreaterThan(.3); expect(r.held.safe).toBe(true); expect(r.held.moved).toBeLessThan(.15);
-  expect(r.fell).toMatchObject({ kaelith: null, banner: 'The seal holds', way: { room: 'boss' } }); expect(r.fell.clear).toBeGreaterThan(3); // (it kneels clear of the way out)
-  expect(r.state).toBe('end');
+  expect(r.fell).toMatchObject({ kaelith: null, banner: 'The seal holds', way: { room: 'boss', kind: 'shaft' } }); expect(r.fell.clear).toBeGreaterThan(3); // (it kneels clear of the way out)
+  expect(r.state).toBe('daylight'); // (M7 step 3: the way out is a shaft of daylight)
+  expect(errors).toEqual([]);
+});
+
+test('daylight (M7 step 3): Kaelith\'s way out is a shaft of light; stepping into it, the mage walks out of the cave onto a terrace over the valleys at dawn as the rock opens, the HUD away, the end screen laid over it with the won text, and a new run takes it away; the dev menu steps into it from anywhere', async ({ page }) => {
+  const errors = await start(page, '?floor=6&seed=DAWN1');
+  type D = { on: boolean; shaft: boolean; t?: number; lift?: number; ended?: boolean; walking?: boolean; mage?: { x: number; z: number } };
+  const r = await page.evaluate(`(() => {
+    const g = window.__game, P = g.player; P.invuln = 999;
+    g.warp(2); g.sim(.5); g.clearRoom(); g.sim(1);
+    const way = g.wayDown, said = new Set();
+    for (let t = 0; t < 60; t++) { said.add(document.getElementById('toast').textContent); g.sim(.25); }
+    P.x = way.x; P.z = way.z + .3; g.sim(.2);
+    const hud = getComputedStyle(document.getElementById('hud')).display;
+    const start = { state: g.state, day: g.daylight };
+    g.sim(1.6, true); const mid = g.daylight;
+    g.sim(2, true); const out = g.daylight;
+    return { way, said: [...said].join(' | '), hud, start, mid, out };
+  })()`) as { way: { kind: string; room: string }; said: string; hud: string; start: { state: string; day: D }; mid: D; out: D };
+  // the frame as drawn (a screenshot, read on a plain canvas): the sky above bright and warm, where the Seal was dark
+  const shot = (await page.screenshot()).toString('base64');
+  const sky = await page.evaluate(async b64 => {
+    const im = new Image(); im.src = 'data:image/png;base64,' + b64; await im.decode();
+    const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const x = c.getContext('2d')!; x.drawImage(im, 0, 0);
+    const d = x.getImageData(Math.round(im.width * .6), Math.round(im.height * .25), Math.round(im.width * .2), Math.round(im.height * .1)).data;
+    const m = [0, 0, 0]; for (let i = 0; i < d.length; i += 4) for (let k = 0; k < 3; k++) m[k] += d[i + k];
+    return m.map(v => Math.round(v / (d.length / 4)));
+  }, shot);
+  const end = await page.evaluate(`(() => {
+    const g = window.__game;
+    g.sim(4); const end = { state: g.state, title: document.getElementById('endTitle').textContent, text: document.getElementById('endText').textContent, shown: !document.getElementById('scrEnd').classList.contains('hidden'), day: g.daylight.on, calls: g.renderInfo().calls };
+    return end;
+  })()`) as { state: string; title: string; text: string; shown: boolean; day: boolean; calls: number };
+  expect(r.way).toMatchObject({ kind: 'shaft', room: 'boss' });
+  expect(r.said).toContain('Daylight falls where Kaelith knelt');
+  expect(r.start.state).toBe('daylight'); expect(r.start.day).toMatchObject({ on: true, walking: true }); expect(r.hud).toBe('none');
+  expect(r.mid.lift!).toBeGreaterThan(.3); expect(r.mid.lift!).toBeLessThan(1);
+  expect(r.out).toMatchObject({ lift: 1, walking: false, ended: false }); // (out at the edge, the view open, the end screen not yet)
+  expect(sky[0]).toBeGreaterThan(120); expect(sky[0]).toBeGreaterThan(sky[2] - 30); // (a bright dawn sky, warm)
+  expect(end).toMatchObject({ state: 'end', title: 'Into the daylight', shown: true, day: true }); expect(end.text).toContain('Kaelith knelt');
+  expect(end.calls).toBeLessThan(160);
+  await page.screenshot({ path: 'test-results/daylight-end.png' });
+  // a new run takes the daylight away; the dev menu brings it back from anywhere
+  await page.click('#btnAgain');
+  const again = await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as { state: string; daylight: D; sim(s: number): void }; g.sim(.3); return { state: g.state, day: g.daylight.on, cls: document.body.classList.contains('daylight') }; });
+  expect(again).toEqual({ state: 'play', day: false, cls: false });
+  await page.keyboard.press('F2');
+  await page.locator('#dev .dv-tab', { hasText: 'Rooms' }).click();
+  await page.locator('#dev .dv-page:not([hidden]) button', { hasText: 'Daylight now' }).click();
+  const dev = await page.evaluate(() => { const g = (window as unknown as W).__game as unknown as { state: string; daylight: D; sim(s: number): void }; g.sim(.5); return { state: g.state, day: g.daylight }; });
+  expect(dev.state).toBe('daylight'); expect(dev.day.on).toBe(true);
   expect(errors).toEqual([]);
 });
 

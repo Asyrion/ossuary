@@ -12,7 +12,7 @@ import type { FoeId } from './actors/foeData';
 import { noAttrs } from './progression/attributes';
 import type { School, SpellStatus } from './magic/spellData';
 
-export type GameState = 'title' | 'play' | 'pause' | 'dying' | 'end';
+export type GameState = 'title' | 'play' | 'pause' | 'dying' | 'end' | 'daylight'; // (M7 step 3: the cave mouth at dawn, a won run's end)
 
 /** Shared mutable game state. Modules read and write it through this one object. */
 export const G = {

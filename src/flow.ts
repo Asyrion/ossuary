@@ -39,6 +39,7 @@ import { resetAfflictions } from './ui/afflictions';
 import { warnFloor } from './world/curve';
 import { arriveAtSeal, atSeal, enterSealRoom } from './world/seal';
 import { kaelithKneels, resetKaelith } from './actors/kaelith';
+import { daylightHooks, leaveDaylight, openShaft } from './world/daylight';
 import { pilgrimMap, resetGifts } from './items/gifts';
 import { showEndScreen, showScreen } from './ui/screens';
 import { hideLore } from './ui/lore';
@@ -110,7 +111,7 @@ export function buildFloor(index: number) {
   const start = G.rooms[plan.startId];
   G.current = start; player.x = start.cx; player.z = start.cz + .6; player.vx = player.vz = 0;
   aimCamera(start); setDarkness(0, true);
-  G.trans = null; hideBossBar(); resetKaelith(); // (M7: no fight of Kaelith's outlives its floor)
+  G.trans = null; hideBossBar(); resetKaelith(); leaveDaylight(); // (M7: no fight of Kaelith's outlives its floor, and a new run starts below)
   enterRoom(start); pilgrimMap(); // (M4.6: the Pilgrim knows the floor's way)
   if (G.state === 'play') { banner(...STR.floors[Math.min(index, STR.floors.length - 1)]); warnFloor(index); if (atSeal(index)) arriveAtSeal(); } // (M4.9: a floor that walls off the mage's one school says so; M7: Kaelith speaks at the Seal)
 }
@@ -178,6 +179,7 @@ export function pause() {
   $('btnResume').focus();
 }
 export function resume() { G.state = 'play'; showScreen(null); resetClock(); }
+daylightHooks.done = () => endGame(true); // (M7 step 3: the end screen lies over the daylight)
 export function endGame(won: boolean) {
   G.state = 'end'; hideBossBar(); clearPages();
   if (won) Sfx.victory(); else Sfx.fallen();
@@ -337,7 +339,8 @@ export function onBossDead(at?: { x: number; z: number }) {
   const lane = (x: number, z: number) => offLane(cur, stone, x, z); // (the boss's gifts keep off the way to the waystone room)
   const hs = lane(cur.cx, cur.cz + 2), h = freeSpotNear(cur, hs.x, hs.z);
   spawnHeart(h.x, h.z, 2);
-  if (!stone) { makeTrapdoor(cur.cx, cur.cz); after(.5, () => Sfx.trapdoor()); }
+  if (!stone && G.run.boss === 'kaelith') openShaft(cur, cur.cx, cur.cz); // (M7 step 3: Kaelith's way out is a shaft of daylight)
+  else if (!stone) { makeTrapdoor(cur.cx, cur.cz); after(.5, () => Sfx.trapdoor()); }
   // the boss leaves a choice of two artifacts: taking one makes the other vanish
   const choice = [offerGuaranteed('boss')];
   if (choice[0]) choice.push(offerSecondChoice('boss'));

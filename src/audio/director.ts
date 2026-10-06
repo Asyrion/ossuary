@@ -8,7 +8,8 @@ import { G, player } from '../state';
 import { Sfx } from './sfx';
 import { AmbienceMix } from './ambience';
 import { MusicPlayer } from './music';
-import { BOSS_PIECES, TITLE_PIECE, floorPiece, type Mood } from './musicData';
+import { BOSS_PIECES, DAYLIGHT_PIECE, TITLE_PIECE, floorPiece, type Mood } from './musicData';
+import { daylightOn } from '../world/daylight';
 import { roomScape, spaceFor } from './ambienceData';
 
 export interface Forced { floor?: number; room?: string; theme?: string; piece?: string; mood?: Mood }
@@ -53,7 +54,10 @@ export function updateAudio() {
     mus.muffle(false, t); pump(); return;
   }
   const mood = moodNow(), room = G.current, floor = G.run.floor;
-  if (G.state === 'title') { amb.stop(t, 2); mus.play(TITLE_PIECE, 'title', t); }
+  if (daylightOn()) { // (M7 step 3: the cave mouth at dawn, and the end screen over it: the wind, the falls, the birds, and its piece)
+    amb.set(floor, 'daylight', undefined, t); amb.duck(1, t); mus.setSpace(spaceFor(floor, roomScape('daylight')?.scape ?? null), t); mus.muffle(false, t); mus.play(DAYLIGHT_PIECE, 'title', t);
+  }
+  else if (G.state === 'title') { amb.stop(t, 2); mus.play(TITLE_PIECE, 'title', t); }
   else if (G.state === 'end') { amb.stop(t, 3); mus.play(TITLE_PIECE, 'title', t); }
   else {
     const theme = room?.theme?.id;

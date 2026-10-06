@@ -140,6 +140,11 @@ export const SHOTS: Record<ShotKind, (s: ShotCall) => void> = {
     const lfo = s.ctx.createOscillator(), lg = s.ctx.createGain(); lfo.frequency.value = s.r.range(6, 14); lg.gain.value = .35 * s.gain; lfo.connect(lg).connect(g.gain); lfo.start(s.t); lfo.stop(s.t + d);
   },
   insect(s) { const f = s.r.range(4200, 6200); let at = 0; for (let k = 0; k < 2 + Math.floor(s.r.next() * 3); k++) { for (let i = 0; i < 4 + Math.floor(s.r.next() * 6); i++) { glide(s, at, f, f * .98, .025, .25, 'sine', .004); at += .035; } at += s.r.range(.2, .6); } },
+  birds(s) { // (M7 step 3: birdsong at dawn: a few quick whistles, rising and falling, now and then a trill)
+    const f = s.r.range(2400, 3600); let at = 0;
+    for (let i = 0; i < 2 + Math.floor(s.r.next() * 4); i++) { const up = s.r.next() < .5; glide(s, at, up ? f : f * 1.35, up ? f * 1.4 : f * .9, s.r.range(.08, .16), .3, 'sine', .01); at += s.r.range(.12, .24); }
+    if (s.r.next() < .4) for (let i = 0; i < 6; i++) glide(s, at + i * .04, f * 1.2, f * 1.1, .035, .18, 'sine', .004);
+  },
   choirHum(s) { const m = s.r.pick([50, 52, 53]); choir(s.ctx, s.out, [m, m + 4, m + 7], s.t, s.r.range(5, 8), .4 * s.gain, 'm', 5, 2); },
 };
 

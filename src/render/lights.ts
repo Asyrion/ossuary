@@ -22,7 +22,14 @@ export const lantern = lit(new THREE.PointLight(0xffc27a, L.lantern, L.lanternDi
 
 /** Torch brightness factor of the current floor (CFG.lights.torch × this), and how dark the current room is:
     0 normally, 1 in a dark room (torches out, fill and moonlight low, the lantern a little brighter). */
-export const lightState = { torchMul: 1, dark: 0, darkTarget: 0 };
+export const lightState = { torchMul: 1, dark: 0, darkTarget: 0, day: false };
+/** M7 step 3: the dawn's light at the cave mouth (CFG.daylight.light): a warm fill and a low sun, the torches out, the lantern
+    turned down; off, the floor's look puts its own colours back (applyFloorLook, on the next floor). */
+export function setDaylight(on: boolean) {
+  lightState.day = on; if (!on) return;
+  const D = CFG.daylight.light;
+  hemi.color.set(D.sky); hemi.groundColor.set(D.ground); moon.color.set(D.sunColour);
+}
 /** Fade towards a room's darkness; `instant` for the first room of a floor. */
 export function setDarkness(target: number, instant = false) { lightState.darkTarget = target; if (instant) lightState.dark = target; }
 /** Current light levels, for tests. */
@@ -54,6 +61,7 @@ export function resetTorchLights(torches: Torch[], x: number, z: number) {
 export function updateTorchLights(torches: Torch[], x: number, z: number, dt: number, flicker: number) {
   const ls = lightState, dark = (ls.dark += (ls.darkTarget - ls.dark) * (1 - Math.exp(-5 * dt)));
   hemi.intensity = L.hemi * (1 - .8 * dark); moon.intensity = L.moon * (1 - .85 * dark); lantern.intensity = L.lantern * (1 + .35 * dark);
+  if (ls.day) { const D = CFG.daylight.light; hemi.intensity = D.hemi; moon.intensity = D.sun; lantern.intensity = L.lantern * D.lantern; for (const s of slots) s.light.intensity = 0; return; }
   const want = nearest(torches.filter(t => t.lit), x, z, slots.length, t => slots.some(s => s.torch === t) ? -1.5 : 0);
   for (const s of slots) {
     if (s.torch && !want.includes(s.torch)) s.fade = Math.max(0, s.fade - dt * 6); // leaving: fade out first

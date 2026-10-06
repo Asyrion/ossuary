@@ -10,7 +10,7 @@ export type BedKind = typeof BED_KINDS[number];
 export const SHOT_KINDS = [
   'drip', 'bones', 'chant', 'rats', 'chapelBell', 'bubbles', 'slosh', 'underBell', 'stones', 'pages', 'beam', 'ember', 'books',
   'flare', 'chimes', 'coins', 'censer', 'highVoice', 'wax', 'ferryBell', 'whispers', 'boatCreak', 'oar', 'shingle', 'pulse',
-  'bookThud', 'chime', 'glass', 'gloop', 'murmur', 'dust', 'rubble', 'rustle', 'insect', 'choirHum',
+  'bookThud', 'chime', 'glass', 'gloop', 'murmur', 'dust', 'rubble', 'rustle', 'insect', 'choirHum', 'birds',
 ] as const;
 export type ShotKind = typeof SHOT_KINDS[number];
 
@@ -26,6 +26,8 @@ export interface ShotSpec { kind: ShotKind; every: number; gain: number; far: [n
 export interface Scape { space?: Space; bed?: BedLayer[]; shots?: ShotSpec[]; duck?: number }
 export interface FloorScape extends Scape { id: string; space: Space }
 
+/** Scenes with a soundscape of their own beside the room types' (M7 step 3: the cave mouth at dawn). */
+export const SCENE_SCAPES: readonly string[] = ['daylight'];
 export const FLOOR_SCAPES = data.floors as unknown as FloorScape[];
 export const ROOM_SCAPES = data.rooms as unknown as Record<string, Scape>;
 export const THEME_SCAPES = data.themes as unknown as Record<string, Scape>;
@@ -71,7 +73,7 @@ export function validateAmbience(rooms: readonly string[], themes: readonly stri
   };
   if (d.floors.length < 5) errs.push('every floor needs a soundscape');
   d.floors.forEach((f, i) => { if (!f.space) errs.push(`floor ${i + 1} needs a space`); if (!f.bed?.length) errs.push(`floor ${i + 1} needs a bed`); check(`floor ${f.id}`, f); });
-  for (const [id, s] of Object.entries(d.rooms)) { if (!rooms.includes(id)) errs.push(`room "${id}" is no room type`); check(`room ${id}`, s); }
+  for (const [id, s] of Object.entries(d.rooms)) { if (!rooms.includes(id) && !SCENE_SCAPES.includes(id)) errs.push(`room "${id}" is no room type`); check(`room ${id}`, s); }
   for (const [id, s] of Object.entries(d.themes)) { if (!themes.includes(id)) errs.push(`theme "${id}" is no theme`); check(`theme ${id}`, s); }
   return errs;
 }

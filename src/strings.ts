@@ -40,9 +40,9 @@ export const STR = {
     master: 'Volume', effects: 'Effects', interface: 'Interface', music: 'Music', ambience: 'Ambience', inventory: 'Inventory (I)',
   },
   end: {
-    won: 'The descent is complete',
+    won: 'Into the daylight',
     lost: 'Asyrion fell in the vault',
-    wonText: "Every floor of the Wardens' vault cleared, and every keeper put to rest. Below the last, Kaelith's seal still holds.",
+    wonText: "Kaelith knelt, and the seal holds by the magic Asyrion carried down through the Wardens' vault. Above the last stair the rock opens on the valleys at dawn: the way home.",
     lostText: (floor: number, name: string) => `Asyrion's descent ended on floor ${floor}, ${name}.`,
     floor: 'Deepest floor', level: 'Level reached', time: 'Time', kills: 'Foes put to rest', obols: 'Obols found', seed: 'Seed', artifacts: 'Artifacts carried',
     levelValue: (level: number, insight: number) => `${level} (${Math.round(insight)} insight)`,
@@ -63,6 +63,7 @@ export const STR = {
   seal: {
     voice: 'Kaelith: "Go back up, mage. What I hold here stays held."',
     horde: 'The horde presses against the seal from below',
+    shaft: 'Daylight falls where Kaelith knelt: the way up',
   },
   /** The bosses: name and line on the boss bar banner, the banner when it calls help, the one when it dies. */
   bosses: {
@@ -930,6 +931,7 @@ export const STR = {
     variants: { normal: 'Normal', quiet: 'Quiet', champion: 'Champion', ambush: 'Ambush', dark: 'Dark' } as Record<string, string>,
     bosses: 'Fight a boss', newRun: 'New run (a deeper floor at its expected level, its choices waiting)', floorN: (n: number) => `Floor ${n}`, toSeal: 'To the Seal (below floor 5)',
     kaelith: "Kaelith's fight (M7 step 2)", kaelithInfo: (phase: number, state: string, wards: string) => `Phase ${phase} · ${state} · wards: ${wards}`, noKaelith: 'No Kaelith in this room',
+    daylight: 'Daylight (M7 step 3)', daylightNow: 'Daylight now', daylightInfo: (on: boolean, t: number) => on ? `Out at the cave mouth, ${t.toFixed(1)} s` : 'Not in the daylight',
     kaelithPhase2: 'Phase 2: the seal cracks', kaelithPhase3: 'Phase 3: the last light', shutWards: 'Shut the wards',
     keep: ' Keep artifacts, obols, keys and glyphs when starting',
   },

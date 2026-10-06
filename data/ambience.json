@@ -103,6 +103,18 @@
     }
   ],
   "rooms": {
+    "daylight": {
+      "space": { "seconds": 1.4, "bright": 0.75 }, "duck": 0,
+      "bed": [
+        { "kind": "noise", "colour": "pink", "filter": "bandpass", "freq": 520, "q": 0.7, "gain": 0.16, "sweep": [360, 820], "gust": { "every": 11, "depth": 0.6 } },
+        { "kind": "stream", "rate": 220, "lo": 400, "hi": 3200, "gain": 0.16 },
+        { "kind": "noise", "colour": "white", "filter": "highpass", "freq": 2600, "q": 0.5, "gain": 0.03 }
+      ],
+      "shots": [
+        { "kind": "birds", "every": 3.5, "gain": 0.4, "far": [0.3, 0.9] },
+        { "kind": "insect", "every": 14, "gain": 0.2, "far": [0.2, 0.6] }
+      ]
+    },
     "library": {
       "space": { "seconds": 0.8, "bright": 0.3 }, "duck": 0.5,
       "bed": [{ "kind": "noise", "colour": "pink", "filter": "lowpass", "freq": 900, "q": 0.6, "gain": 0.05 }],

@@ -60,16 +60,17 @@ describe('music', () => {
     for (const p of PIECES) for (const mood of MOODS) {
       const st = newComposer(p), r = new Rand(9), notes = Array.from({ length: 48 }, (_, b) => planBar(p, b, mood, st, () => r.next())).flat();
       const melody = notes.filter(n => n.stem === 'melody'), pulse = notes.filter(n => n.stem === 'pulse');
+      const calm = p.id === 'title' || p.id === 'daylight'; // (the title's and the dawn's: no drums, and the title mood is theirs)
       if (mood === 'quiet') { expect(notes, p.id).toEqual([]); continue; }
       if (mood === 'low') { expect(melody, p.id).toEqual([]); expect(pulse.every(n => n.voice === 'heart'), p.id).toBe(true); continue; }
-      if (mood === 'title' && p.id !== 'title') continue;
+      if (mood === 'title' && !calm) continue;
       expect(melody.length, `${p.id} ${mood}`).toBeGreaterThan(0);
       for (const n of melody) { // (a melody note belongs to the mode or to the chord under it, and stays singable)
         const off = n.midi[0] - p.root - 12 * p.melody.octave;
         expect(off, `${p.id} ${mood}`).toBeGreaterThanOrEqual(-12); expect(off, `${p.id} ${mood}`).toBeLessThanOrEqual(24);
         expect(n.at).toBeLessThan(p.beats); expect(n.dur).toBeGreaterThan(0);
       }
-      if ((mood === 'fight' || mood === 'boss') && p.id !== 'title') expect(pulse.length, `${p.id} ${mood}`).toBeGreaterThan(0);
+      if ((mood === 'fight' || mood === 'boss') && !calm) expect(pulse.length, `${p.id} ${mood}`).toBeGreaterThan(0);
     }
   });
   it('the title plays its theme as written, through its progression', () => {

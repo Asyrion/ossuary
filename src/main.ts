@@ -1,6 +1,7 @@
 /* Boot: wire input and UI, build the floor, load the hero, start the loop, expose dev hooks. */
 // fonts are bundled with the game (Fontsource), so starting it makes no requests to Google
 import { kaelithInfo, kaelithToPhase, kneltAt, shutAllWards } from './actors/kaelith';
+import { daylightInfo, enterDaylight } from './world/daylight';
 import '@fontsource/cinzel/400.css';
 import { POTION_IDS, isPotion, type PotionId, type ReagentId } from './items/alchemyData';
 import { addPotion, addReagent, beltSlots, choosePotion, identify, knownPotion, moveInBelt, potionFx, renderBelt, usePotion } from './items/potions';
@@ -418,6 +419,7 @@ function installDevHooks() {
     /** M4.2: the Pillar Dragon's pillars, whether it is on one, how high its head is, and whether the pillars it raised are up. */
     get dragon() { return dragonInfo(); },
     get kaelith() { return kaelithInfo(); }, get kaelithKnelt() { return kneltAt; }, kaelithToPhase, shutAllWards, // (M7 step 2: Kaelith's fight)
+    get daylight() { return daylightInfo(); }, daylightNow: () => enterDaylight(), // (M7 step 3: a won run's dawn)
     /** M4.2: Fen-Nex (its stage, where it is, whether it hunts), and growing it a stage. */
     get fennex() { return fennexInfo(); }, growFennex() { growFennex(); },
     /** Fire, frost or shock landing at (x, z), as a spell's would: lights braziers and candles, charges rune stones,
@@ -470,7 +472,7 @@ function installDevHooks() {
     /** Whether a trapdoor lies open on this floor (a floor's boss fell; the serpent out of its vat leaves none). */
     get trapdoor() { return !!G.trapdoor; },
     /** Where the trapdoor lies (world x, z) and the room it is in (M6 step 10: the waystone room's, or the boss room's). */
-    get wayDown() { const t = G.trapdoor; return t && { x: t.x, z: t.z, room: G.rooms.find(r => t.x >= r.bounds.minX && t.x <= r.bounds.maxX && t.z >= r.bounds.minZ && t.z <= r.bounds.maxZ)?.type ?? null }; },
+    get wayDown() { const t = G.trapdoor; return t && { x: t.x, z: t.z, kind: t.kind ?? 'trapdoor', room: G.rooms.find(r => t.x >= r.bounds.minX && t.x <= r.bounds.maxX && t.z >= r.bounds.minZ && t.z <= r.bounds.maxZ)?.type ?? null }; },
     /** The gamepads the browser reports (name, layout, buttons held, sticks), as the dev menu's Gamepads shows them. */
     get pads() { return padsNow(); },
     /** M4.12: the old and new looks side by side ahead of the mage (a floor's, or all), what each new look keeps of its old

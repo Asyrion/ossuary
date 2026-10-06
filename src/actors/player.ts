@@ -1,4 +1,5 @@
 import { G, player } from '../state';
+import { enterDaylight } from '../world/daylight';
 import { snagAt } from '../world/props';
 import { CFG } from '../config';
 import { blockers, collide } from '../world/collision';
@@ -68,5 +69,6 @@ export function updatePlayer(dt: number) {
   // artifacts and the trapdoor down
   checkArtifactPickup(); checkWares(); checkPages(); checkVaultDoors(); checkShrine(); checkLab(); checkWaystone(); checkBargain(); // (M5: the alchemy table; M6: the waystone, the shrine's bargain)
   const trapdoor = G.trapdoor;
-  if (trapdoor && Math.hypot(player.x - trapdoor.x, player.z - trapdoor.z) < .55) descend();
+  if (trapdoor?.kind === 'shaft') { if (Math.hypot(player.x - trapdoor.x, player.z - trapdoor.z) < CFG.daylight.reach) enterDaylight(); } // (M7 step 3: into the daylight)
+  else if (trapdoor && Math.hypot(player.x - trapdoor.x, player.z - trapdoor.z) < .55) descend();
 }

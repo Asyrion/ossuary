@@ -378,6 +378,41 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
    - The scene becomes the Vigil's Cave Mouth in step 9.
    - **Dev menu:** "Daylight now".
 
+   *Built (2026-10-06).*
+   - **The way out:** where Kaelith kneels, a shaft of daylight opens in its hall instead of a trapdoor (`openShaft` in
+     `src/world/daylight.ts`, from `onBossDead`; `G.trapdoor` with `kind: 'shaft'`): a column of warm light fading upward,
+     dust turning in it, a ring on the floor; a line says it ("Daylight falls where Kaelith knelt: the way up"), and a
+     shimmer sounds (`Sfx.shaft`).
+   - **The dawn:** stepping in (`enterDaylight`, from the player's step) whitens the screen and fades it (`#dawn`), hides the
+     HUD (`body.daylight`), and plays the cave mouth at dawn, built far from every floor (`CFG.daylight.at`) in
+     `src/world/daylightLooks.ts`:
+     - **The terrace:** real ground, the room kit's flagstones in the morning's colours (`pixelFloorTexture` with a dawn
+       look), rocks and tufts along its edge.
+     - **The view:** flat layers turned to face the camera (orthographic, so depth only orders them, and the pixel look
+       outlines each against the next), drawn as they are: a sky in steps from deep blue through rose to gold, the sun with
+       its stepped glow, thin cloud, three ranges of hills (`ridge` in the pure `src/world/daylightData.ts`) with firs on the
+       nearest, three banks of mist that drift, a cliff on the left with a waterfall scrolling into spray.
+     - **The cave's rock:** an arch framing the view (its top, roots hanging, and two sides), which opens over three seconds
+       as Asyrion walks out of the dark to the terrace's edge and stands looking out (`daylightPhase`: the white, the
+       opening, the end).
+     - **The light:** a warm fill and a low sun, the torches out, the lantern turned down (`setDaylight` in lights.ts,
+       `CFG.daylight.light`).
+   - **The end screen** lies over it at 6.5 s (`daylightHooks.done`, flow.ts's `endGame(true)`), the mist and the water still
+     moving behind it; its won text is rewritten ("Into the daylight": Kaelith knelt, the seal holds by the magic Asyrion
+     carried down, the rock opens on the valleys at dawn, the way home). A new run takes the scene away (`leaveDaylight`,
+     from `buildFloor`). The game's state is `daylight` while it plays.
+   - **The sound:** its piece "Daylight" (data/music.json's `daylight`, lydian, harp and lyre over strings and a choir; the
+     director plays it in the scene and under the end screen); its soundscape (`rooms.daylight` in data/ambience.json, the
+     scenes' own beside the room types', `SCENE_SCAPES`): wind, the falls, birdsong (a new one-shot, `birds`) and insects;
+     `Sfx.dawn` as the mage steps out.
+   - **Dev menu:** Rooms & runs, "Daylight now" (from anywhere); `__game.daylight`, `__game.daylightNow()`;
+     `__game.wayDown` says the way's `kind`.
+   - **Tests:** unit: the ridges (the same from a seed, within their height, not flat) and the timeline; browser: the shaft
+     where Kaelith knelt and its line, stepping in, the walk out and the opening, the HUD away, the sky bright and warm in a
+     screenshot, the end screen's won text over the scene, a new run taking it away, the dev menu's button; the Seal's and
+     Kaelith's tests end in the daylight now (the Seal test's end check, commented out by mistake in step 2, is back).
+   - Kaelith wears the Winged Watcher (the owner's choice, 2026-10-06).
+
 **Part B: the Vigil**
 
 4. **The keeping.**
