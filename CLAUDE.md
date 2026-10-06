@@ -132,7 +132,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   for spells not met. The dev menu's knowledge row knows every spell or forgets all; `__game.knowledge` reads every
   stage, `__game.know(id, stage)` sets one, `__game.forgetKnowledge()` clears them, `__game.pagePanel` reads the panel.
   Rooms react to magic through `src/world/pools.ts`: water (`~`) and oil (`%`) tiles joined into `room.pools`
-  (`poolGrid` per tile). Anything elemental reports where it lands: `fireAt` (Burn, the lance, the seal, blasts)
+  (`poolGrid` per tile; a pool's and a pit's soft outline is blurred on the CPU, `softenCanvas` in `src/render/softEdge.ts`:
+  a canvas `blur()` filter, rasterised on a software GPU, held a floor's first frame for seconds). Anything elemental reports where it lands: `fireAt` (Burn, the lance, the seal, blasts)
   lights oil and melts ice, `frostAt` (Chill, frost bolts, the ice wall) freezes water, `shockAt` runs a shock
   through a pool; `inflict` calls `touchPools` for every status on a foe standing in one. `wadeAt` slows the mage
   and walkers in unfrozen water. The drowned floor grows puddles in its fights (`growPuddles`). M4.2: a template's `current`

@@ -16,6 +16,7 @@ import type { Enemy, Pool, Room } from '../types';
 import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
 import { floorOwnedTexture } from '../render/textures';
+import { softenCanvas } from '../render/softEdge';
 import { addDecal, burst } from '../combat/fx';
 import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { inflict, overloadAt, tileReaction } from '../magic/statusFx';
@@ -165,7 +166,7 @@ function poolMesh(room: Room, tiles: { c: number; r: number }[]) {
   const P = 32, c0 = Math.min(...tiles.map(t => t.c)), c1 = Math.max(...tiles.map(t => t.c)), r0 = Math.min(...tiles.map(t => t.r)), r1 = Math.max(...tiles.map(t => t.r));
   const w = c1 - c0 + 2, h = r1 - r0 + 2; // half a tile of margin all round
   const cv = document.createElement('canvas'); cv.width = w * P; cv.height = h * P;
-  const g = cv.getContext('2d')!; g.filter = 'blur(6px)'; g.fillStyle = '#fff';
+  const g = cv.getContext('2d', { willReadFrequently: true })!; g.fillStyle = '#fff';
   const has = new Set(tiles.map(t => t.c + ',' + t.r)), in_ = (c: number, r: number) => has.has(c + ',' + r);
   for (const t of tiles) {
     const x = (t.c - c0 + 1) * P, y = (t.r - r0 + 1) * P;
@@ -174,6 +175,7 @@ function poolMesh(room: Room, tiles: { c: number; r: number }[]) {
     if (in_(t.c + 1, t.r)) g.fillRect(x, y - P * .5, P, P);
     if (in_(t.c, t.r + 1)) g.fillRect(x - P * .5, y, P, P);
   }
+  softenCanvas(g, CFG.surface.poolBlur);
   const alpha = floorOwnedTexture(new THREE.CanvasTexture(cv));
   const detail = floorOwnedTexture(detailTexture().clone()); detail.repeat.set(w / 2, h / 2); detail.needsUpdate = true;
   const ice = floorOwnedTexture(iceTexture().clone()); ice.repeat.copy(detail.repeat); ice.needsUpdate = true;

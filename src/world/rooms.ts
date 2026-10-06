@@ -8,6 +8,7 @@ import { DEV, G } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { floorOwnedTexture, floorTexture } from '../render/textures';
+import { softenCanvas } from '../render/softEdge';
 import { pixelFloorTexture } from '../render/pixelTextures';
 import { M, basicMat, blob, boxUV, cappedWallMaterials, disposeTree, glow, markShared, mergeStill, wallMaterials } from '../render/materials';
 import { tickFire } from '../render/fire';
@@ -323,7 +324,7 @@ function drawPits(room: Room) {
     }
     const P = 32, c0 = Math.min(...region.map(t => t.c)), c1 = Math.max(...region.map(t => t.c)), r0 = Math.min(...region.map(t => t.r)), r1 = Math.max(...region.map(t => t.r));
     const w = c1 - c0 + 2, h = r1 - r0 + 2, cv = document.createElement('canvas'); cv.width = w * P; cv.height = h * P;
-    const g = cv.getContext('2d')!, inReg = new Set(region.map(t => t.c + ',' + t.r)); g.filter = 'blur(4px)'; g.fillStyle = 'rgb(3,2,2)';
+    const g = cv.getContext('2d', { willReadFrequently: true })!, inReg = new Set(region.map(t => t.c + ',' + t.r)); g.fillStyle = 'rgb(3,2,2)';
     for (const t of region) { // a rounded square per tile, bridged to its neighbours: one hole with a soft rim
       const x = (t.c - c0 + 1) * P, y = (t.r - r0 + 1) * P;
       g.beginPath(); g.roundRect(x - P * .46, y - P * .46, P * .92, P * .92, P * .3); g.fill();
@@ -331,7 +332,7 @@ function drawPits(room: Room) {
       if (inReg.has(t.c + ',' + (t.r + 1))) g.fillRect(x - P * .46, y, P * .92, P);
       if (inReg.has((t.c + 1) + ',' + t.r) && inReg.has(t.c + ',' + (t.r + 1)) && inReg.has((t.c + 1) + ',' + (t.r + 1))) g.fillRect(x, y, P, P);
     }
-    g.filter = 'none'; const R = mulberry(room.plan.seed ^ 0x9175);
+    softenCanvas(g, CFG.surface.pitBlur); const R = mulberry(room.plan.seed ^ 0x9175);
     for (const t of region) for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { // a crumbled rim: stones along its open edges
       if (inReg.has((t.c + dc) + ',' + (t.r + dr))) continue;
       for (let k = 0; k < 5; k++) {

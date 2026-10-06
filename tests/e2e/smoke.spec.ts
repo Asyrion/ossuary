@@ -3694,6 +3694,7 @@ test('the bestiary (M4.5), floor 1: the spider drops from out of reach and spits
   const last = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 99; g.warp(1); g.sim(.8); g.clearRoom(); g.sim(.2);
     const lark = g.spawn('choirLark', g.player.x + 4, g.player.z - 1); const rot = g.spawn('rotling', g.player.x + 4, g.player.z + 1);
+    Object.assign(lark, { state: 'perch', st: 5, fireT: .1, vx: 0, vz: 0 }); // (perched where it was spawned: the perch it flies to is the room's to pick, and the song is what this checks)
     let sung = false; for (let k = 0; k < 200 && !sung; k++) { g.player.invuln = 0; g.sim(.05); rot.x = lark.x + .8; rot.z = lark.z; sung = (rot.sung ?? 0) > g.clock; }
     g.inflict({ hex: 3 }); rot.sung = 0; let hushed = true; for (let k = 0; k < 40; k++) { g.sim(.05); rot.x = lark.x + .8; rot.z = lark.z; if ((rot.sung ?? 0) > g.clock && lark.state === 'perch') hushed = false; }
     g.clearRoom(); g.sim(.2);
