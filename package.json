@@ -23,6 +23,8 @@
     "texel-bake": "tsx tools/texel-bake.ts",
     "creature-preview": "tsx tools/creature-preview.ts",
     "milestone": "tsx tools/milestone.ts",
+    "devboard": "tsx tools/devboard/server.ts",
+    "devboard:selftest": "tsx tools/devboard/selftest.ts",
     "test:unit": "vitest run",
     "test:e2e": "playwright test"
   },

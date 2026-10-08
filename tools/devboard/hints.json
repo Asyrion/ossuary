@@ -1,0 +1,62 @@
+{
+  "_comment": "Field hints for the dev board's forms (tools/devboard/README.md). Per kind, a field path (dots between levels, [] for a list's items, * for any key) maps to: enum (a string union type in src/, its values offered), keys (an object whose keys are that union's values), keysRef (an object keyed by ids of another kind), ref (the id of another kind), help (a line under the field), text (a long text). Fields without a hint get a widget from their values.",
+  "artifacts": {
+    "kind": { "enum": "ArtifactKind" },
+    "pools": { "enum": "Pool" },
+    "effects": { "enum": "Effect" },
+    "stats": { "keys": "StatKey" },
+    "curse.stats": { "keys": "StatKey" },
+    "curse.effects": { "enum": "Effect" },
+    "gives": { "keys": "Resource" },
+    "focus.path": { "enum": "BoltPath" },
+    "lore": { "text": true, "help": "A few lines for the card shown when it's taken." },
+    "text": { "help": "The one-line description on the pedestal." }
+  },
+  "foes": {
+    "school": { "enum": "School" },
+    "weak": { "enum": "School", "help": "Takes +50% from this school." },
+    "resist": { "enum": "School", "help": "Takes -50% from this school." },
+    "behaviour": { "help": "A behaviour in src/actors/foes.ts; its params are listed in BEHAVIOUR_PARAMS (src/actors/foeData.ts)." },
+    "look": { "ref": "foes" }
+  },
+  "floors": {
+    "vaultWarden": { "ref": "foes" },
+    "themes": { "keysRef": "themes" },
+    "foes": { "help": "Per template role (R walker, W flyer or shooter, H heavy): [foe id, weight] pairs." }
+  },
+  "spells": {
+    "school": { "enum": "School" },
+    "shape": { "enum": "Shape" },
+    "status": { "keys": "SpellStatus" },
+    "text": { "text": true }
+  },
+  "runes": {
+    "shapes": { "enum": "Shape" },
+    "text": { "text": true }
+  },
+  "boons": {
+    "school": { "enum": "School" },
+    "area": { "enum": "BoonArea" },
+    "text": { "text": true }
+  },
+  "themes": {
+    "twist": { "enum": "Twist" },
+    "scatter": { "keys": "ScatterKind" }
+  },
+  "rooms": {
+    "types": { "enum": "RoomType" },
+    "theme": { "ref": "themes" },
+    "grid": { "help": "One line a row; each character a tile (src/world/templates.ts)." }
+  },
+  "potions": {
+    "throw.school": { "enum": "School" },
+    "lore": { "text": true }
+  },
+  "reagents": {
+    "lore": { "text": true }
+  },
+  "recipes": {
+    "of": { "ref": "reagents" },
+    "makes": { "ref": "potions" }
+  }
+}

@@ -978,6 +978,20 @@ hands over), and a **template-builder** subagent if a step needs many templates 
 load when a session starts. In a cloud session the browser for Playwright is under `/opt/pw-browsers`: set
 `PW_CHROMIUM` to it for `npx playwright test` and `npm run inspect`.
 
+## Dev board (the owner's ask, 2026-10-08)
+
+`npm run devboard` serves http://127.0.0.1:8770, a local page to browse, create, edit and delete
+the content in `data/` (artifacts, potions, foes, floors, themes, room templates, spells, runes, boons, tuning), checked by
+the game's own validators after every save; `tools/devboard/README.md` has the details. At the start of a session on the
+owner's machine, check it answers (`curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8770/` gives 200) and start it
+in the background if not (`dev-board` in `.claude/launch.json`); never a second instance on another port. A new kind of
+content in `data/` gets its entry in `tools/devboard/kinds.ts` (and its validator in `tools/devboard/validate.ts`) in the
+same step. `npm run devboard:selftest` must pass when the board changes. The generic recipe is the skill
+`.claude/skills/game-dev-board/SKILL.md`. Its files: `server.ts` (HTTP and guards), `content.ts` (load, save, create,
+delete, undo, references), `jsonspan.ts` (saves that keep the files' layout), `kinds.ts`, `hints.json` and `schema.ts`
+(what is shown and how fields are edited), `validate.ts`, `selftest.ts`, and the page in `public/` (`index.html`,
+`app.js`, `style.css`).
+
 ## Working agreements
 
 - Plan before large changes; keep commits small with clear messages.
