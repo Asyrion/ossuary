@@ -112,7 +112,9 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   const fn = routes[path];
   if (!fn) return send(res, 404, { error: 'not found' });
   const result = fn();
-  const v = path === '/api/preview' ? null : await validate();
+  // a check already running when this write landed read the files before it: wait for it, then check again
+  let v = path === '/api/preview' ? null : await validate();
+  if (v && v.sig !== content.signature()) v = await validate();
   send(res, 200, { ok: true, result, validation: v });
 }
 
