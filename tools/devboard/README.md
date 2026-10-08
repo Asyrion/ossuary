@@ -57,6 +57,8 @@ Play link), field hints in `hints.json` if some fields name a union or another k
 
 ## Later
 
+`ROADMAP.md` holds the brainstorm of what could come next (four phases, 15 ideas), and `NEXT_STEPS.md` the proposed order.
+
 - **Art**: today every in-game asset is drawn in code or made by the owner in Tripo Studio, so the cards show colour
   swatches. Once the asset pipeline with Tripo Studio and Aseprite is written into the docs (the owner's plan,
   2026-10-08), the board gets a picture per entry, an art checklist per kind and reference-image upload, following

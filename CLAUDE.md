@@ -990,7 +990,7 @@ same step. `npm run devboard:selftest` must pass when the board changes. The gen
 `.claude/skills/game-dev-board/SKILL.md`. Its files: `server.ts` (HTTP and guards), `content.ts` (load, save, create,
 delete, undo, references), `jsonspan.ts` (saves that keep the files' layout), `kinds.ts`, `hints.json` and `schema.ts`
 (what is shown and how fields are edited), `validate.ts`, `selftest.ts`, and the page in `public/` (`index.html`,
-`app.js`, `style.css`).
+`app.js`, `style.css`). Its plans: `ROADMAP.md` (a brainstorm in four phases) and `NEXT_STEPS.md` (the proposed order).
 
 ## Working agreements
 
