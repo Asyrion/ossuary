@@ -207,18 +207,24 @@ export function barLook(school: School, w: number, look: FloorLook) {
     for (const s of [-1, 1]) { mesh(g, cyl(.035, .04, .18, 6), MAT.wax, s * .3, .45, .22); mesh(g, cyl(.004, .004, .03, 3), MAT.pitch, s * .3, .555, .22); }
     mesh(g, new THREE.TorusGeometry(.16, .025, 4, 14), MAT.darkBronze, 0, 2.1, .36);
     for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; mesh(g, box(.03, .1, .02), MAT.darkBronze, Math.cos(a) * .25, 2.1 + Math.sin(a) * .25, .36).rotation.z = a - Math.PI / 2; }
-  } else if (school === 'verdant') { // a dead root broken through the wall, bent down into the floor
-    const root = tone(0x5c4c3c, .15);
-    mesh(g, rough(box(.9, .7, .1), .1, 2), MAT.socket, -.1, 1.2, .03); // (the hole it broke)
-    mesh(g, taperTube(curve([[-.1, 1.25, 0], [0, 1.2, .35], [.15, .8, .6], [.3, .25, .7], [.45, 0, .62]]), 14, .2, .1), root);
-    mesh(g, taperTube(curve([[-.05, 1.0, .25], [-.4, .7, .45], [-.62, .3, .5], [-.7, 0, .42]]), 10, .1, .05), root);
-    mesh(g, taperTube(curve([[.05, 1.3, .2], [.45, 1.45, .3], [.7, 1.2, .25]]), 8, .07, .02), root);
-    for (let k = 0; k < 5; k++) mesh(g, taperTube(curve([[.15 + R() * .2, .8 - k * .12, .62], [.3 + R() * .4, .7 - k * .14, .8], [.4 + R() * .5, .55 - k * .12, .75]]), 4, .02, .006, 3), root);
-  } else { // frost: a cellar stair going down under dark water
+  } else if (school === 'verdant') { // a dead root broken through the wall, its arms splayed down the stone and into the floor
+    const root = tone(0x5c4c3c, .15), dark = tone(0x3e3228, .12);
+    mesh(g, rough(box(.8, .5, .08), .08, 2), MAT.socket, 0, 1.0, .03); // (the hole it broke, below the wall's top)
+    mesh(g, taperTube(curve([[0, 1.02, .02], [.05, .95, .3], [.12, .6, .5], [.18, .22, .58], [.22, 0, .55]]), 14, .24, .13), root);
+    mesh(g, taperTube(curve([[-.1, 1.0, .05], [-.35, .82, .12], [-.55, .5, .14], [-.68, .15, .2], [-.72, 0, .26]]), 12, .13, .06), root);
+    mesh(g, taperTube(curve([[.12, .98, .06], [.4, .8, .1], [.62, .45, .12], [.72, .1, .2], [.75, 0, .24]]), 12, .12, .05), root);
+    for (let k = 0; k < 7; k++) { const sx = (R() - .5) * 1.2, y = .2 + R() * .6; mesh(g, taperTube(curve([[sx * .6, y + .15, .12], [sx, y, .2], [sx * 1.15, y - .2, .16]]), 4, .03, .008, 3), dark); }
+    for (const x of [-.72, .22, .75]) mesh(g, rough(new THREE.DodecahedronGeometry(.12, 0), .03, x * 10), dark, x, .04, .3).scale.y = .4; // (where each digs into the floor)
+  } else { // frost: a cellar stair going down into black water, filled to halfway up the arch
     frame(g, w, look);
     mesh(g, box(inner, 1.5, .04), MAT.socket, 0, .78, .02);
-    for (let k = 0; k < 3; k++) mesh(g, box(inner, .1, .22), tone(stoneOf(look, 1 - k * .15), .1), 0, .05 - k * .02, .3 - k * .1);
-    mesh(g, box(inner, .02, .3), WATER, 0, .07, .18);
+    for (let k = 0; k < 4; k++) { // (the steps, coming down toward the room and under the water)
+      const y = 1.18 - k * .15, z = .07 + k * .06;
+      mesh(g, box(inner, .07, .1), tone(stoneOf(look, 1.05 - k * .08), .1), 0, y, z); mesh(g, box(inner, .015, .1), tone(stoneOf(look, 1.35), .05), 0, y + .04, z);
+    }
+    mesh(g, box(inner, .68, .05), WATER, 0, .34, .3); // (the water standing in the arch)
+    mesh(g, box(inner, .025, .06), tone(0x5a8aa0, .05), 0, .69, .31); // (its surface catching the light)
+    for (let k = 0; k < 3; k++) mesh(g, box(.18 + R() * .2, .012, .01), tone(0x4a7488, .05), (R() - .5) * (inner - .4), .5 - k * .14, .335);
     for (let k = 0; k < 7; k++) { const m = mesh(g, cyl(.02, .02, .09, 4).rotateZ(Math.PI / 2), MAT.iron, (k / 6 - .5) * (inner - .1), 1.0 - Math.abs(k - 3) * .06, .37); m.rotation.y = .2; } // (a chain across)
   }
   g.add(blob(w + .4)); g.userData.parts = parts; mergeStill(g);
