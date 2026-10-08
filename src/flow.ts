@@ -41,6 +41,7 @@ import { arriveAtSeal, atSeal, enterSealRoom } from './world/seal';
 import { kaelithKneels, resetKaelith } from './actors/kaelith';
 import { recordRun, resetRunFirsts, runFirsts, vigil } from './vigil/save';
 import { VIGIL, VIGIL_INDEX, vigilPlan } from './vigil/vigilMap';
+import { atVigil } from './vigil/where';
 import { furnishVigil, leaveVigil, vigilActs, wakePoint, wokeAtVigil } from './vigil/place';
 import { atLeast } from './magic/knowledge';
 import { stage } from './magic/memory';
@@ -241,7 +242,7 @@ export function descend() {
 
 export function pause() {
   G.state = 'pause'; showScreen('pause');
-  $('runInfo').textContent = STR.runInfo(G.run.floor + 1, FLOORS.length, G.run.seed);
+  $('runInfo').textContent = atVigil() ? STR.vigil.runInfo : STR.runInfo(G.run.floor + 1, FLOORS.length, G.run.seed); // (M7 step 5: no floor at the Vigil)
   $('btnResume').focus();
 }
 export function resume() { G.state = 'play'; showScreen(null); resetClock(); }
