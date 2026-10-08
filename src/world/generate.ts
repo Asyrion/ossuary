@@ -43,6 +43,7 @@ export interface FloorConfig {
   /** Whether the floor has a waystone room beside its boss room, holding the way down (M6 step 10: floors 1 to 4; M7: 5 too, the Seal below it). */ waystone?: boolean;
   /** Chance the secret room holds an artifact (outside the budget) rather than a hoard. */ secretArtifactChance: number;
   /** The champion that rises in a vault forced open with glyphs. */ vaultWarden: FoeType;
+  /** M7 step 6: the chance a chained shade lies somewhere on the floor (data/shades.json). */ shade?: number;
   /** How much likelier soul motes are in the floor's loot than on the first floors (M4.1: the deep floors give more;
       1 when unset). */ souls?: number;
   /** M6 step 8: how likely runes are in the floor's loot, times each chance in data/loot.json's `runes` (0 on floor 5:

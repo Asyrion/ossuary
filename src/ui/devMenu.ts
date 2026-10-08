@@ -52,6 +52,9 @@ import { disposeTree } from '../render/materials';
 import { makeEnemy, spawnFoe } from '../actors/enemies';
 import { buildFloor, clearRoom, descend, resume, startGame, wakeAtVigil, warp, type RunOptions } from '../flow';
 import { board, vigilInfo } from '../vigil/place';
+import { bindIt, breakAllChains, freeIt, layShade, shadeInfo } from '../vigil/shades';
+import { walkWith } from '../vigil/shadeHelp';
+import { SHADE_IDS } from '../vigil/shadeData';
 import { openLectern } from './lectern';
 import { assetList, assetsOn, madeLookNow, madeLooks, setAssetsOn, setMadeLook, type MadeLook } from '../assets/models';
 import { setCloseUp } from '../render/renderer';
@@ -106,7 +109,7 @@ import { CREATURES, CREATURE_LOOKS, creatureLook, roarNow, setCreatureLook, show
 import { THEMES } from '../world/themeData';
 
 const S = STR.dev;
-let kaelithBox: HTMLElement, daylightBox: HTMLElement, keepBox: HTMLElement, vigilBox: HTMLElement;
+let kaelithBox: HTMLElement, daylightBox: HTMLElement, keepBox: HTMLElement, vigilBox: HTMLElement, shadeBox: HTMLElement;
 let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, madeLookBtn: HTMLButtonElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
 let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, runesBtn: HTMLButtonElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement, creatureLookBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
@@ -592,6 +595,19 @@ function build() {
     btn(S.toVigil, () => { closeDev(); wakeAtVigil(false); }), btn(S.vigilFirst, () => { closeDev(); wakeAtVigil(true); }),
     btn(S.vigilLectern, () => { if (!vigilInfo().here) { toast(S.notAtVigil, 2); return; } closeDev(); openLectern(); }),
     btn(S.vigilBoat, () => { if (!vigilInfo().here) { toast(S.notAtVigil, 2); return; } closeDev(); board(); }));
+  // M7 step 6: chained shades: the floor's (where it lies, its chains), one chained beside the mage, its chains broken, freed
+  // or bound; a shade walking with the mage this run, to see its help at work
+  const sh = section(pages.rooms, S.shades);
+  sh.append(shadeBox = el('p', 'dv-info'),
+    btn(S.shadeGo, () => { const i = shadeInfo(); if (!i) { toast(S.noShade, 2); return; } if (G.current.plan.id !== i.room) { warp(i.room); } closeDev(); }),
+    btn(S.shadeBreak, () => { if (!breakAllChains()) toast(S.noShade, 2); refresh(); }),
+    btn(S.shadeFree, () => { if (!freeIt()) toast(S.noShade, 2); refresh(); }), btn(S.shadeBind, () => { if (!bindIt()) toast(S.noShade, 2); refresh(); }));
+  const shRow = el('div', 'dv-row'), walkRow = el('div', 'dv-row');
+  for (const id of SHADE_IDS) {
+    shRow.append(btn(S.shadeHere(STR.shades.names[id]), () => { const p = freeSpotNear(G.current, player.x, player.z - 1.6); layShade(id, G.current, p.x, p.z); closeDev(); }));
+    walkRow.append(btn(S.shadeWalks(STR.shades.names[id]), () => { walkWith(id); refresh(); }));
+  }
+  sh.parentElement!.append(shRow, walkRow);
   const runs = section(pages.rooms, S.newRun);
   FLOORS.forEach((f, i) => runs.append(btn(f.fixed ? S.toSeal : S.floorN(i + 1), () => start({ floor: i, level: levelAtFloor(i) > 1 ? levelAtFloor(i) : undefined })))); // (M6 step 12: at the floor's expected level, its choices waiting)
   const keep = el('label', 'dv-check'); const box = el('input'); box.type = 'checkbox'; box.checked = keepCarried;
@@ -622,6 +638,7 @@ function refresh() {
   assetBtn.textContent = assetsOn() ? S.assetsOn : S.assetsOff; assetBtn.classList.toggle('on', assetsOn()); assetBtn.disabled = !list.some(a => a.status === 'loaded');
   const dl = daylightInfo(); daylightBox.textContent = S.daylightInfo(dl.on, dl.t ?? 0);
   const v = vigil(); keepBox.textContent = S.keepingInfo(v.dust, v.obols, v.runs, v.wins, v.deepest);
+  const si = shadeInfo(); shadeBox.textContent = si ? S.shadeInfo(si.name, S.roomNames[si.type] ?? si.type, si.state, si.chains.map(c => (c.ward ? STR.schools[c.ward] : S.plainChain) + (c.broken ? ' ✓' : '')).join(', '), vigil().freed.length, G.run.walking.map(id => STR.shades.names[id]).join(', ') || '–') : S.noShade;
   const vp = vigilInfo(); vigilBox.textContent = vp.here ? S.vigilInfo(vp.room ?? '?', vp.candles, vp.slots.map(id => id ? spell(id).name : '–').join(', ')) : S.notAtVigil;
   const kae = kaelithInfo(); kaelithBox.textContent = kae ? S.kaelithInfo(kae.phase, kae.state, kae.wards.map(w => (w.school ?? '-') + (w.shut ? ' (shut)' : '')).join(', ')) : S.noKaelith;
   madeLookBtn.textContent = S.madeLooks[madeLookNow()]; madeLookBtn.classList.toggle('on', madeLookNow() !== 'texel'); madeLookBtn.disabled = !assetsOn() || !madeLooks();

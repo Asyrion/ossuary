@@ -171,6 +171,7 @@ export function strikeSolid(room: Room, box: Box, x: number, y: number, z: numbe
   else if (rock.prop) strikeProp(room, rock, false, status);                              // piles break, bells ring, runes charge
   else if (room.lab && !door) vatStruck(room, x, z);                                       // (M5: the jelly serpent's vat window cracks)
   else if (rock.bar) vigilHooks.barStruck(rock, x, z, status);                             // (M7 step 5: a way barred at the Vigil stirs)
+  else if (rock.shade) vigilHooks.shadeStruck(x, z, schoolOf(status));                     // (M7 step 6: a chained shade's chains)
   return rock;
 }
 

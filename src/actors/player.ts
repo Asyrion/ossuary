@@ -10,6 +10,7 @@ import { bloodMoon, spawnBolt } from '../combat/projectiles';
 import { placeGlyph } from '../combat/glyphs';
 import { castSpell } from '../magic/spells';
 import { answerPage, checkPages } from '../magic/pages';
+import { answerShade } from '../vigil/shades';
 import { checkArtifactPickup } from '../items/artifacts';
 import { checkWares } from '../items/merchant';
 import { checkShrine } from '../world/shrine';
@@ -56,7 +57,7 @@ export function updatePlayer(dt: number) {
   if (pressed.blink) { pressed.blink = false; blink(mv); } // (M4.6: the Shadowstep's)
   updateGifts(dt);
   // a spell key answers a grimoire page's question, if one is asking; otherwise it casts
-  for (const i of [0, 1]) if (pressed.spells[i]) { pressed.spells[i] = false; if (!answerPage(i)) castSpell(i, aim); }
+  for (const i of [0, 1]) if (pressed.spells[i]) { pressed.spells[i] = false; if (!answerShade(i) && !answerPage(i)) castSpell(i, aim); } // (M7 step 6: a loose shade's question first)
   // M5: the potion belt (a tap drinks the chosen potion, a hold throws it; another key chooses)
   if (pressed.nextPotion) { choosePotion(pressed.nextPotion); pressed.nextPotion = 0; }
   if (pressed.potion) { usePotion(pressed.potion); pressed.potion = null; }

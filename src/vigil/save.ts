@@ -6,6 +6,7 @@
    imported again (the pause menu), wiped, or made a veteran's (the dev menu). The settings keep their own keys. A private
    window or blocked storage keeps it for the session only. */
 import { CFG } from '../config';
+import { SHADE_IDS } from './shadeData';
 import { LEGACY_KEYS, SLOT_KEYS, blankSave, migrate, validate, type RunRecord, type SlotKey, type VigilSave } from './vigilData';
 
 const KEY = 'ossuary.vigil';
@@ -53,14 +54,21 @@ export function lightCandle() { if (!save.candle) { save.candle = true; persist(
 /** The spell held in a hand at the Vigil (the lectern's choice), or none. */
 export function setVigilSlot(slot: number, id: string | null) { save.slots[slot] = id; persist(); }
 
+/** M7 step 6: a chained shade freed: it goes up to the Vigil at once, kept even if the run ends in death (and no longer bound). */
+export function freeShade(id: string) { if (!save.freed.includes(id)) save.freed = [...save.freed, id]; save.bound = save.bound.filter(b => b !== id); persist(); }
+/** A chained shade bound: it walks with the mage through the next run. */
+export function bindShade(id: string) { if (!save.bound.includes(id) && !save.freed.includes(id)) save.bound = [...save.bound, id]; persist(); }
+/** A run begins: the shades bound before walk with it, and are bound no longer (they slip back into their chains after). */
+export function takeBound() { const b = save.bound; save.bound = []; persist(); return b; }
+
 /** The dev menu: Dust and obols given. */
 export function giveHome(dust: number, obols: number) { save.dust = Math.max(0, save.dust + dust); save.obols = Math.max(0, save.obols + obols); persist(); }
 /** The dev menu: a wiped save (everything forgotten; the page reloads, so every module starts from nothing). */
 export function wipeSave() { save = blankSave(); persist(); }
-/** The dev menu: a veteran's save (every part open, the candle lit, runs behind it and Dust to spend); the shades it has
-    freed come with step 6, the sigils and powers with step 10. What is known stays as it is. */
+/** The dev menu: a veteran's save (every part open, the candle lit, every shade freed, runs behind it and Dust to spend);
+    the sigils and powers come with step 10. What is known stays as it is. */
 export function veteranSave() {
-  Object.assign(save, { dust: Math.max(save.dust, 900), obols: Math.max(save.obols, 300), runs: Math.max(save.runs, 24), wins: Math.max(save.wins, 6), deepest: 6, candle: true, parts: ['ember', 'frost', 'storm', 'hallow', 'umbral', 'verdant'], flags: { ...save.flags, veteran: true } });
+  Object.assign(save, { dust: Math.max(save.dust, 900), obols: Math.max(save.obols, 300), runs: Math.max(save.runs, 24), wins: Math.max(save.wins, 6), deepest: 6, candle: true, parts: ['ember', 'frost', 'storm', 'hallow', 'umbral', 'verdant'], freed: [...SHADE_IDS], flags: { ...save.flags, veteran: true } });
   persist();
 }
 

@@ -49,7 +49,9 @@ screen, each run remembered with what struck last, the save out to a file and ba
 built** (2026-10-08, planned with the owner: a warm candlelit crypt, the six barred ways shown sealed, the Ferryman a figure
 now): three rooms laid by hand (the Crypt, the Nave, the Landing), waking there after every run (the first time in the dark,
 its candle lighting itself), the lectern's two spells in hand, the boat down to floor 1, the title leading there once a run
-has been played. **Next: step 6, chained shades in runs** (not a (P) step).
+has been played. **Step 6, chained shades, is built** (2026-10-08): about one a floor, chained by schools the mage can
+land; freed to the Vigil (a candle and 20 Dust each) or bound to walk with the next run and help in its own way. **Next:
+step 7, townspeople and dialogue**, marked (P): plan it with the owner in plan mode first.
 
 `main` was merged into the branch on 2026-10-05 (another session's work: the Chameleon Wyvern, the texel bake, the game's
 first sound files, the dev menu's fixes), so both session branches carry everything; 434 unit tests green after it.

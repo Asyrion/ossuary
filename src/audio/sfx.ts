@@ -260,6 +260,11 @@ const sounds = {
   dawn() { hiss(2.4, .07, 'lowpass', 1800); [262, 330, 392, 523].forEach((f, i) => tone('triangle', f, f, 2.6, .04, .15 + i * .05)); tone('sine', 131, 131, 3, .06, .2); }, // (stepping out at the cave mouth)
   boat() { hiss(1.6, .05, 'lowpass', 600); hiss(.9, .03, 'bandpass', 900, .5); tone('sine', 98, 92, 1.4, .05, .1); tone('triangle', 196, 196, .9, .02, .6); }, // (M7 step 5: the Ferryman's pole in the water, and the boat pushing off)
   waken() { tone('sine', 196, 196, 2.2, .05); tone('sine', 294, 294, 2, .03, .25); hiss(1.2, .02, 'lowpass', 900, .1); }, // (waking on the bier)
+  chainRattle() { for (let i = 0; i < 5; i++) tone('square', 900 + i * 130, 700 + i * 90, .04, .015, i * .06); hiss(.35, .02, 'highpass', 3000); }, // (M7 step 6: a chained shade's chains, as it is seen)
+  shadeLoose() { tone('sine', 330, 440, 1.2, .05); tone('sine', 495, 660, 1, .03, .15); hiss(.8, .02, 'highpass', 2600, .1); }, // (its last chain broken)
+  shadeFree() { [392, 494, 587, 784, 988].forEach((f, i) => tone('sine', f, f * 1.01, 1.8, .035, i * .12)); hiss(2, .03, 'highpass', 3200); }, // (it rises to the Vigil)
+  shadeHelp() { tone('sine', 660, 660, .5, .025); tone('sine', 990, 990, .4, .015, .08); }, // (a bound shade's help at work)
+  shadeBind() { tone('triangle', 220, 165, .9, .06); tone('sine', 110, 82, 1.2, .05, .1); hiss(.6, .03, 'lowpass', 800); }, // (it is bound to the mage)
   sealVoice() { hiss(1.8, .06, 'lowpass', 280); tone('sine', 73, 61, 2, .1); tone('triangle', 110, 92, 1.5, .035, .35); }, // (M7: Kaelith's voice from under the stone)
   champion() { tone('sawtooth', 80, 60, .5, .08); hiss(.4, .06, 'lowpass', 300); },
   // champion mantles (M4.7): a mantle torn off (a snap and a falling chime), and a Hexbound's curse closing

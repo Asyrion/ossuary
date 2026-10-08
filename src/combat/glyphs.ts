@@ -23,7 +23,7 @@ import { blastSeal } from '../world/vault';
 import { openSecret } from '../world/secret';
 import { blastWisp } from '../world/shrine';
 import { toast } from '../ui/hud';
-import { atVigil } from '../vigil/where';
+import { atVigil, vigilHooks } from '../vigil/where';
 import { STR } from '../strings';
 import { giveResources, isContainer, openContainer } from '../items/pickups';
 import { damageEnemy, hurtPlayer, strikeFrom } from './damage';
@@ -123,6 +123,7 @@ function blast(x: number, z: number, color: number, R: number, spare = false) {
   }
   dragonBlast(x, z, R); // (M4.2: a blast at the foot of the Pillar Dragon's pillar knocks it off)
   groundHears('blast', x, z, R); // (what hides in water there is thrown up)
+  vigilHooks.landed('blast', x, z, R); // (M7 step 6: a glyph's blast breaks any chain on a chained shade)
   blastProps(room, x, z, R); // rubble cleared, briars and cobwebs torn away
   caveIn(room, x, z); // in the collapsed crypt, more of the ceiling comes down
   for (const p of G.pickups) if (isContainer(p.kind) && !p.opened && Math.hypot(p.x - x, p.z - z) < R + .3) openContainer(p, true); // chests burn

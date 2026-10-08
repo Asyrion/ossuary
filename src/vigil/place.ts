@@ -88,7 +88,7 @@ export function furnishVigil(first: boolean) {
 const wallOf = (_r: Room, p: Pick<VigilPiece, 'at' | 'kind'>): 'n' | null => p.at[1] === 0 && p.kind !== 'boat' ? 'n' : null;
 /** The candles the candle wall burns: one for the mage's own once it has woken here (each shade freed lights one more,
     step 9). */
-export const litCandles = () => vigil().candle ? 1 : 0;
+export const litCandles = () => (vigil().candle ? 1 : 0) + vigil().freed.length; // (M7 step 6: each shade freed lights one more)
 
 /** The mage has woken in the Crypt (flow.ts placed it): the Vigil's name, and on the first waking the dark, then its first
     candle lighting itself. */

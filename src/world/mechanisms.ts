@@ -25,6 +25,7 @@
    it) and a dead tree's branches (each grown its own way); both are disposed with the object. */
 import * as THREE from 'three';
 import { objectReagent } from '../items/reagents';
+import { vigilHooks } from '../vigil/where';
 import { CFG } from '../config';
 import type { Bolt, Box, FloorLook, Pool, PropBox, Room } from '../types';
 import { DEV, G, player } from '../state';
@@ -212,6 +213,7 @@ const isStand = (kind: string) => kind === 'candles' || kind === 'wetCandles';
     braziers and candle stands catch fire, rune stones take a charge, lodestones leap, the ice round a frozen foe melts. */
 export function elementAt(kind: StatusKind, x: number, z: number, r = 0) {
   const room = G.current;
+  vigilHooks.landed(kind === 'burn' ? 'ember' : kind === 'chill' ? 'frost' : 'storm', x, z, r); // (M7 step 6: a chained shade's chains)
   if (kind === 'shock') chargeSteam(x, z, 'storm'); // (M4.10: a storm in steam makes a thundercloud)
   for (const box of room.props ?? []) {
     const p = box.prop;
@@ -228,6 +230,7 @@ export function elementAt(kind: StatusKind, x: number, z: number, r = 0) {
     chapel's did for its prayers, and an obelisk warded in Hallow breaks its ward (M4.2). */
 export function hallowAt(x: number, z: number, r = 0) {
   const room = G.current;
+  vigilHooks.landed('hallow', x, z, r);
   chargeSteam(x, z, 'hallow'); // (M4.10: holy light in steam is incense)
   for (const box of room.props ?? []) {
     if (isStand(box.prop.kind) && !box.prop.lit && near(box, x, z, C.kindle + r)) light(room, box);
@@ -237,6 +240,7 @@ export function hallowAt(x: number, z: number, r = 0) {
 /** Darkness lands at (x, z) within `r` (M4.2: Grasp of the Grave's hands): a watching statue there is blinded, and an
     obelisk warded in Umbral breaks its ward; on Consecrate's holy ground, the ground goes dark (M4.8). */
 export function umbralAt(x: number, z: number, r = 0) {
+  vigilHooks.landed('umbral', x, z, r);
   hexGround(x, z); // (M4.8: a hex on holy ground eclipses what stands in it)
   chargeSteam(x, z, 'umbral'); // (M4.10: darkness in steam is a miasma)
   for (const box of G.current.props ?? []) {

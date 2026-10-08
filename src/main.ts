@@ -52,6 +52,8 @@ import { askVigil, begin, clearRoom, descend, pause, prepareTitle, resetPlayer, 
 import { STR } from './strings';
 import { closeLectern, holdIn, initLectern, lecternKey, lecternNow, lecternOpen, lecternPad, openLectern } from './ui/lectern';
 import { board, vigilActs, vigilInfo } from './vigil/place';
+import { answerShade, bindIt, breakAllChains, freeIt, layShade, shadeInfo } from './vigil/shades';
+import { shadeHelpInfo, walkWith } from './vigil/shadeHelp';
 import { gainInsight, insightNow, setLevel } from './progression/insight';
 import { pointsToSpend, spendPoint } from './progression/points';
 import { boonsNow, dealNow, takeBoon } from './progression/boons';
@@ -355,7 +357,7 @@ function installDevHooks() {
     /** Learn a spell into a slot (0 or 1); cast the spell in a slot, as if its key were pressed (optionally
         aiming); read or set mana. */
     learn: (id: string, slot?: number) => learnSpell(id, slot, true),
-    cast: (slot: number, aim?: { x: number; z: number }) => answerPage(slot) || castSpell(slot, aim ?? null),
+    cast: (slot: number, aim?: { x: number; z: number }) => answerShade(slot) || answerPage(slot) || castSpell(slot, aim ?? null),
     mana(v?: number) { if (v !== undefined) player.mana = Math.min(player.stats.maxMana, Math.max(0, v)); return player.mana; },
     /** Spell knowledge (M3.7): every spell's stage; bring one to a stage; forget everything (kept between runs). */
     get knowledge() { return knowledgeNow(); },
@@ -431,6 +433,10 @@ function installDevHooks() {
     /** M7 step 5: the Vigil as a place: where the mage is in it, the candles, the lectern's screen and hands, the boat; wake
         there (for the first time: dark, its candle lighting), put a spell in a hand at the lectern, take the boat down. */
     get vigilPlace() { return { ...vigilInfo(), lectern: { ...('lectern' in vigilInfo() ? (vigilInfo() as { lectern: object }).lectern : {}), ...lecternNow() } }; },
+    /** M7 step 6: chained shades: the floor's (where it lies, its chains, its state); one chained ahead of the mage; its chains
+        broken; freed or bound; a shade walking with the mage this run (its help) and what the helps have done. */
+    get shade() { return shadeInfo(); }, shadeHere: (id: string) => { const p = freeSpotNear(G.current, player.x, player.z - 1.6); layShade(id, G.current, p.x, p.z); },
+    breakChains: () => breakAllChains(), freeShade: () => freeIt(), bindShade: () => bindIt(), walkWith: (id: string) => walkWith(id), get shadeHelp() { return shadeHelpInfo(); },
     toVigil: (first = false) => wakeAtVigil(first), lecternChoose: (hand: number, id: string | null) => holdIn(hand, id), openLectern, closeLectern, takeBoat: () => board(),
     /** M4.2: Fen-Nex (its stage, where it is, whether it hunts), and growing it a stage. */
     get fennex() { return fennexInfo(); }, growFennex() { growFennex(); },

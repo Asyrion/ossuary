@@ -5067,6 +5067,76 @@ test('the Vigil as a place (M7 step 5): the first waking is dark until its candl
   expect(errors).toEqual([]);
 });
 
+test('chained shades (M7 step 6): one lies in a secret room, chained by schools the mage can land; its chains break to their schools; loose, it asks: Q frees it to the Vigil (a candle more), E binds it; one at an ordeal\'s end waits until the fight is won; a bound shade walks with the next run and helps', async ({ page }) => {
+  type SI = { id: string; room: number; type: string; x: number; z: number; state: string; asking: boolean; chains: { ward: string | null; broken: boolean }[] } | null;
+  type SG = { shade: SI; shadeHere(id: string): void; blast(x: number, z: number): void; sim(s: number, d?: boolean): void; warp(i: number): void; openSecret(): void; mana(n: number): void; cast(slot: number, dir?: { x: number; z: number }): void; clearRoom(): void;
+    player: { x: number; z: number; invuln: number; spellCd: number[]; spells: (string | null)[] }; vigil: { freed: string[]; bound: string[] }; run: { freed: string[]; walking: string[] }; shadeHelp: { walking: string[]; acted: Record<string, number> }; state: string; current: RoomView; walkWith(id: string): void };
+  const errors = await start(page, '?seed=SHADEB&spells=hex_bolt,cinder_lance');
+  // the floor's shade lies in its secret room; found, its chains are drawn from the hex bolt and the lance
+  const found = await page.evaluate(() => {
+    const g = (window as unknown as { __game: SG }).__game, s0 = g.shade!;
+    g.openSecret(); g.warp(s0.room); g.sim(.6);
+    return { s0, s1: g.shade, toast: document.getElementById('toast')!.textContent };
+  });
+  expect(found.s0).toMatchObject({ id: 'sexton', type: 'secret', state: 'waiting' });
+  expect(found.s1!.state).toBe('chained'); expect(found.s1!.chains.map(c => c.ward).sort()).toEqual(['ember', 'umbral']);
+  // its chains break to their schools: the lance and the hex bolt, cast at it
+  const freed = await page.evaluate(() => {
+    const g = (window as unknown as { __game: SG }).__game, s = g.shade!, P = g.player; P.invuln = 999;
+    P.x = s.x; P.z = s.z + 2.2; g.sim(.1); const after: string[] = [];
+    for (const slot of [0, 1]) { g.mana(100); P.spellCd = [0, 0]; g.cast(slot, { x: 0, z: -1 }); g.sim(.8); after.push(g.shade!.chains.filter(c => c.broken).map(c => c.ward).join()); }
+    P.z = s.z + 1.1; g.sim(.3); const asked = { ...g.shade!, prompt: document.getElementById('prompt')!.textContent };
+    return { after, asked };
+  });
+  expect(freed.after[1].split(',').sort()).toEqual(['ember', 'umbral']);
+  expect(freed.asked).toMatchObject({ state: 'loose', asking: true }); expect(freed.asked.prompt).toContain('free it'); expect(freed.asked.prompt).toContain('bind it');
+  await page.screenshot({ path: 'test-results/shade-loose.png' });
+  await page.keyboard.press('KeyQ');
+  const up = await page.evaluate(() => { const g = (window as unknown as { __game: SG }).__game; g.sim(3); return { state: g.shade!.state, saved: g.vigil.freed, run: g.run.freed }; });
+  expect(up).toEqual({ state: 'gone', saved: ['sexton'], run: ['sexton'] });
+  // another, here: a glyph's blast breaks every chain; E binds it
+  const bound = await page.evaluate(() => {
+    const g = (window as unknown as { __game: SG }).__game, P = g.player; g.shadeHere('scribe'); g.sim(.3);
+    const s = g.shade!; g.blast(s.x, s.z); g.sim(.2); P.x = s.x; P.z = s.z + 1.1; g.sim(.3); return g.shade;
+  });
+  expect(bound).toMatchObject({ state: 'loose', asking: true });
+  await page.keyboard.press('KeyE');
+  expect(await page.evaluate(() => { const g = (window as unknown as { __game: SG }).__game; g.sim(1.2); return { state: g.shade!.state, bound: g.vigil.bound }; })).toEqual({ state: 'gone', bound: ['scribe'] });
+  // the end of the run: a shade freed brings Dust home; at the Vigil, a candle more burns
+  await page.evaluate(() => {
+    const g = (window as unknown as { __game: SG & { spawn(k: string): { x: number; z: number }; player: { hp: number } } }).__game, P = g.player;
+    const foe = g.spawn('sporeling'); P.hp = 1; P.invuln = 0;
+    for (let t = 0; t < 120 && g.state !== 'end'; t++) { foe.x = P.x + .3; foe.z = P.z; P.invuln = Math.min(P.invuln, .05); g.sim(.25); }
+  });
+  expect(await page.textContent('#endHome')).toContain('A shade freed');
+  await page.click('#btnAgain');
+  expect(await page.evaluate(() => { const g = (window as unknown as { __game: SG & { vigilPlace: { candles: number } } }).__game; g.sim(3); return g.vigilPlace.candles; })).toBe(2); // (the first waking: its own candle, and one for the shade freed)
+  // the boat down: the bound scribe walks with this run (and is bound no longer); it turns the first shot aside
+  const walk = await page.evaluate(() => {
+    const g = (window as unknown as { __game: SG & { takeBoat(): void; shoot(x: number, z: number, dx: number, dz: number): void } }).__game; g.takeBoat(); g.sim(2.5);
+    const P = g.player; P.invuln = 999; g.shoot(P.x + 2, P.z, -1, 0); g.sim(.6);
+    return { walking: g.run.walking, bound: g.vigil.bound, acted: g.shadeHelp.acted, toast: document.getElementById('toast')!.textContent };
+  });
+  expect(walk.walking).toEqual(['scribe']); expect(walk.bound).toEqual([]); expect(walk.acted.turn).toBe(1);
+  await page.screenshot({ path: 'test-results/shade-walks.png' });
+  expect(errors).toEqual([]);
+});
+
+test('chained shades (M7 step 6): one at an ordeal\'s end comes forth only once the fight is won; the dev menu shows the floor\'s', async ({ page }) => {
+  type SG = { shade: { type: string; room: number; state: string } | null; sim(s: number): void; warp(i: number): void; clearRoom(): void; current: { cleared: boolean } };
+  const errors = await start(page, '?seed=SHADEC');
+  const r = await page.evaluate(() => {
+    const g = (window as unknown as { __game: SG }).__game, s = g.shade!; g.warp(s.room); g.sim(.6);
+    const during = g.shade!.state; g.clearRoom(); g.sim(.6);
+    return { type: s.type, during, after: g.shade!.state };
+  });
+  expect(r).toEqual({ type: 'ordeal', during: 'waiting', after: 'chained' });
+  await page.keyboard.press('F2');
+  await page.locator('#dev .dv-tab', { hasText: 'Rooms' }).click();
+  await expect(page.locator('#dev .dv-page:not([hidden]) .dv-info', { hasText: 'A forager of the valleys' })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test('the shrine\'s bargain (M6 step 11): a stone at the circle\'s head; walking up says how; a spell cast into it costs nothing and deals two boons of its school and one general; Esc pays nothing; a boon taken costs a heart container and keeps it, once; the last heart is refused', async ({ page }) => {
   const errors = await start(page, '?room=shrine_henge&spells=cinder_lance,rime_shards');
   const r = await page.evaluate(`(() => {

@@ -538,6 +538,70 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
    - The look: a shade in chains, told apart from the merchant.
    - The chains' wards (the obelisk's rule), and freeing or binding them; a bound shade's familiar in `familiars.ts`.
    - **Dev menu:** a shade here; break its chains; free it or bind it.
+
+   *Built (2026-10-08).*
+   - **The ten:** `data/shades.json` (each one's floors, light and help; the rooms they lie in, weighted; how many chains a
+     floor), read and checked by the pure `src/vigil/shadeData.ts` (`pickShade`, `shadeRoom`, `chainCount`, `chainSchools`,
+     `breaks`, `validateShades`). Their names are placeholders in `STR.shades.names`, for the owner to rename or strike:
+     the storm caller, the cloud-forest wizard, a forager of the valleys, the scribe, the sexton, the chorister, the
+     bell-ringer, the novice, the embalmer, the pilgrim. The plan's Boketto and Huruhui wait for M8's names in the game's
+     text.
+   - **Where they lie:** about one a floor (`shade` in data/floors.json: 0.85 down to 0.75, none at the Seal), on the run's
+     own stream (`'shades' + floor`), never one freed, walking with the mage or met already this run.
+     - **Its room:** a secret room (3), an ordeal or the boss's room (2 each), a library or a vault (1 each).
+     - **When it shows:** in the ordeal and the boss's room once the fight is won; elsewhere from the first visit.
+     - Test rooms (`?room=`) have none.
+   - **The look** (`src/vigil/shadeLooks.ts`): a kneeling shade, pale and see-through in its own light, hooded, its head
+     bowed. It is told apart from the merchant, who stands dark over his wares. Its chains run from the manacles and its
+     waist to staples in the floor, each with a lock glowing in the school that wards it, grey for a plain one.
+   - **The chains** (`src/vigil/shades.ts`):
+     - **Their schools:** drawn when the mage first sees it, from what it can land then (`landable`): its spells that land
+       on a spot (beam, seal, shards, wall, zone, bolt, hands), its cantrip's statuses (the Emberwood Wand, the
+       Frostbitten Ring, the Hart's Antler), and Ember where the room has a brazier. Two chains on floors 1 and 2, three
+       deeper; a plain chain for each the mage can't fill.
+     - **What breaks them:** a bolt or beam striking the shade (one chain), a school landing beside it (`elementAt`,
+       `hallowAt`, `umbralAt`), or a glyph's blast (any chain), through `vigilHooks.shadeStruck` and `landed`. A plain
+       chain breaks to anything the mage casts.
+     - "Broken" rises over each chain as it goes.
+   - **The choice:** loose, it asks the mage standing by it (the prompt). Q frees it: it rises in a column of light and goes
+     to the Vigil, kept at once in the save (`freeShade`), even if the run ends in death. E binds it (`bindShade`). Walking
+     away leaves it chained. Each shade freed brings home 20 Dust (`dustFor`'s `freed`) and lights one more candle on the
+     Vigil's wall.
+   - **Bound, it walks with the next run** (`src/vigil/shadeHelp.ts`): `shadesWalk` takes the bound from the save as a run
+     begins (they are bound no longer, and can be met in chains again), says a line for each, and keeps a small wisp of
+     each at the mage's shoulder. Their ten helps (tuning `CFG.shadeHelp`):
+     - the storm caller's bolt from a storm cloud on the nearest foe;
+     - the wizard's roots on the foes near the mage;
+     - the forager's arrows;
+     - the scribe turning the first shot a room aside;
+     - the sexton's half heart dug from a room won, now and then;
+     - the chorister's song (spells' cooldowns ×0.88, `singMul` in `vigil/walking.ts`, read by `spellCooldown`);
+     - the bell-ringer's bell stalling the shots near the mage;
+     - the novice hexing the first foe struck in a room;
+     - the embalmer's draught on every floor;
+     - the pilgrim's map of every floor.
+
+     Each one's word rises where it acts (once a room) and its line shows the first time in a run (`actsHere`).
+   - **Nothing silent:** a line as a shade is found, and how its chains break (once a run); "Broken"; a line when it is
+     loose; the question; a line as it goes free or bound; the walkers' lines and words. Placeholder sounds:
+     `chainRattle`, `chainSnap`, `shadeLoose`, `shadeFree`, `shadeBind`, `shadeHelp`.
+   - **Dev menu** (Rooms & runs, "Chained shades"):
+     - the floor's shade (its room, state and chains), the shades freed and those walking;
+     - go to it; break its chains; free it; bind it;
+     - each shade chained here, or walking with the mage now.
+
+     Hooks: `__game.shade`, `shadeHere(id)`, `breakChains()`, `freeShade()`, `bindShade()`, `walkWith(id)`, `shadeHelp`.
+     The veteran's save frees all ten.
+   - **Tests:**
+     - unit: the data and names; picking (its floors, never one freed, walking or met; none when the chance fails); the
+       rooms it lies in; the chains' schools and what breaks them.
+     - browser:
+       - a seed whose secret room holds the sexton, its chains (Ember and Umbral) broken by the lance and the hex bolt;
+       - the question, and Q freeing it (saved, Dust on the end screen, a second candle at the Vigil);
+       - a glyph's blast breaking another's chains, and E binding it;
+       - the next run, down the boat, with the scribe walking and turning the first shot aside;
+       - an ordeal's shade waiting until the fight is won;
+       - the dev menu's readout.
 7. **(P) Townspeople and dialogue.**
    - `data/dialogue.json` (new) holds the lines:
      - by moment: the first meeting, after a death, after a boss, a quest opened or done;

@@ -112,6 +112,28 @@ export const STR = {
       note: 'Here at the Vigil your hands hold any two spells you have learned. A descent starts empty-handed, as ever.',
     },
   },
+  /** M7 step 6: chained shades (vigil/shades.ts, shadeHelp.ts): their names (placeholders, the owner's to rename), the lines
+      as one is found, its chains broken, freed or bound, and what a bound one does in the run it walks with the mage. */
+  shades: {
+    names: { stormcaller: 'The storm caller', wizard: 'The cloud-forest wizard', forager: 'A forager of the valleys', scribe: 'The scribe', sexton: 'The sexton',
+      chorister: 'The chorister', bellringer: 'The bell-ringer', novice: 'The novice', embalmer: 'The embalmer', pilgrim: 'The pilgrim' } as Record<string, string>,
+    found: (name: string) => `A shade kneels here in chains: ${name.charAt(0).toLowerCase() + name.slice(1)}`,
+    howTo: 'Each chain\'s lock glows with the school that breaks it; a grey one breaks to anything you cast, any one to a glyph\'s blast',
+    broken: 'Broken',
+    loose: (name: string) => `${name} is loose. Stand by it and choose`,
+    ask: (name: string, q: string, e: string) => `<b>${name}</b><br>${q}: free it, to the Vigil &nbsp;·&nbsp; ${e}: bind it, to walk with you next descent<small>Walk away to leave it chained in the dark</small>`,
+    freed: (name: string) => `${name} rises, free, to the Vigil`,
+    bound: (name: string, help: string) => `${name} is bound to you. On your next descent: ${help.charAt(0).toLowerCase() + help.slice(1)}`,
+    walks: (name: string, help: string) => `${name} walks with you this descent: ${help.charAt(0).toLowerCase() + help.slice(1)}`,
+    helps: {
+      storm: 'A storm cloud over you strikes the nearest foe now and then', roots: 'Roots hold the foes that come near you',
+      bow: 'An arrow at the nearest foe now and then', turn: 'One shot a room turned aside before it reaches you',
+      dig: 'A heart dug out of a cleared room now and then', sing: 'Its song brings your spells round a little quicker',
+      ring: 'A bell rung now and then stalls the shots near you', hex: 'The first foe you strike in a room is hexed',
+      brew: 'A draught brewed for you on every floor', map: 'Each floor\'s way known from the start',
+    } as Record<string, string>,
+    acts: { storm: 'Storm', roots: 'Roots', bow: 'Arrow', turn: 'Turned aside', dig: 'Dug up', sing: 'Song', ring: 'Bell', hex: 'Hexed', brew: 'A draught', map: 'The way' } as Record<string, string>,
+  },
   /** The bosses: name and line on the boss bar banner, the banner when it calls help, the one when it dies. */
   bosses: {
     warden: { name: 'The Hollow Warden', sub: 'A Warden of Uzulim who never came back up', summon: 'The Warden calls its dead', dead: 'The Warden is still at last' },
@@ -985,6 +1007,9 @@ export const STR = {
     keep: ' Keep artifacts, obols, keys and glyphs when starting',
     vigil: 'The Vigil (M7 step 5)', toVigil: 'To the Vigil', vigilFirst: 'Wake there for the first time (dark, its candle)', vigilLectern: 'Open the lectern',
     vigilBoat: 'Take the boat down', notAtVigil: 'Not at the Vigil',
+    shades: 'Chained shades (M7 step 6)', shadeGo: 'Go to the floor\'s shade', shadeBreak: 'Break its chains', shadeFree: 'Free it', shadeBind: 'Bind it',
+    noShade: 'No chained shade on this floor', plainChain: 'plain', shadeHere: (name: string) => `${name}: chained here`, shadeWalks: (name: string) => `${name}: walks with me`,
+    shadeInfo: (name: string, room: string, state: string, chains: string, freed: number, walking: string) => `${name} · ${room} · ${state} · chains: ${chains} · ${freed} freed · walking: ${walking}`,
     vigilInfo: (room: string, candles: number, hands: string) => `In the ${room} · ${candles} candle${candles === 1 ? '' : 's'} lit · in hand: ${hands}`,
   },
   /** What a merchant's ware is called in messages. */

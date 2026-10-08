@@ -42,6 +42,8 @@ import { kaelithKneels, resetKaelith } from './actors/kaelith';
 import { recordRun, resetRunFirsts, runFirsts, vigil } from './vigil/save';
 import { VIGIL, VIGIL_INDEX, vigilPlan } from './vigil/vigilMap';
 import { atVigil } from './vigil/where';
+import { clearShade, placeShade } from './vigil/shades';
+import { clearShadeHelp, helpNewFloor, helpRoomCleared, shadesWalk } from './vigil/shadeHelp';
 import { furnishVigil, leaveVigil, vigilActs, wakePoint, wokeAtVigil } from './vigil/place';
 import { atLeast } from './magic/knowledge';
 import { stage } from './magic/memory';
@@ -104,7 +106,7 @@ function clearFloor() {
   for (const r of G.rooms) { scene.remove(r.group); disposeTree(r.group); }
   clearFloorTextures();
   G.rooms = []; G.roomMap = new Map();
-  leaveVigil();
+  leaveVigil(); clearShade();
 }
 
 export function buildFloor(index: number) {
@@ -126,7 +128,8 @@ export function buildFloor(index: number) {
   G.current = start; player.x = start.cx; player.z = start.cz + .6; player.vx = player.vz = 0;
   aimCamera(start); setDarkness(0, true);
   G.trans = null; hideBossBar(); resetKaelith(); leaveDaylight(); // (M7: no fight of Kaelith's outlives its floor, and a new run starts below)
-  enterRoom(start); pilgrimMap(); // (M4.6: the Pilgrim knows the floor's way)
+  if (!testTemplate) placeShade(index, FLOORS[index].shade ?? 0); // (M7 step 6: a chained shade, about one a floor)
+  enterRoom(start); pilgrimMap(); helpNewFloor(); // (M4.6: the Pilgrim knows the floor's way; M7 step 6: a bound embalmer's draught, a bound pilgrim's map)
   if (G.state === 'play') { banner(...STR.floors[Math.min(index, STR.floors.length - 1)]); warnFloor(index); if (atSeal(index)) arriveAtSeal(); } // (M4.9: a floor that walls off the mage's one school says so; M7: Kaelith speaks at the Seal)
 }
 
@@ -150,7 +153,7 @@ function newRun(seed: string): typeof G.run {
     bottles: bottlesFor(Rng.from(seed, 'bottles').int(0, 2 ** 30)), identified: [], alchemy: Rng.from(seed, 'alchemy'), reagents: Rng.from(seed, 'reagents'), runes: Rng.from(seed, 'runes'), socketsOpened: 0, remedy: null,
     serpent: 'caged', restless: Rng.from(seed, 'serpent').chance(CFG.alchemy.vat.restless),
     insight: 0, level: 1, pending: 0, potionsUsed: [], attrs: noAttrs(), boons: {}, casts: {}, pledge: null, deals: 0, thirst: 0, acted: {}, afterglow: null,
-    bosses: 0, kaelith: false, struck: null,
+    bosses: 0, kaelith: false, struck: null, shadesMet: [], freed: [], walking: [],
   };
 }
 
@@ -166,6 +169,7 @@ export function startGame(opts?: RunOptions) {
   o.spells?.slice(0, 2).forEach((id, i) => learnSpell(id, i, true));
   o.runes?.slice(0, 2).forEach((ids, slot) => { if (ids.length > 1) setSockets(slot, ids.length); for (const id of ids) carve(slot, id); });
   for (const [id, rank] of Object.entries(o.boons ?? {})) for (let k = 0; k < rank; k++) takeBoon(id, false);
+  clearShadeHelp(); shadesWalk(); // (M7 step 6: the shades bound in an earlier run walk with this one)
   showScreen(null); G.state = 'play';
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, o.floor ?? 0)));
   if (o.level) setLevel(o.level);
@@ -222,7 +226,7 @@ function buildVigil(first: boolean) {
 export function wakeAtVigil(first = false) {
   vigilAsked = false; vigilFirstAsked = false;
   G.run = newRun(newSeed()); DEV.kitKinds = {};
-  Sfx.init(); resetPlayer(); hideLore(); G.stats.time = 0; G.stats.kills = 0; G.stats.obols = 0;
+  Sfx.init(); resetPlayer(); hideLore(); G.stats.time = 0; G.stats.kills = 0; G.stats.obols = 0; clearShadeHelp();
   showScreen(null); G.state = 'play';
   buildVigil(first);
   vigil().slots.forEach((id, i) => { if (id && SPELLS.has(id) && atLeast(stage(id), 'learned')) learnSpell(id, i, true); });
@@ -252,7 +256,7 @@ export function endGame(won: boolean) {
   if (won) Sfx.victory(); else Sfx.fallen();
   // M7 step 4: what the run brings home (its Dust from each source, its obols), and the run remembered in the save
   const V = CFG.vigil, floor = G.run.floor + 1, carried = [player.focus, ...player.items];
-  const dust = dustFor({ floor, bosses: G.run.bosses, kaelith: G.run.kaelith, firsts: runFirsts(), freed: 0, vows: 0, echoes: 0 }, V.dust);
+  const dust = dustFor({ floor, bosses: G.run.bosses, kaelith: G.run.kaelith, firsts: runFirsts(), freed: G.run.freed.length, vows: 0, echoes: 0 }, V.dust);
   const obols = obolsHome(player.coins, won, V.obolsAfterDeath);
   recordRun({ seed: G.run.seed, won, floor, room: G.current?.plan.type ?? '', template: G.current?.plan.templateId ?? '', struck: won ? null : G.run.struck, carried, level: G.run.level, dust: dust.total, obols });
   showEndScreen({
@@ -380,6 +384,7 @@ function keepVigil() {
 }
 
 export function onRoomCleared(room: Room) {
+  helpRoomCleared(room); // (M7 step 6: a bound sexton digs, now and then)
   room.cleared = true; room.locked = false; setDoors(room, true); keepOath(room); payFerryman(room); keepVigil();
   payClear(room); // (M6: a fight's first clear gives insight)
   const loot = G.run.loot;

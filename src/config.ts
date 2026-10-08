@@ -181,6 +181,16 @@ export const CFG = {
     // lights itself and how long the dark takes to lift after; the boat's line before it pushes off
     place: { lecternReach: .95, rearm: .5, boatReach: .6, barReach: 1.9, candleAt: 1.4, dawn: 2.2, boatDelay: 1.6 },
   },
+  // M7 step 6, chained shades: where one lies in its room (a share of the room's width and depth from its middle), how near a
+  // school landing or a bolt must come to strike its chains, how near the mage stands to be asked, how long freeing (the
+  // rise) and binding (to the mage) take
+  shades: { at: [.28, -.18] as [number, number], reach: 1.3, ask: 1.6, rise: 2.4, bindTime: .9 },
+  // a bound shade at work in the run it walks with the mage (vigil/shadeHelp.ts): how often each acts (seconds, counted only
+  // in a fight), how far it reaches and how hard; the sexton's chance a room; the chorister's cooldowns; the bell-ringer's stall
+  shadeHelp: {
+    storm: { every: 5, reach: 6, damage: 3, shock: 1.2 }, roots: { every: 6, reach: 2.2, root: 1.6 }, bow: { every: 2.2, reach: 7, damageMul: .6, speed: 9 },
+    turn: { reach: .8 }, dig: { chance: .3 }, sing: { mul: .88 }, ring: { every: 6, reach: 2.6, stall: .3 }, hex: { hex: 1 },
+  },
   daylight: {
     reach: .7, at: [-400, 0] as [number, number], look: 1.5, walk: { from: 3.4, to: .9, speed: 1.05 },
     flash: 1.2, lift: 3, endAt: 6.5, mist: .18, fall: 1.6,

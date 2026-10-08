@@ -7,8 +7,9 @@
    Judgement), motes circling the mage that break shots (orbit, Wardlight), a slow hexing bolt (bolt, Hex Bolt), hands
    rising to hold foes (grasp, Grasp of the Grave) and a foe marked to pay in mana and obols (mark, the Ferryman's Toll). */
 import * as THREE from 'three';
+import { vigilHooks } from '../vigil/where';
 import { CFG } from '../config';
-import type { Bolt, Box, Enemy, Room, Vec2 } from '../types';
+import type { Bolt, Box, Enemy, RockBox, Room, Vec2 } from '../types';
 import { G, player } from '../state';
 import { renderHearts } from '../ui/hud';
 import { heroDrink } from '../actors/hero';
@@ -158,6 +159,7 @@ const beam: Cast = (def, dir) => {
   while (len < P.range && !(stop = boxAt(sx + dir.x * len, sz + dir.z * len, solids))) len += .1;
   len = Math.min(len, P.range);
   if (stop) strikeSolid(room, stop, sx + dir.x * len, .6, sz + dir.z * len);
+  if ((stop as RockBox | undefined)?.shade) vigilHooks.shadeStruck(sx + dir.x * len, sz + dir.z * len, def.school); // (M7 step 6: a beam carries its school to a chained shade)
   // how far along the beam, and how far to one side of it, a point is
   const along = (x: number, z: number) => (x - sx) * dir.x + (z - sz) * dir.z;
   const side = (x: number, z: number) => Math.abs((x - sx) * dir.z - (z - sz) * dir.x);
