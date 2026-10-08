@@ -6,3 +6,4 @@ playwright-report/
 asset-previews/
 audio-previews/
 creature-previews/
+*.devboard.tmp

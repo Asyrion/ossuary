@@ -26,7 +26,8 @@ second one on another port. Options: `--port`, `--root <checkout>`, `--game <url
 - **The game's validators** (`validate.ts`: the same `validate*()` calls the unit tests make) run after every save;
   the header chip and the cards show what they report.
 - **Used by**: where an id appears in `data/` and in `src/` (as a quoted string). Delete and rename are refused while
-  anything uses the id.
+  anything uses the id. The code scan matches the id as any quoted string, so a short, common id (`arc`, `fire`) can
+  be refused by an unrelated match: it errs on the side of keeping data the code may need.
 - **Safe writes**: an entry is saved only if it is still what the page loaded (else "reload"); every write keeps a
   backup in the temp folder and can be undone from the header; files are replaced atomically.
 - **▶ Play** starts the game with the entry through its address options (`?give=`, `?foe=`, `?floor=`, `?room=`,
