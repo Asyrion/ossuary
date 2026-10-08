@@ -87,7 +87,11 @@ KINDS = {
   enum → select; colour → colour input; reference → searchable select of the target kind's ids with their labels and
   icons; list of references → chip list with add / remove / reorder; list of sub-objects (drop table rows, wave
   entries, stat blocks) → an inline table with add / remove / reorder; nested object → fieldset; file path → picker
-  of existing files plus preview. Anything the board cannot edit is shown read-only and written back unchanged.
+  of existing files plus preview; weighted tables (`[["goblin", 2], ["rat", 1]]`) → one `goblin 2` row a line; tile
+  grids (lists of strings) → a monospace textarea, a row a line. Anything else gets a JSON field for that value, and the
+  whole entry always has a JSON view as the escape hatch.
+- Reading a form back must give exactly the original value when nothing was touched: keep key order, keep the order
+  of ticked list values (new ones after), keep `null` vs absent vs `""`, and drop empty objects the form invented.
 
 ## 3. Lossless writing (the most important rule)
 
@@ -116,7 +120,8 @@ The board writes into a repository, so guard it like a real service:
   page cannot send both without a CORS preflight, which the server never answers.
 - Every path from the client is resolved and checked to lie inside the allowed folder; refuse traversal and symlinks
   out. Ids match a strict pattern (e.g. `^[a-z][a-z0-9_]*$`), and the file name derives from the id.
-- **Optimistic concurrency**: the page sends the hash of the file it loaded; the server refuses the save with `409`
+- **Optimistic concurrency**: the page sends the hash of what it loaded (of the entry, when one file holds many entries,
+  so edits to other entries of the same file don't block it); the server refuses the save with `409`
   when the file on disk changed meanwhile ("changed by someone else, reload"). Never silently overwrite.
 - **Undo**: before every write or delete, keep the old text in a backup folder outside the repository; offer "undo"
   for recent saves, refused if the file changed after that save.
@@ -183,9 +188,11 @@ A script with no network, no engine and no writes to the repository, run by the 
 1. Every data file of every kind round-trips byte for byte through its format adapter.
 2. An edit and a create on a temporary copy of the data write exactly what the form sent, and the result loads again.
 3. Delete is refused for a referenced id; undo restores the previous bytes.
-4. The HTTP guards hold: a foreign `Host` is refused, a write without the custom header or JSON type is refused, a
+4. In a headless browser: open every entry's editor, read the form back without touching it, and compare with the
+   data. Any difference is a widget bug that would corrupt that entry on its next save.
+5. The HTTP guards hold: a foreign `Host` is refused, a write without the custom header or JSON type is refused, a
    path with `..` is refused, a stale hash gets `409`.
-5. It prints one final line (`DEV BOARD SELFTEST OK` / `FAIL: ...`) and exits non-zero on failure.
+6. It prints one final line (`DEV BOARD SELFTEST OK` / `FAIL: ...`) and exits non-zero on failure.
 
 ## 9. Running it
 
@@ -225,6 +232,7 @@ satisfy it).
 - [ ] Kinds registry drives everything; adding a kind needs no new code
 - [ ] Schema read from the game's own definitions, overrides file only for hints
 - [ ] Every existing file round-trips byte for byte; unknown fields and raw values preserved
+- [ ] An untouched form reads back as exactly the entry's data, for every entry
 - [ ] Hash conflict (409), diff preview, undo backups outside the repo, delete refused while referenced
 - [ ] Game's own validator runs headless after saves; results mapped to entries
 - [ ] Drafts survive polling; "used by" links; pixel-art pictures at integer zoom
