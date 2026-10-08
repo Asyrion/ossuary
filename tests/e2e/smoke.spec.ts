@@ -3392,9 +3392,10 @@ test('foes in code (M4): floor 2\'s toad leaps and breathes cold that chills; th
       const e = g.enemies[0]; g.player.x = e.x + 2.2; g.player.z = e.z; // (close enough for it to breathe)
       g.sim(.05); seen.add(e.state); high = Math.max(high, e.model.position.y); cold = Math.max(cold, g.shots.filter(s => s.chill).length);
     }
-    for (let i = 0; i < 20 && !g.player.chill; i++) { // (in the cone's way: on a cold shot's path, wherever the toad landed, clear of its touch)
-      const e = g.enemies[0], s = g.shots.find(o => o.chill);
+    for (let i = 0; i < 300 && !g.player.chill; i++) { // (in the cone's way: on a cold shot's path, wherever the toad landed, clear of its touch;
+      const e = g.enemies[0], s = g.shots.find(o => o.chill); //  with none in flight, close enough for it to breathe again)
       if (s) { const v = Math.hypot(s.vx, s.vz) || 1, d = Math.max(1.3, Math.hypot(s.x - e.x, s.z - e.z) + .3); g.player.x = e.x + s.vx / v * d; g.player.z = e.z + s.vz / v * d; }
+      else { g.player.x = e.x + 2.2; g.player.z = e.z; }
       g.player.invuln = 0; g.sim(.05);
     }
     return { seen: [...seen].sort(), high, cold, chilled: g.player.chill > 0 };
@@ -3422,7 +3423,8 @@ test('foes in code (M4): floor 2\'s toad leaps and breathes cold that chills; th
   const jelly = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.3);
     const e = g.enemies[0], before = g.player.hp; let glowed = false;
-    for (let i = 0; i < 160 && g.player.hp === before; i++) { g.player.x = e.x + 1; g.player.z = e.z; g.player.invuln = 0; g.sim(.05); glowed ||= e.state === 'glow'; }
+    // (until it has glowed, a touch is mended: the jelly drifts into contact too, and its first pulse comes 2.5 to 3.5 s in)
+    for (let i = 0; i < 160 && (!glowed || g.player.hp === before); i++) { if (!glowed) g.player.hp = before; g.player.x = e.x + 1; g.player.z = e.z; g.player.invuln = 0; g.sim(.05); glowed ||= e.state === 'glow'; }
     return { glowed, hurt: before - g.player.hp, flying: e.model.position.y };
   });
   expect(jelly.glowed).toBe(true); expect(jelly.hurt).toBeGreaterThan(0);
