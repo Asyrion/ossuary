@@ -20,7 +20,8 @@ export interface Entry { kind: string; src: number; key: string; id: string | nu
 interface Located { text: string; root: Node; col: Node; index: number; start: number; end: number; node: Node; keyStart?: number }
 
 export class Content {
-  private undoStack: { file: string; before: string; after: string; what: string; at: number }[] = [];
+  private undoStack: { id: number; file: string; before: string; after: string; what: string; at: number }[] = [];
+  private undoNext = 1;   // undo entries keep their id, so a list the page drew earlier still names the right one
   constructor(readonly root: string) {}
 
   abs(file: string) {
@@ -103,7 +104,7 @@ export class Content {
     const tmp = `${p}.devboard.tmp`;
     writeFileSync(tmp, after);
     renameSync(tmp, p);
-    this.undoStack.push({ file, before, after, what, at: Date.now() });
+    this.undoStack.push({ id: this.undoNext++, file, before, after, what, at: Date.now() });
     if (this.undoStack.length > 30) this.undoStack.shift();
   }
 
@@ -177,9 +178,9 @@ export class Content {
     return { deleted: key };
   }
 
-  undoList() { return this.undoStack.map((u, i) => ({ i, file: u.file, what: u.what, at: u.at })).reverse(); }
-  undo(i: number) {
-    const u = this.undoStack[i];
+  undoList() { return this.undoStack.map((u) => ({ i: u.id, file: u.file, what: u.what, at: u.at })).reverse(); }
+  undo(id: number) {
+    const i = this.undoStack.findIndex((u) => u.id === id), u = this.undoStack[i];
     if (!u) throw new BadRequest('nothing to undo there');
     const now = this.read(u.file);
     if (now !== u.after) throw new Conflict(`${u.file} changed after that save, so it can't be undone safely.`);
