@@ -39,7 +39,12 @@ import { resetAfflictions } from './ui/afflictions';
 import { warnFloor } from './world/curve';
 import { arriveAtSeal, atSeal, enterSealRoom } from './world/seal';
 import { kaelithKneels, resetKaelith } from './actors/kaelith';
-import { recordRun, resetRunFirsts, runFirsts } from './vigil/save';
+import { recordRun, resetRunFirsts, runFirsts, vigil } from './vigil/save';
+import { VIGIL, VIGIL_INDEX, vigilPlan } from './vigil/vigilMap';
+import { furnishVigil, leaveVigil, vigilActs, wakePoint, wokeAtVigil } from './vigil/place';
+import { atLeast } from './magic/knowledge';
+import { stage } from './magic/memory';
+import { SPELLS } from './magic/spellData';
 import { dustFor, obolsHome } from './vigil/vigilData';
 import { daylightHooks, leaveDaylight, openShaft } from './world/daylight';
 import { pilgrimMap, resetGifts } from './items/gifts';
@@ -92,11 +97,17 @@ function clearEntities() {
 }
 
 /** Tear down the current floor and generate floor `index` (0-based) of this run. */
-export function buildFloor(index: number) {
+/** Take down the floor or the Vigil standing: its rooms, what was in them, their textures. */
+function clearFloor() {
   clearEntities(); clearTimers();
   for (const r of G.rooms) { scene.remove(r.group); disposeTree(r.group); }
   clearFloorTextures();
   G.rooms = []; G.roomMap = new Map();
+  leaveVigil();
+}
+
+export function buildFloor(index: number) {
+  clearFloor();
   G.run.floor = index;
   // the floor's boss: from its pool, one this run hasn't met (or the one ?boss= asked for)
   G.run.boss = forcedBoss ?? pickBoss(Rng.from(G.run.seed, 'boss' + index), FLOORS[index].boss.pool, G.run.bossesMet);
@@ -159,13 +170,65 @@ export function startGame(opts?: RunOptions) {
   if (o.level) setLevel(o.level);
 }
 
-/** Build the first floor of the upcoming run as the title screen's backdrop; startGame keeps its seed. */
+/** Build the first floor of the upcoming run as the title screen's backdrop; startGame keeps its seed. Once a run has been
+    played (and nothing asked for a run of its own), the title stands over the Vigil instead, where Start wakes the mage
+    (M7 step 5). */
 export function prepareTitle() {
+  if (toVigilFirst()) { G.run = newRun(newSeed()); buildVigil(false); return; }
   const seed = nextRun.seed || newSeed(); nextRun = { ...nextRun, seed };
   testTemplate = nextRun.testTemplate; testVariant = nextRun.testVariant; forcedBoss = nextRun.boss;
   G.run = newRun(seed);
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, nextRun.floor ?? 0)));
 }
+
+/* ---------- M7 step 5: the Vigil as a place ---------- */
+
+/** Whether Start leads to the Vigil: a run has been played, and the page asked for no run of its own (?floor=, ?room=...). */
+const toVigilFirst = () => vigilAsked || (vigil().runs > 0 && !runAsked());
+const runAsked = () => { const o = nextRun; return !!(o.floor !== undefined || o.testTemplate || o.boss || o.give?.length || o.spells?.length || o.potions?.length || o.level || Object.keys(o.loot ?? {}).length || Object.keys(o.boons ?? {}).length || o.runes?.some(r => r.length) || o.theme); };
+let vigilAsked = false;
+/** ?vigil=1: the page starts at the Vigil (and ?vigil=first wakes there for the first time). */
+export function askVigil(first: boolean) { vigilAsked = true; vigilFirstAsked = first; }
+let vigilFirstAsked = false;
+
+/** Whether Start leads to the Vigil now (the title's button says so). */
+export const startsAtVigil = () => toVigilFirst();
+/** Start (the title, the end screen, the pad's Start or Enter): at the Vigil once a run has been played, else a run. */
+export function begin() {
+  if (G.state === 'end' || toVigilFirst()) wakeAtVigil(vigilFirstAsked || !vigil().candle);
+  else startGame();
+}
+
+/** Lay the Vigil out (data/vigil.json): its rooms built as a floor's are, in its own look, furnished and nothing in them to
+    fight; the mage beside the bier in the Crypt. */
+function buildVigil(first: boolean) {
+  clearFloor(); G.trans = null; hideBossBar(); resetKaelith(); leaveDaylight(); clearPages();
+  const plan = vigilPlan(Rng.from('the Vigil', 'rooms')); // (its own seed: the Vigil looks the same every waking)
+  G.run.plan = plan;
+  applyFloorLook(VIGIL.look);
+  for (const p of plan.rooms) buildRoom(p, VIGIL_INDEX, VIGIL.look);
+  furnishVigil(first); // (before the walls: its pieces keep their spans of wall clear of torches)
+  for (const r of G.rooms) buildWallsAndDoors(r);
+  linkDoors(G.rooms);
+  const w = wakePoint();
+  G.current = w.room; player.x = w.x; player.z = w.z; player.vx = player.vz = 0; player.yawA = 0;
+  aimCamera(w.room); setDarkness(0, true);
+  enterRoom(w.room);
+}
+
+/** Wake at the Vigil (M7 step 5, decision 16): a fresh mage, nothing carried, the lectern's two spells in hand, beside the
+    bier in the Crypt. `first`: the first waking, in the dark, its first candle lighting itself. */
+export function wakeAtVigil(first = false) {
+  vigilAsked = false; vigilFirstAsked = false;
+  G.run = newRun(newSeed()); DEV.kitKinds = {};
+  Sfx.init(); resetPlayer(); hideLore(); G.stats.time = 0; G.stats.kills = 0; G.stats.obols = 0;
+  showScreen(null); G.state = 'play';
+  buildVigil(first);
+  vigil().slots.forEach((id, i) => { if (id && SPELLS.has(id) && atLeast(stage(id), 'learned')) learnSpell(id, i, true); });
+  player.mana = player.stats.maxMana; renderHearts();
+  fadeFromBlack(); Sfx.waken(); wokeAtVigil();
+}
+vigilActs.board = () => { fadeFromBlack(); startGame(); }; // (the Ferryman's boat: down to floor 1 for nothing; the toll comes in step 10)
 
 /** Take the trapdoor: the next floor, or the end of the run after the last one. */
 export function descend() {

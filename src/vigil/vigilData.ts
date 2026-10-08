@@ -31,13 +31,14 @@ export interface VigilSave {
       opened and the candle lit; the sigils owned and placed; the powers. */
   freed: string[]; bound: string[]; bonds: Record<string, number>; flags: Record<string, string | number | boolean>;
   parts: string[]; candle: boolean; sigils: { owned: string[]; placed: string[] }; powers: string[];
+  /** M7 step 5: the two spells the mage holds at the Vigil (Q and E), chosen at its lectern. */ slots: (string | null)[];
 }
 
 export function blankSave(): VigilSave {
   return {
     v: SAVE_VERSION, knowledge: {}, reactions: [], weaves: [], bestiary: {}, recipes: { pairs: {}, potions: [] },
     dust: 0, obols: 0, runs: 0, wins: 0, deepest: 0, echoes: [], found: [],
-    freed: [], bound: [], bonds: {}, flags: {}, parts: [], candle: false, sigils: { owned: [], placed: [] }, powers: [],
+    freed: [], bound: [], bonds: {}, flags: {}, parts: [], candle: false, sigils: { owned: [], placed: [] }, powers: [], slots: [null, null],
   };
 }
 
@@ -64,6 +65,7 @@ export function migrate(raw: unknown, legacy: Partial<Record<SlotKey, unknown>> 
   s.bonds = Object.fromEntries(Object.entries(obj(r.bonds)).filter(([, v]) => typeof v === 'number')) as Record<string, number>;
   s.flags = Object.fromEntries(Object.entries(obj(r.flags)).filter(([, v]) => ['string', 'number', 'boolean'].includes(typeof v))) as VigilSave['flags'];
   s.candle = !!r.candle; const sg = obj(r.sigils); s.sigils = { owned: strs(sg.owned), placed: strs(sg.placed) };
+  const sl = Array.isArray(r.slots) ? r.slots : []; s.slots = [0, 1].map(i => typeof sl[i] === 'string' ? sl[i] as string : null);
   return s;
 }
 

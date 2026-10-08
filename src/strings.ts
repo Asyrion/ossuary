@@ -50,7 +50,7 @@ export const STR = {
     floor: 'Deepest floor', level: 'Level reached', time: 'Time', kills: 'Foes put to rest', obols: 'Obols found', seed: 'Seed', artifacts: 'Artifacts carried',
     levelValue: (level: number, insight: number) => `${level} (${Math.round(insight)} insight)`,
     floorValue: (floor: number, floors: number) => `${floor} of ${floors}`,
-    again: 'Descend again',
+    again: 'Wake at the Vigil',
     replay: 'Replay this seed',
     // M7 step 4: what the run brings home, a line for each source of Arcane Dust; the obols; what struck last
     home: {
@@ -81,6 +81,36 @@ export const STR = {
     voice: 'Kaelith: "Go back up, mage. What I hold here stays held."',
     horde: 'The horde presses against the seal from below',
     shaft: 'Daylight falls where Kaelith knelt: the way up',
+  },
+  /** M7 step 5: the Vigil as a place (vigil/place.ts, ui/lectern.ts): its rooms, waking there, what bars its six ways, the
+      lectern's screen and the Ferryman's boat. */
+  vigil: {
+    name: 'The Vigil', titleStart: 'Wake at the Vigil',
+    rooms: { crypt: ['The Crypt', 'Where the candles burn for you'], nave: ['The Nave', 'The Great Circle, and the bell'], landing: ['The Landing', 'The Ferryman waits at the water'] } as Record<'crypt' | 'nave' | 'landing', Banner>,
+    firstWake: 'You wake on a bier in the dark. One candle lights itself on the wall: it burns for you.',
+    wake: 'You wake on the bier. Your candle still burns.',
+    bars: {
+      ember: 'A stair going up, frozen to the arch. Something warm would loosen it.',
+      frost: 'A cellar stair under black water. Water can be made to bear a weight.',
+      storm: 'A door of three dark rune stones. They wait for a spark.',
+      hallow: 'A chapel, dark, its candles cold. It waits for holy light.',
+      umbral: 'A veil of shadow across the arch. Only a deeper dark would part it.',
+      verdant: 'A dead root broken through the wall. Something green might wake it.',
+    } as Record<string, string>,
+    holds: 'It stirs at its own school, and holds, for now.',
+    circle: 'The Great Circle, cut into the floor. Its rings are dark.',
+    boat: 'The Ferryman pushes off. The first landing asks nothing.',
+    runInfo: 'At the Vigil, between descents',
+    chalk: 'The chalk will not take on the Vigil\'s stone',
+    hud: { dust: 'Arcane Dust', obols: 'Obols kept' },
+    lectern: {
+      title: 'The Grimoire', hint: 'Arrows choose, Q or E (LB or RB) puts a spell in that hand, Enter in the free one, Esc (B) closes',
+      inHand: 'In hand', empty: (key: string) => `${key}: empty`, school: (name: string) => name,
+      none: 'No spell learned yet. The pages in the libraries below teach them.',
+      emptyText: 'Nothing in this hand. Choose a spell and put it here.',
+      put: (name: string, key: string) => `${name} in ${key}`, cleared: (key: string) => `${key} emptied`,
+      note: 'Here at the Vigil your hands hold any two spells you have learned. A descent starts empty-handed, as ever.',
+    },
   },
   /** The bosses: name and line on the boss bar banner, the banner when it calls help, the one when it dies. */
   bosses: {
@@ -943,7 +973,7 @@ export const STR = {
     warnFloor: 'Say what this floor walls off', noWall: 'This floor walls off none of the spells carried',
     revealCracks: 'Reveal cracked walls', openSecret: 'Open the secret room',
     cleanse: 'Cleanse a curse', takeCurse: 'Take a curse', noCurse: 'No curse to cleanse', allCurses: 'You hold every curse', cleansed: 'cleansed',
-    roomNames: { start: 'Start', normal: 'Normal', treasure: 'Treasure', boss: 'Boss', ordeal: 'Ordeal', altar: 'Bone altar', merchant: 'Merchant', vault: 'Vault', secret: 'Secret room', shrine: 'Shrine', library: 'Library', laboratory: "Dr. Jelly's laboratory", waystone: 'Waystone room' } as Record<string, string>,
+    roomNames: { start: 'Start', normal: 'Normal', treasure: 'Treasure', boss: 'Boss', ordeal: 'Ordeal', altar: 'Bone altar', merchant: 'Merchant', vault: 'Vault', secret: 'Secret room', shrine: 'Shrine', library: 'Library', laboratory: "Dr. Jelly's laboratory", waystone: 'Waystone room', vigil: 'The Vigil' } as Record<string, string>,
     test: 'Test a room', template: 'Room template', variant: 'Variant', play: 'Play it',
     variants: { normal: 'Normal', quiet: 'Quiet', champion: 'Champion', ambush: 'Ambush', dark: 'Dark' } as Record<string, string>,
     bosses: 'Fight a boss', newRun: 'New run (a deeper floor at its expected level, its choices waiting)', floorN: (n: number) => `Floor ${n}`, toSeal: 'To the Seal (below floor 5)',
@@ -953,6 +983,9 @@ export const STR = {
     daylight: 'Daylight (M7 step 3)', daylightNow: 'Daylight now', daylightInfo: (on: boolean, t: number) => on ? `Out at the cave mouth, ${t.toFixed(1)} s` : 'Not in the daylight',
     kaelithPhase2: 'Phase 2: the seal cracks', kaelithPhase3: 'Phase 3: the last light', shutWards: 'Shut the wards',
     keep: ' Keep artifacts, obols, keys and glyphs when starting',
+    vigil: 'The Vigil (M7 step 5)', toVigil: 'To the Vigil', vigilFirst: 'Wake there for the first time (dark, its candle)', vigilLectern: 'Open the lectern',
+    vigilBoat: 'Take the boat down', notAtVigil: 'Not at the Vigil',
+    vigilInfo: (room: string, candles: number, hands: string) => `In the ${room} · ${candles} candle${candles === 1 ? '' : 's'} lit · in hand: ${hands}`,
   },
   /** What a merchant's ware is called in messages. */
   wares: { heart: 'heart', halfHeart: 'half heart', key: 'bone key', glyph: 'glyph stone', coin: 'obol', purse: 'purse', mana: 'mana vial', paleSoul: 'pale soul mote', blackSoul: 'black soul mote', hallowedSoul: 'hallowed soul mote', shard: 'lodestone shard', potion: 'potion', reagent: 'reagent', map: "the crow's map", secret: "the crow's secret" } as Record<string, string>,

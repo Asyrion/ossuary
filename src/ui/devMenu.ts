@@ -50,7 +50,9 @@ import { coinGallery } from '../items/pickupLooks';
 import { obolFace, obolFaces, setObolFace } from '../items/obolFace';
 import { disposeTree } from '../render/materials';
 import { makeEnemy, spawnFoe } from '../actors/enemies';
-import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
+import { buildFloor, clearRoom, descend, resume, startGame, wakeAtVigil, warp, type RunOptions } from '../flow';
+import { board, vigilInfo } from '../vigil/place';
+import { openLectern } from './lectern';
 import { assetList, assetsOn, madeLookNow, madeLooks, setAssetsOn, setMadeLook, type MadeLook } from '../assets/models';
 import { setCloseUp } from '../render/renderer';
 import { LINES, drawnRows, pixelLook, setPixelLook } from '../render/pixelLook';
@@ -65,7 +67,7 @@ import { SIDE_DIR } from '../world/shapes';
 import type { Room } from '../types';
 import { openSecretRoom, revealCracks } from '../world/secret';
 import { cleanseAtOnce } from '../world/shrine';
-import { SCHOOLS, SPELL_DEFS } from '../magic/spellData';
+import { SCHOOLS, SPELL_DEFS, spell } from '../magic/spellData';
 import { attuneTo, forgetSpells, gainMana, learnSpell } from '../magic/spells';
 import { addRune, carve, clearRunes, setSockets } from '../magic/runes';
 import { RUNE_DEFS, rune } from '../magic/runeData';
@@ -104,7 +106,7 @@ import { CREATURES, CREATURE_LOOKS, creatureLook, roarNow, setCreatureLook, show
 import { THEMES } from '../world/themeData';
 
 const S = STR.dev;
-let kaelithBox: HTMLElement, daylightBox: HTMLElement, keepBox: HTMLElement;
+let kaelithBox: HTMLElement, daylightBox: HTMLElement, keepBox: HTMLElement, vigilBox: HTMLElement;
 let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, madeLookBtn: HTMLButtonElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
 let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, runesBtn: HTMLButtonElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement, creatureLookBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
@@ -583,6 +585,13 @@ function build() {
   saved.append(keepBox = el('p', 'dv-info'),
     btn(S.giveDust, () => { giveHome(100, 0); refresh(); }), btn(S.giveObols, () => { giveHome(0, 50); refresh(); }),
     btn(S.wipeSave, () => { wipeSave(); location.reload(); }), btn(S.veteranSave, () => { veteranSave(); location.reload(); }));
+  // M7 step 5: the Vigil as a place: waking there (as after a run, or the first time, dark with its first candle), its
+  // lectern's screen, and the Ferryman's boat down to floor 1
+  const vig = section(pages.rooms, S.vigil);
+  vig.append(vigilBox = el('p', 'dv-info'),
+    btn(S.toVigil, () => { closeDev(); wakeAtVigil(false); }), btn(S.vigilFirst, () => { closeDev(); wakeAtVigil(true); }),
+    btn(S.vigilLectern, () => { if (!vigilInfo().here) { toast(S.notAtVigil, 2); return; } closeDev(); openLectern(); }),
+    btn(S.vigilBoat, () => { if (!vigilInfo().here) { toast(S.notAtVigil, 2); return; } closeDev(); board(); }));
   const runs = section(pages.rooms, S.newRun);
   FLOORS.forEach((f, i) => runs.append(btn(f.fixed ? S.toSeal : S.floorN(i + 1), () => start({ floor: i, level: levelAtFloor(i) > 1 ? levelAtFloor(i) : undefined })))); // (M6 step 12: at the floor's expected level, its choices waiting)
   const keep = el('label', 'dv-check'); const box = el('input'); box.type = 'checkbox'; box.checked = keepCarried;
@@ -613,6 +622,7 @@ function refresh() {
   assetBtn.textContent = assetsOn() ? S.assetsOn : S.assetsOff; assetBtn.classList.toggle('on', assetsOn()); assetBtn.disabled = !list.some(a => a.status === 'loaded');
   const dl = daylightInfo(); daylightBox.textContent = S.daylightInfo(dl.on, dl.t ?? 0);
   const v = vigil(); keepBox.textContent = S.keepingInfo(v.dust, v.obols, v.runs, v.wins, v.deepest);
+  const vp = vigilInfo(); vigilBox.textContent = vp.here ? S.vigilInfo(vp.room ?? '?', vp.candles, vp.slots.map(id => id ? spell(id).name : '–').join(', ')) : S.notAtVigil;
   const kae = kaelithInfo(); kaelithBox.textContent = kae ? S.kaelithInfo(kae.phase, kae.state, kae.wards.map(w => (w.school ?? '-') + (w.shut ? ' (shut)' : '')).join(', ')) : S.noKaelith;
   madeLookBtn.textContent = S.madeLooks[madeLookNow()]; madeLookBtn.classList.toggle('on', madeLookNow() !== 'texel'); madeLookBtn.disabled = !assetsOn() || !madeLooks();
   kitBtn.textContent = DEV.roomKit ? S.kitNew : S.kitOld; kitBtn.classList.toggle('on', DEV.roomKit);

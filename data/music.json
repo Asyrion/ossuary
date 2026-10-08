@@ -1,8 +1,9 @@
 {
-  "_comment": "The music (docs/sound-plan.md): one piece per floor and the title's, each a key (root, a MIDI note) and mode, a tempo (beats a minute) and beats a bar, chords (semitones from the root, and how many bars), motifs (scale steps from where the composer places them, null a rest, and beats), its voices and drum patterns (x accented, o soft, . silent, spread over the bar). `floors` names each floor's piece (past the last, the last's), `title` the title's, `daylight` the piece of a won run's dawn (M7 step 3). The moods set each stem's level. Read by src/audio/musicData.ts.",
+  "_comment": "The music (docs/sound-plan.md): one piece per floor and the title's, each a key (root, a MIDI note) and mode, a tempo (beats a minute) and beats a bar, chords (semitones from the root, and how many bars), motifs (scale steps from where the composer places them, null a rest, and beats), its voices and drum patterns (x accented, o soft, . silent, spread over the bar). `floors` names each floor's piece (past the last, the last's), `title` the title's, `daylight` the piece of a won run's dawn (M7 step 3), `vigil` the Vigil's, between the descents (M7 step 5). The moods set each stem's level. Read by src/audio/musicData.ts.",
   "floors": ["ossuary", "drowned", "burning", "reliquary", "shore", "seal"],
   "bosses": { "kaelith": "sentinel" },
   "daylight": "daylight",
+  "vigil": "vigil",
   "title": "title",
   "moods": {
     "title":   { "drone": 0.7, "harmony": 0.8, "melody": 1,    "pulse": 0 },
@@ -190,6 +191,19 @@
       "bass": { "voice": "bowed", "octave": -1, "gain": 0.55, "fight": "x.......", "boss": "x...x...x...x..." },
       "bell": { "midi": 45, "every": 2, "gain": 0.4 },
       "density": { "explore": 0.35, "fight": 0.6, "boss": 0.85 }
+    },
+    {
+      "id": "vigil", "name": "The Vigil", "tempo": 50, "beats": 3, "root": 50, "mode": "dorian",
+      "chords": [
+        { "notes": [0, 3, 7], "bars": 2 }, { "notes": [-2, 2, 5], "bars": 2 }, { "notes": [5, 9, 12], "bars": 2 }, { "notes": [-5, -2, 2], "bars": 1 }, { "notes": [0, 3, 7], "bars": 1 }
+      ],
+      "theme": [[0, 2], [2, 1], [3, 2], [2, 1], [0, 3], [4, 1], [3, 1], [2, 1], [1, 2], [0, 1], [5, 2], [4, 1], [3, 2], [2, 1], [0, 3]],
+      "motifs": [[[0, 2], [2, 1]], [[3, 1], [2, 1], [0, 1]], [[4, 2], [3, 1]], [[0, 1], [-1, 1], [0, 1]]],
+      "drone": { "voice": "organ", "notes": [-12, -5], "gain": 0.4 },
+      "harmony": { "voice": "strings", "octave": -1, "spread": 8, "gain": 0.3 },
+      "melody": { "voices": ["harp", "underbell"], "octave": 1, "gain": 0.45 },
+      "pulse": [],
+      "density": { "title": 1, "explore": 0.45 }
     },
     {
       "id": "daylight", "name": "Daylight", "tempo": 56, "beats": 4, "root": 53, "mode": "lydian",

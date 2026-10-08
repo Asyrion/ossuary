@@ -21,6 +21,7 @@
   <div id="belt" aria-label="Potion belt"></div>
   <div id="items"></div>
   <div id="purse" role="status"></div>
+  <div id="vigilHud" role="status"></div>
   <canvas id="minimap" width="300" height="220"></canvas>
   <div id="bossbar"><div id="bossname"></div><div class="track"><div class="fill"></div></div></div>
   <div id="banner"><div class="t"></div><div class="s"></div></div>
@@ -118,6 +119,17 @@
       <aside class="invDetail" id="stoneDetail" aria-live="polite"></aside>
     </div>
     <p class="small invHint" data-s="waystone.hint"></p>
+  </div>
+</div>
+
+<div class="screen hidden" id="scrLectern">
+  <div class="card inv" role="dialog" aria-labelledby="lecternTitle">
+    <div class="invHead"><h2 id="lecternTitle" data-s="vigil.lectern.title"></h2></div>
+    <div class="invBody">
+      <div class="invList" id="lecternList" role="listbox" aria-labelledby="lecternTitle"></div>
+      <aside class="invDetail" id="lecternDetail" aria-live="polite"></aside>
+    </div>
+    <p class="small invHint" data-s="vigil.lectern.hint"></p>
   </div>
 </div>
 

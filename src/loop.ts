@@ -14,6 +14,7 @@ import { heroVisual } from './actors/hero';
 import { updatePlayer } from './actors/player';
 import { Sfx } from './audio/sfx';
 import { updateDaylight } from './world/daylight';
+import { updateVigil } from './vigil/place';
 import { updateAudio } from './audio/director';
 import { updateEnemies } from './actors/enemies';
 import { updateBolts, updateShots } from './combat/projectiles';
@@ -78,6 +79,7 @@ export function step(dt: number) {
     } else updateEnemies(0);
   }
   updateDaylight(dt); // (M7 step 3: the cave mouth at dawn, and the shaft's dust before it)
+  if (!G.trans) updateVigil(dt); // (M7 step 5: the Vigil's lectern, boat and barred ways)
   Sfx.listen(player.x, player.z); // effects are heard from just above the mage
   updateParticles(dt); updateWorldFx(dt, now); heroVisual(dt, now);
 }

@@ -188,6 +188,12 @@ body.touch.portrait #rotate{display:flex}
 /* M7 step 3: the white of stepping out into the daylight, fading; the HUD stays out of the dawn and the end screen over it */
 #dawn{position:fixed;inset:0;background:#fff4e2;opacity:0;pointer-events:none}
 body.daylight #hud{display:none}
+/* M7 step 5: at the Vigil the run's parts of the HUD give way to what is kept: the Dust and the obols */
+#vigilHud{display:none;position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 122px);flex-direction:column;gap:4px;font:700 16px var(--f-ui);color:#efe2c3;text-shadow:0 2px 2px #000}
+#vigilHud span{display:flex;align-items:baseline;gap:8px}#vigilHud small{font:600 12px var(--f-ui);color:#b8a888;letter-spacing:.06em;text-transform:uppercase}
+#vigilHud b{font-variant-numeric:tabular-nums;letter-spacing:.04em}
+body.vigil #vigilHud{display:flex}
+body.vigil #hearts,body.vigil #insight,body.vigil #belt,body.vigil #items,body.vigil #purse,body.vigil #level,body.vigil #btnRestart{display:none}
 @media (max-width:700px){.card{padding:20px}.controls{font-size:14px;gap:4px 12px}#minimap{width:120px;height:88px}#hearts svg{width:24px;height:24px}}
 @media (max-height:480px){.card h1{font-size:44px}.card p{font-size:16px;margin-bottom:10px}.controls{margin-bottom:12px}}
 @media (prefers-reduced-motion: reduce){#banner,#bossbar,#hurt,#lore{transition:none}}

@@ -21,6 +21,7 @@ import standardTemplates from '../../data/templates/standard.json';
 import specialTemplates from '../../data/templates/special.json';
 import shapedTemplates from '../../data/templates/shapes.json';
 import themedTemplates from '../../data/templates/themed.json';
+import vigilTemplates from '../../data/templates/vigil.json';
 import type { Role } from '../actors/foeData';
 import type { RoomType } from '../types';
 import { SHAPE_IDS, doorSlots, shapeMask, shapeSize, type ShapeId } from './shapes';
@@ -210,5 +211,6 @@ export function tombRuns(t: Pick<Template, 'tiles' | 'w' | 'h'>) {
 
 export const TEMPLATE_DEFS: TemplateDef[] = [
   ...(standardTemplates as TemplateDef[]), ...(specialTemplates as TemplateDef[]), ...(shapedTemplates as TemplateDef[]), ...(themedTemplates as TemplateDef[]),
+  ...(vigilTemplates as TemplateDef[]), // (M7 step 5: the Vigil's rooms, `fixed`)
 ];
 export const TEMPLATES = new Map(TEMPLATE_DEFS.map(d => [d.id, d]));

@@ -48,14 +48,15 @@ export const toWorld = (room: Room, c: number, r: number) =>
 export const doorsOf = (room: Room) => room.doors;
 const isNS = (side: Side) => side === 'n' || side === 's';
 
-export function buildRoom(plan: PlannedRoom, floorIndex: number) {
+/** Build a planned room of floor `floorIndex` in its floor's look, or in `own` (M7 step 5: the Vigil's, no floor's). */
+export function buildRoom(plan: PlannedRoom, floorIndex: number, own?: FloorLook) {
   const def = TEMPLATES.get(plan.templateId);
   if (!def) throw new Error(`no template "${plan.templateId}"`);
   const template = parseTemplate(def, plan.mirrorX, plan.mirrorY);
   const { w, h } = shapeSize(plan.shape), inset = SHAPES[plan.shape].inset;
   const minX = plan.anchor.gx * PX - HW + (inset?.c0 ?? 0), minZ = plan.anchor.gy * PZ - HD + (inset?.r0 ?? 0);
   const cx = minX + w / 2, cz = minZ + h / 2;
-  const floorLook = FLOORS[Math.min(floorIndex, FLOORS.length - 1)].look;
+  const floorLook = own ?? FLOORS[Math.min(floorIndex, FLOORS.length - 1)].look;
   const theme = def.theme ? THEMES.get(def.theme) : undefined; // a themed room dresses the floor's look its own way
   const dressed = plan.type === 'secret' ? secretLook(floorLook) : plan.type === 'shrine' ? shrineLook(floorLook) : themedLook(floorLook, theme);
   const look: FloorLook = dressed.kit ? { ...dressed, kinds: pickKinds(dressed.kit, plan.seed, DEV.kitKinds) } : dressed; // (the room kit's kinds, drawn on its seed)
@@ -95,7 +96,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number) {
   drawPits(room); mergePits(room); buildPools(room);
   // the template's roles filled with the floor's foes, on the room's seed (world/fill.ts: one elite at most, one pack or
   // nest, a pair, the pressure's one more, a quiet room's few), then placed
-  const filled = fillRoles(plan, template.waves, FLOORS[Math.min(floorIndex, FLOORS.length - 1)], DEV.foe);
+  const filled = plan.type === 'vigil' ? { waves: [], quietHeart: false } as ReturnType<typeof fillRoles> : fillRoles(plan, template.waves, FLOORS[Math.min(floorIndex, FLOORS.length - 1)], DEV.foe); // (the Vigil: nothing to fight)
   room.waves = filled.waves.map(wv => wv.map(f => ({ kind: f.kind, role: f.role, ...toWorld(room, f.c, f.r) })));
   if (filled.pair) { // (M4.7: two foes made to work together, the second set beside the first)
     const wave = room.waves[0], [a, b] = filled.pair, p = freeSpotNear(room, wave[a].x + CFG.pairs.gap, wave[a].z);
@@ -491,7 +492,8 @@ export function buildWallsAndDoors(room: Room) {
     const avoid = [...room.doors.filter(d => d.side === 'n' && Math.abs(d.z - face) < .1).map(d => ({ x: d.x, room: DH + .3 })),
       ...room.torches.filter(t => Math.abs(t.z - (face + .6)) < .1).map(t => ({ x: t.x, room: .3 })),
       ...falls.filter(f => f.side === 'n').map(f => ({ x: minX + (f.i0 + f.i1) / 2, room: (f.i1 - f.i0) / 2 + .3 })),
-      ...sluices(room).map(b => ({ x: b.x, room: .9 }))]; // (M4.9: a sluice gate's frame stands against it)
+      ...sluices(room).map(b => ({ x: b.x, room: .9 })), // (M4.9: a sluice gate's frame stands against it)
+      ...(room.keepClear ?? []).filter(k => k.side === 'n').map(k => ({ x: k.at, room: k.half + .3 }))]; // (M7: the Vigil's pieces and barred ways)
     dressNorthWall(room, face, minX + run.i0, minX + run.i1, avoid);
   }
 }
@@ -510,7 +512,8 @@ function placeTorches(room: Room, run: WallRun, across0: number, falls: ReturnTy
   const inTheWay = [...room.doors.filter(d => d.side === run.facing).map(d => ({ at: ns ? d.x : d.z, half: DH })), // doors, and waterfalls (M4.2)
     ...falls.filter(f => f.side === run.facing).map(f => ({ at: base + (f.i0 + f.i1) / 2, half: (f.i1 - f.i0) / 2 })),
     ...(run.facing === 'n' ? sluices(room).map(b => ({ at: b.x, half: .6 })) : []), // (and sluice gates, M4.9)
-    ...(run.facing === 'n' && room.lab ? [{ at: room.cx + room.lab.vat.position.x, half: 1.15 }] : [])]; // (and a laboratory's vat window, M5)
+    ...(run.facing === 'n' && room.lab ? [{ at: room.cx + room.lab.vat.position.x, half: 1.15 }] : []), // (and a laboratory's vat window, M5)
+    ...(room.keepClear ?? []).filter(k => k.side === run.facing)]; // (and what stands against the Vigil's walls, M7)
   const face = run.facing === 'n' ? across0 + WT : run.facing === 'w' ? across0 + WT : across0; // the wall's inner face
   for (let s of spots) {
     let at = inner0 + s;

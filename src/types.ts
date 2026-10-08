@@ -14,7 +14,7 @@ import type { Kinds, KitWeights } from './world/kitData';
 import type { RuneId, Socket } from './magic/runeData';
 
 export type Side = 'n' | 's' | 'e' | 'w';
-export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine' | 'library' | 'laboratory' | 'waystone';
+export type RoomType = 'start' | 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine' | 'library' | 'laboratory' | 'waystone' | 'vigil';
 export type DoorStyle = 'normal' | 'treasure' | 'boss' | 'ordeal' | 'altar' | 'merchant' | 'vault' | 'secret' | 'shrine' | 'library' | 'laboratory' | 'waystone';
 export interface Vec2 { x: number; z: number }
 /** Axis-aligned box on the floor plane: centre and half extents. */
@@ -79,7 +79,8 @@ export interface WareSpot {
 export interface Torch { flame: THREE.Object3D; glow: THREE.Sprite; x: number; z: number; lit: boolean }
 /** A rock collider; Mason's Chisel breaks breakable ones. Pedestals, pillars and tombs are unbreakable "rocks";
     urns are "rocks" any bolt breaks, and rune-sealed ones only a blast. */
-export interface RockBox extends Box { hp: number; breakable: boolean; mesh?: THREE.Object3D; tile?: { c: number; r: number }; urn?: 'plain' | 'sealed'; prop?: PropState; /** A pillar: how tall it stands (M4.2). */ pillar?: number }
+export interface RockBox extends Box { hp: number; breakable: boolean; mesh?: THREE.Object3D; tile?: { c: number; r: number }; urn?: 'plain' | 'sealed'; prop?: PropState; /** A pillar: how tall it stands (M4.2). */ pillar?: number;
+  /** M7 step 5: one of the Vigil's ways, barred by this school. */ bar?: import('./magic/spellData').School }
 /** One of the rooms' objects in play (world/props.ts, world/propData.ts): its kind, bolts it can still take, seconds
     left burning (0: not alight), the tiles it covers, and its look. */
 export interface PropState {
@@ -166,6 +167,8 @@ export interface Room {
     identified: boolean; armedTable: boolean; armedJelly: boolean;
     /** M5 step 7: the vat window's cracks (bolts), when the last was counted (sim time), whether it is broken (the serpent
         out, here or on a floor before), and whether a brew has stirred the serpent. */ cracks: number; crackAt: number; broken: boolean; stirred: boolean };
+  /** M7 step 5: spans of wall the torches and the wall's dressing keep off (the Vigil's pieces and barred ways stand
+      against them): on its `side`, centred at world `at` along it, `half` either way. */ keepClear?: { side: Side; at: number; half: number }[];
   /** Foes put to rest here towards the Ossuary Choir's next hymn (M4.1). */ choir?: number;
   /** M5: an overgrown foe has flowered here (its flower mends once a room). */ flowered?: boolean;
   /** M5: the overgrown garden's word has risen here (once a room). */ gardenSaid?: boolean;

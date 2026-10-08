@@ -48,6 +48,11 @@ export function recordRun(run: RunRecord) {
   persist();
 }
 
+/** The mage's own candle on the Vigil's wall is lit (its first waking there). */
+export function lightCandle() { if (!save.candle) { save.candle = true; persist(); } }
+/** The spell held in a hand at the Vigil (the lectern's choice), or none. */
+export function setVigilSlot(slot: number, id: string | null) { save.slots[slot] = id; persist(); }
+
 /** The dev menu: Dust and obols given. */
 export function giveHome(dust: number, obols: number) { save.dust = Math.max(0, save.dust + dust); save.obols = Math.max(0, save.obols + obols); persist(); }
 /** The dev menu: a wiped save (everything forgotten; the page reloads, so every module starts from nothing). */

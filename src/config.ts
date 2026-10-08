@@ -174,7 +174,13 @@ export const CFG = {
   // pays `floor` × the deepest; a boss put to rest, Kaelith more; each first find in the run; each shade freed; each vow kept
   // pays a share of the run's Dust once the run reaches `vowFloor`; an echo laid to rest), the share of the obols carried
   // that come home after a death (all after a win), and how many runs the save keeps (the echoes, step 11)
-  vigil: { dust: { floor: 10, boss: 15, kaelith: 60, first: 3, shade: 20, vow: .25, vowFloor: 3, echo: 10 }, obolsAfterDeath: .1, runsKept: 5 },
+  vigil: {
+    dust: { floor: 10, boss: 15, kaelith: 60, first: 3, shade: 20, vow: .25, vowFloor: 3, echo: 10 }, obolsAfterDeath: .1, runsKept: 5,
+    // M7 step 5, the place: how near the lectern opens and the boat is boarded (from the jetty's end), how near a barred
+    // way says what bars it; how far to step back before the lectern opens again; on the first waking, when the candle
+    // lights itself and how long the dark takes to lift after; the boat's line before it pushes off
+    place: { lecternReach: .95, rearm: .5, boatReach: .6, barReach: 1.9, candleAt: 1.4, dawn: 2.2, boatDelay: 1.6 },
+  },
   daylight: {
     reach: .7, at: [-400, 0] as [number, number], look: 1.5, walk: { from: 3.4, to: .9, speed: 1.05 },
     flash: 1.2, lift: 3, endAt: 6.5, mist: .18, fall: 1.6,

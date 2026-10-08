@@ -23,6 +23,7 @@ import { blastSeal } from '../world/vault';
 import { openSecret } from '../world/secret';
 import { blastWisp } from '../world/shrine';
 import { toast } from '../ui/hud';
+import { atVigil } from '../vigil/where';
 import { STR } from '../strings';
 import { giveResources, isContainer, openContainer } from '../items/pickups';
 import { damageEnemy, hurtPlayer, strikeFrom } from './damage';
@@ -62,6 +63,7 @@ let cooldown = 0;
 /** Chalk a glyph at the mage's feet, if they have one. */
 export function placeGlyph() {
   if (cooldown > 0 || G.trans || G.state !== 'play') return false;
+  if (atVigil()) { Sfx.noGlyph(); toast(STR.vigil.chalk, 2.4); cooldown = .6; return false; } // (M7 step 5: nothing to blast at the Vigil)
   if (player.glyphs <= 0) { Sfx.noGlyph(); cooldown = .3; return false; }
   if (G.current.type === 'merchant') { // the shop is warded: the chalk won't take, and nothing is spent
     burst(player.x, .1, player.z, WARD_COLOR, 8, 1.4, .04); Sfx.wardTink(); toast(STR.toast.shopWarded, 3); cooldown = .6;

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { SAVE_VERSION, blankSave, dustFor, migrate, obolsHome, validate } from '../../src/vigil/vigilData';
 import { CFG } from '../../src/config';
+import { BAR_SCHOOLS, VIGIL, validateVigil, vigilPlan, type VigilMap } from '../../src/vigil/vigilMap';
+import { FLOORS, generateFloor } from '../../src/world/generate';
+import { Rng } from '../../src/rng';
 
 const D = CFG.vigil.dust;
 
@@ -59,5 +62,41 @@ describe('what a run brings home', () => {
   });
   it('brings every obol home after a win, a tenth after a death', () => {
     expect(obolsHome(57, true, .1)).toBe(57); expect(obolsHome(57, false, .1)).toBe(5); expect(obolsHome(-3, false, .1)).toBe(0);
+  });
+});
+
+describe('the Vigil as a place (M7 step 5): its map', () => {
+  const copy = (): VigilMap => JSON.parse(JSON.stringify(VIGIL));
+  it('passes its checks: three rooms laid by hand, the Crypt first, nothing to fight', () => {
+    expect(validateVigil()).toEqual([]);
+    const plan = vigilPlan(new Rng(7));
+    expect(plan.rooms.map(r => r.templateId)).toEqual(['vigil_crypt', 'vigil_nave', 'vigil_landing']);
+    expect(plan.startId).toBe(0); expect(plan.bossId).toBe(-1);
+    expect(plan.rooms.every(r => r.type === 'vigil' && r.dist !== undefined)).toBe(true);
+    expect(plan.rooms.map(r => [...new Set(r.doors.map(d => d.to))])).toEqual([[1], [0, 2], [1]]); // (the Crypt to the Nave, the Nave to the Landing)
+    expect(VIGIL.pieces.map(p => p.kind)).toEqual(expect.arrayContaining(['bier', 'candleWall', 'skulls', 'lectern', 'plinth', 'boat']));
+  });
+  it('bars six ways, one a school, each on an outer wall leading out of the map', () => {
+    expect(VIGIL.bars.map(b => b.school).sort()).toEqual([...BAR_SCHOOLS].sort());
+    const into = copy(); into.bars[0] = { ...into.bars[0], room: 'landing', side: 'w', at: [0, 2], size: [1, 3] }; // (the Landing's west wall: the Nave beyond)
+    expect(validateVigil(into).join()).toMatch(/leads into another of the Vigil's rooms/);
+    const two = copy(); two.bars[1] = { ...two.bars[1], school: two.bars[0].school };
+    expect(validateVigil(two).join()).toMatch(/one school each/);
+  });
+  it('keeps the doorways, the water and the waking spot clear', () => {
+    const lane = copy(); lane.pieces.find(p => p.kind === 'plinth')!.at = [0, 12]; // (the Nave's door to the Crypt)
+    expect(validateVigil(lane).join()).toMatch(/doorway's lane/);
+    const dry = copy(); dry.pieces.find(p => p.kind === 'boat')!.at = [2, 1];
+    expect(validateVigil(dry).join()).toMatch(/not water/);
+    const bed = copy(); bed.wake.at = [3.5, 4.2]; // (on the bier)
+    expect(validateVigil(bed).join()).toMatch(/isn't clear floor/);
+  });
+  it('is never drawn by a generated floor', () => {
+    for (let s = 0; s < 30; s++) FLOORS.forEach((f, i) => { if (!f.fixed) for (const r of generateFloor(Rng.from('VG' + s, 'floor' + i), f, i).rooms) expect(r.type).not.toBe('vigil'); });
+  });
+  it('keeps the two spells held there, made whole from whatever was stored', () => {
+    expect(blankSave().slots).toEqual([null, null]);
+    expect(migrate({ v: 1, slots: ['arc', 7, 'x'] }).slots).toEqual(['arc', null]);
+    expect(migrate({ v: 1 }).slots).toEqual([null, null]);
   });
 });

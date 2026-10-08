@@ -458,6 +458,81 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
    - For now the boat takes the mage to floor 1 for nothing; the toll comes in step 10.
    - Its kit (crypt stone, candles), its soundscape and a piece.
    - **Dev menu:** "To the Vigil"; `?vigil=1`.
+
+   *Built (2026-10-08), planned with the owner (every recommendation taken: a warm candlelit crypt; the six barred ways
+   shown now, sealed; the Ferryman standing in his boat as a figure now).*
+   - **The map:** `data/vigil.json` lays three rooms by hand from templates marked `fixed` in
+     `data/templates/vigil.json`: the Crypt (one cell, where the mage wakes), the Nave (a great hall) and the Landing (a
+     long room, its water along the south). They are of a new room type, `vigil`: no foes, no loot, no banner or curve,
+     every door open. The pure `src/vigil/vigilMap.ts` reads it (`VIGIL`, `vigilPlan` through generate.ts's `hubPlan`,
+     which shares `layFixed` with the Seal's `fixedPlan` but needs no boss) and checks it (`validateVigil`: every piece
+     and barred way on floor (the boat on water), out of the doorways' lanes, apart from each other; one way barred by
+     each school, each on an outer wall leading out of the map; the waking spot clear).
+   - **What stands there** (`src/vigil/vigilLooks.ts`, from the kit's parts):
+     - the bier the mage wakes beside, its corner candles burning;
+     - the candle wall, three stepped tiers of eighteen candles, one burning for each candle lit (the mage's own after its
+       first waking; the shades' in step 9);
+     - the wall of skulls, its eyes dark until step 12;
+     - the grimoire lectern (the library's look);
+     - three empty plinths for the echoes of step 11;
+     - the Great Circle cut in the Nave's floor (three dark rings with their sigils' places);
+     - the bell (the dungeon's own, rung by a bolt);
+     - the Ferryman, hooded, with his pole and a swaying lantern, standing in his boat at the jetty's end; his head turns
+       to the mage.
+   - **The six barred ways** stand on north walls, where the camera sees them:
+     - in the Nave: a frozen stair (Ember), a veil of shadow (Umbral) and a door of three dark rune stones (Storm);
+     - in the Crypt: a dark chapel with its candles cold (Hallow);
+     - on the Landing: a dead root through the wall (Verdant) and a cellar stair under black water (Frost).
+
+     Each blocks its tiles. Walked up to, each says once a waking what bars it, with a hint at its school
+     (`STR.vigil.bars`). Struck by a bolt of its own school (`strikeSolid`'s `vigilHooks.barStruck`), it flashes in that
+     school's light and says it holds, for now. Step 9 opens them.
+   - **The kit:**
+     - a crypt-stone wall (`cryptstone`: warm grey ashlar, soot at the top, a cross cut in some blocks);
+     - a slab floor (`slabs`: great worn slabs with names cut faintly in some);
+     - a candle cluster for the wall lights (`cluster`).
+
+     Each room keeps its pieces' spans of wall clear of torches and niches (`room.keepClear`). The look is warm and dim.
+   - **Being there** (`src/vigil/place.ts`; `src/vigil/where.ts`'s `atVigil` for the modules that behave otherwise):
+     - The mage is fresh and carries nothing; its two hands hold the lectern's spells.
+     - Casting works on everything that answers to magic; nothing can hurt it.
+     - A glyph won't chalk ("The chalk will not take").
+     - The HUD's run parts give way to `#vigilHud` (the Dust and the obols kept) under `body.vigil`, and the pause menu's
+       New run is hidden.
+     - Each room's name rises the first time it is entered in a waking.
+   - **The lectern** (`src/ui/lectern.ts`, `#scrLectern`):
+     - Walking up opens it, and the game waits.
+     - It lists the two hands, then every spell learned, by school.
+     - Q or E (LB or RB) puts the chosen spell in that hand; Enter puts it in the free one, and Enter on a hand empties it.
+     - The choice is kept in the save (`slots`, new and made whole by `migrate`; `setVigilSlot`).
+   - **The boat:** stepping in from the jetty's end says the Ferryman's line, then a run starts on floor 1 for nothing. The
+     toll comes in step 10. A descent starts empty-handed, as ever.
+   - **Waking** (flow.ts):
+     - `begin()` is what Start, Enter, the pad's Start and the end screen's button call. Once a run has been played, it
+       wakes the mage at the Vigil (`wakeAtVigil`); the end screen's button reads "Wake at the Vigil".
+     - A page that asks for a run of its own (`?floor=`, `?room=`, `?give=`...) still starts one.
+     - The first waking (no candle lit yet) is dark: after a beat the mage's candle lights itself on the wall (`lightCandle`)
+       and the dark lifts.
+     - The title stands over the Vigil once a run has been played, and its button reads "Wake at the Vigil". A first visit
+       still starts a run, as before.
+     - `buildFloor` and the Vigil's `buildVigil` share the teardown (`clearFloor`), which calls `leaveVigil`.
+   - **The sound:**
+     - its soundscapes: `rooms.vigil` (a still room tone, candles, far drips and a far bell) and `vigilLanding` (its water
+       over that);
+     - its piece "The Vigil" (dorian, three beats, an organ drone, strings, harp and a low bell), the director's `atVigil()`
+       branch;
+     - `Sfx.boat` and `Sfx.waken`.
+   - **Dev menu** (Rooms & runs, "The Vigil"): where the mage is and what it holds; To the Vigil; Wake there for the first
+     time; Open the lectern; Take the boat down. URL: `?vigil=1`, `?vigil=first`. Hooks: `__game.vigilPlace`,
+     `toVigil(first)`, `lecternChoose(hand, id)`, `openLectern`, `closeLectern`, `takeBoat()`.
+   - **Tests:**
+     - unit: the map passes its checks; the plan is three rooms, the Crypt first, no boss; the six schools; the checks
+       catch a way into another room, a school twice, a plinth in a doorway, a dry boat, a waking spot on the bier; no
+       generated floor draws a Vigil room; the save's slots.
+     - browser: the first waking dark until the candle, nothing to fight; the lectern opened by walking up, Q and E
+       filling the hands, kept; the frost way said and stirred by Rime Shards; the glyph refused; the boat to floor 1
+       empty-handed; a death back to the Vigil with the candle and the hands; the title leading there; the dev menu's
+       readout.
 6. **Chained shades in runs.**
    - Where they lie: data per floor, on their own stream.
    - The look: a shade in chains, told apart from the merchant.

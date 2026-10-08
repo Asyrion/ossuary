@@ -60,7 +60,7 @@ describe('music', () => {
     for (const p of PIECES) for (const mood of MOODS) {
       const st = newComposer(p), r = new Rand(9), notes = Array.from({ length: 48 }, (_, b) => planBar(p, b, mood, st, () => r.next())).flat();
       const melody = notes.filter(n => n.stem === 'melody'), pulse = notes.filter(n => n.stem === 'pulse');
-      const calm = p.id === 'title' || p.id === 'daylight'; // (the title's and the dawn's: no drums, and the title mood is theirs)
+      const calm = p.id === 'title' || p.id === 'daylight' || p.id === 'vigil'; // (the title's, the dawn's and the Vigil's: no drums, and the title mood is theirs)
       if (mood === 'quiet') { expect(notes, p.id).toEqual([]); continue; }
       if (mood === 'low') { expect(melody, p.id).toEqual([]); expect(pulse.every(n => n.voice === 'heart'), p.id).toBe(true); continue; }
       if (mood === 'title' && !calm) continue;

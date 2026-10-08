@@ -11,6 +11,7 @@ import { CFG } from '../config';
 import type { Bolt, Box, Enemy, RockBox, Room } from '../types';
 import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
+import { vigilHooks } from '../vigil/where';
 import { scene } from '../render/renderer';
 import { basicMat, blob, glowShared, sphereGeo } from '../render/materials';
 import { blockers, boxAt } from '../world/collision';
@@ -169,6 +170,7 @@ export function strikeSolid(room: Room, box: Box, x: number, y: number, z: numbe
   if (rock.urn) strikeUrn(room, rock, false);                                             // any bolt breaks an urn
   else if (rock.prop) strikeProp(room, rock, false, status);                              // piles break, bells ring, runes charge
   else if (room.lab && !door) vatStruck(room, x, z);                                       // (M5: the jelly serpent's vat window cracks)
+  else if (rock.bar) vigilHooks.barStruck(rock, x, z, status);                             // (M7 step 5: a way barred at the Vigil stirs)
   return rock;
 }
 

@@ -103,6 +103,8 @@
     }
   ],
   "rooms": {
+    "vigil": {"space": {"seconds": 1.8, "bright": 0.45}, "duck": 0, "bed": [{"kind": "noise", "colour": "brown", "filter": "lowpass", "freq": 200, "q": 0.6, "gain": 0.16}, {"kind": "crackle", "rate": 2.5, "gain": 0.07}, {"kind": "hum", "freqs": [55, 82.4], "gain": 0.018, "beat": 0.05}], "shots": [{"kind": "drip", "every": 6, "gain": 0.3, "far": [0.4, 0.9]}, {"kind": "wax", "every": 14, "gain": 0.3, "far": [0.1, 0.5]}, {"kind": "chapelBell", "every": 60, "gain": 0.35, "far": [0.85, 1]}]},
+    "vigilLanding": {"space": {"seconds": 2.0, "bright": 0.4}, "duck": 0, "bed": [{"kind": "noise", "colour": "brown", "filter": "lowpass", "freq": 200, "q": 0.6, "gain": 0.12}, {"kind": "shore", "period": 6, "gain": 0.22}, {"kind": "hum", "freqs": [55, 82.4], "gain": 0.014, "beat": 0.05}], "shots": [{"kind": "boatCreak", "every": 12, "gain": 0.35, "far": [0.2, 0.5]}, {"kind": "drip", "every": 5, "gain": 0.3, "far": [0.3, 0.8]}, {"kind": "ferryBell", "every": 70, "gain": 0.3, "far": [0.85, 1]}]},
     "daylight": {
       "space": { "seconds": 1.4, "bright": 0.75 }, "duck": 0,
       "bed": [

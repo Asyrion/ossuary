@@ -8,8 +8,10 @@ import { G, player } from '../state';
 import { Sfx } from './sfx';
 import { AmbienceMix } from './ambience';
 import { MusicPlayer } from './music';
-import { BOSS_PIECES, DAYLIGHT_PIECE, TITLE_PIECE, floorPiece, type Mood } from './musicData';
+import { BOSS_PIECES, DAYLIGHT_PIECE, VIGIL_PIECE, TITLE_PIECE, floorPiece, type Mood } from './musicData';
 import { daylightOn } from '../world/daylight';
+import { atVigil } from '../vigil/where';
+import { VIGIL } from '../vigil/vigilMap';
 import { roomScape, spaceFor } from './ambienceData';
 
 export interface Forced { floor?: number; room?: string; theme?: string; piece?: string; mood?: Mood }
@@ -58,6 +60,11 @@ export function updateAudio() {
     amb.set(floor, 'daylight', undefined, t); amb.duck(1, t); mus.setSpace(spaceFor(floor, roomScape('daylight')?.scape ?? null), t); mus.muffle(false, t); mus.play(DAYLIGHT_PIECE, 'title', t);
   }
   else if (G.state === 'title') { amb.stop(t, 2); mus.play(TITLE_PIECE, 'title', t); }
+  else if (atVigil() && G.state !== 'end') { // (M7 step 5: the Vigil between descents: its stillness and candles, the Landing's water, its piece)
+    const scape = VIGIL.rooms[G.rooms.indexOf(room)]?.name === 'landing' ? 'vigilLanding' : 'vigil';
+    amb.set(floor, scape, undefined, t); amb.duck(G.state === 'pause' ? CFG.audio.pauseDuck : 1, t);
+    mus.setSpace(spaceFor(floor, roomScape(scape)?.scape ?? null), t); mus.muffle(G.state === 'pause', t); mus.play(VIGIL_PIECE, 'explore', t);
+  }
   else if (G.state === 'end') { amb.stop(t, 3); mus.play(TITLE_PIECE, 'title', t); }
   else {
     const theme = room?.theme?.id;

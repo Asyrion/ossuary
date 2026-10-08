@@ -9,8 +9,8 @@ import { hero, loadHeroBuffer } from '../actors/hero';
 import { artifact } from '../items/artifactData';
 import { artifactIcon, setHeroInfo, toast } from './hud';
 
-export type ScreenName = 'title' | 'pause' | 'end' | 'inv' | 'lab' | 'level' | 'stone';
-const screens: Record<ScreenName, HTMLElement> = { title: $('scrTitle'), pause: $('scrPause'), end: $('scrEnd'), inv: $('scrInv'), lab: $('scrLab'), level: $('scrLevel'), stone: $('scrStone') };
+export type ScreenName = 'title' | 'pause' | 'end' | 'inv' | 'lab' | 'level' | 'stone' | 'lectern';
+const screens: Record<ScreenName, HTMLElement> = { title: $('scrTitle'), pause: $('scrPause'), end: $('scrEnd'), inv: $('scrInv'), lab: $('scrLab'), level: $('scrLevel'), stone: $('scrStone'), lectern: $('scrLectern') };
 export function showScreen(name: ScreenName | null) {
   for (const k of Object.keys(screens) as ScreenName[]) screens[k].classList.toggle('hidden', k !== name);
 }

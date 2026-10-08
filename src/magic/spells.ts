@@ -61,6 +61,8 @@ export function attuneTo(school: School) {
 }
 /** Forget every spell (a new run, or the dev menu): their runes go to the pouch (M6), the sockets stay. */
 export function forgetSpells() { unslot(0); unslot(1); player.spells = [null, null]; player.spellCd = [0, 0]; renderSpells(); }
+/** One hand emptied (M7 step 5: the Vigil's lectern). */
+export function forgetSpell(slot: number) { unslot(slot); player.spells[slot] = null; player.spellCd[slot] = 0; renderSpells(); }
 
 /** Where a spell cast now goes: the held cast direction, or where the mage last aimed or walked. */
 export function aimDir(cast: Vec2 | null): Vec2 { return cast ?? player.aim; }

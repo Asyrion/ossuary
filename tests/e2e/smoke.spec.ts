@@ -5001,6 +5001,72 @@ test('the keeping (M7 step 4): one save takes over the five keys kept before it;
   expect(errors).toEqual([]);
 });
 
+test('the Vigil as a place (M7 step 5): the first waking is dark until its candle lights itself; three rooms with nothing to fight; the lectern puts learned spells in hand and keeps them; the six barred ways say what bars them and stir at their own school; no glyphs; the boat goes down to floor 1; a run\'s end and the title lead back to it', async ({ page }) => {
+  const errors = await start(page, '?vigil=first');
+  type VP = { here: boolean; room: string | null; first: boolean; candles: number; slots: (string | null)[]; lectern: { x: number; z: number; open: boolean; entries: string[]; hands: (string | null)[] }; boat: { x: number; z: number; boarded: boolean }; bars: { school: string; x: number; z: number; said: boolean; stirred: boolean }[] };
+  type VG = { vigilPlace: VP; vigil: { candle: boolean; slots: (string | null)[]; runs: number }; know(id: string, s: string): void; sim(s: number, d?: boolean): void; warp(i: number): void; mana(n: number): void; cast(slot: number, dir?: { x: number; z: number }): void; player: { x: number; z: number; spells: (string | null)[]; glyphs: number }; enemies: unknown[]; rooms(): RoomView[]; state: string; current: RoomView; lightLevels?: unknown };
+  const wake = await page.evaluate(() => {
+    const g = (window as unknown as { __game: VG }).__game, at0 = { ...g.vigilPlace, dark: document.body.classList.contains('vigil') };
+    g.sim(.5); const before = g.vigilPlace.candles;
+    g.sim(5); return { at0, before, after: g.vigilPlace.candles, kept: g.vigil.candle, enemies: g.enemies.length, open: g.rooms().every(r => r.doors.every(d => d.open) && r.cleared),
+      hud: getComputedStyle(document.getElementById('vigilHud')!).display, hearts: getComputedStyle(document.getElementById('hearts')!).display, hudText: document.getElementById('vigilHud')!.textContent };
+  });
+  expect(wake.at0).toMatchObject({ here: true, room: 'crypt', first: true, candles: 0, dark: true });
+  expect(wake.before).toBe(0); expect(wake.after).toBe(1); expect(wake.kept).toBe(true);
+  expect(wake).toMatchObject({ enemies: 0, open: true, hud: 'flex', hearts: 'none' }); expect(wake.hudText).toContain('Arcane Dust');
+  await page.screenshot({ path: 'test-results/vigil-crypt.png' });
+  // the lectern: walked up to, it opens; Q puts the chosen spell in hand, and the choice is kept
+  const lec = await page.evaluate(() => {
+    const g = (window as unknown as { __game: VG }).__game; g.know('arc', 'learned'); g.know('rime_shards', 'learned');
+    const l = g.vigilPlace.lectern; g.player.x = l.x; g.player.z = l.z + .7; g.sim(.2); return g.vigilPlace.lectern;
+  });
+  expect(lec.open).toBe(true); expect(lec.entries).toEqual(['Q: empty', 'E: empty', 'Rime Shards', 'Arc']);
+  await page.keyboard.press('KeyQ'); // (the first spell offered is chosen)
+  await page.keyboard.press('ArrowRight'); await page.keyboard.press('KeyE');
+  await page.screenshot({ path: 'test-results/vigil-lectern.png' });
+  await page.keyboard.press('Escape');
+  const hands = await page.evaluate(() => { const g = (window as unknown as { __game: VG }).__game; return { state: g.state, spells: [...g.player.spells], kept: g.vigil.slots, open: g.vigilPlace.lectern.open }; });
+  expect(hands).toEqual({ state: 'play', spells: ['rime_shards', 'arc'], kept: ['rime_shards', 'arc'], open: false });
+  // a barred way: walked up to, it says what bars it; struck by its own school, it stirs and holds
+  const bar = await page.evaluate(() => {
+    const g = (window as unknown as { __game: VG }).__game; g.warp(2); g.sim(.6);
+    const b = g.vigilPlace.bars.find(x => x.school === 'frost')!; g.player.x = b.x; g.player.z = b.z + 1.3; g.sim(.3);
+    g.mana(100); g.cast(0, { x: 0, z: -1 }); g.sim(1);
+    return g.vigilPlace.bars.find(x => x.school === 'frost');
+  });
+  expect(bar).toMatchObject({ said: true, stirred: true });
+  // no glyphs at the Vigil: the chalk won't take
+  await page.keyboard.press('Space');
+  expect(await page.evaluate(() => { (window as unknown as { __game: VG }).__game.sim(.1); return document.getElementById('toast')!.textContent; })).toContain('chalk will not take');
+  // the boat: stepped into from the jetty, down to floor 1, empty-handed
+  const down = await page.evaluate(() => {
+    const g = (window as unknown as { __game: VG }).__game, b = g.vigilPlace.boat; g.player.x = b.x; g.player.z = b.z; g.sim(.2);
+    const boarded = g.vigilPlace.boat.boarded; g.sim(2.5);
+    return { boarded, state: g.state, here: g.vigilPlace.here, floor: (g as unknown as { floor: number }).floor, type: g.current.type, spells: [...g.player.spells], cls: document.body.classList.contains('vigil') };
+  });
+  expect(down).toEqual({ boarded: true, state: 'play', here: false, floor: 0, type: 'start', spells: [null, null], cls: false });
+  // the run ends: the end screen leads back to the Vigil, the candle still lit, the lectern's spells in hand
+  await page.evaluate(() => {
+    const g = (window as unknown as { __game: VG & { spawn(k: string): { x: number; z: number }; player: { hp: number; invuln: number } } }).__game, P = g.player;
+    const foe = g.spawn('sporeling'); P.hp = 1; P.invuln = 0;
+    for (let t = 0; t < 120 && g.state !== 'end'; t++) { foe.x = P.x + .3; foe.z = P.z; P.invuln = Math.min(P.invuln, .05); g.sim(.25); }
+  });
+  expect(await page.textContent('#btnAgain')).toBe('Wake at the Vigil');
+  await page.click('#btnAgain');
+  const back = await page.evaluate(() => { const g = (window as unknown as { __game: VG }).__game; g.sim(.5); return { here: g.vigilPlace.here, room: g.vigilPlace.room, first: g.vigilPlace.first, candles: g.vigilPlace.candles, spells: [...g.player.spells] }; });
+  expect(back).toEqual({ here: true, room: 'crypt', first: false, candles: 1, spells: ['rime_shards', 'arc'] });
+  // the title leads there now, once a run has been played
+  await page.goto('/?autolevel=skip'); await page.waitForFunction(() => !!(window as unknown as W).__game, null, { timeout: 30_000 });
+  expect(await page.textContent('#btnStart')).toBe('Wake at the Vigil');
+  await page.click('#btnStart');
+  expect(await page.evaluate(() => { const g = (window as unknown as { __game: VG }).__game; g.sim(.3); return { state: g.state, here: g.vigilPlace.here }; })).toEqual({ state: 'play', here: true });
+  // the dev menu wakes the mage there from anywhere
+  await page.keyboard.press('F2');
+  await page.locator('#dev .dv-tab', { hasText: 'Rooms' }).click();
+  await expect(page.locator('#dev .dv-page:not([hidden]) .dv-info', { hasText: 'In the crypt' })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test('the shrine\'s bargain (M6 step 11): a stone at the circle\'s head; walking up says how; a spell cast into it costs nothing and deals two boons of its school and one general; Esc pays nothing; a boon taken costs a heart container and keeps it, once; the last heart is refused', async ({ page }) => {
   const errors = await start(page, '?room=shrine_henge&spells=cinder_lance,rime_shards');
   const r = await page.evaluate(`(() => {

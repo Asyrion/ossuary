@@ -258,6 +258,8 @@ const sounds = {
   kneel() { tone('sine', 98, 92, 2.4, .1); tone('sine', 147, 140, 2, .05, .3); hiss(1.4, .05, 'lowpass', 500); },
   shaft() { [523, 659, 784, 1047].forEach((f, i) => tone('sine', f, f * 1.01, 1.6, .035, i * .09)); hiss(1.6, .03, 'highpass', 3200); }, // (M7 step 3: daylight falling into the Seal)
   dawn() { hiss(2.4, .07, 'lowpass', 1800); [262, 330, 392, 523].forEach((f, i) => tone('triangle', f, f, 2.6, .04, .15 + i * .05)); tone('sine', 131, 131, 3, .06, .2); }, // (stepping out at the cave mouth)
+  boat() { hiss(1.6, .05, 'lowpass', 600); hiss(.9, .03, 'bandpass', 900, .5); tone('sine', 98, 92, 1.4, .05, .1); tone('triangle', 196, 196, .9, .02, .6); }, // (M7 step 5: the Ferryman's pole in the water, and the boat pushing off)
+  waken() { tone('sine', 196, 196, 2.2, .05); tone('sine', 294, 294, 2, .03, .25); hiss(1.2, .02, 'lowpass', 900, .1); }, // (waking on the bier)
   sealVoice() { hiss(1.8, .06, 'lowpass', 280); tone('sine', 73, 61, 2, .1); tone('triangle', 110, 92, 1.5, .035, .35); }, // (M7: Kaelith's voice from under the stone)
   champion() { tone('sawtooth', 80, 60, .5, .08); hiss(.4, .06, 'lowpass', 300); },
   // champion mantles (M4.7): a mantle torn off (a snap and a falling chime), and a Hexbound's curse closing
