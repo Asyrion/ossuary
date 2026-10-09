@@ -91,8 +91,13 @@ export function furnishUnfold() {
 /** Every room's walls are up (flow.ts's `buildVigil`): the Cave Mouth's north wall is taken down to the valleys. */
 export function vigilWalled() {
   if (!here) return;
-  const r = here.cave.room;
-  for (const o of r.group.children) if ((o as THREE.Mesh).isMesh && o.position.z + r.cz < r.bounds.minZ - .05 && o.position.y > .2) o.visible = false; // (the north wall's boxes: their colliders stay)
+  const r = here.cave.room; r.group.updateMatrixWorld(true);
+  for (const o of r.group.children) {
+    const m = o as THREE.Mesh; if (!m.isMesh || o.position.y < .2) continue;
+    const box = new THREE.Box3().setFromObject(m), z0 = box.min.z + r.cz - r.group.position.z, z1 = box.max.z + r.cz - r.group.position.z;
+    if (z1 < r.bounds.minZ + .05) o.visible = false; // (the north wall's boxes: their colliders stay)
+    else if (z0 < r.bounds.minZ - .05) { const cut = r.bounds.minZ - z0; o.scale.z = (z1 - z0 - cut) / (z1 - z0); o.position.z += cut / 2; } // (the side walls end at the floor's edge, not out in the sky)
+  }
   const vista = buildVista({ terrace: false, cave: false });
   vista.root.position.set(0, 0, r.bounds.minZ - 1 - r.cz); r.group.add(vista.root);
   here.cave.vista = vista;

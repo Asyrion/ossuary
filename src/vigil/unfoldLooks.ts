@@ -13,7 +13,7 @@ import type { CaveKind } from './vigilMap';
 
 const box = (w: number, h: number, d: number) => new THREE.BoxGeometry(w, h, d);
 const cyl = (r0: number, r1: number, h: number, n = 8) => new THREE.CylinderGeometry(r0, r1, h, n);
-const TURF = 0x5e7a42, SOIL = 0x4a3426, THATCH = 0x8a7448, LEAF = 0x5c8a44, WATER = 0x5aa8c8;
+const TURF = 0x5e7a42, SOIL = 0x4a3426, THATCH = 0x8a7448, LEAF = 0x5c8a44;
 
 /** A small house of drystone, a turf roof, a door of planks and a window lit warm from inside. */
 function houseLook(look: FloorLook, R: () => number) {
@@ -48,17 +48,19 @@ function bedLook(_look: FloorLook, R: () => number) {
   }
   g.add(blob(1.3)); return g;
 }
-/** A fall of water: a tall rock with water coming over its lip in a strip, into a round basin. `parts.fall` scrolls. */
+/** A fall of water: a mossy outcrop with water pouring over its lip in a broad white strip, foam at its foot, into a
+    round basin of bright water. `parts.fall` scrolls. */
 function fallLook(look: FloorLook) {
-  const g = new THREE.Group(), stone = tone(stoneOf(look, .9), .16);
-  mesh(g, rough(box(.7, 1.6, .5), .08, 3), stone, 0, .8, -.25);
-  mesh(g, rough(box(.5, .2, .3), .04, 4), tone(TURF, .1), 0, 1.62, -.25);
+  const g = new THREE.Group(), stone = tone(stoneOf(look, 1.1), .16), moss = tone(TURF, .12);
+  mesh(g, rough(box(1, 1.3, .45), .1, 3), stone, 0, .65, -.3);
+  mesh(g, rough(box(.9, .14, .5), .05, 4), moss, 0, 1.33, -.3);
+  for (const s of [-1, 1]) mesh(g, rough(new THREE.DodecahedronGeometry(.18, 0), .04, s + 5), moss, s * .42, .9, -.08);
   const tex = fallTexture();
-  const fall = mesh(g, new THREE.PlaneGeometry(.24, 1.5), new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: .9 }), 0, .82, .01);
-  mesh(g, cyl(.46, .5, .14, 12), stone, 0, .07, .24);
-  mesh(g, cyl(.4, .4, .02, 12), tone(WATER, .05), 0, .13, .24);
-  const s = glow(0xffffff, .5, .35); s.position.set(0, .2, .25); g.add(s);
-  g.add(blob(1.2)); g.userData.parts = { fall, tex }; return g;
+  const fall = mesh(g, new THREE.PlaneGeometry(.46, 1.25), new THREE.MeshBasicMaterial({ map: tex }), 0, .72, -.06);
+  mesh(g, cyl(.52, .56, .14, 14), stone, 0, .07, .28);
+  mesh(g, cyl(.46, .46, .02, 14), new THREE.MeshBasicMaterial({ color: 0x7cc4e0 }), 0, .14, .28);
+  for (let k = 0; k < 5; k++) mesh(g, new THREE.SphereGeometry(.07, 6, 4), new THREE.MeshBasicMaterial({ color: 0xf2fbff }), (k - 2) * .1, .16, .06 + (k % 2) * .05); // (foam where it lands)
+  g.add(blob(1.3)); g.userData.parts = { fall, tex }; return g;
 }
 let fallTex: THREE.Texture | null = null;
 /** Falling water: streaks of white and pale blue, repeating (one texture for every fall, scrolled by the Vigil). */

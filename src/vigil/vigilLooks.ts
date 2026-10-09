@@ -175,7 +175,7 @@ export function pieceLook(kind: PieceKind, look: FloorLook, o: { ferryman?: bool
 const ICE = markShared(new THREE.MeshStandardMaterial({ color: 0xa8d8f0, emissive: 0x1a3a50, roughness: .25, transparent: true, opacity: .82 }));
 const VEIL = markShared(new THREE.MeshStandardMaterial({ color: 0x1a1024, emissive: 0x140820, roughness: 1, transparent: true, opacity: .92, side: THREE.DoubleSide }));
 const RUNE_LIT = markShared(new THREE.MeshBasicMaterial({ color: 0xa8dcff }));
-const WATER = markShared(new THREE.MeshStandardMaterial({ color: 0x0c161c, roughness: .15, metalness: .2 }));
+const WATER = markShared(new THREE.MeshStandardMaterial({ color: 0x1e4a5e, emissive: 0x0c2632, roughness: .15, metalness: .2 })); // (dark water that still reads as water, not a hole: the room inspector, M7 step 9)
 /** A doorway's frame of stone `w` wide, standing out from the wall's face: two posts and a lintel; a pointed head for the
     chapel. */
 function frame(g: THREE.Group, w: number, look: FloorLook, pointed = false) {
