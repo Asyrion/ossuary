@@ -1,5 +1,14 @@
 # Tripo Studio prompts: the townspeople, the Ferryman, Kaelith and Dr. Jelly
 
+> **Superseded (2026-10-09).** These prompts used the miniature format, made for figurines to 3D-print, and the owner had to
+> rewrite most of them. For the next character, use **`docs/assets.md`, "Prompts for game characters in Tripo"**, which
+> says what went wrong and gives the structure to use. The prompts stay here as the record of the first batch.
+>
+> **What came back** (2026-10-09, all rigged in Tripo with its Mixamo skeleton, no clips): the ten townspeople, the
+> Ferryman, Kaelith and Dr. Jelly, each about 18,000 to 20,000 triangles with a 2,048 px texture. Three of them (the
+> cloud-forest wizard, the forager, the storm caller) came through an FBX converter (`FB_ngon_encoding`) and lost their
+> rest pose: every bone at the origin and every vertex on the hips. The animate tool rebuilds them.
+
 Written 2026-10-09 at the owner's ask, for M7's townspeople (`docs/M7-plan.md`, step 7). These are Nano Banana 2 prompts for
 Tripo Studio's model generator, one for each figure that stands at the Vigil. Each figure is now built in code
 (`src/vigil/townLooks.ts`). Kaelith and Dr. Jelly were added at the owner's ask the same day (below the Ferryman): each

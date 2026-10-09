@@ -1017,7 +1017,7 @@ growth"), open while it is built and closed once finished (the owner's rule, 202
 
 ## Agents and skills (standing instructions from the owner, 2026-09-29)
 
-Two subagents in `.claude/agents/` and one skill in `.claude/skills/`. The owner asked for them to be used as
+Two subagents in `.claude/agents/` and two skills in `.claude/skills/`. The owner asked for them to be used as
 below without being asked each time; in a cloud session this line is that request.
 
 - **`rules-reviewer`** (subagent): before opening every PR, run it on `origin/main...HEAD` and fix its blocking
@@ -1031,6 +1031,9 @@ below without being asked each time; in a cloud session this line is that reques
   too and marks what changed (with before | after images), and checks flag console errors, a hidden mage, pools that
   read like pits and rooms too dark to read; it looks only at changed or flagged rooms, with a budget of close-ups
   (`inspect -- crop`). Fix its blocking findings; list the polish ones for the owner.
+- **`tripo-prompts`** (skill, 2026-10-09): prompts for a character or creature to be made in Tripo Studio and animated in
+  code; the method is `docs/assets.md`, "Prompts for game characters in Tripo" (an A-pose game-character reference, not the
+  miniature format of the first batch).
 - **`ship`** (skill): when the owner asks to open a PR and merge it. Checks, PR, CI, rebase merge, the branch back
   in step with `main`, the Pages deploy confirmed. Never ship without being asked.
 
