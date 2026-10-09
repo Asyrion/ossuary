@@ -3338,8 +3338,12 @@ test('foes in code (M4): floor 1\'s moth loops, scatters light and is lured by a
   const moth = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game; g.player.maxHp = g.player.hp = 60; g.warp(1); g.sim(.8);
     g.player.x = g.current.cx; g.player.z = g.current.cz; // (in the room's middle: moths circling the mage by a wall lose motes to it as they scatter)
-    let flares = 0, motes = 0; const old = new Set<object>(g.shots); // (motes counted as they're made: older ones dying in the same step don't hide them)
-    for (let i = 0; i < 90; i++) { g.sim(.1); flares += g.enemies.filter(e => e.state === 'flare').length ? 1 : 0; const made = g.shots.filter(s => !old.has(s)); made.forEach(s => old.add(s)); motes = Math.max(motes, made.length); }
+    // (motes counted as they're pushed, not as they stand after the step: a mote made against a rock or the mage can be
+    // gone within the step that made it, and older ones dying in the same step can't hide new ones)
+    let flares = 0, motes = 0, made = 0; const shots = g.shots as unknown as { push(...a: unknown[]): number }, push = shots.push.bind(shots);
+    shots.push = (...a: unknown[]) => { made += a.length; return push(...a); };
+    for (let i = 0; i < 90; i++) { made = 0; g.sim(.1); flares += g.enemies.filter(e => e.state === 'flare').length ? 1 : 0; motes = Math.max(motes, made); }
+    delete (shots as { push?: unknown }).push;
     // a lit brazier in the middle: the moths come to it
     const c = g.current; g.prop('brazier', c.cx, c.cz); const b = g.props.find(p => p.kind === 'brazier')!; g.element('burn', b.x, b.z);
     let near = 0, burned = false;
