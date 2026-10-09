@@ -71,6 +71,7 @@ export const G = {
     afterglow: null as { status: Partial<Record<SpellStatus, number>>; left: number; color: number } | null,
     /** M7 step 4: what the run did that the save keeps: the bosses put to rest (Kaelith among them, `kaelith`), and what struck
         the mage last (a foe's or boss's id, or what in the room hurt it). */ bosses: 0, kaelith: false, struck: null as string | null,
+    /** M7 step 7: the bosses put to rest, by id (the run's record keeps them for the townspeople). */ fell: [] as string[],
     /** M7 step 6: the chained shades met on the floors so far, those freed in this run (Dust at its end) and those bound in an
         earlier run who walk with the mage through this one (vigil/shadeHelp.ts). */ shadesMet: [] as string[], freed: [] as string[], walking: [] as string[],
   },

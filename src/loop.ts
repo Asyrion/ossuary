@@ -17,6 +17,7 @@ import { updateDaylight } from './world/daylight';
 import { updateVigil } from './vigil/place';
 import { updateShades } from './vigil/shades';
 import { updateShadeHelp } from './vigil/shadeHelp';
+import { updateTownGallery } from './vigil/town';
 import { updateAudio } from './audio/director';
 import { updateEnemies } from './actors/enemies';
 import { updateBolts, updateShots } from './combat/projectiles';
@@ -83,6 +84,7 @@ export function step(dt: number) {
   updateDaylight(dt); // (M7 step 3: the cave mouth at dawn, and the shaft's dust before it)
   if (!G.trans) updateVigil(dt); // (M7 step 5: the Vigil's lectern, boat and barred ways)
   updateShades(dt); // (M7 step 6: a chained shade comes forth, asks, and goes)
+  updateTownGallery(dt); // (M7 step 7: the townspeople's gallery, gesturing in turn)
   Sfx.listen(player.x, player.z); // effects are heard from just above the mage
   updateParticles(dt); updateWorldFx(dt, now); heroVisual(dt, now);
 }

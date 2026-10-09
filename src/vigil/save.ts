@@ -63,6 +63,15 @@ export function takeBound() { const b = save.bound; save.bound = []; persist(); 
 
 /** The dev menu: Dust and obols given. */
 export function giveHome(dust: number, obols: number) { save.dust = Math.max(0, save.dust + dust); save.obols = Math.max(0, save.obols + obols); persist(); }
+/** M7 step 7: a townsperson's line heard (its key: the line's id, or `id@subject`), stamped later than every other. */
+export function hearLine(key: string) { save.heard = { ...save.heard, [key]: Math.max(0, ...Object.values(save.heard)) + 1 }; persist(); }
+/** M7 step 7: a flag set by a choice in a talk (or the dev menu); `undefined` clears it. */
+export function setFlag(k: string, v: string | number | boolean | undefined) { const f = { ...save.flags }; if (v === undefined) delete f[k]; else f[k] = v; save.flags = f; persist(); }
+/** The dev menu: every line forgotten (the townspeople say their first again). */
+export function forgetHeard() { save.heard = {}; persist(); }
+/** The dev menu: every shade freed, or none (those freed go back to their chains). */
+export function setFreed(ids: string[]) { save.freed = [...ids]; persist(); }
+
 /** The dev menu: a wiped save (everything forgotten; the page reloads, so every module starts from nothing). */
 export function wipeSave() { save = blankSave(); persist(); }
 /** The dev menu: a veteran's save (every part open, the candle lit, every shade freed, runs behind it and Dust to spend);

@@ -54,6 +54,9 @@ import { closeLectern, holdIn, initLectern, lecternKey, lecternNow, lecternOpen,
 import { board, vigilActs, vigilInfo } from './vigil/place';
 import { answerShade, bindIt, breakAllChains, freeIt, layShade, shadeInfo } from './vigil/shades';
 import { shadeHelpInfo, walkWith } from './vigil/shadeHelp';
+import { talkTo, townGallery, takeTownGallery, townInfo } from './vigil/town';
+import { closeTalk, goOn, initTalk, say, talkKey, talkNow, talkOpen, talkPad } from './ui/talk';
+import { forgetHeard, setFlag } from './vigil/save';
 import { gainInsight, insightNow, setLevel } from './progression/insight';
 import { pointsToSpend, spendPoint } from './progression/points';
 import { boonsNow, dealNow, takeBoon } from './progression/boons';
@@ -128,14 +131,15 @@ const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
 const input: InputActions = {
   unlockAudio: () => Sfx.init(),
-  togglePause: () => { if (devOpen()) closeDev(); else if (lecternOpen()) closeLectern(); else if (levelOpen()) levelEsc(); else if (labOpen()) closeLab(); else if (waystoneOpen()) closeWaystone(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
+  togglePause: () => { if (devOpen()) closeDev(); else if (talkOpen()) closeTalk(); else if (lecternOpen()) closeLectern(); else if (levelOpen()) levelEsc(); else if (labOpen()) closeLab(); else if (waystoneOpen()) closeWaystone(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
   confirm: () => { if (G.state === 'title' || G.state === 'end') begin(); }, // (M7 step 5: to the Vigil once a run has been played)
-  startButton: () => { if (devOpen()) closeDev(); else if (lecternOpen()) closeLectern(); else if (levelOpen()) levelEsc(); else if (labOpen()) closeLab(); else if (waystoneOpen()) closeWaystone(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else begin(); },
+  startButton: () => { if (devOpen()) closeDev(); else if (talkOpen()) closeTalk(); else if (lecternOpen()) closeLectern(); else if (levelOpen()) levelEsc(); else if (labOpen()) closeLab(); else if (waystoneOpen()) closeWaystone(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else begin(); },
   toggleSound,
   autoPause: () => { if (G.state === 'play') pause(); },
   toggleDev: () => { if (inventoryOpen()) closeInventory(); toggleDev(); },
   inventoryKey: code => {
     if (devOpen()) return false;
+    if (talkOpen()) return talkKey(code); // (M7 step 7: a townsperson's talk)
     if (lecternOpen()) return lecternKey(code); // (M7 step 5: the Vigil's lectern)
     if (levelOpen()) return levelKey(code); // (M6: the level-up screen's choice waits)
     if (labOpen()) return labKey(code); // (M5: the alchemy table takes its keys first)
@@ -147,6 +151,7 @@ const input: InputActions = {
   },
   padButton: i => {
     if (devOpen()) return false;
+    if (talkOpen()) return talkPad(i);
     if (lecternOpen()) return lecternPad(i);
     if (levelOpen()) return levelPad(i);
     if (labOpen()) return labPad(i);
@@ -437,6 +442,12 @@ function installDevHooks() {
         broken; freed or bound; a shade walking with the mage this run (its help) and what the helps have done. */
     get shade() { return shadeInfo(); }, shadeHere: (id: string) => { const p = freeSpotNear(G.current, player.x, player.z - 1.6); layShade(id, G.current, p.x, p.z); },
     breakChains: () => breakAllChains(), freeShade: () => freeIt(), bindShade: () => bindIt(), walkWith: (id: string) => walkWith(id), get shadeHelp() { return shadeHelpInfo(); },
+    /** M7 step 7: the townspeople: who stands where (each one's glint), the lines heard and the flags; one talks (at the
+        last run's moment, or the one given), the panel's state, go on, take a choice, set or clear a flag, forget the lines;
+        the ten in a row for the owner's review. */
+    get town() { return townInfo(); }, talkTo: (id: string, moment?: 'death' | 'won' | 'boss' | null) => talkTo(id, moment), get talkNow() { return talkNow(); },
+    talkOn: () => goOn(), say: (i: number) => say(i), closeTalk, setFlag: (k: string, v?: string | number | boolean) => setFlag(k, v), forgetHeard,
+    townGallery: (ids?: string[]) => townGallery(player.x, player.z, ids), takeTownGallery,
     toVigil: (first = false) => wakeAtVigil(first), lecternChoose: (hand: number, id: string | null) => holdIn(hand, id), openLectern, closeLectern, takeBoat: () => board(),
     /** M4.2: Fen-Nex (its stage, where it is, whether it hunts), and growing it a stage. */
     get fennex() { return fennexInfo(); }, growFennex() { growFennex(); },
@@ -519,8 +530,8 @@ async function boot() {
     start: () => begin(), replay: () => startGame({ seed: G.run.seed }), resume, toggleSound,
     pauseIfPlaying: () => { if (G.state === 'play') pause(); },
   });
-  initInventory({ resume }); initLab({ pause, resume }); initWaystone({ pause, resume }); initLectern({ pause, resume }); vigilActs.openLectern = openLectern;
-  initLevelUp({ pause, resume, others: () => lecternOpen() || labOpen() || waystoneOpen() || inventoryOpen() || devOpen() || promptShowing() }); // (M6)
+  initInventory({ resume }); initLab({ pause, resume }); initWaystone({ pause, resume }); initLectern({ pause, resume }); vigilActs.openLectern = openLectern; initTalk({ pause, resume });
+  initLevelUp({ pause, resume, others: () => talkOpen() || lecternOpen() || labOpen() || waystoneOpen() || inventoryOpen() || devOpen() || promptShowing() }); // (M6)
   // the chalk texture in the start room is drawn with Cinzel, so load its weights first
   const chalkFonts = Promise.all(['600 16px "Cinzel"', '700 16px "Cinzel"'].map(f => document.fonts.load(f)));
   const assets = loadAssets(); // (models, tiles and icons from data/assets.json: before the first floor is built)

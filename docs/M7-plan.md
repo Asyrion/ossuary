@@ -612,6 +612,58 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
    - The ten figures, built in code: one shade material, each with its silhouette and light. Their sheet goes to the owner
      before they go in.
    - **Dev menu:** talk to anyone at any moment; set any flag.
+
+   *Built (2026-10-09), planned with the owner (every recommendation taken: along the Nave; walking up to them opens the
+   talk; the figures in the game now, their sheet to review, changes made afterwards as with the foes' looks).*
+   - **The ten figures** (`src/vigil/townLooks.ts`): one shade's material, solid and pale in each one's own light (a
+     see-through first try read as white blobs over their shadows), each with its own silhouette from what it was in life:
+     the storm caller's wide hood and crooked staff, the wizard's beard and leafy staff, the forager's cloak, bow and basket,
+     the scribe stooped over an open book, the sexton's spade and lantern, the chorister's raised hands, the bell-ringer's
+     bell and coiled rope, the novice's candle, the embalmer's apron and jars, the pilgrim's hat, staff and bundle. Its head,
+     arms and glint move apart (`mergeStill`'s parts); `moveTown` sways it, turns its head to the mage, gestures as it
+     speaks and pulses the glint.
+   - **Where they stand:** `town` in data/vigil.json, a spot for each shade round the Nave's walls, facing the Great Circle;
+     `validateVigil` checks each is on floor, off the doorways' lanes, clear of the pieces and bars and off the circle. Each
+     blocks its tile. Only the freed stand there (`standTown` from `furnishVigil`); the veteran's save stands all ten.
+   - **The talk as data** (`data/dialogue.json`, 109 lines; the pure `src/vigil/dialogueData.ts`):
+     - Speakers: the ten and the Ferryman. Moments: `first`, `death`, `won`, `boss`, `idle`, `reply` (reached only by a
+       choice), and `quest`/`questDone` kept for step 8.
+     - Conditions (`when`): a spell learned, a foe met or its weakness found, a reaction, a recipe; the deepest floor (at
+       least, or below); runs and wins; who is freed; flags set or not; what struck last; a boss felled.
+     - An idle line may tell of something (`fill`): the forager, a foe's weakness the mage has met but not found; the
+       chorister, the bell-ringer and the novice, what a boss met fears; the scribe, a reaction not yet set off. One subject
+       at a time, each told once (heard as `id@subject`) before any again.
+     - Up to two choices, each with a label, the reply it leads to and the flags it sets (`set`), for step 8 to read.
+     - `pickLine`: the first line until heard; then this waking's moment, once a run (`who@runN`), the line whose conditions
+       say most first (the storm caller's own line for the War-Tiger before its plain one); then an unheard idle line; else
+       the one heard longest ago. The moment is the last run's: a win, else a boss felled for the first time in the runs
+       kept, else a death. `validateDialogue` checks the speakers and their first lines, the ids the conditions name, the
+       words a line may use (`{struck}`, `{boss}`, a fill's), choices leading to a reply of their own, every reply reached,
+       and no line over 240 letters.
+     - What they tell keeps to the lore limits: the sexton, the secret rooms and vaults; the scribe, spells, weaves, pages
+       and runes; the forager, foes and reagents; the pilgrim, the floors below, the next one not yet reached.
+   - **The save** gains `heard` (each line's key and when it was heard, made whole by `migrate`); a run's record gains
+     `felled` (the bosses it put to rest, `G.run.fell`). `hearLine`, `setFlag`, `forgetHeard`, `setFreed`.
+   - **The talk** (`src/vigil/town.ts`, `src/ui/talk.ts`, `#scrTalk`):
+     - Walking up to a figure (`CFG.vigil.town.reach`) opens its talk, latched until the mage steps away; a glint over it
+       while it has something unheard (`hasNews`), worked out again after each talk.
+     - The panel lies along the bottom, the Vigil still showing above it: the speaker's icon (rendered from its figure,
+       `iconUrlOf`; the Ferryman's from `ferrymanLook`), its name, the line written out a little at a time from the step
+       (`typeRate`), the choices.
+     - Enter or Space (A) shows the whole line, then takes the choice or closes; the arrows (the d-pad) or 1 and 2 choose;
+       Esc (B) closes. The game waits while it is open. `Sfx.talk` as one turns to speak.
+     - The Ferryman says his first line as the mage comes to the jetty (`ferryReach`), once; boarding is as before.
+   - **Dev menu** (Rooms & runs, "Townspeople"): how many are freed, lines heard and flags set; the moment the talks are at
+     (the last run's, a death, a win, a boss, none); every shade freed or none (the Vigil woken again); forget what was
+     heard; each speaker talks; each flag the choices set, toggled. Galleries: the ten figures in rows, gesturing in turn.
+     Hooks: `__game.town`, `talkTo(id, moment)`, `talkNow`, `talkOn()`, `say(i)`, `closeTalk`, `setFlag(k, v)`,
+     `forgetHeard`, `townGallery(ids)`, `takeTownGallery`.
+   - **Tests:** unit (tests/unit/dialogue.test.ts): the data passes its checks; the checks catch a choice to nowhere, an
+     unknown foe, a word a line hasn't got, three choices and a reply nothing reaches; the spots; the conditions; the order
+     of picking; a fill telling one subject at a time; a choice's reply; the save's `heard` and `felled`. Browser: a
+     veteran's save standing all ten, each with news; walking up to the scribe, its line written out while the game waits,
+     a choice taken, its flag set and its reply; after a death to the War-Tiger, the storm caller's own line and the
+     sexton's naming it, then an idle line; the Ferryman at the jetty, once; the dev menu's talk.
 8. **Gifts, bonds and powers.**
    - What each townsperson gives when freed:
      - spells into the library's pools (Lantern of Vigil and Soul Harvest built here, as data on the shapes that are there

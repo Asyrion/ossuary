@@ -10,6 +10,7 @@ import { hubPlan, type FixedRoom, type FloorPlan } from '../world/generate';
 import { TEMPLATE_DEFS, parseTemplate, type TemplateDef } from '../world/templates';
 import { doorSlots } from '../world/shapes';
 import type { School } from '../actors/foeData';
+import { SHADE_IDS } from './shadeData';
 
 /** What stands in the Vigil, each its own look (vigilLooks.ts). */
 export type PieceKind = 'bier' | 'candleWall' | 'skulls' | 'lectern' | 'plinth' | 'boat';
@@ -25,6 +26,7 @@ export interface VigilMap {
   /** Where the mage wakes: a room and a point in it, in tiles. */ wake: { room: string; at: [number, number] };
   pieces: VigilPiece[]; bars: VigilBar[];
   /** The Great Circle, cut in the floor: its room, its middle in tiles and its radius. */ circle: { room: string; at: [number, number]; radius: number };
+  /** Where each freed shade stands (M7 step 7): a room and a tile for each shade of data/shades.json. */ town: { room: string; spots: Record<string, [number, number]> };
   look: FloorLook;
 }
 export const VIGIL = vigilData as unknown as VigilMap;
@@ -41,7 +43,7 @@ export const roomIndex = (map: VigilMap, name: string) => map.rooms.findIndex(r 
 export const tilesOf = (p: Pick<Placed, 'at' | 'size'>) => { const [w, h] = p.size ?? [1, 1], out: [number, number][] = []; for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) out.push([p.at[0] + i, p.at[1] + j]); return out; };
 
 /** What is wrong with the map, if anything. */
-export function validateVigil(map: VigilMap = VIGIL, library: TemplateDef[] = TEMPLATE_DEFS): string[] {
+export function validateVigil(map: VigilMap = VIGIL, library: TemplateDef[] = TEMPLATE_DEFS, shades: string[] = SHADE_IDS): string[] {
   const errs: string[] = [];
   for (const r of map.rooms) {
     const def = library.find(t => t.id === r.template);
@@ -85,6 +87,12 @@ export function validateVigil(map: VigilMap = VIGIL, library: TemplateDef[] = TE
   const schools = map.bars.map(b => b.school);
   if (schools.length !== BAR_SCHOOLS.length || BAR_SCHOOLS.some(s => !schools.includes(s))) errs.push(`the six ways are barred by one school each (${BAR_SCHOOLS.join(', ')})`);
   if (roomIndex(map, map.circle.room) < 0) errs.push(`the circle: no room "${map.circle.room}"`);
+  for (const id of shades) if (!map.town.spots[id]) errs.push(`the townspeople: no spot for ${id}`);
+  for (const [id, at] of Object.entries(map.town.spots)) {
+    if (!shades.includes(id)) errs.push(`the townspeople: a spot for ${id}, who is no shade`);
+    place(id, { room: map.town.room, at }, false);
+    if (map.town.room === map.circle.room && Math.hypot(at[0] + .5 - map.circle.at[0], at[1] + .5 - map.circle.at[1]) < map.circle.radius + 1) errs.push(`${id} stands on the Great Circle`);
+  }
   const w = roomIndex(map, map.wake.room);
   if (w < 0) errs.push(`waking: no room "${map.wake.room}"`);
   else {

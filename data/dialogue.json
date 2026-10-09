@@ -1,0 +1,905 @@
+{
+ "_comment": "M7 step 7, the townspeople's talk (docs/M7-plan.md, decisions 11 and 12): each speaker's lines (the ten freed shades of data/shades.json and the Ferryman), each for a moment (first, death, won, boss, idle, reply; quest and questDone kept for step 8), with conditions on the save (`when`), what an idle line tells of (`fill`: a foe's weakness, a boss's fear, a reaction) and up to two choices, each leading to a reply and setting flags. Read and checked by src/vigil/dialogueData.ts. Placeholder lines within the lore limits, the owner's to rewrite.",
+ "speakers": [
+  "stormcaller",
+  "wizard",
+  "forager",
+  "scribe",
+  "sexton",
+  "chorister",
+  "bellringer",
+  "novice",
+  "embalmer",
+  "pilgrim",
+  "ferryman"
+ ],
+ "lines": [
+  {
+   "id": "storm.first",
+   "who": "stormcaller",
+   "moment": "first",
+   "text": "Free, and standing on stone that doesn't hum. I called the storms over the pass once. Down there I called nothing; they chained me for trying.",
+   "choices": [
+    {
+     "label": "Who chained you?",
+     "next": "storm.who",
+     "set": {
+      "stormcaller.asked": true
+     }
+    },
+    {
+     "label": "Rest. The storms can wait.",
+     "next": "storm.rest",
+     "set": {
+      "stormcaller.rested": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "storm.who",
+   "who": "stormcaller",
+   "moment": "reply",
+   "text": "The Wardens' own wards. Their stone drinks a spark and keeps it. Strike the locks with what they ask for, and they let go."
+  },
+  {
+   "id": "storm.rest",
+   "who": "stormcaller",
+   "moment": "reply",
+   "text": "They always wait. That's the trouble with storms."
+  },
+  {
+   "id": "storm.death",
+   "who": "stormcaller",
+   "moment": "death",
+   "text": "{struck}. I felt the air go still when it struck you. Next time, strike first and let the thunder follow."
+  },
+  {
+   "id": "storm.death.tiger",
+   "who": "stormcaller",
+   "moment": "death",
+   "text": "The War-Tiger. Its plates shed water and fire alike, but a shock through rime cracks them. Ice first, then lightning.",
+   "when": {
+    "struck": "tiger"
+   }
+  },
+  {
+   "id": "storm.won",
+   "who": "stormcaller",
+   "moment": "won",
+   "text": "You saw the sky. Was there weather? Tell me there was weather."
+  },
+  {
+   "id": "storm.boss",
+   "who": "stormcaller",
+   "moment": "boss",
+   "text": "{boss} is down. The halls breathe easier; I can hear them."
+  },
+  {
+   "id": "storm.idle.water",
+   "who": "stormcaller",
+   "moment": "idle",
+   "text": "Lightning loves standing water. Shock a pool and everything wading in it learns that too."
+  },
+  {
+   "id": "storm.idle.oil",
+   "who": "stormcaller",
+   "moment": "idle",
+   "text": "Spilled oil, set alight, then a spark through it: the whole floor answers. Stand well back."
+  },
+  {
+   "id": "storm.idle.arc",
+   "who": "stormcaller",
+   "moment": "idle",
+   "text": "Arc leaps from foe to foe. Mark one first, and the mark leaps with it.",
+   "when": {
+    "spell": "arc"
+   }
+  },
+  {
+   "id": "storm.idle.wizard",
+   "who": "stormcaller",
+   "moment": "idle",
+   "text": "The old one with the leaves in his beard says storms are only rain with a temper. He is wrong, and he knows it.",
+   "when": {
+    "freed": "wizard"
+   }
+  },
+  {
+   "id": "wizard.first",
+   "who": "wizard",
+   "moment": "first",
+   "text": "Ah. Light, and no roots in my wrists. I grew things, once, in the high forests where the clouds sit. Down there even the moss had forgotten how.",
+   "choices": [
+    {
+     "label": "Can anything grow down there?",
+     "next": "wizard.grow",
+     "set": {
+      "wizard.asked": true
+     }
+    },
+    {
+     "label": "You are among friends now.",
+     "next": "wizard.friends",
+     "set": {
+      "wizard.friend": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "wizard.grow",
+   "who": "wizard",
+   "moment": "reply",
+   "text": "Everything can grow anywhere. Overgrow a foe and its roots will hold it; set those roots alight and see what blooms."
+  },
+  {
+   "id": "wizard.friends",
+   "who": "wizard",
+   "moment": "reply",
+   "text": "Friends. A good word. It grows slowly, and lasts."
+  },
+  {
+   "id": "wizard.death",
+   "who": "wizard",
+   "moment": "death",
+   "text": "{struck} cut you down. Seeds fall too, and come up again in spring. So do you, it seems."
+  },
+  {
+   "id": "wizard.won",
+   "who": "wizard",
+   "moment": "won",
+   "text": "Daylight! On your skin, real daylight. Did anything green grow at the cave mouth? Even a little?"
+  },
+  {
+   "id": "wizard.boss",
+   "who": "wizard",
+   "moment": "boss",
+   "text": "{boss} has gone to the dark it came from. Good. Let the floor be quiet a while."
+  },
+  {
+   "id": "wizard.idle.garden",
+   "who": "wizard",
+   "moment": "idle",
+   "text": "There are gardens below, gone wild. Their flowers burst at a touch and tangle every foe near them. Break one in a fight."
+  },
+  {
+   "id": "wizard.idle.blight",
+   "who": "wizard",
+   "moment": "idle",
+   "text": "A hex on an overgrown foe rots the vines into blight. Ugly work, but it spreads."
+  },
+  {
+   "id": "wizard.idle.bloom",
+   "who": "wizard",
+   "moment": "idle",
+   "text": "Holy light on fresh growth makes it flower, and a flower mends what's hurt. Remember that when you're bleeding."
+  },
+  {
+   "id": "wizard.idle.walls",
+   "who": "wizard",
+   "moment": "idle",
+   "text": "One of the ways out of here is a dead root through the wall. I could wake it, if my hands remembered how. Yours might."
+  },
+  {
+   "id": "forager.first",
+   "who": "forager",
+   "moment": "first",
+   "text": "I came down after a lost goat, if you'll believe it. The goat got out. I didn't. I know the creatures below, though. Ask me.",
+   "choices": [
+    {
+     "label": "Tell me about them.",
+     "next": "forager.tell",
+     "set": {
+      "forager.asked": true
+     }
+    },
+    {
+     "label": "What happened to the goat?",
+     "next": "forager.goat",
+     "set": {
+      "forager.goat": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "forager.tell",
+   "who": "forager",
+   "moment": "reply",
+   "text": "Every one of them fears something: fire, cold, a spark, holy light, the dark. Watch what makes them flinch. Come back and I'll tell you what I saw."
+  },
+  {
+   "id": "forager.goat",
+   "who": "forager",
+   "moment": "reply",
+   "text": "Home in the valleys by now, fat and pleased with itself. Goats always win."
+  },
+  {
+   "id": "forager.death",
+   "who": "forager",
+   "moment": "death",
+   "text": "{struck} got you. I know that one. Next time, watch how it moves before it moves."
+  },
+  {
+   "id": "forager.death.spider",
+   "who": "forager",
+   "moment": "death",
+   "text": "The crypt spiders hang where you can't see them. Look up when the threads catch the light, and burn the webs.",
+   "when": {
+    "struck": "cryptSpider"
+   }
+  },
+  {
+   "id": "forager.won",
+   "who": "forager",
+   "moment": "won",
+   "text": "You came up into the valleys? Did you smell the grass? Down here I forgot what grass smells like."
+  },
+  {
+   "id": "forager.boss",
+   "who": "forager",
+   "moment": "boss",
+   "text": "{boss}! I watched it from my chains. I'm glad it's still."
+  },
+  {
+   "id": "forager.idle.weak",
+   "who": "forager",
+   "moment": "idle",
+   "text": "The {foe}: I watched it a long while. It fears {school}. Try it.",
+   "fill": "weakness"
+  },
+  {
+   "id": "forager.idle.packs",
+   "who": "forager",
+   "moment": "idle",
+   "text": "The rime wolves hunt in packs and take turns at you. Fire scatters them."
+  },
+  {
+   "id": "forager.idle.reagents",
+   "who": "forager",
+   "moment": "idle",
+   "text": "Foes leave bits of themselves behind: moss, salt, dust. Dr. Jelly brews them into potions, if you bring him two."
+  },
+  {
+   "id": "scribe.first",
+   "who": "scribe",
+   "moment": "first",
+   "text": "Oh. Oh, the ink is dry. I copied the Wardens' grimoires once, page after page. They chained me in the burning scriptorium, with the books. I remember every page.",
+   "choices": [
+    {
+     "label": "Teach me what you remember.",
+     "next": "scribe.teach",
+     "set": {
+      "scribe.asked": true
+     }
+    },
+    {
+     "label": "The books are ash now.",
+     "next": "scribe.ash",
+     "set": {
+      "scribe.ash": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "scribe.teach",
+   "who": "scribe",
+   "moment": "reply",
+   "text": "Then listen. A spell is never alone: what one leaves behind, another can strike. That is the whole of magic, and most mages never learn it."
+  },
+  {
+   "id": "scribe.ash",
+   "who": "scribe",
+   "moment": "reply",
+   "text": "Paper burns. What was written stays, if someone remembers it. I do."
+  },
+  {
+   "id": "scribe.death",
+   "who": "scribe",
+   "moment": "death",
+   "text": "{struck}. I shall write it down, so we don't forget. Next time it won't be so easy for it."
+  },
+  {
+   "id": "scribe.won",
+   "who": "scribe",
+   "moment": "won",
+   "text": "You reached the top of the pass. I shall write that down too, in the largest letters I have."
+  },
+  {
+   "id": "scribe.boss",
+   "who": "scribe",
+   "moment": "boss",
+   "text": "{boss}, put to rest. A good chapter. Short, but good."
+  },
+  {
+   "id": "scribe.idle.reaction",
+   "who": "scribe",
+   "moment": "idle",
+   "text": "Have you tried {a} and {b} on one foe together? The books call it {reaction}. Set it off and see.",
+   "fill": "reaction"
+  },
+  {
+   "id": "scribe.idle.weaves",
+   "who": "scribe",
+   "moment": "idle",
+   "text": "Cast into what another spell left: lightning through holy ground, fire across a hexed floor. The books call those weaves."
+  },
+  {
+   "id": "scribe.idle.pages",
+   "who": "scribe",
+   "moment": "idle",
+   "text": "Every floor has a library, a quiet room at the end of a passage. Its lecterns hold pages; a page teaches a spell."
+  },
+  {
+   "id": "scribe.idle.runes",
+   "who": "scribe",
+   "moment": "idle",
+   "text": "A rune carved into a spell changes how it's cast: thrice, wider, longer. Waystones carve them, past each floor's keeper."
+  },
+  {
+   "id": "sexton.first",
+   "who": "sexton",
+   "moment": "first",
+   "text": "Hm. Up here, then. I dug graves for the Wardens' dead, and some of their living. I know where the walls are thin. Every floor has a room it's hiding.",
+   "choices": [
+    {
+     "label": "Where are they hidden?",
+     "next": "sexton.where",
+     "set": {
+      "sexton.asked": true
+     }
+    },
+    {
+     "label": "Thank you, sexton.",
+     "next": "sexton.thanks",
+     "set": {
+      "sexton.thanked": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "sexton.where",
+   "who": "sexton",
+   "moment": "reply",
+   "text": "Behind cracked walls. Strike a wall with a bolt: if it rings hollow, there's a room behind. A glyph's blast opens it."
+  },
+  {
+   "id": "sexton.thanks",
+   "who": "sexton",
+   "moment": "reply",
+   "text": "Don't thank a sexton. Bad luck. Just come back up, that's thanks enough."
+  },
+  {
+   "id": "sexton.death",
+   "who": "sexton",
+   "moment": "death",
+   "text": "{struck}, was it. I've buried better than you, mage, and they stayed buried. You don't. I like that."
+  },
+  {
+   "id": "sexton.death.room",
+   "who": "sexton",
+   "moment": "death",
+   "text": "The room itself had you. Pits, fire, spikes. The dead don't hate you; their rooms do.",
+   "when": {
+    "struck": "room"
+   }
+  },
+  {
+   "id": "sexton.won",
+   "who": "sexton",
+   "moment": "won",
+   "text": "Out in the daylight, and not on a bier. That's a first for me to see."
+  },
+  {
+   "id": "sexton.boss",
+   "who": "sexton",
+   "moment": "boss",
+   "text": "{boss}. I'd have dug it a grave, if it had ever been the kind to lie in one."
+  },
+  {
+   "id": "sexton.idle.ring",
+   "who": "sexton",
+   "moment": "idle",
+   "text": "The hollow walls ring to a bolt. Listen as you go. Once a floor, there's a cell behind one: some forgotten mage's, and what they left."
+  },
+  {
+   "id": "sexton.idle.vault",
+   "who": "sexton",
+   "moment": "idle",
+   "text": "The vaults take a bone key. No key? Two glyphs at the door will force it, but it wakes the vault's warden."
+  },
+  {
+   "id": "sexton.idle.urns",
+   "who": "sexton",
+   "moment": "idle",
+   "text": "Urns hold obols, mostly. The ones with runes on them hold more, and sometimes something that bites."
+  },
+  {
+   "id": "sexton.idle.keyring",
+   "who": "sexton",
+   "moment": "idle",
+   "text": "I had a keyring once. Opened any vault. If you find it below, it's yours. Don't tell the Wardens."
+  },
+  {
+   "id": "chorister.first",
+   "who": "chorister",
+   "moment": "first",
+   "text": "I sang the hours in the Wardens' chapel. Down in the dark, I kept singing; it's why they chained me. Bosses hear song, you know. They listen for it.",
+   "choices": [
+    {
+     "label": "Sing for me.",
+     "next": "chorister.sing",
+     "set": {
+      "chorister.sang": true
+     }
+    },
+    {
+     "label": "What do the bosses fear?",
+     "next": "chorister.fear",
+     "set": {
+      "chorister.asked": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "chorister.sing",
+   "who": "chorister",
+   "moment": "reply",
+   "text": "Later. When the candles are all lit. I'll sing then, and you'll hear the whole Vigil answer."
+  },
+  {
+   "id": "chorister.fear",
+   "who": "chorister",
+   "moment": "reply",
+   "text": "Each fears one school more than the others. Meet them, and I'll tell you what I heard them flinch at."
+  },
+  {
+   "id": "chorister.death",
+   "who": "chorister",
+   "moment": "death",
+   "text": "{struck} silenced you. Only for a while. You're singing again already; I can hear it."
+  },
+  {
+   "id": "chorister.won",
+   "who": "chorister",
+   "moment": "won",
+   "text": "Was there birdsong? At the cave mouth, in the morning? Hum it for me, if you can."
+  },
+  {
+   "id": "chorister.boss",
+   "who": "chorister",
+   "moment": "boss",
+   "text": "{boss} is quiet now. I'll sing it something, so it isn't quiet alone."
+  },
+  {
+   "id": "chorister.idle.fear",
+   "who": "chorister",
+   "moment": "idle",
+   "text": "{boss}: in my chains I heard it fight. It flinched at {school} every time.",
+   "fill": "bossFear"
+  },
+  {
+   "id": "chorister.idle.lark",
+   "who": "chorister",
+   "moment": "idle",
+   "text": "The choir larks sing the foes round them faster. A hex hushes them. I'm not proud of my cousins."
+  },
+  {
+   "id": "chorister.idle.chapel",
+   "who": "chorister",
+   "moment": "idle",
+   "text": "In the chapels below, light every candle and the next spells you cast are blessed. The Wardens liked their candles lit."
+  },
+  {
+   "id": "bellringer.first",
+   "who": "bellringer",
+   "moment": "first",
+   "text": "Is that the bell? No. My ears still ring. I rang the Gate's bells above the pass, before I went below. Bells there still answer a blast.",
+   "choices": [
+    {
+     "label": "What do the bells do?",
+     "next": "bellringer.bells",
+     "set": {
+      "bellringer.asked": true
+     }
+    },
+    {
+     "label": "Let your ears rest.",
+     "next": "bellringer.rest",
+     "set": {
+      "bellringer.rested": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "bellringer.bells",
+   "who": "bellringer",
+   "moment": "reply",
+   "text": "A bolt rings them, a blast louder. A bell rung beside the pillars brings down the dragon that coils on them."
+  },
+  {
+   "id": "bellringer.rest",
+   "who": "bellringer",
+   "moment": "reply",
+   "text": "They never rest. But thank you."
+  },
+  {
+   "id": "bellringer.death",
+   "who": "bellringer",
+   "moment": "death",
+   "text": "{struck}. I rang for you, down there, when I felt you fall. You'll not have heard it."
+  },
+  {
+   "id": "bellringer.won",
+   "who": "bellringer",
+   "moment": "won",
+   "text": "The Gate! Did its bells ring as you came up? They should have. They always rang for the living."
+  },
+  {
+   "id": "bellringer.boss",
+   "who": "bellringer",
+   "moment": "boss",
+   "text": "{boss} fell. Someone should ring for it. I'll do it quietly."
+  },
+  {
+   "id": "bellringer.boss.dragon",
+   "who": "bellringer",
+   "moment": "boss",
+   "text": "The Pillar Dragon. Did you ring the belfry's bells at it? That's what they're there for.",
+   "when": {
+    "boss": "dragon"
+   }
+  },
+  {
+   "id": "bellringer.idle.fear",
+   "who": "bellringer",
+   "moment": "idle",
+   "text": "{boss} hates {school}. I watched it from the dark, ringing my chains.",
+   "fill": "bossFear"
+  },
+  {
+   "id": "bellringer.idle.statues",
+   "who": "bellringer",
+   "moment": "idle",
+   "text": "The watching statues mark where you stand before they strike. Hex their eyes and they lose you."
+  },
+  {
+   "id": "novice.first",
+   "who": "novice",
+   "moment": "first",
+   "text": "I was only a novice. I took a candle down to see. They chained me for that. I know the dark down there, the way you know a room you grew up in.",
+   "choices": [
+    {
+     "label": "What did you see?",
+     "next": "novice.saw",
+     "set": {
+      "novice.asked": true
+     }
+    },
+    {
+     "label": "You were brave.",
+     "next": "novice.brave",
+     "set": {
+      "novice.brave": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "novice.saw",
+   "who": "novice",
+   "moment": "reply",
+   "text": "Things that hide in shadow and come out when the lights go. Keep a light near you, and the dark keeps its distance."
+  },
+  {
+   "id": "novice.brave",
+   "who": "novice",
+   "moment": "reply",
+   "text": "I was curious. It's not the same. But it's kind of you."
+  },
+  {
+   "id": "novice.death",
+   "who": "novice",
+   "moment": "death",
+   "text": "{struck}. I'm sorry. Did it hurt? It hurts less each time, they say. I don't believe them."
+  },
+  {
+   "id": "novice.death.glyph",
+   "who": "novice",
+   "moment": "death",
+   "text": "Your own glyph? Oh. Oh no. Stand further back next time. I won't tell anyone.",
+   "when": {
+    "struck": "glyph"
+   }
+  },
+  {
+   "id": "novice.won",
+   "who": "novice",
+   "moment": "won",
+   "text": "You went all the way out. I'll go one day too. Not yet. One day."
+  },
+  {
+   "id": "novice.boss",
+   "who": "novice",
+   "moment": "boss",
+   "text": "{boss}! Is it really gone? I'll stop being afraid of it, then."
+  },
+  {
+   "id": "novice.boss.kaelith",
+   "who": "novice",
+   "moment": "boss",
+   "text": "Kaelith knelt to you? The Shadow Sentinel? Then the seal is yours to keep now. That's frightening, and wonderful.",
+   "when": {
+    "boss": "kaelith"
+   }
+  },
+  {
+   "id": "novice.idle.fear",
+   "who": "novice",
+   "moment": "idle",
+   "text": "{boss}: the others whispered it fears {school}. I'm telling you; don't tell them I told.",
+   "fill": "bossFear"
+  },
+  {
+   "id": "novice.idle.hex",
+   "who": "novice",
+   "moment": "idle",
+   "text": "A hex drains your mana if it lands on you. If it does, cast holy light after; some of it comes back."
+  },
+  {
+   "id": "embalmer.first",
+   "who": "embalmer",
+   "moment": "first",
+   "text": "Air. Clean air, no salts, no resins. I prepared the Wardens' dead below. Draughts, tinctures. Some kept the dead still. Some woke them.",
+   "choices": [
+    {
+     "label": "Teach me your draughts.",
+     "next": "embalmer.draughts",
+     "set": {
+      "embalmer.asked": true
+     }
+    },
+    {
+     "label": "Which woke them?",
+     "next": "embalmer.woke",
+     "set": {
+      "embalmer.woke": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "embalmer.draughts",
+   "who": "embalmer",
+   "moment": "reply",
+   "text": "Two reagents and a table: that's all a potion is. Dr. Jelly has the table. Bring him what foes leave behind."
+  },
+  {
+   "id": "embalmer.woke",
+   "who": "embalmer",
+   "moment": "reply",
+   "text": "The Grave Draught. Throw it at a foe and it fights for you, for a while. Don't drink it."
+  },
+  {
+   "id": "embalmer.death",
+   "who": "embalmer",
+   "moment": "death",
+   "text": "{struck}. I'd have prepared you properly, but you keep getting up. Good. Saves salt."
+  },
+  {
+   "id": "embalmer.won",
+   "who": "embalmer",
+   "moment": "won",
+   "text": "You came up whole. Not a scratch to bind. I hardly know what to do with my hands."
+  },
+  {
+   "id": "embalmer.boss",
+   "who": "embalmer",
+   "moment": "boss",
+   "text": "{boss} is dead. Truly dead, I mean. I can tell these things."
+  },
+  {
+   "id": "embalmer.idle.bottles",
+   "who": "embalmer",
+   "moment": "idle",
+   "text": "Each run the bottles look different. The first time you drink one, you'll know it. Or throw it, and watch."
+  },
+  {
+   "id": "embalmer.idle.throw",
+   "who": "embalmer",
+   "moment": "idle",
+   "text": "Every potion can be drunk or thrown, and none does the same thing both ways. Try each both ways, once."
+  },
+  {
+   "id": "embalmer.idle.recipe",
+   "who": "embalmer",
+   "moment": "idle",
+   "text": "You've brewed before. Good. Bone dust and rimewater, try that, if you haven't.",
+   "when": {
+    "recipe": "healing"
+   }
+  },
+  {
+   "id": "pilgrim.first",
+   "who": "pilgrim",
+   "moment": "first",
+   "text": "I walked to the Gate of Uzulim to see the Wardens, and I kept walking, down and down. I've seen every floor. Shall I tell you what's below?",
+   "choices": [
+    {
+     "label": "Tell me what lies below.",
+     "next": "pilgrim.below",
+     "set": {
+      "pilgrim.asked": true
+     }
+    },
+    {
+     "label": "Why keep walking?",
+     "next": "pilgrim.why",
+     "set": {
+      "pilgrim.why": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "pilgrim.below",
+   "who": "pilgrim",
+   "moment": "reply",
+   "text": "Five floors, then the Seal. Each one walls off a school; each one teaches its own counter. I'll tell you of the next you haven't seen."
+  },
+  {
+   "id": "pilgrim.why",
+   "who": "pilgrim",
+   "moment": "reply",
+   "text": "Because the way went on. That's all a pilgrim needs. You know that feeling, I think."
+  },
+  {
+   "id": "pilgrim.death",
+   "who": "pilgrim",
+   "moment": "death",
+   "text": "{struck}. The way is long. Rest, then walk it again."
+  },
+  {
+   "id": "pilgrim.death.kaelith",
+   "who": "pilgrim",
+   "moment": "death",
+   "text": "Kaelith stopped you at the Seal. It stopped me too. Strike each of its wards with its own school.",
+   "when": {
+    "struck": "kaelith"
+   }
+  },
+  {
+   "id": "pilgrim.won",
+   "who": "pilgrim",
+   "moment": "won",
+   "text": "You walked out through the Pass of Buluiain at dawn. The road goes on from there, you know. It always does."
+  },
+  {
+   "id": "pilgrim.boss",
+   "who": "pilgrim",
+   "moment": "boss",
+   "text": "{boss} lies still on the way. One step lighter."
+  },
+  {
+   "id": "pilgrim.idle.f2",
+   "who": "pilgrim",
+   "moment": "idle",
+   "text": "Below the Ossuary, the Drowned Catacombs: water everywhere. Freeze it and walk on it; shock it and everything in it suffers.",
+   "when": {
+    "shallower": 2
+   }
+  },
+  {
+   "id": "pilgrim.idle.f3",
+   "who": "pilgrim",
+   "moment": "idle",
+   "text": "Deeper, the Burning Scriptorium, where the books still burn. Bring frost. The fire foes fear little else.",
+   "when": {
+    "deepest": 2,
+    "shallower": 3
+   }
+  },
+  {
+   "id": "pilgrim.idle.f4",
+   "who": "pilgrim",
+   "moment": "idle",
+   "text": "Then the Gilded Reliquary. Take the gold, and the treasury's guardians wake. Holy things there fear the dark.",
+   "when": {
+    "deepest": 3,
+    "shallower": 4
+   }
+  },
+  {
+   "id": "pilgrim.idle.f5",
+   "who": "pilgrim",
+   "moment": "idle",
+   "text": "Then the Ferryman's Shore, where the dead wait to cross. What waits in the dark there fears holy light.",
+   "when": {
+    "deepest": 4,
+    "shallower": 5
+   }
+  },
+  {
+   "id": "pilgrim.idle.seal",
+   "who": "pilgrim",
+   "moment": "idle",
+   "text": "Below the shore, the Seal, and Kaelith before it. It doesn't want to fight you. It will anyway.",
+   "when": {
+    "deepest": 5,
+    "shallower": 6
+   }
+  },
+  {
+   "id": "pilgrim.idle.road",
+   "who": "pilgrim",
+   "moment": "idle",
+   "text": "Every floor's way down lies past a waystone, beside where its keeper falls. Rest there before you go on."
+  },
+  {
+   "id": "ferryman.first",
+   "who": "ferryman",
+   "moment": "first",
+   "text": "You'll go down again. They all do, the ones who wake here. Step aboard when you're ready. The first landing asks nothing.",
+   "choices": [
+    {
+     "label": "What do the others pay?",
+     "next": "ferryman.pay",
+     "set": {
+      "ferryman.asked": true
+     }
+    },
+    {
+     "label": "I am ready.",
+     "next": "ferryman.ready",
+     "set": {
+      "ferryman.ready": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "ferryman.pay",
+   "who": "ferryman",
+   "moment": "reply",
+   "text": "An obol on the eyes, up above. Down here, the dead have no more use for theirs. Keep yours."
+  },
+  {
+   "id": "ferryman.ready",
+   "who": "ferryman",
+   "moment": "reply",
+   "text": "No one is. Step aboard anyway."
+  },
+  {
+   "id": "ferryman.death",
+   "who": "ferryman",
+   "moment": "death",
+   "text": "{struck}. I saw you come back across. You looked surprised. They always do."
+  },
+  {
+   "id": "ferryman.won",
+   "who": "ferryman",
+   "moment": "won",
+   "text": "You went up and out, and still you came back here. Most don't. I am glad of the company."
+  },
+  {
+   "id": "ferryman.idle.water",
+   "who": "ferryman",
+   "moment": "idle",
+   "text": "The water is still today. It always is. That is the only thing about it I trust."
+  },
+  {
+   "id": "ferryman.idle.shades",
+   "who": "ferryman",
+   "moment": "idle",
+   "text": "Every shade you free comes up here past my boat. I don't charge them. Don't tell anyone.",
+   "when": {
+    "freed": "sexton"
+   }
+  }
+ ]
+}

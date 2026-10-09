@@ -258,6 +258,7 @@ const sounds = {
   kneel() { tone('sine', 98, 92, 2.4, .1); tone('sine', 147, 140, 2, .05, .3); hiss(1.4, .05, 'lowpass', 500); },
   shaft() { [523, 659, 784, 1047].forEach((f, i) => tone('sine', f, f * 1.01, 1.6, .035, i * .09)); hiss(1.6, .03, 'highpass', 3200); }, // (M7 step 3: daylight falling into the Seal)
   dawn() { hiss(2.4, .07, 'lowpass', 1800); [262, 330, 392, 523].forEach((f, i) => tone('triangle', f, f, 2.6, .04, .15 + i * .05)); tone('sine', 131, 131, 3, .06, .2); }, // (stepping out at the cave mouth)
+  talk() { hiss(.5, .025, 'bandpass', 1400); tone('sine', 262, 277, .45, .025, .05); tone('sine', 392, 370, .35, .015, .12); }, // (M7 step 7: a townsperson turns to speak, a breath and a murmur)
   boat() { hiss(1.6, .05, 'lowpass', 600); hiss(.9, .03, 'bandpass', 900, .5); tone('sine', 98, 92, 1.4, .05, .1); tone('triangle', 196, 196, .9, .02, .6); }, // (M7 step 5: the Ferryman's pole in the water, and the boat pushing off)
   waken() { tone('sine', 196, 196, 2.2, .05); tone('sine', 294, 294, 2, .03, .25); hiss(1.2, .02, 'lowpass', 900, .1); }, // (waking on the bier)
   chainRattle() { for (let i = 0; i < 5; i++) tone('square', 900 + i * 130, 700 + i * 90, .04, .015, i * .06); hiss(.35, .02, 'highpass', 3000); }, // (M7 step 6: a chained shade's chains, as it is seen)

@@ -19,6 +19,8 @@ import { lightCandle, vigil } from './save';
 import { VIGIL, roomIndex, tilesOf, type VigilBar, type VigilPiece } from './vigilMap';
 import { FACE_TURN, barLook, candleWallLook, circleLook, moveFerryman, moveVeil, pieceLook } from './vigilLooks';
 import { atVigil, setAtVigil, vigilHooks } from './where';
+import { clearTown, ferryAt, standTown, updateTown } from './town';
+import { closeTalk, updateTalk } from '../ui/talk';
 
 const C = () => CFG.vigil.place;
 interface Bar { school: School; room: Room; x: number; z: number; said: boolean; stirred?: boolean }
@@ -82,6 +84,7 @@ export function furnishVigil(first: boolean) {
   ring.position.set(cm.x - cr.cx, 0, cm.z - cr.cz); cr.group.add(ring);
   here = { first, t: 0, candles: candles!, lectern: lectern!, boat: boat!, bars, veils, circle: { room: cr, ...cm, r: VIGIL.circle.radius, said: false }, seen: new Set() };
   here.candles.setLit(first ? 0 : litCandles()); refreshCandleLight();
+  standTown(rooms); ferryAt(here.boat.room, here.boat.step.x, here.boat.step.z); // (M7 step 7: the freed, and the Ferryman's first word)
   setAtVigil(true);
 }
 /** The wall a piece stands against (the north one, for those on its first row), if any. */
@@ -114,6 +117,7 @@ function refreshCandleLight() {
 export function updateVigil(dt: number) {
   if (!here) return;
   renderVigilHud();
+  updateTalk(dt); updateTown(dt, G.state === 'play' && !G.trans); // (M7 step 7: the townspeople, even while one talks)
   if (G.state !== 'play') return;
   const h = here, room = G.current; h.t += dt;
   for (const v of h.veils) moveVeil(v, h.t);
@@ -160,7 +164,7 @@ vigilHooks.barStruck = (rock, x, z, status) => {
 };
 
 /** Leave the Vigil (a floor is built): forget it. */
-export function leaveVigil() { here = null; shown = ''; setAtVigil(false); }
+export function leaveVigil() { closeTalk(); clearTown(); here = null; shown = ''; setAtVigil(false); }
 
 /** For the dev menu and the tests: where the mage is, the candles lit, the lectern and boat. */
 export function vigilInfo() {

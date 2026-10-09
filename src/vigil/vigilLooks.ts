@@ -127,7 +127,14 @@ function boatLook() {
   mesh(g, taperTube(curve([[-1.3, .3, 0], [-1.7, .2, -.05], [-2.05, .32, -.1]]), 6, .018, .018, 4), tone(0x8a7a5a, .1)); // (the mooring rope, to the jetty's post)
   mesh(g, cyl(.07, .08, .7, 6), plank, -2.12, .35, -.1);
   // the Ferryman, standing at the stern
-  const robe = tone(ROBE, .1), F = new THREE.Group(); F.position.set(.88, .26, 0); g.add(F);
+  const { F, head, lantern } = ferryman(plank, iron); F.position.set(.88, .26, 0); g.add(F);
+  g.add(blob(3)); g.userData.parts = { head, lantern }; mergeStill(g);
+  return g;
+}
+/** The Ferryman himself, his pole in hand and its lantern lit (M7 step 7: alone, for the talk panel's icon). */
+export function ferrymanLook() { const g = new THREE.Group(); g.add(ferryman(tone(WOOD, .12), MAT.iron).F); return g; }
+function ferryman(plank: THREE.Material, iron: THREE.Material) {
+  const robe = tone(ROBE, .1), F = new THREE.Group();
   mesh(F, new THREE.LatheGeometry([[.3, 0], [.28, .2], [.22, .7], [.17, 1.05], [.14, 1.25], [.05, 1.32]].map(([x, y]) => new THREE.Vector2(x, y)), 10), robe);
   mesh(F, box(.5, .14, .16), robe, 0, 1.12, .02).rotation.z = .05; // (the shoulders)
   for (const s of [-1, 1]) { const arm = mesh(F, cyl(.06, .08, .5, 6), robe, s * .2, .92, .08); arm.rotation.set(-.5, 0, s * .25); }
@@ -146,8 +153,7 @@ function boatLook() {
   for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + .4; mesh(lantern, box(.012, .14, .012), iron, Math.cos(a) * .06, -.25, Math.sin(a) * .06); }
   lantern.add(makeFire([{ x: 0, y: -.3, z: 0, h: .1, w: .05 }], firePalette(0xffe0a0, 0xffa040), 1, .1));
   const lit = glowShared(0xffc070, 1.0, .75); lit.position.set(0, -.24, 0); lantern.add(lit);
-  g.add(blob(3)); g.userData.parts = { head, lantern }; mergeStill(g);
-  return g;
+  return { F, head, lantern };
 }
 
 /** A piece of the Vigil, by kind. */

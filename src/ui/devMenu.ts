@@ -41,7 +41,9 @@ import { raiseWaystone } from '../world/waystone';
 import { levelAtFloor } from '../progression/levelData';
 import { kaelithInfo, kaelithToPhase, shutAllWards } from '../actors/kaelith';
 import { daylightInfo, enterDaylight } from '../world/daylight';
-import { giveHome, veteranSave, vigil, wipeSave } from '../vigil/save';
+import { forgetHeard, giveHome, setFlag, setFreed, veteranSave, vigil, wipeSave } from '../vigil/save';
+import { speakerName, talkTo, takeTownGallery, townGallery } from '../vigil/town';
+import { DIALOGUE, SPEAKERS } from '../vigil/dialogueData';
 import { buildBargain, openBargainHere } from '../world/bargain';
 import { breakOut, crackVat } from '../world/laboratory';
 import { gainSoul, hallowedMend, resetSouls } from '../items/souls';
@@ -109,7 +111,9 @@ import { CREATURES, CREATURE_LOOKS, creatureLook, roarNow, setCreatureLook, show
 import { THEMES } from '../world/themeData';
 
 const S = STR.dev;
-let kaelithBox: HTMLElement, daylightBox: HTMLElement, keepBox: HTMLElement, vigilBox: HTMLElement, shadeBox: HTMLElement;
+let kaelithBox: HTMLElement, daylightBox: HTMLElement, keepBox: HTMLElement, vigilBox: HTMLElement, shadeBox: HTMLElement, townBox: HTMLElement, momentBtn: HTMLButtonElement;
+let talkMoment: 'death' | 'won' | 'boss' | null | undefined; // (M7 step 7: the moment the dev menu's talks are at; undefined: the last run's)
+const flagBtns: [string, HTMLButtonElement][] = [];
 let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, madeLookBtn: HTMLButtonElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
 let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, runesBtn: HTMLButtonElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement, creatureLookBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
@@ -543,6 +547,9 @@ function build() {
   const bl = section(pages.galleries, S.bossLooks);
   bl.append(el('p', 'dv-info', [STR.bosses.warden.name, STR.bosses.abbess.name, STR.bosses.pyre.name, STR.bosses.hart.name, STR.bosses.angler.name, STR.bosses.tiger.name, STR.bosses.dragon.name, STR.bosses.twins.name, STR.bosses.kaelith.name].join(' · ')),
     btn(S.showOptions, () => { closeDev(); showBossLooks(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
+  // M7 step 7: the townspeople's ten figures, for the owner's review: in a row ahead of the mage, gesturing in turn
+  const tg = section(pages.galleries, S.townGallery);
+  tg.append(btn(S.showOptions, () => { closeDev(); townGallery(player.x, player.z); }), btn(S.takeOptions, () => takeTownGallery()));
   // the bestiary (M4.5): looks only for now, in rows by kind, each named with the fight it brings
   const best = section(pages.galleries, S.bestiary);
   best.append(el('p', 'dv-info', (['beast', 'creature', 'elemental'] as const).map(k => `${S.bestiaryKinds[k]}: ${BESTIARY_OPTIONS.filter(o => o.kind === k).map(o => STR.bestiary[o.id].name).join(', ')}`).join(' · ')),
@@ -608,6 +615,20 @@ function build() {
     walkRow.append(btn(S.shadeWalks(STR.shades.names[id]), () => { walkWith(id); refresh(); }));
   }
   sh.parentElement!.append(shRow, walkRow);
+  // M7 step 7: the townspeople: any one talks, at the last run's moment or one chosen; every shade freed or none (the Vigil
+  // woken again to stand them), the lines forgotten, the flags their choices set
+  const tw = section(pages.rooms, S.town);
+  const again = () => { if (vigilInfo().here) { closeDev(); wakeAtVigil(false); } else refresh(); };
+  tw.append(townBox = el('p', 'dv-info'),
+    momentBtn = btn('', () => { const order = [undefined, 'death', 'won', 'boss', null] as const; talkMoment = order[(order.indexOf(talkMoment) + 1) % order.length]; refresh(); }),
+    btn(S.freeAll, () => { setFreed(SHADE_IDS); again(); }), btn(S.freeNone, () => { setFreed([]); again(); }),
+    btn(S.forgetHeard, () => { forgetHeard(); again(); }));
+  const talkRow = el('div', 'dv-row'), flagRow = el('div', 'dv-row');
+  for (const id of SPEAKERS) talkRow.append(btn(S.talkTo(speakerName(id)), () => { closeDev(); if (!talkTo(id, talkMoment)) toast(S.nothingToSay, 2); }));
+  for (const k of [...new Set(DIALOGUE.lines.flatMap(l => (l.choices ?? []).flatMap(c => Object.keys(c.set ?? {}))))]) {
+    const b = btn(k, () => { setFlag(k, vigil().flags[k] === undefined ? true : undefined); refresh(); }); flagBtns.push([k, b]); flagRow.append(b);
+  }
+  tw.parentElement!.append(talkRow, flagRow);
   const runs = section(pages.rooms, S.newRun);
   FLOORS.forEach((f, i) => runs.append(btn(f.fixed ? S.toSeal : S.floorN(i + 1), () => start({ floor: i, level: levelAtFloor(i) > 1 ? levelAtFloor(i) : undefined })))); // (M6 step 12: at the floor's expected level, its choices waiting)
   const keep = el('label', 'dv-check'); const box = el('input'); box.type = 'checkbox'; box.checked = keepCarried;
@@ -638,6 +659,8 @@ function refresh() {
   assetBtn.textContent = assetsOn() ? S.assetsOn : S.assetsOff; assetBtn.classList.toggle('on', assetsOn()); assetBtn.disabled = !list.some(a => a.status === 'loaded');
   const dl = daylightInfo(); daylightBox.textContent = S.daylightInfo(dl.on, dl.t ?? 0);
   const v = vigil(); keepBox.textContent = S.keepingInfo(v.dust, v.obols, v.runs, v.wins, v.deepest);
+  townBox.textContent = S.townInfo(vigil().freed.length, Object.keys(vigil().heard).length, Object.keys(vigil().flags).length); momentBtn.textContent = S.talkMoment(talkMoment === undefined ? S.lastRun : talkMoment ?? S.idle);
+  for (const [k, b] of flagBtns) b.classList.toggle('on', vigil().flags[k] !== undefined);
   const si = shadeInfo(); shadeBox.textContent = si ? S.shadeInfo(si.name, S.roomNames[si.type] ?? si.type, si.state, si.chains.map(c => (c.ward ? STR.schools[c.ward] : S.plainChain) + (c.broken ? ' ✓' : '')).join(', '), vigil().freed.length, G.run.walking.map(id => STR.shades.names[id]).join(', ') || '–') : S.noShade;
   const vp = vigilInfo(); vigilBox.textContent = vp.here ? S.vigilInfo(vp.room ?? '?', vp.candles, vp.slots.map(id => id ? spell(id).name : '–').join(', ')) : S.notAtVigil;
   const kae = kaelithInfo(); kaelithBox.textContent = kae ? S.kaelithInfo(kae.phase, kae.state, kae.wards.map(w => (w.school ?? '-') + (w.shut ? ' (shut)' : '')).join(', ')) : S.noKaelith;

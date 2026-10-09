@@ -24,6 +24,10 @@
     {"school": "frost", "room": "landing", "side": "n", "at": [24, 0], "size": [3, 1]}
   ],
   "circle": {"room": "nave", "at": [14, 8], "radius": 3.6},
+  "town": {"room": "nave", "spots": {
+    "stormcaller": [3, 2], "scribe": [9, 2], "chorister": [17, 2], "bellringer": [25, 2], "wizard": [25, 6],
+    "pilgrim": [25, 13], "embalmer": [18, 14], "sexton": [13, 14], "novice": [8, 14], "forager": [2, 14]
+  }},
   "look": {
     "name": "vigil",
     "kit": {"wall": {"cryptstone": 3, "ashlar": 1}, "floor": {"slabs": 3, "graves": 1}, "torch": {"cluster": 3, "candelabra": 1}, "brazier": {"font": 1}},

@@ -22,7 +22,7 @@ describe('the keeping (M7 step 4): one save', () => {
     expect(s).toMatchObject({ dust: 0, obols: 0, runs: 0, echoes: [] });
   });
   it('reads a save as stored, ignoring the old keys, and makes a malformed one whole', () => {
-    const kept = { ...blankSave(), dust: 140, obols: 33, runs: 4, wins: 1, deepest: 6, reactions: ['blight'], echoes: [{ seed: 'A1', won: false, floor: 3, room: 'boss', template: 'boss_belfry', struck: 'tiger', carried: ['twin_staff'], level: 5, dust: 40, obols: 2 }] };
+    const kept = { ...blankSave(), dust: 140, obols: 33, runs: 4, wins: 1, deepest: 6, reactions: ['blight'], echoes: [{ seed: 'A1', won: false, floor: 3, room: 'boss', template: 'boss_belfry', struck: 'tiger', carried: ['twin_staff'], level: 5, dust: 40, obols: 2, felled: ['warden'] }] };
     const s = migrate(JSON.parse(JSON.stringify(kept)), { reactions: ['steam'] });
     expect(s.reactions).toEqual(['blight']); expect(s).toMatchObject({ dust: 140, obols: 33, runs: 4, wins: 1, deepest: 6 });
     expect(s.echoes[0]).toMatchObject({ seed: 'A1', struck: 'tiger', carried: ['twin_staff'] });

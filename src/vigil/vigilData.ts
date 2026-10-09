@@ -16,6 +16,7 @@ export interface RunRecord {
   floor: number; room: string; template: string; struck: string | null;
   /** The artifacts carried (the focus first), the level reached, and what it brought home. */
   carried: string[]; level: number; dust: number; obols: number;
+  /** M7 step 7: the bosses it put to rest (the townspeople speak of them). */ felled: string[];
 }
 export interface VigilSave {
   v: number;
@@ -32,13 +33,15 @@ export interface VigilSave {
   freed: string[]; bound: string[]; bonds: Record<string, number>; flags: Record<string, string | number | boolean>;
   parts: string[]; candle: boolean; sigils: { owned: string[]; placed: string[] }; powers: string[];
   /** M7 step 5: the two spells the mage holds at the Vigil (Q and E), chosen at its lectern. */ slots: (string | null)[];
+  /** M7 step 7: the townspeople's lines heard (a line's id, or `id@subject` for one that tells of something), each with
+      when it was heard (a count: the higher, the later). */ heard: Record<string, number>;
 }
 
 export function blankSave(): VigilSave {
   return {
     v: SAVE_VERSION, knowledge: {}, reactions: [], weaves: [], bestiary: {}, recipes: { pairs: {}, potions: [] },
     dust: 0, obols: 0, runs: 0, wins: 0, deepest: 0, echoes: [], found: [],
-    freed: [], bound: [], bonds: {}, flags: {}, parts: [], candle: false, sigils: { owned: [], placed: [] }, powers: [], slots: [null, null],
+    freed: [], bound: [], bonds: {}, flags: {}, parts: [], candle: false, sigils: { owned: [], placed: [] }, powers: [], slots: [null, null], heard: {},
   };
 }
 
@@ -47,7 +50,7 @@ const strs = (v: unknown): string[] => Array.isArray(v) ? v.filter((x): x is str
 const num = (v: unknown) => typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : 0;
 function runOf(v: unknown): RunRecord | null {
   const r = obj(v); if (typeof r.seed !== 'string') return null;
-  return { seed: r.seed, won: !!r.won, floor: num(r.floor), room: String(r.room ?? ''), template: String(r.template ?? ''), struck: typeof r.struck === 'string' ? r.struck : null, carried: strs(r.carried), level: num(r.level) || 1, dust: num(r.dust), obols: num(r.obols) };
+  return { seed: r.seed, won: !!r.won, floor: num(r.floor), room: String(r.room ?? ''), template: String(r.template ?? ''), struck: typeof r.struck === 'string' ? r.struck : null, carried: strs(r.carried), level: num(r.level) || 1, dust: num(r.dust), obols: num(r.obols), felled: strs(r.felled) };
 }
 
 /** A save made whole: whatever was stored under `ossuary.vigil` (anything, or nothing), or, when there was none, the five
@@ -66,6 +69,7 @@ export function migrate(raw: unknown, legacy: Partial<Record<SlotKey, unknown>> 
   s.flags = Object.fromEntries(Object.entries(obj(r.flags)).filter(([, v]) => ['string', 'number', 'boolean'].includes(typeof v))) as VigilSave['flags'];
   s.candle = !!r.candle; const sg = obj(r.sigils); s.sigils = { owned: strs(sg.owned), placed: strs(sg.placed) };
   const sl = Array.isArray(r.slots) ? r.slots : []; s.slots = [0, 1].map(i => typeof sl[i] === 'string' ? sl[i] as string : null);
+  s.heard = Object.fromEntries(Object.entries(obj(r.heard)).filter(([, v]) => typeof v === 'number')) as Record<string, number>;
   return s;
 }
 

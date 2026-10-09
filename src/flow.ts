@@ -153,7 +153,7 @@ function newRun(seed: string): typeof G.run {
     bottles: bottlesFor(Rng.from(seed, 'bottles').int(0, 2 ** 30)), identified: [], alchemy: Rng.from(seed, 'alchemy'), reagents: Rng.from(seed, 'reagents'), runes: Rng.from(seed, 'runes'), socketsOpened: 0, remedy: null,
     serpent: 'caged', restless: Rng.from(seed, 'serpent').chance(CFG.alchemy.vat.restless),
     insight: 0, level: 1, pending: 0, potionsUsed: [], attrs: noAttrs(), boons: {}, casts: {}, pledge: null, deals: 0, thirst: 0, acted: {}, afterglow: null,
-    bosses: 0, kaelith: false, struck: null, shadesMet: [], freed: [], walking: [],
+    bosses: 0, kaelith: false, struck: null, fell: [], shadesMet: [], freed: [], walking: [],
   };
 }
 
@@ -258,7 +258,7 @@ export function endGame(won: boolean) {
   const V = CFG.vigil, floor = G.run.floor + 1, carried = [player.focus, ...player.items];
   const dust = dustFor({ floor, bosses: G.run.bosses, kaelith: G.run.kaelith, firsts: runFirsts(), freed: G.run.freed.length, vows: 0, echoes: 0 }, V.dust);
   const obols = obolsHome(player.coins, won, V.obolsAfterDeath);
-  recordRun({ seed: G.run.seed, won, floor, room: G.current?.plan.type ?? '', template: G.current?.plan.templateId ?? '', struck: won ? null : G.run.struck, carried, level: G.run.level, dust: dust.total, obols });
+  recordRun({ seed: G.run.seed, won, floor, room: G.current?.plan.type ?? '', template: G.current?.plan.templateId ?? '', struck: won ? null : G.run.struck, carried, level: G.run.level, dust: dust.total, obols, felled: G.run.fell });
   showEndScreen({
     won, floor, floors: FLOORS.length, time: G.stats.time, kills: G.stats.kills,
     seed: G.run.seed, artifacts: carried, cleansed: [...player.cleansed], obols: G.stats.obols, level: G.run.level, insight: G.run.insight,
@@ -410,6 +410,7 @@ export function onBossDead(at?: { x: number; z: number }) {
   const cur = G.current;
   hideBossBar(); payBoss(at); // (M6: its floor's insight)
   if (G.run.boss === 'kaelith') G.run.kaelith = true; else G.run.bosses++; // (M7 step 4: Dust for each put to rest)
+  G.run.fell = [...G.run.fell, G.run.boss]; // (M7 step 7: the townspeople speak of it)
   if (G.run.boss === 'kaelith') kaelithKneels(at ?? { x: cur.cx, z: cur.cz }); // (M7: it doesn't die: it kneels where it fell)
   // M6 step 10: the waystone and the way down are in the waystone room beside it; where the floor has none (floor 5, or no
   // free cell), the way down opens here, and on floors 1 to 5 the stone rises first, at the back, the gifts keeping clear

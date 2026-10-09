@@ -5137,6 +5137,64 @@ test('chained shades (M7 step 6): one at an ordeal\'s end comes forth only once 
   expect(errors).toEqual([]);
 });
 
+test('townspeople (M7 step 7): the freed stand round the Nave, each with something to say; walking up to one opens its talk, written out a little at a time, the game waiting; a choice sets its flag and leads on; after a death, the line names what struck; the Ferryman speaks at the jetty once; the dev menu makes any one talk', async ({ page }) => {
+  type Fig = { id: string; x: number; z: number; news: boolean };
+  type TN = { open: boolean; who?: string; line?: string; text?: string; whole?: boolean; choices?: string[] };
+  type TG = { veteranSave(): void; toVigil(first?: boolean): void; sim(s: number, d?: boolean): void; warp(i: number): void; state: string; player: { x: number; z: number };
+    town: { figures: Fig[]; ferry: { x: number; z: number; said: boolean } | null; heard: Record<string, number>; flags: Record<string, unknown> }; talkNow: TN; talkTo(id: string, m?: string | null): boolean; closeTalk(): void; importSave(t: string): string[] };
+  const errors = await start(page, '?vigil=1');
+  const stood = await page.evaluate(() => { const g = (window as unknown as { __game: TG }).__game; g.veteranSave(); g.toVigil(false); g.sim(3); return g.town.figures; });
+  expect(stood.map(f => f.id).sort()).toEqual(['bellringer', 'chorister', 'embalmer', 'forager', 'novice', 'pilgrim', 'scribe', 'sexton', 'stormcaller', 'wizard']);
+  expect(stood.every(f => f.news)).toBe(true); // (each has its first to say: a glint over it)
+  // walking up to the scribe opens its talk, the line written out a little at a time while the game waits
+  const met = await page.evaluate(() => {
+    const g = (window as unknown as { __game: TG }).__game; g.warp(1); g.sim(.6);
+    const f = g.town.figures.find(x => x.id === 'scribe')!; g.player.x = f.x; g.player.z = f.z + 1.8; g.sim(.2); g.player.z = f.z + .9; g.sim(.4);
+    const at = { ...g.talkNow, state: g.state }; g.sim(4); return { at, later: g.talkNow };
+  });
+  expect(met.at).toMatchObject({ open: true, who: 'scribe', line: 'scribe.first', whole: false, state: 'pause' });
+  expect(met.later).toMatchObject({ whole: true, choices: ['Teach me what you remember.', 'The books are ash now.'] });
+  await page.screenshot({ path: 'test-results/vigil-talk.png' });
+  await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
+  const reply = await page.evaluate(() => { const g = (window as unknown as { __game: TG }).__game; return { talk: g.talkNow, flags: g.town.flags }; });
+  expect(reply.talk).toMatchObject({ open: true, line: 'scribe.ash' }); expect(reply.flags['scribe.ash']).toBe(true);
+  await page.keyboard.press('Enter'); await page.keyboard.press('Enter'); // (the whole line, then away)
+  const after = await page.evaluate(() => { const g = (window as unknown as { __game: TG }).__game; g.sim(.3); return { open: g.talkNow.open, state: g.state, news: g.town.figures.find(x => x.id === 'scribe')!.news, heard: Object.keys(g.town.heard) }; });
+  expect(after).toMatchObject({ open: false, state: 'play', news: true }); expect(after.heard).toEqual(expect.arrayContaining(['scribe.first', 'scribe.ash']));
+  // after a death to the War-Tiger, the storm caller (its first heard) speaks of it once, then of what it knows
+  const death = await page.evaluate(() => {
+    const g = (window as unknown as { __game: TG }).__game;
+    const echo = { seed: 'T1', won: false, floor: 3, room: 'boss', template: 'boss_plain', struck: 'tiger', carried: [], level: 4, dust: 30, obols: 1, felled: ['warden'] };
+    const before = { seed: 'T0', won: false, floor: 2, room: 'normal', template: '', struck: 'sporeling', carried: [], level: 2, dust: 10, obols: 0, felled: ['warden'] };
+    g.importSave(JSON.stringify({ v: 1, runs: 2, deepest: 3, echoes: [echo, before], freed: ['stormcaller', 'sexton'], heard: { 'storm.first': 1, 'sexton.first': 2 } }));
+    g.toVigil(false); g.sim(.5);
+    g.talkTo('stormcaller'); const tiger = g.talkNow; g.closeTalk();
+    g.talkTo('sexton'); const sexton = g.talkNow; g.closeTalk();
+    g.talkTo('stormcaller'); const then = g.talkNow; g.closeTalk();
+    return { tiger, sexton, then, figures: g.town.figures.map(f => f.id) };
+  });
+  expect(death.figures.sort()).toEqual(['sexton', 'stormcaller']);
+  expect(death.tiger).toMatchObject({ line: 'storm.death.tiger' }); expect(death.tiger.text).toContain('War-Tiger');
+  expect(death.sexton).toMatchObject({ line: 'sexton.death' }); expect(death.sexton.text).toMatch(/^The War-Tiger, was it/);
+  expect(death.then.line).toMatch(/^storm\.idle\./);
+  // the Ferryman says his first line as the mage comes to the jetty, once
+  const ferry = await page.evaluate(() => {
+    const g = (window as unknown as { __game: TG }).__game; g.warp(2); g.sim(.6);
+    const f = g.town.ferry!; g.player.x = f.x - 1.5; g.player.z = f.z; g.sim(.3); const at = { ...g.talkNow };
+    g.closeTalk(); g.player.x = f.x - 4; g.sim(.3); g.player.x = f.x - 1.5; g.sim(.3);
+    return { at, again: g.talkNow.open, said: g.town.ferry!.said };
+  });
+  expect(ferry.at).toMatchObject({ open: true, who: 'ferryman', line: 'ferryman.first' }); expect(ferry).toMatchObject({ again: false, said: true });
+  // the dev menu makes any one talk
+  await page.keyboard.press('F2');
+  await page.locator('#dev .dv-tab', { hasText: 'Rooms' }).click();
+  await page.locator('#dev .dv-page:not([hidden]) button', { hasText: 'The pilgrim talks' }).click();
+  expect(await page.evaluate(() => (window as unknown as { __game: TG }).__game.talkNow)).toMatchObject({ open: true, who: 'pilgrim', line: 'pilgrim.first' });
+  await page.keyboard.press('Escape');
+  expect(await page.evaluate(() => (window as unknown as { __game: TG }).__game.talkNow.open)).toBe(false);
+  expect(errors).toEqual([]);
+});
+
 test('the shrine\'s bargain (M6 step 11): a stone at the circle\'s head; walking up says how; a spell cast into it costs nothing and deals two boons of its school and one general; Esc pays nothing; a boon taken costs a heart container and keeps it, once; the last heart is refused', async ({ page }) => {
   const errors = await start(page, '?room=shrine_henge&spells=cinder_lance,rime_shards');
   const r = await page.evaluate(`(() => {

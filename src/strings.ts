@@ -134,6 +134,13 @@ export const STR = {
     } as Record<string, string>,
     acts: { storm: 'Storm', roots: 'Roots', bow: 'Arrow', turn: 'Turned aside', dig: 'Dug up', sing: 'Song', ring: 'Bell', hex: 'Hexed', brew: 'A draught', map: 'The way' } as Record<string, string>,
   },
+  /** M7 step 7: the townspeople's talk (vigil/town.ts, ui/talk.ts; their lines are data/dialogue.json): the Ferryman's name
+      (the shades' are `shades.names`), the panel's hint, a choice's key. */
+  town: {
+    ferryman: 'The Ferryman',
+    hint: 'Enter or A: on · arrows: choose · Esc or B: leave',
+    on: 'Enter', choose: (n: number) => `${n}`,
+  },
   /** The bosses: name and line on the boss bar banner, the banner when it calls help, the one when it dies. */
   bosses: {
     warden: { name: 'The Hollow Warden', sub: 'A Warden of Uzulim who never came back up', summon: 'The Warden calls its dead', dead: 'The Warden is still at last' },
@@ -1010,6 +1017,10 @@ export const STR = {
     shades: 'Chained shades (M7 step 6)', shadeGo: 'Go to the floor\'s shade', shadeBreak: 'Break its chains', shadeFree: 'Free it', shadeBind: 'Bind it',
     noShade: 'No chained shade on this floor', plainChain: 'plain', shadeHere: (name: string) => `${name}: chained here`, shadeWalks: (name: string) => `${name}: walks with me`,
     shadeInfo: (name: string, room: string, state: string, chains: string, freed: number, walking: string) => `${name} · ${room} · ${state} · chains: ${chains} · ${freed} freed · walking: ${walking}`,
+    town: 'Townspeople (M7 step 7)', freeAll: 'Free every shade (to the Vigil)', freeNone: 'Forget the freed', forgetHeard: 'Forget what was heard',
+    talkTo: (name: string) => `${name} talks`, nothingToSay: 'Nothing to say', lastRun: 'as the last run', idle: 'none (idle)',
+    talkMoment: (m: string) => `Moment: ${m}`, townGallery: 'The townspeople: the ten freed shades (M7 step 7)',
+    townInfo: (freed: number, heard: number, flags: number) => `${freed} freed · ${heard} lines heard · ${flags} flags set`,
     vigilInfo: (room: string, candles: number, hands: string) => `In the ${room} · ${candles} candle${candles === 1 ? '' : 's'} lit · in hand: ${hands}`,
   },
   /** What a merchant's ware is called in messages. */
