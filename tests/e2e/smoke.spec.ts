@@ -5041,6 +5041,8 @@ test('the Vigil as a place (M7 step 5): the first waking is dark until its candl
   // the boat: stepped into from the jetty, down to floor 1, empty-handed
   const down = await page.evaluate(() => {
     const g = (window as unknown as { __game: VG }).__game, b = g.vigilPlace.boat; g.player.x = b.x; g.player.z = b.z; g.sim(.2);
+    const t = g as unknown as { talkNow: { open: boolean; who?: string }; closeTalk(): void }; // (M7 step 7: the Ferryman's first word, the first time at the jetty)
+    if (t.talkNow.open && t.talkNow.who === 'ferryman') { t.closeTalk(); g.sim(.2); }
     const boarded = g.vigilPlace.boat.boarded; g.sim(2.5);
     return { boarded, state: g.state, here: g.vigilPlace.here, floor: (g as unknown as { floor: number }).floor, type: g.current.type, spells: [...g.player.spells], cls: document.body.classList.contains('vigil') };
   });
@@ -5139,7 +5141,7 @@ test('chained shades (M7 step 6): one at an ordeal\'s end comes forth only once 
 
 test('townspeople (M7 step 7): the freed stand round the Nave, each with something to say; walking up to one opens its talk, written out a little at a time, the game waiting; a choice sets its flag and leads on; after a death, the line names what struck; the Ferryman speaks at the jetty once; the dev menu makes any one talk', async ({ page }) => {
   type Fig = { id: string; x: number; z: number; news: boolean };
-  type TN = { open: boolean; who?: string; line?: string; text?: string; whole?: boolean; choices?: string[] };
+  type TN = { open: boolean; top?: boolean; who?: string; line?: string; text?: string; whole?: boolean; choices?: string[] };
   type TG = { veteranSave(): void; toVigil(first?: boolean): void; sim(s: number, d?: boolean): void; warp(i: number): void; state: string; player: { x: number; z: number };
     town: { figures: Fig[]; ferry: { x: number; z: number; said: boolean } | null; heard: Record<string, number>; flags: Record<string, unknown> }; talkNow: TN; talkTo(id: string, m?: string | null): boolean; closeTalk(): void; importSave(t: string): string[] };
   const errors = await start(page, '?vigil=1');
@@ -5152,7 +5154,7 @@ test('townspeople (M7 step 7): the freed stand round the Nave, each with somethi
     const f = g.town.figures.find(x => x.id === 'scribe')!; g.player.x = f.x; g.player.z = f.z + 1.8; g.sim(.2); g.player.z = f.z + .9; g.sim(.4);
     const at = { ...g.talkNow, state: g.state }; g.sim(4); return { at, later: g.talkNow };
   });
-  expect(met.at).toMatchObject({ open: true, who: 'scribe', line: 'scribe.first', whole: false, state: 'pause' });
+  expect(met.at).toMatchObject({ open: true, top: false, who: 'scribe', line: 'scribe.first', whole: false, state: 'pause' }); // (the scribe in the north row: the panel below)
   expect(met.later).toMatchObject({ whole: true, choices: ['Teach me what you remember.', 'The books are ash now.'] });
   await page.screenshot({ path: 'test-results/vigil-talk.png' });
   await page.keyboard.press('ArrowDown'); await page.keyboard.press('Enter');
@@ -5184,7 +5186,7 @@ test('townspeople (M7 step 7): the freed stand round the Nave, each with somethi
     g.closeTalk(); g.player.x = f.x - 4; g.sim(.3); g.player.x = f.x - 1.5; g.sim(.3);
     return { at, again: g.talkNow.open, said: g.town.ferry!.said };
   });
-  expect(ferry.at).toMatchObject({ open: true, who: 'ferryman', line: 'ferryman.first' }); expect(ferry).toMatchObject({ again: false, said: true });
+  expect(ferry.at).toMatchObject({ open: true, top: true, who: 'ferryman', line: 'ferryman.first' }); // (his boat low on the screen: the panel above) expect(ferry).toMatchObject({ again: false, said: true });
   // the dev menu makes any one talk
   await page.keyboard.press('F2');
   await page.locator('#dev .dv-tab', { hasText: 'Rooms' }).click();

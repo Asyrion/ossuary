@@ -624,7 +624,7 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
      speaks and pulses the glint.
    - **Where they stand:** `town` in data/vigil.json, a spot for each shade round the Nave's walls, facing the Great Circle;
      `validateVigil` checks each is on floor, off the doorways' lanes, clear of the pieces and bars and off the circle. Each
-     blocks its tile. Only the freed stand there (`standTown` from `furnishVigil`); the veteran's save stands all ten.
+     blocks its tile (the chorister moved off a candle stand's line, the room inspector's finding). Only the freed stand there (`standTown` from `furnishVigil`); the veteran's save stands all ten.
    - **The talk as data** (`data/dialogue.json`, 109 lines; the pure `src/vigil/dialogueData.ts`):
      - Speakers: the ten and the Ferryman. Moments: `first`, `death`, `won`, `boss`, `idle`, `reply` (reached only by a
        choice), and `quest`/`questDone` kept for step 8.
@@ -652,6 +652,8 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
        (`typeRate`), the choices.
      - Enter or Space (A) shows the whole line, then takes the choice or closes; the arrows (the d-pad) or 1 and 2 choose;
        Esc (B) closes. The game waits while it is open. `Sfx.talk` as one turns to speak.
+     - The panel goes to the top when the speaker stands in the lower half of the screen (south of where the camera is
+       heading), so the speaker stays in sight (the room inspector's finding: the south row and the Ferryman were hidden).
      - The Ferryman says his first line as the mage comes to the jetty (`ferryReach`), once; boarding is as before.
    - **Dev menu** (Rooms & runs, "Townspeople"): how many are freed, lines heard and flags set; the moment the talks are at
      (the last run's, a death, a win, a boss, none); every shade freed or none (the Vigil woken again); forget what was

@@ -11,7 +11,7 @@ import { CFG, BOSS_TYPES } from '../config';
 import { G, player } from '../state';
 import { STR, foeName } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { scene } from '../render/renderer';
+import { cameraTargetFor, scene } from '../render/renderer';
 import { disposeTree } from '../render/materials';
 import { iconUrlOf } from '../items/artifactIcons';
 import { atLeast, reactionSchools, REACTION_IDS } from '../magic/knowledge';
@@ -80,7 +80,10 @@ export function talkTo(who: string, moment?: TalkContext['moment']) {
   const f = figures.find(x => x.id === who), at = f ?? (who === 'ferryman' ? ferry : null);
   if (at) Sfx.at(at.x, at.z).talk(); else Sfx.talk();
   const said = c.moment && line.line.moment === c.moment ? [momentKey(who)] : [];
-  openTalk(who, speakerName(who), speakerIcon(who), line, said);
+  // (the panel goes at the top when the speaker stands in the screen's lower half: south of where the camera is heading, its
+  // middle half a tile up the screen for its height)
+  const low = !!at && at.z - .4 > cameraTargetFor(G.current, player.x, player.z).z;
+  openTalk(who, speakerName(who), speakerIcon(who), line, said, low);
   return true;
 }
 

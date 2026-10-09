@@ -25,7 +25,7 @@
   ],
   "circle": {"room": "nave", "at": [14, 8], "radius": 3.6},
   "town": {"room": "nave", "spots": {
-    "stormcaller": [3, 2], "scribe": [9, 2], "chorister": [17, 2], "bellringer": [25, 2], "wizard": [25, 6],
+    "stormcaller": [3, 2], "scribe": [9, 2], "chorister": [19, 2], "bellringer": [25, 2], "wizard": [25, 6],
     "pilgrim": [25, 13], "embalmer": [18, 14], "sexton": [13, 14], "novice": [8, 14], "forager": [2, 14]
   }},
   "look": {

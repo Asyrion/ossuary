@@ -23,11 +23,13 @@ export const talkOpen = () => !!talk;
 /** Who is talking now (their figure gestures), if anyone. */
 export const talkingNow = () => talk?.who ?? null;
 
-/** Open the talk: `who` (named `name`, its icon `icon`) says `line`; `also`: keys heard with it (its moment said this run). */
-export function openTalk(who: string, name: string, icon: string, line: Picked, also: string[] = []) {
+/** Open the talk: `who` (named `name`, its icon `icon`) says `line`; `also`: keys heard with it (its moment said this run).
+    `top`: the speaker stands in the lower half of the screen, so the panel goes at the top, not over it. */
+export function openTalk(who: string, name: string, icon: string, line: Picked, also: string[] = [], top = false) {
   if (!talk) actions.pause();
   talk = { who, name, icon, line, shown: 0, chosen: 0 };
   hear(line); for (const k of also) hearLine(k);
+  $('scrTalk').classList.toggle('top', top);
   showScreen('talk'); render();
 }
 function hear(p: Picked) { hearLine(p.key); }
@@ -92,6 +94,6 @@ export function talkPad(i: number) {
 /** For the tests and the dev menu: who speaks, the line (its id, text and how much shows) and the choices. */
 export function talkNow() {
   const t = talk; if (!t) return { open: false as const };
-  return { open: true as const, who: t.who, name: t.name, line: t.line.line.id, key: t.line.key, text: t.line.text, shown: Math.floor(t.shown), whole: whole(),
+  return { open: true as const, top: $('scrTalk').classList.contains('top'), who: t.who, name: t.name, line: t.line.line.id, key: t.line.key, text: t.line.text, shown: Math.floor(t.shown), whole: whole(),
     choices: (t.line.line.choices ?? []).map(c => c.label), chosen: t.chosen };
 }

@@ -191,6 +191,8 @@ body.daylight #hud{display:none}
 /* M7 step 5: at the Vigil the run's parts of the HUD give way to what is kept: the Dust and the obols */
 /* M7 step 7: the townspeople's talk, a panel along the bottom, the Vigil still showing above it */
 .screen.talk{align-items:flex-end;justify-content:center;background:linear-gradient(0deg,rgba(0,0,0,.62) 0%,rgba(0,0,0,.2) 34%,rgba(0,0,0,0) 55%)}
+.screen.talk.top{align-items:flex-start;background:linear-gradient(180deg,rgba(0,0,0,.62) 0%,rgba(0,0,0,.2) 34%,rgba(0,0,0,0) 55%)}
+.screen.talk.top .card.talkBox{margin:56px 0 0}
 .card.talkBox{max-width:860px;width:100%;display:flex;gap:22px;align-items:flex-start;padding:20px 26px 18px;margin-bottom:12px}
 #talkIcon{width:96px;height:96px;flex:none;image-rendering:pixelated;border:1px solid var(--line);background:rgba(0,0,0,.25)}
 .talkText{flex:1;min-width:0}
