@@ -19,7 +19,7 @@ import { lightCandle, vigil } from './save';
 import { VIGIL, roomIndex, tilesOf, type VigilBar, type VigilPiece } from './vigilMap';
 import { FACE_TURN, barLook, candleWallLook, circleLook, moveFerryman, moveVeil, pieceLook } from './vigilLooks';
 import { atVigil, setAtVigil, vigilHooks } from './where';
-import { clearTown, ferryAt, standTown, updateTown } from './town';
+import { clearTown, ferryAt, standFerryman, standTown, updateTown, wearsMade } from './town';
 import { closeTalk, updateTalk } from '../ui/talk';
 
 const C = () => CFG.vigil.place;
@@ -54,7 +54,7 @@ export function furnishVigil(first: boolean) {
   let candles: Here['candles'] | null = null, lectern: Here['lectern'] | null = null, boat: Here['boat'] | null = null;
   for (const p of VIGIL.pieces) {
     const r = room(p.room), m = middle(r, p);
-    const g = p.kind === 'candleWall' ? (candles = candleWallLook(r.look)).group : pieceLook(p.kind, r.look);
+    const g = p.kind === 'candleWall' ? (candles = candleWallLook(r.look)).group : pieceLook(p.kind, r.look, { ferryman: !wearsMade('ferryman') });
     const wall = wallOf(r, p);
     g.position.set(m.x - r.cx, 0, (wall === 'n' ? r.bounds.minZ : m.z) - r.cz);
     r.group.add(g); block(r, p);
@@ -84,7 +84,7 @@ export function furnishVigil(first: boolean) {
   ring.position.set(cm.x - cr.cx, 0, cm.z - cr.cz); cr.group.add(ring);
   here = { first, t: 0, candles: candles!, lectern: lectern!, boat: boat!, bars, veils, circle: { room: cr, ...cm, r: VIGIL.circle.radius, said: false }, seen: new Set() };
   here.candles.setLit(first ? 0 : litCandles()); refreshCandleLight();
-  standTown(rooms); ferryAt(here.boat.room, here.boat.step.x, here.boat.step.z); // (M7 step 7: the freed, and the Ferryman's first word)
+  standTown(rooms); ferryAt(here.boat.room, here.boat.step.x, here.boat.step.z); standFerryman(here.boat.look); // (M7 step 7: the freed, and the Ferryman's first word)
   setAtVigil(true);
 }
 /** The wall a piece stands against (the north one, for those on its first row), if any. */

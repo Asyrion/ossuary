@@ -42,7 +42,7 @@ import { levelAtFloor } from '../progression/levelData';
 import { kaelithInfo, kaelithToPhase, shutAllWards } from '../actors/kaelith';
 import { daylightInfo, enterDaylight } from '../world/daylight';
 import { forgetHeard, giveHome, setFlag, setFreed, veteranSave, vigil, wipeSave } from '../vigil/save';
-import { speakerName, talkTo, takeTownGallery, townGallery } from '../vigil/town';
+import { setTownWear, speakerName, talkTo, takeTownGallery, townGallery, townWear } from '../vigil/town';
 import { bondTo, giftsInfo, givePower, questState, questTo } from '../vigil/gifts';
 import { BOND_MAX, TOWNSFOLK, disciplinesOpen } from '../vigil/giftData';
 import { DIALOGUE, SPEAKERS } from '../vigil/dialogueData';
@@ -116,7 +116,7 @@ const S = STR.dev;
 let kaelithBox: HTMLElement, daylightBox: HTMLElement, keepBox: HTMLElement, vigilBox: HTMLElement, shadeBox: HTMLElement, townBox: HTMLElement, momentBtn: HTMLButtonElement;
 let talkMoment: 'death' | 'won' | 'boss' | null | undefined; // (M7 step 7: the moment the dev menu's talks are at; undefined: the last run's)
 const flagBtns: [string, HTMLButtonElement][] = [];
-let giftBox: HTMLElement; const powerBtns: [string, HTMLButtonElement][] = [], bondBtns: [string, HTMLButtonElement][] = [], questBtns: [string, HTMLButtonElement][] = [];
+let wearBtn: HTMLButtonElement, giftBox: HTMLElement; const powerBtns: [string, HTMLButtonElement][] = [], bondBtns: [string, HTMLButtonElement][] = [], questBtns: [string, HTMLButtonElement][] = [];
 let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, madeLookBtn: HTMLButtonElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
 let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, runesBtn: HTMLButtonElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement, creatureLookBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
@@ -625,7 +625,8 @@ function build() {
   tw.append(townBox = el('p', 'dv-info'),
     momentBtn = btn('', () => { const order = [undefined, 'death', 'won', 'boss', null] as const; talkMoment = order[(order.indexOf(talkMoment) + 1) % order.length]; refresh(); }),
     btn(S.freeAll, () => { setFreed(SHADE_IDS); again(); }), btn(S.freeNone, () => { setFreed([]); again(); }),
-    btn(S.forgetHeard, () => { forgetHeard(); again(); }));
+    btn(S.forgetHeard, () => { forgetHeard(); again(); }),
+    wearBtn = btn('', () => { setTownWear(townWear() === 'made' ? 'code' : 'made'); again(); })); // (2026-10-09: the owner's models, or the figures in code)
   const talkRow = el('div', 'dv-row'), flagRow = el('div', 'dv-row');
   for (const id of SPEAKERS) talkRow.append(btn(S.talkTo(speakerName(id)), () => { closeDev(); if (!talkTo(id, talkMoment)) toast(S.nothingToSay, 2); }));
   for (const k of [...new Set(DIALOGUE.lines.flatMap(l => (l.choices ?? []).flatMap(c => Object.keys(c.set ?? {}))))]) {
@@ -674,6 +675,7 @@ function refresh() {
   townBox.textContent = S.townInfo(vigil().freed.length, Object.keys(vigil().heard).length, Object.keys(vigil().flags).length); momentBtn.textContent = S.talkMoment(talkMoment === undefined ? S.lastRun : talkMoment ?? S.idle);
   for (const [k, b] of flagBtns) b.classList.toggle('on', vigil().flags[k] !== undefined);
   const gi = giftsInfo(); giftBox.textContent = S.giftsInfo(gi.powers.length, disciplinesOpen(vigil().freed).map(d => STR.gifts.disciplines[d]).join(', '), JSON.stringify(gi.start));
+  wearBtn.textContent = S.townWear[townWear()]; wearBtn.classList.toggle('on', townWear() === 'code');
   for (const [id, b] of powerBtns) b.classList.toggle('on', vigil().powers.includes(id));
   for (const [id, b] of bondBtns) { const n = vigil().bonds[id] ?? 0; b.textContent = S.bond(STR.shades.names[id] ?? id, n, BOND_MAX); b.classList.toggle('on', n > 0); }
   for (const [by, b] of questBtns) { const s = questState(by) ?? 'none'; b.textContent = S.quest(STR.shades.names[by] ?? by, s); b.classList.toggle('on', s !== 'none' && s !== 'offer'); }

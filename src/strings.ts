@@ -923,7 +923,7 @@ export const STR = {
     // creatures made in Tripo and animated in code (docs/creatures.md)
     creatures: 'Animated creatures (made in Tripo, animated in code)', creatureHere: (name: string) => `${name}: stand it here`, roarNow: 'Roar now',
     creaturesNote: 'Its walk, roar and rest baked by tools/animate-creature.ts; it walks a lap, roars at the mage and rests, its sounds on its paws and its roar. Looks only: no fight.',
-    creatureNames: { owlbear: 'Owlbear', dragonling: 'Dragonling', chameleon: 'Chameleon Wyvern' } as Record<string, string>,
+    creatureNames: { owlbear: 'Owlbear', dragonling: 'Dragonling', chameleon: 'Chameleon Wyvern', stormcaller: 'The storm caller', wizard: 'The cloud-forest wizard', forager: 'The forager', scribe: 'The scribe', sexton: 'The sexton', chorister: 'The chorister', bellringer: 'The bell-ringer', novice: 'The novice', embalmer: 'The embalmer', pilgrim: 'The pilgrim', ferryman: 'The Ferryman', jelly: 'Dr. Jelly', kaelith: 'Kaelith' } as Record<string, string>,
     creatureLooks: { texel: 'Look: pixel art from its texture (as the game draws it)', pixel: 'Look: pixel art from its vertices (the first look)', made: 'Look: as made (1,024 px texture, smooth light)', full: 'Look: as imported (textures at their own size, normal map)' } as Record<string, string>,
     scapes: 'Soundscapes', music: 'Music', soundGame: 'As the game asks', soundOn: 'Soundscapes and music: on', soundOff: 'Soundscapes and music: off',
     scapeNote: 'Plays here at once, over whatever the game asks for, until "As the game asks". The room or theme plays over the chosen floor.',
@@ -1049,7 +1049,7 @@ export const STR = {
     shades: 'Chained shades (M7 step 6)', shadeGo: 'Go to the floor\'s shade', shadeBreak: 'Break its chains', shadeFree: 'Free it', shadeBind: 'Bind it',
     noShade: 'No chained shade on this floor', plainChain: 'plain', shadeHere: (name: string) => `${name}: chained here`, shadeWalks: (name: string) => `${name}: walks with me`,
     shadeInfo: (name: string, room: string, state: string, chains: string, freed: number, walking: string) => `${name} · ${room} · ${state} · chains: ${chains} · ${freed} freed · walking: ${walking}`,
-    town: 'Townspeople (M7 step 7)', freeAll: 'Free every shade (to the Vigil)', freeNone: 'Forget the freed', forgetHeard: 'Forget what was heard',
+    town: 'Townspeople (M7 step 7)', townWear: { made: 'Townspeople wear: the made models', code: 'Townspeople wear: the figures in code' } as Record<string, string>, freeAll: 'Free every shade (to the Vigil)', freeNone: 'Forget the freed', forgetHeard: 'Forget what was heard',
     talkTo: (name: string) => `${name} talks`, nothingToSay: 'Nothing to say', lastRun: 'as the last run', idle: 'none (idle)',
     talkMoment: (m: string) => `Moment: ${m}`, townGallery: 'The townspeople: the ten freed shades (M7 step 7)',
     gifts: 'Gifts, bonds and powers (M7 step 8)',

@@ -58,6 +58,11 @@ knows, the forager's weaknesses, the scribe's reactions, the bosses' fears); cho
 owner:** the townspeople's sheet (any figure to change). **Step 8, gifts, bonds and powers, is built** (2026-10-09): each
 townsperson's gift when freed (a discipline, spells, the two spells that waited in the libraries' pools, recipes, what every
 descent begins with), obols on the eyes (a memory, then a second gift), six powers bought with Dust, three quests.
+**The owner's thirteen Tripo models** (2026-10-09: the ten townspeople, the Ferryman, Dr. Jelly, Kaelith; Mixamo-rigged,
+no clips) are animated in code (`tools/creatures/townsfolk.ts`, docs/creatures.md: People on a Mixamo rig) and stand at the
+Vigil in place of the code figures; Dr. Jelly and Kaelith are in the Galleries only, swapping them into the lab and the
+fight is a follow-up. The prompts for such models are now written for game characters, not miniatures (docs/assets.md:
+Prompts for game characters in Tripo; the `tripo-prompts` skill). **Waiting on the owner:** a look at the thirteen moving.
 **Next: step 9, the unfolding and the candle wall.**
 
 `main` was merged into the branch on 2026-10-05 (another session's work: the Chameleon Wyvern, the texel bake, the game's

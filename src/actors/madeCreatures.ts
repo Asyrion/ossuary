@@ -22,7 +22,7 @@ import { preloadSamples } from '../audio/samples';
 import { Rand } from '../audio/synth';
 
 interface ClipInfo { duration: number; loop: boolean; events: { t: number; sound: string; at?: string; loud?: boolean }[] }
-interface CreatureInfo { file: string; full: string; height: number; modelHeight: number; modelLength: number; walkSpeed: number; clips: Record<string, ClipInfo>; texel?: { file: string; glow: string; side: number } }
+interface CreatureInfo { file: string; full?: string; height: number; modelHeight: number; modelLength: number; walkSpeed: number; clips: Record<string, ClipInfo>; texel?: { file: string; glow: string; side: number } }
 export const CREATURES = Object.fromEntries(Object.entries(data).filter(([k]) => k !== '_comment')) as unknown as Record<string, CreatureInfo>;
 
 type State = 'walk' | 'idle' | 'roar';
@@ -46,29 +46,43 @@ const loader = new GLTFLoader(), loaded = new Map<string, Promise<GLTF>>(), show
     Resolves once it stands there, in the look chosen when it was called (`l`). */
 export async function showCreature(id: string, room: Room, x: number, z: number, l = look) {
   const info = CREATURES[id]; if (!info) throw new Error(`no creature "${id}"`);
-  const file = l === 'full' ? info.full : info.file, ctx = Sfx.buses?.ctx;
+  const ctx = Sfx.buses?.ctx;
   if (ctx) void preloadSamples(ctx, Object.values(info.clips).flatMap(c => c.events.map(e => e.sound))); // (its sounds from files ready before it roars)
+  const made = await madeModel(id, l, () => G.rooms.includes(room)); if (!made) return null; // (the floor changed while it loaded)
+  const { group, mixer, actions } = made;
+  group.position.set(x - room.cx, 0, z - room.cz); room.group.add(group);
+  const walks = !!actions.walk, roars = !!actions.roar; // (a figure with neither, a townsperson, stands and breathes)
+  const s: Shown = { id, look: l, room, stood: { x, z }, group, mixer, actions, state: 'idle', left: CFG.creatures.firstRest, next: walks || roars ? ['walk', 'idle', 'roar', 'idle'].filter(k => k === 'idle' || (k === 'walk' ? walks : roars)) as State[] : ['idle'], at: { x, z: z - CFG.creatures.lap }, angle: 0, last: 0, fresh: true, clip: '', heading: walks ? Math.PI / 2 : 0 };
+  play(s, 'idle'); shown.push(s);
+  return s;
+}
+
+/** A made model ready to stand (2026-10-09: the townspeople use it too, at the Vigil): loaded once and copied, worn in the
+    look `l`, scaled to its height, on a shadow, with its clips ready in a mixer (a clip that doesn't loop holds its last
+    pose). Null when `still()` says it is no longer wanted once it has loaded. Its group stands at the origin. */
+export async function madeModel(id: string, l: CreatureLook = look, still: () => boolean = () => true) {
+  const info = CREATURES[id]; if (!info) return null;
+  const file = l === 'full' && info.full ? info.full : info.file;
   if (!loaded.has(file)) loaded.set(file, loader.loadAsync(`${import.meta.env.BASE_URL}${file}`).then(g => { g.scene.traverse(o => { const m = (o as THREE.Mesh).material; if (m) (Array.isArray(m) ? m : [m]).forEach(x => x.userData.shared = true); }); return g; })); // (its materials shared by every copy: taking one away leaves them)
   const gltf = await loaded.get(file)!;
-  if (!G.rooms.includes(room)) return null; // (the floor changed while it loaded)
+  if (!still()) return null;
   const model = cloneSkinned(gltf.scene) as THREE.Object3D, scale = info.height / info.modelHeight;
   model.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) { m.geometry = m.geometry.clone(); m.frustumCulled = false; } }); // (its own geometry: the bake writes colours into it, and taking it away disposes it)
   if (l === 'texel' && info.texel) { // (pixel art from its texture, baked by tools/texel-bake.ts at the size the game draws it)
     const base = import.meta.env.BASE_URL;
     await wearTexel(model, id, { file: base + info.texel.file, glow: base + info.texel.glow });
-    if (!G.rooms.includes(room)) return null;
+    if (!still()) return null;
   } else if (l === 'pixel' || l === 'texel') { // (the pixel-art look, as the mage wears it: its colours in its vertices, light in bands)
     bakeHeroPixel(model); model.traverse(o => { if (o.userData.pixel) (o as THREE.Mesh).material = o.userData.pixel; });
   }
   model.scale.setScalar(scale);
-  const group = new THREE.Group(); group.add(model); group.add(blob(info.modelLength * scale * CFG.creatures.shadow));
-  group.position.set(x - room.cx, 0, z - room.cz); room.group.add(group);
+  const group = new THREE.Group(); group.add(model); group.add(blob(Math.max(info.modelLength, info.modelHeight * .45) * scale * CFG.creatures.shadow));
   const mixer = new THREE.AnimationMixer(model), actions: Record<string, THREE.AnimationAction> = {};
   for (const clip of gltf.animations) { const a = mixer.clipAction(clip); a.setLoop(info.clips[clip.name]?.loop === false ? THREE.LoopOnce : THREE.LoopRepeat, Infinity); a.clampWhenFinished = true; actions[clip.name] = a; }
-  const s: Shown = { id, look: l, room, stood: { x, z }, group, mixer, actions, state: 'idle', left: CFG.creatures.firstRest, next: ['walk', 'idle', 'roar', 'idle'], at: { x, z: z - CFG.creatures.lap }, angle: 0, last: 0, fresh: true, clip: '', heading: Math.PI / 2 };
-  play(s, 'idle'); shown.push(s);
-  return s;
+  return { info, group, model, mixer, actions, gltf };
 }
+/** The loaded model of `id`, if it has loaded (for an icon drawn at once). */
+export const loadedScene = (id: string) => { const info = CREATURES[id]; return info ? loaded.get(info.file) : undefined; };
 
 function play(s: Shown, clip: string) {
   const a = s.actions[clip]; if (!a) return;
@@ -118,7 +132,7 @@ const textureOf = (s: Shown) => { let w = 0; s.group.traverse(o => { if (!(o as 
     routine, clip and place. */
 export const creaturesNow = () => shown.map(s => ({ id: s.id, look: s.look, texture: textureOf(s), state: s.state, clip: s.clip, time: +(s.actions[s.clip]?.time ?? 0).toFixed(2), x: +(s.group.position.x + s.room.cx).toFixed(2), z: +(s.group.position.z + s.room.cz).toFixed(2) }));
 /** Make every creature shown roar now (the dev menu). */
-export function roarNow() { for (const s of shown) { s.state = 'roar'; s.left = CREATURES[s.id].clips.roar.duration; s.next = ['idle', 'walk', 'idle', 'roar']; play(s, 'roar'); } }
+export function roarNow() { for (const s of shown) { if (!s.actions.roar) continue; s.state = 'roar'; s.left = CREATURES[s.id].clips.roar.duration; s.next = ['idle', 'walk', 'idle', 'roar']; play(s, 'roar'); } }
 /** Take the creatures shown in `room` away. */
 export function takeCreatures(room: Room) {
   for (let i = shown.length - 1; i >= 0; i--) if (shown[i].room === room) {
@@ -138,7 +152,7 @@ export function setCreatureLook(l: CreatureLook) {
     const now = look, again = shown.map(s => ({ id: s.id, room: s.room, ...s.stood }));
     for (const room of new Set(again.map(a => a.room))) takeCreatures(room);
     for (const a of again) await showCreature(a.id, a.room, a.x, a.z, now);
-    if (now !== 'full') for (const info of Object.values(CREATURES)) forget(info.full); // (the textures as imported leave the GPU)
+    if (now !== 'full') for (const info of Object.values(CREATURES)) if (info.full) forget(info.full); // (the textures as imported leave the GPU)
   });
   return changing;
 }
