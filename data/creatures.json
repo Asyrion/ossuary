@@ -226,7 +226,7 @@
   },
   "stormcaller": {
     "file": "assets/creatures/stormcaller.glb",
-    "height": 1.312,
+    "height": 1.443,
     "modelHeight": 0.977,
     "modelLength": 0.502,
     "walkSpeed": 0,
@@ -246,14 +246,15 @@
     "texel": {
       "file": "assets/creatures/stormcaller.texel.png",
       "glow": "assets/creatures/stormcaller.glow.png",
-      "side": 128,
+      "side": 256,
       "colours": 24,
-      "glowing": 95
-    }
+      "glowing": 311
+    },
+    "fine": true
   },
   "forager": {
     "file": "assets/creatures/forager.glb",
-    "height": 1.25,
+    "height": 1.375,
     "modelHeight": 0.975,
     "modelLength": 0.71,
     "walkSpeed": 0,
@@ -273,14 +274,15 @@
     "texel": {
       "file": "assets/creatures/forager.texel.png",
       "glow": "assets/creatures/forager.glow.png",
-      "side": 256,
+      "side": 512,
       "colours": 24,
-      "glowing": 1300
-    }
+      "glowing": 4698
+    },
+    "fine": true
   },
   "scribe": {
     "file": "assets/creatures/scribe.glb",
-    "height": 1.225,
+    "height": 1.348,
     "modelHeight": 0.978,
     "modelLength": 0.797,
     "walkSpeed": 0,
@@ -300,14 +302,15 @@
     "texel": {
       "file": "assets/creatures/scribe.texel.png",
       "glow": "assets/creatures/scribe.glow.png",
-      "side": 128,
+      "side": 256,
       "colours": 24,
       "glowing": 0
-    }
+    },
+    "fine": true
   },
   "sexton": {
     "file": "assets/creatures/sexton.glb",
-    "height": 1.25,
+    "height": 1.375,
     "modelHeight": 0.978,
     "modelLength": 0.551,
     "walkSpeed": 0,
@@ -327,14 +330,15 @@
     "texel": {
       "file": "assets/creatures/sexton.texel.png",
       "glow": "assets/creatures/sexton.glow.png",
-      "side": 128,
+      "side": 256,
       "colours": 24,
-      "glowing": 139
-    }
+      "glowing": 425
+    },
+    "fine": true
   },
   "chorister": {
     "file": "assets/creatures/chorister.glb",
-    "height": 1.225,
+    "height": 1.348,
     "modelHeight": 0.977,
     "modelLength": 0.365,
     "walkSpeed": 0,
@@ -354,14 +358,15 @@
     "texel": {
       "file": "assets/creatures/chorister.texel.png",
       "glow": "assets/creatures/chorister.glow.png",
-      "side": 128,
+      "side": 256,
       "colours": 24,
-      "glowing": 5824
-    }
+      "glowing": 21432
+    },
+    "fine": true
   },
   "bellringer": {
     "file": "assets/creatures/bellringer.glb",
-    "height": 1.25,
+    "height": 1.375,
     "modelHeight": 0.978,
     "modelLength": 0.466,
     "walkSpeed": 0,
@@ -381,14 +386,15 @@
     "texel": {
       "file": "assets/creatures/bellringer.texel.png",
       "glow": "assets/creatures/bellringer.glow.png",
-      "side": 128,
+      "side": 256,
       "colours": 24,
       "glowing": 0
-    }
+    },
+    "fine": true
   },
   "novice": {
     "file": "assets/creatures/novice.glb",
-    "height": 1.062,
+    "height": 1.168,
     "modelHeight": 0.977,
     "modelLength": 0.829,
     "walkSpeed": 0,
@@ -408,14 +414,15 @@
     "texel": {
       "file": "assets/creatures/novice.texel.png",
       "glow": "assets/creatures/novice.glow.png",
-      "side": 128,
+      "side": 256,
       "colours": 24,
-      "glowing": 271
-    }
+      "glowing": 862
+    },
+    "fine": true
   },
   "embalmer": {
     "file": "assets/creatures/embalmer.glb",
-    "height": 1.275,
+    "height": 1.403,
     "modelHeight": 0.977,
     "modelLength": 0.461,
     "walkSpeed": 0,
@@ -435,14 +442,15 @@
     "texel": {
       "file": "assets/creatures/embalmer.texel.png",
       "glow": "assets/creatures/embalmer.glow.png",
-      "side": 128,
+      "side": 256,
       "colours": 24,
-      "glowing": 132
-    }
+      "glowing": 430
+    },
+    "fine": true
   },
   "pilgrim": {
     "file": "assets/creatures/pilgrim.glb",
-    "height": 1.275,
+    "height": 1.403,
     "modelHeight": 0.976,
     "modelLength": 0.598,
     "walkSpeed": 0,
@@ -462,10 +470,11 @@
     "texel": {
       "file": "assets/creatures/pilgrim.texel.png",
       "glow": "assets/creatures/pilgrim.glow.png",
-      "side": 128,
+      "side": 256,
       "colours": 24,
-      "glowing": 74
-    }
+      "glowing": 233
+    },
+    "fine": true
   },
   "ferryman": {
     "file": "assets/creatures/ferryman.glb",
@@ -489,10 +498,11 @@
     "texel": {
       "file": "assets/creatures/ferryman.texel.png",
       "glow": "assets/creatures/ferryman.glow.png",
-      "side": 128,
+      "side": 256,
       "colours": 24,
-      "glowing": 165
-    }
+      "glowing": 554
+    },
+    "fine": true
   },
   "kaelith": {
     "file": "assets/creatures/kaelith.glb",
@@ -544,7 +554,7 @@
   },
   "wizard": {
     "file": "assets/creatures/wizard.glb",
-    "height": 1.35,
+    "height": 1.485,
     "modelHeight": 0.935,
     "modelLength": 0.394,
     "walkSpeed": 0,
@@ -564,10 +574,11 @@
     "texel": {
       "file": "assets/creatures/wizard.texel.png",
       "glow": "assets/creatures/wizard.glow.png",
-      "side": 256,
+      "side": 512,
       "colours": 24,
-      "glowing": 189
-    }
+      "glowing": 729
+    },
+    "fine": true
   },
   "jelly": {
     "file": "assets/creatures/jelly.glb",

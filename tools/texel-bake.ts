@@ -40,11 +40,12 @@ export async function bakeModelFile(glb: string, height: number) {
   return { file, glow, side: b.side, colours: b.colours, glowing: b.glowing };
 }
 
-/** Bake creature `id` (as tall as data/creatures.json says) and name the files there. */
+/** Bake creature `id` (as tall as data/creatures.json says; one drawn on the pixel look's fine layer, `fine`, at its
+    finer pixel) and name the files there. */
 export async function texelBake(id: string) {
   const data = JSON.parse(readFileSync(DATA, 'utf8')), info = data[id];
   if (!info) throw new Error(`no creature "${id}" in data/creatures.json`);
-  const b = await bakeModelFile(resolve(DIR, `${id}.glb`), info.height);
+  const b = await bakeModelFile(resolve(DIR, `${id}.glb`), info.height * (info.fine ? CFG.pixelLook.fineLayer : 1));
   if (!b) throw new Error(`${id}: no base colour texture`);
   const rel = (f: string) => `assets/creatures/${basename(f)}`;
   info.texel = { file: rel(b.file), glow: rel(b.glow), side: b.side, colours: b.colours, glowing: b.glowing };

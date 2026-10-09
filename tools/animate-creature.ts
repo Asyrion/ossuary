@@ -33,7 +33,7 @@ const RECIPES = {
   ...TOWNSFOLK_RECIPES, // (2026-10-09: the townspeople, the Ferryman, Dr. Jelly and Kaelith, one Mixamo recipe)
 } as Record<string, {
   LEGS: Record<string, import('./creatureRig').LegDef>; SKIN: SkinBone[] | null; jawOf?: (p: import('three').Vector3) => string | null; REMAP?: Record<string, string>;
-  CLIPS: Record<string, import('./creatureRig').ClipDef>; MOVING: readonly string[]; WALK_SPEED: number; face: number | 'mixamo'; height: number;
+  CLIPS: Record<string, import('./creatureRig').ClipDef>; MOVING: readonly string[]; WALK_SPEED: number; face: number | 'mixamo'; height: number; fine?: boolean;
   budget: 'boss' | 'enemy'; full?: boolean; rebind?: SkinBone[]; triangles?: number;
 }>;
 
@@ -120,7 +120,7 @@ async function main() {
   const dataPath = resolve(import.meta.dirname, '../data/creatures.json');
   let data: Record<string, unknown> = {}; try { data = JSON.parse(readFileSync(dataPath, 'utf8')); } catch { /* the first */ }
   data[id] = {
-    file: `assets/creatures/${id}.glb`, ...(R.full !== false && { full: `assets/creatures/${id}.full.glb` }), height: R.height, modelHeight: +(hi[1] - lo[1]).toFixed(3), modelLength: +(hi[2] - lo[2]).toFixed(3),
+    file: `assets/creatures/${id}.glb`, ...(R.full !== false && { full: `assets/creatures/${id}.full.glb` }), height: R.height, ...(R.fine && { fine: true }), modelHeight: +(hi[1] - lo[1]).toFixed(3), modelLength: +(hi[2] - lo[2]).toFixed(3),
     walkSpeed: +R.WALK_SPEED.toFixed(4),
     clips: Object.fromEntries(Object.entries(R.CLIPS).map(([name, c]) => [name, { duration: c.duration, loop: c.loop, events: c.events.map(e => ({ ...e, t: +e.t.toFixed(3) })) }])),
     budget: R.budget,

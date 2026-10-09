@@ -22,7 +22,7 @@ import { preloadSamples } from '../audio/samples';
 import { Rand } from '../audio/synth';
 
 interface ClipInfo { duration: number; loop: boolean; events: { t: number; sound: string; at?: string; loud?: boolean }[] }
-interface CreatureInfo { file: string; full?: string; height: number; modelHeight: number; modelLength: number; walkSpeed: number; clips: Record<string, ClipInfo>; texel?: { file: string; glow: string; side: number } }
+interface CreatureInfo { file: string; full?: string; height: number; fine?: boolean; modelHeight: number; modelLength: number; walkSpeed: number; clips: Record<string, ClipInfo>; texel?: { file: string; glow: string; side: number } }
 export const CREATURES = Object.fromEntries(Object.entries(data).filter(([k]) => k !== '_comment')) as unknown as Record<string, CreatureInfo>;
 
 type State = 'walk' | 'idle' | 'roar';

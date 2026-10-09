@@ -710,7 +710,8 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   creatureRig.ts) with `idle` and `talk` (Jelly's `give`, Kaelith's `sweep` and `kneel`); `madeModel(id, look, still)` in
   madeCreatures.ts dresses one for any use. vigil/town.ts stands the ten and the Ferryman in them (`standMade`, `moveMade`,
   `standFerryman`; the code figures the fallback while loading), switched by the Townspeople's "wear" button (`setTownWear`,
-  `ossuary.townWear`, made by default); `__game.town` reads each one's `made` and `clip`. Dr. Jelly and Kaelith are in the
+  `ossuary.townWear`, made by default; a little taller than the mage, on the pixel look's fine layer, lit of themselves by
+  `CFG.vigil.town.madeLight`); `__game.town` reads each one's `made` and `clip`. Dr. Jelly and Kaelith are in the
   Galleries only so far. New Tripo prompts follow docs/assets.md's "Prompts for game characters in Tripo" (the
   `tripo-prompts` skill), not the miniature format.
 - Spell effect options (`src/magic/effectOptions.ts`, the owner's request): the spells' effects redone in the same style,
@@ -739,8 +740,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   `CFG.pixelLook.fineLayer` (2) pixels to a game pixel with their own depth, shaded at that pixel where they stand nearer
   than what the grid drew (outlined, banded) and laid over the window after the blow-up, a box to each coin (`drawFine`,
   `laidOver`: `fineShade`, `fineOver`; `__game.fineLayerDrawn`). The blow-up itself stays free of it: a software renderer
-  pays for every line of a shader every pixel runs, even a branch it skips. Every scene light is on it too (`lit` in lights.ts), and with the look off the camera sees every layer. Nothing else
-  goes on it without the owner's say. The costume close-up
+  pays for every line of a shader every pixel runs, even a branch it skips. Every scene light is on it too (`lit` in lights.ts), and with the look off the camera sees every layer. Since 2026-10-09 (the owner's yes) the made
+  townspeople and the Ferryman at the Vigil are on it too (`fine` in data/creatures.json, their texture baked at that pixel; `markFine` in
+  vigil/town.ts). Nothing else goes on it without the owner's say. The costume close-up
   (`DEV.closeUp`) magnifies the game's own pixels, so it shows what the game shows. The scene is tone-mapped and encoded by its own shaders (the target
   flagged as an XR target, stored as plain RGBA8), so it blends as on the canvas; the HUD stays sharp. `draw()` in
   `render/renderer.ts` picks it; draw calls are counted per frame over all passes (`renderer.info` reset in `draw()`). The

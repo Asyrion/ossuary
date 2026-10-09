@@ -10,6 +10,7 @@ import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js';
 import type { Room, RockBox } from '../types';
 import { CFG, BOSS_TYPES } from '../config';
 import { selfLight } from '../actors/texturePixel';
+import { FINE, markFine } from '../render/pixelLook';
 import { G, player } from '../state';
 import { STR, foeName } from '../strings';
 import { Sfx } from '../audio/sfx';
@@ -60,6 +61,7 @@ async function standMade(id: string, onto: THREE.Object3D, at: THREE.Vector3, tu
   const m = await madeModel(id, creatureLook(), still); if (!m) return null;
   m.group.position.copy(at); m.group.rotation.y = turn; onto.add(m.group);
   selfLight(id, CFG.vigil.town.madeLight);
+  if (m.info.fine) { m.model.traverse(o => { if ((o as THREE.Mesh).isMesh) o.layers.set(FINE); }); markFine(m.model); } // (drawn at the finer pixel, as the coins are: the owner's ask, 2026-10-09)
   let head: THREE.Object3D | undefined; m.model.traverse(o => { if (!head && /Head$/.test(o.name)) head = o; }); // (Mixamo's head bone; the loader drops its colon)
   const glint = glow(new THREE.Color(id === 'ferryman' ? '#ffc070' : shade(id).light).getHex(), .5, .9); glint.position.y = m.info.height + .25; glint.visible = false; m.group.add(glint);
   m.actions.idle?.play();

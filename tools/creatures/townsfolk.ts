@@ -129,19 +129,20 @@ const kneel: ClipDef = {
 
 /** What each made figure is: its height in the game, its budget, the hand it gestures with (the other holds its prop),
     and any clips beyond idle and talk. */
-interface Made { height: number; budget: 'enemy' | 'boss'; hand: 'left' | 'right'; size?: number; extra?: Record<string, ClipDef>; triangles?: number; armsDown?: number }
+/** `fine`: drawn on the pixel look's fine layer (half-size pixels, the owner's ask of 2026-10-09: the townspeople read at the Vigil), its texture baked at that pixel. */
+interface Made { height: number; budget: 'enemy' | 'boss'; hand: 'left' | 'right'; size?: number; extra?: Record<string, ClipDef>; triangles?: number; armsDown?: number; fine?: boolean }
 const FIGURES: Record<string, Made> = {
-  stormcaller: { height: 1.312, budget: 'enemy', hand: 'left' },
-  wizard: { height: 1.35, budget: 'enemy', hand: 'right', triangles: 10000, armsDown: 62 }, // (it came in a T-pose: its arms held down in every clip) // (its beard and robe's fringes stop the simplifier short of 8,000)
-  forager: { height: 1.25, budget: 'enemy', hand: 'right' },
-  scribe: { height: 1.225, budget: 'enemy', hand: 'right' }, // (its quill hand; the book is in its left)
-  sexton: { height: 1.25, budget: 'enemy', hand: 'left' },
-  chorister: { height: 1.225, budget: 'enemy', hand: 'right' },
-  bellringer: { height: 1.25, budget: 'enemy', hand: 'left' },
-  novice: { height: 1.062, budget: 'enemy', hand: 'right' }, // (the candle is in its left)
-  embalmer: { height: 1.275, budget: 'enemy', hand: 'right' },
-  pilgrim: { height: 1.275, budget: 'enemy', hand: 'right' },
-  ferryman: { height: 1.75, budget: 'enemy', hand: 'left', size: .7 },
+  stormcaller: { height: 1.443, fine: true, budget: 'enemy', hand: 'left' },
+  wizard: { height: 1.485, fine: true, budget: 'enemy', hand: 'right', triangles: 10000, armsDown: 62 }, // (it came in a T-pose: its arms held down in every clip) // (its beard and robe's fringes stop the simplifier short of 8,000)
+  forager: { height: 1.375, fine: true, budget: 'enemy', hand: 'right' },
+  scribe: { height: 1.348, fine: true, budget: 'enemy', hand: 'right' }, // (its quill hand; the book is in its left)
+  sexton: { height: 1.375, fine: true, budget: 'enemy', hand: 'left' },
+  chorister: { height: 1.348, fine: true, budget: 'enemy', hand: 'right' },
+  bellringer: { height: 1.375, fine: true, budget: 'enemy', hand: 'left' },
+  novice: { height: 1.168, fine: true, budget: 'enemy', hand: 'right' }, // (the candle is in its left)
+  embalmer: { height: 1.403, fine: true, budget: 'enemy', hand: 'right' },
+  pilgrim: { height: 1.403, fine: true, budget: 'enemy', hand: 'right' },
+  ferryman: { height: 1.75, fine: true, budget: 'enemy', hand: 'left', size: .7 },
   jelly: { height: 1.3, budget: 'enemy', hand: 'right', extra: { give }, triangles: 10000 }, // (so do his straps and vials)
   kaelith: { height: 2.5, budget: 'boss', hand: 'left', size: .6, extra: { sweep, kneel } },
 };
@@ -152,7 +153,7 @@ const FIGURES: Record<string, Made> = {
     hips. */
 export const TOWNSFOLK_RECIPES = Object.fromEntries(Object.entries(FIGURES).map(([id, f]) => [id, {
   LEGS: MIXAMO_LEGS, SKIN: null as SkinBone[] | null, rebind: MIXAMO_SKIN, jawOf: () => null, MOVING: [HIPS], WALK_SPEED: 0,
-  face: 'mixamo' as const, height: f.height, budget: f.budget, full: false, triangles: f.triangles,
+  face: 'mixamo' as const, height: f.height, budget: f.budget, full: false, triangles: f.triangles, fine: f.fine,
   CLIPS: Object.fromEntries(Object.entries({ idle: idle(f.size), talk: talk(f.hand), ...f.extra }).map(([k, c]) => [k, f.armsDown ? lowered(c, f.armsDown) : c])) as Record<string, ClipDef>,
 }]));
 /** A clip with the arms first brought down by `deg` from a rest held out (a T-pose). */
