@@ -223,5 +223,382 @@
       "colours": 24,
       "glowing": 239
     }
+  },
+  "stormcaller": {
+    "file": "assets/creatures/stormcaller.glb",
+    "height": 1.05,
+    "modelHeight": 0.977,
+    "modelLength": 0.502,
+    "walkSpeed": 0,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "talk": {
+        "duration": 2.5,
+        "loop": true,
+        "events": []
+      }
+    },
+    "budget": "enemy",
+    "texel": {
+      "file": "assets/creatures/stormcaller.texel.png",
+      "glow": "assets/creatures/stormcaller.glow.png",
+      "side": 128,
+      "colours": 24,
+      "glowing": 95
+    }
+  },
+  "forager": {
+    "file": "assets/creatures/forager.glb",
+    "height": 1,
+    "modelHeight": 0.975,
+    "modelLength": 0.71,
+    "walkSpeed": 0,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "talk": {
+        "duration": 2.5,
+        "loop": true,
+        "events": []
+      }
+    },
+    "budget": "enemy",
+    "texel": {
+      "file": "assets/creatures/forager.texel.png",
+      "glow": "assets/creatures/forager.glow.png",
+      "side": 128,
+      "colours": 24,
+      "glowing": 387
+    }
+  },
+  "scribe": {
+    "file": "assets/creatures/scribe.glb",
+    "height": 0.98,
+    "modelHeight": 0.978,
+    "modelLength": 0.797,
+    "walkSpeed": 0,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "talk": {
+        "duration": 2.5,
+        "loop": true,
+        "events": []
+      }
+    },
+    "budget": "enemy",
+    "texel": {
+      "file": "assets/creatures/scribe.texel.png",
+      "glow": "assets/creatures/scribe.glow.png",
+      "side": 128,
+      "colours": 24,
+      "glowing": 0
+    }
+  },
+  "sexton": {
+    "file": "assets/creatures/sexton.glb",
+    "height": 1,
+    "modelHeight": 0.978,
+    "modelLength": 0.551,
+    "walkSpeed": 0,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "talk": {
+        "duration": 2.5,
+        "loop": true,
+        "events": []
+      }
+    },
+    "budget": "enemy",
+    "texel": {
+      "file": "assets/creatures/sexton.texel.png",
+      "glow": "assets/creatures/sexton.glow.png",
+      "side": 128,
+      "colours": 24,
+      "glowing": 139
+    }
+  },
+  "chorister": {
+    "file": "assets/creatures/chorister.glb",
+    "height": 0.98,
+    "modelHeight": 0.977,
+    "modelLength": 0.365,
+    "walkSpeed": 0,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "talk": {
+        "duration": 2.5,
+        "loop": true,
+        "events": []
+      }
+    },
+    "budget": "enemy",
+    "texel": {
+      "file": "assets/creatures/chorister.texel.png",
+      "glow": "assets/creatures/chorister.glow.png",
+      "side": 128,
+      "colours": 24,
+      "glowing": 5824
+    }
+  },
+  "bellringer": {
+    "file": "assets/creatures/bellringer.glb",
+    "height": 1,
+    "modelHeight": 0.978,
+    "modelLength": 0.466,
+    "walkSpeed": 0,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "talk": {
+        "duration": 2.5,
+        "loop": true,
+        "events": []
+      }
+    },
+    "budget": "enemy",
+    "texel": {
+      "file": "assets/creatures/bellringer.texel.png",
+      "glow": "assets/creatures/bellringer.glow.png",
+      "side": 128,
+      "colours": 24,
+      "glowing": 0
+    }
+  },
+  "novice": {
+    "file": "assets/creatures/novice.glb",
+    "height": 0.85,
+    "modelHeight": 0.977,
+    "modelLength": 0.829,
+    "walkSpeed": 0,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "talk": {
+        "duration": 2.5,
+        "loop": true,
+        "events": []
+      }
+    },
+    "budget": "enemy",
+    "texel": {
+      "file": "assets/creatures/novice.texel.png",
+      "glow": "assets/creatures/novice.glow.png",
+      "side": 64,
+      "colours": 24,
+      "glowing": 72
+    }
+  },
+  "embalmer": {
+    "file": "assets/creatures/embalmer.glb",
+    "height": 1.02,
+    "modelHeight": 0.977,
+    "modelLength": 0.461,
+    "walkSpeed": 0,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "talk": {
+        "duration": 2.5,
+        "loop": true,
+        "events": []
+      }
+    },
+    "budget": "enemy",
+    "texel": {
+      "file": "assets/creatures/embalmer.texel.png",
+      "glow": "assets/creatures/embalmer.glow.png",
+      "side": 128,
+      "colours": 24,
+      "glowing": 132
+    }
+  },
+  "pilgrim": {
+    "file": "assets/creatures/pilgrim.glb",
+    "height": 1.02,
+    "modelHeight": 0.976,
+    "modelLength": 0.598,
+    "walkSpeed": 0,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "talk": {
+        "duration": 2.5,
+        "loop": true,
+        "events": []
+      }
+    },
+    "budget": "enemy",
+    "texel": {
+      "file": "assets/creatures/pilgrim.texel.png",
+      "glow": "assets/creatures/pilgrim.glow.png",
+      "side": 128,
+      "colours": 24,
+      "glowing": 74
+    }
+  },
+  "ferryman": {
+    "file": "assets/creatures/ferryman.glb",
+    "height": 1.4,
+    "modelHeight": 0.977,
+    "modelLength": 0.304,
+    "walkSpeed": 0,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "talk": {
+        "duration": 2.5,
+        "loop": true,
+        "events": []
+      }
+    },
+    "budget": "enemy",
+    "texel": {
+      "file": "assets/creatures/ferryman.texel.png",
+      "glow": "assets/creatures/ferryman.glow.png",
+      "side": 128,
+      "colours": 24,
+      "glowing": 165
+    }
+  },
+  "kaelith": {
+    "file": "assets/creatures/kaelith.glb",
+    "height": 2.5,
+    "modelHeight": 0.917,
+    "modelLength": 0.435,
+    "walkSpeed": 0,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "talk": {
+        "duration": 2.5,
+        "loop": true,
+        "events": []
+      },
+      "sweep": {
+        "duration": 1.5,
+        "loop": false,
+        "events": [
+          {
+            "t": 0.62,
+            "sound": "swing"
+          }
+        ]
+      },
+      "kneel": {
+        "duration": 2.4,
+        "loop": false,
+        "events": [
+          {
+            "t": 1.2,
+            "sound": "kneel",
+            "loud": true
+          }
+        ]
+      }
+    },
+    "budget": "boss",
+    "texel": {
+      "file": "assets/creatures/kaelith.texel.png",
+      "glow": "assets/creatures/kaelith.glow.png",
+      "side": 256,
+      "colours": 24,
+      "glowing": 11
+    }
+  },
+  "wizard": {
+    "file": "assets/creatures/wizard.glb",
+    "height": 1.08,
+    "modelHeight": 0.935,
+    "modelLength": 0.394,
+    "walkSpeed": 0,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "talk": {
+        "duration": 2.5,
+        "loop": true,
+        "events": []
+      }
+    },
+    "budget": "enemy",
+    "texel": {
+      "file": "assets/creatures/wizard.texel.png",
+      "glow": "assets/creatures/wizard.glow.png",
+      "side": 128,
+      "colours": 24,
+      "glowing": 76
+    }
+  },
+  "jelly": {
+    "file": "assets/creatures/jelly.glb",
+    "height": 1.3,
+    "modelHeight": 0.977,
+    "modelLength": 0.537,
+    "walkSpeed": 0,
+    "clips": {
+      "idle": {
+        "duration": 4,
+        "loop": true,
+        "events": []
+      },
+      "talk": {
+        "duration": 2.5,
+        "loop": true,
+        "events": []
+      },
+      "give": {
+        "duration": 2.2,
+        "loop": false,
+        "events": []
+      }
+    },
+    "budget": "enemy",
+    "texel": {
+      "file": "assets/creatures/jelly.texel.png",
+      "glow": "assets/creatures/jelly.glow.png",
+      "side": 256,
+      "colours": 24,
+      "glowing": 952
+    }
   }
 }
