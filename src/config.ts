@@ -183,7 +183,7 @@ export const CFG = {
     // M7 step 7, the townspeople: how near the mage walks to a figure for it to talk (and steps back before it talks again),
     // how near the jetty's end the Ferryman says his first line, how near a figure turns its head to the mage, how many
     // letters of a line show each second
-    town: { reach: 1.05, rearm: .6, ferryReach: 2.3, watch: 4.5, typeRate: 75 },
+    town: { reach: 1.05, rearm: .6, ferryReach: 2.3, watch: 4.5, typeRate: 75, madeScale: 1.25, madeLight: .4 }, // (madeScale, madeLight: the made figures a little bigger than their height in data/creatures.json and lit of themselves, to read in the Nave; the owner's ask, 2026-10-09)
   },
   // M7 step 6, chained shades: where one lies in its room (a share of the room's width and depth from its middle), how near a
   // school landing or a bolt must come to strike its chains, how near the mage stands to be asked, how long freeing (the
