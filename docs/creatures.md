@@ -149,7 +149,7 @@ Tripo's humanoid rig gives every figure the same skeleton (`mixamorig:Hips` to t
   cloth (the wizard and Dr. Jelly, 10,000). `full: false`: no `.full.glb` is kept for them.
 - **In the game:** `madeModel(id, look, still)` in madeCreatures.ts loads and dresses one (the texel bake, its height, a
   shadow) for anything that wants a made figure; vigil/town.ts stands the townspeople and the Ferryman with it
-  (`standMade`, `moveMade`: idle, talk while it speaks, the head bone turned to the mage after the clip; a quarter bigger than their height and lit of themselves, `CFG.vigil.town.madeScale` and `madeLight` through texturePixel.ts's `selfLight`; the code-built
+  (`standMade`, `moveMade`: idle, talk while it speaks, the head bone turned to the mage after the clip; a quarter bigger than first made (their heights in the recipe, the textures baked at that size) and lit of themselves, `CFG.vigil.town.madeLight` through texturePixel.ts's `selfLight`; the code-built
   figure stays until the model has loaded, and is the fallback). The dev menu's Townspeople switches made and code looks
   (`setTownWear`, `ossuary.townWear`). Dr. Jelly and Kaelith are baked and in the Galleries, but their fights and gestures
   still drive the code-built looks.

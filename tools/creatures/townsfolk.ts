@@ -131,17 +131,17 @@ const kneel: ClipDef = {
     and any clips beyond idle and talk. */
 interface Made { height: number; budget: 'enemy' | 'boss'; hand: 'left' | 'right'; size?: number; extra?: Record<string, ClipDef>; triangles?: number; armsDown?: number }
 const FIGURES: Record<string, Made> = {
-  stormcaller: { height: 1.05, budget: 'enemy', hand: 'left' },
-  wizard: { height: 1.08, budget: 'enemy', hand: 'right', triangles: 10000, armsDown: 62 }, // (it came in a T-pose: its arms held down in every clip) // (its beard and robe's fringes stop the simplifier short of 8,000)
-  forager: { height: 1, budget: 'enemy', hand: 'right' },
-  scribe: { height: .98, budget: 'enemy', hand: 'right' }, // (its quill hand; the book is in its left)
-  sexton: { height: 1, budget: 'enemy', hand: 'left' },
-  chorister: { height: .98, budget: 'enemy', hand: 'right' },
-  bellringer: { height: 1, budget: 'enemy', hand: 'left' },
-  novice: { height: .85, budget: 'enemy', hand: 'right' }, // (the candle is in its left)
-  embalmer: { height: 1.02, budget: 'enemy', hand: 'right' },
-  pilgrim: { height: 1.02, budget: 'enemy', hand: 'right' },
-  ferryman: { height: 1.4, budget: 'enemy', hand: 'left', size: .7 },
+  stormcaller: { height: 1.312, budget: 'enemy', hand: 'left' },
+  wizard: { height: 1.35, budget: 'enemy', hand: 'right', triangles: 10000, armsDown: 62 }, // (it came in a T-pose: its arms held down in every clip) // (its beard and robe's fringes stop the simplifier short of 8,000)
+  forager: { height: 1.25, budget: 'enemy', hand: 'right' },
+  scribe: { height: 1.225, budget: 'enemy', hand: 'right' }, // (its quill hand; the book is in its left)
+  sexton: { height: 1.25, budget: 'enemy', hand: 'left' },
+  chorister: { height: 1.225, budget: 'enemy', hand: 'right' },
+  bellringer: { height: 1.25, budget: 'enemy', hand: 'left' },
+  novice: { height: 1.062, budget: 'enemy', hand: 'right' }, // (the candle is in its left)
+  embalmer: { height: 1.275, budget: 'enemy', hand: 'right' },
+  pilgrim: { height: 1.275, budget: 'enemy', hand: 'right' },
+  ferryman: { height: 1.75, budget: 'enemy', hand: 'left', size: .7 },
   jelly: { height: 1.3, budget: 'enemy', hand: 'right', extra: { give }, triangles: 10000 }, // (so do his straps and vials)
   kaelith: { height: 2.5, budget: 'boss', hand: 'left', size: .6, extra: { sweep, kneel } },
 };
