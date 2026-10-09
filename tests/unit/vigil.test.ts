@@ -67,21 +67,45 @@ describe('what a run brings home', () => {
 
 describe('the Vigil as a place (M7 step 5): its map', () => {
   const copy = (): VigilMap => JSON.parse(JSON.stringify(VIGIL));
-  it('passes its checks: three rooms laid by hand, the Crypt first, nothing to fight', () => {
+  it('passes its checks: three rooms laid by hand, the Crypt first, nothing to fight; six more behind the barred ways', () => {
     expect(validateVigil()).toEqual([]);
-    const plan = vigilPlan(new Rng(7));
-    expect(plan.rooms.map(r => r.templateId)).toEqual(['vigil_crypt', 'vigil_nave', 'vigil_landing']);
+    const plan = vigilPlan(new Rng(7)), names = VIGIL.rooms.map(r => r.name);
+    expect(plan.rooms.map(r => r.templateId)).toEqual(['vigil_crypt', 'vigil_nave', 'vigil_landing', 'vigil_cave', 'vigil_chapel', 'vigil_pool', 'vigil_gallery', 'vigil_garden', 'vigil_practice']);
     expect(plan.startId).toBe(0); expect(plan.bossId).toBe(-1);
     expect(plan.rooms.every(r => r.type === 'vigil' && r.dist !== undefined)).toBe(true);
-    expect(plan.rooms.map(r => [...new Set(r.doors.map(d => d.to))])).toEqual([[1], [0, 2], [1]]); // (the Crypt to the Nave, the Nave to the Landing)
+    const to = (i: number) => plan.rooms[i].doors.map(d => names[d.to] + (d.barred ? '#' : '')).sort();
+    expect(to(0)).toEqual(['chapel#', 'nave']); // (the Crypt to the Nave, and its chapel barred by Hallow)
+    expect(to(1)).toEqual(['cave#', 'crypt', 'gallery#', 'landing', 'pool#']);
+    expect(to(2)).toEqual(['garden#', 'nave', 'practice#']);
+    for (const r of VIGIL.rooms.filter(o => o.behind)) expect(to(names.indexOf(r.name)), r.name).toHaveLength(1); // (each behind its way alone, though it touches others)
     expect(VIGIL.pieces.map(p => p.kind)).toEqual(expect.arrayContaining(['bier', 'candleWall', 'skulls', 'lectern', 'plinth', 'boat']));
   });
-  it('bars six ways, one a school, each on an outer wall leading out of the map', () => {
+  it('bars six ways, one a school, each leading into the room behind it (M7 step 9)', () => {
     expect(VIGIL.bars.map(b => b.school).sort()).toEqual([...BAR_SCHOOLS].sort());
+    expect(VIGIL.rooms.filter(r => r.behind).map(r => r.behind).sort()).toEqual([...BAR_SCHOOLS].sort());
     const into = copy(); into.bars[0] = { ...into.bars[0], room: 'landing', side: 'w', at: [0, 2], size: [1, 3] }; // (the Landing's west wall: the Nave beyond)
-    expect(validateVigil(into).join()).toMatch(/leads into another of the Vigil's rooms/);
+    expect(validateVigil(into).join()).toMatch(/leads into the nave, not the cave behind it/);
+    const out = copy(); out.bars.find(b => b.school === 'storm')!.at = [12, 0]; // (the Nave's north wall over its first cell: the Cave Mouth, not the pool)
+    expect(validateVigil(out).join()).toMatch(/storm bar leads into the cave, not the pool/);
     const two = copy(); two.bars[1] = { ...two.bars[1], school: two.bars[0].school };
     expect(validateVigil(two).join()).toMatch(/one school each/);
+    const first = copy(); first.rooms[0] = { ...first.rooms[0], behind: 'ember' };
+    expect(validateVigil(first).join()).toMatch(/first room is barred/);
+  });
+  it('opens a way when its school is among the parts opened (M7 step 9)', () => {
+    const shut = vigilPlan(new Rng(7)), open = vigilPlan(new Rng(7), VIGIL, undefined, ['ember', 'verdant']);
+    const barred = (p: typeof shut) => p.rooms.flatMap((r, i) => r.doors.filter(d => d.barred).map(d => `${VIGIL.rooms[i].name}>${VIGIL.rooms[d.to].name}`)).sort();
+    expect(barred(shut)).toHaveLength(12); // (six ways, each from both sides)
+    expect(barred(open)).not.toContain('nave>cave'); expect(barred(open)).not.toContain('cave>nave'); expect(barred(open)).not.toContain('garden>landing');
+    expect(barred(open)).toContain('crypt>chapel');
+  });
+  it('fills the rooms behind: a Cave Mouth spot for each shade, a chapel candle for each, a garden bed for each reagent', () => {
+    const bad = copy(); bad.unfold.cave.spots = bad.unfold.cave.spots.slice(0, 4);
+    expect(validateVigil(bad).join()).toMatch(/one thing for each shade freed/);
+    const lane = copy(); lane.unfold.chapel.candles.scribe = [6, 6]; // (in the doorway's lane to the Crypt)
+    expect(validateVigil(lane).join()).toMatch(/scribe's candle at \(6,6\) in the chapel stands in a doorway's lane/);
+    const bed = copy(); delete (bed.unfold.garden.beds as Record<string, unknown>).emberSalt; (bed.unfold.garden.beds as Record<string, [number, number]>).ash = [6, 3];
+    expect(validateVigil(bed).join()).toMatch(/a bed of ash, which is no reagent.*no bed of emberSalt|no bed of emberSalt/);
   });
   it('keeps the doorways, the water and the waking spot clear', () => {
     const lane = copy(); lane.pieces.find(p => p.kind === 'plinth')!.at = [0, 12]; // (the Nave's door to the Crypt)

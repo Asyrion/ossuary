@@ -63,7 +63,10 @@ no clips) are animated in code (`tools/creatures/townsfolk.ts`, docs/creatures.m
 Vigil in place of the code figures; Dr. Jelly and Kaelith are in the Galleries only, swapping them into the lab and the
 fight is a follow-up. The prompts for such models are now written for game characters, not miniatures (docs/assets.md:
 Prompts for game characters in Tripo; the `tripo-prompts` skill). **Waiting on the owner:** a look at the thirteen moving.
-**Next: step 9, the unfolding and the candle wall.**
+**Step 9, the unfolding, is built** (2026-10-09): six rooms behind the barred ways, each opened by its school landing
+on it (the Cave Mouth looking out on the valleys, filling with what the freed build; the candle chapel, whose candles bless
+one descent; the garden of the dead's reagent; the pool, the practice crypt and the gallery waiting for steps 11 and 12).
+**Next: step 10, the Great Circle and the Ferryman's crossing, planned with the owner in plan mode first.**
 
 `main` was merged into the branch on 2026-10-05 (another session's work: the Chameleon Wyvern, the texel bake, the game's
 first sound files, the dev menu's fixes), so both session branches carry everything; 434 unit tests green after it.

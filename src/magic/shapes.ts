@@ -161,6 +161,7 @@ const beam: Cast = (def, dir) => {
   len = Math.min(len, P.range);
   if (stop) strikeSolid(room, stop, sx + dir.x * len, .6, sz + dir.z * len);
   if ((stop as RockBox | undefined)?.shade) vigilHooks.shadeStruck(sx + dir.x * len, sz + dir.z * len, def.school); // (M7 step 6: a beam carries its school to a chained shade)
+  if ((stop as RockBox | undefined)?.bar) vigilHooks.barStruck(stop as RockBox, sx + dir.x * len, sz + dir.z * len, undefined, def.school); // (M7 step 9: and to a barred way at the Vigil)
   // how far along the beam, and how far to one side of it, a point is
   const along = (x: number, z: number) => (x - sx) * dir.x + (z - sz) * dir.z;
   const side = (x: number, z: number) => Math.abs((x - sx) * dir.z - (z - sz) * dir.x);
@@ -345,7 +346,7 @@ const wall: Cast = (def, dir) => {
     const c = wood ? woodColumn(p.x, p.z, .75 + Math.random() * .4) : iceColumn(p.x, p.z, .8 + Math.random() * .45); c.rotation.set((Math.random() - .5) * .16, Math.random() * Math.PI * 2, (Math.random() - .5) * .16);
     c.userData.delay = p.k * CFG.spellFx.wallStagger; c.scale.y = .01; g.add(c); columns.push(c);
     boxes.push({ x: p.x, z: p.z, hx: ICE_HALF, hz: ICE_HALF });
-    if (wood) burst(p.x, .3, p.z, LEAF, 3, 1.6, .045); else { burst(p.x, .3, p.z, ICE, 3, 1.8, .045); frostAt(p.x, p.z, .25); } // water it stands in freezes
+    if (wood) { burst(p.x, .3, p.z, LEAF, 3, 1.6, .045); vigilHooks.landed('verdant', p.x, p.z, .4); } else { burst(p.x, .3, p.z, ICE, 3, 1.8, .045); frostAt(p.x, p.z, .25); } // water it stands in freezes
   }
   scene.add(g);
   room.barriers = [...(room.barriers ?? []), ...boxes];
@@ -460,6 +461,7 @@ const zone: Cast = def => {
   const pollen = def.school === 'verdant'; // (M5: Verdant's Pollen Cloud is a zone of pollen, not holy ground)
   zones.push({ def, x: player.x, z: player.z, t: 0, tick: 0, healed: false, fx: (pollen ? pollenFx : consecrateFx)(player.x, player.z, def.params.radius, hex(def.color)) });
   if (!pollen) hallowAt(player.x, player.z, def.params.radius); // holy ground kindles the candle stands on it
+  else vigilHooks.landed('verdant', player.x, player.z, def.params.radius); // (M7 step 9)
   burst(player.x, .2, player.z, hex(def.color), 14, 2, .04); if (pollen) Sfx.pollenCloud(); else Sfx.consecrate();
   return true;
 };
@@ -633,7 +635,7 @@ function updateGrasps(dt: number) {
         if (!alive(e) || e.flying || Math.hypot(e.x - g.x, e.z - g.z) > P.radius + e.r) continue;
         damageEnemy(e, g.def.damage, 0, 0, 0, 'spell', g.def.school); inflict(e, g.def.status); burst(e.x, .3, e.z, hex(g.def.color), 6, 1.4, .03);
       }
-      if (thorns) Sfx.at(g.x, g.z).thornClose();
+      if (thorns) { Sfx.at(g.x, g.z).thornClose(); vigilHooks.landed('verdant', g.x, g.z, P.radius); } // (M7 step 9: green landing, for a barred way and a chained shade)
       else { umbralAt(g.x, g.z, P.radius); Sfx.at(g.x, g.z).graspClose(); } // (the dark blinds a watching statue, breaks an obelisk's umbral ward; on holy ground, Eclipse Ground: M4.10)
       graspHexing = false;
     }

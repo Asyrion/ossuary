@@ -50,6 +50,7 @@ export interface Door {
   bars: THREE.Group; barH: number; open: boolean; style: DoorStyle; box: Box;
   /** A locked vault's door: the ward shared by both sides of the doorway. */ seal?: VaultSeal;
   /** A secret room's hidden doorway: a cracked wall until a blast opens it. */ secret?: SecretWall;
+  /** M7 step 9: a way at the Vigil still barred by its school: the wall filling the doorway (rooms.ts's `unplugDoor`). */ plug?: THREE.Object3D;
 }
 /** One side of a secret room's hidden doorway (GDD: Secret room): a stretch of cracked wall filling the
     doorway, in `room`. The cantrip divines it (it rings hollow and the crack glows); a glyph's blast opens

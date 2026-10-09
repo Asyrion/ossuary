@@ -26,7 +26,7 @@ import { emberCantrip } from '../items/potionFx';
 import { bindShade, freeShade, vigil } from './save';
 import { breaks, chainCount, chainSchools, pickShade, shade, shadeRoom } from './shadeData';
 import { chainedShadeLook } from './shadeLooks';
-import { vigilHooks } from './where';
+import { hearLanding, vigilHooks } from './where';
 import { giftOnFree } from './gifts';
 
 const C = () => CFG.shades;
@@ -102,7 +102,7 @@ function strike(school: School | 'blast' | undefined, x: number, z: number, r: n
   if (s.chains.every(c => c.broken)) { s.state = 'loose'; line(STR.shades.loose(name(s.id)), 5); Sfx.at(s.x, s.z).shadeLoose(); }
 }
 vigilHooks.shadeStruck = (x, z, school) => strike(school, x, z, 0, true);
-vigilHooks.landed = (school, x, z, r) => strike(school, x, z, r, false);
+hearLanding((school, x, z, r) => strike(school, x, z, r, false));
 
 /** Each step: the shade comes forth once its room is won and the mage is there; loose, it asks the mage standing by it; it
     goes as it was answered. */

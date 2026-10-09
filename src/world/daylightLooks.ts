@@ -88,8 +88,10 @@ function fallTexture() {
   return t;
 }
 
-/** The cave mouth at dawn, its terrace's edge at the root's origin (the mage walks out to it from +Z). */
-export function buildVista(): Vista {
+/** The cave mouth at dawn, its terrace's edge at the root's origin (the mage walks out to it from +Z). M7 step 9: the
+    Vigil's Cave Mouth looks out on the same valleys from its own floor, without the terrace (`terrace`) or the cave's
+    rock framing the view (`cave`). */
+export function buildVista(o: { terrace?: boolean; cave?: boolean } = {}): Vista {
   const root = new THREE.Group(), facing = new THREE.Group(); root.add(facing);
   // the layers face the camera: the camera's own turn (it looks down at TILT from +Z)
   facing.rotation.x = -TILT;
@@ -144,7 +146,7 @@ export function buildVista(): Vista {
   // the cave's own rock, an arch framing the view (high in the middle, low at the sides); it opens as the mage steps out:
   // the top lifts, the sides draw apart
   const overhang = new THREE.Group(), top = new THREE.Group(), left = new THREE.Group(), right = new THREE.Group();
-  overhang.add(top, left, right); facing.add(overhang);
+  overhang.add(top, left, right); if (o.cave !== false) facing.add(overhang);
   const archY = (x: number) => 5.05 - Math.max(0, Math.abs(x) - 2.5) * .26;
   const lip = ridge(51, -15, 15, .3, 0, .22).map(([x, y]) => [x, y + archY(x)] as [number, number]);
   layer(top, [[-15, 14], ...lip, [15, 14]], 0x0f0b14, 6);
@@ -156,6 +158,7 @@ export function buildVista(): Vista {
   layer(right, [[15, 12], [15, -7], [9, -7], [8.4, -.8], [8.9, 2], [8.1, 3.8], [7.5, 12]], 0x0f0b14, 6.1);
 
   // the terrace: real ground, the room kit's flagstones in the morning's colours, and rocks along its edge
+  if (o.terrace === false) return { root, facing, overhang, cave: { top, left, right }, mists, fall, sun, spray };
   const W = 26, H = 8, mask = Array.from({ length: H }, () => Array.from({ length: W }, () => true));
   const { map } = pixelFloorTexture(0x0da1, 'normal', terraceLook(), mask);
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshStandardMaterial({ map, roughness: 1 }));

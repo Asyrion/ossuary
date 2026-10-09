@@ -32,7 +32,7 @@ import { findEveryCounter } from '../actors/counters';
 import { ARTIFACT_DEFS, START_FOCUS, artifact } from '../items/artifactData';
 import { giveById, grantArtifact, placeArtifact, refreshStats, removeArtifactGallery, resetArtifacts, showArtifactGallery } from '../items/artifacts';
 import { DROPS, RESOURCES, SOULS, soulItem, type Drop, type Resource } from '../items/loot';
-import { POTIONS, POTION_IDS, REAGENT_IDS, type PotionId } from '../items/alchemyData';
+import { POTIONS, POTION_IDS, REAGENTS, REAGENT_IDS, type PotionId, type ReagentId } from '../items/alchemyData';
 import { addPotion, addReagent, beltSlots, identify, knownPotion, renderBelt, usePotion } from '../items/potions';
 import { brewedPotions, forgetBrews } from '../items/alchemyMemory';
 import { openLab } from './alchemyTable';
@@ -41,9 +41,12 @@ import { raiseWaystone } from '../world/waystone';
 import { levelAtFloor } from '../progression/levelData';
 import { kaelithInfo, kaelithToPhase, shutAllWards } from '../actors/kaelith';
 import { daylightInfo, enterDaylight } from '../world/daylight';
-import { forgetHeard, giveHome, setFlag, setFreed, veteranSave, vigil, wipeSave } from '../vigil/save';
+import { forgetHeard, giveHome, setFlag, setFreed, setParts, veteranSave, vigil, wipeSave } from '../vigil/save';
 import { setTownWear, speakerName, talkTo, takeTownGallery, townGallery, townWear } from '../vigil/town';
 import { bondTo, giftsInfo, givePower, questState, questTo } from '../vigil/gifts';
+import { chooseGarden, lightBlessing, unfoldInfo } from '../vigil/unfold';
+import { openWayNow } from '../vigil/place';
+import { BAR_SCHOOLS } from '../vigil/vigilMap';
 import { BOND_MAX, TOWNSFOLK, disciplinesOpen } from '../vigil/giftData';
 import { DIALOGUE, SPEAKERS } from '../vigil/dialogueData';
 import { buildBargain, openBargainHere } from '../world/bargain';
@@ -116,7 +119,7 @@ const S = STR.dev;
 let kaelithBox: HTMLElement, daylightBox: HTMLElement, keepBox: HTMLElement, vigilBox: HTMLElement, shadeBox: HTMLElement, townBox: HTMLElement, momentBtn: HTMLButtonElement;
 let talkMoment: 'death' | 'won' | 'boss' | null | undefined; // (M7 step 7: the moment the dev menu's talks are at; undefined: the last run's)
 const flagBtns: [string, HTMLButtonElement][] = [];
-let wearBtn: HTMLButtonElement, giftBox: HTMLElement; const powerBtns: [string, HTMLButtonElement][] = [], bondBtns: [string, HTMLButtonElement][] = [], questBtns: [string, HTMLButtonElement][] = [];
+let wearBtn: HTMLButtonElement, giftBox: HTMLElement, unfoldBox: HTMLElement; const powerBtns: [string, HTMLButtonElement][] = [], bondBtns: [string, HTMLButtonElement][] = [], questBtns: [string, HTMLButtonElement][] = [];
 let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, madeLookBtn: HTMLButtonElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
 let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, runesBtn: HTMLButtonElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement, creatureLookBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
@@ -642,6 +645,18 @@ function build() {
   for (const id of SHADE_IDS) { const b = btn('', () => { bondTo(id, ((vigil().bonds[id] ?? 0) + 1) % (BOND_MAX + 1)); refresh(); }); bondBtns.push([id, b]); bondRow.append(b); }
   for (const q of TOWNSFOLK.quests) { const b = btn('', () => { const s = questState(q.by); questTo(q.by, s === 'done' ? null : s === 'open' || s === 'ready' ? 'done' : 'open'); refresh(); }); questBtns.push([q.by, b]); questRow.append(b); }
   gf.parentElement!.append(powerRow, bondRow, questRow);
+  // M7 step 9: the unfolding: each barred way opened at once (at the Vigil, there and then), or every way closed again (the
+  // Vigil woken again); a townsperson's candle lit in the chapel for the next descent; the garden's reagent
+  const uf = section(pages.rooms, S.unfold);
+  uf.append(unfoldBox = el('p', 'dv-info'));
+  const partRow = el('div', 'dv-row'), blessRow = el('div', 'dv-row'), gardenRow = el('div', 'dv-row');
+  for (const sc of BAR_SCHOOLS) partRow.append(btn(S.openPart(STR.schools[sc] ?? sc), () => { openWayNow(sc); refresh(); }));
+  partRow.append(btn(S.partsAll, () => { setParts([...BAR_SCHOOLS]); again(); }), btn(S.closeParts, () => { setParts([]); again(); }));
+  blessRow.append(btn(S.blessNone, () => { lightBlessing(null); refresh(); }));
+  for (const id of SHADE_IDS) blessRow.append(btn(S.bless(STR.shades.names[id]), () => { lightBlessing(id); refresh(); }));
+  gardenRow.append(btn(S.gardenNone, () => { chooseGarden(null); refresh(); }));
+  for (const id of REAGENT_IDS) gardenRow.append(btn(S.gardenOf(REAGENTS[id].name), () => { chooseGarden(id); refresh(); }));
+  uf.parentElement!.append(partRow, blessRow, gardenRow);
   const runs = section(pages.rooms, S.newRun);
   FLOORS.forEach((f, i) => runs.append(btn(f.fixed ? S.toSeal : S.floorN(i + 1), () => start({ floor: i, level: levelAtFloor(i) > 1 ? levelAtFloor(i) : undefined })))); // (M6 step 12: at the floor's expected level, its choices waiting)
   const keep = el('label', 'dv-check'); const box = el('input'); box.type = 'checkbox'; box.checked = keepCarried;
@@ -674,6 +689,7 @@ function refresh() {
   const v = vigil(); keepBox.textContent = S.keepingInfo(v.dust, v.obols, v.runs, v.wins, v.deepest);
   townBox.textContent = S.townInfo(vigil().freed.length, Object.keys(vigil().heard).length, Object.keys(vigil().flags).length); momentBtn.textContent = S.talkMoment(talkMoment === undefined ? S.lastRun : talkMoment ?? S.idle);
   for (const [k, b] of flagBtns) b.classList.toggle('on', vigil().flags[k] !== undefined);
+  { const u = unfoldInfo(); unfoldBox.textContent = S.unfoldInfo(u.parts.map(p => STR.schools[p] ?? p).join(', '), u.blessing ? STR.shades.names[u.blessing] : '-', u.garden ? REAGENTS[u.garden as ReagentId].name : '-', 'cave' in u && u.cave ? u.cave.built : 0); }
   const gi = giftsInfo(); giftBox.textContent = S.giftsInfo(gi.powers.length, disciplinesOpen(vigil().freed).map(d => STR.gifts.disciplines[d]).join(', '), JSON.stringify(gi.start));
   wearBtn.textContent = S.townWear[townWear()]; wearBtn.classList.toggle('on', townWear() === 'code');
   for (const [id, b] of powerBtns) b.classList.toggle('on', vigil().powers.includes(id));

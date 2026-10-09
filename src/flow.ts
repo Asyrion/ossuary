@@ -41,6 +41,7 @@ import { arriveAtSeal, atSeal, enterSealRoom } from './world/seal';
 import { kaelithKneels, resetKaelith } from './actors/kaelith';
 import { recordRun, resetRunFirsts, runFirsts, vigil } from './vigil/save';
 import { VIGIL, VIGIL_INDEX, vigilPlan } from './vigil/vigilMap';
+import { vigilWalled } from './vigil/unfold';
 import { atVigil } from './vigil/where';
 import { clearShade, placeShade } from './vigil/shades';
 import { clearShadeHelp, helpNewFloor, helpRoomCleared, shadesWalk } from './vigil/shadeHelp';
@@ -154,7 +155,7 @@ function newRun(seed: string): typeof G.run {
     bottles: bottlesFor(Rng.from(seed, 'bottles').int(0, 2 ** 30)), identified: [], alchemy: Rng.from(seed, 'alchemy'), reagents: Rng.from(seed, 'reagents'), runes: Rng.from(seed, 'runes'), socketsOpened: 0, remedy: null,
     serpent: 'caged', restless: Rng.from(seed, 'serpent').chance(CFG.alchemy.vat.restless),
     insight: 0, level: 1, pending: 0, potionsUsed: [], attrs: noAttrs(), boons: {}, casts: {}, pledge: null, deals: 0, thirst: 0, acted: {}, afterglow: null,
-    bosses: 0, kaelith: false, struck: null, fell: [], shadesMet: [], freed: [], walking: [],
+    bosses: 0, kaelith: false, struck: null, fell: [], shadesMet: [], freed: [], walking: [], blessing: null,
   };
 }
 
@@ -210,13 +211,14 @@ export function begin() {
     fight; the mage beside the bier in the Crypt. */
 function buildVigil(first: boolean) {
   clearFloor(); G.trans = null; hideBossBar(); resetKaelith(); leaveDaylight(); clearPages();
-  const plan = vigilPlan(Rng.from('the Vigil', 'rooms')); // (its own seed: the Vigil looks the same every waking)
+  const plan = vigilPlan(Rng.from('the Vigil', 'rooms'), VIGIL, undefined, vigil().parts); // (its own seed: the Vigil looks the same every waking; M7 step 9: the ways not yet opened barred)
   G.run.plan = plan;
   applyFloorLook(VIGIL.look);
-  for (const p of plan.rooms) buildRoom(p, VIGIL_INDEX, VIGIL.look);
+  plan.rooms.forEach((p, i) => { const k = VIGIL.rooms[i].kit; buildRoom(p, VIGIL_INDEX, k ? { ...VIGIL.look, kit: { ...VIGIL.look.kit, ...k } as typeof VIGIL.look.kit } : VIGIL.look); }); // (a room behind a barred way in its own kinds)
   furnishVigil(first); // (before the walls: its pieces keep their spans of wall clear of torches)
   for (const r of G.rooms) buildWallsAndDoors(r);
   linkDoors(G.rooms);
+  vigilWalled(); // (M7 step 9: the Cave Mouth opens its north wall onto the valleys)
   const w = wakePoint();
   G.current = w.room; player.x = w.x; player.z = w.z; player.vx = player.vz = 0; player.yawA = 0;
   aimCamera(w.room); setDarkness(0, true);
@@ -275,7 +277,7 @@ export function enterRoom(room: Room) {
   const firstVisit = !room.visited;
   wandererLeaves(room); // (the Wandering Merchant stays in the room it rode into)
   G.current = room; room.visited = true; room.known = true; showRooms(room);
-  for (const d of doorsOf(room)) if (!d.secret || d.secret.open) d.nb.known = true; // not what's behind a cracked wall
+  for (const d of doorsOf(room)) if ((!d.secret || d.secret.open) && !d.plug) d.nb.known = true; // not what's behind a cracked wall, nor behind a way at the Vigil still barred (M7 step 9)
   applyRoomTorches(room.look); resetTorchLights(room.torches, player.x, player.z);
   setDarkness(room.plan.variant === 'dark' && !room.candlesLit ? 1 : 0); // lit candle stands keep the dark away
   if (!room.cleared && room.plan.variant === 'ambush' && room.ambush !== 'sprung') room.ambush = 'armed'; // looks empty, for now

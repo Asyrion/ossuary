@@ -86,7 +86,9 @@ export const STR = {
       lectern's screen and the Ferryman's boat. */
   vigil: {
     name: 'The Vigil', titleStart: 'Wake at the Vigil',
-    rooms: { crypt: ['The Crypt', 'Where the candles burn for you'], nave: ['The Nave', 'The Great Circle, and the bell'], landing: ['The Landing', 'The Ferryman waits at the water'] } as Record<'crypt' | 'nave' | 'landing', Banner>,
+    rooms: { crypt: ['The Crypt', 'Where the candles burn for you'], nave: ['The Nave', 'The Great Circle, and the bell'], landing: ['The Landing', 'The Ferryman waits at the water'],
+      cave: ['The Cave Mouth', 'The valleys, and the morning'], chapel: ['The Candle Chapel', 'A candle for each who rests here'], pool: ['The Scrying Pool', 'Still water, waiting to be asked'],
+      gallery: ['The Echoes\' Gallery', 'Room for more of those you were'], garden: ['The Garden of the Dead', 'Things grow where the dead are tended'], practice: ['The Practice Crypt', 'Where the dead once drilled the living'] } as Record<string, Banner>,
     firstWake: 'You wake on a bier in the dark. One candle lights itself on the wall: it burns for you.',
     wake: 'You wake on the bier. Your candle still burns.',
     bars: {
@@ -97,7 +99,31 @@ export const STR = {
       umbral: 'A veil of shadow across the arch. Only a deeper dark would part it.',
       verdant: 'A dead root broken through the wall. Something green might wake it.',
     } as Record<string, string>,
-    holds: 'It stirs at its own school, and holds, for now.',
+    unmoved: 'It does not answer to that. Another school bars it.',
+    /** M7 step 9: a barred way opened by its school. */
+    opened: {
+      ember: 'The ice runs off the stair in steam. Warm air comes down it, and the smell of grass.',
+      frost: 'The black water freezes from the edge inward. The cellar stair can be walked now.',
+      storm: 'The rune stones take the spark one by one. The door draws back into the rock.',
+      hallow: 'The chapel\'s candles catch from the light you brought. Its arch stands open.',
+      umbral: 'The veil folds back into deeper dark. Beyond it, a gallery waits.',
+      verdant: 'The dead root greens and flowers, and draws aside from the arch.',
+    } as Record<string, string>,
+    /** M7 step 9: what is said in the rooms behind them. */
+    unfold: {
+      cave: (n: number) => n ? `The Cave Mouth: ${n === 1 ? 'one of the freed has built' : `${n} of the freed have built`} here, and the light comes further in` : 'The Cave Mouth: open to the valleys, and empty. The freed will build here.',
+      chapelEmpty: 'Ten places for candles, all of them cold. Free the dead below, and their candles will wait here.',
+      light: (name: string, what: string) => `${name}'s candle burns for your next descent: ${what}`,
+      snuff: (name: string) => `${name}'s candle is out`,
+      notFreed: 'A cold place for a candle. Whoever it waits for is still below, in chains.',
+      blessed: (name: string, what: string) => `${name}'s candle burns with you: ${what}`,
+      gardenFallow: 'The beds lie fallow. Someone who knew how to tend the dead\'s gardens would make them grow.',
+      garden: (what: string) => `The garden will give you ${what} every descent`,
+      pool: 'The water is still and black. It will answer, in time, to what is cast into it.',
+      practice: 'Old tombs, scarred by spells. Nothing here fights back yet.',
+      gallery: 'Empty plinths in the dark. The echoes of more of your descents will stand here.',
+    },
+
     circle: 'The Great Circle, cut into the floor. Its rings are dark.',
     boat: 'The Ferryman pushes off. The first landing asks nothing.',
     runInfo: 'At the Vigil, between descents',
@@ -153,6 +179,12 @@ export const STR = {
       map: () => "the first floor's map", maxMana: (n: number) => `+${n} mana`, hearts: (n: number) => n === 1 ? 'a heart container' : `${n} heart containers`,
       socket: () => 'a second socket',
     } as Record<string, (n: never) => string>,
+    /** M7 step 9: a candle's blessing on the mage's numbers, in words. */
+    bless: {
+      spellDamageMul: (v: number) => `your spells ${Math.round((v - 1) * 100)}% harder`, regenMul: (v: number) => `mana back ${Math.round((v - 1) * 100)}% faster`,
+      speedMul: (v: number) => `${Math.round((v - 1) * 100)}% swifter on your feet`, fireDelayMul: (v: number) => `the cantrip ${Math.round((1 / v - 1) * 100)}% quicker`,
+      mana: (n: number) => `+${n} mana`, heartHalves: (n: number) => n === 1 ? 'half a heart more' : `${n} half hearts more`,
+    },
     each: (what: string) => `${what}, every descent`,
     freed: (name: string, what: string) => `${name} gives: ${what}`,
     second: (name: string, what: string) => `${name} gives more: ${what}`,
@@ -1053,6 +1085,9 @@ export const STR = {
     talkTo: (name: string) => `${name} talks`, nothingToSay: 'Nothing to say', lastRun: 'as the last run', idle: 'none (idle)',
     talkMoment: (m: string) => `Moment: ${m}`, townGallery: 'The townspeople: the ten freed shades (M7 step 7)',
     gifts: 'Gifts, bonds and powers (M7 step 8)',
+    unfold: 'The unfolding (M7 step 9)', openPart: (school: string) => `Open ${school}`, closeParts: 'Close every way again', partsAll: 'Open every way',
+    bless: (name: string) => `${name}'s candle`, blessNone: 'No candle lit', gardenOf: (name: string) => name, gardenNone: 'No garden reagent',
+    unfoldInfo: (parts: string, blessing: string, garden: string, built: number) => `Open: ${parts || 'none'} · candle lit: ${blessing} · the garden gives: ${garden} · the Cave Mouth: ${built} built`,
     giftsInfo: (powers: number, disciplines: string, start: string) => `${powers} of 6 powers · disciplines: ${disciplines} · a descent begins with ${start}`,
     bond: (name: string, n: number, of: number) => `${name}: bond ${n}/${of}`, quest: (name: string, state: string) => `${name}'s quest: ${state}`,
     townInfo: (freed: number, heard: number, flags: number) => `${freed} freed · ${heard} lines heard · ${flags} flags set`,

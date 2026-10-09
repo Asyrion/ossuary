@@ -2,10 +2,12 @@
    has built them from data/vigil.json (`furnishVigil`), and what happens there each step (`updateVigil`): the candle wall
    lit (one candle for each candle earned; the first lights itself on the first waking, in the dark), the lectern opening
    its screen when the mage walks up (ui/lectern.ts), the Ferryman's boat taking the mage down when it steps aboard, each
-   barred way saying what bars it, and the Ferryman's head turning to the mage. Nothing here can hurt the mage, and nothing
+   barred way saying what bars it (and opening to its school, M7 step 9), and the Ferryman's head turning to the mage. Nothing here can hurt the mage, and nothing
    is fought. `leaveVigil` (from flow's `buildFloor`) forgets it. */
 import * as THREE from 'three';
 import type { Room, RockBox, Torch } from '../types';
+import { unplugDoor } from '../world/rooms';
+import { disposeTree } from '../render/materials';
 import { CFG } from '../config';
 import { G, after, player } from '../state';
 import { STR } from '../strings';
@@ -15,15 +17,17 @@ import { setDarkness } from '../render/lights';
 import { banner, line } from '../ui/hud';
 import { burst } from '../combat/fx';
 import { schoolOf, type School } from '../actors/foeData';
-import { lightCandle, vigil } from './save';
-import { VIGIL, roomIndex, tilesOf, type VigilBar, type VigilPiece } from './vigilMap';
+import { lightCandle, openPart, vigil } from './save';
+import { VIGIL, roomIndex, type VigilBar, type VigilPiece } from './vigilMap';
 import { FACE_TURN, barLook, candleWallLook, circleLook, moveFerryman, moveVeil, pieceLook } from './vigilLooks';
-import { atVigil, setAtVigil, vigilHooks } from './where';
+import { atVigil, hearLanding, setAtVigil, vigilHooks } from './where';
+import { at, block, keep, middle } from './tiles';
+import { clearUnfold, furnishUnfold, updateUnfold } from './unfold';
 import { clearTown, ferryAt, standFerryman, standTown, updateTown, wearsMade } from './town';
 import { closeTalk, updateTalk } from '../ui/talk';
 
 const C = () => CFG.vigil.place;
-interface Bar { school: School; room: Room; x: number; z: number; said: boolean; stirred?: boolean }
+interface Bar { school: School; room: Room; x: number; z: number; said: boolean; stirred?: boolean; open: boolean; look: THREE.Group; def: VigilBar }
 interface Here {
   first: boolean; t: number; candles: ReturnType<typeof candleWallLook>; lectern: { room: Room; x: number; z: number; armed: boolean };
   boat: { room: Room; x: number; z: number; look: THREE.Object3D; step: { x: number; z: number }; boarded: boolean };
@@ -32,20 +36,6 @@ interface Here {
 let here: Here | null = null;
 /** What the Vigil calls in flow.ts (set there): take the boat down (a run on floor 1), and open the lectern's screen. */
 export const vigilActs = { board: () => {}, openLectern: () => {} };
-
-/** A tile's middle in the world. */
-const at = (room: Room, c: number, r: number) => ({ x: room.bounds.minX + c, z: room.bounds.minZ + r });
-/** Where a piece or bar covering tiles from (c, r), `w` × `h`, has its middle. */
-const middle = (room: Room, p: { at: [number, number]; size?: [number, number] }) => { const [w, h] = p.size ?? [1, 1]; return at(room, p.at[0] + w / 2, p.at[1] + h / 2); };
-/** It blocks its tiles, as a rock that never breaks; `bar` for a barred way. */
-function block(room: Room, p: { at: [number, number]; size?: [number, number] }, bar?: School) {
-  for (const [c, r] of tilesOf(p)) { const m = at(room, c + .5, r + .5); room.rocks.push({ x: m.x, z: m.z, hx: .5, hz: .5, hp: 0, breakable: false, tile: { c, r }, ...(bar && { bar }) } as RockBox); }
-}
-/** Its span of wall, kept clear of torches and the wall's dressing. */
-function keep(room: Room, side: 'n' | 's' | 'e' | 'w', p: { at: [number, number]; size?: [number, number] }) {
-  const m = middle(room, p), [w, h] = p.size ?? [1, 1], along = side === 'n' || side === 's';
-  (room.keepClear ??= []).push({ side, at: along ? m.x : m.z, half: (along ? w : h) / 2 + .1 });
-}
 
 /** Furnish the Vigil's rooms (G.rooms, built from its plan, before their walls): its pieces, barred ways and circle.
     `first`: the first waking, in the dark, its first candle about to light. */
@@ -73,19 +63,27 @@ export function furnishVigil(first: boolean) {
   }
   const bars: Bar[] = [], veils: THREE.Mesh[] = [];
   for (const b of VIGIL.bars) {
-    const r = room(b.room), m = middle(r, b), [w, h] = b.size ?? [1, 1], built = barLook(b.school, b.side === 'n' || b.side === 's' ? w : h, r.look);
-    const face = { n: { x: m.x, z: r.bounds.minZ }, s: { x: m.x, z: r.bounds.maxZ }, w: { x: r.bounds.minX, z: m.z }, e: { x: r.bounds.maxX, z: m.z } }[b.side];
-    built.group.position.set(face.x - r.cx, 0, face.z - r.cz); built.group.rotation.y = FACE_TURN[b.side];
-    r.group.add(built.group); block(r, b, b.school); keep(r, b.side, b);
+    const r = room(b.room), m = middle(r, b), open = vigil().parts.includes(b.school), built = buildBar(b, r, open);
+    if (!open) block(r, b, b.school);
+    keep(r, b.side, b);
     if (built.veil) veils.push(built.veil);
-    bars.push({ school: b.school, room: r, x: m.x, z: m.z, said: false });
+    bars.push({ school: b.school, room: r, x: m.x, z: m.z, said: false, open, look: built.group, def: b });
   }
   const cr = room(VIGIL.circle.room), cm = at(cr, VIGIL.circle.at[0], VIGIL.circle.at[1]), ring = circleLook(VIGIL.circle.radius);
   ring.position.set(cm.x - cr.cx, 0, cm.z - cr.cz); cr.group.add(ring);
   here = { first, t: 0, candles: candles!, lectern: lectern!, boat: boat!, bars, veils, circle: { room: cr, ...cm, r: VIGIL.circle.radius, said: false }, seen: new Set() };
   here.candles.setLit(first ? 0 : litCandles()); refreshCandleLight();
+  furnishUnfold(); // (M7 step 9: the rooms behind the barred ways)
   standTown(rooms); ferryAt(here.boat.room, here.boat.step.x, here.boat.step.z); standFerryman(here.boat.look); // (M7 step 7: the freed, and the Ferryman's first word)
   setAtVigil(true);
+}
+/** A barred way's look (closed, or as its school left it), set against its wall in its room. */
+function buildBar(b: VigilBar, r: Room, open: boolean) {
+  const m = middle(r, b), [w, h] = b.size ?? [1, 1], built = barLook(b.school, b.side === 'n' || b.side === 's' ? w : h, r.look, open);
+  const face = { n: { x: m.x, z: r.bounds.minZ }, s: { x: m.x, z: r.bounds.maxZ }, w: { x: r.bounds.minX, z: m.z }, e: { x: r.bounds.maxX, z: m.z } }[b.side];
+  built.group.position.set(face.x - r.cx, 0, face.z - r.cz); built.group.rotation.y = FACE_TURN[b.side];
+  r.group.add(built.group);
+  return built;
 }
 /** The wall a piece stands against (the north one, for those on its first row), if any. */
 const wallOf = (_r: Room, p: Pick<VigilPiece, 'at' | 'kind'>): 'n' | null => p.at[1] === 0 && p.kind !== 'boat' ? 'n' : null;
@@ -117,7 +115,8 @@ function refreshCandleLight() {
 export function updateVigil(dt: number) {
   if (!here) return;
   renderVigilHud();
-  updateTalk(dt); updateTown(dt, G.state === 'play' && !G.trans); // (M7 step 7: the townspeople, even while one talks)
+  updateTalk(dt); updateTown(dt, G.state === 'play' && !G.trans);
+  updateUnfold(dt); // (M7 step 9) // (M7 step 7: the townspeople, even while one talks)
   if (G.state !== 'play') return;
   const h = here, room = G.current; h.t += dt;
   for (const v of h.veils) moveVeil(v, h.t);
@@ -135,7 +134,7 @@ export function updateVigil(dt: number) {
   // the boat: stepped into from the jetty's end
   if (room === b.room && !b.boarded && Math.hypot(player.x - b.step.x, player.z - b.step.z) < C().boatReach) board();
   // a barred way says what bars it, once a waking
-  for (const bar of h.bars) if (!bar.said && room === bar.room && Math.hypot(player.x - bar.x, player.z - bar.z) < C().barReach) { bar.said = true; line(STR.vigil.bars[bar.school], 5); }
+  for (const bar of h.bars) if (!bar.open && !bar.said && room === bar.room && Math.hypot(player.x - bar.x, player.z - bar.z) < C().barReach) { bar.said = true; line(STR.vigil.bars[bar.school], 5); }
   if (!h.circle.said && room === h.circle.room && Math.hypot(player.x - h.circle.x, player.z - h.circle.z) < h.circle.r) { h.circle.said = true; line(STR.vigil.circle, 4.5); }
 }
 
@@ -154,17 +153,42 @@ export function board() {
   after(C().boatDelay, () => { if (atVigil()) vigilActs.board(); });
 }
 
-/** A bolt of the mage's struck a barred way: its own school stirs it (a flash in its light, a line), but it holds until
-    step 9 opens it. */
-vigilHooks.barStruck = (rock, x, z, status) => {
-  const school = rock.bar, by = schoolOf(status); if (!here || !school || by !== school) return;
-  burst(x, .8, z, SCHOOL_LIGHT[school], 12, 1.4, .04); Sfx.at(x, z).wardTink();
+/** A bolt or beam of the mage's struck a barred way: its own school opens it (M7 step 9; before, it only stirred). */
+vigilHooks.barStruck = (rock, x, z, status, beam) => {
+  const school = rock.bar, by = beam ?? schoolOf(status); if (!here || !school) return;
   const bar = here.bars.find(b => b.school === school);
-  if (bar && !bar.stirred) { bar.stirred = true; line(STR.vigil.holds, 4); }
+  if (!bar || bar.open) return;
+  if (by === school) { openWay(bar); return; }
+  if (by && !bar.stirred) { bar.stirred = true; burst(x, .8, z, SCHOOL_LIGHT[by], 6, 1, .03); Sfx.at(x, z).wardTink(); line(STR.vigil.unmoved, 3.5); } // (another school: it holds)
 };
+/** A school landing at the Vigil (a seal's fire, the ice wall's frost, holy ground, the grasp's dark, the thorns): a way
+    barred by it, within reach, opens. */
+hearLanding((school, x, z, r) => {
+  if (!here || school === 'blast') return;
+  for (const bar of here.bars) if (!bar.open && bar.school === school && bar.room === G.current && Math.hypot(bar.x - x, bar.z - z) < C().barCatch + r) openWay(bar);
+});
+/** A barred way opens: its look as its school left it, its tiles free, the wall filling its doorway gone (both sides), the
+    room behind it known; kept in the save. Nothing silent: a burst in its light, its sound, its line. */
+function openWay(bar: Bar) {
+  if (bar.open || !here) return;
+  bar.open = true; openPart(bar.school);
+  const r = bar.room;
+  r.rocks = r.rocks.filter(k => (k as RockBox).bar !== bar.school);
+  const veil = bar.look.userData.parts?.veil as THREE.Mesh | undefined; if (veil) here.veils = here.veils.filter(v => v !== veil);
+  bar.look.removeFromParent(); disposeTree(bar.look);
+  bar.look = buildBar(bar.def, r, true).group;
+  const d = r.doors.filter(o => o.plug).sort((a, b) => Math.hypot(a.x - bar.x, a.z - bar.z) - Math.hypot(b.x - bar.x, b.z - bar.z))[0];
+  if (d) { unplugDoor(d); d.nb.known = true; }
+  const light = SCHOOL_LIGHT[bar.school];
+  burst(bar.x, .9, bar.z, light, 26, 2.4, .06); burst(bar.x, .4, bar.z, 0xfff2d0, 10, 1.4, .05);
+  Sfx.at(bar.x, bar.z).wayOpens(); G.shake = Math.max(G.shake, .18);
+  line(STR.vigil.opened[bar.school], 6);
+}
+/** The dev menu: a way opened at once (where the mage is or not). */
+export function openWayNow(school: School) { const bar = here?.bars.find(b => b.school === school); if (bar) openWay(bar); else openPart(school); }
 
 /** Leave the Vigil (a floor is built): forget it. */
-export function leaveVigil() { closeTalk(); clearTown(); here = null; shown = ''; setAtVigil(false); }
+export function leaveVigil() { closeTalk(); clearTown(); clearUnfold(); here = null; shown = ''; setAtVigil(false); }
 
 /** For the dev menu and the tests: where the mage is, the candles lit, the lectern and boat. */
 export function vigilInfo() {
@@ -173,7 +197,7 @@ export function vigilInfo() {
   return {
     here: true as const, room: name, first: here.first, candles: here.candles.lit, slots: [...player.spells],
     lectern: { x: here.lectern.x, z: here.lectern.z }, boat: { x: here.boat.step.x, z: here.boat.step.z, boarded: here.boat.boarded },
-    bars: here.bars.map(b => ({ school: b.school, x: b.x, z: b.z, said: b.said, stirred: !!b.stirred })), circle: { x: here.circle.x, z: here.circle.z, r: here.circle.r },
+    bars: here.bars.map(b => ({ school: b.school, x: b.x, z: b.z, said: b.said, stirred: !!b.stirred, open: b.open })), parts: [...vigil().parts], circle: { x: here.circle.x, z: here.circle.z, r: here.circle.r },
   };
 }
 /** Where the mage wakes, in the world (the Crypt, beside the bier). */

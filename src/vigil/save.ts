@@ -77,6 +77,16 @@ export function spend(dust: number, obols: number) {
 export function setBond(id: string, n: number) { const b = { ...save.bonds }; if (n > 0) b[id] = n; else delete b[id]; save.bonds = b; persist(); }
 export function setPower(id: string, owned: boolean) { save.powers = owned ? [...new Set([...save.powers, id])] : save.powers.filter(p => p !== id); persist(); }
 
+/** M7 step 9: a part of the Vigil opened by its school (or closed again, the dev menu: none, or every one). */
+export function openPart(school: string) { if (!save.parts.includes(school)) { save.parts = [...save.parts, school]; persist(); } }
+export function setParts(schools: string[]) { save.parts = [...schools]; persist(); }
+/** M7 step 9: a townsperson's candle lit in the chapel (or none): its blessing goes with the next descent. */
+export function setBlessing(id: string | null) { save.blessing = id; persist(); }
+/** A descent begins: the candle lit for it burns down with it (its blessing the run's); none is lit after. */
+export function takeBlessing() { const b = save.blessing; if (b) { save.blessing = null; persist(); } return b; }
+/** M7 step 9: the reagent the garden of the dead gives every descent (or none). */
+export function setGarden(id: string | null) { save.garden = id; persist(); }
+
 /** The dev menu: every line forgotten (the townspeople say their first again). */
 export function forgetHeard() { save.heard = {}; persist(); }
 /** The dev menu: every shade freed, or none (those freed go back to their chains). */

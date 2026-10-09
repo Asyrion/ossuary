@@ -35,13 +35,15 @@ export interface VigilSave {
   /** M7 step 5: the two spells the mage holds at the Vigil (Q and E), chosen at its lectern. */ slots: (string | null)[];
   /** M7 step 7: the townspeople's lines heard (a line's id, or `id@subject` for one that tells of something), each with
       when it was heard (a count: the higher, the later). */ heard: Record<string, number>;
+  /** M7 step 9: the townsperson whose candle burns in the chapel for the next descent (its blessing), and the reagent the
+      garden of the dead gives every descent (the embalmer's). */ blessing: string | null; garden: string | null;
 }
 
 export function blankSave(): VigilSave {
   return {
     v: SAVE_VERSION, knowledge: {}, reactions: [], weaves: [], bestiary: {}, recipes: { pairs: {}, potions: [] },
     dust: 0, obols: 0, runs: 0, wins: 0, deepest: 0, echoes: [], found: [],
-    freed: [], bound: [], bonds: {}, flags: {}, parts: [], candle: false, sigils: { owned: [], placed: [] }, powers: [], slots: [null, null], heard: {},
+    freed: [], bound: [], bonds: {}, flags: {}, parts: [], candle: false, sigils: { owned: [], placed: [] }, powers: [], slots: [null, null], heard: {}, blessing: null, garden: null,
   };
 }
 
@@ -70,6 +72,7 @@ export function migrate(raw: unknown, legacy: Partial<Record<SlotKey, unknown>> 
   s.candle = !!r.candle; const sg = obj(r.sigils); s.sigils = { owned: strs(sg.owned), placed: strs(sg.placed) };
   const sl = Array.isArray(r.slots) ? r.slots : []; s.slots = [0, 1].map(i => typeof sl[i] === 'string' ? sl[i] as string : null);
   s.heard = Object.fromEntries(Object.entries(obj(r.heard)).filter(([, v]) => typeof v === 'number')) as Record<string, number>;
+  s.blessing = typeof r.blessing === 'string' ? r.blessing : null; s.garden = typeof r.garden === 'string' ? r.garden : null;
   return s;
 }
 

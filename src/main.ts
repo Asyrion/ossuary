@@ -51,14 +51,15 @@ import { ARTIFACTS } from './items/artifactData';
 import { askVigil, begin, clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRun, startGame, startsAtVigil, toggleSound, wakeAtVigil, warp } from './flow';
 import { STR } from './strings';
 import { closeLectern, holdIn, initLectern, lecternKey, lecternNow, lecternOpen, lecternPad, openLectern } from './ui/lectern';
-import { board, vigilActs, vigilInfo } from './vigil/place';
+import { board, openWayNow, vigilActs, vigilInfo } from './vigil/place';
 import { answerShade, bindIt, breakAllChains, freeIt, layShade, shadeInfo } from './vigil/shades';
 import { shadeHelpInfo, walkWith } from './vigil/shadeHelp';
 import { talkTo, townGallery, takeTownGallery, townInfo } from './vigil/town';
 import { actOn, bondTo, giftsInfo, givePower, offersFor, questTo } from './vigil/gifts';
+import { chooseGarden, lightBlessing, unfoldInfo } from './vigil/unfold';
 import { disciplinesOpen } from './vigil/giftData';
 import { closeTalk, goOn, initTalk, say, talkKey, talkNow, talkOpen, talkPad } from './ui/talk';
-import { forgetHeard, setFlag } from './vigil/save';
+import { forgetHeard, setFlag, setParts } from './vigil/save';
 import { gainInsight, insightNow, setLevel } from './progression/insight';
 import { pointsToSpend, spendPoint } from './progression/points';
 import { boonsNow, dealNow, takeBoon } from './progression/boons';
@@ -454,6 +455,11 @@ function installDevHooks() {
         with, the disciplines open; a power given or taken, a bond set, a quest given or done (or forgotten: null). */
     get gifts() { return { ...giftsInfo(), disciplines: disciplinesOpen(vigil().freed) }; },
     givePower: (id: string, owned = true) => { givePower(id, owned); refreshStats(false); }, bondTo, questTo,
+    /** M7 step 9: the unfolding: the parts opened, the candle lit, the garden's reagent, what the Cave Mouth holds, the chapel's
+        candles and the garden's beds; a way opened at once (at the Vigil, there and then), every way closed (or opened) again,
+        a candle lit (or none), the garden's reagent chosen. */
+    get unfold() { return unfoldInfo(); }, openPart: (school: School) => openWayNow(school), setParts: (schools: string[]) => setParts(schools),
+    lightBlessing: (id: string | null) => lightBlessing(id), chooseGarden: (id: ReagentId | null) => chooseGarden(id),
     toVigil: (first = false) => wakeAtVigil(first), lecternChoose: (hand: number, id: string | null) => holdIn(hand, id), openLectern, closeLectern, takeBoat: () => board(),
     /** M4.2: Fen-Nex (its stage, where it is, whether it hunts), and growing it a stage. */
     get fennex() { return fennexInfo(); }, growFennex() { growFennex(); },

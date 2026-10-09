@@ -5003,12 +5003,12 @@ test('the keeping (M7 step 4): one save takes over the five keys kept before it;
 
 test('the Vigil as a place (M7 step 5): the first waking is dark until its candle lights itself; three rooms with nothing to fight; the lectern puts learned spells in hand and keeps them; the six barred ways say what bars them and stir at their own school; no glyphs; the boat goes down to floor 1; a run\'s end and the title lead back to it', async ({ page }) => {
   const errors = await start(page, '?vigil=first');
-  type VP = { here: boolean; room: string | null; first: boolean; candles: number; slots: (string | null)[]; lectern: { x: number; z: number; open: boolean; entries: string[]; hands: (string | null)[] }; boat: { x: number; z: number; boarded: boolean }; bars: { school: string; x: number; z: number; said: boolean; stirred: boolean }[] };
+  type VP = { here: boolean; room: string | null; first: boolean; candles: number; slots: (string | null)[]; lectern: { x: number; z: number; open: boolean; entries: string[]; hands: (string | null)[] }; boat: { x: number; z: number; boarded: boolean }; bars: { school: string; x: number; z: number; said: boolean; stirred: boolean; open: boolean }[] };
   type VG = { vigilPlace: VP; vigil: { candle: boolean; slots: (string | null)[]; runs: number }; know(id: string, s: string): void; sim(s: number, d?: boolean): void; warp(i: number): void; mana(n: number): void; cast(slot: number, dir?: { x: number; z: number }): void; player: { x: number; z: number; spells: (string | null)[]; glyphs: number }; enemies: unknown[]; rooms(): RoomView[]; state: string; current: RoomView; lightLevels?: unknown };
   const wake = await page.evaluate(() => {
     const g = (window as unknown as { __game: VG }).__game, at0 = { ...g.vigilPlace, dark: document.body.classList.contains('vigil') };
     g.sim(.5); const before = g.vigilPlace.candles;
-    g.sim(5); return { at0, before, after: g.vigilPlace.candles, kept: g.vigil.candle, enemies: g.enemies.length, open: g.rooms().every(r => r.doors.every(d => d.open) && r.cleared),
+    g.sim(5); return { at0, before, after: g.vigilPlace.candles, kept: g.vigil.candle, enemies: g.enemies.length, open: g.rooms().every(r => r.cleared) && g.rooms().flatMap(r => r.doors).filter(d => !d.open).length === 12, // (every door open but the six barred ways, from both sides: M7 step 9)
       hud: getComputedStyle(document.getElementById('vigilHud')!).display, hearts: getComputedStyle(document.getElementById('hearts')!).display, hudText: document.getElementById('vigilHud')!.textContent };
   });
   expect(wake.at0).toMatchObject({ here: true, room: 'crypt', first: true, candles: 0, dark: true });
@@ -5027,20 +5027,20 @@ test('the Vigil as a place (M7 step 5): the first waking is dark until its candl
   await page.keyboard.press('Escape');
   const hands = await page.evaluate(() => { const g = (window as unknown as { __game: VG }).__game; return { state: g.state, spells: [...g.player.spells], kept: g.vigil.slots, open: g.vigilPlace.lectern.open }; });
   expect(hands).toEqual({ state: 'play', spells: ['rime_shards', 'arc'], kept: ['rime_shards', 'arc'], open: false });
-  // a barred way: walked up to, it says what bars it; struck by its own school, it stirs and holds
+  // a barred way: walked up to, it says what bars it; struck by another school, it stirs and holds (its own opens it: M7 step 9)
   const bar = await page.evaluate(() => {
-    const g = (window as unknown as { __game: VG }).__game; g.warp(2); g.sim(.6);
-    const b = g.vigilPlace.bars.find(x => x.school === 'frost')!; g.player.x = b.x; g.player.z = b.z + 1.3; g.sim(.3);
-    g.mana(100); g.cast(0, { x: 0, z: -1 }); g.sim(1);
-    return g.vigilPlace.bars.find(x => x.school === 'frost');
+    const g = (window as unknown as { __game: VG }).__game; g.warp(1); g.sim(.6);
+    const b = g.vigilPlace.bars.find(x => x.school === 'storm')!; g.player.x = b.x; g.player.z = b.z + 1.3; g.sim(.3);
+    g.mana(100); g.cast(0, { x: 0, z: -1 }); g.sim(1); // (Rime Shards: Frost)
+    return g.vigilPlace.bars.find(x => x.school === 'storm');
   });
-  expect(bar).toMatchObject({ said: true, stirred: true });
+  expect(bar).toMatchObject({ said: true, stirred: true, open: false });
   // no glyphs at the Vigil: the chalk won't take
   await page.keyboard.press('Space');
   expect(await page.evaluate(() => { (window as unknown as { __game: VG }).__game.sim(.1); return document.getElementById('toast')!.textContent; })).toContain('chalk will not take');
   // the boat: stepped into from the jetty, down to floor 1, empty-handed
   const down = await page.evaluate(() => {
-    const g = (window as unknown as { __game: VG }).__game, b = g.vigilPlace.boat; g.player.x = b.x; g.player.z = b.z; g.sim(.2);
+    const g = (window as unknown as { __game: VG }).__game; g.warp(2); g.sim(.6); const b = g.vigilPlace.boat; g.player.x = b.x; g.player.z = b.z; g.sim(.2);
     const t = g as unknown as { talkNow: { open: boolean; who?: string }; closeTalk(): void }; // (M7 step 7: the Ferryman's first word, the first time at the jetty)
     if (t.talkNow.open && t.talkNow.who === 'ferryman') { t.closeTalk(); g.sim(.2); }
     const boarded = g.vigilPlace.boat.boarded; g.sim(2.5);
@@ -5252,6 +5252,81 @@ test('gifts, bonds and powers (M7 step 8): a talk ends with what can be offered;
   await page.keyboard.press('Escape');
   expect(errors).toEqual([]);
 });
+test('the unfolding (M7 step 9): the six ways stay walled until their school lands on them (another school does nothing); each opens to a room behind it, kept in the save; the Cave Mouth looks out on the valleys and holds what the freed have built; a candle lit in the chapel blesses the next descent alone; the garden gives its reagent; the dev menu opens and closes them', async ({ page }) => {
+  type Bar = { school: string; x: number; z: number; open: boolean };
+  type UG = { veteranSave(): void; setParts(s: string[]): void; toVigil(first?: boolean): void; sim(s: number, d?: boolean): void; warp(i: number): void; keys: Set<string>;
+    player: { x: number; z: number; maxHp: number; reagents: Record<string, number>; stats: { spellDamage: number } }; current: { type: string; cx: number; cz: number };
+    vigilPlace: { room: string | null; bars: Bar[]; parts: string[] }; element(kind: string, x: number, z: number): void; learn(id: string, slot?: number): void; mana(n: number): void; cast(slot: number, aim?: { x: number; z: number }): void;
+    unfold: { parts: string[]; blessing: string | null; garden: string | null; cave?: { built: number; open: boolean }; candles?: { id: string; x: number; z: number; lit: boolean }[]; beds?: { id: string; x: number; z: number; chosen: boolean }[]; tended?: boolean };
+    lightBlessing(id: string | null): void; takeBoat(): void; run: { blessing: string | null } };
+  const errors = await start(page, '?vigil=1');
+  // every way walled: walking north into the frozen stair, the mage stays in the Nave
+  const walled = await page.evaluate(() => {
+    const g = (window as unknown as { __game: UG }).__game; g.veteranSave(); g.setParts([]); g.toVigil(false); g.sim(1);
+    g.warp(1); g.sim(.6);
+    const ember = g.vigilPlace.bars.find(b => b.school === 'ember')!;
+    g.player.x = ember.x; g.player.z = ember.z + 1.2; g.keys.add('KeyW'); g.sim(1.5); g.keys.delete('KeyW');
+    const stayed = g.vigilPlace.room;
+    g.element('hex', ember.x, ember.z + .6); g.sim(.3); // (the dark: not its school)
+    const afterHex = g.vigilPlace.bars.find(b => b.school === 'ember')!.open;
+    g.element('burn', ember.x, ember.z + .6); g.sim(.5); // (fire: it opens)
+    const opened = { open: g.vigilPlace.bars.find(b => b.school === 'ember')!.open, parts: [...g.unfold.parts] };
+    g.keys.add('KeyW'); g.sim(2.5); g.keys.delete('KeyW'); g.sim(.6);
+    return { shut: g.vigilPlace.bars.every(b => !b.open), stayed, afterHex, opened, through: g.vigilPlace.room, cave: g.unfold.cave };
+  });
+  expect(walled.stayed).toBe('nave'); expect(walled.afterHex).toBe(false);
+  expect(walled.opened).toEqual({ open: true, parts: ['ember'] });
+  expect(walled.through).toBe('cave'); expect(walled.cave).toMatchObject({ built: 10, open: true }); // (every shade freed in the veteran's save: ten things built)
+  await page.screenshot({ path: 'test-results/vigil-cave-mouth.png' });
+  // a spell of its school opens another: Rime Shards cast at the cellar stair under black water
+  const frost = await page.evaluate(() => {
+    const g = (window as unknown as { __game: UG }).__game; g.warp(2); g.sim(.6);
+    const bar = g.vigilPlace.bars.find(b => b.school === 'frost')!;
+    g.learn('rime_shards', 0); g.mana(100); g.player.x = bar.x; g.player.z = bar.z + 2; g.sim(.1);
+    g.cast(0, { x: 0, z: -1 }); g.sim(1);
+    return { open: g.vigilPlace.bars.find(b => b.school === 'frost')!.open, parts: [...g.unfold.parts] };
+  });
+  expect(frost).toEqual({ open: true, parts: ['ember', 'frost'] });
+  // kept: woken again, both stand open, the others walled
+  const kept = await page.evaluate(() => { const g = (window as unknown as { __game: UG }).__game; g.toVigil(false); g.sim(1); return g.vigilPlace.bars.filter(b => b.open).map(b => b.school).sort(); });
+  expect(kept).toEqual(['ember', 'frost']);
+  // the chapel (its way opened by the dev menu's hook): a candle walked up to is lit for the next descent; walked up to again, it goes out
+  const chapel = await page.evaluate(() => {
+    const g = (window as unknown as { __game: UG & { openPart(s: string): void } }).__game; g.openPart('hallow'); g.warp(4); g.sim(.6);
+    const at = (id: string) => g.unfold.candles!.find(c => c.id === id)!;
+    const walkTo = (id: string) => { const c = at(id); g.player.x = c.x; g.player.z = c.z + 2; g.sim(.2); g.player.z = c.z + .7; g.sim(.3); };
+    walkTo('scribe'); const lit = { blessing: g.unfold.blessing, lit: at('scribe').lit };
+    walkTo('scribe'); const out = { blessing: g.unfold.blessing, lit: at('scribe').lit };
+    walkTo('sexton'); const sexton = { blessing: g.unfold.blessing, lit: at('sexton').lit, others: g.unfold.candles!.filter(c => c.lit).length };
+    return { lit, out, sexton };
+  });
+  expect(chapel.lit).toEqual({ blessing: 'scribe', lit: true }); expect(chapel.out).toEqual({ blessing: null, lit: false });
+  expect(chapel.sexton).toEqual({ blessing: 'sexton', lit: true, others: 1 });
+  await page.screenshot({ path: 'test-results/vigil-chapel.png' });
+  // the garden (its way opened by the dev menu's hook): the embalmer tends it, a bed walked up to gives its reagent
+  const garden = await page.evaluate(() => {
+    const g = (window as unknown as { __game: UG & { openPart(s: string): void } }).__game; g.openPart('verdant'); g.warp(7); g.sim(.6);
+    const b = g.unfold.beds!.find(x => x.id === 'emberSalt')!; g.player.x = b.x; g.player.z = b.z + 2; g.sim(.2); g.player.z = b.z + .7; g.sim(.3);
+    return { garden: g.unfold.garden, tended: g.unfold.tended };
+  });
+  expect(garden).toEqual({ garden: 'emberSalt', tended: true });
+  // the next descent: the sexton's half heart, the garden's Ember Salt; the candle burns down with it
+  const run = await page.evaluate(() => {
+    const g = (window as unknown as { __game: UG }).__game; const was = g.player.maxHp; g.takeBoat(); g.sim(3);
+    return { type: g.current.type, blessing: g.run.blessing, saved: g.unfold.blessing, more: g.player.maxHp - was, salt: g.player.reagents.emberSalt ?? 0 };
+  });
+  expect(run).toMatchObject({ type: 'start', blessing: 'sexton', saved: null, salt: 1 });
+  expect(run.more).toBeGreaterThanOrEqual(1); // (half a heart more, with the powers' hearts besides)
+  // the dev menu closes every way again
+  await page.evaluate(() => { const g = (window as unknown as { __game: UG }).__game; g.toVigil(false); g.sim(1); });
+  await page.keyboard.press('F2');
+  await page.locator('#dev .dv-tab', { hasText: 'Rooms' }).click();
+  await page.locator('#dev .dv-page:not([hidden]) button', { hasText: 'Close every way again' }).click();
+  await page.waitForTimeout(300);
+  expect(await page.evaluate(() => (window as unknown as { __game: UG }).__game.vigilPlace.bars.some(b => b.open))).toBe(false);
+  expect(errors).toEqual([]);
+});
+
 
 test('the shrine\'s bargain (M6 step 11): a stone at the circle\'s head; walking up says how; a spell cast into it costs nothing and deals two boons of its school and one general; Esc pays nothing; a boon taken costs a heart container and keeps it, once; the last heart is refused', async ({ page }) => {
   const errors = await start(page, '?room=shrine_henge&spells=cinder_lance,rime_shards');

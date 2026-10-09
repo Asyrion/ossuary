@@ -238,6 +238,8 @@ const sounds = {
   runeTake() { hiss(.06, .06, 'bandpass', 1800); tone('triangle', 247, 233, .14, .07); tone('sine', 740, 760, .4, .035, .06); tone('sine', 1109, 1109, .3, .018, .1); },
   /** M6 step 9, the waystone: risen, its runes kindle (a deep stone hum and a rising chime); the rest (mana pouring back, a
       long soft swell); a rune carved (a chisel's two strikes into stone, then the glyph's chime). */
+  snuff() { hiss(.3, .04, 'highpass', 1800); tone('sine', 300, 180, .18, .02); }, // (M7 step 9: a candle put out)
+  wayOpens() { hiss(1.4, .07, 'lowpass', 600); tone('sine', 65, 98, 1.6, .1); tone('triangle', 262, 392, 1.1, .04, .2); tone('sine', 523, 784, 1.2, .03, .5); }, // (M7 step 9: a barred way at the Vigil opens)
   kindle() { tone('sine', 98, 110, 1.2, .08); tone('triangle', 392, 523, .6, .04, .15); tone('sine', 784, 1046, .8, .025, .35); hiss(.5, .02, 'highpass', 4000, .3); },
   bargain() { tone('sine', 73, 65, 1.6, .09); tone('square', 147, 139, .5, .025, .1); tone('triangle', 294, 277, .9, .03, .3); }, // (M6 step 11: a low toll, the price)
   bargainKept() { [392, 494, 587, 784].forEach((f, i) => tone('triangle', f, f, .5, .04, i * .09)); tone('sine', 196, 196, 1.2, .05); },

@@ -179,10 +179,14 @@ export const CFG = {
     // M7 step 5, the place: how near the lectern opens and the boat is boarded (from the jetty's end), how near a barred
     // way says what bars it; how far to step back before the lectern opens again; on the first waking, when the candle
     // lights itself and how long the dark takes to lift after; the boat's line before it pushes off
-    place: { lecternReach: .95, rearm: .5, boatReach: .6, barReach: 1.9, candleAt: 1.4, dawn: 2.2, boatDelay: 1.6 },
+    place: { lecternReach: .95, rearm: .5, boatReach: .6, barReach: 1.9, barCatch: 1.4, candleAt: 1.4, dawn: 2.2, boatDelay: 1.6 },
     // M7 step 7, the townspeople: how near the mage walks to a figure for it to talk (and steps back before it talks again),
     // how near the jetty's end the Ferryman says his first line, how near a figure turns its head to the mage, how many
     // letters of a line show each second
+    // M7 step 9, the unfolding (vigil/unfold.ts): how near a chapel candle or a garden bed is walked up to, how fast the Cave
+    // Mouth's falls run, and the valleys' light laid on its floor from the open edge: how far in it reaches with none freed and
+    // further for each one freed (tiles), and how strong it is at the edge
+    unfold: { reach: .85, fall: 1.4, caveLight: { depth: 1.5, deeper: .4, strength: .32 } },
     town: { reach: 1.05, rearm: .6, ferryReach: 2.3, watch: 4.5, typeRate: 75, madeLight: .2 }, // (madeLight: the made figures lit of themselves, to read in the Nave; the owner's ask, 2026-10-09: they stand bigger too, in their heights in tools/creatures/townsfolk.ts, drawn on the pixel look's fine layer, their textures baked at that size and pixel)
   },
   // M7 step 6, chained shades: where one lies in its room (a share of the room's width and depth from its middle), how near a

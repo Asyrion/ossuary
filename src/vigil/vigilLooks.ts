@@ -174,6 +174,7 @@ export function pieceLook(kind: PieceKind, look: FloorLook, o: { ferryman?: bool
 
 const ICE = markShared(new THREE.MeshStandardMaterial({ color: 0xa8d8f0, emissive: 0x1a3a50, roughness: .25, transparent: true, opacity: .82 }));
 const VEIL = markShared(new THREE.MeshStandardMaterial({ color: 0x1a1024, emissive: 0x140820, roughness: 1, transparent: true, opacity: .92, side: THREE.DoubleSide }));
+const RUNE_LIT = markShared(new THREE.MeshBasicMaterial({ color: 0xa8dcff }));
 const WATER = markShared(new THREE.MeshStandardMaterial({ color: 0x0c161c, roughness: .15, metalness: .2 }));
 /** A doorway's frame of stone `w` wide, standing out from the wall's face: two posts and a lintel; a pointed head for the
     chapel. */
@@ -184,56 +185,94 @@ function frame(g: THREE.Group, w: number, look: FloorLook, pointed = false) {
   if (pointed) mesh(g, new THREE.ConeGeometry(w / 2, .5, 4, 1).rotateY(Math.PI / 4).scale(1, 1, .3), stone, 0, 2.04, .15);
 }
 
-/** One way barred by a school, `w` tiles along its wall, built from the wall's face facing +z. */
-export function barLook(school: School, w: number, look: FloorLook) {
+/** One way barred by a school, `w` tiles along its wall, built from the wall's face facing +z. `open` (M7 step 9): the way
+    as its school left it, the doorway through it clear: the ice melted off the stair, the cellar's water frozen to walk
+    on, the rune door gone with its stones alight, the veil drawn aside, the chapel's candles burning under a gilded sun,
+    the root alive in leaf and flower round the arch. */
+export function barLook(school: School, w: number, look: FloorLook, open = false) {
   const g = new THREE.Group(), R = mulberry(school.length * 31), inner = w - .6;
   const parts: Record<string, THREE.Object3D> = {};
+  const lit = (x: number, y: number, z: number, color: number, size = .7, opacity = .55) => { const l = glow(color, size, opacity); l.position.set(x, y, z); g.add(l); return l; };
   if (school === 'ember') { // a stair going up into the rock, frozen solid to the arch
     frame(g, w, look);
-    for (let k = 0; k < 5; k++) mesh(g, box(inner, .3, .3), tone(stoneOf(look, .9 - k * .04), .1), 0, .15 + k * .3, .25 - k * .05);
-    mesh(g, rough(box(inner, 1.5, .3), .08, 5), ICE, 0, .76, .2);
-    for (let k = 0; k < 6; k++) mesh(g, new THREE.ConeGeometry(.05 + R() * .04, .2 + R() * .25, 5).rotateX(Math.PI), ICE, (k / 5 - .5) * (inner - .1), 1.45, .38);
-    for (let k = 0; k < 4; k++) mesh(g, rough(new THREE.DodecahedronGeometry(.16 + R() * .1, 0), .03, k), ICE, (R() - .5) * inner, .1, .42 + R() * .1);
+    if (!open) for (let k = 0; k < 5; k++) mesh(g, box(inner, .3, .3), tone(stoneOf(look, .9 - k * .04), .1), 0, .15 + k * .3, .25 - k * .05);
+    if (!open) {
+      mesh(g, rough(box(inner, 1.5, .3), .08, 5), ICE, 0, .76, .2);
+      for (let k = 0; k < 6; k++) mesh(g, new THREE.ConeGeometry(.05 + R() * .04, .2 + R() * .25, 5).rotateX(Math.PI), ICE, (k / 5 - .5) * (inner - .1), 1.45, .38);
+      for (let k = 0; k < 4; k++) mesh(g, rough(new THREE.DodecahedronGeometry(.16 + R() * .1, 0), .03, k), ICE, (R() - .5) * inner, .1, .42 + R() * .1);
+    } else { // (melted: the stair's side steps either side of the doorway, wet, a warm light coming down from above)
+      for (const s of [-1, 1]) for (let k = 0; k < 3; k++) mesh(g, box(.42, .2 + k * .2, .3), tone(stoneOf(look, .85 + k * .05), .1), s * (inner / 2 - .21), .1 + k * .1, .25 - k * .05);
+      for (let k = 0; k < 3; k++) mesh(g, box(.3 + R() * .3, .01, .2 + R() * .2), WATER, (R() - .5) * inner, .006, .5 + R() * .3);
+      lit(0, 1.2, .3, 0xffc070, 1.2, .5);
+    }
   } else if (school === 'storm') { // a door of stone set with three dark rune stones
     frame(g, w, look);
-    mesh(g, box(inner, 1.52, .16), tone(0x3e4450, .12), 0, .76, .1);
-    for (let k = 0; k < 3; k++) {
-      const x = (k - 1) * inner / 3.2, y = k === 1 ? 1.05 : .7;
-      mesh(g, cyl(.22, .24, .12, 10).rotateX(Math.PI / 2), tone(0x5a606c, .1), x, y, .22);
-      mesh(g, runeStrokes(.26), MAT.socket, x, y, .29);
+    if (!open) {
+      mesh(g, box(inner, 1.52, .16), tone(0x3e4450, .12), 0, .76, .1);
+      mesh(g, box(inner - .2, .05, .05), MAT.iron, 0, .42, .2); mesh(g, box(inner - .2, .05, .05), MAT.iron, 0, 1.3, .2);
     }
-    mesh(g, box(inner - .2, .05, .05), MAT.iron, 0, .42, .2); mesh(g, box(inner - .2, .05, .05), MAT.iron, 0, 1.3, .2);
+    for (let k = 0; k < 3; k++) { // (open: the stones stand in the arch's posts and lintel, alight)
+      const x = open ? [-1, 0, 1][k] * (inner / 2 + .02) : (k - 1) * inner / 3.2, y = open ? [.9, 1.68, .9][k] : k === 1 ? 1.05 : .7, z = open ? .38 : .22;
+      mesh(g, cyl(.16, .17, .1, 10).rotateX(Math.PI / 2), tone(0x5a606c, .1), x, y, z);
+      mesh(g, runeStrokes(.2), open ? RUNE_LIT : MAT.socket, x, y, z + .06);
+      if (open) lit(x, y, z + .1, 0x8ec8ff, .55, .6);
+    }
   } else if (school === 'umbral') { // a veil of shadow hanging in the arch, stirring
     frame(g, w, look);
-    mesh(g, box(inner, 1.5, .04), MAT.socket, 0, .76, .02);
-    const veil = new THREE.Mesh(new THREE.PlaneGeometry(inner, 1.5, 10, 4), VEIL); veil.position.set(0, .78, .14); g.add(veil); parts.veil = veil;
+    if (!open) {
+      mesh(g, box(inner, 1.5, .04), MAT.socket, 0, .76, .02);
+      const veil = new THREE.Mesh(new THREE.PlaneGeometry(inner, 1.5, 10, 4), VEIL); veil.position.set(0, .78, .14); g.add(veil); parts.veil = veil;
+    } else for (const s of [-1, 1]) { // (drawn aside: bunched at each post)
+      const cloth = new THREE.Mesh(new THREE.PlaneGeometry(.36, 1.46, 3, 4), VEIL); cloth.position.set(s * (inner / 2 - .2), .8, .16); g.add(cloth);
+      mesh(g, cyl(.05, .03, .1, 6), MAT.blackIron, s * (inner / 2 - .2), .9, .2);
+    }
     mesh(g, cyl(.025, .025, inner + .1, 5).rotateZ(Math.PI / 2), MAT.blackIron, 0, 1.53, .14);
   } else if (school === 'hallow') { // a dark chapel's pointed arch, its candles cold, a dull sun over it
     frame(g, w, look, true);
-    mesh(g, box(inner, 1.55, .04), MAT.socket, 0, .78, .02);
-    mesh(g, box(inner * .6, .36, .3), tone(stoneOf(look, 1.15), .1), 0, .18, .2);
-    for (const s of [-1, 1]) { mesh(g, cyl(.035, .04, .18, 6), MAT.wax, s * .3, .45, .22); mesh(g, cyl(.004, .004, .03, 3), MAT.pitch, s * .3, .555, .22); }
-    mesh(g, new THREE.TorusGeometry(.16, .025, 4, 14), MAT.darkBronze, 0, 2.1, .36);
-    for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; mesh(g, box(.03, .1, .02), MAT.darkBronze, Math.cos(a) * .25, 2.1 + Math.sin(a) * .25, .36).rotation.z = a - Math.PI / 2; }
+    if (!open) mesh(g, box(inner, 1.55, .04), MAT.socket, 0, .78, .02);
+    for (const s of [-1, 1]) { // (open: a candle on a ledge either side of the doorway, lit)
+      const x = open ? s * (inner / 2 - .12) : s * .3, y = open ? .62 : .45;
+      if (open) mesh(g, box(.26, .06, .26), tone(stoneOf(look, 1.15), .1), x, y - .12, .3);
+      mesh(g, cyl(.035, .04, .18, 6), MAT.wax, x, y, .3); mesh(g, cyl(.004, .004, .03, 3), MAT.pitch, x, y + .105, .3);
+    }
+    if (!open) mesh(g, box(inner * .6, .36, .3), tone(stoneOf(look, 1.15), .1), 0, .18, .2);
+    else { const f = makeFire([-1, 1].map(s => ({ x: s * (inner / 2 - .12), y: .73, z: .3, h: .1, w: .045 })), firePalette(0xffe0a0, 0xffa040), 2, .2); g.add(f); lit(0, 1.0, .4, 0xfff0c0, 1.3, .45); }
+    const sun = open ? MAT.gilt : MAT.darkBronze;
+    mesh(g, new THREE.TorusGeometry(.16, .025, 4, 14), sun, 0, 2.1, .36);
+    for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; mesh(g, box(.03, .1, .02), sun, Math.cos(a) * .25, 2.1 + Math.sin(a) * .25, .36).rotation.z = a - Math.PI / 2; }
+    if (open) lit(0, 2.1, .42, 0xffe08a, .8, .7);
   } else if (school === 'verdant') { // a dead root broken through the wall, its arms splayed down the stone and into the floor
-    const root = tone(0x5c4c3c, .15), dark = tone(0x3e3228, .12);
-    mesh(g, rough(box(.8, .5, .08), .08, 2), MAT.socket, 0, 1.0, .03); // (the hole it broke, below the wall's top)
-    mesh(g, taperTube(curve([[0, 1.02, .02], [.05, .95, .3], [.12, .6, .5], [.18, .22, .58], [.22, 0, .55]]), 14, .24, .13), root);
+    const root = tone(open ? 0x5e5236 : 0x5c4c3c, .15), dark = tone(open ? 0x3c6a34 : 0x3e3228, .12);
+    if (!open) {
+      mesh(g, rough(box(.8, .5, .08), .08, 2), MAT.socket, 0, 1.0, .03); // (the hole it broke, below the wall's top)
+      mesh(g, taperTube(curve([[0, 1.02, .02], [.05, .95, .3], [.12, .6, .5], [.18, .22, .58], [.22, 0, .55]]), 14, .24, .13), root);
+    } else mesh(g, taperTube(curve([[-.68, 1.25, .1], [-.3, 1.42, .16], [0, 1.48, .18], [.3, 1.42, .16], [.68, 1.25, .1]]), 12, .1, .1), root); // (alive: an arch of root over the doorway, the arms down its sides)
     mesh(g, taperTube(curve([[-.1, 1.0, .05], [-.35, .82, .12], [-.55, .5, .14], [-.68, .15, .2], [-.72, 0, .26]]), 12, .13, .06), root);
     mesh(g, taperTube(curve([[.12, .98, .06], [.4, .8, .1], [.62, .45, .12], [.72, .1, .2], [.75, 0, .24]]), 12, .12, .05), root);
     for (let k = 0; k < 7; k++) { const sx = (R() - .5) * 1.2, y = .2 + R() * .6; mesh(g, taperTube(curve([[sx * .6, y + .15, .12], [sx, y, .2], [sx * 1.15, y - .2, .16]]), 4, .03, .008, 3), dark); }
     for (const x of [-.72, .22, .75]) mesh(g, rough(new THREE.DodecahedronGeometry(.12, 0), .03, x * 10), dark, x, .04, .3).scale.y = .4; // (where each digs into the floor)
+    if (open) for (let k = 0; k < 14; k++) { // (leaves and flowers along it)
+      const a = k / 13, x = Math.cos(a * Math.PI) * .7, y = .2 + Math.sin(a * Math.PI) * 1.25;
+      mesh(g, new THREE.SphereGeometry(.07, 5, 4).scale(1.3, .5, 1), MAT.lichen, x, y, .26);
+      if (k % 3 === 1) { mesh(g, new THREE.SphereGeometry(.05, 6, 4), tone(k % 2 ? 0xf0c0d8 : 0xfff2b0, .05), x + .04, y + .05, .3); }
+    }
   } else { // frost: a cellar stair going down into black water, filled to halfway up the arch
     frame(g, w, look);
-    mesh(g, box(inner, 1.5, .04), MAT.socket, 0, .78, .02);
-    for (let k = 0; k < 4; k++) { // (the steps, coming down toward the room and under the water)
+    if (!open) mesh(g, box(inner, 1.5, .04), MAT.socket, 0, .78, .02);
+    if (!open) for (let k = 0; k < 4; k++) { // (the steps, coming down toward the room and under the water)
       const y = 1.18 - k * .15, z = .07 + k * .06;
       mesh(g, box(inner, .07, .1), tone(stoneOf(look, 1.05 - k * .08), .1), 0, y, z); mesh(g, box(inner, .015, .1), tone(stoneOf(look, 1.35), .05), 0, y + .04, z);
     }
-    mesh(g, box(inner, .68, .05), WATER, 0, .34, .3); // (the water standing in the arch)
-    mesh(g, box(inner, .025, .06), tone(0x5a8aa0, .05), 0, .69, .31); // (its surface catching the light)
-    for (let k = 0; k < 3; k++) mesh(g, box(.18 + R() * .2, .012, .01), tone(0x4a7488, .05), (R() - .5) * (inner - .4), .5 - k * .14, .335);
-    for (let k = 0; k < 7; k++) { const m = mesh(g, cyl(.02, .02, .09, 4).rotateZ(Math.PI / 2), MAT.iron, (k / 6 - .5) * (inner - .1), 1.0 - Math.abs(k - 3) * .06, .37); m.rotation.y = .2; } // (a chain across)
+    if (!open) {
+      mesh(g, box(inner, .68, .05), WATER, 0, .34, .3); // (the water standing in the arch)
+      mesh(g, box(inner, .025, .06), tone(0x5a8aa0, .05), 0, .69, .31); // (its surface catching the light)
+      for (let k = 0; k < 3; k++) mesh(g, box(.18 + R() * .2, .012, .01), tone(0x4a7488, .05), (R() - .5) * (inner - .4), .5 - k * .14, .335);
+      for (let k = 0; k < 7; k++) { const m = mesh(g, cyl(.02, .02, .09, 4).rotateZ(Math.PI / 2), MAT.iron, (k / 6 - .5) * (inner - .1), 1.0 - Math.abs(k - 3) * .06, .37); m.rotation.y = .2; } // (a chain across)
+    } else { // (frozen over: a floor of ice running in through the doorway, the chain fallen)
+      mesh(g, rough(box(inner, .06, .9), .02, 3), ICE, 0, .03, .45);
+      for (let k = 0; k < 5; k++) mesh(g, new THREE.ConeGeometry(.04 + R() * .03, .15 + R() * .15, 5).rotateX(Math.PI), ICE, (k / 4 - .5) * (inner - .1), 1.48, .36);
+      for (let k = 0; k < 7; k++) mesh(g, cyl(.02, .02, .09, 4).rotateZ(Math.PI / 2), MAT.iron, -inner / 2 + .1 + k * .07, .07, .6 + (k % 2) * .03);
+    }
   }
   g.add(blob(w + .4)); g.userData.parts = parts; mergeStill(g);
   return { group: g, veil: parts.veil as THREE.Mesh | undefined };

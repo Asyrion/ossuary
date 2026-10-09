@@ -2,7 +2,8 @@
    - **Freed** (`giftOnFree`, from shades.ts): its gift now: a discipline opened, spells learned (to hold at the lectern),
      spells into the libraries' pools, recipes learned; what it gives every descent from then on; its power to ask for.
    - **Every descent** (`giftsAtStart`, from flow.ts's `startGame` once the first floor is built): what the gifts in force,
-     the quests done and the powers owned give, said in one line (nothing silent). The powers' mana and hearts are folded
+     the quests done and the powers owned give, said in one line (nothing silent); M7 step 9: the candle lit in the chapel
+     (its blessing, for this descent alone) and the garden's reagent. The powers' mana and hearts are folded
      into the mage's numbers (artifacts.ts's `growth`, from giftData's `startOf`).
    - **At the Vigil** (vigil/town.ts, ui/talk.ts): each talk ends with what can be offered: obols laid on its eyes (5, then
      15: a memory each time, the second gift with the last) and its power, for Arcane Dust. A quest is given once the bond
@@ -14,7 +15,7 @@ import { Rng } from '../rng';
 import { line, renderMinimap } from '../ui/hud';
 import { giveResources } from '../items/pickups';
 import { addPotion, addReagent } from '../items/potions';
-import { POTIONS, POTION_IDS, RECIPES, REAGENT_IDS, pickPotion, type PotionId } from '../items/alchemyData';
+import { POTIONS, POTION_IDS, RECIPES, REAGENTS, REAGENT_IDS, pickPotion, type PotionId, type ReagentId } from '../items/alchemyData';
 import { learnRecipe } from '../items/alchemyMemory';
 import { gainSoul } from '../items/souls';
 import { addRune, dealRune, setSockets } from '../magic/runes';
@@ -22,8 +23,8 @@ import { learnedSpell } from '../magic/memory';
 import { spell } from '../magic/spellData';
 import { dropPage } from '../magic/pages';
 import { refreshStats } from '../items/artifacts';
-import { setBond, setFlag, setPower, spend, vigil } from './save';
-import { BOND_MAX, TOWNSFOLK, bondCost, folkOf, powerOf, questMet, questOf, startOf, type Gift, type Start } from './giftData';
+import { setBond, setFlag, setPower, spend, takeBlessing, vigil } from './save';
+import { BOND_MAX, TOWNSFOLK, blessingOf, bondCost, folkOf, powerOf, questMet, questOf, startOf, type Gift, type Start } from './giftData';
 import type { Picked } from './dialogueData';
 import { DIALOGUE, lineAfter } from './dialogueData';
 
@@ -63,11 +64,23 @@ export function giftOnFree(id: string) {
   line(S().freed(nameOf(id), list(words.length ? words : [S().nothing])), 6);
 }
 
-/** A descent begins (the first floor built): what the Vigil gives it, in one line. */
+/** M7 step 9: a candle's blessing in words ("your spells a tenth harder", "2 glyphs"). */
+export function blessingWords(id: string) {
+  const b = blessingOf(id), W = S().bless as Record<string, (v: number) => string>;
+  return list([...Object.entries(b.bonus ?? {}).map(([k, v]) => W[k]?.(v) ?? k), ...startWords(b.start ?? {})]);
+}
+
+/** A descent begins (the first floor built): what the Vigil gives it, in one line: the gifts in force, the powers, the
+    candle lit in the chapel for it (M7 step 9: its blessing, burning down with this descent) and the garden's reagent. */
 export function giftsAtStart() {
-  const st = startOf(state()); if (!Object.keys(st).length) return;
+  const v = vigil(), blessed = takeBlessing(); G.run.blessing = blessed;
+  const st: Start = { ...startOf(state()) }, b = blessingOf(blessed);
+  for (const [k, n] of Object.entries(b.start ?? {}) as [keyof Start, never][]) (st as Record<string, unknown>)[k] = typeof n === 'number' ? ((st[k] as number | undefined) ?? 0) + (n as number) : n;
+  const garden = v.garden && v.freed.includes('embalmer') ? v.garden as ReagentId : null;
+  if (!Object.keys(st).length && !blessed && !garden) return;
   const rng = Rng.from(G.run.seed, 'vigilGifts'), rnd = { next: () => rng.next() };
   for (let i = 0; i < (st.reagents ?? 0); i++) addReagent(REAGENT_IDS[Math.floor(rng.next() * REAGENT_IDS.length)]);
+  if (garden) addReagent(garden);
   giveResources({ keys: st.keys ?? 0, glyphs: st.glyphs ?? 0, coins: st.coins ?? 0 });
   for (let i = 0; i < (st.potions ?? 0); i++) addPotion(pickPotion(rnd, POTION_IDS));
   for (let i = 0; i < (st.runes ?? 0); i++) addRune(dealRune());
@@ -75,8 +88,10 @@ export function giftsAtStart() {
   if (st.socket && player.sockets[0].size < 2) setSockets(0, 2);
   if (st.page) dropPage(G.current, player.x, player.z - 1.4);
   if (st.map) { for (const r of G.rooms) r.known = true; renderMinimap(); }
-  if (st.maxMana || st.hearts) { refreshStats(false); player.hp = player.maxHp; player.mana = player.stats.maxMana; }
-  line(S().fromVigil(list(startWords(st))), 6);
+  if (st.maxMana || st.hearts || b.bonus) { refreshStats(false); player.hp = player.maxHp; player.mana = player.stats.maxMana; }
+  const gifts = startOf(state()), words = [...startWords(gifts), ...(garden ? [REAGENTS[garden].name] : [])];
+  if (words.length) line(S().fromVigil(list(words)), 6);
+  if (blessed) line(STR.vigil.unfold.blessed(nameOf(blessed), blessingWords(blessed)), 6);
 }
 
 /* ---------- at the Vigil: the offers, the bonds, the powers, the quests ---------- */

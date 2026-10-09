@@ -424,7 +424,7 @@ describe('the Seal (M7 step 1)', () => {
   });
   it('keeps its rooms its own: no generated floor draws them', () => {
     const fixed = new Set(TEMPLATE_DEFS.filter(t => t.fixed).map(t => t.id));
-    expect([...fixed].sort()).toEqual(['seal_kaelith', 'seal_last_hall', 'seal_stair', 'vigil_crypt', 'vigil_landing', 'vigil_nave']); // (and M7 step 5's Vigil)
+    expect([...fixed].sort()).toEqual(['seal_kaelith', 'seal_last_hall', 'seal_stair', 'vigil_cave', 'vigil_chapel', 'vigil_crypt', 'vigil_gallery', 'vigil_garden', 'vigil_landing', 'vigil_nave', 'vigil_pool', 'vigil_practice']); // (and M7 step 5's Vigil, with step 9's rooms behind its barred ways)
     for (let s = 0; s < 60; s++) for (const [i, f] of GENERATED.entries()) for (const r of generateFloor(Rng.from('NF' + s, 'floor' + i), f, i).rooms) expect(fixed.has(r.templateId)).toBe(false);
     expect(() => fixedPlan(new Rng(1), { ...cfg, fixed: { rooms: [{ type: 'start', shape: 'standard', at: [4, 6], template: 'seal_kaelith' }] } }, seal)).toThrow(/no standard start template/);
   });

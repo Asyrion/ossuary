@@ -735,6 +735,64 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
    - The Cave Mouth filling in with each shade freed.
    - The candle wall: a candle lit before a run carries that townsperson's blessing through the run.
    - **Dev menu:** open any part; close them all.
+
+   *Built (2026-10-09).*
+   - **The map** (data/vigil.json, data/templates/vigil.json): six more rooms, each `behind` one barred way and reached
+     through it alone (`vigilPlan` keeps only the way's door between them and the rest; each doorway is `barred` until its
+     school is among the save's `parts`). The ways were moved onto their rooms' doorways:
+
+     | Way | School | Opens to |
+     | --- | --- | --- |
+     | The Nave's north wall, west | Ember | The Cave Mouth (a long room) |
+     | The Nave's north wall, east | Storm | The Scrying Pool |
+     | The Nave's south wall | Umbral | The Echoes' Gallery |
+     | The Crypt's north wall (the candle wall moved west) | Hallow | The Candle Chapel |
+     | The Landing's north wall, west | Verdant | The Garden of the Dead |
+     | The Landing's north wall, east | Frost | The Practice Crypt |
+
+     `validateVigil` checks each way leads into the room behind it, one room a way, the first room never barred, and that
+     what fills the rooms stands on their floor clear of their doorways.
+   - **A way walled** (rooms.ts's `plugDoor`/`unplugDoor`, `plug` on a Door): its doorway filled with the room's own wall,
+     shut, no gate, the room behind it not shown on the map.
+   - **Opening it, on the dungeon's hooks** (vigil/place.ts's `openWay`): its school landing within reach (`hearLanding`, the
+     landings shared with the chained shades: fire, frost, shock, holy light, the dark, and Verdant's own now, from the Thorn
+     Snare, the Pollen Cloud and the Living Wall), or a bolt or beam carrying it. Another school stirs it and it holds
+     ("It does not answer to that"). Opened: a burst in its light, `Sfx.wayOpens`, its line (`STR.vigil.opened`), its tiles
+     free, the wall gone from both sides, kept in the save (`openPart`).
+   - **Each way as its school left it** (`barLook(..., open)`): the stair's ice melted, the cellar's water frozen to walk on,
+     the rune door gone with its stones alight, the veil drawn aside, the chapel's candles burning under a gilded sun, the root
+     alive in leaf and flower round the arch.
+   - **What fills them** (vigil/unfold.ts, its looks unfoldLooks.ts):
+     - **The Cave Mouth:** its north wall taken down to the valleys at morning (daylightLooks.ts's vista, without the terrace
+       or the cave's rock: `buildVista`'s options); each shade freed raises a house, a terrace, a garden bed or a fall of water
+       on its floor, in the order they were freed (ten spots, `unfold.cave`); the morning's light is laid on the floor from
+       the open edge, in steps, reaching further in with each one freed (`CFG.vigil.unfold.caveLight`).
+     - **The candle chapel:** an altar, and a place for each townsperson's candle: a cold holder while it is in chains, a
+       candle stand once it is freed, its light at its foot. Walking up to one lights it for the next descent (others go
+       out; walked up to again, it goes out). The decision's candle wall stays the Crypt's count of the freed; the chapel is
+       where its blessings are chosen, as the plan's table had it.
+     - **The blessings** (data/townsfolk.json's `blessing`, the pure `blessingOf`/`blessBonus` in giftData.ts): a small step on
+       the mage's numbers for that descent alone (the storm caller's spells a tenth harder, the wizard's mana back a quarter
+       faster, the forager's swifter feet, the scribe's +10 mana, the sexton's half a heart, the chorister's quicker cantrip),
+       folded in with the attributes in artifacts.ts's `growth`; or what the descent begins with (the bell-ringer's two glyphs,
+       the novice's pale soul mote, the embalmer's potion, the pilgrim's map and 5 obols). The candle burns down with that
+       descent (`takeBlessing` in `giftsAtStart`, `G.run.blessing`), said in a line as it begins.
+     - **The garden of the dead:** a bed of each of the seven reagents; once the embalmer is freed they grow, and walking up to
+       one chooses the reagent every descent begins with (`setGarden`, the save's `garden`; given in `giftsAtStart`).
+       Unfreed, the beds lie fallow and say so.
+     - **The scrying pool, the practice crypt and the echoes' gallery** stand ready (a pool of water, four tombs, four
+       plinths), each saying what it will be when first entered; steps 11 and 12 fill them.
+   - **The kit:** the Cave Mouth in drystone, flagstones and cairn lights, the chapel in ashlar under candelabra, the garden
+     on cobbles (`kit` on a Vigil room). The save keeps `blessing` and `garden` (made whole by `migrate`).
+   - **Dev menu** (Rooms & runs, "The unfolding"): each way opened at once, every way opened or closed again, a candle lit (or
+     none), the garden's reagent. Hooks: `__game.unfold`, `openPart(school)`, `setParts(schools)`, `lightBlessing(id)`,
+     `chooseGarden(id)`.
+   - **Tests:** unit (vigil.test.ts: the nine rooms, each behind its way alone, the ways barred and opened by the save's
+     parts, the checks catching a way into the wrong room, a barred first room, too few Cave Mouth spots, a candle in a
+     doorway, a bed of no reagent; gifts.test.ts: a blessing for each, folded into the numbers, the checks); browser (the
+     stair walled, the dark not opening it, fire opening it and the mage walking through to the Cave Mouth and its ten
+     buildings; Rime Shards opening the cellar; both kept; the chapel's candle lit, put out, another lit; the garden's Ember
+     Salt; the next descent with the sexton's half heart and the salt, the candle burnt down; the dev menu closing them).
 10. **(P) The Great Circle and the Ferryman's crossing.**
     - `data/sigils.json` (new: the vows, gifts and omens, and the pairs), and the circle's screen `#scrCircle` (new).
     - The disciplines as gifts, the bell, and the toll with its deeper landings.

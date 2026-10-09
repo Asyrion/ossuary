@@ -74,6 +74,7 @@ export const G = {
     /** M7 step 7: the bosses put to rest, by id (the run's record keeps them for the townspeople). */ fell: [] as string[],
     /** M7 step 6: the chained shades met on the floors so far, those freed in this run (Dust at its end) and those bound in an
         earlier run who walk with the mage through this one (vigil/shadeHelp.ts). */ shadesMet: [] as string[], freed: [] as string[], walking: [] as string[],
+    /** M7 step 9: whose candle burns in the chapel for this run (its blessing; vigil/gifts.ts). */ blessing: null as string | null,
   },
   shake: 0,
   simClock: 0,

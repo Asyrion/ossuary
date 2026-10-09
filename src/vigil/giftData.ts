@@ -16,10 +16,23 @@ export interface Gift { discipline?: string; learn?: string[]; pool?: string[]; 
 export interface PowerDef { id: string; by: string; dust: number; start: Start }
 export interface QuestDef { id: string; by: string; goal: { carried?: string; reactions?: number; deepest?: number }; reward: Gift }
 export interface Discipline { id: string; school: string; spell: string; focus: string; by?: string }
-export interface Townsfolk { bonds: number[]; disciplines: Discipline[]; powers: PowerDef[]; quests: QuestDef[]; folk: Record<string, { gift: Gift; second: Gift }> }
+/** M7 step 9: what a townsperson's candle lit in the chapel gives the one descent it burns for: a small step on the
+    mage's numbers (`bonus`, folded in with the attributes', artifacts.ts's `growth`), or what the descent begins with. */
+export interface Blessing { bonus?: Partial<Record<BlessKey, number>>; start?: Start }
+export const BLESS_KEYS = ['spellDamageMul', 'regenMul', 'speedMul', 'fireDelayMul', 'mana', 'heartHalves'] as const;
+export type BlessKey = (typeof BLESS_KEYS)[number];
+export interface Townsfolk { bonds: number[]; disciplines: Discipline[]; powers: PowerDef[]; quests: QuestDef[]; folk: Record<string, { gift: Gift; second: Gift; blessing: Blessing }> }
 export const TOWNSFOLK = data as unknown as Townsfolk;
 
 export const folkOf = (id: string) => TOWNSFOLK.folk[id];
+/** The blessing of `id`'s candle (none for no one). */
+export const blessingOf = (id: string | null | undefined): Blessing => (id && TOWNSFOLK.folk[id]?.blessing) || {};
+/** A blessing's step on the mage's numbers, folded into the attributes' (a multiplier multiplied, a count added). */
+export function blessBonus<T extends Record<BlessKey, number>>(b: Blessing, onto: T): T {
+  const out = { ...onto };
+  for (const [k, v] of Object.entries(b.bonus ?? {}) as [BlessKey, number][]) (out as Record<BlessKey, number>)[k] = k.endsWith('Mul') ? out[k] * v : out[k] + v;
+  return out;
+}
 export const powerOf = (by: string) => TOWNSFOLK.powers.find(p => p.by === by);
 export const power = (id: string) => TOWNSFOLK.powers.find(p => p.id === id);
 export const questOf = (by: string) => TOWNSFOLK.quests.find(q => q.by === by);
@@ -75,6 +88,14 @@ export function validateTownsfolk(T: Townsfolk, k: GiftKnown): string[] {
     for (const [key, v] of Object.entries(g.start ?? {})) if (key !== 'souls' && !(typeof v === 'number' && v > 0)) errs.push(`${at}: start ${key} isn't a count`);
   };
   for (const [id, f] of Object.entries(T.folk)) { if (!k.folk.includes(id)) errs.push(`gifts for ${id}, who is no townsperson`); gift(`${id}'s gift`, f.gift); gift(`${id}'s second gift`, f.second); }
+  for (const [id, f] of Object.entries(T.folk)) { // (M7 step 9: each one's candle blesses one descent, a little)
+    const b = f.blessing; if (!b || (!b.bonus && !b.start)) { errs.push(`${id}: no blessing`); continue; }
+    for (const [k, v] of Object.entries(b.bonus ?? {})) {
+      if (!(BLESS_KEYS as readonly string[]).includes(k)) errs.push(`${id}'s blessing: no ${k}`);
+      else if (k.endsWith('Mul') ? !(v >= .8 && v <= 1.3 && v !== 1) : !(v > 0 && v <= 10)) errs.push(`${id}'s blessing: ${k} ${v} is no small step`);
+    }
+    gift(`${id}'s blessing`, { start: b.start });
+  }
   if (T.powers.length !== 6) errs.push('six powers');
   for (const p of T.powers) {
     if (!k.folk.includes(p.by)) errs.push(`power ${p.id}: no townsperson ${p.by}`);

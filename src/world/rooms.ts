@@ -463,7 +463,9 @@ export function buildWallsAndDoors(room: Room) {
     const either = (t: string) => room.type === t || nb.type === t;
     const style: DoorStyle = either('secret') ? 'secret' : either('waystone') ? 'waystone' : either('boss') ? 'boss' : either('ordeal') ? 'ordeal' : either('altar') ? 'altar' : either('treasure') ? 'treasure'
       : either('vault') ? 'vault' : either('merchant') ? 'merchant' : either('shrine') ? 'shrine' : either('library') ? 'library' : either('laboratory') ? 'laboratory' : 'normal';
-    room.doors.push(buildDoor(room, pd.side, nb, style, x, z));
+    const door = buildDoor(room, pd.side, nb, style, x, z);
+    if (pd.barred) plugDoor(room, door); // (M7 step 9: a way at the Vigil barred by a school, shut until it opens)
+    room.doors.push(door);
   }
   // the walls: rectangles of wall tiles (walls.ts), with the doorways cut out of them
   const shape = shapeMask(room.plan.shape, room.plan.mirrorX, room.plan.mirrorY);
@@ -574,6 +576,21 @@ function addTorch(room: Room, x: number, z: number, normal: [number, number], t:
   // dark rooms: the torch hangs cold, its flame out
   flame.visible = gl.visible = lit;
   room.torches.push({ flame, glow: gl, ...at, lit });
+}
+
+/** M7 step 9: a doorway filled with the room's own wall (a way at the Vigil still barred), shut until `unplugDoor`. */
+function plugDoor(room: Room, d: Door) {
+  const [dx, dz] = SIDE_DIR[d.side], ns = isNS(d.side), h = d.side === 's' ? H_LOW : H_TALL;
+  const plug = new THREE.Mesh(ns ? boxUV(DH * 2, h, WT) : boxUV(WT, h, DH * 2), wallMaterials(room.look.wall, kitWalls(room.look)));
+  plug.position.set(d.x + dx * WT / 2 - room.cx, h / 2, d.z + dz * WT / 2 - room.cz); room.group.add(plug);
+  d.plug = plug; d.open = false; d.bars.visible = false;
+}
+/** M7 step 9: a barred way opens: the wall filling its doorway goes, on both sides. */
+export function unplugDoor(d: Door) {
+  for (const door of [d, d.link]) {
+    if (!door?.plug) continue;
+    door.plug.removeFromParent(); (door.plug as THREE.Mesh).geometry.dispose(); delete door.plug; door.open = true;
+  }
 }
 
 /** How a door built facing +z (the room kit's) is turned to face into the room from each wall. */
@@ -688,7 +705,7 @@ export function linkDoors(rooms: Room[]) {
 export function setDoors(room: Room, open: boolean, sound = true) {
   let changed = false;
   for (const d of doorsOf(room)) {
-    if (d.seal?.sealed || (d.secret && !d.secret.open)) continue; // sealed vault doors and cracked walls stay shut
+    if (d.seal?.sealed || (d.secret && !d.secret.open) || d.plug) continue; // sealed vault doors, cracked walls and the Vigil's barred ways stay shut
     if (d.open !== open) changed = true; d.open = open;
   }
   if (changed && sound) Sfx.door(open);
@@ -698,6 +715,7 @@ export function updateRoomFx(dt: number, now: number) {
   tickFire(now);
   for (const r of G.rooms) {
     for (const d of doorsOf(r)) {
+      if (d.plug) continue; // (a barred way at the Vigil: its wall fills it, no gate)
       const target = d.open ? -d.barH - .05 : 0; d.bars.position.y += (target - d.bars.position.y) * (1 - Math.exp(-12 * dt));
       d.bars.visible = !d.open || d.bars.position.y > -d.barH; // (sunk out of sight: hidden, or it shows past a south door, where nothing is drawn)
     }

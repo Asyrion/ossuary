@@ -75,7 +75,7 @@ export const FLOORS = floorsData as unknown as FloorConfig[];
 export interface Cell { gx: number; gy: number }
 /** A door on the cell edge (gx, gy, side), leading to room `to`; `shift` moves it along the edge from the middle,
     in tiles (towards +x on north and south edges, +z on east and west ones), the same for both its sides. */
-export interface PlannedDoor { gx: number; gy: number; side: Side; to: number; shift?: number }
+export interface PlannedDoor { gx: number; gy: number; side: Side; to: number; shift?: number; /** M7 step 9: a doorway at the Vigil barred by a school, shut until it opens. */ barred?: boolean }
 export interface PlannedRoom {
   id: number; type: RoomType; shape: ShapeId;
   /** Grid cells the room covers; `anchor` is the top-left of their bounding box. */ cells: Cell[]; anchor: Cell;

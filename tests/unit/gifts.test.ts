@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { BOND_MAX, TOWNSFOLK, bondCost, disciplinesOpen, questMet, questOf, startOf, validateTownsfolk } from '../../src/vigil/giftData';
+import { BOND_MAX, TOWNSFOLK, blessBonus, blessingOf, bondCost, disciplinesOpen, questMet, questOf, startOf, validateTownsfolk } from '../../src/vigil/giftData';
+import { NO_BONUS } from '../../src/progression/attributes';
 import { DIALOGUE, giftLinesMissing } from '../../src/vigil/dialogueData';
 import { SHADE_IDS } from '../../src/vigil/shadeData';
 import { SCHOOLS, SPELL_DEFS, inPool } from '../../src/magic/spellData';
@@ -56,5 +57,24 @@ describe('gifts, bonds and powers (M7 step 8)', () => {
     expect(questMet(seal, { runs: 5, echoes, reactions: [] }, 5, 0)).toBe(false); // (no run since)
     expect(questMet(reactions, { runs: 5, echoes, reactions: ['a', 'b', 'c', 'd'] }, 4, 1)).toBe(true);
     expect(questMet(reactions, { runs: 5, echoes, reactions: ['a', 'b', 'c', 'd'] }, 4, 2)).toBe(false);
+  });
+});
+
+describe("the candle chapel's blessings (M7 step 9)", () => {
+  it('give each townsperson a blessing for one descent: a small step on the numbers, or what it begins with', () => {
+    for (const id of SHADE_IDS) { const b = blessingOf(id); expect(b.bonus || b.start, id).toBeTruthy(); }
+    expect(blessingOf(null)).toEqual({}); expect(blessingOf('nobody')).toEqual({});
+  });
+  it('fold into the attributes\' numbers: a multiplier multiplied, a count added', () => {
+    expect(blessBonus(blessingOf('stormcaller'), NO_BONUS).spellDamageMul).toBeCloseTo(1.1);
+    expect(blessBonus(blessingOf('scribe'), { ...NO_BONUS, mana: 5 }).mana).toBe(15);
+    expect(blessBonus(blessingOf('sexton'), NO_BONUS).heartHalves).toBe(1);
+    expect(blessBonus(blessingOf('bellringer'), NO_BONUS)).toEqual(NO_BONUS); // (its blessing is what the descent begins with)
+  });
+  it('finds a blessing missing, or no small step', () => {
+    const bad = JSON.parse(JSON.stringify(TOWNSFOLK));
+    delete bad.folk.pilgrim.blessing; bad.folk.stormcaller.blessing = { bonus: { spellDamageMul: 2 } }; bad.folk.scribe.blessing = { bonus: { luck: 1 } };
+    const errs = validateTownsfolk(bad, known).join('\n');
+    expect(errs).toMatch(/pilgrim: no blessing/); expect(errs).toMatch(/spellDamageMul 2 is no small step/); expect(errs).toMatch(/no luck/);
   });
 });
