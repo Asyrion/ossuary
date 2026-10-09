@@ -20,6 +20,8 @@ Tripo props was dropped (`docs/M3.5-plan.md`).
 | MidJourney | Standard | Concept art for props, creatures and artifacts; the house style reference (`--sref`); seamless floor and wall textures (`--tile`); painted icons; title and loading art | Final 3D; anything with legible text |
 | Tripo3D | Master | Turning a concept image (or several views) into a textured 3D model; texturing and re-texturing; lowering the face count; rigging and animating characters; its own image models for concepts and alternative views | Flames, light, magic and particles (made in code); tiling floor and wall textures |
 | Other image models (Tripo's own, Gemini / Nano Banana and others) | As available | Alternative concepts, front, side and back views of one design for better 3D, edits (clean background, change a pose, fix a detail) | Skipping the style check |
+| Tripo CLI (`@tripo3d/cli`) | The owner's Studio credits | Concept images that Claude makes from the session (Route 2 below): Nano Banana 2 through Tripo, four a round, about 8 credits a round | Image-to-3D, texturing, rigging and export (untested from here: those stay in Tripo Studio with the owner); negative prompts (it has no flag for them) |
+| Aseprite 1.3.18 | The owner's (Steam) | 2D pixel art drawn rather than built in code, when the owner asks for it: artifact icons (24 px), coin faces (48 px), HUD pieces, a redraw of a generated image. Runs headless on the owner's PC (its path in Aseprite (2D pixel art), below) | 3D; anything the game already builds in code |
 | Code | | Lights, torch flames and flicker, bolts, spell and glyph effects, particles, glows, decals, the cracks, stains, bones and puddles drawn over the floor, the whole UI | |
 
 Images move freely between tools: a MidJourney concept can be edited in another image model, turned into
@@ -109,10 +111,64 @@ underscores, the id the game uses (`urn.glb`, `ember_sigil.glb`).
 
 Nine steps from a brief to an asset in the deployed game. Who does what: **owner** (Azyrion) or **Claude**.
 
+### Two routes to the concept images (2026-10-09)
+
+Steps 2 to 4 (concept, style check, clean input) can go two ways; both end in the same image going into Tripo Studio at
+step 5. **Before the design questions, Claude asks which route to take** (buttons). The route was proven in the owner's
+Godot project (Azyrion Tamer, its docs 04 §11 and docs 06 §0, 2026-10-07: two rounds of four on one creature) and is
+adapted here; Ossuary has not run it yet.
+
+| | **Route 1: the owner makes the concepts** | **Route 2: Claude makes them with the Tripo CLI** |
+| --- | --- | --- |
+| Who runs the image model | The owner, by hand: MidJourney, Tripo Studio's Image tab or Nano Banana, from the prompts Claude writes | Claude, through the Tripo CLI on the owner's Studio credits (Nano Banana 2) |
+| Questions | The brief (step 1), then the design questions (what it is, its silhouette, colours, the telling detail) | The same, always as buttons with concrete options, follow-up questions too |
+| Images | The owner uploads the picks to the session | Four a round (about 8 credits), downloaded to `asset-previews/tripo/<id>/round<n>/` |
+| Pick | The owner chooses | Claude makes a numbered contact sheet, checks each image, recommends one and asks with buttons (keep it, take another, or one more round); more rounds until the owner is happy |
+| Login | | The owner runs `tripo auth login` in their own terminal (email and a code; Claude never sees the code); the session lasts about 2 hours (`tripo auth whoami`) |
+
+Either way **image-to-3D, texturing, rigging and export stay with the owner in Tripo Studio** (steps 5 and 6): the
+CLI's model commands are untested here, and the Studio is where the owner checks the model before it leaves Tripo.
+
+**Prompt rules** (both routes; Tamer's docs 04 §2, measured there):
+- Under **1,000 characters**: Tripo's Image tab cuts the prompt there.
+- Positive phrasing only: a negation in the prompt summons what it names ("no text" invites text). In Route 1 the
+  exclusions go in the negative-prompt field (MidJourney's `--no`, Tripo's negative field): `text, letters, labels,
+  watermark, border, frame, floor, scene, drop shadow, blur, photo, several objects`. The CLI has no flag for them, so
+  Route 2 prompts carry the wanted thing instead ("a plain neutral grey background, the object alone").
+- Aspect **1:1**, in the settings and in the prompt.
+- **Four images a run**, and keep the best: about one in four comes back broken.
+- **One subject** an image: one object, one creature, one character.
+- The house style (prompt pattern above) and, for anything going to Tripo, the "Concept images for Tripo" rules in
+  step 7: big flat colour areas, bold markings a few texels wide, little painted shadow, a silhouette that reads at
+  about 80 game pixels.
+
+**Route 2, step by step:**
+1. **Install** once on the owner's PC: `npm install -g @tripo3d/cli` (0.8.1; npm marks it deprecated, it still works).
+   The install and the login must be on the owner's own machine: one made from Claude's sandboxed shell is invisible to
+   the owner's terminal. The Tripo API (platform.tripo3d.ai) is billed apart from the Studio plan and is not used.
+2. **Ask** the route, then the design questions, as buttons; one asset at a time.
+3. **Prompt** by the rules above, then
+   `tripo image "<prompt>" -m gemini_3.1_flash_image_preview -n 4 --scale 1:1` (Nano Banana 2, four images, square).
+4. **Fetch.** 0.8.1 has a bug: it ends with `no image URLs in result`, or returns while the task is still running. Take
+   the task id from its "Task created" line and poll `tripo image get <id> --output-format json` until `status` is
+   `success`, then download the four `urls` (signed links, good for a few hours) as
+   `asset-previews/tripo/<id>/round<n>/<id>_r<n>_<i>.png`.
+5. **Check and recommend.** A numbered contact sheet of the round; each image checked for one object whole and in
+   frame, a plain background, even light, the house style and the step 7 rules (shrink it to 80 pixels and look);
+   Claude recommends one and shows them all. Another round rewrites the prompt where the last one missed.
+6. **Pick** by buttons. The pick (and any part the owner wants from another image, named as a reference) goes on to
+   the style check (step 3), the clean input (step 4) and the owner's Tripo Studio work (step 5).
+
+`asset-previews/` is ignored by git, so the rounds and contact sheets are never committed; only an image the game's
+asset actually came from is kept, in the asset log's record of what made it (the rest stays in the owner's Tripo
+account).
+
+### The nine steps
+
 1. **Brief** (Claude, on request). What the asset is, which placeholder it replaces, where it's seen, its
    kind and budget from the table above, and anything special (an urn breaks into shards, a chest has a lid
    that opens, an artifact floats and turns).
-2. **Concept** (owner). Images with the house style reference, in MidJourney or any other image model; pick
+2. **Concept** (owner; Claude in Route 2, above). Images with the house style reference, in MidJourney or any other image model; pick
    one design. For 3D, make front, side and back views of it if a tool can.
 3. **Style check** (owner, Claude on request). Put the chosen image next to the reference images and a game
    screenshot of the room it's for. Does it look like the same set of miniatures? Colours muted, even light,
@@ -215,6 +271,38 @@ in code (a rune stamped on gold) stays. The dev menu's Look tab (Made assets) sw
 in the browser, and the Galleries tab stands every face side by side (`__game.obolFace`, `wearFace(id)`,
 `coinGallery()`). Fine text doesn't survive 48 pixels: the coin reads by its rim's colour, the shape at its middle and
 its larger runes.
+
+### Aseprite (2D pixel art)
+
+Everything in the game is still built in code (2026-09-30). Aseprite is for the 2D pixel art the owner asks to be
+**drawn** instead: an artifact icon (24 px, the size the code-built icons are rendered at), a coin face (48 px), a HUD
+piece, or a redraw of a generated image. Aseprite 1.3.18 runs headless on the owner's PC
+(`"C:\Program Files (x86)\Steam\steamapps\common\Aseprite\Aseprite.exe" -b --script <lua>`), so Claude can trace,
+export and preview without opening it; the owner draws and edits in it by hand.
+
+1. **Source.** Either drawn at its final size in Aseprite, or redrawn from a generated image (a Route 1 or 2 concept):
+   the image traced into an indexed `.aseprite` with a small hand palette (index 0 transparent, index 1 the outline
+   ink), its colours mapped to the nearest palette colour, the silhouette's outline forced to ink and stray single
+   pixels and tiny colour islands replaced by what surrounds them. In Tamer the trace took one creature from 29
+   near-duplicate colours to 12 and removed 194 noise pixels.
+2. **The `.aseprite` is the source of truth** from then on: the trace never overwrites one that exists (only with a
+   `--force`), so hand edits survive every export. It is kept beside the owner's other sources (as `inspiration/` holds
+   the coins), not in `public/`.
+3. **Edit** in Aseprite (the owner, or Claude by a Lua script for a mechanical change).
+4. **Export** with `Aseprite -b`: the PNG at its final size, and a copy 8× larger with nearest scaling for review.
+5. **Review** (the rule from Tamer, 2026-10-06): the 8× preview and the `.aseprite` are shown to the owner before
+   anything goes into the game. Back to step 3 until the owner accepts it.
+6. **Prepare** with `npm run prepare-texture -- <png> --kind icon --id <artifact id>` or
+   `--kind coin --id <name>`, then its line in `data/assets.json` (`icons` or `coins`, and `obol` for the face the obols
+   wear) as above, and a row in the asset log. Neither kind takes drawn pixel art cleanly yet: `icon` resizes to 128 px
+   with smoothing (a 24 px drawing would blur), and `coin` warns below 512 px and cuts it to 16 colours.
+   The first drawn icon or face gives `prepare-texture` a path for drawn art (its pixels kept as drawn, checked against
+   the export); until then, export at a whole multiple of the final size and compare the result pixel for pixel.
+
+The trace tooling waits until the first asset that needs it. Tamer's `tools/aseprite/redraw.py` (`trace`, `export`,
+`install`, the palette in a JSON beside the source) is the model, and the owner's EdaBuilder already has it ported (neither is in this repo) to a
+Node script for one image a sprite (`scripts/aseprite.ts` and its `build_sprite.lua`, 2026-10-09): the nearest start for
+a script in `tools/` here.
 
 ## Sound
 
