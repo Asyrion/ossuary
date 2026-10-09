@@ -13,9 +13,10 @@ The proposed order for `ROADMAP.md` (written 2026-10-08). The owner decides; eac
 4. **Room template painter** (A #2, L). It is the most-edited content after the numbers, and still edited as strings.
    Done when: any template is painted with live `validateTemplate`, saves are byte-identical where untouched, and the
    room-inspector shot is one click away.
-5. **Foe curves and the loot simulator** (B #4, #5).
+5. **Foe curves and the loot simulator** (B #4 S, #5 M).
    Done when: both tabs exist, with the owner's no-sponge line and the economy test's bounds marked.
 6. **Saved loadouts for ▶ Play** (C #11, S).
+   Done when: a named loadout (seed, floor, artifacts, spells, potions, level) starts ▶ Play in one click.
 7. Then, as the owner chooses: floor preview, the wheel matrix, balance runs on the board, strings and lore, sound and
    music, entry history, and the room inspector on save. The asset pipeline (D #12) waits until the owner writes the
    Tripo Studio and Aseprite pipelines into `docs/assets.md`.
