@@ -317,6 +317,9 @@ const sounds = {
   hexBolt() { tone('sine', 180, 90, .4, .07); tone('triangle', 90, 180, .35, .03, .05); hiss(.3, .04, 'lowpass', 500); },
   graspRise() { tone('sine', 70, 110, .5, .08); hiss(.5, .05, 'lowpass', 400); },
   graspClose() { tone('square', 140, 60, .12, .05); hiss(.2, .08, 'lowpass', 700); tone('sine', 110, 104, .8, .05, .05); },
+  vigilLantern() { [784, 1175, 1568].forEach((f, i) => tone('triangle', f, f, .5, .03, i * .06)); hiss(.4, .02, 'highpass', 3000); }, // (M7 step 8: Lantern of Vigil lit)
+  lanternShot() { tone('sine', 1568, 1760, .12, .025); },
+  soulHarvest() { tone('sine', 110, 82, 1.2, .08); tone('triangle', 330, 220, .8, .04, .05); hiss(.9, .04, 'bandpass', 500); }, // (M7 step 8: every hex reaped at once)
   ferryToll() { tone('sine', 1760, 1760, .1, .05); tone('sine', 147, 139, 1.4, .08, .05); tone('sine', 220, 208, 1.1, .04, .1); },
   eclipse() { tone('sine', 110, 55, 1, .1); tone('sine', 988, 494, .9, .03); hiss(.6, .05, 'lowpass', 600); },
   blackfire() { tone('sine', 90, 60, .6, .08); hiss(.5, .08, 'bandpass', 900); crackles(6, .4, .04); },

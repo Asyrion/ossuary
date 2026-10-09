@@ -900,6 +900,198 @@
    "when": {
     "freed": "sexton"
    }
+  },
+  {
+   "id": "stormcaller.eyes1",
+   "who": "stormcaller",
+   "moment": "gift",
+   "text": "The coins are cold. Good. I remember the last storm I called over the pass: the Wardens' banners stood straight out, and not one of them fell."
+  },
+  {
+   "id": "stormcaller.eyes2",
+   "who": "stormcaller",
+   "moment": "gift",
+   "text": "I remember my name being shouted over the thunder, and laughing. Take this too: the mantle I wore in the storm, the way I wore it."
+  },
+  {
+   "id": "wizard.eyes1",
+   "who": "wizard",
+   "moment": "gift",
+   "text": "Ah. I remember the clouds coming down through the trees each morning, and the moss drinking them. Everything green was listening."
+  },
+  {
+   "id": "wizard.eyes2",
+   "who": "wizard",
+   "moment": "gift",
+   "text": "I remember the seeds I carried down, in case. Here: the pollen that was in them. It still knows how to wake."
+  },
+  {
+   "id": "forager.eyes1",
+   "who": "forager",
+   "moment": "gift",
+   "text": "Five obols for a forager? I remember my mother counting coins like these, laughing at how few they were."
+  },
+  {
+   "id": "forager.eyes2",
+   "who": "forager",
+   "moment": "gift",
+   "text": "I remember the valleys at harvest, every basket full. I'll bring back twice as much for you now. I know where to look."
+  },
+  {
+   "id": "scribe.eyes1",
+   "who": "scribe",
+   "moment": "gift",
+   "text": "I remember the smell of the ink, oak gall and soot, and the first page I copied without a blot."
+  },
+  {
+   "id": "scribe.eyes2",
+   "who": "scribe",
+   "moment": "gift",
+   "text": "I remember a page I hid from the Wardens, because it was too beautiful to burn. I'll leave one like it for you, every descent."
+  },
+  {
+   "id": "sexton.eyes1",
+   "who": "sexton",
+   "moment": "gift",
+   "text": "Coins on the eyes. I put plenty there myself. I remember every name I cut into stone; there were a great many."
+  },
+  {
+   "id": "sexton.eyes2",
+   "who": "sexton",
+   "moment": "gift",
+   "text": "I remember the key I kept for the vault doors, on a nail behind the chapel. Take a key down with you each time; it's what I'd do."
+  },
+  {
+   "id": "chorister.eyes1",
+   "who": "chorister",
+   "moment": "gift",
+   "text": "I remember the first time my voice filled the whole chapel, and the candles leaned towards it."
+  },
+  {
+   "id": "chorister.eyes2",
+   "who": "chorister",
+   "moment": "gift",
+   "text": "I remember the hymn for the holy ground, the one the Wardens sang before they cut a grave. I'll teach it to you: it was a spell all along."
+  },
+  {
+   "id": "bellringer.eyes1",
+   "who": "bellringer",
+   "moment": "gift",
+   "text": "I remember the weight of the rope, and how the bell answered a moment late, every time, like an old friend."
+  },
+  {
+   "id": "bellringer.eyes2",
+   "who": "bellringer",
+   "moment": "gift",
+   "text": "I remember a soul who sat by my bell every evening and never spoke. It goes with you now, a pale light at your side."
+  },
+  {
+   "id": "novice.eyes1",
+   "who": "novice",
+   "moment": "gift",
+   "text": "I remember my first candle, how it shook. And then how it stopped shaking."
+  },
+  {
+   "id": "novice.eyes2",
+   "who": "novice",
+   "moment": "gift",
+   "text": "I remember the hands in the dark, holding, not hurting. I learned how to call them. Now you can."
+  },
+  {
+   "id": "embalmer.eyes1",
+   "who": "embalmer",
+   "moment": "gift",
+   "text": "I remember the jars in their rows, every one labelled in my hand. The Wardens trusted no one else with them."
+  },
+  {
+   "id": "embalmer.eyes2",
+   "who": "embalmer",
+   "moment": "gift",
+   "text": "I remember my best recipes. Not the polite ones. Take them; they'll serve you better than they served the dead."
+  },
+  {
+   "id": "pilgrim.eyes1",
+   "who": "pilgrim",
+   "moment": "gift",
+   "text": "I remember the first stone of the road, worn into a bowl by all the feet before mine."
+  },
+  {
+   "id": "pilgrim.eyes2",
+   "who": "pilgrim",
+   "moment": "gift",
+   "text": "I remember walking out onto a frozen lake and the ice holding. That's a wall you can carry. Take it."
+  },
+  {
+   "id": "scribe.power",
+   "who": "scribe",
+   "moment": "gift",
+   "text": "Then take what I kept for the long nights: a deeper well of ink. You'll find more mana in you, every descent."
+  },
+  {
+   "id": "sexton.power",
+   "who": "sexton",
+   "moment": "gift",
+   "text": "Here. A heart I dug up and never gave back. It beats well enough. It's yours, in every descent."
+  },
+  {
+   "id": "bellringer.power",
+   "who": "bellringer",
+   "moment": "gift",
+   "text": "A stick of chalk from the bell tower. It never runs short of one glyph. Take it down with you each time."
+  },
+  {
+   "id": "novice.power",
+   "who": "novice",
+   "moment": "gift",
+   "text": "I'll cut a second socket into your first spell, the way the Wardens taught us. Every descent, it will be there."
+  },
+  {
+   "id": "pilgrim.power",
+   "who": "pilgrim",
+   "moment": "gift",
+   "text": "A pilgrim's purse, five obols in it, always five. Don't ask me how. Take it every time you go down."
+  },
+  {
+   "id": "embalmer.power",
+   "who": "embalmer",
+   "moment": "gift",
+   "text": "A phial, always full of something. I fill it while you sleep. You'll go down with a potion every time."
+  },
+  {
+   "id": "sexton.quest",
+   "who": "sexton",
+   "moment": "quest",
+   "text": "I lost my keyring down there, on its nail behind some vault door. If you ever carry it back up, I'll know."
+  },
+  {
+   "id": "sexton.questDone",
+   "who": "sexton",
+   "moment": "questDone",
+   "text": "My keyring! You brought it up. Here: a hallowed light I kept by my lantern. It goes with you now, every descent."
+  },
+  {
+   "id": "scribe.quest",
+   "who": "scribe",
+   "moment": "quest",
+   "text": "Three reactions you've never seen, mage. Go and set them off, and come back and tell me how they looked."
+  },
+  {
+   "id": "scribe.questDone",
+   "who": "scribe",
+   "moment": "questDone",
+   "text": "Three new ones! Wonderful. I've carved a rune for you to carry, a new one each descent. Write to me in it."
+  },
+  {
+   "id": "pilgrim.quest",
+   "who": "pilgrim",
+   "moment": "quest",
+   "text": "Walk all the way down to the Seal. Not to fight; to see it. Then come back and tell me the road was real."
+  },
+  {
+   "id": "pilgrim.questDone",
+   "who": "pilgrim",
+   "moment": "questDone",
+   "text": "You walked it. The road was real. Then I'll give you what I know of the first floor: its every turn, before you take it."
   }
  ]
 }

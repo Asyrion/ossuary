@@ -27,6 +27,7 @@ import { VIGIL, roomIndex } from './vigilMap';
 import { townLook, moveTown, type TownLook } from './townLooks';
 import { ferrymanLook } from './vigilLooks';
 import { hasNews, pickLine, type Subject, type TalkContext } from './dialogueData';
+import { questSaid, questState } from './gifts';
 
 const C = () => CFG.vigil.town;
 interface Figure { id: string; look: TownLook; room: Room; x: number; z: number; armed: boolean; news: boolean; rock: RockBox }
@@ -70,6 +71,7 @@ export function talkContext(who: string, moment?: TalkContext['moment']): TalkCo
     found: { spells: SPELL_DEFS.filter(d => atLeast(stage(d.id), 'learned')).map(d => d.id), foes: metFoes, weak, reactions: [...v.reactions], recipes: [...v.recipes.potions] },
     deepest: v.deepest, runs: v.runs, wins: v.wins, freed: [...v.freed], flags: { ...v.flags }, subjects,
     vars: { struck: struck ? cap(struckName(struck)) : '', boss: boss ? cap(struckName(boss)) : '' },
+    quest: ((q: string | null) => q === 'offer' || q === 'ready' ? q : null)(questState(who)), // (M7 step 8: a quest to give, or met)
   };
 }
 
@@ -80,6 +82,7 @@ export function talkTo(who: string, moment?: TalkContext['moment']) {
   const f = figures.find(x => x.id === who), at = f ?? (who === 'ferryman' ? ferry : null);
   if (at) Sfx.at(at.x, at.z).talk(); else Sfx.talk();
   const said = c.moment && line.line.moment === c.moment ? [momentKey(who)] : [];
+  if (line.line.moment === 'quest' || line.line.moment === 'questDone') questSaid(who, line.line.moment); // (M7 step 8: given, or done)
   // (the panel goes at the top when the speaker stands in the screen's lower half: south of where the camera is heading, its
   // middle half a tile up the screen for its height)
   const low = !!at && at.z - .4 > cameraTargetFor(G.current, player.x, player.z).z;

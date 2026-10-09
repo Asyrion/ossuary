@@ -55,6 +55,8 @@ import { board, vigilActs, vigilInfo } from './vigil/place';
 import { answerShade, bindIt, breakAllChains, freeIt, layShade, shadeInfo } from './vigil/shades';
 import { shadeHelpInfo, walkWith } from './vigil/shadeHelp';
 import { talkTo, townGallery, takeTownGallery, townInfo } from './vigil/town';
+import { actOn, bondTo, giftsInfo, givePower, offersFor, questTo } from './vigil/gifts';
+import { disciplinesOpen } from './vigil/giftData';
 import { closeTalk, goOn, initTalk, say, talkKey, talkNow, talkOpen, talkPad } from './ui/talk';
 import { forgetHeard, setFlag } from './vigil/save';
 import { gainInsight, insightNow, setLevel } from './progression/insight';
@@ -448,6 +450,10 @@ function installDevHooks() {
     get town() { return townInfo(); }, talkTo: (id: string, moment?: 'death' | 'won' | 'boss' | null) => talkTo(id, moment), get talkNow() { return talkNow(); },
     talkOn: () => goOn(), say: (i: number) => say(i), closeTalk, setFlag: (k: string, v?: string | number | boolean) => setFlag(k, v), forgetHeard,
     townGallery: (ids?: string[]) => townGallery(player.x, player.z, ids), takeTownGallery,
+    /** M7 step 8: gifts, bonds and powers: each townsperson's bond, power and quest, the powers owned, what a descent begins
+        with, the disciplines open; a power given or taken, a bond set, a quest given or done (or forgotten: null). */
+    get gifts() { return { ...giftsInfo(), disciplines: disciplinesOpen(vigil().freed) }; },
+    givePower: (id: string, owned = true) => { givePower(id, owned); refreshStats(false); }, bondTo, questTo,
     toVigil: (first = false) => wakeAtVigil(first), lecternChoose: (hand: number, id: string | null) => holdIn(hand, id), openLectern, closeLectern, takeBoat: () => board(),
     /** M4.2: Fen-Nex (its stage, where it is, whether it hunts), and growing it a stage. */
     get fennex() { return fennexInfo(); }, growFennex() { growFennex(); },
@@ -530,7 +536,7 @@ async function boot() {
     start: () => begin(), replay: () => startGame({ seed: G.run.seed }), resume, toggleSound,
     pauseIfPlaying: () => { if (G.state === 'play') pause(); },
   });
-  initInventory({ resume }); initLab({ pause, resume }); initWaystone({ pause, resume }); initLectern({ pause, resume }); vigilActs.openLectern = openLectern; initTalk({ pause, resume });
+  initInventory({ resume }); initLab({ pause, resume }); initWaystone({ pause, resume }); initLectern({ pause, resume }); vigilActs.openLectern = openLectern; initTalk({ pause, resume, offers: offersFor, act: actOn });
   initLevelUp({ pause, resume, others: () => talkOpen() || lecternOpen() || labOpen() || waystoneOpen() || inventoryOpen() || devOpen() || promptShowing() }); // (M6)
   // the chalk texture in the start room is drawn with Cinzel, so load its weights first
   const chalkFonts = Promise.all(['600 16px "Cinzel"', '700 16px "Cinzel"'].map(f => document.fonts.load(f)));

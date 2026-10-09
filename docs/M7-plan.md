@@ -673,6 +673,63 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
      - disciplines, recipes and the powers.
    - Obols on the eyes, and the three quests.
    - **Dev menu:** each power, each bond.
+
+   *Built (2026-10-09).*
+   - **As data** (`data/townsfolk.json`, the pure `src/vigil/giftData.ts`: `startOf`, `giftsInForce`, `questMet`,
+     `disciplinesOpen`, `bondCost`, `validateTownsfolk`): each townsperson's gift when freed and its second gift once its
+     bond is whole; the six powers; the three quests; the six disciplines. A gift's parts: a discipline opened, spells
+     learned (to hold at the lectern), spells into the libraries' pools, recipes learned, and what every descent begins with.
+   - **The gifts** (`src/vigil/gifts.ts`):
+
+     | Townsperson | Freed, gives | Its bond whole (the second gift) |
+     | --- | --- | --- |
+     | The storm caller | The Stormcaller discipline; Arc learned | Static Mantle learned |
+     | The cloud-forest wizard | The Wildwarden discipline; Thorn Snare learned | Pollen Cloud learned |
+     | A forager of the valleys | A reagent every descent | A second reagent every descent |
+     | The scribe | Lantern of Vigil in the libraries; Deep Well to ask for | A grimoire page at every descent's start |
+     | The sexton | Heartstone to ask for | A bone key every descent |
+     | The chorister | The Vigil Keeper discipline; Wardlight learned | Consecrate learned |
+     | The bell-ringer | Chalk of the Bell to ask for | A pale soul mote every descent |
+     | The novice | The Hexer discipline; Hex Bolt learned; Soul Harvest in the libraries; Second Socket to ask for | Grasp of the Grave learned |
+     | The embalmer | Recipes for Liquid Ember, Frostbrew and Bottled Storm; the Embalmer's Phial to ask for | Recipes for the Giant's Brew, the Shadowstep Tincture and the Hex Brew |
+     | The pilgrim | The Frostwarden discipline; Rime Shards learned; the Pilgrim's Purse to ask for | Glacial Wall learned |
+
+     `giftOnFree` (from shades.ts's `freeIt`) opens it at once and says what it gives. The Pyromancer's discipline is open
+     from the start; each other one with its townsperson (`disciplinesOpen`). Choosing one is the Great Circle's (step 10),
+     as are the bell-ringer's bell and deeper landings and the pilgrim's omens; the embalmer's garden of the dead (a
+     reagent of choice) is a part of the Vigil (step 9).
+   - **The two spells that waited** (`data/spells.json`, `givenBy`; `inPool` in spellData.ts keeps them out of the libraries
+     until their townsperson is freed): **Lantern of Vigil** (Hallow, 30 mana, 14 s; the shape `lantern`: a lantern at the
+     mage's shoulder for 8 s, firing a small holy bolt at the nearest foe every 0.9 s; `vigilLanternFx`) and **Soul
+     Harvest** (Umbral, the shape `harvest`: every hex in the room reaped at once, 4 damage and a mana a stack; refused when
+     nothing is hexed). The GDD gave Soul Harvest no mana cost; it costs 15, as every spell costs 10 or more (the spells'
+     test). Runes fit them (Quicken, Vein, Lasting on the lantern, Reprise on the harvest), Gathering Dark touches the
+     harvest, `Sfx.vigilLantern`, `lanternShot`, `soulHarvest`, their icons in hud.ts.
+   - **The six powers**, bought once with Arcane Dust and carried into every descent: Deep Well (the scribe's, 150: +10
+     maximum mana), Heartstone (the sexton's, 200: a heart container), Chalk of the Bell (the bell-ringer's, 100: a glyph),
+     Second Socket (the novice's, 180: a second rune socket on the first slot), the Pilgrim's Purse (100: 5 obols), the
+     Embalmer's Phial (120: a potion). Their mana and hearts are folded into the mage's numbers (`growth` in artifacts.ts);
+     the rest are given as a descent begins.
+   - **Every descent** (`giftsAtStart`, from `startGame` once the first floor is built): reagents, keys, glyphs, obols,
+     potions and runes on the run's own stream (`'vigilGifts'`), a soul mote, the second socket, a grimoire page beside the
+     mage, the first floor's map; one line, "From the Vigil: ...".
+   - **Obols on the eyes and the powers, in the talk** (ui/talk.ts's `withOffers`, `offersFor` and `actOn` in gifts.ts): a
+     talk that ends open (a line with no choices) ends with the offers: Nothing now (first, so Enter never spends), lay 5
+     obols on its eyes (then 15), ask for its power (its Dust). Each step of a bond says a memory (`<who>.eyes1`, `.eyes2`,
+     the dialogue's new moment `gift`), the last opens the second gift; a power bought says its line (`<who>.power`); short
+     of obols or Dust, a line says how many. `spend`, `setBond`, `setPower` in the save.
+   - **Three quests**, given once a bond has begun (`questState`: offer, open, ready, done; pickLine says a quest met first,
+     then the moment, then a quest to give): the sexton's keyring carried back up from below (a hallowed soul mote every
+     descent), the scribe's three reactions never seen (a rune every descent), the pilgrim's walk to the Seal (the first
+     floor's map). Counted only in the runs since it was given (`questFrom`, `questBase` flags).
+   - **Dev menu** (Rooms & runs, "Gifts, bonds and powers"): what a descent begins with, the disciplines open; each power on
+     or off; each bond a step deeper (round to none); each quest given, done or forgotten. Hooks: `__game.gifts`,
+     `givePower(id, owned)`, `bondTo(who, n)`, `questTo(who, state)`.
+   - **Tests:** unit (tests/unit/gifts.test.ts): the data and its lines pass their checks, the checks catch an unknown spell,
+     a cheap power and a focus that isn't one; the disciplines open; the libraries' pools; what a descent begins with; the
+     bonds' costs; quests counted only since they were given. Browser: a talk ending in the offers, obols on the eyes twice
+     (its memories, the second gift), a power bought, a quest given, the next descent beginning with the gifts (more mana,
+     a reagent), a shade freed in a run teaching its spell, the dev menu's power.
 9. **The unfolding and the candle wall.**
    - The six parts behind a school, on the dungeon's hooks.
    - The Cave Mouth filling in with each shade freed.

@@ -15,10 +15,21 @@ import { lineAfter, type Picked } from '../vigil/dialogueData';
 
 interface Talk { who: string; name: string; icon: string; line: Picked; shown: number; chosen: number }
 let talk: Talk | null = null;
-let actions: { pause(): void; resume(): void } = { pause: () => {}, resume: () => {} };
+interface TalkActions {
+  pause(): void; resume(): void;
+  /** M7 step 8 (vigil/gifts.ts): what can be offered a speaker at the end of a talk, and an offer taken (its line back). */
+  offers?(who: string): { label: string; act: string }[]; act?(who: string, act: string): Picked | null;
+}
+let actions: TalkActions = { pause: () => {}, resume: () => {} };
 
-/** How the game pauses and goes on (flow's, from main.ts). */
-export function initTalk(a: { pause(): void; resume(): void }) { actions = a; }
+/** How the game pauses and goes on (flow's, from main.ts), and the gifts' offers. */
+export function initTalk(a: TalkActions) { actions = a; }
+/** A line that leaves the talk open-ended (no choices of its own) ends with the speaker's offers, if it has any. */
+function withOffers(who: string, p: Picked): Picked {
+  if (p.line.choices?.length) return p;
+  const o = actions.offers?.(who) ?? []; if (!o.length) return p;
+  return { ...p, line: { ...p.line, choices: o.map(x => ({ label: x.label, act: x.act })) } };
+}
 export const talkOpen = () => !!talk;
 /** Who is talking now (their figure gestures), if anyone. */
 export const talkingNow = () => talk?.who ?? null;
@@ -27,12 +38,12 @@ export const talkingNow = () => talk?.who ?? null;
     `top`: the speaker stands in the lower half of the screen, so the panel goes at the top, not over it. */
 export function openTalk(who: string, name: string, icon: string, line: Picked, also: string[] = [], top = false) {
   if (!talk) actions.pause();
-  talk = { who, name, icon, line, shown: 0, chosen: 0 };
+  talk = { who, name, icon, line: withOffers(who, line), shown: 0, chosen: 0 };
   hear(line); for (const k of also) hearLine(k);
   $('scrTalk').classList.toggle('top', top);
   showScreen('talk'); render();
 }
-function hear(p: Picked) { hearLine(p.key); }
+function hear(p: Picked) { if (p.key !== '_') hearLine(p.key); } // (`_`: a line made on the spot, a refusal)
 export function closeTalk() { if (!talk) return; talk = null; actions.resume(); }
 
 /** Each step (even while the game waits): the line written out a little more. */
@@ -66,9 +77,9 @@ export function say(i: number) {
   const t = talk, c = t?.line.line.choices?.[i]; if (!t || !c) return false;
   for (const [k, v] of Object.entries(c.set ?? {})) setFlag(k, v);
   Sfx.potionChoose();
-  const next = c.next ? lineAfter(c.next, t.line.vars, vigil().heard) : null;
+  const next = c.act ? (c.act === 'none' ? null : actions.act?.(t.who, c.act) ?? null) : c.next ? lineAfter(c.next, t.line.vars, vigil().heard) : null; // (M7 step 8: an offer taken)
   if (!next) { closeTalk(); return true; }
-  t.line = next; t.shown = 0; t.chosen = 0; hear(next); render(); return true;
+  t.line = withOffers(t.who, next); t.shown = 0; t.chosen = 0; hear(next); render(); return true;
 }
 function choose(d: number) {
   const t = talk, n = t?.line.line.choices?.length ?? 0; if (!t || !n || !whole()) return;

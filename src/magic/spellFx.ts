@@ -335,6 +335,25 @@ export function wardFx(count: number, color: number) {
   };
 }
 
+/** Lantern of Vigil (M7 step 8): a small iron lantern, its flame white-gold, hanging in the air; `place` puts it at (x, y, z)
+    and swings it, `flare` brightens it as it fires, `drop` takes it away. */
+export function vigilLanternFx(color: number) {
+  const g = new THREE.Group(); scene.add(g);
+  const iron = std(0x2a2620, { metalness: .6, roughness: .5 });
+  part(g, keep('fx.lanternCap', () => new THREE.ConeGeometry(.11, .09, 6)), iron, [0, .14, 0]);
+  part(g, keep('fx.lanternBase', () => new THREE.CylinderGeometry(.1, .08, .04, 6)), iron, [0, -.11, 0]);
+  for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + .4; part(g, keep('fx.lanternBar', () => new THREE.BoxGeometry(.016, .22, .016)), iron, [Math.cos(a) * .085, 0, Math.sin(a) * .085]); }
+  part(g, keep('fx.lanternRing', () => new THREE.TorusGeometry(.04, .012, 4, 10)), iron, [0, .21, 0]);
+  const flameMat = lit(whiter(color, .5)), flame = part(g, octa(), flameMat, [0, 0, 0]); flame.scale.set(.045, .08, .045);
+  const halo = glow(color, .9, .8); g.add(halo);
+  let flare = 0;
+  return {
+    place(x: number, y: number, z: number, t: number) { g.position.set(x, y, z); g.rotation.z = Math.sin(t * 2.3) * .12; flame.rotation.y = t * 3; flare = Math.max(0, flare - .05); halo.scale.setScalar(.9 + flare * .7 + Math.sin(t * 9) * .05); },
+    flare() { flare = 1; },
+    drop() { scene.remove(g); disposeTree(g); },
+  };
+}
+
 /** Grasp of the Grave at (x, z): a ring of shadow on the floor and dark hands rising out of it, violet at the fingertips;
     `set(k)` raises them (0 to 1), `drop` takes them away. */
 export function graspFx(x: number, z: number, radius: number, color: number) {

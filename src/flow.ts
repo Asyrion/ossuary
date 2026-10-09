@@ -44,6 +44,7 @@ import { VIGIL, VIGIL_INDEX, vigilPlan } from './vigil/vigilMap';
 import { atVigil } from './vigil/where';
 import { clearShade, placeShade } from './vigil/shades';
 import { clearShadeHelp, helpNewFloor, helpRoomCleared, shadesWalk } from './vigil/shadeHelp';
+import { giftsAtStart } from './vigil/gifts';
 import { furnishVigil, leaveVigil, vigilActs, wakePoint, wokeAtVigil } from './vigil/place';
 import { atLeast } from './magic/knowledge';
 import { stage } from './magic/memory';
@@ -172,6 +173,7 @@ export function startGame(opts?: RunOptions) {
   clearShadeHelp(); shadesWalk(); // (M7 step 6: the shades bound in an earlier run walk with this one)
   showScreen(null); G.state = 'play';
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, o.floor ?? 0)));
+  giftsAtStart(); // (M7 step 8: what the Vigil's townspeople and powers give every descent)
   if (o.level) setLevel(o.level);
 }
 

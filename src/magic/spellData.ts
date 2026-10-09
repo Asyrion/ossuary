@@ -9,8 +9,8 @@ import type { Rng } from '../rng';
 export type School = 'ember' | 'frost' | 'storm' | 'hallow' | 'umbral' | 'verdant';
 export const SCHOOLS: School[] = ['ember', 'frost', 'storm', 'hallow', 'umbral', 'verdant'];
 /** How a spell behaves; each is a function in magic/shapes.ts. M4.1's Hallow and Umbral bring the last six. */
-export type Shape = 'beam' | 'placed' | 'shotgun' | 'wall' | 'chain' | 'self' | 'zone' | 'smite' | 'orbit' | 'bolt' | 'grasp' | 'mark';
-export const SHAPES: Shape[] = ['beam', 'placed', 'shotgun', 'wall', 'chain', 'self', 'zone', 'smite', 'orbit', 'bolt', 'grasp', 'mark'];
+export type Shape = 'beam' | 'placed' | 'shotgun' | 'wall' | 'chain' | 'self' | 'zone' | 'smite' | 'orbit' | 'bolt' | 'grasp' | 'mark' | 'lantern' | 'harvest';
+export const SHAPES: Shape[] = ['beam', 'placed', 'shotgun', 'wall', 'chain', 'self', 'zone', 'smite', 'orbit', 'bolt', 'grasp', 'mark', 'lantern', 'harvest'];
 /** The params each shape reads; a spell of that shape must give them all. */
 export const SHAPE_PARAMS: Record<Shape, string[]> = {
   beam: ['range', 'width'],                                        // how far, and how wide a line it strikes
@@ -25,6 +25,8 @@ export const SHAPE_PARAMS: Record<Shape, string[]> = {
   bolt: ['range', 'speed', 'scale'],                               // one slow bolt: how far, how fast, how big
   grasp: ['ahead', 'radius', 'delay'],                             // where the hands rise, how wide, seconds before they close
   mark: ['range', 'life', 'mana', 'obols', 'spread', 'spreadRange'], // the nearest foe marked: how long, mana a hit, obols if it falls, the hex it spreads
+  lantern: ['life', 'every', 'range', 'speed'],                    // M7 step 8: a lantern at the mage's shoulder: seconds, between its bolts, their reach and speed
+  harvest: ['perStack', 'mana'],                                   // M7 step 8: every hex in the room reaped: damage and mana for each stack
 };
 /** The elemental statuses (magic/status.ts): what the room answers to as well (oil, water, braziers, rune stones). */
 export type StatusKind = 'burn' | 'chill' | 'shock';
@@ -53,9 +55,12 @@ export interface SpellDef {
   /** What it does, in a few words (the lore card), and its lore. */ text: string; lore: string;
   /** M6 step 7: on a runed copy (runeData.ts `runedDef`), the runes carved into its slot; on Reprise's second cast, set. */
   runes?: readonly string[]; reprise?: boolean;
+  /** M7 step 8: a spell that comes into the libraries' pools only once this townsperson is freed (vigil/gifts). */ givenBy?: string;
 }
 
 export const SPELL_DEFS = spellsData as unknown as SpellDef[];
+/** M7 step 8: the spells the libraries can offer, those a townsperson brings only once it is freed. */
+export const inPool = (freed: readonly string[], defs: SpellDef[] = SPELL_DEFS) => defs.filter(d => !d.givenBy || freed.includes(d.givenBy));
 export const SPELLS = new Map(SPELL_DEFS.map(s => [s.id, s]));
 
 export function spell(id: string) {

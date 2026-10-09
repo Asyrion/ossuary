@@ -134,6 +134,38 @@ export const STR = {
     } as Record<string, string>,
     acts: { storm: 'Storm', roots: 'Roots', bow: 'Arrow', turn: 'Turned aside', dig: 'Dug up', sing: 'Song', ring: 'Bell', hex: 'Hexed', brew: 'A draught', map: 'The way' } as Record<string, string>,
   },
+  /** M7 step 8: what the townspeople give (vigil/gifts.ts): the powers' and disciplines' names, the quests, the phrases a
+      gift is told in, the talk's offers and refusals. */
+  gifts: {
+    powers: {
+      deepWell: ['Deep Well', '+10 maximum mana in every descent'], heartstone: ['Heartstone', 'A heart container more in every descent'],
+      chalk: ['Chalk of the Bell', 'A glyph to start every descent'], secondSocket: ['Second Socket', 'A second rune socket on your first spell'],
+      purse: ["Pilgrim's Purse", '5 obols to start every descent'], phial: ["Embalmer's Phial", 'A potion to start every descent'],
+    } as Record<string, [string, string]>,
+    disciplines: { pyromancer: 'the Pyromancer', stormcaller: 'the Stormcaller', wildwarden: 'the Wildwarden', vigilKeeper: 'the Vigil Keeper', hexer: 'the Hexer', frostwarden: 'the Frostwarden' } as Record<string, string>,
+    quests: { keyring: "Bring the sexton's keyring back up from below", reactions: 'Set off three reactions you have never seen', seal: 'Walk all the way down to the Seal' } as Record<string, string>,
+    discipline: (name: string) => `${name} discipline`, learn: (names: string) => `${names} learned`, pool: (names: string) => `${names} in the libraries below`,
+    recipes: (names: string) => `recipes for ${names}`, power: (name: string) => `${name}, a power to ask for`,
+    start: {
+      reagents: (n: number) => n === 1 ? 'a reagent' : `${n} reagents`, keys: (n: number) => n === 1 ? 'a bone key' : `${n} bone keys`,
+      glyphs: (n: number) => n === 1 ? 'a glyph' : `${n} glyphs`, coins: (n: number) => `${n} obols`, potions: (n: number) => n === 1 ? 'a potion' : `${n} potions`,
+      runes: (n: number) => n === 1 ? 'a rune' : `${n} runes`, page: () => 'a grimoire page', souls: (kind: string) => `a ${kind} soul mote`,
+      map: () => "the first floor's map", maxMana: (n: number) => `+${n} mana`, hearts: (n: number) => n === 1 ? 'a heart container' : `${n} heart containers`,
+      socket: () => 'a second socket',
+    } as Record<string, (n: never) => string>,
+    each: (what: string) => `${what}, every descent`,
+    freed: (name: string, what: string) => `${name} gives: ${what}`,
+    second: (name: string, what: string) => `${name} gives more: ${what}`,
+    nothing: 'nothing yet; its bond will tell',
+    fromVigil: (what: string) => `From the Vigil: ${what}`,
+    offers: { none: 'Nothing now', eyes: (n: number) => `Lay ${n} obols on its eyes`, power: (name: string, dust: number) => `Ask for ${name} (${dust} Arcane Dust)` },
+    short: { obols: (have: number, need: number) => `You have ${have} obols kept; it takes ${need}.`, dust: (have: number, need: number) => `You have ${have} Arcane Dust; it takes ${need}.` },
+    powerTaken: (name: string, what: string) => `${name}: ${what.charAt(0).toLowerCase() + what.slice(1)}`,
+    bonded: (name: string, n: number, of: number) => `${name}'s bond deepens (${n} of ${of})`,
+    questGiven: (text: string) => `A quest: ${text}`, questDone: (text: string) => `Quest done: ${text}`,
+  },
+  /** M7 step 8: Soul Harvest's word over the mage, the mana it reaped. */
+  harvested: (n: number) => `+${n} mana`,
   /** M7 step 7: the townspeople's talk (vigil/town.ts, ui/talk.ts; their lines are data/dialogue.json): the Ferryman's name
       (the shades' are `shades.names`), the panel's hint, a choice's key. */
   town: {
@@ -1020,6 +1052,9 @@ export const STR = {
     town: 'Townspeople (M7 step 7)', freeAll: 'Free every shade (to the Vigil)', freeNone: 'Forget the freed', forgetHeard: 'Forget what was heard',
     talkTo: (name: string) => `${name} talks`, nothingToSay: 'Nothing to say', lastRun: 'as the last run', idle: 'none (idle)',
     talkMoment: (m: string) => `Moment: ${m}`, townGallery: 'The townspeople: the ten freed shades (M7 step 7)',
+    gifts: 'Gifts, bonds and powers (M7 step 8)',
+    giftsInfo: (powers: number, disciplines: string, start: string) => `${powers} of 6 powers · disciplines: ${disciplines} · a descent begins with ${start}`,
+    bond: (name: string, n: number, of: number) => `${name}: bond ${n}/${of}`, quest: (name: string, state: string) => `${name}'s quest: ${state}`,
     townInfo: (freed: number, heard: number, flags: number) => `${freed} freed · ${heard} lines heard · ${flags} flags set`,
     vigilInfo: (room: string, candles: number, hands: string) => `In the ${room} · ${candles} candle${candles === 1 ? '' : 's'} lit · in hand: ${hands}`,
   },

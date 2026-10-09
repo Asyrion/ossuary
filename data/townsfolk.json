@@ -1,0 +1,37 @@
+{
+  "_comment": "M7 step 8, gifts, bonds and powers (docs/M7-plan.md, decisions 7, 11 and 12): what each townsperson gives when freed (`gift`), and as its bond deepens (obols on the eyes: `bonds` obols for each, a memory each time, and the `second` gift at the last); the six powers, each a townsperson's, bought once with Dust and carried into every run; the three quests; the six disciplines (loadouts for Asyrion: a starting spell and focus, chosen in the Great Circle in step 10; the Pyromancer's open from the start). A gift's parts: `discipline` (unlocked), `learn` (spells known well enough to hold at the lectern), `pool` (spells into the libraries' pools), `recipes` (potions whose first recipe is learned), `start` (what every run begins with: reagents, keys, glyphs, coins, potions, runes, a grimoire page, a soul mote, the first floor's map). Read and checked by src/vigil/giftData.ts.",
+  "bonds": [5, 15],
+  "disciplines": [
+    { "id": "pyromancer", "school": "ember", "spell": "cinder_lance", "focus": "emberwood_wand" },
+    { "id": "stormcaller", "school": "storm", "spell": "arc", "focus": "lodestar_wand", "by": "stormcaller" },
+    { "id": "wildwarden", "school": "verdant", "spell": "thorn_snare", "focus": "shepherds_crook", "by": "wizard" },
+    { "id": "vigilKeeper", "school": "hallow", "spell": "wardlight", "focus": "mourners_censer", "by": "chorister" },
+    { "id": "hexer", "school": "umbral", "spell": "hex_bolt", "focus": "tome_of_whispers", "by": "novice" },
+    { "id": "frostwarden", "school": "frost", "spell": "rime_shards", "focus": "drowned_orb", "by": "pilgrim" }
+  ],
+  "powers": [
+    { "id": "deepWell", "by": "scribe", "dust": 150, "start": { "maxMana": 10 } },
+    { "id": "heartstone", "by": "sexton", "dust": 200, "start": { "hearts": 1 } },
+    { "id": "chalk", "by": "bellringer", "dust": 100, "start": { "glyphs": 1 } },
+    { "id": "secondSocket", "by": "novice", "dust": 180, "start": { "socket": 1 } },
+    { "id": "purse", "by": "pilgrim", "dust": 100, "start": { "coins": 5 } },
+    { "id": "phial", "by": "embalmer", "dust": 120, "start": { "potions": 1 } }
+  ],
+  "quests": [
+    { "id": "keyring", "by": "sexton", "goal": { "carried": "sextons_keyring" }, "reward": { "start": { "souls": "hallowed" } } },
+    { "id": "reactions", "by": "scribe", "goal": { "reactions": 3 }, "reward": { "start": { "runes": 1 } } },
+    { "id": "seal", "by": "pilgrim", "goal": { "deepest": 6 }, "reward": { "start": { "map": 1 } } }
+  ],
+  "folk": {
+    "stormcaller": { "gift": { "discipline": "stormcaller", "learn": ["arc"] }, "second": { "learn": ["static_mantle"] } },
+    "wizard": { "gift": { "discipline": "wildwarden", "learn": ["thorn_snare"] }, "second": { "learn": ["pollen_cloud"] } },
+    "forager": { "gift": { "start": { "reagents": 1 } }, "second": { "start": { "reagents": 1 } } },
+    "scribe": { "gift": { "pool": ["lantern_of_vigil"] }, "second": { "start": { "page": 1 } } },
+    "sexton": { "gift": {}, "second": { "start": { "keys": 1 } } },
+    "chorister": { "gift": { "discipline": "vigilKeeper", "learn": ["wardlight"] }, "second": { "learn": ["consecrate"] } },
+    "bellringer": { "gift": {}, "second": { "start": { "souls": "pale" } } },
+    "novice": { "gift": { "discipline": "hexer", "learn": ["hex_bolt"], "pool": ["soul_harvest"] }, "second": { "learn": ["grasp_of_the_grave"] } },
+    "embalmer": { "gift": { "recipes": ["liquidEmber", "frostbrew", "bottledStorm"] }, "second": { "recipes": ["giants", "shadowstep", "hexBrew"] } },
+    "pilgrim": { "gift": { "discipline": "frostwarden", "learn": ["rime_shards"] }, "second": { "learn": ["glacial_wall"] } }
+  }
+}

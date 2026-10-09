@@ -67,6 +67,16 @@ export function giveHome(dust: number, obols: number) { save.dust = Math.max(0, 
 export function hearLine(key: string) { save.heard = { ...save.heard, [key]: Math.max(0, ...Object.values(save.heard)) + 1 }; persist(); }
 /** M7 step 7: a flag set by a choice in a talk (or the dev menu); `undefined` clears it. */
 export function setFlag(k: string, v: string | number | boolean | undefined) { const f = { ...save.flags }; if (v === undefined) delete f[k]; else f[k] = v; save.flags = f; persist(); }
+/** M7 step 8: Dust and obols spent at the Vigil (a power, obols on the eyes): false, and nothing spent, when there isn't
+    enough of either. */
+export function spend(dust: number, obols: number) {
+  if (save.dust < dust || save.obols < obols) return false;
+  save.dust -= dust; save.obols -= obols; persist(); return true;
+}
+/** M7 step 8: a townsperson's bond one step deeper (or set, the dev menu); a power owned (or given up, the dev menu). */
+export function setBond(id: string, n: number) { const b = { ...save.bonds }; if (n > 0) b[id] = n; else delete b[id]; save.bonds = b; persist(); }
+export function setPower(id: string, owned: boolean) { save.powers = owned ? [...new Set([...save.powers, id])] : save.powers.filter(p => p !== id); persist(); }
+
 /** The dev menu: every line forgotten (the townspeople say their first again). */
 export function forgetHeard() { save.heard = {}; persist(); }
 /** The dev menu: every shade freed, or none (those freed go back to their chains). */

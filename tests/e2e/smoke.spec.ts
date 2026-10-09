@@ -5197,6 +5197,57 @@ test('townspeople (M7 step 7): the freed stand round the Nave, each with somethi
   expect(errors).toEqual([]);
 });
 
+test('gifts, bonds and powers (M7 step 8): a talk ends with what can be offered; obols on the eyes deepen a bond (a memory, then the second gift); a power is bought with Dust; a quest is given once the bond has begun; the next descent begins with the gifts; a shade freed says what it gives; the two spells that waited join the libraries', async ({ page }) => {
+  type TN = { open: boolean; who?: string; line?: string; text?: string; whole?: boolean; choices?: string[] };
+  type GG = { veteranSave(): void; toVigil(first?: boolean): void; sim(s: number, d?: boolean): void; state: string; talkNow: TN; talkTo(id: string): boolean; talkOn(): void; say(i: number): boolean; closeTalk(): void;
+    vigil: { dust: number; obols: number; bonds: Record<string, number>; powers: string[]; flags: Record<string, unknown> }; forgetHeard(): void;
+    gifts: { folk: Record<string, { bond: number; quest: string | null }>; powers: string[]; start: Record<string, unknown>; disciplines: string[] };
+    takeBoat(): void; player: { stats: { maxMana: number }; mana: number; reagents: Record<string, number>; coins: number }; current: { type: string } };
+  const errors = await start(page, '?vigil=1');
+  const talk = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GG }).__game; g.veteranSave(); g.toVigil(false); g.sim(1);
+    g.talkTo('scribe'); g.sim(5); const first = g.talkNow; g.say(1); g.sim(5); // (its first line, a choice, its reply: the offers follow)
+    const offers = g.talkNow.choices; const before = { obols: g.vigil.obols, dust: g.vigil.dust };
+    g.say(1); g.sim(5); const eyes1 = { ...g.talkNow, bond: g.vigil.bonds.scribe, obols: g.vigil.obols };
+    g.say(2); g.sim(5); const power = { ...g.talkNow, powers: [...g.vigil.powers], dust: g.vigil.dust };
+    g.say(1); g.sim(5); const eyes2 = { ...g.talkNow, bond: g.vigil.bonds.scribe, obols: g.vigil.obols, start: g.gifts.start };
+    g.closeTalk();
+    g.talkTo('scribe'); g.sim(5); const quest = { ...g.talkNow, flag: g.vigil.flags['quest.scribe'] }; g.closeTalk();
+    return { first: first.line, offers, before, eyes1, power, eyes2, quest, disciplines: g.gifts.disciplines };
+  });
+  expect(talk.first).toBe('scribe.first');
+  expect(talk.offers).toEqual(['Nothing now', 'Lay 5 obols on its eyes', 'Ask for Deep Well (150 Arcane Dust)']);
+  expect(talk.eyes1).toMatchObject({ line: 'scribe.eyes1', bond: 1, obols: talk.before.obols - 5 });
+  expect(talk.power).toMatchObject({ line: 'scribe.power', powers: ['deepWell'], dust: talk.before.dust - 150 });
+  expect(talk.eyes2).toMatchObject({ line: 'scribe.eyes2', bond: 2, obols: talk.before.obols - 20 });
+  expect(talk.eyes2.start).toMatchObject({ maxMana: 10, page: 1, reagents: 1 }); // (its second gift: a page each descent; the forager's reagent; the power's mana)
+  expect(talk.quest).toMatchObject({ line: 'scribe.quest', flag: 'open' });
+  expect(talk.disciplines).toHaveLength(6);
+  await page.screenshot({ path: 'test-results/vigil-gifts.png' });
+  // the next descent begins with them
+  const run = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GG }).__game; g.takeBoat(); g.sim(3);
+    return { type: g.current.type, maxMana: g.player.stats.maxMana, mana: g.player.mana, reagents: Object.values(g.player.reagents).reduce((a, b) => a + b, 0), coins: g.player.coins };
+  });
+  expect(run.type).toBe('start'); expect(run.maxMana).toBeGreaterThanOrEqual(110); expect(run.mana).toBe(run.maxMana);
+  expect(run.reagents).toBeGreaterThanOrEqual(1); // (the forager's reagent)
+  // a shade freed in a run gives at once: the novice's Hex Bolt learned, its discipline open
+  const freed = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GG & { setFreed?: unknown; knowledge: Record<string, string>; forgetKnowledge(): void; shadeHere(id: string): void; breakChains(): boolean; freeShade(): boolean; importSave(t: string): string[] } }).__game;
+    g.importSave(JSON.stringify({ v: 1, runs: 1, dust: 0, obols: 0, freed: [] })); g.forgetKnowledge();
+    g.shadeHere('novice'); g.sim(.5); g.breakChains(); g.sim(.2); g.freeShade(); g.sim(.2);
+    return { hex: g.knowledge.hex_bolt, disciplines: g.gifts.disciplines };
+  });
+  expect(freed.hex).toBe('learned'); expect(freed.disciplines).toEqual(['pyromancer', 'hexer']);
+  // the dev menu's section: a power given there
+  await page.keyboard.press('F2');
+  await page.locator('#dev .dv-tab', { hasText: 'Rooms' }).click();
+  await page.locator('#dev .dv-page:not([hidden]) button', { hasText: 'Heartstone' }).click();
+  expect(await page.evaluate(() => (window as unknown as { __game: GG }).__game.gifts.powers)).toEqual(['heartstone']);
+  await page.keyboard.press('Escape');
+  expect(errors).toEqual([]);
+});
+
 test('the shrine\'s bargain (M6 step 11): a stone at the circle\'s head; walking up says how; a spell cast into it costs nothing and deals two boons of its school and one general; Esc pays nothing; a boon taken costs a heart container and keeps it, once; the last heart is refused', async ({ page }) => {
   const errors = await start(page, '?room=shrine_henge&spells=cinder_lance,rime_shards');
   const r = await page.evaluate(`(() => {

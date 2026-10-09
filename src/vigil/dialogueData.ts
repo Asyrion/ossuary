@@ -8,8 +8,10 @@
    once before any is told again. Pure: the shape, the picking (`pickLine`) and the checks (`validateDialogue`). */
 import data from '../../data/dialogue.json';
 
-export type Moment = 'first' | 'death' | 'won' | 'boss' | 'idle' | 'reply' | 'quest' | 'questDone';
-export const MOMENTS: Moment[] = ['first', 'death', 'won', 'boss', 'idle', 'reply', 'quest', 'questDone'];
+export type Moment = 'first' | 'death' | 'won' | 'boss' | 'idle' | 'reply' | 'quest' | 'questDone' | 'gift';
+/** (M7 step 8: `gift`, a line said as a gift is given: obols on the eyes, `<who>.eyes1` and `.eyes2`, its memories; a power
+    bought, `<who>.power`. Picked by its id, never by `pickLine`.) */
+export const MOMENTS: Moment[] = ['first', 'death', 'won', 'boss', 'idle', 'reply', 'quest', 'questDone', 'gift'];
 /** What an idle line may tell of, one subject at a time. */
 export type Fill = 'weakness' | 'bossFear' | 'reaction';
 export const FILLS: Fill[] = ['weakness', 'bossFear', 'reaction'];
@@ -27,7 +29,8 @@ export interface When {
   /** The last run: struck last by this (a foe's, boss's or thing's id), or this boss fell in it. */
   struck?: string; boss?: string;
 }
-export interface Choice { label: string; next?: string; set?: Record<string, FlagValue> }
+/** (`act`: M7 step 8, not in the data: an offer town.ts adds at the end of a talk, obols on the eyes or a power asked for.) */
+export interface Choice { label: string; next?: string; set?: Record<string, FlagValue>; act?: string }
 export interface Line { id: string; who: string; moment: Moment; text: string; when?: When; fill?: Fill; choices?: Choice[] }
 export interface DialogueData { speakers: string[]; lines: Line[] }
 export const DIALOGUE = data as unknown as DialogueData;
@@ -46,6 +49,7 @@ export interface TalkContext {
   deepest: number; runs: number; wins: number; freed: string[]; flags: Record<string, FlagValue>;
   /** The subjects each fill may tell of now, in the order they'd be told. */ subjects: Partial<Record<Fill, Subject[]>>;
   /** Words any line may use: `struck` (what struck last), `boss` (the boss that fell), `name` (the mage's). */ vars: Record<string, string>;
+  /** M7 step 8: this speaker's quest: one to give (`offer`), or one whose goal is met (`ready`). */ quest?: 'offer' | 'ready' | null;
 }
 
 /** Whether a line's conditions hold. */
@@ -87,11 +91,15 @@ export function pickLine(who: string, c: TalkContext, heard: Record<string, numb
   const first = mine.find(l => l.moment === 'first');
   if (first && heard[first.id] === undefined) return as(first);
   const byAge = (a: Picked, b: Picked) => (heard[a.key] ?? -1) - (heard[b.key] ?? -1);
+  const done = c.quest === 'ready' && mine.find(l => l.moment === 'questDone'); // (M7 step 8: a quest met is said first)
+  if (done) return as(done);
   if (c.moment && !c.momentSaid) {
     const now = mine.filter(l => l.moment === c.moment).sort((a, b) => specific(b) - specific(a));
     const top = now.length ? specific(now[0]) : 0, best = now.filter(l => specific(l) === top).map(l => as(l)).sort(byAge);
     if (best.length) return best[0];
   }
+  const quest = c.quest === 'offer' && mine.find(l => l.moment === 'quest'); // (then a quest to give)
+  if (quest) return as(quest);
   const idle = mine.filter(l => l.moment === 'idle').flatMap(l => l.fill ? (c.subjects[l.fill] ?? []).map(s => as(l, s)) : [as(l)]);
   return idle.find(p => p.fresh) ?? [...idle].sort(byAge)[0] ?? (first ? as(first) : null);
 }
@@ -104,6 +112,13 @@ export function lineAfter(id: string, vars: Record<string, string>, heard: Recor
 export const hasNews = (who: string, c: TalkContext, heard: Record<string, number>, lines: Line[] = DIALOGUE.lines) => {
   const p = pickLine(who, c, heard, lines);
   return !!p && (p.fresh || (p.line.moment !== 'idle' && p.line.moment !== 'first'));
+};
+/** M7 step 8: the lines a gift needs, for the checks: each townsperson's two memories, a power's line, a quest's two. */
+export interface GiftLines { folk: string[]; powers: string[]; quests: string[] }
+export const giftLinesMissing = (d: DialogueData, g: GiftLines) => {
+  const has = (id: string, m: Moment) => d.lines.some(l => l.id === id && l.moment === m);
+  return [...g.folk.flatMap(w => [`${w}.eyes1`, `${w}.eyes2`].filter(id => !has(id, 'gift'))), ...g.powers.map(w => `${w}.power`).filter(id => !has(id, 'gift')),
+    ...g.quests.flatMap(w => [has(`${w}.quest`, 'quest') ? '' : `${w}.quest`, has(`${w}.questDone`, 'questDone') ? '' : `${w}.questDone`]).filter(Boolean)];
 };
 
 /** The ids a line's conditions may name, by kind (the checks use them). */

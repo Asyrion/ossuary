@@ -29,11 +29,12 @@ import { MAGIC, canAct, newStatus } from './status';
 import type { Shape, SpellDef } from './spellData';
 import { rune } from './runeData';
 import { runeActs } from './runes';
-import { flash, inflict, overloadAt, tileReaction } from './statusFx';
+import { flash, floatText, inflict, overloadAt, tileReaction } from './statusFx';
 import { steamAt } from './steam';
 import { weaveAt } from './weaveFx';
 import { burningNear, layFire, litFire, mageFireNear } from '../actors/foes';
-import { consecrateFx, graspFx, hideSpellFx, iceColumn, lanceFx, mantleFx, pollenFx, ringFx, sealFx, smiteFx, strikeFx, thornFx, tollFx, updateSpellFx, wardFx, woodColumn } from './spellFx';
+import { consecrateFx, graspFx, hideSpellFx, iceColumn, lanceFx, mantleFx, pollenFx, ringFx, sealFx, smiteFx, strikeFx, thornFx, tollFx, updateSpellFx, vigilLanternFx, wardFx, woodColumn } from './spellFx';
+import { STR } from '../strings';
 import { hearGround } from '../world/groundHooks';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { counter } from '../actors/counters';
@@ -676,16 +677,68 @@ export function payToll(e: Enemy) {
 }
 const sparkBetween = (a: Enemy, b: Enemy) => strikeFx({ x: a.x, y: .8, z: a.z }, { x: b.x, y: foeY(b), z: b.z }, 0xa266ff, CFG.spellFx.chain, true);
 
+/* ---------- lantern: Lantern of Vigil (M7 step 8, the scribe's) ---------- */
+
+/** A lantern lights at the mage's shoulder and goes with it, room to room, for a while: every so often it fires a small
+    bolt of holy light at the nearest foe in reach (a spell's bolt, carrying the spell's statuses). */
+let lamp: { def: SpellDef; t: number; next: number; fx: ReturnType<typeof vigilLanternFx> } | null = null;
+const lantern: Cast = def => {
+  endLantern();
+  lamp = { def, t: 0, next: def.params.every * .5, fx: vigilLanternFx(hex(def.color)) };
+  burst(player.x - .45, 1.3, player.z - .2, hex(def.color), 10, 1.6, .04); Sfx.vigilLantern();
+  return true;
+};
+/** Seconds of the lantern left (0 when it's out). */
+export const lanternLeft = () => lamp ? lamp.def.params.life - lamp.t : 0;
+function updateLantern(dt: number, now: number) {
+  const l = lamp; if (!l) return;
+  const P = l.def.params; l.t += dt; l.next -= dt;
+  if (l.t >= P.life) { endLantern(); return; }
+  const x = player.x - .45, y = 1.3 + Math.sin(now * 2.1) * .06, z = player.z - .2;
+  l.fx.place(x, y, z, now);
+  if (l.next > 0) return;
+  let best: Enemy | null = null, bd = P.range;
+  for (const e of G.enemies) if (alive(e)) { const d = Math.hypot(e.x - x, e.z - z); if (d < bd) { bd = d; best = e; } }
+  if (!best) { l.next = .15; return; }
+  l.next = P.every; l.fx.flare();
+  fireSpellBolt(x, z, best.x - x, best.z - z, { damage: l.def.damage, range: P.range + .5, speed: P.speed, color: hex(l.def.color), scale: .5, status: l.def.status });
+  Sfx.at(x, z).lanternShot();
+}
+function endLantern() { lamp?.fx.drop(); lamp = null; }
+
+/* ---------- harvest: Soul Harvest (M7 step 8, the novice's) ---------- */
+
+/** Every hex in the room is reaped at once: each stack strikes its foe and comes back to the mage as mana. Nothing hexed:
+    refused (it costs nothing, but its cooldown waits). */
+const harvest: Cast = def => {
+  const P = def.params, color = hex(def.color);
+  const hexed = G.enemies.filter(e => alive(e) && (e.status?.hex ?? 0) > 0);
+  if (!hexed.length) return false;
+  let stacks = 0;
+  for (const e of hexed) {
+    const n = e.status!.hex; stacks += n; e.status!.hex = 0;
+    const u = away(e, player.x, player.z);
+    damageEnemy(e, n * P.perStack, u.x * .2, u.z * .2, .2, 'spell', def.school);
+    strikeFx({ x: e.x, y: foeY(e), z: e.z }, { x: player.x, y: 1, z: player.z }, color, CFG.spellFx.chain, true);
+    burst(e.x, foeY(e), e.z, color, 6 + n * 2, 1.8, .04);
+  }
+  const mana = Math.round(stacks * P.mana);
+  player.mana = Math.min(player.stats.maxMana, player.mana + mana);
+  floatText(player.x, 1.5, player.z, STR.harvested(mana), color);
+  Sfx.at(player.x, player.z).soulHarvest();
+  return true;
+};
+
 /* ---------- every step ---------- */
 
-export const CAST: Record<Shape, Cast> = { beam, placed, shotgun, wall, chain, self, zone, smite, orbit, bolt: boltShape, grasp, mark };
+export const CAST: Record<Shape, Cast> = { beam, placed, shotgun, wall, chain, self, zone, smite, orbit, bolt: boltShape, grasp, mark, lantern, harvest };
 
 /** Effects fade every step; seals, walls and the mantle only run while the game does (`acting`). */
 export function updateShapes(dt: number, acting: boolean) {
   updateSpellFx(dt); updateFlames(dt);
   if (!acting) return;
   updateSeals(dt); updateWalls(dt); updateMantle(dt, G.simClock);
-  updateZones(dt); updateSmites(dt, G.simClock); updateWard(dt, G.simClock); updateGrasps(dt); updateMarks(G.simClock, dt);
+  updateZones(dt); updateSmites(dt, G.simClock); updateWard(dt, G.simClock); updateLantern(dt, G.simClock); updateGrasps(dt); updateMarks(G.simClock, dt);
 }
 
 /** The mage leaves the room: what spells left in it goes quietly (the mantle goes with the mage). */
@@ -700,4 +753,4 @@ export function leaveRoomShapes() {
   for (const m of marks) { m.e.toll = undefined; m.fx.drop(); } marks.length = 0;
 }
 /** A new floor or run: nothing left at all. */
-export function clearShapes() { leaveRoomShapes(); endMantle(true); endWard(); }
+export function clearShapes() { leaveRoomShapes(); endMantle(true); endWard(); endLantern(); }

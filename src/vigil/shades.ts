@@ -27,6 +27,7 @@ import { bindShade, freeShade, vigil } from './save';
 import { breaks, chainCount, chainSchools, pickShade, shade, shadeRoom } from './shadeData';
 import { chainedShadeLook } from './shadeLooks';
 import { vigilHooks } from './where';
+import { giftOnFree } from './gifts';
 
 const C = () => CFG.shades;
 /** The shapes of spell that land on a spot (and so can strike a chain): not those that seek a foe or stay on the mage. */
@@ -146,7 +147,7 @@ export function freeIt() {
   for (const c of s.chains) { c.broken = true; c.look.group.visible = false; }
   s.state = 'freeing'; s.t = 0; unblock(s);
   const col = shaftLook(); col.group.position.set(s.x - s.room.cx, 0, s.z - s.room.cz); s.room.group.add(col.group); s.column = col.group;
-  freeShade(s.id); G.run.freed = [...G.run.freed, s.id];
+  freeShade(s.id); G.run.freed = [...G.run.freed, s.id]; giftOnFree(s.id); // (M7 step 8: its gift, at once)
   Sfx.at(s.x, s.z).shadeFree(); line(STR.shades.freed(name(s.id)), 5);
   return true;
 }

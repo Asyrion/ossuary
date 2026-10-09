@@ -56,7 +56,7 @@
       "lore": "The embalmers knew a hex takes more than mana. What it takes has to go somewhere, and it may as well go to you." },
     { "id": "gatheringDark", "name": "Gathering Dark", "school": "umbral", "max": 2, "icon": "moon", "color": "#7a4ad8",
       "params": { "maxHex": 7, "fadeMul": 1.33 }, "rank2": { "maxHex": 9, "fadeMul": 1.66 },
-      "touches": { "status": ["hex"] },
+      "touches": { "status": ["hex"], "shape": ["harvest"] },
       "text": "Hex holds 7 stacks instead of 5 and fades a third slower",
       "text2": "Hex holds 9 stacks and fades two thirds slower",
       "lore": "In the lowest crypts the dark does not lift; it only settles, layer on layer, like dust no one sweeps." },

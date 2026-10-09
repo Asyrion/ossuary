@@ -73,5 +73,7 @@
     "damage": 4, "status": { "grow": 3 }, "params": { "ahead": 2, "width": 3, "life": 6, "burst": 1.3 },
     "tags": ["wall", "control"], "color": "#7ac04a", "icon": "livingwall",
     "text": "Trunks of living wood rise ahead and stop foes and their shots, but not your bolts; the foes that touch them are overgrown. Fire burns it down",
-    "lore": "A wall that grows is a wall that forgives: it bends where a stone wall would crack. It does not forgive fire." }
+    "lore": "A wall that grows is a wall that forgives: it bends where a stone wall would crack. It does not forgive fire." },
+  {"id": "lantern_of_vigil", "name": "Lantern of Vigil", "school": "hallow", "shape": "lantern", "mana": 30, "cooldown": 14, "damage": 4, "status": {"sanct": 1}, "params": {"life": 8, "every": 0.9, "range": 6.5, "speed": 7.5}, "tags": ["self", "summon"], "color": "#ffe2a0", "icon": "lantern", "givenBy": "scribe", "text": "A lantern lights at your shoulder for a while and fires small bolts of holy light at the nearest foe", "lore": "The scribe kept a lantern burning over the grimoires through the longest nights, so the copying never stopped. Freed, it hands you the knack: a light that keeps watch on its own."},
+  {"id": "soul_harvest", "name": "Soul Harvest", "school": "umbral", "shape": "harvest", "mana": 15, "cooldown": 20, "damage": 0, "params": {"perStack": 4, "mana": 1}, "tags": ["area", "economy"], "color": "#8a5aff", "icon": "harvest", "givenBy": "novice", "text": "Reap every hex in the room at once: each stack strikes its foe and comes back to you as mana", "lore": "The novice learned in the dark that a grudge is only borrowed. Call every hex home at once, and what it took comes back with it."}
 ]

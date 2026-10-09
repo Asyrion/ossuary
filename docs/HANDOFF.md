@@ -55,7 +55,10 @@ townspeople and dialogue, is built** (2026-10-09, planned with the owner: along 
 their sheet to review): the freed stand round the Nave, each its own figure; walking up to one opens its talk (109 lines in
 data/dialogue.json, picked on what the save knows: the first meeting, the last run's death, win or boss, then what each
 knows, the forager's weaknesses, the scribe's reactions, the bosses' fears); choices set flags for step 8. **Waiting on the
-owner:** the townspeople's sheet (any figure to change). **Next: step 8, gifts, bonds and powers.**
+owner:** the townspeople's sheet (any figure to change). **Step 8, gifts, bonds and powers, is built** (2026-10-09): each
+townsperson's gift when freed (a discipline, spells, the two spells that waited in the libraries' pools, recipes, what every
+descent begins with), obols on the eyes (a memory, then a second gift), six powers bought with Dust, three quests.
+**Next: step 9, the unfolding and the candle wall.**
 
 `main` was merged into the branch on 2026-10-05 (another session's work: the Chameleon Wyvern, the texel bake, the game's
 first sound files, the dev menu's fixes), so both session branches carry everything; 434 unit tests green after it.

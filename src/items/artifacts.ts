@@ -21,6 +21,8 @@ import { updateArc } from './arc';
 import { announce, giftsFor, updateTransforms } from './transforms';
 import type { TransformId } from './transformData';
 import { boonParam } from '../progression/boonHooks';
+import { vigil } from '../vigil/save';
+import { startOf } from '../vigil/giftData';
 
 const hex = (c: string) => new THREE.Color(c).getHex();
 
@@ -43,8 +45,12 @@ export function refreshStats(announceNow = true): TransformId[] {
   return fresh;
 }
 
-/** M6: what the mage's growth adds: the attributes, and Votive Heart's heart containers (two halves each). */
-function growth() { const b = attrBonus(G.run.attrs); return { ...b, heartHalves: b.heartHalves + 2 * boonParam('votiveHeart', 'hearts') }; }
+/** M6: what the mage's growth adds: the attributes, and Votive Heart's heart containers (two halves each); M7 step 8, the
+    Vigil's powers (more mana, heart containers). */
+function growth() {
+  const b = attrBonus(G.run.attrs), v = vigil(), p = startOf({ freed: v.freed, bonds: v.bonds, powers: v.powers, flags: v.flags }); // (M7 step 8: the powers bought at the Vigil)
+  return { ...b, mana: b.mana + (p.maxMana ?? 0), heartHalves: b.heartHalves + 2 * boonParam('votiveHeart', 'hearts') + 2 * (p.hearts ?? 0) };
+}
 
 /** Start a run holding only the starting focus. */
 export function resetArtifacts() { player.focus = START_FOCUS; player.items = []; player.heartsPaid = 0; player.cleansed = []; refreshStats(); player.hp = player.maxHp; renderHearts(); }
