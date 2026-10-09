@@ -50,7 +50,8 @@ The cards show colour swatches today, because almost everything in the game is d
 12. **Tripo Studio and Aseprite pipelines (L).** When the owner writes them into `docs/assets.md` (their plan of
     2026-10-08), the board gets a prompt studio per entry (brief, house style, "Refine with Claude") and pipeline
     buttons: a model upload through `prepare-asset` with its report, `texel-bake` with a before and after, an Aseprite
-    redraw step. Each step is shown before anything is installed.
+    redraw step. Each step is shown before anything is installed. The pipelines are now written in `docs/assets.md`
+    (2026-10-09: the two Tripo Studio routes in Pipeline, and Aseprite (2D pixel art)), so the board step can be planned.
 13. **Sound and music tabs (M).** `music.json`, `ambience.json` and `sounds.json` as tabs. A piece or soundscape is
     auditioned in the browser through the game's own synth (`renderAudio`), and the sound files are played from
     `public/`.

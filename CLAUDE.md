@@ -10,8 +10,9 @@ unscheduled designs (pickup families and more); an idea only counts once it move
 system borrowed from Isaac gets a magic take (GDD: What separates Ossuary from an Isaac clone). The Tripo
 asset checklist lives in the owner's claude.ai project "Tripo3D-GameDev"; `docs/assets.md` is the repo's
 side of asset making: which tool for what (MidJourney, Tripo3D and other image models), the house style (one
-style reference in every image), budgets per kind of asset, the pipeline from image to game, and the asset
-log; its Sound section does the same for sound (sources and their licences, the house sound, specs, pipeline).
+style reference in every image), budgets per kind of asset, the pipeline from image to game (the Tripo Studio
+routes, the owner by hand or Claude through the Tripo CLI, and the Aseprite route), and the asset log; its Sound
+section does the same for sound (sources and their licences, the house sound, specs, pipeline).
 `docs/effects.md` is the house style for magic effects (every spell's look, the schools' light, budgets, how to add one).
 When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
 work in the repo.
