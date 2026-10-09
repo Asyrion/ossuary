@@ -1,8 +1,9 @@
-# Tripo Studio prompts: the townspeople and the Ferryman
+# Tripo Studio prompts: the townspeople, the Ferryman, Kaelith and Dr. Jelly
 
 Written 2026-10-09 at the owner's ask, for M7's townspeople (`docs/M7-plan.md`, step 7). These are Nano Banana 2 prompts for
 Tripo Studio's model generator, one for each figure that stands at the Vigil. Each figure is now built in code
-(`src/vigil/townLooks.ts`). A made model replaces its code figure through the creature pipeline (`docs/creatures.md`).
+(`src/vigil/townLooks.ts`). Kaelith and Dr. Jelly were added at the owner's ask the same day (below the Ferryman): each
+follows the look the owner chose for it in code. A made model replaces its code figure through the creature pipeline (`docs/creatures.md`).
 
 ## How they become pixel art
 
@@ -108,6 +109,32 @@ A chibi pilgrim, the freed spirit of a road-worn traveller, mid-stride with its 
 A chibi ferryman of the dead, tall and narrow, standing upright with both hands on a long punting pole planted beside it, the pole twice the figure's height and curving at the top into a hook from which a small iron lantern hangs. It is darker and more solid than any shade, because it has carried the dead across for longer than anyone remembers. A deep hood hides the face entirely except two small pale eyes like coins. Long layered robes fall to the base, their hem scalloped and damp, a single obol hanging on a cord round the neck. Surfaces: heavy black-brown wool, tarred wood, black iron, tarnished silver. Palette: charcoal and deep umber, with warm amber in the lantern and pale silver on the eyes and the coin. Miniature
 ```
 
+## Kaelith and Dr. Jelly
+
+These two follow the looks the owner chose for their code figures, so a made model matches what the game shows now:
+- **Kaelith** wears the Winged Watcher (2026-10-06, `src/actors/kaelithLooks.ts`). It is a boss: the **Boss** kind (up to
+  15,000 triangles), about twice the mage's height. Its fight moves its sword, its wings, the hand that holds the seal shut
+  and its kneel at the end, all in code. So its prompt asks for the sword raised and out and the wings spread clear of the
+  body, and for proportions closer to heroic than chibi, so it towers over the mage.
+- **Dr. Jelly** is the plague doctor (2026-10-02, `src/world/jellyLooks.ts`). He is about the mage's height, the
+  **Enemy** kind's budget (up to 8,000 triangles), animated in code: he leans, turns to the mage, and reaches out to hand
+  over a potion, so his right arm is held out with the flask.
+
+Each stands apart from the set, but attaching a townsperson's image as the style reference still keeps the rendering
+the same.
+
+**Kaelith, the Shadow Sentinel** (the Seal's boss: Umbral, violet light)
+
+```
+A towering winged sentinel of shadow, the last guardian of an ancient seal, standing on long armoured legs with its left foot forward, its right arm raising a long two-handed sword up and out to the side and its left hand held open before its chest, palm out, as if holding something shut. It has stood guard so long that its armour and its shadow have become one body. Its face is a hooded stone mask like a temple statue's, smooth and calm, with two narrow violet slits for eyes. Two great bat-like wings spread wide from its back, their edges torn into long points, each wing as wide as the figure is tall. The sword is as long as the sentinel's legs, its blade edged with a thin violet line. Gaunt plate armour, dark and smooth. Surfaces: blackened steel, grey stone, dark leathery membrane. Palette: deep violet-black and slate grey, with bright violet on the eyes, the sword's edge and a rune ring floating behind its head. Miniature
+```
+
+**Dr. Jelly** (the alchemist of the laboratory: jelly green)
+
+```
+A chibi plague doctor alchemist, cheerful and eccentric, leaning forward on its back foot with its right arm held out at shoulder height offering a round glass flask of glowing green jelly, its left hand resting on a small jar at its hip. Its mask is a long curved bird beak, because the jelly's fumes are strong and the beak holds dried herbs against them. Round brass-rimmed glass eyes on the mask glow jelly green. A wide-brimmed hat tipped back over a dark hood, head about a third of its height. A long grey greatcoat with wide lapels over a dark front, leather gloves, and a belt of pouches and a row of four small vials. In the jar at its hip sits a small jelly with two dot eyes, its familiar. A coil of glass tube curls from the flask's neck. Surfaces: grey felted wool, dark oiled leather, brass, clear glass. Palette: ash grey and dark brown, with jelly green in the flask, the jar and the mask's eyes. Miniature
+```
+
 ## If they come back wrong
 
 | What came back | Change in the prompt |
@@ -117,3 +144,5 @@ A chibi ferryman of the dead, tall and narrow, standing upright with both hands 
 | The figure see-through, or made of smoke | Remove nothing; add "solid painted figure" after "a soul given form" |
 | Two figures, or a prop on its own base | Add "rising from the same base" to the prop |
 | The glow colour all over | Name the robe's colour again next to the glow ("pale ivory robes, a faint yellow glow") |
+| Kaelith's mask came back as a face | Add "a sealed full-face stone mask" |
+| Kaelith too small beside its wings | Add "the sentinel tall and narrow, its wings no wider than twice its height" |
