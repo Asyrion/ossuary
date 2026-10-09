@@ -4849,8 +4849,13 @@ test('the Seal (M7 step 1): floor 5 has its waystone room and leads down to the 
     const arrive = { floor: g.floor, banner: document.querySelector('#banner .t').textContent, rooms: g.rooms().map(r => r.type + ':' + r.plan.shape), map: g.map(), said: [...said].join(' | '), look: g.current.look?.name };
     g.warp(1); g.sim(.2); const hall = new Set(); for (let t = 0; t < 12; t++) { hall.add(document.getElementById('toast').textContent); g.sim(.25); }
     const kinds = new Set(), seen = new Set(), total = g.current.waves.length;
-    // (the wave is read after the steps too: the last wave can come and fall within one pass of the loop, and the room clear)
-    for (let k = 0; k < 400 && !g.current.cleared; k++) { seen.add(g.current.wave); for (const e of g.enemies) if (!e.dead) { kinds.add(e.type); e.hp = Math.min(e.hp, .01); } window.__fight(.5); g.sim(.25); seen.add(g.current.wave); }
+    // (each wave is struck down through the game's own hook rather than fought: a foe hiding or still rising takes no blow, so
+    // a fight could stall on one; the wave is read after the steps too, as the last can come and fall within one pass)
+    for (let k = 0; k < 400 && !g.current.cleared; k++) {
+      seen.add(g.current.wave);
+      g.enemies.forEach((e, i) => { if (e.dead) return; kinds.add(e.type); Object.assign(e, { hidden: false, spawn: 0, ward: undefined, glance: false }); g.hit(i, 9999); });
+      g.sim(.25); seen.add(g.current.wave);
+    }
     const waves = seen.size + ':' + total;
     const cleared = g.current.cleared;
     g.warp(2); g.sim(.3); const boss = g.enemies.find(e => e.isBoss)?.type; g.clearRoom(); g.sim(.5);
