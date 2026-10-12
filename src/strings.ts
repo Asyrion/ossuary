@@ -951,7 +951,7 @@ export const STR = {
   dev: {
     title: 'Dev menu', close: 'Close',
     tabs: { mage: 'Mage', magic: 'Magic', foes: 'Foes & objects', rooms: 'Rooms & runs', look: 'Look', galleries: 'Galleries', sound: 'Sound' },
-    // the soundscapes and the music (docs/sound-plan.md)
+    // the soundscapes and the music (docs/archive/sound-plan.md)
     // creatures made in Tripo and animated in code (docs/creatures.md)
     creatures: 'Animated creatures (made in Tripo, animated in code)', creatureHere: (name: string) => `${name}: stand it here`, roarNow: 'Roar now',
     creaturesNote: 'Its walk, roar and rest baked by tools/animate-creature.ts; it walks a lap, roars at the mage and rests, its sounds on its paws and its roar. Looks only: no fight.',

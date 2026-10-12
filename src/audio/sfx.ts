@@ -24,7 +24,7 @@ function init() {
   if (!AC) return;
   ctx = new AC(); master = ctx.createGain(); master.connect(ctx.destination);
   fx = ctx.createGain(); fx.connect(master); ui = ctx.createGain(); ui.connect(master);
-  music = ctx.createGain(); music.connect(master); ambience = ctx.createGain(); ambience.connect(master); applyVolumes(); // (docs/sound-plan.md)
+  music = ctx.createGain(); music.connect(master); ambience = ctx.createGain(); ambience.connect(master); applyVolumes(); // (docs/archive/sound-plan.md)
   noise = ctx.createBuffer(1, ctx.sampleRate * .5, ctx.sampleRate);
   const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
 }
@@ -498,7 +498,7 @@ export const Sfx = {
   init,
   get muted() { return muted; },
   toggle() { muted = !muted; applyVolumes(); return muted; },
-  /** The audio context and the music and ambience buses (docs/sound-plan.md), once the first key or click has made them. */
+  /** The audio context and the music and ambience buses (docs/archive/sound-plan.md), once the first key or click has made them. */
   get buses() { return ctx ? { ctx, music, ambience } : null; },
   /** Where to send a sound built elsewhere (an animated creature's, docs/creatures.md) that happens at (x, z) in the room:
       panned and quieter further off, on the effects bus; null before the first key or click, or while muted. */

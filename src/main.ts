@@ -332,7 +332,7 @@ function installDevHooks() {
     /** Every object and pile, and two urns, in rows ahead of the mage (the dev menu's "Objects here"). */
     objectsHere: () => objectsHere(),
     dropsHere: () => dropsHere(),
-    /** The soundscapes and the music (docs/sound-plan.md): what plays; turned on (the browser tests start with it off);
+    /** The soundscapes and the music (docs/archive/sound-plan.md): what plays; turned on (the browser tests start with it off);
         forced to a floor's soundscape, a room's, a piece and mood; a stretch of any rendered offline, as a base64 WAV. */
     get audio() { return AudioDirector.info; }, audioOn: (v = true) => AudioDirector.set(v), forceAudio: (f: Forced | null) => AudioDirector.force(f),
     renderAudio: async (ask: RenderAsk) => { const r = await renderAudio(ask); let bin = ''; const u8 = new Uint8Array(r.wav); for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode(...u8.subarray(i, i + 0x8000)); return { wav: btoa(bin), seconds: r.seconds, peak: r.peak, rms: r.rms }; },

@@ -1,4 +1,4 @@
-/* Rendering the soundscapes and the music offline (docs/sound-plan.md), to listen to outside the game: the same players
+/* Rendering the soundscapes and the music offline (docs/archive/sound-plan.md), to listen to outside the game: the same players
    on an OfflineAudioContext, every event scheduled up front, written out as a WAV (`__game.renderAudio`, and
    tools/render-audio.ts, which saves them to audio-previews/). */
 import { AmbienceMix } from './ambience';

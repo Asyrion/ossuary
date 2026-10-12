@@ -687,7 +687,7 @@ All sound is synthesised in code, except creature WAV files.
   `musicData.ts` (`planBar`, `phrase`), played by `music.ts` (`MusicPlayer`: stems, moods, `stinger`).
 - `audio/director.ts` (`updateAudio` from the loop) chooses soundscape and piece from the game state (floor, room,
   doors locked, a boss alive, `CFG.audio.lowHp`, Vigil, daylight). Off under `window.__manual` until `audioOn()`.
-- Offline: `audio/render.ts` and `npm run render-audio`. `docs/sound-plan.md` has the design.
+- Offline: `audio/render.ts` and `npm run render-audio`. `docs/archive/sound-plan.md` has the design.
 
 Tuning `CFG.audio`. Dev: Sound tab (any soundscape, any piece in any mood, stingers, a 40 s WAV); `__game.audio`,
 `forceAudio(f)`, `audioOn()`. To add one: a one-shot is a kind in `SHOT_KINDS` plus a recipe in `SHOTS`; a piece or
@@ -809,7 +809,11 @@ the previous room's foes.
 - Systems: `reaction(r)`, `weave(id)`, `know(id, stage)`, `attune`, `socket`, `transform(id)`, `setArc(n)`,
   `toVigil`, `shade`, `talkTo`, `openLab`, `openWaystone`, `openLevelUp()`, `audioOn()`, `forceAudio`.
 - Rendering and assets: `renderInfo()`, `pixelLook`, `setPixelLook`, `assets`, `useAssets`, `showCreature`,
-  `bossLooks()`, `bestiaryOptions()`, `modelOptions()`, galleries and their `take*` counterparts.
+  `bossLooks()`, `bestiaryOptions()`, `modelOptions()`, `familiarOptions()`, `fineLayerDrawn`, `madeLook`,
+  `obolFaces`, `wearFace(id)`, `coinGallery()`, `renderAudio(ask)`; galleries and their `take*` counterparts
+  (`takeArtifactGallery`, `takeCoinGallery`, `takeEffectOptions`, `takeModelOptions`).
+- Reading state: `attrs`, `flights`, `pagePanel`, `growFennex()`, `forgetBestiary()`.
+- A hook's name appears here in backticks (`name` or `__game.name`); `npm run review-checks` looks for it.
 
 Browser storage: `ossuary.vigil` (the save; also migrates the older per-module keys `ossuary.knowledge`,
 `.bestiary`, `.reactions`, `.weaves`, `.recipes`), `ossuary.look`, `.heroPixel`, `.devTab`, `.volume`, `.obolFace`,

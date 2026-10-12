@@ -1,5 +1,5 @@
 {
-  "_comment": "The soundscapes (docs/sound-plan.md): each floor's space (its reverb), its bed (layers that never stop) and its one-shots (placed at random round the mage, `every` seconds on average, `far` how far off: 0 close, 1 at the edge of hearing). Rooms lay their own over the floor's (`duck` turns the floor's down), and themes add a touch. Read by src/audio/ambienceData.ts.",
+  "_comment": "The soundscapes (docs/archive/sound-plan.md): each floor's space (its reverb), its bed (layers that never stop) and its one-shots (placed at random round the mage, `every` seconds on average, `far` how far off: 0 close, 1 at the edge of hearing). Rooms lay their own over the floor's (`duck` turns the floor's down), and themes add a touch. Read by src/audio/ambienceData.ts.",
   "floors": [
     {
       "id": "ossuary",

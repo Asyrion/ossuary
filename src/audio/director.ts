@@ -1,4 +1,4 @@
-/* Listening to the game and telling the soundscapes and the music what to play (docs/sound-plan.md): one call a step
+/* Listening to the game and telling the soundscapes and the music what to play (docs/archive/sound-plan.md): one call a step
    from the loop. The floor and the room choose the soundscape and the space; the room's doors, a boss alive and the
    mage's hearts choose the music's mood; a fight won strikes a stinger, a death another. The dev menu can force any
    floor's soundscape, any room's, any piece and mood (`force`). Under the browser tests (`window.__manual`), which step

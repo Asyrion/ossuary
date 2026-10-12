@@ -1,4 +1,4 @@
-/* Render the soundscapes and the music to files, to listen to outside the game (docs/sound-plan.md):
+/* Render the soundscapes and the music to files, to listen to outside the game (docs/archive/sound-plan.md):
      npm run render-audio                 every floor's soundscape, the rooms', every piece in its moods, and a fight
      npm run render-audio -- ossuary      only what names it (a floor's id, a room, a piece)
    It drives the game's own players on an OfflineAudioContext in a browser (`__game.renderAudio`), so a server must be

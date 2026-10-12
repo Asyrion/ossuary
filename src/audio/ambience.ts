@@ -1,4 +1,4 @@
-/* The soundscapes played (docs/sound-plan.md): a floor's bed and one-shots, a room's laid over them, all heard in the
+/* The soundscapes played (docs/archive/sound-plan.md): a floor's bed and one-shots, a room's laid over them, all heard in the
    space of where the mage is. Works on any audio context: live under the ambience bus, or offline for a preview
    (`render.ts`). One-shots are scheduled a little ahead (`pump`), so a hitch in the frame doesn't stutter them. */
 import { floorScape, roomScape, spaceFor, type BedLayer, type Scape, type ShotSpec, type Space } from './ambienceData';

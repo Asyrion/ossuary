@@ -395,7 +395,7 @@ mixing rules. The Asset list's Audio table gives the counts. This section says h
 subscribing**, since they change (AI music most of all).
 
 Today almost every sound is synthesised in code (`src/audio/sfx.ts`) and each one stays as its fallback; since 2026-10-02 the
-soundscapes and the music are made in code too (`docs/sound-plan.md`; `npm run render-audio` writes them to files to
+soundscapes and the music are made in code too (`docs/archive/sound-plan.md`; `npm run render-audio` writes them to files to
 listen to). Real sounds replace or join them in M8 (the final mix), or earlier for single effects. The first went through
 the pipeline below on 2026-10-05: four for the Chameleon Wyvern from the owner's EDA-ModelWebViewer (its growl, screech
 and two tail slams; see the asset log), with `prepare-sound`, `data/sounds.json` and the game's player (`src/audio/samples.ts`) written for them.

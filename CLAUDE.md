@@ -50,10 +50,13 @@ Details: `docs/architecture.md`.
 - **Nothing silent:** every mechanic shows the player it is happening, even if only in a word or a line (chips beside
   the mana bar, a word rising over a foe). A mechanic isn't done until it shows.
 - **Difficulty never comes from more foe health.**
+- **Every system borrowed from Isaac gets a magic take**: it answers to spells, schools, glyphs or the room, never only
+  to walking over it (GDD: What separates Ossuary from an Isaac clone).
 - **One pixel for everything:** the game is drawn at the room kit's texel and blown up. New things are drawn at it; their
   glows are stepped; icons are pixel art. Every Tripo model wears its texture as pixel art (`tools/texel-bake.ts`).
 - **Every new feature gets its dev menu entry in the same step** (`src/ui/devMenu.ts`, in its tab), so it can be spawned,
-  given or triggered. While the freeze holds this applies to what the reset builds.
+  given or triggered. While the freeze holds this applies to what the reset builds. The HUD and the title show the dev
+  menu's key while play-tests run (`#devHint`); remove it when they are over.
 - **The owner sees new looks before they replace old ones**; the look that loses is deleted in the same step (no switch
   between an old and a new way outlives the owner's choice).
 - **Lore limits:** name only what the GDD adopted from the owner's lore (`docs/lore/`); invent no gods, factions or places.

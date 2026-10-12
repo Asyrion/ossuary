@@ -1,4 +1,4 @@
-/* The music as data (data/music.json; docs/sound-plan.md) and the composer that plays it: pure, so it is tested. A piece
+/* The music as data (data/music.json; docs/archive/sound-plan.md) and the composer that plays it: pure, so it is tested. A piece
    is a key and a mode, a tempo, a progression of chords, the motifs its melody is made of and its voices; `planBar`
    writes one bar of it at a time, for the mood the game is in, so it never loops the same way twice but always sounds
    like itself. */

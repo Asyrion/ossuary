@@ -128,6 +128,13 @@ a change goes from PR to live in about 8 minutes instead of 40), and the owner's
 
 *Done when:* a new session can learn the project from `CLAUDE.md` and `STATUS.md` alone.
 
+*Built 2026-10-12:* `CLAUDE.md` a brief of about 140 lines (was 1,016); `docs/architecture.md` (every path and name
+checked against the code); `docs/STATUS.md`, with `docs/HANDOFF.md` retired; the finished plans in `docs/archive/`; the
+GDD without its history, its contradictions settled against the code; the lore in `docs/lore/` with an index and the
+owner's canon (Azyrion, the `inspiration/EDA` story, magic outlawed in Eda). The images and PDFs stay in git: taking them
+out would not shrink the repository, whose history keeps them, and rewriting that history isn't worth it; new large
+binaries go elsewhere.
+
 ### Phase 2: the code is kept (Opus plans, Sonnet and Haiku carry)
 
 Small steps, each one green in CI, none changing how the game plays.

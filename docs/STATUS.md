@@ -12,14 +12,13 @@ cleaning, the look and the story.
 | Phase | State |
 | --- | --- |
 | R0 One baseline | Done 2026-10-12 |
-| R1 Docs that tell the truth | **In progress** |
-| R2 Code that is kept | Next |
+| R1 Docs that tell the truth | Built 2026-10-12; the owner's read next |
+| R2 Code that is kept | **Next** |
 | R3 The look | Waits for R2 |
 | R4 The story | Waits for R3's art bible; holds M7 steps 10 to 13 |
 | R5 The vertical slice | Last |
 
-**Next:** finish R1 (a short `CLAUDE.md`, `docs/architecture.md`, the lore in `docs/lore/`), then R2 step 1 (lint and
-format).
+**Next:** R2 step 1, lint and format (ESLint and Prettier, run once over the code, then in CI).
 
 ## What is live
 

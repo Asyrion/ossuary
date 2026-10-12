@@ -1663,7 +1663,7 @@ plucked strings, struck bells with inharmonic partials, a choir through the form
 Four buses, effects, interface, music and ambience, run under a master, each with a slider in the pause menu
 (remembered in the browser). Effects that happen somewhere in the room are panned left or right of the mage and a
 little quieter further away (plain stereo; HRTF, reverb per space and the headphones or speakers setting are still to
-come, with M8). The design above is the target; `docs/sound-plan.md` holds the plan.
+come, with M8). The design above is the target; `docs/archive/sound-plan.md` holds the plan.
 
 - *Soundscapes:* every floor has a space (its reverb), a bed and five or six one-shots placed round the mage (1 the
   Ossuary: far wind, the hum of stone, drips, settling bones, a far chant, rats, the chapel's bell through the rock; 2

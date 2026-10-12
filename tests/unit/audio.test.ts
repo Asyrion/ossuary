@@ -6,7 +6,7 @@ import { THEME_DEFS } from '../../src/world/themeData';
 import { FLOORS } from '../../src/world/generate';
 import { STR } from '../../src/strings';
 
-/* The soundscapes and the music (docs/sound-plan.md): the data checked, and the composer's rules. */
+/* The soundscapes and the music (docs/archive/sound-plan.md): the data checked, and the composer's rules. */
 
 const ROOM_TYPES = Object.keys(STR.dev.roomNames); // (every room type has a name there)
 
