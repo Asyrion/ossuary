@@ -356,6 +356,30 @@ const WALLS: Record<WallKind, (wall: FloorLook['wall'], W: number) => WallArt> =
     }
     return { px };
   },
+  cryptstone(wall, W) { // the Vigil's (M7 step 5): warm grey ashlar worn smooth, in courses of two heights, soot darkening
+    // the upper courses where the candles have burned for years, and now and then a small cross cut in a block
+    const courses = [14, 10, 14, 10], H = 48, px = new Px(W, H, true), R = mulberry(155), mortar = hex(wall.mortar);
+    px.fill(mortar);
+    let y0 = 0;
+    for (const ch of courses) {
+      let x0 = Math.floor(R() * 18);
+      for (const l of lengths(R, W, 18, 34)) {
+        block(px, x0, y0, l, ch, tint(wall.brick, R() * 16 - 6, 1.04), 155, 1); wear(px, R, x0, y0, l, ch, mortar, .06);
+        if (ch === 14 && l > 14 && R() < .22) { // a small cross, cut: dark, its lower lip lit
+          const cx = x0 + Math.floor(l / 2), cy = y0 + 4;
+          for (let v = 0; v < 6; v++) { px.mul(cx, cy + v, .62); px.mul(cx, cy + v + 1, 1.12); }
+          for (let u = -2; u <= 2; u++) { px.mul(cx + u, cy + 2, .62); px.mul(cx + u, cy + 3, 1.1); }
+        }
+        x0 += l;
+      }
+      y0 += ch;
+    }
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { // the soot: heaviest at the top, dithered down
+      const k = Math.max(0, 1 - y / (H * .55)) * (.55 + .45 * Math.sin(x * .11 + Math.sin(x * .031) * 3) ** 2);
+      if (bayer(x, y) < k * .7) px.mul(x, y, .8);
+    }
+    return { px };
+  },
 };
 
 /** Stains over any wall in the look's kind: moss and drip lines (damp), black smears (scorched) or darker patches. */
@@ -540,6 +564,23 @@ const PAVING: Record<FloorKind, (f: FloorCtx, mask: boolean[][]) => void> = {
       }
       const k = (gap < 3.5 ? .85 : 1) * (.85 + hash(ai, aj, 45) * .3) * (hash(x, y, 46) < .05 ? .8 : 1); // (darker at its edges)
       px.set(x, y, scale(dark, k));
+    }
+  },
+  slabs(f, mask) { // the Vigil's (M7 step 5): great worn slabs, two tiles a side where they fit, smoothed by feet; names cut
+    // faintly in some (lines of a worn inscription under a cross)
+    const { px, R, inside, TX, TY } = f, H = mask.length, W = mask[0].length, taken = mask.map(row => row.map(() => false));
+    const free = (c: number, r: number) => inside(c, r) && !taken[r][c];
+    for (let r = 0; r < H; r++) for (let c = 0; c < W; c++) {
+      if (!free(c, r)) continue;
+      const big = free(c + 1, r) && free(c, r + 1) && free(c + 1, r + 1) && R() < .7, w = big ? 2 : 1, h = big ? 2 : 1;
+      for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) taken[r + j][c + i] = true;
+      slab(f, c * TX, r * TY, w * TX, h * TY, 1.04);
+      if (!big || R() > .3) continue;
+      const cut = (x: number, y: number) => { if (hash(x, y, 157) < .25) return; px.mul(x, y, .72); px.mul(x, y + 1, 1.1); }; // (worn: some of each stroke gone)
+      const x0 = c * TX, y0 = r * TY, sw = 2 * TX, hx = x0 + TX;
+      for (let v = 0; v < 9; v++) cut(hx, y0 + 6 + v);
+      for (let u = -3; u <= 3; u++) cut(hx + u, y0 + 9);
+      for (let l = 0; l < 3; l++) { const ly = y0 + 20 + l * 6, ll = sw - 24 - Math.floor(R() * 10); for (let i = 0; i < ll; i++) if (hash(x0 + i, ly, 158) < .55) cut(x0 + 12 + i, ly); }
     }
   },
   sealstone(f, mask) { // the Seal's (M7): great slabs of dark stone, two tiles a side where they fit, a Warden's glyph cut in some

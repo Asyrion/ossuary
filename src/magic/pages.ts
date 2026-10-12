@@ -26,7 +26,8 @@ import { learnSpell } from './spells';
 import { castsOf, sawSpell, stage } from './memory';
 import { spellSheet } from '../ui/spellPanel';
 import { camera, canvas } from '../render/renderer';
-import { SPELL_DEFS, pickPages, shelfPages, spell } from './spellData';
+import { inPool, pickPages, shelfPages, spell } from './spellData';
+import { vigil } from '../vigil/save';
 import { floorLean } from '../world/curve';
 import { boonsChanged } from '../progression/boons';
 
@@ -177,7 +178,7 @@ function layLibrary(room: Room) {
   const [dx, dz] = door ? SIDE_DIR[door.side] : [0, 1], ns = dx === 0; // into the room is (-dx, -dz)
   const along = ns ? { x: 1, z: 0 } : { x: 0, z: 1 }, gap = ns ? C.spacing : C.spacingShort;
   const mid = { x: room.cx - dx * (ns ? 0 : C.rowInShort), z: room.cz - dz * (ns ? C.rowIn : 0) };
-  const gr = LOOT.grimoire, lean = floorLean(), pledge = G.run.pledge, lectern = pickPages(G.run.pages, player.spells, gr.lecterns, [], SPELL_DEFS, lean, pledge); // (M4.9: leaning to what the floor's foes are weak to; M6: a pledge's page first)
+  const gr = LOOT.grimoire, lean = floorLean(), pledge = G.run.pledge, lectern = pickPages(G.run.pages, player.spells, gr.lecterns, [], inPool(vigil().freed), lean, pledge); // (M4.9: leaning to what the floor's foes are weak to; M6: a pledge's page first)
   if (pledge && lectern.some(id => spell(id).school === pledge)) { G.run.pledge = null; line(STR.boons.pledgeKept(STR.schools[pledge]), CFG.afflict.lineShow); } // (the pledge kept, and spent)
   const leant = lean.length && lectern.length && lean.includes(spell(lectern[0]).school) && !player.spells.some(id => id && lean.includes(spell(id).school));
   if (leant && !G.run.hinted.has('lean')) { G.run.hinted.add('lean'); line(STR.curve.leans, CFG.afflict.lineShow); } // (the first time in a run, a line says so)
@@ -204,7 +205,7 @@ export function enterLibrary(room: Room, firstVisit: boolean) {
     mage doesn't know (none when there is none left to learn). */
 export function dropPage(room: Room, x: number, z: number, id?: string) {
   const skip = (room.pages ?? []).filter(p => !p.gone).map(p => p.spell);
-  const pick = id ?? pickPages(G.run.pages, player.spells, 1, skip, SPELL_DEFS, floorLean())[0];
+  const pick = id ?? pickPages(G.run.pages, player.spells, 1, skip, inPool(vigil().freed), floorLean())[0];
   if (!pick) return null;
   const p = freeSpotNear(room, x, z), page = addPage(room, pick, p.x, p.z, 'loose');
   burst(p.x, .6, p.z, hex(spell(pick).color), 12, 1.6, .04); Sfx.pageDrop();

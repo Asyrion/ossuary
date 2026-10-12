@@ -3,15 +3,14 @@
    a pair once tried shows what it makes. Kept in this browser (`ossuary.recipes`) until the Vigil's grimoire takes it
    over (M7), as spell knowledge is (magic/memory.ts). */
 import { pairKey, type PotionId, type ReagentId } from './alchemyData';
+import { firstFound, readSlot, writeSlot } from '../vigil/save';
 
-const KEY = 'ossuary.recipes';
+// (kept in the Vigil's save since M7 step 4, vigil/save.ts, which took over its key; a potion brewed for the first time ever
+// is a first find of the run, Dust at its end)
 interface Memory { pairs: Record<string, PotionId>; potions: PotionId[] }
-let mem: Memory = { pairs: {}, potions: [] };
-try {
-  const v = JSON.parse(localStorage.getItem(KEY) ?? 'null') as Partial<Memory> | null;
-  if (v) mem = { pairs: v.pairs ?? {}, potions: v.potions ?? [] };
-} catch { /* no storage: nothing remembered */ }
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(mem)); } catch { /* not kept */ } };
+const kept = readSlot('recipes');
+let mem: Memory = { pairs: { ...kept.pairs } as Record<string, PotionId>, potions: [...kept.potions] as PotionId[] };
+const save = () => writeSlot('recipes', { pairs: { ...mem.pairs }, potions: [...mem.potions] });
 
 /** The potions ever brewed (each identified in every run). */
 export const brewedPotions = (): readonly PotionId[] => mem.potions;
@@ -23,7 +22,7 @@ export const triedPairs = (): Readonly<Record<string, PotionId>> => mem.pairs;
 export function rememberBrew(a: ReagentId, b: ReagentId, potion: PotionId) {
   mem.pairs[pairKey(a, b)] = potion;
   const first = !mem.potions.includes(potion); if (first) mem.potions.push(potion);
-  save(); return first;
+  save(); if (first) firstFound(); return first;
 }
 /** Learn a recipe without brewing it (Dr. Jelly's trade): the pair shows what it makes, the potion stays unknown until
     brewed or identified. */

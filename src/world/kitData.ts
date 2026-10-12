@@ -3,9 +3,9 @@
    one of each on its seed, so two rooms side by side rarely match. A theme can pin a kind (its `look.kit`), and the dev
    menu can force one on the whole floor to compare. Pure: no three.js. */
 
-export const WALL_KINDS = ['bricks', 'ashlar', 'bones', 'tide', 'rubble', 'basalt', 'beams', 'marble', 'gilded', 'tracery', 'slate', 'drystone', 'pilings', 'warded', 'scoria'] as const;
-export const FLOOR_KINDS = ['flags', 'cobbles', 'graves', 'mosaic', 'basalt', 'herringbone', 'checker', 'inlay', 'boards', 'shingle', 'sealstone'] as const;
-export const TORCH_KINDS = ['bracket', 'skull', 'candelabra', 'lantern', 'witchlight', 'brazier', 'mask', 'basket', 'sconce', 'crown', 'pole', 'cairn', 'shard'] as const;
+export const WALL_KINDS = ['bricks', 'ashlar', 'bones', 'tide', 'rubble', 'basalt', 'beams', 'marble', 'gilded', 'tracery', 'slate', 'drystone', 'pilings', 'warded', 'scoria', 'cryptstone'] as const;
+export const FLOOR_KINDS = ['flags', 'cobbles', 'graves', 'mosaic', 'basalt', 'herringbone', 'checker', 'inlay', 'boards', 'shingle', 'sealstone', 'slabs'] as const;
+export const TORCH_KINDS = ['bracket', 'skull', 'candelabra', 'lantern', 'witchlight', 'brazier', 'mask', 'basket', 'sconce', 'crown', 'pole', 'cairn', 'shard', 'cluster'] as const;
 export const BRAZIER_KINDS = ['tripod', 'font', 'basket', 'column', 'plinth', 'cauldron', 'chalice', 'censer', 'boat', 'urn', 'stepped'] as const;
 export type WallKind = (typeof WALL_KINDS)[number];
 export type FloorKind = (typeof FLOOR_KINDS)[number];

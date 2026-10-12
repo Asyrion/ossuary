@@ -11,6 +11,7 @@ import { CFG } from '../config';
 import type { Bolt, Box, Enemy, RockBox, Room } from '../types';
 import { G, player } from '../state';
 import { Sfx } from '../audio/sfx';
+import { vigilHooks } from '../vigil/where';
 import { scene } from '../render/renderer';
 import { basicMat, blob, glowShared, sphereGeo } from '../render/materials';
 import { blockers, boxAt } from '../world/collision';
@@ -24,7 +25,7 @@ import { shootDir } from '../input';
 import { emberCantrip, unseen } from '../items/potionFx';
 import { heroCast } from '../actors/hero';
 import { schoolOf } from '../actors/foeData';
-import { damageEnemy, hurtPlayer } from './damage';
+import { damageEnemy, hurtPlayer, strikeFrom, strikerKind } from './damage';
 import { detonateGlyph, glyphNear } from './glyphs';
 import { burst } from './fx';
 import { GILT_COLOR, type BoltPath } from '../items/artifactData';
@@ -169,6 +170,8 @@ export function strikeSolid(room: Room, box: Box, x: number, y: number, z: numbe
   if (rock.urn) strikeUrn(room, rock, false);                                             // any bolt breaks an urn
   else if (rock.prop) strikeProp(room, rock, false, status);                              // piles break, bells ring, runes charge
   else if (room.lab && !door) vatStruck(room, x, z);                                       // (M5: the jelly serpent's vat window cracks)
+  else if (rock.bar) vigilHooks.barStruck(rock, x, z, status);                             // (M7 step 5: a way barred at the Vigil stirs)
+  else if (rock.shade) vigilHooks.shadeStruck(x, z, schoolOf(status));                     // (M7 step 6: a chained shade's chains)
   return rock;
 }
 
@@ -311,7 +314,7 @@ export function updateShots(dt: number) {
     if ((s.fire || s.chill) && (s.fireT = (s.fireT ?? 0) - dt) <= 0) { const A = CFG.afflict; s.fireT = A.touchEvery; if (s.fire) fireAt(s.x, s.z, A.emberReach); else frostAt(s.x, s.z, A.coldReach); } // an ember lights what it passes, cold freezes it
     let kill = !!boxAt(s.x, s.z, solids);
     if (!kill && boxAt(s.x, s.z, ice)) { kill = true; burst(s.x, s.y, s.z, 0xbfe6ff, 5, 1.4, .04); Sfx.at(s.x, s.z).wardTink(); } // a wall of ice stops foes' shots
-    if (!kill && Math.hypot(player.x - s.x, player.z - s.z) < player.r + s.r) { if (hurtPlayer(1, s.x - s.vx, s.z - s.vz)) { if (s.chill) player.chill = Math.max(player.chill, s.chill); if (s.hex) { const took = Math.min(player.mana, s.hex); gainMana(-s.hex); hexDrained(took, s.from); burst(player.x, .9, player.z, 0x8a5acf, 10, 1.8, .04); } } kill = true; } // (a blow the mage shrugs off brings no cold nor hex)
+    if (!kill && Math.hypot(player.x - s.x, player.z - s.z) < player.r + s.r) { strikeFrom(strikerKind(s.from)); if (hurtPlayer(1, s.x - s.vx, s.z - s.vz)) { if (s.chill) player.chill = Math.max(player.chill, s.chill); if (s.hex) { const took = Math.min(player.mana, s.hex); gainMana(-s.hex); hexDrained(took, s.from); burst(player.x, .9, player.z, 0x8a5acf, 10, 1.8, .04); } } kill = true; } // (a blow the mage shrugs off brings no cold nor hex)
     if (kill) { scene.remove(s.mesh); G.shots.splice(i, 1); burst(s.x, s.y, s.z, s.color, 4, 1.2, .05); }
   }
 }

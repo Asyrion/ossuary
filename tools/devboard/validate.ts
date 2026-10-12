@@ -25,6 +25,15 @@ import { validateSounds } from '../../src/audio/soundData';
 import { ARTIFACT_DEFS } from '../../src/items/artifactData';
 import { STR } from '../../src/strings';
 import type { KitWeights } from '../../src/world/kitData';
+import { DIALOGUE, validateDialogue } from '../../src/vigil/dialogueData';
+import { SHADE_IDS, validateShades } from '../../src/vigil/shadeData';
+import { TOWNSFOLK, validateTownsfolk } from '../../src/vigil/giftData';
+import { validateVigil } from '../../src/vigil/vigilMap';
+import { SCHOOLS, SPELL_DEFS } from '../../src/magic/spellData';
+import { FOE_IDS } from '../../src/actors/foeData';
+import { BOSS_TYPES } from '../../src/config';
+import { REACTION_IDS } from '../../src/magic/knowledge';
+import { POTION_IDS } from '../../src/items/alchemyData';
 
 const checks: [string, () => unknown][] = [
   ['artifacts', () => validateArtifacts()],
@@ -47,6 +56,12 @@ const checks: [string, () => unknown][] = [
   ['music', () => validateMusic()],
   ['ambience', () => validateAmbience(Object.keys(STR.dev.roomNames), THEME_DEFS.map(t => t.id))],
   ['sounds', () => validateSounds(sounds)],
+  ['dialogue', () => validateDialogue(DIALOGUE, { speakers: [...SHADE_IDS, 'ferryman'], spells: SPELL_DEFS.map(d => d.id), foes: [...FOE_IDS],
+    bosses: [...BOSS_TYPES], reactions: [...REACTION_IDS], recipes: [...POTION_IDS] })],
+  ['chained shades', () => validateShades()],
+  ['townsfolk', () => validateTownsfolk(TOWNSFOLK, { folk: [...SHADE_IDS], spells: SPELL_DEFS.map(s => s.id), potions: [...POTION_IDS],
+    artifacts: ARTIFACT_DEFS.map(a => a.id), foci: ARTIFACT_DEFS.filter(a => a.kind === 'focus').map(a => a.id), schools: [...SCHOOLS] })],
+  ['the Vigil', () => validateVigil()],
 ];
 
 const out = checks.map(([name, run]) => {

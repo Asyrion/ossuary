@@ -185,6 +185,29 @@ body.touch.portrait #rotate{display:flex}
 #prompt i{color:#9a8a70}
 #prompt small{display:block;margin-top:6px;color:#9a8a70;font-size:12px}
 #fade{position:fixed;inset:0;background:var(--void);opacity:0;pointer-events:none}
+/* M7 step 3: the white of stepping out into the daylight, fading; the HUD stays out of the dawn and the end screen over it */
+#dawn{position:fixed;inset:0;background:#fff4e2;opacity:0;pointer-events:none}
+body.daylight #hud{display:none}
+/* M7 step 5: at the Vigil the run's parts of the HUD give way to what is kept: the Dust and the obols */
+/* M7 step 7: the townspeople's talk, a panel along the bottom, the Vigil still showing above it */
+.screen.talk{align-items:flex-end;justify-content:center;background:linear-gradient(0deg,rgba(0,0,0,.62) 0%,rgba(0,0,0,.2) 34%,rgba(0,0,0,0) 55%)}
+.screen.talk.top{align-items:flex-start;background:linear-gradient(180deg,rgba(0,0,0,.62) 0%,rgba(0,0,0,.2) 34%,rgba(0,0,0,0) 55%)}
+.screen.talk.top .card.talkBox{margin:56px 0 0}
+.card.talkBox{max-width:860px;width:100%;display:flex;gap:22px;align-items:flex-start;padding:20px 26px 18px;margin-bottom:12px}
+#talkIcon{width:96px;height:96px;flex:none;image-rendering:pixelated;border:1px solid var(--line);background:rgba(0,0,0,.25)}
+.talkText{flex:1;min-width:0}
+.talkText h3{font-family:var(--f-display);font-weight:400;font-size:26px;margin:0 0 6px;color:var(--ink)}
+.card .talkText p#talkLine{font-size:20px;min-height:3.9em;margin:0 0 8px;max-width:none}
+#talkChoices{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+#talkChoices li{font:600 16px var(--f-ui);color:var(--ink-dim);padding:3px 10px;border-left:2px solid transparent;cursor:pointer}
+#talkChoices li[aria-selected="true"]{color:var(--ink);border-left-color:#e2b070;background:rgba(226,176,112,.08)}
+#talkChoices li b{margin-right:8px;color:#e2b070}
+.talkText p.small{margin-top:10px}
+#vigilHud{display:none;position:absolute;left:calc(env(safe-area-inset-left,0px) + 18px);top:calc(env(safe-area-inset-top,0px) + 122px);flex-direction:column;gap:4px;font:700 16px var(--f-ui);color:#efe2c3;text-shadow:0 2px 2px #000}
+#vigilHud span{display:flex;align-items:baseline;gap:8px}#vigilHud small{font:600 12px var(--f-ui);color:#b8a888;letter-spacing:.06em;text-transform:uppercase}
+#vigilHud b{font-variant-numeric:tabular-nums;letter-spacing:.04em}
+body.vigil #vigilHud{display:flex}
+body.vigil #hearts,body.vigil #insight,body.vigil #belt,body.vigil #items,body.vigil #purse,body.vigil #level,body.vigil #btnRestart{display:none}
 @media (max-width:700px){.card{padding:20px}.controls{font-size:14px;gap:4px 12px}#minimap{width:120px;height:88px}#hearts svg{width:24px;height:24px}}
 @media (max-height:480px){.card h1{font-size:44px}.card p{font-size:16px;margin-bottom:10px}.controls{margin-bottom:12px}}
 @media (prefers-reduced-motion: reduce){#banner,#bossbar,#hurt,#lore{transition:none}}
@@ -284,3 +307,10 @@ body.touch.portrait #rotate{display:flex}
 .pagePanel .note.dim{opacity:.6;font-style:italic}
 .pagePanel .lbl{font-size:11px;margin:4px 0 3px}
 .pagePanel .lore{font-size:13px;margin-top:6px;padding-top:6px}
+/* M7 step 4: the end screen's tally of what the run carries home */
+#endHome{margin:.6rem 0 .2rem;font-size:.92rem}
+#endHome h3{margin:0 0 .3rem;font-size:1rem;letter-spacing:.04em}
+#endHome .tally{list-style:none;margin:0;padding:0}
+#endHome .tally li{display:flex;justify-content:space-between;gap:1rem;padding:.08rem 0;opacity:.85}
+#endHome .tally li.sum{opacity:1;font-weight:600;border-top:1px solid rgba(0,0,0,.15);margin-top:.15rem;padding-top:.2rem}
+#endHome .struck{margin:.35rem 0 0;font-style:italic;opacity:.85}

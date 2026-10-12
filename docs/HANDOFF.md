@@ -1,3 +1,6 @@
+> **Out of date (2026-10-12):** replaced by `docs/RESET-plan.md`, which says what comes next. Kept until the reset's R1
+> folds what still holds into the docs.
+
 # Handoff: where the work stands (2026-10-04)
 
 A note for the next session, so it can pick up exactly where this one stopped. `CLAUDE.md` is still the brief and
@@ -41,9 +44,32 @@ Kaelith's fight, daylight) before Part B (the keeping, the Vigil as a place, cha
 gifts and powers, the unfolding, the Great Circle and the Ferryman, echoes, the grimoire and the rest, the close). Steps
 marked (P) in the plan (2, 5, 7 and 10) are planned with the owner in plan mode before any code, as M6's were. **Step 1, the
 Seal, is built** (2026-10-05; the plan's Built note). **Step 2, Kaelith's fight, is built** (2026-10-05):
-its two looks (the Hooded Sentinel, the Winged Watcher) wait on the owner's choice from the sheet sent
-(`asset-previews/kaelith/`); on it, drop the other look, the switch and its key, as the Warden's were. **Next: step 3,
-daylight.**
+it wears the Winged Watcher, the owner's choice (2026-10-06; the Hooded Sentinel, the switch and its key went). M6 and
+M7 steps 1 and 2 were shipped on 2026-10-06 (PR #46). **Step 3, daylight, is built** (2026-10-06; the plan's Built note):
+Kaelith's way out is a shaft of light, and a won run ends at the cave mouth at dawn, the end screen over it. **Step 4, the keeping, is
+built** (2026-10-06): one save (`ossuary.vigil`) taking over the five keys, Dust and obols carried home and tallied on the end
+screen, each run remembered with what struck last, the save out to a file and back. **Step 5, the Vigil as a place, is
+built** (2026-10-08, planned with the owner: a warm candlelit crypt, the six barred ways shown sealed, the Ferryman a figure
+now): three rooms laid by hand (the Crypt, the Nave, the Landing), waking there after every run (the first time in the dark,
+its candle lighting itself), the lectern's two spells in hand, the boat down to floor 1, the title leading there once a run
+has been played. **Step 6, chained shades, is built** (2026-10-08): about one a floor, chained by schools the mage can
+land; freed to the Vigil (a candle and 20 Dust each) or bound to walk with the next run and help in its own way. **Step 7,
+townspeople and dialogue, is built** (2026-10-09, planned with the owner: along the Nave, walking up to them, in now with
+their sheet to review): the freed stand round the Nave, each its own figure; walking up to one opens its talk (109 lines in
+data/dialogue.json, picked on what the save knows: the first meeting, the last run's death, win or boss, then what each
+knows, the forager's weaknesses, the scribe's reactions, the bosses' fears); choices set flags for step 8. **Waiting on the
+owner:** the townspeople's sheet (any figure to change). **Step 8, gifts, bonds and powers, is built** (2026-10-09): each
+townsperson's gift when freed (a discipline, spells, the two spells that waited in the libraries' pools, recipes, what every
+descent begins with), obols on the eyes (a memory, then a second gift), six powers bought with Dust, three quests.
+**The owner's thirteen Tripo models** (2026-10-09: the ten townspeople, the Ferryman, Dr. Jelly, Kaelith; Mixamo-rigged,
+no clips) are animated in code (`tools/creatures/townsfolk.ts`, docs/creatures.md: People on a Mixamo rig) and stand at the
+Vigil in place of the code figures; Dr. Jelly and Kaelith are in the Galleries only, swapping them into the lab and the
+fight is a follow-up. The prompts for such models are now written for game characters, not miniatures (docs/assets.md:
+Prompts for game characters in Tripo; the `tripo-prompts` skill). **Waiting on the owner:** a look at the thirteen moving.
+**Step 9, the unfolding, is built** (2026-10-09): six rooms behind the barred ways, each opened by its school landing
+on it (the Cave Mouth looking out on the valleys, filling with what the freed build; the candle chapel, whose candles bless
+one descent; the garden of the dead's reagent; the pool, the practice crypt and the gallery waiting for steps 11 and 12).
+**Next: step 10, the Great Circle and the Ferryman's crossing, planned with the owner in plan mode first.**
 
 `main` was merged into the branch on 2026-10-05 (another session's work: the Chameleon Wyvern, the texel bake, the game's
 first sound files, the dev menu's fixes), so both session branches carry everything; 434 unit tests green after it.

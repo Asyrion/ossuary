@@ -165,6 +165,45 @@ export const CFG = {
   // ring, beyond it, clears the stone's top from the camera); the
   // lane to its door in the boss room that the boss's gifts keep off (how deep, how wide either side, how far aside)
   waystone: { reach: .75, rise: 1.4, depth: 1.95, at: [4.4, -1.8], streaks: 7, streakGap: .08, half: .38, trapdoor: [3.5, 1.9], toDoor: [1.5, .8], dark: .55, lane: [4.5, 1.2, 2.6] },
+  // M7 step 3, daylight (world/daylight.ts): the shaft of light where Kaelith's way out opens (how near the mage steps into
+  // it); the cave mouth at dawn: where it is built, far from every floor (x, z), how far behind the terrace's edge the camera
+  // looks; the mage's walk out of the cave (from how far back, to how far short of the edge, how fast); the timeline (the
+  // white fading, the cave's overhang lifting, the end screen laid over it); how fast the mist drifts and the water falls;
+  // the dawn's light on the terrace and the mage (fill, sun, their colours; the lantern turned down)
+  // M7 step 4, the keeping (vigil/vigilData.ts): the Arcane Dust a run carries home from each source (each floor reached
+  // pays `floor` × the deepest; a boss put to rest, Kaelith more; each first find in the run; each shade freed; each vow kept
+  // pays a share of the run's Dust once the run reaches `vowFloor`; an echo laid to rest), the share of the obols carried
+  // that come home after a death (all after a win), and how many runs the save keeps (the echoes, step 11)
+  vigil: {
+    dust: { floor: 10, boss: 15, kaelith: 60, first: 3, shade: 20, vow: .25, vowFloor: 3, echo: 10 }, obolsAfterDeath: .1, runsKept: 5,
+    // M7 step 5, the place: how near the lectern opens and the boat is boarded (from the jetty's end), how near a barred
+    // way says what bars it; how far to step back before the lectern opens again; on the first waking, when the candle
+    // lights itself and how long the dark takes to lift after; the boat's line before it pushes off
+    place: { lecternReach: .95, rearm: .5, boatReach: .6, barReach: 1.9, barCatch: 1.4, candleAt: 1.4, dawn: 2.2, boatDelay: 1.6 },
+    // M7 step 7, the townspeople: how near the mage walks to a figure for it to talk (and steps back before it talks again),
+    // how near the jetty's end the Ferryman says his first line, how near a figure turns its head to the mage, how many
+    // letters of a line show each second
+    // M7 step 9, the unfolding (vigil/unfold.ts): how near a chapel candle or a garden bed is walked up to, how fast the Cave
+    // Mouth's falls run, and the valleys' light laid on its floor from the open edge: how far in it reaches with none freed and
+    // further for each one freed (tiles), and how strong it is at the edge
+    unfold: { reach: .85, fall: 1.4, caveLight: { depth: 1.5, deeper: .4, strength: .32 } },
+    town: { reach: 1.05, rearm: .6, ferryReach: 2.3, watch: 4.5, typeRate: 75, madeLight: .2 }, // (madeLight: the made figures lit of themselves, to read in the Nave; the owner's ask, 2026-10-09: they stand bigger too, in their heights in tools/creatures/townsfolk.ts, drawn on the pixel look's fine layer, their textures baked at that size and pixel)
+  },
+  // M7 step 6, chained shades: where one lies in its room (a share of the room's width and depth from its middle), how near a
+  // school landing or a bolt must come to strike its chains, how near the mage stands to be asked, how long freeing (the
+  // rise) and binding (to the mage) take
+  shades: { at: [.28, -.18] as [number, number], reach: 1.3, ask: 1.6, rise: 2.4, bindTime: .9 },
+  // a bound shade at work in the run it walks with the mage (vigil/shadeHelp.ts): how often each acts (seconds, counted only
+  // in a fight), how far it reaches and how hard; the sexton's chance a room; the chorister's cooldowns; the bell-ringer's stall
+  shadeHelp: {
+    storm: { every: 5, reach: 6, damage: 3, shock: 1.2 }, roots: { every: 6, reach: 2.2, root: 1.6 }, bow: { every: 2.2, reach: 7, damageMul: .6, speed: 9 },
+    turn: { reach: .8 }, dig: { chance: .3 }, sing: { mul: .88 }, ring: { every: 6, reach: 2.6, stall: .3 }, hex: { hex: 1 },
+  },
+  daylight: {
+    reach: .7, at: [-400, 0] as [number, number], look: 1.5, walk: { from: 3.4, to: .9, speed: 1.05 },
+    flash: 1.2, lift: 3, endAt: 6.5, mist: .18, fall: 1.6,
+    light: { hemi: 2.4, sun: 2.2, sky: '#ffd8b4', ground: '#4a4238', sunColour: '#ffc690', lantern: .25 },
+  },
   // M6 step 5, the school boons at work (progression/boonHooks.ts): half hearts boons mend in one room at most (Votive
   // Heart and Thirsting Hex together); Seedfall's plants, `seedMax` a room at most, sought within `sowReach` tiles of the
   // fall and kept `sowClear` tiles from the mage, a door's lane and the room's middle; Spark Wake's spark refreshed rather

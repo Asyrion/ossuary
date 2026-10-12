@@ -21,6 +21,7 @@
   <div id="belt" aria-label="Potion belt"></div>
   <div id="items"></div>
   <div id="purse" role="status"></div>
+  <div id="vigilHud" role="status"></div>
   <canvas id="minimap" width="300" height="220"></canvas>
   <div id="bossbar"><div id="bossname"></div><div class="track"><div class="fill"></div></div></div>
   <div id="banner"><div class="t"></div><div class="s"></div></div>
@@ -71,6 +72,8 @@
       <button class="act" id="btnRestart" data-s="pause.restart"></button>
       <button class="act" id="btnLoad" data-s="pause.load"></button>
       <button class="act" id="btnSound" data-s="pause.soundOn"></button>
+      <button class="act" id="btnSaveOut" data-s="pause.saveOut"></button>
+      <button class="act" id="btnSaveIn" data-s="pause.saveIn"></button>
     </div>
     <div class="vols">
       <label for="volMaster" data-s="pause.master"></label><input type="range" id="volMaster" min="0" max="100" step="5">
@@ -82,6 +85,7 @@
     <p class="small" id="runInfo"></p>
     <p class="small" id="heroInfo"></p>
     <input type="file" id="fileIn" accept=".glb,model/gltf-binary" hidden>
+    <input type="file" id="saveFile" accept=".json,application/json" hidden>
   </div>
 </div>
 
@@ -118,6 +122,29 @@
   </div>
 </div>
 
+<div class="screen hidden" id="scrLectern">
+  <div class="card inv" role="dialog" aria-labelledby="lecternTitle">
+    <div class="invHead"><h2 id="lecternTitle" data-s="vigil.lectern.title"></h2></div>
+    <div class="invBody">
+      <div class="invList" id="lecternList" role="listbox" aria-labelledby="lecternTitle"></div>
+      <aside class="invDetail" id="lecternDetail" aria-live="polite"></aside>
+    </div>
+    <p class="small invHint" data-s="vigil.lectern.hint"></p>
+  </div>
+</div>
+
+<div class="screen hidden talk" id="scrTalk">
+  <div class="card talkBox" role="dialog" aria-labelledby="talkName">
+    <img id="talkIcon" alt="">
+    <div class="talkText">
+      <h3 id="talkName"></h3>
+      <p id="talkLine" aria-live="polite"></p>
+      <ol id="talkChoices"></ol>
+      <p class="small" data-s="town.hint"></p>
+    </div>
+  </div>
+</div>
+
 <div class="screen hidden" id="scrLevel">
   <div class="card lvUp" role="dialog" aria-labelledby="lvTitle">
     <h2 id="lvTitle"></h2><p class="place" id="lvSub"></p>
@@ -139,6 +166,7 @@
       <dt data-s="end.seed"></dt><dd id="endSeed" class="seed"></dd>
       <dt data-s="end.artifacts"></dt><dd><ul id="endItems" class="carried"></ul></dd>
     </dl>
+    <div id="endHome" class="home" hidden></div>
     <div class="btns">
       <button class="act primary" id="btnAgain" data-s="end.again"></button>
       <button class="act" id="btnReplay" data-s="end.replay"></button>
@@ -151,6 +179,7 @@
 <div id="prompt" role="status" aria-live="polite"></div>
 <div id="toast"></div>
 <div id="fade"></div>
+<div id="dawn"></div>
 
 <script type="module" src="/src/main.ts"></script>
 </body>

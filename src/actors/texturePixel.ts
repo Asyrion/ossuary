@@ -21,8 +21,11 @@ export function texelMaterial(key: string, urls: { file: string; glow: string })
   if (!m) {
     m = Promise.all([sharpTex(urls.file), sharpTex(urls.glow)]).then(([map, glow]) => {
       const mat = new THREE.MeshToonMaterial({ map, gradientMap: toneMap(), emissive: 0xffffff, emissiveMap: glow, emissiveIntensity: CFG.creatures.texel.glowGain, side: THREE.DoubleSide });
-      const self = CFG.heroPixel.glow.toFixed(3); // (the faint self-light the mage's look has, so it reads in a dark room)
-      mat.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>\n\ttotalEmissiveRadiance += diffuseColor.rgb * ${self};`); };
+      const self = { value: CFG.heroPixel.glow }; mat.userData.self = self; // (the faint self-light the mage's look has, so it reads in a dark room; `selfLight` raises it for one model)
+      mat.onBeforeCompile = sh => {
+        sh.uniforms.selfLight = self;
+        sh.fragmentShader = 'uniform float selfLight;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n\ttotalEmissiveRadiance += diffuseColor.rgb * selfLight;');
+      };
       mat.userData.shared = true; // (every copy wears it)
       return mat;
     });
@@ -31,6 +34,9 @@ export function texelMaterial(key: string, urls: { file: string; glow: string })
   }
   return m;
 }
+
+/** The self-light of the model `key`'s material (every copy of it): the townspeople stand brighter at the Vigil. */
+export function selfLight(key: string, v: number) { void made.get(key)?.then(m => { (m.userData.self as { value: number }).value = v; }); }
 
 /** Wear it on every textured mesh under `root` (`each`, if given, decides what wearing means for a mesh: a made asset
     keeps both looks to switch between). */

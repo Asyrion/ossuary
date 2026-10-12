@@ -1,6 +1,7 @@
 /* What a spell costs now. Its own small module (state and data only), so the HUD can show it without pulling in
    the whole of magic. M6 step 7: and the one reader of a slotted spell (`slotDef`: as its runes make it), its cooldown
    (`spellCooldown`) and how a cast in it would be paid (`payment`), so the cast, the HUD, the hands and the panel agree. */
+import { singMul } from '../vigil/walking';
 import { CFG } from '../config';
 import { DEV, player } from '../state';
 import { freeCasts } from '../items/potionFx';
@@ -24,7 +25,7 @@ export function slotDef(slot: number): SpellDef | null {
   return def;
 }
 /** A spell's cooldown now (a runed one's: Quicken's). */
-export const spellCooldown = (def: SpellDef) => def.cooldown;
+export const spellCooldown = (def: SpellDef) => def.cooldown * singMul(); // (M7 step 6: the chorister's song, walking with the mage)
 /** How a cast in slot `slot` would be paid now: free, mana, Vein's half heart, a soul mote, or not at all (null). */
 export function payment(slot: number): Payment | null {
   const def = slotDef(slot); if (!def) return null;

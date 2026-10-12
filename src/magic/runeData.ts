@@ -21,7 +21,7 @@ export const SHAPE_COUNT = SHAPES.length;
 /** What Wide makes larger in each shape it takes (a wall grows longer: its width across). */
 export const WIDENS: Partial<Record<Shape, string>> = { placed: 'radius', zone: 'radius', smite: 'radius', grasp: 'radius', orbit: 'radius', wall: 'width' };
 /** What Lasting makes last, in each shape it takes: a param, or (the grasp) the root it holds with. */
-export const LASTS: Partial<Record<Shape, string>> = { placed: 'ground', wall: 'life', self: 'life', zone: 'life', orbit: 'life', mark: 'life', grasp: 'root' };
+export const LASTS: Partial<Record<Shape, string>> = { placed: 'ground', wall: 'life', self: 'life', zone: 'life', orbit: 'life', mark: 'life', grasp: 'root', lantern: 'life' };
 
 /** Whether rune `id` fits spell `def` (by its shape). */
 export const runeFits = (id: RuneId, def: Pick<SpellDef, 'shape'>) => rune(id).shapes.includes(def.shape);

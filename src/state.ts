@@ -12,7 +12,7 @@ import type { FoeId } from './actors/foeData';
 import { noAttrs } from './progression/attributes';
 import type { School, SpellStatus } from './magic/spellData';
 
-export type GameState = 'title' | 'play' | 'pause' | 'dying' | 'end';
+export type GameState = 'title' | 'play' | 'pause' | 'dying' | 'end' | 'daylight'; // (M7 step 3: the cave mouth at dawn, a won run's end)
 
 /** Shared mutable game state. Modules read and write it through this one object. */
 export const G = {
@@ -69,6 +69,12 @@ export const G = {
     /** M6 step 5: hex stacks spent towards Thirsting Hex's next mend, and how often each boon has acted (the tests). */ thirst: 0, acted: {} as Record<string, number>,
     /** M6 step 6 (Afterglow): the statuses the next cantrip casts carry from the last spell, how many casts are left, its colour. */
     afterglow: null as { status: Partial<Record<SpellStatus, number>>; left: number; color: number } | null,
+    /** M7 step 4: what the run did that the save keeps: the bosses put to rest (Kaelith among them, `kaelith`), and what struck
+        the mage last (a foe's or boss's id, or what in the room hurt it). */ bosses: 0, kaelith: false, struck: null as string | null,
+    /** M7 step 7: the bosses put to rest, by id (the run's record keeps them for the townspeople). */ fell: [] as string[],
+    /** M7 step 6: the chained shades met on the floors so far, those freed in this run (Dust at its end) and those bound in an
+        earlier run who walk with the mage through this one (vigil/shadeHelp.ts). */ shadesMet: [] as string[], freed: [] as string[], walking: [] as string[],
+    /** M7 step 9: whose candle burns in the chapel for this run (its blessing; vigil/gifts.ts). */ blessing: null as string | null,
   },
   shake: 0,
   simClock: 0,

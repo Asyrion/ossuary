@@ -699,3 +699,21 @@ Places:
 | The Drowned floor, the Ferryman's Shore | The Swamps of Ulum; Gekiryu's torrents |
 | The Bound Shade (merchant) | Stays; the Wandering Merchant of Belerial as a second trader |
 | A sixth school (open question) | Verdant, from Huruhui biomancy |
+
+## Between runs, after Moonlighter (the owner, 2026-10-12)
+
+The owner likes Moonlighter's loop: between runs the hero lives in a village and sells what the dungeon gave up. Not to
+copy, but as a spur for the Vigil (R4, `docs/RESET-plan.md`), with a magic twist. Ideas to weigh with the story bible:
+
+- **Sell, study or return.** One find a run may be carried up (a sealed relic, a grimoire page, a bottled reagent). At
+  the Vigil it can be sold (obols and Dust, the quick power), studied at a lectern (knowledge: a spell's stage, a
+  reaction, a recipe; the story moves on) or returned to the world above through the Huruhui foragers (what the Wardens
+  took from the wilderness goes home: a shade is freed, the valley answers). The choice is the Vigil's moral spine.
+- **Reading a relic instead of guessing its price.** Moonlighter's price-finding becomes attunement: a relic's worth and
+  nature show as visitors (shades, pilgrims, the Wandering Merchant) react to it, and casting a school into it reveals
+  more; set too much store by a cursed one and its curse wakes.
+- **Brewing for the valley.** Dr. Jelly's recipes made into potions for those who come to the cave mouth; what they ask
+  for shifts with the omens of the next run (the Great Circle), so brewing at home is a way to read what waits below.
+- **The Vigil grows from what the mage gives, not from shopping.** Townspeople open their trade when the mage brings
+  what their magic needs (the storm caller a charged stone, the wizard a living seed), so the hub unfolds with the
+  magic known, as the GDD already wants.

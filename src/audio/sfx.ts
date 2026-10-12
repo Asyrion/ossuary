@@ -238,6 +238,8 @@ const sounds = {
   runeTake() { hiss(.06, .06, 'bandpass', 1800); tone('triangle', 247, 233, .14, .07); tone('sine', 740, 760, .4, .035, .06); tone('sine', 1109, 1109, .3, .018, .1); },
   /** M6 step 9, the waystone: risen, its runes kindle (a deep stone hum and a rising chime); the rest (mana pouring back, a
       long soft swell); a rune carved (a chisel's two strikes into stone, then the glyph's chime). */
+  snuff() { hiss(.3, .04, 'highpass', 1800); tone('sine', 300, 180, .18, .02); }, // (M7 step 9: a candle put out)
+  wayOpens() { hiss(1.4, .07, 'lowpass', 600); tone('sine', 65, 98, 1.6, .1); tone('triangle', 262, 392, 1.1, .04, .2); tone('sine', 523, 784, 1.2, .03, .5); }, // (M7 step 9: a barred way at the Vigil opens)
   kindle() { tone('sine', 98, 110, 1.2, .08); tone('triangle', 392, 523, .6, .04, .15); tone('sine', 784, 1046, .8, .025, .35); hiss(.5, .02, 'highpass', 4000, .3); },
   bargain() { tone('sine', 73, 65, 1.6, .09); tone('square', 147, 139, .5, .025, .1); tone('triangle', 294, 277, .9, .03, .3); }, // (M6 step 11: a low toll, the price)
   bargainKept() { [392, 494, 587, 784].forEach((f, i) => tone('triangle', f, f, .5, .04, i * .09)); tone('sine', 196, 196, 1.2, .05); },
@@ -256,6 +258,16 @@ const sounds = {
   wardShut() { tone('triangle', 520, 520, .5, .06); tone('sine', 260, 262, .9, .05, .05); hiss(.2, .04, 'highpass', 3000); },
   eclipsePull() { tone('sine', 60, 110, 2, .1); hiss(2, .05, 'lowpass', 300); },
   kneel() { tone('sine', 98, 92, 2.4, .1); tone('sine', 147, 140, 2, .05, .3); hiss(1.4, .05, 'lowpass', 500); },
+  shaft() { [523, 659, 784, 1047].forEach((f, i) => tone('sine', f, f * 1.01, 1.6, .035, i * .09)); hiss(1.6, .03, 'highpass', 3200); }, // (M7 step 3: daylight falling into the Seal)
+  dawn() { hiss(2.4, .07, 'lowpass', 1800); [262, 330, 392, 523].forEach((f, i) => tone('triangle', f, f, 2.6, .04, .15 + i * .05)); tone('sine', 131, 131, 3, .06, .2); }, // (stepping out at the cave mouth)
+  talk() { hiss(.5, .025, 'bandpass', 1400); tone('sine', 262, 277, .45, .025, .05); tone('sine', 392, 370, .35, .015, .12); }, // (M7 step 7: a townsperson turns to speak, a breath and a murmur)
+  boat() { hiss(1.6, .05, 'lowpass', 600); hiss(.9, .03, 'bandpass', 900, .5); tone('sine', 98, 92, 1.4, .05, .1); tone('triangle', 196, 196, .9, .02, .6); }, // (M7 step 5: the Ferryman's pole in the water, and the boat pushing off)
+  waken() { tone('sine', 196, 196, 2.2, .05); tone('sine', 294, 294, 2, .03, .25); hiss(1.2, .02, 'lowpass', 900, .1); }, // (waking on the bier)
+  chainRattle() { for (let i = 0; i < 5; i++) tone('square', 900 + i * 130, 700 + i * 90, .04, .015, i * .06); hiss(.35, .02, 'highpass', 3000); }, // (M7 step 6: a chained shade's chains, as it is seen)
+  shadeLoose() { tone('sine', 330, 440, 1.2, .05); tone('sine', 495, 660, 1, .03, .15); hiss(.8, .02, 'highpass', 2600, .1); }, // (its last chain broken)
+  shadeFree() { [392, 494, 587, 784, 988].forEach((f, i) => tone('sine', f, f * 1.01, 1.8, .035, i * .12)); hiss(2, .03, 'highpass', 3200); }, // (it rises to the Vigil)
+  shadeHelp() { tone('sine', 660, 660, .5, .025); tone('sine', 990, 990, .4, .015, .08); }, // (a bound shade's help at work)
+  shadeBind() { tone('triangle', 220, 165, .9, .06); tone('sine', 110, 82, 1.2, .05, .1); hiss(.6, .03, 'lowpass', 800); }, // (it is bound to the mage)
   sealVoice() { hiss(1.8, .06, 'lowpass', 280); tone('sine', 73, 61, 2, .1); tone('triangle', 110, 92, 1.5, .035, .35); }, // (M7: Kaelith's voice from under the stone)
   champion() { tone('sawtooth', 80, 60, .5, .08); hiss(.4, .06, 'lowpass', 300); },
   // champion mantles (M4.7): a mantle torn off (a snap and a falling chime), and a Hexbound's curse closing
@@ -307,6 +319,9 @@ const sounds = {
   hexBolt() { tone('sine', 180, 90, .4, .07); tone('triangle', 90, 180, .35, .03, .05); hiss(.3, .04, 'lowpass', 500); },
   graspRise() { tone('sine', 70, 110, .5, .08); hiss(.5, .05, 'lowpass', 400); },
   graspClose() { tone('square', 140, 60, .12, .05); hiss(.2, .08, 'lowpass', 700); tone('sine', 110, 104, .8, .05, .05); },
+  vigilLantern() { [784, 1175, 1568].forEach((f, i) => tone('triangle', f, f, .5, .03, i * .06)); hiss(.4, .02, 'highpass', 3000); }, // (M7 step 8: Lantern of Vigil lit)
+  lanternShot() { tone('sine', 1568, 1760, .12, .025); },
+  soulHarvest() { tone('sine', 110, 82, 1.2, .08); tone('triangle', 330, 220, .8, .04, .05); hiss(.9, .04, 'bandpass', 500); }, // (M7 step 8: every hex reaped at once)
   ferryToll() { tone('sine', 1760, 1760, .1, .05); tone('sine', 147, 139, 1.4, .08, .05); tone('sine', 220, 208, 1.1, .04, .1); },
   eclipse() { tone('sine', 110, 55, 1, .1); tone('sine', 988, 494, .9, .03); hiss(.6, .05, 'lowpass', 600); },
   blackfire() { tone('sine', 90, 60, .6, .08); hiss(.5, .08, 'bandpass', 900); crackles(6, .4, .04); },
