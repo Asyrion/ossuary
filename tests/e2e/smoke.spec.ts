@@ -5326,7 +5326,8 @@ test('the unfolding (M7 step 9): the six ways stay walled until their school lan
     const g = (window as unknown as { __game: UG }).__game; const was = g.player.maxHp; g.takeBoat(); g.sim(3);
     return { type: g.current.type, blessing: g.run.blessing, saved: g.unfold.blessing, more: g.player.maxHp - was, salt: g.player.reagents.emberSalt ?? 0 };
   });
-  expect(run).toMatchObject({ type: 'start', blessing: 'sexton', saved: null, salt: 1 });
+  expect(run).toMatchObject({ type: 'start', blessing: 'sexton', saved: null });
+  expect(run.salt).toBeGreaterThanOrEqual(1); // (the garden's one; the forager's start gift is a random reagent, Ember Salt too about one run in eight)
   expect(run.more).toBeGreaterThanOrEqual(1); // (half a heart more, with the powers' hearts besides)
   // the dev menu closes every way again
   await page.evaluate(() => { const g = (window as unknown as { __game: UG }).__game; g.toVigil(false); g.sim(1); });

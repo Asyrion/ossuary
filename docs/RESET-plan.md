@@ -100,8 +100,8 @@ cleaning, the look and the story.
 
 ### Phase 0: one baseline (small, now)
 
-1. Bring M7 steps 3 to 9 from `claude/m7-descent-vigil-plan-8i27rp` into this branch (one conflict, in
-   `tests/e2e/smoke.spec.ts`), run the suites, then ship to `main` (the `ship` skill, when the owner says), so live,
+1. Bring M7 steps 3 to 9 from `claude/m7-descent-vigil-plan-8i27rp` into this branch (*done 2026-10-12*: merged, 493
+   unit and 139 browser tests green, one test's luck fixed), then ship to `main` (the `ship` skill, when the owner says), so live,
    branches and docs start from the same game. Then delete the merged branches.
 2. The owner plays one full run and writes down the five things that bother most and the five that delight most.
    These steer Phases 3 to 5 more than any audit.
