@@ -103,6 +103,8 @@ const SPELL_ICONS: Record<string, string> = {
   wardlight: `<circle cx="12" cy="12" r="7" ${S} stroke-dasharray="2 3"/><circle cx="12" cy="5" r="2.2" fill="currentColor"/><circle cx="18" cy="15" r="2.2" fill="currentColor"/><circle cx="6" cy="15" r="2.2" fill="currentColor"/>`,
   hexbolt: `<path d="M3 21l7-7" ${S}/><circle cx="14" cy="10" r="5.5" fill="currentColor"/><circle cx="14" cy="10" r="1.8" fill="#120a1c"/>`,
   grasp: `<path d="M7 20v-7M10 20V8M13 20V7M16 20v-9M19 20v-5" ${S}/><path d="M4 21h17" ${S}/>`,
+  lantern: `<path d="M12 2v3" ${S}/><path d="M8 7h8l-1 11H9z" ${S}/><path d="M9 20h6" ${S}/><circle cx="12" cy="12.5" r="2.2" fill="currentColor"/>`,
+  harvest: `<path d="M5 19c2-8 8-13 15-14c-2 5-6 9-11 10" ${S}/><circle cx="7" cy="8" r="1.6" fill="currentColor"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/><circle cx="18" cy="14" r="1.6" fill="currentColor"/>`,
   toll: `<circle cx="12" cy="12" r="8" ${S}/><rect x="9.5" y="9.5" width="5" height="5" fill="currentColor"/>`,
   // Verdant (M5)
   thorns: `<path d="M5 21c1-6 4-9 7-11M19 21c-1-6-4-9-7-11M12 21V5" ${S}/><path d="M8 13l-2-1M16 13l2-1M12 9l-2-2M12 9l2-2" ${S}/><path d="M3 21h18" ${S}/>`,

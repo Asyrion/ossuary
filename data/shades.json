@@ -1,0 +1,17 @@
+{
+  "_comment": "M7 step 6, chained shades (docs/M7-plan.md, decisions 10 and 11): the ten townspeople the mage can find chained in a run, each found on the floors it lists, with its light and the help it gives when bound (src/vigil/shadeHelp.ts). Each floor's chance of a shade is `shade` in data/floors.json; `rooms` weights the rooms one lies in (those of the floor's plan); `chains` is how many chains bind one by floor (1-based, past the last the last's). Read by src/vigil/shadeData.ts. Their names and lines are STR.shades.",
+  "rooms": { "secret": 3, "ordeal": 2, "boss": 2, "library": 1, "vault": 1 },
+  "chains": [2, 2, 3, 3, 3],
+  "shades": [
+    { "id": "stormcaller", "floors": [2, 3], "light": "#f0e070", "help": "storm" },
+    { "id": "wizard", "floors": [3, 4], "light": "#9ae04a", "help": "roots" },
+    { "id": "forager", "floors": [1, 2], "light": "#d0a868", "help": "bow" },
+    { "id": "scribe", "floors": [1, 2], "light": "#e8dcc0", "help": "turn" },
+    { "id": "sexton", "floors": [1, 2], "light": "#b8ae96", "help": "dig" },
+    { "id": "chorister", "floors": [3, 4], "light": "#ffd878", "help": "sing" },
+    { "id": "bellringer", "floors": [2, 5], "light": "#c4d4e6", "help": "ring" },
+    { "id": "novice", "floors": [3, 4], "light": "#b48aff", "help": "hex" },
+    { "id": "embalmer", "floors": [2, 3], "light": "#86d8a8", "help": "brew" },
+    { "id": "pilgrim", "floors": [4, 5], "light": "#a8bcea", "help": "map" }
+  ]
+}

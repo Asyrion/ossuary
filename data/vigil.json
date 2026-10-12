@@ -1,0 +1,56 @@
+{
+  "rooms": [
+    {"name": "crypt", "type": "vigil", "shape": "standard", "at": [3, 3], "template": "vigil_crypt"},
+    {"name": "nave", "type": "vigil", "shape": "great", "at": [4, 2], "template": "vigil_nave"},
+    {"name": "landing", "type": "vigil", "shape": "long", "at": [6, 3], "template": "vigil_landing"},
+    {"name": "cave", "type": "vigil", "shape": "long", "at": [3, 1], "template": "vigil_cave", "behind": "ember", "kit": {"wall": {"drystone": 1}, "floor": {"flags": 1}, "torch": {"cairn": 1}}},
+    {"name": "chapel", "type": "vigil", "shape": "standard", "at": [3, 2], "template": "vigil_chapel", "behind": "hallow", "kit": {"wall": {"ashlar": 1}, "torch": {"candelabra": 1}}},
+    {"name": "pool", "type": "vigil", "shape": "standard", "at": [5, 1], "template": "vigil_pool", "behind": "storm"},
+    {"name": "gallery", "type": "vigil", "shape": "standard", "at": [4, 4], "template": "vigil_gallery", "behind": "umbral"},
+    {"name": "garden", "type": "vigil", "shape": "standard", "at": [6, 2], "template": "vigil_garden", "behind": "verdant", "kit": {"floor": {"cobbles": 1}}},
+    {"name": "practice", "type": "vigil", "shape": "standard", "at": [7, 2], "template": "vigil_practice", "behind": "frost"}
+  ],
+  "wake": {"room": "crypt", "at": [3.5, 5.3]},
+  "pieces": [
+    {"kind": "bier", "room": "crypt", "at": [3, 4], "size": [2, 1]},
+    {"kind": "candleWall", "room": "crypt", "at": [0, 0], "size": [5, 1]},
+    {"kind": "skulls", "room": "crypt", "at": [10, 0], "size": [2, 1]},
+    {"kind": "lectern", "room": "crypt", "at": [9, 3], "size": [1, 1]},
+    {"kind": "plinth", "room": "nave", "at": [4, 4], "size": [1, 1]},
+    {"kind": "plinth", "room": "nave", "at": [3, 7], "size": [1, 1]},
+    {"kind": "plinth", "room": "nave", "at": [4, 10], "size": [1, 1]},
+    {"kind": "boat", "room": "landing", "at": [15, 5], "size": [3, 2]},
+    {"kind": "plinth", "room": "gallery", "at": [2, 2], "size": [1, 1]},
+    {"kind": "plinth", "room": "gallery", "at": [10, 2], "size": [1, 1]},
+    {"kind": "plinth", "room": "gallery", "at": [2, 5], "size": [1, 1]},
+    {"kind": "plinth", "room": "gallery", "at": [10, 5], "size": [1, 1]}
+  ],
+  "bars": [
+    {"school": "ember", "room": "nave", "side": "n", "at": [5, 0], "size": [3, 1]},
+    {"school": "umbral", "room": "nave", "side": "s", "at": [5, 15], "size": [3, 1]},
+    {"school": "storm", "room": "nave", "side": "n", "at": [20, 0], "size": [3, 1]},
+    {"school": "hallow", "room": "crypt", "side": "n", "at": [5, 0], "size": [3, 1]},
+    {"school": "verdant", "room": "landing", "side": "n", "at": [5, 0], "size": [3, 1]},
+    {"school": "frost", "room": "landing", "side": "n", "at": [20, 0], "size": [3, 1]}
+  ],
+  "circle": {"room": "nave", "at": [14, 8], "radius": 3.6},
+  "town": {"room": "nave", "spots": {
+    "stormcaller": [3, 2], "scribe": [9, 2], "chorister": [19, 2], "bellringer": [25, 2], "wizard": [25, 6],
+    "pilgrim": [25, 13], "embalmer": [18, 14], "sexton": [13, 14], "novice": [8, 14], "forager": [2, 14]
+  }},
+  "unfold": {
+    "cave": {"room": "cave", "spots": [[1, 1, "house"], [4, 0, "fall"], [7, 1, "terrace"], [10, 0, "bed"], [13, 1, "house"], [16, 0, "fall"], [19, 1, "bed"], [25, 0, "terrace"], [26, 3, "house"], [1, 4, "bed"]]},
+    "chapel": {"room": "chapel", "altar": [5, 0], "size": [3, 1], "candles": {"stormcaller": [1, 1], "wizard": [3, 1], "forager": [1, 3], "scribe": [3, 3], "sexton": [2, 5],
+      "chorister": [9, 1], "bellringer": [11, 1], "novice": [9, 3], "embalmer": [11, 3], "pilgrim": [10, 5]}},
+    "garden": {"room": "garden", "beds": {"graveMoss": [1, 1], "wispEssence": [3, 1], "boneDust": [6, 1], "emberSalt": [9, 1], "rimewater": [11, 1], "bloomPetal": [2, 3], "wardensAsh": [10, 3]}}
+  },
+  "look": {
+    "name": "vigil",
+    "kit": {"wall": {"cryptstone": 3, "ashlar": 1}, "floor": {"slabs": 3, "graves": 1}, "torch": {"cluster": 3, "candelabra": 1}, "brazier": {"font": 1}},
+    "floor": {"base": [78, 70, 60], "mortar": "#1a140f", "stain": "60,44,30", "decor": "bones", "bones": 1},
+    "wall": {"brick": [88, 78, 66], "mortar": "#1c1611", "stains": "none", "dress": {"pilaster": 3, "niches": {"candle": 4, "skull": 2, "empty": 1}}},
+    "torch": {"style": "bracket", "flame": "#ffd27a", "light": "#ffaa58", "intensity": 1.05, "wax": "#f2e4c8", "candle": ["#ffd070", "#ff8428"]},
+    "urn": {"clay": "#8a5c3c", "band": "#4a2c1a"},
+    "light": {"sky": "#9a8070", "ground": "#1a120c", "moon": "#e2b88a"}
+  }
+}

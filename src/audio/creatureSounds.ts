@@ -5,7 +5,7 @@
    (a beast the size of a horse): heavy scaled feet whose claws strike stone, a reptile's hiss from a big chest, the clack
    of its jaw snapping shut, a rasping shriek with a rattle in its throat, and a chitter while it rests. The Chameleon
    Wyvern's growl, screech and tail slam are files from the owner's EDA-ModelWebViewer, the first played from files
-   (samples.ts), these as their fallbacks. */
+   (samples.ts), these as their fallbacks. Kaelith's made model (2026-10-09) adds its sword's sweep and its kneel. */
 import { Rand, crackleLoop, drum, noiseLoop, play, type Ctx } from './synth';
 import { playSample } from './samples';
 
@@ -155,4 +155,10 @@ export const CREATURE_SOUNDS: Record<string, (s: CreatureCall) => void> = {
   chameleonGrowl: fromFile('chameleonGrowl', s => roar(s, 1.2)),
   chameleonScreech: fromFile('chameleonScreech', s => shriek(s, 1.2)),
   clubSlam: fromFile('clubSlam', s => CREATURE_SOUNDS.slam(s)),
+  // Kaelith's made model (2026-10-09): its sword's sweep, air cut in an arc; its kneel, armour and a knee on stone
+  swing: s => { noise(s, 'white', 'bandpass', 700, 2600, 2.5, 0, .12, .22, .5); noise(s, 'pink', 'bandpass', 300, 900, 1.5, .04, .1, .25, .3); },
+  kneel: s => {
+    play(s.ctx, drum(s.ctx, 'thump'), lowpass(s, 420), s.t, s.gain * .9, .75);
+    for (let i = 0; i < 3; i++) noise(s, 'white', 'bandpass', s.r.range(2400, 3800), s.r.range(1800, 2600), 9, .02 + i * s.r.range(.03, .06), .001, .09, s.r.range(.14, .24)); // (plates settling)
+  },
 };

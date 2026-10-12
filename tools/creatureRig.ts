@@ -137,6 +137,48 @@ export function faceForward(doc: Document, deg: number) {
   }
 }
 
+/** A skeleton whose rest pose was lost (2026-10-09: three townspeople came through an FBX converter with every joint's
+    transform zeroed, their inverse bind matrices kept) rebuilt from its bind: each joint's world matrix is the inverse of
+    its inverse bind matrix, and its local transform that, seen from its parent. The converter had also turned the mesh a
+    quarter round after it was rigged, so the skeleton is turned to the mesh: its left hip (`left`, against `right`) to
+    +x, the way the mesh faces +z, and its hips over the mesh's middle; its bind is written again to match, for a skin that
+    is then bound again from the bones. Returns how many joints were set; none when the joints already stand apart. */
+export function restFromBind(doc: Document, left = 'mixamorig:LeftUpLeg', right = 'mixamorig:RightUpLeg') {
+  let set = 0;
+  for (const skin of doc.getRoot().listSkins()) {
+    const joints = skin.listJoints(), ibm = skin.getInverseBindMatrices(); if (!ibm) continue;
+    if (!joints.every(j => j.getTranslation().every(x => Math.abs(x) < 1e-6))) continue;
+    const world = new Map(joints.map((j, i) => [j, new THREE.Matrix4().fromArray(ibm.getElement(i, [])).invert()]));
+    const pos = (name: string) => { const j = joints.find(n => n.getName() === name); return j ? new THREE.Vector3().setFromMatrixPosition(world.get(j)!) : null; };
+    const l = pos(left), r = pos(right);
+    if (l && r) {
+      const d = l.clone().sub(r), turn = new THREE.Matrix4().makeRotationY(Math.atan2(d.z, d.x)); // (left hip to +x)
+      // the mesh's middle across, which the hips are moved over
+      const lo = new THREE.Vector3(1e9, 1e9, 1e9), hi = new THREE.Vector3(-1e9, -1e9, -1e9), q = new THREE.Vector3();
+      for (const m of doc.getRoot().listMeshes()) for (const p of m.listPrimitives()) { const a = p.getAttribute('POSITION')!; for (let i = 0, e = [0, 0, 0]; i < a.getCount(); i++) { q.fromArray(a.getElement(i, e)); lo.min(q); hi.max(q); } }
+      const hips = new THREE.Vector3().setFromMatrixPosition(world.get(joints[0])!).applyMatrix4(turn);
+      const shift = new THREE.Matrix4().makeTranslation((lo.x + hi.x) / 2 - hips.x, 0, (lo.z + hi.z) / 2 - hips.z);
+      for (const [j, m] of world) world.set(j, shift.clone().multiply(turn).multiply(m));
+      joints.forEach((j, i) => ibm.setElement(i, world.get(j)!.clone().invert().toArray()));
+    }
+    for (const j of joints) {
+      const parent = j.listParents().find(p => world.has(p as never)) as GNode | undefined;
+      const local = parent ? world.get(parent)!.clone().invert().multiply(world.get(j)!) : world.get(j)!.clone();
+      const t = new THREE.Vector3(), q = new THREE.Quaternion(), sc = new THREE.Vector3(); local.decompose(t, q, sc);
+      j.setTranslation(t.toArray() as V3); j.setRotation(q.toArray() as [number, number, number, number]); j.setScale([1, 1, 1]); set++;
+    }
+  }
+  return set;
+}
+
+/** Which way a Mixamo skeleton faces: the degrees `faceForward` turns it so its left side lies along +x (it then faces +z). */
+export function mixamoFacing(rig: Rig) {
+  // (the hips and the shoulders together: a figure caught mid-stride turns its hips, one holding a prop out its shoulders)
+  const across = (l: string, r: string) => rig.at(l).sub(rig.at(r)).setY(0).normalize();
+  const d = across('mixamorig:LeftUpLeg', 'mixamorig:RightUpLeg').add(across('mixamorig:LeftShoulder', 'mixamorig:RightShoulder'));
+  return Math.round(THREE.MathUtils.radToDeg(Math.atan2(d.z, d.x)));
+}
+
 /** A clip: how long it lasts, whether it loops, and the pose at time `t` (from rest each frame); its events are when
     its sounds play (a paw down, the roar; `loud` ones at the creature's roar's loudness, CFG.creatures). */
 export interface ClipDef { duration: number; loop: boolean; pose(rig: Rig, t: number): void; events: { t: number; sound: string; at?: string; loud?: boolean }[] }

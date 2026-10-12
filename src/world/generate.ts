@@ -43,6 +43,7 @@ export interface FloorConfig {
   /** Whether the floor has a waystone room beside its boss room, holding the way down (M6 step 10: floors 1 to 4; M7: 5 too, the Seal below it). */ waystone?: boolean;
   /** Chance the secret room holds an artifact (outside the budget) rather than a hoard. */ secretArtifactChance: number;
   /** The champion that rises in a vault forced open with glyphs. */ vaultWarden: FoeType;
+  /** M7 step 6: the chance a chained shade lies somewhere on the floor (data/shades.json). */ shade?: number;
   /** How much likelier soul motes are in the floor's loot than on the first floors (M4.1: the deep floors give more;
       1 when unset). */ souls?: number;
   /** M6 step 8: how likely runes are in the floor's loot, times each chance in data/loot.json's `runes` (0 on floor 5:
@@ -74,7 +75,7 @@ export const FLOORS = floorsData as unknown as FloorConfig[];
 export interface Cell { gx: number; gy: number }
 /** A door on the cell edge (gx, gy, side), leading to room `to`; `shift` moves it along the edge from the middle,
     in tiles (towards +x on north and south edges, +z on east and west ones), the same for both its sides. */
-export interface PlannedDoor { gx: number; gy: number; side: Side; to: number; shift?: number }
+export interface PlannedDoor { gx: number; gy: number; side: Side; to: number; shift?: number; /** M7 step 9: a doorway at the Vigil barred by a school, shut until it opens. */ barred?: boolean }
 export interface PlannedRoom {
   id: number; type: RoomType; shape: ShapeId;
   /** Grid cells the room covers; `anchor` is the top-left of their bounding box. */ cells: Cell[]; anchor: Cell;
@@ -263,7 +264,19 @@ export function generateFloor(rng: Rng, cfg: FloorConfig, index: number, library
     of them share, the first the start; the boss's room the boss, its distances walked from the start. Its own seeds come
     from `rng`, so a run's seed still decides each room's dressing. */
 export function fixedPlan(rng: Rng, cfg: FloorConfig, index: number, library: TemplateDef[] = TEMPLATE_DEFS): FloorPlan {
-  const list = cfg.fixed!.rooms;
+  const rooms = layFixed(rng, cfg.fixed!.rooms, library);
+  const bossId = rooms.findIndex(r => r.type === 'boss');
+  if (rooms[0].type !== 'start' || bossId < 0) throw new Error('a fixed level needs its start first and a boss');
+  return { index, rooms, startId: 0, bossId, attempts: 1 };
+}
+/** M7 step 5: the Vigil's map (data/vigil.json), laid as a fixed level is but with no boss: the first room the start,
+    every room reached. Its index is the Vigil's own (`VIGIL_INDEX`), never a floor's. */
+export function hubPlan(rng: Rng, list: FixedRoom[], index: number, library: TemplateDef[] = TEMPLATE_DEFS): FloorPlan {
+  return { index, rooms: layFixed(rng, list, library), startId: 0, bossId: -1, attempts: 1 };
+}
+/** A level laid by hand: each room where the list puts it, its template checked against its shape and type, doors on every
+    edge two rooms share (in the middle: shift 0), every room reached from the first. */
+function layFixed(rng: Rng, list: FixedRoom[], library: TemplateDef[]): PlannedRoom[] {
   const layouts = list.map(f => ({ shape: f.shape, cells: shapeCells(f.shape).map(([i, j]) => ({ gx: f.at[0] + i, gy: f.at[1] + j })) }));
   const doors = computeDoors(layouts), dist = roomDistances(doors);
   const rooms: PlannedRoom[] = list.map((f, id) => {
@@ -275,9 +288,8 @@ export function fixedPlan(rng: Rng, cfg: FloorConfig, index: number, library: Te
       seed: rng.int(1, 2 ** 30), doors: doors[id].map(d => ({ ...d, shift: 0 })),
     };
   });
-  const bossId = rooms.findIndex(r => r.type === 'boss');
-  if (rooms[0].type !== 'start' || bossId < 0 || rooms.some(r => r.dist === undefined)) throw new Error('a fixed level needs its start first, a boss, and every room reached');
-  return { index, rooms, startId: 0, bossId, attempts: 1 };
+  if (rooms.some(r => r.dist === undefined)) throw new Error('a fixed level needs every room reached from its first');
+  return rooms;
 }
 
 /** M6 step 10: the waystone room: one more one-cell room on a free cell beside the boss room (any of a great hall's

@@ -103,6 +103,21 @@ const TORCHES: Record<TorchKind, TorchBuild> = {
     lit.add(makeFire(specs, pal, 3, .3));
     return at(glow(pal.body, 1.2, .75), 0, 1.2, .12);
   },
+  cluster(holder, lit, pal, t) { // the Vigil's (M7 step 5): a stone corbel on the wall crowded with candles of every height, their
+    // wax run down over its edge in long drips
+    const wax = t.wax ? waxFor(t.wax) : MAT.wax;
+    mesh(holder, GEO.plinthTop, MAT.stone, 0, .82, .1).scale.set(.62, 1.2, .38); mesh(holder, GEO.plinth, MAT.stone, 0, .66, .06).scale.set(.4, .62, .2);
+    const specs: FlameSpec[] = [];
+    for (const [x, z, h] of [[-.17, .1, .12], [-.08, .16, .26], [.02, .08, .34], [.11, .17, .18], [.19, .09, .09]]) {
+      mesh(holder, GEO.candle, wax, x, .86 + h / 2, z).scale.set(.9, h, .9);
+      mesh(holder, GEO.drip, wax, x + .03, .86 + h * .7, z + .035);
+      specs.push({ x, y: .86 + h, z, h: .15, w: .07 });
+    }
+    mesh(holder, GEO.pool, wax, 0, .85, .12).scale.set(2.2, 1, 1.2);
+    for (const [x, len] of [[-.12, .14], [.05, .22], [.16, .1]]) mesh(holder, GEO.drip, wax, x, .82 - len / 2, .225).scale.set(.7, len * 22, .7); // (runs of wax down its face)
+    lit.add(makeFire(specs, pal, 4, .32));
+    return at(glow(pal.body, 1.3, .8), 0, 1.15, .14);
+  },
   lantern(holder, lit, pal) { // a cage lantern on an arm; its glass glows with the flame
     mesh(holder, GEO.lArm, MAT.iron, 0, 1.4, .16); mesh(holder, GEO.lHook, MAT.iron, 0, 1.36, .31);
     mesh(holder, GEO.lCap, MAT.iron, 0, 1.28, .31); mesh(holder, GEO.lBase, MAT.iron, 0, .98, .31);

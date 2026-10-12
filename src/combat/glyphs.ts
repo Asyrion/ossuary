@@ -23,9 +23,10 @@ import { blastSeal } from '../world/vault';
 import { openSecret } from '../world/secret';
 import { blastWisp } from '../world/shrine';
 import { toast } from '../ui/hud';
+import { atVigil, vigilHooks } from '../vigil/where';
 import { STR } from '../strings';
 import { giveResources, isContainer, openContainer } from '../items/pickups';
-import { damageEnemy, hurtPlayer } from './damage';
+import { damageEnemy, hurtPlayer, strikeFrom } from './damage';
 import { addDecal, burst } from './fx';
 import { clamp } from '../util';
 import { breakPlate } from '../actors/bosses';
@@ -62,6 +63,7 @@ let cooldown = 0;
 /** Chalk a glyph at the mage's feet, if they have one. */
 export function placeGlyph() {
   if (cooldown > 0 || G.trans || G.state !== 'play') return false;
+  if (atVigil()) { Sfx.noGlyph(); toast(STR.vigil.chalk, 2.4); cooldown = .6; return false; } // (M7 step 5: nothing to blast at the Vigil)
   if (player.glyphs <= 0) { Sfx.noGlyph(); cooldown = .3; return false; }
   if (G.current.type === 'merchant') { // the shop is warded: the chalk won't take, and nothing is spent
     burst(player.x, .1, player.z, WARD_COLOR, 8, 1.4, .04); Sfx.wardTink(); toast(STR.toast.shopWarded, 3); cooldown = .6;
@@ -121,6 +123,7 @@ function blast(x: number, z: number, color: number, R: number, spare = false) {
   }
   dragonBlast(x, z, R); // (M4.2: a blast at the foot of the Pillar Dragon's pillar knocks it off)
   groundHears('blast', x, z, R); // (what hides in water there is thrown up)
+  vigilHooks.landed('blast', x, z, R); // (M7 step 6: a glyph's blast breaks any chain on a chained shade)
   blastProps(room, x, z, R); // rubble cleared, briars and cobwebs torn away
   caveIn(room, x, z); // in the collapsed crypt, more of the ceiling comes down
   for (const p of G.pickups) if (isContainer(p.kind) && !p.opened && Math.hypot(p.x - x, p.z - z) < R + .3) openContainer(p, true); // chests burn
@@ -133,7 +136,7 @@ function blast(x: number, z: number, color: number, R: number, spare = false) {
   }
   for (const o of G.glyphs) if (!o.spent && Math.hypot(o.x - x, o.z - z) <= R) o.fuse = Math.min(o.fuse, C.chainDelay);
   if (!spare && Math.hypot(player.x - x, player.z - z) < R + player.r * .5) { // caught in it: the Warding Band turns it aside
-    if (player.stats.effects.has('glyphWard')) { wardRing(player.x, player.z); Sfx.wardTink(); } else hurtPlayer(C.selfDamage, x, z);
+    if (player.stats.effects.has('glyphWard')) { wardRing(player.x, player.z); Sfx.wardTink(); } else { strikeFrom('glyph'); hurtPlayer(C.selfDamage, x, z); }
   }
   // the look: a shockwave out to the reach, a flash, sparks in the bolt colour, dust and a scorch mark
   const s = shapes(), g = new THREE.Group(); g.position.set(x, 0, z);

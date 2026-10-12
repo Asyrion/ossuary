@@ -1,5 +1,5 @@
 /* Kaelith, the Shadow Sentinel (M7 step 2; docs/M7-plan.md, decisions 5 and 6; GDD: the Vigil, Kaelith): the Seal's boss,
-   the run's last fight. Umbral, weak to Hallow, resisting Umbral; its look is one of two the owner chooses between
+   the run's last fight. Umbral, weak to Hallow, resisting Umbral; its look is the Winged Watcher, the owner's choice
    (kaelithLooks.ts). Three phases, by its health (kaelithData.ts):
    1. The Sentinel: it stalks at blade's reach; sweeps a fan of hexing blades (its blade raised, its mantle spread, first);
       fires volleys that hex; and steps from shadow to shadow: it sinks where no light falls and rises in another shadow
@@ -30,7 +30,7 @@ import { FLOORS } from '../world/generate';
 import { sealWard, wakeWard, wardHooks } from '../world/mechanisms';
 import { callFoe, type Role } from './foeData';
 import { makeEnemy } from './enemies';
-import { kaelithLook, kaelithLookNow } from './kaelithLooks';
+import { kaelithLook } from './kaelithLooks';
 import { phaseOf, sealWards, type KaelithPhase } from './kaelithData';
 import { mulberry } from '../util';
 import { SPELL_DEFS } from '../magic/spellData';
@@ -47,8 +47,8 @@ export function resetKaelith() { fight = null; kneltAt = null; wardHooks.shut = 
 
 /** Build Kaelith in the look the owner's switch names; its hall's ward pillars go dormant until the seal cracks. */
 export function buildKaelith(e: Enemy) {
-  const L = kaelithLook(kaelithLookNow()), P = L.parts;
-  e.mats = mergeRig(L.group, L.idle, 'boss:kaelith:' + kaelithLookNow(), [P.eye, P.ring, P.body, P.blade, P.mantle, P.hand, P.head]);
+  const L = kaelithLook(), P = L.parts;
+  e.mats = mergeRig(L.group, L.idle, 'boss:kaelith', [P.eye, P.ring, P.body, P.blade, P.mantle, P.hand, P.head]);
   for (const m of e.mats) m.userData.base = m.emissive.clone();
   e.model = L.group; e.idle = L.idle; e.shadow = L.shadow; e.bossSchool = L.school; e.body.add(L.group);
   e.eye = P.eye; e.ring = P.ring; e.halo = P.halo; e.parts = P; e.bossAff = { weak: C.weak, resist: C.resist };
@@ -240,7 +240,7 @@ function blackSun() {
 /** Kaelith kneels where it fell (`onBossDead`): a figure of its look, posed kneeling, its eyes dim, stays in its hall; the dark
     lifts. */
 export function kaelithKneels(fell: { x: number; z: number }) {
-  const room = G.current, L = kaelithLook(kaelithLookNow()), P = L.parts;
+  const room = G.current, L = kaelithLook(), P = L.parts;
   // (it kneels where it fell, unless that is where the way out, the heart, the page and the gifts are laid round the hall's
   // middle: then out past them, on its side of the middle, or north of it)
   let at = fell; const dx = fell.x - room.cx, dz = fell.z - room.cz, d = Math.hypot(dx, dz);

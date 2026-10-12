@@ -13,6 +13,11 @@ import { updateRoomFx } from './world/rooms';
 import { heroVisual } from './actors/hero';
 import { updatePlayer } from './actors/player';
 import { Sfx } from './audio/sfx';
+import { updateDaylight } from './world/daylight';
+import { updateVigil } from './vigil/place';
+import { updateShades } from './vigil/shades';
+import { updateShadeHelp } from './vigil/shadeHelp';
+import { updateTownGallery } from './vigil/town';
 import { updateAudio } from './audio/director';
 import { updateEnemies } from './actors/enemies';
 import { updateBolts, updateShots } from './combat/projectiles';
@@ -76,6 +81,10 @@ export function step(dt: number) {
       camTarget.x += (t.x - camTarget.x) * k; camTarget.z += (t.z - camTarget.z) * k;
     } else updateEnemies(0);
   }
+  updateDaylight(dt); // (M7 step 3: the cave mouth at dawn, and the shaft's dust before it)
+  if (!G.trans) updateVigil(dt); // (M7 step 5: the Vigil's lectern, boat and barred ways)
+  updateShades(dt); // (M7 step 6: a chained shade comes forth, asks, and goes)
+  updateTownGallery(dt); // (M7 step 7: the townspeople's gallery, gesturing in turn)
   Sfx.listen(player.x, player.z); // effects are heard from just above the mage
   updateParticles(dt); updateWorldFx(dt, now); heroVisual(dt, now);
 }
@@ -85,6 +94,7 @@ function updateWorldFx(dt: number, now: number) {
   if (G.state === 'play' && !G.trans) updatePagePanel(); else hidePagePanel(); // a spell's panel over the page near the mage (M3.7)
   if (G.state === 'play' && !G.trans) updateWarePanel(); else hideWarePanel(); // what a ware near the mage is, before it is bought (2026-10-02)
   updateFamiliars(dt, now, G.state === 'play' && !G.trans);
+  updateShadeHelp(dt, now, G.state === 'play' && !G.trans); // (M7 step 6: the bound shades walking with the mage)
   updateShrine(dt, now, G.state === 'play' && !G.trans);
   updateMagic(dt, G.state === 'play' && !G.trans); updateStatusFx(dt); updatePools(dt, now, G.state === 'play' && !G.trans); updateSteam(G.state === 'play' ? dt : 0);
   if (G.state === 'play' && !G.trans) { updateProps(dt); updateThemes(dt); updateMechanisms(dt); updateWardShields(G.simClock); updateModelOptions(dt, G.current); updateEffectOptions(dt, G.current); updateCreatures(dt, G.current); } // burning, briars, spores; sleepers, rising bones; bells, runes, censers

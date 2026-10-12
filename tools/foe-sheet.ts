@@ -4,10 +4,10 @@
    whole), and close up with the pixel look off; the shots tiled into one labelled sheet a floor. The contract each new look keeps (its old look's moving parts, about its height) is printed.
    Needs the dev server running (npm run dev).
 
-   M7 step 2: `bosses=kaelithHooded,kaelithWinged` shoots boss looks (the Galleries' list, bossLooks.ts) instead, each alone,
+   M7 step 2: `bosses=kaelith,warden` shoots boss looks (the Galleries' list, bossLooks.ts) instead, each alone,
    in both looks, into bosses-texel.png and bosses-off.png (the owner chooses between Kaelith's two).
 
-   Usage: npm run foe-sheet -- [floor=1,2] [only=sporeling,runeBeetle] [bosses=kaelithHooded,kaelithWinged] [out=asset-previews/foes]
+   Usage: npm run foe-sheet -- [floor=1,2] [only=sporeling,runeBeetle] [bosses=kaelith,warden] [out=asset-previews/foes]
    OSSUARY_URL points at another server; PW_CHROMIUM at a Chromium binary (cloud sessions). */
 import { chromium } from '@playwright/test';
 import sharp from 'sharp';

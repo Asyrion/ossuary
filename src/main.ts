@@ -1,7 +1,8 @@
 /* Boot: wire input and UI, build the floor, load the hero, start the loop, expose dev hooks. */
 // fonts are bundled with the game (Fontsource), so starting it makes no requests to Google
 import { kaelithInfo, kaelithToPhase, kneltAt, shutAllWards } from './actors/kaelith';
-import { kaelithLookNow, setKaelithLook } from './actors/kaelithLooks';
+import { daylightInfo, enterDaylight } from './world/daylight';
+import { exportSave, giveHome, importSave, veteranSave, vigil, wipeSave } from './vigil/save';
 import '@fontsource/cinzel/400.css';
 import { POTION_IDS, isPotion, type PotionId, type ReagentId } from './items/alchemyData';
 import { addPotion, addReagent, beltSlots, choosePotion, identify, knownPotion, moveInBelt, potionFx, renderBelt, usePotion } from './items/potions';
@@ -47,7 +48,18 @@ import { levelAtFloor } from './progression/levelData';
 import { chooseFor, initLevelUp, levelEsc, levelKey, levelOpen, levelPad, offerNow, openLevelUp, takeBargainCard } from './ui/levelUp';
 import { giveById, refreshStats, removeArtifactGallery, showArtifactGallery } from './items/artifacts';
 import { ARTIFACTS } from './items/artifactData';
-import { clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRun, startGame, toggleSound, warp } from './flow';
+import { askVigil, begin, clearRoom, descend, pause, prepareTitle, resetPlayer, resume, setNextRun, startGame, startsAtVigil, toggleSound, wakeAtVigil, warp } from './flow';
+import { STR } from './strings';
+import { closeLectern, holdIn, initLectern, lecternKey, lecternNow, lecternOpen, lecternPad, openLectern } from './ui/lectern';
+import { board, openWayNow, vigilActs, vigilInfo } from './vigil/place';
+import { answerShade, bindIt, breakAllChains, freeIt, layShade, shadeInfo } from './vigil/shades';
+import { shadeHelpInfo, walkWith } from './vigil/shadeHelp';
+import { talkTo, townGallery, takeTownGallery, townInfo } from './vigil/town';
+import { actOn, bondTo, giftsInfo, givePower, offersFor, questTo } from './vigil/gifts';
+import { chooseGarden, lightBlessing, unfoldInfo } from './vigil/unfold';
+import { disciplinesOpen } from './vigil/giftData';
+import { closeTalk, goOn, initTalk, say, talkKey, talkNow, talkOpen, talkPad } from './ui/talk';
+import { forgetHeard, setFlag, setParts } from './vigil/save';
 import { gainInsight, insightNow, setLevel } from './progression/insight';
 import { pointsToSpend, spendPoint } from './progression/points';
 import { boonsNow, dealNow, takeBoon } from './progression/boons';
@@ -122,14 +134,16 @@ const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 
 const input: InputActions = {
   unlockAudio: () => Sfx.init(),
-  togglePause: () => { if (devOpen()) closeDev(); else if (levelOpen()) levelEsc(); else if (labOpen()) closeLab(); else if (waystoneOpen()) closeWaystone(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
-  confirm: () => { if (G.state === 'title' || G.state === 'end') startGame(); },
-  startButton: () => { if (devOpen()) closeDev(); else if (levelOpen()) levelEsc(); else if (labOpen()) closeLab(); else if (waystoneOpen()) closeWaystone(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else startGame(); },
+  togglePause: () => { if (devOpen()) closeDev(); else if (talkOpen()) closeTalk(); else if (lecternOpen()) closeLectern(); else if (levelOpen()) levelEsc(); else if (labOpen()) closeLab(); else if (waystoneOpen()) closeWaystone(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); },
+  confirm: () => { if (G.state === 'title' || G.state === 'end') begin(); }, // (M7 step 5: to the Vigil once a run has been played)
+  startButton: () => { if (devOpen()) closeDev(); else if (talkOpen()) closeTalk(); else if (lecternOpen()) closeLectern(); else if (levelOpen()) levelEsc(); else if (labOpen()) closeLab(); else if (waystoneOpen()) closeWaystone(); else if (inventoryOpen()) closeInventory(); else if (G.state === 'play') pause(); else if (G.state === 'pause') resume(); else begin(); },
   toggleSound,
   autoPause: () => { if (G.state === 'play') pause(); },
   toggleDev: () => { if (inventoryOpen()) closeInventory(); toggleDev(); },
   inventoryKey: code => {
     if (devOpen()) return false;
+    if (talkOpen()) return talkKey(code); // (M7 step 7: a townsperson's talk)
+    if (lecternOpen()) return lecternKey(code); // (M7 step 5: the Vigil's lectern)
     if (levelOpen()) return levelKey(code); // (M6: the level-up screen's choice waits)
     if (labOpen()) return labKey(code); // (M5: the alchemy table takes its keys first)
     if (waystoneOpen()) return stoneKey(code); // (M6: the waystone's screen, the same)
@@ -140,6 +154,8 @@ const input: InputActions = {
   },
   padButton: i => {
     if (devOpen()) return false;
+    if (talkOpen()) return talkPad(i);
+    if (lecternOpen()) return lecternPad(i);
     if (levelOpen()) return levelPad(i);
     if (labOpen()) return labPad(i);
     if (waystoneOpen()) return stonePad(i);
@@ -173,6 +189,7 @@ async function loadDefaultHero() {
 function readUrlOptions() {
   const q = new URLSearchParams(location.search);
   const kit = q.get('kit');
+  const vig = q.get('vigil'); if (vig && vig !== '0') askVigil(vig === 'first'); // (M7 step 5: ?vigil=1 starts at the Vigil, ?vigil=first wakes there for the first time)
   const looks = q.get('looks'); // (M4.12: ?looks=new tries every new look, ?looks=old wears the old ones)
   if (looks && FOE_LOOK_MODES.includes(looks as FoeLooks)) DEV.foeLooks = looks as FoeLooks; else if (looks) console.warn(`?looks=${looks}: use ${FOE_LOOK_MODES.join(', ')}`);
   if (kit === 'old') DEV.roomKit = false; else if (kit && kit !== 'new') console.warn(`?kit=${kit}: use new or old`);
@@ -348,7 +365,7 @@ function installDevHooks() {
     /** Learn a spell into a slot (0 or 1); cast the spell in a slot, as if its key were pressed (optionally
         aiming); read or set mana. */
     learn: (id: string, slot?: number) => learnSpell(id, slot, true),
-    cast: (slot: number, aim?: { x: number; z: number }) => answerPage(slot) || castSpell(slot, aim ?? null),
+    cast: (slot: number, aim?: { x: number; z: number }) => answerShade(slot) || answerPage(slot) || castSpell(slot, aim ?? null),
     mana(v?: number) { if (v !== undefined) player.mana = Math.min(player.stats.maxMana, Math.max(0, v)); return player.mana; },
     /** Spell knowledge (M3.7): every spell's stage; bring one to a stage; forget everything (kept between runs). */
     get knowledge() { return knowledgeNow(); },
@@ -418,7 +435,32 @@ function installDevHooks() {
     callWanderer() { callWanderer(); }, get wanderer() { return wandererState(); },
     /** M4.2: the Pillar Dragon's pillars, whether it is on one, how high its head is, and whether the pillars it raised are up. */
     get dragon() { return dragonInfo(); },
-    get kaelith() { return kaelithInfo(); }, get kaelithKnelt() { return kneltAt; }, kaelithToPhase, shutAllWards, kaelithLook: () => kaelithLookNow(), setKaelithLook: (l: 'hooded' | 'winged') => setKaelithLook(l), // (M7 step 2: Kaelith's fight and its two looks)
+    get kaelith() { return kaelithInfo(); }, get kaelithKnelt() { return kneltAt; }, kaelithToPhase, shutAllWards, // (M7 step 2: Kaelith's fight)
+    get daylight() { return daylightInfo(); }, daylightNow: () => enterDaylight(), // (M7 step 3: a won run's dawn)
+    get vigil() { return JSON.parse(JSON.stringify(vigil())); }, giveHome, wipeSave, veteranSave, exportSave, importSave, // (M7 step 4: the save)
+    /** M7 step 5: the Vigil as a place: where the mage is in it, the candles, the lectern's screen and hands, the boat; wake
+        there (for the first time: dark, its candle lighting), put a spell in a hand at the lectern, take the boat down. */
+    get vigilPlace() { return { ...vigilInfo(), lectern: { ...('lectern' in vigilInfo() ? (vigilInfo() as { lectern: object }).lectern : {}), ...lecternNow() } }; },
+    /** M7 step 6: chained shades: the floor's (where it lies, its chains, its state); one chained ahead of the mage; its chains
+        broken; freed or bound; a shade walking with the mage this run (its help) and what the helps have done. */
+    get shade() { return shadeInfo(); }, shadeHere: (id: string) => { const p = freeSpotNear(G.current, player.x, player.z - 1.6); layShade(id, G.current, p.x, p.z); },
+    breakChains: () => breakAllChains(), freeShade: () => freeIt(), bindShade: () => bindIt(), walkWith: (id: string) => walkWith(id), get shadeHelp() { return shadeHelpInfo(); },
+    /** M7 step 7: the townspeople: who stands where (each one's glint), the lines heard and the flags; one talks (at the
+        last run's moment, or the one given), the panel's state, go on, take a choice, set or clear a flag, forget the lines;
+        the ten in a row for the owner's review. */
+    get town() { return townInfo(); }, talkTo: (id: string, moment?: 'death' | 'won' | 'boss' | null) => talkTo(id, moment), get talkNow() { return talkNow(); },
+    talkOn: () => goOn(), say: (i: number) => say(i), closeTalk, setFlag: (k: string, v?: string | number | boolean) => setFlag(k, v), forgetHeard,
+    townGallery: (ids?: string[]) => townGallery(player.x, player.z, ids), takeTownGallery,
+    /** M7 step 8: gifts, bonds and powers: each townsperson's bond, power and quest, the powers owned, what a descent begins
+        with, the disciplines open; a power given or taken, a bond set, a quest given or done (or forgotten: null). */
+    get gifts() { return { ...giftsInfo(), disciplines: disciplinesOpen(vigil().freed) }; },
+    givePower: (id: string, owned = true) => { givePower(id, owned); refreshStats(false); }, bondTo, questTo,
+    /** M7 step 9: the unfolding: the parts opened, the candle lit, the garden's reagent, what the Cave Mouth holds, the chapel's
+        candles and the garden's beds; a way opened at once (at the Vigil, there and then), every way closed (or opened) again,
+        a candle lit (or none), the garden's reagent chosen. */
+    get unfold() { return unfoldInfo(); }, openPart: (school: School) => openWayNow(school), setParts: (schools: string[]) => setParts(schools),
+    lightBlessing: (id: string | null) => lightBlessing(id), chooseGarden: (id: ReagentId | null) => chooseGarden(id),
+    toVigil: (first = false) => wakeAtVigil(first), lecternChoose: (hand: number, id: string | null) => holdIn(hand, id), openLectern, closeLectern, takeBoat: () => board(),
     /** M4.2: Fen-Nex (its stage, where it is, whether it hunts), and growing it a stage. */
     get fennex() { return fennexInfo(); }, growFennex() { growFennex(); },
     /** Fire, frost or shock landing at (x, z), as a spell's would: lights braziers and candles, charges rune stones,
@@ -471,7 +513,7 @@ function installDevHooks() {
     /** Whether a trapdoor lies open on this floor (a floor's boss fell; the serpent out of its vat leaves none). */
     get trapdoor() { return !!G.trapdoor; },
     /** Where the trapdoor lies (world x, z) and the room it is in (M6 step 10: the waystone room's, or the boss room's). */
-    get wayDown() { const t = G.trapdoor; return t && { x: t.x, z: t.z, room: G.rooms.find(r => t.x >= r.bounds.minX && t.x <= r.bounds.maxX && t.z >= r.bounds.minZ && t.z <= r.bounds.maxZ)?.type ?? null }; },
+    get wayDown() { const t = G.trapdoor; return t && { x: t.x, z: t.z, kind: t.kind ?? 'trapdoor', room: G.rooms.find(r => t.x >= r.bounds.minX && t.x <= r.bounds.maxX && t.z >= r.bounds.minZ && t.z <= r.bounds.maxZ)?.type ?? null }; },
     /** The gamepads the browser reports (name, layout, buttons held, sticks), as the dev menu's Gamepads shows them. */
     get pads() { return padsNow(); },
     /** M4.12: the old and new looks side by side ahead of the mage (a floor's, or all), what each new look keeps of its old
@@ -497,11 +539,11 @@ async function boot() {
   resize(); window.addEventListener('resize', resize);
   initKeyboard(input); initTouch(canvas, input); initGamepad(text => toast(text, 5));
   initScreens({
-    start: () => startGame(), replay: () => startGame({ seed: G.run.seed }), resume, toggleSound,
+    start: () => begin(), replay: () => startGame({ seed: G.run.seed }), resume, toggleSound,
     pauseIfPlaying: () => { if (G.state === 'play') pause(); },
   });
-  initInventory({ resume }); initLab({ pause, resume }); initWaystone({ pause, resume });
-  initLevelUp({ pause, resume, others: () => labOpen() || waystoneOpen() || inventoryOpen() || devOpen() || promptShowing() }); // (M6)
+  initInventory({ resume }); initLab({ pause, resume }); initWaystone({ pause, resume }); initLectern({ pause, resume }); vigilActs.openLectern = openLectern; initTalk({ pause, resume, offers: offersFor, act: actOn });
+  initLevelUp({ pause, resume, others: () => talkOpen() || lecternOpen() || labOpen() || waystoneOpen() || inventoryOpen() || devOpen() || promptShowing() }); // (M6)
   // the chalk texture in the start room is drawn with Cinzel, so load its weights first
   const chalkFonts = Promise.all(['600 16px "Cinzel"', '700 16px "Cinzel"'].map(f => document.fonts.load(f)));
   const assets = loadAssets(); // (models, tiles and icons from data/assets.json: before the first floor is built)
@@ -511,6 +553,7 @@ async function boot() {
   resetPlayer(); prepareTitle();
   await loadDefaultHero();
   showScreen('title');
+  if (startsAtVigil()) document.getElementById('btnStart')!.textContent = STR.vigil.titleStart; // (M7 step 5: Start wakes the mage at the Vigil)
   startLoop(input);
   installDevHooks();
 }

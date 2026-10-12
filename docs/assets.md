@@ -85,6 +85,88 @@ the three-quarter view above (props) or from the front in an A-pose with arms aw
 (characters). Front, side and back views of the same design, when a tool can make them, give better 3D than
 one image.
 
+### Prompts for game characters in Tripo (written 2026-10-09)
+
+This is how to prompt a **character or creature that will be rigged and animated** in Tripo Studio, through Nano Banana 2
+in its model generator or its Image tab. It replaces the miniature format of the first batch (`docs/tripo-prompts.md`, the
+townspeople, 2026-10-09). That format was written for painted figurines to 3D-print. The owner had to rewrite most of those
+prompts, and what came back shows why.
+
+**What went wrong with the miniature format** (13 models, rigged in Tripo with its Mixamo skeleton):
+- **"Miniature" brings a figurine.** The word pulls in a base, a sculpted toy finish and a display pose. One model came
+  back on a round base.
+- **Action poses rig badly.** The forager crouched on one knee with a drawn bow: its rig and its bow came back broken, with
+  stray flat shards. A kneel, a lunge or a lifted foot leaves Mixamo's leg bones guessing.
+- **Long robes hide the legs.** Several robes fell to the ground over the feet, so the leg bones bend cloth they can't see.
+- **Glowing, see-through shades don't survive.** Image-to-3D makes solid surfaces. The owner turned the shades into
+  living, solid characters instead.
+- **A re-export can lose the rig.** Three models came back with every bone at the origin and every vertex on the hips.
+  Their files carry `FB_ngon_encoding`, so they went through an FBX converter. Export the GLB straight from Tripo.
+
+**What the game needs from a character model:**
+- **A rest pose an animator can start from.** An A-pose (arms down and out at about 45 degrees) is what Mixamo-style auto
+  rigs expect. Tripo's own guidance names the pose in the prompt for cleaner rigs, and many game engines prefer the A-pose
+  to the T-pose for its shoulders. Every gesture the game plays (an idle's breath, a talking hand, a boss's swing) is
+  animated in code from that rest (`docs/creatures.md`), so the character's personality goes in its silhouette and props,
+  not in a frozen pose.
+- **Limbs clear of the body and of each other, feet visible.** Auto-riggers want arms and legs well apart from the torso,
+  and the figure symmetrical, because they find joints by mirroring.
+- **Big readable shapes and flat colour.** The game draws a character about 50 pixels tall, and its texture is baked down
+  to pixel art (`tools/texel-bake.ts`). Fine painted detail, small patterns and thin parts are lost.
+- **Even light, a plain background, nothing else in the frame.** Light or shadow baked into the image ends up in the
+  texture and fights the game's own lighting. A cluttered background or a cropped figure confuses the reconstruction.
+
+**The structure** (prose, under Tripo's 1,000 characters, in this order):
+
+1. **What it is, for what.** Start with `Stylised 3D game character reference:` and say who it is in one sentence.
+2. **The pose, in body mechanics.** `Full body, front view, relaxed A-pose: feet flat a little apart, legs straight, arms
+   down and out at forty-five degrees, hands open, head level.` For a creature: standing square on all its feet, head level,
+   tail straight out behind, wings folded along its sides (or spread flat and level, if it is shown flying).
+3. **Its one prop, where it is held.** `holding <prop> upright in its right hand, the shaft vertical beside the body,
+   clear of the robe`. A long prop gets its length against the figure (`as tall as the figure`). Anything else hangs from
+   the belt or the back. One or two props at most.
+4. **Why it looks so.** One sentence of design logic.
+5. **Silhouette and proportions.** `chibi proportions, the head about a third of its height`; the two or three big shapes
+   that make it; clothing that ends above the ankles with both boots showing, or a robe split at the front to show both
+   feet.
+6. **Materials and palette.** Surfaces as nouns, two or three colours and one accent. A glow is painted, not lit:
+   `eyes painted bright violet`.
+7. **The look and the shot.** `Clean stylised game-asset look, simple forms, flat colour, soft shading; even shadowless
+   light, plain light-grey background, whole figure in frame, alone.`
+
+The two fixed sentences (2 and 7) take about 300 characters, which leaves some 650 for the character itself.
+
+Never write `Miniature`, `figurine`, `statue`, `toy`, `diorama`, `base`, `display` or an action word (`leaping`,
+`lunging`, `mid-swing`) in the prompt.
+
+**Tripo's negative-prompt field:** `base, pedestal, platform, ground, cast shadow, action pose, crouching, kneeling,
+perspective, cropped, text, letters, second figure, scenery, transparent, glowing aura, particles, smoke`.
+
+**In Tripo**, when its panel offers the setting:
+- **The image first.** Generate in the Image tab, choose the one whose silhouette reads, then send it to image-to-3D. Pick
+  for silhouette first and colour second.
+- **More views help.** A back view from a follow-up (`Same character, seen from directly behind, same pose, same light`)
+  gives the back of the robe something to go on.
+- **Face count:** Smart Low Poly on, with a face limit of the kind's budget (8,000 for a character, 15,000 for a boss).
+  The animate tool lowers the count too.
+- **Texture on, the rig humanoid (Mixamo), export GLB from Tripo directly.**
+- **Facing:** the model facing the front view is what the tools expect (+z). The animate tool turns any other way round.
+
+**A worked example: the scribe, in the new structure**
+
+```
+Stylised 3D game character reference: a monastery scribe, kindly and short-sighted. Full body, front view, relaxed A-pose: feet flat a little apart, legs straight, arms down and out at forty-five degrees, hands open, head level. A large closed book hangs on a strap at its left hip and a long quill sits behind one ear, because a scribe never puts its tools down. Chibi proportions, the head a third of its height, a deep hood over round brass spectacles, a plain robe ending above the ankles with both soft boots showing, a rope belt with an ink pot. Surfaces: undyed wool, vellum, brass, ink. Palette: cream and dove grey, ink black on the quill, book and pot. Clean stylised game-asset look, simple forms, flat colour, soft shading; even shadowless light, plain light-grey background, whole figure in frame, alone.
+```
+
+Sources for the general guidance (vendor blogs and guides, not official Tripo documentation, so check the current Studio
+panel): Tripo's own blog on [poseable characters](https://www.tripo3d.ai/blog/poseable-3d-character), on
+[rigging for Mixamo](https://www.tripo3d.ai/blog/rig-ai-generated-character-for-mixamo) and on
+[skeleton standards](https://www.tripo3d.ai/blog/explore/common-skeleton-standards-for-auto-rigging);
+[neural4d on preparing models for auto-rigging](https://neural4d.com/how-tos/how-to-prepare-3d-models-for-auto-rigging-and-animation);
+[Meshy's image-generation guide](https://docs.meshy.ai/en/webapp/guides/image/ai-image-generation);
+[Scenario's Tripo 3.1 essentials](https://help.scenario.com/en/articles/tripo-3-1-suite-the-essentials) (Smart Low Poly,
+face limit). What the first batch taught is our own evidence, above.
+
 ## Budgets and specs
 
 The game has to hold 60 fps on integrated graphics (GDD: performance target) with a room of 10 to 20 props,
@@ -451,3 +533,4 @@ asset is accepted.
 | Dragonling (`creatures/dragonling.glb`; `dragonling.full.glb` beside it) | creature, boss budget | nothing yet (the owner's example of a new creature, 2026-10-03: about a horse, 1.8 tiles, after a first try at a medium dog's size; looks only; `docs/creatures.md`) | Tripo3D (model, rig); code (turned to face +z, skin, stance from a mid-stride pose, clips, padding, sounds; `tools/creatures/dragonling.ts`) | | in the dev menu 2026-10-03 (Galleries, Animated creatures), approved by the owner at horse size the same day; 14,550 triangles (from 19,367), 1,024 px. `dragonling.full.glb` keeps the textures as imported (2,048 px, normal map, about 3.8 MB), outside the budget |
 | Chameleon Wyvern (`creatures/chameleon.glb`; `chameleon.full.glb` beside it) | creature, boss budget | nothing yet (the owner's third creature, 2026-10-05: a feathered wyvern the size of a pony, 1.4 tiles; looks only; `docs/creatures.md`) | Tripo3D (model, rig), the owner's EDA-ModelWebViewer (bones named, weights mended, kept here); code (turned to face +z, its jaw carved from the head, wings laid by direction, clips; `tools/creatures/chameleon.ts`) | | in the dev menu 2026-10-05 (Galleries, Animated creatures); 14,549 triangles (from 19,531), 1,024 px, its texture as pixel art (256 px). `chameleon.full.glb` keeps the textures as imported (2,048 px, normal map, about 3.9 MB), outside the budget |
 | Chameleon Wyvern's sounds (`sounds/chameleon/growl_1.ogg`, `screech_1.ogg`, `slam_1.ogg`, `slam_2.ogg`) | effects, mono | the synthesised `roar`, `shriek` and `slam` (kept as their fallbacks) | The owner's EDA-ModelWebViewer (`web/js/sounds.js`: its growl 2, roar 1, hit 1 and hit 2 for this model), made in code there; ours | | in the game 2026-10-05 through `prepare-sound`: first at the viewer's 22,050 Hz, then made again from its recipe at 48 kHz (the owner's ask; the same seed, so the same sounds; `npm run viewer-sounds`): 17, 17, 12 and 12 KB, peaks at -1 dB, played at `gain` 1, 0.85 and 0.8 (`data/sounds.json`) |
+| The townspeople, the Ferryman, Dr. Jelly and Kaelith (`creatures/<id>.glb`: stormcaller, wizard, forager, scribe, sexton, chorister, bellringer, novice, embalmer, pilgrim, ferryman, jelly, kaelith) | people, enemy budget (Kaelith boss) | the code-built figures of `townLooks.ts` and the Ferryman in `vigilLooks.ts` (kept as the fallback and the dev menu's code look) | Tripo3D (model from the prompts in `docs/tripo-prompts.md`, edited by the owner; Mixamo rig); code (rests rebuilt for three, turned, clips; `tools/creatures/townsfolk.ts`) | | in the game 2026-10-09: the ten and the Ferryman at the Vigil (idle, talk), Dr. Jelly and Kaelith in the Galleries only; 8,000 triangles each (the wizard and Dr. Jelly 10,000), their texture as pixel art; the ten and the Ferryman taller since (1.2 to 1.5 tiles) and on the fine layer, their pixel art 256 to 512 px |

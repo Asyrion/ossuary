@@ -32,7 +32,7 @@ import { findEveryCounter } from '../actors/counters';
 import { ARTIFACT_DEFS, START_FOCUS, artifact } from '../items/artifactData';
 import { giveById, grantArtifact, placeArtifact, refreshStats, removeArtifactGallery, resetArtifacts, showArtifactGallery } from '../items/artifacts';
 import { DROPS, RESOURCES, SOULS, soulItem, type Drop, type Resource } from '../items/loot';
-import { POTIONS, POTION_IDS, REAGENT_IDS, type PotionId } from '../items/alchemyData';
+import { POTIONS, POTION_IDS, REAGENTS, REAGENT_IDS, type PotionId, type ReagentId } from '../items/alchemyData';
 import { addPotion, addReagent, beltSlots, identify, knownPotion, renderBelt, usePotion } from '../items/potions';
 import { brewedPotions, forgetBrews } from '../items/alchemyMemory';
 import { openLab } from './alchemyTable';
@@ -40,7 +40,15 @@ import { openWaystone } from './waystone';
 import { raiseWaystone } from '../world/waystone';
 import { levelAtFloor } from '../progression/levelData';
 import { kaelithInfo, kaelithToPhase, shutAllWards } from '../actors/kaelith';
-import { KAELITH_LOOKS, kaelithLookNow, setKaelithLook } from '../actors/kaelithLooks';
+import { daylightInfo, enterDaylight } from '../world/daylight';
+import { forgetHeard, giveHome, setFlag, setFreed, setParts, veteranSave, vigil, wipeSave } from '../vigil/save';
+import { setTownWear, speakerName, talkTo, takeTownGallery, townGallery, townWear } from '../vigil/town';
+import { bondTo, giftsInfo, givePower, questState, questTo } from '../vigil/gifts';
+import { chooseGarden, lightBlessing, unfoldInfo } from '../vigil/unfold';
+import { openWayNow } from '../vigil/place';
+import { BAR_SCHOOLS } from '../vigil/vigilMap';
+import { BOND_MAX, TOWNSFOLK, disciplinesOpen } from '../vigil/giftData';
+import { DIALOGUE, SPEAKERS } from '../vigil/dialogueData';
 import { buildBargain, openBargainHere } from '../world/bargain';
 import { breakOut, crackVat } from '../world/laboratory';
 import { gainSoul, hallowedMend, resetSouls } from '../items/souls';
@@ -49,7 +57,12 @@ import { coinGallery } from '../items/pickupLooks';
 import { obolFace, obolFaces, setObolFace } from '../items/obolFace';
 import { disposeTree } from '../render/materials';
 import { makeEnemy, spawnFoe } from '../actors/enemies';
-import { buildFloor, clearRoom, descend, resume, startGame, warp, type RunOptions } from '../flow';
+import { buildFloor, clearRoom, descend, resume, startGame, wakeAtVigil, warp, type RunOptions } from '../flow';
+import { board, vigilInfo } from '../vigil/place';
+import { bindIt, breakAllChains, freeIt, layShade, shadeInfo } from '../vigil/shades';
+import { walkWith } from '../vigil/shadeHelp';
+import { SHADE_IDS } from '../vigil/shadeData';
+import { openLectern } from './lectern';
 import { assetList, assetsOn, madeLookNow, madeLooks, setAssetsOn, setMadeLook, type MadeLook } from '../assets/models';
 import { setCloseUp } from '../render/renderer';
 import { LINES, drawnRows, pixelLook, setPixelLook } from '../render/pixelLook';
@@ -64,7 +77,7 @@ import { SIDE_DIR } from '../world/shapes';
 import type { Room } from '../types';
 import { openSecretRoom, revealCracks } from '../world/secret';
 import { cleanseAtOnce } from '../world/shrine';
-import { SCHOOLS, SPELL_DEFS } from '../magic/spellData';
+import { SCHOOLS, SPELL_DEFS, spell } from '../magic/spellData';
 import { attuneTo, forgetSpells, gainMana, learnSpell } from '../magic/spells';
 import { addRune, carve, clearRunes, setSockets } from '../magic/runes';
 import { RUNE_DEFS, rune } from '../magic/runeData';
@@ -103,7 +116,10 @@ import { CREATURES, CREATURE_LOOKS, creatureLook, roarNow, setCreatureLook, show
 import { THEMES } from '../world/themeData';
 
 const S = STR.dev;
-let kaelithBox: HTMLElement, kaelithLookBtn: HTMLButtonElement;
+let kaelithBox: HTMLElement, daylightBox: HTMLElement, keepBox: HTMLElement, vigilBox: HTMLElement, shadeBox: HTMLElement, townBox: HTMLElement, momentBtn: HTMLButtonElement;
+let talkMoment: 'death' | 'won' | 'boss' | null | undefined; // (M7 step 7: the moment the dev menu's talks are at; undefined: the last run's)
+const flagBtns: [string, HTMLButtonElement][] = [];
+let wearBtn: HTMLButtonElement, giftBox: HTMLElement, unfoldBox: HTMLElement; const powerBtns: [string, HTMLButtonElement][] = [], bondBtns: [string, HTMLButtonElement][] = [], questBtns: [string, HTMLButtonElement][] = [];
 let panel: HTMLElement | null = null, soundInfo: HTMLElement, soundBtn: HTMLButtonElement, marksInfo: HTMLElement, floorBox: HTMLElement, artBox: HTMLElement, costBox: HTMLElement, costInfo: HTMLElement, transInfo: HTMLElement, transBox: HTMLElement, arcInfo: HTMLElement, closeBtn: HTMLButtonElement, spellBox: HTMLElement, info: HTMLElement, godBtn: HTMLButtonElement, foeBtn: HTMLButtonElement, manaBtn: HTMLButtonElement, moveBtn: HTMLButtonElement, doorBtn: HTMLButtonElement, assetBtn: HTMLButtonElement, kitBtn: HTMLButtonElement, kitPartBtns = {} as Record<KitPart, HTMLButtonElement>, fpsBtn: HTMLButtonElement, assetBox: HTMLElement, madeLookBtn: HTMLButtonElement, pxBtn: HTMLButtonElement, lineBtn: HTMLButtonElement, bandBtn: HTMLButtonElement, heroPxBtn: HTMLButtonElement;
 let levelInfo: HTMLElement, padInfo: HTMLElement, foeLookBtn: HTMLButtonElement, runeInfo: HTMLElement, runesBtn: HTMLButtonElement, socketBtn: HTMLButtonElement, boonInfo: HTMLElement, autoBtn: HTMLButtonElement, spellSlot = 0, knowBox: HTMLElement, alchInfo: HTMLElement, reagentBtn: HTMLButtonElement, obolBtn: HTMLButtonElement, creatureLookBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
@@ -487,9 +503,6 @@ function build() {
     obolBtn = btn('', () => { const all = obolFaces(); wearFace(all[(all.indexOf(obolFace()) + 1) % all.length]); refresh(); }),
     fpsBtn = btn('', () => { DEV.fps = !DEV.fps; }),
   );
-  // M7 step 2: which of its two looks Kaelith wears, until the owner chooses
-  const kl = section(pages.look, S.kaelithLook);
-  kl.append(kaelithLookBtn = btn('', () => { setKaelithLook(KAELITH_LOOKS[(KAELITH_LOOKS.indexOf(kaelithLookNow()) + 1) % KAELITH_LOOKS.length]); }));
 
   // the soundscapes and the music (docs/sound-plan.md): any floor's, a room's or a theme's over it, any piece in any mood
   const snd: { floor: number; over: string; piece: string; mood: Mood } = { floor: 0, over: '', piece: PIECES[1].id, mood: 'explore' };
@@ -538,8 +551,11 @@ function build() {
 
   // the bosses built in code (M4 onwards): every one ahead of the mage
   const bl = section(pages.galleries, S.bossLooks);
-  bl.append(el('p', 'dv-info', [S.kaelithLooks.hooded, S.kaelithLooks.winged, STR.bosses.warden.name, STR.bosses.abbess.name, STR.bosses.pyre.name, STR.bosses.hart.name, STR.bosses.angler.name, STR.bosses.tiger.name, STR.bosses.dragon.name, STR.bosses.twins.name].join(' · ')),
+  bl.append(el('p', 'dv-info', [STR.bosses.warden.name, STR.bosses.abbess.name, STR.bosses.pyre.name, STR.bosses.hart.name, STR.bosses.angler.name, STR.bosses.tiger.name, STR.bosses.dragon.name, STR.bosses.twins.name, STR.bosses.kaelith.name].join(' · ')),
     btn(S.showOptions, () => { closeDev(); showBossLooks(G.current, player.x, player.z); }), btn(S.takeOptions, () => removeModelOptions(G.current)));
+  // M7 step 7: the townspeople's ten figures, for the owner's review: in a row ahead of the mage, gesturing in turn
+  const tg = section(pages.galleries, S.townGallery);
+  tg.append(btn(S.showOptions, () => { closeDev(); townGallery(player.x, player.z); }), btn(S.takeOptions, () => takeTownGallery()));
   // the bestiary (M4.5): looks only for now, in rows by kind, each named with the fight it brings
   const best = section(pages.galleries, S.bestiary);
   best.append(el('p', 'dv-info', (['beast', 'creature', 'elemental'] as const).map(k => `${S.bestiaryKinds[k]}: ${BESTIARY_OPTIONS.filter(o => o.kind === k).map(o => STR.bestiary[o.id].name).join(', ')}`).join(' · ')),
@@ -576,6 +592,71 @@ function build() {
   kae.append(kaelithBox = el('p', 'dv-info'),
     btn(S.kaelithPhase2, () => { if (!kaelithToPhase(2)) toast(S.noKaelith, 2); }), btn(S.kaelithPhase3, () => { if (!kaelithToPhase(3)) toast(S.noKaelith, 2); }),
     btn(S.shutWards, () => { if (!shutAllWards()) toast(S.noKaelith, 2); }));
+  // M7 step 3: a won run's dawn, from wherever the mage is (the end screen follows it, as after Kaelith)
+  const day = section(pages.rooms, S.daylight);
+  day.append(daylightBox = el('p', 'dv-info'), btn(S.daylightNow, () => { closeDev(); enterDaylight(); }));
+  // M7 step 4: the save that carries from run to run (Dust, obols, the runs remembered); wiped or a veteran's, the page
+  // starts again from it
+  const saved = section(pages.rooms, S.keeping);
+  saved.append(keepBox = el('p', 'dv-info'),
+    btn(S.giveDust, () => { giveHome(100, 0); refresh(); }), btn(S.giveObols, () => { giveHome(0, 50); refresh(); }),
+    btn(S.wipeSave, () => { wipeSave(); location.reload(); }), btn(S.veteranSave, () => { veteranSave(); location.reload(); }));
+  // M7 step 5: the Vigil as a place: waking there (as after a run, or the first time, dark with its first candle), its
+  // lectern's screen, and the Ferryman's boat down to floor 1
+  const vig = section(pages.rooms, S.vigil);
+  vig.append(vigilBox = el('p', 'dv-info'),
+    btn(S.toVigil, () => { closeDev(); wakeAtVigil(false); }), btn(S.vigilFirst, () => { closeDev(); wakeAtVigil(true); }),
+    btn(S.vigilLectern, () => { if (!vigilInfo().here) { toast(S.notAtVigil, 2); return; } closeDev(); openLectern(); }),
+    btn(S.vigilBoat, () => { if (!vigilInfo().here) { toast(S.notAtVigil, 2); return; } closeDev(); board(); }));
+  // M7 step 6: chained shades: the floor's (where it lies, its chains), one chained beside the mage, its chains broken, freed
+  // or bound; a shade walking with the mage this run, to see its help at work
+  const sh = section(pages.rooms, S.shades);
+  sh.append(shadeBox = el('p', 'dv-info'),
+    btn(S.shadeGo, () => { const i = shadeInfo(); if (!i) { toast(S.noShade, 2); return; } if (G.current.plan.id !== i.room) { warp(i.room); } closeDev(); }),
+    btn(S.shadeBreak, () => { if (!breakAllChains()) toast(S.noShade, 2); refresh(); }),
+    btn(S.shadeFree, () => { if (!freeIt()) toast(S.noShade, 2); refresh(); }), btn(S.shadeBind, () => { if (!bindIt()) toast(S.noShade, 2); refresh(); }));
+  const shRow = el('div', 'dv-row'), walkRow = el('div', 'dv-row');
+  for (const id of SHADE_IDS) {
+    shRow.append(btn(S.shadeHere(STR.shades.names[id]), () => { const p = freeSpotNear(G.current, player.x, player.z - 1.6); layShade(id, G.current, p.x, p.z); closeDev(); }));
+    walkRow.append(btn(S.shadeWalks(STR.shades.names[id]), () => { walkWith(id); refresh(); }));
+  }
+  sh.parentElement!.append(shRow, walkRow);
+  // M7 step 7: the townspeople: any one talks, at the last run's moment or one chosen; every shade freed or none (the Vigil
+  // woken again to stand them), the lines forgotten, the flags their choices set
+  const tw = section(pages.rooms, S.town);
+  const again = () => { if (vigilInfo().here) { closeDev(); wakeAtVigil(false); } else refresh(); };
+  tw.append(townBox = el('p', 'dv-info'),
+    momentBtn = btn('', () => { const order = [undefined, 'death', 'won', 'boss', null] as const; talkMoment = order[(order.indexOf(talkMoment) + 1) % order.length]; refresh(); }),
+    btn(S.freeAll, () => { setFreed(SHADE_IDS); again(); }), btn(S.freeNone, () => { setFreed([]); again(); }),
+    btn(S.forgetHeard, () => { forgetHeard(); again(); }),
+    wearBtn = btn('', () => { setTownWear(townWear() === 'made' ? 'code' : 'made'); again(); })); // (2026-10-09: the owner's models, or the figures in code)
+  const talkRow = el('div', 'dv-row'), flagRow = el('div', 'dv-row');
+  for (const id of SPEAKERS) talkRow.append(btn(S.talkTo(speakerName(id)), () => { closeDev(); if (!talkTo(id, talkMoment)) toast(S.nothingToSay, 2); }));
+  for (const k of [...new Set(DIALOGUE.lines.flatMap(l => (l.choices ?? []).flatMap(c => Object.keys(c.set ?? {}))))]) {
+    const b = btn(k, () => { setFlag(k, vigil().flags[k] === undefined ? true : undefined); refresh(); }); flagBtns.push([k, b]); flagRow.append(b);
+  }
+  tw.parentElement!.append(talkRow, flagRow);
+  // M7 step 8: gifts, bonds and powers: what a descent begins with; each power owned or not, each bond a step deeper (round
+  // to none), each quest given, done or forgotten
+  const gf = section(pages.rooms, S.gifts);
+  gf.append(giftBox = el('p', 'dv-info'));
+  const powerRow = el('div', 'dv-row'), bondRow = el('div', 'dv-row'), questRow = el('div', 'dv-row');
+  for (const p of TOWNSFOLK.powers) { const b = btn(STR.gifts.powers[p.id][0], () => { givePower(p.id, !vigil().powers.includes(p.id)); refreshStats(false); refresh(); }); powerBtns.push([p.id, b]); powerRow.append(b); }
+  for (const id of SHADE_IDS) { const b = btn('', () => { bondTo(id, ((vigil().bonds[id] ?? 0) + 1) % (BOND_MAX + 1)); refresh(); }); bondBtns.push([id, b]); bondRow.append(b); }
+  for (const q of TOWNSFOLK.quests) { const b = btn('', () => { const s = questState(q.by); questTo(q.by, s === 'done' ? null : s === 'open' || s === 'ready' ? 'done' : 'open'); refresh(); }); questBtns.push([q.by, b]); questRow.append(b); }
+  gf.parentElement!.append(powerRow, bondRow, questRow);
+  // M7 step 9: the unfolding: each barred way opened at once (at the Vigil, there and then), or every way closed again (the
+  // Vigil woken again); a townsperson's candle lit in the chapel for the next descent; the garden's reagent
+  const uf = section(pages.rooms, S.unfold);
+  uf.append(unfoldBox = el('p', 'dv-info'));
+  const partRow = el('div', 'dv-row'), blessRow = el('div', 'dv-row'), gardenRow = el('div', 'dv-row');
+  for (const sc of BAR_SCHOOLS) partRow.append(btn(S.openPart(STR.schools[sc] ?? sc), () => { openWayNow(sc); refresh(); }));
+  partRow.append(btn(S.partsAll, () => { setParts([...BAR_SCHOOLS]); again(); }), btn(S.closeParts, () => { setParts([]); again(); }));
+  blessRow.append(btn(S.blessNone, () => { lightBlessing(null); refresh(); }));
+  for (const id of SHADE_IDS) blessRow.append(btn(S.bless(STR.shades.names[id]), () => { lightBlessing(id); refresh(); }));
+  gardenRow.append(btn(S.gardenNone, () => { chooseGarden(null); refresh(); }));
+  for (const id of REAGENT_IDS) gardenRow.append(btn(S.gardenOf(REAGENTS[id].name), () => { chooseGarden(id); refresh(); }));
+  uf.parentElement!.append(partRow, blessRow, gardenRow);
   const runs = section(pages.rooms, S.newRun);
   FLOORS.forEach((f, i) => runs.append(btn(f.fixed ? S.toSeal : S.floorN(i + 1), () => start({ floor: i, level: levelAtFloor(i) > 1 ? levelAtFloor(i) : undefined })))); // (M6 step 12: at the floor's expected level, its choices waiting)
   const keep = el('label', 'dv-check'); const box = el('input'); box.type = 'checkbox'; box.checked = keepCarried;
@@ -604,7 +685,18 @@ function refresh() {
   assetBox.replaceChildren(...(list.length ? list.map(a => el('div', '', S.assetRow(a.where, S.assetStatus[a.status], a.triangles))) : [el('div', '', S.noAssets)]));
   obolBtn.textContent = S.obolWears(S.coinFaces[obolFace()] ?? obolFace()); obolBtn.disabled = obolFaces().length < 2;
   assetBtn.textContent = assetsOn() ? S.assetsOn : S.assetsOff; assetBtn.classList.toggle('on', assetsOn()); assetBtn.disabled = !list.some(a => a.status === 'loaded');
-  kaelithLookBtn.textContent = S.kaelithWears(S.kaelithLooks[kaelithLookNow()]);
+  const dl = daylightInfo(); daylightBox.textContent = S.daylightInfo(dl.on, dl.t ?? 0);
+  const v = vigil(); keepBox.textContent = S.keepingInfo(v.dust, v.obols, v.runs, v.wins, v.deepest);
+  townBox.textContent = S.townInfo(vigil().freed.length, Object.keys(vigil().heard).length, Object.keys(vigil().flags).length); momentBtn.textContent = S.talkMoment(talkMoment === undefined ? S.lastRun : talkMoment ?? S.idle);
+  for (const [k, b] of flagBtns) b.classList.toggle('on', vigil().flags[k] !== undefined);
+  { const u = unfoldInfo(); unfoldBox.textContent = S.unfoldInfo(u.parts.map(p => STR.schools[p] ?? p).join(', '), u.blessing ? STR.shades.names[u.blessing] : '-', u.garden ? REAGENTS[u.garden as ReagentId].name : '-', 'cave' in u && u.cave ? u.cave.built : 0); }
+  const gi = giftsInfo(); giftBox.textContent = S.giftsInfo(gi.powers.length, disciplinesOpen(vigil().freed).map(d => STR.gifts.disciplines[d]).join(', '), JSON.stringify(gi.start));
+  wearBtn.textContent = S.townWear[townWear()]; wearBtn.classList.toggle('on', townWear() === 'code');
+  for (const [id, b] of powerBtns) b.classList.toggle('on', vigil().powers.includes(id));
+  for (const [id, b] of bondBtns) { const n = vigil().bonds[id] ?? 0; b.textContent = S.bond(STR.shades.names[id] ?? id, n, BOND_MAX); b.classList.toggle('on', n > 0); }
+  for (const [by, b] of questBtns) { const s = questState(by) ?? 'none'; b.textContent = S.quest(STR.shades.names[by] ?? by, s); b.classList.toggle('on', s !== 'none' && s !== 'offer'); }
+  const si = shadeInfo(); shadeBox.textContent = si ? S.shadeInfo(si.name, S.roomNames[si.type] ?? si.type, si.state, si.chains.map(c => (c.ward ? STR.schools[c.ward] : S.plainChain) + (c.broken ? ' ✓' : '')).join(', '), vigil().freed.length, G.run.walking.map(id => STR.shades.names[id]).join(', ') || '–') : S.noShade;
+  const vp = vigilInfo(); vigilBox.textContent = vp.here ? S.vigilInfo(vp.room ?? '?', vp.candles, vp.slots.map(id => id ? spell(id).name : '–').join(', ')) : S.notAtVigil;
   const kae = kaelithInfo(); kaelithBox.textContent = kae ? S.kaelithInfo(kae.phase, kae.state, kae.wards.map(w => (w.school ?? '-') + (w.shut ? ' (shut)' : '')).join(', ')) : S.noKaelith;
   madeLookBtn.textContent = S.madeLooks[madeLookNow()]; madeLookBtn.classList.toggle('on', madeLookNow() !== 'texel'); madeLookBtn.disabled = !assetsOn() || !madeLooks();
   kitBtn.textContent = DEV.roomKit ? S.kitNew : S.kitOld; kitBtn.classList.toggle('on', DEV.roomKit);

@@ -6,6 +6,9 @@ the size of a horse, 1.8 tiles, boss budget: `tools/creatures/dragonling.ts`, th
 two-legged rig, in a mid-stride pose); the Chameleon Wyvern the third (2026-10-05, a feathered wyvern the size of a pony,
 1.4 tiles, boss budget: `tools/creatures/chameleon.ts`, the recipe for a model that came through the owner's
 EDA-ModelWebViewer, for wings, and the first with sound files). For now creatures are looks only; they don't fight.
+The thirteen people of M7 (2026-10-09: the ten townspeople, the Ferryman, Dr. Jelly and Kaelith) came a third way,
+rigged by Tripo with its humanoid **Mixamo** skeleton and no clips: one recipe for all of them (below, "People on a Mixamo
+rig").
 
 ## Two ways a model comes
 
@@ -125,6 +128,32 @@ Send me a preview video before anything ships. Ship only when I say so.
 
 A creature on two legs, with wings or with no legs needs its own walk.
 
+## People on a Mixamo rig (the townspeople, 2026-10-09)
+
+Tripo's humanoid rig gives every figure the same skeleton (`mixamorig:Hips` to the fingers; the loader drops the colon,
+`mixamorigHead`), so one recipe serves all thirteen: `tools/creatures/townsfolk.ts` (`TOWNSFOLK_RECIPES`, one row of
+`FIGURES` each: height in tiles, budget, the hand that gestures, extras). `npm run animate-creature -- scribe <in.glb>`.
+
+- **Facing:** `face: 'mixamo'` turns each to face +z from its own hips and shoulders (`mixamoFacing` in creatureRig.ts),
+  since figures caught mid-stride or with a prop held out don't face their bounding box.
+- **A lost rest pose:** a model that went through an FBX converter (here the storm caller, the wizard and the forager)
+  arrives with every joint at the origin and every vertex on the hips. `restFromBind` (creatureRig.ts) rebuilds the rest
+  from the inverse bind matrices, turns the skeleton onto the mesh (the left hip at +x) and centres the hips on it; then
+  `weightsLost` (more than 80% of vertices on one bone) or `rebind: true` binds the skin again from `MIXAMO_SKIN`. The other
+  ten keep Tripo's weights.
+- **Clips from the rest pose,** whatever it is (each stands as Tripo left it, a prop in hand): `idle` (4 s, breathing and
+  settling), `talk` (2.5 s, nods and a gesture of the free hand; `hand` per figure), Dr. Jelly's `give`, Kaelith's `sweep`
+  and `kneel` (one knee down, the feet held by the legs' IK, `MIXAMO_LEGS`). A figure left in a T-pose has its arms brought
+  down (`armsDown`, degrees; the wizard's 62).
+- **Budget:** `enemy` (8,000) for the people, `boss` for Kaelith; `triangles` raises one where the simplifier stalls on
+  cloth (the wizard and Dr. Jelly, 10,000). `full: false`: no `.full.glb` is kept for them.
+- **In the game:** `madeModel(id, look, still)` in madeCreatures.ts loads and dresses one (the texel bake, its height, a
+  shadow) for anything that wants a made figure; vigil/town.ts stands the townspeople and the Ferryman with it
+  (`standMade`, `moveMade`: idle, talk while it speaks, the head bone turned to the mage after the clip; a little taller than the mage and drawn on the pixel look's fine layer at half-size pixels (the owner's ask, 2026-10-09: `fine` in the recipe and data/creatures.json, the texture baked at that pixel by texel-bake) and lit of themselves, `CFG.vigil.town.madeLight` through texturePixel.ts's `selfLight`; the code-built
+  figure stays until the model has loaded, and is the fallback). The dev menu's Townspeople switches made and code looks
+  (`setTownWear`, `ossuary.townWear`). Dr. Jelly and Kaelith are baked and in the Galleries, but their fights and gestures
+  still drive the code-built looks.
+
 ## Where things are
 
 | What | Where |
@@ -132,7 +161,7 @@ A creature on two legs, with wings or with no legs needs its own walk.
 | Tool, `--bones` | `tools/animate-creature.ts` |
 | Rig, IK, bake, skin | `tools/creatureRig.ts` |
 | Faces, texture | `tools/orientFaces.ts`, `tools/padIslands.ts` |
-| Recipes | `tools/creatures/<id>.ts` |
+| Recipes | `tools/creatures/<id>.ts`; the thirteen people `tools/creatures/townsfolk.ts` |
 | Preview | `tools/creature-preview.ts` and `.html` |
 | In the game | `src/actors/madeCreatures.ts`, `CFG.creatures`, `bakeHeroPixel` in `src/actors/heroPixel.ts` |
 | Sounds | `src/audio/creatureSounds.ts`; from files: `tools/prepare-sound.ts`, `data/sounds.json`, `src/audio/samples.ts` |
