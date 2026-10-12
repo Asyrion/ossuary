@@ -107,7 +107,7 @@ The target is 60 fps on integrated graphics (CLAUDE.md, Working agreements).
 
 ## The room kit (M3.5 step 3)
 
-The room's pieces follow this style too (`docs/M3.5-plan.md`): the fire objects and every floor's floors and walls
+The room's pieces follow this style too (`docs/archive/M3.5-plan.md`): the fire objects and every floor's floors and walls
 (`fireLooks.ts`, `pixelTextures.ts`), the mechanisms (`mechLooks.ts`) and the objects and piles, rocks, pillars, tombs,
 urns, pedestals and the bone altar (`objectLooks.ts`), the doors, gates, niches and pilasters (`wallLooks.ts`), from the
 shared parts in `kitParts.ts`.

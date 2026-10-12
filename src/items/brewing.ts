@@ -1,4 +1,4 @@
-/* Brewing at an alchemy table and Dr. Jelly's trade (M5 step 6, docs/M5-plan.md; GDD: Potions and alchemy, Brewing): two
+/* Brewing at an alchemy table and Dr. Jelly's trade (M5 step 6, docs/archive/M5-plan.md; GDD: Potions and alchemy, Brewing): two
    reagents from the pouch make a potion by the recipes in data/alchemy.json (an unknown pair that matches none makes a
    Volatile Mixture); what was brewed is remembered between runs (alchemyMemory.ts), so the potion is known in every run
    after and the pair shows what it makes. Dr. Jelly sells a recipe for obols (the pair, not the potion's name), and looks

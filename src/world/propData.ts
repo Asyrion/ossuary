@@ -1,4 +1,4 @@
-/* The rooms' objects (M3.6: docs/M3.6-plan.md, decision 4): what each is in a template and how it behaves. Pure (no
+/* The rooms' objects (M3.6: docs/archive/M3.6-plan.md, decision 4): what each is in a template and how it behaves. Pure (no
    three.js): the template parser, the validator, the loot simulation and props.ts (their looks and behaviour) all use it.
 
    Each object blocks in one of three ways:

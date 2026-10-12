@@ -1,4 +1,4 @@
-/* Spell marks (M4.11, docs/M4.11-plan.md; GDD: Spells, Spell marks): what the mage's spells and what they know put on
+/* Spell marks (M4.11, docs/archive/M4.11-plan.md; GDD: Spells, Spell marks): what the mage's spells and what they know put on
    them, as rules. Pure (no three.js): a slotted spell's state at its hand, attunement, and the knowledge circle with the
    schools known in full. The look is actors/spellMarks.ts. */
 import { SCHOOLS, type School, type SpellDef } from './spellData';

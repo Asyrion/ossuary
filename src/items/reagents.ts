@@ -1,4 +1,4 @@
-/* Where reagents come from (M5 step 5, docs/M5-plan.md; GDD: Potions and alchemy): now and then a fallen foe leaves its
+/* Where reagents come from (M5 step 5, docs/archive/M5-plan.md; GDD: Potions and alchemy): now and then a fallen foe leaves its
    own (a few kinds have one: Sporelings leave Grave Moss, golems Bone Dust), else its school's, and one that died burning
    leaves Ember Salt; a boss always leaves Warden's Ash; a broken bone pile, skull heap, root, glowcap, sack or cask now
    and then leaves the reagent it holds, as does a brazier the first time it is lit; M5 step 9: a foe that fell overgrown

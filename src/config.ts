@@ -130,7 +130,7 @@ export const CFG = {
   /** M4.6 Asyrion's arc (items/arc.ts): how many artifacts held bring each stage of the chaos mage's pieces, and how long
       each stage's line stays. */
   arc: { at: [3, 6, 9, 12], line: 4.5, perLevels: 3 }, // (M6 step 12: every three levels gained count as one artifact held)
-  // M6 (docs/M6-plan.md): insight, the GDD's XP, and levels. `at`: the insight each level from 2 to the cap needs (the
+  // M6 (docs/archive/M6-plan.md): insight, the GDD's XP, and levels. `at`: the insight each level from 2 to the cap needs (the
   // last is the cap's; the curve measured over 2,000 seeds is the plan's table); a foe's purse is its health on its floor
   // ÷ `foeDiv`; a room's first clear gives `perFloor` × the floor (an ordeal `ordealMul` times that), as does each potion's
   // kind first used in a run; the jelly serpent gives its health ÷ `serpentDiv`. Each boss's insight is its floor's
@@ -141,7 +141,7 @@ export const CFG = {
   // `pointsPerHalf`; Arcana spell damage +`spell`; Will max mana +`mana` and its coming back +`regen`; Swiftness move speed
   // +`speed` and the cantrip's delay −`delay` (its floor kept). Each in a line with its points, never compounding.
   attributes: { vigor: { pointsPerHalf: 2 }, arcana: { spell: .06 }, will: { mana: 10, regen: .05 }, swiftness: { speed: .03, delay: .03 } },
-  // floorInsight: the insight each floor gives a run that clears it (the medians measured in docs/M6-plan.md, The curve), which
+  // floorInsight: the insight each floor gives a run that clears it (the medians measured in docs/archive/M6-plan.md, The curve), which
   // a deeper start's level is drawn from (levelAtFloor; M6 step 12)
   levels: { at: [20, 80, 170, 280, 395, 520, 810, 1185, 1600, 2025, 2825], floorInsight: [204, 400, 735, 932, 1302], foeDiv: 4, perFloor: 4, ordealMul: 2, serpentDiv: 2,
     streak: { time: .6, size: .36, max: 48, trail: 5, gap: .05, rise: .9 }, gold: 0xe8c878, chimeGap: .12,
@@ -397,7 +397,7 @@ export const CFG = {
   // so many flat steps, as pixel art draws them; the fine layer's pixels to a game pixel each way (pixelLook.ts, FINE:
   // 2026-10-02, the owner's coins drawn finer than the rest, so their faces read)
   pixelLook: { lines: [1080, 720, 540, 360, 270], start: 'texel' as const, outlineGap: 0.3, outlineDark: 0.72, bands: 7, glowSteps: 5, shadowSteps: 3, fineLayer: 2 },
-  // alchemy (M5, items/potions.ts and potionThrow.ts; docs/M5-plan.md): the belt's slots, a bottle's and a reagent's size as built, the
+  // alchemy (M5, items/potions.ts and potionThrow.ts; docs/archive/M5-plan.md): the belt's slots, a bottle's and a reagent's size as built, the
   // chance a fallen foe or a broken object leaves its reagent (items/reagents.ts; the Alchemist's Satchel's more), what Dr.
   // Jelly asks for a recipe (obols), the laboratory's: how near the table or Dr. Jelly opens the table, how far behind the
   // table Dr. Jelly stands, the chance a burst jelly globe lets out a jelly (else a reagent), how far its vat window keeps

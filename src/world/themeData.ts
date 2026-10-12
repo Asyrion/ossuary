@@ -1,4 +1,4 @@
-/* Themed rooms (M3.6 step 3, docs/M3.6-plan.md): a template may carry a `theme`, a kind of place in the dungeon (a
+/* Themed rooms (M3.6 step 3, docs/archive/M3.6-plan.md): a template may carry a `theme`, a kind of place in the dungeon (a
    chapel nave, an ossuary, a scriptorium...). The theme dresses the room (torch light, floor stains, what the wall's
    niches hold, scatter on the floor, how its rocks and tombs look) and gives it one twist to learn. Pure (no three.js):
    the generator, the room builder and the tests use it; data/themes.json holds the themes, data/floors.json which

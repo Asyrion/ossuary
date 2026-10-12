@@ -1,4 +1,4 @@
-/* M6 step 7: runes in play (docs/M6-plan.md, decisions 9 and 10; the rules are runeData.ts). Each slot has a socket (one
+/* M6 step 7: runes in play (docs/archive/M6-plan.md, decisions 9 and 10; the rules are runeData.ts). Each slot has a socket (one
    rune, two with Second Socket); a rune carved there changes every cast of the slot's spell, read through `slotDef`
    (cost.ts). The socket belongs to the slot: a spell given up or forgotten sends its runes to the pouch (`player.runes`)
    and the slot keeps its size, so a swap at a library costs nothing. Step 8 brings runes to find (`addRune`, dealt by

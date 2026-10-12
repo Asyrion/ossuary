@@ -109,6 +109,10 @@ cleaning, the look and the story.
 
 *Done when:* `main` is the game and the play notes are in `docs/playtest-notes.md`.
 
+*Done 2026-10-12:* M7's steps 3 to 9 shipped to `main` ([Asyrion/ossuary#52](https://github.com/Asyrion/ossuary/pull/52)),
+the twelve stale branches deleted, CI made parallel on the way ([Asyrion/ossuary#53](https://github.com/Asyrion/ossuary/pull/53):
+a change goes from PR to live in about 8 minutes instead of 40), and the owner's opening view taken as the play notes.
+
 ### Phase 1: the docs tell the truth (Sonnet)
 
 1. **`CLAUDE.md` down to a brief of about 150 lines:** what the game is, how to run and test it, the code map (one line

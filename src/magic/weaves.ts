@@ -1,4 +1,4 @@
-/* Weaves and chains (M4.10, docs/M4.10-plan.md; GDD: M4.10 as built). A weave is a spell striking what another spell left
+/* Weaves and chains (M4.10, docs/archive/M4.10-plan.md; GDD: M4.10 as built). A weave is a spell striking what another spell left
    in the room (an ice wall, a seal's burning ground, holy ground, Wardlight's motes, the Static Mantle, a toll's mark); a
    chain is what a reaction left (a steam cloud, black ice, an Overload's blast, the Shatter's shards, an Eclipse's black
    sun) meeting a third school. This is the pure table (unit-tested); each is set off where it happens (shapes.ts, steam.ts,

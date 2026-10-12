@@ -1,4 +1,4 @@
-/* Transformations (M4.6, docs/M4.6-plan.md; GDD: Artifacts, Costumes and transformations): three artifacts of a family
+/* Transformations (M4.6, docs/archive/M4.6-plan.md; GDD: Artifacts, Costumes and transformations): three artifacts of a family
    (`family` in data/artifacts.json) transform the mage for the rest of the run, with a look (costumePieces.ts) and a gift
    (an effect in `player.stats.effects`, from `giftEffects`). Pure: the table, which have formed, and the checks. */
 import type { Effect } from './artifactData';

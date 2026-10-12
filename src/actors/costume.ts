@@ -1,4 +1,4 @@
-/* Costumes (M4.6, docs/M4.6-plan.md): what artifacts put on the mage (costumeData.ts says which show), fitted to whatever
+/* Costumes (M4.6, docs/archive/M4.6-plan.md): what artifacts put on the mage (costumeData.ts says which show), fitted to whatever
    model is loaded. Each part hangs from a bone of the rig, so it follows every clip; it is fitted once, in the rig's rest
    pose, to the part of the body it covers (the head and hair the head bone moves, the chest and shoulders, the hips, the
    hands and feet). A static model (no rig) wears its pieces on the model itself, fitted to its silhouette.

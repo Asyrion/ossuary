@@ -1,4 +1,4 @@
-/* The balance bot (M4.9 step 1, docs/M4.9-plan.md): every foe on its floor fought alone by a walking, shooting bot, with
+/* The balance bot (M4.9 step 1, docs/archive/M4.9-plan.md): every foe on its floor fought alone by a walking, shooting bot, with
    the cantrip only and with each school's two spells, on a few seeds; how long it took and the hearts it cost, written to
    docs/balance.md. Flags a foe that takes more than twice its floor's median to put down, and a school whose median on a
    floor is more than twice the floor's. Needs the dev server running (npm run dev). Not in CI: it takes a while.

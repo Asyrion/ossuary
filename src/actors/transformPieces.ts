@@ -1,4 +1,4 @@
-/* The pieces of the transformations' looks (M4.6, docs/M4.6-plan.md, The transformations; which each wears is
+/* The pieces of the transformations' looks (M4.6, docs/archive/M4.6-plan.md, The transformations; which each wears is
    costumeData.ts's TRANSFORM_LOOKS): built for the body like the artifacts' pieces (costumePieces.ts), fitted to the
    measured model and hung from its bones. What moves by itself is marked for costume.ts to move each step:
    `userData.float` (a part placed on the model, not a bone: the aura, the grimoire), `spin` (turning, radians a second),

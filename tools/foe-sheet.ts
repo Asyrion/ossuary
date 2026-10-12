@@ -1,4 +1,4 @@
-/* M4.12 (docs/M4.12-plan.md): contact sheets of the foes' old and new looks side by side, for the owner's review. For each
+/* M4.12 (docs/archive/M4.12-plan.md): contact sheets of the foes' old and new looks side by side, for the owner's review. For each
    floor asked, the floor's pairs (the old look left, the new right) stood one at a time in the start room at the game's own
    zoom, each shot round the pair with the mage just below it for scale, twice: in the game's pixel look (its pixels blown up
    whole), and close up with the pixel look off; the shots tiled into one labelled sheet a floor. The contract each new look keeps (its old look's moving parts, about its height) is printed.

@@ -1,4 +1,4 @@
-/* The room kit's fire objects (M3.5 step 3, the proof; docs/M3.5-plan.md): the wall torch in each floor's style, the
+/* The room kit's fire objects (M3.5 step 3, the proof; docs/archive/M3.5-plan.md): the wall torch in each floor's style, the
    brazier and the candle stand, built in code in the style of the spell effects (docs/effects.md), with their fire from
    render/fire.ts. What they do is unchanged (rooms.ts, mechanisms.ts); only the look is new. Each returns its parts:
    what lights up (hidden while cold) and its glow. `DEV.roomKit` off keeps the old looks, to compare. */

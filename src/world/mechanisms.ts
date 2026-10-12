@@ -1,4 +1,4 @@
-/* Mechanisms (M3.6 step 4, docs/M3.6-plan.md decision 7): objects in rooms that answer to the mage's magic with
+/* Mechanisms (M3.6 step 4, docs/archive/M3.6-plan.md decision 7): objects in rooms that answer to the mage's magic with
    more than breaking or burning. They are objects like the others (propData.ts, props.ts); this is what they do.
    - Brazier: fire lights it (anything that calls fireAt: Burn, the lance, the seal, a glyph, a burning bolt); a bolt
      of the mage's flying through a lit brazier's flame catches fire (Burn on what it strikes).

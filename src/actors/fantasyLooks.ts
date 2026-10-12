@@ -1,4 +1,4 @@
-/* M4.12 Fantasy foes (docs/M4.12-plan.md; the owner's ask, 2026-10-02): the cute looks and the plain animals redone as
+/* M4.12 Fantasy foes (docs/archive/M4.12-plan.md; the owner's ask, 2026-10-02): the cute looks and the plain animals redone as
    creatures of fantasy, each fight unchanged. A new look is kept here by the look it replaces (a foe's `look` or its id)
    and first stands beside the old one in the Galleries tab (`showLookPairs`), so the game is unchanged until the owner
    says yes; then its id goes into `APPROVED`, the foe wears it, and the old builder is deleted (`RETIRED` keeps its height

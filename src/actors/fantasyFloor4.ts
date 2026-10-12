@@ -1,4 +1,4 @@
-/* M4.12 step 5 (docs/M4.12-plan.md): floor 4's five foes redone as creatures of fantasy, by the rules of fantasyFloor1.ts:
+/* M4.12 step 5 (docs/archive/M4.12-plan.md): floor 4's five foes redone as creatures of fantasy, by the rules of fantasyFloor1.ts:
    each keeps its fight, the parts its behaviour moves (by the old look's names) and about its height; each faces +Z,
    stands on y = 0 and idles; no round googly eyes; the school in the body. Small repeated parts that move move together,
    so each look draws in about as many calls as the old one did. */

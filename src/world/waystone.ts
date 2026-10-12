@@ -1,4 +1,4 @@
-/* M6 step 9: the waystone (docs/M6-plan.md, decisions 10 and 11; GDD: the rest between floors). A menhir that answers
+/* M6 step 9: the waystone (docs/archive/M6-plan.md, decisions 10 and 11; GDD: the rest between floors). A menhir that answers
    casts. Step 10 gives it a room of its own beside the boss room on floors 1 to 4, holding the way down: the room waits dark
    and empty until the mage first walks in after the boss falls, then the stone grinds up near its middle (a little toward
    the door), its runes kindle,

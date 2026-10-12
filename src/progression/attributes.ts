@@ -1,4 +1,4 @@
-/* M6 RPG growth, step 2: the four attributes (docs/M6-plan.md; GDD: RPG progression), the pure rules (unit-tested). A
+/* M6 RPG growth, step 2: the four attributes (docs/archive/M6-plan.md; GDD: RPG progression), the pure rules (unit-tested). A
    level brings a point to spend on one of them. They stay deliberately plain and small, so that boons and runes make the
    build: Vigor (half a heart container every 2 points), Arcana (spell damage), Will (the GDD's Focus, renamed: "focus"
    names the artifacts held in the casting hand; more mana and its coming back) and Swiftness (moving and casting the

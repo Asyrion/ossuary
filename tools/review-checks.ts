@@ -56,16 +56,16 @@ for (const a of added.filter(a => src(a) && !/config\.ts$|Data\.ts$|strings\.ts$
 // 6. materials and geometries made where things are made often: shared, or disposed
 for (const a of added.filter(src)) if (/new THREE\.\w+(Material|Geometry)\(/.test(a.text) && !/markShared|shared\(|userData\.shared|geo\(|std\(/.test(a.text)) flag('6', `${where(a)}: a new material or geometry not marked shared (fine if it is disposed with its object): ${a.text.trim().slice(0, 90)}`);
 
-// 11 and 9. new dev hooks and new source files named in CLAUDE.md
-const claude = existsSync('CLAUDE.md') ? readFileSync('CLAUDE.md', 'utf8') : '';
+// 11 and 9. new dev hooks and new source files named in the docs (docs/architecture.md says where things are)
+const claude = ['CLAUDE.md', 'docs/architecture.md'].map(f => existsSync(f) ? readFileSync(f, 'utf8') : '').join('\n');
 const mainAdded = added.filter(a => a.file === 'src/main.ts');
 for (const a of mainAdded) {
   if (!/^\s{4}\S/.test(a.text)) continue; // (the hooks sit four spaces in, one or more to a line)
   for (const m of a.text.matchAll(/(?:^|[,{]\s*)(?:get\s+)?(\w+)(?:\s*\(|\s*:)/g))
-    if (!['get', 'set', 'return', 'x', 'z', 'kind', 'spell', 'text'].includes(m[1]) && !claude.includes(`__game.${m[1]}`)) flag('11', `${where(a)}: hook "${m[1]}" is not in CLAUDE.md's hooks paragraph (if it is a __game hook)`);
+    if (!['get', 'set', 'return', 'x', 'z', 'kind', 'spell', 'text'].includes(m[1]) && !claude.includes(`__game.${m[1]}`)) flag('11', `${where(a)}: hook "${m[1]}" is not in docs/architecture.md (if it is a __game hook)`);
 }
-for (const f of newFiles.filter(f => f.startsWith('src/') || f.startsWith('tools/'))) { const name = f.split('/').pop()!; if (!claude.includes(name)) flag('9', `${f}: new file not mentioned in CLAUDE.md`); }
-if (files.some(f => f.startsWith('src/') || f.startsWith('data/')) && !files.some(f => f.startsWith('docs/') || f === 'CLAUDE.md')) flag('9', 'code or data changed but no doc did (GDD, CLAUDE.md, the milestone plan)');
+for (const f of newFiles.filter(f => f.startsWith('src/') || f.startsWith('tools/'))) { const name = f.split('/').pop()!; if (!claude.includes(name)) flag('9', `${f}: new file not mentioned in docs/architecture.md`); }
+if (files.some(f => f.startsWith('src/') || f.startsWith('data/')) && !files.some(f => f.startsWith('docs/') || f === 'CLAUDE.md')) flag('9', 'code or data changed but no doc did (GDD, docs/architecture.md, the plan)');
 
 // 1. the dev menu: new features, but devMenu.ts untouched
 const newExports = added.filter(a => /^src\/(world|items|magic|combat|actors)\//.test(a.file) && /^export function \w+/.test(a.text));

@@ -59,7 +59,7 @@ costs time, so spend it where something changed or a check flagged it.
 - **Errors:** any console error the tool printed is a finding.
 
 Compare against what the project says things should be: `docs/GDD.md` (Floors and rooms, Art, camera and audio),
-`docs/M3.6-plan.md`, and the house style in `docs/assets.md`.
+`docs/archive/M3.6-plan.md`, and the house style in `docs/assets.md`.
 
 ## What to report
 

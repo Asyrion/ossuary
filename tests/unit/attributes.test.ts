@@ -3,7 +3,7 @@ import { CFG } from '../../src/config';
 import { ARTIFACT_DEFS, START_FOCUS, computeStats, validateArtifacts, type ArtifactDef } from '../../src/items/artifactData';
 import { ATTRS, attrBonus, freePoints, noAttrs, spentPoints } from '../../src/progression/attributes';
 
-/* M6 step 2: the four attributes (docs/M6-plan.md). */
+/* M6 step 2: the four attributes (docs/archive/M6-plan.md). */
 const base = { ...CFG.hero };
 const A = CFG.attributes;
 

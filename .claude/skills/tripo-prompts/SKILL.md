@@ -24,5 +24,5 @@ In short:
   from Tripo: one that goes through an FBX converter can lose its rig.
 
 The output for each figure: its prompt as one copy-paste block, under a short heading. Add the
-negative field and settings once, not per prompt. Keep the game's lore limits (CLAUDE.md: Lore cards) in any prompt that
+negative field and settings once, not per prompt. Keep the game's lore limits (CLAUDE.md, Rules: lore limits; `docs/lore/`) in any prompt that
 names something.

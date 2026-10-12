@@ -1,4 +1,4 @@
-/* The artifacts in the room kit's style (M3.5 step 3; docs/M3.5-plan.md): each one built in code as what it is, a wand,
+/* The artifacts in the room kit's style (M3.5 step 3; docs/archive/M3.5-plan.md): each one built in code as what it is, a wand,
    a pair of boots, a ram's skull, a leech in a jar, in its own colour (`color` in data/artifacts.json) with a glowing part
    where its magic sits. They float over their pedestals (`makeArtifactVisual` in artifacts.ts; the merchant's wares and the
    shrine's stones too), and the HUD's icons are rendered from them (artifactIcons.ts), so what the mage picks up and what

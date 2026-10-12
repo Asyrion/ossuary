@@ -1769,7 +1769,7 @@ test('spell marks (M4.11): each slotted spell shows at its hand (ready, cooling,
   expect(errors).toEqual([]);
 });
 
-/* M5 (docs/M5-plan.md): the potion belt, and what potions do drunk and thrown. */
+/* M5 (docs/archive/M5-plan.md): the potion belt, and what potions do drunk and thrown. */
 type Belt = { ids: string[]; at: number; slots: number; known: boolean[]; reagents: Record<string, number>; html: string };
 type GP = Omit<GameHooks, 'enemies' | 'player'> & { belt: Belt; potionFx: Record<string, number | string | null>; bottles: Record<string, { shape: string; liquid: string }>; throws: { flying: number; storms: number; thrall: boolean };
   givePotion(id: string): boolean; usePotion(how: 'drink' | 'throw'): boolean; choosePotion(d: number): void; identifyAll(): void; forgetPotions(): void;

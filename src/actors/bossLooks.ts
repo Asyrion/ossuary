@@ -1,7 +1,7 @@
 /* The bosses built in code. The Hollow Warden's fight (bosses.ts: it walks, winds up and bursts a ring of shots, fires
    aimed volleys, calls the floor's walkers below half health) wears the Owlbear (`wardenLook`; the owner's choice of
    three, 2026-10-03), which gives it the parts that fight moves: `eye` (swells as it winds up), `ring` (turns, faster
-   while winding), `halo` (brightens), and its school's light (Hallow) for its shots. Since M4.12 (docs/M4.12-plan.md) it,
+   while winding), `halo` (brightens), and its school's light (Hallow) for its shots. Since M4.12 (docs/archive/M4.12-plan.md) it,
    the Hallowed Hart, the Deep Angler, the War-Tiger, the Pillar Dragon's head and the jelly serpent's head are creatures of
    fantasy, built in fantasyBosses.ts. Here are
    the rest: the dragon's body, the Twin Guardians, the Drowned Abbess and the Pyre Knight, and the galleries' lists. Each

@@ -1,4 +1,4 @@
-/* The jelly serpent built in code (M5 step 7, docs/M5-plan.md): the thing Dr. Jelly keeps coiled in the vat behind his
+/* The jelly serpent built in code (M5 step 7, docs/archive/M5-plan.md): the thing Dr. Jelly keeps coiled in the vat behind his
    laboratory's window. A long serpent of green jelly: its head a wyrm's skull seen through clear jelly (M4.12, fantasyBosses.ts),
    a crest of jelly fins and a lower jaw that drops open; its body a chain of jelly rings round a darker core, drawn as instances (a few draw
    calls for the whole length) and laid each step along the trail its head leaves (actors/jellySerpent.ts, as the Pillar

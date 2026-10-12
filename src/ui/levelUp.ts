@@ -1,4 +1,4 @@
-/* M6 step 4: the level-up screen (docs/M6-plan.md; GDD: RPG progression, "the game pauses, like a card choice"). A level
+/* M6 step 4: the level-up screen (docs/archive/M6-plan.md; GDD: RPG progression, "the game pauses, like a card choice"). A level
    reached waits in `G.run.pending` until the fight is won: the doors open, nothing lives, no other screen is up, and a
    moment's calm. Then the game pauses and the screen deals three boons (progression/boons.ts): one is taken, then the
    level's point is spent on an attribute; each level waiting comes in turn. Arrows or WASD (the d-pad) choose, Enter or

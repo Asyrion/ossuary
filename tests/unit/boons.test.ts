@@ -4,7 +4,7 @@ import { SCHOOLS, SPELL_DEFS, pickPages, spell, type School } from '../../src/ma
 import { BOON_DEFS, LEAN, boon, boonParams, boonText, boonTuning, boonsTouching, dealBoons, pledgeFor, schoolWeights, statusMul, validateBoons, NOT_YET, afterglowOf, type BoonDef, type DealState } from '../../src/progression/boonData';
 import { MAGIC, applyStatus, newStatus, tickStatus } from '../../src/magic/status';
 
-/* M6 step 3: boons as data and the deal (docs/M6-plan.md). */
+/* M6 step 3: boons as data and the deal (docs/archive/M6-plan.md). */
 const flat = () => schoolWeights({ slots: [null, null], casts: {}, taken: {} });
 const state = (o: Partial<DealState> = {}): DealState => ({ taken: {}, weights: flat(), socketable: true, ...o });
 const deals = (s: DealState, n: number, seed = 1) => { const r = new Rng(seed); return Array.from({ length: n }, () => dealBoons(s, () => r.next())); };

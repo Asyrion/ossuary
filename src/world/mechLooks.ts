@@ -1,4 +1,4 @@
-/* The room kit's mechanisms (M3.5 step 3; docs/M3.5-plan.md): the rune stone, the lodestone, the bell, the hanging censer
+/* The room kit's mechanisms (M3.5 step 3; docs/archive/M3.5-plan.md): the rune stone, the lodestone, the bell, the hanging censer
    and the reliquary, built in code in the style of the spell effects (docs/effects.md). What they do is unchanged
    (mechanisms.ts); only the look is new, and each keeps the parts mechanisms.ts moves or lights. Every one has a touch of
    magic that moves: runes orbit a charged stone, the lodestone's shard floats and turns, the reliquary's seal of
@@ -246,7 +246,7 @@ export function sluiceLook(look?: FloorLook) {
   return { group: g, parts: { gate, wheel, fall, foam } };
 }
 
-/* M6 step 9: the waystone (docs/M6-plan.md, decision 11): a tall menhir of the Wardens' grey stone, a hollow cut into its face
+/* M6 step 9: the waystone (docs/archive/M6-plan.md, decision 11): a tall menhir of the Wardens' grey stone, a hollow cut into its face
    for each rune socket (two, one above the other), rune strokes down it that kindle to a pale gold once it has risen, a
    glow over its point. Each hollow and the strokes have their own materials (a carved rune shows in its hollow in the
    rune's colour while the stone's screen is open). Its face is turned square to the camera; its stone is a cool grey of its

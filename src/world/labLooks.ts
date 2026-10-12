@@ -1,4 +1,4 @@
-/* Dr. Jelly's laboratory in the room kit's style (M5 step 6, docs/M5-plan.md; GDD: Potions and alchemy): the glass globes
+/* Dr. Jelly's laboratory in the room kit's style (M5 step 6, docs/archive/M5-plan.md; GDD: Potions and alchemy): the glass globes
    of glowing jelly on their iron stands, the alchemy table with its alembic, burner and racks, Dr. Jelly (jellyLooks.ts, since the
    owner's pictures of 2026-10-02) and the great arched window on the north wall, behind which the
    jelly serpent coils in its vat. Built in code as the other pieces are (objectLooks.ts, specialLooks.ts): painted pieces

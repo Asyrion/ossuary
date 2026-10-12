@@ -3,7 +3,7 @@ import { SPELL_DEFS, spell, type Shape } from '../../src/magic/spellData';
 import { RUNE_DEFS, RUNE_IDS, canCarve, payment, pickPair, pickRune, reprisedDef, runeFits, runedDef, runesFor, validateRunes, type RuneDef } from '../../src/magic/runeData';
 import { Rng } from '../../src/rng';
 
-/* M6 step 7: runes, as rules (docs/M6-plan.md, decision 9 and the runes table). */
+/* M6 step 7: runes, as rules (docs/archive/M6-plan.md, decision 9 and the runes table). */
 describe('runes', () => {
   it('are valid: seven, and every spell takes three or more', () => {
     expect(validateRunes()).toEqual([]);

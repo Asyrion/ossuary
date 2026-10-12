@@ -1,4 +1,4 @@
-/* The costume pieces built for the body (M4.6, docs/M4.6-plan.md): each fitted to the measured model (costumeFit.ts) and
+/* The costume pieces built for the body (M4.6, docs/archive/M4.6-plan.md): each fitted to the measured model (costumeFit.ts) and
    hung from the bones it covers, so it follows every clip. The pieces an artifact's own model makes (a lantern at the hip)
    are in costume.ts. */
 import * as THREE from 'three';

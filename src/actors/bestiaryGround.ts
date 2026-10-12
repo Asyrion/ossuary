@@ -1,4 +1,4 @@
-/* What M4.5's foes leave on the ground and throw (docs/M4.5-plan.md): a crypt spider's webs and an ink octopus's smears,
+/* What M4.5's foes leave on the ground and throw (docs/archive/M4.5-plan.md): a crypt spider's webs and an ink octopus's smears,
    which slow the mage who walks through them (fire burns a web away), a rime snail's trail of rime, on which the mage
    slides (fire melts it), and lobs, anything thrown in an arc to land on a
    spot (a spider's web gob; later floors' snowballs and coals), and stones dropped from above (a rubble golem's). Each kind of patch is drawn at once, one instanced mesh

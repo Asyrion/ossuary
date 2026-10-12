@@ -1,4 +1,4 @@
-/* M6 RPG growth: insight and levels in the game (docs/M6-plan.md, step 1; the rules are levelData.ts). A foe put to rest
+/* M6 RPG growth: insight and levels in the game (docs/archive/M6-plan.md, step 1; the rules are levelData.ts). A foe put to rest
    pays its purse, a room its first clear, a boss its floor's sum, a potion's kind its first use in a run, the Grave
    Draught its sip. Each comes as a short streak of light (the foe's school's; insight's gold for the rest) running into
    the mage's casting hand: a streak, not a round mote, so it can't be taken for a soul mote. A level reached rises over

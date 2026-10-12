@@ -1,4 +1,4 @@
-/* M4.12 step 2 (docs/M4.12-plan.md): floor 1's ten foes redone as creatures of fantasy. Each keeps its fight, the parts
+/* M4.12 step 2 (docs/archive/M4.12-plan.md): floor 1's ten foes redone as creatures of fantasy. Each keeps its fight, the parts
    its behaviour moves (by the old look's names) and about its height; each faces +Z, stands on y = 0 and idles. The rules:
    no round googly eyes (small glowing slits or beads), the school in the body (runes, crystal, fire, light), real size. */
 import * as THREE from 'three';
