@@ -8,7 +8,7 @@ export const STR = {
   title: {
     heading: 'Ossuary',
     place: 'Beneath the Gate of Uzulim',
-    intro: "Asyrion's first descent into the Wardens' vault. Clear the crypt, take the relic from its altar, and put the fallen Warden below to rest.",
+    intro: "Azyrion's first descent into the Wardens' vault. Clear the crypt, take the relic from its altar, and put the fallen Warden below to rest.",
     start: 'Descend',
     note: 'Prototype 0.4. Drop any Tripo .glb onto this page to play as it.',
   },
@@ -44,9 +44,9 @@ export const STR = {
   },
   end: {
     won: 'Into the daylight',
-    lost: 'Asyrion fell in the vault',
-    wonText: "Kaelith knelt, and the seal holds by the magic Asyrion carried down through the Wardens' vault. Above the last stair the rock opens on the valleys at dawn: the way home.",
-    lostText: (floor: number, name: string) => `Asyrion's descent ended on floor ${floor}, ${name}.`,
+    lost: 'Azyrion fell in the vault',
+    wonText: "Kaelith knelt, and the seal holds by the magic Azyrion carried down through the Wardens' vault. Above the last stair the rock opens on the valleys at dawn: the way home.",
+    lostText: (floor: number, name: string) => `Azyrion's descent ended on floor ${floor}, ${name}.`,
     floor: 'Deepest floor', level: 'Level reached', time: 'Time', kills: 'Foes put to rest', obols: 'Obols found', seed: 'Seed', artifacts: 'Artifacts carried',
     levelValue: (level: number, insight: number) => `${level} (${Math.round(insight)} insight)`,
     floorValue: (floor: number, floors: number) => `${floor} of ${floors}`,
@@ -272,12 +272,12 @@ export const STR = {
     hands: 'Your spells show at your hands: bright when ready, faint while they gather again, grey when your mana falls short.',
     circle: 'Standing still, what you know shows round your feet: a rune for every spell you know well.',
   },
-  /** M4.6: Asyrion's arc, a line as each stage is reached (the apprentice growing towards the chaos mage). */
+  /** M4.6: Azyrion's arc, a line as each stage is reached (the apprentice growing towards the chaos mage). */
   arc: [
     'Bronze closes round your forearms. The apprentice is giving way.',
     'A dark coat settles on your shoulders, worked in bronze.',
     'Red runes kindle in rings of gold and begin to circle you.',
-    'Fire wakes in your empty hand, and the wind turns about you. Asyrion, chaos mage.',
+    'Fire wakes in your empty hand, and the wind turns about you. Azyrion, chaos mage.',
   ],
   /** M4.10: weaves (a spell striking what another left) and chains (a reaction's leavings meeting a third school): the name
       that rises, and what the book says of each once found. */
@@ -1053,7 +1053,7 @@ export const STR = {
     transforms: 'Transformations (three of a family form one; here at once, with its banner)', clearTransforms: 'Undo them all',
     marks: 'Spell marks (M4.11: the spells in hand, attunement, the master\'s ring, the knowledge circle)', attune: (school: string) => `Attune to ${school}`, showCircle: 'Show the knowledge circle (stand still)',
     marksInfo: (hands: string[], attuned: string, known: number, mastered: string[]) => `Hands: Q ${hands[0]}, E ${hands[1]} · attuned: ${attuned || 'no'} · ${known} spell${known === 1 ? '' : 's'} known well${mastered.length ? ` · mastered: ${mastered.join(', ')}` : ''}`,
-    arc: 'Asyrion\'s arc (the chaos mage\'s pieces, at 3, 6, 9 and 12 artifacts held; every three levels count as one)', arcHeld: 'As held', arcStage: (n: number) => n ? `Stage ${n}` : 'Apprentice',
+    arc: 'Azyrion\'s arc (the chaos mage\'s pieces, at 3, 6, 9 and 12 artifacts held; every three levels count as one)', arcHeld: 'As held', arcStage: (n: number) => n ? `Stage ${n}` : 'Apprentice',
     arcInfo: (stage: number, held: number, levels: number, forced: boolean) => `Stage ${stage} of 4${forced ? ' (forced here)' : ''} · ${held} counted (${held - levels} artifact${held - levels === 1 ? '' : 's'} held, ${levels} from levels)`,
     transformInfo: (formed: string[], blink: number) => `Formed: ${formed.length ? formed.join(', ') : 'none'} (the last wears its look)${blink > 0 ? ` · blink rests ${blink.toFixed(1)} s` : ''}`,
     fennex: 'Fen-Nex', growFennex: 'Grow Fen-Nex a stage', noFennex: 'Fen-Nex is not bound (take the Rune of Fen-Nex)', wanderer: 'The Wandering Merchant, here', noFoe: 'No foe in the room',

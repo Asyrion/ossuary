@@ -1,4 +1,4 @@
-/* Fen-Nex (M4.2, the owner's Fen-Nex, "fox man"; GDD: Artifacts): the Rune of Fen-Nex binds it to Asyrion. It runs at the
+/* Fen-Nex (M4.2, the owner's Fen-Nex, "fox man"; GDD: Artifacts): the Rune of Fen-Nex binds it to Azyrion. It runs at the
    mage's heel and darts at the nearest foe to bite it, then comes back. It grows as the run goes down: bound, it is a small
    fox of rune-light (the Rune Fox the owner drew, stage 1); a floor deeper it is full-grown (stage 2) and its bite burns;
    another floor, and it comes into its full shape (stage 3: a long white beast between fox, cat and dragon, its fur blown

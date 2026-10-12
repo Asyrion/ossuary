@@ -32,7 +32,7 @@ closed by a play-test. The work drifted from proving a loop to adding systems.
 | Tests | 285 unit tests (good). All 127 browser tests in one 5,222-line file, ~15 minutes, breaking whenever floor layouts change: most of the last 51 commits are flake fixes. No ESLint, no Prettier. |
 | Art direction | Tripo, then everything in code (2026-09-30), then Tripo creatures again (2026-10-05) that only stand in a gallery. Two owlbears. 12 MB of comparison GLBs shipped to Pages. `data/assets.json` loads nothing but coins. |
 | The look (screenshots of 2026-10-12) | Rooms read brown on brown (floor 1, 3) or grey-green (floor 2), low contrast, a third of the screen black. Foes built from primitives read as toys beside the room. The HUD is plain dark boxes. The mage is the best-looking thing on screen. |
-| Story | On `main`: no dialogue system, no NPC who speaks, no story beats across runs. On the M7 branch: daylight after Kaelith, one save (`ossuary.vigil`), the Vigil as a place, chained shades freed in runs, townspeople with dialogue, their gifts, bonds and powers, the unfolding, and thirteen of the owner's Tripo models (townspeople, the Ferryman, Dr. Jelly, Kaelith) animated in code. Steps 10 to 13 (the Great Circle and the Ferryman, echoes, the grimoire and the rest, the close) are not built. The narrative is the title, floor banners, four lines of Asyrion's arc and item lore. The owner's lore is split: four real pages in `docs/` (the two gates, the Huruhui, Boketto), the rest stubs, and ~45 more notes and three PDFs in `inspiration/EDA/` (60 MB tracked in git), with no index. |
+| Story | On `main`: no dialogue system, no NPC who speaks, no story beats across runs. On the M7 branch: daylight after Kaelith, one save (`ossuary.vigil`), the Vigil as a place, chained shades freed in runs, townspeople with dialogue, their gifts, bonds and powers, the unfolding, and thirteen of the owner's Tripo models (townspeople, the Ferryman, Dr. Jelly, Kaelith) animated in code. Steps 10 to 13 (the Great Circle and the Ferryman, echoes, the grimoire and the rest, the close) are not built. The narrative is the title, floor banners, four lines of Azyrion's arc and item lore. The owner's lore is split: four real pages in `docs/` (the two gates, the Huruhui, Boketto), the rest stubs, and ~45 more notes and three PDFs in `inspiration/EDA/` (60 MB tracked in git), with no index. |
 
 ## What Godot-Tamer brings (Asyrion/Godot-Tamer, read 2026-10-12)
 
@@ -82,7 +82,7 @@ The owner took each recommendation; the third with a condition, written into it.
    - **What the mage knows is the story's progress.** Spell knowledge, reactions, weaves and the bestiary are already
      kept between runs; each threshold of knowledge opens the next piece (a line, a vision, a door in the Seal, a shade
      who can be freed). Learning the magic and learning the truth are one thing.
-   - **The schools are a choice of who Asyrion becomes.** Asyrion's arc from apprentice to chaos mage is shaped by the
+   - **The schools are a choice of who Azyrion becomes.** Azyrion's arc from apprentice to chaos mage is shaped by the
      schools mastered across runs (Hallow and Umbral pulling apart, Verdant the Huruhui's way), and so are Kaelith's
      words and the endings.
    - **Death is a crossing, not a return home.** The Ferryman takes the mage back up, for a price; what the vault
@@ -175,7 +175,7 @@ fast suite green in under 3 minutes, a week of CI without a flake fix.
 ### Phase 4: the story (the backbone)
 
 1. **Story bible** (`docs/story.md`), written with the owner from the lore and the principles of Decision 3: why
-   Asyrion goes down, what Kaelith sealed and why it matters, what the Wardens hid, what each school's magic remembers,
+   Azyrion goes down, what Kaelith sealed and why it matters, what the Wardens hid, what each school's magic remembers,
    the thresholds of knowledge that move the story, the acts across runs, the endings by the schools mastered. Who speaks: the Ferryman, Dr.
    Jelly, the Wandering Merchant, Fen-Nex, the freed shades, Kaelith. The open questions of the GDD answered or cut.
 2. **A dialogue and memory system**, grown from the one M7 step 7 built for the townspeople: lines and visions as data (`data/dialogue/*.json`), conditions on what the run

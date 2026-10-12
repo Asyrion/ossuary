@@ -171,8 +171,8 @@ describe('transformations', () => {
   });
 });
 
-// M4.6: Asyrion grows towards the chaos mage as the artifacts held add up
-describe("Asyrion's arc", () => {
+// M4.6: Azyrion grows towards the chaos mage as the artifacts held add up
+describe("Azyrion's arc", () => {
   const def = (id: string) => ARTIFACT_DEFS.find(a => a.id === id)!;
   it('reaches a stage at each threshold, four at most', () => {
     const at = CFG.arc.at;

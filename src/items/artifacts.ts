@@ -41,7 +41,7 @@ export function refreshStats(announceNow = true): TransformId[] {
   player.mana = Math.min(player.mana, player.stats.maxMana);
   renderHearts(); renderItems(); dress();
   if (announceNow) for (const t of fresh) announce(t);
-  updateArc(); // (M4.6: Asyrion grows towards the chaos mage)
+  updateArc(); // (M4.6: Azyrion grows towards the chaos mage)
   return fresh;
 }
 
