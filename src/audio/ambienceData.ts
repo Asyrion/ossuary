@@ -1,4 +1,4 @@
-/* The soundscapes as data (data/ambience.json; docs/sound-plan.md): each floor's space, bed and one-shots, the special
+/* The soundscapes as data (data/ambience.json; docs/archive/sound-plan.md): each floor's space, bed and one-shots, the special
    rooms' and themes' over them. Pure: the kinds, the checks, and which soundscape plays where. */
 import data from '../../data/ambience.json';
 

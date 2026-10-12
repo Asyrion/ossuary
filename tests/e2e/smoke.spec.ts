@@ -5565,7 +5565,7 @@ test('fantasy foes (M4.12): every new look keeps the parts its behaviour moves a
   expect(errors).toEqual([]);
 });
 
-test('soundscapes and music (docs/sound-plan.md): the floor and room choose them, the doors and the hearts the mood; the dev menu forces any; a stretch renders offline', async ({ page }) => {
+test('soundscapes and music (docs/archive/sound-plan.md): the floor and room choose them, the doors and the hearts the mood; the dev menu forces any; a stretch renders offline', async ({ page }) => {
   const errors = await start(page, '?seed=SOUND1');
   type Info = { on: boolean; ambience: { scape: string | null; room: string | null; space: string } | null; music: { piece: string | null; mood: string } | null };
   type GA = GameHooks & { audio: Info; audioOn(v?: boolean): void; forceAudio(f: unknown): void; renderAudio(a: unknown): Promise<{ peak: number; rms: number; seconds: number; wav: string }> };

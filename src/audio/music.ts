@@ -1,4 +1,4 @@
-/* The music played (docs/sound-plan.md): a piece from data/music.json, composed a bar at a time by `planBar` and
+/* The music played (docs/archive/sound-plan.md): a piece from data/music.json, composed a bar at a time by `planBar` and
    performed on the instruments of synth.ts, its four stems (drone, harmony, melody, pulse) each at the level its mood
    asks. Works on any audio context (live under the music bus, or offline for a preview); bars are scheduled a little ahead
    (`pump`), and a new piece or mood comes in on the next bar, the stems crossfading. */

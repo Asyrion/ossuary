@@ -504,7 +504,7 @@ function build() {
     fpsBtn = btn('', () => { DEV.fps = !DEV.fps; }),
   );
 
-  // the soundscapes and the music (docs/sound-plan.md): any floor's, a room's or a theme's over it, any piece in any mood
+  // the soundscapes and the music (docs/archive/sound-plan.md): any floor's, a room's or a theme's over it, any piece in any mood
   const snd: { floor: number; over: string; piece: string; mood: Mood } = { floor: 0, over: '', piece: PIECES[1].id, mood: 'explore' };
   const playScape = () => AudioDirector.force({ ...AudioDirector.forced, floor: snd.floor, room: snd.over in ROOM_SCAPES ? snd.over : 'normal', theme: snd.over in THEME_SCAPES ? snd.over : undefined });
   const playMusic = () => AudioDirector.force({ ...AudioDirector.forced, piece: snd.piece, mood: snd.mood });

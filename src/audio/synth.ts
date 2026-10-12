@@ -1,4 +1,4 @@
-/* The instruments of the soundscapes and the music (docs/sound-plan.md): every sound built the way the real thing makes
+/* The instruments of the soundscapes and the music (docs/archive/sound-plan.md): every sound built the way the real thing makes
    its sound, on any audio context, so the same code plays live and renders offline (`render.ts`). Struck and plucked
    things (strings, bells, drums) are rendered into buffers once per note and reused; the beds are loops made in a ring
    (`ring`), so they never click where they join; held things (drones, the choir) are live oscillators and filters. */

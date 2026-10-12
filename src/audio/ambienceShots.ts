@@ -1,4 +1,4 @@
-/* The one-shots of the soundscapes (data/ambience.json; docs/sound-plan.md): each built the way the real thing sounds,
+/* The one-shots of the soundscapes (data/ambience.json; docs/archive/sound-plan.md): each built the way the real thing sounds,
    never quite the same twice. Each plays into `out` (a voice already placed in the room: panned, darkened by distance and
    sent to the space) at time `t`. */
 import type { ShotKind } from './ambienceData';
