@@ -6,10 +6,14 @@ Isaac-style roguelike set in Eda, built with three.js and Tripo3D models.
 
 | File | What's in it |
 | --- | --- |
+| `docs/STATUS.md` | Where the project stands and what comes next |
+| `docs/RESET-plan.md` | The current plan: the reset, phases R0 to R5 |
 | `docs/GDD.md` | The game design: the source of truth |
+| `docs/architecture.md` | How the code is built: each system's files, data, tuning and hooks |
+| `docs/lore/` | The owner's Eda lore, with an index |
 | `docs/assets.md` | Making assets: tools, house style, budgets, the pipeline from an image to the game, the asset log |
-| `docs/archive/M1-plan.md`, `docs/archive/M2-plan.md`, `docs/archive/M3.5-plan.md` | Milestone plans and their progress |
 | `docs/ideas.md` | Ideas not scheduled yet |
+| `docs/archive/` | Finished milestone plans |
 | `CREDITS.md` | Every shipped asset's source and licence |
 
 ## Setup on Windows
