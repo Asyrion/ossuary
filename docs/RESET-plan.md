@@ -182,7 +182,8 @@ fast suite green in under 3 minutes, a week of CI without a flake fix.
    lore cards tied to the story bible.
 4. **The Vigil** (M7 Part B, steps 5 to 9 built): reviewed against the story bible, its talk rewritten where the story
    asks; steps 10 to 13 (the Great Circle and the Ferryman, echoes, the grimoire and the rest, the close) planned again
-   on this base.
+   on this base. The owner's spur for it (2026-10-12): Moonlighter's village between runs, given a magic twist; the
+   ideas are in `docs/ideas.md`, Between runs, after Moonlighter.
 5. **Kaelith and the endings** (M7 Part A's daylight and the rest).
 
 *Done when:* five runs in a row each tell the player something new.
