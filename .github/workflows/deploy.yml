@@ -16,6 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # typecheck, unit tests and the build; on main this is all the deploy waits for, since the pull request's run already
+  # tested the merge itself in the browser
   build:
     runs-on: ubuntu-latest
     steps:
@@ -25,11 +27,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - name: Runner
-        run: nproc && lscpu | grep -E 'Model name|MHz' || true
-      - name: Smoke test
-        run: npm test
+      - name: Unit tests
+        run: npm run test:unit
       - name: Build
         run: npm run build
       - uses: actions/configure-pages@v6
@@ -38,10 +37,38 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         with:
           path: dist
+
+  # the browser tests in three shards side by side; on main they still run after the deploy, as a watch on what went live
+  e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - id: pw
+        run: echo "version=$(npx playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
+        id: browsers
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - if: steps.browsers.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+      - if: steps.browsers.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+      - name: Browser tests (shard ${{ matrix.shard }} of 3)
+        run: npx playwright test --shard=${{ matrix.shard }}/3
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
-          name: test-results
+          name: test-results-${{ matrix.shard }}
           path: test-results/
 
   deploy:

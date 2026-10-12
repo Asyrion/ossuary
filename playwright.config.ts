@@ -5,6 +5,10 @@ const PORT = 5174;
 export default defineConfig({
   testDir: 'tests/e2e',
   timeout: 90_000,
+  // every test on its own, so the one big spec spreads over the workers and CI's shards (--shard=n/3); two workers a CI
+  // runner, as each page renders in software and a third starves the others (tests with 4 on 4 cores timed out)
+  fullyParallel: true,
+  workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['list'], ['github']] : 'list', // (list: each test's time in the CI log)
   use: {
     baseURL: `http://localhost:${PORT}/`,

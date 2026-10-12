@@ -195,7 +195,9 @@ generated three-floor runs. See `README.md` for scripts and deployment.
   the stingers, a 40 s WAV of what is chosen); `__game.audio`, `forceAudio(f)`. A new one-shot is a kind in `SHOT_KINDS`
   and a recipe in `SHOTS`; a new piece an entry in data/music.json.
 - Tests: `npm run test:unit` (Vitest: generator rules on hundreds of seeds, every template validated),
-  `npm run test:e2e` (Playwright smoke tests), `npm test` runs both.
+  `npm run test:e2e` (Playwright smoke tests, every test on its own: `fullyParallel`, half the cores locally, two workers
+  a CI runner), `npm test` runs both. CI (`.github/workflows/deploy.yml`, 2026-10-12): `build` (typecheck, unit tests,
+  build) and three `e2e` shards side by side; on `main` the deploy waits for `build` only.
 - URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`
   plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
   champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
