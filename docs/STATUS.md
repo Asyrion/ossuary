@@ -12,7 +12,7 @@ cleaning, the look and the story.
 | Phase | State |
 | --- | --- |
 | R0 One baseline | Done 2026-10-12 |
-| R1 Docs that tell the truth | Built 2026-10-12; the owner's read next |
+| R1 Docs that tell the truth | Done 2026-10-12 |
 | R2 Code that is kept | **Next** |
 | R3 The look | Waits for R2 |
 | R4 The story | Waits for R3's art bible; holds M7 steps 10 to 13 |
