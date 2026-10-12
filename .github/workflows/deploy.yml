@@ -38,7 +38,7 @@ jobs:
         with:
           path: dist
 
-  # the browser tests in three shards side by side; on main they still run after the deploy, as a watch on what went live
+  # the browser tests in three shards side by side; on main they still run beside the deploy, as a watch on what goes live
   e2e:
     runs-on: ubuntu-latest
     strategy:
