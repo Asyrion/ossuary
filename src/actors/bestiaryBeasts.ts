@@ -1,5 +1,5 @@
 /* The bestiary's beasts (M4.5): animals of the dungeon, larger and stranger than life, each built to read at a glance as
-   what it is (docs/M4.5-plan.md). Each stands on y = 0 facing +Z and idles; parts a foe's behaviour will move are named in
+   what it is (docs/archive/M4.5-plan.md). Each stands on y = 0 facing +Z and idles; parts a foe's behaviour will move are named in
    `parts`. */
 import * as THREE from 'three';
 import { glow } from '../render/materials';

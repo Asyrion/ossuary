@@ -1,4 +1,4 @@
-/* M6 step 5: what the school boons' hooks ask (docs/M6-plan.md; the rules are boonData.ts). The statuses, blows, spells,
+/* M6 step 5: what the school boons' hooks ask (docs/archive/M6-plan.md; the rules are boonData.ts). The statuses, blows, spells,
    pools and props that carry a boon out import this light module: a boon's rank and numbers, the statuses' tuning with
    the boons taken (`magicNow`), whether a fight is on, and how a boon shows it is at work (Nothing silent): its name rises
    where it acts, once a room, in its colour; a line says what it did the first time in a run; its school's note sounds.

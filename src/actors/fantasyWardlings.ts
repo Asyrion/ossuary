@@ -1,4 +1,4 @@
-/* M4.12 step 7 (docs/M4.12-plan.md): the six Wardlings (let out of a drinking ward, one for each school) redone as ward
+/* M4.12 step 7 (docs/archive/M4.12-plan.md): the six Wardlings (let out of a drinking ward, one for each school) redone as ward
    cores: a faceted crystal heart with one slit eye, in a cage of turning runes, in its school's light. Each keeps the old
    look's parts (`body`, which its fight swells, and `light`) and about its height. */
 import * as THREE from 'three';

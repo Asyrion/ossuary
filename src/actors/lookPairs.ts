@@ -1,4 +1,4 @@
-/* M4.12 (docs/M4.12-plan.md): the old and new looks of the foes side by side, for the owner to compare and approve (the
+/* M4.12 (docs/archive/M4.12-plan.md): the old and new looks of the foes side by side, for the owner to compare and approve (the
    Galleries tab, `__game.lookPairs(floor)`), and the contract a new look keeps (`lookContract`, read by a browser test):
    every part its behaviour moves, by the old look's names, and about the old look's height. */
 import * as THREE from 'three';

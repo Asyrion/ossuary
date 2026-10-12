@@ -1,4 +1,4 @@
-/* M6 RPG growth: insight (the GDD's XP) and levels, the pure rules (docs/M6-plan.md; unit-tested). Insight comes from
+/* M6 RPG growth: insight (the GDD's XP) and levels, the pure rules (docs/archive/M6-plan.md; unit-tested). Insight comes from
    foes put to rest (each a purse fixed when it is made: its health ÷ `foeDiv`, paid once as it falls), a room's first
    clear, a boss, a potion's kind first used in a run and the Grave Draught. Nothing that can be farmed pays: a nest's
    brood, a golem's stones, a boss's helpers and the dummies carry no purse of their own. Tuning in `CFG.levels`, each

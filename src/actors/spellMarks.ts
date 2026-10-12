@@ -1,4 +1,4 @@
-/* Spell marks (M4.11, docs/M4.11-plan.md; GDD: Spells, Spell marks): the mage's spells and what they know, shown on them.
+/* Spell marks (M4.11, docs/archive/M4.11-plan.md; GDD: Spells, Spell marks): the mage's spells and what they know, shown on them.
    The rules are magic/marksData.ts; this is the look, moved each step (`updateSpellMarks`, from heroVisual).
 
    - A spell in hand: each slot's spell as a small light in its school's colour at a hand (Q at the casting hand, E at the

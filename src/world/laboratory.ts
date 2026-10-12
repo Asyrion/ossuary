@@ -1,4 +1,4 @@
-/* Dr. Jelly's laboratory (M5 step 6, docs/M5-plan.md; GDD: Potions and alchemy): a special room on floors 1 and 3. The
+/* Dr. Jelly's laboratory (M5 step 6, docs/archive/M5-plan.md; GDD: Potions and alchemy): a special room on floors 1 and 3. The
    alchemy table stands in the middle, facing the way in, and Dr. Jelly behind it; the vat window is on the north wall,
    the jelly serpent coiled behind its glass (M5 step 7 lets it out). Walking up to the table opens it (ui/alchemyTable.ts:
    brewing, items/brewing.ts), walking up to Dr. Jelly opens it at the recipes he sells; it opens again only after the

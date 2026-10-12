@@ -1,4 +1,4 @@
-/* M4.12 step 8 (docs/M4.12-plan.md): the bosses' eight cute looks redone as creatures of fantasy, by the rules of
+/* M4.12 step 8 (docs/archive/M4.12-plan.md): the bosses' eight cute looks redone as creatures of fantasy, by the rules of
    fantasyFloor1.ts, approved by the owner (2026-10-03) and worn since: each keeps its fight, the parts the fight moves (by
    the old look's names: `eye`, `ring`, `halo` and a boss's own) and about its height; each faces +Z and stands on y = 0;
    no round googly eyes; the school in the body. The Hollow Warden's three were redone and the owner chose the Owlbear

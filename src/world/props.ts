@@ -1,4 +1,4 @@
-/* The rooms' objects in play (M3.6, docs/M3.6-plan.md): bone piles, skull heaps, grave sacks, oil casks, rubble,
+/* The rooms' objects in play (M3.6, docs/archive/M3.6-plan.md): bone piles, skull heaps, grave sacks, oil casks, rubble,
    grave roots, thorn briars, cobwebs, glowcaps and pews. What each is and how it blocks is in propData.ts; this is
    how they look and what the mage's magic does to them:
    - a bolt breaks bone piles, skull heaps (two), grave sacks, oil casks and glowcaps; a glyph's blast breaks those,

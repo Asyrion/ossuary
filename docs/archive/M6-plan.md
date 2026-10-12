@@ -5,7 +5,7 @@ built, steps 1 to 13 (2026-10-04), and closed on GitHub.** GDD: RPG progression,
 system, Runes; Core loop, Game loop changes for the magic RPG (the pacing target); Pickups and room types (the rune, the
 shrine's bargain, the waystone); the roadmap's M6 row ("XP, levels, attributes, 12 boons, runes and waystones").
 
-The owner's ask (2026-10-02): "Start with M6: read the GDD's M6 parts, write docs/M6-plan.md, and show me the plan before
+The owner's ask (2026-10-02): "Start with M6: read the GDD's M6 parts, write docs/archive/M6-plan.md, and show me the plan before
 building." M6 is growth you can feel inside a run. Foes put to rest, rooms won and potions found give insight (the GDD's
 XP); each level up to 12 brings an attribute point and a choice of one boon from three; runes are carved into spells at a
 waystone after each boss; and the shrine opens its heart-for-boon bargain. All of it lasts one run and is lost at death.

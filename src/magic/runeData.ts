@@ -1,4 +1,4 @@
-/* M6 step 7: runes, as rules (docs/M6-plan.md, decisions 9 and 10; GDD: Magic system, Runes). Pure, unit-tested; the game
+/* M6 step 7: runes, as rules (docs/archive/M6-plan.md, decisions 9 and 10; GDD: Magic system, Runes). Pure, unit-tested; the game
    side is magic/runes.ts. Seven runes in data/runes.json, each fitting a spell by its shape (not by tags): Thrice, Reprise,
    Seeking, Wide, Quicken, Vein and Lasting. A slot's socket holds one (two with Second Socket, never the same rune twice);
    `runedDef` is the spell as its runes make it for one cast (a frozen copy, the base def itself with none), read through

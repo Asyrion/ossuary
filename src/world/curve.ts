@@ -1,4 +1,4 @@
-/* The curve (M4.9, docs/M4.9-plan.md; GDD: M4.9 as built): what a floor's foes are weak to leans its pages (the library's
+/* The curve (M4.9, docs/archive/M4.9-plan.md; GDD: M4.9 as built): what a floor's foes are weak to leans its pages (the library's
    lecterns, a page a boss or a fight drops) to those schools while the mage holds none of them, and a floor that walls off
    the one school the mage carries says so as the mage arrives. The rules are pure, in actors/foeData.ts. */
 import { G, player } from '../state';

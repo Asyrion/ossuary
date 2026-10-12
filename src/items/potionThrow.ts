@@ -1,4 +1,4 @@
-/* A potion thrown (M5, docs/M5-plan.md; GDD: Potions and alchemy): the bottle arcs to where the mage aims and shatters in
+/* A potion thrown (M5, docs/archive/M5-plan.md; GDD: Potions and alchemy): the bottle arcs to where the mage aims and shatters in
    a splash. Its throw effect lands through the hooks the spells use (fireAt, frostAt, shockAt, hallowAt, umbralAt and
    inflict), so a splash lights oil, freezes water, wakes mechanisms and sets off reactions like any spell. While the
    potion key is held a ring shows where it will land. The Grave Draught's thrall, a skeleton that fights for the mage

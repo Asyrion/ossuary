@@ -1,4 +1,4 @@
-/* Asyrion's arc (M4.6, docs/M4.6-plan.md; GDD: Artifacts, Asyrion's arc): the chaos mage's pieces, which arrive as the mage
+/* Asyrion's arc (M4.6, docs/archive/M4.6-plan.md; GDD: Artifacts, Asyrion's arc): the chaos mage's pieces, which arrive as the mage
    holds more artifacts (costumeData.ts's ARC_PIECES, the stage from items/arc.ts), each in a slot nothing else holds. Built
    for the body like the other pieces and moved by costume.ts as they mark: `float` (on the model, not a bone), `spin`,
    `follow` (placed at a wrist each step, upright). */

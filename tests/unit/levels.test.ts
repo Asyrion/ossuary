@@ -8,7 +8,7 @@ import { championIndex, fillRoles, packCount, packRoll } from '../../src/world/f
 import { FOES } from '../../src/actors/foeData';
 import { LEVEL_CAP, bossInsight, clearInsight, insightAt, levelAtFloor, levelFor, levelProgress, potionInsight, purseOf } from '../../src/progression/levelData';
 
-/* M6 step 1: insight and levels (docs/M6-plan.md). */
+/* M6 step 1: insight and levels (docs/archive/M6-plan.md). */
 
 describe('levels', () => {
   const at = CFG.levels.at;

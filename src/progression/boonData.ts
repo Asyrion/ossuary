@@ -1,4 +1,4 @@
-/* M6 step 3: boons as data, and the deal (docs/M6-plan.md; GDD: RPG progression, Boons), the pure rules (unit-tested).
+/* M6 step 3: boons as data, and the deal (docs/archive/M6-plan.md; GDD: RPG progression, Boons), the pure rules (unit-tested).
    Eighteen boons in data/boons.json: two for each school, each taken up to twice (its second rank grown, `rank2`), and six
    general ones (Tempered again and again, Second Socket twice). A level deals three: one general always, so the deal
    never runs dry, and two leaning to the build (each school weighted by its spells in the slots, its casts this run, its

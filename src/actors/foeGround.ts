@@ -1,4 +1,4 @@
-/* Foes in each other's ground (M4.7 step 2, docs/M4.7-plan.md; GDD: Depth for what's built). What the bestiary leaves on
+/* Foes in each other's ground (M4.7 step 2, docs/archive/M4.7-plan.md; GDD: Depth for what's built). What the bestiary leaves on
    the floor works on foes as it does on the mage: webs and ink slow a walker, rime makes it slide, burning ground sets it
    burning, an armed spark shocks it, a Sporeling's or a Puffcap's spores sting it. A foe's own ground spares it and its
    kind (each patch, fire, spark and cloud knows whose it is: actors/acting.ts), and a foe is at home in ground of its own

@@ -1,4 +1,4 @@
-/* The foes built in code (M4, docs/M4-plan.md): what each is, as data (data/foes.json), and the pure rules about them.
+/* The foes built in code (M4, docs/archive/M4-plan.md): what each is, as data (data/foes.json), and the pure rules about them.
    Each has a floor, a school, a weakness and a resistance (+50% and −50% from damage of that school; GDD: Enemy
    affinities), health before the floor's `enemyHp`, its size and speed, what it costs on contact, whether it flies, and
    a behaviour with its parameters (actors/foes.ts). Its look is the model option of the same id (actors/modelOptions.ts).

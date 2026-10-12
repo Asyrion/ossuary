@@ -1,4 +1,4 @@
-/* The bestiary (M4.5, docs/M4.5-plan.md): thirty-five creatures for the owner to see before they become foes. The first
+/* The bestiary (M4.5, docs/archive/M4.5-plan.md): thirty-five creatures for the owner to see before they become foes. The first
    drafts were small round critters with big eyes; the owner asked for fantasy animals and creatures that read at a glance
    as what they are, fierce rather than cute, at their real size, and no undead (2026-10-01). The looks are built in
    bestiaryBeasts.ts (animals of the dungeon), bestiaryCreatures.ts (creatures of myth) and bestiaryElementals.ts (golems

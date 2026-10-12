@@ -14,7 +14,7 @@ report. Start by reading `CLAUDE.md` in full; it holds the rules, and it wins ov
 The caller gives a range, usually `origin/main...HEAD`. Run `git fetch origin main -q`, then the checks script first:
 `npm run review-checks -- <range>` (add `--no-tests` when the caller says the typecheck and unit tests have just
 run). It lists, per rule below, the lines a script can flag (commit trailers and model names, scratch files, JSON,
-strings in code, numbers in logic, unshared materials, new hooks and files missing from CLAUDE.md, the dev menu,
+strings in code, numbers in logic, unshared materials, new hooks and files missing from docs/architecture.md, the dev menu,
 tests that depend on luck, new lore to read), the typecheck and unit test results, and the source files changed.
 
 Then read, and no more than you need:
@@ -46,11 +46,12 @@ Don't run the browser suite unless asked; it takes minutes.
 8. **Tests:** new pure rules get unit tests (Vitest, `tests/unit/`); new behaviour in the browser gets a
    Playwright test in `tests/e2e/smoke.spec.ts` or a reason why not. Tests don't depend on luck (a random pick
    that can fail one time in eight is a bug, as the bone altar test once was).
-9. **Docs:** `CLAUDE.md` says where new things are (files, hooks, URL options); the GDD holds the design; the
-   milestone plan (`docs/M*-plan.md`) marks what is built. Data files stay valid JSON (no `.5`, no trailing commas).
+9. **Docs:** `docs/architecture.md` says where new things are (files, hooks, URL options); the GDD holds the design;
+   the plan in force (`docs/RESET-plan.md`, or a milestone's `docs/M*-plan.md`) marks what is built, and
+   `docs/STATUS.md` says where things stand. Data files stay valid JSON (no `.5`, no trailing commas).
 10. **Commits:** messages end with the `Co-Authored-By` and `Claude-Session` lines, carry no model names or ids,
     and no scratch files (`*.tmp.*`) or screenshots are committed.
-11. **Dev hooks:** new hooks on `window.__game` are documented in `CLAUDE.md`'s hooks paragraph.
+11. **Dev hooks:** new hooks on `window.__game` are documented in `docs/architecture.md` (Dev hooks and URL options).
 12. **Obvious bugs:** read the diff adversarially for what would break: import cycles that evaluate at load time,
     state that isn't reset between runs or floors (`clearEntities`, `newRun`), things that only work in the room
     where they were made, timers on wall-clock time where the game uses simulation time (`after()`).

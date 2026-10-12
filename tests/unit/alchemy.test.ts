@@ -3,7 +3,7 @@ import { BOTTLE_SHAPES, COMMON_REAGENTS, POTIONS, POTION_IDS, RECIPES, REAGENT_I
 import { Rng } from '../../src/rng';
 import { LOOT, priceOf, rollWares } from '../../src/items/loot';
 
-// M5 (docs/M5-plan.md; GDD: Potions and alchemy): the potions, reagents and recipes as data
+// M5 (docs/archive/M5-plan.md; GDD: Potions and alchemy): the potions, reagents and recipes as data
 describe('alchemy', () => {
   it('the data is whole: twelve potions, seven reagents, every potion but the failed brew has a recipe', () => {
     expect(validateAlchemy()).toEqual([]);

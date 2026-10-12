@@ -1,4 +1,4 @@
-/* The foes built in code (M4, docs/M4-plan.md): each is its model option (modelOptions.ts) made a foe. Its still parts
+/* The foes built in code (M4, docs/archive/M4-plan.md): each is its model option (modelOptions.ts) made a foe. Its still parts
    are merged (render/rig.ts), its idle plays on its own clock (`at`: a frozen foe stops, a swelling one holds still), and
    its behaviour, by kind, moves it, telegraphs and attacks; a behaviour may pose the model's parts after the idle (a
    beetle's wing-cases, a mimic's lid). What every foe shares is here: the telegraph (its body glows in its school's

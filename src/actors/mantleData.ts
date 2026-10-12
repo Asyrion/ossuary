@@ -1,4 +1,4 @@
-/* Champion mantles (M4.7, docs/M4.7-plan.md; GDD: Depth for what's built), as rules on plain data: pure (no three.js),
+/* Champion mantles (M4.7, docs/archive/M4.7-plan.md; GDD: Depth for what's built), as rules on plain data: pure (no three.js),
    shared by the game (actors/mantles.ts) and the unit tests. A champion wears the mantle of one school, drawn from its
    floor's weights (`mantles` in data/floors.json); tuning in data/magic.json (`mantles`, `unbound`).
 

@@ -1,4 +1,4 @@
-/* The bestiary's foes (M4.5, docs/M4.5-plan.md): the behaviours of the thirty-five, floor by floor, on the same footing as
+/* The bestiary's foes (M4.5, docs/archive/M4.5-plan.md): the behaviours of the thirty-five, floor by floor, on the same footing as
    M4's (actors/foes.ts spreads them into its own; what each is lives in data/foes.json). What they leave on the ground
    and throw is in bestiaryGround.ts.
 

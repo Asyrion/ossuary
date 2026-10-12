@@ -1,5 +1,5 @@
 /* The bestiary's elementals (M4.5): golems and living elements, each made of what it is and touching the room as its
-   element does (docs/M4.5-plan.md). Each stands (or hovers) over y = 0 facing +Z and idles; parts a foe's behaviour will
+   element does (docs/archive/M4.5-plan.md). Each stands (or hovers) over y = 0 facing +Z and idles; parts a foe's behaviour will
    move are named in `parts`. */
 import * as THREE from 'three';
 import { glow } from '../render/materials';

@@ -1,4 +1,4 @@
-/* What the mage wears (M4.6, docs/M4.6-plan.md; GDD: Artifacts, Costumes and transformations): the pieces artifacts put
+/* What the mage wears (M4.6, docs/archive/M4.6-plan.md; GDD: Artifacts, Costumes and transformations): the pieces artifacts put
    on the mage's model, one per slot. Pure (no three.js): the slots, the pieces, and which of them show. The meshes are
    built and fitted in costume.ts.
 
@@ -75,7 +75,7 @@ export const arcStage = (held: number, at: readonly number[]) => at.filter(n => 
 /** What a level counts for toward the arc (M6 step 12): one artifact held for every `perLevels` levels gained. */
 export const levelsHeld = (level: number, perLevels: number) => Math.floor((level - 1) / perLevels);
 
-/** What each transformation's look puts on (M4.6; docs/M4.6-plan.md, The transformations): pieces built for it, or an
+/** What each transformation's look puts on (M4.6; docs/archive/M4.6-plan.md, The transformations): pieces built for it, or an
     artifact's own model carried somewhere (the Pilgrim's lantern). Over what the artifacts show in those slots. */
 export const TRANSFORM_LOOKS: Record<string, readonly (CostumeId | { at: CarrySpot; from: string })[]> = {
   pyromancer: ['flameCrown', 'emberSteps', 'aura'],

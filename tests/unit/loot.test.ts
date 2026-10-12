@@ -134,7 +134,7 @@ describe('economy', () => {
   });
 });
 
-/* M6 step 8: runes as things, rolled on the run's own stream beside the drops (docs/M6-plan.md, decision 10): half the
+/* M6 step 8: runes as things, rolled on the run's own stream beside the drops (docs/archive/M6-plan.md, decision 10): half the
    shops lay one as an extra ware, half the secret rooms without an artifact keep one, a gilded chest always lets one out
    beside its relic, and the Wandering Merchant (once a run at most, all but sure to come) carries one half the time; none
    on floor 5. With the waystones' four (step 9) a run finds five or six. */

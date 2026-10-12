@@ -1,4 +1,4 @@
-/* Jelly poured over a room's floor (M5 step 7, docs/M5-plan.md): which tiles a flood covers, spreading over open floor from
+/* Jelly poured over a room's floor (M5 step 7, docs/archive/M5-plan.md): which tiles a flood covers, spreading over open floor from
    where it pours in (the jelly serpent's vat, or round the serpent when it is a floor's boss). Pure (no three.js) and
    unit-tested; world/pools.ts makes the tiles a pool and actors/jellySerpent.ts pours it. */
 

@@ -1,4 +1,4 @@
-/* The room kit's doors, gates, niches and pilasters (M3.5 step 3; docs/M3.5-plan.md), built in code in the style of the
+/* The room kit's doors, gates, niches and pilasters (M3.5 step 3; docs/archive/M3.5-plan.md), built in code in the style of the
    spell effects (docs/effects.md), in the stone of the floor's walls (`stoneOf`):
    - a door: jambs of dressed blocks, a threshold of worn stone; through a tall north wall, a lintel and an arch of
      voussoirs crowning it above the wall's line, its keystone carrying what lies beyond (a horned skull for the boss,

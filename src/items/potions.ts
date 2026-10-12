@@ -1,4 +1,4 @@
-/* Potions in a run (M5, docs/M5-plan.md; GDD: Potions and alchemy): the belt the mage carries them in, the pouch of
+/* Potions in a run (M5, docs/archive/M5-plan.md; GDD: Potions and alchemy): the belt the mage carries them in, the pouch of
    reagents, which potions are known, and what each does drunk. Thrown, a potion flies and splashes (items/potionThrow.ts).
    The rules (what each potion is and does, the run's bottles, brewing) are data, read by the pure alchemyData.ts. What a
    drink leaves on the mage shows as a chip beside the mana bar (ui/afflictions.ts) for as long as it lasts. */

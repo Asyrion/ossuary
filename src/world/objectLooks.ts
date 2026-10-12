@@ -1,4 +1,4 @@
-/* The room kit's objects and piles (M3.5 step 3; docs/M3.5-plan.md): bone piles, skull heaps, grave sacks, oil casks,
+/* The room kit's objects and piles (M3.5 step 3; docs/archive/M3.5-plan.md): bone piles, skull heaps, grave sacks, oil casks,
    rubble, grave roots, thorn briars, cobwebs, glowcaps, scribes' desks, scroll heaps, pews and the dead tree, and the
    room's larger pieces: rocks (and a grotto's dripstone), pillars, tombs (and the embalmers' slabs), urns, the artifacts'
    pedestals and the bone altar. Built in code in the style of the spell effects (docs/effects.md): painted pieces merged

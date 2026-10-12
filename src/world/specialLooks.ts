@@ -1,4 +1,4 @@
-/* The special rooms' pieces in the room kit's style (M3.5 step 3; docs/M3.5-plan.md): the merchant's bound shade, the
+/* The special rooms' pieces in the room kit's style (M3.5 step 3; docs/archive/M3.5-plan.md): the merchant's bound shade, the
    library's lecterns and bookcases, the shrine's offering stones and the padlock on a vault's warded door. Built in code
    as the other objects are (objectLooks.ts): painted pieces merged into one mesh (`mergeStill`), with a touch of magic
    where it fits: the shade's hem fraying into ghost-light and the chains of ward light that bind it to its circle, its

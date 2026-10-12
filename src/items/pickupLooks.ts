@@ -1,4 +1,4 @@
-/* The pickups and containers in the room kit's style (M3.5 step 3; docs/M3.5-plan.md): hearts of blood with a glowing
+/* The pickups and containers in the room kit's style (M3.5 step 3; docs/archive/M3.5-plan.md): hearts of blood with a glowing
    face (a half one broken down the middle), an obol wearing the owner's coin face (2026-10-02; obolFace.ts) or, without
    one, stamped with a rune, a leather purse with a coin in its neck, a mana
    vial of blue grave-light, a bone key with a ward-blue stone in its bow, a glyph stone with its rune burning amber; an
