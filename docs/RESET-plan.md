@@ -22,7 +22,7 @@ closed by a play-test. The work drifted from proving a loop to adding systems.
 
 | Area | Finding |
 | --- | --- |
-| Status | Five places tell five stories: `CLAUDE.md` (a 9,200-character "Current state" line), `docs/HANDOFF.md` (dated 2026-10-04, says M7 is only planned), the GDD's roadmap, `README.md`, GitHub milestones. `main` lacks M6 steps 10 to 13 and M7 steps 1 and 2. |
+| Status | Five places tell five stories: `CLAUDE.md` (a 9,200-character "Current state" line), `docs/HANDOFF.md` (dated 2026-10-04, says M7 is only planned), the GDD's roadmap, `README.md`, GitHub milestones. `main` has M6 whole and M7 steps 1 and 2; **M7 steps 3 to 9 (21 commits, 140 files, built 2026-10-06 to 10-09) sit only on `claude/m7-descent-vigil-plan-8i27rp`**, never brought to `main` (found 2026-10-12, after the audit, which read `main`). |
 | `CLAUDE.md` | 1,016 lines, 121 KB: a changelog of every step, repeating the GDD and the plans. Every session pays for it in context, and the facts that matter are hard to find. |
 | Docs | GDD 1,860 lines; 20 milestone plans, 3,454 lines, all still in `docs/` beside the live ones. |
 | Code shape | 200 files, 36k lines. One mutable global (`G`, `player`) imported by 82 files; 70 files in one import cycle; simulation code imports the HUD (36 files). |
@@ -32,7 +32,7 @@ closed by a play-test. The work drifted from proving a loop to adding systems.
 | Tests | 285 unit tests (good). All 127 browser tests in one 5,222-line file, ~15 minutes, breaking whenever floor layouts change: most of the last 51 commits are flake fixes. No ESLint, no Prettier. |
 | Art direction | Tripo, then everything in code (2026-09-30), then Tripo creatures again (2026-10-05) that only stand in a gallery. Two owlbears. 12 MB of comparison GLBs shipped to Pages. `data/assets.json` loads nothing but coins. |
 | The look (screenshots of 2026-10-12) | Rooms read brown on brown (floor 1, 3) or grey-green (floor 2), low contrast, a third of the screen black. Foes built from primitives read as toys beside the room. The HUD is plain dark boxes. The mage is the best-looking thing on screen. |
-| Story | No dialogue system, no NPC who speaks, no story beats across runs. The narrative is the title, floor banners, four lines of Asyrion's arc and item lore. The owner's lore is split: four real pages in `docs/` (the two gates, the Huruhui, Boketto), the rest stubs, and ~45 more notes and three PDFs in `inspiration/EDA/` (60 MB tracked in git), with no index. |
+| Story | On `main`: no dialogue system, no NPC who speaks, no story beats across runs. On the M7 branch: daylight after Kaelith, one save (`ossuary.vigil`), the Vigil as a place, chained shades freed in runs, townspeople with dialogue, their gifts, bonds and powers, the unfolding, and thirteen of the owner's Tripo models (townspeople, the Ferryman, Dr. Jelly, Kaelith) animated in code. Steps 10 to 13 (the Great Circle and the Ferryman, echoes, the grimoire and the rest, the close) are not built. The narrative is the title, floor banners, four lines of Asyrion's arc and item lore. The owner's lore is split: four real pages in `docs/` (the two gates, the Huruhui, Boketto), the rest stubs, and ~45 more notes and three PDFs in `inspiration/EDA/` (60 MB tracked in git), with no index. |
 
 ## What Godot-Tamer brings (Asyrion/Godot-Tamer, read 2026-10-12)
 
@@ -100,7 +100,9 @@ cleaning, the look and the story.
 
 ### Phase 0: one baseline (small, now)
 
-1. Ship the branch to `main` so live, branches and docs start from the same game (the `ship` skill, when the owner says).
+1. Bring M7 steps 3 to 9 from `claude/m7-descent-vigil-plan-8i27rp` into this branch (one conflict, in
+   `tests/e2e/smoke.spec.ts`), run the suites, then ship to `main` (the `ship` skill, when the owner says), so live,
+   branches and docs start from the same game. Then delete the merged branches.
 2. The owner plays one full run and writes down the five things that bother most and the five that delight most.
    These steer Phases 3 to 5 more than any audit.
 3. Freeze features (the decisions were taken on 2026-10-12).
@@ -172,13 +174,15 @@ fast suite green in under 3 minutes, a week of CI without a flake fix.
    Asyrion goes down, what Kaelith sealed and why it matters, what the Wardens hid, what each school's magic remembers,
    the thresholds of knowledge that move the story, the acts across runs, the endings by the schools mastered. Who speaks: the Ferryman, Dr.
    Jelly, the Wandering Merchant, Fen-Nex, the freed shades, Kaelith. The open questions of the GDD answered or cut.
-2. **A dialogue and memory system:** lines and visions as data (`data/dialogue/*.json`), conditions on what the run
+2. **A dialogue and memory system**, grown from the one M7 step 7 built for the townspeople: lines and visions as data (`data/dialogue/*.json`), conditions on what the run
    and the past runs hold (bosses met, deaths, spells and reactions known, schools mastered, shades freed), triggered
    by talk and by magic (a cast into a seal, a reaction found, a page read), portraits from the art line, a box in the art bible's style.
    Every line in `strings.ts`'s spirit: one place, easy to rename.
 3. **Story in the run:** one beat a floor (a memory in the magic, a voice, a find), boss lines that change with history, the
    lore cards tied to the story bible.
-4. **The Vigil** (M7 Part B, re-planned on this base): the hub where the story is told between runs.
+4. **The Vigil** (M7 Part B, steps 5 to 9 built): reviewed against the story bible, its talk rewritten where the story
+   asks; steps 10 to 13 (the Great Circle and the Ferryman, echoes, the grimoire and the rest, the close) planned again
+   on this base.
 5. **Kaelith and the endings** (M7 Part A's daylight and the rest).
 
 *Done when:* five runs in a row each tell the player something new.
@@ -201,8 +205,8 @@ milestone closed by a play-test before the next one opens.
 ## GitHub milestones
 
 Each phase is a GitHub milestone (`npm run milestone -- list`): R0 One baseline, R1 Docs that tell the truth, R2 Code
-that is kept, R3 The look, R4 The story, R5 The vertical slice. M7 stays open: its Part A (the Seal, Kaelith, built)
-is kept, its Part B (the Vigil) is planned again inside R4, and it closes with R4. M8 waits behind R5.
+that is kept, R3 The look, R4 The story, R5 The vertical slice. M7 stays open: its steps 1 to 9 are built (3 to 9 on
+its branch until R0), steps 10 to 13 are planned again inside R4, and it closes with R4. M8 waits behind R5.
 
 ## New working agreements (proposed)
 
