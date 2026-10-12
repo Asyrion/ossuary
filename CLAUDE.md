@@ -1,1110 +1,141 @@
 # Ossuary: project brief for Claude Code
 
-Ossuary is a hobby desktop-browser game: a top-down roguelike in the style of The Binding of Isaac, set in
-the owner's fantasy world **Eda** (high fantasy turned dark, medieval). The mage is made in **Tripo3D**
-and exported as GLB; everything else is built in code (the owner's decision, 2026-09-30). The owner (Azyrion) designs; you build.
+Ossuary is a hobby desktop-browser game by Azyrion (the owner, who designs; you build): a top-down roguelite with RPG
+elements in the style of The Binding of Isaac, set in the owner's fantasy world **Eda** (high fantasy turned dark). Its
+identity is magic: spells, runes, artifacts, potions and the room itself react to each other. Azyrion, an apprentice mage,
+descends into the Wardens' vault beneath the Gate of Uzulim; between runs the mage wakes at the Vigil.
 
-**`docs/GDD.md` is the source of truth for game design.** Read the relevant section before starting a
-milestone; if this file disagrees with it on design, the GDD wins. `docs/ideas.md` is an idea bank of
-unscheduled designs (pickup families and more); an idea only counts once it moves into the GDD. Every
-system borrowed from Isaac gets a magic take (GDD: What separates Ossuary from an Isaac clone). The Tripo
-asset checklist lives in the owner's claude.ai project "Tripo3D-GameDev"; `docs/assets.md` is the repo's
-side of asset making: which tool for what (MidJourney, Tripo3D and other image models), the house style (one
-style reference in every image), budgets per kind of asset, the pipeline from image to game (the Tripo Studio
-routes, the owner by hand or Claude through the Tripo CLI, and the Aseprite route), and the asset log; its Sound
-section does the same for sound (sources and their licences, the house sound, specs, pipeline).
-`docs/effects.md` is the house style for magic effects (every spell's look, the schools' light, budgets, how to add one).
-When the owner hands over an asset, follow its pipeline and budgets. This file holds what you need to
-work in the repo.
+**Where things stand:** `docs/STATUS.md` (one page; GitHub milestones are the tracker of record). **The reset**
+(`docs/RESET-plan.md`, approved 2026-10-12) is the current plan, and a **feature freeze** holds until its phase R5: no new
+systems, only cleaning, the look and the story.
 
-## Current state: **The reset (approved 2026-10-12): `docs/RESET-plan.md` is the plan and comes before everything below; a feature freeze holds until its Phase 5.** Before it (history; `docs/HANDOFF.md` of 2026-10-04 is out of date, replaced by the reset plan): **M6 RPG growth built** (2026-10-04, steps 1 to 13, closed on GitHub; not shipped: the owner's play-test and ship when asked); **M7 Descent and the Vigil planned** (`docs/M7-plan.md`, approved 2026-10-05, the owner taking every recommendation: Kaelith first, in the Seal below floor 5, then the Vigil; Dust and obols carried home; all six of the Vigil's extras): step 1 built (the Seal below floor 5: a fixed level of three rooms, `fixedPlan`, its own kit, voice, soundscape and piece; floor 5's waystone room), step 2 built (Kaelith's fight in three phases; it wears the Winged Watcher, the owner's choice of 2026-10-06), shipped 2026-10-06, step 3 built (daylight: the shaft of light, the cave mouth at dawn, the end screen over it), step 4 built (the keeping: one save, `ossuary.vigil`, Dust and obols home, the run remembered), step 5 built (the Vigil as a place, planned with the owner 2026-10-08: three rooms, waking there after every run, the lectern, the six barred ways, the Ferryman's boat), step 6 built (chained shades: found about one a floor, their chains broken by school, freed to the Vigil or bound to help the next run), step 7 built (townspeople and dialogue, planned with the owner 2026-10-09: the freed stand round the Nave, walked up to they talk; their sheet with the owner), step 8 built (gifts, bonds and powers: what each townsperson gives freed and as its bond deepens, six powers for Dust, three quests, Lantern of Vigil and Soul Harvest), the owner's thirteen Tripo models animated in code and the townspeople standing in them (2026-10-09), step 9 built (the unfolding: six rooms behind the barred ways, opened by their school; the Cave Mouth over the valleys filling with what the freed build; the candle chapel's blessings for one descent; the garden of the dead's reagent), steps 10 to 13 (the Great Circle and the Ferryman's crossing, echoes, the grimoire and the rest, the close) wait for the reset's R4; `main` merged into the branch (the Chameleon Wyvern's work) on 2026-10-05; Soundscapes and music built at the owner's ask (2026-10-02, `docs/sound-plan.md`: every floor's soundscape and the special rooms', a piece per floor and the title's, made in code; the owner's listening next); M4.12 Fantasy foes built (`docs/archive/M4.12-plan.md`, the owner's ask of 2026-10-02: the cute and plain-animal foes redone as creatures of fantasy; every recommendation taken): step 1 built (the tools), step 2 built and approved (floor 1's ten, the owner's yes to all, 2026-10-02: worn in the game, their old builders deleted), step 3 built and approved (floor 2's six, `fantasyFloor2.ts`); step 4 built and approved (floor 3's four and the nest, `fantasyFloor3.ts`); step 5 built and approved (floor 4's five, `fantasyFloor4.ts`); step 6 built and approved (floor 5's seven, `fantasyFloor5.ts`: every floor's foes now); step 7 built and approved (the Wardlings as ward cores, `fantasyWardlings.ts`); step 8 built and approved (the bosses' eight looks, `fantasyBosses.ts`, 2026-10-03; the Warden wears the Owlbear, the owner's choice of its three); step 9 built (the close: names through STR, the GDD, the reviews, the sweep, balance): M4.12 built, the owner's play-test next; M6 RPG growth built (`docs/archive/M6-plan.md`, approved 2026-10-02 with four changes, the owner taking Claude's recommendations): step 1 built (insight and levels: purses, clears, bosses, potions, the streak to the hand, the HUD's strip and level), step 2 built (the four attributes: Vigor, Arcana, Will, Swiftness), steps 3 and 4 built (eighteen boons and the deal, the level-up screen), step 5 built (the twelve school boons at work), step 6 built (the general boons), step 7 built (runes on the cast: seven runes, sockets, the pips, the panel, the hands), step 8 built (runes as things: a pickup, a shop's extra ware, secret rooms, gilded chests and the Wanderer, the pouch in the Spells tab; planned with the owner 2026-10-03), step 9 built (the waystone: it rises where the boss fell, rests, offers a pair, carves and lifts runes, takes Second Socket's socket, reorders the belt; planned with the owner 2026-10-03), step 10 built (the waystone room beside the boss room, holding the way down; planned with the owner 2026-10-03), step 11 built (the shrine's bargain: a heart container for a boon of the school cast into its stone; planned with the owner 2026-10-03), step 12 built (levels count toward the arc, deeper starts at their level, and harder runs: three more rooms a floor, hearts half as likely, the dials raised; never tougher foes, the owner's rule), step 13 built (the close: the GDD as built, the reviews, the sweep, the frame cost, the screenshots, the suites); M4.1 built (two floors deeper, `docs/archive/M4.1-plan.md`, the owner's ask of 2026-09-30): steps 1 to 10 built (a run of five floors, the Gilded Reliquary and the Ferryman's Shore, each with its room kit, four foes and a boss built in code, the Hallowed Hart and the Deep Angler; Hallow and Umbral magic: six spells, Sanctified, Hex and Root, Eclipse and Blackfire; soul motes and the lodestone shard; twelve artifacts; two themes, the Gilded Treasury and the Ferry Landing); closed with the reviews, the GDD as built and a sweep of the rooms, and shipped; M4.2 Beneath the Gate under way (`docs/archive/M4.2-plan.md`, from the owner's Eda lore drop): step 1 built (the setting in the game's text: the title's `place`, the banners, the Warden, the end screen and some lore), step 2 built (watching statues and sapping obelisks), step 3 built (the drinking ward and the five Wardlings), step 4 built (rope bridges, currents and waterfalls, candle stands in water), step 5 built (the Wandering Merchant of Belerial), step 6 built (the War-Tiger), step 7 built (the Pillar Dragon), step 8 built (the Twin Guardians), step 9 built (Fen-Nex), closed with the reviews, the GDD as built and a sweep of the rooms, and shipped (2026-10-01); M4.5 Bestiary under way (`docs/archive/M4.5-plan.md`): the owner took all thirty-one and asked for four more and a redesign (2026-10-01: fantasy animals and creatures, readable, fierce, their real size, no undead); the thirty-five looks redone and approved by the owner, the foes made floor by floor: all five floors built, balanced by a bot's pass and reviewed, then a review at the owner's ask (2026-10-01: slows by their factor, one pack a room, no foe waiting for ever) that proposed M4.7 to M4.9; a code-built mage tried and reverted at the owner's ask (2026-10-01); the owner's answers to the review built (2026-10-01): what is done to the mage shown beside the mana bar, every build bringing the water foes up, Steam, and the Drowned Abbess and the Pyre Knight remade in code; M4.10 Weaves proposed; M4.7 Living foes approved and built the same day (`docs/archive/M4.7-plan.md`: champion mantles, foes in each other's ground, counters found and the inventory's Foes tab, rooms with a pair); M4.8 The full wheel built at the owner's ask (`docs/archive/M4.8-plan.md`: Searing, Prism, Verdict, Black Ice and Void Spark beside Steam, a shock through burning oil and a hex on holy ground, the book's wheel of reactions); M4.9 The curve built (`docs/archive/M4.9-plan.md`: pressure dials, pages leaning to a floor's weakness and a floor warning of the school it walls off, a hex's trail and Hallow's give-back, the sluice gate, `npm run balance`); M4.10 Weaves built (`docs/archive/M4.10-plan.md`: ten weaves, seven chains, the room's mechanisms joining in, weaves in the book); the owner's play-test next; M4.6 Costumes and transformations built (`docs/archive/M4.6-plan.md`, its decisions as proposed, the owner's review of the looks next: cut back to 19 artifacts worn on the mage (2026-10-02, only what is logical to wear), eight transformations with a look and a gift, Asyrion's arc in four stages), and every artifact to come decides how it shows (the owner's ask); M5 Alchemy built (`docs/archive/M5-plan.md`, 2026-10-01): steps 1 to 10 (the data, the potion belt, drinking and throwing, reagents, Dr. Jelly's laboratory and brewing, the jelly serpent, the Alchemist and its transformation, Verdant: the sixth school, its five reactions, three spells, the overgrown garden and Bloom Petal), closed with the reviews, the GDD as built and a sweep of the rooms; the owner's play-test next; the owner's coins (`inspiration/coins/`) made the obols' faces, Star and crystal worn and drawn on a fine layer at half-size pixels (2026-10-02, `docs/assets.md`: Coins); M4.11 Spell marks built at the owner's ask (`docs/archive/M4.11-plan.md`: the slotted spells at the hands with their state, attunement, a master's ring, the knowledge circle); one pixel for everything at the owner's ask (2026-10-01: the pixel look at the room kit's texel, the mage in pixel art, stepped glows, pixel-art icons); a bot pass over whole runs (`npm run balance -- runs`, `docs/balance-runs.md`) found wasp nests hidden behind pillars and two to a room, fixed; M4 built (enemies in code, `docs/archive/M4-plan.md`): the foe framework and all ten foes (every floor's fights, a boss's helpers, a vault's warden and the ossuary's rising bones are foes in code; the wisp and crypt hound gone, the rotling kept as a plain test foe) and the floor-1 boss built in code (three looks drawn up; since M4.12 the Owlbear, the owner's choice); the owner's play-test next; M3.5 signed off by the owner 2026-09-30 (the look, `docs/archive/M3.5-plan.md`): step 1 built (the asset pipeline's tooling), step 2 decided (the pixel look; at 1080 lines from the proof's play-test, at the room kit's texel since 2026-10-01, the owner's choice), step 3 under way: the room kit redone in code in the new style (the proof accepted 2026-09-30; variety built: three kinds of wall, floor, wall light and brazier per floor, drawn per room; every mechanism, object, door, niche and artifact rebuilt, the list done, then pickups, chests and the special rooms' pieces; the owner's review next); code over Tripo for everything but special models (the mage, bosses where wanted), decided 2026-09-30; every spell's effect redone in the new style (`docs/effects.md`); M4.5 Bestiary added (more creatures, ideas in `docs/ideas.md`); M3.7 spell knowledge built (`docs/archive/M3.7-plan.md`); M3.6 built (`docs/archive/M3.6-plan.md`: architecture, objects, themed rooms, mechanisms and the close); M3 done (see `docs/archive/M3-plan.md`; the play-tests of 2026-09-29 left its balance as it is); M2 done (`docs/archive/M2-plan.md`); M1 built (`docs/archive/M1-plan.md`)
+## The documents
 
-The prototype was ported to Vite + TypeScript (strict) + three.js r186 in M0; M1 turned it into
-generated three-floor runs. See `README.md` for scripts and deployment.
+| Document | What it is |
+| --- | --- |
+| `docs/STATUS.md` | Where the project stands and what is next. Update it when a phase or step finishes. |
+| `docs/RESET-plan.md` | The plan now: phases R0 to R5, the owner's decisions, the working agreements it adds. |
+| `docs/GDD.md` | **Source of truth for design.** Read its section before working on a system; it wins over this file on design. |
+| `docs/architecture.md` | What the code does and where: each system's files, data, tuning, hooks, and how to add one. |
+| `docs/lore/` | The owner's Eda lore, with an index. A name enters the game only once the GDD adopts it. |
+| `docs/playtest-notes.md` | What the owner finds in play, newest first. |
+| `docs/ideas.md` | Idea bank; an idea counts only once it moves into the GDD. |
+| `docs/assets.md`, `docs/creatures.md`, `docs/effects.md` | Asset pipeline and budgets, Tripo creatures, the house style for magic effects. |
+| `docs/M7-plan.md` | The open milestone's plan (steps 10 to 13 move into R4). Finished plans: `docs/archive/`. |
 
-- `src/`: the game, split as in the M0 layout. Plus `state.ts` (shared mutable state `G` and `player`,
-  and sim-time timers `after()`), `flow.ts` (game states, floor setup, room transitions, `warp`),
-  `loop.ts` (fixed 1/60 step), `strings.ts` (all player-facing text; HTML uses `data-s` keys) and
-  `types.ts`.
-- `src/actors/clipRoles.ts` and `src/actors/baseDetect.ts` hold the clip-name matching, hips-offset and
-  round-base tests with no three.js dependency; the game and `tools/prepare-asset.ts` both use them.
-- Runs are seeded (`src/rng.ts`: named streams per system). `src/world/generate.ts` builds each floor
-  (pure, unit-tested); `src/world/shapes.ts` defines room shapes (cells, tile mask, door slots);
-  `src/world/templates.ts` parses and validates room templates. `src/world/rooms.ts` traces walls along
-  any outline and cuts doors into them (M3.6: the pure `src/world/walls.ts` makes the walls a grid of wall tiles,
-  tall or low by where the floor lies, merged into boxes that never overlap; `src/world/dressing.ts` puts pilasters
-  and niches on the tall walls, from `wall.dress` in each floor's look; doors move along their cell edge by
-  `shift` on the planned door, chosen in `generate.ts` where both rooms' templates leave the lane clear, per floor
-  `doorShift`, and the dev menu's door switch moves all or none in new floors); the camera follows the mage in rooms larger than the view
-  (`cameraTargetFor`) and pulls back in multi-cell halls (`viewScaleFor`, `CFG.camHallView`); four
-  torch lights move to the torches nearest the mage. Content:
-  `data/floors.json` (room counts, difficulty weights, enemy health, altar and vault chances, which floors have
-  a shrine, the vault's warden, boss tuning and look per floor),
-  `data/templates/*.json` (room grids: `.` floor, `#` rock, `o` pit, `i` pillar, `=` stone tomb, `u` urn,
-  `$` rune-sealed urn, `~` water, `%` oil, the M3.6 objects `b k s c r t v : g p d e` (bone pile, skull heap, grave sacks,
-  oil cask, rubble, grave roots, thorn briar, cobwebs, glowcaps, pew, desk, scroll heap; M4.1: `h` offering heap, `m` moored boat; M4.2: `+` rope bridge) and mechanisms `f l a n y * q T`
-  (brazier, candle stand, bell, rune stone, lodestone, hanging censer, reliquary, dead tree; M4.2: `w` watching statue, `!` sapping obelisk, `L` candle stand in water; M4.9: `Z` sluice gate; M5: `J` jelly globe, in Dr. Jelly's laboratory, and `F` flowering plant, in the overgrown garden), `R W H` enemies, `B` boss; `x` wall: outside an L's missing corner, and
-  inside the shape to carve it (cut corners, bays, a pinched waist, a free-standing pier); ordeal templates list
-  their enemies per wave in `waves`; `special.json` holds ordeals, altars, merchants, vaults, secret rooms and shrines,
-  `shapes.json` the larger and narrow rooms) and
-  `data/artifacts.json` (foci, passive and cursed artifacts: stats, effects, pools, colours, icons; a cursed
-  artifact's price is its `curse`, which a shrine removes while halving the gift).
-- Artifacts: `src/items/artifactData.ts` (pure: data, `computeStats` combining, picking) and
-  `src/items/artifacts.ts` (pedestals, taking and focus swap, per-floor budget). The mage's stats are
-  `player.stats`, recomputed on every pickup (and cleansing: `player.cleansed`); read those, not `CFG.hero`,
-  for anything artifacts change.
-  The cantrip pipeline is in `src/combat/projectiles.ts` (fans, the serpent's weave, the tome's homing, strong
-  casts, split bolts, burning and chilling bolts); companions that artifacts bind (the Candle Moth, the Weeping Skull) in `src/combat/familiars.ts`; M4.2's Fen-Nex (the Rune of
-  Fen-Nex) in `src/combat/fennex.ts`: it keeps at the mage's heel, darts to bite, and grows a stage a floor from the floor it
-  was bound on (`G.run.fennexFrom`, `fennexStage`; the look from `fennexLook` in `modelOptions.ts`), breathing Ember in its
-  full shape; `__game.fennex`, `__game.growFennex()` and the dev menu's Mage tab grow it.
-  New artifacts are data plus, for a new mechanic, an `Effect` or stat key in `artifactData.ts`, a look in
-  `src/items/artifactLooks.ts` (its HUD icon is rendered from it) and a drawn icon in `hud.ts` for the room kit off (60
-  artifacts and the starting wand; more ideas in `docs/ideas.md`), and how it shows on the mage (the owner's ask,
-  2026-10-01; GDD: Artifacts, Costumes): a `costume` (a piece built for the body or a spot for its own model) only where
-  it is logical to wear the thing (the owner, 2026-10-02: the mage looked cluttered), `"none"` where it isn't, held as a
-  focus, or a line in `SHOWS_OTHERWISE` (costumeData.ts) saying what shows instead; the validator refuses an artifact that
-  hasn't decided. M4.1's twelve: the Pendulum of Hours (the `swing` path,
-  `curve` on a bolt) and the Lodestar Wand (`star`: bolts hang where their range ends), the Echo Stone (`echoed`), the Gilded
-  Halo (`haloed`) and the Hart's Antler in `projectiles.ts`; the Twin Vigil Candles and the Salt Circle from `player.still`,
-  drawn in `familiars.ts` (`saltHolds`, `__game.salt`); the Blood Moon Pendant (`bloodMoon()`), the Ossuary Choir
-  (`room.choir`), the Ferryman's Lantern, the Gravemonger's Contract and the Last Rite (`G.run.riteFloor`). The M3 ten reach into
-  magic: `spellDamageMul` and `killMana` stats (`damageEnemy`, `killEnemy`), `emberBolts`, `frostbite` and
-  `stormglass` on the cantrip, `thurible` on a burning death, `vigil` in `onRoomCleared`, `witchKnot` in
-  `spellCost` (`src/magic/cost.ts`), `noRegen` in `updateMagic`. An artifact's `gives`
-  hands over obols, keys or glyphs once, when it's taken. An artifact's `costume` puts a piece on the mage
-  (`src/actors/costume.ts`, the pure rules in `costumeData.ts`, fitting in `costumeFit.ts`): one piece per slot (head,
-  face, shoulders, back, hands, belt, feet, aura; the one taken last wins), hung from a bone of the rig so it follows every
-  clip, and fitted in the rest pose to the part of the body it covers; a static model wears it on the top of its
-  silhouette. `setHero` refits (`fitCostumes`), `refreshStats` dresses (`dress`). A `costume` names a piece built for the
-  body (`costumePieces.ts`: the hood, crowns, masks, manacles, boots) or a spot where the artifact's own model is carried
-  (`belt`, `back`, `shoulder`, `chest`, `wrist`); every focus is held in the casting hand (`castHandName`). A cursed piece
-  glows and weeps until cleansed, then takes its cleansed look. `__game.costume`, `costumeDetail`, `held`, `wear(id)`; the
-  dev menu's Costumes (Mage tab) tries any piece on, with a close-up (`DEV.closeUp`). The economy artifacts (step 6 of M2) reach into the
-  systems they bend: `freeVault` in `world/vault.ts`, `ferryman` in `flow.ts` (`onRoomCleared`), `glyphWard`
-  and `blastMul` in `combat/glyphs.ts`, `graveLantern` in `world/secret.ts` and the minimap, `pedlar` in
-  `items/merchant.ts`; the Miser's Purse's `obolDamage` makes `player.stats` depend on obols held, so
-  `giveResources` recomputes them when the hoard crosses a ten.
-- Magic (M3): spells are data in `data/spells.json` (school, shape, mana, cooldown, damage, statuses, params,
-  colour, icon, text, lore), read by the pure `src/magic/spellData.ts`; `src/magic/spells.ts` holds the two
-  slots (`player.spells`, Q and E, LB and RB), casting (aimed at the cast direction or `player.aim`), mana
-  (`player.mana`, `stats.maxMana`, regeneration from `CFG.mana`, 3 for each foe the cantrip puts to rest via the
-  foe's `lastHit`). Each `shape` is a function in `CAST` in `src/magic/shapes.ts` (the params it needs are in
-  `SHAPE_PARAMS`, checked by the validator), with what it leaves behind: the beam (Cinder Lance), the placed
-  seal and its burning ground (Pyre Seal), the shotgun (Rime Shards, spell bolts through `fireSpellBolt` in
-  `projectiles.ts`), the ice wall (Glacial Wall: boxes in `room.barriers`, which `blockers()` gives to all but the
-  mage's bolts and `updateShots` to foes' shots), the chain (Arc) and the self aura (Static Mantle:
-  `mantleShields` stops contact damage); M4.1 adds Hallow's and Umbral's: `zone` (Consecrate's holy ground), `smite`
-  (Judgement's pillar on the strongest foe), `orbit` (Wardlight's motes, which go with the mage and break shots; `wardLeft`),
-  `bolt` (Hex Bolt), `grasp` (Grasp of the Grave's hands) and `mark` (the Ferryman's Toll: `toll` on a foe gives mana for
-  blows in `damageEnemy`, and `payToll` in `killEnemy` pays an obol and spreads its hex). Seals and walls go when the mage leaves the room (`leaveRoomSpells`); spells
-  are refused in the merchant's shop. A new spell of a known shape is a new entry; a new shape is a function in
-  `CAST`. The HUD's mana bar and slots are in `hud.ts` (`renderSpells`, `spellIcon`).
-  Statuses (Burn, Chill with freeze, Shock; M4.1: Sanctified, Hex and Root, `SpellStatus`) and the reactions (Shatter,
-  Overload; M4.1: Eclipse, Hallow and Umbral, and Blackfire, Umbral and Ember; 2026-10-01: Steam, Ember and Frost) are rules in the pure
-  `src/magic/status.ts` (tuning in `data/magic.json`, unit-tested) carried out by `src/magic/statusFx.ts`
-  (`inflict(foe, status)`, looks, burn damage, the shock's leap, reactions, the eclipse's black sun); enemies read `canAct`
-  and `speedFactor`, `damageEnemy` applies `damageTakenMul` and the leap, and gives back mana for a hex (`spendHex`); a
-  sanctified foe can't be healed (`canHeal`). Steam's cloud is `src/magic/steam.ts` (`steamAt`, `inSteam`: a shooter in it
-  shoots wide in `spawnShot`; `steamBetween`: eyes and statues lose the mage across it); fire on frozen water, frost on
-  burning oil and fire on still water make it too (`pools.ts`), and over water it brings up what hides there (`hearGround`'s
-  `steam`; a glyph's blast is heard as `blast`, a shocked pool read in the behaviour: a hiding foe's `driven` hook, `drivenUp`
-  in `foes.ts`); `__game.steam` (the clouds in the room), `__game.steamAt(x, z)`, `__game.inSteam(x, z)`, the dev menu's "Steam ahead". Props and mechanisms hear only the elemental ones (`elemental()`). The training dummy (`dummy` in
-  `CFG.enemy`) never falls and shows its hits and statuses.
-  Soul motes (M4.1, `src/items/souls.ts`): `player.souls` (pale, black, hallowed) drawn after the hearts, taking a hit
-  before them (`guardHit` in `hurtPlayer`; which goes first is the pure `soulToLose` in `loot.ts`); a black one hexes the
-  room as it goes, a hallowed one mends half a heart at every floor's end (`hallowedMend` in `descend`), and a spell cast
-  short of mana burns one (`burnSoul` in `castSpell`). A floor's `souls` in `data/floors.json` weights them in all its loot
-  (`soulsHere`); a foe that falls deep in a hex leaves a black one (`CFG.souls`). The lodestone shard ends every cooldown and
-  gives mana. Taking an item and the merchant's refusals share `cantUse` and `useItem` (`pickups.ts`). `__game.souls`,
-  `__game.soul('black')`, `__game.hallowedMend()`; the dev menu's resources row gives them.
-  Grimoire pages and the library (a one-cell dead end on every floor) are in `src/magic/pages.ts`: `room.pages`
-  (lectern, shelf or loose), laid out on the library's first visit from the pure `pickPages` and `shelfPages`
-  (`spellData.ts`, the run's `pages` stream); a page with both slots full asks through `showPrompt` and a spell
-  key answers it (`answerPage`, before casting); spells given up go to `G.run.forgotten` and later libraries
-  sell them back (`grimoire` in `data/loot.json`). Bosses drop a page (`dropPage` in `onBossDead`), cleared rooms
-  rarely (`maybeDropPage`).
-  Spell knowledge (M3.7): how well the mage knows each spell, kept between runs. The pure rules are in
-  `src/magic/knowledge.ts` (stages seen, learned, used after `CFG.knowledge.usedCasts` casts, upgraded in M6; the
-  reactions a spell sets off, from its statuses); `src/magic/memory.ts` keeps them in `localStorage`
-  (`ossuary.knowledge`), fed by `learnSpell`, `castSpell` and a page's approach. `src/ui/spellPanel.ts` describes a
-  spell at its stage (`spellSheet`), for the panel over the nearest grimoire page (`updatePagePanel` in `pages.ts`,
-  over the page or beside it on its outer side) and the inventory's spells tab, a book by school with sealed entries
-  for spells not met. The dev menu's knowledge row knows every spell or forgets all; `__game.knowledge` reads every
-  stage, `__game.know(id, stage)` sets one, `__game.forgetKnowledge()` clears them, `__game.pagePanel` reads the panel.
-  Rooms react to magic through `src/world/pools.ts`: water (`~`) and oil (`%`) tiles joined into `room.pools`
-  (`poolGrid` per tile; a pool's and a pit's soft outline is blurred on the CPU, `softenCanvas` in `src/render/softEdge.ts`:
-  a canvas `blur()` filter, rasterised on a software GPU, held a floor's first frame for seconds). Anything elemental reports where it lands: `fireAt` (Burn, the lance, the seal, blasts)
-  lights oil and melts ice, `frostAt` (Chill, frost bolts, the ice wall) freezes water, `shockAt` runs a shock
-  through a pool; `inflict` calls `touchPools` for every status on a foe standing in one. `wadeAt` slows the mage
-  and walkers in unfrozen water. The drowned floor grows puddles in its fights (`growPuddles`). M4.2: a template's `current`
-  makes its water run (`room.flow`: it carries the mage, walkers, bolts, shots and pickups downstream, `CFG.flow`; frozen,
-  it stops), fed by a waterfall where it leaves the wall upstream (`buildFalls`); `__game.flow` reads it. A rope bridge
-  (`+`) lies over a chasm until fire burns it through (`openChasm`: a foe on it falls, the mage takes a heart's fall).
-- Objects (M3.6): what each is, its letter and how it blocks (tall: `rocks`; low: `room.lows`, walking only, unless a
-  bolt breaks it; soft: `room.soft`, walked into) are in the pure `src/world/propData.ts`; looks and behaviour in
-  `src/world/props.ts` (the room kit's looks in `objectLooks.ts`; `strikeProp` from bolts and blasts, `blastProps`, `burnPropsAt` from `fireAt`, a cask's
-  `addPool`, glowcap spores, `snagAt` for cobwebs, briar stings in `updateProps`), tuning in `CFG.props`, the
-  poorer loot in `remains` and `bundle` (`data/loot.json`). Each object's still meshes are merged by material when it is
-  built (`mergeStill` in `render/materials.ts`; its `userData.parts` stay apart), so an object costs 2 to 5 draw calls.
-  `__game.prop('cask')` puts one down, `__game.props` and
-  `__game.spores` read them, `__game.burn(x, z, r)` sets fire there; the dev menu has a row of them.
-- Mechanisms (M3.6): objects that answer to magic with more than breaking (`MECHANISMS` in `propData.ts`); their looks
-  and what they do are in `src/world/mechanisms.ts`, tuning in `CFG.mech`. They hear the same hooks as everything
-  else: `elementAt(kind, x, z, r)` from `fireAt`, `frostAt`, `shockAt` and `touchPools` (braziers and candle stands
-  light, rune stones take a school, lodestones leap), `strikeMechanism` from `strikeProp` (a bolt with its status, or
-  a blast: bells ring, candles are knocked over), `boltThrough` from `updateBolts` (a lit brazier sets a bolt
-  alight, a bolt cuts a censer's chain). M4.2's two from the Eda lore: the watching statue (`updateStatue`: in sight while a
-  fight lasts it charges, marks the mage's spot and strikes it with a ray; a hex blinds it, through `umbralAt` or a bolt
-  carrying one) and the sapping obelisk (`updateSapping`: its field halves the cantrip, `sapMul`, and drains mana until its
-  ward's school lands on it; `ward` and `broken` on the prop); bolts carry every status to what they strike. Every candle stand in a room lit (`room.candlesLit`) opens its reliquaries,
-  lifts a dark room and, in a chapel, blesses the next casts (`player.blessed`, in `spawnBolt`); with every stand knocked
-  over by blasts, only the reliquaries open. The frozen
-  mausoleum's twist (`rime`) entombs its foes in ice (`entombed` on a foe, freed by a hit or fire), freezes its water,
-  charges its rune stones with frost (`chargeRunes`) and lets the mage slide; an ossuary's skull niches watch (`watchers` on a theme; `skullsWatch` from `castSpell`).
-  `__game.element('burn' | 'chill' | 'shock' | 'sanct' | 'hex', x, z)` lands a status there, as the dev menu's Fire, Frost,
-  Shock, Holy light and Darkness buttons do; `__game.props` reads `lit`, `school` and `cd` too (and a statue's `charge`,
-  `blind` and `aiming`, an obelisk's `ward` and `broken`, a sluice's `open`, a brazier's `black`), `__game.sap` the cantrip's worth where the mage stands.
-- Themed rooms (M3.6): themes are data in `data/themes.json` (look changes, floor scatter, a twist, rock and tomb looks),
-  read by the pure `src/world/themeData.ts` (`themedLook`, `validateThemes`); a template's `theme` makes it a themed
-  room (all in `data/templates/themed.json`); floors draw on them with `themeChance` and `themes` in
-  `data/floors.json`, picked in `assignTemplates`. `src/world/themes.ts` scatters the dressing (`dressTheme`) and runs
-  the twists: sleepers (`asleep` on a foe; a hit or the mage coming close wakes it), rising bones, pages in scroll
-  heaps (`scrollsBroken`), the cave-in on a blast (`caveIn`), and with mechanisms the chapel's blessing and the
-  mausoleum's rime; M4.1's treasury guardians (`statue` on a foe, woken by `goldTaken` when an obol is taken there) and
-  the landing's drowned (floor foes climbing out of its river until it freezes); tuning in `CFG.themes`. M4.1's objects:
-  the offering heap `h` (a blast spills its obols, the `hoard` table) and the moored boat `m` (a run of letters is one
-  boat, as pews are). `?theme=ossuary` makes every
-  fight one theme's; the dev menu lists a test room of each.
-- Sound (`src/audio/sfx.ts`, synthesised placeholders): an effects bus and an interface bus (`UI_SOUNDS`) under a
-  master, set by the pause menu's sliders and remembered in the browser. Play an effect where it happens with
-  `Sfx.at(x, z).blast()`: panned from the mage (`Sfx.listen` every step) and quieter further off. New sounds go in
-  `sounds`, in their school's palette for magic.
-  Soundscapes and music (2026-10-02, `docs/sound-plan.md`; GDD: Audio design, Soundscapes and music as built): two more
-  buses, music and ambience (`Sfx.buses`, with sliders). The instruments are `src/audio/synth.ts`, on any audio context
-  (noise loops, the space's impulse, the plucked string, the bell, the drum rendered once a note; stream, crackle and
-  shore loops made in a ring; the choir, drones and bowed notes live). The soundscapes are data in `data/ambience.json`
-  (each floor's space, bed and one-shots; rooms and themes over them; pure `src/audio/ambienceData.ts`), played by
-  `src/audio/ambience.ts` (`AmbienceMix`, `ScapePlayer`, `SpaceNode`), the one-shots in `ambienceShots.ts` (`SHOTS`). The
-  music is data in `data/music.json` (pieces, moods' stem levels), composed by the pure `src/audio/musicData.ts`
-  (`planBar`, `phrase`, `scaleUnder`) and played by `src/audio/music.ts` (`MusicPlayer`: stems, moods, `stinger`).
-  `src/audio/director.ts`'s `updateAudio`, from the loop, chooses them from the game (floor, room, doors locked, a boss
-  alive, `CFG.audio.lowHp`); it stays off under `window.__manual` (the browser tests) until `__game.audioOn()`. Offline:
-  `src/audio/render.ts` (`renderAudio`, `__game.renderAudio(ask)`) and `npm run render-audio` (`tools/render-audio.ts`;
-  needs a server; writes `audio-previews/`). The mix's numbers are `CFG.audio`. Dev menu: the Sound tab (any floor's soundscape, a room's or theme's over it, any piece in any mood,
-  the stingers, a 40 s WAV of what is chosen); `__game.audio`, `forceAudio(f)`. A new one-shot is a kind in `SHOT_KINDS`
-  and a recipe in `SHOTS`; a new piece an entry in data/music.json.
-- Tests: `npm run test:unit` (Vitest: generator rules on hundreds of seeds, every template validated),
-  `npm run test:e2e` (Playwright smoke tests, every test on its own: `fullyParallel`, half the cores locally, two workers
-  a CI runner), `npm test` runs both. CI (`.github/workflows/deploy.yml`, 2026-10-12): `build` (typecheck, unit tests,
-  build) and three `e2e` shards side by side; on `main` the deploy waits for `build` only.
-- URL options: `?seed=K3F9QX` replays a run's floors, `?floor=2` starts deeper, `?room=<template id>`
-  plays one template (for reviewing rooms), `?variant=dark` dresses it in a room variant (quiet,
-  champion, ambush, dark), `?give=bone_lens,twin_staff` starts with artifacts, `?boss=pyre` makes
-  every floor's boss that one (warden, abbess, pyre, hart, angler, tiger, dragon, twins, serpent, kaelith), `?loot=coins:20,keys:2,glyphs:5` hands out obols,
-  keys and glyphs, `?spells=arc` starts with spells in the slots, `?potions=healing,hexBrew` with potions in the belt (M5), `?level=5` starts at that level (M6; `?level=auto` at the `?floor`'s expected level), `?vigil=1` starts at the Vigil (`?vigil=first`: its first waking; M7), `?boons=deepWinter:2,coldSnap` with boons taken (M6), `?runes=q:quicken,e:lasting+vein` carves runes into the slots (M6), `?looks=new` dresses every foe in its new look, approved or not (`old`: the old looks still waiting; M4.12), `?theme=ossuary` puts every fight in one theme's rooms, `?foe=sporeling` fills every fight with one foe in code, `?assets=off` keeps every placeholder, `?assets=/tests/fixtures/assets/assets.json` loads the stand-in assets and `?pixel=off` turns the pixel look off (`?pixel=texel`, the default, or `fine`, or `1080`, `720`, `540`, `360` or `270` sets its grid), `?kit=old` builds the rooms in the old look (before the room kit). `?room=merchant_plain`, `?room=vault_urns` and `?room=secret_cell` put a shop, a sealed
-  vault, a secret room (behind a cracked wall), a shrine (`?room=shrine_henge`) or a library
-  (`?room=library_plain`) or Dr. Jelly's laboratory (`?room=lab_plain`) or a waystone room (`?room=waystone_plain`) next to the start.
-  `__game.map()` prints the floor, `__game.give(...ids)` hands out artifacts, `__game.loot({ glyphs: 3 })`
-  resources, `__game.drop('purse')` drops a pickup ahead of the mage, `__game.clearRoom()`
-  ends the current fight, `__game.openSecret()` breaks open the floor's secret room,
-  `__game.cleanse()` cleanses the oldest curse held at once, `__game.rite` reads the shrine's rite under way,
-  `__game.learn('arc', 0)`, `__game.cast(0)` and `__game.mana(50)` learn, cast and set mana,
-  `__game.spawn('dummy')` spawns a foe ahead of the mage, `__game.inflict({ chill: 1 })` statuses every foe,
-  `__game.shoot(x, z, dx, dz, o)` fires a foe's shot (`o`: `fire`, `chill`, `hex`), `__game.mantle` and `__game.ward` read the Static Mantle's and Wardlight's seconds left,
-  `__game.page()` drops a grimoire page, `__game.pages` and `__game.forgotten` read the room's pages and the
-  spells given up; `__game.cast(slot)` answers a page that asks, as the key does; `__game.pools` reads the room's
-  water and oil, `__game.pool('fire' | 'frost' | 'shock')` sets it alight, freezes or shocks it;
-  `__game.prop('brazier')` puts an object or mechanism down, `__game.props` reads them, `__game.burn(x, z, r)` sets
-  fire there and `__game.element('shock', x, z)` lands fire, frost or shock there; `__game.renderInfo()` reads the last
-  frame's draw calls and triangles, and the geometries and textures held; `__game.assets` reads the made assets and
-  their status, `__game.useAssets(false)` builds the floor again with the placeholders, `__game.showAssets()` puts
-  urns and a pedestal ahead of the mage; `__game.obolFace` and `__game.obolFaces` read the coin face the obols wear and
-  those they can, `__game.wearFace(id)` changes it, `__game.coinGallery()` and `__game.takeCoinGallery()` stand every
-  face ahead of the mage and take them away.
-- The minimap (`renderMinimap` in hud.ts) marks finished rooms (2026-10-02, the owner's ask): `roomFinished` (been in, cleared, no pickup inside its bounds, no unopened container, artifact or page left), a shade darker and a small tick, redrawn when that changes (`watchFinished`); `DEV.mapFinished` (Rooms & runs) turns it off to compare; `__game.finished`.
-- Gamepads (`src/input/gamepad.ts`): every connected pad read together (sticks from the one pushed furthest, buttons from any), A begins from the title as Start does, A reaches the level-up screen and the alchemy table (`MENU_BUTTONS`), and a pad says by name when the browser first reports it (`initGamepad`, `STR.pad`); `__game.pads` and the dev menu's Gamepads (Rooms & runs) show what the browser reports.
-- M4.12 Fantasy foes (`docs/archive/M4.12-plan.md`): new looks go in `FANTASY_LOOKS` (`src/actors/fantasyLooks.ts`) by the look id they
-  replace and are worn once their id is in `APPROVED` (`DEV.foeLooks`: approved, new or old; `?looks=new`; the Look tab);
-  `src/actors/lookPairs.ts` stands old and new side by side (the Galleries tab, `__game.lookPairs(floor)`) and checks each
-  new look keeps its old look's moving parts and about its height (`lookContract`, a browser test); `npm run foe-sheet --
-  floor=1` shoots the pairs for the owner's review; `__game.foeLooks` reads the switch and `__game.lookContract()` the contract.
-  Each floor's looks are their own file (`fantasyFloor1.ts` to `fantasyFloor5.ts`, `FLOORn_LOOKS`; the Wardlings'
-  `fantasyWardlings.ts`). A foe's new look merges under its own key (`look + ':new'` in `buildFoe`) while its old one is
-  still there. The bosses' eight (approved 2026-10-03) are `fantasyBosses.ts`, built through the names the fights call
-  (`wardenLook`, `hartLook`, `anglerLook`, `tigerLook`, `dragonHead`, `serpentHead`); the boss tests hold them to their
-  fights. On the owner's yes a look's id goes into `APPROVED`, its old builder is
-  deleted (the galleries' entries build the new look; `lampwyrmSwarm` stands for the swarm) and `RETIRED` keeps the old
-  height and parts for the contract; the pairs and sheets show only the looks still waiting. Keep a new look's draw calls
-  near its old one's: parts that move apart (each mesh a surface its own) cost a call each, so move small repeated parts
-  (eyes, sacs, wings, arms) together, and pulse a glow rather than a material's colour (a changing surface stays unmerged).
-- Creatures made in Tripo and animated in code (the owner's experiment of 2026-10-03, the owlbear, called a success the same
-  day: **`docs/creatures.md` holds the findings and the guide for a new one**, and its handover message, which
-  the owner starts a new session with; `-- --bones <in.glb>` reads a new model's rig first).
-  The dragonling (2026-10-03, the owner's second, the size of a horse, 1.8 tiles, boss budget) is the recipe for a
-  model facing another way (`face`, `faceForward` in creatureRig.ts), on a two-legged rig and in a mid-stride pose (`STANCE`,
-  a leg's `toes`). Models come two ways (docs/creatures.md): straight from Tripo (`bone_N`, broken weights: `reskin`), or through
-  the owner's EDA-ModelWebViewer (github.com/Asyrion/EDA-ModelWebViewer: bones named, weights mended, sounds made as WAV
-  files). The Chameleon Wyvern (2026-10-05, the owner's third, a feathered wyvern the size of a pony, 1.4 tiles, boss budget; `tools/creatures/chameleon.ts`) is the recipe for the second way, whose weights are kept
-  (`SKIN` null, `REMAP`, `reskin`'s keeping path), for wings laid by direction (`rig.point`) and for a clip that turns round
-  (the root turned last, `place`'s `turn`); its growl, screech and tail slams are the viewer's sound files, the game's first
-  (`npm run prepare-sound`, `tools/prepare-sound.ts`; `data/sounds.json`, checked by `src/audio/soundData.ts`; `src/audio/samples.ts`: `fromFile` in creatureSounds.ts plays the file, the
-  synthesised sound its fallback; `__game.soundFiles()`), made again at 48 kHz from the viewer's recipe (it writes 22,050 Hz; `npm run viewer-sounds`, `tools/viewer-sounds.ts`). **Every Tripo model wears its texture as pixel art** (the owner's rule, 2026-10-05: the 2k painted
-  textures don't read at the game's size): `tools/texel-bake.ts` (`bakeModelFile`, run by animate-creature and
-  prepare-asset on every model they write; `npm run texel-bake -- <id>|all` or `-- <file.glb> <tiles>`) shrinks the game
-  file's texture to at least one texel a game pixel within each UV island, keeps its glowing markings, lifts its painted
-  shadows and cuts it to a palette (the pure `src/render/texelBake.ts`, `CFG.creatures.texel`) into `<file>.texel.png` and
-  `<file>.glow.png`, named as `texel` in data/creatures.json and on data/assets.json's models; `src/actors/texturePixel.ts` wears them
-  (`wearTexel`: creatures by default, `ossuary.creatureLook2`; made assets in models.ts, both looks kept on the shared
-  geometry, `setMadeLook` and the Look tab's "Made assets wear" switching the floor's to compare (what the mage holds or wears switches when it is next built), `__game.madeLook`, `__game.setMadeLook(l)`). The
-  mage keeps its vertex look, the owner's choice of 2026-10-05 after comparing them: its full mesh already carries its
-  detail, and the bake only added speckle. A unit test fails for any
-  creature or made model without them (tests/unit/texelBake.test.ts).
-  `npm run animate-creature -- owlbear <in.glb>`
-  (`tools/animate-creature.ts`) simplifies the mesh to its budget (`budget` per recipe, data/assets.json's kinds), turns the
-  patches Tripo left inside out (`orientOutward` in `tools/orientFaces.ts`: each face by the side its rays get out of the model
-  on; a look built from it is two-sided as Tripo's material is, `bakeHeroPixel` keeping the made material's `side`), binds its
-  skin again from the bones' segments (Tripo's auto-rig weights tore the limbs; `reskin` in `tools/creatureRig.ts`), bakes the
-  recipe's clips (`tools/creatures/<id>.ts`: which bone is which, the skin rules, `idle`, `walk` on two-bone IK with the paws
-  planted, `roar`) into `public/assets/creatures/<id>.glb`, pads the texture's islands (`padIslands` in `tools/padIslands.ts`:
-  Tripo leaves no gutter, so its seams bled), keeps the textures as imported in `<id>.full.glb` (the dev menu's comparison,
-  outside the budget), and writes each clip's length, loop and sound events (`loud` ones
-  louder) and the walk's speed to `data/creatures.json`. Its sounds are `src/audio/creatureSounds.ts` (`CREATURE_SOUNDS`,
-  played through `Sfx.place(x, z)`); in the game `src/actors/madeCreatures.ts` stands it in the pixel-art look (`bakeHeroPixel`),
-  walks a lap, turns to roar at the mage and rests, its sounds on its clips' events (tuning `CFG.creatures`); looks only, no
-  fight. `npm run creature-preview -- owlbear` (`tools/creature-preview.ts` and `.html`) renders a video with its sounds to
-  `creature-previews/`. Dev menu (Galleries): Animated creatures, with its look (pixel art from its texture, from its vertices, as made, as imported:
-  `setCreatureLook`, `ossuary.creatureLook2`; pixel art from its texture first); `__game.showCreature(id)`, `creatures` (each one's look and texture size),
-  `roarNow()`, `takeCreatures()`, `creatureLook`, `setCreatureLook(l)`.
-- The dev menu (`src/ui/devMenu.ts`; the key left of 1, or F2) pauses the game and does the same from
-  buttons, in seven tabs (Mage, Magic, Foes & objects, Rooms & runs, Look, Galleries, Sound; `TABS`, names in `STR.dev.tabs`, the
-  last one open remembered in the browser as `ossuary.devTab`; a new section goes on the page of the tab it belongs to): heal, god mode (`DEV.god` in `state.ts`), resources, drops, artifacts, foes, this floor's
-  special rooms (a sealed vault leads to its warded door), test rooms, boss fights and new runs, taking or
-  cleansing a curse, the clip the mage moves with, spells (into slot Q or E), a grimoire page and mana (full,
-  endless). Its lists come from the data, so new
-  artifacts, spells,
-  drops, room types and bosses show up by themselves; give a new room type a name in `STR.dev.roomNames`.
-- Lore cards (`src/ui/lore.ts`): picking something up shows its icon, name, kind, effect and lore in the
-  middle of the screen for 4 to 6 seconds (`CFG.lore`), soulslike but plainer. Artifacts every time (`lore` in `data/artifacts.json`, required by
-  the validator), items and containers the first time in a run (`STR.lore.items`, one for every drop). Anything
-  new the mage can take (spells in M3, potions in M5) gets lore and shows it through `showLore`. The lore is a
-  placeholder until the Eda lore arrives: keep it to the dungeon (chapel, crypts, sextons, pilgrims, the
-  Ferryman) and invent no gods, factions or places. Since the owner's lore drop (2026-09-30; GDD: Vision, Setting) it may
-  also name what the GDD adopted from it: the Gate of Uzulim and its Wardens, their vault, the Pass of Buluiain, Kaelith
-  the Shadow Sentinel, Asyrion (the mage), Belerial (where the Wandering Merchant comes from), Fen-Nex (Asyrion's
-  companion, the Rune Fox; the owner's ask of 2026-10-01) and Dr. Jelly (whose laboratory, the owner's Dr. Jelly's House,
-  the GDD adopted for M5); the rest of the owner's names wait for M8.
-- The inventory (`src/ui/inventory.ts`; I or Tab, the gamepad's View button, or the pause menu) pauses the game and
-  lists what the mage carries and knows in tabs: artifacts (with their stat changes and a curse's price), spells
-  (the two slots, then a book by school, M3.7), potions (M5: the belt, the pouch of reagents, every potion known), items (hearts, mana, soul motes, obols, keys, glyphs), the mage's own numbers
-  and (M4.7) the foes met, with what was found of them;
-  the chosen entry is described beside them. Arrows choose, Q and E (LB and RB) change tabs. Anything new the
-  mage can carry gets a tab or a place in one.
-- Made assets (M3.5, `docs/assets.md`): `data/assets.json` holds the budgets per kind and which file replaces which
-  placeholder (`props`: urn, pedestal; `artifacts` by id; `floors`: a look's painted tile; `icons` by id), read by
-  the pure `src/assets/assetData.ts`. `src/assets/models.ts` loads them at boot, before the first floor, and every use
-  shares the model's geometry and materials; a missing or broken file leaves the placeholder (a warning). The hooks
-  are `modelFor` in `addUrn` and `placeArtifact`, `makeArtifactVisual`, `floorTile` in `floorTexture` and `iconUrl` in
-  `artifactIcon`. `tools/prepare-asset.ts` (checks in `tools/assetReport.ts`) and `tools/prepare-texture.ts` (checks
-  in `tools/imageChecks.ts`, previews in `asset-previews/`) prepare the owner's files; `tools/make-standins.ts` makes
-  the stand-ins in `tests/fixtures/assets/` that the tests load. The dev menu's Made assets section lists them,
-  turns them off to compare, shows them ahead of the mage, and puts a frame readout on screen (`DEV.fps`).
-  Coin faces (2026-10-02, the owner's coins in `inspiration/coins/`): `coins` in `data/assets.json` (a face 48 across and
-  a 24 px icon each, from `prepare-texture --kind coin`, `coinCircle` in imageChecks.ts) and `obol`, the face the obols
-  wear (Star and crystal, the owner's choice); `src/items/obolFace.ts` (`obolFace`, the dev menu's choice kept as
-  `ossuary.obolFace`), `facedObol` in pickupLooks.ts (a coin `CFG.pickups.coinPixels` across tipped to the camera, put on
-  the pixel look's fine layer by `onFine`; a purse's coins wear the face with the purse), the icon in the HUD's counter
-  and the lore card (`coinIconBody` in hud.ts); the rune obol in code without one. Dev menu: "Obols wear" (Look tab, Made assets), Coin faces (Galleries);
-  `__game.obolFace`, `obolFaces`, `wearFace(id)`, `coinGallery()`.
-- Enemy model options (`src/actors/modelOptions.ts`, the owner's request; M4 makes them foes): ten critters and small
-  fantasy creatures built in code from simple shapes (round, big eyes from `bigEyes`, smaller than the mage; not the dead; since
-  M4.12 they wear the fantasy looks of `fantasyFloor1.ts` to `fantasyFloor5.ts` and `fantasyWardlings.ts`),
-  each with a school's light and a floor (GDD: Enemies built in code), looks only for now, each with an idle motion
-  (`updateModelOptions` in the loop); the dev menu stands them ahead of the mage in rows by floor, or takes them
-  away; `__game.modelOptions(ids?)`, `__game.takeModelOptions()`; names and notes in `STR.options`. Familiars built the
-  same way from the owner's drawings (`FAMILIAR_OPTIONS`: the Rune Fox, which is Fen-Nex, and its full shape) have their own dev menu section,
-  `__game.familiarOptions(ids?)`, names in `STR.familiars`. M4.5's bestiary (`src/actors/bestiaryLooks.ts`,
-  `BESTIARY_OPTIONS`: thirty-five, seven a floor; beasts in `bestiaryBeasts.ts`, creatures of myth in `bestiaryCreatures.ts`,
-  elementals and golems in `bestiaryElementals.ts`, from the parts in `beastParts.ts`: tapered tubes, jointed legs, feathered
-  and membrane wings, pincers, spikes, slit eyes) are the looks of M4.5's foes (below); the Galleries tab stands them in rows
-  by kind, turned to show their side, at their real size (a great hall holds them all: `?room=great_hall`; `showBestiary`,
-  `__game.bestiaryOptions(ids?)`), names and the fight each brings in `STR.bestiary`.
-- Foes in code (M4, `docs/archive/M4-plan.md`): the enemy model options made foes. What each is lives in `data/foes.json` (floor,
-  school, weakness and resistance, health, size, speed, contact, flying, elite, behaviour and its params, gib and stain
-  colours), read by the pure `src/actors/foeData.ts` (`validateFoes`, `BEHAVIOUR_PARAMS`, `affinityMul`, `pickFoe`,
-  `schoolOf`, unit-tested); its look is the model option of the same id. `src/actors/foes.ts` builds one (`buildFoe` from
-  `makeEnemy`: the model merged by `mergeRig` in `src/render/rig.ts`, which samples the idle to find the moving parts and
-  merges the still meshes within each, about 50 draw calls down to about 15) and runs it (`updateFoe`: a behaviour by
-  kind in `BEHAVIOURS`, the idle on the foe's own clock `at`; `poseFoe`: a telegraph's swell and glow in its school's
-  light, `tele`, and a hit's squash; a behaviour may `pose` the model's `parts` after the idle, and hears a `bump` into a
-  wall). The behaviours so far: `hopper` (Sporeling), `flutter` (Vesper Moth: lured by lit braziers and candle stands),
-  `charger` (Rune Beetle), `mimic` (Urn Mimic: placed beside the room's urns by `mimicSpot`, hidden until the mage comes
-  near, it is struck or nothing in the room is awake; `guard` halves blows while shut; its embers are shots with `fire`,
-  lighting what they pass); `leaper` (Mire Toad: breath of `chill` shots that freeze water they pass), `lurker` (Cistern
-  Lurker: hidden under water, `addPool`s its own where the room has none, trapped when it freezes), `drifter` (Lantern
-  Jelly: a pulse of light), `scurrier` (Cinder Salamander: burning ground, `updateFoeHazards`, one instanced glow),
-  `blinker` (Hex Imp: its `hex` shot drains mana), `drake` (Rime Drakeling, the elite: breath, flight, a frost ring); floor 4's
-  (M4.1): `scamper` (Wickmouse: cover to cover, a dart; its candle falls burning, a behaviour's `die` through `foeDied`),
-  `chimer` (Chime Bat: a closing ring marks the mage's spot, then a spark strikes it), `gargoyle` (Gargoyle Whelp: stone
-  that turns most of a blow, two pounces landing in frost), `healer` (Moonstag Fawn: keeps off, heals the hurt round it, a boss only a little, `bossShare`);
-  floor 5's: `burrower` (Rootling: a mound under the floor that bursts up under the mage; burning, it stays up), `glider`
-  (Storm Ray: passes laying sparks, `laySpark`, that arm and sting; `__game.sparkGround`), `absorber` (Void Mote: swallows
-  the cantrip through a behaviour's `struck` hook in `damageEnemy`, spills it back as a ring, then hangs open),
-  `shell` (Lantern Tortoise, the elite: hides, spins off the walls, lies dizzy); M4.2's `wardling` (the five Wardlings,
-  `wardEmber` to `wardUmbral`, floor 0: no floor's own, let out by a drinking ward). `__game.hit(i, dmg, school, by)`.
-  Templates' `R W H` are roles now: each floor fills them from `foes` in
-  `data/floors.json`, on the room's seed, one elite a room at most (`buildRoom`); `?foe=sporeling` (`DEV.foe`, the dev
-  menu's Fights switch) puts one foe in every fight. Damage carries a school (`damageEnemy`'s last argument: spells by
-  theirs, burns Ember, shocks and shocked pools Storm, bolts by the statuses they bring): a foe takes +50% from its
-  weakness and −50% from its resistance (`CFG.affinity`), and the first time the word rises (`STR.foes`); what the mage has found is kept
-  in `localStorage` (`ossuary.bestiary`, `src/actors/bestiary.ts`) for M7's bestiary. The mage's afflictions: `player.dim`
-  (a Sporeling's stinging spores, `addSpores` with `sting` in `props.ts`; `#dim` darkens round the mage), `player.chill`
-  (cold shots: slower by `CFG.afflict.chillSlow`, `#chill` frosts the rim) and a hex's drained mana, each only with a
-  blow that lands (`hurtPlayer` says whether it did). The dev menu's
-  Foes lists each floor's foes from the data; `__game.spawn('sporeling')`, `__game.hit(i, dmg, school)`,
-  `__game.bestiary`, `__game.forgetBestiary()`, `__game.burningGround`.
-- M4.5's bestiary as foes (`docs/archive/M4.5-plan.md`; all five floors built): behaviours in `src/actors/bestiaryFoes.ts`, spread
-  into `foes.ts`'s, written against `foeKit.ts` (`Behaviour`: a blow's direction reaches `struck`, a glyph's blast `blasted`,
-  a status landing `afflicted`, from `inflict` through `foeAfflicted`, even while it can't act).
-  Floor 1's: `dropper` (Crypt Spider: hangs `hidden` on a thread, drops, spits web gobs), `splitter` (Ink Octopus: smears
-  ink, splits in two at half, cracks when chilled), `tome` (Grimoire Mimic: shut as a book, `guard`, wakes to fly and riffle
-  pages; may leave a grimoire page), `swarm` (Firefly Swarm: `pack` in the data, members sharing one mind, `e.pack`),
-  `singer` (Choir Lark: perches and sings, `sung` hastens the foes round it, `songHaste`; hushed while hexed), `mantis`
-  (Storm Mantis: parries the cantrip at its front, lunges, open after), `crab` (Rubble Crab: hidden as rubble, flipped by a
-  blast). Floor 2's: `snail` (Rime Snail: a trail of rime that freezes water, its shell's `guard` after blows, cracked by
-  fire), `newt` (Glass Newt: hidden in water, its own pool if the room's lies far, lunges and its bite chills; shown and
-  stunned by a shocked or frozen pool; hunts on land if kept from the water), `serpent` (Brine Serpent: the lurker's way,
-  fans of brine, trapped by ice; its look's `pool` part stays at the floor), `wave` (Puddle Elemental: pours a tile of water
-  as it walks, rears into a ring; chill freezes it to ice, `encase`, and a shock shatters it), `cloud` (Thunderhead: gathers
-  over the mage and rains sparks, `laySpark` from foes.ts), `darter` (Storm Darter: dashes laying sparks, hangs when
-  chilled), `mine` (Puffcap: swells and bursts in stinging spores; fire pops it). Floor 3's: `nest` (the Ember Wasps' nest,
-  set in a wall, letting out `wasp`s, `owner` on each; only fire harms it, `struck` hears a blow's school), `djinn` (Cinder
-  Djinn: lights braziers, hurls fire, mends in a lit one, snuffed by frost), `ooze` (Magma Ooze: burning trail, splits
-  (`halve`), chilled to `rock` that a blow shatters, a stone tint in `statusTint`), `phoenix` (dives in a burning line;
-  felled, `ashes` it rises from once unless frost, heard through `hearGround`, or a blast puts them out), `basilisk` (a
-  sweeping stare, `stareFan`, that makes the mage heavy, `player.stone` and `CFG.bestiary.gazeSlow`, blocked by anything
-  tall, `clearSight`; holy light blinds it), `bodyguard` (Salt Golem: between the mage and the nearest foe; burning slows
-  it), `breaker` (Rubble Golem: stones fall from above, `fallOn` in bestiaryGround.ts; a blast breaks it into `stone`s
-  that come back together, or it falls with them; `crumble` in damage.ts takes a foe away uncounted). Floor 4's: `griffin`
-  (aloft and `hidden` while it soars, a line marked on the floor, `floorLine`, a swoop, wings that buffet through
-  `player.pull`; a hex grounds it), `eye` (Radiant Eye: shut `guard`, its lids the look's `lidTop`/`lidBottom`; a ray where
-  the mage stood; a hex shuts it), `harpy` (perches high, its screech moves `G.glyphs` and turns `G.bolts`; dives),
-  `magnet` (Lodestone Golem: draws the mage, bends bolts; not frozen), `hearth` (Hearth Golem: lit `guard`, coals; frost
-  puts it out, the look's `flames`, `fireIn`, `heat`, `crown` hidden, and it relights at a brazier), `shade` (Shadow Fox:
-  shadow to shadow, `inShadow` away from lit props and `room.torches`, the whole floor in a dark room; holy light holds it),
-  `roller` (Rime Scarab: a growing ball, thrown to burst cold; fire melts it, heard through `hearGround`). Floor 5's:
-  `glacier` (Glacier Golem: its front turns blows, `struck` with the blow's way; ice spikes, `spikeAt` in bestiaryGround.ts,
-  in a line on sim timers; chill freezes it, `encase`, a shock shatters it), `hydra` (heads in a `WeakMap`, the look's
-  `neck0` to `neck4` and stumps; a cut head grows back as two unless fire sears the stump), `raven` (Gloom Raven: a gloom
-  disc that dims the sight; lights drive it off, `lightNear`), `wolf` (Rime Wolf: a `pack`, `wolfMind` rings and lunges by
-  turns, a howl's `sung`; fire scatters them, `burningNear` in foes.ts and `hearGround`), `pangolin` (rolls, the cantrip
-  glances off; a wall dazes it and dims the sight), `kiter` (Frost Jackalope: bounds away, stamps shards and rime; fire stops
-  its leaps), `manticore` (tail volleys of hexing spikes, a pounce; holy light stills the tail). Elementals (`elemental` in the data, the
-  pure `affinityMul` and `drinksStatus` in foeData.ts): their own school (their `resist`) heals them, blows (`drink` in
-  damage.ts, `CFG.affinity.drink`, "Drinks it") and statuses (`CFG.bestiary.statusHeal`), and their weakness hurts twice
-  over (`CFG.affinity.elemental`). What they leave and throw is `src/actors/bestiaryGround.ts`: webs, ink and rime
-  (`stickyAt` slows the mage, `slipAt` makes them slide; fire burns a web and melts rime, heard through
-  `world/groundHooks.ts`, which fireAt, frostAt and shockAt call) and lobs (`lob`). `spawnFoe` in
-  enemies.ts makes a pack whole (its size from the room's seed); a room rolls one pack at most (a wasps' nest counts as
-  one: `comesMany`), as one elite (`pickFoe`'s `noPack`), and quiet rooms none; `callFoe` passes over waiters (mimic, tome, crab) and packs. Slows (chill, wading,
-  cobwebs) and a song's haste scale a foe's step in `updateEnemies` (`pace`), never its velocity, which many behaviours
-  build on; `rush`, `brake` and `ramp` in `foeKit.ts` are a behaviour's dash, brake and wind-up. The tall walls' pilasters and niches are
-  kept in `room.dressed` (from `dressNorthWall`), and `againstWall` keeps a nest or a perch off them. A foe's look is the model
-  option, the bestiary look or `FOE_LOOKS` entry of its id or `look`. `__game.ground` reads the webs, ink and rime,
-  `__game.blast(x, z)` sets off a glyph's blast, `__game.clock` reads the sim clock, `__game.hit(i, dmg, school, by, dx, dz)`
-  strikes from a direction.
-- M4.7 Living foes (`docs/archive/M4.7-plan.md`; GDD: M4.7 as built). Champion mantles: the pure rules in
-  `src/actors/mantleData.ts` (`pickMantle`, `stripsMantle`, `mantleImmune`, `validateMantles`), the game side in
-  `src/actors/mantles.ts` (`giveMantle` from `makeEnemy`'s `mantle`, rolled in `spawnWave`; `unbind` and `shrugOff` from
-  `inflict`; `mantleStruck` and `mantleFell` from damage.ts, the unbound ×1.25 in `damageEnemy`; `updateMantles` in the
-  loop), tuning `mantles` and `unbound` in `data/magic.json`, each floor's weights `mantles` in `data/floors.json`;
-  `__game.champion(kind, mantle)`, the dev menu's mantle row in Foes & objects. What a foe leaves and throws knows whose it
-  is: `src/actors/acting.ts` (`actAs` while a behaviour steps or falls; `actor()`, `actingKind()`), so `layGround`,
-  `layFire`, `laySpark` and `addSpores` record `by`, and a champion's shots carry its mantle (`spawnShot`). Foes in each
-  other's ground: `src/actors/foeGround.ts` (`groundPace` in `pace`, `groundSlide`, `steerAround` for `avoidsGround` foes
-  and elementals, `groundHarm` after the move pass; a foe is at home in its own kind's and its own school's ground;
-  `hazardAt` in foes.ts, `patchAt` in bestiaryGround.ts, `stingAt` in props.ts), tuning `CFG.foeGround`;
-  `__game.layGround(kind, x, z, by)`, `__game.foeGround(i)`, the dev menu's lure test. Counters: each foe's are its lines
-  in `STR.foes.counterLines` (words in `STR.foes.counters`; pure `countersOf` and `validateCounters` in
-  `src/actors/counterData.ts`); a behaviour calls `counter(e, kind)` (or `counterAt(id, kind, x, z)`, `src/actors/counters.ts`)
-  where its counter comes about, kept in `bestiary.ts` (`foundCounter`); the inventory's Foes tab (`foeEntries`);
-  `__game.findCounters()` and the dev menu find them all. A new foe with a counter gets its line and a `counter` call.
-  Rooms with a pair: `pairs` in `data/floors.json`, `pairRoom` and `validatePairs` in foeData.ts (pure), placed in
-  `buildRoom` (`room.pair`), its line in `STR.foes.pairs` shown from `spawnWave`; the dev menu's Pairs row.
-- M4.8 The full wheel (`docs/archive/M4.8-plan.md`; GDD: The full wheel as built). `REACTIONS` in `status.ts` maps each of the ten
-  pairs of statuses to its reaction (fifteen since M5's Verdant; the pure rules, unit-tested; `seared`, `prism` and `voidT` on `StatusState`), carried
-  out in `react` in `statusFx.ts`: Searing (`damageEnemy` ignores `guard` while `seared`; `breakPlate` on a War-Tiger), Prism
-  (the cantrip splits in `updateBolts`, `projectiles.ts`), Verdict (lightning on every sanctified foe), Black Ice
-  (`layGround`'s `blackice`, `blackIceAt`; `groundSlide` in foeGround.ts slides every walker, `blackice.grip`) and Void
-  Spark (leaps carrying a hex, marking `voidT`; `killEnemy` pays the mana). Tile reactions: `overloadAt` from `shockAt` on
-  burning oil (`pools.ts`), `hexGround` in `shapes.ts` (from `umbralAt`, a hexing bolt's flight and a hex on a foe);
-  `tileReaction` raises the name. Found reactions are kept by `memory.ts` (`foundReaction`, `ossuary.reactions`), the
-  book's wheel is `reactionSheet` and `reactionWheel` in `ui/spellPanel.ts`, closing the spells tab; `reactionSchools` and
-  `REACTION_IDS` in knowledge.ts. `src/magic/reactionTest.ts` sets each off on dummies (`RECIPES`): the dev menu's
-  "Reactions here", `__game.reaction(r)`; `__game.reactions`, `__game.findReactions()`, `__game.forgetReactions()`. A new
-  reaction is a row in `REACTIONS`, its rule in `applyStatus`, its effect in `react`, a name, text, sound and recipe.
-- M4.9 The curve (`docs/archive/M4.9-plan.md`; GDD: M4.9 as built). Pressure dials: `pressure` per floor in `data/floors.json`
-  (`Pressure`, `extraSlot`, `validatePressure` and `pickFoe`'s `eliteMul` in foeData.ts, pure; used in `buildRoom`).
-  The floor teaches its counter: `floorWeakness`, `leanSchools`, `wallsOff` (pure, `CFG.curve`) and `src/world/curve.ts`
-  (`floorLean` for `pickPages`' `lean`, `warnFloor` after the floor's banner, its line in `STR.curve.walls`). A hexing
-  shot knows its thrower (`from` on a `Shot`, from `actor()`): `hexDrained(n, from)` runs a trail back to it and sets
-  `player.hexDebt`, which `hexGiveBack` pays on a Hallow cast. The sluice gate (`Z`, `sluice` in `MECHANISMS`):
-  `sluiceLook` in mechLooks.ts, `openSluice`/`updateSluice` in mechanisms.ts, `setMud` in pools.ts, `driveUpAll` in
-  foes.ts, `CFG.mech.sluice`; `__game.props` reads a sluice's `open`, `__game.pools` whether water is `mud`. The balance bot is `tools/balance.ts` (`npm run balance`, needs a server: OSSUARY_URL), which
-  writes `docs/balance.md` (each foe alone); `npm run balance -- runs` fights whole floors room by room and writes
-  `docs/balance-runs.md` (it steps round cover, lines up from beside a target, and replaces a crashed page). The dev menu's Rooms & runs shows the floor's dials, lean and walls.
-- M4.6 Transformations and Asyrion's arc (`docs/archive/M4.6-plan.md`; GDD: Artifacts, M4.6 as built). Three artifacts of a
-  `family` (data/artifacts.json) transform the mage: the pure rules in `src/items/transformData.ts` (`TRANSFORMS`: each
-  one's light and gift effects, `formed`, `validateFamilies`), the game side in `transforms.ts` (`updateTransforms` and
-  `giftsFor` from `refreshStats`, `announce`: banner, lore card, sound; `G.run.transforms`, the latest wearing its look).
-  The gifts are effects (kept off artifacts by the validator) carried out in `src/items/gifts.ts` (`cantripStruck` from
-  `updateBolts`: embers owned by `'mage'`, the leap, the rune; `touched` from the contact check; `blink` on `pressed.blink`,
-  Shift or RT; `pilgrimMap`; `floatLift`), `familiarMul` in familiars.ts; tuning `CFG.transform`. The looks are
-  `TRANSFORM_LOOKS` (costumeData.ts) and `src/actors/transformPieces.ts` (marked `float`, `spin`, `bob`, `flap`, `eyes`
-  and `emit` for `moveWorn` in costume.ts; `tintRobes`; `flareEyes` from a Storm cast). Asyrion's arc: `arcStage` and
-  `ARC_PIECES` (costumeData.ts, slots `orbit` and `offhand`), `src/items/arc.ts` (`arcHeld`, `arcNow`, `updateArc`'s line
-  per stage, `CFG.arc`, `G.run.arc`), `src/actors/arcPieces.ts`. Dev menu (Mage tab): Transformations, Asyrion's arc
-  (`DEV.arc`). `__game.transforms`, `transform(id)`, `clearTransforms()`, `blinkRest`, `robeTint`, `moths`, `arc`,
-  `setArc(n)`. A new transformation is a row in `TRANSFORMS`, `family` tags, its look in `TRANSFORM_LOOKS`, its gift's
-  hook and its lines in `STR.transforms`.
-- M4.11 Spell marks (`docs/archive/M4.11-plan.md`; GDD: Spells, Spell marks). The pure rules are `src/magic/marksData.ts`
-  (`handState`: ready, cooling with how far back, short; `attunedTo`; `circleOf` and `masteredSchools` from each spell's
-  stage); the look is `src/actors/spellMarks.ts` (`updateSpellMarks` from heroVisual, in world space at the hands through
-  `handAt` in costume.ts: Q at the casting hand, E at the off hand; the master's ring, the attunement aura, the knowledge
-  circle baked into one vertex-coloured mesh; `knownWellNow` from castSpell; `marksNow`), tuning `CFG.marks` (each school's
-  motion in `rise`), lines in `STR.marks`, `G.run.attuned`. Dev menu (Magic tab): Spell marks (attune to a school,
-  `attuneTo`; show the circle). `__game.spellMarks`, `__game.attune(school)`. A new school gets its light in `SCHOOL_LIGHT`
-  and its motion in `CFG.marks.rise`.
-- M4.10 Weaves (`docs/archive/M4.10-plan.md`; GDD: M4.10 as built). The pure table is `src/magic/weaves.ts` (`WEAVES`: what was
-  left and what strikes it, `weaveOf`, `weavesOf` for a spell's panel, `validateWeaves`), tuning `weaves` in
-  data/magic.json, the names in `STR.weaves`. `weaveAt(id, x, z)` in `weaveFx.ts` raises the name, sounds both schools
-  (`Sfx.weave`) and marks it found (`foundWeave`, `ossuary.weaves`). The weaves live where their spells do, in shapes.ts:
-  `chainWeaves` (Conductor, Overload Seal, Toll Chain) from `chain`, `steamCurtain` and `lanternFan` from `beam`,
-  `boltOverGround` (Black Pyre, Hallowed Hail, Molten Glass) from `updateBolts`, Eclipse Ground in `hexGround` (`graspHexing`),
-  Live Wade in `updateMantle` (`shockAt`'s `spareMage`), `refraction` from `updateSmites`. The chains: `chargeSteam` in
-  steam.ts (from `inflict`, `shockAt`, `elementAt`, `hallowAt`, `umbralAt`), Black Melt in bestiaryGround.ts's fire
-  (`layBlackFire`, a `blackfire` hazard), Hailburst in `overloadAt`, Corona in `inflict` and `endEclipse` (`e.corona`,
-  `e.eclipseMul`). The room joins in through mechanisms.ts (`blacken`, `runeReaction`, `sparkRing`). `src/magic/weaveTest.ts`
-  sets each up (the dev menu's "Weaves and chains here", `__game.weave(id)`); `__game.weaves`, `findWeaves()`,
-  `forgetWeaves()`. A new weave is a row in `WEAVES`, tuning, a name and text, its hook, and a setup in weaveTest.
-- M5 Alchemy (`docs/archive/M5-plan.md`, built: steps 1 to 10; GDD: Potions and alchemy, M5 as built). The pure rules are
-  `src/items/alchemyData.ts` (`data/alchemy.json`: potions with their drink and throw effects and params, reagents, recipes,
-  bottles; `validateAlchemy`, `bottlesFor` on the run's seed, each potion its own liquid, `isKnown`, `brew`, `reagentFor`,
-  `pickPotion`), unit-tested; brews kept between runs in `alchemyMemory.ts` (`ossuary.recipes`). The belt is
-  `src/items/potions.ts` (`player.belt`, `beltAt`, `player.reagents`; `addPotion`, `identify` into `G.run.identified`,
-  `usePotion`, `choosePotion`, the drinks in `DRINK`, `renderBelt` into `#belt`), what a drink leaves on the mage in the
-  light `potionFx.ts` (read by the cantrip, `spellCost`, `castSpell`'s echo, `damageEnemy`, contact and `spawnShot`; the Hex
-  Brew's reversal is `inputFx` in `input/index.ts`), throws in `potionThrow.ts` (`THROW` through the spells' hooks, the
-  aim ring, storms, the Grave Draught's thrall), looks in `alchemyLooks.ts` (bottles and reagents, icons through `iconUrlOf`,
-  which frames meshes only). R tapped drinks, held throws (`potionHold`, `releasePotion`), F chooses; potions are `potion`
-  pickups (`spawnPickup`'s `potion`), in `data/loot.json`'s tables; chips beside the mana bar; the inventory's Potions tab;
-  tuning `CFG.alchemy`. Reagents (`reagent` pickups, `player.reagents`) come from `items/reagents.ts` (`foeReagent` from
-  `killEnemy`, `objectReagent` from `breakProp` and a brazier's first fire; `G.run.reagents`, its own stream; `DEV.reagents`
-  makes them always drop); the merchant sells potions and reagents (`potion`/`reagent` on a `WareSpot`).
-  Dr. Jelly's laboratory (step 6): a special room (`laboratory`) on floors 1 and 3 (`laboratory` in data/floors.json), added
-  on top of the count by `placeLaboratory` in generate.ts (a free cell beside a fight room, last, on its own stream), its
-  templates `lab_*` in special.json (`J`: a jelly globe, the `globe` prop, bursting into a Lantern Jelly or a reagent,
-  `globeBurst`). `world/laboratory.ts` furnishes it (`furnishLab`: the table facing the door, Dr. Jelly behind it, the vat
-  window on the north wall, which torches and the wall's dressing keep clear of; `room.lab`), greets the first visit
-  (`enterLab`), opens the table when the mage walks up (`checkLab`) and moves Dr. Jelly and the serpent (`updateLab`); looks
-  in `labLooks.ts`. Dr. Jelly himself (redone from the owner's pictures, 2026-10-02) is `world/jellyLooks.ts`: the plague
-  doctor (the owner's choice of three: greatcoat, hat over a hood, beaked mask with glass eyes glowing jelly-green), a figure on pivots (`JellyParts`: body, head, each arm's shoulder, elbow and hand, the `gift`
-  on the right palm); what he hands over (a brewed or named potion, a recipe, obols) is `world/jellyGives.ts`
-  (`jellyGives` queues it from brewing.ts and `serpentFell`, played once the table shuts: reach, hold, toss to the mage,
-  back; `givePose`, `CFG.alchemy.lab.give`). Dev menu: Dr. Jelly gives (Mage tab, Alchemy), Dr. Jelly (Galleries, looping
-  the gesture); `__game.jellyLooks()`, `jellyGive(gift)`, `giving`. The table's screen is `ui/alchemyTable.ts` (`#scrLab`, tabs Brew, Dr. Jelly looks, Recipes; `labKey`,
-  `labPad` from main.ts), the rules `items/brewing.ts` (`brewNow`, `buyRecipe` for `CFG.alchemy.recipePrice`,
-  `jellyIdentifies` once a visit, `knownRecipes`; `learnRecipe` in alchemyMemory.ts); the inventory's Potions tab lists the
-  recipes known. Dev menu: "Open the alchemy table here"; `?room=lab_plain`; `__game.lab`, `openLab(tab)`, `closeLab()`,
-  `brew(a, b)`, `buyRecipe(id)`, `jellyIdentifies(id)`.
-  The jelly serpent (step 7): a boss in `BOSS_TYPES` (`serpent`, in no floor's pool) whose fight is `actors/jellySerpent.ts`
-  (`buildSerpent`, `updateSerpent`, `serpentMoved` from bosses.ts; its body rings laid along its head's trail with
-  dragonPath.ts's `lay`; `pourJelly` floods a room through the pure `world/flood.ts`) and look `actors/serpentLooks.ts`
-  (`serpentHead`, the instanced `serpentBody`, `serpentLook` in the Galleries tab), tuning `CFG.enemy.serpent`. Jelly is a
-  water pool with `jelly` (`addPool`'s option; `jellyAt`, `CFG.surface.jellyWade`, the "In jelly" chip). The vat is in
-  `world/laboratory.ts` (`vatStruck` from `strikeSolid`, `stirAfterBrew` from the table's brew, `breakOut`, `serpentFell`
-  from `killEnemy` for a `labBoss`; `G.run.serpent`, `G.run.restless`, `CFG.alchemy.vat`). Dev menu (Alchemy): crack the
-  vat, let the serpent out, a restless serpent; `?boss=serpent`; `__game.serpent`, `crackVat()`, `breakVat()`,
-  `restless = on`, `trapdoor`.
-  The Alchemist (step 8): the family `alchemist` (the Alchemist's Satchel `satchel`, the Taster's Spoon `taster` from
-  `updatePotions`, the Cracked Retort `retort` in `splash`, `CFG.alchemy.retort`; the Leech Jar counted with them); the
-  transformation's gift `splitThrow` in `throwPotion` (`CFG.alchemy.split`), its look `bandolier` and `apron` in
-  transformPieces.ts; `__game.flights` reads the bottles in the air and where each lands (`flightsNow`). The dev menu's Alchemy (Mage tab) gives each potion, lays all out, identifies or forgets, drinks or
-  throws; `?potions=healing,hexBrew`; `__game.belt`, `potionFx`, `bottles`, `throws`, `givePotion(id)`, `giveReagent(id, n)`,
-  `usePotion(how)`, `choosePotion(d)`, `identifyAll()`, `forgetPotions()`, `reagentsAlways(on)`, `drop('potion', x, z, { potion })`.
-  Verdant (step 9; GDD: M5 as built, Verdant): the sixth school (`verdant` in `School`, `SCHOOL_LIGHT`, the wheel's sixth
-  spoke, a rune stone's emblem, `CFG.marks.rise`, the Wardling `wardVerdant`). Its status Overgrown (`grow`, seconds;
-  `growHeld` ramps its slow, `growSlow` and `speedFactor` in status.ts, tuning `grow` in data/magic.json); `flowerFell` in
-  statusFx.ts mends half a heart once a room (`room.flowered`), a Bloom's lily always. `REACTIONS` covers all fifteen pairs
-  (`wildfire`, `frostbloom`, `pollenspark`, `bloom`, `blight`; `verdantReact` and `pollenClouds` in statusFx.ts). Its
-  spells are data on shapes that were there: `thorn_snare` (grasp, `thornFx`), `pollen_cloud` (zone, `pollenFx`) and
-  `living_wall` (wall, `woodColumn`; fire burns it down through `hearGround('fire')`), the shapes branching on the school;
-  they take no part in M4.10's weaves (`holyZone` and `iceWall` in shapes.ts, `weavesOf` in weaves.ts), and an obelisk's
-  ward is drawn from the other five schools (`WARDS` in mechanisms.ts). `__game.pollen` reads Pollen Spark's clouds.
-  The overgrown garden: the theme `garden` (twist `garden`: `inflict` scales Overgrown by `CFG.themes.gardenGrow`, its word
-  once a room, `room.gardenSaid`; the scatter `flowers`; its floor pinned to cobbles), templates `garden_beds` and
-  `garden_long`, on floors 1 to 3; the flowering plant (`blossom`, `F`: `blossomBurst` in props.ts overgrows the foes within
-  `CFG.props.blossom.reach`; its look in objectLooks.ts). Bloom Petal (`bloomPetal`): Verdant's in `sources`, a plant's
-  (`CFG.alchemy.reagent.blossom`), and an overgrown foe's in `foeReagent`; its recipes in data/alchemy.json.
-- M6 RPG growth (`docs/archive/M6-plan.md`; GDD: RPG progression). Step 1, insight (the GDD's XP) and levels: the pure rules are
-  `src/progression/levelData.ts` (`levelFor`, `levelProgress`, `insightAt`, `purseOf`, `clearInsight`, `potionInsight`,
-  `bossInsight`, `LEVEL_CAP`), tuning `CFG.levels` (`at`: each level's insight, the curve measured in the plan), each boss's
-  `insight` in data/floors.json, the Grave Draught's in data/alchemy.json. The game side is `src/progression/insight.ts`:
-  `gainInsight(n, x, z, color)`; a foe's purse (`e.purse`, set in `makeEnemy`, paid by `payPurse` in `killEnemy`; none for a
-  boss, `owner`, `servant` or `unpaid`, a boss ward's Wardling; `halve` splits it); `payClear` at the top of `onRoomCleared`
-  (`room.paid`), `payBoss` in `onBossDead(at)`, `paySerpent`, `potionUsed` (`G.run.potionsUsed`, from `usePotion` and
-  `jellyIdentifies`); a level reached rises over the mage and waits in `G.run.pending` for its choice (the level-up screen,
-  step 4); the streaks (one instanced mesh, `updateInsight` in the loop) run to the casting hand; the HUD's `#insight` strip
-  and `#level` badge (`renderInsight`); the end screen's level. Rooms' roles are filled by the pure `src/world/fill.ts`
-  (`fillRoles`, `packRoll`, `packCount`, `championIndex`; `buildRoom` and `spawnWave` use them), so `tests/unit/levels.test.ts`
-  measures the curve on the generator. Dev menu (Mage tab): Insight and levels; `__game.insight`, `level`, `giveInsight(n)`,
-  `setLevel(n)`; `?level=5`. Step 2, the attributes: the pure `src/progression/attributes.ts` (`ATTRS`: vigor, arcana, will
-  (the GDD's Focus), swiftness; `attrBonus`, `freePoints`; tuning `CFG.attributes`), folded in by `computeStats`' last
-  argument (`regenMul` on the stats, read by the mana's regeneration; Vigor's half containers make `maxHp` odd, drawn as half
-  a heart); `src/progression/points.ts` spends a level's point (`spendPoint`, `pointsToSpend`, `G.run.attrs`); the
-  inventory's "The mage" tab opens with Growth. A shock's leap passes the blow as dealt (`blow` in `damageEnemy`). Dev menu:
-  +1 to each attribute; `__game.attrs`, `spend(attr, free?)`. Steps 3 and 4, boons: data/boons.json (eighteen: two a school,
-  each taken twice, its `rank2`, and six general), the pure `src/progression/boonData.ts` (`validateBoons`, `schoolWeights`,
-  `dealBoons`, `pledgeFor`), the game side `src/progression/boons.ts` (`dealNow` on the run's `'boons' + deals` stream,
-  `takeBoon`, `boonRank`/`boonParam` for the hooks; `G.run.boons`, `casts` counted in `castSpell`, `pledge` kept by
-  `pickPages`' last argument), the sigils `boonLooks.ts` (`boonIconUrl`), and the level-up screen `src/ui/levelUp.ts`
-  (`#scrLevel`: `checkLevelUp` from the loop opens it once a fight is won; three cards, then a point; keys routed first in
-  main.ts). `DEV.autoLevel`: 'choose' (`?autolevel=1`, the balance bot) or 'skip' (`?autolevel=skip`, which the browser
-  tests' `start()` adds). Dev menu (Mage tab): Boons, Offer boons now, levels choosing for themselves; `__game.boons`,
-  `deal()`, `giveBoon(id)`, `offer`, `openLevelUp()`, `chooseLevel(i, attr)`, `autoLevel`. Step 5, the twelve school boons
-  at work: the hooks ask the light `src/progression/boonHooks.ts` (`boonRank`, `boonParam`, `boonMul`, `magicNow()` for the
-  statuses' tuning, `inFight()`, `boonActs(id, x, z)`: its name once a room, its line (`STR.boons.acts`) once a run,
-  `Sfx.boon`; `boonMend` within `CFG.boons.mendPerRoom`; `votiveCast`, `thirstHex`, `laidBare`), the pure `boonTuning`,
-  `statusMul` and `touches` in boonData.ts (a spell's panel lists the boons that touch it). `inflict`'s `from` (`'mage'`,
-  `'snap'`); Forking Arc in `chain` and `shockLeap`; Banked Coals in `ignite`, a seal's `ground`, the Pyromancer's embers;
-  Perennial's root and Cold Snap's breath in `updateStatuses`; Spark Wake's sparks (`laySpark`'s `sting`, `sparkSting`,
-  sparing the mage); Flamekeeper's `flamesNear` (shapes.ts, `litFires`, `mageFireNear`) in `updateMagic`; Seedfall's
-  `sowBlossom` (props.ts, `prop.sown`: no reagent) from `killEnemy`; Votive Heart's containers in `refreshStats`. Tuning
-  `CFG.boons` (and the deal's `lean`). General boons whose step is yet to come stay out of the deal (`NOT_YET` in
-  boonData.ts); a level's screen spends every point it owes (`pointsHere`); the inventory's "The mage" tab lists the boons
-  taken. Dev menu (Magic tab): Boons here (`src/progression/boonTest.ts`); `__game.boonHere(id)`, `boons.acted`,
-  `boons.said`; `?boons=deepWinter:2,coldSnap`. Step 6, the general boons: Keen Nose in `knownPotion`, Scavenger's sure
-  reagent in `foeReagent` (`e.weakBlow` from `damageEnemy`), Brewer's Breath's `breathe` (potionThrow.ts, sparing the mage),
-  Afterglow's `afterglowCast`/`takeAfterglow` (`G.run.afterglow`, read by `spawnBolt`); Second Socket waits for the waystone
-  (step 9). Step 7, runes on the cast: `data/runes.json` (seven: Thrice, Reprise, Seeking, Wide, Quicken, Vein, Lasting,
-  each fitting by shape), the pure `src/magic/runeData.ts` (`runedDef`, `reprisedDef`, `payment`, `canCarve`, `WIDENS`,
-  `LASTS`, `validateRunes`); each slot's socket `player.sockets` (a new array on every change) and the pouch `player.runes`;
-  `slotDef(slot)`, `spellCooldown` and `payment(slot)` in `magic/cost.ts`, the one reader of a slotted spell (the cast, the
-  HUD, the hands, the panel); `src/magic/runes.ts` (`carve`, `clearRunes`, `setSockets`, `unslot` to the pouch, `runeActs`
-  through `actsHere` in boonHooks.ts, `Sfx.rune`); Vein bleeds through `bleed` (damage.ts); Thrice and Seeking in shapes.ts
-  (`thrice`, `seeks`; `fireSpellBolt`'s `seek`), Reprise in `castSpell` (`after` the rune's `after`); the look
-  `src/items/runeLooks.ts` (`runeIconImg`; strokes from `render/emblem.ts`), the HUD's pips, the panel's runes, the hands'
-  specks (spellMarks.ts). Dev menu (Magic tab): Runes; `?runes=q:quicken,e:lasting+vein`; `__game.sockets`,
-  `socket(slot, id, size)`. Step 8, runes as things: `rune` is an `Item` (a pickup carrying `rune`, `runePickupLook` in
-  runeLooks.ts); which one is `pickRune` (runeData.ts, leaning to the slotted spells by `CFG.runeDrops.lean`) through
-  `dealRune`, and whether one lies somewhere `runeHere` (magic/runes.ts), both on the run's own `G.run.runes` stream; the
-  chances are `runes` in data/loot.json (an extra shop ware, a secret room, a gilded chest, the Wanderer), times each
-  floor's `runes` (0 on floor 5), the prices `rune` in the traders'; `addRune` takes one into the pouch (`Sfx.runeTake`,
-  `runeCard`, `runeFitsText`); the inventory's Spells tab shows each socket and the pouch. Dev menu (Runes): into the
-  pouch, a rune ahead, runes wherever they can lie (`DEV.runes`); `__game.runesAlways(on)`, `runeOdds`,
-  `drop('rune', x, z, { rune })`. Step 9, the waystone: `src/world/waystone.ts` (`waystoneAfterBoss` from `onBossDead` on
-  floors 1 to 4, until step 10's room: `raiseWaystone`, `updateWaystone`'s rise and kindling, `checkWaystone`'s latch,
-  `castIntoStone` from `castSpell` before cooldown or payment, `restAtStone`; `room.waystone`), its look `waystoneLook`
-  (mechLooks.ts), its screen `src/ui/waystone.ts` (`#scrStone`: Runes tab, the sockets, `liftRune`, Second Socket's
-  `secondSocket` and `G.run.socketsOpened`, the pair `takeFromStone`, the pouch `carveHere`/`carveFromPouch`; Belt tab,
-  `moveInBelt` in potions.ts, also the inventory's Potions tab with Enter); `pickPair`/`dealPair`; `streakTo` in
-  insight.ts; `Sfx.kindle`, `rest`, `carve`; `CFG.waystone`, `STR.waystone`. Second Socket is dealt now (`NOT_YET` is
-  empty). Dev menu (Rooms & runs): Raise a waystone here, Open the waystone; `__game.waystone`, `raiseWaystone`,
-  `openWaystone(tab, slot)`, `closeWaystone`, `stoneTake`, `stoneCarve`, `stoneLift`, `stoneSocket`, `moveInBelt`. Step 10,
-  the waystone room: `placeWaystone` (generate.ts, after the laboratory, on a stream from the boss room's seed: a free cell
-  beside the boss room, not touching the secret room, one door pair at shift 0), `waystone` in `RoomType` and `DoorStyle`,
-  `waystone` per floor in data/floors.json (1 to 4), templates `waystone_plain` and `waystone_cairns`; `enterWaystone` (the
-  stone rises the first time the mage walks in with the boss down, a little toward the door, `CFG.waystone.toDoor`; dark
-  until it kindles, then `openWayDown`: the trapdoor beyond it in the room's group, `makeTrapdoor`'s `room`); `onBossDead`
-  leaves the stone and the trapdoor to it (`waystoneRoom`, `pointToStone`; the gifts kept off its door's lane, `offLane`),
-  the old way where a floor has none (`waystoneAfterBoss`); the door's menhir emblem, the minimap's mark. `?room=waystone_plain`,
-  `__game.wayDown`. Step 11, the shrine's bargain: `src/world/bargain.ts` (`buildBargain` from `buildShrine` at `bargainSpot`, the circle's
-  head unless a doorway's lane runs there, `CFG.bargain`; `checkBargain`'s walk-up line; `castIntoBargain` from `castSpell`, first of the catches: the last
-  container refused, else the deal on the spell's school; `keepBargain` pays `player.heartsPaid` and takes the boon,
-  `refuseBargain` backs out; `room.bargain`), its look `bargainStoneLook` and `BARGAIN_RUNES` (specialLooks.ts), the deal in
-  the level-up screen's bargain mode (`openBargainDeal`, `levelEsc`, `takeBargainCard`; `#lvHint`), `Sfx.bargain`,
-  `bargainKept`, `STR.bargain`. Dev menu (Rooms & runs): Bargain here, its deal on a school; `__game.bargain`,
-  `openBargain(school)`, `takeBargain(i)`, `refuseBargain()`, `heartsPaid = n`. Step 12, the run around it: `arcLevels` in
-  arc.ts (every `CFG.arc.perLevels` levels count as an artifact, `leveled` updates the arc); `levelAtFloor` (levelData.ts,
-  `CFG.levels.floorInsight`), `?level=auto`, the dev menu's new runs at their level; the balance bot at each floor's level,
-  with insight and end levels in docs/balance-runs.md. Harder runs (the owner's ask, 2026-10-03): three more rooms a floor,
-  hearts half as likely a room, the pressure dials raised; **difficulty never comes from more foe health** (the owner's
-  rule: no bullet sponges).
-- M7 Descent and the Vigil (`docs/M7-plan.md`). Step 1, the Seal: the sixth entry of data/floors.json is laid by hand (`fixed`:
-  each room's type, shape, top-left cell and template; `fixedPlan` in generate.ts, which `generateFloor` hands it to), its three
-  templates marked `fixed` in special.json (`seal_stair`, `seal_last_hall`, `seal_kaelith`; generated floors never draw them);
-  `src/world/seal.ts` (`atSeal`, `arriveAtSeal`: Kaelith's voice, `enterSealRoom`: the horde at the Last Hall; lines in
-  `STR.seal`, `Sfx.sealVoice`); its kit kinds `warded` and `scoria` walls, `sealstone` floor (`WARD_GLYPHS` in
-  pixelTextures.ts), `shard` light and `stepped` brazier (fireLooks.ts); its soundscape and piece `seal`. Floor 5 has its
-  waystone room; the Seal's boss's trapdoor wins the run. Dev menu: Rooms & runs, "To the Seal"; `?floor=6`. Tests over every
-  floor run on the generated ones (`FLOORS.filter(f => !f.fixed)`).
-  Step 2, Kaelith: `src/actors/kaelith.ts` (the fight: `buildKaelith`, `updateKaelith` from bosses.ts; `kaelithKneels` from
-  `onBossDead`; `kaelithInfo`, `kaelithToPhase`, `shutAllWards`), the pure `kaelithData.ts` (`phaseOf`, `sealWards`), the looks
-  `kaelithLooks.ts` (`wingedWatcher`, the Winged Watcher: the owner's choice of two, 2026-10-06; `KAELITH_GALLERY`), tuning `CFG.enemy.kaelith`, lines `STR.bosses.kaelith`. Its ward pillars are
-  `seal_kaelith`'s obelisks made dormant (`sealWard`, `wakeWard`, `wardHooks` in mechanisms.ts, `prop.seal`); the boss bar's
-  marks are `bossBarMarks` (hud.ts); a boss's own theme is `bosses` in data/music.json (`BOSS_PIECES`). `npm run foe-sheet --
-  bosses=kaelith,warden` shoots boss looks. Dev menu: Rooms & runs, "Kaelith's fight"; `?boss=kaelith`. `__game.kaelith` (its phase,
-  wards, pull and dark), `kaelithKnelt`, `kaelithToPhase(n)`, `shutAllWards()`;
-  `resetKaelith` (from `buildFloor`) forgets the fight on every new floor and run.
-  Step 3, daylight: `src/world/daylight.ts` (`openShaft` from `onBossDead` when the boss is Kaelith: the way out is a shaft
-  of light, `G.trapdoor.kind === 'shaft'`, stepped into from player.ts; `enterDaylight`, `updateDaylight` from the loop's
-  step, `leaveDaylight` from `buildFloor`, `daylightHooks.done` = flow.ts's `endGame(true)`; the game state `daylight`; the
-  HUD hidden by `body.daylight`, the white `#dawn`), its looks `src/world/daylightLooks.ts` (`shaftLook`; `buildVista`: the
-  terrace as ground, the view as camera-facing flat layers, `toneMapped` off; the cave's arch opening), the pure
-  `daylightData.ts` (`ridge`, `daylightPhase`), tuning `CFG.daylight`, the dawn's light `setDaylight` (lights.ts); its piece
-  `daylight` (data/music.json, `DAYLIGHT_PIECE`) and soundscape `rooms.daylight` (data/ambience.json, `SCENE_SCAPES`; the
-  `birds` one-shot), chosen by the director while `daylightOn()`; the won text `STR.end`. Dev menu: Rooms & runs, "Daylight
-  now"; `__game.daylight`, `daylightNow()`.
-  Step 4, the keeping: the pure `src/vigil/vigilData.ts` (`VigilSave`, `migrate` taking over `LEGACY_KEYS`, `validate`,
-  `dustFor`, `obolsHome`; tuning `CFG.vigil`) and `src/vigil/save.ts` (one record, `ossuary.vigil`: `readSlot`/`writeSlot`
-  for the five modules that kept their own keys, which now read and write through it; `firstFound` from them;
-  `recordRun` from `endGame`; `exportSave`/`importSave` from the pause menu; `giveHome`, `wipeSave`, `veteranSave`). The run's
-  tally is `G.run.bosses`, `kaelith` and `struck` (named in `hurtPlayer`: `strikeFrom`, `strikerKind` in damage.ts); the end
-  screen's `#endHome`, `STR.end.home`, `struckName`. Dev menu: Rooms & runs, "The keeping"; `__game.vigil`, `giveHome(d, o)`,
-  `wipeSave()`, `veteranSave()`, `exportSave()`, `importSave(text)`. Settings keep their own keys.
-  Step 5, the Vigil as a place: `data/vigil.json` (three rooms laid by hand, the room type `vigil`: no foes, no loot, doors
-  open; its pieces, six barred ways, the circle, where the mage wakes; its own `look`) and `data/templates/vigil.json`
-  (`fixed`), read and checked by the pure `src/vigil/vigilMap.ts` (`VIGIL`, `vigilPlan` through generate.ts's `hubPlan`,
-  `validateVigil`); built by flow.ts's `buildVigil` (`buildRoom`'s `own` look; `clearFloor` shared with `buildFloor`) and
-  furnished by `src/vigil/place.ts` (`furnishVigil`, `updateVigil` from the loop: the lectern's walk-up, the boat's, the
-  bars' lines; `vigilHooks.barStruck` from `strikeSolid`; `room.keepClear` keeps torches and niches off what stands against
-  a wall; `#vigilHud`); its looks `src/vigil/vigilLooks.ts` (bier, candle wall with `setLit`, skulls, plinths, `circleLook`,
-  the boat and the Ferryman, `barLook` per school); `src/vigil/where.ts`'s `atVigil()` (and `body.vigil`) for the modules
-  that behave otherwise there (no glyphs, the HUD, the director's soundscapes `vigil`/`vigilLanding` and piece `vigil`). Its
-  kit kinds: `cryptstone` wall, `slabs` floor, `cluster` light. Waking: flow.ts's `begin()` (Start, Enter, the end screen)
-  wakes the mage there once a run has been played (`wakeAtVigil(first)`; the first time dark, its candle lighting itself,
-  `lightCandle`); the lectern `src/ui/lectern.ts` (`#scrLectern`, `holdIn`, the save's `slots`); the boat starts a run on
-  floor 1. Tuning `CFG.vigil.place`, lines `STR.vigil`. Dev menu: Rooms & runs, "The Vigil"; `?vigil=1`, `?vigil=first`;
-  `__game.vigilPlace`, `toVigil(first)`, `lecternChoose(hand, id)`, `openLectern`, `closeLectern`, `takeBoat()`.
-  Step 6, chained shades: `data/shades.json` (the ten, their floors, light and help; rooms weighted; chains a floor) and each
-  floor's `shade` chance (data/floors.json), the pure `src/vigil/shadeData.ts` (`pickShade`, `shadeRoom`, `chainSchools`,
-  `breaks`, `validateShades`); `src/vigil/shades.ts` (`placeShade` from `buildFloor`, on the `'shades' + floor` stream;
-  `landable`; the chains broken through `vigilHooks.shadeStruck` from `strikeSolid` and the beam, and `landed` from
-  `elementAt`, `hallowAt`, `umbralAt` and a glyph's blast; `answerShade` (Q frees, E binds) before a cast in player.ts;
-  `freeIt`/`bindIt`, the save's `freeShade`/`bindShade`; `G.run.shadesMet`, `freed`), its looks `shadeLooks.ts`; the bound
-  shades' helps `src/vigil/shadeHelp.ts` (`shadesWalk` in `startGame`, the save's `takeBound`; `G.run.walking`; the wisps;
-  `helpNewFloor`, `helpRoomCleared`, `updateShadeHelp`; `actsHere` for their words) and `vigil/walking.ts` (`singMul` in
-  `spellCooldown`), tuning `CFG.shades` and `CFG.shadeHelp`, lines `STR.shades`. Each shade freed lights a candle more
-  (`litCandles`) and brings 20 Dust. Dev menu: Rooms & runs, "Chained shades"; `__game.shade`, `shadeHere(id)`,
-  `breakChains()`, `freeShade()`, `bindShade()`, `walkWith(id)`, `shadeHelp`.
-  Step 7, townspeople and dialogue: the freed stand round the Nave at `town` in data/vigil.json (checked by `validateVigil`),
-  each its figure from `src/vigil/townLooks.ts` (`townLook`, `moveTown`); `src/vigil/town.ts` stands them (`standTown` from
-  `furnishVigil`), opens the talk when the mage walks up (latched, `CFG.vigil.town`), shows a glint while one has news
-  (`hasNews`), builds what the talk knows from the save (`talkContext`: found things, the last run's moment from its echo,
-  `struck` and `felled` (`G.run.fell`), the fills' subjects) and has the Ferryman speak at the jetty once (`ferryAt`). The
-  lines are `data/dialogue.json` (speakers, moments `first`/`death`/`won`/`boss`/`idle`/`reply`, `quest` kept for step 8;
-  `when` conditions, `fill`, two choices setting flags), the pure `src/vigil/dialogueData.ts` (`pickLine`, `holds`,
-  `lineAfter`, `validateDialogue`); the save's `heard` (`hearLine`, `forgetHeard`) and `flags` (`setFlag`). The panel is
-  `src/ui/talk.ts` (`#scrTalk`, `openTalk`, `updateTalk` from `updateVigil`, `talkKey`/`talkPad` routed first in main.ts;
-  the game waits), names `STR.town`, `Sfx.talk`. Dev menu: Rooms & runs, "Townspeople"; Galleries, the ten figures;
-  `__game.town`, `talkTo(id, moment)`, `talkNow`, `talkOn()`, `say(i)`, `closeTalk`, `setFlag(k, v)`, `forgetHeard`,
-  `townGallery(ids)`, `takeTownGallery`.
-  Step 8, gifts, bonds and powers: `data/townsfolk.json` (each one's `gift` and `second`, `bonds` costs, six `powers`, three
-  `quests`, six `disciplines`), the pure `src/vigil/giftData.ts` (`startOf`, `giftsInForce`, `questMet`, `disciplinesOpen`,
-  `bondCost`, `validateTownsfolk`); `src/vigil/gifts.ts` (`giftOnFree` from `freeIt`; `giftsAtStart` from `startGame` after the
-  first floor; `offersFor`/`actOn` for the talk's offers, ui/talk.ts's `withOffers` and a choice's `act`; `questState`,
-  `questSaid` from town.ts's `talkTo`); the powers' mana and hearts in artifacts.ts's `growth`; the save's `spend`, `setBond`,
-  `setPower`; the dialogue's `gift` moment (`<who>.eyes1`, `.eyes2`, `.power`) and the quest lines; `STR.gifts`. The two
-  spells that waited: `lantern_of_vigil` and `soul_harvest` on the shapes `lantern` and `harvest` (shapes.ts,
-  `vigilLanternFx`), kept out of the libraries until their townsperson is freed (`givenBy`, `inPool`). Dev menu: Rooms & runs,
-  "Gifts, bonds and powers"; `__game.gifts`, `givePower(id, owned)`, `bondTo(who, n)`, `questTo(who, state)`.
-  Step 9, the unfolding: data/vigil.json's six rooms `behind` a barred way (the Cave Mouth, Ember; the candle chapel,
-  Hallow; the scrying pool, Storm; the echoes' gallery, Umbral, through the Nave's south wall; the garden of the dead,
-  Verdant; the practice crypt, Frost), each reached through its way alone (vigilMap.ts's `vigilPlan`: the way's door only,
-  `barred` on it while its school isn't among the save's `parts`; `validateVigil` checks each way leads into its room) and
-  its `kit`; what fills them is `unfold` there. A barred doorway is walled (rooms.ts's `plugDoor`/`unplugDoor`, `plug` on a
-  Door: shut, no gate, unknown on the map). vigil/place.ts's `openWay` opens a way to its school landing near it
-  (where.ts's `hearLanding`, shared with shades.ts; Verdant lands now too, from shapes.ts's thorns, pollen and living wood)
-  or a bolt or beam of it (`barStruck`, a beam's `school`); another school stirs it ("It does not answer to that"); its
-  opened look `barLook(..., open)`, `Sfx.wayOpens`, `STR.vigil.opened`, the save's `openPart`/`setParts`. `src/vigil/unfold.ts`
-  (`furnishUnfold` from `furnishVigil`, `vigilWalled` from flow's `buildVigil` after the walls, `updateUnfold`, looks in
-  `unfoldLooks.ts`; shared tile helpers `vigil/tiles.ts`): the Cave Mouth's north wall hidden and daylightLooks.ts's vista
-  beyond it (`buildVista({ terrace: false, cave: false })`), a house, terrace, bed or fall for each shade freed, its morning
-  light laid on the floor further in for each; the chapel's candles (walked up to: `lightBlessing`, the save's `blessing`,
-  taken by `giftsAtStart` into `G.run.blessing`; data/townsfolk.json's `blessing`, giftData.ts's `blessingOf`/`blessBonus`,
-  folded into artifacts.ts's `growth`; `STR.gifts.bless`); the garden's beds (with the embalmer freed: `chooseGarden`, the
-  save's `garden`, given every descent); the pool, the practice crypt and the gallery say what they will be. Tuning
-  `CFG.vigil.unfold`, lines `STR.vigil.unfold`. Dev menu: Rooms & runs, "The unfolding"; `__game.unfold`, `openPart(school)`,
-  `setParts(schools)`, `lightBlessing(id)`, `chooseGarden(id)`.
-  Made figures (2026-10-09): the owner's thirteen Tripo models (the ten, the Ferryman, Dr. Jelly, Kaelith; Mixamo rig) are
-  animated by `tools/creatures/townsfolk.ts` (docs/creatures.md: People on a Mixamo rig; `restFromBind` and `mixamoFacing` in
-  creatureRig.ts) with `idle` and `talk` (Jelly's `give`, Kaelith's `sweep` and `kneel`); `madeModel(id, look, still)` in
-  madeCreatures.ts dresses one for any use. vigil/town.ts stands the ten and the Ferryman in them (`standMade`, `moveMade`,
-  `standFerryman`; the code figures the fallback while loading), switched by the Townspeople's "wear" button (`setTownWear`,
-  `ossuary.townWear`, made by default; a little taller than the mage, on the pixel look's fine layer, lit of themselves by
-  `CFG.vigil.town.madeLight`); `__game.town` reads each one's `made` and `clip`. Dr. Jelly and Kaelith are in the
-  Galleries only so far. New Tripo prompts follow docs/assets.md's "Prompts for game characters in Tripo" (the
-  `tripo-prompts` skill), not the miniature format.
-- Spell effect options (`src/magic/effectOptions.ts`, the owner's request): the spells' effects redone in the same style,
-  each a looping demo of one cast worked out from the time (the cantrip, Cinder Lance, Pyre Seal, Rime Shards, Glacial
-  Wall, Arc, Static Mantle, Shatter, Overload, and previews of Hallow and Umbral); the dev menu plays them ahead of the
-  mage; `__game.effectOptions(ids?)`, `__game.takeEffectOptions()`; names in `STR.effects`. The gallery is the style book:
-  every spell now wears its look (2026-09-30). The looks are in `src/magic/spellFx.ts` (`boltLook` and `animateBolt` for
-  the cantrip and shards, `impactFx`, pooled `ringFx` and `strikeFx`, `lanceFx`, `sealFx`, `iceColumn`, `mantleFx`;
-  timings in `CFG.spellFx`), called from `shapes.ts`, `projectiles.ts` and `statusFx.ts`, which keep what the spells do;
-  `__game.spellFx` reads what shows (the lance, rings, lightning); `hideSpellFx` returns them all to their pools. `docs/effects.md` is the guide for new effects. Both
-  galleries build from `src/render/arcane.ts`: materials, parts, rods, runes, rune rings, magic circles, crystals, motes,
-  lightning and waves.
-- The pixel look (the game's look since 2026-09-30; chosen in M3.5 step 2; `src/render/pixelLook.ts`, tuning in
-  `CFG.pixelLook`). **One pixel for everything** (the owner, 2026-10-01; GDD: One pixel for everything): it starts at the
-  texel (`CFG.pixelLook.start`, `'texel'`): a game pixel is one of the room kit's texels (`texelPixel`: a 48th of a unit
-  across, a floor texel's height down the screen), so the mage, foes, artifacts, costumes and spells are drawn at the
-  floors' and walls' pixel size, which land on the grid texel for texel (the camera snapped to it, the grid even; about
-  420 rows in a one-cell room, `drawnRows()`, `__game.pixelRows`). Three passes: the scene into the grid (`target`, with its
-  depth; both targets only grow, each frame drawing into the corner it needs), the grid shaded at its own size (`shade`:
-  outlines from depth, light in bands), and a sharp blow-up to the window (`blit`: pixels of one size, edges blended over
-  one screen pixel, the camera's part-pixel put back so it glides). `'fine'` is half a texel a pixel (a floor texel
-  2 × 2 game pixels, about 840 rows). The rows of earlier (1080 to 270, whole screen pixels, `pixelGrid`) stay in the dev
-  menu's cycle (`LINES`) and are drawn exactly as before (the grid the window's, each pixel copied whole, no glide). The
-  owner chose the texel as the default over fine and 1080 after comparing them (2026-10-01). One exception (the owner,
-  2026-10-02): the fine layer (`FINE`, layer 1), the coins' faces, drawn into their own target at
-  `CFG.pixelLook.fineLayer` (2) pixels to a game pixel with their own depth, shaded at that pixel where they stand nearer
-  than what the grid drew (outlined, banded) and laid over the window after the blow-up, a box to each coin (`drawFine`,
-  `laidOver`: `fineShade`, `fineOver`; `__game.fineLayerDrawn`). The blow-up itself stays free of it: a software renderer
-  pays for every line of a shader every pixel runs, even a branch it skips. Every scene light is on it too (`lit` in lights.ts), and with the look off the camera sees every layer. Since 2026-10-09 (the owner's yes) the made
-  townspeople and the Ferryman at the Vigil are on it too (`fine` in data/creatures.json, their texture baked at that pixel; `markFine` in
-  vigil/town.ts). Nothing else goes on it without the owner's say. The costume close-up
-  (`DEV.closeUp`) magnifies the game's own pixels, so it shows what the game shows. The scene is tone-mapped and encoded by its own shaders (the target
-  flagged as an XR target, stored as plain RGBA8), so it blends as on the canvas; the HUD stays sharp. `draw()` in
-  `render/renderer.ts` picks it; draw calls are counted per frame over all passes (`renderer.info` reset in `draw()`). The
-  dev menu switches it, remembered in the browser (`ossuary.look`, with the default it was chosen against: a new default
-  shows once); `?pixel=texel`, `?pixel=fine`, `?pixel=off` or `?pixel=720`; `__game.pixelLook` reads it and
-  `__game.setPixelLook({ lines, outline, bands })` sets it. What keeps the rest pixel art: the mage in pixel art
-  (`src/actors/heroPixel.ts`: its texture baked into its vertices and cut to `CFG.heroPixel.colours` by the pure
-  `src/render/palette.ts`, median cut and k-means in OKLab with hue counted over; a toon material in `tones`; both looks
-  kept on each mesh, the Look tab's "Mage: pixel art / as made", `__game.heroPixel`, `__game.setHeroPixel(on)`), every
-  glow and shadow stepped (`glowTex`, `shadowTex` in `render/textures.ts`, `glowSteps`, `shadowSteps`) and the artifact
-  icons pixel art (`toIcon` in `artifactIcons.ts`, 24 pixels, hard-edged, shown pixelated). Anything new is drawn at
-  the texel and so is pixel art by being there: its glows use the stepped glow, a new icon is made as the artifacts' are,
-  and a model from Tripo wears its texture as pixel art (`tools/texel-bake.ts`, `src/actors/texturePixel.ts`; the mage alone
-  keeps its colours in its vertices).
-- The room kit (M3.5 step 3; `docs/archive/M3.5-plan.md`): the room's pieces redone in code in the style of the spell
-  effects. Fire is `src/render/fire.ts` (`makeFire`: layered flames and embers moved on the GPU from `tickFire`, colours in
-  the geometry, four shared materials); the fire objects are `src/world/fireLooks.ts` (`torchLook` in each floor's style,
-  `brazierLook` with runes that kindle, `candleStandLook`), called from `addTorch` in `rooms.ts` and `MECH_LOOKS` in
-  `mechanisms.ts`. Their still pieces are painted (`paint`; `mergeStill` bakes the colours into one mesh, `KIT_MAT`). Every
-  floor's floors and walls are pixel art drawn texel by texel in `src/render/pixelTextures.ts` (`CFG.roomKit.texel`,
-  `kitWalls` and `kitFloor` in `rooms.ts`); the special rooms' marks come from `drawMarks` in `textures.ts`, hardened into texels.
-  `DEV.roomKit` (the dev menu's Look tab, `?kit=old`, `__game.roomKit`, `__game.useRoomKit(on)`) builds the floor again in
-  the new or old look; "Fire objects here" stands braziers and candle stands ahead of the mage, cold and lit. The other
-  mechanisms are `src/world/mechLooks.ts` (rune stone, lodestone, bell, censer, reliquary; `updateMechLook` moves their
-  magic each step: a charged stone's runes, the floating shard, the reliquary's seal), built from `src/world/kitParts.ts`
-  (the painted materials, `tone` with its mottle and metalness, `mesh`, `joinAll`, `runeStrokes`, `taperTube`, `rough`,
-  `stoneOf`); a look from the kit is flagged `userData.kit`. The objects and piles, the dead tree, rocks, pillars, tombs,
-  urns, the pedestal and the bone altar are `src/world/objectLooks.ts` (`OBJECT_LOOKS` from `addProp`, the rest from
-  `rooms.ts`, `mechanisms.ts` and `placeArtifact`; `kitPieces` in `rooms.ts`), in the floor's colours (stone from the
-  walls, `urn` clay in each look, wax); a burning object's fire and the niches' and themes' candles use `makeFire` too.
-  "Objects here" in the Look tab (`__game.objectsHere()`) stands every object and two urns ahead of the mage. Doors and
-  their gates, pilasters and niches are `src/world/wallLooks.ts` (`doorLook` from `buildDoor`, turned by `DOOR_TURN`;
-  `pilasterLook` and `nicheLook` from `dressNorthWall`, each wall's dressing merged into one mesh). The 60 artifacts are
-  `src/items/artifactLooks.ts` (`artifactLook(icon, color)`, from `makeArtifactVisual`), and their HUD icons are rendered
-  from them (`artifactIconUrl` in `src/items/artifactIcons.ts`, cached, from `artifactIcon` in `hud.ts`; a painted icon
-  first); the Galleries tab floats them all ahead of the mage (`__game.artifactGallery()`, `__game.takeArtifactGallery()`).
-  Pickups, coffers and chests are `src/items/pickupLooks.ts` (`itemLook`, `containerLook` from `itemVisual` and
-  `containerVisual` in `pickups.ts`: built once a kind, merged and copied; a chest's `lid` and `ward` named in it); "Drops
-  here" in the Look tab (`__game.dropsHere()`) lays out every drop. The merchant's shade, the library's lecterns and
-  bookcases, the shrine's offering stones and a vault's padlock are `src/world/specialLooks.ts` (from `makeShade`,
-  `addPage` and `furnishLibrary`, `makeStone`, `sealMark`); the secret wall's crack is drawn in texels (`crackTexelTexture`).
-  Variety (the owner's ask after the proof): each floor's look lists its kinds of wall, floor, wall light and brazier,
-  weighted (`kit` in `data/floors.json`); each room draws one of each on its seed (`pickKinds` in the pure
-  `src/world/kitData.ts`, into `room.look.kinds`); a theme pins some (`kit` in a theme's look: the ossuary's bone wall). The
-  kinds are `WALLS` and `PAVING` in `pixelTextures.ts` (embers glow through an emissive map, `CFG.roomKit.glow`) and
-  `TORCHES` and `BRAZIERS` in `fireLooks.ts` (M4.1 adds floor 4's: marble, gilded and tracery walls, checker and inlay floors,
-  sconce and crown lights, chalice and censer braziers; its `gilt` stains and `wax` decor; and floor 5's: slate, drystone and
-  pilings walls, boards and shingle floors, pole and cairn lights, boat and urn braziers; its `salt` stains). The dev menu's Look tab steps each part's kind on every room of the floor
-  (`DEV.kitKinds`, cleared on a new floor or run); `__game.kinds` reads the room's, `__game.forceKinds({ wall: 'ashlar' })`
-  forces them.
-- `public/assets/hero_default.glb`: the hero for the play-tests (18,632 triangles, 65-bone Mixamo-style rig,
-  1,024 px JPEG textures). Clips: `standing_relax`, `run`, `walk` (slow movement), `cast_a_spell`,
-  `hit_to_body_01`, `fall` and `defeat_03` (two deaths, one at random), `Drink Potion` (when healed) and
-  `Eat` (a fidget after standing still a while). Its walk is a slow one (0.4 units a second of foot contact
-  against the run's 1.4), so the mage moves with the run; the dev menu's "Moving" switch (`DEV.moveClip`) tries
-  the walk for all movement, in step (10.7× faster) or at a natural pace (`CFG.hero.walkNatural`, feet sliding).
-- `prototype/`: the 0.3 single file (`-source` to read, `-playable` to run). Still the reference for look
-  and behaviour; `npm run compare` screenshots the same rooms in both.
-- Lights were re-tuned for physically based lighting: decay exponents dropped to 0.5 so the falloff
-  matches r147's legacy curve, intensities matched to the prototype within about 5% by region
-  brightness (`CFG.lights`).
-- The end screen (`showEndScreen` in `src/ui/screens.ts`) sums up a run (obols found are `G.stats.obols`); "Replay this seed" starts a new
-  run on the same seed.
-- M2 (Plunder) takes the magic first: obols (coins, `coins` in code), bone keys and blast glyphs instead
-  of bombs. Loot tables are in `data/loot.json` (pure `src/items/loot.ts`, economy simulated in
-  `tests/unit/loot.test.ts`); glyphs are in `src/combat/glyphs.ts` (chalked with Space or LT, set off by the
-  fuse or the mage's own bolts, chaining; tuning in `CFG.glyph`); pickups, coffers and warded reliquary
-  chests in `src/items/pickups.ts`; urns (a room's "rocks" with `urn` set) in `src/world/rooms.ts`
-  (`strikeUrn`). The merchant (a bound shade, wares in ward circles, a warded shop) is in
-  `src/items/merchant.ts` (M4.2: the Wandering Merchant, `src/items/wanderer.ts`, rides into a cleared ordinary room once a
-  run with a focus from far off, a soul mote and the crow's map and secret, laid out by the shade's `layWare`; gone when
-  the mage leaves; `__game.callWanderer()`, `__game.wanderer`; a ware near the mage shows a small panel, `src/ui/warePanel.ts`,
-  2026-10-02: what it is, its price and `refusal` from merchant.ts, the reason he would refuse it, `CFG.merchant.panelReach`,
-  `__game.warePanel`), the locked vault (a warded door: a key, or two blasts that wake a warden) in
-  `src/world/vault.ts`; stock, prices and the vault's hoard are in `data/loot.json`. Secret rooms (a
-  forgotten mage's cell behind cracked walls that ring hollow to bolts and break to a glyph's blast) are in
-  `src/world/secret.ts`: the generator adds one per floor on top of the room count, and each hidden doorway
-  is a door with `secret` set (closed, a wall piece filling it) until `openSecret` opens both sides. The
-  shrine (floor 2) is in `src/world/shrine.ts`: an offering stone per curse held; walking into one (10 obols)
-  draws the curse out as a wisp that bolts only strike inside the shrine's circle (`strikeWisp`, `blastWisp`);
-  four strikes in 10 s cleanse the artifact (`cleanseArtifact` in `items/artifacts.ts`), otherwise it flees
-  back into its stone. Tuning in `CFG.shrine`, the price in `data/loot.json`. The drinking ward (M4.2; rules in the pure
-  `src/magic/drinking.ts`, tuning in `CFG.ward`): a vault's ward drinks the spells cast near it (`wardNear`, `drinkSpell`
-  from `castSpell`) and, full, bursts, the vault's warden a Wardling of the school it drank most (`room.drunk`); a foe's
-  (`e.ward`, `src/actors/wardShield.ts`: `wardFoe`, `drinkBlow` from `damageEnemy`) drinks the spells that strike it, keeps
-  statuses off, and breaks into a Wardling beside it. `__game.wards` reads them, `__game.wardFoe(i)` wards a foe; the dev
-  menu's Foes has "Ward the nearest foe".
-- The per-floor artifact budget (`CFG.artifacts.maxPerFloor`, 6): the generator marks which rooms hold one
-  (`artifact` on each planned room: always the treasure room, ordeal and boss; the merchant, vault and altar
-  in a shuffled order while the budget lasts). `buildFloor` reserves them all; room-clear drops take what
-  is left. A gilded reliquary chest (rare; only a key opens it) and the secret room hold artifacts outside
-  the budget (`offerBeyondBudget`). While a room's doors are locked, its artifacts can't be taken.
-- Bosses are in `src/actors/bosses.ts`: each floor draws one from its pool in `data/floors.json`, never one the run has met.
-  The Hollow Warden (floor 1's, met first) is built in code (M4): it wears the Owlbear (`wardenLook` in
-  `src/actors/bossLooks.ts`, built in `fantasyBosses.ts`; the owner's choice of three, 2026-10-03), which gives its fight the
-  parts it moves (`eye`, `ring`, `halo`) and its school, Hallow, whose light its shots take (`bossSchool`); its still parts
-  merged by `mergeRig` (about a dozen draw calls). The dev menu's Galleries tab stands every boss (`__game.bossLooks()`). The bosses of
-  floors 4 and 5 (M4.1) are built in code the same way (`hartLook`, `anglerLook` in `bossLooks.ts`; `updateHart`,
-  `updateAngler`): the Hallowed Hart charges along a lane lit on the floor (`parts.lane`), turns firing spokes of light
-  (`spin`) and stamps rings; the Deep Angler draws the mage in with its lure (`player.pull`, spent each step) until it
-  bites or flinches, spits hexing volleys and breathes rings. They have a weakness and a resistance (`weak`/`resist` in
-  `CFG.enemy`, `bossAff` on the boss, read by `damageEnemy`; the bestiary keeps bosses beside foes), and the Galleries tab
-  stands them beside the Warden (`ALL_BOSS_LOOKS`). M4.2's War-Tiger (`tigerLook`, `updateTiger`; floors 3 and 4's
-  pools) stands as a statue (`state: 'statue'`, no contact, a stone tint in `statusTint`) until the mage comes within
-  `wake` or strikes it; it prowls, circles at claw reach and swipes a fan of claws, crouches with its landing spot marked
-  (`marker`) and pounces (a wall stuns it; frost shards on landing), and roars rings. Its plates (`e.plates`, the parts
-  `plate0` to `plate3`) make `e.guard`; `breakPlate` knocks one off from a glyph's blast (`glyphs.ts`), a Shatter (a shock
-  on its rimed plates, `inflict` in `statusFx.ts`) or `wear` damage turned (`wearPlates` in `damageEnemy`), each lost
-  leaving it faster (`plateSpeed`). The Pillar Dragon (floor 5's pool) is `src/actors/pillarDragon.ts`: its head is the
-  boss's look (`dragonHead`), its body a chain of instanced segments (`dragonBody`, a few draw calls) laid each step along
-  the trail its path leaves (the pure `src/actors/dragonPath.ts`: `spiral`, `arc`, `heap`, `neck`, `lay`), in world space
-  under the boss's group (`dragonMoved`). It coils round the room's pillars (a rock's `pillar` is how tall it stands;
-  a room with fewer than three raises its own, `raisePillar` in `rooms.ts`), leans out (only its head, `e.x`/`e.z`, can
-  be hit), breathes fire and frost by turns, and flies between pillars; `knockDragon` brings it down from a glyph's blast
-  at its pillar's foot (`dragonBlast`) or a bell (`dragonBell` in `ring`), open for `down` seconds (`e.guard`).
-  `boss_belfry` (four pillars, two bells) is a boss room for any boss (a boss room's pillars are always whole);
-  `__game.dragon` reads it. The Twin Guardians (floors 3 and 4) are `src/actors/twinGuardians.ts` (`twinLook`): the first
-  built raises the second (`e.twin` both ways); statues until the mage comes near, their heads turning after them; one
-  strikes (slam, gaze) while the other holds its post shielding, bolts glancing off it (`e.glance`, in `damageEnemy`) and a
-  drinking ward drinking spells (`wardFoe` with a size; `unwardFoe` when the shield passes across every `swap` seconds);
-  one bar for both, and `killEnemy` rewards only the second to fall (`twinFell`: the other rages). The Drowned Abbess and
-  the Pyre Knight were remade in code on 2026-10-01 (`abbessLook`: a great cave olm, Frost, its jaw, gills and eyes posed by
-  `updateAbbess`; `pyreKnightLook`: a hollow knight of fire, Ember, its arms, sword and legs posed by `updateKnight`, its fire
-  `makeFire`); every boss is built in code now, each with a weakness and a resistance. A boss with `hidden` set (the abbess under the floor, the knight in mid-leap)
-  can't be hit and doesn't hurt on contact.
-- Gameplay delays (the warden's second ring, the pause before the death screen) run on simulation time,
-  so they pause with the game and advance under `__game.sim()`.
-- Dev hooks (`window.__game`, `window.__manual`) are also in production builds, for testing the deployed site.
-  `warp(id)` or `warp(gx, gy)` does not despawn the previous room's foes (as in 0.3).
+## Run and test
 
-Prototype content: one hand-built floor of six rooms (start, 3 combat, treasure, boss), 3 enemy types plus
-a boss (placeholder primitive shapes), one relic, hearts, minimap, boss bar, keyboard/gamepad/touch
-twin-stick input, synthesised sound, pause/title/end screens, drag-and-drop GLB hero swapping.
+- `npm run dev` (Vite, port 5173), `npm run build` (typecheck and build), `npm run typecheck`.
+- `npm run test:unit` (Vitest, ~500 tests, under a minute), `npm run test:e2e` (Playwright, ~140 tests, fully parallel),
+  `npm test` both. In a cloud session set `PW_CHROMIUM=/opt/pw-browsers/chromium` for every Playwright run and for
+  `npm run inspect`, `foe-sheet` and `balance` (those three need the dev server running).
+- CI (`.github/workflows/deploy.yml`): `build` (typecheck, unit tests, build) and three `e2e` shards side by side on every
+  PR; on `main` the Pages deploy waits for `build` only. A PR takes about 7 minutes, a merge is live about 2 minutes later.
+- Other tools: `npm run` lists them; `docs/architecture.md`, Tools, says what each is for.
 
-## Milestone M0: move to a proper project (done)
+## Code map
 
-Goal: the same game, playable, in a maintainable project. No new features.
+`src/` (TypeScript strict, three.js r186): `main.ts` boot and the `__game` hooks, `loop.ts` fixed 1/60 step, `flow.ts`
+game states and floors, `state.ts` shared state `G` and `player`, `config.ts` all tuning (`CFG`), `strings.ts` all
+player-facing text (`STR`), `types.ts`. Folders: `world/` (generation, rooms, objects, mechanisms, themes, special rooms),
+`actors/` (mage, foes, bosses, looks), `magic/` (spells, statuses, reactions, weaves, runes), `items/` (artifacts, pickups,
+potions, merchant), `combat/` (bolts, glyphs, familiars), `progression/` (insight, levels, boons), `vigil/` (the hub and its
+save), `render/` (renderer, pixel look, textures, fire), `audio/`, `ui/` (HUD, menus, dev menu), `input/`, `assets/`.
+Content is in `data/` (JSON, each kind with a validator), tools in `tools/`, tests in `tests/unit` and `tests/e2e`.
+Details: `docs/architecture.md`.
 
-1. Vite + TypeScript (strict) + **current three.js** from npm, ES modules.
-2. Split the prototype into modules:
+## Rules
 
-   ```
-   src/
-     main.ts          boot, game loop (fixed 1/60 step, max dt 1/30), states
-     config.ts        the CFG tuning block, unchanged values
-     render/          renderer, camera, lights, procedural textures
-     world/           floor data, rooms, walls, doors, collision
-     actors/          hero, enemies, animation controller
-     combat/          bolts, enemy shots, damage, particles, decals
-     items/           relic, pickups
-     input/           keyboard, gamepad, touch
-     ui/              HUD, minimap, banner, menus (HTML/CSS overlay as now)
-     audio/           WebAudio synth effects
-   data/              floor1.json (rooms, rocks, foes), relics.json
-   public/assets/     hero_default.glb (loaded at runtime, never base64)
-   tools/             prepare-asset (Node)
-   ```
-3. Move hard-coded content to JSON: the `FLOOR` table (rooms, rocks, foes) and the Ember Sigil relic.
-4. `tools/prepare-asset`: a Node script using `@gltf-transform/core` + `@gltf-transform/functions`
-   (+ `sharp`) that takes a Tripo GLB and writes an optimised copy to `public/assets/`: textures resized to
-   1,024 px and JPEG, then prints a report: triangle count, rigged yes/no, clip names and the role each
-   would be matched to, whether the hips track has a horizontal offset, whether a round base is present.
-5. Deploy to **GitHub Pages** with a GitHub Actions workflow (set Vite `base` to the repo name).
-6. Keep the dev hooks: `window.__game` with `sim(seconds)`, `draw()`, `warp(gx, gy)`, `keys`, `arrowOrder`,
-   `player`, `enemies`, `camera`. Add a Playwright smoke test that starts a run, clears room A with the
-   hooks and checks there are no console errors.
+- **Content in `data/`, tuning in `config.ts`, player-facing text in `strings.ts`.** No magic numbers scattered in code.
+- **Nothing silent:** every mechanic shows the player it is happening, even if only in a word or a line (chips beside
+  the mana bar, a word rising over a foe). A mechanic isn't done until it shows.
+- **Difficulty never comes from more foe health.**
+- **One pixel for everything:** the game is drawn at the room kit's texel and blown up. New things are drawn at it; their
+  glows are stepped; icons are pixel art. Every Tripo model wears its texture as pixel art (`tools/texel-bake.ts`).
+- **Every new feature gets its dev menu entry in the same step** (`src/ui/devMenu.ts`, in its tab), so it can be spawned,
+  given or triggered. While the freeze holds this applies to what the reset builds.
+- **The owner sees new looks before they replace old ones**; the look that loses is deleted in the same step (no switch
+  between an old and a new way outlives the owner's choice).
+- **Lore limits:** name only what the GDD adopted from the owner's lore (`docs/lore/`); invent no gods, factions or places.
+- Runs replay from their seed: anything that shapes a run (floors, rooms, loot, deals) draws from a named stream in
+  `src/rng.ts`; only combat and visual jitter may use `Math.random`.
+- Desktop browser first (keyboard, gamepad). The old touch controls are frozen: don't extend them.
+- Performance: 60 fps on mid-range hardware with integrated graphics. Share geometries and materials, dispose what you
+  remove, keep draw calls in mind.
+- Verify in the browser before calling something done (Playwright screenshots are fine).
+- Work in English. The owner writes German in chat; answer in their language, keep the repo in English.
 
-**Done when:** `npm run dev` plays exactly like the playable prototype; `npm run build` succeeds; the Pages
-URL loads on a phone in landscape; the smoke test passes.
+## Design facts
 
-## three.js upgrade notes (r147 → current)
+- A room cell is 13 × 7 tiles, 1 tile = 1 unit, walls 1 thick, doors 1.44 wide; larger rooms combine cells.
+- Orthographic camera tilted 45°, fitted to one-cell rooms, following the mage in larger ones and pulled back 20% there;
+  it pans between rooms in 0.42 s; only the current room is drawn. North wall tall (1.35), south wall low (0.5).
+- Four-direction casting, eight-direction movement, 3 hearts counted in halves, 1 s invulnerability after a hit.
+- Doors lock while foes live. Hearts can't be taken at full health, mana vials at full mana (a first-time line says why).
 
-- Colour management is on by default now: delete `THREE.ColorManagement.legacyMode = false`.
-- `renderer.outputEncoding = sRGBEncoding` → `renderer.outputColorSpace = THREE.SRGBColorSpace`;
-  canvas textures: `texture.encoding` → `texture.colorSpace = THREE.SRGBColorSpace`.
-- Lights are physically based now. Point-light and hemisphere intensities from the prototype will look
-  far too dark. Re-tune by eye against the playable prototype (screenshots side by side).
-- `GLTFLoader` comes from `three/addons/loaders/GLTFLoader.js`.
-- WebGPU is optional; stay on `WebGLRenderer` for M0 unless it's a drop-in.
+## Hero model techniques
 
-## Techniques that must survive the port
+These were found by testing real Tripo exports; keep their behaviour (`src/actors/`, `tools/prepare-asset.ts`).
 
-These were each found by testing real Tripo exports. Keep them, with the same behaviour.
-
-| Function in the prototype | What it does | Why |
+| Function | What it does | Why |
 | --- | --- | --- |
 | `prepareHero` | Normalises any GLB to 1.3 units tall, centred, feet on the floor | Tripo sizes vary |
-| `stripMiniatureBase` | Detects and cuts a round base off static meshes | Tripo figurines often stand on a base |
-| `setHero` | Recognises clips by name keywords (idle/stand/relax, run/walk, cast/spell/attack, hit/hurt, fall/death) | Tripo names vary (`standing_relax.001`) |
-| `bodyPart` | Splits clips into upper body (spine and above) and lower body | Run with legs while casting with arms |
-| `alignUpperToHips` | Moves an overlay clip's hip rotation into the spine | `cast_a_spell` turns the whole body 75° at the hips |
-| `centreHips` | Removes horizontal hip offsets from clips | `run` shifts the body 0.28 units forward |
-| `castWindow` | Finds the fastest forward hand thrust and replays only that 0.6 s window per shot | The cast clip is 5.4 s long |
-| `updateHeroAnim` | Blends weights: lower = idle/run by speed; upper = base, cast, hit; death overrides | Clean layering |
-| Drag-and-drop / Load hero .glb | Swap the hero at runtime and show a report in the pause menu | Quick Tripo tests |
+| `stripMiniatureBase` | Detects and cuts a round base off static meshes | Tripo figurines stand on a base |
+| `setHero` | Recognises clips by name keywords (idle, run/walk, cast, hit, fall/death) | Tripo names vary |
+| `bodyPart` | Splits clips into upper and lower body | Run with the legs while casting with the arms |
+| `alignUpperToHips` | Moves an overlay clip's hip rotation into the spine | `cast_a_spell` turns the body 75° |
+| `centreHips` | Removes horizontal hip offsets from clips | `run` shifts the body forward |
+| `castWindow` | Replays only the fastest hand thrust (0.6 s) of the cast clip per shot | The clip is 5.4 s long |
+| `updateHeroAnim` | Blends lower (idle/run by speed) and upper (base, cast, hit) layers; death overrides | Clean layering |
 
-Run clip playback speed is `CFG.hero.runAnimSpeed` (3.0 at full speed, measured from the run clip's stride so
-the feet don't slide: the feet's ground speed while planted, against `CFG.hero.speed`); a
-walk, when the model has one, takes over below `CFG.hero.walkToRun` of full speed at `walkAnimSpeed`. A model
-with a walk but no run runs with its walk. Extras used when present: a second death clip (one of the two
-at random), a drink (played when healed, only the draught around the raised flask) and an eat (a fidget
-after `CFG.hero.fidget` seconds standing still). A rig with no death clip topples over like a static model.
+## Pitfalls
 
-## Design facts to keep consistent
+- Don't edit `src/` while the browser suite, the balance bot or an inspection runs: Vite reloads and they flake. Run long
+  jobs in the background and wait on their notification.
+- Stop a dev server by its PID: `pkill -f vite` kills the shell running it. Never run two Vite servers on one
+  `node_modules`.
+- A `+` in a URL query arrives as a space (`?runes=e:lasting+vein`); parsers split on both.
+- Under `window.__manual` (the browser tests) the camera moves only when a frame is drawn: call `__game.sim(t, true)` before
+  projecting to the screen. `start(page, query)` in the tests adds `autolevel=skip`.
+- Browser tests find rooms by what they hold, never by a seed's layout, and never depend on a random roll (a test that
+  passes by luck is a bug in the test). Never skip or quarantine a test to get green.
+- A one-line object literal can't hold a `//` comment; use `/* */`.
+- What reads at play distance under the 45° camera: dark bodies with bright emissive features; shapes that stick out
+  sideways. Pale bodies wash out, and detail on a forward face is lost.
+- In a cloud session GitHub may print "Cannot update this protected ref" on a push that went through: check
+  `git log -1 origin/<branch>`. Branches other than the session's own can't be deleted from a cloud session.
 
-- Room cell 13 × 7 tiles, 1 tile = 1 unit, walls 1 thick, doors centred, 1.44 wide. From M1, larger rooms
-  combine cells (GDD: Room shapes).
-- Orthographic camera tilted 45°, fitted to one-cell rooms and following the mage in larger ones, pulled
-  back 20% there; pans between rooms in 0.42 s, blending the zoom; only the current room is drawn. North
-  wall tall (1.35), south wall low (0.5).
-- Desktop browser first (keyboard, gamepad). The 0.3 touch controls stay but are frozen: don't extend or
-  test them, and add no touch UI for new actions until a mobile port.
-- Four-direction casting, eight-direction movement, 3 hearts counted in halves, 1 s invulnerability.
-- Hearts can't be picked up at full health, mana vials at full mana, soul motes past `CFG.souls.max`, a lodestone shard
-  with the spells ready and mana full (the first time in a run a message says why); while the mage knows no spell, loot
-  drops an obol in place of a mana vial or a shard (`spawnPickup`). Doors lock while enemies live.
-- Nothing silent (the owner's rule, 2026-10-01; GDD pillar): every mechanic shows the player it is happening, even if only
-  in a word or a cryptic line. What holds the mage shows as chips beside the mana bar with a first-time line each
-  (`src/ui/afflictions.ts`: `afflictions()`, `hexDrained`; labels and lines in `STR.afflict`; a new affliction gets a chip,
-  a colour and a line there); a reaction's, weakness's or counter's word rises over the foe. A new mechanic isn't done
-  until it shows.
-- Placeholder names (Ossuary, the ten foes in code (Spore Fiend to Rime Drake) and M4.1's eight (Candle Kobold to Dragon
-  Turtle), the names M4.12 gave M4.5's, Hollow Warden, Drowned Abbess, Pyre Knight, the Hallowed Hart, the Deep Angler, Ember Sigil) will be replaced with Eda lore later; keep all player-facing strings in one place to make that easy.
+## Agents and skills
 
-## After M0: roadmap
+The owner asked for these to be used without being asked each time.
 
-Order and scope from `docs/GDD.md` (Roadmap and milestones); details are in the GDD. Every milestone
-ships placeholder sounds for what it adds; spatial audio and the mixer arrive with M3 (GDD: Audio design).
-Every milestone is also a GitHub milestone on Asyrion/ossuary of the same title as the GDD's roadmap table ("M6 RPG
-growth"), open while it is built and closed once finished (the owner's rule, 2026-10-03; see Working agreements).
+- **`rules-reviewer`** (subagent): before opening every PR, on `origin/main...HEAD`; fix its blocking findings. It starts
+  from `npm run review-checks` (tell it `--no-tests` when the typecheck and unit tests just ran).
+- **`room-inspector`** (subagent): after every change to how rooms look, on what changed (`npm run inspect`); a closing
+  sweep before a play-test build. Fix its blocking findings; list the polish for the owner.
+- **`ship`** (skill): when the owner asks to open a PR and merge it. Never ship without being asked.
+- **`tripo-prompts`** (skill): prompts for a character or creature made in Tripo Studio and animated in code.
+- **`game-dev-board`** (skill): the generic recipe behind the dev board.
+- Subagents: Opus plans, designs and reviews; Sonnet carries well-briefed work (docs, tests, tools, data); Haiku does
+  mechanical passes (lint fixes, renames, moves). Give each a self-contained brief: the files it owns and must not touch.
 
-- **M1 Core loop:** three generated floors (varied maps, room counts and room shapes), 20+ room templates,
-  room variants from quiet to ordeal, bone altars, 3 to 5 artifacts per floor from 10 artifacts and 3 foci.
-- **M2 Plunder:** obols, bone keys and blast glyphs; merchant, secret room, locked vault, shrine cleansing;
-  urns, chests.
-- **M3 Magic:** mana, 2 spell slots, 6 spells across 3 schools, status effects, 2 reactions, library room.
-- **M3.5 The look:** the asset pipeline's tooling (for special models from Tripo: the mage, bosses where wanted), the
-  pixel look (at the room kit's texel by default since 2026-10-01), and the room kit redone in code in the style of the spell effects (the owner's decision
-  2026-09-30: code, not Tripo, for everything else); steps and checks in `docs/archive/M3.5-plan.md`.
-- **M3.6 Rooms of Eda** (from the first play-test; runs beside M3.5): carved outlines, dressed walls, doors off
-  the middle, themed rooms, new objects and piles, mechanisms that answer to magic; steps in `docs/archive/M3.6-plan.md`.
-- **M3.7 Spell knowledge** (decided 2026-09-29, after M3.6 step 5): panels over grimoire pages and in the inventory
-  that fill in as spells are seen, learned, used and later upgraded; the spells tab by school; knowledge kept between
-  runs in the browser until the hub takes it over (GDD: Spells, Spell knowledge).
-- **M4 Enemies in code** (the owner's decision, 2026-09-29, instead of Tripo): the ten enemy options (GDD: Enemies built in
-  code; four on floor 1, three on each other floor) made foes with behaviour, health, sounds and elemental affinities, and a
-  boss built the same way.
-- **M4.1 Two floors deeper** (the owner's ask, 2026-09-30, before M4.5): floors 4 and 5 (the Gilded Reliquary, the
-  Ferryman's Shore) with their room kit, eight foes and two bosses in code, two themes; Hallow and Umbral spells and
-  statuses; soul motes; twelve artifacts; steps in `docs/archive/M4.1-plan.md`.
-- **M4.2 Beneath the Gate** (the owner's ask, 2026-09-30, from their Eda lore drop): the setting in the game's text (the
-  Wardens' vault beneath the Gate of Uzulim, Asyrion, Kaelith), six pieces from the lore that answer to magic (watching
-  statues, sapping obelisks, the drinking ward, rope bridges, currents and waterfalls, candle stands in water), the
-  Wandering Merchant of Belerial, three bosses in code (the War-Tiger, the Pillar Dragon, the Twin Guardians) and Fen-Nex;
-  steps in `docs/archive/M4.2-plan.md`. The lore's other ideas went into M4.6 (Asyrion's arc, Boketto's look), M5 (Dr. Jelly's
-  laboratory, the Verdant school) and M7 (the Vigil at the cave mouth, Kaelith).
-- **M4.5 Bestiary** (decided 2026-09-30): a whole host more creatures built in code (small critters, fantasy creatures,
-  elementals) and new kinds of enemy behaviour, each a look in the dev menu's gallery first, chosen by the owner, then a
-  foe (GDD: The Bestiary; ideas in `docs/ideas.md`, Bestiary).
-- **M4.6 Costumes and transformations** (decided 2026-09-30): artifacts it is logical to wear show as a costume piece built in code (cut back 2026-10-02);
-  three artifacts of a kind transform the mage (a look and a gift; GDD: Artifacts, Costumes and transformations).
-- **M4.7 Living foes, M4.8 The full wheel, M4.9 The curve, M4.10 Weaves** (proposed 2026-10-01 in the review after M4.5;
-  M4.7 approved and built the same day, the owner asking for M4.8 to M4.10 after it, all built; GDD: Depth for what's built): champions' school
-  mantles, foes in each other's ground, counters found in a Foes tab and rooms with a pair (`docs/archive/M4.7-plan.md`); five new
-  reactions beside Steam on foes and tiles, and a wheel of the reactions found (`docs/archive/M4.8-plan.md`, built); pressure
-  dials per floor, libraries leaning to a floor's weakness, a hex's drain traced to its foe, the sluice for water rooms and
-  `npm run balance` (`docs/archive/M4.9-plan.md`, built); weaves (a spell striking what another left) and chains (a reaction's leavings
-  met by a third school), and Verdant's Bloom and Blight designed for M5 (`docs/archive/M4.10-plan.md`, the owner's ask, built).
-- **M4.12 Fantasy foes** (the owner's ask, 2026-10-02: "still some cute enemy designs"): the 32 cute looks (M4's ten and
-  M4.1's eight foes, the Wardlings, eight boss looks) and M4.5's 14 plain animals redone as creatures of fantasy, fights
-  unchanged; concepts, rules and steps in `docs/archive/M4.12-plan.md`, approved 2026-10-02 (all recommendations), after M6 step 7.
-- **M5 Alchemy:** potion belt, drink or throw, identification, 7 reagents, alchemy table in Dr. Jelly's laboratory; the
-  Verdant school and its garden rooms.
-- **M6 RPG growth:** XP, levels, attributes, 12 boons, runes and waystones.
-- **M7 Descent and the Vigil:** final boss; the hub between runs, decided 2026-09-29 (GDD: RPG progression, Between runs:
-  the Vigil): shades the mage frees in runs become its townspeople, with a small dialogue system (or are bound as a
-  familiar for one run); it unfolds to the spells the mage knows; the Great Circle (vows, gifts, omens) before a run and
-  the Ferryman's crossing as the way down; echoes of past runs; grimoire, bestiary and disciplines. Permanent upgrades:
-  options first, a few powers, offset by deeper floors and the vows.
-- **M8 Eda:** lore names, floor biomes, adaptive music, ambience beds and final mix (the soundscapes and music made in
-  code came first, 2026-10-02, `docs/sound-plan.md`).
+## Dev board
 
-## Agents and skills (standing instructions from the owner, 2026-09-29)
-
-Two subagents in `.claude/agents/` and three skills in `.claude/skills/` (`ship`, `tripo-prompts`, and `game-dev-board`, the dev board's generic recipe below). The owner asked for them to be used as
-below without being asked each time; in a cloud session this line is that request.
-
-- **`rules-reviewer`** (subagent): before opening every PR, run it on `origin/main...HEAD` and fix its blocking
-  findings. It checks the diff against these working agreements, the GDD and the lore limits. It starts from
-  `npm run review-checks` (`tools/review-checks.ts`: what a script can find in the diff, per rule, plus the typecheck
-  and unit tests) and reads only the hunks it flags and the changed source; tell it `--no-tests` when those just ran.
-- **`room-inspector`** (subagent): after every step that changes how rooms look (walls, doors, objects, themes,
-  lights, mechanisms), run it on what changed (a routine check); before a milestone's play-test build, a closing
-  sweep (every theme, carved rooms, objects, a floor of each look). It uses `npm run inspect`
-  (`tools/inspect-rooms.ts`): `changed` picks the rooms from the diff, `--against origin/main` shoots them on the base
-  too and marks what changed (with before | after images), and checks flag console errors, a hidden mage, pools that
-  read like pits and rooms too dark to read; it looks only at changed or flagged rooms, with a budget of close-ups
-  (`inspect -- crop`). Fix its blocking findings; list the polish ones for the owner.
-- **`tripo-prompts`** (skill, 2026-10-09): prompts for a character or creature to be made in Tripo Studio and animated in
-  code; the method is `docs/assets.md`, "Prompts for game characters in Tripo" (an A-pose game-character reference, not the
-  miniature format of the first batch).
-- **`ship`** (skill): when the owner asks to open a PR and merge it. Checks, PR, CI, rebase merge, the branch back
-  in step with `main`, the Pages deploy confirmed. Never ship without being asked.
-
-Later: an **asset-pipeline** subagent when M3.5 starts (the recipe in `docs/assets.md` for each asset the owner
-hands over), and a **template-builder** subagent if a step needs many templates at once. New agent and skill files
-load when a session starts. In a cloud session the browser for Playwright is under `/opt/pw-browsers`: set
-`PW_CHROMIUM` to it for `npx playwright test` and `npm run inspect`.
-
-## Dev board (the owner's ask, 2026-10-08)
-
-`npm run devboard` serves http://127.0.0.1:8770, a local page to browse, create, edit and delete
-the content in `data/` (artifacts, potions, foes, floors, themes, room templates, spells, runes, boons, tuning), checked by
-the game's own validators after every save; `tools/devboard/README.md` has the details. At the start of a session on the
-owner's machine, check it answers (`curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8770/` gives 200) and start it
-in the background if not (`dev-board` in `.claude/launch.json`); never a second instance on another port. A new kind of
-content in `data/` gets its entry in `tools/devboard/kinds.ts` (and its validator in `tools/devboard/validate.ts`) in the
-same step. `npm run devboard:selftest` must pass when the board changes. The generic recipe is the skill
-`.claude/skills/game-dev-board/SKILL.md`. Its files: `server.ts` (HTTP and guards), `content.ts` (load, save, create,
-delete, undo, references), `jsonspan.ts` (saves that keep the files' layout), `kinds.ts`, `hints.json` and `schema.ts`
-(what is shown and how fields are edited), `validate.ts`, `selftest.ts`, and the page in `public/` (`index.html`,
-`app.js`, `style.css`). Its plans: `ROADMAP.md` (a brainstorm in four phases) and `NEXT_STEPS.md` (the proposed order).
+`npm run devboard` serves http://127.0.0.1:8770, a local page to browse and edit the content in `data/`, checked by the
+game's own validators on every save (`tools/devboard/README.md`). On the owner's machine, check it answers at session
+start and start it in the background if not (`dev-board` in `.claude/launch.json`); never a second instance. A new kind
+of content in `data/` gets its entry in `tools/devboard/kinds.ts` and its check in `tools/devboard/validate.ts` in the
+same step; `npm run devboard:selftest` must pass when the board changes.
 
 ## Working agreements
 
-- Plan before large changes; keep commits small with clear messages.
-- **Every new feature gets its dev menu entry in the same step** (`src/ui/devMenu.ts`, in the tab it belongs to): a way
-  to spawn, give, reach or trigger it, so testing stays quick. Things listed from data show up by themselves; new
-  kinds of things (a room type, a mechanic, a switch) need a button or a line in `refresh()`. The HUD and the
-  title screen's controls show the menu's key during the play-tests (`#devHint`, `STR.dev.hint`,
-  `STR.controls.dev`); remove them when they're over.
-- Before calling something done, verify it in the browser (Playwright screenshots are fine).
-- Tuning values live in `config.ts`; content lives in `data/`. Don't scatter magic numbers.
-- Performance target: 60 fps in desktop browsers on mid-range hardware, including integrated graphics.
-  Share geometries and materials for projectiles and particles; dispose what you remove.
-- The owner is an IT professional, comfortable with PowerShell; work on this project is in English.
-- **Milestones live on GitHub too** (the owner's rule, 2026-10-03): every milestone in the GDD's roadmap is a GitHub
-  milestone on Asyrion/ossuary with the same title. When a new milestone is created (added to the roadmap table, with
-  its plan), create it on GitHub in the same step: `npm run milestone -- open "M9 Name" "Its goal"` (the plan's path is
-  found by its number). When a milestone is finished (every step of its plan built, its close included, and marked built
-  in the docs), close it in the same step: `npm run milestone -- close M6`. `npm run milestone -- list` shows them all
-  (○ open, ● closed); `reopen` undoes a close. `tools/milestone.ts` calls the GitHub API with curl: in a cloud session the
-  agent proxy signs it (the GitHub tools here have no milestone action), elsewhere set `GITHUB_TOKEN`. Created on
-  2026-10-03: M0 to M5 (with M4.1 to M4.12) closed, M7 and M8 open; M6 closed 2026-10-04.
+- Plan before large changes; keep commits small, with clear messages ending in the session's trailer lines. Never name a
+  model in commits, PRs or code.
+- A milestone is closed by the owner's play-test, not by "built". Nothing new opens while one waits.
+- Status lives on GitHub and in `docs/STATUS.md`, nowhere else. This file stays a brief of about 150 lines: what a system
+  does goes in `docs/architecture.md`, what happened in git. Comments in code say why, not when.
+- **Milestones live on GitHub** with the titles of the GDD's roadmap (and the reset's R0 to R5): open one in the step that
+  adds it (`npm run milestone -- open "M9 Name" "Its goal"`), close it in the step that finishes it
+  (`npm run milestone -- close M9`); `npm run milestone -- list` shows them.
+- No PR and no shipping unless the owner asks.
+- The owner is an IT professional, comfortable with PowerShell.
