@@ -30,6 +30,17 @@ townspeople (M7 steps 1 to 9).
 
 - Nothing blocking. Open design questions are gathered in the reset plan's phases as they come up.
 
+## Known issues carried into the reset
+
+From the last sweeps and balance runs (taken over from the old handoff note). R3 (the look) and R2 (tests) pick them up.
+
+- Hard to read: the Gloom Raven and the Mandrake nearly black on floor 5's slate, the Hex Imps dark on floor 3's red
+  herringbone, the Deep Angler dark on its floor; foes' dark stains can read as holes in the floor.
+- The `waystone_cairns` cairns read as rubble while the room waits dark; the bargain stone is brown on floor 1's brown
+  walls (seen only under `?room=`, since shrines are on floors 2 and 4).
+- Balance: the Pale Unicorn (`moonstagFawn`) outlasts the bot's cantrip and Frost (`docs/balance.md`). The bot leaves some
+  rooms uncleared (the Frost Jackalope, wasp nests behind cover): its own limits, not stuck rooms.
+
 ## Milestones
 
 Built and closed: M0 to M6 (with M3.5 to M3.7 and M4.1 to M4.12). Open: M7 Descent and the Vigil (steps 10 to 13 move
