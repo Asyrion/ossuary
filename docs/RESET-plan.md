@@ -27,7 +27,7 @@ closed by a play-test. The work drifted from proving a loop to adding systems.
 | Docs | GDD 1,860 lines; 20 milestone plans, 3,454 lines, all still in `docs/` beside the live ones. |
 | Code shape | 200 files, 36k lines. One mutable global (`G`, `player`) imported by 82 files; 70 files in one import cycle; simulation code imports the HUD (36 files). |
 | Dev code in the game | `window.__game` (260 lines of `main.ts`), 15 `DEV` switches read in 33 files, a 693-line dev menu with 97 imports, look galleries and test harnesses (`reactionTest.ts`, `weaveTest.ts`, `boonTest.ts`) in game folders: about 2,000 lines. |
-| Old paths never removed | `?kit=old` branches in 21 files; foe looks old/new/approved (22 of 61 foes still on old looks); five pixel-row modes beside the texel; four creature looks; two Kaelith looks waiting on a choice. Every switch doubles what must be tested. |
+| Old paths never removed | `?kit=old` branches in 21 files; foe looks old/new/approved (22 of 61 foes still on old looks); five pixel-row modes beside the texel; four creature looks. Every switch doubles what must be tested. |
 | Code as narrative | ~1,500 milestone names, 82 dates and 75 "the owner" in code comments; 788 lines over 200 characters. History belongs in git. |
 | Tests | 285 unit tests (good). All 127 browser tests in one 5,222-line file, ~15 minutes, breaking whenever floor layouts change: most of the last 51 commits are flake fixes. No ESLint, no Prettier. |
 | Art direction | Tripo, then everything in code (2026-09-30), then Tripo creatures again (2026-10-05) that only stand in a gallery. Two owlbears. 12 MB of comparison GLBs shipped to Pages. `data/assets.json` loads nothing but coins. |
@@ -132,7 +132,7 @@ Small steps, each one green in CI, none changing how the game plays.
    mechanical pass), then in CI.
 2. **Old paths out:** the old room kit (`?kit=old`, 21 files), the old foe looks (after the owner's last approvals, or
    their new looks taken as they are), the pixel-row modes beside texel and fine, the extra creature looks, the
-   comparison GLBs, the `rotling`, `prototype/` and `npm run compare`. Kaelith's look chosen (one question).
+   comparison GLBs, the `rotling`, `prototype/` and `npm run compare`. (Kaelith's look was chosen on 2026-10-06: the Winged Watcher.)
 3. **Dev code fenced:** `__game`, the dev menu, galleries and test harnesses move to `src/dev/`, loaded by a dynamic
    import, so the game's own modules never import them (the hooks stay in production builds, as the owner wants, but
    behind one door). The rule "every feature gets a dev entry" stays, written against that door.
@@ -184,7 +184,7 @@ fast suite green in under 3 minutes, a week of CI without a flake fix.
    asks; steps 10 to 13 (the Great Circle and the Ferryman, echoes, the grimoire and the rest, the close) planned again
    on this base. The owner's spur for it (2026-10-12): Moonlighter's village between runs, given a magic twist; the
    ideas are in `docs/ideas.md`, Between runs, after Moonlighter.
-5. **Kaelith and the endings** (M7 Part A's daylight and the rest).
+5. **Kaelith and the endings** (the fight and daylight built in M7; the endings by the schools mastered are new).
 
 *Done when:* five runs in a row each tell the player something new.
 

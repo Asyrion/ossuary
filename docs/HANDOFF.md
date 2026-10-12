@@ -1,3 +1,6 @@
+> **Out of date (2026-10-12):** replaced by `docs/RESET-plan.md`, which says what comes next. Kept until the reset's R1
+> folds what still holds into the docs.
+
 # Handoff: where the work stands (2026-10-04)
 
 A note for the next session, so it can pick up exactly where this one stopped. `CLAUDE.md` is still the brief and
