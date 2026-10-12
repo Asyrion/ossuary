@@ -1,8 +1,8 @@
-# The reset: getting Ossuary back on track (draft, 2026-10-12)
+# The reset: getting Ossuary back on track (approved 2026-10-12)
 
 A roadmap proposed to the owner on 2026-10-12, after a full audit of the repo and of the Tripo pipeline in
-Asyrion/Godot-Tamer. **Draft: nothing in it is decided until the owner answers the questions in "Decisions".** Once
-approved it replaces `docs/HANDOFF.md` and the "Current state" line in `CLAUDE.md` as the one place that says what
+Asyrion/Godot-Tamer. The owner took all four decisions on 2026-10-12 (below), asking on the third that the story not copy Hades. It
+replaces `docs/HANDOFF.md` and the "Current state" line in `CLAUDE.md` as the one place that says what
 comes next.
 
 The goal stays the GDD's, sharpened: **a story-driven roguelite with RPG elements, its identity magic**, in the
@@ -60,23 +60,36 @@ read well enough. Ossuary already has what Godot-Tamer lacked: its own clips mad
 (Nano Banana) → Tripo 3D → Ossuary's rig and clips → Blender bake at the game's camera → Godot-Tamer's pixelize → sprite
 sheets.** Rooms, tiles, icons and effects can take Godot-Tamer's 2D route directly.
 
-## Decisions (for the owner)
+## Decisions (taken with the owner, 2026-10-12)
 
-Each with a recommendation. The plan below assumes the recommended answer; a different answer changes Phase 3 or 4.
+The owner took each recommendation; the third with a condition, written into it.
 
-1. **Engine.** *Recommended: stay on three.js and TypeScript in the browser.* The 36k lines of systems are the game;
+1. **Engine.** *Taken: stay on three.js and TypeScript in the browser.* The 36k lines of systems are the game;
    a move to Godot would rebuild all of it to gain an art pipeline that is engine-agnostic anyway. Godot would only win
    if the game were to leave the browser for good.
-2. **How creatures and the mage are drawn.** *Recommended: pre-rendered pixel-art sprites from the 3D-bake line above*,
+2. **How creatures and the mage are drawn.** *Taken: pre-rendered pixel-art sprites from the 3D-bake line above*,
    shown as billboards in the 3D room (the room, light, water, fire and spells stay 3D). Alternatives: (b) keep live 3D
    models in the pixel pass (today's way: soft, muddy at this size); (c) sprites drawn by the image model alone (best
-   single pictures, but four directions of one creature rarely match). Decided by a proof, Phase 3 step 2: one foe,
-   one boss and the mage, both (a) and (b), side by side in one room.
-3. **The story's shape.** *Recommended: the Hades model*: the story moves on with every run, won or lost; the Vigil is
-   where it is told (the freed shades talk, remember and ask), each floor has one story beat, Kaelith's fight changes
-   with what the mage has learned, and there is a true ending after several wins. It fits the GDD's Vigil and makes
-   death part of the story.
-4. **Scope of the redraw.** *Recommended: a core roster.* Redrawing 61 foes and 10 bosses before anyone plays a run
+   single pictures, but four directions of one creature rarely match). Phase 3 step 2's proof still stands (b) beside
+   it once, so the owner sees the gain before the roll-out.
+3. **The story's shape.** *Taken: the story moves on with every run, won or lost, and death is part of it; but not
+   Hades* (the owner: "originality and the focus on magic could make the difference"). What Hades does (a family hub,
+   gods handing out boons, relationships told in talk after each death) is not the model. Ossuary's story is told
+   **through magic**; the principles for the story bible (Phase 4), to be worked out with the owner:
+   - **Magic remembers.** The vault's magic holds what happened: a grimoire page is a Warden's memory, a reaction found
+     the first time shows a glimpse of who made it, a school cast into a seal or a ward answers with a voice. The story
+     is found by casting, not only by talking.
+   - **What the mage knows is the story's progress.** Spell knowledge, reactions, weaves and the bestiary are already
+     kept between runs; each threshold of knowledge opens the next piece (a line, a vision, a door in the Seal, a shade
+     who can be freed). Learning the magic and learning the truth are one thing.
+   - **The schools are a choice of who Asyrion becomes.** Asyrion's arc from apprentice to chaos mage is shaped by the
+     schools mastered across runs (Hallow and Umbral pulling apart, Verdant the Huruhui's way), and so are Kaelith's
+     words and the endings.
+   - **Death is a crossing, not a return home.** The Ferryman takes the mage back up, for a price; what the vault
+     kept from the mage's last run (its echo) waits below.
+   - **The Vigil is where the freed speak, not where boons are given.** Boons stay a matter of levels, runes and
+     bargains; the shades at the Vigil tell what the vault took from them and ask for what only magic can do.
+4. **Scope of the redraw.** *Taken: a core roster.* Redrawing 61 foes and 10 bosses before anyone plays a run
    would repeat the drift. Keep about 6 foes a floor and 5 bosses (one a floor, plus Kaelith), chosen by how good
    their fight is; the rest wait in the data, switched off, and come back drawn one by one later.
 
@@ -90,9 +103,9 @@ cleaning, the look and the story.
 1. Ship the branch to `main` so live, branches and docs start from the same game (the `ship` skill, when the owner says).
 2. The owner plays one full run and writes down the five things that bother most and the five that delight most.
    These steer Phases 3 to 5 more than any audit.
-3. Decide the questions above. Freeze features.
+3. Freeze features (the decisions were taken on 2026-10-12).
 
-*Done when:* `main` is the game, the decisions are in this file, the play notes are in `docs/playtest-notes.md`.
+*Done when:* `main` is the game and the play notes are in `docs/playtest-notes.md`.
 
 ### Phase 1: the docs tell the truth (Sonnet)
 
@@ -155,13 +168,15 @@ fast suite green in under 3 minutes, a week of CI without a flake fix.
 
 ### Phase 4: the story (the backbone)
 
-1. **Story bible** (`docs/story.md`), written with the owner from the lore: why Asyrion goes down, what Kaelith sealed
-   and why it matters, what the Wardens hid, the three acts across runs, the endings. Who speaks: the Ferryman, Dr.
+1. **Story bible** (`docs/story.md`), written with the owner from the lore and the principles of Decision 3: why
+   Asyrion goes down, what Kaelith sealed and why it matters, what the Wardens hid, what each school's magic remembers,
+   the thresholds of knowledge that move the story, the acts across runs, the endings by the schools mastered. Who speaks: the Ferryman, Dr.
    Jelly, the Wandering Merchant, Fen-Nex, the freed shades, Kaelith. The open questions of the GDD answered or cut.
-2. **A dialogue system:** lines as data (`data/dialogue/*.json`), conditions on what the run and the past runs hold
-   (bosses met, deaths, spells known, shades freed), portraits from the art line, a box in the art bible's style.
+2. **A dialogue and memory system:** lines and visions as data (`data/dialogue/*.json`), conditions on what the run
+   and the past runs hold (bosses met, deaths, spells and reactions known, schools mastered, shades freed), triggered
+   by talk and by magic (a cast into a seal, a reaction found, a page read), portraits from the art line, a box in the art bible's style.
    Every line in `strings.ts`'s spirit: one place, easy to rename.
-3. **Story in the run:** one beat a floor (an encounter, a find, a voice), boss lines that change with history, the
+3. **Story in the run:** one beat a floor (a memory in the magic, a voice, a find), boss lines that change with history, the
    lore cards tied to the story bible.
 4. **The Vigil** (M7 Part B, re-planned on this base): the hub where the story is told between runs.
 5. **Kaelith and the endings** (M7 Part A's daylight and the rest).
@@ -182,6 +197,12 @@ milestone closed by a play-test before the next one opens.
 | Docs moves, the architecture page, splitting tests, porting the Python tools, the sprite runtime, room palettes, dialogue data | Sonnet subagents |
 | Mechanical passes: lint fixes, comment cleaning, renames, file moves, sheet assembly checks | Haiku subagents |
 | The `rules-reviewer` before every PR, the `room-inspector` after every look change | as today |
+
+## GitHub milestones
+
+Each phase is a GitHub milestone (`npm run milestone -- list`): R0 One baseline, R1 Docs that tell the truth, R2 Code
+that is kept, R3 The look, R4 The story, R5 The vertical slice. M7 stays open: its Part A (the Seal, Kaelith, built)
+is kept, its Part B (the Vigil) is planned again inside R4, and it closes with R4. M8 waits behind R5.
 
 ## New working agreements (proposed)
 
