@@ -127,7 +127,7 @@ export const CFG = {
     rise: { ember: .4, frost: -.3, storm: .15, hallow: .35, umbral: -.25, verdant: .2 } as Record<string, number>, // (M5: Verdant's leaves drift up slowly)
     line: 4,
   },
-  /** M4.6 Asyrion's arc (items/arc.ts): how many artifacts held bring each stage of the chaos mage's pieces, and how long
+  /** M4.6 Azyrion's arc (items/arc.ts): how many artifacts held bring each stage of the chaos mage's pieces, and how long
       each stage's line stays. */
   arc: { at: [3, 6, 9, 12], line: 4.5, perLevels: 3 }, // (M6 step 12: every three levels gained count as one artifact held)
   // M6 (docs/archive/M6-plan.md): insight, the GDD's XP, and levels. `at`: the insight each level from 2 to the cap needs (the

@@ -115,6 +115,20 @@ Text of the three PDFs in `inspiration/EDA/Huruhui/Documents/`, extracted with `
 | [Azyrion World Master Guide](<sources/Azyrion World Master Guide.md>) | 1934 | full | Eda as a world (Sumerian, Akkadian, Egyptian and Greek mythology; the Shattering), the Huruhui, the Drygefolk, the High Kingdom, magic and its rules, NPC and creature design with examples. Nothing yet: none of its peoples or the Empire is in the GDD. |
 | [Huruhui Homeland Summary-1](<sources/Huruhui Homeland Summary-1.md>) | 1115 | full | Nothing yet: the four regions, landmarks and paths are not in the GDD (it names only the valleys and the cave cities). |
 | [Azyrion_Tarakus_Blessing_Day_Pretty](<sources/Azyrion_Tarakus_Blessing_Day_Pretty.md>) | 421 | full | Nothing yet: a short scene of Azyrion's childhood in a Huruhui village. |
+## Canon (the owner's answers)
+
+Settled by the owner on 2026-10-12. Where these touch a contradiction below, they win.
+
+1. **The `inspiration/EDA` story is canon.** Boketto is an outcast, found as a baby inside a pyramid. He holds
+   fearsome magical power and can bend sand without spending much mana. The Huruhui storm-caller legend in
+   `Characters/Boketto - The Storm Caller.md` is not Boketto's story.
+2. **The hero is Azyrion.** The spelling Asyrion (in the GDD, the game's text and some pages) gives way to Azyrion.
+3. **Magic is feared and outlawed in Eda**, as the Master Guide tells it (the Great Purge, the anti-magic laws, the
+   hidden High Order). That is the owner's first idea for the game's world, and the story builds on it.
+
+What follows from them for the game (renaming the hero, Boketto's role and look, a world where magic is outlawed) is
+worked out in the story bible (`docs/RESET-plan.md`, R4); the GDD records it there.
+
 ## Contradictions and open points
 
 Where two sources disagree, and what the GDD still asks. None of this is settled by this folder: the owner decides, and the GDD records it.

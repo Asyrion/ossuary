@@ -89,7 +89,7 @@ proposals, approved with it. Each has its other way.
      model can replace it later through the creature pipeline (`docs/creatures.md`).
    - *Other way:* a Tripo model first, which waits on the owner's model.
 7. **One mage, many loadouts.**
-   - The disciplines are loadouts for Asyrion (a starting spell and focus), not separate characters. This answers the GDD's
+   - The disciplines are loadouts for Azyrion (a starting spell and focus), not separate characters. This answers the GDD's
      open question.
    - The Pyromancer (the GDD's Cinder Lance and an Ember focus) is open from the start; each of the others is unlocked by a
      freed shade (decision 11).
@@ -393,12 +393,12 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
        its stepped glow, thin cloud, three ranges of hills (`ridge` in the pure `src/world/daylightData.ts`) with firs on the
        nearest, three banks of mist that drift, a cliff on the left with a waterfall scrolling into spray.
      - **The cave's rock:** an arch framing the view (its top, roots hanging, and two sides), which opens over three seconds
-       as Asyrion walks out of the dark to the terrace's edge and stands looking out (`daylightPhase`: the white, the
+       as Azyrion walks out of the dark to the terrace's edge and stands looking out (`daylightPhase`: the white, the
        opening, the end).
      - **The light:** a warm fill and a low sun, the torches out, the lantern turned down (`setDaylight` in lights.ts,
        `CFG.daylight.light`).
    - **The end screen** lies over it at 6.5 s (`daylightHooks.done`, flow.ts's `endGame(true)`), the mist and the water still
-     moving behind it; its won text is rewritten ("Into the daylight": Kaelith knelt, the seal holds by the magic Asyrion
+     moving behind it; its won text is rewritten ("Into the daylight": Kaelith knelt, the seal holds by the magic Azyrion
      carried down, the rock opens on the valleys at dawn, the way home). A new run takes the scene away (`leaveDaylight`,
      from `buildFloor`). The game's state is `daylight` while it plays.
    - **The sound:** its piece "Daylight" (data/music.json's `daylight`, lydian, harp and lyre over strings and a choir; the

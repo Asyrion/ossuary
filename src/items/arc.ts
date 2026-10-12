@@ -1,4 +1,4 @@
-/* Asyrion's arc (M4.6, docs/archive/M4.6-plan.md; GDD: Artifacts, Asyrion's arc): the apprentice grows towards the chaos mage as
+/* Azyrion's arc (M4.6, docs/archive/M4.6-plan.md; GDD: Artifacts, Azyrion's arc): the apprentice grows towards the chaos mage as
    they hold more artifacts, and as they grow in level (M6 step 12: every `CFG.arc.perLevels` levels gained count as one). The stage (costumeData.ts's `arcStage`, at `CFG.arc.at`) puts the
    chaos mage's pieces on in the slots nothing else holds (costume.ts's `dress`); each stage first reached in a run says so
    in a line (GDD pillar: Nothing silent). The dev menu forces a stage (`DEV.arc`). */

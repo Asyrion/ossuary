@@ -18,7 +18,7 @@ const shell = (geo: THREE.BufferGeometry) => {
 };
 
 export const BUILD: Record<CostumeId, (f: Fit, w: Worn) => THREE.Object3D[]> = {
-  ...TRANSFORM_BUILD, ...ARC_BUILD, // (M4.6: the transformations' looks, transformPieces.ts; Asyrion's arc, arcPieces.ts)
+  ...TRANSFORM_BUILD, ...ARC_BUILD, // (M4.6: the transformations' looks, transformPieces.ts; Azyrion's arc, arcPieces.ts)
   /** A pilgrim's hood: a cowl round the head, open at the face, with a long tail down the back (a liripipe),
       and a short dagged mantle over the shoulders. */
   hood(f) {

@@ -9,7 +9,7 @@
 
 export type CostumeSlot = 'head' | 'face' | 'shoulders' | 'back' | 'hands' | 'belt' | 'feet' | 'aura' | 'orbit' | 'offhand';
 /** The slots: the GDD's seven and the feet; `orbit` (what circles the mage) and `offhand` (what the hand that doesn't cast
-    holds) are Asyrion's arc's alone. */
+    holds) are Azyrion's arc's alone. */
 export const COSTUME_SLOTS: readonly CostumeSlot[] = ['head', 'face', 'shoulders', 'back', 'hands', 'belt', 'feet', 'aura', 'orbit', 'offhand'];
 /** Where an artifact's own model can be carried (`"costume": "belt"`), and the slot each spot fills: on a shoulder or
     hung on the chest (a pendant), on the back, at the off hand's wrist, at the hip. */
@@ -35,7 +35,7 @@ export const COSTUME_PIECES = {
   emberSteps: { slot: 'feet', transform: true }, aura: { slot: 'aura', transform: true },
   // M5's Alchemist: a bandolier of vials across the chest, a stained apron at the waist
   bandolier: { slot: 'shoulders', transform: true }, apron: { slot: 'belt', transform: true },
-  // Asyrion's arc (ARC_PIECES): the chaos mage's bronze-worked bracers, a dark coat's collar and shoulders, red rune orbs in
+  // Azyrion's arc (ARC_PIECES): the chaos mage's bronze-worked bracers, a dark coat's collar and shoulders, red rune orbs in
   // gold rings, and a flame in the off hand with arcs of wind (`arc`: theirs alone)
   bracers: { slot: 'hands', arc: true }, chaosCollar: { slot: 'shoulders', arc: true }, runeOrbs: { slot: 'orbit', arc: true }, chaosFlame: { slot: 'offhand', arc: true },
 } as const satisfies Record<string, { slot: CostumeSlot; curse?: true; transform?: true; arc?: true }>;
@@ -67,7 +67,7 @@ export const slotOf = (costume: string): CostumeSlot => isPiece(costume) ? COSTU
     uncleansed, `cleansed` once a shrine has cleansed it. */
 export interface Worn { slot: CostumeSlot; piece: CostumeId | 'carried'; at?: CarrySpot; from: string; cursed: boolean; cleansed: boolean; transform?: true; arc?: true }
 
-/** Asyrion's arc (M4.6; GDD: Artifacts, Asyrion's arc): the chaos mage's pieces each stage brings, in the slots no artifact
+/** Azyrion's arc (M4.6; GDD: Artifacts, Azyrion's arc): the chaos mage's pieces each stage brings, in the slots no artifact
     or transformation holds. */
 export const ARC_PIECES: readonly (readonly CostumeId[])[] = [['bracers'], ['chaosCollar'], ['runeOrbs'], ['chaosFlame']];
 /** The arc's stage for `held` artifacts: how many of the thresholds `at` (CFG.arc.at) it has reached. */

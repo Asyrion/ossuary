@@ -48,7 +48,7 @@ export const G = {
     wanderer: new Rng(0), wandererMet: false,
     /** M4.2: the floor Fen-Nex was bound on (it grows a stage a floor), while it is. */ fennexFrom: undefined as number | undefined,
     /** M4.6: the transformations formed this run, in order (the latest wears its look; every gift stays). */ transforms: [] as TransformId[],
-    /** M4.6: the stage of Asyrion's arc reached this run (each said once in a line). */ arc: 0,
+    /** M4.6: the stage of Azyrion's arc reached this run (each said once in a line). */ arc: 0,
     /** M4.11: the schools the mage has been attuned to this run (each said once). */ attuned: [] as string[],
     /** M5: the run's bottles (each potion's shape and draught, shuffled on the seed), the potions identified this run,
         the seeded stream for which potion or reagent a drop is, and the one for whether a foe or an object leaves a reagent
@@ -83,7 +83,7 @@ export const G = {
 /** Dev menu switches (ui/devMenu.ts): god mode keeps the mage from harm; endless mana never runs out; `moveClip`
     tries the walk clip for all movement (with its feet in step, or at a natural pace), to compare with the run;
     `doors` moves every door off the middle of its edge where it fits, or none, in the floors made from now on. */
-export const DEV = { /** M4.6: Asyrion's arc forced to a stage (the dev menu), else from what is held. */ arc: undefined as number | undefined, god: false, mana: false, fps: false, moveClip: 'run' as 'run' | 'walkInStep' | 'walkNatural', doors: 'data' as 'data' | 'shifted' | 'middle',
+export const DEV = { /** M4.6: Azyrion's arc forced to a stage (the dev menu), else from what is held. */ arc: undefined as number | undefined, god: false, mana: false, fps: false, moveClip: 'run' as 'run' | 'walkInStep' | 'walkNatural', doors: 'data' as 'data' | 'shifted' | 'middle',
   /** The room kit in code (M3.5 step 3's proof: the fire objects, the crypt's floor and walls); off keeps the old looks. */
   roomKit: true,
   /** The minimap marks finished rooms (2026-10-02, the owner's ask): the dev menu turns it off to compare. */

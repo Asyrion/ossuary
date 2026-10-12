@@ -485,11 +485,11 @@ test('the end screen sums up the run, and replays its seed', async ({ page }) =>
   const lost = await summary();
   expect(lost).toMatchObject({ shown: true, floor: '1 of 6', seed: 'ENDRUN', carried: 1 });
   expect(lost.title).not.toBe(won.title);
-  expect(lost).toMatchObject({ title: 'Asyrion fell in the vault', text: expect.stringMatching(/^Asyrion's descent ended on floor 1, The Ossuary/) });
+  expect(lost).toMatchObject({ title: 'Azyrion fell in the vault', text: expect.stringMatching(/^Azyrion's descent ended on floor 1, The Ossuary/) });
   expect(errors).toEqual([]);
 });
 
-test('the setting (M4.2): the title names the Gate of Uzulim and Asyrion; the first floor opens beneath the Wardens\' chapel, and the Warden is one of them', async ({ page }) => {
+test('the setting (M4.2): the title names the Gate of Uzulim and Azyrion; the first floor opens beneath the Wardens\' chapel, and the Warden is one of them', async ({ page }) => {
   await page.addInitScript('window.__manual = true');
   await page.goto('/?seed=GATE01&autolevel=skip');
   await page.waitForFunction(() => !!(window as unknown as W).__game, null, { timeout: 30_000 });
@@ -497,7 +497,7 @@ test('the setting (M4.2): the title names the Gate of Uzulim and Asyrion; the fi
     heading: document.querySelector('#scrTitle h1')!.textContent, place: document.querySelector('#scrTitle .place')!.textContent,
     intro: document.querySelector('#scrTitle .place + p')!.textContent,
   }));
-  expect(title).toEqual({ heading: 'Ossuary', place: 'Beneath the Gate of Uzulim', intro: expect.stringMatching(/^Asyrion's first descent into the Wardens' vault/) });
+  expect(title).toEqual({ heading: 'Ossuary', place: 'Beneath the Gate of Uzulim', intro: expect.stringMatching(/^Azyrion's first descent into the Wardens' vault/) });
   await page.screenshot({ path: 'test-results/smoke-title.png' });
   await page.click('#btnStart');
   const banner = await page.evaluate(() => [document.querySelector('#banner .t')!.textContent, document.querySelector('#banner .s')!.textContent]);
@@ -1710,7 +1710,7 @@ test('transformations (M4.6): three of a family transform the mage, said in a ba
   expect(errors).toEqual([]);
 });
 
-test("Asyrion's arc (M4.6): with more artifacts held the chaos mage's pieces arrive, each stage said once in a line, and the dev menu steps through them", async ({ page }) => {
+test("Azyrion's arc (M4.6): with more artifacts held the chaos mage's pieces arrive, each stage said once in a line, and the dev menu steps through them", async ({ page }) => {
   const errors = await start(page, '?room=great_hall&variant=quiet&seed=ARC1');
   type GA = GameHooks & { give(...ids: string[]): void; costume: string[]; arc: { stage: number; held: number; reached: number }; setArc(n?: number): void; clearRoom(): void; closeUp(on?: boolean): void };
   const r = await page.evaluate(() => {
@@ -5379,7 +5379,7 @@ test('the shrine\'s bargain (M6 step 11): a stone at the circle\'s head; walking
   expect(errors2).toEqual([]);
 });
 
-test('the run around it (M6 step 12): a deeper start begins at its floor\'s expected level, its choices waiting; levels count toward Asyrion\'s arc, three to an artifact', async ({ page }) => {
+test('the run around it (M6 step 12): a deeper start begins at its floor\'s expected level, its choices waiting; levels count toward Azyrion\'s arc, three to an artifact', async ({ page }) => {
   const errors = await start(page, '?floor=4&level=auto');
   const r = await page.evaluate(`(() => {
     const g = window.__game; const start = { level: g.level, floor: g.floor };

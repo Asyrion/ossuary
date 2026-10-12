@@ -349,7 +349,7 @@ function build() {
   // costumes (M4.6): any artifact's piece tried on as if held (a focus held in the casting hand), or all taken off
   const cost = section(pages.mage, S.costumes);
   cost.append(costInfo = el('p', 'dv-info'), btn(S.takeAllOff, () => { takeAllOff(); refresh(); }), closeBtn = btn(S.closeUp, () => { setCloseUp(!DEV.closeUp); refresh(); }));
-  // Asyrion's arc (M4.6): a stage forced, or from what is held
+  // Azyrion's arc (M4.6): a stage forced, or from what is held
   const arcRow = section(pages.mage, S.arc);
   arcRow.append(arcInfo = el('p', 'dv-info'), ...[undefined, 0, 1, 2, 3, 4].map(n => { const b = btn(n === undefined ? S.arcHeld : S.arcStage(n), () => { DEV.arc = n; dress(); refresh(); }); b.dataset.arc = String(n); return b; }));
   costBox = section(pages.mage, S.costumesTry);
