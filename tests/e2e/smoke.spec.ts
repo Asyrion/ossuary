@@ -6460,6 +6460,7 @@ test('made assets: the stand-ins load through the manifest and replace their pla
       return g.current.rocks.filter((r) => r.urn === 'sealed').map((r) => [...mats(r)].some((m) => plain.has(m)));
     }),
   ).toEqual([false, false]);
+  expect(await look()).toMatchObject({ on: true, texel: [true, true, true, true] }); // (stand-ins placed later are pixel art too)
   // off: the floor is built again with the placeholders
   await page.evaluate(() => {
     const g = (window as unknown as { __game: GA }).__game;
@@ -6859,7 +6860,7 @@ test("the room kit's doors, gates, niches and pilasters: built in code, one mesh
   expect(kit.locked).toBe(true);
   expect(kit.shut.every(Boolean)).toBe(true);
   await page.screenshot({ path: 'test-results/room-kit-doors.png' });
-  expect(kit.calls).toBeLessThan(70); // (each door and each wall's dressing in a call or two: 56 when this was written)
+  expect(kit.calls).toBeLessThan(62); // (each door and each wall's dressing in a call or two; the room draws in 56)
   expect(errors).toEqual([]);
 });
 
@@ -12651,7 +12652,7 @@ test("a merchant's ware shows a small panel when the mage comes near (2026-10-02
   expect(errors).toEqual([]);
 });
 
-test("fantasy foes (M4.12): every foe, in the look it wears, fights a while, its behaviour moving the look's parts, without an error", async ({
+test("fantasy foes (M4.12): every look keeps the parts its foe's behaviour moves, and every foe in its look fights a while without an error", async ({
   page,
 }) => {
   type GL = {
@@ -12660,52 +12661,19 @@ test("fantasy foes (M4.12): every foe, in the look it wears, fights a while, its
     clearRoom(): void;
     enemies: { type: string; foe?: { id: string } }[];
     player: { invuln: number };
+    lookContract(): { id: string; missing: string[]; known: boolean }[];
   };
-  // (the foes that wear a fantasy look, floors 1 to 5 and the Wardlings: the firefly swarm wears the firefly beetle's)
-  const ids = [
-    'sporeling',
-    'vesperMoth',
-    'runeBeetle',
-    'urnMimic',
-    'cryptSpider',
-    'inkOctopus',
-    'fireflySwarm',
-    'choirLark',
-    'stormMantis',
-    'rubbleCrab',
-    'mireToad',
-    'cisternLurker',
-    'lanternJelly',
-    'glassNewt',
-    'rimeSnail',
-    'stormDarter',
-    'cinderSalamander',
-    'hexImp',
-    'rimeDrakeling',
-    'emberWasp',
-    'waspNest',
-    'wickmouse',
-    'chimeBat',
-    'gargoyleWhelp',
-    'moonstagFawn',
-    'rimeScarab',
-    'rootling',
-    'stormRay',
-    'voidMote',
-    'lanternTortoise',
-    'gloomRaven',
-    'rimeWolf',
-    'dustPangolin',
-    'wardEmber',
-    'wardFrost',
-    'wardStorm',
-    'wardHallow',
-    'wardUmbral',
-    'wardVerdant',
-  ];
-  const FOES = JSON.parse(readFileSync('data/foes.json', 'utf8')) as Record<string, unknown>;
-  for (const id of ids) expect(FOES[id], id).toBeDefined();
   const errors = await start(page, '?seed=LOOKS&room=great_hall');
+  const contract = await page.evaluate(() => (window as unknown as { __game: GL }).__game.lookContract());
+  expect(contract.length).toBeGreaterThanOrEqual(39);
+  for (const c of contract) expect(c, c.id).toMatchObject({ known: true, missing: [] });
+  // (a foe wears the fantasy look of its `look`, or of its own id: one foe for each look fights)
+  const FOES = JSON.parse(readFileSync('data/foes.json', 'utf8')) as Record<string, { look?: string }>;
+  const ids = contract.map((c) => {
+    const id = Object.keys(FOES).find((f) => f !== '_comment' && (FOES[f].look ?? f) === c.id);
+    expect(id, c.id).toBeDefined();
+    return id!;
+  });
   const fought = await page.evaluate((ids) => {
     const w = (window as unknown as { __game: GL }).__game,
       seen: string[] = [];

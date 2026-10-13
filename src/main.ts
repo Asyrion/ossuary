@@ -213,6 +213,7 @@ import { FOE_IDS, isFoe, type FoeType, type School } from './actors/foeData';
 import { bestiary, forgetBestiary } from './actors/bestiary';
 import { findEveryCounter } from './actors/counters';
 import { burningGround, sparkGround } from './actors/foes';
+import { lookContract } from './actors/fantasyLooks';
 import { groundCount, groundDrawn } from './actors/bestiaryGround';
 import { blastAt } from './combat/glyphs';
 import { inSteam, steamAt, steamCount } from './magic/steam';
@@ -557,7 +558,7 @@ function installDevHooks() {
     useAssets: (on: boolean) => useAssets(on),
     /** The kinds of wall, floor, wall light and brazier the room the mage is in drew (the room kit's variety). */
     get kinds() {
-      return G.current.look.kinds ? { ...G.current.look.kinds } : null;
+      return { ...G.current.look.kinds };
     },
     /** Force kinds on every room of this floor, e.g. forceKinds({ wall: 'ashlar' }) ({} to draw per room again); built again. */
     forceKinds: (k: Partial<Kinds>) => forceKinds(k),
@@ -579,6 +580,8 @@ function installDevHooks() {
     bestiaryOptions: (ids?: string[]) => showBestiary(G.current, player.x, player.z, ids),
     /** The bosses built in code (the Hollow Warden's looks, M4, and floors 4 and 5's, M4.1): stand them ahead of the mage; the look the Warden wears in its fight, and choosing it. */
     bossLooks: (ids?: string[]) => showBossLooks(G.current, player.x, player.z, ids),
+    /** For each fantasy look: the parts its foe's behaviour moves that the look lacks, and whether its parts are known. */
+    lookContract: () => lookContract(),
     /** Dr. Jelly (2026-10-02, the plague doctor): stood ahead of the mage giving, a gift handed over in this laboratory,
         and what he is giving now. */
     jellyLooks: () => showJellyLooks(G.current, player.x, player.z),

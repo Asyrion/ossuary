@@ -1,4 +1,4 @@
-/* The foes built in code (M4, docs/archive/M4-plan.md): each is its model option (modelOptions.ts) made a foe. Its still parts
+/* The foes built in code (M4, docs/archive/M4-plan.md): each is its look (fantasyLooks.ts) made a foe. Its still parts
    are merged (render/rig.ts), its idle plays on its own clock (`at`: a frozen foe stops, a swelling one holds still), and
    its behaviour, by kind, moves it, telegraphs and attacks; a behaviour may pose the model's parts after the idle (a
    beetle's wing-cases, a mimic's lid). What every foe shares is here: the telegraph (its body glows in its school's
@@ -52,7 +52,6 @@ import { flame } from '../magic/shapes';
 import { inflict } from '../magic/statusFx';
 import { canHeal } from '../magic/status';
 import { lerp, mulberry, rand } from '../util';
-import { MODEL_OPTIONS } from './modelOptions';
 import { BESTIARY_OPTIONS, FOE_LOOKS } from './bestiaryLooks';
 import { FANTASY_LOOKS } from './fantasyLooks';
 import { BESTIARY_BEHAVIOURS, clearGround, updateGround } from './bestiaryFoes';
@@ -66,13 +65,9 @@ import { hearGround } from '../world/groundHooks';
 
 export type { Aim } from './foeKit';
 
-/** The builder of the look of id `look`: its fantasy look (M4.12), else an M4 model option, an M4.5 bestiary look, or a
-    look of its own. */
+/** The builder of the look of id `look`: its fantasy look, else a bestiary look, or a look of its own. */
 const lookBuilder = (look: string) =>
-  FANTASY_LOOKS[look] ??
-  MODEL_OPTIONS.find((o) => o.id === look)?.build ??
-  BESTIARY_OPTIONS.find((o) => o.id === look)?.build ??
-  FOE_LOOKS[look];
+  FANTASY_LOOKS[look] ?? BESTIARY_OPTIONS.find((o) => o.id === look)?.build ?? FOE_LOOKS[look];
 
 /** Build foe `def` into `e`: its model, merged, in `e.body`; its surfaces that a hit or a status lights. */
 export function buildFoe(e: Enemy, def: FoeDef) {
@@ -80,7 +75,7 @@ export function buildFoe(e: Enemy, def: FoeDef) {
     build = lookBuilder(look);
   if (!build) throw new Error(`foe ${def.id}: no look ${look}`);
   const b = build();
-  e.mats = mergeRig(b.group, b.idle, FANTASY_LOOKS[look] ? look + ':new' : look, Object.values(b.parts ?? {})); // (a fantasy look's merge plan kept apart from the model options' of the same id)
+  e.mats = mergeRig(b.group, b.idle, look, Object.values(b.parts ?? {}));
   for (const m of e.mats) m.userData.base = m.emissive.clone();
   e.foe = def;
   e.model = b.group;
