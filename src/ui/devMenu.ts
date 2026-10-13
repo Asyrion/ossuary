@@ -74,8 +74,6 @@ import { openLectern } from './lectern';
 import { assetList, assetsOn, setAssetsOn } from '../assets/models';
 import { setCloseUp } from '../render/renderer';
 import { LINES, drawnRows, pixelLook, setPixelLook } from '../render/pixelLook';
-import { heroPixel, setHeroPixel } from '../actors/heroPixel';
-import { hero } from '../actors/hero';
 import {
   FAMILIAR_OPTIONS,
   MODEL_OPTIONS,
@@ -182,8 +180,7 @@ let panel: HTMLElement | null = null,
   assetBox: HTMLElement,
   pxBtn: HTMLButtonElement,
   lineBtn: HTMLButtonElement,
-  bandBtn: HTMLButtonElement,
-  heroPxBtn: HTMLButtonElement;
+  bandBtn: HTMLButtonElement;
 let levelInfo: HTMLElement,
   padInfo: HTMLElement,
   foeLookBtn: HTMLButtonElement,
@@ -1089,11 +1086,6 @@ function build() {
     })),
     (lineBtn = btn('', () => setPixelLook({ outline: !pixelLook().outline }))),
     (bandBtn = btn('', () => setPixelLook({ bands: !pixelLook().bands }))),
-    // the mage in the pixel-art look (its colours baked, a few of them, light in bands), or the model as made, to compare
-    (heroPxBtn = btn('', () => {
-      setHeroPixel(hero.model, !heroPixel());
-      dress();
-    })),
     // M4.12: the foes wear the approved new looks, every new one, or the old ones (new foes take it; a new floor all of them)
     (foeLookBtn = btn('', () => {
       DEV.foeLooks = FOE_LOOK_MODES[(FOE_LOOK_MODES.indexOf(DEV.foeLooks) + 1) % FOE_LOOK_MODES.length];
@@ -1881,14 +1873,12 @@ function refresh() {
       .map(([id, r]) => `${boon(id).name}${r > 1 ? ' II' : ''}`)
       .join(', '),
   );
-  heroPxBtn.textContent = heroPixel() ? S.heroPixelOn : S.heroPixelOff;
   {
     const waiting = looksWaiting().length > 0; // (every new look approved: the three ways draw the same foes)
     foeLookBtn.textContent = waiting ? S.foeLooks[DEV.foeLooks] : S.foeLooksAllApproved;
     foeLookBtn.disabled = !waiting;
     foeLookBtn.classList.toggle('on', DEV.foeLooks !== 'approved');
   }
-  heroPxBtn.classList.toggle('on', heroPixel());
   const stages = Object.values(knowledgeNow()),
     count = (...st: string[]) => stages.filter((s) => st.includes(s)).length;
   knowBox.textContent =

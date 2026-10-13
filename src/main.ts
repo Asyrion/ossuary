@@ -34,7 +34,6 @@ import { Sfx } from './audio/sfx';
 import { camera, canvas, draw, renderer, resize, setCloseUp } from './render/renderer';
 import './render/lights';
 import { fallbackHero, hero, loadHeroBuffer, setHero } from './actors/hero';
-import { heroPixel, setHeroPixel } from './actors/heroPixel';
 import { givingNow, jellyGives, type Gift } from './world/jellyGives';
 import { arrowOrder, initGamepad, initKeyboard, initTouch, keys, padsNow, type InputActions } from './input';
 import { RUNE_IDS, isRune, type RuneId } from './magic/runeData';
@@ -591,14 +590,6 @@ function installDevHooks() {
     /** The rows of game pixels the pixel look drew in the last frame (at the texel: the view's height in texels). */
     get pixelRows() {
       return drawnRows();
-    },
-    /** The mage in the pixel-art look (its colours baked, a few of them, light in bands), or as made; switch it. */
-    get heroPixel() {
-      return heroPixel();
-    },
-    setHeroPixel: (on: boolean) => {
-      setHeroPixel(hero.model, on);
-      dress();
     },
     /** Every artifact floating ahead of the mage, as the room kit builds them (the dev menu's artifact gallery); how many;
         and taken away again. */

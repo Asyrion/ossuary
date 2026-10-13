@@ -824,7 +824,7 @@ the previous room's foes.
 - A hook's name appears here in backticks (`name` or `__game.name`); `npm run review-checks` looks for it.
 
 Browser storage: `ossuary.vigil` (the save; also migrates the older per-module keys `ossuary.knowledge`,
-`.bestiary`, `.reactions`, `.weaves`, `.recipes`), `ossuary.look`, `.heroPixel`, `.devTab`, `.volume`, `.obolFace`,
+`.bestiary`, `.reactions`, `.weaves`, `.recipes`), `ossuary.look`, `.devTab`, `.volume`, `.obolFace`,
 `.townWear`, `.insightTold`.
 
 ## Legacy and comparison switches
@@ -838,6 +838,5 @@ These exist to compare an old way against the current one. They are not part of 
 | `?looks=new\|old`, `DEV.foeLooks`, `APPROVED`, `RETIRED` | Foes not in `APPROVED` wear an older look. |
 | `lookPairs.ts`, `npm run foe-sheet` pairs | Old and new foe looks side by side; the `lookContract` test. |
 | `?pixel=1080\|720\|540\|360\|270`, `LINES`, `pixelGrid` | Whole-screen-pixel row modes beside `texel`, `fine`. |
-| `setHeroPixel` | The mage baked/as made. |
 | `rotling`, `modelOptions.ts` galleries | A plain test foe; look-only galleries of foes and familiars. |
 | `src/input/touch.ts` | Frozen 0.3 touch controls: do not extend or test them. |
