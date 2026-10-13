@@ -312,7 +312,7 @@ export function mergeStill(root: THREE.Object3D) {
         );
       return place(m, g);
     });
-    const one = new THREE.Mesh(mergeGeometries(geos)!, mat);
+    const one = new THREE.Mesh(mergeGeometries(geos), mat);
     root.add(one);
     for (const g of geos) g.dispose();
     retire(list);

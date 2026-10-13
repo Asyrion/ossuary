@@ -98,7 +98,7 @@ export function bakeHeroPixel(root: THREE.Object3D) {
   const { palette, index } = quantize(all, P.colours, P.refine, P.chroma),
     c = new THREE.Color();
   // (each palette colour once into linear light, as three keeps vertex colours)
-  const linear = palette.map((p) => c.setRGB(p[0], p[1], p[2], THREE.SRGBColorSpace).toArray() as number[]);
+  const linear = palette.map((p) => c.setRGB(p[0], p[1], p[2], THREE.SRGBColorSpace).toArray());
   at = 0;
   for (const { mesh, mat, rgb } of meshes) {
     const out = new Float32Array(rgb.length);

@@ -50,7 +50,7 @@ function webGeometry() {
           .translate(Math.cos((a + b) / 2) * r * 0.96, 0, Math.sin((a + b) / 2) * r * 0.96),
       );
     }
-  const g = mergeGeometries(parts)!;
+  const g = mergeGeometries(parts);
   for (const p of parts) p.dispose();
   return g;
 }

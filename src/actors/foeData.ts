@@ -500,7 +500,7 @@ export function pairRoom(
       isElite = isFoe(k) && !!FOES[k].elite,
       isPack = comesMany(k);
     if ((isElite && elite) || (isPack && pack)) wave[i].kind = pickFoe(table, wave[i].role as Role, R, true, true);
-    elite ||= isFoe(wave[i].kind) && !!FOES[wave[i].kind as FoeId].elite;
+    elite ||= isFoe(wave[i].kind) && !!FOES[wave[i].kind].elite;
     pack ||= comesMany(wave[i].kind);
   }
   return [a, b];

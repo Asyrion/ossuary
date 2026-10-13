@@ -379,7 +379,7 @@ function labelOf(kind: KindDef, v: Json, key: string, i: number) {
   if (kind.labelKey && typeof o[kind.labelKey] === 'string') return o[kind.labelKey] as string;
   if (kind.labelFmt)
     return kind.labelFmt.replace(/\{(\w+)\}/g, (_, f: string) =>
-      f === 'n' ? String(i + 1) : Array.isArray(o[f]) ? (o[f] as Json[]).join(' + ') : String(o[f] ?? ''),
+      f === 'n' ? String(i + 1) : Array.isArray(o[f]) ? o[f].join(' + ') : String(o[f] ?? ''),
     );
   return key;
 }

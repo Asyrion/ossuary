@@ -259,7 +259,7 @@ export function twinFell(t: Enemy) {
   }
   t.halo!.material.color.setHex(RAGE);
   t.halo!.material.opacity = 0.6;
-  ((t.parts!.eyeGlow as THREE.Sprite).material as THREE.SpriteMaterial).color.setHex(RAGE);
+  (t.parts!.eyeGlow as THREE.Sprite).material.color.setHex(RAGE);
   banner(STR.bosses.twins.rage, '');
   Sfx.at(t.x, t.z).tigerRoar();
   G.shake = 0.4;

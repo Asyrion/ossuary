@@ -12,7 +12,6 @@ import {
   runedDef,
   runesFor,
   validateRunes,
-  type RuneDef,
 } from '../../src/magic/runeData';
 import { Rng } from '../../src/rng';
 
@@ -37,8 +36,8 @@ describe('runes', () => {
     const wide = RUNE_DEFS.find((r) => r.id === 'wide')!;
     const errs = validateRunes([
       ...RUNE_DEFS.filter((r) => r !== wide),
-      { ...wide, shapes: ['beam'] } as RuneDef,
-      { ...wide, id: 'wide' } as RuneDef,
+      { ...wide, shapes: ['beam'] },
+      { ...wide, id: 'wide' },
     ]).join('; ');
     expect(errs).toMatch(/listed twice/);
     expect(errs).toMatch(/WIDENS says nothing of it/);

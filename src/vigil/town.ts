@@ -193,7 +193,7 @@ export function talkContext(who: string, moment?: TalkContext['moment']): TalkCo
     weakness: metFoes
       .filter((id) => !book[id].weak && FOES[id].floor > 0 && FOES[id].weak)
       .sort((a, b) => FOES[a].floor - FOES[b].floor)
-      .map((id): Subject => ({ key: id, vars: { foe: foeName(id), school: STR.schools[FOES[id].weak!] } })),
+      .map((id): Subject => ({ key: id, vars: { foe: foeName(id), school: STR.schools[FOES[id].weak] } })),
     bossFear: BOSS_TYPES.filter((b) => book[b]?.met && (CFG.enemy[b] as { weak?: string }).weak).map((b): Subject => ({
       key: b,
       vars: { boss: cap(struckName(b)), school: STR.schools[(CFG.enemy[b] as { weak: string }).weak] },

@@ -5,7 +5,7 @@
    barred way saying what bars it (and opening to its school, M7 step 9), and the Ferryman's head turning to the mage. Nothing here can hurt the mage, and nothing
    is fought. `leaveVigil` (from flow's `buildFloor`) forgets it. */
 import * as THREE from 'three';
-import type { Room, RockBox, Torch } from '../types';
+import type { Room } from '../types';
 import { unplugDoor } from '../world/rooms';
 import { disposeTree } from '../render/materials';
 import { CFG } from '../config';
@@ -92,7 +92,7 @@ export function furnishVigil(first: boolean) {
       const flame = new THREE.Object3D();
       flame.userData.fire = true;
       flame.userData.piece = p.kind; // (its fire moves by itself: no flicker from rooms.ts)
-      r.torches.push({ flame, glow: glowOf, ...lightAt, lit: p.kind === 'bier' } as Torch);
+      r.torches.push({ flame, glow: glowOf, ...lightAt, lit: p.kind === 'bier' });
     }
   }
   const bars: Bar[] = [],
@@ -290,7 +290,7 @@ function openWay(bar: Bar) {
   bar.open = true;
   openPart(bar.school);
   const r = bar.room;
-  r.rocks = r.rocks.filter((k) => (k as RockBox).bar !== bar.school);
+  r.rocks = r.rocks.filter((k) => k.bar !== bar.school);
   const veil = bar.look.userData.parts?.veil as THREE.Mesh | undefined;
   if (veil) here.veils = here.veils.filter((v) => v !== veil);
   bar.look.removeFromParent();

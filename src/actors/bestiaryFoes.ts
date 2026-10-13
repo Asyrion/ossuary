@@ -2798,7 +2798,7 @@ const roller: Behaviour = {
       e.vx = a.ux * sp;
       e.vz = a.uz * sp;
       e.cycle = Math.min(1, e.cycle! + sp * dt * num(P.grow));
-      if (e.cycle! >= num(P.launchAt) && a.dist < num(P.range)) {
+      if (e.cycle >= num(P.launchAt) && a.dist < num(P.range)) {
         e.state = 'heave';
         e.st = num(P.tell);
         Sfx.at(e.x, e.z).saltRaise();
@@ -3032,7 +3032,7 @@ const hydra: Behaviour = {
       // by turns, a head bites, or spits hexing venom
       e.fireT = num(P.attackEvery) / live.length;
       e.cycle = (e.cycle! + 1) % live.length;
-      e.count = H.indexOf(live[e.cycle!]);
+      e.count = H.indexOf(live[e.cycle]);
       if (a.dist < num(P.biteReach)) {
         e.tele = 1;
         Sfx.at(e.x, e.z).crabSnap();

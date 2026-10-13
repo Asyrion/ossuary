@@ -271,10 +271,10 @@ export function validateMusic(
     for (const d2 of p.pulse ?? []) {
       if (!DRUMS.includes(d2.drum)) errs.push(`${at}: unknown drum "${d2.drum}"`);
       for (const k of ['explore', 'fight', 'boss'] as const)
-        if (d2[k] !== undefined && !PATTERN.test(d2[k]!)) errs.push(`${at}: ${d2.drum}'s ${k} pattern is x, o and .`);
+        if (d2[k] !== undefined && !PATTERN.test(d2[k])) errs.push(`${at}: ${d2.drum}'s ${k} pattern is x, o and .`);
     }
     for (const k of ['fight', 'boss'] as const)
-      if (p.bass?.[k] !== undefined && !PATTERN.test(p.bass[k]!))
+      if (p.bass?.[k] !== undefined && !PATTERN.test(p.bass[k]))
         errs.push(`${at}: the bass's ${k} pattern is x, o and .`);
   }
   return errs;

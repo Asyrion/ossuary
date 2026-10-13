@@ -133,7 +133,7 @@ export function runedDef(def: SpellDef, runes: readonly RuneId[]): SpellDef {
     params: Object.freeze(params),
     status: status && Object.freeze(roundStatus(status)),
     runes: Object.freeze([...runes]),
-  }) as SpellDef;
+  });
 }
 
 /** Reprise's second cast of `def`: its damage and statuses at `share` (stacks rounded up), a seal's burning ground too; a
@@ -148,7 +148,7 @@ export function reprisedDef(def: SpellDef, share: number): SpellDef {
     status: def.status && Object.freeze(shareStatus(def.status, share)),
     params: Object.freeze(params),
     reprise: true,
-  }) as SpellDef;
+  });
 }
 
 /** How a cast is paid: nothing (a free cast), mana, Vein's half heart for what mana lacks, a soul mote for the rest, or

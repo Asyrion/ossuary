@@ -219,7 +219,7 @@ function buildCircle(arcs: CircleArc[], key: string) {
     side: THREE.DoubleSide,
   });
   const root = new THREE.Group();
-  root.add(new THREE.Mesh(mergeGeometries(geos)!, mat));
+  root.add(new THREE.Mesh(mergeGeometries(geos), mat));
   for (const g of geos) g.dispose();
   disposeTree(draft);
   for (const m of mats) m.dispose();
@@ -262,10 +262,10 @@ export function updateSpellMarks(dt: number) {
     const id = player.spells[slot],
       def = slotDef(slot),
       runes = player.sockets[slot]?.runes ?? []; // (M6: as its runes make it)
-    if (hands[slot] && (!def || hands[slot]!.id !== id || hands[slot]!.runes !== runes))
+    if (hands[slot] && (!def || hands[slot].id !== id || hands[slot].runes !== runes))
       hands[slot] = dropHand(hands[slot]); // (built again when its runes change)
     if (!def || off) {
-      if (hands[slot]) hands[slot]!.root.visible = false;
+      if (hands[slot]) hands[slot].root.visible = false;
       continue;
     }
     const h = (hands[slot] ??= buildHand(def.id, def.school, runes));

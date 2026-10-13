@@ -64,7 +64,7 @@ export const MANIFEST: Manifest = {
   icons: raw.icons,
   coins: raw.coins,
   obol: raw.obol,
-} as Manifest;
+};
 
 /** What a manifest names: the known ids it may use. */
 export interface Known {

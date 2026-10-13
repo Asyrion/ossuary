@@ -487,15 +487,15 @@ export function serpentInfo() {
   return {
     serpent: k
       ? {
-          state: e!.state,
-          hidden: !!e!.hidden,
-          x: e!.x,
-          z: e!.z,
-          hp: e!.hp,
-          maxHp: e!.maxHp,
+          state: e.state,
+          hidden: !!e.hidden,
+          x: e.x,
+          z: e.z,
+          hp: e.hp,
+          maxHp: e.maxHp,
           trap: k.trap,
           puddles: k.puddles,
-          under: poolAt(e!.x, e!.z)?.jelly ? poolAt(e!.x, e!.z)!.state : null,
+          under: poolAt(e.x, e.z)?.jelly ? poolAt(e.x, e.z)!.state : null,
         }
       : null,
     jelly: jelly.reduce((n, p) => n + p.tiles.length, 0),

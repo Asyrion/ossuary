@@ -57,8 +57,8 @@ export function joinAll(parts: THREE.BufferGeometry[]) {
     nor = new Float32Array(n * 3);
   let o = 0;
   for (const p of flat) {
-    pos.set(p.attributes.position.array as Float32Array, o * 3);
-    nor.set(p.attributes.normal.array as Float32Array, o * 3);
+    pos.set(p.attributes.position.array, o * 3);
+    nor.set(p.attributes.normal.array, o * 3);
     o += p.attributes.position.count;
   }
   out.setAttribute('position', new THREE.BufferAttribute(pos, 3));

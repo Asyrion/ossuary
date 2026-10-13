@@ -180,7 +180,7 @@ describe('the Vigil as a place (M7 step 5): its map', () => {
     expect(validateVigil(lane).join()).toMatch(/scribe's candle at \(6,6\) in the chapel stands in a doorway's lane/);
     const bed = copy();
     delete (bed.unfold.garden.beds as Record<string, unknown>).emberSalt;
-    (bed.unfold.garden.beds as Record<string, [number, number]>).ash = [6, 3];
+    bed.unfold.garden.beds.ash = [6, 3];
     expect(validateVigil(bed).join()).toMatch(
       /a bed of ash, which is no reagent.*no bed of emberSalt|no bed of emberSalt/,
     );

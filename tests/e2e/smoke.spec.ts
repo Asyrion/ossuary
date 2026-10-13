@@ -4898,7 +4898,7 @@ test('picking things up shows their lore: artifacts every time, items and contai
       on: document.getElementById('lore')!.classList.contains('on'),
       name: document.getElementById('loreName')!.textContent,
       kind: document.getElementById('loreKind')!.textContent,
-      lore: document.getElementById('loreText')!.textContent!.length,
+      lore: document.getElementById('loreText')!.textContent.length,
     }));
   const art = await page.evaluate(() => {
     const g = (window as unknown as W).__game as unknown as G8;
@@ -7721,7 +7721,7 @@ test("foes in code (M4.1): floor 5's rootling burrows and bursts up (fire keeps 
     g.inflict({ burn: 6 });
     g.sim(1.5);
     g.inflict({ burn: 6 });
-    let dug = false; // (set alight, one caught digging or under climbs out first; then it stays up) for (let i = 0; i < 60; i++) { g.sim(.05); dug ||= g.enemies.some(e => e.state === 'under' || e.state === 'dig'); }
+    const dug = false; // (set alight, one caught digging or under climbs out first; then it stays up) for (let i = 0; i < 60; i++) { g.sim(.05); dug ||= g.enemies.some(e => e.state === 'under' || e.state === 'dig'); }
     return { seen: [...seen].sort(), hid, dug };
   });
   expect(root.seen).toEqual(expect.arrayContaining(['dig', 'rumble', 'under', 'up']));
@@ -10209,7 +10209,7 @@ test("attributes (M6 step 2): a level's point spent on Vigor, Will, Arcana or Sw
     g.sim(0.8);
     g.inflict({ shock: 1 });
     const hp = b.hp;
-    g.hit(g.enemies.indexOf(a as never), 4, 'storm', 'spell');
+    g.hit(g.enemies.indexOf(a), 4, 'storm', 'spell');
     return { lost: hp - b.hp, mul: P.stats.spellDamage };
   });
   expect(leap.mul).toBeCloseTo(1.5);
