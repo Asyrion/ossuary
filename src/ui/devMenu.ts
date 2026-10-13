@@ -1077,12 +1077,11 @@ function build() {
       if (devOpen()) refresh();
     });
 
-  // the pixel look (the game's look, M3.5 step 2): the rows of pixels, outlines, light in bands; kept in this browser
+  // the pixel look (the game's look, M3.5 step 2): the grid of pixels (texel or fine), outlines, light in bands; kept in this browser
   const px = section(pages.look, S.pixel);
   px.append(
     (pxBtn = btn('', () => {
-      const ls = [...LINES, 0];
-      setPixelLook({ lines: ls[(ls.indexOf(pixelLook().lines) + 1) % ls.length] });
+      setPixelLook({ lines: LINES[(LINES.indexOf(pixelLook().lines) + 1) % LINES.length] });
     })),
     (lineBtn = btn('', () => setPixelLook({ outline: !pixelLook().outline }))),
     (bandBtn = btn('', () => setPixelLook({ bands: !pixelLook().bands }))),

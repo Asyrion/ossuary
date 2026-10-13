@@ -42,7 +42,7 @@ own looks are in `src/magic/spellFx.ts`.
    - A part thinner than about 0.025 units (a game pixel and a bit) flickers as it moves; build for that.
    - A glow uses the shared stepped glow (`glowTex` through `glow` and `glowShared`): its fade comes in a few flat rings,
      as pixel art draws a glow. Don't draw a smooth radial gradient for a new one.
-   - At 270 lines, the coarsest offered, a unit is about 25 game pixels: check a new effect there once too.
+   - A unit is 48 game pixels across at the texel, the size the game draws at: judge a new effect there.
    - Keep silhouettes clear.
    - Keep added light that passes over a character at an opacity of 0.6 or less, or the mage washes out to white.
    - Check every effect over a dark floor and a lit one.
@@ -166,7 +166,7 @@ shared parts in `kitParts.ts`.
    `CFG.spellFx`.
 3. **Call it from the spell's shape** in `shapes.ts` (or from `projectiles.ts` or `statusFx.ts`). What the spell does stays
    there; only the look moves.
-4. **Screenshot it in the pixel look** at the texel (the default), and once at 270:
+4. **Screenshot it in the pixel look** at the texel (the default):
    - in all four directions;
    - over a dark floor and a lit one;
    - with the mage and foes near it.

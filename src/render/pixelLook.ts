@@ -8,8 +8,8 @@
    mage, foes, artifacts, costumes and spells are drawn at the same pixel size as the floors and walls, which land on
    the grid texel for texel. That grid doesn't fall on whole screen pixels (about 2.6 at 1080p), so the blow-up is a sharp
    one: each pixel the same size, its edges blended over one screen pixel, and the camera's step between pixels shown
-   smoothly. The rows of earlier (1080 down to 270, whole screen pixels to a game pixel) stay in the dev menu, and
-   ?pixel=720 (or texel, or off). Tuning in CFG.pixelLook.
+   smoothly. The dev menu offers `texel` and `fine` (half a texel to a game pixel each way); ?pixel=texel, fine or off
+   (off only from the URL, for tools and tests). Tuning in CFG.pixelLook.
    One exception (the owner, 2026-10-02): what is on the fine layer (`FINE`: the coins, so their faces read) is drawn
    into its own target at `CFG.pixelLook.fineLayer` pixels to a game pixel each way, and laid over the grid where it
    stands nearer than what the grid drew, outlined and banded as the rest is. Its size in the room is unchanged; only its
@@ -20,11 +20,11 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 
-/** The pixel grid: 'texel' (a game pixel to a room-kit texel), 'fine' (two to a texel each way), at most that many rows
-    of whole screen pixels, or 0 (off). */
-export type Lines = number | 'texel' | 'fine';
+/** The pixel grid: 'texel' (a game pixel to a room-kit texel), 'fine' (two to a texel each way), or 0 (off: only from
+    the URL, for tools and tests). */
+export type Lines = 0 | 'texel' | 'fine';
 export interface PixelLook {
-  /** the grid: 'texel', rows of pixels on screen, or 0 for off */ lines: Lines;
+  /** the grid: 'texel', 'fine', or 0 for off */ lines: Lines;
   outline: boolean;
   bands: boolean;
 }
@@ -107,15 +107,15 @@ function fineShown(scene: THREE.Scene, camera: THREE.Camera, gw: number, gh: num
   }
   return nAreas > 0;
 }
-/** Every grid offered, the texel first. */
-export const LINES: readonly Lines[] = ['texel', 'fine', ...P.lines];
+/** Every grid the dev menu offers, the texel first. */
+export const LINES: readonly Lines[] = ['texel', 'fine'];
 const offered = (l: unknown): l is Lines => LINES.includes(l as Lines);
 let look: PixelLook = { lines: P.start, outline: true, bands: false };
 try {
   // (a choice is kept with the default it was made against: when the default changes, the new one shows once)
   const v = JSON.parse(localStorage.getItem(KEY) ?? 'null') as (Partial<PixelLook> & { start?: Lines }) | null;
   if (v && v.start === P.start)
-    look = { lines: offered(v.lines) ? v.lines : 0, outline: v.outline !== false, bands: !!v.bands };
+    look = { lines: offered(v.lines) ? v.lines : P.start, outline: v.outline !== false, bands: !!v.bands };
 } catch {
   /* no storage: the default */
 }
@@ -123,16 +123,9 @@ if (typeof location !== 'undefined') {
   const q = new URLSearchParams(location.search).get('pixel');
   if (q === 'off') look.lines = 0;
   else if (q === 'texel' || q === 'fine') look.lines = q;
-  else if (q && offered(Number(q))) look.lines = Number(q);
-  else if (q) console.warn(`?pixel=${q}: use off, texel, fine or one of ${P.lines.join(', ')}`);
+  else if (q) console.warn(`?pixel=${q}: use off, texel or fine`);
 }
 
-/** The pixel grid for a drawing buffer of `w` × `h` device pixels and at most `lines` rows: `f` device pixels to a game
-    pixel (whole, rounded up, so a smaller window keeps the look rather than turning sharp), and the grid's size. */
-export function pixelGrid(w: number, h: number, lines: number) {
-  const f = Math.max(1, Math.ceil(h / lines - 1e-6));
-  return { w: Math.ceil(w / f), h: Math.ceil(h / f), f };
-}
 /** A game pixel in world units at the texel, along the camera's right and up: a texel across (`tx` to a unit), and down
     the screen as much as a floor texel (`ty` to a unit along z) comes to, seen at `tilt` (radians) from above. */
 export function texelPixel(tx: number, ty: number, tilt: number, out = { px: 0, py: 0 }) {
@@ -228,19 +221,12 @@ const blit = new THREE.ShaderMaterial({
     centre: { value: new THREE.Vector2() },
     screen: { value: new THREE.Vector2() },
     scale: { value: new THREE.Vector2() },
-    grid: { value: new THREE.Vector2() },
-    whole: { value: 0 },
   },
   vertexShader: 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
   fragmentShader: /* glsl */ `
-    uniform sampler2D tShaded; uniform vec2 size; uniform vec2 centre; uniform vec2 screen; uniform vec2 scale; uniform vec2 grid; uniform float whole;
+    uniform sampler2D tShaded; uniform vec2 size; uniform vec2 centre; uniform vec2 screen; uniform vec2 scale;
     void main() {
-      if (whole > 0.5) { // the rows of earlier: each game pixel a whole number of screen pixels, copied as it is
-        ivec2 p = min(ivec2(floor(gl_FragCoord.xy * grid / screen)), ivec2(grid) - 1);
-        gl_FragColor = vec4(texelFetch(tShaded, p, 0).rgb, 1.0);
-        return;
-      }
-      // at the texel: where this screen pixel falls on the grid (in game pixels), then a sharp blow-up: inside a game
+      // where this screen pixel falls on the grid (in game pixels), then a sharp blow-up: inside a game
       // pixel its own colour, blended with the next only over the last screen pixel before the edge (filtered linearly)
       vec2 g = centre + (gl_FragCoord.xy - screen * 0.5) / scale - 0.5;
       vec2 i = floor(g), f = clamp((fract(g) - 0.5) * scale + 0.5, 0.0, 1.0);
@@ -308,21 +294,14 @@ const fineOver = new THREE.ShaderMaterial({
     centre: { value: new THREE.Vector2() },
     screen: { value: new THREE.Vector2() },
     scale: { value: new THREE.Vector2() },
-    grid: { value: new THREE.Vector2() },
-    whole: { value: 0 },
   },
   vertexShader:
     'uniform vec4 rect; void main() { gl_Position = vec4(mix(rect.xy, rect.zw, position.xy * 0.5 + 0.5), 0.0, 1.0); }',
   fragmentShader: /* glsl */ `
-    uniform sampler2D tOver; uniform vec2 fineSize; uniform vec4 area; uniform vec2 centre; uniform vec2 screen; uniform vec2 scale; uniform vec2 grid; uniform float whole;
+    uniform sampler2D tOver; uniform vec2 fineSize; uniform vec4 area; uniform vec2 centre; uniform vec2 screen; uniform vec2 scale;
     const int K = ${K};
     void main() {
-      if (whole > 0.5) { // the rows of earlier: each fine pixel copied as it is
-        ivec2 q = clamp(ivec2(floor(gl_FragCoord.xy * grid * float(K) / screen)), ivec2(area.xy), ivec2(area.zw) - 1);
-        gl_FragColor = texelFetch(tOver, q, 0);
-        return;
-      }
-      // at the texel: blown up as the grid is, at its own pixel, never reading outside its box
+      // blown up as the grid is, at its own pixel, never reading outside its box
       vec2 g = centre + (gl_FragCoord.xy - screen * 0.5) / scale - 0.5, gf = (g + 0.5) * float(K) - 0.5;
       vec2 fi = floor(gf), ff = clamp((fract(gf) - 0.5) * scale / float(K) + 0.5, 0.0, 1.0);
       gl_FragColor = texture2D(tOver, clamp(fi + ff + 0.5, area.xy + 0.5, area.zw - 0.5) / fineSize);
@@ -437,8 +416,7 @@ function drawFine(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THR
 
 /** Draw the scene in the pixel look (when it is on: check `pixelLook().lines` first). The camera is moved to the
     nearest whole pixel of the grid along its own right and up, after it has been placed. At the texel the blow-up puts
-    back the part of a pixel it was moved, so the camera glides while the room stays on its texels; the rows of earlier
-    are drawn exactly as before (the grid filling the window, each pixel copied whole). */
+    back the part of a pixel it was moved, so the camera glides while the room stays on its texels. */
 export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.OrthographicCamera) {
   renderer.getDrawingBufferSize(buffer);
   const viewW = (camera.right - camera.left) / camera.zoom,
@@ -447,26 +425,16 @@ export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   right.setFromMatrixColumn(camera.matrixWorld, 0);
   up.setFromMatrixColumn(camera.matrixWorld, 1);
   const s = shade.uniforms,
-    b = blit.uniforms,
-    rows = typeof look.lines === 'number';
-  let gw: number, gh: number, px: number, py: number;
-  if (rows) {
-    // the rows of earlier: the grid the window's own (pixelGrid), the camera on its pixels, nothing moved back
-    const g = pixelGrid(buffer.x, buffer.y, look.lines as number);
-    gw = g.w;
-    gh = g.h;
-    px = py = viewH / gh;
-  } else {
-    // a game pixel a texel ('fine': half of one), the floor's texel seen from the camera's tilt
-    const k = look.lines === 'fine' ? 2 : 1;
-    ({ px, py } = texelPixel(
-      CFG.roomKit.texel[0] * k,
-      CFG.roomKit.texel[1] * k,
-      Math.asin(Math.min(1, Math.abs(up.z))),
-      pix,
-    ));
-    ({ w: gw, h: gh } = gridFor(viewW, viewH, px, py, MARGIN, grid));
-  }
+    b = blit.uniforms;
+  // a game pixel a texel ('fine': half of one), the floor's texel seen from the camera's tilt
+  const k = look.lines === 'fine' ? 2 : 1;
+  const { px, py } = texelPixel(
+    CFG.roomKit.texel[0] * k,
+    CFG.roomKit.texel[1] * k,
+    Math.asin(Math.min(1, Math.abs(up.z))),
+    pix,
+  );
+  const { w: gw, h: gh } = gridFor(viewW, viewH, px, py, MARGIN, grid);
   ensure(gw, gh);
   lastRows = Math.round(viewH / py);
   const dr = snapBy(camera.position.dot(right), px),
@@ -478,30 +446,24 @@ export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   shaded!.viewport.set(0, 0, gw, gh);
   shaded!.scissor.set(0, 0, gw, gh);
   camera.layers.set(0); // (the fine layer is drawn on its own: drawFine)
-  if (rows) {
-    renderer.setRenderTarget(target);
-    renderer.render(scene, camera);
-    fineDrawn = drawFine(renderer, scene, camera, gw, gh);
-  } else {
-    // the frustum widened to the whole grid (its margin), then put back
-    const l = camera.left,
-      r = camera.right,
-      t = camera.top,
-      bt = camera.bottom;
-    camera.left = (-gw * px * camera.zoom) / 2;
-    camera.right = -camera.left;
-    camera.top = (gh * py * camera.zoom) / 2;
-    camera.bottom = -camera.top;
-    camera.updateProjectionMatrix();
-    renderer.setRenderTarget(target);
-    renderer.render(scene, camera);
-    fineDrawn = drawFine(renderer, scene, camera, gw, gh);
-    camera.left = l;
-    camera.right = r;
-    camera.top = t;
-    camera.bottom = bt;
-    camera.updateProjectionMatrix();
-  }
+  // the frustum widened to the whole grid (its margin), then put back
+  const l = camera.left,
+    r = camera.right,
+    t = camera.top,
+    bt = camera.bottom;
+  camera.left = (-gw * px * camera.zoom) / 2;
+  camera.right = -camera.left;
+  camera.top = (gh * py * camera.zoom) / 2;
+  camera.bottom = -camera.top;
+  camera.updateProjectionMatrix();
+  renderer.setRenderTarget(target);
+  renderer.render(scene, camera);
+  fineDrawn = drawFine(renderer, scene, camera, gw, gh);
+  camera.left = l;
+  camera.right = r;
+  camera.top = t;
+  camera.bottom = bt;
+  camera.updateProjectionMatrix();
   s.tColor.value = target!.texture;
   s.tDepth.value = target!.depthTexture;
   (s.grid.value as THREE.Vector2).set(gw, gh);
@@ -512,18 +474,16 @@ export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   b.tShaded.value = shaded!.texture;
   (b.size.value as THREE.Vector2).set(shaded!.width, shaded!.height);
   (b.screen.value as THREE.Vector2).set(buffer.x, buffer.y);
-  (b.grid.value as THREE.Vector2).set(gw, gh);
-  b.whole.value = rows ? 1 : 0;
   // at the texel the window shows the view itself (viewW × viewH): the grid's middle less the part of a pixel moved
   (b.centre.value as THREE.Vector2).set(gw / 2 - dr / px, gh / 2 - du / py);
   (b.scale.value as THREE.Vector2).set((buffer.x * px) / viewW, (buffer.y * py) / viewH);
   pass(renderer, blit, null);
-  if (fineDrawn) laidOver(renderer, gw, gh, rows);
+  if (fineDrawn) laidOver(renderer, gw, gh);
 }
 const ndc = (v: number, of: number) => Math.min(1, Math.max(-1, (v / of) * 2 - 1));
 /** The fine layer shaded at its own pixel inside its boxes, then laid over the window (after the blow-up, blended, with
     the blow-up's own mapping), by a quad over each box alone. */
-function laidOver(renderer: THREE.WebGLRenderer, gw: number, gh: number, rows: boolean) {
+function laidOver(renderer: THREE.WebGLRenderer, gw: number, gh: number) {
   const f = fine!,
     o = over!,
     u = fineShade.uniforms,
@@ -542,19 +502,15 @@ function laidOver(renderer: THREE.WebGLRenderer, gw: number, gh: number, rows: b
   }
   v.tOver.value = o.texture;
   (v.fineSize.value as THREE.Vector2).set(o.width, o.height);
-  v.whole.value = rows ? 1 : 0;
   (v.centre.value as THREE.Vector2).copy(b.centre.value as THREE.Vector2);
   (v.scale.value as THREE.Vector2).copy(b.scale.value as THREE.Vector2);
   (v.screen.value as THREE.Vector2).copy(b.screen.value as THREE.Vector2);
-  (v.grid.value as THREE.Vector2).set(gw, gh);
   // each box on the window: from fine pixels back to screen pixels, as the blow-up maps them, a screen pixel wider
   const sw = buffer.x,
     sh = buffer.y,
     c = b.centre.value as THREE.Vector2,
     k = b.scale.value as THREE.Vector2;
-  const at = rows
-    ? (x: number, y: number) => [(x * sw) / (gw * K), (y * sh) / (gh * K)]
-    : (x: number, y: number) => [(x / K - c.x) * k.x + sw / 2, (y / K - c.y) * k.y + sh / 2];
+  const at = (x: number, y: number) => [(x / K - c.x) * k.x + sw / 2, (y / K - c.y) * k.y + sh / 2];
   const auto = renderer.autoClear;
   renderer.autoClear = false;
   for (let i = 0; i < nAreas; i++) {
