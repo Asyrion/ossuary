@@ -61,6 +61,7 @@ import {
   toast,
   line,
   clearLines,
+  hideLore,
 } from './notify';
 import { resetAfflictions } from './ui/afflictions';
 import { warnFloor } from './world/curve';
@@ -81,7 +82,6 @@ import { dustFor, obolsHome } from './vigil/vigilData';
 import { daylightHooks, leaveDaylight, openShaft } from './world/daylight';
 import { pilgrimMap, resetGifts } from './items/gifts';
 import { showEndScreen, showScreen } from './ui/screens';
-import { hideLore } from './ui/lore';
 import { clearSpellFx, forgetSpells, gainMana, leaveRoomSpells, learnSpell } from './magic/spells';
 import { carve, setSockets } from './magic/runes';
 import { clearGives } from './world/jellyGives';

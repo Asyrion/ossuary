@@ -7,6 +7,7 @@ import { CFG } from '../config';
 import { G, player } from '../state';
 import { STR } from '../strings';
 import { $ } from '../util';
+import { on } from '../events';
 import type { ArtifactDef } from '../items/artifactData';
 import type { LoreEntry, LoreItem } from '../types';
 import { artifactIcon } from './hud';
@@ -95,10 +96,8 @@ export function artifactLore(def: ArtifactDef) {
   });
 }
 
-/** An item or container taken or opened: described the first time in a run. */
+/** An item or container taken or opened (described the first time in a run: notify.ts' `itemLore` counts). */
 export function itemLore(item: LoreItem) {
-  if (G.run.loreSeen.has(item)) return;
-  G.run.loreSeen.add(item);
   const t = STR.lore.items[item];
   showLore({ ...t, icon: itemIcon(item) });
 }
@@ -114,4 +113,12 @@ export function updateLore(dt: number) {
 export function hideLore() {
   left = 0;
   els().card.classList.remove('on');
+}
+
+/** The lore card listens to the game (main.ts calls this at boot). */
+export function initLore() {
+  on('loreShown', (p) => showLore(p.entry));
+  on('artifactLore', (p) => artifactLore(p.def));
+  on('itemLore', (p) => itemLore(p.item));
+  on('loreHidden', () => hideLore());
 }

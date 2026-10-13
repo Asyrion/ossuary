@@ -29,6 +29,9 @@ import {
 import { closeLab, initLab, labKey, labOpen, labPad } from './ui/alchemyTable';
 import { closeWaystone, initWaystone, stoneKey, stonePad, waystoneOpen } from './ui/waystone';
 import { initHud, promptShowing, setHeroInfo, toast } from './ui/hud';
+import { initLore } from './ui/lore';
+import { askPage, initPagePanel } from './ui/pagePanel';
+import { registerPanels } from './panels';
 import { initLevelUp, levelEsc, levelKey, levelOpen, levelPad } from './ui/levelUp';
 import {
   begin,
@@ -160,7 +163,11 @@ function loadDev() {
 
 async function boot() {
   const dev = loadDev(); // (loading beside the fonts and assets)
-  initHud(); // (the HUD listens to the game's events before anything happens)
+  // the UI listens to the game's events and opens its panels for it before anything happens
+  initHud();
+  initLore();
+  initPagePanel();
+  registerPanels({ askPage });
   if (isTouch) document.body.classList.add('touch');
   applyStrings();
   resize();

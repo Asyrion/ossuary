@@ -1,8 +1,10 @@
-/* What the simulation tells the player, under the names the HUD's own functions have: each is a thin emitter on the game's
-   bus (events.ts) carrying exactly its arguments, and the HUD (ui/hud.ts, `initHud`) hears it at once and draws. So world,
-   actors, magic, items, combat, progression, vigil and flow say what happened without importing src/ui/. The defaults
-   (a toast's three seconds, a banner's empty subtitle) stay with the HUD. */
-import type { Enemy } from './types';
+/* What the simulation tells the player, under the names the UI's own functions have: each is a thin emitter on the game's
+   bus (events.ts) carrying exactly its arguments, and the UI (ui/hud.ts' `initHud`, ui/lore.ts' `initLore`) hears it at
+   once and draws. So world, actors, magic, items, combat, progression, vigil and flow say what happened without importing
+   src/ui/. The defaults (a toast's three seconds, a banner's empty subtitle) stay with the UI. */
+import type { Enemy, LoreEntry, LoreItem } from './types';
+import type { ArtifactDef } from './items/artifactData';
+import { G } from './state';
 import { emit } from './events';
 
 /** A short line at the bottom of the screen for `dur` seconds, cutting short the one showing. */
@@ -42,3 +44,16 @@ export const showPrompt = (html: string) => emit('promptShown', { html });
 export const hidePrompt = () => emit('promptHidden');
 /** Cut to black and fade back in, to cover building a new floor. */
 export const fadeFromBlack = () => emit('fadeFromBlack');
+
+/** A lore card: what something taken is, for a few seconds. */
+export const showLore = (entry: LoreEntry) => emit('loreShown', { entry });
+/** An artifact taken: its card, every time. */
+export const artifactLore = (def: ArtifactDef) => emit('artifactLore', { def });
+/** An item or container taken or opened: its card the first time in a run (the run remembers what it has described). */
+export function itemLore(item: LoreItem) {
+  if (G.run.loreSeen.has(item)) return;
+  G.run.loreSeen.add(item);
+  emit('itemLore', { item });
+}
+/** A new run: no card left over. */
+export const hideLore = () => emit('loreHidden');
