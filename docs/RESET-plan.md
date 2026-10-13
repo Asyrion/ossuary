@@ -157,6 +157,10 @@ Small steps, each one green in CI, none changing how the game plays.
 4. **Simulation apart from the UI:** a small typed event bus (`emit('hurt', …)`, `on('roomCleared', …)`) so world,
    actors, magic and items stop importing `ui/hud`; then the big cycle is cut where it runs through the UI and flow.
    `G` is split into typed slices (`run`, `room`, `stats`) with their owners; no rewrite of the game's logic.
+   (*Built 2026-10-13*: `events.ts` (a synchronous typed bus) with `notify.ts`, and `panels.ts` (the UI's panels behind
+   a door); the hex logic and the level gate left `ui/`, the DOM left the simulation; flow's back-edges go through
+   `flowHooks.ts` and `clock.ts`; a lint rule keeps simulation from importing `ui/`. The biggest import cycle went from
+   75 modules to 58. `G` is `flow`, `floor`, `room`, `fx`, `run` and `stats`, each with its writers named.)
 5. **Comments are for the code:** milestone names, dates and "the owner said" leave the comments (git and the GDD keep
    them); comments say why, not when.
 6. **Tests that hold:** `smoke.spec.ts` split by system into files; a fast suite (about 20 tests, under 3 minutes) on
