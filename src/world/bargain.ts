@@ -13,7 +13,7 @@ import { strikeFx } from '../magic/spellFx';
 import type { School, SpellDef } from '../magic/spellData';
 import { takeBoon } from '../progression/boons';
 import { refreshStats } from '../items/artifacts';
-import { openBargainDeal } from '../ui/levelUp';
+import { openBargain } from '../panels';
 import { bargainStoneLook, BARGAIN_RUNES } from './specialLooks';
 import { riteState } from './shrine';
 import type { Room } from '../types';
@@ -106,7 +106,7 @@ export function castIntoBargain(def: SpellDef) {
 }
 /** The deal opened on `school` (not while another screen holds the level-up screen, leaving the stone waiting). */
 function openStone(b: Bargain, school: School) {
-  if (!openBargainDeal(school)) return false;
+  if (!openBargain(school)) return false;
   b.state = 'open';
   b.school = school;
   setRunes(b, BARGAIN_RUNES.price);

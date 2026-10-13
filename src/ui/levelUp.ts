@@ -1,20 +1,18 @@
 /* M6 step 4: the level-up screen (docs/archive/M6-plan.md; GDD: RPG progression, "the game pauses, like a card choice"). A level
-   reached waits in `G.run.pending` until the fight is won: the doors open, nothing lives, no other screen is up, and a
-   moment's calm. Then the game pauses and the screen deals three boons (progression/boons.ts): one is taken, then the
-   level's point is spent on an attribute; each level waiting comes in turn. Arrows or WASD (the d-pad) choose, Enter or
-   Space (A) takes, a card can be clicked; a short lock keeps a key held from the fight from choosing, and Esc doesn't
-   close it (the level's choice is the mage's to make). `DEV.autoLevel` (`?autolevel`, the dev menu, the tests and the
-   balance bot) chooses without it: the first card, and the attribute with the fewest points. M6 step 11: the shrine's
+   reached waits in `G.run.pending` until the fight is won (progression/levelGate.ts, which opens this screen through the
+   panel door, or chooses without it under `DEV.autoLevel`). Then the game pauses and the screen deals three boons
+   (progression/boons.ts): one is taken, then the level's point is spent on an attribute; each level waiting comes in
+   turn. Arrows or WASD (the d-pad) choose, Enter or Space (A) takes, a card can be clicked; a short lock keeps a key held
+   from the fight from choosing, and Esc doesn't close it (the level's choice is the mage's to make). M6 step 11: the shrine's
    bargain deals here too (`openBargainDeal`): three cards from the school cast into its stone, each costing a heart
    container, no point after; Esc (the pad's B) backs out with nothing paid. */
 import { CFG } from '../config';
-import { DEV, G } from '../state';
+import { G } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { $ } from '../util';
 import { showScreen } from './screens';
 import { esc } from './spellPanel';
-import { line } from './hud';
 import { boon, boonText } from '../progression/boonData';
 import { dealNow, takeBoon } from '../progression/boons';
 import { isDevKey } from '../input/devKey';
@@ -24,6 +22,8 @@ import { ATTR_COLOR, attrText, pointsToSpend, spendPoint } from '../progression/
 import type { Card } from '../progression/boonData';
 import { renderInsight } from '../progression/insight';
 import { keepBargain, refuseBargain } from '../world/bargain';
+import { UI } from '../panels';
+import { chooseLevel, pointsHere, spendHere } from '../progression/levelGate';
 import type { School } from '../magic/spellData';
 
 type Phase = 'boon' | 'point';
@@ -32,15 +32,13 @@ let open = false,
   cards: Card[] = [],
   chosen = 0,
   lockUntil = 0,
-  calm = 0,
   mode: 'level' | 'bargain' = 'level';
-let actions: { pause(): void; resume(): void; others(): boolean } = {
+let actions: { pause(): void; resume(): void } = {
   pause: () => {},
   resume: () => {},
-  others: () => false,
 };
 
-/** How the game pauses and goes on, and whether another screen is up (main.ts). */
+/** How the game pauses and goes on (main.ts). */
 export function initLevelUp(a: typeof actions) {
   actions = a;
 }
@@ -58,43 +56,10 @@ export const offerNow = () => ({
   cards: cards.map((c) => ({ ...c })),
 });
 
-/** Each step while playing: a level waiting opens the screen once the fight is won and a moment has passed. */
-export function checkLevelUp(dt: number) {
-  if (open || G.run.pending <= 0) {
-    calm = 0;
-    return;
-  }
-  const fighting = G.current.locked || G.enemies.some((e) => !e.dead);
-  if (G.state !== 'play' || G.trans || fighting || actions.others()) {
-    calm = 0;
-    waitsSaid(fighting);
-    return;
-  }
-  if ((calm += dt) < CFG.levels.calm) return;
-  calm = 0;
-  if (DEV.autoLevel === 'skip') {
-    G.run.pending = 0;
-    renderInsight();
-    return;
-  }
-  if (DEV.autoLevel) {
-    while (G.run.pending > 0) chooseFor();
-    return;
-  }
-  openLevelUp();
-}
-/** The first time in a run a level waits on a fight, a line says so. */
-function waitsSaid(fighting: boolean) {
-  if (fighting && G.state === 'play' && !G.run.hinted.has('levelWaits')) {
-    G.run.hinted.add('levelWaits');
-    line(STR.levels.waits, CFG.afflict.lineShow);
-  }
-}
-
 /** Open the screen for the next level waiting (the dev menu may, mid-fight). */
 export function openLevelUp() {
   if (open || G.run.pending <= 0) return false;
-  open = true;
+  open = UI.levelOpen = true;
   actions.pause();
   showScreen('level');
   deal();
@@ -102,7 +67,7 @@ export function openLevelUp() {
   return true;
 }
 function close() {
-  open = false;
+  open = UI.levelOpen = false;
   mode = 'level';
   actions.resume();
 }
@@ -112,7 +77,7 @@ function close() {
 export function openBargainDeal(school: School) {
   if (open) return false;
   mode = 'bargain';
-  open = true;
+  open = UI.levelOpen = true;
   actions.pause();
   showScreen('level');
   cards = dealNow(school);
@@ -160,8 +125,6 @@ function done() {
   else close();
 }
 
-/** The points this level's screen spends: all but one for each level still waiting after it (Tempered's three come here). */
-const pointsHere = () => pointsToSpend() - Math.max(0, G.run.pending - 1);
 /** Take the card chosen (a boon), or spend a point on the attribute chosen (again while this level has more). */
 function take() {
   if (performance.now() < lockUntil) return;
@@ -199,16 +162,14 @@ function move(d: number) {
 /** The dev menu's and the tests': take card `i` (a boon), then spend on `attr` (or the fewest-spent). */
 export function chooseFor(i = 0, attr?: Attr) {
   if (G.run.pending <= 0) return false;
-  if (!open) cards = dealNow();
-  const c = cards[Math.min(i, cards.length - 1)];
-  if (c && (!open || phase === 'boon')) takeBoon(c.id, false); // (on the point's page, its boon is taken already)
-  while (pointsHere() > 0) spendPoint(attr ?? [...ATTRS].sort((a, b) => G.run.attrs[a] - G.run.attrs[b])[0]);
-  if (open) {
-    done();
+  if (!open) {
+    cards = chooseLevel(i, attr); // (no screen: the game's own choice, progression/levelGate.ts)
     return true;
   }
-  G.run.pending = Math.max(0, G.run.pending - 1);
-  renderInsight();
+  const c = cards[Math.min(i, cards.length - 1)];
+  if (c && phase === 'boon') takeBoon(c.id, false); // (on the point's page, its boon is taken already)
+  spendHere(attr);
+  done();
   return true;
 }
 

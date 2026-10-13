@@ -21,7 +21,7 @@ import { stage } from '../magic/memory';
 import { SPELL_DEFS } from '../magic/spellData';
 import { FOES, FOE_IDS } from '../actors/foeData';
 import { bestiary } from '../actors/bestiary';
-import { openTalk, talkingNow } from '../ui/talk';
+import { UI, openTalk } from '../panels';
 import { vigil } from './save';
 import { shade, SHADE_IDS } from './shadeData';
 import { VIGIL, roomIndex } from './vigilMap';
@@ -300,7 +300,7 @@ let wasTalking: string | null = null;
     the one walked up to talks, and the Ferryman at the jetty. */
 export function updateTown(dt: number, playing: boolean) {
   t += dt;
-  const talking = talkingNow();
+  const talking = UI.talking;
   if (wasTalking && !talking) refreshNews();
   wasTalking = talking;
   for (const f of figures) {

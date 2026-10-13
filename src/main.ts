@@ -26,13 +26,15 @@ import {
   inventoryPad,
   openInventory,
 } from './ui/inventory';
-import { closeLab, initLab, labKey, labOpen, labPad } from './ui/alchemyTable';
-import { closeWaystone, initWaystone, stoneKey, stonePad, waystoneOpen } from './ui/waystone';
-import { initHud, promptShowing, setHeroInfo, toast } from './ui/hud';
-import { initLore } from './ui/lore';
-import { askPage, initPagePanel } from './ui/pagePanel';
+import { closeLab, initLab, labKey, labOpen, labPad, openLab } from './ui/alchemyTable';
+import { closeWaystone, initWaystone, openWaystone, stoneKey, stonePad, waystoneOpen } from './ui/waystone';
+import { initHud, promptShowing, setHeroInfo, toast, updateHud, updateVision } from './ui/hud';
+import { hideWarePanel, updateWarePanel } from './ui/warePanel';
+import { updateAfflictions } from './ui/afflictions';
+import { initLore, updateLore } from './ui/lore';
+import { askPage, hidePagePanel, initPagePanel, updatePagePanel } from './ui/pagePanel';
 import { registerPanels } from './panels';
-import { initLevelUp, levelEsc, levelKey, levelOpen, levelPad } from './ui/levelUp';
+import { initLevelUp, levelEsc, levelKey, levelOpen, levelPad, openBargainDeal, openLevelUp } from './ui/levelUp';
 import {
   begin,
   pause,
@@ -46,10 +48,10 @@ import {
 } from './flow';
 import { STR } from './strings';
 import { closeLectern, initLectern, lecternKey, lecternOpen, lecternPad, openLectern } from './ui/lectern';
-import { vigilActs } from './vigil/place';
+import { vigilActs, vigilUi } from './vigil/place';
 import { actOn, offersFor } from './vigil/gifts';
-import { closeTalk, initTalk, talkKey, talkOpen, talkPad } from './ui/talk';
-import { startLoop } from './loop';
+import { closeTalk, initTalk, openTalk, talkKey, talkOpen, talkPad, updateTalk } from './ui/talk';
+import { startLoop, uiHooks } from './loop';
 import { cleanSeed } from './rng';
 import { isTouch } from './util';
 import { loadAssets } from './assets/models';
@@ -161,13 +163,42 @@ function loadDev() {
   });
 }
 
-async function boot() {
-  const dev = loadDev(); // (loading beside the fonts and assets)
-  // the UI listens to the game's events and opens its panels for it before anything happens
+/** The UI hears the game: its listeners on the event bus (events.ts), its panels on the panel door (panels.ts), and its
+    per-step and per-frame work in the loop's and the Vigil's hook slots. */
+function wireUi() {
   initHud();
   initLore();
   initPagePanel();
-  registerPanels({ askPage });
+  registerPanels({
+    openLab,
+    closeLab,
+    openWaystone,
+    openBargain: openBargainDeal,
+    openTalk,
+    closeTalk,
+    openLevelUp,
+    askPage,
+    otherScreenUp: () =>
+      talkOpen() || lecternOpen() || labOpen() || waystoneOpen() || inventoryOpen() || devMenuOpen() || promptShowing(),
+  });
+  uiHooks.panels = (page, live) => {
+    if (live) updatePagePanel(page);
+    else hidePagePanel();
+    if (live) updateWarePanel();
+    else hideWarePanel();
+  };
+  uiHooks.endOfStep = (dt) => {
+    updateHud(dt);
+    updateAfflictions();
+    updateLore(dt);
+  };
+  uiHooks.afterDraw = updateVision;
+  vigilUi.step = updateTalk;
+}
+
+async function boot() {
+  const dev = loadDev(); // (loading beside the fonts and assets)
+  wireUi(); // (before anything happens: the UI hears the game from the first event)
   if (isTouch) document.body.classList.add('touch');
   applyStrings();
   resize();
@@ -190,12 +221,7 @@ async function boot() {
   initLectern({ pause, resume });
   vigilActs.openLectern = openLectern;
   initTalk({ pause, resume, offers: offersFor, act: actOn });
-  initLevelUp({
-    pause,
-    resume,
-    others: () =>
-      talkOpen() || lecternOpen() || labOpen() || waystoneOpen() || inventoryOpen() || devMenuOpen() || promptShowing(),
-  }); // (M6)
+  initLevelUp({ pause, resume }); // (M6)
   // the chalk texture in the start room is drawn with Cinzel, so load its weights first
   const chalkFonts = Promise.all(['600 16px "Cinzel"', '700 16px "Cinzel"'].map((f) => document.fonts.load(f)));
   const assets = loadAssets(); // (models, tiles and icons from data/assets.json: before the first floor is built)

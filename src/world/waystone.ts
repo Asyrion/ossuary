@@ -19,7 +19,7 @@ import { rune, type RuneId } from '../magic/runeData';
 import { strikeFx } from '../magic/spellFx';
 import type { SpellDef } from '../magic/spellData';
 import { streakTo } from '../progression/insight';
-import { openWaystone, waystoneOpen } from '../ui/waystone';
+import { UI, openWaystone } from '../panels';
 import { WAYSTONE_RUNES, waystoneLook } from './mechLooks';
 import { FLOORS } from './generate';
 import { freeSpotNear } from './rooms';
@@ -114,7 +114,7 @@ export function updateWaystone(dt: number) {
     if (w.rise >= 1) kindle(w);
   }
   if (!w.lit) return;
-  const open = waystoneOpen(),
+  const open = UI.waystoneOpen,
     socket = player.sockets[w.target];
   w.look.parts.hollows.forEach((h, i) => {
     const id = open ? (socket?.runes[i] as RuneId | undefined) : undefined,
