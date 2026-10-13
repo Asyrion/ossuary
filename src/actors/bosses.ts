@@ -239,7 +239,7 @@ function callHelp(e: Enemy) {
   e.summoned = true;
   if (e.twin) e.twin.summoned = true; // (the twins call once for the pair)
   Sfx.at(e.x, e.z).boom();
-  G.shake = 0.25;
+  G.fx.shake = 0.25;
   banner(STR.bosses[e.type as BossType].summon, '');
   const n = e.bossCfg?.summons ?? 2,
     cur = G.current,
@@ -312,7 +312,7 @@ export function afterBossMove(e: Enemy, hit: boolean) {
     e.state = 'stun';
     e.st = 1.2;
     e.vx = e.vz = 0;
-    G.shake = Math.max(G.shake, 0.35);
+    G.fx.shake = Math.max(G.fx.shake, 0.35);
     Sfx.at(e.x, e.z).boom();
     Sfx.at(e.x, e.z).rubble();
     burst(e.x + e.dir!.x * 0.8, 1.6, e.z + e.dir!.z * 0.8, SCHOOL_LIGHT.hallow, 18, 3, 0.06);
@@ -334,7 +334,7 @@ export function afterBossMove(e: Enemy, hit: boolean) {
     e.vx = e.vz = 0;
     e.marker!.visible = false;
     e.parts!.body.position.y = 0;
-    G.shake = Math.max(G.shake, 0.35);
+    G.fx.shake = Math.max(G.fx.shake, 0.35);
     Sfx.at(e.x, e.z).boom();
     Sfx.at(e.x, e.z).rubble();
     burst(e.x, 0.8, e.z, SCHOOL_LIGHT.frost, 16, 3, 0.06);
@@ -348,7 +348,7 @@ export function afterBossMove(e: Enemy, hit: boolean) {
   e.st = 1.1;
   e.vx = e.vz = 0;
   e.body.rotation.x = 0;
-  G.shake = Math.max(G.shake, 0.35);
+  G.fx.shake = Math.max(G.fx.shake, 0.35);
   Sfx.at(e.x, e.z).boom();
   Sfx.at(e.x, e.z).rubble();
   burst(e.x + e.dir!.x * 0.7, 0.8, e.z + e.dir!.z * 0.7, SCHOOL_LIGHT.ember, 18, 3, 0.07);
@@ -390,7 +390,7 @@ function updateWarden(e: Enemy, dt: number, ux: number, uz: number) {
         ringOfShots(e, 12, 3.4 * shotMul, off);
         if (hpFrac < 0.6) laterRing(e, 0.32, 12, 3 * shotMul, off + Math.PI / 12);
         Sfx.at(e.x, e.z).boom();
-        G.shake = 0.18;
+        G.fx.shake = 0.18;
         e.state = 'walk';
         e.st = 2.1;
       } else {
@@ -533,7 +533,7 @@ function updateAbbess(e: Enemy, dt: number, ux: number, uz: number) {
       if (hurt) laterRing(e, 0.3, 12, 2.8 * shotMul, off + Math.PI / 12);
       burst(e.x, 0.3, e.z, SCHOOL_LIGHT.frost, 30, 4, 0.08);
       Sfx.at(e.x, e.z).surface();
-      G.shake = 0.3;
+      G.fx.shake = 0.3;
       P.jaw.rotation.x = 0.6;
       P.gillL.rotation.z = -0.7;
       P.gillR.rotation.z = 0.7; // (it bursts up with its jaw wide and its gills flung out)
@@ -647,7 +647,7 @@ function updateKnight(e: Enemy, dt: number, ux: number, uz: number): number | un
       burst(e.x, 0.4, e.z, SCHOOL_LIGHT.ember, 14, 3, 0.06);
       Sfx.at(e.x, e.z).boom();
       Sfx.at(e.x, e.z).rubble();
-      G.shake = 0.45;
+      G.fx.shake = 0.45;
       P.arms.rotation.x = 0.3;
       stride(0); // (it lands blade first)
       e.state = 'recover';
@@ -860,7 +860,7 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
       if (hurt) laterRing(e, 0.3, S.count, S.later * shotMul, off + Math.PI / S.count);
       burst(e.x, 0.2, e.z, SCHOOL_LIGHT.hallow, 26, 4, 0.07);
       Sfx.at(e.x, e.z).boom();
-      G.shake = 0.3;
+      G.fx.shake = 0.3;
       e.state = 'recover';
       e.st = 0.6;
     }
@@ -999,7 +999,7 @@ function updateAngler(e: Enemy, dt: number, ux: number, uz: number): number | un
       if (hurt) laterRing(e, 0.35, S.count, S.later * shotMul, off + Math.PI / S.count);
       burst(e.x, 1.2, e.z, SCHOOL_LIGHT.umbral, 24, 3.5, 0.07);
       Sfx.at(e.x, e.z).boom();
-      G.shake = 0.25;
+      G.fx.shake = 0.25;
       e.state = 'recover';
       e.st = 0.6;
     }
@@ -1030,7 +1030,7 @@ export function breakPlate(e: Enemy) {
   burst(at.x, at.y, at.z, SCHOOL_LIGHT.frost, 8, 2, 0.04);
   floatText(e.x, 2.1, e.z, STR.bosses.tiger.plate, 0xe0b070);
   Sfx.at(e.x, e.z).plateBreak();
-  G.shake = Math.max(G.shake, 0.2);
+  G.fx.shake = Math.max(G.fx.shake, 0.2);
   if (e.state === 'statue') e.st = -1; // (it wakes, if it stood as stone: its clock is endless until then)
 }
 /** A blow its plates turned (`turned`, the share they kept out): enough of them and a plate gives. */
@@ -1073,7 +1073,7 @@ function updateTiger(e: Enemy, dt: number, ux: number, uz: number): number | und
       eye.scale.setScalar(1);
       Sfx.at(e.x, e.z).tigerRoar();
       Sfx.at(e.x, e.z).rubble();
-      G.shake = 0.3;
+      G.fx.shake = 0.3;
       burst(e.x, 1, e.z, 0x9c968a, 26, 2.6, 0.07);
     }
     return e.face;
@@ -1176,7 +1176,7 @@ function updateTiger(e: Enemy, dt: number, ux: number, uz: number): number | und
       }
       burst(e.x, 0.2, e.z, SCHOOL_LIGHT.frost, 22, 3.5, 0.06);
       Sfx.at(e.x, e.z).drakeLand();
-      G.shake = 0.3;
+      G.fx.shake = 0.3;
       e.state = 'recover';
       e.st = 0.6;
     } else {
@@ -1218,7 +1218,7 @@ function updateTiger(e: Enemy, dt: number, ux: number, uz: number): number | und
       if (hurt) laterRing(e, 0.3, S.count, S.later * shotMul, off + Math.PI / S.count);
       burst(e.x, 1.2, e.z, SCHOOL_LIGHT.frost, 24, 3.5, 0.07);
       Sfx.at(e.x, e.z).boom();
-      G.shake = 0.3;
+      G.fx.shake = 0.3;
       e.state = 'recover';
       e.st = 0.6;
     }

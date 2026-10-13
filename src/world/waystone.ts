@@ -50,7 +50,7 @@ export function raiseWaystone(room: Room, x: number, z: number) {
     }
   room.waystone = { x, z, rise: 0, lit: false, rested: false, pair: dealPair(), armed: false, target: 0, look };
   Sfx.at(x, z).crumble();
-  G.shake = Math.max(G.shake, 0.25);
+  G.fx.shake = Math.max(G.fx.shake, 0.25);
   return room.waystone;
 }
 /** M6 step 10: the mage walks into the waystone room: its banner the first time; once the floor's boss is down (or on a floor

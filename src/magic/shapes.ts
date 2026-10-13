@@ -452,7 +452,7 @@ function erupt(s: (typeof seals)[number]) {
   flash(s.x, s.z, 0xff8a3a, P.radius);
   ringFx(s.x, 0.05, s.z, FIRE, P.radius * 0.3, P.radius * 1.25, CFG.spellFx.shockwave, true);
   Sfx.at(s.x, s.z).sealErupt();
-  G.shake = Math.max(G.shake, 0.25);
+  G.fx.shake = Math.max(G.fx.shake, 0.25);
 }
 
 /** M6, Flamekeeper: the flames within `r` of (x, z), `most` at most: erupted Pyre Seals (their edge within reach), burning oil
@@ -669,7 +669,7 @@ function dropWall(w: (typeof walls)[number], quiet = false) {
   ringFx(mid.x, 0.05, mid.z, c1, 0.3, P.burst + 0.6, CFG.spellFx.shockwave, true); // (the first box is the middle)
   if (wood) Sfx.at(mid.x, mid.z).wallWither();
   else Sfx.at(mid.x, mid.z).wallShatter();
-  G.shake = Math.max(G.shake, 0.12);
+  G.fx.shake = Math.max(G.fx.shake, 0.12);
 }
 /* (M5: fire burns a wall of living wood down where it reaches it, at once and quietly but for the flames) */
 hearGround((kind, x, z, r) => {
@@ -957,7 +957,7 @@ function updateSmites(dt: number, now: number) {
       );
       if (wall) refraction(s, wall); // (M4.10: by a Glacial Wall, it breaks into rays along it)
       Sfx.at(s.x, s.z).judgement();
-      G.shake = Math.max(G.shake, 0.25);
+      G.fx.shake = Math.max(G.fx.shake, 0.25);
       continue;
     }
     const k = (s.t - P.delay) / 0.5;

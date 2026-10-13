@@ -217,7 +217,7 @@ export function updateDragon(e: Enemy, dt: number): number | undefined {
           z = r.g.position.z + G.current.cz;
         burst(x + (Math.random() - 0.5) * 0.8, 0.1, z + (Math.random() - 0.5) * 0.8, 0x8a8070, 2, 1.4, 0.06);
       }
-      if (r.t >= 1) G.shake = Math.max(G.shake, 0.15);
+      if (r.t >= 1) G.fx.shake = Math.max(G.fx.shake, 0.15);
     }
   let face: number | undefined,
     headTo: P3 = k.lead,
@@ -344,7 +344,7 @@ export function updateDragon(e: Enemy, dt: number): number | undefined {
       e.st = C.down;
       e.contact = 2;
       e.guard = C.open;
-      G.shake = Math.max(G.shake, 0.35);
+      G.fx.shake = Math.max(G.fx.shake, 0.35);
       Sfx.at(e.x, e.z).boom();
       burst(e.x, 0.3, e.z, 0x8a8070, 26, 3, 0.08);
     }
@@ -398,7 +398,7 @@ export function knockDragon(e: Enemy) {
   (e.parts!.maw as THREE.Sprite).material.opacity = 0;
   floatText(e.x, 2.2, e.z, STR.bosses.dragon.fall, 0xffc070);
   Sfx.at(p.x, p.z).rubble();
-  G.shake = Math.max(G.shake, 0.25);
+  G.fx.shake = Math.max(G.fx.shake, 0.25);
   burst(p.x, p.top, p.z, 0x8a8070, 18, 2.4, 0.07);
   return true;
 }

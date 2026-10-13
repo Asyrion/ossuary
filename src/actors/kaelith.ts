@@ -203,7 +203,7 @@ export function updateKaelith(e: Enemy, dt: number, ux: number, uz: number): num
       if (e.st <= 0) {
         fan(e, C.sweep.count, C.sweep.spread, C.sweep.speed * shotMul(e), C.sweep.hex);
         Sfx.at(e.x, e.z).kaelithSweep();
-        G.shake = Math.max(G.shake, 0.15);
+        G.fx.shake = Math.max(G.fx.shake, 0.15);
         e.state = 'recover';
         e.st = 0.6;
       }
@@ -370,7 +370,7 @@ function enterPhase(e: Enemy, to: KaelithPhase) {
     });
     banner(S.cracks, S.wardsLine);
     Sfx.at(e.x, e.z).sealCrack();
-    G.shake = 0.5;
+    G.fx.shake = 0.5;
     say('wards', S.wardsLine);
     e.state = f.wards.length ? 'toSeal' : 'stalk';
     e.st = 0; // (a hall without its pillars, the dev menu's: no seal to hold)
@@ -443,7 +443,7 @@ function wardShut(box: PropBox) {
     e.parts!.body.position.y = 0;
     banner(STR.bosses.kaelith.thrown, '');
     floatText(e.x, 3, e.z, STR.bosses.kaelith.open, 0xffd070);
-    G.shake = 0.4;
+    G.fx.shake = 0.4;
   }
 }
 

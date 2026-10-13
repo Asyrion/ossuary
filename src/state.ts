@@ -13,6 +13,13 @@ import type { School, SpellStatus } from './magic/spellData';
 
 export type GameState = 'title' | 'play' | 'pause' | 'dying' | 'end' | 'daylight'; // (M7 step 3: the cave mouth at dawn, a won run's end)
 
+/* `G` is split into slices, each written by a few owners; the comments name them so a change knows whose rules it touches.
+   Nothing enforces them at run time. */
+
+/** What only shows: the particles and decals `combat/fx.ts` spawns (`flow.ts` clears them with the floor), and the camera's
+    shake, which any blow worth feeling raises, `loop.ts` decays and `render/renderer.ts` reads. */
+export type FxState = { particles: Particle[]; decals: THREE.Mesh[]; shake: number };
+
 /** Shared mutable game state. Modules read and write it through this one object. */
 export const G = {
   state: 'title' as GameState,
@@ -25,8 +32,6 @@ export const G = {
   shots: [] as Shot[],
   pickups: [] as Pickup[],
   glyphs: [] as Glyph[],
-  particles: [] as Particle[],
-  decals: [] as THREE.Mesh[],
   trapdoor: null as Trapdoor | null,
   stats: { time: 0, kills: 0, obols: 0 },
   /** The current run: its seed, which floor (0-based), the seeded streams for artifacts (loot) and for what
@@ -103,8 +108,8 @@ export const G = {
     /** M7 step 9: whose candle burns in the chapel for this run (its blessing; vigil/gifts.ts). */ blessing: null as
       string | null,
   },
-  shake: 0,
   simClock: 0,
+  fx: { particles: [], decals: [], shake: 0 } as FxState,
 };
 
 /** Dev menu switches (dev/menu.ts writes them, the game reads them): god mode keeps the mage from harm; endless mana

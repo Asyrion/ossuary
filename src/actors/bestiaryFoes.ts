@@ -222,7 +222,7 @@ const dropper: Behaviour = {
         e.st = span(P.ground);
         e.fireT = span(P.spitEvery) * 0.5;
         burst(e.x, 0.2, e.z, 0x3a3048, 10, 1.6, 0.05);
-        G.shake = Math.max(G.shake, 0.08);
+        G.fx.shake = Math.max(G.fx.shake, 0.08);
         Sfx.at(e.x, e.z).spiderLand();
       }
     } else if (e.state === 'ground') {

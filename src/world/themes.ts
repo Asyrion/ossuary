@@ -496,7 +496,7 @@ export function goldTaken(room: Room) {
   }
   Sfx.guardians();
   toast(STR.guardiansWake, 3);
-  G.shake = Math.max(G.shake, 0.15);
+  G.fx.shake = Math.max(G.fx.shake, 0.15);
 }
 
 /** Whether a room's river runs (some of its water not frozen). */
@@ -612,7 +612,7 @@ export function caveIn(room: Room, x: number, z: number) {
       burst(s.x, 0.8, s.z, 0x6b625a, 16, 2.8, 0.09);
       burst(s.x, 0.2, s.z, 0x8a8278, 10, 1.2, 0.08);
       Sfx.at(s.x, s.z).rubble();
-      G.shake = Math.max(G.shake, 0.18);
+      G.fx.shake = Math.max(G.fx.shake, 0.18);
       for (const e of G.enemies)
         if (!e.dead && !e.hidden && e.spawn <= 0 && Math.hypot(e.x - s.x, e.z - s.z) < 0.8 + e.r)
           damageEnemy(e, C.caveDamage, 0, 0, 0, 'spell');

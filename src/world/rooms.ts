@@ -421,7 +421,7 @@ export function hitRock(room: Room, rock: RockBox, shatter = false) {
   if (rock.tile) room.template.tiles[rock.tile.r][rock.tile.c] = 'floor';
   burst(rock.x, 0.5, rock.z, 0x6b625a, 16, 2.6, 0.09);
   Sfx.at(rock.x, rock.z).rubble();
-  G.shake = Math.max(G.shake, 0.1);
+  G.fx.shake = Math.max(G.fx.shake, 0.1);
 }
 
 // Pits: a dark hole drawn over the floor. Walkers and the mage can't cross them; bolts and wisps can. Pits side by side

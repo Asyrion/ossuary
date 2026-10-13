@@ -231,7 +231,7 @@ function begin(room: Room, s: OfferingStone) {
   burst(s.x, 1.2, s.z, CURSE, 20, 2.4, 0.06);
   burst(s.x, 0.3, s.z, 0x3a0a0a, 10, 1.4, 0.07);
   Sfx.curseDrawn();
-  G.shake = Math.max(G.shake, 0.2);
+  G.fx.shake = Math.max(G.fx.shake, 0.2);
   banner(...STR.banner.riteBegins, 2.4);
   showBossBar(STR.curseOf(def.name), { hp: C.hits, maxHp: C.hits });
 }

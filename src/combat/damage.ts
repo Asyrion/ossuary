@@ -236,13 +236,13 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
   }
   if (e.isBoss && e.twin && !e.twin.dead) {
     Sfx.at(e.x, e.z).boom();
-    G.shake = 0.45;
+    G.fx.shake = 0.45;
     twinFell(e.twin);
   } // (one twin down: the other fights on, raging)
   else if (e.isBoss) {
     for (const s of G.enemies) if (s.servant && !s.dead) killEnemy(s, true);
     Sfx.at(e.x, e.z).boom();
-    G.shake = 0.55;
+    G.fx.shake = 0.55;
     if (e.labBoss) {
       serpentFell(e);
       paySerpent(e);
@@ -250,7 +250,7 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
   } else {
     if (e.foe) Sfx.at(e.x, e.z).critterDie();
     else Sfx.at(e.x, e.z).die();
-    G.shake = Math.max(G.shake, 0.08);
+    G.fx.shake = Math.max(G.fx.shake, 0.08);
   }
 }
 
@@ -377,7 +377,7 @@ export function hurtPlayer(halves: number, fromX: number, fromZ: number): boolea
     d = Math.hypot(dx, dz) || 1;
   player.vx += (dx / d) * 7;
   player.vz += (dz / d) * 7;
-  G.shake = 0.3;
+  G.fx.shake = 0.3;
   if (!guarded) Sfx.hurt();
   flashHurt();
   burst(player.x, 0.6, player.z, guarded ? SOUL_COLOR[guarded] : 0xb3261a, 10, 2.5, 0.07);

@@ -201,7 +201,7 @@ function trapped(e: Enemy, k: Coil, by: 'shock' | 'frost') {
     Sfx.at(e.x, e.z).sizzle();
   } // (no shock status: through its jelly it would trap it again)
   else Sfx.at(e.x, e.z).freeze();
-  G.shake = Math.max(G.shake, 0.2);
+  G.fx.shake = Math.max(G.fx.shake, 0.2);
 }
 /** Spit a glob of jelly at (x, z): half a heart to the mage where it lands, and a puddle of jelly there. */
 function glob(e: Enemy, k: Coil, x: number, z: number) {
@@ -316,7 +316,7 @@ export function updateSerpent(e: Enemy, dt: number, ux: number, uz: number): num
     if (e.st <= 0) {
       surfaceNow(e, k);
       Sfx.at(e.x, e.z).surface();
-      G.shake = Math.max(G.shake, 0.2);
+      G.fx.shake = Math.max(G.fx.shake, 0.2);
       P.jaw.rotation.x = 0.5;
       if (hurt) {
         const off = Math.random() * Math.PI,

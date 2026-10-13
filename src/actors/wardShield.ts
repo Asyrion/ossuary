@@ -98,7 +98,7 @@ function breakWard(e: Enemy, school: School) {
   (w.fx.userData.rim as THREE.Material).dispose();
   burst(e.x, 0.8, e.z, SCHOOL_LIGHT[school], 26, 2.6, 0.05);
   Sfx.at(e.x, e.z).wardBurst();
-  G.shake = Math.max(G.shake, 0.15);
+  G.fx.shake = Math.max(G.fx.shake, 0.15);
   toast(STR.toast.shieldBreaks(STR.schools[school]), 3);
   const at = freeSpotNear(G.current, e.x + CFG.ward.beside, e.z),
     floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
