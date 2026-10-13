@@ -18,21 +18,22 @@ export type GameState = 'title' | 'play' | 'pause' | 'dying' | 'end' | 'daylight
 
 /** What only shows: the particles and decals `combat/fx.ts` spawns (`flow.ts` clears them with the floor), and the camera's
     shake, which any blow worth feeling raises, `loop.ts` decays and `render/renderer.ts` reads. */
+/** The floor: its rooms (`world/rooms.ts` adds each as it is built, `flow.ts` clears them for the next floor) and its way
+    down, which `items/pickups.ts` opens as a trapdoor, `world/daylight.ts` as Kaelith's shaft and `flow.ts` takes away. */
+export type FloorState = { rooms: Room[]; roomMap: Map<string, Room>; trapdoor: Trapdoor | null };
+
 export type FxState = { particles: Particle[]; decals: THREE.Mesh[]; shake: number };
 
 /** Shared mutable game state. Modules read and write it through this one object. */
 export const G = {
   state: 'title' as GameState,
   trans: null as Transition | null,
-  rooms: [] as Room[],
-  roomMap: new Map<string, Room>(),
   current: undefined as unknown as Room, // set by buildFloor() during boot
   enemies: [] as Enemy[],
   bolts: [] as Bolt[],
   shots: [] as Shot[],
   pickups: [] as Pickup[],
   glyphs: [] as Glyph[],
-  trapdoor: null as Trapdoor | null,
   stats: { time: 0, kills: 0, obols: 0 },
   /** The current run: its seed, which floor (0-based), the seeded streams for artifacts (loot) and for what
       rooms and enemies drop (drops); this floor's boss and the bosses the run has met. */
@@ -109,6 +110,7 @@ export const G = {
       string | null,
   },
   simClock: 0,
+  floor: { rooms: [], roomMap: new Map(), trapdoor: null } as FloorState,
   fx: { particles: [], decals: [], shake: 0 } as FxState,
 };
 

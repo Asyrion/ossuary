@@ -125,7 +125,7 @@ export function giftsAtStart() {
   if (st.socket && player.sockets[0].size < 2) setSockets(0, 2);
   if (st.page) dropPage(G.current, player.x, player.z - 1.4);
   if (st.map) {
-    for (const r of G.rooms) r.known = true;
+    for (const r of G.floor.rooms) r.known = true;
     renderMinimap();
   }
   if (st.maxMana || st.hearts || b.bonus) {

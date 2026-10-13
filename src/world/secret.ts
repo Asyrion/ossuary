@@ -200,7 +200,7 @@ export function openSecretRoom(room: Room) {
 }
 /** Divine every cracked wall on the floor (dev menu). */
 export function revealCracks() {
-  for (const r of G.rooms) for (const d of r.doors) if (d.secret) d.secret.divined = true;
+  for (const r of G.floor.rooms) for (const d of r.doors) if (d.secret) d.secret.divined = true;
 }
 
 /** The Grave Lantern: the room's cracked walls glow at once, and ring hollow from anywhere in the room. */

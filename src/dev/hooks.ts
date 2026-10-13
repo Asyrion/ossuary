@@ -173,7 +173,7 @@ export function installHooks() {
     get bolts() {
       return G.bolts;
     },
-    rooms: () => G.rooms,
+    rooms: () => G.floor.rooms,
     startGame,
     hero,
     camera,
@@ -408,7 +408,7 @@ export function installHooks() {
     hallowedMend: () => hallowedMend(),
     /** Break open every cracked wall of this floor's secret room. */
     openSecret() {
-      const r = G.rooms.find((x) => x.type === 'secret');
+      const r = G.floor.rooms.find((x) => x.type === 'secret');
       if (r) openSecretRoom(r);
       return !!r;
     },
@@ -607,7 +607,7 @@ export function installHooks() {
     /** M4.2: the drinking wards: every vault's on the floor (sealed or not, how full, what it drank most, the vault's
         warden) and every warded foe's; `wardFoe(i)` wards the i-th foe. */
     get wards() {
-      const seals = [...new Set(G.rooms.flatMap((r) => r.doors.map((d) => d.seal)).filter((s) => !!s))];
+      const seals = [...new Set(G.floor.rooms.flatMap((r) => r.doors.map((d) => d.seal)).filter((s) => !!s))];
       return {
         vaults: seals.map((s) => ({
           sealed: s.sealed,
@@ -893,18 +893,18 @@ export function installHooks() {
     },
     /** Whether a trapdoor lies open on this floor (a floor's boss fell; the serpent out of its vat leaves none). */
     get trapdoor() {
-      return !!G.trapdoor;
+      return !!G.floor.trapdoor;
     },
     /** Where the trapdoor lies (world x, z) and the room it is in (M6 step 10: the waystone room's, or the boss room's). */
     get wayDown() {
-      const t = G.trapdoor;
+      const t = G.floor.trapdoor;
       return (
         t && {
           x: t.x,
           z: t.z,
           kind: t.kind ?? 'trapdoor',
           room:
-            G.rooms.find(
+            G.floor.rooms.find(
               (r) => t.x >= r.bounds.minX && t.x <= r.bounds.maxX && t.z >= r.bounds.minZ && t.z <= r.bounds.maxZ,
             )?.type ?? null,
         }
@@ -920,7 +920,7 @@ export function installHooks() {
     },
     /** The rooms the minimap marks finished (2026-10-02): been in, the fight won, nothing left to take. */
     get finished() {
-      return G.rooms.filter((r) => roomFinished(r)).map((r) => r.plan.id);
+      return G.floor.rooms.filter((r) => roomFinished(r)).map((r) => r.plan.id);
     },
     brew: (a: ReagentId, b: ReagentId) => brewAtTable(a, b),
     buyRecipe: (id: PotionId) => buyRecipe(id),

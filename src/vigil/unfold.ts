@@ -59,7 +59,7 @@ interface Here {
   t: number;
 }
 let here: Here | null = null;
-const roomOf = (name: string) => G.rooms[roomIndex(VIGIL, name)];
+const roomOf = (name: string) => G.floor.rooms[roomIndex(VIGIL, name)];
 
 /** Furnish the rooms behind the barred ways (from vigil/place.ts's `furnishVigil`, before the walls). */
 export function furnishUnfold() {
@@ -229,7 +229,7 @@ export function updateUnfold(dt: number) {
 function roomLine(room: Room): string | null {
   const h = here!,
     S = STR.vigil.unfold,
-    name = VIGIL.rooms[G.rooms.indexOf(room)]?.name;
+    name = VIGIL.rooms[G.floor.rooms.indexOf(room)]?.name;
   if (room === h.cave.room) return S.cave(h.cave.built);
   if (room === h.chapel.room) return h.chapel.candles.some((c) => c.freed) ? '' : S.chapelEmpty;
   if (room === h.garden.room) return h.garden.tended ? '' : S.gardenFallow;

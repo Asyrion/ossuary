@@ -79,11 +79,11 @@ export function placeShade(floor: number, chance: number) {
     id = pickShade(floor + 1, chance, vigil().freed, skip, rnd);
   if (!id) return;
   const at = shadeRoom(
-    G.rooms.map((r) => ({ id: G.rooms.indexOf(r), type: r.type })),
+    G.floor.rooms.map((r) => ({ id: G.floor.rooms.indexOf(r), type: r.type })),
     rnd,
   );
   if (at === null) return;
-  layShade(id, G.rooms[at]);
+  layShade(id, G.floor.rooms[at]);
 }
 /** A shade chained in `room` (the dev menu's "here" puts one beside the mage). */
 export function layShade(id: string, room: Room, x?: number, z?: number) {

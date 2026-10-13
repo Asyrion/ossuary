@@ -57,7 +57,7 @@ export function raiseWaystone(room: Room, x: number, z: number) {
     with no boss room, `?room=waystone_plain`), the stone rises near its middle the first time; dark until it has kindled. */
 export function enterWaystone(room: Room, firstVisit: boolean) {
   if (firstVisit) banner(...STR.banner.waystone);
-  const boss = G.rooms.find((r) => r.type === 'boss');
+  const boss = G.floor.rooms.find((r) => r.type === 'boss');
   if (!room.waystone && (!boss || boss.cleared)) {
     // (a little toward the door: the way down lies beyond it)
     const [dx, dz] = SIDE_DIR[room.plan.doors[0]?.side ?? 'n'];
@@ -68,7 +68,7 @@ export function enterWaystone(room: Room, firstVisit: boolean) {
 }
 /** The floor's waystone room, if the generator found it a cell (floors 1 to 5: floor 5's since M7). */
 export function waystoneRoom() {
-  return G.rooms.find((r) => r.type === 'waystone');
+  return G.floor.rooms.find((r) => r.type === 'waystone');
 }
 /** The boss fell on a floor with a waystone room: the boss room's banner says where the way down lies, and a line which door. */
 export function pointToStone(boss: Room, stone: Room) {
@@ -137,7 +137,7 @@ function kindle(w: NonNullable<Room['waystone']>) {
 }
 /** Step 10: the trapdoor opens beyond the stone, on the side away from the room's one door. */
 function openWayDown(room: Room) {
-  if (G.trapdoor) return;
+  if (G.floor.trapdoor) return;
   const [dx, dz] = SIDE_DIR[room.plan.doors[0]?.side ?? 'n'];
   makeTrapdoor(room.cx - dx * C().trapdoor[0], room.cz - dz * C().trapdoor[1], room);
   after(0.5, () => Sfx.trapdoor());

@@ -167,10 +167,10 @@ function clearEntities() {
     (d.material as THREE.Material).dispose();
   }
   G.fx.decals.length = 0;
-  if (G.trapdoor) {
-    G.trapdoor.g.removeFromParent();
-    disposeTree(G.trapdoor.g);
-    G.trapdoor = null;
+  if (G.floor.trapdoor) {
+    G.floor.trapdoor.g.removeFromParent();
+    disposeTree(G.floor.trapdoor.g);
+    G.floor.trapdoor = null;
   }
 }
 
@@ -179,13 +179,13 @@ function clearEntities() {
 function clearFloor() {
   clearEntities();
   clearTimers();
-  for (const r of G.rooms) {
+  for (const r of G.floor.rooms) {
     scene.remove(r.group);
     disposeTree(r.group);
   }
   clearFloorTextures();
-  G.rooms = [];
-  G.roomMap = new Map();
+  G.floor.rooms = [];
+  G.floor.roomMap = new Map();
   leaveVigil();
   clearShade();
 }
@@ -205,10 +205,10 @@ export function buildFloor(index: number) {
   resetBudget(plan.rooms.filter((r) => r.artifact && r.type !== 'secret').length); // the secret room's is beyond it
   applyFloorLook(FLOORS[index].look);
   for (const p of plan.rooms) buildRoom(p, index);
-  for (const r of G.rooms) buildWallsAndDoors(r);
-  linkDoors(G.rooms);
-  sealVaults(G.rooms);
-  const start = G.rooms[plan.startId];
+  for (const r of G.floor.rooms) buildWallsAndDoors(r);
+  linkDoors(G.floor.rooms);
+  sealVaults(G.floor.rooms);
+  const start = G.floor.rooms[plan.startId];
   G.current = start;
   player.x = start.cx;
   player.z = start.cz + 0.6;
@@ -435,8 +435,8 @@ function buildVigil(first: boolean) {
     buildRoom(p, VIGIL_INDEX, k ? { ...VIGIL.look, kit: { ...VIGIL.look.kit, ...k } } : VIGIL.look);
   }); // (a room behind a barred way in its own kinds)
   furnishVigil(first); // (before the walls: its pieces keep their spans of wall clear of torches)
-  for (const r of G.rooms) buildWallsAndDoors(r);
-  linkDoors(G.rooms);
+  for (const r of G.floor.rooms) buildWallsAndDoors(r);
+  linkDoors(G.floor.rooms);
   vigilWalled(); // (M7 step 9: the Cave Mouth opens its north wall onto the valleys)
   const w = wakePoint();
   G.current = w.room;
@@ -567,7 +567,7 @@ export function toggleSound() {
 }
 
 function showRooms(...list: Room[]) {
-  for (const r of G.rooms) r.group.visible = list.includes(r);
+  for (const r of G.floor.rooms) r.group.visible = list.includes(r);
 }
 
 export function enterRoom(room: Room) {
@@ -896,7 +896,7 @@ export function clearRoom() {
 /** Dev hook: jump straight into a room, by grid cell or by room id, as if walking in through its first
     door (the south one if it has one). */
 export function warp(gx: number, gy?: number) {
-  const r = gy === undefined ? G.rooms.find((x) => x.plan.id === gx) : roomAt(gx, gy);
+  const r = gy === undefined ? G.floor.rooms.find((x) => x.plan.id === gx) : roomAt(gx, gy);
   if (!r) throw new Error(`No room at ${gy === undefined ? 'id ' + gx : gx + ',' + gy}`);
   G.trans = null;
   clearProjectiles();

@@ -430,11 +430,11 @@ export function makeTrapdoor(x: number, z: number, room?: Room) {
     g.position.set(x, 0, z);
     scene.add(g);
   }
-  G.trapdoor = { g, x, z, ring, t: 0 };
+  G.floor.trapdoor = { g, x, z, ring, t: 0 };
 }
 
 export function updateTrapdoor(dt: number) {
-  const p = G.trapdoor;
+  const p = G.floor.trapdoor;
   if (!p) return;
   p.t += dt;
   p.ring.scale.setScalar(1 + Math.sin(p.t * 3) * 0.04);

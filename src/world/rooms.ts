@@ -41,7 +41,7 @@ import { pickKinds } from './kitData';
 import { dressTheme } from './themes';
 import { floorTile, modelFor, sealedLook } from '../assets/models';
 
-export const roomAt = (gx: number, gy: number) => G.roomMap.get(gx + ',' + gy);
+export const roomAt = (gx: number, gy: number) => G.floor.roomMap.get(gx + ',' + gy);
 /** World position of the centre of template tile (c, r). */
 export const toWorld = (room: Room, c: number, r: number) => ({
   x: room.bounds.minX + c + 0.5,
@@ -190,8 +190,8 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number, own?: FloorLook
   if (plan.type === 'shrine') buildShrine(room);
   if (plan.type === 'library') furnishLibrary(room);
   if (plan.type === 'laboratory') furnishLab(room); // (M5)
-  G.rooms.push(room);
-  for (const c of plan.cells) G.roomMap.set(c.gx + ',' + c.gy, room);
+  G.floor.rooms.push(room);
+  for (const c of plan.cells) G.floor.roomMap.set(c.gx + ',' + c.gy, room);
   return room;
 }
 
@@ -695,7 +695,7 @@ export function buildWallsAndDoors(room: Room) {
   const { hx, hz } = cellHalfExtents(room.plan.shape);
   // doors first: where they are decides where the walls have gaps
   for (const pd of room.plan.doors) {
-    const nb = G.rooms.find((r) => r.plan.id === pd.to)!;
+    const nb = G.floor.rooms.find((r) => r.plan.id === pd.to)!;
     const [dx, dz] = SIDE_DIR[pd.side];
     const shift = pd.shift ?? 0; // how far the door has moved along its edge (M3.6)
     const x = pd.gx * PX + dx * hx + (dx ? 0 : shift),
@@ -922,7 +922,7 @@ export function setDoors(room: Room, open: boolean, sound = true) {
 
 export function updateRoomFx(dt: number, now: number) {
   tickFire(now);
-  for (const r of G.rooms) {
+  for (const r of G.floor.rooms) {
     for (const d of doorsOf(r)) {
       if (d.plug) continue; // (a barred way at the Vigil: its wall fills it, no gate)
       const target = d.open ? -d.barH - 0.05 : 0;

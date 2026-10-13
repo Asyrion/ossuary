@@ -194,7 +194,7 @@ let finishedKey = '',
 function watchFinished(dt: number) {
   if ((finishedT -= dt) > 0) return;
   finishedT = 0.25;
-  const key = G.rooms.map((r) => +roomFinished(r)).join('');
+  const key = G.floor.rooms.map((r) => +roomFinished(r)).join('');
   if (key !== finishedKey) {
     finishedKey = key;
     renderMinimap();
@@ -219,7 +219,7 @@ export function renderMinimap() {
     py = (gy: number) => H / 2 + (gy - centre.gy) * (ch + gap);
   // the Grave Lantern shows the secret room before it's found
   const lantern = player.stats.effects.has('graveLantern');
-  const shown = G.rooms.filter((r) => r.visited || r.known || (lantern && r.type === 'secret'));
+  const shown = G.floor.rooms.filter((r) => r.visited || r.known || (lantern && r.type === 'secret'));
   // rectangles for a room: its cells (corridors narrow) and the gaps between neighbouring cells
   const rects = (r: typeof cur) => {
     const out: [number, number, number, number][] = [];

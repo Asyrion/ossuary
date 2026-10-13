@@ -380,7 +380,7 @@ planned with the owner in plan mode first, as M6's steps 5 and 7 to 11 were. Nam
 
    *Built (2026-10-06).*
    - **The way out:** where Kaelith kneels, a shaft of daylight opens in its hall instead of a trapdoor (`openShaft` in
-     `src/world/daylight.ts`, from `onBossDead`; `G.trapdoor` with `kind: 'shaft'`): a column of warm light fading upward,
+     `src/world/daylight.ts`, from `onBossDead`; `G.floor.trapdoor` with `kind: 'shaft'`): a column of warm light fading upward,
      dust turning in it, a ring on the floor; a line says it ("Daylight falls where Kaelith knelt: the way up"), and a
      shimmer sounds (`Sfx.shaft`).
    - **The dawn:** stepping in (`enterDaylight`, from the player's step) whitens the screen and fades it (`#dawn`), hides the

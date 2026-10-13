@@ -323,7 +323,7 @@ export function checkArtifactPickup() {
 }
 
 export function updateArtifacts(now: number) {
-  for (const r of G.rooms)
+  for (const r of G.floor.rooms)
     for (const s of r.spots) {
       if (s.taken) continue;
       s.visual.position.y = 1.05 + Math.sin(now * 2 + s.x) * 0.08;
