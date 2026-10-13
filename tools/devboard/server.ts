@@ -58,7 +58,7 @@ function validate(): Promise<Validation> {
       clearTimeout(timer);
       const line = out.split('\n').find((l) => l.startsWith('VALIDATE_JSON '));
       const v: Validation = line
-        ? { ...JSON.parse(line.slice(14)), at: Date.now(), sig }
+        ? { ...(JSON.parse(line.slice(14)) as Pick<Validation, 'ok' | 'checks'>), at: Date.now(), sig }
         : {
             ok: false,
             checks: [],
@@ -96,7 +96,7 @@ function body(req: IncomingMessage): Promise<Record<string, Json>> {
     });
     req.on('end', () => {
       try {
-        ok(JSON.parse(s || '{}'));
+        ok(JSON.parse(s || '{}') as Record<string, Json>);
       } catch {
         fail(new BadRequest('bad JSON'));
       }
@@ -149,7 +149,10 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   }
   if (req.method !== 'POST') return send(res, 405, { error: 'method' });
   const d = await body(req);
-  const str = (k: string) => String(d[k] ?? ''),
+  const str = (k: string) => {
+      const v = d[k] ?? '';
+      return typeof v === 'object' ? JSON.stringify(v) : String(v);
+    },
     num = (k: string) => Number(d[k] ?? 0);
   const routes: Record<string, () => unknown> = {
     '/api/save': () =>

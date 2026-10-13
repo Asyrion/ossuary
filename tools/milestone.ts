@@ -36,7 +36,8 @@ function call(method: string, url: string, body?: object): unknown {
   ];
   if (process.env.GITHUB_TOKEN) args.push('-H', `Authorization: Bearer ${process.env.GITHUB_TOKEN}`);
   if (body) args.push('-d', JSON.stringify(body));
-  const out = JSON.parse(execFileSync('curl', [...args, url], { encoding: 'utf8', env }));
+  const out = JSON.parse(execFileSync('curl', [...args, url], { encoding: 'utf8', env })) as
+    { message?: string } | unknown[] | null;
   if (out && !Array.isArray(out) && out.message) throw new Error(`${method} ${url}: ${out.message}`);
   return out;
 }

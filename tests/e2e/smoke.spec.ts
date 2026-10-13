@@ -2727,27 +2727,27 @@ test("M4.1's artifacts: the pendulum swings, the lodestar hangs stars, the echo 
   const errors = await start(page, '?room=treasure_plain&seed=ART41');
   const fire = `(g, key) => { g.player.fireCd = 0; g.keys.add(key); g.arrowOrder.push(key); g.sim(1 / 60); g.keys.delete(key); g.arrowOrder.length = 0; }`;
   // the Pendulum of Hours: bolts set out to one side, then the other, and curve back onto the aim line
-  const swing = (await page.evaluate(`(() => {
+  const swing = await page.evaluate<{ first: number; second: number; outward: number; most: number }>(`(() => {
     const g = window.__game, P = g.player, fire = ${fire}; g.warp(1); g.sim(.3); P.x -= 3; g.give('pendulum_of_hours');
     fire(g, 'ArrowUp'); const a = g.bolts[g.bolts.length - 1], a0 = { x: a.x, curve: a.curve, vx: a.vx };
     fire(g, 'ArrowUp'); const b = g.bolts[g.bolts.length - 1];
     let most = 0; for (let i = 0; i < 30 && g.bolts.includes(a); i++) { g.sim(1 / 30); most = Math.max(most, Math.abs(a.x - a0.x)); }
     return { first: Math.sign(a0.curve), second: Math.sign(b.curve), outward: Math.sign(a0.vx), most };
-  })()`)) as { first: number; second: number; outward: number; most: number };
+  })()`);
   expect(swing.first * swing.second).toBe(-1); // (left, then right)
   expect(swing.outward).toBe(-swing.first); // (out one way, turning back the other)
   expect(swing.most).toBeGreaterThan(0.4);
   // the Lodestar Wand: a bolt stops at its range's end and hangs there as a star, then goes out
-  const star = (await page.evaluate(`(() => {
+  const star = await page.evaluate<{ became: boolean; t: number; hung: boolean; gone: boolean }>(`(() => {
     const g = window.__game, P = g.player, fire = ${fire}; g.sim(2); for (const b of [...g.bolts]) b.dist = 99; g.sim(.1); g.give('lodestar_wand');
     fire(g, 'ArrowRight'); const b = g.bolts[g.bolts.length - 1];
     let t = 0; for (; t < 3 && b.star === undefined; t += .05) g.sim(.05);
     const at = { x: b.x, z: b.z }; g.sim(1); const hung = g.bolts.includes(b) && Math.hypot(b.x - at.x, b.z - at.z) < .01;
     g.sim(1.5); return { became: b.star !== undefined, t, hung, gone: !g.bolts.includes(b) };
-  })()`)) as { became: boolean; t: number; hung: boolean; gone: boolean };
+  })()`);
   expect(star).toMatchObject({ became: true, hung: true, gone: true });
   // the Echo Stone: a bolt at a wall comes back, once; the Gilded Halo: the first bolt on a foe sanctifies it
-  const echo = (await page.evaluate(`(() => {
+  const echo = await page.evaluate<{ back: boolean; sanct: number }>(`(() => {
     const g = window.__game, P = g.player, fire = ${fire}; g.give('apprentice_wand', 'echo_stone', 'gilded_halo'); g.sim(.2);
     const room = g.current; P.z = room.cz - 1.5; P.x = room.cx - 3;
     fire(g, 'ArrowUp'); const b = g.bolts[g.bolts.length - 1], vz = b.vz;
@@ -2755,7 +2755,7 @@ test("M4.1's artifacts: the pendulum swings, the lodestar hangs stars, the echo 
     const back = b.echoed && Math.sign(b.vz) === -Math.sign(vz);
     const d = g.spawn('dummy', P.x + 2.5, P.z); g.sim(.8); fire(g, 'ArrowRight'); g.sim(.5);
     return { back, sanct: d.status?.sanct ?? 0 };
-  })()`)) as { back: boolean; sanct: number };
+  })()`);
   expect(echo.back).toBe(true);
   expect(echo.sanct).toBeGreaterThan(2);
   // the Hart's Antler: every sixth cast a lance of light that pierces and sanctifies
@@ -2766,25 +2766,25 @@ test("M4.1's artifacts: the pendulum swings, the lodestar hangs stars, the echo 
   })()`);
   expect(lance).toBe(2);
   // the Twin Vigil Candles: standing still, bolts strike half again as hard; the Blood Moon: hurt, faster and in crimson
-  const steady = (await page.evaluate(`(() => {
+  const steady = await page.evaluate<{ still: number; mul: number; speed: number; color: number; cd: number }>(`(() => {
     const g = window.__game, P = g.player, fire = ${fire}; g.clearRoom(); g.sim(3); g.give('twin_vigil_candles', 'blood_moon_pendant');
     g.sim(.5); const still = P.still; fire(g, 'ArrowLeft'); const a = g.bolts[g.bolts.length - 1], base = P.stats.damage;
     P.hp = 2; g.sim(.3); fire(g, 'ArrowLeft'); const b = g.bolts[g.bolts.length - 1];
     return { still, mul: a.damage / base, speed: Math.hypot(b.vx, b.vz) / P.stats.shotSpeed, color: b.color, cd: P.fireCd };
-  })()`)) as { still: number; mul: number; speed: number; color: number; cd: number };
+  })()`);
   expect(steady.still).toBeGreaterThan(0.25);
   expect(steady.mul).toBeCloseTo(1.5);
   expect(steady.speed).toBeGreaterThan(1.25);
   expect(steady.color).toBe(0xe03040);
   expect(steady.cd).toBeLessThan(0.36 * 0.8);
   // the Salt Circle: standing still a moment, a ring forms that walking foes can't cross; stepping out breaks it
-  const salt = (await page.evaluate(`(() => {
+  const salt = await page.evaluate<{ formed: boolean; least: number; after: unknown }>(`(() => {
     const g = window.__game, P = g.player; P.hp = P.maxHp; g.clearRoom(); g.give('salt_circle'); g.sim(1.4);
     const ring = g.salt; const foe = g.spawn('rotling', P.x + 3, P.z); g.sim(.8); let least = 9;
     for (let i = 0; i < 60; i++) { g.sim(.05); least = Math.min(least, Math.hypot(foe.x - ring.x, foe.z - ring.z)); }
     g.clearRoom(); g.keys.add('KeyD'); g.sim(.6); g.keys.delete('KeyD'); g.sim(.3); // (walks out of it)
     return { formed: !!ring, least, after: g.salt };
-  })()`)) as { formed: boolean; least: number; after: unknown };
+  })()`);
   expect(salt.formed).toBe(true);
   expect(salt.least).toBeGreaterThan(1.35);
   expect(salt.after).toBeNull();
@@ -2813,11 +2813,11 @@ test("M4.1's artifacts: the pendulum swings, the lodestar hangs stars, the echo 
   })()`);
   expect(grave).toBeGreaterThanOrEqual(3);
   // the Last Rite: a killing blow refused once a floor, the mage risen with half a heart; its price, a heart less
-  const rite = (await page.evaluate(`(() => {
+  const rite = await page.evaluate<{ lost: number; hp: number; state: string; used: boolean }>(`(() => {
     const g = window.__game, P = g.player; g.clearRoom(); g.sim(.3); const max = P.maxHp; g.give('the_last_rite');
     P.hp = 1; P.invuln = 0; g.shoot(P.x, P.z - .8, 0, 1); g.sim(1);
     return { lost: max - P.maxHp, hp: P.hp, state: g.state, used: g.run.riteFloor === g.run.floor };
-  })()`)) as { lost: number; hp: number; state: string; used: boolean };
+  })()`);
   expect(rite).toEqual({ lost: 2, hp: 1, state: 'play', used: true });
   await page.evaluate(() => (window as unknown as W).__game.sim(0.05, true));
   await page.screenshot({ path: 'test-results/smoke-artifacts-41.png' });
@@ -4095,9 +4095,13 @@ test("Dr. Jelly's laboratory (M5): the table opens when walked up to; two reagen
   const bought = await g();
   expect(bought.coins).toBe(4);
   expect(bought.lab.recipes.map((r) => r.potion).sort()).toEqual(['healing', 'mana']);
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('ossuary.vigil') ?? '{}').recipes?.potions)).toEqual(
-    ['healing'],
-  ); // (kept between runs, in the Vigil's save since M7 step 4: the brew, and the bought pair)
+  expect(
+    await page.evaluate(
+      () =>
+        (JSON.parse(localStorage.getItem('ossuary.vigil') ?? '{}') as { recipes?: { potions?: string[] } }).recipes
+          ?.potions,
+    ),
+  ).toEqual(['healing']); // (kept between runs, in the Vigil's save since M7 step 4: the brew, and the bought pair)
   await page.keyboard.press('Escape');
   expect(await g()).toMatchObject({ state: 'play', lab: { open: false } });
   // stepping away and back opens it again; a blast bursts a jelly globe, and a jelly or a reagent comes out of it
@@ -4250,13 +4254,13 @@ test("the jelly serpent (M5): three bolts crack the vat window and it breaks out
   };
   await page.evaluate(() => ((window as unknown as W).__game as unknown as GS).forgetPotions());
   // three bolts at the vat window (from under it, beside Dr. Jelly), a crack each, and it breaks out
-  const out = (await page.evaluate(`(() => {
+  const out = await page.evaluate<{ one: number; two: number; after: Info; locked: boolean }>(`(() => {
     const g = window.__game, P = g.player, lab = g.rooms().find(r => r.type === 'laboratory');
     g.warp(lab.plan.id); g.sim(.5); P.x = lab.cx + .9; P.z = lab.bounds.minZ + .7; g.sim(.1); // (under the window, out of Dr. Jelly's reach)
     const fire = () => { P.fireCd = 0; g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); g.sim(1 / 60); g.keys.delete('ArrowUp'); g.arrowOrder.length = 0; g.sim(.4); };
     fire(); const one = g.serpent.cracks; fire(); const two = g.serpent.cracks; fire();
     return { one, two, after: g.serpent, locked: g.current.locked };
-  })()`)) as { one: number; two: number; after: Info; locked: boolean };
+  })()`);
   expect([out.one, out.two]).toEqual([1, 2]);
   expect(out.after).toMatchObject({ run: 'out', broken: true, cracks: 3 });
   expect(out.after.jelly).toBeGreaterThanOrEqual(25);
@@ -6992,7 +6996,12 @@ test("the room kit's pickups and special rooms: every drop, coffers and chests t
   }; // (the room kit's pieces: colours in the vertices; an obol's coin face, on the fine layer)
   // (evaluated as strings, so the counting function goes along with them)
   const drops = () =>
-    page.evaluate(`(() => {
+    page.evaluate<{
+      laid: { kind: string; painted: boolean }[];
+      opened: number;
+      boxes: number;
+      spilled: number;
+    }>(`(() => {
     const g = window.__game, painted = ${painted.toString()};
     g.dropsHere(); g.sim(.8, true);
     const laid = g.pickups.map(p => ({ kind: p.kind, painted: painted(p.m) > 0 }));
@@ -7001,7 +7010,7 @@ test("the room kit's pickups and special rooms: every drop, coffers and chests t
     g.sim(.8, true);
     const boxes = g.pickups.filter(p => p.kind === 'coffer' || p.kind === 'chest');
     return { laid, opened: boxes.filter(p => p.opened && !p.ward).length, boxes: boxes.length, spilled: g.pickups.length - laid.length };
-  })()`) as Promise<{ laid: { kind: string; painted: boolean }[]; opened: number; boxes: number; spilled: number }>;
+  })()`);
   const errors = await start(page, '?seed=K3F9QX');
   const kit = await drops();
   expect(kit.laid.map((d) => d.kind).sort()).toEqual([
@@ -7031,13 +7040,20 @@ test("the room kit's pickups and special rooms: every drop, coffers and chests t
   const special = (q: string) =>
     start(page, `?seed=K3F9QX${q}`).then(async (errs) => ({
       errs,
-      ...((await page.evaluate(`(() => {
+      ...(await page.evaluate<{
+        shade: number;
+        eyes: number;
+        lecterns: number;
+        pages: number;
+        stones: number;
+        lock: number;
+      }>(`(() => {
     const g = window.__game, painted = ${painted.toString()}, outer = g.current.doors.find(d => d.seal)?.seal.mark;
     g.warp(1); g.sim(.5, true);
     const r = g.current;
     return { shade: painted(r.shade), eyes: r.shade?.userData.eyes?.length ?? 0, lecterns: (r.pages ?? []).filter(p => painted(p.g)).length, pages: (r.pages ?? []).length,
       stones: (r.shrine?.stones ?? []).filter(s => painted(s.g) > painted(s.visual)).length, lock: painted(outer) };
-  })()`)) as { shade: number; eyes: number; lecterns: number; pages: number; stones: number; lock: number }),
+  })()`)),
     }));
   for (const old of [false, true]) {
     const k = old ? '&kit=old' : '';
@@ -10509,7 +10525,13 @@ test("the general boons (M6 step 6): Keen Nose knows a potion by smell, Scavenge
   page,
 }) => {
   const errors = await start(page, '?seed=BOON6');
-  const got = (await page.evaluate(`(() => {
+  const got = await page.evaluate<{
+    nose: boolean[];
+    reap: number[];
+    reapSaid: boolean;
+    breath: { ground: number; burning: boolean; said: boolean; hurt: number; healOnly: number };
+    glow: (number | string | null | boolean | undefined)[];
+  }>(`(() => {
     const g = window.__game, out = {};
     const fresh = (boons, spells) => { g.startGame({ seed: 'BOON6', boons, spells }); g.player.invuln = 999; g.sim(.3); };
     fresh({}); g.givePotion('volatile'); out.nose = [g.belt.known[0]];
@@ -10525,13 +10547,7 @@ test("the general boons (M6 step 6): Keen Nose knows a potion by smell, Scavenge
     const shoot = () => { g.player.fireCd = 0; g.keys.add('ArrowUp'); g.arrowOrder.push('ArrowUp'); g.sim(1 / 60); g.keys.delete('ArrowUp'); g.arrowOrder.length = 0; return g.bolts[g.bolts.length - 1]; };
     const b1 = shoot(); out.glow.push(JSON.stringify(b1 && b1.status)); shoot(); shoot(); out.glow.push(g.run.afterglow, JSON.stringify(shoot().status), g.boons.said.includes('afterglow'));
     return out;
-  })()`)) as {
-    nose: boolean[];
-    reap: number[];
-    reapSaid: boolean;
-    breath: { ground: number; burning: boolean; said: boolean; hurt: number; healOnly: number };
-    glow: (number | string | null | boolean | undefined)[];
-  };
+  })()`);
   expect(got.nose).toEqual([false, true, true]); // (unknown without it; known by smell with it, and said)
   expect(got.reap[0]).toBe(6);
   expect(got.reap[1]).toBeLessThan(6);
@@ -11128,7 +11144,19 @@ test('the waystone room (M6 step 10): beside the boss room, empty and dark until
   page,
 }) => {
   const errors = await start(page, '?seed=WAY10&boss=warden&spells=cinder_lance');
-  const r = (await page.evaluate(`(() => {
+  const r = await page.evaluate<{
+    doorShift: number;
+    early: { stone: unknown; wayDown: unknown };
+    fell: { wayDown: unknown; stone: unknown; sub: string; line: string };
+    rising: { lit: boolean; wayDown: unknown };
+    lit: boolean;
+    toward: number;
+    down: string;
+    away: number;
+    rested: boolean;
+    floor: number;
+    state: string;
+  }>(`(() => {
     const g = window.__game, P = g.player; P.invuln = 999;
     const stone = g.rooms().find(r => r.type === 'waystone'), boss = g.rooms().find(r => r.type === 'boss');
     const door = boss.plan.doors.find(d => d.to === stone.plan.id), side = stone.plan.doors[0].side;
@@ -11144,19 +11172,7 @@ test('the waystone room (M6 step 10): beside the boss room, empty and dark until
     g.closeWaystone(); g.sim(.1);
     P.x = down.x; P.z = down.z; g.sim(.3, true);
     return { doorShift: door.shift, early, fell, rising, lit: w.lit, toward: (w.x - cx) * dir[0] + (w.z - cz) * dir[1], down: down.room, away, rested, floor: g.floor, state: g.state };
-  })()`)) as {
-    doorShift: number;
-    early: { stone: unknown; wayDown: unknown };
-    fell: { wayDown: unknown; stone: unknown; sub: string; line: string };
-    rising: { lit: boolean; wayDown: unknown };
-    lit: boolean;
-    toward: number;
-    down: string;
-    away: number;
-    rested: boolean;
-    floor: number;
-    state: string;
-  };
+  })()`);
   expect(r.doorShift).toBe(0);
   expect(r.early).toEqual({ stone: null, wayDown: null }); // (dev warp before the boss: nothing rises yet)
   expect(r.fell).toMatchObject({ wayDown: null, stone: null, sub: 'The way down lies past the waystone' });
@@ -11175,11 +11191,23 @@ test("the Seal (M7 step 1): floor 5 has its waystone room and leads down to the 
   page,
 }) => {
   const errors = await start(page, '?floor=5&seed=SEAL1');
-  const five = (await page.evaluate(
+  const five = await page.evaluate<{ floor: number; stone: boolean }>(
     `(() => { const g = window.__game; return { floor: g.floor, stone: g.rooms().some(r => r.type === 'waystone') }; })()`,
-  )) as { floor: number; stone: boolean };
+  );
   expect(five).toEqual({ floor: 4, stone: true }); // (M7: floor 5's boss has a waystone room before the way down)
-  const r = (await page.evaluate(`(() => {
+  const r = await page.evaluate<{
+    arrive: { floor: number; banner: string; rooms: string[]; said: string; look: string };
+    hall: string;
+    kinds: string[];
+    waves: string;
+    cleared: boolean;
+    boss: string;
+    out: string;
+    kind: string;
+    stepped: string;
+    state: string;
+    end: string;
+  }>(`(() => {
     const g = window.__game, P = g.player; P.invuln = 999; g.descend(); g.sim(.1);
     const said = new Set(); for (let t = 0; t < 30; t++) { said.add(document.getElementById('toast').textContent); g.sim(.25); }
     const arrive = { floor: g.floor, banner: document.querySelector('#banner .t').textContent, rooms: g.rooms().map(r => r.type + ':' + r.plan.shape), map: g.map(), said: [...said].join(' | '), look: g.current.look?.name };
@@ -11198,19 +11226,7 @@ test("the Seal (M7 step 1): floor 5 has its waystone room and leads down to the 
     const out = g.wayDown; P.x = out.x; P.z = out.z; g.sim(.5); const stepped = g.state;
     g.sim(7);
     return { arrive, hall: [...hall].join(' | '), kinds: [...kinds], waves, cleared, boss, out: out.room, kind: out.kind, stepped, state: g.state, end: document.getElementById('endTitle').textContent };
-  })()`)) as {
-    arrive: { floor: number; banner: string; rooms: string[]; said: string; look: string };
-    hall: string;
-    kinds: string[];
-    waves: string;
-    cleared: boolean;
-    boss: string;
-    out: string;
-    kind: string;
-    stepped: string;
-    state: string;
-    end: string;
-  };
+  })()`);
   expect(r.arrive).toMatchObject({
     floor: 5,
     banner: 'The Seal',
@@ -11243,7 +11259,23 @@ test('Kaelith (M7 step 2): the Sentinel stalks, sweeps, fires and steps through 
     safe: boolean;
     sun: boolean;
   } | null;
-  const r = (await page.evaluate(`(() => {
+  const r = await page.evaluate<{
+    bar: number;
+    banner1: string;
+    states: string[];
+    p1: K;
+    banner2: string;
+    p2: K;
+    hit: number;
+    horde: number;
+    reel: K;
+    banner3: string;
+    pulled: number;
+    held: { moved: number; safe: boolean };
+    p3: K;
+    fell: { kaelith: K; banner: string; way: { room: string; kind: string }; clear: number };
+    state: string;
+  }>(`(() => {
     const g = window.__game, P = g.player; P.invuln = 999;
     g.warp(2); P.x = g.current.cx; P.z = g.current.cz + 3.5; g.sim(1, true);
     const bar = document.querySelectorAll('#bossbar .mark').length, banner1 = document.querySelector('#banner .t').textContent;
@@ -11269,23 +11301,7 @@ test('Kaelith (M7 step 2): the Sentinel stalks, sweeps, fires and steps through 
     const fell = { kaelith: g.kaelith, banner: document.querySelector('#banner .t').textContent, way: g.wayDown, clear: Math.hypot(g.kaelithKnelt.x - g.wayDown.x, g.kaelithKnelt.z - g.wayDown.z) };
     P.x = fell.way.x; P.z = fell.way.z; g.sim(.5);
     return { bar, banner1, states: [...states], p1, banner2, p2, hit, horde, reel, banner3, pulled, held, p3, fell, state: g.state };
-  })()`)) as {
-    bar: number;
-    banner1: string;
-    states: string[];
-    p1: K;
-    banner2: string;
-    p2: K;
-    hit: number;
-    horde: number;
-    reel: K;
-    banner3: string;
-    pulled: number;
-    held: { moved: number; safe: boolean };
-    p3: K;
-    fell: { kaelith: K; banner: string; way: { room: string; kind: string }; clear: number };
-    state: string;
-  };
+  })()`);
   expect(r.bar).toBe(2);
   expect(r.banner1).toBe('Kaelith'); // (its bar marks the phases)
   expect(r.p1!.phase).toBe(1);
@@ -11323,7 +11339,14 @@ test("daylight (M7 step 3): Kaelith's way out is a shaft of light; stepping into
     walking?: boolean;
     mage?: { x: number; z: number };
   };
-  const r = (await page.evaluate(`(() => {
+  const r = await page.evaluate<{
+    way: { kind: string; room: string };
+    said: string;
+    hud: string;
+    start: { state: string; day: D };
+    mid: D;
+    out: D;
+  }>(`(() => {
     const g = window.__game, P = g.player; P.invuln = 999;
     g.warp(2); g.sim(.5); g.clearRoom(); g.sim(1);
     const way = g.wayDown, said = new Set();
@@ -11334,14 +11357,7 @@ test("daylight (M7 step 3): Kaelith's way out is a shaft of light; stepping into
     g.sim(1.6, true); const mid = g.daylight;
     g.sim(2, true); const out = g.daylight;
     return { way, said: [...said].join(' | '), hud, start, mid, out };
-  })()`)) as {
-    way: { kind: string; room: string };
-    said: string;
-    hud: string;
-    start: { state: string; day: D };
-    mid: D;
-    out: D;
-  };
+  })()`);
   // the frame as drawn (a screenshot, read on a plain canvas): the sky above bright and warm, where the Seal was dark
   const shot = (await page.screenshot()).toString('base64');
   const sky = await page.evaluate(async (b64) => {
@@ -11363,11 +11379,18 @@ test("daylight (M7 step 3): Kaelith's way out is a shaft of light; stepping into
     for (let i = 0; i < d.length; i += 4) for (let k = 0; k < 3; k++) m[k] += d[i + k];
     return m.map((v) => Math.round(v / (d.length / 4)));
   }, shot);
-  const end = (await page.evaluate(`(() => {
+  const end = await page.evaluate<{
+    state: string;
+    title: string;
+    text: string;
+    shown: boolean;
+    day: boolean;
+    calls: number;
+  }>(`(() => {
     const g = window.__game;
     g.sim(4); const end = { state: g.state, title: document.getElementById('endTitle').textContent, text: document.getElementById('endText').textContent, shown: !document.getElementById('scrEnd').classList.contains('hidden'), day: g.daylight.on, calls: g.renderInfo().calls };
     return end;
-  })()`)) as { state: string; title: string; text: string; shown: boolean; day: boolean; calls: number };
+  })()`);
   expect(r.way).toMatchObject({ kind: 'shaft', room: 'boss' });
   expect(r.said).toContain('Daylight falls where Kaelith knelt');
   expect(r.start.state).toBe('daylight');
@@ -11432,7 +11455,13 @@ test('the keeping (M7 step 4): one save takes over the five keys kept before it;
       dust: number;
     }[];
   };
-  const r = (await page.evaluate(`(() => {
+  const r = await page.evaluate<{
+    took: { vigil: V; stored: boolean; reactions: string[] };
+    state: string;
+    vigil: V;
+    home: string;
+    hidden: boolean;
+  }>(`(() => {
     const g = window.__game, P = g.player, took = { vigil: g.vigil, stored: !!localStorage.getItem('ossuary.vigil'), reactions: [...g.reactions] };
     // fall to a foe in the first fight
     g.warp(g.rooms().find(r => r.type === 'normal' && !r.cleared).plan.id); g.sim(.3);
@@ -11441,13 +11470,7 @@ test('the keeping (M7 step 4): one save takes over the five keys kept before it;
     for (let t = 0; t < 120 && g.state !== 'end'; t++) { foe.x = P.x + .3; foe.z = P.z; P.invuln = Math.min(P.invuln, .05); g.sim(.25); }
     const home = document.getElementById('endHome');
     return { took, state: g.state, vigil: g.vigil, home: home.textContent, hidden: home.hidden };
-  })()`)) as {
-    took: { vigil: V; stored: boolean; reactions: string[] };
-    state: string;
-    vigil: V;
-    home: string;
-    hidden: boolean;
-  };
+  })()`);
   expect(r.took.stored).toBe(true);
   expect(r.took.vigil.reactions).toEqual(['steam']);
   expect(r.took.vigil.recipes.potions).toEqual(['healing']);
@@ -11465,12 +11488,19 @@ test('the keeping (M7 step 4): one save takes over the five keys kept before it;
   expect(r.home).toContain('Struck down by');
   await page.screenshot({ path: 'test-results/keeping-end.png' });
   // out to a file and back; what is not a save is refused
-  const io = (await page.evaluate(`(() => {
+  const io = await page.evaluate<{
+    wiped: number;
+    refused: number;
+    taken: number;
+    same: boolean;
+    out: string;
+    in: string;
+  }>(`(() => {
     const g = window.__game, text = g.exportSave(), before = g.vigil;
     g.wipeSave(); const wiped = g.vigil.runs;
     const refused = g.importSave('{"hello":1}'), taken = g.importSave(text);
     return { wiped, refused: refused.length, taken: taken.length, same: JSON.stringify(g.vigil) === JSON.stringify(before), out: document.getElementById('btnSaveOut').textContent, in: document.getElementById('btnSaveIn').textContent };
-  })()`)) as { wiped: number; refused: number; taken: number; same: boolean; out: string; in: string };
+  })()`);
   expect(io).toEqual({ wiped: 0, refused: 1, taken: 0, same: true, out: 'Export the Vigil', in: 'Import the Vigil' });
   // the dev menu gives Dust (from a run)
   await page.click('#btnAgain');
@@ -12374,20 +12404,7 @@ test("the shrine's bargain (M6 step 11): a stone at the circle's head; walking u
   page,
 }) => {
   const errors = await start(page, '?room=shrine_henge&spells=cinder_lance,rime_shards');
-  const r = (await page.evaluate(`(() => {
-    const g = window.__game, P = g.player; P.invuln = 999;
-    g.warp(1); g.sim(.5); const room = g.current, b0 = g.bargain;
-    const at = [b0.x - room.cx, b0.z - room.cz];
-    P.x = b0.x; P.z = b0.z + 3; g.sim(.1); P.z = b0.z + 1.1; g.sim(.1); const seen = new Set();
-    for (let t = 0; t < 40; t++) { seen.add(document.getElementById('toast').textContent); g.sim(.25); } // (the lines, one after another)
-    const said = [...seen].join(' | ');
-    g.mana(100); const deal = (() => { g.cast(0); g.sim(.05); return { mana: g.player.mana, offer: g.offer, b: g.bargain }; })();
-    g.refuseBargain(); g.sim(.05); const backed = { b: g.bargain, open: g.offer.open, maxHp: P.maxHp };
-    g.cast(1); g.sim(.05); const school2 = g.bargain.school, hp = P.maxHp, card = g.offer.cards[0].id;
-    g.takeBargain(0); g.sim(.1); const kept = { b: g.bargain, open: g.offer.open, maxHp: P.maxHp, rank: g.boons.taken[card] };
-    const before = P.mana; g.player.spellCd = [0, 0]; g.cast(0); g.sim(.05); const plain = { paid: before - P.mana, state: g.bargain.state };
-    return { at, said, deal, backed, school2, hp, kept, plain };
-  })()`)) as {
+  const r = await page.evaluate<{
     at: number[];
     said: string;
     deal: {
@@ -12400,7 +12417,20 @@ test("the shrine's bargain (M6 step 11): a stone at the circle's head; walking u
     hp: number;
     kept: { b: { state: string }; open: boolean; maxHp: number; rank: number };
     plain: { paid: number; state: string };
-  };
+  }>(`(() => {
+    const g = window.__game, P = g.player; P.invuln = 999;
+    g.warp(1); g.sim(.5); const room = g.current, b0 = g.bargain;
+    const at = [b0.x - room.cx, b0.z - room.cz];
+    P.x = b0.x; P.z = b0.z + 3; g.sim(.1); P.z = b0.z + 1.1; g.sim(.1); const seen = new Set();
+    for (let t = 0; t < 40; t++) { seen.add(document.getElementById('toast').textContent); g.sim(.25); } // (the lines, one after another)
+    const said = [...seen].join(' | ');
+    g.mana(100); const deal = (() => { g.cast(0); g.sim(.05); return { mana: g.player.mana, offer: g.offer, b: g.bargain }; })();
+    g.refuseBargain(); g.sim(.05); const backed = { b: g.bargain, open: g.offer.open, maxHp: P.maxHp };
+    g.cast(1); g.sim(.05); const school2 = g.bargain.school, hp = P.maxHp, card = g.offer.cards[0].id;
+    g.takeBargain(0); g.sim(.1); const kept = { b: g.bargain, open: g.offer.open, maxHp: P.maxHp, rank: g.boons.taken[card] };
+    const before = P.mana; g.player.spellCd = [0, 0]; g.cast(0); g.sim(.05); const plain = { paid: before - P.mana, state: g.bargain.state };
+    return { at, said, deal, backed, school2, hp, kept, plain };
+  })()`);
   expect(r.at[0]).toBeCloseTo(0, 5);
   expect(r.at[1]).toBeLessThan(-2); // (at the circle's head)
   expect(r.said).toContain('cast a spell into it');
@@ -12422,12 +12452,12 @@ test("the shrine's bargain (M6 step 11): a stone at the circle's head; walking u
   expect(errors).toEqual([]);
   // the last heart: refused
   const errors2 = await start(page, '?room=shrine_henge&spells=cinder_lance');
-  const last = (await page.evaluate(`(() => {
+  const last = await page.evaluate<{ maxHp: number; state: string; open: boolean; mana: number }>(`(() => {
     const g = window.__game, P = g.player; P.invuln = 999; g.warp(1); g.sim(.5);
     g.heartsPaid = P.maxHp / 2 - 1; const b = g.bargain; P.x = b.x; P.z = b.z + 1.1; g.sim(.1);
     g.mana(100); g.cast(0); g.sim(.05);
     return { maxHp: P.maxHp, state: g.bargain.state, open: g.offer.open, mana: P.mana };
-  })()`)) as { maxHp: number; state: string; open: boolean; mana: number };
+  })()`);
   expect(last).toEqual({ maxHp: 2, state: 'idle', open: false, mana: 100 }); // (refused: the cast spent on asking, nothing dealt)
   expect(errors2).toEqual([]);
 });
@@ -12436,15 +12466,15 @@ test("the run around it (M6 step 12): a deeper start begins at its floor's expec
   page,
 }) => {
   const errors = await start(page, '?floor=4&level=auto');
-  const r = (await page.evaluate(`(() => {
-    const g = window.__game; const start = { level: g.level, floor: g.floor };
-    const arc0 = g.arc; g.setLevel(12); g.sim(.1); const arc12 = g.arc;
-    return { start, arc0, arc12 };
-  })()`)) as {
+  const r = await page.evaluate<{
     start: { level: number; floor: number };
     arc0: { stage: number; held: number };
     arc12: { stage: number; held: number; reached: number };
-  };
+  }>(`(() => {
+    const g = window.__game; const start = { level: g.level, floor: g.floor };
+    const arc0 = g.arc; g.setLevel(12); g.sim(.1); const arc12 = g.arc;
+    return { start, arc0, arc12 };
+  })()`);
   expect(r.start).toMatchObject({ level: 9, floor: 3 });
   expect(r.arc0).toMatchObject({ stage: 0, held: 2 }); // (nothing held, level 9: two)
   expect(r.arc12).toMatchObject({ stage: 1, held: 3, reached: 1 }); // (level 12, nothing held: the first stage)
@@ -12455,7 +12485,14 @@ test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks 
   page,
 }) => {
   const errors = await start(page, '?seed=BOON5A&boons=deepWinter');
-  const got = (await page.evaluate(`(() => {
+  const got = await page.evaluate<{
+    one: number;
+    two: number;
+    said: string[];
+    told: boolean;
+    rank2: number;
+    acted: number;
+  }>(`(() => {
     const g = window.__game; g.player.invuln = 999; g.sim(.3);
     g.spawn('dummy'); g.sim(1.2);
     const d = g.enemies.find(e => e.type === 'dummy');
@@ -12464,7 +12501,7 @@ test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks 
     const said = g.boons.said.slice(), told = g.run.hinted.has('boon:deepWinter');
     g.sim(4); g.giveBoon('deepWinter'); g.inflict({ chill: 1 }); g.inflict({ chill: 1 });
     return { one, two, said, told, rank2: d.status.frozen, acted: g.boons.acted.deepWinter };
-  })()`)) as { one: number; two: number; said: string[]; told: boolean; rank2: number; acted: number };
+  })()`);
   expect(got.one).toBe(0);
   expect(got.two).toBeCloseTo(2, 1);
   expect(got.said).toContain('deepWinter');
@@ -12472,7 +12509,17 @@ test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks 
   expect(got.rank2).toBeCloseTo(3, 1);
   expect(got.acted).toBe(2);
 
-  const more = (await page.evaluate(`(() => {
+  const more = await page.evaluate<{
+    coals: number[];
+    coalsSaid: boolean;
+    dark: number[];
+    darkSaid: boolean;
+    grow: number;
+    root: { rootedAt: number; roots: number; said: number };
+    fork: number[];
+    forkSaid: boolean;
+    leap: (string | undefined)[];
+  }>(`(() => {
     const g = window.__game, fresh = (boons, n = 1) => { g.startGame({ seed: 'BOON5B', boons }); g.player.invuln = 999; g.sim(.3); for (let k = 0; k < n; k++) g.spawn('dummy', g.player.x + (k % 4 - 1.5) * (n > 4 ? 1 : 1.2), g.player.z - 2 - Math.floor(k / 4)); g.sim(1.2); return g.enemies.filter(e => e.type === 'dummy'); };
     const out = {};
     let [d] = fresh({ bankedCoals: 1 }); g.inflict({ burn: 4 }); out.coals = [d.status.burn]; out.coalsSaid = g.boons.said.includes('bankedCoals');
@@ -12488,17 +12535,7 @@ test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks 
     const three = fresh({ forkingArc: 1 }, 3); g.inflict({ shock: 1 }); three[0].status.shock = 0; three[2].status.shock = 0; for (const e of three) e.lastHit = undefined;
     g.hit(g.enemies.indexOf(three[1]), 4, undefined, 'cantrip'); out.leap = [three[0].lastHit, three[2].lastHit];
     return out;
-  })()`)) as {
-    coals: number[];
-    coalsSaid: boolean;
-    dark: number[];
-    darkSaid: boolean;
-    grow: number;
-    root: { rootedAt: number; roots: number; said: number };
-    fork: number[];
-    forkSaid: boolean;
-    leap: (string | undefined)[];
-  };
+  })()`);
   expect(more.coals[0]).toBeCloseTo(6, 1);
   expect(more.coals[1]).toBeCloseTo(8, 1);
   expect(more.coalsSaid).toBe(true);
@@ -12521,7 +12558,17 @@ test("the school boons that mend and lay bare (M6 step 5): Votive Heart's contai
   page,
 }) => {
   const errors = await start(page, '?seed=BOON5C');
-  const got = (await page.evaluate(`(() => {
+  const got = await page.evaluate<{
+    hearts: number[];
+    votive: number[];
+    recast: boolean;
+    votiveSaid: boolean;
+    spent: { hp: number; told: boolean };
+    thirst: number[];
+    thirstSaid: boolean;
+    bare: number[];
+    bareSaid: boolean;
+  }>(`(() => {
     const g = window.__game, out = {};
     const fresh = (boons, spells) => { g.startGame({ seed: 'BOON5C', boons, spells }); g.player.invuln = 999; g.sim(.3); g.spawn('dummy'); g.sim(1.2); return g.enemies.find(e => e.type === 'dummy'); };
     const hitN = (d, n) => { for (let k = 0; k < n; k++) g.hit(g.enemies.indexOf(d), 1, undefined, 'cantrip'); };
@@ -12540,17 +12587,7 @@ test("the school boons that mend and lay bare (M6 step 5): Votive Heart's contai
     g.inflict({ sanct: 4 }); const mid = r.hp; g.hit(i, 10, undefined, 'cantrip'); out.bare = [guarded, mid - r.hp, r.status.sanct]; out.bareSaid = g.boons.said.includes('laidBare');
     g.giveBoon('laidBare'); r.status.sanct = 0; g.inflict({ sanct: 4 }); out.bare.push(r.status.sanct);
     return out;
-  })()`)) as {
-    hearts: number[];
-    votive: number[];
-    recast: boolean;
-    votiveSaid: boolean;
-    spent: { hp: number; told: boolean };
-    thirst: number[];
-    thirstSaid: boolean;
-    bare: number[];
-    bareSaid: boolean;
-  };
+  })()`);
   expect(got.hearts).toEqual([8, 10]); // (three hearts and one, then two)
   expect(got.votive).toEqual([1, 1]);
   expect(got.recast).toBe(true);
@@ -12570,7 +12607,21 @@ test('the school boons that leave things behind (M6 step 5): Flamekeeper draws m
   page,
 }) => {
   const errors = await start(page, '?seed=BOON5D');
-  const got = (await page.evaluate(
+  const got = await page.evaluate<{
+    flames: number[][];
+    flameSaid: boolean;
+    snap1: { b: number; said: boolean };
+    snap2: { froze: number[]; acted: number };
+    sparks: number[];
+    sparkSaid: boolean;
+    mageHurt: number;
+    stung: number;
+    seed: { near: number; mage: number; middle: number }[];
+    seedSaid: boolean;
+    seedReagent: number;
+    seedLeft: number;
+    burst: (number | boolean)[];
+  }>(
     `(() => {
     const g = window.__game, out = {};
     const fresh = (boons, spells) => { g.startGame({ seed: 'BOON5D', boons, spells }); g.player.invuln = 999; g.sim(.3); };
@@ -12598,21 +12649,7 @@ test('the school boons that leave things behind (M6 step 5): Flamekeeper draws m
     const plant = g.props.find(p => p.kind === 'blossom'); out.burst = [g.props.filter(p => p.kind === 'blossom').length]; if (plant) { dm.x = plant.x + .7; dm.z = plant.z; } g.sim(1.5); out.burst.push(g.props.filter(p => p.kind === 'blossom').length, dm.status.grow > 0);
     return out;
   })()`.replace('MAGIC_FREEZE', '2'),
-  )) as {
-    flames: number[][];
-    flameSaid: boolean;
-    snap1: { b: number; said: boolean };
-    snap2: { froze: number[]; acted: number };
-    sparks: number[];
-    sparkSaid: boolean;
-    mageHurt: number;
-    stung: number;
-    seed: { near: number; mage: number; middle: number }[];
-    seedSaid: boolean;
-    seedReagent: number;
-    seedLeft: number;
-    burst: (number | boolean)[];
-  };
+  );
   const [base, one, many] = got.flames;
   expect(base[0]).toBe(1);
   expect(one[0]).toBe(1);

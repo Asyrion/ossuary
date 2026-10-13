@@ -51,11 +51,12 @@ function firstNumber(v: Json, path: (string | number)[] = []): (string | number)
   return null;
 }
 function bump(v: Json, path: (string | number)[]): Json {
-  const out = JSON.parse(JSON.stringify(v));
+  const out = JSON.parse(JSON.stringify(v)) as Json;
   if (!path.length) return (v as number) + 1;
-  let o = out;
-  for (const p of path.slice(0, -1)) o = o[p];
-  o[path[path.length - 1]] += 1;
+  let o = out as Record<string | number, Json>;
+  for (const p of path.slice(0, -1)) o = o[p] as Record<string | number, Json>;
+  const last = path[path.length - 1];
+  o[last] = (o[last] as number) + 1;
   return out;
 }
 
@@ -92,7 +93,7 @@ for (const [name, k] of Object.entries(KINDS)) {
   const e = c.entries(name).entries[0],
     file = k.sources[e.src].file,
     before = readFileSync(join(tmp, file), 'utf8');
-  const data = JSON.parse(JSON.stringify(e.data));
+  const data = JSON.parse(JSON.stringify(e.data)) as Record<string, Json>;
   const id = 'selftestCopy';
   if (k.idKey) data[k.idKey] = id;
   const r = c.create(name, e.src, data, k.shape === 'map' ? id : undefined, e.key);
@@ -137,24 +138,30 @@ const call = (port: number, method: string, path: string, headers: Record<string
     r.on('error', () => ok(0));
     r.end(body);
   });
-server.listen(0, '127.0.0.1', async () => {
-  const port = (server.address() as { port: number }).port,
-    h = { Host: `127.0.0.1:${port}` };
-  check((await call(port, 'GET', '/', h)) === 200, 'the page is served');
-  check((await call(port, 'GET', '/api/state', { Host: 'evil.example' })) === 403, 'a foreign Host is refused');
-  check(
-    (await call(port, 'POST', '/api/delete', { ...h, 'Content-Type': 'application/json' }, '{}')) === 403,
-    'a write without X-Dev-Board is refused',
-  );
-  check(
-    (await call(port, 'POST', '/api/delete', { ...h, 'X-Dev-Board': '1', 'Content-Type': 'text/plain' }, '{}')) === 403,
-    'a write that is not JSON is refused',
-  );
-  check((await call(port, 'GET', '/../package.json', h)) === 404, 'no files outside the page');
-  server.close();
-  if (fails.length) {
-    console.log('DEV BOARD SELFTEST FAIL\n' + fails.slice(0, 40).join('\n'));
-    process.exitCode = 1;
-  } else
-    console.log(`DEV BOARD SELFTEST OK (${edits} entries edited and restored, ${Object.keys(KINDS).length} kinds)`);
-});
+server.listen(
+  0,
+  '127.0.0.1',
+  () =>
+    void (async () => {
+      const port = (server.address() as { port: number }).port,
+        h = { Host: `127.0.0.1:${port}` };
+      check((await call(port, 'GET', '/', h)) === 200, 'the page is served');
+      check((await call(port, 'GET', '/api/state', { Host: 'evil.example' })) === 403, 'a foreign Host is refused');
+      check(
+        (await call(port, 'POST', '/api/delete', { ...h, 'Content-Type': 'application/json' }, '{}')) === 403,
+        'a write without X-Dev-Board is refused',
+      );
+      check(
+        (await call(port, 'POST', '/api/delete', { ...h, 'X-Dev-Board': '1', 'Content-Type': 'text/plain' }, '{}')) ===
+          403,
+        'a write that is not JSON is refused',
+      );
+      check((await call(port, 'GET', '/../package.json', h)) === 404, 'no files outside the page');
+      server.close();
+      if (fails.length) {
+        console.log('DEV BOARD SELFTEST FAIL\n' + fails.slice(0, 40).join('\n'));
+        process.exitCode = 1;
+      } else
+        console.log(`DEV BOARD SELFTEST OK (${edits} entries edited and restored, ${Object.keys(KINDS).length} kinds)`);
+    })(),
+);

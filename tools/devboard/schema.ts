@@ -52,7 +52,10 @@ export function unions(root: string): Record<string, string[]> {
 }
 
 export function hints(root: string): Record<string, Record<string, Record<string, unknown>>> {
-  const h = JSON.parse(readFileSync(join(root, 'tools/devboard/hints.json'), 'utf8'));
+  const h = JSON.parse(readFileSync(join(root, 'tools/devboard/hints.json'), 'utf8')) as Record<
+    string,
+    Record<string, Record<string, unknown>>
+  >;
   delete h._comment;
   return h;
 }

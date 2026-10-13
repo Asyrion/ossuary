@@ -58,7 +58,7 @@ describe('alchemy', () => {
         sources: { schools: {}, foes: { f: 'nothing' }, objects: {}, boss: 'r' },
         bottles: { shapes: [], liquids: [] },
       }),
-    );
+    ) as Parameters<typeof validateAlchemy>[0];
     const errs = validateAlchemy(bad).join('\n');
     expect(errs).toMatch(/colour red/);
     expect(errs).toMatch(/weight/);

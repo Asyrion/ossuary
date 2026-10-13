@@ -264,9 +264,9 @@ describe('transformations', () => {
       expect(ARTIFACT_DEFS.filter((a) => a.family === t).length, t).toBeGreaterThanOrEqual(TRANSFORM_NEEDS);
       expect(TRANSFORMS[t].gift.length, t).toBeGreaterThan(0);
       expect(STR.transforms[t], t).toMatchObject({
-        name: expect.any(String),
-        gift: expect.any(String),
-        lore: expect.any(String),
+        name: expect.any(String) as string,
+        gift: expect.any(String) as string,
+        lore: expect.any(String) as string,
       });
     }
     expect(validateFamilies([{ id: 'x', family: 'alchemist' }]).some((e) => e.includes('alchemist'))).toBe(true);

@@ -10,6 +10,8 @@ import {
   questOf,
   startOf,
   validateTownsfolk,
+  type Blessing,
+  type Townsfolk,
 } from '../../src/vigil/giftData';
 import { NO_BONUS } from '../../src/progression/attributes';
 import { DIALOGUE, giftLinesMissing } from '../../src/vigil/dialogueData';
@@ -44,7 +46,7 @@ describe('gifts, bonds and powers (M7 step 8)', () => {
     for (const q of TOWNSFOLK.quests) expect(STR.gifts.quests[q.id], q.id).toBeTruthy();
   });
   it('finds what is wrong: an unknown spell, a power too cheap, a discipline on a spell that is no focus', () => {
-    const bad = JSON.parse(JSON.stringify(TOWNSFOLK));
+    const bad = JSON.parse(JSON.stringify(TOWNSFOLK)) as Townsfolk;
     bad.folk.scribe.gift.pool = ['nothing'];
     bad.powers[0].dust = 20;
     bad.disciplines[0].focus = 'bone_lens';
@@ -113,10 +115,10 @@ describe("the candle chapel's blessings (M7 step 9)", () => {
     expect(blessBonus(blessingOf('bellringer'), NO_BONUS)).toEqual(NO_BONUS); // (its blessing is what the descent begins with)
   });
   it('finds a blessing missing, or no small step', () => {
-    const bad = JSON.parse(JSON.stringify(TOWNSFOLK));
-    delete bad.folk.pilgrim.blessing;
+    const bad = JSON.parse(JSON.stringify(TOWNSFOLK)) as Townsfolk;
+    delete (bad.folk.pilgrim as { blessing?: Blessing }).blessing; // (the shape allows none, so the test drops it past the type)
     bad.folk.stormcaller.blessing = { bonus: { spellDamageMul: 2 } };
-    bad.folk.scribe.blessing = { bonus: { luck: 1 } };
+    bad.folk.scribe.blessing = { bonus: { luck: 1 } } as Blessing; // (a key no blessing has)
     const errs = validateTownsfolk(bad, known).join('\n');
     expect(errs).toMatch(/pilgrim: no blessing/);
     expect(errs).toMatch(/spellDamageMul 2 is no small step/);

@@ -182,7 +182,7 @@ function walk(rig: Rig, t: number) {
     const p = (((f - off) % 1) + 1) % 1;
     let z,
       y,
-      pitch = 0,
+      pitch,
       toes = 0;
     if (p < W.stance) {
       const u = p / W.stance;
