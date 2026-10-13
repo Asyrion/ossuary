@@ -140,7 +140,8 @@ binaries go elsewhere.
 Small steps, each one green in CI, none changing how the game plays.
 
 1. **Lint and format:** ESLint (typescript-eslint) and Prettier at 120 columns, run once over the code (Haiku: a
-   mechanical pass), then in CI.
+   mechanical pass), then in CI. (*Built 2026-10-13*: ESLint in its own package, `tools/lint/`, since typescript-eslint
+   needs TypeScript 6; the type-checked rules; the `lint` CI job.)
 2. **Old paths out:** the old room kit (`?kit=old`, 21 files), the old foe looks (after the owner's last approvals, or
    their new looks taken as they are), the pixel-row modes beside texel and fine, the extra creature looks, the
    comparison GLBs, the `rotling`, `prototype/` and `npm run compare`. (Kaelith's look was chosen on 2026-10-06: the Winged Watcher.)
