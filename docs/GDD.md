@@ -1560,7 +1560,7 @@ floors and walls.
   rows of the earlier grid. The owner compared 1080 lines, fine and texel and chose the texel as the default.
 - **The mage in pixel art.** The Tripo model stays, its texture (a thousand small islands of fine strokes, which broke
   into speckle and mush some 45 pixels tall) baked into its vertices and cut down to 20 colours, its light in four
-  flat bands, as pixel art keeps them. The dev menu's Look tab shows it as made, to compare.
+  flat bands, as pixel art keeps them.
 - **Glows and shadows in steps.** Every glow (artifacts, torches, spells, motes) and the shadows under things fade in
   a few flat rings, as pixel art draws them.
 - **Icons in pixel art.** An artifact's icon is pixel art at about its size in the room (24 pixels), hard-edged and

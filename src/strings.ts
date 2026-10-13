@@ -1983,8 +1983,6 @@ export const STR = {
     outlinesOff: 'Outlines: off',
     bandsOn: 'Light in bands: on',
     bandsOff: 'Light in bands: off',
-    heroPixelOn: 'Mage: pixel art',
-    heroPixelOff: 'Mage: as made',
     /** The on-screen readout: frame rate, and what the last frame drew. */
     frameInfo: (fps: number, calls: number, tris: number) =>
       `${fps} fps · ${calls} draw calls · ${tris.toLocaleString('en')} triangles`,

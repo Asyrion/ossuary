@@ -7818,8 +7818,6 @@ test('the pixel look: at the texel from the start, the rows of earlier from the 
     pixelRows: number;
     setPixelLook(l: Partial<Look>): void;
     renderInfo(): { calls: number };
-    heroPixel: boolean;
-    setHeroPixel(on: boolean): void;
     hero: {
       model: { traverse(f: (o: { material?: { type: string }; userData?: { pixel?: unknown } }) => void): void };
     };
@@ -7831,26 +7829,20 @@ test('the pixel look: at the texel from the start, the rows of earlier from the 
     return page.evaluate(() => {
       const g = (window as unknown as { __game: GP }).__game;
       g.sim(0.1, true);
-      // (the model's own meshes, each baked with both looks; not what it wears or holds)
+      // (the model's own meshes, which the bake dressed; not what it wears or holds)
       const own = (f: (type: string) => void) =>
         g.hero.model.traverse((o) => {
           if (o.material && o.userData?.pixel) f(o.material.type);
         });
       const types = new Set<string>();
       own((t) => types.add(t));
-      const pixel = { on: g.heroPixel, types: [...types] };
-      g.setHeroPixel(false);
-      const made = new Set<string>();
-      own((t) => made.add(t));
-      g.setHeroPixel(true);
-      return { look: g.pixelLook, rows: g.pixelRows, pixel, made: [...made] };
+      return { look: g.pixelLook, rows: g.pixelRows, pixel: [...types] };
     });
   })();
   expect(texel.look).toEqual({ lines: 'texel', outline: true, bands: false });
   expect(texel.rows).toBeGreaterThan(400);
   expect(texel.rows).toBeLessThan(440);
-  expect(texel.pixel).toEqual({ on: true, types: ['MeshToonMaterial'] }); // (the mage's colours baked, a few of them, light in bands)
-  expect(texel.made).toEqual(['MeshStandardMaterial']); // (and as made, to compare)
+  expect(texel.pixel).toEqual(['MeshToonMaterial']); // (the mage's colours baked, a few of them, light in bands)
   expect(first).toEqual([]);
   const errors = await start(page, '?seed=K3F9QX&pixel=270');
   const r = await page.evaluate(() => {

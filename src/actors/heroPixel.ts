@@ -2,21 +2,10 @@
    owner's choice) but sheds what made it read as a smooth render at the game's pixel size: its painted texture (a
    thousand small islands of fine strokes, which drawn some 45 pixels tall broke into speckle and mush) is baked into
    its vertices and cut down to a small palette (`render/palette.ts`), and its light falls in a few flat bands, as the
-   foes' and the room kit's do. Each mesh keeps both materials (`userData.made`, `userData.pixel`); the dev menu's Look
-   tab switches between them (`setHeroPixel`, remembered in this browser). Tuning in CFG.heroPixel. */
+   foes' and the room kit's do. Tuning in CFG.heroPixel. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import { quantize } from '../render/palette';
-
-const KEY = 'ossuary.heroPixel';
-let on = true;
-try {
-  on = localStorage.getItem(KEY) !== 'off';
-} catch {
-  /* no storage: on */
-}
-/** Whether the mage wears the pixel-art look. */
-export const heroPixel = () => on;
 
 /** The few tones light falls in on the mage, darkest first. */
 let tones: THREE.DataTexture | null = null;
@@ -47,7 +36,7 @@ function texels(tex: THREE.Texture): ImageData | null {
 /** Bake the pixel-art look for every textured mesh under `root` (the prepared hero): each vertex takes the colour of the
     texture where it lies (a few texels' mean, so a painted stroke doesn't decide it), the colours of the whole model are
     cut down to CFG.heroPixel.colours, and a toon material lights them in bands, with the same faint self-light the
-    model had so it reads in the dark. The look worn is the one chosen. */
+    model had so it reads in the dark. */
 export function bakeHeroPixel(root: THREE.Object3D) {
   const P = CFG.heroPixel;
   const meshes: { mesh: THREE.Mesh; mat: THREE.MeshStandardMaterial; rgb: Float32Array }[] = [];
@@ -118,22 +107,7 @@ export function bakeHeroPixel(root: THREE.Object3D) {
         `#include <emissivemap_fragment>\n\ttotalEmissiveRadiance += diffuseColor.rgb * ${glow};`,
       );
     };
-    mesh.userData.made = mat;
-    mesh.userData.pixel = pixel;
-    mesh.material = on ? pixel : mat;
+    mesh.userData.pixel = pixel; // (marks a mesh the bake dressed)
+    mesh.material = pixel;
   }
-}
-
-/** Wear the pixel-art look (or the model as made) on every baked mesh under `root`, and remember the choice. */
-export function setHeroPixel(root: THREE.Object3D | null, pixel: boolean) {
-  on = pixel;
-  try {
-    localStorage.setItem(KEY, pixel ? 'on' : 'off');
-  } catch {
-    /* not remembered */
-  }
-  root?.traverse((o) => {
-    const u = o.userData;
-    if (u.made && u.pixel) (o as THREE.Mesh).material = (pixel ? u.pixel : u.made) as THREE.Material;
-  });
 }
