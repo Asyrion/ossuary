@@ -11,10 +11,13 @@ import { G } from '../state';
 /** Whether floor `i` (the current one by default) is the Seal: a level laid by hand. */
 export const atSeal = (i = G.run.floor) => !!FLOORS[i]?.fixed;
 /** The floor's index that is the Seal (the last). */
-export const SEAL_FLOOR = FLOORS.findIndex(f => f.fixed);
+export const SEAL_FLOOR = FLOORS.findIndex((f) => f.fixed);
 
 /** The mage arrives at the Seal: Kaelith's voice from under the stone. */
-export function arriveAtSeal() { Sfx.sealVoice(); line(STR.seal.voice, 5); }
+export function arriveAtSeal() {
+  Sfx.sealVoice();
+  line(STR.seal.voice, 5);
+}
 
 /** A room of the Seal entered: the Last Hall says what presses at the seal the first time. */
 export function enterSealRoom(room: Room, firstVisit: boolean) {

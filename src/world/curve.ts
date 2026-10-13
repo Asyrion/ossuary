@@ -15,10 +15,10 @@ export const weaknessOf = (i = G.run.floor) => floorWeakness(floorOf(i).foes);
 /** The schools floor `i`'s pages lean to. */
 export const floorLean = (i = G.run.floor) => leanSchools(weaknessOf(i));
 /** The schools floor `i` walls off: most of its foes resist or drink them. */
-export const floorWalls = (i = G.run.floor) => SCHOOLS.filter(s => wallsOff(weaknessOf(i), s));
+export const floorWalls = (i = G.run.floor) => SCHOOLS.filter((s) => wallsOff(weaknessOf(i), s));
 /** The school all the mage's carried spells are of, if they are all of one. */
 function onlySchool(): School | undefined {
-  const s = [...new Set(player.spells.filter((id): id is string => !!id).map(id => spell(id).school))];
+  const s = [...new Set(player.spells.filter((id): id is string => !!id).map((id) => spell(id).school))];
   return s.length === 1 ? s[0] : undefined;
 }
 /** As the mage arrives on floor `i` (and from the dev menu): if the floor walls off the one school it carries, a line says

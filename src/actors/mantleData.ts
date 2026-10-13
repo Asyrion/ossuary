@@ -21,22 +21,29 @@ const STATUSES: readonly SpellStatus[] = ['burn', 'chill', 'shock', 'sanct', 'he
 /** The school a mantle is of (its light, its colour in the champion). */
 export const mantleSchool = (id: MantleId, T: MagicTuning = MAGIC) => T.mantles[id].school as School;
 /** Whether a status of `kind` landing takes mantle `id` off (it is of the school that strips it). */
-export const stripsMantle = (id: MantleId, kind: SpellStatus, T: MagicTuning = MAGIC) => schoolOf({ [kind]: 1 }) === T.mantles[id].stripBy;
+export const stripsMantle = (id: MantleId, kind: SpellStatus, T: MagicTuning = MAGIC) =>
+  schoolOf({ [kind]: 1 }) === T.mantles[id].stripBy;
 /** Whether mantle `id` keeps a status of `kind` off the champion. */
-export const mantleImmune = (id: MantleId, kind: SpellStatus, T: MagicTuning = MAGIC) => (T.mantles[id] as { immune?: string }).immune === kind;
+export const mantleImmune = (id: MantleId, kind: SpellStatus, T: MagicTuning = MAGIC) =>
+  (T.mantles[id] as { immune?: string }).immune === kind;
 
 /** A mantle drawn by `weights` (a floor's), `roll` from 0 to 1; none when the weights name none. */
 export function pickMantle(weights: Partial<Record<string, number>> | undefined, roll: number): MantleId | undefined {
-  const list = MANTLE_IDS.map(id => [id, Math.max(0, weights?.[id] ?? 0)] as const).filter(([, w]) => w > 0);
+  const list = MANTLE_IDS.map((id) => [id, Math.max(0, weights?.[id] ?? 0)] as const).filter(([, w]) => w > 0);
   const total = list.reduce((a, [, w]) => a + w, 0);
   if (!total) return undefined;
   let r = roll * total;
-  for (const [id, w] of list) { if ((r -= w) < 0) return id; }
+  for (const [id, w] of list) {
+    if ((r -= w) < 0) return id;
+  }
   return list[list.length - 1][0];
 }
 
 /** What is wrong with the mantles' tuning, and with the floors' weights for them (empty when all is well). */
-export function validateMantles(T: MagicTuning = MAGIC, floors: readonly { mantles?: Partial<Record<string, number>> }[] = []) {
+export function validateMantles(
+  T: MagicTuning = MAGIC,
+  floors: readonly { mantles?: Partial<Record<string, number>> }[] = [],
+) {
   const out: string[] = [];
   for (const id of MANTLE_IDS) {
     const m = T.mantles[id] as { school: string; stripBy: string; immune?: string };
@@ -44,8 +51,12 @@ export function validateMantles(T: MagicTuning = MAGIC, floors: readonly { mantl
     if (!SCHOOLS.includes(m.stripBy as School)) out.push(`${id}: stripBy ${m.stripBy}`);
     if (m.stripBy === m.school) out.push(`${id}: stripped by its own school`);
     if (m.immune !== undefined && !STATUSES.includes(m.immune as SpellStatus)) out.push(`${id}: immune ${m.immune}`);
-    if (m.immune !== undefined && schoolOf({ [m.immune]: 1 }) === m.stripBy) out.push(`${id}: immune to what strips it`);
+    if (m.immune !== undefined && schoolOf({ [m.immune]: 1 }) === m.stripBy)
+      out.push(`${id}: immune to what strips it`);
   }
-  floors.forEach((f, i) => { for (const [k, w] of Object.entries(f.mantles ?? {})) if (!(MANTLE_IDS as string[]).includes(k) || !((w ?? 0) >= 0)) out.push(`floor ${i + 1}: mantle ${k} ${w}`); });
+  floors.forEach((f, i) => {
+    for (const [k, w] of Object.entries(f.mantles ?? {}))
+      if (!(MANTLE_IDS as string[]).includes(k) || !((w ?? 0) >= 0)) out.push(`floor ${i + 1}: mantle ${k} ${w}`);
+  });
   return out;
 }

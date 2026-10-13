@@ -16,9 +16,13 @@ import { refreshStats } from './artifacts';
 
 /** Bring the run's transformations up to what is held (they only ever grow); returns those newly formed. */
 export function updateTransforms(): TransformId[] {
-  const before = G.run.transforms, now = formed([player.focus, ...player.items].map(id => artifact(id)), before);
+  const before = G.run.transforms,
+    now = formed(
+      [player.focus, ...player.items].map((id) => artifact(id)),
+      before,
+    );
   G.run.transforms = now;
-  return now.filter(t => !before.includes(t));
+  return now.filter((t) => !before.includes(t));
 }
 
 /** The formed transformations' gifts, put into freshly computed stats: their effects, and the Pilgrim's quicker step. */
@@ -29,12 +33,13 @@ export function giftsFor(stats: Stats) {
 
 /** A transformation formed: said in a banner and a lore card, heard, and seen in a burst of its light round the mage. */
 export function announce(t: TransformId) {
-  const T = STR.transforms[t], light = TRANSFORMS[t].light;
+  const T = STR.transforms[t],
+    light = TRANSFORMS[t].light;
   banner(T.name, T.gift, CFG.transform.banner);
   showLore({ name: T.name, kind: STR.lore.kinds.transform, effect: T.gift, lore: T.lore, icon: transformIcon(light) });
   Sfx.transform();
-  burst(player.x, 1, player.z, light, 26, 2.6, .05);
-  ringFx(player.x, .05, player.z, light, .3, 2.2, .5, true);
+  burst(player.x, 1, player.z, light, 26, 2.6, 0.05);
+  ringFx(player.x, 0.05, player.z, light, 0.3, 2.2, 0.5, true);
   if (t === 'pilgrim') pilgrimMap(); // (the floor's way, known at once)
 }
 
@@ -43,11 +48,15 @@ export function announce(t: TransformId) {
 export function formTransform(t: TransformId) {
   if (G.run.transforms.includes(t)) return false;
   G.run.transforms = [...G.run.transforms, t];
-  refreshStats(); announce(t);
+  refreshStats();
+  announce(t);
   return true;
 }
 /** The dev menu's: undo every transformation of the run (until three of a family are held again). */
-export function clearTransforms() { G.run.transforms = []; refreshStats(); }
+export function clearTransforms() {
+  G.run.transforms = [];
+  refreshStats();
+}
 
 /** A transformation's mark for its lore card: a ring of its light round a star. */
 const transformIcon = (light: number) => {

@@ -31,20 +31,44 @@ const RECIPES = {
   dragonling: { ...dragonling, height: 1.8, budget: 'boss' as const }, // (about a horse: the owner, 2026-10-03)
   chameleon: { ...chameleon, height: 1.4, budget: 'boss' as const }, // (a pony: the owner, 2026-10-05)
   ...TOWNSFOLK_RECIPES, // (2026-10-09: the townspeople, the Ferryman, Dr. Jelly and Kaelith, one Mixamo recipe)
-} as Record<string, {
-  LEGS: Record<string, import('./creatureRig').LegDef>; SKIN: SkinBone[] | null; jawOf?: (p: import('three').Vector3) => string | null; REMAP?: Record<string, string>;
-  CLIPS: Record<string, import('./creatureRig').ClipDef>; MOVING: readonly string[]; WALK_SPEED: number; face: number | 'mixamo'; height: number; fine?: boolean;
-  budget: 'boss' | 'enemy'; full?: boolean; rebind?: SkinBone[]; triangles?: number;
-}>;
+} as Record<
+  string,
+  {
+    LEGS: Record<string, import('./creatureRig').LegDef>;
+    SKIN: SkinBone[] | null;
+    jawOf?: (p: import('three').Vector3) => string | null;
+    REMAP?: Record<string, string>;
+    CLIPS: Record<string, import('./creatureRig').ClipDef>;
+    MOVING: readonly string[];
+    WALK_SPEED: number;
+    face: number | 'mixamo';
+    height: number;
+    fine?: boolean;
+    budget: 'boss' | 'enemy';
+    full?: boolean;
+    rebind?: SkinBone[];
+    triangles?: number;
+  }
+>;
 
 /** Whether a skin's weights are spent: most of its vertices on one bone (an export that lost them binds all to the hips). */
 function weightsLost(doc: import('@gltf-transform/core').Document) {
-  const most = new Map<number, number>(); let all = 0;
-  for (const m of doc.getRoot().listMeshes()) for (const p of m.listPrimitives()) {
-    const J = p.getAttribute('JOINTS_0'), W = p.getAttribute('WEIGHTS_0'); if (!J || !W) continue;
-    for (let i = 0, j = [0, 0, 0, 0], w = [0, 0, 0, 0]; i < J.getCount(); i++) { J.getElement(i, j); W.getElement(i, w); const k = w.indexOf(Math.max(...w)); most.set(j[k], (most.get(j[k]) ?? 0) + 1); all++; }
-  }
-  return all > 0 && Math.max(...most.values()) / all > .8;
+  const most = new Map<number, number>();
+  let all = 0;
+  for (const m of doc.getRoot().listMeshes())
+    for (const p of m.listPrimitives()) {
+      const J = p.getAttribute('JOINTS_0'),
+        W = p.getAttribute('WEIGHTS_0');
+      if (!J || !W) continue;
+      for (let i = 0, j = [0, 0, 0, 0], w = [0, 0, 0, 0]; i < J.getCount(); i++) {
+        J.getElement(i, j);
+        W.getElement(i, w);
+        const k = w.indexOf(Math.max(...w));
+        most.set(j[k], (most.get(j[k]) ?? 0) + 1);
+        all++;
+      }
+    }
+  return all > 0 && Math.max(...most.values()) / all > 0.8;
 }
 
 /** `--bones <in.glb>`: what a new creature's recipe needs to know, read off the model before one is written. Each bone in
@@ -52,41 +76,78 @@ function weightsLost(doc: import('@gltf-transform/core').Document) {
     bound to it most (a node of the tree that no skin uses is marked as not a bone); the model's triangles, size and textures. */
 async function bones(input: string, face: number) {
   const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
-  const doc = await io.read(input); restFromBind(doc); faceForward(doc, face);
-  const rig = new Rig(doc), most = new Map<string, number>();
-  const joint = new Set(doc.getRoot().listSkins().flatMap(s => s.listJoints().map(j => j.getName())));
+  const doc = await io.read(input);
+  restFromBind(doc);
+  faceForward(doc, face);
+  const rig = new Rig(doc),
+    most = new Map<string, number>();
+  const joint = new Set(
+    doc
+      .getRoot()
+      .listSkins()
+      .flatMap((s) => s.listJoints().map((j) => j.getName())),
+  );
   let tris = 0;
   for (const skin of doc.getRoot().listSkins()) {
-    const joints = skin.listJoints().map(j => j.getName());
-    for (const node of doc.getRoot().listNodes()) if (node.getSkin() === skin) for (const p of node.getMesh()!.listPrimitives()) {
-      const J = p.getAttribute('JOINTS_0'), W = p.getAttribute('WEIGHTS_0'); if (!J || !W) continue;
-      for (let i = 0; i < J.getCount(); i++) {
-        const j = J.getElement(i, [0, 0, 0, 0]), w = W.getElement(i, [0, 0, 0, 0]), k = w.indexOf(Math.max(...w));
-        most.set(joints[j[k]], (most.get(joints[j[k]]) ?? 0) + 1);
-      }
-    }
+    const joints = skin.listJoints().map((j) => j.getName());
+    for (const node of doc.getRoot().listNodes())
+      if (node.getSkin() === skin)
+        for (const p of node.getMesh()!.listPrimitives()) {
+          const J = p.getAttribute('JOINTS_0'),
+            W = p.getAttribute('WEIGHTS_0');
+          if (!J || !W) continue;
+          for (let i = 0; i < J.getCount(); i++) {
+            const j = J.getElement(i, [0, 0, 0, 0]),
+              w = W.getElement(i, [0, 0, 0, 0]),
+              k = w.indexOf(Math.max(...w));
+            most.set(joints[j[k]], (most.get(joints[j[k]]) ?? 0) + 1);
+          }
+        }
   }
-  for (const m of doc.getRoot().listMeshes()) for (const p of m.listPrimitives()) tris += (p.getIndices()?.getCount() ?? p.getAttribute('POSITION')!.getCount()) / 3;
+  for (const m of doc.getRoot().listMeshes())
+    for (const p of m.listPrimitives())
+      tris += (p.getIndices()?.getCount() ?? p.getAttribute('POSITION')!.getCount()) / 3;
   const f = (n: number) => n.toFixed(3).padStart(7);
   const walk = (o: { name: string; children: { name: string }[] }, depth: number) => {
     const at = rig.at(o.name);
-    console.log(`${'  '.repeat(depth)}${o.name.padEnd(24 - Math.min(20, depth * 2))} ${f(at.x)} ${f(at.y)} ${f(at.z)}   ${joint.has(o.name) ? `${most.get(o.name) ?? 0} vertices` : '(not a bone)'}`);
+    console.log(
+      `${'  '.repeat(depth)}${o.name.padEnd(24 - Math.min(20, depth * 2))} ${f(at.x)} ${f(at.y)} ${f(at.z)}   ${joint.has(o.name) ? `${most.get(o.name) ?? 0} vertices` : '(not a bone)'}`,
+    );
     for (const c of o.children) walk(c as typeof o, depth + 1);
   };
-  console.log(`${input}: ${tris} triangles\nbone                          x       y       z   (where its joint stands; vertices bound to it most)`);
+  console.log(
+    `${input}: ${tris} triangles\nbone                          x       y       z   (where its joint stands; vertices bound to it most)`,
+  );
   for (const c of rig.root.children) walk(c, 0);
-  for (const t of doc.getRoot().listTextures()) console.log(`texture ${t.getName() || '(unnamed)'}: ${t.getSize()?.join(' x ')} ${t.getMimeType()}, ${(t.getImage()!.byteLength / 1024).toFixed(0)} KB`);
-  for (const m of doc.getRoot().listMaterials()) { const tex = ['base colour', 'normal'].filter((_, i) => i ? m.getNormalTexture() : m.getBaseColorTexture()); console.log(`material ${m.getName()}: ${m.getDoubleSided() ? 'two-sided' : 'one-sided'}, ${tex.length ? tex.join(' and ') + ' texture' : 'no textures'}`); }
+  for (const t of doc.getRoot().listTextures())
+    console.log(
+      `texture ${t.getName() || '(unnamed)'}: ${t.getSize()?.join(' x ')} ${t.getMimeType()}, ${(t.getImage()!.byteLength / 1024).toFixed(0)} KB`,
+    );
+  for (const m of doc.getRoot().listMaterials()) {
+    const tex = ['base colour', 'normal'].filter((_, i) => (i ? m.getNormalTexture() : m.getBaseColorTexture()));
+    console.log(
+      `material ${m.getName()}: ${m.getDoubleSided() ? 'two-sided' : 'one-sided'}, ${tex.length ? tex.join(' and ') + ' texture' : 'no textures'}`,
+    );
+  }
 }
 
 async function main() {
-  const face = process.argv.find(a => a.startsWith('--face='))?.slice(7);
-  const args = process.argv.slice(2).filter(a => !a.startsWith('-') || /^-\d/.test(a));
-  if (process.argv.includes('--bones')) { if (!args[0]) { console.error('usage: npm run animate-creature -- --bones [--face=<degrees>] <in.glb>'); process.exit(1); } return bones(args[0], +(face ?? 0)); }
+  const face = process.argv.find((a) => a.startsWith('--face='))?.slice(7);
+  const args = process.argv.slice(2).filter((a) => !a.startsWith('-') || /^-\d/.test(a));
+  if (process.argv.includes('--bones')) {
+    if (!args[0]) {
+      console.error('usage: npm run animate-creature -- --bones [--face=<degrees>] <in.glb>');
+      process.exit(1);
+    }
+    return bones(args[0], +(face ?? 0));
+  }
   const [id, input] = args;
   const R = RECIPES[id];
-  if (!R || !input) { console.error(`usage: npm run animate-creature -- <${Object.keys(RECIPES).join('|')}> <in.glb>`); process.exit(1); }
-  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'sharp': sharp });
+  if (!R || !input) {
+    console.error(`usage: npm run animate-creature -- <${Object.keys(RECIPES).join('|')}> <in.glb>`);
+    process.exit(1);
+  }
+  const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ sharp: sharp });
   const doc = await io.read(input);
   for (const e of doc.getRoot().listExtensionsUsed()) if (e.extensionName === 'KHR_materials_volume') e.dispose(); // (a converter's glass, which the game doesn't draw)
   const rebuilt = restFromBind(doc); // (a rest pose lost in an FBX converter, rebuilt from the bind)
@@ -94,10 +155,33 @@ async function main() {
   const turned = R.face === 'mixamo' ? mixamoFacing(new Rig(doc)) : R.face;
   faceForward(doc, turned); // (turned to face +z, if Tripo set it facing another way)
   // within its budget: the mesh simplified (before its skin is bound again)
-  const B = { ...BUDGETS[R.budget], ...(R.triangles && { triangles: R.triangles }) }, tris = () => doc.getRoot().listMeshes().reduce((n, m) => n + m.listPrimitives().reduce((k, p) => k + (p.getIndices()?.getCount() ?? p.getAttribute('POSITION')!.getCount()) / 3, 0), 0);
+  const B = { ...BUDGETS[R.budget], ...(R.triangles && { triangles: R.triangles }) },
+    tris = () =>
+      doc
+        .getRoot()
+        .listMeshes()
+        .reduce(
+          (n, m) =>
+            n +
+            m
+              .listPrimitives()
+              .reduce((k, p) => k + (p.getIndices()?.getCount() ?? p.getAttribute('POSITION')!.getCount()) / 3, 0),
+          0,
+        );
   const before = tris();
   // (again, a little tighter, while the simplifier stops short of the budget: it stops at its error as well as its ratio)
-  for (let k = 0; k < 8 && tris() > B.triangles; k++) { await MeshoptSimplifier.ready; await doc.transform(weld(), simplify({ simplifier: MeshoptSimplifier, ratio: B.triangles / tris() * .97, error: .02 * 2 ** k, lockBorder: false })); }
+  for (let k = 0; k < 8 && tris() > B.triangles; k++) {
+    await MeshoptSimplifier.ready;
+    await doc.transform(
+      weld(),
+      simplify({
+        simplifier: MeshoptSimplifier,
+        ratio: (B.triangles / tris()) * 0.97,
+        error: 0.02 * 2 ** k,
+        lockBorder: false,
+      }),
+    );
+  }
   // its faces turned outward (Tripo left patches inside out, lit inward, only drawn because its material is two-sided)
   const oriented = orientOutward(doc);
   const rig = new Rig(doc);
@@ -105,28 +189,76 @@ async function main() {
   const bound = reskin(doc, rig, skin, R.jawOf, R.REMAP);
   bake(doc, rig, R.CLIPS, R.MOVING);
   const padded = [];
-  for (const m of doc.getRoot().listMaterials()) { const t = m.getBaseColorTexture(); if (t) padded.push(await padIslands(doc, t)); }
-  if (tris() > B.triangles) throw new Error(`${id}: ${tris()} triangles, over the ${R.budget} budget of ${B.triangles} (nothing written)`);
-  const out = resolve(import.meta.dirname, `../public/assets/creatures/${id}.glb`), full = out.replace(/\.glb$/, '.full.glb');
+  for (const m of doc.getRoot().listMaterials()) {
+    const t = m.getBaseColorTexture();
+    if (t) padded.push(await padIslands(doc, t));
+  }
+  if (tris() > B.triangles)
+    throw new Error(`${id}: ${tris()} triangles, over the ${R.budget} budget of ${B.triangles} (nothing written)`);
+  const out = resolve(import.meta.dirname, `../public/assets/creatures/${id}.glb`),
+    full = out.replace(/\.glb$/, '.full.glb');
   mkdirSync(dirname(out), { recursive: true });
   if (R.full !== false) await io.write(full, doc); // (the textures as imported, padded: the dev menu's comparison)
   // the game's: the normal map dropped (the pixel-art look lights in flat bands and never reads it), 1,024 px JPEG
-  for (const m of doc.getRoot().listMaterials()) { const t = m.getNormalTexture(); if (t) { m.setNormalTexture(null); if (!t.listParents().some(p => p !== doc.getRoot())) t.dispose(); } }
+  for (const m of doc.getRoot().listMaterials()) {
+    const t = m.getNormalTexture();
+    if (t) {
+      m.setNormalTexture(null);
+      if (!t.listParents().some((p) => p !== doc.getRoot())) t.dispose();
+    }
+  }
   await doc.transform(textureCompress({ encoder: sharp, targetFormat: 'jpeg', resize: [1024, 1024], quality: 88 }));
   await io.write(out, doc);
   // its bounds, for the game's scale
-  let lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9];
-  for (const m of doc.getRoot().listMeshes()) for (const p of m.listPrimitives()) { const b = p.getAttribute('POSITION')!; lo = lo.map((v, i) => Math.min(v, b.getMinNormalized([])[i])); hi = hi.map((v, i) => Math.max(v, b.getMaxNormalized([])[i])); }
+  let lo = [1e9, 1e9, 1e9],
+    hi = [-1e9, -1e9, -1e9];
+  for (const m of doc.getRoot().listMeshes())
+    for (const p of m.listPrimitives()) {
+      const b = p.getAttribute('POSITION')!;
+      lo = lo.map((v, i) => Math.min(v, b.getMinNormalized([])[i]));
+      hi = hi.map((v, i) => Math.max(v, b.getMaxNormalized([])[i]));
+    }
   const dataPath = resolve(import.meta.dirname, '../data/creatures.json');
-  let data: Record<string, unknown> = {}; try { data = JSON.parse(readFileSync(dataPath, 'utf8')); } catch { /* the first */ }
+  let data: Record<string, unknown> = {};
+  try {
+    data = JSON.parse(readFileSync(dataPath, 'utf8'));
+  } catch {
+    /* the first */
+  }
   data[id] = {
-    file: `assets/creatures/${id}.glb`, ...(R.full !== false && { full: `assets/creatures/${id}.full.glb` }), height: R.height, ...(R.fine && { fine: true }), modelHeight: +(hi[1] - lo[1]).toFixed(3), modelLength: +(hi[2] - lo[2]).toFixed(3),
+    file: `assets/creatures/${id}.glb`,
+    ...(R.full !== false && { full: `assets/creatures/${id}.full.glb` }),
+    height: R.height,
+    ...(R.fine && { fine: true }),
+    modelHeight: +(hi[1] - lo[1]).toFixed(3),
+    modelLength: +(hi[2] - lo[2]).toFixed(3),
     walkSpeed: +R.WALK_SPEED.toFixed(4),
-    clips: Object.fromEntries(Object.entries(R.CLIPS).map(([name, c]) => [name, { duration: c.duration, loop: c.loop, events: c.events.map(e => ({ ...e, t: +e.t.toFixed(3) })) }])),
+    clips: Object.fromEntries(
+      Object.entries(R.CLIPS).map(([name, c]) => [
+        name,
+        { duration: c.duration, loop: c.loop, events: c.events.map((e) => ({ ...e, t: +e.t.toFixed(3) })) },
+      ]),
+    ),
     budget: R.budget,
   };
-  writeFileSync(dataPath, JSON.stringify({ _comment: 'Written by tools/animate-creature.ts (docs/creatures.md): each animated creature\'s file, how tall it stands in the game, its walk\'s speed in model units a second, and its clips with the times their sounds fall.', ...Object.fromEntries(Object.entries(data).filter(([k]) => k !== '_comment')) }, null, 2) + '\n');
-  console.log(`${id}: ${before} -> ${tris()} triangles (${R.budget} budget ${B.triangles}), ${oriented.turned} of ${oriented.faces} faces turned outward (${oriented.patches} patches), ${bound} vertices bound again, ${Object.keys(R.CLIPS).length} clips (${Object.keys(R.CLIPS).join(', ')}), ${padded.map(p => `${p.size} px texture: ${p.filled} texels padded round its islands`).join(', ')}, ${(statSync(out).size / 1024).toFixed(0)} KB -> ${out} ${R.full !== false ? `(as imported: ${(statSync(full).size / 1024).toFixed(0)} KB)` : ''}${rebuilt ? `, its rest pose rebuilt from the bind (${rebuilt} joints)` : ''}${skin === R.rebind && skin ? ', its skin bound again from the Mixamo bones' : ''}, turned ${turned} degrees`);
+  writeFileSync(
+    dataPath,
+    JSON.stringify(
+      {
+        _comment:
+          "Written by tools/animate-creature.ts (docs/creatures.md): each animated creature's file, how tall it stands in the game, its walk's speed in model units a second, and its clips with the times their sounds fall.",
+        ...Object.fromEntries(Object.entries(data).filter(([k]) => k !== '_comment')),
+      },
+      null,
+      2,
+    ) + '\n',
+  );
+  console.log(
+    `${id}: ${before} -> ${tris()} triangles (${R.budget} budget ${B.triangles}), ${oriented.turned} of ${oriented.faces} faces turned outward (${oriented.patches} patches), ${bound} vertices bound again, ${Object.keys(R.CLIPS).length} clips (${Object.keys(R.CLIPS).join(', ')}), ${padded.map((p) => `${p.size} px texture: ${p.filled} texels padded round its islands`).join(', ')}, ${(statSync(out).size / 1024).toFixed(0)} KB -> ${out} ${R.full !== false ? `(as imported: ${(statSync(full).size / 1024).toFixed(0)} KB)` : ''}${rebuilt ? `, its rest pose rebuilt from the bind (${rebuilt} joints)` : ''}${skin === R.rebind && skin ? ', its skin bound again from the Mixamo bones' : ''}, turned ${turned} degrees`,
+  );
   await texelBake(id); // (its texture as pixel art at the size the game draws it: the creature look "pixel art from its texture")
 }
-main().catch(e => { console.error(e); process.exit(1); });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

@@ -16,7 +16,10 @@ export default defineConfig({
     browserName: 'chromium',
     // software WebGL so the test runs on machines and CI runners without a GPU; PW_CHROMIUM points at a Chromium
     // binary where Playwright's own isn't installed (cloud sessions: /opt/pw-browsers/...)
-    launchOptions: { args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'], executablePath: process.env.PW_CHROMIUM || undefined },
+    launchOptions: {
+      args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
+      executablePath: process.env.PW_CHROMIUM || undefined,
+    },
   },
   webServer: {
     command: `npm run dev -- --port ${PORT} --strictPort`,

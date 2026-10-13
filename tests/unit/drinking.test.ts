@@ -16,10 +16,13 @@ describe('the drinking ward (M4.2)', () => {
 
   it('breaks into the school it drank most; of two drunk alike, the one it drank last', () => {
     const d = newDrink(100);
-    drink(d, 'storm', 30); drink(d, 'hallow', 10); drink(d, 'storm', 5);
+    drink(d, 'storm', 30);
+    drink(d, 'hallow', 10);
+    drink(d, 'storm', 5);
     expect(mostDrunk(d)).toBe('storm');
     const tie = newDrink(100);
-    drink(tie, 'umbral', 20); drink(tie, 'ember', 20);
+    drink(tie, 'umbral', 20);
+    drink(tie, 'ember', 20);
     expect(mostDrunk(tie)).toBe('ember');
     drink(tie, 'frost', 5);
     expect(mostDrunk(tie)).toBe('ember'); // (the last drunk isn't among the most: the first of them in the schools' order)

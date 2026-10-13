@@ -16,13 +16,27 @@ const GOLD = 0xffe08a;
 const said = new Map<string, number>();
 
 /** Foe `e`'s counter `kind` came about. */
-export function counter(e: Enemy, kind: string) { if (e.foe) counterAt(e.foe.id, kind, e.x, e.z); }
+export function counter(e: Enemy, kind: string) {
+  if (e.foe) counterAt(e.foe.id, kind, e.x, e.z);
+}
 /** A counter of foe kind `id` came about at (x, z) (where no one foe is there: a web burnt, a cloud of spores flashed). */
 export function counterAt(id: string, kind: string, x: number, z: number) {
-  const text = STR.foes.counterLines[id]?.[kind]; if (!text) return; // (not one of its counters)
-  const fresh = foundCounter(id as FoeId, kind), key = id + ':' + kind;
-  if (fresh || G.simClock - (said.get(key) ?? -9) > 1.2) { floatText(x, 1.8, z, STR.foes.counters[kind], GOLD, fresh ? 40 : 30); said.set(key, G.simClock); }
-  if (fresh) { Sfx.at(x, z).counter(); showLine(STR.foes.counterFound(foeName(id), text), CFG.afflict.lineShow); }
+  const text = STR.foes.counterLines[id]?.[kind];
+  if (!text) return; // (not one of its counters)
+  const fresh = foundCounter(id as FoeId, kind),
+    key = id + ':' + kind;
+  if (fresh || G.simClock - (said.get(key) ?? -9) > 1.2) {
+    floatText(x, 1.8, z, STR.foes.counters[kind], GOLD, fresh ? 40 : 30);
+    said.set(key, G.simClock);
+  }
+  if (fresh) {
+    Sfx.at(x, z).counter();
+    showLine(STR.foes.counterFound(foeName(id), text), CFG.afflict.lineShow);
+  }
 }
 /** Every counter of every foe found at once (the dev menu, tests). */
-export function findEveryCounter() { findCounters(Object.fromEntries(Object.entries(STR.foes.counterLines).map(([id, lines]) => [id, Object.keys(lines)]))); }
+export function findEveryCounter() {
+  findCounters(
+    Object.fromEntries(Object.entries(STR.foes.counterLines).map(([id, lines]) => [id, Object.keys(lines)])),
+  );
+}

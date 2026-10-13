@@ -56,29 +56,55 @@ export const STEP = 1 / 60;
 const MAX_FRAME = 1 / 30;
 
 let inputActions: InputActions;
-let last = 0, acc = 0;
+let last = 0,
+  acc = 0;
 
-export function resetClock() { last = performance.now(); acc = 0; }
+export function resetClock() {
+  last = performance.now();
+  acc = 0;
+}
 
 /** Advance the game by one fixed step. */
 export function step(dt: number) {
-  G.simClock += dt; const now = G.simClock;
+  G.simClock += dt;
+  const now = G.simClock;
   pollGamepad(inputActions);
   if (G.state === 'play' || G.state === 'dying') {
     updateTimers(dt);
     const tr = G.trans;
     if (tr) {
-      tr.t += dt; const k = ease(Math.min(1, tr.t / tr.dur));
-      player.x = lerp(tr.fx, tr.tx, k); player.z = lerp(tr.fz, tr.tz, k);
-      camTarget.x = lerp(tr.cfx, tr.ctx, k); camTarget.z = lerp(tr.cfz, tr.ctz, k); setViewScale(lerp(tr.vf, tr.vt, k));
-      if (tr.t >= tr.dur) { G.trans = null; player.vx *= .5; player.vz *= .5; enterRoom(tr.nb); }
+      tr.t += dt;
+      const k = ease(Math.min(1, tr.t / tr.dur));
+      player.x = lerp(tr.fx, tr.tx, k);
+      player.z = lerp(tr.fz, tr.tz, k);
+      camTarget.x = lerp(tr.cfx, tr.ctx, k);
+      camTarget.z = lerp(tr.cfz, tr.ctz, k);
+      setViewScale(lerp(tr.vf, tr.vt, k));
+      if (tr.t >= tr.dur) {
+        G.trans = null;
+        player.vx *= 0.5;
+        player.vz *= 0.5;
+        enterRoom(tr.nb);
+      }
     } else if (G.state === 'play') {
       G.stats.time += dt;
-      updatePlayer(dt); checkAmbush(); updateEnemies(dt); updateMantles(dt); updateStatuses(dt, now); updateBolts(dt); updateShots(dt); updateGlyphs(dt); updatePickups(dt); updatePotions(dt); updateThrows(dt);
+      updatePlayer(dt);
+      checkAmbush();
+      updateEnemies(dt);
+      updateMantles(dt);
+      updateStatuses(dt, now);
+      updateBolts(dt);
+      updateShots(dt);
+      updateGlyphs(dt);
+      updatePickups(dt);
+      updatePotions(dt);
+      updateThrows(dt);
       checkLevelUp(dt); // (M6: a level waiting opens its screen once the fight is won)
       // in rooms larger than the view the camera follows the mage, stopping at the walls
-      const t = cameraTargetFor(G.current, player.x, player.z), k = 1 - Math.exp(-8 * dt);
-      camTarget.x += (t.x - camTarget.x) * k; camTarget.z += (t.z - camTarget.z) * k;
+      const t = cameraTargetFor(G.current, player.x, player.z),
+        k = 1 - Math.exp(-8 * dt);
+      camTarget.x += (t.x - camTarget.x) * k;
+      camTarget.z += (t.z - camTarget.z) * k;
     } else updateEnemies(0);
   }
   updateDaylight(dt); // (M7 step 3: the cave mouth at dawn, and the shaft's dust before it)
@@ -86,39 +112,81 @@ export function step(dt: number) {
   updateShades(dt); // (M7 step 6: a chained shade comes forth, asks, and goes)
   updateTownGallery(dt); // (M7 step 7: the townspeople's gallery, gesturing in turn)
   Sfx.listen(player.x, player.z); // effects are heard from just above the mage
-  updateParticles(dt); updateWorldFx(dt, now); heroVisual(dt, now);
+  updateParticles(dt);
+  updateWorldFx(dt, now);
+  heroVisual(dt, now);
 }
 
 function updateWorldFx(dt: number, now: number) {
-  updateRoomFx(dt, now); updateLab(now); updateWaystone(dt); updateArtifacts(now); updateTrapdoor(dt); updateShop(now); updateWanderer(now, dt); updatePages(dt, now); updateVaultSeals(dt, now); updateSecretWalls(dt, now);
-  if (G.state === 'play' && !G.trans) updatePagePanel(); else hidePagePanel(); // a spell's panel over the page near the mage (M3.7)
-  if (G.state === 'play' && !G.trans) updateWarePanel(); else hideWarePanel(); // what a ware near the mage is, before it is bought (2026-10-02)
+  updateRoomFx(dt, now);
+  updateLab(now);
+  updateWaystone(dt);
+  updateArtifacts(now);
+  updateTrapdoor(dt);
+  updateShop(now);
+  updateWanderer(now, dt);
+  updatePages(dt, now);
+  updateVaultSeals(dt, now);
+  updateSecretWalls(dt, now);
+  if (G.state === 'play' && !G.trans) updatePagePanel();
+  else hidePagePanel(); // a spell's panel over the page near the mage (M3.7)
+  if (G.state === 'play' && !G.trans) updateWarePanel();
+  else hideWarePanel(); // what a ware near the mage is, before it is bought (2026-10-02)
   updateFamiliars(dt, now, G.state === 'play' && !G.trans);
   updateShadeHelp(dt, now, G.state === 'play' && !G.trans); // (M7 step 6: the bound shades walking with the mage)
   updateShrine(dt, now, G.state === 'play' && !G.trans);
-  updateMagic(dt, G.state === 'play' && !G.trans); updateStatusFx(dt); updatePools(dt, now, G.state === 'play' && !G.trans); updateSteam(G.state === 'play' ? dt : 0);
-  if (G.state === 'play' && !G.trans) { updateProps(dt); updateThemes(dt); updateMechanisms(dt); updateWardShields(G.simClock); updateModelOptions(dt, G.current); updateEffectOptions(dt, G.current); updateCreatures(dt, G.current); } // burning, briars, spores; sleepers, rising bones; bells, runes, censers
-  const tf = .92 + Math.sin(now * 13) * .05 + Math.sin(now * 23) * .04;
+  updateMagic(dt, G.state === 'play' && !G.trans);
+  updateStatusFx(dt);
+  updatePools(dt, now, G.state === 'play' && !G.trans);
+  updateSteam(G.state === 'play' ? dt : 0);
+  if (G.state === 'play' && !G.trans) {
+    updateProps(dt);
+    updateThemes(dt);
+    updateMechanisms(dt);
+    updateWardShields(G.simClock);
+    updateModelOptions(dt, G.current);
+    updateEffectOptions(dt, G.current);
+    updateCreatures(dt, G.current);
+  } // burning, briars, spores; sleepers, rising bones; bells, runes, censers
+  const tf = 0.92 + Math.sin(now * 13) * 0.05 + Math.sin(now * 23) * 0.04;
   updateTorchLights(G.current.torches, player.x, player.z, dt, tf);
   G.shake = Math.max(0, G.shake - dt * 1.4);
   updateInsight(G.state === 'play' ? dt : 0); // (M6: insight's streaks run to the hand)
-  updateHud(dt); updateAfflictions(); updateLore(dt); // (what is being done to the mage, beside the mana bar)
+  updateHud(dt);
+  updateAfflictions();
+  updateLore(dt); // (what is being done to the mage, beside the mana bar)
   updateAudio(); // (the soundscapes and the music: what the game is doing chooses them)
 }
 
 function frame(nowMs: number) {
   requestAnimationFrame(frame);
-  if (window.__manual) { last = nowMs; return; }
+  if (window.__manual) {
+    last = nowMs;
+    return;
+  }
   updateFrameInfo(nowMs - last); // (the dev menu's frame readout)
-  acc += Math.min(MAX_FRAME, (nowMs - last) / 1000); last = nowMs;
+  acc += Math.min(MAX_FRAME, (nowMs - last) / 1000);
+  last = nowMs;
   // small tolerance so rAF jitter at 60 Hz doesn't alternate between 0 and 2 steps
-  while (acc >= STEP - 1e-3) { step(STEP); acc -= STEP; }
-  draw(); updateVision();
+  while (acc >= STEP - 1e-3) {
+    step(STEP);
+    acc -= STEP;
+  }
+  draw();
+  updateVision();
 }
 
 export function startLoop(actions: InputActions) {
   inputActions = actions;
-  requestAnimationFrame(t => { last = t; frame(t); });
+  requestAnimationFrame((t) => {
+    last = t;
+    frame(t);
+  });
 }
 
-declare global { interface Window { __manual?: boolean; __game?: unknown } }
+declare global {
+  interface Window {
+    __manual?: boolean;
+    __game?: unknown;
+  }
+}

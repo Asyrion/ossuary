@@ -8,16 +8,46 @@
      hanging  hangs above the floor (a censer on its chain): walked under, and only a bolt reaches it. */
 import type { TableName } from '../items/loot';
 
-export type PropKind = 'bones' | 'skulls' | 'sacks' | 'cask' | 'rubble' | 'roots' | 'briar' | 'web' | 'glowcap' | 'pew' | 'desk' | 'scrolls'
-  | 'hoard' | 'boat' | 'bridge' | 'globe' | 'blossom' | MechanismKind;
+export type PropKind =
+  | 'bones'
+  | 'skulls'
+  | 'sacks'
+  | 'cask'
+  | 'rubble'
+  | 'roots'
+  | 'briar'
+  | 'web'
+  | 'glowcap'
+  | 'pew'
+  | 'desk'
+  | 'scrolls'
+  | 'hoard'
+  | 'boat'
+  | 'bridge'
+  | 'globe'
+  | 'blossom'
+  | MechanismKind;
 /** The mechanisms (M3.6 step 4, world/mechanisms.ts): objects that answer to magic with more than breaking or burning. */
-export type MechanismKind = 'brazier' | 'candles' | 'bell' | 'rune' | 'lodestone' | 'censer' | 'reliquary' | 'tree' | 'statue' | 'obelisk' | 'wetCandles' | 'sluice';
+export type MechanismKind =
+  | 'brazier'
+  | 'candles'
+  | 'bell'
+  | 'rune'
+  | 'lodestone'
+  | 'censer'
+  | 'reliquary'
+  | 'tree'
+  | 'statue'
+  | 'obelisk'
+  | 'wetCandles'
+  | 'sluice';
 export type PropClass = 'tall' | 'low' | 'soft' | 'hanging';
 
 export interface PropDef {
   /** The template letter. */ char: string;
   class: PropClass;
-  /** Bolts it takes to break (0: bolts don't break it); a glyph's blast breaks it, if `blast`. */ hits: number; blast: boolean;
+  /** Bolts it takes to break (0: bolts don't break it); a glyph's blast breaks it, if `blast`. */ hits: number;
+  blast: boolean;
   /** Fire burns it away (and it spreads to what burns beside it). */ burns: boolean;
   /** What it leaves behind when it breaks (data/loot.json). */ loot?: TableName;
 }
@@ -64,7 +94,20 @@ export const PROPS: Record<PropKind, PropDef> = {
   sluice: { char: 'Z', class: 'tall', hits: 0, blast: false, burns: false },
 };
 export const PROP_KINDS = Object.keys(PROPS) as PropKind[];
-export const PROP_OF_CHAR: Record<string, PropKind> = Object.fromEntries(PROP_KINDS.map(k => [PROPS[k].char, k]));
+export const PROP_OF_CHAR: Record<string, PropKind> = Object.fromEntries(PROP_KINDS.map((k) => [PROPS[k].char, k]));
 export const isProp = (tile: string): tile is PropKind => tile in PROPS;
-export const MECHANISMS: MechanismKind[] = ['brazier', 'candles', 'bell', 'rune', 'lodestone', 'censer', 'reliquary', 'tree', 'statue', 'obelisk', 'wetCandles', 'sluice'];
+export const MECHANISMS: MechanismKind[] = [
+  'brazier',
+  'candles',
+  'bell',
+  'rune',
+  'lodestone',
+  'censer',
+  'reliquary',
+  'tree',
+  'statue',
+  'obelisk',
+  'wetCandles',
+  'sluice',
+];
 export const isMechanism = (k: string): k is MechanismKind => (MECHANISMS as string[]).includes(k);

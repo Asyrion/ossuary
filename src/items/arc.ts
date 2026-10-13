@@ -23,5 +23,6 @@ export function updateArc() {
   const now = arcStage(arcHeld(), CFG.arc.at);
   if (now <= G.run.arc) return;
   for (let k = G.run.arc; k < now; k++) line(STR.arc[k], CFG.arc.line);
-  G.run.arc = now; Sfx.relic();
+  G.run.arc = now;
+  Sfx.relic();
 }

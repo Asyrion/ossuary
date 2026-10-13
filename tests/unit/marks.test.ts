@@ -7,9 +7,9 @@ import type { Stage } from '../../src/magic/knowledge';
 describe('spell marks', () => {
   it('a slotted spell is ready, cooling down (and how far back), or short of its cost', () => {
     expect(handState(0, 2, true, 1)).toEqual({ state: 'ready', fill: 1 });
-    expect(handState(1.5, 2, true, 1)).toEqual({ state: 'cooling', fill: .25 });
-    expect(handState(.5, 2, false, .2)).toMatchObject({ state: 'cooling' }); // (the cooldown shows first)
-    expect(handState(0, 2, false, .4)).toEqual({ state: 'short', fill: .4 });
+    expect(handState(1.5, 2, true, 1)).toEqual({ state: 'cooling', fill: 0.25 });
+    expect(handState(0.5, 2, false, 0.2)).toMatchObject({ state: 'cooling' }); // (the cooldown shows first)
+    expect(handState(0, 2, false, 0.4)).toEqual({ state: 'short', fill: 0.4 });
     expect(handState(3, 2, true, 1).fill).toBe(0);
   });
 
@@ -21,14 +21,27 @@ describe('spell marks', () => {
   });
 
   it('the knowledge circle has an arc per school, a spell lit when known well, and a school known in full closes its arc', () => {
-    const stages: Record<string, Stage> = { cinder_lance: 'used', pyre_seal: 'upgraded', rime_shards: 'used', glacial_wall: 'learned', arc: 'seen' };
-    const circle = circleOf(SPELL_DEFS, id => stages[id] ?? 'unknown');
-    expect(circle.map(a => a.school)).toEqual(['ember', 'frost', 'storm', 'hallow', 'umbral', 'verdant']);
-    expect(circle[0]).toMatchObject({ mastered: true, spells: [{ id: 'cinder_lance', known: true }, { id: 'pyre_seal', known: true }] });
-    expect(circle[1].mastered).toBe(false); expect(circle[1].spells.filter(s => s.known).map(s => s.id)).toEqual(['rime_shards']);
+    const stages: Record<string, Stage> = {
+      cinder_lance: 'used',
+      pyre_seal: 'upgraded',
+      rime_shards: 'used',
+      glacial_wall: 'learned',
+      arc: 'seen',
+    };
+    const circle = circleOf(SPELL_DEFS, (id) => stages[id] ?? 'unknown');
+    expect(circle.map((a) => a.school)).toEqual(['ember', 'frost', 'storm', 'hallow', 'umbral', 'verdant']);
+    expect(circle[0]).toMatchObject({
+      mastered: true,
+      spells: [
+        { id: 'cinder_lance', known: true },
+        { id: 'pyre_seal', known: true },
+      ],
+    });
+    expect(circle[1].mastered).toBe(false);
+    expect(circle[1].spells.filter((s) => s.known).map((s) => s.id)).toEqual(['rime_shards']);
     expect(masteredSchools(circle)).toEqual(['ember']);
     expect(knownWell(circle)).toBe(3);
-    expect(circleOf(SPELL_DEFS, () => 'used').every(a => a.mastered)).toBe(true);
-    expect(circleOf(SPELL_DEFS, () => 'unknown').some(a => a.mastered)).toBe(false);
+    expect(circleOf(SPELL_DEFS, () => 'used').every((a) => a.mastered)).toBe(true);
+    expect(circleOf(SPELL_DEFS, () => 'unknown').some((a) => a.mastered)).toBe(false);
   });
 });

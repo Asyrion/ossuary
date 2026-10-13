@@ -9,156 +9,387 @@
 import { Rand, crackleLoop, drum, noiseLoop, play, type Ctx } from './synth';
 import { playSample } from './samples';
 
-export interface CreatureCall { ctx: Ctx; t: number; out: AudioNode; r: Rand; gain: number }
+export interface CreatureCall {
+  ctx: Ctx;
+  t: number;
+  out: AudioNode;
+  r: Rand;
+  gain: number;
+}
 
 /** A burst of noise through a filter: an attack, a decay, and a band that may glide. */
-function noise(s: CreatureCall, colour: 'white' | 'pink' | 'brown', type: BiquadFilterType, f0: number, f1: number, q: number, at: number, attack: number, decay: number, gain: number) {
-  const { ctx } = s, t = s.t + at, src = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
-  src.buffer = noiseLoop(ctx, colour); f.type = type; f.Q.value = q; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f1, t + attack + decay);
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain * s.gain, t + attack); g.gain.exponentialRampToValueAtTime(.0001, t + attack + decay);
-  src.connect(f).connect(g).connect(s.out); src.start(t, s.r.next() * 3); src.stop(t + attack + decay + .05);
+function noise(
+  s: CreatureCall,
+  colour: 'white' | 'pink' | 'brown',
+  type: BiquadFilterType,
+  f0: number,
+  f1: number,
+  q: number,
+  at: number,
+  attack: number,
+  decay: number,
+  gain: number,
+) {
+  const { ctx } = s,
+    t = s.t + at,
+    src = ctx.createBufferSource(),
+    f = ctx.createBiquadFilter(),
+    g = ctx.createGain();
+  src.buffer = noiseLoop(ctx, colour);
+  f.type = type;
+  f.Q.value = q;
+  f.frequency.setValueAtTime(f0, t);
+  f.frequency.exponentialRampToValueAtTime(f1, t + attack + decay);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(gain * s.gain, t + attack);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + attack + decay);
+  src.connect(f).connect(g).connect(s.out);
+  src.start(t, s.r.next() * 3);
+  src.stop(t + attack + decay + 0.05);
   return { f, g };
 }
 /** A soft-clipping curve: grit for a throat. */
 function grit(ctx: Ctx, amount: number) {
-  const ws = ctx.createWaveShaper(), n = 1024, c = new Float32Array(n);
-  for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(x * amount) / Math.tanh(amount); }
-  ws.curve = c; ws.oversample = '2x'; return ws;
+  const ws = ctx.createWaveShaper(),
+    n = 1024,
+    c = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    const x = (i / (n - 1)) * 2 - 1;
+    c[i] = Math.tanh(x * amount) / Math.tanh(amount);
+  }
+  ws.curve = c;
+  ws.oversample = '2x';
+  return ws;
 }
 
 /** A heavy paw coming down: the pad's thump, the fur's brush, then two or three claws clicking on stone. */
 function paw(s: CreatureCall, weight: number) {
-  play(s.ctx, drum(s.ctx, 'thump'), lowpass(s, 340), s.t, s.gain * .9 * weight, s.r.range(.78, .95) / weight ** .3);
-  noise(s, 'pink', 'bandpass', 900, 600, 1.1, 0, .006, .07, .22 * weight);
-  for (let i = 0; i < 2 + Math.floor(s.r.next() * 2); i++) noise(s, 'white', 'bandpass', s.r.range(3200, 5200), s.r.range(2800, 4000), 6, .018 + i * s.r.range(.012, .03), .0006, .006, s.r.range(.12, .22));
+  play(s.ctx, drum(s.ctx, 'thump'), lowpass(s, 340), s.t, s.gain * 0.9 * weight, s.r.range(0.78, 0.95) / weight ** 0.3);
+  noise(s, 'pink', 'bandpass', 900, 600, 1.1, 0, 0.006, 0.07, 0.22 * weight);
+  for (let i = 0; i < 2 + Math.floor(s.r.next() * 2); i++)
+    noise(
+      s,
+      'white',
+      'bandpass',
+      s.r.range(3200, 5200),
+      s.r.range(2800, 4000),
+      6,
+      0.018 + i * s.r.range(0.012, 0.03),
+      0.0006,
+      0.006,
+      s.r.range(0.12, 0.22),
+    );
 }
-function lowpass(s: CreatureCall, f: number) { const lp = s.ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = f; lp.connect(s.out); return lp; }
+function lowpass(s: CreatureCall, f: number) {
+  const lp = s.ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = f;
+  lp.connect(s.out);
+  return lp;
+}
 
 /** The roar: a bear's throat (a rough, wavering buzz through the shape of an open mouth closing, ground through grit),
     the air pushed through it, a chest's low resonance, and an owl's hissing screech riding on top; `long` seconds. */
 function roar(s: CreatureCall, long = 1.35) {
-  const { ctx } = s, t = s.t, end = t + long;
-  const throat = ctx.createGain(), mouth = ctx.createGain(), env = ctx.createGain(), shaper = grit(ctx, 3.2), tone = ctx.createBiquadFilter();
-  tone.type = 'lowpass'; tone.frequency.value = 4200;
+  const { ctx } = s,
+    t = s.t,
+    end = t + long;
+  const throat = ctx.createGain(),
+    mouth = ctx.createGain(),
+    env = ctx.createGain(),
+    shaper = grit(ctx, 3.2),
+    tone = ctx.createBiquadFilter();
+  tone.type = 'lowpass';
+  tone.frequency.value = 4200;
   // the voice: two rough sawtooths and a sub-octave, its pitch rising into the roar and sinking as it ends, shaken
-  const f0 = [[0, 82], [.16, 148], [.55, 136], [.95, 118], [long, 66]] as const;
-  const oscs = [[1, 'sawtooth', .5], [1.012, 'sawtooth', .4], [.5, 'square', .25]] as const;
-  const jitter = ctx.createBufferSource(), jf = ctx.createBiquadFilter(), jg = ctx.createGain();
-  jitter.buffer = noiseLoop(ctx, 'white'); jitter.loop = true; jf.type = 'lowpass'; jf.frequency.value = 35; jg.gain.value = 900; // (cents: a throat never holds still)
+  const f0 = [
+    [0, 82],
+    [0.16, 148],
+    [0.55, 136],
+    [0.95, 118],
+    [long, 66],
+  ] as const;
+  const oscs = [
+    [1, 'sawtooth', 0.5],
+    [1.012, 'sawtooth', 0.4],
+    [0.5, 'square', 0.25],
+  ] as const;
+  const jitter = ctx.createBufferSource(),
+    jf = ctx.createBiquadFilter(),
+    jg = ctx.createGain();
+  jitter.buffer = noiseLoop(ctx, 'white');
+  jitter.loop = true;
+  jf.type = 'lowpass';
+  jf.frequency.value = 35;
+  jg.gain.value = 900; // (cents: a throat never holds still)
   jitter.connect(jf).connect(jg);
   for (const [ratio, wave, g] of oscs) {
-    const o = ctx.createOscillator(), og = ctx.createGain(); o.type = wave; og.gain.value = g;
-    o.frequency.setValueAtTime(f0[0][1] * ratio, t); for (const [at, f] of f0.slice(1)) o.frequency.exponentialRampToValueAtTime(f * ratio, t + at);
-    jg.connect(o.detune); o.connect(og).connect(throat); o.start(t); o.stop(end + .1);
+    const o = ctx.createOscillator(),
+      og = ctx.createGain();
+    o.type = wave;
+    og.gain.value = g;
+    o.frequency.setValueAtTime(f0[0][1] * ratio, t);
+    for (const [at, f] of f0.slice(1)) o.frequency.exponentialRampToValueAtTime(f * ratio, t + at);
+    jg.connect(o.detune);
+    o.connect(og).connect(throat);
+    o.start(t);
+    o.stop(end + 0.1);
   }
-  jitter.start(t, s.r.next() * 3); jitter.stop(end + .1);
+  jitter.start(t, s.r.next() * 3);
+  jitter.stop(end + 0.1);
   // the mouth: an open "ah" closing to an "oh" as the roar ends
-  for (const [a, b, gain] of [[720, 520, 1], [1150, 860, .6], [2650, 2450, .25]] as const) {
-    const bp = ctx.createBiquadFilter(), g = ctx.createGain(); bp.type = 'bandpass'; bp.Q.value = 5;
-    bp.frequency.setValueAtTime(a, t); bp.frequency.setValueAtTime(a, t + long * .55); bp.frequency.exponentialRampToValueAtTime(b, end);
-    g.gain.value = gain; throat.connect(bp).connect(g).connect(mouth);
+  for (const [a, b, gain] of [
+    [720, 520, 1],
+    [1150, 860, 0.6],
+    [2650, 2450, 0.25],
+  ] as const) {
+    const bp = ctx.createBiquadFilter(),
+      g = ctx.createGain();
+    bp.type = 'bandpass';
+    bp.Q.value = 5;
+    bp.frequency.setValueAtTime(a, t);
+    bp.frequency.setValueAtTime(a, t + long * 0.55);
+    bp.frequency.exponentialRampToValueAtTime(b, end);
+    g.gain.value = gain;
+    throat.connect(bp).connect(g).connect(mouth);
   }
-  const body = ctx.createGain(); body.gain.value = .35; throat.connect(body).connect(mouth); // (the chest under it)
+  const body = ctx.createGain();
+  body.gain.value = 0.35;
+  throat.connect(body).connect(mouth); // (the chest under it)
   mouth.connect(shaper).connect(tone).connect(env).connect(s.out);
-  env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(.9 * s.gain, t + .12); env.gain.linearRampToValueAtTime(s.gain, t + .5);
-  env.gain.setValueAtTime(s.gain, end - .45); env.gain.exponentialRampToValueAtTime(.0005, end);
+  env.gain.setValueAtTime(0, t);
+  env.gain.linearRampToValueAtTime(0.9 * s.gain, t + 0.12);
+  env.gain.linearRampToValueAtTime(s.gain, t + 0.5);
+  env.gain.setValueAtTime(s.gain, end - 0.45);
+  env.gain.exponentialRampToValueAtTime(0.0005, end);
   // the air forced through it, and the chest's low boom at its start
-  noise(s, 'pink', 'bandpass', 1300, 800, 1, 0, .12, long - .1, .5);
-  const boom = ctx.createOscillator(), bg = ctx.createGain(); boom.frequency.setValueAtTime(70, t); boom.frequency.exponentialRampToValueAtTime(42, t + .8);
-  bg.gain.setValueAtTime(0, t); bg.gain.linearRampToValueAtTime(.45 * s.gain, t + .08); bg.gain.exponentialRampToValueAtTime(.0005, t + .9); boom.connect(bg).connect(s.out); boom.start(t); boom.stop(t + 1);
+  noise(s, 'pink', 'bandpass', 1300, 800, 1, 0, 0.12, long - 0.1, 0.5);
+  const boom = ctx.createOscillator(),
+    bg = ctx.createGain();
+  boom.frequency.setValueAtTime(70, t);
+  boom.frequency.exponentialRampToValueAtTime(42, t + 0.8);
+  bg.gain.setValueAtTime(0, t);
+  bg.gain.linearRampToValueAtTime(0.45 * s.gain, t + 0.08);
+  bg.gain.exponentialRampToValueAtTime(0.0005, t + 0.9);
+  boom.connect(bg).connect(s.out);
+  boom.start(t);
+  boom.stop(t + 1);
   // the owl in it: a hissing, rasping screech high over the growl, rising in and falling away
-  const screech = noise(s, 'white', 'bandpass', 3200, 2100, 3.5, .05, .1, long * .75, .55);
-  const rasp = ctx.createOscillator(), rg = ctx.createGain(); rasp.type = 'square'; rasp.frequency.value = 38; rg.gain.value = .35 * s.gain;
-  rasp.connect(rg).connect(screech.g.gain); rasp.start(t); rasp.stop(end);
-  const cry = ctx.createOscillator(), cf = ctx.createBiquadFilter(), cg = ctx.createGain(); cry.type = 'sawtooth';
-  cry.frequency.setValueAtTime(1150, t + .06); cry.frequency.exponentialRampToValueAtTime(1450, t + .3); cry.frequency.exponentialRampToValueAtTime(900, t + long * .8);
-  cf.type = 'bandpass'; cf.frequency.value = 2700; cf.Q.value = 7;
-  cg.gain.setValueAtTime(0, t + .06); cg.gain.linearRampToValueAtTime(.16 * s.gain, t + .2); cg.gain.exponentialRampToValueAtTime(.0005, t + long * .8);
-  cry.connect(cf).connect(cg).connect(s.out); cry.start(t + .06); cry.stop(t + long);
+  const screech = noise(s, 'white', 'bandpass', 3200, 2100, 3.5, 0.05, 0.1, long * 0.75, 0.55);
+  const rasp = ctx.createOscillator(),
+    rg = ctx.createGain();
+  rasp.type = 'square';
+  rasp.frequency.value = 38;
+  rg.gain.value = 0.35 * s.gain;
+  rasp.connect(rg).connect(screech.g.gain);
+  rasp.start(t);
+  rasp.stop(end);
+  const cry = ctx.createOscillator(),
+    cf = ctx.createBiquadFilter(),
+    cg = ctx.createGain();
+  cry.type = 'sawtooth';
+  cry.frequency.setValueAtTime(1150, t + 0.06);
+  cry.frequency.exponentialRampToValueAtTime(1450, t + 0.3);
+  cry.frequency.exponentialRampToValueAtTime(900, t + long * 0.8);
+  cf.type = 'bandpass';
+  cf.frequency.value = 2700;
+  cf.Q.value = 7;
+  cg.gain.setValueAtTime(0, t + 0.06);
+  cg.gain.linearRampToValueAtTime(0.16 * s.gain, t + 0.2);
+  cg.gain.exponentialRampToValueAtTime(0.0005, t + long * 0.8);
+  cry.connect(cf).connect(cg).connect(s.out);
+  cry.start(t + 0.06);
+  cry.stop(t + long);
 }
 
 /** A heavy scaled foot: a hard pad's thump, a scuff of scales, and its claws striking stone one after another. */
 function claws(s: CreatureCall, weight: number) {
-  play(s.ctx, drum(s.ctx, 'thump'), lowpass(s, 520), s.t, s.gain * .8 * weight, s.r.range(.9, 1.05));
-  noise(s, 'pink', 'bandpass', 1300, 800, 1.2, 0, .005, .08, .2 * weight);
-  for (let i = 0; i < 3 + Math.floor(s.r.next() * 2); i++) noise(s, 'white', 'bandpass', s.r.range(3000, 4800), s.r.range(2600, 3800), 7, .012 + i * s.r.range(.012, .028), .0005, .007, s.r.range(.18, .3) * weight);
+  play(s.ctx, drum(s.ctx, 'thump'), lowpass(s, 520), s.t, s.gain * 0.8 * weight, s.r.range(0.9, 1.05));
+  noise(s, 'pink', 'bandpass', 1300, 800, 1.2, 0, 0.005, 0.08, 0.2 * weight);
+  for (let i = 0; i < 3 + Math.floor(s.r.next() * 2); i++)
+    noise(
+      s,
+      'white',
+      'bandpass',
+      s.r.range(3000, 4800),
+      s.r.range(2600, 3800),
+      7,
+      0.012 + i * s.r.range(0.012, 0.028),
+      0.0005,
+      0.007,
+      s.r.range(0.18, 0.3) * weight,
+    );
 }
 /** A reptile's hiss from a big chest: breath forced past the teeth, rising, with a wet flutter in it and the chest's
     rush under it; `long` seconds. */
-function hiss(s: CreatureCall, long = .7) {
-  const h = noise(s, 'white', 'bandpass', 2600, 4200, 1.4, 0, .09, long, .55);
-  const flutter = s.ctx.createOscillator(), fg = s.ctx.createGain(); flutter.frequency.value = 17; fg.gain.value = .18 * s.gain;
-  flutter.connect(fg).connect(h.g.gain); flutter.start(s.t); flutter.stop(s.t + long + .1);
-  noise(s, 'white', 'highpass', 6000, 7000, .7, .02, .05, long * .8, .2);
-  noise(s, 'pink', 'bandpass', 700, 900, 1, 0, .12, long * .8, .3);
+function hiss(s: CreatureCall, long = 0.7) {
+  const h = noise(s, 'white', 'bandpass', 2600, 4200, 1.4, 0, 0.09, long, 0.55);
+  const flutter = s.ctx.createOscillator(),
+    fg = s.ctx.createGain();
+  flutter.frequency.value = 17;
+  fg.gain.value = 0.18 * s.gain;
+  flutter.connect(fg).connect(h.g.gain);
+  flutter.start(s.t);
+  flutter.stop(s.t + long + 0.1);
+  noise(s, 'white', 'highpass', 6000, 7000, 0.7, 0.02, 0.05, long * 0.8, 0.2);
+  noise(s, 'pink', 'bandpass', 700, 900, 1, 0, 0.12, long * 0.8, 0.3);
 }
 /** The jaw snapping shut: a hard clack of teeth on teeth, a knock of bone under it, and a short snort of breath. */
 function snap(s: CreatureCall) {
-  noise(s, 'white', 'bandpass', 2600, 1800, 3, 0, .0005, .03, .9);
-  noise(s, 'white', 'bandpass', 5200, 4200, 5, .004, .0005, .02, .5);
-  play(s.ctx, drum(s.ctx, 'hand'), lowpass(s, 1100), s.t, s.gain * .7, 1.1);
-  noise(s, 'pink', 'bandpass', 900, 600, 1, .03, .02, .12, .18);
+  noise(s, 'white', 'bandpass', 2600, 1800, 3, 0, 0.0005, 0.03, 0.9);
+  noise(s, 'white', 'bandpass', 5200, 4200, 5, 0.004, 0.0005, 0.02, 0.5);
+  play(s.ctx, drum(s.ctx, 'hand'), lowpass(s, 1100), s.t, s.gain * 0.7, 1.1);
+  noise(s, 'pink', 'bandpass', 900, 600, 1, 0.03, 0.02, 0.12, 0.18);
 }
 /** The shriek: a rasping, reedy voice high in its throat, its pitch bent up and shaken, ground through grit, a rattle of
     its throat under it and a hiss of air over it; `long` seconds. */
 function shriek(s: CreatureCall, long = 1) {
-  const { ctx } = s, t = s.t, end = t + long, voice = ctx.createGain(), env = ctx.createGain(), shaper = grit(ctx, 4), tone = ctx.createBiquadFilter();
-  tone.type = 'bandpass'; tone.frequency.value = 1500; tone.Q.value = .6;
-  const f0 = [[0, 300], [.1, 540], [.4, 500], [long * .8, 430], [long, 270]] as const; // (a horse-sized throat: low for a reptile's shriek)
-  const vib = ctx.createOscillator(), vg = ctx.createGain(); vib.frequency.value = 17; vg.gain.value = 60; vib.connect(vg); // (cents: a reptile's warble)
-  for (const [ratio, wave, g] of [[1, 'sawtooth', .5], [1.007, 'sawtooth', .4], [1.5, 'square', .12]] as const) {
-    const o = ctx.createOscillator(), og = ctx.createGain(); o.type = wave; og.gain.value = g;
-    o.frequency.setValueAtTime(f0[0][1] * ratio, t); for (const [at, f] of f0.slice(1)) o.frequency.exponentialRampToValueAtTime(f * ratio, t + at);
-    vg.connect(o.detune); o.connect(og).connect(voice); o.start(t); o.stop(end + .05);
+  const { ctx } = s,
+    t = s.t,
+    end = t + long,
+    voice = ctx.createGain(),
+    env = ctx.createGain(),
+    shaper = grit(ctx, 4),
+    tone = ctx.createBiquadFilter();
+  tone.type = 'bandpass';
+  tone.frequency.value = 1500;
+  tone.Q.value = 0.6;
+  const f0 = [
+    [0, 300],
+    [0.1, 540],
+    [0.4, 500],
+    [long * 0.8, 430],
+    [long, 270],
+  ] as const; // (a horse-sized throat: low for a reptile's shriek)
+  const vib = ctx.createOscillator(),
+    vg = ctx.createGain();
+  vib.frequency.value = 17;
+  vg.gain.value = 60;
+  vib.connect(vg); // (cents: a reptile's warble)
+  for (const [ratio, wave, g] of [
+    [1, 'sawtooth', 0.5],
+    [1.007, 'sawtooth', 0.4],
+    [1.5, 'square', 0.12],
+  ] as const) {
+    const o = ctx.createOscillator(),
+      og = ctx.createGain();
+    o.type = wave;
+    og.gain.value = g;
+    o.frequency.setValueAtTime(f0[0][1] * ratio, t);
+    for (const [at, f] of f0.slice(1)) o.frequency.exponentialRampToValueAtTime(f * ratio, t + at);
+    vg.connect(o.detune);
+    o.connect(og).connect(voice);
+    o.start(t);
+    o.stop(end + 0.05);
   }
-  vib.start(t); vib.stop(end + .05);
+  vib.start(t);
+  vib.stop(end + 0.05);
   // the throat's rattle: the voice chopped many times a second
-  const rattle = ctx.createGain(), rat = ctx.createOscillator(), rg = ctx.createGain(); rattle.gain.value = .6; rat.type = 'square'; rat.frequency.setValueAtTime(34, t); rat.frequency.linearRampToValueAtTime(24, end); rg.gain.value = .4;
-  rat.connect(rg).connect(rattle.gain); rat.start(t); rat.stop(end);
+  const rattle = ctx.createGain(),
+    rat = ctx.createOscillator(),
+    rg = ctx.createGain();
+  rattle.gain.value = 0.6;
+  rat.type = 'square';
+  rat.frequency.setValueAtTime(34, t);
+  rat.frequency.linearRampToValueAtTime(24, end);
+  rg.gain.value = 0.4;
+  rat.connect(rg).connect(rattle.gain);
+  rat.start(t);
+  rat.stop(end);
   voice.connect(rattle).connect(shaper).connect(tone).connect(env).connect(s.out);
-  env.gain.setValueAtTime(0, t); env.gain.linearRampToValueAtTime(.8 * s.gain, t + .05); env.gain.setValueAtTime(.8 * s.gain, end - .3); env.gain.exponentialRampToValueAtTime(.0005, end);
-  noise(s, 'white', 'bandpass', 3400, 2400, 2, 0, .06, long * .9, .45);
-  const chest = s.ctx.createOscillator(), cg = s.ctx.createGain(); chest.frequency.setValueAtTime(75, t); chest.frequency.exponentialRampToValueAtTime(50, t + .7); // (its chest under it)
-  cg.gain.setValueAtTime(0, t); cg.gain.linearRampToValueAtTime(.35 * s.gain, t + .06); cg.gain.exponentialRampToValueAtTime(.0005, t + .8); chest.connect(cg).connect(s.out); chest.start(t); chest.stop(t + .85);
+  env.gain.setValueAtTime(0, t);
+  env.gain.linearRampToValueAtTime(0.8 * s.gain, t + 0.05);
+  env.gain.setValueAtTime(0.8 * s.gain, end - 0.3);
+  env.gain.exponentialRampToValueAtTime(0.0005, end);
+  noise(s, 'white', 'bandpass', 3400, 2400, 2, 0, 0.06, long * 0.9, 0.45);
+  const chest = s.ctx.createOscillator(),
+    cg = s.ctx.createGain();
+  chest.frequency.setValueAtTime(75, t);
+  chest.frequency.exponentialRampToValueAtTime(50, t + 0.7); // (its chest under it)
+  cg.gain.setValueAtTime(0, t);
+  cg.gain.linearRampToValueAtTime(0.35 * s.gain, t + 0.06);
+  cg.gain.exponentialRampToValueAtTime(0.0005, t + 0.8);
+  chest.connect(cg).connect(s.out);
+  chest.start(t);
+  chest.stop(t + 0.85);
 }
 /** At rest: a few quick dry clicks in its throat, a lizard's chitter. */
 function chitter(s: CreatureCall) {
   const n = 4 + Math.floor(s.r.next() * 3);
-  for (let i = 0; i < n; i++) noise(s, 'white', 'bandpass', s.r.range(1100, 1700), s.r.range(900, 1400), 5, i * s.r.range(.055, .075), .001, .028, .4 * (1 - i / (n + 2)));
+  for (let i = 0; i < n; i++)
+    noise(
+      s,
+      'white',
+      'bandpass',
+      s.r.range(1100, 1700),
+      s.r.range(900, 1400),
+      5,
+      i * s.r.range(0.055, 0.075),
+      0.001,
+      0.028,
+      0.4 * (1 - i / (n + 2)),
+    );
 }
 
 /** A sound played from its file (data/sounds.json), the synthesised `fallback` while the file loads or if it fails. */
-const fromFile = (name: string, fallback: (s: CreatureCall) => void) => (s: CreatureCall) => { if (!playSample(s.ctx, name, s.t, s.out, s.gain, s.r)) fallback(s); };
+const fromFile = (name: string, fallback: (s: CreatureCall) => void) => (s: CreatureCall) => {
+  if (!playSample(s.ctx, name, s.t, s.out, s.gain, s.r)) fallback(s);
+};
 
 /** Every creature sound, by the name its clip's events give (data/creatures.json). */
 export const CREATURE_SOUNDS: Record<string, (s: CreatureCall) => void> = {
-  pawFront: s => paw(s, .85),
-  pawRear: s => paw(s, 1),
+  pawFront: (s) => paw(s, 0.85),
+  pawRear: (s) => paw(s, 1),
   /** A breath drawn in before the roar: air rushing in, rising, and a low catch in the chest. */
-  inhale: s => { noise(s, 'pink', 'bandpass', 450, 1500, 1.2, 0, .5, .08, .35); noise(s, 'brown', 'lowpass', 160, 220, .8, .1, .4, .1, .4); },
-  roar: s => roar(s),
-  /** Both forepaws slammed down: two heavy drums a hair apart, a low thud under them, and stone grit skittering. */
-  slam: s => {
-    play(s.ctx, drum(s.ctx, 'taiko'), lowpass(s, 600), s.t, s.gain * 1.1, .8); play(s.ctx, drum(s.ctx, 'thump'), lowpass(s, 500), s.t + .025, s.gain, .7);
-    const g = s.ctx.createGain(), src = s.ctx.createBufferSource(); src.buffer = crackleLoop(s.ctx, 6); g.gain.setValueAtTime(.5 * s.gain, s.t + .02); g.gain.exponentialRampToValueAtTime(.0005, s.t + .7);
-    src.connect(g).connect(s.out); src.start(s.t + .02, s.r.next() * 5); src.stop(s.t + .75);
-    noise(s, 'brown', 'lowpass', 300, 120, .8, 0, .01, .6, .6);
+  inhale: (s) => {
+    noise(s, 'pink', 'bandpass', 450, 1500, 1.2, 0, 0.5, 0.08, 0.35);
+    noise(s, 'brown', 'lowpass', 160, 220, 0.8, 0.1, 0.4, 0.1, 0.4);
   },
-  clawFront: s => claws(s, .85),
-  clawRear: s => claws(s, 1),
-  hiss: s => hiss(s),
-  snap: s => snap(s),
-  shriek: s => shriek(s),
-  chitter: s => chitter(s),
+  roar: (s) => roar(s),
+  /** Both forepaws slammed down: two heavy drums a hair apart, a low thud under them, and stone grit skittering. */
+  slam: (s) => {
+    play(s.ctx, drum(s.ctx, 'taiko'), lowpass(s, 600), s.t, s.gain * 1.1, 0.8);
+    play(s.ctx, drum(s.ctx, 'thump'), lowpass(s, 500), s.t + 0.025, s.gain, 0.7);
+    const g = s.ctx.createGain(),
+      src = s.ctx.createBufferSource();
+    src.buffer = crackleLoop(s.ctx, 6);
+    g.gain.setValueAtTime(0.5 * s.gain, s.t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0005, s.t + 0.7);
+    src.connect(g).connect(s.out);
+    src.start(s.t + 0.02, s.r.next() * 5);
+    src.stop(s.t + 0.75);
+    noise(s, 'brown', 'lowpass', 300, 120, 0.8, 0, 0.01, 0.6, 0.6);
+  },
+  clawFront: (s) => claws(s, 0.85),
+  clawRear: (s) => claws(s, 1),
+  hiss: (s) => hiss(s),
+  snap: (s) => snap(s),
+  shriek: (s) => shriek(s),
+  chitter: (s) => chitter(s),
   // the Chameleon Wyvern's, from the owner's files (2026-10-05): a growl as it crouches, its screech, the club of its tail
   // slammed down (two variants); each falls back to the nearest synthesised sound
-  chameleonGrowl: fromFile('chameleonGrowl', s => roar(s, 1.2)),
-  chameleonScreech: fromFile('chameleonScreech', s => shriek(s, 1.2)),
-  clubSlam: fromFile('clubSlam', s => CREATURE_SOUNDS.slam(s)),
+  chameleonGrowl: fromFile('chameleonGrowl', (s) => roar(s, 1.2)),
+  chameleonScreech: fromFile('chameleonScreech', (s) => shriek(s, 1.2)),
+  clubSlam: fromFile('clubSlam', (s) => CREATURE_SOUNDS.slam(s)),
   // Kaelith's made model (2026-10-09): its sword's sweep, air cut in an arc; its kneel, armour and a knee on stone
-  swing: s => { noise(s, 'white', 'bandpass', 700, 2600, 2.5, 0, .12, .22, .5); noise(s, 'pink', 'bandpass', 300, 900, 1.5, .04, .1, .25, .3); },
-  kneel: s => {
-    play(s.ctx, drum(s.ctx, 'thump'), lowpass(s, 420), s.t, s.gain * .9, .75);
-    for (let i = 0; i < 3; i++) noise(s, 'white', 'bandpass', s.r.range(2400, 3800), s.r.range(1800, 2600), 9, .02 + i * s.r.range(.03, .06), .001, .09, s.r.range(.14, .24)); // (plates settling)
+  swing: (s) => {
+    noise(s, 'white', 'bandpass', 700, 2600, 2.5, 0, 0.12, 0.22, 0.5);
+    noise(s, 'pink', 'bandpass', 300, 900, 1.5, 0.04, 0.1, 0.25, 0.3);
+  },
+  kneel: (s) => {
+    play(s.ctx, drum(s.ctx, 'thump'), lowpass(s, 420), s.t, s.gain * 0.9, 0.75);
+    for (let i = 0; i < 3; i++)
+      noise(
+        s,
+        'white',
+        'bandpass',
+        s.r.range(2400, 3800),
+        s.r.range(1800, 2600),
+        9,
+        0.02 + i * s.r.range(0.03, 0.06),
+        0.001,
+        0.09,
+        s.r.range(0.14, 0.24),
+      ); // (plates settling)
   },
 };

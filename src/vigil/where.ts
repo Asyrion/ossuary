@@ -6,15 +6,28 @@ import type { School, SpellStatus } from '../magic/spellData';
 let here = false;
 /** The mage is at the Vigil. */
 export const atVigil = () => here;
-export function setAtVigil(on: boolean) { here = on; document.body.classList.toggle('vigil', on); }
+export function setAtVigil(on: boolean) {
+  here = on;
+  document.body.classList.toggle('vigil', on);
+}
 /** What the Vigil hears from elsewhere (set by vigil/place.ts): a bolt or beam of the mage's struck one of its barred ways. */
 export const vigilHooks = {
-  barStruck: (_rock: RockBox, _x: number, _z: number, _status?: Partial<Record<SpellStatus, number>>, _school?: School) => {}, // (`school`: a beam's own, M7 step 9)
+  barStruck: (
+    _rock: RockBox,
+    _x: number,
+    _z: number,
+    _status?: Partial<Record<SpellStatus, number>>,
+    _school?: School,
+  ) => {}, // (`school`: a beam's own, M7 step 9)
   /** M7 step 6 (vigil/shades.ts): a chained shade struck by a bolt or beam of the mage's (the school it carries, if any); a
       school landing on the ground at (x, z), reaching `r`; a glyph's blast there. */
   shadeStruck: (_x: number, _z: number, _school?: School) => {},
-  landed: (school: School | 'blast', x: number, z: number, r: number) => { for (const f of landers) f(school, x, z, r); },
+  landed: (school: School | 'blast', x: number, z: number, r: number) => {
+    for (const f of landers) f(school, x, z, r);
+  },
 };
 /** Who hears a school landing at the Vigil and in runs: the chained shades (M7 step 6), the barred ways (step 9). */
 const landers: ((school: School | 'blast', x: number, z: number, r: number) => void)[] = [];
-export const hearLanding = (f: (school: School | 'blast', x: number, z: number, r: number) => void) => { landers.push(f); };
+export const hearLanding = (f: (school: School | 'blast', x: number, z: number, r: number) => void) => {
+  landers.push(f);
+};

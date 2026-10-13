@@ -15,26 +15,50 @@ import { rune, type RuneId } from '../magic/runeData';
 
 const PI = Math.PI;
 const GLYPHS: Record<string, Stroke[]> = {
-  thrice: [L(0, -.75, 0, .05), ...poly(-.45, .65, 0, .05, .45, .65), L(0, .05, 0, .75)], // (one stem, three heads)
-  reprise: [...poly(-.35, .7, .25, .35, -.35, 0), ...poly(-.35, .15, .25, -.2, -.35, -.55)], // (the stroke cut twice)
-  seeking: [A(0, 0, .55, PI * .3, PI * 1.75), ...poly(.2, -.62, .39, -.39, .55, -.58), C(0, 0, .12)], // (a turn ending in a point)
-  wide: [L(-.7, 0, .7, 0), ...poly(-.42, .28, -.7, 0, -.42, -.28), ...poly(.42, .28, .7, 0, .42, -.28), L(0, .4, 0, -.4)], // (reaching both ways)
-  quicken: [...poly(.32, .72, -.3, .18, .3, -.18, -.32, -.72)], // (a bolt)
-  vein: [...poly(0, .72, -.38, -.05), ...poly(0, .72, .38, -.05), A(0, -.18, .38, PI * 1.05, PI * 1.95), L(0, .35, 0, -.3)], // (a drop)
-  lasting: [L(-.45, .65, .45, .65), L(-.45, -.65, .45, -.65), ...poly(-.38, .65, .38, -.65), ...poly(.38, .65, -.38, -.65)], // (an hourglass)
+  thrice: [L(0, -0.75, 0, 0.05), ...poly(-0.45, 0.65, 0, 0.05, 0.45, 0.65), L(0, 0.05, 0, 0.75)], // (one stem, three heads)
+  reprise: [...poly(-0.35, 0.7, 0.25, 0.35, -0.35, 0), ...poly(-0.35, 0.15, 0.25, -0.2, -0.35, -0.55)], // (the stroke cut twice)
+  seeking: [A(0, 0, 0.55, PI * 0.3, PI * 1.75), ...poly(0.2, -0.62, 0.39, -0.39, 0.55, -0.58), C(0, 0, 0.12)], // (a turn ending in a point)
+  wide: [
+    L(-0.7, 0, 0.7, 0),
+    ...poly(-0.42, 0.28, -0.7, 0, -0.42, -0.28),
+    ...poly(0.42, 0.28, 0.7, 0, 0.42, -0.28),
+    L(0, 0.4, 0, -0.4),
+  ], // (reaching both ways)
+  quicken: [...poly(0.32, 0.72, -0.3, 0.18, 0.3, -0.18, -0.32, -0.72)], // (a bolt)
+  vein: [
+    ...poly(0, 0.72, -0.38, -0.05),
+    ...poly(0, 0.72, 0.38, -0.05),
+    A(0, -0.18, 0.38, PI * 1.05, PI * 1.95),
+    L(0, 0.35, 0, -0.3),
+  ], // (a drop)
+  lasting: [
+    L(-0.45, 0.65, 0.45, 0.65),
+    L(-0.45, -0.65, 0.45, -0.65),
+    ...poly(-0.38, 0.65, 0.38, -0.65),
+    ...poly(0.38, 0.65, -0.38, -0.65),
+  ], // (an hourglass)
 };
 
 /** Rune `id`: a flat stone, rough at the edges, its glyph glowing; facing +z. */
 export function runeLook(id: RuneId) {
-  const def = rune(id), col = new THREE.Color(def.color), g = new THREE.Group();
-  const stone = new THREE.MeshStandardMaterial({ color: 0x5a524a, roughness: .95, flatShading: true });
-  const glowing = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 1.6, roughness: .5 });
-  const slab = new THREE.CylinderGeometry(1, 1.06, .2, 7, 1); // (seven sides, a little wider at its foot: a stone, not a coin)
+  const def = rune(id),
+    col = new THREE.Color(def.color),
+    g = new THREE.Group();
+  const stone = new THREE.MeshStandardMaterial({ color: 0x5a524a, roughness: 0.95, flatShading: true });
+  const glowing = new THREE.MeshStandardMaterial({ color: col, emissive: col, emissiveIntensity: 1.6, roughness: 0.5 });
+  const slab = new THREE.CylinderGeometry(1, 1.06, 0.2, 7, 1); // (seven sides, a little wider at its foot: a stone, not a coin)
   const p = slab.attributes.position as THREE.BufferAttribute;
-  for (let i = 0; i < p.count; i++) { const a = Math.atan2(p.getZ(i), p.getX(i)), k = 1 + Math.sin(a * 3 + 1.3) * .06 + Math.cos(a * 5) * .04; p.setX(i, p.getX(i) * k); p.setZ(i, p.getZ(i) * k * 1.12); }
+  for (let i = 0; i < p.count; i++) {
+    const a = Math.atan2(p.getZ(i), p.getX(i)),
+      k = 1 + Math.sin(a * 3 + 1.3) * 0.06 + Math.cos(a * 5) * 0.04;
+    p.setX(i, p.getX(i) * k);
+    p.setZ(i, p.getZ(i) * k * 1.12);
+  }
   slab.computeVertexNormals();
-  const body = new THREE.Mesh(slab, stone); body.rotation.x = PI / 2; g.add(body);
-  emblem(g, GLYPHS[def.icon] ?? GLYPHS.quicken, glowing, .22, .12, .95); // (bold: a 24 px icon keeps it)
+  const body = new THREE.Mesh(slab, stone);
+  body.rotation.x = PI / 2;
+  g.add(body);
+  emblem(g, GLYPHS[def.icon] ?? GLYPHS.quicken, glowing, 0.22, 0.12, 0.95); // (bold: a 24 px icon keeps it)
   return g;
 }
 
@@ -50,11 +74,23 @@ const chips = new Map<RuneId, THREE.Object3D>();
 export function runePickupLook(id: RuneId) {
   let t = chips.get(id);
   if (!t) {
-    const g = new THREE.Group(), f = new THREE.Group(); f.rotation.x = -TILT; g.add(f);
-    const stone = runeLook(id), col = new THREE.Color(rune(id).color).getHex(); stone.scale.setScalar(CFG.runeDrops.chip); f.add(stone);
-    stone.traverse(o => { const m = o as THREE.Mesh; if (!m.isMesh) return; const was = m.material as THREE.MeshStandardMaterial; m.material = was.emissiveIntensity > 1 ? glowTone(col) : tone(0x5a524a, .2); was.dispose(); });
-    g.add(glowShared(col, .75, .45));
-    chips.set(id, t = keep(g));
+    const g = new THREE.Group(),
+      f = new THREE.Group();
+    f.rotation.x = -TILT;
+    g.add(f);
+    const stone = runeLook(id),
+      col = new THREE.Color(rune(id).color).getHex();
+    stone.scale.setScalar(CFG.runeDrops.chip);
+    f.add(stone);
+    stone.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh) return;
+      const was = m.material as THREE.MeshStandardMaterial;
+      m.material = was.emissiveIntensity > 1 ? glowTone(col) : tone(0x5a524a, 0.2);
+      was.dispose();
+    });
+    g.add(glowShared(col, 0.75, 0.45));
+    chips.set(id, (t = keep(g)));
   }
   return t.clone();
 }

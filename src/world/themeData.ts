@@ -19,41 +19,97 @@ import type { FloorLook } from '../types';
     drowned      while the fight lasts, the drowned climb out of its river now and then, until the river is frozen
                  (M4.1, the ferry landing);
     garden       the garden grows: Overgrown holds longer on its foes (M5, the overgrown garden). */
-export type Twist = 'none' | 'risingBones' | 'pages' | 'sleepers' | 'caveIn' | 'blessing' | 'rime' | 'guardians' | 'drowned' | 'garden';
-export const TWISTS: Twist[] = ['none', 'risingBones', 'pages', 'sleepers', 'caveIn', 'blessing', 'rime', 'guardians', 'drowned', 'garden'];
+export type Twist =
+  'none' | 'risingBones' | 'pages' | 'sleepers' | 'caveIn' | 'blessing' | 'rime' | 'guardians' | 'drowned' | 'garden';
+export const TWISTS: Twist[] = [
+  'none',
+  'risingBones',
+  'pages',
+  'sleepers',
+  'caveIn',
+  'blessing',
+  'rime',
+  'guardians',
+  'drowned',
+  'garden',
+];
 /** Dressing scattered over free floor, which never blocks (M4.1 adds spilled obols and lamps on poles; M5 flowers). */
-export type ScatterKind = 'candles' | 'pages' | 'bones' | 'bedrolls' | 'embers' | 'moss' | 'glowmoss' | 'pebbles' | 'daylight' | 'stains' | 'rime' | 'leaves' | 'ropes' | 'coins' | 'lamps' | 'flowers';
-export const SCATTER_KINDS: ScatterKind[] = ['candles', 'pages', 'bones', 'bedrolls', 'embers', 'moss', 'glowmoss', 'pebbles', 'daylight', 'stains', 'rime', 'leaves', 'ropes', 'coins', 'lamps', 'flowers'];
+export type ScatterKind =
+  | 'candles'
+  | 'pages'
+  | 'bones'
+  | 'bedrolls'
+  | 'embers'
+  | 'moss'
+  | 'glowmoss'
+  | 'pebbles'
+  | 'daylight'
+  | 'stains'
+  | 'rime'
+  | 'leaves'
+  | 'ropes'
+  | 'coins'
+  | 'lamps'
+  | 'flowers';
+export const SCATTER_KINDS: ScatterKind[] = [
+  'candles',
+  'pages',
+  'bones',
+  'bedrolls',
+  'embers',
+  'moss',
+  'glowmoss',
+  'pebbles',
+  'daylight',
+  'stains',
+  'rime',
+  'leaves',
+  'ropes',
+  'coins',
+  'lamps',
+  'flowers',
+];
 
 type LookPatch = { [K in keyof FloorLook]?: Partial<FloorLook[K]> };
 export interface ThemeDef {
-  id: string; name: string; twist: Twist;
+  id: string;
+  name: string;
+  twist: Twist;
   /** Changes to the floor's look in this room. */ look?: LookPatch;
   /** How many of each dressing to scatter over its floor. */ scatter: Partial<Record<ScatterKind, number>>;
-  /** Rocks as stalagmites, tombs as embalmers' slabs. */ rock?: 'rock' | 'dripstone'; tomb?: 'tomb' | 'slab';
+  /** Rocks as stalagmites, tombs as embalmers' slabs. */ rock?: 'rock' | 'dripstone';
+  tomb?: 'tomb' | 'slab';
   /** The skulls in its niches watch: their eyes glow in the colour of the last spell cast there. */ watchers?: boolean;
 }
 
 export const THEME_DEFS = themesData as ThemeDef[];
-export const THEMES = new Map(THEME_DEFS.map(t => [t.id, t]));
+export const THEMES = new Map(THEME_DEFS.map((t) => [t.id, t]));
 
 /** A floor's look, changed where the theme says. */
 export function themedLook(look: FloorLook, theme?: ThemeDef): FloorLook {
   if (!theme?.look) return look;
   const out = { ...look } as Record<string, unknown>;
-  for (const [k, patch] of Object.entries(theme.look)) out[k] = { ...(look as unknown as Record<string, object>)[k], ...(patch as object) };
+  for (const [k, patch] of Object.entries(theme.look))
+    out[k] = { ...(look as unknown as Record<string, object>)[k], ...(patch as object) };
   return out as unknown as FloorLook;
 }
 
 /** Problems with the themes, the templates that name them and the floors that draw on them; empty when valid. */
-export function validateThemes(templates: { id: string; theme?: string; types: string[] }[], floors: { themes?: Record<string, number> }[], defs = THEME_DEFS): string[] {
-  const errs: string[] = [], ids = new Set<string>();
+export function validateThemes(
+  templates: { id: string; theme?: string; types: string[] }[],
+  floors: { themes?: Record<string, number> }[],
+  defs = THEME_DEFS,
+): string[] {
+  const errs: string[] = [],
+    ids = new Set<string>();
   for (const t of defs) {
-    if (ids.has(t.id)) errs.push(`theme "${t.id}" is listed twice`); ids.add(t.id);
+    if (ids.has(t.id)) errs.push(`theme "${t.id}" is listed twice`);
+    ids.add(t.id);
     if (!t.name) errs.push(`theme "${t.id}" needs a name`);
     if (!TWISTS.includes(t.twist)) errs.push(`theme "${t.id}" has unknown twist "${t.twist}"`);
-    for (const k of Object.keys(t.scatter ?? {})) if (!SCATTER_KINDS.includes(k as ScatterKind)) errs.push(`theme "${t.id}" scatters unknown "${k}"`);
-    const count = templates.filter(d => d.theme === t.id).length;
+    for (const k of Object.keys(t.scatter ?? {}))
+      if (!SCATTER_KINDS.includes(k as ScatterKind)) errs.push(`theme "${t.id}" scatters unknown "${k}"`);
+    const count = templates.filter((d) => d.theme === t.id).length;
     if (count < 2) errs.push(`theme "${t.id}" has ${count} templates, needs 2 or more`);
   }
   for (const d of templates) {
@@ -61,6 +117,9 @@ export function validateThemes(templates: { id: string; theme?: string; types: s
     if (!ids.has(d.theme)) errs.push(`template "${d.id}" names unknown theme "${d.theme}"`);
     if (!d.types.includes('normal')) errs.push(`template "${d.id}": only fights are themed`);
   }
-  floors.forEach((f, i) => { for (const id of Object.keys(f.themes ?? {})) if (!ids.has(id)) errs.push(`floor ${i + 1} draws on unknown theme "${id}"`); });
+  floors.forEach((f, i) => {
+    for (const id of Object.keys(f.themes ?? {}))
+      if (!ids.has(id)) errs.push(`floor ${i + 1} draws on unknown theme "${id}"`);
+  });
   return errs;
 }

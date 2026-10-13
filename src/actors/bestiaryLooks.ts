@@ -12,8 +12,30 @@ import { FLOOR3_LOOKS } from './fantasyFloor3';
 import { FLOOR4_LOOKS } from './fantasyFloor4';
 import { FLOOR5_LOOKS } from './fantasyFloor5';
 import { puffcap, frostJackalope } from './bestiaryBeasts';
-import { grimoireMimic, brineSerpent, phoenix, basilisk, griffin, radiantEye, harpy, shadowFox, hydra, manticore } from './bestiaryCreatures';
-import { puddleElemental, thunderhead, cinderDjinn, magmaOoze, saltGolem, rubbleGolem, lodestoneGolem, hearthGolem, glacierGolem, rubbleStone } from './bestiaryElementals';
+import {
+  grimoireMimic,
+  brineSerpent,
+  phoenix,
+  basilisk,
+  griffin,
+  radiantEye,
+  harpy,
+  shadowFox,
+  hydra,
+  manticore,
+} from './bestiaryCreatures';
+import {
+  puddleElemental,
+  thunderhead,
+  cinderDjinn,
+  magmaOoze,
+  saltGolem,
+  rubbleGolem,
+  lodestoneGolem,
+  hearthGolem,
+  glacierGolem,
+  rubbleStone,
+} from './bestiaryElementals';
 
 export type { Built };
 export type BestiaryKind = 'beast' | 'creature' | 'elemental';
@@ -56,8 +78,19 @@ export const BESTIARY_OPTIONS = [
   { id: 'dustPangolin', kind: 'beast', school: 'umbral', floor: 5, build: FLOOR5_LOOKS.dustPangolin },
   { id: 'frostJackalope', kind: 'beast', school: 'frost', floor: 5, build: frostJackalope },
   { id: 'manticore', kind: 'creature', school: 'umbral', floor: 5, build: manticore },
-] as const satisfies readonly { id: string; kind: BestiaryKind; school: School; floor: number; elite?: boolean; build: () => Built }[];
+] as const satisfies readonly {
+  id: string;
+  kind: BestiaryKind;
+  school: School;
+  floor: number;
+  elite?: boolean;
+  build: () => Built;
+}[];
 export type BestiaryOptionId = (typeof BESTIARY_OPTIONS)[number]['id'];
 /** Looks a foe wears that the gallery doesn't stand (data/foes.json's `look`, or its id): one beetle of the firefly swarm,
     a wasps' nest, a rubble golem's rolling stone. */
-export const FOE_LOOKS: Record<string, () => Built> = { fireflyBeetle: FLOOR1_LOOKS.fireflyBeetle, waspNest: FLOOR3_LOOKS.waspNest, rubbleStone };
+export const FOE_LOOKS: Record<string, () => Built> = {
+  fireflyBeetle: FLOOR1_LOOKS.fireflyBeetle,
+  waspNest: FLOOR3_LOOKS.waspNest,
+  rubbleStone,
+};

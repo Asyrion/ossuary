@@ -4,15 +4,23 @@
 import { SCHOOLS, type School } from './spellData';
 
 export interface Drink {
-  /** How much it holds before it breaks, and how much it has drunk. */ need: number; total: number;
-  /** What it drank of each school, and the school it drank last (ties go to it). */ by: Record<School, number>; last?: School;
+  /** How much it holds before it breaks, and how much it has drunk. */ need: number;
+  total: number;
+  /** What it drank of each school, and the school it drank last (ties go to it). */ by: Record<School, number>;
+  last?: School;
 }
 
-export const newDrink = (need: number): Drink => ({ need, total: 0, by: { ember: 0, frost: 0, storm: 0, hallow: 0, umbral: 0, verdant: 0 } });
+export const newDrink = (need: number): Drink => ({
+  need,
+  total: 0,
+  by: { ember: 0, frost: 0, storm: 0, hallow: 0, umbral: 0, verdant: 0 },
+});
 
 /** The ward drinks `amount` of `school`. Returns whether it is full now. */
 export function drink(d: Drink, school: School, amount: number) {
-  d.by[school] += amount; d.total += amount; d.last = school;
+  d.by[school] += amount;
+  d.total += amount;
+  d.last = school;
   return d.total >= d.need;
 }
 
@@ -21,10 +29,17 @@ export const fullness = (d: Drink) => Math.min(1, d.total / d.need);
 
 /** The school it drank most; of two drunk alike, the one it drank last, else the first in the schools' order. */
 export function mostDrunk(d: Drink): School {
-  const top = Math.max(...SCHOOLS.map(s => d.by[s]));
+  const top = Math.max(...SCHOOLS.map((s) => d.by[s]));
   if (d.last && d.by[d.last] === top) return d.last;
-  return SCHOOLS.find(s => d.by[s] === top) ?? SCHOOLS[0];
+  return SCHOOLS.find((s) => d.by[s] === top) ?? SCHOOLS[0];
 }
 
 /** The Wardling that rises from a ward full of each school (data/foes.json). */
-export const WARDLING = { ember: 'wardEmber', frost: 'wardFrost', storm: 'wardStorm', hallow: 'wardHallow', umbral: 'wardUmbral', verdant: 'wardVerdant' } as const satisfies Record<School, string>;
+export const WARDLING = {
+  ember: 'wardEmber',
+  frost: 'wardFrost',
+  storm: 'wardStorm',
+  hallow: 'wardHallow',
+  umbral: 'wardUmbral',
+  verdant: 'wardVerdant',
+} as const satisfies Record<School, string>;

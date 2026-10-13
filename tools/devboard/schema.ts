@@ -7,15 +7,22 @@ import { join } from 'node:path';
 /** Every `type X = 'a' | 'b' | Y` in src/ whose members are string literals or other such unions. */
 export function unions(root: string): Record<string, string[]> {
   const raw: Record<string, string[][]> = {};
-  const files = (dir: string): string[] => readdirSync(dir, { withFileTypes: true })
-    .flatMap(d => d.isDirectory() ? files(join(dir, d.name)) : d.name.endsWith('.ts') ? [join(dir, d.name)] : []);
+  const files = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((d) =>
+      d.isDirectory() ? files(join(dir, d.name)) : d.name.endsWith('.ts') ? [join(dir, d.name)] : [],
+    );
   for (const f of files(join(root, 'src'))) {
     // comments out first (they hold semicolons); a `//` inside a string only cuts that line, never a type
-    const text = readFileSync(f, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+    const text = readFileSync(f, 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
     for (const m of text.matchAll(/^export type (\w+) =([^;]*);/gm)) {
       const body = m[2];
-      const parts = body.split('|').map(s => s.trim()).filter(Boolean);
-      if (!parts.length || !parts.every(p => /^'[^']*'$/.test(p) || /^[A-Z]\w*$/.test(p))) continue;
+      const parts = body
+        .split('|')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (!parts.length || !parts.every((p) => /^'[^']*'$/.test(p) || /^[A-Z]\w*$/.test(p))) continue;
       (raw[m[1]] ??= []).push(parts);
     }
   }
@@ -30,7 +37,11 @@ export function unions(root: string): Record<string, string[]> {
       let ok = true;
       for (const p of parts) {
         if (p.startsWith("'")) vals.push(p.slice(1, -1));
-        else { const r = resolve(p, seen); if (r) vals.push(...r); else ok = false; }
+        else {
+          const r = resolve(p, seen);
+          if (r) vals.push(...r);
+          else ok = false;
+        }
       }
       if (ok) return (out[name] = [...new Set(vals)]);
     }

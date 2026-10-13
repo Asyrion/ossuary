@@ -13,15 +13,31 @@ export const noAttrs = (): Attrs => ({ vigor: 0, arcana: 0, will: 0, swiftness: 
 export const isAttr = (k: string): k is Attr => (ATTRS as readonly string[]).includes(k);
 
 /** What the points give, in the terms `computeStats` folds in: half containers, mana, and multipliers. */
-export interface AttrBonus { heartHalves: number; mana: number; regenMul: number; spellDamageMul: number; speedMul: number; fireDelayMul: number }
-export const NO_BONUS: AttrBonus = { heartHalves: 0, mana: 0, regenMul: 1, spellDamageMul: 1, speedMul: 1, fireDelayMul: 1 };
+export interface AttrBonus {
+  heartHalves: number;
+  mana: number;
+  regenMul: number;
+  spellDamageMul: number;
+  speedMul: number;
+  fireDelayMul: number;
+}
+export const NO_BONUS: AttrBonus = {
+  heartHalves: 0,
+  mana: 0,
+  regenMul: 1,
+  spellDamageMul: 1,
+  speedMul: 1,
+  fireDelayMul: 1,
+};
 
 export function attrBonus(a: Attrs, A = CFG.attributes): AttrBonus {
   return {
     heartHalves: Math.floor(a.vigor / A.vigor.pointsPerHalf),
-    mana: a.will * A.will.mana, regenMul: 1 + a.will * A.will.regen,
+    mana: a.will * A.will.mana,
+    regenMul: 1 + a.will * A.will.regen,
     spellDamageMul: 1 + a.arcana * A.arcana.spell,
-    speedMul: 1 + a.swiftness * A.swiftness.speed, fireDelayMul: Math.max(0, 1 - a.swiftness * A.swiftness.delay),
+    speedMul: 1 + a.swiftness * A.swiftness.speed,
+    fireDelayMul: Math.max(0, 1 - a.swiftness * A.swiftness.delay),
   };
 }
 

@@ -16,20 +16,41 @@ export const ID_RE = /^[A-Za-z][A-Za-z0-9_]*$/;
 const BACKUPS = join(tmpdir(), 'ossuary-devboard-backups');
 export const hashOf = (v: Json) => createHash('sha1').update(JSON.stringify(v)).digest('hex').slice(0, 16);
 
-export interface Entry { kind: string; src: number; key: string; id: string | null; label: string; hash: string; data: Json; n: number }
-interface Located { text: string; root: Node; col: Node; index: number; start: number; end: number; node: Node; keyStart?: number }
+export interface Entry {
+  kind: string;
+  src: number;
+  key: string;
+  id: string | null;
+  label: string;
+  hash: string;
+  data: Json;
+  n: number;
+}
+interface Located {
+  text: string;
+  root: Node;
+  col: Node;
+  index: number;
+  start: number;
+  end: number;
+  node: Node;
+  keyStart?: number;
+}
 
 export class Content {
   private undoStack: { id: number; file: string; before: string; after: string; what: string; at: number }[] = [];
-  private undoNext = 1;   // undo entries keep their id, so a list the page drew earlier still names the right one
+  private undoNext = 1; // undo entries keep their id, so a list the page drew earlier still names the right one
   constructor(readonly root: string) {}
 
   abs(file: string) {
-    const p = resolve(this.root, file), data = resolve(this.root, 'data');
+    const p = resolve(this.root, file),
+      data = resolve(this.root, 'data');
     if (!p.startsWith(data + sep)) throw new BadRequest(`refused path ${file}`);
     return p;
   }
-  read(file: string) { return readFileSync(this.abs(file), 'utf8'); }
+  read(file: string) {
+    return readFileSync(this.abs(file), 'utf8');
+  }
   kind(name: string): KindDef {
     const k = KINDS[name];
     if (!k) throw new BadRequest(`no kind ${name}`);
@@ -40,7 +61,8 @@ export class Content {
   dataFiles(dir = 'data'): string[] {
     const out: string[] = [];
     for (const f of readdirSync(join(this.root, dir))) {
-      const rel = `${dir}/${f}`, st = statSync(join(this.root, rel));
+      const rel = `${dir}/${f}`,
+        st = statSync(join(this.root, rel));
       if (st.isDirectory()) out.push(...this.dataFiles(rel));
       else if (f.endsWith('.json')) out.push(rel);
     }
@@ -48,7 +70,10 @@ export class Content {
   }
   signature() {
     const h = createHash('sha1');
-    for (const f of this.dataFiles()) { const st = statSync(join(this.root, f)); h.update(`${f}|${st.mtimeMs}|${st.size};`); }
+    for (const f of this.dataFiles()) {
+      const st = statSync(join(this.root, f));
+      h.update(`${f}|${st.mtimeMs}|${st.size};`);
+    }
     return h.digest('hex').slice(0, 16);
   }
 
@@ -57,25 +82,44 @@ export class Content {
   private collection(kind: KindDef, src: number, text?: string) {
     const s = kind.sources[src];
     if (!s) throw new BadRequest(`no source ${src}`);
-    const t = text ?? this.read(s.file), root = parse(t), col = nodeAt(root, s.path ?? []);
+    const t = text ?? this.read(s.file),
+      root = parse(t),
+      col = nodeAt(root, s.path ?? []);
     if (kind.shape === 'list' && col.kind !== 'arr') throw new Error(`${s.file}: expected a list`);
     if (kind.shape === 'map' && col.kind !== 'obj') throw new Error(`${s.file}: expected an object`);
     return { text: t, root, col };
   }
 
   entries(name: string): { entries: Entry[]; errors: string[] } {
-    const kind = this.kind(name), entries: Entry[] = [], errors: string[] = [];
+    const kind = this.kind(name),
+      entries: Entry[] = [],
+      errors: string[] = [];
     kind.sources.forEach((s, src) => {
       try {
         const { col } = this.collection(kind, src);
-        const list = kind.shape === 'map'
-          ? col.members!.filter(m => !kind.skip?.includes(m.key)).map(m => ({ key: m.key, node: m.node }))
-          : col.items!.map((node, i) => ({ key: kind.idKey ? String((node.value as Record<string, Json>)?.[kind.idKey] ?? i) : String(i), node }));
+        const list =
+          kind.shape === 'map'
+            ? col.members!.filter((m) => !kind.skip?.includes(m.key)).map((m) => ({ key: m.key, node: m.node }))
+            : col.items!.map((node, i) => ({
+                key: kind.idKey ? String((node.value as Record<string, Json>)?.[kind.idKey] ?? i) : String(i),
+                node,
+              }));
         list.forEach(({ key, node }, i) => {
           const id = kind.shape === 'map' ? key : kind.idKey ? key : null;
-          entries.push({ kind: name, src, key, id, n: i + 1, hash: hashOf(node.value), data: node.value, label: labelOf(kind, node.value, key, i) });
+          entries.push({
+            kind: name,
+            src,
+            key,
+            id,
+            n: i + 1,
+            hash: hashOf(node.value),
+            data: node.value,
+            label: labelOf(kind, node.value, key, i),
+          });
         });
-      } catch (e) { errors.push(`${s.file}: ${(e as Error).message}`); }
+      } catch (e) {
+        errors.push(`${s.file}: ${(e as Error).message}`);
+      }
     });
     return { entries, errors };
   }
@@ -83,12 +127,17 @@ export class Content {
   private locate(kind: KindDef, src: number, key: string, text?: string): Located {
     const { text: t, root, col } = this.collection(kind, src, text);
     if (kind.shape === 'map') {
-      const index = col.members!.findIndex(m => m.key === key);
-      if (index < 0) throw new Conflict(`"${key}" is no longer in ${kind.sources[src].file} (deleted or renamed elsewhere). Reload.`);
+      const index = col.members!.findIndex((m) => m.key === key);
+      if (index < 0)
+        throw new Conflict(
+          `"${key}" is no longer in ${kind.sources[src].file} (deleted or renamed elsewhere). Reload.`,
+        );
       const m = col.members![index];
       return { text: t, root, col, index, start: m.keyStart, end: m.node.end, node: m.node, keyStart: m.keyStart };
     }
-    const index = kind.idKey ? col.items!.findIndex(n => String((n.value as Record<string, Json>)?.[kind.idKey!]) === key) : Number(key);
+    const index = kind.idKey
+      ? col.items!.findIndex((n) => String((n.value as Record<string, Json>)?.[kind.idKey!]) === key)
+      : Number(key);
     const node = col.items![index];
     if (!node) throw new Conflict(`entry ${key} is no longer in ${kind.sources[src].file}. Reload.`);
     return { text: t, root, col, index, start: node.start, end: node.end, node };
@@ -110,10 +159,15 @@ export class Content {
 
   /** The new file text for a save, without writing it (for the diff preview too). */
   private saved(name: string, src: number, key: string, data: Json, hash: string, newKey?: string) {
-    const kind = this.kind(name), at = this.locate(kind, src, key);
-    if (hashOf(at.node.value) !== hash) throw new Conflict(`"${key}" changed in the file since you opened it (another session or a hand edit). Reload and try again.`);
+    const kind = this.kind(name),
+      at = this.locate(kind, src, key);
+    if (hashOf(at.node.value) !== hash)
+      throw new Conflict(
+        `"${key}" changed in the file since you opened it (another session or a hand edit). Reload and try again.`,
+      );
     const st = styleOf(at.text);
-    let body = patch(at.text, at.node, data, st), start = at.node.start;
+    let body = patch(at.text, at.node, data, st),
+      start = at.node.start;
     if (kind.shape === 'map' && newKey && newKey !== key) {
       this.checkNewId(name, newKey);
       this.refuseIfUsed(name, key, 'rename');
@@ -122,9 +176,16 @@ export class Content {
     }
     if (kind.shape === 'list' && kind.idKey) {
       const nid = String((data as Record<string, Json>)[kind.idKey] ?? '');
-      if (nid !== key) { this.checkNewId(name, nid); this.refuseIfUsed(name, key, 'rename'); }
+      if (nid !== key) {
+        this.checkNewId(name, nid);
+        this.refuseIfUsed(name, key, 'rename');
+      }
     }
-    return { file: kind.sources[src].file, before: at.text, after: at.text.slice(0, start) + body + at.text.slice(at.end) };
+    return {
+      file: kind.sources[src].file,
+      before: at.text,
+      after: at.text.slice(0, start) + body + at.text.slice(at.end),
+    };
   }
 
   save(name: string, src: number, key: string, data: Json, hash: string, newKey?: string) {
@@ -140,36 +201,51 @@ export class Content {
 
   /** A new entry, laid out like `like` (the entry it was duplicated from) or the collection's last entry. */
   create(name: string, src: number, data: Json, key?: string, like?: string) {
-    const kind = this.kind(name), { text, col } = this.collection(kind, src), st = styleOf(text);
+    const kind = this.kind(name),
+      { text, col } = this.collection(kind, src),
+      st = styleOf(text);
     let id = key ?? '';
     if (kind.shape === 'list' && kind.idKey) id = String((data as Record<string, Json>)?.[kind.idKey] ?? '');
     if (kind.shape === 'map' || kind.idKey) this.checkNewId(name, id);
-    const nodes = kind.shape === 'map' ? col.members!.map(m => m.node) : col.items!;
-    const starts = kind.shape === 'map' ? col.members!.map(m => m.keyStart) : nodes.map(n => n.start);
+    const nodes = kind.shape === 'map' ? col.members!.map((m) => m.node) : col.items!;
+    const starts = kind.shape === 'map' ? col.members!.map((m) => m.keyStart) : nodes.map((n) => n.start);
     const base = like != null ? this.locate(kind, src, like, text).node : nodes[nodes.length - 1];
     const body = base ? patch(text, base, data, st) : compact(data, st);
     let entry = body;
     if (kind.shape === 'map') {
-      const m = col.members!.find(x => x.node === base);
-      entry = JSON.stringify(id) + (m ? text.slice(m.keyStart + JSON.stringify(m.key).length, m.node.start) : ': ') + body;
+      const m = col.members!.find((x) => x.node === base);
+      entry =
+        JSON.stringify(id) + (m ? text.slice(m.keyStart + JSON.stringify(m.key).length, m.node.start) : ': ') + body;
     }
     let after: string;
     if (!nodes.length) after = text.slice(0, col.start + 1) + entry + text.slice(col.end - 1);
     else {
       const last = nodes[nodes.length - 1];
-      after = text.slice(0, last.end) + entrySep(text, starts, nodes.map(n => n.end), col) + entry + text.slice(last.end);
+      after =
+        text.slice(0, last.end) +
+        entrySep(
+          text,
+          starts,
+          nodes.map((n) => n.end),
+          col,
+        ) +
+        entry +
+        text.slice(last.end);
     }
     this.write(kind.sources[src].file, text, after, `create ${name} ${id || '#' + (nodes.length + 1)}`);
     return { key: kind.shape === 'map' || kind.idKey ? id : String(nodes.length) };
   }
 
   remove(name: string, src: number, key: string, hash: string) {
-    const kind = this.kind(name), at = this.locate(kind, src, key);
-    if (hashOf(at.node.value) !== hash) throw new Conflict(`"${key}" changed in the file since you opened it. Reload and try again.`);
+    const kind = this.kind(name),
+      at = this.locate(kind, src, key);
+    if (hashOf(at.node.value) !== hash)
+      throw new Conflict(`"${key}" changed in the file since you opened it. Reload and try again.`);
     if (kind.shape === 'map' || kind.idKey) this.refuseIfUsed(name, key, 'delete');
-    const starts = kind.shape === 'map' ? at.col.members!.map(m => m.keyStart) : at.col.items!.map(n => n.start);
-    const ends = kind.shape === 'map' ? at.col.members!.map(m => m.node.end) : at.col.items!.map(n => n.end);
-    const i = at.index, t = at.text;
+    const starts = kind.shape === 'map' ? at.col.members!.map((m) => m.keyStart) : at.col.items!.map((n) => n.start);
+    const ends = kind.shape === 'map' ? at.col.members!.map((m) => m.node.end) : at.col.items!.map((n) => n.end);
+    const i = at.index,
+      t = at.text;
     let after: string;
     if (starts.length === 1) after = t.slice(0, at.col.start + 1) + t.slice(at.col.end - 1);
     else if (i < starts.length - 1) after = t.slice(0, starts[i]) + t.slice(starts[i + 1]);
@@ -178,14 +254,18 @@ export class Content {
     return { deleted: key };
   }
 
-  undoList() { return this.undoStack.map((u) => ({ i: u.id, file: u.file, what: u.what, at: u.at })).reverse(); }
+  undoList() {
+    return this.undoStack.map((u) => ({ i: u.id, file: u.file, what: u.what, at: u.at })).reverse();
+  }
   undo(id: number) {
-    const i = this.undoStack.findIndex((u) => u.id === id), u = this.undoStack[i];
+    const i = this.undoStack.findIndex((u) => u.id === id),
+      u = this.undoStack[i];
     if (!u) throw new BadRequest('nothing to undo there');
     const now = this.read(u.file);
     if (now !== u.after) throw new Conflict(`${u.file} changed after that save, so it can't be undone safely.`);
     this.undoStack.splice(i, 1);
-    const p = this.abs(u.file), tmp = `${p}.devboard.tmp`;
+    const p = this.abs(u.file),
+      tmp = `${p}.devboard.tmp`;
     writeFileSync(tmp, u.before);
     renameSync(tmp, p);
     return { undone: u.what };
@@ -195,33 +275,56 @@ export class Content {
 
   private checkNewId(name: string, id: string) {
     if (!ID_RE.test(id)) throw new BadRequest(`"${id}" is not a valid id (a letter, then letters, digits or _).`);
-    if (this.entries(name).entries.some(e => e.id === id)) throw new BadRequest(`${KINDS[name].title}: "${id}" exists already.`);
+    if (this.entries(name).entries.some((e) => e.id === id))
+      throw new BadRequest(`${KINDS[name].title}: "${id}" exists already.`);
   }
 
   private refuseIfUsed(name: string, id: string, what: string) {
     const r = this.references(name, id);
     if (r.data.length || r.code.length)
-      throw new Conflict(`Can't ${what} "${id}": it is still used by ${[...r.data.map(x => x.where), ...r.code.map(x => x.file)].slice(0, 8).join(', ')}${r.data.length + r.code.length > 8 ? ' …' : ''}. Remove those uses first.`);
+      throw new Conflict(
+        `Can't ${what} "${id}": it is still used by ${[...r.data.map((x) => x.where), ...r.code.map((x) => x.file)].slice(0, 8).join(', ')}${r.data.length + r.code.length > 8 ? ' …' : ''}. Remove those uses first.`,
+      );
   }
 
   /** Where an id is used: in data (string values and object keys equal to it, outside the entry itself) and in code
       (the id as a quoted string in src/). */
   references(name: string, id: string) {
-    const kind = this.kind(name), data: { where: string; kind?: string; key?: string; src?: number }[] = [];
-    const own = kind.sources.map(s => ({ file: s.file, path: s.path ?? [] }));
+    const kind = this.kind(name),
+      data: { where: string; kind?: string; key?: string; src?: number }[] = [];
+    const own = kind.sources.map((s) => ({ file: s.file, path: s.path ?? [] }));
     for (const file of this.dataFiles()) {
       let v: Json;
-      try { v = JSON.parse(this.read(file)); } catch { continue; }
-      const self = (x: Json, path: string[]) => own.some(o => o.file === file && path.length === o.path.length + 1
-        && o.path.every((p, k) => p === path[k]) && entryKeyAt(kind, x, path[path.length - 1]) === id);
+      try {
+        v = JSON.parse(this.read(file));
+      } catch {
+        continue;
+      }
+      const self = (x: Json, path: string[]) =>
+        own.some(
+          (o) =>
+            o.file === file &&
+            path.length === o.path.length + 1 &&
+            o.path.every((p, k) => p === path[k]) &&
+            entryKeyAt(kind, x, path[path.length - 1]) === id,
+        );
       const walk = (x: Json, path: string[]) => {
-        if (typeof x === 'string') { if (x === id) data.push(hit(file, path)); return; }
-        if (Array.isArray(x)) { x.forEach((y, k) => { if (!self(y, [...path, String(k)])) walk(y, [...path, String(k)]); }); return; }
-        if (x && typeof x === 'object') for (const [k, y] of Object.entries(x)) {
-          if (self(y, [...path, k])) continue; // the entry itself
-          if (k === id) data.push(hit(file, [...path, k]));
-          walk(y, [...path, k]);
+        if (typeof x === 'string') {
+          if (x === id) data.push(hit(file, path));
+          return;
         }
+        if (Array.isArray(x)) {
+          x.forEach((y, k) => {
+            if (!self(y, [...path, String(k)])) walk(y, [...path, String(k)]);
+          });
+          return;
+        }
+        if (x && typeof x === 'object')
+          for (const [k, y] of Object.entries(x)) {
+            if (self(y, [...path, k])) continue; // the entry itself
+            if (k === id) data.push(hit(file, [...path, k]));
+            walk(y, [...path, k]);
+          }
       };
       walk(v, []);
     }
@@ -244,40 +347,59 @@ function entryKeyAt(kind: KindDef, x: Json, last: string) {
 function hit(file: string, path: string[]) {
   for (const [name, k] of Object.entries(KINDS)) {
     for (let src = 0; src < k.sources.length; src++) {
-      const s = k.sources[src], p = s.path ?? [];
+      const s = k.sources[src],
+        p = s.path ?? [];
       if (s.file !== file || path.length <= p.length || !p.every((x, i) => x === path[i])) continue;
       const key = path[p.length];
       if (k.skip?.includes(key)) continue;
-      return { where: `${k.title} › ${key}${path.length > p.length + 1 ? ' › ' + path.slice(p.length + 1).join('.') : ''}`, kind: name, key, src };
+      return {
+        where: `${k.title} › ${key}${path.length > p.length + 1 ? ' › ' + path.slice(p.length + 1).join('.') : ''}`,
+        kind: name,
+        key,
+        src,
+      };
     }
   }
   return { where: `${file} › ${path.join('.')}` };
 }
-function dedupe<T extends { where: string }>(xs: T[]) { const seen = new Set<string>(); return xs.filter(x => !seen.has(x.where) && seen.add(x.where)); }
+function dedupe<T extends { where: string }>(xs: T[]) {
+  const seen = new Set<string>();
+  return xs.filter((x) => !seen.has(x.where) && seen.add(x.where));
+}
 
 function walkTs(dir: string): string[] {
   if (!existsSync(dir)) return [];
-  return readdirSync(dir, { withFileTypes: true }).flatMap(d =>
-    d.isDirectory() ? walkTs(join(dir, d.name)) : d.name.endsWith('.ts') ? [join(dir, d.name)] : []);
+  return readdirSync(dir, { withFileTypes: true }).flatMap((d) =>
+    d.isDirectory() ? walkTs(join(dir, d.name)) : d.name.endsWith('.ts') ? [join(dir, d.name)] : [],
+  );
 }
 
 function labelOf(kind: KindDef, v: Json, key: string, i: number) {
   const o = v && typeof v === 'object' && !Array.isArray(v) ? v : {};
   if (kind.labelKey && typeof o[kind.labelKey] === 'string') return o[kind.labelKey] as string;
-  if (kind.labelFmt) return kind.labelFmt.replace(/\{(\w+)\}/g, (_, f: string) => f === 'n' ? String(i + 1)
-    : Array.isArray(o[f]) ? (o[f] as Json[]).join(' + ') : String(o[f] ?? ''));
+  if (kind.labelFmt)
+    return kind.labelFmt.replace(/\{(\w+)\}/g, (_, f: string) =>
+      f === 'n' ? String(i + 1) : Array.isArray(o[f]) ? (o[f] as Json[]).join(' + ') : String(o[f] ?? ''),
+    );
   return key;
 }
 
 /** A unified diff of two texts (whole lines, three lines of context). */
 export function diffLines(a: string, b: string, file: string): string {
-  const A = a.split('\n'), B = b.split('\n');
+  const A = a.split('\n'),
+    B = b.split('\n');
   let s = 0;
   while (s < A.length && s < B.length && A[s] === B[s]) s++;
-  let ea = A.length - 1, eb = B.length - 1;
-  while (ea >= s && eb >= s && A[ea] === B[eb]) { ea--; eb--; }
+  let ea = A.length - 1,
+    eb = B.length - 1;
+  while (ea >= s && eb >= s && A[ea] === B[eb]) {
+    ea--;
+    eb--;
+  }
   if (s > ea && s > eb) return '';
-  const from = Math.max(0, s - 3), toA = Math.min(A.length - 1, ea + 3), toB = Math.min(B.length - 1, eb + 3);
+  const from = Math.max(0, s - 3),
+    toA = Math.min(A.length - 1, ea + 3),
+    toB = Math.min(B.length - 1, eb + 3);
   const out = [`--- ${file}`, `+++ ${file}`, `@@ -${from + 1},${toA - from + 1} +${from + 1},${toB - from + 1} @@`];
   for (let k = from; k < s; k++) out.push(' ' + A[k]);
   for (let k = s; k <= ea; k++) out.push('-' + A[k]);
