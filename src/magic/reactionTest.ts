@@ -31,7 +31,8 @@ export const RECIPES: Record<Reaction, { dummies?: number; all?: Step; steps: St
 
 /** Set `r` off at (x, z): its dummies stand in a row there, and the first is given the statuses that make it. */
 export function setOffReaction(r: Reaction, x: number, z: number) {
-  const R = RECIPES[r], n = R.dummies ?? 1;
+  const R = RECIPES[r],
+    n = R.dummies ?? 1;
   const dummies = Array.from({ length: n }, (_, i) => makeEnemy('dummy', x + (i - (n - 1) / 2) * 1.6, z));
   for (const d of dummies) d.spawn = 0; // (no rising out of the floor: the statuses land at once)
   if (R.all) for (const d of dummies) inflict(d, R.all);

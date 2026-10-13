@@ -5,7 +5,9 @@ import type { Enemy } from '../types';
 
 let now: Enemy | undefined;
 /** `e` acts from now until `actAs()` (none). */
-export function actAs(e?: Enemy) { now = e; }
+export function actAs(e?: Enemy) {
+  now = e;
+}
 /** The foe acting now, if any. */
 export const actor = () => now;
 /** The kind of foe acting now (its id in data/foes.json), if any: its ground spares its own kind. */

@@ -14,8 +14,16 @@ export const WARD_SCHOOLS: readonly School[] = ['ember', 'frost', 'storm', 'hall
 /** The four wards' schools, all different: first the schools the mage holds (in the order given), then Ember and Hallow,
     then the rest; laid round the hall in an order `rnd` shuffles. A glyph's blast breaks any of them, so none is out of reach. */
 export function sealWards(held: readonly (School | null | undefined)[], rnd: () => number): School[] {
-  const order = [...held.filter((s): s is School => !!s && WARD_SCHOOLS.includes(s)), 'ember', 'hallow', ...WARD_SCHOOLS] as School[];
+  const order = [
+    ...held.filter((s): s is School => !!s && WARD_SCHOOLS.includes(s)),
+    'ember',
+    'hallow',
+    ...WARD_SCHOOLS,
+  ] as School[];
   const four = [...new Set(order)].slice(0, 4);
-  for (let i = four.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [four[i], four[j]] = [four[j], four[i]]; }
+  for (let i = four.length - 1; i > 0; i--) {
+    const j = Math.floor(rnd() * (i + 1));
+    [four[i], four[j]] = [four[j], four[i]];
+  }
   return four;
 }

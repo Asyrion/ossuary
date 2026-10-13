@@ -13,14 +13,15 @@ import { FLOORS } from '../world/generate';
 import { inflict } from '../magic/statusFx';
 import { SOUL_COLOR, soulToLose, type Soul } from './loot';
 
-
 /** How much likelier soul motes are in the loot here: the floor's `souls` (the deep floors give more). */
-export const soulsHere = () => (FLOORS[G.run.floor]?.souls ?? 1) * (player.stats.effects.has('soulLantern') ? CFG.artifacts.soulLantern.souls : 1); // (twice with the Ferryman's Lantern)
+export const soulsHere = () =>
+  (FLOORS[G.run.floor]?.souls ?? 1) * (player.stats.effects.has('soulLantern') ? CFG.artifacts.soulLantern.souls : 1); // (twice with the Ferryman's Lantern)
 
 /** Take a mote; false when the mage already holds as many as can be kept. */
 export function gainSoul(kind: Soul) {
   if (player.souls.length >= CFG.souls.max) return false;
-  player.souls.push(kind); renderHearts();
+  player.souls.push(kind);
+  renderHearts();
   return true;
 }
 
@@ -28,10 +29,16 @@ export function gainSoul(kind: Soul) {
 function spendSoul(): Soul | null {
   const i = soulToLose(player.souls);
   if (i < 0) return null;
-  const [kind] = player.souls.splice(i, 1); renderHearts();
-  burst(player.x, 1, player.z, SOUL_COLOR[kind], 14, 2.2, .05);
-  if (kind === 'black') { // it goes out in a spill of shadow over every foe in the room
-    for (const e of G.enemies) if (!e.dead && e.spawn <= 0 && !e.hidden) { inflict(e, { hex: CFG.souls.blackHex }); burst(e.x, .8, e.z, SOUL_COLOR.black, 6, 1.4, .04); }
+  const [kind] = player.souls.splice(i, 1);
+  renderHearts();
+  burst(player.x, 1, player.z, SOUL_COLOR[kind], 14, 2.2, 0.05);
+  if (kind === 'black') {
+    // it goes out in a spill of shadow over every foe in the room
+    for (const e of G.enemies)
+      if (!e.dead && e.spawn <= 0 && !e.hidden) {
+        inflict(e, { hex: CFG.souls.blackHex });
+        burst(e.x, 0.8, e.z, SOUL_COLOR.black, 6, 1.4, 0.04);
+      }
     Sfx.soulHex();
   }
   return kind;
@@ -48,18 +55,27 @@ export function guardHit(): Soul | null {
 export function burnSoul() {
   if (!spendSoul()) return false;
   Sfx.soulBurn();
-  if (!G.run.hinted.has('soulBurn')) { G.run.hinted.add('soulBurn'); toast(STR.toast.soulBurned, 3); }
+  if (!G.run.hinted.has('soulBurn')) {
+    G.run.hinted.add('soulBurn');
+    toast(STR.toast.soulBurned, 3);
+  }
   return true;
 }
 
 /** The end of a floor: each hallowed mote held gives back half a heart. */
 export function hallowedMend() {
-  const n = player.souls.filter(s => s === 'hallowed').length;
+  const n = player.souls.filter((s) => s === 'hallowed').length;
   if (!n || player.hp >= player.maxHp) return 0;
-  const before = player.hp; player.hp = Math.min(player.maxHp, player.hp + n); renderHearts();
-  burst(player.x, 1, player.z, SOUL_COLOR.hallowed, 12, 1.8, .05); Sfx.soulMend();
+  const before = player.hp;
+  player.hp = Math.min(player.maxHp, player.hp + n);
+  renderHearts();
+  burst(player.x, 1, player.z, SOUL_COLOR.hallowed, 12, 1.8, 0.05);
+  Sfx.soulMend();
   return player.hp - before;
 }
 
 /** A new run: no motes. */
-export function resetSouls() { player.souls = []; renderHearts(); }
+export function resetSouls() {
+  player.souls = [];
+  renderHearts();
+}

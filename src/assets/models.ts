@@ -12,52 +12,106 @@ import { MANIFEST, manifestFiles, type Manifest, type ModelEntry } from './asset
 import { wearTexel } from '../actors/texturePixel';
 
 export type AssetStatus = 'loaded' | 'missing' | 'failed' | 'off';
-export interface AssetInfo { where: string; file: string; status: AssetStatus; triangles?: number; note?: string }
+export interface AssetInfo {
+  where: string;
+  file: string;
+  status: AssetStatus;
+  triangles?: number;
+  note?: string;
+}
 type Group = 'props' | 'artifacts';
 
 const loader = new GLTFLoader();
-const models = new Map<string, THREE.Object3D>(), floors = new Map<string, HTMLImageElement>(), icons = new Map<string, string>();
+const models = new Map<string, THREE.Object3D>(),
+  floors = new Map<string, HTMLImageElement>(),
+  icons = new Map<string, string>();
 /** A coin's face as loaded: the image, and the colour round its edge (the coin's rim, for its edge in the room). */
-export interface CoinFace { img: HTMLImageElement; rim: number }
-const faces = new Map<string, CoinFace>(), coinIcons = new Map<string, string>();
-let info: AssetInfo[] = [], enabled = true, obol: string | null = null, coinOrder: string[] = [];
+export interface CoinFace {
+  img: HTMLImageElement;
+  rim: number;
+}
+const faces = new Map<string, CoinFace>(),
+  coinIcons = new Map<string, string>();
+let info: AssetInfo[] = [],
+  enabled = true,
+  obol: string | null = null,
+  coinOrder: string[] = [];
 
 /** Load everything the manifest names (or the one ?assets= points to). Never rejects. */
 export async function loadAssets(search = location.search) {
   const opt = new URLSearchParams(search).get('assets');
-  let manifest: Manifest = MANIFEST, base = `${import.meta.env.BASE_URL}assets/`;
+  let manifest: Manifest = MANIFEST,
+    base = `${import.meta.env.BASE_URL}assets/`;
   if (opt === 'off') enabled = false;
-  else if (opt && /^[\w./-]+\.json$/.test(opt) && !opt.includes('..')) { // (a path on this site only)
-    try { const res = await fetch(opt); if (!res.ok) throw new Error(`${res.status}`); manifest = await res.json() as Manifest; base = opt.replace(/[^/]*$/, ''); }
-    catch (e) { console.warn(`?assets=${opt}: the manifest could not be read (${String(e)}); using the game's own`); }
-  } else if (opt) console.warn(`?assets=${opt}: use off, or a manifest's path ending in .json`);
-  const files = manifestFiles(manifest); obol = manifest.obol ?? null;
-  coinOrder = files.filter(f => f.where.startsWith('coins.') && f.where.endsWith('.face')).map(f => f.where.split('.')[1]); // (the faces decode in any order)
-  if (!enabled) { info = files.map(f => ({ ...f, status: 'off' })); return; }
-  info = await Promise.all(files.map(async f => {
-    const url = base + f.file, [group, id] = f.where.split('.') as [string, string];
+  else if (opt && /^[\w./-]+\.json$/.test(opt) && !opt.includes('..')) {
+    // (a path on this site only)
     try {
-      if (group === 'props' || group === 'artifacts') {
-        const entry = (manifest[group] as Record<string, ModelEntry>)[id], buf = await fetchFile(url);
-        if (!buf) return missing(f);
-        const gltf = await loader.parseAsync(buf, url.replace(/[^/]*$/, ''));
-        if (entry.texel) await wearTexel(gltf.scene, base + entry.file, { file: base + entry.texel.file, glow: base + entry.texel.glow }, (m, mat) => {
-          // (its texture as pixel art, as every Tripo model wears it; both looks kept on its geometry, which every copy
-          // shares, for the dev menu's comparison)
-          m.geometry.userData.looks = { texel: mat, made: m.material }; (m.material as THREE.Material).userData.shared = true; m.material = mat;
-        }).catch(e => console.warn(`asset ${f.where}: its pixel-art texture could not be loaded (${String(e)}); it wears the texture as made`));
-        const { holder, triangles } = standUp(gltf.scene, entry);
-        models.set(f.where, holder);
-        return { ...f, status: 'loaded' as const, triangles };
+      const res = await fetch(opt);
+      if (!res.ok) throw new Error(`${res.status}`);
+      manifest = (await res.json()) as Manifest;
+      base = opt.replace(/[^/]*$/, '');
+    } catch (e) {
+      console.warn(`?assets=${opt}: the manifest could not be read (${String(e)}); using the game's own`);
+    }
+  } else if (opt) console.warn(`?assets=${opt}: use off, or a manifest's path ending in .json`);
+  const files = manifestFiles(manifest);
+  obol = manifest.obol ?? null;
+  coinOrder = files
+    .filter((f) => f.where.startsWith('coins.') && f.where.endsWith('.face'))
+    .map((f) => f.where.split('.')[1]); // (the faces decode in any order)
+  if (!enabled) {
+    info = files.map((f) => ({ ...f, status: 'off' }));
+    return;
+  }
+  info = await Promise.all(
+    files.map(async (f) => {
+      const url = base + f.file,
+        [group, id] = f.where.split('.') as [string, string];
+      try {
+        if (group === 'props' || group === 'artifacts') {
+          const entry = (manifest[group] as Record<string, ModelEntry>)[id],
+            buf = await fetchFile(url);
+          if (!buf) return missing(f);
+          const gltf = await loader.parseAsync(buf, url.replace(/[^/]*$/, ''));
+          if (entry.texel)
+            await wearTexel(
+              gltf.scene,
+              base + entry.file,
+              { file: base + entry.texel.file, glow: base + entry.texel.glow },
+              (m, mat) => {
+                // (its texture as pixel art, as every Tripo model wears it; both looks kept on its geometry, which every copy
+                // shares, for the dev menu's comparison)
+                m.geometry.userData.looks = { texel: mat, made: m.material };
+                (m.material as THREE.Material).userData.shared = true;
+                m.material = mat;
+              },
+            ).catch((e) =>
+              console.warn(
+                `asset ${f.where}: its pixel-art texture could not be loaded (${String(e)}); it wears the texture as made`,
+              ),
+            );
+          const { holder, triangles } = standUp(gltf.scene, entry);
+          models.set(f.where, holder);
+          return { ...f, status: 'loaded' as const, triangles };
+        }
+        const img = new Image();
+        img.src = url;
+        try {
+          await img.decode();
+        } catch {
+          return (await fetchFile(url)) ? failed(f, 'not an image') : missing(f);
+        }
+        if (group === 'floors') floors.set(id, img);
+        else if (group === 'coins') {
+          if (f.where.endsWith('.face')) faces.set(id, { img, rim: rimOf(img) });
+          else coinIcons.set(id, url);
+        } else icons.set(id, url);
+        return { ...f, status: 'loaded' as const };
+      } catch (e) {
+        return failed(f, String(e));
       }
-      const img = new Image(); img.src = url;
-      try { await img.decode(); } catch { return (await fetchFile(url)) ? failed(f, 'not an image') : missing(f); }
-      if (group === 'floors') floors.set(id, img);
-      else if (group === 'coins') { if (f.where.endsWith('.face')) faces.set(id, { img, rim: rimOf(img) }); else coinIcons.set(id, url); }
-      else icons.set(id, url);
-      return { ...f, status: 'loaded' as const };
-    } catch (e) { return failed(f, String(e)); }
-  }));
+    }),
+  );
 }
 /** A file's bytes, or null when it isn't there (a dev server answers a missing file with its page). */
 async function fetchFile(url: string) {
@@ -65,23 +119,35 @@ async function fetchFile(url: string) {
   if (!res.ok || /text\/html/.test(res.headers.get('content-type') ?? '')) return null;
   return res.arrayBuffer();
 }
-function missing(f: { where: string; file: string }): AssetInfo { console.warn(`asset ${f.where}: ${f.file} is missing; the placeholder stays`); return { ...f, status: 'missing' }; }
-function failed(f: { where: string; file: string }, note: string): AssetInfo { console.warn(`asset ${f.where}: ${f.file} could not be loaded (${note}); the placeholder stays`); return { ...f, status: 'failed', note }; }
+function missing(f: { where: string; file: string }): AssetInfo {
+  console.warn(`asset ${f.where}: ${f.file} is missing; the placeholder stays`);
+  return { ...f, status: 'missing' };
+}
+function failed(f: { where: string; file: string }, note: string): AssetInfo {
+  console.warn(`asset ${f.where}: ${f.file} could not be loaded (${note}); the placeholder stays`);
+  return { ...f, status: 'failed', note };
+}
 
 /** A model stood on the floor, centred, at its entry's height, turned and nudged as the entry says; shared. */
 function standUp(scene: THREE.Object3D, e: ModelEntry) {
   scene.updateMatrixWorld(true);
   const size = new THREE.Box3().setFromObject(scene).getSize(new THREE.Vector3());
-  scene.scale.setScalar(e.height / (size.y || 1)); scene.updateMatrixWorld(true);
-  const box = new THREE.Box3().setFromObject(scene), c = box.getCenter(new THREE.Vector3());
+  scene.scale.setScalar(e.height / (size.y || 1));
+  scene.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(scene),
+    c = box.getCenter(new THREE.Vector3());
   scene.position.set(scene.position.x - c.x, scene.position.y - box.min.y, scene.position.z - c.z);
-  const holder = new THREE.Group(); holder.add(scene); holder.rotation.y = e.yaw ?? 0;
+  const holder = new THREE.Group();
+  holder.add(scene);
+  holder.rotation.y = e.yaw ?? 0;
   if (e.offset) holder.position.set(...e.offset);
   holder.userData.height = e.height;
   let triangles = 0;
-  holder.traverse(o => {
-    const m = o as THREE.Mesh; if (!m.isMesh) return;
-    m.geometry.userData.shared = true; triangles += (m.geometry.index?.count ?? m.geometry.attributes.position.count) / 3;
+  holder.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (!m.isMesh) return;
+    m.geometry.userData.shared = true;
+    triangles += (m.geometry.index?.count ?? m.geometry.attributes.position.count) / 3;
     for (const mat of Array.isArray(m.material) ? m.material : [m.material]) mat.userData.shared = true;
   });
   return { holder, triangles: Math.round(triangles) };
@@ -93,7 +159,8 @@ function standUp(scene: THREE.Object3D, e: ModelEntry) {
 export function modelFor(group: Group, id: string): THREE.Object3D | null {
   const m = enabled ? models.get(`${group}.${id}`) : undefined;
   if (!m) return null;
-  const copy = m.clone(true); if (madeLook !== 'texel') wearLook(copy, madeLook);
+  const copy = m.clone(true);
+  if (madeLook !== 'texel') wearLook(copy, madeLook);
   return copy;
 }
 
@@ -102,38 +169,63 @@ export type MadeLook = 'texel' | 'made';
 let madeLook: MadeLook = 'texel';
 export const madeLookNow = () => madeLook;
 /** Whether any made asset loaded has its texture as pixel art (the switch has something to switch). */
-export const madeLooks = () => [...models.values()].some(m => { let has = false; m.traverse(o => { if ((o as THREE.Mesh).geometry?.userData.looks) has = true; }); return has; });
+export const madeLooks = () =>
+  [...models.values()].some((m) => {
+    let has = false;
+    m.traverse((o) => {
+      if ((o as THREE.Mesh).geometry?.userData.looks) has = true;
+    });
+    return has;
+  });
 function wearLook(root: THREE.Object3D, l: MadeLook) {
-  root.traverse(o => {
-    const m = o as THREE.Mesh, looks = m.geometry?.userData.looks as Record<MadeLook, THREE.Material> | undefined; if (!looks) return;
+  root.traverse((o) => {
+    const m = o as THREE.Mesh,
+      looks = m.geometry?.userData.looks as Record<MadeLook, THREE.Material> | undefined;
+    if (!looks) return;
     m.material = m.userData.sealedTint === undefined ? looks[l] : sealedMat(looks[l], m.userData.sealedTint); // (a rune-sealed urn keeps its stone)
   });
 }
 /** Draw the made assets under `roots` (the floor's rooms) and every one placed from now on in look `l`. */
-export function setMadeLook(l: MadeLook, roots: readonly THREE.Object3D[]) { madeLook = l; for (const r of roots) wearLook(r, l); }
+export function setMadeLook(l: MadeLook, roots: readonly THREE.Object3D[]) {
+  madeLook = l;
+  for (const r of roots) wearLook(r, l);
+}
 /** A floor look's painted tile, or null for the procedural floor. */
-export const floorTile = (look: string) => enabled ? floors.get(look) ?? null : null;
+export const floorTile = (look: string) => (enabled ? (floors.get(look) ?? null) : null);
 /** An artifact's painted icon (its URL), or null for the drawn one. */
-export const iconUrl = (id: string) => enabled ? icons.get(id) ?? null : null;
+export const iconUrl = (id: string) => (enabled ? (icons.get(id) ?? null) : null);
 
 /** A coin face's rim: the mean colour of its outermost drawn pixels. */
 function rimOf(img: HTMLImageElement) {
-  const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
-  const g = c.getContext('2d', { willReadFrequently: true }); if (!g) return 0x8a6a34;
-  g.drawImage(img, 0, 0); const { data, width: w, height: h } = g.getImageData(0, 0, c.width, c.height);
-  const r = Math.min(w, h) / 2, sum = [0, 0, 0]; let n = 0;
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    const i = (y * w + x) * 4, d = Math.hypot(x + .5 - w / 2, y + .5 - h / 2);
-    if (data[i + 3] > 128 && d > r - 2.5) { sum[0] += data[i]; sum[1] += data[i + 1]; sum[2] += data[i + 2]; n++; }
-  }
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth;
+  c.height = img.naturalHeight;
+  const g = c.getContext('2d', { willReadFrequently: true });
+  if (!g) return 0x8a6a34;
+  g.drawImage(img, 0, 0);
+  const { data, width: w, height: h } = g.getImageData(0, 0, c.width, c.height);
+  const r = Math.min(w, h) / 2,
+    sum = [0, 0, 0];
+  let n = 0;
+  for (let y = 0; y < h; y++)
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4,
+        d = Math.hypot(x + 0.5 - w / 2, y + 0.5 - h / 2);
+      if (data[i + 3] > 128 && d > r - 2.5) {
+        sum[0] += data[i];
+        sum[1] += data[i + 1];
+        sum[2] += data[i + 2];
+        n++;
+      }
+    }
   return n ? (Math.round(sum[0] / n) << 16) | (Math.round(sum[1] / n) << 8) | Math.round(sum[2] / n) : 0x8a6a34; // (sRGB bytes, as a hex colour is)
 }
 /** A coin's face (2026-10-02), or null when it isn't loaded (the obol built in code stays). */
-export const coinFace = (id: string) => enabled ? faces.get(id) ?? null : null;
+export const coinFace = (id: string) => (enabled ? (faces.get(id) ?? null) : null);
 /** A coin's icon (its URL), or null. */
-export const coinIconUrl = (id: string) => enabled ? coinIcons.get(id) ?? null : null;
+export const coinIconUrl = (id: string) => (enabled ? (coinIcons.get(id) ?? null) : null);
 /** The coins whose faces loaded, in the manifest's order (not the order they finished decoding in). */
-export const coinIds = () => enabled ? coinOrder.filter(id => faces.has(id)) : [];
+export const coinIds = () => (enabled ? coinOrder.filter((id) => faces.has(id)) : []);
 /** The face the manifest has the obols wear (data/assets.json `obol`), or null. */
 export const manifestObol = () => obol;
 
@@ -141,14 +233,20 @@ export const manifestObol = () => obol;
 const sealedMats = new Map<THREE.Material, THREE.Material>();
 function sealedMat(mat: THREE.Material, tint: number) {
   let t = sealedMats.get(mat);
-  if (!t) { t = mat.clone(); (t as THREE.MeshStandardMaterial).color?.multiply(new THREE.Color(tint)); t.userData.shared = true; sealedMats.set(mat, t); }
+  if (!t) {
+    t = mat.clone();
+    (t as THREE.MeshStandardMaterial).color?.multiply(new THREE.Color(tint));
+    t.userData.shared = true;
+    sealedMats.set(mat, t);
+  }
   return t;
 }
 export function sealedLook(model: THREE.Object3D, tint: number) {
-  model.traverse(o => {
-    const m = o as THREE.Mesh; if (!m.isMesh) return;
+  model.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (!m.isMesh) return;
     m.userData.sealedTint = tint; // (wearLook tints the other look the same)
-    m.material = Array.isArray(m.material) ? m.material.map(t => sealedMat(t, tint)) : sealedMat(m.material, tint);
+    m.material = Array.isArray(m.material) ? m.material.map((t) => sealedMat(t, tint)) : sealedMat(m.material, tint);
   });
   return model;
 }
@@ -156,5 +254,7 @@ export function sealedLook(model: THREE.Object3D, tint: number) {
 /** Every asset named, with how it went. */
 export const assetList = (): readonly AssetInfo[] => info;
 /** Whether loaded assets are used (the dev menu turns them off to compare with the placeholders). */
-export const assetsOn = () => enabled && info.some(i => i.status === 'loaded');
-export function setAssetsOn(on: boolean) { enabled = on && info.some(i => i.status === 'loaded'); }
+export const assetsOn = () => enabled && info.some((i) => i.status === 'loaded');
+export function setAssetsOn(on: boolean) {
+  enabled = on && info.some((i) => i.status === 'loaded');
+}

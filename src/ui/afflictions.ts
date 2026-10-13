@@ -17,14 +17,47 @@ import { gainMana } from '../magic/spells';
 import { potionFx } from '../items/potionFx';
 import { POTIONS } from '../items/alchemyData';
 
-export type Affliction = 'hexed' | 'chill' | 'stone' | 'dim' | 'web' | 'ink' | 'snag' | 'slide' | 'drawn' | 'sapped' | 'jelly'
-  | 'ember' | 'frost' | 'free' | 'echo' | 'giant' | 'unseen' | 'reversed' | 'remedy';
+export type Affliction =
+  | 'hexed'
+  | 'chill'
+  | 'stone'
+  | 'dim'
+  | 'web'
+  | 'ink'
+  | 'snag'
+  | 'slide'
+  | 'drawn'
+  | 'sapped'
+  | 'jelly'
+  | 'ember'
+  | 'frost'
+  | 'free'
+  | 'echo'
+  | 'giant'
+  | 'unseen'
+  | 'reversed'
+  | 'remedy';
 /** Each one's colour (its school's light where it has one; M5's, the potion's that left it). */
 const COLOR: Record<Affliction, string> = {
-  hexed: '#b784ff', chill: '#a8d8ff', stone: '#b8b0a4', dim: '#8a6aa8', web: '#d8d0e8', ink: '#8a72c8', snag: '#c8c0b0',
-  slide: '#9fd0ee', drawn: '#ffd27a', sapped: '#9a7ad8', jelly: '#7ae070',
-  ember: POTIONS.liquidEmber.color, frost: POTIONS.frostbrew.color, free: POTIONS.bottledStorm.color, echo: POTIONS.echoes.color,
-  giant: POTIONS.giants.color, unseen: '#9a82d0', reversed: '#a070c8', remedy: POTIONS.bitterRemedy.color,
+  hexed: '#b784ff',
+  chill: '#a8d8ff',
+  stone: '#b8b0a4',
+  dim: '#8a6aa8',
+  web: '#d8d0e8',
+  ink: '#8a72c8',
+  snag: '#c8c0b0',
+  slide: '#9fd0ee',
+  drawn: '#ffd27a',
+  sapped: '#9a7ad8',
+  jelly: '#7ae070',
+  ember: POTIONS.liquidEmber.color,
+  frost: POTIONS.frostbrew.color,
+  free: POTIONS.bottledStorm.color,
+  echo: POTIONS.echoes.color,
+  giant: POTIONS.giants.color,
+  unseen: '#9a82d0',
+  reversed: '#a070c8',
+  remedy: POTIONS.bitterRemedy.color,
 };
 
 /** A hexing blow took `n` mana (M4: a Hex Imp's shot; M4.5: a hydra's venom, a raven's caw, a manticore's spikes): the
@@ -33,19 +66,36 @@ const COLOR: Record<Affliction, string> = {
     gives it back (`hexGiveBack`). */
 export function hexDrained(n: number, from?: { x: number; z: number; dead?: boolean }) {
   if (n <= 0) return;
-  player.hexed = CFG.afflict.hexShow; player.drained = Math.round(n);
-  player.hexDebt = Math.round(n); player.hexDebtUntil = G.simClock + CFG.curve.hexDebt;
+  player.hexed = CFG.afflict.hexShow;
+  player.drained = Math.round(n);
+  player.hexDebt = Math.round(n);
+  player.hexDebtUntil = G.simClock + CFG.curve.hexDebt;
   floatText(player.x, 1.7, player.z, `−${Math.round(n)}`, 0xb784ff, 40);
-  if (from) { // (motes from the mage to the thrower, one after another, following it if it moves)
-    const sx = player.x, sz = player.z, k = CFG.curve.trail;
-    for (let i = 1; i <= k; i++) after(i * CFG.curve.trailStep, () => { if (from.dead) return; const t = i / k; burst(sx + (from.x - sx) * t, 1 - .4 * t, sz + (from.z - sz) * t, 0xb784ff, 2, .6, .035); });
+  if (from) {
+    // (motes from the mage to the thrower, one after another, following it if it moves)
+    const sx = player.x,
+      sz = player.z,
+      k = CFG.curve.trail;
+    for (let i = 1; i <= k; i++)
+      after(i * CFG.curve.trailStep, () => {
+        if (from.dead) return;
+        const t = i / k;
+        burst(sx + (from.x - sx) * t, 1 - 0.4 * t, sz + (from.z - sz) * t, 0xb784ff, 2, 0.6, 0.035);
+      });
   }
-  const bar = document.getElementById('mana'); if (bar) { bar.classList.add('hexed'); setTimeout(() => bar.classList.remove('hexed'), 420); }
+  const bar = document.getElementById('mana');
+  if (bar) {
+    bar.classList.add('hexed');
+    setTimeout(() => bar.classList.remove('hexed'), 420);
+  }
 }
 
 /** The afflictions holding the mage now, in the order they show. */
 export function afflictions(): Affliction[] {
-  const out: Affliction[] = [], x = player.x, z = player.z, stuck = stuckIn(x, z);
+  const out: Affliction[] = [],
+    x = player.x,
+    z = player.z,
+    stuck = stuckIn(x, z);
   if (player.hexed > 0) out.push('hexed');
   if (player.chill > 0) out.push('chill');
   if (player.stone > 0) out.push('stone');
@@ -58,36 +108,66 @@ export function afflictions(): Affliction[] {
   if (jellyAt(x, z) && !player.stats.effects.has('float')) out.push('jelly'); // (M5: the jelly serpent's)
   // M5: what a potion drunk leaves on the mage, while it lasts
   const f = potionFx;
-  if (f.ember > 0) out.push('ember'); if (f.frost > 0) out.push('frost'); if (f.free > 0) out.push('free'); if (f.echo > 0) out.push('echo');
-  if (f.giant > 0) out.push('giant'); if (f.unseen > 0) out.push('unseen'); if (f.reversed > 0) out.push('reversed'); if (G.run.remedy) out.push('remedy');
+  if (f.ember > 0) out.push('ember');
+  if (f.frost > 0) out.push('frost');
+  if (f.free > 0) out.push('free');
+  if (f.echo > 0) out.push('echo');
+  if (f.giant > 0) out.push('giant');
+  if (f.unseen > 0) out.push('unseen');
+  if (f.reversed > 0) out.push('reversed');
+  if (G.run.remedy) out.push('remedy');
   return out;
 }
 
-let shown = '', lineUntil = 0;
+let shown = '',
+  lineUntil = 0;
 /** Every frame: the chips, written only when they change; and the first time in a run each affliction comes, its line,
     one at a time (several coming at once wait their turn, each long enough to read). */
 export function updateAfflictions() {
   const now = afflictions();
-  if (G.simClock >= lineUntil && !toastShowing()) for (const a of now) { // (a line already showing, a shrine's or a room's, isn't cut short)
-    const why = STR.afflict.why[a]; if (!why || G.run.hinted.has(`afflict:${a}`)) continue;
-    G.run.hinted.add(`afflict:${a}`); toast(why, CFG.afflict.lineShow); lineUntil = G.simClock + CFG.afflict.lineShow; break;
-  }
-  const key = now.join(' ') + (player.hexed > 0 ? `:${player.drained}` : '') + (potionFx.free > 0 ? `:${potionFx.free}` : '');
+  if (G.simClock >= lineUntil && !toastShowing())
+    for (const a of now) {
+      // (a line already showing, a shrine's or a room's, isn't cut short)
+      const why = STR.afflict.why[a];
+      if (!why || G.run.hinted.has(`afflict:${a}`)) continue;
+      G.run.hinted.add(`afflict:${a}`);
+      toast(why, CFG.afflict.lineShow);
+      lineUntil = G.simClock + CFG.afflict.lineShow;
+      break;
+    }
+  const key =
+    now.join(' ') + (player.hexed > 0 ? `:${player.drained}` : '') + (potionFx.free > 0 ? `:${potionFx.free}` : '');
   if (key === shown) return;
   shown = key;
-  const box = document.getElementById('afflict'); if (!box) return;
-  box.innerHTML = now.map(a => `<span style="--c:${COLOR[a]}">${a === 'hexed' ? STR.afflict.hexed(player.drained) : a === 'free' ? STR.afflict.free(potionFx.free) : STR.afflict.label[a]}</span>`).join('');
+  const box = document.getElementById('afflict');
+  if (!box) return;
+  box.innerHTML = now
+    .map(
+      (a) =>
+        `<span style="--c:${COLOR[a]}">${a === 'hexed' ? STR.afflict.hexed(player.drained) : a === 'free' ? STR.afflict.free(potionFx.free) : STR.afflict.label[a]}</span>`,
+    )
+    .join('');
 }
 /** A new run: the chips start empty. */
-export function resetAfflictions() { shown = ''; lineUntil = 0; const box = document.getElementById('afflict'); if (box) box.innerHTML = ''; }
+export function resetAfflictions() {
+  shown = '';
+  lineUntil = 0;
+  const box = document.getElementById('afflict');
+  if (box) box.innerHTML = '';
+}
 
 /** A Hallow spell cast (M4.9): if a hex took mana a moment ago, the light gives it back, in gold over the mage, and the
     first time in a run a line says so. Returns what it gave back. */
 export function hexGiveBack() {
   const n = player.hexDebt;
   if (!(n > 0) || G.simClock > player.hexDebtUntil) return 0;
-  player.hexDebt = 0; gainMana(n);
-  floatText(player.x, 1.7, player.z, `+${n}`, 0xffe6a0, 40); burst(player.x, .9, player.z, 0xffe6a0, 10, 1.6, .04);
-  if (!G.run.hinted.has('hexBack')) { G.run.hinted.add('hexBack'); line(STR.curve.giveBack, CFG.afflict.lineShow); }
+  player.hexDebt = 0;
+  gainMana(n);
+  floatText(player.x, 1.7, player.z, `+${n}`, 0xffe6a0, 40);
+  burst(player.x, 0.9, player.z, 0xffe6a0, 10, 1.6, 0.04);
+  if (!G.run.hinted.has('hexBack')) {
+    G.run.hinted.add('hexBack');
+    line(STR.curve.giveBack, CFG.afflict.lineShow);
+  }
   return n;
 }

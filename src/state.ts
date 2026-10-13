@@ -33,48 +33,76 @@ export const G = {
   /** The current run: its seed, which floor (0-based), the seeded streams for artifacts (loot) and for what
       rooms and enemies drop (drops); this floor's boss and the bosses the run has met. */
   run: {
-    seed: '', floor: 0, loot: new Rng(0), drops: new Rng(0), seen: new Set<string>(), plan: null as FloorPlan | null,
-    boss: 'warden' as BossType, bossesMet: [] as BossType[],
+    seed: '',
+    floor: 0,
+    loot: new Rng(0),
+    drops: new Rng(0),
+    seen: new Set<string>(),
+    plan: null as FloorPlan | null,
+    boss: 'warden' as BossType,
+    bossesMet: [] as BossType[],
     /** Artifacts offered on this floor, and guaranteed sources still to come (see items/artifacts.ts). */
     budget: { used: 0, reserved: 0 },
     /** Foes put to rest towards the Leech Jar's next half heart. */ leech: 0,
     /** The floor on which the Sexton's Keyring last opened a vault for free. */ freeVault: -1,
     /** The floor on which the Last Rite last refused a killing blow (M4.1). */ riteFloor: -99,
     /** Items and containers already described by a lore card this run (ui/lore.ts). */ loreSeen: new Set<string>(),
-    /** Hints already given this run (a heart or a mana vial left lying at full health or mana). */ hinted: new Set<string>(),
+    /** Hints already given this run (a heart or a mana vial left lying at full health or mana). */ hinted:
+      new Set<string>(),
     /** The seeded stream for grimoire pages, and the spells given up this run, sold back at later libraries. */
-    pages: new Rng(0), forgotten: [] as string[],
+    pages: new Rng(0),
+    forgotten: [] as string[],
     /** M4.2: the seeded stream for the Wandering Merchant (when the merchant comes, what is for sale), and whether the merchant has come. */
-    wanderer: new Rng(0), wandererMet: false,
-    /** M4.2: the floor Fen-Nex was bound on (it grows a stage a floor), while it is. */ fennexFrom: undefined as number | undefined,
-    /** M4.6: the transformations formed this run, in order (the latest wears its look; every gift stays). */ transforms: [] as TransformId[],
+    wanderer: new Rng(0),
+    wandererMet: false,
+    /** M4.2: the floor Fen-Nex was bound on (it grows a stage a floor), while it is. */ fennexFrom: undefined as
+      number | undefined,
+    /** M4.6: the transformations formed this run, in order (the latest wears its look; every gift stays). */ transforms:
+      [] as TransformId[],
     /** M4.6: the stage of Azyrion's arc reached this run (each said once in a line). */ arc: 0,
     /** M4.11: the schools the mage has been attuned to this run (each said once). */ attuned: [] as string[],
     /** M5: the run's bottles (each potion's shape and draught, shuffled on the seed), the potions identified this run,
         the seeded stream for which potion or reagent a drop is, and the one for whether a foe or an object leaves a reagent
         (its own, so the other drops replay as before). */
-    bottles: bottlesFor(0), identified: [] as PotionId[], alchemy: new Rng(0), reagents: new Rng(0), runes: new Rng(0), // (runes: M6 step 8, its own too)
+    bottles: bottlesFor(0),
+    identified: [] as PotionId[],
+    alchemy: new Rng(0),
+    reagents: new Rng(0),
+    runes: new Rng(0), // (runes: M6 step 8, its own too)
     /** M6 step 9: the second sockets Second Socket has opened at waystones (its rank above this: one owed). */ socketsOpened: 0,
     /** M5: the curse whose price a Bitter Remedy lifts until the floor ends. */ remedy: null as string | null,
     /** M5 step 7: the jelly serpent, in its vat until it breaks out (once a run at most), then slain or not; and whether it
         is restless this run (rolled on the seed: it breaks out by itself after the first brew in its laboratory). */
-    serpent: 'caged' as 'caged' | 'out' | 'slain', restless: false,
+    serpent: 'caged' as 'caged' | 'out' | 'slain',
+    restless: false,
     /** M6: insight gained this run (the GDD's XP), the level it reached, the levels whose choice still waits (the level-up
         screen, step 4), and the potions' kinds used this run (each pays the first time). */
-    insight: 0, level: 1, pending: 0, potionsUsed: [] as PotionId[],
+    insight: 0,
+    level: 1,
+    pending: 0,
+    potionsUsed: [] as PotionId[],
     /** M6 step 2: the points spent on each attribute this run. */ attrs: noAttrs(),
     /** M6 step 3: the boons taken (each one's rank), the spells cast by school (the deal leans to them), a pledge (a school
         boon taken before any spell of its school: the next library holds a page of it), and how many deals were drawn. */
-    boons: {} as Record<string, number>, casts: {} as Partial<Record<School, number>>, pledge: null as School | null, deals: 0,
-    /** M6 step 5: hex stacks spent towards Thirsting Hex's next mend, and how often each boon has acted (the tests). */ thirst: 0, acted: {} as Record<string, number>,
+    boons: {} as Record<string, number>,
+    casts: {} as Partial<Record<School, number>>,
+    pledge: null as School | null,
+    deals: 0,
+    /** M6 step 5: hex stacks spent towards Thirsting Hex's next mend, and how often each boon has acted (the tests). */ thirst: 0,
+    acted: {} as Record<string, number>,
     /** M6 step 6 (Afterglow): the statuses the next cantrip casts carry from the last spell, how many casts are left, its colour. */
     afterglow: null as { status: Partial<Record<SpellStatus, number>>; left: number; color: number } | null,
     /** M7 step 4: what the run did that the save keeps: the bosses put to rest (Kaelith among them, `kaelith`), and what struck
-        the mage last (a foe's or boss's id, or what in the room hurt it). */ bosses: 0, kaelith: false, struck: null as string | null,
+        the mage last (a foe's or boss's id, or what in the room hurt it). */ bosses: 0,
+    kaelith: false,
+    struck: null as string | null,
     /** M7 step 7: the bosses put to rest, by id (the run's record keeps them for the townspeople). */ fell: [] as string[],
     /** M7 step 6: the chained shades met on the floors so far, those freed in this run (Dust at its end) and those bound in an
-        earlier run who walk with the mage through this one (vigil/shadeHelp.ts). */ shadesMet: [] as string[], freed: [] as string[], walking: [] as string[],
-    /** M7 step 9: whose candle burns in the chapel for this run (its blessing; vigil/gifts.ts). */ blessing: null as string | null,
+        earlier run who walk with the mage through this one (vigil/shadeHelp.ts). */ shadesMet: [] as string[],
+    freed: [] as string[],
+    walking: [] as string[],
+    /** M7 step 9: whose candle burns in the chapel for this run (its blessing; vigil/gifts.ts). */ blessing: null as
+      string | null,
   },
   shake: 0,
   simClock: 0,
@@ -83,7 +111,14 @@ export const G = {
 /** Dev menu switches (ui/devMenu.ts): god mode keeps the mage from harm; endless mana never runs out; `moveClip`
     tries the walk clip for all movement (with its feet in step, or at a natural pace), to compare with the run;
     `doors` moves every door off the middle of its edge where it fits, or none, in the floors made from now on. */
-export const DEV = { /** M4.6: Azyrion's arc forced to a stage (the dev menu), else from what is held. */ arc: undefined as number | undefined, god: false, mana: false, fps: false, moveClip: 'run' as 'run' | 'walkInStep' | 'walkNatural', doors: 'data' as 'data' | 'shifted' | 'middle',
+export const DEV = {
+  /** M4.6: Azyrion's arc forced to a stage (the dev menu), else from what is held. */ arc: undefined as
+    number | undefined,
+  god: false,
+  mana: false,
+  fps: false,
+  moveClip: 'run' as 'run' | 'walkInStep' | 'walkNatural',
+  doors: 'data' as 'data' | 'shifted' | 'middle',
   /** The room kit in code (M3.5 step 3's proof: the fire objects, the crypt's floor and walls); off keeps the old looks. */
   roomKit: true,
   /** The minimap marks finished rooms (2026-10-02, the owner's ask): the dev menu turns it off to compare. */
@@ -104,24 +139,74 @@ export const DEV = { /** M4.6: Azyrion's arc forced to a stage (the dev menu), e
   /** M6 step 4: levels choose for themselves, without the level-up screen: 'choose' takes the first boon dealt and spends on
       the attribute with fewest points (`?autolevel=1`, the dev menu, the balance bot); 'skip' lets them pass with nothing
       taken (`?autolevel=skip`: the browser tests, so a fight cleared changes none of the mage's numbers). */
-  autoLevel: false as false | 'choose' | 'skip' };
+  autoLevel: false as false | 'choose' | 'skip',
+};
 
 export const player: Player = {
-  dead: false, x: 0, z: 0, vx: 0, vz: 0, r: CFG.hero.radius, hp: 6, maxHp: 6, invuln: 0, fireCd: 0, eye: 1, yawA: 0, blessed: 0,
-  squash: 0, bob: 0, focus: START_FOCUS, items: [], heartsPaid: 0, cleansed: [], stats: computeStats(START_FOCUS, [], CFG.hero),
-  coins: 0, keys: 0, glyphs: 0, souls: [], still: 0,
-  mana: CFG.hero.mana, spells: [null, null], spellCd: [0, 0], aim: { x: 0, z: -1 }, dim: 0, chill: 0, stone: 0, pull: { x: 0, z: 0 }, hexed: 0, drained: 0, hexDebt: 0, hexDebtUntil: 0, drawn: 0,
-  belt: [], beltAt: 0, reagents: {}, sockets: [{ size: 1, runes: [] }, { size: 1, runes: [] }], runes: [],
+  dead: false,
+  x: 0,
+  z: 0,
+  vx: 0,
+  vz: 0,
+  r: CFG.hero.radius,
+  hp: 6,
+  maxHp: 6,
+  invuln: 0,
+  fireCd: 0,
+  eye: 1,
+  yawA: 0,
+  blessed: 0,
+  squash: 0,
+  bob: 0,
+  focus: START_FOCUS,
+  items: [],
+  heartsPaid: 0,
+  cleansed: [],
+  stats: computeStats(START_FOCUS, [], CFG.hero),
+  coins: 0,
+  keys: 0,
+  glyphs: 0,
+  souls: [],
+  still: 0,
+  mana: CFG.hero.mana,
+  spells: [null, null],
+  spellCd: [0, 0],
+  aim: { x: 0, z: -1 },
+  dim: 0,
+  chill: 0,
+  stone: 0,
+  pull: { x: 0, z: 0 },
+  hexed: 0,
+  drained: 0,
+  hexDebt: 0,
+  hexDebtUntil: 0,
+  drawn: 0,
+  belt: [],
+  beltAt: 0,
+  reagents: {},
+  sockets: [
+    { size: 1, runes: [] },
+    { size: 1, runes: [] },
+  ],
+  runes: [],
 };
 
 /* Gameplay timers run on simulation time (not setTimeout), so they pause with the game and
    advance under __game.sim(). They tick while the state is 'play' or 'dying'. */
 const timers: { t: number; fn: () => void }[] = [];
-export function after(seconds: number, fn: () => void) { timers.push({ t: seconds, fn }); }
-export function clearTimers() { timers.length = 0; }
+export function after(seconds: number, fn: () => void) {
+  timers.push({ t: seconds, fn });
+}
+export function clearTimers() {
+  timers.length = 0;
+}
 export function updateTimers(dt: number) {
   for (let i = timers.length - 1; i >= 0; i--) {
-    const tm = timers[i]; tm.t -= dt;
-    if (tm.t <= 0) { timers.splice(i, 1); tm.fn(); }
+    const tm = timers[i];
+    tm.t -= dt;
+    if (tm.t <= 0) {
+      timers.splice(i, 1);
+      tm.fn();
+    }
   }
 }

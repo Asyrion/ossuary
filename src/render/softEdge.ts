@@ -7,7 +7,9 @@
     blur is, out to its faintest, which is where an alpha map's edge lies: three box blurs, or a kernel cut at 3σ, leave
     square corners there). */
 export function kernelFor(sigma: number): Float32Array {
-  const r = Math.ceil(4 * sigma), k = new Float32Array(2 * r + 1); let sum = 0;
+  const r = Math.ceil(4 * sigma),
+    k = new Float32Array(2 * r + 1);
+  let sum = 0;
   for (let i = -r; i <= r; i++) sum += k[i + r] = Math.exp(-(i * i) / (2 * sigma * sigma));
   for (let i = 0; i < k.length; i++) k[i] /= sum;
   return k;
@@ -15,12 +17,16 @@ export function kernelFor(sigma: number): Float32Array {
 
 /** One pass of the kernel along rows or columns, from `src` into `dst` (both `w` × `h`); outside is 0. */
 function pass(src: Float32Array, dst: Float32Array, w: number, h: number, k: Float32Array, horizontal: boolean) {
-  const r = (k.length - 1) / 2, lines = horizontal ? h : w, len = horizontal ? w : h, step = horizontal ? 1 : w;
+  const r = (k.length - 1) / 2,
+    lines = horizontal ? h : w,
+    len = horizontal ? w : h,
+    step = horizontal ? 1 : w;
   for (let l = 0; l < lines; l++) {
     const base = horizontal ? l * w : l;
     for (let i = 0; i < len; i++) {
       let acc = 0;
-      for (let j = Math.max(0, i - r), e = Math.min(len - 1, i + r); j <= e; j++) acc += src[base + j * step] * k[j - i + r];
+      for (let j = Math.max(0, i - r), e = Math.min(len - 1, i + r); j <= e; j++)
+        acc += src[base + j * step] * k[j - i + r];
       dst[base + i * step] = acc;
     }
   }
@@ -30,10 +36,16 @@ function pass(src: Float32Array, dst: Float32Array, w: number, h: number, k: Flo
     alpha blurred, and every pixel left with any (a whole step of 8 bits) in that colour, as the canvas hands a blurred
     shape to WebGL, unpremultiplied (a three.js alpha map reads the green, so its outline reaches as far). */
 export function softenAlpha(rgba: Uint8ClampedArray, w: number, h: number, sigma: number) {
-  const a = new Float32Array(w * h), b = new Float32Array(w * h), fill = [0, 0, 0];
-  for (let i = 0; i < w * h; i++) { a[i] = rgba[i * 4 + 3]; if (a[i] === 255) for (let c = 0; c < 3; c++) fill[c] = rgba[i * 4 + c]; }
+  const a = new Float32Array(w * h),
+    b = new Float32Array(w * h),
+    fill = [0, 0, 0];
+  for (let i = 0; i < w * h; i++) {
+    a[i] = rgba[i * 4 + 3];
+    if (a[i] === 255) for (let c = 0; c < 3; c++) fill[c] = rgba[i * 4 + c];
+  }
   const k = kernelFor(sigma);
-  pass(a, b, w, h, k, true); pass(b, a, w, h, k, false);
+  pass(a, b, w, h, k, true);
+  pass(b, a, w, h, k, false);
   for (let i = 0; i < w * h; i++) {
     const v = Math.round(a[i]);
     for (let c = 0; c < 3; c++) rgba[i * 4 + c] = v ? fill[c] : 0;
@@ -43,6 +55,8 @@ export function softenAlpha(rgba: Uint8ClampedArray, w: number, h: number, sigma
 
 /** Blur what has been drawn on `g`'s canvas so far (as `softenAlpha`), through a context read on the CPU. */
 export function softenCanvas(g: CanvasRenderingContext2D, sigma: number) {
-  const { width: w, height: h } = g.canvas, img = g.getImageData(0, 0, w, h);
-  softenAlpha(img.data, w, h, sigma); g.putImageData(img, 0, 0);
+  const { width: w, height: h } = g.canvas,
+    img = g.getImageData(0, 0, w, h);
+  softenAlpha(img.data, w, h, sigma);
+  g.putImageData(img, 0, 0);
 }

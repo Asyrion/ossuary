@@ -2,52 +2,113 @@
    which were re-tuned for three.js physically based lighting. */
 export const CFG = {
   hero: {
-    speed: 4.3, radius: 0.3, height: 1.3, hearts: 3, damage: 3.5, fireDelay: 0.36,
-    shotSpeed: 8.8, range: 6.8, invuln: 1.0, shotInherit: 0.3, stripBase: true, mana: 100,
-    runAnimSpeed: 3.0,  // playback speed of the run clip at full speed; raise if feet slide
+    speed: 4.3,
+    radius: 0.3,
+    height: 1.3,
+    hearts: 3,
+    damage: 3.5,
+    fireDelay: 0.36,
+    shotSpeed: 8.8,
+    range: 6.8,
+    invuln: 1.0,
+    shotInherit: 0.3,
+    stripBase: true,
+    mana: 100,
+    runAnimSpeed: 3.0, // playback speed of the run clip at full speed; raise if feet slide
     walkAnimSpeed: 10.5, // playback speed the walk clip would need at full speed (it only plays when slow)
-    walkToRun: [.12, .3] as [number, number], // between these fractions of full speed the walk hands over to the run
-    walkNatural: 2.2,   // dev menu comparison: the walk's playback at full speed at a natural pace (the feet slide)
-    drinkSpeed: 1.4,    // playback speed of the draught when the mage is healed
+    walkToRun: [0.12, 0.3] as [number, number], // between these fractions of full speed the walk hands over to the run
+    walkNatural: 2.2, // dev menu comparison: the walk's playback at full speed at a natural pace (the feet slide)
+    drinkSpeed: 1.4, // playback speed of the draught when the mage is healed
     fidget: [9, 16] as [number, number], // seconds standing still before the mage eats something
   },
   // mana (GDD: Magic system): regained each second out of a fight and in one, and for each foe the cantrip
   // puts to rest (a mana vial's worth is in data/loot.json); a foe marked by the Ferryman's Toll pays at most every
   // `tollEvery` seconds (M4.1)
-  mana: { calm: 4, fight: 1, perKill: 3, tollEvery: .2 },
+  mana: { calm: 4, fight: 1, perKill: 3, tollEvery: 0.2 },
   enemy: {
     // a plain walker with no school, in no floor's fights (the foes in code fill them, M4): the browser tests' target
     rotling: { hp: 10, r: 0.32, speed: 1.35 },
-    dummy: { hp: 1000, r: 0.34, speed: 0 },  // the dev menu's training dummy: stands still, never falls
+    dummy: { hp: 1000, r: 0.34, speed: 0 }, // the dev menu's training dummy: stands still, never falls
     // bosses (each floor's boss block in data/floors.json scales them)
     warden: { hp: 120, r: 0.78, speed: 1.15 },
-    abbess: { hp: 120, r: 0.7, speed: .95, dive: 2.7, under: 1.8, weak: 'storm' as const, resist: 'frost' as const }, // dive: speed of her ripple; under: seconds below
+    abbess: { hp: 120, r: 0.7, speed: 0.95, dive: 2.7, under: 1.8, weak: 'storm' as const, resist: 'frost' as const }, // dive: speed of her ripple; under: seconds below
     pyre: { hp: 135, r: 0.72, speed: 1.25, charge: 8.2, weak: 'frost' as const, resist: 'ember' as const },
     // floors 4 and 5 (M4.1), built in code, with a weakness and a resistance like the foes: the hart's charge speed; the
     // angler's pull on the mage (units a second), how long it pulls, how close its bite reaches, and the share of its
     // health that, struck off while it pulls, makes it flinch
-    hart: { hp: 150, r: 0.85, speed: 1.35, charge: 8.6, weak: 'umbral' as const, resist: 'hallow' as const,
-      spokes: { every: .16, count: 4, hurtCount: 6, speed: 3.1 }, stamp: { count: 18, speed: 3, later: 2.6 } }, // its spokes of light, and its stamp's ring (a second below half health)
-    angler: { hp: 165, r: 0.9, speed: 1.1, pull: 2.6, pullTime: 2.4, reach: 1.7, flinch: .06, weak: 'hallow' as const, resist: 'umbral' as const,
-      bite: 2, spit: { count: 3, spread: .55, speed: 3.3, hex: 10 }, ring: { count: 16, speed: 2.7, later: 2.3 } }, // half hearts a bite; its hexing volleys; its breath's ring
+    hart: {
+      hp: 150,
+      r: 0.85,
+      speed: 1.35,
+      charge: 8.6,
+      weak: 'umbral' as const,
+      resist: 'hallow' as const,
+      spokes: { every: 0.16, count: 4, hurtCount: 6, speed: 3.1 },
+      stamp: { count: 18, speed: 3, later: 2.6 },
+    }, // its spokes of light, and its stamp's ring (a second below half health)
+    angler: {
+      hp: 165,
+      r: 0.9,
+      speed: 1.1,
+      pull: 2.6,
+      pullTime: 2.4,
+      reach: 1.7,
+      flinch: 0.06,
+      weak: 'hallow' as const,
+      resist: 'umbral' as const,
+      bite: 2,
+      spit: { count: 3, spread: 0.55, speed: 3.3, hex: 10 },
+      ring: { count: 16, speed: 2.7, later: 2.3 },
+    }, // half hearts a bite; its hexing volleys; its breath's ring
     // the War-Tiger (M4.2, from the Eda lore): a statue until the mage comes within `wake` (or strikes it); its `plates` let
     // through only `guard` of a blow at first, more with each lost, until all of it; a plate falls to a glyph's blast, a
     // Shatter (a shock on its rimed plates) or `wear` damage turned; each lost makes it `plateSpeed` faster (below half
     // health, `hurtSpeed` times as fast). Its pounce
     // (a tell, then a leap at where the mage stood, throwing frost shards on landing), its swipe (a tell, then a fan of
     // claws fanning out from its paw), its roar (a ring; a second below half health)
-    tiger: { hp: 110, r: .85, speed: 1.5, weak: 'storm' as const, resist: 'frost' as const, wake: 3, plates: 4, guard: .4, wear: 30, plateSpeed: .14, hurtSpeed: 1.15,
-      pounce: { tell: .6, speed: 8.5, time: .9, shards: 8, shardSpeed: 3, chill: 1 }, swipe: { reach: 2, tell: .55, count: 5, spread: 1.1, speed: 3.6 },
-      roar: { tell: .7, count: 14, speed: 2.9, later: 2.5 } },
+    tiger: {
+      hp: 110,
+      r: 0.85,
+      speed: 1.5,
+      weak: 'storm' as const,
+      resist: 'frost' as const,
+      wake: 3,
+      plates: 4,
+      guard: 0.4,
+      wear: 30,
+      plateSpeed: 0.14,
+      hurtSpeed: 1.15,
+      pounce: { tell: 0.6, speed: 8.5, time: 0.9, shards: 8, shardSpeed: 3, chill: 1 },
+      swipe: { reach: 2, tell: 0.55, count: 5, spread: 1.1, speed: 3.6 },
+      roar: { tell: 0.7, count: 14, speed: 2.9, later: 2.5 },
+    },
     // the Pillar Dragon (M4.2, from the Eda lore): `r` is its head's, all a bolt can reach; it comes down from `enter` high
     // onto a coil round a pillar's top (`coil`), leans out `lean` beyond it, waits `settle` (then `pause` between breaths),
     // breathes `breaths` times (fire and frost by turns: a tell, then a stream sweeping across the mage), then flies to
     // another pillar (`nearest`: how often the one nearest the mage). Knocked off, it lies `down` seconds, taking `open`
     // times each blow, then climbs at `climb`. Pillars it raises rise `depth` in `time`; below half health a `ring` as it lands,
     // and its waits `hurtQuick` times as long
-    dragon: { hp: 115, r: .6, speed: 0, hurtQuick: .75, weak: 'umbral' as const, resist: 'ember' as const, enter: 5, lean: 1.1, settle: 1.1, pause: 1, breaths: 2, down: 4, open: 1.5, climb: 5,
-      coil: { radius: .62, turns: 1.25, drop: 1.2 }, fly: { speed: 7, lift: 1.4, nearest: .65 }, rise: { time: 1.2, depth: 2 },
-      breath: { tell: .7, time: 1, every: .08, speed: 4.2, sweep: .75 }, ring: { count: 12, speed: 2.8 } },
+    dragon: {
+      hp: 115,
+      r: 0.6,
+      speed: 0,
+      hurtQuick: 0.75,
+      weak: 'umbral' as const,
+      resist: 'ember' as const,
+      enter: 5,
+      lean: 1.1,
+      settle: 1.1,
+      pause: 1,
+      breaths: 2,
+      down: 4,
+      open: 1.5,
+      climb: 5,
+      coil: { radius: 0.62, turns: 1.25, drop: 1.2 },
+      fly: { speed: 7, lift: 1.4, nearest: 0.65 },
+      rise: { time: 1.2, depth: 2 },
+      breath: { tell: 0.7, time: 1, every: 0.08, speed: 4.2, sweep: 0.75 },
+      ring: { count: 12, speed: 2.8 },
+    },
     // the Twin Guardians (M4.2, from the Eda lore): each has `hp`; they stand `apart`, statues until the mage comes within
     // `wake` of either; the shielding twin goes back to its post (at `guardSpeed`),
     // its drinking ward holding `wardNeed`, `wardSize` across; they trade the shield every `swap` seconds; the striker pauses `pause` between
@@ -60,8 +121,26 @@ export const CFG = {
     // jelly it crawls at `crawl`. A shock through its jelly, or the jelly freezing, traps it at the surface for `trapped`
     // seconds (a shock hurts it `shock` too); below half health it surfaces with a `ring` of jelly. `flood`: the tiles of
     // jelly poured round it where it has none (a floor's boss)
-    serpent: { hp: 95, r: .55, speed: 0, weak: 'storm' as const, resist: 'frost' as const, swim: 3.4, under: 2.2, hurtQuick: .7, crawl: 1.1, reach: 3.4, tell: .6, open: 1.5, trapped: 3, shock: 6, flood: 34,
-      lunge: { tell: .4, speed: 8.5, time: .42 }, spit: { count: 3, every: .28, flight: .7, spread: 1.6, puddles: 6 }, ring: { count: 10, speed: 2.6 } },
+    serpent: {
+      hp: 95,
+      r: 0.55,
+      speed: 0,
+      weak: 'storm' as const,
+      resist: 'frost' as const,
+      swim: 3.4,
+      under: 2.2,
+      hurtQuick: 0.7,
+      crawl: 1.1,
+      reach: 3.4,
+      tell: 0.6,
+      open: 1.5,
+      trapped: 3,
+      shock: 6,
+      flood: 34,
+      lunge: { tell: 0.4, speed: 8.5, time: 0.42 },
+      spit: { count: 3, every: 0.28, flight: 0.7, spread: 1.6, puddles: 6 },
+      ring: { count: 10, speed: 2.6 },
+    },
     // Kaelith, the Shadow Sentinel (M7 step 2, docs/M7-plan.md): the Seal's boss, in three phases (actors/kaelith.ts). It keeps
     // `keep` from the mage; its sweep (a tell, then `count` blades over `spread`, each hexing `hex`); its volleys (`count`
     // shots, `every` apart, each hexing); its shadow step (`sink` down, `gone` below, a ring of `cuts` as it rises `near` to
@@ -70,13 +149,50 @@ export const CFG = {
     // `crackEvery` s (at most `hordeMax` alive); all shut, it `reel`s, taking `open` times each blow. Phase 3 (`phases[1]`):
     // the dark; every `pullEvery` s it pulls the mage (`pull` units a second for `pullTime`) unless they stand within
     // `candleSafe` of a lit candle stand, then a ring of `ring` blades; its waits `quick` times as long
-    kaelith: { hp: 210, r: .8, speed: 1.3, weak: 'hallow' as const, resist: 'umbral' as const, keep: 2.2, phases: [2 / 3, 1 / 3], quick: .7,
-      sweep: { tell: .7, count: 9, spread: 1.7, speed: 4, hex: 6 }, volley: { tell: .45, count: 3, spread: .5, speed: 4.2, every: .4, hex: 8 },
-      step: { sink: .5, gone: .8, rise: .4, near: 2.2, far: 4.2, light: 2.4, cuts: 8, cutSpeed: 3.2 },
-      guard: .25, holdVolley: 2.4, crackEvery: 5, hordeMax: 4, reel: 4, open: 1.5,
-      pullEvery: 7, pullTime: 2, pull: 2.4, candleSafe: 2.2, ring: { count: 16, speed: 3.2 }, kneelClear: 4.4 }, // (kneelClear: how far from the hall's middle it kneels, clear of the way out and the gifts)
-    twins: { hp: 65, r: .9, speed: 1.1, keep: 1.5, shieldContact: 1, weak: 'frost' as const, resist: 'hallow' as const, wake: 3.2, apart: 3.4, swap: 6, guardSpeed: 2.8, wardNeed: 45, wardSize: 1.3, pause: 1.4,
-      slam: { tell: .65, count: 12, speed: 3, reach: 1.9, hurt: 1 }, gaze: { tell: .7, count: 6, every: .1, speed: 5.5 }, rage: { speed: 1.4, quick: .7 } },
+    kaelith: {
+      hp: 210,
+      r: 0.8,
+      speed: 1.3,
+      weak: 'hallow' as const,
+      resist: 'umbral' as const,
+      keep: 2.2,
+      phases: [2 / 3, 1 / 3],
+      quick: 0.7,
+      sweep: { tell: 0.7, count: 9, spread: 1.7, speed: 4, hex: 6 },
+      volley: { tell: 0.45, count: 3, spread: 0.5, speed: 4.2, every: 0.4, hex: 8 },
+      step: { sink: 0.5, gone: 0.8, rise: 0.4, near: 2.2, far: 4.2, light: 2.4, cuts: 8, cutSpeed: 3.2 },
+      guard: 0.25,
+      holdVolley: 2.4,
+      crackEvery: 5,
+      hordeMax: 4,
+      reel: 4,
+      open: 1.5,
+      pullEvery: 7,
+      pullTime: 2,
+      pull: 2.4,
+      candleSafe: 2.2,
+      ring: { count: 16, speed: 3.2 },
+      kneelClear: 4.4,
+    }, // (kneelClear: how far from the hall's middle it kneels, clear of the way out and the gifts)
+    twins: {
+      hp: 65,
+      r: 0.9,
+      speed: 1.1,
+      keep: 1.5,
+      shieldContact: 1,
+      weak: 'frost' as const,
+      resist: 'hallow' as const,
+      wake: 3.2,
+      apart: 3.4,
+      swap: 6,
+      guardSpeed: 2.8,
+      wardNeed: 45,
+      wardSize: 1.3,
+      pause: 1.4,
+      slam: { tell: 0.65, count: 12, speed: 3, reach: 1.9, hurt: 1 },
+      gaze: { tell: 0.7, count: 6, every: 0.1, speed: 5.5 },
+      rage: { speed: 1.4, quick: 0.7 },
+    },
   },
   // what the foes in code do to the mage (M4): chilled by cold breath and rime, this much slower; a salamander's burning
   // ground burns the mage within `groundReach` (plus half the mage's size) and licks up a flame `groundLicks` times a
@@ -84,20 +200,59 @@ export const CFG = {
   // the dev hook's test shot (`__game.shoot`) flies at `testShot`; a storm ray's sparks arm after `sparkArm` seconds
   // (hexShow: seconds the hexed chip stays beside the mana bar after a hexing blow; drawnMin: how strong a pull must be,
   // units a second, to show the drawn-in chip, which stays drawnShow seconds; lineShow: seconds each first-time line stays)
-  afflict: { chillSlow: .4, groundReach: .3, groundLicks: .7, sparkArm: .35, touchEvery: .1, emberReach: .2, coldReach: .1, testShot: 3.8, hexShow: 2.5, drawnMin: .4, drawnShow: .5, lineShow: 3.5 },
+  afflict: {
+    chillSlow: 0.4,
+    groundReach: 0.3,
+    groundLicks: 0.7,
+    sparkArm: 0.35,
+    touchEvery: 0.1,
+    emberReach: 0.2,
+    coldReach: 0.1,
+    testShot: 3.8,
+    hexShow: 2.5,
+    drawnMin: 0.4,
+    drawnShow: 0.5,
+    lineShow: 3.5,
+  },
   // M4.5's bestiary: how fast the mage walks through a spider's web and an ink octopus's smear; how much faster a lark's
   // song makes the foes round it; how much grip the mage keeps on a rime snail's trail; the health an elemental drinks from
   // each stack of its own school's status; how fast the mage walks in a basilisk's stare; a nest's or a perch's spot in the
   // wall: open to the room `wallOpen` units in front (no pillar hiding it from bolts) and `wallApart` from another nest
-  bestiary: { webSlow: .45, inkSlow: .65, songHaste: 1.4, rimeGrip: 3.5, statusHeal: 2, gazeSlow: .3, wallOpen: 2.6, wallApart: 2.2 },
+  bestiary: {
+    webSlow: 0.45,
+    inkSlow: 0.65,
+    songHaste: 1.4,
+    rimeGrip: 3.5,
+    statusHeal: 2,
+    gazeSlow: 0.3,
+    wallOpen: 2.6,
+    wallApart: 2.2,
+  },
   /** M4.9 The curve: a floor leans its library to a school its foes are weak to when that many of them are (`lean`), and
       walls off a school when that many resist or drink it (`wall`, its banner's line); a hex's debt lasts `hexDebt` s. */
-  curve: { lean: .3, wall: .45, hexDebt: 8, trail: 7, trailStep: .045, lineShow: 4.5, extraAt: [-.9, .7] as [number, number] }, // (trail: motes in a hex's trail back to its thrower, trailStep the seconds between them; lineShow: the floor's warning; extraAt: where an extra foe stands beside the one it copies)
+  curve: {
+    lean: 0.3,
+    wall: 0.45,
+    hexDebt: 8,
+    trail: 7,
+    trailStep: 0.045,
+    lineShow: 4.5,
+    extraAt: [-0.9, 0.7] as [number, number],
+  }, // (trail: motes in a hex's trail back to its thrower, trailStep the seconds between them; lineShow: the floor's warning; extraAt: where an extra foe stands beside the one it copies)
   // foes in each other's ground (M4.7): how often the ground's harm comes again, the burn, shock and sting it brings, a
   // spark's damage, and how far ahead a golem or elemental looks to step round it
-  foeGround: { every: .5, burn: 1.5, shock: .4, sparkDamage: 2, sting: 1.5, look: .75, lookAt: [.5, 1], steer: [.7, -.7, 1.4, -1.4] },
+  foeGround: {
+    every: 0.5,
+    burn: 1.5,
+    shock: 0.4,
+    sparkDamage: 2,
+    sting: 1.5,
+    look: 0.75,
+    lookAt: [0.5, 1],
+    steer: [0.7, -0.7, 1.4, -1.4],
+  },
   // a leap or a dash with stone in its way turns off by the least of these (radians, either side) that is clear (wayRound)
-  foeWay: { turns: [.6, 1.1, 1.6] },
+  foeWay: { turns: [0.6, 1.1, 1.6] },
   /** M4.6 transformations (items/transforms.ts): how long the banner stays; the gifts: the Pyromancer's embers (seconds they
       burn), the Frostborn's chill on a touch (stacks, and how often one foe can be chilled so), the Stormcaller's leap (every
       how many bolts, how far, and the share of the bolt's blow), the Shadowstep's blink (how far, how often, and how long
@@ -105,10 +260,17 @@ export const CFG = {
       Pilgrim's step, the Lightbearer's float (how high, and its bob), the Beastcaller's familiars (how many more, and how
       much harder they strike); and how far the robes are tinted towards the transformation's light. */
   transform: {
-    banner: 3.2, after: 1.8, // (after: seconds between an artifact's own card and the transformation it completes)
-    ember: { time: 1.6 }, frost: { chill: 1, every: .8 }, storm: { every: 5, reach: 4.5, share: .8 },
-    blink: { dist: 2.4, every: 1.6, invuln: .25 }, rune: { delay: .55, reach: 1.1, share: .6 },
-    pilgrim: { speed: 1.12 }, float: { lift: .14, bob: .035 }, beast: { more: 1, damageMul: 1.5 }, tint: .3,
+    banner: 3.2,
+    after: 1.8, // (after: seconds between an artifact's own card and the transformation it completes)
+    ember: { time: 1.6 },
+    frost: { chill: 1, every: 0.8 },
+    storm: { every: 5, reach: 4.5, share: 0.8 },
+    blink: { dist: 2.4, every: 1.6, invuln: 0.25 },
+    rune: { delay: 0.55, reach: 1.1, share: 0.6 },
+    pilgrim: { speed: 1.12 },
+    float: { lift: 0.14, bob: 0.035 },
+    beast: { more: 1, damageMul: 1.5 },
+    tint: 0.3,
   },
   /** M4.11 spell marks (actors/spellMarks.ts): a spell in hand (its light's size, motes, brightness ready and cooling, how
       far above the hand, the ready flash's reach, how often a Storm spell crackles), the master's ring (radius, turn), the
@@ -116,15 +278,40 @@ export const CFG = {
       and their size, the gap between arcs, how long the mage stands still before it shows, how fast it fades in and out,
       its turn), each school's motion (how far its motes travel, up or down), and how long a mark's first line stays. */
   marks: {
-    hand: { size: .34, motes: 7, ready: 1, dim: .25, lift: .04, flash: .26, spark: .45, pulse: 3, shimmer: 6, shimmerBy: .06, flicker: 9, grey: .7, cooling: .7 },
-    ring: { radius: .085, spin: 2.2 },
+    hand: {
+      size: 0.34,
+      motes: 7,
+      ready: 1,
+      dim: 0.25,
+      lift: 0.04,
+      flash: 0.26,
+      spark: 0.45,
+      pulse: 3,
+      shimmer: 6,
+      shimmerBy: 0.06,
+      flicker: 9,
+      grey: 0.7,
+      cooling: 0.7,
+    },
+    ring: { radius: 0.085, spin: 2.2 },
     /** M6 step 7: the runes carved in a slot show at its hand: a speck in each rune's colour (Thrice three, fanned) circling
         it (`r` out, `spin` a second, Quicken's `quick` times faster; Seeking's wider, swaying), Wide a faint disc under it,
         Vein's red in the glow (`vein` of it), Lasting's slower fade, Reprise's second, fainter flash `echo` s later. */
-    runes: { r: .085, seek: .13, size: .022, spin: 2.4, quick: 2, disc: .17, discOpacity: .18, vein: .45, lasting: .5, echo: .22 },
-    aura: { motes: 16, radius: .32, glow: 1.5 },
-    circle: { radius: .6, out: .09, rune: .085, gap: .06, after: 1, fadeIn: .6, fadeOut: .25, spin: .15 },
-    rise: { ember: .4, frost: -.3, storm: .15, hallow: .35, umbral: -.25, verdant: .2 } as Record<string, number>, // (M5: Verdant's leaves drift up slowly)
+    runes: {
+      r: 0.085,
+      seek: 0.13,
+      size: 0.022,
+      spin: 2.4,
+      quick: 2,
+      disc: 0.17,
+      discOpacity: 0.18,
+      vein: 0.45,
+      lasting: 0.5,
+      echo: 0.22,
+    },
+    aura: { motes: 16, radius: 0.32, glow: 1.5 },
+    circle: { radius: 0.6, out: 0.09, rune: 0.085, gap: 0.06, after: 1, fadeIn: 0.6, fadeOut: 0.25, spin: 0.15 },
+    rise: { ember: 0.4, frost: -0.3, storm: 0.15, hallow: 0.35, umbral: -0.25, verdant: 0.2 } as Record<string, number>, // (M5: Verdant's leaves drift up slowly)
     line: 4,
   },
   /** M4.6 Azyrion's arc (items/arc.ts): how many artifacts held bring each stage of the chaos mage's pieces, and how long
@@ -140,22 +327,38 @@ export const CFG = {
   // M6 step 2, the four attributes (progression/attributes.ts), per point: Vigor half a heart container every
   // `pointsPerHalf`; Arcana spell damage +`spell`; Will max mana +`mana` and its coming back +`regen`; Swiftness move speed
   // +`speed` and the cantrip's delay −`delay` (its floor kept). Each in a line with its points, never compounding.
-  attributes: { vigor: { pointsPerHalf: 2 }, arcana: { spell: .06 }, will: { mana: 10, regen: .05 }, swiftness: { speed: .03, delay: .03 } },
+  attributes: {
+    vigor: { pointsPerHalf: 2 },
+    arcana: { spell: 0.06 },
+    will: { mana: 10, regen: 0.05 },
+    swiftness: { speed: 0.03, delay: 0.03 },
+  },
   // floorInsight: the insight each floor gives a run that clears it (the medians measured in docs/archive/M6-plan.md, The curve), which
   // a deeper start's level is drawn from (levelAtFloor; M6 step 12)
-  levels: { at: [20, 80, 170, 280, 395, 520, 810, 1185, 1600, 2025, 2825], floorInsight: [204, 400, 735, 932, 1302], foeDiv: 4, perFloor: 4, ordealMul: 2, serpentDiv: 2,
-    streak: { time: .6, size: .36, max: 48, trail: 5, gap: .05, rise: .9 }, gold: 0xe8c878, chimeGap: .12,
+  levels: {
+    at: [20, 80, 170, 280, 395, 520, 810, 1185, 1600, 2025, 2825],
+    floorInsight: [204, 400, 735, 932, 1302],
+    foeDiv: 4,
+    perFloor: 4,
+    ordealMul: 2,
+    serpentDiv: 2,
+    streak: { time: 0.6, size: 0.36, max: 48, trail: 5, gap: 0.05, rise: 0.9 },
+    gold: 0xe8c878,
+    chimeGap: 0.12,
     // the level-up screen: seconds of calm after a fight before it opens, and seconds a choice is locked as it opens (a key held from the fight)
-    calm: .8, lock: .4,
-    lineFirst: 4.5, lineCap: 4 }, // (how long the first insight's line and the cap's stay)
+    calm: 0.8,
+    lock: 0.4,
+    lineFirst: 4.5,
+    lineCap: 4,
+  }, // (how long the first insight's line and the cap's stay)
   // M6 step 8: runes as things: how often a dropped rune leans to the spells in the slots (else any of the seven), and the
   // chip's size lying on the floor
-  runeDrops: { lean: 2 / 3, chip: .24 },
+  runeDrops: { lean: 2 / 3, chip: 0.24 },
   // M6 step 11, the shrine's bargain: where its stone stands in the shrine (from the middle: the circle's head), how near (beside
   // its half-width) the mage must stand to cast into it, its blocker's half-width, how narrow a gap to the wall behind it
   // its blocker closes (no space to hide in), how far either side of a doorway's middle its lane runs (the stone stands
   // elsewhere then: the circle's foot, or beside it), and how far beside the circle that is
-  bargain: { at: [0, -2.55] as [number, number], reach: .9, half: .3, wallGap: 1.2, lane: 1.6, aside: 4.6 },
+  bargain: { at: [0, -2.55] as [number, number], reach: 0.9, half: 0.3, wallGap: 1.2, lane: 1.6, aside: 4.6 },
   // M6 step 9, the waystone: how near (beside its half-width) the mage must stand to reach it or cast into it, how long it
   // takes to rise and from how deep, where it rises in the boss room where a floor has no waystone room (from the middle: to
   // the side and back, out of reach of the page, the pedestals, the heart and the trapdoor), the rest's streaks of mana and
@@ -164,7 +367,19 @@ export const CFG = {
   // dark the room waits until the stone kindles; how far from the middle toward the door the stone stands (so the trapdoor's
   // ring, beyond it, clears the stone's top from the camera); the
   // lane to its door in the boss room that the boss's gifts keep off (how deep, how wide either side, how far aside)
-  waystone: { reach: .75, rise: 1.4, depth: 1.95, at: [4.4, -1.8], streaks: 7, streakGap: .08, half: .38, trapdoor: [3.5, 1.9], toDoor: [1.5, .8], dark: .55, lane: [4.5, 1.2, 2.6] },
+  waystone: {
+    reach: 0.75,
+    rise: 1.4,
+    depth: 1.95,
+    at: [4.4, -1.8],
+    streaks: 7,
+    streakGap: 0.08,
+    half: 0.38,
+    trapdoor: [3.5, 1.9],
+    toDoor: [1.5, 0.8],
+    dark: 0.55,
+    lane: [4.5, 1.2, 2.6],
+  },
   // M7 step 3, daylight (world/daylight.ts): the shaft of light where Kaelith's way out opens (how near the mage steps into
   // it); the cave mouth at dawn: where it is built, far from every floor (x, z), how far behind the terrace's edge the camera
   // looks; the mage's walk out of the cave (from how far back, to how far short of the edge, how fast); the timeline (the
@@ -175,91 +390,163 @@ export const CFG = {
   // pays a share of the run's Dust once the run reaches `vowFloor`; an echo laid to rest), the share of the obols carried
   // that come home after a death (all after a win), and how many runs the save keeps (the echoes, step 11)
   vigil: {
-    dust: { floor: 10, boss: 15, kaelith: 60, first: 3, shade: 20, vow: .25, vowFloor: 3, echo: 10 }, obolsAfterDeath: .1, runsKept: 5,
+    dust: { floor: 10, boss: 15, kaelith: 60, first: 3, shade: 20, vow: 0.25, vowFloor: 3, echo: 10 },
+    obolsAfterDeath: 0.1,
+    runsKept: 5,
     // M7 step 5, the place: how near the lectern opens and the boat is boarded (from the jetty's end), how near a barred
     // way says what bars it; how far to step back before the lectern opens again; on the first waking, when the candle
     // lights itself and how long the dark takes to lift after; the boat's line before it pushes off
-    place: { lecternReach: .95, rearm: .5, boatReach: .6, barReach: 1.9, barCatch: 1.4, candleAt: 1.4, dawn: 2.2, boatDelay: 1.6 },
+    place: {
+      lecternReach: 0.95,
+      rearm: 0.5,
+      boatReach: 0.6,
+      barReach: 1.9,
+      barCatch: 1.4,
+      candleAt: 1.4,
+      dawn: 2.2,
+      boatDelay: 1.6,
+    },
     // M7 step 7, the townspeople: how near the mage walks to a figure for it to talk (and steps back before it talks again),
     // how near the jetty's end the Ferryman says his first line, how near a figure turns its head to the mage, how many
     // letters of a line show each second
     // M7 step 9, the unfolding (vigil/unfold.ts): how near a chapel candle or a garden bed is walked up to, how fast the Cave
     // Mouth's falls run, and the valleys' light laid on its floor from the open edge: how far in it reaches with none freed and
     // further for each one freed (tiles), and how strong it is at the edge
-    unfold: { reach: .85, fall: 1.4, caveLight: { depth: 1.5, deeper: .4, strength: .32 } },
-    town: { reach: 1.05, rearm: .6, ferryReach: 2.3, watch: 4.5, typeRate: 75, madeLight: .2 }, // (madeLight: the made figures lit of themselves, to read in the Nave; the owner's ask, 2026-10-09: they stand bigger too, in their heights in tools/creatures/townsfolk.ts, drawn on the pixel look's fine layer, their textures baked at that size and pixel)
+    unfold: { reach: 0.85, fall: 1.4, caveLight: { depth: 1.5, deeper: 0.4, strength: 0.32 } },
+    town: { reach: 1.05, rearm: 0.6, ferryReach: 2.3, watch: 4.5, typeRate: 75, madeLight: 0.2 }, // (madeLight: the made figures lit of themselves, to read in the Nave; the owner's ask, 2026-10-09: they stand bigger too, in their heights in tools/creatures/townsfolk.ts, drawn on the pixel look's fine layer, their textures baked at that size and pixel)
   },
   // M7 step 6, chained shades: where one lies in its room (a share of the room's width and depth from its middle), how near a
   // school landing or a bolt must come to strike its chains, how near the mage stands to be asked, how long freeing (the
   // rise) and binding (to the mage) take
-  shades: { at: [.28, -.18] as [number, number], reach: 1.3, ask: 1.6, rise: 2.4, bindTime: .9 },
+  shades: { at: [0.28, -0.18] as [number, number], reach: 1.3, ask: 1.6, rise: 2.4, bindTime: 0.9 },
   // a bound shade at work in the run it walks with the mage (vigil/shadeHelp.ts): how often each acts (seconds, counted only
   // in a fight), how far it reaches and how hard; the sexton's chance a room; the chorister's cooldowns; the bell-ringer's stall
   shadeHelp: {
-    storm: { every: 5, reach: 6, damage: 3, shock: 1.2 }, roots: { every: 6, reach: 2.2, root: 1.6 }, bow: { every: 2.2, reach: 7, damageMul: .6, speed: 9 },
-    turn: { reach: .8 }, dig: { chance: .3 }, sing: { mul: .88 }, ring: { every: 6, reach: 2.6, stall: .3 }, hex: { hex: 1 },
+    storm: { every: 5, reach: 6, damage: 3, shock: 1.2 },
+    roots: { every: 6, reach: 2.2, root: 1.6 },
+    bow: { every: 2.2, reach: 7, damageMul: 0.6, speed: 9 },
+    turn: { reach: 0.8 },
+    dig: { chance: 0.3 },
+    sing: { mul: 0.88 },
+    ring: { every: 6, reach: 2.6, stall: 0.3 },
+    hex: { hex: 1 },
   },
   daylight: {
-    reach: .7, at: [-400, 0] as [number, number], look: 1.5, walk: { from: 3.4, to: .9, speed: 1.05 },
-    flash: 1.2, lift: 3, endAt: 6.5, mist: .18, fall: 1.6,
-    light: { hemi: 2.4, sun: 2.2, sky: '#ffd8b4', ground: '#4a4238', sunColour: '#ffc690', lantern: .25 },
+    reach: 0.7,
+    at: [-400, 0] as [number, number],
+    look: 1.5,
+    walk: { from: 3.4, to: 0.9, speed: 1.05 },
+    flash: 1.2,
+    lift: 3,
+    endAt: 6.5,
+    mist: 0.18,
+    fall: 1.6,
+    light: { hemi: 2.4, sun: 2.2, sky: '#ffd8b4', ground: '#4a4238', sunColour: '#ffc690', lantern: 0.25 },
   },
   // M6 step 5, the school boons at work (progression/boonHooks.ts): half hearts boons mend in one room at most (Votive
   // Heart and Thirsting Hex together); Seedfall's plants, `seedMax` a room at most, sought within `sowReach` tiles of the
   // fall and kept `sowClear` tiles from the mage, a door's lane and the room's middle; Spark Wake's spark refreshed rather
   // than laid again within `sparkMerge` of another of the mage's; Flamekeeper's embers run from each flame to the hand
   // every `emberEvery` seconds.
-  boons: { mendPerRoom: 1, seedMax: 4, sowReach: 2, sowClear: { mage: 1, door: 1.6, middle: 1.2, foe: .5, item: .6 }, sparkMerge: .6, emberEvery: .35,
+  boons: {
+    mendPerRoom: 1,
+    seedMax: 4,
+    sowReach: 2,
+    sowClear: { mage: 1, door: 1.6, middle: 1.2, foe: 0.5, item: 0.6 },
+    sparkMerge: 0.6,
+    emberEvery: 0.35,
     // M6 step 3, the deal's lean (progression/boonData.ts): every school's weight starts at `base`, and gains `slot` for each
     // of its spells in the slots, one for every `castsPer` casts of it this run (`castsMax` at most), `boon` for each rank of
     // its boons taken and `pledge` for a pledge
-    lean: { base: 1, slot: 3, castsPer: 5, castsMax: 3, boon: 2, pledge: 2 } },
+    lean: { base: 1, slot: 3, castsPer: 5, castsMax: 3, boon: 2, pledge: 2 },
+  },
   /** M4.6 costumes (actors/costume.ts): the focus held in the casting hand (its scale, where along it the hand grips: 0 its
       middle, negative below; how far it leans forward and out), each spot's scale for an artifact's own model carried
       there, and a cursed piece's glow (a share of its height) and how often it weeps a red drop. */
   costume: {
-    focus: { scale: 1.05, grip: -.22, lean: .35, tilt: .18 },
-    carry: { belt: { scale: .42 }, back: { scale: .62 }, shoulder: { scale: .48 }, chest: { scale: .36 }, wrist: { scale: .34 } },
-    curse: { glow: 2.2, drip: .35 },
-    closeUp: { zoom: 4.5, y: .75 }, // (the dev menu's close-up on the mage: how near, and how high it looks)
+    focus: { scale: 1.05, grip: -0.22, lean: 0.35, tilt: 0.18 },
+    carry: {
+      belt: { scale: 0.42 },
+      back: { scale: 0.62 },
+      shoulder: { scale: 0.48 },
+      chest: { scale: 0.36 },
+      wrist: { scale: 0.34 },
+    },
+    curse: { glow: 2.2, drip: 0.35 },
+    closeUp: { zoom: 4.5, y: 0.75 }, // (the dev menu's close-up on the mage: how near, and how high it looks)
   },
   // how the Stormcharged and Hallowed mantles look apart (M4.7): the storm's segments of lightning at most, its bolts round
   // the ring and arcs on the body, how often they crackle anew, its cloud's size and height over the head and how often it
   // strikes; the halo's size and height over the head
-  mantleLooks: { storm: { segments: 40, ringBolts: 7, arcs: 3, flicker: .07, cloudSize: .55, cloudOver: .55, strikeEvery: 1.4 }, halo: { size: .26, over: .28 } },
+  mantleLooks: {
+    storm: { segments: 40, ringBolts: 7, arcs: 3, flicker: 0.07, cloudSize: 0.55, cloudOver: 0.55, strikeEvery: 1.4 },
+    halo: { size: 0.26, over: 0.28 },
+  },
   // rooms with a pair (M4.7): how far beside the first foe the second is set
   pairs: { gap: 1.1 },
   // a foe's weakness and resistance (M4; GDD: Enemy affinities): the damage of its weak school and of its resisted one; an
   // elemental's (M4.5): its weakness's, and the share of a blow of its own school it drinks as health
-  affinity: { weak: 1.5, resist: .5, elemental: 2, drink: .5 },
+  affinity: { weak: 1.5, resist: 0.5, elemental: 2, drink: 0.5 },
   // champion rooms: one enemy is bigger, tinted, tougher and a little faster, and drops a heart
   champion: { hpMul: 2, scale: 1.3, radiusMul: 1.2, speedMul: 1.15, tint: 0x6a1a0a, aura: 0xff5a2a },
   // quiet rooms keep at most this many weak enemies; how often a heart waits there
-  quiet: { maxEnemies: 2, heartChance: .7 },
+  quiet: { maxEnemies: 2, heartChance: 0.7 },
   // ambush rooms spring when the mage is this close to the middle, or this far from every door
   ambush: { middle: 1.8, fromDoors: 4 },
   // floor generation: how many walks may be retried to leave spare dead ends for a wanted altar or vault
   generator: { optionalTries: 400 },
   // the merchant's shop (room-relative z of the shade and the row of wares, the gap between wares), how
   // close the mage must come to buy, and how far a bolt flies in the warded shop before it fizzles
-  merchant: { shadeAt: -1.9, waresAt: .9, spacing: 2.3, reach: .45, boltFizzle: .6, panelReach: 1.5 }, // (panelReach, 2026-10-02: how near a ware its panel shows)
+  merchant: { shadeAt: -1.9, waresAt: 0.9, spacing: 2.3, reach: 0.45, boltFizzle: 0.6, panelReach: 1.5 }, // (panelReach, 2026-10-02: how near a ware its panel shows)
   // the lore card on pickup: seconds on screen, at least, a little more per word of lore, and at most
-  lore: { least: 4, perWord: .04, most: 6 },
+  lore: { least: 4, perWord: 0.04, most: 6 },
   // water and oil (world/pools.ts): wading speed (the mage and walking foes), seconds oil burns and water stays
   // frozen, the burn burning oil sets on foes and how often, the half hearts it and a shocked pool take from the
   // mage, how long a shocked pool crackles, and the drowned floor's puddles (how many per fight, tiles each)
   // M4.2: how fast a current carries the mage and walking foes, bolts and shots over it, and pickups lying in it (units a second)
   flow: { carry: 1.7, bolts: 1.1, pickups: 1.3 },
-  surface: { wade: .6, jellyWade: .42, oilBurn: 5, iceTime: 8, groundBurn: 2, tick: .25, mageHurt: 1, charged: .5, shockSpread: 1.5, shockDamage: 2, puddles: [1, 2] as [number, number], puddleSize: [2, 4] as [number, number], boilEvery: 2.5, boilSteam: 1.3, driveReach: 1, poolBlur: 6, pitBlur: 4 }, // (poolBlur, pitBlur: how soft a pool's and a pit's outline is, in its canvas's pixels, softEdge.ts; jellyWade: M5, walking through the jelly serpent's jelly; boilEvery: seconds before fire on a pool of water boils it into steam again; boilSteam: that cloud's size; driveReach: how far beyond a blast or a cloud a water foe hiding in other water is driven up)
+  surface: {
+    wade: 0.6,
+    jellyWade: 0.42,
+    oilBurn: 5,
+    iceTime: 8,
+    groundBurn: 2,
+    tick: 0.25,
+    mageHurt: 1,
+    charged: 0.5,
+    shockSpread: 1.5,
+    shockDamage: 2,
+    puddles: [1, 2] as [number, number],
+    puddleSize: [2, 4] as [number, number],
+    boilEvery: 2.5,
+    boilSteam: 1.3,
+    driveReach: 1,
+    poolBlur: 6,
+    pitBlur: 4,
+  }, // (poolBlur, pitBlur: how soft a pool's and a pit's outline is, in its canvas's pixels, softEdge.ts; jellyWade: M5, walking through the jelly serpent's jelly; boilEvery: seconds before fire on a pool of water boils it into steam again; boilSteam: that cloud's size; driveReach: how far beyond a blast or a cloud a water foe hiding in other water is driven up)
   // the rooms' objects (M3.6, world/props.ts): how long each flammable one burns (seconds), how often burning spreads
   // to what burns beside it, cobwebs' slowing, the briar's sting (half hearts to the mage, damage a second to walkers),
   // the oil a broken cask spills (tiles beyond its own), and glowcap spores (how long a cloud hangs, its reach, the
   // flash when fire finds it: damage to foes, Burn stacks, half hearts to the mage within reach)
   props: {
-    burn: { roots: 3.5, tree: 6, briar: 2, web: .45, sacks: 1.6, desk: 3, scrolls: .7, bridge: 4, blossom: 1.2 } as Record<string, number>, spread: .5,
+    burn: {
+      roots: 3.5,
+      tree: 6,
+      briar: 2,
+      web: 0.45,
+      sacks: 1.6,
+      desk: 3,
+      scrolls: 0.7,
+      bridge: 4,
+      blossom: 1.2,
+    } as Record<string, number>,
+    spread: 0.5,
     // M4.2: half hearts a fall through a burnt rope bridge takes from the mage
     fallHurt: 2,
-    webSlow: .45, briarHurt: 1, briarDamage: 2, caskSpill: 3,
+    webSlow: 0.45,
+    briarHurt: 1,
+    briarDamage: 2,
+    caskSpill: 3,
     spores: { time: 4, reach: 1.3, stingReach: 1.04, damage: 6, burn: 2, mageHurt: 1 }, // (stingReach: where a stinging cloud's thick enough to sting)
     // M5: a flowering plant's burst: how far its pollen reaches, and the seconds it overgrows the foes there
     blossom: { reach: 1.8, grow: 4 },
@@ -275,40 +562,90 @@ export const CFG = {
   // blow (reach, damage, Burn) and the oil it spills (tiles beyond its own); a frozen mausoleum's rime (how quickly the
   // mage gets a grip: lower slides more)
   mech: {
-    kindle: .6, brazierBurn: 3, blessCasts: 6, blessMul: 1.6, bellStun: 1.8, bellCooldown: 7,
-    runeEvery: 2.2, runeReach: 2.4, runeAmount: 1, lodeCatch: 1.3, lodeReach: 8, lodeDamage: 5, lodeCooldown: 1.2,
-    censerReach: 1, censerDamage: 10, censerBurn: 3, censerSpill: 2, rimeGrip: 3.5,
+    kindle: 0.6,
+    brazierBurn: 3,
+    blessCasts: 6,
+    blessMul: 1.6,
+    bellStun: 1.8,
+    bellCooldown: 7,
+    runeEvery: 2.2,
+    runeReach: 2.4,
+    runeAmount: 1,
+    lodeCatch: 1.3,
+    lodeReach: 8,
+    lodeDamage: 5,
+    lodeCooldown: 1.2,
+    censerReach: 1,
+    censerDamage: 10,
+    censerBurn: 3,
+    censerSpill: 2,
+    rimeGrip: 3.5,
     // M4.10: the stacks of each school a rune stone's reaction lays on the foes in its reach (Chill as many as freeze); the
     // sparks a bell rung by a shock rings out (how many, how far round it, how long they lie)
-    runeStacks: 2, bellSparks: { n: 10, d: 1.7, time: 6 },
+    runeStacks: 2,
+    bellSparks: { n: 10, d: 1.7, time: 6 },
     // how close a bolt passes to catch a brazier's fire or cut a censer's chain; a status to charge a rune stone; fire
     // to thaw an entombed foe; how wide a lodestone's arc hurts (plus a foe's radius); a falling censer hurts the mage
-    brazierCatch: .45, censerCatch: .35, runeCatch: .9, thawReach: 1.2, lodeWidth: .6, censerHitsMage: .7,
+    brazierCatch: 0.45,
+    censerCatch: 0.35,
+    runeCatch: 0.9,
+    thawReach: 1.2,
+    lodeWidth: 0.6,
+    censerHitsMage: 0.7,
     // half hearts the lodestone's arc and a falling censer take from the mage; how hard they throw foes back (× the
     // usual knockback); how much bigger a blessed bolt is
-    lodeHurt: 1, censerHurt: 1, lodeKnock: .3, censerKnock: .5, blessScale: 1.2,
+    lodeHurt: 1,
+    censerHurt: 1,
+    lodeKnock: 0.3,
+    censerKnock: 0.5,
+    blessScale: 1.2,
     // M4.2: a watching statue: how far it sees; seconds of gaze that charge it; how fast its charge cools out of its
     // gaze; the pause between its mark and its ray; how wide the ray strikes; half hearts it takes; seconds before it
     // watches again; seconds a hex blinds it; how close darkness landing reaches it; what its ray does to a foe
-    statue: { reach: 7.5, charge: 2.2, cool: 1.5, delay: .75, radius: .75, hurt: 1, rest: 1.5, blind: 7, umbralCatch: 1.2, damage: 12 },
+    statue: {
+      reach: 7.5,
+      charge: 2.2,
+      cool: 1.5,
+      delay: 0.75,
+      radius: 0.75,
+      hurt: 1,
+      rest: 1.5,
+      blind: 7,
+      umbralCatch: 1.2,
+      damage: 12,
+    },
     // a sapping obelisk: how far its field reaches; what the cantrip's blows are worth inside it; mana drained a second;
     // how close its school must land to break its ward
-    obelisk: { reach: 2.8, sap: .5, drain: 5, catch: 1 },
+    obelisk: { reach: 2.8, sap: 0.5, drain: 5, catch: 1 },
     // M4.9: a sluice gate: seconds the room's water stays drained once it opens; how often the water foes in the mud are
     // driven up again; seconds before it can be opened again once shut
-    sluice: { open: 8, drive: .5, rest: 3, lift: .42 }, // (lift: how far the gate rises)
+    sluice: { open: 8, drive: 0.5, rest: 3, lift: 0.42 }, // (lift: how far the gate rises)
   },
   // M4.2: the drinking ward: how close to a sealed vault door a spell is drunk; the mana of spells a vault's ward holds, and
   // a foe's shield (the foe's blows it drinks, as damage); where the Wardling rises beside a foe whose shield broke
   ward: { reach: 4, need: 60, foeNeed: 60, beside: 1.2 },
-  themes: { wakeReach: 2.6, riseAfter: 10, riseEvery: 6, riseMost: 3, pageChance: .3, caveReach: 3.5, caveStones: 3, caveDelay: .8, caveDamage: 8, daylightClear: 3, bedrollClear: 2,
+  themes: {
+    wakeReach: 2.6,
+    riseAfter: 10,
+    riseEvery: 6,
+    riseMost: 3,
+    pageChance: 0.3,
+    caveReach: 3.5,
+    caveStones: 3,
+    caveDelay: 0.8,
+    caveDamage: 8,
+    daylightClear: 3,
+    bedrollClear: 2,
     // M4.1: the drowned climb out of the landing's river this long into a fight, then this often, at most this many
-    drownAfter: 5, drownEvery: 7, drownMost: 3,
+    drownAfter: 5,
+    drownEvery: 7,
+    drownMost: 3,
     // M5: how much longer Overgrown holds on foes in the overgrown garden
-    gardenGrow: 1.75 },
+    gardenGrow: 1.75,
+  },
   // the library: how close the mage must come to a page, the gap between lecterns, and how far into the room
   // (from the door) their row stands, for a door on a long side and on a short one
-  library: { reach: .4, spacing: 2.3, spacingShort: 1.9, rowIn: 1.1, rowInShort: 2.6 },
+  library: { reach: 0.4, spacing: 2.3, spacingShort: 1.9, rowIn: 1.1, rowInShort: 2.6 },
   // spell knowledge (M3.7): casts over all runs that make a learned spell known well (its lore and reactions shown), and
   // how near a grimoire page (in tiles) its panel shows
   knowledge: { usedCasts: 10, pageReach: 2 },
@@ -317,74 +654,116 @@ export const CFG = {
   // M4.2: the Wandering Merchant: the chance an ordinary room's cleared fight calls the merchant (once a run), from which floor
   // (0-based); seconds riding in from the door; where the beast stops (from the room's middle), how far in front of it
   // and how far apart the wares lie; the box the beast blocks
-  wanderer: { chance: .14, fromFloor: 1, rideTime: 2.4, standAt: -1.3, waresAt: 1.85, spacing: 1.55, block: [.95, .5] as [number, number] },
+  wanderer: {
+    chance: 0.14,
+    fromFloor: 1,
+    rideTime: 2.4,
+    standAt: -1.3,
+    waresAt: 1.85,
+    spacing: 1.55,
+    block: [0.95, 0.5] as [number, number],
+  },
   // secret rooms: the pale blue light of the forgotten mage's cell (torch flame and light colours, torch
   // brightness), and how often dust drifts from a cracked wall (seconds, least and most)
-  secret: { flame: '#d8ecff', light: '#8ab8ff', torchMul: .85, dustEvery: [1.2, 2.8] as [number, number] },
+  secret: { flame: '#d8ecff', light: '#8ab8ff', torchMul: 0.85, dustEvery: [1.2, 2.8] as [number, number] },
   // the shrine: its circle's radius, the offering stones (room-relative spots, in the order curses take
   // them), how close the mage must come to walk into one, and the warm white light of its torches. The
   // curse's wisp: seconds to put it down, bolts that must strike it inside the circle, its speed and size,
   // how long it lingers in the circle (seconds, least and most), how close the mage may come before it
   // shies away, and its shots at the mage (seconds between, least and most; speed)
   shrine: {
-    circle: 1.8, stones: [[-3.4, -1.9], [3.4, -1.9], [-3.4, 1.9], [3.4, 1.9]] as [number, number][], reach: .12,
-    flame: '#fff2d0', light: '#ffe2a8', torchMul: 1,
-    time: 10, hits: 4, wispSpeed: 2.8, wispR: .32, linger: [.9, 1.6] as [number, number], shy: 1.4,
-    shotEvery: [1.5, 2.3] as [number, number], shotSpeed: 3.4,
+    circle: 1.8,
+    stones: [
+      [-3.4, -1.9],
+      [3.4, -1.9],
+      [-3.4, 1.9],
+      [3.4, 1.9],
+    ] as [number, number][],
+    reach: 0.12,
+    flame: '#fff2d0',
+    light: '#ffe2a8',
+    torchMul: 1,
+    time: 10,
+    hits: 4,
+    wispSpeed: 2.8,
+    wispR: 0.32,
+    linger: [0.9, 1.6] as [number, number],
+    shy: 1.4,
+    shotEvery: [1.5, 2.3] as [number, number],
+    shotSpeed: 3.4,
   },
   camTiltDeg: 45,
-  camHallView: 1.2,    // larger halls: the camera pulls back so the view is this much wider and deeper
+  camHallView: 1.2, // larger halls: the camera pulls back so the view is this much wider and deeper
   // obols drift to the mage from this close; a coin sways this far (radians) either way as it turns; a coin face's light
   // from within, and how many game pixels a coin wearing one is across (2026-10-02: the owner's coins; its face is drawn
   // on the fine layer, pixelLook.fineLayer pixels to each of these)
-  pickups: { obolDrift: 1.8, coinSway: .45, coinGlow: .2, coinPixels: 24 },
+  pickups: { obolDrift: 1.8, coinSway: 0.45, coinGlow: 0.2, coinPixels: 24 },
   /** Soul motes (M4.1, items/souls.ts): most held; the hex a black one lays on every foe in the room when it goes; the
       chance a foe that falls with enough hex stacks (magic.json's `hex.soulAt`) leaves a black one. */
-  souls: { max: 6, blackHex: 2, hexChance: .5 },
+  souls: { max: 6, blackHex: 2, hexChance: 0.5 },
   // blast glyphs: fuse (s), reach (tiles), damage to foes, halves of hearts off the mage, knockback, time
   // between two glyphs, how close a bolt must pass to set one off (after flying boltArm, so a bolt leaving
   // the mage doesn't set off the glyph at their feet), and the pause before a blast sets off its neighbours
-  glyph: { fuse: 1.5, radius: 1.5, damage: 10, selfDamage: 2, knockback: 7, cooldown: .35, boltReach: .5, boltArm: .9, chainDelay: .1 },
+  glyph: {
+    fuse: 1.5,
+    radius: 1.5,
+    damage: 10,
+    selfDamage: 2,
+    knockback: 7,
+    cooldown: 0.35,
+    boltReach: 0.5,
+    boltArm: 0.9,
+    chainDelay: 0.1,
+  },
   artifacts: {
-    maxPerFloor: 6,      // the floor's budget (the boss's pair counts as one); gilded reliquaries don't count
-    dropChance: 0.03,    // chance a cleared room drops one, while the floor's budget allows
-    rockHp: 3,           // Mason's Chisel: bolt hits to break a rock
-    visionRadius: 3.4,   // Mask of the Drowned: how far the mage sees
+    maxPerFloor: 6, // the floor's budget (the boss's pair counts as one); gilded reliquaries don't count
+    dropChance: 0.03, // chance a cleared room drops one, while the floor's budget allows
+    rockHp: 3, // Mason's Chisel: bolt hits to break a rock
+    visionRadius: 3.4, // Mask of the Drowned: how far the mage sees
     burst: { damageMul: 0.6, range: 4.5, speed: 7, scale: 0.7 }, // Knucklebone and Bell bolts
-    crit: { chance: 0.2, damageMul: 3, scale: 1.4, color: 0xfff4dc },   // Raven's Eye: one bolt in five
-    split: { angle: 0.7, damageMul: 0.5, range: 3.2 },                  // Cracked Mirror: two halves, this far apart (radians)
-    wave: { amp: 0.45, freq: 3.2 },                                     // Serpent Rod: how far bolts swing, and how often (per tile)
-    leech: { every: 10 },                                               // Leech Jar: foes put to rest per half heart
+    crit: { chance: 0.2, damageMul: 3, scale: 1.4, color: 0xfff4dc }, // Raven's Eye: one bolt in five
+    split: { angle: 0.7, damageMul: 0.5, range: 3.2 }, // Cracked Mirror: two halves, this far apart (radians)
+    wave: { amp: 0.45, freq: 3.2 }, // Serpent Rod: how far bolts swing, and how often (per tile)
+    leech: { every: 10 }, // Leech Jar: foes put to rest per half heart
     // Fen-Nex (M4.2): its size at each stage, and how much faster each stage runs; how far behind the mage it keeps, how fast it runs and darts; how far off it
     // spies prey (plus its stage), and past how far from the mage it comes back to their side; its bite (every so often, the
     // cantrip's damage times `mul` at each stage) and its full shape's breath of Ember
-    fennex: { scale: [.62, .9, .8], stageSpeed: .15, heel: .9, speed: 4.2, dash: 8, reach: 4, leash: 9, bite: { every: 1.3, mul: [.6, .85, 1.1] },
-      breath: { every: 3.2, range: 3.2, count: 5, spread: .6, speed: 7, mul: .45, burn: 2 } },
+    fennex: {
+      scale: [0.62, 0.9, 0.8],
+      stageSpeed: 0.15,
+      heel: 0.9,
+      speed: 4.2,
+      dash: 8,
+      reach: 4,
+      leash: 9,
+      bite: { every: 1.3, mul: [0.6, 0.85, 1.1] },
+      breath: { every: 3.2, range: 3.2, count: 5, spread: 0.6, speed: 7, mul: 0.45, burn: 2 },
+    },
     moth: { every: 1.1, range: 7, damageMul: 0.45, orbit: 0.85, speed: 7 }, // Candle Moth: seconds between stings, reach
     skull: { orbit: 1.15, spin: 2.6, damage: 3, every: 0.45, reach: 0.34 }, // Weeping Skull: radius, radians/s, bite and its rest
-    wardingBand: { fuse: 1 },                                           // Warding Band: the glyph's fuse (s)
-    pedlar: { priceMul: 0.7 },                                          // Pedlar's Scale: merchant prices (rounded, at least 1)
-    emberwood: { burn: 1.5 },                                           // Emberwood Wand: seconds of Burn a bolt sets
-    homing: { turn: 3.2, reach: 5 },                                    // Tome of Whispers: radians a second, how far a bolt looks
-    vigil: { mana: 25 },                                                // Candle of the Vigil: mana for every fight won
-    frostbite: { every: 5, chill: 1, color: 0xbfe6ff },                 // Frostbitten Ring: which cast chills, and how much
-    stormglass: { mul: 1.25 },                                          // Stormglass Pendant: cantrip damage on shocked foes
-    thurible: { radius: 2.4, burn: 3 },                                 // Thurible of Ash: how far a burning death spreads Burn
-    witchKnot: { costMul: 0.8 },                                        // Witch's Knot: spell costs at half health or below
+    wardingBand: { fuse: 1 }, // Warding Band: the glyph's fuse (s)
+    pedlar: { priceMul: 0.7 }, // Pedlar's Scale: merchant prices (rounded, at least 1)
+    emberwood: { burn: 1.5 }, // Emberwood Wand: seconds of Burn a bolt sets
+    homing: { turn: 3.2, reach: 5 }, // Tome of Whispers: radians a second, how far a bolt looks
+    vigil: { mana: 25 }, // Candle of the Vigil: mana for every fight won
+    frostbite: { every: 5, chill: 1, color: 0xbfe6ff }, // Frostbitten Ring: which cast chills, and how much
+    stormglass: { mul: 1.25 }, // Stormglass Pendant: cantrip damage on shocked foes
+    thurible: { radius: 2.4, burn: 3 }, // Thurible of Ash: how far a burning death spreads Burn
+    witchKnot: { costMul: 0.8 }, // Witch's Knot: spell costs at half health or below
     // M4.1's twelve
-    swing: { out: 0.55 },                                               // Pendulum of Hours: how far (radians) a bolt sets out from the aim, to curve back onto it at its range's end
-    lodestar: { hang: 2, pulse: 7 },                                    // Lodestar Wand: seconds a bolt hangs as a star, and how fast it twinkles
-    still: { after: 0.25, speed: 0.5 },                                 // standing still: this long below this speed (Twin Vigil Candles, Salt Circle)
-    candles: { damageMul: 1.5 },                                        // Twin Vigil Candles: bolts while standing still
-    choir: { every: 5, damage: 5, delay: 0.35 },                        // Ossuary Choir: foes put to rest in a room per hymn; what it does; the beat before it
-    echo: { damageMul: 0.75, least: 1.5 },                              // Echo Stone: the echo's damage, and the least way back it flies
+    swing: { out: 0.55 }, // Pendulum of Hours: how far (radians) a bolt sets out from the aim, to curve back onto it at its range's end
+    lodestar: { hang: 2, pulse: 7 }, // Lodestar Wand: seconds a bolt hangs as a star, and how fast it twinkles
+    still: { after: 0.25, speed: 0.5 }, // standing still: this long below this speed (Twin Vigil Candles, Salt Circle)
+    candles: { damageMul: 1.5 }, // Twin Vigil Candles: bolts while standing still
+    choir: { every: 5, damage: 5, delay: 0.35 }, // Ossuary Choir: foes put to rest in a room per hymn; what it does; the beat before it
+    echo: { damageMul: 0.75, least: 1.5 }, // Echo Stone: the echo's damage, and the least way back it flies
     bloodMoon: { fireDelayMul: 0.75, shotSpeedMul: 1.3, color: 0xe03040 }, // Blood Moon Pendant: at half health or below
-    salt: { after: 1, radius: 1.35, keep: 0.25 },                       // Salt Circle: seconds still before it forms; its radius; how far the mage may lean out of it before it breaks
-    halo: { sanct: 3 },                                                 // Gilded Halo: seconds of Sanctified the first bolt lays
-    soulLantern: { hexMul: 1.5, souls: 2 },                             // Ferryman's Lantern: mana from hexes; how much likelier soul motes
+    salt: { after: 1, radius: 1.35, keep: 0.25 }, // Salt Circle: seconds still before it forms; its radius; how far the mage may lean out of it before it breaks
+    halo: { sanct: 3 }, // Gilded Halo: seconds of Sanctified the first bolt lays
+    soulLantern: { hexMul: 1.5, souls: 2 }, // Ferryman's Lantern: mana from hexes; how much likelier soul motes
     antler: { every: 6, sanct: 2, damageMul: 1.25, scale: 1.3, color: 0xfff0b0 }, // Hart's Antler: which cast is a lance, and what it lays
-    gravemonger: { chance: 0.5, heartPriceMul: 2 },                     // Gravemonger's Contract: a foe's obol (halved when cleansed); the merchant's hearts
-    lastRite: { rise: 1, every: 1, everyCleansed: 2 },                  // The Last Rite: half hearts risen with; floors between refusals (cleansed: more)
+    gravemonger: { chance: 0.5, heartPriceMul: 2 }, // Gravemonger's Contract: a foe's obol (halved when cleansed); the merchant's hearts
+    lastRite: { rise: 1, every: 1, everyCleansed: 2 }, // The Last Rite: half hearts risen with; floors between refusals (cleansed: more)
   },
   // the pixel look (render/pixelLook.ts, the game's look since 2026-09-30): the grid it starts on and the rows it offers
   // besides. It starts at the texel (2026-10-01, the owner: everything in the one pixel-art look): a game pixel is one of
@@ -396,7 +775,16 @@ export const CFG = {
   // (darkened by outlineDark), and light bands; a glow's fade (render/textures.ts, every glow sprite) and a shadow's held in
   // so many flat steps, as pixel art draws them; the fine layer's pixels to a game pixel each way (pixelLook.ts, FINE:
   // 2026-10-02, the owner's coins drawn finer than the rest, so their faces read)
-  pixelLook: { lines: [1080, 720, 540, 360, 270], start: 'texel' as const, outlineGap: 0.3, outlineDark: 0.72, bands: 7, glowSteps: 5, shadowSteps: 3, fineLayer: 2 },
+  pixelLook: {
+    lines: [1080, 720, 540, 360, 270],
+    start: 'texel' as const,
+    outlineGap: 0.3,
+    outlineDark: 0.72,
+    bands: 7,
+    glowSteps: 5,
+    shadowSteps: 3,
+    fineLayer: 2,
+  },
   // alchemy (M5, items/potions.ts and potionThrow.ts; docs/archive/M5-plan.md): the belt's slots, a bottle's and a reagent's size as built, the
   // chance a fallen foe or a broken object leaves its reagent (items/reagents.ts; the Alchemist's Satchel's more), what Dr.
   // Jelly asks for a recipe (obols), the laboratory's: how near the table or Dr. Jelly opens the table, how far behind the
@@ -409,7 +797,44 @@ export const CFG = {
   // many seconds after the cast; the Grave Draught's thrall (its pace, a blow, seconds between blows, how near it strikes);
   // M5 step 8: the Cracked Retort's splash (times as wide) and its glass's cut, and how far apart the Alchemist's split
   // bottles land (across the aim)
-  alchemy: { belt: 3, bottleScale: 1.45, reagentScale: 1.8, reagent: { foe: 0.12, object: 0.3, blossom: 0.6, satchelMul: 1.3 }, recipePrice: 6, lab: { reach: 0.55, jellyAt: 1.6, globeJelly: 0.4, windowClear: 2.5, duck: 0.3, give: { reach: .35, hold: .6, toss: .4, back: .45, size: .22, arc: .45, shoulder: -2.1, out: -.55, elbow: -.4, lean: .1, nod: .15 } }, vat: { cracks: 3, crackGap: 0.25, restless: 0.35, restlessAfter: 1.4, flood: 30 }, hold: 0.25, reach: 4.5, flight: 0.45, arc: 1.1, splash: 1.1, echoMul: 6, echoAfter: 0.3, thrall: { speed: 2.4, damage: 7, every: 0.7, near: 0.7 }, retort: { splashMul: 1.5, cut: 6 }, split: 2 },
+  alchemy: {
+    belt: 3,
+    bottleScale: 1.45,
+    reagentScale: 1.8,
+    reagent: { foe: 0.12, object: 0.3, blossom: 0.6, satchelMul: 1.3 },
+    recipePrice: 6,
+    lab: {
+      reach: 0.55,
+      jellyAt: 1.6,
+      globeJelly: 0.4,
+      windowClear: 2.5,
+      duck: 0.3,
+      give: {
+        reach: 0.35,
+        hold: 0.6,
+        toss: 0.4,
+        back: 0.45,
+        size: 0.22,
+        arc: 0.45,
+        shoulder: -2.1,
+        out: -0.55,
+        elbow: -0.4,
+        lean: 0.1,
+        nod: 0.15,
+      },
+    },
+    vat: { cracks: 3, crackGap: 0.25, restless: 0.35, restlessAfter: 1.4, flood: 30 },
+    hold: 0.25,
+    reach: 4.5,
+    flight: 0.45,
+    arc: 1.1,
+    splash: 1.1,
+    echoMul: 6,
+    echoAfter: 0.3,
+    thrall: { speed: 2.4, damage: 7, every: 0.7, near: 0.7 },
+    retort: { splashMul: 1.5, cut: 6 },
+    split: 2,
+  },
   // the soundscapes and the music (docs/archive/sound-plan.md, audio/director.ts): scheduled `ahead` seconds before they sound
   // (`hiddenAhead` in a hidden tab, whose timers run once a second; the scheduler's own timer every `tick` ms); the music
   // thins at `lowHp` half-hearts or fewer; the floor's bed ducks to `fightDuck` while the doors are locked, `bossDuck`
@@ -419,28 +844,66 @@ export const CFG = {
   // the dev menu's preview lasts `preview` seconds; a sound played from a file (audio/samples.ts) has its pitch moved by up
   // to `fileSpread` either way each time, so a sound heard again isn't the same
   audio: {
-    ahead: 0.6, hiddenAhead: 1.6, tick: 250, lowHp: 2, fightDuck: 0.65, bossDuck: 0.45, pauseDuck: 0.5, themeDuck: 0.9, bedSend: 0.3,
-    music: { level: 0.5, send: 0.55, muffle: 700, glue: { threshold: -16, ratio: 3.5, knee: 10, attack: 0.02, release: 0.3 } },
-    preview: 40, fileSpread: 0.03,
+    ahead: 0.6,
+    hiddenAhead: 1.6,
+    tick: 250,
+    lowHp: 2,
+    fightDuck: 0.65,
+    bossDuck: 0.45,
+    pauseDuck: 0.5,
+    themeDuck: 0.9,
+    bedSend: 0.3,
+    music: {
+      level: 0.5,
+      send: 0.55,
+      muffle: 700,
+      glue: { threshold: -16, ratio: 3.5, knee: 10, attack: 0.02, release: 0.3 },
+    },
+    preview: 40,
+    fileSpread: 0.03,
   },
   // creatures made in Tripo and animated in code (actors/madeCreatures.ts, docs/creatures.md): the lap walked (its radius),
   // seconds walking and resting (and resting first), how long one clip blends into the next, how fast it turns to the mage
   // to roar, its shadow's size against its length, where the dev menu stands it from the mage (to the side, and south),
   // and the loudness of its footsteps and of its loud events (the roar, the slam)
   creatures: {
-    lap: 1.3, walkFor: 6, restFor: 1.4, firstRest: 0.8, blend: 0.3, turn: 6, shadow: 0.55, standSide: 2.6, standSouth: 0.6, stepGain: 0.3, roarGain: 0.4,
+    lap: 1.3,
+    walkFor: 6,
+    restFor: 1.4,
+    firstRest: 0.8,
+    blend: 0.3,
+    turn: 6,
+    shadow: 0.55,
+    standSide: 2.6,
+    standSouth: 0.6,
+    stepGain: 0.3,
+    roarGain: 0.4,
     // the look made from its own texture (actors/texturePixel.ts, render/texelBake.ts, 2026-10-05): the texture shrunk to at
     // least one texel a game pixel (times `detail`, a power of two within [min, max]; `facing`, the share of its faces
     // turned to the camera); texels at least `glowLight` light
     // and `glowChroma` colourful (OKLab) kept where they are `glowShare` of a block, and lit at `glowGain`; its shadows
     // lifted (lightness to the power `lift`) and its `contrast` set; cut to `colours` (k-means `refine` rounds, hue counted
     // `chroma` times)
-    texel: { detail: 1, facing: 0.5, min: 64, max: 512, glowLight: 0.65, glowChroma: 0.12, glowShare: 0.2, glowGain: 0.7, lift: 0.8, contrast: 1.1, colours: 24, refine: 8, chroma: 3 },
+    texel: {
+      detail: 1,
+      facing: 0.5,
+      min: 64,
+      max: 512,
+      glowLight: 0.65,
+      glowChroma: 0.12,
+      glowShare: 0.2,
+      glowGain: 0.7,
+      lift: 0.8,
+      contrast: 1.1,
+      colours: 24,
+      refine: 8,
+      chroma: 3,
+    },
   },
   // the mage in the pixel-art look (actors/heroPixel.ts, 2026-10-01): its texture baked into its vertices (each the mean of
   // the texels within `sample` of where it lies) and cut down to `colours`; light in the `tones` (darkest first, a toon
   // ramp's steps) with `glow` of its own colour as self-light, as the model had, so it reads in dark rooms
-  heroPixel: { colours: 20, refine: 8, chroma: 3, tones: [.06, .16, .5, .95], glow: .14, sample: 1 },
+  heroPixel: { colours: 20, refine: 8, chroma: 3, tones: [0.06, 0.16, 0.5, 0.95], glow: 0.14, sample: 1 },
   // the room kit (M3.5 step 3): the floors' and walls' texels to a unit across and down the screen (render/pixelTextures.ts;
   // at 540 lines a one-cell room shows a unit as about 62 × 44 pixels, the floor seen from 45° above, a great hall as
   // 50 × 35; 48 × 34 keeps a texel square on screen and at least a pixel in both, at 1080 lines 2 to 3), how brightly
@@ -450,9 +913,21 @@ export const CFG = {
   // `out` (shown at whole multiples), turned (x, y) to the camera, the margin round them, the light (fill, key, the rim in
   // the artifact's colour), and how much of an icon pixel must be drawn (its alpha, 0 to 255) for it to be `solid`
   roomKit: {
-    texel: [48, 34] as [number, number], glow: 0.6, glowDark: 0.5,
-    artifactScale: 1.2, artifactClear: .24,
-    icon: { size: 96, out: 24, turn: [.35, -.55] as [number, number], margin: 1.12, fill: 1.6, key: 2.4, rim: 1.6, solid: 110 },
+    texel: [48, 34] as [number, number],
+    glow: 0.6,
+    glowDark: 0.5,
+    artifactScale: 1.2,
+    artifactClear: 0.24,
+    icon: {
+      size: 96,
+      out: 24,
+      turn: [0.35, -0.55] as [number, number],
+      margin: 1.12,
+      fill: 1.6,
+      key: 2.4,
+      rim: 1.6,
+      solid: 110,
+    },
   },
   // the spells' looks (magic/spellFx.ts, docs/effects.md), in seconds unless said: the Cinder Lance (how long it shows,
   // how quickly it swells to full, when it starts to fade, how long the rune ring at the hand flares, the space between
@@ -463,16 +938,29 @@ export const CFG = {
   // the middle after another
   spellFx: {
     lance: { life: 0.6, rise: 0.06, fade: 0.3, flare: 0.25, ringGap: 1.2, embers: 1.4 },
-    impact: 0.22, strike: 0.22, chain: 0.3, crackle: 0.25, ring: 0.3, flash: 0.3, shockwave: 0.45,
+    impact: 0.22,
+    strike: 0.22,
+    chain: 0.3,
+    crackle: 0.25,
+    ring: 0.3,
+    flash: 0.3,
+    shockwave: 0.45,
     seal: { rise: 0.15, crown: 0.5, pillar: 0.7, star: 0.6 },
-    wallRise: 0.25, wallStagger: 0.03,
+    wallRise: 0.25,
+    wallStagger: 0.03,
     weaveName: 2, // (M4.10: seconds before the same weave's name rises again, for those that go on and on)
-    nameGap: .44, nameStack: .5, // (a name rising where another rose under `nameStack` s ago stands `nameGap` above it on screen)
+    nameGap: 0.44,
+    nameStack: 0.5, // (a name rising where another rose under `nameStack` s ago stands `nameGap` above it on screen)
   },
   lights: {
-    hemi: 1.57, moon: 1.26,
-    torch: 4.3, torchDistance: 9, torchDecay: 0.5,
-    lantern: 3.8, lanternDistance: 6.5, lanternDecay: 0.5,
+    hemi: 1.57,
+    moon: 1.26,
+    torch: 4.3,
+    torchDistance: 9,
+    torchDecay: 0.5,
+    lantern: 3.8,
+    lanternDistance: 6.5,
+    lanternDecay: 0.5,
     exposure: 1.2,
   },
 };
@@ -480,5 +968,16 @@ export const CFG = {
 export type EnemyType = keyof typeof CFG.enemy;
 /** Enemy types that are bosses; each floor draws its boss from a pool of these (data/floors.json). The jelly serpent (M5)
     is in no pool: it breaks out of its vat in Dr. Jelly's laboratory (or comes with `?boss=serpent` and the dev menu). */
-export const BOSS_TYPES = ['warden', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins', 'serpent', 'kaelith'] as const satisfies readonly EnemyType[];
+export const BOSS_TYPES = [
+  'warden',
+  'abbess',
+  'pyre',
+  'hart',
+  'angler',
+  'tiger',
+  'dragon',
+  'twins',
+  'serpent',
+  'kaelith',
+] as const satisfies readonly EnemyType[];
 export type BossType = (typeof BOSS_TYPES)[number];

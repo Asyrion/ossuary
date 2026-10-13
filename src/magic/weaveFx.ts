@@ -15,8 +15,11 @@ const last = new Map<WeaveId, number>();
 /** Weave `id` went off at (x, z): its name rises (once every `CFG.spellFx.weaveName` seconds at most, for those that go on
     and on), bursts of both its schools' light, and its sound. Returns whether it was the first time ever. */
 export function weaveAt(id: WeaveId, x: number, z: number) {
-  const first = foundWeave(id), w = WEAVES[id], [a, b] = w.schools;
-  burst(x, .7, z, SCHOOL_LIGHT[a], 10, 2, .04); burst(x, .7, z, SCHOOL_LIGHT[b], 10, 2, .04);
+  const first = foundWeave(id),
+    w = WEAVES[id],
+    [a, b] = w.schools;
+  burst(x, 0.7, z, SCHOOL_LIGHT[a], 10, 2, 0.04);
+  burst(x, 0.7, z, SCHOOL_LIGHT[b], 10, 2, 0.04);
   if (!first && G.simClock - (last.get(id) ?? -99) < CFG.spellFx.weaveName) return false;
   last.set(id, G.simClock);
   floatText(x, 1.9, z, STR.weaves[id].name, w.kind === 'weave' ? 0xfff0c8 : 0xd8e0ff, first ? 52 : 44);

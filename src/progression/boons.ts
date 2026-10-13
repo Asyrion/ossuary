@@ -21,29 +21,49 @@ import { boon, boonText, dealBoons, pledgeFor, schoolWeights, type Card } from '
 export { boonRank, boonParam } from './boonHooks';
 
 /** The schools of the spells in the slots. */
-const slotSchools = () => player.spells.map(id => id ? spell(id).school : null);
+const slotSchools = () => player.spells.map((id) => (id ? spell(id).school : null));
 
 /** Three cards for a choice now (a level's, or with `only`, a bargain's school), drawn on the run's own stream. An attuned
     mage is told once a run that the deal leans to its school. */
 export function dealNow(only?: School | null): Card[] {
-  const slots = slotSchools(), attuned = attunedTo(slots), taken = G.run.boons;
+  const slots = slotSchools(),
+    attuned = attunedTo(slots),
+    taken = G.run.boons;
   const weights = schoolWeights({ slots, casts: G.run.casts, taken, pledge: G.run.pledge });
   const socketable = G.run.floor < FLOORS.length - 1 && player.spells.some(Boolean); // (a waystone still ahead, and a spell to carve)
   const rng = Rng.from(G.run.seed, 'boons' + G.run.deals++);
-  const cards = dealBoons({ taken, weights, attuned, spoon: player.stats.effects.has('taster'), socketable, only }, () => rng.next());
-  if (attuned && !only && !G.run.hinted.has('dealLeans:' + attuned)) { G.run.hinted.add('dealLeans:' + attuned); line(STR.boons.attuned(STR.schools[attuned]), CFG.afflict.lineShow); }
+  const cards = dealBoons(
+    { taken, weights, attuned, spoon: player.stats.effects.has('taster'), socketable, only },
+    () => rng.next(),
+  );
+  if (attuned && !only && !G.run.hinted.has('dealLeans:' + attuned)) {
+    G.run.hinted.add('dealLeans:' + attuned);
+    line(STR.boons.attuned(STR.schools[attuned]), CFG.afflict.lineShow);
+  }
   return cards;
 }
 
 /** Take boon `id` (its next rank): its lore card (not from the level-up screen, whose card says it all), a pledge if its
     school's spells are yet to come, and the stats refreshed (a boon may change them). Whether it could be taken. */
 export function takeBoon(id: string, card = true) {
-  const def = boon(id), rank = boonRank(id) + 1;
+  const def = boon(id),
+    rank = boonRank(id) + 1;
   if (rank > def.max) return false;
-  G.run.boons[id] = rank; boonsChanged++;
+  G.run.boons[id] = rank;
+  boonsChanged++;
   const pledge = rank === 1 ? pledgeFor(id, slotSchools()) : null;
-  if (pledge) { G.run.pledge = pledge; line(STR.boons.pledged(STR.schools[pledge]), CFG.afflict.lineShow); }
-  if (card) showLore({ icon: boonIconImg(id, rank), name: rank > 1 ? STR.boons.ranked(def.name) : def.name, kind: def.school ? STR.boons.kindOf(STR.schools[def.school]) : STR.boons.kindGeneral, effect: boonText(id, rank), lore: def.lore });
+  if (pledge) {
+    G.run.pledge = pledge;
+    line(STR.boons.pledged(STR.schools[pledge]), CFG.afflict.lineShow);
+  }
+  if (card)
+    showLore({
+      icon: boonIconImg(id, rank),
+      name: rank > 1 ? STR.boons.ranked(def.name) : def.name,
+      kind: def.school ? STR.boons.kindOf(STR.schools[def.school]) : STR.boons.kindGeneral,
+      effect: boonText(id, rank),
+      lore: def.lore,
+    });
   refreshStats(false);
   return true;
 }

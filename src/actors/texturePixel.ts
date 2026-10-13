@@ -10,9 +10,17 @@ import * as THREE from 'three';
 import { CFG } from '../config';
 import { toneMap } from './heroPixel';
 
-const loader = new THREE.TextureLoader(), made = new Map<string, Promise<THREE.MeshToonMaterial>>();
+const loader = new THREE.TextureLoader(),
+  made = new Map<string, Promise<THREE.MeshToonMaterial>>();
 /** A baked texture: sharp (one texel, one patch of colour), no mipmaps to blend it off its palette, rows as glTF's. */
-const sharpTex = (url: string) => loader.loadAsync(url).then(t => { t.colorSpace = THREE.SRGBColorSpace; t.flipY = false; t.minFilter = t.magFilter = THREE.NearestFilter; t.generateMipmaps = false; return t; });
+const sharpTex = (url: string) =>
+  loader.loadAsync(url).then((t) => {
+    t.colorSpace = THREE.SRGBColorSpace;
+    t.flipY = false;
+    t.minFilter = t.magFilter = THREE.NearestFilter;
+    t.generateMipmaps = false;
+    return t;
+  });
 
 /** The material of the model `key` drawn from its baked texture (`urls`: its colour and its glow), two-sided as Tripo's
     is; loaded once a key. */
@@ -20,11 +28,24 @@ export function texelMaterial(key: string, urls: { file: string; glow: string })
   let m = made.get(key);
   if (!m) {
     m = Promise.all([sharpTex(urls.file), sharpTex(urls.glow)]).then(([map, glow]) => {
-      const mat = new THREE.MeshToonMaterial({ map, gradientMap: toneMap(), emissive: 0xffffff, emissiveMap: glow, emissiveIntensity: CFG.creatures.texel.glowGain, side: THREE.DoubleSide });
-      const self = { value: CFG.heroPixel.glow }; mat.userData.self = self; // (the faint self-light the mage's look has, so it reads in a dark room; `selfLight` raises it for one model)
-      mat.onBeforeCompile = sh => {
+      const mat = new THREE.MeshToonMaterial({
+        map,
+        gradientMap: toneMap(),
+        emissive: 0xffffff,
+        emissiveMap: glow,
+        emissiveIntensity: CFG.creatures.texel.glowGain,
+        side: THREE.DoubleSide,
+      });
+      const self = { value: CFG.heroPixel.glow };
+      mat.userData.self = self; // (the faint self-light the mage's look has, so it reads in a dark room; `selfLight` raises it for one model)
+      mat.onBeforeCompile = (sh) => {
         sh.uniforms.selfLight = self;
-        sh.fragmentShader = 'uniform float selfLight;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n\ttotalEmissiveRadiance += diffuseColor.rgb * selfLight;');
+        sh.fragmentShader =
+          'uniform float selfLight;\n' +
+          sh.fragmentShader.replace(
+            '#include <emissivemap_fragment>',
+            '#include <emissivemap_fragment>\n\ttotalEmissiveRadiance += diffuseColor.rgb * selfLight;',
+          );
       };
       mat.userData.shared = true; // (every copy wears it)
       return mat;
@@ -36,12 +57,26 @@ export function texelMaterial(key: string, urls: { file: string; glow: string })
 }
 
 /** The self-light of the model `key`'s material (every copy of it): the townspeople stand brighter at the Vigil. */
-export function selfLight(key: string, v: number) { void made.get(key)?.then(m => { (m.userData.self as { value: number }).value = v; }); }
+export function selfLight(key: string, v: number) {
+  void made.get(key)?.then((m) => {
+    (m.userData.self as { value: number }).value = v;
+  });
+}
 
 /** Wear it on every textured mesh under `root` (`each`, if given, decides what wearing means for a mesh: a made asset
     keeps both looks to switch between). */
-export async function wearTexel(root: THREE.Object3D, key: string, urls: { file: string; glow: string }, each = (m: THREE.Mesh, mat: THREE.Material) => { m.material = mat; }) {
+export async function wearTexel(
+  root: THREE.Object3D,
+  key: string,
+  urls: { file: string; glow: string },
+  each = (m: THREE.Mesh, mat: THREE.Material) => {
+    m.material = mat;
+  },
+) {
   const mat = await texelMaterial(key, urls);
-  root.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh && (m.material as THREE.MeshStandardMaterial).map) each(m, mat); });
+  root.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (m.isMesh && (m.material as THREE.MeshStandardMaterial).map) each(m, mat);
+  });
   return mat;
 }

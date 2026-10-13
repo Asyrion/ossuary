@@ -49,18 +49,51 @@ const checks: [string, () => unknown][] = [
   ['spells', () => validateSpells()],
   ['runes', () => validateRunes()],
   ['boons', () => validateBoons()],
-  ['room templates', () => TEMPLATE_DEFS.flatMap(t => validateTemplate(t))],
+  ['room templates', () => TEMPLATE_DEFS.flatMap((t) => validateTemplate(t))],
   ['themes', () => validateThemes(TEMPLATE_DEFS, FLOORS)],
-  ['room kit', () => [...FLOORS.map(f => validateKit(f.look.name, f.look.kit)),
-    ...THEME_DEFS.map(t => validateKit(t.id, t.look?.kit as Partial<KitWeights> | undefined, false))].flat()],
+  [
+    'room kit',
+    () =>
+      [
+        ...FLOORS.map((f) => validateKit(f.look.name, f.look.kit)),
+        ...THEME_DEFS.map((t) => validateKit(t.id, t.look?.kit as Partial<KitWeights> | undefined, false)),
+      ].flat(),
+  ],
   ['music', () => validateMusic()],
-  ['ambience', () => validateAmbience(Object.keys(STR.dev.roomNames), THEME_DEFS.map(t => t.id))],
+  [
+    'ambience',
+    () =>
+      validateAmbience(
+        Object.keys(STR.dev.roomNames),
+        THEME_DEFS.map((t) => t.id),
+      ),
+  ],
   ['sounds', () => validateSounds(sounds)],
-  ['dialogue', () => validateDialogue(DIALOGUE, { speakers: [...SHADE_IDS, 'ferryman'], spells: SPELL_DEFS.map(d => d.id), foes: [...FOE_IDS],
-    bosses: [...BOSS_TYPES], reactions: [...REACTION_IDS], recipes: [...POTION_IDS] })],
+  [
+    'dialogue',
+    () =>
+      validateDialogue(DIALOGUE, {
+        speakers: [...SHADE_IDS, 'ferryman'],
+        spells: SPELL_DEFS.map((d) => d.id),
+        foes: [...FOE_IDS],
+        bosses: [...BOSS_TYPES],
+        reactions: [...REACTION_IDS],
+        recipes: [...POTION_IDS],
+      }),
+  ],
   ['chained shades', () => validateShades()],
-  ['townsfolk', () => validateTownsfolk(TOWNSFOLK, { folk: [...SHADE_IDS], spells: SPELL_DEFS.map(s => s.id), potions: [...POTION_IDS],
-    artifacts: ARTIFACT_DEFS.map(a => a.id), foci: ARTIFACT_DEFS.filter(a => a.kind === 'focus').map(a => a.id), schools: [...SCHOOLS] })],
+  [
+    'townsfolk',
+    () =>
+      validateTownsfolk(TOWNSFOLK, {
+        folk: [...SHADE_IDS],
+        spells: SPELL_DEFS.map((s) => s.id),
+        potions: [...POTION_IDS],
+        artifacts: ARTIFACT_DEFS.map((a) => a.id),
+        foci: ARTIFACT_DEFS.filter((a) => a.kind === 'focus').map((a) => a.id),
+        schools: [...SCHOOLS],
+      }),
+  ],
   ['the Vigil', () => validateVigil()],
 ];
 
@@ -72,4 +105,4 @@ const out = checks.map(([name, run]) => {
     return { name, errors: [`the check itself failed: ${e instanceof Error ? e.message : String(e)}`] };
   }
 });
-console.log('VALIDATE_JSON ' + JSON.stringify({ ok: out.every(c => !c.errors.length), checks: out }));
+console.log('VALIDATE_JSON ' + JSON.stringify({ ok: out.every((c) => !c.errors.length), checks: out }));
