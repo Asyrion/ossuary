@@ -1,6 +1,7 @@
-/* The arcane building blocks the code-built models and effects share (actors/modelOptions.ts, magic/effectOptions.ts):
-   plain and glowing materials, parts placed in one call, rods between two points, and the pieces that make a thing
-   look magical in the pixel look: runes, rune rings, magic circles, crystals, motes, lightning, expanding rings. */
+/* The arcane building blocks the code-built models and effects share (foes, bosses, Fen-Nex, the spells, the dev
+   galleries): plain and glowing materials, parts placed in one call, rods between two points, and the pieces that make
+   a thing look magical in the pixel look: runes, rune rings, magic circles, crystals, motes, lightning, expanding
+   rings. */
 import * as THREE from 'three';
 
 export type V3 = [number, number, number];

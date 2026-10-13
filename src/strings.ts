@@ -1511,7 +1511,7 @@ export const STR = {
     base: (v: string) => `Base ${v}`,
     straight: 'Straight',
   },
-  /** The floors' foes and the Wardlings (actors/modelOptions.ts): their names (`foeName`) and a note on each. */
+  /** The floors' foes and the Wardlings (their looks: actors/fantasyLooks.ts, bestiaryLooks.ts): their names (`foeName`) and a note on each. */
   options: {
     sporeling: {
       name: 'Spore Fiend',
@@ -1760,7 +1760,7 @@ export const STR = {
       fight: 'Spiker: its tail looses volleys of hexing spikes, and it pounces; holy light stills the tail',
     },
   } satisfies Record<BestiaryOptionId, { name: string; fight: string }>, // (every one named, with the fight it brings)
-  /** Spell effect options (magic/effectOptions.ts): names and what each shows. */
+  /** Spell effect options (the dev gallery, dev/effectOptions.ts): names and what each shows. */
   effects: {
     arcaneBolt: {
       name: 'Arcane bolt',

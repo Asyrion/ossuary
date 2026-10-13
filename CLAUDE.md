@@ -43,7 +43,8 @@ game states and floors, `state.ts` shared state `G` and `player`, `config.ts` al
 player-facing text (`STR`), `types.ts`. Folders: `world/` (generation, rooms, objects, mechanisms, themes, special rooms),
 `actors/` (mage, foes, bosses, looks), `magic/` (spells, statuses, reactions, weaves, runes), `items/` (artifacts, pickups,
 potions, merchant), `combat/` (bolts, glyphs, familiars), `progression/` (insight, levels, boons), `vigil/` (the hub and its
-save), `render/` (renderer, pixel look, textures, fire), `audio/`, `ui/` (HUD, menus, dev menu), `input/`, `assets/`.
+save), `render/` (renderer, pixel look, textures, fire), `audio/`, `ui/` (HUD, menus), `input/`, `assets/`. Dev code
+(`__game`, the dev menu, galleries, harnesses) is in `dev/`, a separate chunk the game reaches only through `devDoor.ts`.
 Content is in `data/` (JSON, each kind with a validator), tools in `tools/`, tests in `tests/unit` and `tests/e2e`.
 Details: `docs/architecture.md`.
 
@@ -57,9 +58,10 @@ Details: `docs/architecture.md`.
   to walking over it (GDD: What separates Ossuary from an Isaac clone).
 - **One pixel for everything:** the game is drawn at the room kit's texel and blown up. New things are drawn at it; their
   glows are stepped; icons are pixel art. Every Tripo model wears its texture as pixel art (`tools/texel-bake.ts`).
-- **Every new feature gets its dev menu entry in the same step** (`src/ui/devMenu.ts`, in its tab), so it can be spawned,
-  given or triggered. While the freeze holds this applies to what the reset builds. The HUD and the title show the dev
-  menu's key while play-tests run (`#devHint`); remove it when they are over.
+- **Every new feature gets its dev menu entry in the same step** (`src/dev/menu.ts`, in its tab), so it can be spawned,
+  given or triggered. Dev code stays in `src/dev/`; the game reaches it only through `src/devDoor.ts`. While the freeze
+  holds this applies to what the reset builds. The HUD and the title show the dev menu's key while play-tests run
+  (`#devHint`); remove it when they are over.
 - **The owner sees new looks before they replace old ones**; the look that loses is deleted in the same step (no switch
   between an old and a new way outlives the owner's choice).
 - **Lore limits:** name only what the GDD adopted from the owner's lore (`docs/lore/`); invent no gods, factions or places.

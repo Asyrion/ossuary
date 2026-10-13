@@ -116,7 +116,7 @@ Send me a preview video before anything ships. Ship only when I say so.
    reads the game's file, so it needs no source model; after changing the tuning or a creature's height, run
    `npm run texel-bake -- <id>` (`-- all` for every creature).
 6. **Preview.** With `npm run dev` running, `npm run creature-preview -- <id>` writes `creature-previews/<id>.mp4`.
-7. **Dev menu.** Add a name in `STR.dev.creatureNames`; the menu lists creatures from the data by itself. It's under
+7. **Dev menu.** Add a name in `DEV_STR.creatureNames` (`src/dev/strings.ts`); the menu lists creatures from the data by itself. It's under
    Galleries → Animated creatures:
    - "stand it here", "Roar now", "Take them away";
 
@@ -161,7 +161,7 @@ Tripo's humanoid rig gives every figure the same skeleton (`mixamorig:Hips` to t
 | Faces, texture | `tools/orientFaces.ts`, `tools/padIslands.ts` |
 | Recipes | `tools/creatures/<id>.ts`; the thirteen people `tools/creatures/townsfolk.ts` |
 | Preview | `tools/creature-preview.ts` and `.html` |
-| In the game | `src/actors/madeCreatures.ts`, `CFG.creatures`, `src/actors/texturePixel.ts` |
+| In the game | `src/actors/madeCreatures.ts`, `CFG.creatures`, `src/actors/texturePixel.ts`; the gallery `src/dev/creatureGallery.ts` |
 | Sounds | `src/audio/creatureSounds.ts`; from files: `tools/prepare-sound.ts`, `data/sounds.json`, `src/audio/samples.ts` |
 | Pixel art from its texture | `tools/texel-bake.ts`, `src/render/texelBake.ts`, `src/actors/texturePixel.ts`, `CFG.creatures.texel` |
 | Tests | `tests/unit/creatureTools.test.ts`, `tests/unit/sounds.test.ts`; the browser test "a creature made in Tripo…" |

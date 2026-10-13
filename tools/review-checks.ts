@@ -105,8 +105,8 @@ for (const a of added.filter(src))
 const claude = ['CLAUDE.md', 'docs/architecture.md']
   .map((f) => (existsSync(f) ? readFileSync(f, 'utf8') : ''))
   .join('\n');
-const mainAdded = added.filter((a) => a.file === 'src/main.ts');
-for (const a of mainAdded) {
+const hooksAdded = added.filter((a) => a.file === 'src/dev/hooks.ts');
+for (const a of hooksAdded) {
   if (!/^\s{4}\S/.test(a.text)) continue; // (the hooks sit four spaces in, one or more to a line)
   for (const m of a.text.matchAll(/(?:^|[,{]\s*)(?:get\s+)?(\w+)(?:\s*\(|\s*:)/g))
     if (
@@ -126,17 +126,17 @@ if (
 )
   flag('9', 'code or data changed but no doc did (GDD, docs/architecture.md, the plan)');
 
-// 1. the dev menu: new features, but devMenu.ts untouched
+// 1. the dev menu: new features, but dev/menu.ts untouched
 const newExports = added.filter(
   (a) => /^src\/(world|items|magic|combat|actors)\//.test(a.file) && /^export function \w+/.test(a.text),
 );
-if (newExports.length && !files.includes('src/ui/devMenu.ts'))
+if (newExports.length && !files.includes('src/dev/menu.ts'))
   flag(
     '1',
     `${newExports.length} new exported functions (${newExports
       .slice(0, 4)
       .map((a) => a.text.match(/function (\w+)/)?.[1])
-      .join(', ')}...) but devMenu.ts is untouched: check new features have an entry`,
+      .join(', ')}...) but dev/menu.ts is untouched: check new features have an entry`,
   );
 
 // 8. tests: code without tests, and tests that depend on luck

@@ -107,7 +107,8 @@ export const G = {
   simClock: 0,
 };
 
-/** Dev menu switches (ui/devMenu.ts): god mode keeps the mage from harm; endless mana never runs out. */
+/** Dev menu switches (dev/menu.ts writes them, the game reads them): god mode keeps the mage from harm; endless mana
+    never runs out. */
 export const DEV = {
   /** M4.6: Azyrion's arc forced to a stage (the dev menu), else from what is held. */ arc: undefined as
     number | undefined,
