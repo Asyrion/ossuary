@@ -13,12 +13,13 @@ cleaning, the look and the story.
 | --- | --- |
 | R0 One baseline | Done 2026-10-12 |
 | R1 Docs that tell the truth | Built 2026-10-12; the owner's read next |
-| R2 Code that is kept | **Next** |
+| R2 Code that is kept | **Under way:** step 1 (lint and format) built, not yet merged |
 | R3 The look | Waits for R2 |
 | R4 The story | Waits for R3's art bible; holds M7 steps 10 to 13 |
 | R5 The vertical slice | Last |
 
-**Next:** R2 step 1, lint and format (ESLint and Prettier, run once over the code, then in CI).
+**Next:** R2 step 2, old paths out (the old room kit, old foe looks, pixel-row modes, extra creature looks, comparison
+GLBs, the `rotling`, `prototype/`, `npm run compare`), planned with the owner first.
 
 ## What is live
 
