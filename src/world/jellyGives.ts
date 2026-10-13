@@ -36,7 +36,7 @@ const W = () => CFG.alchemy.lab.give;
 
 /** Dr. Jelly will hand `gift` over in this room (when the table is shut and no fight is on). */
 export function jellyGives(gift: Gift) {
-  queue.push({ gift, room: G.current });
+  queue.push({ gift, room: G.room.current });
 }
 /** A new floor or run: nothing left to give, nothing in the air. */
 export function clearGives() {

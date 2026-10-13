@@ -237,7 +237,7 @@ export function talkTo(who: string, moment?: TalkContext['moment']) {
   if (line.line.moment === 'quest' || line.line.moment === 'questDone') questSaid(who, line.line.moment); // (M7 step 8: given, or done)
   // (the panel goes at the top when the speaker stands in the screen's lower half: south of where the camera is heading, its
   // middle half a tile up the screen for its height)
-  const low = !!at && at.z - 0.4 > cameraTargetFor(G.current, player.x, player.z).z;
+  const low = !!at && at.z - 0.4 > cameraTargetFor(G.room.current, player.x, player.z).z;
   openTalk(who, speakerName(who), speakerIcon(who), line, said, low);
   return true;
 }
@@ -304,14 +304,14 @@ export function updateTown(dt: number, playing: boolean) {
   if (wasTalking && !talking) refreshNews();
   wasTalking = talking;
   for (const f of figures) {
-    const near = G.current === f.room && Math.hypot(player.x - f.x, player.z - f.z) < C().watch;
+    const near = G.room.current === f.room && Math.hypot(player.x - f.x, player.z - f.z) < C().watch;
     const toMage = near ? Math.atan2(player.x - f.x, player.z - f.z) - f.look.group.rotation.y : null;
     const turn = toMage === null ? null : Math.atan2(Math.sin(toMage), Math.cos(toMage));
     if (f.made) moveMade(f.made, dt, turn, talking === f.id, f.news && talking !== f.id);
     else moveTown(f.look, t, turn, talking === f.id, f.news && talking !== f.id);
   }
   if (ferryman && ferry) {
-    const near = G.current === ferry.room ? Math.atan2(player.x - ferry.x, player.z - ferry.z) : null;
+    const near = G.room.current === ferry.room ? Math.atan2(player.x - ferry.x, player.z - ferry.z) : null;
     moveMade(
       ferryman,
       dt,
@@ -322,7 +322,7 @@ export function updateTown(dt: number, playing: boolean) {
   }
   if (!playing || talking) return;
   for (const f of figures) {
-    const d = G.current === f.room ? Math.hypot(player.x - f.x, player.z - f.z) : Infinity;
+    const d = G.room.current === f.room ? Math.hypot(player.x - f.x, player.z - f.z) : Infinity;
     if (d < C().reach && f.armed) {
       f.armed = false;
       talkTo(f.id);
@@ -333,7 +333,7 @@ export function updateTown(dt: number, playing: boolean) {
   if (
     ferry &&
     !ferry.said &&
-    G.current === ferry.room &&
+    G.room.current === ferry.room &&
     Math.hypot(player.x - ferry.x, player.z - ferry.z) < C().ferryReach
   ) {
     ferry.said = true;

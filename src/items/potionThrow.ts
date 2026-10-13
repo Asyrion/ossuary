@@ -54,7 +54,7 @@ const storms: Storm[] = [];
 /** Where a potion thrown now lands: as far as it reaches along where the mage aims, inside the room. */
 export function landing() {
   const d = aimDir(null),
-    b = G.current.bounds;
+    b = G.room.current.bounds;
   return {
     x: Math.min(b.maxX - 0.3, Math.max(b.minX + 0.3, player.x + d.x * A.reach)),
     z: Math.min(b.maxZ - 0.3, Math.max(b.minZ + 0.3, player.z + d.z * A.reach)),
@@ -64,7 +64,7 @@ export function landing() {
 /** Where a throw lands: once, or (the Alchemist's split) twice, `CFG.alchemy.split` apart across the aim. */
 function landings() {
   const to = landing(),
-    b = G.current.bounds;
+    b = G.room.current.bounds;
   if (!player.stats.effects.has('splitThrow')) return [to];
   const dx = to.x - player.x,
     dz = to.z - player.z,
@@ -85,14 +85,14 @@ export function throwPotion(id: PotionId) {
     const g = bottleLook(G.run.bottles[id]);
     g.position.set(player.x, 1, player.z);
     scene.add(g);
-    flights.push({ id, g, x0: player.x, z0: player.z, x1: at.x, z1: at.z, t: 0, room: G.current });
+    flights.push({ id, g, x0: player.x, z0: player.z, x1: at.x, z1: at.z, t: 0, room: G.room.current });
   }
   if (lands.length > 1) burst(player.x, 1.2, player.z, 0x7ae070, 6, 1.2, 0.03); // (the bottle splits as it leaves the hand)
   Sfx.throwPotion();
 }
 
 const near = (x: number, z: number, r: number) =>
-  G.enemies.filter((e) => !e.dead && e.spawn <= 0 && !e.hidden && Math.hypot(e.x - x, e.z - z) < r + e.r);
+  G.room.enemies.filter((e) => !e.dead && e.spawn <= 0 && !e.hidden && Math.hypot(e.x - x, e.z - z) < r + e.r);
 const mageIn = (x: number, z: number, r: number) => Math.hypot(player.x - x, player.z - z) < r + player.r;
 const num = (v: number | string | undefined) => Number(v ?? 0);
 const col = (def: PotionDef) => parseInt(def.color.slice(1), 16);
@@ -121,7 +121,7 @@ const THROW: Record<ThrowEffect, (x: number, z: number, r: number, def: PotionDe
   },
   firePool(x, z, r, def) {
     fireAt(x, z, r);
-    layFire(G.current, x, z, num(def.throw.seconds), breathing ? 'mage' : undefined);
+    layFire(G.room.current, x, z, num(def.throw.seconds), breathing ? 'mage' : undefined);
     for (const e of near(x, z, r)) inflict(e, { burn: num(def.throw.burn) });
   }, // (breathed out: the mage's own fire, which spares them)
   freezeSplash(x, z, r, def) {
@@ -137,14 +137,14 @@ const THROW: Record<ThrowEffect, (x: number, z: number, r: number, def: PotionDe
     }
   },
   stormSplash(x, z, _r, def) {
-    storms.push({ x, z, t: num(def.throw.seconds), next: 0, def, room: G.current });
+    storms.push({ x, z, t: num(def.throw.seconds), next: 0, def, room: G.room.current });
     shockAt(x, z, undefined, true);
   },
   echoSplash(x, z, r) {
     // each foe in the splash strikes the nearest other foe, as hard as its own touch
     const hit = near(x, z, r);
     for (const e of hit) {
-      const o = G.enemies
+      const o = G.room.enemies
         .filter((f) => f !== e && !f.dead && f.spawn <= 0 && !f.hidden)
         .sort((a, b) => Math.hypot(a.x - e.x, a.z - e.z) - Math.hypot(b.x - e.x, b.z - e.z))[0];
       if (!o) continue;
@@ -261,7 +261,7 @@ function raiseThrall(x: number, z: number) {
   });
   g.position.set(x, 0, z);
   scene.add(g);
-  thrall = { g, x, z, cd: 0.4, room: G.current, legs, t: 0 };
+  thrall = { g, x, z, cd: 0.4, room: G.room.current, legs, t: 0 };
   burst(x, 0.4, z, 0x7a8a70, 16, 2, 0.05);
   Sfx.at(x, z).throwPotion();
 }
@@ -275,13 +275,13 @@ function dropThrall() {
 function updateThrall(dt: number) {
   const t = thrall;
   if (!t) return;
-  if (t.room !== G.current || (!G.current.locked && !G.enemies.some((e) => !e.dead))) {
+  if (t.room !== G.room.current || (!G.room.current.locked && !G.room.enemies.some((e) => !e.dead))) {
     dropThrall();
     return;
   }
   t.t += dt;
   t.cd -= dt;
-  const e = G.enemies
+  const e = G.room.enemies
     .filter((f) => !f.dead && f.spawn <= 0 && !f.hidden)
     .sort((a, b) => Math.hypot(a.x - t.x, a.z - t.z) - Math.hypot(b.x - t.x, b.z - t.z))[0] as Enemy | undefined;
   if (!e) return;
@@ -317,18 +317,18 @@ export function updateThrows(dt: number) {
     f.g.position.set(f.x0 + (f.x1 - f.x0) * k, 0.9 + Math.sin(k * Math.PI) * A.arc - 0.7 * k, f.z0 + (f.z1 - f.z0) * k);
     f.g.rotation.z += dt * 10;
     f.g.rotation.x += dt * 6;
-    if (k >= 1 || f.room !== G.current) {
+    if (k >= 1 || f.room !== G.room.current) {
       scene.remove(f.g);
       disposeTree(f.g);
       flights.splice(i, 1);
-      if (f.room === G.current) splash(f);
+      if (f.room === G.room.current) splash(f);
     }
   }
   for (let i = storms.length - 1; i >= 0; i--) {
     const s = storms[i];
     s.t -= dt;
     s.next -= dt;
-    if (s.t <= 0 || s.room !== G.current) {
+    if (s.t <= 0 || s.room !== G.room.current) {
       storms.splice(i, 1);
       continue;
     }

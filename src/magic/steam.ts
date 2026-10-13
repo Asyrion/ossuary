@@ -47,7 +47,7 @@ const clouds: Cloud[] = [];
 /** A cloud of steam at (x, z) in the current room, `r` across (the reaction's, by default), for `time` seconds. M5: a
     `dark` one (a thrown Shadowstep Tincture) is darkness, not steam: foes in it can't aim either, but water keeps still. */
 export function steamAt(x: number, z: number, r = S.radius, time = S.time, dark = false) {
-  const room = G.current,
+  const room = G.room.current,
     mat = new THREE.SpriteMaterial({
       map: glowTex,
       color: dark ? 0x2a1a40 : 0xe8f2f8,
@@ -73,7 +73,7 @@ export function steamAt(x: number, z: number, r = S.radius, time = S.time, dark 
 /** A school lands at (x, z) (M4.10): a cloud there not yet charged takes it: Storm makes it a thundercloud, Hallow incense,
     Umbral a miasma. Returns whether one did. */
 export function chargeSteam(x: number, z: number, school: Charge) {
-  const c = clouds.find((c) => c.room === G.current && !c.school && Math.hypot(x - c.x, z - c.z) < c.r);
+  const c = clouds.find((c) => c.room === G.room.current && !c.school && Math.hypot(x - c.x, z - c.z) < c.r);
   if (!c) return false;
   c.school = school;
   c.tick = 0;
@@ -86,7 +86,7 @@ function chargedTick(c: Cloud) {
   const W = MAGIC.weaves,
     T = W[CHAIN[c.school!]];
   c.tick = T.every;
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (e.dead || e.hidden || e.spawn > 0 || Math.hypot(e.x - c.x, e.z - c.z) > c.r + e.r * 0.5) continue;
     if (c.school === 'storm') {
       strikeFx({ x: c.x, y: 1.4, z: c.z }, { x: e.x, y: 0.7, z: e.z }, 0xf0e890, CFG.spellFx.strike, true);
@@ -111,20 +111,20 @@ function chargedTick(c: Cloud) {
 
 /** Whether (x, z) in the current room is inside a cloud of steam. */
 export const inSteam = (x: number, z: number) =>
-  clouds.some((c) => c.room === G.current && Math.hypot(x - c.x, z - c.z) < c.r);
+  clouds.some((c) => c.room === G.room.current && Math.hypot(x - c.x, z - c.z) < c.r);
 /** Whether steam hangs between (x0, z0) and (x1, z1) in the current room, or round either end: an eye can't see through it. */
 export function steamBetween(x0: number, z0: number, x1: number, z1: number) {
   const dx = x1 - x0,
     dz = z1 - z0,
     l2 = dx * dx + dz * dz || 1;
   return clouds.some((c) => {
-    if (c.room !== G.current) return false;
+    if (c.room !== G.room.current) return false;
     const k = Math.max(0, Math.min(1, ((c.x - x0) * dx + (c.z - z0) * dz) / l2));
     return Math.hypot(x0 + dx * k - c.x, z0 + dz * k - c.z) < c.r * S.sight; // (the thick of it)
   });
 }
 /** The clouds in the current room (tests, the dev menu). */
-export const steamCount = () => clouds.filter((c) => c.room === G.current).length;
+export const steamCount = () => clouds.filter((c) => c.room === G.room.current).length;
 
 function drop(c: Cloud) {
   for (const s of c.puffs) scene.remove(s);
@@ -141,7 +141,7 @@ export function updateSteam(dt: number) {
       continue;
     }
     const k = c.t / c.life,
-      here = c.room === G.current;
+      here = c.room === G.room.current;
     c.mat.opacity = Math.min(1, (1 - k) * 6) * Math.min(1, k * 2.5) * 0.5; // (it billows up, then thins out)
     for (const s of c.puffs) {
       s.visible = here;

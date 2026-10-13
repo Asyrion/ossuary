@@ -321,7 +321,7 @@ function crumble(p: Page) {
 /** Walking into a page takes it, or asks which spell to give up, or refuses (too few obols); stepping away
     stops the asking. Called every step while playing. */
 export function checkPages() {
-  const pages = G.current.pages ?? [];
+  const pages = G.room.current.pages ?? [];
   if (asking && !pages.includes(asking)) stopAsking();
   for (const p of pages) {
     if (p.gone) continue;
@@ -350,7 +350,7 @@ export function checkPages() {
 
 /** Pages hover and sway over their stands and whisper motes of light. */
 export function updatePages(dt: number, now: number) {
-  for (const p of G.current.pages ?? []) {
+  for (const p of G.room.current.pages ?? []) {
     if (p.gone || !p.hover) continue;
     const base = p.kind === 'loose' ? 0.55 : 1.22;
     p.hover.position.y = base + Math.sin(now * 2 + p.x) * 0.05;
@@ -378,7 +378,7 @@ export function clearPages() {
 export function pageNear(): Page | null {
   let near: Page | null = null,
     best = CFG.knowledge.pageReach + player.r;
-  for (const p of G.current.pages ?? []) {
+  for (const p of G.room.current.pages ?? []) {
     if (p.gone) continue;
     const d = Math.hypot(player.x - p.x, player.z - p.z);
     if (d < best) {

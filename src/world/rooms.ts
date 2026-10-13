@@ -371,7 +371,7 @@ function addUrn(room: Room, c: number, r: number, sealed: boolean) {
 /** The dev menu: an urn (plain or rune-sealed) on the floor tile at (x, z) in this room, as a template's `u` or `$`
     puts one. Returns whether there was floor for it. */
 export function placeUrn(x: number, z: number, sealed: boolean) {
-  const room = G.current,
+  const room = G.room.current,
     c = Math.floor(x - room.bounds.minX),
     r = Math.floor(z - room.bounds.minZ);
   if (room.template.tiles[r]?.[c] !== 'floor') return false;
@@ -929,7 +929,7 @@ export function updateRoomFx(dt: number, now: number) {
       d.bars.position.y += (target - d.bars.position.y) * (1 - Math.exp(-12 * dt));
       d.bars.visible = !d.open || d.bars.position.y > -d.barH; // (sunk out of sight: hidden, or it shows past a south door, where nothing is drawn)
     }
-    if (r === G.current)
+    if (r === G.room.current)
       for (const t of r.torches) {
         if (!t.lit) continue;
         const f = 0.85 + Math.sin(now * 17 + t.x) * 0.08 + Math.sin(now * 29 + t.x * 2) * 0.06;

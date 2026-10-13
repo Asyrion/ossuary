@@ -80,7 +80,7 @@ export function buildKaelith(e: Enemy) {
   e.state = 'stalk';
   e.st = 1.8;
   e.cycle = 0;
-  const wards = (G.current.props ?? []).filter((b) => b.prop.kind === 'obelisk');
+  const wards = (G.room.current.props ?? []).filter((b) => b.prop.kind === 'obelisk');
   for (const w of wards) sealWard(w);
   fight = { e, phase: 1, wards, cracks: new Map(), pull: 0, sun: null, said: new Set(), roles: 0 };
   wardHooks.shut = wardShut;
@@ -134,7 +134,7 @@ function shadowNear(room: Room) {
   return null;
 }
 /** Whether the mage stands where the last light can't draw them: within reach of a lit candle stand. */
-export const candleSafe = (room: Room = G.current) =>
+export const candleSafe = (room: Room = G.room.current) =>
   (room.props ?? []).some(
     (b) =>
       b.prop.lit &&
@@ -179,7 +179,7 @@ export function updateKaelith(e: Enemy, dt: number, ux: number, uz: number): num
         const order =
           fight.phase === 3 ? ['windSweep', 'windPull', 'sink', 'windVolley'] : ['windSweep', 'windVolley', 'sink'];
         let next = order[e.cycle % order.length];
-        if (next === 'sink' && !(shadowAt(G.current, e.x, e.z) && shadowNear(G.current))) next = 'windVolley'; // (nowhere dark to go: it stays and fires)
+        if (next === 'sink' && !(shadowAt(G.room.current, e.x, e.z) && shadowNear(G.room.current))) next = 'windVolley'; // (nowhere dark to go: it stays and fires)
         e.state = next;
         e.st =
           next === 'windSweep'
@@ -255,7 +255,7 @@ export function updateKaelith(e: Enemy, dt: number, ux: number, uz: number): num
     case 'gone': // below: then up in another shadow near the mage
       e.vx = e.vz = 0;
       if (e.st <= 0) {
-        const at = shadowNear(G.current) ?? { x: e.x, z: e.z };
+        const at = shadowNear(G.room.current) ?? { x: e.x, z: e.z };
         e.x = at.x;
         e.z = at.z;
         e.state = 'rise';
@@ -281,8 +281,8 @@ export function updateKaelith(e: Enemy, dt: number, ux: number, uz: number): num
     }
     case 'toSeal': {
       // the seal cracks: it goes to the hall's middle to hold it shut
-      const cx = G.current.cx,
-        cz = G.current.cz - 0.5,
+      const cx = G.room.current.cx,
+        cz = G.room.current.cz - 0.5,
         dx = cx - e.x,
         dz = cz - e.z,
         dd = Math.hypot(dx, dz);
@@ -361,7 +361,7 @@ function enterPhase(e: Enemy, to: KaelithPhase) {
     e.contact = 2;
     e.parts!.body.position.y = 0;
     const held = player.spells.map((id) => (id ? schoolOfSpell(id) : null));
-    sealWards(held, mulberry(G.current.plan.seed ^ 0x5ea1)).forEach((s, i) => {
+    sealWards(held, mulberry(G.room.current.plan.seed ^ 0x5ea1)).forEach((s, i) => {
       const w = f.wards[i];
       if (w) {
         wakeWard(w, s);
@@ -390,10 +390,10 @@ function enterPhase(e: Enemy, to: KaelithPhase) {
       } // (the cracks close, the wards go dark: the seal's fight is over)
     banner(S.lastLight, '');
     Sfx.at(e.x, e.z).eclipsePull();
-    if (!G.current.candlesLit) setDarkness(1);
+    if (!G.room.current.candlesLit) setDarkness(1);
     f.sun = blackSun();
     e.group.add(f.sun);
-    for (const b of G.current.props ?? [])
+    for (const b of G.room.current.props ?? [])
       if ((b.prop.kind === 'candles' || b.prop.kind === 'wetCandles') && !b.prop.lit) {
         const w = glow(CANDLE_WICK, 0.7, 0.45);
         w.position.y = 1;
@@ -407,14 +407,14 @@ function enterPhase(e: Enemy, to: KaelithPhase) {
 /** The four wards still open let the horde out of their cracks. */
 function updateCracks(e: Enemy, dt: number) {
   const f = fight!,
-    cur = G.current,
+    cur = G.room.current,
     floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
   for (const [w, t] of f.cracks) {
     const left = t - dt;
     f.cracks.set(w, left);
     if (left > 0) continue;
     f.cracks.set(w, C.crackEvery);
-    if (G.enemies.filter((s) => s.servant && !s.dead).length >= C.hordeMax) continue; // (counted only when a crack is due)
+    if (G.room.enemies.filter((s) => s.servant && !s.dead).length >= C.hordeMax) continue; // (counted only when a crack is due)
     const role = (['R', 'W', 'H'] as Role[])[f.roles++ % 3],
       at = freeSpotNear(cur, w.x, w.z + 1.2);
     burst(at.x, 0.2, at.z, SCHOOL_LIGHT[w.prop.ward ?? 'umbral'], 16, 2.2, 0.05);
@@ -466,7 +466,7 @@ function blackSun() {
 /** Kaelith kneels where it fell (`onBossDead`): a figure of its look, posed kneeling, its eyes dim, stays in its hall; the dark
     lifts. */
 export function kaelithKneels(fell: { x: number; z: number }) {
-  const room = G.current,
+  const room = G.room.current,
     L = kaelithLook(),
     P = L.parts;
   // (it kneels where it fell, unless that is where the way out, the heart, the page and the gifts are laid round the hall's

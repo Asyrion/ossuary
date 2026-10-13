@@ -180,7 +180,7 @@ const BEAST_MOTH = TRANSFORMS.beastcaller.light;
 function nearestFoe(x: number, z: number, reach: number) {
   let best: Enemy | null = null,
     bd = reach;
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (e.dead || e.spawn > 0 || e.hidden) continue;
     const d = Math.hypot(e.x - x, e.z - z);
     if (d < bd) {
@@ -241,16 +241,16 @@ export function updateFamiliars(dt: number, now: number, acting: boolean) {
     skull.g.rotation.y = -skull.a + Math.PI;
     skull.tear.material.opacity = 0.5 + Math.sin(now * 4) * 0.3;
     if (acting) {
-      for (let i = G.shots.length - 1; i >= 0; i--) {
+      for (let i = G.room.shots.length - 1; i >= 0; i--) {
         // it swallows enemy shots
-        const s = G.shots[i];
+        const s = G.room.shots[i];
         if (Math.hypot(s.x - x, s.z - z) < S.reach + s.r) {
           scene.remove(s.mesh);
-          G.shots.splice(i, 1);
+          G.room.shots.splice(i, 1);
           burst(s.x, s.y, s.z, 0x9fd0ff, 5, 1.2, 0.04);
         }
       }
-      for (const e of G.enemies) {
+      for (const e of G.room.enemies) {
         // and bites what it passes through, resting between bites
         if (e.dead || e.spawn > 0 || e.hidden) continue;
         const last = skull.bitten.get(e) ?? -Infinity;

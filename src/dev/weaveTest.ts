@@ -32,7 +32,7 @@ const freeze = (e: Enemy) => {
 
 /** Set weave or chain `id` up ahead of the mage and set it off. */
 export function setOffWeave(id: WeaveId) {
-  const room = G.current,
+  const room = G.room.current,
     px = player.x,
     pz = player.z,
     q = { x: px, z: pz - 2.6 };

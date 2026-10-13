@@ -74,7 +74,7 @@ function inReach(b: Bargain) {
 }
 /** Each step: walking up to the stone while it waits says how to bargain (once a visit, with the latch the lab has). */
 export function checkBargain() {
-  const b = G.current.bargain;
+  const b = G.room.current.bargain;
   if (!b || b.state !== 'idle') return;
   if (!inReach(b)) {
     b.armed = true;
@@ -90,7 +90,7 @@ export function checkBargain() {
     spell's light, its runes run red, and the deal opens on the spell's school. False when no stone waits in reach (a kept one
     lets the cast go on); true for a refusal too (the last heart: the cast is spent on asking). */
 export function castIntoBargain(def: SpellDef) {
-  const b = G.current.bargain;
+  const b = G.room.current.bargain;
   if (!b || b.state !== 'idle' || riteState() || !inReach(b)) return false;
   const color = parseInt(def.color.slice(1), 16),
     at = { x: b.x, y: 1, z: b.z };
@@ -116,14 +116,14 @@ function openStone(b: Bargain, school: School) {
 }
 /** Open the deal on `school` at the room's stone at once (the dev menu and the tests), or false. */
 export function openBargainHere(school: School) {
-  const b = G.current.bargain;
+  const b = G.room.current.bargain;
   if (!b || b.state !== 'idle') return false;
   return openStone(b, school);
 }
 
 /** A boon taken from the bargain's deal: the heart container paid, the boon taken (its card), the runes gold, once a shrine. */
 export function keepBargain(id: string) {
-  const b = G.current.bargain;
+  const b = G.room.current.bargain;
   player.heartsPaid++;
   refreshStats();
   renderHearts();
@@ -140,7 +140,7 @@ export function keepBargain(id: string) {
 }
 /** The deal backed out of: nothing paid, the runes dark again, and the stone waits to be tried again. */
 export function refuseBargain() {
-  const b = G.current.bargain;
+  const b = G.room.current.bargain;
   if (!b || b.state !== 'open') return;
   b.state = 'idle';
   b.school = null;
@@ -150,6 +150,6 @@ export function refuseBargain() {
 }
 /** The room's bargain stone, for the tests and the dev menu. */
 export const bargainNow = () => {
-  const b = G.current.bargain;
+  const b = G.room.current.bargain;
   return b ? { x: b.x, z: b.z, state: b.state, school: b.school, runes: b.look.runes.color.getHex() } : null;
 };

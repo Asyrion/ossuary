@@ -75,7 +75,7 @@ const foeY = (e: Enemy) => (e.flying ? 0.85 : 0.55);
 function pickTarget(x: number, z: number, dir: Vec2, range: number, skip: Set<Enemy> = new Set()) {
   let best: Enemy | null = null,
     bs = Infinity;
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (!alive(e) || skip.has(e)) continue;
     const dx = e.x - x,
       dz = e.z - z,
@@ -100,7 +100,7 @@ function away(e: Enemy, x: number, z: number) {
 /** Fire sets off the blast glyphs `touches` says it reached; `spareFeet` leaves the one the mage stands on, as
     bolts do. */
 function igniteGlyphs(touches: (x: number, z: number) => boolean, spareFeet: boolean) {
-  for (const gl of [...G.glyphs]) {
+  for (const gl of [...G.room.glyphs]) {
     if (gl.spent || (spareFeet && Math.hypot(gl.x - player.x, gl.z - player.z) < CFG.glyph.boltArm)) continue;
     if (touches(gl.x, gl.z)) detonateGlyph(gl);
   }
@@ -175,7 +175,7 @@ const chain: Cast = (def, dir) => {
 /** M4.10: what Arc's chain meets: a Glacial Wall a foe it struck stands at (Conductor), a Pyre Seal one stands in (Overload
     Seal), a foe marked by the Ferryman's Toll among those it leapt through (Toll Chain). */
 function chainWeaves(path: Enemy[]) {
-  const room = G.current,
+  const room = G.room.current,
     W = MAGIC.weaves;
   const wall = walls.find(
     (w) =>
@@ -209,7 +209,7 @@ function conductor(w: (typeof walls)[number]) {
   const C = MAGIC.weaves.conductor,
     a = w.boxes[0],
     b = w.boxes[w.boxes.length - 1];
-  for (const e of G.enemies)
+  for (const e of G.room.enemies)
     if (alive(e) && w.boxes.some((x) => Math.hypot(e.x - x.x, e.z - x.z) < ICE_HALF + e.r + C.reach)) {
       damageEnemy(e, C.damage, 0, 0, 0, 'spell', 'storm');
       inflict(e, { shock: 1 }, 'mage');
@@ -246,7 +246,7 @@ function conductor(w: (typeof walls)[number]) {
     and set burning, whatever it ends on is struck like a bolt (an urn breaks), and glyphs it crosses go off. */
 const beam: Cast = (def, dir) => {
   const P = def.params,
-    room = G.current,
+    room = G.room.current,
     solids = blockers(room, 'bolt'),
     color = hex(def.color);
   const sx = player.x + dir.x * 0.3,
@@ -262,7 +262,7 @@ const beam: Cast = (def, dir) => {
   // how far along the beam, and how far to one side of it, a point is
   const along = (x: number, z: number) => (x - sx) * dir.x + (z - sz) * dir.z;
   const side = (x: number, z: number) => Math.abs((x - sx) * dir.z - (z - sz) * dir.x);
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (!alive(e)) continue;
     const t = along(e.x, e.z);
     if (t < -e.r || t > len + e.r || side(e.x, e.z) > e.r + P.width) continue;
@@ -320,7 +320,7 @@ function lanternFan(def: SpellDef, motes: Vec2[]) {
       d = Math.hypot(dx, dz) || 1,
       ux = dx / d,
       uz = dz / d;
-    for (const e of G.enemies) {
+    for (const e of G.room.enemies) {
       if (!alive(e)) continue;
       const t = (e.x - m.x) * ux + (e.z - m.z) * uz,
         s = Math.abs((e.x - m.x) * uz - (e.z - m.z) * ux);
@@ -410,7 +410,7 @@ function updateSeals(dt: number) {
     s.tick -= dt;
     if (s.tick <= 0) {
       s.tick = 0.25;
-      for (const e of G.enemies)
+      for (const e of G.room.enemies)
         if (alive(e) && !e.flying && Math.hypot(e.x - s.x, e.z - s.z) < P.radius + e.r * 0.5) {
           inflict(e, { burn: P.groundBurn });
           if (s.black && e.status && e.status.burn > 0) e.status.black = true;
@@ -427,7 +427,7 @@ function erupt(s: (typeof seals)[number]) {
   s.fx.erupt();
   s.ground = P.ground * boonMul('bankedCoals', 'groundMul');
   if (s.ground > P.ground) boonActs('bankedCoals', s.x, s.z); // (M6: its ground burns longer)
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (!alive(e)) continue;
     const u = away(e, s.x, s.z);
     if (u.d > P.radius + e.r) continue;
@@ -460,7 +460,7 @@ function erupt(s: (typeof seals)[number]) {
 const flamesHere: Vec2[] = [];
 export function flamesNear(x: number, z: number, r: number, most: number) {
   // (one list kept, filled afresh: it's asked every step of a fight)
-  const room = G.current;
+  const room = G.room.current;
   flamesHere.length = 0;
   for (const s of seals)
     if (flamesHere.length < most && s.erupted && Math.hypot(s.x - x, s.z - z) < r + s.def.params.radius)
@@ -554,7 +554,7 @@ const LEAF = SCHOOL_LIGHT.verdant,
 const ICE_HALF = 0.27;
 const wall: Cast = (def, dir) => {
   const P = def.params,
-    room = G.current,
+    room = G.room.current,
     solids = blockers(room, 'bolt');
   const px = -dir.z,
     pz = dir.x; // across the cast direction
@@ -620,7 +620,7 @@ function updateWalls(dt: number) {
     if (w.touch !== undefined && (w.touch -= dt) <= 0) {
       // (M5: living wood overgrows the foes that touch it)
       w.touch = MAGIC.verdant.wallTouch;
-      for (const e of G.enemies)
+      for (const e of G.room.enemies)
         if (
           alive(e) &&
           !e.flying &&
@@ -642,7 +642,7 @@ function dropWall(w: (typeof walls)[number], quiet = false) {
   if (quiet) return;
   const def = w.def,
     P = def.params;
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (!alive(e)) continue;
     let near = w.boxes[0],
       nd = Infinity;
@@ -678,7 +678,7 @@ hearGround((kind, x, z, r) => {
     const w = walls[i];
     if (
       w.def.school !== 'verdant' ||
-      w.room !== G.current ||
+      w.room !== G.room.current ||
       !w.boxes.some((b) => Math.hypot(b.x - x, b.z - z) < r + 0.55)
     )
       continue;
@@ -751,7 +751,7 @@ function updateMantle(dt: number, now: number) {
       true,
     );
   }
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (!alive(e) || (m.zapped.get(e) ?? 0) > now) continue;
     const u = away(e, player.x, player.z);
     if (u.d > player.r + e.r + P.reach) continue;
@@ -825,7 +825,7 @@ function updateZones(dt: number) {
     z.fx.update(z.t, Math.min(1, left / 0.5, z.t / 0.25));
     if ((z.tick -= dt) <= 0) {
       z.tick = P.every;
-      for (const e of G.enemies)
+      for (const e of G.room.enemies)
         if (alive(e) && !e.flying && Math.hypot(e.x - z.x, e.z - z.z) < P.radius + e.r * 0.5) {
           damageEnemy(e, z.def.damage, 0, 0, 0, 'spell', z.def.school);
           inflict(e, z.def.status);
@@ -861,7 +861,7 @@ export function hexGround(x: number, z: number) {
   ringFx(g.x, 0.05, g.z, 0x6a3aa8, 0.3, P.radius, CFG.spellFx.shockwave, true);
   burst(g.x, 0.3, g.z, 0x2a0a4a, 20, 2.4, 0.06);
   burst(g.x, 0.3, g.z, hex(g.def.color), 10, 2, 0.04);
-  for (const e of G.enemies)
+  for (const e of G.room.enemies)
     if (alive(e) && !e.flying && Math.hypot(e.x - g.x, e.z - g.z) < P.radius + e.r * 0.5) {
       const st = (e.status ??= newStatus());
       st.sanct = Math.max(st.sanct, 1); // (laid straight on, so a burning or frozen foe isn't seared or a prism instead)
@@ -897,7 +897,7 @@ export function boltOverGround(b: Bolt) {
       poolAt(b.x, b.z)?.state === 'burning' ||
       seals.some((s) => s.erupted && Math.hypot(b.x - s.x, b.z - s.z) < s.def.params.radius))
   ) {
-    layFire(G.current, b.x, b.z, W.moltenGlass.time, '');
+    layFire(G.room.current, b.x, b.z, W.moltenGlass.time, '');
     burst(b.x, 0.2, b.z, 0xffd8a0, 8, 1.4, 0.04);
     b.dist = b.range; // (it falls where the fire caught it)
     weaveAt('moltenGlass', b.x, b.z);
@@ -920,7 +920,7 @@ const smites: {
 const smite: Cast = (def) => {
   const P = def.params;
   let best: Enemy | null = null;
-  for (const e of G.enemies)
+  for (const e of G.room.enemies)
     if (alive(e) && Math.hypot(e.x - player.x, e.z - player.z) < P.range && (!best || e.hp > best.hp)) best = e;
   if (!best) return false;
   smites.push({ def, target: best, x: best.x, z: best.z, t: 0, fell: false, fx: smiteFx(hex(def.color), P.radius) });
@@ -941,7 +941,7 @@ function updateSmites(dt: number, now: number) {
       if (s.t < P.delay) continue;
       s.fell = true;
       s.fx.fall();
-      for (const e of G.enemies) {
+      for (const e of G.room.enemies) {
         if (!alive(e) || Math.hypot(e.x - s.x, e.z - s.z) > P.radius + e.r) continue;
         damageEnemy(e, s.def.damage, 0, 0, 0, 'spell', s.def.school);
         inflict(e, s.def.status);
@@ -952,7 +952,7 @@ function updateSmites(dt: number, now: number) {
       const wall = walls.find(
         (w) =>
           iceWall(w) &&
-          w.room === G.current &&
+          w.room === G.room.current &&
           w.boxes.some((b) => Math.hypot(b.x - s.x, b.z - s.z) < P.radius + MAGIC.weaves.refraction.reach),
       );
       if (wall) refraction(s, wall); // (M4.10: by a Glacial Wall, it breaks into rays along it)
@@ -979,7 +979,7 @@ function refraction(s: (typeof smites)[number], w: (typeof walls)[number]) {
     strikeFx({ x: s.x, y: 2.4, z: s.z }, { x: b.x, y: 0.9, z: b.z }, color, CFG.spellFx.strike, true);
     burst(b.x, 0.9, b.z, color, 6, 1.6, 0.04);
   }
-  for (const e of G.enemies)
+  for (const e of G.room.enemies)
     if (alive(e) && w.boxes.some((b) => Math.hypot(e.x - b.x, e.z - b.z) < ICE_HALF + e.r + F.reach)) {
       damageEnemy(e, F.damage, 0, 0, 0, 'spell', 'hallow');
       inflict(e, { sanct: F.sanct });
@@ -1016,16 +1016,16 @@ function updateWard(dt: number, now: number) {
       x = player.x + Math.cos(a) * P.radius,
       z = player.z + Math.sin(a) * P.radius;
     w.fx.place(i, x, 0.75 + Math.sin(w.t * 3 + i) * 0.08, z, w.t * 4 + i, true);
-    for (let k = G.shots.length - 1; k >= 0; k--) {
-      const s = G.shots[k];
+    for (let k = G.room.shots.length - 1; k >= 0; k--) {
+      const s = G.room.shots[k];
       if (Math.hypot(s.x - x, s.z - z) < P.reach + s.r) {
         scene.remove(s.mesh);
-        G.shots.splice(k, 1);
+        G.room.shots.splice(k, 1);
         burst(s.x, s.y, s.z, color, 5, 1.4, 0.03);
         Sfx.at(s.x, s.z).wardTink();
       }
     }
-    for (const e of G.enemies) {
+    for (const e of G.room.enemies) {
       if (!alive(e) || (w.touched.get(e) ?? 0) > now || Math.hypot(e.x - x, e.z - z) > P.reach + e.r) continue;
       w.touched.set(e, now + P.every);
       damageEnemy(
@@ -1094,7 +1094,7 @@ const grasp: Cast = (def, dir) => {
     runeActs('seeking', def.school, near.x, near.z);
   const at = near
     ? { x: near.x, z: near.z }
-    : freeSpotNear(G.current, player.x + dir.x * P.ahead, player.z + dir.z * P.ahead);
+    : freeSpotNear(G.room.current, player.x + dir.x * P.ahead, player.z + dir.z * P.ahead);
   const thorns = def.school === 'verdant'; // (M5: Verdant's Thorn Snare rises as thorns, not hands)
   grasps.push({
     def,
@@ -1119,7 +1119,7 @@ function updateGrasps(dt: number) {
       const thorns = g.def.school === 'verdant';
       g.closed = true;
       graspHexing = !thorns; // (its hex, on a foe or on the ground, is the Grasp's: on holy ground, Eclipse Ground)
-      for (const e of G.enemies) {
+      for (const e of G.room.enemies) {
         if (!alive(e) || e.flying || Math.hypot(e.x - g.x, e.z - g.z) > P.radius + e.r) continue;
         damageEnemy(e, g.def.damage, 0, 0, 0, 'spell', g.def.school);
         inflict(e, g.def.status);
@@ -1187,10 +1187,10 @@ export function payToll(e: Enemy) {
   const T = e.toll;
   if (!T) return;
   for (let i = 0; i < T.obols; i++) {
-    const p = freeSpotNear(G.current, e.x + (i - (T.obols - 1) / 2) * 0.4, e.z);
+    const p = freeSpotNear(G.room.current, e.x + (i - (T.obols - 1) / 2) * 0.4, e.z);
     spawnPickup('coin', p.x, p.z);
   }
-  for (const o of G.enemies)
+  for (const o of G.room.enemies)
     if (o !== e && alive(o) && Math.hypot(o.x - e.x, o.z - e.z) < T.spreadRange) {
       inflict(o, { hex: T.spread });
       sparkBetween(e, o);
@@ -1231,7 +1231,7 @@ function updateLantern(dt: number, now: number) {
   if (l.next > 0) return;
   let best: Enemy | null = null,
     bd = P.range;
-  for (const e of G.enemies)
+  for (const e of G.room.enemies)
     if (alive(e)) {
       const d = Math.hypot(e.x - x, e.z - z);
       if (d < bd) {
@@ -1267,7 +1267,7 @@ function endLantern() {
 const harvest: Cast = (def) => {
   const P = def.params,
     color = hex(def.color);
-  const hexed = G.enemies.filter((e) => alive(e) && (e.status?.hex ?? 0) > 0);
+  const hexed = G.room.enemies.filter((e) => alive(e) && (e.status?.hex ?? 0) > 0);
   if (!hexed.length) return false;
   let stacks = 0;
   for (const e of hexed) {

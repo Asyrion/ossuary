@@ -67,7 +67,7 @@ function make(stage: number, x: number, z: number, face: number) {
 function nearest(x: number, z: number, reach: number) {
   let best: Enemy | null = null,
     bd = reach;
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (e.dead || e.spawn > 0 || e.hidden || e.asleep) continue;
     const d = Math.hypot(e.x - x, e.z - z);
     if (d < bd) {
@@ -113,7 +113,7 @@ export function updateFennex(dt: number, acting: boolean) {
     speedOf = (s: number) => s * (1 + F.stageSpeed * (stage - 1));
   f.cd -= dt;
   f.breath -= dt;
-  if (f.prey && (f.prey.dead || !G.enemies.includes(f.prey))) f.prey = null;
+  if (f.prey && (f.prey.dead || !G.room.enemies.includes(f.prey))) f.prey = null;
   if (!f.prey && f.cd <= 0) f.prey = nearest(player.x, player.z, F.reach + stage);
   let tx: number, tz: number, sp: number;
   if (f.prey) {

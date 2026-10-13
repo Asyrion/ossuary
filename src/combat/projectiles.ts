@@ -112,7 +112,7 @@ function makeBolt(s: BoltSpec) {
     [b.vx, b.vz] = [b.vx * c - b.vz * n, b.vz * c + b.vx * n];
     b.curve = (-2 * out * b.speed) / Math.max(1, b.range);
   }
-  G.bolts.push(b);
+  G.room.bolts.push(b);
   return b;
 }
 
@@ -293,7 +293,7 @@ export function fireSpellBolt(
     status: o.status,
     shard: o.shard,
   });
-  if (o.shatter) G.bolts[G.bolts.length - 1].shatter = true; // (M4.10: fire catches these as molten glass)
+  if (o.shatter) G.room.bolts[G.room.bolts.length - 1].shatter = true; // (M4.10: fire catches these as molten glass)
 }
 
 /** Enemy projectile. */
@@ -322,7 +322,7 @@ export function spawnShot(
   sh.position.y = -y + 0.015;
   mesh.add(new THREE.Mesh(sphereGeo(0.13 * size), basicMat(color)), glowShared(color, 0.9 * size, 0.9), sh);
   scene.add(mesh);
-  G.shots.push({
+  G.room.shots.push({
     x,
     z,
     y,
@@ -340,10 +340,10 @@ export function spawnShot(
 }
 
 export function clearProjectiles() {
-  for (const b of G.bolts) scene.remove(b.mesh);
-  G.bolts.length = 0;
-  for (const s of G.shots) scene.remove(s.mesh);
-  G.shots.length = 0;
+  for (const b of G.room.bolts) scene.remove(b.mesh);
+  G.room.bolts.length = 0;
+  for (const s of G.room.shots) scene.remove(s.mesh);
+  G.room.shots.length = 0;
 }
 
 /** Something of the mage's (a bolt, a beam) reaches a wall, door or rock at (x, y, z): a vault's ward glances it off,
@@ -376,9 +376,9 @@ export function strikeSolid(
 }
 
 function removeBolt(i: number, fizzle = true) {
-  const b = G.bolts[i];
+  const b = G.room.bolts[i];
   scene.remove(b.mesh);
-  G.bolts.splice(i, 1);
+  G.room.bolts.splice(i, 1);
   if (fizzle) {
     burst(b.x, Math.max(0.1, b.y), b.z, b.color, b.secondary ? 3 : 5, 1.6, 0.05);
     impactFx(b.x, Math.max(0.15, b.y), b.z, b.color, b.secondary ? 0.7 : 1);
@@ -387,11 +387,11 @@ function removeBolt(i: number, fizzle = true) {
 }
 
 export function updateBolts(dt: number) {
-  const room = G.current,
+  const room = G.room.current,
     solids = blockers(room, 'bolt');
   const breaker = player.stats.effects.has('rockBreaker');
-  for (let i = G.bolts.length - 1; i >= 0; i--) {
-    const b = G.bolts[i];
+  for (let i = G.room.bolts.length - 1; i >= 0; i--) {
+    const b = G.room.bolts[i];
     if (b.path === 'boomerang' && b.returning) {
       // fly home to the mage, through everything
       const dx = player.x - b.x,
@@ -509,7 +509,7 @@ export function updateBolts(dt: number) {
     }
     // enemies: each is hit at most once per pass; piercing and boomerangs carry on
     if (!kill)
-      for (const e of G.enemies) {
+      for (const e of G.room.enemies) {
         if (e.dead || e.spawn > 0 || e.hidden || b.hit.has(e)) continue;
         const ey = e.flying ? 0.8 : 0.5;
         if (Math.hypot(b.x - e.x, b.z - e.z) >= e.r + b.r || Math.abs(b.y - ey) >= 1.4) continue;
@@ -605,7 +605,7 @@ function steer(b: Bolt, dt: number) {
   const H = CFG.artifacts.homing;
   let best: Enemy | null = null,
     bd = H.reach;
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (e.dead || e.spawn > 0 || e.hidden || b.hit.has(e)) continue;
     const dx = e.x - b.x,
       dz = e.z - b.z,
@@ -625,11 +625,11 @@ function steer(b: Bolt, dt: number) {
 }
 
 export function updateShots(dt: number) {
-  const room = G.current,
+  const room = G.room.current,
     solids = blockers(room, 'bolt'),
     ice = room.barriers ?? [];
-  for (let i = G.shots.length - 1; i >= 0; i--) {
-    const s = G.shots[i];
+  for (let i = G.room.shots.length - 1; i >= 0; i--) {
+    const s = G.room.shots[i];
     s.x += s.vx * dt;
     s.z += s.vz * dt;
     s.mesh.position.set(s.x, s.y, s.z);
@@ -660,7 +660,7 @@ export function updateShots(dt: number) {
     } // (a blow the mage shrugs off brings no cold nor hex)
     if (kill) {
       scene.remove(s.mesh);
-      G.shots.splice(i, 1);
+      G.room.shots.splice(i, 1);
       burst(s.x, s.y, s.z, s.color, 4, 1.2, 0.05);
     }
   }

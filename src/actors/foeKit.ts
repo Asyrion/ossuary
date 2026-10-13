@@ -61,7 +61,7 @@ const sides = new WeakMap<Enemy, number>();
     else turned off to one side (each foe keeps to its own side, so it doesn't dither), the least turn that is clear
     (`CFG.foeWay.turns`). A leaper pressed against a tomb with the mage beyond goes round it, not into it for ever. */
 export function wayRound(e: Enemy, ux: number, uz: number, d: number) {
-  const solid = blockers(G.current, 'walker'),
+  const solid = blockers(G.room.current, 'walker'),
     n = Math.max(2, Math.ceil(d / 0.2));
   const clear = (x: number, z: number) => {
     for (let i = 1; i <= n; i++) {

@@ -263,10 +263,10 @@ export function sowBlossom(room: Room, x: number, z: number) {
       )
         continue;
       if (room.doors.some((dr) => Math.hypot(w.x - dr.x, w.z - dr.z) < K.door)) continue;
-      if (G.enemies.some((o) => !o.dead && !o.flying && Math.hypot(o.x - w.x, o.z - w.z) < o.r + K.foe)) continue;
+      if (G.room.enemies.some((o) => !o.dead && !o.flying && Math.hypot(o.x - w.x, o.z - w.z) < o.r + K.foe)) continue;
       if (
-        G.pickups.some((p) => Math.hypot(p.x - w.x, p.z - w.z) < K.item) ||
-        G.glyphs.some((gl) => Math.hypot(gl.x - w.x, gl.z - w.z) < K.item)
+        G.room.pickups.some((p) => Math.hypot(p.x - w.x, p.z - w.z) < K.item) ||
+        G.room.glyphs.some((gl) => Math.hypot(gl.x - w.x, gl.z - w.z) < K.item)
       )
         continue;
       best = { c, r };
@@ -282,7 +282,7 @@ export function sowBlossom(room: Room, x: number, z: number) {
   const wait = boonParam('seedfall', 'burst');
   if (wait > 0)
     after(wait, () => {
-      if (G.current === room && room.props?.includes(box)) breakProp(room, box);
+      if (G.room.current === room && room.props?.includes(box)) breakProp(room, box);
     });
   return box;
 }
@@ -293,7 +293,7 @@ function blossomBurst(x: number, z: number) {
   burst(x, 0.4, z, PETAL, 14, 1.8, 0.05);
   burst(x, 0.6, z, POLLEN, 18, 1.4, 0.04);
   ringFx(x, 0.05, z, SCHOOL_LIGHT.verdant, 0.2, B.reach, CFG.spellFx.shockwave, true);
-  for (const e of G.enemies)
+  for (const e of G.room.enemies)
     if (!e.dead && e.spawn <= 0 && !e.hidden && Math.hypot(e.x - x, e.z - z) < B.reach + e.r)
       inflict(e, { grow: B.grow });
   Sfx.at(x, z).pollenCloud();
@@ -342,7 +342,7 @@ export function blastProps(room: Room, x: number, z: number, R: number) {
 
 /** Fire reaches (x, z) and `r` around it: what burns there catches, and glowcap spores flash. */
 export function burnPropsAt(x: number, z: number, r = 0) {
-  const room = G.current;
+  const room = G.room.current;
   elementAt('burn', x, z, r); // braziers and candles catch, runes take fire, ice round a frozen foe melts
   for (const box of room.props ?? []) {
     const p = box.prop;
@@ -376,7 +376,7 @@ function collapse(room: Room, box: PropBox) {
     burst(w.x, 0.1, w.z, 0x6a5238, 5, 1.6, 0.05);
   }
   Sfx.at(box.x, box.z).rubble();
-  for (const e of G.enemies)
+  for (const e of G.room.enemies)
     if (!e.dead && e.spawn <= 0 && !e.flying && !e.isBoss && standsIn(box, e.x, e.z)) {
       e.hp = Math.min(e.hp, 1);
       damageEnemy(e, 999, 0, 0, 0);
@@ -408,7 +408,9 @@ export function addSpores(room: Room, x: number, z: number, o: { color?: number;
 /** Whether a cloud of stinging spores (a Sporeling's or a Puffcap's) hangs over (x, z) in the current room, not of the
     kind `who` (M4.7: foes are stung by each other's spores, never their own). */
 export const stingAt = (x: number, z: number, who?: string) =>
-  (G.current.spores ?? []).some((s) => s.sting && s.by !== who && Math.hypot(s.x - x, s.z - z) < P.spores.stingReach);
+  (G.room.current.spores ?? []).some(
+    (s) => s.sting && s.by !== who && Math.hypot(s.x - x, s.z - z) < P.spores.stingReach,
+  );
 function dropSpores(room: Room, s: SporeCloud) {
   room.group.remove(s.g);
   disposeTree(s.g);
@@ -420,7 +422,7 @@ function flash(room: Room, s: SporeCloud) {
   dropSpores(room, s);
   if (s.by) counterAt(s.by, 'flashed', s.x, s.z); // (M4.7: a Sporeling's counter)
   const S = P.spores;
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (e.dead || e.spawn > 0 || e.hidden) continue;
     const dx = e.x - s.x,
       dz = e.z - s.z,
@@ -442,7 +444,7 @@ function flash(room: Room, s: SporeCloud) {
 /* ---------- every step ---------- */
 
 /** How fast one can walk at (x, z): slower through cobwebs. */
-export function snagAt(x: number, z: number, room = G.current) {
+export function snagAt(x: number, z: number, room = G.room.current) {
   const kind = room.template.tiles[Math.floor(z - room.bounds.minZ)]?.[Math.floor(x - room.bounds.minX)];
   return kind === 'web' ? P.webSlow : 1;
 }
@@ -452,7 +454,7 @@ const standsIn = (box: PropBox, x: number, z: number) =>
 let stingT = 0,
   spreadT = 0;
 export function updateProps(dt: number) {
-  const room = G.current;
+  const room = G.room.current;
   // briars sting the mage and walking foes that push through them
   if ((stingT -= dt) <= 0) {
     stingT = 0.5;
@@ -462,7 +464,7 @@ export function updateProps(dt: number) {
         hurtPlayer(P.briarHurt, box.x, box.z);
         Sfx.at(box.x, box.z).tear();
       }
-      for (const e of G.enemies)
+      for (const e of G.room.enemies)
         if (!e.dead && e.spawn <= 0 && !e.hidden && !e.flying && standsIn(box, e.x, e.z))
           damageEnemy(e, P.briarDamage * 0.5, 0, 0, 0, 'spell');
     }
@@ -475,7 +477,7 @@ export function updateProps(dt: number) {
     if (Math.random() < dt * 8)
       riseMote(box.x + (Math.random() - 0.5) * 0.6, 0.3, box.z + (Math.random() - 0.5) * 0.6, EMBER, 0.45);
     if (spread) {
-      for (const e of G.enemies)
+      for (const e of G.room.enemies)
         if (!e.dead && e.spawn <= 0 && !e.hidden && !e.flying && standsIn(box, e.x, e.z)) inflict(e, { burn: 1 });
       if (standsIn(box, player.x, player.z)) hurtPlayer(1, box.x, box.z);
       fireAt(box.x, box.z, 0.6);
@@ -514,7 +516,7 @@ export function updateProps(dt: number) {
 
 /** Dev menu: put an object down on the free tile nearest (x, z) in the current room. */
 export function placeProp(kind: PropKind, x: number, z: number) {
-  const room = G.current,
+  const room = G.room.current,
     c = Math.floor(x - room.bounds.minX),
     r = Math.floor(z - room.bounds.minZ);
   if (room.template.tiles[r]?.[c] !== 'floor') return null;

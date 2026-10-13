@@ -238,7 +238,7 @@ function begin(room: Room, s: OfferingStone) {
 
 /** Walking into an offering stone draws its curse out (called every step while playing). */
 export function checkShrine() {
-  const room = G.current,
+  const room = G.room.current,
     sh = room.shrine;
   if (!sh || rite) return;
   for (const s of sh.stones) {
@@ -330,7 +330,7 @@ function escape(r: Rite) {
 /** The circle breathes (brighter during a rite, brightest while the curse is in it); the motes go out as time
     runs down; the wisp hunts for gaps and spits at the mage. `acting` is false while paused or in a pan. */
 export function updateShrine(dt: number, now: number, acting: boolean) {
-  const room = G.current,
+  const room = G.room.current,
     sh = room.shrine,
     r = rite;
   if (sh) {
@@ -442,7 +442,7 @@ export function cleanseAtOnce() {
   const def = artifact(id);
   banner(...STR.banner.cleansed(def.name, def.curse!.cleansed), 3.2);
   Sfx.cleanse();
-  if (G.current.shrine) syncStones(G.current);
+  if (G.room.current.shrine) syncStones(G.room.current);
   renderMinimap();
   return true;
 }

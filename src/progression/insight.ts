@@ -61,7 +61,7 @@ export function payClear(room: Room) {
 }
 /** The floor's boss falls (onBossDead): its floor's sum, from where it fell. */
 export function payBoss(at?: { x: number; z: number }) {
-  gainInsight(bossInsight(G.run.floor), at?.x ?? G.current.cx, at?.z ?? G.current.cz);
+  gainInsight(bossInsight(G.run.floor), at?.x ?? G.room.current.cx, at?.z ?? G.room.current.cz);
 }
 /** The jelly serpent out of its vat falls: its health ÷ `serpentDiv`. */
 export function paySerpent(e: Enemy) {

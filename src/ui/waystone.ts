@@ -54,7 +54,7 @@ export const waystoneOpen = () => open;
 /** Open the stone's screen at a tab (the game waits); `slot` makes that spell the one carved into (a cast into the stone).
     The first opening rests the mage. */
 export function openWaystone(t: StoneTab, slot?: number) {
-  const w = G.current.waystone;
+  const w = G.room.current.waystone;
   if (open || !w) return;
   if (slot !== undefined) w.target = slot;
   else if (!player.spells[w.target]) w.target = Math.max(0, player.spells.findIndex(Boolean));
@@ -98,7 +98,7 @@ const runeDetail = (id: RuneId, sub: string, extra: string) => {
 const owed = () => Math.max(0, boonRank('secondSocket') - G.run.socketsOpened);
 
 function runeEntries(): Entry[] {
-  const w = G.current.waystone!,
+  const w = G.room.current.waystone!,
     keys = KEYS(),
     out: Entry[] = [];
   player.spells.forEach((sid, slot) => {
@@ -246,7 +246,7 @@ function beltAct(k: number) {
 const entries = (t: StoneTab) => (t === 'runes' ? runeEntries() : beltEntries());
 
 function render() {
-  if (!G.current.waystone) {
+  if (!G.room.current.waystone) {
     closeWaystone();
     return;
   }
@@ -335,7 +335,7 @@ export function stonePad(button: number) {
 
 /** Take the pair's rune `i` into the pouch; the other crumbles. */
 export function takeFromStone(i: number) {
-  const w = G.current.waystone;
+  const w = G.room.current.waystone;
   if (!w?.pair || (i !== 0 && i !== 1)) return false;
   const took = w.pair[i] as RuneId,
     lost = w.pair[1 - i] as RuneId;
@@ -347,8 +347,8 @@ export function takeFromStone(i: number) {
   return true;
 }
 /** Carve rune `id` from the pouch into the stone's chosen slot: null when carved, else why not (said in a toast). */
-export function carveHere(id: RuneId, slot = G.current.waystone?.target ?? 0) {
-  const w = G.current.waystone;
+export function carveHere(id: RuneId, slot = G.room.current.waystone?.target ?? 0) {
+  const w = G.room.current.waystone;
   if (!w) return 'empty';
   w.target = slot;
   const why = carveFromPouch(slot, id),
@@ -362,7 +362,7 @@ export function carveHere(id: RuneId, slot = G.current.waystone?.target ?? 0) {
 }
 /** Second Socket's owed socket opened in slot `slot` (false when none is owed or it has two already). */
 export function secondSocket(slot: number) {
-  const w = G.current.waystone,
+  const w = G.room.current.waystone,
     sid = player.spells[slot];
   if (!w || !sid || !owed() || player.sockets[slot].size > 1) return false;
   setSockets(slot, 2);
@@ -378,6 +378,6 @@ export const waystoneNow = () => ({
   open,
   tab,
   held,
-  target: G.current.waystone?.target ?? null,
+  target: G.room.current.waystone?.target ?? null,
   entries: open ? entries(tab).map((e) => e.label) : [],
 });

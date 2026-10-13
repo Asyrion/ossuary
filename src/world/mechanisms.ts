@@ -204,7 +204,7 @@ const isStand = (kind: string) => kind === 'candles' || kind === 'wetCandles';
 /** A status reaches (x, z) and `r` round it (fire, frost or shock landing, a status put on a foe standing there):
     braziers and candle stands catch fire, rune stones take a charge, lodestones leap, the ice round a frozen foe melts. */
 export function elementAt(kind: StatusKind, x: number, z: number, r = 0) {
-  const room = G.current;
+  const room = G.room.current;
   vigilHooks.landed(kind === 'burn' ? 'ember' : kind === 'chill' ? 'frost' : 'storm', x, z, r); // (M7 step 6: a chained shade's chains)
   if (kind === 'shock') chargeSteam(x, z, 'storm'); // (M4.10: a storm in steam makes a thundercloud)
   for (const box of room.props ?? []) {
@@ -223,14 +223,14 @@ export function elementAt(kind: StatusKind, x: number, z: number, r = 0) {
       breakWard(box);
   }
   if (kind === 'burn')
-    for (const e of G.enemies)
+    for (const e of G.room.enemies)
       if (e.entombed && e.asleep && Math.hypot(e.x - x, e.z - z) < C.thawReach + r) e.asleep = false; // thawed
 }
 
 /** Holy light lands at (x, z) within `r` (M4.1: Consecrate's ground, Judgement's pillar): candle stands kindle, as the
     chapel's did for its prayers, and an obelisk warded in Hallow breaks its ward (M4.2). */
 export function hallowAt(x: number, z: number, r = 0) {
-  const room = G.current;
+  const room = G.room.current;
   vigilHooks.landed('hallow', x, z, r);
   chargeSteam(x, z, 'hallow'); // (M4.10: holy light in steam is incense)
   for (const box of room.props ?? []) {
@@ -245,7 +245,7 @@ export function umbralAt(x: number, z: number, r = 0) {
   vigilHooks.landed('umbral', x, z, r);
   hexGround(x, z); // (M4.8: a hex on holy ground eclipses what stands in it)
   chargeSteam(x, z, 'umbral'); // (M4.10: darkness in steam is a miasma)
-  for (const box of G.current.props ?? []) {
+  for (const box of G.room.current.props ?? []) {
     if (box.prop.kind === 'brazier' && box.prop.lit && !box.prop.black && near(box, x, z, C.kindle + r)) blacken(box); // (M4.10: a lit brazier takes the dark, and burns with Blackfire)
     if (box.prop.kind === 'statue' && near(box, x, z, C.statue.umbralCatch + r)) blind(box);
     else if (box.prop.kind === 'obelisk' && box.prop.ward === 'umbral' && near(box, x, z, C.obelisk.catch + r))
@@ -326,7 +326,7 @@ export function strikeMechanism(
 /** A bolt of the mage's on its way: through a lit brazier's flame it catches fire; a burning bolt lights an unlit one;
     through a censer's chain it brings the censer down. */
 export function boltThrough(b: Bolt) {
-  const room = G.current;
+  const room = G.room.current;
   for (const box of room.props ?? []) {
     const p = box.prop;
     if (p.kind === 'brazier' && Math.hypot(b.x - box.x, b.z - box.z) < C.brazierCatch) {
@@ -374,7 +374,7 @@ function runeReaction(room: Room, box: PropBox, kind: StatusKind) {
     tileReaction(r, box.x, box.z);
     ringFx(box.x, 0.05, box.z, SCHOOL_COLOR[kind], 0.3, C.runeReach, CFG.spellFx.shockwave, true);
     const stacks = (k: StatusKind) => (k === 'chill' ? MAGIC.chill.freezeAt : C.runeStacks); // (cold enough to freeze, so Shatter can go off)
-    for (const e of G.enemies)
+    for (const e of G.room.enemies)
       if (!e.dead && e.spawn <= 0 && !e.hidden && Math.hypot(e.x - box.x, e.z - box.z) < C.runeReach + e.r) {
         inflict(e, { [was]: stacks(was) });
         inflict(e, { [kind]: stacks(kind) });
@@ -457,7 +457,7 @@ function ring(room: Room, box: PropBox) {
   }
   p.cd = C.bellCooldown;
   p.t = 0;
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (e.dead || e.spawn > 0 || e.hidden || e.isBoss) continue;
     e.status ??= newStatus();
     e.status.stun = Math.max(e.status.stun, C.bellStun);
@@ -526,7 +526,7 @@ function leap(room: Room, box: PropBox) {
       const k = Math.max(0, Math.min(1, ((x - box.x) * dx + (z - box.z) * dz) / len2));
       return Math.hypot(box.x + dx * k - x, box.z + dz * k - z);
     };
-    for (const e of G.enemies) {
+    for (const e of G.room.enemies) {
       if (e.dead || e.spawn > 0 || e.hidden || dist(e.x, e.z) > C.lodeWidth + e.r) continue;
       damageEnemy(e, C.lodeDamage, 0, 0, C.lodeKnock, 'spell', 'storm');
       inflict(e, { shock: 1 });
@@ -551,7 +551,7 @@ function censerLands(f: (typeof falling)[number]) {
   const { room, x, z } = f;
   room.group.remove(f.pot);
   disposeTree(f.pot);
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (e.dead || e.spawn > 0 || e.hidden || e.flying || Math.hypot(e.x - x, e.z - z) > C.censerReach + e.r) continue;
     damageEnemy(e, C.censerDamage, 0, 0, C.censerKnock, 'spell', 'ember');
     inflict(e, { burn: C.censerBurn });
@@ -677,12 +677,12 @@ function updateStatue(room: Room, box: PropBox, dt: number, fighting: boolean) {
 /** The statue's ray lands at (x, z): a straight beam of gold from its eyes, and what stands there is struck (the mage,
     and foes too). */
 function strikeRay(box: PropBox, x: number, z: number) {
-  beam(G.current, { x: box.x, y: 1.52, z: box.z }, { x, y: 0.05, z }, EYE_LIT);
+  beam(G.room.current, { x: box.x, y: 1.52, z: box.z }, { x, y: 0.05, z }, EYE_LIT);
   ringFx(x, 0.06, z, EYE_LIT, 0.2, S.radius * 1.2, 0.35, true);
   burst(x, 0.3, z, EYE_LIT, 16, 2.2, 0.05);
   Sfx.at(x, z).statueRay();
   if (!player.dead && Math.hypot(player.x - x, player.z - z) < S.radius) hurtPlayer(S.hurt, box.x, box.z);
-  for (const e of G.enemies)
+  for (const e of G.room.enemies)
     if (!e.dead && e.spawn <= 0 && !e.hidden && !e.flying && Math.hypot(e.x - x, e.z - z) < S.radius + e.r)
       damageEnemy(e, S.damage, 0, 0, 0, 'spell', 'hallow');
 }
@@ -881,8 +881,8 @@ function updateSluice(room: Room, box: PropBox, dt: number) {
 /* ---------- every step ---------- */
 
 export function updateMechanisms(dt: number) {
-  const room = G.current,
-    fighting = room.locked && G.enemies.some((e) => !e.dead && e.spawn <= 0);
+  const room = G.room.current,
+    fighting = room.locked && G.room.enemies.some((e) => !e.dead && e.spawn <= 0);
   updateSapping(room, dt);
   for (const box of room.props ?? []) {
     const p = box.prop;
@@ -901,7 +901,7 @@ export function updateMechanisms(dt: number) {
     // a charged rune stone pulses its school on the foes round it while the fight lasts
     if (p.kind === 'rune' && p.school && fighting && (p.t = (p.t ?? 0) + dt) >= C.runeEvery) {
       p.t = 0;
-      for (const e of G.enemies)
+      for (const e of G.room.enemies)
         if (!e.dead && e.spawn <= 0 && !e.hidden && Math.hypot(e.x - box.x, e.z - box.z) < C.runeReach + e.r)
           inflict(e, { [p.school]: C.runeAmount });
       wave(room, box.x, box.z, SCHOOL_COLOR[p.school], C.runeReach);
@@ -913,9 +913,9 @@ export function updateMechanisms(dt: number) {
     f.t += dt;
     f.pot.position.y = Math.max(0.15, 1.5 - 9 * f.t * f.t);
     f.pot.rotation.z += dt * 6;
-    if (f.pot.position.y <= 0.15 || f.room !== G.current) {
+    if (f.pot.position.y <= 0.15 || f.room !== G.room.current) {
       falling.splice(i, 1);
-      if (f.room === G.current) censerLands(f);
+      if (f.room === G.room.current) censerLands(f);
       else {
         f.room.group.remove(f.pot);
         disposeTree(f.pot);
@@ -951,7 +951,7 @@ export function updateMechanisms(dt: number) {
 
 /** Shock ran through a pool (M4.2): the candle stands standing in it go out with a hiss. */
 export function douseStandsIn(pool: Pool) {
-  for (const box of G.current.props ?? []) {
+  for (const box of G.room.current.props ?? []) {
     const p = box.prop;
     if (p.kind !== 'wetCandles' || !p.lit || !pool.tiles.some((t) => p.tiles.some((q) => q.c === t.c && q.r === t.r)))
       continue;

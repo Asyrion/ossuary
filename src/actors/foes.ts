@@ -102,7 +102,7 @@ export function updateFoe(e: Enemy, dt: number, a: Aim) {
   const def = e.foe!,
     B = BEHAVIOURS[def.behaviour];
   actAs(e);
-  const face = B.step(e, dt, a, def.params, G.current);
+  const face = B.step(e, dt, a, def.params, G.room.current);
   actAs(); // (what it leaves and shoots is its own, M4.7)
   e.at! += dt * (e.animRate ?? 1);
   e.idle!(e.at!);
@@ -119,7 +119,7 @@ export function drivenUp(e: Enemy, why: 'blast' | 'steam' | 'shock' | 'sluice') 
 hearGround((kind, x, z, r) => {
   if (kind !== 'blast' && kind !== 'steam') return;
   const there = poolAt(x, z);
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     const B = !e.dead && e.hidden && e.foe ? BEHAVIOURS[e.foe.behaviour] : undefined,
       pool = B?.driven ? poolAt(e.x, e.z) : undefined;
     if (!pool || pool.kind !== 'water') continue;
@@ -129,7 +129,7 @@ hearGround((kind, x, z, r) => {
 /** An open sluice (M4.9) has drained the room's water to mud: every water foe hiding in it is driven up (called again and
     again while it stands open, so none hides for long). */
 export function driveUpAll(why: 'sluice') {
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     const B = !e.dead && e.hidden && e.foe ? BEHAVIOURS[e.foe.behaviour] : undefined;
     if (B?.driven && poolAt(e.x, e.z)?.kind === 'water') B.driven(e, e.foe!.params, why);
   }
@@ -261,7 +261,7 @@ export function layBlackFire(room: Room, x: number, z: number, time: number) {
 }
 /** Whether ground is burning within `r` of (x, z) in the current room (M4.5: rime wolves scatter from it). */
 export const burningNear = (x: number, z: number, r: number) =>
-  hazards.some((h) => h.kind !== 'spark' && h.room === G.current && Math.hypot(h.x - x, h.z - z) < r);
+  hazards.some((h) => h.kind !== 'spark' && h.room === G.room.current && Math.hypot(h.x - x, h.z - z) < r);
 /** A patch of sparks at (x, z) for `time` seconds: crackling at first, then armed (`CFG.afflict.sparkArm`): it shocks the
     water there and hurts the mage who stands in it. */
 export function laySpark(room: Room, x: number, z: number, time: number, by = actingKind(), sting?: number) {
@@ -286,7 +286,7 @@ export function sparkSting(x: number, z: number, who?: string) {
     (h) =>
       h.kind === 'spark' &&
       h.armed &&
-      h.room === G.current &&
+      h.room === G.room.current &&
       h.by !== (who ?? '-') &&
       Math.hypot(h.x - x, h.z - z) < reach,
   )?.sting;
@@ -299,7 +299,7 @@ export function mageFireNear(x: number, z: number, r: number, out: Vec2[], most:
       out.length < most &&
       h.kind === 'fire' &&
       h.by === 'mage' &&
-      h.room === G.current &&
+      h.room === G.room.current &&
       Math.hypot(h.x - x, h.z - z) < r
     )
       out.push(h);
@@ -310,7 +310,7 @@ export function hazardAt(x: number, z: number, who?: string): HazardKind | undef
   const reach = CFG.afflict.groundReach;
   for (const h of hazards)
     if (
-      h.room === G.current &&
+      h.room === G.room.current &&
       h.by !== (who ?? '-') &&
       (h.kind !== 'spark' || h.armed) &&
       Math.hypot(h.x - x, h.z - z) < reach
@@ -332,7 +332,7 @@ export function updateFoeHazards(dt: number) {
   for (let i = hazards.length - 1; i >= 0; i--) {
     const h = hazards[i];
     h.t -= dt;
-    if (h.t <= 0 || h.room !== G.current) {
+    if (h.t <= 0 || h.room !== G.room.current) {
       hazards.splice(i, 1);
       continue;
     }
@@ -392,8 +392,8 @@ export function clearFoeHazards() {
   clearGround();
 }
 /** The burning ground and the sparks in the current room (tests). */
-export const burningGround = () => hazards.filter((h) => h.kind !== 'spark' && h.room === G.current).length; // (Blackfire's too, M4.10)
-export const sparkGround = () => hazards.filter((h) => h.kind === 'spark' && h.room === G.current).length;
+export const burningGround = () => hazards.filter((h) => h.kind !== 'spark' && h.room === G.room.current).length; // (Blackfire's too, M4.10)
+export const sparkGround = () => hazards.filter((h) => h.kind === 'spark' && h.room === G.room.current).length;
 
 /** The lit braziers and candle stands in `room` (a moth is lured to them). */
 /** Whether an object is a lit brazier or candle stand. */
@@ -626,7 +626,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
       if (e.state === 'hidden') {
         e.vx = e.vz = 0;
         e.animRate = 0;
-        const stillness = G.enemies.every((o) => o.dead || o.state === 'hidden'); // (nothing awake: one of them stirs)
+        const stillness = G.room.enemies.every((o) => o.dead || o.state === 'hidden'); // (nothing awake: one of them stirs)
         e.fireT = stillness ? (e.fireT ?? 0) + dt : 0;
         if (
           a.dist < num(P.wake) ||
@@ -797,7 +797,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
     },
     init(e, P) {
       // it lives in water: the room's, or a pool of its own it brings
-      const room = G.current;
+      const room = G.room.current;
       if (!waterTiles(room).length) {
         const c = Math.floor(e.x - room.bounds.minX),
           r = Math.floor(e.z - room.bounds.minZ),
@@ -1636,7 +1636,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
         e.vx = e.vz = 0;
         e.kx = e.kz = 0;
         e.animRate = 0;
-        const stillness = G.enemies.every((o) => o.dead || o === e || o.state === 'stone' || o.state === 'hidden'); // (nothing awake: it stirs)
+        const stillness = G.room.enemies.every((o) => o.dead || o === e || o.state === 'stone' || o.state === 'hidden'); // (nothing awake: it stirs)
         e.fireT = stillness ? e.fireT! + dt : 0;
         if (a.dist < num(P.wake) || e.st <= 0 || e.fireT > num(P.lonely)) {
           e.state = 'wake';
@@ -1737,7 +1737,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
     step(e, dt, a, P) {
       const others = company;
       others.length = 0;
-      for (const o of G.enemies) if (o !== e && !o.dead && o.spawn <= 0 && !o.hidden) others.push(o); // (one array, reused)
+      for (const o of G.room.enemies) if (o !== e && !o.dead && o.spawn <= 0 && !o.hidden) others.push(o); // (one array, reused)
       if (e.state === 'wander') {
         // away from the mage, near the others, never quite still
         let tx = 0,

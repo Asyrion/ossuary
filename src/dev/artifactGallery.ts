@@ -40,7 +40,7 @@ export function removeArtifactGallery(room: Room) {
 /** Every step: the gallery in the room shown turns, each artifact a little behind the last. */
 onDevStep(() => {
   const now = G.flow.clock;
-  (G.current?.group.userData.artifactGallery as THREE.Group | undefined)?.children.forEach((v, i) => {
+  (G.room.current?.group.userData.artifactGallery as THREE.Group | undefined)?.children.forEach((v, i) => {
     v.rotation.y = now * 1.2 + i;
   });
 });

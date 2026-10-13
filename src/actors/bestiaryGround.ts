@@ -141,7 +141,7 @@ export function stickyAt(x: number, z: number, who?: string) {
   for (const p of patches)
     if (
       (p.kind === 'web' || p.kind === 'ink') &&
-      p.room === G.current &&
+      p.room === G.room.current &&
       (!who || p.by !== who) &&
       Math.hypot(x - p.x, z - p.z) < p.r
     )
@@ -151,27 +151,29 @@ export function stickyAt(x: number, z: number, who?: string) {
 /** The web or ink (x, z) in the current room lies in, if any (what slows the mage there, for the chip that says so). */
 export function stuckIn(x: number, z: number): 'web' | 'ink' | undefined {
   for (const p of patches)
-    if ((p.kind === 'web' || p.kind === 'ink') && p.room === G.current && Math.hypot(x - p.x, z - p.z) < p.r)
+    if ((p.kind === 'web' || p.kind === 'ink') && p.room === G.room.current && Math.hypot(x - p.x, z - p.z) < p.r)
       return p.kind;
   return undefined;
 }
 /** Whether (x, z) in the current room is on black ice (M4.8): foes slide on it and can't stop; the mage crosses it. */
 export const blackIceAt = (x: number, z: number) =>
-  patches.some((p) => p.kind === 'blackice' && p.room === G.current && Math.hypot(x - p.x, z - p.z) < p.r);
+  patches.some((p) => p.kind === 'blackice' && p.room === G.room.current && Math.hypot(x - p.x, z - p.z) < p.r);
 /** The patch (web, ink or rime) at (x, z) in the current room that isn't of the kind `who` (M4.7: foes in each other's
     ground), if any. */
 export function patchAt(x: number, z: number, who?: string): GroundKind | undefined {
   for (const p of patches)
-    if (p.room === G.current && (!who || p.by !== who) && Math.hypot(x - p.x, z - p.z) < p.r) return p.kind;
+    if (p.room === G.room.current && (!who || p.by !== who) && Math.hypot(x - p.x, z - p.z) < p.r) return p.kind;
   return undefined;
 }
 /** Whether (x, z) in the current room is on rime, where the mage slides; `who`, a foe's kind (M4.7): not on its own. */
 export const slipAt = (x: number, z: number, who?: string) =>
   patches.some(
-    (p) => p.kind === 'rime' && p.room === G.current && (!who || p.by !== who) && Math.hypot(x - p.x, z - p.z) < p.r,
+    (p) =>
+      p.kind === 'rime' && p.room === G.room.current && (!who || p.by !== who) && Math.hypot(x - p.x, z - p.z) < p.r,
   );
 /** The patches of `kind` in the current room (tests). */
-export const groundCount = (kind: GroundKind) => patches.filter((p) => p.kind === kind && p.room === G.current).length;
+export const groundCount = (kind: GroundKind) =>
+  patches.filter((p) => p.kind === kind && p.room === G.room.current).length;
 /** How many patches of `kind` the floor draws now (M4.8: the tests check black ice shows, not only that it is there). */
 export const groundDrawn = (kind: GroundKind) => meshes[kind]?.count ?? 0;
 
@@ -181,7 +183,7 @@ hearGround((kind, x, z, r) => {
   const melted: Patch[] = []; // (Black Melt's own fire is heard here again: it melts after the loop)
   for (let i = patches.length - 1; i >= 0; i--) {
     const p = patches[i];
-    if (p.kind === 'ink' || p.room !== G.current || Math.hypot(x - p.x, z - p.z) > r + p.r) continue;
+    if (p.kind === 'ink' || p.room !== G.room.current || Math.hypot(x - p.x, z - p.z) > r + p.r) continue;
     patches.splice(i, 1);
     if (p.kind === 'web') {
       burst(p.x, 0.1, p.z, 0xff9a3a, 8, 1.6, 0.04);
@@ -269,7 +271,7 @@ export function updateGround(dt: number) {
   for (let i = patches.length - 1; i >= 0; i--) {
     const p = patches[i];
     p.t -= dt;
-    if (p.t <= 0 || p.room !== G.current) patches.splice(i, 1);
+    if (p.t <= 0 || p.room !== G.room.current) patches.splice(i, 1);
   }
   for (const kind of ['web', 'ink', 'rime', 'blackice'] as const) {
     const list = patches.filter((p) => p.kind === kind);
@@ -305,10 +307,10 @@ export function updateGround(dt: number) {
       l.fall ? 0.25 + l.h * (1 - k * k) : 0.4 + Math.sin(k * Math.PI) * l.h,
       l.fz + (l.tz - l.fz) * k,
     );
-    if (k < 1 && l.room === G.current) continue;
+    if (k < 1 && l.room === G.room.current) continue;
     scene.remove(l.m);
     lobs.splice(i, 1);
-    if (l.room === G.current) l.land(l.tx, l.tz);
+    if (l.room === G.room.current) l.land(l.tx, l.tz);
   }
 }
 /** A new floor or a room left: the ground is clear and nothing is in the air. */
@@ -350,7 +352,7 @@ function updateSpikes(dt: number) {
   for (let i = spikes.length - 1; i >= 0; i--) {
     const s = spikes[i];
     s.t += dt;
-    if (s.t > SPIKE_LIFE || s.room !== G.current) {
+    if (s.t > SPIKE_LIFE || s.room !== G.room.current) {
       scene.remove(s.m);
       spikes.splice(i, 1);
       continue;

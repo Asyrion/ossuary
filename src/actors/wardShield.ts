@@ -100,7 +100,7 @@ function breakWard(e: Enemy, school: School) {
   Sfx.at(e.x, e.z).wardBurst();
   G.fx.shake = Math.max(G.fx.shake, 0.15);
   toast(STR.toast.shieldBreaks(STR.schools[school]), 3);
-  const at = freeSpotNear(G.current, e.x + CFG.ward.beside, e.z),
+  const at = freeSpotNear(G.room.current, e.x + CFG.ward.beside, e.z),
     floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
   const ling = makeEnemy(WARDLING[school], at.x, at.z, floor.enemyHp);
   if (e.isBoss) ling.unpaid = true; // (M6: a Twin Guardian's ward breaks again and again: its Wardlings pay no insight)
@@ -118,7 +118,7 @@ export function unwardFoe(e: Enemy) {
 
 /** Each step: the ward's light breathes, and shrinks back after a drink. */
 export function updateWardShields(now: number) {
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (!e.ward) continue;
     const base = e.ward.fx.userData.size as number,
       s = e.ward.fx.scale.x;

@@ -136,7 +136,7 @@ export function makeEnemy(
   e.group.position.set(e.x, 0, e.z);
   e.group.scale.setScalar(0.01);
   scene.add(e.group);
-  G.enemies.push(e);
+  G.room.enemies.push(e);
   return e;
 }
 
@@ -163,18 +163,18 @@ export function spawnFoe(
 export function clearEnemies() {
   clearFoeHazards();
   clearSteam(); // (and the steam a fight raised)
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     scene.remove(e.group);
     disposeTree(e.group);
   }
-  G.enemies.length = 0;
+  G.room.enemies.length = 0;
 }
 
 export function updateEnemies(dt: number) {
-  const cur = G.current;
+  const cur = G.room.current;
   const walls = blockers(cur, 'flyer'),
     solids = blockers(cur, 'walker');
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (e.dead) continue; // (put to rest since the last step, by a bolt or a dev hook: it acts no more, nor calls help)
     // frozen or stunned foes don't move or act; chilled ones move slower
     const acts = canAct(e.status) && !e.asleep,
@@ -262,9 +262,9 @@ export function updateEnemies(dt: number) {
       touched(e); // (M4.6: and the Frostborn chills what touches them)
     }
   }
-  if (dt > 0) for (const e of [...G.enemies]) groundHarm(e, dt); // (M4.7: another kind's burning ground, sparks and spores)
+  if (dt > 0) for (const e of [...G.room.enemies]) groundHarm(e, dt); // (M4.7: another kind's burning ground, sparks and spores)
   // keep walkers from stacking
-  const es = G.enemies;
+  const es = G.room.enemies;
   for (let i = 0; i < es.length; i++)
     for (let j = i + 1; j < es.length; j++) {
       const a = es[i],
@@ -285,7 +285,7 @@ export function updateEnemies(dt: number) {
       }
     }
   updateFoeHazards(dt); // (a salamander's burning trail)
-  const alive = G.enemies.filter((e) => !e.dead);
-  if (alive.length !== G.enemies.length) G.enemies = alive;
-  if (cur.locked && G.enemies.length === 0) flowHooks.onWaveCleared(cur);
+  const alive = G.room.enemies.filter((e) => !e.dead);
+  if (alive.length !== G.room.enemies.length) G.room.enemies = alive;
+  if (cur.locked && G.room.enemies.length === 0) flowHooks.onWaveCleared(cur);
 }

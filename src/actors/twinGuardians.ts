@@ -58,8 +58,8 @@ export function buildTwin(e: Enemy) {
   (P.eyeGlow as THREE.Sprite).material.opacity = 0.15;
   if (second) return;
   first = e;
-  const a = freeSpotNear(G.current, e.x - C.apart / 2, e.z),
-    b = freeSpotNear(G.current, e.x + C.apart / 2, e.z);
+  const a = freeSpotNear(G.room.current, e.x - C.apart / 2, e.z),
+    b = freeSpotNear(G.room.current, e.x + C.apart / 2, e.z);
   e.x = a.x;
   e.z = a.z;
   const t = makeEnemy('twins', b.x, b.z, 1, e.bossCfg);

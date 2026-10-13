@@ -82,7 +82,7 @@ export function spawnPickup(
     const gilded = kind === 'chest' && (opts.gilded ?? G.run.drops.chance(LOOT.gildedChest));
     const v = containerLook(kind, gilded); // (a coffer or a chest, its lid on a hinge at the back, a chest's ward seal on its front)
     g.add(v.g);
-    G.pickups.push({
+    G.room.pickups.push({
       kind,
       x,
       z,
@@ -115,11 +115,11 @@ export function spawnPickup(
     g.add(p.rise);
     p.drop = 0.6;
   }
-  G.pickups.push(p);
+  G.room.pickups.push(p);
 }
 /** The obols and purses lying in the room dressed again in the face the obols wear now (the dev menu's switch). */
 export function restyleObols() {
-  for (const p of G.pickups) {
+  for (const p of G.room.pickups) {
     if (p.kind !== 'coin' && p.kind !== 'purse') continue;
     const m = itemVisual(p.kind);
     m.position.copy(p.m.position);
@@ -152,15 +152,15 @@ export function openContainer(p: Pickup, burnt = false) {
     burst(p.x, 0.3, p.z, p.gilded ? GOLD : WARD, 12, 2, 0.04);
   }
   if (p.gilded && runeHere('gilded')) {
-    const spot = freeSpotNear(G.current, p.x + 1.1, p.z + 0.6);
+    const spot = freeSpotNear(G.room.current, p.x + 1.1, p.z + 0.6);
     spawnPickup('rune', spot.x, spot.z);
   } // (M6 step 8: a rune rolls out beside what it holds)
   if (p.gilded) {
     // a relic rises out of it, beyond what the floor's budget allows
     const def = offerBeyondBudget('vault');
     if (def) {
-      const spot = freeSpotNear(G.current, p.x, p.z + 1.3);
-      placeArtifact(G.current, def, spot.x, spot.z);
+      const spot = freeSpotNear(G.room.current, p.x, p.z + 1.3);
+      placeArtifact(G.room.current, def, spot.x, spot.z);
       burst(spot.x, 0.8, spot.z, GOLD, 24, 2.6, 0.06);
       Sfx.unbind();
       Sfx.rise();
@@ -181,7 +181,7 @@ export function openContainer(p: Pickup, burnt = false) {
   items.forEach((item, i) => {
     // tossed out in a fan towards the camera
     const a = Math.PI / 2 + (i - (items.length - 1) / 2) * 0.75;
-    const spot = freeSpotNear(G.current, p.x + Math.cos(a) * 0.9, p.z + Math.sin(a) * 0.9);
+    const spot = freeSpotNear(G.room.current, p.x + Math.cos(a) * 0.9, p.z + Math.sin(a) * 0.9);
     spawnPickup(item, spot.x, spot.z);
   });
   p.contents = [];
@@ -288,7 +288,7 @@ function take(p: Pickup, kind: Item) {
   const coins = dropValue(kind).coins;
   if (coins) {
     G.stats.obols += coins;
-    goldTaken(G.current);
+    goldTaken(G.room.current);
   } // for the end screen; a treasury's guardians wake
   SOUND[kind]();
   burst(p.x, 0.4, p.z, SPARK[kind], 8, 2, 0.05);
@@ -337,7 +337,7 @@ function touchContainer(p: Pickup, d: number) {
 }
 
 export function updatePickups(dt: number) {
-  const ps = G.pickups;
+  const ps = G.room.pickups;
   for (let i = ps.length - 1; i >= 0; i--) {
     const p = ps[i];
     p.t += dt;

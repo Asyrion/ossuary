@@ -106,7 +106,7 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
       if ((STATUS_KINDS as string[]).includes(kind)) touchPools(e, kind as StatusKind);
       continue;
     }
-    const garden = kind === 'grow' && G.current?.theme?.twist === 'garden';
+    const garden = kind === 'grow' && G.room.current?.theme?.twist === 'garden';
     if (garden) gardenHolds(e); // (M5: the garden grows; its vines hold longer)
     const st = (e.status ??= newStatus()),
       stacks = st.chill + amount,
@@ -137,7 +137,7 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
     if (kind === 'shock' || kind === 'sanct' || kind === 'hex')
       chargeSteam(e.x, e.z, kind === 'shock' ? 'storm' : kind === 'sanct' ? 'hallow' : 'umbral'); // (M4.10: a school landing in steam charges it)
     if (kind === 'shock')
-      for (const o of G.enemies)
+      for (const o of G.room.enemies)
         if (
           o !== e &&
           !o.dead &&
@@ -162,7 +162,7 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
 export function shockLeap(e: Enemy, dmg: number) {
   if (!consumeShock(e.status)) return;
   const R = MAGIC.shock.leapRange,
-    near = G.enemies
+    near = G.room.enemies
       .filter((o) => o !== e && !o.dead && o.spawn <= 0 && !o.hidden && Math.hypot(o.x - e.x, o.z - e.z) < R)
       .sort((a, b) => Math.hypot(a.x - e.x, a.z - e.z) - Math.hypot(b.x - e.x, b.z - e.z))
       .slice(0, Math.max(1, boonParam('forkingArc', 'leaps')));
@@ -196,7 +196,10 @@ function react(e: Enemy, r: Reaction) {
   if (r === 'verdict') {
     // lightning from above on every sanctified foe in the room, and on this one
     const V = R.verdict;
-    for (const o of [e, ...G.enemies.filter((o) => o !== e && !o.dead && !o.hidden && (o.status?.sanct ?? 0) > 0)]) {
+    for (const o of [
+      e,
+      ...G.room.enemies.filter((o) => o !== e && !o.dead && !o.hidden && (o.status?.sanct ?? 0) > 0),
+    ]) {
       strikeFx({ x: o.x, y: 4.5, z: o.z }, { x: o.x, y: 0.1, z: o.z }, 0xfff0a0, CFG.spellFx.strike);
       flash(o.x, o.z, 0xfff0a0, 0.6);
       for (let y = 0.4; y < 4.4; y += 0.5) burst(o.x, y, o.z, y < 2 ? 0xfff0a0 : GOLD, 1, 0.35, 0.05); // (a pillar of light down to it, reading at any scale)
@@ -213,7 +216,7 @@ function react(e: Enemy, r: Reaction) {
   }
   if (r === 'blackice') {
     // black ice under it: foes on it slide and can't stop (the mage crosses it as stone)
-    layGround(G.current, 'blackice', e.x, e.z, R.blackice.size, R.blackice.time, '');
+    layGround(G.room.current, 'blackice', e.x, e.z, R.blackice.size, R.blackice.time, '');
     burst(e.x, 0.2, e.z, BLACKICE, 16, 2, 0.05);
     burst(e.x, 0.3, e.z, ICE, 8, 1.6, 0.04);
     Sfx.at(e.x, e.z).blackice();
@@ -222,7 +225,7 @@ function react(e: Enemy, r: Reaction) {
   if (r === 'voidspark') {
     // the spark leaps to the foes near, each carrying a hex; each marked, and falling, gives mana
     const VS = R.voidspark,
-      near = G.enemies
+      near = G.room.enemies
         .filter((o) => o !== e && !o.dead && !o.hidden && o.spawn <= 0 && Math.hypot(o.x - e.x, o.z - e.z) < VS.range)
         .sort((a, b) => Math.hypot(a.x - e.x, a.z - e.z) - Math.hypot(b.x - e.x, b.z - e.z))
         .slice(0, VS.leaps);
@@ -312,7 +315,7 @@ function verdantReact(e: Enemy, r: Reaction) {
   if (r === 'wildfire') {
     // the fire runs along the vines to every overgrown foe in the room
     const W = R.wildfire;
-    for (const o of G.enemies) {
+    for (const o of G.room.enemies) {
       if (o === e || !live(o) || (o.status?.grow ?? 0) <= 0) continue;
       const st = o.status!;
       st.grow = 0;
@@ -334,17 +337,17 @@ function verdantReact(e: Enemy, r: Reaction) {
     const F = R.frostbloom,
       x = e.x,
       z = e.z,
-      room = G.current;
+      room = G.room.current;
     burst(x, 0.7, z, ICE, 12, 1.2, 0.04);
     burst(x, 0.7, z, PETAL, 6, 1, 0.04);
     Sfx.at(x, z).frostbloom();
     after(F.delay, () => {
-      if (G.current !== room) return; // (the mage has gone on)
+      if (G.room.current !== room) return; // (the mage has gone on)
       const at = e.dead ? { x, z } : e;
       burst(at.x, 0.6, at.z, ICE, 22, 3, 0.05);
       burst(at.x, 0.6, at.z, 0xffffff, 8, 2.4, 0.04);
       ringFx(at.x, 0.05, at.z, ICE, 0.2, F.radius, CFG.spellFx.shockwave, true);
-      for (const o of [...G.enemies])
+      for (const o of [...G.room.enemies])
         if (live(o) && Math.hypot(o.x - at.x, o.z - at.z) < F.radius + o.r) {
           damageEnemy(o, F.damage, 0, 0, 0, 'spell', 'frost');
           if (!o.dead) inflict(o, { chill: F.chill });
@@ -355,7 +358,7 @@ function verdantReact(e: Enemy, r: Reaction) {
   }
   if (r === 'pollenspark') {
     // a cloud of pollen round it that shocks the foes inside for a few seconds
-    pollenClouds.push({ x: e.x, z: e.z, t: R.pollenspark.time, next: 0, room: G.current });
+    pollenClouds.push({ x: e.x, z: e.z, t: R.pollenspark.time, next: 0, room: G.room.current });
     burst(e.x, 0.6, e.z, POLLEN, 24, 1.6, 0.05);
     burst(e.x, 0.8, e.z, SPARK, 8, 2.2, 0.03);
     Sfx.at(e.x, e.z).pollenspark();
@@ -370,7 +373,7 @@ function verdantReact(e: Enemy, r: Reaction) {
   if (r === 'blight') {
     // the vines rot to thorns that hex it, and creep to the nearest other foe
     const B = R.blight,
-      o = G.enemies
+      o = G.room.enemies
         .filter((f) => f !== e && live(f) && Math.hypot(f.x - e.x, f.z - e.z) < B.reach)
         .sort((a, b) => Math.hypot(a.x - e.x, a.z - e.z) - Math.hypot(b.x - e.x, b.z - e.z))[0];
     burst(e.x, 0.5, e.z, THORN, 14, 1.8, 0.05);
@@ -397,7 +400,7 @@ function verdantReact(e: Enemy, r: Reaction) {
 
 /** Spark Wake (M6): a foe the mage's shock stunned leaves a spark on the floor that stings foes, never the mage. */
 function sparkWake(e: Enemy) {
-  laySpark(G.current, e.x, e.z, boonParam('sparkWake', 'seconds'), 'mage', boonParam('sparkWake', 'damage'));
+  laySpark(G.room.current, e.x, e.z, boonParam('sparkWake', 'seconds'), 'mage', boonParam('sparkWake', 'damage'));
   burst(e.x, 0.1, e.z, SPARK, 8, 1.6, 0.03);
   boonActs('sparkWake', e.x, e.z);
 }
@@ -405,7 +408,7 @@ function sparkWake(e: Enemy) {
 function coldBreath(e: Enemy) {
   const reach = boonParam('coldSnap', 'reach'),
     chill = boonParam('coldSnap', 'chill');
-  const near = G.enemies.filter((o) => o !== e && live(o) && Math.hypot(o.x - e.x, o.z - e.z) < reach + o.r);
+  const near = G.room.enemies.filter((o) => o !== e && live(o) && Math.hypot(o.x - e.x, o.z - e.z) < reach + o.r);
   burst(e.x, 0.6, e.z, ICE, 16, 2, 0.05);
   burst(e.x, 0.4, e.z, 0xffffff, 6, 1.4, 0.04);
   ringFx(e.x, 0.05, e.z, ICE, 0.2, reach, CFG.spellFx.shockwave, true);
@@ -432,7 +435,7 @@ function perennialRoot(e: Enemy, s: StatusState) {
 
 /** The overgrown garden's twist (M5): its vines hold longer; the first time in a room, a word over the foe says so. */
 function gardenHolds(e: Enemy) {
-  const room = G.current;
+  const room = G.room.current;
   if (room.gardenSaid) return;
   room.gardenSaid = true;
   floatText(e.x, 1.3, e.z, STR.grow.garden, LEAF, 40);
@@ -446,7 +449,7 @@ function updatePollen(dt: number) {
     const c = pollenClouds[i];
     c.t -= dt;
     c.next -= dt;
-    if (c.t <= 0 || c.room !== G.current) {
+    if (c.t <= 0 || c.room !== G.room.current) {
       pollenClouds.splice(i, 1);
       continue;
     }
@@ -465,7 +468,7 @@ function updatePollen(dt: number) {
     }
     if (c.next > 0) continue;
     c.next = P.every;
-    for (const o of [...G.enemies])
+    for (const o of [...G.room.enemies])
       if (live(o) && Math.hypot(o.x - c.x, o.z - c.z) < P.radius + o.r) {
         strikeFx({ x: c.x, y: 1, z: c.z }, { x: o.x, y: 0.7, z: o.z }, SPARK, CFG.spellFx.crackle, true);
         damageEnemy(o, P.damage, 0, 0, 0, 'spell', 'storm');
@@ -482,7 +485,7 @@ export const pollenNow = () => pollenClouds.length;
 export function flowerFell(e: Enemy) {
   const s = e.status;
   if (!s || (s.grow <= 0 && !s.bloom)) return;
-  const room = G.current,
+  const room = G.room.current,
     lily = s.bloom,
     first = !room.flowered;
   if (!lily && !first) {
@@ -512,7 +515,7 @@ export function flowerFell(e: Enemy) {
 export function overloadAt(x: number, z: number, e?: Enemy, radius = R.overload.radius) {
   const O = { ...R.overload, radius };
   flash(x, z, 0xffb050, O.radius);
-  for (const o of G.enemies) {
+  for (const o of G.room.enemies) {
     if (o.dead || o.spawn > 0 || o.hidden) continue;
     const dx = o.x - x,
       dz = o.z - z,
@@ -545,14 +548,14 @@ export function overloadAt(x: number, z: number, e?: Enemy, radius = R.overload.
   G.fx.shake = Math.max(G.fx.shake, 0.35);
   // (M4.10, Hailburst: among chilled foes or ice, the blast throws out shards that chill)
   const cold =
-    G.enemies.some(
+    G.room.enemies.some(
       (o) =>
         o !== e &&
         !o.dead &&
         Math.hypot(o.x - x, o.z - z) < O.radius + o.r &&
         ((o.status?.chill ?? 0) > 0 || (o.status?.frozen ?? 0) > 0),
     ) ||
-    (G.current.barriers ?? []).some((b) => Math.hypot(b.x - x, b.z - z) < O.radius) ||
+    (G.room.current.barriers ?? []).some((b) => Math.hypot(b.x - x, b.z - z) < O.radius) ||
     poolAt(x, z)?.state === 'frozen';
   if (cold) {
     const H = MAGIC.weaves.hailburst;
@@ -606,7 +609,7 @@ function endEclipse(e: Enemy) {
   if (e.corona) {
     // (M4.10, Corona: the blow leaps as lightning to each foe near)
     e.corona = false;
-    for (const o of G.enemies)
+    for (const o of G.room.enemies)
       if (
         o !== e &&
         !o.dead &&
@@ -660,7 +663,7 @@ function removeIce(e: Enemy) {
 
 /** Statuses run their course: burn damage, thawing, and the look of each on the foe. */
 export function updateStatuses(dt: number, now: number) {
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     const s = e.status;
     if (!s || e.dead) continue;
     const held = s.growHeld,

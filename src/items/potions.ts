@@ -206,7 +206,7 @@ const DRINK: Record<DrinkEffect, (def: PotionDef) => void> = {
   },
   giant() {
     potionFx.giant = 1;
-    giantIn = G.current;
+    giantIn = G.room.current;
     setGiant(true);
   },
   unseen(def) {
@@ -250,7 +250,7 @@ export function updatePotions(dt: number) {
   for (const k of ['ember', 'frost', 'unseen', 'reversed'] as const) if (f[k] > 0) f[k] = Math.max(0, f[k] - dt);
   if (f.frost > 0) player.chill = 0;
   inputFx.reversed = f.reversed > 0;
-  if (f.giant && G.current !== giantIn) {
+  if (f.giant && G.room.current !== giantIn) {
     f.giant = 0;
     setGiant(false);
   }
