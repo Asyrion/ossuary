@@ -163,7 +163,7 @@ export function migrate(raw: unknown, legacy: Partial<Record<SlotKey, unknown>> 
   const sg = obj(r.sigils);
   s.sigils = { owned: strs(sg.owned), placed: strs(sg.placed) };
   const sl = Array.isArray(r.slots) ? r.slots : [];
-  s.slots = [0, 1].map((i) => (typeof sl[i] === 'string' ? (sl[i] as string) : null));
+  s.slots = [0, 1].map((i) => (typeof sl[i] === 'string' ? sl[i] : null));
   s.heard = Object.fromEntries(Object.entries(obj(r.heard)).filter(([, v]) => typeof v === 'number')) as Record<
     string,
     number
@@ -180,7 +180,7 @@ export function validate(s: unknown): string[] {
   if (!Object.keys(r).length) return ['not a save of the Vigil'];
   if (typeof r.v !== 'number' || r.v < 1) errs.push('no version');
   for (const k of ['dust', 'obols', 'runs', 'wins', 'deepest'] as const)
-    if (r[k] !== undefined && !(typeof r[k] === 'number' && (r[k] as number) >= 0)) errs.push(`${k} is not a count`);
+    if (r[k] !== undefined && !(typeof r[k] === 'number' && r[k] >= 0)) errs.push(`${k} is not a count`);
   for (const k of ['reactions', 'weaves', 'found', 'freed', 'bound', 'parts', 'powers', 'echoes'] as const)
     if (r[k] !== undefined && !Array.isArray(r[k])) errs.push(`${k} is not a list`);
   if (typeof r.wins === 'number' && typeof r.runs === 'number' && r.wins > r.runs) errs.push('more wins than runs');

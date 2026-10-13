@@ -419,7 +419,7 @@ export function dragonInfo() {
     k = e && coils.get(e);
   return k
     ? {
-        state: e!.state,
+        state: e.state,
         pillars: k.pillars.length,
         on: !!k.at,
         headY: k.head[1],

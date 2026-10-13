@@ -146,8 +146,8 @@ export function validateAlchemy(d = D): string[] {
     if (!p.name || !p.lore || !p.text?.drink || !p.text?.throw) errs.push(`${at}: a name, both texts and lore`);
     if (!/^#[0-9a-f]{6}$/i.test(p.color)) errs.push(`${at}: colour ${p.color}`);
     if (!(p.weight > 0)) errs.push(`${at}: weight`);
-    const dp = DRINK_PARAMS[p.drink?.effect as DrinkEffect],
-      tp = THROW_PARAMS[p.throw?.effect as ThrowEffect];
+    const dp = DRINK_PARAMS[p.drink?.effect],
+      tp = THROW_PARAMS[p.throw?.effect];
     if (!dp) errs.push(`${at}: drink effect ${p.drink?.effect}`);
     else for (const k of dp) if (p.drink[k] === undefined) errs.push(`${at}: drink needs ${k}`);
     if (!tp) errs.push(`${at}: throw effect ${p.throw?.effect}`);

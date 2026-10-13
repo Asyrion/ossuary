@@ -146,7 +146,7 @@ export function setHero(prep: PreparedHero, gltf: Pick<GLTF, 'animations'>, labe
   const roles = hero.anim?.roles ?? {};
   const clipList = Object.entries(roles)
     .filter(([, c]) => c)
-    .map(([k, c]) => `${k}: ${c!.name.replace(/\.\d+$/, '')}`)
+    .map(([k, c]) => `${k}: ${c.name.replace(/\.\d+$/, '')}`)
     .join(', ');
   hero.info = STR.heroInfo(label, prep.tris, prep.stripped, prep.skinned, clipList);
 }

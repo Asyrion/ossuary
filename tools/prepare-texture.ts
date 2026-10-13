@@ -150,7 +150,7 @@ if (kind === 'coin') {
   for (const c of cells) {
     const m = await sharp(c).metadata();
     parts.push({ input: c, left: x, top: 0 });
-    x += m.width! + 12;
+    x += m.width + 12;
   }
   const sheet = join(previews, `${id}_coin_sheet.png`);
   await sharp({ create: { width: x, height: Math.max(S.size * 4, 44 * 4), channels: 4, background: '#0c0a08' } })
@@ -231,7 +231,7 @@ if (kind === 'coin') {
       const b = await cell(px, g),
         m = await sharp(b).metadata();
       cells.push({ input: b, left: x, top: y });
-      x += m.width! + 8;
+      x += m.width + 8;
       tall = m.height!;
     }
     y += tall + 8;

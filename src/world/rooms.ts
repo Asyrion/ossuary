@@ -954,7 +954,7 @@ function placeTorches(room: Room, run: WallRun, across0: number, falls: ReturnTy
     ...(room.keepClear ?? []).filter((k) => k.side === run.facing),
   ]; // (and what stands against the Vigil's walls, M7)
   const face = run.facing === 'n' ? across0 + WT : run.facing === 'w' ? across0 + WT : across0; // the wall's inner face
-  for (let s of spots) {
+  for (const s of spots) {
     let at = inner0 + s;
     const blocked = inTheWay.find((b) => Math.abs(at - b.at) < b.half + 0.5);
     if (blocked) {

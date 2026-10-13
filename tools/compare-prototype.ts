@@ -40,7 +40,7 @@ async function shoot(page: Page, url: string, tag: 'port' | 'proto') {
           g.player.z = g.current.cz + 2.9; // where the prototype's warp puts the hero
         } else {
           w.__game.startGame();
-          w.__game.warp(gx as number, gy as number);
+          w.__game.warp(gx, gy);
         }
         w.__game.sim(3.2, true);
       },

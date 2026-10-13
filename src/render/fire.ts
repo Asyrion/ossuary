@@ -118,7 +118,7 @@ function drop(x: number, y: number, z: number, w: number, h: number, color: numb
   return g;
 }
 const joined = (parts: THREE.BufferGeometry[]) => {
-  const g = mergeGeometries(parts)!;
+  const g = mergeGeometries(parts);
   for (const p of parts) p.dispose();
   return g;
 };

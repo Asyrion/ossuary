@@ -250,7 +250,7 @@ export const TOWNSFOLK_RECIPES = Object.fromEntries(
           k,
           f.armsDown ? lowered(c, f.armsDown) : c,
         ]),
-      ) as Record<string, ClipDef>,
+      ),
     },
   ]),
 );

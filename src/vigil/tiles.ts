@@ -1,7 +1,7 @@
 /* Where things stand at the Vigil (M7 steps 5 and 9): a tile of a room in the world, a placed thing's middle, its tiles
    blocked as a rock that never breaks, and its span of wall kept clear of torches and the wall's dressing. Shared by
    vigil/place.ts (the pieces and barred ways) and vigil/unfold.ts (what fills the rooms behind them). */
-import type { RockBox, Room } from '../types';
+import type { Room } from '../types';
 import type { School } from '../actors/foeData';
 import { tilesOf } from './vigilMap';
 
@@ -26,7 +26,7 @@ export function block(room: Room, p: Placed, bar?: School) {
       breakable: false,
       tile: { c, r },
       ...(bar && { bar }),
-    } as RockBox);
+    });
   }
 }
 /** Its span of wall, kept clear of torches and the wall's dressing. */

@@ -45,7 +45,7 @@ describe('boons', () => {
     expect(errs).toMatch(/listed twice/);
     expect(errs).toMatch(/taken twice: max 2/);
     expect(errs).toMatch(/rank2 changes nothing/);
-    expect(validateBoons([{ ...BOON_DEFS[0], area: 'mage' } as BoonDef]).join(';')).toMatch(/not both/);
+    expect(validateBoons([{ ...BOON_DEFS[0], area: 'mage' }]).join(';')).toMatch(/not both/);
   });
   it('grow at the second rank', () => {
     expect(boonParams('bankedCoals', 1).burnMul).toBe(1.5);

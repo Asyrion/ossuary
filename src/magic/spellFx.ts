@@ -66,7 +66,7 @@ function oneGeometry(build: (g: THREE.Group) => void) {
     mats.add(m.material as THREE.Material);
   });
   for (const m of mats) m.dispose();
-  const out = mergeGeometries(geos)!;
+  const out = mergeGeometries(geos);
   for (const x of geos) x.dispose();
   return out;
 }
@@ -601,7 +601,7 @@ export function consecrateFx(x: number, z: number, radius: number, color: number
       ringMat.opacity = 0.8 * fade;
       ring.rotation.y = t * 0.7;
       circ.rotation.y = -t * 0.2;
-      (fill.material as THREE.MeshBasicMaterial).opacity = 0.12 * fade;
+      fill.material.opacity = 0.12 * fade;
       warm.material.opacity = 0.3 * fade;
       motes.forEach((m, i) => {
         const u = (t * 0.45 + i / 10) % 1,
@@ -802,7 +802,7 @@ export function graspFx(x: number, z: number, radius: number, color: number) {
         h.scale.setScalar(Math.max(0.01, k));
       });
       rimMat.opacity = 0.7 * Math.min(1, k * 2);
-      (pool.material as THREE.MeshBasicMaterial).opacity = 0.7 * Math.min(1, k * 2);
+      pool.material.opacity = 0.7 * Math.min(1, k * 2);
     },
     drop() {
       scene.remove(g);
@@ -875,7 +875,7 @@ export function thornFx(x: number, z: number, radius: number, color: number) {
         v.scale.setScalar(Math.max(0.01, k));
       });
       rimMat.opacity = 0.6 * Math.min(1, k * 2);
-      (earth.material as THREE.MeshBasicMaterial).opacity = 0.65 * Math.min(1, k * 2);
+      earth.material.opacity = 0.65 * Math.min(1, k * 2);
     },
     drop() {
       scene.remove(g);
@@ -916,7 +916,7 @@ export function pollenFx(x: number, z: number, radius: number, color: number) {
   return {
     update(t: number, fade: number) {
       lineMat.opacity = 0.35 * fade;
-      (haze.material as THREE.MeshBasicMaterial).opacity = (0.12 + Math.sin(t * 3) * 0.03) * fade;
+      haze.material.opacity = (0.12 + Math.sin(t * 3) * 0.03) * fade;
       warm.material.opacity = 0.28 * fade;
       circ.rotation.y = t * 0.25;
       grains.forEach((m, i) => {
@@ -966,8 +966,8 @@ export function woodColumn(x: number, z: number, h: number) {
       keep('fx.crown', () => new THREE.IcosahedronGeometry(1, 0)),
       leaf,
     );
-    c.scale.setScalar(s as number);
-    c.position.set(dx as number, h + (dy as number), dz as number);
+    c.scale.setScalar(s);
+    c.position.set(dx, h + dy, dz);
     g.add(c);
   }
   const bud = new THREE.Mesh(

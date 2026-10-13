@@ -120,7 +120,7 @@ export function same(a: Json, b: Json): boolean {
   if (Array.isArray(a) !== Array.isArray(b)) return false;
   if (Array.isArray(a)) return a.length === (b as Json[]).length && a.every((x, k) => same(x, (b as Json[])[k]));
   const ka = Object.keys(a),
-    kb = Object.keys(b as object);
+    kb = Object.keys(b);
   return ka.length === kb.length && ka.every((k) => k in (b as object) && same(a[k], (b as Record<string, Json>)[k]));
 }
 

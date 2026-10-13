@@ -134,7 +134,7 @@ describe('the foes built in code (M4)', () => {
     expect(Array.from({ length: 200 }, () => pickFoe(f1.foes, 'W', R, false, true))).not.toContain('fireflySwarm');
     expect(Array.from({ length: 200 }, () => pickFoe(f5.foes, 'R', R, false, true))).not.toContain('rimeWolf');
     expect(new Set(Array.from({ length: 400 }, () => pickFoe(f5.foes, 'R', R)))).toContain('rimeWolf'); // (the first may be one)
-    expect(pickFoe({ ...f5.foes, R: [['rimeWolf', 1]] } as RoleTable, 'R', R, false, true)).toBe('rimeWolf'); // (nothing else can fill it)
+    expect(pickFoe({ ...f5.foes, R: [['rimeWolf', 1]] }, 'R', R, false, true)).toBe('rimeWolf'); // (nothing else can fill it)
   });
 
   it('calls up neither an elite nor a mimic in the middle of a fight, unless nothing else fills the role', () => {

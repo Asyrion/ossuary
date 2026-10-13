@@ -160,7 +160,7 @@ export function reactionWheel(chosen?: Reaction) {
   const dots = SPOKES.map((k) => {
     const p = spoke(k),
       sealed = false,
-      fill = sealed ? '#2a241c' : css(SCHOOL_LIGHT[k as keyof typeof SCHOOL_LIGHT]);
+      fill = sealed ? '#2a241c' : css(SCHOOL_LIGHT[k]);
     const name = STR.knowledge.spoke[k] ?? k;
     return (
       `<circle cx="${p.x}" cy="${p.y}" r="15" fill="${fill}" stroke="${sealed ? '#5e4d39' : '#17110c'}" stroke-width="2"${sealed ? ' stroke-dasharray="3 3"' : ''}/>` +

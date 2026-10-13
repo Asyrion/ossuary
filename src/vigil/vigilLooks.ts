@@ -196,7 +196,7 @@ export function circleLook(radius: number) {
     pos = new Float32Array(n * 3);
   let o = 0;
   for (const p of all) {
-    pos.set(p.attributes.position.array as Float32Array, o * 3);
+    pos.set(p.attributes.position.array, o * 3);
     o += p.attributes.position.count;
   }
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));

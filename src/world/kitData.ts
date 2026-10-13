@@ -107,7 +107,7 @@ export function pickKinds(kit: KitWeights, seed: number, force: Partial<Kinds> =
   };
   const pick = <P extends KitPart>(part: P): Kinds[P] => {
     const r = R(); // (drawn for every part, forced or not, so forcing one doesn't change the others)
-    if (force[part]) return force[part]!;
+    if (force[part]) return force[part];
     const w = kit[part] as Record<string, number>,
       list = kindsOf(kit, part),
       total = list.reduce((a, k) => a + w[k], 0);

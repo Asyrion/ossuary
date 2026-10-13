@@ -181,7 +181,7 @@ export class Rig {
   snapshot(names: readonly string[]) {
     return names.map((n) => {
       const b = this.bone(n);
-      return { q: b.quaternion.toArray() as number[], p: b.position.toArray() as number[] };
+      return { q: b.quaternion.toArray(), p: b.position.toArray() };
     });
   }
 }
@@ -243,8 +243,8 @@ export function faceForward(doc: Document, deg: number) {
         // (a joint whose parent is no joint: the skeleton's top)
         const t = new THREE.Vector3().fromArray(j.getTranslation()).applyMatrix4(R),
           q = rq.clone().multiply(new THREE.Quaternion().fromArray(j.getRotation()));
-        j.setTranslation(t.toArray() as [number, number, number]);
-        j.setRotation(q.toArray() as [number, number, number, number]);
+        j.setTranslation(t.toArray());
+        j.setRotation(q.toArray());
       }
     const ibm = skin.getInverseBindMatrices();
     if (!ibm || done.has(ibm)) continue;
@@ -304,8 +304,8 @@ export function restFromBind(doc: Document, left = 'mixamorig:LeftUpLeg', right 
         q = new THREE.Quaternion(),
         sc = new THREE.Vector3();
       local.decompose(t, q, sc);
-      j.setTranslation(t.toArray() as V3);
-      j.setRotation(q.toArray() as [number, number, number, number]);
+      j.setTranslation(t.toArray());
+      j.setRotation(q.toArray());
       j.setScale([1, 1, 1]);
       set++;
     }

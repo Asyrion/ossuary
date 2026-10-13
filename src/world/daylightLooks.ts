@@ -124,7 +124,7 @@ function terraceLook(): FloorLook {
       floor: 'flags',
       torch: base.kinds?.torch ?? 'bracket',
       brazier: base.kinds?.brazier ?? 'tripod',
-    } as FloorLook['kinds'],
+    },
   };
 }
 

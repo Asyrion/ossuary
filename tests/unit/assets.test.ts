@@ -2,7 +2,7 @@ import { describe, expect, it, beforeAll } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as THREE from 'three';
-import { Document, type Node } from '@gltf-transform/core';
+import { Document } from '@gltf-transform/core';
 import { MeshoptSimplifier } from 'meshoptimizer';
 import { BUDGETS, IMAGES, MANIFEST, manifestFiles, validateManifest, type Manifest } from '../../src/assets/assetData';
 import { CFG } from '../../src/config';
@@ -94,10 +94,10 @@ describe('the model report', () => {
   });
   it('turns a character that faces away', async () => {
     const doc = model(new THREE.BoxGeometry(0.5, 1, 0.3).translate(0, 0.5, 0), [0, 0, 0], '-z');
-    expect(facing(doc.getRoot().listSkins()[0].listJoints() as Node[])).toBe('-z');
+    expect(facing(doc.getRoot().listSkins()[0].listJoints())).toBe('-z');
     const checks = await prepareModel(doc, 'enemy', { simplifier: MeshoptSimplifier });
     expect(status(checks, 'Facing')).toBe('fixed');
-    expect(facing(doc.getRoot().listSkins()[0].listJoints() as Node[])).toBe('+z');
+    expect(facing(doc.getRoot().listSkins()[0].listJoints())).toBe('+z');
     expect(status(checks, 'Clips')).toBe('fail'); // (and it has no clips)
   });
   it('fails a character with no rig, and notes a rig on a static kind', async () => {

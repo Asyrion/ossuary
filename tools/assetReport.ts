@@ -78,9 +78,7 @@ export function measure(doc: Document): Measure {
     max,
     meshes,
     joints: root.listSkins().flatMap((s) => s.listJoints()),
-    textures: root
-      .listTextures()
-      .map((tex) => ({ tex, size: tex.getSize() as [number, number] | null, alpha: alphaTex.has(tex) })),
+    textures: root.listTextures().map((tex) => ({ tex, size: tex.getSize(), alpha: alphaTex.has(tex) })),
   };
 }
 

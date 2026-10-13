@@ -87,8 +87,8 @@ function sample(): Shot[] {
   const byShape = [...new Set(TEMPLATE_DEFS.map((d) => d.shape))]
     .map((s) => TEMPLATE_DEFS.find((d) => d.shape === s && d.types.includes('normal') && !d.theme))
     .filter((d) => !!d);
-  const plain = byShape[0]!.id;
-  return [...byShape.map((d) => room(d!.id)), room(carvedDefs()[0].id), room(plain, '', 2), room(plain, '', 3)];
+  const plain = byShape[0].id;
+  return [...byShape.map((d) => room(d.id)), room(carvedDefs()[0].id), room(plain, '', 2), room(plain, '', 3)];
 }
 
 /** What the diff touches, as targets (and why each one). */

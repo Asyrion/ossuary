@@ -122,7 +122,7 @@ export const padsNow = () =>
     the page, so this is the sign it was heard; one that reports an unusual layout says its buttons may be off. */
 export function initGamepad(say: (text: string) => void) {
   window.addEventListener('gamepadconnected', (e) => {
-    const g = (e as GamepadEvent).gamepad,
+    const g = e.gamepad,
       name = g.id.replace(/\s*\(.*$/, '').trim() || g.id;
     say(g.mapping === 'standard' ? STR.pad.connected(name) : STR.pad.unusual(name));
   });

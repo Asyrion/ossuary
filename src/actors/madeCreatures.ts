@@ -144,7 +144,7 @@ export async function madeModel(id: string, l: CreatureLook = look, still: () =>
     ); // (its materials shared by every copy: taking one away leaves them)
   const gltf = await loaded.get(file)!;
   if (!still()) return null;
-  const model = cloneSkinned(gltf.scene) as THREE.Object3D,
+  const model = cloneSkinned(gltf.scene),
     scale = info.height / info.modelHeight;
   model.traverse((o) => {
     const m = o as THREE.Mesh;

@@ -158,4 +158,4 @@ export function cellHalfExtents(id: ShapeId) {
 }
 
 /** Can a room of this shape have a door on this side? */
-export const allowsSide = (id: ShapeId, side: Side) => !SHAPES[id].doorSides || SHAPES[id].doorSides!.includes(side);
+export const allowsSide = (id: ShapeId, side: Side) => !SHAPES[id].doorSides || SHAPES[id].doorSides.includes(side);

@@ -438,7 +438,7 @@ function readUrlOptions() {
     testTemplate: room && TEMPLATES.has(room) ? room : undefined,
     testVariant: variant && VARIANTS.includes(variant) ? variant : undefined,
     give: give.filter((id) => ARTIFACTS.has(id)),
-    boss: bossOk ? boss! : undefined,
+    boss: bossOk ? boss : undefined,
     loot,
     spells: spells.filter((id) => SPELLS.has(id)),
     potions: potions.filter(isPotion),

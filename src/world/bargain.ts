@@ -68,7 +68,7 @@ function oldLook() {
   const rune = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), basicMat(BARGAIN_RUNES.idle));
   rune.position.set(0, 0.8, 0.15);
   group.add(slab, rune);
-  return { group, runes: rune.material as THREE.MeshBasicMaterial };
+  return { group, runes: rune.material };
 }
 function setRunes(b: Bargain, color: number) {
   b.look.runes.color.setHex(color);

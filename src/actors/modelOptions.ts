@@ -359,7 +359,7 @@ function fenNex(sideOn = true): Built {
   return {
     group: g,
     shadow: 1,
-    parts: { head, mouth } as Record<string, THREE.Object3D>,
+    parts: { head, mouth },
     idle: (t) => {
       const w = t * 6;
       legs.forEach(({ l, phase }) => {

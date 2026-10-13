@@ -11,7 +11,7 @@ import { line, renderHearts } from '../ui/hud';
 import { burst } from '../combat/fx';
 import { floatText } from '../magic/statusFx';
 import { heroDrink } from '../actors/hero';
-import { MAGIC, type MagicTuning } from '../magic/status';
+import { MAGIC } from '../magic/status';
 import type { SpellStatus } from '../magic/spellData';
 import { afterglowOf, boon, boonParams, boonTuning, statusMul } from './boonData';
 
@@ -28,7 +28,7 @@ export const boonMul = (id: string, key: string) => {
   return r ? (boonParams(id, r)[key] ?? 1) : 1;
 };
 
-let tuned = { key: '0:0', T: MAGIC as MagicTuning };
+let tuned = { key: '0:0', T: MAGIC };
 /** The statuses' tuning now: data/magic.json's, with Deep Winter's freeze and Gathering Dark's hex (made again only when
     their ranks change). */
 export function magicNow() {

@@ -92,14 +92,14 @@ describe('rooms with a pair (M4.7)', () => {
         if (!at) continue;
         paired++;
         expect(at).toEqual([0, 1]);
-        expect(f.pairs!.list.some(([a, b]) => wave[0].kind === a && wave[1].kind === b)).toBe(true);
+        expect(f.pairs.list.some(([a, b]) => wave[0].kind === a && wave[1].kind === b)).toBe(true);
         const elites = wave.filter((w) => isFoe(w.kind) && FOES[w.kind].elite).length,
           packs = wave.filter((w) => isFoe(w.kind) && FOES[w.kind].pack).length;
         expect(elites).toBeLessThanOrEqual(1);
         expect(packs).toBeLessThanOrEqual(1);
       }
-      expect(paired / 400).toBeGreaterThan(f.pairs!.chance * 0.5);
-      expect(paired / 400).toBeLessThan(f.pairs!.chance * 1.6);
+      expect(paired / 400).toBeGreaterThan(f.pairs.chance * 0.5);
+      expect(paired / 400).toBeLessThan(f.pairs.chance * 1.6);
     });
     expect(
       pairRoom(

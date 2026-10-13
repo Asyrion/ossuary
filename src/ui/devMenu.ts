@@ -5,7 +5,7 @@
    so new artifacts, drops, rooms and bosses show up by themselves. Kept in production builds, like the
    hooks, for testing the deployed site. */
 import type * as THREE from 'three';
-import { BOSS_TYPES, type BossType, type EnemyType } from '../config';
+import { BOSS_TYPES, type EnemyType } from '../config';
 import { PROP_KINDS, isMechanism } from '../world/propData';
 import { THEME_DEFS } from '../world/themeData';
 import { placeProp } from '../world/props';
@@ -414,9 +414,7 @@ function start(opts: RunOptions) {
   startGame(opts);
   if (kept) {
     giveById(kept.ids);
-    giveResources(
-      Object.fromEntries(RESOURCES.map((r, i) => [r, kept.res[i] - player[r]])) as Record<Resource, number>,
-    );
+    giveResources(Object.fromEntries(RESOURCES.map((r, i) => [r, kept.res[i] - player[r]])));
   }
 }
 const bossRoom = () => TEMPLATE_DEFS.find((t) => t.types.includes('boss') && t.shape === 'standard')!.id;
@@ -567,7 +565,7 @@ function build() {
     drops.append(
       btn(S.dropNames[d] ?? d, () => {
         const q = ahead();
-        spawnPickup(d as Drop, q.x, q.z, { gilded: false, asIs: true });
+        spawnPickup(d, q.x, q.z, { gilded: false, asIs: true });
       }),
     );
   drops.append(
@@ -1454,9 +1452,7 @@ function build() {
   const bosses = section(pages.rooms, S.bosses);
   for (const b of BOSS_TYPES)
     bosses.append(
-      btn(STR.bosses[b as BossType].name, () =>
-        start({ testTemplate: b === 'kaelith' ? 'seal_kaelith' : bossRoom(), boss: b }),
-      ),
+      btn(STR.bosses[b].name, () => start({ testTemplate: b === 'kaelith' ? 'seal_kaelith' : bossRoom(), boss: b })),
     ); // (M7: Kaelith in its own hall, its ward pillars round it)
   // M7 step 2: Kaelith's fight: its phase, its wards; to a phase, the wards shut
   const kae = section(pages.rooms, S.kaelith);

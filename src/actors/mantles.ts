@@ -103,7 +103,7 @@ function stormLook(e: Enemy, light: number) {
     [0.08, 0.08, -0.12, 0.2],
     [-0.08, 0.02, 0.16, 0.18],
   ].map(([x, y, z, k]) => sphere(k * S.cloudSize, 8, 6).translate(x * S.cloudSize, y * S.cloudSize, z * S.cloudSize));
-  const geo = mergeGeometries(puffs)!;
+  const geo = mergeGeometries(puffs);
   for (const p of puffs) p.dispose();
   cloud.add(new THREE.Mesh(geo, std(0x40465a, { emissive: 0x141824 })));
   const flash = glow(light, S.cloudSize * 2.2, 0);

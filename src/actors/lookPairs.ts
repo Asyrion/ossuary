@@ -36,7 +36,7 @@ export function showLookPairs(room: Room, x: number, z: number, floor?: number, 
       cz = z - 2 - Math.floor(i / across) * 2.4;
     const a = freeSpotNear(room, cx - 0.7, cz),
       b = freeSpotNear(room, cx + 0.7, cz);
-    standLook(room, oldLook(id)!, 'old:' + id, a.x, a.z);
+    standLook(room, oldLook(id), 'old:' + id, a.x, a.z);
     standLook(room, FANTASY_LOOKS[id]!, 'new:' + id, b.x, b.z);
     return { id, old: a, new: b };
   });
@@ -57,7 +57,7 @@ function measure(build: () => Built) {
 export function lookContract() {
   return Object.keys(FANTASY_LOOKS).map((id) => {
     const retired = RETIRED[id],
-      was = retired ?? measure(oldLook(id)!),
+      was = retired ?? measure(oldLook(id)),
       now = measure(FANTASY_LOOKS[id]!);
     return {
       id,

@@ -69,7 +69,7 @@ export async function loadAssets(search = location.search) {
         [group, id] = f.where.split('.') as [string, string];
       try {
         if (group === 'props' || group === 'artifacts') {
-          const entry = (manifest[group] as Record<string, ModelEntry>)[id],
+          const entry = manifest[group][id],
             buf = await fetchFile(url);
           if (!buf) return missing(f);
           const gltf = await loader.parseAsync(buf, url.replace(/[^/]*$/, ''));

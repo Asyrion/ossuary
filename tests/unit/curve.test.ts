@@ -25,7 +25,7 @@ describe('the curve (M4.9): pressure dials', () => {
     const dial = (f: (typeof floors)[number]) => {
       const v = f.variants as Record<string, number>,
         total = Object.values(v).reduce((a, b) => a + b, 0);
-      return [f.pressure.extra, f.pressure.eliteMul, f.pressure.ordealWaves, v.champion / total, f.pairs!.chance];
+      return [f.pressure.extra, f.pressure.eliteMul, f.pressure.ordealWaves, v.champion / total, f.pairs.chance];
     };
     for (let i = 1; i < floors.length; i++) {
       if ('fixed' in floors[i]) continue; // (M7: the Seal is laid by hand, one fight and its boss; no curve to rise on)

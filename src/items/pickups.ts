@@ -387,7 +387,7 @@ export function openContainer(p: Pickup, burnt = false) {
 /** Add (or take, with negative amounts) obols, keys or glyphs, within 0 and the cap. */
 export function giveResources(v: Partial<Record<Resource, number>>) {
   const tens = Math.floor(player.coins / 10);
-  for (const k of RESOURCES) if (v[k]) player[k] = Math.max(0, Math.min(LOOT.cap, player[k] + v[k]!));
+  for (const k of RESOURCES) if (v[k]) player[k] = Math.max(0, Math.min(LOOT.cap, player[k] + v[k]));
   renderPurse();
   if (player.stats.obolDamage && Math.floor(player.coins / 10) !== tens) refreshStats(); // the Miser's Purse weighs the hoard
 }
