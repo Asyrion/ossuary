@@ -12,7 +12,6 @@ export default tseslint.config(
   {
     ignores: [
       'dist/**',
-      'prototype/**',
       'public/**',
       'inspiration/**',
       'docs/**',

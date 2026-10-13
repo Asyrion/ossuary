@@ -43,7 +43,6 @@ Isaac-style roguelike set in Eda, built with three.js and Tripo3D models.
 | `npm run animate-creature -- <id> in.glb` | Animate a rigged Tripo creature in code (`docs/creatures.md`): its faces turned outward, its skin bound again, its recipe's clips baked, its texture padded, into `public/assets/creatures/`; `-- --bones in.glb` reads a new model's rig first |
 | `npm run creature-preview -- <id>` | A short video of an animated creature with its sounds, into `creature-previews/` (needs `npm run dev` running) |
 | `npx tsx tools/make-standins.ts` | Remake the stand-in assets the browser tests load (`tests/fixtures/assets/`), through the same scripts |
-| `npm run compare` | Screenshots of four rooms in the port and in prototype 0.3, into `test-results/compare/` (needs `npm run dev` running) |
 | `npm run inspect -- <targets>` | Screenshots of templates, themes, every object or a whole floor and a contact sheet, into `test-results/inspect/` (the room inspector's tool; needs `npm run dev` running). `changed` picks the rooms from the diff; `--against origin/main` shoots them on main too and marks what changed; checks flag a hidden mage, pools that read like pits and dark rooms |
 | `npm run review-checks -- [range]` | What a script can find in a diff against the project's rules, plus the typecheck and unit tests (the rules reviewer's tool) |
 
@@ -76,6 +75,3 @@ for the Drowned Abbess with floor 3 tuning. The end screen's "Replay this seed" 
 3. In the repository: Settings → Pages → Source: **GitHub Actions**.
 
 Every push to `main` runs the smoke test, builds and deploys to `https://<you>.github.io/<repo>/`.
-
-`prototype/ossuary-0.3-playable.html` is the single-file prototype the port was checked against. With the
-dev server running it is at http://localhost:5173/prototype/ossuary-0.3-playable.html.

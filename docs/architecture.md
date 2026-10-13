@@ -61,7 +61,7 @@ three hearts counted in halves, one second of invulnerability after a hit.
 | `world/` | Floor generation, rooms, walls, templates, props, mechanisms, pools, themes, special rooms. |
 
 Outside `src/`: `data/` (JSON content), `public/assets/` (`hero_default.glb`, `creatures/`, `sounds/`, `coins/`),
-`tools/` (Node scripts), `tests/`, `docs/`, `prototype/` (legacy).
+`tools/` (Node scripts), `tests/`, `docs/`.
 
 Most systems follow one pattern: rules in a pure `xData.ts` with a `validateX`, the game side in `x.ts`, looks in
 `xLooks.ts`, tuning in `CFG.x`, text in `STR.x`, a dev menu section and `__game` hooks.
@@ -752,7 +752,6 @@ when the browser first reports a pad (`STR.pad`). Dev: `__game.pads`, the dev me
 | `inspect` | `inspect-rooms.ts`: shoots rooms; flags errors, hidden mage, dark rooms. |
 | `render-audio`, `review-checks`, `milestone` | Offline audio; diff checks; GitHub milestones. |
 | `devboard`, `devboard:selftest` | The content dev board (`tools/devboard/`). |
-| `compare` | Screenshots rooms in the 0.3 prototype and the game (legacy). |
 
 Dev board: `npm run devboard` serves http://127.0.0.1:8770, a local page to browse, create, edit and delete the
 content in `data/`, validated by the game's own validators after every save. A new kind of content in `data/` gets
@@ -841,6 +840,5 @@ These exist to compare an old way against the current one. They are not part of 
 | `?pixel=1080\|720\|540\|360\|270`, `LINES`, `pixelGrid` | Whole-screen-pixel row modes beside `texel`, `fine`. |
 | `setCreatureLook`, `ossuary.creatureLook2`, `<id>.full.glb` | Creature look modes and comparison GLBs. |
 | `setMadeLook`, `setHeroPixel` | Made assets texel/vertex; the mage baked/as made. |
-| `prototype/`, `npm run compare` | The 0.3 single-file prototype and the script that screenshots both. |
 | `rotling`, `modelOptions.ts` galleries | A plain test foe; look-only galleries of foes and familiars. |
 | `src/input/touch.ts` | Frozen 0.3 touch controls: do not extend or test them. |
