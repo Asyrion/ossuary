@@ -72,9 +72,9 @@ import { openLectern } from './lectern';
 import { assetList, assetsOn, setAssetsOn } from '../assets/models';
 import { setCloseUp } from '../render/renderer';
 import { LINES, drawnRows, pixelLook, setPixelLook } from '../render/pixelLook';
-import { removeModelOptions, showBestiary, showBossLooks, showJellyLooks } from '../actors/modelOptions';
+import { removeModelOptions, showBestiary, showBossLooks, showJellyLooks } from '../dev/modelGallery';
 import { BESTIARY_OPTIONS } from '../actors/bestiaryLooks';
-import { EFFECT_OPTIONS, removeEffectOptions, showEffectOptions } from '../magic/effectOptions';
+import { EFFECT_OPTIONS, removeEffectOptions, showEffectOptions } from '../dev/effectOptions';
 import { CFG } from '../config';
 import { freeSpotNear, placeUrn } from '../world/rooms';
 import { SIDE_DIR } from '../world/shapes';
@@ -98,10 +98,10 @@ import {
   weavesFound,
 } from '../magic/memory';
 import { WEAVE_IDS } from '../magic/weaves';
-import { setOffWeave } from '../magic/weaveTest';
-import { BENCH_BOONS, setOffBoon } from '../progression/boonTest';
+import { setOffWeave } from '../dev/weaveTest';
+import { BENCH_BOONS, setOffBoon } from '../dev/boonTest';
 import { REACTION_IDS } from '../magic/knowledge';
-import { setOffReaction } from '../magic/reactionTest';
+import { setOffReaction } from '../dev/reactionTest';
 import { dropPage } from '../magic/pages';
 import { hexDrained } from './afflictions';
 import { steamAt } from '../magic/steam';

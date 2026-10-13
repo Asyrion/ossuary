@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import type { Room } from '../types';
 import { disposeTree, glow } from '../render/materials';
 import { freeSpotNear } from '../world/rooms';
+import { onDevClear, onDevStep } from '../devDoor';
 import {
   SCHOOL_LIGHT,
   box,
@@ -604,11 +605,12 @@ export function showEffectOptions(room: Room, x: number, z: number, only?: reado
     return { id: o.id, x: at.x, z: at.z };
   });
 }
-/** Every step: the effects in the room shown play on. */
-export function updateEffectOptions(dt: number, current: Room) {
+/** Every step of play: the effects in the room shown play on. */
+onDevStep((dt, current, playing) => {
+  if (!playing) return;
   clock += dt;
   for (const s of shown) if (s.room === current) s.play(clock);
-}
+});
 /** Take the effects playing in `room` away. */
 export function removeEffectOptions(room: Room) {
   for (let i = shown.length - 1; i >= 0; i--)
@@ -619,6 +621,6 @@ export function removeEffectOptions(room: Room) {
     }
 }
 /** A new floor: its rooms are gone, and the effects with them. */
-export function clearEffectOptions() {
+onDevClear(() => {
   shown.length = 0;
-}
+});

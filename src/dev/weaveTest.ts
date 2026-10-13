@@ -7,13 +7,13 @@ import { layFire } from '../actors/foes';
 import { layGround } from '../actors/bestiaryGround';
 import { addPool, fireAt, shockAt } from '../world/pools';
 import { hallowAt, umbralAt } from '../world/mechanisms';
-import { inflict } from './statusFx';
-import { CAST, wardMotes } from './shapes';
-import { steamAt } from './steam';
-import { MAGIC } from './status';
-import { spell } from './spellData';
+import { inflict } from '../magic/statusFx';
+import { CAST, wardMotes } from '../magic/shapes';
+import { steamAt } from '../magic/steam';
+import { MAGIC } from '../magic/status';
+import { spell } from '../magic/spellData';
 import type { Enemy, Vec2 } from '../types';
-import type { WeaveId } from './weaves';
+import type { WeaveId } from '../magic/weaves';
 
 const UP: Vec2 = { x: 0, z: -1 };
 const cast = (id: string, dir: Vec2 = UP) => {
