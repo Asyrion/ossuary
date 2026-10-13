@@ -28,7 +28,7 @@ import { vigil } from './save';
 import { shade, SHADE_IDS } from './shadeData';
 import { VIGIL, roomIndex } from './vigilMap';
 import { townLook, moveTown, type TownLook } from './townLooks';
-import { CREATURES, creatureLook, loadedScene, madeModel } from '../actors/madeCreatures';
+import { CREATURES, loadedScene, madeModel } from '../actors/madeCreatures';
 import { glow } from '../render/materials';
 import { ferrymanLook } from './vigilLooks';
 import { hasNews, pickLine, type Subject, type TalkContext } from './dialogueData';
@@ -87,7 +87,7 @@ export function setTownWear(w: TownWear) {
 /** A made figure loaded in place of `look`: stood where it stands, turned as it is, the code figure hidden but for its
     glint's place, idle until it speaks. `onto` is the group it hangs in (the room's, or the boat's). */
 async function standMade(id: string, onto: THREE.Object3D, at: THREE.Vector3, turn: number, still: () => boolean) {
-  const m = await madeModel(id, creatureLook(), still);
+  const m = await madeModel(id, still);
   if (!m) return null;
   m.group.position.copy(at);
   m.group.rotation.y = turn;

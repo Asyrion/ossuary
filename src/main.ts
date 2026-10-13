@@ -231,15 +231,7 @@ import { inSteam, steamAt, steamCount } from './magic/steam';
 import type { MantleId } from './actors/mantleData';
 import { groundPace, layDevGround } from './actors/foeGround';
 import { AudioDirector, type Forced } from './audio/director';
-import {
-  creatureLook,
-  creaturesNow,
-  roarNow,
-  setCreatureLook,
-  showCreature,
-  takeCreatures,
-  type CreatureLook,
-} from './actors/madeCreatures';
+import { creaturesNow, roarNow, showCreature, takeCreatures } from './actors/madeCreatures';
 import { freeSpotNear } from './world/rooms';
 import { renderAudio, type RenderAsk } from './audio/render';
 import { SOUND_FILES, preloadSamples } from './audio/samples';
@@ -675,13 +667,6 @@ function installDevHooks() {
     },
     /** Creatures made in Tripo and animated in code (docs/creatures.md): stand one ahead of the mage (resolves once it
         stands), what stands, a roar now, and all taken away. */
-    get creatureLook() {
-      return creatureLook();
-    },
-    setCreatureLook: async (l: CreatureLook) => {
-      await setCreatureLook(l);
-      return creaturesNow();
-    },
     showCreature: async (id = 'owlbear', side = CFG.creatures.standSide) => {
       const at = freeSpotNear(G.current, player.x + side, player.z + CFG.creatures.standSouth);
       await showCreature(id, G.current, at.x, at.z);

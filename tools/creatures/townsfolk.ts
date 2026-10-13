@@ -226,9 +226,8 @@ const FIGURES: Record<string, Made> = {
 };
 
 /** Each figure's recipe for tools/animate-creature.ts: Mixamo legs for the IK, its own weights kept (or bound again from
-    `MIXAMO_SKIN` when the rig came without them: the tool decides), the clips, the hips the only bone that moves, no walk,
-    and no copy as imported (`full: false`: thirteen of them would weigh the repository down). Its facing is read from its
-    hips. */
+    `MIXAMO_SKIN` when the rig came without them: the tool decides), the clips, the hips the only bone that moves, no walk.
+    Its facing is read from its hips. */
 export const TOWNSFOLK_RECIPES = Object.fromEntries(
   Object.entries(FIGURES).map(([id, f]) => [
     id,
@@ -242,7 +241,6 @@ export const TOWNSFOLK_RECIPES = Object.fromEntries(
       face: 'mixamo' as const,
       height: f.height,
       budget: f.budget,
-      full: false,
       triangles: f.triangles,
       fine: f.fine,
       CLIPS: Object.fromEntries(

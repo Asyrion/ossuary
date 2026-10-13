@@ -8,7 +8,7 @@ in. For generated assets, name the tool and the plan it was made on, since right
 | Asset | Source | Licence |
 | --- | --- | --- |
 | `public/assets/hero_default.glb` | Made by Azyrion in Tripo3D | Tripo3D Master plan: commercial rights to creations are the owner's |
-| `public/assets/creatures/owlbear.glb`, `dragonling.glb` and `chameleon.glb` (each with its `.full.glb`) | Made by Azyrion in Tripo3D (2026-10-03, 2026-10-03, 2026-10-05); animated in code | As above |
+| `public/assets/creatures/owlbear.glb`, `dragonling.glb` and `chameleon.glb` | Made by Azyrion in Tripo3D (2026-10-03, 2026-10-03, 2026-10-05); animated in code | As above |
 
 ## Images and textures
 

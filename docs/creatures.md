@@ -100,8 +100,8 @@ Send me a preview video before anything ships. Ship only when I say so.
    Add it to `RECIPES` in `tools/animate-creature.ts` with `height` (tiles) and `budget` (`enemy` or `boss`). For a
    four-legged model on a two-legged rig or in a pose that isn't at rest, start from `tools/creatures/dragonling.ts`; for a
    model through the owner's viewer, two legs, wings or a clip that turns round, from `tools/creatures/chameleon.ts`.
-4. **Run it.** `npm run animate-creature -- <id> <model.glb>` writes `public/assets/creatures/<id>.glb`, `<id>.full.glb`
-   (textures as imported) and `data/creatures.json`. It stops before writing if the model is over budget.
+4. **Run it.** `npm run animate-creature -- <id> <model.glb>` writes `public/assets/creatures/<id>.glb` and `data/creatures.json`, then bakes
+   its texture (5b). It stops before writing if the model is over budget.
 5. **Sounds.** Events name sounds in `CREATURE_SOUNDS` (`src/audio/creatureSounds.ts`). Reuse the owlbear's (`pawFront`,
    `pawRear`, `inhale`, `roar`, `slam`) or the dragonling's (`clawFront`, `clawRear`, `hiss`, `snap`, `shriek`,
    `chitter`), or add new ones. `loud` events play at `CFG.creatures.roarGain`. Sound files (the Chameleon
@@ -119,11 +119,9 @@ Send me a preview video before anything ships. Ship only when I say so.
 7. **Dev menu.** Add a name in `STR.dev.creatureNames`; the menu lists creatures from the data by itself. It's under
    Galleries → Animated creatures:
    - "stand it here", "Roar now", "Take them away";
-   - **Look**, for every creature: pixel art from its texture (the game's look), pixel art from its vertices (the first
-     look), as made (1,024 px) or as imported (`<id>.full.glb`).
 
    The texel grid is the Look tab's pixel look switch. Hooks: `__game.showCreature(id)`, `creatures`, `roarNow()`,
-   `takeCreatures()`, `setCreatureLook(l)`.
+   `takeCreatures()`.
 8. **Record.** Add a row in the asset log of `docs/assets.md`.
 
 A creature on two legs, with wings or with no legs needs its own walk.
@@ -146,8 +144,8 @@ Tripo's humanoid rig gives every figure the same skeleton (`mixamorig:Hips` to t
   and `kneel` (one knee down, the feet held by the legs' IK, `MIXAMO_LEGS`). A figure left in a T-pose has its arms brought
   down (`armsDown`, degrees; the wizard's 62).
 - **Budget:** `enemy` (8,000) for the people, `boss` for Kaelith; `triangles` raises one where the simplifier stalls on
-  cloth (the wizard and Dr. Jelly, 10,000). `full: false`: no `.full.glb` is kept for them.
-- **In the game:** `madeModel(id, look, still)` in madeCreatures.ts loads and dresses one (the texel bake, its height, a
+  cloth (the wizard and Dr. Jelly, 10,000).
+- **In the game:** `madeModel(id, still)` in madeCreatures.ts loads and dresses one (the texel bake, its height, a
   shadow) for anything that wants a made figure; vigil/town.ts stands the townspeople and the Ferryman with it
   (`standMade`, `moveMade`: idle, talk while it speaks, the head bone turned to the mage after the clip; a little taller than the mage and drawn on the pixel look's fine layer at half-size pixels (the owner's ask, 2026-10-09: `fine` in the recipe and data/creatures.json, the texture baked at that pixel by texel-bake) and lit of themselves, `CFG.vigil.town.madeLight` through texturePixel.ts's `selfLight`; the code-built
   figure stays until the model has loaded, and is the fallback). The dev menu's Townspeople switches made and code looks

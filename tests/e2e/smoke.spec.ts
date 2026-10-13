@@ -12864,13 +12864,12 @@ test('soundscapes and music (docs/archive/sound-plan.md): the floor and room cho
   expect(errors).toEqual([]);
 });
 
-test('a creature made in Tripo and animated in code (docs/creatures.md): it stands, walks its lap, roars at the mage, its clips are baked in, and it can be drawn as made or as imported', async ({
+test('a creature made in Tripo and animated in code (docs/creatures.md): it stands, walks its lap, roars at the mage, its clips are baked in, and it wears its texture as pixel art', async ({
   page,
 }) => {
   const errors = await start(page, '?seed=OWLB1&room=great_hall&variant=quiet');
   type C = {
     id: string;
-    look: string;
     texture: number;
     state: string;
     clip: string;
@@ -12884,7 +12883,6 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
     roarNow(): void;
     takeCreatures(): void;
     renderInfo(): { calls: number };
-    setCreatureLook(l: string): Promise<C[]>;
     soundFiles(): Promise<Record<string, (number | null)[]>>;
   };
   const r = (await page.evaluate(async () => {
@@ -12901,12 +12899,6 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
     g.roarNow();
     g.sim(1, true);
     out.roaring = g.creatures[0];
-    out.full = (await g.setCreatureLook('full'))[0];
-    out.made = (await g.setCreatureLook('made'))[0];
-    out.texel = (await g.setCreatureLook('texel'))[0];
-    out.pixel = (await g.setCreatureLook('pixel'))[0];
-    void g.setCreatureLook('full');
-    out.quick = await g.setCreatureLook('made'); // (changed again while the last one's file loads: the last look wins)
     g.takeCreatures();
     g.sim(0.1, true);
     out.left = g.creatures.length;
@@ -12935,11 +12927,6 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
     moved: number;
     calls: number;
     roaring: C;
-    full: C;
-    made: C;
-    texel: C;
-    pixel: C;
-    quick: C[];
     left: number;
     dragon: C[];
     dragonWalk: C;
@@ -12956,26 +12943,16 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
   expect(r.calls).toBeLessThan(8); // (one skinned mesh and its shadow)
   expect(r.roaring).toMatchObject({ state: 'roar', clip: 'roar' });
   expect(r.roaring.time).toBeGreaterThan(0.5);
-  // its looks: pixel art from its texture (the default), the first pixel-art look (no texture: its colours baked into its vertices), as made (the game's 1,024 px file) and
-  // as imported (the textures at their own size), each stood again where it first stood
-  expect(r.stood[0]).toMatchObject({ look: 'texel' });
-  expect(r.stood[0].texture).toBeLessThanOrEqual(512); // (the game's look since 2026-10-05: its texture as pixel art)
-  expect(r.full).toMatchObject({ look: 'full', texture: 2048, x: r.stood[0].x, z: r.stood[0].z });
-  expect(r.made).toMatchObject({ look: 'made', texture: 1024 });
   // pixel art from its own texture (texturePixel.ts): the texture shrunk to the size the game draws it, sampled sharp
-  expect(r.texel).toMatchObject({ look: 'texel', x: r.stood[0].x });
-  expect(r.texel.texture).toBeGreaterThanOrEqual(64);
-  expect(r.texel.texture).toBeLessThanOrEqual(512);
-  expect(r.pixel).toMatchObject({ look: 'pixel', texture: 0 });
-  expect(r.quick).toHaveLength(1);
-  expect(r.quick[0]).toMatchObject({ look: 'made', texture: 1024 });
+  expect(r.stood[0].texture).toBeGreaterThanOrEqual(64);
+  expect(r.stood[0].texture).toBeLessThanOrEqual(512);
   expect(r.left).toBe(0);
   expect(r.dragon).toHaveLength(1);
-  expect(r.dragon[0]).toMatchObject({ id: 'dragonling', look: 'made', clip: 'idle' });
+  expect(r.dragon[0]).toMatchObject({ id: 'dragonling', clip: 'idle' });
   expect(r.dragonWalk).toMatchObject({ state: 'walk', clip: 'walk' });
   expect(r.dragonRoar).toMatchObject({ state: 'roar', clip: 'roar' });
   expect(r.chameleon).toHaveLength(1);
-  expect(r.chameleon[0]).toMatchObject({ id: 'chameleon', look: 'made', clip: 'idle' });
+  expect(r.chameleon[0]).toMatchObject({ id: 'chameleon', clip: 'idle' });
   expect(r.chameleonWalk).toMatchObject({ state: 'walk', clip: 'walk' });
   expect(r.chameleonRoar).toMatchObject({ state: 'roar', clip: 'roar' });
   expect(r.chameleonRoar.time).toBeGreaterThan(2.5);

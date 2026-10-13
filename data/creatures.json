@@ -2,7 +2,6 @@
   "_comment": "Written by tools/animate-creature.ts (docs/creatures.md): each animated creature's file, how tall it stands in the game, its walk's speed in model units a second, and its clips with the times their sounds fall.",
   "owlbear": {
     "file": "assets/creatures/owlbear.glb",
-    "full": "assets/creatures/owlbear.full.glb",
     "height": 1.45,
     "modelHeight": 0.714,
     "modelLength": 0.978,
@@ -71,7 +70,6 @@
   },
   "dragonling": {
     "file": "assets/creatures/dragonling.glb",
-    "full": "assets/creatures/dragonling.full.glb",
     "height": 1.8,
     "modelHeight": 0.978,
     "modelLength": 0.818,
@@ -150,7 +148,6 @@
   },
   "chameleon": {
     "file": "assets/creatures/chameleon.glb",
-    "full": "assets/creatures/chameleon.full.glb",
     "height": 1.4,
     "modelHeight": 0.717,
     "modelLength": 1.1,
