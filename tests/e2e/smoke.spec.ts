@@ -6664,22 +6664,22 @@ test("the room kit: torches, braziers and candle stands built in code, the crypt
   expect(errors).toEqual([]);
 });
 
-test("the room kit's variety: rooms draw different kinds, and every kind of wall, floor, wall light and brazier builds on its floor", async ({
-  page,
-}) => {
-  type K = { wall: string; floor: string; torch: string; brazier: string };
-  type GV = {
-    sim(sec: number, draw?: boolean): void;
-    kinds: K | null;
-    forceKinds(k: Partial<K>): void;
-    prop(kind: string, x: number, z: number): boolean;
-    burn(x: number, z: number, r?: number): void;
-    renderInfo(): { calls: number };
-    rooms(): { look: { kinds?: K; kit?: Record<string, Record<string, number>> } }[];
-    current: { cx: number; cz: number };
-  };
-  for (const floor of [1, 2, 3, 4, 5]) {
-    // (floors 4 and 5 from M4.1)
+// (a test a floor: each floor's rooms are built several times over, too long for one test on a CI runner)
+for (const floor of [1, 2, 3, 4, 5])
+  test(`the room kit's variety, floor ${floor}: rooms draw different kinds, and every kind of wall, floor, wall light and brazier builds on it`, async ({
+    page,
+  }) => {
+    type K = { wall: string; floor: string; torch: string; brazier: string };
+    type GV = {
+      sim(sec: number, draw?: boolean): void;
+      kinds: K | null;
+      forceKinds(k: Partial<K>): void;
+      prop(kind: string, x: number, z: number): boolean;
+      burn(x: number, z: number, r?: number): void;
+      renderInfo(): { calls: number };
+      rooms(): { look: { kinds?: K; kit?: Record<string, Record<string, number>> } }[];
+      current: { cx: number; cz: number };
+    };
     const errors = await start(page, `?seed=K3F9QX&floor=${floor}`);
     const r = await page.evaluate(() => {
       const g = (window as unknown as { __game: GV }).__game,
@@ -6721,76 +6721,76 @@ test("the room kit's variety: rooms draw different kinds, and every kind of wall
     );
     for (const c of r.calls) expect(c).toBeLessThan(260);
     expect(errors).toEqual([]);
-  }
-});
+  });
 
-test("the room kit's objects: every pile and object, urns, pedestals, pillars and tombs built in code on each floor, burning in the kit's fire", async ({
-  page,
-}) => {
-  type Mat = { vertexColors?: boolean };
-  type O = { userData: Record<string, unknown>; traverse(f: (o: O & { material?: Mat | Mat[] }) => void): void };
-  type Box = { x: number; z: number; prop: { kind: string; flame?: O; mesh: O } };
-  type GO = {
-    sim(sec: number, draw?: boolean): void;
-    objectsHere(): void;
-    showAssets(): void;
-    burn(x: number, z: number, r?: number): void;
-    renderInfo(): { calls: number };
-    warp(id: number): void;
-    clearRoom(): void;
-    current: { props?: Box[]; rocks: { urn?: string; mesh?: O }[]; spots: { pedestal: O }[]; group: O };
-  };
-  const objects = () =>
-    page.evaluate(() => {
-      const g = (window as unknown as { __game: GO }).__game;
-      const painted = (o: O) => {
-        let n = 0;
-        o.traverse((q) => {
-          if ([q.material ?? []].flat().some((m) => m.vertexColors)) n++;
-        });
-        return n > 0;
-      }; // (the room kit's pieces: colours in the vertices)
-      g.objectsHere();
-      g.showAssets();
-      g.sim(0.3, true);
-      const props = g.current.props ?? [],
-        urns = g.current.rocks.filter((r) => r.urn),
-        calls = g.renderInfo().calls;
-      const sack = props.find((b) => b.prop.kind === 'sacks')!;
-      g.burn(sack.x, sack.z, 0.1);
-      g.sim(0.2, true);
-      return {
-        kinds: props.map((b) => b.prop.kind).sort(),
-        painted: props.filter((b) => painted(b.prop.mesh)).length,
-        urns: urns.length,
-        urnsPainted: urns.filter((u) => u.mesh && painted(u.mesh)).length,
-        pedestal: painted(g.current.spots[g.current.spots.length - 1].pedestal),
-        burning: !!sack.prop.flame,
-        kitFire: !!sack.prop.flame?.userData.fire,
-        calls,
-      };
-    });
-  const kinds = [
-    'blossom',
-    'boat',
-    'bones',
-    'briar',
-    'bridge',
-    'cask',
-    'desk',
-    'globe',
-    'glowcap',
-    'hoard',
-    'pew',
-    'roots',
-    'rubble',
-    'sacks',
-    'scrolls',
-    'skulls',
-    'tree',
-    'web',
-  ];
-  for (const floor of [1, 2, 3, 4, 5]) {
+// (a test a floor, as the variety's above)
+for (const floor of [1, 2, 3, 4, 5])
+  test(`the room kit's objects, floor ${floor}: every pile and object, urns, pedestals, pillars and tombs built in code, burning in the kit's fire`, async ({
+    page,
+  }) => {
+    type Mat = { vertexColors?: boolean };
+    type O = { userData: Record<string, unknown>; traverse(f: (o: O & { material?: Mat | Mat[] }) => void): void };
+    type Box = { x: number; z: number; prop: { kind: string; flame?: O; mesh: O } };
+    type GO = {
+      sim(sec: number, draw?: boolean): void;
+      objectsHere(): void;
+      showAssets(): void;
+      burn(x: number, z: number, r?: number): void;
+      renderInfo(): { calls: number };
+      warp(id: number): void;
+      clearRoom(): void;
+      current: { props?: Box[]; rocks: { urn?: string; mesh?: O }[]; spots: { pedestal: O }[]; group: O };
+    };
+    const objects = () =>
+      page.evaluate(() => {
+        const g = (window as unknown as { __game: GO }).__game;
+        const painted = (o: O) => {
+          let n = 0;
+          o.traverse((q) => {
+            if ([q.material ?? []].flat().some((m) => m.vertexColors)) n++;
+          });
+          return n > 0;
+        }; // (the room kit's pieces: colours in the vertices)
+        g.objectsHere();
+        g.showAssets();
+        g.sim(0.3, true);
+        const props = g.current.props ?? [],
+          urns = g.current.rocks.filter((r) => r.urn),
+          calls = g.renderInfo().calls;
+        const sack = props.find((b) => b.prop.kind === 'sacks')!;
+        g.burn(sack.x, sack.z, 0.1);
+        g.sim(0.2, true);
+        return {
+          kinds: props.map((b) => b.prop.kind).sort(),
+          painted: props.filter((b) => painted(b.prop.mesh)).length,
+          urns: urns.length,
+          urnsPainted: urns.filter((u) => u.mesh && painted(u.mesh)).length,
+          pedestal: painted(g.current.spots[g.current.spots.length - 1].pedestal),
+          burning: !!sack.prop.flame,
+          kitFire: !!sack.prop.flame?.userData.fire,
+          calls,
+        };
+      });
+    const kinds = [
+      'blossom',
+      'boat',
+      'bones',
+      'briar',
+      'bridge',
+      'cask',
+      'desk',
+      'globe',
+      'glowcap',
+      'hoard',
+      'pew',
+      'roots',
+      'rubble',
+      'sacks',
+      'scrolls',
+      'skulls',
+      'tree',
+      'web',
+    ];
     const errors = await start(page, `?seed=K3F9QX&floor=${floor}`);
     const kit = await objects();
     expect(kit.kinds, `floor ${floor}`).toEqual(kinds);
@@ -6813,8 +6813,7 @@ test("the room kit's objects: every pile and object, urns, pedestals, pillars an
     expect(pieces).toBeGreaterThanOrEqual(9); // (four pillars, a tomb, urns and the torches)
     expect(errors).toEqual([]);
     expect(room).toEqual([]);
-  }
-});
+  });
 
 test("the room kit's doors, gates, niches and pilasters: built in code, one mesh a gate, few draw calls, and the gate still rises", async ({
   page,
