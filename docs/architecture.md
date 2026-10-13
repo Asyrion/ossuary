@@ -222,7 +222,7 @@ colours. Pure `src/actors/foeData.ts` reads it (`validateFoes`, `BEHAVIOUR_PARAM
   `driven`; `rush`, `brake`, `ramp`). `bestiaryFoes.ts`: the bestiary behaviours, spread into `BEHAVIOURS`.
   `bestiaryGround.ts`: what foes leave and throw (webs, ink, rime, `lob`, `spikeAt`, `fallOn`, `layBlackFire`).
   `acting.ts`: `actAs`, `actor()` record whose ground and shots they are.
-- Looks: `modelOptions.ts` (Fen-Nex's `fennexLook`, the Galleries tab's bosses, bestiary and Dr. Jelly), `bestiaryLooks.ts` with `bestiaryBeasts.ts`, `bestiaryCreatures.ts`, `bestiaryElementals.ts`,
+- Looks: `fennexLook.ts` (Fen-Nex), `modelOptions.ts` (the Galleries tab's bosses, bestiary and Dr. Jelly), `bestiaryLooks.ts` with `bestiaryBeasts.ts`, `bestiaryCreatures.ts`, `bestiaryElementals.ts`,
   `beastParts.ts`; fantasy looks in `fantasyFloor1.ts` to
   `fantasyFloor5.ts`, `fantasyWardlings.ts`, gathered in `FANTASY_LOOKS` (`fantasyLooks.ts`) with `MOVED_PARTS`, the parts each foe's behaviour moves (the
   `lookContract` hook checks every look keeps them). A foe's look is the fantasy look, else the bestiary look or
