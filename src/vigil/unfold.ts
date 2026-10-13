@@ -18,7 +18,7 @@ import { CFG } from '../config';
 import { G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { line } from '../ui/hud';
+import { line } from '../notify';
 import { burst } from '../combat/fx';
 import { glow } from '../render/materials';
 import { mulberry } from '../rng';

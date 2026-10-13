@@ -9,7 +9,7 @@ import { CFG } from '../config';
 import { DEV, G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { line, renderSpells } from '../ui/hud';
+import { line, renderSpells } from '../notify';
 import { showLore } from '../ui/lore';
 import { LOOT, type RuneOdds } from '../items/loot';
 import { FLOORS } from '../world/generate';

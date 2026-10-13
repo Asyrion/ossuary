@@ -45,7 +45,7 @@ import { counter } from './counters';
 import { addSpores } from '../world/props';
 import { addPool, fireAt, frostAt, poolAt, shockAt } from '../world/pools';
 import { ringFx, strikeFx } from '../magic/spellFx';
-import { updateBossBar } from '../ui/hud';
+import { updateBossBar } from '../notify';
 import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { freeSpotNear, randomSpot } from '../world/rooms';
 import { flame } from '../magic/shapes';

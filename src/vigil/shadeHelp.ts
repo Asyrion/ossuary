@@ -30,7 +30,7 @@ import { actsHere } from '../progression/boonHooks';
 import { spawnHeart } from '../items/pickups';
 import { addPotion } from '../items/potions';
 import { pickPotion } from '../items/alchemyData';
-import { renderMinimap, line } from '../ui/hud';
+import { renderMinimap, line } from '../notify';
 import { Rng } from '../rng';
 import { shade, SHADE_IDS, type ShadeHelp } from './shadeData';
 import { takeBound } from './save';

@@ -19,7 +19,7 @@ import { disposeTree, glow } from '../render/materials';
 import { padlockLook } from './specialLooks';
 import { glyphTexture } from '../render/textures';
 import { burst } from '../combat/fx';
-import { renderMinimap, toast } from '../ui/hud';
+import { renderMinimap, toast } from '../notify';
 import { offerGuaranteed, placeArtifact } from '../items/artifacts';
 import { giveResources, spawnPickup } from '../items/pickups';
 import { LOOT, rollTable } from '../items/loot';

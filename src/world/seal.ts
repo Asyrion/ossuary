@@ -4,7 +4,7 @@
 import { Sfx } from '../audio/sfx';
 import { STR } from '../strings';
 import type { Room } from '../types';
-import { line } from '../ui/hud';
+import { line } from '../notify';
 import { FLOORS } from './generate';
 import { G } from '../state';
 

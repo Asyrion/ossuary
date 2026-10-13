@@ -8,7 +8,7 @@ import { G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { burst } from '../combat/fx';
-import { line, renderHearts, renderMinimap } from '../ui/hud';
+import { line, renderHearts, renderMinimap } from '../notify';
 import { strikeFx } from '../magic/spellFx';
 import type { School, SpellDef } from '../magic/spellData';
 import { takeBoon } from '../progression/boons';

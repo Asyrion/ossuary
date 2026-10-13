@@ -22,7 +22,7 @@ import { caveIn } from '../world/themes';
 import { blastSeal } from '../world/vault';
 import { openSecret } from '../world/secret';
 import { blastWisp } from '../world/shrine';
-import { toast } from '../ui/hud';
+import { toast } from '../notify';
 import { atVigil, vigilHooks } from '../vigil/where';
 import { STR } from '../strings';
 import { giveResources, isContainer, openContainer } from '../items/pickups';

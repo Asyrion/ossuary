@@ -15,7 +15,7 @@ import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { blob, disposeTree, glow } from '../render/materials';
 import { burst } from '../combat/fx';
-import { banner, renderHearts, renderPurse, toast } from '../ui/hud';
+import { banner, renderHearts, renderPurse, toast } from '../notify';
 import { heroDrink } from '../actors/hero';
 import { WARD_COLOR as WARD, freeSpotNear } from '../world/rooms';
 import {

@@ -20,7 +20,7 @@ import { burst } from '../combat/fx';
 import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { makeEnemy } from '../actors/enemies';
 import { dropPage } from '../magic/pages';
-import { toast } from '../ui/hud';
+import { toast } from '../notify';
 import { mulberry } from '../util';
 import { FLOORS } from './generate';
 import { addProp, removeProp } from './props';

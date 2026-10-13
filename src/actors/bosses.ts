@@ -40,7 +40,7 @@ import { freeSpotNear, isFreeAt } from '../world/rooms';
 import { spawnShot } from '../combat/projectiles';
 import { hurtPlayer } from '../combat/damage';
 import { burst } from '../combat/fx';
-import { banner } from '../ui/hud';
+import { banner } from '../notify';
 import { floatText } from '../magic/statusFx';
 import { makeEnemy } from './enemies';
 import { abbessLook, anglerLook, hartLook, pyreKnightLook, tigerLook, wardenLook } from './bossLooks';

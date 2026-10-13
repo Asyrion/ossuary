@@ -3,6 +3,8 @@
    and returns only when the last has run, so a notification lands at the same moment, and in the same order, as the
    direct call it replaced. No queue and nothing async: a listener that throws stops the emit as a direct call would. */
 
+import type { Enemy } from './types';
+
 /** A listener for one event: takes its payload (nothing for an event without one). */
 export type Listener<P> = (payload: P) => void;
 /** The arguments `emit` takes for an event: its payload, or none when the payload is `void`. */
@@ -40,6 +42,26 @@ export function createBus<E>(): Bus<E> {
 /** The game's events, by name, with their payloads: who emits each and who listens is in docs/architecture.md (Events and
     the panel door). */
 export interface GameEvents {
+  /* ---- the HUD (notify.ts emits them under the HUD's old names; ui/hud.ts listens) ---- */
+  toast: { msg: string; dur?: number };
+  line: { msg: string; dur?: number };
+  linesCleared: void;
+  banner: { title: string; sub?: string; dur?: number };
+  heartsChanged: void;
+  heartsReset: void;
+  mapChanged: void;
+  spellsChanged: void;
+  purseChanged: void;
+  itemsChanged: void;
+  castRefused: { slot: number; why: 'cooldown' | 'mana' | 'target' };
+  hurt: void;
+  bossBarShown: { name: string; foe: Pick<Enemy, 'hp' | 'maxHp'> };
+  bossHealth: { foe: Pick<Enemy, 'hp' | 'maxHp'> };
+  bossBarHidden: void;
+  bossBarMarks: { at: readonly number[] };
+  promptShown: { html: string };
+  promptHidden: void;
+  fadeFromBlack: void;
   /** A hexing blow took mana (magic/hex.ts): the mana bar flashes violet. */
   manaHexed: void;
 }

@@ -8,7 +8,7 @@ import { G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { burst } from '../combat/fx';
-import { renderHearts, toast } from '../ui/hud';
+import { renderHearts, toast } from '../notify';
 import { FLOORS } from '../world/generate';
 import { inflict } from '../magic/statusFx';
 import { SOUL_COLOR, soulToLose, type Soul } from './loot';

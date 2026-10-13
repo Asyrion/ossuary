@@ -13,7 +13,7 @@ import { G, after, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { burst } from '../combat/fx';
-import { banner, line, renderMinimap } from '../ui/hud';
+import { banner, line, renderMinimap } from '../notify';
 import { dealPair } from '../magic/runes';
 import { rune, type RuneId } from '../magic/runeData';
 import { strikeFx } from '../magic/spellFx';

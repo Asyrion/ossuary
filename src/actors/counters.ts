@@ -8,7 +8,7 @@ import { CFG } from '../config';
 import { STR, foeName } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { floatText } from '../magic/statusFx';
-import { line as showLine } from '../ui/hud';
+import { line as showLine } from '../notify';
 import { findCounters, foundCounter } from './bestiary';
 import type { FoeId } from './foeData';
 

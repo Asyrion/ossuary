@@ -11,7 +11,7 @@ import { CFG } from '../config';
 import { STR } from '../strings';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { burst } from '../combat/fx';
-import { line } from '../ui/hud';
+import { line } from '../notify';
 import { damageEnemy } from '../combat/damage';
 import { inflict } from '../magic/statusFx';
 import { MAGIC } from '../magic/status';

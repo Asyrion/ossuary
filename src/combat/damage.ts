@@ -14,7 +14,7 @@ import { disposeTree } from '../render/materials';
 import { heroDie, heroHit } from '../actors/hero';
 import { endGame, onBossDead } from '../flow';
 import { serpentFell } from '../world/laboratory';
-import { banner, flashHurt, renderHearts, updateBossBar } from '../ui/hud';
+import { banner, flashHurt, renderHearts, updateBossBar } from '../notify';
 import { ringFx } from '../magic/spellFx';
 import { addDecal, burst } from './fx';
 import { spawnBurst } from './projectiles';

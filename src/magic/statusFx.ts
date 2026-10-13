@@ -20,7 +20,7 @@ import { CFG } from '../config';
 import { G, after, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { renderHearts } from '../ui/hud';
+import { renderHearts } from '../notify';
 import { TILT, scene } from '../render/renderer';
 import { disposeTree, glow, markShared } from '../render/materials';
 import { burst } from '../combat/fx';

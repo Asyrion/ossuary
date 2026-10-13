@@ -7,7 +7,7 @@ import { STR } from '../strings';
 import { FLOORS } from './generate';
 import { floorWeakness, leanSchools, wallsOff } from '../actors/foeData';
 import { SCHOOLS, spell, type School } from '../magic/spellData';
-import { line } from '../ui/hud';
+import { line } from '../notify';
 
 const floorOf = (i: number) => FLOORS[Math.min(Math.max(0, i), FLOORS.length - 1)];
 /** What floor `i`'s foes are weak to, resist and drink (this floor's when not given). */

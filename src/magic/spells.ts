@@ -9,7 +9,7 @@ import { DEV, G, after, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { heroCast } from '../actors/hero';
-import { flashMana, line, renderSpells, toast } from '../ui/hud';
+import { flashMana, line, renderSpells, toast } from '../notify';
 import { spellIcon } from '../render/icons';
 import { showLore } from '../ui/lore';
 import { SPELL_DEFS, manaRegen, spell, type School, type SpellDef } from './spellData';

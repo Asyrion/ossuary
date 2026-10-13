@@ -14,7 +14,7 @@ import { blob, disposeTree, glowShared, markShared, mergeStill } from '../render
 import { bookcaseLook, lecternLook } from '../world/specialLooks';
 import { hashString } from '../rng';
 import { burst } from '../combat/fx';
-import { banner, hidePrompt, line, renderMinimap, showPrompt, toast } from '../ui/hud';
+import { banner, hidePrompt, line, renderMinimap, showPrompt, toast } from '../notify';
 import { spellIcon, spellIconSvg } from '../render/icons';
 import { giveResources } from '../items/pickups';
 import { coinTag } from '../items/merchant';
