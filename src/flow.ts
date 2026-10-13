@@ -912,10 +912,9 @@ export function warp(gx: number, gy?: number) {
   enterRoom(r);
 }
 
-/** A floor's settings, with the dev menu's door switch applied, and `?theme=` making every fight one theme's. */
+/** A floor's settings, with `?theme=` making every fight one theme's. */
 function floorConfig(index: number) {
   let cfg = FLOORS[index];
-  if (DEV.doors !== 'data') cfg = { ...cfg, doorShift: DEV.doors === 'shifted' ? 1 : 0 };
   if (forcedTheme) cfg = { ...cfg, themeChance: 1, themes: { [forcedTheme]: 1 } };
   return cfg;
 }

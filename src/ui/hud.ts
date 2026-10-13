@@ -262,7 +262,7 @@ let finishedKey = '',
 function watchFinished(dt: number) {
   if ((finishedT -= dt) > 0) return;
   finishedT = 0.25;
-  const key = DEV.mapFinished ? G.rooms.map((r) => +roomFinished(r)).join('') : '';
+  const key = G.rooms.map((r) => +roomFinished(r)).join('');
   if (key !== finishedKey) {
     finishedKey = key;
     renderMinimap();
@@ -306,7 +306,7 @@ export function renderMinimap() {
   mg.fillStyle = 'rgba(0,0,0,.55)';
   for (const r of shown) for (const [x, y, w, h] of rects(r)) mg.fillRect(x - 3, y - 3, w + 6, h + 6);
   for (const r of shown) {
-    const done = DEV.mapFinished && roomFinished(r);
+    const done = roomFinished(r);
     mg.fillStyle = r === cur ? '#efe2c3' : r.visited ? (done ? '#837660' : '#a2937a') : '#4d443a'; // (finished: a shade darker)
     for (const [x, y, w, h] of rects(r)) mg.fillRect(x, y, w, h);
     const m = mid(r),

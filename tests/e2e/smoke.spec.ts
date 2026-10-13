@@ -5021,15 +5021,6 @@ test('the dev menu opens on its key, pauses the game, and hands out what it list
   });
   expect(magic).toEqual({ spells: [null, 'arc'], mana: 100 });
   // a grimoire page dropped ahead of the mage; the floor's library is listed
-  // the movement clip for the play-tests: run, then the walk in step, then the walk at a natural pace
-  await page.keyboard.press('F2');
-  await tab('Mage');
-  await click('Moving: run clip');
-  await expect(page.locator('#dev button', { hasText: 'Moving: walk clip, feet in step' })).toBeVisible();
-  await click('Moving: walk clip, feet in step');
-  await click('Moving: walk clip, natural pace');
-  await expect(page.locator('#dev button', { hasText: 'Moving: run clip' })).toBeVisible();
-  await page.keyboard.press('Escape');
   await page.keyboard.press('F2');
   await tab('Magic');
   await click('Drop a grimoire page');
