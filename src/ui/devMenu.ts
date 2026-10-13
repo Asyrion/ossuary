@@ -1724,7 +1724,7 @@ function refresh() {
     : S.noKaelith;
   for (const part of KIT_PARTS) {
     const b = kitPartBtns[part],
-      kind = cur.look.kinds?.[part];
+      kind = cur.look.kinds[part];
     b.textContent = S.kitPart(part, kind ? (S.kitKinds[kind] ?? kind) : '-', !!DEV.kitKinds[part]);
     b.classList.toggle('on', !!DEV.kitKinds[part]);
     b.disabled = !kind;

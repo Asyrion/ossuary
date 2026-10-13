@@ -24,7 +24,6 @@ import { validateAmbience } from '../../src/audio/ambienceData';
 import { validateSounds } from '../../src/audio/soundData';
 import { ARTIFACT_DEFS } from '../../src/items/artifactData';
 import { STR } from '../../src/strings';
-import type { KitWeights } from '../../src/world/kitData';
 import { DIALOGUE, validateDialogue } from '../../src/vigil/dialogueData';
 import { SHADE_IDS, validateShades } from '../../src/vigil/shadeData';
 import { TOWNSFOLK, validateTownsfolk } from '../../src/vigil/giftData';
@@ -56,7 +55,7 @@ const checks: [string, () => unknown][] = [
     () =>
       [
         ...FLOORS.map((f) => validateKit(f.look.name, f.look.kit)),
-        ...THEME_DEFS.map((t) => validateKit(t.id, t.look?.kit as Partial<KitWeights> | undefined, false)),
+        ...THEME_DEFS.map((t) => validateKit(t.id, t.look?.kit, false)),
       ].flat(),
   ],
   ['music', () => validateMusic()],

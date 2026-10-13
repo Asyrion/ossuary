@@ -434,11 +434,7 @@ function buildVigil(first: boolean) {
   applyFloorLook(VIGIL.look);
   plan.rooms.forEach((p, i) => {
     const k = VIGIL.rooms[i].kit;
-    buildRoom(
-      p,
-      VIGIL_INDEX,
-      k ? { ...VIGIL.look, kit: { ...VIGIL.look.kit, ...k } as typeof VIGIL.look.kit } : VIGIL.look,
-    );
+    buildRoom(p, VIGIL_INDEX, k ? { ...VIGIL.look, kit: { ...VIGIL.look.kit, ...k } } : VIGIL.look);
   }); // (a room behind a barred way in its own kinds)
   furnishVigil(first); // (before the walls: its pieces keep their spans of wall clear of torches)
   for (const r of G.rooms) buildWallsAndDoors(r);

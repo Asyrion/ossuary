@@ -1,6 +1,5 @@
-/* The foes' looks by model id (MODEL_OPTIONS: the floors' creatures of fantasy and the Wardlings, M4.12; `buildFoe`
-   looks a foe's up here), Fen-Nex built in code from the owner's drawings (`fennexLook`), and the dev menu's galleries of
-   the bosses, the bestiary and Dr. Jelly: stood ahead of the mage, idling, until taken away. */
+/* Fen-Nex built in code from the owner's drawings (`fennexLook`), and the dev menu's galleries of the bosses, the
+   bestiary and Dr. Jelly: stood ahead of the mage, idling, until taken away. */
 import * as THREE from 'three';
 import { drJellyLook, type JellyParts } from '../world/jellyLooks';
 import { givePose } from '../world/jellyGives';
@@ -11,13 +10,7 @@ import { freeSpotNear, isFreeAt } from '../world/rooms';
 import { mergeRig } from '../render/rig';
 import { ALL_BOSS_LOOKS } from './bossLooks';
 import { BESTIARY_OPTIONS } from './bestiaryLooks';
-import { FLOOR1_LOOKS } from './fantasyFloor1';
-import { FLOOR2_LOOKS } from './fantasyFloor2';
-import { FLOOR3_LOOKS } from './fantasyFloor3';
-import { FLOOR4_LOOKS } from './fantasyFloor4';
-import { FLOOR5_LOOKS } from './fantasyFloor5';
-import { WARDLING_LOOKS } from './fantasyWardlings';
-import { box, limb, lit, motes, part, rune, shine, sphere, std, type School } from '../render/arcane';
+import { box, limb, lit, motes, part, rune, shine, sphere, std } from '../render/arcane';
 
 /** A built option: its group, how it idles, the size of the shadow under it, and the parts a foe's behaviour moves beyond
     its idle (M4: a beetle's wing-cases, a mimic's lid). */
@@ -27,39 +20,6 @@ interface Built {
   shadow: number;
   parts?: Record<string, THREE.Object3D>;
 }
-
-/* ---------- the options ---------- */
-
-/* (the floors' foes are creatures of fantasy now, in fantasyFloor1.ts to fantasyFloor5.ts, and the Wardlings ward cores in
-   fantasyWardlings.ts: M4.12) */
-
-export const MODEL_OPTIONS = [
-  { id: 'sporeling', floor: 1, school: 'umbral', build: FLOOR1_LOOKS.sporeling },
-  { id: 'vesperMoth', floor: 1, school: 'hallow', build: FLOOR1_LOOKS.vesperMoth },
-  { id: 'runeBeetle', floor: 1, school: 'storm', build: FLOOR1_LOOKS.runeBeetle },
-  { id: 'urnMimic', floor: 1, school: 'ember', build: FLOOR1_LOOKS.urnMimic },
-  { id: 'mireToad', floor: 2, school: 'frost', build: FLOOR2_LOOKS.mireToad },
-  { id: 'cisternLurker', floor: 2, school: 'storm', build: FLOOR2_LOOKS.cisternLurker },
-  { id: 'lanternJelly', floor: 2, school: 'hallow', build: FLOOR2_LOOKS.lanternJelly },
-  { id: 'cinderSalamander', floor: 3, school: 'ember', build: FLOOR3_LOOKS.cinderSalamander },
-  { id: 'hexImp', floor: 3, school: 'umbral', build: FLOOR3_LOOKS.hexImp },
-  { id: 'rimeDrakeling', floor: 3, school: 'frost', build: FLOOR3_LOOKS.rimeDrakeling },
-  { id: 'wickmouse', floor: 4, school: 'ember', build: FLOOR4_LOOKS.wickmouse },
-  { id: 'chimeBat', floor: 4, school: 'storm', build: FLOOR4_LOOKS.chimeBat },
-  { id: 'gargoyleWhelp', floor: 4, school: 'frost', build: FLOOR4_LOOKS.gargoyleWhelp },
-  { id: 'moonstagFawn', floor: 4, school: 'hallow', build: FLOOR4_LOOKS.moonstagFawn },
-  { id: 'rootling', floor: 5, school: 'umbral', build: FLOOR5_LOOKS.rootling },
-  { id: 'stormRay', floor: 5, school: 'storm', build: FLOOR5_LOOKS.stormRay },
-  { id: 'voidMote', floor: 5, school: 'umbral', build: FLOOR5_LOOKS.voidMote },
-  { id: 'lanternTortoise', floor: 5, school: 'frost', build: FLOOR5_LOOKS.lanternTortoise },
-  // M4.2: the Wardlings, no floor's own (0): a drinking ward lets them out
-  { id: 'wardEmber', floor: 0, school: 'ember', build: WARDLING_LOOKS.wardEmber },
-  { id: 'wardFrost', floor: 0, school: 'frost', build: WARDLING_LOOKS.wardFrost },
-  { id: 'wardStorm', floor: 0, school: 'storm', build: WARDLING_LOOKS.wardStorm },
-  { id: 'wardHallow', floor: 0, school: 'hallow', build: WARDLING_LOOKS.wardHallow },
-  { id: 'wardUmbral', floor: 0, school: 'umbral', build: WARDLING_LOOKS.wardUmbral },
-  { id: 'wardVerdant', floor: 0, school: 'verdant', build: WARDLING_LOOKS.wardVerdant },
-] as const satisfies readonly { id: string; floor: 0 | 1 | 2 | 3 | 4 | 5; school: School; build: () => Built }[];
 
 /* ---------- Fen-Nex ---------- */
 

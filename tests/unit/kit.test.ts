@@ -8,23 +8,22 @@ describe("the room kit's kinds (M3.5 step 3)", () => {
     for (const f of FLOORS) {
       expect(validateKit(f.look.name, f.look.kit)).toEqual([]);
       for (const part of KIT_PARTS)
-        expect(kindsOf(f.look.kit!, part).length, `${f.look.name} ${part}`).toBeGreaterThanOrEqual(2);
+        expect(kindsOf(f.look.kit, part).length, `${f.look.name} ${part}`).toBeGreaterThanOrEqual(2);
       for (const part of KIT_PARTS)
-        expect(kindsOf(f.look.kit!, part).length, `${f.look.name} ${part}`).toBeLessThanOrEqual(3);
+        expect(kindsOf(f.look.kit, part).length, `${f.look.name} ${part}`).toBeLessThanOrEqual(3);
     }
   });
 
   it('a theme pins only known kinds, and a pinned kind is the one its rooms draw', () => {
-    for (const t of THEME_DEFS)
-      expect(validateKit(t.id, t.look?.kit as Partial<KitWeights> | undefined, false)).toEqual([]);
+    for (const t of THEME_DEFS) expect(validateKit(t.id, t.look?.kit, false)).toEqual([]);
     const ossuary = THEME_DEFS.find((t) => t.id === 'ossuary')!;
     const look = themedLook(FLOORS[0].look, ossuary);
-    for (let seed = 1; seed < 40; seed++) expect(pickKinds(look.kit!, seed).wall).toBe('bones');
-    expect(kindsOf(look.kit!, 'floor')).toEqual(kindsOf(FLOORS[0].look.kit!, 'floor')); // (the rest as the floor's)
+    for (let seed = 1; seed < 40; seed++) expect(pickKinds(look.kit, seed).wall).toBe('bones');
+    expect(kindsOf(look.kit, 'floor')).toEqual(kindsOf(FLOORS[0].look.kit, 'floor')); // (the rest as the floor's)
   });
 
   it("a room draws the same kinds every time, from its floor's list, about as often as weighted", () => {
-    const kit = FLOORS[0].look.kit!;
+    const kit = FLOORS[0].look.kit;
     expect(pickKinds(kit, 1234)).toEqual(pickKinds(kit, 1234));
     const count: Record<string, number> = {};
     for (let seed = 0; seed < 3000; seed++) {
@@ -38,7 +37,7 @@ describe("the room kit's kinds (M3.5 step 3)", () => {
   });
 
   it('forcing a kind (the dev menu) pins it and leaves the other parts as drawn', () => {
-    const kit = FLOORS[1].look.kit!,
+    const kit = FLOORS[1].look.kit,
       free = pickKinds(kit, 99),
       forced = pickKinds(kit, 99, { wall: 'rubble' });
     expect(forced.wall).toBe('rubble');

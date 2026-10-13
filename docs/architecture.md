@@ -222,11 +222,11 @@ colours. Pure `src/actors/foeData.ts` reads it (`validateFoes`, `BEHAVIOUR_PARAM
   `driven`; `rush`, `brake`, `ramp`). `bestiaryFoes.ts`: the bestiary behaviours, spread into `BEHAVIOURS`.
   `bestiaryGround.ts`: what foes leave and throw (webs, ink, rime, `lob`, `spikeAt`, `fallOn`, `layBlackFire`).
   `acting.ts`: `actAs`, `actor()` record whose ground and shots they are.
-- Looks: `modelOptions.ts` (`MODEL_OPTIONS`, Fen-Nex's `fennexLook`, the Galleries tab's bosses, bestiary and Dr.
-  Jelly), `bestiaryLooks.ts` with `bestiaryBeasts.ts`, `bestiaryCreatures.ts`, `bestiaryElementals.ts`,
+- Looks: `modelOptions.ts` (Fen-Nex's `fennexLook`, the Galleries tab's bosses, bestiary and Dr. Jelly), `bestiaryLooks.ts` with `bestiaryBeasts.ts`, `bestiaryCreatures.ts`, `bestiaryElementals.ts`,
   `beastParts.ts`; fantasy looks in `fantasyFloor1.ts` to
-  `fantasyFloor5.ts`, `fantasyWardlings.ts`, gathered in `FANTASY_LOOKS` (`fantasyLooks.ts`). A foe's look is the
-  fantasy look, else the model option, bestiary look or `FOE_LOOKS` entry of its id (or `look`). Keep draw calls low: move small repeated parts together; pulse a glow, not a material's colour.
+  `fantasyFloor5.ts`, `fantasyWardlings.ts`, gathered in `FANTASY_LOOKS` (`fantasyLooks.ts`) with `MOVED_PARTS`, the parts each foe's behaviour moves (the
+  `lookContract` hook checks every look keeps them). A foe's look is the fantasy look, else the bestiary look or
+  `FOE_LOOKS` entry of its id (or `look`). Keep draw calls low: move small repeated parts together; pulse a glow, not a material's colour.
 - Roles: templates' `R W H` are filled from the floor's `foes` on the room's seed; one elite a room at most; one
   pack a room at most (a wasp nest counts); quiet rooms get none. `callFoe` passes over waiters and packs.
 - Damage (`combat/damage.ts`: `damageEnemy`, `killEnemy`, `hurtPlayer`, `crumble`, `bleed`): a blow carries a

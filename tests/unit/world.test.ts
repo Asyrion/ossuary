@@ -359,7 +359,6 @@ describe('floor generator', () => {
     expect(floor.stain).toMatch(/^\d+,\d+,\d+$/);
     expect(['bones', 'puddles', 'ash', 'wax']).toContain(floor.decor);
     expect(['none', 'moss', 'soot', 'gilt', 'salt']).toContain(wall.stains);
-    expect(['bracket', 'lantern', 'brazier']).toContain(torch.style);
   });
 
   it("names a known enemy as each floor's vault warden", () => {

@@ -73,10 +73,9 @@ export interface FloorLook {
   /** Floor tiles: base colour, mortar, stain colour ("r,g,b"), scattered decoration and how many bones. */
   floor: { base: RGB; mortar: string; stain: string; decor: 'bones' | 'puddles' | 'ash' | 'wax'; bones: number };
   wall: { brick: RGB; mortar: string; stains: 'none' | 'moss' | 'soot' | 'gilt' | 'salt'; dress?: WallDress };
-  /** The floor's lights: the wall torch's flame and light, and the wax of its candles (`style` is unread: a room's wall
-      light is the kind it drew from `kit`). */
+  /** The floor's lights: the wall torch's flame and light, and the wax of its candles (a room's wall light is the kind
+      it drew from `kit`). */
   torch: {
-    style: 'bracket' | 'lantern' | 'brazier';
     flame: string;
     light: string;
     intensity: number;
