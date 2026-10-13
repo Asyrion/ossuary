@@ -27,8 +27,9 @@ A reference for developers: what each system does and where it lives, as the cod
   Invent no gods, factions or places.
 - Rules live in pure `*Data.ts` modules (no three.js, no DOM) with a unit test; the game side calls them.
 - The simulation (world, actors, magic, items, combat, progression, vigil, `flow.ts`, `loop.ts`, `state.ts`) never
-  imports `src/ui/` (a lint rule fails if it does): it tells the UI through `events.ts` (`notify.ts`), opens panels through
-  `panels.ts`, and the loop runs the UI in hook slots (see [Events and the panel door](#events-and-the-panel-door)).
+  imports `src/ui/` (a lint rule fails if it does): it tells the UI through `events.ts` (`notify.ts`), opens panels
+  through `panels.ts`, and the loop runs the UI in hook slots (see [Events and the panel
+  door](#events-and-the-panel-door)).
 
 ## Overview and code map
 
@@ -87,8 +88,8 @@ owners are documented beside each type, not enforced.
 | `G.run` | `RunState` | The current run: its seed, floor, seeded streams and everything it has done | `flow.ts` makes a fresh one per run (`newRun`); the systems keep their own fields |
 | `G.stats` | | The run's time, kills and obols | `flow.ts` resets it; `loop.ts` (time), `combat/damage.ts` (kills), `items/pickups.ts` (obols) |
 
-A reset that truncates an array (`length = 0`) keeps the same array, as code may hold it; one that replaces it makes a new
-one. Keep each reset as it is.
+A reset that truncates an array (`length = 0`) keeps the same array, as code may hold it; one that replaces it makes a
+new one. Keep each reset as it is.
 
 ## Runs and floor generation
 
@@ -446,8 +447,9 @@ To add one: a row in `WEAVES`, tuning, a name and text, its hook, and a setup in
   Dev: `__game.knowledge`, `know(id, stage)`, `forgetKnowledge()`, `learn(id, slot)`.
 - Grimoire and library: `pages.ts` (`room.pages`: lectern, shelf or loose; `pageNear`, `answerPage`, `dropPage`,
   `maybeDropPage`); the panel over a page and its question are `ui/pagePanel.ts`. The library is a one-cell dead end on
-  every floor. A page with both slots full asks through the panel door (`askPage`); given-up spells go to `G.run.forgotten` and libraries sell them back (`grimoire` in
-  `data/loot.json`). Pure `pickPages`, `shelfPages` in `spellData.ts`. Dev: `page()`, `pages`, `forgotten`.
+  every floor. A page with both slots full asks through the panel door (`askPage`); given-up spells go to
+  `G.run.forgotten` and libraries sell them back (`grimoire` in `data/loot.json`). Pure `pickPages`, `shelfPages` in
+  `spellData.ts`. Dev: `page()`, `pages`, `forgotten`.
 - Spell marks: the slotted spells at the hands with their state. Pure `marksData.ts` (`handState`, `attunedTo`,
   `circleOf`, `masteredSchools`); look `actors/spellMarks.ts` (`updateSpellMarks`, master's ring, attunement aura,
   knowledge circle); `CFG.marks`, `STR.marks`. Dev: Magic tab, `spellMarks`, `attune(school)`.
@@ -531,8 +533,8 @@ Potions, reagents, brewing. Pure `items/alchemyData.ts` over `data/alchemy.json`
 effects, reagents, recipes, `sources`, bottles; `validateAlchemy`, `bottlesFor`, `brew`, `reagentFor`, `pickPotion`).
 Brews are kept between runs (`alchemyMemory.ts`, in the save). Tuning `CFG.alchemy`.
 - Belt: `items/potions.ts` (`player.belt`, `player.reagents`, `addPotion`, `identify`, `usePotion`, `choosePotion`,
-  `moveInBelt`; the HUD's belt is `ui/belt.ts`). R tapped drinks, held throws; F chooses. Effects on the mage: `potionFx.ts`. Throws:
-  `potionThrow.ts` (`THROW`). Looks: `alchemyLooks.ts`.
+  `moveInBelt`; the HUD's belt is `ui/belt.ts`). R tapped drinks, held throws; F chooses. Effects on the mage:
+  `potionFx.ts`. Throws: `potionThrow.ts` (`THROW`). Looks: `alchemyLooks.ts`.
 - Reagents: `items/reagents.ts` (`foeReagent`, `objectReagent`; `G.run.reagents`; `DEV.reagents` always drops).
 - Dr. Jelly's laboratory (floors 1 and 3; templates `lab_*`): `world/laboratory.ts` (`furnishLab`, `enterLab`,
   `checkLab`, `updateLab`, the vat: `vatStruck`, `breakOut`, `serpentFell`), `labLooks.ts`, Dr. Jelly `jellyLooks.ts`,
@@ -557,12 +559,13 @@ Dev: Mage tab Alchemy, "Open the alchemy table here", `?potions=healing,hexBrew`
 - Attributes: Vigor, Arcana, Will, Swiftness. `attributes.ts` (`ATTRS`, `attrBonus`), `points.ts` (`spendPoint`),
   folded in by `computeStats`; `CFG.attributes`. Vigor's half containers make `maxHp` odd (half a heart).
 - Boons: `data/boons.json` (eighteen: two per school, each taken twice, plus six general). Pure `boonData.ts`
-  (`validateBoons`, `dealBoons`, `pledgeFor`, `boonTuning`, `statusMul`); `boons.ts` (`dealNow`, `takeBoon`,
-  `boonRank`, `boonParam`); hooks ask `boonHooks.ts` (`boonMul`, `magicNow`, `boonActs`: a boon's name once a
-  room, its line once a run). `CFG.boons`. The level-up screen `ui/levelUp.ts` (`#scrLevel`: three cards, then a
-  point; `progression/levelGate.ts`' `checkLevelUp` opens it through the panel door once a fight is won). `DEV.autoLevel` is `'choose'` (`?autolevel=1`, the balance
-  bot) or `'skip'` (`?autolevel=skip`, added by the browser tests). Dev: Magic tab Boons here (`dev/boonTest.ts`);
-  `__game.boons`, `giveBoon(id)`, `offer`, `openLevelUp()`, `boonHere(id)`; `?boons=deepWinter:2`.
+  (`validateBoons`, `dealBoons`, `pledgeFor`, `boonTuning`, `statusMul`); `boons.ts` (`dealNow`, `takeBoon`, `boonRank`,
+  `boonParam`); hooks ask `boonHooks.ts` (`boonMul`, `magicNow`, `boonActs`: a boon's name once a room, its line once a
+  run). `CFG.boons`. The level-up screen `ui/levelUp.ts` (`#scrLevel`: three cards, then a point;
+  `progression/levelGate.ts`' `checkLevelUp` opens it through the panel door once a fight is won). `DEV.autoLevel` is
+  `'choose'` (`?autolevel=1`, the balance bot) or `'skip'` (`?autolevel=skip`, added by the browser tests). Dev: Magic
+  tab Boons here (`dev/boonTest.ts`); `__game.boons`, `giveBoon(id)`, `offer`, `openLevelUp()`, `boonHere(id)`;
+  `?boons=deepWinter:2`.
 - The waystone: rises where a boss fell, in its own room beside the boss room on floors 1 to 5, which holds the way
   down. `world/waystone.ts` (`raiseWaystone`, `enterWaystone`, `castIntoStone`, `restAtStone`, `openWayDown`;
   `room.waystone`), look `waystoneLook`, screen `ui/waystone.ts` (`#scrStone`: Runes tab to carve and lift runes,

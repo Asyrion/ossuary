@@ -45,7 +45,6 @@ function withOffers(who: string, p: Picked): Picked {
 }
 export const talkOpen = () => !!talk;
 /** Who is talking now (their figure gestures), if anyone. */
-export const talkingNow = () => talk?.who ?? null;
 
 /** Open the talk: `who` (named `name`, its icon `icon`) says `line`; `also`: keys heard with it (its moment said this run).
     `top`: the speaker stands in the lower half of the screen, so the panel goes at the top, not over it. */
