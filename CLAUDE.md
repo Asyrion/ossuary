@@ -26,11 +26,14 @@ systems, only cleaning, the look and the story.
 ## Run and test
 
 - `npm run dev` (Vite, port 5173), `npm run build` (typecheck and build), `npm run typecheck`.
+- `npm run format` (Prettier, 120 columns) and `npm run lint` (ESLint, type-checked; `npm run lint:install` once, it
+  has its own package in `tools/lint/`). Code is committed formatted and lint-clean.
 - `npm run test:unit` (Vitest, ~500 tests, under a minute), `npm run test:e2e` (Playwright, ~140 tests, fully parallel),
   `npm test` both. In a cloud session set `PW_CHROMIUM=/opt/pw-browsers/chromium` for every Playwright run and for
   `npm run inspect`, `foe-sheet` and `balance` (those three need the dev server running).
-- CI (`.github/workflows/deploy.yml`): `build` (typecheck, unit tests, build) and three `e2e` shards side by side on every
-  PR; on `main` the Pages deploy waits for `build` only. A PR takes about 7 minutes, a merge is live about 2 minutes later.
+- CI (`.github/workflows/deploy.yml`): `build` (typecheck, unit tests, build), `lint` and three `e2e` shards side by side
+  on every PR; on `main` the Pages deploy waits for `build` only. A PR takes about 7 minutes, a merge is live about 2
+  minutes later.
 - Other tools: `npm run` lists them; `docs/architecture.md`, Tools, says what each is for.
 
 ## Code map
