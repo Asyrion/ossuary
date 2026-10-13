@@ -299,7 +299,7 @@ function openWay(bar: Bar) {
   burst(bar.x, 0.9, bar.z, light, 26, 2.4, 0.06);
   burst(bar.x, 0.4, bar.z, 0xfff2d0, 10, 1.4, 0.05);
   Sfx.at(bar.x, bar.z).wayOpens();
-  G.shake = Math.max(G.shake, 0.18);
+  G.fx.shake = Math.max(G.fx.shake, 0.18);
   line(STR.vigil.opened[bar.school], 6);
 }
 /** The dev menu: a way opened at once (where the mage is or not). */

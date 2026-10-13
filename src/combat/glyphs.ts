@@ -237,7 +237,7 @@ function blast(x: number, z: number, color: number, R: number, spare = false) {
   burst(x, 0.3, z, color, 22, 4.5, 0.07);
   burst(x, 0.2, z, 0x4a4038, 12, 3, 0.08);
   addDecal(x, z, 0x14100c, 1.1);
-  G.shake = Math.max(G.shake, 0.35);
+  G.fx.shake = Math.max(G.fx.shake, 0.35);
   Sfx.at(x, z).blast();
 }
 

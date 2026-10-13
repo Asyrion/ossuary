@@ -197,7 +197,7 @@ export function stirAfterBrew() {
         if (lab.broken) return;
         c.visible = true;
         Sfx.at(windowAt(room).x, windowAt(room).z).glassCrack();
-        G.shake = Math.max(G.shake, 0.08);
+        G.fx.shake = Math.max(G.fx.shake, 0.08);
       }),
     );
     after(1.6, () => {
@@ -227,7 +227,7 @@ export function breakOut(room: Room = G.current): Enemy | null {
   burst(w.x, 0.6, w.z + 0.3, 0xe8fff0, 30, 3.5, 0.06);
   burst(w.x, 0.4, w.z + 0.5, JELLY, 36, 3.2, 0.08);
   Sfx.at(w.x, w.z).vatBurst();
-  G.shake = Math.max(G.shake, 0.45);
+  G.fx.shake = Math.max(G.fx.shake, 0.45);
   pourJelly(room, w.x, w.z + 0.6, V().flood, mulberry(room.plan.seed ^ 0x5e1));
   const at = nearestJelly(w.x, w.z + 0.6) ?? { x: w.x, z: w.z + 0.6 }; // (out onto the jelly by the window, not onto Dr. Jelly)
   const e = makeEnemy('serpent', at.x, at.z, FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].enemyHp);

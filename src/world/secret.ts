@@ -183,7 +183,7 @@ export function openSecret(d: Door) {
     burst(c.x, 0.4, c.z, 0x9a9080, 12, 1.2, 0.07);
   }
   Sfx.crumble();
-  G.shake = Math.max(G.shake, 0.25);
+  G.fx.shake = Math.max(G.fx.shake, 0.25);
   const cell = [d.secret!.room, d.link?.secret?.room].find((r) => r?.type === 'secret');
   if (cell && !cell.found) {
     cell.found = true;

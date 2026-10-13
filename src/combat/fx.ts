@@ -15,12 +15,12 @@ export function burst(x: number, y: number, z: number, color: number, n: number,
     scene.add(m);
     const a = Math.random() * Math.PI * 2,
       v = rand(0.3, 1) * spd;
-    G.particles.push({ m, vx: Math.cos(a) * v, vy: rand(1, 3.5), vz: Math.sin(a) * v, life: rand(0.4, 0.8) });
+    G.fx.particles.push({ m, vx: Math.cos(a) * v, vy: rand(1, 3.5), vz: Math.sin(a) * v, life: rand(0.4, 0.8) });
   }
 }
 
 export function updateParticles(dt: number) {
-  const ps = G.particles;
+  const ps = G.fx.particles;
   for (let i = ps.length - 1; i >= 0; i--) {
     const p = ps[i];
     p.life -= dt;
@@ -52,9 +52,9 @@ export function addDecal(x: number, z: number, color: number, size: number) {
     DGEO,
     new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.6, depthWrite: false }),
   );
-  m.position.set(x, 0.006 + G.decals.length * 0.0002, z);
+  m.position.set(x, 0.006 + G.fx.decals.length * 0.0002, z);
   m.scale.set(size * rand(0.8, 1.2), 1, size * rand(0.7, 1));
   m.rotation.y = Math.random() * 3;
   scene.add(m);
-  G.decals.push(m);
+  G.fx.decals.push(m);
 }

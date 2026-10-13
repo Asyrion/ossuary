@@ -86,7 +86,7 @@ function wake(e: Enemy) {
   const shielder = e.twin!.dead || near(e) < near(e.twin!) ? e : e.twin!;
   setRole(shielder, 'shield');
   if (!shielder.twin!.dead) setRole(shielder.twin!, 'strike');
-  G.shake = 0.35;
+  G.fx.shake = 0.35;
   Sfx.at(e.x, e.z).boom();
 }
 function setRole(e: Enemy, role: 'shield' | 'strike') {
@@ -189,7 +189,7 @@ export function updateTwin(e: Enemy, dt: number, ux: number, uz: number): number
       burst(e.x + Math.sin(e.face) * 1, 0.2, e.z + Math.cos(e.face) * 1, 0xb8a888, 28, 3.5, 0.08);
       Sfx.at(e.x, e.z).boom();
       Sfx.at(e.x, e.z).rubble();
-      G.shake = 0.35;
+      G.fx.shake = 0.35;
       e.state = 'recover';
       e.st = 0.7 * fast;
     }
@@ -262,5 +262,5 @@ export function twinFell(t: Enemy) {
   (t.parts!.eyeGlow as THREE.Sprite).material.color.setHex(RAGE);
   banner(STR.bosses.twins.rage, '');
   Sfx.at(t.x, t.z).tigerRoar();
-  G.shake = 0.4;
+  G.fx.shake = 0.4;
 }

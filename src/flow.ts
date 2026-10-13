@@ -151,22 +151,22 @@ function clearEntities() {
   pressed.spells = [false, false];
   pressed.potion = null;
   pressed.nextPotion = 0;
-  for (const p of G.particles) {
+  for (const p of G.fx.particles) {
     scene.remove(p.m);
     p.m.material.dispose();
   }
-  G.particles.length = 0;
+  G.fx.particles.length = 0;
   clearEnemies();
   for (const p of G.pickups) {
     scene.remove(p.g);
     disposeTree(p.g);
   }
   G.pickups.length = 0;
-  for (const d of G.decals) {
+  for (const d of G.fx.decals) {
     scene.remove(d);
     (d.material as THREE.Material).dispose();
   }
-  G.decals.length = 0;
+  G.fx.decals.length = 0;
   if (G.trapdoor) {
     G.trapdoor.g.removeFromParent();
     disposeTree(G.trapdoor.g);
@@ -691,7 +691,7 @@ export function checkAmbush() {
   setDoors(room, false);
   beginFight(room);
   spawnWave(room, true);
-  G.shake = Math.max(G.shake, 0.3);
+  G.fx.shake = Math.max(G.fx.shake, 0.3);
   Sfx.rubble();
   Sfx.boom();
 }

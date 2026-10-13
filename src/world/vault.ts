@@ -205,7 +205,7 @@ export function drinkSpell(s: VaultSeal, def: SpellDef) {
   Sfx.at(at.x, at.z).wardBurst();
   toast(STR.toast.wardBursts(STR.schools[top]), 4);
   burst(at.x, at.y, at.z, SCHOOL_LIGHT[top], 30, 3, 0.06);
-  G.shake = Math.max(G.shake, 0.2);
+  G.fx.shake = Math.max(G.fx.shake, 0.2);
   s.vault.drunk = top;
   unseal(s, WARDLING[top]);
 }

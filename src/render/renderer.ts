@@ -68,7 +68,7 @@ export function setCloseUp(on: boolean) {
 }
 
 export function placeCamera() {
-  const s = reduceMotion ? 0 : G.shake;
+  const s = reduceMotion ? 0 : G.fx.shake;
   const sx = (Math.random() - 0.5) * s,
     sz = (Math.random() - 0.5) * s;
   if (DEV.closeUp) {

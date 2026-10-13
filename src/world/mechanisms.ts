@@ -466,7 +466,7 @@ function ring(room: Room, box: PropBox) {
   dragonBell(); // (M4.2: the Pillar Dragon loses its hold)
   wave(room, box.x, box.z, GOLD, 9);
   Sfx.at(box.x, box.z).toll();
-  G.shake = Math.max(G.shake, 0.12);
+  G.fx.shake = Math.max(G.fx.shake, 0.12);
   return true;
 }
 
@@ -583,7 +583,7 @@ function censerLands(f: (typeof falling)[number]) {
   burst(x, 0.3, z, FIRE, 16, 2.6, 0.07);
   burst(x, 0.2, z, 0x8a6a3a, 8, 2, 0.05);
   Sfx.at(x, z).clang();
-  G.shake = Math.max(G.shake, 0.15);
+  G.fx.shake = Math.max(G.fx.shake, 0.15);
   fireAt(x, z, 0.8);
 }
 

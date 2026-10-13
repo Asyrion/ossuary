@@ -51,7 +51,7 @@ export function enterDaylight() {
   day = { vista, t: 0, ended: false, room };
   G.state = 'daylight';
   G.trans = null;
-  G.shake = 0;
+  G.fx.shake = 0;
   Object.assign(player, { x: ax, z: az + w.from, vx: 0, vz: -w.speed, yawA: Math.PI, invuln: 0 }); // (nothing can hurt it here: no blinking)
   clearLines(); // (what was said below stays below)
   camTarget.set(ax, 0, az - C().look);

@@ -145,7 +145,7 @@ function updateWorldFx(dt: number, now: number) {
   devStep(dt, G.current, G.state === 'play' && !G.trans); // (the dev galleries, when dev code stood any)
   const tf = 0.92 + Math.sin(now * 13) * 0.05 + Math.sin(now * 23) * 0.04;
   updateTorchLights(G.current.torches, player.x, player.z, dt, tf);
-  G.shake = Math.max(0, G.shake - dt * 1.4);
+  G.fx.shake = Math.max(0, G.fx.shake - dt * 1.4);
   updateInsight(G.state === 'play' ? dt : 0); // (M6: insight's streaks run to the hand)
   uiHooks.endOfStep(dt);
   updateAudio(); // (the soundscapes and the music: what the game is doing chooses them)

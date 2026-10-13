@@ -595,7 +595,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
         e.state = 'stun';
         e.st = num(P.stun);
         e.fireT = 0;
-        G.shake = Math.max(G.shake, 0.12);
+        G.fx.shake = Math.max(G.fx.shake, 0.12);
         Sfx.at(e.x, e.z).beetleThud();
         burst(e.x, 0.3, e.z, 0x8a7a6a, 8, 1.4, 0.05);
         counter(e, 'dazed');
@@ -1186,7 +1186,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
           ringFx(e.x, 0.1, e.z, light(e), 0.3, 2.2, 0.5, true);
           frostAt(e.x, e.z, 1);
           burst(e.x, 0.3, e.z, 0xe8f6ff, 16, 2.4, 0.05);
-          G.shake = Math.max(G.shake, 0.15);
+          G.fx.shake = Math.max(G.fx.shake, 0.15);
           Sfx.at(e.x, e.z).drakeLand();
           e.state = 'stalk';
           e.st = span(P.act);
@@ -1467,7 +1467,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
         const t = off + (i / k) * Math.PI * 2;
         spawnShot(e.x, e.z, Math.cos(t), Math.sin(t), num(P.shotSpeed), light(e), 0.4, 0.8, { chill: num(P.chill) });
       }
-      G.shake = Math.max(G.shake, 0.1);
+      G.fx.shake = Math.max(G.fx.shake, 0.1);
       Sfx.at(e.x, e.z).stoneLand();
       burst(e.x, 0.3, e.z, light(e), 8, 1.6, 0.04);
     },
@@ -1694,7 +1694,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
           ringFx(e.x, 0.08, e.z, light(e), 0.2, 1.4, 0.35, true);
           frostAt(e.x, e.z, 0.8);
           Sfx.at(e.x, e.z).stoneLand();
-          G.shake = Math.max(G.shake, 0.1);
+          G.fx.shake = Math.max(G.fx.shake, 0.1);
           e.cycle! -= 1;
           if (e.cycle! > 0) {
             e.state = 'crouch';

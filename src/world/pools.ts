@@ -555,7 +555,7 @@ function ignite(p: Pool) {
     riseMote(t.x, 0.15, t.z, EMBER, 0.7);
   }
   Sfx.at(p.tiles[0].x, p.tiles[0].z).ignite();
-  G.shake = Math.max(G.shake, 0.12);
+  G.fx.shake = Math.max(G.fx.shake, 0.12);
 }
 
 /* ---------- every step ---------- */

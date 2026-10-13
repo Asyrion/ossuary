@@ -208,7 +208,7 @@ function react(e: Enemy, r: Reaction) {
       damageEnemy(o, V.damage, 0, 0, 0, 'spell', 'storm');
     }
     Sfx.at(e.x, e.z).verdict();
-    G.shake = Math.max(G.shake, 0.25);
+    G.fx.shake = Math.max(G.fx.shake, 0.25);
     return;
   }
   if (r === 'blackice') {
@@ -299,7 +299,7 @@ function react(e: Enemy, r: Reaction) {
     ringFx(e.x, 0.6, e.z, 0xffffff, 0.15, 1.1, CFG.spellFx.flash);
     ringFx(e.x, 0.05, e.z, ICE, 0.2, 1.5, CFG.spellFx.shockwave, true); // a flash, and frost thrown out over the floor
     Sfx.at(e.x, e.z).shatter();
-    G.shake = Math.max(G.shake, 0.2);
+    G.fx.shake = Math.max(G.fx.shake, 0.2);
     damageEnemy(e, S.damage, 0, 0, 0, 'spell');
   } else overloadAt(e.x, e.z, e);
 }
@@ -542,7 +542,7 @@ export function overloadAt(x: number, z: number, e?: Enemy, radius = R.overload.
     );
   }
   Sfx.at(x, z).overload();
-  G.shake = Math.max(G.shake, 0.35);
+  G.fx.shake = Math.max(G.fx.shake, 0.35);
   // (M4.10, Hailburst: among chilled foes or ice, the blast throws out shards that chill)
   const cold =
     G.enemies.some(

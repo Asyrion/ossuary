@@ -435,7 +435,7 @@ function flash(room: Room, s: SporeCloud) {
   for (let i = 0; i < 5; i++)
     riseMote(s.x + (Math.random() - 0.5) * 1.2, 0.3, s.z + (Math.random() - 0.5) * 1.2, EMBER, 0.5);
   Sfx.at(s.x, s.z).sporeFlash();
-  G.shake = Math.max(G.shake, 0.15);
+  G.fx.shake = Math.max(G.fx.shake, 0.15);
   fireAt(s.x, s.z, S.reach * 0.6); // and it lights what burns round it
 }
 
