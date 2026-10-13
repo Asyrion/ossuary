@@ -93,8 +93,6 @@ import {
 } from './ui/waystone';
 import { raiseWaystone } from './world/waystone';
 import { warePanelNow } from './ui/warePanel';
-import { FOE_LOOK_MODES, type FoeLooks } from './actors/fantasyLooks';
-import { lookContract, showLookPairs } from './actors/lookPairs';
 import { promptShowing, renderHearts, roomFinished, setHeroInfo, toast, updateVision } from './ui/hud';
 import { bargainNow, openBargainHere } from './world/bargain';
 import { levelAtFloor } from './progression/levelData';
@@ -338,9 +336,6 @@ function readUrlOptions() {
   const kit = q.get('kit');
   const vig = q.get('vigil');
   if (vig && vig !== '0') askVigil(vig === 'first'); // (M7 step 5: ?vigil=1 starts at the Vigil, ?vigil=first wakes there for the first time)
-  const looks = q.get('looks'); // (M4.12: ?looks=new tries every new look, ?looks=old wears the old ones)
-  if (looks && FOE_LOOK_MODES.includes(looks as FoeLooks)) DEV.foeLooks = looks as FoeLooks;
-  else if (looks) console.warn(`?looks=${looks}: use ${FOE_LOOK_MODES.join(', ')}`);
   if (kit === 'old') DEV.roomKit = false;
   else if (kit && kit !== 'new') console.warn(`?kit=${kit}: use new or old`);
   const seed = q.get('seed'),
@@ -1212,16 +1207,6 @@ function installDevHooks() {
     /** The gamepads the browser reports (name, layout, buttons held, sticks), as the dev menu's Gamepads shows them. */
     get pads() {
       return padsNow();
-    },
-    /** M4.12: the old and new looks side by side ahead of the mage (a floor's, or all), what each new look keeps of its old
-        one (`lookContract`), and which looks the foes wear (`foeLooks`: approved, new or old). */
-    lookPairs: (floor?: number, only?: string[]) => showLookPairs(G.current, player.x, player.z, floor, only),
-    lookContract: () => lookContract(),
-    get foeLooks() {
-      return DEV.foeLooks;
-    },
-    set foeLooks(m: FoeLooks) {
-      DEV.foeLooks = m;
     },
     /** The ware whose panel shows over it (2026-10-02): its name, and whether he would refuse it now. */
     get warePanel() {

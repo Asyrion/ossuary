@@ -10,8 +10,6 @@ import { PROP_KINDS, isMechanism } from '../world/propData';
 import { THEME_DEFS } from '../world/themeData';
 import { placeProp } from '../world/props';
 import { padsNow } from '../input/gamepad';
-import { APPROVED, FANTASY_LOOKS, FOE_LOOK_MODES } from '../actors/fantasyLooks';
-import { showLookPairs } from '../actors/lookPairs';
 import { jellyGives } from '../world/jellyGives';
 import { elementDev } from '../world/mechanisms';
 import { DEV, G, player } from '../state';
@@ -183,7 +181,6 @@ let panel: HTMLElement | null = null,
   bandBtn: HTMLButtonElement;
 let levelInfo: HTMLElement,
   padInfo: HTMLElement,
-  foeLookBtn: HTMLButtonElement,
   runeInfo: HTMLElement,
   runesBtn: HTMLButtonElement,
   socketBtn: HTMLButtonElement,
@@ -263,8 +260,6 @@ function showTab(t: Tab) {
     /* not remembered */
   }
 }
-/** The new foe looks (M4.12) still waiting on the owner's yes: the foe-look switch and the old-and-new gallery compare them. */
-const looksWaiting = () => Object.keys(FANTASY_LOOKS).filter((id) => !APPROVED.has(id));
 /** Somewhere free just ahead of the mage. */
 const ahead = (d = 1.5) => freeSpotNear(G.current, player.x, player.z - d);
 /** The living foe nearest the mage. */
@@ -1085,11 +1080,6 @@ function build() {
     })),
     (lineBtn = btn('', () => setPixelLook({ outline: !pixelLook().outline }))),
     (bandBtn = btn('', () => setPixelLook({ bands: !pixelLook().bands }))),
-    // M4.12: the foes wear the approved new looks, every new one, or the old ones (new foes take it; a new floor all of them)
-    (foeLookBtn = btn('', () => {
-      DEV.foeLooks = FOE_LOOK_MODES[(FOE_LOOK_MODES.indexOf(DEV.foeLooks) + 1) % FOE_LOOK_MODES.length];
-      rebuildFloor();
-    })),
   );
 
   // the room kit (M3.5 step 3's proof): the pieces built in code, or the old ones to compare; the fire objects to look at
@@ -1279,30 +1269,6 @@ function build() {
       showJellyLooks(G.current, player.x, player.z);
     }),
     btn(S.takeOptions, () => removeModelOptions(G.current)),
-  );
-
-  // M4.12: the foes' old and new looks side by side, a floor at a time, for the owner to compare and approve
-  // (with every new look approved there is nothing to compare: the row waits, disabled, for the next new look)
-  const lp = section(pages.galleries, S.lookPairs),
-    waiting = looksWaiting().length > 0;
-  lp.append(
-    ...(waiting ? [] : [el('p', 'dv-info', S.noLooksWaiting)]),
-    ...[
-      ...[1, 2, 3, 4, 5, 0].map((f) =>
-        btn(S.floorLooks(f), () => {
-          closeDev();
-          if (!showLookPairs(G.current, player.x, player.z, f).length) toast(S.noNewLooks, 2);
-        }),
-      ),
-      btn(S.allLooks, () => {
-        closeDev();
-        if (!showLookPairs(G.current, player.x, player.z).length) toast(S.noNewLooks, 2);
-      }),
-      btn(S.takeOptions, () => removeModelOptions(G.current)),
-    ].map((b) => {
-      b.disabled = !waiting;
-      return b;
-    }),
   );
 
   // the bosses built in code (M4 onwards): every one ahead of the mage
@@ -1872,12 +1838,6 @@ function refresh() {
       .map(([id, r]) => `${boon(id).name}${r > 1 ? ' II' : ''}`)
       .join(', '),
   );
-  {
-    const waiting = looksWaiting().length > 0; // (every new look approved: the three ways draw the same foes)
-    foeLookBtn.textContent = waiting ? S.foeLooks[DEV.foeLooks] : S.foeLooksAllApproved;
-    foeLookBtn.disabled = !waiting;
-    foeLookBtn.classList.toggle('on', DEV.foeLooks !== 'approved');
-  }
   const stages = Object.values(knowledgeNow()),
     count = (...st: string[]) => stages.filter((s) => st.includes(s)).length;
   knowBox.textContent =

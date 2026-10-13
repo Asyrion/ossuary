@@ -1927,18 +1927,6 @@ export const STR = {
     } as Record<string, string>,
     fpsOn: 'Frame readout: shown',
     fpsOff: 'Frame readout: hidden',
-    /** M4.12: the foes' looks, old and new. */
-    lookPairs: "Fantasy foes (M4.12): old and new looks side by side, a floor at a time (a great hall holds a floor's)",
-    noNewLooks: 'No new looks yet on this floor',
-    noLooksWaiting: 'Every new look is approved, so there is nothing to compare: these wait for the next new look',
-    floorLooks: (f: number) => (f ? `Floor ${f}` : 'Ward cores'),
-    allLooks: 'Every floor',
-    foeLooksAllApproved: 'Foe looks: every new look approved (nothing to compare)',
-    foeLooks: {
-      approved: 'Foe looks: as approved (the game)',
-      new: 'Foe looks: every new one (to try)',
-      old: 'Foe looks: the old ones still waiting on a yes (to compare)',
-    } as Record<string, string>,
     pads: 'Gamepads',
     noPads:
       'No gamepad heard: press one of its buttons with this page in front (a browser shows a pad only after that)',

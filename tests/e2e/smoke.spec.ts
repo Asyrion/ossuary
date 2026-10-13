@@ -12738,60 +12738,75 @@ test("a merchant's ware shows a small panel when the mage comes near (2026-10-02
   expect(errors).toEqual([]);
 });
 
-test('fantasy foes (M4.12): every new look keeps the parts its behaviour moves and about its old height, stands beside the old one, and a foe wears it when tried', async ({
+test("fantasy foes (M4.12): every foe, in the look it wears, fights a while, its behaviour moving the look's parts, without an error", async ({
   page,
 }) => {
   type GL = {
     sim(s: number, draw?: boolean): void;
     spawn(kind: string): void;
+    clearRoom(): void;
     enemies: { type: string; foe?: { id: string } }[];
     player: { invuln: number };
-    lookContract(): { id: string; missing: string[]; oldH: number; newH: number; retired: boolean }[];
-    lookPairs(floor?: number): { id: string }[];
-    foeLooks: string;
   };
-  const errors = await start(page, '?seed=LOOKS&room=great_hall&looks=new');
-  const r = await page.evaluate(() => {
-    const w = (window as unknown as { __game: GL }).__game;
+  // (the foes that wear a fantasy look, floors 1 to 5 and the Wardlings: the firefly swarm wears the firefly beetle's)
+  const ids = [
+    'sporeling',
+    'vesperMoth',
+    'runeBeetle',
+    'urnMimic',
+    'cryptSpider',
+    'inkOctopus',
+    'fireflySwarm',
+    'choirLark',
+    'stormMantis',
+    'rubbleCrab',
+    'mireToad',
+    'cisternLurker',
+    'lanternJelly',
+    'glassNewt',
+    'rimeSnail',
+    'stormDarter',
+    'cinderSalamander',
+    'hexImp',
+    'rimeDrakeling',
+    'emberWasp',
+    'waspNest',
+    'wickmouse',
+    'chimeBat',
+    'gargoyleWhelp',
+    'moonstagFawn',
+    'rimeScarab',
+    'rootling',
+    'stormRay',
+    'voidMote',
+    'lanternTortoise',
+    'gloomRaven',
+    'rimeWolf',
+    'dustPangolin',
+    'wardEmber',
+    'wardFrost',
+    'wardStorm',
+    'wardHallow',
+    'wardUmbral',
+    'wardVerdant',
+  ];
+  const FOES = JSON.parse(readFileSync('data/foes.json', 'utf8')) as Record<string, unknown>;
+  for (const id of ids) expect(FOES[id], id).toBeDefined();
+  const errors = await start(page, '?seed=LOOKS&room=great_hall');
+  const fought = await page.evaluate((ids) => {
+    const w = (window as unknown as { __game: GL }).__game,
+      seen: string[] = [];
     w.player.invuln = 999;
-    const contract = w.lookContract(),
-      pairs = w.lookPairs().map((p) => p.id);
-    w.sim(0.5, true);
-    return { contract, pairs, mode: w.foeLooks };
-  });
-  expect(r.mode).toBe('new');
-  for (const c of r.contract) {
-    expect(c.missing, c.id).toEqual([]);
-    expect(c.newH / c.oldH, c.id).toBeGreaterThan(0.5);
-    expect(c.newH / c.oldH, c.id).toBeLessThan(2.2);
-  }
-  expect(r.pairs.sort()).toEqual(
-    r.contract
-      .filter((c) => !c.retired)
-      .map((c) => c.id)
-      .sort(),
-  ); // (an approved look's old one is gone)
-  // each foe in its new look fights a while (its behaviour moving the new look's parts) without an error
-  const fought = await page.evaluate(
-    (ids) => {
-      const w = (
-          window as unknown as {
-            __game: GL & { clearRoom(): void; enemies: { type: string; foe?: { id: string }; dead?: boolean }[] };
-          }
-        ).__game,
-        seen: string[] = [];
-      for (const id of ids) {
-        w.clearRoom();
-        w.sim(0.2);
-        w.spawn(id);
-        w.sim(3, true);
-        if (w.enemies.some((e) => e.foe?.id === id)) seen.push(id);
-      }
-      return seen;
-    },
-    r.contract.map((c) => (c.id === 'fireflyBeetle' ? 'fireflySwarm' : c.id)),
-  );
-  expect(fought.length).toBe(r.contract.length);
+    for (const id of ids) {
+      w.clearRoom();
+      w.sim(0.2);
+      w.spawn(id);
+      w.sim(3, true);
+      if (w.enemies.some((e) => e.foe?.id === id)) seen.push(id);
+    }
+    return seen;
+  }, ids);
+  expect(fought).toEqual(ids);
   expect(errors).toEqual([]);
 });
 
