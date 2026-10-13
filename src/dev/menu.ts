@@ -33,7 +33,8 @@ import { giveById, grantArtifact, placeArtifact, refreshStats, resetArtifacts } 
 import { removeArtifactGallery, showArtifactGallery } from './artifactGallery';
 import { DROPS, RESOURCES, SOULS, soulItem, type Drop, type Resource } from '../items/loot';
 import { POTIONS, POTION_IDS, REAGENTS, REAGENT_IDS, type PotionId, type ReagentId } from '../items/alchemyData';
-import { addPotion, addReagent, beltSlots, identify, knownPotion, renderBelt, usePotion } from '../items/potions';
+import { addPotion, addReagent, beltSlots, identify, knownPotion, usePotion } from '../items/potions';
+import { renderBelt } from '../notify';
 import { brewedPotions, forgetBrews } from '../items/alchemyMemory';
 import { openLab } from '../ui/alchemyTable';
 import { openWaystone } from '../ui/waystone';

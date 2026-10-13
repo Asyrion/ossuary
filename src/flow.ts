@@ -62,7 +62,9 @@ import {
   line,
   clearLines,
   hideLore,
+  renderBelt,
 } from './notify';
+import { emit } from './events';
 import { resetAfflictions } from './ui/afflictions';
 import { warnFloor } from './world/curve';
 import { arriveAtSeal, atSeal, enterSealRoom } from './world/seal';
@@ -70,7 +72,6 @@ import { kaelithKneels, resetKaelith } from './actors/kaelith';
 import { recordRun, resetRunFirsts, runFirsts, vigil } from './vigil/save';
 import { VIGIL, VIGIL_INDEX, vigilPlan } from './vigil/vigilMap';
 import { vigilWalled } from './vigil/unfold';
-import { atVigil } from './vigil/where';
 import { clearShade, placeShade } from './vigil/shades';
 import { clearShadeHelp, helpNewFloor, helpRoomCleared, shadesWalk } from './vigil/shadeHelp';
 import { giftsAtStart } from './vigil/gifts';
@@ -86,13 +87,13 @@ import { clearSpellFx, forgetSpells, gainMana, leaveRoomSpells, learnSpell } fro
 import { carve, setSockets } from './magic/runes';
 import { clearGives } from './world/jellyGives';
 import type { RuneId } from './magic/runeData';
-import { addPotion, renderBelt, resetPotions } from './items/potions';
+import { addPotion, resetPotions } from './items/potions';
 import { enterLab } from './world/laboratory';
 import { clearThrows } from './items/potionThrow';
 import { clearStatusFx } from './magic/statusFx';
 import { clearPages, dropPage, enterLibrary, maybeDropPage } from './magic/pages';
 import { resetClock } from './loop';
-import { $, mulberry } from './util';
+import { mulberry } from './util';
 import { burst } from './combat/fx';
 import { mimicSpot } from './actors/foes';
 import { pickMantle } from './actors/mantleData';
@@ -500,8 +501,7 @@ export function descend() {
 export function pause() {
   G.state = 'pause';
   showScreen('pause');
-  $('runInfo').textContent = atVigil() ? STR.vigil.runInfo : STR.runInfo(G.run.floor + 1, FLOORS.length, G.run.seed); // (M7 step 5: no floor at the Vigil)
-  $('btnResume').focus();
+  emit('paused'); // (the pause screen's run line, Resume focused)
 }
 export function resume() {
   G.state = 'play';
@@ -561,8 +561,7 @@ export function endGame(won: boolean) {
   });
 }
 export function toggleSound() {
-  const muted = Sfx.toggle();
-  $('btnSound').textContent = muted ? STR.pause.soundOff : STR.pause.soundOn;
+  emit('soundToggled', { muted: Sfx.toggle() });
 }
 
 function showRooms(...list: Room[]) {

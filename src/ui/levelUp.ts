@@ -20,7 +20,7 @@ import { boonIconImg } from '../progression/boonLooks';
 import { ATTRS, type Attr } from '../progression/attributes';
 import { ATTR_COLOR, attrText, pointsToSpend, spendPoint } from '../progression/points';
 import type { Card } from '../progression/boonData';
-import { renderInsight } from '../progression/insight';
+import { renderInsight } from './insightHud';
 import { keepBargain, refuseBargain } from '../world/bargain';
 import { UI } from '../panels';
 import { chooseLevel, pointsHere, spendHere } from '../progression/levelGate';

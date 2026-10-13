@@ -13,7 +13,6 @@ import {
   knownPotion,
   moveInBelt,
   potionFx,
-  renderBelt,
   usePotion,
 } from '../items/potions';
 import { throwsNow, flightsNow } from '../items/potionThrow';
@@ -55,6 +54,7 @@ import {
 import { raiseWaystone } from '../world/waystone';
 import { warePanelNow } from '../ui/warePanel';
 import { renderHearts, roomFinished, updateVision } from '../ui/hud';
+import { renderBelt } from '../notify';
 import { bargainNow, openBargainHere } from '../world/bargain';
 import { chooseFor, levelEsc, offerNow, openLevelUp, takeBargainCard } from '../ui/levelUp';
 import { giveById, refreshStats } from '../items/artifacts';

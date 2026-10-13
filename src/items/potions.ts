@@ -10,7 +10,7 @@ import { burst } from '../combat/fx';
 import { heroDrink, hero } from '../actors/hero';
 import { gainMana } from '../magic/spells';
 import { floatText } from '../magic/statusFx';
-import { line, renderHearts, toast, showLore } from '../notify';
+import { line, renderBelt, renderHearts, toast, showLore } from '../notify';
 import { gainInsight, potionUsed } from '../progression/insight';
 import { refreshStats } from './artifacts';
 import { artifact } from './artifactData';
@@ -256,19 +256,4 @@ export function updatePotions(dt: number) {
   }
   if (player.stats.effects.has('taster'))
     for (const id of player.belt as PotionId[]) if (!knownPotion(id)) identify(id); // (M5 step 8: the Taster's Spoon)
-}
-
-/** The HUD's belt: a slot for each potion it can hold, the chosen one lit, an unknown one marked; its keys. */
-export function renderBelt() {
-  const box = document.getElementById('belt');
-  if (!box) return;
-  const n = beltSlots(),
-    keys = STR.controls.potionKeys;
-  let html = '';
-  for (let i = 0; i < n; i++) {
-    const id = player.belt[i] as PotionId | undefined,
-      on = id && i === Math.min(player.beltAt, player.belt.length - 1);
-    html += `<div class="bslot${id ? '' : ' empty'}${on ? ' on' : ''}" title="${id ? potionName(id) : ''}">${id ? `<img class="px" src="${bottleIconUrl(G.run.bottles[id])}" alt="">${knownPotion(id) ? '' : '<i>?</i>'}` : ''}</div>`;
-  }
-  box.innerHTML = html + `<b>${keys}</b>`;
 }

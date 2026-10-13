@@ -25,6 +25,7 @@ import { at, block, keep, middle } from './tiles';
 import { clearUnfold, furnishUnfold, updateUnfold } from './unfold';
 import { clearTown, ferryAt, standFerryman, standTown, updateTown, wearsMade } from './town';
 import { closeTalk } from '../panels';
+import { emit } from '../events';
 
 const C = () => CFG.vigil.place;
 interface Bar {
@@ -183,13 +184,13 @@ function refreshCandleLight() {
     for (const t of r.torches) if (t.flame.userData.piece === 'candleWall') t.lit = !!here && here.candles.lit > 0;
 }
 
-/** What the UI does each step at the Vigil (main.ts fills it: ui/talk.ts' `updateTalk`). */
+/** What the UI does each step at the Vigil, first thing (main.ts fills it: the Vigil's HUD, a townsperson's line written
+    out a little more, even while the game waits). */
 export const vigilUi = { step: (_dt: number) => {} };
 
 /** Each step at the Vigil: the veil stirs, the Ferryman watches, and what the mage walks up to answers. */
 export function updateVigil(dt: number) {
   if (!here) return;
-  renderVigilHud();
   vigilUi.step(dt); // (a townsperson's line written out, even while the game waits)
   updateTown(dt, G.state === 'play' && !G.trans);
   updateUnfold(dt); // (M7 step 9) // (M7 step 7: the townspeople, even while one talks)
@@ -230,18 +231,6 @@ export function updateVigil(dt: number) {
     h.circle.said = true;
     line(STR.vigil.circle, 4.5);
   }
-}
-
-let shown = '';
-/** The Vigil's HUD: what is kept between descents (the Arcane Dust, the obols), redrawn when it changes. */
-function renderVigilHud() {
-  const v = vigil(),
-    H = STR.vigil.hud,
-    key = v.dust + ':' + v.obols;
-  if (key === shown) return;
-  shown = key;
-  document.getElementById('vigilHud')!.innerHTML =
-    `<span><b>${v.dust}</b><small>${H.dust}</small></span><span><b>${v.obols}</b><small>${H.obols}</small></span>`;
 }
 
 /** Step into the Ferryman's boat: his line, then down to the first floor (flow.ts). */
@@ -326,7 +315,7 @@ export function leaveVigil() {
   clearTown();
   clearUnfold();
   here = null;
-  shown = '';
+  emit('vigilLeft'); // (its HUD drawn afresh next time)
   setAtVigil(false);
 }
 

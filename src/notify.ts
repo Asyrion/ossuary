@@ -57,3 +57,7 @@ export function itemLore(item: LoreItem) {
 }
 /** A new run: no card left over. */
 export const hideLore = () => emit('loreHidden');
+/** The potion belt changed (a potion taken, drunk, moved, identified). */
+export const renderBelt = () => emit('beltChanged');
+/** Insight or the levels waiting changed: the strip under the mana bar and the level badge. */
+export const renderInsight = () => emit('insightChanged');
