@@ -139,7 +139,7 @@ export const blinkRest = () => Math.max(0, blinkCd);
 /** The Pilgrim's map: every room of the floor on the map (not its secret: the cracked walls glow for that). */
 export function pilgrimMap() {
   if (!has('pilgrimPath')) return;
-  for (const r of G.rooms) if (r.type !== 'secret') r.known = true;
+  for (const r of G.floor.rooms) if (r.type !== 'secret') r.known = true;
   renderMinimap();
 }
 

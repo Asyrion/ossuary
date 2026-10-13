@@ -89,7 +89,7 @@ export function updateAudio() {
     mus.play(TITLE_PIECE, 'title', t);
   } else if (atVigil() && G.state !== 'end') {
     // (M7 step 5: the Vigil between descents: its stillness and candles, the Landing's water, its piece)
-    const scape = VIGIL.rooms[G.rooms.indexOf(room)]?.name === 'landing' ? 'vigilLanding' : 'vigil';
+    const scape = VIGIL.rooms[G.floor.rooms.indexOf(room)]?.name === 'landing' ? 'vigilLanding' : 'vigil';
     amb.set(floor, scape, undefined, t);
     amb.duck(G.state === 'pause' ? CFG.audio.pauseDuck : 1, t);
     mus.setSpace(spaceFor(floor, roomScape(scape)?.scape ?? null), t);

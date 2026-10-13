@@ -44,7 +44,7 @@ export async function showCreature(id: string, room: Room, x: number, z: number)
       ctx,
       Object.values(info.clips).flatMap((c) => c.events.map((e) => e.sound)),
     ); // (its sounds from files ready before it roars)
-  const made = await madeModel(id, () => G.rooms.includes(room));
+  const made = await madeModel(id, () => G.floor.rooms.includes(room));
   if (!made) return null; // (the floor changed while it loaded)
   const { group, mixer, actions } = made;
   group.position.set(x - room.cx, 0, z - room.cz);

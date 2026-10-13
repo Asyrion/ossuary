@@ -120,7 +120,7 @@ export function updatePlayer(dt: number) {
   checkLab();
   checkWaystone();
   checkBargain(); // (M5: the alchemy table; M6: the waystone, the shrine's bargain)
-  const trapdoor = G.trapdoor;
+  const trapdoor = G.floor.trapdoor;
   if (trapdoor?.kind === 'shaft') {
     if (Math.hypot(player.x - trapdoor.x, player.z - trapdoor.z) < CFG.daylight.reach) enterDaylight();
   } // (M7 step 3: into the daylight)

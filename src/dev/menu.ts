@@ -1843,8 +1843,8 @@ function refresh() {
     .querySelectorAll<HTMLButtonElement>('button[data-t]')
     .forEach((b) => b.classList.toggle('on', G.run.transforms.includes(b.dataset.t as never)));
   closeBtn.classList.toggle('on', DEV.closeUp);
-  const rooms = G.rooms.filter((r) => r.type !== 'normal').sort((a, b) => a.plan.dist - b.plan.dist);
-  const secret = G.rooms.find((r) => r.type === 'secret');
+  const rooms = G.floor.rooms.filter((r) => r.type !== 'normal').sort((a, b) => a.plan.dist - b.plan.dist);
+  const secret = G.floor.rooms.find((r) => r.type === 'secret');
   const dials = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].pressure,
     names = (l: string[]) => l.map((s) => STR.schools[s]).join(', ');
   floorBox.replaceChildren(
@@ -1873,7 +1873,7 @@ function refresh() {
       : []),
     btn(S.clear, () => clearRoom()),
     btn(S.reveal, () => {
-      for (const r of G.rooms) r.known = true;
+      for (const r of G.floor.rooms) r.known = true;
       renderMinimap();
     }),
     btn(S.nextFloor, () => {

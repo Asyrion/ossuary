@@ -26,13 +26,13 @@ export const daylightHooks: { done?: () => void } = {};
 let shaft: { motes: THREE.Group } | null = null;
 let day: { vista: Vista; t: number; ended: boolean; room: Room | null } | null = null;
 
-/** Kaelith's way out: a shaft of daylight at (x, z) in `room`, which the mage steps into (player.ts, `G.trapdoor`'s
+/** Kaelith's way out: a shaft of daylight at (x, z) in `room`, which the mage steps into (player.ts, `G.floor.trapdoor`'s
     `kind`). */
 export function openShaft(room: Room, x: number, z: number) {
   const look = shaftLook();
   look.group.position.set(x - room.cx, 0, z - room.cz);
   room.group.add(look.group);
-  G.trapdoor = { g: look.group, x, z, ring: look.ring, t: 0, kind: 'shaft' };
+  G.floor.trapdoor = { g: look.group, x, z, ring: look.ring, t: 0, kind: 'shaft' };
   shaft = { motes: look.motes };
   Sfx.at(x, z).shaft();
   line(STR.seal.shaft, 5); // (after Kaelith's own line)

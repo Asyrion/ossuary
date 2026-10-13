@@ -54,10 +54,10 @@ let here: Here | null = null;
 /** What the Vigil calls in flow.ts (set there): take the boat down (a run on floor 1), and open the lectern's screen. */
 export const vigilActs = { board: () => {}, openLectern: () => {} };
 
-/** Furnish the Vigil's rooms (G.rooms, built from its plan, before their walls): its pieces, barred ways and circle.
+/** Furnish the Vigil's rooms (G.floor.rooms, built from its plan, before their walls): its pieces, barred ways and circle.
     `first`: the first waking, in the dark, its first candle about to light. */
 export function furnishVigil(first: boolean) {
-  const rooms = G.rooms,
+  const rooms = G.floor.rooms,
     room = (name: string) => rooms[roomIndex(VIGIL, name)];
   let candles: Here['candles'] | null = null,
     lectern: Here['lectern'] | null = null,
@@ -180,7 +180,7 @@ export function wokeAtVigil() {
   });
 }
 function refreshCandleLight() {
-  for (const r of G.rooms)
+  for (const r of G.floor.rooms)
     for (const t of r.torches) if (t.flame.userData.piece === 'candleWall') t.lit = !!here && here.candles.lit > 0;
 }
 
@@ -205,7 +205,7 @@ export function updateVigil(dt: number) {
   if (!h.seen.has(room)) {
     // (each room's name, the first time it is entered this waking)
     h.seen.add(room);
-    const name = VIGIL.rooms[G.rooms.indexOf(room)]?.name as keyof typeof STR.vigil.rooms | undefined;
+    const name = VIGIL.rooms[G.floor.rooms.indexOf(room)]?.name as keyof typeof STR.vigil.rooms | undefined;
     if (name && name !== 'crypt') banner(...STR.vigil.rooms[name]);
   }
   // the lectern: walked up to, its screen opens (once, until the mage steps away)
@@ -322,7 +322,7 @@ export function leaveVigil() {
 /** For the dev menu and the tests: where the mage is, the candles lit, the lectern and boat. */
 export function vigilInfo() {
   if (!here) return { here: false as const };
-  const name = VIGIL.rooms[G.rooms.indexOf(G.current)]?.name ?? null;
+  const name = VIGIL.rooms[G.floor.rooms.indexOf(G.current)]?.name ?? null;
   return {
     here: true as const,
     room: name,
@@ -345,7 +345,7 @@ export function vigilInfo() {
 }
 /** Where the mage wakes, in the world (the Crypt, beside the bier). */
 export function wakePoint() {
-  const r = G.rooms[roomIndex(VIGIL, VIGIL.wake.room)];
+  const r = G.floor.rooms[roomIndex(VIGIL, VIGIL.wake.room)];
   return { room: r, ...at(r, VIGIL.wake.at[0], VIGIL.wake.at[1]) };
 }
 export type { VigilBar };

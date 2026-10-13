@@ -150,17 +150,17 @@ export const wandererState = () => ({
 
 /* ---------- the crow ---------- */
 
-const secretRoom = () => G.rooms.find((r) => r.type === 'secret');
+const secretRoom = () => G.floor.rooms.find((r) => r.type === 'secret');
 /** Why the crow won't sell what it knows now, if it won't: every room is on the map already; there's no secret left. */
 export function crowRefuses(ware: 'map' | 'secret') {
-  if (ware === 'map') return G.rooms.every((r) => r.type === 'secret' || r.known) ? STR.toast.crowMapped : null;
+  if (ware === 'map') return G.floor.rooms.every((r) => r.type === 'secret' || r.known) ? STR.toast.crowMapped : null;
   const s = secretRoom();
   return !s || s.known || s.visited || s.doors.some((d) => d.secret?.open) ? STR.toast.crowNoSecret : null;
 }
 /** The crow tells what it saw: every room of the floor on the map, or the secret room on it and its cracked walls aglow. */
 export function crowTells(ware: 'map' | 'secret') {
   if (ware === 'map') {
-    for (const r of G.rooms) if (r.type !== 'secret') r.known = true;
+    for (const r of G.floor.rooms) if (r.type !== 'secret') r.known = true;
     toast(STR.toast.crowMap, 3.5);
   } else {
     secretRoom()!.known = true;

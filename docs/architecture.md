@@ -564,7 +564,7 @@ pure `kaelithData.ts` (`phaseOf`, `sealWards`), look `kaelithLooks.ts` (`wingedW
 pillars are `seal_kaelith`'s obelisks made dormant (`sealWard`, `wakeWard` in `mechanisms.ts`). `CFG.enemy.kaelith`,
 `STR.bosses.kaelith`. Dev: "Kaelith's fight", `?boss=kaelith`; `__game.kaelith`, `kaelithToPhase(n)`.
 
-Daylight: when Kaelith falls the way out is a shaft of light (`G.trapdoor.kind === 'shaft'`). `world/daylight.ts`
+Daylight: when Kaelith falls the way out is a shaft of light (`G.floor.trapdoor.kind === 'shaft'`). `world/daylight.ts`
 (`openShaft`, `enterDaylight`, `updateDaylight`, `leaveDaylight`; state `daylight`; `body.daylight` hides the HUD;
 `daylightHooks.done` calls `endGame(true)`), looks `daylightLooks.ts` (`shaftLook`, `buildVista`), pure
 `daylightData.ts`, `CFG.daylight`, light `setDaylight`, piece `daylight`, soundscape `rooms.daylight`, text

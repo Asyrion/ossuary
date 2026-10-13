@@ -69,7 +69,7 @@ export function helpNewFloor() {
     acts('brew');
   }
   if (walking('map')) {
-    for (const r of G.rooms) r.known = true;
+    for (const r of G.floor.rooms) r.known = true;
     renderMinimap();
     acts('map');
   }
