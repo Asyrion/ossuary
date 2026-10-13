@@ -43,7 +43,10 @@ export function part(
   const m = new THREE.Mesh(geo, mat);
   m.position.set(...at);
   if (o.rot) m.rotation.set(...o.rot);
-  if (o.scale !== undefined) typeof o.scale === 'number' ? m.scale.setScalar(o.scale) : m.scale.set(...o.scale);
+  if (o.scale !== undefined) {
+    if (typeof o.scale === 'number') m.scale.setScalar(o.scale);
+    else m.scale.set(...o.scale);
+  }
   parent.add(m);
   return m;
 }

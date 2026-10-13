@@ -134,6 +134,6 @@ export function setHeroPixel(root: THREE.Object3D | null, pixel: boolean) {
   }
   root?.traverse((o) => {
     const u = o.userData;
-    if (u.made && u.pixel) (o as THREE.Mesh).material = pixel ? u.pixel : u.made;
+    if (u.made && u.pixel) (o as THREE.Mesh).material = (pixel ? u.pixel : u.made) as THREE.Material;
   });
 }

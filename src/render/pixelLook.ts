@@ -504,19 +504,19 @@ export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   }
   s.tColor.value = target!.texture;
   s.tDepth.value = target!.depthTexture;
-  s.grid.value.set(gw, gh);
+  (s.grid.value as THREE.Vector2).set(gw, gh);
   s.outline.value = look.outline ? 1 : 0;
   s.bands.value = look.bands ? 1 : 0;
   s.range.value = camera.far - camera.near;
   pass(renderer, shade, shaded);
   b.tShaded.value = shaded!.texture;
-  b.size.value.set(shaded!.width, shaded!.height);
-  b.screen.value.set(buffer.x, buffer.y);
-  b.grid.value.set(gw, gh);
+  (b.size.value as THREE.Vector2).set(shaded!.width, shaded!.height);
+  (b.screen.value as THREE.Vector2).set(buffer.x, buffer.y);
+  (b.grid.value as THREE.Vector2).set(gw, gh);
   b.whole.value = rows ? 1 : 0;
   // at the texel the window shows the view itself (viewW × viewH): the grid's middle less the part of a pixel moved
-  b.centre.value.set(gw / 2 - dr / px, gh / 2 - du / py);
-  b.scale.value.set((buffer.x * px) / viewW, (buffer.y * py) / viewH);
+  (b.centre.value as THREE.Vector2).set(gw / 2 - dr / px, gh / 2 - du / py);
+  (b.scale.value as THREE.Vector2).set((buffer.x * px) / viewW, (buffer.y * py) / viewH);
   pass(renderer, blit, null);
   if (fineDrawn) laidOver(renderer, gw, gh, rows);
 }
@@ -541,17 +541,17 @@ function laidOver(renderer: THREE.WebGLRenderer, gw: number, gh: number, rows: b
     pass(renderer, fineShade, o);
   }
   v.tOver.value = o.texture;
-  v.fineSize.value.set(o.width, o.height);
+  (v.fineSize.value as THREE.Vector2).set(o.width, o.height);
   v.whole.value = rows ? 1 : 0;
-  v.centre.value.copy(b.centre.value);
-  v.scale.value.copy(b.scale.value);
-  v.screen.value.copy(b.screen.value);
-  v.grid.value.set(gw, gh);
+  (v.centre.value as THREE.Vector2).copy(b.centre.value as THREE.Vector2);
+  (v.scale.value as THREE.Vector2).copy(b.scale.value as THREE.Vector2);
+  (v.screen.value as THREE.Vector2).copy(b.screen.value as THREE.Vector2);
+  (v.grid.value as THREE.Vector2).set(gw, gh);
   // each box on the window: from fine pixels back to screen pixels, as the blow-up maps them, a screen pixel wider
   const sw = buffer.x,
     sh = buffer.y,
-    c = b.centre.value,
-    k = b.scale.value;
+    c = b.centre.value as THREE.Vector2,
+    k = b.scale.value as THREE.Vector2;
   const at = rows
     ? (x: number, y: number) => [(x * sw) / (gw * K), (y * sh) / (gh * K)]
     : (x: number, y: number) => [(x / K - c.x) * k.x + sw / 2, (y / K - c.y) * k.y + sh / 2];
@@ -561,8 +561,8 @@ function laidOver(renderer: THREE.WebGLRenderer, gw: number, gh: number, rows: b
     const a = areas[i],
       [x0, y0] = at(a.x, a.y),
       [x1, y1] = at(a.z, a.w);
-    v.area.value.copy(a);
-    v.rect.value.set(ndc(x0 - 1, sw), ndc(y0 - 1, sh), ndc(x1 + 1, sw), ndc(y1 + 1, sh));
+    (v.area.value as THREE.Vector4).copy(a);
+    (v.rect.value as THREE.Vector4).set(ndc(x0 - 1, sw), ndc(y0 - 1, sh), ndc(x1 + 1, sw), ndc(y1 + 1, sh));
     pass(renderer, fineOver, null);
   }
   renderer.autoClear = auto;

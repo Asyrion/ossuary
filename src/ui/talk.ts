@@ -77,7 +77,7 @@ const whole = () => !!talk && talk.shown >= talk.line.text.length;
 function render() {
   const t = talk;
   if (!t) return;
-  ($('talkIcon') as HTMLImageElement).src = t.icon;
+  $<HTMLImageElement>('talkIcon').src = t.icon;
   $('talkName').textContent = t.name;
   const n = Math.floor(t.shown),
     text = t.line.text;

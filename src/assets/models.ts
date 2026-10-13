@@ -182,7 +182,7 @@ function wearLook(root: THREE.Object3D, l: MadeLook) {
     const m = o as THREE.Mesh,
       looks = m.geometry?.userData.looks as Record<MadeLook, THREE.Material> | undefined;
     if (!looks) return;
-    m.material = m.userData.sealedTint === undefined ? looks[l] : sealedMat(looks[l], m.userData.sealedTint); // (a rune-sealed urn keeps its stone)
+    m.material = m.userData.sealedTint === undefined ? looks[l] : sealedMat(looks[l], m.userData.sealedTint as number); // (a rune-sealed urn keeps its stone)
   });
 }
 /** Draw the made assets under `roots` (the floor's rooms) and every one placed from now on in look `l`. */

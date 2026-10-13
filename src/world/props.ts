@@ -398,11 +398,11 @@ export function addProp(room: Room, kind: PropKind, c: number, r: number, len = 
   const a = worldOf(room, c, r),
     x = a.x + (down ? 0 : (len - 1) / 2),
     z = a.z + (down ? (len - 1) / 2 : 0);
-  const mesh = (isMechanism(kind) ? MECH_LOOKS[kind] : kitObjects(room) ? OBJECT_LOOKS[kind] : LOOKS[kind])(
-    R,
-    len,
-    room.look,
-  );
+  const mesh = isMechanism(kind)
+    ? MECH_LOOKS[kind](R, len, room.look)
+    : kitObjects(room)
+      ? OBJECT_LOOKS[kind](R, len, room.look)
+      : LOOKS[kind](R, len, room.look);
   mergeStill(mesh); // a few draw calls, not a dozen
   mesh.position.set(x - room.cx, 0, z - room.cz);
   if (down) mesh.rotation.y = Math.PI / 2;
@@ -415,8 +415,8 @@ export function addProp(room: Room, kind: PropKind, c: number, r: number, len = 
     burning: 0,
     tiles,
     mesh,
-    parts: mesh.userData.parts,
-    ward: mesh.userData.ward,
+    parts: mesh.userData.parts as PropState['parts'],
+    ward: mesh.userData.ward as PropState['ward'],
   };
   const half =
     kind === 'cask'

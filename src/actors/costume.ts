@@ -106,11 +106,8 @@ export function robeTint() {
   let d = 0;
   model?.traverse((o) => {
     const m = (o as THREE.Mesh).material as THREE.MeshStandardMaterial | undefined;
-    if (!d && m?.userData?.robe)
-      d =
-        Math.abs(m.color.r - m.userData.robe.r) +
-        Math.abs(m.color.g - m.userData.robe.g) +
-        Math.abs(m.color.b - m.userData.robe.b);
+    const robe = m?.userData?.robe as THREE.Color | undefined;
+    if (!d && m && robe) d = Math.abs(m.color.r - robe.r) + Math.abs(m.color.g - robe.g) + Math.abs(m.color.b - robe.b);
   });
   return d;
 }
@@ -212,7 +209,7 @@ export function updateCostumes(dt: number) {
       if (w.cursed)
         for (const p of parts) {
           p.getWorldPosition(v);
-          burst(v.x, v.y, v.z, p.userData.drip ?? CURSED_RED, 1, 0.4, 0.025);
+          burst(v.x, v.y, v.z, (p.userData.drip ?? CURSED_RED) as number, 1, 0.4, 0.025);
         }
   }
 }
@@ -229,13 +226,15 @@ function moveWorn(dt: number) {
     const u = o.userData;
     if (u.spin) o.rotation.y += u.spin * dt;
     if (u.bob) {
-      o.position.y = u.bob.y + Math.sin(now * u.bob.rate) * u.bob.amp;
+      const bob = u.bob as { y: number; rate: number; amp: number };
+      o.position.y = bob.y + Math.sin(now * bob.rate) * bob.amp;
       o.rotation.y += dt * 0.6;
     }
     if (u.flap) o.rotation.y = u.flap * (0.15 + Math.sin(now * 2.4) * 0.18);
     if (u.eyes !== undefined) {
       const s = o as THREE.Sprite;
-      s.material.opacity = u.eyes + (1 - u.eyes) * flare;
+      const eyes = u.eyes as number;
+      s.material.opacity = eyes + (1 - eyes) * flare;
     }
     const e = u.emit as Emit | undefined;
     if (!e) continue;

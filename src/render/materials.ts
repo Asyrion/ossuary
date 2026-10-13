@@ -308,7 +308,10 @@ export function mergeStill(root: THREE.Object3D) {
       if (mat === KIT_MAT)
         g.setAttribute(
           'metal',
-          new THREE.BufferAttribute(new Float32Array(n).fill((m.material as THREE.Material).userData.metal ?? 0.3), 1),
+          new THREE.BufferAttribute(
+            new Float32Array(n).fill(((m.material as THREE.Material).userData.metal ?? 0.3) as number),
+            1,
+          ),
         );
       return place(m, g);
     });

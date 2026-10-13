@@ -161,7 +161,7 @@ export function loadHeroBuffer(buf: ArrayBuffer, label: string) {
           setHero(prepareHero(gltf), gltf, label);
           res();
         } catch (e) {
-          rej(e);
+          rej(e instanceof Error ? e : new Error(String(e)));
         }
       },
       rej,

@@ -301,8 +301,9 @@ export function updateSpellMarks(dt: number) {
         : SCHOOL_LIGHT[h.school]; // (M6: Vein's red)
     h.spin += dt * R.spin * (runes.includes('quicken') ? R.quick : 1);
     for (const sp of h.specks) {
-      const a = sp.userData.a + h.spin,
-        r = sp.userData.r * (sp.userData.r === R.seek ? 1 + Math.sin(now * 3 + sp.userData.a) * 0.25 : 1);
+      const u = sp.userData as { a: number; r: number },
+        a = u.a + h.spin,
+        r = u.r * (u.r === R.seek ? 1 + Math.sin(now * 3 + u.a) * 0.25 : 1);
       sp.position.set(Math.cos(a) * r, 0.01 + Math.sin(a * 2) * 0.015, Math.sin(a) * r);
     }
     if (st.state === 'ready') {

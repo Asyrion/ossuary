@@ -161,6 +161,7 @@ let kaelithBox: HTMLElement,
 let talkMoment: 'death' | 'won' | 'boss' | null | undefined; // (M7 step 7: the moment the dev menu's talks are at; undefined: the last run's)
 const flagBtns: [string, HTMLButtonElement][] = [];
 let wearBtn: HTMLButtonElement, giftBox: HTMLElement, unfoldBox: HTMLElement;
+const kitPartBtns = {} as Record<KitPart, HTMLButtonElement>;
 const powerBtns: [string, HTMLButtonElement][] = [],
   bondBtns: [string, HTMLButtonElement][] = [],
   questBtns: [string, HTMLButtonElement][] = [];
@@ -185,7 +186,6 @@ let panel: HTMLElement | null = null,
   doorBtn: HTMLButtonElement,
   assetBtn: HTMLButtonElement,
   kitBtn: HTMLButtonElement,
-  kitPartBtns = {} as Record<KitPart, HTMLButtonElement>,
   fpsBtn: HTMLButtonElement,
   assetBox: HTMLElement,
   madeLookBtn: HTMLButtonElement,

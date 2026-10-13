@@ -61,7 +61,7 @@ const state = () => {
 export function startWords(st: Start) {
   return Object.entries(st)
     .map(([k, v]) => (S().start[k] as (n: unknown) => string)?.(v))
-    .filter(Boolean) as string[];
+    .filter(Boolean);
 }
 /** A gift in words: what it opens now, and what it gives every descent. */
 export function giftWords(g: Gift, by?: string) {

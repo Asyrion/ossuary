@@ -88,7 +88,7 @@ export function furnishVigil(first: boolean) {
     if (p.kind === 'candleWall' || p.kind === 'bier') {
       // (each a light the room's torch lights can go to)
       const lightAt = { x: m.x, z: wall === 'n' ? r.bounds.minZ + 0.7 : m.z };
-      const glowOf = (g.userData.parts?.light as THREE.Sprite | undefined) ?? new THREE.Sprite();
+      const glowOf = (g.userData.parts as { light?: THREE.Sprite } | undefined)?.light ?? new THREE.Sprite();
       const flame = new THREE.Object3D();
       flame.userData.fire = true;
       flame.userData.piece = p.kind; // (its fire moves by itself: no flicker from rooms.ts)
@@ -291,7 +291,7 @@ function openWay(bar: Bar) {
   openPart(bar.school);
   const r = bar.room;
   r.rocks = r.rocks.filter((k) => k.bar !== bar.school);
-  const veil = bar.look.userData.parts?.veil as THREE.Mesh | undefined;
+  const veil = (bar.look.userData.parts as { veil?: THREE.Mesh } | undefined)?.veil;
   if (veil) here.veils = here.veils.filter((v) => v !== veil);
   bar.look.removeFromParent();
   disposeTree(bar.look);

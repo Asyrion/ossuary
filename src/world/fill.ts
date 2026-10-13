@@ -40,7 +40,7 @@ export function fillRoles(plan: PlannedRoom, slots: Foe[][], floor: FloorConfig,
     if (kind !== 'boss' && comesMany(kind)) pack = true;
     return { kind, role: f.kind, c: f.c, r: f.r };
   };
-  let waves = slots.map((wv) => wv.map(fill));
+  const waves = slots.map((wv) => wv.map(fill));
   if (plan.type === 'ordeal')
     for (let k = 0; k < P.ordealWaves && slots.length; k++) waves.push(slots[slots.length - 1].map(fill)); // (an ordeal deeper down gains waves: its last, drawn afresh)
   const out: Fill = { waves, quietHeart: false };
@@ -66,7 +66,7 @@ export function fillRoles(plan: PlannedRoom, slots: Foe[][], floor: FloorConfig,
       [weak[i], weak[j]] = [weak[j], weak[i]];
     }
     const keep = Math.min(weak.length, Math.floor(R() * (CFG.quiet.maxEnemies + 1)));
-    out.waves = waves = keep ? [weak.slice(0, keep)] : [];
+    out.waves = keep ? [weak.slice(0, keep)] : [];
     out.quietHeart = R() < CFG.quiet.heartChance;
   }
   return out;

@@ -983,7 +983,7 @@ function installDevHooks() {
     },
     daylightNow: () => enterDaylight(), // (M7 step 3: a won run's dawn)
     get vigil() {
-      return JSON.parse(JSON.stringify(vigil()));
+      return JSON.parse(JSON.stringify(vigil())) as ReturnType<typeof vigil>;
     },
     giveHome,
     wipeSave,

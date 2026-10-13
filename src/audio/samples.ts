@@ -15,7 +15,7 @@ const loaded = new WeakMap<Ctx, Map<string, Promise<AudioBuffer | null> & { buff
 export const hasSample = (name: string) => name in SOUNDS;
 function load(ctx: Ctx, file: string) {
   let m = loaded.get(ctx);
-  if (!m) loaded.set(ctx, (m = new Map()));
+  if (!m) loaded.set(ctx, (m = new Map<string, Promise<AudioBuffer | null> & { buffer?: AudioBuffer | null }>()));
   let p = m.get(file);
   if (!p) {
     const q = fetch(`${import.meta.env.BASE_URL}assets/sounds/${file}`)
