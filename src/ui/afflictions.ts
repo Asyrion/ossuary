@@ -10,6 +10,7 @@ import { snagAt } from '../world/props';
 import { sapMul } from '../world/mechanisms';
 import { jellyAt } from '../world/pools';
 import { toast, toastShowing } from './hud';
+import { on } from '../events';
 import { potionFx } from '../items/potionFx';
 import { POTIONS } from '../items/alchemyData';
 
@@ -120,4 +121,9 @@ export function resetAfflictions() {
   lineUntil = 0;
   const box = document.getElementById('afflict');
   if (box) box.innerHTML = '';
+}
+
+/** The chips listen to the game (main.ts calls this at boot). */
+export function initAfflictions() {
+  on('afflictionsReset', () => resetAfflictions());
 }

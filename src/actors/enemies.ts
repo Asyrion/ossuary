@@ -11,7 +11,7 @@ import { blob, disposeTree, glow } from '../render/materials';
 import { blockers, collide } from '../world/collision';
 import type { BossConfig } from '../world/generate';
 import { hurtPlayer } from '../combat/damage';
-import { onWaveCleared } from '../flow';
+import { flowHooks } from '../flowHooks';
 import { angleLerp } from '../util';
 import { afterBossMove, buildBoss, updateBoss } from './bosses';
 import { MAGIC, canAct, speedFactor } from '../magic/status';
@@ -287,5 +287,5 @@ export function updateEnemies(dt: number) {
   updateFoeHazards(dt); // (a salamander's burning trail)
   const alive = G.enemies.filter((e) => !e.dead);
   if (alive.length !== G.enemies.length) G.enemies = alive;
-  if (cur.locked && G.enemies.length === 0) onWaveCleared(cur);
+  if (cur.locked && G.enemies.length === 0) flowHooks.onWaveCleared(cur);
 }

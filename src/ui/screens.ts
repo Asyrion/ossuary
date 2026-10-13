@@ -1,7 +1,7 @@
 /* Title / pause / end screens, their buttons, and swapping the hero by file picker or drag-and-drop. */
 import { STR, struckName } from '../strings';
 import { esc } from './spellPanel';
-import type { DustSource } from '../vigil/vigilData';
+import type { RunSummary, ScreenName } from '../types';
 import { exportSave, importSave } from '../vigil/save';
 import { Sfx } from '../audio/sfx';
 import { $ } from '../util';
@@ -13,7 +13,6 @@ import { hero, loadHeroBuffer } from '../actors/hero';
 import { artifact } from '../items/artifactData';
 import { artifactIcon, setHeroInfo, toast } from './hud';
 
-export type ScreenName = 'title' | 'pause' | 'end' | 'inv' | 'lab' | 'level' | 'stone' | 'lectern' | 'talk';
 const screens: Record<ScreenName, HTMLElement> = {
   title: $('scrTitle'),
   pause: $('scrPause'),
@@ -27,29 +26,6 @@ const screens: Record<ScreenName, HTMLElement> = {
 };
 export function showScreen(name: ScreenName | null) {
   for (const k of Object.keys(screens) as ScreenName[]) screens[k].classList.toggle('hidden', k !== name);
-}
-
-/** How a run went, for the end screen. `floor` is 1-based; `artifacts` lists the focus first. */
-export interface RunSummary {
-  won: boolean;
-  floor: number;
-  floors: number;
-  time: number;
-  kills: number;
-  seed: string;
-  artifacts: string[];
-  /** Cursed artifacts cleansed at a shrine (they lose their red ring). */ cleansed: string[];
-  /** Obols picked up during the run. */ obols: number;
-  /** M6: the level reached, and the insight gained. */ level: number;
-  insight: number;
-  /** M7 step 4: what the run brings home (its Dust from each source; the obols carried and those that come home) and, after
-      a death, what struck last. */
-  home?: {
-    dust: { total: number; lines: { source: DustSource; count: number; dust: number }[] };
-    carried: number;
-    obols: number;
-    struck: string | null;
-  };
 }
 
 const clock = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
@@ -94,9 +70,13 @@ export interface ScreenActions {
 
 export function initScreens(act: ScreenActions) {
   on('paused', () => {
+    showScreen('pause');
     $('runInfo').textContent = atVigil() ? STR.vigil.runInfo : STR.runInfo(G.run.floor + 1, FLOORS.length, G.run.seed); // (M7 step 5: no floor at the Vigil)
     $('btnResume').focus();
   });
+  on('resumed', () => showScreen(null));
+  on('screensClosed', () => showScreen(null));
+  on('runEnded', (p) => showEndScreen(p.summary));
   on('soundToggled', (p) => {
     $('btnSound').textContent = p.muted ? STR.pause.soundOff : STR.pause.soundOn;
   });

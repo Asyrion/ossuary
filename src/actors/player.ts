@@ -17,7 +17,7 @@ import { checkShrine } from '../world/shrine';
 import { wadeAt } from '../world/pools';
 import { slipAt, stickyAt } from './bestiaryGround';
 import { checkVaultDoors } from '../world/vault';
-import { descend, tryTransition } from '../flow';
+import { flowHooks } from '../flowHooks';
 import { blink, updateGifts } from '../items/gifts';
 import { choosePotion, potionSpeedMul, usePotion } from '../items/potions';
 import { checkLab } from '../world/laboratory';
@@ -68,7 +68,7 @@ export function updatePlayer(dt: number) {
   } // (a pull gone wrong never loses the mage)
   collide(player, blockers(cur, 'player', st.effects.has('pitWalker')));
   player.still = Math.hypot(player.vx, player.vz) < CFG.artifacts.still.speed ? player.still + dt : 0; // (the Twin Vigil Candles, the Salt Circle)
-  if (tryTransition()) return;
+  if (flowHooks.tryTransition()) return;
   // shooting; spells go where the mage aims, or where they last aimed or walked
   const aim = shootDir();
   if (aim) player.aim = { ...aim };
@@ -124,5 +124,5 @@ export function updatePlayer(dt: number) {
   if (trapdoor?.kind === 'shaft') {
     if (Math.hypot(player.x - trapdoor.x, player.z - trapdoor.z) < CFG.daylight.reach) enterDaylight();
   } // (M7 step 3: into the daylight)
-  else if (trapdoor && Math.hypot(player.x - trapdoor.x, player.z - trapdoor.z) < 0.55) descend();
+  else if (trapdoor && Math.hypot(player.x - trapdoor.x, player.z - trapdoor.z) < 0.55) flowHooks.descend();
 }
