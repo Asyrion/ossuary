@@ -39,7 +39,7 @@ export function magicNow() {
 /** How much longer status `kind` holds with the boons taken (Banked Coals, Perennial, Laid Bare). */
 export const boonStatusMul = (kind: SpellStatus) => statusMul(kind, G.run.boons);
 /** Whether a fight is on: the doors locked, or anything still standing (a dev dummy too). */
-export const inFight = () => !!G.current?.locked || G.enemies.some((e) => !e.dead);
+export const inFight = () => !!G.room.current?.locked || G.room.enemies.some((e) => !e.dead);
 
 const css = (c: string) => parseInt(c.slice(1), 16);
 /** Boon `id` at work at (x, z): counted (the tests read it); its name rises there once a room, a line says what it did
@@ -63,7 +63,7 @@ export function actsHere(
   sound: () => void,
 ) {
   G.run.acted[key] = (G.run.acted[key] ?? 0) + 1;
-  const said = (G.current.boonsSaid ??= new Set());
+  const said = (G.room.current.boonsSaid ??= new Set());
   if (said.has(key)) return;
   said.add(key);
   floatText(x, 1.4, z, name, css(color), 44); // (a name: it stacks over a reaction's rising from the same spot)
@@ -79,7 +79,7 @@ export function actsHere(
     Whether it mended. */
 export function boonMend(id: string, halves: number, x: number, z: number) {
   if (player.dead || player.hp >= player.maxHp) return false;
-  const room = G.current,
+  const room = G.room.current,
     left = CFG.boons.mendPerRoom - (room.boonMended ?? 0);
   if (left <= 0) {
     if (!G.run.hinted.has('boonMendSpent')) {
@@ -110,11 +110,11 @@ export function boonMend(id: string, halves: number, x: number, z: number) {
 
 /** What the dev hooks read: how often each boon has acted this run, and the names risen in this room. */
 export const boonsActed = () => ({ ...G.run.acted });
-export const boonsSaid = () => [...(G.current?.boonsSaid ?? [])];
+export const boonsSaid = () => [...(G.room.current?.boonsSaid ?? [])];
 
 /** Votive Heart: the first Hallow spell cast in a fight while hurt mends (once a room; castSpell, the dev menu's bench). */
 export function votiveCast() {
-  const room = G.current;
+  const room = G.room.current;
   if (!boonRank('votiveHeart') || room.votive || !inFight() || player.hp >= player.maxHp) return;
   if (boonMend('votiveHeart', boonParam('votiveHeart', 'mend'), player.x, player.z)) room.votive = true;
 }

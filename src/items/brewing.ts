@@ -41,7 +41,7 @@ export function brewNow(a: ReagentId, b: ReagentId, x: number, z: number): Potio
   const name = POTIONS[potion].name,
     c = parseInt(POTIONS[potion].color.slice(1), 16);
   if (!addPotion(potion)) {
-    const p = freeSpotNear(G.current, x, z + 1.1);
+    const p = freeSpotNear(G.room.current, x, z + 1.1);
     spawnPickup('potion', p.x, p.z, { potion });
     line(STR.lab.beltFull, 3.5);
   } else {
@@ -104,7 +104,7 @@ export function buyRecipe(id: PotionId) {
 
 /** Dr. Jelly looks at a potion in the belt, free once a visit: it is known for the rest of the run. */
 export function jellyIdentifies(id: PotionId) {
-  const lab = G.current.lab;
+  const lab = G.room.current.lab;
   if (!lab || lab.identified) return false;
   lab.identified = true;
   identify(id);

@@ -46,7 +46,7 @@ export function enterDaylight() {
   const vista = buildVista();
   vista.root.position.set(ax, 0, az);
   scene.add(vista.root);
-  const room = G.current ?? null;
+  const room = G.room.current ?? null;
   if (room) room.group.visible = false;
   day = { vista, t: 0, ended: false, room };
   G.flow.state = 'daylight';

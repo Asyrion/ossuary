@@ -41,7 +41,7 @@ three hearts counted in halves, one second of invulnerability after a hit.
 | --- | --- |
 | `main.ts` | Boot, input wiring, the UI wired to the game (`wireUi`), `?seed` (`readSeed`); loads the dev code (`src/dev/`) with a dynamic import. |
 | `devDoor.ts` | The dev door: the only way the game reaches dev code (see [The dev door](#the-dev-door-and-srcdev)). |
-| `state.ts` | Shared mutable state: `G` (game, run, room, foes, bolts), `player`, `DEV` switches, `after()` timers. |
+| `state.ts` | Shared mutable state: `G` in typed slices (see [Shared state](#shared-state)), `player`, `DEV` switches, `after()` timers. |
 | `flow.ts` | Game states, floor setup (`startGame`, `buildFloor`, `buildVigil`), `warp`, clears, `endGame`. |
 | `flowHooks.ts` | What actors and combat ask of the flow (`tryTransition`, `descend`, `onWaveCleared`, `onBossDead`, `endGame`); `flow.ts` fills it. |
 | `loop.ts`, `clock.ts` | The fixed 1/60 step: calls every system's `update*` and the UI's hook slots (`uiHooks`), then draws; the real-time clock it steps by. |
@@ -72,6 +72,23 @@ Outside `src/`: `data/` (JSON content), `public/assets/` (`hero_default.glb`, `c
 
 Most systems follow one pattern: rules in a pure `xData.ts` with a `validateX`, the game side in `x.ts`, looks in
 `xLooks.ts`, tuning in `CFG.x`, text in `STR.x`, a dev menu section (`dev/menu.ts`) and `__game` hooks (`dev/hooks.ts`).
+
+### Shared state
+
+`G` (`state.ts`) is one object in slices, each a named type with a few owners that write it; everyone else reads. The
+owners are documented beside each type, not enforced.
+
+| Slice | Type | Holds | Written by |
+| --- | --- | --- | --- |
+| `G.flow` | `FlowState` | `state`, `trans` (the pan between rooms), `clock` (simulation time) | `flow.ts`; `combat/damage.ts` (dying), `world/daylight.ts` (daylight, cuts the pan short), the dev menu (pause); `loop.ts` ends the pan and alone advances the clock |
+| `G.floor` | `FloorState` | `rooms`, `roomMap`, `trapdoor` (the way down) | `flow.ts`, `world/rooms.ts`; `items/pickups.ts` and `world/daylight.ts` open the way down |
+| `G.room` | `RoomState` | `current` (the mage's room), `enemies`, `bolts`, `shots`, `pickups`, `glyphs` | `flow.ts` (the current room, clears), `actors/enemies.ts`, `combat/projectiles.ts`, `items/pickups.ts`, `combat/glyphs.ts`; glyphs, familiars, shapes and the shades' help end shots |
+| `G.fx` | `FxState` | `particles`, `decals`, `shake` | `combat/fx.ts`, `flow.ts` (clears); any blow raises the shake, `loop.ts` decays it, the renderer reads it |
+| `G.run` | `RunState` | The current run: its seed, floor, seeded streams and everything it has done | `flow.ts` makes a fresh one per run (`newRun`); the systems keep their own fields |
+| `G.stats` | | The run's time, kills and obols | `flow.ts` resets it; `loop.ts` (time), `combat/damage.ts` (kills), `items/pickups.ts` (obols) |
+
+A reset that truncates an array (`length = 0`) keeps the same array, as code may hold it; one that replaces it makes a new
+one. Keep each reset as it is.
 
 ## Runs and floor generation
 

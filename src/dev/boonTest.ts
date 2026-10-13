@@ -61,7 +61,7 @@ function cantripAt(e: Enemy) {
 /** Take boon `id` if need be and set it off ahead of the mage. */
 export function setOffBoon(id: string) {
   if (!boonRank(id)) takeBoon(id, false);
-  const room = G.current,
+  const room = G.room.current,
     px = player.x,
     pz = player.z,
     q = { x: px, z: pz - 2.6 };

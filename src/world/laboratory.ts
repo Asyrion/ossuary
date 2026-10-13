@@ -100,8 +100,8 @@ export function enterLab(room: Room, firstVisit: boolean) {
 /** Every step in a laboratory: walking up to the table opens it; to Dr. Jelly, at his recipes (each only after stepping
     away from it). */
 export function checkLab() {
-  const lab = G.current.lab;
-  if (!lab || G.current.locked) return; // (not while the serpent is loose)
+  const lab = G.room.current.lab;
+  if (!lab || G.room.current.locked) return; // (not while the serpent is loose)
   const t = lab.table,
     reach = L().reach + player.r;
   const atTable = Math.abs(player.x - t.x) < t.hx + reach && Math.abs(player.z - t.z) < t.hz + reach;
@@ -121,17 +121,17 @@ export function checkLab() {
     crouches low, trembling), and he hands over what he gives (jellyGives.ts); the serpent behind the glass turns in its
     coil and lifts its head. */
 export function updateLab(now: number) {
-  const lab = G.current.lab;
+  const lab = G.room.current.lab;
   updateGives(
-    G.current,
+    G.room.current,
     lab?.jelly.g.userData.parts as JellyParts | undefined,
     now,
-    UI.labOpen || G.current.locked || G.flow.state !== 'play',
+    UI.labOpen || G.room.current.locked || G.flow.state !== 'play',
   );
   if (!lab) return;
   const body = lab.jelly.g.userData.body as THREE.Object3D,
     jelly = lab.jelly.g.userData.jelly as THREE.Object3D,
-    duck = G.current.locked;
+    duck = G.room.current.locked;
   body.position.y = duck ? Math.sin(now * 40) * 0.01 : Math.sin(now * 2.1) * 0.02;
   body.scale.y += ((duck ? CFG.alchemy.lab.duck : 1) - body.scale.y) * 0.15; // (low enough that the table hides him from the camera)
   const want = Math.atan2(player.x - lab.jelly.x, player.z - lab.jelly.z) - lab.jelly.g.rotation.y;
@@ -173,7 +173,7 @@ export function vatStruck(room: Room, x: number, z: number) {
 
 /** Dev menu and tests: crack the vat window as a bolt striking its middle does. */
 export function crackVat() {
-  const room = G.current;
+  const room = G.room.current;
   if (!room.lab) return false;
   room.lab.crackAt = -Infinity;
   const w = windowAt(room);
@@ -182,13 +182,13 @@ export function crackVat() {
 
 /** After a brew at the table: a restless serpent stirs, and soon after the mage steps back from the table, breaks out. */
 export function stirAfterBrew() {
-  const room = G.current,
+  const room = G.room.current,
     lab = room.lab;
   if (!lab || lab.stirred || lab.broken || !G.run.restless || G.run.serpent !== 'caged') return;
   lab.stirred = true;
   after(V().restlessAfter, () => {
     // (sim time: it waits while the table is open)
-    if (G.current !== room || lab.broken) return;
+    if (G.room.current !== room || lab.broken) return;
     line(STR.lab.stirs, 3.5);
     Sfx.at(windowAt(room).x, windowAt(room).z).serpentHiss();
     const cracks = lab.vat.userData.cracks as THREE.Object3D[];
@@ -201,14 +201,14 @@ export function stirAfterBrew() {
       }),
     );
     after(1.6, () => {
-      if (G.current === room) breakOut(room);
+      if (G.room.current === room) breakOut(room);
     });
   });
 }
 
 /** The serpent breaks out: the glass bursts, jelly floods the room, the doors lock, Dr. Jelly ducks behind his table, and
     the serpent comes out of the window. Returns it (null if it can't: no laboratory here, or it came out already). */
-export function breakOut(room: Room = G.current): Enemy | null {
+export function breakOut(room: Room = G.room.current): Enemy | null {
   const lab = room.lab;
   if (!lab || lab.broken || G.run.serpent !== 'caged') return null;
   if (UI.labOpen) closeLab();
@@ -244,7 +244,7 @@ export function breakOut(room: Room = G.current): Enemy | null {
 /** The serpent out of its vat has fallen: a rare potion and Dr. Jelly's thanks, a recipe for nothing (Warden's Ash it
     leaves as every boss does); the doors open as the room is cleared. */
 export function serpentFell(e: Enemy) {
-  const room = G.current;
+  const room = G.room.current;
   G.run.serpent = 'slain';
   hideBossBar();
   banner(STR.bosses.serpent.dead, '');
@@ -280,7 +280,7 @@ export function globeBurst(room: Room, x: number, z: number) {
   if (G.run.reagents.chance(L().globeJelly)) {
     spawnFoe('lanternJelly', x, z, 1);
     burst(x, 0.6, z, JELLY, 10, 1.4, 0.05);
-    if (room === G.current && !room.locked) {
+    if (room === G.room.current && !room.locked) {
       room.locked = true;
       setDoors(room, false);
     }

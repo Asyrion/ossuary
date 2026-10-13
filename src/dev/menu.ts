@@ -246,10 +246,10 @@ function showTab(t: Tab) {
   }
 }
 /** Somewhere free just ahead of the mage. */
-const ahead = (d = 1.5) => freeSpotNear(G.current, player.x, player.z - d);
+const ahead = (d = 1.5) => freeSpotNear(G.room.current, player.x, player.z - d);
 /** The living foe nearest the mage. */
 const nearestFoe = () =>
-  G.enemies
+  G.room.enemies
     .filter((e) => !e.dead)
     .sort((a, b) => Math.hypot(a.x - player.x, a.z - player.z) - Math.hypot(b.x - player.x, b.z - player.z))[0];
 
@@ -285,7 +285,7 @@ export function forceKinds(k: Partial<Kinds>) {
 /** This floor built again on its seed (the same rooms and boss), and the mage back in the room they were in. */
 export function rebuildFloor() {
   if (G.flow.state === 'title') return;
-  const id = G.current.plan.id;
+  const id = G.room.current.plan.id;
   if (G.run.bossesMet.at(-1) === G.run.boss) G.run.bossesMet.pop(); // (built again, the floor draws the same boss)
   buildFloor(G.run.floor);
   warp(id);
@@ -300,22 +300,22 @@ export function wearFace(id: string) {
 /** Every coin face side by side ahead of the mage (the Galleries tab); `takeCoins` takes them away. */
 export function showCoins() {
   takeCoins();
-  const room = G.current;
+  const room = G.room.current;
   room.group.userData.coinGallery = coinGallery(room.group, player.x - room.cx, player.z - room.cz - 1.6);
   return obolFaces().length;
 }
 export function takeCoins() {
-  const g = G.current.group.userData.coinGallery as THREE.Object3D | undefined;
+  const g = G.room.current.group.userData.coinGallery as THREE.Object3D | undefined;
   if (!g) return;
   g.parent?.remove(g);
   disposeTree(g);
-  delete G.current.group.userData.coinGallery;
+  delete G.room.current.group.userData.coinGallery;
 }
 
 /** Ahead of the mage: a plain and a rune-sealed urn, and an artifact on its pedestal (the first artifact with a made
     model, or the Ember Sigil), to look at the made assets, or their placeholders, in any room. */
 export function showAssetsHere() {
-  const room = G.current,
+  const room = G.room.current,
     at = (dx: number, dz: number) => freeSpotNear(room, player.x + dx, player.z + dz);
   const plain = at(-1.6, -2),
     sealed = at(0, -2.6);
@@ -332,7 +332,7 @@ export function showAssetsHere() {
     to look at the room kit's objects in any room. */
 export function objectsHere() {
   const kinds = PROP_KINDS.filter((k) => !isMechanism(k) || k === 'tree'),
-    room = G.current;
+    room = G.room.current;
   kinds.forEach((k, i) => {
     const q = freeSpotNear(room, player.x + ((i % 9) - 4) * 1.05, player.z - 1.8 - Math.floor(i / 9) * 1.4);
     placeProp(k, q.x, q.z);
@@ -351,7 +351,11 @@ export function objectsHere() {
 export function dropsHere() {
   const all: [Drop, boolean][] = [...DROPS.map((d) => [d, false] as [Drop, boolean]), ['chest', true]];
   all.forEach(([d, gilded], i) => {
-    const q = freeSpotNear(G.current, player.x + (i - (all.length - 1) / 2) * 1.05, player.z - 2.2 - (i % 2) * 0.5);
+    const q = freeSpotNear(
+      G.room.current,
+      player.x + (i - (all.length - 1) / 2) * 1.05,
+      player.z - 2.2 - (i % 2) * 0.5,
+    );
     spawnPickup(d, q.x, q.z, { gilded, asIs: true });
   });
 }
@@ -530,7 +534,11 @@ function build() {
     (alchInfo = el('p', 'dv-info')),
     btn(S.potionsHere, () =>
       POTION_IDS.forEach((id, i) => {
-        const q = freeSpotNear(G.current, player.x + ((i % 6) - 2.5) * 0.8, player.z - 1.4 - Math.floor(i / 6) * 0.9);
+        const q = freeSpotNear(
+          G.room.current,
+          player.x + ((i % 6) - 2.5) * 0.8,
+          player.z - 1.4 - Math.floor(i / 6) * 0.9,
+        );
         spawnPickup('potion', q.x, q.z, { potion: id });
       }),
     ),
@@ -580,7 +588,7 @@ function build() {
     // Dr. Jelly hands something over (2026-10-02): played when the menu closes
     ...(['potion', 'recipe', 'coins'] as const).map((k) =>
       btn(S.jellyGives[k], () => {
-        if (!G.current.lab) {
+        if (!G.room.current.lab) {
           toast(S.noLab, 2.5);
           return;
         }
@@ -752,7 +760,7 @@ function build() {
     })),
     btn(S.forget, () => forgetSpells()),
     btn(S.page, () => {
-      if (!dropPage(G.current, player.x, player.z - 1.5)) toast(S.noPage, 2);
+      if (!dropPage(G.room.current, player.x, player.z - 1.5)) toast(S.noPage, 2);
     }),
   );
   // spell knowledge (M3.7): kept between runs in this browser
@@ -990,7 +998,7 @@ function build() {
     // (M5: Overgrown)
     sts.append(
       btn(S.inflictOn(STR.statusNames[kind]), () => {
-        for (const e of G.enemies) inflict(e, { [kind]: amount });
+        for (const e of G.room.enemies) inflict(e, { [kind]: amount });
       }),
     );
   }
@@ -1008,11 +1016,11 @@ function build() {
   section(pages.rooms, STR.waystone.title).append(
     btn(S.raiseStone, () => {
       closeDev();
-      const w = raiseWaystone(G.current, player.x, player.z - 2.2);
+      const w = raiseWaystone(G.room.current, player.x, player.z - 2.2);
       w.rise = Math.max(w.rise, 0.999);
     }),
     btn(S.openStone, () => {
-      if (!G.current.waystone) {
+      if (!G.room.current.waystone) {
         toast(S.noStone, 2);
         return;
       }
@@ -1024,11 +1032,11 @@ function build() {
   section(pages.rooms, STR.bargain.title).append(
     btn(S.bargainHere, () => {
       closeDev();
-      buildBargain(G.current, [player.x - G.current.cx, player.z - 2.2 - G.current.cz]);
+      buildBargain(G.room.current, [player.x - G.room.current.cx, player.z - 2.2 - G.room.current.cz]);
     }),
     ...SCHOOLS.map((s) =>
       btn(S.bargainOn(STR.schools[s]), () => {
-        if (!G.current.bargain) {
+        if (!G.room.current.bargain) {
           toast(S.noBargain, 2);
           return;
         }
@@ -1063,7 +1071,7 @@ function build() {
       // (from the kind forced, or the one this room drew: the first click shows the next one)
       const forced = DEV.kitKinds[part],
         list = kindsOf(FLOORS[G.run.floor].look.kit, part),
-        at = list.indexOf(forced ?? G.current.look.kinds[part]);
+        at = list.indexOf(forced ?? G.room.current.look.kinds[part]);
       DEV.kitKinds = { ...DEV.kitKinds, [part]: forced ? list[at + 1] : list[(at + 1) % list.length] }; // (past the last forced: drawn per room again)
       if (!DEV.kitKinds[part]) delete DEV.kitKinds[part];
       rebuildFloor();
@@ -1079,7 +1087,7 @@ function build() {
         ['candles', 1.3, -1.8, false],
         ['candles', 2.4, -2.2, true],
       ] as const) {
-        const q = freeSpotNear(G.current, player.x + dx, player.z + dz);
+        const q = freeSpotNear(G.room.current, player.x + dx, player.z + dz);
         if (placeProp(kind, q.x, q.z) && lit) fireAt(q.x, q.z, 0.3);
       }
     }),
@@ -1173,9 +1181,9 @@ function build() {
     el('p', 'dv-info', S.artifactsNote),
     btn(S.showOptions, () => {
       closeDev();
-      showArtifactGallery(G.current, player.x, player.z);
+      showArtifactGallery(G.room.current, player.x, player.z);
     }),
-    btn(S.takeOptions, () => removeArtifactGallery(G.current)),
+    btn(S.takeOptions, () => removeArtifactGallery(G.room.current)),
   );
 
   // creatures made in Tripo and animated in code (docs/creatures.md): one stood ahead of the mage, walking, roaring, resting
@@ -1185,15 +1193,19 @@ function build() {
     ...Object.keys(CREATURES).map((id) =>
       btn(S.creatureHere(S.creatureNames[id] ?? id), () => {
         closeDev();
-        const at = freeSpotNear(G.current, player.x + CFG.creatures.standSide, player.z + CFG.creatures.standSouth);
-        void showCreature(id, G.current, at.x, at.z);
+        const at = freeSpotNear(
+          G.room.current,
+          player.x + CFG.creatures.standSide,
+          player.z + CFG.creatures.standSouth,
+        );
+        void showCreature(id, G.room.current, at.x, at.z);
       }),
     ),
     btn(S.roarNow, () => {
       closeDev();
       roarNow();
     }),
-    btn(S.takeOptions, () => takeCreatures(G.current)),
+    btn(S.takeOptions, () => takeCreatures(G.room.current)),
   );
 
   // the coin faces (2026-10-02, the owner's coins): every face side by side ahead of the mage, as the room draws them
@@ -1213,9 +1225,9 @@ function build() {
     el('p', 'dv-info', S.jellyNote),
     btn(S.showOptions, () => {
       closeDev();
-      showJellyLooks(G.current, player.x, player.z);
+      showJellyLooks(G.room.current, player.x, player.z);
     }),
-    btn(S.takeOptions, () => removeModelOptions(G.current)),
+    btn(S.takeOptions, () => removeModelOptions(G.room.current)),
   );
 
   // the bosses built in code (M4 onwards): every one ahead of the mage
@@ -1238,9 +1250,9 @@ function build() {
     ),
     btn(S.showOptions, () => {
       closeDev();
-      showBossLooks(G.current, player.x, player.z);
+      showBossLooks(G.room.current, player.x, player.z);
     }),
-    btn(S.takeOptions, () => removeModelOptions(G.current)),
+    btn(S.takeOptions, () => removeModelOptions(G.room.current)),
   );
   // M7 step 7: the townspeople's ten figures, for the owner's review: in a row ahead of the mage, gesturing in turn
   const tg = section(pages.galleries, S.townGallery);
@@ -1268,9 +1280,9 @@ function build() {
     ),
     btn(S.showOptions, () => {
       closeDev();
-      showBestiary(G.current, player.x, player.z);
+      showBestiary(G.room.current, player.x, player.z);
     }),
-    btn(S.takeOptions, () => removeModelOptions(G.current)),
+    btn(S.takeOptions, () => removeModelOptions(G.room.current)),
   );
   // spell effect options (looks only): each plays one cast over and over, ahead of the mage
   const fx = section(pages.galleries, S.effects);
@@ -1278,9 +1290,9 @@ function build() {
     el('p', 'dv-info', EFFECT_OPTIONS.map((o) => DEV_STR.effectOptions[o.id].name).join(', ')),
     btn(S.showOptions, () => {
       closeDev();
-      showEffectOptions(G.current, player.x, player.z);
+      showEffectOptions(G.room.current, player.x, player.z);
     }),
-    btn(S.takeOptions, () => removeEffectOptions(G.current)),
+    btn(S.takeOptions, () => removeEffectOptions(G.room.current)),
   );
 
   // start something: a test room in a variant, a boss fight, a new run
@@ -1409,7 +1421,7 @@ function build() {
         toast(S.noShade, 2);
         return;
       }
-      if (G.current.plan.id !== i.room) {
+      if (G.room.current.plan.id !== i.room) {
         warp(i.room);
       }
       closeDev();
@@ -1432,8 +1444,8 @@ function build() {
   for (const id of SHADE_IDS) {
     shRow.append(
       btn(S.shadeHere(STR.shades.names[id]), () => {
-        const p = freeSpotNear(G.current, player.x, player.z - 1.6);
-        layShade(id, G.current, p.x, p.z);
+        const p = freeSpotNear(G.room.current, player.x, player.z - 1.6);
+        layShade(id, G.room.current, p.x, p.z);
         closeDev();
       }),
     );
@@ -1615,7 +1627,7 @@ function build() {
 
 /** Bring the parts that change up to date: the info line, god mode, held artifacts, this floor's rooms. */
 function refresh() {
-  const cur = G.current;
+  const cur = G.room.current;
   info.textContent = S.info(G.run.seed, G.run.floor + 1, cur.plan.id, S.roomNames[cur.type] ?? cur.type);
   godBtn.textContent = DEV.god ? S.godOn : S.godOff;
   godBtn.classList.toggle('on', DEV.god);

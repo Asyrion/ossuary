@@ -487,7 +487,7 @@ export function enterTheme(room: Room, firstVisit: boolean, spawned: Enemy[]) {
 /** An obol taken (M4.1): in the gilded treasury, every guardian still standing wakes at once. */
 export function goldTaken(room: Room) {
   if (room.theme?.twist !== 'guardians' || !room.locked) return;
-  const statues = G.enemies.filter((e) => e.statue && e.asleep && !e.dead);
+  const statues = G.room.enemies.filter((e) => e.statue && e.asleep && !e.dead);
   if (!statues.length) return;
   for (const e of statues) {
     e.asleep = false;
@@ -508,11 +508,11 @@ let riseT = 0,
   drownT = 0,
   drowned = 0;
 export function updateThemes(dt: number) {
-  const room = G.current,
+  const room = G.room.current,
     twist = room.theme?.twist;
   // sleepers wake when the mage comes close (a hit wakes them in damageEnemy)
   if ((zzT -= dt) <= 0) zzT = 0.7;
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (e.entombed && !e.asleep) {
       // the ice gives: a hit, or fire
       e.group.remove(e.entombed);
@@ -537,7 +537,7 @@ export function updateThemes(dt: number) {
   if (
     twist === 'risingBones' &&
     room.locked &&
-    G.enemies.some((e) => !e.dead) &&
+    G.room.enemies.some((e) => !e.dead) &&
     risen < C.riseMost &&
     (riseT -= dt) <= 0
   ) {
@@ -557,8 +557,8 @@ export function updateThemes(dt: number) {
 
 /** The ferry landing: while its fight lasts, the drowned climb out of the river, one at a time, until it is frozen. */
 function updateDrowned(dt: number) {
-  const room = G.current;
-  if (room.theme?.twist !== 'drowned' || !room.locked || !G.enemies.some((e) => !e.dead) || drowned >= C.drownMost)
+  const room = G.room.current;
+  if (room.theme?.twist !== 'drowned' || !room.locked || !G.room.enemies.some((e) => !e.dead) || drowned >= C.drownMost)
     return;
   if ((drownT -= dt) > 0) return;
   drownT = C.drownEvery;
@@ -608,18 +608,18 @@ export function caveIn(room: Room, x: number, z: number) {
     tick();
     after(C.caveDelay + i * 0.15, () => {
       room.group.remove(shadow);
-      if (G.current !== room) return;
+      if (G.room.current !== room) return;
       burst(s.x, 0.8, s.z, 0x6b625a, 16, 2.8, 0.09);
       burst(s.x, 0.2, s.z, 0x8a8278, 10, 1.2, 0.08);
       Sfx.at(s.x, s.z).rubble();
       G.fx.shake = Math.max(G.fx.shake, 0.18);
-      for (const e of G.enemies)
+      for (const e of G.room.enemies)
         if (!e.dead && !e.hidden && e.spawn <= 0 && Math.hypot(e.x - s.x, e.z - s.z) < 0.8 + e.r)
           damageEnemy(e, C.caveDamage, 0, 0, 0, 'spell');
       if (Math.hypot(player.x - s.x, player.z - s.z) < 0.7) hurtPlayer(1, s.x, s.z);
       else if (
         room.template.tiles[s.r][s.c] === 'floor' &&
-        !G.enemies.some((e) => !e.dead && Math.hypot(e.x - s.x, e.z - s.z) < 0.7)
+        !G.room.enemies.some((e) => !e.dead && Math.hypot(e.x - s.x, e.z - s.z) < 0.7)
       )
         addProp(room, 'rubble', s.c, s.r);
     });

@@ -76,7 +76,7 @@ export function updateWarePanel() {
   if (!el) return;
   let near: WareSpot | null = null,
     best = CFG.merchant.panelReach + player.r;
-  for (const w of G.current.wares ?? []) {
+  for (const w of G.room.current.wares ?? []) {
     if (w.sold) continue;
     const d = Math.hypot(player.x - w.x, player.z - w.z);
     if (d < best) {

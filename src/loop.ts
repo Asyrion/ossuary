@@ -101,7 +101,7 @@ export function step(dt: number) {
       updateThrows(dt);
       checkLevelUp(dt); // (M6: a level waiting opens its screen once the fight is won)
       // in rooms larger than the view the camera follows the mage, stopping at the walls
-      const t = cameraTargetFor(G.current, player.x, player.z),
+      const t = cameraTargetFor(G.room.current, player.x, player.z),
         k = 1 - Math.exp(-8 * dt);
       camTarget.x += (t.x - camTarget.x) * k;
       camTarget.z += (t.z - camTarget.z) * k;
@@ -142,9 +142,9 @@ function updateWorldFx(dt: number, now: number) {
     updateMechanisms(dt);
     updateWardShields(G.flow.clock);
   } // burning, briars, spores; sleepers, rising bones; bells, runes, censers
-  devStep(dt, G.current, G.flow.state === 'play' && !G.flow.trans); // (the dev galleries, when dev code stood any)
+  devStep(dt, G.room.current, G.flow.state === 'play' && !G.flow.trans); // (the dev galleries, when dev code stood any)
   const tf = 0.92 + Math.sin(now * 13) * 0.05 + Math.sin(now * 23) * 0.04;
-  updateTorchLights(G.current.torches, player.x, player.z, dt, tf);
+  updateTorchLights(G.room.current.torches, player.x, player.z, dt, tf);
   G.fx.shake = Math.max(0, G.fx.shake - dt * 1.4);
   updateInsight(G.flow.state === 'play' ? dt : 0); // (M6: insight's streaks run to the hand)
   uiHooks.endOfStep(dt);

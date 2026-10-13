@@ -90,7 +90,7 @@ export function buildSerpent(e: Enemy, tx = 0, tz = -1) {
   e.group.add(ripple);
   const len = body.n * body.spacing + 1,
     trail: P3[] = [],
-    b = G.current.bounds,
+    b = G.room.current.bounds,
     wall = 0.8; // (no deeper than the wall is thick: beyond it the tail would show above the wall)
   for (let k = 12; k >= 0; k--)
     trail.push([
@@ -111,7 +111,7 @@ export function buildSerpent(e: Enemy, tx = 0, tz = -1) {
     trap: null,
   };
   coils.set(e, k);
-  if (!jellyAt(e.x, e.z)) pourJelly(G.current, e.x, e.z, C.flood);
+  if (!jellyAt(e.x, e.z)) pourJelly(G.room.current, e.x, e.z, C.flood);
   e.body.position.y = 0.45;
   e.state = 'open';
   e.st = 0.9;
@@ -123,7 +123,7 @@ export function buildSerpent(e: Enemy, tx = 0, tz = -1) {
 export function nearestJelly(x: number, z: number) {
   let best: { x: number; z: number } | null = null,
     bd = Infinity;
-  for (const p of G.current.pools ?? [])
+  for (const p of G.room.current.pools ?? [])
     if (p.jelly && p.state === 'still')
       for (const t of p.tiles) {
         const d = Math.hypot(t.x - x, t.z - z);
@@ -205,7 +205,7 @@ function trapped(e: Enemy, k: Coil, by: 'shock' | 'frost') {
 }
 /** Spit a glob of jelly at (x, z): half a heart to the mage where it lands, and a puddle of jelly there. */
 function glob(e: Enemy, k: Coil, x: number, z: number) {
-  const room = G.current;
+  const room = G.room.current;
   lob(
     room,
     e.x,
@@ -215,7 +215,7 @@ function glob(e: Enemy, k: Coil, x: number, z: number) {
     SERPENT.jelly,
     C.spit.flight,
     (lx, lz) => {
-      if (G.current !== room) return;
+      if (G.room.current !== room) return;
       burst(lx, 0.15, lz, SERPENT.jelly, 10, 1.8, 0.05);
       Sfx.at(lx, lz).glob();
       if (Math.hypot(player.x - lx, player.z - lz) < 0.6 + player.r) hurtPlayer(1, lx, lz);
@@ -481,9 +481,9 @@ function pose(e: Enemy, k: Coil) {
 }
 /** Dev hook: the serpent's state, whether it is under, where it is, and the jelly in the room (tiles, frozen or not). */
 export function serpentInfo() {
-  const e = G.enemies.find((f) => f.type === 'serpent' && !f.dead),
+  const e = G.room.enemies.find((f) => f.type === 'serpent' && !f.dead),
     k = e && coils.get(e);
-  const jelly = (G.current.pools ?? []).filter((p) => p.jelly && p.state !== 'spent');
+  const jelly = (G.room.current.pools ?? []).filter((p) => p.jelly && p.state !== 'spent');
   return {
     serpent: k
       ? {

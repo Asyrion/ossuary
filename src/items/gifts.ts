@@ -29,7 +29,7 @@ const RUNE = TRANSFORMS.runescribe.light,
 let struck = 0;
 /** A cantrip bolt of `damage` struck foe `e` at (x, z): the Pyromancer's embers, the Stormcaller's leap, the Runescribe's rune. */
 export function cantripStruck(e: Enemy, x: number, z: number, damage: number) {
-  if (has('emberStrike')) layFire(G.current, x, z, T.ember.time * boonMul('bankedCoals', 'groundMul'), 'mage'); // (the mage's own: they burn foes, never the mage; M6: Banked Coals keeps them longer)
+  if (has('emberStrike')) layFire(G.room.current, x, z, T.ember.time * boonMul('bankedCoals', 'groundMul'), 'mage'); // (the mage's own: they burn foes, never the mage; M6: Banked Coals keeps them longer)
   if (has('stormLeap') && ++struck >= T.storm.every) {
     struck = 0;
     leap(e, damage * T.storm.share);
@@ -41,7 +41,7 @@ export function cantripStruck(e: Enemy, x: number, z: number, damage: number) {
 function leap(from: Enemy, damage: number) {
   let to: Enemy | undefined,
     best = T.storm.reach;
-  for (const o of G.enemies) {
+  for (const o of G.room.enemies) {
     if (o === from || o.dead || o.spawn > 0 || o.hidden) continue;
     const d = Math.hypot(o.x - from.x, o.z - from.z);
     if (d < best) {
@@ -61,15 +61,15 @@ function leap(from: Enemy, damage: number) {
 
 /** The Runescribe's rune: laid where the bolt struck, glowing, and bursting a moment later on the foes round it. */
 function layRune(x: number, z: number, damage: number) {
-  const room = G.current,
+  const room = G.room.current,
     R = T.rune;
   ringFx(x, 0.05, z, RUNE, 0.3, 0.36, R.delay, true, 0.9);
   after(R.delay, () => {
-    if (G.current !== room) return;
+    if (G.room.current !== room) return;
     ringFx(x, 0.05, z, RUNE, 0.2, R.reach, CFG.spellFx.flash * 1.5, true);
     burst(x, 0.3, z, RUNE, 10, 2, 0.04);
     Sfx.at(x, z).runeBurst();
-    for (const e of [...G.enemies]) {
+    for (const e of [...G.room.enemies]) {
       if (e.dead || e.spawn > 0 || e.hidden) continue;
       const d = Math.hypot(e.x - x, e.z - z);
       if (d > R.reach + e.r) continue;
@@ -111,7 +111,7 @@ export function blink(move: { x: number; z: number }) {
   }
   const l = Math.hypot(move.x, move.z),
     dir = l > 0.3 ? { x: move.x / l, z: move.z / l } : player.aim;
-  const solid = blockers(G.current, 'player', has('pitWalker')),
+  const solid = blockers(G.room.current, 'player', has('pitWalker')),
     B = T.blink,
     from = { x: player.x, z: player.z };
   const probe = { x: player.x, z: player.z, r: player.r };

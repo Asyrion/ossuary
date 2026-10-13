@@ -98,7 +98,7 @@ export function placeGlyph() {
     cooldown = 0.3;
     return false;
   }
-  if (G.current.type === 'merchant') {
+  if (G.room.current.type === 'merchant') {
     // the shop is warded: the chalk won't take, and nothing is spent
     burst(player.x, 0.1, player.z, WARD_COLOR, 8, 1.4, 0.04);
     Sfx.wardTink();
@@ -124,7 +124,7 @@ export function placeGlyph() {
   gl.position.y = 0.15;
   g.add(rune, reach, gl);
   scene.add(g);
-  G.glyphs.push({
+  G.room.glyphs.push({
     x: player.x,
     z: player.z,
     t: 0,
@@ -152,7 +152,7 @@ export const blastAt = (x: number, z: number, spare = false) =>
 
 /** The first live glyph within `r` of (x, z). */
 export function glyphNear(x: number, z: number, r = C.boltReach) {
-  return G.glyphs.find((gl) => !gl.spent && Math.hypot(gl.x - x, gl.z - z) < r);
+  return G.room.glyphs.find((gl) => !gl.spent && Math.hypot(gl.x - x, gl.z - z) < r);
 }
 
 /** Set a glyph off now (a bolt struck it, or its fuse ran out). */
@@ -169,8 +169,8 @@ const touches = (b: Box, x: number, z: number, r: number) =>
   Math.hypot(x - clamp(x, b.x - b.hx, b.x + b.hx), z - clamp(z, b.z - b.hz, b.z + b.hz)) < r;
 
 function blast(x: number, z: number, color: number, R: number, spare = false) {
-  const room = G.current;
-  for (const e of G.enemies) {
+  const room = G.room.current;
+  for (const e of G.room.enemies) {
     if (e.dead || e.spawn > 0 || e.hidden) continue;
     const dx = e.x - x,
       dz = e.z - z,
@@ -198,21 +198,22 @@ function blast(x: number, z: number, color: number, R: number, spare = false) {
   vigilHooks.landed('blast', x, z, R); // (M7 step 6: a glyph's blast breaks any chain on a chained shade)
   blastProps(room, x, z, R); // rubble cleared, briars and cobwebs torn away
   caveIn(room, x, z); // in the collapsed crypt, more of the ceiling comes down
-  for (const p of G.pickups)
+  for (const p of G.room.pickups)
     if (isContainer(p.kind) && !p.opened && Math.hypot(p.x - x, p.z - z) < R + 0.3) openContainer(p, true); // chests burn
   for (const d of room.doors) if (d.seal?.sealed && touches(d.box, x, z, R)) blastSeal(d.seal); // a vault's ward cracks
   for (const d of room.doors) if (d.secret && !d.secret.open && touches(d.box, x, z, R)) openSecret(d); // a cracked wall breaks open
   blastWisp(x, z, R); // a shrine's curse, inside the circle
-  for (let i = G.shots.length - 1; i >= 0; i--) {
+  for (let i = G.room.shots.length - 1; i >= 0; i--) {
     // enemy shots in reach unravel
-    const s = G.shots[i];
+    const s = G.room.shots[i];
     if (Math.hypot(s.x - x, s.z - z) < R) {
       scene.remove(s.mesh);
-      G.shots.splice(i, 1);
+      G.room.shots.splice(i, 1);
       burst(s.x, s.y, s.z, s.color, 3, 1, 0.04);
     }
   }
-  for (const o of G.glyphs) if (!o.spent && Math.hypot(o.x - x, o.z - z) <= R) o.fuse = Math.min(o.fuse, C.chainDelay);
+  for (const o of G.room.glyphs)
+    if (!o.spent && Math.hypot(o.x - x, o.z - z) <= R) o.fuse = Math.min(o.fuse, C.chainDelay);
   if (!spare && Math.hypot(player.x - x, player.z - z) < R + player.r * 0.5) {
     // caught in it: the Warding Band turns it aside
     if (player.stats.effects.has('glyphWard')) {
@@ -243,7 +244,7 @@ function blast(x: number, z: number, color: number, R: number, spare = false) {
 
 export function updateGlyphs(dt: number) {
   cooldown -= dt;
-  for (const gl of G.glyphs) {
+  for (const gl of G.room.glyphs) {
     if (gl.spent) continue;
     gl.t += dt;
     gl.fuse -= dt;
@@ -266,7 +267,7 @@ export function updateGlyphs(dt: number) {
     (gl.reach.material as THREE.MeshBasicMaterial).opacity = 0.1 + 0.25 * k + 0.1 * flicker;
     gl.glow.material.opacity = 0.35 + 0.55 * flicker * (0.4 + k * 0.6);
   }
-  if (G.glyphs.some((gl) => gl.spent)) G.glyphs = G.glyphs.filter((gl) => !gl.spent);
+  if (G.room.glyphs.some((gl) => gl.spent)) G.room.glyphs = G.room.glyphs.filter((gl) => !gl.spent);
   for (let i = waves.length - 1; i >= 0; i--) {
     const w = waves[i];
     w.t += dt;
@@ -285,7 +286,7 @@ export function updateGlyphs(dt: number) {
 
 /** Remove every glyph and shockwave (leaving a room, a new floor). */
 export function clearGlyphs() {
-  for (const gl of G.glyphs) {
+  for (const gl of G.room.glyphs) {
     scene.remove(gl.g);
     disposeTree(gl.g);
   }
@@ -293,7 +294,7 @@ export function clearGlyphs() {
     scene.remove(w.g);
     disposeTree(w.g);
   }
-  G.glyphs.length = 0;
+  G.room.glyphs.length = 0;
   waves.length = 0;
   cooldown = 0;
 }

@@ -196,7 +196,7 @@ export function updateVigil(dt: number) {
   updateUnfold(dt); // (M7 step 9) // (M7 step 7: the townspeople, even while one talks)
   if (G.flow.state !== 'play') return;
   const h = here,
-    room = G.current;
+    room = G.room.current;
   h.t += dt;
   for (const v of h.veils) moveVeil(v, h.t);
   const b = h.boat,
@@ -270,7 +270,7 @@ hearLanding((school, x, z, r) => {
     if (
       !bar.open &&
       bar.school === school &&
-      bar.room === G.current &&
+      bar.room === G.room.current &&
       Math.hypot(bar.x - x, bar.z - z) < C().barCatch + r
     )
       openWay(bar);
@@ -322,7 +322,7 @@ export function leaveVigil() {
 /** For the dev menu and the tests: where the mage is, the candles lit, the lectern and boat. */
 export function vigilInfo() {
   if (!here) return { here: false as const };
-  const name = VIGIL.rooms[G.floor.rooms.indexOf(G.current)]?.name ?? null;
+  const name = VIGIL.rooms[G.floor.rooms.indexOf(G.room.current)]?.name ?? null;
   return {
     here: true as const,
     room: name,

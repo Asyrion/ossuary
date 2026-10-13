@@ -34,7 +34,7 @@ function spendSoul(): Soul | null {
   burst(player.x, 1, player.z, SOUL_COLOR[kind], 14, 2.2, 0.05);
   if (kind === 'black') {
     // it goes out in a spill of shadow over every foe in the room
-    for (const e of G.enemies)
+    for (const e of G.room.enemies)
       if (!e.dead && e.spawn <= 0 && !e.hidden) {
         inflict(e, { hex: CFG.souls.blackHex });
         burst(e.x, 0.8, e.z, SOUL_COLOR.black, 6, 1.4, 0.04);

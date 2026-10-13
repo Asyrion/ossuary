@@ -61,7 +61,7 @@ export function buildDragon(e: Enemy) {
   const L = dragonHead(),
     P = L.parts,
     body = dragonBody(),
-    room = G.current;
+    room = G.room.current;
   e.mats = mergeRig(L.group, L.idle, 'boss:dragonHead', [P.eye, P.ring, P.head, P.jaw, P.maw]);
   e.mats.push(...body.mats);
   for (const m of e.mats) m.userData.base = m.emissive.clone();
@@ -213,8 +213,8 @@ export function updateDragon(e: Enemy, dt: number): number | undefined {
       r.t = Math.min(1, r.t + dt / C.rise.time);
       r.g.position.y = -C.rise.depth * (1 - ease(r.t));
       if (Math.random() < dt * 25) {
-        const x = r.g.position.x + G.current.cx,
-          z = r.g.position.z + G.current.cz;
+        const x = r.g.position.x + G.room.current.cx,
+          z = r.g.position.z + G.room.current.cz;
         burst(x + (Math.random() - 0.5) * 0.8, 0.1, z + (Math.random() - 0.5) * 0.8, 0x8a8070, 2, 1.4, 0.06);
       }
       if (r.t >= 1) G.fx.shake = Math.max(G.fx.shake, 0.15);
@@ -384,7 +384,7 @@ export function knockDragon(e: Enemy) {
   const k = coils.get(e);
   if (!k || !k.at || !ON_PILLAR.has(e.state) || e.dead) return false;
   const p = k.at,
-    room = G.current,
+    room = G.room.current,
     to = Math.atan2(room.cz - p.z, room.cx - p.x),
     at = freeSpotNear(room, p.x + Math.cos(to) * 1.4, p.z + Math.sin(to) * 1.4);
   const pile = heap(at.x, at.z, to);
@@ -404,18 +404,18 @@ export function knockDragon(e: Enemy) {
 }
 /** A glyph's blast at (x, z) reaching `r`: the dragon on a pillar whose foot it reaches is knocked off. */
 export function dragonBlast(x: number, z: number, r: number) {
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     const k = e.type === 'dragon' ? coils.get(e) : undefined;
     if (k?.at && Math.hypot(k.at.x - x, k.at.z - z) < r + 0.4) knockDragon(e);
   }
 }
 /** A bell rung in the room: the dragon loses its hold. */
 export function dragonBell() {
-  for (const e of G.enemies) if (e.type === 'dragon') knockDragon(e);
+  for (const e of G.room.enemies) if (e.type === 'dragon') knockDragon(e);
 }
 /** Dev hook: the dragon's pillars, whether it is on one, and how high its head is. */
 export function dragonInfo() {
-  const e = G.enemies.find((f) => f.type === 'dragon'),
+  const e = G.room.enemies.find((f) => f.type === 'dragon'),
     k = e && coils.get(e);
   return k
     ? {

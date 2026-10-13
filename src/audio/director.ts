@@ -55,8 +55,8 @@ function moodNow(): Mood {
   if (G.flow.state === 'dying' || player.dead) return 'quiet';
   if (G.flow.state === 'end') return 'title';
   if (player.hp > 0 && player.hp <= CFG.audio.lowHp) return 'low';
-  if (G.enemies.some((e) => e.isBoss && !e.dead)) return 'boss';
-  return G.current?.locked ? 'fight' : 'explore';
+  if (G.room.enemies.some((e) => e.isBoss && !e.dead)) return 'boss';
+  return G.room.current?.locked ? 'fight' : 'explore';
 }
 
 /** One step: what should play, and the next bars and one-shots scheduled. */
@@ -75,7 +75,7 @@ export function updateAudio() {
     return;
   }
   const mood = moodNow(),
-    room = G.current,
+    room = G.room.current,
     floor = G.run.floor;
   if (daylightOn()) {
     // (M7 step 3: the cave mouth at dawn, and the end screen over it: the wind, the falls, the birds, and its piece)

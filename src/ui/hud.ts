@@ -184,7 +184,7 @@ export function roomFinished(r: Room) {
   if (!r.visited || !r.cleared || r.locked || OWN_MARK.has(r.type)) return false;
   if (r.spots.some((s) => !s.taken) || r.pages?.some((p) => !p.gone)) return false;
   const b = r.bounds;
-  return !G.pickups.some(
+  return !G.room.pickups.some(
     (p) => p.x > b.minX && p.x < b.maxX && p.z > b.minZ && p.z < b.maxZ && !(p.contents && p.opened),
   );
 }
@@ -208,7 +208,7 @@ export function renderMinimap() {
     cw = 38,
     ch = 24,
     gap = 6,
-    cur = G.current;
+    cur = G.room.current;
   mg.clearRect(0, 0, W, H);
   const mid = (r: typeof cur) => ({
     gx: r.plan.cells.reduce((a, c) => a + c.gx, 0) / r.plan.cells.length,

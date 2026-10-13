@@ -17,7 +17,7 @@ const R = () => CFG.alchemy.reagent;
 const more = () => (DEV.reagents ? Infinity : player.stats.effects.has('satchel') ? R().satchelMul : 1); // (the dev menu: always)
 function drop(id: ReagentId | null, x: number, z: number) {
   if (!id) return;
-  const p = freeSpotNear(G.current, x, z);
+  const p = freeSpotNear(G.room.current, x, z);
   spawnPickup('reagent', p.x, p.z, { reagent: id, rise: true });
 }
 

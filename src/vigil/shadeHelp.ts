@@ -76,7 +76,7 @@ export function helpNewFloor() {
 }
 /** A room won: the sexton digs, now and then. */
 export function helpRoomCleared(room: Room) {
-  if (!walking('dig') || room !== G.current) return;
+  if (!walking('dig') || room !== G.room.current) return;
   const r = Rng.from(G.run.seed, 'sexton' + G.run.floor + ':' + room.plan.id);
   if (r.next() >= H().dig.chance) return;
   const x = player.x + 0.6,
@@ -95,7 +95,7 @@ const alive = (e: Enemy) => !e.dead && e.spawn <= 0 && !e.hidden;
 function nearest(reach: number) {
   let best: Enemy | null = null,
     bd = reach;
-  for (const e of G.enemies)
+  for (const e of G.room.enemies)
     if (alive(e)) {
       const d = Math.hypot(e.x - player.x, e.z - player.z);
       if (d < bd) {
@@ -135,8 +135,8 @@ export function updateShadeHelp(dt: number, now: number, acting: boolean) {
     );
   });
   if (!acting || !G.run.walking.length) return;
-  const room = G.current,
-    fight = G.enemies.some(alive);
+  const room = G.room.current,
+    fight = G.room.enemies.some(alive);
   if (fight && walking('storm') && due('storm', H().storm.every, dt)) {
     const e = nearest(H().storm.reach);
     if (e) {
@@ -148,7 +148,7 @@ export function updateShadeHelp(dt: number, now: number, acting: boolean) {
     }
   }
   if (fight && walking('roots') && due('roots', H().roots.every, dt)) {
-    const near = G.enemies.filter((e) => alive(e) && Math.hypot(e.x - player.x, e.z - player.z) < H().roots.reach);
+    const near = G.room.enemies.filter((e) => alive(e) && Math.hypot(e.x - player.x, e.z - player.z) < H().roots.reach);
     for (const e of near) inflict(e, { root: H().roots.root }, 'mage');
     if (near.length) acts('roots', near[0].x, near[0].z);
   }
@@ -167,18 +167,18 @@ export function updateShadeHelp(dt: number, now: number, acting: boolean) {
   }
   if (walking('turn') && turnedIn !== room) {
     // the first shot a room that would reach the mage
-    const i = G.shots.findIndex((s) => Math.hypot(s.x - player.x, s.z - player.z) < H().turn.reach + s.r);
+    const i = G.room.shots.findIndex((s) => Math.hypot(s.x - player.x, s.z - player.z) < H().turn.reach + s.r);
     if (i >= 0) {
-      const s = G.shots[i];
+      const s = G.room.shots[i];
       scene.remove(s.mesh);
-      G.shots.splice(i, 1);
+      G.room.shots.splice(i, 1);
       burst(s.x, s.y, s.z, 0xe8dcc0, 10, 1.4, 0.04);
       turnedIn = room;
       acts('turn', s.x, s.z);
     }
   }
   if (walking('ring') && due('ring', H().ring.every, dt)) {
-    const near = G.shots.filter((s) => Math.hypot(s.x - player.x, s.z - player.z) < H().ring.reach);
+    const near = G.room.shots.filter((s) => Math.hypot(s.x - player.x, s.z - player.z) < H().ring.reach);
     for (const s of near) {
       s.vx *= H().ring.stall;
       s.vz *= H().ring.stall;
@@ -190,7 +190,7 @@ export function updateShadeHelp(dt: number, now: number, acting: boolean) {
   }
   if (walking('hex') && hexedIn !== room) {
     // the first foe struck in a room
-    const e = G.enemies.find((f) => alive(f) && f.hp < f.maxHp && !f.isBoss);
+    const e = G.room.enemies.find((f) => alive(f) && f.hp < f.maxHp && !f.isBoss);
     if (e) {
       inflict(e, { hex: H().hex.hex }, 'mage');
       hexedIn = room;

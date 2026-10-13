@@ -156,10 +156,10 @@ export function installHooks() {
     },
     player,
     get enemies() {
-      return G.enemies;
+      return G.room.enemies;
     },
     get current() {
-      return G.current;
+      return G.room.current;
     },
     get seed() {
       return G.run.seed;
@@ -171,7 +171,7 @@ export function installHooks() {
       return G.run;
     },
     get bolts() {
-      return G.bolts;
+      return G.room.bolts;
     },
     rooms: () => G.floor.rooms,
     startGame,
@@ -260,7 +260,7 @@ export function installHooks() {
     },
     /** The current floor as text: S start, B boss, T treasure, # normal, @ you. */
     map() {
-      return G.run.plan ? planToText(G.run.plan, G.current.plan.id) : '';
+      return G.run.plan ? planToText(G.run.plan, G.room.current.plan.id) : '';
     },
     /** Run the simulation for `sec` seconds in fixed steps; optionally render once afterwards. */
     sim(sec: number, render = false) {
@@ -282,7 +282,7 @@ export function installHooks() {
     useAssets: (on: boolean) => useAssets(on),
     /** The kinds of wall, floor, wall light and brazier the room the mage is in drew (the room kit's variety). */
     get kinds() {
-      return { ...G.current.look.kinds };
+      return { ...G.room.current.look.kinds };
     },
     /** Force kinds on every room of this floor, e.g. forceKinds({ wall: 'ashlar' }) ({} to draw per room again); built again. */
     forceKinds: (k: Partial<Kinds>) => forceKinds(k),
@@ -296,26 +296,26 @@ export function installHooks() {
     },
     /** Every artifact floating ahead of the mage, as the room kit builds them (the dev menu's artifact gallery); how many;
         and taken away again. */
-    artifactGallery: () => showArtifactGallery(G.current, player.x, player.z),
-    takeArtifactGallery: () => removeArtifactGallery(G.current),
+    artifactGallery: () => showArtifactGallery(G.room.current, player.x, player.z),
+    takeArtifactGallery: () => removeArtifactGallery(G.room.current),
     /** Take the bosses, the bestiary and Dr. Jelly stood by the galleries below away again. */
-    takeModelOptions: () => removeModelOptions(G.current),
+    takeModelOptions: () => removeModelOptions(G.room.current),
     /** M4.5: stand the bestiary's candidates (every one, or those named) ahead of the mage, in rows by kind. */
-    bestiaryOptions: (ids?: string[]) => showBestiary(G.current, player.x, player.z, ids),
+    bestiaryOptions: (ids?: string[]) => showBestiary(G.room.current, player.x, player.z, ids),
     /** The bosses built in code (the Hollow Warden's looks, M4, and floors 4 and 5's, M4.1): stand them ahead of the mage; the look the Warden wears in its fight, and choosing it. */
-    bossLooks: (ids?: string[]) => showBossLooks(G.current, player.x, player.z, ids),
+    bossLooks: (ids?: string[]) => showBossLooks(G.room.current, player.x, player.z, ids),
     /** For each fantasy look: the parts its foe's behaviour moves that the look lacks, and whether its parts are known. */
     lookContract: () => lookContract(),
     /** Dr. Jelly (2026-10-02, the plague doctor): stood ahead of the mage giving, a gift handed over in this laboratory,
         and what he is giving now. */
-    jellyLooks: () => showJellyLooks(G.current, player.x, player.z),
+    jellyLooks: () => showJellyLooks(G.room.current, player.x, player.z),
     jellyGive: (gift: Gift) => jellyGives(gift),
     get giving() {
       return givingNow();
     },
     /** Spell effect options (looks only): play them (or those named) ahead of the mage; take them away again. */
-    effectOptions: (ids?: string[]) => showEffectOptions(G.current, player.x, player.z, ids),
-    takeEffectOptions: () => removeEffectOptions(G.current),
+    effectOptions: (ids?: string[]) => showEffectOptions(G.room.current, player.x, player.z, ids),
+    takeEffectOptions: () => removeEffectOptions(G.room.current),
     setPixelLook: (change: Partial<PixelLook>) => setPixelLook(change),
     /** Ahead of the mage: a plain and a sealed urn, and an artifact on a pedestal (one with a made model if any). */
     showAssets: () => showAssetsHere(),
@@ -353,15 +353,15 @@ export function installHooks() {
     /** Creatures made in Tripo and animated in code (docs/creatures.md): stand one ahead of the mage (resolves once it
         stands), what stands, a roar now, and all taken away. */
     showCreature: async (id = 'owlbear', side = CFG.creatures.standSide) => {
-      const at = freeSpotNear(G.current, player.x + side, player.z + CFG.creatures.standSouth);
-      await showCreature(id, G.current, at.x, at.z);
+      const at = freeSpotNear(G.room.current, player.x + side, player.z + CFG.creatures.standSouth);
+      await showCreature(id, G.room.current, at.x, at.z);
       return creaturesNow();
     },
     get creatures() {
       return creaturesNow();
     },
     roarNow: () => roarNow(),
-    takeCreatures: () => takeCreatures(G.current),
+    takeCreatures: () => takeCreatures(G.room.current),
     // the sounds played from files (data/sounds.json), each loaded and decoded: its seconds, or null where it failed
     soundFiles: async () => {
       const ctx = new OfflineAudioContext(1, 44100, 44100),
@@ -433,7 +433,8 @@ export function installHooks() {
     },
     findReactions: () => findEveryReaction(REACTION_IDS),
     forgetReactions: () => forgetReactions(),
-    reaction: (r: Reaction, x = player.x, z = player.z - 3) => setOffReaction(r, x, z).map((d) => G.enemies.indexOf(d)),
+    reaction: (r: Reaction, x = player.x, z = player.z - 3) =>
+      setOffReaction(r, x, z).map((d) => G.room.enemies.indexOf(d)),
     /** M4.10: the weaves and chains found (kept between runs); find them all or forget them; set one up ahead of the mage. */
     get weaves() {
       return [...weavesFound()];
@@ -467,12 +468,12 @@ export function installHooks() {
       layDevGround(kind, x, z, by);
     }, // (M4.7: ground left by a foe of kind `by`)
     foeGround(i: number) {
-      const e = G.enemies[i];
+      const e = G.room.enemies[i];
       return e && { pace: groundPace(e), at: e.inGround, slide: !!e.slide };
     }, // (M4.7: what the ground under foe i does to it)
     /** Strike the room's foe `i` for `dmg`, of `school` if given (M4: its weakness and resistance count). */
     hit: (i: number, dmg: number, school?: School, by: 'spell' | 'cantrip' = 'spell', dx = 0, dz = 0) => {
-      const e = G.enemies[i];
+      const e = G.room.enemies[i];
       if (e) damageEnemy(e, dmg, dx, dz, 0, by, school);
       return e?.hp;
     }, // (dx, dz: the way the blow travels)
@@ -517,7 +518,7 @@ export function installHooks() {
       return G.flow.clock;
     },
     inflict(status: Partial<Record<SpellStatus, number>>) {
-      for (const e of G.enemies) inflict(e, status);
+      for (const e of G.room.enemies) inflict(e, status);
     },
     /** Fire a foe's shot from (x, z) along (dx, dz) (a wall of ice stops it); seconds of the Static Mantle and of
         Wardlight left. */
@@ -542,17 +543,17 @@ export function installHooks() {
     /** Drop a grimoire page (of `id`, or a spell the mage doesn't know) at (x, z) or ahead of the mage; the pages
         in the room; the spells given up this run. */
     page(id?: string, x = player.x, z = player.z - 1.5) {
-      return dropPage(G.current, x, z, id)?.spell ?? null;
+      return dropPage(G.room.current, x, z, id)?.spell ?? null;
     },
     get pages() {
-      return G.current.pages ?? [];
+      return G.room.current.pages ?? [];
     },
     get forgotten() {
       return G.run.forgotten;
     },
     /** The water and oil in the room: kind, state, its tiles' centres. */
     get pools() {
-      return (G.current.pools ?? []).map((p) => ({
+      return (G.room.current.pools ?? []).map((p) => ({
         kind: p.kind,
         state: p.state,
         t: p.t,
@@ -568,20 +569,20 @@ export function installHooks() {
       return riteState();
     },
     get pickups() {
-      return G.pickups;
+      return G.room.pickups;
     },
     get glyphs() {
-      return G.glyphs;
+      return G.room.glyphs;
     },
     get shots() {
-      return G.shots;
+      return G.room.shots;
     },
     /** Put one of the rooms' objects down at (x, z) (on free floor), e.g. prop('cask'); the objects in the room. */
     prop(kind: PropKind, x = player.x, z = player.z - 1.5) {
       return !!placeProp(kind, x, z);
     },
     get props() {
-      return (G.current.props ?? []).map((b) => ({
+      return (G.room.current.props ?? []).map((b) => ({
         kind: b.prop.kind,
         x: b.x,
         z: b.z,
@@ -615,19 +616,19 @@ export function installHooks() {
           top: s.drink.total ? mostDrunk(s.drink) : null,
           guard: s.vault.waves?.[0]?.[0]?.kind ?? null,
         })),
-        foes: G.enemies
+        foes: G.room.enemies
           .filter((e) => e.ward && !e.dead)
           .map((e) => ({ type: e.type, fill: fullness(e.ward!.drink), top: mostDrunk(e.ward!.drink) })),
       };
     },
     wardFoe(i: number) {
-      const e = G.enemies[i];
+      const e = G.room.enemies[i];
       if (e) wardFoe(e);
       return !!e?.ward;
     },
     /** M4.2: the way the room's water runs (n, s, e, w or none) and how many waterfalls feed it. */
     get flow() {
-      return { dir: G.current.flow ?? null, falls: G.current.falls?.length ?? 0 };
+      return { dir: G.room.current.flow ?? null, falls: G.room.current.falls?.length ?? 0 };
     },
     /** M4.2: the Wandering Merchant rides into this room (`callWanderer()`), and whether the merchant is here, the wares out, and what. */
     callWanderer() {
@@ -674,8 +675,8 @@ export function installHooks() {
       return shadeInfo();
     },
     shadeHere: (id: string) => {
-      const p = freeSpotNear(G.current, player.x, player.z - 1.6);
-      layShade(id, G.current, p.x, p.z);
+      const p = freeSpotNear(G.room.current, player.x, player.z - 1.6);
+      layShade(id, G.room.current, p.x, p.z);
     },
     breakChains: () => breakAllChains(),
     freeShade: () => freeIt(),
@@ -738,7 +739,7 @@ export function installHooks() {
         sets lodestones leaping. */
     element: (kind: StatusKind | 'sanct' | 'hex', x = player.x, z = player.z - 1.5) => elementDev(kind, x, z),
     get spores() {
-      return (G.current.spores ?? []).length;
+      return (G.room.current.spores ?? []).length;
     },
     /** Fire reaches (x, z) and `r` round it, as a burning bolt or a blast would: oil, roots, briars, webs, spores. */
     burn(x: number, z: number, r = 0) {
@@ -816,7 +817,7 @@ export function installHooks() {
     takeBargain: (i = 0) => takeBargainCard(i),
     refuseBargain: () => levelEsc(),
     get waystone() {
-      const w = G.current.waystone;
+      const w = G.room.current.waystone;
       return w
         ? {
             x: w.x,
@@ -831,7 +832,7 @@ export function installHooks() {
         : null;
     },
     raiseWaystone: (x = player.x, z = player.z - 2.2) => {
-      const w = raiseWaystone(G.current, x, z);
+      const w = raiseWaystone(G.room.current, x, z);
       w.rise = Math.max(w.rise, 0.999);
       return true;
     },
@@ -862,7 +863,7 @@ export function installHooks() {
     // M5 step 6: Dr. Jelly's laboratory: the table's screen (open, tab, mortar), the room's table and Dr. Jelly, the recipes
     // known; open or close the table, brew two reagents at it, buy a recipe, have Dr. Jelly look at a potion
     get lab() {
-      const l = G.current.lab;
+      const l = G.room.current.lab;
       return {
         ...labNow(),
         here: !!l,
@@ -877,7 +878,7 @@ export function installHooks() {
     // M5 step 7: the jelly serpent: its state, whether it is under, where, its trap, and the jelly in the room (tiles, frozen);
     // the vat's cracks and whether it is broken; crack the vat window as a bolt does, or let the serpent out at once
     get serpent() {
-      const l = G.current.lab;
+      const l = G.room.current.lab;
       return {
         ...serpentInfo(),
         run: G.run.serpent,

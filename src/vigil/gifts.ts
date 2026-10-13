@@ -123,7 +123,7 @@ export function giftsAtStart() {
   for (let i = 0; i < (st.runes ?? 0); i++) addRune(dealRune());
   if (st.souls) gainSoul(st.souls);
   if (st.socket && player.sockets[0].size < 2) setSockets(0, 2);
-  if (st.page) dropPage(G.current, player.x, player.z - 1.4);
+  if (st.page) dropPage(G.room.current, player.x, player.z - 1.4);
   if (st.map) {
     for (const r of G.floor.rooms) r.known = true;
     renderMinimap();

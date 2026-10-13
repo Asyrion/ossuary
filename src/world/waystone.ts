@@ -40,7 +40,7 @@ export function raiseWaystone(room: Room, x: number, z: number) {
   room.rocks.push({ x, z, hx: C().half, hz: C().half, hp: Infinity, breakable: false });
   if (Math.abs(player.x - x) < C().half + player.r && Math.abs(player.z - z) < C().half + player.r)
     player.z = z + C().half + player.r + 0.1; // (never risen around the mage)
-  for (const p of G.pickups)
+  for (const p of G.room.pickups)
     if (Math.abs(p.x - x) < C().half + p.r && Math.abs(p.z - z) < C().half + p.r) {
       // (nor over what lies there)
       const at = freeSpotNear(room, p.x, p.z);
@@ -103,14 +103,14 @@ export function waystoneAfterBoss(room: Room) {
 /** Each step: the stone rises, kindles when it is up, and while its screen is open shows the target slot's runes in its
     hollows. */
 export function updateWaystone(dt: number) {
-  const w = G.current.waystone;
+  const w = G.room.current.waystone;
   if (!w) return;
   const g = w.look.group;
   if (w.rise < 1) {
     w.rise = Math.min(1, w.rise + dt / C().rise);
     const e = 1 - (1 - w.rise) ** 3;
     g.position.y = -(1 - e) * C().depth;
-    g.position.x = w.x - G.current.cx + (w.rise < 1 ? Math.sin(w.rise * 90) * 0.02 : 0); // (it shudders as it grinds up)
+    g.position.x = w.x - G.room.current.cx + (w.rise < 1 ? Math.sin(w.rise * 90) * 0.02 : 0); // (it shudders as it grinds up)
     if (w.rise >= 1) kindle(w);
   }
   if (!w.lit) return;
@@ -129,7 +129,7 @@ function kindle(w: NonNullable<Room['waystone']>) {
   w.look.parts.glow.visible = true;
   Sfx.at(w.x, w.z).kindle();
   burst(w.x, 1.6, w.z, WAYSTONE_RUNES.lit, 18, 1.8, 0.05);
-  const room = G.current;
+  const room = G.room.current;
   if (room.type === 'waystone') {
     setDarkness(0);
     openWayDown(room);
@@ -145,7 +145,7 @@ function openWayDown(room: Room) {
 
 /** Whether the mage stands within reach of the room's kindled waystone. */
 export function stoneInReach() {
-  const w = G.current.waystone;
+  const w = G.room.current.waystone;
   return (
     !!w &&
     w.lit &&
@@ -155,8 +155,8 @@ export function stoneInReach() {
 }
 /** Each step: walking up to the kindled stone opens its screen, once the mage has stepped away from it since. */
 export function checkWaystone() {
-  const w = G.current.waystone;
-  if (!w || !w.lit || G.current.locked) return;
+  const w = G.room.current.waystone;
+  if (!w || !w.lit || G.room.current.locked) return;
   if (!stoneInReach()) {
     w.armed = true;
     return;
@@ -169,8 +169,8 @@ export function checkWaystone() {
 /** A spell cast from slot `slot` within reach of the stone: caught (nothing is paid), struck into it in the spell's light,
     and the screen opens on that spell's sockets. False when no stone is in reach. */
 export function castIntoStone(slot: number, def: SpellDef) {
-  const w = G.current.waystone;
-  if (!w || G.current.locked || !stoneInReach()) return false; // (never mid-fight: a spell is a spell then)
+  const w = G.room.current.waystone;
+  if (!w || G.room.current.locked || !stoneInReach()) return false; // (never mid-fight: a spell is a spell then)
   const color = parseInt(def.color.slice(1), 16),
     at = { x: w.x, y: 1, z: w.z };
   strikeFx({ x: player.x, y: 0.9, z: player.z }, at, color, 0.3, true);
@@ -181,7 +181,7 @@ export function castIntoStone(slot: number, def: SpellDef) {
 }
 /** The stone's rest, the first time it is reached: full mana, every cooldown ended, the mana streaming to the hand. */
 export function restAtStone() {
-  const w = G.current.waystone;
+  const w = G.room.current.waystone;
   if (!w || w.rested) return;
   w.rested = true;
   player.mana = player.stats.maxMana;

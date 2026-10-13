@@ -159,7 +159,7 @@ function stormStep(e: Enemy, dt: number) {
     st.strike = S.strikeEvery * (0.6 + rnd() * 0.8);
     st.flash.material.opacity = 0.9;
     f.bolt([st.cloud.position.x, st.cloud.position.y - 0.1, 0], [0, st.top * 0.8, 0], 5, 0.12, rnd);
-    if (G.current && Math.hypot(player.x - e.x, player.z - e.z) < 9) Sfx.at(e.x, e.z).zap();
+    if (G.room.current && Math.hypot(player.x - e.x, player.z - e.z) < 9) Sfx.at(e.x, e.z).zap();
   }
   f.end();
 }
@@ -218,7 +218,7 @@ export function mantleStruck(e: Enemy) {
   if (e.mantle !== 'stormcharged' || e.dead || (e.mantleT ?? 0) > 0) return;
   const S = M.stormcharged;
   e.mantleT = S.sparkEvery;
-  laySpark(G.current, player.x, player.z, S.sparkTime, e.foe?.id);
+  laySpark(G.room.current, player.x, player.z, S.sparkTime, e.foe?.id);
   strikeFx({ x: e.x, y: 1, z: e.z }, { x: player.x, y: 0.05, z: player.z }, SCHOOL_LIGHT.storm, 0.22, true);
   Sfx.at(e.x, e.z).zap();
 }
@@ -229,13 +229,13 @@ export function mantleFell(e: Enemy) {
   const H = M.hexbound,
     x = e.x,
     z = e.z,
-    room = G.current,
+    room = G.room.current,
     violet = SCHOOL_LIGHT.umbral;
   ringFx(x, 0.08, z, violet, H.curseReach, 0.2, H.curseDelay, true);
   burst(x, 0.5, z, violet, 16, 1.6, 0.04);
   Sfx.at(x, z).curse();
   after(H.curseDelay, () => {
-    if (G.current !== room || G.flow.state !== 'play') return;
+    if (G.room.current !== room || G.flow.state !== 'play') return;
     burst(x, 0.3, z, violet, 20, H.curseReach, 0.05);
     if (Math.hypot(player.x - x, player.z - z) < H.curseReach) {
       const took = Math.min(player.mana, H.curse);
@@ -248,7 +248,7 @@ export function mantleFell(e: Enemy) {
 /** Every step, for the mantled champions in the room: their rings turn, a Kindled one lays fire where it goes, a Hallowed
     one mends the foes round it; and the unbound ones close up again. */
 export function updateMantles(dt: number) {
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (e.unbound) e.unbound = Math.max(0, e.unbound - dt);
     if (!e.mantle || e.dead || e.spawn > 0) continue;
     e.mantleT = (e.mantleT ?? 0) - dt;
@@ -282,12 +282,12 @@ export function updateMantles(dt: number) {
     }
     if (e.mantle === 'kindled' && e.mantleT <= 0 && Math.hypot(e.vx, e.vz) > 0.3 && !e.hidden) {
       e.mantleT = M.kindled.trailEvery;
-      layFire(G.current, e.x, e.z, M.kindled.trailTime, e.foe?.id);
+      layFire(G.room.current, e.x, e.z, M.kindled.trailTime, e.foe?.id);
     }
     if (e.mantle === 'hallowed' && e.mantleT <= 0) {
       e.mantleT = M.hallowed.mendEvery;
       if ((e.status?.sanct ?? 0) > 0) continue; // (its own school's light on it stills its mending)
-      for (const o of G.enemies) {
+      for (const o of G.room.enemies) {
         if (
           o === e ||
           o.dead ||

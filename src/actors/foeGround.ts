@@ -137,7 +137,7 @@ export function groundHarm(e: Enemy, dt: number) {
 /** The dev menu and the tests: a patch of `kind` at (x, z) in the current room, left by a foe of kind `by` (none: no one's,
     so it holds every foe). */
 export function layDevGround(kind: Ground, x: number, z: number, by?: string) {
-  const room = G.current;
+  const room = G.room.current;
   if (kind === 'fire') layFire(room, x, z, 10, by);
   else if (kind === 'blackfire') layBlackFire(room, x, z, 10);
   else if (kind === 'spark') laySpark(room, x, z, 10, by);

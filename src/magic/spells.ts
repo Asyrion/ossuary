@@ -101,7 +101,7 @@ export function castSpell(slot: number, cast: Vec2 | null) {
     return false;
   }
   const id = def.id;
-  if (G.current.type === 'merchant') {
+  if (G.room.current.type === 'merchant') {
     toast(STR.toast.spellWarded, 2.5);
     Sfx.wardTink();
     flashMana(slot, 'target');
@@ -131,18 +131,18 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   pay(def, payment(slot) ?? can); // (asked again: the cast may have given mana back, a foe it felled or a toll paid)
   spendFreeCast(); // (M5: the Bottled Storm's)
   if (!ward && takeEcho()) {
-    const room = G.current;
+    const room = G.room.current;
     after(CFG.alchemy.echoAfter, () => {
-      if (G.current === room && !G.flow.trans && !player.dead) CAST[def.shape](def, aimDir(cast));
+      if (G.room.current === room && !G.flow.trans && !player.dead) CAST[def.shape](def, aimDir(cast));
     });
   } // (M5: the Philter of Echoes casts it again)
   if (!ward && def.runes?.includes('reprise')) {
     // (M6: Reprise casts it again, softer, while the mage is still in the room)
     const R = rune('reprise').params,
-      room = G.current,
+      room = G.room.current,
       again = reprisedDef(def, R.share);
     after(R.after, () => {
-      if (G.current === room && !G.flow.trans && !player.dead && CAST[def.shape](again, aimDir(cast)))
+      if (G.room.current === room && !G.flow.trans && !player.dead && CAST[def.shape](again, aimDir(cast)))
         runeActs('reprise', def.school);
     });
   }
@@ -155,7 +155,7 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   castRunes(def); // (M6: Quicken, Wide and Lasting show at the cast)
   G.run.casts[def.school] = (G.run.casts[def.school] ?? 0) + 1; // (M6: the boons' deal leans to the schools cast)
   afterglowCast(def.status, def.color); // (M6: Afterglow)
-  skullsWatch(G.current, def.color); // an ossuary's skulls take the spell's colour
+  skullsWatch(G.room.current, def.color); // an ossuary's skulls take the spell's colour
   if (castSpellOnce(id)) {
     toast(STR.knowledge.knownWell(def.name), 3);
     knownWellNow(def.school);
@@ -192,7 +192,7 @@ function veinWontBleed() {
     false while paused or in a pan. */
 export function updateMagic(dt: number, acting: boolean) {
   if (acting) {
-    const fighting = G.current.locked;
+    const fighting = G.room.current.locked;
     if (!player.stats.effects.has('noRegen')) gainMana(manaRegen(dt, fighting, CFG.mana) * player.stats.regenMul); // (M6: Will brings it back faster) // not with the Hungering Tome
     keepFlames(dt); // (M6: Flamekeeper)
     if (DEV.mana) player.mana = player.stats.maxMana;
@@ -228,7 +228,7 @@ function keepFlames(dt: number) {
           );
         });
   }
-  if (!G.current.boonsSaid?.has('flamekeeper')) boonActs('flamekeeper', player.x, player.z);
+  if (!G.room.current.boonsSaid?.has('flamekeeper')) boonActs('flamekeeper', player.x, player.z);
 }
 
 /** A new floor or run: no spell effects left behind. */

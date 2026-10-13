@@ -242,7 +242,7 @@ function callHelp(e: Enemy) {
   G.fx.shake = 0.25;
   banner(STR.bosses[e.type as BossType].summon, '');
   const n = e.bossCfg?.summons ?? 2,
-    cur = G.current,
+    cur = G.room.current,
     floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
   for (let i = 0; i < n; i++) {
     const p = freeSpotNear(cur, cur.cx + (n > 1 ? -4 + (8 * i) / (n - 1) : 0), cur.cz + 1.5);
@@ -277,7 +277,7 @@ function fan(
 /** A second ring a moment later, if the boss is still alive and the fight still on. */
 function laterRing(e: Enemy, delay: number, n: number, speed: number, offset: number) {
   after(delay, () => {
-    if (!e.dead && G.flow.state === 'play' && G.enemies.includes(e)) ringOfShots(e, n, speed, offset);
+    if (!e.dead && G.flow.state === 'play' && G.room.enemies.includes(e)) ringOfShots(e, n, speed, offset);
   });
 }
 
@@ -518,8 +518,8 @@ function updateAbbess(e: Enemy, dt: number, ux: number, uz: number) {
     ripple.scale.setScalar(1.1 + k * 1.1);
     mat.opacity = 0.5 + Math.abs(Math.sin(e.t * 18)) * 0.5;
     if (e.st <= 0) {
-      if (!isFreeAt(G.current, e.x, e.z)) {
-        const p = freeSpotNear(G.current, e.x, e.z);
+      if (!isFreeAt(G.room.current, e.x, e.z)) {
+        const p = freeSpotNear(G.room.current, e.x, e.z);
         e.x = p.x;
         e.z = p.z;
       }
@@ -587,7 +587,7 @@ function updateKnight(e: Enemy, dt: number, ux: number, uz: number): number | un
       e.cycle = e.cycle! + 1;
       const next = ['leap', 'spray', 'charge', 'spray'][e.cycle % 4];
       if (next === 'leap') {
-        const p = freeSpotNear(G.current, player.x, player.z);
+        const p = freeSpotNear(G.room.current, player.x, player.z);
         e.target = { x: p.x, z: p.z };
         e.state = 'crouch';
         e.st = 0.55;
@@ -780,7 +780,7 @@ function updateHart(e: Enemy, dt: number, ux: number, uz: number): number | unde
     laneG.rotation.y = Math.atan2(ux, uz);
     laneMat.opacity = 0.12 + k * 0.4;
     let len = 0.5;
-    while (len < 9 && isFreeAt(G.current, e.x + ux * len, e.z + uz * len)) len += 0.25;
+    while (len < 9 && isFreeAt(G.room.current, e.x + ux * len, e.z + uz * len)) len += 0.25;
     laneG.scale.z = len; // (up to the wall or rock it will meet)
     if (e.st <= 0) {
       e.state = 'charge';
@@ -1120,7 +1120,7 @@ function updateTiger(e: Enemy, dt: number, ux: number, uz: number): number | und
         e.state = 'windSwipe';
         e.st = C.swipe.tell;
       } else {
-        const p = freeSpotNear(G.current, player.x, player.z);
+        const p = freeSpotNear(G.room.current, player.x, player.z);
         e.target = { x: p.x, z: p.z };
         e.state = 'crouch';
         e.st = C.pounce.tell;

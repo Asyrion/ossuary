@@ -289,7 +289,7 @@ function buy(w: WareSpot) {
 
 /** Walking into a ware buys it (called every step while playing). */
 export function checkWares() {
-  for (const w of G.current.wares ?? []) {
+  for (const w of G.room.current.wares ?? []) {
     if (w.sold) continue;
     const d = Math.hypot(player.x - w.x, player.z - w.z);
     if (d > player.r + C.reach + 0.8) {
@@ -304,7 +304,7 @@ export function checkWares() {
 
 /** The shade bobs and turns to watch the mage; wares turn over their circles. */
 export function updateShop(now: number) {
-  const room = G.current;
+  const room = G.room.current;
   if (!room.wares) return;
   if (room.shade) {
     // (the Wandering Merchant's wares have no shade over them, M4.2)

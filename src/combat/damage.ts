@@ -191,7 +191,7 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
   if (e.mantle) mantleFell(e); // (M4.7: a Hexbound champion's curse)
   if ((e.status?.grow ?? 0) > 0 || e.status?.bloom) {
     flowerFell(e);
-    if (!e.isBoss && boonRank('seedfall')) sowBlossom(G.current, e.x, e.z);
+    if (!e.isBoss && boonRank('seedfall')) sowBlossom(G.room.current, e.x, e.z);
   } // (M5: overgrown, it flowers; a lily mends besides; M6: Seedfall leaves a plant, before the drops find their spots)
   if (e.toll) payToll(e); // marked by the Ferryman's Toll: it pays in obols, and its hex spreads
   if ((e.status?.voidT ?? 0) > 0) {
@@ -204,7 +204,7 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
     G.run.drops.chance(Math.min(1, CFG.souls.hexChance * soulsHere()))
   ) {
     // deep in a hex, its soul stays: a black mote
-    const p = freeSpotNear(G.current, e.x, e.z);
+    const p = freeSpotNear(G.room.current, e.x, e.z);
     spawnPickup('blackSoul', p.x, p.z, { rise: true });
   }
   const stain = stainOf(e);
@@ -215,7 +215,7 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
   if (player.stats.killMana) gainMana(player.stats.killMana); // Hungering Tome
   if (player.stats.effects.has('thurible') && (e.status?.burn ?? 0) > 0) scatterEmbers(e); // Thurible of Ash
   if (e.champion) {
-    const p = freeSpotNear(G.current, e.x, e.z);
+    const p = freeSpotNear(G.room.current, e.x, e.z);
     spawnHeart(p.x, p.z, 2);
   }
   if (player.stats.effects.has('choir')) choirCounts(e); // Ossuary Choir
@@ -224,14 +224,14 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
     const A = CFG.artifacts.gravemonger,
       clean = player.cleansed.includes('gravemongers_contract');
     if (G.run.drops.chance(A.chance * (clean ? 0.5 : 1))) {
-      const p = freeSpotNear(G.current, e.x, e.z);
+      const p = freeSpotNear(G.room.current, e.x, e.z);
       spawnPickup('coin', p.x, p.z);
     }
   }
   const drop = e.isBoss ? null : rollEnemyDrop(G.run.drops); // now and then an obol
   if (!(e.isBoss && e.twin && !e.twin.dead)) foeReagent(e); // (M5: now and then a reagent; a boss's every time, the second twin's)
   if (drop) {
-    const p = freeSpotNear(G.current, e.x, e.z);
+    const p = freeSpotNear(G.room.current, e.x, e.z);
     spawnPickup(drop, p.x, p.z);
   }
   if (e.isBoss && e.twin && !e.twin.dead) {
@@ -240,7 +240,7 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
     twinFell(e.twin);
   } // (one twin down: the other fights on, raging)
   else if (e.isBoss) {
-    for (const s of G.enemies) if (s.servant && !s.dead) killEnemy(s, true);
+    for (const s of G.room.enemies) if (s.servant && !s.dead) killEnemy(s, true);
     Sfx.at(e.x, e.z).boom();
     G.fx.shake = 0.55;
     if (e.labBoss) {
@@ -257,16 +257,16 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
 /** The Ossuary Choir: every so many foes put to rest in a room, a beat later the dead sing, and every foe still in the room
     is struck by the hymn (Hallow). */
 function choirCounts(e: Enemy) {
-  const room = G.current,
+  const room = G.room.current,
     C = CFG.artifacts.choir;
   room.choir = (room.choir ?? 0) + 1;
   if (room.choir % C.every) return;
   burst(e.x, 1, e.z, SCHOOL_LIGHT.hallow, 10, 1.6, 0.04);
   after(C.delay, () => {
-    if (G.current !== room) return; // (the mage has gone on: the hymn stays behind)
+    if (G.room.current !== room) return; // (the mage has gone on: the hymn stays behind)
     Sfx.choir();
     ringFx(player.x, 0.05, player.z, SCHOOL_LIGHT.hallow, 0.4, 7, CFG.spellFx.shockwave * 1.5, true);
-    for (const o of G.enemies)
+    for (const o of G.room.enemies)
       if (!o.dead && o.spawn <= 0 && !o.hidden) {
         damageEnemy(o, C.damage, 0, 0, 0, 'spell', 'hallow');
         burst(o.x, 1.2, o.z, 0xfff0c8, 6, 1.2, 0.03);
@@ -277,7 +277,7 @@ function choirCounts(e: Enemy) {
 /** The Thurible of Ash: a foe that dies burning scatters its embers over the foes around it, and any oil. */
 function scatterEmbers(e: Enemy) {
   const T = CFG.artifacts.thurible;
-  for (const o of G.enemies) {
+  for (const o of G.room.enemies) {
     if (o === e || o.dead || o.spawn > 0 || o.hidden || Math.hypot(o.x - e.x, o.z - e.z) > T.radius) continue;
     inflict(o, { burn: T.burn });
     for (let k = 1; k <= 3; k++)
@@ -341,7 +341,7 @@ function struckBy(x: number, z: number) {
   if (named) return named;
   let best: Enemy | undefined,
     bd = 1.8;
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (e.dead) continue;
     const d = Math.hypot(e.x - x, e.z - z);
     if (d < bd) {
@@ -371,7 +371,7 @@ export function hurtPlayer(halves: number, fromX: number, fromZ: number): boolea
   }
   player.invuln = player.stats.invuln;
   renderHearts();
-  if (G.current.locked) G.current.hurt = true; // no Unbroken Oath for this fight
+  if (G.room.current.locked) G.room.current.hurt = true; // no Unbroken Oath for this fight
   const dx = player.x - fromX,
     dz = player.z - fromZ,
     d = Math.hypot(dx, dz) || 1;

@@ -64,7 +64,7 @@ export function cameraTargetFor(room: Pick<Room, 'bounds' | 'plan'>, px: number,
 /** M4.6: the camera close on the mage, or back to the room's view. */
 export function setCloseUp(on: boolean) {
   DEV.closeUp = on;
-  if (!on && G.current) setViewScale(viewScaleFor(G.current));
+  if (!on && G.room.current) setViewScale(viewScaleFor(G.room.current));
 }
 
 export function placeCamera() {

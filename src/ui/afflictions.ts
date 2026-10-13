@@ -69,7 +69,7 @@ export function afflictions(): Affliction[] {
   if (player.dim > 0) out.push('dim');
   if (stuck) out.push(stuck);
   if (snagAt(x, z) < 1) out.push('snag');
-  if (G.current?.theme?.twist === 'rime' || slipAt(x, z)) out.push('slide');
+  if (G.room.current?.theme?.twist === 'rime' || slipAt(x, z)) out.push('slide');
   if (player.drawn > 0) out.push('drawn');
   if (sapMul() < 1) out.push('sapped');
   if (jellyAt(x, z) && !player.stats.effects.has('float')) out.push('jelly'); // (M5: the jelly serpent's)

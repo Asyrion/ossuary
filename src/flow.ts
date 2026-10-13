@@ -7,7 +7,7 @@ import { clearWanderer, maybeWanderer, wandererLeaves } from './items/wanderer';
 import { devClear } from './devDoor';
 import { CFG, type BossType } from './config';
 import type { Room } from './types';
-import { DEV, G, after, clearTimers, player } from './state';
+import { DEV, G, after, clearTimers, player, type RunState } from './state';
 import { STR } from './strings';
 import { Rng, newSeed } from './rng';
 import { bottlesFor, isPotion } from './items/alchemyData';
@@ -157,11 +157,11 @@ function clearEntities() {
   }
   G.fx.particles.length = 0;
   clearEnemies();
-  for (const p of G.pickups) {
+  for (const p of G.room.pickups) {
     scene.remove(p.g);
     disposeTree(p.g);
   }
-  G.pickups.length = 0;
+  G.room.pickups.length = 0;
   for (const d of G.fx.decals) {
     scene.remove(d);
     (d.material as THREE.Material).dispose();
@@ -209,7 +209,7 @@ export function buildFloor(index: number) {
   linkDoors(G.floor.rooms);
   sealVaults(G.floor.rooms);
   const start = G.floor.rooms[plan.startId];
-  G.current = start;
+  G.room.current = start;
   player.x = start.cx;
   player.z = start.cz + 0.6;
   player.vx = player.vz = 0;
@@ -271,7 +271,7 @@ export function resetPlayer() {
 
 /** Start a new run: a fresh seed unless one was requested. */
 /** A new run's state for `seed`: fresh streams for everything that must replay the same. */
-function newRun(seed: string): typeof G.run {
+function newRun(seed: string): RunState {
   return {
     seed,
     floor: 0,
@@ -439,7 +439,7 @@ function buildVigil(first: boolean) {
   linkDoors(G.floor.rooms);
   vigilWalled(); // (M7 step 9: the Cave Mouth opens its north wall onto the valleys)
   const w = wakePoint();
-  G.current = w.room;
+  G.room.current = w.room;
   player.x = w.x;
   player.z = w.z;
   player.vx = player.vz = 0;
@@ -536,8 +536,8 @@ export function endGame(won: boolean) {
     seed: G.run.seed,
     won,
     floor,
-    room: G.current?.plan.type ?? '',
-    template: G.current?.plan.templateId ?? '',
+    room: G.room.current?.plan.type ?? '',
+    template: G.room.current?.plan.templateId ?? '',
     struck: won ? null : G.run.struck,
     carried,
     level: G.run.level,
@@ -573,7 +573,7 @@ function showRooms(...list: Room[]) {
 export function enterRoom(room: Room) {
   const firstVisit = !room.visited;
   wandererLeaves(room); // (the Wandering Merchant stays in the room it rode into)
-  G.current = room;
+  G.room.current = room;
   room.visited = true;
   room.known = true;
   showRooms(room);
@@ -591,7 +591,7 @@ export function enterRoom(room: Room) {
     setDoors(room, false);
     beginFight(room);
     if (room.type === 'boss') {
-      const boss = G.enemies.find((e) => e.isBoss);
+      const boss = G.room.enemies.find((e) => e.isBoss);
       const words = STR.bosses[G.run.boss];
       if (boss) showBossBar(words.name, boss);
       banner(words.name, words.sub);
@@ -604,7 +604,7 @@ export function enterRoom(room: Room) {
   enterTheme(
     room,
     firstVisit,
-    G.enemies.filter((e) => !e.dead),
+    G.room.enemies.filter((e) => !e.dead),
   ); // a themed room's name, and its sleepers
   if (firstVisit && room.plan.variant === 'dark') Sfx.darkness();
   if (firstVisit && room.type === 'altar' && room.spots.length) banner(...STR.banner.altar);
@@ -679,7 +679,7 @@ function spawnWave(room: Room, ambush = false) {
 
 /** Ambush rooms spring once the mage is committed: near the middle, or well away from every door. */
 export function checkAmbush() {
-  const room = G.current;
+  const room = G.room.current;
   if (room.ambush !== 'armed' || G.flow.trans) return;
   const fromDoors = Math.min(...room.doors.map((d) => Math.hypot(player.x - d.x, player.z - d.z)));
   const middle = Math.hypot(player.x - room.cx, player.z - room.cz);
@@ -719,7 +719,7 @@ export function onWaveCleared(room: Room) {
   if (room.wave < room.waves.length - 1) {
     room.wavePending = true;
     after(0.9, () => {
-      if (G.current !== room || !room.wavePending) return; // left (dev warp) or restarted meanwhile
+      if (G.room.current !== room || !room.wavePending) return; // left (dev warp) or restarted meanwhile
       room.wavePending = false;
       room.wave++;
       banner(...STR.banner.wave(room.wave + 1, room.waves.length), 1.6);
@@ -788,7 +788,7 @@ export function onRoomCleared(room: Room) {
 
 /** The floor's boss fell (at `at`, or the room's middle for the dev menu's clear): its rewards and the way down. */
 export function onBossDead(at?: { x: number; z: number }) {
-  const cur = G.current;
+  const cur = G.room.current;
   hideBossBar();
   payBoss(at); // (M6: its floor's insight)
   if (G.run.boss === 'kaelith') G.run.kaelith = true;
@@ -841,7 +841,7 @@ function aimCamera(room: Room) {
 
 /** Start the 0.42 s pan to the next room when the hero walks out through a doorway. */
 export function tryTransition() {
-  const cur = G.current;
+  const cur = G.room.current;
   for (const door of cur.doors) {
     const [dx, dz] = SIDE_DIR[door.side],
       ns = dx === 0;
@@ -877,9 +877,9 @@ export function tryTransition() {
 
 /** Dev hook: finish the current room's fight at once (every wave), as if the last enemy had fallen. */
 export function clearRoom() {
-  const hadBoss = G.enemies.some((e) => e.isBoss && !e.labBoss); // (M5: the jelly serpent out of its vat is no floor's boss)
+  const hadBoss = G.room.enemies.some((e) => e.isBoss && !e.labBoss); // (M5: the jelly serpent out of its vat is no floor's boss)
   clearEnemies();
-  const room = G.current;
+  const room = G.room.current;
   if (room.ambush === 'armed') {
     room.ambush = 'sprung';
     onRoomCleared(room);

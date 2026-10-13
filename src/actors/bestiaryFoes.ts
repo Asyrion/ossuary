@@ -171,7 +171,7 @@ const shoot = (
 ) => spawnShot(e.x + ux * 0.35, e.z + uz * 0.35, ux, uz, speed, color, 0.55, size, o);
 /** Foes in the current room still standing (and not hidden away), other than `e`. */
 const othersAwake = (e: Enemy) =>
-  G.enemies.some((o) => o !== e && !o.dead && o.state !== 'hidden' && o.state !== 'shut' && o.type !== e.type);
+  G.room.enemies.some((o) => o !== e && !o.dead && o.state !== 'hidden' && o.state !== 'shut' && o.type !== e.type);
 
 /* ---------- floor 1 ---------- */
 
@@ -431,8 +431,8 @@ const tome: Behaviour = {
   },
   die(e, P) {
     if (G.run.pages.chance(num(P.pageChance))) {
-      const at = freeSpotNear(G.current, e.x, e.z);
-      dropPage(G.current, at.x, at.z);
+      const at = freeSpotNear(G.room.current, e.x, e.z);
+      dropPage(G.room.current, at.x, at.z);
     }
   },
 };
@@ -588,7 +588,7 @@ const singer: Behaviour = {
         e.fireT = num(P.songEvery);
         ringFx(e.x, 0.9, e.z, light(e), 0.3, num(P.songRange), 0.8, true, 0.7);
         Sfx.at(e.x, e.z).larkSong();
-        for (const o of G.enemies)
+        for (const o of G.room.enemies)
           if (o !== e && !o.dead && !o.isBoss && Math.hypot(o.x - e.x, o.z - e.z) < num(P.songRange)) {
             o.sung = G.flow.clock + num(P.hasteTime);
             burst(o.x, 0.8, o.z, light(e), 2, 1, 0.03);
@@ -916,7 +916,7 @@ const snail: Behaviour = {
 
 const newt: Behaviour = {
   init(e, P) {
-    const room = G.current,
+    const room = G.room.current,
       near = nearestWaterTo(room, e.x, e.z, true); // (the room's water, if it lies near; else a pool of its own)
     if (!near || Math.hypot(near.x - e.x, near.z - e.z) > num(P.roam)) pour(room, e.x, e.z, num(P.poolSize));
     const t = nearestWaterTo(room, e.x, e.z, true);
@@ -1047,7 +1047,7 @@ const newt: Behaviour = {
 
 const serpent: Behaviour = {
   init(e, P) {
-    const room = G.current;
+    const room = G.room.current;
     if (!nearestWaterTo(room, e.x, e.z)) pour(room, e.x, e.z, num(P.poolSize));
     const t = nearestWaterTo(room, e.x, e.z);
     if (t) {
@@ -1272,7 +1272,7 @@ const wave: Behaviour = {
   }, // (frozen, its swirl stops)
   afflicted(e, kind, P) {
     if (kind === 'chill' && e.state !== 'ice') {
-      if (!poolAt(e.x, e.z)) pour(G.current, e.x, e.z, 0);
+      if (!poolAt(e.x, e.z)) pour(G.room.current, e.x, e.z, 0);
       frostAt(e.x, e.z);
       return;
     } // (it drinks the cold, but the water it stands in stiffens, and it with it)
@@ -1483,16 +1483,16 @@ function againstWall(room: Room, x: number, z: number, others: readonly { x: num
   return { x: at.x, z: at.z, ox: s.ox, oz: s.oz };
 }
 /** The live foes `e` made (a nest's wasps, a golem's stones). */
-const broodOf = (e: Enemy) => G.enemies.filter((o) => o.owner === e && !o.dead);
+const broodOf = (e: Enemy) => G.room.enemies.filter((o) => o.owner === e && !o.dead);
 
 const nest: Behaviour = {
   // the Ember Wasps' nest
   init(e, P) {
     const w = againstWall(
-      G.current,
+      G.room.current,
       e.x,
       e.z,
-      G.enemies.filter((o) => o !== e && !o.dead && o.foe?.behaviour === 'nest'),
+      G.room.enemies.filter((o) => o !== e && !o.dead && o.foe?.behaviour === 'nest'),
     );
     e.x = w.x;
     e.z = w.z;
@@ -1683,7 +1683,7 @@ function halve(e: Enemy, P: Params, dx: number, dz: number, color: number) {
   e.r *= k;
   e.kx += -dz * 3;
   e.kz += dx * 3;
-  const at = freeSpotNear(G.current, e.x + dz * 0.6, e.z - dx * 0.6),
+  const at = freeSpotNear(G.room.current, e.x + dz * 0.6, e.z - dx * 0.6),
     twin = makeEnemy(e.type, at.x, at.z);
   twin.gen = 1;
   twin.maxHp = e.maxHp;
@@ -1789,7 +1789,7 @@ function snuffAshes(e: Enemy) {
 // frost reaching a phoenix's ashes puts them out
 hearGround((kind, x, z, r) => {
   if (kind !== 'frost') return;
-  for (const e of G.enemies)
+  for (const e of G.room.enemies)
     if (e.state === 'ashes' && e.foe?.behaviour === 'phoenix' && Math.hypot(e.x - x, e.z - z) < r + 0.6) snuffAshes(e);
 });
 const phoenix: Behaviour = {
@@ -2042,7 +2042,7 @@ const bodyguard: Behaviour = {
       // it stands between the mage and the foe nearest them, taking the bolts
       let ward: Enemy | undefined,
         d0 = Infinity;
-      for (const o of G.enemies)
+      for (const o of G.room.enemies)
         if (o !== e && !o.dead && !o.hidden && o.spawn <= 0 && o.type !== e.type) {
           const d = Math.hypot(o.x - player.x, o.z - player.z);
           if (d < d0) {
@@ -2169,7 +2169,7 @@ const breaker: Behaviour = {
       hp = e.hp / n;
     for (let i = 0; i < n; i++) {
       const t = (i / n) * Math.PI * 2,
-        at = freeSpotNear(G.current, e.x + Math.cos(t) * 0.7, e.z + Math.sin(t) * 0.7),
+        at = freeSpotNear(G.room.current, e.x + Math.cos(t) * 0.7, e.z + Math.sin(t) * 0.7),
         s = makeEnemy('rubbleStone', at.x, at.z, e.maxHp / e.foe!.hp);
       s.owner = e;
       s.hp = s.maxHp = hp;
@@ -2214,7 +2214,7 @@ const stone: Behaviour = {
 const lineGeo = markShared(new THREE.PlaneGeometry(0.5, 1).rotateX(-Math.PI / 2)),
   lineMats = new Map<number, THREE.Material>();
 function floorLine(x0: number, z0: number, x1: number, z1: number, color: number) {
-  const room = G.current,
+  const room = G.room.current,
     len = Math.hypot(x1 - x0, z1 - z0) || 0.01;
   let mat = lineMats.get(color);
   if (!mat)
@@ -2442,8 +2442,8 @@ const eye: Behaviour = {
 /** A harpy's screech: glyphs chalked near it are scattered, and the mage's bolts flying near it knocked aside. */
 function screech(e: Enemy, P: Params) {
   const R = num(P.screechRange),
-    room = G.current;
-  for (const gl of G.glyphs) {
+    room = G.room.current;
+  for (const gl of G.room.glyphs) {
     const dx = gl.x - e.x,
       dz = gl.z - e.z,
       d = Math.hypot(dx, dz);
@@ -2453,7 +2453,7 @@ function screech(e: Enemy, P: Params) {
     gl.z = at.z;
     gl.g.position.set(at.x, 0, at.z);
   }
-  for (const b of G.bolts) {
+  for (const b of G.room.bolts) {
     const dx = b.x - e.x,
       dz = b.z - e.z,
       d = Math.hypot(dx, dz);
@@ -2468,7 +2468,7 @@ function screech(e: Enemy, P: Params) {
 }
 const harpy: Behaviour = {
   init(e) {
-    const w = againstWall(G.current, e.x, e.z);
+    const w = againstWall(G.room.current, e.x, e.z);
     e.target = { x: w.x, z: w.z };
     e.state = 'fly';
     e.height = 0;
@@ -2528,7 +2528,7 @@ const harpy: Behaviour = {
   },
   bump(e, hit, P) {
     if (hit && e.state === 'dive' && e.st < num(P.diveTime) - 0.15) {
-      const w = againstWall(G.current, e.x, e.z);
+      const w = againstWall(G.room.current, e.x, e.z);
       e.target = { x: w.x, z: w.z };
       e.state = 'fly';
     }
@@ -2555,7 +2555,7 @@ const magnet: Behaviour = {
       player.pull.x -= a.ux * num(P.pull);
       player.pull.z -= a.uz * num(P.pull);
     } // it draws the mage a little
-    for (const b of G.bolts) {
+    for (const b of G.room.bolts) {
       // and bends the mage's bolts towards itself
       const dx = e.x - b.x,
         dz = e.z - b.z,
@@ -2873,7 +2873,7 @@ const roller: Behaviour = {
 // fire near a rime scarab's snowball melts it
 hearGround((kind, x, z, r) => {
   if (kind !== 'fire') return;
-  for (const e of G.enemies)
+  for (const e of G.room.enemies)
     if (!e.dead && e.foe?.behaviour === 'roller' && e.state !== 'bare' && Math.hypot(e.x - x, e.z - z) < r + 0.8)
       meltBall(e, e.foe.params);
 });
@@ -2917,7 +2917,7 @@ const glacier: Behaviour = {
           z0 = e.z;
         for (let i = 1; i <= num(P.spikes); i++)
           after(i * num(P.spikeEvery), () => {
-            if (G.current !== room || e.dead) return;
+            if (G.room.current !== room || e.dead) return;
             const x = x0 + ux * (e.r + i * num(P.gap)),
               z = z0 + uz * (e.r + i * num(P.gap));
             spikeAt(room, x, z);
@@ -3228,7 +3228,7 @@ function scatter(e: Enemy) {
 // fire landing near a rime wolf scatters it
 hearGround((kind, x, z, r) => {
   if (kind !== 'fire') return;
-  for (const e of G.enemies)
+  for (const e of G.room.enemies)
     if (e.foe?.behaviour === 'wolf' && Math.hypot(e.x - x, e.z - z) < r + num(e.foe.params.fear)) scatter(e);
 });
 const wolf: Behaviour = {
@@ -3582,7 +3582,7 @@ export function packOf(n: number, x: number, z: number, make: (x: number, z: num
     }); // (a swarm makes its own as it begins; others, here)
   for (let i = 1; i < n; i++) {
     const a = (i / n) * Math.PI * 2,
-      at = freeSpotNear(G.current, x + Math.cos(a) * 0.7, z + Math.sin(a) * 0.7);
+      at = freeSpotNear(G.room.current, x + Math.cos(a) * 0.7, z + Math.sin(a) * 0.7);
     const m = make(at.x, at.z);
     pack.members.push(m);
     m.pack = pack;

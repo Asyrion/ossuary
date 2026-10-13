@@ -135,7 +135,7 @@ const mulberryOf = (s: Chained) => {
     break. `one`: a single blow (a bolt), which breaks the first chain it can. */
 function strike(school: School | 'blast' | undefined, x: number, z: number, r: number, one: boolean) {
   const s = here;
-  if (!s || s.state !== 'chained' || G.current !== s.room) return;
+  if (!s || s.state !== 'chained' || G.room.current !== s.room) return;
   if (Math.hypot(x - s.x, z - s.z) > C().reach + r) return;
   for (const c of s.chains) {
     if (c.broken || !breaks(c.ward, school)) continue;
@@ -163,7 +163,7 @@ export function updateShades(dt: number) {
   if (!s) return;
   s.t += dt;
   if (s.state === 'waiting') {
-    if (G.current === s.room && s.room.cleared && G.flow.state === 'play' && !G.flow.trans) appear(s);
+    if (G.room.current === s.room && s.room.cleared && G.flow.state === 'play' && !G.flow.trans) appear(s);
     return;
   }
   if (!s.look) return;
@@ -171,7 +171,7 @@ export function updateShades(dt: number) {
     s.state === 'chained' || s.state === 'loose' ? Math.sin(s.t * 1.6) * 0.02 : s.look.figure.position.y;
   s.look.aura.material.opacity = 0.35 + Math.sin(s.t * 2.2) * 0.1;
   if (s.state === 'loose') {
-    const near = G.current === s.room && Math.hypot(player.x - s.x, player.z - s.z) < C().ask;
+    const near = G.room.current === s.room && Math.hypot(player.x - s.x, player.z - s.z) < C().ask;
     if (near && !s.asking) {
       s.asking = true;
       const k = STR.controls.spellsKeys.split(' and ');

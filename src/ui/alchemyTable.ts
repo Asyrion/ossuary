@@ -140,7 +140,7 @@ function entries(t: LabTab): Entry[] {
           Sfx.spellFail();
           return;
         }
-        const lab = G.current.lab;
+        const lab = G.room.current.lab;
         brewNow(mortar[0], mortar[1], lab?.table.x ?? player.x, lab?.table.z ?? player.z);
         mortar = [];
         stirAfterBrew();
@@ -158,7 +158,7 @@ function entries(t: LabTab): Entry[] {
     return out;
   }
   if (t === 'identify') {
-    const used = !!G.current.lab?.identified,
+    const used = !!G.room.current.lab?.identified,
       unknown = [...new Set(player.belt as PotionId[])].filter((id) => !knownPotion(id));
     if (!unknown.length)
       return [

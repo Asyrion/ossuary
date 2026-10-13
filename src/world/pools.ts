@@ -228,23 +228,23 @@ function flow(room: Room, f: Flow, dt: number) {
     collide(player, blockers(room, 'player'));
   }
   let walls: ReturnType<typeof blockers> | null = null; // (worked out once a step, for every walker the water carries)
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (e.dead || e.spawn > 0 || e.flying || e.hidden || !running(e.x, e.z)) continue;
     e.x += dx * F.carry * dt;
     e.z += dz * F.carry * dt;
     collide(e, (walls ??= blockers(room, 'walker')));
   }
-  for (const b of G.bolts)
+  for (const b of G.room.bolts)
     if (running(b.x, b.z)) {
       b.x += dx * F.bolts * dt;
       b.z += dz * F.bolts * dt;
     }
-  for (const s of G.shots)
+  for (const s of G.room.shots)
     if (running(s.x, s.z)) {
       s.x += dx * F.bolts * dt;
       s.z += dz * F.bolts * dt;
     }
-  for (const q of G.pickups) {
+  for (const q of G.room.pickups) {
     const nx = q.x + dx * F.pickups * dt,
       nz = q.z + dz * F.pickups * dt;
     if (q.drop <= 0 && running(q.x, q.z) && running(nx, nz)) {
@@ -439,7 +439,7 @@ function iceTexture() {
 /* ---------- where things stand ---------- */
 
 /** The pool under (x, z) in the current room, if any (spent oil is gone). */
-export function poolAt(x: number, z: number, room = G.current) {
+export function poolAt(x: number, z: number, room = G.room.current) {
   const p = room.poolGrid?.[Math.floor(z - room.bounds.minZ)]?.[Math.floor(x - room.bounds.minX)];
   return p && p.state !== 'spent' ? p : undefined;
 }
@@ -449,13 +449,13 @@ export function wadeAt(x: number, z: number) {
   return p?.kind === 'water' && p.state === 'still' ? (p.jelly ? C.jellyWade : C.wade) : 1;
 }
 /** M5: the jelly at (x, z) that isn't frozen, if any (the jelly serpent swims in it; the mage is held in it). */
-export function jellyAt(x: number, z: number, room = G.current) {
+export function jellyAt(x: number, z: number, room = G.room.current) {
   const p = poolAt(x, z, room);
   return p?.jelly && p.state === 'still' ? p : undefined;
 }
 /** Pools with a tile within `r` of (x, z). */
 function poolsNear(x: number, z: number, r: number) {
-  return (G.current.pools ?? []).filter(
+  return (G.room.current.pools ?? []).filter(
     (p) => p.state !== 'spent' && p.tiles.some((t) => Math.abs(x - t.x) < 0.5 + r && Math.abs(z - t.z) < 0.5 + r),
   );
 }
@@ -489,7 +489,7 @@ export function frostAt(x: number, z: number, r = 0) {
   elementAt('chill', x, z, r); // a rune stone takes frost
   for (const p of poolsNear(x, z, r))
     if (p.kind === 'oil' && p.state === 'burning') {
-      spend(G.current, p);
+      spend(G.room.current, p);
       steamAt(x, z);
       Sfx.at(x, z).steam();
     } // (frost on burning oil: the fire dies in a burst of steam)
@@ -513,7 +513,7 @@ export function shockAt(x: number, z: number, from?: Enemy, spareMage = false) {
     // (M4.8: a shock through burning oil is an Overload at the pool's middle, which blows the fire out)
     const mx = p.tiles.reduce((a, t) => a + t.x, 0) / p.tiles.length,
       mz = p.tiles.reduce((a, t) => a + t.z, 0) / p.tiles.length;
-    spend(G.current, p);
+    spend(G.room.current, p);
     tileReaction('overload', mx, mz);
     overloadAt(mx, mz);
     return;
@@ -521,7 +521,7 @@ export function shockAt(x: number, z: number, from?: Enemy, spareMage = false) {
   if (!p || p.kind !== 'water' || p.state !== 'still' || p.charged > 0) return;
   p.charged = C.charged;
   douseStandsIn(p); // (M4.2: candle stands standing in it go out)
-  for (const e of G.enemies) {
+  for (const e of G.room.enemies) {
     if (e === from || e.dead || e.spawn > 0 || e.hidden || e.flying || !inPool(p, e.x, e.z)) continue;
     damageEnemy(e, C.shockDamage, 0, 0, 0, 'spell', 'storm');
     inflict(e, { shock: C.shockSpread });
@@ -537,7 +537,7 @@ export function touchPools(e: Enemy, kind: StatusKind) {
   if (kind === 'burn')
     burnPropsAt(e.x, e.z, 0.5); // a burning foe sets what burns beside it alight
   else elementAt(kind, e.x, e.z, 0.5); // a chilled or shocked one charges a rune, sets a lodestone leaping
-  if (!G.current.pools?.length) return;
+  if (!G.room.current.pools?.length) return;
   if (kind === 'burn') fireAt(e.x, e.z);
   else if (kind === 'chill') frostAt(e.x, e.z);
   else shockAt(e.x, e.z, e);
@@ -565,7 +565,7 @@ const glow = new THREE.Color();
 /** Burning oil burns what walks on it and then is spent; ice thaws; the shocked pool stops crackling; water
     shimmers, and the mage splashes through it. */
 export function updatePools(dt: number, now: number, acting: boolean) {
-  const room = G.current;
+  const room = G.room.current;
   if (!room.pools?.length) return;
   if (room.flow && acting) flow(room, room.flow, dt);
   for (const p of room.pools) {
@@ -596,7 +596,7 @@ export function updatePools(dt: number, now: number, acting: boolean) {
     }
     if ((p.tick -= dt) <= 0) {
       p.tick = C.tick;
-      for (const e of G.enemies)
+      for (const e of G.room.enemies)
         if (!e.dead && e.spawn <= 0 && !e.hidden && !e.flying && inPool(p, e.x, e.z))
           inflict(e, { burn: C.groundBurn });
       if (Math.random() < 0.5) Sfx.at(p.tiles[0].x, p.tiles[0].z).crackle();
@@ -641,7 +641,7 @@ export function setMud(room: Room, on: boolean) {
 
 /** Dev menu: set every pool of oil in the room alight, freeze every pool of water, or shock them. */
 export function poolsDo(what: 'fire' | 'frost' | 'shock') {
-  for (const p of G.current.pools ?? []) {
+  for (const p of G.room.current.pools ?? []) {
     const t = p.tiles[0];
     if (what === 'fire') fireAt(t.x, t.z);
     else if (what === 'frost') frostAt(t.x, t.z);

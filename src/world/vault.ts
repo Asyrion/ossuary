@@ -124,7 +124,7 @@ function unseal(s: VaultSeal, guard?: FoeType) {
 
 /** Walking up to a sealed vault door: a bone key unbinds it; without one it says what would. */
 export function checkVaultDoors() {
-  for (const d of G.current.doors) {
+  for (const d of G.room.current.doors) {
     const s = d.seal;
     if (!s?.sealed) continue;
     const dist = Math.hypot(player.x - d.x, player.z - d.z);
@@ -176,7 +176,7 @@ export function blastSeal(s: VaultSeal) {
 
 /** The sealed vault ward near enough to the mage to drink the spell they cast, if any. */
 export function wardNear() {
-  for (const d of G.current.doors) {
+  for (const d of G.room.current.doors) {
     const s = d.seal;
     if (s?.sealed && d === s.outer && Math.hypot(player.x - d.x, player.z - d.z) < CFG.ward.reach) return s;
   }
@@ -212,7 +212,7 @@ export function drinkSpell(s: VaultSeal, def: SpellDef) {
 
 /** The ward marks settle after a flare and turn slowly. */
 export function updateVaultSeals(dt: number, now: number) {
-  for (const d of G.current.doors) {
+  for (const d of G.room.current.doors) {
     const s = d.seal;
     if (!s?.sealed || d !== s.outer) continue;
     s.mark.scale.setScalar(1 + (s.mark.scale.x - 1) * Math.exp(-6 * dt));

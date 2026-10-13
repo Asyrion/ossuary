@@ -21,7 +21,7 @@ export function checkLevelUp(dt: number) {
     calm = 0;
     return;
   }
-  const fighting = G.current.locked || G.enemies.some((e) => !e.dead);
+  const fighting = G.room.current.locked || G.room.enemies.some((e) => !e.dead);
   if (G.flow.state !== 'play' || G.flow.trans || fighting || otherScreenUp()) {
     calm = 0;
     waitsSaid(fighting);

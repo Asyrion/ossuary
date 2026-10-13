@@ -39,7 +39,7 @@ export function maybeWanderer(room: Room) {
 }
 
 /** The merchant rides into `room` through its door furthest from the mage (and the dev menu calls it here). */
-export function callWanderer(room: Room = G.current) {
+export function callWanderer(room: Room = G.room.current) {
   leave();
   G.run.wandererMet = true;
   const doors = room.doors.filter((d) => d.open && !d.secret && !d.seal);
@@ -89,7 +89,7 @@ function layOut() {
 /** Each step: the beast plods in from the door, then stands breathing; the merchant watches the mage; the crow looks
     about. */
 export function updateWanderer(now: number, dt: number) {
-  if (!here || here.room !== G.current) return;
+  if (!here || here.room !== G.room.current) return;
   const h = here,
     room = h.room,
     u = h.g.userData as Parts;
@@ -142,7 +142,7 @@ export function clearWanderer() {
 }
 /** Dev hooks: whether the merchant is here, whether the wares are out, what they are and where. */
 export const wandererState = () => ({
-  here: !!here && here.room === G.current,
+  here: !!here && here.room === G.room.current,
   laid: !!here?.laid,
   wares: here ? (here.room.wares ?? []).map((w) => w.ware) : [],
   at: here ? (here.room.wares ?? []).map((w) => ({ x: w.x, z: w.z })) : [],

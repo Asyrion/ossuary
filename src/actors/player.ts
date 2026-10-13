@@ -26,7 +26,7 @@ import { checkBargain } from '../world/bargain';
 import { clamp, lerp } from '../util';
 
 export function updatePlayer(dt: number) {
-  const cur = G.current;
+  const cur = G.room.current;
   const mv = moveInput();
   // gentle pull toward an open doorway when pushing into it, so corners don't snag
   for (const d of cur.doors) {
