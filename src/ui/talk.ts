@@ -12,6 +12,7 @@ import { showScreen } from './screens';
 import { esc } from './spellPanel';
 import { hearLine, setFlag, vigil } from '../vigil/save';
 import { lineAfter, type Picked } from '../vigil/dialogueData';
+import { UI } from '../panels';
 
 interface Talk {
   who: string;
@@ -51,6 +52,7 @@ export const talkingNow = () => talk?.who ?? null;
 export function openTalk(who: string, name: string, icon: string, line: Picked, also: string[] = [], top = false) {
   if (!talk) actions.pause();
   talk = { who, name, icon, line: withOffers(who, line), shown: 0, chosen: 0 };
+  UI.talking = who;
   hear(line);
   for (const k of also) hearLine(k);
   $('scrTalk').classList.toggle('top', top);
@@ -63,6 +65,7 @@ function hear(p: Picked) {
 export function closeTalk() {
   if (!talk) return;
   talk = null;
+  UI.talking = null;
   actions.resume();
 }
 

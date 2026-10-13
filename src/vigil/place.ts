@@ -24,7 +24,7 @@ import { atVigil, hearLanding, setAtVigil, vigilHooks } from './where';
 import { at, block, keep, middle } from './tiles';
 import { clearUnfold, furnishUnfold, updateUnfold } from './unfold';
 import { clearTown, ferryAt, standFerryman, standTown, updateTown, wearsMade } from './town';
-import { closeTalk, updateTalk } from '../ui/talk';
+import { closeTalk } from '../panels';
 
 const C = () => CFG.vigil.place;
 interface Bar {
@@ -183,11 +183,14 @@ function refreshCandleLight() {
     for (const t of r.torches) if (t.flame.userData.piece === 'candleWall') t.lit = !!here && here.candles.lit > 0;
 }
 
+/** What the UI does each step at the Vigil (main.ts fills it: ui/talk.ts' `updateTalk`). */
+export const vigilUi = { step: (_dt: number) => {} };
+
 /** Each step at the Vigil: the veil stirs, the Ferryman watches, and what the mage walks up to answers. */
 export function updateVigil(dt: number) {
   if (!here) return;
   renderVigilHud();
-  updateTalk(dt);
+  vigilUi.step(dt); // (a townsperson's line written out, even while the game waits)
   updateTown(dt, G.state === 'play' && !G.trans);
   updateUnfold(dt); // (M7 step 9) // (M7 step 7: the townspeople, even while one talks)
   if (G.state !== 'play') return;

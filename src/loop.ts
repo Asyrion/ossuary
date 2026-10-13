@@ -24,7 +24,6 @@ import { updateArtifacts } from './items/artifacts';
 import { updateShop } from './items/merchant';
 import { updateWanderer } from './items/wanderer';
 import { pageNear, updatePages } from './magic/pages';
-import { hidePagePanel, updatePagePanel } from './ui/pagePanel';
 import { updatePools } from './world/pools';
 import { updateSteam } from './magic/steam';
 import { updateVaultSeals } from './world/vault';
@@ -34,11 +33,7 @@ import { updateMagic } from './magic/spells';
 import { updateStatusFx, updateStatuses } from './magic/statusFx';
 import { updateFamiliars } from './combat/familiars';
 import { pollGamepad, type InputActions } from './input';
-import { updateHud, updateVision } from './ui/hud';
 import { devFrame, devStep } from './devDoor';
-import { hideWarePanel, updateWarePanel } from './ui/warePanel';
-import { updateAfflictions } from './ui/afflictions';
-import { updateLore } from './ui/lore';
 import { ease, lerp } from './util';
 import { camTarget, cameraTargetFor, draw, setViewScale } from './render/renderer';
 import { checkAmbush, enterRoom } from './flow';
@@ -48,9 +43,22 @@ import { updateThrows } from './items/potionThrow';
 import { updateLab } from './world/laboratory';
 import { updateWaystone } from './world/waystone';
 import { updateInsight } from './progression/insight';
-import { checkLevelUp } from './ui/levelUp';
+import { checkLevelUp } from './progression/levelGate';
+import type { Page } from './types';
 
 export const STEP = 1 / 60;
+
+/** Where the UI runs in the step and the frame (main.ts fills these; the loop imports nothing from src/ui/). Each is
+    called at the exact point its UI used to be called. */
+export const uiHooks = {
+  /** Mid-step, after the world's effects: the panels over what is near the mage, `page` the grimoire page within reach
+      (`live`: playing, no room transition under way; otherwise they hide). */
+  panels: (_page: Page | null, _live: boolean) => {},
+  /** The end of each step, before the sound follows the game: the HUD, the afflictions' chips, the lore card's time. */
+  endOfStep: (_dt: number) => {},
+  /** After each frame is drawn: what needs the camera where it was drawn (the Mask of the Drowned's darkness). */
+  afterDraw: () => {},
+};
 const MAX_FRAME = 1 / 30;
 
 let inputActions: InputActions;
@@ -125,10 +133,8 @@ function updateWorldFx(dt: number, now: number) {
   updatePages(dt, now);
   updateVaultSeals(dt, now);
   updateSecretWalls(dt, now);
-  if (G.state === 'play' && !G.trans) updatePagePanel(pageNear());
-  else hidePagePanel(); // a spell's panel over the page near the mage (M3.7)
-  if (G.state === 'play' && !G.trans) updateWarePanel();
-  else hideWarePanel(); // what a ware near the mage is, before it is bought (2026-10-02)
+  const live = G.state === 'play' && !G.trans;
+  uiHooks.panels(live ? pageNear() : null, live); // a spell's panel over the page near the mage, and what a ware near it is
   updateFamiliars(dt, now, G.state === 'play' && !G.trans);
   updateShadeHelp(dt, now, G.state === 'play' && !G.trans); // (M7 step 6: the bound shades walking with the mage)
   updateShrine(dt, now, G.state === 'play' && !G.trans);
@@ -147,9 +153,7 @@ function updateWorldFx(dt: number, now: number) {
   updateTorchLights(G.current.torches, player.x, player.z, dt, tf);
   G.shake = Math.max(0, G.shake - dt * 1.4);
   updateInsight(G.state === 'play' ? dt : 0); // (M6: insight's streaks run to the hand)
-  updateHud(dt);
-  updateAfflictions();
-  updateLore(dt); // (what is being done to the mage, beside the mana bar)
+  uiHooks.endOfStep(dt);
   updateAudio(); // (the soundscapes and the music: what the game is doing chooses them)
 }
 
@@ -168,7 +172,7 @@ function frame(nowMs: number) {
     acc -= STEP;
   }
   draw();
-  updateVision();
+  uiHooks.afterDraw();
 }
 
 export function startLoop(actions: InputActions) {

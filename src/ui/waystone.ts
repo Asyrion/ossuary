@@ -24,8 +24,9 @@ import { beltSlots, moveInBelt, potionName } from '../items/potions';
 import { bottleIconUrl } from '../items/alchemyLooks';
 import type { PotionId } from '../items/alchemyData';
 import { restAtStone } from '../world/waystone';
+import { UI, type StoneTab } from '../panels';
 
-export type StoneTab = 'runes' | 'belt';
+export type { StoneTab };
 const TABS: StoneTab[] = ['runes', 'belt'];
 interface Entry {
   icon: string;
@@ -57,7 +58,7 @@ export function openWaystone(t: StoneTab, slot?: number) {
   if (open || !w) return;
   if (slot !== undefined) w.target = slot;
   else if (!player.spells[w.target]) w.target = Math.max(0, player.spells.findIndex(Boolean));
-  open = true;
+  open = UI.waystoneOpen = true;
   tab = t;
   held = null;
   chosen.runes = 0;
@@ -69,7 +70,7 @@ export function openWaystone(t: StoneTab, slot?: number) {
 }
 export function closeWaystone() {
   if (!open) return;
-  open = false;
+  open = UI.waystoneOpen = false;
   held = null;
   actions.resume();
 }

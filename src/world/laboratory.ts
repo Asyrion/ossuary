@@ -23,7 +23,7 @@ import { COMMON_REAGENTS, POTIONS, POTION_IDS, REAGENTS, pickPotion } from '../i
 import { learnRecipe } from '../items/alchemyMemory';
 import { RECIPE_POTIONS, recipeKnown, recipeOf } from '../items/brewing';
 import { potionName } from '../items/potions';
-import { closeLab, labOpen, openLab } from '../ui/alchemyTable';
+import { UI, closeLab, openLab } from '../panels';
 import { after } from '../state';
 import { mulberry } from '../util';
 import { SIDE_DIR } from './shapes';
@@ -126,7 +126,7 @@ export function updateLab(now: number) {
     G.current,
     lab?.jelly.g.userData.parts as JellyParts | undefined,
     now,
-    labOpen() || G.current.locked || G.state !== 'play',
+    UI.labOpen || G.current.locked || G.state !== 'play',
   );
   if (!lab) return;
   const body = lab.jelly.g.userData.body as THREE.Object3D,
@@ -211,7 +211,7 @@ export function stirAfterBrew() {
 export function breakOut(room: Room = G.current): Enemy | null {
   const lab = room.lab;
   if (!lab || lab.broken || G.run.serpent !== 'caged') return null;
-  if (labOpen()) closeLab();
+  if (UI.labOpen) closeLab();
   lab.broken = true;
   G.run.serpent = 'out';
   const u = lab.vat.userData,

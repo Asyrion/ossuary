@@ -24,8 +24,9 @@ import {
   knownRecipes,
 } from '../items/brewing';
 import { stirAfterBrew } from '../world/laboratory';
+import { UI, type LabTab } from '../panels';
 
-export type LabTab = 'brew' | 'identify' | 'recipes';
+export type { LabTab };
 const TABS: LabTab[] = ['brew', 'identify', 'recipes'];
 interface Entry {
   icon: string;
@@ -54,7 +55,7 @@ export const labNow = () => ({ open, tab, mortar: [...mortar] });
 /** Open the table at a tab (the game waits). */
 export function openLab(t: LabTab) {
   if (open) return;
-  open = true;
+  open = UI.labOpen = true;
   tab = t;
   mortar = [];
   actions.pause();
@@ -64,7 +65,7 @@ export function openLab(t: LabTab) {
 }
 export function closeLab() {
   if (!open) return;
-  open = false;
+  open = UI.labOpen = false;
   mortar = [];
   actions.resume();
 }
