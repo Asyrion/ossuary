@@ -28,15 +28,8 @@ import { FOES, FOE_IDS, pickFoe, type FoeType } from '../actors/foeData';
 import { forgetBestiary } from '../actors/bestiary';
 import { findEveryCounter } from '../actors/counters';
 import { ARTIFACT_DEFS, START_FOCUS, artifact } from '../items/artifactData';
-import {
-  giveById,
-  grantArtifact,
-  placeArtifact,
-  refreshStats,
-  removeArtifactGallery,
-  resetArtifacts,
-  showArtifactGallery,
-} from '../items/artifacts';
+import { giveById, grantArtifact, placeArtifact, refreshStats, resetArtifacts } from '../items/artifacts';
+import { removeArtifactGallery, showArtifactGallery } from '../dev/artifactGallery';
 import { DROPS, RESOURCES, SOULS, soulItem, type Drop, type Resource } from '../items/loot';
 import { POTIONS, POTION_IDS, REAGENTS, REAGENT_IDS, type PotionId, type ReagentId } from '../items/alchemyData';
 import { addPotion, addReagent, beltSlots, identify, knownPotion, renderBelt, usePotion } from '../items/potions';
@@ -48,7 +41,8 @@ import { levelAtFloor } from '../progression/levelData';
 import { kaelithInfo, kaelithToPhase, shutAllWards } from '../actors/kaelith';
 import { daylightInfo, enterDaylight } from '../world/daylight';
 import { forgetHeard, giveHome, setFlag, setFreed, setParts, veteranSave, vigil, wipeSave } from '../vigil/save';
-import { setTownWear, speakerName, talkTo, takeTownGallery, townGallery, townWear } from '../vigil/town';
+import { setTownWear, speakerName, talkTo, townWear } from '../vigil/town';
+import { takeTownGallery, townGallery } from '../dev/townGallery';
 import { bondTo, giftsInfo, givePower, questState, questTo } from '../vigil/gifts';
 import { chooseGarden, lightBlessing, unfoldInfo } from '../vigil/unfold';
 import { openWayNow } from '../vigil/place';
@@ -126,7 +120,8 @@ import { AudioDirector, type Forced } from '../audio/director';
 import { FLOOR_SCAPES, ROOM_SCAPES, THEME_SCAPES } from '../audio/ambienceData';
 import { MOODS, PIECES, type Mood } from '../audio/musicData';
 import { renderAudio } from '../audio/render';
-import { CREATURES, roarNow, showCreature, takeCreatures } from '../actors/madeCreatures';
+import { CREATURES } from '../actors/madeCreatures';
+import { roarNow, showCreature, takeCreatures } from '../dev/creatureGallery';
 import { THEMES } from '../world/themeData';
 
 const S = STR.dev;

@@ -29,7 +29,7 @@ import '@fontsource/alegreya-sans/500.css';
 import '@fontsource/alegreya-sans/700.css';
 import './style.css';
 import { DEV, G, player } from './state';
-import { closeDevMenu, devMenuOpen, onDevClear, onDevStep, registerDevMenu, toggleDevMenu } from './devDoor';
+import { closeDevMenu, devMenuOpen, registerDevMenu, toggleDevMenu } from './devDoor';
 import { applyStrings } from './strings';
 import { Sfx } from './audio/sfx';
 import { camera, canvas, draw, renderer, resize, setCloseUp } from './render/renderer';
@@ -107,7 +107,8 @@ import {
   openLevelUp,
   takeBargainCard,
 } from './ui/levelUp';
-import { giveById, refreshStats, removeArtifactGallery, showArtifactGallery } from './items/artifacts';
+import { giveById, refreshStats } from './items/artifacts';
+import { removeArtifactGallery, showArtifactGallery } from './dev/artifactGallery';
 import { ARTIFACTS } from './items/artifactData';
 import {
   askVigil,
@@ -139,7 +140,8 @@ import {
 import { board, openWayNow, vigilActs, vigilInfo } from './vigil/place';
 import { answerShade, bindIt, breakAllChains, freeIt, layShade, shadeInfo } from './vigil/shades';
 import { shadeHelpInfo, walkWith } from './vigil/shadeHelp';
-import { talkTo, townGallery, takeTownGallery, townInfo, updateTownGallery } from './vigil/town';
+import { talkTo, townInfo } from './vigil/town';
+import { takeTownGallery, townGallery } from './dev/townGallery';
 import { actOn, bondTo, giftsInfo, givePower, offersFor, questTo } from './vigil/gifts';
 import { chooseGarden, lightBlessing, unfoldInfo } from './vigil/unfold';
 import { disciplinesOpen } from './vigil/giftData';
@@ -222,14 +224,7 @@ import { inSteam, steamAt, steamCount } from './magic/steam';
 import type { MantleId } from './actors/mantleData';
 import { groundPace, layDevGround } from './actors/foeGround';
 import { AudioDirector, type Forced } from './audio/director';
-import {
-  clearCreatures,
-  creaturesNow,
-  roarNow,
-  showCreature,
-  takeCreatures,
-  updateCreatures,
-} from './actors/madeCreatures';
+import { creaturesNow, roarNow, showCreature, takeCreatures } from './dev/creatureGallery';
 import { freeSpotNear } from './world/rooms';
 import { renderAudio, type RenderAsk } from './audio/render';
 import { SOUND_FILES, preloadSamples } from './audio/samples';
@@ -1239,14 +1234,9 @@ function installDevHooks() {
   };
 }
 
-/** Dev code reaches the game only through the door (devDoor.ts). */
+/** The dev menu answers the game's input routing through the door (devDoor.ts). */
 function registerDev() {
   registerDevMenu({ isOpen: devOpen, close: closeDev, toggle: toggleDev });
-  onDevStep((dt, room, playing) => {
-    if (playing) updateCreatures(dt, room);
-    updateTownGallery(dt);
-  });
-  onDevClear(() => clearCreatures());
 }
 
 async function boot() {

@@ -14,8 +14,7 @@ import { FINE, markFine } from '../render/pixelLook';
 import { G, player } from '../state';
 import { STR, foeName } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { cameraTargetFor, scene } from '../render/renderer';
-import { disposeTree } from '../render/materials';
+import { cameraTargetFor } from '../render/renderer';
 import { iconUrlOf } from '../items/artifactIcons';
 import { atLeast, reactionSchools, REACTION_IDS } from '../magic/knowledge';
 import { stage } from '../magic/memory';
@@ -370,38 +369,4 @@ export function townInfo() {
     flags: { ...vigil().flags },
     moment: lastRun()?.moment ?? null,
   };
-}
-
-const gallery: THREE.Group[] = [];
-let gt = 0;
-/** The Galleries tab: the ten figures (or those in `only`) in rows ahead of world (x, z), gesturing in turn (for the owner's
-    review). */
-export function townGallery(x: number, z: number, only?: string[]) {
-  takeTownGallery();
-  const list = SHADE_IDS.filter((id) => !only || only.includes(id)),
-    cols = Math.min(5, list.length);
-  list.forEach((id, i) => {
-    const look = townLook(id, shade(id).light),
-      g = look.group;
-    g.position.set(x + ((i % 5) - (cols - 1) / 2) * 1.5, 0, z - 2.2 - Math.floor(i / 5) * 1.9);
-    scene.add(g);
-    gallery.push(g);
-    g.userData.town = look;
-  });
-  return list.length;
-}
-/** Each step: the gallery's figures gesture in turn. */
-export function updateTownGallery(dt: number) {
-  if (!gallery.length) return;
-  gt += dt;
-  gallery.forEach((g, i) =>
-    moveTown(g.userData.town as TownLook, gt, null, Math.floor(gt / 2) % gallery.length === i, true),
-  );
-}
-export function takeTownGallery() {
-  for (const g of gallery) {
-    scene.remove(g);
-    disposeTree(g);
-  }
-  gallery.length = 0;
 }
