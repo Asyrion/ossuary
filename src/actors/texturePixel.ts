@@ -63,20 +63,12 @@ export function selfLight(key: string, v: number) {
   });
 }
 
-/** Wear it on every textured mesh under `root` (`each`, if given, decides what wearing means for a mesh: a made asset
-    keeps both looks to switch between). */
-export async function wearTexel(
-  root: THREE.Object3D,
-  key: string,
-  urls: { file: string; glow: string },
-  each = (m: THREE.Mesh, mat: THREE.Material) => {
-    m.material = mat;
-  },
-) {
+/** Wear it on every textured mesh under `root`. */
+export async function wearTexel(root: THREE.Object3D, key: string, urls: { file: string; glow: string }) {
   const mat = await texelMaterial(key, urls);
   root.traverse((o) => {
     const m = o as THREE.Mesh;
-    if (m.isMesh && (m.material as THREE.MeshStandardMaterial).map) each(m, mat);
+    if (m.isMesh && (m.material as THREE.MeshStandardMaterial).map) m.material = mat;
   });
   return mat;
 }
