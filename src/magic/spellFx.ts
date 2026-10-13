@@ -1,5 +1,5 @@
 /* The spells' looks, and the cantrip's (the owner's decision, 2026-09-30: every spell in the style the effect gallery
-   tried, magic/effectOptions.ts; docs/effects.md is the guide for the ones to come). What a spell does stays where it
+   tried, dev/effectOptions.ts; docs/effects.md is the guide for the ones to come). What a spell does stays where it
    was (magic/shapes.ts, combat/projectiles.ts, magic/statusFx.ts); those call these for how it looks:
 
    - bolts: `boltLook` dresses a cantrip bolt (a white-hot crystal, a rune ring turning round it, two runes trailing) or

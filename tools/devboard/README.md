@@ -34,7 +34,7 @@ second one on another port. Options: `--port`, `--root <checkout>`, `--game <url
   `?spells=`, `?boons=`, `?potions=`, `?theme=`); Vite reloads `data/` edits by itself.
 
 A new foe, spell or artifact from the board is data only: what lives in code (a foe's behaviour and look, its name in
-`src/strings.ts`, an effect's implementation) still needs a code change, and the dev menu (`src/ui/devMenu.ts`) lists
+`src/strings.ts`, an effect's implementation) still needs a code change, and the dev menu (`src/dev/menu.ts`) lists
 new data entries by itself.
 
 ## Adding a kind

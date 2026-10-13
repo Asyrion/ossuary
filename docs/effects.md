@@ -7,7 +7,7 @@ it, and every effect to come follows this guide:
 - potions thrown in M5;
 - the enemies' magic in M4 and M4.5.
 
-The effect gallery (`src/magic/effectOptions.ts`, the dev menu's "Spell effect options") is the style book. The spells'
+The effect gallery (`src/dev/effectOptions.ts`, the dev menu's "Spell effect options") is the style book. The spells'
 own looks are in `src/magic/spellFx.ts`.
 
 ## What makes the style
@@ -153,13 +153,13 @@ shared parts in `kitParts.ts`.
   1. name it in `src/world/kitData.ts`;
   2. draw it: a wall in `WALLS` or a floor in `PAVING` (`pixelTextures.ts`), a wall light in `TORCHES` or a brazier in
      `BRAZIERS` (`fireLooks.ts`);
-  3. give it a weight in a floor's `kit`, and a name in `STR.dev.kitKinds`;
+  3. give it a weight in a floor's `kit`, and a name in `DEV_STR.kitKinds`;
   4. step to it with the dev menu's Look tab, and screenshot it cold and lit.
   A brazier always carries runes that kindle when it is lit.
 
 ## How to add an effect
 
-1. **Try it in the gallery.** Add a demo to `effectOptions.ts`: a looping `play(t)` worked out from the time alone,
+1. **Try it in the gallery.** Add a demo to `dev/effectOptions.ts`: a looping `play(t)` worked out from the time alone,
    built from the blocks above. Stand it up with the dev menu and show the owner.
 2. **Move it to `spellFx.ts`** as a function the spell calls. Pool it if it plays often. Put its timings in
    `CFG.spellFx`.

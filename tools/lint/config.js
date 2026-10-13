@@ -34,6 +34,25 @@ export default tseslint.config(
     },
   },
   {
+    // the dev door: game code never imports src/dev/ (main.ts loads it with a dynamic import(), which this rule doesn't
+    // see); the game reaches dev code only through src/devDoor.ts, and dev code may import the game freely
+    files: ['src/**/*.ts'],
+    ignores: ['src/dev/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: '^(\\.\\.?/)+dev(/|$)',
+              message: 'Game code reaches src/dev/ only through src/devDoor.ts (and main.ts its dynamic import).',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // plain JS (the dev board's page, these configs) is outside the tsconfig, so it is linted without types
     files: ['**/*.js'],
     extends: [tseslint.configs.disableTypeChecked],

@@ -36,12 +36,13 @@ three hearts counted in halves, one second of invulnerability after a hit.
 
 | Root file (`src/`) | Role |
 | --- | --- |
-| `main.ts` | Boot, URL options (`readUrlOptions`), input wiring, `window.__game` dev hooks (`installDevHooks`). |
+| `main.ts` | Boot, input wiring, `?seed` (`readSeed`); loads the dev code (`src/dev/`) with a dynamic import. |
+| `devDoor.ts` | The dev door: the only way the game reaches dev code (see [The dev door](#the-dev-door-and-srcdev)). |
 | `state.ts` | Shared mutable state: `G` (game, run, room, foes, bolts), `player`, `DEV` switches, `after()` timers. |
 | `flow.ts` | Game states, floor setup (`startGame`, `buildFloor`, `buildVigil`), `warp`, clears, `endGame`. |
 | `loop.ts` | The fixed 1/60 step: calls every system's `update*`, then draws. |
 | `config.ts` | `CFG` tuning block, `BOSS_TYPES`. |
-| `strings.ts`, `types.ts` | `STR` (all player-facing text); shared types (`RoomType`, `Room`, `Door`, `Vec2`). |
+| `strings.ts`, `types.ts` | `STR` (all player-facing text; the dev menu's is `DEV_STR` in `dev/strings.ts`); shared types (`RoomType`, `Room`, `Door`, `Vec2`). |
 | `rng.ts`, `util.ts` | Seeded random streams; small helpers. |
 | `style.css` (and `index.html`) | HUD and screen styles; the overlay markup. |
 
@@ -51,12 +52,13 @@ three hearts counted in halves, one second of invulnerability after a hit.
 | `assets/` | Loader and pure data rules for made assets. |
 | `audio/` | Effects, instruments, soundscapes, music, the director, offline render. |
 | `combat/` | Damage, projectiles, glyphs, familiars, Fen-Nex, particle effects (`fx.ts`). |
+| `dev/` | Dev code behind the door: the dev menu, `window.__game`, the URL's dev options, galleries, test harnesses. |
 | `input/` | Keyboard, gamepad, frozen touch, the shared `pressed` state. |
 | `items/` | Artifacts, pickups, loot, merchants, potions, reagents, transformations, Azyrion's arc. |
 | `magic/` | Spells, shapes, statuses and reactions, weaves, knowledge, runes, grimoire pages, spell effects. |
 | `progression/` | Insight, levels, attributes, boons. |
 | `render/` | Renderer and pixel look, textures, lights, fire, materials, rig merging, palette, texel bake. |
-| `ui/` | HUD, screens, inventory, panels, level-up, lore cards, dev menu. |
+| `ui/` | HUD, screens, inventory, panels, level-up, lore cards. |
 | `vigil/` | The hub between runs: save, place, shades, townspeople, dialogue, gifts, unfolding. |
 | `world/` | Floor generation, rooms, walls, templates, props, mechanisms, pools, themes, special rooms. |
 
@@ -64,7 +66,7 @@ Outside `src/`: `data/` (JSON content), `public/assets/` (`hero_default.glb`, `c
 `tools/` (Node scripts), `tests/`, `docs/`.
 
 Most systems follow one pattern: rules in a pure `xData.ts` with a `validateX`, the game side in `x.ts`, looks in
-`xLooks.ts`, tuning in `CFG.x`, text in `STR.x`, a dev menu section and `__game` hooks.
+`xLooks.ts`, tuning in `CFG.x`, text in `STR.x`, a dev menu section (`dev/menu.ts`) and `__game` hooks (`dev/hooks.ts`).
 
 ## Runs and floor generation
 
@@ -137,7 +139,7 @@ water run, `fixed` keeps it out of generated floors. `boss_belfry` (four pillars
 boss. `?room=<id>` plays one template next to the start.
 
 Room types (`RoomType`): `start normal treasure boss ordeal altar merchant vault secret shrine library laboratory
-waystone vigil`. A new type needs a `DoorStyle`, a template, a name in `STR.dev.roomNames` and a dev menu entry.
+waystone vigil`. A new type needs a `DoorStyle`, a template, a name in `DEV_STR.roomNames` and a dev menu entry.
 
 ## Objects and mechanisms
 
@@ -222,7 +224,7 @@ colours. Pure `src/actors/foeData.ts` reads it (`validateFoes`, `BEHAVIOUR_PARAM
   `driven`; `rush`, `brake`, `ramp`). `bestiaryFoes.ts`: the bestiary behaviours, spread into `BEHAVIOURS`.
   `bestiaryGround.ts`: what foes leave and throw (webs, ink, rime, `lob`, `spikeAt`, `fallOn`, `layBlackFire`).
   `acting.ts`: `actAs`, `actor()` record whose ground and shots they are.
-- Looks: `fennexLook.ts` (Fen-Nex), `modelOptions.ts` (the Galleries tab's bosses, bestiary and Dr. Jelly), `bestiaryLooks.ts` with `bestiaryBeasts.ts`, `bestiaryCreatures.ts`, `bestiaryElementals.ts`,
+- Looks: `fennexLook.ts` (Fen-Nex), `dev/modelGallery.ts` (the Galleries tab's bosses, bestiary and Dr. Jelly), `bestiaryLooks.ts` with `bestiaryBeasts.ts`, `bestiaryCreatures.ts`, `bestiaryElementals.ts`,
   `beastParts.ts`; fantasy looks in `fantasyFloor1.ts` to
   `fantasyFloor5.ts`, `fantasyWardlings.ts`, gathered in `FANTASY_LOOKS` (`fantasyLooks.ts`) with `MOVED_PARTS`, the parts each foe's behaviour moves (the
   `lookContract` hook checks every look keeps them). A foe's look is the fantasy look, else the bestiary look or
@@ -377,7 +379,7 @@ slotted spell so runes apply everywhere. `shapes.ts`: `CAST` maps each shape to 
 
 Looks: `spellFx.ts` (`boltLook`, `animateBolt`, `impactFx`, pooled `ringFx`/`strikeFx`, `lanceFx`, `sealFx`,
 `iceColumn`, `mantleFx`; `hideSpellFx`; tuning `CFG.spellFx`) built from `render/arcane.ts`. `docs/effects.md` is the
-style guide; `effectOptions.ts` is the looping effect gallery (`__game.effectOptions(ids?)`).
+style guide; `dev/effectOptions.ts` is the looping effect gallery (`__game.effectOptions(ids?)`).
 To add one: a spell of a known shape is an entry in `data/spells.json` (the dev menu lists it). A new shape is a
 function in `CAST`, params in `SHAPE_PARAMS`, a look in `spellFx.ts`. A new school needs a `SCHOOL_LIGHT` entry, a
 `CFG.marks.rise` motion, a wheel spoke and reactions with every other school.
@@ -399,7 +401,7 @@ each of the fifteen status pairs to a reaction; found ones are kept by `memory.t
 | Wildfire, Frostbloom, Pollen Spark, Bloom, Blight | Overgrown + Burn, Chill, Shock, Sanctified, Hex | Verdant's five |
 
 Tile reactions: `overloadAt`, and `hexGround` in `shapes.ts` (a hex on holy ground); `tileReaction` raises the name.
-`reactionTest.ts` sets each off on dummies (`RECIPES`): dev menu "Reactions here", `__game.reaction(r)`, `reactions`,
+`dev/reactionTest.ts` sets each off on dummies (`RECIPES`): dev menu "Reactions here", `__game.reaction(r)`, `reactions`,
 `findReactions()`, `forgetReactions()`. To add one: a row in `REACTIONS`, its rule in `applyStatus`, its effect in
 `react`, a name, text, sound and a recipe.
 
@@ -411,8 +413,8 @@ A weave is a spell striking what another left; a chain is a reaction's leavings 
 (`foundWeave`). Weaves live where their spells do, in `shapes.ts` (`chainWeaves`, `steamCurtain`, `lanternFan`,
 `boltOverGround`, `hexGround`, `refraction`); chains in `steam.ts` (`chargeSteam`), `bestiaryGround.ts`,
 `pools.ts` and `statusFx.ts` (`endEclipse`); mechanisms join in (`blacken`, `runeReaction`, `sparkRing`).
-`weaveTest.ts` sets each up: dev menu "Weaves and chains here", `__game.weave(id)`, `weaves`, `findWeaves()`.
-To add one: a row in `WEAVES`, tuning, a name and text, its hook, and a setup in `weaveTest.ts`.
+`dev/weaveTest.ts` sets each up: dev menu "Weaves and chains here", `__game.weave(id)`, `weaves`, `findWeaves()`.
+To add one: a row in `WEAVES`, tuning, a name and text, its hook, and a setup in `dev/weaveTest.ts`.
 
 ### Knowledge, the grimoire, marks, runes
 
@@ -451,7 +453,7 @@ economy hooks (`freeVault`, `ferryman`, `glyphWard`, `blastMul`, `graveLantern`,
 `artifactLooks.ts`; HUD icons are rendered from them (`artifactIcons.ts`; a painted icon wins if `data/assets.json`
 has one). To add an artifact: an entry in `data/artifacts.json` (stats or an `Effect`, `lore`, a `costume` decision),
 a look in `artifactLooks.ts`, and for a new mechanic an `Effect` or stat key in `artifactData.ts` with its hook.
-Dev: `__game.give(...ids)`, `artifactGallery()`.
+Dev: `__game.give(...ids)`, `artifactGallery()` (`dev/artifactGallery.ts`).
 
 Costumes: an artifact's `costume` puts a piece on the mage. Pure `costumeData.ts` (slots head, face, shoulders,
 back, hands, belt, feet, aura), fitting `costumeFit.ts`, game side `costume.ts` (`dress`, `fitCostumes`, `handAt`),
@@ -537,7 +539,7 @@ Dev: Mage tab Alchemy, "Open the alchemy table here", `?potions=healing,hexBrew`
   `boonRank`, `boonParam`); hooks ask `boonHooks.ts` (`boonMul`, `magicNow`, `boonActs`: a boon's name once a
   room, its line once a run). `CFG.boons`. The level-up screen `ui/levelUp.ts` (`#scrLevel`: three cards, then a
   point; `checkLevelUp` opens it once a fight is won). `DEV.autoLevel` is `'choose'` (`?autolevel=1`, the balance
-  bot) or `'skip'` (`?autolevel=skip`, added by the browser tests). Dev: Magic tab Boons here (`boonTest.ts`);
+  bot) or `'skip'` (`?autolevel=skip`, added by the browser tests). Dev: Magic tab Boons here (`dev/boonTest.ts`);
   `__game.boons`, `giveBoon(id)`, `offer`, `openLevelUp()`, `boonHere(id)`; `?boons=deepWinter:2`.
 - The waystone: rises where a boss fell, in its own room beside the boss room on floors 1 to 5, which holds the way
   down. `world/waystone.ts` (`raiseWaystone`, `enterWaystone`, `castIntoStone`, `restAtStone`, `openWayDown`;
@@ -605,7 +607,8 @@ a run, six barred ways, and townspeople who are the shades freed in runs. Dust a
 - Made figures: thirteen Tripo models (ten townspeople, the Ferryman, Dr. Jelly, Kaelith; Mixamo rig) animated by
   `tools/creatures/townsfolk.ts` (`idle`, `talk`; Jelly's `give`, Kaelith's `sweep` and `kneel`). `madeModel(id,
   still)` in `madeCreatures.ts` dresses one; `town.ts` stands them on the fine layer (`markFine`), with code
-  figures as the fallback. The Townspeople's "wear" button switches (`setTownWear`).
+  figures as the fallback. The Townspeople's "wear" button switches (`setTownWear`); their gallery is
+  `dev/townGallery.ts`.
 
 Not built: the Great Circle (vows, gifts, omens), the Ferryman's crossing as the way down, echoes of past runs,
 the grimoire and bestiary rooms (`docs/M7-plan.md`).
@@ -628,7 +631,7 @@ stays free of it (software renderers pay for every shader line).
 Everything else stays pixel art by: the mage's texture baked into vertex colours (`actors/heroPixel.ts`, cut to
 `CFG.heroPixel.colours` by pure `render/palette.ts`), stepped glows and shadows (`glowTex`, `shadowTex`), and 24 px
 artifact icons (`toIcon`). Dev: `__game.pixelLook`, `setPixelLook({ lines, outline, bands })`, `pixelRows`,
-`renderInfo()` (draw calls, triangles, geometries, textures); Look tab; `DEV.fps` frame readout.
+`renderInfo()` (draw calls, triangles, geometries, textures); Look tab; `DEV.fps` frame readout (`dev/frameInfo.ts`).
 
 ### Room kit
 
@@ -668,7 +671,7 @@ round bases; `tools/prepare-asset.ts` shares them. Clips: `standing_relax`, `run
   its budget, turns inside-out patches outward, rebinds the skin (`reskin` in `creatureRig.ts`), bakes the recipe's
   clips (`tools/creatures/<id>.ts`: owlbear, dragonling, chameleon, townsfolk), pads texture islands and writes
   `public/assets/creatures/<id>.glb` plus clip data in `data/creatures.json`. In the game `actors/madeCreatures.ts`
-  stands one in the pixel-art look (`madeModel` dresses one for any use). Sounds: `audio/creatureSounds.ts`
+  dresses one in the pixel-art look (`madeModel`, for any use); `dev/creatureGallery.ts` stands one to look at. Sounds: `audio/creatureSounds.ts`
   (`Sfx.place(x, z)`) and WAVs listed in `data/sounds.json` (`soundData.ts`, `samples.ts`). Dev: Galleries Animated
   creatures; `__game.showCreature(id)`, `creatures`, `roarNow()`, `soundFiles()`.
 - Texel bake: `tools/texel-bake.ts` (run by `animate-creature` and `prepare-asset`) shrinks a model's texture to one
@@ -712,12 +715,12 @@ HTML/CSS over the canvas (`index.html`, `src/style.css`).
   (`foeEntries`). Arrows choose, Q/E (LB/RB) change tabs. Anything new the mage can carry gets a tab or a place in one.
 - Panels: `spellPanel.ts`, `warePanel.ts`, `levelUp.ts`, `waystone.ts`, `alchemyTable.ts`, `lectern.ts`, `talk.ts`.
   Open menus take keys first (routed in `main.ts`).
-- Dev menu `ui/devMenu.ts` (the key left of 1, or F2; it pauses the game). Seven tabs (`TABS`, `STR.dev.tabs`): Mage,
+- Dev menu `dev/menu.ts` (the key left of 1, or F2; it pauses the game). Seven tabs (`TABS`, `DEV_STR.tabs`): Mage,
   Magic, Foes & objects, Rooms & runs, Look, Galleries, Sound. It does by buttons what the dev hooks do (heal, god
   mode `DEV.god`, resources, drops, artifacts, foes, test rooms, boss fights, new runs, spells, mana). Lists come
   from data, so new artifacts, spells, drops, room types and bosses appear by themselves; a new kind of thing needs
-  a button or a line in `refresh()` in the tab it belongs to, and a new room type a name in `STR.dev.roomNames`. The
-  menu uses public APIs and `DEV`, never the reverse.
+  a button or a line in `refresh()` in the tab it belongs to, and a new room type a name in `DEV_STR.roomNames`. The
+  menu uses public APIs and `DEV`, never the reverse; the game reaches it only through the door (`devDoor.ts`).
 - Dev board: `tools/devboard/` (see [Tools](#tools)).
 
 ## Input
@@ -785,9 +788,12 @@ deploy waits for `build` only.
 
 ## Dev hooks and URL options
 
-`window.__game` (`installDevHooks` in `main.ts`) and `window.__manual` exist in production builds too. Under
+`window.__game` (`installHooks` in `dev/hooks.ts`) and `window.__manual` exist in production builds too. Under
 `__manual` the loop does not step in real time; tests advance it with `__game.sim(seconds)`. `warp` does not despawn
 the previous room's foes.
+
+`?seed` is the game's own (`readSeed` in `main.ts`); every other option is dev code's (`applyUrlOptions` in
+`dev/urlOptions.ts`), applied before the game reads them.
 
 | URL option | Effect |
 | --- | --- |
@@ -828,6 +834,26 @@ the previous room's foes.
 Browser storage: `ossuary.vigil` (the save; also migrates the older per-module keys `ossuary.knowledge`,
 `.bestiary`, `.reactions`, `.weaves`, `.recipes`), `ossuary.look`, `.devTab`, `.volume`, `.obolFace`,
 `.townWear`, `.insightTold`.
+
+## The dev door and `src/dev/`
+
+Dev code (the dev menu `dev/menu.ts` and its text `dev/strings.ts`, `window.__game` in `dev/hooks.ts`, the URL's dev
+options in `dev/urlOptions.ts`, the galleries, the test harnesses and the frame readout) lives in `src/dev/`. No game
+module imports from it (ESLint's `no-restricted-imports` in `tools/lint/config.js` fails the lint if one does); dev
+code imports the game freely. `main.ts` loads it with one dynamic `import('./dev')`, its own chunk, started at boot
+beside the fonts and assets; if it fails to load, the game logs an error and runs without the menu and hooks.
+
+The game reaches dev code only through `src/devDoor.ts`:
+- the menu: `devMenuOpen()`, `closeDevMenu()`, `toggleDevMenu()` (no-ops until `registerDevMenu`), for the input
+  routing in `main.ts` and the level-up screen;
+- callbacks dev code registers when it loads: `onDevStep((dt, room, playing) => ...)` each fixed step (the loop),
+  `onDevClear(() => ...)` when a floor's rooms go (`flow.ts`), `onDevFrame((ms) => ...)` each drawn frame outside
+  `__manual`.
+
+Boot order: `dev/index.ts`'s `applyUrlOptions()` runs where the URL options always applied (after the fonts, before
+the player is reset and the title is prepared) and writes `#devHint`; `install()` registers the menu on the door and
+sets `window.__game` once the title is up and the hero has loaded. A new dev feature goes in `src/dev/`; anything the
+game must call goes through the door. `DEV` (`state.ts`) stays game-side: dev code writes it, the game reads it.
 
 ## Legacy and comparison switches
 

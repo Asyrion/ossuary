@@ -27,13 +27,13 @@ Don't run the browser suite unless asked; it takes minutes.
 
 ## The checklist
 
-1. **Dev menu:** every new feature has its entry in `src/ui/devMenu.ts` in the same change (a way to spawn, give,
+1. **Dev menu:** every new feature has its entry in `src/dev/menu.ts` in the same change (a way to spawn, give,
    reach or trigger it). Lists that come from data need nothing; a new kind of thing (a room type, a mechanic, a
-   switch) needs a button or a line in `refresh()`. New room types get a name in `STR.dev.roomNames`.
+   switch) needs a button or a line in `refresh()`. New room types get a name in `DEV_STR.roomNames`.
 2. **Where things live:** tuning numbers in `src/config.ts` (`CFG`), content in `data/`. No new magic numbers
    scattered in code (small geometry sizes in a look are fine).
-3. **Strings:** every player-facing string in `src/strings.ts` (HTML uses `data-s` keys); names that live with
-   their data (artifacts, spells, themes) stay in their JSON.
+3. **Strings:** every player-facing string in `src/strings.ts` (HTML uses `data-s` keys; the dev menu's text is in
+   `src/dev/strings.ts`); names that live with their data (artifacts, spells, themes) stay in their JSON.
 4. **Lore:** placeholder lore keeps to the dungeon: chapel, crypts, sextons, pilgrims, the Ferryman. No gods,
    factions or places invented. Anything new the mage can take gets lore and shows it through `showLore`.
 5. **Magic take:** anything borrowed from Isaac answers to the cantrip, glyphs, spells, schools, the room, or the
@@ -51,7 +51,8 @@ Don't run the browser suite unless asked; it takes minutes.
    `docs/STATUS.md` says where things stand. Data files stay valid JSON (no `.5`, no trailing commas).
 10. **Commits:** messages end with the `Co-Authored-By` and `Claude-Session` lines, carry no model names or ids,
     and no scratch files (`*.tmp.*`) or screenshots are committed.
-11. **Dev hooks:** new hooks on `window.__game` are documented in `docs/architecture.md` (Dev hooks and URL options).
+11. **Dev hooks:** new hooks on `window.__game` are documented in `docs/architecture.md` (Dev hooks and URL options); they
+    live in `src/dev/hooks.ts`, and game code reaches dev code only through `src/devDoor.ts` (the lint fails otherwise).
 12. **Obvious bugs:** read the diff adversarially for what would break: import cycles that evaluate at load time,
     state that isn't reset between runs or floors (`clearEntities`, `newRun`), things that only work in the room
     where they were made, timers on wall-clock time where the game uses simulation time (`after()`).

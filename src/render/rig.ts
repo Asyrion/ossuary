@@ -1,4 +1,4 @@
-/* A creature built from many small parts (the critters of actors/modelOptions.ts, about fifty meshes each) made cheap
+/* A creature built from many small parts (the bestiary's critters, about fifty meshes each) made cheap
    to draw as a foe (M4). Which parts its idle moves is found by playing the idle at many moments and noting what
    changes (a transform, whether it shows, a material's colour or opacity); then, within each part that moves and within
    the creature itself, every still mesh is merged with the others of the same kind of surface into one mesh, each
