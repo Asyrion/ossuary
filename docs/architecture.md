@@ -603,7 +603,7 @@ a run, six barred ways, and townspeople who are the shades freed in runs. Dust a
   unfolding"; `__game.unfold`, `openPart(school)`, `setParts(schools)`.
 - Made figures: thirteen Tripo models (ten townspeople, the Ferryman, Dr. Jelly, Kaelith; Mixamo rig) animated by
   `tools/creatures/townsfolk.ts` (`idle`, `talk`; Jelly's `give`, Kaelith's `sweep` and `kneel`). `madeModel(id,
-  look, still)` in `madeCreatures.ts` dresses one; `town.ts` stands them on the fine layer (`markFine`), with code
+  still)` in `madeCreatures.ts` dresses one; `town.ts` stands them on the fine layer (`markFine`), with code
   figures as the fallback. The Townspeople's "wear" button switches (`setTownWear`).
 
 Not built: the Great Circle (vows, gifts, omens), the Ferryman's crossing as the way down, echoes of past runs,
@@ -838,7 +838,6 @@ These exist to compare an old way against the current one. They are not part of 
 | `?looks=new\|old`, `DEV.foeLooks`, `APPROVED`, `RETIRED` | Foes not in `APPROVED` wear an older look. |
 | `lookPairs.ts`, `npm run foe-sheet` pairs | Old and new foe looks side by side; the `lookContract` test. |
 | `?pixel=1080\|720\|540\|360\|270`, `LINES`, `pixelGrid` | Whole-screen-pixel row modes beside `texel`, `fine`. |
-| `setCreatureLook`, `ossuary.creatureLook2`, `<id>.full.glb` | Creature look modes and comparison GLBs. |
 | `setMadeLook`, `setHeroPixel` | Made assets texel/vertex; the mage baked/as made. |
 | `rotling`, `modelOptions.ts` galleries | A plain test foe; look-only galleries of foes and familiars. |
 | `src/input/touch.ts` | Frozen 0.3 touch controls: do not extend or test them. |

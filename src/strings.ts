@@ -1841,12 +1841,6 @@ export const STR = {
       jelly: 'Dr. Jelly',
       kaelith: 'Kaelith',
     } as Record<string, string>,
-    creatureLooks: {
-      texel: 'Look: pixel art from its texture (as the game draws it)',
-      pixel: 'Look: pixel art from its vertices (the first look)',
-      made: 'Look: as made (1,024 px texture, smooth light)',
-      full: 'Look: as imported (textures at their own size, normal map)',
-    } as Record<string, string>,
     scapes: 'Soundscapes',
     music: 'Music',
     soundGame: 'As the game asks',

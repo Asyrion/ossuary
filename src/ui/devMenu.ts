@@ -139,15 +139,7 @@ import { AudioDirector, type Forced } from '../audio/director';
 import { FLOOR_SCAPES, ROOM_SCAPES, THEME_SCAPES } from '../audio/ambienceData';
 import { MOODS, PIECES, type Mood } from '../audio/musicData';
 import { renderAudio } from '../audio/render';
-import {
-  CREATURES,
-  CREATURE_LOOKS,
-  creatureLook,
-  roarNow,
-  setCreatureLook,
-  showCreature,
-  takeCreatures,
-} from '../actors/madeCreatures';
+import { CREATURES, roarNow, showCreature, takeCreatures } from '../actors/madeCreatures';
 import { THEMES } from '../world/themeData';
 
 const S = STR.dev;
@@ -205,8 +197,7 @@ let levelInfo: HTMLElement,
   knowBox: HTMLElement,
   alchInfo: HTMLElement,
   reagentBtn: HTMLButtonElement,
-  obolBtn: HTMLButtonElement,
-  creatureLookBtn: HTMLButtonElement;
+  obolBtn: HTMLButtonElement;
 /** The menu's tabs, each a page of sections; the one open last is remembered in this browser. */
 const TABS = ['mage', 'magic', 'foes', 'rooms', 'look', 'galleries', 'sound'] as const;
 type Tab = (typeof TABS)[number];
@@ -1256,10 +1247,6 @@ function build() {
         void showCreature(id, G.current, at.x, at.z);
       }),
     ),
-    (creatureLookBtn = btn('', () => {
-      void setCreatureLook(CREATURE_LOOKS[(CREATURE_LOOKS.indexOf(creatureLook()) + 1) % CREATURE_LOOKS.length]);
-      refresh();
-    })),
     btn(S.roarNow, () => {
       closeDev();
       roarNow();
@@ -1909,8 +1896,6 @@ function refresh() {
       .join(', '),
   );
   heroPxBtn.textContent = heroPixel() ? S.heroPixelOn : S.heroPixelOff;
-  creatureLookBtn.textContent = S.creatureLooks[creatureLook()];
-  creatureLookBtn.classList.toggle('on', creatureLook() !== 'texel');
   {
     const waiting = looksWaiting().length > 0; // (every new look approved: the three ways draw the same foes)
     foeLookBtn.textContent = waiting ? S.foeLooks[DEV.foeLooks] : S.foeLooksAllApproved;

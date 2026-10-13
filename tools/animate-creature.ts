@@ -5,8 +5,7 @@
    Reads the owner's Tripo GLB, binds its skin again from the bones (Tripo's auto-rig weights can't bend a limb), bakes
    the clips of its recipe (tools/creatures/<id>.ts) into it as glTF animations, cuts its textures to 1,024 px JPEG and
    writes public/assets/creatures/<id>.glb, with what the game needs to play it (each clip's length, whether it loops,
-   when its sounds fall, how fast its walk goes) in data/creatures.json. Beside it, <id>.full.glb keeps the textures as
-   imported (their own size, the normal map), loaded only when the dev menu asks to compare: outside the game's budget. */
+   when its sounds fall, how fast its walk goes) in data/creatures.json, then bakes its texture as pixel art (texel-bake.ts). */
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { simplify, textureCompress, weld } from '@gltf-transform/functions';
@@ -45,7 +44,6 @@ const RECIPES = {
     height: number;
     fine?: boolean;
     budget: 'boss' | 'enemy';
-    full?: boolean;
     rebind?: SkinBone[];
     triangles?: number;
   }
@@ -195,10 +193,8 @@ async function main() {
   }
   if (tris() > B.triangles)
     throw new Error(`${id}: ${tris()} triangles, over the ${R.budget} budget of ${B.triangles} (nothing written)`);
-  const out = resolve(import.meta.dirname, `../public/assets/creatures/${id}.glb`),
-    full = out.replace(/\.glb$/, '.full.glb');
+  const out = resolve(import.meta.dirname, `../public/assets/creatures/${id}.glb`);
   mkdirSync(dirname(out), { recursive: true });
-  if (R.full !== false) await io.write(full, doc); // (the textures as imported, padded: the dev menu's comparison)
   // the game's: the normal map dropped (the pixel-art look lights in flat bands and never reads it), 1,024 px JPEG
   for (const m of doc.getRoot().listMaterials()) {
     const t = m.getNormalTexture();
@@ -227,7 +223,6 @@ async function main() {
   }
   data[id] = {
     file: `assets/creatures/${id}.glb`,
-    ...(R.full !== false && { full: `assets/creatures/${id}.full.glb` }),
     height: R.height,
     ...(R.fine && { fine: true }),
     modelHeight: +(hi[1] - lo[1]).toFixed(3),
@@ -254,9 +249,9 @@ async function main() {
     ) + '\n',
   );
   console.log(
-    `${id}: ${before} -> ${tris()} triangles (${R.budget} budget ${B.triangles}), ${oriented.turned} of ${oriented.faces} faces turned outward (${oriented.patches} patches), ${bound} vertices bound again, ${Object.keys(R.CLIPS).length} clips (${Object.keys(R.CLIPS).join(', ')}), ${padded.map((p) => `${p.size} px texture: ${p.filled} texels padded round its islands`).join(', ')}, ${(statSync(out).size / 1024).toFixed(0)} KB -> ${out} ${R.full !== false ? `(as imported: ${(statSync(full).size / 1024).toFixed(0)} KB)` : ''}${rebuilt ? `, its rest pose rebuilt from the bind (${rebuilt} joints)` : ''}${skin === R.rebind && skin ? ', its skin bound again from the Mixamo bones' : ''}, turned ${turned} degrees`,
+    `${id}: ${before} -> ${tris()} triangles (${R.budget} budget ${B.triangles}), ${oriented.turned} of ${oriented.faces} faces turned outward (${oriented.patches} patches), ${bound} vertices bound again, ${Object.keys(R.CLIPS).length} clips (${Object.keys(R.CLIPS).join(', ')}), ${padded.map((p) => `${p.size} px texture: ${p.filled} texels padded round its islands`).join(', ')}, ${(statSync(out).size / 1024).toFixed(0)} KB -> ${out}${rebuilt ? `, its rest pose rebuilt from the bind (${rebuilt} joints)` : ''}${skin === R.rebind && skin ? ', its skin bound again from the Mixamo bones' : ''}, turned ${turned} degrees`,
   );
-  await texelBake(id); // (its texture as pixel art at the size the game draws it: the creature look "pixel art from its texture")
+  await texelBake(id); // (its texture as pixel art at the size the game draws it)
 }
 main().catch((e) => {
   console.error(e);
