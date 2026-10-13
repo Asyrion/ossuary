@@ -145,6 +145,9 @@ Small steps, each one green in CI, none changing how the game plays.
 2. **Old paths out:** the old room kit (`?kit=old`, 21 files), the old foe looks (after the owner's last approvals, or
    their new looks taken as they are), the pixel-row modes beside texel and fine, the extra creature looks, the
    comparison GLBs, the `rotling`, `prototype/` and `npm run compare`. (Kaelith's look was chosen on 2026-10-06: the Winged Watcher.)
+   (*Built 2026-10-13*: all of these but the `rotling`, which the owner kept as the tests' plain target (it moves behind
+   the dev door in step 3); also the mage's and the made assets' look switches and the look-only galleries. No foe was
+   on an old look by then: all 39 fantasy looks were approved, so only the switch went. `?pixel=off` stays for tools.)
 3. **Dev code fenced:** `__game`, the dev menu, galleries and test harnesses move to `src/dev/`, loaded by a dynamic
    import, so the game's own modules never import them (the hooks stay in production builds, as the owner wants, but
    behind one door). The rule "every feature gets a dev entry" stays, written against that door.
