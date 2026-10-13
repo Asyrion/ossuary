@@ -1,8 +1,7 @@
 /* The room kit's mechanisms (M3.5 step 3; docs/archive/M3.5-plan.md): the rune stone, the lodestone, the bell, the hanging censer
-   and the reliquary, built in code in the style of the spell effects (docs/effects.md). What they do is unchanged
-   (mechanisms.ts); only the look is new, and each keeps the parts mechanisms.ts moves or lights. Every one has a touch of
-   magic that moves: runes orbit a charged stone, the lodestone's shard floats and turns, the reliquary's seal of
-   candle-light turns round it (`updateMechLook`). `DEV.roomKit` off keeps the old looks. */
+   and the reliquary, built in code in the style of the spell effects (docs/effects.md). What they do is in mechanisms.ts;
+   each keeps the parts mechanisms.ts moves or lights. Every one has a touch of magic that moves: runes orbit a charged
+   stone, the lodestone's shard floats and turns, the reliquary's seal of candle-light turns round it (`updateMechLook`). */
 import * as THREE from 'three';
 import type { FloorLook } from '../types';
 import { blob, glow, markShared, mergeStill } from '../render/materials';

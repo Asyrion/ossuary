@@ -27,80 +27,8 @@ export const soulSvg = (kind: keyof typeof SOUL_HUES) => {
 };
 export const HEART_PATH =
   'M12 21.2s-7.6-4.7-9.7-9.3C.8 8.3 3 4.4 6.7 4.4c2.1 0 3.6 1.1 4.4 2.7.8-1.6 2.3-2.7 4.4-2.7 3.7 0 5.9 3.9 4.3 7.5-2.1 4.6-9.8 9.3-9.8 9.3z';
-/* The artifacts' drawn icons (24 × 24, in the artifact's colour): the room kit's are rendered from its models
-   (items/artifactIcons.ts); these stay for the room kit off. */
+/** How the drawn icons (spells, resources) stroke their lines. */
 const S = 'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
-const ICONS: Record<string, string> = {
-  wand: `<path d="M5 19L16 8" ${S}/><path d="M17 3l1.2 3.3L21.5 7l-3.3 1.2L17 11.5l-1.2-3.3L12.5 7l3.3-1.2z" fill="currentColor"/>`,
-  staff: `<path d="M12 22V9M12 9L7 3M12 9l5-6" ${S}/><circle cx="7" cy="3.5" r="2" fill="currentColor"/><circle cx="17" cy="3.5" r="2" fill="currentColor"/>`,
-  orb: `<circle cx="12" cy="12" r="8" ${S}/><path d="M6 13c2-2 4 2 6 0s4 2 6 0" ${S}/>`,
-  crook: `<path d="M9 22V9a5 5 0 0 1 10 0v1.5" ${S}/>`,
-  sigil: `<circle cx="12" cy="12" r="8" ${S}/><path d="M12 5l3.5 7L12 19l-3.5-7z" fill="currentColor"/>`,
-  boots: `<path d="M8 3h5v10l6 3v4H6V13z" ${S}/>`,
-  beads: [0, 1, 2, 3, 4, 5, 6, 7]
-    .map(
-      (i) =>
-        `<circle cx="${12 + 7 * Math.cos(i * 0.785)}" cy="${12 + 7 * Math.sin(i * 0.785)}" r="1.8" fill="currentColor"/>`,
-    )
-    .join(''),
-  lens: `<circle cx="12" cy="12" r="8" ${S}/><circle cx="12" cy="12" r="3" fill="currentColor"/>`,
-  shard: `<path d="M12 20s-7-4.4-8.6-8.6C2.2 8 4.2 4.8 7.3 4.8c2 0 3.3 1 4.1 2.4L10 11l3 1-1 8z" fill="currentColor"/>`,
-  knuckle: `<path d="M7 17l10-10" ${S}/><circle cx="6" cy="15.5" r="2.2" fill="currentColor"/><circle cx="8.5" cy="18" r="2.2" fill="currentColor"/><circle cx="15.5" cy="6" r="2.2" fill="currentColor"/><circle cx="18" cy="8.5" r="2.2" fill="currentColor"/>`,
-  bell: `<path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4z" ${S}/><circle cx="12" cy="21" r="1.5" fill="currentColor"/>`,
-  chisel: `<path d="M14 3l4 4-9 9-4-4z" ${S}/><path d="M5 12l-2 7 7-2" ${S}/>`,
-  mask: `<path d="M4 6c5-2 11-2 16 0 0 7-3 13-8 13S4 13 4 6z" ${S}/><path d="M8 10h2.5M13.5 10H16" ${S}/>`,
-  chain: `<rect x="3" y="8" width="10" height="7" rx="3.5" ${S}/><rect x="11" y="9" width="10" height="7" rx="3.5" ${S}/>`,
-  censer: `<path d="M12 2v5M7 9h10l-1.5 7h-7z" ${S}/><path d="M9 20h6M12 16v4" ${S}/><path d="M6 5c1 1 1 2 0 3M18 5c-1 1-1 2 0 3" ${S}/>`,
-  spear: `<path d="M4 20L16 8" ${S}/><path d="M20 4l-2.2 6.6-4.4-4.4z" fill="currentColor"/><path d="M6 15l3 3" ${S}/>`,
-  serpent: `<path d="M5 21c0-4 6-3 6-7s-6-3-6-7 5-5 8-3" ${S}/><circle cx="15" cy="5" r="2.2" fill="currentColor"/><path d="M17 5h3" ${S}/>`,
-  eye: `<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z" ${S}/><circle cx="12" cy="12" r="3" fill="currentColor"/>`,
-  mirror: `<ellipse cx="12" cy="10" rx="6" ry="7.5" ${S}/><path d="M12 17.5V22M9 22h6M10 5l2 4-1 3 2 3" ${S}/>`,
-  feather: `<path d="M20 4C11 4 6 10 5 19l14-14" ${S}/><path d="M5 19l-2 2M9 11h5M7 15h5" ${S}/>`,
-  ram: `<path d="M8 8a4 4 0 1 0-4 5M16 8a4 4 0 1 1 4 5" ${S}/><path d="M8 8h8l-1 8-3 4-3-4z" ${S}/>`,
-  jar: `<path d="M8 3h8M9 3v3L6 9v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9l-3-3V3" ${S}/><path d="M9 14c1.5-2 4.5 2 6 0" ${S}/>`,
-  satchel: `<path d="M5 10h14v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z" ${S}/><path d="M5 10l1-3h12l1 3M9 7V4M15 7V4M11 13h2v3h-2z" ${S}/>`,
-  spoon: `<ellipse cx="12" cy="15" rx="3.5" ry="5" ${S}/><path d="M12 10V3M10 3h4" ${S}/>`,
-  retort: `<circle cx="9" cy="15" r="5.5" ${S}/><path d="M12.5 11L20 5" ${S}/><path d="M5 16c2-1 5 1 8 0" ${S}/>`,
-  foxrune: `<circle cx="12" cy="12" r="9" ${S}/><path d="M7 8l2 4M17 8l-2 4M9 12l3 5 3-5" ${S}/>`,
-  moth: `<path d="M12 6v14" ${S}/><path d="M12 9C8 4 3 5 4 10s5 4 8 2M12 9c4-5 9-4 8 1s-5 4-8 2M12 14c-3 1-5 4-3 6M12 14c3 1 5 4 3 6" ${S}/>`,
-  skull: `<path d="M5 11a7 7 0 1 1 14 0v3l-2 2v3H7v-3l-2-2z" ${S}/><circle cx="9" cy="11" r="1.6" fill="currentColor"/><circle cx="15" cy="11" r="1.6" fill="currentColor"/><path d="M15 13.5v3" ${S}/>`,
-  oath: `<path d="M12 21s-7-4.4-8.6-8.6C2.2 8 4.2 4.8 7.3 4.8c2 0 3.3 1 4.7 2.6 1.4-1.6 2.7-2.6 4.7-2.6 3.1 0 5.1 3.2 3.9 6.6C19 16.6 12 21 12 21z" ${S}/><path d="M9 12l2 2 4-4" ${S}/>`,
-  leadheart: `<path d="M12 21s-7-4.4-8.6-8.6C2.2 8 4.2 4.8 7.3 4.8c2 0 3.3 1 4.7 2.6 1.4-1.6 2.7-2.6 4.7-2.6 3.1 0 5.1 3.2 3.9 6.6C19 16.6 12 21 12 21z" fill="currentColor"/><path d="M8 3h8" ${S}/>`,
-  covenant: `<path d="M6 3h9l3 3v15H6z" ${S}/><path d="M9 9h6M9 12h6" ${S}/><path d="M12 15c-1.5 1.8-1.5 3 0 4 1.5-1 1.5-2.2 0-4z" fill="currentColor"/>`,
-  keyring: `<circle cx="9" cy="9" r="5.5" ${S}/><path d="M12.5 12.5L20 20M17 17l2-2M15 15l1.5-1.5" ${S}/><path d="M9 14.5V21M9 18h2.5" ${S}/>`,
-  purse: `<path d="M8 6c-3 3-4 6-4 9a8 5 0 0 0 16 0c0-3-1-6-4-9z" ${S}/><path d="M7 6h10M10 3l2 3 2-3" ${S}/><circle cx="12" cy="14" r="2.4" fill="currentColor"/>`,
-  chalk: `<path d="M4 17l9-9 3 3-9 9H4z" ${S}/><path d="M13 8l3-3 3 3-3 3" fill="currentColor"/><path d="M14 20h6" ${S}/>`,
-  obol: `<circle cx="12" cy="12" r="8" ${S}/><circle cx="12" cy="12" r="4" ${S}/><path d="M12 2v3M12 19v3" ${S}/>`,
-  band: `<ellipse cx="12" cy="13" rx="8" ry="5" ${S}/><path d="M8 7.6v2.2M12 7v2.2M16 7.6v2.2M8 16.2v2.2M12 16.8v2.2M16 16.2v2.2" ${S}/>`,
-  lantern: `<path d="M9 5h6M12 2v3M8 5l-1 4v8l2 3h6l2-3V9l-1-4" ${S}/><path d="M12 10c-1.5 1.5-1.5 3 0 4 1.5-1 1.5-2.5 0-4z" fill="currentColor"/>`,
-  scale: `<path d="M12 3v17M7 20h10M4 7h16" ${S}/><path d="M4 7l-2.5 6h5zM20 7l-2.5 6h5z" ${S}/>`,
-  // M3
-  emberwood: `<path d="M4 20L15 9" ${S}/><path d="M17 3c2 2.5 2.5 4.5 0 7-2.5-2.5-2-4.5 0-7z" fill="currentColor"/><path d="M7 14l2 2" ${S}/>`,
-  tome: `<path d="M4 5c3-1 5-1 8 1 3-2 5-2 8-1v14c-3-1-5-1-8 1-3-2-5-2-8-1z" ${S}/><path d="M12 6v14" ${S}/><path d="M6.5 10c1-1 2-1 3 0M14.5 13c1 1 2 1 3 0" ${S}/>`,
-  manalantern: `<path d="M9 5h6M12 2v3M8 5l-1 4v8l2 3h6l2-3V9l-1-4" ${S}/><path d="M12 9c-2 3-2 5 0 6 2-1 2-3 0-6z" fill="currentColor"/>`,
-  vigil: `<path d="M9 10h6v10H9z" ${S}/><path d="M7 20h10" ${S}/><path d="M12 2c2 2.5 2 4.5 0 6-2-1.5-2-3.5 0-6z" fill="currentColor"/>`,
-  frostring: `<circle cx="12" cy="14" r="6" ${S}/><path d="M12 2v6M9 3.5l6 3M15 3.5l-6 3" ${S}/>`,
-  stormglass: `<path d="M8 3h8M12 3v3" ${S}/><path d="M12 6l6 7-6 8-6-8z" ${S}/><path d="M13 9l-3 4h3l-2 4" ${S}/>`,
-  thurible: `<path d="M12 2v5M8 9h8l-1 7H9z" ${S}/><path d="M10 19h4" ${S}/><path d="M16 6c2-1 3 0 3 1.5M5 7.5C5 6 6 5 8 6" ${S}/><circle cx="12" cy="12.5" r="1.3" fill="currentColor"/>`,
-  witchknot: `<path d="M5 12c0-4 4-6 7-3s7 1 7-3M5 12c0 4 4 6 7 3s7-1 7 3" ${S}/><circle cx="12" cy="12" r="2" fill="currentColor"/>`,
-  thorns: `<path d="M4 16l2-8 4 5 2-7 2 7 4-5 2 8z" ${S}/><path d="M4 19h16M6 8l-2-2M18 8l2-2M12 6V3" ${S}/>`,
-  hungertome: `<path d="M4 5h13l3 3v12H7l-3-3z" ${S}/><path d="M8 11l1.5 2 1.5-2 1.5 2 1.5-2 1.5 2" ${S}/><path d="M8 16h8" ${S}/>`,
-  // M4.1
-  pendulum: `<path d="M12 2v2M12 4l4 11" ${S}/><circle cx="16.5" cy="17.5" r="3.5" fill="currentColor"/>`,
-  lodestar: `<path d="M4 20l9-9" ${S}/><path d="M13 11l2-2" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/><path d="M19 3l.8 2.2L22 6l-2.2.8L19 9l-.8-2.2L16 6l2.2-.8z" fill="currentColor"/>`,
-  twincandles: `<path d="M8 21V11M16 21V13M5 21h14" ${S}/><path d="M8 5c1.2 1.4 1.2 3 0 4-1.2-1-1.2-2.6 0-4zM16 7c1.2 1.4 1.2 3 0 4-1.2-1-1.2-2.6 0-4z" fill="currentColor"/>`,
-  choir: `<path d="M5 19L15 9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><circle cx="18" cy="5" r="1.6" fill="currentColor"/><circle cx="20" cy="10" r="1.3" fill="currentColor"/><circle cx="14" cy="3" r="1.1" fill="currentColor"/>`,
-  echostone: `<ellipse cx="12" cy="13" rx="4.5" ry="3.5" fill="currentColor"/><path d="M5 9a9 9 0 0 1 14 0M3 6a12 12 0 0 1 18 0" ${S}/>`,
-  bloodmoon: `<circle cx="12" cy="13" r="7" fill="currentColor" opacity=".85"/><circle cx="12" cy="13" r="7" ${S}/><path d="M12 3v3" ${S}/>`,
-  salt: `<path d="M5 18c0-5 2-9 5-10 3 1 5 5 5 10z" ${S}/><path d="M15 20l3-5 3 5z" fill="currentColor"/>`,
-  halo: `<ellipse cx="12" cy="12" rx="7" ry="3" ${S}/><path d="M12 4V2M5 6L4 4.5M19 6l1-1.5" ${S}/>`,
-  ferrylantern: `<path d="M5 22V4c0-2 4-2 5 0" ${S}/><path d="M9 8h6v8H9z" ${S}/><path d="M10 10h4v4h-4z" fill="currentColor"/>`,
-  antler: `<path d="M8 21c0-6 2-10 7-15M11 12c3 0 5-1 7-4M13 8c1-2 1-3 0-5" ${S}/>`,
-  contract: `<path d="M5 8h14v8H5z" ${S}/><path d="M5 8c0-2 3-2 3 0v8" ${S}/><circle cx="14" cy="14" r="2.2" fill="currentColor"/>`,
-  lastrite: `<path d="M8 3h7v18H8z" ${S}/><path d="M10 7h3M10 11h3M10 15h3" ${S}/>`,
-  // costumes
-  hood: `<path d="M5 20c0-7 2-15 7-16 5 1 7 9 7 16" ${S}/><path d="M9 20c0-3 1-7 3-7s3 4 3 7" ${S}/><path d="M12 4c3-1 7 1 8 6" ${S}/>`,
-};
 
 /* Placeholder spell icons, drawn in the spell's colour. */
 const SPELL_ICONS: Record<string, string> = {
@@ -279,10 +207,8 @@ export function artifactIcon(id: string, isFocus: boolean, cleansed = player.cle
     clean = cleansed && !!def.curse;
   const cls = isFocus ? 'focus' : clean ? 'cleansed' : def.kind === 'cursed' ? 'cursed' : '';
   const text = clean ? def.curse!.cleansed : def.text;
-  const url = iconUrl(id) ?? (DEV.roomKit ? artifactIconUrl(def) : null); // (a painted icon, M3.5; the room kit's, rendered from its model; or the drawn one)
-  const art = url
-    ? `<image href="${url}" width="24" height="24" style="image-rendering:pixelated"/>`
-    : (ICONS[def.icon] ?? ICONS.sigil);
+  const url = iconUrl(id) ?? artifactIconUrl(def); // (a painted icon, M3.5, or the room kit's, rendered from its model)
+  const art = `<image href="${url}" width="24" height="24" style="image-rendering:pixelated"/>`;
   return `<svg viewBox="0 0 24 24" class="${cls}" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${text}\n\n${def.lore}</title>${art}</svg>`;
 }
 /** The focus followed by every other artifact held. */

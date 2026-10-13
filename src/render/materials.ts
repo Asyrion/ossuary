@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { CFG } from '../config';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { FloorLook } from '../types';
-import { brickTexture, glowTex, shadowTex } from './textures';
+import { glowTex, shadowTex } from './textures';
 import { pixelWallTexture } from './pixelTextures';
 import type { WallKind } from '../world/kitData';
 
@@ -28,31 +28,10 @@ export function boxUV(w: number, h: number, d: number) {
 
 export const M = {
   wallTop: new THREE.MeshBasicMaterial({ color: 0x0d0a08 }),
-  threshold: new THREE.MeshStandardMaterial({ color: 0x3a3129, roughness: 1 }),
   rock: new THREE.MeshStandardMaterial({ color: 0x6b625a, roughness: 0.9, flatShading: true }),
-  stone: new THREE.MeshStandardMaterial({ color: 0x7c7268, roughness: 0.85 }), // pillars
-  tomb: new THREE.MeshStandardMaterial({ color: 0x5e5750, roughness: 0.9 }),
-  clay: new THREE.MeshStandardMaterial({ color: 0x8a5436, roughness: 0.8, flatShading: true }), // urns
-  urnStone: new THREE.MeshStandardMaterial({ color: 0x4c4a54, roughness: 0.55, metalness: 0.3, flatShading: true }),
-  urnLid: new THREE.MeshStandardMaterial({ color: 0x3a2418, roughness: 0.9 }),
   /** Wards: the pale blue of seals on urns, chests and vaults. */
   ward: new THREE.MeshBasicMaterial({ color: 0x8ab8ff }),
-  iron: new THREE.MeshStandardMaterial({ color: 0x2e2c2e, roughness: 0.5, metalness: 0.7 }),
-  frame: {
-    normal: new THREE.MeshStandardMaterial({ color: 0x2a2019, roughness: 0.9 }),
-    treasure: new THREE.MeshStandardMaterial({ color: 0x6e5424, roughness: 0.45, metalness: 0.6, emissive: 0x2a1800 }),
-    boss: new THREE.MeshStandardMaterial({ color: 0x4d1712, roughness: 0.7, emissive: 0x3a0804 }),
-    ordeal: new THREE.MeshStandardMaterial({ color: 0x2c2b30, roughness: 0.45, metalness: 0.7, emissive: 0x0c0a10 }),
-    altar: new THREE.MeshStandardMaterial({ color: 0xcfc2a6, roughness: 0.8, emissive: 0x1a1208 }),
-    merchant: new THREE.MeshStandardMaterial({ color: 0x3a3226, roughness: 0.7, emissive: 0x141a14 }),
-    vault: new THREE.MeshStandardMaterial({ color: 0x3a3a40, roughness: 0.35, metalness: 0.85, emissive: 0x080a14 }),
-    shrine: new THREE.MeshStandardMaterial({ color: 0x9a9282, roughness: 0.8, emissive: 0x16120a }),
-    library: new THREE.MeshStandardMaterial({ color: 0x4a3322, roughness: 0.75, emissive: 0x1c1208 }),
-    laboratory: new THREE.MeshStandardMaterial({ color: 0x34402a, roughness: 0.6, metalness: 0.3, emissive: 0x0e1a0a }),
-    waystone: new THREE.MeshStandardMaterial({ color: 0x5a5d66, roughness: 0.85, emissive: 0x14100a }),
-  },
   bone: new THREE.MeshStandardMaterial({ color: 0xd8ccb2, roughness: 0.75, emissive: 0x15100a }),
-  gate: new THREE.MeshStandardMaterial({ color: 0x6b5644, roughness: 0.55, metalness: 0.5, emissive: 0x1a0f07 }),
   hero: new THREE.MeshStandardMaterial({ color: 0xb9ae9c, roughness: 0.7, emissive: 0x120d08 }),
 };
 /** Flag a geometry or material as shared, so disposeTree leaves it alone. */
@@ -60,42 +39,22 @@ export function markShared<T extends { userData: Record<string, unknown> }>(o: T
   o.userData.shared = true;
   return o;
 }
-for (const m of [
-  M.wallTop,
-  M.threshold,
-  M.rock,
-  M.stone,
-  M.tomb,
-  M.clay,
-  M.urnStone,
-  M.urnLid,
-  M.ward,
-  M.iron,
-  M.gate,
-  M.hero,
-  M.bone,
-  ...Object.values(M.frame),
-])
-  markShared(m);
+for (const m of Object.values(M)) markShared(m);
 
 const wallCache = new Map<string, THREE.Material[]>();
-/** Box materials for walls in a floor's look (brick sides, dark tops), shared by every room of that look; `kit` for the
-    room kit's pixel walls of that kind (glowing where the kind has embers in it). */
-export function wallMaterials(wall: FloorLook['wall'], kit?: WallKind | false) {
-  const key = JSON.stringify(wall) + kit;
+/** Box materials for walls in a floor's look and the room kit's `kind` of wall: its pixel bricks on the sides (glowing
+    where the kind has embers in it), dark tops; shared by every room of that look and kind. */
+export function wallMaterials(wall: FloorLook['wall'], kind: WallKind) {
+  const key = JSON.stringify(wall) + kind;
   let mats = wallCache.get(key);
   if (!mats) {
-    const art = kit ? pixelWallTexture(wall, kit) : null;
+    const art = pixelWallTexture(wall, kind);
     const brick = markShared(
-      new THREE.MeshStandardMaterial(
-        art
-          ? {
-              map: art.map,
-              roughness: 0.95,
-              ...(art.glow && { emissive: 0xffffff, emissiveMap: art.glow, emissiveIntensity: CFG.roomKit.glow }),
-            }
-          : { map: brickTexture(wall), roughness: 0.95 },
-      ),
+      new THREE.MeshStandardMaterial({
+        map: art.map,
+        roughness: 0.95,
+        ...(art.glow && { emissive: 0xffffff, emissiveMap: art.glow, emissiveIntensity: CFG.roomKit.glow }),
+      }),
     );
     mats = [brick, brick, M.wallTop, M.wallTop, brick, brick];
     wallCache.set(key, mats);
@@ -106,11 +65,11 @@ export function wallMaterials(wall: FloorLook['wall'], kit?: WallKind | false) {
 const cappedCache = new Map<string, THREE.Material[]>();
 /** Walls carved inside a room (a partition, a pier, a cut corner): brick sides under a cap of dressed stone, so a
     low one reads as masonry rather than a hole in the floor. */
-export function cappedWallMaterials(wall: FloorLook['wall'], kit?: WallKind | false) {
-  const key = JSON.stringify(wall) + kit;
+export function cappedWallMaterials(wall: FloorLook['wall'], kind: WallKind) {
+  const key = JSON.stringify(wall) + kind;
   let mats = cappedCache.get(key);
   if (!mats) {
-    const [brick] = wallMaterials(wall, kit),
+    const [brick] = wallMaterials(wall, kind),
       [r, g, b] = wall.brick.map((v) => Math.min(255, Math.round(v * 0.6)));
     const cap = markShared(
       new THREE.MeshStandardMaterial({ color: new THREE.Color(`rgb(${r},${g},${b})`), roughness: 0.9 }),

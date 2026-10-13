@@ -52,7 +52,6 @@ import {
   takeCoins,
   toggleDev,
   useAssets,
-  useRoomKit,
   wearFace,
 } from './ui/devMenu';
 import { obolFace, obolFaces } from './items/obolFace';
@@ -328,16 +327,13 @@ async function loadDefaultHero() {
     ?room=<template id> plays one room template (for reviewing templates), ?variant=dark dresses that room
     in a variant (quiet, champion, ambush, dark), ?give=bone_lens,twin_staff starts the run holding those
     artifacts, ?boss=pyre picks every floor's boss, ?loot=coins:20,glyphs:5 hands out obols, keys and glyphs,
-    ?spells=arc starts with spells in the slots, ?theme=ossuary makes every fight one theme's, ?kit=old builds the rooms
-    in the old look (before the room kit), ?boons=deepWinter:2,coldSnap starts with boons taken (M6), ?runes=q:quicken,e:lasting+vein
+    ?spells=arc starts with spells in the slots, ?theme=ossuary makes every fight one theme's,
+    ?boons=deepWinter:2,coldSnap starts with boons taken (M6), ?runes=q:quicken,e:lasting+vein
     with runes carved into the slots' spells (M6 step 7). */
 function readUrlOptions() {
   const q = new URLSearchParams(location.search);
-  const kit = q.get('kit');
   const vig = q.get('vigil');
   if (vig && vig !== '0') askVigil(vig === 'first'); // (M7 step 5: ?vigil=1 starts at the Vigil, ?vigil=first wakes there for the first time)
-  if (kit === 'old') DEV.roomKit = false;
-  else if (kit && kit !== 'new') console.warn(`?kit=${kit}: use new or old`);
   const seed = q.get('seed'),
     floor = Number(q.get('floor')),
     room = q.get('room'),
@@ -566,12 +562,6 @@ function installDevHooks() {
       return { on: assetsOn(), list: assetList().map((a) => ({ ...a })) };
     },
     useAssets: (on: boolean) => useAssets(on),
-    /** The room kit (M3.5 step 3's proof: fire objects, the crypt's floor and walls built in code): whether it is used;
-        turn it on or off (this floor is built again to compare). */
-    get roomKit() {
-      return DEV.roomKit;
-    },
-    useRoomKit: (on: boolean) => useRoomKit(on),
     /** The kinds of wall, floor, wall light and brazier the room the mage is in drew (the room kit's variety). */
     get kinds() {
       return G.current.look.kinds ? { ...G.current.look.kinds } : null;

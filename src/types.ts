@@ -73,7 +73,8 @@ export interface FloorLook {
   /** Floor tiles: base colour, mortar, stain colour ("r,g,b"), scattered decoration and how many bones. */
   floor: { base: RGB; mortar: string; stain: string; decor: 'bones' | 'puddles' | 'ash' | 'wax'; bones: number };
   wall: { brick: RGB; mortar: string; stains: 'none' | 'moss' | 'soot' | 'gilt' | 'salt'; dress?: WallDress };
-  /** The floor's lights: the wall torch's old style, its flame and light, and the wax of its candles (the room kit's). */
+  /** The floor's lights: the wall torch's flame and light, and the wax of its candles (`style` is unread: a room's wall
+      light is the kind it drew from `kit`). */
   torch: {
     style: 'bracket' | 'lantern' | 'brazier';
     flame: string;
@@ -90,10 +91,12 @@ export interface FloorLook {
   /** The floor's pottery: an urn's clay and its painted bands (the room kit's urns). */
   urn: { clay: string; band: string };
   /** The room kit's kinds of wall, floor, wall light and brazier, weighted (world/kitData.ts). */
-  kit?: KitWeights;
+  kit: KitWeights;
   /** The kinds this room drew from `kit` (set when the room is built). */
   kinds?: Kinds;
 }
+/** A built room's look: the kinds it drew are always there. */
+export type RoomLook = FloorLook & { kinds: Kinds };
 
 /** A doorway: (x, z) is its middle on this room's inside edge; `link` is the matching door in `nb`. */
 export interface Door {
@@ -250,7 +253,7 @@ export interface OfferingStone {
 export interface Room {
   plan: PlannedRoom;
   template: Template;
-  look: FloorLook;
+  look: RoomLook;
   type: RoomType;
   gx: number;
   gy: number;

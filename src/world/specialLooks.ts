@@ -3,7 +3,7 @@
    as the other objects are (objectLooks.ts): painted pieces merged into one mesh (`mergeStill`), with a touch of magic
    where it fits: the shade's hem fraying into ghost-light and the chains of ward light that bind it to its circle, its
    lantern's pale fire; a curse's rune smouldering on an offering stone; the ward's rune on the padlock. What each does is
-   unchanged (merchant.ts, pages.ts, shrine.ts, vault.ts); `DEV.roomKit` off keeps the old looks. */
+   in merchant.ts, pages.ts, shrine.ts and vault.ts. */
 import * as THREE from 'three';
 import type { FloorLook } from '../types';
 import { blob, glow, glowShared, mergeStill } from '../render/materials';

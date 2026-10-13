@@ -11,7 +11,7 @@ import { G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { boxUV, disposeTree, markShared, wallMaterials } from '../render/materials';
-import { crackTexelTexture, crackTexture } from '../render/textures';
+import { crackTexelTexture } from '../render/textures';
 import { burst } from '../combat/fx';
 import { renderMinimap, toast } from '../ui/hud';
 import { offerBeyondBudget, placeArtifact } from '../items/artifacts';
@@ -21,7 +21,7 @@ import { soulsHere } from '../items/souls';
 import { runeHere } from '../magic/runes';
 import { SIDE_DIR } from './shapes';
 import { DH, H_LOW, H_TALL, WT } from './dims';
-import { WARD_COLOR, freeSpotNear, kitWalls } from './rooms';
+import { WARD_COLOR, freeSpotNear } from './rooms';
 
 const C = CFG.secret;
 const isNS = (s: Side) => s === 'n' || s === 's';
@@ -61,7 +61,7 @@ export function fillSecret(room: Room) {
 /* ---------- cracked walls ---------- */
 
 const crackMats = new Map<THREE.Texture, THREE.MeshBasicMaterial>();
-/** The crack's dark lines, one material per picture (the old smooth one, or the room kit's in texels of each size). */
+/** The crack's dark lines, one material per picture (the crack in texels, one for each size). */
 const crackMat = (map: THREE.Texture) =>
   crackMats.get(map) ??
   crackMats
@@ -90,11 +90,10 @@ export function buildCrackedWall(room: Room, side: Side, nb: Room, x: number, z:
   plug.position.set(wx - room.cx, 0, wz - room.cz);
   const wall = new THREE.Mesh(
     ns ? boxUV(DH * 2, h, WT) : boxUV(WT, h, DH * 2),
-    wallMaterials(room.look.wall, kitWalls(room.look)),
+    wallMaterials(room.look.wall, room.look.kinds.wall),
   );
-  wall.position.y = h / 2; // (in the room kit's bricks where the walls are)
-  const [TX, TY] = CFG.roomKit.texel,
-    kit = !!kitWalls(room.look); // (the room kit's crack: whole texels, as its bricks)
+  wall.position.y = h / 2; // (in the bricks of the walls round it)
+  const [TX, TY] = CFG.roomKit.texel; // (the crack in whole texels, as the bricks)
   const glowMat = (map: THREE.Texture) =>
     new THREE.MeshBasicMaterial({
       map,
@@ -106,7 +105,7 @@ export function buildCrackedWall(room: Room, side: Side, nb: Room, x: number, z:
     });
   const glows: THREE.MeshBasicMaterial[] = [];
   const decal = (w: number, hh: number, place: (m: THREE.Mesh) => void) => {
-    const map = kit ? crackTexelTexture(Math.round(w * TX), Math.round(hh * TY)) : crackTexture(),
+    const map = crackTexelTexture(Math.round(w * TX), Math.round(hh * TY)),
       glow = glowMat(map);
     for (const mat of [crackMat(map), glow]) {
       const m = new THREE.Mesh(planeGeo, mat);

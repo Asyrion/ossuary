@@ -6,10 +6,10 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Room, WareSpot } from '../types';
-import { DEV, G, player } from '../state';
+import { G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { M, basicMat, blob, disposeTree, glow, markShared } from '../render/materials';
+import { M, disposeTree, markShared } from '../render/materials';
 import { crowWareLook, shadeLook } from '../world/specialLooks';
 import { glyphTexture } from '../render/textures';
 import { burst } from '../combat/fx';
@@ -66,8 +66,6 @@ function makeParts() {
         side: THREE.DoubleSide,
       }),
     ),
-    robe: markShared(new THREE.MeshStandardMaterial({ color: 0x2a2834, roughness: 0.9, emissive: 0x10302a })),
-    face: markShared(new THREE.MeshBasicMaterial({ color: 0x030204 })),
   };
 }
 
@@ -138,48 +136,6 @@ export function coinTag(price: number, lowered = false) {
   return s;
 }
 
-/** The shade: a hooded, footless figure with pale eyes, a lantern in one hand and a ward ring binding it
-    to the floor (the room kit's: specialLooks.ts). */
-function makeShade() {
-  if (DEV.roomKit) return shadeLook(WARD);
-  const P = (parts ??= makeParts()),
-    g = new THREE.Group(),
-    body = new THREE.Group();
-  const robe = new THREE.Mesh(new THREE.ConeGeometry(0.44, 1.2, 12, 1, true), P.robe);
-  robe.position.y = 0.72;
-  const hood = new THREE.Mesh(new THREE.SphereGeometry(0.25, 14, 10), P.robe);
-  hood.position.y = 1.42;
-  hood.scale.set(1, 1.15, 1);
-  const face = new THREE.Mesh(new THREE.CircleGeometry(0.15, 16), P.face);
-  face.position.set(0, 1.4, 0.2);
-  const eyes = [-0.065, 0.065].map((x) => {
-    const e = glow(0xb8fff0, 0.32, 1);
-    e.position.set(x, 1.43, 0.24);
-    return e;
-  });
-  const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.09, 0.5, 8), P.robe);
-  arm.position.set(0.34, 1.02, 0.12);
-  arm.rotation.z = -0.5;
-  const lamp = new THREE.Group();
-  lamp.position.set(0.52, 0.72, 0.22);
-  const cap = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.08, 4), M.iron);
-  cap.position.y = 0.12;
-  cap.rotation.y = Math.PI / 4;
-  const flame = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), basicMat(0xffc36a));
-  flame.scale.y = 1.5;
-  lamp.add(cap, flame, glow(0xffb050, 0.9, 0.8));
-  const aura = glow(0x6fe0c8, 2.8, 0.38);
-  aura.position.y = 0.9;
-  body.add(robe, hood, face, ...eyes, arm, lamp, aura);
-  const bind = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.025, 5, 28), M.ward);
-  bind.rotation.x = Math.PI / 2;
-  bind.position.y = 0.03;
-  g.add(body, bind, blob(1.2));
-  g.scale.setScalar(1.15);
-  g.userData = { body, eyes };
-  return g;
-}
-
 /* ---------- the shop ---------- */
 
 /** Stock a merchant's room: the shade at the back, the wares in a row in front of him. */
@@ -197,7 +153,7 @@ export function buildShop(room: Room) {
       priceOf(ware),
     ),
   );
-  const shade = makeShade();
+  const shade = shadeLook(WARD); // (the hooded, footless shade bound to its ward ring: specialLooks.ts)
   shade.position.set(0, 0, C.shadeAt);
   room.group.add(shade);
   room.shade = shade;

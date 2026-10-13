@@ -144,8 +144,7 @@ shared parts in `kitParts.ts`.
   - small sprites for bones and skulls;
   - marks drawn with the canvas, then hardened into whole texels.
   Sample them nearest (`magFilter`), so the texels stay crisp.
-- **Budget:** a wall light or a brazier costs about 3 draw calls for its fire, 1 for its body and 1 for its glow. A room
-  at rest stays within about 10 calls of the old look.
+- **Budget:** a wall light or a brazier costs about 3 draw calls for its fire, 1 for its body and 1 for its glow.
 - **Artifacts** are built the same way (`src/items/artifactLooks.ts`), each as what it is, about half a unit tall and
   built about its middle; the HUD's icon is rendered from the model (`src/items/artifactIcons.ts`), so a new artifact
   needs one look, keyed by its `icon`, and gets its icon with it.

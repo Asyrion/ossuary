@@ -3,25 +3,14 @@
 import * as THREE from 'three';
 import { furnishLab } from './laboratory';
 import { CFG } from '../config';
-import type { Box, Door, DoorStyle, FloorLook, RockBox, Room, Side } from '../types';
+import type { Box, Door, DoorStyle, FloorLook, RockBox, Room, RoomLook, Side } from '../types';
 import { DEV, G } from '../state';
 import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { floorOwnedTexture, floorTexture } from '../render/textures';
 import { softenCanvas } from '../render/softEdge';
 import { pixelFloorTexture } from '../render/pixelTextures';
-import {
-  M,
-  basicMat,
-  blob,
-  boxUV,
-  cappedWallMaterials,
-  disposeTree,
-  glow,
-  markShared,
-  mergeStill,
-  wallMaterials,
-} from '../render/materials';
+import { M, blob, boxUV, cappedWallMaterials, disposeTree, glow, mergeStill, wallMaterials } from '../render/materials';
 import { tickFire } from '../render/fire';
 import { offerGuaranteed, placeArtifact } from '../items/artifacts';
 import { burst } from '../combat/fx';
@@ -80,9 +69,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number, own?: FloorLook
       : plan.type === 'shrine'
         ? shrineLook(floorLook)
         : themedLook(floorLook, theme);
-  const look: FloorLook = dressed.kit
-    ? { ...dressed, kinds: pickKinds(dressed.kit, plan.seed, DEV.kitKinds) }
-    : dressed; // (the room kit's kinds, drawn on its seed)
+  const look: RoomLook = { ...dressed, kinds: pickKinds(dressed.kit, plan.seed, DEV.kitKinds) }; // (the room kit's kinds, drawn on its seed)
   const room: Room = {
     plan,
     template,
@@ -132,9 +119,10 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number, own?: FloorLook
     template.tiles[r]?.[c] === 'water' ||
     template.tiles[r]?.[c] === 'oil' ||
     spills.some(([sc, sr, n]) => Math.abs(sc - c) + Math.abs(sr - r) <= n);
-  const art = kitFloor(look)
-    ? pixelFloorTexture(plan.seed, kind, look, room.mask, wet)
-    : { map: floorTexture(plan.seed, kind, look, room.mask), glow: undefined };
+  const tile = floorTile(look.name); // (a made floor tile, data/assets.json, paints the floor; else the room kit draws it)
+  const art = tile
+    ? { map: floorTexture(plan.seed, kind, look, room.mask, tile), glow: undefined }
+    : pixelFloorTexture(plan.seed, kind, look, room.mask, wet);
   const glowK = CFG.roomKit.glow * (plan.variant === 'dark' ? CFG.roomKit.glowDark : 1); // (embers dimmer in a dark room)
   const floor = new THREE.Mesh(
     maskGeometry(room.mask, w, h),
@@ -238,38 +226,11 @@ function maskGeometry(mask: boolean[][], w: number, h: number) {
   return g;
 }
 
-/** Whether a room's rocks, pillars, tombs and urns are the room kit's (objectLooks.ts). */
-export const kitPieces = (room: Room) => DEV.roomKit && !!room.look.kinds;
-
 function addRock(room: Room, c: number, r: number) {
   const p = toWorld(room, c, r);
   const R = mulberry(c * 31 + r * 7 + room.plan.seed);
-  let g = new THREE.Group();
-  if (kitPieces(room)) {
-    g = rockLook(R, room.look, room.theme?.rock === 'dripstone');
-    mergeStill(g);
-  } else if (room.theme?.rock === 'dripstone') {
-    // a fungal grotto's rocks are stalagmites, dripped up from the floor
-    for (const [x, z, h, r] of [
-      [0, 0, 1 + R() * 0.5, 0.3],
-      [R() * 0.4 - 0.2, 0.25, 0.45 + R() * 0.3, 0.16],
-      [0.25, R() * 0.3 - 0.2, 0.3 + R() * 0.2, 0.12],
-    ]) {
-      const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, 7), M.rock);
-      cone.position.set(x, h / 2, z);
-      g.add(cone);
-    }
-    g.add(blob(1.2));
-  } else {
-    const big = new THREE.Mesh(new THREE.DodecahedronGeometry(0.46, 0), M.rock);
-    big.scale.set(1, 0.78 + R() * 0.2, 1);
-    big.position.y = 0.3;
-    big.rotation.set(R() * 3, R() * 3, R() * 3);
-    const small = new THREE.Mesh(new THREE.DodecahedronGeometry(0.2, 0), M.rock);
-    small.position.set(R() * 0.5 - 0.25, 0.12, 0.3);
-    small.rotation.set(R() * 3, R() * 3, 0);
-    g.add(big, small, blob(1.3));
-  }
+  const g = rockLook(R, room.look, room.theme?.rock === 'dripstone');
+  mergeStill(g);
   g.position.set(p.x - room.cx, 0, p.z - room.cz);
   room.group.add(g);
   room.rocks.push({
@@ -313,32 +274,9 @@ export function raisePillar(room: Room, x: number, z: number) {
   return g;
 }
 function pillarAt(room: Room, x: number, z: number, R: () => number, broken: boolean, shaft: number) {
-  if (kitPieces(room)) {
-    const g = pillarLook(R, room.look, broken, shaft - 0.06);
-    mergeStill(g);
-    g.position.set(x - room.cx, 0, z - room.cz);
-    return g;
-  }
-  const g = new THREE.Group();
+  const g = pillarLook(R, room.look, broken, shaft - 0.06);
+  mergeStill(g);
   g.position.set(x - room.cx, 0, z - room.cz);
-  const part = (geo: THREE.BufferGeometry, y: number, rot = 0) => {
-    const m = new THREE.Mesh(geo, M.stone);
-    m.position.y = y;
-    m.rotation.y = rot;
-    g.add(m);
-    return m;
-  };
-  part(new THREE.BoxGeometry(0.86, 0.22, 0.86), 0.11);
-  part(new THREE.CylinderGeometry(0.27, 0.3, shaft, 8), 0.22 + shaft / 2, R());
-  if (broken) {
-    // a jagged top and a fallen chunk beside it
-    part(new THREE.CylinderGeometry(0.2, 0.27, 0.14, 8), 0.22 + shaft + 0.07, R()).rotation.z = 0.25;
-    const chunk = new THREE.Mesh(new THREE.DodecahedronGeometry(0.16, 0), M.stone);
-    const a = R() * Math.PI * 2;
-    chunk.position.set(Math.cos(a) * 0.42, 0.1, Math.sin(a) * 0.42);
-    g.add(chunk);
-  } else part(new THREE.BoxGeometry(0.72, 0.18, 0.72), 0.22 + shaft + 0.09);
-  g.add(blob(1.25));
   return g;
 }
 
@@ -351,69 +289,16 @@ function addTomb(room: Room, run: { c: number; r: number; len: number; across: b
     z = (a.z + b.z) / 2,
     long = run.len - 0.16,
     wide = 0.78;
-  if (kitPieces(room)) {
-    const g = tombLook(
-      mulberry(run.c * 71 + run.r * 29 + room.plan.seed),
-      long,
-      wide,
-      room.look,
-      room.theme?.tomb === 'slab',
-    );
-    mergeStill(g);
-    g.position.set(x - room.cx, 0, z - room.cz);
-    if (!run.across) g.rotation.y = Math.PI / 2;
-    room.group.add(g);
-    room.rocks.push({
-      x,
-      z,
-      hx: (run.across ? long : wide) / 2 + 0.02,
-      hz: (run.across ? wide : long) / 2 + 0.02,
-      hp: 0,
-      breakable: false,
-    });
-    return;
-  }
-  const g = new THREE.Group();
+  const g = tombLook(
+    mulberry(run.c * 71 + run.r * 29 + room.plan.seed),
+    long,
+    wide,
+    room.look,
+    room.theme?.tomb === 'slab',
+  );
+  mergeStill(g);
   g.position.set(x - room.cx, 0, z - room.cz);
   if (!run.across) g.rotation.y = Math.PI / 2;
-  const part = (w: number, h: number, d: number, y: number, mat: THREE.Material = M.tomb) => {
-    const m = new THREE.Mesh(boxUV(w, h, d), mat);
-    m.position.y = y;
-    g.add(m);
-    return m;
-  };
-  if (room.theme?.tomb === 'slab') {
-    // an embalmers' slab: a stone table on two plinths, and someone under a shroud on it
-    part(long, 0.08, wide, 0.5, M.stone);
-    for (const px of [-long / 2 + 0.25, long / 2 - 0.25]) part(0.3, 0.46, wide - 0.2, 0.23).position.x = px;
-    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, Math.max(0.2, long - 0.7), 4, 8), shroud());
-    body.rotation.z = Math.PI / 2;
-    body.scale.set(1, 1, 0.75);
-    body.position.y = 0.66;
-    g.add(body);
-    const shadow = blob(1);
-    shadow.scale.set(long + 0.6, 1, wide + 0.6);
-    g.add(shadow);
-    room.group.add(g);
-    room.rocks.push({
-      x,
-      z,
-      hx: (run.across ? long : wide) / 2 + 0.02,
-      hz: (run.across ? wide : long) / 2 + 0.02,
-      hp: 0,
-      breakable: false,
-    });
-    return;
-  }
-  part(long, 0.42, wide, 0.21);
-  part(long + 0.08, 0.1, wide + 0.08, 0.47);
-  part(long - 0.2, 0.07, 0.2, 0.555, M.stone); // ridge along the lid
-  const cx = -long / 2 + Math.min(0.45, long * 0.3); // a cross at the head end
-  part(0.07, 0.04, 0.38, 0.6, M.bone).position.x = cx;
-  part(0.24, 0.04, 0.07, 0.6, M.bone).position.set(cx, 0.6, -0.06);
-  const shadow = blob(1);
-  shadow.scale.set(long + 0.6, 1, wide + 0.6);
-  g.add(shadow);
   room.group.add(g);
   room.rocks.push({
     x,
@@ -425,84 +310,49 @@ function addTomb(room: Room, run: { c: number; r: number; len: number; across: b
   });
 }
 
-let shroudMat: THREE.Material | null = null;
-const shroud = () =>
-  (shroudMat ??= markShared(new THREE.MeshStandardMaterial({ color: 0xcfc6b0, roughness: 1, emissive: 0x14120c })));
-
-/* Urns: funerary urns of clay, and rune-sealed ones of dark stone ringed by a ward. A made urn (data/assets.json,
-   M3.5) takes the clay placeholder's place; the sealed one is the same model in darker, bluish stone. */
+/* Urns: funerary urns in the floor's clay, and rune-sealed ones ringed by a ward (the room kit's, objectLooks.ts). A made
+   urn (data/assets.json, M3.5) takes their place where the asset list has one; sealed, it is the same model in darker,
+   bluish stone with a ward band round its belly. */
 export const WARD_COLOR = 0x8ab8ff;
 const SEALED_TINT = 0x8090b0,
-  URN_BELLY = 0.25; // (the placeholder's widest radius, which the ward band fits)
-let urnGeo: { body: THREE.LatheGeometry; lid: THREE.TorusGeometry; band: THREE.TorusGeometry } | null = null;
-function urnShapes() {
-  if (urnGeo) return urnGeo;
-  const profile = [
-    [0, 0],
-    [0.15, 0],
-    [0.2, 0.06],
-    [0.25, 0.2],
-    [0.23, 0.34],
-    [0.15, 0.44],
-    [0.11, 0.5],
-    [0.14, 0.54],
-    [0, 0.55],
-  ].map(([x, y]) => new THREE.Vector2(x, y));
-  const body = new THREE.LatheGeometry(profile, 12),
-    lid = new THREE.TorusGeometry(0.12, 0.03, 5, 12),
-    band = new THREE.TorusGeometry(0.25, 0.022, 5, 20);
-  lid.rotateX(Math.PI / 2);
-  band.rotateX(Math.PI / 2);
-  for (const g of [body, lid, band]) g.userData.shared = true;
-  return (urnGeo = { body, lid, band });
+  BAND_R = 0.25; // (the ward band's radius, scaled to a made urn's width)
+let bandGeo: THREE.TorusGeometry | null = null;
+function wardBand() {
+  if (bandGeo) return bandGeo;
+  bandGeo = new THREE.TorusGeometry(BAND_R, 0.022, 5, 20);
+  bandGeo.rotateX(Math.PI / 2);
+  bandGeo.userData.shared = true;
+  return bandGeo;
 }
 function addUrn(room: Room, c: number, r: number, sealed: boolean) {
   const p = toWorld(room, c, r),
-    R = mulberry(c * 53 + r * 11 + room.plan.seed),
-    s = urnShapes();
+    R = mulberry(c * 53 + r * 11 + room.plan.seed);
   const g = new THREE.Group();
   g.position.set(p.x - room.cx + (R() - 0.5) * 0.12, 0, p.z - room.cz + (R() - 0.5) * 0.12);
   g.rotation.y = R() * 6;
   g.scale.setScalar(0.9 + R() * 0.2);
   const model = modelFor('props', 'urn');
-  if (model) g.add(sealed ? sealedLook(model, SEALED_TINT) : model, blob(0.8));
-  else if (kitPieces(room)) {
-    // the room kit's urn, its ward its own (objectLooks.ts)
+  if (model) {
+    g.add(sealed ? sealedLook(model, SEALED_TINT) : model, blob(0.8));
+    if (sealed) {
+      // the ward round its belly: sized to the model's width, so the band shows outside it
+      const size = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3());
+      const k = ((Math.max(size.x, size.z) / 2) * 1.06) / BAND_R,
+        y = size.y * 0.48;
+      const band = new THREE.Mesh(wardBand(), M.ward);
+      band.position.y = y;
+      band.scale.set(k, 1, k);
+      g.add(band);
+      const gl = glow(WARD_COLOR, 0.9 * k, 0.45);
+      gl.position.y = y + 0.03;
+      g.add(gl);
+    }
+  } else {
+    // the room kit's urn, its ward its own
     const k = urnLook(R, room.look, sealed, WARD_COLOR);
     mergeStill(k);
     g.add(k);
     g.rotation.y = 0; // (turned a little, its ward's runes to the camera)
-    room.group.add(g);
-    room.rocks.push({
-      x: p.x,
-      z: p.z,
-      hx: 0.26,
-      hz: 0.26,
-      hp: 1,
-      breakable: false,
-      mesh: g,
-      tile: { c, r },
-      urn: sealed ? 'sealed' : 'plain',
-    });
-    return;
-  } else {
-    const body = new THREE.Mesh(s.body, sealed ? M.urnStone : M.clay);
-    const lid = new THREE.Mesh(s.lid, M.urnLid);
-    lid.position.y = 0.52;
-    g.add(body, lid, blob(0.8));
-  }
-  if (sealed) {
-    // the ward round its belly: sized to a made urn's width, so the band shows outside it
-    const size = model ? new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3()) : null;
-    const k = size ? ((Math.max(size.x, size.z) / 2) * 1.06) / URN_BELLY : 1,
-      y = size ? size.y * 0.48 : 0.27;
-    const band = new THREE.Mesh(s.band, M.ward);
-    band.position.y = y;
-    band.scale.set(k, 1, k);
-    g.add(band);
-    const gl = glow(WARD_COLOR, 0.9 * k, 0.45);
-    gl.position.y = y + 0.03;
-    g.add(gl);
   }
   room.group.add(g);
   room.rocks.push({
@@ -543,7 +393,7 @@ export function strikeUrn(room: Room, rock: RockBox, blast: boolean) {
   disposeTree(rock.mesh);
   room.rocks = room.rocks.filter((r) => r !== rock);
   if (rock.tile) room.template.tiles[rock.tile.r][rock.tile.c] = 'floor';
-  const clay = kitPieces(room) ? new THREE.Color(room.look.urn.clay).getHex() : 0x8a5436; // (the room kit's urns are in the floor's clay)
+  const clay = new THREE.Color(room.look.urn.clay).getHex(); // (the urns are in the floor's clay)
   burst(rock.x, 0.3, rock.z, rock.urn === 'sealed' ? 0x4c4a54 : clay, 10, 2.2, 0.06); // shards
   burst(rock.x, 0.2, rock.z, 0x8a8278, 12, 0.9, 0.07); // grave dust
   if (rock.urn === 'sealed') burst(rock.x, 0.4, rock.z, WARD_COLOR, 10, 2, 0.04);
@@ -840,8 +690,8 @@ function wallBox(
     the floor built, since a door's look depends on the room behind it. */
 export function buildWallsAndDoors(room: Room) {
   const { minX, minZ } = room.bounds,
-    mats = wallMaterials(room.look.wall, kitWalls(room.look)),
-    capped = cappedWallMaterials(room.look.wall, kitWalls(room.look));
+    mats = wallMaterials(room.look.wall, room.look.kinds.wall),
+    capped = cappedWallMaterials(room.look.wall, room.look.kinds.wall);
   const { hx, hz } = cellHalfExtents(room.plan.shape);
   // doors first: where they are decides where the walls have gaps
   for (const pd of room.plan.doors) {
@@ -970,73 +820,19 @@ function placeTorches(room: Room, run: WallRun, across0: number, falls: ReturnTy
   }
 }
 
-/** The kind of wall the room kit draws for a room (M3.5 step 3), or false for the old look. */
-export const kitWalls = (look: FloorLook) => DEV.roomKit && !!look.kinds && look.kinds.wall;
-/** Whether the room kit draws the floor too: not where a made floor tile (data/assets.json) paints it. */
-export const kitFloor = (look: FloorLook) => !!kitWalls(look) && !floorTile(look.name);
-
-/** A light on a wall, in the floor's style: iron bracket (crypt), cage lantern (drowned) or brazier (burning).
-    Built facing south and turned to face the room along `normal`. */
+/** A light on a wall, the kind the room drew (fireLooks.ts), built facing south and turned to face the room along
+    `normal`; its fire moves by itself. */
 function addTorch(room: Room, x: number, z: number, normal: [number, number], t: FloorLook['torch']) {
   const lit = room.plan.variant !== 'dark',
     at = { x: x + normal[0] * 0.6, z: z + normal[1] * 0.6 };
-  if (DEV.roomKit) {
-    // the room kit's torch (fireLooks.ts): its fire moves by itself
-    const { holder, lit: fire, glow: gl } = torchLook(t, room.look.kinds?.torch ?? t.style); // (the old looks' styles are kinds too)
-    holder.userData.parts = { fire, gl };
-    mergeStill(holder);
-    holder.position.set(x - room.cx, 0, z - room.cz);
-    holder.rotation.y = Math.atan2(normal[0], normal[1]);
-    fire.visible = gl.visible = lit;
-    room.group.add(holder);
-    room.torches.push({ flame: fire, glow: gl, ...at, lit });
-    return;
-  }
-  const flameMat = basicMat(new THREE.Color(t.flame).getHex());
-  const holder = new THREE.Group();
+  const { holder, lit: fire, glow: gl } = torchLook(t, room.look.kinds.torch);
+  holder.userData.parts = { fire, gl };
+  mergeStill(holder);
   holder.position.set(x - room.cx, 0, z - room.cz);
   holder.rotation.y = Math.atan2(normal[0], normal[1]);
-  const add = (geo: THREE.BufferGeometry, mat: THREE.Material, px: number, py: number, pz: number) => {
-    const m = new THREE.Mesh(geo, mat);
-    m.position.set(px, py, pz);
-    holder.add(m);
-    return m;
-  };
-  let flame: THREE.Mesh,
-    glowAt: [number, number],
-    glowSize = 1.1;
-  if (t.style === 'lantern') {
-    add(new THREE.BoxGeometry(0.04, 0.04, 0.22), M.iron, 0, 1.3, 0.1); // arm from the wall
-    add(new THREE.ConeGeometry(0.13, 0.1, 4), M.iron, 0, 1.24, 0.2).rotation.y = Math.PI / 4; // cap
-    add(new THREE.BoxGeometry(0.18, 0.03, 0.18), M.iron, 0, 0.97, 0.2); // base
-    for (const [dx, dz] of [
-      [-0.08, -0.08],
-      [0.08, -0.08],
-      [-0.08, 0.08],
-      [0.08, 0.08],
-    ])
-      add(new THREE.BoxGeometry(0.02, 0.26, 0.02), M.iron, dx, 1.1, 0.2 + dz);
-    flame = add(new THREE.SphereGeometry(0.05, 8, 6), flameMat, 0, 1.08, 0.2);
-    flame.scale.y = 1.6;
-    glowAt = [1.1, 0.22];
-  } else if (t.style === 'brazier') {
-    add(new THREE.BoxGeometry(0.12, 0.34, 0.16), M.iron, 0, 0.66, 0.06); // bracket
-    add(new THREE.CylinderGeometry(0.21, 0.1, 0.14, 8), M.iron, 0, 0.88, 0.22); // bowl
-    flame = add(new THREE.ConeGeometry(0.14, 0.42, 7), flameMat, 0, 1.14, 0.22);
-    glowAt = [1.12, 0.25];
-    glowSize = 1.5;
-  } else {
-    add(new THREE.BoxGeometry(0.12, 0.3, 0.16), M.iron, 0, 0.85, 0.06);
-    flame = add(new THREE.ConeGeometry(0.08, 0.26, 6), flameMat, 0, 1.1, 0.12);
-    glowAt = [1.12, 0.15];
-  }
-  const gl = glow(new THREE.Color(t.light).getHex(), glowSize, 0.8);
-  gl.position.set(0, glowAt[0], glowAt[1]);
-  holder.add(gl);
+  fire.visible = gl.visible = lit; // (dark rooms: the torch hangs cold, its flame out)
   room.group.add(holder);
-  // dark rooms: the torch hangs cold, its flame out
-  flame.visible = gl.visible = lit;
-  room.torches.push({ flame, glow: gl, ...at, lit });
+  room.torches.push({ flame: fire, glow: gl, ...at, lit });
 }
 
 /** M7 step 9: a doorway filled with the room's own wall (a way at the Vigil still barred), shut until `unplugDoor`. */
@@ -1046,7 +842,7 @@ function plugDoor(room: Room, d: Door) {
     h = d.side === 's' ? H_LOW : H_TALL;
   const plug = new THREE.Mesh(
     ns ? boxUV(DH * 2, h, WT) : boxUV(WT, h, DH * 2),
-    wallMaterials(room.look.wall, kitWalls(room.look)),
+    wallMaterials(room.look.wall, room.look.kinds.wall),
   );
   plug.position.set(d.x + (dx * WT) / 2 - room.cx, h / 2, d.z + (dz * WT) / 2 - room.cz);
   room.group.add(plug);
@@ -1068,165 +864,24 @@ export function unplugDoor(d: Door) {
 /** How a door built facing +z (the room kit's) is turned to face into the room from each wall. */
 const DOOR_TURN: Record<Side, number> = { n: 0, s: Math.PI, w: Math.PI / 2, e: -Math.PI / 2 };
 
-/** A doorway on `side` whose middle (on the room's inside edge) is at world (x, z): posts, lintel, threshold,
-    the mark above it for special rooms, and the bars that rise while enemies live. */
+/** A doorway on `side` whose middle (on the room's inside edge) is at world (x, z): its frame, carrying the mark of a
+    special room beyond it, and the gate that rises while enemies live. */
 function buildDoor(room: Room, side: Side, nb: Room, style: DoorStyle, x: number, z: number): Door {
   if (style === 'secret') return buildCrackedWall(room, side, nb, x, z); // a hidden doorway: the wall carries on
   const ns = isNS(side),
     [dx, dz] = SIDE_DIR[side];
   const wx = x + (dx * WT) / 2,
     wz = z + (dz * WT) / 2; // the door's centre on the wall's centre line
-  // (along, across) around the wall centre line to room-local (x, z); across runs along +z (n/s) or +x (e/w)
-  const at = (along: number, across: number) => ({
-    x: (ns ? wx + along : wx + across) - room.cx,
-    z: (ns ? wz + across : wz + along) - room.cz,
-  });
-  const box = (a0: number, a1: number, h: number, mats: THREE.Material, acrossLen: number, y0 = 0) => {
-    const p = at((a0 + a1) / 2, 0),
-      len = a1 - a0;
-    const m = new THREE.Mesh(ns ? boxUV(len, h, acrossLen) : boxUV(acrossLen, h, len), mats);
-    m.position.set(p.x, y0 + h / 2, p.z);
-    room.group.add(m);
-  };
   const h = wallHeight(side),
-    fm = M.frame[style],
     barH = side === 's' ? H_LOW + 0.1 : h - 0.25;
-  if (kitPieces(room)) {
-    // the room kit's door and gate (wallLooks.ts), turned to face into the room
-    const { frame, bars } = doorLook(style, room.look, h, side === 's', side === 'n', barH, DOOR_TURN[side]),
-      p = at(0, 0);
-    for (const g of [frame, bars]) {
-      g.position.set(p.x, 0, p.z);
-      g.rotation.y = DOOR_TURN[side];
-      room.group.add(g);
-    }
-    bars.position.y = -barH - 0.05;
-    return {
-      side,
-      nb,
-      x,
-      z,
-      bars,
-      barH,
-      open: true,
-      style,
-      box: { x: wx, z: wz, hx: ns ? DH : WT / 2, hz: ns ? WT / 2 : DH },
-    };
+  // the room kit's door and gate (wallLooks.ts), turned to face into the room
+  const { frame, bars } = doorLook(style, room.look, h, side === 's', side === 'n', barH, DOOR_TURN[side]);
+  for (const g of [frame, bars]) {
+    g.position.set(wx - room.cx, 0, wz - room.cz);
+    g.rotation.y = DOOR_TURN[side];
+    room.group.add(g);
   }
-  const pH = h + (side === 's' ? 0.05 : 0.12);
-  // the posts reach a hair into the doorway, so their faces sit in front of the walls' cut ends rather than in the
-  // same plane (two faces in one plane flicker as the camera moves)
-  box(-DH - 0.2, -DH + 0.01, pH, fm, WT + 0.12);
-  box(DH - 0.01, DH + 0.2, pH, fm, WT + 0.12);
-  if (side === 'n') box(-DH, DH, 0.28, fm, WT + 0.04, h - 0.28);
-  const th = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), M.threshold);
-  th.rotation.x = -Math.PI / 2;
-  const tp = at(0, 0);
-  th.position.set(tp.x, 0.003, tp.z);
-  if (ns) th.scale.set(DH * 2, WT, 1);
-  else th.scale.set(WT, DH * 2, 1);
-  room.group.add(th);
-  // above the door, on this room's side: the boss's glowing eye, the ordeal's skull, the altar's crossed bones,
-  // the merchant's lantern, the shrine's halo, the library's open book (a locked vault's ward and padlock are added
-  // by vault.ts)
-  const ep = at(0, side === 'n' || side === 'w' ? 0.55 : -0.55);
-  if (style === 'boss') {
-    const eye = glow(0xff3a1a, 0.7, 0.9);
-    eye.position.set(ep.x, h + 0.05, ep.z);
-    room.group.add(eye);
-  } else if (style === 'ordeal') {
-    const skull = new THREE.Group();
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 6), M.bone);
-    head.scale.set(1, 0.9, 0.9);
-    const jaw = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.08, 0.12), M.bone);
-    jaw.position.set(0, -0.13, 0.02);
-    const eyes = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.04, 0.02), M.wallTop);
-    eyes.position.set(0, -0.01, 0.13);
-    skull.add(head, jaw, eyes);
-    skull.position.set(ep.x, h + 0.12, ep.z);
-    skull.rotation.y = side === 'n' ? 0 : side === 's' ? Math.PI : side === 'e' ? -Math.PI / 2 : Math.PI / 2;
-    room.group.add(skull);
-  } else if (style === 'altar') {
-    for (const a of [0.7, -0.7]) {
-      const bone = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.55, 6), M.bone);
-      bone.position.set(ep.x, h + 0.1, ep.z);
-      bone.rotation.set(0, ns ? 0 : Math.PI / 2, a);
-      room.group.add(bone);
-    }
-  } else if (style === 'merchant') {
-    const lamp = new THREE.Group();
-    lamp.position.set(ep.x, h + 0.02, ep.z);
-    const cap = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.1, 4), M.iron);
-    cap.position.y = 0.16;
-    cap.rotation.y = Math.PI / 4;
-    const base = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.03, 0.16), M.iron);
-    base.position.y = -0.1;
-    const flame = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 6), basicMat(0xffc36a));
-    flame.scale.y = 1.5;
-    lamp.add(cap, base, flame, glow(0xffb050, 1.1, 0.85));
-    room.group.add(lamp);
-  } else if (style === 'shrine') {
-    const halo = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.022, 5, 24), basicMat(0xf4e2b0));
-    halo.position.set(ep.x, h + 0.14, ep.z);
-    halo.rotation.y = ns ? 0 : Math.PI / 2;
-    const light = glow(0xffe8b0, 0.9, 0.8);
-    light.position.copy(halo.position);
-    room.group.add(halo, light);
-  } else if (style === 'waystone') {
-    // (M6 step 10) a small grey menhir, its rune lit gold
-    const stone = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.3, 0.08), M.frame.waystone);
-    stone.position.set(ep.x, h + 0.16, ep.z);
-    stone.rotation.y = ns ? 0 : Math.PI / 2;
-    const light = glow(0xffbe3a, 0.8, 0.7);
-    light.position.copy(stone.position);
-    room.group.add(stone, light);
-  } else if (style === 'laboratory') {
-    // (M5) a flask of green jelly
-    const flask = new THREE.Mesh(new THREE.SphereGeometry(0.11, 8, 6), basicMat(0x7ae070));
-    flask.position.set(ep.x, h + 0.12, ep.z);
-    const light = glow(0x7ae070, 0.9, 0.8);
-    light.position.copy(flask.position);
-    room.group.add(flask, light);
-  } else if (style === 'library') {
-    const book = new THREE.Group();
-    book.position.set(ep.x, h + 0.1, ep.z);
-    book.rotation.y = ns ? 0 : Math.PI / 2;
-    for (const s of [-1, 1]) {
-      // two leaves of an open book, and its spine
-      const leaf = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.02, 0.26), basicMat(0xe8d8b0));
-      leaf.position.x = s * 0.1;
-      leaf.rotation.z = s * 0.35;
-      book.add(leaf);
-    }
-    const spine = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.28), M.frame.library);
-    spine.position.y = -0.04;
-    book.add(spine);
-    const light = glow(0xffe0a0, 0.8, 0.7);
-    light.position.y = 0.05;
-    book.add(light);
-    room.group.add(book);
-  }
-  // bars (sink into the floor when open)
-  const bars = new THREE.Group();
-  for (let i = 0; i < 5; i++) {
-    const along = -DH + 0.16 + i * ((DH * 2 - 0.32) / 4);
-    const b = new THREE.Mesh(new THREE.BoxGeometry(0.1, barH, 0.1), M.gate);
-    const p = at(along, 0);
-    b.position.set(p.x, barH / 2, p.z);
-    bars.add(b);
-  }
-  for (const yy of [0.3, 0.75]) {
-    if (yy > barH) continue;
-    const cb = new THREE.Mesh(
-      ns ? new THREE.BoxGeometry(DH * 2, 0.08, 0.12) : new THREE.BoxGeometry(0.12, 0.08, DH * 2),
-      M.gate,
-    );
-    const p = at(0, 0);
-    cb.position.set(p.x, (yy * barH) / (side === 's' ? 0.75 : 1.1), p.z);
-    bars.add(cb);
-  }
-  bars.position.y = -barH - 0.05;
-  room.group.add(bars);
+  bars.position.y = -barH - 0.05; // (bars sink into the floor while the door is open)
   return {
     side,
     nb,
@@ -1278,7 +933,6 @@ export function updateRoomFx(dt: number, now: number) {
       for (const t of r.torches) {
         if (!t.lit) continue;
         const f = 0.85 + Math.sin(now * 17 + t.x) * 0.08 + Math.sin(now * 29 + t.x * 2) * 0.06;
-        if (!t.flame.userData.fire) t.flame.scale.set(1, f, 1); // (the kit's fire flickers by itself)
         t.glow.material.opacity = 0.6 + f * 0.25;
       }
   }

@@ -173,7 +173,6 @@ let panel: HTMLElement | null = null,
   moveBtn: HTMLButtonElement,
   doorBtn: HTMLButtonElement,
   assetBtn: HTMLButtonElement,
-  kitBtn: HTMLButtonElement,
   fpsBtn: HTMLButtonElement,
   assetBox: HTMLElement,
   pxBtn: HTMLButtonElement,
@@ -292,12 +291,6 @@ export function useAssets(on: boolean) {
   renderPurse();
   rebuildFloor();
 }
-/** The room kit (M3.5 step 3's proof) on or off: this floor is built again in the new or the old look, to compare. */
-export function useRoomKit(on: boolean) {
-  DEV.roomKit = on;
-  rebuildFloor();
-  renderItems();
-} // (the HUD's icons too: drawn, or rendered from the kit's models)
 /** The room kit's kinds forced on every room of this floor (or drawn per room again, for a part left out): built again. */
 export function forceKinds(k: Partial<Kinds>) {
   DEV.kitKinds = { ...k };
@@ -350,7 +343,7 @@ export function showAssetsHere() {
 }
 
 /** Ahead of the mage, in rows: one of every object and pile (the dead tree among them) and a plain and a rune-sealed urn,
-    to look at the room kit's objects (or, with the room kit off, the old ones) in any room. */
+    to look at the room kit's objects in any room. */
 export function objectsHere() {
   const kinds = PROP_KINDS.filter((k) => !isMechanism(k) || k === 'tree'),
     room = G.current;
@@ -367,8 +360,8 @@ export function objectsHere() {
   }
 }
 
-/** Ahead of the mage, in a row: one of every drop and a gilded chest, to look at the room kit's pickups and containers (or,
-    with the room kit off, the old ones) in any room. */
+/** Ahead of the mage, in a row: one of every drop and a gilded chest, to look at the room kit's pickups and containers in
+    any room. */
 export function dropsHere() {
   const all: [Drop, boolean][] = [...DROPS.map((d) => [d, false] as [Drop, boolean]), ['chest', true]];
   all.forEach(([d, gilded], i) => {
@@ -1082,22 +1075,21 @@ function build() {
     (bandBtn = btn('', () => setPixelLook({ bands: !pixelLook().bands }))),
   );
 
-  // the room kit (M3.5 step 3's proof): the pieces built in code, or the old ones to compare; the fire objects to look at
+  // the room kit (M3.5 step 3): each part's kind; the fire objects, the objects and the drops to look at
   const kit = section(pages.look, S.kit);
   // each part's kind: drawn per room, or one stepped through the floor's list and forced on every room, to compare
   for (const part of KIT_PARTS)
     kitPartBtns[part] = btn('', () => {
       // (from the kind forced, or the one this room drew: the first click shows the next one)
       const forced = DEV.kitKinds[part],
-        list = kindsOf(FLOORS[G.run.floor].look.kit!, part),
-        at = list.indexOf((forced ?? G.current.look.kinds?.[part]) as never);
+        list = kindsOf(FLOORS[G.run.floor].look.kit, part),
+        at = list.indexOf(forced ?? G.current.look.kinds[part]);
       DEV.kitKinds = { ...DEV.kitKinds, [part]: forced ? list[at + 1] : list[(at + 1) % list.length] }; // (past the last forced: drawn per room again)
       if (!DEV.kitKinds[part]) delete DEV.kitKinds[part];
       rebuildFloor();
     });
   kit.append(
     el('p', 'dv-info', S.kitNote),
-    (kitBtn = btn('', () => useRoomKit(!DEV.roomKit))),
     ...KIT_PARTS.map((p) => kitPartBtns[p]),
     btn(S.fireHere, () => {
       closeDev();
@@ -1775,14 +1767,12 @@ function refresh() {
         kae.wards.map((w) => (w.school ?? '-') + (w.shut ? ' (shut)' : '')).join(', '),
       )
     : S.noKaelith;
-  kitBtn.textContent = DEV.roomKit ? S.kitNew : S.kitOld;
-  kitBtn.classList.toggle('on', DEV.roomKit);
   for (const part of KIT_PARTS) {
     const b = kitPartBtns[part],
       kind = cur.look.kinds?.[part];
     b.textContent = S.kitPart(part, kind ? (S.kitKinds[kind] ?? kind) : '-', !!DEV.kitKinds[part]);
     b.classList.toggle('on', !!DEV.kitKinds[part]);
-    b.disabled = !DEV.roomKit || !kind;
+    b.disabled = !kind;
   }
   fpsBtn.textContent = DEV.fps ? S.fpsOn : S.fpsOff;
   fpsBtn.classList.toggle('on', DEV.fps);

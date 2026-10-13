@@ -104,7 +104,7 @@ runs, floor jump, special rooms, test rooms, the floor's dials, lean and walls);
 ## Rooms
 
 - `src/world/rooms.ts`: `buildRoom` assembles a room: traces walls along any outline, cuts doors, places props,
-  torches, pillars (`raisePillar`), pits, urns (`strikeUrn`) and the room kit (`kitWalls`, `kitFloor`, `kitPieces`).
+  torches, pillars (`raisePillar`), pits and urns (`strikeUrn`), every piece the room kit's (its looks in `*Looks.ts`).
   `openChasm` burns a rope bridge through; `plugDoor`/`unplugDoor` wall a barred doorway.
 - `src/world/walls.ts` (pure): the walls as a grid of wall tiles (tall or low by where the floor lies) merged into
   non-overlapping boxes. `dressing.ts`: pilasters and niches on tall walls (`wall.dress` in the floor's look;
@@ -632,8 +632,9 @@ artifact icons (`toIcon`). Dev: `__game.pixelLook`, `setPixelLook({ lines, outli
 ### Room kit
 
 Everything in a room is drawn in code in the floor's colours.
-- `render/pixelTextures.ts`: floors (`PAVING`) and walls (`WALLS`) drawn texel by texel (`CFG.roomKit.texel`,
-  `kitWalls`/`kitFloor` in `rooms.ts`). `textures.ts`: special rooms' marks (`drawMarks`) and stepped glows.
+- `render/pixelTextures.ts`: floors (`PAVING`) and walls (`WALLS`) drawn texel by texel (`CFG.roomKit.texel`), in the
+  kinds the room drew; a made floor tile (data/assets.json) paints the floor instead (`floorTexture` in `textures.ts`).
+  `textures.ts`: special rooms' marks (`drawMarks`) and stepped glows.
 - Variety: each floor's `look.kit` lists weighted kinds of wall, floor, torch and brazier; each room draws one of
   each on its seed (`pickKinds` in pure `world/kitData.ts`, into `room.look.kinds`); a theme may pin some. Dev:
   Look tab steps each kind (`DEV.kitKinds`); `__game.kinds`, `forceKinds({ wall: 'ashlar' })`.
@@ -834,6 +835,5 @@ These exist to compare an old way against the current one. They are not part of 
 
 | Switch | What it is |
 | --- | --- |
-| `?kit=old`, `DEV.roomKit`, `useRoomKit(on)` | Rooms in the look from before the room kit (about 21 files). |
 | `rotling`, `modelOptions.ts` galleries | A plain test foe; look-only galleries of foes and familiars. |
 | `src/input/touch.ts` | Frozen 0.3 touch controls: do not extend or test them. |

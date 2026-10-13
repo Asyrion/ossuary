@@ -9,12 +9,11 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Pickup, Room } from '../types';
-import { DEV, G, player } from '../state';
+import { G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { TILT, scene } from '../render/renderer';
-import { M, blob, disposeTree, glow, glowShared, markShared } from '../render/materials';
-import { glyphStoneTexture, glyphTexture } from '../render/textures';
+import { scene } from '../render/renderer';
+import { blob, disposeTree, glow } from '../render/materials';
 import { burst } from '../combat/fx';
 import { banner, renderHearts, renderPurse, toast } from '../ui/hud';
 import { heroDrink } from '../actors/hero';
@@ -47,110 +46,6 @@ import { rune as runeDef, type RuneId } from '../magic/runeData';
 const GOLD = 0xffd27a;
 export const isContainer = (kind: Drop): kind is 'coffer' | 'chest' => kind === 'coffer' || kind === 'chest';
 
-function heartShape(half: boolean) {
-  const s = new THREE.Shape();
-  if (half) {
-    s.moveTo(0, 0.18);
-    s.bezierCurveTo(-0.12, 0.34, -0.34, 0.28, -0.34, 0.1);
-    s.bezierCurveTo(-0.34, -0.05, -0.05, -0.22, 0, -0.3);
-    s.lineTo(0, 0.18);
-  } else {
-    s.moveTo(0, -0.3);
-    s.bezierCurveTo(0.05, -0.22, 0.34, -0.05, 0.34, 0.1);
-    s.bezierCurveTo(0.34, 0.28, 0.12, 0.34, 0, 0.18);
-    s.bezierCurveTo(-0.12, 0.34, -0.34, 0.28, -0.34, 0.1);
-    s.bezierCurveTo(-0.34, -0.05, -0.05, -0.22, 0, -0.3);
-  }
-  const g = new THREE.ExtrudeGeometry(s, {
-    depth: 0.1,
-    bevelEnabled: true,
-    bevelThickness: 0.03,
-    bevelSize: 0.03,
-    bevelSegments: 2,
-  });
-  if (!half) g.center();
-  else g.translate(0, 0, -0.05);
-  g.userData.shared = true;
-  return g;
-}
-
-/* Shared geometry and materials, made on first use. */
-let parts: ReturnType<typeof makeParts> | null = null;
-function makeParts() {
-  const shared = <T extends THREE.BufferGeometry>(g: T) => {
-    g.userData.shared = true;
-    return g;
-  };
-  const obol = shared(new THREE.CylinderGeometry(0.19, 0.19, 0.04, 20));
-  obol.rotateX(Math.PI / 2);
-  const chestLid = shared(new THREE.CylinderGeometry(0.23, 0.23, 0.74, 12, 1, false, 0, Math.PI));
-  chestLid.rotateZ(Math.PI / 2);
-  return {
-    heart: { full: heartShape(false), half: heartShape(true) },
-    heartMat: markShared(new THREE.MeshStandardMaterial({ color: 0xc02a1e, emissive: 0x4a0804, roughness: 0.35 })),
-    obol,
-    obolMat: markShared(
-      new THREE.MeshStandardMaterial({ color: 0xc89a44, metalness: 0.6, roughness: 0.35, emissive: 0x4a3008 }),
-    ),
-    sack: shared(new THREE.SphereGeometry(0.18, 10, 8)),
-    sackMat: markShared(new THREE.MeshStandardMaterial({ color: 0x6a4a2c, roughness: 0.85, emissive: 0x120a04 })),
-    tie: shared(new THREE.CylinderGeometry(0.05, 0.08, 0.1, 8)),
-    bow: shared(new THREE.TorusGeometry(0.075, 0.026, 6, 14)),
-    shaft: shared(new THREE.BoxGeometry(0.3, 0.045, 0.045)),
-    bit: shared(new THREE.BoxGeometry(0.045, 0.09, 0.045)),
-    stone: shared(new THREE.PlaneGeometry(0.52, 0.52)),
-    vial: shared(new THREE.CylinderGeometry(0.075, 0.09, 0.2, 10)),
-    vialNeck: shared(new THREE.CylinderGeometry(0.035, 0.045, 0.08, 8)),
-    cork: shared(new THREE.CylinderGeometry(0.04, 0.035, 0.05, 8)),
-    vialMat: markShared(
-      new THREE.MeshStandardMaterial({
-        color: 0x9ec8ff,
-        transparent: true,
-        opacity: 0.55,
-        roughness: 0.15,
-        metalness: 0.1,
-        emissive: 0x16305a,
-      }),
-    ),
-    liquid: markShared(new THREE.MeshBasicMaterial({ color: 0x5aa0ff })),
-    stoneMat: markShared(
-      new THREE.MeshBasicMaterial({ map: glyphStoneTexture(), transparent: true, depthWrite: false }),
-    ),
-    // an offering coffer and a reliquary chest
-    wood: markShared(new THREE.MeshStandardMaterial({ color: 0x6a4428, roughness: 0.85 })),
-    darkWood: markShared(new THREE.MeshStandardMaterial({ color: 0x3e2818, roughness: 0.8 })),
-    cofferBox: shared(new THREE.BoxGeometry(0.5, 0.28, 0.36)),
-    cofferLid: shared(new THREE.BoxGeometry(0.53, 0.08, 0.39)),
-    cofferBand: shared(new THREE.BoxGeometry(0.05, 0.3, 0.38)),
-    chestBox: shared(new THREE.BoxGeometry(0.72, 0.36, 0.46)),
-    chestLid,
-    chestBand: shared(new THREE.BoxGeometry(0.06, 0.38, 0.48)),
-    seal: shared(new THREE.PlaneGeometry(0.42, 0.42)),
-    sealMat: markShared(
-      new THREE.MeshBasicMaterial({
-        map: glyphTexture(),
-        color: WARD,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      }),
-    ),
-    // a gilded reliquary: gold bands and a golden ward
-    gilt: markShared(
-      new THREE.MeshStandardMaterial({ color: 0xc8a040, roughness: 0.35, metalness: 0.75, emissive: 0x3a2808 }),
-    ),
-    goldSealMat: markShared(
-      new THREE.MeshBasicMaterial({
-        map: glyphTexture(),
-        color: GOLD,
-        transparent: true,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      }),
-    ),
-  };
-}
-
 /** How an item looks, on the floor or floating over a merchant's ward circle (the room kit's: pickupLooks.ts). A potion
     is its bottle as this run deals it (`id` names the potion), a reagent its own (M5, alchemyLooks.ts), a rune its chip of
     stone (M6 step 8, runeLooks.ts). */
@@ -158,99 +53,7 @@ export function itemVisual(kind: Item, id?: string): THREE.Object3D {
   if (kind === 'potion') return bottleLook(G.run.bottles[(id ?? 'healing') as PotionId]);
   if (kind === 'reagent') return reagentLook((id ?? 'graveMoss') as ReagentId);
   if (kind === 'rune') return runePickupLook((id ?? 'quicken') as RuneId);
-  if (DEV.roomKit || isSoul(kind) || kind === 'shard') return itemLook(kind); // (M4.1's items have only the kit's look)
-  const P = (parts ??= makeParts());
-  if (kind === 'heart' || kind === 'halfHeart') {
-    const m = new THREE.Mesh(kind === 'heart' ? P.heart.full : P.heart.half, P.heartMat);
-    m.rotation.x = -TILT;
-    return m;
-  }
-  const g = new THREE.Group();
-  if (kind === 'coin') g.add(new THREE.Mesh(P.obol, P.obolMat), glowShared(0xffd27a, 0.8, 0.6));
-  else if (kind === 'purse') {
-    const sack = new THREE.Mesh(P.sack, P.sackMat);
-    sack.scale.set(1, 0.85, 1);
-    const tie = new THREE.Mesh(P.tie, P.sackMat);
-    tie.position.y = 0.17;
-    const coin = new THREE.Mesh(P.obol, P.obolMat);
-    coin.position.set(0.02, -0.02, 0.17);
-    coin.scale.setScalar(0.7);
-    g.add(sack, tie, coin, glowShared(0xffd27a, 0.7, 0.45));
-  } else if (kind === 'mana') {
-    // a mana vial: pale blue grave-light in a stoppered bottle
-    const glass = new THREE.Mesh(P.vial, P.vialMat),
-      neck = new THREE.Mesh(P.vialNeck, P.vialMat);
-    neck.position.y = 0.14;
-    const liquid = new THREE.Mesh(P.vial, P.liquid);
-    liquid.scale.set(0.8, 0.7, 0.8);
-    liquid.position.y = -0.025;
-    const cork = new THREE.Mesh(P.cork, P.sackMat);
-    cork.position.y = 0.2;
-    g.add(liquid, glass, neck, cork, glowShared(0x6fa8ff, 0.8, 0.6));
-  } else if (kind === 'key') {
-    // a bone key: bow, shaft and bit
-    const bow = new THREE.Mesh(P.bow, M.bone);
-    bow.position.x = -0.19;
-    const shaft = new THREE.Mesh(P.shaft, M.bone);
-    const bit1 = new THREE.Mesh(P.bit, M.bone);
-    bit1.position.set(0.12, -0.06, 0);
-    const bit2 = new THREE.Mesh(P.bit, M.bone);
-    bit2.position.set(0.05, -0.05, 0);
-    bit2.scale.y = 0.7;
-    g.add(bow, shaft, bit1, bit2, glowShared(0xf0e6cc, 0.6, 0.35));
-  } else {
-    // a glyph stone, facing the camera
-    const stone = new THREE.Mesh(P.stone, P.stoneMat);
-    stone.rotation.x = -TILT;
-    g.add(stone, glowShared(0xff9a3a, 0.75, 0.55));
-  }
-  return g;
-}
-
-/** A coffer or a chest, with its lid on a hinge at the back, and the chest's ward seal on its front (gold on
-    a gilded one). */
-function containerVisual(
-  kind: 'coffer' | 'chest',
-  gilded = false,
-): { g: THREE.Object3D; lid: THREE.Object3D; ward?: THREE.Object3D } {
-  if (DEV.roomKit) return containerLook(kind, gilded);
-  const P = (parts ??= makeParts()),
-    g = new THREE.Group(),
-    lid = new THREE.Group();
-  if (kind === 'coffer') {
-    const box = new THREE.Mesh(P.cofferBox, P.wood);
-    box.position.y = 0.14;
-    for (const x of [-0.16, 0.16]) {
-      const b = new THREE.Mesh(P.cofferBand, M.iron);
-      b.position.set(x, 0.15, 0);
-      g.add(b);
-    }
-    const top = new THREE.Mesh(P.cofferLid, P.wood);
-    top.position.set(0, 0.04, 0.18);
-    lid.position.set(0, 0.28, -0.18);
-    lid.add(top);
-    g.add(box, lid, blob(0.8));
-    return { g, lid };
-  }
-  const box = new THREE.Mesh(P.chestBox, P.darkWood);
-  box.position.y = 0.18;
-  for (const x of [-0.24, 0.24]) {
-    const b = new THREE.Mesh(P.chestBand, gilded ? P.gilt : M.bone);
-    b.position.set(x, 0.19, 0);
-    g.add(b);
-  }
-  const top = new THREE.Mesh(P.chestLid, P.darkWood);
-  top.position.set(0, 0, 0.23);
-  lid.position.set(0, 0.36, -0.23);
-  lid.add(top);
-  const ward = new THREE.Group();
-  ward.position.set(0, 0.24, 0.25);
-  ward.rotation.x = -0.3;
-  const seal = new THREE.Mesh(P.seal, gilded ? P.goldSealMat : P.sealMat),
-    gl = glow(gilded ? GOLD : WARD, gilded ? 1.3 : 1, 0.55);
-  ward.add(seal, gl);
-  g.add(box, lid, ward, blob(1));
-  return { g, lid, ward };
+  return itemLook(kind);
 }
 
 /** Drop something on the floor at (x, z): it falls in from above, or rises out of a broken urn (`rise`).
@@ -277,7 +80,7 @@ export function spawnPickup(
   scene.add(g);
   if (isContainer(kind)) {
     const gilded = kind === 'chest' && (opts.gilded ?? G.run.drops.chance(LOOT.gildedChest));
-    const v = containerVisual(kind, gilded);
+    const v = containerLook(kind, gilded); // (a coffer or a chest, its lid on a hinge at the back, a chest's ward seal on its front)
     g.add(v.g);
     G.pickups.push({
       kind,

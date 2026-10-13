@@ -4,7 +4,7 @@
    vial of blue grave-light, a bone key with a ward-blue stone in its bow, a glyph stone with its rune burning amber; an
    offering coffer (planks, iron bands, a slot for coins) and a reliquary chest (dark wood, bone or gilt bands, a lock
    plate) with its ward seal, a circle of runes. Built once each, merged (`mergeStill`), and cloned: what a pickup is and
-   does is unchanged (pickups.ts). `DEV.roomKit` off keeps the old looks. */
+   does is in pickups.ts. */
 import * as THREE from 'three';
 import { TILT } from '../render/renderer';
 import { CFG } from '../config';

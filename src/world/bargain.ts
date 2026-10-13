@@ -3,9 +3,8 @@
    school, and its runes run red with the price. The deal is the level-up screen's three cards (two of that school, one
    general: `dealNow(school)`); taking one pays a heart container (never the last) and the runes turn gold, once a shrine.
    Esc backs out with nothing paid, and the stone waits to be tried again. */
-import * as THREE from 'three';
 import { CFG } from '../config';
-import { DEV, G, player } from '../state';
+import { G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { burst } from '../combat/fx';
@@ -17,7 +16,6 @@ import { refreshStats } from '../items/artifacts';
 import { openBargainDeal } from '../ui/levelUp';
 import { bargainStoneLook, BARGAIN_RUNES } from './specialLooks';
 import { riteState } from './shrine';
-import { M, basicMat } from '../render/materials';
 import type { Room } from '../types';
 
 const C = () => CFG.bargain;
@@ -46,7 +44,7 @@ export function bargainSpot(room: Room): [number, number] {
 export function buildBargain(room: Room, at?: [number, number]) {
   if (room.bargain) return room.bargain;
   const [lx, lz] = at ?? bargainSpot(room);
-  const look = DEV.roomKit ? bargainStoneLook(room.look) : oldLook();
+  const look = bargainStoneLook(room.look);
   look.group.position.set(lx, 0, lz);
   room.group.add(look.group);
   const x = room.cx + lx,
@@ -59,16 +57,6 @@ export function buildBargain(room: Room, at?: [number, number]) {
   room.rocks.push({ x, z: z + dz, hx: C().half, hz: C().half + deep / 2, hp: Infinity, breakable: false });
   room.bargain = { x, z, state: 'idle', school: null, armed: true, look };
   return room.bargain;
-}
-/** The stone before the room kit: a grey slab, its rune a sphere of light. */
-function oldLook() {
-  const group = new THREE.Group();
-  const slab = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.2, 0.26), M.stone);
-  slab.position.y = 0.6;
-  const rune = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 6), basicMat(BARGAIN_RUNES.idle));
-  rune.position.set(0, 0.8, 0.15);
-  group.add(slab, rune);
-  return { group, runes: rune.material };
 }
 function setRunes(b: Bargain, color: number) {
   b.look.runes.color.setHex(color);
