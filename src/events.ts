@@ -94,10 +94,12 @@ export interface GameEvents {
   screensClosed: void;
   /** The run ended: the end screen sums it up. */
   runEnded: { summary: RunSummary };
-  /** A new run: the affliction chips start empty (ui/afflictions.ts). */
-  afflictionsReset: void;
+  /** The sound muted or back: the pause menu's button says which. */
   soundToggled: { muted: boolean };
-  /** A hexing blow took mana (magic/hex.ts): the mana bar flashes violet. */
+  /* ---- the afflictions' chips (ui/afflictions.ts) ---- */
+  /** A new run (flow.ts): the chips start empty. */
+  afflictionsReset: void;
+  /** A hexing blow took mana (magic/hex.ts): the mana bar flashes violet (ui/hud.ts). */
   manaHexed: void;
 }
 
