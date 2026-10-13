@@ -8,8 +8,9 @@ import type { Room } from '../types';
 import { blob, disposeTree } from '../render/materials';
 import { freeSpotNear, isFreeAt } from '../world/rooms';
 import { mergeRig } from '../render/rig';
-import { ALL_BOSS_LOOKS } from './bossLooks';
-import { BESTIARY_OPTIONS } from './bestiaryLooks';
+import { ALL_BOSS_LOOKS } from '../actors/bossLooks';
+import { BESTIARY_OPTIONS } from '../actors/bestiaryLooks';
+import { onDevClear, onDevStep } from '../devDoor';
 
 const shown: { room: Room; group: THREE.Group; idle: (t: number) => void }[] = [];
 let clock = 0;
@@ -105,11 +106,12 @@ export function showBestiary(room: Room, x: number, z: number, only?: readonly s
   }
   return out;
 }
-/** Every step: the looks shown in the room move as they idle. */
-export function updateModelOptions(dt: number, current: Room) {
+/** Every step of play: the looks shown in the room move as they idle. */
+onDevStep((dt, current, playing) => {
+  if (!playing) return;
   clock += dt;
   for (const s of shown) if (s.room === current) s.idle(clock);
-}
+});
 /** Take the looks shown in `room` away. */
 export function removeModelOptions(room: Room) {
   for (let i = shown.length - 1; i >= 0; i--)
@@ -120,6 +122,6 @@ export function removeModelOptions(room: Room) {
     }
 }
 /** A new floor: its rooms are gone, and the looks with them. */
-export function clearModelOptions() {
+onDevClear(() => {
   shown.length = 0;
-}
+});

@@ -29,15 +29,7 @@ import '@fontsource/alegreya-sans/500.css';
 import '@fontsource/alegreya-sans/700.css';
 import './style.css';
 import { DEV, G, player } from './state';
-import {
-  closeDevMenu,
-  devMenuOpen,
-  onDevClear,
-  onDevFrame,
-  onDevStep,
-  registerDevMenu,
-  toggleDevMenu,
-} from './devDoor';
+import { closeDevMenu, devMenuOpen, onDevClear, onDevStep, registerDevMenu, toggleDevMenu } from './devDoor';
 import { applyStrings } from './strings';
 import { Sfx } from './audio/sfx';
 import { camera, canvas, draw, renderer, resize, setCloseUp } from './render/renderer';
@@ -101,7 +93,7 @@ import {
 } from './ui/waystone';
 import { raiseWaystone } from './world/waystone';
 import { warePanelNow } from './ui/warePanel';
-import { promptShowing, renderHearts, roomFinished, setHeroInfo, toast, updateFrameInfo, updateVision } from './ui/hud';
+import { promptShowing, renderHearts, roomFinished, setHeroInfo, toast, updateVision } from './ui/hud';
 import { bargainNow, openBargainHere } from './world/bargain';
 import { levelAtFloor } from './progression/levelData';
 import {
@@ -158,7 +150,7 @@ import { pointsToSpend, spendPoint } from './progression/points';
 import { boonsNow, dealNow, takeBoon } from './progression/boons';
 import { BOONS } from './progression/boonData';
 import { boonsActed, boonsSaid } from './progression/boonHooks';
-import { setOffBoon } from './progression/boonTest';
+import { setOffBoon } from './dev/boonTest';
 import type { Attr } from './progression/attributes';
 import { STEP, startLoop, step } from './loop';
 import { cleanSeed } from './rng';
@@ -193,15 +185,9 @@ import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
 import { assetList, assetsOn, loadAssets } from './assets/models';
 import { drawnRows, pixelLook, setPixelLook, type PixelLook, fineLayerDrawn } from './render/pixelLook';
-import {
-  clearModelOptions,
-  removeModelOptions,
-  showBestiary,
-  showBossLooks,
-  showJellyLooks,
-  updateModelOptions,
-} from './actors/modelOptions';
-import { clearEffectOptions, removeEffectOptions, showEffectOptions, updateEffectOptions } from './magic/effectOptions';
+import { removeModelOptions, showBestiary, showBossLooks, showJellyLooks } from './dev/modelGallery';
+import { removeEffectOptions, showEffectOptions } from './dev/effectOptions';
+import './dev/frameInfo';
 import { elementDev, sapMul } from './world/mechanisms';
 import { wardFoe } from './actors/wardShield';
 import { callWanderer, wandererState } from './items/wanderer';
@@ -220,9 +206,9 @@ import {
   weavesFound,
 } from './magic/memory';
 import { WEAVE_IDS, type WeaveId } from './magic/weaves';
-import { setOffWeave } from './magic/weaveTest';
+import { setOffWeave } from './dev/weaveTest';
 import { REACTION_IDS, type Stage } from './magic/knowledge';
-import { setOffReaction } from './magic/reactionTest';
+import { setOffReaction } from './dev/reactionTest';
 import type { Reaction } from './magic/status';
 import type { PropKind } from './world/propData';
 import { FOE_IDS, isFoe, type FoeType, type School } from './actors/foeData';
@@ -1257,19 +1243,10 @@ function installDevHooks() {
 function registerDev() {
   registerDevMenu({ isOpen: devOpen, close: closeDev, toggle: toggleDev });
   onDevStep((dt, room, playing) => {
-    if (playing) {
-      updateModelOptions(dt, room);
-      updateEffectOptions(dt, room);
-      updateCreatures(dt, room);
-    }
+    if (playing) updateCreatures(dt, room);
     updateTownGallery(dt);
   });
-  onDevClear(() => {
-    clearModelOptions();
-    clearCreatures();
-    clearEffectOptions();
-  });
-  onDevFrame(updateFrameInfo);
+  onDevClear(() => clearCreatures());
 }
 
 async function boot() {

@@ -1,11 +1,11 @@
 /* The dev menu's "Reactions here" and `__game.reaction(r)` (M4.8): each reaction set off on training dummies ahead of the
    mage, by laying its two statuses on in turn (a freeze takes its stacks first; Verdict and Void Spark want more than
    one foe, to show the lightning and the leaps). */
-import type { Reaction } from './status';
-import type { SpellStatus } from './spellData';
-import { MAGIC } from './status';
+import type { Reaction } from '../magic/status';
+import type { SpellStatus } from '../magic/spellData';
+import { MAGIC } from '../magic/status';
 import { makeEnemy } from '../actors/enemies';
-import { inflict } from './statusFx';
+import { inflict } from '../magic/statusFx';
 
 type Step = Partial<Record<SpellStatus, number>>;
 const FREEZE: Step[] = Array.from({ length: MAGIC.chill.freezeAt }, () => ({ chill: 1 }));
