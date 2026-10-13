@@ -494,4 +494,36 @@ export const DEV_STR = {
     `${freed} freed · ${heard} lines heard · ${flags} flags set`,
   vigilInfo: (room: string, candles: number, hands: string) =>
     `In the ${room} · ${candles} candle${candles === 1 ? '' : 's'} lit · in hand: ${hands}`,
+  /** Spell effect options (the dev gallery, dev/effectOptions.ts): names and what each shows. */
+  effectOptions: {
+    arcaneBolt: {
+      name: 'Arcane bolt',
+      note: 'The cantrip: a spinning missile trailing runes, bursting where it lands',
+    },
+    cinderLance: {
+      name: 'Cinder Lance',
+      note: 'Ember: runes gather, then a white-hot beam through turning rune rings',
+    },
+    pyreSeal: {
+      name: 'Pyre Seal',
+      note: 'Ember: a burning circle drawn on the floor, then a crown of flame and a pillar',
+    },
+    rimeShards: {
+      name: 'Rime Shards',
+      note: 'Frost: a fan of ice crystals with frost trails, splintering where they land',
+    },
+    glacialWall: {
+      name: 'Glacial Wall',
+      note: 'Frost: ice pillars bursting up out of a frost line, then cracking and sinking',
+    },
+    arc: { name: 'Arc', note: 'Storm: lightning leaping between floating sparks' },
+    staticMantle: {
+      name: 'Static Mantle',
+      note: 'Storm: three rings of lightning turning round the mage, sparks jumping between them',
+    },
+    shatter: { name: 'Shatter', note: 'Frost and Storm: a frozen block charged with sparks bursts into shards' },
+    overload: { name: 'Overload', note: 'Ember and Storm: a crackling ball of fire and lightning swells and bursts' },
+    hallowPillar: { name: 'Hallow (to come)', note: 'A pillar of gold light falling on a rune circle' },
+    umbralHex: { name: 'Umbral (to come)', note: 'A dark orb with violet tendrils coiling into a ring of shadow' },
+  } as Record<string, { name: string; note: string }>,
 };

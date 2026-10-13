@@ -2,7 +2,7 @@
    the enemy options, for the pixel look. Each is a looping demo that plays one cast from start to end over and over
    (a charge, the cast, its flight or its hold, the impact), worked out from the time alone. The owner liked them
    (2026-09-30): the spells now wear these looks (magic/spellFx.ts), and the gallery stays as the style book, with the
-   previews of the schools to come (docs/effects.md). Names and notes in STR.effects. */
+   previews of the schools to come (docs/effects.md). Names and notes in DEV_STR.effectOptions. */
 import * as THREE from 'three';
 import type { Room } from '../types';
 import { disposeTree, glow } from '../render/materials';
@@ -567,7 +567,7 @@ function umbralHex(): Demo {
   };
 }
 
-/** The options (names and notes in STR.effects), with each one's school (or the mage's own magic, or a reaction). */
+/** The options (names and notes in DEV_STR.effectOptions), with each one's school (or the mage's own magic, or a reaction). */
 export const EFFECT_OPTIONS = [
   { id: 'arcaneBolt', school: 'arcane', build: arcaneBolt },
   { id: 'cinderLance', school: 'ember', build: cinderLance },

@@ -1274,7 +1274,7 @@ function build() {
   // spell effect options (looks only): each plays one cast over and over, ahead of the mage
   const fx = section(pages.galleries, S.effects);
   fx.append(
-    el('p', 'dv-info', EFFECT_OPTIONS.map((o) => STR.effects[o.id].name).join(', ')),
+    el('p', 'dv-info', EFFECT_OPTIONS.map((o) => DEV_STR.effectOptions[o.id].name).join(', ')),
     btn(S.showOptions, () => {
       closeDev();
       showEffectOptions(G.current, player.x, player.z);
