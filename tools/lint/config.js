@@ -58,10 +58,8 @@ export default tseslint.config(
     // panels through src/panels.ts, and the loop runs it in its hook slots, which main.ts fills. (A later block replaces
     // the dev door's rule for these files, so it repeats it.)
     files: [
-      'src/{world,actors,magic,items,combat,progression,vigil}/**/*.ts',
-      'src/flow.ts',
-      'src/loop.ts',
-      'src/state.ts',
+      'src/{world,actors,magic,items,combat,progression,vigil,render,audio}/**/*.ts',
+      'src/{flow,loop,state,clock,events,notify,panels,flowHooks}.ts',
     ],
     rules: {
       'no-restricted-imports': [

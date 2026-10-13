@@ -508,7 +508,7 @@ export function resume() {
 }
 daylightHooks.done = () => endGame(true); // (M7 step 3: the end screen lies over the daylight)
 // what actors and combat ask of the run's flow (flowHooks.ts)
-Object.assign(flowHooks, { tryTransition, descend, onWaveCleared, onBossDead, endGame });
+Object.assign(flowHooks, { tryTransition, descend, onWaveCleared, onBossDead, endGame } satisfies typeof flowHooks);
 export function endGame(won: boolean) {
   G.flow.state = 'end';
   hideBossBar();

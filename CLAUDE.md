@@ -38,15 +38,16 @@ systems, only cleaning, the look and the story.
 
 ## Code map
 
-`src/` (TypeScript strict, three.js r186): `main.ts` boot and the `__game` hooks, `loop.ts` fixed 1/60 step, `flow.ts`
+`src/` (TypeScript strict, three.js r186): `main.ts` boot and the wiring of the UI, `loop.ts` fixed 1/60 step, `flow.ts`
 game states and floors, `state.ts` shared state `G` and `player`, `config.ts` all tuning (`CFG`), `strings.ts` all
-player-facing text (`STR`), `types.ts`, `events.ts`/`notify.ts`/`panels.ts` the game's events and the panel door. Folders: `world/` (generation, rooms, objects, mechanisms, themes, special rooms),
-`actors/` (mage, foes, bosses, looks), `magic/` (spells, statuses, reactions, weaves, runes), `items/` (artifacts, pickups,
-potions, merchant), `combat/` (bolts, glyphs, familiars), `progression/` (insight, levels, boons), `vigil/` (the hub and its
-save), `render/` (renderer, pixel look, textures, fire), `audio/`, `ui/` (HUD, menus), `input/`, `assets/`. Dev code
-(`__game`, the dev menu, galleries, harnesses) is in `dev/`, a separate chunk the game reaches only through `devDoor.ts`.
-Content is in `data/` (JSON, each kind with a validator), tools in `tools/`, tests in `tests/unit` and `tests/e2e`.
-Details: `docs/architecture.md`.
+player-facing text (`STR`), `types.ts`, `events.ts`/`notify.ts`/`panels.ts` the game's events and the panel door.
+Folders: `world/` (generation, rooms, objects, mechanisms, themes, special rooms), `actors/` (mage, foes, bosses,
+looks), `magic/` (spells, statuses, reactions, weaves, runes), `items/` (artifacts, pickups, potions, merchant),
+`combat/` (bolts, glyphs, familiars), `progression/` (insight, levels, boons), `vigil/` (the hub and its save),
+`render/` (renderer, pixel look, textures, fire), `audio/`, `ui/` (HUD, menus), `input/`, `assets/`. Dev code (`__game`,
+the dev menu, galleries, harnesses) is in `dev/`, a separate chunk the game reaches only through `devDoor.ts`. Content
+is in `data/` (JSON, each kind with a validator), tools in `tools/`, tests in `tests/unit` and `tests/e2e`. Details:
+`docs/architecture.md`.
 
 ## Rules
 
