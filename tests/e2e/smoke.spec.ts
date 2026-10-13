@@ -7808,10 +7808,10 @@ test("foes in code (M4.1): floor 5's rootling burrows and bursts up (fire keeps 
   for (const e of [e1, e2, e3, e4]) expect(e).toEqual([]);
 });
 
-test('the pixel look: at the texel from the start, the rows of earlier from the URL, drawn with outlines and light in bands, then off again; the mage in pixel art; and the enemy and spell effect options, without errors', async ({
+test('the pixel look: at the texel from the start, the fine grid from the URL, drawn with outlines and light in bands, then off again; the mage in pixel art; and the enemy and spell effect options, without errors', async ({
   page,
 }) => {
-  type Look = { lines: number | 'texel'; outline: boolean; bands: boolean };
+  type Look = { lines: 0 | 'texel' | 'fine'; outline: boolean; bands: boolean };
   type GP = {
     sim(sec: number, draw?: boolean): void;
     pixelLook: Look;
@@ -7844,26 +7844,31 @@ test('the pixel look: at the texel from the start, the rows of earlier from the 
   expect(texel.rows).toBeLessThan(440);
   expect(texel.pixel).toEqual(['MeshToonMaterial']); // (the mage's colours baked, a few of them, light in bands)
   expect(first).toEqual([]);
-  const errors = await start(page, '?seed=K3F9QX&pixel=270');
+  const errors = await start(page, '?seed=K3F9QX&pixel=fine');
   const r = await page.evaluate(() => {
     const g = (window as unknown as { __game: GP }).__game,
       out: { look: Look; calls: number }[] = [];
-    for (const l of [{}, { outline: true, bands: true }, { lines: 360, outline: false }, { lines: 0 }]) {
+    for (const l of [
+      {},
+      { outline: true, bands: true },
+      { lines: 'texel', outline: false },
+      { lines: 0 },
+    ] as Partial<Look>[]) {
       g.setPixelLook(l);
       g.sim(0.1, true);
       out.push({ look: g.pixelLook, calls: g.renderInfo().calls });
     }
     return out;
   });
-  expect(r[0].look.lines).toBe(270);
-  expect(r[1].look).toEqual({ lines: 270, outline: true, bands: true });
-  expect(r[2].look.lines).toBe(360);
+  expect(r[0].look.lines).toBe('fine');
+  expect(r[1].look).toEqual({ lines: 'fine', outline: true, bands: true });
+  expect(r[2].look.lines).toBe('texel');
   expect(r[3].look.lines).toBe(0);
   expect(r[1].calls).toBe(r[3].calls + 2); // (the scene, its shading at the grid's size, then the blow-up to the window)
   // the enemy model options (looks only) stand ahead of the mage and idle, in the pixel look
   const shown = await page.evaluate(() => {
     const g = (window as unknown as { __game: GP & { modelOptions(): { id: string }[] } }).__game;
-    g.setPixelLook({ lines: 270 });
+    g.setPixelLook({ lines: 'texel' });
     const at = g.modelOptions();
     g.sim(0.5, true);
     g.setPixelLook({ lines: 0 });
@@ -7875,7 +7880,7 @@ test('the pixel look: at the texel from the start, the rows of earlier from the 
     const g = (window as unknown as { __game: GP & { takeModelOptions(): void; familiarOptions(): { id: string }[] } })
       .__game;
     g.takeModelOptions();
-    g.setPixelLook({ lines: 360 });
+    g.setPixelLook({ lines: 'fine' });
     const at = g.familiarOptions();
     g.sim(0.5, true);
     g.setPixelLook({ lines: 0 });
@@ -7887,7 +7892,7 @@ test('the pixel look: at the texel from the start, the rows of earlier from the 
     const g = (window as unknown as { __game: GP & { takeModelOptions(): void; effectOptions(): { id: string }[] } })
       .__game;
     g.takeModelOptions();
-    g.setPixelLook({ lines: 270 });
+    g.setPixelLook({ lines: 'texel' });
     const at = g.effectOptions();
     g.sim(2.5, true);
     g.setPixelLook({ lines: 0 });
@@ -7896,6 +7901,15 @@ test('the pixel look: at the texel from the start, the rows of earlier from the 
   expect(played).toBe(11);
   await page.screenshot({ path: 'test-results/pixel-look.png' });
   expect(errors).toEqual([]);
+  // off, from the URL only (for tools and tests): nothing is drawn in the pixel look
+  const offErrors = await start(page, '?seed=K3F9QX&pixel=off');
+  const off = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GP }).__game;
+    g.sim(0.1, true);
+    return { lines: g.pixelLook.lines, rows: g.pixelRows };
+  });
+  expect(off).toEqual({ lines: 0, rows: 0 });
+  expect(offErrors).toEqual([]);
 });
 
 test('the bestiary (M4.5), floor 1: the spider drops from out of reach and spits webs that slow (fire burns them); the octopus splits, or cracks when chilled; the grimoire lies shut; the swarm comes whole; the lark hastens; the mantis parries from the front; the crab hides and is flipped', async ({

@@ -765,18 +765,14 @@ export const CFG = {
     gravemonger: { chance: 0.5, heartPriceMul: 2 }, // Gravemonger's Contract: a foe's obol (halved when cleansed); the merchant's hearts
     lastRite: { rise: 1, every: 1, everyCleansed: 2 }, // The Last Rite: half hearts risen with; floors between refusals (cleansed: more)
   },
-  // the pixel look (render/pixelLook.ts, the game's look since 2026-09-30): the grid it starts on and the rows it offers
-  // besides. It starts at the texel (2026-10-01, the owner: everything in the one pixel-art look): a game pixel is one of
-  // the room kit's texels (roomKit.texel below), so everything is drawn at the floors' and walls' pixel size, about 2.6
-  // screen pixels at 1080p in a one-cell room and 2 in a great hall. The rows offered besides fall on whole screen
-  // pixels: 1080 (the default from the room kit's proof until then: at 1080p the screen's own pixels, so only what was
-  // drawn texel by texel looked like pixel art), 720, 540 (the default before that), 360 and 270 (too coarse full-screen
-  // on a high-resolution monitor). Outlines where a nearer surface stands more than outlineGap units before a farther one
+  // the pixel look (render/pixelLook.ts, the game's look since 2026-09-30): the grid it starts on. It starts at the texel
+  // (2026-10-01, the owner: everything in the one pixel-art look): a game pixel is one of the room kit's texels
+  // (roomKit.texel below), so everything is drawn at the floors' and walls' pixel size, about 2.6 screen pixels at 1080p
+  // in a one-cell room and 2 in a great hall; 'fine' is half a texel. Outlines where a nearer surface stands more than outlineGap units before a farther one
   // (darkened by outlineDark), and light bands; a glow's fade (render/textures.ts, every glow sprite) and a shadow's held in
   // so many flat steps, as pixel art draws them; the fine layer's pixels to a game pixel each way (pixelLook.ts, FINE:
   // 2026-10-02, the owner's coins drawn finer than the rest, so their faces read)
   pixelLook: {
-    lines: [1080, 720, 540, 360, 270],
     start: 'texel' as const,
     outlineGap: 0.3,
     outlineDark: 0.72,

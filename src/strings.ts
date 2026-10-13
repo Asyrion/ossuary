@@ -1969,16 +1969,12 @@ export const STR = {
     takeOptions: 'Take them away',
     floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
     pixel: 'Pixel look',
-    pixelLines: (lines: number | 'texel' | 'fine', drawn: number) =>
+    pixelLines: (lines: 0 | 'texel' | 'fine', drawn: number) =>
       !lines
         ? 'Pixels: off'
         : lines === 'texel'
           ? `Pixels: a texel each${drawn ? ` (${drawn} rows here)` : ''}`
-          : lines === 'fine'
-            ? `Pixels: half a texel each${drawn ? ` (${drawn} rows here)` : ''}`
-            : drawn && drawn !== lines
-              ? `Pixels: ${lines} lines (${drawn} in this window)`
-              : `Pixels: ${lines} lines`,
+          : `Pixels: half a texel each${drawn ? ` (${drawn} rows here)` : ''}`,
     outlinesOn: 'Outlines: on',
     outlinesOff: 'Outlines: off',
     bandsOn: 'Light in bands: on',

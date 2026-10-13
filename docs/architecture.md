@@ -805,7 +805,7 @@ the previous room's foes.
 | `?foe=sporeling` | One foe fills every fight. |
 | `?vigil=1` or `first` | Starts at the Vigil, or its first waking. |
 | `?assets=off` | Keeps placeholders (`?assets=<url>` loads another manifest). |
-| `?pixel=off` | Turns the pixel look off. |
+| `?pixel=off` | Turns the pixel look off (also `texel`, `fine`); the dev menu offers only `texel` and `fine`. |
 
 `__game` hooks by group (the dev menu covers all of them):
 - Run: `sim`, `draw`, `warp`, `descend`, `startGame`, `rooms()`, `map()`, `clearRoom()`, `openSecret()`, `state`,
@@ -837,6 +837,5 @@ These exist to compare an old way against the current one. They are not part of 
 | `?kit=old`, `DEV.roomKit`, `useRoomKit(on)` | Rooms in the look from before the room kit (about 21 files). |
 | `?looks=new\|old`, `DEV.foeLooks`, `APPROVED`, `RETIRED` | Foes not in `APPROVED` wear an older look. |
 | `lookPairs.ts`, `npm run foe-sheet` pairs | Old and new foe looks side by side; the `lookContract` test. |
-| `?pixel=1080\|720\|540\|360\|270`, `LINES`, `pixelGrid` | Whole-screen-pixel row modes beside `texel`, `fine`. |
 | `rotling`, `modelOptions.ts` galleries | A plain test foe; look-only galleries of foes and familiars. |
 | `src/input/touch.ts` | Frozen 0.3 touch controls: do not extend or test them. |

@@ -1544,7 +1544,8 @@ everything drawn at one pixel size (the room kit's texel) and blown up, with out
 **The pixel look.** The owner chose pixel-art 3D over cartoon 3D at full resolution, after comparing them in the game.
 The models and the game's lights are drawn on a low-resolution grid and blown up in sharp pixels, with outlines from
 depth and light in bands. Tiles, icons and effects are drawn as pixel art; concept art for Tripo stays clean cartoon.
-The dev menu and `?pixel=` still switch it, and the house style in `docs/assets.md` follows it.
+The dev menu switches it between the texel and *fine* (`?pixel=off` is for tools and tests), and the house style in
+`docs/assets.md` follows it.
 
 **One pixel for everything.** At 1080 lines only what was drawn texel by texel (the floors and walls) looked like
 pixel art; the mage's painted texture read as a smooth render on a pixel-art floor, so the owner asked for everything
@@ -1556,8 +1557,8 @@ floors and walls.
   grid texel for texel: about 420 rows in a one-cell room whatever the window, about 2.6 screen pixels a game pixel at
   1080p and 2 in a great hall. That doesn't fall on whole screen pixels, so the blow-up is a sharp one (each pixel the
   same size, its edges blended over one screen pixel), and the camera glides between pixels while the room stays on
-  its texels. The dev menu keeps *fine* (half a texel a pixel: each floor texel 2 × 2 pixels, about 840 rows) and the
-  rows of the earlier grid. The owner compared 1080 lines, fine and texel and chose the texel as the default.
+  its texels. The dev menu keeps *fine* (half a texel a pixel: each floor texel 2 × 2 pixels, about 840 rows). The owner
+  compared 1080 lines, fine and texel and chose the texel as the default.
 - **The mage in pixel art.** The Tripo model stays, its texture (a thousand small islands of fine strokes, which broke
   into speckle and mush some 45 pixels tall) baked into its vertices and cut down to 20 colours, its light in four
   flat bands, as pixel art keeps them.
@@ -1572,19 +1573,8 @@ floors and walls.
   banded as the rest, laid over the room where nothing stands before them (a glow, steam or a flame, which hold no
   depth, shows behind a coin). Nothing else goes on the fine layer without the owner's say.
 
-The rows of the earlier grid stay in the dev menu: each game pixel is a whole number of screen pixels, rounded up, so
-a smaller window keeps the look at fewer rows rather than turning sharp. They fall on whole pixels on the owner's
-screens (a full-screen browser) as follows:
-
-| Choice | 1080p | 1440p (2K) | 2160p (4K) |
-| --- | --- | --- | --- |
-| 1080 | 1080 (sharp, no pixel look) | 720 | 1080 |
-| 720 | 540 | 720 | 720 |
-| 540 | 540 | 480 | 540 |
-| 360 | 360 | 360 | 360 |
-| 270 | 270 | 240 | 270 |
-
-At 180 small objects stop reading, so it is not offered.
+The game draws at the texel. The dev menu's pixel button switches between it and *fine*, the only other mode; `?pixel=off`
+turns the pixel look off, for tools and tests, and is not offered in the menu.
 
 **Identity note.** The current hero is close to the Isaac art style. Fine for a hobby prototype; if the game is ever
 published, characters and art need their own look.
