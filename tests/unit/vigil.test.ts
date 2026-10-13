@@ -107,7 +107,7 @@ describe('what a run brings home', () => {
 });
 
 describe('the Vigil as a place (M7 step 5): its map', () => {
-  const copy = (): VigilMap => JSON.parse(JSON.stringify(VIGIL));
+  const copy = (): VigilMap => JSON.parse(JSON.stringify(VIGIL)) as VigilMap;
   it('passes its checks: three rooms laid by hand, the Crypt first, nothing to fight; six more behind the barred ways', () => {
     expect(validateVigil()).toEqual([]);
     const plan = vigilPlan(new Rng(7)),

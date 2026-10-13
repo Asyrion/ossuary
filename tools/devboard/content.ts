@@ -101,7 +101,7 @@ export class Content {
           kind.shape === 'map'
             ? col.members!.filter((m) => !kind.skip?.includes(m.key)).map((m) => ({ key: m.key, node: m.node }))
             : col.items!.map((node, i) => ({
-                key: kind.idKey ? String((node.value as Record<string, Json>)?.[kind.idKey] ?? i) : String(i),
+                key: kind.idKey ? asText((node.value as Record<string, Json>)?.[kind.idKey] ?? i) : String(i),
                 node,
               }));
         list.forEach(({ key, node }, i) => {
@@ -136,7 +136,7 @@ export class Content {
       return { text: t, root, col, index, start: m.keyStart, end: m.node.end, node: m.node, keyStart: m.keyStart };
     }
     const index = kind.idKey
-      ? col.items!.findIndex((n) => String((n.value as Record<string, Json>)?.[kind.idKey!]) === key)
+      ? col.items!.findIndex((n) => asText((n.value as Record<string, Json>)?.[kind.idKey!]) === key)
       : Number(key);
     const node = col.items![index];
     if (!node) throw new Conflict(`entry ${key} is no longer in ${kind.sources[src].file}. Reload.`);
@@ -175,7 +175,7 @@ export class Content {
       start = at.keyStart!;
     }
     if (kind.shape === 'list' && kind.idKey) {
-      const nid = String((data as Record<string, Json>)[kind.idKey] ?? '');
+      const nid = asText((data as Record<string, Json>)[kind.idKey] ?? '');
       if (nid !== key) {
         this.checkNewId(name, nid);
         this.refuseIfUsed(name, key, 'rename');
@@ -205,7 +205,7 @@ export class Content {
       { text, col } = this.collection(kind, src),
       st = styleOf(text);
     let id = key ?? '';
-    if (kind.shape === 'list' && kind.idKey) id = String((data as Record<string, Json>)?.[kind.idKey] ?? '');
+    if (kind.shape === 'list' && kind.idKey) id = asText((data as Record<string, Json>)?.[kind.idKey] ?? '');
     if (kind.shape === 'map' || kind.idKey) this.checkNewId(name, id);
     const nodes = kind.shape === 'map' ? col.members!.map((m) => m.node) : col.items!;
     const starts = kind.shape === 'map' ? col.members!.map((m) => m.keyStart) : nodes.map((n) => n.start);
@@ -296,7 +296,7 @@ export class Content {
     for (const file of this.dataFiles()) {
       let v: Json;
       try {
-        v = JSON.parse(this.read(file));
+        v = JSON.parse(this.read(file)) as Json;
       } catch {
         continue;
       }
@@ -338,9 +338,15 @@ export class Content {
   }
 }
 
+/** An id or label value as text: what String() makes of a string, number or boolean (an object has no such text, so it
+    is written out as JSON rather than as "[object Object]"). */
+function asText(v: Json | undefined) {
+  return typeof v === 'object' && v !== null ? JSON.stringify(v) : String(v);
+}
+
 function entryKeyAt(kind: KindDef, x: Json, last: string) {
   if (kind.shape === 'map') return last;
-  return kind.idKey && x && typeof x === 'object' && !Array.isArray(x) ? String(x[kind.idKey]) : null;
+  return kind.idKey && x && typeof x === 'object' && !Array.isArray(x) ? asText(x[kind.idKey]) : null;
 }
 
 /** A data path as the entry it falls in (kind and key) where one holds it. */
@@ -379,7 +385,11 @@ function labelOf(kind: KindDef, v: Json, key: string, i: number) {
   if (kind.labelKey && typeof o[kind.labelKey] === 'string') return o[kind.labelKey] as string;
   if (kind.labelFmt)
     return kind.labelFmt.replace(/\{(\w+)\}/g, (_, f: string) =>
-      f === 'n' ? String(i + 1) : Array.isArray(o[f]) ? o[f].join(' + ') : String(o[f] ?? ''),
+      f === 'n'
+        ? String(i + 1)
+        : Array.isArray(o[f])
+          ? o[f].map((x) => (x == null ? '' : asText(x))).join(' + ')
+          : asText(o[f] ?? ''),
     );
   return key;
 }

@@ -221,7 +221,7 @@ async function main() {
   const dataPath = resolve(import.meta.dirname, '../data/creatures.json');
   let data: Record<string, unknown> = {};
   try {
-    data = JSON.parse(readFileSync(dataPath, 'utf8'));
+    data = JSON.parse(readFileSync(dataPath, 'utf8')) as Record<string, unknown>;
   } catch {
     /* the first */
   }

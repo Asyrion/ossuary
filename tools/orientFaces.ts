@@ -27,7 +27,7 @@ export function orientOutward(doc: Document, rays = 32, plain = 0.1) {
       const idx = Array.from(ind.getArray()!),
         n = idx.length / 3,
         P: V[] = [];
-      for (let i = 0; i < pos.getCount(); i++) P.push(pos.getElement(i, [0, 0, 0]) as V);
+      for (let i = 0; i < pos.getCount(); i++) P.push(pos.getElement<V>(i, [0, 0, 0]));
       // vertices welded by position (a UV seam splits them), and each edge's faces
       const weld = new Map<string, number>(),
         w = P.map((p) => {

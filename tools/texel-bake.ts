@@ -79,10 +79,17 @@ export async function bakeModelFile(glb: string, height: number) {
   return { file, glow, side: b.side, colours: b.colours, glowing: b.glowing };
 }
 
+/** The part of a data/creatures.json entry this tool reads and writes (the rest is kept as it is). */
+interface CreatureInfo {
+  height: number;
+  fine?: boolean;
+  texel?: { file: string; glow: string; side: number; colours: number; glowing: number };
+}
+
 /** Bake creature `id` (as tall as data/creatures.json says; one drawn on the pixel look's fine layer, `fine`, at its
     finer pixel) and name the files there. */
 export async function texelBake(id: string) {
-  const data = JSON.parse(readFileSync(DATA, 'utf8')),
+  const data = JSON.parse(readFileSync(DATA, 'utf8')) as Record<string, CreatureInfo | undefined>,
     info = data[id];
   if (!info) throw new Error(`no creature "${id}" in data/creatures.json`);
   const b = await bakeModelFile(resolve(DIR, `${id}.glb`), info.height * (info.fine ? CFG.pixelLook.fineLayer : 1));
@@ -102,7 +109,9 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
       return;
     }
     const ids =
-      want[0] === 'all' ? Object.keys(JSON.parse(readFileSync(DATA, 'utf8'))).filter((k) => k !== '_comment') : want;
+      want[0] === 'all'
+        ? Object.keys(JSON.parse(readFileSync(DATA, 'utf8')) as Record<string, unknown>).filter((k) => k !== '_comment')
+        : want;
     if (!ids.length)
       throw new Error('usage: npm run texel-bake -- <creature id>|all   or   -- <file.glb> <height in tiles>');
     for (const id of ids) await texelBake(id);

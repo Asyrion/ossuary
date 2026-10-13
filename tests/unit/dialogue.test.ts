@@ -18,7 +18,7 @@ import { BOSS_TYPES } from '../../src/config';
 import { REACTION_IDS } from '../../src/magic/knowledge';
 import { POTION_IDS } from '../../src/items/alchemyData';
 import { blankSave, migrate } from '../../src/vigil/vigilData';
-import { VIGIL, validateVigil } from '../../src/vigil/vigilMap';
+import { VIGIL, validateVigil, type VigilMap } from '../../src/vigil/vigilMap';
 
 const known = {
   speakers: [...SHADE_IDS, 'ferryman'],
@@ -86,7 +86,7 @@ describe('the townspeople and their talk (M7 step 7)', () => {
   it('each shade stands at its own spot in the Nave', () => {
     expect(validateVigil()).toEqual([]);
     expect(Object.keys(VIGIL.town.spots).sort()).toEqual([...SHADE_IDS].sort());
-    const moved = JSON.parse(JSON.stringify(VIGIL));
+    const moved = JSON.parse(JSON.stringify(VIGIL)) as VigilMap;
     moved.town.spots.scribe = [14, 8];
     expect(validateVigil(moved).join()).toMatch(/scribe stands on the Great Circle/);
   });
