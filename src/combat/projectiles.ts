@@ -35,7 +35,7 @@ import { cantripStruck } from '../items/gifts';
 import { fireAt, frostAt } from '../world/pools';
 import { animateBolt, boltLook, impactFx } from '../magic/spellFx';
 import { gainMana } from '../magic/spells';
-import { hexDrained } from '../ui/afflictions';
+import { hexDrained } from '../magic/hex';
 import { inSteam } from '../magic/steam';
 import { MAGIC } from '../magic/status';
 import { boltOverGround, hexGround } from '../magic/shapes';

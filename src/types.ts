@@ -712,3 +712,28 @@ export interface Player extends Circle {
       cache knows), and the runes in the pouch (a spell given up sends its runes there). */ sockets: Socket[];
   runes: RuneId[];
 }
+
+/** A lore card: what something taken is (ui/lore.ts shows it). */
+export interface LoreEntry {
+  name: string;
+  kind: string;
+  effect: string;
+  lore: string;
+  icon: string;
+}
+/** Things described the first time they're taken in a run: items and containers. */
+export type LoreItem =
+  | 'coin'
+  | 'purse'
+  | 'key'
+  | 'glyph'
+  | 'halfHeart'
+  | 'heart'
+  | 'mana'
+  | 'paleSoul'
+  | 'blackSoul'
+  | 'hallowedSoul'
+  | 'shard'
+  | 'coffer'
+  | 'chest'
+  | 'gilded';

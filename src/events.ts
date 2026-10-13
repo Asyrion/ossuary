@@ -10,16 +10,16 @@ type Args<P> = [P] extends [void] ? [] : [payload: P];
 
 export interface Bus<E> {
   /** Listen to `name`; returns a function that stops listening. */
-  on<K extends keyof E>(name: K, fn: Listener<E[K]>): () => void;
+  on: <K extends keyof E>(name: K, fn: Listener<E[K]>) => () => void;
   /** Call every listener of `name` now, in the order they were added. */
-  emit<K extends keyof E>(name: K, ...args: Args<E[K]>): void;
+  emit: <K extends keyof E>(name: K, ...args: Args<E[K]>) => void;
 }
 
 /** A bus over the event map `E` (event name to payload type). */
 export function createBus<E>(): Bus<E> {
   const lists = new Map<keyof E, Listener<never>[]>();
   return {
-    on(name, fn) {
+    on: (name, fn) => {
       let list = lists.get(name);
       if (!list) lists.set(name, (list = []));
       list.push(fn);
@@ -28,7 +28,7 @@ export function createBus<E>(): Bus<E> {
         if (i >= 0) list.splice(i, 1);
       };
     },
-    emit(name, ...args) {
+    emit: (name, ...args) => {
       const list = lists.get(name);
       if (!list) return;
       // (a listener that stops listening mid-emit doesn't make the next one be skipped)
@@ -36,3 +36,16 @@ export function createBus<E>(): Bus<E> {
     },
   };
 }
+
+/** The game's events, by name, with their payloads: who emits each and who listens is in docs/architecture.md (Events and
+    the panel door). */
+export interface GameEvents {
+  /** A hexing blow took mana (magic/hex.ts): the mana bar flashes violet. */
+  manaHexed: void;
+}
+
+const bus = createBus<GameEvents>();
+/** Listen to one of the game's events (the UI, from its `init*`, which main.ts calls at boot). */
+export const on = bus.on;
+/** Say that something happened in the game: its listeners run now, before `emit` returns. */
+export const emit = bus.emit;

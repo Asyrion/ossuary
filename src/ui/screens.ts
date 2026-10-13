@@ -1,5 +1,5 @@
 /* Title / pause / end screens, their buttons, and swapping the hero by file picker or drag-and-drop. */
-import { STR, foeName } from '../strings';
+import { STR, struckName } from '../strings';
 import { esc } from './spellPanel';
 import type { DustSource } from '../vigil/vigilData';
 import { exportSave, importSave } from '../vigil/save';
@@ -24,10 +24,6 @@ const screens: Record<ScreenName, HTMLElement> = {
 export function showScreen(name: ScreenName | null) {
   for (const k of Object.keys(screens) as ScreenName[]) screens[k].classList.toggle('hidden', k !== name);
 }
-
-/** What struck the mage, by name: a boss, a foe, or what in the room it was (M7 step 4). */
-export const struckName = (id: string) =>
-  (STR.bosses as Record<string, { name?: string }>)[id]?.name ?? STR.end.home.things[id] ?? foeName(id);
 
 /** How a run went, for the end screen. `floor` is 1-based; `artifacts` lists the focus first. */
 export interface RunSummary {

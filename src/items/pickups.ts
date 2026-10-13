@@ -33,7 +33,8 @@ import {
 import { gainSoul, soulsHere } from './souls';
 import { goldTaken } from '../world/themes';
 import { offerBeyondBudget, placeArtifact, refreshStats } from './artifacts';
-import { itemLore, type LoreItem } from '../ui/lore';
+import { itemLore } from '../ui/lore';
+import type { LoreItem } from '../types';
 import { gainMana } from '../magic/spells';
 import { containerLook, itemLook } from './pickupLooks';
 import { bottleLook, reagentLook } from './alchemyLooks';
