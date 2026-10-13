@@ -29,6 +29,15 @@ import '@fontsource/alegreya-sans/500.css';
 import '@fontsource/alegreya-sans/700.css';
 import './style.css';
 import { DEV, G, player } from './state';
+import {
+  closeDevMenu,
+  devMenuOpen,
+  onDevClear,
+  onDevFrame,
+  onDevStep,
+  registerDevMenu,
+  toggleDevMenu,
+} from './devDoor';
 import { applyStrings } from './strings';
 import { Sfx } from './audio/sfx';
 import { camera, canvas, draw, renderer, resize, setCloseUp } from './render/renderer';
@@ -92,7 +101,7 @@ import {
 } from './ui/waystone';
 import { raiseWaystone } from './world/waystone';
 import { warePanelNow } from './ui/warePanel';
-import { promptShowing, renderHearts, roomFinished, setHeroInfo, toast, updateVision } from './ui/hud';
+import { promptShowing, renderHearts, roomFinished, setHeroInfo, toast, updateFrameInfo, updateVision } from './ui/hud';
 import { bargainNow, openBargainHere } from './world/bargain';
 import { levelAtFloor } from './progression/levelData';
 import {
@@ -138,7 +147,7 @@ import {
 import { board, openWayNow, vigilActs, vigilInfo } from './vigil/place';
 import { answerShade, bindIt, breakAllChains, freeIt, layShade, shadeInfo } from './vigil/shades';
 import { shadeHelpInfo, walkWith } from './vigil/shadeHelp';
-import { talkTo, townGallery, takeTownGallery, townInfo } from './vigil/town';
+import { talkTo, townGallery, takeTownGallery, townInfo, updateTownGallery } from './vigil/town';
 import { actOn, bondTo, giftsInfo, givePower, offersFor, questTo } from './vigil/gifts';
 import { chooseGarden, lightBlessing, unfoldInfo } from './vigil/unfold';
 import { disciplinesOpen } from './vigil/giftData';
@@ -184,8 +193,15 @@ import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
 import { assetList, assetsOn, loadAssets } from './assets/models';
 import { drawnRows, pixelLook, setPixelLook, type PixelLook, fineLayerDrawn } from './render/pixelLook';
-import { removeModelOptions, showBestiary, showBossLooks, showJellyLooks } from './actors/modelOptions';
-import { removeEffectOptions, showEffectOptions } from './magic/effectOptions';
+import {
+  clearModelOptions,
+  removeModelOptions,
+  showBestiary,
+  showBossLooks,
+  showJellyLooks,
+  updateModelOptions,
+} from './actors/modelOptions';
+import { clearEffectOptions, removeEffectOptions, showEffectOptions, updateEffectOptions } from './magic/effectOptions';
 import { elementDev, sapMul } from './world/mechanisms';
 import { wardFoe } from './actors/wardShield';
 import { callWanderer, wandererState } from './items/wanderer';
@@ -220,7 +236,14 @@ import { inSteam, steamAt, steamCount } from './magic/steam';
 import type { MantleId } from './actors/mantleData';
 import { groundPace, layDevGround } from './actors/foeGround';
 import { AudioDirector, type Forced } from './audio/director';
-import { creaturesNow, roarNow, showCreature, takeCreatures } from './actors/madeCreatures';
+import {
+  clearCreatures,
+  creaturesNow,
+  roarNow,
+  showCreature,
+  takeCreatures,
+  updateCreatures,
+} from './actors/madeCreatures';
 import { freeSpotNear } from './world/rooms';
 import { renderAudio, type RenderAsk } from './audio/render';
 import { SOUND_FILES, preloadSamples } from './audio/samples';
@@ -230,7 +253,7 @@ const HERO_URL = `${import.meta.env.BASE_URL}assets/hero_default.glb`;
 const input: InputActions = {
   unlockAudio: () => Sfx.init(),
   togglePause: () => {
-    if (devOpen()) closeDev();
+    if (devMenuOpen()) closeDevMenu();
     else if (talkOpen()) closeTalk();
     else if (lecternOpen()) closeLectern();
     else if (levelOpen()) levelEsc();
@@ -244,7 +267,7 @@ const input: InputActions = {
     if (G.state === 'title' || G.state === 'end') begin();
   }, // (M7 step 5: to the Vigil once a run has been played)
   startButton: () => {
-    if (devOpen()) closeDev();
+    if (devMenuOpen()) closeDevMenu();
     else if (talkOpen()) closeTalk();
     else if (lecternOpen()) closeLectern();
     else if (levelOpen()) levelEsc();
@@ -261,10 +284,10 @@ const input: InputActions = {
   },
   toggleDev: () => {
     if (inventoryOpen()) closeInventory();
-    toggleDev();
+    toggleDevMenu();
   },
   inventoryKey: (code) => {
-    if (devOpen()) return false;
+    if (devMenuOpen()) return false;
     if (talkOpen()) return talkKey(code); // (M7 step 7: a townsperson's talk)
     if (lecternOpen()) return lecternKey(code); // (M7 step 5: the Vigil's lectern)
     if (levelOpen()) return levelKey(code); // (M6: the level-up screen's choice waits)
@@ -283,7 +306,7 @@ const input: InputActions = {
     return used;
   },
   padButton: (i) => {
-    if (devOpen()) return false;
+    if (devMenuOpen()) return false;
     if (talkOpen()) return talkPad(i);
     if (lecternOpen()) return lecternPad(i);
     if (levelOpen()) return levelPad(i);
@@ -1230,7 +1253,27 @@ function installDevHooks() {
   };
 }
 
+/** Dev code reaches the game only through the door (devDoor.ts). */
+function registerDev() {
+  registerDevMenu({ isOpen: devOpen, close: closeDev, toggle: toggleDev });
+  onDevStep((dt, room, playing) => {
+    if (playing) {
+      updateModelOptions(dt, room);
+      updateEffectOptions(dt, room);
+      updateCreatures(dt, room);
+    }
+    updateTownGallery(dt);
+  });
+  onDevClear(() => {
+    clearModelOptions();
+    clearCreatures();
+    clearEffectOptions();
+  });
+  onDevFrame(updateFrameInfo);
+}
+
 async function boot() {
+  registerDev();
   if (isTouch) document.body.classList.add('touch');
   applyStrings();
   resize();
@@ -1257,7 +1300,7 @@ async function boot() {
     pause,
     resume,
     others: () =>
-      talkOpen() || lecternOpen() || labOpen() || waystoneOpen() || inventoryOpen() || devOpen() || promptShowing(),
+      talkOpen() || lecternOpen() || labOpen() || waystoneOpen() || inventoryOpen() || devMenuOpen() || promptShowing(),
   }); // (M6)
   // the chalk texture in the start room is drawn with Cinzel, so load its weights first
   const chalkFonts = Promise.all(['600 16px "Cinzel"', '700 16px "Cinzel"'].map((f) => document.fonts.load(f)));

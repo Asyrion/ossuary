@@ -4,9 +4,7 @@ import { enterTheme } from './world/themes';
 import { clearMechanisms } from './world/mechanisms';
 import { resetWardShields } from './actors/wardShield';
 import { clearWanderer, maybeWanderer, wandererLeaves } from './items/wanderer';
-import { clearModelOptions } from './actors/modelOptions';
-import { clearCreatures } from './actors/madeCreatures';
-import { clearEffectOptions } from './magic/effectOptions';
+import { devClear } from './devDoor';
 import { CFG, type BossType } from './config';
 import type { Room } from './types';
 import { DEV, G, after, clearTimers, player } from './state';
@@ -138,9 +136,7 @@ function clearEntities() {
   clearMechanisms();
   resetWardShields();
   clearWanderer();
-  clearModelOptions();
-  clearCreatures();
-  clearEffectOptions();
+  devClear(); // (the dev galleries stood in the old floor's rooms)
   clearRite();
   clearSpellFx();
   clearStatusFx();

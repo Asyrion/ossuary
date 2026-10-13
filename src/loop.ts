@@ -5,9 +5,6 @@ import { updateProps } from './world/props';
 import { updateThemes } from './world/themes';
 import { updateMechanisms } from './world/mechanisms';
 import { updateWardShields } from './actors/wardShield';
-import { updateModelOptions } from './actors/modelOptions';
-import { updateCreatures } from './actors/madeCreatures';
-import { updateEffectOptions } from './magic/effectOptions';
 import { updateTorchLights } from './render/lights';
 import { updateRoomFx } from './world/rooms';
 import { heroVisual } from './actors/hero';
@@ -17,7 +14,6 @@ import { updateDaylight } from './world/daylight';
 import { updateVigil } from './vigil/place';
 import { updateShades } from './vigil/shades';
 import { updateShadeHelp } from './vigil/shadeHelp';
-import { updateTownGallery } from './vigil/town';
 import { updateAudio } from './audio/director';
 import { updateEnemies } from './actors/enemies';
 import { updateBolts, updateShots } from './combat/projectiles';
@@ -37,7 +33,8 @@ import { updateMagic } from './magic/spells';
 import { updateStatusFx, updateStatuses } from './magic/statusFx';
 import { updateFamiliars } from './combat/familiars';
 import { pollGamepad, type InputActions } from './input';
-import { updateFrameInfo, updateHud, updateVision } from './ui/hud';
+import { updateHud, updateVision } from './ui/hud';
+import { devFrame, devStep } from './devDoor';
 import { hideWarePanel, updateWarePanel } from './ui/warePanel';
 import { updateAfflictions } from './ui/afflictions';
 import { updateLore } from './ui/lore';
@@ -110,7 +107,6 @@ export function step(dt: number) {
   updateDaylight(dt); // (M7 step 3: the cave mouth at dawn, and the shaft's dust before it)
   if (!G.trans) updateVigil(dt); // (M7 step 5: the Vigil's lectern, boat and barred ways)
   updateShades(dt); // (M7 step 6: a chained shade comes forth, asks, and goes)
-  updateTownGallery(dt); // (M7 step 7: the townspeople's gallery, gesturing in turn)
   Sfx.listen(player.x, player.z); // effects are heard from just above the mage
   updateParticles(dt);
   updateWorldFx(dt, now);
@@ -144,10 +140,8 @@ function updateWorldFx(dt: number, now: number) {
     updateThemes(dt);
     updateMechanisms(dt);
     updateWardShields(G.simClock);
-    updateModelOptions(dt, G.current);
-    updateEffectOptions(dt, G.current);
-    updateCreatures(dt, G.current);
   } // burning, briars, spores; sleepers, rising bones; bells, runes, censers
+  devStep(dt, G.current, G.state === 'play' && !G.trans); // (the dev galleries, when dev code stood any)
   const tf = 0.92 + Math.sin(now * 13) * 0.05 + Math.sin(now * 23) * 0.04;
   updateTorchLights(G.current.torches, player.x, player.z, dt, tf);
   G.shake = Math.max(0, G.shake - dt * 1.4);
@@ -164,7 +158,7 @@ function frame(nowMs: number) {
     last = nowMs;
     return;
   }
-  updateFrameInfo(nowMs - last); // (the dev menu's frame readout)
+  devFrame(nowMs - last); // (the dev menu's frame readout)
   acc += Math.min(MAX_FRAME, (nowMs - last) / 1000);
   last = nowMs;
   // small tolerance so rAF jitter at 60 Hz doesn't alternate between 0 and 2 steps
