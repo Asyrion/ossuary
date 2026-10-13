@@ -224,8 +224,8 @@ colours. Pure `src/actors/foeData.ts` reads it (`validateFoes`, `BEHAVIOUR_PARAM
   `acting.ts`: `actAs`, `actor()` record whose ground and shots they are.
 - Looks: `modelOptions.ts` (first ten, familiars), `bestiaryLooks.ts` with `bestiaryBeasts.ts`,
   `bestiaryCreatures.ts`, `bestiaryElementals.ts`, `beastParts.ts`; fantasy looks in `fantasyFloor1.ts` to
-  `fantasyFloor5.ts`, `fantasyWardlings.ts`. A foe's look is the model option, bestiary look or `FOE_LOOKS` entry of
-  its id (or `look`). Keep draw calls low: move small repeated parts together; pulse a glow, not a material's colour.
+  `fantasyFloor5.ts`, `fantasyWardlings.ts`, gathered in `FANTASY_LOOKS` (`fantasyLooks.ts`). A foe's look is the
+  fantasy look, else the model option, bestiary look or `FOE_LOOKS` entry of its id (or `look`). Keep draw calls low: move small repeated parts together; pulse a glow, not a material's colour.
 - Roles: templates' `R W H` are filled from the floor's `foes` on the room's seed; one elite a room at most; one
   pack a room at most (a wasp nest counts); quiet rooms get none. `callFoe` passes over waiters and packs.
 - Damage (`combat/damage.ts`: `damageEnemy`, `killEnemy`, `hurtPlayer`, `crumble`, `bleed`): a blow carries a
@@ -747,7 +747,7 @@ when the browser first reports a pad (`STR.pad`). Dev: `__game.pads`, the dev me
 | `lint`, `lint:install`, `format`, `format:check` | ESLint (type-checked rules); its own install; Prettier. |
 | `prepare-asset`, `prepare-texture`, `prepare-sound` | Prepare GLBs, tiles, icons, coin faces, WAVs. |
 | `animate-creature`, `texel-bake` | Rig and clips for a Tripo creature; pixel-art texture. |
-| `creature-preview`, `foe-sheet` | Render a creature video; contact sheets of foe and boss looks. |
+| `creature-preview`, `foe-sheet` | Render a creature video; contact sheets of boss looks. |
 | `balance` | Bot fighting each foe (`docs/balance.md`) or whole floors (`-- runs`). |
 | `inspect` | `inspect-rooms.ts`: shoots rooms; flags errors, hidden mage, dark rooms. |
 | `render-audio`, `review-checks`, `milestone` | Offline audio; diff checks; GitHub milestones. |
@@ -835,7 +835,5 @@ These exist to compare an old way against the current one. They are not part of 
 | Switch | What it is |
 | --- | --- |
 | `?kit=old`, `DEV.roomKit`, `useRoomKit(on)` | Rooms in the look from before the room kit (about 21 files). |
-| `?looks=new\|old`, `DEV.foeLooks`, `APPROVED`, `RETIRED` | Foes not in `APPROVED` wear an older look. |
-| `lookPairs.ts`, `npm run foe-sheet` pairs | Old and new foe looks side by side; the `lookContract` test. |
 | `rotling`, `modelOptions.ts` galleries | A plain test foe; look-only galleries of foes and familiars. |
 | `src/input/touch.ts` | Frozen 0.3 touch controls: do not extend or test them. |

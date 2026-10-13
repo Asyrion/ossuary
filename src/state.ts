@@ -1,4 +1,3 @@
-import type { FoeLooks } from './actors/fantasyLooks';
 import type { TransformId } from './items/transformData';
 import { CFG, type BossType } from './config';
 import { START_FOCUS, computeStats } from './items/artifactData';
@@ -127,8 +126,6 @@ export const DEV = {
   kitKinds: {} as Partial<Kinds>,
   /** One foe in every template role on every floor (`?foe=`, the dev menu), to test it; else each floor fills its roles. */
   foe: undefined as FoeId | undefined,
-  /** M4.12: the foes' looks: the approved new ones (the game), every new one (to try them), or the old ones (to compare). */
-  foeLooks: 'approved' as FoeLooks,
   /** M4.6: the camera close on the mage (the dev menu's Costumes section), to see what is worn; `CFG.costume.closeUp`. */
   closeUp: false,
   /** M5: every fallen foe and broken object leaves its reagent (the dev menu's Alchemy), to test where they come from. */
