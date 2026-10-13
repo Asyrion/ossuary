@@ -764,11 +764,12 @@ Lint and format: Prettier (`.prettierrc.json`: 120 columns, single quotes) forma
 (`tools/lint/config.js`; the root `eslint.config.js` points at it). It lives in its own package, `tools/lint/`, with
 TypeScript 6: typescript-eslint needs TypeScript's JS API, which TypeScript 7 (the typecheck and build) no longer
 ships. Install it once with `npm run lint:install`. Unused names are left to the typecheck. A formatting-only commit
-goes into `.git-blame-ignore-revs`.
+goes into `.git-blame-ignore-revs` once it is on `main` (a rebase-merge gives it a new hash).
 
 Agents and skills (`.claude/`): subagents `rules-reviewer` (before opening a PR) and `room-inspector` (after changes
 to how rooms look); skills `ship`, `tripo-prompts`, `game-dev-board`. CI is `.github/workflows/deploy.yml`: `build`
-(typecheck, unit tests, build), `lint` (format check and ESLint) and three Playwright shards; on `main` the Pages deploy waits for `build` only.
+(typecheck, unit tests, build), `lint` (format check and ESLint) and three Playwright shards; on `main` the Pages
+deploy waits for `build` only.
 
 ## Testing
 

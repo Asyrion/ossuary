@@ -3,13 +3,25 @@
 import js from '@eslint/js';
 import prettier from 'eslint-config-prettier';
 import globals from 'globals';
+import { fileURLToPath } from 'node:url';
 import tseslint from 'typescript-eslint';
 
-const root = new URL('../..', import.meta.url).pathname;
+const root = fileURLToPath(new URL('../..', import.meta.url));
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'prototype/**', 'public/**', 'inspiration/**', 'docs/**', 'data/**', '**/node_modules/**'],
+    ignores: [
+      'dist/**',
+      'prototype/**',
+      'public/**',
+      'inspiration/**',
+      'docs/**',
+      'data/**',
+      'test-results/**',
+      'playwright-report/**',
+      '*-previews/**',
+      '**/node_modules/**',
+    ],
   },
   js.configs.recommended,
   tseslint.configs.recommendedTypeChecked,
