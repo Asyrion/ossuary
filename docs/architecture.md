@@ -26,6 +26,9 @@ A reference for developers: what each system does and where it lives, as the cod
   Azyrion, Belerial, Fen-Nex, Dr. Jelly) plus dungeon furniture (chapel, crypts, sextons, pilgrims, the Ferryman).
   Invent no gods, factions or places.
 - Rules live in pure `*Data.ts` modules (no three.js, no DOM) with a unit test; the game side calls them.
+- The simulation (world, actors, magic, items, combat, progression, vigil, `flow.ts`, `loop.ts`, `state.ts`) never
+  imports `src/ui/` (a lint rule fails if it does): it tells the UI through `events.ts` (`notify.ts`), opens panels through
+  `panels.ts`, and the loop runs the UI in hook slots (see [Events and the panel door](#events-and-the-panel-door)).
 
 ## Overview and code map
 
@@ -36,13 +39,15 @@ three hearts counted in halves, one second of invulnerability after a hit.
 
 | Root file (`src/`) | Role |
 | --- | --- |
-| `main.ts` | Boot, input wiring, `?seed` (`readSeed`); loads the dev code (`src/dev/`) with a dynamic import. |
+| `main.ts` | Boot, input wiring, the UI wired to the game (`wireUi`), `?seed` (`readSeed`); loads the dev code (`src/dev/`) with a dynamic import. |
 | `devDoor.ts` | The dev door: the only way the game reaches dev code (see [The dev door](#the-dev-door-and-srcdev)). |
 | `state.ts` | Shared mutable state: `G` (game, run, room, foes, bolts), `player`, `DEV` switches, `after()` timers. |
 | `flow.ts` | Game states, floor setup (`startGame`, `buildFloor`, `buildVigil`), `warp`, clears, `endGame`. |
-| `loop.ts` | The fixed 1/60 step: calls every system's `update*`, then draws. |
+| `flowHooks.ts` | What actors and combat ask of the flow (`tryTransition`, `descend`, `onWaveCleared`, `onBossDead`, `endGame`); `flow.ts` fills it. |
+| `loop.ts`, `clock.ts` | The fixed 1/60 step: calls every system's `update*` and the UI's hook slots (`uiHooks`), then draws; the real-time clock it steps by. |
+| `events.ts`, `notify.ts`, `panels.ts` | The event bus, the simulation's notifications on it, the panel door (see [Events and the panel door](#events-and-the-panel-door)). |
 | `config.ts` | `CFG` tuning block, `BOSS_TYPES`. |
-| `strings.ts`, `types.ts` | `STR` (all player-facing text; the dev menu's is `DEV_STR` in `dev/strings.ts`); shared types (`RoomType`, `Room`, `Door`, `Vec2`). |
+| `strings.ts`, `types.ts` | `STR` (all player-facing text; the dev menu's is `DEV_STR` in `dev/strings.ts`), `struckName`; shared types (`RoomType`, `Room`, `Door`, `Vec2`, `LoreEntry`, `RunSummary`). |
 | `rng.ts`, `util.ts` | Seeded random streams; small helpers. |
 | `style.css` (and `index.html`) | HUD and screen styles; the overlay markup. |
 
@@ -57,8 +62,8 @@ three hearts counted in halves, one second of invulnerability after a hit.
 | `items/` | Artifacts, pickups, loot, merchants, potions, reagents, transformations, Azyrion's arc. |
 | `magic/` | Spells, shapes, statuses and reactions, weaves, knowledge, runes, grimoire pages, spell effects. |
 | `progression/` | Insight, levels, attributes, boons. |
-| `render/` | Renderer and pixel look, textures, lights, fire, materials, rig merging, palette, texel bake. |
-| `ui/` | HUD, screens, inventory, panels, level-up, lore cards. |
+| `render/` | Renderer and pixel look, textures, lights, fire, materials, rig merging, palette, texel bake, the drawn icons (`icons.ts`). |
+| `ui/` | HUD, screens, inventory, panels, level-up, lore cards; it listens to the game and is wired by `main.ts`. |
 | `vigil/` | The hub between runs: save, place, shades, townspeople, dialogue, gifts, unfolding. |
 | `world/` | Floor generation, rooms, walls, templates, props, mechanisms, pools, themes, special rooms. |
 
@@ -422,9 +427,9 @@ To add one: a row in `WEAVES`, tuning, a name and text, its hook, and a setup in
   `CFG.knowledge.usedCasts` casts, upgraded); stored by `memory.ts` in the save. `ui/spellPanel.ts` describes a spell
   at its stage (`spellSheet`, `reactionWheel`) for the panel over a grimoire page and the inventory's Spells tab.
   Dev: `__game.knowledge`, `know(id, stage)`, `forgetKnowledge()`, `learn(id, slot)`.
-- Grimoire and library: `pages.ts` (`room.pages`: lectern, shelf or loose; `updatePagePanel`, `answerPage`,
-  `dropPage`, `maybeDropPage`). The library is a one-cell dead end on every floor. A page with both slots full asks
-  through `showPrompt`; given-up spells go to `G.run.forgotten` and libraries sell them back (`grimoire` in
+- Grimoire and library: `pages.ts` (`room.pages`: lectern, shelf or loose; `pageNear`, `answerPage`, `dropPage`,
+  `maybeDropPage`); the panel over a page and its question are `ui/pagePanel.ts`. The library is a one-cell dead end on
+  every floor. A page with both slots full asks through the panel door (`askPage`); given-up spells go to `G.run.forgotten` and libraries sell them back (`grimoire` in
   `data/loot.json`). Pure `pickPages`, `shelfPages` in `spellData.ts`. Dev: `page()`, `pages`, `forgotten`.
 - Spell marks: the slotted spells at the hands with their state. Pure `marksData.ts` (`handState`, `attunedTo`,
   `circleOf`, `masteredSchools`); look `actors/spellMarks.ts` (`updateSpellMarks`, master's ring, attunement aura,
@@ -509,7 +514,7 @@ Potions, reagents, brewing. Pure `items/alchemyData.ts` over `data/alchemy.json`
 effects, reagents, recipes, `sources`, bottles; `validateAlchemy`, `bottlesFor`, `brew`, `reagentFor`, `pickPotion`).
 Brews are kept between runs (`alchemyMemory.ts`, in the save). Tuning `CFG.alchemy`.
 - Belt: `items/potions.ts` (`player.belt`, `player.reagents`, `addPotion`, `identify`, `usePotion`, `choosePotion`,
-  `moveInBelt`, `renderBelt`). R tapped drinks, held throws; F chooses. Effects on the mage: `potionFx.ts`. Throws:
+  `moveInBelt`; the HUD's belt is `ui/belt.ts`). R tapped drinks, held throws; F chooses. Effects on the mage: `potionFx.ts`. Throws:
   `potionThrow.ts` (`THROW`). Looks: `alchemyLooks.ts`.
 - Reagents: `items/reagents.ts` (`foeReagent`, `objectReagent`; `G.run.reagents`; `DEV.reagents` always drops).
 - Dr. Jelly's laboratory (floors 1 and 3; templates `lab_*`): `world/laboratory.ts` (`furnishLab`, `enterLab`,
@@ -530,7 +535,7 @@ Dev: Mage tab Alchemy, "Open the alchemy table here", `?potions=healing,hexBrew`
 
 - Insight and levels: pure `progression/levelData.ts` (`levelFor`, `levelProgress`, `purseOf`, `clearInsight`,
   `bossInsight`, `levelAtFloor`, `LEVEL_CAP` 12), tuning `CFG.levels`. Game side `insight.ts` (`gainInsight`,
-  `payClear`, `payBoss`, `paySerpent`, `potionUsed`; a foe's `e.purse` is paid by `killEnemy`; `renderInsight` draws
+  `payClear`, `payBoss`, `paySerpent`, `potionUsed`; a foe's `e.purse` is paid by `killEnemy`; `ui/insightHud.ts` draws
   the HUD strip and level badge). Dev: `__game.insight`, `level`, `giveInsight(n)`, `setLevel(n)`.
 - Attributes: Vigor, Arcana, Will, Swiftness. `attributes.ts` (`ATTRS`, `attrBonus`), `points.ts` (`spendPoint`),
   folded in by `computeStats`; `CFG.attributes`. Vigor's half containers make `maxHp` odd (half a heart).
@@ -538,7 +543,7 @@ Dev: Mage tab Alchemy, "Open the alchemy table here", `?potions=healing,hexBrew`
   (`validateBoons`, `dealBoons`, `pledgeFor`, `boonTuning`, `statusMul`); `boons.ts` (`dealNow`, `takeBoon`,
   `boonRank`, `boonParam`); hooks ask `boonHooks.ts` (`boonMul`, `magicNow`, `boonActs`: a boon's name once a
   room, its line once a run). `CFG.boons`. The level-up screen `ui/levelUp.ts` (`#scrLevel`: three cards, then a
-  point; `checkLevelUp` opens it once a fight is won). `DEV.autoLevel` is `'choose'` (`?autolevel=1`, the balance
+  point; `progression/levelGate.ts`' `checkLevelUp` opens it through the panel door once a fight is won). `DEV.autoLevel` is `'choose'` (`?autolevel=1`, the balance
   bot) or `'skip'` (`?autolevel=skip`, added by the browser tests). Dev: Magic tab Boons here (`dev/boonTest.ts`);
   `__game.boons`, `giveBoon(id)`, `offer`, `openLevelUp()`, `boonHere(id)`; `?boons=deepWinter:2`.
 - The waystone: rises where a boss fell, in its own room beside the boss room on floors 1 to 5, which holds the way
@@ -703,10 +708,12 @@ soundscape an entry in `data/music.json` or `data/ambience.json`; an effect an e
 HTML/CSS over the canvas (`index.html`, `src/style.css`).
 - HUD `ui/hud.ts`: hearts, mana bar and slots (`renderSpells`), resources, soul motes, boss bar, banners,
   `showPrompt`, the minimap (`renderMinimap`; finished rooms are drawn darker with a tick, `roomFinished`). The potion
-  belt is `#belt`; the insight strip and level badge come from `progression/insight.ts`.
+  belt `#belt` is `ui/belt.ts`; the insight strip and level badge `ui/insightHud.ts`; the Vigil's `#vigilHud`
+  `ui/vigilHud.ts`; the dawn flash `ui/dawn.ts`. The icons they draw are `render/icons.ts`.
 - Afflictions `ui/afflictions.ts`: chips beside the mana bar with a first-time line each (`STR.afflict`). A new
   affliction gets a chip, a colour and a line there.
-- Screens `ui/screens.ts`: title, pause, death, end (`showEndScreen`: obols found, level, "Replay this seed").
+- Screens `ui/screens.ts`: title, pause, death, end (`showEndScreen`: obols found, level, "Replay this seed"), shown on
+  flow's events (`paused`, `resumed`, `screensClosed`, `runEnded`).
 - Lore cards `ui/lore.ts` (`showLore`): picking something up shows its icon, name, kind, effect and lore for 4 to 6 s
   (`CFG.lore`). Artifacts every time (`lore` is required), items and containers the first time in a run
   (`STR.lore.items`). Anything new the mage can take gets lore.
@@ -722,6 +729,62 @@ HTML/CSS over the canvas (`index.html`, `src/style.css`).
   a button or a line in `refresh()` in the tab it belongs to, and a new room type a name in `DEV_STR.roomNames`. The
   menu uses public APIs and `DEV`, never the reverse; the game reaches it only through the door (`devDoor.ts`).
 - Dev board: `tools/devboard/` (see [Tools](#tools)).
+
+## Events and the panel door
+
+The simulation (world, actors, magic, items, combat, progression, vigil, `flow.ts`, `loop.ts`, `state.ts`) imports
+nothing from `src/ui/`; ESLint's `no-restricted-imports` (`tools/lint/config.js`) fails the lint if it does. `main.ts`
+(boot) and `src/dev/` may import anything. The UI reaches the game freely. Four ways connect them:
+
+- **Events** (`src/events.ts`): a typed bus, `emit(name, payload)` and `on(name, fn)` over `GameEvents`. It is
+  synchronous: `emit` calls every listener at once, in the order they were added, before it returns, so a notification
+  lands at the same moment and in the same order as a direct call would. The UI subscribes in its `init*` functions,
+  which `main.ts`'s `wireUi()` calls first thing at boot.
+- **`src/notify.ts`**: the simulation's notifications under the UI's old names (`toast`, `line`, `banner`,
+  `renderHearts`, `showLore`...), each a one-line emitter carrying exactly its arguments. Defaults stay in the UI.
+- **The panel door** (`src/panels.ts`, like `devDoor.ts`): what the game opens or asks of the UI, no-ops until
+  `main.ts` registers the panels. `UI` holds what the UI writes and the game reads (`labOpen`, `waystoneOpen`,
+  `levelOpen`, `talking`), as `DEV` does for dev code.
+- **Hook slots**: `uiHooks` in `loop.ts` (`panels(page, live)` mid-step where the page and ware panels update,
+  `endOfStep(dt)` before the sound for the HUD, the affliction chips and the lore card's time, `afterDraw()` for the
+  vision mask) and `vigilUi.step(dt)` in `vigil/place.ts` (the Vigil's HUD and a talk's line written out); `main.ts`
+  fills them.
+
+| Event | Payload | Emitted by | Heard by |
+| --- | --- | --- | --- |
+| `toast`, `line` | `{ msg, dur? }` | notify (everywhere) | `ui/hud.ts` |
+| `linesCleared` | none | notify (flow, daylight, laboratory) | `ui/hud.ts` |
+| `banner` | `{ title, sub?, dur? }` | notify | `ui/hud.ts` |
+| `heartsChanged`, `heartsReset` | none | notify | `ui/hud.ts` |
+| `mapChanged`, `spellsChanged`, `purseChanged`, `itemsChanged` | none | notify | `ui/hud.ts` |
+| `castRefused` | `{ slot, why }` | notify (`magic/spells.ts`) | `ui/hud.ts` |
+| `hurt` | none | notify (`combat/damage.ts`) | `ui/hud.ts` |
+| `bossBarShown`, `bossHealth`, `bossBarHidden`, `bossBarMarks` | `{ name, foe }`, `{ foe }`, none, `{ at }` | notify | `ui/hud.ts` |
+| `promptShown`, `promptHidden` | `{ html }`, none | notify (`vigil/shades.ts`; pages hide theirs) | `ui/hud.ts` |
+| `fadeFromBlack` | none | notify (flow) | `ui/hud.ts` |
+| `manaHexed` | none | `magic/hex.ts` | `ui/hud.ts` |
+| `loreShown`, `artifactLore`, `itemLore`, `loreHidden` | `{ entry }`, `{ def }`, `{ item }`, none | notify (`itemLore` keeps `G.run.loreSeen`) | `ui/lore.ts` |
+| `pagesCleared` | none | `magic/pages.ts` | `ui/pagePanel.ts` |
+| `beltChanged` | none | notify (`items/potions.ts`, flow) | `ui/belt.ts` |
+| `insightChanged`, `insightReset` | none | notify (progression), `progression/insight.ts` | `ui/insightHud.ts` |
+| `atVigil`, `vigilLeft` | `{ on }`, none | `vigil/where.ts`, `vigil/place.ts` | `ui/vigilHud.ts` |
+| `dawn`, `daylightGone` | none | `world/daylight.ts` | `ui/dawn.ts` |
+| `paused`, `resumed`, `screensClosed`, `runEnded`, `soundToggled` | none, none, none, `{ summary }`, `{ muted }` | `flow.ts` | `ui/screens.ts` |
+| `afflictionsReset` | none | `flow.ts` | `ui/afflictions.ts` |
+
+| Panel door call | Opens or answers | UI side |
+| --- | --- | --- |
+| `openLab(tab)`, `closeLab()` | The alchemy table (`world/laboratory.ts`) | `ui/alchemyTable.ts` |
+| `openWaystone(tab, slot?)` | The waystone's screen (`world/waystone.ts`) | `ui/waystone.ts` |
+| `openBargain(school)` | The shrine's deal; false if another screen holds it (`world/bargain.ts`) | `ui/levelUp.ts` |
+| `openTalk(...)`, `closeTalk()` | A townsperson's talk (`vigil/town.ts`, `vigil/place.ts`) | `ui/talk.ts` |
+| `openLevelUp()` | The level-up screen (`progression/levelGate.ts`) | `ui/levelUp.ts` |
+| `askPage(spell)` | A full hand's question at a page (`magic/pages.ts`); the answer is a spell key (`answerPage`) | `ui/pagePanel.ts` |
+| `otherScreenUp()` | Whether another screen is up, which a level waits for | `main.ts` |
+
+The flow's own back-edges are cut the same way: `flowHooks.ts` (filled by `flow.ts`) for the mage's step, the foes and
+damage; `clock.ts` for the loop's clock that `resume()` restarts. A new notification is a `GameEvents` entry, an emitter
+(in `notify.ts` when it keeps a UI name) and an `on` in the UI's `init*`; a new screen the game opens goes on the door.
 
 ## Input
 

@@ -40,7 +40,7 @@ systems, only cleaning, the look and the story.
 
 `src/` (TypeScript strict, three.js r186): `main.ts` boot and the `__game` hooks, `loop.ts` fixed 1/60 step, `flow.ts`
 game states and floors, `state.ts` shared state `G` and `player`, `config.ts` all tuning (`CFG`), `strings.ts` all
-player-facing text (`STR`), `types.ts`. Folders: `world/` (generation, rooms, objects, mechanisms, themes, special rooms),
+player-facing text (`STR`), `types.ts`, `events.ts`/`notify.ts`/`panels.ts` the game's events and the panel door. Folders: `world/` (generation, rooms, objects, mechanisms, themes, special rooms),
 `actors/` (mage, foes, bosses, looks), `magic/` (spells, statuses, reactions, weaves, runes), `items/` (artifacts, pickups,
 potions, merchant), `combat/` (bolts, glyphs, familiars), `progression/` (insight, levels, boons), `vigil/` (the hub and its
 save), `render/` (renderer, pixel look, textures, fire), `audio/`, `ui/` (HUD, menus), `input/`, `assets/`. Dev code
@@ -62,6 +62,9 @@ Details: `docs/architecture.md`.
   given or triggered. Dev code stays in `src/dev/`; the game reaches it only through `src/devDoor.ts`. While the freeze
   holds this applies to what the reset builds. The HUD and the title show the dev menu's key while play-tests run
   (`#devHint`); remove it when they are over.
+- **The simulation reaches the UI only through `events.ts` (`notify.ts`) and `panels.ts`**: world, actors, magic,
+  items, combat, progression, vigil, `flow.ts`, `loop.ts` and `state.ts` never import `src/ui/` (lint fails); `main.ts`
+  wires the UI (docs/architecture.md, Events and the panel door).
 - **The owner sees new looks before they replace old ones**; the look that loses is deleted in the same step (no switch
   between an old and a new way outlives the owner's choice).
 - **Lore limits:** name only what the GDD adopted from the owner's lore (`docs/lore/`); invent no gods, factions or places.
