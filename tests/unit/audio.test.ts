@@ -28,11 +28,11 @@ import {
 import { Rand } from '../../src/audio/synth';
 import { THEME_DEFS } from '../../src/world/themeData';
 import { FLOORS } from '../../src/world/generate';
-import { STR } from '../../src/strings';
+import { DEV_STR } from '../../src/dev/strings';
 
 /* The soundscapes and the music (docs/archive/sound-plan.md): the data checked, and the composer's rules. */
 
-const ROOM_TYPES = Object.keys(STR.dev.roomNames); // (every room type has a name there)
+const ROOM_TYPES = Object.keys(DEV_STR.roomNames); // (every room type has a name there)
 
 describe('soundscapes', () => {
   it('every floor has one, and the data passes its checks', () => {

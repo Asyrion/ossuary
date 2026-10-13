@@ -1,6 +1,6 @@
 /* The dev menu's frame readout (#fpsInfo), fed each drawn frame through the door. */
 import { DEV } from '../state';
-import { STR } from '../strings';
+import { DEV_STR } from './strings';
 import { renderer } from '../render/renderer';
 import { onDevFrame } from '../devDoor';
 import { $ } from '../util';
@@ -21,6 +21,6 @@ onDevFrame((ms) => {
   const median = frameTimes.sort((a, b) => a - b)[frameTimes.length >> 1];
   frameTimes.length = 0;
   frameSpan = 0;
-  const text = STR.dev.frameInfo(Math.round(1000 / median), renderer.info.render.calls, renderer.info.render.triangles);
+  const text = DEV_STR.frameInfo(Math.round(1000 / median), renderer.info.render.calls, renderer.info.render.triangles);
   if (text !== frameText) frameEl.textContent = frameText = text;
 });
