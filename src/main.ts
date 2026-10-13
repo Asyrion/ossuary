@@ -32,6 +32,10 @@ import { initHud, promptShowing, setHeroInfo, toast, updateHud, updateVision } f
 import { hideWarePanel, updateWarePanel } from './ui/warePanel';
 import { updateAfflictions } from './ui/afflictions';
 import { initLore, updateLore } from './ui/lore';
+import { initBelt } from './ui/belt';
+import { initInsightHud } from './ui/insightHud';
+import { initVigilHud, renderVigilHud } from './ui/vigilHud';
+import { initDawn } from './ui/dawn';
 import { askPage, hidePagePanel, initPagePanel, updatePagePanel } from './ui/pagePanel';
 import { registerPanels } from './panels';
 import { initLevelUp, levelEsc, levelKey, levelOpen, levelPad, openBargainDeal, openLevelUp } from './ui/levelUp';
@@ -169,6 +173,10 @@ function wireUi() {
   initHud();
   initLore();
   initPagePanel();
+  initBelt();
+  initInsightHud();
+  initVigilHud();
+  initDawn();
   registerPanels({
     openLab,
     closeLab,
@@ -193,7 +201,10 @@ function wireUi() {
     updateLore(dt);
   };
   uiHooks.afterDraw = updateVision;
-  vigilUi.step = updateTalk;
+  vigilUi.step = (dt) => {
+    renderVigilHud();
+    updateTalk(dt);
+  };
 }
 
 async function boot() {

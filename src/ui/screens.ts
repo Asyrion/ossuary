@@ -5,6 +5,10 @@ import type { DustSource } from '../vigil/vigilData';
 import { exportSave, importSave } from '../vigil/save';
 import { Sfx } from '../audio/sfx';
 import { $ } from '../util';
+import { on } from '../events';
+import { G } from '../state';
+import { atVigil } from '../vigil/where';
+import { FLOORS } from '../world/generate';
 import { hero, loadHeroBuffer } from '../actors/hero';
 import { artifact } from '../items/artifactData';
 import { artifactIcon, setHeroInfo, toast } from './hud';
@@ -89,6 +93,13 @@ export interface ScreenActions {
 }
 
 export function initScreens(act: ScreenActions) {
+  on('paused', () => {
+    $('runInfo').textContent = atVigil() ? STR.vigil.runInfo : STR.runInfo(G.run.floor + 1, FLOORS.length, G.run.seed); // (M7 step 5: no floor at the Vigil)
+    $('btnResume').focus();
+  });
+  on('soundToggled', (p) => {
+    $('btnSound').textContent = p.muted ? STR.pause.soundOff : STR.pause.soundOn;
+  });
   $('btnStart').addEventListener('click', () => act.start());
   $('btnAgain').addEventListener('click', () => act.start());
   $('btnReplay').addEventListener('click', () => act.replay());

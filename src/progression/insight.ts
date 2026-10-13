@@ -20,8 +20,8 @@ import { castSide } from '../actors/costumeFit';
 import { burst } from '../combat/fx';
 import { ringFx } from '../magic/spellFx';
 import { floatText } from '../magic/statusFx';
-import { line } from '../notify';
-import { $ } from '../util';
+import { line, renderInsight } from '../notify';
+import { emit } from '../events';
 import { updateArc } from '../items/arc';
 import { dress } from '../actors/costume';
 import { LEVEL_CAP, bossInsight, clearInsight, insightAt, levelFor, levelProgress, potionInsight } from './levelData';
@@ -135,30 +135,6 @@ function tell() {
   }
 }
 
-/* ---------- the HUD ---------- */
-
-let strip: HTMLElement | null = null,
-  badge: HTMLElement | null = null,
-  shown = '';
-/** The strip under the mana bar fills toward the next level (full at the cap); the badge beside the spell slots says the level. */
-export function renderInsight() {
-  strip ??= $('insight');
-  badge ??= $('level');
-  if (!strip || !badge) return;
-  const p = levelProgress(G.run.insight),
-    k = p.span ? p.into / p.span : 1,
-    key = p.level + ':' + k.toFixed(3) + ':' + G.run.pending;
-  if (key === shown) return;
-  shown = key;
-  (strip.firstElementChild as HTMLElement).style.transform = `scaleX(${k})`;
-  strip.classList.toggle('cap', !p.span);
-  badge.classList.toggle('waits', G.run.pending > 0); // (a level's choice waiting: the badge glows)
-  strip.setAttribute('aria-valuenow', String(Math.round(G.run.insight)));
-  strip.setAttribute('aria-label', STR.levels.meter(p.level, Math.round(toNextLevel())));
-  badge.innerHTML = `<small>${STR.levels.short}</small><b>${p.level}</b>`;
-  badge.title = STR.levels.meter(p.level, Math.round(toNextLevel()));
-}
-
 /* ---------- the streaks ---------- */
 
 /** A streak in flight: from (x, y, z), `t` seconds into its `L.streak.time`, in `color`. */
@@ -260,6 +236,5 @@ export function updateInsight(dt: number) {
 export function resetInsight() {
   flying.length = 0;
   if (mesh) mesh.count = 0;
-  shown = '';
-  renderInsight();
+  emit('insightReset'); // (the HUD shown afresh)
 }

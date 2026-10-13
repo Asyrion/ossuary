@@ -71,6 +71,24 @@ export interface GameEvents {
   loreHidden: void;
   /** A new floor or run: no page near, so no panel over one (magic/pages.ts; ui/pagePanel.ts listens). */
   pagesCleared: void;
+  /* ---- the HUD's other parts ---- */
+  /** The potion belt changed (items/potions.ts, flow.ts; ui/belt.ts). */
+  beltChanged: void;
+  /** Insight or the levels waiting changed (progression/; ui/insightHud.ts); a new run shows them afresh. */
+  insightChanged: void;
+  insightReset: void;
+  /** The mage arrives at the Vigil or leaves it (vigil/where.ts; ui/vigilHud.ts: the body's `vigil` class). */
+  atVigil: { on: boolean };
+  /** The Vigil is left for a floor (vigil/place.ts): its HUD is drawn afresh next time. */
+  vigilLeft: void;
+  /** Stepping into the daylight (world/daylight.ts; ui/dawn.ts: the white flash, the body's `daylight` class); and the
+      daylight taken away. */
+  dawn: void;
+  daylightGone: void;
+  /* ---- the screens (flow.ts; ui/screens.ts) ---- */
+  /** The game paused: the pause screen's run line, Resume focused. */
+  paused: void;
+  soundToggled: { muted: boolean };
   /** A hexing blow took mana (magic/hex.ts): the mana bar flashes violet. */
   manaHexed: void;
 }

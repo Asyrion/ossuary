@@ -2,13 +2,14 @@
    run parts hidden, the music and soundscape its own), without their importing the place itself (vigil/place.ts). */
 import type { RockBox } from '../types';
 import type { School, SpellStatus } from '../magic/spellData';
+import { emit } from '../events';
 
 let here = false;
 /** The mage is at the Vigil. */
 export const atVigil = () => here;
 export function setAtVigil(on: boolean) {
   here = on;
-  document.body.classList.toggle('vigil', on);
+  emit('atVigil', { on }); // (the HUD's run parts hide there)
 }
 /** What the Vigil hears from elsewhere (set by vigil/place.ts): a bolt or beam of the mage's struck one of its barred ways. */
 export const vigilHooks = {

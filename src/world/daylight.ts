@@ -14,7 +14,7 @@ import { camTarget, scene, setViewScale } from '../render/renderer';
 import { disposeTree } from '../render/materials';
 import { setDarkness, setDaylight } from '../render/lights';
 import { clearLines, line } from '../notify';
-import { $ } from '../util';
+import { emit } from '../events';
 import { buildVista, shaftLook, type Vista } from './daylightLooks';
 import { daylightPhase } from './daylightData';
 import type { Room } from '../types';
@@ -58,13 +58,7 @@ export function enterDaylight() {
   setViewScale(1);
   setDaylight(true);
   setDarkness(0, true);
-  document.body.classList.add('daylight');
-  const f = $('dawn');
-  f.style.transition = 'none';
-  f.style.opacity = '1';
-  void f.offsetWidth;
-  f.style.transition = `opacity ${C().flash}s ease-out`;
-  f.style.opacity = '0';
+  emit('dawn'); // (a white flash fading, `C().flash` seconds)
   Sfx.dawn();
   vistaStep(0);
 }
@@ -119,7 +113,7 @@ export function leaveDaylight() {
   if (day.room) day.room.group.visible = true;
   day = null;
   setDaylight(false);
-  document.body.classList.remove('daylight');
+  emit('daylightGone');
 }
 
 /** Whether the mage is out in the daylight (the music and the soundscape follow it). */
