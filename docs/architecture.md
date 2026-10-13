@@ -222,8 +222,9 @@ colours. Pure `src/actors/foeData.ts` reads it (`validateFoes`, `BEHAVIOUR_PARAM
   `driven`; `rush`, `brake`, `ramp`). `bestiaryFoes.ts`: the bestiary behaviours, spread into `BEHAVIOURS`.
   `bestiaryGround.ts`: what foes leave and throw (webs, ink, rime, `lob`, `spikeAt`, `fallOn`, `layBlackFire`).
   `acting.ts`: `actAs`, `actor()` record whose ground and shots they are.
-- Looks: `modelOptions.ts` (first ten, familiars), `bestiaryLooks.ts` with `bestiaryBeasts.ts`,
-  `bestiaryCreatures.ts`, `bestiaryElementals.ts`, `beastParts.ts`; fantasy looks in `fantasyFloor1.ts` to
+- Looks: `modelOptions.ts` (`MODEL_OPTIONS`, Fen-Nex's `fennexLook`, the Galleries tab's bosses, bestiary and Dr.
+  Jelly), `bestiaryLooks.ts` with `bestiaryBeasts.ts`, `bestiaryCreatures.ts`, `bestiaryElementals.ts`,
+  `beastParts.ts`; fantasy looks in `fantasyFloor1.ts` to
   `fantasyFloor5.ts`, `fantasyWardlings.ts`, gathered in `FANTASY_LOOKS` (`fantasyLooks.ts`). A foe's look is the
   fantasy look, else the model option, bestiary look or `FOE_LOOKS` entry of its id (or `look`). Keep draw calls low: move small repeated parts together; pulse a glow, not a material's colour.
 - Roles: templates' `R W H` are filled from the floor's `foes` on the room's seed; one elite a room at most; one
@@ -818,7 +819,7 @@ the previous room's foes.
 - Systems: `reaction(r)`, `weave(id)`, `know(id, stage)`, `attune`, `socket`, `transform(id)`, `setArc(n)`,
   `toVigil`, `shade`, `talkTo`, `openLab`, `openWaystone`, `openLevelUp()`, `audioOn()`, `forceAudio`.
 - Rendering and assets: `renderInfo()`, `pixelLook`, `setPixelLook`, `assets`, `useAssets`, `showCreature`,
-  `bossLooks()`, `bestiaryOptions()`, `modelOptions()`, `familiarOptions()`, `fineLayerDrawn`,
+  `bossLooks()`, `bestiaryOptions()`, `jellyLooks()`, `fineLayerDrawn`,
   `obolFaces`, `wearFace(id)`, `coinGallery()`, `renderAudio(ask)`; galleries and their `take*` counterparts
   (`takeArtifactGallery`, `takeCoinGallery`, `takeEffectOptions`, `takeModelOptions`).
 - Reading state: `attrs`, `flights`, `pagePanel`, `growFennex()`, `forgetBestiary()`.
@@ -835,5 +836,5 @@ These exist to compare an old way against the current one. They are not part of 
 
 | Switch | What it is |
 | --- | --- |
-| `rotling`, `modelOptions.ts` galleries | A plain test foe; look-only galleries of foes and familiars. |
+| `rotling` | A plain test foe. |
 | `src/input/touch.ts` | Frozen 0.3 touch controls: do not extend or test them. |

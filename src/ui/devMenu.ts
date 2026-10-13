@@ -72,16 +72,7 @@ import { openLectern } from './lectern';
 import { assetList, assetsOn, setAssetsOn } from '../assets/models';
 import { setCloseUp } from '../render/renderer';
 import { LINES, drawnRows, pixelLook, setPixelLook } from '../render/pixelLook';
-import {
-  FAMILIAR_OPTIONS,
-  MODEL_OPTIONS,
-  removeModelOptions,
-  showBestiary,
-  showBossLooks,
-  showFamiliarOptions,
-  showJellyLooks,
-  showModelOptions,
-} from '../actors/modelOptions';
+import { removeModelOptions, showBestiary, showBossLooks, showJellyLooks } from '../actors/modelOptions';
 import { BESTIARY_OPTIONS } from '../actors/bestiaryLooks';
 import { EFFECT_OPTIONS, removeEffectOptions, showEffectOptions } from '../magic/effectOptions';
 import { CFG } from '../config';
@@ -1227,31 +1218,6 @@ function build() {
     btn(S.takeOptions, () => takeCoins()),
   );
 
-  // enemy model options (looks only, for the owner to choose from): a row of them ahead of the mage
-  const opts = section(pages.galleries, S.options);
-  opts.append(
-    el(
-      'p',
-      'dv-info',
-      [...new Set(MODEL_OPTIONS.map((o) => o.floor))]
-        .sort((a, b) => a - b)
-        .map((f) =>
-          S.floorOptions(
-            f,
-            MODEL_OPTIONS.filter((o) => o.floor === f)
-              .map((o) => STR.options[o.id].name)
-              .join(', '),
-          ),
-        )
-        .join(' · '),
-    ),
-    btn(S.showOptions, () => {
-      closeDev();
-      showModelOptions(G.current, player.x, player.z);
-    }),
-    btn(S.takeOptions, () => removeModelOptions(G.current)),
-  );
-
   // Dr. Jelly (2026-10-02, from the owner's pictures: the plague doctor, the owner's choice) ahead of the mage, giving
   const jl = section(pages.galleries, S.jellyLooks);
   jl.append(
@@ -1317,17 +1283,6 @@ function build() {
     }),
     btn(S.takeOptions, () => removeModelOptions(G.current)),
   );
-  // familiar options (looks only, the owner's drawings built in code): in a row ahead of the mage
-  const fam = section(pages.galleries, S.familiars);
-  fam.append(
-    el('p', 'dv-info', FAMILIAR_OPTIONS.map((o) => STR.familiars[o.id].name).join(', ')),
-    btn(S.showOptions, () => {
-      closeDev();
-      showFamiliarOptions(G.current, player.x, player.z);
-    }),
-    btn(S.takeOptions, () => removeModelOptions(G.current)),
-  );
-
   // spell effect options (looks only): each plays one cast over and over, ahead of the mage
   const fx = section(pages.galleries, S.effects);
   fx.append(

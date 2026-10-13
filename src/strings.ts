@@ -1511,7 +1511,7 @@ export const STR = {
     base: (v: string) => `Base ${v}`,
     straight: 'Straight',
   },
-  /** Enemy model options (actors/modelOptions.ts): placeholder names and a note on where each would fit. */
+  /** The floors' foes and the Wardlings (actors/modelOptions.ts): their names (`foeName`) and a note on each. */
   options: {
     sporeling: {
       name: 'Spore Fiend',
@@ -1611,7 +1611,6 @@ export const STR = {
       note: 'From a drinking ward full of Umbral: a crystal heart of dark light with one slit eye; its volleys hex',
     },
   } as Record<string, { name: string; note: string }>,
-  /** Familiar options (actors/modelOptions.ts): the owner's drawings, built in code; placeholder names. */
   /** The bestiary (M4.5, actors/bestiaryLooks.ts): names (placeholders) and the fight each brings. */
   bestiary: {
     cryptSpider: {
@@ -1761,16 +1760,6 @@ export const STR = {
       fight: 'Spiker: its tail looses volleys of hexing spikes, and it pounces; holy light stills the tail',
     },
   } satisfies Record<BestiaryOptionId, { name: string; fight: string }>, // (every one named, with the fight it brings)
-  familiars: {
-    runeFox: {
-      name: 'Rune Fox',
-      note: "A spectral fox with runes along its flanks and a starry tail (the owner's drawing)",
-    },
-    fenNex: {
-      name: 'Fen-Nex',
-      note: 'The Rune Fox in its full shape: a long white beast, flame-tipped feathers, plated legs with red runes',
-    },
-  } as Record<string, { name: string; note: string }>,
   /** Spell effect options (magic/effectOptions.ts): names and what each shows. */
   effects: {
     arcaneBolt: {
@@ -1943,8 +1932,6 @@ export const STR = {
     } as Record<string, string>,
     noLab: "No laboratory here: Rooms & runs takes you to this floor's",
     bossLooks: 'The bosses built in code: the Hollow Warden (the Owlbear), and the bosses of the floors below',
-    options: 'Enemy model options (looks only)',
-    familiars: 'Familiar options (looks only)',
     bestiary: 'The bestiary (M4.5: the thirty-five as they look, all of them foes now)',
     bestiaryKinds: { beast: 'Beasts', creature: 'Creatures of myth', elemental: 'Elementals and golems' } as Record<
       string,
@@ -1953,7 +1940,6 @@ export const STR = {
     effects: 'Spell effect options (looks only)',
     showOptions: 'Stand them here',
     takeOptions: 'Take them away',
-    floorOptions: (floor: number, names: string) => `Floor ${floor}: ${names}`,
     pixel: 'Pixel look',
     pixelLines: (lines: 0 | 'texel' | 'fine', drawn: number) =>
       !lines

@@ -184,14 +184,7 @@ import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
 import { assetList, assetsOn, loadAssets } from './assets/models';
 import { drawnRows, pixelLook, setPixelLook, type PixelLook, fineLayerDrawn } from './render/pixelLook';
-import {
-  removeModelOptions,
-  showBestiary,
-  showBossLooks,
-  showFamiliarOptions,
-  showJellyLooks,
-  showModelOptions,
-} from './actors/modelOptions';
+import { removeModelOptions, showBestiary, showBossLooks, showJellyLooks } from './actors/modelOptions';
 import { removeEffectOptions, showEffectOptions } from './magic/effectOptions';
 import { elementDev, sapMul } from './world/mechanisms';
 import { wardFoe } from './actors/wardShield';
@@ -580,12 +573,8 @@ function installDevHooks() {
         and taken away again. */
     artifactGallery: () => showArtifactGallery(G.current, player.x, player.z),
     takeArtifactGallery: () => removeArtifactGallery(G.current),
-    /** Enemy model options (looks only): stand them (or those named) ahead of the mage, a row per floor; returns where
-        each stands; take them away again. */
-    modelOptions: (ids?: string[]) => showModelOptions(G.current, player.x, player.z, ids),
+    /** Take the bosses, the bestiary and Dr. Jelly stood by the galleries below away again. */
     takeModelOptions: () => removeModelOptions(G.current),
-    /** The familiar options (looks only, the owner's drawings built in code) ahead of the mage; taken away with the rest. */
-    familiarOptions: (ids?: string[]) => showFamiliarOptions(G.current, player.x, player.z, ids),
     /** M4.5: stand the bestiary's candidates (every one, or those named) ahead of the mage, in rows by kind. */
     bestiaryOptions: (ids?: string[]) => showBestiary(G.current, player.x, player.z, ids),
     /** The bosses built in code (the Hollow Warden's looks, M4, and floors 4 and 5's, M4.1): stand them ahead of the mage; the look the Warden wears in its fight, and choosing it. */
