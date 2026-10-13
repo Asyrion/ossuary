@@ -744,6 +744,7 @@ when the browser first reports a pad (`STR.pad`). Dev: `__game.pads`, the dev me
 | Script | Purpose (code in `tools/`) |
 | --- | --- |
 | `dev`, `build`, `typecheck`, `test`, `test:unit`, `test:e2e` | Vite server; build; Vitest and Playwright. |
+| `lint`, `lint:install`, `format`, `format:check` | ESLint (type-checked rules); its own install; Prettier. |
 | `prepare-asset`, `prepare-texture`, `prepare-sound` | Prepare GLBs, tiles, icons, coin faces, WAVs. |
 | `animate-creature`, `texel-bake` | Rig and clips for a Tripo creature; pixel-art texture. |
 | `creature-preview`, `foe-sheet` | Render a creature video; contact sheets of foe and boss looks. |
@@ -758,9 +759,16 @@ content in `data/`, validated by the game's own validators after every save. A n
 an entry in `tools/devboard/kinds.ts` and a validator in `validate.ts`; `npm run devboard:selftest` must pass when
 the board changes. See `tools/devboard/README.md`.
 
+Lint and format: Prettier (`.prettierrc.json`: 120 columns, single quotes) formats every `.ts` and `.js` file, not
+`data/` (the dev board writes that JSON itself) nor the docs. ESLint runs typescript-eslint's type-checked rules
+(`tools/lint/config.js`; the root `eslint.config.js` points at it). It lives in its own package, `tools/lint/`, with
+TypeScript 6: typescript-eslint needs TypeScript's JS API, which TypeScript 7 (the typecheck and build) no longer
+ships. Install it once with `npm run lint:install`. Unused names are left to the typecheck. A formatting-only commit
+goes into `.git-blame-ignore-revs`.
+
 Agents and skills (`.claude/`): subagents `rules-reviewer` (before opening a PR) and `room-inspector` (after changes
 to how rooms look); skills `ship`, `tripo-prompts`, `game-dev-board`. CI is `.github/workflows/deploy.yml`: `build`
-(typecheck, unit tests, build) and three Playwright shards; on `main` the Pages deploy waits for `build` only.
+(typecheck, unit tests, build), `lint` (format check and ESLint) and three Playwright shards; on `main` the Pages deploy waits for `build` only.
 
 ## Testing
 

@@ -38,6 +38,25 @@ jobs:
         with:
           path: dist
 
+  # lint and format over the whole code; beside the build, and the deploy does not wait for it
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            tools/lint/package-lock.json
+      - run: npm ci
+      - run: npm run lint:install
+      - name: Format
+        run: npm run format:check
+      - name: Lint
+        run: npm run lint
+
   # the browser tests in three shards side by side; on main they still run beside the deploy, as a watch on what goes live
   e2e:
     runs-on: ubuntu-latest

@@ -164,6 +164,18 @@ if (!noTests) {
   tests = `typecheck: ${tsc ? `errors\n${tsc.split('\n').slice(0, 10).join('\n')}` : 'clean'}; unit tests: ${/Tests\s+(.+)/.exec(vitest)?.[1] ?? vitest.split('\n').slice(-3).join(' ')}`;
 }
 
+// lint and format, on the changed code only (CI runs both over everything)
+const code = files.filter((f) => /\.(ts|js)$/.test(f) && existsSync(f)).join(' ');
+let style = 'no code changed';
+if (code) {
+  const eslint = 'tools/lint/node_modules/eslint/bin/eslint.js';
+  const lint = existsSync(eslint)
+    ? sh(`node ${eslint} ${code} 2>&1`) || 'clean'
+    : 'not installed (npm run lint:install)';
+  const unformatted = sh(`npx prettier --list-different ${code} 2>&1`);
+  style = `lint: ${lint.split('\n').slice(0, 10).join('\n')}; format: ${unformatted ? `not formatted: ${unformatted.split('\n').join(' ')}` : 'clean'}`;
+}
+
 // the report
 console.log(`review checks for ${range} (${files.length} files, ${added.length} lines added)`);
 const order = ['1', '2', '3', '4', '6', '8', '9', '10', '11'];
@@ -176,6 +188,7 @@ for (const r of order) {
 }
 if (!Object.keys(found).length) console.log('no hints');
 console.log(tests);
+console.log(style);
 console.log(
   `files for the adversarial read (rule 12): ${files.filter((f) => /^(src|tools)\/.*\.ts$/.test(f)).join(' ') || 'none'}`,
 );

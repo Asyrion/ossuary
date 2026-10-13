@@ -17,6 +17,10 @@ export default tseslint.config(
     languageOptions: {
       parserOptions: { projectService: true, tsconfigRootDir: root },
     },
+    rules: {
+      // the typecheck owns unused names (noUnusedLocals, noUnusedParameters, which spare a leading underscore)
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
   },
   {
     // plain JS (the dev board's page, these configs) is outside the tsconfig, so it is linted without types
