@@ -19,7 +19,7 @@ import { aimDir } from '../magic/spells';
 import { fireAt, frostAt, shockAt } from '../world/pools';
 import { hallowAt, umbralAt } from '../world/mechanisms';
 import { layFire } from '../actors/foes';
-import { renderHearts } from '../ui/hud';
+import { renderHearts } from '../notify';
 import { disposeTree } from '../render/materials';
 import { mesh, tone } from '../world/kitParts';
 import { potionHold } from '../input';

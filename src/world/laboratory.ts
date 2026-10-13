@@ -15,7 +15,7 @@ import { G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { burst } from '../combat/fx';
-import { banner, clearLines, hideBossBar, line, showBossBar } from '../ui/hud';
+import { banner, clearLines, hideBossBar, line, showBossBar } from '../notify';
 import { makeEnemy, spawnFoe } from '../actors/enemies';
 import { nearestJelly, pourJelly } from '../actors/jellySerpent';
 import { spawnPickup } from '../items/pickups';

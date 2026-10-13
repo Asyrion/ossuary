@@ -12,7 +12,7 @@ import { G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { Rng } from '../rng';
-import { line, renderMinimap } from '../ui/hud';
+import { line, renderMinimap } from '../notify';
 import { giveResources } from '../items/pickups';
 import { addPotion, addReagent } from '../items/potions';
 import {

@@ -10,7 +10,7 @@ import { G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { disposeTree } from '../render/materials';
-import { banner, renderMinimap, toast } from '../ui/hud';
+import { banner, renderMinimap, toast } from '../notify';
 import { freeSpotNear } from '../world/rooms';
 import { wandererLook } from '../world/specialLooks';
 import { revealCracks } from '../world/secret';

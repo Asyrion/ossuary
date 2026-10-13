@@ -13,7 +13,7 @@ import { M, disposeTree, markShared } from '../render/materials';
 import { crowWareLook, shadeLook } from '../world/specialLooks';
 import { glyphTexture } from '../render/textures';
 import { burst } from '../combat/fx';
-import { renderMinimap, toast } from '../ui/hud';
+import { renderMinimap, toast } from '../notify';
 import { WARD_COLOR as WARD } from '../world/rooms';
 import { grantArtifact, makeArtifactVisual, offerGuaranteed } from './artifacts';
 import { cantUse, giveResources, itemVisual, useItem } from './pickups';

@@ -10,7 +10,7 @@ import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { SCHOOL_LIGHT, type School } from '../render/arcane';
 import { burst } from '../combat/fx';
-import { toast } from '../ui/hud';
+import { toast } from '../notify';
 import { freeSpotNear } from '../world/rooms';
 import { FLOORS } from '../world/generate';
 import { WARDLING, drink, fullness, mostDrunk, newDrink } from '../magic/drinking';

@@ -10,7 +10,7 @@ import { burst } from '../combat/fx';
 import { heroDrink, hero } from '../actors/hero';
 import { gainMana } from '../magic/spells';
 import { floatText } from '../magic/statusFx';
-import { line, renderHearts, toast } from '../ui/hud';
+import { line, renderHearts, toast } from '../notify';
 import { showLore } from '../ui/lore';
 import { gainInsight, potionUsed } from '../progression/insight';
 import { refreshStats } from './artifacts';

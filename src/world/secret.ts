@@ -13,7 +13,7 @@ import { Sfx } from '../audio/sfx';
 import { boxUV, disposeTree, markShared, wallMaterials } from '../render/materials';
 import { crackTexelTexture } from '../render/textures';
 import { burst } from '../combat/fx';
-import { renderMinimap, toast } from '../ui/hud';
+import { renderMinimap, toast } from '../notify';
 import { offerBeyondBudget, placeArtifact } from '../items/artifacts';
 import { spawnPickup } from '../items/pickups';
 import { LOOT, rollTable, type Drop } from '../items/loot';

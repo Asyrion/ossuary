@@ -13,7 +13,7 @@ import { Sfx } from '../audio/sfx';
 import { camTarget, scene, setViewScale } from '../render/renderer';
 import { disposeTree } from '../render/materials';
 import { setDarkness, setDaylight } from '../render/lights';
-import { clearLines, line } from '../ui/hud';
+import { clearLines, line } from '../notify';
 import { $ } from '../util';
 import { buildVista, shaftLook, type Vista } from './daylightLooks';
 import { daylightPhase } from './daylightData';

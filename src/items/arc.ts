@@ -6,7 +6,7 @@ import { DEV, G, player } from '../state';
 import { CFG } from '../config';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { line } from '../ui/hud';
+import { line } from '../notify';
 import { arcStage, levelsHeld } from '../actors/costumeData';
 import { artifact } from './artifactData';
 

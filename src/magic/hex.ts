@@ -8,7 +8,7 @@ import { emit } from '../events';
 import { burst } from '../combat/fx';
 import { floatText } from './statusFx';
 import { gainMana } from './spells';
-import { line } from '../ui/hud';
+import { line } from '../notify';
 
 /** A hexing blow took `n` mana (M4: a Hex Imp's shot; M4.5: a hydra's venom, a raven's caw, a manticore's spikes): the
     mana bar flashes violet, the loss rises over the mage, and the chip says how much. M4.9: the mana it took runs back in

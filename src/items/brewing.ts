@@ -9,7 +9,7 @@ import { potionUsed } from '../progression/insight';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { burst } from '../combat/fx';
-import { line } from '../ui/hud';
+import { line } from '../notify';
 import { freeSpotNear } from '../world/rooms';
 import { spawnPickup } from './pickups';
 import { jellyGives } from '../world/jellyGives';

@@ -48,7 +48,7 @@ import { SCHOOLS, elemental, type School, type SpellStatus, type StatusKind } fr
 import { LOOT, rollTable } from '../items/loot';
 import { soulsHere } from '../items/souls';
 import { spawnPickup } from '../items/pickups';
-import { toast } from '../ui/hud';
+import { toast } from '../notify';
 import { freeSpotNear } from './rooms';
 import { addPool, fireAt, frostAt, setMud } from './pools';
 import { removeProp } from './props';

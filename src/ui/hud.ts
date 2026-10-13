@@ -505,6 +505,25 @@ export function setHeroInfo(text: string) {
 
 /** The HUD listens to the game (events.ts): main.ts calls this at boot, before anything is played. */
 export function initHud() {
+  on('toast', (p) => toast(p.msg, p.dur));
+  on('line', (p) => line(p.msg, p.dur));
+  on('linesCleared', () => clearLines());
+  on('banner', (p) => banner(p.title, p.sub, p.dur));
+  on('heartsChanged', () => renderHearts());
+  on('heartsReset', () => resetHearts());
+  on('mapChanged', () => renderMinimap());
+  on('spellsChanged', () => renderSpells());
+  on('purseChanged', () => renderPurse());
+  on('itemsChanged', () => renderItems());
+  on('castRefused', (p) => flashMana(p.slot, p.why));
+  on('hurt', () => flashHurt());
+  on('bossBarShown', (p) => showBossBar(p.name, p.foe));
+  on('bossHealth', (p) => updateBossBar(p.foe));
+  on('bossBarHidden', () => hideBossBar());
+  on('bossBarMarks', (p) => bossBarMarks(p.at));
+  on('promptShown', (p) => showPrompt(p.html));
+  on('promptHidden', () => hidePrompt());
+  on('fadeFromBlack', () => fadeFromBlack());
   on('manaHexed', () => {
     el.mana.classList.add('hexed');
     setTimeout(() => el.mana.classList.remove('hexed'), 420);

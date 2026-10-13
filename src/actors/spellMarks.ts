@@ -18,7 +18,7 @@ import { SCHOOL_LIGHT, rune } from '../render/arcane';
 import { makeMotes } from '../render/fire';
 import { disposeTree, glow, glowShared, mergeStill } from '../render/materials';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { line } from '../ui/hud';
+import { line } from '../notify';
 import { ringFx, strikeFx } from '../magic/spellFx';
 import { SPELL_DEFS, type School } from '../magic/spellData';
 import { payment, slotDef, spellCooldown, spellCost } from '../magic/cost';

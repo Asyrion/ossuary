@@ -8,7 +8,7 @@ import { G, player } from '../state';
 import { STR } from '../strings';
 import { CFG } from '../config';
 import { Rng } from '../rng';
-import { line } from '../ui/hud';
+import { line } from '../notify';
 import { showLore } from '../ui/lore';
 import { refreshStats } from '../items/artifacts';
 import { FLOORS } from '../world/generate';

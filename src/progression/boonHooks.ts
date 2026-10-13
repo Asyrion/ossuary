@@ -7,7 +7,7 @@ import { CFG } from '../config';
 import { G, after, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { line, renderHearts } from '../ui/hud';
+import { line, renderHearts } from '../notify';
 import { burst } from '../combat/fx';
 import { floatText } from '../magic/statusFx';
 import { heroDrink } from '../actors/hero';

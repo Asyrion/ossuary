@@ -61,7 +61,7 @@ import {
   toast,
   line,
   clearLines,
-} from './ui/hud';
+} from './notify';
 import { resetAfflictions } from './ui/afflictions';
 import { warnFloor } from './world/curve';
 import { arriveAtSeal, atSeal, enterSealRoom } from './world/seal';

@@ -20,7 +20,7 @@ import { castSide } from '../actors/costumeFit';
 import { burst } from '../combat/fx';
 import { ringFx } from '../magic/spellFx';
 import { floatText } from '../magic/statusFx';
-import { line } from '../ui/hud';
+import { line } from '../notify';
 import { $ } from '../util';
 import { updateArc } from '../items/arc';
 import { dress } from '../actors/costume';

@@ -16,7 +16,7 @@ import { blockers, collide } from '../world/collision';
 import { layFire } from '../actors/foes';
 import { inflict } from '../magic/statusFx';
 import { ringFx, strikeFx } from '../magic/spellFx';
-import { renderMinimap } from '../ui/hud';
+import { renderMinimap } from '../notify';
 import { TRANSFORMS } from './transformData';
 import { boonMul } from '../progression/boonHooks';
 

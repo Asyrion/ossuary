@@ -18,7 +18,7 @@ import { SCHOOL_LIGHT } from '../render/arcane';
 import { disposeTree } from '../render/materials';
 import { burst } from '../combat/fx';
 import { floatText } from '../magic/statusFx';
-import { hidePrompt, line, showPrompt } from '../ui/hud';
+import { hidePrompt, line, showPrompt } from '../notify';
 import { freeSpotNear } from '../world/rooms';
 import { shaftLook } from '../world/daylightLooks';
 import { SPELLS, type School } from '../magic/spellData';

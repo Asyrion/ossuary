@@ -15,7 +15,7 @@ import { blob, disposeTree } from '../render/materials';
 import { mergeRig } from '../render/rig';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { fennexLook } from '../actors/fennexLook';
-import { toast } from '../ui/hud';
+import { toast } from '../notify';
 import { burst } from './fx';
 import { damageEnemy } from './damage';
 import { fireSpellBolt } from './projectiles';

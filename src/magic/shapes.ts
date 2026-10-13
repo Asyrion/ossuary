@@ -11,7 +11,7 @@ import { vigilHooks } from '../vigil/where';
 import { CFG } from '../config';
 import type { Bolt, Box, Enemy, RockBox, Room, Vec2 } from '../types';
 import { G, player } from '../state';
-import { renderHearts } from '../ui/hud';
+import { renderHearts } from '../notify';
 import { heroDrink } from '../actors/hero';
 import { spawnPickup } from '../items/pickups';
 import { freeSpotNear } from '../world/rooms';

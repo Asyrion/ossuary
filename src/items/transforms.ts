@@ -6,7 +6,7 @@ import { STR } from '../strings';
 import { CFG } from '../config';
 import { artifact, type Stats } from './artifactData';
 import { formed, giftEffects, TRANSFORMS, type TransformId } from './transformData';
-import { banner } from '../ui/hud';
+import { banner } from '../notify';
 import { showLore } from '../ui/lore';
 import { Sfx } from '../audio/sfx';
 import { burst } from '../combat/fx';

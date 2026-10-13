@@ -16,7 +16,7 @@ import { shrineCircleTexture } from '../render/textures';
 import { scene } from '../render/renderer';
 import { burst } from '../combat/fx';
 import { spawnShot } from '../combat/projectiles';
-import { banner, hideBossBar, renderMinimap, showBossBar, toast, updateBossBar } from '../ui/hud';
+import { banner, hideBossBar, renderMinimap, showBossBar, toast, updateBossBar } from '../notify';
 import { artifact } from '../items/artifactData';
 import { cleanseArtifact, heldCurses, makeArtifactVisual } from '../items/artifacts';
 import { CURSED_RED } from '../items/artifactLooks';

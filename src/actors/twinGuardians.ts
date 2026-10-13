@@ -20,7 +20,7 @@ import { mergeRig } from '../render/rig';
 import { spawnShot } from '../combat/projectiles';
 import { hurtPlayer } from '../combat/damage';
 import { burst } from '../combat/fx';
-import { banner } from '../ui/hud';
+import { banner } from '../notify';
 import { freeSpotNear } from '../world/rooms';
 import { twinLook } from './bossLooks';
 import { unwardFoe, wardFoe } from './wardShield';

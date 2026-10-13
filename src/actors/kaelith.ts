@@ -23,7 +23,7 @@ import { mergeRig } from '../render/rig';
 import { setDarkness } from '../render/lights';
 import { spawnShot } from '../combat/projectiles';
 import { burst } from '../combat/fx';
-import { banner, bossBarMarks, line } from '../ui/hud';
+import { banner, bossBarMarks, line } from '../notify';
 import { floatText } from '../magic/statusFx';
 import { freeSpotNear } from '../world/rooms';
 import { FLOORS } from '../world/generate';

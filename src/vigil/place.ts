@@ -14,7 +14,7 @@ import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { setDarkness } from '../render/lights';
-import { banner, line } from '../ui/hud';
+import { banner, line } from '../notify';
 import { burst } from '../combat/fx';
 import { schoolOf, type School } from '../actors/foeData';
 import { lightCandle, openPart, vigil } from './save';

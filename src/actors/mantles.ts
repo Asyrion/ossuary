@@ -22,7 +22,7 @@ import { ringFx, strikeFx } from '../magic/spellFx';
 import { floatText } from '../magic/statusFx';
 import { gainMana } from '../magic/spells';
 import { hexDrained } from '../magic/hex';
-import { line } from '../ui/hud';
+import { line } from '../notify';
 import { layFire, laySpark } from './foes';
 import { mantleSchool, type MantleId } from './mantleData';
 

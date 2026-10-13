@@ -9,7 +9,7 @@ import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { blob, disposeTree, glow, glowShared, mergeStill } from '../render/materials';
 import { burst } from '../combat/fx';
-import { banner, renderHearts, renderItems, renderMinimap, toast } from '../ui/hud';
+import { banner, renderHearts, renderItems, renderMinimap, toast } from '../notify';
 import { HEART_PATH } from '../render/icons';
 import { START_FOCUS, artifact, computeStats, pickArtifact, type ArtifactDef, type Pool } from './artifactData';
 import { giveResources } from './pickups';

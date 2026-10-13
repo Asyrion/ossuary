@@ -12,7 +12,7 @@ import { MAGIC } from './status';
 import { groundHears } from '../world/groundHooks';
 import { damageEnemy } from '../combat/damage';
 import { burst } from '../combat/fx';
-import { renderHearts } from '../ui/hud';
+import { renderHearts } from '../notify';
 import { inflict } from './statusFx';
 import { strikeFx } from './spellFx';
 import { weaveAt } from './weaveFx';
