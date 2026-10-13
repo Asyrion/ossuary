@@ -14,8 +14,10 @@ import { blob, disposeTree, glowShared, markShared, mergeStill } from '../render
 import { bookcaseLook, lecternLook } from '../world/specialLooks';
 import { hashString } from '../rng';
 import { burst } from '../combat/fx';
-import { banner, hidePrompt, line, renderMinimap, showPrompt, toast } from '../notify';
-import { spellIcon, spellIconSvg } from '../render/icons';
+import { banner, hidePrompt, line, renderMinimap, toast } from '../notify';
+import { emit } from '../events';
+import { askPage } from '../panels';
+import { spellIconSvg } from '../render/icons';
 import { giveResources } from '../items/pickups';
 import { coinTag } from '../items/merchant';
 import { LOOT } from '../items/loot';
@@ -24,13 +26,10 @@ import { freeSpotNear } from '../world/rooms';
 import { SIDE_DIR } from '../world/shapes';
 import { riseMote } from './shapes';
 import { learnSpell } from './spells';
-import { castsOf, sawSpell, stage } from './memory';
-import { spellSheet } from '../ui/spellPanel';
-import { camera, canvas } from '../render/renderer';
+import { sawSpell } from './memory';
 import { inPool, pickPages, shelfPages, spell } from './spellData';
 import { vigil } from '../vigil/save';
 import { floorLean } from '../world/curve';
-import { boonsChanged } from '../progression/boons';
 
 const C = CFG.library;
 const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -244,14 +243,7 @@ export function maybeDropPage(room: Room) {
 let asking: Page | null = null;
 function ask(p: Page) {
   asking = p;
-  const keys = STR.controls.spellsKeys.split(' and '),
-    pad = STR.controls.spellsPad.split(' and ');
-  const opts = player.spells.map(
-    (id, i) => `<span class="opt"><b>${keys[i]} · ${pad[i]}</b>${spellIcon(id!)}${spell(id!).name}</span>`,
-  );
-  showPrompt(
-    `<p>${STR.pages.ask(spell(p.spell).name)}</p><div class="opts">${opts.join(`<i>${STR.pages.or}</i>`)}</div><small>${STR.pages.keep}</small>`,
-  );
+  askPage(p.spell); // (the question is the UI's: ui/pagePanel.ts)
   Sfx.pageAsk();
 }
 function stopAsking() {
@@ -376,23 +368,14 @@ export function updatePages(dt: number, now: number) {
 /** A new floor or run: nothing asking. */
 export function clearPages() {
   stopAsking();
-  hidePagePanel();
+  emit('pagesCleared'); // (the panel over a page goes)
 }
 
-/* ---------- the panel over a page (M3.7) ---------- */
+/* ---------- the page near the mage (M3.7) ---------- */
 
-const panelAt = new THREE.Vector3();
-let shown: { page: Page; stage: string; boons: number; run: object; w: number; h: number } | null = null,
-  view: DOMRect | null = null;
-if (typeof window !== 'undefined')
-  window.addEventListener('resize', () => {
-    view = null;
-  });
-/** The nearest page within reach gets a panel over it at the spell's stage; the first time a page is near, its spell
-    is seen. Every step while playing (it follows the page on screen as the camera moves). */
-export function updatePagePanel() {
-  const el = document.getElementById('pagePanel');
-  if (!el) return;
+/** The nearest page within reach, if any: the panel over it shows its spell (ui/pagePanel.ts), and the first time a page
+    is near, its spell is seen. Every step while playing. */
+export function pageNear(): Page | null {
   let near: Page | null = null,
     best = CFG.knowledge.pageReach + player.r;
   for (const p of G.current.pages ?? []) {
@@ -403,41 +386,6 @@ export function updatePagePanel() {
       near = p;
     }
   }
-  if (!near) {
-    hidePagePanel();
-    return;
-  }
-  sawSpell(near.spell);
-  const st = stage(near.spell),
-    boons = boonsChanged; // (M6: a boon taken changes what the panel says)
-  if (shown?.page !== near || shown.stage !== st || shown.boons !== boons || shown.run !== G.run) {
-    // new content: measured once here, not every step
-    el.innerHTML = spellSheet(spell(near.spell), st, '', castsOf(near.spell));
-    el.classList.add('on');
-    shown = { page: near, stage: st, boons, run: G.run, w: el.offsetWidth, h: el.offsetHeight };
-  }
-  // over the page if there is room above it on screen, otherwise beside it (the mage comes from below: never there)
-  const r = (view ??= canvas.getBoundingClientRect()),
-    { w, h } = shown;
-  panelAt.set(near.x, near.kind === 'loose' ? 1.1 : 1.8, near.z).project(camera);
-  const px = r.left + ((panelAt.x + 1) / 2) * r.width,
-    py = r.top + ((1 - panelAt.y) / 2) * r.height;
-  let x = Math.max(r.left + w / 2 + 8, Math.min(r.right - w / 2 - 8, px)),
-    y = py - h - 6;
-  if (y < r.top + 8) {
-    // on its outer side (a row of pages across the room keeps its neighbours in sight), if that side has room
-    const left = px - 56 - w >= r.left + 8,
-      right = px + 56 + w <= r.right - 8,
-      outerLeft = px < r.left + r.width / 2;
-    x = (outerLeft ? left || !right : !right && left) ? px - 56 - w / 2 : px + 56 + w / 2;
-    y = Math.max(r.top + 8, Math.min(r.bottom - h - 8, py - 24));
-  }
-  el.style.left = `${Math.round(x)}px`;
-  el.style.top = `${Math.round(y)}px`;
+  if (near) sawSpell(near.spell);
+  return near;
 }
-export function hidePagePanel() {
-  shown = null;
-  document.getElementById('pagePanel')?.classList.remove('on');
-}
-/** The spell whose panel shows, if any (tests). */
-export const pagePanelSpell = () => shown?.page.spell ?? null;

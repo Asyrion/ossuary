@@ -15,7 +15,7 @@ import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { blob, disposeTree, glow } from '../render/materials';
 import { burst } from '../combat/fx';
-import { banner, renderHearts, renderPurse, toast } from '../notify';
+import { banner, renderHearts, renderPurse, toast, itemLore } from '../notify';
 import { heroDrink } from '../actors/hero';
 import { WARD_COLOR as WARD, freeSpotNear } from '../world/rooms';
 import {
@@ -33,7 +33,6 @@ import {
 import { gainSoul, soulsHere } from './souls';
 import { goldTaken } from '../world/themes';
 import { offerBeyondBudget, placeArtifact, refreshStats } from './artifacts';
-import { itemLore } from '../ui/lore';
 import type { LoreItem } from '../types';
 import { gainMana } from '../magic/spells';
 import { containerLook, itemLook } from './pickupLooks';

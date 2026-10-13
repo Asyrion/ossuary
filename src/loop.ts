@@ -23,7 +23,8 @@ import { updatePickups, updateTrapdoor } from './items/pickups';
 import { updateArtifacts } from './items/artifacts';
 import { updateShop } from './items/merchant';
 import { updateWanderer } from './items/wanderer';
-import { hidePagePanel, updatePagePanel, updatePages } from './magic/pages';
+import { pageNear, updatePages } from './magic/pages';
+import { hidePagePanel, updatePagePanel } from './ui/pagePanel';
 import { updatePools } from './world/pools';
 import { updateSteam } from './magic/steam';
 import { updateVaultSeals } from './world/vault';
@@ -124,7 +125,7 @@ function updateWorldFx(dt: number, now: number) {
   updatePages(dt, now);
   updateVaultSeals(dt, now);
   updateSecretWalls(dt, now);
-  if (G.state === 'play' && !G.trans) updatePagePanel();
+  if (G.state === 'play' && !G.trans) updatePagePanel(pageNear());
   else hidePagePanel(); // a spell's panel over the page near the mage (M3.7)
   if (G.state === 'play' && !G.trans) updateWarePanel();
   else hideWarePanel(); // what a ware near the mage is, before it is bought (2026-10-02)

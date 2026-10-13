@@ -3,7 +3,8 @@
    and returns only when the last has run, so a notification lands at the same moment, and in the same order, as the
    direct call it replaced. No queue and nothing async: a listener that throws stops the emit as a direct call would. */
 
-import type { Enemy } from './types';
+import type { ArtifactDef } from './items/artifactData';
+import type { Enemy, LoreEntry, LoreItem } from './types';
 
 /** A listener for one event: takes its payload (nothing for an event without one). */
 export type Listener<P> = (payload: P) => void;
@@ -62,6 +63,14 @@ export interface GameEvents {
   promptShown: { html: string };
   promptHidden: void;
   fadeFromBlack: void;
+  /* ---- the lore card (notify.ts; ui/lore.ts listens) ---- */
+  loreShown: { entry: LoreEntry };
+  artifactLore: { def: ArtifactDef };
+  /** An item or container described, the first time in a run (notify.ts keeps the run's count). */
+  itemLore: { item: LoreItem };
+  loreHidden: void;
+  /** A new floor or run: no page near, so no panel over one (magic/pages.ts; ui/pagePanel.ts listens). */
+  pagesCleared: void;
   /** A hexing blow took mana (magic/hex.ts): the mana bar flashes violet. */
   manaHexed: void;
 }
