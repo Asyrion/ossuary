@@ -161,8 +161,6 @@ let panel: HTMLElement | null = null,
   godBtn: HTMLButtonElement,
   foeBtn: HTMLButtonElement,
   manaBtn: HTMLButtonElement,
-  moveBtn: HTMLButtonElement,
-  doorBtn: HTMLButtonElement,
   assetBtn: HTMLButtonElement,
   fpsBtn: HTMLButtonElement,
   assetBox: HTMLElement,
@@ -419,12 +417,6 @@ function build() {
     (godBtn = btn('', () => {
       DEV.god = !DEV.god;
       toast(DEV.god ? S.godOn : S.godOff, 2);
-    })),
-    // which clip the mage moves with: the run, or the walk (in step, or at a natural pace), to compare
-    (moveBtn = btn('', () => {
-      const order = ['run', 'walkInStep', 'walkNatural'] as const;
-      DEV.moveClip = order[(order.indexOf(DEV.moveClip) + 1) % order.length];
-      toast(S.moveClip[DEV.moveClip], 2);
     })),
     btn(S.resetArtifacts, () => resetArtifacts()),
     // curses to try the shrine with, and cleansing one at once (no fight, no obols)
@@ -1611,15 +1603,6 @@ function build() {
   });
   keep.append(box, document.createTextNode(S.keep));
   runs.parentElement!.append(keep);
-  // doors off the middle of their edges, in the floors made from now on: as the floor has it, always, or never
-  runs.append(
-    (doorBtn = btn('', () => {
-      const order = ['data', 'shifted', 'middle'] as const;
-      DEV.doors = order[(order.indexOf(DEV.doors) + 1) % order.length];
-      toast(S.doors[DEV.doors], 2);
-      refresh();
-    })),
-  );
 
   let first: Tab = 'mage';
   try {
@@ -1641,10 +1624,6 @@ function refresh() {
   godBtn.classList.toggle('on', DEV.god);
   foeBtn.textContent = DEV.foe ? S.foeEverywhere(foeName(DEV.foe)) : S.foesAsFloor;
   foeBtn.classList.toggle('on', !!DEV.foe);
-  moveBtn.textContent = S.moveClip[DEV.moveClip];
-  moveBtn.classList.toggle('on', DEV.moveClip !== 'run');
-  doorBtn.textContent = S.doors[DEV.doors];
-  doorBtn.classList.toggle('on', DEV.doors !== 'data');
   manaBtn.textContent = DEV.mana ? S.manaOn : S.manaOff;
   manaBtn.classList.toggle('on', DEV.mana);
   const list = assetList();
@@ -1900,10 +1879,6 @@ function refresh() {
       for (const r of G.rooms) r.known = true;
       renderMinimap();
     }),
-    btn(DEV.mapFinished ? S.mapFinishedOn : S.mapFinishedOff, () => {
-      DEV.mapFinished = !DEV.mapFinished;
-      renderMinimap();
-    }), // (2026-10-02: finished rooms marked, or not, to compare)
     btn(S.nextFloor, () => {
       closeDev();
       descend();

@@ -17,7 +17,6 @@ export const CFG = {
     runAnimSpeed: 3.0, // playback speed of the run clip at full speed; raise if feet slide
     walkAnimSpeed: 10.5, // playback speed the walk clip would need at full speed (it only plays when slow)
     walkToRun: [0.12, 0.3] as [number, number], // between these fractions of full speed the walk hands over to the run
-    walkNatural: 2.2, // dev menu comparison: the walk's playback at full speed at a natural pace (the feet slide)
     drinkSpeed: 1.4, // playback speed of the draught when the mage is healed
     fidget: [9, 16] as [number, number], // seconds standing still before the mage eats something
   },

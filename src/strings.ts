@@ -1976,16 +1976,6 @@ export const STR = {
     resetArtifacts: 'Reset artifacts',
     godOn: 'God mode: on',
     godOff: 'God mode: off',
-    doors: {
-      data: 'Doors: as the floor has them',
-      shifted: 'Doors: off the middle',
-      middle: 'Doors: in the middle',
-    } as Record<string, string>,
-    moveClip: {
-      run: 'Moving: run clip',
-      walkInStep: 'Moving: walk clip, feet in step',
-      walkNatural: 'Moving: walk clip, natural pace',
-    } as Record<string, string>,
     offerNow: 'Offer boons now (a level waiting)',
     noLevelWaits: 'No level waits for its choice',
     autoLevelOn: 'Levels choose for themselves: on',
@@ -2191,8 +2181,6 @@ export const STR = {
     hidden: 'hidden',
     clear: 'End this fight',
     reveal: 'Reveal the map',
-    mapFinishedOn: 'Minimap: finished rooms marked',
-    mapFinishedOff: 'Minimap: finished rooms not marked',
     nextFloor: 'Next floor',
     dials: (extra: number, elite: number, waves: number, lean: string, walls: string) =>
       `Pressure (M4.9): one more foe in ${Math.round(extra * 100)}% of fights, elites ×${elite}, ordeals +${waves} wave${waves === 1 ? '' : 's'}. Pages lean to ${lean || 'nothing'}; walls off ${walls || 'nothing'}.`,

@@ -107,19 +107,13 @@ export const G = {
   simClock: 0,
 };
 
-/** Dev menu switches (ui/devMenu.ts): god mode keeps the mage from harm; endless mana never runs out; `moveClip`
-    tries the walk clip for all movement (with its feet in step, or at a natural pace), to compare with the run;
-    `doors` moves every door off the middle of its edge where it fits, or none, in the floors made from now on. */
+/** Dev menu switches (ui/devMenu.ts): god mode keeps the mage from harm; endless mana never runs out. */
 export const DEV = {
   /** M4.6: Azyrion's arc forced to a stage (the dev menu), else from what is held. */ arc: undefined as
     number | undefined,
   god: false,
   mana: false,
   fps: false,
-  moveClip: 'run' as 'run' | 'walkInStep' | 'walkNatural',
-  doors: 'data' as 'data' | 'shifted' | 'middle',
-  /** The minimap marks finished rooms (2026-10-02, the owner's ask): the dev menu turns it off to compare. */
-  mapFinished: true,
   /** Kinds of the room kit forced on every room of the floor (the dev menu's Look tab), to compare; else each room draws. */
   kitKinds: {} as Partial<Kinds>,
   /** One foe in every template role on every floor (`?foe=`, the dev menu), to test it; else each floor fills its roles. */
