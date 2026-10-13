@@ -13,13 +13,13 @@ cleaning, the look and the story.
 | --- | --- |
 | R0 One baseline | Done 2026-10-12 |
 | R1 Docs that tell the truth | Built 2026-10-12; the owner's read next |
-| R2 Code that is kept | **Under way:** steps 1 and 2 done; step 3 (dev code fenced) built, not yet merged |
+| R2 Code that is kept | **Under way:** steps 1 to 3 done; step 4 (simulation apart from the UI) built, not yet merged |
 | R3 The look | Waits for R2 |
 | R4 The story | Waits for R3's art bible; holds M7 steps 10 to 13 |
 | R5 The vertical slice | Last |
 
-**Next:** R2 step 4, simulation apart from the UI (a typed event bus, then `G` in typed slices), planned with the
-owner first.
+**Next:** R2 step 5, comments for the code (milestone names, dates and "the owner said" out of the comments),
+planned with the owner first.
 
 ## What is live
 
