@@ -160,7 +160,7 @@ export function caveLook(kind: CaveKind, look: FloorLook, seed: number) {
         : kind === 'bed'
           ? bedLook(look, R)
           : fallLook(look);
-  const parts = g.userData.parts;
+  const parts: unknown = g.userData.parts;
   mergeStill(g);
   if (parts) g.userData.parts = parts;
   return g;

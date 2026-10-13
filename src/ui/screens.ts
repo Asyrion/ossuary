@@ -130,17 +130,19 @@ export function initScreens(act: ScreenActions) {
   });
   const saveIn = $<HTMLInputElement>('saveFile');
   $('btnSaveIn').addEventListener('click', () => saveIn.click());
-  saveIn.addEventListener('change', async () => {
-    const f = saveIn.files?.[0];
-    saveIn.value = '';
-    if (!f) return;
-    const errs = importSave(await f.text());
-    if (errs.length) {
-      toast(STR.pause.refused(errs[0]), 4);
-      return;
-    }
-    toast(STR.pause.loaded, 2);
-    setTimeout(() => location.reload(), 600);
+  saveIn.addEventListener('change', () => {
+    void (async () => {
+      const f = saveIn.files?.[0];
+      saveIn.value = '';
+      if (!f) return;
+      const errs = importSave(await f.text());
+      if (errs.length) {
+        toast(STR.pause.refused(errs[0]), 4);
+        return;
+      }
+      toast(STR.pause.loaded, 2);
+      setTimeout(() => location.reload(), 600);
+    })();
   });
 
   const fileIn = $<HTMLInputElement>('fileIn');

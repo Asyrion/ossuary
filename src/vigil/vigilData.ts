@@ -100,6 +100,7 @@ export function blankSave(): VigilSave {
 
 const obj = (v: unknown): Record<string, unknown> =>
   v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
+const str = (v: unknown) => (typeof v === 'string' || typeof v === 'number' ? String(v) : '');
 const strs = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []);
 const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : 0);
 function runOf(v: unknown): RunRecord | null {
@@ -109,8 +110,8 @@ function runOf(v: unknown): RunRecord | null {
     seed: r.seed,
     won: !!r.won,
     floor: num(r.floor),
-    room: String(r.room ?? ''),
-    template: String(r.template ?? ''),
+    room: str(r.room),
+    template: str(r.template),
     struck: typeof r.struck === 'string' ? r.struck : null,
     carried: strs(r.carried),
     level: num(r.level) || 1,

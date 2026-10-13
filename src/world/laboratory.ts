@@ -142,7 +142,7 @@ export function updateLab(now: number) {
   serpent.rotation.y = Math.sin(now * 0.35) * 0.5;
   serpent.position.y = 0.2 + Math.sin(now * 0.8) * 0.04;
   if (head) {
-    head.position.y = head.userData.y + Math.sin(now * 1.3) * 0.04;
+    head.position.y = (head.userData.y as number) + Math.sin(now * 1.3) * 0.04;
     head.rotation.z = Math.sin(now * 0.9) * 0.2;
   }
 }

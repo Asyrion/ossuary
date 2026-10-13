@@ -743,7 +743,7 @@ export function pickBoss(rng: Rng, pool: readonly BossType[], met: readonly Boss
 /** The floor as text, one character per cell: S start, B boss, T treasure, O ordeal, A altar, M merchant,
     V vault, ? secret, * shrine, L library, J laboratory, W waystone, # one-cell room, + larger hall, - and | corridors, @ the current room. */
 export function planToText(plan: FloorPlan, currentId = -1) {
-  const grid = Array.from({ length: GRID_H }, () => Array(GRID_W).fill(' '));
+  const grid = Array.from({ length: GRID_H }, () => Array<string>(GRID_W).fill(' '));
   const mark: Record<string, string> = {
     start: 'S',
     boss: 'B',

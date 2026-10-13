@@ -162,7 +162,7 @@ export async function madeModel(id: string, l: CreatureLook = look, still: () =>
     // (the pixel-art look, as the mage wears it: its colours in its vertices, light in bands)
     bakeHeroPixel(model);
     model.traverse((o) => {
-      if (o.userData.pixel) (o as THREE.Mesh).material = o.userData.pixel;
+      if (o.userData.pixel) (o as THREE.Mesh).material = o.userData.pixel as THREE.Material;
     });
   }
   model.scale.setScalar(scale);

@@ -267,8 +267,8 @@ export function bookcaseLook(seed: number) {
   const rows = [0.08, 0.48, 0.88];
   for (const y of rows.slice(1)) box(g, 1.38, 0.035, 0.32, wood, 0, y - 0.018, 0);
   rows.forEach((y0) => {
+    const stack = R() < 0.5 ? Math.floor(R() * 10) : -1;
     let x = -0.68,
-      stack = R() < 0.5 ? Math.floor(R() * 10) : -1,
       leaned = false;
     for (let n = 0; x < 0.64; n++) {
       const w = 0.04 + R() * 0.05,

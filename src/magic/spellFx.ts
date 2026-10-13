@@ -122,8 +122,9 @@ export function animateBolt(mesh: THREE.Object3D, dx: number, dz: number, dt: nu
   if (dx || dz) mesh.rotation.y = Math.atan2(dx, dz);
   for (const c of mesh.children)
     if (c.userData.spin) {
-      c.userData.a = (c.userData.a ?? 0) + dt * c.userData.spin;
-      faceCamera(c, mesh.rotation.y, c.userData.a);
+      const a = ((c.userData.a as number | undefined) ?? 0) + dt * (c.userData.spin as number);
+      c.userData.a = a;
+      faceCamera(c, mesh.rotation.y, a);
     }
 }
 /** Where a bolt ends: a small ring of its light flares and fades. */

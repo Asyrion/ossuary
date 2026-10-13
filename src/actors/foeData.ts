@@ -393,7 +393,7 @@ export function validateFoes(defs: Record<string, FoeDef> = FOES) {
     else for (const p of need) if (d.params[p] === undefined) at(`${d.behaviour} needs ${p}`);
     if (!/^#[0-9a-f]{6}$/i.test(d.gib) || (d.stain !== null && !/^#[0-9a-f]{6}$/i.test(d.stain)))
       at('gib or stain colour');
-    if (d.pack && !(d.pack[0] >= 1 && d.pack[1] >= d.pack[0])) at(`pack ${d.pack}`);
+    if (d.pack && !(d.pack[0] >= 1 && d.pack[1] >= d.pack[0])) at(`pack ${d.pack.join(',')}`);
     if (d.elemental && d.resist !== d.school) at('an elemental resists (drinks) its own school');
   }
   return errors;

@@ -75,7 +75,7 @@ export function furnishUnfold() {
     g.position.set(m.x - cr.cx, 0, m.z - cr.cz);
     cr.group.add(g);
     block(cr, { at: [c, r] });
-    const tex = g.userData.parts?.tex as THREE.Texture | undefined;
+    const tex = (g.userData.parts as { tex?: THREE.Texture } | undefined)?.tex;
     if (tex && !falls.includes(tex)) falls.push(tex);
   });
   // the valleys' light laid on the floor from the open edge, reaching further in with each one freed (in steps, as the
@@ -142,7 +142,7 @@ export function furnishUnfold() {
     g.position.set(m.x - gr.cx, 0, m.z - gr.cz);
     gr.group.add(g);
     block(gr, { at: [c, r] });
-    const mark = g.userData.parts.mark as THREE.Sprite;
+    const mark = (g.userData.parts as { mark: THREE.Sprite }).mark;
     mark.material.opacity = tended && v.garden === id ? 0.75 : tended ? 0.2 : 0;
     return { id, x: m.x, z: m.z, mark, armed: true };
   });

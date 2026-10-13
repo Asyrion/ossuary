@@ -225,7 +225,7 @@ export function moveTown(t: TownLook, time: number, toMage: number | null, talki
   t.group.rotation.z = Math.sin(time * 0.9 + k) * 0.025;
   const want = toMage === null ? 0 : Math.max(-1.1, Math.min(1.1, toMage));
   t.head.rotation.y += (want - t.head.rotation.y) * 0.08;
-  const rest = (t.armR.userData.rest ??= { x: t.armR.rotation.x, z: t.armR.rotation.z });
+  const rest = (t.armR.userData.rest ??= { x: t.armR.rotation.x, z: t.armR.rotation.z }) as { x: number; z: number };
   t.armR.rotation.x = rest.x + (talking ? Math.sin(time * 5) * 0.25 - 0.3 : 0);
   t.glint.visible = glint;
   if (glint) {

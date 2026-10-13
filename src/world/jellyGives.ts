@@ -149,12 +149,12 @@ export function updateGives(room: Room, parts: JellyParts | undefined, now: numb
   const v = giving,
     g = W();
   v.t += dt;
-  const size = (v.item.userData.size ??= v.item.scale.x * 1000); // (its own scale, before it grows out of the palm)
+  const size = (v.item.userData.size ??= v.item.scale.x * 1000) as number; // (its own scale, before it grows out of the palm)
   if (v.t < g.reach + g.hold) {
     // reaching, then holding it out while it glints
     givePose(parts, ease(Math.min(1, v.t / g.reach)));
     v.item.scale.setScalar(size * ease(Math.min(1, v.t / g.reach)));
-    v.item.position.y = (v.item.userData.y ??= v.item.position.y) + Math.sin(v.t * 9) * 0.006;
+    v.item.position.y = ((v.item.userData.y ??= v.item.position.y) as number) + Math.sin(v.t * 9) * 0.006;
     v.item.rotation.y += dt * 1.2;
     if (!v.glint && v.t >= g.reach) {
       v.glint = true;

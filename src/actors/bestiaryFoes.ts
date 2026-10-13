@@ -150,12 +150,12 @@ function circle(e: Enemy, a: Aim, near: number, far: number, speed: number, turn
     leaves still, so a pose's offset doesn't pile up step on step. */
 function lean(o: THREE.Object3D, by: number) {
   o.userData.rx ??= o.rotation.x;
-  o.rotation.x = o.userData.rx + by;
+  o.rotation.x = (o.userData.rx as number) + by;
 }
 /** The same for how far forward a part reaches (position.z). */
 function thrust(o: THREE.Object3D, by: number) {
   o.userData.pz ??= o.position.z;
-  o.position.z = o.userData.pz + by;
+  o.position.z = (o.userData.pz as number) + by;
 }
 /** The way `e` faces (body.rotation.y) as a direction on the floor. */
 const facing = (e: Enemy) => ({ x: Math.sin(e.face), z: Math.cos(e.face) });
