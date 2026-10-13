@@ -12,10 +12,10 @@ import { SCHOOL_LIGHT } from '../render/arcane';
 import { strikeFx } from '../magic/spellFx';
 import { WARDLING, drink, fullness, mostDrunk, newDrink } from '../magic/drinking';
 import type { FoeType } from '../actors/foeData';
-import { DEV, G, player } from '../state';
+import { G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { M, disposeTree, glow } from '../render/materials';
+import { disposeTree, glow } from '../render/materials';
 import { padlockLook } from './specialLooks';
 import { glyphTexture } from '../render/textures';
 import { burst } from '../combat/fx';
@@ -62,14 +62,8 @@ function sealMark(room: Room, door: VaultSeal['outer']) {
     }),
   );
   rune.scale.setScalar(south ? 0.8 : 1.05);
-  const lock = DEV.roomKit ? padlockLook(WARD) : new THREE.Group();
-  lock.position.set(0, -0.2, 0.08); // (the room kit's: specialLooks.ts)
-  if (!DEV.roomKit) {
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.17, 0.07), M.iron);
-    const shackle = new THREE.Mesh(new THREE.TorusGeometry(0.065, 0.018, 5, 12, Math.PI), M.iron);
-    shackle.position.y = 0.085;
-    lock.add(body, shackle);
-  }
+  const lock = padlockLook(WARD);
+  lock.position.set(0, -0.2, 0.08); // (specialLooks.ts)
   // the light it has drunk, filling a disc behind the rune (its own material: it takes the colour of what it drank most)
   const cup = new THREE.Mesh(
     new THREE.CircleGeometry(0.5, 24),

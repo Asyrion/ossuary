@@ -7,10 +7,10 @@
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { Page, Room } from '../types';
-import { DEV, G, player } from '../state';
+import { G, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { M, basicMat, blob, disposeTree, glowShared, markShared, mergeStill } from '../render/materials';
+import { blob, disposeTree, glowShared, markShared, mergeStill } from '../render/materials';
 import { bookcaseLook, lecternLook } from '../world/specialLooks';
 import { hashString } from '../rng';
 import { burst } from '../combat/fx';
@@ -38,56 +38,7 @@ const ASH = 0x2e2a26,
 
 /* ---------- looks ---------- */
 
-let parts: ReturnType<typeof makeParts> | null = null;
-function makeParts() {
-  const shared = <T extends THREE.BufferGeometry>(g: T) => markShared(g);
-  return {
-    leaf: shared(new THREE.PlaneGeometry(0.54, 0.7)),
-    base: shared(new THREE.BoxGeometry(0.5, 0.06, 0.4)),
-    post: shared(new THREE.CylinderGeometry(0.05, 0.06, 0.86, 6)),
-    board: shared(new THREE.BoxGeometry(0.56, 0.04, 0.42)),
-    candle: shared(new THREE.CylinderGeometry(0.03, 0.03, 0.14, 6)),
-    carcass: shared(new THREE.BoxGeometry(1.5, 1.25, 0.34)),
-    spines: shared(new THREE.PlaneGeometry(1.38, 1.1)),
-    wax: markShared(new THREE.MeshStandardMaterial({ color: 0xe8dcc0, roughness: 0.8, emissive: 0x1a140a })),
-    books: markShared(new THREE.MeshStandardMaterial({ map: spinesTexture(), roughness: 0.9 })),
-  };
-}
-
-/** Rows of book spines in muted colours, with gilt bands (the library's shelves). */
-function spinesTexture() {
-  const c = document.createElement('canvas');
-  c.width = 256;
-  c.height = 204;
-  const g = c.getContext('2d')!;
-  g.fillStyle = '#140e0a';
-  g.fillRect(0, 0, 256, 204);
-  const colours = ['#5a2a22', '#3a3a2a', '#2a3440', '#4a3a24', '#5e4a2e', '#2e2a36', '#3e2418', '#6a5a3a'];
-  let seed = 7;
-  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  for (let row = 0; row < 3; row++) {
-    const y1 = 64 + row * 68;
-    for (let x = 2; x < 252;) {
-      const w = 8 + Math.floor(rnd() * 10),
-        h = 42 + Math.floor(rnd() * 18);
-      if (rnd() < 0.08) {
-        x += w;
-        continue;
-      } // a gap where a book was taken
-      g.fillStyle = colours[Math.floor(rnd() * colours.length)];
-      g.fillRect(x, y1 - h, w - 1, h);
-      g.fillStyle = 'rgba(210,170,90,.55)';
-      g.fillRect(x, y1 - h + 6, w - 1, 2);
-      g.fillRect(x, y1 - 10, w - 1, 2);
-      x += w;
-    }
-    g.fillStyle = '#2a1c12';
-    g.fillRect(0, y1, 256, 4); // the shelf board
-  }
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-}
+let leafGeo: THREE.PlaneGeometry | null = null;
 
 /** A torn page of parchment with its spell's icon drawn large in the spell's colour; `ash` scorches its edges
     (a page for sale on the shelf). One texture per spell and look, kept for the session. */
@@ -156,36 +107,13 @@ function leafMat(id: string, ash: boolean) {
 
 /** The leaf hovering over its stand (or the floor), with a glow in its spell's colour behind it. */
 function makeHover(id: string, ash: boolean, loose: boolean) {
-  const P = (parts ??= makeParts()),
-    g = new THREE.Group();
-  const leaf = new THREE.Mesh(P.leaf, leafMat(id, ash));
+  const g = new THREE.Group();
+  const leaf = new THREE.Mesh((leafGeo ??= markShared(new THREE.PlaneGeometry(0.54, 0.7))), leafMat(id, ash));
   leaf.rotation.x = -0.55; // tilted up towards the camera
   const light = glowShared(hex(spell(id).color), 1.1, 0.28);
   light.position.set(0, -0.12, -0.12); // a whisper of light behind it
   g.add(light, leaf);
   g.position.y = loose ? 0.55 : 1.22;
-  return g;
-}
-
-/** A lectern of dark wood with a slanted board and a candle burning on its corner. */
-function makeLectern() {
-  const P = (parts ??= makeParts()),
-    g = new THREE.Group();
-  const base = new THREE.Mesh(P.base, M.frame.library);
-  base.position.y = 0.03;
-  const post = new THREE.Mesh(P.post, M.frame.library);
-  post.position.y = 0.47;
-  const board = new THREE.Mesh(P.board, M.frame.library);
-  board.position.y = 0.92;
-  board.rotation.x = -0.45;
-  const candle = new THREE.Mesh(P.candle, P.wax);
-  candle.position.set(0.22, 1.04, 0.1);
-  const flame = new THREE.Mesh(new THREE.SphereGeometry(0.025, 6, 5), basicMat(0xffd08a));
-  flame.position.set(0.22, 1.14, 0.1);
-  flame.scale.y = 1.6;
-  const light = glowShared(0xffb050, 0.55, 0.8);
-  light.position.copy(flame.position);
-  g.add(base, post, board, candle, flame, light, blob(0.9));
   return g;
 }
 
@@ -195,7 +123,7 @@ function makeLectern() {
 function addPage(room: Room, id: string, x: number, z: number, kind: Page['kind'], price = 0): Page {
   const g = new THREE.Group();
   g.position.set(x - room.cx, 0, z - room.cz);
-  if (kind !== 'loose') g.add(DEV.roomKit ? lecternLook(room.look) : makeLectern());
+  if (kind !== 'loose') g.add(lecternLook(room.look));
   else g.add(blob(0.8));
   const p: Page = { spell: id, x, z, kind, price, g, armed: true, gone: false };
   setLeaf(p, id);
@@ -222,37 +150,23 @@ function setLeaf(p: Page, id: string) {
 /** The library's furniture, when the room is built: shelves of books along the north wall (not across a door
     there, nor on an urn), each stopping the mage like a rock. */
 export function furnishLibrary(room: Room) {
-  const P = (parts ??= makeParts()),
-    { minX, maxX, minZ } = room.bounds;
+  const { minX, maxX, minZ } = room.bounds;
   const northDoor = room.plan.doors.some((d) => d.side === 'n');
   const n = Math.floor((maxX - minX - 0.4) / 1.6),
     x0 = (minX + maxX) / 2 - (n - 1) * 0.8;
-  const kit = DEV.roomKit ? new THREE.Group() : null; // (the room kit's bookcases: every one in one mesh)
+  const shelves = new THREE.Group(); // (the bookcases: every one in one mesh)
   for (let i = 0; i < n; i++) {
     const x = x0 + i * 1.6,
       z = minZ + 0.18;
     if (northDoor && Math.abs(x - room.cx) < 1.6) continue;
     if (pointInBoxes(x, z + 0.3, 0.5, room.rocks)) continue;
     room.rocks.push({ x, z, hx: 0.75, hz: 0.17, hp: Infinity, breakable: false });
-    if (kit) {
-      const b = bookcaseLook(hashString(`${G.run.seed}:${G.run.floor}:${room.gx},${room.gy}`) + i * 977);
-      b.position.set(x - room.cx, 0, z - room.cz);
-      kit.add(b);
-      continue;
-    } // (every library its own books, the same on a replay)
-    const g = new THREE.Group();
-    g.position.set(x - room.cx, 0, z - room.cz);
-    const carcass = new THREE.Mesh(P.carcass, M.frame.library);
-    carcass.position.y = 0.625;
-    const spines = new THREE.Mesh(P.spines, P.books);
-    spines.position.set(0, 0.64, 0.175);
-    g.add(carcass, spines);
-    room.group.add(g);
+    const b = bookcaseLook(hashString(`${G.run.seed}:${G.run.floor}:${room.gx},${room.gy}`) + i * 977); // (every library its own books, the same on a replay)
+    b.position.set(x - room.cx, 0, z - room.cz);
+    shelves.add(b);
   }
-  if (kit) {
-    mergeStill(kit);
-    room.group.add(kit);
-  }
+  mergeStill(shelves);
+  room.group.add(shelves);
 }
 
 /** The library on the mage's first visit: three pages of different schools on lecterns in a row across the room,

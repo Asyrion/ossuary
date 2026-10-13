@@ -6607,7 +6607,7 @@ test("coin faces: the obols wear the owner's coin, drawn on the fine layer, in t
   expect(errors).toEqual([]);
 });
 
-test("the room kit: torches, braziers and candle stands built in code, the crypt's floor and walls in pixel art, and the old look to compare", async ({
+test("the room kit: torches, braziers and candle stands built in code, the crypt's floor and walls in pixel art", async ({
   page,
 }) => {
   type Mat = { map?: { magFilter: number }; transparent?: boolean };
@@ -6623,8 +6623,6 @@ test("the room kit: torches, braziers and candle stands built in code, the crypt
   };
   type GR = {
     sim(sec: number, draw?: boolean): void;
-    roomKit: boolean;
-    useRoomKit(on: boolean): void;
     prop(kind: string, x: number, z: number): boolean;
     burn(x: number, z: number, r?: number): void;
     renderInfo(): { calls: number };
@@ -6650,7 +6648,6 @@ test("the room kit: torches, braziers and candle stands built in code, the crypt
       const brazier = g.current.props!.find((b) => b.prop.kind === 'brazier')!,
         stand = g.current.props!.find((b) => b.prop.kind === 'candles')!;
       return {
-        kit: g.roomKit,
         nearest,
         torches: g.current.torches.length,
         fire: g.current.torches.every((t) => !!t.flame.userData.fire),
@@ -6665,7 +6662,6 @@ test("the room kit: torches, braziers and candle stands built in code, the crypt
     });
   const kit = await look();
   expect(kit).toMatchObject({
-    kit: true,
     fire: true,
     brazier: { lit: true, fire: true, runes: 0xffa040 },
     stand: { lit: true, shown: true },
@@ -6673,21 +6669,7 @@ test("the room kit: torches, braziers and candle stands built in code, the crypt
   expect(kit.torches).toBeGreaterThan(0);
   expect(kit.nearest).toBeGreaterThanOrEqual(2); // (the floor, and the walls)
   await page.screenshot({ path: 'test-results/room-kit.png' });
-  // off: the floor is built again in the old look
-  await page.evaluate(() => (window as unknown as { __game: GR }).__game.useRoomKit(false));
-  const old = await look();
-  expect(old).toMatchObject({
-    kit: false,
-    nearest: 0,
-    fire: false,
-    brazier: { lit: true, fire: false, runes: null },
-    stand: { lit: true, shown: true },
-  });
-  // and ?kit=old starts in the old look
-  const again = await start(page, '?seed=K3F9QX&kit=old');
-  expect(await page.evaluate(() => (window as unknown as { __game: GR }).__game.roomKit)).toBe(false);
   expect(errors).toEqual([]);
-  expect(again).toEqual([]);
 });
 
 test("the room kit's variety: rooms draw different kinds, and every kind of wall, floor, wall light and brazier builds on its floor", async ({
@@ -6750,7 +6732,7 @@ test("the room kit's variety: rooms draw different kinds, and every kind of wall
   }
 });
 
-test("the room kit's objects: every pile and object, urns, pedestals, pillars and tombs built in code on each floor, burning in the kit's fire, and the old look to compare", async ({
+test("the room kit's objects: every pile and object, urns, pedestals, pillars and tombs built in code on each floor, burning in the kit's fire", async ({
   page,
 }) => {
   type Mat = { vertexColors?: boolean };
@@ -6840,19 +6822,9 @@ test("the room kit's objects: every pile and object, urns, pedestals, pillars an
     expect(errors).toEqual([]);
     expect(room).toEqual([]);
   }
-  // off: the old looks, nothing painted
-  await start(page, '?seed=K3F9QX&kit=old');
-  expect(await objects()).toMatchObject({
-    kinds,
-    painted: 5,
-    urnsPainted: 0,
-    pedestal: false,
-    burning: true,
-    kitFire: false,
-  }); // (M4.1's heap and boat, M4.2's bridge and M5's jelly globe and flowering plant have only the kit's look)
 });
 
-test("the room kit's doors, gates, niches and pilasters: built in code, one mesh a gate, fewer draw calls, and the gate still rises", async ({
+test("the room kit's doors, gates, niches and pilasters: built in code, one mesh a gate, few draw calls, and the gate still rises", async ({
   page,
 }) => {
   type Mat = { vertexColors?: boolean };
@@ -6887,29 +6859,19 @@ test("the room kit's doors, gates, niches and pilasters: built in code, one mesh
   expect(kit.locked).toBe(true);
   expect(kit.shut.every(Boolean)).toBe(true);
   await page.screenshot({ path: 'test-results/room-kit-doors.png' });
-  const old = await start(page, '?seed=K3F9QX&room=crypt_a&kit=old');
-  const before = await look();
-  expect(before.gates.every((n) => n > 1)).toBe(true);
-  expect(before.shut.every(Boolean)).toBe(true);
-  expect(kit.calls).toBeLessThan(before.calls - 20); // (each door and each wall's dressing in a call or two)
+  expect(kit.calls).toBeLessThan(70); // (each door and each wall's dressing in a call or two: 56 when this was written)
   expect(errors).toEqual([]);
-  expect(old).toEqual([]);
 });
 
-test("the room kit's artifacts: every one built in code, the HUD's icons rendered from them, and the old ones to compare", async ({
-  page,
-}) => {
+test("the room kit's artifacts: every one built in code, and the HUD's icons rendered from them", async ({ page }) => {
   type GA = {
     sim(sec: number, draw?: boolean): void;
     artifactGallery(): number;
-    takeArtifactGallery(): void;
-    useRoomKit(on: boolean): void;
     current: { group: { userData: Record<string, unknown> } };
   };
   const icons = () =>
     page.evaluate(async () => {
-      const imgs = [...document.querySelectorAll('#items svg image')] as SVGImageElement[],
-        paths = document.querySelectorAll('#items svg path').length;
+      const imgs = [...document.querySelectorAll('#items svg image')] as SVGImageElement[];
       const sizes = await Promise.all(
         imgs.map(
           (i) =>
@@ -6934,7 +6896,7 @@ test("the room kit's artifacts: every one built in code, the HUD's icons rendere
             }),
         ),
       );
-      return { images: imgs.length, paths, sizes };
+      return { images: imgs.length, sizes };
     });
   const errors = await start(
     page,
@@ -6956,18 +6918,10 @@ test("the room kit's artifacts: every one built in code, the HUD's icons rendere
     expect(solid).toBeGreaterThan(15);
     expect(soft).toBe(0);
   }
-  await page.evaluate(() => {
-    const g = (window as unknown as { __game: GA }).__game;
-    g.takeArtifactGallery();
-    g.useRoomKit(false);
-  });
-  const old = await icons();
-  expect(old.images).toBe(0);
-  expect(old.paths).toBeGreaterThan(0); // (the drawn icons again)
   expect(errors).toEqual([]);
 });
 
-test("the room kit's pickups and special rooms: every drop, coffers and chests that still open, the shade, the library, the shrine's stones and the vault's lock built in code, and the old look to compare", async ({
+test("the room kit's pickups and special rooms: every drop, coffers and chests that still open, the shade, the library, the shrine's stones and the vault's lock built in code", async ({
   page,
 }) => {
   type Mat = { vertexColors?: boolean };
@@ -7040,34 +6994,17 @@ test("the room kit's pickups and special rooms: every drop, coffers and chests t
       stones: (r.shrine?.stones ?? []).filter(s => painted(s.g) > painted(s.visual)).length, lock: painted(outer) };
   })()`)),
     }));
-  for (const old of [false, true]) {
-    const k = old ? '&kit=old' : '';
-    const shop = await special(`&room=merchant_plain${k}`),
-      library = await special(`&room=library_plain${k}`);
-    const shrine = await special(`&floor=2&room=shrine_henge&give=chain_of_the_penitent,leaden_heart${k}`),
-      vault = await special(`&room=vault_urns${k}`);
-    for (const r of [shop, library, shrine, vault]) expect(r.errs).toEqual([]);
-    expect(shop.eyes).toBe(2);
-    expect(library.pages).toBe(3);
-    if (old) {
-      expect([shop.shade, library.lecterns, shrine.stones, vault.lock]).toEqual([0, 0, 0, 0]);
-      continue;
-    }
-    expect(shop.shade).toBeGreaterThan(0);
-    expect(library.lecterns).toBe(3);
-    expect(shrine.stones).toBe(2);
-    expect(vault.lock).toBeGreaterThan(0);
-  }
-  // off: the old pickups, nothing painted
-  await start(page, '?seed=K3F9QX&kit=old');
-  const old = await drops();
-  expect(
-    old.laid
-      .filter((d) => d.painted)
-      .map((d) => d.kind)
-      .sort(),
-  ).toEqual(['blackSoul', 'hallowedSoul', 'paleSoul', 'potion', 'reagent', 'rune', 'shard']); // (M4.1's, M5's and M6's items have only the kit's look)
-  expect(old).toMatchObject({ boxes: 3, opened: 3 });
+  const shop = await special('&room=merchant_plain'),
+    library = await special('&room=library_plain');
+  const shrine = await special('&floor=2&room=shrine_henge&give=chain_of_the_penitent,leaden_heart'),
+    vault = await special('&room=vault_urns');
+  for (const r of [shop, library, shrine, vault]) expect(r.errs).toEqual([]);
+  expect(shop.eyes).toBe(2);
+  expect(library.pages).toBe(3);
+  expect(shop.shade).toBeGreaterThan(0);
+  expect(library.lecterns).toBe(3);
+  expect(shrine.stones).toBe(2);
+  expect(vault.lock).toBeGreaterThan(0);
   expect(errors).toEqual([]);
 });
 

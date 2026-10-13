@@ -1891,8 +1891,6 @@ export const STR = {
     kit: 'Room kit (built in code)',
     kitNote:
       "Wall lights, braziers, the mechanisms and the rooms' objects built in code, and every floor's floors and walls in pixel art; each room draws its kinds, and the buttons below force one on every room of this floor",
-    kitNew: 'Room kit: new (built in code)',
-    kitOld: 'Room kit: old (to compare)',
     fireHere: 'Fire objects here (cold and lit)',
     objectsHere: 'Objects here (every pile and object, two urns)',
     dropsHere: 'Drops here (every pickup, coffer and chest)',

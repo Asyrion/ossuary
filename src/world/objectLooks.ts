@@ -7,7 +7,7 @@
    pedestal's ring of golden runes, the altar's runes of blood.
    Stone takes the colour of the floor's walls (`stoneOf`), an urn the floor's clay (`urn` in each look), a candle the
    floor's wax; a rock is mossy on the drowned floor and sooty on the burning one. What each does (blocking, breaking,
-   burning) is unchanged (props.ts, rooms.ts, mechanisms.ts, items/artifacts.ts); `DEV.roomKit` off keeps the old looks. */
+   burning) is in props.ts, rooms.ts, mechanisms.ts and items/artifacts.ts. */
 import * as THREE from 'three';
 import { globeLook } from './labLooks';
 import type { FloorLook } from '../types';

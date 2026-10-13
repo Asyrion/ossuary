@@ -7,13 +7,13 @@
      a cloud of spores that flashes when fire finds it;
    - fire (anything that calls `fireAt`) burns roots, briars, cobwebs and sacks away, and it spreads between them;
    - cobwebs slow whoever walks through them; briars sting the mage and walking foes.
-   The room kit's looks are in objectLooks.ts (M3.5 step 3); the placeholder shapes here stay for `DEV.roomKit` off. */
+   Their looks are the room kit's, in objectLooks.ts (M3.5 step 3), and the mechanisms' in mechanisms.ts. */
 import * as THREE from 'three';
 import { CFG } from '../config';
-import type { PropBox, PropState, Room, RockBox, SporeCloud, FloorLook } from '../types';
-import { DEV, G, after, player } from '../state';
+import type { PropBox, PropState, Room, RockBox, SporeCloud } from '../types';
+import { G, after, player } from '../state';
 import { Sfx } from '../audio/sfx';
-import { M, blob, boxUV, disposeTree, glow, markShared, mergeStill } from '../render/materials';
+import { disposeTree, glow, mergeStill } from '../render/materials';
 import { addDecal, burst } from '../combat/fx';
 import { damageEnemy, hurtPlayer } from '../combat/damage';
 import { inflict } from '../magic/statusFx';
@@ -22,12 +22,12 @@ import { ringFx } from '../magic/spellFx';
 import { SCHOOL_LIGHT } from '../render/arcane';
 import { LOOT, rollTable } from '../items/loot';
 import { objectReagent } from '../items/reagents';
-import { JELLY, globeLook } from './labLooks';
+import { JELLY } from './labLooks';
 import { globeBurst } from './laboratory';
 import { soulsHere } from '../items/souls';
 import { spawnPickup } from '../items/pickups';
 import { mulberry } from '../util';
-import { PROPS, isMechanism, type MechanismKind, type PropKind } from './propData';
+import { PROPS, isMechanism, type PropKind } from './propData';
 import { MECH_LOOKS, elementAt, strikeMechanism } from './mechanisms';
 import type { SpellStatus } from '../magic/spellData';
 import { addPool, fireAt } from './pools';
@@ -45,319 +45,6 @@ const FIRE = 0xff7a2a,
   BONE = 0xd8ccb2,
   PETAL = 0xf0a8c8,
   POLLEN = 0xf0e890;
-
-/* ---------- looks ---------- */
-
-const shared = <T extends THREE.BufferGeometry>(g: T) => {
-  g.userData.shared = true;
-  return g;
-};
-const mat = (color: number, o: THREE.MeshStandardMaterialParameters = {}) =>
-  markShared(new THREE.MeshStandardMaterial({ color, roughness: 0.85, ...o }));
-const MAT = {
-  burlap: mat(0x6a5a44, { roughness: 1 }),
-  rope: mat(0x4a3a26),
-  wood: mat(0x5a3e28, { roughness: 0.9 }),
-  darkWood: mat(0x3a2818),
-  root: mat(0x3a2a1c, { roughness: 1 }),
-  thorn: mat(0x2e3a22, { roughness: 1 }),
-  stem: mat(0xcfd8c0, { emissive: 0x1a2a20 }),
-  cap: mat(0x5fd8b0, { emissive: 0x2a9a78, roughness: 0.5 }),
-  flame: markShared(new THREE.MeshBasicMaterial({ color: 0xff9a3a, transparent: true, opacity: 0.85 })),
-  paper: mat(0xd8cbaa, { emissive: 0x1a160e }),
-};
-const GEO = {
-  bone: shared(new THREE.CylinderGeometry(0.03, 0.03, 0.36, 5)),
-  knob: shared(new THREE.SphereGeometry(0.045, 5, 4)),
-  skull: shared(new THREE.SphereGeometry(0.12, 8, 6)),
-  jaw: shared(new THREE.BoxGeometry(0.12, 0.05, 0.09)),
-  sack: shared(new THREE.SphereGeometry(0.2, 8, 6)),
-  tie: shared(new THREE.CylinderGeometry(0.04, 0.07, 0.09, 6)),
-  barrel: shared(new THREE.CylinderGeometry(0.27, 0.27, 0.62, 12)),
-  hoop: shared(new THREE.TorusGeometry(0.285, 0.018, 4, 16)),
-  lid: shared(new THREE.CylinderGeometry(0.24, 0.24, 0.02, 12)),
-  chunk: shared(new THREE.DodecahedronGeometry(0.17, 0)),
-  thorn: shared(new THREE.ConeGeometry(0.018, 0.07, 4)),
-  stem: shared(new THREE.CylinderGeometry(0.03, 0.04, 1, 6)),
-  cap: shared(new THREE.SphereGeometry(1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2)),
-  flame: shared(new THREE.ConeGeometry(0.16, 0.42, 6)),
-  scroll: shared(new THREE.CylinderGeometry(0.045, 0.045, 0.34, 8)),
-};
-let webMat: THREE.MeshBasicMaterial | null = null;
-/** Cobweb: threads spun out from a corner, and rings across them. */
-function webMaterial() {
-  if (webMat) return webMat;
-  const c = document.createElement('canvas');
-  c.width = c.height = 128;
-  const g = c.getContext('2d')!;
-  g.strokeStyle = 'rgba(255,255,255,.9)';
-  g.lineWidth = 1.2;
-  const spokes = 7;
-  for (let i = 0; i < spokes; i++) {
-    const a = ((i / (spokes - 1)) * Math.PI) / 2;
-    g.beginPath();
-    g.moveTo(4, 4);
-    g.lineTo(4 + Math.cos(a) * 130, 4 + Math.sin(a) * 130);
-    g.stroke();
-  }
-  for (let r = 18; r < 130; r += 16) {
-    g.beginPath();
-    for (let i = 0; i < spokes; i++) {
-      const a = ((i / (spokes - 1)) * Math.PI) / 2,
-        rr = r * (0.9 + (i % 2) * 0.12);
-      const x = 4 + Math.cos(a) * rr,
-        y = 4 + Math.sin(a) * rr;
-      if (i) g.lineTo(x, y);
-      else g.moveTo(x, y);
-    }
-    g.stroke();
-  }
-  const map = new THREE.CanvasTexture(c);
-  map.colorSpace = THREE.SRGBColorSpace;
-  return (webMat = markShared(
-    new THREE.MeshBasicMaterial({
-      map,
-      color: 0xe8e8f0,
-      transparent: true,
-      opacity: 0.6,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-    }),
-  ));
-}
-
-type Look = (R: () => number, len: number, look?: FloorLook) => THREE.Group;
-const LOOKS: Record<Exclude<PropKind, MechanismKind>, Look> = {
-  globe: (R) => globeLook(R), // (M5: the laboratory's; the room kit's look in both)
-  bones(R) {
-    const g = new THREE.Group();
-    for (let i = 0; i < 7; i++) {
-      const b = new THREE.Mesh(GEO.bone, M.bone);
-      b.rotation.set(0, R() * Math.PI, Math.PI / 2 + (R() - 0.5) * 0.5); // laid down, any which way
-      b.position.set((R() - 0.5) * 0.5, 0.05 + (i % 3) * 0.05, (R() - 0.5) * 0.5);
-      g.add(b);
-      for (const s of [-1, 1]) {
-        const k = new THREE.Mesh(GEO.knob, M.bone);
-        k.position.copy(b.position).add(new THREE.Vector3(0, 0.18 * s, 0).applyEuler(b.rotation));
-        g.add(k);
-      }
-    }
-    const s = skull();
-    s.position.set((R() - 0.5) * 0.2, 0.14, (R() - 0.5) * 0.2);
-    s.rotation.y = R() * 6;
-    g.add(s);
-    g.add(blob(0.95));
-    return g;
-  },
-  skulls(R) {
-    const g = new THREE.Group(),
-      spots = [
-        [-0.16, 0.1, -0.1],
-        [0.16, 0.1, -0.08],
-        [0, 0.1, 0.15],
-        [-0.15, 0.1, 0.16],
-        [0.15, 0.1, 0.17],
-        [0, 0.3, 0],
-        [-0.08, 0.3, 0.1],
-        [0.1, 0.3, 0.05],
-        [0, 0.48, 0.04],
-      ];
-    for (const [x, y, z] of spots) {
-      const s = skull();
-      s.position.set(x + (R() - 0.5) * 0.04, y, z);
-      s.rotation.set((R() - 0.5) * 0.5, (R() - 0.5) * 1.2, (R() - 0.5) * 0.3);
-      g.add(s);
-    }
-    g.add(blob(1));
-    return g;
-  },
-  sacks(R) {
-    const g = new THREE.Group();
-    for (const [x, z, sc] of [
-      [-0.15, -0.08, 1],
-      [0.16, -0.02, 0.9],
-      [0, 0.17, 0.8],
-    ]) {
-      const s = new THREE.Mesh(GEO.sack, MAT.burlap);
-      s.scale.set(sc, sc * (1.1 + R() * 0.2), sc);
-      s.position.set(x, 0.2 * sc, z);
-      s.rotation.y = R() * 6;
-      const t = new THREE.Mesh(GEO.tie, MAT.rope);
-      t.position.set(x, 0.43 * sc, z);
-      g.add(s, t);
-    }
-    g.add(blob(1));
-    return g;
-  },
-  cask(R) {
-    const g = new THREE.Group(),
-      b = new THREE.Mesh(GEO.barrel, MAT.wood);
-    b.position.y = 0.31;
-    b.scale.set(1, 1, 1);
-    const lid = new THREE.Mesh(GEO.lid, MAT.darkWood);
-    lid.position.y = 0.625;
-    g.add(b, lid);
-    for (const y of [0.1, 0.52]) {
-      const h = new THREE.Mesh(GEO.hoop, M.iron);
-      h.rotation.x = Math.PI / 2;
-      h.position.y = y;
-      g.add(h);
-    }
-    g.rotation.y = R() * 6;
-    g.add(blob(0.9));
-    return g;
-  },
-  rubble(R) {
-    const g = new THREE.Group();
-    for (let i = 0; i < 7; i++) {
-      const c = new THREE.Mesh(GEO.chunk, M.rock);
-      const s = 0.6 + R() * 0.7;
-      c.scale.set(s, s * 0.7, s);
-      c.position.set((R() - 0.5) * 0.7, 0.07 * s, (R() - 0.5) * 0.7);
-      c.rotation.set(R() * 3, R() * 3, R() * 3);
-      g.add(c);
-    }
-    g.add(blob(1.1));
-    return g;
-  },
-  roots(R) {
-    const g = new THREE.Group();
-    for (let i = 0; i < 4; i++) {
-      // thick roots coming down out of the ceiling's dark and burrowing into the floor
-      const a = R() * Math.PI * 2,
-        r0 = 0.1 + R() * 0.25,
-        x0 = Math.cos(a) * r0,
-        z0 = Math.sin(a) * r0;
-      const curve = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(x0 * 0.3, 1.5, z0 * 0.3),
-        new THREE.Vector3(x0 * 1.4, 0.9, z0 * 1.4),
-        new THREE.Vector3(x0 * 1.2, 0.3, z0 * 1.2),
-        new THREE.Vector3(x0 * 1.9, 0, z0 * 1.9),
-      ]);
-      g.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 10, 0.06 + R() * 0.04, 5, false), MAT.root));
-    }
-    g.add(blob(1));
-    return g;
-  },
-  briar(R) {
-    const g = new THREE.Group();
-    for (let i = 0; i < 6; i++) {
-      const pts = [0, 1, 2, 3].map(
-        (k) => new THREE.Vector3((R() - 0.5) * 0.9, 0.05 + R() * 0.3 * (k % 2 ? 1 : 0.4), (R() - 0.5) * 0.9),
-      );
-      const curve = new THREE.CatmullRomCurve3(pts);
-      g.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 8, 0.022, 4, false), MAT.thorn));
-      for (let k = 0; k < 4; k++) {
-        const t = new THREE.Mesh(GEO.thorn, MAT.thorn);
-        t.position.copy(curve.getPoint(R()));
-        t.rotation.set(R() * 3, R() * 3, R() * 3);
-        g.add(t);
-      }
-    }
-    return g;
-  },
-  web(R) {
-    const g = new THREE.Group(),
-      m = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), webMaterial());
-    m.rotation.set(-Math.PI / 2 + 0.5, R() * 6, 0);
-    m.position.y = 0.35;
-    g.add(m);
-    return g;
-  },
-  glowcap(R) {
-    const g = new THREE.Group();
-    for (let i = 0; i < 4; i++) {
-      const h = 0.12 + R() * 0.22,
-        r = 0.07 + R() * 0.08,
-        x = (R() - 0.5) * 0.5,
-        z = (R() - 0.5) * 0.5;
-      const st = new THREE.Mesh(GEO.stem, MAT.stem);
-      st.scale.set(1, h, 1);
-      st.position.set(x, h / 2, z);
-      const cap = new THREE.Mesh(GEO.cap, MAT.cap);
-      cap.scale.set(r, r * 0.7, r);
-      cap.position.set(x, h, z);
-      g.add(st, cap);
-    }
-    const gl = glow(0x6fe8c0, 1.2, 0.55);
-    gl.position.y = 0.3;
-    g.add(gl);
-    return g;
-  },
-  desk(R) {
-    // a scribe's sloped desk: legs, a slanted top, an inkpot and a candle stub
-    const g = new THREE.Group();
-    const top = new THREE.Mesh(boxUV(0.8, 0.05, 0.5), MAT.wood);
-    top.position.y = 0.62;
-    top.rotation.x = 0.3;
-    for (const [x, z] of [
-      [-0.34, -0.18],
-      [0.34, -0.18],
-      [-0.34, 0.18],
-      [0.34, 0.18],
-    ]) {
-      const l = new THREE.Mesh(boxUV(0.06, 0.6, 0.06), MAT.darkWood);
-      l.position.set(x, 0.3, z);
-      g.add(l);
-    }
-    const ink = new THREE.Mesh(GEO.knob, M.iron);
-    ink.position.set(0.28, 0.72, -0.1);
-    const page = new THREE.Mesh(boxUV(0.3, 0.01, 0.36), MAT.paper);
-    page.position.set(-0.05, 0.655, 0.02);
-    page.rotation.x = 0.3;
-    g.add(top, ink, page, blob(1));
-    g.rotation.y = (R() - 0.5) * 0.3;
-    return g;
-  },
-  scrolls(R) {
-    // a heap of rolled scrolls and loose sheets
-    const g = new THREE.Group();
-    for (let i = 0; i < 7; i++) {
-      const s = new THREE.Mesh(GEO.scroll, MAT.paper);
-      s.rotation.set(0, R() * 6, Math.PI / 2);
-      s.position.set((R() - 0.5) * 0.4, 0.05 + (i % 3) * 0.07, (R() - 0.5) * 0.4);
-      g.add(s);
-    }
-    const sheet = new THREE.Mesh(boxUV(0.3, 0.01, 0.36), MAT.paper);
-    sheet.position.set(0.2, 0.01, 0.2);
-    sheet.rotation.y = R() * 6;
-    g.add(sheet, blob(0.9));
-    return g;
-  },
-  // M4.1's objects have only the room kit's look
-  hoard: (R) => OBJECT_LOOKS.hoard(R),
-  blossom: (R) => OBJECT_LOOKS.blossom(R),
-  boat: (R, len) => OBJECT_LOOKS.boat(R, len),
-  bridge: (R, len) => OBJECT_LOOKS.bridge(R, len),
-  pew(_R, len) {
-    // a bench facing north, towards where a chapel's altar would stand: seat, back on the south side, ends
-    const g = new THREE.Group(),
-      L = len - 0.12;
-    const seat = new THREE.Mesh(boxUV(L, 0.07, 0.42), MAT.wood);
-    seat.position.set(0, 0.34, -0.05);
-    const back = new THREE.Mesh(boxUV(L, 0.5, 0.06), MAT.wood);
-    back.position.set(0, 0.56, 0.2);
-    g.add(seat, back);
-    for (const x of [-L / 2 + 0.04, L / 2 - 0.04]) {
-      const end = new THREE.Mesh(boxUV(0.07, 0.8, 0.5), MAT.darkWood);
-      end.position.set(x, 0.4, 0);
-      g.add(end);
-    }
-    const sh = blob(1);
-    sh.scale.set(len, 1, 0.9);
-    g.add(sh);
-    return g;
-  },
-};
-function skull() {
-  const s = new THREE.Group(),
-    head = new THREE.Mesh(GEO.skull, M.bone);
-  head.scale.set(1, 0.92, 1.05);
-  const jaw = new THREE.Mesh(GEO.jaw, M.bone);
-  jaw.position.set(0, -0.08, 0.04);
-  s.add(head, jaw);
-  return s;
-}
 
 /* ---------- building ---------- */
 
@@ -388,9 +75,6 @@ export function buildProps(room: Room) {
     }
 }
 
-/** Whether a room's objects are the room kit's (objectLooks.ts). */
-const kitObjects = (room: Room) => DEV.roomKit && !!room.look.kinds;
-
 /** An object on tile (c, r) (a pew `len` tiles long from there; a rope bridge that long across, or `down`). */
 export function addProp(room: Room, kind: PropKind, c: number, r: number, len = 1, down = false) {
   const def = PROPS[kind],
@@ -398,11 +82,7 @@ export function addProp(room: Room, kind: PropKind, c: number, r: number, len = 
   const a = worldOf(room, c, r),
     x = a.x + (down ? 0 : (len - 1) / 2),
     z = a.z + (down ? (len - 1) / 2 : 0);
-  const mesh = isMechanism(kind)
-    ? MECH_LOOKS[kind](R, len, room.look)
-    : kitObjects(room)
-      ? OBJECT_LOOKS[kind](R, len, room.look)
-      : LOOKS[kind](R, len, room.look);
+  const mesh = isMechanism(kind) ? MECH_LOOKS[kind](R, len, room.look) : OBJECT_LOOKS[kind](R, len, room.look);
   mergeStill(mesh); // a few draw calls, not a dozen
   mesh.position.set(x - room.cx, 0, z - room.cz);
   if (down) mesh.rotation.y = Math.PI / 2;
@@ -678,15 +358,8 @@ function ignite(room: Room, box: PropBox) {
   const f = new THREE.Group(),
     gl = glow(FIRE, 1.4, 0.8);
   gl.position.y = 0.35;
-  if (kitObjects(room)) {
-    f.add(burningFire(p.kind, p.tiles.length), gl);
-    f.userData.fire = true;
-  } // (the kit's fire moves by itself)
-  else {
-    const cone = new THREE.Mesh(GEO.flame, MAT.flame);
-    cone.position.y = 0.25;
-    f.add(cone, gl);
-  }
+  f.add(burningFire(p.kind, p.tiles.length), gl);
+  f.userData.fire = true; // (the kit's fire moves by itself)
   f.position.set(box.x - room.cx, 0, box.z - room.cz);
   room.group.add(f);
   p.flame = f;
@@ -801,8 +474,6 @@ export function updateProps(dt: number) {
     const p = box.prop;
     if (Math.random() < dt * 8)
       riseMote(box.x + (Math.random() - 0.5) * 0.6, 0.3, box.z + (Math.random() - 0.5) * 0.6, EMBER, 0.45);
-    if (p.flame && !p.flame.userData.fire)
-      p.flame.scale.setScalar(0.8 + Math.sin(performance.now() * 0.02 + box.x) * 0.15);
     if (spread) {
       for (const e of G.enemies)
         if (!e.dead && e.spawn <= 0 && !e.hidden && !e.flying && standsIn(box, e.x, e.z)) inflict(e, { burn: 1 });

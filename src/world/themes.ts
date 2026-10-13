@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { CFG } from '../config';
 import { callFoe } from '../actors/foeData';
 import type { Enemy, FloorLook, Room } from '../types';
-import { DEV, G, after, player } from '../state';
+import { G, after, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
 import { M, blob, glow, markShared, mergeStill } from '../render/materials';
@@ -60,7 +60,6 @@ const std = (color: number, o: THREE.MeshStandardMaterialParameters = {}) =>
   markShared(new THREE.MeshStandardMaterial({ color, roughness: 0.9, ...o }));
 const MAT = {
   wax: std(0xe8dcc0, { emissive: 0x2a2010 }),
-  flame: markShared(new THREE.MeshBasicMaterial({ color: 0xffc36a })),
   paper: std(0xd8cbaa, { side: THREE.DoubleSide }),
   gold: std(0xd8b050, { roughness: 0.4, metalness: 0.6, emissive: 0x3a2808 }),
   pole: std(0x2e2620, { roughness: 1 }),
@@ -73,7 +72,6 @@ const MAT = {
 };
 const GEO = {
   candle: shared(new THREE.CylinderGeometry(0.035, 0.04, 0.16, 6)),
-  flame: shared(new THREE.ConeGeometry(0.025, 0.07, 5)),
   drip: shared(new THREE.SphereGeometry(0.016, 5, 4).scale(1, 1.6, 1)),
   page: shared(new THREE.PlaneGeometry(0.22, 0.28).rotateX(-Math.PI / 2)),
   bone: shared(new THREE.CylinderGeometry(0.025, 0.025, 0.3, 5)),
@@ -168,50 +166,33 @@ function fadeUp() {
 const ropeMat = markShared(new THREE.MeshStandardMaterial({ color: 0x6a5238, roughness: 1 }));
 let ropeFade: THREE.Material | null = null; // a rope fading into the dark above
 
-/** A piece of a theme's dressing; `kit` is the room's look when the room kit builds it (its candles burn in the kit's fire). */
-type Dress = (R: () => number, kit?: FloorLook) => THREE.Object3D;
+/** A piece of a theme's dressing, in the room's `look` (its candles burn in the floor's light). */
+type Dress = (R: () => number, look: FloorLook) => THREE.Object3D;
 const DRESS: Record<ScatterKind, Dress> = {
-  candles(R, kit) {
-    const g = new THREE.Group();
-    if (kit) {
-      // candles in the floor's wax, burning in its light, drips down them
-      const wax = kit.torch.wax ? waxFor(kit.torch.wax) : MAT.wax,
-        specs: FlameSpec[] = [];
-      for (let i = 0, n = 1 + Math.floor(R() * 3); i < n; i++) {
-        const h = 0.6 + R() * 0.8,
-          x = (R() - 0.5) * 0.3,
-          z = (R() - 0.5) * 0.3;
-        const c = new THREE.Mesh(GEO.candle, wax);
-        c.scale.y = h;
-        c.position.set(x, 0.08 * h, z);
-        g.add(c);
-        const d = new THREE.Mesh(GEO.drip, wax);
-        d.position.set(x + 0.03, 0.12 * h, z + 0.02);
-        g.add(d);
-        specs.push({ x, y: 0.16 * h, z, h: 0.15, w: 0.07 });
-      }
-      const fire = candleFire(specs, kit),
-        gl = glow(0xffc36a, 0.7, 0.5);
-      gl.position.y = 0.2;
-      g.userData.parts = { fire };
-      g.add(fire, gl);
-      mergeStill(g);
-      return g;
-    }
+  candles(R, look) {
+    // candles in the floor's wax, burning in its light, drips down them
+    const g = new THREE.Group(),
+      wax = look.torch.wax ? waxFor(look.torch.wax) : MAT.wax,
+      specs: FlameSpec[] = [];
     for (let i = 0, n = 1 + Math.floor(R() * 3); i < n; i++) {
       const h = 0.6 + R() * 0.8,
         x = (R() - 0.5) * 0.3,
         z = (R() - 0.5) * 0.3;
-      const c = new THREE.Mesh(GEO.candle, MAT.wax);
+      const c = new THREE.Mesh(GEO.candle, wax);
       c.scale.y = h;
       c.position.set(x, 0.08 * h, z);
-      const f = new THREE.Mesh(GEO.flame, MAT.flame);
-      f.position.set(x, 0.16 * h + 0.03, z);
-      g.add(c, f);
+      g.add(c);
+      const d = new THREE.Mesh(GEO.drip, wax);
+      d.position.set(x + 0.03, 0.12 * h, z + 0.02);
+      g.add(d);
+      specs.push({ x, y: 0.16 * h, z, h: 0.15, w: 0.07 });
     }
-    const gl = glow(0xffc36a, 0.7, 0.5);
+    const fire = candleFire(specs, look),
+      gl = glow(0xffc36a, 0.7, 0.5);
     gl.position.y = 0.2;
-    g.add(gl);
+    g.userData.parts = { fire };
+    g.add(fire, gl);
+    mergeStill(g);
     return g;
   },
   pages(R) {
@@ -426,8 +407,7 @@ export function dressTheme(room: Room) {
   if (!theme) return;
   const R = mulberry(room.plan.seed ^ 0x7e3e),
     t = room.template,
-    free: { c: number; r: number }[] = [],
-    kit = DEV.roomKit && room.look.kinds ? room.look : undefined;
+    free: { c: number; r: number }[] = [];
   for (let r = 0; r < t.h; r++)
     for (let c = 0; c < t.w; c++)
       if (t.tiles[r][c] === 'floor' && !room.template.foes.some((f) => f.c === c && f.r === r)) free.push({ c, r });
@@ -458,7 +438,7 @@ export function dressTheme(room: Room) {
             ]
           : from[Math.floor(R() * from.length)];
       free.splice(free.indexOf(pick), 1);
-      const o = DRESS[kind](R, kit);
+      const o = DRESS[kind](R, room.look);
       o.position.x += room.bounds.minX + pick.c + 0.5 + (R() - 0.5) * 0.3 - room.cx;
       o.position.z += room.bounds.minZ + pick.r + 0.5 + (R() - 0.5) * 0.3 - room.cz;
       room.group.add(o);

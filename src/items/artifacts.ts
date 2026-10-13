@@ -4,10 +4,10 @@ import { attrBonus } from '../progression/attributes';
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { ArtifactSpot, Room } from '../types';
-import { DEV, G, after, player } from '../state';
+import { G, after, player } from '../state';
 import { STR } from '../strings';
 import { Sfx } from '../audio/sfx';
-import { M, blob, disposeTree, glow, glowShared, mergeStill } from '../render/materials';
+import { blob, disposeTree, glow, glowShared, mergeStill } from '../render/materials';
 import { burst } from '../combat/fx';
 import { HEART_PATH, banner, renderHearts, renderItems, renderMinimap, toast } from '../ui/hud';
 import {
@@ -174,8 +174,7 @@ export function offerSecondChoice(pool: Pool) {
 /* ---------- pedestals ---------- */
 
 /** What floats over an artifact's pedestal: its made model (data/assets.json, M3.5) turning about its middle in its
-    glow; the room kit's (artifactLooks.ts: the artifact built in code as what it is); or the placeholder: foci a gem on a
-    rod, cursed ones a dark gem in a thorn ring. */
+    glow, or the room kit's (artifactLooks.ts: the artifact built in code as what it is). */
 export function makeArtifactVisual(def: ArtifactDef) {
   const g = new THREE.Group();
   const color = hex(def.color),
@@ -183,7 +182,7 @@ export function makeArtifactVisual(def: ArtifactDef) {
   if (model) {
     model.position.y -= model.userData.height / 2; // (it stands on y = 0: lowered so it turns about its middle)
     g.add(model, glow(def.kind === 'cursed' ? CURSED_RED : color, 1.1, 0.6));
-  } else if (DEV.roomKit) {
+  } else {
     const look = artifactLook(def.icon, def.color),
       K = CFG.roomKit;
     mergeStill(look);
@@ -191,23 +190,6 @@ export function makeArtifactVisual(def: ArtifactDef) {
     const half = new THREE.Box3().setFromObject(look).getSize(new THREE.Vector3()).y / 2;
     look.position.y = Math.max(0, half - K.artifactClear); // (a tall one lifted, so it never dips into its pedestal as it bobs)
     g.add(look, glowShared(def.kind === 'cursed' ? CURSED_RED : color, 1.1, 0.6));
-  } else if (def.kind === 'focus') {
-    const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.03, 0.5, 6), M.frame.normal);
-    rod.rotation.z = 0.5;
-    const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.11), new THREE.MeshBasicMaterial({ color }));
-    gem.position.set(-0.12, 0.2, 0);
-    g.add(rod, gem, glow(color, 1.1, 0.8));
-  } else if (def.kind === 'cursed') {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.21, 0.03, 5, 12), M.frame.boss);
-    const gem = new THREE.Mesh(
-      new THREE.OctahedronGeometry(0.14),
-      new THREE.MeshStandardMaterial({ color: 0x14080a, emissive: color, emissiveIntensity: 0.6, roughness: 0.3 }),
-    );
-    g.add(ring, gem, glow(CURSED_RED, 1.3, 0.7));
-  } else {
-    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.04, 8, 20), M.frame.treasure);
-    const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.13), new THREE.MeshBasicMaterial({ color }));
-    g.add(ring, gem, glow(color, 1.2, 0.85));
   }
   return g;
 }
@@ -251,57 +233,21 @@ export function placeArtifact(
   const pedestal = new THREE.Group();
   pedestal.position.set(x - room.cx, 0, z - room.cz);
   let price: ArtifactSpot['price'];
-  const kit = DEV.roomKit && !!room.look.kinds; // (the room kit's pedestal and altar: objectLooks.ts)
-  if (opts.altar && kit) {
-    const look = altarLook(room.look);
+  if (opts.altar) {
+    const look = altarLook(room.look); // (the room kit's pedestal and altar: objectLooks.ts)
     mergeStill(look);
     pedestal.add(look);
     const tag = priceTag();
     tag.position.y = 1.75;
     pedestal.add(tag);
     price = { hearts: 1, tag };
-  } else if (opts.altar) {
-    const slab = new THREE.Mesh(new THREE.BoxGeometry(1, 0.55, 0.6), M.rock);
-    slab.position.y = 0.28;
-    const top = new THREE.Mesh(new THREE.BoxGeometry(1.08, 0.08, 0.68), M.bone);
-    top.position.y = 0.6;
-    pedestal.add(slab, top, blob(1.6));
-    for (let i = 0; i < 3; i++) {
-      // bones heaped against the front
-      const b = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.42, 6), M.bone);
-      b.position.set(-0.3 + i * 0.3, 0.1, 0.36);
-      b.rotation.set(Math.PI / 2, 0, 0.4 - i * 0.4);
-      pedestal.add(b);
-    }
-    for (const cx of [-0.4, 0.4]) {
-      // two red candles
-      const candle = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.04, 0.045, 0.18, 8),
-        new THREE.MeshStandardMaterial({ color: 0x7a1410, roughness: 0.6 }),
-      );
-      candle.position.set(cx, 0.73, -0.18);
-      pedestal.add(candle);
-      const flame = glow(0xff7a3a, 0.35, 0.9);
-      flame.position.set(cx, 0.88, -0.18);
-      pedestal.add(flame);
-    }
-    const tag = priceTag();
-    tag.position.y = 1.75;
-    pedestal.add(tag);
-    price = { hearts: 1, tag };
   } else {
-    const model = modelFor('props', 'pedestal'); // a made pedestal (M3.5), the room kit's, or the stone column
+    const model = modelFor('props', 'pedestal'); // a made pedestal (M3.5), or the room kit's
     if (model) pedestal.add(model, blob(1.3));
-    else if (kit) {
+    else {
       const look = pedestalLook(room.look);
       mergeStill(look);
       pedestal.add(look);
-    } else {
-      const col = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.38, 0.6, 8), M.rock);
-      col.position.y = 0.3;
-      const top = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.1, 8), M.rock);
-      top.position.y = 0.64;
-      pedestal.add(col, top, blob(1.3));
     }
   }
   const visual = makeArtifactVisual(def);

@@ -157,7 +157,7 @@ export function modelFor(group: Group, id: string): THREE.Object3D | null {
 
 /** A floor look's painted tile, or null for the procedural floor. */
 export const floorTile = (look: string) => (enabled ? (floors.get(look) ?? null) : null);
-/** An artifact's painted icon (its URL), or null for the drawn one. */
+/** An artifact's painted icon (its URL), or null for the one rendered from its model (items/artifactIcons.ts). */
 export const iconUrl = (id: string) => (enabled ? (icons.get(id) ?? null) : null);
 
 /** A coin face's rim: the mean colour of its outermost drawn pixels. */

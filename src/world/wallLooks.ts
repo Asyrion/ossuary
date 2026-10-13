@@ -8,8 +8,8 @@
    - its gate: an iron portcullis of spear-tipped bars, crossbars and rivets, rising from the floor when the doors lock;
    - the tall walls' pilasters (a base, a fluted shaft, a capital) and niches (an arched recess framed in blocks, a sill,
      and what the floor keeps there: a skull, candles, a hand bell, a small urn in its clay, bones, or a few pebbles).
-   What they do is unchanged (rooms.ts, dressing.ts); `DEV.roomKit` off keeps the old looks. Every piece is painted, so a
-   door's frame, its gate and a wall's dressing each draw in one or two calls. */
+   What they do is in rooms.ts and dressing.ts. Every piece is painted, so a door's frame, its gate and a wall's dressing
+   each draw in one or two calls. */
 import * as THREE from 'three';
 import type { DoorStyle, FloorLook, NicheKind } from '../types';
 import { glow, mergeStill } from '../render/materials';

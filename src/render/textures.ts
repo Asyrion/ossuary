@@ -3,7 +3,6 @@ import type { FloorLook, RoomType } from '../types';
 import { STR } from '../strings';
 import { isTouch, mulberry } from '../util';
 import { renderer } from './renderer';
-import { floorTile } from '../assets/models';
 import { CFG } from '../config';
 
 type Ctx = CanvasRenderingContext2D;
@@ -112,7 +111,6 @@ function drawRune(g: Ctx, r: number) {
   }
 }
 let glyphTex: THREE.CanvasTexture | null = null,
-  glyphStoneTex: THREE.CanvasTexture | null = null,
   shrineTex: THREE.CanvasTexture | null = null;
 /** The shrine's circle in white on transparent, tinted by the material: three rings, twelve small sigils
     between the outer two and a six-pointed star within. */
@@ -176,43 +174,9 @@ export function glyphTexture() {
   drawRune(g, 112);
   return (glyphTex = canvasTex(c));
 }
-/** A glyph stone to pick up: a dark slate with the rune glowing amber. */
-/** A hairline crack across a stretch of wall: white lines on clear, tinted by the material (dark for the
-    crack, pale blue for the glow once the cantrip has divined it). */
-let crackTex: THREE.CanvasTexture | null = null;
-export function crackTexture() {
-  if (crackTex) return crackTex;
-  const [c, g] = makeCanvas(256, 256),
-    R = mulberry(7);
-  g.strokeStyle = '#fff';
-  g.lineCap = 'round';
-  g.lineJoin = 'round';
-  const branch = (x: number, y: number, a: number, len: number, w: number, depth: number) => {
-    g.lineWidth = w;
-    g.beginPath();
-    g.moveTo(x, y);
-    for (let i = 0; i < len; i++) {
-      a += (R() - 0.5) * 0.9;
-      x += Math.cos(a) * 14;
-      y += Math.sin(a) * 14;
-      g.lineTo(x, y);
-      if (depth && R() < 0.25) {
-        g.stroke();
-        branch(x, y, a + (R() < 0.5 ? 0.8 : -0.8), len / 2, w * 0.6, depth - 1);
-        g.beginPath();
-        g.moveTo(x, y);
-      }
-    }
-    g.stroke();
-  };
-  branch(128, 20, Math.PI / 2, 16, 4, 2);
-  branch(128, 128, 0.3, 7, 2.5, 1);
-  branch(128, 128, Math.PI - 0.3, 7, 2.5, 1);
-  return (crackTex = canvasTex(c));
-}
-
-/** The same crack drawn in whole texels, `w` × `h` of them (the room kit's walls: pixelTextures.ts), sampled nearest so
-    they stay crisp. White on clear, tinted by the material, as `crackTexture`. Kept per size. */
+/** A hairline crack across a stretch of wall, drawn in whole texels, `w` × `h` of them (as the walls' bricks:
+    pixelTextures.ts), sampled nearest so they stay crisp: white on clear, tinted by the material (dark for the crack,
+    pale blue for the glow once the cantrip has divined it). Kept per size. */
 const crackTexels = new Map<string, THREE.CanvasTexture>();
 export function crackTexelTexture(w: number, h: number) {
   const key = w + 'x' + h,
@@ -248,82 +212,6 @@ export function crackTexelTexture(w: number, h: number) {
   return t;
 }
 
-export function glyphStoneTexture() {
-  if (glyphStoneTex) return glyphStoneTex;
-  const [c, g] = makeCanvas(128, 128);
-  g.translate(64, 64);
-  g.fillStyle = '#2b2622';
-  g.strokeStyle = '#6b6158';
-  g.lineWidth = 5;
-  g.beginPath();
-  g.ellipse(0, 0, 54, 58, 0, 0, Math.PI * 2);
-  g.fill();
-  g.stroke();
-  g.strokeStyle = '#ffb04a';
-  g.lineWidth = 4;
-  g.lineCap = 'round';
-  g.lineJoin = 'round';
-  g.shadowColor = '#ff8a2a';
-  g.shadowBlur = 8;
-  drawRune(g, 40);
-  return (glyphStoneTex = canvasTex(c));
-}
-
-const brickCache = new Map<string, THREE.CanvasTexture>();
-/** Tiling wall bricks in a floor's colours, with moss or soot stains. Kept for the whole session (one per look). */
-export function brickTexture(wall: FloorLook['wall']) {
-  const key = JSON.stringify(wall);
-  const hit = brickCache.get(key);
-  if (hit) return hit;
-  const [c, g] = makeCanvas(256, 256);
-  const R = mulberry(5);
-  const [br, bg, bb] = wall.brick;
-  g.fillStyle = wall.mortar;
-  g.fillRect(0, 0, 256, 256);
-  for (let row = 0; row < 4; row++)
-    for (let i = -1; i < 3; i++) {
-      const off = row % 2 ? 64 : 0,
-        x = i * 128 + off,
-        y = row * 64;
-      const v = R() * 22 - 11;
-      g.fillStyle = `rgb(${(br + v) | 0},${(bg + v) | 0},${(bb + v * 0.8) | 0})`;
-      rrect(g, x + 3, y + 3, 122, 58, 5);
-      g.fill();
-      for (let k = 0; k < 40; k++) {
-        g.fillStyle = `rgba(0,0,0,${R() * 0.2})`;
-        g.fillRect(x + R() * 128, y + R() * 64, 2 + R() * 3, 1 + R() * 2);
-      }
-      g.fillStyle = 'rgba(255,240,220,.05)';
-      g.fillRect(x + 4, y + 4, 120, 4);
-    }
-  const S = mulberry(9);
-  const blotch = (rgb: string, a: number, r0: number, r1: number) => {
-    const x = S() * 256,
-      y = S() * 256,
-      rad = r0 + S() * (r1 - r0);
-    const gr = g.createRadialGradient(x, y, 0, x, y, rad);
-    gr.addColorStop(0, `rgba(${rgb},${a})`);
-    gr.addColorStop(1, `rgba(${rgb},0)`);
-    g.fillStyle = gr;
-    g.fillRect(x - rad, y - rad, rad * 2, rad * 2);
-  };
-  if (wall.stains === 'moss') {
-    // damp: green growth and dark drip lines
-    for (let k = 0; k < 14; k++) blotch('46,84,62', 0.5, 10, 30);
-    for (let k = 0; k < 12; k++) {
-      g.fillStyle = `rgba(14,26,22,${0.25 + S() * 0.3})`;
-      g.fillRect(S() * 256, S() * 256, 1.5 + S() * 1.5, 20 + S() * 50);
-    }
-  } else if (wall.stains === 'soot') {
-    // scorched: black smears
-    for (let k = 0; k < 12; k++) blotch('6,4,3', 0.6, 16, 44);
-  }
-  const t = canvasTex(c);
-  t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  brickCache.set(key, t);
-  return t;
-}
-
 const floorCache = new Map<string, THREE.Texture>();
 /** A floor texture made elsewhere (the room kit's), kept and freed with the others. */
 export const cachedFloor = (key: string) => floorCache.get(key);
@@ -344,15 +232,13 @@ export function floorOwnedTexture<T extends THREE.Texture>(t: T) {
   floorOwned.push(t);
   return t;
 }
-/** Room floor for a floor's look, drawn over the room's inside `mask` (rows of tiles); boss rooms lean red,
-    treasure rooms warmer. Large rooms use fewer pixels per tile to keep textures small. A look with a painted tile
-    (data/assets.json, M3.5) lays it on every floor tile in place of the drawn flagstones; stains, bones and the rest
-    are drawn over it as before. */
-export function floorTexture(seed: number, kind: RoomType, look: FloorLook, mask: boolean[][]) {
+/** Room floor for a floor's look where a made floor tile (data/assets.json, M3.5) paints it, over the room's inside
+    `mask` (rows of tiles): the painted tile on every floor tile, then stains, bones and the rest drawn over it; boss rooms
+    lean red, treasure rooms warmer. Large rooms use fewer pixels per tile to keep textures small. */
+export function floorTexture(seed: number, kind: RoomType, look: FloorLook, mask: boolean[][], tile: HTMLImageElement) {
   const W = mask[0].length,
-    H = mask.length,
-    tile = floorTile(look.name);
-  const key = seed + kind + look.name + W + 'x' + H + (tile ? 'painted' : '');
+    H = mask.length;
+  const key = seed + kind + look.name + W + 'x' + H + 'painted';
   const hit = floorCache.get(key);
   if (hit) return hit;
   const P = W * H > 13 * 7 ? 56 : 72,
@@ -364,71 +250,28 @@ export function floorTexture(seed: number, kind: RoomType, look: FloorLook, mask
   const inside = (col: number, r: number) => !!mask[r]?.[col];
   const area = mask.flat().filter(Boolean).length / (13 * 7),
     n = (count: number) => Math.round(count * area);
-  const [b0, b1, b2] = look.floor.base;
-  const base =
-    kind === 'boss'
-      ? [b0 - 2, b1 - 10, b2 - 6]
-      : kind === 'treasure'
-        ? [b0 + 8, b1 + 6, b2]
-        : kind === 'secret'
-          ? [b0 - 8, b1 - 4, b2 + 6]
-          : kind === 'shrine'
-            ? [b0 + 10, b1 + 8, b2 + 4]
-            : [b0, b1, b2];
   g.fillStyle = look.floor.mortar;
   g.fillRect(0, 0, cw, ch);
   for (let r = 0; r < H; r++)
     for (let col = 0; col < W; col++) {
       if (!inside(col, r)) continue;
-      if (tile) {
-        // the painted tile, each a little lighter or darker (the room's kind leans it below)
-        g.drawImage(tile, col * P, r * P, P, P);
-        g.fillStyle = `rgba(0,0,0,${R() * 0.14})`;
-        g.fillRect(col * P, r * P, P, P);
-        continue;
-      }
-      const x = col * P,
-        y = r * P,
-        v = R() * 18 - 9,
-        ins = (2.5 + R() * 2) * S;
-      g.fillStyle = `rgb(${(base[0] + v) | 0},${(base[1] + v) | 0},${(base[2] + v * 0.8) | 0})`;
-      rrect(g, x + ins, y + ins, P - ins * 2, P - ins * 2, 7 * S);
-      g.fill();
-      for (let k = 0; k < 30; k++) {
-        g.fillStyle = `rgba(0,0,0,${R() * 0.2})`;
-        g.fillRect(x + R() * P, y + R() * P, 1 + R() * 3, 1 + R() * 3);
-      }
-      for (let k = 0; k < 8; k++) {
-        g.fillStyle = `rgba(255,236,210,${R() * 0.07})`;
-        g.fillRect(x + R() * P, y + R() * P, 1 + R() * 2, 1 + R() * 2);
-      }
-      if (R() < 0.22) {
-        g.strokeStyle = 'rgba(8,6,4,.6)';
-        g.lineWidth = 1.3;
-        g.beginPath();
-        let px = x + R() * P,
-          py = y + R() * P;
-        g.moveTo(px, py);
-        for (let s = 0; s < 4; s++) {
-          px += (R() * 24 - 12) * S;
-          py += (R() * 24 - 12) * S;
-          g.lineTo(px, py);
-        }
-        g.stroke();
-      }
+      // the painted tile, each a little lighter or darker (the room's kind leans it below)
+      g.drawImage(tile, col * P, r * P, P, P);
+      g.fillStyle = `rgba(0,0,0,${R() * 0.14})`;
+      g.fillRect(col * P, r * P, P, P);
     }
-  const lean =
-    tile &&
+  const lean = (
     {
       boss: 'rgba(70,0,0,.14)',
       treasure: 'rgba(255,190,110,.07)',
       secret: 'rgba(20,30,60,.12)',
       shrine: 'rgba(255,240,220,.07)',
-    }[kind as string];
+    } as Record<string, string | undefined>
+  )[kind];
   if (lean) {
     g.fillStyle = lean;
     g.fillRect(0, 0, cw, ch);
-  } // (a painted floor leans with its room, as the drawn one does)
+  } // (the floor leans with its room)
   for (let k = 0; k < n(7); k++) {
     const x = R() * cw,
       y = R() * ch,
@@ -548,7 +391,7 @@ export function floorTexture(seed: number, kind: RoomType, look: FloorLook, mask
   return t;
 }
 
-/** How a floor's marks are laid down: `draw` strokes and fills in the colour `rgb` at `alpha` (the old floor draws
+/** How a floor's marks are laid down: `draw` strokes and fills in the colour `rgb` at `alpha` (a painted floor draws
     straight onto its canvas; the room kit's hardens every mark into whole texels). `dither` is for soft fills. */
 export type Ink = (rgb: string, alpha: number, draw: (g: Ctx) => void, dither?: boolean) => void;
 const inkIn = (g: Ctx, rgb: string, alpha: number) => {
