@@ -5,7 +5,7 @@
    numbers runed, the base in brackets), with the runes carved in its slot; Upgraded lists the runes it has borne. */
 import { STR } from '../strings';
 import { CFG } from '../config';
-import { spellIcon } from './hud';
+import { spellIcon } from '../render/icons';
 import { spellCost } from '../magic/cost';
 import type { SpellDef } from '../magic/spellData';
 import { rune, runedDef, type RuneId } from '../magic/runeData';

@@ -1786,6 +1786,11 @@ export const STR = {
 export const foeName = (id: string) =>
   STR.options[id]?.name ?? (STR.bestiary as Record<string, { name: string }>)[id]?.name ?? id;
 
+/** What struck the mage, by name: a boss, a foe, or what in the room it was (the end screen's tally, the townspeople's
+    talk). */
+export const struckName = (id: string) =>
+  (STR.bosses as Record<string, { name?: string }>)[id]?.name ?? STR.end.home.things[id] ?? foeName(id);
+
 /** Fill every element with a data-s="path.to.string" attribute. */
 export function applyStrings(root: ParentNode = document) {
   document.title = STR.pageTitle;

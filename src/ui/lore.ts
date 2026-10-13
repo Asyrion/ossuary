@@ -8,31 +8,9 @@ import { G, player } from '../state';
 import { STR } from '../strings';
 import { $ } from '../util';
 import type { ArtifactDef } from '../items/artifactData';
-import { HEART_PATH, RES_ICONS, SOUL_HUES, SOUL_PATH, artifactIcon, coinIconBody } from './hud';
-
-export interface LoreEntry {
-  name: string;
-  kind: string;
-  effect: string;
-  lore: string;
-  icon: string;
-}
-/** Things described the first time they're taken in a run: items and containers. */
-export type LoreItem =
-  | 'coin'
-  | 'purse'
-  | 'key'
-  | 'glyph'
-  | 'halfHeart'
-  | 'heart'
-  | 'mana'
-  | 'paleSoul'
-  | 'blackSoul'
-  | 'hallowedSoul'
-  | 'shard'
-  | 'coffer'
-  | 'chest'
-  | 'gilded';
+import type { LoreEntry, LoreItem } from '../types';
+import { artifactIcon } from './hud';
+import { HEART_PATH, RES_ICONS, SOUL_HUES, SOUL_PATH, coinIconBody } from '../render/icons';
 
 const svg = (body: string, color = 'currentColor') =>
   `<svg viewBox="0 0 24 24" style="color:${color}" aria-hidden="true">${body}</svg>`;

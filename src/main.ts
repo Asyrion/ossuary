@@ -28,7 +28,7 @@ import {
 } from './ui/inventory';
 import { closeLab, initLab, labKey, labOpen, labPad } from './ui/alchemyTable';
 import { closeWaystone, initWaystone, stoneKey, stonePad, waystoneOpen } from './ui/waystone';
-import { promptShowing, setHeroInfo, toast } from './ui/hud';
+import { initHud, promptShowing, setHeroInfo, toast } from './ui/hud';
 import { initLevelUp, levelEsc, levelKey, levelOpen, levelPad } from './ui/levelUp';
 import {
   begin,
@@ -160,6 +160,7 @@ function loadDev() {
 
 async function boot() {
   const dev = loadDev(); // (loading beside the fonts and assets)
+  initHud(); // (the HUD listens to the game's events before anything happens)
   if (isTouch) document.body.classList.add('touch');
   applyStrings();
   resize();

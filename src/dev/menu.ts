@@ -98,7 +98,7 @@ import { BENCH_BOONS, setOffBoon } from './boonTest';
 import { REACTION_IDS } from '../magic/knowledge';
 import { setOffReaction } from './reactionTest';
 import { dropPage } from '../magic/pages';
-import { hexDrained } from '../ui/afflictions';
+import { hexDrained } from '../magic/hex';
 import { steamAt } from '../magic/steam';
 import { fireAt, poolsDo } from '../world/pools';
 import { inflict } from '../magic/statusFx';

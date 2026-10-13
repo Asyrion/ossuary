@@ -21,7 +21,7 @@ import { burst } from '../combat/fx';
 import { ringFx, strikeFx } from '../magic/spellFx';
 import { floatText } from '../magic/statusFx';
 import { gainMana } from '../magic/spells';
-import { hexDrained } from '../ui/afflictions';
+import { hexDrained } from '../magic/hex';
 import { line } from '../ui/hud';
 import { layFire, laySpark } from './foes';
 import { mantleSchool, type MantleId } from './mantleData';
