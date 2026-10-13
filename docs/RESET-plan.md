@@ -151,6 +151,9 @@ Small steps, each one green in CI, none changing how the game plays.
 3. **Dev code fenced:** `__game`, the dev menu, galleries and test harnesses move to `src/dev/`, loaded by a dynamic
    import, so the game's own modules never import them (the hooks stay in production builds, as the owner wants, but
    behind one door). The rule "every feature gets a dev entry" stays, written against that door.
+   (*Built 2026-10-13*: `src/devDoor.ts` is the door; `src/dev/` holds the menu, the `__game` hooks, the URL options
+   but `?seed`, the dev texts, the galleries and the test harnesses, loaded by `import('./dev')` in its own chunk; a lint
+   rule keeps game code from importing it. The last three comparison switches went first.)
 4. **Simulation apart from the UI:** a small typed event bus (`emit('hurt', …)`, `on('roomCleared', …)`) so world,
    actors, magic and items stop importing `ui/hud`; then the big cycle is cut where it runs through the UI and flow.
    `G` is split into typed slices (`run`, `room`, `stats`) with their owners; no rewrite of the game's logic.

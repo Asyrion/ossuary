@@ -13,13 +13,13 @@ cleaning, the look and the story.
 | --- | --- |
 | R0 One baseline | Done 2026-10-12 |
 | R1 Docs that tell the truth | Built 2026-10-12; the owner's read next |
-| R2 Code that is kept | **Under way:** step 1 (lint and format) done; step 2 (old paths out) built, not yet merged |
+| R2 Code that is kept | **Under way:** steps 1 and 2 done; step 3 (dev code fenced) built, not yet merged |
 | R3 The look | Waits for R2 |
 | R4 The story | Waits for R3's art bible; holds M7 steps 10 to 13 |
 | R5 The vertical slice | Last |
 
-**Next:** R2 step 3, dev code fenced (`__game`, the dev menu, galleries and test harnesses behind one door in
-`src/dev/`), planned with the owner first.
+**Next:** R2 step 4, simulation apart from the UI (a typed event bus, then `G` in typed slices), planned with the
+owner first.
 
 ## What is live
 
