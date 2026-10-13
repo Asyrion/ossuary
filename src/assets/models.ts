@@ -74,18 +74,11 @@ export async function loadAssets(search = location.search) {
           if (!buf) return missing(f);
           const gltf = await loader.parseAsync(buf, url.replace(/[^/]*$/, ''));
           if (entry.texel)
-            await wearTexel(
-              gltf.scene,
-              base + entry.file,
-              { file: base + entry.texel.file, glow: base + entry.texel.glow },
-              (m, mat) => {
-                // (its texture as pixel art, as every Tripo model wears it; both looks kept on its geometry, which every copy
-                // shares, for the dev menu's comparison)
-                m.geometry.userData.looks = { texel: mat, made: m.material };
-                (m.material as THREE.Material).userData.shared = true;
-                m.material = mat;
-              },
-            ).catch((e) =>
+            // (its texture as pixel art, as every Tripo model wears it)
+            await wearTexel(gltf.scene, base + entry.file, {
+              file: base + entry.texel.file,
+              glow: base + entry.texel.glow,
+            }).catch((e) =>
               console.warn(
                 `asset ${f.where}: its pixel-art texture could not be loaded (${String(e)}); it wears the texture as made`,
               ),
@@ -159,37 +152,9 @@ function standUp(scene: THREE.Object3D, e: ModelEntry) {
 export function modelFor(group: Group, id: string): THREE.Object3D | null {
   const m = enabled ? models.get(`${group}.${id}`) : undefined;
   if (!m) return null;
-  const copy = m.clone(true);
-  if (madeLook !== 'texel') wearLook(copy, madeLook);
-  return copy;
+  return m.clone(true);
 }
 
-/** How the made assets are drawn: their texture as pixel art (the game's look), or as made, to compare (the dev menu). */
-export type MadeLook = 'texel' | 'made';
-let madeLook: MadeLook = 'texel';
-export const madeLookNow = () => madeLook;
-/** Whether any made asset loaded has its texture as pixel art (the switch has something to switch). */
-export const madeLooks = () =>
-  [...models.values()].some((m) => {
-    let has = false;
-    m.traverse((o) => {
-      if ((o as THREE.Mesh).geometry?.userData.looks) has = true;
-    });
-    return has;
-  });
-function wearLook(root: THREE.Object3D, l: MadeLook) {
-  root.traverse((o) => {
-    const m = o as THREE.Mesh,
-      looks = m.geometry?.userData.looks as Record<MadeLook, THREE.Material> | undefined;
-    if (!looks) return;
-    m.material = m.userData.sealedTint === undefined ? looks[l] : sealedMat(looks[l], m.userData.sealedTint as number); // (a rune-sealed urn keeps its stone)
-  });
-}
-/** Draw the made assets under `roots` (the floor's rooms) and every one placed from now on in look `l`. */
-export function setMadeLook(l: MadeLook, roots: readonly THREE.Object3D[]) {
-  madeLook = l;
-  for (const r of roots) wearLook(r, l);
-}
 /** A floor look's painted tile, or null for the procedural floor. */
 export const floorTile = (look: string) => (enabled ? (floors.get(look) ?? null) : null);
 /** An artifact's painted icon (its URL), or null for the drawn one. */
@@ -245,7 +210,6 @@ export function sealedLook(model: THREE.Object3D, tint: number) {
   model.traverse((o) => {
     const m = o as THREE.Mesh;
     if (!m.isMesh) return;
-    m.userData.sealedTint = tint; // (wearLook tints the other look the same)
     m.material = Array.isArray(m.material) ? m.material.map((t) => sealedMat(t, tint)) : sealedMat(m.material, tint);
   });
   return model;

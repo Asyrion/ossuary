@@ -53,7 +53,6 @@ import {
   takeCoins,
   toggleDev,
   useAssets,
-  useMadeLook,
   useRoomKit,
   wearFace,
 } from './ui/devMenu';
@@ -187,7 +186,7 @@ import { marksNow } from './actors/spellMarks';
 import type { TransformId } from './items/transformData';
 import { THEMES } from './world/themeData';
 import { placeProp } from './world/props';
-import { assetList, assetsOn, loadAssets, madeLookNow } from './assets/models';
+import { assetList, assetsOn, loadAssets } from './assets/models';
 import { drawnRows, pixelLook, setPixelLook, type PixelLook, fineLayerDrawn } from './render/pixelLook';
 import {
   removeModelOptions,
@@ -573,12 +572,6 @@ function installDevHooks() {
       return { on: assetsOn(), list: assetList().map((a) => ({ ...a })) };
     },
     useAssets: (on: boolean) => useAssets(on),
-    /** How the made assets are drawn (2026-10-05): their texture as pixel art ('texel', the game's look) or as made; set it
-        on this floor's rooms and every one placed from now on, to compare. */
-    get madeLook() {
-      return madeLookNow();
-    },
-    setMadeLook: (l: 'texel' | 'made') => useMadeLook(l),
     /** The room kit (M3.5 step 3's proof: fire objects, the crypt's floor and walls built in code): whether it is used;
         turn it on or off (this floor is built again to compare). */
     get roomKit() {

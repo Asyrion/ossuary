@@ -71,7 +71,7 @@ import { bindIt, breakAllChains, freeIt, layShade, shadeInfo } from '../vigil/sh
 import { walkWith } from '../vigil/shadeHelp';
 import { SHADE_IDS } from '../vigil/shadeData';
 import { openLectern } from './lectern';
-import { assetList, assetsOn, madeLookNow, madeLooks, setAssetsOn, setMadeLook, type MadeLook } from '../assets/models';
+import { assetList, assetsOn, setAssetsOn } from '../assets/models';
 import { setCloseUp } from '../render/renderer';
 import { LINES, drawnRows, pixelLook, setPixelLook } from '../render/pixelLook';
 import { heroPixel, setHeroPixel } from '../actors/heroPixel';
@@ -180,7 +180,6 @@ let panel: HTMLElement | null = null,
   kitBtn: HTMLButtonElement,
   fpsBtn: HTMLButtonElement,
   assetBox: HTMLElement,
-  madeLookBtn: HTMLButtonElement,
   pxBtn: HTMLButtonElement,
   lineBtn: HTMLButtonElement,
   bandBtn: HTMLButtonElement,
@@ -319,14 +318,6 @@ export function rebuildFloor() {
   if (G.run.bossesMet.at(-1) === G.run.boss) G.run.bossesMet.pop(); // (built again, the floor draws the same boss)
   buildFloor(G.run.floor);
   warp(id);
-}
-
-/** The made assets drawn in look `l` (their texture as pixel art, or as made) on this floor and from now on, to compare. */
-export function useMadeLook(l: MadeLook) {
-  setMadeLook(
-    l,
-    G.rooms.map((r) => r.group),
-  );
 }
 
 /** The obols wear another coin face (or the rune): those lying in the room and the HUD's counter change with them. */
@@ -1154,8 +1145,6 @@ function build() {
   assets.append(
     (assetBox = el('div', 'dv-info')),
     (assetBtn = btn('', () => useAssets(!assetsOn()))),
-    // (2026-10-05, the owner: every Tripo model wears its texture as pixel art; the props and artifacts as made, to compare)
-    (madeLookBtn = btn('', () => useMadeLook(madeLookNow() === 'texel' ? 'made' : 'texel'))),
     btn(S.showAssets, () => {
       closeDev();
       showAssetsHere();
@@ -1829,9 +1818,6 @@ function refresh() {
         kae.wards.map((w) => (w.school ?? '-') + (w.shut ? ' (shut)' : '')).join(', '),
       )
     : S.noKaelith;
-  madeLookBtn.textContent = S.madeLooks[madeLookNow()];
-  madeLookBtn.classList.toggle('on', madeLookNow() !== 'texel');
-  madeLookBtn.disabled = !assetsOn() || !madeLooks();
   kitBtn.textContent = DEV.roomKit ? S.kitNew : S.kitOld;
   kitBtn.classList.toggle('on', DEV.roomKit);
   for (const part of KIT_PARTS) {

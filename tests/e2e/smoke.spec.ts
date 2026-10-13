@@ -6396,8 +6396,6 @@ test('made assets: the stand-ins load through the manifest and replace their pla
     assets: { on: boolean; list: Info[] };
     useAssets(on: boolean): void;
     showAssets(): void;
-    madeLook: string;
-    setMadeLook(l: string): void;
     current: { rocks: Rock[]; spots: { visual: { traverse(f: (o: { name: string }) => void): void } }[] };
   };
   const errors = await start(page, '?seed=K3F9QX&give=ember_sigil&assets=/tests/fixtures/assets/assets.json');
@@ -6445,22 +6443,7 @@ test('made assets: the stand-ins load through the manifest and replace their pla
   expect(list.find((a) => a.where === 'props.urn')!.triangles).toBeLessThanOrEqual(2000); // (lowered to its budget by prepare-asset)
   expect(await look()).toEqual({ on: true, urns: [true, true], texel: [true, true], sigil: true, icon: true });
   await page.screenshot({ path: 'test-results/assets-made.png' });
-  // the comparison (the Look tab's "Made assets wear"): their texture as made in this room and in those placed after, then back
-  await page.evaluate(() => {
-    const g = (window as unknown as { __game: GA }).__game;
-    g.setMadeLook('made');
-    g.showAssets();
-    g.sim(0.2, true);
-  });
-  expect(await page.evaluate(() => (window as unknown as { __game: GA }).__game.madeLook)).toBe('made');
-  expect(await look()).toMatchObject({ on: true, texel: [false, false, false, false] });
-  await page.evaluate(() => {
-    const g = (window as unknown as { __game: GA }).__game;
-    g.setMadeLook('texel');
-    g.sim(0.2, true);
-  });
-  expect(await look()).toMatchObject({ texel: [true, true, true, true] });
-  // (a rune-sealed urn keeps its dark stone through the switch: never a plain urn's material)
+  // (a rune-sealed urn keeps its dark stone: never a plain urn's material; the stand-ins shown beside the room's own)
   expect(
     await page.evaluate(() => {
       const g = (window as unknown as { __game: GA }).__game,
@@ -6471,6 +6454,8 @@ test('made assets: the stand-ins load through the manifest and replace their pla
           });
           return s;
         };
+      g.showAssets();
+      g.sim(0.2, true);
       const plain = new Set(g.current.rocks.filter((r) => r.urn === 'plain').flatMap((r) => [...mats(r)]));
       return g.current.rocks.filter((r) => r.urn === 'sealed').map((r) => [...mats(r)].some((m) => plain.has(m)));
     }),

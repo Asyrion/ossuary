@@ -817,7 +817,7 @@ the previous room's foes.
 - Systems: `reaction(r)`, `weave(id)`, `know(id, stage)`, `attune`, `socket`, `transform(id)`, `setArc(n)`,
   `toVigil`, `shade`, `talkTo`, `openLab`, `openWaystone`, `openLevelUp()`, `audioOn()`, `forceAudio`.
 - Rendering and assets: `renderInfo()`, `pixelLook`, `setPixelLook`, `assets`, `useAssets`, `showCreature`,
-  `bossLooks()`, `bestiaryOptions()`, `modelOptions()`, `familiarOptions()`, `fineLayerDrawn`, `madeLook`,
+  `bossLooks()`, `bestiaryOptions()`, `modelOptions()`, `familiarOptions()`, `fineLayerDrawn`,
   `obolFaces`, `wearFace(id)`, `coinGallery()`, `renderAudio(ask)`; galleries and their `take*` counterparts
   (`takeArtifactGallery`, `takeCoinGallery`, `takeEffectOptions`, `takeModelOptions`).
 - Reading state: `attrs`, `flights`, `pagePanel`, `growFennex()`, `forgetBestiary()`.
@@ -838,6 +838,6 @@ These exist to compare an old way against the current one. They are not part of 
 | `?looks=new\|old`, `DEV.foeLooks`, `APPROVED`, `RETIRED` | Foes not in `APPROVED` wear an older look. |
 | `lookPairs.ts`, `npm run foe-sheet` pairs | Old and new foe looks side by side; the `lookContract` test. |
 | `?pixel=1080\|720\|540\|360\|270`, `LINES`, `pixelGrid` | Whole-screen-pixel row modes beside `texel`, `fine`. |
-| `setMadeLook`, `setHeroPixel` | Made assets texel/vertex; the mage baked/as made. |
+| `setHeroPixel` | The mage baked/as made. |
 | `rotling`, `modelOptions.ts` galleries | A plain test foe; look-only galleries of foes and familiars. |
 | `src/input/touch.ts` | Frozen 0.3 touch controls: do not extend or test them. |
