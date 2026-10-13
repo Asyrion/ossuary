@@ -211,7 +211,7 @@ body.vigil #hearts,body.vigil #insight,body.vigil #belt,body.vigil #items,body.v
 @media (max-width:700px){.card{padding:20px}.controls{font-size:14px;gap:4px 12px}#minimap{width:120px;height:88px}#hearts svg{width:24px;height:24px}}
 @media (max-height:480px){.card h1{font-size:44px}.card p{font-size:16px;margin-bottom:10px}.controls{margin-bottom:12px}}
 @media (prefers-reduced-motion: reduce){#banner,#bossbar,#hurt,#lore{transition:none}}
-/* dev menu (ui/devMenu.ts): a panel docked on the right, over the paused game */
+/* dev menu (dev/menu.ts): a panel docked on the right, over the paused game */
 #dev{position:fixed;top:12px;right:12px;bottom:12px;width:min(430px,calc(100vw - 24px));z-index:20;overflow-y:auto;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:3px;box-shadow:0 16px 50px rgba(0,0,0,.6);padding:14px 16px 18px;font:14px/1.35 var(--f-ui);-webkit-user-select:text;user-select:text;touch-action:auto}
 #dev[hidden]{display:none}
 #dev header{display:flex;align-items:center;justify-content:space-between;gap:10px}
