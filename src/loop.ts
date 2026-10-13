@@ -35,6 +35,7 @@ import { updateFamiliars } from './combat/familiars';
 import { pollGamepad, type InputActions } from './input';
 import { devFrame, devStep } from './devDoor';
 import { ease, lerp } from './util';
+import { clock } from './clock';
 import { camTarget, cameraTargetFor, draw, setViewScale } from './render/renderer';
 import { checkAmbush, enterRoom } from './flow';
 import { updateMantles } from './actors/mantles';
@@ -62,13 +63,6 @@ export const uiHooks = {
 const MAX_FRAME = 1 / 30;
 
 let inputActions: InputActions;
-let last = 0,
-  acc = 0;
-
-export function resetClock() {
-  last = performance.now();
-  acc = 0;
-}
 
 /** Advance the game by one fixed step. */
 export function step(dt: number) {
@@ -160,16 +154,16 @@ function updateWorldFx(dt: number, now: number) {
 function frame(nowMs: number) {
   requestAnimationFrame(frame);
   if (window.__manual) {
-    last = nowMs;
+    clock.last = nowMs;
     return;
   }
-  devFrame(nowMs - last); // (the dev menu's frame readout)
-  acc += Math.min(MAX_FRAME, (nowMs - last) / 1000);
-  last = nowMs;
+  devFrame(nowMs - clock.last); // (the dev menu's frame readout)
+  clock.acc += Math.min(MAX_FRAME, (nowMs - clock.last) / 1000);
+  clock.last = nowMs;
   // small tolerance so rAF jitter at 60 Hz doesn't alternate between 0 and 2 steps
-  while (acc >= STEP - 1e-3) {
+  while (clock.acc >= STEP - 1e-3) {
     step(STEP);
-    acc -= STEP;
+    clock.acc -= STEP;
   }
   draw();
   uiHooks.afterDraw();
@@ -178,7 +172,7 @@ function frame(nowMs: number) {
 export function startLoop(actions: InputActions) {
   inputActions = actions;
   requestAnimationFrame((t) => {
-    last = t;
+    clock.last = t;
     frame(t);
   });
 }

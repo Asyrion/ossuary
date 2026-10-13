@@ -53,6 +53,36 @@ export default tseslint.config(
     },
   },
   {
+    // the simulation apart from the UI: world, actors, magic, items, combat, progression, vigil, flow, the loop and the
+    // shared state never import src/ui/; they tell the UI what happened through src/events.ts (and notify.ts), open its
+    // panels through src/panels.ts, and the loop runs it in its hook slots, which main.ts fills. (A later block replaces
+    // the dev door's rule for these files, so it repeats it.)
+    files: [
+      'src/{world,actors,magic,items,combat,progression,vigil}/**/*.ts',
+      'src/flow.ts',
+      'src/loop.ts',
+      'src/state.ts',
+    ],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: '^(\\.\\.?/)+dev(/|$)',
+              message: 'Game code reaches src/dev/ only through src/devDoor.ts (and main.ts its dynamic import).',
+            },
+            {
+              regex: '^(\\.\\.?/)+ui(/|$)',
+              message:
+                'The simulation reaches the UI only through src/events.ts (notify.ts) and src/panels.ts; main.ts wires the UI.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // plain JS (the dev board's page, these configs) is outside the tsconfig, so it is linted without types
     files: ['**/*.js'],
     extends: [tseslint.configs.disableTypeChecked],

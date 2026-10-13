@@ -12,6 +12,7 @@ import type { ArtifactDef, BoltPath, Stats } from './items/artifactData';
 import type { Drop, Item, Soul, Ware } from './items/loot';
 import type { Kinds, KitWeights } from './world/kitData';
 import type { RuneId, Socket } from './magic/runeData';
+import type { DustSource } from './vigil/vigilData';
 
 export type Side = 'n' | 's' | 'e' | 'w';
 export type RoomType =
@@ -737,3 +738,28 @@ export type LoreItem =
   | 'coffer'
   | 'chest'
   | 'gilded';
+
+/** The screens over the game (ui/screens.ts). */
+export type ScreenName = 'title' | 'pause' | 'end' | 'inv' | 'lab' | 'level' | 'stone' | 'lectern' | 'talk';
+/** How a run went, for the end screen. `floor` is 1-based; `artifacts` lists the focus first. */
+export interface RunSummary {
+  won: boolean;
+  floor: number;
+  floors: number;
+  time: number;
+  kills: number;
+  seed: string;
+  artifacts: string[];
+  /** Cursed artifacts cleansed at a shrine (they lose their red ring). */ cleansed: string[];
+  /** Obols picked up during the run. */ obols: number;
+  /** M6: the level reached, and the insight gained. */ level: number;
+  insight: number;
+  /** M7 step 4: what the run brings home (its Dust from each source; the obols carried and those that come home) and, after
+      a death, what struck last. */
+  home?: {
+    dust: { total: number; lines: { source: DustSource; count: number; dust: number }[] };
+    carried: number;
+    obols: number;
+    struck: string | null;
+  };
+}

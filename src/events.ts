@@ -4,7 +4,7 @@
    direct call it replaced. No queue and nothing async: a listener that throws stops the emit as a direct call would. */
 
 import type { ArtifactDef } from './items/artifactData';
-import type { Enemy, LoreEntry, LoreItem } from './types';
+import type { Enemy, LoreEntry, LoreItem, RunSummary } from './types';
 
 /** A listener for one event: takes its payload (nothing for an event without one). */
 export type Listener<P> = (payload: P) => void;
@@ -86,8 +86,16 @@ export interface GameEvents {
   dawn: void;
   daylightGone: void;
   /* ---- the screens (flow.ts; ui/screens.ts) ---- */
-  /** The game paused: the pause screen's run line, Resume focused. */
+  /** The game paused: the pause screen, its run line, Resume focused. */
   paused: void;
+  /** The game goes on: no screen over it. */
+  resumed: void;
+  /** A run or a waking begins: no screen over it. */
+  screensClosed: void;
+  /** The run ended: the end screen sums it up. */
+  runEnded: { summary: RunSummary };
+  /** A new run: the affliction chips start empty (ui/afflictions.ts). */
+  afflictionsReset: void;
   soundToggled: { muted: boolean };
   /** A hexing blow took mana (magic/hex.ts): the mana bar flashes violet. */
   manaHexed: void;

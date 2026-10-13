@@ -30,7 +30,7 @@ import { closeLab, initLab, labKey, labOpen, labPad, openLab } from './ui/alchem
 import { closeWaystone, initWaystone, openWaystone, stoneKey, stonePad, waystoneOpen } from './ui/waystone';
 import { initHud, promptShowing, setHeroInfo, toast, updateHud, updateVision } from './ui/hud';
 import { hideWarePanel, updateWarePanel } from './ui/warePanel';
-import { updateAfflictions } from './ui/afflictions';
+import { initAfflictions, updateAfflictions } from './ui/afflictions';
 import { initLore, updateLore } from './ui/lore';
 import { initBelt } from './ui/belt';
 import { initInsightHud } from './ui/insightHud';
@@ -177,6 +177,7 @@ function wireUi() {
   initInsightHud();
   initVigilHud();
   initDawn();
+  initAfflictions();
   registerPanels({
     openLab,
     closeLab,

@@ -65,7 +65,6 @@ import {
   renderBelt,
 } from './notify';
 import { emit } from './events';
-import { resetAfflictions } from './ui/afflictions';
 import { warnFloor } from './world/curve';
 import { arriveAtSeal, atSeal, enterSealRoom } from './world/seal';
 import { kaelithKneels, resetKaelith } from './actors/kaelith';
@@ -82,7 +81,6 @@ import { SPELLS } from './magic/spellData';
 import { dustFor, obolsHome } from './vigil/vigilData';
 import { daylightHooks, leaveDaylight, openShaft } from './world/daylight';
 import { pilgrimMap, resetGifts } from './items/gifts';
-import { showEndScreen, showScreen } from './ui/screens';
 import { clearSpellFx, forgetSpells, gainMana, leaveRoomSpells, learnSpell } from './magic/spells';
 import { carve, setSockets } from './magic/runes';
 import { clearGives } from './world/jellyGives';
@@ -92,7 +90,8 @@ import { enterLab } from './world/laboratory';
 import { clearThrows } from './items/potionThrow';
 import { clearStatusFx } from './magic/statusFx';
 import { clearPages, dropPage, enterLibrary, maybeDropPage } from './magic/pages';
-import { resetClock } from './loop';
+import { resetClock } from './clock';
+import { flowHooks } from './flowHooks';
 import { mulberry } from './util';
 import { burst } from './combat/fx';
 import { mimicSpot } from './actors/foes';
@@ -260,7 +259,7 @@ export function resetPlayer() {
   resetArtifacts();
   resetResources();
   resetSouls();
-  resetAfflictions();
+  emit('afflictionsReset');
   clearLines();
   resetGifts();
   forgetSpells();
@@ -358,7 +357,7 @@ export function startGame(opts?: RunOptions) {
   for (const [id, rank] of Object.entries(o.boons ?? {})) for (let k = 0; k < rank; k++) takeBoon(id, false);
   clearShadeHelp();
   shadesWalk(); // (M7 step 6: the shades bound in an earlier run walk with this one)
-  showScreen(null);
+  emit('screensClosed');
   G.state = 'play';
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, o.floor ?? 0)));
   giftsAtStart(); // (M7 step 8: what the Vigil's townspeople and powers give every descent)
@@ -464,7 +463,7 @@ export function wakeAtVigil(first = false) {
   G.stats.kills = 0;
   G.stats.obols = 0;
   clearShadeHelp();
-  showScreen(null);
+  emit('screensClosed');
   G.state = 'play';
   buildVigil(first);
   vigil().slots.forEach((id, i) => {
@@ -500,15 +499,16 @@ export function descend() {
 
 export function pause() {
   G.state = 'pause';
-  showScreen('pause');
-  emit('paused'); // (the pause screen's run line, Resume focused)
+  emit('paused'); // (the pause screen, its run line, Resume focused)
 }
 export function resume() {
   G.state = 'play';
-  showScreen(null);
+  emit('resumed');
   resetClock();
 }
 daylightHooks.done = () => endGame(true); // (M7 step 3: the end screen lies over the daylight)
+// what actors and combat ask of the run's flow (flowHooks.ts)
+Object.assign(flowHooks, { tryTransition, descend, onWaveCleared, onBossDead, endGame });
 export function endGame(won: boolean) {
   G.state = 'end';
   hideBossBar();
@@ -545,19 +545,21 @@ export function endGame(won: boolean) {
     obols,
     felled: G.run.fell,
   });
-  showEndScreen({
-    won,
-    floor,
-    floors: FLOORS.length,
-    time: G.stats.time,
-    kills: G.stats.kills,
-    seed: G.run.seed,
-    artifacts: carried,
-    cleansed: [...player.cleansed],
-    obols: G.stats.obols,
-    level: G.run.level,
-    insight: G.run.insight,
-    home: { dust, carried: player.coins, obols, struck: won ? null : G.run.struck },
+  emit('runEnded', {
+    summary: {
+      won,
+      floor,
+      floors: FLOORS.length,
+      time: G.stats.time,
+      kills: G.stats.kills,
+      seed: G.run.seed,
+      artifacts: carried,
+      cleansed: [...player.cleansed],
+      obols: G.stats.obols,
+      level: G.run.level,
+      insight: G.run.insight,
+      home: { dust, carried: player.coins, obols, struck: won ? null : G.run.struck },
+    },
   });
 }
 export function toggleSound() {

@@ -12,7 +12,7 @@ import { Sfx } from '../audio/sfx';
 import { scene } from '../render/renderer';
 import { disposeTree } from '../render/materials';
 import { heroDie, heroHit } from '../actors/hero';
-import { endGame, onBossDead } from '../flow';
+import { flowHooks } from '../flowHooks';
 import { serpentFell } from '../world/laboratory';
 import { banner, flashHurt, renderHearts, updateBossBar } from '../notify';
 import { ringFx } from '../magic/spellFx';
@@ -246,7 +246,7 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
     if (e.labBoss) {
       serpentFell(e);
       paySerpent(e);
-    } else onBossDead(e); // (M5: the jelly serpent out of its vat has its own rewards, and no trapdoor)
+    } else flowHooks.onBossDead(e); // (M5: the jelly serpent out of its vat has its own rewards, and no trapdoor)
   } else {
     if (e.foe) Sfx.at(e.x, e.z).critterDie();
     else Sfx.at(e.x, e.z).die();
@@ -387,7 +387,7 @@ export function hurtPlayer(halves: number, fromX: number, fromZ: number): boolea
     player.vx = player.vz = 0;
     const wait = heroDie();
     G.state = 'dying';
-    after(wait + 0.4, () => endGame(false));
+    after(wait + 0.4, () => flowHooks.endGame(false));
   } else {
     heroHit();
     if (player.stats.effects.has('hurtRing')) {
