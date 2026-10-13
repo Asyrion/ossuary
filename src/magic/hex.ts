@@ -19,7 +19,7 @@ export function hexDrained(n: number, from?: { x: number; z: number; dead?: bool
   player.hexed = CFG.afflict.hexShow;
   player.drained = Math.round(n);
   player.hexDebt = Math.round(n);
-  player.hexDebtUntil = G.simClock + CFG.curve.hexDebt;
+  player.hexDebtUntil = G.flow.clock + CFG.curve.hexDebt;
   floatText(player.x, 1.7, player.z, `−${Math.round(n)}`, 0xb784ff, 40);
   if (from) {
     // (motes from the mage to the thrower, one after another, following it if it moves)
@@ -40,7 +40,7 @@ export function hexDrained(n: number, from?: { x: number; z: number; dead?: bool
     first time in a run a line says so. Returns what it gave back. */
 export function hexGiveBack() {
   const n = player.hexDebt;
-  if (!(n > 0) || G.simClock > player.hexDebtUntil) return 0;
+  if (!(n > 0) || G.flow.clock > player.hexDebtUntil) return 0;
   player.hexDebt = 0;
   gainMana(n);
   floatText(player.x, 1.7, player.z, `+${n}`, 0xffe6a0, 40);

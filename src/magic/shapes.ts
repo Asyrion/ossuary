@@ -1312,13 +1312,13 @@ export function updateShapes(dt: number, acting: boolean) {
   if (!acting) return;
   updateSeals(dt);
   updateWalls(dt);
-  updateMantle(dt, G.simClock);
+  updateMantle(dt, G.flow.clock);
   updateZones(dt);
-  updateSmites(dt, G.simClock);
-  updateWard(dt, G.simClock);
-  updateLantern(dt, G.simClock);
+  updateSmites(dt, G.flow.clock);
+  updateWard(dt, G.flow.clock);
+  updateLantern(dt, G.flow.clock);
   updateGrasps(dt);
-  updateMarks(G.simClock, dt);
+  updateMarks(G.flow.clock, dt);
 }
 
 /** The mage leaves the room: what spells left in it goes quietly (the mantle goes with the mage). */

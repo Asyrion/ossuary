@@ -751,7 +751,7 @@ function updateSapping(room: Room, dt: number) {
     const inside = Math.hypot(player.x - box.x, player.z - box.z) < C.obelisk.reach;
     if (p.parts?.field)
       ((p.parts.field as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity = inside
-        ? 0.55 + Math.sin(G.simClock * 8) * 0.15
+        ? 0.55 + Math.sin(G.flow.clock * 8) * 0.15
         : 0.35;
     if (inside && !sapping) sapping = box;
   }
@@ -872,8 +872,8 @@ function updateSluice(room: Room, box: PropBox, dt: number) {
     parts.wheel.rotation.z += dt * (open ? 3 : -3) * Math.min(1, Math.abs(gate.position.y - up) * 4 + (open ? 0.3 : 0));
   parts.fall.visible = parts.foam.visible = open;
   if (open) {
-    parts.fall.scale.y = 0.92 + Math.sin(G.simClock * 23 + box.x) * 0.08;
-    parts.foam.scale.setScalar(0.9 + Math.sin(G.simClock * 9) * 0.1);
+    parts.fall.scale.y = 0.92 + Math.sin(G.flow.clock * 23 + box.x) * 0.08;
+    parts.foam.scale.setScalar(0.9 + Math.sin(G.flow.clock * 9) * 0.1);
     if (Math.random() < dt * 10) burst(box.x + (Math.random() - 0.5) * 0.5, 0.1, box.z + 0.5, 0xd8f0ff, 1, 1, 0.03);
   }
 }
@@ -889,15 +889,15 @@ export function updateMechanisms(dt: number) {
     if (p.cd && p.cd > 0) p.cd = Math.max(0, p.cd - dt);
     if (p.kind === 'statue') updateStatue(room, box, dt, fighting);
     if (p.kind === 'sluice') updateSluice(room, box, dt);
-    if (p.parts && box.mesh?.userData.kit) updateMechLook(p.parts, G.simClock, box.x);
+    if (p.parts && box.mesh?.userData.kit) updateMechLook(p.parts, G.flow.clock, box.x);
     if (p.kind === 'bell' && p.parts?.swing) {
       p.t = (p.t ?? 99) + dt;
       p.parts.swing.rotation.z = Math.sin(p.t * 9) * 0.35 * Math.exp(-p.t * 1.2);
     }
-    if (p.kind === 'censer' && p.parts?.swing) p.parts.swing.rotation.z = Math.sin(G.simClock * 1.3 + box.x) * 0.016; // (a long chain: a small swing)
+    if (p.kind === 'censer' && p.parts?.swing) p.parts.swing.rotation.z = Math.sin(G.flow.clock * 1.3 + box.x) * 0.016; // (a long chain: a small swing)
     if (p.kind === 'lodestone' && p.parts?.tip)
       (p.parts.tip as THREE.Sprite).material.opacity =
-        0.25 + (0.5 * (p.cd ?? 0)) / C.lodeCooldown + Math.sin(G.simClock * 3 + box.z) * 0.1;
+        0.25 + (0.5 * (p.cd ?? 0)) / C.lodeCooldown + Math.sin(G.flow.clock * 3 + box.z) * 0.1;
     // a charged rune stone pulses its school on the foes round it while the fight lasts
     if (p.kind === 'rune' && p.school && fighting && (p.t = (p.t ?? 0) + dt) >= C.runeEvery) {
       p.t = 0;

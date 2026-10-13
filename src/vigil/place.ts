@@ -192,9 +192,9 @@ export const vigilUi = { step: (_dt: number) => {} };
 export function updateVigil(dt: number) {
   if (!here) return;
   vigilUi.step(dt); // (a townsperson's line written out, even while the game waits)
-  updateTown(dt, G.state === 'play' && !G.trans);
+  updateTown(dt, G.flow.state === 'play' && !G.flow.trans);
   updateUnfold(dt); // (M7 step 9) // (M7 step 7: the townspeople, even while one talks)
-  if (G.state !== 'play') return;
+  if (G.flow.state !== 'play') return;
   const h = here,
     room = G.current;
   h.t += dt;

@@ -133,7 +133,7 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   if (!ward && takeEcho()) {
     const room = G.current;
     after(CFG.alchemy.echoAfter, () => {
-      if (G.current === room && !G.trans && !player.dead) CAST[def.shape](def, aimDir(cast));
+      if (G.current === room && !G.flow.trans && !player.dead) CAST[def.shape](def, aimDir(cast));
     });
   } // (M5: the Philter of Echoes casts it again)
   if (!ward && def.runes?.includes('reprise')) {
@@ -142,7 +142,7 @@ export function castSpell(slot: number, cast: Vec2 | null) {
       room = G.current,
       again = reprisedDef(def, R.share);
     after(R.after, () => {
-      if (G.current === room && !G.trans && !player.dead && CAST[def.shape](again, aimDir(cast)))
+      if (G.current === room && !G.flow.trans && !player.dead && CAST[def.shape](again, aimDir(cast)))
         runeActs('reprise', def.school);
     });
   }

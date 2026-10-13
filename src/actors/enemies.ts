@@ -230,7 +230,7 @@ export function updateEnemies(dt: number) {
     e.group.position.set(e.x, 0, e.z);
     e.body.rotation.y = e.face;
     // hit flash, else the glow of its statuses
-    const tint = e.flash > 0 ? null : statusTint(e, G.simClock);
+    const tint = e.flash > 0 ? null : statusTint(e, G.flow.clock);
     if (e.flash > 0) {
       e.flash -= dt;
       for (const m of e.mats) m.emissive.setRGB(1, 0.95, 0.9);

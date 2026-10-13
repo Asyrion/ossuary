@@ -99,9 +99,9 @@ export function damageEnemy(
     const spent = spendHex(e.status);
     if (spent) thirstHex(e.x, e.z); // (M6: Thirsting Hex drinks the stacks spent)
     let back = spent * (player.stats.effects.has('soulLantern') ? CFG.artifacts.soulLantern.hexMul : 1); // (half again with the Ferryman's Lantern)
-    if (e.toll && G.simClock >= (e.tollNext ?? 0)) {
+    if (e.toll && G.flow.clock >= (e.tollNext ?? 0)) {
       back += e.toll.mana;
-      e.tollNext = G.simClock + CFG.mana.tollEvery;
+      e.tollNext = G.flow.clock + CFG.mana.tollEvery;
     }
     if (back) {
       gainMana(back);
@@ -353,7 +353,7 @@ function struckBy(x: number, z: number) {
 }
 
 export function hurtPlayer(halves: number, fromX: number, fromZ: number): boolean {
-  if (player.invuln > 0 || G.state !== 'play') {
+  if (player.invuln > 0 || G.flow.state !== 'play') {
     striker = null;
     return false;
   }
@@ -386,7 +386,7 @@ export function hurtPlayer(halves: number, fromX: number, fromZ: number): boolea
     renderHearts();
     player.vx = player.vz = 0;
     const wait = heroDie();
-    G.state = 'dying';
+    G.flow.state = 'dying';
     after(wait + 0.4, () => flowHooks.endGame(false));
   } else {
     heroHit();

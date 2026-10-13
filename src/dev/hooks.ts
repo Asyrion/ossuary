@@ -152,7 +152,7 @@ import { SOUND_FILES, preloadSamples } from '../audio/samples';
 export function installHooks() {
   window.__game = {
     get state() {
-      return G.state;
+      return G.flow.state;
     },
     player,
     get enemies() {
@@ -514,7 +514,7 @@ export function installHooks() {
     blast: (x: number, z: number) => blastAt(x, z),
     /** The simulation's clock (seconds), against which timed states are kept (a lark's song). */
     get clock() {
-      return G.simClock;
+      return G.flow.clock;
     },
     inflict(status: Partial<Record<SpellStatus, number>>) {
       for (const e of G.enemies) inflict(e, status);

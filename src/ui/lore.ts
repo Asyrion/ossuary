@@ -104,7 +104,7 @@ export function itemLore(item: LoreItem) {
 
 /** The card's time runs only while the game does (not paused, not in the dev menu). */
 export function updateLore(dt: number) {
-  if (left <= 0 || G.state !== 'play' || player.dead) return;
+  if (left <= 0 || G.flow.state !== 'play' || player.dead) return;
   left -= dt;
   if (left <= 0) els().card.classList.remove('on');
 }
