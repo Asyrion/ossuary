@@ -397,9 +397,8 @@ fantasy creatures rather than the dead, so eight were replaced and the Urn Mimic
 lists the ten). What follows is the first round as it was.
 
 The owner liked the code-built placeholder models in the pixel look, and asked for more enemy models to choose
-from. Ten candidates are built in `src/actors/modelOptions.ts`, from simple shapes, each moving a little while it
-idles. They are looks only: the dev menu's "Enemy model options" stands them in a row ahead of the mage
-(`__game.modelOptions()`). The ones picked become foes, with behaviour, health, sounds and elemental affinities:
+from. Ten candidates were built from simple shapes, each moving a little while it idles, as looks only, stood in a
+row in the dev menu (gallery and builders since removed; the foes wear their fantasy looks). The ones picked become foes, with behaviour, health, sounds and elemental affinities:
 possibly M4, built in code instead of from Tripo, if the owner decides so. Names are placeholders.
 
 1. **Bone Crawler** (crypt): a ribcage on six bone legs, a skull for a head; skitters in bursts.
