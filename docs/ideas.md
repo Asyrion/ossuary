@@ -308,7 +308,7 @@ only one way to get them.
   that lights dark rooms and finds cracked walls; a grave rat that digs up obols; a toad that swallows shots; a
   bone hound pup that charges; a candle owl that marks the nearest foe.
 - **Open:** whether they can die, and whether they grow with the mage's levels (M6).
-- **The Rune Fox** (the owner's drawing, 2026-09-30; built in code as a look, the dev menu's Familiar options): a
+- **The Rune Fox** (the owner's drawing, 2026-09-30; built in code, it is Fen-Nex's first shape, M4.2): a
   spectral fox with runes along its flanks and a starry tail. As a familiar it trots beside the mage and leaps at the
   nearest foe. Magic take: its runes take the colour of the last spell cast, and its bite carries that spell's status.
 

@@ -1,11 +1,6 @@
-/* Enemy model options (the owner's request, 2026-09-29): candidate foes built in code from simple shapes, made to read
-   in the pixel look. The third round (2026-09-30) made them critters and small fantasy creatures rather than the dead:
-   round, big-eyed, smaller than the mage, each carrying its school's light (Ember, Frost, Storm, Hallow, Umbral) in
-   spots, crests, crystals, flames or runes, and each belonging to a floor (four in the crypt, three on the drowned
-   floor, three on the burning one). Each stands on y = 0 facing +Z (the camera) and moves a little while it idles.
-   They are looks only until M4 makes them foes, in code (the owner's decision). The dev menu's gallery stands them in
-   rows by floor ahead of the mage. Names and notes are placeholders in STR.options. Familiars the mage could bind are
-   built the same way, from the owner's drawings (FAMILIAR_OPTIONS, names in STR.familiars). */
+/* The foes' looks by model id (MODEL_OPTIONS: the floors' creatures of fantasy and the Wardlings, M4.12; `buildFoe`
+   looks a foe's up here), Fen-Nex built in code from the owner's drawings (`fennexLook`), and the dev menu's galleries of
+   the bosses, the bestiary and Dr. Jelly: stood ahead of the mage, idling, until taken away. */
 import * as THREE from 'three';
 import { drJellyLook, type JellyParts } from '../world/jellyLooks';
 import { givePose } from '../world/jellyGives';
@@ -65,17 +60,16 @@ export const MODEL_OPTIONS = [
   { id: 'wardUmbral', floor: 0, school: 'umbral', build: WARDLING_LOOKS.wardUmbral },
   { id: 'wardVerdant', floor: 0, school: 'verdant', build: WARDLING_LOOKS.wardVerdant },
 ] as const satisfies readonly { id: string; floor: 0 | 1 | 2 | 3 | 4 | 5; school: School; build: () => Built }[];
-export type ModelOptionId = (typeof MODEL_OPTIONS)[number]['id'];
 
-/* ---------- familiars ---------- */
+/* ---------- Fen-Nex ---------- */
 
 /** A familiar the owner drew (2026-09-30), rebuilt in code: a spectral fox of indigo fur, cyan runes and gold swirls
-    along its flanks, glowing eyes and paws, and a great starry tail streaming behind it. It trots in place. */
-function runeFox(sideOn = true): Built {
+    along its flanks, glowing eyes and paws, and a great starry tail streaming behind it. Built facing +Z; it trots in
+    place. */
+function runeFox(): Built {
   const g = new THREE.Group(),
     fox = new THREE.Group();
   g.add(fox);
-  if (sideOn) fox.rotation.y = Math.PI / 2; // (side on, as drawn: built facing +Z, it walks to the right)
   const fur = std(0x3a2c7a),
     furDark = std(0x241a52),
     furLight = std(0x5a6ec8),
@@ -260,13 +254,11 @@ function runeFox(sideOn = true): Built {
 
 /** Fen-Nex in its full shape (M4.2, the owner's Fen-Nex, "fox man"): a long white beast between fox, cat and dragon, its
     fur blown back into feathers tipped with flame, its legs plated dark blue with red spiral runes, eyes of ember gold, a
-    long feathered tail burning at its tip; it breathes Ember. Built facing +Z; it runs in place. `sideOn` turns it to
-    walk to the right, as the gallery shows the familiars. */
-function fenNex(sideOn = true): Built {
+    long feathered tail burning at its tip; it breathes Ember. Built facing +Z; it runs in place. */
+function fenNex(): Built {
   const g = new THREE.Group(),
     beast = new THREE.Group();
   g.add(beast);
-  if (sideOn) beast.rotation.y = Math.PI / 2;
   const fur = std(0xf4f0ea),
     shade2 = std(0xd8d2c8),
     plate = std(0x1c2a5a, { roughness: 0.5, metalness: 0.3 }),
@@ -385,54 +377,12 @@ function fenNex(sideOn = true): Built {
 }
 
 /** Fen-Nex as it is at `stage` (1 and 2: the Rune Fox, 3: its full shape), facing +Z, for the game (combat/fennex.ts). */
-export const fennexLook = (stage: number) => (stage >= 3 ? fenNex(false) : runeFox(false));
-
-/** Familiars the mage could bind, looks only (names and notes in STR.familiars). */
-export const FAMILIAR_OPTIONS = [
-  { id: 'runeFox', build: () => runeFox() },
-  { id: 'fenNex', build: () => fenNex() },
-] as const satisfies readonly { id: string; build: () => Built }[];
+export const fennexLook = (stage: number) => (stage >= 3 ? fenNex() : runeFox());
 
 /* ---------- the gallery ---------- */
 
 const shown: { room: Room; group: THREE.Group; idle: (t: number) => void }[] = [];
 let clock = 0;
-/** Stand the options (every one, or those in `only`) ahead of (north of) world (x, z) in `room`, a row per floor (the
-    crypt's nearest), on free floor; returns where each stands. */
-export function showModelOptions(room: Room, x: number, z: number, only?: readonly string[]) {
-  const gap = 1.7,
-    out: { id: string; floor: number; x: number; z: number }[] = [];
-  const picked = MODEL_OPTIONS.filter((o) => !only || only.includes(o.id));
-  const floors = [...new Set(picked.map((o) => o.floor))].sort((a, b) => (a || 99) - (b || 99)); // (the Wardlings, no floor's, last)
-  for (const [r, floor] of floors.entries()) {
-    const row = picked.filter((o) => o.floor === floor);
-    row.forEach((o, i) => {
-      const at = freeSpotNear(room, x + (i - (row.length - 1) / 2) * gap, z - 1.8 - r * 1.7);
-      const b = o.build();
-      mergeRig(b.group, b.idle, o.id);
-      b.group.position.set(at.x - room.cx, 0, at.z - room.cz);
-      b.group.add(blob(b.shadow));
-      room.group.add(b.group);
-      shown.push({ room, group: b.group, idle: b.idle });
-      out.push({ id: o.id, floor, x: at.x, z: at.z });
-    });
-  }
-  return out;
-}
-/** Stand the familiar options (every one, or those in `only`) in a row ahead of world (x, z) in `room`. */
-export function showFamiliarOptions(room: Room, x: number, z: number, only?: readonly string[]) {
-  const list = FAMILIAR_OPTIONS.filter((o) => !only || only.includes(o.id));
-  return list.map((o, i) => {
-    const at = freeSpotNear(room, x + (i - (list.length - 1) / 2) * 2, z - 1.8);
-    const b = o.build();
-    mergeRig(b.group, b.idle, o.id);
-    b.group.position.set(at.x - room.cx, 0, at.z - room.cz);
-    b.group.add(blob(b.shadow));
-    room.group.add(b.group);
-    shown.push({ room, group: b.group, idle: b.idle });
-    return { id: o.id, x: at.x, z: at.z };
-  });
-}
 /** Stand the bosses built in code (bossLooks.ts: the Hollow Warden, M4, and the bosses of the floors below and the
     Eda lore's; every one, or those in `only`) in a row ahead of world (x, z). */
 export function showBossLooks(room: Room, x: number, z: number, only?: readonly string[]) {
@@ -525,31 +475,12 @@ export function showBestiary(room: Room, x: number, z: number, only?: readonly s
   }
   return out;
 }
-/** Every step: the options in the room shown move as they idle. */
+/** Every step: the looks shown in the room move as they idle. */
 export function updateModelOptions(dt: number, current: Room) {
   clock += dt;
   for (const s of shown) if (s.room === current) s.idle(clock);
 }
-/** Stand one look built by `build` at world (x, z) in `room`, turned `ry`, merged as a foe's is (M4.12's old and new looks
-    side by side); it idles with the rest and goes with them. Its height and the names of the parts it moves. */
-export function standLook(
-  room: Room,
-  build: () => import('./beastParts').Built,
-  key: string,
-  x: number,
-  z: number,
-  ry = 0.5,
-) {
-  const b = build();
-  mergeRig(b.group, b.idle, key, Object.values(b.parts ?? {}));
-  b.group.position.set(x - room.cx, 0, z - room.cz);
-  b.group.rotation.y = ry;
-  if (b.shadow) b.group.add(blob(b.shadow));
-  room.group.add(b.group);
-  shown.push({ room, group: b.group, idle: b.idle });
-  return b;
-}
-/** Take the options shown in `room` away. */
+/** Take the looks shown in `room` away. */
 export function removeModelOptions(room: Room) {
   for (let i = shown.length - 1; i >= 0; i--)
     if (shown[i].room === room) {
@@ -558,7 +489,7 @@ export function removeModelOptions(room: Room) {
       shown.splice(i, 1);
     }
 }
-/** A new floor: its rooms are gone, and the options with them. */
+/** A new floor: its rooms are gone, and the looks with them. */
 export function clearModelOptions() {
   shown.length = 0;
 }

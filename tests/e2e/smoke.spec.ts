@@ -7745,7 +7745,7 @@ test("foes in code (M4.1): floor 5's rootling burrows and bursts up (fire keeps 
   for (const e of [e1, e2, e3, e4]) expect(e).toEqual([]);
 });
 
-test('the pixel look: at the texel from the start, the fine grid from the URL, drawn with outlines and light in bands, then off again; the mage in pixel art; and the enemy and spell effect options, without errors', async ({
+test('the pixel look: at the texel from the start, the fine grid from the URL, drawn with outlines and light in bands, then off again; the mage in pixel art; and the spell effect options, without errors', async ({
   page,
 }) => {
   type Look = { lines: 0 | 'texel' | 'fine'; outline: boolean; bands: boolean };
@@ -7802,33 +7802,9 @@ test('the pixel look: at the texel from the start, the fine grid from the URL, d
   expect(r[2].look.lines).toBe('texel');
   expect(r[3].look.lines).toBe(0);
   expect(r[1].calls).toBe(r[3].calls + 2); // (the scene, its shading at the grid's size, then the blow-up to the window)
-  // the enemy model options (looks only) stand ahead of the mage and idle, in the pixel look
-  const shown = await page.evaluate(() => {
-    const g = (window as unknown as { __game: GP & { modelOptions(): { id: string }[] } }).__game;
-    g.setPixelLook({ lines: 'texel' });
-    const at = g.modelOptions();
-    g.sim(0.5, true);
-    g.setPixelLook({ lines: 0 });
-    return at.map((a) => a.id);
-  });
-  expect(shown.length).toBe(24); // (M4.2: the five Wardlings too; M5: Verdant's)
-  // and the familiar options (the owner's drawings built in code): the Rune Fox
-  const familiars = await page.evaluate(() => {
-    const g = (window as unknown as { __game: GP & { takeModelOptions(): void; familiarOptions(): { id: string }[] } })
-      .__game;
-    g.takeModelOptions();
-    g.setPixelLook({ lines: 'fine' });
-    const at = g.familiarOptions();
-    g.sim(0.5, true);
-    g.setPixelLook({ lines: 0 });
-    return at.map((a) => a.id);
-  });
-  expect(familiars).toEqual(['runeFox', 'fenNex']); // (M4.2: the Rune Fox is Fen-Nex, and its full shape beside it)
-  // and the spell effect options, each playing its cast over and over
+  // the spell effect options, each playing its cast over and over
   const played = await page.evaluate(() => {
-    const g = (window as unknown as { __game: GP & { takeModelOptions(): void; effectOptions(): { id: string }[] } })
-      .__game;
-    g.takeModelOptions();
+    const g = (window as unknown as { __game: GP & { effectOptions(): { id: string }[] } }).__game;
     g.setPixelLook({ lines: 'texel' });
     const at = g.effectOptions();
     g.sim(2.5, true);
