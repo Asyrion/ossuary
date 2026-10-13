@@ -126,8 +126,10 @@ let testTemplate: string | undefined,
   testVariant: RoomVariant | undefined,
   forcedBoss: BossType | undefined,
   forcedTheme: string | undefined;
-export function setNextRun(opts: RunOptions) {
-  nextRun = opts;
+/** Options for the next run, added to those already set: the seed from the address (main.ts), then the dev options
+    (dev/urlOptions.ts). */
+export function addToNextRun(opts: RunOptions) {
+  nextRun = { ...nextRun, ...opts };
 }
 
 const floorCfg = () => FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];

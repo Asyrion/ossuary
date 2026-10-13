@@ -23,7 +23,7 @@ import { validateMusic } from '../../src/audio/musicData';
 import { validateAmbience } from '../../src/audio/ambienceData';
 import { validateSounds } from '../../src/audio/soundData';
 import { ARTIFACT_DEFS } from '../../src/items/artifactData';
-import { STR } from '../../src/strings';
+import { DEV_STR } from '../../src/dev/strings';
 import { DIALOGUE, validateDialogue } from '../../src/vigil/dialogueData';
 import { SHADE_IDS, validateShades } from '../../src/vigil/shadeData';
 import { TOWNSFOLK, validateTownsfolk } from '../../src/vigil/giftData';
@@ -63,7 +63,7 @@ const checks: [string, () => unknown][] = [
     'ambience',
     () =>
       validateAmbience(
-        Object.keys(STR.dev.roomNames),
+        Object.keys(DEV_STR.roomNames),
         THEME_DEFS.map((t) => t.id),
       ),
   ],
