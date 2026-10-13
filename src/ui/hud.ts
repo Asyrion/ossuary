@@ -152,7 +152,7 @@ export function renderItems() {
 const vision = $('vision'),
   v3 = new THREE.Vector3();
 export function updateVision() {
-  const on = player.stats.effects.has('vision') && G.state !== 'title' && G.state !== 'end';
+  const on = player.stats.effects.has('vision') && G.flow.state !== 'title' && G.flow.state !== 'end';
   vision.style.display = on ? 'block' : 'none';
   if (!on) return;
   v3.set(player.x, 0.6, player.z).project(camera);

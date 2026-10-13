@@ -253,7 +253,7 @@ const firstTime = (what: string, text: string) => {
 
 /** Each step: the marks follow the mage and show what their spells and knowledge are. */
 export function updateSpellMarks(dt: number) {
-  const now = G.simClock,
+  const now = G.flow.clock,
     { arcs, key } = knowledge(),
     mastered = masteredSchools(arcs),
     off = player.dead;

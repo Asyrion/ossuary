@@ -277,7 +277,7 @@ function fan(
 /** A second ring a moment later, if the boss is still alive and the fight still on. */
 function laterRing(e: Enemy, delay: number, n: number, speed: number, offset: number) {
   after(delay, () => {
-    if (!e.dead && G.state === 'play' && G.enemies.includes(e)) ringOfShots(e, n, speed, offset);
+    if (!e.dead && G.flow.state === 'play' && G.enemies.includes(e)) ringOfShots(e, n, speed, offset);
   });
 }
 

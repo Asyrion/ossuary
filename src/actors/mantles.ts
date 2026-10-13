@@ -128,7 +128,7 @@ function stormStep(e: Enemy, dt: number) {
   const S = CFG.mantleLooks.storm;
   st.t -= dt;
   st.strike -= dt;
-  st.cloud.position.x = Math.sin(G.simClock * 0.9) * 0.08;
+  st.cloud.position.x = Math.sin(G.flow.clock * 0.9) * 0.08;
   st.cloud.rotation.y += dt * 0.6;
   st.flash.material.opacity = Math.max(0, st.flash.material.opacity - dt * 4);
   if (st.t > 0) return;
@@ -207,8 +207,8 @@ export function unbind(e: Enemy) {
 /** A status its mantle keeps off landed on `e`: a puff in its light, and now and then the word. */
 export function shrugOff(e: Enemy) {
   burst(e.x, 0.8, e.z, lightOf(e.mantle!), 4, 1.2, 0.03);
-  if (G.simClock - (e.saidAt ?? -9) > 1.5) {
-    e.saidAt = G.simClock;
+  if (G.flow.clock - (e.saidAt ?? -9) > 1.5) {
+    e.saidAt = G.flow.clock;
     floatText(e.x, 1.7, e.z, STR.foes.shrugs, lightOf(e.mantle!));
   }
 }
@@ -235,7 +235,7 @@ export function mantleFell(e: Enemy) {
   burst(x, 0.5, z, violet, 16, 1.6, 0.04);
   Sfx.at(x, z).curse();
   after(H.curseDelay, () => {
-    if (G.current !== room || G.state !== 'play') return;
+    if (G.current !== room || G.flow.state !== 'play') return;
     burst(x, 0.3, z, violet, 20, H.curseReach, 0.05);
     if (Math.hypot(player.x - x, player.z - z) < H.curseReach) {
       const took = Math.min(player.mana, H.curse);
@@ -268,7 +268,7 @@ export function updateMantles(dt: number) {
         );
     } else if (e.mantleRing) e.mantleRing.rotation.y += dt * 0.8;
     if (e.mantle === 'hallowed') {
-      if (e.mantleRing) e.mantleRing.scale.setScalar(1 + Math.sin(G.simClock * 2.4) * 0.08);
+      if (e.mantleRing) e.mantleRing.scale.setScalar(1 + Math.sin(G.flow.clock * 2.4) * 0.08);
       if (Math.random() < dt * 2.5)
         burst(
           e.x + (Math.random() - 0.5) * e.r * 1.6,

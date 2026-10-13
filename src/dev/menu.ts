@@ -192,10 +192,10 @@ export function toggleDev() {
 
 /** Open over a run (playing or paused); the game waits while it's open. */
 function openDev() {
-  if (G.state !== 'play' && G.state !== 'pause') return;
+  if (G.flow.state !== 'play' && G.flow.state !== 'pause') return;
   panel ??= build();
-  wasPlaying = G.state === 'play';
-  if (wasPlaying) G.state = 'pause';
+  wasPlaying = G.flow.state === 'play';
+  if (wasPlaying) G.flow.state = 'pause';
   refresh();
   panel.hidden = false;
 }
@@ -203,7 +203,7 @@ export function closeDev() {
   if (!panel || panel.hidden) return;
   panel.hidden = true;
   (document.activeElement as HTMLElement | null)?.blur?.();
-  if (wasPlaying && G.state === 'pause') resume();
+  if (wasPlaying && G.flow.state === 'pause') resume();
 }
 
 /* ---------- building blocks ---------- */
@@ -284,7 +284,7 @@ export function forceKinds(k: Partial<Kinds>) {
 }
 /** This floor built again on its seed (the same rooms and boss), and the mage back in the room they were in. */
 export function rebuildFloor() {
-  if (G.state === 'title') return;
+  if (G.flow.state === 'title') return;
   const id = G.current.plan.id;
   if (G.run.bossesMet.at(-1) === G.run.boss) G.run.bossesMet.pop(); // (built again, the floor draws the same boss)
   buildFloor(G.run.floor);

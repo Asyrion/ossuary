@@ -209,8 +209,8 @@ export function updateInsight(dt: number) {
     if (k >= 1) {
       flying.splice(i, 1);
       burst(hand.x, hand.y, hand.z, s.color.getHex(), 3, 0.8, 0.03);
-      if (G.simClock - chimeAt > L.chimeGap) {
-        chimeAt = G.simClock;
+      if (G.flow.clock - chimeAt > L.chimeGap) {
+        chimeAt = G.flow.clock;
         Sfx.insight();
       }
       continue;

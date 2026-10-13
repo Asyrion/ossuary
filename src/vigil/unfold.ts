@@ -195,7 +195,7 @@ export function updateUnfold(dt: number) {
     vista.fall.offset.y += dt * CFG.daylight.fall;
   }
   for (const t of h.cave.falls) t.offset.y += dt * C().fall;
-  if (G.state !== 'play' || G.trans) return;
+  if (G.flow.state !== 'play' || G.flow.trans) return;
   const room = G.current;
   if (!h.said.has(room)) {
     const l = roomLine(room);

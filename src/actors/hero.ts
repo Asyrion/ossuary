@@ -207,7 +207,7 @@ export function heroVisual(dt: number, now: number) {
   const sd = shootDir();
   let targetYaw = player.yawA;
   if (player.dead) targetYaw = player.yawA;
-  else if (sd && G.state === 'play') targetYaw = Math.atan2(sd.x, sd.z);
+  else if (sd && G.flow.state === 'play') targetYaw = Math.atan2(sd.x, sd.z);
   else if (moving > 0.4) targetYaw = Math.atan2(player.vx, player.vz);
   player.yawA = angleLerp(player.yawA, targetYaw, 1 - Math.exp(-16 * dt));
   hero.root.position.set(player.x, player.dead ? 0 : floatLift(now), player.z);

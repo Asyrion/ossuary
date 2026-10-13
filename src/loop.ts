@@ -66,12 +66,12 @@ let inputActions: InputActions;
 
 /** Advance the game by one fixed step. */
 export function step(dt: number) {
-  G.simClock += dt;
-  const now = G.simClock;
+  G.flow.clock += dt;
+  const now = G.flow.clock;
   pollGamepad(inputActions);
-  if (G.state === 'play' || G.state === 'dying') {
+  if (G.flow.state === 'play' || G.flow.state === 'dying') {
     updateTimers(dt);
-    const tr = G.trans;
+    const tr = G.flow.trans;
     if (tr) {
       tr.t += dt;
       const k = ease(Math.min(1, tr.t / tr.dur));
@@ -81,12 +81,12 @@ export function step(dt: number) {
       camTarget.z = lerp(tr.cfz, tr.ctz, k);
       setViewScale(lerp(tr.vf, tr.vt, k));
       if (tr.t >= tr.dur) {
-        G.trans = null;
+        G.flow.trans = null;
         player.vx *= 0.5;
         player.vz *= 0.5;
         enterRoom(tr.nb);
       }
-    } else if (G.state === 'play') {
+    } else if (G.flow.state === 'play') {
       G.stats.time += dt;
       updatePlayer(dt);
       checkAmbush();
@@ -108,7 +108,7 @@ export function step(dt: number) {
     } else updateEnemies(0);
   }
   updateDaylight(dt); // (M7 step 3: the cave mouth at dawn, and the shaft's dust before it)
-  if (!G.trans) updateVigil(dt); // (M7 step 5: the Vigil's lectern, boat and barred ways)
+  if (!G.flow.trans) updateVigil(dt); // (M7 step 5: the Vigil's lectern, boat and barred ways)
   updateShades(dt); // (M7 step 6: a chained shade comes forth, asks, and goes)
   Sfx.listen(player.x, player.z); // effects are heard from just above the mage
   updateParticles(dt);
@@ -127,26 +127,26 @@ function updateWorldFx(dt: number, now: number) {
   updatePages(dt, now);
   updateVaultSeals(dt, now);
   updateSecretWalls(dt, now);
-  const live = G.state === 'play' && !G.trans;
+  const live = G.flow.state === 'play' && !G.flow.trans;
   uiHooks.panels(live ? pageNear() : null, live); // a spell's panel over the page near the mage, and what a ware near it is
-  updateFamiliars(dt, now, G.state === 'play' && !G.trans);
-  updateShadeHelp(dt, now, G.state === 'play' && !G.trans); // (M7 step 6: the bound shades walking with the mage)
-  updateShrine(dt, now, G.state === 'play' && !G.trans);
-  updateMagic(dt, G.state === 'play' && !G.trans);
+  updateFamiliars(dt, now, G.flow.state === 'play' && !G.flow.trans);
+  updateShadeHelp(dt, now, G.flow.state === 'play' && !G.flow.trans); // (M7 step 6: the bound shades walking with the mage)
+  updateShrine(dt, now, G.flow.state === 'play' && !G.flow.trans);
+  updateMagic(dt, G.flow.state === 'play' && !G.flow.trans);
   updateStatusFx(dt);
-  updatePools(dt, now, G.state === 'play' && !G.trans);
-  updateSteam(G.state === 'play' ? dt : 0);
-  if (G.state === 'play' && !G.trans) {
+  updatePools(dt, now, G.flow.state === 'play' && !G.flow.trans);
+  updateSteam(G.flow.state === 'play' ? dt : 0);
+  if (G.flow.state === 'play' && !G.flow.trans) {
     updateProps(dt);
     updateThemes(dt);
     updateMechanisms(dt);
-    updateWardShields(G.simClock);
+    updateWardShields(G.flow.clock);
   } // burning, briars, spores; sleepers, rising bones; bells, runes, censers
-  devStep(dt, G.current, G.state === 'play' && !G.trans); // (the dev galleries, when dev code stood any)
+  devStep(dt, G.current, G.flow.state === 'play' && !G.flow.trans); // (the dev galleries, when dev code stood any)
   const tf = 0.92 + Math.sin(now * 13) * 0.05 + Math.sin(now * 23) * 0.04;
   updateTorchLights(G.current.torches, player.x, player.z, dt, tf);
   G.fx.shake = Math.max(0, G.fx.shake - dt * 1.4);
-  updateInsight(G.state === 'play' ? dt : 0); // (M6: insight's streaks run to the hand)
+  updateInsight(G.flow.state === 'play' ? dt : 0); // (M6: insight's streaks run to the hand)
   uiHooks.endOfStep(dt);
   updateAudio(); // (the soundscapes and the music: what the game is doing chooses them)
 }

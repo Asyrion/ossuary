@@ -163,7 +163,7 @@ export function updateShades(dt: number) {
   if (!s) return;
   s.t += dt;
   if (s.state === 'waiting') {
-    if (G.current === s.room && s.room.cleared && G.state === 'play' && !G.trans) appear(s);
+    if (G.current === s.room && s.room.cleared && G.flow.state === 'play' && !G.flow.trans) appear(s);
     return;
   }
   if (!s.look) return;

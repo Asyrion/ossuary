@@ -439,8 +439,8 @@ const tome: Behaviour = {
 
 /** A swarm's one mind, worked out once a step by whichever of it moves first. */
 function think(p: Pack, dt: number, P: Params) {
-  if (p.stamp === G.simClock) return;
-  p.stamp = G.simClock;
+  if (p.stamp === G.flow.clock) return;
+  p.stamp = G.flow.clock;
   const alive = p.members.filter((m) => !m.dead);
   if (!alive.length) return;
   p.st -= dt;
@@ -516,8 +516,8 @@ const swarm: Behaviour = {
     e.tele = p.state === 'tell' ? Math.min(1, 1 - p.st / num(P.tell)) : 0;
     const i = p.members.indexOf(e),
       n = p.members.length,
-      ang = (e.cycle ?? 0) + G.simClock * num(P.spin) + (i / n) * Math.PI * 2;
-    const R = num(P.orbit) * (0.6 + 0.4 * Math.sin(G.simClock * 1.3 + i));
+      ang = (e.cycle ?? 0) + G.flow.clock * num(P.spin) + (i / n) * Math.PI * 2;
+    const R = num(P.orbit) * (0.6 + 0.4 * Math.sin(G.flow.clock * 1.3 + i));
     steer(e, p.cx + Math.cos(ang) * R, p.cz + Math.sin(ang) * R * 0.8, sp, dt, 0.35);
   },
   die(e, P) {
@@ -590,7 +590,7 @@ const singer: Behaviour = {
         Sfx.at(e.x, e.z).larkSong();
         for (const o of G.enemies)
           if (o !== e && !o.dead && !o.isBoss && Math.hypot(o.x - e.x, o.z - e.z) < num(P.songRange)) {
-            o.sung = G.simClock + num(P.hasteTime);
+            o.sung = G.flow.clock + num(P.hasteTime);
             burst(o.x, 0.8, o.z, light(e), 2, 1, 0.03);
           }
       }
@@ -3185,8 +3185,8 @@ const raven: Behaviour = {
 /** A wolf pack's mind, once a step: their ring round the mage turns; by turns one lunges; now and then one howls and the
     pack is hastened (as a lark's song hastens). */
 function wolfMind(p: Pack, dt: number, P: Params) {
-  if (p.stamp === G.simClock) return;
-  p.stamp = G.simClock;
+  if (p.stamp === G.flow.clock) return;
+  p.stamp = G.flow.clock;
   const live = p.members.filter((m) => !m.dead);
   if (!live.length) return;
   if (p.state !== 'wolves') {
@@ -3209,7 +3209,7 @@ function wolfMind(p: Pack, dt: number, P: Params) {
   if (p.tz <= 0) {
     p.tz = span(P.howlEvery);
     const w = live[Math.floor(Math.random() * live.length)];
-    for (const m of live) m.sung = G.simClock + num(P.haste);
+    for (const m of live) m.sung = G.flow.clock + num(P.haste);
     w.tele = 1;
     Sfx.at(w.x, w.z).wolfHowl();
     burst(w.x, 1, w.z, light(w), 10, 1.8, 0.04);
@@ -3286,7 +3286,7 @@ const wolf: Behaviour = {
   },
   pose(e) {
     if (e.state === 'tell') e.parts!.head.rotation.x -= (e.tele ?? 0) * 0.3;
-    lean(e.parts!.tail, (e.sung ?? 0) > G.simClock ? -0.4 : 0);
+    lean(e.parts!.tail, (e.sung ?? 0) > G.flow.clock ? -0.4 : 0);
   }, // (the head's tilt its idle sets; the tail up while hastened)
 };
 
@@ -3565,7 +3565,7 @@ export const BESTIARY_BEHAVIOURS: Record<string, Behaviour> = {
   manticore,
 };
 /** How fast a foe a lark has sung to moves (1: not sung to). */
-export const songHaste = (e: Enemy) => ((e.sung ?? 0) > G.simClock ? CFG.bestiary.songHaste : 1);
+export const songHaste = (e: Enemy) => ((e.sung ?? 0) > G.flow.clock ? CFG.bestiary.songHaste : 1);
 /** Make a pack of `n` foes of one kind round (x, z), sharing one mind (the firefly swarm): each made by `make`. */
 export function packOf(n: number, x: number, z: number, make: (x: number, z: number) => Enemy) {
   const first = make(x, z),

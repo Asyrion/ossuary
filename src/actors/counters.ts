@@ -25,9 +25,9 @@ export function counterAt(id: string, kind: string, x: number, z: number) {
   if (!text) return; // (not one of its counters)
   const fresh = foundCounter(id as FoeId, kind),
     key = id + ':' + kind;
-  if (fresh || G.simClock - (said.get(key) ?? -9) > 1.2) {
+  if (fresh || G.flow.clock - (said.get(key) ?? -9) > 1.2) {
     floatText(x, 1.8, z, STR.foes.counters[kind], GOLD, fresh ? 40 : 30);
-    said.set(key, G.simClock);
+    said.set(key, G.flow.clock);
   }
   if (fresh) {
     Sfx.at(x, z).counter();

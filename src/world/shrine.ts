@@ -348,7 +348,7 @@ export function updateShrine(dt: number, now: number, acting: boolean) {
     if (acting && !r) syncStones(room); // curses taken or cleansed meanwhile (the dev menu)
   }
   if (!r) return;
-  if (r.room !== room || G.trans || player.dead) {
+  if (r.room !== room || G.flow.trans || player.dead) {
     // the mage left: the curse slips back at once
     if (r.flee < 0 && !player.dead) toast(STR.toast.curseEscaped(artifact(r.stone.id).name), 3.5);
     endRite();

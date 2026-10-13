@@ -219,7 +219,7 @@ const emitT = new WeakMap<THREE.Object3D, number>(),
 /** What moves in what is worn: the aura and runes turn, the grimoire bobs, wings beat, eyes flare and fade, and markers let
     out motes (footsteps while walking, breath, sparks). */
 function moveWorn(dt: number) {
-  const now = G.simClock,
+  const now = G.flow.clock,
     walking = Math.hypot(player.vx, player.vz) > 0.6;
   flare = Math.max(0, flare - dt * 1.4);
   for (const o of movers) {

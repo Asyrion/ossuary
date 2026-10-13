@@ -20,8 +20,8 @@ export function weaveAt(id: WeaveId, x: number, z: number) {
     [a, b] = w.schools;
   burst(x, 0.7, z, SCHOOL_LIGHT[a], 10, 2, 0.04);
   burst(x, 0.7, z, SCHOOL_LIGHT[b], 10, 2, 0.04);
-  if (!first && G.simClock - (last.get(id) ?? -99) < CFG.spellFx.weaveName) return false;
-  last.set(id, G.simClock);
+  if (!first && G.flow.clock - (last.get(id) ?? -99) < CFG.spellFx.weaveName) return false;
+  last.set(id, G.flow.clock);
   floatText(x, 1.9, z, STR.weaves[id].name, w.kind === 'weave' ? 0xfff0c8 : 0xd8e0ff, first ? 52 : 44);
   Sfx.at(x, z).weave(a, b);
   return first;

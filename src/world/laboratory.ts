@@ -126,7 +126,7 @@ export function updateLab(now: number) {
     G.current,
     lab?.jelly.g.userData.parts as JellyParts | undefined,
     now,
-    UI.labOpen || G.current.locked || G.state !== 'play',
+    UI.labOpen || G.current.locked || G.flow.state !== 'play',
   );
   if (!lab) return;
   const body = lab.jelly.g.userData.body as THREE.Object3D,
@@ -159,8 +159,8 @@ export function vatStruck(room: Room, x: number, z: number) {
   if (!lab || lab.broken || G.run.serpent !== 'caged') return false;
   const w = windowAt(room);
   if (z > w.z + 0.35 || Math.abs(x - w.x) > 1.05) return false;
-  if (G.simClock - lab.crackAt < V().crackGap) return true; // (a fan of shards is one crack)
-  lab.crackAt = G.simClock;
+  if (G.flow.clock - lab.crackAt < V().crackGap) return true; // (a fan of shards is one crack)
+  lab.crackAt = G.flow.clock;
   lab.cracks++;
   const cracks = lab.vat.userData.cracks as THREE.Object3D[];
   cracks[Math.min(cracks.length, lab.cracks) - 1].visible = true;

@@ -476,8 +476,8 @@ export function fireAt(x: number, z: number, r = 0) {
       for (const t of p.tiles) burst(t.x, 0.15, t.z, WATER, 2, 1.2, 0.04);
       steamAt(x, z);
     } // (fire on ice: it goes up in steam)
-    else if (p.kind === 'water' && p.state === 'still' && G.simClock >= (p.boilAt ?? 0)) {
-      p.boilAt = G.simClock + C.boilEvery;
+    else if (p.kind === 'water' && p.state === 'still' && G.flow.clock >= (p.boilAt ?? 0)) {
+      p.boilAt = G.flow.clock + C.boilEvery;
       steamAt(x, z, C.boilSteam);
       Sfx.at(x, z).steam();
     } // (fire on water boils it: steam, now and then a pool)

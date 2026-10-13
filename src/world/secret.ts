@@ -223,7 +223,7 @@ function lanternReveal(room: Room) {
 
 /** Dust drifts from the current room's cracked walls now and then; divined cracks glow, breathing slowly. */
 export function updateSecretWalls(dt: number, now: number) {
-  if (player.stats.effects.has('graveLantern') && G.state === 'play' && !G.trans) lanternReveal(G.current);
+  if (player.stats.effects.has('graveLantern') && G.flow.state === 'play' && !G.flow.trans) lanternReveal(G.current);
   for (const d of G.current.doors) {
     const s = d.secret;
     if (!s || s.open) continue;

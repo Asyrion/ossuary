@@ -215,7 +215,7 @@ export function buildFloor(index: number) {
   player.vx = player.vz = 0;
   aimCamera(start);
   setDarkness(0, true);
-  G.trans = null;
+  G.flow.trans = null;
   hideBossBar();
   resetKaelith();
   leaveDaylight(); // (M7: no fight of Kaelith's outlives its floor, and a new run starts below)
@@ -223,7 +223,7 @@ export function buildFloor(index: number) {
   enterRoom(start);
   pilgrimMap();
   helpNewFloor(); // (M4.6: the Pilgrim knows the floor's way; M7 step 6: a bound embalmer's draught, a bound pilgrim's map)
-  if (G.state === 'play') {
+  if (G.flow.state === 'play') {
     banner(...STR.floors[Math.min(index, STR.floors.length - 1)]);
     warnFloor(index);
     if (atSeal(index)) arriveAtSeal();
@@ -358,7 +358,7 @@ export function startGame(opts?: RunOptions) {
   clearShadeHelp();
   shadesWalk(); // (M7 step 6: the shades bound in an earlier run walk with this one)
   emit('screensClosed');
-  G.state = 'play';
+  G.flow.state = 'play';
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, o.floor ?? 0)));
   giftsAtStart(); // (M7 step 8: what the Vigil's townspeople and powers give every descent)
   if (o.level) setLevel(o.level);
@@ -414,7 +414,7 @@ let vigilFirstAsked = false;
 export const startsAtVigil = () => toVigilFirst();
 /** Start (the title, the end screen, the pad's Start or Enter): at the Vigil once a run has been played, else a run. */
 export function begin() {
-  if (G.state === 'end' || toVigilFirst()) wakeAtVigil(vigilFirstAsked || !vigil().candle);
+  if (G.flow.state === 'end' || toVigilFirst()) wakeAtVigil(vigilFirstAsked || !vigil().candle);
   else startGame();
 }
 
@@ -422,7 +422,7 @@ export function begin() {
     fight; the mage beside the bier in the Crypt. */
 function buildVigil(first: boolean) {
   clearFloor();
-  G.trans = null;
+  G.flow.trans = null;
   hideBossBar();
   resetKaelith();
   leaveDaylight();
@@ -464,7 +464,7 @@ export function wakeAtVigil(first = false) {
   G.stats.obols = 0;
   clearShadeHelp();
   emit('screensClosed');
-  G.state = 'play';
+  G.flow.state = 'play';
   buildVigil(first);
   vigil().slots.forEach((id, i) => {
     if (id && SPELLS.has(id) && atLeast(stage(id), 'learned')) learnSpell(id, i, true);
@@ -498,11 +498,11 @@ export function descend() {
 }
 
 export function pause() {
-  G.state = 'pause';
+  G.flow.state = 'pause';
   emit('paused'); // (the pause screen, its run line, Resume focused)
 }
 export function resume() {
-  G.state = 'play';
+  G.flow.state = 'play';
   emit('resumed');
   resetClock();
 }
@@ -510,7 +510,7 @@ daylightHooks.done = () => endGame(true); // (M7 step 3: the end screen lies ove
 // what actors and combat ask of the run's flow (flowHooks.ts)
 Object.assign(flowHooks, { tryTransition, descend, onWaveCleared, onBossDead, endGame });
 export function endGame(won: boolean) {
-  G.state = 'end';
+  G.flow.state = 'end';
   hideBossBar();
   clearPages();
   if (won) Sfx.victory();
@@ -680,7 +680,7 @@ function spawnWave(room: Room, ambush = false) {
 /** Ambush rooms spring once the mage is committed: near the middle, or well away from every door. */
 export function checkAmbush() {
   const room = G.current;
-  if (room.ambush !== 'armed' || G.trans) return;
+  if (room.ambush !== 'armed' || G.flow.trans) return;
   const fromDoors = Math.min(...room.doors.map((d) => Math.hypot(player.x - d.x, player.z - d.z)));
   const middle = Math.hypot(player.x - room.cx, player.z - room.cz);
   if (middle > CFG.ambush.middle && fromDoors < CFG.ambush.fromDoors) return;
@@ -854,7 +854,7 @@ export function tryTransition() {
     showRooms(cur, nb);
     clearGlyphs();
     leaveRoomSpells(); // a glyph left burning goes out when the mage leaves, as do seals and walls
-    G.trans = {
+    G.flow.trans = {
       t: 0,
       dur: 0.42,
       nb,
@@ -898,7 +898,7 @@ export function clearRoom() {
 export function warp(gx: number, gy?: number) {
   const r = gy === undefined ? G.floor.rooms.find((x) => x.plan.id === gx) : roomAt(gx, gy);
   if (!r) throw new Error(`No room at ${gy === undefined ? 'id ' + gx : gx + ',' + gy}`);
-  G.trans = null;
+  G.flow.trans = null;
   clearProjectiles();
   clearGlyphs();
   leaveRoomSpells();

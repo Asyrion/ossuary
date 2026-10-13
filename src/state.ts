@@ -18,6 +18,11 @@ export type GameState = 'title' | 'play' | 'pause' | 'dying' | 'end' | 'daylight
 
 /** What only shows: the particles and decals `combat/fx.ts` spawns (`flow.ts` clears them with the floor), and the camera's
     shake, which any blow worth feeling raises, `loop.ts` decays and `render/renderer.ts` reads. */
+/** Where the game is: its state, which `flow.ts` moves (`combat/damage.ts` to dying, `world/daylight.ts` to daylight, the
+    dev menu to pause); the pan between rooms, which `flow.ts` starts and `loop.ts` ends; and the simulation's clock, which
+    only `loop.ts` advances. */
+export type FlowState = { state: GameState; trans: Transition | null; clock: number };
+
 /** The floor: its rooms (`world/rooms.ts` adds each as it is built, `flow.ts` clears them for the next floor) and its way
     down, which `items/pickups.ts` opens as a trapdoor, `world/daylight.ts` as Kaelith's shaft and `flow.ts` takes away. */
 export type FloorState = { rooms: Room[]; roomMap: Map<string, Room>; trapdoor: Trapdoor | null };
@@ -26,8 +31,7 @@ export type FxState = { particles: Particle[]; decals: THREE.Mesh[]; shake: numb
 
 /** Shared mutable game state. Modules read and write it through this one object. */
 export const G = {
-  state: 'title' as GameState,
-  trans: null as Transition | null,
+  flow: { state: 'title', trans: null, clock: 0 } as FlowState,
   current: undefined as unknown as Room, // set by buildFloor() during boot
   enemies: [] as Enemy[],
   bolts: [] as Bolt[],
@@ -109,7 +113,6 @@ export const G = {
     /** M7 step 9: whose candle burns in the chapel for this run (its blessing; vigil/gifts.ts). */ blessing: null as
       string | null,
   },
-  simClock: 0,
   floor: { rooms: [], roomMap: new Map(), trapdoor: null } as FloorState,
   fx: { particles: [], decals: [], shake: 0 } as FxState,
 };

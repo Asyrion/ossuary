@@ -22,7 +22,7 @@ export function checkLevelUp(dt: number) {
     return;
   }
   const fighting = G.current.locked || G.enemies.some((e) => !e.dead);
-  if (G.state !== 'play' || G.trans || fighting || otherScreenUp()) {
+  if (G.flow.state !== 'play' || G.flow.trans || fighting || otherScreenUp()) {
     calm = 0;
     waitsSaid(fighting);
     return;
@@ -42,7 +42,7 @@ export function checkLevelUp(dt: number) {
 }
 /** The first time in a run a level waits on a fight, a line says so. */
 function waitsSaid(fighting: boolean) {
-  if (fighting && G.state === 'play' && !G.run.hinted.has('levelWaits')) {
+  if (fighting && G.flow.state === 'play' && !G.run.hinted.has('levelWaits')) {
     G.run.hinted.add('levelWaits');
     line(STR.levels.waits, CFG.afflict.lineShow);
   }

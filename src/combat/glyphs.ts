@@ -86,7 +86,7 @@ let cooldown = 0;
 
 /** Chalk a glyph at the mage's feet, if they have one. */
 export function placeGlyph() {
-  if (cooldown > 0 || G.trans || G.state !== 'play') return false;
+  if (cooldown > 0 || G.flow.trans || G.flow.state !== 'play') return false;
   if (atVigil()) {
     Sfx.noGlyph();
     toast(STR.vigil.chalk, 2.4);

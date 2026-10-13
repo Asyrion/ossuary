@@ -375,9 +375,9 @@ export function updateFoeHazards(dt: number) {
       const k =
         Math.min(1, h.t / 0.4) *
         (kind !== 'spark'
-          ? 0.85 + Math.sin(G.simClock * 11 + i) * 0.15
+          ? 0.85 + Math.sin(G.flow.clock * 11 + i) * 0.15
           : h.armed
-            ? 0.9 + Math.sin(G.simClock * 30 + i) * 0.1
+            ? 0.9 + Math.sin(G.flow.clock * 30 + i) * 0.1
             : 0.45);
       mesh.setMatrixAt(i, m4.compose(v3.set(h.x, 0.04, h.z), q0, s3.setScalar((kind !== 'spark' ? 0.75 : 0.6) * k)));
     });

@@ -82,8 +82,8 @@ function layRune(x: number, z: number, damage: number) {
 const chilled = new WeakMap<Enemy, number>();
 /** Foe `e` touched the mage: the Frostborn chills it (no more often than `every`). */
 export function touched(e: Enemy) {
-  if (!has('frostTouch') || e.dead || G.simClock - (chilled.get(e) ?? -Infinity) < T.frost.every) return;
-  chilled.set(e, G.simClock);
+  if (!has('frostTouch') || e.dead || G.flow.clock - (chilled.get(e) ?? -Infinity) < T.frost.every) return;
+  chilled.set(e, G.flow.clock);
   inflict(e, { chill: T.frost.chill });
   burst(e.x, 0.6, e.z, SCHOOL_LIGHT.frost, 8, 1.6, 0.035);
   Sfx.at(e.x, e.z).rimeTouch();

@@ -72,11 +72,11 @@ const input: InputActions = {
     else if (labOpen()) closeLab();
     else if (waystoneOpen()) closeWaystone();
     else if (inventoryOpen()) closeInventory();
-    else if (G.state === 'play') pause();
-    else if (G.state === 'pause') resume();
+    else if (G.flow.state === 'play') pause();
+    else if (G.flow.state === 'pause') resume();
   },
   confirm: () => {
-    if (G.state === 'title' || G.state === 'end') begin();
+    if (G.flow.state === 'title' || G.flow.state === 'end') begin();
   }, // (M7 step 5: to the Vigil once a run has been played)
   startButton: () => {
     if (devMenuOpen()) closeDevMenu();
@@ -86,13 +86,13 @@ const input: InputActions = {
     else if (labOpen()) closeLab();
     else if (waystoneOpen()) closeWaystone();
     else if (inventoryOpen()) closeInventory();
-    else if (G.state === 'play') pause();
-    else if (G.state === 'pause') resume();
+    else if (G.flow.state === 'play') pause();
+    else if (G.flow.state === 'pause') resume();
     else begin();
   },
   toggleSound,
   autoPause: () => {
-    if (G.state === 'play') pause();
+    if (G.flow.state === 'play') pause();
   },
   toggleDev: () => {
     if (inventoryOpen()) closeInventory();
@@ -105,13 +105,13 @@ const input: InputActions = {
     if (levelOpen()) return levelKey(code); // (M6: the level-up screen's choice waits)
     if (labOpen()) return labKey(code); // (M5: the alchemy table takes its keys first)
     if (waystoneOpen()) return stoneKey(code); // (M6: the waystone's screen, the same)
-    const used = inventoryKey(code, G.state === 'play');
+    const used = inventoryKey(code, G.flow.state === 'play');
     if (used === 'open') {
       pause();
       openInventory('play');
       return true;
     }
-    if (!used && code === 'KeyI' && G.state === 'pause') {
+    if (!used && code === 'KeyI' && G.flow.state === 'pause') {
       openInventory('pause');
       return true;
     } // from the pause menu
@@ -126,18 +126,18 @@ const input: InputActions = {
     if (waystoneOpen()) return stonePad(i);
     if (inventoryOpen()) return inventoryPad(i);
     if (i !== 8) return false; // View opens the inventory, while playing or paused
-    if (G.state === 'play') {
+    if (G.flow.state === 'play') {
       pause();
       openInventory('play');
       return true;
     }
-    if (G.state === 'pause') {
+    if (G.flow.state === 'pause') {
       openInventory('pause');
       return true;
     }
     return false;
   },
-  playing: () => G.state === 'play',
+  playing: () => G.flow.state === 'play',
 };
 
 async function loadDefaultHero() {
@@ -224,7 +224,7 @@ async function boot() {
     resume,
     toggleSound,
     pauseIfPlaying: () => {
-      if (G.state === 'play') pause();
+      if (G.flow.state === 'play') pause();
     },
   });
   initInventory({ resume });

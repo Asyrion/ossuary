@@ -51,9 +51,9 @@ function pump() {
 
 /** The mood the game is in: under a heart the music thins; a boss alive; the doors locked; else exploring. */
 function moodNow(): Mood {
-  if (G.state === 'title') return 'title';
-  if (G.state === 'dying' || player.dead) return 'quiet';
-  if (G.state === 'end') return 'title';
+  if (G.flow.state === 'title') return 'title';
+  if (G.flow.state === 'dying' || player.dead) return 'quiet';
+  if (G.flow.state === 'end') return 'title';
   if (player.hp > 0 && player.hp <= CFG.audio.lowHp) return 'low';
   if (G.enemies.some((e) => e.isBoss && !e.dead)) return 'boss';
   return G.current?.locked ? 'fight' : 'explore';
@@ -84,18 +84,18 @@ export function updateAudio() {
     mus.setSpace(spaceFor(floor, roomScape('daylight')?.scape ?? null), t);
     mus.muffle(false, t);
     mus.play(DAYLIGHT_PIECE, 'title', t);
-  } else if (G.state === 'title') {
+  } else if (G.flow.state === 'title') {
     amb.stop(t, 2);
     mus.play(TITLE_PIECE, 'title', t);
-  } else if (atVigil() && G.state !== 'end') {
+  } else if (atVigil() && G.flow.state !== 'end') {
     // (M7 step 5: the Vigil between descents: its stillness and candles, the Landing's water, its piece)
     const scape = VIGIL.rooms[G.floor.rooms.indexOf(room)]?.name === 'landing' ? 'vigilLanding' : 'vigil';
     amb.set(floor, scape, undefined, t);
-    amb.duck(G.state === 'pause' ? CFG.audio.pauseDuck : 1, t);
+    amb.duck(G.flow.state === 'pause' ? CFG.audio.pauseDuck : 1, t);
     mus.setSpace(spaceFor(floor, roomScape(scape)?.scape ?? null), t);
-    mus.muffle(G.state === 'pause', t);
+    mus.muffle(G.flow.state === 'pause', t);
     mus.play(VIGIL_PIECE, 'explore', t);
-  } else if (G.state === 'end') {
+  } else if (G.flow.state === 'end') {
     amb.stop(t, 3);
     mus.play(TITLE_PIECE, 'title', t);
   } else {
@@ -104,7 +104,7 @@ export function updateAudio() {
     mus.setSpace(spaceFor(floor, roomScape(room?.type ?? 'normal', theme)?.scape ?? null), t);
     mus.play(mood === 'boss' && BOSS_PIECES[G.run.boss] ? BOSS_PIECES[G.run.boss] : floorPiece(floor), mood, t); // (M7: Kaelith's theme in its fight)
     amb.duck(
-      G.state === 'pause'
+      G.flow.state === 'pause'
         ? CFG.audio.pauseDuck
         : mood === 'boss'
           ? CFG.audio.bossDuck
@@ -113,7 +113,7 @@ export function updateAudio() {
             : 1,
       t,
     );
-    mus.muffle(G.state === 'pause', t);
+    mus.muffle(G.flow.state === 'pause', t);
     // a fight won in this room: a stinger; the mage fallen: the death phrase, once
     if (
       (lastMood === 'fight' || lastMood === 'boss') &&
@@ -122,11 +122,11 @@ export function updateAudio() {
       room?.cleared
     )
       mus.stinger('cleared', t);
-    if (G.state === 'dying' && !died) {
+    if (G.flow.state === 'dying' && !died) {
       died = true;
       mus.stinger('death', t);
     }
-    if (G.state === 'play' && !player.dead) died = false;
+    if (G.flow.state === 'play' && !player.dead) died = false;
   }
   lastMood = mood;
   lastRoom = room;
