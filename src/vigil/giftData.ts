@@ -1,7 +1,7 @@
 /* What the townspeople give (docs/M7-plan.md, decisions 7, 11 and 12), as data (data/townsfolk.json): each
    one's gift when freed and its second gift once its bond is deepened in full (obols laid on its eyes, `bonds`: the obols
    for each step), the six powers (each a townsperson's, bought once with Arcane Dust), the three quests, and the six
-   disciplines (loadouts: a starting spell and focus; the Great Circle offers them). Pure: the shape, what a
+   disciplines (loadouts: a starting spell and focus; the Great Circle is to offer them). Pure: the shape, what a
    run begins with from all of it (`startOf`), a quest's goal checked on the save (`questMet`), and the checks. */
 import data from '../../data/townsfolk.json';
 

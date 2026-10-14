@@ -220,7 +220,7 @@ describe('floor generator', () => {
           expect(r.artifact).toBe(false);
         }
         labs += count('laboratory');
-        // the waystone room, on floors 1 to 4: one cell beside the boss room, opening only into it, never touching the
+        // the waystone room, on every floor: one cell beside the boss room, opening only into it, never touching the
         // secret room, its door in the middle of its edge, which the boss room's template leaves clear
         expect(count('waystone')).toBeLessThanOrEqual(cfg.waystone ? 1 : 0);
         for (const r of plan.rooms.filter((x) => x.type === 'waystone')) {

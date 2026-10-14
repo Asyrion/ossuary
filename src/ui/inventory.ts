@@ -560,7 +560,7 @@ const css = (n: number) => '#' + n.toString(16).padStart(6, '0');
 
 /** The Foes tab: every foe the mage has met, by floor, then the bosses: its weakness and resistance once found
     (an elemental drinks its own school), and its counters, found ones described and the rest sealed. Kept between runs
-    (actors/bestiary.ts); bestiary at the Vigil grows from it. */
+    (actors/bestiary.ts); a bestiary at the Vigil is to grow from it. */
 function foeEntries(): Entry[] {
   const book = bestiary(),
     F = I().foes,

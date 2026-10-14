@@ -1,6 +1,6 @@
 /* The six Wardlings (docs/archive/M4.12-plan.md; let out of a drinking ward, one for each school) as ward
    cores: a faceted crystal heart with one slit eye, in a cage of turning runes, in its school's light. Each has the parts
-   its fight moves (`body`, which it swells, and `light`) and about its height. */
+   its fight moves (`body`, which the fight swells, and `light`) and about its height. */
 import * as THREE from 'three';
 import { glow } from '../render/materials';
 import { SCHOOL_LIGHT, crystal, lit, part, runeRing, sphere, std, type School } from '../render/arcane';

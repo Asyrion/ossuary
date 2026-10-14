@@ -40,7 +40,7 @@ describe('the curve (M4.9): pressure dials', () => {
       'floor 1: ordealWaves 0.5',
       'floor 2: no pressure',
     ]);
-    expect(floors[0].pressure).toEqual({ extra: 0.12, eliteMul: 1.1, ordealWaves: 0 }); // (floor 1's dials, measured by the bot at its level)
+    expect(floors[0].pressure).toEqual({ extra: 0.12, eliteMul: 1.1, ordealWaves: 0 }); // (floor 1 pinned: its dials set how hard runs begin, measured by the bot at its level)
     expect(floors[4].pressure.extra).toBeGreaterThan(0.25);
   });
 
