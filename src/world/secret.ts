@@ -50,7 +50,7 @@ export function fillSecret(room: Room) {
     spawnPickup('coffer', p.x, p.z);
   }
   const hoard = rollTable(G.run.drops, 'secretHoard', LOOT, soulsHere());
-  const laid: Drop[] = runeHere('secret') ? [...hoard, 'rune'] : hoard; // (M6 step 8: half the cells keep a rune, on the runes' own stream, in the hoard's ring)
+  const laid: Drop[] = runeHere('secret') ? [...hoard, 'rune'] : hoard; // (half the cells keep a rune, on the runes' own stream, in the hoard's ring)
   laid.forEach((item, i) => {
     const a = 0.3 + (i / laid.length) * Math.PI * 2,
       p = spot(Math.cos(a) * 1.6, Math.sin(a) * 1.2 + 0.3);

@@ -1,4 +1,4 @@
-/* The looks of what fills the Vigil's rooms behind its barred ways (M7 step 9; docs/M7-plan.md, decision 9), built in code
+/* The looks of what fills the Vigil's rooms behind its barred ways (docs/M7-plan.md, decision 9), built in code
    from the room kit's parts: what the freed raise at the Cave Mouth, as the Huruhui's cave cities are built (a house of
    drystone under a roof of turf, a terrace stepped into the rock, a garden bed, a fall of water into a basin), the candle
    chapel's altar, and the garden of the dead's beds, one for each reagent. Each is built standing on its tile's middle, its

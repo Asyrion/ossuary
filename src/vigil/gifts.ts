@@ -1,8 +1,8 @@
-/* The townspeople's gifts at work (M7 step 8; docs/M7-plan.md, decisions 7, 11 and 12; the data and sums in giftData.ts).
+/* The townspeople's gifts at work (docs/M7-plan.md, decisions 7, 11 and 12; the data and sums in giftData.ts).
    - **Freed** (`giftOnFree`, from shades.ts): its gift now: a discipline opened, spells learned (to hold at the lectern),
      spells into the libraries' pools, recipes learned; what it gives every descent from then on; its power to ask for.
    - **Every descent** (`giftsAtStart`, from flow.ts's `startGame` once the first floor is built): what the gifts in force,
-     the quests done and the powers owned give, said in one line (nothing silent); M7 step 9: the candle lit in the chapel
+     the quests done and the powers owned give, said in one line (nothing silent); and the candle lit in the chapel
      (its blessing, for this descent alone) and the garden's reagent. The powers' mana and hearts are folded
      into the mage's numbers (artifacts.ts's `growth`, from giftData's `startOf`).
    - **At the Vigil** (vigil/town.ts, ui/talk.ts): each talk ends with what can be offered: obols laid on its eyes (5, then
@@ -94,7 +94,7 @@ export function giftOnFree(id: string) {
   line(S().freed(nameOf(id), list(words.length ? words : [S().nothing])), 6);
 }
 
-/** M7 step 9: a candle's blessing in words ("your spells a tenth harder", "2 glyphs"). */
+/** A candle's blessing in words ("your spells a tenth harder", "2 glyphs"). */
 export function blessingWords(id: string) {
   const b = blessingOf(id),
     W = S().bless as Record<string, (v: number) => string>;
@@ -102,7 +102,7 @@ export function blessingWords(id: string) {
 }
 
 /** A descent begins (the first floor built): what the Vigil gives it, in one line: the gifts in force, the powers, the
-    candle lit in the chapel for it (M7 step 9: its blessing, burning down with this descent) and the garden's reagent. */
+    candle lit in the chapel for it (its blessing, burning down with this descent) and the garden's reagent. */
 export function giftsAtStart() {
   const v = vigil(),
     blessed = takeBlessing();

@@ -50,8 +50,8 @@ export interface TemplateDef {
   grid: string[];
   /** A themed room's theme (world/themeData.ts, data/themes.json). */ theme?: string;
   /** Ordeal rooms: the enemies of each wave. */ waves?: string[][];
-  /** M4.2: the way its water flows (a current, fed by a waterfall where it leaves the wall upstream). */ current?: Flow;
-  /** M7: a room of a fixed level only (the Seal's), never drawn for a generated floor. */ fixed?: boolean;
+  /** The way its water flows (a current, fed by a waterfall where it leaves the wall upstream). */ current?: Flow;
+  /** A room of a fixed level only (the Seal's), never drawn for a generated floor. */ fixed?: boolean;
 }
 export type Flow = 'n' | 's' | 'e' | 'w';
 export interface Foe {
@@ -69,7 +69,7 @@ export interface Template {
   tiles: Tile[][]; // [row][col]
   /** Enemies per wave: one wave for normal and boss rooms, none for empty rooms. */ waves: Foe[][];
   /** Every enemy of every wave. */ foes: Foe[];
-  /** M4.2: the way its water flows, mirrored with the grid. */ current?: Flow;
+  /** The way its water flows, mirrored with the grid. */ current?: Flow;
 }
 
 const TILE_OF: Record<string, Tile> = {
@@ -143,7 +143,7 @@ export function validateTemplate(def: TemplateDef): string[] {
   const errs: string[] = [];
   if (!SHAPE_IDS.includes(def.shape)) return [`unknown shape "${def.shape}"`];
   if (def.current !== undefined && !(['n', 's', 'e', 'w'] as string[]).includes(def.current))
-    errs.push(`unknown current "${def.current}"`); // (M4.2)
+    errs.push(`unknown current "${def.current}"`);
   const size = shapeSize(def.shape);
   if (def.grid.length !== size.h) errs.push(`has ${def.grid.length} rows, needs ${size.h}`);
   def.grid.forEach((row, r) => {
@@ -227,7 +227,7 @@ export function validateTemplate(def: TemplateDef): string[] {
   return errs;
 }
 
-/** Where a room's running water (M4.2, `current`) meets the wall it flows from: the runs of water tiles along that
+/** Where a room's running water (`current`) meets the wall it flows from: the runs of water tiles along that
     edge (tile indices along the wall, `i1` past the last), each a waterfall's span, and the wall they pour from. */
 export function fallRuns(t: Pick<Template, 'tiles' | 'w' | 'h' | 'current'>) {
   const f = t.current,
@@ -245,7 +245,7 @@ export function fallRuns(t: Pick<Template, 'tiles' | 'w' | 'h' | 'current'>) {
   return runs;
 }
 
-/** A tile as far as pools go: a candle stand standing in water (M4.2) is part of the pool round it. */
+/** A tile as far as pools go: a candle stand standing in water is part of the pool round it. */
 const wet = (tile: Tile) => (tile === 'wetCandles' ? 'water' : tile);
 /** Pools in a parsed template: water or oil tiles joined side by side (not corner to corner) into one pool. */
 export function poolsOf(t: Pick<Template, 'tiles' | 'w' | 'h'>) {
@@ -361,6 +361,6 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   ...(specialTemplates as TemplateDef[]),
   ...(shapedTemplates as TemplateDef[]),
   ...(themedTemplates as TemplateDef[]),
-  ...(vigilTemplates as TemplateDef[]), // (M7 step 5: the Vigil's rooms, `fixed`)
+  ...(vigilTemplates as TemplateDef[]), // (the Vigil's rooms, `fixed`)
 ];
 export const TEMPLATES = new Map(TEMPLATE_DEFS.map((d) => [d.id, d]));

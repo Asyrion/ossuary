@@ -38,7 +38,7 @@ export interface BossConfig {
   shotSpeedMul: number;
   summons: number;
   volleys: number;
-  /** M6: the insight the floor's boss gives when it falls (the same for every boss in the pool). */ insight: number;
+  /** The insight the floor's boss gives when it falls (the same for every boss in the pool). */ insight: number;
 }
 export interface FloorConfig {
   rooms: [number, number];
@@ -47,34 +47,34 @@ export interface FloorConfig {
   /** Chance the floor has a locked vault. */ vaultChance: number;
   /** Whether the floor has a shrine, where curses are cleansed (GDD: 1 on floor 2). */ shrine: boolean;
   /** Whether the floor has a library, where grimoire pages teach spells (GDD: one on every floor). */ library: boolean;
-  /** Whether the floor has Dr. Jelly's laboratory, with its alchemy table (M5: floors 1 and 3). */ laboratory?: boolean;
-  /** Whether the floor has a waystone room beside its boss room, holding the way down (M6 step 10: floors 1 to 4; M7: 5 too, the Seal below it). */ waystone?: boolean;
+  /** Whether the floor has Dr. Jelly's laboratory, with its alchemy table (floors 1 and 3). */ laboratory?: boolean;
+  /** Whether the floor has a waystone room beside its boss room, holding the way down (floors 1 to 5, the Seal below it). */ waystone?: boolean;
   /** Chance the secret room holds an artifact (outside the budget) rather than a hoard. */ secretArtifactChance: number;
   /** The champion that rises in a vault forced open with glyphs. */ vaultWarden: FoeType;
-  /** M7 step 6: the chance a chained shade lies somewhere on the floor (data/shades.json). */ shade?: number;
-  /** How much likelier soul motes are in the floor's loot than on the first floors (M4.1: the deep floors give more;
+  /** The chance a chained shade lies somewhere on the floor (data/shades.json). */ shade?: number;
+  /** How much likelier soul motes are in the floor's loot than on the first floors (the deep floors give more;
       1 when unset). */ souls?: number;
-  /** M6 step 8: how likely runes are in the floor's loot, times each chance in data/loot.json's `runes` (0 on floor 5:
+  /** How likely runes are in the floor's loot, times each chance in data/loot.json's `runes` (0 on floor 5:
       no waystone lies below it to carve them); 1 when unset. */ runes?: number;
-  /** The floor's foes by role (M4): what fills a template's walkers (`R`), flyers and shooters (`W`) and chargers and
+  /** The floor's foes by role: what fills a template's walkers (`R`), flyers and shooters (`W`) and chargers and
       heavies (`H`), by weight (actors/foeData.ts). */ foes: RoleTable;
   /** Chance the boss room is widened into a great hall when there is space. */ bossHallChance: number;
-  /** Chance a door moves off the middle of its edge, where both rooms leave room for it (M3.6). */ doorShift: number;
-  /** Chance a fight takes place in a themed room, and which themes the floor draws on, by weight (M3.6). */
+  /** Chance a door moves off the middle of its edge, where both rooms leave room for it. */ doorShift: number;
+  /** Chance a fight takes place in a themed room, and which themes the floor draws on, by weight. */
   themeChance: number;
   themes: Record<string, number>;
   /** Relative weights of room shapes for new rooms. */ shapes: Partial<Record<ShapeId, number>>;
   /** Relative weights of the variants a normal room can roll. */ variants: Partial<Record<RoomVariant, number>>;
-  /** Relative weights of the school mantles a champion here wears (M4.7, actors/mantleData.ts). */ mantles?: Partial<
+  /** Relative weights of the school mantles a champion here wears (actors/mantleData.ts). */ mantles?: Partial<
     Record<string, number>
   >;
-  /** How often a fight here rolls a pair of foes made to work together, and the pairs (M4.7, `pairRoom` in foeData.ts). */ pairs?: PairTable;
-  /** The descent's pressure dials (M4.9, `Pressure` in foeData.ts): one more foe in a share of fights, likelier elites,
+  /** How often a fight here rolls a pair of foes made to work together, and the pairs (`pairRoom` in foeData.ts). */ pairs?: PairTable;
+  /** The descent's pressure dials (`Pressure` in foeData.ts): one more foe in a share of fights, likelier elites,
       more waves in an ordeal. */ pressure: Pressure;
   templateWeights: Record<string, number>;
   boss: BossConfig;
   look: FloorLook;
-  /** M7 step 1: a level laid by hand instead of generated (the Seal below floor 5): each room's type, shape, top-left
+  /** A level laid by hand instead of generated (the Seal below floor 5): each room's type, shape, top-left
       cell and template; doors on every edge two rooms share, the first room the start. */ fixed?: {
     rooms: FixedRoom[];
   };
@@ -102,7 +102,7 @@ export interface PlannedDoor {
   side: Side;
   to: number;
   shift?: number;
-  /** M7 step 9: a doorway at the Vigil barred by a school, shut until it opens. */ barred?: boolean;
+  /** A doorway at the Vigil barred by a school, shut until it opens. */ barred?: boolean;
 }
 export interface PlannedRoom {
   id: number;
@@ -425,11 +425,11 @@ export function generateFloor(
       cfg.doorShift,
       library,
     );
-    // M5: Dr. Jelly's laboratory comes on top of the room count, last and on a stream of its own (the rest of the floor is as
+    // Dr. Jelly's laboratory comes on top of the room count, last and on a stream of its own (the rest of the floor is as
     // it would be without it)
     if (cfg.laboratory)
       placeLaboratory(new Rng(rooms.reduce((a, r) => ((a ^ r.seed) * 17) >>> 0, 0x1ab0)), rooms, library);
-    // M6 step 10: the waystone room beside the boss room, last (after the laboratory, which may take a cell beside the boss
+    // the waystone room beside the boss room, last (after the laboratory, which may take a cell beside the boss
     // room first), on a stream from the boss room's seed
     if (cfg.waystone) placeWaystone(new Rng((rooms[boss].seed ^ 0x57a7e) >>> 0), rooms, library);
     return { index, rooms, startId: 0, bossId: boss, attempts };
@@ -437,7 +437,7 @@ export function generateFloor(
   throw new Error('floor generation failed after 500 attempts');
 }
 
-/** M7 step 1: a level laid by hand (`fixed` in its floor's data): its rooms where the data puts them, doors on every edge two
+/** A level laid by hand (`fixed` in its floor's data): its rooms where the data puts them, doors on every edge two
     of them share, the first the start; the boss's room the boss, its distances walked from the start. Its own seeds come
     from `rng`, so a run's seed still decides each room's dressing. */
 export function fixedPlan(
@@ -451,7 +451,7 @@ export function fixedPlan(
   if (rooms[0].type !== 'start' || bossId < 0) throw new Error('a fixed level needs its start first and a boss');
   return { index, rooms, startId: 0, bossId, attempts: 1 };
 }
-/** M7 step 5: the Vigil's map (data/vigil.json), laid as a fixed level is but with no boss: the first room the start,
+/** The Vigil's map (data/vigil.json), laid as a fixed level is but with no boss: the first room the start,
     every room reached. Its index is the Vigil's own (`VIGIL_INDEX`), never a floor's. */
 export function hubPlan(rng: Rng, list: FixedRoom[], index: number, library: TemplateDef[] = TEMPLATE_DEFS): FloorPlan {
   return { index, rooms: layFixed(rng, list, library), startId: 0, bossId: -1, attempts: 1 };
@@ -489,7 +489,7 @@ function layFixed(rng: Rng, list: FixedRoom[], library: TemplateDef[]): PlannedR
   return rooms;
 }
 
-/** M6 step 10: the waystone room: one more one-cell room on a free cell beside the boss room (any of a great hall's
+/** The waystone room: one more one-cell room on a free cell beside the boss room (any of a great hall's
     cells), opening only into it, never touching the secret room, a lone cell where there is one. Its door is in the middle
     of its edge, which every boss template leaves clear (`validateTemplate`). Null where no cell is free: the stone then
     rises in the boss room. */
@@ -542,7 +542,7 @@ export function placeWaystone(rng: Rng, rooms: PlannedRoom[], library: TemplateD
   return stone;
 }
 
-/** M5: Dr. Jelly's laboratory: one more one-cell room, on a free cell beside an ordinary fight room at least a step from
+/** Dr. Jelly's laboratory: one more one-cell room, on a free cell beside an ordinary fight room at least a step from
     the start (so the rooms beside the start keep their ways), with one door into it; a cell beside no other room if there
     is one, so it is a dead end. None when there is no such cell. */
 export function placeLaboratory(rng: Rng, rooms: PlannedRoom[], library: TemplateDef[] = TEMPLATE_DEFS) {

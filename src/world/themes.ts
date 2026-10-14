@@ -1,4 +1,4 @@
-/* Themed rooms in play (M3.6 step 3; the data is in themeData.ts and data/themes.json): the dressing a theme scatters
+/* Themed rooms in play (the data is in themeData.ts and data/themes.json): the dressing a theme scatters
    over the floor, which never blocks, and the twists:
    - risingBones  the ossuary's bone piles and skull heaps burst, one at a time, if the fight drags on, and the floor's
                   walker comes out of what nested in them;
@@ -6,7 +6,7 @@
    - sleepers     the pilgrims' rest's foes sleep until hurt, or until the mage comes close;
    - caveIn       a glyph's blast in the collapsed crypt brings more of the ceiling down: stones fall round it a moment
                   later (their shadows show where), hurting what they land on and leaving rubble;
-   - garden       (M5) the overgrown garden's Overgrown holds longer (`inflict` in magic/statusFx.ts, `CFG.themes.gardenGrow`). */
+   - garden       the overgrown garden's Overgrown holds longer (`inflict` in magic/statusFx.ts, `CFG.themes.gardenGrow`). */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import { callFoe } from '../actors/foeData';
@@ -89,7 +89,7 @@ const GEO = {
   rope: shared(new THREE.CylinderGeometry(0.02, 0.02, 3.2, 4)),
   tuft: shared(new THREE.ConeGeometry(0.05, 0.16, 6)),
 };
-/** The garden's flowers (M5): a blade of grass, a stem and a bloom, and the colours the blooms come in. */
+/** The garden's flowers: a blade of grass, a stem and a bloom, and the colours the blooms come in. */
 const FLOWER = {
   blade: shared(new THREE.ConeGeometry(0.018, 0.16, 3).translate(0, 0.08, 0)),
   stem: shared(new THREE.CylinderGeometry(0.008, 0.01, 1, 4).translate(0, 0.5, 0)),
@@ -343,7 +343,7 @@ const DRESS: Record<ScatterKind, Dress> = {
     m.rotation.y = R() * 6;
     return m;
   },
-  // M4.1: obols spilled from the treasury's heaps (only to look at: the heaps hold the ones to take), and the landing's
+  // obols spilled from the treasury's heaps (only to look at: the heaps hold the ones to take), and the landing's
   // lamps on poles, burning with the shore's pale spirit fire
   coins(R) {
     const g = new THREE.Group();
@@ -379,7 +379,7 @@ const DRESS: Record<ScatterKind, Dress> = {
     g.add(blob(0.5));
     return g;
   },
-  // M5: the overgrown garden's flowers: a tuft of grass and small blooms on short stems, rose, pale and gold
+  // the overgrown garden's flowers: a tuft of grass and small blooms on short stems, rose, pale and gold
   flowers(R) {
     const g = new THREE.Group();
     for (let i = 0; i < 3; i++)
@@ -484,7 +484,7 @@ export function enterTheme(room: Room, firstVisit: boolean, spawned: Enemy[]) {
   drowned = 0;
 }
 
-/** An obol taken (M4.1): in the gilded treasury, every guardian still standing wakes at once. */
+/** An obol taken: in the gilded treasury, every guardian still standing wakes at once. */
 export function goldTaken(room: Room) {
   if (room.theme?.twist !== 'guardians' || !room.locked) return;
   const statues = G.room.enemies.filter((e) => e.statue && e.asleep && !e.dead);

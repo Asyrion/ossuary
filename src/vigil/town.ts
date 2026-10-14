@@ -1,4 +1,4 @@
-/* The townspeople at the Vigil (M7 step 7; docs/M7-plan.md, decisions 11 and 12): each shade the mage has freed stands at
+/* The townspeople at the Vigil (docs/M7-plan.md, decisions 11 and 12): each shade the mage has freed stands at
    its own spot round the Nave (data/vigil.json's `town`), its own figure (townLooks.ts) facing the Great Circle, its head
    turning to the mage as it comes near. Walking up to one opens the talk (ui/talk.ts), latched until the mage steps away;
    a glint over a figure shows it has something unheard to say. What each says is picked from data/dialogue.json
@@ -33,7 +33,7 @@ import { hasNews, pickLine, type Subject, type TalkContext } from './dialogueDat
 import { questSaid, questState } from './gifts';
 
 const C = () => CFG.vigil.town;
-/** A made figure standing in place of the code one (the owner's Tripo models, 2026-10-09): its group, its clips, its head
+/** A made figure standing in place of the code one (Tripo models): its group, its clips, its head
     bone (turned to the mage after the clip), the clip playing, its glint, and how far its head is turned. */
 interface Made {
   group: THREE.Group;
@@ -59,7 +59,7 @@ let figures: Figure[] = [];
 let ferry: { room: Room; x: number; z: number; said: boolean } | null = null;
 let t = 0;
 
-/** What the townspeople wear: the owner's made models where there is one (data/creatures.json), or the figures built in code
+/** What the townspeople wear: the made models where there is one (data/creatures.json), or the figures built in code
     (the dev menu's switch, remembered in this browser). */
 export type TownWear = 'made' | 'code';
 const WEAR_KEY = 'ossuary.townWear';
@@ -96,7 +96,7 @@ async function standMade(id: string, onto: THREE.Object3D, at: THREE.Vector3, tu
       if ((o as THREE.Mesh).isMesh) o.layers.set(FINE);
     });
     markFine(m.model);
-  } // (drawn at the finer pixel, as the coins are: the owner's ask, 2026-10-09)
+  } // (drawn at the finer pixel, as the coins are)
   let head: THREE.Object3D | undefined;
   m.model.traverse((o) => {
     if (!head && /Head$/.test(o.name)) head = o;
@@ -220,7 +220,7 @@ export function talkContext(who: string, moment?: TalkContext['moment']): TalkCo
     flags: { ...v.flags },
     subjects,
     vars: { struck: struck ? cap(struckName(struck)) : '', boss: boss ? cap(struckName(boss)) : '' },
-    quest: ((q: string | null) => (q === 'offer' || q === 'ready' ? q : null))(questState(who)), // (M7 step 8: a quest to give, or met)
+    quest: ((q: string | null) => (q === 'offer' || q === 'ready' ? q : null))(questState(who)), // (a quest to give, or met)
   };
 }
 
@@ -234,7 +234,7 @@ export function talkTo(who: string, moment?: TalkContext['moment']) {
   if (at) Sfx.at(at.x, at.z).talk();
   else Sfx.talk();
   const said = c.moment && line.line.moment === c.moment ? [momentKey(who)] : [];
-  if (line.line.moment === 'quest' || line.line.moment === 'questDone') questSaid(who, line.line.moment); // (M7 step 8: given, or done)
+  if (line.line.moment === 'quest' || line.line.moment === 'questDone') questSaid(who, line.line.moment); // (given, or done)
   // (the panel goes at the top when the speaker stands in the screen's lower half: south of where the camera is heading, its
   // middle half a tile up the screen for its height)
   const low = !!at && at.z - 0.4 > cameraTargetFor(G.room.current, player.x, player.z).z;

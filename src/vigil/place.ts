@@ -1,8 +1,8 @@
-/* The Vigil as a place (M7 step 5; docs/M7-plan.md, decisions 8, 9 and 16): what stands in its three rooms once flow.ts
+/* The Vigil as a place (docs/M7-plan.md, decisions 8, 9 and 16): what stands in its three rooms once flow.ts
    has built them from data/vigil.json (`furnishVigil`), and what happens there each step (`updateVigil`): the candle wall
    lit (one candle for each candle earned; the first lights itself on the first waking, in the dark), the lectern opening
    its screen when the mage walks up (ui/lectern.ts), the Ferryman's boat taking the mage down when it steps aboard, each
-   barred way saying what bars it (and opening to its school, M7 step 9), and the Ferryman's head turning to the mage. Nothing here can hurt the mage, and nothing
+   barred way saying what bars it (and opening to its school), and the Ferryman's head turning to the mage. Nothing here can hurt the mage, and nothing
    is fought. `leaveVigil` (from flow's `buildFloor`) forgets it. */
 import * as THREE from 'three';
 import type { Room } from '../types';
@@ -126,10 +126,10 @@ export function furnishVigil(first: boolean) {
   };
   here.candles.setLit(first ? 0 : litCandles());
   refreshCandleLight();
-  furnishUnfold(); // (M7 step 9: the rooms behind the barred ways)
+  furnishUnfold(); // (the rooms behind the barred ways)
   standTown(rooms);
   ferryAt(here.boat.room, here.boat.step.x, here.boat.step.z);
-  standFerryman(here.boat.look); // (M7 step 7: the freed, and the Ferryman's first word)
+  standFerryman(here.boat.look); // (the freed, and the Ferryman's first word)
   setAtVigil(true);
 }
 /** A barred way's look (closed, or as its school left it), set against its wall in its room. */
@@ -151,9 +151,8 @@ function buildBar(b: VigilBar, r: Room, open: boolean) {
 /** The wall a piece stands against (the north one, for those on its first row), if any. */
 const wallOf = (_r: Room, p: Pick<VigilPiece, 'at' | 'kind'>): 'n' | null =>
   p.at[1] === 0 && p.kind !== 'boat' ? 'n' : null;
-/** The candles the candle wall burns: one for the mage's own once it has woken here (each shade freed lights one more,
-    step 9). */
-export const litCandles = () => (vigil().candle ? 1 : 0) + vigil().freed.length; // (M7 step 6: each shade freed lights one more)
+/** The candles the candle wall burns: one for the mage's own once it has woken here (each shade freed lights one more). */
+export const litCandles = () => (vigil().candle ? 1 : 0) + vigil().freed.length; // (each shade freed lights one more)
 
 /** The mage has woken in the Crypt (flow.ts placed it): the Vigil's name, and on the first waking the dark, then its first
     candle lighting itself. */
@@ -192,8 +191,8 @@ export const vigilUi = { step: (_dt: number) => {} };
 export function updateVigil(dt: number) {
   if (!here) return;
   vigilUi.step(dt); // (a townsperson's line written out, even while the game waits)
-  updateTown(dt, G.flow.state === 'play' && !G.flow.trans);
-  updateUnfold(dt); // (M7 step 9) // (M7 step 7: the townspeople, even while one talks)
+  updateTown(dt, G.flow.state === 'play' && !G.flow.trans); // (the townspeople, even while one talks)
+  updateUnfold(dt);
   if (G.flow.state !== 'play') return;
   const h = here,
     room = G.room.current;
@@ -244,7 +243,7 @@ export function board() {
   });
 }
 
-/** A bolt or beam of the mage's struck a barred way: its own school opens it (M7 step 9; before, it only stirred). */
+/** A bolt or beam of the mage's struck a barred way: its own school opens it. */
 vigilHooks.barStruck = (rock, x, z, status, beam) => {
   const school = rock.bar,
     by = beam ?? schoolOf(status);

@@ -1,4 +1,4 @@
-/* The townspeople's figures (M7 step 7; docs/M7-plan.md, decision 11): the ten freed shades standing at the Vigil, built in
+/* The townspeople's figures (docs/M7-plan.md, decision 11): the ten freed shades standing at the Vigil, built in
    code in one shade's material (pale and glowing in each one's own light from data/shades.json, as the chained shades
    are), so each is plainly the shade met in chains, standing now. Each has its own silhouette from what it was
    in life (the storm caller's crook, the wizard's leafy staff, the forager's bow and basket, the scribe's book, the sexton's

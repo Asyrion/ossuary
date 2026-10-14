@@ -1,4 +1,4 @@
-/* Dr. Jelly hands things over (the owner's ask, 2026-10-02): the potion he named, the one the mage brewed at his table, a
+/* Dr. Jelly hands things over: the potion he named, the one the mage brewed at his table, a
    recipe bought from him or given in thanks, obols. Each gift waits its turn and is played once the alchemy table is shut
    and no fight is on: he reaches across the table with the thing on his palm, leaning in, and holds it out while it
    glints; then it hops in a short arc to the mage and his arm comes back. What is given is the mage's already (the belt,

@@ -1,4 +1,4 @@
-/* The room kit's kinds (M3.5 step 3, the owner's ask after the proof: "visual variety"): each floor's look lists two or
+/* The room kit's kinds, for visual variety: each floor's look lists two or
    three kinds of wall, floor, wall light and brazier, weighted (`kit` in each look in data/floors.json); every room draws
    one of each on its seed, so two rooms side by side rarely match. A theme can pin a kind (its `look.kit`), and the dev
    menu can force one on the whole floor to compare. Pure: no three.js. */

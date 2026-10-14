@@ -2,7 +2,7 @@
    ward; glyph blasts can force it (CFG.vault.blastsToForce), but forcing it wakes the vault's warden, a
    champion that rises inside to guard the prize. Inside is an artifact while the floor's budget allows,
    otherwise a hoard of obols and glyphs around a reliquary chest.
-   M4.2 (the drinking ward, from the Eda lore): the ward also drinks the spells cast near it, filling with their light;
+   The drinking ward (from the Eda lore): the ward also drinks the spells cast near it, filling with their light;
    full, it bursts, and a Wardling of the school it drank most is the vault's warden instead. */
 import * as THREE from 'three';
 import { CFG } from '../config';
@@ -172,7 +172,7 @@ export function blastSeal(s: VaultSeal) {
   unseal(s, FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].vaultWarden);
 }
 
-/* ---------- the drinking ward (M4.2) ---------- */
+/* ---------- the drinking ward ---------- */
 
 /** The sealed vault ward near enough to the mage to drink the spell they cast, if any. */
 export function wardNear() {

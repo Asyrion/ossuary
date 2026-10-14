@@ -4,9 +4,9 @@
    is spent, leaving soot. Water is shallow: the mage and walking foes wade through it slower; Shock on anything
    standing in it runs through the whole pool, to every foe in it and the mage too; Frost freezes it over for a
    while, crossed at full speed and conducting nothing, and fire melts it again. Flyers are above it all.
-   M4.2 (from the Eda lore): a room's water can run (the template's `current`): it carries the mage and walking foes,
+   From the Eda lore: a room's water can run (the template's `current`): it carries the mage and walking foes,
    bolts and shots flying over it, and pickups lying in it, downstream; frozen, it stops. A waterfall down the wall
-   upstream feeds it. M5: jelly (the jelly serpent's, `jelly` on a pool of water) is water that is green and slower to
+   upstream feeds it. Jelly (the jelly serpent's, `jelly` on a pool of water) is water that is green and slower to
    wade; a shock runs through it and frost freezes it as through water. */
 import * as THREE from 'three';
 import { groundHears } from './groundHooks';
@@ -43,8 +43,8 @@ const LOOK = {
   frozen: { color: 0xc4e6f6, emissive: 0x2a4e6e, roughness: 0.2, metalness: 0.1, opacity: 0.9 },
   oil: { color: 0x3a2e20, emissive: 0x140e08, roughness: 0.55, metalness: 0.1, opacity: 0.92 }, // (dull brown: black read as a pit, a sharp glint as fire)
   burning: { color: 0x2a1208, emissive: 0xff6a1a, roughness: 0.7, metalness: 0, opacity: 0.96 },
-  mud: { color: 0x4a3a28, emissive: 0x0c0804, roughness: 0.42, metalness: 0.12, opacity: 0.9 }, // (M4.9: drained by a sluice; brown and wet, never a pit's black)
-  jelly: { color: 0x3a9446, emissive: 0x0e3a16, roughness: 0.62, metalness: 0, opacity: 0.84 }, // (M5: the serpent's jelly, glowing a little green; dull, so a torch's glint doesn't read as fire)
+  mud: { color: 0x4a3a28, emissive: 0x0c0804, roughness: 0.42, metalness: 0.12, opacity: 0.9 }, // (drained by a sluice; brown and wet, never a pit's black)
+  jelly: { color: 0x3a9446, emissive: 0x0e3a16, roughness: 0.62, metalness: 0, opacity: 0.84 }, // (the serpent's jelly, glowing a little green; dull, so a torch's glint doesn't read as fire)
   frozenJelly: { color: 0xc4ecc8, emissive: 0x2a5a36, roughness: 0.55, metalness: 0, opacity: 0.9 }, // (dull too: no torch glints)
 };
 function dress(p: Pool) {
@@ -105,7 +105,7 @@ export function buildPools(room: Room) {
   if (room.flow) buildFalls(room, room.flow);
 }
 
-/* ---------- currents and waterfalls (M4.2) ---------- */
+/* ---------- currents and waterfalls ---------- */
 
 /** Each way water flows, as a step on the floor. */
 const FLOW: Record<Flow, [number, number]> = { n: [0, -1], s: [0, 1], e: [1, 0], w: [-1, 0] };
@@ -255,7 +255,7 @@ function flow(room: Room, f: Flow, dt: number) {
   }
 }
 
-/** A new pool poured into the room while it is played (a broken oil cask's spill; M5: the jelly serpent's jelly, `jelly`):
+/** A new pool poured into the room while it is played (a broken oil cask's spill; the jelly serpent's jelly, `jelly`):
     its tiles become the pool's. */
 export function addPool(
   room: Room,
@@ -443,12 +443,12 @@ export function poolAt(x: number, z: number, room = G.room.current) {
   const p = room.poolGrid?.[Math.floor(z - room.bounds.minZ)]?.[Math.floor(x - room.bounds.minX)];
   return p && p.state !== 'spent' ? p : undefined;
 }
-/** How fast one can walk at (x, z): slower wading through water that isn't frozen, slower still through jelly (M5). */
+/** How fast one can walk at (x, z): slower wading through water that isn't frozen, slower still through jelly. */
 export function wadeAt(x: number, z: number) {
   const p = poolAt(x, z);
   return p?.kind === 'water' && p.state === 'still' ? (p.jelly ? C.jellyWade : C.wade) : 1;
 }
-/** M5: the jelly at (x, z) that isn't frozen, if any (the jelly serpent swims in it; the mage is held in it). */
+/** The jelly at (x, z) that isn't frozen, if any (the jelly serpent swims in it; the mage is held in it). */
 export function jellyAt(x: number, z: number, room = G.room.current) {
   const p = poolAt(x, z, room);
   return p?.jelly && p.state === 'still' ? p : undefined;
@@ -465,7 +465,7 @@ const inPool = (p: Pool, x: number, z: number) => poolAt(x, z) === p;
 
 /** Fire reaches (x, z) and `r` around it: oil there catches alight, ice melts. */
 export function fireAt(x: number, z: number, r = 0) {
-  groundHears('fire', x, z, r); // (M4.5: a spider's webs burn)
+  groundHears('fire', x, z, r); // (a spider's webs burn)
   burnPropsAt(x, z, r); // roots, briars, cobwebs and sacks catch; glowcap spores flash
   for (const p of poolsNear(x, z, r)) {
     if (p.kind === 'oil' && p.state === 'still') ignite(p);
@@ -506,11 +506,11 @@ export function frostAt(x: number, z: number, r = 0) {
     mage too. `from` is spared (it has its shock already). */
 export function shockAt(x: number, z: number, from?: Enemy, spareMage = false) {
   groundHears('shock', x, z);
-  chargeSteam(x, z, 'storm'); // (M4.10: a storm in steam makes a thundercloud)
+  chargeSteam(x, z, 'storm'); // (a storm in steam makes a thundercloud)
   elementAt('shock', x, z); // lodestones leap, a rune stone takes storm
   const p = poolAt(x, z);
   if (p?.kind === 'oil' && p.state === 'burning') {
-    // (M4.8: a shock through burning oil is an Overload at the pool's middle, which blows the fire out)
+    // (a shock through burning oil is an Overload at the pool's middle, which blows the fire out)
     const mx = p.tiles.reduce((a, t) => a + t.x, 0) / p.tiles.length,
       mz = p.tiles.reduce((a, t) => a + t.z, 0) / p.tiles.length;
     spend(G.room.current, p);
@@ -520,13 +520,13 @@ export function shockAt(x: number, z: number, from?: Enemy, spareMage = false) {
   }
   if (!p || p.kind !== 'water' || p.state !== 'still' || p.charged > 0) return;
   p.charged = C.charged;
-  douseStandsIn(p); // (M4.2: candle stands standing in it go out)
+  douseStandsIn(p); // (candle stands standing in it go out)
   for (const e of G.room.enemies) {
     if (e === from || e.dead || e.spawn > 0 || e.hidden || e.flying || !inPool(p, e.x, e.z)) continue;
     damageEnemy(e, C.shockDamage, 0, 0, 0, 'spell', 'storm');
     inflict(e, { shock: C.shockSpread });
   }
-  if (!spareMage && inPool(p, player.x, player.z)) hurtPlayer(C.mageHurt, player.x, player.z + 0.01); // (M4.10's Live Wade spares the mage)
+  if (!spareMage && inPool(p, player.x, player.z)) hurtPlayer(C.mageHurt, player.x, player.z + 0.01); // (Live Wade spares the mage)
   for (const t of p.tiles) burst(t.x, 0.2, t.z, SPARK, 3, 2.4, 0.03);
   Sfx.at(x, z).sizzle();
 }
@@ -544,7 +544,7 @@ export function touchPools(e: Enemy, kind: StatusKind) {
 }
 
 function ignite(p: Pool) {
-  const longer = boonMul('bankedCoals', 'groundMul'); // (M6: Banked Coals keeps burning oil alight longer)
+  const longer = boonMul('bankedCoals', 'groundMul'); // (Banked Coals keeps burning oil alight longer)
   p.state = 'burning';
   p.t = C.oilBurn * longer;
   p.tick = 0;
@@ -630,7 +630,7 @@ function spend(room: Room, p: Pool) {
   }
 }
 
-/** An open sluice (M4.9) drains `room`'s water to mud, or lets it back. */
+/** An open sluice drains `room`'s water to mud, or lets it back. */
 export function setMud(room: Room, on: boolean) {
   for (const p of room.pools ?? [])
     if (p.kind === 'water' && p.state !== 'spent') {

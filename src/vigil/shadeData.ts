@@ -1,4 +1,4 @@
-/* Chained shades (M7 step 6; docs/M7-plan.md, decisions 10 and 11). In a run the mage finds, about one a floor, a shade of
+/* Chained shades (docs/M7-plan.md, decisions 10 and 11). In a run the mage finds, about one a floor, a shade of
    someone who died in the dungeon, chained in a secret room, at an ordeal's end, in a boss's keeping, now and then in a
    library or vault. Two or three chains bind it, each warded by a school the mage can land (or plain, which anything it
    casts breaks; a glyph's blast breaks any); with them broken it chooses: free it (it goes up to the Vigil, kept even if

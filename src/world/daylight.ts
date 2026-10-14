@@ -1,9 +1,9 @@
-/* Daylight (M7 step 3; docs/M7-plan.md, decision 5): a run won ends in daylight. Kaelith kneels and a shaft of daylight
+/* Daylight (docs/M7-plan.md, decision 5): a run won ends in daylight. Kaelith kneels and a shaft of daylight
    opens in its hall (`openShaft`, from onBossDead: the way out, as a trapdoor is on the floors above); stepping into it
    (`enterDaylight`, from the player's step) brings the mage out at the cave mouth at dawn (daylightLooks.ts): a white
    fading, the mage walking out of the cave's dark to the terrace's edge as the rock opens on the valleys, the mist
    drifting and the water falling; then the end screen lies over it (`daylightHooks.done`, flow.ts's endGame), the scene
-   still moving behind it. A new run takes it away (`leaveDaylight`, from buildFloor). Step 9 makes the scene the Vigil's
+   still moving behind it. A new run takes it away (`leaveDaylight`, from buildFloor). The scene is also the Vigil's
    Cave Mouth. The dev menu's "Daylight now" steps into it from anywhere. */
 import * as THREE from 'three';
 import { CFG } from '../config';

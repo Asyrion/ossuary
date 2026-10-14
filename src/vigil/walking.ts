@@ -1,4 +1,4 @@
-/* Which bound shades walk with the mage this run (M7 step 6), for the low-level modules that read a help without the helps
+/* Which bound shades walk with the mage this run, for the low-level modules that read a help without the helps
    themselves (vigil/shadeHelp.ts): the chorister's song in `spellCooldown`. */
 import { CFG } from '../config';
 import { G } from '../state';

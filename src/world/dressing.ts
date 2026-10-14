@@ -1,4 +1,4 @@
-/* Dressed walls (M3.6): the tall walls facing into a room stop being flat brick. Pilasters stand out from them
+/* Dressed walls: the tall walls facing into a room stop being flat brick. Pilasters stand out from them
    at intervals, and between the pilasters niches are set into the wall, holding what the floor keeps there (a
    skull, a candle stub, a small urn, a few bones). What a floor's walls carry comes from its look
    (`wall.dress` in data/floors.json). Dressing is only seen: it never blocks, and keeps clear of doors and torches.

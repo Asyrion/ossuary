@@ -1,4 +1,4 @@
-/* The rooms' objects in play (M3.6, docs/archive/M3.6-plan.md): bone piles, skull heaps, grave sacks, oil casks, rubble,
+/* The rooms' objects in play (docs/archive/M3.6-plan.md): bone piles, skull heaps, grave sacks, oil casks, rubble,
    grave roots, thorn briars, cobwebs, glowcaps and pews. What each is and how it blocks is in propData.ts; this is
    how they look and what the mage's magic does to them:
    - a bolt breaks bone piles, skull heaps (two), grave sacks, oil casks and glowcaps; a glyph's blast breaks those,
@@ -7,7 +7,7 @@
      a cloud of spores that flashes when fire finds it;
    - fire (anything that calls `fireAt`) burns roots, briars, cobwebs and sacks away, and it spreads between them;
    - cobwebs slow whoever walks through them; briars sting the mage and walking foes.
-   Their looks are the room kit's, in objectLooks.ts (M3.5 step 3), and the mechanisms' in mechanisms.ts. */
+   Their looks are the room kit's, in objectLooks.ts, and the mechanisms' in mechanisms.ts. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import type { PropBox, PropState, Room, RockBox, SporeCloud } from '../types';
@@ -53,7 +53,7 @@ const worldOf = (room: Room, c: number, r: number) => ({
   z: room.bounds.minZ + r + 0.5,
 });
 
-/** The objects in a room's template: pews side by side join into one, and a rope bridge's tiles, across or down (M4.2),
+/** The objects in a room's template: pews side by side join into one, and a rope bridge's tiles, across or down,
     into one over the chasm drawn under it. */
 export function buildProps(room: Room) {
   const t = room.template;
@@ -229,16 +229,16 @@ function breakProp(room: Room, box: PropBox) {
       burst(x, 0.5, z, 0xd8e8f0, 10, 2, 0.03);
       sfx.globeBreak();
       globeBurst(room, x, z);
-      break; // (M5: out spills a jelly or a reagent)
+      break; // (out spills a jelly or a reagent)
     default:
       burst(x, 0.3, z, 0x8a8078, 8, 1.6, 0.05);
   }
   if (def.loot)
     for (const item of rollTable(G.run.drops, def.loot, LOOT, soulsHere())) spawnPickup(item, x, z, { rise: true });
-  if (!box.prop.sown) objectReagent(kind, x, z); // (M5: now and then the reagent it held; M6: a plant Seedfall sowed holds none)
+  if (!box.prop.sown) objectReagent(kind, x, z); // (now and then the reagent it held; a plant Seedfall sowed holds none)
 }
 
-/** M6, Seedfall: a flowering plant where an overgrown foe fell, on the floor tile nearest the fall that is free (no pool,
+/** Seedfall: a flowering plant where an overgrown foe fell, on the floor tile nearest the fall that is free (no pool,
     clear of the mage, the foes, what lies on the floor, the doors' lanes and the room's middle, where a pedestal or the
     trapdoor rises); none if no tile within `CFG.boons.sowReach` is, or the room holds `seedMax` already. At its second rank
     it bursts by itself a moment later, while the mage is still in the room. */
@@ -287,7 +287,7 @@ export function sowBlossom(room: Room, x: number, z: number) {
   return box;
 }
 
-/** A flowering plant bursts (M5, Verdant): petals and a ring of pollen, and every foe in its reach overgrown. */
+/** A flowering plant bursts (Verdant): petals and a ring of pollen, and every foe in its reach overgrown. */
 function blossomBurst(x: number, z: number) {
   const B = P.blossom;
   burst(x, 0.4, z, PETAL, 14, 1.8, 0.05);
@@ -367,7 +367,7 @@ function ignite(room: Room, box: PropBox) {
   Sfx.at(box.x, box.z).catchFire();
 }
 
-/** A rope bridge burnt through (M4.2): the chasm opens under it, and what stood on it falls. A foe is gone; the mage
+/** A rope bridge burnt through: the chasm opens under it, and what stood on it falls. A foe is gone; the mage
     takes a heart's fall and climbs out on the nearest ledge. */
 function collapse(room: Room, box: PropBox) {
   for (const t of box.prop.tiles) openChasm(room, t.c, t.r);
@@ -392,7 +392,7 @@ function collapse(room: Room, box: PropBox) {
 
 /* ---------- glowcap spores ---------- */
 
-/** A cloud of spores at (x, z): a broken glowcap's, or a Sporeling's puff (M4: `color` its violet, `sting` the seconds it
+/** A cloud of spores at (x, z): a broken glowcap's, or a Sporeling's puff (`color` its violet, `sting` the seconds it
     dims the mage's sight who stands in it, with half a heart, once). Fire makes either flash. */
 export function addSpores(room: Room, x: number, z: number, o: { color?: number; sting?: number; by?: string } = {}) {
   const g = new THREE.Group();
@@ -406,7 +406,7 @@ export function addSpores(room: Room, x: number, z: number, o: { color?: number;
   (room.spores ??= []).push({ x, z, t: P.spores.time, g, sting: o.sting, by: o.by ?? actingKind() });
 }
 /** Whether a cloud of stinging spores (a Sporeling's or a Puffcap's) hangs over (x, z) in the current room, not of the
-    kind `who` (M4.7: foes are stung by each other's spores, never their own). */
+    kind `who` (foes are stung by each other's spores, never their own). */
 export const stingAt = (x: number, z: number, who?: string) =>
   (G.room.current.spores ?? []).some(
     (s) => s.sting && s.by !== who && Math.hypot(s.x - x, s.z - z) < P.spores.stingReach,
@@ -420,7 +420,7 @@ function dropSpores(room: Room, s: SporeCloud) {
 /** Fire found a cloud of spores: it flashes, burning every foe in reach, and the mage too if they stand in it. */
 function flash(room: Room, s: SporeCloud) {
   dropSpores(room, s);
-  if (s.by) counterAt(s.by, 'flashed', s.x, s.z); // (M4.7: a Sporeling's counter)
+  if (s.by) counterAt(s.by, 'flashed', s.x, s.z); // (a Sporeling's counter)
   const S = P.spores;
   for (const e of G.room.enemies) {
     if (e.dead || e.spawn > 0 || e.hidden) continue;

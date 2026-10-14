@@ -1,5 +1,4 @@
-/* Dr. Jelly redone from the owner's pictures (2026-10-02: sheets of pixel-art alchemists), as the plague doctor the owner
-   chose from three looks: a long grey greatcoat with its lapels and a dark front, a wide hat tipped back over a hood, a
+/* Dr. Jelly as a plague doctor: a long grey greatcoat with its lapels and a dark front, a wide hat tipped back over a hood, a
    beaked mask with brass-rimmed glass eyes glowing jelly-green, gloves, a belt with pouches and a row of vials, his
    familiar (a small jelly in a jar) at the hip, and a flask of jelly with a coil of glass tube raised in one hand. A figure,
    not a coat with a head, built as the room kit is (painted pieces merged, the jelly glowing) on pivots that move: `body`

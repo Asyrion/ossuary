@@ -1,4 +1,4 @@
-/* Where things stand at the Vigil (M7 steps 5 and 9): a tile of a room in the world, a placed thing's middle, its tiles
+/* Where things stand at the Vigil: a tile of a room in the world, a placed thing's middle, its tiles
    blocked as a rock that never breaks, and its span of wall kept clear of torches and the wall's dressing. Shared by
    vigil/place.ts (the pieces and barred ways) and vigil/unfold.ts (what fills the rooms behind them). */
 import type { Room } from '../types';

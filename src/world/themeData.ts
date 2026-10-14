@@ -1,4 +1,4 @@
-/* Themed rooms (M3.6 step 3, docs/archive/M3.6-plan.md): a template may carry a `theme`, a kind of place in the dungeon (a
+/* Themed rooms (docs/archive/M3.6-plan.md): a template may carry a `theme`, a kind of place in the dungeon (a
    chapel nave, an ossuary, a scriptorium...). The theme dresses the room (torch light, floor stains, what the wall's
    niches hold, scatter on the floor, how its rocks and tombs look) and gives it one twist to learn. Pure (no three.js):
    the generator, the room builder and the tests use it; data/themes.json holds the themes, data/floors.json which
@@ -15,10 +15,10 @@ import type { FloorLook } from '../types';
     rime         the floor is slick with rime, and the foes wait frozen in ice until struck or thawed (the frozen
                  mausoleum);
     guardians    its foes stand still as statues among the gold, and wake all at once when the mage takes an obol
-                 there (or strikes one) (M4.1, the gilded treasury);
+                 there (or strikes one) (the gilded treasury);
     drowned      while the fight lasts, the drowned climb out of its river now and then, until the river is frozen
-                 (M4.1, the ferry landing);
-    garden       the garden grows: Overgrown holds longer on its foes (M5, the overgrown garden). */
+                 (the ferry landing);
+    garden       the garden grows: Overgrown holds longer on its foes (the overgrown garden). */
 export type Twist =
   'none' | 'risingBones' | 'pages' | 'sleepers' | 'caveIn' | 'blessing' | 'rime' | 'guardians' | 'drowned' | 'garden';
 export const TWISTS: Twist[] = [
@@ -33,7 +33,7 @@ export const TWISTS: Twist[] = [
   'drowned',
   'garden',
 ];
-/** Dressing scattered over free floor, which never blocks (M4.1 adds spilled obols and lamps on poles; M5 flowers). */
+/** Dressing scattered over free floor, which never blocks (spilled obols, lamps on poles, flowers). */
 export type ScatterKind =
   | 'candles'
   | 'pages'

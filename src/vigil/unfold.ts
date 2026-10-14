@@ -1,4 +1,4 @@
-/* The unfolding (M7 step 9; docs/M7-plan.md, decision 9; GDD: Between runs, the Vigil unfolds; More of the Vigil's magic,
+/* The unfolding (docs/M7-plan.md, decision 9; GDD: Between runs, the Vigil unfolds; More of the Vigil's magic,
    1): what fills the six rooms behind the Vigil's barred ways (vigil/place.ts opens the ways), each built every waking
    whether its way is open or not (its doorway is walled until it is).
    - **The Cave Mouth** (Ember): its north wall open onto the valleys at morning (daylightLooks.ts's vista, without the
@@ -9,8 +9,8 @@
      out); it burns down with that descent (gifts.ts's `giftsAtStart`).
    - **The garden of the dead** (Verdant): a bed of each reagent; once the embalmer is freed they grow, and walking up to
      one chooses the reagent every descent begins with.
-   - **The scrying pool** (Storm), **the practice crypt** (Frost) and **the echoes' gallery** (Umbral) stand ready: a line
-     says what each will be (steps 11 and 12 fill them).
+   - **The scrying pool** (Storm), **the practice crypt** (Frost) and **the echoes' gallery** (Umbral) stand ready, empty: a line
+     says what each will be.
    Nothing silent: each room's line the first time it is entered in a waking, a line for each candle and bed. */
 import * as THREE from 'three';
 import type { Room } from '../types';

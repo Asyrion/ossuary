@@ -66,7 +66,7 @@ export function buildShrine(room: Room) {
   room.group.add(g);
   room.shrine = { mat, motes, stones: [] };
   syncStones(room);
-  buildBargain(room); // (M6 step 11: the bargain stone at the circle's head)
+  buildBargain(room); // (the bargain stone at the circle's head)
 }
 
 function makeStone(room: Room, id: string, slot: number): OfferingStone {

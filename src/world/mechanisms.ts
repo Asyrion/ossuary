@@ -1,4 +1,4 @@
-/* Mechanisms (M3.6 step 4, docs/archive/M3.6-plan.md decision 7): objects in rooms that answer to the mage's magic with
+/* Mechanisms (docs/archive/M3.6-plan.md decision 7): objects in rooms that answer to the mage's magic with
    more than breaking or burning. They are objects like the others (propData.ts, props.ts); this is what they do.
    - Brazier: fire lights it (anything that calls fireAt: Burn, the lance, the seal, a glyph, a burning bolt); a bolt
      of the mage's flying through a lit brazier's flame catches fire (Burn on what it strikes).
@@ -12,12 +12,12 @@
    - Hanging censer: a bolt through its chain brings it down on what is under it, spilling burning oil.
    - Reliquary: sealed until the room's candle stands are all lit; then it opens.
    - Dead tree: burns (like roots, longer).
-   - Watching statue (M4.2, from the Eda lore): a Warden's statue whose head follows the mage; while a fight lasts, the
+   - Watching statue (from the Eda lore): a Warden's statue whose head follows the mage; while a fight lasts, the
      mage standing in its sight (no pillar, rock or ice between) charges it, and full, it marks where the mage stands
      and a ray strikes there a moment later. A hex (a Hex Bolt, Grasp of the Grave's hands) blinds it for a while.
-   - Candle stand in water (M4.2): a candle stand standing in a pool, lit and counted as any other; lit, it lights the
+   - Candle stand in water: a candle stand standing in a pool, lit and counted as any other; lit, it lights the
      water round it, and shock running through its pool puts it out.
-   - Sapping obelisk (M4.2): its field weakens the cantrip of the mage standing in it and drains their mana. Its ward
+   - Sapping obelisk: its field weakens the cantrip of the mage standing in it and drains their mana. Its ward
      answers to one school, shown in its runes; that school landing on it (a bolt carrying it, fire, frost or shock,
      holy ground or a pillar of light, darkness) breaks the ward, and the field goes out.
    Their looks are the room kit's, in fireLooks.ts, mechLooks.ts and objectLooks.ts (the dead tree). */
@@ -76,14 +76,14 @@ import { dragonBell } from '../actors/pillarDragon';
 import { steamBetween } from '../magic/steam';
 
 const C = CFG.mech;
-/** The schools an obelisk's ward may hold: those that reach a mechanism (M5's Verdant, growth, reaches none). */
+/** The schools an obelisk's ward may hold: those that reach a mechanism (Verdant, growth, reaches none). */
 const WARDS = SCHOOLS.filter((s) => s !== 'verdant');
 const FIRE = 0xff7a2a,
   EMBER = 0xffc060,
   GOLD = 0xffd98a,
   WAX = 0xe8dcc0,
   BLACKFIRE = 0xb070ff;
-/** A brazier's flames burning with Blackfire (M4.10): a pale violet core in a deep violet sheath, a near-black edge. */
+/** A brazier's flames burning with Blackfire: a pale violet core in a deep violet sheath, a near-black edge. */
 const BLACK_FLAMES: FirePalette = { core: 0xeedcff, body: 0x9a48f0, edge: 0x2a0c48, ember: 0xc890ff };
 const CHAIN = 7.5; // a censer's chain runs up out of sight, into the dark under the vault
 export const SCHOOL_COLOR: Record<StatusKind, number> = { burn: 0xff7a2a, chill: 0x4aa8ff, shock: 0xf0e070 };
@@ -119,7 +119,7 @@ type Look = (R: () => number, len: number, look: RoomLook) => THREE.Group;
 export const MECH_LOOKS: Record<MechanismKind, Look> = {
   sluice(_R, _len, look) {
     return kitLook(sluiceLook(look));
-  }, // (M4.9)
+  },
   brazier(_R, _len, look) {
     // a bowl of coals, the kind the room drew; its fire shows once lit
     return kitLook(brazierLook(look.kinds.brazier));
@@ -175,7 +175,6 @@ export const MECH_LOOKS: Record<MechanismKind, Look> = {
     g.add(waterGlow);
     return withParts(g, { ...parts, waterGlow });
   },
-  // M4.2
   statue() {
     return kitLook(statueLook());
   },
@@ -198,15 +197,15 @@ const MAT_RIPPLE = markShared(
 
 const near = (box: PropBox, x: number, z: number, r: number) => Math.hypot(box.x - x, box.z - z) < r;
 const mechs = (room: Room, kind: MechanismKind) => (room.props ?? []).filter((b) => b.prop.kind === kind);
-/** A candle stand, on the floor or standing in water (M4.2). */
+/** A candle stand, on the floor or standing in water. */
 const isStand = (kind: string) => kind === 'candles' || kind === 'wetCandles';
 
 /** A status reaches (x, z) and `r` round it (fire, frost or shock landing, a status put on a foe standing there):
     braziers and candle stands catch fire, rune stones take a charge, lodestones leap, the ice round a frozen foe melts. */
 export function elementAt(kind: StatusKind, x: number, z: number, r = 0) {
   const room = G.room.current;
-  vigilHooks.landed(kind === 'burn' ? 'ember' : kind === 'chill' ? 'frost' : 'storm', x, z, r); // (M7 step 6: a chained shade's chains)
-  if (kind === 'shock') chargeSteam(x, z, 'storm'); // (M4.10: a storm in steam makes a thundercloud)
+  vigilHooks.landed(kind === 'burn' ? 'ember' : kind === 'chill' ? 'frost' : 'storm', x, z, r); // (a chained shade's chains)
+  if (kind === 'shock') chargeSteam(x, z, 'storm'); // (a storm in steam makes a thundercloud)
   for (const box of room.props ?? []) {
     const p = box.prop;
     if (kind === 'burn' && (p.kind === 'brazier' || isStand(p.kind)) && !p.lit && near(box, x, z, C.kindle + r))
@@ -214,11 +213,11 @@ export function elementAt(kind: StatusKind, x: number, z: number, r = 0) {
     else if (p.kind === 'rune' && near(box, x, z, C.runeCatch + r)) {
       if (!p.school) charge(box, kind);
       else if (p.school !== kind) runeReaction(room, box, kind);
-    } // (M4.10: a second school sets off their reaction at its foot)
+    } // (a second school sets off their reaction at its foot)
     else if (kind === 'shock' && p.kind === 'lodestone' && near(box, x, z, C.lodeCatch + r)) leap(room, box);
     else if (kind === 'shock' && p.kind === 'bell' && near(box, x, z, C.runeCatch + r)) {
       if (ring(room, box)) sparkRing(room, box);
-    } // (M4.10: a shock beside a bell rings it, and it rings out sparks)
+    } // (a shock beside a bell rings it, and it rings out sparks)
     else if (p.kind === 'obelisk' && p.ward === STATUS_SCHOOL[kind] && near(box, x, z, C.obelisk.catch + r))
       breakWard(box);
   }
@@ -227,26 +226,26 @@ export function elementAt(kind: StatusKind, x: number, z: number, r = 0) {
       if (e.entombed && e.asleep && Math.hypot(e.x - x, e.z - z) < C.thawReach + r) e.asleep = false; // thawed
 }
 
-/** Holy light lands at (x, z) within `r` (M4.1: Consecrate's ground, Judgement's pillar): candle stands kindle, as the
-    chapel's did for its prayers, and an obelisk warded in Hallow breaks its ward (M4.2). */
+/** Holy light lands at (x, z) within `r` (Consecrate's ground, Judgement's pillar): candle stands kindle, as the
+    chapel's did for its prayers, and an obelisk warded in Hallow breaks its ward. */
 export function hallowAt(x: number, z: number, r = 0) {
   const room = G.room.current;
   vigilHooks.landed('hallow', x, z, r);
-  chargeSteam(x, z, 'hallow'); // (M4.10: holy light in steam is incense)
+  chargeSteam(x, z, 'hallow'); // (holy light in steam is incense)
   for (const box of room.props ?? []) {
     if (isStand(box.prop.kind) && !box.prop.lit && near(box, x, z, C.kindle + r)) light(room, box);
     else if (box.prop.kind === 'obelisk' && box.prop.ward === 'hallow' && near(box, x, z, C.obelisk.catch + r))
       breakWard(box);
   }
 }
-/** Darkness lands at (x, z) within `r` (M4.2: Grasp of the Grave's hands): a watching statue there is blinded, and an
-    obelisk warded in Umbral breaks its ward; on Consecrate's holy ground, the ground goes dark (M4.8). */
+/** Darkness lands at (x, z) within `r` (Grasp of the Grave's hands): a watching statue there is blinded, and an
+    obelisk warded in Umbral breaks its ward; on Consecrate's holy ground, the ground goes dark. */
 export function umbralAt(x: number, z: number, r = 0) {
   vigilHooks.landed('umbral', x, z, r);
-  hexGround(x, z); // (M4.8: a hex on holy ground eclipses what stands in it)
-  chargeSteam(x, z, 'umbral'); // (M4.10: darkness in steam is a miasma)
+  hexGround(x, z); // (a hex on holy ground eclipses what stands in it)
+  chargeSteam(x, z, 'umbral'); // (darkness in steam is a miasma)
   for (const box of G.room.current.props ?? []) {
-    if (box.prop.kind === 'brazier' && box.prop.lit && !box.prop.black && near(box, x, z, C.kindle + r)) blacken(box); // (M4.10: a lit brazier takes the dark, and burns with Blackfire)
+    if (box.prop.kind === 'brazier' && box.prop.lit && !box.prop.black && near(box, x, z, C.kindle + r)) blacken(box); // (a lit brazier takes the dark, and burns with Blackfire)
     if (box.prop.kind === 'statue' && near(box, x, z, C.statue.umbralCatch + r)) blind(box);
     else if (box.prop.kind === 'obelisk' && box.prop.ward === 'umbral' && near(box, x, z, C.obelisk.catch + r))
       breakWard(box);
@@ -264,7 +263,7 @@ export function strikeMechanism(
   switch (p.kind) {
     case 'bell':
       if (ring(room, box) && status?.shock) sparkRing(room, box);
-      return true; // (M4.10: rung by a shock, it rings out sparks)
+      return true; // (rung by a shock, it rings out sparks)
     case 'sluice':
       openSluice(room, box);
       return true;
@@ -283,7 +282,7 @@ export function strikeMechanism(
       if (blast && p.seal && !p.broken) {
         breakWard(box);
         return true;
-      } // (M7: a glyph's blast shuts any of Kaelith's wards)
+      } // (a glyph's blast shuts any of Kaelith's wards)
       if (!p.broken && (Object.keys(status ?? {}) as SpellStatus[]).some((k) => STATUS_SCHOOL[k] === p.ward))
         breakWard(box);
       else {
@@ -335,7 +334,7 @@ export function boltThrough(b: Bolt) {
         b.kindled = true;
         burst(b.x, 0.7, b.z, p.black ? BLACKFIRE : FIRE, 6, 1.6, 0.045);
         Sfx.at(b.x, b.z).catchFire();
-      } // (a black brazier's fire carries a hex: M4.10)
+      } // (a black brazier's fire carries a hex)
       else if (p.lit && b.status?.hex && !p.black)
         blacken(box); // (a hexing bolt through a lit brazier turns its fire black)
       else if (!p.lit && b.status?.burn) light(room, box);
@@ -346,7 +345,7 @@ export function boltThrough(b: Bolt) {
 
 /* ---------- what they do ---------- */
 
-/** M4.10, the room joins in: a lit brazier taken by darkness burns with Blackfire (a violet glow over its fire), and the
+/** The room joins in: a lit brazier taken by darkness burns with Blackfire (a violet glow over its fire), and the
     bolts it sets alight carry a hex. Its name rises as Blackfire's does on a foe. */
 function blacken(box: PropBox) {
   const p = box.prop;
@@ -361,7 +360,7 @@ function blacken(box: PropBox) {
   tileReaction('blackfire', box.x, box.z);
   Sfx.at(box.x, box.z).blackfire();
 }
-/** M4.10: a rune stone charged with one school, struck by another, sets off their reaction at its foot: on every foe in its
+/** A rune stone charged with one school, struck by another, sets off their reaction at its foot: on every foe in its
     reach (both statuses laid on in turn), and its name rises there even with none; then it holds the new school. */
 let runeReacting = false;
 function runeReaction(room: Room, box: PropBox, kind: StatusKind) {
@@ -385,7 +384,7 @@ function runeReaction(room: Room, box: PropBox, kind: StatusKind) {
   }
   void room;
 }
-/** M4.10: a bell rung by a shock rings out a ring of sparks round it (armed in a moment, stinging what stands in them). */
+/** A bell rung by a shock rings out a ring of sparks round it (armed in a moment, stinging what stands in them). */
 function sparkRing(room: Room, box: PropBox) {
   const { n, d, time } = C.bellSparks;
   for (let i = 0; i < n; i++) {
@@ -408,7 +407,7 @@ function light(room: Room, box: PropBox) {
   if (p.kind === 'brazier' && !p.salted) {
     p.salted = true;
     objectReagent('brazier', box.x, box.z + 0.8);
-  } // (M5: its first fire may leave Ember Salt)
+  } // (its first fire may leave Ember Salt)
   if (isStand(p.kind)) checkCandles(room);
 }
 
@@ -463,7 +462,7 @@ function ring(room: Room, box: PropBox) {
     e.status.stun = Math.max(e.status.stun, C.bellStun);
     burst(e.x, 1, e.z, GOLD, 4, 1.2, 0.04);
   }
-  dragonBell(); // (M4.2: the Pillar Dragon loses its hold)
+  dragonBell(); // (the Pillar Dragon loses its hold)
   wave(room, box.x, box.z, GOLD, 9);
   Sfx.at(box.x, box.z).toll();
   G.fx.shake = Math.max(G.fx.shake, 0.12);
@@ -587,7 +586,7 @@ function censerLands(f: (typeof falling)[number]) {
   fireAt(x, z, 0.8);
 }
 
-/* ---------- M4.2: the watching statue and the sapping obelisk ---------- */
+/* ---------- the watching statue and the sapping obelisk ---------- */
 
 const S = C.statue,
   dim = new THREE.Color(EYE_DIM),
@@ -698,7 +697,7 @@ function breakWard(box: PropBox) {
   ringFx(box.x, 0.06, box.z, color, 0.3, p.seal ? 1.4 : C.obelisk.reach, 0.5, true);
   Sfx.at(box.x, box.z).wardShatter();
   if (p.seal) wardHooks.shut?.(box);
-  else toast(STR.mech.wardBroken, 2.5); // (M7: Kaelith's fight says what a ward shut does)
+  else toast(STR.mech.wardBroken, 2.5); // (Kaelith's fight says what a ward shut does)
   if (sapping === box) sapping = null;
 }
 /** An obelisk's runes and shard gone dull, its field and glow out. */
@@ -708,9 +707,9 @@ function dull(p: PropBox['prop']) {
   if (p.parts?.field) p.parts.field.visible = false;
   if (p.parts?.glow) p.parts.glow.visible = false;
 }
-/** M7 step 2: what hears one of Kaelith's wards shut (its fight, actors/kaelith.ts). */
+/** What hears one of Kaelith's wards shut (its fight, actors/kaelith.ts). */
 export const wardHooks: { shut?: (box: PropBox) => void } = {};
-/** M7 step 2: an obelisk made one of Kaelith's ward pillars: no field, no drain, dormant (dull, as if broken) until it wakes. */
+/** An obelisk made one of Kaelith's ward pillars: no field, no drain, dormant (dull, as if broken) until it wakes. */
 export function sealWard(box: PropBox) {
   const p = box.prop;
   p.seal = true;
@@ -718,7 +717,7 @@ export function sealWard(box: PropBox) {
   p.ward = undefined;
   dull(p);
 }
-/** M7 step 2: a ward pillar wakes in `school`: its emblem and runes lit in that school's light (its field stays out). */
+/** A ward pillar wakes in `school`: its emblem and runes lit in that school's light (its field stays out). */
 export function wakeWard(box: PropBox, school: School) {
   const p = box.prop,
     color = SCHOOL_LIGHT[school];
@@ -739,7 +738,7 @@ export function wakeWard(box: PropBox, school: School) {
 let sapping: PropBox | null = null,
   tether = 0;
 const told = new WeakSet<Room>();
-/** What the cantrip's blows are worth where the mage stands: less inside a sapping obelisk's field (M4.2). */
+/** What the cantrip's blows are worth where the mage stands: less inside a sapping obelisk's field. */
 export const sapMul = () => (sapping ? C.obelisk.sap : 1);
 /** The mage inside an obelisk's field: mana drains, and pale threads run from them to its point. */
 function updateSapping(room: Room, dt: number) {
@@ -822,7 +821,7 @@ function wave(room: Room, x: number, z: number, color: number, to: number) {
   waves.push({ room, ring, t: 0, to });
 }
 
-/* ---------- the sluice gate (M4.9) ---------- */
+/* ---------- the sluice gate ---------- */
 
 /** A bolt or a blast strikes a sluice gate: it lifts, and the room's water drains to mud for `CFG.mech.sluice.open`
     seconds: wading still slows, but nothing can hide in it (the water foes are driven up, and kept up). */
@@ -949,7 +948,7 @@ export function updateMechanisms(dt: number) {
   }
 }
 
-/** Shock ran through a pool (M4.2): the candle stands standing in it go out with a hiss. */
+/** Shock ran through a pool: the candle stands standing in it go out with a hiss. */
 export function douseStandsIn(pool: Pool) {
   for (const box of G.room.current.props ?? []) {
     const p = box.prop;
@@ -973,7 +972,7 @@ export function clearMechanisms() {
   beams.length = 0;
 }
 
-/** Dev menu and tests: fire, frost or shock at (x, z), as a spell landing there would; or (M4.2) holy light or darkness. */
+/** Dev menu and tests: fire, frost or shock at (x, z), as a spell landing there would; or holy light or darkness. */
 export function elementDev(kind: StatusKind | 'sanct' | 'hex', x: number, z: number) {
   if (kind === 'burn') fireAt(x, z, 0.6);
   else if (kind === 'chill') frostAt(x, z, 0.6);

@@ -1,4 +1,4 @@
-/* The room kit's objects and piles (M3.5 step 3; docs/archive/M3.5-plan.md): bone piles, skull heaps, grave sacks, oil casks,
+/* The room kit's objects and piles (docs/archive/M3.5-plan.md): bone piles, skull heaps, grave sacks, oil casks,
    rubble, grave roots, thorn briars, cobwebs, glowcaps, scribes' desks, scroll heaps, pews and the dead tree, and the
    room's larger pieces: rocks (and a grotto's dripstone), pillars, tombs (and the embalmers' slabs), urns, the artifacts'
    pedestals and the bone altar. Built in code in the style of the spell effects (docs/effects.md): painted pieces merged
@@ -249,7 +249,7 @@ export const box = (
 
 export type ObjectLook = (R: R, len: number, look?: FloorLook) => THREE.Group;
 export const OBJECT_LOOKS = {
-  globe: (R: () => number) => globeLook(R), // (M5: the laboratory's jelly globe, labLooks.ts)
+  globe: (R: () => number) => globeLook(R), // (the laboratory's jelly globe, labLooks.ts)
   /** Long bones and short, a ribcage and a skull on a mound of grave dust. */
   bones(R) {
     const g = new THREE.Group();
@@ -535,7 +535,7 @@ export const OBJECT_LOOKS = {
     g.userData.parts = { spores }; // (kept apart: it moves by itself)
     return g;
   },
-  /** A flowering plant (M5, the overgrown garden's): broad leaves spread from its foot, stalks rising to five blooms of
+  /** A flowering plant (the overgrown garden's): broad leaves spread from its foot, stalks rising to five blooms of
       rose and pale petals round hearts that glow pollen-gold, and pollen drifting up from them. */
   blossom(R) {
     const g = new THREE.Group(),
@@ -696,7 +696,7 @@ export const OBJECT_LOOKS = {
     g.add(sh);
     return g;
   },
-  /** A heap of old offerings (M4.1, the Gilded Treasury): obols in a spill, a cup, a dish on its edge, a candlestick
+  /** A heap of old offerings (the Gilded Treasury): obols in a spill, a cup, a dish on its edge, a candlestick
       lying down, a little casket; a glyph's blast scatters it into obols. */
   hoard(R) {
     const g = new THREE.Group(),
@@ -728,7 +728,7 @@ export const OBJECT_LOOKS = {
     g.add(sh);
     return g;
   },
-  /** A ferry skiff moored along the floor (M4.1, the Ferry Landing), `len` tiles long: a tarred hull, its thwarts, an oar
+  /** A ferry skiff moored along the floor (the Ferry Landing), `len` tiles long: a tarred hull, its thwarts, an oar
       shipped along it, its rope to the landing. It burns. */
   boat(_R, len) {
     const g = new THREE.Group(),
@@ -758,7 +758,7 @@ export const OBJECT_LOOKS = {
     g.add(sh);
     return g;
   },
-  /** A rope bridge over a chasm (M4.2, from the Eda lore), `len` tiles long along x: planks laid across two ropes, a rope
+  /** A rope bridge over a chasm (from the Eda lore), `len` tiles long along x: planks laid across two ropes, a rope
       rail each side sagging between posts that stand on the ledges at its ends, hangers down to the deck. It burns. */
   bridge(R, len) {
     const g = new THREE.Group(),
