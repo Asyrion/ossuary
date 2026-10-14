@@ -1,4 +1,4 @@
-/* A Tripo model's painted texture made pixel art at the size the game draws it (render/texelBake.ts, 2026-10-05), and every
+/* A Tripo model's painted texture made pixel art at the size the game draws it (render/texelBake.ts), and every
    Tripo model the game shows wearing it. */
 import { describe, expect, it } from 'vitest';
 import { bakeSize, glows, islandLabels, liftShadows, shrink } from '../../src/render/texelBake';

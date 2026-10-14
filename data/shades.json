@@ -1,5 +1,5 @@
 {
-  "_comment": "M7 step 6, chained shades (docs/M7-plan.md, decisions 10 and 11): the ten townspeople the mage can find chained in a run, each found on the floors it lists, with its light and the help it gives when bound (src/vigil/shadeHelp.ts). Each floor's chance of a shade is `shade` in data/floors.json; `rooms` weights the rooms one lies in (those of the floor's plan); `chains` is how many chains bind one by floor (1-based, past the last the last's). Read by src/vigil/shadeData.ts. Their names and lines are STR.shades.",
+  "_comment": "Chained shades (docs/M7-plan.md, decisions 10 and 11): the ten townspeople the mage can find chained in a run, each found on the floors it lists, with its light and the help it gives when bound (src/vigil/shadeHelp.ts). Each floor's chance of a shade is `shade` in data/floors.json; `rooms` weights the rooms one lies in (those of the floor's plan); `chains` is how many chains bind one by floor (1-based, past the last the last's). Read by src/vigil/shadeData.ts. Their names and lines are STR.shades.",
   "rooms": { "secret": 3, "ordeal": 2, "boss": 2, "library": 1, "vault": 1 },
   "chains": [2, 2, 3, 3, 3],
   "shades": [

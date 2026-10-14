@@ -15,7 +15,7 @@ import {
 } from '../../src/magic/runeData';
 import { Rng } from '../../src/rng';
 
-/* M6 step 7: runes, as rules (docs/archive/M6-plan.md, decision 9 and the runes table). */
+/* Runes, as rules (docs/archive/M6-plan.md, decision 9 and the runes table). */
 describe('runes', () => {
   it('are valid: seven, and every spell takes three or more', () => {
     expect(validateRunes()).toEqual([]);
@@ -127,7 +127,7 @@ describe('paying for a cast', () => {
   });
 });
 
-/* M6 step 8: which rune a drop or a ware is: two times in three one that fits the hand, else any of the seven. */
+/* Which rune a drop or a ware is: two times in three one that fits the hand, else any of the seven. */
 describe('pickRune', () => {
   it('leans to the spells in the slots, two times in three', () => {
     const rng = new Rng(7),
@@ -162,7 +162,7 @@ describe('pickRune', () => {
   });
 });
 
-/* M6 step 9: a waystone's pair: two different runes, dealt as one is. */
+/* A waystone's pair: two different runes, dealt as one is. */
 describe('pickPair', () => {
   it('deals two different runes, every time, and replays on a seed', () => {
     const rng = new Rng(3),

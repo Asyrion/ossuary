@@ -18,7 +18,7 @@ import {
   purseOf,
 } from '../../src/progression/levelData';
 
-/* M6 step 1: insight and levels (docs/archive/M6-plan.md). */
+/* Insight and levels (docs/archive/M6-plan.md). */
 
 describe('levels', () => {
   const at = CFG.levels.at;
@@ -55,7 +55,7 @@ describe('insight', () => {
     expect(clearInsight(2, true)).toBe(24);
     expect(potionInsight(0)).toBe(4);
     const boss = FLOORS.map((_, f) => bossInsight(f));
-    expect(boss).toEqual([60, 130, 230, 360, 540, 720]); // (M7: the Seal's boss last)
+    expect(boss).toEqual([60, 130, 230, 360, 540, 720]); // (the Seal's boss last)
   });
 });
 

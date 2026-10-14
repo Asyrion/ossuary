@@ -1,4 +1,4 @@
-/* Prepare one of the owner's sounds for the game (docs/assets.md, Sound, Pipeline step 6):
+/* Prepare a sound for the game (docs/assets.md, Sound, Pipeline step 6):
      npm run prepare-sound -- <in.wav> <family>/<id>_<n>      e.g.  -- growl_2.wav chameleon/growl_1
    writes public/assets/sounds/<family>/<id>_<n>.ogg: mono (the game places it left or right), the silence before it cut
    (every effect starts at once), its peak set to -1 dB, Ogg Vorbis at its own sample rate; then reports its length, size

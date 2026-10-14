@@ -1,8 +1,8 @@
-/* The Chameleon Wyvern (the owner's model from Tripo, 2026-10-05, through their EDA-ModelWebViewer; docs/creatures.md): a
+/* The Chameleon Wyvern (a Tripo model through the EDA-ModelWebViewer; docs/creatures.md): a
    feathered wyvern about the size of a pony, on two legs, its wings its arms (a clawed wrist, four fingers spanning the
    membrane), a beaked head with its mouth open and its tongue lolling, and a feathered tail ending in a spiked club. It
    came turned about 38 degrees to its left, so the tool turns it to face +z first (`face`); in that frame (x left-right,
-   y up, z forward) it stands 0.72 high, its wings raised, and its middle runs at about x = 0.045. The owner's viewer named
+   y up, z forward) it stands 0.72 high, its wings raised, and its middle runs at about x = 0.045. The viewer named
    its bones (root, spine, head_01 to head_09, arm_L and arm_R with their fingers, leg_L and leg_R with their toes, tail_01
    to tail_07) and mended their weights, so its skin is kept (`SKIN` null), only the head's weights smeared over the chain
    under it (head_06 to head_09) given to the skull and its lower jaw to the jaw outright. The root stands on the ground
@@ -211,7 +211,7 @@ function walk(rig: Rig, t: number) {
   yaw(rig, NECK[1], 3 * Math.sin(a));
 }
 
-/** The showpiece (played as the roar), both of the owner's choice in turn: it crouches and growls, rears up throwing its
+/** The showpiece (played as the roar), in two parts: it crouches and growls, rears up throwing its
     wings wide and screeches with its jaw wide, shaking its head; then hops round, slams the club of its tail down where it
     was facing and again as it bounces, and hops back round to face where it began. */
 const ROAR = {

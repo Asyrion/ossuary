@@ -3,7 +3,7 @@ import { attunedTo, circleOf, handState, knownWell, masteredSchools } from '../.
 import { SPELL_DEFS } from '../../src/magic/spellData';
 import type { Stage } from '../../src/magic/knowledge';
 
-// M4.11: the marks the mage's spells and knowledge put on them
+// The marks the mage's spells and knowledge put on them
 describe('spell marks', () => {
   it('a slotted spell is ready, cooling down (and how far back), or short of its cost', () => {
     expect(handState(0, 2, true, 1)).toEqual({ state: 'ready', fill: 1 });

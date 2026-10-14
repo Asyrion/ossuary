@@ -159,9 +159,9 @@ describe('economy', () => {
                 got.glyphs--;
                 roll('sealedUrn').forEach(add);
               }
-              if (tile === 'bones' || tile === 'skulls') roll('remains').forEach(add); // M3.6 piles
+              if (tile === 'bones' || tile === 'skulls') roll('remains').forEach(add); // piles
               if (tile === 'sacks') roll('bundle').forEach(add);
-              if (tile === 'hoard') roll('hoard').forEach(add); // M4.1: a treasury's offering heaps, broken by blasts
+              if (tile === 'hoard') roll('hoard').forEach(add); // a treasury's offering heaps, broken by blasts
             }
           if (r.type === 'vault') {
             got.keys--;
@@ -197,7 +197,7 @@ describe('economy', () => {
       expect(per.glyphs).toBeGreaterThan(0.2); // net of the glyphs sealed urns and secret rooms ask for
       expect(per.keys).toBeGreaterThan(0.2); // net of the keys chests and vaults ask for
       expect(per.hearts).toBeGreaterThan(2);
-      // soul motes (M4.1): a few a floor, more on the deep floors than the first
+      // soul motes: a few a floor, more on the deep floors than the first
       expect(per.souls).toBeGreaterThan(floorNo >= 4 ? 0.8 : 0.25);
       expect(per.souls).toBeLessThan(floorNo >= 4 ? 3 : 1);
       // relics beyond the budget are rare: a few floors in a hundred
@@ -207,10 +207,10 @@ describe('economy', () => {
   );
 });
 
-/* M6 step 8: runes as things, rolled on the run's own stream beside the drops (docs/archive/M6-plan.md, decision 10): half the
+/* Runes as things, rolled on the run's own stream beside the drops (docs/archive/M6-plan.md, decision 10): half the
    shops lay one as an extra ware, half the secret rooms without an artifact keep one, a gilded chest always lets one out
    beside its relic, and the Wandering Merchant (once a run at most, all but sure to come) carries one half the time; none
-   on floor 5. With the waystones' four (step 9) a run finds five or six. */
+   on floor 5. With the waystones' four a run finds five or six. */
 describe('runes as things (M6 step 8)', () => {
   it('a run finds one or two and is offered two or three, none on floor 5', () => {
     const N = 300,

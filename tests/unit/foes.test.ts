@@ -91,7 +91,7 @@ describe('the foes built in code (M4)', () => {
           expect(BOSS_TYPES as readonly string[]).not.toContain(id);
           expect(id).not.toBe('dummy');
           expect(w).toBeGreaterThan(0);
-          if (isFoe(id) && !f.fixed) expect(FOES[id].floor, `${id} on floor ${i + 1}`).toBe(i + 1); // (a floor each; M7: the Seal's horde comes from every floor)
+          if (isFoe(id) && !f.fixed) expect(FOES[id].floor, `${id} on floor ${i + 1}`).toBe(i + 1); // (a floor each; the Seal's horde comes from every floor)
         }
       }
   });

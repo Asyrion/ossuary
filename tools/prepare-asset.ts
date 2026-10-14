@@ -4,7 +4,7 @@
 
    Usage: npm run prepare-asset -- <input.glb> [--kind hero|enemy|boss|prop|large-prop|artifact] [--id <id>]
                                    [--out <dir>] [--check]
-     --kind    the budget it's held to (default hero, as before M3.5)
+     --kind    the budget it's held to (default hero)
      --id      the file name the game uses (default: the input's name in lower case with underscores)
      --out     the assets folder to write into (default public/assets)
      --check   report only: change nothing, write nothing
@@ -89,7 +89,7 @@ if (!check && !failed) {
   await io.write(output, doc);
   const file = relative(outDir, output).split('\\').join('/');
   console.log(`\nwritten: ${relative(process.cwd(), output)} (${kb(output)})`);
-  // its texture as pixel art at the size the game draws it, as every Tripo model wears it (2026-10-05; tools/texel-bake.ts)
+  // its texture as pixel art at the size the game draws it, as every Tripo model wears it (tools/texel-bake.ts)
   const baked = await bakeModelFile(output, B.height),
     rel = (f: string) => relative(outDir, f).split('\\').join('/');
   const texel = baked ? `, "texel": { "file": "${rel(baked.file)}", "glow": "${rel(baked.glow)}" }` : '';

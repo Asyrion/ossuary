@@ -2,7 +2,7 @@
      npm run animate-creature -- owlbear path/to/owlbear.glb
      npm run animate-creature -- --bones [--face=-90] path/to/model.glb   (reads a new model's rig, for writing its recipe;
                                                                           --face turns it to face +z first)
-   Reads the owner's Tripo GLB, binds its skin again from the bones (Tripo's auto-rig weights can't bend a limb), bakes
+   Reads a Tripo GLB, binds its skin again from the bones (Tripo's auto-rig weights can't bend a limb), bakes
    the clips of its recipe (tools/creatures/<id>.ts) into it as glTF animations, cuts its textures to 1,024 px JPEG and
    writes public/assets/creatures/<id>.glb, with what the game needs to play it (each clip's length, whether it loops,
    when its sounds fall, how fast its walk goes) in data/creatures.json, then bakes its texture as pixel art (texel-bake.ts). */
@@ -27,9 +27,9 @@ import { texelBake } from './texel-bake';
     tall it stands in the game, and the budget it keeps to (data/assets.json: a creature the size of a boss keeps a boss's). */
 const RECIPES = {
   owlbear: { ...owlbear, face: 0, height: 1.45, budget: 'boss' as const },
-  dragonling: { ...dragonling, height: 1.8, budget: 'boss' as const }, // (about a horse: the owner, 2026-10-03)
-  chameleon: { ...chameleon, height: 1.4, budget: 'boss' as const }, // (a pony: the owner, 2026-10-05)
-  ...TOWNSFOLK_RECIPES, // (2026-10-09: the townspeople, the Ferryman, Dr. Jelly and Kaelith, one Mixamo recipe)
+  dragonling: { ...dragonling, height: 1.8, budget: 'boss' as const }, // (about a horse)
+  chameleon: { ...chameleon, height: 1.4, budget: 'boss' as const }, // (a pony)
+  ...TOWNSFOLK_RECIPES, // (the townspeople, the Ferryman, Dr. Jelly and Kaelith, one Mixamo recipe)
 } as Record<
   string,
   {

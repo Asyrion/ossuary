@@ -1,4 +1,4 @@
-/* A creature's sounds made again from the owner's EDA-ModelWebViewer at a sample rate the asset guide accepts
+/* A creature's sounds made again from the EDA-ModelWebViewer at a sample rate the asset guide accepts
    (docs/creatures.md, Two ways a model comes; the viewer writes 22,050 Hz):
      npm run viewer-sounds -- <viewer checkout> <the model's source file name> <out dir> [<type>_<n> ...] [--rate=48000]
    e.g.  -- ../EDA-ModelWebViewer "Pukei+Pukei+-+Monster+Hunter.glb" sounds-48k growl_2 roar_1 hit_1 hit_2

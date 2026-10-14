@@ -9,7 +9,7 @@ import {
 } from '../../src/items/artifactData';
 import { ATTRS, attrBonus, freePoints, noAttrs, spentPoints } from '../../src/progression/attributes';
 
-/* M6 step 2: the four attributes (docs/archive/M6-plan.md). */
+/* The four attributes (docs/archive/M6-plan.md). */
 const base = { ...CFG.hero };
 const A = CFG.attributes;
 
@@ -71,7 +71,7 @@ describe('attributes', () => {
     const a = { ...noAttrs(), vigor: 2, will: 1 };
     expect(spentPoints(a)).toBe(3);
     expect(freePoints(5, a)).toBe(1);
-    expect(freePoints(5, a, 3)).toBe(4); // (Tempered's three, step 6)
+    expect(freePoints(5, a, 3)).toBe(4); // (Tempered's three)
     expect(freePoints(2, a)).toBe(0);
     expect(ATTRS).toEqual(['vigor', 'arcana', 'will', 'swiftness']);
   });

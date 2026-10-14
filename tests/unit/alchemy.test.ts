@@ -18,7 +18,7 @@ import {
 import { Rng } from '../../src/rng';
 import { LOOT, priceOf, rollWares } from '../../src/items/loot';
 
-// M5 (docs/archive/M5-plan.md; GDD: Potions and alchemy): the potions, reagents and recipes as data
+// The potions, reagents and recipes as data (docs/archive/M5-plan.md; GDD: Potions and alchemy)
 describe('alchemy', () => {
   it('the data is whole: twelve potions, seven reagents, every potion but the failed brew has a recipe', () => {
     expect(validateAlchemy()).toEqual([]);
@@ -83,7 +83,7 @@ describe('alchemy', () => {
       expect(p).not.toBe('volatile');
     }
     expect(recipeFor('rimewater', 'graveMoss')).toBeUndefined();
-    // M5 step 9: Verdant's Bloom Petal leans to healing and growth
+    // Verdant's Bloom Petal leans to healing and growth
     expect(brew('bloomPetal', 'graveMoss').potion).toBe('healing');
     expect(brew('wispEssence', 'bloomPetal').potion).toBe('mana');
     expect(brew('bloomPetal', 'emberSalt').potion).toBe('liquidEmber');
@@ -120,7 +120,7 @@ describe('alchemy', () => {
     expect(reagentFor({ foe: 'warden', boss: true })).toBe('wardensAsh');
     expect(reagentFor({ object: 'bones' })).toBe('boneDust');
     expect(reagentFor({ object: 'pew' })).toBeNull();
-    expect(reagentFor({ object: 'blossom' })).toBe('bloomPetal'); // (M5 step 9: the garden's flowering plants, and Verdant's foes)
+    expect(reagentFor({ object: 'blossom' })).toBe('bloomPetal'); // (the garden's flowering plants, and Verdant's foes)
     expect(reagentFor({ foe: 'wardVerdant', school: 'verdant' })).toBe('bloomPetal');
     expect(reagentFor({ foe: 'rotling', school: null })).toBeNull();
   });

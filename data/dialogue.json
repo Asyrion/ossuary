@@ -1,5 +1,5 @@
 {
- "_comment": "M7 step 7, the townspeople's talk (docs/M7-plan.md, decisions 11 and 12): each speaker's lines (the ten freed shades of data/shades.json and the Ferryman), each for a moment (first, death, won, boss, idle, reply; quest and questDone kept for step 8), with conditions on the save (`when`), what an idle line tells of (`fill`: a foe's weakness, a boss's fear, a reaction) and up to two choices, each leading to a reply and setting flags. Read and checked by src/vigil/dialogueData.ts. Placeholder lines within the lore limits, the owner's to rewrite.",
+ "_comment": "The townspeople's talk (docs/M7-plan.md, decisions 11 and 12): each speaker's lines (the ten freed shades of data/shades.json and the Ferryman), each for a moment (first, death, won, boss, idle, reply, quest, questDone), with conditions on the save (`when`), what an idle line tells of (`fill`: a foe's weakness, a boss's fear, a reaction) and up to two choices, each leading to a reply and setting flags. Read and checked by src/vigil/dialogueData.ts. Placeholder lines within the lore limits.",
  "speakers": [
   "stormcaller",
   "wizard",

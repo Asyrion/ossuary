@@ -25,7 +25,7 @@ describe('weaves and chains (M4.10)', () => {
     expect(of('consecrate')).toEqual(['eclipseGround', 'hallowedHail']);
     expect(of('static_mantle')).toEqual(['liveWade']);
     expect(of('ferrymans_toll')).toEqual(['tollChain']);
-    // (M5: Verdant's spells share the zone's, the wall's and the grasp's shapes, but pollen, living wood and thorns weave nothing)
+    // (Verdant's spells share the zone's, the wall's and the grasp's shapes, but pollen, living wood and thorns weave nothing)
     for (const id of ['pollen_cloud', 'living_wall', 'thorn_snare']) expect(of(id)).toEqual([]);
     // (every weave is somebody's: both its spells name it, except Live Wade, which the water completes)
     for (const id of WEAVE_IDS.filter((i) => WEAVES[i].kind === 'weave'))

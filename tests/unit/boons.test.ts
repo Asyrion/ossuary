@@ -21,7 +21,7 @@ import {
 } from '../../src/progression/boonData';
 import { MAGIC, applyStatus, newStatus, tickStatus } from '../../src/magic/status';
 
-/* M6 step 3: boons as data and the deal (docs/archive/M6-plan.md). */
+/* Boons as data and the deal (docs/archive/M6-plan.md). */
 const flat = () => schoolWeights({ slots: [null, null], casts: {}, taken: {} });
 const state = (o: Partial<DealState> = {}): DealState => ({ taken: {}, weights: flat(), socketable: true, ...o });
 const deals = (s: DealState, n: number, seed = 1) => {
@@ -154,7 +154,7 @@ describe('the pledge', () => {
   });
 });
 
-/* M6 step 5: what the school boons change. */
+/* What the school boons change. */
 describe('the boons at work', () => {
   it('tune the statuses: Deep Winter freezes on two stacks and (II) longer, Gathering Dark gathers more hex and fades slower', () => {
     expect(boonTuning(MAGIC, {})).toBe(MAGIC);
