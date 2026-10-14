@@ -3459,7 +3459,30 @@ test('transformations (M4.6): three of a family transform the mage, said in a ba
     };
   });
   expect(more).toEqual({ mapped: true, moths: 1 });
-  // the other gifts, each on a fresh run: foes pinned where they stand, the mage kept alive
+  await page.evaluate(() => {
+    const g = (window as unknown as W).__game as GT;
+    g.clearRoom();
+    g.closeUp(true);
+    g.sim(5, true);
+  });
+  await page.screenshot({ path: 'test-results/transformations.png' });
+  expect(errors).toEqual([]);
+});
+
+// (the other gifts apart from the forming above: each needs a fresh run, and both together ran past the time a test has
+// on a CI runner)
+test("transformations' other gifts, each on a fresh run: the Frostborn chills what touches it, the Stormcaller's fifth bolt leaps, the Runescribe's mark bursts, the Lightbearer floats over pits, the Pyromancer's embers spare the mage", async ({
+  page,
+}) => {
+  const errors = await start(page, '?room=great_hall&variant=quiet&seed=TRANS1');
+  type GT = GameHooks & {
+    transform(id: string): boolean;
+    burningGround: number;
+    spawn(kind: string, x?: number, z?: number): void;
+    clearRoom(): void;
+    player: { x: number; z: number; hp: number; maxHp: number; stats: { effects: Set<string> } };
+  };
+  // foes pinned where they stand, the mage kept alive
   type Foe = { x: number; z: number; vx: number; vz: number; hp: number; maxHp: number; status?: { chill?: number } };
   const gifts = await page.evaluate(() => {
     const g = (window as unknown as W).__game as GT & {
@@ -3565,13 +3588,6 @@ test('transformations (M4.6): three of a family transform the mage, said in a ba
     float: { lifted: true, pits: true },
     ownEmbers: { burning: true, hurt: 0 },
   });
-  await page.evaluate(() => {
-    const g = (window as unknown as W).__game as GT;
-    g.clearRoom();
-    g.closeUp(true);
-    g.sim(5, true);
-  });
-  await page.screenshot({ path: 'test-results/transformations.png' });
   expect(errors).toEqual([]);
 });
 
