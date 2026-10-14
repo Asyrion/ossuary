@@ -1,4 +1,4 @@
-/* The artifacts' HUD icons in the room kit's style (M3.5 step 3): each rendered from its model (artifactLooks.ts), so the
+/* The artifacts' HUD icons in the room kit's style: each rendered from its model (artifactLooks.ts), so the
    icon is the thing the mage picked up. The model is lit from above and in front, with a rim of its own colour behind
    it, turned three-quarters to the camera; drawn at `SIZE`, and made pixel art of `OUT` pixels (about the artifact's own
    size in the room at the pixel look's texel), outlined in dark, as the pixel look outlines the scene. Rendered the first time it is asked for and kept (a data URL), so the HUD pays once. */
@@ -55,7 +55,7 @@ export function artifactIconUrl(def: ArtifactDef) {
   );
 }
 
-/** Any look as a pixel-art icon (M5: the bottles and reagents too), rendered once under `key` and kept: `make` builds the
+/** Any look as a pixel-art icon (the bottles and reagents too), rendered once under `key` and kept: `make` builds the
     look (it is disposed after), lit as an artifact is, with a rim in `rim`'s colour. */
 export function iconUrlOf(key: string, make: () => THREE.Object3D, rim: THREE.ColorRepresentation) {
   const hit = cache.get(key);
@@ -94,7 +94,7 @@ export function iconUrlOf(key: string, make: () => THREE.Object3D, rim: THREE.Co
   return url;
 }
 
-/** What an icon frames: the model's meshes, not the glow sprites round it (a bottle's or a reagent's light, M5), which
+/** What an icon frames: the model's meshes, not the glow sprites round it (a bottle's or a reagent's light), which
     would leave the model a speck in the middle. */
 function meshBox(o: THREE.Object3D) {
   const box = new THREE.Box3(),
@@ -109,7 +109,7 @@ function meshBox(o: THREE.Object3D) {
   return box.isEmpty() ? new THREE.Box3().setFromObject(o) : box;
 }
 
-/** The rendered pixels (bottom row first) to a small pixel-art PNG (2026-10-01, everything in the one pixel-art look): each
+/** The rendered pixels (bottom row first) to a small pixel-art PNG (everything in the one pixel-art look): each
     icon pixel the mean of the rendered block under it (weighted by how much is drawn there), drawn or not (no soft
     edge), and outlined in dark, as the pixel look outlines the scene. Shown in whole steps (`image-rendering: pixelated`). */
 function toIcon(px: Uint8Array) {

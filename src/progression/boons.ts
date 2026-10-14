@@ -1,9 +1,9 @@
-/* M6 step 3: boons in the game (the rules are boonData.ts). `G.run.boons` holds each boon taken and its rank; the hooks
-   that carry a boon out (steps 5 and 6) ask `boonRank` and `boonParam`. A deal reads the build: the spells in the slots,
+/* Boons in the game (the rules are boonData.ts). `G.run.boons` holds each boon taken and its rank; the hooks
+   that carry a boon out ask `boonRank` and `boonParam`. A deal reads the build: the spells in the slots,
    the run's casts by school (`G.run.casts`), the boons taken and a pledge (`G.run.pledge`); each deal is drawn on its own
    stream (`'boons' + G.run.deals`), so a seed deals the same cards to the same choices. Taking one shows its lore card;
    a school boon taken before any spell of its school pledges the next library to it, and says so. The level-up screen
-   (step 4) and the shrine's bargain (step 11) deal and take through here. */
+   and the shrine's bargain deal and take through here. */
 import { G, player } from '../state';
 import { STR } from '../strings';
 import { CFG } from '../config';

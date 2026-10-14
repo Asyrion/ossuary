@@ -1,6 +1,6 @@
-/* Spell knowledge (M3.7, GDD: Spells, Spell knowledge): how well the mage knows each spell. A spell is seen when its
+/* Spell knowledge (GDD: Spells, Spell knowledge): how well the mage knows each spell. A spell is seen when its
    page is first approached, learned when a page of it is taken, used after enough casts over all runs, and upgraded
-   when runes or school mastery change it (M6). What each stage shows is in ui/spellPanel.ts. These are the pure rules
+   when runes or school mastery change it. What each stage shows is in ui/spellPanel.ts. These are the pure rules
    (unit-tested); magic/memory.ts keeps them in the browser between runs. */
 import { REACTIONS, type Reaction } from './status';
 import type { School, SpellDef } from './spellData';
@@ -13,14 +13,14 @@ export interface Known {
   seen: boolean;
   learned: boolean;
   /** Times cast, over all runs. */ casts: number;
-  /** What has changed it (runes, school mastery: M6). */ upgrades: string[];
+  /** What has changed it (runes, school mastery). */ upgrades: string[];
 }
 export type Knowledge = Record<string, Known>;
 
 export const blank = (): Known => ({ seen: false, learned: false, casts: 0, upgrades: [] });
 
 /** The stage a record has reached; `usedCasts` casts of a learned spell make it used, and a used spell runes have changed
-    is upgraded (M6: a rune carved into one not yet known well waits for the casts, so "known well" still comes). */
+    is upgraded (a rune carved into one not yet known well waits for the casts, so "known well" still comes). */
 export function stageOf(k: Known | undefined, usedCasts: number): Stage {
   if (!k) return 'unknown';
   if (k.learned) return k.casts >= usedCasts ? (k.upgrades.length ? 'upgraded' : 'used') : 'learned';
@@ -96,13 +96,13 @@ const SCHOOL_OF = {
   hex: 'umbral',
   grow: 'verdant',
 } as const;
-/** The two schools whose statuses meet in reaction `r` (the wheel's chord between them, M4.8). */
+/** The two schools whose statuses meet in reaction `r` (the wheel's chord between them). */
 export const reactionSchools = (r: Reaction): [School, School] =>
   REACTIONS[r].map((k) => SCHOOL_OF[k as keyof typeof SCHOOL_OF]) as [School, School];
 /** Every reaction, in the table's order (the book's wheel lists them so). */
 export const REACTION_IDS = Object.keys(REACTIONS) as Reaction[];
 /** The reactions a spell can set off with another school's status (magic/status.ts's `REACTIONS`, the wheel of every
-    pair of the five schools, M4.8): for each status it brings, each reaction that status is half of, and the school of
+    pair of the five schools): for each status it brings, each reaction that status is half of, and the school of
     the other half. */
 export function reactionsOf(def: Pick<SpellDef, 'status'>): { reaction: Reaction; with: School }[] {
   const has = (k: string) => (def.status?.[k as keyof typeof def.status] ?? 0) > 0,

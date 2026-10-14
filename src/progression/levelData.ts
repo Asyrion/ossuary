@@ -1,4 +1,4 @@
-/* M6 RPG growth: insight (the GDD's XP) and levels, the pure rules (docs/archive/M6-plan.md; unit-tested). Insight comes from
+/* RPG growth: insight (the GDD's XP) and levels, the pure rules (docs/archive/M6-plan.md; unit-tested). Insight comes from
    foes put to rest (each a purse fixed when it is made: its health ÷ `foeDiv`, paid once as it falls), a room's first
    clear, a boss, a potion's kind first used in a run and the Grave Draught. Nothing that can be farmed pays: a nest's
    brood, a golem's stones, a boss's helpers and the dummies carry no purse of their own. Tuning in `CFG.levels`, each
@@ -20,7 +20,7 @@ export function levelFor(insight: number, at: readonly number[] = L.at) {
   return level;
 }
 /** The level a run expects to start floor `floor` (0-based) at: what the floors before it give (`CFG.levels.floorInsight`,
-    the measured medians), so a deeper start (`?level=auto`, the dev menu's new runs) begins on the curve (M6 step 12). */
+    the measured medians), so a deeper start (`?level=auto`, the dev menu's new runs) begins on the curve. */
 export const levelAtFloor = (floor: number, perFloor: readonly number[] = L.floorInsight) =>
   levelFor(perFloor.slice(0, Math.max(0, floor)).reduce((a, b) => a + b, 0));
 /** Where `insight` stands within its level: the level, the insight gained into it and the insight it spans (0 at the cap). */

@@ -92,7 +92,7 @@ export function placeGlyph() {
     toast(STR.vigil.chalk, 2.4);
     cooldown = 0.6;
     return false;
-  } // (M7 step 5: nothing to blast at the Vigil)
+  } // (nothing to blast at the Vigil)
   if (player.glyphs <= 0) {
     Sfx.noGlyph();
     cooldown = 0.3;
@@ -146,7 +146,7 @@ export function placeGlyph() {
 }
 
 /** A glyph's blast at (x, z), as one of the mage's would be (dev hooks and tests; `spare`: it turns aside from the mage, as
-    Brewer's Breath's does, M6). */
+    Brewer's Breath's does). */
 export const blastAt = (x: number, z: number, spare = false) =>
   blast(x, z, player.stats.boltColor, C.radius * player.stats.blastMul, spare);
 
@@ -182,8 +182,8 @@ function blast(x: number, z: number, color: number, R: number, spare = false) {
     if (!e.isBoss) {
       e.kx += ux * C.knockback;
       e.kz += uz * C.knockback;
-    } else if (e.plates) breakPlate(e); // (M4.2: the War-Tiger loses a plate)
-    foeBlasted(e); // (M4.5: a rubble crab is flipped)
+    } else if (e.plates) breakPlate(e); // (the War-Tiger loses a plate)
+    foeBlasted(e); // (a rubble crab is flipped)
   }
   for (const rock of room.rocks.slice()) {
     if (!touches(rock, x, z, R)) continue;
@@ -193,9 +193,9 @@ function blast(x: number, z: number, color: number, R: number, spare = false) {
       strikeProp(room, rock, true); // piles, casks, glowcaps
     else if (rock.breakable) hitRock(room, rock, true);
   }
-  dragonBlast(x, z, R); // (M4.2: a blast at the foot of the Pillar Dragon's pillar knocks it off)
+  dragonBlast(x, z, R); // (a blast at the foot of the Pillar Dragon's pillar knocks it off)
   groundHears('blast', x, z, R); // (what hides in water there is thrown up)
-  vigilHooks.landed('blast', x, z, R); // (M7 step 6: a glyph's blast breaks any chain on a chained shade)
+  vigilHooks.landed('blast', x, z, R); // (a glyph's blast breaks any chain on a chained shade)
   blastProps(room, x, z, R); // rubble cleared, briars and cobwebs torn away
   caveIn(room, x, z); // in the collapsed crypt, more of the ceiling comes down
   for (const p of G.room.pickups)

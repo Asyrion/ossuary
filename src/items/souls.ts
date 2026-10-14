@@ -1,4 +1,4 @@
-/* Soul motes (M4.1; GDD: Items; the idea bank's soul hearts): pale flames kept beside the hearts that take a hit before
+/* Soul motes (GDD: Items; the idea bank's soul hearts): pale flames kept beside the hearts that take a hit before
    the hearts do, and can't be healed back. A pale mote guards one hit; a black one guards one and, going out, hexes every
    foe in the room; a hallowed one is always lost last and gives back half a heart at the end of every floor it lives
    through. A spell cast short of mana burns a mote for the rest. The rules on which goes first are pure (`soulToLose` in

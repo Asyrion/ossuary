@@ -1,4 +1,4 @@
-/* Steam (Ember + Frost; built 2026-10-01): a cloud where fire met cold. It comes from the reaction on a foe (a chilled foe
+/* Steam (Ember + Frost): a cloud where fire met cold. It comes from the reaction on a foe (a chilled foe
    set burning, a burning one chilled; magic/status.ts) and from the floor (fire on ice, frost on burning oil; world/pools.ts).
    Foes inside can't aim: their shots go wide (`spawnShot`). Eyes can't see the mage through one: a basilisk's stare, a
    radiant eye, a watching statue (`steamBetween`). Water under it is scalded, and what hides in it comes up (`hearGround`'s
@@ -30,11 +30,11 @@ interface Cloud {
   life: number;
   puffs: THREE.Sprite[];
   mat: THREE.SpriteMaterial;
-  /** M4.10: the school that charged it (Thundercloud, Incense, Miasma), its clock, and whether its incense has mended the mage. */ school?: Charge;
+  /** the school that charged it (Thundercloud, Incense, Miasma), its clock, and whether its incense has mended the mage. */ school?: Charge;
   tick?: number;
   mended?: boolean;
 }
-/** The schools a cloud takes (M4.10's chains), what each makes of it, and its colour. */
+/** The schools a cloud takes (the chains), what each makes of it, and its colour. */
 export type Charge = 'storm' | 'hallow' | 'umbral';
 const CHAIN: Record<Charge, 'thundercloud' | 'incense' | 'miasma'> = {
   storm: 'thundercloud',
@@ -44,7 +44,7 @@ const CHAIN: Record<Charge, 'thundercloud' | 'incense' | 'miasma'> = {
 const TINT: Record<Charge, number> = { storm: 0xf4eeb0, hallow: 0xffe8a8, umbral: 0x5a4078 };
 const clouds: Cloud[] = [];
 
-/** A cloud of steam at (x, z) in the current room, `r` across (the reaction's, by default), for `time` seconds. M5: a
+/** A cloud of steam at (x, z) in the current room, `r` across (the reaction's, by default), for `time` seconds. A
     `dark` one (a thrown Shadowstep Tincture) is darkness, not steam: foes in it can't aim either, but water keeps still. */
 export function steamAt(x: number, z: number, r = S.radius, time = S.time, dark = false) {
   const room = G.room.current,
@@ -70,7 +70,7 @@ export function steamAt(x: number, z: number, r = S.radius, time = S.time, dark 
   if (!dark) groundHears('steam', x, z, r); // (scalded water: what hides in it comes up)
 }
 
-/** A school lands at (x, z) (M4.10): a cloud there not yet charged takes it: Storm makes it a thundercloud, Hallow incense,
+/** A school lands at (x, z): a cloud there not yet charged takes it: Storm makes it a thundercloud, Hallow incense,
     Umbral a miasma. Returns whether one did. */
 export function chargeSteam(x: number, z: number, school: Charge) {
   const c = clouds.find((c) => c.room === G.room.current && !c.school && Math.hypot(x - c.x, z - c.z) < c.r);

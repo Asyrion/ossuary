@@ -40,7 +40,7 @@ import { sowBlossom } from '../world/props';
 
 /** Hurt a foe, knocking it along (dx, dz); `kbMul` scales the knockback (the Ram's Skull on bolts); `by` says
     what struck it (a foe the cantrip puts to rest gives mana back); `school`, the magic it struck with, if any: a foe in
-    code takes half again from its weakness and half from its resistance (M4), and the first time the word rises. */
+    code takes half again from its weakness and half from its resistance, and the first time the word rises. */
 export function damageEnemy(
   e: Enemy,
   dmg: number,
@@ -54,24 +54,24 @@ export function damageEnemy(
   if (e.ward && by === 'spell') {
     drinkBlow(e, dmg, school);
     return;
-  } // (M4.2: its ward drinks the spells that strike it)
+  } // (its ward drinks the spells that strike it)
   if (e.glance && by === 'cantrip') {
     glance(e);
     return;
   } // (a Twin Guardian's shield turns bolts)
-  const blow = dmg; // (the blow as dealt: what a shock's leap passes on, M6: the multipliers are the next foe's to apply)
+  const blow = dmg; // (the blow as dealt: what a shock's leap passes on; the multipliers are the next foe's to apply)
   const seared = (e.status?.seared ?? 0) > 0,
-    bare = !seared && (e.guard ?? 1) < 1 && laidBare(e.status?.sanct ?? 0); // (M6: Laid Bare, holy light strips it as Searing does)
+    bare = !seared && (e.guard ?? 1) < 1 && laidBare(e.status?.sanct ?? 0); // (Laid Bare, holy light strips it as Searing does)
   const raw = dmg * damageTakenMul(e.status) * (e.unbound ? MAGIC.unbound.damageMul : 1);
-  dmg = raw * (seared || bare ? Math.max(1, e.guard ?? 1) : (e.guard ?? 1)); // a frozen foe cracks; a shut mimic's clay turns half a blow, unless Searing burnt its guard away (M4.8; an opening, a flipped crab's, stays)
+  dmg = raw * (seared || bare ? Math.max(1, e.guard ?? 1) : (e.guard ?? 1)); // a frozen foe cracks; a shut mimic's clay turns half a blow, unless Searing burnt its guard away (an opening, a flipped crab's, stays)
   if (bare) boonActs('laidBare', e.x, e.z);
-  if (e.plates) wearPlates(e, raw - dmg); // (M4.2: the War-Tiger's plates turn most of it, and wear)
+  if (e.plates) wearPlates(e, raw - dmg); // (the War-Tiger's plates turn most of it, and wear)
   const aff = affinityMul(e.foe ?? e.bossAff, school);
-  e.weakBlow = aff > 1; // (the bosses of floors 4 and 5 have theirs too; M6: Scavenger asks whether the killing blow was its weakness)
+  e.weakBlow = aff > 1; // (the bosses of floors 4 and 5 have theirs too; Scavenger asks whether the killing blow was its weakness)
   if (aff < 0) {
     drink(e, -dmg * aff);
     return;
-  } // (M4.5: an elemental drinks its own school)
+  } // (an elemental drinks its own school)
   if (aff !== 1) {
     dmg *= aff;
     if (foundAffinity(e.foe?.id ?? (e.type as BossType), aff > 1 ? 'weak' : 'resist')) {
@@ -80,7 +80,7 @@ export function damageEnemy(
     }
   }
   if (by === 'spell') dmg *= player.stats.spellDamage; // Crown of Thorns
-  if (by === 'cantrip' || by === 'spell') dmg *= giantDamageMul(); // (M5: the Giant's Brew, drunk)
+  if (by === 'cantrip' || by === 'spell') dmg *= giantDamageMul(); // (the Giant's Brew, drunk)
   if (e.foe) {
     dmg = foeStruck(e, dmg, by, dx, dz, school);
     if (dmg <= 0) {
@@ -92,12 +92,12 @@ export function damageEnemy(
   e.flash = 0.09;
   e.lastHit = by;
   e.asleep = false; // a sleeper wakes
-  if (by && e.mantle) mantleStruck(e); // (M4.7: a Stormcharged champion sparks back)
+  if (by && e.mantle) mantleStruck(e); // (a Stormcharged champion sparks back)
   const hexed = e.status?.hex ?? 0; // (before the blow spends a stack: a foe that falls with enough leaves a soul mote)
   if (by) {
-    // a hexed foe gives back mana for each stack a blow spends (M4.1); a foe marked by the Ferryman's Toll pays its toll
+    // a hexed foe gives back mana for each stack a blow spends; a foe marked by the Ferryman's Toll pays its toll
     const spent = spendHex(e.status);
-    if (spent) thirstHex(e.x, e.z); // (M6: Thirsting Hex drinks the stacks spent)
+    if (spent) thirstHex(e.x, e.z); // (Thirsting Hex drinks the stacks spent)
     let back = spent * (player.stats.effects.has('soulLantern') ? CFG.artifacts.soulLantern.hexMul : 1); // (half again with the Ferryman's Lantern)
     if (e.toll && G.flow.clock >= (e.tollNext ?? 0)) {
       back += e.toll.mana;
@@ -122,7 +122,7 @@ export function damageEnemy(
   if (e.hp <= 0) killEnemy(e, false, hexed);
 }
 
-/** An elemental drinks a blow of its own school (M4.5): it heals by `hp`, in its light, and the first time the word rises. */
+/** An elemental drinks a blow of its own school: it heals by `hp`, in its light, and the first time the word rises. */
 export function drink(e: Enemy, hp: number) {
   e.hp = Math.min(e.maxHp, e.hp + hp);
   e.flash = 0.09;
@@ -161,12 +161,12 @@ const STAIN_COLOR: Record<keyof typeof CFG.enemy, number | null> = {
   serpent: 0x1e4a24,
   kaelith: null,
 };
-/** What flies from a foe when it falls, and the stain it leaves: a foe in code's own (data/foes.json), else the old. */
+/** What flies from a foe when it falls, and the stain it leaves: a foe in code's own (data/foes.json), else the type's table. */
 const gibOf = (e: Enemy) => (e.foe ? new THREE.Color(e.foe.gib).getHex() : GIB_COLOR[e.type as EnemyType]);
 const stainOf = (e: Enemy) =>
   e.foe ? e.foe.stain && new THREE.Color(e.foe.stain).getHex() : STAIN_COLOR[e.type as EnemyType];
 
-/** A foe goes without falling (M4.5: a rubble golem takes its stones back): gone, leaving nothing, not counted as slain. */
+/** A foe goes without falling (a rubble golem takes its stones back): gone, leaving nothing, not counted as slain. */
 export function crumble(e: Enemy) {
   e.dead = true;
   scene.remove(e.group);
@@ -183,21 +183,21 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
     return;
   } // its master fell: it crumbles, and drops nothing
   burst(e.x, e.isBoss ? 1 : 0.45, e.z, gibOf(e), e.isBoss ? 60 : 16, e.isBoss ? 6 : 3.5, e.isBoss ? 0.12 : 0.08);
-  payPurse(e); // (M6: its insight runs to the mage's hand)
+  payPurse(e); // (its insight runs to the mage's hand)
   if (e.foe) {
     burst(e.x, 0.5, e.z, SCHOOL_LIGHT[e.foe.school], 10, 2.2, 0.04);
     foeDied(e);
   } // (its school's light goes out of it; what it leaves behind)
-  if (e.mantle) mantleFell(e); // (M4.7: a Hexbound champion's curse)
+  if (e.mantle) mantleFell(e); // (a Hexbound champion's curse)
   if ((e.status?.grow ?? 0) > 0 || e.status?.bloom) {
     flowerFell(e);
     if (!e.isBoss && boonRank('seedfall')) sowBlossom(G.room.current, e.x, e.z);
-  } // (M5: overgrown, it flowers; a lily mends besides; M6: Seedfall leaves a plant, before the drops find their spots)
+  } // (overgrown, it flowers; a lily mends besides; Seedfall leaves a plant, before the drops find their spots)
   if (e.toll) payToll(e); // marked by the Ferryman's Toll: it pays in obols, and its hex spreads
   if ((e.status?.voidT ?? 0) > 0) {
     gainMana(MAGIC.reactions.voidspark.mana);
     burst(e.x, 1, e.z, SCHOOL_LIGHT.umbral, 8, 1.8, 0.04);
-  } // (M4.8: a Void Spark's mark gives back mana as it falls)
+  } // (a Void Spark's mark gives back mana as it falls)
   if (
     hexed >= MAGIC.hex.soulAt &&
     e.type !== 'dummy' &&
@@ -229,7 +229,7 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
     }
   }
   const drop = e.isBoss ? null : rollEnemyDrop(G.run.drops); // now and then an obol
-  if (!(e.isBoss && e.twin && !e.twin.dead)) foeReagent(e); // (M5: now and then a reagent; a boss's every time, the second twin's)
+  if (!(e.isBoss && e.twin && !e.twin.dead)) foeReagent(e); // (now and then a reagent; a boss's every time, the second twin's)
   if (drop) {
     const p = freeSpotNear(G.room.current, e.x, e.z);
     spawnPickup(drop, p.x, p.z);
@@ -246,7 +246,7 @@ function killEnemy(e: Enemy, withBoss = false, hexed = 0) {
     if (e.labBoss) {
       serpentFell(e);
       paySerpent(e);
-    } else flowHooks.onBossDead(e); // (M5: the jelly serpent out of its vat has its own rewards, and no trapdoor)
+    } else flowHooks.onBossDead(e); // (the jelly serpent out of its vat has its own rewards, and no trapdoor)
   } else {
     if (e.foe) Sfx.at(e.x, e.z).critterDie();
     else Sfx.at(e.x, e.z).die();
@@ -303,7 +303,7 @@ function leech(e: Enemy) {
 export function payBloodTithe() {
   if (player.stats.effects.has('bloodTithe')) bleed(1);
 }
-/** Half hearts paid in blood (the Bloodied Covenant's tithe, M6's Vein rune): never the last; no grace after it, no soul
+/** Half hearts paid in blood (the Bloodied Covenant's tithe, the Vein rune): never the last; no grace after it, no soul
     mote spent, nothing the Last Rite turns. Whether it was paid. */
 export function bleed(halves: number) {
   if (player.hp <= halves) return false;
@@ -326,7 +326,7 @@ function lastRite() {
 /** Damage the hero by `halves` half-hearts, knocking them away from (fromX, fromZ). Whether the blow reached the mage
     (not shrugged off while invulnerable; in god mode it reaches but costs nothing), for what comes with it (a chill, a
     hex, dimmed sight). */
-/* M7 step 4: what struck the mage last, kept in the run's record (the echoes say it): the foe or boss whose shot or blow it
+/* what struck the mage last, kept in the run's record (the echoes say it): the foe or boss whose shot or blow it
    was, else the foe acting, else the nearest foe to where the blow came from, else the room (a briar, a pool, a fall). */
 let striker: string | null = null;
 /** The kind of `e` as the save names it: a boss by its boss, a foe by its id. */
@@ -359,7 +359,7 @@ export function hurtPlayer(halves: number, fromX: number, fromZ: number): boolea
   }
   G.run.struck = struckBy(fromX, fromZ);
   if (DEV.god) return true;
-  const guarded = guardHit(); // a soul mote takes the blow before the hearts do (M4.1)
+  const guarded = guardHit(); // a soul mote takes the blow before the hearts do
   if (!guarded) player.hp -= halves;
   if (player.hp <= 0 && lastRite()) {
     // the Last Rite: this blow is refused, once a floor, and the mage rises

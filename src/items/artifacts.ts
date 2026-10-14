@@ -33,7 +33,7 @@ const hex = (c: string) => new THREE.Color(c).getHex();
     once unless `announceNow` is false (an artifact taken shows its own banner and card first: `grantArtifact`). */
 export function refreshStats(announceNow = true): TransformId[] {
   const before = player.maxHp,
-    fresh = updateTransforms(); // (M4.6: three of a family transform the mage)
+    fresh = updateTransforms(); // (three of a family transform the mage)
   player.stats = computeStats(
     player.focus,
     player.items,
@@ -42,7 +42,7 @@ export function refreshStats(announceNow = true): TransformId[] {
     player.coins,
     G.run.remedy ? [G.run.remedy] : [],
     growth(),
-  ); // (M6: and the attributes, and Votive Heart's containers)
+  ); // (and the attributes, and Votive Heart's containers)
   giftsFor(player.stats);
   player.maxHp = player.stats.maxHp;
   if (player.maxHp > before) player.hp += player.maxHp - before;
@@ -52,21 +52,21 @@ export function refreshStats(announceNow = true): TransformId[] {
   renderItems();
   dress();
   if (announceNow) for (const t of fresh) announce(t);
-  updateArc(); // (M4.6: Azyrion grows towards the chaos mage)
+  updateArc(); // (Azyrion grows towards the chaos mage)
   return fresh;
 }
 
-/** M6: what the mage's growth adds: the attributes, and Votive Heart's heart containers (two halves each); M7 step 8, the
-    Vigil's powers (more mana, heart containers); M7 step 9, the blessing of the candle lit for this run. */
+/** what the mage's growth adds: the attributes, and Votive Heart's heart containers (two halves each); the
+    Vigil's powers (more mana, heart containers); the blessing of the candle lit for this run. */
 function growth() {
   const b = attrBonus(G.run.attrs),
     v = vigil(),
-    p = startOf({ freed: v.freed, bonds: v.bonds, powers: v.powers, flags: v.flags }); // (M7 step 8: the powers bought at the Vigil)
+    p = startOf({ freed: v.freed, bonds: v.bonds, powers: v.powers, flags: v.flags }); // (the powers bought at the Vigil)
   return blessBonus(blessingOf(G.run.blessing), {
     ...b,
     mana: b.mana + (p.maxMana ?? 0),
     heartHalves: b.heartHalves + 2 * boonParam('votiveHeart', 'hearts') + 2 * (p.hearts ?? 0),
-  }); // (M7 step 9: a candle's blessing, this run)
+  }); // (a candle's blessing, this run)
 }
 
 /** Start a run holding only the starting focus. */
@@ -111,7 +111,7 @@ export function grantArtifact(def: ArtifactDef, silent = false): ArtifactDef | n
     if (def.kind === 'cursed') Sfx.cursed();
     else Sfx.relic();
   }
-  // a transformation it completes is named after the artifact's own banner and card (M4.6), one after another
+  // a transformation it completes is named after the artifact's own banner and card, one after another
   formed.forEach((t, i) => {
     if (silent && !i) announce(t);
     else after((silent ? 0 : CFG.transform.after) + i * CFG.transform.banner, () => announce(t));
@@ -165,7 +165,7 @@ export function offerSecondChoice(pool: Pool) {
 
 /* ---------- pedestals ---------- */
 
-/** What floats over an artifact's pedestal: its made model (data/assets.json, M3.5) turning about its middle in its
+/** What floats over an artifact's pedestal: its made model (data/assets.json) turning about its middle in its
     glow, or the room kit's (artifactLooks.ts: the artifact built in code as what it is). */
 export function makeArtifactVisual(def: ArtifactDef) {
   const g = new THREE.Group();
@@ -234,7 +234,7 @@ export function placeArtifact(
     pedestal.add(tag);
     price = { hearts: 1, tag };
   } else {
-    const model = modelFor('props', 'pedestal'); // a made pedestal (M3.5), or the room kit's
+    const model = modelFor('props', 'pedestal'); // a made pedestal, or the room kit's
     if (model) pedestal.add(model, blob(1.3));
     else {
       const look = pedestalLook(room.look);

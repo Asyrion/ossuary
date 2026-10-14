@@ -1,4 +1,4 @@
-/* A potion thrown (M5, docs/archive/M5-plan.md; GDD: Potions and alchemy): the bottle arcs to where the mage aims and shatters in
+/* A potion thrown (docs/archive/M5-plan.md; GDD: Potions and alchemy): the bottle arcs to where the mage aims and shatters in
    a splash. Its throw effect lands through the hooks the spells use (fireAt, frostAt, shockAt, hallowAt, umbralAt and
    inflict), so a splash lights oil, freezes water, wakes mechanisms and sets off reactions like any spell. While the
    potion key is held a ring shows where it will land. The Grave Draught's thrall, a skeleton that fights for the mage
@@ -77,7 +77,7 @@ function landings() {
   }));
 }
 
-/** Throw a potion: its bottle flies off in an arc. The Alchemist's gift (M5 step 8, `splitThrow`) splits it in two in
+/** Throw a potion: its bottle flies off in an arc. The Alchemist's gift (`splitThrow`) splits it in two in
     the air: two bottles, landing `CFG.alchemy.split` apart across the aim, each a whole splash. */
 export function throwPotion(id: PotionId) {
   const lands = landings();
@@ -127,7 +127,7 @@ const THROW: Record<ThrowEffect, (x: number, z: number, r: number, def: PotionDe
   freezeSplash(x, z, r, def) {
     // (a boss is never frozen, as by chill: it only takes the chill)
     frostAt(x, z, r);
-    const longer = boonMul('deepWinter', 'frozenMul'); // (M6: Deep Winter's second rank holds its ice longer too)
+    const longer = boonMul('deepWinter', 'frozenMul'); // (Deep Winter's second rank holds its ice longer too)
     for (const e of near(x, z, r)) {
       inflict(e, { chill: num(def.throw.chill) });
       if (e.dead || e.isBoss) continue;
@@ -184,7 +184,7 @@ const THROW: Record<ThrowEffect, (x: number, z: number, r: number, def: PotionDe
   },
 };
 
-/** Brewer's Breath (M6): a potion drunk breathes its throw out round the mage's feet, sparing the mage (their own fire, a blast
+/** Brewer's Breath: a potion drunk breathes its throw out round the mage's feet, sparing the mage (their own fire, a blast
     turned aside); a throw that would only touch the mage (the healing splash) adds nothing. */
 let breathing = false;
 export function breathe(id: PotionId) {
@@ -216,7 +216,7 @@ function splash(f: Flight) {
   ringFx(f.x1, 0.08, f.z1, c, 0.2, r, 0.45, true);
   burst(f.x1, 0.3, f.z1, c, 18, 2.6, 0.05);
   burst(f.x1, 0.2, f.z1, 0xd8e8f0, retort ? 16 : 8, retort ? 3 : 2, 0.03); // (glass)
-  if (retort) for (const e of near(f.x1, f.z1, r)) damageEnemy(e, A.retort.cut, 0, 0, 0, 'spell'); // (M5 step 8: the Cracked Retort's glass cuts)
+  if (retort) for (const e of near(f.x1, f.z1, r)) damageEnemy(e, A.retort.cut, 0, 0, 0, 'spell'); // (the Cracked Retort's glass cuts)
   THROW[def.throw.effect](f.x1, f.z1, r, def);
 }
 /** Dev hook: the bottles in the air, and where each will land. */

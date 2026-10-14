@@ -1,6 +1,6 @@
-/* M6 step 7: each rune as a stone with its glyph cut in it, glowing in the rune's colour (data/runes.json). Its 24 px icon
+/* Each rune as a stone with its glyph cut in it, glowing in the rune's colour (data/runes.json). Its 24 px icon
    is made through `iconUrlOf`, as the boons' sigils and the artifacts' icons are (one pixel for everything); the spell's
-   panel, the inventory and the dev menu show it, and step 8's runes lying in a room or over a ward circle are this look
+   panel, the inventory and the dev menu show it, and the runes lying in a room or over a ward circle are this look
    made small (`runePickupLook`). Each glyph is a few strokes on a disc of radius 1 (render/emblem.ts), angular as runes are
    cut. */
 import * as THREE from 'three';
@@ -68,7 +68,7 @@ export const runeIconUrl = (id: RuneId) => iconUrlOf(`rune:${id}`, () => runeLoo
 export const runeIconImg = (id: RuneId) => `<img class="px" src="${runeIconUrl(id)}" alt="">`;
 
 const chips = new Map<RuneId, THREE.Object3D>();
-/** Rune `id` lying in a room (M6 step 8): its stone made a chip, tipped to the camera as the flat pickups are, painted as the
+/** Rune `id` lying in a room: its stone made a chip, tipped to the camera as the flat pickups are, painted as the
     room kit's pieces are (the stone and its glowing glyph in the vertices, merged), a stepped glow in its colour behind it.
     Built once a rune and copied. */
 export function runePickupLook(id: RuneId) {

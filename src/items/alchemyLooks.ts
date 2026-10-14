@@ -1,4 +1,4 @@
-/* The bottles and reagents of M5 in the room kit's style (docs/archive/M5-plan.md): six bottle shapes built in code, each holding
+/* The bottles and reagents in the room kit's style (docs/archive/M5-plan.md): six bottle shapes built in code, each holding
    a glowing draught in the colour a run deals it (alchemyData.ts, `bottlesFor`), and a small look for each reagent. Built
    once a kind (merged, `keep`) and copied, as the other pickups are (pickupLooks.ts); their HUD icons are rendered from
    them (`iconUrlOf`), so the icon is the thing picked up. */

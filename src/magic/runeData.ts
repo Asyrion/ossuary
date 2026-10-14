@@ -1,4 +1,4 @@
-/* M6 step 7: runes, as rules (docs/archive/M6-plan.md, decisions 9 and 10; GDD: Magic system, Runes). Pure, unit-tested; the game
+/* Runes, as rules (docs/archive/M6-plan.md, decisions 9 and 10; GDD: Magic system, Runes). Pure, unit-tested; the game
    side is magic/runes.ts. Seven runes in data/runes.json, each fitting a spell by its shape (not by tags): Thrice, Reprise,
    Seeking, Wide, Quicken, Vein and Lasting. A slot's socket holds one (two with Second Socket, never the same rune twice);
    `runedDef` is the spell as its runes make it for one cast (a frozen copy, the base def itself with none), read through
@@ -58,7 +58,7 @@ export const runeFits = (id: RuneId, def: Pick<SpellDef, 'shape'>) => rune(id).s
 export const runesFor = (def: Pick<SpellDef, 'shape'>) =>
   RUNE_DEFS.filter((r) => r.shapes.includes(def.shape)).map((r) => r.id);
 
-/** M6 step 8: which rune a drop or a ware is. With chance `lean` one that fits a spell in `slotted` (when any fits), else
+/** which rune a drop or a ware is. With chance `lean` one that fits a spell in `slotted` (when any fits), else
     any of the seven; both draws are made either way, so a seed replays the same draws whatever the hand. */
 export function pickRune(rng: Rng, slotted: readonly Pick<SpellDef, 'shape'>[], lean: number): RuneId {
   const leans = rng.next() < lean,
@@ -68,7 +68,7 @@ export function pickRune(rng: Rng, slotted: readonly Pick<SpellDef, 'shape'>[], 
   return pool[Math.min(pool.length - 1, Math.floor(at * pool.length))];
 }
 
-/** M6 step 9: a waystone's pair, two different runes dealt as `pickRune` deals one (a twin drawn again, then the next of
+/** a waystone's pair, two different runes dealt as `pickRune` deals one (a twin drawn again, then the next of
     the seven). */
 export function pickPair(rng: Rng, slotted: readonly Pick<SpellDef, 'shape'>[], lean: number): [RuneId, RuneId] {
   const a = pickRune(rng, slotted, lean);

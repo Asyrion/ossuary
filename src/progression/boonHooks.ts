@@ -1,4 +1,4 @@
-/* M6 step 5: what the school boons' hooks ask (docs/archive/M6-plan.md; the rules are boonData.ts). The statuses, blows, spells,
+/* What the school boons' hooks ask (docs/archive/M6-plan.md; the rules are boonData.ts). The statuses, blows, spells,
    pools and props that carry a boon out import this light module: a boon's rank and numbers, the statuses' tuning with
    the boons taken (`magicNow`), whether a fight is on, and how a boon shows it is at work (Nothing silent): its name rises
    where it acts, once a room, in its colour; a line says what it did the first time in a run; its school's note sounds.
@@ -50,7 +50,7 @@ export function boonActs(id: string, x = player.x, z = player.z) {
     Sfx.at(x, z).boon(def.school ?? 'hallow'),
   );
 }
-/** What the mage carries at work at (x, z) (a boon; M6 step 7: a rune): counted under `key` in `G.run.acted`; `name` rises
+/** What the mage carries at work at (x, z) (a boon; a rune): counted under `key` in `G.run.acted`; `name` rises
     there once a room in `color`, `text` shows the first time in a run (`hint`), and `sound` plays with the name. */
 export function actsHere(
   key: string,
@@ -128,7 +128,7 @@ export function thirstHex(x: number, z: number) {
 /** Laid Bare: whether a foe's guard is gone (sanctified, the boon taken). */
 export const laidBare = (sanct: number) => sanct > 0 && boonRank('laidBare') > 0;
 
-/** Afterglow (step 6): a spell cast leaves part of its statuses in the hand for the next cantrip casts. */
+/** Afterglow: a spell cast leaves part of its statuses in the hand for the next cantrip casts. */
 export function afterglowCast(status: Partial<Record<SpellStatus, number>> | undefined, color: string) {
   if (!boonRank('afterglow') || !status || !Object.keys(status).length) return;
   G.run.afterglow = {

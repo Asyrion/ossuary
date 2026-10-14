@@ -142,7 +142,7 @@ export function coinTag(price: number, lowered = false) {
 export function buildShop(room: Room) {
   const def = room.plan.artifact ? offerGuaranteed('merchant') : null;
   const wares = rollWares(G.run.loot, !!def, LOOT, soulsHere());
-  if (runeHere('merchant')) wares.push('rune'); // (M6 step 8: half the shops lay a rune beside the rest, on the runes' own stream)
+  if (runeHere('merchant')) wares.push('rune'); // (half the shops lay a rune beside the rest, on the runes' own stream)
   room.wares = wares.map((ware, i) =>
     layWare(
       room,
@@ -160,7 +160,7 @@ export function buildShop(room: Room) {
   room.rocks.push({ x: room.cx, z: room.cz + C.shadeAt, hx: 0.42, hz: 0.42, hp: Infinity, breakable: false });
 }
 
-/** A ware in its ward circle at (x, z), priced `price` (the shade's, and M4.2's Wandering Merchant's). */
+/** A ware in its ward circle at (x, z), priced `price` (the shade's, and the Wandering Merchant's). */
 export function layWare(
   room: Room,
   ware: Ware,
@@ -169,11 +169,11 @@ export function layWare(
   z: number,
   price: number,
 ): WareSpot {
-  const rune = ware === 'rune' ? dealRune() : undefined; // (M6 step 8: which rune, from the run's runes stream)
+  const rune = ware === 'rune' ? dealRune() : undefined; // (which rune, from the run's runes stream)
   const g = new THREE.Group();
   g.position.set(x - room.cx, 0, z - room.cz);
   const circle = wardCircle();
-  // (M5: which potion or reagent it is, dealt from the shop's stream)
+  // (which potion or reagent it is, dealt from the shop's stream)
   const potion = ware === 'potion' ? pickPotion(G.run.loot) : undefined,
     reagent = ware === 'reagent' ? COMMON_REAGENTS[G.run.loot.int(0, COMMON_REAGENTS.length - 1)] : undefined;
   const item =
@@ -222,7 +222,7 @@ function refuse(w: WareSpot, msg: string) {
 }
 
 /** Why he would refuse ware `w` now, as he says it (null: he would sell it): the crow has nothing to tell (the Wandering
-    Merchant's, M4.2), the mage couldn't use it now, or hasn't the obols. The ware's panel says it before the mage walks in. */
+    Merchant's), the mage couldn't use it now, or hasn't the obols. The ware's panel says it before the mage walks in. */
 export function refusal(w: WareSpot): string | null {
   if (w.ware === 'map' || w.ware === 'secret') return crowRefuses(w.ware);
   if (w.ware !== 'artifact') {
@@ -268,14 +268,14 @@ function buy(w: WareSpot) {
   else if (w.potion) {
     addPotion(w.potion as PotionId);
     toast(STR.toast.bought(potionName(w.potion as PotionId)), 2.5);
-  } // (M5: into the belt; its card the first time)
+  } // (into the belt; its card the first time)
   else if (w.reagent) {
     addReagent(w.reagent as ReagentId);
     toast(STR.toast.bought(REAGENTS[w.reagent as ReagentId].name), 2.5);
   } else if (w.rune) {
     addRune(w.rune as RuneId);
     toast(STR.toast.bought(rune(w.rune as RuneId).name), 2.5);
-  } // (M6 step 8: into the pouch; its card the first time)
+  } // (into the pouch; its card the first time)
   else {
     useItem(w.ware as Item);
     toast(STR.toast.bought(STR.wares[w.ware]), 2.5);
@@ -307,7 +307,7 @@ export function updateShop(now: number) {
   const room = G.room.current;
   if (!room.wares) return;
   if (room.shade) {
-    // (the Wandering Merchant's wares have no shade over them, M4.2)
+    // (the Wandering Merchant's wares have no shade over them)
     const { body, eyes } = room.shade.userData as { body: THREE.Group; eyes: THREE.Sprite[] };
     body.position.y = 0.08 + Math.sin(now * 1.3) * 0.05;
     body.rotation.y = Math.atan2(player.x - room.cx, player.z - (room.cz + C.shadeAt));

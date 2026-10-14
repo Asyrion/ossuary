@@ -1,4 +1,4 @@
-/* The spells' looks, and the cantrip's (the owner's decision, 2026-09-30: every spell in the style the effect gallery
+/* The spells' looks, and the cantrip's (every spell in the style the effect gallery
    tried, dev/effectOptions.ts; docs/effects.md is the guide for the ones to come). What a spell does stays where it
    was (magic/shapes.ts, combat/projectiles.ts, magic/statusFx.ts); those call these for how it looks:
 
@@ -261,7 +261,7 @@ const LANCE_Y = 0.6,
   LANCE_RINGS = 6,
   EMBERS = 12,
   RING_TILT: V3 = [Math.PI / 4, 0, 0]; // (a rune ring lies flat: this turns it to the camera)
-/** The lances built so far (a pool: an echo or a reprise can show a second while the first still burns, M6). */
+/** The lances built so far (a pool: an echo or a reprise can show a second while the first still burns). */
 const lances: Lance[] = [];
 function buildLance(): Lance {
   const E = SCHOOL_LIGHT.ember,
@@ -563,7 +563,7 @@ export function mantleFx(color: number) {
   };
 }
 
-/* ---------- Hallow and Umbral (M4.1) ---------- */
+/* ---------- Hallow and Umbral ---------- */
 
 /** Consecrate's holy ground at (x, z): a circle of gold light with a rune ring turning in it, a soft glow and motes rising.
     `update` fades it by `fade`; `drop` takes it away. */
@@ -690,7 +690,7 @@ export function wardFx(count: number, color: number) {
   };
 }
 
-/** Lantern of Vigil (M7 step 8): a small iron lantern, its flame white-gold, hanging in the air; `place` puts it at (x, y, z)
+/** Lantern of Vigil: a small iron lantern, its flame white-gold, hanging in the air; `place` puts it at (x, y, z)
     and swings it, `flare` brightens it as it fires, `drop` takes it away. */
 export function vigilLanternFx(color: number) {
   const g = new THREE.Group();
@@ -812,7 +812,7 @@ export function graspFx(x: number, z: number, radius: number, color: number) {
   };
 }
 
-/* ---------- Verdant (M5) ---------- */
+/* ---------- Verdant ---------- */
 
 /** The Thorn Snare at (x, z): a ring of turned earth on the floor and thorny vines bursting out of it, green at the tips;
     `set(k)` raises them (0 to 1), `drop` takes them away (graspFx's way). */

@@ -1,4 +1,4 @@
-/* The face the obols wear (2026-10-02, from the owner's coins; docs/assets.md: Coins): one of the coin faces in
+/* The face the obols wear (docs/assets.md: Coins): one of the coin faces in
    data/assets.json (`coins`), the one its `obol` names, or the dev menu's choice to try another, remembered in the
    browser with the default it was made against (so a new default shows once, as the pixel look's choice does).
    'rune' is the obol built in code, worn when no face is loaded (?assets=off, a missing file). */

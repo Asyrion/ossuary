@@ -1,4 +1,4 @@
-/* A hex's mana debt (M4.9): a hexing blow takes mana, shows it over the mage and runs it back to the thrower; a Hallow cast
+/* A hex's mana debt: a hexing blow takes mana, shows it over the mage and runs it back to the thrower; a Hallow cast
    soon after gives it back. Game logic: it changes `player.hexDebt` and the mana; the HUD only flashes the mana bar (the
    `manaHexed` event) and shows the chip (ui/afflictions.ts). */
 import { CFG } from '../config';
@@ -10,8 +10,8 @@ import { floatText } from './statusFx';
 import { gainMana } from './spells';
 import { line } from '../notify';
 
-/** A hexing blow took `n` mana (M4: a Hex Imp's shot; M4.5: a hydra's venom, a raven's caw, a manticore's spikes): the
-    mana bar flashes violet, the loss rises over the mage, and the chip says how much. M4.9: the mana it took runs back in
+/** A hexing blow took `n` mana (a Hex Imp's shot; a hydra's venom, a raven's caw, a manticore's spikes): the
+    mana bar flashes violet, the loss rises over the mage, and the chip says how much. The mana it took runs back in
     a violet trail to the foe that threw it (`from`), and the mage's next Hallow cast within `CFG.curve.hexDebt` seconds
     gives it back (`hexGiveBack`). */
 export function hexDrained(n: number, from?: { x: number; z: number; dead?: boolean }) {
@@ -36,7 +36,7 @@ export function hexDrained(n: number, from?: { x: number; z: number; dead?: bool
   emit('manaHexed'); // (the mana bar flashes violet)
 }
 
-/** A Hallow spell cast (M4.9): if a hex took mana a moment ago, the light gives it back, in gold over the mage, and the
+/** A Hallow spell cast: if a hex took mana a moment ago, the light gives it back, in gold over the mage, and the
     first time in a run a line says so. Returns what it gave back. */
 export function hexGiveBack() {
   const n = player.hexDebt;

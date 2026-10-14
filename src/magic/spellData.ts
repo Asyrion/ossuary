@@ -4,11 +4,10 @@
 import spellsData from '../../data/spells.json';
 import type { Rng } from '../rng';
 
-/** The schools of magic (GDD: Magic system). M3 brings Ember, Frost and Storm; M4.1 Hallow and Umbral; M5 the sixth,
-    Verdant. */
+/** The schools of magic (GDD: Magic system): Ember, Frost, Storm, Hallow, Umbral and Verdant. */
 export type School = 'ember' | 'frost' | 'storm' | 'hallow' | 'umbral' | 'verdant';
 export const SCHOOLS: School[] = ['ember', 'frost', 'storm', 'hallow', 'umbral', 'verdant'];
-/** How a spell behaves; each is a function in magic/shapes.ts. M4.1's Hallow and Umbral bring the last six. */
+/** How a spell behaves; each is a function in magic/shapes.ts. */
 export type Shape =
   | 'beam'
   | 'placed'
@@ -54,17 +53,17 @@ export const SHAPE_PARAMS: Record<Shape, string[]> = {
   bolt: ['range', 'speed', 'scale'], // one slow bolt: how far, how fast, how big
   grasp: ['ahead', 'radius', 'delay'], // where the hands rise, how wide, seconds before they close
   mark: ['range', 'life', 'mana', 'obols', 'spread', 'spreadRange'], // the nearest foe marked: how long, mana a hit, obols if it falls, the hex it spreads
-  lantern: ['life', 'every', 'range', 'speed'], // M7 step 8: a lantern at the mage's shoulder: seconds, between its bolts, their reach and speed
-  harvest: ['perStack', 'mana'], // M7 step 8: every hex in the room reaped: damage and mana for each stack
+  lantern: ['life', 'every', 'range', 'speed'], // a lantern at the mage's shoulder: seconds, between its bolts, their reach and speed
+  harvest: ['perStack', 'mana'], // every hex in the room reaped: damage and mana for each stack
 };
 /** The elemental statuses (magic/status.ts): what the room answers to as well (oil, water, braziers, rune stones). */
 export type StatusKind = 'burn' | 'chill' | 'shock';
 export const STATUS_KINDS: StatusKind[] = ['burn', 'chill', 'shock'];
 /** Every status a spell can apply, with how many stacks or how strongly: the elements, and Hallow's Sanctified (seconds),
-    Umbral's Hex (stacks) and the grave's hold, Root (seconds), from M4.1; M5's Verdant Overgrown (`grow`, seconds). */
+    Umbral's Hex (stacks) and the grave's hold, Root (seconds); Verdant's Overgrown (`grow`, seconds). */
 export type SpellStatus = StatusKind | 'sanct' | 'hex' | 'root' | 'grow';
 export const SPELL_STATUSES: SpellStatus[] = [...STATUS_KINDS, 'sanct', 'hex', 'root', 'grow'];
-/** A share of a set of statuses (M6: Afterglow's, Reprise's): stacks (Chill, Hex) rounded up, so one stack still carries
+/** A share of a set of statuses (Afterglow's, Reprise's): stacks (Chill, Hex) rounded up, so one stack still carries
     one; seconds shared as they are, to a tenth. */
 export function shareStatus(status: Partial<Record<SpellStatus, number>> | undefined, share: number) {
   const out: Partial<Record<SpellStatus, number>> = {};
@@ -94,14 +93,14 @@ export interface SpellDef {
   icon: string;
   /** What it does, in a few words (the lore card), and its lore. */ text: string;
   lore: string;
-  /** M6 step 7: on a runed copy (runeData.ts `runedDef`), the runes carved into its slot; on Reprise's second cast, set. */
+  /** on a runed copy (runeData.ts `runedDef`), the runes carved into its slot; on Reprise's second cast, set. */
   runes?: readonly string[];
   reprise?: boolean;
-  /** M7 step 8: a spell that comes into the libraries' pools only once this townsperson is freed (vigil/gifts). */ givenBy?: string;
+  /** a spell that comes into the libraries' pools only once this townsperson is freed (vigil/gifts). */ givenBy?: string;
 }
 
 export const SPELL_DEFS = spellsData as unknown as SpellDef[];
-/** M7 step 8: the spells the libraries can offer, those a townsperson brings only once it is freed. */
+/** the spells the libraries can offer, those a townsperson brings only once it is freed. */
 export const inPool = (freed: readonly string[], defs: SpellDef[] = SPELL_DEFS) =>
   defs.filter((d) => !d.givenBy || freed.includes(d.givenBy));
 export const SPELLS = new Map(SPELL_DEFS.map((s) => [s.id, s]));
@@ -151,9 +150,9 @@ export const manaRegen = (dt: number, fighting: boolean, t: ManaTuning) => dt * 
 /* ---------- grimoire pages (GDD: Spells) ---------- */
 
 /** Up to `count` spells for grimoire pages: none the mage knows or `skip` lists, each of a different school while
-    the schools go round, then any. `lean` (M4.9): the schools the floor's foes are weak to; while the mage holds none of
+    the schools go round, then any. `lean`: the schools the floor's foes are weak to; while the mage holds none of
     them, the first page is of one. */
-/** `pledge` (M6: a school boon taken before any spell of its school): a page of that school comes first, whatever else. */
+/** `pledge` (a school boon taken before any spell of its school): a page of that school comes first, whatever else. */
 export function pickPages(
   rng: Pick<Rng, 'shuffle'>,
   known: readonly (string | null)[],
@@ -167,7 +166,7 @@ export function pickPages(
   const out: SpellDef[] = [];
   const pledged = pledge ? pool.find((s) => s.school === pledge) : undefined;
   if (pledged && count > 0) out.push(pledged);
-  // (M4.9: a mage holding no spell of a school the floor's foes are weak to is offered one first)
+  // (a mage holding no spell of a school the floor's foes are weak to is offered one first)
   const leans = lean.length && !known.some((id) => id && lean.includes(defs.find((d) => d.id === id)?.school ?? ''));
   const first = leans ? pool.find((s) => lean.includes(s.school)) : undefined;
   if (first && out.length < count && !out.includes(first)) out.push(first);

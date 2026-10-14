@@ -1,4 +1,4 @@
-/* The Wandering Merchant of Belerial (M4.2, from the Eda lore; GDD: Pickups and room types). A second trader, rare: once
+/* The Wandering Merchant of Belerial (from the Eda lore; GDD: Pickups and room types). A second trader, rare: once
    a run, after an ordinary room's fight, an old merchant rides in through one of its doors on a huge shaggy pack beast
    with a crow on its head, and lays out what the Bound Shade doesn't sell: a focus from far off and a soul mote from the
    packs. The crow sells what it has seen: the floor's map, and where its secret room lies. The merchant is gone when the
@@ -70,7 +70,7 @@ function layOut() {
   list.push({ ware: G.run.wanderer.weighted(LOOT.wanderer.souls as Record<Item, number>) });
   list.push({ ware: 'map' });
   if (!crowRefuses('secret')) list.push({ ware: 'secret' });
-  if (runeHere('wanderer')) list.push({ ware: 'rune' }); // (M6 step 8: half the time a rune in the beast's packs, on the runes' own stream)
+  if (runeHere('wanderer')) list.push({ ware: 'rune' }); // (half the time a rune in the beast's packs, on the runes' own stream)
   const taken = [h.to]; // (each on open floor, clear of the beast and of each other: never over a pit, a pillar or an obelisk)
   room.wares = list.map((w, i) => {
     const x = h.to.x + (i - (list.length - 1) / 2) * C.spacing,
