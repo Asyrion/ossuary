@@ -163,6 +163,8 @@ Small steps, each one green in CI, none changing how the game plays.
    75 modules to 58. `G` is `flow`, `floor`, `room`, `fx`, `run` and `stats`, each with its writers named.)
 5. **Comments are for the code:** milestone names, dates and "the owner said" leave the comments (git and the GDD keep
    them); comments say why, not when.
+   (*Built 2026-10-14*: in `src/`, `tools/`, `tests/`, the data's `_comment` fields, `index.html` and `style.css`;
+   every file prints the same code with its comments stripped. Test titles change with step 6.)
 6. **Tests that hold:** `smoke.spec.ts` split by system into files; a fast suite (about 20 tests, under 3 minutes) on
    every push and the full suite nightly; tests find rooms by what they hold, never by a seed's layout; the big files
    (`bestiaryFoes.ts` 1,498 lines) split by floor as the looks already are.
