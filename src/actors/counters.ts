@@ -1,4 +1,4 @@
-/* Counters found, in the game (M4.7 step 3, docs/archive/M4.7-plan.md; which foe has which: actors/counterData.ts). A behaviour
+/* Counters found, in the game (docs/archive/M4.7-plan.md; which foe has which: actors/counterData.ts). A behaviour
    calls `counter(e, kind)` where its counter comes about (a hex grounds the griffin, a blast flips the crab): the word
    rises over the foe (not again within a moment), and the first time ever, the bestiary keeps it, a chime sounds and a
    line says what was learned. The inventory's Foes tab lists the counters found, and seals the rest. */

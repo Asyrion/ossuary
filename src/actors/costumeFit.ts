@@ -1,4 +1,4 @@
-/* Fitting costumes to a model (M4.6, actors/costume.ts): the model measured once in its rig's rest pose (the head and its
+/* Fitting costumes to a model (actors/costume.ts): the model measured once in its rig's rest pose (the head and its
    ellipsoid, the chest, the hips, the hands and forearms, the feet), the anchors parts hang from, and which hand casts. */
 import * as THREE from 'three';
 import { castHandName } from './heroAnim';

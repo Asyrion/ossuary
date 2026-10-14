@@ -1,4 +1,4 @@
-/* Counters (M4.7 step 3, docs/archive/M4.7-plan.md): each foe's counters, the ways to beat it that its behaviour answers to (a
+/* Counters (docs/archive/M4.7-plan.md): each foe's counters, the ways to beat it that its behaviour answers to (a
    hex grounds a griffin, frost snuffs a djinn, a blast flips a crab). Which foe has which is its lines in
    `STR.foes.counterLines` (a foe's keys are its counters); each kind of counter has its rising word in `STR.foes.counters`.
    Pure: the game (actors/counters.ts) and the unit tests share it. */

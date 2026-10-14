@@ -1,7 +1,7 @@
-/* M4.12 step 5 (docs/archive/M4.12-plan.md): floor 4's five foes redone as creatures of fantasy, by the rules of fantasyFloor1.ts:
-   each keeps its fight, the parts its behaviour moves (by the old look's names) and about its height; each faces +Z,
+/* Floor 4's five foes as creatures of fantasy (docs/archive/M4.12-plan.md), by the rules of fantasyFloor1.ts:
+   each keeps its fight, the parts its behaviour moves (by name) and about its height; each faces +Z,
    stands on y = 0 and idles; no round googly eyes; the school in the body. Small repeated parts that move move together,
-   so each look draws in about as many calls as the old one did. */
+   so each look draws in few calls. */
 import * as THREE from 'three';
 import { glow } from '../render/materials';
 import { SCHOOL_LIGHT, crystal, limb, lit, part, rune, sphere, std, type V3 } from '../render/arcane';
@@ -10,7 +10,7 @@ import { batWing, gloss, joint, jointed, slitEyes, spike, thin, tube, type Built
 
 const { ember: E, frost: F, storm: S, hallow: H } = SCHOOL_LIGHT;
 
-/** The Candle Kobold (was the Wickmouse; runs cover to cover, its candle falls burning): a small scaled kobold, rust-dark,
+/** The Candle Kobold (for the Wickmouse; runs cover to cover, its candle falls burning): a small scaled kobold, rust-dark,
     with a snout of little teeth, horns swept back, ember slits for eyes, a rag of a cloak and a knife; a stub of candle
     burns on its head. */
 export function candleKobold(): Built {
@@ -152,7 +152,7 @@ export function candleKobold(): Built {
   };
 }
 
-/** The Bell Fiend (was the Chime Bat; rings to mark the mage's spot): a bat-winged beast whose head is a hollow bronze
+/** The Bell Fiend (for the Chime Bat; rings to mark the mage's spot): a bat-winged beast whose head is a hollow bronze
     bell, two slits glowing in it and lightning crackling inside; claws hanging, a whip of a tail. */
 export function bellFiend(): Built {
   const g = new THREE.Group(),
@@ -257,7 +257,7 @@ export function bellFiend(): Built {
   };
 }
 
-/** The Gargoyle (was the Gargoyle Whelp; stone that turns most of a blow, pounces): a horned, winged beast of dark stone
+/** The Gargoyle (for the Gargoyle Whelp; stone that turns most of a blow, pounces): a horned, winged beast of dark stone
     crouched like a statue on the edge of a roof, frost glowing in its cracks and its slit eyes, rime on its back. */
 export function gargoyle(): Built {
   const g = new THREE.Group(),
@@ -402,7 +402,7 @@ export function gargoyle(): Built {
   };
 }
 
-/** The Pale Unicorn (was the Moonstag Fawn; heals the foes round it): a gaunt white unicorn, its ribs showing, a mane and
+/** The Pale Unicorn (for the Moonstag Fawn; heals the foes round it): a gaunt white unicorn, its ribs showing, a mane and
     tail of silver hanging lank, gold hooves, slit eyes of light, and a spiral horn that glows as it mends. */
 export function paleUnicorn(): Built {
   const g = new THREE.Group(),
@@ -535,7 +535,7 @@ export function paleUnicorn(): Built {
   };
 }
 
-/** The Frost Scarab (was the Rime Scarab; rolls a growing ball of snow): a scarab of carved blue crystal as large as a
+/** The Frost Scarab (for the Rime Scarab; rolls a growing ball of snow): a scarab of carved blue crystal as large as a
     shield, its wing cases cut in facets with runes of frost on them, a great horned crest of ice; it rolls a ball of rime. */
 export function frostScarab(): Built {
   const g = new THREE.Group(),
@@ -646,7 +646,7 @@ export function frostScarab(): Built {
   };
 }
 
-/** Floor 4's new looks, by the look id each replaces. */
+/** Floor 4's looks, by the look id each replaces. */
 export const FLOOR4_LOOKS: Record<string, () => Built> = {
   wickmouse: candleKobold,
   chimeBat: bellFiend,

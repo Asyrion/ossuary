@@ -211,12 +211,12 @@ export function heroVisual(dt: number, now: number) {
   else if (moving > 0.4) targetYaw = Math.atan2(player.vx, player.vz);
   player.yawA = angleLerp(player.yawA, targetYaw, 1 - Math.exp(-16 * dt));
   hero.root.position.set(player.x, player.dead ? 0 : floatLift(now), player.z);
-  hero.yaw.rotation.y = player.yawA; // (M4.6: the Lightbearer floats)
+  hero.yaw.rotation.y = player.yawA; // (the Lightbearer floats)
   const sp = moving / CFG.hero.speed;
   const lean = hero.lean;
   if (hero.anim) updateHeroAnim(hero.anim, dt, player.dead ? 0 : sp);
-  updateCostumes(dt); // (M4.6: the focus follows the casting hand; cursed pieces weep)
-  updateSpellMarks(dt); // (M4.11: the spells in hand, attunement, the knowledge circle)
+  updateCostumes(dt); // (the focus follows the casting hand; cursed pieces weep)
+  updateSpellMarks(dt); // (the spells in hand, attunement, the knowledge circle)
   if (player.dead && !hero.anim?.deaths.length) {
     // a static model, or a rig with no death clip: just topple over
     lean.rotation.x = lerp(lean.rotation.x, 1.45, 1 - Math.exp(-6 * dt));

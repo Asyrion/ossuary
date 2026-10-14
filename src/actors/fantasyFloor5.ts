@@ -1,7 +1,7 @@
-/* M4.12 step 6 (docs/archive/M4.12-plan.md): floor 5's seven foes redone as creatures of fantasy, by the rules of fantasyFloor1.ts:
-   each keeps its fight, the parts its behaviour moves (by the old look's names) and about its height; each faces +Z,
+/* Floor 5's seven foes as creatures of fantasy (docs/archive/M4.12-plan.md), by the rules of fantasyFloor1.ts:
+   each keeps its fight, the parts its behaviour moves (by name) and about its height; each faces +Z,
    stands on y = 0 and idles; no round googly eyes; the school in the body. Small repeated parts that move move together,
-   so each look draws in about as many calls as the old one did. */
+   so each look draws in few calls. */
 import * as THREE from 'three';
 import { glow } from '../render/materials';
 import { SCHOOL_LIGHT, crystal, limb, lit, part, runeRing, sphere, std, type V3 } from '../render/arcane';
@@ -22,7 +22,7 @@ function zigzag(parent: THREE.Object3D, a: V3, b: V3, n: number, jag: number, ma
   return g;
 }
 
-/** The Mandrake (was the Rootling; a mound under the floor that bursts up under the mage): a gnarled root beast of black
+/** The Mandrake (for the Rootling; a mound under the floor that bursts up under the mage): a gnarled root beast of black
     bark, root legs splayed and root arms flung up, its bark face split by a screaming mouth with violet light in its
     throat, slit eyes sunk deep, a crown of dark leaves veined with violet. */
 export function mandrake(): Built {
@@ -115,7 +115,7 @@ export function mandrake(): Built {
   };
 }
 
-/** The Sky Ray (was the Storm Ray; glides, laying sparks): a ray that swims the air, slate-dark, its head lobes curled
+/** The Sky Ray (for the Storm Ray; glides, laying sparks): a ray that swims the air, slate-dark, its head lobes curled
     forward like horns, sparks along the edges of its wings and a long barbed tail crackling. */
 export function skyRay(): Built {
   const g = new THREE.Group(),
@@ -215,7 +215,7 @@ export function skyRay(): Built {
   };
 }
 
-/** The Void Maw (was the Void Mote; swallows the cantrip and spills it back): a floating sphere of dark, its mouth a ring
+/** The Void Maw (for the Void Mote; swallows the cantrip and spills it back): a floating sphere of dark, its mouth a ring
     of pale teeth round violet light, turned to the camera; three slits of eyes over it; a ring of violet turning about it. */
 export function voidMaw(): Built {
   const g = new THREE.Group(),
@@ -268,7 +268,7 @@ export function voidMaw(): Built {
   };
 }
 
-/** The Dragon Turtle (was the Lantern Tortoise, the elite: hides, spins off the walls, lies dizzy): a dragon's head and
+/** The Dragon Turtle (for the Lantern Tortoise, the elite: hides, spins off the walls, lies dizzy): a dragon's head and
     clawed legs under a dark shell ridged with spikes, an ice lantern burning in a little stone shrine on its back. */
 export function dragonTurtle(): Built {
   const g = new THREE.Group(),
@@ -485,7 +485,7 @@ export function gloomRavenFierce(): Built {
   };
 }
 
-/** The Rime Warg (was the Rime Wolf; a pack that rings the mage): a hunched warg, dark-furred, high at the shoulder and low
+/** The Rime Warg (for the Rime Wolf; a pack that rings the mage): a hunched warg, dark-furred, high at the shoulder and low
     at the hip, a mane of frost crystals round its neck, ice spines down its back, a heavy jaw and slit eyes of ice. */
 export function rimeWarg(): Built {
   const g = new THREE.Group(),
@@ -612,7 +612,7 @@ export function rimeWarg(): Built {
   };
 }
 
-/** The Tarasque (was the Dust Pangolin; rolls up and glances the cantrip off, dazed by a wall): the armoured beast of the
+/** The Tarasque (for the Dust Pangolin; rolls up and glances the cantrip off, dazed by a wall): the armoured beast of the
     old tales, a lion-like head in a shaggy mane, violet slit eyes and fangs, a dark shell ridged with great spikes it rolls
     up in, violet light between its plates, a spiked club of a tail. */
 export function tarasque(): Built {
@@ -752,7 +752,7 @@ export function tarasque(): Built {
   };
 }
 
-/** Floor 5's new looks, by the look id each replaces. */
+/** Floor 5's looks, by the look id each replaces. */
 export const FLOOR5_LOOKS: Record<string, () => Built> = {
   rootling: mandrake,
   stormRay: skyRay,

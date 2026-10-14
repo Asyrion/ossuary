@@ -1,4 +1,4 @@
-/* The pieces of the transformations' looks (M4.6, docs/archive/M4.6-plan.md, The transformations; which each wears is
+/* The pieces of the transformations' looks (docs/archive/M4.6-plan.md, The transformations; which each wears is
    costumeData.ts's TRANSFORM_LOOKS): built for the body like the artifacts' pieces (costumePieces.ts), fitted to the
    measured model and hung from its bones. What moves by itself is marked for costume.ts to move each step:
    `userData.float` (a part placed on the model, not a bone: the aura, the grimoire), `spin` (turning, radians a second),
@@ -340,7 +340,7 @@ export const TRANSFORM_BUILD = {
     g.userData.bob = { y: at.y, amp: 0.04, rate: 1.7 };
     return [g];
   },
-  /** The Alchemist's bandolier (M5): a leather strap from the shoulder down across the chest to the hip, five vials of
+  /** The Alchemist's bandolier: a leather strap from the shoulder down across the chest to the hip, five vials of
       every colour in its loops. */
   bandolier(f: Fit) {
     const g = new THREE.Group(),
@@ -384,7 +384,7 @@ export const TRANSFORM_BUILD = {
     mergeStill(g);
     return [hang(f.chestAt, g)];
   },
-  /** The Alchemist's apron (M5): stained cloth from the waist to the knees in front, tied at the back, splashed green and
+  /** The Alchemist's apron: stained cloth from the waist to the knees in front, tied at the back, splashed green and
       violet. */
   apron(f: Fit) {
     const g = new THREE.Group(),

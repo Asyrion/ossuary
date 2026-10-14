@@ -1,4 +1,4 @@
-/* Champion mantles in the game (M4.7, docs/archive/M4.7-plan.md; the rules are actors/mantleData.ts, tuning in data/magic.json).
+/* Champion mantles in the game (docs/archive/M4.7-plan.md; the rules are actors/mantleData.ts, tuning in data/magic.json).
    A mantled champion shows its school: its aura and the glow in its body in the school's light, a ring of runes turning
    under it (a Stormcharged one a ring of crackling lightning and a thundercloud over it; a Hallowed one a halo too), and
    its mantle's name rising as it comes (the first time in a run, a line says what the mantle does and what

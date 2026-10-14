@@ -1,6 +1,5 @@
-/* The bestiary (M4.5, docs/archive/M4.5-plan.md): thirty-five creatures for the owner to see before they become foes. The first
-   drafts were small round critters with big eyes; the owner asked for fantasy animals and creatures that read at a glance
-   as what they are, fierce rather than cute, at their real size, and no undead (2026-10-01). The looks are built in
+/* The bestiary (docs/archive/M4.5-plan.md): thirty-five creatures: fantasy animals and creatures that read at a glance
+   as what they are, fierce rather than cute, at their real size, and no undead. The looks are built in
    bestiaryBeasts.ts (animals of the dungeon), bestiaryCreatures.ts (creatures of myth) and bestiaryElementals.ts (golems
    and living elements) from the parts in beastParts.ts. Names and the fight each brings are placeholders in STR.bestiary;
    the Galleries tab stands them in rows by kind. */

@@ -1,7 +1,7 @@
-/* The drinking ward as a foe's shield (M4.2, from the Eda lore; its rules are in magic/drinking.ts). A sphere of pale
+/* The drinking ward as a foe's shield (from the Eda lore; its rules are in magic/drinking.ts). A sphere of pale
    ward-light round the foe drinks the spells that strike it instead of their harm (and keeps statuses off it), filling
    with the colour of what it drank most; full, it breaks, and a Wardling of that school joins the fight beside the foe.
-   The cantrip passes through it. The Twin Guardians (M4.2 step 8) raise it; the dev menu wards any foe to try it. */
+   The cantrip passes through it. The Twin Guardians raise it; the dev menu wards any foe to try it. */
 import * as THREE from 'three';
 import type { Enemy } from '../types';
 import { CFG } from '../config';
@@ -103,7 +103,7 @@ function breakWard(e: Enemy, school: School) {
   const at = freeSpotNear(G.room.current, e.x + CFG.ward.beside, e.z),
     floor = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)];
   const ling = makeEnemy(WARDLING[school], at.x, at.z, floor.enemyHp);
-  if (e.isBoss) ling.unpaid = true; // (M6: a Twin Guardian's ward breaks again and again: its Wardlings pay no insight)
+  if (e.isBoss) ling.unpaid = true; // (a Twin Guardian's ward breaks again and again: its Wardlings pay no insight)
 }
 
 /** Lower `e`'s ward without breaking it (a Twin Guardian passing its shield across): no Wardling comes of it. */

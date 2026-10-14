@@ -1,4 +1,4 @@
-/* Kaelith's fight, its pure rules (M7 step 2; docs/M7-plan.md, decision 6; the fight is kaelith.ts): which phase its health
+/* Kaelith's fight, its pure rules (docs/M7-plan.md, decision 6; the fight is kaelith.ts): which phase its health
    puts it in, and which schools the four ward pillars of its hall wake with in the second. Unit-tested. */
 import type { School } from '../render/arcane';
 

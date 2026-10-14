@@ -1,8 +1,6 @@
-/* M4.12 step 8 (docs/archive/M4.12-plan.md): the bosses' eight cute looks redone as creatures of fantasy, by the rules of
-   fantasyFloor1.ts, approved by the owner (2026-10-03) and worn since: each keeps its fight, the parts the fight moves (by
-   the old look's names: `eye`, `ring`, `halo` and a boss's own) and about its height; each faces +Z and stands on y = 0;
-   no round googly eyes; the school in the body. The Hollow Warden's three were redone and the owner chose the Owlbear
-   (2026-10-03), the others dropped. bossLooks.ts builds them through its own names (`wardenLook`, `hartLook`,
+/* The bosses as creatures of fantasy (docs/archive/M4.12-plan.md), by the rules of fantasyFloor1.ts: each keeps its
+   fight, the parts the fight moves (`eye`, `ring`, `halo` and a boss's own) and about its height; each faces +Z and stands
+   on y = 0; no round googly eyes; the school in the body. bossLooks.ts builds them through its own names (`wardenLook`, `hartLook`,
    `anglerLook`, `tigerLook`, `dragonHead`), as serpentLooks.ts does the serpent's head. */
 import * as THREE from 'three';
 import { glow } from '../render/materials';
@@ -22,7 +20,7 @@ function haloRing(g: THREE.Object3D, color: number, radius: number, y: number, z
   runeRing(ring, color, radius, [0, 0, 0], 8, [Math.PI / 2, 0, 0], lit(color, 0.9));
   return ring;
 }
-/** The Hollow Warden's look, the Owlbear (Hallow; was the Hollow Owl, the owner's choice of three, 2026-10-03): a bear's great hunched body under an owl's head, a hooked beak, a disc of
+/** The Hollow Warden's look, the Owlbear (Hallow): a bear's great hunched body under an owl's head, a hooked beak, a disc of
     pale feathers round two slits of gold, ear tufts like horns, clawed forelimbs, a crown of candles burning in its light. */
 export function owlbear(): BossBuilt {
   const g = new THREE.Group(),

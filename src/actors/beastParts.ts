@@ -1,4 +1,4 @@
-/* The parts the bestiary's beasts, creatures and elementals are built from (M4.5; actors/bestiaryLooks.ts). Each one has to
+/* The parts the bestiary's beasts, creatures and elementals are built from (actors/bestiaryLooks.ts). Each one has to
    read at a glance in the pixel look as the animal or creature it is named after, so the parts favour silhouettes:
    tapered tubes for tails, necks and tentacles, jointed legs, membrane and feathered wings, claws, fangs and horns, and
    small glowing slit eyes under a brow, never big round ones. Built on the arcane parts (render/arcane.ts). */
@@ -19,7 +19,7 @@ export const gloss = (color: number, rough = 0.45, metal = 0.25) => std(color, {
 export const thin = (color: number, extra: THREE.MeshStandardMaterialParameters = {}) =>
   std(color, { side: THREE.DoubleSide, ...extra });
 
-/** A group at `at` in `parent`, turned by `rot`: something the idle (or later a foe's behaviour) moves as one. */
+/** A group at `at` in `parent`, turned by `rot`: something the idle (or a foe's behaviour) moves as one. */
 export function joint(parent: THREE.Object3D, at: V3, rot: V3 = [0, 0, 0]) {
   const g = new THREE.Group();
   g.position.set(...at);

@@ -1,4 +1,4 @@
-/* The jelly serpent's fight (M5 step 7, docs/archive/M5-plan.md; GDD: Potions and alchemy, The jelly serpent). Out of its vat in
+/* The jelly serpent's fight (docs/archive/M5-plan.md; GDD: Potions and alchemy, The jelly serpent). Out of its vat in
    Dr. Jelly's laboratory (world/laboratory.ts breaks it out) or as a floor's boss (`?boss=serpent`, the dev menu's boss
    fights: then it pours its own jelly round it), it lives in the jelly. Under it, it swims where no bolt reaches it, only a
    ripple and the humps of its rings showing; it rises (bubbles and a widening ring where it will come up), then lunges at a

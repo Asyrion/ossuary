@@ -1,6 +1,6 @@
-/* M4.12 Fantasy foes (docs/archive/M4.12-plan.md; the owner's ask, 2026-10-02): the cute looks and the plain animals redone as
-   creatures of fantasy, each fight unchanged. A look is kept here by the look it replaces (a foe's `look` or its id), and
-   every foe that has one wears it (`buildFoe`): the owner approved them all. A look keeps the parts its foe's behaviour
+/* Fantasy foes (docs/archive/M4.12-plan.md): creatures of fantasy, each fight
+   unchanged. A look is kept here by the look it replaces (a foe's `look` or its id), and
+   every foe that has one wears it (`buildFoe`). A look keeps the parts its foe's behaviour
    moves, by name (`parts`). */
 import type { Built } from './beastParts';
 import { disposeTree } from '../render/materials';

@@ -1,7 +1,7 @@
-/* M4.12 step 4 (docs/archive/M4.12-plan.md): floor 3's four foes and the wasps' nest redone as creatures of fantasy, by the rules of
-   fantasyFloor1.ts: each keeps its fight, the parts its behaviour moves (by the old look's names) and about its height;
+/* Floor 3's four foes and the wasps' nest as creatures of fantasy (docs/archive/M4.12-plan.md), by the rules of
+   fantasyFloor1.ts: each keeps its fight, the parts its behaviour moves (by name) and about its height;
    each faces +Z, stands on y = 0 and idles; no round googly eyes; the school in the body. Small repeated parts that move
-   move together, so each look draws in about as many calls as the old one did. */
+   move together, so each look draws in few calls. */
 import * as THREE from 'three';
 import { glow } from '../render/materials';
 import { SCHOOL_LIGHT, circle, crystal, limb, lit, part, rune, shine, sphere, std, type V3 } from '../render/arcane';
@@ -23,7 +23,7 @@ function flameTongue(
   part(parent, new THREE.ConeGeometry(h * 0.14, h * 0.55, 5), core, [at[0], at[1] + h * 0.3, at[2] + 0.005], { rot });
 }
 
-/** The Salamander (was the Cinder Salamander; lays burning ground): the alchemists' fire beast, a lean lizard of black
+/** The Salamander (for the Cinder Salamander; lays burning ground): the alchemists' fire beast, a lean lizard of black
     stone cracked with lava, a crest of fire down its back, flames licking its flanks, ember slits for eyes and a tail
     that ends in flame. */
 export function salamander(): Built {
@@ -260,7 +260,7 @@ export function hexImpFierce(): Built {
   };
 }
 
-/** The Rime Drake (was the Rime Drakeling, the elite: breath, flight, a frost ring): a young wyvern as long as the mage is
+/** The Rime Drake (for the Rime Drakeling, the elite: breath, flight, a frost ring): a young wyvern as long as the mage is
     tall, steel-blue scales, crests and horns of frost, membrane wings on its arms and slit eyes; a frost circle under it. */
 export function rimeDrake(): Built {
   const g = new THREE.Group(),
@@ -395,7 +395,7 @@ export function rimeDrake(): Built {
   };
 }
 
-/** A Cinder Hornet (was an Ember Wasp, let out of its nest): a hornet of obsidian banded with lava, wings of flame, ember
+/** A Cinder Hornet (for an Ember Wasp, let out of its nest): a hornet of obsidian banded with lava, wings of flame, ember
     slits for eyes and a stinger glowing white-hot. */
 export function cinderHornet(): Built {
   const g = new THREE.Group(),
@@ -559,7 +559,7 @@ export function lavaNest(): Built {
   };
 }
 
-/** Floor 3's new looks, by the look id each replaces. */
+/** Floor 3's looks, by the look id each replaces. */
 export const FLOOR3_LOOKS: Record<string, () => Built> = {
   cinderSalamander: salamander,
   hexImp: hexImpFierce,

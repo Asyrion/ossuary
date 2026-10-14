@@ -1,4 +1,4 @@
-/* What every foe's behaviour is written against (M4, actors/foes.ts; M4.5's bestiary, actors/bestiaryFoes.ts): the shape of
+/* What every foe's behaviour is written against (actors/foes.ts, actors/bestiaryFoes.ts): the shape of
    a behaviour, where the mage is from the foe, and reading its parameters. */
 import type { Enemy, Room } from '../types';
 import { SCHOOL_LIGHT } from '../render/arcane';
@@ -27,9 +27,9 @@ export interface Behaviour {
   /** A blow lands on it, travelling (dx, dz), of `school` if it carries one: how much of `dmg` it takes (a void mote
       swallows the cantrip's bolts, a mantis parries from the front, a wasps' nest takes only fire). */
   struck?(e: Enemy, dmg: number, by: Enemy['lastHit'], P: Params, dx: number, dz: number, school?: School): number;
-  /** A glyph's blast reaches it (M4.5: a rubble crab is flipped on its back). */ blasted?(e: Enemy, P: Params): void;
-  /** Hidden in water, it is driven up out of it (2026-10-01): a glyph's blast in its water, steam over it (fire boiling it,
-      Ember meeting Frost), a shock running through it, or (M4.9) a sluice draining it. Any build can bring a water foe up. */ driven?(
+  /** A glyph's blast reaches it (a rubble crab is flipped on its back). */ blasted?(e: Enemy, P: Params): void;
+  /** Hidden in water, it is driven up out of it: a glyph's blast in its water, steam over it (fire boiling it,
+      Ember meeting Frost), a shock running through it, or a sluice draining it. Any build can bring a water foe up. */ driven?(
     e: Enemy,
     P: Params,
     why: 'blast' | 'steam' | 'shock' | 'sluice',

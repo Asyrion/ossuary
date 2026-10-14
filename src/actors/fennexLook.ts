@@ -1,4 +1,4 @@
-/* Fen-Nex built in code from the owner's drawings: the Rune Fox and its full shape, for the familiar (combat/fennex.ts). */
+/* Fen-Nex built in code: the Rune Fox and its full shape, for the familiar (combat/fennex.ts). */
 import * as THREE from 'three';
 import { glow } from '../render/materials';
 import { box, limb, lit, motes, part, rune, shine, sphere, std } from '../render/arcane';
@@ -14,7 +14,7 @@ interface Built {
 
 /* ---------- Fen-Nex ---------- */
 
-/** A familiar the owner drew (2026-09-30), rebuilt in code: a spectral fox of indigo fur, cyan runes and gold swirls
+/** The familiar: a spectral fox of indigo fur, cyan runes and gold swirls
     along its flanks, glowing eyes and paws, and a great starry tail streaming behind it. Built facing +Z; it trots in
     place. */
 function runeFox(): Built {
@@ -203,7 +203,7 @@ function runeFox(): Built {
   };
 }
 
-/** Fen-Nex in its full shape (M4.2, the owner's Fen-Nex, "fox man"): a long white beast between fox, cat and dragon, its
+/** Fen-Nex in its full shape: a long white beast between fox, cat and dragon, its
     fur blown back into feathers tipped with flame, its legs plated dark blue with red spiral runes, eyes of ember gold, a
     long feathered tail burning at its tip; it breathes Ember. Built facing +Z; it runs in place. */
 function fenNex(): Built {

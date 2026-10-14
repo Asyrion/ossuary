@@ -1,4 +1,4 @@
-/* Costumes (M4.6, docs/archive/M4.6-plan.md): what artifacts put on the mage (costumeData.ts says which show), fitted to whatever
+/* Costumes (docs/archive/M4.6-plan.md): what artifacts put on the mage (costumeData.ts says which show), fitted to whatever
    model is loaded. Each part hangs from a bone of the rig, so it follows every clip; it is fitted once, in the rig's rest
    pose, to the part of the body it covers (the head and hair the head bone moves, the chest and shoulders, the hips, the
    hands and feet). A static model (no rig) wears its pieces on the model itself, fitted to its silhouette.
@@ -119,7 +119,7 @@ export const flareEyes = () => {
 };
 
 /** Where hand `side` is in the world now (its bone's place, or its rest spot on a static model), into `out`; false before
-    a model is fitted (M4.11: the spell marks follow the hands). */
+    a model is fitted (the spell marks follow the hands). */
 export function handAt(side: Side, out: THREE.Vector3) {
   if (!model || !fit) return false;
   const bone = fit.hand[side].bone;

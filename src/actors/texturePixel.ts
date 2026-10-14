@@ -1,11 +1,11 @@
-/* Every Tripo model in pixel art from its own texture (2026-10-05, the owner: the 2k painted textures don't read at the
-   game's pixel size; every model from Tripo gets it). The mage's first look (heroPixel.ts) keeps one colour a vertex, so on
+/* Every Tripo model in pixel art from its own texture (the 2k painted textures don't read at the
+   game's pixel size; every model from Tripo gets it). The mage's look (heroPixel.ts) keeps one colour a vertex, so on
    a simplified mesh eyes and markings blur away; this wears the texture instead, made pixel art at the size the game
    draws the model by tools/texel-bake.ts (render/texelBake.ts: shrunk to at least one texel a game pixel within each UV
    island, its glowing markings kept, its painted shadows lifted, cut to a small palette): the colour sampled sharp, lit in
    the same bands as the mage, and the glow lit of its own. Loaded once a model and shared by every copy: the animated
    creatures (madeCreatures.ts, their default look) and the made assets (assets/models.ts). The mage keeps its colours in its
-   vertices (the owner's choice, 2026-10-05). */
+   vertices (heroPixel.ts). */
 import * as THREE from 'three';
 import { CFG } from '../config';
 import { toneMap } from './heroPixel';

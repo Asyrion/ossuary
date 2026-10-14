@@ -1,5 +1,5 @@
-/* M4.12 step 2 (docs/archive/M4.12-plan.md): floor 1's ten foes redone as creatures of fantasy. Each keeps its fight, the parts
-   its behaviour moves (by the old look's names) and about its height; each faces +Z, stands on y = 0 and idles. The rules:
+/* Floor 1's ten foes as creatures of fantasy (docs/archive/M4.12-plan.md). Each keeps its fight, the parts
+   its behaviour moves (by name) and about its height; each faces +Z, stands on y = 0 and idles. The rules:
    no round googly eyes (small glowing slits or beads), the school in the body (runes, crystal, fire, light), real size. */
 import * as THREE from 'three';
 import { glow } from '../render/materials';
@@ -22,7 +22,7 @@ import {
 const { ember: E, storm: S, hallow: H, umbral: U } = SCHOOL_LIGHT;
 const sub = (a: V3, b: V3): V3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
 
-/** The Spore Fiend (was the Sporeling; hops, bursts in stinging spores): a hunched fungal beast on four root legs, a hood of
+/** The Spore Fiend (for the Sporeling; hops, bursts in stinging spores): a hunched fungal beast on four root legs, a hood of
     shelf fungus over a gilled maw of thorn teeth, violet spore sacs glowing along its back. */
 export function sporeFiend(): Built {
   const g = new THREE.Group(),
@@ -144,7 +144,7 @@ export function sporeFiend(): Built {
   };
 }
 
-/** The Seraph Moth (was the Vesper Moth; flutters, drawn to lit braziers): six wings, each with an eye of pale fire, a
+/** The Seraph Moth (for the Vesper Moth; flutters, drawn to lit braziers): six wings, each with an eye of pale fire, a
     needle proboscis, feelers like a crown. */
 export function seraphMoth(): Built {
   const g = new THREE.Group(),
@@ -255,7 +255,7 @@ export function seraphMoth(): Built {
   };
 }
 
-/** The Runehorn (was the Rune Beetle; charges): a ram-like beast of stone and sinew, its horns carved runestones that
+/** The Runehorn (for the Rune Beetle; charges): a ram-like beast of stone and sinew, its horns carved runestones that
     crackle before the charge, two plates of carved stone on its back that part to show the storm in it (`halfL`, `halfR`,
     `inner`). */
 export function runehorn(): Built {
@@ -492,7 +492,7 @@ export function urnMimicFierce(): Built {
   };
 }
 
-/** The Gloom Weaver (was the Crypt Spider; hangs on its thread, drops, spits webs): a spider with a horned, hooded carapace
+/** The Gloom Weaver (for the Crypt Spider; hangs on its thread, drops, spits webs): a spider with a horned, hooded carapace
     and a crown of violet eyes, a rune burning on its abdomen, barbed legs. */
 export function gloomWeaver(): Built {
   const g = new THREE.Group(),
@@ -594,7 +594,7 @@ export function gloomWeaver(): Built {
   };
 }
 
-/** The Quill Kraken (was the Ink Octopus; smears ink, splits in two): an ink-black kraken with a hooked beak and a ring of
+/** The Quill Kraken (for the Ink Octopus; smears ink, splits in two): an ink-black kraken with a hooked beak and a ring of
     small eyes, its arms ending in quill nibs, violet runes under its skin. */
 export function quillKraken(): Built {
   const g = new THREE.Group(),
@@ -685,7 +685,7 @@ export function quillKraken(): Built {
   };
 }
 
-/** A Lampwyrm (one of the swarm of seven, was a lantern beetle): a finger-long winged wyrm, its throat glowing like a
+/** A Lampwyrm (one of the swarm of seven, for a lantern beetle): a finger-long winged wyrm, its throat glowing like a
     lantern. */
 export function lampwyrm(): Built {
   const g = new THREE.Group(),
@@ -769,7 +769,7 @@ export function lampwyrmSwarm(): Built {
   };
 }
 
-/** The Caladrius (was the Choir Lark; perches and sings the foes round it on): the white bird of the old bestiaries, a crest
+/** The Caladrius (for the Choir Lark; perches and sings the foes round it on): the white bird of the old bestiaries, a crest
     of feathers like a halo, a blade of a beak, long tail plumes. */
 export function caladrius(): Built {
   const g = new THREE.Group(),
@@ -837,7 +837,7 @@ export function caladrius(): Built {
   };
 }
 
-/** The Mantis Knight (was the Storm Mantis; parries the cantrip, lunges): as tall as the mage, its carapace grown into plate
+/** The Mantis Knight (for the Storm Mantis; parries the cantrip, lunges): as tall as the mage, its carapace grown into plate
     like a harness, a crested helm of a head, two scythes of storm crystal raised to parry, a tattered mantle of wings. */
 export function mantisKnight(): Built {
   const g = new THREE.Group(),
@@ -981,7 +981,7 @@ export function mantisKnight(): Built {
   };
 }
 
-/** The Helm Hermit (was the Rubble Crab; hidden as rubble, a blast flips it): a hermit beast living in the broken stone head
+/** The Helm Hermit (for the Rubble Crab; hidden as rubble, a blast flips it): a hermit beast living in the broken stone head
     of a Warden's statue, claws of slate (`big`, `small`) with a spark between them, eyes on stalks. */
 export function helmHermit(): Built {
   const g = new THREE.Group(),
@@ -1080,7 +1080,7 @@ export function helmHermit(): Built {
   };
 }
 
-/** Floor 1's new looks, by the look id each replaces. */
+/** Floor 1's looks, by the look id each replaces. */
 export const FLOOR1_LOOKS: Record<string, () => Built> = {
   sporeling: sporeFiend,
   vesperMoth: seraphMoth,

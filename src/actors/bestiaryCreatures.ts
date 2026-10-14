@@ -1,4 +1,4 @@
-/* The bestiary's creatures (M4.5): beasts of myth and magic, each built to read at a glance as what it is
+/* The bestiary's creatures: beasts of myth and magic, each built to read at a glance as what it is
    (docs/archive/M4.5-plan.md). Each stands (or hovers) over y = 0 facing +Z and idles; parts a foe's behaviour will move are named
    in `parts`. */
 import * as THREE from 'three';

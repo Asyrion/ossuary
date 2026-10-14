@@ -1,7 +1,7 @@
-/* What the mage has learned of the foes, kept between runs in this browser (M4; the hub's bestiary, M7, takes it over):
+/* What the mage has learned of the foes, kept between runs in the Vigil's save (vigil/save.ts):
    which foes it has met, and whether it has found each one's weakness and resistance (GDD: Enemy affinities, "shown in
    the bestiary once discovered"). A private window or blocked storage starts from nothing and keeps what is found for
-   the session only. The bosses with affinities (M4.1) are kept beside the foes. M4.7: the counters found for each foe
+   the session only. The bosses with affinities are kept beside the foes, and the counters found for each foe
    (actors/counterData.ts), for the inventory's Foes tab. */
 import { FOE_IDS, type FoeId } from './foeData';
 import { BOSS_TYPES, type BossType } from '../config';
@@ -15,8 +15,7 @@ export interface FoeRecord {
   resist: boolean;
   counters?: string[];
 }
-// (kept in the Vigil's save since M7 step 4, vigil/save.ts, which took over its key; a counter found for the first time ever
-// is a first find of the run, Dust at its end)
+// (a counter found for the first time ever is a first find of the run, Dust at its end)
 let book = JSON.parse(JSON.stringify(readSlot('bestiary'))) as Partial<Record<BookId, FoeRecord>>;
 function save() {
   writeSlot('bestiary', JSON.parse(JSON.stringify(book)) as Record<string, unknown>);
