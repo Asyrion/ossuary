@@ -207,7 +207,7 @@ export function wipeSave() {
   persist();
 }
 /** The dev menu: a veteran's save (every part open, the candle lit, every shade freed, runs behind it and Dust to spend);
-    what is known stays as it is. */
+    the powers and bonds are left to buy and deepen in play, and what is known stays as it is. */
 export function veteranSave() {
   Object.assign(save, {
     dust: Math.max(save.dust, 900),

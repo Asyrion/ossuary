@@ -2,8 +2,8 @@
    rune, two with Second Socket); a rune carved there changes every cast of the slot's spell, read through `slotDef`
    (cost.ts). The socket belongs to the slot: a spell given up or forgotten sends its runes to the pouch (`player.runes`)
    and the slot keeps its size, so a swap at a library costs nothing. Runes are found (`addRune`, dealt by
-   `dealRune` on the run's own stream, leaning to the spells in the slots) and carved at a waystone, from
-   the dev menu and by `?runes=`. A rune at work says so (Nothing silent): its name rises once a room, its line the first time
+   `dealRune` on the run's own stream, leaning to the spells in the slots) and carved at a waystone; the dev menu and
+   `?runes=` give them too. A rune at work says so (Nothing silent): its name rises once a room, its line the first time
    in a run, a chisel's tick and the spell's school. */
 import { CFG } from '../config';
 import { DEV, G, player } from '../state';

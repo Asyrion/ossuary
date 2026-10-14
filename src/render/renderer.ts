@@ -86,7 +86,7 @@ export function placeCamera() {
   camera.lookAt(camTarget.x + sx, 0, camTarget.z + sz);
 }
 
-/** Draw a frame: the scene, or the scene in the pixel look (style test). Draw calls and triangles are counted
+/** Draw a frame: the scene, or the scene in the pixel look. Draw calls and triangles are counted
     per frame, over both passes of the pixel look. */
 export function draw() {
   renderer.info.reset();
