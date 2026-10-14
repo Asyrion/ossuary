@@ -1,22 +1,22 @@
-/* The pixel look: the game's look, pixel-art 3D (the owner's choice after the style test of M3.5 step 2, 2026-09-30).
+/* The pixel look: the game's look, pixel-art 3D.
    The scene is drawn into a small target with no smoothing and blown up to the window; the camera is snapped to that
    grid so still things don't shimmer as it moves. Dark outlines where a nearer surface meets a farther one (from depth),
    and, optional, light in a few bands, as in cartoon lighting. Colours and blending are the canvas's own (see
    drawPixelLook). The HUD stays sharp (it is HTML).
-   Since 2026-10-01 (the owner: everything in the one pixel-art look) it starts at the texel: one game pixel is one of the
+   It starts at the texel (everything is in the one pixel-art look): one game pixel is one of the
    room kit's texels (`CFG.roomKit.texel`, a 48th of a unit across, the floor's 34th of a unit down the screen), so the
    mage, foes, artifacts, costumes and spells are drawn at the same pixel size as the floors and walls, which land on
    the grid texel for texel. That grid doesn't fall on whole screen pixels (about 2.6 at 1080p), so the blow-up is a sharp
    one: each pixel the same size, its edges blended over one screen pixel, and the camera's step between pixels shown
    smoothly. The dev menu offers `texel` and `fine` (half a texel to a game pixel each way); ?pixel=texel, fine or off
    (off only from the URL, for tools and tests). Tuning in CFG.pixelLook.
-   One exception (the owner, 2026-10-02): what is on the fine layer (`FINE`: the coins, so their faces read) is drawn
+   One exception: what is on the fine layer (`FINE`: the coins, so their faces read) is drawn
    into its own target at `CFG.pixelLook.fineLayer` pixels to a game pixel each way, and laid over the grid where it
    stands nearer than what the grid drew, outlined and banded as the rest is. Its size in the room is unchanged; only its
    pixels are smaller. The scene's lights are on that layer too (lights.ts). What writes no depth (glows, steam, fire)
    shows behind a coin even where it stands before it. Its passes run, and their targets are made, only while something
    marked fine (`markFine`) is shown, and only over the box those things fill on screen (`fineBox`): drawn, shaded and
-   laid over the window there alone, so the blow-up every screen pixel runs is left as it was. */
+   laid over the window there alone, so the blow-up every screen pixel runs is left as it is. */
 import * as THREE from 'three';
 import { CFG } from '../config';
 

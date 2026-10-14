@@ -29,7 +29,7 @@ export interface InputActions {
 }
 
 /** One-shot presses, set by the keyboard or gamepad while playing and consumed by the game: a glyph, and a
-    spell from slot 1 (Q, LB) or 2 (E, RB); M5: the chosen potion drunk (R or the d-pad's up, tapped) or thrown (held and
+    spell from slot 1 (Q, LB) or 2 (E, RB); the chosen potion drunk (R or the d-pad's up, tapped) or thrown (held and
     let go), and the next or the last potion chosen (F, the d-pad's right; the d-pad's left). */
 export const pressed = {
   glyph: false,
@@ -38,7 +38,7 @@ export const pressed = {
   potion: null as null | 'drink' | 'throw',
   nextPotion: 0,
 };
-/** M5: since when the potion key has been held (performance.now(), 0 when it isn't): held past CFG.alchemy.hold it is
+/** Since when the potion key has been held (performance.now(), 0 when it isn't): held past CFG.alchemy.hold it is
     a throw, aimed while held (items/potions.ts shows where it will land). */
 export const potionHold = { since: 0 };
 /** Let go of the potion key: a tap drinks, a hold throws. */
@@ -48,7 +48,7 @@ export function releasePotion(now: number, hold: number) {
   potionHold.since = 0;
 }
 
-/** M5: the Hex Brew, drunk, sends the mage's hands and feet the wrong way (items/potions.ts sets it while it lasts). */
+/** The Hex Brew, drunk, sends the mage's hands and feet the wrong way (items/potions.ts sets it while it lasts). */
 export const inputFx = { reversed: false };
 
 /** Movement from all devices combined, length at most 1. */

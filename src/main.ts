@@ -77,7 +77,7 @@ const input: InputActions = {
   },
   confirm: () => {
     if (G.flow.state === 'title' || G.flow.state === 'end') begin();
-  }, // (M7 step 5: to the Vigil once a run has been played)
+  }, // (to the Vigil once a run has been played)
   startButton: () => {
     if (devMenuOpen()) closeDevMenu();
     else if (talkOpen()) closeTalk();
@@ -100,11 +100,11 @@ const input: InputActions = {
   },
   inventoryKey: (code) => {
     if (devMenuOpen()) return false;
-    if (talkOpen()) return talkKey(code); // (M7 step 7: a townsperson's talk)
-    if (lecternOpen()) return lecternKey(code); // (M7 step 5: the Vigil's lectern)
-    if (levelOpen()) return levelKey(code); // (M6: the level-up screen's choice waits)
-    if (labOpen()) return labKey(code); // (M5: the alchemy table takes its keys first)
-    if (waystoneOpen()) return stoneKey(code); // (M6: the waystone's screen, the same)
+    if (talkOpen()) return talkKey(code); // (a townsperson's talk)
+    if (lecternOpen()) return lecternKey(code); // (the Vigil's lectern)
+    if (levelOpen()) return levelKey(code); // (the level-up screen's choice waits)
+    if (labOpen()) return labKey(code); // (the alchemy table takes its keys first)
+    if (waystoneOpen()) return stoneKey(code); // (the waystone's screen, the same)
     const used = inventoryKey(code, G.flow.state === 'play');
     if (used === 'open') {
       pause();
@@ -233,7 +233,7 @@ async function boot() {
   initLectern({ pause, resume });
   vigilActs.openLectern = openLectern;
   initTalk({ pause, resume, offers: offersFor, act: actOn });
-  initLevelUp({ pause, resume }); // (M6)
+  initLevelUp({ pause, resume });
   // the chalk texture in the start room is drawn with Cinzel, so load its weights first
   const chalkFonts = Promise.all(['600 16px "Cinzel"', '700 16px "Cinzel"'].map((f) => document.fonts.load(f)));
   const assets = loadAssets(); // (models, tiles and icons from data/assets.json: before the first floor is built)
@@ -249,7 +249,7 @@ async function boot() {
   prepareTitle();
   await loadDefaultHero();
   showScreen('title');
-  if (startsAtVigil()) document.getElementById('btnStart')!.textContent = STR.vigil.titleStart; // (M7 step 5: Start wakes the mage at the Vigil)
+  if (startsAtVigil()) document.getElementById('btnStart')!.textContent = STR.vigil.titleStart; // (Start wakes the mage at the Vigil)
   startLoop(input);
   (await dev)?.install(); // (window.__game once the title is up and the hero loaded, as the browser tests expect)
 }

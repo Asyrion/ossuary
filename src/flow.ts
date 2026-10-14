@@ -112,14 +112,11 @@ export interface RunOptions {
   boss?: BossType;
   /** Extra obols, keys and glyphs to start with. */ loot?: Partial<Record<Resource, number>>;
   /** Spells to start with, in slot order. */ spells?: string[];
-  /** Potions to start with in the belt (M5). */ potions?: string[];
-  /** The level to start at (M6: its insight, its choices waiting). */ level?: number;
-  /** Boons to start with, and the rank of each (M6 step 5: `?boons=deepWinter:2,coldSnap`). */ boons?: Record<
-    string,
-    number
-  >;
-  /** Runes carved into each slot to start with (M6 step 7: `?runes=q:quicken,e:lasting+vein`; a second opens the second socket). */ runes?: RuneId[][];
-  /** Every fight on every floor in a room of this theme (M3.6). */ theme?: string;
+  /** Potions to start with in the belt. */ potions?: string[];
+  /** The level to start at (its insight, its choices waiting). */ level?: number;
+  /** Boons to start with, and the rank of each (`?boons=deepWinter:2,coldSnap`). */ boons?: Record<string, number>;
+  /** Runes carved into each slot to start with (`?runes=q:quicken,e:lasting+vein`; a second opens the second socket). */ runes?: RuneId[][];
+  /** Every fight on every floor in a room of this theme. */ theme?: string;
 }
 let nextRun: RunOptions = {};
 let testTemplate: string | undefined,
@@ -218,16 +215,16 @@ export function buildFloor(index: number) {
   G.flow.trans = null;
   hideBossBar();
   resetKaelith();
-  leaveDaylight(); // (M7: no fight of Kaelith's outlives its floor, and a new run starts below)
-  if (!testTemplate) placeShade(index, FLOORS[index].shade ?? 0); // (M7 step 6: a chained shade, about one a floor)
+  leaveDaylight(); // (no fight of Kaelith's outlives its floor, and a new run starts below)
+  if (!testTemplate) placeShade(index, FLOORS[index].shade ?? 0); // (a chained shade, about one a floor)
   enterRoom(start);
   pilgrimMap();
-  helpNewFloor(); // (M4.6: the Pilgrim knows the floor's way; M7 step 6: a bound embalmer's draught, a bound pilgrim's map)
+  helpNewFloor(); // (the Pilgrim knows the floor's way; a bound embalmer's draught, a bound pilgrim's map)
   if (G.flow.state === 'play') {
     banner(...STR.floors[Math.min(index, STR.floors.length - 1)]);
     warnFloor(index);
     if (atSeal(index)) arriveAtSeal();
-  } // (M4.9: a floor that walls off the mage's one school says so; M7: Kaelith speaks at the Seal)
+  } // (a floor that walls off the mage's one school says so; Kaelith speaks at the Seal)
 }
 
 export function resetPlayer() {
@@ -253,7 +250,7 @@ export function resetPlayer() {
       { size: 1, runes: [] },
     ],
     runes: [],
-  }); // (M6: a socket a slot, nothing carved, an empty pouch)
+  }); // (a socket a slot, nothing carved, an empty pouch)
   heroReset();
   resetHearts();
   resetArtifacts();
@@ -265,8 +262,8 @@ export function resetPlayer() {
   forgetSpells();
   player.mana = player.stats.maxMana;
   resetPotions();
-  renderBelt(); // (M5: an empty belt, nothing drunk)
-  resetInsight(); // (M6: level 1, no streak in flight)
+  renderBelt(); // (an empty belt, nothing drunk)
+  resetInsight(); // (level 1, no streak in flight)
 }
 
 /** Start a new run: a fresh seed unless one was requested. */
@@ -356,17 +353,16 @@ export function startGame(opts?: RunOptions) {
   });
   for (const [id, rank] of Object.entries(o.boons ?? {})) for (let k = 0; k < rank; k++) takeBoon(id, false);
   clearShadeHelp();
-  shadesWalk(); // (M7 step 6: the shades bound in an earlier run walk with this one)
+  shadesWalk(); // (the shades bound in an earlier run walk with this one)
   emit('screensClosed');
   G.flow.state = 'play';
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, o.floor ?? 0)));
-  giftsAtStart(); // (M7 step 8: what the Vigil's townspeople and powers give every descent)
+  giftsAtStart(); // (what the Vigil's townspeople and powers give every descent)
   if (o.level) setLevel(o.level);
 }
 
 /** Build the first floor of the upcoming run as the title screen's backdrop; startGame keeps its seed. Once a run has been
-    played (and nothing asked for a run of its own), the title stands over the Vigil instead, where Start wakes the mage
-    (M7 step 5). */
+    played (and nothing asked for a run of its own), the title stands over the Vigil instead, where Start wakes the mage. */
 export function prepareTitle() {
   if (toVigilFirst()) {
     G.run = newRun(newSeed());
@@ -382,7 +378,7 @@ export function prepareTitle() {
   buildFloor(Math.max(0, Math.min(FLOORS.length - 1, nextRun.floor ?? 0)));
 }
 
-/* ---------- M7 step 5: the Vigil as a place ---------- */
+/* ---------- the Vigil as a place ---------- */
 
 /** Whether Start leads to the Vigil: a run has been played, and the page asked for no run of its own (?floor=, ?room=...). */
 const toVigilFirst = () => vigilAsked || (vigil().runs > 0 && !runAsked());
@@ -427,7 +423,7 @@ function buildVigil(first: boolean) {
   resetKaelith();
   leaveDaylight();
   clearPages();
-  const plan = vigilPlan(Rng.from('the Vigil', 'rooms'), VIGIL, undefined, vigil().parts); // (its own seed: the Vigil looks the same every waking; M7 step 9: the ways not yet opened barred)
+  const plan = vigilPlan(Rng.from('the Vigil', 'rooms'), VIGIL, undefined, vigil().parts); // (its own seed: the Vigil looks the same every waking; the ways not yet opened barred)
   G.run.plan = plan;
   applyFloorLook(VIGIL.look);
   plan.rooms.forEach((p, i) => {
@@ -437,7 +433,7 @@ function buildVigil(first: boolean) {
   furnishVigil(first); // (before the walls: its pieces keep their spans of wall clear of torches)
   for (const r of G.floor.rooms) buildWallsAndDoors(r);
   linkDoors(G.floor.rooms);
-  vigilWalled(); // (M7 step 9: the Cave Mouth opens its north wall onto the valleys)
+  vigilWalled(); // (the Cave Mouth opens its north wall onto the valleys)
   const w = wakePoint();
   G.room.current = w.room;
   player.x = w.x;
@@ -449,7 +445,7 @@ function buildVigil(first: boolean) {
   enterRoom(w.room);
 }
 
-/** Wake at the Vigil (M7 step 5, decision 16): a fresh mage, nothing carried, the lectern's two spells in hand, beside the
+/** Wake at the Vigil (decision 16): a fresh mage, nothing carried, the lectern's two spells in hand, beside the
     bier in the Crypt. `first`: the first waking, in the dark, its first candle lighting itself. */
 export function wakeAtVigil(first = false) {
   vigilAsked = false;
@@ -478,7 +474,7 @@ export function wakeAtVigil(first = false) {
 vigilActs.board = () => {
   fadeFromBlack();
   startGame();
-}; // (the Ferryman's boat: down to floor 1 for nothing; the toll comes in step 10)
+}; // (the Ferryman's boat: down to floor 1 for nothing)
 
 /** Take the trapdoor: the next floor, or the end of the run after the last one. */
 export function descend() {
@@ -491,7 +487,7 @@ export function descend() {
   if (G.run.remedy) {
     G.run.remedy = null;
     refreshStats(false);
-  } // (M5: a Bitter Remedy lasts until the floor ends)
+  } // (a Bitter Remedy lasts until the floor ends)
   fadeFromBlack();
   DEV.kitKinds = {};
   buildFloor(G.run.floor + 1);
@@ -506,7 +502,7 @@ export function resume() {
   emit('resumed');
   resetClock();
 }
-daylightHooks.done = () => endGame(true); // (M7 step 3: the end screen lies over the daylight)
+daylightHooks.done = () => endGame(true); // (the end screen lies over the daylight)
 // what actors and combat ask of the run's flow (flowHooks.ts)
 Object.assign(flowHooks, { tryTransition, descend, onWaveCleared, onBossDead, endGame } satisfies typeof flowHooks);
 export function endGame(won: boolean) {
@@ -515,7 +511,7 @@ export function endGame(won: boolean) {
   clearPages();
   if (won) Sfx.victory();
   else Sfx.fallen();
-  // M7 step 4: what the run brings home (its Dust from each source, its obols), and the run remembered in the save
+  // what the run brings home (its Dust from each source, its obols), and the run remembered in the save
   const V = CFG.vigil,
     floor = G.run.floor + 1,
     carried = [player.focus, ...player.items];
@@ -577,12 +573,12 @@ export function enterRoom(room: Room) {
   room.visited = true;
   room.known = true;
   showRooms(room);
-  for (const d of doorsOf(room)) if ((!d.secret || d.secret.open) && !d.plug) d.nb.known = true; // not what's behind a cracked wall, nor behind a way at the Vigil still barred (M7 step 9)
+  for (const d of doorsOf(room)) if ((!d.secret || d.secret.open) && !d.plug) d.nb.known = true; // not what's behind a cracked wall, nor behind a way at the Vigil still barred
   applyRoomTorches(room.look);
   resetTorchLights(room.torches, player.x, player.z);
   setDarkness(room.plan.variant === 'dark' && !room.candlesLit ? 1 : 0); // lit candle stands keep the dark away
   if (!room.cleared && room.plan.variant === 'ambush' && room.ambush !== 'sprung')
-    room.ambush = 'armed'; // looks empty, for now
+    room.ambush = 'armed'; // looks empty until it is sprung
   else if (!room.cleared) {
     room.wave = 0;
     room.wavePending = false;
@@ -615,9 +611,9 @@ export function enterRoom(room: Room) {
   if (firstVisit && room.type === 'secret') banner(...STR.banner.secret);
   if (room.type === 'shrine') enterShrine(room, firstVisit);
   if (room.type === 'library') enterLibrary(room, firstVisit);
-  if (room.type === 'laboratory') enterLab(room, firstVisit); // (M5: Dr. Jelly looks at one potion again this visit)
-  if (room.type === 'waystone') enterWaystone(room, firstVisit); // (M6 step 10: the stone rises the first time after the boss)
-  enterSealRoom(room, firstVisit); // (M7: the horde at the Seal's Last Hall)
+  if (room.type === 'laboratory') enterLab(room, firstVisit); // (Dr. Jelly looks at one potion again this visit)
+  if (room.type === 'waystone') enterWaystone(room, firstVisit); // (the stone rises the first time after the boss)
+  enterSealRoom(room, firstVisit); // (the horde at the Seal's Last Hall)
   if (firstVisit && room.type === 'vault')
     banner(
       ...(room.drunk
@@ -644,7 +640,7 @@ function spawnWave(room: Room, ambush = false) {
   const championRoom = room.plan.variant === 'champion' || room.warden; // a forced vault's warden is a champion
   const champion =
     championRoom && room.wave === 0 && mortal.length ? mortal[championIndex(room.plan.seed, mortal.length)] : null;
-  const mantle = champion ? pickMantle(cfg.mantles, mulberry(room.plan.seed ^ 0x3a17)()) : undefined; // (M4.7: in one of the floor's schools)
+  const mantle = champion ? pickMantle(cfg.mantles, mulberry(room.plan.seed ^ 0x3a17)()) : undefined; // (in one of the floor's schools)
   let mimics = 0;
   const taken: { x: number; z: number }[] = [],
     packs = packRoll(room.plan.seed, room.wave); // (a pack's size, from the room's seed)
@@ -670,7 +666,7 @@ function spawnWave(room: Room, ambush = false) {
   }
   if (champion) Sfx.champion();
   const pair = room.wave === 0 && room.pair,
-    key = pair && 'pair:' + pair.join('+'); // (M4.7: the first time in a run, a pair says what it does together)
+    key = pair && 'pair:' + pair.join('+'); // (the first time in a run, a pair says what it does together)
   if (key && !G.run.hinted.has(key) && STR.foes.pairs[pair.join('+')]) {
     G.run.hinted.add(key);
     after(0.8, () => line(STR.foes.pairs[pair.join('+')], CFG.afflict.lineShow));
@@ -750,14 +746,14 @@ function keepVigil() {
 }
 
 export function onRoomCleared(room: Room) {
-  helpRoomCleared(room); // (M7 step 6: a bound sexton digs, now and then)
+  helpRoomCleared(room); // (a bound sexton digs, now and then)
   room.cleared = true;
   room.locked = false;
   setDoors(room, true);
   keepOath(room);
   payFerryman(room);
   keepVigil();
-  payClear(room); // (M6: a fight's first clear gives insight)
+  payClear(room); // (a fight's first clear gives insight)
   const loot = G.run.loot;
   if (room.type === 'ordeal') {
     // the reward rises in the middle of the room
@@ -783,19 +779,19 @@ export function onRoomCleared(room: Room) {
     banner(...STR.banner.artifactRises);
     Sfx.rise();
   } else maybeDropPage(room); // and, rarely, a grimoire page
-  maybeWanderer(room); // once a run, the Wandering Merchant rides in (M4.2)
+  maybeWanderer(room); // once a run, the Wandering Merchant rides in
 }
 
 /** The floor's boss fell (at `at`, or the room's middle for the dev menu's clear): its rewards and the way down. */
 export function onBossDead(at?: { x: number; z: number }) {
   const cur = G.room.current;
   hideBossBar();
-  payBoss(at); // (M6: its floor's insight)
+  payBoss(at); // (its floor's insight)
   if (G.run.boss === 'kaelith') G.run.kaelith = true;
-  else G.run.bosses++; // (M7 step 4: Dust for each put to rest)
-  G.run.fell = [...G.run.fell, G.run.boss]; // (M7 step 7: the townspeople speak of it)
-  if (G.run.boss === 'kaelith') kaelithKneels(at ?? { x: cur.cx, z: cur.cz }); // (M7: it doesn't die: it kneels where it fell)
-  // M6 step 10: the waystone and the way down are in the waystone room beside it; where the floor has none (floor 5, or no
+  else G.run.bosses++; // (Dust for each put to rest)
+  G.run.fell = [...G.run.fell, G.run.boss]; // (the townspeople speak of it)
+  if (G.run.boss === 'kaelith') kaelithKneels(at ?? { x: cur.cx, z: cur.cz }); // (it doesn't die: it kneels where it fell)
+  // the waystone and the way down are in the waystone room beside it; where the floor has none (floor 5, or no
   // free cell), the way down opens here, and on floors 1 to 5 the stone rises first, at the back, the gifts keeping clear
   const stone = waystoneRoom();
   if (!stone) waystoneAfterBoss(cur);
@@ -804,7 +800,7 @@ export function onBossDead(at?: { x: number; z: number }) {
     h = freeSpotNear(cur, hs.x, hs.z);
   spawnHeart(h.x, h.z, 2);
   if (!stone && G.run.boss === 'kaelith')
-    openShaft(cur, cur.cx, cur.cz); // (M7 step 3: Kaelith's way out is a shaft of daylight)
+    openShaft(cur, cur.cx, cur.cz); // (Kaelith's way out is a shaft of daylight)
   else if (!stone) {
     makeTrapdoor(cur.cx, cur.cz);
     after(0.5, () => Sfx.trapdoor());
@@ -877,7 +873,7 @@ export function tryTransition() {
 
 /** Dev hook: finish the current room's fight at once (every wave), as if the last enemy had fallen. */
 export function clearRoom() {
-  const hadBoss = G.room.enemies.some((e) => e.isBoss && !e.labBoss); // (M5: the jelly serpent out of its vat is no floor's boss)
+  const hadBoss = G.room.enemies.some((e) => e.isBoss && !e.labBoss); // (the jelly serpent out of its vat is no floor's boss)
   clearEnemies();
   const room = G.room.current;
   if (room.ambush === 'armed') {

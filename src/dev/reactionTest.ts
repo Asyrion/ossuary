@@ -1,4 +1,4 @@
-/* The dev menu's "Reactions here" and `__game.reaction(r)` (M4.8): each reaction set off on training dummies ahead of the
+/* The dev menu's "Reactions here" and `__game.reaction(r)`: each reaction set off on training dummies ahead of the
    mage, by laying its two statuses on in turn (a freeze takes its stacks first; Verdict and Void Spark want more than
    one foe, to show the lightning and the leaps). */
 import type { Reaction } from '../magic/status';
@@ -21,7 +21,7 @@ export const RECIPES: Record<Reaction, { dummies?: number; all?: Step; steps: St
   verdict: { dummies: 3, all: { sanct: 3 }, steps: [{ shock: 1 }] },
   blackice: { steps: [{ chill: 1 }, { hex: 1 }] },
   voidspark: { dummies: 3, steps: [{ hex: 1 }, { shock: 1 }] },
-  // M5, Verdant's five (Wildfire wants overgrown foes to run to; Blight, one to creep to)
+  // Verdant's five (Wildfire wants overgrown foes to run to; Blight, one to creep to)
   wildfire: { dummies: 3, all: { grow: 4 }, steps: [{ burn: 4 }] },
   frostbloom: { dummies: 2, steps: [{ grow: 4 }, { chill: 1 }] },
   pollenspark: { dummies: 2, steps: [{ grow: 4 }, { shock: 1 }] },

@@ -1,4 +1,4 @@
-/* The alchemy table (M5 step 6, docs/archive/M5-plan.md; GDD: Potions and alchemy, Brewing): a screen like the inventory's that
+/* The alchemy table (docs/archive/M5-plan.md; GDD: Potions and alchemy, Brewing): a screen like the inventory's that
    opens when the mage walks up to the table in Dr. Jelly's laboratory (world/laboratory.ts), and waits while it's open.
    Three tabs: Brew (two reagents from the pouch into the mortar, then the flask brews them, items/brewing.ts: a pair
    brewed or bought before says what it makes), Dr. Jelly looks (one unknown potion in the belt identified free, once a

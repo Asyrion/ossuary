@@ -1,9 +1,9 @@
-/* M6 step 4: the level-up screen (docs/archive/M6-plan.md; GDD: RPG progression, "the game pauses, like a card choice"). A level
+/* The level-up screen (docs/archive/M6-plan.md; GDD: RPG progression, "the game pauses, like a card choice"). A level
    reached waits in `G.run.pending` until the fight is won (progression/levelGate.ts, which opens this screen through the
    panel door, or chooses without it under `DEV.autoLevel`). Then the game pauses and the screen deals three boons
    (progression/boons.ts): one is taken, then the level's point is spent on an attribute; each level waiting comes in
    turn. Arrows or WASD (the d-pad) choose, Enter or Space (A) takes, a card can be clicked; a short lock keeps a key held
-   from the fight from choosing, and Esc doesn't close it (the level's choice is the mage's to make). M6 step 11: the shrine's
+   from the fight from choosing, and Esc doesn't close it (the level's choice is the mage's to make). The shrine's
    bargain deals here too (`openBargainDeal`): three cards from the school cast into its stone, each costing a heart
    container, no point after; Esc (the pad's B) backs out with nothing paid. */
 import { CFG } from '../config';
@@ -72,7 +72,7 @@ function close() {
   actions.resume();
 }
 
-/** M6 step 11: the shrine's bargain: three boons, two of `school` (the spell cast into its stone) and one general; taking
+/** The shrine's bargain: three boons, two of `school` (the spell cast into its stone) and one general; taking
     one pays a heart container (bargain.ts' `keepBargain`). */
 export function openBargainDeal(school: School) {
   if (open) return false;

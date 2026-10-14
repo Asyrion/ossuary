@@ -1,4 +1,4 @@
-/* A soft edge drawn in code (2026-10-06): the alpha of a canvas blurred as the canvas filter `blur(σpx)` would (a
+/* A soft edge drawn in code: the alpha of a canvas blurred as the canvas filter `blur(σpx)` would (a
    Gaussian, in two passes), on the CPU. A canvas filter is rasterised on the GPU, and on a software GPU (the browser
    tests' SwiftShader, a machine without a graphics card) a pool's or a pit's blurred outline cost seconds each: a floor of
    pools held its first frame for fifteen. Pure (no DOM): the pixels in, the pixels out. */

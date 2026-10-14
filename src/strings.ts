@@ -94,7 +94,7 @@ export const STR = {
     music: 'Music',
     ambience: 'Ambience',
     inventory: 'Inventory (I)',
-    // M7 step 4: the save as a file, to carry it to another browser
+    // the save as a file, to carry it to another browser
     saveOut: 'Export the Vigil',
     saveIn: 'Import the Vigil',
     saveFile: 'ossuary-vigil.json',
@@ -119,7 +119,7 @@ export const STR = {
     floorValue: (floor: number, floors: number) => `${floor} of ${floors}`,
     again: 'Wake at the Vigil',
     replay: 'Replay this seed',
-    // M7 step 4: what the run brings home, a line for each source of Arcane Dust; the obols; what struck last
+    // what the run brings home, a line for each source of Arcane Dust; the obols; what struck last
     home: {
       title: 'Carried home',
       sources: {
@@ -147,13 +147,13 @@ export const STR = {
     ["The Ferryman's Shore", 'Where the dead wait to cross'],
     ['The Seal', 'Where Kaelith stands between the horde and the pass'],
   ] as Banner[],
-  /** M7 step 1: the Seal below floor 5 (world/seal.ts): Kaelith's voice the first time down, and the horde at the Last Hall. */
+  /** The Seal below floor 5 (world/seal.ts): Kaelith's voice the first time down, and the horde at the Last Hall. */
   seal: {
     voice: 'Kaelith: "Go back up, mage. What I hold here stays held."',
     horde: 'The horde presses against the seal from below',
     shaft: 'Daylight falls where Kaelith knelt: the way up',
   },
-  /** M7 step 5: the Vigil as a place (vigil/place.ts, ui/lectern.ts): its rooms, waking there, what bars its six ways, the
+  /** The Vigil as a place (vigil/place.ts, ui/lectern.ts): its rooms, waking there, what bars its six ways, the
       lectern's screen and the Ferryman's boat. */
   vigil: {
     name: 'The Vigil',
@@ -180,7 +180,7 @@ export const STR = {
       verdant: 'A dead root broken through the wall. Something green might wake it.',
     } as Record<string, string>,
     unmoved: 'It does not answer to that. Another school bars it.',
-    /** M7 step 9: a barred way opened by its school. */
+    /** A barred way opened by its school. */
     opened: {
       ember: 'The ice runs off the stair in steam. Warm air comes down it, and the smell of grass.',
       frost: 'The black water freezes from the edge inward. The cellar stair can be walked now.',
@@ -189,7 +189,7 @@ export const STR = {
       umbral: 'The veil folds back into deeper dark. Beyond it, a gallery waits.',
       verdant: 'The dead root greens and flowers, and draws aside from the arch.',
     } as Record<string, string>,
-    /** M7 step 9: what is said in the rooms behind them. */
+    /** What is said in the rooms behind them. */
     unfold: {
       cave: (n: number) =>
         n
@@ -225,7 +225,7 @@ export const STR = {
       note: 'Here at the Vigil your hands hold any two spells you have learned. A descent starts empty-handed, as ever.',
     },
   },
-  /** M7 step 6: chained shades (vigil/shades.ts, shadeHelp.ts): their names (placeholders, the owner's to rename), the lines
+  /** Chained shades (vigil/shades.ts, shadeHelp.ts): their names (placeholders), the lines
       as one is found, its chains broken, freed or bound, and what a bound one does in the run it walks with the mage. */
   shades: {
     names: {
@@ -277,7 +277,7 @@ export const STR = {
       map: 'The way',
     } as Record<string, string>,
   },
-  /** M7 step 8: what the townspeople give (vigil/gifts.ts): the powers' and disciplines' names, the quests, the phrases a
+  /** What the townspeople give (vigil/gifts.ts): the powers' and disciplines' names, the quests, the phrases a
       gift is told in, the talk's offers and refusals. */
   gifts: {
     powers: {
@@ -320,7 +320,7 @@ export const STR = {
       hearts: (n: number) => (n === 1 ? 'a heart container' : `${n} heart containers`),
       socket: () => 'a second socket',
     } as Record<string, (n: never) => string>,
-    /** M7 step 9: a candle's blessing on the mage's numbers, in words. */
+    /** A candle's blessing on the mage's numbers, in words. */
     bless: {
       spellDamageMul: (v: number) => `your spells ${Math.round((v - 1) * 100)}% harder`,
       regenMul: (v: number) => `mana back ${Math.round((v - 1) * 100)}% faster`,
@@ -348,9 +348,9 @@ export const STR = {
     questGiven: (text: string) => `A quest: ${text}`,
     questDone: (text: string) => `Quest done: ${text}`,
   },
-  /** M7 step 8: Soul Harvest's word over the mage, the mana it reaped. */
+  /** Soul Harvest's word over the mage, the mana it reaped. */
   harvested: (n: number) => `+${n} mana`,
-  /** M7 step 7: the townspeople's talk (vigil/town.ts, ui/talk.ts; their lines are data/dialogue.json): the Ferryman's name
+  /** The townspeople's talk (vigil/town.ts, ui/talk.ts; their lines are data/dialogue.json): the Ferryman's name
       (the shades' are `shades.names`), the panel's hint, a choice's key. */
   town: {
     ferryman: 'The Ferryman',
@@ -467,8 +467,8 @@ export const STR = {
   health: (hp: number, max: number, souls = 0) =>
     `Health ${hp} of ${max} hearts` + (souls ? `, ${souls} soul mote${souls > 1 ? 's' : ''}` : ''),
   purse: (coins: number, keys: number, glyphs: number) => `${coins} obols, ${keys} bone keys, ${glyphs} blast glyphs`,
-  /** M4.6: transformations (three artifacts of a family): the name, the gift in a line (the banner's and the lore card's),
-      and its lore. Placeholders until M8. */
+  /** Transformations (three artifacts of a family): the name, the gift in a line (the banner's and the lore card's),
+      and its lore. Placeholders. */
   transforms: {
     pyromancer: {
       name: 'Pyromancer',
@@ -516,7 +516,7 @@ export const STR = {
       lore: 'A bandolier of vials across your chest, an apron stained every colour a draught can be. Dr. Jelly would call it a good start.',
     },
   } as Record<string, { name: string; gift: string; lore: string }>,
-  /** M4.11: spell marks, a line the first time each shows (both spells of one school; a school known in full). */
+  /** Spell marks, a line the first time each shows (both spells of one school; a school known in full). */
   marks: {
     attuned: (school: string) =>
       `Attuned to ${school}: both your spells are of one school, and its light gathers about you.`,
@@ -525,14 +525,14 @@ export const STR = {
       'Your spells show at your hands: bright when ready, faint while they gather again, grey when your mana falls short.',
     circle: 'Standing still, what you know shows round your feet: a rune for every spell you know well.',
   },
-  /** M4.6: Azyrion's arc, a line as each stage is reached (the apprentice growing towards the chaos mage). */
+  /** Azyrion's arc, a line as each stage is reached (the apprentice growing towards the chaos mage). */
   arc: [
     'Bronze closes round your forearms. The apprentice is giving way.',
     'A dark coat settles on your shoulders, worked in bronze.',
     'Red runes kindle in rings of gold and begin to circle you.',
     'Fire wakes in your empty hand, and the wind turns about you. Azyrion, chaos mage.',
   ],
-  /** M4.10: weaves (a spell striking what another left) and chains (a reaction's leavings meeting a third school): the name
+  /** Weaves (a spell striking what another left) and chains (a reaction's leavings meeting a third school): the name
       that rises, and what the book says of each once found. */
   weaves: {
     steamCurtain: {
@@ -598,7 +598,7 @@ export const STR = {
       text: 'Storm reaching a black sun: when it sets, its blow leaps as lightning to each foe near.',
     },
   } as Record<string, { name: string; text: string }>,
-  /** M4.9 The curve: a floor that walls off the one school the mage carries says so as the mage arrives (world/curve.ts),
+  /** The curve: a floor that walls off the one school the mage carries says so as the mage arrives (world/curve.ts),
       and the first time holy light gives back what a hex took. */
   curve: {
     walls: {
@@ -614,9 +614,9 @@ export const STR = {
   },
   /** What is being done to the mage (ui/afflictions.ts): the chips beside the mana bar, and the line said the first time
       each comes in a run (the sapping obelisk says its own). */
-  /** M5: potions and reagents (items/potions.ts, potionThrow.ts). */
-  /** M5 step 6: Dr. Jelly's laboratory and its alchemy table (world/laboratory.ts, ui/alchemyTable.ts, items/brewing.ts). */
-  /** M6 step 9: the waystone (placeholder words until M8). */
+  /** Potions and reagents (items/potions.ts, potionThrow.ts). */
+  /** Dr. Jelly's laboratory and its alchemy table (world/laboratory.ts, ui/alchemyTable.ts, items/brewing.ts). */
+  /** The waystone (placeholder words). */
   bargain: {
     title: "The shrine's bargain",
     sub: 'Take one: it costs a heart container. Esc leaves the stone as it was.',
@@ -693,7 +693,7 @@ export const STR = {
     recipeKnownNote: 'Known',
     recipeBought: (a: string, b: string, name: string) => `Dr. Jelly whispers it: ${a} and ${b} make ${name}.`,
     jellyKind: 'The alchemist',
-    // M5 step 7: the jelly serpent's vat
+    // the jelly serpent's vat
     cracks: [
       'A crack runs through the vat window. Dr. Jelly: "Careful! Careful with the glass!"',
       'The crack spreads. Dr. Jelly: "Stop! It has been restless all week!"',
@@ -733,7 +733,7 @@ export const STR = {
       drawn: 'Drawn in',
       sapped: 'Sapped',
       jelly: 'In jelly',
-      // M5: what a potion drunk leaves on the mage
+      // what a potion drunk leaves on the mage
       ember: 'Liquid Ember',
       frost: 'Frostbrew',
       free: 'Free spells',
@@ -759,7 +759,7 @@ export const STR = {
     } as Record<string, string | undefined>,
   },
   toast: {
-    /** M4.2: Fen-Nex grows (to its second stage, then its full shape). */
+    /** Fen-Nex grows (to its second stage, then its full shape). */
     fennexGrows: ['Fen-Nex has grown', 'Fen-Nex comes into its full shape'],
     fullHealth: 'You are already at full health',
     fullMana: 'Your mana is already full',
@@ -820,13 +820,13 @@ export const STR = {
   } as Record<string, string>,
   spellKind: (school: string) => `${school} spell`,
   spellEffect: (text: string, mana: number, cooldown: number) => `${text}. ${mana} mana, every ${cooldown} s`,
-  /** Spell knowledge (M3.7). */
+  /** Spell knowledge. */
   knowledge: {
     knownWell: (name: string) => `You know ${name} well now: its lore and what it sets off`,
     /** What a spell's panel says of what isn't known yet. */
     seenOnly: 'Take its page to learn more of it.',
     castMore: (n: number) => `Cast it ${n} more time${n === 1 ? '' : 's'} to know it well.`,
-    /** M6 step 7: the runes carved in its slot, and (Upgraded) every rune it has borne. */
+    /** The runes carved in its slot, and (Upgraded) every rune it has borne. */
     runesLbl: 'Runes carved',
     upgradedLbl: 'Upgraded',
     borne: (names: string) => `Runes it has borne: ${names}.`,
@@ -835,9 +835,9 @@ export const STR = {
       `A ${school} spell you have not come across. Libraries, bosses and now and then a fight leave pages.`,
     notCarried: 'Known, but not in a slot. A page of it, or a library, puts it back.',
     sets: 'What it sets off',
-    /** The book's wheel of reactions (M4.8): every pair of schools, found or not yet. */
+    /** The book's wheel of reactions: every pair of schools, found or not yet. */
     wheel: 'Reactions',
-    /** M4.10: the book's weaves and chains, found or sealed; a spell's panel lists the weaves it takes part in. */
+    /** The book's weaves and chains, found or sealed; a spell's panel lists the weaves it takes part in. */
     weavesSec: 'Weaves and chains',
     weaveKind: { weave: 'Weave', chain: 'Chain' } as Record<string, string>,
     weaveSealed: (kind: string, a: string, b: string) => `A ${kind.toLowerCase()} of ${a} and ${b} not yet found.`,
@@ -858,7 +858,7 @@ export const STR = {
       `What ${a} and ${b} do when they meet on one foe. Set them off together to find out.`,
     foundOf: (n: number, of: number) => `${n} of ${of} reactions found. The sixth school's spoke is sealed.`,
     notFound: 'not yet found',
-    /** Where a reaction happens besides on a foe (M4.8's tile reactions). */
+    /** Where a reaction happens besides on a foe (tile reactions). */
     onTiles: {
       steam: 'Fire on frozen water, or frost on burning oil, sets it off too.',
       overload: 'A shock through burning oil sets it off too, blowing the fire out.',
@@ -890,7 +890,7 @@ export const STR = {
     } as Record<string, string>,
   },
   manaLabel: (mana: number, max: number) => `Mana ${Math.round(mana)} of ${max}`,
-  /** M6 step 2: the four attributes (placeholders until M8; the GDD's Focus is Will: "focus" names what the casting hand
+  /** The four attributes (placeholders; the GDD's Focus is Will: "focus" names what the casting hand
       holds), and a point spent rising over the mage. */
   attrs: {
     vigor: { name: 'Vigor', text: (points: number) => `Half a heart container for every ${points} points.` },
@@ -906,7 +906,7 @@ export const STR = {
     },
     spent: (name: string) => `${name} +1`,
   },
-  /** M6 step 3: boons (names in data/boons.json, placeholders until M8). */
+  /** Boons (names in data/boons.json, placeholders). */
   boons: {
     kindOf: (school: string) => `${school} boon`,
     kindGeneral: 'Boon',
@@ -915,7 +915,7 @@ export const STR = {
     pledgeKept: (school: string) => `The library remembered your pledge: a page of ${school} waits.`,
     attuned: (school: string) => `Attuned: the boons you are offered lean to ${school}.`,
     lean: (school: string) => `Your ${school} draws it`,
-    /** Step 5: the line each school boon says the first time it acts in a run. */
+    /** The line each school boon says the first time it acts in a run. */
     acts: {
       bankedCoals: 'Banked Coals: your fires burn longer.',
       flamekeeper: 'Flamekeeper: the flames near you feed your mana while the fight lasts.',
@@ -937,7 +937,7 @@ export const STR = {
     mendSpent: 'Your boons have mended all they can in this room.',
     yours: 'Your boons',
   },
-  /** The panel over a merchant's ware (2026-10-02): its price, how it is bought, and the crow's two wares (M4.2). */
+  /** The panel over a merchant's ware: its price, how it is bought, and the crow's two wares. */
   shop: {
     price: (n: number) => `${n} obols`,
     was: (n: number) => `(was ${n})`,
@@ -952,7 +952,7 @@ export const STR = {
       },
     } as Record<string, { name: string; kind: string; effect: string }>,
   },
-  /** M6 step 7: runes (data/runes.json has their names and texts): the line each says the first time it acts in a run, and
+  /** Runes (data/runes.json has their names and texts): the line each says the first time it acts in a run, and
       what a socket says. */
   runes: {
     acts: {
@@ -966,7 +966,7 @@ export const STR = {
     } as Record<string, string>,
     veinLast: 'Vein will not take your last half heart.',
     toPouch: (names: string) => `${names} went to your pouch.`,
-    /** M6 step 8: a rune found, its card and the pouch. */
+    /** A rune found, its card and the pouch. */
     kind: 'Rune',
     carvedAt: 'A waystone carves it into a spell.',
     everySpell: 'It fits every spell.',
@@ -1005,7 +1005,7 @@ export const STR = {
       twice: 'That rune is carved here already.',
     } as Record<string, string>,
   },
-  /** M6: insight (the GDD's XP) and levels; both words placeholders until M8. */
+  /** Insight (the GDD's XP) and levels; both words placeholders. */
   levels: {
     short: 'Level',
     up: (n: number) => `Level ${n}`,
@@ -1037,16 +1037,16 @@ export const STR = {
     bloom: 'Bloom',
     blight: 'Blight',
   } as Record<string, string>,
-  /** Over a foe struck by its weakness or its resistance, the first time (M4; GDD: Enemy affinities). */
+  /** Over a foe struck by its weakness or its resistance, the first time (GDD: Enemy affinities). */
   foes: {
     weak: 'Weak',
     resists: 'Resists',
     drinks: 'Drinks it',
-    /** Champion mantles (M4.7, actors/mantles.ts): the word over a stripped champion, the word when a mantle turns a
+    /** Champion mantles (actors/mantles.ts): the word over a stripped champion, the word when a mantle turns a
         status, each mantle's name (risen over the champion as it comes) and its line the first time in a run. */
     unbound: 'Unbound!',
     shrugs: 'Unmoved',
-    /** Counters found (M4.7 step 3, actors/counters.ts): the word that rises when a foe's counter comes about, by kind of
+    /** Counters found (actors/counters.ts): the word that rises when a foe's counter comes about, by kind of
         counter, and each foe's counters as lines for the inventory's Foes tab (a foe's keys here are its counters). */
     counters: {
       burnt: 'Burnt away!',
@@ -1136,7 +1136,7 @@ export const STR = {
       manticore: { stilled: 'Holy light stills its tail.' },
     } as Record<string, Record<string, string>>,
     counterFound: (name: string, line: string) => `${name}: ${line}`,
-    /** Rooms with a pair (M4.7): the line the first time each pair is met in a run, by `foeA+foeB`. */
+    /** Rooms with a pair: the line the first time each pair is met in a run, by `foeA+foeB`. */
     pairs: {
       'cryptSpider+inkOctopus': 'Webs and ink together: every step here is slow. Fire clears the webs.',
       'choirLark+stormMantis': 'The caladrius sings the knight faster. Hush the bird.',
@@ -1150,7 +1150,7 @@ export const STR = {
       'cinderDjinn+gloomRaven': 'The djinn lights the braziers the ravens flee. Let it.',
       'glacierGolem+frostJackalope': 'The golem holds the line while the jackalope runs. Fire stops the running.',
     } as Record<string, string>,
-    /** M4.7: the first time in a run a foe steps into another kind's ground. */
+    /** The first time in a run a foe steps into another kind's ground. */
     groundLine:
       "Foes fall foul of each other's ground: webs and ink hold them, rime trips them, fire and sparks burn them.",
     mantles: {
@@ -1195,7 +1195,7 @@ export const STR = {
     grow: 'Overgrown',
     bloom: 'Overgrown, flowering',
   } as Record<string, string>,
-  /** M5: an overgrown foe falling flowers (statusFx.ts's `flowerFell`). */
+  /** An overgrown foe falling flowers (statusFx.ts's `flowerFell`). */
   grow: { flower: 'It flowers', lily: 'A lily', garden: 'The garden holds it' },
   /** The boss bar while a shrine draws a curse out. */
   curseOf: (name: string) => `The curse of the ${name}`,
@@ -1313,18 +1313,18 @@ export const STR = {
       },
     } as Record<string, { name: string; kind: string; effect: string; lore: string }>,
   },
-  /** Mechanisms (M3.6): every candle stand lit. */
+  /** Mechanisms: every candle stand lit. */
   mech: {
     blessed: (n: number) => `The candles bless your next ${n} casts`,
     reliquary: 'The reliquary opens to the candle-light',
     darkLifted: 'The candle-light drives off the dark',
-    /** M4.2: the mage steps into a sapping obelisk's field, the first time in a room; its ward breaks. */
+    /** The mage steps into a sapping obelisk's field, the first time in a room; its ward breaks. */
     sapped: (school: string) => `The obelisk saps your magic. ${school} breaks its ward`,
     wardBroken: "The obelisk's ward breaks: its field goes out",
   },
-  /** A themed room, the first time the mage enters it (M3.6; the names are in data/themes.json). */
+  /** A themed room, the first time the mage enters it (the names are in data/themes.json). */
   themeEntered: (name: string) => name,
-  /** M4.1's twists: the treasury's guardians wake to their gold taken; the drowned rise from the landing's river. */
+  /** Twists: the treasury's guardians wake to their gold taken; the drowned rise from the landing's river. */
   guardiansWake: 'The guardians wake: that gold was theirs',
   drownedRise: 'The drowned climb out of the river. Freeze it, and they stay down',
   /** The inventory (I or Tab, the gamepad's View button, or from the pause menu): what the mage carries and knows. */
@@ -1338,7 +1338,7 @@ export const STR = {
       mage: 'The mage',
       foes: 'Foes',
     } as Record<string, string>,
-    /** The Potions tab (M5): the belt, the pouch of reagents, and every potion known (this run, or ever brewed). */
+    /** The Potions tab: the belt, the pouch of reagents, and every potion known (this run, or ever brewed). */
     potions: {
       belt: 'Belt',
       pouch: 'Reagents',
@@ -1360,7 +1360,7 @@ export const STR = {
       noRecipes:
         "No recipes yet. Brew at the alchemy table in Dr. Jelly's laboratory, or buy one from him: what you learn is kept between runs.",
     },
-    /** The Foes tab (M4.7): every foe met, what was found of it, its counters found and sealed (kept between runs). */
+    /** The Foes tab: every foe met, what was found of it, its counters found and sealed (kept between runs). */
     foes: {
       floor: (n: number) => (n ? `Floor ${n}` : 'From the wards'),
       bosses: 'Bosses',
@@ -1403,7 +1403,7 @@ export const STR = {
       root: (v: number) => `Root ${v} s`,
       grow: (v: number) => `Overgrown ${v} s`,
     } as Record<string, (v: number) => string>,
-    /** A status's number changed by a boon (M6 step 5): the number now, and the spell's own beside it. */
+    /** A status's number changed by a boon: the number now, and the spell's own beside it. */
     boosted: (chip: string, base: number) => `${chip} (${base})`,
     statusText: {
       burn: 'Burn: damage over time.',
@@ -1413,7 +1413,7 @@ export const STR = {
       root: 'Root: held where it stands, though it can still strike.',
       grow: 'Overgrown: vines that slow it more the longer they hold.',
     } as Record<string, string>,
-    /** Chill's line, with the stack that freezes (Deep Winter, M6, brings it sooner). */
+    /** Chill's line, with the stack that freezes (Deep Winter brings it sooner). */
     chillText: (at: number) =>
       `Chill: each stack slows; the ${['', 'first', 'second', 'third', 'fourth'][at] ?? `${at}th`} freezes, and a frozen foe takes more damage.`,
     stat: {
@@ -1496,7 +1496,7 @@ export const STR = {
         text: "Foes a bolt passes through, how hard bolts throw foes back, and how far your glyphs' blasts reach.",
       },
     } as Record<string, { name: string; text: string }>,
-    /** M6: the mage tab's growth: the level and its insight, and the attributes' points. */
+    /** The mage tab's growth: the level and its insight, and the attributes' points. */
     growth: {
       title: 'Growth',
       numbers: 'Your numbers',
@@ -1585,7 +1585,7 @@ export const STR = {
       name: 'Dragon Turtle',
       note: "Floor 5, Frost (elite): a dragon's head and claws under a spiked shell with an ice lantern shrine on its back; hides and spins off the walls, then lies dizzy",
     },
-    // M4.2: the Wardlings a drinking ward lets out, one for each school
+    // the Wardlings a drinking ward lets out, one for each school
     wardEmber: {
       name: 'Ember Ward Core',
       note: 'From a drinking ward full of Ember: a crystal heart of fire with one slit eye, in a cage of turning runes; its volleys light what they pass',
@@ -1611,7 +1611,7 @@ export const STR = {
       note: 'From a drinking ward full of Umbral: a crystal heart of dark light with one slit eye; its volleys hex',
     },
   } as Record<string, { name: string; note: string }>,
-  /** The bestiary (M4.5, actors/bestiaryLooks.ts): names (placeholders) and the fight each brings. */
+  /** The bestiary (actors/bestiaryLooks.ts): names (placeholders) and the fight each brings. */
   bestiary: {
     cryptSpider: {
       name: 'Gloom Weaver',
@@ -1782,7 +1782,7 @@ export const STR = {
     `${label}: ${tris.toLocaleString()} triangles${stripped ? ', base removed' : ''}` +
     `${skinned ? ', rigged' : ', static (procedural animation)'}${clips ? `. Clips used: ${clips}` : ''}.`,
 };
-/** A foe's name: M4's (STR.options) or M4.5's bestiary's (STR.bestiary). */
+/** A foe's name: from STR.options or, for the bestiary's, STR.bestiary. */
 export const foeName = (id: string) =>
   STR.options[id]?.name ?? (STR.bestiary as Record<string, { name: string }>)[id]?.name ?? id;
 

@@ -1,4 +1,4 @@
-/* A few colours for many (2026-10-01, the mage in the pixel-art look): a model's colours cut down to a small palette, as
+/* A few colours for many (the mage in the pixel-art look): a model's colours cut down to a small palette, as
    pixel art keeps them, so its painted detail reads as flat patches at the game's pixel size. Pure (no three.js): median
    cut, then a few rounds of k-means, in OKLab (where distance is near what the eye sees, so a blue coat and a grey belt
    don't fall into one grey); each colour then goes to its nearest. Colours are sRGB triples from 0 to 1, flat in one

@@ -140,7 +140,7 @@ export function glow(color: number, size: number, opacity = 1) {
   s.scale.set(size, size, 1);
   return s;
 }
-/** The room kit's still surfaces (M3.5 step 3): one material for all of them, each piece's colour painted into its
+/** The room kit's still surfaces: one material for all of them, each piece's colour painted into its
     vertices (`paint`), so an object's still body draws in one call whatever it is made of. How metallic each piece is
     goes in its vertices too (`metal`): iron and bronze shine a little, stone, wood and bone are matte (and so lighter). */
 export const KIT_MAT = markShared(

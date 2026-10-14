@@ -61,7 +61,7 @@ export interface Circle {
 }
 
 type RGB = [number, number, number];
-/** How a floor looks: placeholder variety until the biome pass (M8). Lives in data/floors.json. */
+/** How a floor looks: placeholder variety. Lives in data/floors.json. */
 /** What a niche in a dressed wall holds (world/dressing.ts). */
 export type NicheKind = 'skull' | 'candle' | 'urn' | 'bones' | 'bell' | 'empty';
 /** How a floor dresses its tall walls: a pilaster every `pilaster` tiles (0: none), and what niches hold, by weight. */
@@ -81,7 +81,7 @@ export interface FloorLook {
     light: string;
     intensity: number;
     wax?: string;
-    /** M7: a candle stand's own flame and light, where they differ from the wall lights' (the Seal's warm candles under its violet lights) */ candle?: [
+    /** A candle stand's own flame and light, where they differ from the wall lights' (the Seal's warm candles under its violet lights) */ candle?: [
       string,
       string,
     ];
@@ -112,7 +112,7 @@ export interface Door {
   box: Box;
   /** A locked vault's door: the ward shared by both sides of the doorway. */ seal?: VaultSeal;
   /** A secret room's hidden doorway: a cracked wall until a blast opens it. */ secret?: SecretWall;
-  /** M7 step 9: a way at the Vigil still barred by its school: the wall filling the doorway (rooms.ts's `unplugDoor`). */ plug?: THREE.Object3D;
+  /** A way at the Vigil still barred by its school: the wall filling the doorway (rooms.ts's `unplugDoor`). */ plug?: THREE.Object3D;
 }
 /** One side of a secret room's hidden doorway (GDD: Secret room): a stretch of cracked wall filling the
     doorway, in `room`. The cantrip divines it (it rings hollow and the crack glows); a glyph's blast opens
@@ -136,7 +136,7 @@ export interface VaultSeal {
   outerRoom: Room;
   /** The ward disc and padlock on the outer side. */ mark: THREE.Group;
   /** Says it's sealed again only after the mage steps away. */ armed: boolean;
-  /** M4.2: the ward drinks spells cast near it (magic/drinking.ts); the light filling it (its own material). */ drink: Drink;
+  /** The ward drinks spells cast near it (magic/drinking.ts); the light filling it (its own material). */ drink: Drink;
   cup: THREE.Mesh;
 }
 /** A merchant's ware floating in its ward circle; the price is in obols (0 for a focus left behind). */
@@ -153,7 +153,7 @@ export interface WareSpot {
   sold: boolean;
   /** Refuses again only after the mage steps away. */ armed: boolean;
   /** The price its tag shows (the Pedlar's Scale lowers it). */ tagPrice?: number;
-  /** M5: which potion or reagent it is; M6 step 8: which rune. */ potion?: string;
+  /** Which potion, reagent or rune it is. */ potion?: string;
   reagent?: string;
   rune?: string;
 }
@@ -174,9 +174,9 @@ export interface RockBox extends Box {
   tile?: { c: number; r: number };
   urn?: 'plain' | 'sealed';
   prop?: PropState;
-  /** A pillar: how tall it stands (M4.2). */ pillar?: number;
-  /** M7 step 5: one of the Vigil's ways, barred by this school. */ bar?: import('./magic/spellData').School;
-  /** M7 step 6: a chained shade. */ shade?: boolean;
+  /** A pillar: how tall it stands. */ pillar?: number;
+  /** One of the Vigil's ways, barred by this school. */ bar?: import('./magic/spellData').School;
+  /** A chained shade. */ shade?: boolean;
 }
 /** One of the rooms' objects in play (world/props.ts, world/propData.ts): its kind, bolts it can still take, seconds
     left burning (0: not alight), the tiles it covers, and its look. */
@@ -194,18 +194,18 @@ export interface PropState {
   cd?: number;
   t?: number;
   parts?: Record<string, THREE.Object3D>;
-  /** M4.2: a watching statue's charge (seconds of gaze), the seconds it stays blind, and the spot its ray will strike;
+  /** A watching statue's charge (seconds of gaze), the seconds it stays blind, and the spot its ray will strike;
       a sapping obelisk's ward (the school that breaks it) and whether it is broken. */
   charge?: number;
   blind?: number;
   aim?: { x: number; z: number; t: number };
   ward?: School;
   broken?: boolean;
-  /** M4.9: seconds a sluice gate stands open (the room's water drained). */ open?: number;
-  /** M7 step 2: one of Kaelith's ward pillars: an obelisk with no field, dormant until the seal cracks (actors/kaelith.ts). */ seal?: boolean;
-  /** M4.10: a brazier burning with Blackfire (darkness took its fire). */ black?: boolean;
-  /** M5: a brazier lit once already (its first fire may leave Ember Salt, items/reagents.ts). */ salted?: boolean;
-  /** M6 step 5: a flowering plant Seedfall sowed (it holds no reagent). */ sown?: boolean;
+  /** Seconds a sluice gate stands open (the room's water drained). */ open?: number;
+  /** One of Kaelith's ward pillars: an obelisk with no field, dormant until the seal cracks (actors/kaelith.ts). */ seal?: boolean;
+  /** A brazier burning with Blackfire (darkness took its fire). */ black?: boolean;
+  /** A brazier lit once already (its first fire may leave Ember Salt, items/reagents.ts). */ salted?: boolean;
+  /** A flowering plant Seedfall sowed (it holds no reagent). */ sown?: boolean;
 }
 /** An object in the room, with its box (how it blocks depends on its class: rocks, `lows`, or `soft`). */
 export type PropBox = RockBox & { prop: PropState };
@@ -215,9 +215,9 @@ export interface SporeCloud {
   z: number;
   t: number;
   g: THREE.Group;
-  /** A Sporeling's puff (M4): it stings the mage who stands in it, once, and dims their sight this many seconds. */ sting?: number;
+  /** A Sporeling's puff: it stings the mage who stands in it, once, and dims their sight this many seconds. */ sting?: number;
   stung?: boolean;
-  /** The kind of foe that puffed it (M4.7: its own kind isn't stung). */ by?: string;
+  /** The kind of foe that puffed it (its own kind isn't stung). */ by?: string;
 }
 /** An artifact on a pedestal. `pair` links the boss's two choices: taking one makes the other vanish. */
 export interface ArtifactSpot {
@@ -271,17 +271,17 @@ export interface Room {
   pits: Box[];
   torches: Torch[];
   /** Ice a spell raised (Glacial Wall): it stops the mage, foes and their shots, not the mage's bolts. */ barriers?: Box[];
-  /** The room's objects (M3.6): all of them; the low ones that stop walking but not bolts; the soft ones walked into;
+  /** The room's objects: all of them; the low ones that stop walking but not bolts; the soft ones walked into;
       glowcap spores hanging in the air. Tall objects and breakable piles are also among `rocks`. */
   props?: PropBox[];
   lows?: PropBox[];
   soft?: PropBox[];
   spores?: SporeCloud[];
-  /** A themed room's theme (M3.6, world/themeData.ts). */ theme?: ThemeDef;
-  /** Every candle stand in the room lit (M3.6 mechanisms): what that does has happened. */ candlesLit?: boolean;
-  /** The eyes of an ossuary's skull niches, one material lit in the last spell's colour (M3.6). */ eyes?: THREE.MeshBasicMaterial;
+  /** A themed room's theme (world/themeData.ts). */ theme?: ThemeDef;
+  /** Every candle stand in the room lit: what that does has happened. */ candlesLit?: boolean;
+  /** The eyes of an ossuary's skull niches, one material lit in the last spell's colour. */ eyes?: THREE.MeshBasicMaterial;
   /** Where the tall walls' pilasters and niches stand (world x on the wall face at world z), so what a foe sets in a wall
-      or perches on keeps off them (M4.5: a wasps' nest, a harpy). */ dressed?: { x: number; z: number }[];
+      or perches on keeps off them (a wasps' nest, a harpy). */ dressed?: { x: number; z: number }[];
   /** Enemies to spawn, wave by wave (ordeals have 2 or 3 waves, other fights 1), in world positions. */
   /** Each wave's foes: what the floor put in each template role (or the boss), and where. */
   waves: { kind: FoeType | 'boss'; role: FoeKind; x: number; z: number }[][];
@@ -289,7 +289,7 @@ export interface Room {
   wavePending: boolean;
   /** Ambush rooms: waiting for the mage to reach the middle (armed), or already sprung. */ ambush?: 'armed' | 'sprung';
   /** Quiet rooms: a heart waits there on the first visit. */ quietHeart?: boolean;
-  /** M6: its first clear has paid its insight. */ paid?: boolean;
+  /** Its first clear has paid its insight. */ paid?: boolean;
   cleared: boolean;
   visited: boolean;
   known: boolean;
@@ -298,13 +298,13 @@ export interface Room {
   /** The merchant's wares and the shade himself. */ wares?: WareSpot[];
   shade?: THREE.Group;
   /** A locked vault forced open by blasts: its warden, a champion, rises when the mage comes in. */ warden?: boolean;
-  /** The pair of foes made to work together its first wave rolled (M4.7), if any. */ pair?: [string, string];
-  /** M4.2: its ward burst full of this school: a Wardling of it is the warden. */ drunk?: School;
-  /** M4.2: the tiles its pits' dark covers (a rope bridge's chasm too), drawn joined. */ pitTiles?: {
+  /** The pair of foes made to work together its first wave rolled, if any. */ pair?: [string, string];
+  /** Its ward burst full of this school: a Wardling of it is the warden. */ drunk?: School;
+  /** The tiles its pits' dark covers (a rope bridge's chasm too), drawn joined. */ pitTiles?: {
     c: number;
     r: number;
   }[];
-  /** M4.2: the way its water flows (from the template), and the waterfalls feeding it. */ flow?: Flow;
+  /** The way its water flows (from the template), and the waterfalls feeding it. */ flow?: Flow;
   falls?: { mesh: THREE.Mesh; tex: THREE.Texture }[];
   /** A secret room, once one of its walls has been blasted open. */ found?: boolean;
   /** The mage was hurt during this room's fight (Unbroken Oath). */ hurt?: boolean;
@@ -312,13 +312,13 @@ export interface Room {
   shrine?: { mat: THREE.MeshBasicMaterial; motes: THREE.Sprite[]; stones: OfferingStone[] };
   /** Grimoire pages: a library's lecterns and shelf (laid out on the first visit), a boss's page, a dropped one. */
   pages?: Page[];
-  /** M5: Dr. Jelly's laboratory (world/laboratory.ts): where its table and Dr. Jelly stand, the vat window's look, whether a
+  /** Dr. Jelly's laboratory (world/laboratory.ts): where its table and Dr. Jelly stand, the vat window's look, whether a
       potion was identified free this visit, and whether walking up to the table or to Dr. Jelly opens the table again
       (after stepping away). */
-  /** M6 step 9: the waystone risen here (step 10: in the waystone room, the first time it is entered after the boss falls; in the boss room as it falls where the floor has none): where, how far it has
+  /** The waystone risen here (in the waystone room, the first time it is entered after the boss falls; in the boss room as it falls where the floor has none): where, how far it has
       risen (0 to 1), whether its runes are kindled, its rest taken, the pair it offers (null once one is taken), the walk-up
       latch, the slot its screen carves into, and its look's parts. */
-  /** M6 step 11: a shrine's bargain stone: where, whether it waits, is open on a deal (the school cast into it) or was kept
+  /** A shrine's bargain stone: where, whether it waits, is open on a deal (the school cast into it) or was kept
       (once a shrine), the walk-up latch, and its look (its runes' one material). */
   bargain?: {
     x: number;
@@ -351,22 +351,22 @@ export interface Room {
     identified: boolean;
     armedTable: boolean;
     armedJelly: boolean;
-    /** M5 step 7: the vat window's cracks (bolts), when the last was counted (sim time), whether it is broken (the serpent
+    /** The vat window's cracks (bolts), when the last was counted (sim time), whether it is broken (the serpent
         out, here or on a floor before), and whether a brew has stirred the serpent. */ cracks: number;
     crackAt: number;
     broken: boolean;
     stirred: boolean;
   };
-  /** M7 step 5: spans of wall the torches and the wall's dressing keep off (the Vigil's pieces and barred ways stand
+  /** Spans of wall the torches and the wall's dressing keep off (the Vigil's pieces and barred ways stand
       against them): on its `side`, centred at world `at` along it, `half` either way. */ keepClear?: {
     side: Side;
     at: number;
     half: number;
   }[];
-  /** Foes put to rest here towards the Ossuary Choir's next hymn (M4.1). */ choir?: number;
-  /** M5: an overgrown foe has flowered here (its flower mends once a room). */ flowered?: boolean;
-  /** M5: the overgrown garden's word has risen here (once a room). */ gardenSaid?: boolean;
-  /** M6 step 5: the boons (and, step 7, the runes: `rune:<id>`) whose name has risen here (once a room each), the half hearts boons have mended here (Votive
+  /** Foes put to rest here towards the Ossuary Choir's next hymn. */ choir?: number;
+  /** An overgrown foe has flowered here (its flower mends once a room). */ flowered?: boolean;
+  /** The overgrown garden's word has risen here (once a room). */ gardenSaid?: boolean;
+  /** The boons (and the runes: `rune:<id>`) whose name has risen here (once a room each), the half hearts boons have mended here (Votive
       Heart and Thirsting Hex share them), and whether Votive Heart's mend has come here. */ boonsSaid?: Set<string>;
   boonMended?: number;
   votive?: boolean;
@@ -384,11 +384,11 @@ export interface Pool {
   t: number;
   /** Seconds the water still crackles with a shock (it won't spread one again meanwhile); the burn's next tick. */ charged: number;
   tick: number;
-  /** The sim time before which fire on this water won't boil it into steam again (2026-10-01). */ boilAt?: number;
+  /** The sim time before which fire on this water won't boil it into steam again. */ boilAt?: number;
   mesh: THREE.Mesh;
   mat: THREE.MeshStandardMaterial;
-  /** M4.9: drained to mud by an open sluice (still slow to wade; nothing hides in it). */ mud?: boolean;
-  /** M5: the jelly serpent's jelly (water, green and slower to wade; it swims in it). */ jelly?: boolean;
+  /** Drained to mud by an open sluice (still slow to wade; nothing hides in it). */ mud?: boolean;
+  /** The jelly serpent's jelly (water, green and slower to wade; it swims in it). */ jelly?: boolean;
 }
 
 /** A grimoire page (magic/pages.ts): on a library's lectern, on its shelf for obols, or lying loose. */
@@ -407,8 +407,8 @@ export interface Page {
 }
 
 export interface Enemy extends Circle {
-  /** M5: grown by a thrown Giant's Brew (slower and bigger, once). */ giant?: boolean;
-  /** M5 step 7: the jelly serpent out of its vat: a boss with its own rewards (world/laboratory.ts), not the floor's. */ labBoss?: boolean;
+  /** Grown by a thrown Giant's Brew (slower and bigger, once). */ giant?: boolean;
+  /** The jelly serpent out of its vat: a boss with its own rewards (world/laboratory.ts), not the floor's. */ labBoss?: boolean;
   type: FoeType;
   vx: number;
   vz: number;
@@ -434,20 +434,20 @@ export interface Enemy extends Circle {
   speedMul: number;
   champion?: boolean;
   aura?: THREE.Sprite;
-  /** A champion's school mantle (M4.7, actors/mantles.ts), its ring of runes, the seconds until it acts again (a trail
+  /** A champion's school mantle (actors/mantles.ts), its ring of runes, the seconds until it acts again (a trail
       of fire, a spark), and the seconds left open after it was stripped. */ mantle?: MantleId;
   mantleRing?: THREE.Object3D;
   mantleT?: number;
   unbound?: number;
   saidAt?: number;
-  /** In another kind's ground (M4.7): the way it slides on rime, and the seconds before the ground harms it again. */ slide?: {
+  /** In another kind's ground: the way it slides on rime, and the seconds before the ground harms it again. */ slide?: {
     x: number;
     z: number;
   };
   groundT?: number;
   inGround?: string;
-  /** A Gloom Raven driven off by a light (M4.7: its counter's word rises as it turns away). */ shunned?: boolean;
-  /** M4.2: a drinking ward round it (actors/wardShield.ts): what it has drunk, and its light. */ ward?: {
+  /** A Gloom Raven driven off by a light (its counter's word rises as it turns away). */ shunned?: boolean;
+  /** A drinking ward round it (actors/wardShield.ts): what it has drunk, and its light. */ ward?: {
     drink: Drink;
     fx: THREE.Mesh;
   };
@@ -461,51 +461,51 @@ export interface Enemy extends Circle {
   cycle?: number;
   summoned?: boolean;
   volleys?: number;
-  /** A boss built in code (M4: the Hollow Warden's looks, bossLooks.ts): its school, whose light its shots take. */ bossSchool?: School;
-  /** The bosses of floors 4 and 5 (M4.1): their weakness and resistance; the hart's turning spokes. */ bossAff?: {
+  /** A boss built in code (the Hollow Warden's looks, bossLooks.ts): its school, whose light its shots take. */ bossSchool?: School;
+  /** The bosses of floors 4 and 5: their weakness and resistance; the hart's turning spokes. */ bossAff?: {
     weak: School;
     resist: School;
   };
   spin?: number;
-  /** The Twin Guardians (M4.2): the other twin; which part it plays now; whether bolts glance off it (while it shields);
+  /** The Twin Guardians: the other twin; which part it plays now; whether bolts glance off it (while it shields);
       whether it rages (its twin fallen); seconds until the shield passes across. */
   twin?: Enemy;
   role?: 'strike' | 'shield';
   glance?: boolean;
   rage?: boolean;
   swapT?: number;
-  /** The War-Tiger (M4.2): the plates it has left, and the damage they have turned since the last one fell. */ plates?: number;
+  /** The War-Tiger: the plates it has left, and the damage they have turned since the last one fell. */ plates?: number;
   worn?: number;
-  /** Sanctified by the Gilded Halo's first bolt already (M4.1). */ haloed?: boolean;
-  /** A gilded treasury's guardian, standing like a statue until its gold is taken (M4.1, themes.ts). */ statue?: boolean;
-  /** Marked by the Ferryman's Toll (M4.1, shapes.ts): mana back for each blow (at most every so often: `tollNext`), obols and a spreading hex if it falls. */ toll?: {
+  /** Sanctified by the Gilded Halo's first bolt already. */ haloed?: boolean;
+  /** A gilded treasury's guardian, standing like a statue until its gold is taken (themes.ts). */ statue?: boolean;
+  /** Marked by the Ferryman's Toll (shapes.ts): mana back for each blow (at most every so often: `tollNext`), obols and a spreading hex if it falls. */ toll?: {
     mana: number;
     obols: number;
     spread: number;
     spreadRange: number;
   };
   tollNext?: number;
-  /** Eclipsed (M4.1): the black sun hung over it while it is out of the fight. */ sun?: THREE.Object3D;
-  /** M4.10: what an eclipse's blow is worth as it ends (Eclipse Ground: half again), and whether Storm reached its black sun
+  /** Eclipsed: the black sun hung over it while it is out of the fight. */ sun?: THREE.Object3D;
+  /** What an eclipse's blow is worth as it ends (Eclipse Ground: half again), and whether Storm reached its black sun
       (Corona: the blow leaps as lightning). */ eclipseMul?: number;
   corona?: boolean;
   /** Bosses: out of reach (under the floor, in the air), so neither hurt nor hurting. */ hidden?: boolean;
   /** Floor ring (the abbess's ripple, the knight's landing mark); where a leap started. */ marker?: THREE.Mesh;
   from?: Vec2;
   /** Called by a boss; falls when the boss does. */ servant?: boolean;
-  /** M6: the insight it pays as it falls (progression/levelData.ts `purseOf`, fixed when it is made); none for one a boss's
+  /** The insight it pays as it falls (progression/levelData.ts `purseOf`, fixed when it is made); none for one a boss's
       ward broke into (`unpaid`). */ purse?: number;
   unpaid?: boolean;
-  /** M6 step 5 (Cold Snap): frozen by a thawing foe's breath, so its own thaw breathes nothing. */ snapped?: boolean;
-  /** M6 step 6 (Scavenger): the last blow that struck it was its weakness. */ weakBlow?: boolean;
-  /** Asleep (a pilgrims' rest's foes, M3.6): does nothing until hurt or until the mage comes close. */ asleep?: boolean;
+  /** Frozen by a thawing foe's breath (Cold Snap), so its own thaw breathes nothing. */ snapped?: boolean;
+  /** The last blow that struck it was its weakness (Scavenger). */ weakBlow?: boolean;
+  /** Asleep (a pilgrims' rest's foes): does nothing until hurt or until the mage comes close. */ asleep?: boolean;
   /** Held in ice (a frozen mausoleum's foes): asleep until hurt or thawed by fire; the ice around it. */ entombed?: THREE.Object3D;
   /** What struck it last: the cantrip's kills give mana back. */ lastHit?: 'cantrip' | 'spell';
   /** Status effects on it (magic/status.ts), the ice around it while frozen, and the training dummy's label. */
   status?: StatusState;
   ice?: THREE.Mesh;
   label?: THREE.Sprite;
-  /** A foe built in code (M4, actors/foes.ts): what it is; its model and the model's idle, played on its own clock `at`
+  /** A foe built in code (actors/foes.ts): what it is; its model and the model's idle, played on its own clock `at`
       at `animRate` (0 holds it still); how strongly it telegraphs (0 to 1: its school's glow, a swell); its shadow's size. */
   foe?: FoeDef;
   model?: THREE.Object3D;
@@ -521,7 +521,7 @@ export interface Enemy extends Circle {
   guard?: number;
   tick?: number;
   teleGlow?: THREE.Sprite;
-  /** M4.5's bestiary (actors/bestiaryFoes.ts): the pack whose one mind it shares (a firefly swarm); until when a lark's song
+  /** Bestiary foes (actors/bestiaryFoes.ts): the pack whose one mind it shares (a firefly swarm); until when a lark's song
       hastens it; a splitter's generation (0 whole, 1 split); how high its model hangs (a spider on its thread); a piece its
       behaviour adds (the thread); a count its behaviour keeps (a mantis's parries). */
   pack?: Pack;
@@ -530,9 +530,9 @@ export interface Enemy extends Circle {
   height?: number;
   extra?: THREE.Object3D;
   count?: number;
-  /** M4.5: the foe that made it (a nest's wasp, a rubble golem's stone). */ owner?: Enemy;
+  /** The foe that made it (a nest's wasp, a rubble golem's stone). */ owner?: Enemy;
 }
-/** A pack of foes with one mind (M4.5: the firefly swarm): its members, the point they wheel round and where it is heading
+/** A pack of foes with one mind (the firefly swarm): its members, the point they wheel round and where it is heading
     round the mage, what it is doing and for how long, the step it was last worked out on, and where a stream is aimed. */
 export interface Pack {
   members: Enemy[];
@@ -571,11 +571,11 @@ export interface Bolt extends Circle {
   };
   /** A spell's bolt (Rime Shards, Shatter's shards): its hits are spell hits, with the spell's statuses. */ spell?: boolean;
   status?: Partial<Record<SpellStatus, number>>;
-  /** Set alight flying through a brazier's flame (M3.6): it trails embers. */ kindled?: boolean;
+  /** Set alight flying through a brazier's flame: it trails embers. */ kindled?: boolean;
   /** A splinter of ice rather than an orb (Rime Shards, the Shatter's). */ shard?: boolean;
-  /** M4.10: one of the Shatter's shards (fire catches it as molten glass); a shard sanctified crossing holy ground. */ shatter?: boolean;
+  /** One of the Shatter's shards (fire catches it as molten glass); a shard sanctified crossing holy ground. */ shatter?: boolean;
   hallowed?: boolean;
-  /** M4.1: the Pendulum of Hours' turn (radians a second); seconds left hanging as a Lodestar Wand's star; whether it has
+  /** The Pendulum of Hours' turn (radians a second); seconds left hanging as a Lodestar Wand's star; whether it has
       echoed off a wall already (the Echo Stone). */ curve?: number;
   star?: number;
   echoed?: boolean;
@@ -586,11 +586,11 @@ export interface Shot extends Circle {
   vz: number;
   color: number;
   mesh: THREE.Group;
-  /** An ember (a mimic's, M4): it lights what burns along its way, oil, braziers and roots. */ fire?: boolean;
+  /** An ember (a mimic's): it lights what burns along its way, oil, braziers and roots. */ fire?: boolean;
   fireT?: number;
-  /** Cold (a toad's breath, M4): it freezes the water it passes and chills the mage it strikes this many seconds. */ chill?: number;
-  /** A hex (an imp's flame, M4): it drains this much mana from the mage it strikes. */ hex?: number;
-  /** The foe that threw it (M4.9: a hex's mana runs back to it). */ from?: Enemy;
+  /** Cold (a toad's breath): it freezes the water it passes and chills the mage it strikes this many seconds. */ chill?: number;
+  /** A hex (an imp's flame): it drains this much mana from the mage it strikes. */ hex?: number;
+  /** The foe that threw it (a hex's mana runs back to it). */ from?: Enemy;
 }
 export interface Particle {
   m: THREE.Mesh<THREE.BufferGeometry, THREE.MeshBasicMaterial>;
@@ -615,7 +615,7 @@ export interface Pickup extends Circle {
   ward?: THREE.Object3D;
   armed?: boolean;
   /** A gilded reliquary chest: a relic inside (an artifact outside the floor's budget); only a key opens it. */ gilded?: boolean;
-  /** M5: which potion a bottle is, which reagent a reagent is; M6 step 8: which rune a rune is. */ potion?: string;
+  /** Which potion a bottle is, which reagent a reagent is, which rune a rune is. */ potion?: string;
   reagent?: string;
   rune?: string;
 }
@@ -643,7 +643,7 @@ export interface Trapdoor {
   z: number;
   ring: THREE.Mesh;
   t: number;
-  /** M7 step 3: Kaelith's way out is a shaft of daylight (world/daylight.ts) */ kind?: 'shaft';
+  /** Kaelith's way out is a shaft of daylight (world/daylight.ts) */ kind?: 'shaft';
 }
 
 /** The pan between rooms: the mage walks from (fx, fz) to (tx, tz), the camera from (cfx, cfz) to (ctx, ctz)
@@ -676,7 +676,7 @@ export interface Player extends Circle {
   yawA: number;
   squash: number;
   bob: number;
-  /** Casts a chapel's candles still bless (M3.6): they strike harder, in gold. */ blessed: number;
+  /** Casts a chapel's candles still bless: they strike harder, in gold. */ blessed: number;
   /** The equipped focus and every other artifact held, in pickup order. */ focus: string;
   items: string[];
   /** Heart containers given to bone altars this run. */ heartsPaid: number;
@@ -684,7 +684,7 @@ export interface Player extends Circle {
   /** Obols, bone keys and blast glyphs carried (GDD: Coins, keys and blast glyphs). */ coins: number;
   keys: number;
   glyphs: number;
-  /** Soul motes held, in the order taken (M4.1: items/souls.ts). */ souls: Soul[];
+  /** Soul motes held, in the order taken (items/souls.ts). */ souls: Soul[];
   /** Seconds the mage has stood still (the Twin Vigil Candles, the Salt Circle). */ still: number;
   /** Mana (GDD: Magic system); the spells in the two slots (Q and E) and the seconds before each can be cast
       again; where the mage last aimed or walked (a spell cast standing still goes that way). */
@@ -693,23 +693,23 @@ export interface Player extends Circle {
   spellCd: number[];
   aim: Vec2;
   /** Derived from the base stats and the artifacts held (items/artifactData.ts computeStats). */ stats: Stats;
-  /** Seconds the mage's sight stays dimmed (a Sporeling's spores, M4): the edges of the view darken. */ dim: number;
-  /** Seconds the mage stays chilled (cold breath, rime, M4): slower (`CFG.afflict.chillSlow`), frost at the view's rim. */ chill: number;
-  /** Seconds the mage stays heavy as stone in a basilisk's stare (M4.5): much slower (`CFG.bestiary.gazeSlow`). */ stone: number;
-  /** A drift the mage is drawn along this step, over what they walk (the Deep Angler's lure, M4.1); spent each step. */ pull: {
+  /** Seconds the mage's sight stays dimmed (a Sporeling's spores): the edges of the view darken. */ dim: number;
+  /** Seconds the mage stays chilled (cold breath, rime): slower (`CFG.afflict.chillSlow`), frost at the view's rim. */ chill: number;
+  /** Seconds the mage stays heavy as stone in a basilisk's stare: much slower (`CFG.bestiary.gazeSlow`). */ stone: number;
+  /** A drift the mage is drawn along this step, over what they walk (the Deep Angler's lure); spent each step. */ pull: {
     x: number;
     z: number;
   };
   /** Seconds the hexed chip shows, and the mana the last hexing blow took (ui/afflictions.ts). */ hexed: number;
   drained: number;
-  /** M4.9: what the last hex took, which a Hallow cast before `hexDebtUntil` (sim time) gives back. */ hexDebt: number;
+  /** What the last hex took, which a Hallow cast before `hexDebtUntil` (sim time) gives back. */ hexDebt: number;
   hexDebtUntil: number;
   /** Seconds the drawn-in chip shows, after a pull worth showing (a lure, a lodestone golem, a griffin's wings). */ drawn: number;
-  /** M5: the potions carried in the belt (PotionIds, the order taken), the one chosen, and the reagents in the pouch (how
+  /** The potions carried in the belt (PotionIds, the order taken), the one chosen, and the reagents in the pouch (how
       many of each). */ belt: string[];
   beltAt: number;
   reagents: Record<string, number>;
-  /** M6 step 7: each slot's socket (how many runes it holds, those carved: a new array on every change, so the runed spell's
+  /** Each slot's socket (how many runes it holds, those carved: a new array on every change, so the runed spell's
       cache knows), and the runes in the pouch (a spell given up sends its runes there). */ sockets: Socket[];
   runes: RuneId[];
 }
@@ -752,9 +752,9 @@ export interface RunSummary {
   artifacts: string[];
   /** Cursed artifacts cleansed at a shrine (they lose their red ring). */ cleansed: string[];
   /** Obols picked up during the run. */ obols: number;
-  /** M6: the level reached, and the insight gained. */ level: number;
+  /** The level reached, and the insight gained. */ level: number;
   insight: number;
-  /** M7 step 4: what the run brings home (its Dust from each source; the obols carried and those that come home) and, after
+  /** What the run brings home (its Dust from each source; the obols carried and those that come home) and, after
       a death, what struck last. */
   home?: {
     dust: { total: number; lines: { source: DustSource; count: number; dust: number }[] };

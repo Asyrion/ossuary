@@ -31,7 +31,7 @@ export function updatePagePanel(near: Page | null) {
     return;
   }
   const st = stage(near.spell),
-    boons = boonsChanged; // (M6: a boon taken changes what the panel says)
+    boons = boonsChanged; // (a boon taken changes what the panel says)
   if (shown?.page !== near || shown.stage !== st || shown.boons !== boons || shown.run !== G.run) {
     // new content: measured once here, not every step
     el.innerHTML = spellSheet(spell(near.spell), st, '', castsOf(near.spell));

@@ -1,4 +1,4 @@
-/* The assets made for the game (M3.5, docs/assets.md): which file replaces which placeholder, how big it stands in the
+/* The assets made for the game (docs/assets.md): which file replaces which placeholder, how big it stands in the
    game, and the budgets each kind of asset has to fit. Pure: data/assets.json read and checked here; the game loads
    the files in assets/models.ts, and tools/prepare-asset.ts and tools/prepare-texture.ts use the same budgets. */
 import raw from '../../data/assets.json';
@@ -18,12 +18,12 @@ export interface Budget {
 }
 export interface ImageSpec {
   /** Pixels across, as shipped. */ size: number;
-  /** Pixels across, as kept by the owner. */ source?: number;
+  /** Pixels across of the original to keep, so the image can be redone later. */ source?: number;
   /** A coin's icon, pixels across. */ icon?: number;
   folder: string;
 }
 
-/** A Tripo model's texture made pixel art (tools/texel-bake.ts, 2026-10-05): its colour and its glow, under the folder. */
+/** A Tripo model's texture made pixel art (tools/texel-bake.ts): its colour and its glow, under the folder. */
 export interface TexelFiles {
   file: string;
   glow: string;
@@ -40,12 +40,12 @@ export interface ModelEntry {
 export interface Manifest {
   /** Placeholders a model replaces (PROP_SLOTS). */ props: Record<string, ModelEntry>;
   /** An artifact's floating model, by artifact id. */ artifacts: Record<string, ModelEntry>;
-  /** A floor look's painted floor tile, by look name (data/floors.json); walls stay procedural for now. */ floors: Record<
+  /** A floor look's painted floor tile, by look name (data/floors.json); walls stay procedural. */ floors: Record<
     string,
     { floor: string }
   >;
   /** An artifact's painted icon, by artifact id. */ icons: Record<string, { file: string }>;
-  /** Coin faces, by a name of their own (2026-10-02, from the owner's coins): the face drawn on a coin in the room, at
+  /** Coin faces, by a name of their own: the face drawn on a coin in the room, at
       the game's pixel (`images.coin.size` across), and its icon for the HUD and the lore card. */ coins?: Record<
     string,
     { face: string; icon: string }

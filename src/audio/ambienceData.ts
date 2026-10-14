@@ -87,8 +87,8 @@ export interface FloorScape extends Scape {
   space: Space;
 }
 
-/** Scenes with a soundscape of their own beside the room types' (M7 step 3: the cave mouth at dawn). */
-export const SCENE_SCAPES: readonly string[] = ['daylight', 'vigilLanding']; // (M7 step 5: the Vigil's Landing, its water over the Vigil's own)
+/** Scenes with a soundscape of their own beside the room types' (the cave mouth at dawn). */
+export const SCENE_SCAPES: readonly string[] = ['daylight', 'vigilLanding']; // (the Vigil's Landing, its water over the Vigil's own)
 export const FLOOR_SCAPES = data.floors as unknown as FloorScape[];
 export const ROOM_SCAPES = data.rooms as unknown as Record<string, Scape>;
 export const THEME_SCAPES = data.themes as unknown as Record<string, Scape>;

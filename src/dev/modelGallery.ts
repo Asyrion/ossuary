@@ -14,7 +14,7 @@ import { onDevClear, onDevStep } from '../devDoor';
 
 const shown: { room: Room; group: THREE.Group; idle: (t: number) => void }[] = [];
 let clock = 0;
-/** Stand the bosses built in code (bossLooks.ts: the Hollow Warden, M4, and the bosses of the floors below and the
+/** Stand the bosses built in code (bossLooks.ts: the Hollow Warden, and the bosses of the floors below and the
     Eda lore's; every one, or those in `only`) in a row ahead of world (x, z). */
 export function showBossLooks(room: Room, x: number, z: number, only?: readonly string[]) {
   const list = ALL_BOSS_LOOKS.filter((o) => !only || only.includes(o.id));
@@ -29,7 +29,7 @@ export function showBossLooks(room: Room, x: number, z: number, only?: readonly 
     return { id: o.id, x: at.x, z: at.z };
   });
 }
-/** Stand Dr. Jelly (world/jellyLooks.ts: the plague doctor, the owner's choice of 2026-10-02) ahead of world (x, z),
+/** Stand Dr. Jelly (world/jellyLooks.ts: the plague doctor) ahead of world (x, z),
     looping the giving gesture with a flask of jelly on his palm. */
 export function showJellyLooks(room: Room, x: number, z: number) {
   return [0].map((i) => {
@@ -77,7 +77,7 @@ function clearSpot(room: Room, x: number, z: number, taken: readonly { x: number
       }
   return freeSpotNear(room, x, z);
 }
-/** Stand the bestiary (M4.5; every one, or those in `only`) ahead of world (x, z) in `room`: rows for each kind (beasts,
+/** Stand the bestiary (every one, or those in `only`) ahead of world (x, z) in `room`: rows for each kind (beasts,
     creatures of myth, elementals), nearest the mage first, each turned a little to show its side. They are the size of
     the foes they will be, so the whole bestiary wants a great hall (`?room=great_hall`). */
 export function showBestiary(room: Room, x: number, z: number, only?: readonly string[]) {

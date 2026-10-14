@@ -8,8 +8,7 @@ import { onDevStep } from '../devDoor';
 
 const gallery: THREE.Group[] = [];
 let gt = 0;
-/** The Galleries tab: the ten figures (or those in `only`) in rows ahead of world (x, z), gesturing in turn (for the owner's
-    review). */
+/** The Galleries tab: the ten figures (or those in `only`) in rows ahead of world (x, z), gesturing in turn. */
 export function townGallery(x: number, z: number, only?: string[]) {
   takeTownGallery();
   const list = SHADE_IDS.filter((id) => !only || only.includes(id)),

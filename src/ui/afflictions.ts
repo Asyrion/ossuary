@@ -1,6 +1,6 @@
-/* What is being done to the mage, shown (the owner's rule, 2026-10-01: every mechanic tells the player what is going on,
+/* What is being done to the mage, shown (every mechanic tells the player what is going on,
    even if only in a word): a row of chips beside the mana bar, one for each affliction holding the mage now (hexed, with
-   the mana it took; chilled; heavy as stone; sight dimmed; webbed or inked; snagged; sliding; drawn in; sapped; M5: wading
+   the mana it took; chilled; heavy as stone; sight dimmed; webbed or inked; snagged; sliding; drawn in; sapped; wading
    in the jelly serpent's jelly, and what a potion drunk leaves, while it lasts), and the first time each comes in a run, a line that says what it is. */
 import { G, player } from '../state';
 import { CFG } from '../config';
@@ -34,7 +34,7 @@ export type Affliction =
   | 'unseen'
   | 'reversed'
   | 'remedy';
-/** Each one's colour (its school's light where it has one; M5's, the potion's that left it). */
+/** Each one's colour (its school's light where it has one; for what a potion left, the potion's). */
 const COLOR: Record<Affliction, string> = {
   hexed: '#b784ff',
   chill: '#a8d8ff',
@@ -72,8 +72,8 @@ export function afflictions(): Affliction[] {
   if (G.room.current?.theme?.twist === 'rime' || slipAt(x, z)) out.push('slide');
   if (player.drawn > 0) out.push('drawn');
   if (sapMul() < 1) out.push('sapped');
-  if (jellyAt(x, z) && !player.stats.effects.has('float')) out.push('jelly'); // (M5: the jelly serpent's)
-  // M5: what a potion drunk leaves on the mage, while it lasts
+  if (jellyAt(x, z) && !player.stats.effects.has('float')) out.push('jelly'); // (the jelly serpent's)
+  // what a potion drunk leaves on the mage, while it lasts
   const f = potionFx;
   if (f.ember > 0) out.push('ember');
   if (f.frost > 0) out.push('frost');

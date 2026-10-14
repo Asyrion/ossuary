@@ -1,4 +1,4 @@
-/* The panel over a merchant's ware (the owner's ask, 2026-10-02): coming near one shows what it is before it is bought (a
+/* The panel over a merchant's ware: coming near one shows what it is before it is bought (a
    ware is bought by walking into it): its icon, name and kind, what it does, its price, and why he would refuse it now if
    he would. The merchant's shop and the Wandering Merchant's wares alike. The grimoire page's panel's way (magic/pages.ts):
    a dark card over the ware, or beside it when there is no room above; written again only when what it says changes. */
@@ -52,7 +52,7 @@ function described(w: WareSpot) {
     const id = w.rune as RuneId,
       r = rune(id);
     return { icon: runeIconImg(id), name: r.name, kind: STR.runes.kind, effect: `${r.text}. ${runeFitsText(id)}` };
-  } // (M6 step 8)
+  }
   if (w.reagent) {
     const r = REAGENTS[w.reagent as ReagentId];
     return {

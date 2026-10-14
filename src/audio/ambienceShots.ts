@@ -438,7 +438,7 @@ export const SHOTS: Record<ShotKind, (s: ShotCall) => void> = {
     }
   },
   birds(s) {
-    // (M7 step 3: birdsong at dawn: a few quick whistles, rising and falling, now and then a trill)
+    // (birdsong at dawn: a few quick whistles, rising and falling, now and then a trill)
     const f = s.r.range(2400, 3600);
     let at = 0;
     for (let i = 0; i < 2 + Math.floor(s.r.next() * 4); i++) {

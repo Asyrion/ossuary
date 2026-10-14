@@ -33,7 +33,7 @@ function rrect(g: Ctx, x: number, y: number, w: number, h: number, r: number) {
   g.closePath();
 }
 
-/** A round fade in flat steps, as pixel art draws a glow or a shadow (2026-10-01: everything in the one pixel-art look):
+/** A round fade in flat steps, as pixel art draws a glow or a shadow:
     `alpha(d)` the fade from the middle (d 0) to the rim (1), held in `steps` levels; drawn crisp up close. */
 function stepped(rgb: string, alpha: (d: number) => number, steps: number) {
   const N = 64,
@@ -232,7 +232,7 @@ export function floorOwnedTexture<T extends THREE.Texture>(t: T) {
   floorOwned.push(t);
   return t;
 }
-/** Room floor for a floor's look where a made floor tile (data/assets.json, M3.5) paints it, over the room's inside
+/** Room floor for a floor's look where a made floor tile (data/assets.json) paints it, over the room's inside
     `mask` (rows of tiles): the painted tile on every floor tile, then stains, bones and the rest drawn over it; boss rooms
     lean red, treasure rooms warmer. Large rooms use fewer pixels per tile to keep textures small. */
 export function floorTexture(seed: number, kind: RoomType, look: FloorLook, mask: boolean[][], tile: HTMLImageElement) {

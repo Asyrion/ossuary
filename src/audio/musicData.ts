@@ -78,11 +78,11 @@ export const pieceById = (id: string) => PIECES.find((p) => p.id === id);
 export const FLOOR_PIECES = (data as unknown as { floors: string[] }).floors;
 export const floorPiece = (floor: number) => FLOOR_PIECES[Math.max(0, Math.min(FLOOR_PIECES.length - 1, floor))];
 export const TITLE_PIECE = (data as unknown as { title: string }).title;
-/** M7 step 2: a boss with a theme of its own, played in its fight in place of the floor's piece (Kaelith's). */
+/** A boss with a theme of its own, played in its fight in place of the floor's piece (Kaelith's). */
 export const BOSS_PIECES = (data as unknown as { bosses?: Record<string, string> }).bosses ?? {};
-/** M7 step 3: the piece a won run's dawn plays, at the cave mouth and under the end screen. */
+/** The piece a won run's dawn plays, at the cave mouth and under the end screen. */
 export const DAYLIGHT_PIECE = (data as unknown as { daylight: string }).daylight;
-/** M7 step 5: the piece the Vigil plays, between the descents. */
+/** The piece the Vigil plays, between the descents. */
 export const VIGIL_PIECE = (data as unknown as { vigil: string }).vigil;
 
 export const barSeconds = (p: Piece) => (p.beats * 60) / p.tempo;

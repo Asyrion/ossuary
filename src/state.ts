@@ -11,7 +11,7 @@ import type { FoeId } from './actors/foeData';
 import { noAttrs } from './progression/attributes';
 import type { School, SpellStatus } from './magic/spellData';
 
-export type GameState = 'title' | 'play' | 'pause' | 'dying' | 'end' | 'daylight'; // (M7 step 3: the cave mouth at dawn, a won run's end)
+export type GameState = 'title' | 'play' | 'pause' | 'dying' | 'end' | 'daylight'; // (the cave mouth at dawn, a won run's end)
 
 /* `G` is split into slices, each written by a few owners; the comments name them, so a change knows whose rules it
    touches. Nothing enforces them at run time. */
@@ -61,63 +61,63 @@ export const G = {
     budget: { used: 0, reserved: 0 },
     /** Foes put to rest towards the Leech Jar's next half heart. */ leech: 0,
     /** The floor on which the Sexton's Keyring last opened a vault for free. */ freeVault: -1,
-    /** The floor on which the Last Rite last refused a killing blow (M4.1). */ riteFloor: -99,
+    /** The floor on which the Last Rite last refused a killing blow. */ riteFloor: -99,
     /** Items and containers already described by a lore card this run (ui/lore.ts). */ loreSeen: new Set<string>(),
     /** Hints already given this run (a heart or a mana vial left lying at full health or mana). */ hinted:
       new Set<string>(),
     /** The seeded stream for grimoire pages, and the spells given up this run, sold back at later libraries. */
     pages: new Rng(0),
     forgotten: [] as string[],
-    /** M4.2: the seeded stream for the Wandering Merchant (when the merchant comes, what is for sale), and whether the merchant has come. */
+    /** The seeded stream for the Wandering Merchant (when the merchant comes, what is for sale), and whether the merchant has come. */
     wanderer: new Rng(0),
     wandererMet: false,
-    /** M4.2: the floor Fen-Nex was bound on (it grows a stage a floor), while it is. */ fennexFrom: undefined as
+    /** The floor Fen-Nex was bound on (it grows a stage a floor), while it is. */ fennexFrom: undefined as
       number | undefined,
-    /** M4.6: the transformations formed this run, in order (the latest wears its look; every gift stays). */ transforms:
+    /** The transformations formed this run, in order (the latest wears its look; every gift stays). */ transforms:
       [] as TransformId[],
-    /** M4.6: the stage of Azyrion's arc reached this run (each said once in a line). */ arc: 0,
-    /** M4.11: the schools the mage has been attuned to this run (each said once). */ attuned: [] as string[],
-    /** M5: the run's bottles (each potion's shape and draught, shuffled on the seed), the potions identified this run,
+    /** The stage of Azyrion's arc reached this run (each said once in a line). */ arc: 0,
+    /** The schools the mage has been attuned to this run (each said once). */ attuned: [] as string[],
+    /** The run's bottles (each potion's shape and draught, shuffled on the seed), the potions identified this run,
         the seeded stream for which potion or reagent a drop is, and the one for whether a foe or an object leaves a reagent
-        (its own, so the other drops replay as before). */
+        (its own, so the other drops replay the same). */
     bottles: bottlesFor(0),
     identified: [] as PotionId[],
     alchemy: new Rng(0),
     reagents: new Rng(0),
-    runes: new Rng(0), // (runes: M6 step 8, its own too)
-    /** M6 step 9: the second sockets Second Socket has opened at waystones (its rank above this: one owed). */ socketsOpened: 0,
-    /** M5: the curse whose price a Bitter Remedy lifts until the floor ends. */ remedy: null as string | null,
-    /** M5 step 7: the jelly serpent, in its vat until it breaks out (once a run at most), then slain or not; and whether it
+    runes: new Rng(0), // (runes: its own too)
+    /** The second sockets Second Socket has opened at waystones (its rank above this: one owed). */ socketsOpened: 0,
+    /** The curse whose price a Bitter Remedy lifts until the floor ends. */ remedy: null as string | null,
+    /** The jelly serpent, in its vat until it breaks out (once a run at most), then slain or not; and whether it
         is restless this run (rolled on the seed: it breaks out by itself after the first brew in its laboratory). */
     serpent: 'caged' as 'caged' | 'out' | 'slain',
     restless: false,
-    /** M6: insight gained this run (the GDD's XP), the level it reached, the levels whose choice still waits (the level-up
-        screen, step 4), and the potions' kinds used this run (each pays the first time). */
+    /** Insight gained this run (the GDD's XP), the level it reached, the levels whose choice still waits (the level-up
+        screen), and the potions' kinds used this run (each pays the first time). */
     insight: 0,
     level: 1,
     pending: 0,
     potionsUsed: [] as PotionId[],
-    /** M6 step 2: the points spent on each attribute this run. */ attrs: noAttrs(),
-    /** M6 step 3: the boons taken (each one's rank), the spells cast by school (the deal leans to them), a pledge (a school
+    /** The points spent on each attribute this run. */ attrs: noAttrs(),
+    /** The boons taken (each one's rank), the spells cast by school (the deal leans to them), a pledge (a school
         boon taken before any spell of its school: the next library holds a page of it), and how many deals were drawn. */
     boons: {} as Record<string, number>,
     casts: {} as Partial<Record<School, number>>,
     pledge: null as School | null,
     deals: 0,
-    /** M6 step 5: hex stacks spent towards Thirsting Hex's next mend, and how often each boon has acted (the tests). */ thirst: 0,
+    /** Hex stacks spent towards Thirsting Hex's next mend, and how often each boon has acted (the tests). */ thirst: 0,
     acted: {} as Record<string, number>,
-    /** M6 step 6 (Afterglow): the statuses the next cantrip casts carry from the last spell, how many casts are left, its colour. */
+    /** Afterglow: the statuses the next cantrip casts carry from the last spell, how many casts are left, its colour. */
     afterglow: null as { status: Partial<Record<SpellStatus, number>>; left: number; color: number } | null,
-    /** M7 step 4: what the run did that the save keeps: the bosses put to rest (Kaelith among them, `kaelith`), and what struck
+    /** What the run did that the save keeps: the bosses put to rest (Kaelith among them, `kaelith`), and what struck
         the mage last (a foe's or boss's id, or what in the room hurt it). */ bosses: 0,
     kaelith: false,
     struck: null as string | null,
-    /** M7 step 7: the bosses put to rest, by id (the run's record keeps them for the townspeople). */ fell: [] as string[],
-    /** M7 step 6: the chained shades met on the floors so far, those freed in this run (Dust at its end) and those bound in an
+    /** The bosses put to rest, by id (the run's record keeps them for the townspeople). */ fell: [] as string[],
+    /** The chained shades met on the floors so far, those freed in this run (Dust at its end) and those bound in an
         earlier run who walk with the mage through this one (vigil/shadeHelp.ts). */ shadesMet: [] as string[],
     freed: [] as string[],
     walking: [] as string[],
-    /** M7 step 9: whose candle burns in the chapel for this run (its blessing; vigil/gifts.ts). */ blessing: null as
+    /** Whose candle burns in the chapel for this run (its blessing; vigil/gifts.ts). */ blessing: null as
       string | null,
   },
   floor: { rooms: [], roomMap: new Map(), trapdoor: null } as FloorState,
@@ -138,8 +138,7 @@ export type RunState = typeof G.run;
 /** Dev menu switches (dev/menu.ts writes them, the game reads them): god mode keeps the mage from harm; endless mana
     never runs out. */
 export const DEV = {
-  /** M4.6: Azyrion's arc forced to a stage (the dev menu), else from what is held. */ arc: undefined as
-    number | undefined,
+  /** Azyrion's arc forced to a stage (the dev menu), else from what is held. */ arc: undefined as number | undefined,
   god: false,
   mana: false,
   fps: false,
@@ -147,14 +146,14 @@ export const DEV = {
   kitKinds: {} as Partial<Kinds>,
   /** One foe in every template role on every floor (`?foe=`, the dev menu), to test it; else each floor fills its roles. */
   foe: undefined as FoeId | undefined,
-  /** M4.6: the camera close on the mage (the dev menu's Costumes section), to see what is worn; `CFG.costume.closeUp`. */
+  /** The camera close on the mage (the dev menu's Costumes section), to see what is worn; `CFG.costume.closeUp`. */
   closeUp: false,
-  /** M5: every fallen foe and broken object leaves its reagent (the dev menu's Alchemy), to test where they come from. */
+  /** Every fallen foe and broken object leaves its reagent (the dev menu's Alchemy), to test where they come from. */
   reagents: false,
-  /** M6 step 8: a rune lies wherever one can (every shop, secret room, gilded chest and Wanderer; the dev menu's Runes), the
+  /** A rune lies wherever one can (every shop, secret room, gilded chest and Wanderer; the dev menu's Runes), the
       chances still drawn so the stream runs as it would. */
   runes: false,
-  /** M6 step 4: levels choose for themselves, without the level-up screen: 'choose' takes the first boon dealt and spends on
+  /** Levels choose for themselves, without the level-up screen: 'choose' takes the first boon dealt and spends on
       the attribute with fewest points (`?autolevel=1`, the dev menu, the balance bot); 'skip' lets them pass with nothing
       taken (`?autolevel=skip`: the browser tests, so a fight cleared changes none of the mage's numbers). */
   autoLevel: false as false | 'choose' | 'skip',

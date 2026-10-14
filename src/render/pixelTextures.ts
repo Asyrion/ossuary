@@ -1,4 +1,4 @@
-/* The room kit's floors and walls (M3.5 step 3; the proof dresses the crypt): pixel art drawn texel by texel at the
+/* The room kit's floors and walls: pixel art drawn texel by texel at the
    game's own pixel size, `CFG.roomKit.texel` texels to a unit across and down (the floor, seen from 45° above, is
    shorter down the screen than across it, so its texels are too; on screen they come out square, about 1.3 of the
    pixel look's pixels at 540 lines and one in the great halls). Bevelled slabs and bricks with cracks and chips,
@@ -151,7 +151,7 @@ function lengths(R: () => number, total: number, min: number, max: number) {
 const tint = (base: readonly number[], v: number, k = 1): RGB =>
   scale([base[0] + v, base[1] + v, base[2] + v * 0.8], k);
 
-/** The Wardens' glyphs (M7, the Seal's stone): five texels across, cut into its walls and floors; some still hold the seal's
+/** The Wardens' glyphs (the Seal's stone): five texels across, cut into its walls and floors; some still hold the seal's
     violet light. */
 const WARD_GLYPHS = [
   ['..X..', '.XXX.', 'X.X.X', '..X..', '..X..'],
@@ -409,7 +409,7 @@ const WALLS: Record<WallKind, (wall: FloorLook['wall'], W: number) => WallArt> =
     return { px, glow };
   },
   marble(wall, W) {
-    // the Reliquary's (M4.1): great slabs of veined marble, finely jointed and polished, a sheen along each top
+    // the Reliquary's: great slabs of veined marble, finely jointed and polished, a sheen along each top
     const H = 64,
       px = new Px(W, H, true),
       R = mulberry(75),
@@ -553,7 +553,7 @@ const WALLS: Record<WallKind, (wall: FloorLook['wall'], W: number) => WallArt> =
     return { px };
   },
   slate(wall, W) {
-    // the Shore's (M4.1): thin courses of split slate laid dry, dark and laminated, their top edges catching the light
+    // the Shore's: thin courses of split slate laid dry, dark and laminated, their top edges catching the light
     const H = 48,
       px = new Px(W, H, true),
       R = mulberry(105),
@@ -645,7 +645,7 @@ const WALLS: Record<WallKind, (wall: FloorLook['wall'], W: number) => WallArt> =
     return { px };
   },
   warded(wall, W) {
-    // the Seal's (M7): great blocks of Uzulim's dark volcanic stone, and between every two courses a band of
+    // the Seal's: great blocks of Uzulim's dark volcanic stone, and between every two courses a band of
     // the Wardens' glyphs cut into smoother stone, some still holding the seal's violet light (a glow map)
     const H = 48,
       px = new Px(W, H, true),
@@ -723,7 +723,7 @@ const WALLS: Record<WallKind, (wall: FloorLook['wall'], W: number) => WallArt> =
     return { px };
   },
   cryptstone(wall, W) {
-    // the Vigil's (M7 step 5): warm grey ashlar worn smooth, in courses of two heights, soot darkening
+    // the Vigil's: warm grey ashlar worn smooth, in courses of two heights, soot darkening
     // the upper courses where the candles have burned for years, and now and then a small cross cut in a block
     const courses = [14, 10, 14, 10],
       H = 48,
@@ -782,7 +782,7 @@ function stainWall(px: Px, stains: FloorLook['wall']['stains']) {
     for (let k = 0; k < 10; k++)
       px.blotch(S() * W, S() * H, 8 + S() * 14, 6 + S() * 10, 1, (x, y) => px.mix(x, y, [6, 4, 3], 0.6));
   } else if (stains === 'salt') {
-    // the Shore's (M4.1): a crust of salt dried white in patches, and pale runs down the stone
+    // the Shore's: a crust of salt dried white in patches, and pale runs down the stone
     for (let k = 0; k < 4; k++)
       px.blotch(S() * W, S() * H, 6 + S() * 8, 3 + S() * 4, 0.7, (x, y) => px.mix(x, y, [170, 178, 182], 0.28));
     for (let k = 0; k < 5; k++) {
@@ -792,7 +792,7 @@ function stainWall(px: Px, stains: FloorLook['wall']['stains']) {
       for (let y = y0; y < y0 + len; y++) px.mix(x, y, [160, 170, 176], 0.2);
     }
   } else if (stains === 'gilt') {
-    // the Reliquary's (M4.1): flecks of gold leaf caught on the stone, and candle smoke high up
+    // the Reliquary's: flecks of gold leaf caught on the stone, and candle smoke high up
     for (let k = 0; k < 40; k++) {
       const x = Math.floor(S() * W),
         y = Math.floor(S() * H);
@@ -1177,7 +1177,7 @@ const PAVING: Record<FloorKind, (f: FloorCtx, mask: boolean[][]) => void> = {
       }
   },
   slabs(f, mask) {
-    // the Vigil's (M7 step 5): great worn slabs, two tiles a side where they fit, smoothed by feet; names cut
+    // the Vigil's: great worn slabs, two tiles a side where they fit, smoothed by feet; names cut
     // faintly in some (lines of a worn inscription under a cross)
     const { px, R, inside, TX, TY } = f,
       H = mask.length,
@@ -1212,7 +1212,7 @@ const PAVING: Record<FloorKind, (f: FloorCtx, mask: boolean[][]) => void> = {
       }
   },
   sealstone(f, mask) {
-    // the Seal's (M7): great slabs of dark stone, two tiles a side where they fit, a Warden's glyph cut in some
+    // the Seal's: great slabs of dark stone, two tiles a side where they fit, a Warden's glyph cut in some
     // and a few of those still lit with the seal's violet (the glow map)
     const { px, glow, R, inside, TX, TY } = f,
       H = mask.length,
@@ -1273,7 +1273,7 @@ const PAVING: Record<FloorKind, (f: FloorCtx, mask: boolean[][]) => void> = {
       }
   },
   boards(f) {
-    // the Shore's (M4.1): a landing stage of weathered planks running across, gaps between, nail heads, some dark with wet
+    // the Shore's: a landing stage of weathered planks running across, gaps between, nail heads, some dark with wet
     const { px, R, cw, ch, base } = f,
       PH = 8,
       wood: RGB = [base[0] * 0.5 + 92 * 0.5, base[1] * 0.5 + 80 * 0.5, base[2] * 0.5 + 68 * 0.5];
@@ -1331,7 +1331,7 @@ const PAVING: Record<FloorKind, (f: FloorCtx, mask: boolean[][]) => void> = {
       }
   },
   checker(f) {
-    // the Reliquary's (M4.1): polished marble in a chequer of pale and dark squares, half a tile each, veined
+    // the Reliquary's: polished marble in a chequer of pale and dark squares, half a tile each, veined
     const { px, cw, ch, TX, TY, base } = f,
       SX = TX / 2,
       SY = TY / 2;
@@ -1425,7 +1425,7 @@ export function pixelFloorTexture(
             ? [b0 + 10, b1 + 8, b2 + 4]
             : [b0, b1, b2];
   const mortar = hex(look.floor.mortar),
-    embers = paving === 'basalt' || paving === 'sealstone' || look.floor.decor === 'ash'; // (M7: the Seal's glyphs glow too)
+    embers = paving === 'basalt' || paving === 'sealstone' || look.floor.decor === 'ash'; // (the Seal's glyphs glow too)
   const glow = embers ? new Px(cw, ch) : null;
   px.fill(mortar);
   glow?.fill([0, 0, 0]);
@@ -1457,7 +1457,7 @@ export function pixelFloorTexture(
         px.mix(u, Math.round(y - ry * 0.3), [190, 230, 235], 0.25);
     }
   else if (look.floor.decor === 'wax') {
-    // the Reliquary's (M4.1): candle wax spilt on the floor, and a burnt-down stub here and there
+    // the Reliquary's: candle wax spilt on the floor, and a burnt-down stub here and there
     const wax = hex(look.torch.wax ?? '#f0e2c6');
     for (let k = 0; k < n(16); k++) {
       const x = R() * cw,

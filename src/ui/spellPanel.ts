@@ -1,7 +1,7 @@
-/* A spell described as far as the mage knows it (M3.7, GDD: Spells, Spell knowledge). The panel over a grimoire page and
+/* A spell described as far as the mage knows it (GDD: Spells, Spell knowledge). The panel over a grimoire page and
    the inventory's spells tab share it. Seen: name, school, the one-line effect. Learned: its shape, mana, cooldown,
-   damage and statuses (M6 step 5: a status's number as the boons taken make it, and those boons). Used: its lore and the
-   reactions it sets off. Upgraded: what changed it (M6). M6 step 7: a slotted spell is shown as its runes make it (the
+   damage and statuses (a status's number as the boons taken make it, and those boons). Used: its lore and the
+   reactions it sets off. Upgraded: what changed it. A slotted spell is shown as its runes make it (the
    numbers runed, the base in brackets), with the runes carved in its slot; Upgraded lists the runes it has borne. */
 import { STR } from '../strings';
 import { CFG } from '../config';
@@ -29,7 +29,7 @@ export function head(icon: string, name: string, kind: string, kindIsHtml = fals
 }
 
 /** `def` at `stage`, with a note (which slot it is in, that it was given up...). `casts` counts toward knowing it well;
-    `runes` are those carved in its slot (M6 step 7). */
+    `runes` are those carved in its slot. */
 export function spellSheet(base: SpellDef, stage: Stage, note = '', casts = 0, runes: readonly RuneId[] = []) {
   const I = STR.inv,
     K = STR.knowledge,
@@ -51,7 +51,7 @@ export function spellSheet(base: SpellDef, stage: Stage, note = '', casts = 0, r
     return now === v ? t : I.boosted(t, v);
   };
   const boons = boonsTouching(def, taken);
-  const was = (t: string, now: number, then: number) => (now === then ? t : I.boosted(t, then)); // (M6: a rune changed it: the base in brackets)
+  const was = (t: string, now: number, then: number) => (now === then ? t : I.boosted(t, then)); // (a rune changed it: the base in brackets)
   html +=
     `<div class="chips">${[
       I.mana(cost, base.mana),
@@ -91,7 +91,7 @@ export function spellSheet(base: SpellDef, stage: Stage, note = '', casts = 0, r
       : '');
   if (!used) return html + `<p class="note">${esc(K.castMore(Math.max(1, CFG.knowledge.usedCasts - casts)))}</p>`;
   const sets = reactionsOf(def);
-  const found = reactionsFound(); // (M4.8: the ones not yet found are marked so, and dimmed)
+  const found = reactionsFound(); // (the ones not yet found are marked so, and dimmed)
   if (sets.length)
     html +=
       `<p class="lbl">${esc(K.sets)}</p>` +
@@ -103,7 +103,7 @@ export function spellSheet(base: SpellDef, stage: Stage, note = '', casts = 0, r
         )
         .join('');
   const woven = weavesOf(def),
-    wf = weavesFound(); // (M4.10: the weaves it takes part in, found or not yet)
+    wf = weavesFound(); // (the weaves it takes part in, found or not yet)
   if (woven.length)
     html +=
       `<p class="lbl">${esc(K.weavesLbl)}</p>` +
@@ -119,16 +119,16 @@ export function spellSheet(base: SpellDef, stage: Stage, note = '', casts = 0, r
       ? upgradesOf(def.id)
           .filter((u) => u.startsWith('rune:'))
           .map((u) => u.slice(5))
-      : []; // (M6: what changed it)
+      : []; // (what changed it)
   if (borne.length)
     html += `<p class="lbl">${esc(K.upgradedLbl)}</p><p class="note">${esc(K.borne(borne.map((id) => rune(id as RuneId).name).join(', ')))}</p>`;
   return html + `<p class="lore">${esc(def.lore)}</p>`;
 }
 
-/* ---------- the wheel of reactions (M4.8) ---------- */
+/* ---------- the wheel of reactions ---------- */
 
 const css = (c: number) => '#' + c.toString(16).padStart(6, '0');
-/** Where each school sits on the wheel: six spokes, Verdant's (M5) at the foot. */
+/** Where each school sits on the wheel: six spokes, Verdant's at the foot. */
 const SPOKES = ['ember', 'frost', 'storm', 'verdant', 'umbral', 'hallow'] as const;
 const spoke = (school: string) => {
   const a = -Math.PI / 2 + (SPOKES.indexOf(school as (typeof SPOKES)[number]) * Math.PI) / 3;
@@ -137,7 +137,7 @@ const spoke = (school: string) => {
 
 /** A reaction's tile: the two schools' lights overlapping (found), or two hollow rings (not yet). */
 export const reactionIcon = (r: Reaction, found: boolean) => pairIcon(reactionSchools(r), found);
-/** Two schools' lights overlapping (found), or two hollow rings (not yet): a reaction's tile, or a weave's (M4.10). */
+/** Two schools' lights overlapping (found), or two hollow rings (not yet): a reaction's tile, or a weave's. */
 export function pairIcon(schools: readonly [School, School], found: boolean, ring = false) {
   const [a, b] = schools.map((k) => css(SCHOOL_LIGHT[k]));
   if (ring && found)
@@ -189,7 +189,7 @@ export function reactionSheet(r: Reaction) {
   );
 }
 
-/* ---------- weaves and chains (M4.10) ---------- */
+/* ---------- weaves and chains ---------- */
 
 /** Weave or chain `id` described in the book: found, what it does; not yet, which two schools make it. */
 export function weaveSheet(id: WeaveId) {

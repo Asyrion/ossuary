@@ -78,7 +78,7 @@ export function updateAudio() {
     room = G.room.current,
     floor = G.run.floor;
   if (daylightOn()) {
-    // (M7 step 3: the cave mouth at dawn, and the end screen over it: the wind, the falls, the birds, and its piece)
+    // (the cave mouth at dawn, and the end screen over it: the wind, the falls, the birds, and its piece)
     amb.set(floor, 'daylight', undefined, t);
     amb.duck(1, t);
     mus.setSpace(spaceFor(floor, roomScape('daylight')?.scape ?? null), t);
@@ -88,7 +88,7 @@ export function updateAudio() {
     amb.stop(t, 2);
     mus.play(TITLE_PIECE, 'title', t);
   } else if (atVigil() && G.flow.state !== 'end') {
-    // (M7 step 5: the Vigil between descents: its stillness and candles, the Landing's water, its piece)
+    // (the Vigil between descents: its stillness and candles, the Landing's water, its piece)
     const scape = VIGIL.rooms[G.floor.rooms.indexOf(room)]?.name === 'landing' ? 'vigilLanding' : 'vigil';
     amb.set(floor, scape, undefined, t);
     amb.duck(G.flow.state === 'pause' ? CFG.audio.pauseDuck : 1, t);
@@ -102,7 +102,7 @@ export function updateAudio() {
     const theme = room?.theme?.id;
     amb.set(floor, room?.type ?? 'normal', theme, t);
     mus.setSpace(spaceFor(floor, roomScape(room?.type ?? 'normal', theme)?.scape ?? null), t);
-    mus.play(mood === 'boss' && BOSS_PIECES[G.run.boss] ? BOSS_PIECES[G.run.boss] : floorPiece(floor), mood, t); // (M7: Kaelith's theme in its fight)
+    mus.play(mood === 'boss' && BOSS_PIECES[G.run.boss] ? BOSS_PIECES[G.run.boss] : floorPiece(floor), mood, t); // (Kaelith's theme in its fight)
     amb.duck(
       G.flow.state === 'pause'
         ? CFG.audio.pauseDuck

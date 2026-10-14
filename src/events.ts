@@ -1,7 +1,7 @@
 /* The game's event bus: the simulation says what happened (`emit`) and the UI listens (`on`), so the simulation imports
    nothing from src/ui/. It is synchronous on purpose: `emit` calls every listener at once, in the order they were added,
-   and returns only when the last has run, so a notification lands at the same moment, and in the same order, as the
-   direct call it replaced. No queue and nothing async: a listener that throws stops the emit as a direct call would. */
+   and returns only when the last has run, so a notification lands at the same moment, and in the same order, as a
+   direct call would. No queue and nothing async: a listener that throws stops the emit as a direct call would. */
 
 import type { ArtifactDef } from './items/artifactData';
 import type { Enemy, LoreEntry, LoreItem, RunSummary } from './types';
@@ -43,7 +43,7 @@ export function createBus<E>(): Bus<E> {
 /** The game's events, by name, with their payloads: who emits each and who listens is in docs/architecture.md (Events and
     the panel door). */
 export interface GameEvents {
-  /* ---- the HUD (notify.ts emits them under the HUD's old names; ui/hud.ts listens) ---- */
+  /* ---- the HUD (notify.ts emits them; ui/hud.ts listens) ---- */
   toast: { msg: string; dur?: number };
   line: { msg: string; dur?: number };
   linesCleared: void;

@@ -1,4 +1,4 @@
-/* M7 step 7: the townspeople's talk panel (docs/M7-plan.md, decision 12), along the bottom of the screen with the Vigil
+/* The townspeople's talk panel (docs/M7-plan.md, decision 12), along the bottom of the screen with the Vigil
    still showing above it: the speaker's icon (rendered from its figure), its name, its line written out a little at a time
    (`CFG.vigil.town.typeRate`, run from the step so it waits with the game), and up to two choices. Enter or Space (A) shows
    the whole line, then goes on (a choice taken, or the talk closed); the arrows or the d-pad choose; Esc (B) closes. The
@@ -26,7 +26,7 @@ let talk: Talk | null = null;
 interface TalkActions {
   pause(): void;
   resume(): void;
-  /** M7 step 8 (vigil/gifts.ts): what can be offered a speaker at the end of a talk, and an offer taken (its line back). */
+  /** Gifts (vigil/gifts.ts): what can be offered a speaker at the end of a talk, and an offer taken (its line back). */
   offers?(who: string): { label: string; act: string }[];
   act?(who: string, act: string): Picked | null;
 }
@@ -126,7 +126,7 @@ export function say(i: number) {
       : (actions.act?.(t.who, c.act) ?? null)
     : c.next
       ? lineAfter(c.next, t.line.vars, vigil().heard)
-      : null; // (M7 step 8: an offer taken)
+      : null; // (an offer taken)
   if (!next) {
     closeTalk();
     return true;
