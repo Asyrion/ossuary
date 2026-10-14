@@ -1,4 +1,4 @@
-/* The artifacts in the room kit's style (M3.5 step 3; docs/archive/M3.5-plan.md): each one built in code as what it is, a wand,
+/* The artifacts in the room kit's style (docs/archive/M3.5-plan.md): each one built in code as what it is, a wand,
    a pair of boots, a ram's skull, a leech in a jar, in its own colour (`color` in data/artifacts.json) with a glowing part
    where its magic sits. They float over their pedestals (`makeArtifactVisual` in artifacts.ts; the merchant's wares and the
    shrine's stones too), and the HUD's icons are rendered from them (artifactIcons.ts), so what the mage picks up and what
@@ -372,7 +372,7 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     }
   },
   satchel(g, c) {
-    // M5: a satchel of oiled leather, its flap buckled, two bottles poking out of it
+    // a satchel of oiled leather, its flap buckled, two bottles poking out of it
     box(g, 0.3, 0.22, 0.12, tone(c, 0.1), 0, -0.04, 0);
     box(g, 0.31, 0.1, 0.13, tone(shade(c, 0.8), 0.1), 0, 0.04, 0.005);
     box(g, 0.05, 0.06, 0.02, metal(BRASS), 0, 0.0, 0.07);
@@ -386,14 +386,14 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     put(mesh(g, new THREE.TorusGeometry(0.13, 0.014, 4, 12, Math.PI), tone(shade(c, 0.8), 0.1), 0, 0.07, 0), 0, 0, 0);
   },
   spoon(g, c) {
-    // M5: a silver spoon on a cord, worn thin at the bowl
+    // a silver spoon on a cord, worn thin at the bowl
     put(mesh(g, ball(0.07, 10, 6), metal(c), 0, -0.12, 0.01), 0, 0, 0, [1, 1.35, 0.35]);
     stick(g, [0, -0.04, 0], [0, 0.17, 0], 0.012, metal(c));
     mesh(g, ball(0.022, 6, 4), metal(c), 0, 0.18, 0);
     put(mesh(g, new THREE.TorusGeometry(0.05, 0.008, 4, 12), tone(0x6a5a3e, 0.1), 0, 0.24, 0), 0, 0, 0);
   },
   retort(g, c) {
-    // M5: a glass retort, a crack along its neck, a little green still in its belly
+    // a glass retort, a crack along its neck, a little green still in its belly
     mesh(g, ball(0.13, 12, 9), glowTone(shade(c, 0.75)), -0.06, -0.06, 0);
     mesh(g, ball(0.135, 12, 9), tone(0xd8e8f0, 0.04, 0.3), -0.06, -0.05, -0.01).scale.set(1, 1, 0.4);
     tube(
@@ -687,7 +687,6 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
       );
     mesh(g, ball(0.03, 6, 4), glowTone(0xb02030), 0.17, 0, 0).scale.set(0.5, 3, 0.8);
   },
-  // ---------- M3 ----------
   vigil(g, c) {
     // a vigil candle on its dish, its flame still
     mesh(g, cyl(0.06, 0.065, 0.24, 9), tone(c, 0.04), 0, -0.03, 0);
@@ -733,7 +732,6 @@ export const ARTIFACT_LOOKS: Record<string, Build> = {
     mesh(g, new THREE.TorusKnotGeometry(0.1, 0.022, 48, 5, 2, 3), tone(c, 0.06), 0, 0, 0);
     mesh(g, ball(0.035, 6, 5), glowTone(shade(c, 1.5)), 0, 0, 0.06);
   },
-  // ---------- M4.1 ----------
   pendulum(g, c) {
     // a clock's pendulum caught mid-swing: its rod from a hook, a bob with a rune lit in it
     const p = new THREE.Group();

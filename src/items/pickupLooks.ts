@@ -1,5 +1,5 @@
-/* The pickups and containers in the room kit's style (M3.5 step 3; docs/archive/M3.5-plan.md): hearts of blood with a glowing
-   face (a half one broken down the middle), an obol wearing the owner's coin face (2026-10-02; obolFace.ts) or, without
+/* The pickups and containers in the room kit's style (docs/archive/M3.5-plan.md): hearts of blood with a glowing
+   face (a half one broken down the middle), an obol wearing a coin face (obolFace.ts) or, without
    one, stamped with a rune, a leather purse with a coin in its neck, a mana
    vial of blue grave-light, a bone key with a ward-blue stone in its bow, a glyph stone with its rune burning amber; an
    offering coffer (planks, iron bands, a slot for coins) and a reliquary chest (dark wood, bone or gilt bands, a lock
@@ -90,7 +90,7 @@ function facing(g: THREE.Group) {
 
 type Build = (g: THREE.Group) => void;
 const ITEMS: Record<Exclude<Item, 'potion' | 'reagent' | 'rune'>, Build> = {
-  // (M5's potions and reagents: alchemyLooks.ts; M6's runes: runeLooks.ts)
+  // (potions and reagents: alchemyLooks.ts; runes: runeLooks.ts)
   heart: (g) => heart(g, false),
   halfHeart: (g) => heart(g, true),
   coin(g) {
@@ -219,7 +219,7 @@ const ITEMS: Record<Exclude<Item, 'potion' | 'reagent' | 'rune'>, Build> = {
     mesh(f, GEO.rune, glowTone(AMBER), 0, 0, 0.04);
     g.add(glowShared(0xff9a3a, 0.75, 0.55));
   },
-  paleSoul: (g) => soul(g, 0xa8c0f0, 0xe8f0ff), // (M4.1) a pale flame with a white heart
+  paleSoul: (g) => soul(g, 0xa8c0f0, 0xe8f0ff), // a pale flame with a white heart
   blackSoul(g) {
     soul(g, 0x2a1640, 0xb07aff, true);
     put(mesh(g, new THREE.TorusGeometry(0.12, 0.012, 3, 16), glowTone(0xa266ff), 0, -0.15, 0), Math.PI / 2);

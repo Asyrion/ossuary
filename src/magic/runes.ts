@@ -1,9 +1,9 @@
-/* M6 step 7: runes in play (docs/archive/M6-plan.md, decisions 9 and 10; the rules are runeData.ts). Each slot has a socket (one
+/* Runes in play (docs/archive/M6-plan.md, decisions 9 and 10; the rules are runeData.ts). Each slot has a socket (one
    rune, two with Second Socket); a rune carved there changes every cast of the slot's spell, read through `slotDef`
    (cost.ts). The socket belongs to the slot: a spell given up or forgotten sends its runes to the pouch (`player.runes`)
-   and the slot keeps its size, so a swap at a library costs nothing. Step 8 brings runes to find (`addRune`, dealt by
-   `dealRune` on the run's own stream, leaning to the spells in the slots); until step 9's waystone, runes are carved from
-   the dev menu and `?runes=`. A rune at work says so (Nothing silent): its name rises once a room, its line the first time
+   and the slot keeps its size, so a swap at a library costs nothing. Runes are found (`addRune`, dealt by
+   `dealRune` on the run's own stream, leaning to the spells in the slots) and carved at a waystone, from
+   the dev menu and by `?runes=`. A rune at work says so (Nothing silent): its name rises once a room, its line the first time
    in a run, a chisel's tick and the spell's school. */
 import { CFG } from '../config';
 import { DEV, G, player } from '../state';
@@ -57,7 +57,7 @@ function toPouch(ids: RuneId[]) {
   line(STR.runes.toPouch(ids.map((id) => rune(id).name).join(' and ')), CFG.afflict.lineShow);
 }
 
-/* ---------- M6 step 8: runes as things ---------- */
+/* ---------- runes as things ---------- */
 
 /** How likely runes are here: the floor's `runes` (none on floor 5) times the chance of `where` in data/loot.json. */
 export const runeOdds = (where: keyof RuneOdds) => LOOT.runes[where] * (FLOORS[G.run.floor]?.runes ?? 1);
@@ -76,7 +76,7 @@ export function addRune(id: RuneId) {
     runeCard(id);
   }
 }
-/** M6 step 9: a waystone's pair, two different runes dealt as one is. */
+/** a waystone's pair, two different runes dealt as one is. */
 export const dealPair = () =>
   pickPair(G.run.runes, player.spells.filter((s): s is string => !!s).map(spell), CFG.runeDrops.lean);
 /** Carve rune `id` from the pouch into slot `slot` (a waystone): null when carved (one taken out of the pouch), else why

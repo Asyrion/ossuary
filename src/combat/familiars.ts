@@ -1,7 +1,7 @@
 /* Companions that artifacts bind to the mage. The Candle Moth, a pale moth drawn to the mage's lantern,
    flutters about them and stings the nearest foe with a lesser bolt now and then. The Weeping Skull circles
    the mage at chest height, swallowing enemy shots it meets and biting foes it passes through. Both come and
-   go with their artifact (a new run takes them away). M4.1 binds two more things to the mage: the Twin Vigil Candles'
+   go with their artifact (a new run takes them away). Two more things bind to the mage: the Twin Vigil Candles'
    flames at the shoulders, which brighten as the mage stands still (the bolts' strength is in projectiles.ts), and the
    Salt Circle, a ring that forms round a mage who stands still a moment and that walking foes can't cross (`saltHolds`,
    from the foes' movement), until the mage steps out of it. */
@@ -21,7 +21,7 @@ import { TRANSFORMS } from '../items/transformData';
 
 const A = CFG.artifacts;
 type Moth = { g: THREE.Group; wings: THREE.Mesh[]; t: number; cd: number };
-/** The Candle Moth, and the Beastcaller's (M4.6: one more, in its light). */
+/** The Candle Moth, and the Beastcaller's (one more, in its light). */
 const moths: Moth[] = [];
 let skull: { g: THREE.Group; tear: THREE.Sprite; a: number; bitten: Map<Enemy, number> } | null = null;
 
@@ -172,7 +172,7 @@ const drop = (o: { g: THREE.Group } | null) => {
 
 /** How many moths flutter about the mage (the Candle Moth's, the Beastcaller's). */
 export const mothCount = () => moths.length;
-/** How much harder the familiars strike: the Beastcaller's (M4.6). */
+/** How much harder the familiars strike: the Beastcaller's. */
 export const familiarMul = () => (player.stats.effects.has('beastcaller') ? CFG.transform.beast.damageMul : 1);
 /** The Beastcaller's moth: in the Beastcaller's light. */
 const BEAST_MOTH = TRANSFORMS.beastcaller.light;
@@ -194,8 +194,8 @@ function nearestFoe(x: number, z: number, reach: number) {
 /** Move the companions with the mage; `acting` is false while paused, in a pan or dying (they only hover). */
 export function updateFamiliars(dt: number, now: number, acting: boolean) {
   const fx = player.stats.effects;
-  updateFennex(dt, acting); // (M4.2: Fen-Nex, combat/fennex.ts)
-  // the Candle Moth, and the Beastcaller's one more (M4.6), each on its own side of the circle
+  updateFennex(dt, acting); // (Fen-Nex, combat/fennex.ts)
+  // the Candle Moth, and the Beastcaller's one more, each on its own side of the circle
   const want = (fx.has('moth') ? 1 : 0) + (fx.has('beastcaller') ? CFG.transform.beast.more : 0);
   if (moths.length !== want) {
     // (made afresh when the count changes: the Candle Moth first and pale, the Beastcaller's in its light)

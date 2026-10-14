@@ -3,7 +3,7 @@
    erupt and the ground burning after it, a wall of ice, the storm wrapped around the mage, lightning. The
    numbers a shape reads are the spell's `params`; damage and statuses go through `damageEnemy` and `inflict`
    like everything else, and projectile spells through the bolt pipeline.
-   M4.1 adds Hallow's and Umbral's: holy ground (zone, Consecrate), a pillar of light on the strongest foe (smite,
+   Hallow's and Umbral's: holy ground (zone, Consecrate), a pillar of light on the strongest foe (smite,
    Judgement), motes circling the mage that break shots (orbit, Wardlight), a slow hexing bolt (bolt, Hex Bolt), hands
    rising to hold foes (grasp, Grasp of the Grave) and a foe marked to pay in mana and obols (mark, the Ferryman's Toll). */
 import * as THREE from 'three';
@@ -106,7 +106,7 @@ function igniteGlyphs(touches: (x: number, z: number) => boolean, spareFeet: boo
   }
 }
 
-/* ---------- runes on the bolts (M6 step 7) ---------- */
+/* ---------- runes on the bolts ---------- */
 
 /** Whether a spell's bolts seek (the Seeking rune: they turn towards foes as the Tome's do). */
 const seeks = (def: SpellDef) => !!def.runes?.includes('seeking');
@@ -143,7 +143,7 @@ const chain: Cast = (def, dir) => {
   if (!first) return false;
   const hit = new Set<Enemy>([first]),
     path: Enemy[] = [first],
-    jumps = P.jumps + boonParam('forkingArc', 'jumps'); // (M6: Forking Arc leaps further)
+    jumps = P.jumps + boonParam('forkingArc', 'jumps'); // (Forking Arc leaps further)
   for (let i = 0; i < jumps; i++) {
     const last = path[path.length - 1],
       next = pickTarget(last.x, last.z, dir, P.jumpRange, hit);
@@ -168,11 +168,11 @@ const chain: Cast = (def, dir) => {
   Sfx.at(first.x, first.z).arc(path.length);
   if (path.length > P.jumps + 1) boonActs('forkingArc', path[P.jumps + 1].x, path[P.jumps + 1].z); // (only once it forked past the spell's own)
   const swarm = path.filter((e) => e.foe?.behaviour === 'swarm');
-  if (swarm.length > 1) counter(swarm[1], 'chained'); // (M4.7: it leapt through a swarm)
+  if (swarm.length > 1) counter(swarm[1], 'chained'); // (it leapt through a swarm)
   chainWeaves(path);
   return true;
 };
-/** M4.10: what Arc's chain meets: a Glacial Wall a foe it struck stands at (Conductor), a Pyre Seal one stands in (Overload
+/** what Arc's chain meets: a Glacial Wall a foe it struck stands at (Conductor), a Pyre Seal one stands in (Overload
     Seal), a foe marked by the Ferryman's Toll among those it leapt through (Toll Chain). */
 function chainWeaves(path: Enemy[]) {
   const room = G.room.current,
@@ -203,7 +203,7 @@ function chainWeaves(path: Enemy[]) {
     weaveAt('tollChain', tolled.x, tolled.z);
   }
 }
-/** Conductor (M4.10): the chain runs along the wall: every foe touching it is shocked and struck, and the wall bursts both
+/** Conductor: the chain runs along the wall: every foe touching it is shocked and struck, and the wall bursts both
     ways across it in shards that chill. */
 function conductor(w: (typeof walls)[number]) {
   const C = MAGIC.weaves.conductor,
@@ -256,9 +256,9 @@ const beam: Cast = (def, dir) => {
   while (len < P.range && !(stop = boxAt(sx + dir.x * len, sz + dir.z * len, solids))) len += 0.1;
   len = Math.min(len, P.range);
   if (stop) strikeSolid(room, stop, sx + dir.x * len, 0.6, sz + dir.z * len);
-  if ((stop as RockBox | undefined)?.shade) vigilHooks.shadeStruck(sx + dir.x * len, sz + dir.z * len, def.school); // (M7 step 6: a beam carries its school to a chained shade)
+  if ((stop as RockBox | undefined)?.shade) vigilHooks.shadeStruck(sx + dir.x * len, sz + dir.z * len, def.school); // (a beam carries its school to a chained shade)
   if ((stop as RockBox | undefined)?.bar)
-    vigilHooks.barStruck(stop as RockBox, sx + dir.x * len, sz + dir.z * len, undefined, def.school); // (M7 step 9: and to a barred way at the Vigil)
+    vigilHooks.barStruck(stop as RockBox, sx + dir.x * len, sz + dir.z * len, undefined, def.school); // (and to a barred way at the Vigil)
   // how far along the beam, and how far to one side of it, a point is
   const along = (x: number, z: number) => (x - sx) * dir.x + (z - sz) * dir.z;
   const side = (x: number, z: number) => Math.abs((x - sx) * dir.z - (z - sz) * dir.x);
@@ -274,7 +274,7 @@ const beam: Cast = (def, dir) => {
     const t = along(x, z);
     return t > 0 && t < len && side(x, z) < CFG.glyph.boltReach;
   }, true);
-  // (M4.10: through a Glacial Wall, the wall turns to a curtain of steam; through a Wardlight mote, every mote throws a beam)
+  // (through a Glacial Wall, the wall turns to a curtain of steam; through a Wardlight mote, every mote throws a beam)
   const wall = walls.find(
     (w) =>
       iceWall(w) &&
@@ -301,7 +301,7 @@ const beam: Cast = (def, dir) => {
   return true;
 };
 
-/** Steam Curtain (M4.10): the wall turns to a curtain of steam for its time left. */
+/** Steam Curtain: the wall turns to a curtain of steam for its time left. */
 function steamCurtain(w: (typeof walls)[number]) {
   const left = Math.max(1, w.def.params.life - w.t),
     mid = w.boxes[0];
@@ -310,7 +310,7 @@ function steamCurtain(w: (typeof walls)[number]) {
   walls.splice(walls.indexOf(w), 1);
   weaveAt('steamCurtain', mid.x, mid.z);
 }
-/** Lantern Fan (M4.10): every Wardlight mote throws a thinner beam outward from the mage, striking and setting burning. */
+/** Lantern Fan: every Wardlight mote throws a thinner beam outward from the mage, striking and setting burning. */
 function lanternFan(def: SpellDef, motes: Vec2[]) {
   const L = MAGIC.weaves.lanternFan,
     color = hex(def.color);
@@ -354,7 +354,7 @@ const seals: {
   erupted: boolean;
   tick: number;
   black?: boolean;
-  /** Seconds its ground burns once erupted (M6: Banked Coals lengthens it, fixed as it erupts). */ ground: number;
+  /** Seconds its ground burns once erupted (Banked Coals lengthens it, fixed as it erupts). */ ground: number;
 }[] = [];
 const placed: Cast = (def) => {
   const P = def.params,
@@ -406,7 +406,7 @@ function updateSeals(dt: number) {
         s.black ? (Math.random() < 0.6 ? BLACKFIRE : 0x2a0a4a) : Math.random() < 0.6 ? FIRE : EMBER,
         0.4 + Math.random() * 0.35,
       );
-    } // (Black Pyre's flames are violet: M4.10)
+    } // (Black Pyre's flames are violet)
     s.tick -= dt;
     if (s.tick <= 0) {
       s.tick = 0.25;
@@ -426,7 +426,7 @@ function erupt(s: (typeof seals)[number]) {
   s.erupted = true;
   s.fx.erupt();
   s.ground = P.ground * boonMul('bankedCoals', 'groundMul');
-  if (s.ground > P.ground) boonActs('bankedCoals', s.x, s.z); // (M6: its ground burns longer)
+  if (s.ground > P.ground) boonActs('bankedCoals', s.x, s.z); // (its ground burns longer)
   for (const e of G.room.enemies) {
     if (!alive(e)) continue;
     const u = away(e, s.x, s.z);
@@ -455,7 +455,7 @@ function erupt(s: (typeof seals)[number]) {
   G.fx.shake = Math.max(G.fx.shake, 0.25);
 }
 
-/** M6, Flamekeeper: the flames within `r` of (x, z), `most` at most: erupted Pyre Seals (their edge within reach), burning oil
+/** Flamekeeper: the flames within `r` of (x, z), `most` at most: erupted Pyre Seals (their edge within reach), burning oil
     (a pool once), lit braziers and candle stands, and the mage's own burning ground (the Pyromancer's embers). */
 const flamesHere: Vec2[] = [];
 export function flamesNear(x: number, z: number, r: number, most: number) {
@@ -511,7 +511,7 @@ const shotgun: Cast = (def, dir) => {
     color = hex(def.color),
     seek = seeks(def);
   thrice(def, dir, (d, damage, status) => {
-    // (M6: Thrice fires three volleys side by side, only the middle one chilling)
+    // (Thrice fires three volleys side by side, only the middle one chilling)
     const base = Math.atan2(d.z, d.x);
     for (let i = 0; i < P.count; i++) {
       const a = base + (i - (P.count - 1) / 2) * P.fan,
@@ -547,7 +547,7 @@ const walls: {
   t: number;
   touch?: number;
 }[] = [];
-/** Only a wall of ice weaves (Conductor, the Steam Curtain, Refraction); M5's living wood burns instead. */
+/** Only a wall of ice weaves (Conductor, the Steam Curtain, Refraction); living wood burns instead. */
 const iceWall = (w: { def: SpellDef }) => w.def.school !== 'verdant';
 const LEAF = SCHOOL_LIGHT.verdant,
   BARK = 0x6a4a2a;
@@ -575,7 +575,7 @@ const wall: Cast = (def, dir) => {
       if (pointInBoxes(x, z, ICE_HALF * 0.5, solids)) break;
       spots.push({ x, z, k });
     }
-  // (its look: a pillar of ice for each spot, rising from the middle outwards; iceColumn in spellFx.ts; M5's Living Wall, a
+  // (its look: a pillar of ice for each spot, rising from the middle outwards; iceColumn in spellFx.ts; the Living Wall, a
   // trunk of living wood, woodColumn)
   const g = new THREE.Group(),
     columns: THREE.Group[] = [],
@@ -618,7 +618,7 @@ function updateWalls(dt: number) {
     const shiver = left < 0.6 ? (Math.random() - 0.5) * 0.05 : 0;
     w.g.position.set(shiver, 0, -shiver);
     if (w.touch !== undefined && (w.touch -= dt) <= 0) {
-      // (M5: living wood overgrows the foes that touch it)
+      // (living wood overgrows the foes that touch it)
       w.touch = MAGIC.verdant.wallTouch;
       for (const e of G.room.enemies)
         if (
@@ -660,7 +660,7 @@ function dropWall(w: (typeof walls)[number], quiet = false) {
   }
   const wood = def.school === 'verdant',
     c1 = wood ? LEAF : ICE,
-    c2 = wood ? BARK : 0xffffff; // (M5: living wood withers into leaves and bark)
+    c2 = wood ? BARK : 0xffffff; // (living wood withers into leaves and bark)
   for (const b of w.boxes) {
     burst(b.x, 0.5, b.z, c1, 6, 2.6, 0.06);
     burst(b.x, 0.8, b.z, c2, 2, 2, 0.04);
@@ -671,7 +671,7 @@ function dropWall(w: (typeof walls)[number], quiet = false) {
   else Sfx.at(mid.x, mid.z).wallShatter();
   G.fx.shake = Math.max(G.fx.shake, 0.12);
 }
-/* (M5: fire burns a wall of living wood down where it reaches it, at once and quietly but for the flames) */
+/* (fire burns a wall of living wood down where it reaches it, at once and quietly but for the flames) */
 hearGround((kind, x, z, r) => {
   if (kind !== 'fire') return;
   for (let i = walls.length - 1; i >= 0; i--) {
@@ -731,7 +731,7 @@ function updateMantle(dt: number, now: number) {
   }
   const fade = Math.min(1, (P.life - m.t) / 0.5);
   m.fx.update(player.x, player.z, m.t, fade);
-  const pool = poolAt(player.x, player.z); // (M4.10, Live Wade: wading in its mantle, the mage shocks the water, itself spared)
+  const pool = poolAt(player.x, player.z); // (Live Wade: wading in its mantle, the mage shocks the water, itself spared)
   if (pool?.kind === 'water' && pool.state === 'still' && !pool.mud && (m.wadeT = (m.wadeT ?? 0) - dt) <= 0) {
     m.wadeT = MAGIC.weaves.liveWade.every;
     shockAt(player.x, player.z, undefined, true);
@@ -777,7 +777,7 @@ function endMantle(quiet: boolean) {
   mantle = null;
 }
 
-/* ---------- zone: Consecrate (M4.1) ---------- */
+/* ---------- zone: Consecrate ---------- */
 
 /** Holy ground at the mage's feet for a while: every few moments it strikes and sanctifies the foes standing in it (not
     what flies above), and the mage in it is healed once. */
@@ -790,10 +790,10 @@ const zones: {
   healed: boolean;
   fx: ReturnType<typeof consecrateFx>;
 }[] = [];
-/** Only holy ground takes a hex (Eclipse) or sanctifies shards (Hallowed Hail); M5's pollen is no holy ground. */
+/** Only holy ground takes a hex (Eclipse) or sanctifies shards (Hallowed Hail); pollen is no holy ground. */
 const holyZone = (z: { def: SpellDef }) => z.def.school === 'hallow';
 const zone: Cast = (def) => {
-  const pollen = def.school === 'verdant'; // (M5: Verdant's Pollen Cloud is a zone of pollen, not holy ground)
+  const pollen = def.school === 'verdant'; // (Verdant's Pollen Cloud is a zone of pollen, not holy ground)
   zones.push({
     def,
     x: player.x,
@@ -805,7 +805,7 @@ const zone: Cast = (def) => {
   });
   if (!pollen)
     hallowAt(player.x, player.z, def.params.radius); // holy ground kindles the candle stands on it
-  else vigilHooks.landed('verdant', player.x, player.z, def.params.radius); // (M7 step 9)
+  else vigilHooks.landed('verdant', player.x, player.z, def.params.radius);
   burst(player.x, 0.2, player.z, hex(def.color), 14, 2, 0.04);
   if (pollen) Sfx.pollenCloud();
   else Sfx.consecrate();
@@ -833,7 +833,7 @@ function updateZones(dt: number) {
         }
     }
     if (!z.healed && P.heal > 0 && player.hp < player.maxHp && Math.hypot(player.x - z.x, player.z - z.z) < P.radius) {
-      // (a Reprise's ground mends nothing, M6)
+      // (a Reprise's ground mends nothing)
       z.healed = true;
       player.hp = Math.min(player.maxHp, player.hp + P.heal);
       renderHearts();
@@ -843,9 +843,9 @@ function updateZones(dt: number) {
   }
 }
 
-/** Whether the Grasp's hands are setting their dark down now (M4.10: on holy ground that is Eclipse Ground). */
+/** Whether the Grasp's hands are setting their dark down now (on holy ground that is Eclipse Ground). */
 let graspHexing = false;
-/** A hex lands on holy ground at (x, z) (M4.8's tile reaction, Hallow and Umbral): the ground goes dark at once, and
+/** A hex lands on holy ground at (x, z) (a tile reaction of Hallow and Umbral): the ground goes dark at once, and
     every foe standing in it is taken under a black sun (an Eclipse each). Reached from `umbralAt`, a hexing bolt crossing
     it and a hex on a foe standing in it. */
 export function hexGround(x: number, z: number) {
@@ -857,7 +857,7 @@ export function hexGround(x: number, z: number) {
   zones.splice(i, 1);
   g.fx.drop(); // (spent first: the hexes it lays below find no ground)
   if (woven) weaveAt('eclipseGround', g.x, g.z);
-  else tileReaction('eclipse', g.x, g.z); // (M4.10: the Grasp's hands on holy ground weave Eclipse Ground)
+  else tileReaction('eclipse', g.x, g.z); // (the Grasp's hands on holy ground weave Eclipse Ground)
   ringFx(g.x, 0.05, g.z, 0x6a3aa8, 0.3, P.radius, CFG.spellFx.shockwave, true);
   burst(g.x, 0.3, g.z, 0x2a0a4a, 20, 2.4, 0.06);
   burst(g.x, 0.3, g.z, hex(g.def.color), 10, 2, 0.04);
@@ -870,7 +870,7 @@ export function hexGround(x: number, z: number) {
     }
 }
 
-/** M4.10: a spell bolt crossing what spells left: a Hex Bolt across a seal's burning ground turns it black (Black Pyre);
+/** a spell bolt crossing what spells left: a Hex Bolt across a seal's burning ground turns it black (Black Pyre);
     Rime Shards across holy ground are sanctified (Hallowed Hail); a Shatter's shard into fire falls there as molten glass,
     ground that burns walkers. Each step, from projectiles.ts. */
 export function boltOverGround(b: Bolt) {
@@ -904,7 +904,7 @@ export function boltOverGround(b: Bolt) {
   }
 }
 
-/* ---------- smite: Judgement (M4.1) ---------- */
+/* ---------- smite: Judgement ---------- */
 
 /** The strongest foe in reach is marked by a closing ring of gold; a moment later a pillar of light falls on it, striking
     and sanctifying everything in it. */
@@ -955,7 +955,7 @@ function updateSmites(dt: number, now: number) {
           w.room === G.room.current &&
           w.boxes.some((b) => Math.hypot(b.x - s.x, b.z - s.z) < P.radius + MAGIC.weaves.refraction.reach),
       );
-      if (wall) refraction(s, wall); // (M4.10: by a Glacial Wall, it breaks into rays along it)
+      if (wall) refraction(s, wall); // (by a Glacial Wall, it breaks into rays along it)
       Sfx.at(s.x, s.z).judgement();
       G.fx.shake = Math.max(G.fx.shake, 0.25);
       continue;
@@ -970,7 +970,7 @@ function updateSmites(dt: number, now: number) {
   }
 }
 
-/** Refraction (M4.10): Judgement's pillar breaks into rays along the wall: each block lights, and the foes at it are struck
+/** Refraction: Judgement's pillar breaks into rays along the wall: each block lights, and the foes at it are struck
     and sanctified. */
 function refraction(s: (typeof smites)[number], w: (typeof walls)[number]) {
   const F = MAGIC.weaves.refraction,
@@ -987,7 +987,7 @@ function refraction(s: (typeof smites)[number], w: (typeof walls)[number]) {
   weaveAt('refraction', w.boxes[0].x, w.boxes[0].z);
 }
 
-/* ---------- orbit: Wardlight (M4.1) ---------- */
+/* ---------- orbit: Wardlight ---------- */
 
 /** Motes of light circling the mage for a while: an enemy shot that meets one is broken, and a foe one touches is struck
     and sanctified (each foe at most every so often). It goes with the mage from room to room, as the mantle does. */
@@ -1046,7 +1046,7 @@ function endWard() {
   ward?.fx.drop();
   ward = null;
 }
-/** Where Wardlight's motes are now (M4.10: the lance through one makes a Lantern Fan); none while it's down. */
+/** Where Wardlight's motes are now (the lance through one makes a Lantern Fan); none while it's down. */
 export function wardMotes(): Vec2[] {
   const w = ward;
   if (!w) return [];
@@ -1057,7 +1057,7 @@ export function wardMotes(): Vec2[] {
   });
 }
 
-/* ---------- bolt: Hex Bolt (M4.1) ---------- */
+/* ---------- bolt: Hex Bolt ---------- */
 
 /** One slow dark bolt along the cast direction, hexing what it strikes. */
 const boltShape: Cast = (def, dir) => {
@@ -1074,13 +1074,13 @@ const boltShape: Cast = (def, dir) => {
       status,
       seek,
     }),
-  ); // (M6: Thrice, three in a fan)
+  ); // (Thrice, three in a fan)
   burst(player.x + dir.x * 0.4, 0.7, player.z + dir.z * 0.4, color, 8, 1.6, 0.04);
   Sfx.hexBolt();
   return true;
 };
 
-/* ---------- grasp: Grasp of the Grave (M4.1) ---------- */
+/* ---------- grasp: Grasp of the Grave ---------- */
 
 /** Where the mage aims, a few tiles ahead (or on the foe there), dark hands rise out of the floor, then close: every foe
     in their ring is struck, held where it stands (Root) and hexed. They sink back when the hold is over. */
@@ -1089,13 +1089,13 @@ const grasps: { def: SpellDef; x: number; z: number; t: number; closed: boolean;
 const grasp: Cast = (def, dir) => {
   const P = def.params,
     reach = seeks(def) ? rune('seeking').params.reach : 0,
-    near = pickTarget(player.x, player.z, dir, P.ahead + P.radius + reach); // (M6: Seeking's hands reach further for a foe)
+    near = pickTarget(player.x, player.z, dir, P.ahead + P.radius + reach); // (Seeking's hands reach further for a foe)
   if (reach && near && Math.hypot(near.x - player.x, near.z - player.z) > P.ahead + P.radius)
     runeActs('seeking', def.school, near.x, near.z);
   const at = near
     ? { x: near.x, z: near.z }
     : freeSpotNear(G.room.current, player.x + dir.x * P.ahead, player.z + dir.z * P.ahead);
-  const thorns = def.school === 'verdant'; // (M5: Verdant's Thorn Snare rises as thorns, not hands)
+  const thorns = def.school === 'verdant'; // (Verdant's Thorn Snare rises as thorns, not hands)
   grasps.push({
     def,
     x: at.x,
@@ -1128,11 +1128,11 @@ function updateGrasps(dt: number) {
       if (thorns) {
         Sfx.at(g.x, g.z).thornClose();
         vigilHooks.landed('verdant', g.x, g.z, P.radius);
-      } // (M7 step 9: green landing, for a barred way and a chained shade)
+      } // (green landing, for a barred way and a chained shade)
       else {
         umbralAt(g.x, g.z, P.radius);
         Sfx.at(g.x, g.z).graspClose();
-      } // (the dark blinds a watching statue, breaks an obelisk's umbral ward; on holy ground, Eclipse Ground: M4.10)
+      } // (the dark blinds a watching statue, breaks an obelisk's umbral ward; on holy ground, Eclipse Ground)
       graspHexing = false;
     }
     const k = g.t < P.delay ? g.t / P.delay : g.t < life ? 1 : 1 - (g.t - life) / 0.3;
@@ -1145,7 +1145,7 @@ function updateGrasps(dt: number) {
   }
 }
 
-/* ---------- mark: the Ferryman's Toll (M4.1) ---------- */
+/* ---------- mark: the Ferryman's Toll ---------- */
 
 /** The nearest foe is struck and marked with a coin of shadow for a while: every blow the mage lands on it gives back
     mana (`toll` on the foe; damage.ts), and if it falls marked it pays in obols and its hex spreads to the foes round it
@@ -1153,7 +1153,7 @@ function updateGrasps(dt: number) {
 const marks: { def: SpellDef; e: Enemy; t: number; fx: ReturnType<typeof tollFx> }[] = [];
 const mark: Cast = (def, dir) => {
   const P = def.params,
-    e = pickTarget(player.x, player.z, dir, P.range, def.reprise ? new Set(marks.map((m) => m.e)) : undefined); // (M6: a Reprise's toll marks another foe)
+    e = pickTarget(player.x, player.z, dir, P.range, def.reprise ? new Set(marks.map((m) => m.e)) : undefined); // (a Reprise's toll marks another foe)
   if (!e) return false;
   const had = marks.findIndex((m) => m.e === e);
   if (had >= 0) {
@@ -1200,7 +1200,7 @@ export function payToll(e: Enemy) {
 const sparkBetween = (a: Enemy, b: Enemy) =>
   strikeFx({ x: a.x, y: 0.8, z: a.z }, { x: b.x, y: foeY(b), z: b.z }, 0xa266ff, CFG.spellFx.chain, true);
 
-/* ---------- lantern: Lantern of Vigil (M7 step 8, the scribe's) ---------- */
+/* ---------- lantern: Lantern of Vigil (the scribe's) ---------- */
 
 /** A lantern lights at the mage's shoulder and goes with it, room to room, for a while: every so often it fires a small
     bolt of holy light at the nearest foe in reach (a spell's bolt, carrying the spell's statuses). */
@@ -1260,7 +1260,7 @@ function endLantern() {
   lamp = null;
 }
 
-/* ---------- harvest: Soul Harvest (M7 step 8, the novice's) ---------- */
+/* ---------- harvest: Soul Harvest (the novice's) ---------- */
 
 /** Every hex in the room is reaped at once: each stack strikes its foe and comes back to the mage as mana. Nothing hexed:
     refused (it costs nothing, but its cooldown waits). */

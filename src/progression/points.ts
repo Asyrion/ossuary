@@ -1,7 +1,7 @@
-/* M6 step 2: spending a level's point on an attribute (the rules are attributes.ts). The points spent live in
+/* Spending a level's point on an attribute (the rules are attributes.ts). The points spent live in
    `G.run.attrs` and are lost with the run; `refreshStats` folds them in. A point spent rises over the mage in the
    attribute's colour; Will fills the mana it adds, Vigor's half container comes filled (as any container does). The
-   level-up screen (step 4) spends them; until it comes, the dev menu and `__game.spend` do. */
+   level-up screen spends them; so do the dev menu and `__game.spend`. */
 import { CFG } from '../config';
 import { G, player } from '../state';
 import { STR } from '../strings';

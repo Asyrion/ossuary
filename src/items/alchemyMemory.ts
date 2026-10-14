@@ -1,11 +1,10 @@
-/* What the mage has brewed, kept between runs (M5; GDD: Potions and alchemy, Identification and Brewing): the pairs of
+/* What the mage has brewed, kept between runs (GDD: Potions and alchemy, Identification and Brewing): the pairs of
    reagents tried at an alchemy table and the potions they made. A potion once brewed is identified in every run after;
-   a pair once tried shows what it makes. Kept in this browser (`ossuary.recipes`) until the Vigil's grimoire takes it
-   over (M7), as spell knowledge is (magic/memory.ts). */
+   a pair once tried shows what it makes. Kept in this browser (`ossuary.recipes`), as spell knowledge is (magic/memory.ts). */
 import { pairKey, type PotionId, type ReagentId } from './alchemyData';
 import { firstFound, readSlot, writeSlot } from '../vigil/save';
 
-// (kept in the Vigil's save since M7 step 4, vigil/save.ts, which took over its key; a potion brewed for the first time ever
+// (kept in the Vigil's save, vigil/save.ts, which owns its key; a potion brewed for the first time ever
 // is a first find of the run, Dust at its end)
 interface Memory {
   pairs: Record<string, PotionId>;

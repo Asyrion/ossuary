@@ -47,8 +47,8 @@ const GOLD = 0xffd27a;
 export const isContainer = (kind: Drop): kind is 'coffer' | 'chest' => kind === 'coffer' || kind === 'chest';
 
 /** How an item looks, on the floor or floating over a merchant's ward circle (the room kit's: pickupLooks.ts). A potion
-    is its bottle as this run deals it (`id` names the potion), a reagent its own (M5, alchemyLooks.ts), a rune its chip of
-    stone (M6 step 8, runeLooks.ts). */
+    is its bottle as this run deals it (`id` names the potion), a reagent its own (alchemyLooks.ts), a rune its chip of
+    stone (runeLooks.ts). */
 export function itemVisual(kind: Item, id?: string): THREE.Object3D {
   if (kind === 'potion') return bottleLook(G.run.bottles[(id ?? 'healing') as PotionId]);
   if (kind === 'reagent') return reagentLook((id ?? 'graveMoss') as ReagentId);
@@ -59,7 +59,7 @@ export function itemVisual(kind: Item, id?: string): THREE.Object3D {
 /** Drop something on the floor at (x, z): it falls in from above, or rises out of a broken urn (`rise`).
     A coffer or a chest is filled when it appears; a chest is gilded by chance unless `gilded` says. A mana vial
     becomes an obol while the mage knows no spell (nothing would spend its mana), as does a lodestone shard, unless `asIs`
-    (the dev menu). M5: a potion is dealt from the run's alchemy stream unless `potion` names it; a reagent is one at random
+    (the dev menu). A potion is dealt from the run's alchemy stream unless `potion` names it; a reagent is one at random
     unless `reagent` does. */
 export function spawnPickup(
   kind: Drop,
@@ -104,7 +104,7 @@ export function spawnPickup(
     kind === 'reagent'
       ? (opts.reagent ?? COMMON_REAGENTS[G.run.alchemy.int(0, COMMON_REAGENTS.length - 1)])
       : undefined;
-  const rune = kind === 'rune' ? (opts.rune ?? dealRune()) : undefined; // (M6 step 8: dealt from the run's runes stream, leaning to the hand)
+  const rune = kind === 'rune' ? (opts.rune ?? dealRune()) : undefined; // (dealt from the run's runes stream, leaning to the hand)
   const m = itemVisual(kind, potion ?? reagent ?? rune);
   m.position.y = 0.35;
   g.add(m, blob(0.55));
@@ -154,7 +154,7 @@ export function openContainer(p: Pickup, burnt = false) {
   if (p.gilded && runeHere('gilded')) {
     const spot = freeSpotNear(G.room.current, p.x + 1.1, p.z + 0.6);
     spawnPickup('rune', spot.x, spot.z);
-  } // (M6 step 8: a rune rolls out beside what it holds)
+  } // (a rune rolls out beside what it holds)
   if (p.gilded) {
     // a relic rises out of it, beyond what the floor's budget allows
     const def = offerBeyondBudget('vault');
@@ -234,7 +234,7 @@ const SPARK: Record<Item, number> = {
 };
 
 /** Why the mage can't use an item now (the merchant says it too), or null when they can: whole, brimming with mana,
-    at the cap, holding all the soul motes they can keep, with nothing a shard could give, or (M5) a full belt. */
+    at the cap, holding all the soul motes they can keep, with nothing a shard could give, or a full belt. */
 export function cantUse(kind: Item): 'whole' | 'brimming' | 'full' | 'souls' | 'idle' | 'belt' | null {
   const v = dropValue(kind);
   if (v.potion) return player.belt.length >= beltSlots() ? 'belt' : null;
@@ -270,7 +270,7 @@ export function useItem(kind: Item) {
 function take(p: Pickup, kind: Item) {
   if (cantUse(kind)) return false;
   if (kind === 'potion' || kind === 'reagent') {
-    // (M5: into the belt or the pouch, with its own card the first time)
+    // (into the belt or the pouch, with its own card the first time)
     if (p.potion) addPotion(p.potion as PotionId);
     else if (p.reagent) addReagent(p.reagent as ReagentId);
     SOUND[kind]();
@@ -278,7 +278,7 @@ function take(p: Pickup, kind: Item) {
     return true;
   }
   if (kind === 'rune') {
-    // (M6 step 8: into the pouch, its chime and its card the first time)
+    // (into the pouch, its chime and its card the first time)
     const id = (p.rune ?? 'quicken') as RuneId;
     addRune(id);
     burst(p.x, 0.4, p.z, new THREE.Color(runeDef(id).color).getHex(), 10, 2, 0.05);
@@ -368,7 +368,7 @@ export function updatePickups(dt: number) {
         p.rise = undefined;
       }
     } else p.m.position.y = 0.35 + Math.sin(p.t * 3) * 0.06 + Math.max(0, p.drop) * 1.2;
-    // (flat things sway, M6's rune too: turned whole, they would go edge-on)
+    // (flat things sway, a rune too: turned whole, they would go edge-on)
     p.m.rotation.y =
       heart || kind === 'glyph' || kind === 'key' || kind === 'rune' || isSoul(kind)
         ? Math.sin(p.t * 1.6) * 0.5
@@ -407,8 +407,8 @@ export function updatePickups(dt: number) {
   }
 }
 
-/** The way down that opens when the boss dies, at world (x, z): in `room`'s group when given (drawn only with it: M6 step
-    10's waystone room), else in the scene. */
+/** The way down that opens when the boss dies, at world (x, z): in `room`'s group when given (drawn only with it: the
+    waystone room), else in the scene. */
 export function makeTrapdoor(x: number, z: number, room?: Room) {
   const g = new THREE.Group();
   const ring = new THREE.Mesh(

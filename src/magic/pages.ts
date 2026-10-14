@@ -182,7 +182,7 @@ function layLibrary(room: Room) {
   const gr = LOOT.grimoire,
     lean = floorLean(),
     pledge = G.run.pledge,
-    lectern = pickPages(G.run.pages, player.spells, gr.lecterns, [], inPool(vigil().freed), lean, pledge); // (M4.9: leaning to what the floor's foes are weak to; M6: a pledge's page first)
+    lectern = pickPages(G.run.pages, player.spells, gr.lecterns, [], inPool(vigil().freed), lean, pledge); // (leaning to what the floor's foes are weak to; a pledge's page first)
   if (pledge && lectern.some((id) => spell(id).school === pledge)) {
     G.run.pledge = null;
     line(STR.boons.pledgeKept(STR.schools[pledge]), CFG.afflict.lineShow);
@@ -371,7 +371,7 @@ export function clearPages() {
   emit('pagesCleared'); // (the panel over a page goes)
 }
 
-/* ---------- the page near the mage (M3.7) ---------- */
+/* ---------- the page near the mage ---------- */
 
 /** The nearest page within reach, if any: the panel over it shows its spell (ui/pagePanel.ts), and the first time a page
     is near, its spell is seen. Every step while playing. */

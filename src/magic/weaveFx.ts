@@ -1,4 +1,4 @@
-/* Weaves and chains set off (M4.10, magic/weaves.ts for the table): the name rises where it happened, in both its schools'
+/* Weaves and chains set off (magic/weaves.ts for the table): the name rises where it happened, in both its schools'
    colours by turns (larger the first time ever, and kept between runs for the book), with both schools' sound. Each one's
    effect is done at its hook (shapes.ts, steam.ts, statusFx.ts, the ground's fire); this is what they share. */
 import { G } from '../state';

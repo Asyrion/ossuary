@@ -1,4 +1,4 @@
-/* Weaves and chains (M4.10, docs/archive/M4.10-plan.md; GDD: M4.10 as built). A weave is a spell striking what another spell left
+/* Weaves and chains (docs/archive/M4.10-plan.md; GDD: M4.10 as built). A weave is a spell striking what another spell left
    in the room (an ice wall, a seal's burning ground, holy ground, Wardlight's motes, the Static Mantle, a toll's mark); a
    chain is what a reaction left (a steam cloud, black ice, an Overload's blast, the Shatter's shards, an Eclipse's black
    sun) meeting a third school. This is the pure table (unit-tested); each is set off where it happens (shapes.ts, steam.ts,
@@ -69,10 +69,10 @@ const LEFT_BY_SHAPE: Partial<Record<SpellDef['shape'], Left>> = {
   self: 'mantle',
   mark: 'toll',
 };
-/** The weaves a spell takes part in (M3.7's panels list them): what it leaves that another strikes, or what it strikes. A
+/** The weaves a spell takes part in (the spell panels list them): what it leaves that another strikes, or what it strikes. A
     Hex Bolt is the only bolt that weaves; chains are a reaction's, not a spell's. */
 export function weavesOf(def: Pick<SpellDef, 'shape' | 'school'>): WeaveId[] {
-  if (def.school === 'verdant') return []; // (M5: Verdant's spells share shapes with others', but pollen, thorns and living wood weave nothing yet)
+  if (def.school === 'verdant') return []; // (Verdant's spells share shapes with others', but pollen, thorns and living wood weave nothing yet)
   const left = LEFT_BY_SHAPE[def.shape];
   return WEAVE_IDS.filter((id) => {
     const w = WEAVES[id];

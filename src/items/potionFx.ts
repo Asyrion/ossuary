@@ -1,4 +1,4 @@
-/* What the potions drunk leave on the mage (M5; items/potions.ts drinks them), in a module of its own (state and data
+/* What the potions drunk leave on the mage (items/potions.ts drinks them), in a module of its own (state and data
    only) so the cantrip, a spell's cost, damage and the foes can read it without pulling in the belt and its looks. */
 import { POTIONS } from './alchemyData';
 

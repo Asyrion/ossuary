@@ -1,4 +1,4 @@
-/* Alchemy as data (M5, docs/archive/M5-plan.md; GDD: Potions and alchemy): data/alchemy.json read and checked here. Pure (no
+/* Alchemy as data (docs/archive/M5-plan.md; GDD: Potions and alchemy): data/alchemy.json read and checked here. Pure (no
    three.js), shared by the game and the unit tests. Potions with a drink effect on the mage and a throw effect on the
    room, the reagents they are brewed from, the recipes, where reagents come from, and the bottles a run shuffles. Each
    effect is a function in items/potions.ts; everything else is data. */

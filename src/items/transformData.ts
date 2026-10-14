@@ -1,4 +1,4 @@
-/* Transformations (M4.6, docs/archive/M4.6-plan.md; GDD: Artifacts, Costumes and transformations): three artifacts of a family
+/* Transformations (docs/archive/M4.6-plan.md; GDD: Artifacts, Costumes and transformations): three artifacts of a family
    (`family` in data/artifacts.json) transform the mage for the rest of the run, with a look (costumePieces.ts) and a gift
    (an effect in `player.stats.effects`, from `giftEffects`). Pure: the table, which have formed, and the checks. */
 import type { Effect } from './artifactData';
@@ -23,7 +23,7 @@ export const TRANSFORMS: Record<TransformId, { light: number; gift: Effect[] }> 
   runescribe: { light: 0x6ae0c8, gift: ['runeBurst'] },
   pilgrim: { light: 0xd8b070, gift: ['graveLantern', 'pilgrimPath'] },
   beastcaller: { light: 0xf0c890, gift: ['beastcaller'] },
-  alchemist: { light: 0x7ae070, gift: ['splitThrow'] }, // (M5: thrown potions split in two)
+  alchemist: { light: 0x7ae070, gift: ['splitThrow'] }, // (thrown potions split in two)
 };
 export const TRANSFORM_IDS = Object.keys(TRANSFORMS) as TransformId[];
 export const isTransform = (id: string): id is TransformId => id in TRANSFORMS;

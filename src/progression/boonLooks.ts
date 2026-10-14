@@ -1,4 +1,4 @@
-/* M6 step 4: each boon's sigil, built in code (docs/archive/M6-plan.md): a dark stone medallion with a rim and an emblem drawn in
+/* Each boon's sigil, built in code (docs/archive/M6-plan.md): a dark stone medallion with a rim and an emblem drawn in
    strokes of the boon's colour, glowing; a second rank wears a second ring. Its 24 px icon is made through `iconUrlOf`, as
    the artifacts', bottles' and reagents' are (one pixel for everything). Each emblem is a few strokes on a disc of radius
    1 (y up): lines, circles and arcs (render/emblem.ts, shared with the runes' glyphs). */

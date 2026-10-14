@@ -1,4 +1,4 @@
-/* The transformations' gifts (M4.6; transformData.ts says which each brings, and they sit in `player.stats.effects`): what
+/* The transformations' gifts (transformData.ts says which each brings, and they sit in `player.stats.effects`): what
    each does, called from the system it bends. A cantrip bolt that strikes a foe (`cantripStruck`, projectiles.ts) leaves
    the Pyromancer's embers, every fifth leaps on for the Stormcaller and lays the Runescribe's rune; a foe's touch
    (`touched`, enemies.ts) is chilled for the Frostborn; the Shadowstep blinks (`blink`, player.ts); the Pilgrim's floor is
@@ -29,7 +29,7 @@ const RUNE = TRANSFORMS.runescribe.light,
 let struck = 0;
 /** A cantrip bolt of `damage` struck foe `e` at (x, z): the Pyromancer's embers, the Stormcaller's leap, the Runescribe's rune. */
 export function cantripStruck(e: Enemy, x: number, z: number, damage: number) {
-  if (has('emberStrike')) layFire(G.room.current, x, z, T.ember.time * boonMul('bankedCoals', 'groundMul'), 'mage'); // (the mage's own: they burn foes, never the mage; M6: Banked Coals keeps them longer)
+  if (has('emberStrike')) layFire(G.room.current, x, z, T.ember.time * boonMul('bankedCoals', 'groundMul'), 'mage'); // (the mage's own: they burn foes, never the mage; Banked Coals keeps them longer)
   if (has('stormLeap') && ++struck >= T.storm.every) {
     struck = 0;
     leap(e, damage * T.storm.share);

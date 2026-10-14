@@ -1,4 +1,4 @@
-/* The drinking ward's rules (M4.2, from the Eda lore; GDD: Floors and rooms, From the Eda lore). A ward that drinks the
+/* The drinking ward's rules (from the Eda lore; GDD: Floors and rooms, From the Eda lore). A ward that drinks the
    spells cast at it, counting what it drank by school; full, it breaks, and a Wardling of the school it drank most rises
    from it (a vault's ward in world/vault.ts, a foe's shield in actors/wardShield.ts). Pure: no three.js, unit-tested. */
 import { SCHOOLS, type School } from './spellData';

@@ -8,8 +8,8 @@ import type { Rng } from '../rng';
 
 export type Resource = 'coins' | 'keys' | 'glyphs';
 export const RESOURCES: Resource[] = ['coins', 'keys', 'glyphs'];
-/** Things picked up by walking over them. M4.1 adds the soul motes (pale, black and hallowed) and the lodestone shard; M5
-    a potion (which one is dealt when it drops, from the run's alchemy stream) and a reagent; M6 a rune for the pouch (which
+/** Things picked up by walking over them, among them the soul motes (pale, black and hallowed), the lodestone shard,
+    a potion (which one is dealt when it drops, from the run's alchemy stream), a reagent and a rune for the pouch (which
     one, from the run's runes stream, leaning to the spells in the slots: `pickRune` in magic/runeData.ts). */
 export type Item =
   | 'halfHeart'
@@ -43,7 +43,7 @@ export const ITEMS: Item[] = [
   'rune',
 ];
 
-/** Soul motes (M4.1; GDD: Items): pale flames kept beside the hearts that take a hit before the hearts do. A pale one
+/** Soul motes (GDD: Items): pale flames kept beside the hearts that take a hit before the hearts do. A pale one
     guards one hit; a black one guards one and hexes the room when it goes; a hallowed one goes last, and gives back half
     a heart at the end of every floor it lives through. */
 export type Soul = 'pale' | 'black' | 'hallowed';
@@ -71,8 +71,8 @@ export interface LootTable {
   count?: [number, number];
   weights: Partial<Record<Item, number>>;
 }
-/** `remains` and `bundle`: what bone piles, skull heaps (poorer than an urn) and grave sacks leave (M3.6); `hoard`, what
-    an offering heap spills to a blast (M4.1). */
+/** `remains` and `bundle`: what bone piles, skull heaps (poorer than an urn) and grave sacks leave; `hoard`, what
+    an offering heap spills to a blast. */
 export type TableName =
   'urn' | 'sealedUrn' | 'coffer' | 'chest' | 'vaultHoard' | 'secretHoard' | 'remains' | 'bundle' | 'hoard';
 export const TABLES: TableName[] = [
@@ -88,7 +88,7 @@ export const TABLES: TableName[] = [
 ];
 
 /** What the merchant sells: an artifact, or an item. */
-/** What a trader sells: an artifact, an item, or (M4.2, the Wandering Merchant's crow) the floor's map or where its secret
+/** What a trader sells: an artifact, an item, or (the Wandering Merchant's crow) the floor's map or where its secret
     room lies. */
 export type Ware = 'artifact' | Item | 'map' | 'secret';
 /** The merchant's stock: how many wares (the artifact counts), their prices in obols, and how the wares
@@ -117,7 +117,7 @@ export interface LootData extends Record<TableName, LootTable> {
   /** A secret room without an artifact: coffers and reliquary chests beside its hoard (`secretHoard`). */
   secretRoom: { coffers: number; chests: number };
   /** Obols the shrine asks to cleanse a curse, paid once the curse is put down. */ shrine: { price: number };
-  /** M4.2: the Wandering Merchant's prices, and the soul motes in the beast's packs (by weight). */
+  /** the Wandering Merchant's prices, and the soul motes in the beast's packs (by weight). */
   wanderer: { prices: Partial<Record<Ware, number>>; souls: Partial<Record<Item, number>> };
   /** Grimoire pages: how many a library's lecterns offer, how many given-up spells its shelf sells back and for how
       many obols, and the chance a cleared room leaves one. */ grimoire: {
@@ -127,7 +127,7 @@ export interface LootData extends Record<TableName, LootTable> {
     clearChance: number;
   };
   merchant: MerchantData;
-  /** M6 step 8: runes as things. The chance of a rune in each place (each times the floor's `runes`, data/floors.json), all
+  /** runes as things. The chance of a rune in each place (each times the floor's `runes`, data/floors.json), all
       rolled on the run's own runes stream so no other roll moves: an extra ware in a shop, one in a secret room without an
       artifact, one on the Wandering Merchant's beast, one beside a gilded chest's relic. Its prices are the traders'
       (`rune` in `merchant.prices` and `wanderer.prices`). */
@@ -224,7 +224,7 @@ export function rollWares(rng: Rng, withArtifact: boolean, loot: LootData = LOOT
   return wares;
 }
 /** A ware's price in obols. */
-export const priceOf = (ware: Ware, loot: LootData = LOOT) => loot.merchant.prices[ware] ?? 0; // (a rune's too: M6 step 8)
+export const priceOf = (ware: Ware, loot: LootData = LOOT) => loot.merchant.prices[ware] ?? 0; // (a rune's too)
 
 /** Problems in data/loot.json; empty when valid. */
 export function validateLoot(loot: LootData = LOOT): string[] {

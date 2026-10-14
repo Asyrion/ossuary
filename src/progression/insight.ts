@@ -1,8 +1,8 @@
-/* M6 RPG growth: insight and levels in the game (docs/archive/M6-plan.md, step 1; the rules are levelData.ts). A foe put to rest
+/* RPG growth: insight and levels in the game (docs/archive/M6-plan.md; the rules are levelData.ts). A foe put to rest
    pays its purse, a room its first clear, a boss its floor's sum, a potion's kind its first use in a run, the Grave
    Draught its sip. Each comes as a short streak of light (the foe's school's; insight's gold for the rest) running into
    the mage's casting hand: a streak, not a round mote, so it can't be taken for a soul mote. A level reached rises over
-   the mage in a stepped glow and waits in `G.run.pending` for its choice (the level-up screen, step 4). The HUD's strip
+   the mage in a stepped glow and waits in `G.run.pending` for its choice (the level-up screen). The HUD's strip
    under the mana bar fills toward the next level, the badge beside the spell slots shows the level. */
 import * as THREE from 'three';
 import { CFG } from '../config';
@@ -88,7 +88,7 @@ function leveled(from: number, to: number) {
   if (to >= LEVEL_CAP) line(STR.levels.cap, L.lineCap);
   const stage = G.run.arc;
   updateArc();
-  if (G.run.arc !== stage) dress(); // (M6 step 12: levels count toward Azyrion's arc)
+  if (G.run.arc !== stage) dress(); // (levels count toward Azyrion's arc)
 }
 
 /** The dev menu: set the level (its insight the level's start); levels gone up wait for their choice as any do. */
@@ -159,7 +159,7 @@ function launch(x: number, z: number, color: number, y = 0.7, delay = 0) {
   if (flying.length >= L.streak.max) flying.shift();
   flying.push({ x, y, z, t: -delay, color: new THREE.Color(color) });
 }
-/** M6 step 9: a streak of `color` from (x, y, z) to the casting hand after `delay` seconds, paying nothing (a waystone's
+/** a streak of `color` from (x, y, z) to the casting hand after `delay` seconds, paying nothing (a waystone's
     rest sends mana this way). */
 export const streakTo = (x: number, y: number, z: number, color: number, delay = 0) => launch(x, z, color, y, delay);
 /** One instanced mesh for every streak and its trail (one draw call), facing the camera, in the stepped glow. */

@@ -55,12 +55,12 @@ export type Effect =
   | 'noClearHearts'
   | 'dearHearts'
   | 'lastRite'
-  /** M5: the Alchemist's Satchel's (one more potion in the belt), the Taster's Spoon's (every potion carried known), the
+  /** the Alchemist's Satchel's (one more potion in the belt), the Taster's Spoon's (every potion carried known), the
       Cracked Retort's (a wider splash whose glass cuts). */
   | 'satchel'
   | 'taster'
   | 'retort'
-  /** Transformations' gifts (M4.6, items/transformData.ts): not on artifacts, added when one forms; M5's Alchemist's
+  /** Transformations' gifts (items/transformData.ts): not on artifacts, added when one forms; the Alchemist's
       `splitThrow` (a thrown potion splits in two). */
   | 'emberStrike'
   | 'frostTouch'
@@ -123,7 +123,7 @@ export interface ArtifactDef {
   focus?: Partial<FocusPattern>;
   start?: boolean;
   /** A piece the mage wears while holding it, or `"none"` (actors/costumeData.ts). */ costume?: string;
-  /** The transformation it counts towards (M4.6, items/transformData.ts): three of a family transform the mage. */ family?: string;
+  /** The transformation it counts towards (items/transformData.ts): three of a family transform the mage. */ family?: string;
   /** Pedestal gem and HUD icon colour; icon key for the HUD. */ color: string;
   icon: string;
 }
@@ -257,7 +257,7 @@ export interface Stats {
   /** The most mana the mage can hold. */ maxMana: number;
   /** What spells do, as a multiple; mana back for every foe put to rest. */ spellDamage: number;
   killMana: number;
-  /** M6: how fast mana comes back, as a multiple (Will). */ regenMul: number;
+  /** how fast mana comes back, as a multiple (Will). */ regenMul: number;
   invuln: number;
   pattern: FocusPattern;
   effects: Set<Effect>;
@@ -278,8 +278,8 @@ export const halveStat = (k: StatKey, v: number) => (k.endsWith('Mul') ? 1 + (v 
 
 /** The mage's stats for a focus plus the other artifacts held (in pickup order); cursed artifacts in
     `cleansed` have lost their price and half their gift. `coins` (obols held) matters to the Miser's Purse. */
-/** `lifted`: curses whose price is lifted for now with their gift kept whole (M5: a Bitter Remedy, until the floor ends). */
-/** `bonus`: M6's attributes (progression/attributes.ts), folded in after the artifacts: half containers and mana added, the
+/** `lifted`: curses whose price is lifted for now with their gift kept whole (a Bitter Remedy, until the floor ends). */
+/** `bonus`: the attributes (progression/attributes.ts), folded in after the artifacts: half containers and mana added, the
     multipliers multiplied in. */
 export function computeStats(
   focusId: string,
@@ -368,7 +368,7 @@ export function pickArtifact(rng: Rng, pool: Pool, seen: ReadonlySet<string>): A
   return list.length ? rng.pick(list) : null;
 }
 
-/** A focus the run hasn't met (M4.2: the Wandering Merchant's, from far off): any pool's. */
+/** A focus the run hasn't met (the Wandering Merchant's, from far off): any pool's. */
 export function pickFocus(rng: Rng, seen: ReadonlySet<string>, held?: string): ArtifactDef | null {
   const list = ARTIFACT_DEFS.filter((a) => a.kind === 'focus' && !a.start && !seen.has(a.id) && a.id !== held);
   return list.length ? rng.pick(list) : null;

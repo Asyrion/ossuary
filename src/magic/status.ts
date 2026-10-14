@@ -6,18 +6,18 @@
    Chill: stacks that slow; the third freezes for a while (then a short guard against freezing again) and a frozen
           foe takes more damage. Bosses are slowed but never frozen.
    Shock: a mark that stuns briefly (bosses only now and then); the next hit on a marked foe leaps to a neighbour.
-   Sanctified (Hallow, M4.1): for a while the foe takes more damage from everything, and nothing heals it.
-   Hex (Umbral, M4.1): stacks that fade a while after the last; each hit the mage lands on a hexed foe spends a stack and
+   Sanctified (Hallow): for a while the foe takes more damage from everything, and nothing heals it.
+   Hex (Umbral): stacks that fade a while after the last; each hit the mage lands on a hexed foe spends a stack and
           gives back mana (statusFx.ts), and one that falls with enough of them leaves a soul mote.
-   Root (Umbral, M4.1): held where it stands (it can still strike and shoot); bosses only for a moment.
+   Root (Umbral): held where it stands (it can still strike and shoot); bosses only for a moment.
    Reactions: Shatter (Frost + Storm) when a frozen foe is shocked or a shocked foe freezes; Overload (Ember + Storm)
           when a burning foe is shocked or a shocked foe catches fire; Eclipse (Hallow + Umbral) when a sanctified foe is
           hexed or a hexed one sanctified: it is taken out of the fight for a moment under a black sun, then struck
           (a boss only struck); Blackfire (Umbral + Ember) when a hexed foe catches fire or a burning one is hexed: a
-          burn that never goes out while the foe lives; Steam (Ember + Frost, 2026-10-01) when a chilled or frozen foe
+          burn that never goes out while the foe lives; Steam (Ember + Frost) when a chilled or frozen foe
           catches fire or a burning one is chilled: the fire and the cold go up as a cloud of steam round it (foes inside
           can't aim, eyes can't see through it; statusFx.ts and magic/steam.ts), the foe scalded.
-   M4.8, the full wheel (every pair of the five schools reacts): Searing (Ember + Hallow) when a sanctified foe catches fire
+   The full wheel (every pair of the five schools reacts): Searing (Ember + Hallow) when a sanctified foe catches fire
           or a burning one is sanctified: holy fire burns its guard away a while (`seared`: every blow lands whole);
           Prism (Frost + Hallow) when a frozen foe is sanctified or a sanctified one freezes: while it stays frozen, the
           cantrip's bolts that strike it split in three (`prism`); Verdict (Storm + Hallow) when a sanctified foe is
@@ -25,7 +25,7 @@
           (Frost + Umbral) when a hexed foe is chilled or a chilled one hexed: black ice under it, where foes slide and
           can't stop; Void Spark (Storm + Umbral) when a hexed foe is shocked or a shocked one hexed: the spark leaps to
           the foes near, carrying a hex to each, and each that falls marked (`voidT`) gives the mage mana.
-   M5, Verdant: Overgrown (`grow`, seconds): vines that slow a foe more the longer they hold (a boss half as much); a foe
+   Verdant: Overgrown (`grow`, seconds): vines that slow a foe more the longer they hold (a boss half as much); a foe
           that falls overgrown flowers (statusFx.ts). Its five reactions make the wheel whole (every pair of the six
           schools reacts): Wildfire (Verdant + Ember) when an overgrown foe catches fire or a burning one is overgrown: the
           burn runs along the vines to every overgrown foe; Frostbloom (Verdant + Frost) when an overgrown foe is chilled
@@ -56,8 +56,8 @@ export type Reaction =
   | 'pollenspark'
   | 'bloom'
   | 'blight';
-/** Every reaction, and the two statuses that set it off (the wheel: each pair of the five schools, M4.8; Verdant's five,
-    M5, make it every pair of six). */
+/** Every reaction, and the two statuses that set it off (the wheel: each pair of the five schools; Verdant's five
+    make it every pair of six). */
 export const REACTIONS: Record<Reaction, [SpellStatus, SpellStatus]> = {
   shatter: ['chill', 'shock'],
   overload: ['burn', 'shock'],
@@ -92,10 +92,10 @@ export interface StatusState {
   /** Seconds left rooted. */ root: number;
   /** Seconds left eclipsed (out of the fight), and whether its burn is blackfire (it never goes out). */ eclipse: number;
   black: boolean;
-  /** M4.8: seconds left seared (no guard), a prism (frozen and holy), and marked by a void spark. */ seared: number;
+  /** seconds left seared (no guard), a prism (frozen and holy), and marked by a void spark. */ seared: number;
   prism: number;
   voidT: number;
-  /** M5: seconds left overgrown, how long the vines have held (they slow more), and whether it has flowered (Bloom). */ grow: number;
+  /** seconds left overgrown, how long the vines have held (they slow more), and whether it has flowered (Bloom). */ grow: number;
   growHeld: number;
   bloom: boolean;
 }
@@ -169,7 +169,7 @@ export function applyStatus(
     if (s.grow > 0) {
       unGrow(s);
       return { reaction: 'wildfire' };
-    } // (M5: fire on the vines runs along them; this foe burns too)
+    } // (fire on the vines runs along them; this foe burns too)
     return {};
   }
   if (kind === 'chill') {
@@ -187,7 +187,7 @@ export function applyStatus(
     if (s.grow > 0) {
       unGrow(s);
       return { reaction: 'frostbloom' };
-    } // (M5: cold on the vines: ice flowers)
+    } // (cold on the vines: ice flowers)
     s.chill += amount;
     s.chillT = T.chill.stackTime;
     if (boss) {
@@ -235,7 +235,7 @@ export function applyStatus(
     if (s.grow > 0 && !s.bloom) {
       s.bloom = true;
       return { reaction: 'bloom' };
-    } // (M5: holy light on the vines: it flowers)
+    } // (holy light on the vines: it flowers)
     return {};
   }
   if (kind === 'hex') {
@@ -263,7 +263,7 @@ export function applyStatus(
       unGrow(s);
       s.hex = Math.min(T.hex.max, s.hex + T.reactions.blight.hex);
       return { reaction: 'blight' };
-    } // (M5: the vines rot to thorns)
+    } // (the vines rot to thorns)
     return {};
   }
   if (kind === 'root') {
@@ -271,7 +271,7 @@ export function applyStatus(
     return {};
   }
   if (kind === 'grow') {
-    // M5: Verdant's vines, and what they meet
+    // Verdant's vines, and what they meet
     if (s.burn > 0 && !s.black) return { reaction: 'wildfire' }; // (the fire takes the vines as they come: it runs along them)
     if (s.chill > 0 || s.frozen > 0) {
       s.chill = 0;
@@ -319,7 +319,7 @@ export function applyStatus(
   if (s.grow > 0) {
     unGrow(s);
     return { reaction: 'pollenspark' };
-  } // (M5: a shock in the vines: their pollen sparks)
+  } // (a shock in the vines: their pollen sparks)
   s.shock = Math.max(s.shock, amount);
   if (boss && s.stunGuard > 0) return {};
   s.stun = T.shock.stun;
@@ -408,7 +408,7 @@ export function tickStatus(
 }
 
 /** How fast a foe moves, as a share of its speed: not at all while frozen, stunned, rooted or eclipsed, slower for each
-    chill stack, and (M5) slower the longer vines have held it (`boss`: half as much). */
+    chill stack, and slower the longer vines have held it (`boss`: half as much). */
 export function speedFactor(s: StatusState | undefined, T: MagicTuning = MAGIC, boss = false) {
   if (!s) return 1;
   if (s.frozen > 0 || s.stun > 0 || s.root > 0 || s.eclipse > 0) return 0;

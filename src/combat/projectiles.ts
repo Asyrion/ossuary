@@ -118,7 +118,7 @@ function makeBolt(s: BoltSpec) {
 
 let casts = 0,
   antlerCasts = 0; // for the Frostbitten Ring's every fifth cast, and the Hart's Antler's every sixth
-/** The Blood Moon Pendant's hour: at half health or below, bolts fly faster and come quicker (M4.1). */
+/** The Blood Moon Pendant's hour: at half health or below, bolts fly faster and come quicker. */
 export const bloodMoon = () => player.stats.effects.has('bloodMoon') && player.hp * 2 <= player.maxHp;
 /** Cast the cantrip in the current shooting direction, in the focus's pattern. */
 export function spawnBolt() {
@@ -136,17 +136,17 @@ export function spawnBolt() {
   const slots = p.count === 1 ? [0] : Array.from({ length: p.count }, (_, i) => i - (p.count - 1) / 2);
   // Raven's Eye: now and then the whole cast strikes thrice as hard, bigger and white-hot
   const crit = st.effects.has('crit') && Math.random() < A.crit.chance;
-  // the Emberwood Wand (or Liquid Ember, drunk: M5) sets foes burning; the Frostbitten Ring chills with every fifth cast
+  // the Emberwood Wand (or Liquid Ember, drunk) sets foes burning; the Frostbitten Ring chills with every fifth cast
   const frost = st.effects.has('frostbite') && ++casts % A.frostbite.every === 0;
   // a chapel's blessing: the next few casts strike harder, in gold
   const blessed = player.blessed > 0;
   if (blessed) player.blessed--;
-  // M4.1: the Hart's Antler makes every sixth cast a lance of light; the Twin Vigil Candles steady a still hand; the Blood
+  // the Hart's Antler makes every sixth cast a lance of light; the Twin Vigil Candles steady a still hand; the Blood
   // Moon Pendant quickens a hurt one
   const lance = st.effects.has('antler') && ++antlerCasts % A.antler.every === 0;
   const steady = st.effects.has('stillCandles') && player.still >= A.still.after,
     moon = bloodMoon();
-  const glow = takeAfterglow(); // (M6, Afterglow: the last spell's light still in the hand, its statuses carried in part)
+  const glow = takeAfterglow(); // (Afterglow: the last spell's light still in the hand, its statuses carried in part)
   const statusOf = {
     ...glow?.status,
     ...(st.effects.has('emberBolts') || emberCantrip() ? { burn: A.emberwood.burn } : {}),
@@ -285,7 +285,7 @@ export function fireSpellBolt(
     range: o.range,
     scale: o.scale ?? 0.8,
     color: o.color,
-    path: o.seek ? 'homing' : 'straight' /* (M6: Seeking's bolts turn as the Tome's do) */,
+    path: o.seek ? 'homing' : 'straight' /* (Seeking's bolts turn as the Tome's do) */,
     pierce: 0,
     bounces: 0,
     secondary: true,
@@ -293,7 +293,7 @@ export function fireSpellBolt(
     status: o.status,
     shard: o.shard,
   });
-  if (o.shatter) G.room.bolts[G.room.bolts.length - 1].shatter = true; // (M4.10: fire catches these as molten glass)
+  if (o.shatter) G.room.bolts[G.room.bolts.length - 1].shatter = true; // (fire catches these as molten glass)
 }
 
 /** Enemy projectile. */
@@ -308,7 +308,7 @@ export function spawnShot(
   size = 1,
   o: { fire?: boolean; chill?: number; hex?: number } = {},
 ) {
-  const m = actor()?.mantle; // (M4.7: a Rimebound champion's shots chill, a Hexbound one's drink mana)
+  const m = actor()?.mantle; // (a Rimebound champion's shots chill, a Hexbound one's drink mana)
   if (m === 'rimebound') o = { ...o, chill: Math.max(o.chill ?? 0, MAGIC.mantles.rimebound.chill) };
   else if (m === 'hexbound') o = { ...o, hex: Math.max(o.hex ?? 0, MAGIC.mantles.hexbound.hex) };
   if (inSteam(x, z) || unseen()) {
@@ -316,7 +316,7 @@ export function spawnShot(
       c = Math.cos(a),
       n = Math.sin(a);
     [dx, dz] = [dx * c - dz * n, dz * c + dx * n];
-  } // (thrown out of steam, or at a mage unseen under the Shadowstep Tincture: M5, it can't be aimed)
+  } // (thrown out of steam, or at a mage unseen under the Shadowstep Tincture: it can't be aimed)
   const mesh = new THREE.Group();
   const sh = blob(0.4);
   sh.position.y = -y + 0.015;
@@ -368,10 +368,10 @@ export function strikeSolid(
   else if (rock.prop)
     strikeProp(room, rock, false, status); // piles break, bells ring, runes charge
   else if (room.lab && !door)
-    vatStruck(room, x, z); // (M5: the jelly serpent's vat window cracks)
+    vatStruck(room, x, z); // (the jelly serpent's vat window cracks)
   else if (rock.bar)
-    vigilHooks.barStruck(rock, x, z, status); // (M7 step 5: a way barred at the Vigil stirs)
-  else if (rock.shade) vigilHooks.shadeStruck(x, z, schoolOf(status)); // (M7 step 6: a chained shade's chains)
+    vigilHooks.barStruck(rock, x, z, status); // (a way barred at the Vigil stirs)
+  else if (rock.shade) vigilHooks.shadeStruck(x, z, schoolOf(status)); // (a chained shade's chains)
   return rock;
 }
 
@@ -464,7 +464,7 @@ export function updateBolts(dt: number) {
       removeBolt(i, false);
       continue;
     }
-    // braziers set it alight, a censer's chain is cut (mechanisms, M3.6)
+    // braziers set it alight, a censer's chain is cut (mechanisms)
     if (!kill && !(b.path === 'boomerang' && b.returning)) boltThrough(b);
     // walls, doors and rocks
     const box = !kill && !(b.path === 'boomerang' && b.returning) ? boxAt(b.x, b.z, solids) : undefined;
@@ -515,7 +515,7 @@ export function updateBolts(dt: number) {
         if (Math.hypot(b.x - e.x, b.z - e.z) >= e.r + b.r || Math.abs(b.y - ey) >= 1.4) continue;
         // the Stormglass Pendant: the cantrip strikes a shocked foe harder
         const glass = !b.spell && player.stats.effects.has('stormglass') && (e.status?.shock ?? 0) > 0;
-        const prism = !b.spell && !b.secondary && (e.status?.prism ?? 0) > 0; // (M4.8: a foe frozen in holy light, before the blow cracks it)
+        const prism = !b.spell && !b.secondary && (e.status?.prism ?? 0) > 0; // (a foe frozen in holy light, before the blow cracks it)
         damageEnemy(
           e,
           b.damage * (glass ? CFG.artifacts.stormglass.mul : 1),
@@ -527,7 +527,7 @@ export function updateBolts(dt: number) {
         );
         if (glass) burst(e.x, 0.8, e.z, 0xf0e890, 6, 2.2, 0.03);
         b.hit.add(e);
-        if (!b.spell && !b.secondary) cantripStruck(e, e.x, e.z, b.damage); // (M4.6: the transformations' gifts)
+        if (!b.spell && !b.secondary) cantripStruck(e, e.x, e.z, b.damage); // (the transformations' gifts)
         if (b.status) inflict(e, b.status, 'mage');
         if (!b.spell && !e.haloed && !e.dead && player.stats.effects.has('halo')) {
           e.haloed = true;
@@ -551,7 +551,7 @@ export function updateBolts(dt: number) {
           }
           burst(e.x, 0.6, e.z, 0xc8e0e8, 5, 1.6, 0.03);
         }
-        // a Prism (M4.8, Frost and Hallow) breaks the cantrip into three, one each way and one on, in the colours of the rainbow
+        // a Prism (Frost and Hallow) breaks the cantrip into three, one each way and one on, in the colours of the rainbow
         if (prism) {
           const P = MAGIC.reactions.prism,
             base = Math.atan2(b.vz, b.vx);
@@ -591,8 +591,8 @@ export function updateBolts(dt: number) {
       }
     }
     if (b.status?.chill) frostAt(b.x, b.z); // a frost bolt freezes the water it flies over
-    if (b.status?.hex) hexGround(b.x, b.z); // a hexing bolt over Consecrate's holy ground darkens it (M4.8)
-    if (b.spell) boltOverGround(b); // (M4.10: a Hex Bolt across a seal, shards across holy ground or into fire)
+    if (b.status?.hex) hexGround(b.x, b.z); // a hexing bolt over Consecrate's holy ground darkens it
+    if (b.spell) boltOverGround(b); // (a Hex Bolt across a seal, shards across holy ground or into fire)
     b.mesh.position.set(b.x, b.y, b.z);
     b.mesh.children[2].position.y = -b.y + 0.015;
     animateBolt(b.mesh, b.x - ox, b.z - oz, dt);

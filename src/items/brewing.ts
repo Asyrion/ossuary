@@ -1,4 +1,4 @@
-/* Brewing at an alchemy table and Dr. Jelly's trade (M5 step 6, docs/archive/M5-plan.md; GDD: Potions and alchemy, Brewing): two
+/* Brewing at an alchemy table and Dr. Jelly's trade (docs/archive/M5-plan.md; GDD: Potions and alchemy, Brewing): two
    reagents from the pouch make a potion by the recipes in data/alchemy.json (an unknown pair that matches none makes a
    Volatile Mixture); what was brewed is remembered between runs (alchemyMemory.ts), so the potion is known in every run
    after and the pair shows what it makes. Dr. Jelly sells a recipe for obols (the pair, not the potion's name), and looks
@@ -45,7 +45,7 @@ export function brewNow(a: ReagentId, b: ReagentId, x: number, z: number): Potio
     spawnPickup('potion', p.x, p.z, { potion });
     line(STR.lab.beltFull, 3.5);
   } else {
-    jellyGives({ kind: 'potion', potion }); // (Dr. Jelly corks it and hands it across: the owner's ask, 2026-10-02)
+    jellyGives({ kind: 'potion', potion }); // (Dr. Jelly corks it and hands it across)
     if (!G.run.loreSeen.has('brewed:' + potion)) {
       G.run.loreSeen.add('brewed:' + potion);
       potionCard(potion);
@@ -111,7 +111,7 @@ export function jellyIdentifies(id: PotionId) {
   potionCard(id);
   Sfx.at(lab.jelly.x, lab.jelly.z).brew();
   jellyGives({ kind: 'potion', potion: id }); // (he hands it back)
-  potionUsed(id); // (M6: named by Dr. Jelly, a kind pays its insight as a first use does)
+  potionUsed(id); // (named by Dr. Jelly, a kind pays its insight as a first use does)
   return true;
 }
 

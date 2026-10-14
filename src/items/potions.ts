@@ -1,4 +1,4 @@
-/* Potions in a run (M5, docs/archive/M5-plan.md; GDD: Potions and alchemy): the belt the mage carries them in, the pouch of
+/* Potions in a run (docs/archive/M5-plan.md; GDD: Potions and alchemy): the belt the mage carries them in, the pouch of
    reagents, which potions are known, and what each does drunk. Thrown, a potion flies and splashes (items/potionThrow.ts).
    The rules (what each potion is and does, the run's bottles, brewing) are data, read by the pure alchemyData.ts. What a
    drink leaves on the mage shows as a chip beside the mana bar (ui/afflictions.ts) for as long as it lasts. */
@@ -53,7 +53,7 @@ export function resetPotions() {
 /** How many potions the belt holds (CFG.alchemy.belt, one more with the Alchemist's Satchel). */
 export const beltSlots = () => CFG.alchemy.belt + (player.stats.effects.has('satchel') ? 1 : 0);
 /** Whether a potion shows what it is: identified this run, or ever brewed (kept between runs). */
-export const knownPotion = (id: PotionId) => isKnown(id, G.run.identified, brewedPotions()) || boonRank('keenNose') > 0; // (M6: Keen Nose knows it by its smell)
+export const knownPotion = (id: PotionId) => isKnown(id, G.run.identified, brewedPotions()) || boonRank('keenNose') > 0; // (Keen Nose knows it by its smell)
 /** A potion's name as the mage knows it. */
 export const potionName = (id: PotionId) => (knownPotion(id) ? POTIONS[id].name : STR.alchemy.unknown);
 /** The chosen potion, if the belt holds any. */
@@ -124,7 +124,7 @@ export function identify(id: PotionId) {
   return !was;
 }
 
-/** M6 step 9: the potion in belt slot `from` moved to slot `to` (the others closing up round it; past the last, it goes
+/** the potion in belt slot `from` moved to slot `to` (the others closing up round it; past the last, it goes
     last); the chosen one stays chosen. False when there is nothing to move. */
 export function moveInBelt(from: number, to: number) {
   if (from < 0 || from >= player.belt.length || from === to) return false;
@@ -172,11 +172,11 @@ export function usePotion(how: 'drink' | 'throw') {
     burst(player.x, 1, player.z, parseInt(def.color.slice(1), 16), 10, 1.6, 0.04);
     floatText(player.x, 1.8, player.z, def.name, parseInt(def.color.slice(1), 16), 34);
     DRINK[def.drink.effect](def);
-    if (boonRank('brewersBreath')) breathe(id); // (M6: Brewer's Breath)
+    if (boonRank('brewersBreath')) breathe(id); // (Brewer's Breath)
   } else throwPotion(id);
   identify(id);
   if (!known) potionCard(id); // (unknown before: what it was, now)
-  potionUsed(id); // (M6: each kind's first use in a run gives insight)
+  potionUsed(id); // (each kind's first use in a run gives insight)
   renderBelt();
   return true;
 }
@@ -233,7 +233,7 @@ const DRINK: Record<DrinkEffect, (def: PotionDef) => void> = {
     potionFx.reversed = num(def.drink.seconds);
   },
   graveSip(def) {
-    // (M6: insight for the half heart, more the deeper; M5 gave a pale soul mote until M6)
+    // (insight for the half heart, more the deeper)
     player.hp = Math.max(1, player.hp - num(def.drink.halves));
     renderHearts();
     gainInsight(num(def.drink.insight) * (G.run.floor + 1));
@@ -255,5 +255,5 @@ export function updatePotions(dt: number) {
     setGiant(false);
   }
   if (player.stats.effects.has('taster'))
-    for (const id of player.belt as PotionId[]) if (!knownPotion(id)) identify(id); // (M5 step 8: the Taster's Spoon)
+    for (const id of player.belt as PotionId[]) if (!knownPotion(id)) identify(id); // (the Taster's Spoon)
 }

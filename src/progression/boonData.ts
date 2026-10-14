@@ -1,10 +1,10 @@
-/* M6 step 3: boons as data, and the deal (docs/archive/M6-plan.md; GDD: RPG progression, Boons), the pure rules (unit-tested).
+/* Boons as data, and the deal (docs/archive/M6-plan.md; GDD: RPG progression, Boons), the pure rules (unit-tested).
    Eighteen boons in data/boons.json: two for each school, each taken up to twice (its second rank grown, `rank2`), and six
    general ones (Tempered again and again, Second Socket twice). A level deals three: one general always, so the deal
    never runs dry, and two leaning to the build (each school weighted by its spells in the slots, its casts this run, its
    boons taken and a pledge); an attuned mage (both slots one school) draws both from that school while any are left. A
    school boon taken before any spell of its school is a pledge: the next library holds a page of it. The game side is
-   boons.ts. M6 step 5: what the school boons change, as rules: the statuses' tuning (`boonTuning`: Deep Winter's freeze,
+   boons.ts. What the school boons change, as rules: the statuses' tuning (`boonTuning`: Deep Winter's freeze,
    Gathering Dark's hex), how long a status holds (`statusMul`: Banked Coals, Perennial, Laid Bare) and which spells a boon
    touches (`touches`, `boonsTouching`: the spell's panel lists them). */
 import boonsData from '../../data/boons.json';
@@ -35,7 +35,7 @@ export interface BoonDef {
   text: string;
   text2?: string;
   lore: string;
-  /** A school boon's reach (step 5): the spells it changes, by the statuses they bring, their shape or their school. */
+  /** A school boon's reach: the spells it changes, by the statuses they bring, their shape or their school. */
   touches?: { status?: SpellStatus[]; shape?: Shape[]; school?: School[] };
 }
 export const BOON_DEFS = boonsData.boons as BoonDef[];
@@ -115,7 +115,7 @@ export function schoolWeights(l: Lean): Record<School, number> {
 
 /** What a deal reads: the boons taken (their ranks), the school weights, the school both slots hold (attuned), whether the
     Taster's Spoon is held (Keen Nose isn't dealt then) and whether a waystone lies ahead with a spell to carve (Second
-    Socket only then); `only`, a bargain's school (step 11): its two cards from that school. */
+    Socket only then); `only`, a bargain's school: its two cards from that school. */
 export interface DealState {
   taken: Readonly<Record<string, number>>;
   weights: Record<School, number>;
@@ -125,8 +125,8 @@ export interface DealState {
   only?: School | null;
   /** Boons held back from the deal (default `NOT_YET`). */ hold?: ReadonlySet<string>;
 }
-/** General boons whose hooks come with a later step of M6: not dealt until they act, so no card is dead. Each step takes its
-    own off this list (Second Socket came off with the waystone, step 9, where its spell is chosen). */
+/** General boons whose hooks are not built yet: not dealt until they act, so no card is dead. A boon comes off this list
+    when its hook lands. */
 export const NOT_YET: ReadonlySet<string> = new Set<string>([]);
 /** A card dealt: the boon, the rank it would reach, and whether the build's lean brought it (its card says so). */
 export interface Card {
@@ -187,7 +187,7 @@ export const pledgeFor = (id: string, held: readonly (School | null | undefined)
   return s && !held.includes(s) ? s : null;
 };
 
-/* ---------- step 5: what the school boons change ---------- */
+/* ---------- what the school boons change ---------- */
 
 /** The statuses' tuning with the boons `taken`: Deep Winter freezes on fewer stacks and (rank II) holds the freeze longer;
     Gathering Dark lets a hex gather more stacks and fade slower. `T` itself when neither is taken. */
@@ -235,7 +235,7 @@ export const boonsTouching = (
   taken: Readonly<Record<string, number>>,
 ) => BOON_DEFS.filter((b) => (taken[b.id] ?? 0) > 0 && touches(b, def)).map((b) => b.id);
 
-/* ---------- step 6: the general boons' rules ---------- */
+/* ---------- the general boons' rules ---------- */
 
 /** Afterglow: the share of a spell's statuses its next cantrip casts carry (spellData.ts's share: stacks rounded up). */
 export const afterglowOf = shareStatus;

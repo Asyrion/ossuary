@@ -45,10 +45,10 @@ export function learnSpell(id: string, slot?: number, silent = false): string | 
   const def = spell(id);
   const at = slot ?? Math.max(0, player.spells.indexOf(null));
   const replaced = player.spells[at];
-  if (replaced && replaced !== id) unslot(at); // (M6: its runes go to the pouch; the socket stays the slot's)
+  if (replaced && replaced !== id) unslot(at); // (its runes go to the pouch; the socket stays the slot's)
   player.spells[at] = id;
   player.spellCd[at] = 0;
-  learnedSpell(id); // known from here on, in every run (M3.7)
+  learnedSpell(id); // known from here on, in every run
   renderSpells();
   if (!silent) {
     Sfx.learn();
@@ -63,14 +63,14 @@ export function learnSpell(id: string, slot?: number, silent = false): string | 
   return replaced;
 }
 
-/** The dev menu's (M4.11): both slots filled with a school's spells, attuning the mage to it, and mana full. */
+/** The dev menu's: both slots filled with a school's spells, attuning the mage to it, and mana full. */
 export function attuneTo(school: School) {
   SPELL_DEFS.filter((s) => s.school === school)
     .slice(0, 2)
     .forEach((s, i) => learnSpell(s.id, i, true));
   player.mana = player.stats.maxMana;
 }
-/** Forget every spell (a new run, or the dev menu): their runes go to the pouch (M6), the sockets stay. */
+/** Forget every spell (a new run, or the dev menu): their runes go to the pouch, the sockets stay. */
 export function forgetSpells() {
   unslot(0);
   unslot(1);
@@ -78,7 +78,7 @@ export function forgetSpells() {
   player.spellCd = [0, 0];
   renderSpells();
 }
-/** One hand emptied (M7 step 5: the Vigil's lectern). */
+/** One hand emptied (the Vigil's lectern). */
 export function forgetSpell(slot: number) {
   unslot(slot);
   player.spells[slot] = null;
@@ -91,7 +91,7 @@ export function aimDir(cast: Vec2 | null): Vec2 {
   return cast ?? player.aim;
 }
 
-/** Cast the spell in `slot` (as its runes make it, M6), or refuse: no spell there, the merchant's ward, still cooling
+/** Cast the spell in `slot` (as its runes make it), or refuse: no spell there, the merchant's ward, still cooling
     down, nothing to pay with (mana, Vein's blood, a soul mote), nothing to strike. */
 export function castSpell(slot: number, cast: Vec2 | null) {
   const def = slotDef(slot);
@@ -107,8 +107,8 @@ export function castSpell(slot: number, cast: Vec2 | null) {
     flashMana(slot, 'target');
     return false;
   }
-  if (castIntoBargain(def)) return true; // (M6 step 11: a spell cast into a shrine's bargain stone opens its deal on the spell's school)
-  if (castIntoStone(slot, def)) return true; // (M6 step 9: a spell cast into a waystone, ready or not, costs nothing and opens its screen on that spell)
+  if (castIntoBargain(def)) return true; // (a spell cast into a shrine's bargain stone opens its deal on the spell's school)
+  if (castIntoStone(slot, def)) return true; // (a spell cast into a waystone, ready or not, costs nothing and opens its screen on that spell)
   if (player.spellCd[slot] > 0) {
     Sfx.spellFail();
     flashMana(slot, 'cooldown');
@@ -121,7 +121,7 @@ export function castSpell(slot: number, cast: Vec2 | null) {
     if (def.runes?.includes('vein')) veinWontBleed();
     return false;
   }
-  const ward = wardNear(); // (M4.2: a sealed vault's ward near the mage drinks the spell instead)
+  const ward = wardNear(); // (a sealed vault's ward near the mage drinks the spell instead)
   if (ward) drinkSpell(ward, def);
   else if (!CAST[def.shape](def, aimDir(cast))) {
     Sfx.spellFail();
@@ -129,15 +129,15 @@ export function castSpell(slot: number, cast: Vec2 | null) {
     return false;
   }
   pay(def, payment(slot) ?? can); // (asked again: the cast may have given mana back, a foe it felled or a toll paid)
-  spendFreeCast(); // (M5: the Bottled Storm's)
+  spendFreeCast(); // (the Bottled Storm's)
   if (!ward && takeEcho()) {
     const room = G.room.current;
     after(CFG.alchemy.echoAfter, () => {
       if (G.room.current === room && !G.flow.trans && !player.dead) CAST[def.shape](def, aimDir(cast));
     });
-  } // (M5: the Philter of Echoes casts it again)
+  } // (the Philter of Echoes casts it again)
   if (!ward && def.runes?.includes('reprise')) {
-    // (M6: Reprise casts it again, softer, while the mage is still in the room)
+    // (Reprise casts it again, softer, while the mage is still in the room)
     const R = rune('reprise').params,
       room = G.room.current,
       again = reprisedDef(def, R.share);
@@ -149,22 +149,22 @@ export function castSpell(slot: number, cast: Vec2 | null) {
   if (def.school === 'hallow') {
     hexGiveBack();
     votiveCast();
-  } // (M4.9: holy light gives back what a hex just took; M6: Votive Heart mends)
-  if (def.school === 'storm') flareEyes(); // (M4.6: a Stormcaller's eyes flare)
+  } // (holy light gives back what a hex just took; Votive Heart mends)
+  if (def.school === 'storm') flareEyes(); // (a Stormcaller's eyes flare)
   player.spellCd[slot] = spellCooldown(def);
-  castRunes(def); // (M6: Quicken, Wide and Lasting show at the cast)
-  G.run.casts[def.school] = (G.run.casts[def.school] ?? 0) + 1; // (M6: the boons' deal leans to the schools cast)
-  afterglowCast(def.status, def.color); // (M6: Afterglow)
+  castRunes(def); // (Quicken, Wide and Lasting show at the cast)
+  G.run.casts[def.school] = (G.run.casts[def.school] ?? 0) + 1; // (the boons' deal leans to the schools cast)
+  afterglowCast(def.status, def.color); // (Afterglow)
   skullsWatch(G.room.current, def.color); // an ossuary's skulls take the spell's colour
   if (castSpellOnce(id)) {
     toast(STR.knowledge.knownWell(def.name), 3);
     knownWellNow(def.school);
-  } // cast enough times: its lore and reactions are known (and perhaps its whole school: M4.11)
+  } // cast enough times: its lore and reactions are known (and perhaps its whole school)
   heroCast();
   return true;
 }
 
-/** Pay for a cast as `how` says: mana; Vein's half heart for what mana lacks (M6), or a soul mote should the heart have
+/** Pay for a cast as `how` says: mana; Vein's half heart for what mana lacks, or a soul mote should the heart have
     gone in the cast; a soul mote burnt for the rest. */
 function pay(def: SpellDef, how: Payment) {
   const cost = spellCost(def);
@@ -193,8 +193,8 @@ function veinWontBleed() {
 export function updateMagic(dt: number, acting: boolean) {
   if (acting) {
     const fighting = G.room.current.locked;
-    if (!player.stats.effects.has('noRegen')) gainMana(manaRegen(dt, fighting, CFG.mana) * player.stats.regenMul); // (M6: Will brings it back faster) // not with the Hungering Tome
-    keepFlames(dt); // (M6: Flamekeeper)
+    if (!player.stats.effects.has('noRegen')) gainMana(manaRegen(dt, fighting, CFG.mana) * player.stats.regenMul); // (Will brings it back faster) // not with the Hungering Tome
+    keepFlames(dt); // (Flamekeeper)
     if (DEV.mana) player.mana = player.stats.maxMana;
     for (let i = 0; i < player.spellCd.length; i++) player.spellCd[i] = Math.max(0, player.spellCd[i] - dt);
   }
@@ -204,7 +204,7 @@ export function updateMagic(dt: number, acting: boolean) {
 let emberT = 0;
 const hand = new THREE.Vector3(),
   FLAME = 0xffa040;
-/** Flamekeeper (M6): in a fight, each flame within reach (up to four) gives mana; embers run from each to the casting hand. */
+/** Flamekeeper: in a fight, each flame within reach (up to four) gives mana; embers run from each to the casting hand. */
 function keepFlames(dt: number) {
   if (!boonRank('flamekeeper') || !inFight() || player.mana >= player.stats.maxMana) return;
   const flames = flamesNear(player.x, player.z, boonParam('flamekeeper', 'reach'), boonParam('flamekeeper', 'most'));

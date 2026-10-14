@@ -1,4 +1,4 @@
-/* Transformations in the game (M4.6, the rules in transformData.ts): which have formed this run (`G.run.transforms`), their
+/* Transformations in the game (the rules in transformData.ts): which have formed this run (`G.run.transforms`), their
    gifts added to the mage's stats (`giftsFor`, from refreshStats), and the announcement of a new one: a banner, a lore card,
    a sound and a burst of its light (GDD pillar: Nothing silent). Its look is costume.ts's (`dress`). */
 import { G, player } from '../state';

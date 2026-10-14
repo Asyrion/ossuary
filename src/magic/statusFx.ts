@@ -2,14 +2,14 @@
    foe (flames licking up from a burning one, a blue tint deepening with each chill stack, a block of ice around
    a frozen one, sparks crackling on a shocked one), the burn's damage, the shock's leap to a neighbour, and the
    two reactions: Shatter bursts a frozen foe into ice shards that fly at its neighbours, Overload blows a
-   burning foe apart and throws everything near it back. M4.1 adds Hallow's and Umbral's: a sanctified foe glows gold,
+   burning foe apart and throws everything near it back. Hallow's and Umbral's: a sanctified foe glows gold,
    a hexed one violet, a rooted one is held by the shadow at its feet; Eclipse hangs a black sun over a foe it takes out
    of the fight and strikes it when it comes back, Blackfire burns violet and never goes out. Reactions name themselves
    in the air, so players learn them. The training dummy (dev menu) shows its statuses and every hit it takes.
-   M4.8, the full wheel: Searing cracks a foe gold (its guard burnt away, a War-Tiger's plate knocked off), a Prism glints
+   The full wheel: Searing cracks a foe gold (its guard burnt away, a War-Tiger's plate knocked off), a Prism glints
    every colour while it stays frozen (statusTint; projectiles.ts splits the bolts that strike it), Verdict strikes every
    sanctified foe in the room from above, Black Ice is laid under the foe (actors/bestiaryGround.ts), Void Spark leaps to
-   the foes near, carrying a hex. M5, Verdant: an overgrown foe is wound in green vines (leaves drift off it) and flowers
+   the foes near, carrying a hex. Verdant: an overgrown foe is wound in green vines (leaves drift off it) and flowers
    when it falls (`flowerFell`: half a heart for the mage, once a room); its five reactions: Wildfire runs the burn along
    the vines to every overgrown foe, Frostbloom opens ice flowers that shatter a moment later, Pollen Spark leaves a cloud
    of pollen that shocks the foes inside it (`pollenClouds`), Bloom makes the foe a lily that mends the mage as it falls,
@@ -78,15 +78,15 @@ const REACT_COLOR: Record<Reaction, number> = {
   blight: 0xb890c8,
 };
 
-/** Apply a spell's statuses to a foe, and carry out what they set off. `from` (M6 step 5): `'mage'` when the mage's own
+/** Apply a spell's statuses to a foe, and carry out what they set off. `from`: `'mage'` when the mage's own
     magic brings them (Spark Wake hears its stuns), `'snap'` for a thawing foe's breath (Cold Snap). The boons taken
     lengthen some (Banked Coals, Perennial, Laid Bare) and tune the rest (Deep Winter, Gathering Dark: `magicNow`). */
 export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> | undefined, from?: 'mage' | 'snap') {
-  if (!status || e.dead || e.ward) return; // (M4.2: a drinking ward keeps statuses off the foe inside it)
+  if (!status || e.dead || e.ward) return; // (a drinking ward keeps statuses off the foe inside it)
   for (const [kind, amount] of Object.entries(status) as [SpellStatus, number][]) {
     if (e.dead) return;
     if (e.mantle) {
-      // (M4.7: a champion's mantle keeps its own school's status off, and the school that strips it unbinds it)
+      // (a champion's mantle keeps its own school's status off, and the school that strips it unbinds it)
       if (mantleImmune(e.mantle, kind)) {
         shrugOff(e);
         continue;
@@ -98,16 +98,16 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
       react(e, 'shatter');
       breakPlate(e);
       continue;
-    } // (M4.2: a shock on the War-Tiger's rimed plates shatters one)
+    } // (a shock on the War-Tiger's rimed plates shatters one)
     if (drinksStatus(e.foe, kind)) {
-      // (M4.5: an elemental drinks its own school's status; the ground under it still hears it)
+      // (an elemental drinks its own school's status; the ground under it still hears it)
       drink(e, amount * CFG.bestiary.statusHeal);
       foeAfflicted(e, kind);
       if ((STATUS_KINDS as string[]).includes(kind)) touchPools(e, kind as StatusKind);
       continue;
     }
     const garden = kind === 'grow' && G.room.current?.theme?.twist === 'garden';
-    if (garden) gardenHolds(e); // (M5: the garden grows; its vines hold longer)
+    if (garden) gardenHolds(e); // (the garden grows; its vines hold longer)
     const st = (e.status ??= newStatus()),
       stacks = st.chill + amount,
       T = magicNow();
@@ -129,13 +129,13 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
       burst(e.x, 0.9, e.z, SPARK, 6, 2, 0.03);
       if (from === 'mage' && boonRank('sparkWake')) sparkWake(e);
     }
-    if (kind === 'burn' && st.burn > 0 && boonRank('bankedCoals')) boonActs('bankedCoals', e.x, e.z); // (M6: it burns longer)
-    if (kind === 'hex' && st.hex > MAGIC.hex.max) boonActs('gatheringDark', e.x, e.z); // (M6: deeper than a hex can gather without it)
+    if (kind === 'burn' && st.burn > 0 && boonRank('bankedCoals')) boonActs('bankedCoals', e.x, e.z); // (it burns longer)
+    if (kind === 'hex' && st.hex > MAGIC.hex.max) boonActs('gatheringDark', e.x, e.z); // (deeper than a hex can gather without it)
     if (res.reaction) react(e, res.reaction);
-    foeAfflicted(e, kind); // (M4.5: what its behaviour does about it)
+    foeAfflicted(e, kind); // (what its behaviour does about it)
     if ((STATUS_KINDS as string[]).includes(kind)) touchPools(e, kind as StatusKind); // oil catches fire, water freezes or carries the shock
     if (kind === 'shock' || kind === 'sanct' || kind === 'hex')
-      chargeSteam(e.x, e.z, kind === 'shock' ? 'storm' : kind === 'sanct' ? 'hallow' : 'umbral'); // (M4.10: a school landing in steam charges it)
+      chargeSteam(e.x, e.z, kind === 'shock' ? 'storm' : kind === 'sanct' ? 'hallow' : 'umbral'); // (a school landing in steam charges it)
     if (kind === 'shock')
       for (const o of G.room.enemies)
         if (
@@ -145,7 +145,7 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
           (o.status?.eclipse ?? 0) > 0 &&
           Math.hypot(o.x - e.x, o.z - e.z) < MAGIC.weaves.corona.reach
         ) {
-          // (M4.10, Corona)
+          // (Corona)
           o.corona = true;
           sparkLine(e, o);
           weaveAt('corona', o.x, o.z);
@@ -157,7 +157,7 @@ export function inflict(e: Enemy, status: Partial<Record<SpellStatus, number>> |
   }
 }
 
-/** A hit landed on a shocked foe: the mark leaps to the nearest other foe with part of the hit (M6: Forking Arc, to the
+/** A hit landed on a shocked foe: the mark leaps to the nearest other foe with part of the hit (Forking Arc, to the
     two or three nearest, each with that part; the list made first, as each blow may move or fell them). */
 export function shockLeap(e: Enemy, dmg: number) {
   if (!consumeShock(e.status)) return;
@@ -176,7 +176,7 @@ export function shockLeap(e: Enemy, dmg: number) {
 }
 
 function react(e: Enemy, r: Reaction) {
-  floatText(e.x, 1.7, e.z, STR.reactions[r], REACT_COLOR[r], foundReaction(r) ? 52 : 44); // (bigger the first time ever, M4.8's codex)
+  floatText(e.x, 1.7, e.z, STR.reactions[r], REACT_COLOR[r], foundReaction(r) ? 52 : 44); // (bigger the first time ever, for the codex)
   if (r === 'searing') {
     // holy fire: its guard burns away a while (damageEnemy reads `seared`), a War-Tiger loses a plate
     burst(e.x, 0.8, e.z, SEAR, 18, 2.4, 0.05);
@@ -269,7 +269,7 @@ function react(e: Enemy, r: Reaction) {
     Sfx.at(e.x, e.z).blackfire();
     return;
   }
-  if (verdantReact(e, r)) return; // (M5: Verdant's five)
+  if (verdantReact(e, r)) return; // (Verdant's five)
   if (r === 'steam') {
     // fire and cold go up together: a cloud round the foe (nothing inside can aim, no eye sees through it), the foe scalded
     removeIce(e);
@@ -307,7 +307,7 @@ function react(e: Enemy, r: Reaction) {
   } else overloadAt(e.x, e.z, e);
 }
 
-/* ---------- M5: Verdant's vines and their reactions ---------- */
+/* ---------- Verdant's vines and their reactions ---------- */
 
 const live = (o: Enemy) => !o.dead && !o.hidden && o.spawn <= 0;
 /** Verdant's five reactions, set off on `e`; false for the others. */
@@ -398,13 +398,13 @@ function verdantReact(e: Enemy, r: Reaction) {
   return false;
 }
 
-/** Spark Wake (M6): a foe the mage's shock stunned leaves a spark on the floor that stings foes, never the mage. */
+/** Spark Wake: a foe the mage's shock stunned leaves a spark on the floor that stings foes, never the mage. */
 function sparkWake(e: Enemy) {
   laySpark(G.room.current, e.x, e.z, boonParam('sparkWake', 'seconds'), 'mage', boonParam('sparkWake', 'damage'));
   burst(e.x, 0.1, e.z, SPARK, 8, 1.6, 0.03);
   boonActs('sparkWake', e.x, e.z);
 }
-/** Cold Snap (M6): a frozen foe thaws and breathes its cold onto the foes within reach (what that freezes breathes nothing). */
+/** Cold Snap: a frozen foe thaws and breathes its cold onto the foes within reach (what that freezes breathes nothing). */
 function coldBreath(e: Enemy) {
   const reach = boonParam('coldSnap', 'reach'),
     chill = boonParam('coldSnap', 'chill');
@@ -421,7 +421,7 @@ function coldBreath(e: Enemy) {
   if (near.length) boonActs('coldSnap', e.x, e.z);
 }
 
-/** How long the vines must hold for their full slow (M6: Perennial roots a foe then). */
+/** How long the vines must hold for their full slow (Perennial roots a foe then). */
 const FULL_GROW = (MAGIC.grow.maxSlow - MAGIC.grow.slow) / MAGIC.grow.ramp;
 /** Perennial: the vines root the foe a moment (laid straight on: Root is Umbral's, and this isn't Umbral's magic). */
 function perennialRoot(e: Enemy, s: StatusState) {
@@ -433,7 +433,7 @@ function perennialRoot(e: Enemy, s: StatusState) {
   boonActs('perennial', e.x, e.z);
 }
 
-/** The overgrown garden's twist (M5): its vines hold longer; the first time in a room, a word over the foe says so. */
+/** The overgrown garden's twist: its vines hold longer; the first time in a room, a word over the foe says so. */
 function gardenHolds(e: Enemy) {
   const room = G.room.current;
   if (room.gardenSaid) return;
@@ -511,7 +511,7 @@ export function flowerFell(e: Enemy) {
 }
 
 /** An Overload's blast at (x, z): foes thrown out and struck, a shockwave and a flash. Set off by a burning foe shocked or
-    a shocked one set burning (`e`, which it doesn't throw), and by a shock through burning oil (M4.8, in `pools.ts`). */
+    a shocked one set burning (`e`, which it doesn't throw), and by a shock through burning oil (in `pools.ts`). */
 export function overloadAt(x: number, z: number, e?: Enemy, radius = R.overload.radius) {
   const O = { ...R.overload, radius };
   flash(x, z, 0xffb050, O.radius);
@@ -546,7 +546,7 @@ export function overloadAt(x: number, z: number, e?: Enemy, radius = R.overload.
   }
   Sfx.at(x, z).overload();
   G.fx.shake = Math.max(G.fx.shake, 0.35);
-  // (M4.10, Hailburst: among chilled foes or ice, the blast throws out shards that chill)
+  // (Hailburst: among chilled foes or ice, the blast throws out shards that chill)
   const cold =
     G.room.enemies.some(
       (o) =>
@@ -574,7 +574,7 @@ export function overloadAt(x: number, z: number, e?: Enemy, radius = R.overload.
   }
 }
 
-/** A reaction on the floor rather than on a foe (M4.8: a shock through burning oil, a hex on holy ground): its name rises
+/** A reaction on the floor rather than on a foe (a shock through burning oil, a hex on holy ground): its name rises
     there, larger the first time ever, as on a foe. */
 export function tileReaction(r: Reaction, x: number, z: number) {
   floatText(x, 1.3, z, STR.reactions[r], REACT_COLOR[r], foundReaction(r) ? 52 : 44);
@@ -605,9 +605,9 @@ function endEclipse(e: Enemy) {
   burst(e.x, 0.8, e.z, 0x2a0a4a, 16, 2.4, 0.05);
   burst(e.x, 0.8, e.z, GOLD, 10, 2, 0.04);
   const blow = R.eclipse.damage * (e.eclipseMul ?? 1);
-  e.eclipseMul = undefined; // (M4.10: Eclipse Ground's strikes half again as hard)
+  e.eclipseMul = undefined; // (Eclipse Ground's strikes half again as hard)
   if (e.corona) {
-    // (M4.10, Corona: the blow leaps as lightning to each foe near)
+    // (Corona: the blow leaps as lightning to each foe near)
     e.corona = false;
     for (const o of G.room.enemies)
       if (
@@ -668,7 +668,7 @@ export function updateStatuses(dt: number, now: number) {
     if (!s || e.dead) continue;
     const held = s.growHeld,
       { burnDamage, thawed, eclipsed } = tickStatus(s, dt);
-    if (s.grow > 0 && held < FULL_GROW && s.growHeld >= FULL_GROW && boonRank('perennial')) perennialRoot(e, s); // (M6: held at its full slow, it roots)
+    if (s.grow > 0 && held < FULL_GROW && s.growHeld >= FULL_GROW && boonRank('perennial')) perennialRoot(e, s); // (held at its full slow, it roots)
     if (eclipsed) endEclipse(e);
     if (s.eclipse > 0) {
       if (e.sun) e.sun.rotation.y += dt * 2;
@@ -685,7 +685,7 @@ export function updateStatuses(dt: number, now: number) {
     if (thawed) {
       if (!e.snapped && boonRank('coldSnap')) coldBreath(e);
       e.snapped = false;
-    } // (M6: Cold Snap; a foe a breath froze breathes nothing)
+    } // (Cold Snap; a foe a breath froze breathes nothing)
     const y = e.flying ? 0.85 : 0.5;
     if (s.burn > 0 && Math.random() < dt * 14)
       burst(
@@ -726,7 +726,7 @@ export function updateStatuses(dt: number, now: number) {
         1,
         0.9,
         0.035,
-      ); // (M4.8: a prism throws colours)
+      ); // (a prism throws colours)
     if (s.root > 0 && Math.random() < dt * 5)
       burst(e.x + (Math.random() - 0.5) * e.r * 2, 0.08, e.z + (Math.random() - 0.5) * e.r * 2, 0x2a0a4a, 1, 0.4, 0.04);
     if (s.grow > 0 && Math.random() < dt * 7)
@@ -738,7 +738,7 @@ export function updateStatuses(dt: number, now: number) {
         1,
         0.35,
         0.04,
-      ); // (M5: vines, leaves drifting off)
+      ); // (vines, leaves drifting off)
     if (s.bloom && Math.random() < dt * 3)
       burst(e.x + (Math.random() - 0.5) * e.r, y + 0.45, e.z + (Math.random() - 0.5) * e.r, PETAL, 1, 0.4, 0.035);
     if ((s.shock > 0 || s.stun > 0) && Math.random() < dt * 8)
@@ -763,14 +763,14 @@ const tint = new THREE.Color();
 export function statusTint(e: Enemy, now: number): [THREE.Color, number] | null {
   if (e.statue) return [tint.setHex(0xa88a4a), 0.7]; // a treasury's guardian stands gilded, a statue until its gold is taken
   if (e.type === 'tiger' && e.state === 'statue') return [tint.setHex(0x8a94a4), 0.45]; // (the War-Tiger, stone until it wakes)
-  if (e.foe && e.state === 'rock') return [tint.setHex(0x4a4440), 0.8]; // (M4.5: a magma ooze frozen hard)
+  if (e.foe && e.state === 'rock') return [tint.setHex(0x4a4440), 0.8]; // (a magma ooze frozen hard)
   const s = e.status;
   if (!s) return null;
-  if (s.prism > 0) return [tint.setHSL((now * 0.7 + e.x * 0.1) % 1, 0.95, 0.58), 1]; // (M4.8: frozen in holy light, it glints every colour)
+  if (s.prism > 0) return [tint.setHSL((now * 0.7 + e.x * 0.1) % 1, 0.95, 0.58), 1]; // (frozen in holy light, it glints every colour)
   if (s.seared > 0) return [tint.setHex(0xffa030), 0.55 + Math.sin(now * 11) * 0.2]; // (its guard burnt away: cracked gold)
   if (s.voidT > 0) return [tint.setHex(Math.sin(now * 19) > 0.6 ? 0xf0e890 : 0x9a5ae0), 0.5]; // (a Void Spark's mark: violet, sparking; it pays mana as it falls)
   if (s.frozen > 0) return [tint.setHex(0x4a8ad8), 0.85];
-  if (s.grow > 0) return [tint.setHex(s.bloom ? 0xd890b8 : 0x4aa83a), 0.35 + Math.min(0.3, s.growHeld * 0.08)]; // (M5: green as the vines hold, deeper the longer; a lily pink)
+  if (s.grow > 0) return [tint.setHex(s.bloom ? 0xd890b8 : 0x4aa83a), 0.35 + Math.min(0.3, s.growHeld * 0.08)]; // (green as the vines hold, deeper the longer; a lily pink)
   if (s.burn > 0 && s.black) return [tint.setHex(0x6a1ac0), 0.5 + Math.sin(now * 17 + e.x) * 0.2];
   if (s.burn > 0) return [tint.setHex(0xff5a10), 0.45 + Math.sin(now * 17 + e.x) * 0.2];
   if (s.sanct > 0) return [tint.setHex(0xc89a30), 0.45 + Math.sin(now * 6) * 0.1];
@@ -830,7 +830,7 @@ export function floatText(x: number, y: number, z: number, text: string, color: 
 }
 /** How high (x, y, z) stands on the screen (the camera looks down at TILT). */
 const onScreen = (y: number, z: number) => y * Math.cos(TILT) - z * Math.sin(TILT);
-/** Names rising at once from the same spot stack rather than overlap (M4.10: a weave over the reaction it came from): the
+/** Names rising at once from the same spot stack rather than overlap (a weave over the reaction it came from): the
     height on screen for a name `w` wide at (x, y, z), lifted over any name just risen there. */
 function clearOfNames(x: number, y: number, z: number, w: number) {
   const gap = CFG.spellFx.nameGap;
