@@ -1,4 +1,4 @@
-/* The Pillar Dragon's path (M4.2): where its long body lies, as plain geometry. The fight moves a leading point along a
+/* The Pillar Dragon's path: where its long body lies, as plain geometry. The fight moves a leading point along a
    route (an arc through the air, then a coil round a pillar's top) and keeps the trail it leaves behind; the body's
    segments lie along that trail a fixed spacing apart, so the body follows the head through the air and winds round the
    pillar as the head did. The head itself may lean out from the trail's end; a short arched neck joins them. */

@@ -1,5 +1,4 @@
-/* Bosses, all built in code (bossLooks.ts; the Hollow Warden, M4, the Owlbear since M4.12; the abbess
-   and the knight remade in code 2026-10-01). A floor draws its boss from the pool
+/* Bosses, all built in code (bossLooks.ts; the Hollow Warden is the Owlbear). A floor draws its boss from the pool
    in data/floors.json, never one the run has already met; the floor's boss block scales its health,
    speed and shot speed, how many foes it calls and how often it repeats its aimed attack.
 
@@ -14,19 +13,19 @@
      landing spot glows) and lands blade first with a shockwave ring; levels its sword and charges in a line until a wall
      or rock stuns it; raises its sword and sweeps cones of embers; calls the floor's heavies below half health, and its
      landings send a second ring. Both have a weakness and a resistance (CFG.enemy), as the bosses below them do.
-   Hallowed Hart (floor 4, M4.1, built in code): walks at the mage; lowers its antlers while the way it will run lights up
+   Hallowed Hart (floor 4, built in code): walks at the mage; lowers its antlers while the way it will run lights up
      on the floor, then charges along it (a wall stuns it); turns in place firing spokes of light (six below half health);
      rears and stamps a ring of motes (a second ring below half); calls the floor's flyers, its fawns, below half health.
-   Deep Angler (floor 5, M4.1, built in code): floats a few tiles off, circling; its lure brightens, then draws the mage in
+   Deep Angler (floor 5, built in code): floats a few tiles off, circling; its lure brightens, then draws the mage in
      towards its opening jaws until it bites (striking it hard enough meanwhile makes it flinch and let go); spits volleys
      of shadow that hex; puffs up and breathes a ring of dark motes (a second ring below half); calls the floor's flyers
      below half health. Both have a weakness and a resistance (CFG.enemy).
-   War-Tiger (M4.2, from the Eda lore, built in code): stands as a statue in its hall until the mage comes near or strikes
+   War-Tiger (from the Eda lore, built in code): stands as a statue in its hall until the mage comes near or strikes
      it; prowls at the mage, circling it at claw reach; crouches, the spot it will land on marked, and pounces there (a
      wall stuns it), throwing frost shards as it lands; swipes a fan of claws when the mage is close; roars a ring (a
      second below half health); calls the floor's walkers below half health. Its four plates let only part of a blow through; a glyph's blast, a Shatter (a
      shock on its rimed plates) or enough blows turned knock one off, and each lost leaves it faster and more open.
-   The jelly serpent (M5, out of its vat in Dr. Jelly's laboratory, or a floor's boss with `?boss=serpent`) is
+   The jelly serpent (out of its vat in Dr. Jelly's laboratory, or a floor's boss with `?boss=serpent`) is
      jellySerpent.ts: it swims hidden through its jelly, rises to lunge or spit globs, and a shock or a freeze traps it. */
 import * as THREE from 'three';
 import { CFG, type BossType } from '../config';
@@ -89,7 +88,7 @@ export function buildBoss(e: Enemy) {
   e.cycle = 0;
   e.summoned = false;
   if (e.type === 'warden') {
-    // built in code (M4; the Owlbear since M4.12, bossLooks.ts), its still parts merged
+    // built in code (the Owlbear, bossLooks.ts), its still parts merged
     const L = wardenLook();
     e.mats = mergeRig(L.group, L.idle, 'boss:warden', [L.parts.eye, L.parts.ring]);
     for (const m of e.mats) m.userData.base = m.emissive.clone();
@@ -104,7 +103,7 @@ export function buildBoss(e: Enemy) {
     e.state = 'walk';
     e.st = 2.2;
   } else if (e.type === 'hart' || e.type === 'angler') {
-    // built in code (M4.1): the bosses of floors 4 and 5
+    // built in code: the bosses of floors 4 and 5
     const L = e.type === 'hart' ? hartLook() : anglerLook(),
       P = L.parts,
       C = CFG.enemy[e.type];
@@ -132,7 +131,7 @@ export function buildBoss(e: Enemy) {
       e.st = 2.2;
     }
   } else if (e.type === 'tiger') {
-    // built in code (M4.2): a statue in its hall until the mage comes near
+    // built in code: a statue in its hall until the mage comes near
     const L = tigerLook(),
       P = L.parts,
       C = CFG.enemy.tiger;
@@ -171,15 +170,15 @@ export function buildBoss(e: Enemy) {
     P.halo.material.opacity = 0;
     P.eye.scale.set(1, 0.15, 1);
   } else if (e.type === 'dragon')
-    buildDragon(e); // built in code (M4.2): its fight is pillarDragon.ts
+    buildDragon(e); // built in code: its fight is pillarDragon.ts
   else if (e.type === 'twins')
-    buildTwin(e); // built in code (M4.2): the pair's fight is twinGuardians.ts
+    buildTwin(e); // built in code: the pair's fight is twinGuardians.ts
   else if (e.type === 'kaelith')
-    buildKaelith(e); // built in code (M7 step 2): the Seal's boss, its fight kaelith.ts
+    buildKaelith(e); // built in code: the Seal's boss, its fight kaelith.ts
   else if (e.type === 'serpent')
-    buildSerpent(e); // built in code (M5): out of its vat (world/laboratory.ts), its fight is jellySerpent.ts
+    buildSerpent(e); // built in code: out of its vat (world/laboratory.ts), its fight is jellySerpent.ts
   else if (e.type === 'abbess' || e.type === 'pyre') {
-    // remade in code (2026-10-01): the bosses of floors 2 and 3
+    // built in code: the bosses of floors 2 and 3
     const abbess = e.type === 'abbess',
       L = abbess ? abbessLook() : pyreKnightLook(),
       P = L.parts,
@@ -285,7 +284,7 @@ function laterRing(e: Enemy, delay: number, n: number, speed: number, offset: nu
 export function updateBoss(e: Enemy, dt: number, ux: number, uz: number): number | undefined {
   actAs(e);
   const face = stepBoss(e, dt, ux, uz);
-  actAs(); // (what it throws is its own: M4.9, a hex's mana runs back to it)
+  actAs(); // (what it throws is its own: a hex's mana runs back to it)
   return face;
 }
 function stepBoss(e: Enemy, dt: number, ux: number, uz: number): number | undefined {

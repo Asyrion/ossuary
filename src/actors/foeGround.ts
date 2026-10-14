@@ -1,4 +1,4 @@
-/* Foes in each other's ground (M4.7 step 2, docs/archive/M4.7-plan.md; GDD: Depth for what's built). What the bestiary leaves on
+/* Foes in each other's ground (docs/archive/M4.7-plan.md; GDD: Depth for what's built). What the bestiary leaves on
    the floor works on foes as it does on the mage: webs and ink slow a walker, rime makes it slide, burning ground sets it
    burning, an armed spark shocks it, a Sporeling's or a Puffcap's spores sting it. A foe's own ground spares it and its
    kind (each patch, fire, spark and cloud knows whose it is: actors/acting.ts), and a foe is at home in ground of its own
@@ -83,7 +83,7 @@ export function steerAround(e: Enemy) {
 }
 
 /** On another kind's rime, `e` slides: what it means to do comes in slowly, as for the mage (`CFG.bestiary.rimeGrip`). On
-    black ice (M4.8's reaction, Frost and Umbral) every walker slides, and far longer: it can hardly stop or turn
+    black ice (a reaction of Frost and Umbral) every walker slides, and far longer: it can hardly stop or turn
     (`blackice.grip` in data/magic.json). */
 export function groundSlide(e: Enemy, dt: number) {
   const black = walks(e) && blackIceAt(e.x, e.z);
@@ -124,11 +124,11 @@ export function groundHarm(e: Enemy, dt: number) {
   if (h === 'fire' || h === 'blackfire') {
     inflict(e, { burn: F.burn });
     if (h === 'blackfire' && e.status && e.status.burn > 0) e.status.black = true;
-  } // (M4.10: Black Melt's ground burns black)
+  } // (Black Melt's ground burns black)
   else if (h === 'spark') {
     inflict(e, { shock: F.shock });
     damageEnemy(e, sparkSting(e.x, e.z, who) ?? F.sparkDamage, 0, 0, 0, undefined, 'storm');
-  } // (M6: Spark Wake's stings harder)
+  } // (Spark Wake's stings harder)
   else if (at === 'spores') damageEnemy(e, F.sting, 0, 0, 0);
   else return;
   e.groundT = F.every;

@@ -1,10 +1,10 @@
-/* The Twin Guardians' fight (M4.2, from the Eda lore; GDD: Bosses from the Eda lore). Two colossal bearded guardians of
+/* The Twin Guardians' fight (from the Eda lore; GDD: Bosses from the Eda lore). Two colossal bearded guardians of
    sandstone, lion-pawed, crouched like the ones in the gate's towers. They stand as statues, their heads turning after
    the mage (as the Uzulim statues' eyes follow whoever comes near), until the mage comes close to either or strikes one;
    then both wake together. One strikes while the other shields: the shielding twin raises its stone shield and a
    drinking ward (actors/wardShield.ts) and holds its post; bolts glance off it and the ward drinks spells (full, it
-   breaks into a Wardling, and spells reach the shielder then). (Built first with the shielder putting itself between
-   the mage and its twin; that body-blocked every line on the striker, so it holds its post for now.) The striking twin stalks the mage,
+   breaks into a Wardling, and spells reach the shielder then). (The shielder holds its post rather than putting itself between
+   the mage and its twin: that body-blocked every line on the striker.) The striking twin stalks the mage,
    slams the floor (a ring of stone, and a blow to the mage beside it) and fixes the mage with its gaze (a stream of gold
    straight at them). Every so often they trade: the shield passes across to the other. Below half health (either) they
    call the floor's heavies. When one falls the other rages: no more shield, faster, sooner to strike. The two share the

@@ -1,5 +1,4 @@
-/* The mage in the pixel-art look (2026-10-01, the owner: everything in the one pixel-art look). The Tripo model stays (the
-   owner's choice) but sheds what made it read as a smooth render at the game's pixel size: its painted texture (a
+/* The mage in the pixel-art look. The Tripo model sheds what made it read as a smooth render at the game's pixel size: its painted texture (a
    thousand small islands of fine strokes, which drawn some 45 pixels tall broke into speckle and mush) is baked into
    its vertices and cut down to a small palette (`render/palette.ts`), and its light falls in a few flat bands, as the
    foes' and the room kit's do. Tuning in CFG.heroPixel. */

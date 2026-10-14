@@ -1,4 +1,4 @@
-/* Spell marks (M4.11, docs/archive/M4.11-plan.md; GDD: Spells, Spell marks): the mage's spells and what they know, shown on them.
+/* Spell marks (docs/archive/M4.11-plan.md; GDD: Spells, Spell marks): the mage's spells and what they know, shown on them.
    The rules are magic/marksData.ts; this is the look, moved each step (`updateSpellMarks`, from heroVisual).
 
    - A spell in hand: each slot's spell as a small light in its school's colour at a hand (Q at the casting hand, E at the
@@ -39,7 +39,7 @@ interface Hand {
   was: HandState['state'];
   pulse: number;
   spark: number;
-  /** M6 step 7: the runes it was built with (the socket's array: a new one on every change), their specks, and their spin. */ runes: readonly string[];
+  /** The runes it was built with (the socket's array: a new one on every change), their specks, and their spin. */ runes: readonly string[];
   specks: THREE.Mesh[];
   spin: number;
 }
@@ -87,7 +87,7 @@ function buildHand(id: string, school: School, runes: readonly string[]): Hand {
   mergeStill(turn);
   ring.rotation.x = Math.PI / 2;
   root.add(ring);
-  // M6 step 7: a speck for each rune (Thrice three, fanned), and Wide's faint disc under the hand
+  // a speck for each rune (Thrice three, fanned), and Wide's faint disc under the hand
   const specks: THREE.Mesh[] = [];
   runes.forEach((rid, i) => {
     const mat = new THREE.MeshBasicMaterial({
@@ -261,7 +261,7 @@ export function updateSpellMarks(dt: number) {
   for (const slot of [0, 1]) {
     const id = player.spells[slot],
       def = slotDef(slot),
-      runes = player.sockets[slot]?.runes ?? []; // (M6: as its runes make it)
+      runes = player.sockets[slot]?.runes ?? []; // (as its runes make it)
     if (hands[slot] && (!def || hands[slot].id !== id || hands[slot].runes !== runes))
       hands[slot] = dropHand(hands[slot]); // (built again when its runes change)
     if (!def || off) {
@@ -291,14 +291,14 @@ export function updateSpellMarks(dt: number) {
         const at = h.root.position.clone(),
           c = SCHOOL_LIGHT[h.school];
         after(R.echo, () => ringFx(at.x, at.y, at.z, c, 0.02, M.hand.flash * 0.75, 0.3));
-      } // (M6: Reprise's second, fainter)
+      } // (Reprise's second, fainter)
     }
     h.was = st.state;
-    h.pulse = Math.max(0, h.pulse - dt * M.hand.pulse * (runes.includes('lasting') ? R.lasting : 1)); // (M6: Lasting's slower fade)
+    h.pulse = Math.max(0, h.pulse - dt * M.hand.pulse * (runes.includes('lasting') ? R.lasting : 1)); // (Lasting's slower fade)
     const mat = h.glow.material,
       color = runes.includes('vein')
         ? veined.set(SCHOOL_LIGHT[h.school]).lerp(blood, R.vein).getHex()
-        : SCHOOL_LIGHT[h.school]; // (M6: Vein's red)
+        : SCHOOL_LIGHT[h.school]; // (Vein's red)
     h.spin += dt * R.spin * (runes.includes('quicken') ? R.quick : 1);
     for (const sp of h.specks) {
       const u = sp.userData as { a: number; r: number },

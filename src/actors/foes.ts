@@ -1,4 +1,4 @@
-/* The foes built in code (M4, docs/archive/M4-plan.md): each is its look (fantasyLooks.ts) made a foe. Its still parts
+/* The foes built in code (docs/archive/M4-plan.md): each is its look (fantasyLooks.ts) made a foe. Its still parts
    are merged (render/rig.ts), its idle plays on its own clock (`at`: a frozen foe stops, a swelling one holds still), and
    its behaviour, by kind, moves it, telegraphs and attacks; a behaviour may pose the model's parts after the idle (a
    beetle's wing-cases, a mimic's lid). What every foe shares is here: the telegraph (its body glows in its school's
@@ -14,14 +14,14 @@
    Mimic (the Urn Mimic): stands among the urns as an urn, and does nothing until the mage comes close, it is struck, or
      no foe in the room has been awake for a while (so a room is never left locked on a hidden one); then it peeks, spits a fan of embers (they light what burns), hops after the mage and shuts
      again, taking half of any blow while shut.
-   Floor 4 (M4.1): Scamper (the Wickmouse) runs from cover to cover a few tiles off the mage, peeps (its candle flares) and
+   Floor 4: Scamper (the Wickmouse) runs from cover to cover a few tiles off the mage, peeps (its candle flares) and
      darts at the mage, lighting oil it runs through; its candle falls burning when it dies (`die`). Chimer (the Chime Bat)
      loops round the mage; its bell rings and the ground under the mage is marked with a closing ring, where a spark
      strikes a moment later (shocking water there). Gargoyle (the Gargoyle Whelp) sits as stone (bolts glance off it:
      `guard`) until the mage comes near or it has rested; then it wakes, pounces twice, landing in a ring of frost shots,
      and turns to stone again. Healer (the Moonstag Fawn) keeps away from the mage and near the other foes, and bows to
      heal the hurt ones round it.
-   Floor 5 (M4.1): Burrower (the Rootling) toddles at the mage, then digs in and creeps after it as a mound, and bursts up
+   Floor 5: Burrower (the Rootling) toddles at the mage, then digs in and creeps after it as a mound, and bursts up
      under it (a ring warns first) in a spray of dark motes; burning, or on burning oil, it can't go under, and fire on
      its mound drives it up dazed. Glider (the Storm Ray) circles, then lines up and makes a long pass through where the
      mage stands, laying a line of sparks that crackle, then arm: they shock water and sting. Absorber (the Void Mote)
@@ -103,7 +103,7 @@ export function updateFoe(e: Enemy, dt: number, a: Aim) {
     B = BEHAVIOURS[def.behaviour];
   actAs(e);
   const face = B.step(e, dt, a, def.params, G.room.current);
-  actAs(); // (what it leaves and shoots is its own, M4.7)
+  actAs(); // (what it leaves and shoots is its own)
   e.at! += dt * (e.animRate ?? 1);
   e.idle!(e.at!);
   B.pose?.(e, def.params);
@@ -115,7 +115,7 @@ export function drivenUp(e: Enemy, why: 'blast' | 'steam' | 'shock' | 'sluice') 
   Sfx.at(e.x, e.z).lurkerRise();
   if (why === 'steam') damageEnemy(e, MAGIC.reactions.steam.damage, 0, 0, 0, 'spell');
 }
-// a glyph's blast in a water foe's pool, or steam over it, drives it up (any build can bring one up: 2026-10-01)
+// a glyph's blast in a water foe's pool, or steam over it, drives it up (any build can bring one up)
 hearGround((kind, x, z, r) => {
   if (kind !== 'blast' && kind !== 'steam') return;
   const there = poolAt(x, z);
@@ -126,7 +126,7 @@ hearGround((kind, x, z, r) => {
     if (pool === there || Math.hypot(e.x - x, e.z - z) < r + CFG.surface.driveReach) B!.driven!(e, e.foe!.params, kind);
   }
 });
-/** An open sluice (M4.9) has drained the room's water to mud: every water foe hiding in it is driven up (called again and
+/** An open sluice has drained the room's water to mud: every water foe hiding in it is driven up (called again and
     again while it stands open, so none hides for long). */
 export function driveUpAll(why: 'sluice') {
   for (const e of G.room.enemies) {
@@ -139,11 +139,11 @@ export function foeStruck(e: Enemy, dmg: number, by: Enemy['lastHit'], dx = 0, d
   const B = e.foe && BEHAVIOURS[e.foe.behaviour];
   return B?.struck ? B.struck(e, dmg, by, e.foe!.params, dx, dz, school) : dmg;
 }
-/** A glyph's blast reaches a foe in code (M4.5: a rubble crab is flipped). */
+/** A glyph's blast reaches a foe in code (a rubble crab is flipped). */
 export function foeBlasted(e: Enemy) {
   if (e.foe) BEHAVIOURS[e.foe.behaviour].blasted?.(e, e.foe.params);
 }
-/** A status took hold on a foe in code (M4.5: a walking wave's ice shatters to a shock). */
+/** A status took hold on a foe in code (a walking wave's ice shatters to a shock). */
 export function foeAfflicted(e: Enemy, kind: SpellStatus) {
   if (e.foe && !e.dead) BEHAVIOURS[e.foe.behaviour].afflicted?.(e, kind, e.foe.params);
 }
@@ -209,7 +209,7 @@ const nearestWater = (room: Room, x: number, z: number) =>
 
 /* ---------- what foes leave on the floor: burning ground (a salamander's trail), sparks (a storm ray's line) ---------- */
 
-type HazardKind = 'fire' | 'spark' | 'blackfire'; // (blackfire: M4.10's Black Melt)
+type HazardKind = 'fire' | 'spark' | 'blackfire'; // (blackfire: Black Melt's)
 const hazards: {
   room: Room;
   x: number;
@@ -219,7 +219,7 @@ const hazards: {
   kind: HazardKind;
   armed?: boolean;
   by?: string;
-  /** How hard a spark stings a foe standing in it (M6: Spark Wake's; else `CFG.foeGround.sparkDamage`). */ sting?: number;
+  /** How hard a spark stings a foe standing in it (Spark Wake's; else `CFG.foeGround.sparkDamage`). */ sting?: number;
 }[] = [];
 const MAX_HAZARDS = 96; // (of each kind)
 /** Each kind's patches' glow on the floor, drawn at once (one instanced mesh a kind: a room of salamanders stays cheap). */
@@ -254,19 +254,19 @@ export function layFire(room: Room, x: number, z: number, time: number, by = act
   lay(room, x, z, time, 'fire', by);
   fireAt(x, z, 0.15);
 }
-/** Ground burning with Blackfire (M4.10, Black Melt: fire on black ice): it burns like fire, and what catches it burns black. */
+/** Ground burning with Blackfire (Black Melt: fire on black ice): it burns like fire, and what catches it burns black. */
 export function layBlackFire(room: Room, x: number, z: number, time: number) {
   lay(room, x, z, time, 'blackfire', '');
   fireAt(x, z, 0.15);
 }
-/** Whether ground is burning within `r` of (x, z) in the current room (M4.5: rime wolves scatter from it). */
+/** Whether ground is burning within `r` of (x, z) in the current room (rime wolves scatter from it). */
 export const burningNear = (x: number, z: number, r: number) =>
   hazards.some((h) => h.kind !== 'spark' && h.room === G.room.current && Math.hypot(h.x - x, h.z - z) < r);
 /** A patch of sparks at (x, z) for `time` seconds: crackling at first, then armed (`CFG.afflict.sparkArm`): it shocks the
     water there and hurts the mage who stands in it. */
 export function laySpark(room: Room, x: number, z: number, time: number, by = actingKind(), sting?: number) {
   if (by === 'mage') {
-    // (M6, Spark Wake: the mage's own spark beside another of theirs keeps that one alight instead)
+    // (Spark Wake: the mage's own spark beside another of theirs keeps that one alight instead)
     const h = hazards.find(
       (h) =>
         h.kind === 'spark' && h.by === 'mage' && h.room === room && Math.hypot(h.x - x, h.z - z) < CFG.boons.sparkMerge,
@@ -291,8 +291,8 @@ export function sparkSting(x: number, z: number, who?: string) {
       Math.hypot(h.x - x, h.z - z) < reach,
   )?.sting;
 }
-/** The mage's own patches of burning ground within `r` of (x, z), added to `out` while it holds fewer than `most` (M6,
-    Flamekeeper: the Pyromancer's embers). */
+/** The mage's own patches of burning ground within `r` of (x, z), added to `out` while it holds fewer than `most` (Flamekeeper:
+    the Pyromancer's embers). */
 export function mageFireNear(x: number, z: number, r: number, out: Vec2[], most: number) {
   for (const h of hazards)
     if (
@@ -304,7 +304,7 @@ export function mageFireNear(x: number, z: number, r: number, out: Vec2[], most:
     )
       out.push(h);
 }
-/** The harm in the ground at (x, z) in the current room for a foe of kind `who` (M4.7): burning ground, or an armed
+/** The harm in the ground at (x, z) in the current room for a foe of kind `who`: burning ground, or an armed
     spark, that isn't its own kind's. */
 export function hazardAt(x: number, z: number, who?: string): HazardKind | undefined {
   const reach = CFG.afflict.groundReach;
@@ -327,7 +327,7 @@ const company: Enemy[] = [];
 /** Every step: burning ground glows, now and then a flame licks up, it burns the mage in it, and it goes out; sparks
     crackle, arm and sting. */
 export function updateFoeHazards(dt: number) {
-  updateGround(dt); // (M4.5: webs, ink and what is thrown in an arc)
+  updateGround(dt); // (webs, ink and what is thrown in an arc)
   const A = CFG.afflict;
   for (let i = hazards.length - 1; i >= 0; i--) {
     const h = hazards[i];
@@ -346,7 +346,7 @@ export function updateFoeHazards(dt: number) {
           black ? (Math.random() < 0.6 ? 0xb070ff : 0x2a0a4a) : Math.random() < 0.6 ? 0xff7a2a : 0xffc060,
           0.3 + Math.random() * 0.2,
         );
-      if (near && h.by !== 'mage') hurtPlayer(1, h.x, h.z); // (the Pyromancer's own embers spare them: M4.6)
+      if (near && h.by !== 'mage') hurtPlayer(1, h.x, h.z); // (the Pyromancer's own embers spare them)
     } else {
       const armed = h.life - h.t >= A.sparkArm;
       if (armed && !h.armed) {
@@ -363,7 +363,7 @@ export function updateFoeHazards(dt: number) {
           1.2,
           0.025,
         );
-      if (armed && near && h.by !== 'mage') hurtPlayer(1, h.x, h.z); // (M6: Spark Wake's never stings the mage)
+      if (armed && near && h.by !== 'mage') hurtPlayer(1, h.x, h.z); // (Spark Wake's never stings the mage)
     }
   }
   if (!hazards.length && !hazardGlow.fire?.count && !hazardGlow.spark?.count && !hazardGlow.blackfire?.count) return; // (none to draw)
@@ -392,7 +392,7 @@ export function clearFoeHazards() {
   clearGround();
 }
 /** The burning ground and the sparks in the current room (tests). */
-export const burningGround = () => hazards.filter((h) => h.kind !== 'spark' && h.room === G.room.current).length; // (Blackfire's too, M4.10)
+export const burningGround = () => hazards.filter((h) => h.kind !== 'spark' && h.room === G.room.current).length; // (Blackfire's too)
 export const sparkGround = () => hazards.filter((h) => h.kind === 'spark' && h.room === G.room.current).length;
 
 /** The lit braziers and candle stands in `room` (a moth is lured to them). */
@@ -404,7 +404,7 @@ export const litFires = (room: Room) => (room.props ?? []).filter(litFire);
 /* ---------- behaviours ---------- */
 
 const BEHAVIOURS: Record<string, Behaviour> = {
-  ...BESTIARY_BEHAVIOURS, // (M4.5: actors/bestiaryFoes.ts)
+  ...BESTIARY_BEHAVIOURS, // (actors/bestiaryFoes.ts)
   hopper: {
     init(e, P) {
       e.state = 'hop';
@@ -1201,7 +1201,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
     },
   },
 
-  /* floor 5 (M4.1) */
+  /* floor 5 */
 
   burrower: {
     init(e, P) {
@@ -1481,7 +1481,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
     },
   },
 
-  /* floor 4 (M4.1) */
+  /* floor 4 */
 
   scamper: {
     init(e, P) {
@@ -1803,7 +1803,7 @@ const BEHAVIOURS: Record<string, Behaviour> = {
     },
   },
 
-  // M4.2: the Wardlings a drinking ward lets out
+  // the Wardlings a drinking ward lets out
   wardling: {
     init(e, P) {
       e.state = 'float';

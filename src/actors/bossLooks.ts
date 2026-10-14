@@ -1,9 +1,7 @@
 /* The bosses built in code. The Hollow Warden's fight (bosses.ts: it walks, winds up and bursts a ring of shots, fires
-   aimed volleys, calls the floor's walkers below half health) wears the Owlbear (`wardenLook`; the owner's choice of
-   three, 2026-10-03), which gives it the parts that fight moves: `eye` (swells as it winds up), `ring` (turns, faster
-   while winding), `halo` (brightens), and its school's light (Hallow) for its shots. Since M4.12 (docs/archive/M4.12-plan.md) it,
-   the Hallowed Hart, the Deep Angler, the War-Tiger, the Pillar Dragon's head and the jelly serpent's head are creatures of
-   fantasy, built in fantasyBosses.ts. Here are
+   aimed volleys, calls the floor's walkers below half health) wears the Owlbear (`wardenLook`), which gives it the parts that fight moves: `eye` (swells as it winds up),
+   `ring` (turns, faster while winding), `halo` (brightens), and its school's light (Hallow) for its shots. The Owlbear, the Hallowed Hart, the Deep Angler, the War-Tiger, the Pillar Dragon's head and the jelly serpent's head are
+   creatures of fantasy, built in fantasyBosses.ts (docs/archive/M4.12-plan.md). Here are
    the rest: the dragon's body, the Twin Guardians, the Drowned Abbess and the Pyre Knight, and the galleries' lists. Each
    stands on y = 0 facing +Z. Names and notes are placeholders in STR.bossLooks and STR.bosses. */
 import * as THREE from 'three';
@@ -51,8 +49,8 @@ function haloRing(g: THREE.Object3D, color: number, radius: number, y: number, z
   return ring;
 }
 
-/* The Pillar Dragon (M4.2, from the Eda lore; Ember and Frost): a long dragon with antlers, a spiked mane and a beard,
-   orange down its left flank and blue-grey down its right. Its head is one look (fantasyBosses.ts, M4.12: it leans out from the
+/* The Pillar Dragon (from the Eda lore; Ember and Frost): a long dragon with antlers, a spiked mane and a beard,
+   orange down its left flank and blue-grey down its right. Its head is one look (fantasyBosses.ts: it leans out from the
    pillar and breathes); its body a chain of segments drawn as instances, laid along its path each step (pillarDragon.ts). */
 const DRAGON = { fire: 0xe07a2c, frost: 0x6c8098, cream: 0xf0e2c2, horn: 0xdcc088 };
 
@@ -188,7 +186,7 @@ export function dragonLook(): BossBuilt {
   return { ...L, group: g, shadow: 2 };
 }
 
-/** One of the Twin Guardians (M4.2, from the Eda lore; Hallow): a colossal bearded guardian of sandstone crouched as
+/** One of the Twin Guardians (from the Eda lore; Hallow): a colossal bearded guardian of sandstone crouched as
     the ones in the gate's towers, a helm on its head, lion paws for hands and feet, a round stone shield on its left
     arm; its eyes the Wardens' gold. The two differ a little (`second`: greyer stone, a forked beard, a crest on its
     helm). Its fight (bosses.ts) turns its head after the mage, raises its shield arm as it shields its twin, and rears
@@ -296,7 +294,7 @@ export function twinPairLook(): BossBuilt {
   };
 }
 
-/** The Drowned Abbess (floor 2 or 3's boss, Frost; remade in code 2026-10-01, the owner's ask): a great pale cave olm,
+/** The Drowned Abbess (floor 2 or 3's boss, Frost): a great pale cave olm,
     soft and pale, rearing out of the water under the floor, its long tail curled behind it. Feathery gills glowing
     with cold light hang round its head like a wimple and a veil, and its little forelegs are folded before its chest as
     if at prayer, which is why the sextons called it the Abbess; it smiles a wide mouth of fine teeth. Its fight (bosses.ts)
@@ -462,7 +460,7 @@ export function abbessLook(): BossBuilt {
   };
 }
 
-/** The Pyre Knight (floor 2 or 3's boss, Ember; remade in code 2026-10-01, the owner's ask): a suit of blackened plate as
+/** The Pyre Knight (floor 2 or 3's boss, Ember): a suit of blackened plate as
     tall as a door with no one inside it, only fire: it glows at every joint and through a crack in its breastplate, and
     pours up out of its helm as out of a brazier ringed with iron spikes. A greatsword whose fuller runs molten burns in
     both its gauntlets, and its cloak smoulders along the hem. Its fight (bosses.ts) strides its legs as it stalks, levels
@@ -599,17 +597,17 @@ export function pyreKnightLook(): BossBuilt {
   };
 }
 
-/** The bosses of floors 4 and 5 (M4.1), the War-Tiger and the Pillar Dragon's head (M4.2): since M4.12 creatures of
+/** The bosses of floors 4 and 5, the War-Tiger and the Pillar Dragon's head: creatures of
     fantasy, built in fantasyBosses.ts. */
 export const hartLook = hartFierce,
   anglerLook = anglerFierce,
   tigerLook = tigerFierce,
   dragonHead = dragonHeadFierce;
 
-/** The Hollow Warden's look: the Owlbear (M4.12, the owner's choice, 2026-10-03). */
+/** The Hollow Warden's look: the Owlbear. */
 export const wardenLook = owlbear;
 /** Every boss built in code, for the Galleries tab: the Hollow Warden, the bosses of floors 2 and 3, of floors 4
-    and 5, then the bosses from the Eda lore (M4.2). */
+    and 5, then the bosses from the Eda lore. */
 export const ALL_BOSS_LOOKS: readonly { id: string; build: () => BossBuilt }[] = [
   { id: 'warden', build: wardenLook },
   { id: 'abbess', build: abbessLook },

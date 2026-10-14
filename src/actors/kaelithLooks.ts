@@ -1,5 +1,5 @@
-/* Kaelith, the Shadow Sentinel (M7 step 2; docs/M7-plan.md, decisions 5 and 6): the Seal's boss, the last of the descent.
-   Its look is the Winged Watcher, the owner's choice of the two drawn up (2026-10-06; the Hooded Sentinel went). It stands
+/* Kaelith, the Shadow Sentinel (docs/M7-plan.md, decisions 5 and 6): the Seal's boss, the last of the descent.
+   Its look is the Winged Watcher. It stands
    about twice the mage's height on y = 0 facing +Z, a dark body with bright violet features (what reads at play distance),
    and carries the parts the fight (kaelith.ts) moves: `eye`, `ring` and `halo` (every boss's), `body` (it sinks into
    shadow and kneels at the end), `blade` (the sword: raised in the sweep's tell, swung through it), `mantle` (the wings:

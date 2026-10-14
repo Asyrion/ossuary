@@ -1,4 +1,4 @@
-/* The costume pieces built for the body (M4.6, docs/archive/M4.6-plan.md): each fitted to the measured model (costumeFit.ts) and
+/* The costume pieces built for the body (docs/archive/M4.6-plan.md): each fitted to the measured model (costumeFit.ts) and
    hung from the bones it covers, so it follows every clip. The pieces an artifact's own model makes (a lantern at the hip)
    are in costume.ts. */
 import * as THREE from 'three';
@@ -21,7 +21,7 @@ const shell = (geo: THREE.BufferGeometry) => {
 
 export const BUILD: Record<CostumeId, (f: Fit, w: Worn) => THREE.Object3D[]> = {
   ...TRANSFORM_BUILD,
-  ...ARC_BUILD, // (M4.6: the transformations' looks, transformPieces.ts; Azyrion's arc, arcPieces.ts)
+  ...ARC_BUILD, // (the transformations' looks, transformPieces.ts; Azyrion's arc, arcPieces.ts)
   /** A pilgrim's hood: a cowl round the head, open at the face, with a long tail down the back (a liripipe),
       and a short dagged mantle over the shoulders. */
   hood(f) {
@@ -158,8 +158,7 @@ export const BUILD: Record<CostumeId, (f: Fit, w: Worn) => THREE.Object3D[]> = {
     g.add(gl);
     return [hang(f.headAt, g)];
   },
-  /** The Beastcaller's circlet: a small pair of antlers rising from the temples (the Hart's Antler wore it until
-      2026-10-02). */
+  /** The Beastcaller's circlet: a small pair of antlers rising from the temples. */
   antlers(f) {
     const g = new THREE.Group(),
       bone = tone(0xe8dcc0, 0.12),

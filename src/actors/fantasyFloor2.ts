@@ -1,7 +1,7 @@
-/* M4.12 step 3 (docs/archive/M4.12-plan.md): floor 2's six foes redone as creatures of fantasy, by the rules of fantasyFloor1.ts:
-   each keeps its fight, the parts its behaviour moves (by the old look's names) and about its height; each faces +Z,
+/* Floor 2's six foes as creatures of fantasy (docs/archive/M4.12-plan.md), by the rules of fantasyFloor1.ts:
+   each keeps its fight, the parts its behaviour moves (by name) and about its height; each faces +Z,
    stands on y = 0 and idles; no round googly eyes; the school in the body. Small repeated parts that move move together,
-   so each look draws in about as many calls as the old one did. */
+   so each look draws in few calls. */
 import * as THREE from 'three';
 import { glow } from '../render/materials';
 import { SCHOOL_LIGHT, crystal, limb, lit, part, runeRing, shine, sphere, std, type V3 } from '../render/arcane';
@@ -24,7 +24,7 @@ function zigzag(parent: THREE.Object3D, a: V3, b: V3, n: number, jag: number, ma
   return g;
 }
 
-/** The Hoarfrost Toad (was the Mire Toad; leaps, breathes cold): a horned toad the size of a hound, slate-dark, icicle
+/** The Hoarfrost Toad (for the Mire Toad; leaps, breathes cold): a horned toad the size of a hound, slate-dark, icicle
     warts down its back, a jaw of ice teeth and a crown of frost; its throat swells pale before it breathes. */
 export function hoarfrostToad(): Built {
   const g = new THREE.Group(),
@@ -120,7 +120,7 @@ export function hoarfrostToad(): Built {
   };
 }
 
-/** The Kelpie (was the Cistern Lurker; hides under water, rises, spits and dives): the water horse of the old tales rising
+/** The Kelpie (for the Cistern Lurker; hides under water, rises, spits and dives): the water horse of the old tales rising
     from its pool, black-hided, a mane of weed with lightning running in it, a fanged muzzle and slit eyes. */
 export function kelpie(): Built {
   const g = new THREE.Group(),
@@ -242,7 +242,7 @@ export function kelpie(): Built {
   return { group: g, shadow: 0.55, idle: place, parts: { rise, lures: lures[0], lures2: lures[1], disc } };
 }
 
-/** The Reliquary Medusa (was the Lantern Jelly; drifts close and pulses light): a jellyfish whose bell is a lantern, panes of
+/** The Reliquary Medusa (for the Lantern Jelly; drifts close and pulses light): a jellyfish whose bell is a lantern, panes of
     light between ribs of dark bronze, a flame inside and a ring to hang it by; no face; it trails stinging threads like
     chains, each ending in a barb of light. */
 export function reliquaryMedusa(): Built {
@@ -333,7 +333,7 @@ export function reliquaryMedusa(): Built {
   return { group: g, shadow: 0.5, idle: place, parts: { bell, light } };
 }
 
-/** The Glass Wyrm (was the Glass Newt; hides in water, its bite chills): a long wyrm of clear ice on short legs, its body in
+/** The Glass Wyrm (for the Glass Newt; hides in water, its bite chills): a long wyrm of clear ice on short legs, its body in
     an S, a dark spine and a frost heart glowing through it, horns of ice, a great frill fanned out from its head like fins
     of rime and a crest of ice down its back. */
 export function glassWyrm(): Built {
@@ -451,7 +451,7 @@ export function glassWyrm(): Built {
   };
 }
 
-/** The Rime Crawler (was the Rime Snail; a rime trail, a shell it hides in): a crawler of wet slate under a shell that is a
+/** The Rime Crawler (for the Rime Snail; a rime trail, a shell it hides in): a crawler of wet slate under a shell that is a
     geode, dark stone cracked open on top and ice crystal bursting out of it; horned eye stalks, and a lamprey's ring of
     teeth for a mouth. */
 export function rimeCrawler(): Built {
@@ -569,7 +569,7 @@ export function rimeCrawler(): Built {
   };
 }
 
-/** The Spark Wyvern (was the Storm Darter; dashes, laying sparks): a small wyvern on two pairs of dragonfly wings, a horned
+/** The Spark Wyvern (for the Storm Darter; dashes, laying sparks): a small wyvern on two pairs of dragonfly wings, a horned
     head with slit eyes, a long serpent's body ringed with storm-light and a tail that crackles. */
 export function sparkWyvern(): Built {
   const g = new THREE.Group(),
@@ -684,7 +684,7 @@ export function sparkWyvern(): Built {
   };
 }
 
-/** Floor 2's new looks, by the look id each replaces. */
+/** Floor 2's looks, by the look id each replaces. */
 export const FLOOR2_LOOKS: Record<string, () => Built> = {
   mireToad: hoarfrostToad,
   cisternLurker: kelpie,

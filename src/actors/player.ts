@@ -53,7 +53,7 @@ export function updatePlayer(dt: number) {
       stickyAt(player.x, player.z) *
       (player.chill > 0 ? 1 - CFG.afflict.chillSlow : 1) *
       (player.stone > 0 ? CFG.bestiary.gazeSlow : 1) *
-      potionSpeedMul(); // slower wading through water (unless floating: M4.6), or cobwebs, a spider's web or ink (M4.5), or chilled, or in a basilisk's stare; M5: quicker under the Frostbrew, slower as a giant
+      potionSpeedMul(); // slower wading through water (unless floating), or cobwebs, a spider's web or ink, or chilled, or in a basilisk's stare; quicker under the Frostbrew, slower as a giant
   player.vx = lerp(player.vx, mv.x * speed, k);
   player.vz = lerp(player.vz, mv.z * speed, k);
   if (Math.hypot(player.pull.x, player.pull.z) > CFG.afflict.drawnMin) player.drawn = CFG.afflict.drawnShow; // (shown beside the mana bar)
@@ -88,15 +88,15 @@ export function updatePlayer(dt: number) {
   if (pressed.blink) {
     pressed.blink = false;
     blink(mv);
-  } // (M4.6: the Shadowstep's)
+  } // (the Shadowstep's)
   updateGifts(dt);
   // a spell key answers a grimoire page's question, if one is asking; otherwise it casts
   for (const i of [0, 1])
     if (pressed.spells[i]) {
       pressed.spells[i] = false;
       if (!answerShade(i) && !answerPage(i)) castSpell(i, aim);
-    } // (M7 step 6: a loose shade's question first)
-  // M5: the potion belt (a tap drinks the chosen potion, a hold throws it; another key chooses)
+    } // (a loose shade's question first)
+  // the potion belt (a tap drinks the chosen potion, a hold throws it; another key chooses)
   if (pressed.nextPotion) {
     choosePotion(pressed.nextPotion);
     pressed.nextPotion = 0;
@@ -119,10 +119,10 @@ export function updatePlayer(dt: number) {
   checkShrine();
   checkLab();
   checkWaystone();
-  checkBargain(); // (M5: the alchemy table; M6: the waystone, the shrine's bargain)
+  checkBargain(); // (the alchemy table, the waystone, the shrine's bargain)
   const trapdoor = G.floor.trapdoor;
   if (trapdoor?.kind === 'shaft') {
     if (Math.hypot(player.x - trapdoor.x, player.z - trapdoor.z) < CFG.daylight.reach) enterDaylight();
-  } // (M7 step 3: into the daylight)
+  } // (into the daylight)
   else if (trapdoor && Math.hypot(player.x - trapdoor.x, player.z - trapdoor.z) < 0.55) flowHooks.descend();
 }

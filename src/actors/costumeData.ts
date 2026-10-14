@@ -1,10 +1,10 @@
-/* What the mage wears (M4.6, docs/archive/M4.6-plan.md; GDD: Artifacts, Costumes and transformations): the pieces artifacts put
+/* What the mage wears (docs/archive/M4.6-plan.md; GDD: Artifacts, Costumes and transformations): the pieces artifacts put
    on the mage's model, one per slot. Pure (no three.js): the slots, the pieces, and which of them show. The meshes are
    built and fitted in costume.ts.
 
    An artifact's `costume` (data/artifacts.json) names either a piece built for the body (the hood, a crown of thorns,
    manacles) or a slot where the artifact's own model is carried (a lantern at the belt, a pendant on the chest): `"belt"`;
-   or `"none"`: it leaves the mage as it is (the owner, 2026-10-02: only what it is logical to wear shows, so the mage
+   or `"none"`: it leaves the mage as it is (only what it is logical to wear shows, so the mage
    doesn't drown in pieces). Every focus is held in the casting hand besides, which is not a slot. */
 
 export type CostumeSlot =
@@ -48,7 +48,7 @@ export const COSTUME_PIECES = {
   band: { slot: 'hands' },
   beads: { slot: 'hands' },
   boots: { slot: 'feet' },
-  // M4.6's transformations' own (TRANSFORM_LOOKS): crowns of flame and ice, rime on the shoulders, marks of storm on the face
+  // the transformations' own (TRANSFORM_LOOKS): crowns of flame and ice, rime on the shoulders, marks of storm on the face
   // and spirals down the arms, wings of candle-light, a cloak of shadow and violet eyes, a floating grimoire, burning
   // footsteps, the Beastcaller's circlet of antlers, and the aura in the transformation's light (`transform`: theirs
   // alone, no artifact's `costume`)
@@ -64,7 +64,7 @@ export const COSTUME_PIECES = {
   grimoire: { slot: 'back', transform: true },
   emberSteps: { slot: 'feet', transform: true },
   aura: { slot: 'aura', transform: true },
-  // M5's Alchemist: a bandolier of vials across the chest, a stained apron at the waist
+  // the Alchemist's: a bandolier of vials across the chest, a stained apron at the waist
   bandolier: { slot: 'shoulders', transform: true },
   apron: { slot: 'belt', transform: true },
   // Azyrion's arc (ARC_PIECES): the chaos mage's bronze-worked bracers, a dark coat's collar and shoulders, red rune orbs in
@@ -82,8 +82,8 @@ export const isCarry = (id: string): id is CarrySpot => id in CARRY;
 export const NO_COSTUME = 'none';
 /** The artifacts that wear nothing because they already show round the mage, and what shows instead. Every other
     artifact has a `costume` (a piece, a spot, or `"none"`) or is a focus (held in the casting hand): a new artifact
-    decides, and the validator (`validateArtifacts`) refuses one that hasn't (the owner's ask, 2026-10-01; since
-    2026-10-02 a piece only where it is logical to wear the thing: clothes, jewellery, what hangs at a belt). */
+    decides, and the validator (`validateArtifacts`) refuses one that hasn't (a piece only where it is
+    logical to wear the thing: clothes, jewellery, what hangs at a belt). */
 export const SHOWS_OTHERWISE: Readonly<Record<string, string>> = {
   candle_moth: 'the moth fluttering round the mage',
   weeping_skull: 'the skull circling the mage',
@@ -113,7 +113,7 @@ export interface Worn {
   arc?: true;
 }
 
-/** Azyrion's arc (M4.6; GDD: Artifacts, Azyrion's arc): the chaos mage's pieces each stage brings, in the slots no artifact
+/** Azyrion's arc (GDD: Artifacts, Azyrion's arc): the chaos mage's pieces each stage brings, in the slots no artifact
     or transformation holds. */
 export const ARC_PIECES: readonly (readonly CostumeId[])[] = [
   ['bracers'],
@@ -123,10 +123,10 @@ export const ARC_PIECES: readonly (readonly CostumeId[])[] = [
 ];
 /** The arc's stage for `held` artifacts: how many of the thresholds `at` (CFG.arc.at) it has reached. */
 export const arcStage = (held: number, at: readonly number[]) => at.filter((n) => held >= n).length;
-/** What a level counts for toward the arc (M6 step 12): one artifact held for every `perLevels` levels gained. */
+/** What a level counts for toward the arc: one artifact held for every `perLevels` levels gained. */
 export const levelsHeld = (level: number, perLevels: number) => Math.floor((level - 1) / perLevels);
 
-/** What each transformation's look puts on (M4.6; docs/archive/M4.6-plan.md, The transformations): pieces built for it, or an
+/** What each transformation's look puts on (docs/archive/M4.6-plan.md, The transformations): pieces built for it, or an
     artifact's own model carried somewhere (the Pilgrim's lantern). Over what the artifacts show in those slots. */
 export const TRANSFORM_LOOKS: Record<string, readonly (CostumeId | { at: CarrySpot; from: string })[]> = {
   pyromancer: ['flameCrown', 'emberSteps', 'aura'],
@@ -199,7 +199,7 @@ export function wornLooks(
 /** The pieces worn, as ids (for the tests and the dev hooks): a built piece's id, or the carrying artifact's. */
 export const wornIds = (worn: readonly Worn[]) => worn.map((w) => (w.piece === 'carried' ? w.from : w.piece));
 
-/** The old shape of the rule, from a list of `costume` values alone (kept for the artifacts' tests): built pieces only. */
+/** The rule from a list of `costume` values alone (for the artifacts' tests): built pieces only. */
 export function wornPieces(costumes: readonly (string | undefined)[]): CostumeId[] {
   return wornLooks(costumes.map((c, i) => ({ id: String(i), costume: c }))).flatMap((w) =>
     w.piece === 'carried' ? [] : [w.piece],

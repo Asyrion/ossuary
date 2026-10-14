@@ -1,4 +1,4 @@
-/* The Pillar Dragon's fight (M4.2, from the Eda lore; GDD: Bosses from the Eda lore). A long dragon, orange down one
+/* The Pillar Dragon's fight (from the Eda lore; GDD: Bosses from the Eda lore). A long dragon, orange down one
    flank and blue-grey down the other, that coils round the top of the room's pillars. A room with fewer than three
    raises its own out of the floor as it comes down from above. Coiled on a pillar it leans out towards the mage (bolts
    reach only its head: its body is wound round the stone) and breathes down on the floor, fire and frost by turns, a

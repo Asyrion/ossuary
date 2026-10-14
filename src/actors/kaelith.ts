@@ -1,5 +1,5 @@
-/* Kaelith, the Shadow Sentinel (M7 step 2; docs/M7-plan.md, decisions 5 and 6; GDD: the Vigil, Kaelith): the Seal's boss,
-   the run's last fight. Umbral, weak to Hallow, resisting Umbral; its look is the Winged Watcher, the owner's choice
+/* Kaelith, the Shadow Sentinel (docs/M7-plan.md, decisions 5 and 6; GDD: the Vigil, Kaelith): the Seal's boss,
+   the run's last fight. Umbral, weak to Hallow, resisting Umbral; its look is the Winged Watcher
    (kaelithLooks.ts). Three phases, by its health (kaelithData.ts):
    1. The Sentinel: it stalks at blade's reach; sweeps a fan of hexing blades (its blade raised, its mantle spread, first);
       fires volleys that hex; and steps from shadow to shadow: it sinks where no light falls and rises in another shadow
@@ -60,7 +60,7 @@ export function resetKaelith() {
   wardHooks.shut = undefined;
 }
 
-/** Build Kaelith in the look the owner's switch names; its hall's ward pillars go dormant until the seal cracks. */
+/** Build Kaelith in its look; its hall's ward pillars go dormant until the seal cracks. */
 export function buildKaelith(e: Enemy) {
   const L = kaelithLook(),
     P = L.parts;

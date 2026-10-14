@@ -32,7 +32,7 @@ export function stdMat(color: number, extra: THREE.MeshStandardMaterialParameter
   return new THREE.MeshStandardMaterial({ color, roughness: 0.85, flatShading: true, ...extra });
 }
 
-/* The foes: those built in code (M4: actors/foes.ts, data/foes.json), and placeholder primitives: the bosses until theirs
+/* The foes: those built in code (actors/foes.ts, data/foes.json), and placeholder primitives: the bosses until theirs
    is built, and two for testing that no floor's fights hold, the rotling (a plain walker with no school: the browser
    tests' target) and the training dummy (the dev menu's: it stands still and never falls). */
 /** Spawn an enemy. `hpMul` scales health (deeper floors); `boss` tunes the floor's boss; a champion
@@ -76,7 +76,7 @@ export function makeEnemy(
     speedMul: opts.champion ? CH.speedMul : 1,
     champion: opts.champion,
   };
-  e.purse = boss ? 0 : purseOf(type, hpMul, !!opts.champion); // (M6: the insight it pays as it falls; a boss pays its floor's)
+  e.purse = boss ? 0 : purseOf(type, hpMul, !!opts.champion); // (the insight it pays as it falls; a boss pays its floor's)
   e.group.add(e.body);
   const add = (
     geo: THREE.BufferGeometry,
@@ -130,7 +130,7 @@ export function makeEnemy(
     e.aura = glow(CH.aura, 1.6, 0.5);
     e.aura.position.y = 0.5;
     e.group.add(e.aura);
-    if (opts.mantle) giveMantle(e, opts.mantle); // (M4.7: in its school's light)
+    if (opts.mantle) giveMantle(e, opts.mantle); // (in its school's light)
   }
   e.group.add(blob(e.shadow ?? C.r * 3));
   e.group.position.set(e.x, 0, e.z);
@@ -140,7 +140,7 @@ export function makeEnemy(
   return e;
 }
 
-/** Spawn foe `type` at (x, z) as makeEnemy does, or, for one that comes in a pack (M4.5: a firefly swarm), the whole pack
+/** Spawn foe `type` at (x, z) as makeEnemy does, or, for one that comes in a pack (a firefly swarm), the whole pack
     round it, sharing one mind; returns the first. `roll` (0 to 1) sizes the pack: a room's fights pass one from its seed. */
 export function spawnFoe(
   type: FoeType,
@@ -178,7 +178,7 @@ export function updateEnemies(dt: number) {
     if (e.dead) continue; // (put to rest since the last step, by a bolt or a dev hook: it acts no more, nor calls help)
     // frozen or stunned foes don't move or act; chilled ones move slower
     const acts = canAct(e.status) && !e.asleep,
-      slow = speedFactor(e.status, undefined, !!e.isBoss); // (M5: vines slow a boss half as much)
+      slow = speedFactor(e.status, undefined, !!e.isBoss); // (vines slow a boss half as much)
     if (acts) e.t += dt;
     if (e.spawn > 0) {
       e.spawn -= dt;
@@ -207,10 +207,10 @@ export function updateEnemies(dt: number) {
       e.body.position.y = Math.abs(Math.sin(e.t * 6)) * 0.04;
     } else if (e.isBoss) faceTo = updateBoss(e, dt, ux, uz) ?? faceTo;
     // integrate + knockback: its pace this step is chill's slowing, walkers wading through water or snagged in cobwebs, and
-    // a lark's song or a wolf's howl hastening it (M4.5), all on its step, not its velocity, which many foes build on (one
+    // a lark's song or a wolf's howl hastening it, all on its step, not its velocity, which many foes build on (one
     // easing in would be slowed again every step, far past the factor)
     steerAround(e);
-    groundSlide(e, dt); // (M4.7: golems and elementals go round another kind's ground; on its rime a walker slides)
+    groundSlide(e, dt); // (golems and elementals go round another kind's ground; on its rime a walker slides)
     const pace = slow * songHaste(e) * (e.flying ? 1 : wadeAt(e.x, e.z) * snagAt(e.x, e.z) * groundPace(e)); // (and another kind's webs and ink hold it)
     e.kx *= Math.exp(-8 * dt);
     e.kz *= Math.exp(-8 * dt);
@@ -248,7 +248,7 @@ export function updateEnemies(dt: number) {
       poseFoe(e);
     }
     // contact damage (not from a boss under the floor or in the air, nor from a foe frozen in ice or stunned, nor
-    // through the Static Mantle, nor while the mage is unseen under the Shadowstep Tincture: M5)
+    // through the Static Mantle, nor while the mage is unseen under the Shadowstep Tincture)
     if (
       !e.hidden &&
       acts &&
@@ -258,11 +258,11 @@ export function updateEnemies(dt: number) {
       !mantleShields(e)
     ) {
       if (hurtPlayer(e.contact, e.x, e.z) && e.mantle === 'rimebound')
-        player.chill = Math.max(player.chill, MAGIC.mantles.rimebound.chill); // (M4.7: a Rimebound touch chills)
-      touched(e); // (M4.6: and the Frostborn chills what touches them)
+        player.chill = Math.max(player.chill, MAGIC.mantles.rimebound.chill); // (a Rimebound touch chills)
+      touched(e); // (and the Frostborn chills what touches them)
     }
   }
-  if (dt > 0) for (const e of [...G.room.enemies]) groundHarm(e, dt); // (M4.7: another kind's burning ground, sparks and spores)
+  if (dt > 0) for (const e of [...G.room.enemies]) groundHarm(e, dt); // (another kind's burning ground, sparks and spores)
   // keep walkers from stacking
   const es = G.room.enemies;
   for (let i = 0; i < es.length; i++)

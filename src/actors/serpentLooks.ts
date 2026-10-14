@@ -1,5 +1,5 @@
-/* The jelly serpent built in code (M5 step 7, docs/archive/M5-plan.md): the thing Dr. Jelly keeps coiled in the vat behind his
-   laboratory's window. A long serpent of green jelly: its head a wyrm's skull seen through clear jelly (M4.12, fantasyBosses.ts),
+/* The jelly serpent built in code (docs/archive/M5-plan.md): the thing Dr. Jelly keeps coiled in the vat behind his
+   laboratory's window. A long serpent of green jelly: its head a wyrm's skull seen through clear jelly (fantasyBosses.ts),
    a crest of jelly fins and a lower jaw that drops open; its body a chain of jelly rings round a darker core, drawn as instances (a few draw
    calls for the whole length) and laid each step along the trail its head leaves (actors/jellySerpent.ts, as the Pillar
    Dragon's body is). Its light is the laboratory's jelly green; it stands on y = 0 facing +Z. */
@@ -12,7 +12,7 @@ import { serpentHeadFierce } from './fantasyBosses';
 /** The serpent's colours: its jelly, the deeper green of its core, the pale green of its fins and glints. */
 export const SERPENT = { jelly: 0x6ad868, deep: 0x1e6a34, pale: 0xc8ffb0, core: 0x2a7a3a, glint: 0xe8ffe0 };
 
-/** The head (the boss's look): since M4.12 a wyrm of clear jelly, its skull seen through it (fantasyBosses.ts): `head`
+/** The head (the boss's look): a wyrm of clear jelly, its skull seen through it (fantasyBosses.ts): `head`
     (sways, lunges), `jaw` (drops open to spit), `eye`, `ring` (bubbles turning round the crown) and `halo`; `fins` (the
     crest, raised as it rises). */
 export const serpentHead = serpentHeadFierce;

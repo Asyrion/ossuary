@@ -1,5 +1,5 @@
-/* The bestiary's foes (M4.5, docs/archive/M4.5-plan.md): the behaviours of the thirty-five, floor by floor, on the same footing as
-   M4's (actors/foes.ts spreads them into its own; what each is lives in data/foes.json). What they leave on the ground
+/* The bestiary's foes (docs/archive/M4.5-plan.md): the behaviours of the thirty-five, floor by floor, on the same footing as
+   those in actors/foes.ts (which spreads them into its own; what each is lives in data/foes.json). What they leave on the ground
    and throw is in bestiaryGround.ts.
 
    Floor 1, the crypt:
@@ -811,7 +811,7 @@ const crab: Behaviour = {
   },
 };
 
-/** M4.5's behaviours, by name (data/foes.json's `behaviour`). */
+/** These behaviours, by name (data/foes.json's `behaviour`). */
 /* ---------- floor 2 ---------- */
 
 /** The water tile in `room` nearest (x, z) (with `still`, only water not frozen over), if any. */
@@ -1693,7 +1693,7 @@ function halve(e: Enemy, P: Params, dx: number, dz: number, color: number) {
   twin.spawn = 0.15;
   twin.kx = dz * 3;
   twin.kz = -dx * 3;
-  e.purse = twin.purse = (e.purse ?? 0) / 2; // (M6: the two halves share one purse)
+  e.purse = twin.purse = (e.purse ?? 0) / 2; // (the two halves share one purse)
   burst(e.x, 0.4, e.z, color, 18, 2.4, 0.06);
 }
 const splitsNow = (e: Enemy, dmg: number, P: Params) =>

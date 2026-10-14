@@ -115,7 +115,7 @@ export function centreHips(clip: THREE.AnimationClip, root: THREE.Object3D, refC
 }
 
 let castHand = '';
-/** The bone of the hand the cast clip thrusts forward (found by `castWindow`): the focus is held in it (M4.6). */
+/** The bone of the hand the cast clip thrusts forward (found by `castWindow`): the focus is held in it. */
 export const castHandName = () => castHand;
 /** Find the moment a hand thrusts forward fastest; that's the "release" we replay on every shot. */
 export function castWindow(root: THREE.Object3D, clip: THREE.AnimationClip): [number, number] {

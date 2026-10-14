@@ -1,4 +1,4 @@
-/* The foes built in code (M4, docs/archive/M4-plan.md): what each is, as data (data/foes.json), and the pure rules about them.
+/* The foes built in code (docs/archive/M4-plan.md): what each is, as data (data/foes.json), and the pure rules about them.
    Each has a floor, a school, a weakness and a resistance (+50% and −50% from damage of that school; GDD: Enemy
    affinities), health before the floor's `enemyHp`, its size and speed, what it costs on contact, whether it flies, and
    a behaviour with its parameters (actors/foes.ts). Its look is the fantasy look of the same id (actors/fantasyLooks.ts).
@@ -39,26 +39,26 @@ export interface FoeDef {
   contact: number;
   flying: boolean;
   /** Only one in a room (the Rime Drakeling); the rest of its role's picks go to the others. */ elite?: boolean;
-  /** M4.5: the look it wears if not the one of its own id (a firefly swarm's beetle), and how many come together (a swarm,
+  /** The look it wears if not the one of its own id (a firefly swarm's beetle), and how many come together (a swarm,
       a pack), sharing one mind. */ look?: string;
   pack?: [number, number];
-  /** M4.5: an elemental (GDD: The Bestiary). Its own school (which it resists) heals it, blows and statuses alike, and its
+  /** An elemental (GDD: The Bestiary). Its own school (which it resists) heals it, blows and statuses alike, and its
       weakness hurts it twice over. */ elemental?: boolean;
-  /** M4.7: it steps round the ground other foes leave (the golems; elementals do too), where beasts blunder in. */ avoidsGround?: boolean;
+  /** It steps round the ground other foes leave (the golems; elementals do too), where beasts blunder in. */ avoidsGround?: boolean;
   behaviour: string;
   params: Record<string, number | number[]>;
   /** The colour of what flies from it when it falls, and of the stain it leaves (none for what leaves none). */ gib: string;
   stain: string | null;
 }
 export type FoeId = keyof typeof foesData;
-/** Every kind of foe: the placeholders (CFG.enemy: the old three, the training dummy, the bosses) and the foes in code. */
+/** Every kind of foe: the placeholders (CFG.enemy: the plain walker, the training dummy, the bosses) and the foes in code. */
 export type FoeType = EnemyType | FoeId;
 export const FOES = Object.fromEntries(
   Object.entries(foesData).map(([id, d]) => [id, { id, ...d }]),
 ) as unknown as Record<FoeId, FoeDef>;
 export const FOE_IDS = Object.keys(FOES) as FoeId[];
 export const isFoe = (type: string): type is FoeId => type in FOES;
-/** Whether a foe comes as many: a pack (M4.5's swarm, the wolves), or a nest that lets out its brood. A room rolls one. */
+/** Whether a foe comes as many: a pack (a firefly swarm, the wolves), or a nest that lets out its brood. A room rolls one. */
 export const comesMany = (type: string) => isFoe(type) && (!!FOES[type].pack || FOES[type].params.brood !== undefined);
 
 /** The parameters each behaviour needs (actors/foes.ts); the validator checks every foe has them. */
@@ -114,7 +114,7 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
     'landTime',
     'landRing',
   ],
-  // floor 4 (M4.1)
+  // floor 4
   scamper: ['near', 'peep', 'dart', 'dartTime', 'hide', 'oilEvery', 'dropFire'],
   chimer: ['orbit', 'orbitSpeed', 'chimeEvery', 'chimeTell', 'strikeDelay', 'mark', 'range'],
   gargoyle: [
@@ -132,7 +132,7 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
     'guard',
   ],
   healer: ['keep', 'healEvery', 'healTell', 'healRange', 'healShare', 'bossShare'],
-  // floor 5 (M4.1)
+  // floor 5
   burrower: ['up', 'dig', 'under', 'burrowSpeed', 'tell', 'reach', 'motes', 'shotSpeed'],
   glider: ['turn', 'overshoot', 'passSpeed', 'sparkEvery', 'sparkTime'],
   absorber: ['keep', 'hold', 'tell', 'perBolt', 'shotSpeed', 'spent', 'open'],
@@ -149,9 +149,9 @@ export const BEHAVIOUR_PARAMS: Record<string, readonly string[]> = {
     'shotSpeed',
     'chill',
   ],
-  // M4.2: the Wardlings a drinking ward lets out (and, by school, `fire`, `chill`, `hex` on their shots, `ring` of them)
+  // the Wardlings a drinking ward lets out (and, by school, `fire`, `chill`, `hex` on their shots, `ring` of them)
   wardling: ['keep', 'orbitSpeed', 'volleyEvery', 'tell', 'shots', 'spread', 'shotSpeed'],
-  // M4.5's bestiary (actors/bestiaryFoes.ts), floor 1
+  // the bestiary's foes (actors/bestiaryFoes.ts), floor 1
   dropper: [
     'hang',
     'creep',
@@ -400,7 +400,7 @@ export function validateFoes(defs: Record<string, FoeDef> = FOES) {
 }
 
 /** Damage of `school` to a foe: half again from its weakness, half from its resistance, as it is otherwise. An elemental
-    (M4.5) takes twice from its weakness, and its own school heals it: a negative share (part of the blow, as health). */
+    takes twice from its weakness, and its own school heals it: a negative share (part of the blow, as health). */
 export function affinityMul(
   def: (Pick<FoeDef, 'weak' | 'resist'> & { elemental?: boolean }) | undefined,
   school?: School,
@@ -417,10 +417,10 @@ export const drinksStatus = (
 ) => !!def?.elemental && STATUS_SCHOOL[status] === def.resist;
 
 /** Behaviours that wait in disguise until the mage comes near (an urn, a book, a heap of rubble), and a nest set in a wall
-    letting out its brood (M4.5). */
+    letting out its brood. */
 const WAITERS = ['mimic', 'tome', 'crab', 'nest'];
 /** A foe of `role` for the floor to call up in the middle of a fight (a boss's helpers, the ossuary's rising bones):
-    never an elite, nor one that waits in disguise or lets out others, nor one that comes as a pack (M4.5's swarm). */
+    never an elite, nor one that waits in disguise or lets out others, nor one that comes as a pack (a firefly swarm). */
 export function callFoe(table: RoleTable, role: Role, R: () => number): FoeType {
   const list = table[role].filter(
     ([id]) => !(isFoe(id) && (FOES[id].elite || WAITERS.includes(FOES[id].behaviour) || FOES[id].pack)),
@@ -432,7 +432,7 @@ export function callFoe(table: RoleTable, role: Role, R: () => number): FoeType 
 export type RoleTable = Record<Role, [FoeType, number][]>;
 /** The foe that fills `role` on a floor, picked by `R` (0 to 1) from its weighted list; with `noElite`, an elite is
     passed over while anything else could fill it, and with `noPack`, one that comes as many (a pack or a nest: a room has
-    one of each at most); `eliteMul` weighs the elites (M4.9's pressure: deeper floors' come more often). */
+    one of each at most); `eliteMul` weighs the elites (the floor's pressure: deeper floors' come more often). */
 export function pickFoe(
   table: RoleTable,
   role: Role,
@@ -451,7 +451,7 @@ export function pickFoe(
     if (lone.length) list = lone;
   }
   if (eliteMul !== 1)
-    list = list.map(([id, w]): [FoeType, number] => [id, isFoe(id) && FOES[id].elite ? w * eliteMul : w]); // (M4.9: deeper floors' elites come more often)
+    list = list.map(([id, w]): [FoeType, number] => [id, isFoe(id) && FOES[id].elite ? w * eliteMul : w]); // (deeper floors' elites come more often)
   const total = list.reduce((s, [, w]) => s + w, 0);
   let x = R() * total;
   for (const [id, w] of list) {
@@ -461,14 +461,14 @@ export function pickFoe(
   return list[list.length - 1][0];
 }
 
-/** A floor's pairs (M4.7): how often a fight rolls one, and the pairs, weighted. */
+/** A floor's pairs: how often a fight rolls one, and the pairs, weighted. */
 export interface PairTable {
   chance: number;
   list: [string, string, number][];
 }
 /** A fight's first wave as roles filled (rooms.ts's `buildRoom`): the kinds, and the roles they fill. */
 type Slot = { kind: string; role: string };
-/** Whether a room's first wave rolls a pair (M4.7: two foes made to work together, placed side by side): the pair (by
+/** Whether a room's first wave rolls a pair (two foes made to work together, placed side by side): the pair (by
     `pairs`' weights) takes the first two of its slots that aren't the boss, and the rest keep the rule of one elite and
     one pack a room (an elite or a pack among them is drawn again from `table`). `R` from 0 to 1, from the room's seed.
     Returns the slots the pair took, or nothing when the wave has fewer than two or the roll says none. Pure. */
@@ -521,16 +521,16 @@ export function validatePairs(floors: readonly { pairs?: PairTable }[]) {
   return out;
 }
 
-/* ---------- M4.9 The curve ---------- */
+/* ---------- The curve ---------- */
 
-/** A floor's pressure (M4.9's dials, `pressure` in data/floors.json): the share of fights whose first wave gains one more
+/** A floor's pressure (its dials, `pressure` in data/floors.json): the share of fights whose first wave gains one more
     walker or flier, how much likelier its elites are, and the waves an ordeal gains. They rise from floor to floor. */
 export interface Pressure {
   extra: number;
   eliteMul: number;
   ordealWaves: number;
 }
-/** Whether a fight's first wave gains one more foe (M4.9): with chance `extra`, the slot whose role the new one copies
+/** Whether a fight's first wave gains one more foe: with chance `extra`, the slot whose role the new one copies
     (one of its walkers or fliers, never the boss, a heavy, an elite or a pack); -1 for none. `R` from the room's seed. Pure. */
 export function extraSlot(wave: Slot[], extra: number, R: () => number): number {
   if (!(extra > 0) || R() >= extra) return -1;
@@ -564,7 +564,7 @@ export function validatePressure(floors: readonly { pressure?: Pressure }[]) {
 }
 
 /** What a floor's foes are weak to, resist and drink (an elemental, its own school), each a share from 0 to 1 of the
-    floor's rolls: each role counts alike, each foe in it by its weight. Pure (M4.9: the floor teaches its counter). */
+    floor's rolls: each role counts alike, each foe in it by its weight. Pure (the floor teaches its counter). */
 export interface Weakness {
   weak: Record<School, number>;
   resist: Record<School, number>;

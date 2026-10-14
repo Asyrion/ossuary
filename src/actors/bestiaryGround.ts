@@ -20,7 +20,7 @@ import { hearGround } from '../world/groundHooks';
 import { actingKind } from './acting';
 import { counterAt } from './counters';
 
-export type GroundKind = 'web' | 'ink' | 'rime' | 'blackice'; // (black ice: M4.8's reaction, Frost and Umbral)
+export type GroundKind = 'web' | 'ink' | 'rime' | 'blackice'; // (black ice: a reaction of Frost and Umbral)
 interface Patch {
   room: Room;
   kind: GroundKind;
@@ -101,7 +101,7 @@ function meshOf(kind: GroundKind) {
               opacity: 0.78,
               alphaMap: edgeTex(),
               depthWrite: false,
-            }) // (M4.8: glassy indigo, cooler than ink's violet, its edge fading and glints on it: never a pit's flat black)
+            }) // (glassy indigo, cooler than ink's violet, its edge fading and glints on it: never a pit's flat black)
           : new THREE.MeshStandardMaterial({
               color: 0x4a3480,
               emissive: 0x1c0e3a,
@@ -120,7 +120,7 @@ function meshOf(kind: GroundKind) {
   return (meshes[kind] = m);
 }
 
-/** A patch of `kind` at (x, z), `r` across, for `time` seconds; `by`, the kind of foe that left it (M4.7: it spares its own). */
+/** A patch of `kind` at (x, z), `r` across, for `time` seconds; `by`, the kind of foe that left it (it spares its own). */
 export function layGround(
   room: Room,
   kind: GroundKind,
@@ -135,7 +135,7 @@ export function layGround(
   patches.push({ room, kind, x, z, r, t: time, life: time, by });
 }
 /** How fast one can walk at (x, z) in the current room: slower through webs and ink (1: not at all). `who`, a foe's kind
-    (M4.7): its own kind's patches don't hold it. */
+   : its own kind's patches don't hold it. */
 export function stickyAt(x: number, z: number, who?: string) {
   let k = 1;
   for (const p of patches)
@@ -155,17 +155,17 @@ export function stuckIn(x: number, z: number): 'web' | 'ink' | undefined {
       return p.kind;
   return undefined;
 }
-/** Whether (x, z) in the current room is on black ice (M4.8): foes slide on it and can't stop; the mage crosses it. */
+/** Whether (x, z) in the current room is on black ice: foes slide on it and can't stop; the mage crosses it. */
 export const blackIceAt = (x: number, z: number) =>
   patches.some((p) => p.kind === 'blackice' && p.room === G.room.current && Math.hypot(x - p.x, z - p.z) < p.r);
-/** The patch (web, ink or rime) at (x, z) in the current room that isn't of the kind `who` (M4.7: foes in each other's
+/** The patch (web, ink or rime) at (x, z) in the current room that isn't of the kind `who` (foes in each other's
     ground), if any. */
 export function patchAt(x: number, z: number, who?: string): GroundKind | undefined {
   for (const p of patches)
     if (p.room === G.room.current && (!who || p.by !== who) && Math.hypot(x - p.x, z - p.z) < p.r) return p.kind;
   return undefined;
 }
-/** Whether (x, z) in the current room is on rime, where the mage slides; `who`, a foe's kind (M4.7): not on its own. */
+/** Whether (x, z) in the current room is on rime, where the mage slides; `who`, a foe's kind: not on its own. */
 export const slipAt = (x: number, z: number, who?: string) =>
   patches.some(
     (p) =>
@@ -174,7 +174,7 @@ export const slipAt = (x: number, z: number, who?: string) =>
 /** The patches of `kind` in the current room (tests). */
 export const groundCount = (kind: GroundKind) =>
   patches.filter((p) => p.kind === kind && p.room === G.room.current).length;
-/** How many patches of `kind` the floor draws now (M4.8: the tests check black ice shows, not only that it is there). */
+/** How many patches of `kind` the floor draws now (the tests check black ice shows, not only that it is there). */
 export const groundDrawn = (kind: GroundKind) => meshes[kind]?.count ?? 0;
 
 // fire burns a web away and melts rime
@@ -190,7 +190,7 @@ hearGround((kind, x, z, r) => {
       Sfx.at(p.x, p.z).webBurn();
       if (p.by) counterAt(p.by, 'burnt', p.x, p.z);
     } else if (p.kind === 'blackice')
-      melted.push(p); // (M4.10: it melts into ground burning with Blackfire)
+      melted.push(p); // (it melts into ground burning with Blackfire)
     else {
       burst(p.x, 0.1, p.z, 0xd4ecf8, 5, 1.2, 0.04);
       Sfx.at(p.x, p.z).thaw();
@@ -199,7 +199,7 @@ hearGround((kind, x, z, r) => {
   for (const p of melted) blackMelt(p.room, p.x, p.z, p.r);
 });
 
-/** Black Melt (M4.10): black ice caught by fire melts into ground that burns with Blackfire, patch by patch over it. */
+/** Black Melt: black ice caught by fire melts into ground that burns with Blackfire, patch by patch over it. */
 function blackMelt(room: Room, x: number, z: number, r: number) {
   const T = MAGIC.weaves.blackMelt.time;
   layBlackFire(room, x, z, T);
@@ -294,7 +294,7 @@ export function updateGround(dt: number) {
           const a = Math.random() * Math.PI * 2,
             d = Math.random() * p.r * 0.8;
           burst(p.x + Math.cos(a) * d, 0.05, p.z + Math.sin(a) * d, 0xe4f0ff, 1, 0.25, 0.025);
-        } // (M4.8: glints, so it reads as ice)
+        } // (glints, so it reads as ice)
     mesh.count = list.length;
     mesh.instanceMatrix.needsUpdate = true;
   }

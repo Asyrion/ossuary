@@ -1,4 +1,4 @@
-/* The foe acting now (M4.7): set while a foe's behaviour steps or falls (foes.ts) or its mantle acts (mantles.ts), so what
+/* The foe acting now: set while a foe's behaviour steps or falls (foes.ts) or its mantle acts (mantles.ts), so what
    it leaves on the floor (webs, ink, rime, burning ground, sparks, spores) knows whose it is, and spares its own kind
    (actors/foeGround.ts), and what it throws carries its mantle (a champion's shots, combat/projectiles.ts). */
 import type { Enemy } from '../types';
