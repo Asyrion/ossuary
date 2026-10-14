@@ -1,4 +1,4 @@
-/* Contact sheets of boss looks, for the owner's review (M7 step 2): `bosses=kaelith,warden` shoots the boss looks (the
+/* Contact sheets of boss looks, for review: `bosses=kaelith,warden` shoots the boss looks (the
    Galleries' list, bossLooks.ts), each alone in the start room at the game's own zoom with the mage just below it for
    scale, twice: in the game's pixel look (its pixels blown up whole) and close up with the pixel look off; the shots
    tiled into one labelled sheet each, bosses-texel.png and bosses-off.png.

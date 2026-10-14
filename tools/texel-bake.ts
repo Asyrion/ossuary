@@ -1,4 +1,4 @@
-/* Every Tripo model's texture made pixel art at the size the game draws it (2026-10-05, the owner: every model from
+/* Every Tripo model's texture made pixel art at the size the game draws it (every model from
    Tripo gets it; docs/creatures.md, docs/assets.md):
      npm run texel-bake -- dragonling            a creature, from public/assets/creatures/<id>.glb (or: all)
      npm run texel-bake -- <file.glb> 0.6        any model the game draws that many tiles tall

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fromOklab, medianCut, nearestColour, quantize, refinePalette, toOklab } from '../../src/render/palette';
 
-// 2026-10-01: the mage's colours cut down to a few, as pixel art keeps them (actors/heroPixel.ts)
+// The mage's colours cut down to a few, as pixel art keeps them (actors/heroPixel.ts)
 describe('the palette', () => {
   const blue = [0.2, 0.3, 0.7],
     navy = [0.1, 0.15, 0.45],

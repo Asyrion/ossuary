@@ -1,4 +1,4 @@
-/* The checks tools/prepare-asset.ts makes on a model (M3.5, docs/assets.md: Pipeline, step 7), on a glTF document in
+/* The checks tools/prepare-asset.ts makes on a model (docs/assets.md: Pipeline, step 7), on a glTF document in
    memory so the unit tests can make models to fail them. Each check passes, warns, fails, or was fixed here: a model
    off its centre or under the floor is moved, a character facing away is turned, one over its budget is lowered to
    fit. The clip roles and the round-base test come from src/actors, so the report matches what the game does. */

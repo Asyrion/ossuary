@@ -1,4 +1,4 @@
-/* The townspeople, the Ferryman, Dr. Jelly and Kaelith as made models (the owner's Tripo models, 2026-10-09, each rigged in
+/* The townspeople, the Ferryman, Dr. Jelly and Kaelith as made models (Tripo models, each rigged in
    Tripo with its Mixamo skeleton and no clips; docs/creatures.md, docs/tripo-prompts.md): one recipe for all thirteen, since
    they share the skeleton. Each is turned to face +z from its hips (`mixamoFacing`); three came through an FBX converter
    with their rest pose lost and every vertex on the hips, so their rest is rebuilt from the bind (creatureRig.ts's
@@ -198,7 +198,7 @@ const kneel: ClipDef = {
 
 /** What each made figure is: its height in the game, its budget, the hand it gestures with (the other holds its prop),
     and any clips beyond idle and talk. */
-/** `fine`: drawn on the pixel look's fine layer (half-size pixels, the owner's ask of 2026-10-09: the townspeople read at the Vigil), its texture baked at that pixel. */
+/** `fine`: drawn on the pixel look's fine layer (half-size pixels: the townspeople read at the Vigil), its texture baked at that pixel. */
 interface Made {
   height: number;
   budget: 'enemy' | 'boss';

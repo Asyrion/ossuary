@@ -46,7 +46,7 @@ async function start(page: Page, query: string) {
   // the tests step the game themselves: no frames drawn in real time from the moment the page loads (with software
   // WebGL on a two-core runner, the title screen drawing flat out slowed every start down)
   await page.addInitScript('window.__manual = true');
-  // (M6: levels pass with nothing taken, so a fight cleared changes none of the mage's numbers, unless a test asks otherwise)
+  // (levels pass with nothing taken, so a fight cleared changes none of the mage's numbers, unless a test asks otherwise)
   await page.goto(
     '/' + query + (query.includes('autolevel') ? '' : (query.includes('?') ? '&' : '?') + 'autolevel=skip'),
   );
@@ -253,7 +253,7 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
   });
   expect(floor1.seed).toBe('SMOKE1');
   expect(floor1.floor).toBe(0);
-  expect(floor1.rooms).toBeGreaterThanOrEqual(13); // the floor's counts (data/floors.json, three more since M6 step 12), the secret room, a laboratory and the waystone room on top
+  expect(floor1.rooms).toBeGreaterThanOrEqual(13); // the floor's counts (data/floors.json), the secret room, a laboratory and the waystone room on top
   expect(floor1.rooms).toBeLessThanOrEqual(17);
   for (const t of ['start', 'boss', 'treasure', 'ordeal', 'merchant', 'library', 'secret', 'waystone'])
     expect(floor1.types.filter((x) => x === t)).toHaveLength(1);
@@ -275,7 +275,7 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
     };
   });
   console.log(`floor 1 boss beaten in ${boss.seconds.toFixed(1)} s of game time`);
-  expect(boss).toMatchObject({ left: 0, cleared: true, choice: 2, paired: true, wayDown: null }); // (M6 step 10: the way down is in the waystone room)
+  expect(boss).toMatchObject({ left: 0, cleared: true, choice: 2, paired: true, wayDown: null }); // (the way down is in the waystone room)
 
   const floor2 = await page.evaluate(() => {
     const g = (window as unknown as W).__game;
@@ -376,7 +376,7 @@ test("a run is five floors and the Seal: the Gilded Reliquary and the Ferryman's
   expect(floors.map((f) => [f.floor, f.boss, f.shrines, f.banner])).toEqual([
     [3, expect.stringMatching(/^(hart|tiger)$/), 1, 'The Gilded Reliquary'],
     [4, expect.stringMatching(/^(angler|dragon)$/), 0, "The Ferryman's Shore"],
-  ]); // (a shrine on floor 4 as on floor 2; M4.2's bosses join their pools)
+  ]); // (a shrine on floor 4 as on floor 2; the bosses join their pools)
   await page.screenshot({ path: 'test-results/smoke-floor5.png' });
   const end = await page.evaluate(() => {
     const g = (window as unknown as W).__game as G2;
@@ -387,7 +387,7 @@ test("a run is five floors and the Seal: the Gilded Reliquary and the Ferryman's
     g.sim(0.2);
     return { seal, state: g.state, floor: document.getElementById('endFloor')!.textContent };
   });
-  expect(end).toEqual({ seal: { floor: 5, banner: 'The Seal' }, state: 'end', floor: '6 of 6' }); // (M7: the Seal below the Shore, the last)
+  expect(end).toEqual({ seal: { floor: 5, banner: 'The Seal' }, state: 'end', floor: '6 of 6' }); // (the Seal below the Shore, the last)
   expect(errors).toEqual([]);
 });
 
@@ -976,7 +976,7 @@ test("the Hollow Warden wears the Owlbear, its shots in Hallow's light, and can 
     g.sim(0.2, true);
     return ids;
   });
-  expect(ids).toEqual(['warden', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins', 'serpent', 'kaelith']); // (the bosses of floors 2 and 3, remade in code, of floors 4 and 5, M4.1, the Eda lore's, M4.2, the jelly serpent, M5, and Kaelith's two looks, M7)
+  expect(ids).toEqual(['warden', 'abbess', 'pyre', 'hart', 'angler', 'tiger', 'dragon', 'twins', 'serpent', 'kaelith']); // (the bosses of floors 2 and 3, remade in code; of floors 4 and 5; the Eda lore's; the jelly serpent; and Kaelith's two looks)
   expect(errors).toEqual([]);
 });
 
@@ -1014,7 +1014,7 @@ test('the end screen sums up the run, and replays its seed', async ({ page }) =>
   await page.screenshot({ path: 'test-results/smoke-end.png' });
   expect(won).toMatchObject({ shown: true, floor: '1 of 6', kills: '3', seed: 'ENDRUN', carried: 2 }); // twin staff replaced the wand
   expect(won.time).toMatch(/^\d+:\d\d$/);
-  expect(won.text).toMatch(/Kaelith knelt.*Wardens' vault.*dawn/); // (M4.2: the setting in the text; M7 step 3: the won text rewritten)
+  expect(won.text).toMatch(/Kaelith knelt.*Wardens' vault.*dawn/); // (the setting in the text)
 
   // replay: a full run on the same seed; then fall in its first fight
   await page.click('#btnReplay');
@@ -1316,7 +1316,7 @@ test('urns break to bolts, sealed urns only to a blast; coffers open, warded che
   expect(errors).toEqual([]);
 });
 
-/* M2 step 3: the merchant and the locked vault. */
+/* The merchant and the locked vault. */
 type Ware = { ware: string; price: number; x: number; z: number; sold: boolean; def?: { id: string } };
 type Seal = { sealed: boolean; blasts: number };
 type G5 = Omit<GameHooks, 'current' | 'enemies'> & {
@@ -1889,7 +1889,7 @@ test("the Wandering Merchant (M4.2): rides into a cleared room, lays out a focus
   expect(errors).toEqual([]);
 });
 
-/* M2 step 5: the shrine. */
+/* The shrine. */
 type Rite = { id: string; x: number; z: number; hits: number; t: number; inside: boolean; fleeing: boolean } | null;
 type G6 = G5 & {
   rite: Rite;
@@ -2032,7 +2032,7 @@ test('the shrine cleanses a curse put down inside its circle, refuses the poor, 
   expect(errors).toEqual([]);
 });
 
-/* M3: magic. */
+/* Magic. */
 type G9 = Omit<GameHooks, 'enemies'> & {
   enemies: (Foe & { hp: number; lastHit?: string })[];
   player: GameHooks['player'] & {
@@ -3344,7 +3344,7 @@ test('costumes (M4.6): the focus is held in the casting hand, artifacts show on 
     ['hands', 'manacles', 'mixamorigLeftHand'],
     ['belt', 'mana_lantern', 'mixamorigHips'],
     ['feet', 'boots', 'mixamorigLeftFoot'],
-  ]); // (the Ember Sigil wears nothing: 2026-10-02, only what it is logical to wear shows)
+  ]); // (the Ember Sigil wears nothing: only what it is logical to wear shows)
   expect(r.cursed).toEqual(['thorns', 'manacles']);
   expect(r.cleansed).toEqual(['thorns', 'manacles']);
   expect(r.stillCursed).toBe(0); // (cleansed at a shrine: their cleansed looks)
@@ -3729,7 +3729,7 @@ test('spell marks (M4.11): each slotted spell shows at its hand (ready, cooling,
   expect(r.ringBefore).toEqual([false, false]);
   expect(r.ringAfter).toEqual([true, true]);
   expect(r.mastered).toEqual(['ember']);
-  expect(r.circle).toMatchObject({ shown: true, known: [2, 0, 1, 0, 0, 0], mastered: ['ember'] }); // (M5: Verdant's arc, sixth)
+  expect(r.circle).toMatchObject({ shown: true, known: [2, 0, 1, 0, 0, 0], mastered: ['ember'] }); // (Verdant's arc, sixth)
   await page.evaluate(() => {
     const g = (window as unknown as W).__game as GM;
     g.closeUp(true);
@@ -3740,7 +3740,7 @@ test('spell marks (M4.11): each slotted spell shows at its hand (ready, cooling,
   expect(errors).toEqual([]);
 });
 
-/* M5 (docs/archive/M5-plan.md): the potion belt, and what potions do drunk and thrown. */
+/* The potion belt, and what potions do drunk and thrown (docs/archive/M5-plan.md). */
 type Belt = {
   ids: string[];
   at: number;
@@ -3936,7 +3936,7 @@ test("potions drunk and thrown (M5): each drink does its own and shows a chip wh
   expect(drink.giant).toBeCloseTo(1.25);
   expect(drink.reversed).toBe(true);
   expect(drink.grave).toEqual([2, 0, 15 + 4]);
-  expect(drink.shrunk).toBe(1); // (M6: half a heart for insight, 15 on floor 1, and 4 for the kind's first use)
+  expect(drink.shrunk).toBe(1); // (half a heart for insight, 15 on floor 1, and 4 for the kind's first use)
   const thrown = await page.evaluate(() => {
     const g = (window as unknown as W).__game as GP,
       P = g.player,
@@ -4117,7 +4117,7 @@ test("Dr. Jelly's laboratory (M5): the table opens when walked up to; two reagen
         (JSON.parse(localStorage.getItem('ossuary.vigil') ?? '{}') as { recipes?: { potions?: string[] } }).recipes
           ?.potions,
     ),
-  ).toEqual(['healing']); // (kept between runs, in the Vigil's save since M7 step 4: the brew, and the bought pair)
+  ).toEqual(['healing']); // (kept between runs, in the Vigil's save: the brew, and the bought pair)
   await page.keyboard.press('Escape');
   expect(await g()).toMatchObject({ state: 'play', lab: { open: false } });
   // stepping away and back opens it again; a blast bursts a jelly globe, and a jelly or a reagent comes out of it
@@ -4691,9 +4691,9 @@ test('the inventory lists what the mage carries and knows, in tabs, and describe
   await expect(detail).toContainText('Crown of Thorns');
   await expect(detail).toContainText('Spell damage ×1.5');
   await expect(detail.locator('.chip.bad')).toContainText('Hearts -1'); // its price
-  // E turns to the spells: the two slots, the pouch of runes (M6 step 8: empty, one sealed entry), then a book by school (a
+  // E turns to the spells: the two slots, the pouch of runes (empty, one sealed entry), then a book by school (a
   // school opens with its first spell learned), with a sealed entry for each spell not met yet; then the wheel of the
-  // fifteen reactions (M4.8's ten, M5's Verdant five) and M4.10's seventeen weaves and chains
+  // fifteen reactions (the ten and Verdant's five) and the seventeen weaves and chains
   await page.keyboard.press('KeyE');
   await expect(tiles).toHaveCount(41);
   await expect(page.locator('#invList .sec')).toHaveText([
@@ -4712,7 +4712,7 @@ test('the inventory lists what the mage carries and knows, in tabs, and describe
   await expect(detail).toContainText('Burn 4 s');
   await expect(detail).toContainText('Cast it 10 more times to know it well');
   await page.keyboard.press('ArrowRight');
-  await expect(detail).toContainText('No runes yet'); // (M6 step 8: the pouch, empty)
+  await expect(detail).toContainText('No runes yet'); // (the pouch, empty)
   await page.keyboard.press('ArrowRight');
   await expect(detail).toContainText('A page not yet found'); // Cinder Lance, not met
   await page.keyboard.press('ArrowRight');
@@ -4744,7 +4744,7 @@ test('the inventory lists what the mage carries and knows, in tabs, and describe
   expect(errors).toEqual([]);
 });
 
-/* M2 step 6: the artifacts that bend the economy. */
+/* The artifacts that bend the economy. */
 type G7 = Omit<G6, 'current'> & {
   give(...ids: string[]): void;
   drop(kind: string, x?: number, z?: number): void;
@@ -5084,7 +5084,7 @@ test('every door of a seeded floor leads to its neighbour, onto open floor', asy
     const shapes = new Set<string>();
     for (const room of g.rooms())
       for (const [i, d] of room.doors.entries()) {
-        if (room.plan.doors[i].shift) shifted++; // doors moved off the middle of their edge (M3.6)
+        if (room.plan.doors[i].shift) shifted++; // doors moved off the middle of their edge
         g.warp(room.plan.id);
         g.clearRoom();
         g.player.invuln = 99;
@@ -5559,7 +5559,7 @@ test('room variants: ambush, champion, dark and quiet', async ({ page }) => {
   expect(result.sprung.locked).toBe(true);
   expect(result.sprung.nearest).toBeGreaterThan(2);
   expect(result.champions).toBe(1);
-  expect(['kindled', 'rimebound', 'stormcharged', 'hallowed', 'hexbound']).toContain(result.mantle); // (M4.7: in one of the floor's mantles)
+  expect(['kindled', 'rimebound', 'stormcharged', 'hallowed', 'hexbound']).toContain(result.mantle); // (in one of the floor's mantles)
   expect(result.hpRatio).toBeCloseTo(2);
   expect(result.darkTorches).toBe(0);
   expect(result.hemi).toBeLessThan(0.6);
@@ -5651,7 +5651,7 @@ test('mechanisms: a lit brazier sets bolts alight, runes take a school, bells st
     out.treeAt4 = !!find('tree', 11, 4);
     g.sim(2.5);
     out.treeAt7 = !!find('tree', 11, 4);
-    // frost reaching an uncharged rune stone charges it with frost; a second school sets off their reaction and the stone takes it (M4.10)
+    // frost reaching an uncharged rune stone charges it with frost; a second school sets off their reaction and the stone takes it
     put('rune', 11, 1);
     g.element('chill', at(11, 1).x, at(11, 1).z);
     out.frostRune = find('rune', 11, 1)?.school;
@@ -6298,7 +6298,7 @@ test('a great hall packed with every object stays within its draw calls (their s
   });
   console.log(`packed great hall: ${r.placed} objects, ${r.calls} draw calls, ${r.triangles} triangles`);
   expect(r.placed).toBeGreaterThan(80);
-  expect(r.calls).toBeLessThan(750); // 1,085 before objects' still parts were merged
+  expect(r.calls).toBeLessThan(750); // (1,085 without objects' still parts merged)
   expect(errors).toEqual([]);
 });
 
@@ -6918,8 +6918,8 @@ test("the room kit's artifacts: every one built in code, and the HUD's icons ren
   expect(n).toBe(61); // (every artifact, as the room kit builds it)
   await page.screenshot({ path: 'test-results/room-kit-artifacts.png' });
   const kit = await icons();
-  expect(kit.images).toBe(6); // (the twin staff, now the focus, and five more, each rendered from its model)
-  // pixel art at about the artifact's own size in the room (2026-10-01): every pixel drawn or clear, none soft
+  expect(kit.images).toBe(6); // (the twin staff, the focus, and five more, each rendered from its model)
+  // pixel art at about the artifact's own size in the room: every pixel drawn or clear, none soft
   for (const [w, solid, soft] of kit.sizes) {
     expect(w).toBe(24);
     expect(solid).toBeGreaterThan(15);
@@ -7089,7 +7089,7 @@ test('foes in code (M4): the Sporeling fills the fights, hops, swells and puffs 
   expect(r.weak).toBeCloseTo(3);
   expect(r.resist).toBeCloseTo(1);
   expect(r.plain).toBeCloseTo(2);
-  expect(r.book).toMatchObject({ met: true, weak: true, resist: true }); // (and, M4.7, the counters found)
+  expect(r.book).toMatchObject({ met: true, weak: true, resist: true }); // (and the counters found)
   expect(r.mats).toBeGreaterThan(0); // (its merged surfaces flash when hit)
   await page.screenshot({ path: 'test-results/foes-sporeling.png' });
   expect(errors).toEqual([]);
@@ -9713,9 +9713,9 @@ test("the full wheel (M4.8): Searing opens a shut eye, a Prism splits a bolt in 
   await page.keyboard.press('i');
   await page.keyboard.press('e');
   const tiles = page.locator('#invList .tile');
-  await tiles.nth((await tiles.count()) - 14 - 17).click(); // (the wheel's second entry of fifteen, M5: Overload; M4.10's seventeen weaves come after it)
+  await tiles.nth((await tiles.count()) - 14 - 17).click(); // (the wheel's second entry of fifteen: Overload; the seventeen weaves come after it)
   await expect(page.locator('#invDetail h3')).toHaveText('Overload');
-  await expect(page.locator('#invDetail .wheel svg line')).toHaveCount(15); // (every pair of the six schools, M5)
+  await expect(page.locator('#invDetail .wheel svg line')).toHaveCount(15); // (every pair of the six schools)
   await page.keyboard.press('Escape');
   expect(errors).toEqual([]);
 });
@@ -10140,7 +10140,7 @@ test("attributes (M6 step 2): a level's point spent on Vigor, Will, Arcana or Sw
     return { lost: hp - b.hp, mul: P.stats.spellDamage };
   });
   expect(leap.mul).toBeCloseTo(1.5);
-  expect(leap.lost).toBeCloseTo(4 * 0.5 * 1.5); // (before M6 the ×1.5 came twice: 4.5)
+  expect(leap.lost).toBeCloseTo(4 * 0.5 * 1.5); // (the ×1.5 comes once, not twice)
   expect(errors).toEqual([]);
 });
 
@@ -10778,7 +10778,7 @@ test('runes on the bolts and the second cast (M6 step 7): Thrice fires three (fi
   expect(errors).toEqual([]);
 });
 
-/* M6 step 5: the school boons at work. Each case starts its own run with `?boons=`, sets the boon off through the game's own
+/* The school boons at work. Each case starts its own run with `?boons=`, sets the boon off through the game's own
    hooks, and checks what it did, that its name rose (`said`), its line was said once (`hinted`) and, where cheap, rank II.
    (Written as strings: the page's own JavaScript, `window.__game` untyped. Eight dummies stand in a 4 × 2 block, each
    within a leap of another.) */
@@ -11037,7 +11037,7 @@ test('the waystone (M6 step 9; where a floor has no waystone room, as under ?roo
   ]);
   await page.keyboard.press('KeyI');
   expect(errors).toEqual([]);
-  // the Seal (M7): no waystone (nothing below to carry runes to)
+  // the Seal: no waystone (nothing below to carry runes to)
   const errors5 = await start(page, '?room=boss_open&boss=warden&seed=STONE9&floor=6');
   const deep = await page.evaluate(() => {
     const g = (window as unknown as { __game: GS }).__game;
@@ -11105,7 +11105,7 @@ test("the Seal (M7 step 1): floor 5 has its waystone room and leads down to the 
   const five = await page.evaluate<{ floor: number; stone: boolean }>(
     `(() => { const g = window.__game; return { floor: g.floor, stone: g.rooms().some(r => r.type === 'waystone') }; })()`,
   );
-  expect(five).toEqual({ floor: 4, stone: true }); // (M7: floor 5's boss has a waystone room before the way down)
+  expect(five).toEqual({ floor: 4, stone: true }); // (floor 5's boss has a waystone room before the way down)
   const r = await page.evaluate<{
     arrive: { floor: number; banner: string; rooms: string[]; said: string; look: string };
     hall: string;
@@ -11151,8 +11151,8 @@ test("the Seal (M7 step 1): floor 5 has its waystone room and leads down to the 
   const FOES = JSON.parse(readFileSync('data/foes.json', 'utf8')) as Record<string, { floor: number }>;
   expect(new Set(r.kinds.map((k) => FOES[k]?.floor)).size).toBeGreaterThanOrEqual(2); // (the horde from every floor)
   expect(r.boss).toBe('kaelith');
-  expect(r.out).toBe('boss'); // (M7 step 2: Kaelith, the Seal's boss)
-  expect(r).toMatchObject({ kind: 'shaft', stepped: 'daylight', state: 'end', end: 'Into the daylight' }); // (M7 step 3: its way out is daylight, then the run is won)
+  expect(r.out).toBe('boss'); // (Kaelith, the Seal's boss)
+  expect(r).toMatchObject({ kind: 'shaft', stepped: 'daylight', state: 'end', end: 'Into the daylight' }); // (its way out is daylight, then the run is won)
   expect(errors).toEqual([]);
 });
 
@@ -11233,7 +11233,7 @@ test('Kaelith (M7 step 2): the Sentinel stalks, sweeps, fires and steps through 
   expect(r.held.moved).toBeLessThan(0.15);
   expect(r.fell).toMatchObject({ kaelith: null, banner: 'The seal holds', way: { room: 'boss', kind: 'shaft' } });
   expect(r.fell.clear).toBeGreaterThan(3); // (it kneels clear of the way out)
-  expect(r.state).toBe('daylight'); // (M7 step 3: the way out is a shaft of daylight)
+  expect(r.state).toBe('daylight'); // (the way out is a shaft of daylight)
   expect(errors).toEqual([]);
 });
 
@@ -11471,7 +11471,7 @@ test("the Vigil as a place (M7 step 5): the first waking is dark until its candl
         g
           .rooms()
           .flatMap((r) => r.doors)
-          .filter((d) => !d.open).length === 12, // (every door open but the six barred ways, from both sides: M7 step 9)
+          .filter((d) => !d.open).length === 12, // (every door open but the six barred ways, from both sides)
       hud: getComputedStyle(document.getElementById('vigilHud')!).display,
       hearts: getComputedStyle(document.getElementById('hearts')!).display,
       hudText: document.getElementById('vigilHud')!.textContent,
@@ -11507,7 +11507,7 @@ test("the Vigil as a place (M7 step 5): the first waking is dark until its candl
     return { state: g.state, spells: [...g.player.spells], kept: g.vigil.slots, open: g.vigilPlace.lectern.open };
   });
   expect(hands).toEqual({ state: 'play', spells: ['rime_shards', 'arc'], kept: ['rime_shards', 'arc'], open: false });
-  // a barred way: walked up to, it says what bars it; struck by another school, it stirs and holds (its own opens it: M7 step 9)
+  // a barred way: walked up to, it says what bars it; struck by another school, it stirs and holds (its own opens it)
   const bar = await page.evaluate(() => {
     const g = (window as unknown as { __game: VG }).__game;
     g.warp(1);
@@ -11539,7 +11539,7 @@ test("the Vigil as a place (M7 step 5): the first waking is dark until its candl
     g.player.x = b.x;
     g.player.z = b.z;
     g.sim(0.2);
-    const t = g as unknown as { talkNow: { open: boolean; who?: string }; closeTalk(): void }; // (M7 step 7: the Ferryman's first word, the first time at the jetty)
+    const t = g as unknown as { talkNow: { open: boolean; who?: string }; closeTalk(): void }; // (the Ferryman's first word, the first time at the jetty)
     if (t.talkNow.open && t.talkNow.who === 'ferryman') {
       t.closeTalk();
       g.sim(0.2);
@@ -11597,7 +11597,7 @@ test("the Vigil as a place (M7 step 5): the first waking is dark until its candl
     };
   });
   expect(back).toEqual({ here: true, room: 'crypt', first: false, candles: 1, spells: ['rime_shards', 'arc'] });
-  // the title leads there now, once a run has been played
+  // the title leads there, once a run has been played
   await page.goto('/?autolevel=skip');
   await page.waitForFunction(() => !!(window as unknown as W).__game, null, { timeout: 30_000 });
   expect(await page.textContent('#btnStart')).toBe('Wake at the Vigil');
@@ -12803,7 +12803,7 @@ test('a creature made in Tripo and animated in code (docs/creatures.md): it stan
     g.sim(1, true);
     out.dragonRoar = g.creatures[0];
     g.takeCreatures();
-    // the Chameleon Wyvern (through the owner's viewer, its own weights kept): the same routine, its roar the longest, and its
+    // the Chameleon Wyvern (through the viewer, its own weights kept): the same routine, its roar the longest, and its
     // sounds from files, each decoded
     out.chameleon = await g.showCreature('chameleon', 1.6);
     g.sim(2.5, true);

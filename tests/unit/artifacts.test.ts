@@ -173,7 +173,7 @@ describe('costumes', () => {
     ).toEqual(['hood']);
   });
 
-  // M4.6: pieces built for the body and an artifact's own model carried at a spot, one per slot
+  // pieces built for the body and an artifact's own model carried at a spot, one per slot
   const def = (id: string) => ARTIFACT_DEFS.find((a) => a.id === id)!;
   it("carries an artifact's own model at its spot, a built piece in its slot, and the one taken last wins the slot", () => {
     const worn = wornLooks(
@@ -246,7 +246,7 @@ describe('costumes', () => {
   });
 });
 
-// M4.6: three artifacts of a family transform the mage for the rest of the run
+// three artifacts of a family transform the mage for the rest of the run
 describe('transformations', () => {
   const def = (id: string) => ARTIFACT_DEFS.find((a) => a.id === id)!;
   it('forms at three of a family, in the order the third was taken, and stays formed', () => {
@@ -311,7 +311,7 @@ describe('transformations', () => {
   });
 });
 
-// M4.6: Azyrion grows towards the chaos mage as the artifacts held add up
+// Azyrion grows towards the chaos mage as the artifacts held add up
 describe("Azyrion's arc", () => {
   const def = (id: string) => ARTIFACT_DEFS.find((a) => a.id === id)!;
   it('reaches a stage at each threshold, four at most', () => {

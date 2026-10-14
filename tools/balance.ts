@@ -1,4 +1,4 @@
-/* The balance bot (M4.9 step 1, docs/archive/M4.9-plan.md): every foe on its floor fought alone by a walking, shooting bot, with
+/* The balance bot (docs/archive/M4.9-plan.md): every foe on its floor fought alone by a walking, shooting bot, with
    the cantrip only and with each school's two spells, on a few seeds; how long it took and the hearts it cost, written to
    docs/balance.md. Flags a foe that takes more than twice its floor's median to put down, and a school whose median on a
    floor is more than twice the floor's. Needs the dev server running (npm run dev). Not in CI: it takes a while.
@@ -7,7 +7,7 @@
      floor, foe and school narrow the run (a narrowed run prints its table and leaves docs/balance.md alone unless
      --write is given); seeds is how many seeds each pairing is fought on; limit the seconds a fight may last.
    npm run balance -- runs [floor=1,2] [school=...] [seeds=3] [limit=90]
-     Whole floors instead (2026-10-01): each seed's run, floor by floor, every fight room entered in turn (the boss's
+     Whole floors instead: each seed's run, floor by floor, every fight room entered in turn (the boss's
      too) and cleared by the same bot with each build; the floor's rooms as generated, waves, pairs, champions, elites
      and its pressure dials all in. Writes docs/balance-runs.md: each floor's room times, hearts and boss, how much
      longer than the floor above, every room the bot could not clear in `limit` s, and page errors.
@@ -263,7 +263,7 @@ interface RoomRow {
 
 /** One floor of one seed's run with one build: every room with a fight, entered in turn (the boss's last). */
 async function fightFloor(page: Page, floor: number, build: string, seed: number): Promise<RoomRow[]> {
-  const start = levelAtFloor(floor - 1); // (M6 step 12: each floor at the level a run expects to reach it at, its levels choosing for themselves)
+  const start = levelAtFloor(floor - 1); // (each floor at the level a run expects to reach it at, its levels choosing for themselves)
   const rooms = await page.evaluate(
     ({ floor, spells, seed, start }) => {
       type R = {
@@ -373,7 +373,7 @@ async function openPage(browser: Browser, errors: string[]) {
   const page = await browser.newPage({ viewport: { width: 640, height: 360 } });
   page.on('pageerror', (e) => errors.push(String(e)));
   await page.addInitScript('window.__manual = true; window.__name = f => f'); // (__name: what tsx wraps named functions in, which the page lacks)
-  await page.goto(BASE + '?room=great_hall&variant=quiet&autolevel=1'); // (M6: levels choose for themselves, no screen in the way)
+  await page.goto(BASE + '?room=great_hall&variant=quiet&autolevel=1'); // (levels choose for themselves, no screen in the way)
   await page.waitForFunction(() => !!(window as unknown as { __game?: unknown }).__game, null, { timeout: 60_000 });
   await page.click('#btnStart');
   await page.evaluate(installBot);

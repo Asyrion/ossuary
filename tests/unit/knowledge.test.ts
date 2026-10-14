@@ -30,7 +30,7 @@ describe('spell knowledge (M3.7)', () => {
     expect(upgrade(kn, 'arc', 'rune:echo')).toBe(true);
     expect(upgrade(kn, 'arc', 'rune:echo')).toBe(false);
     expect(stageOf(kn.arc, 10)).toBe('upgraded');
-    // (M6: a rune carved into a spell not yet known well waits for the casts: it reads learned until then)
+    // (a rune carved into a spell not yet known well waits for the casts: it reads learned until then)
     const early: Knowledge = {};
     learn(early, 'arc');
     upgrade(early, 'arc', 'rune:quicken');
@@ -78,7 +78,7 @@ describe('spell knowledge (M3.7)', () => {
   });
 
   it('tells the reactions a spell can set off from its statuses', () => {
-    // (the wheel, M4.8: each status is half of a reaction with each other school; M5's Verdant makes it five)
+    // (the wheel: each status is half of a reaction with each other school; Verdant makes it five)
     expect(reactionsOf({ status: { chill: 1 } })).toEqual([
       { reaction: 'shatter', with: 'storm' },
       { reaction: 'steam', with: 'ember' },

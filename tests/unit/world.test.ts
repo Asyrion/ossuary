@@ -179,7 +179,7 @@ describe('water and oil', () => {
   });
 });
 
-/** The floors the generator lays out; the Seal (M7) is laid by hand. */
+/** The floors the generator lays out; the Seal is laid by hand. */
 const GENERATED = FLOORS.filter((f) => !f.fixed);
 
 describe('floor generator', () => {
@@ -201,7 +201,7 @@ describe('floor generator', () => {
         const plan = generateFloor(Rng.from('T' + s, 'floor' + floorNo), cfg, floorNo - 1);
         const n = plan.rooms.filter(
           (r) => r.type !== 'secret' && r.type !== 'laboratory' && r.type !== 'waystone',
-        ).length; // the secret room comes on top, as do a laboratory (M5) and the waystone room (M6)
+        ).length; // the secret room comes on top, as do a laboratory and the waystone room
         expect(n).toBeGreaterThanOrEqual(cfg.rooms[0]);
         expect(n).toBeLessThanOrEqual(cfg.rooms[1]);
         const count = (t: string) => plan.rooms.filter((r) => r.type === t).length;
@@ -213,14 +213,14 @@ describe('floor generator', () => {
         expect(count('secret')).toBeLessThanOrEqual(1);
         expect(count('shrine')).toBe(cfg.shrine ? 1 : 0); // on floor 2, where it takes a dead end of its own
         expect(count('library')).toBe(1); // on every floor (GDD: first spell no later than the first library)
-        expect(count('laboratory')).toBeLessThanOrEqual(cfg.laboratory ? 1 : 0); // (M5: Dr. Jelly's, on floors 1 and 3, in a spare dead end)
+        expect(count('laboratory')).toBeLessThanOrEqual(cfg.laboratory ? 1 : 0); // (Dr. Jelly's, on floors 1 and 3, in a spare dead end)
         for (const r of plan.rooms.filter((x) => x.type === 'laboratory')) {
           expect(r.dist).toBeGreaterThanOrEqual(2);
           expect(r.shape).toBe('standard');
           expect(r.artifact).toBe(false);
         }
         labs += count('laboratory');
-        // M6 step 10: the waystone room, on floors 1 to 4: one cell beside the boss room, opening only into it, never touching the
+        // the waystone room, on floors 1 to 4: one cell beside the boss room, opening only into it, never touching the
         // secret room, its door in the middle of its edge, which the boss room's template leaves clear
         expect(count('waystone')).toBeLessThanOrEqual(cfg.waystone ? 1 : 0);
         for (const r of plan.rooms.filter((x) => x.type === 'waystone')) {
@@ -339,7 +339,7 @@ describe('floor generator', () => {
       expect(secrets / SEEDS).toBeGreaterThan(0.95);
       if (cfg.laboratory) expect(labs / SEEDS).toBeGreaterThan(0.9); // (nearly every floor 1 and 3 has a spare dead end for it)
       if (cfg.waystone) expect(stones / SEEDS).toBeGreaterThanOrEqual(0.98);
-      else expect(stones).toBe(0); // (M6: nearly always a free cell beside the boss; floor 5's great halls leave a few seeds none)
+      else expect(stones).toBe(0); // (nearly always a free cell beside the boss; floor 5's great halls leave a few seeds none)
       expect(Math.abs(secretArtifacts / secrets - cfg.secretArtifactChance)).toBeLessThan(0.1);
       // about a third of the rooms take a larger or narrow shape; some bosses get a great hall
       const share = bigRooms / roomCount;
@@ -365,7 +365,7 @@ describe('floor generator', () => {
     for (const f of FLOORS) {
       expect(isFoe(f.vaultWarden), f.vaultWarden).toBe(true);
       expect(BOSS_TYPES).not.toContain(f.vaultWarden as never);
-    } // (a floor's own foe, M4)
+    } // (a floor's own foe)
   });
 
   it('gives every floor its own look', () => {
@@ -404,7 +404,7 @@ describe('floor generator', () => {
 
   it('shares a tighter budget among the optional sources in a shuffled order', () => {
     const cap = CFG.artifacts.maxPerFloor;
-    CFG.artifacts.maxPerFloor = GUARANTEED_SOURCES.length + 2; // two optional artifacts, as before M2's loosening
+    CFG.artifacts.maxPerFloor = GUARANTEED_SOURCES.length + 2; // two optional artifacts
     try {
       const got: Record<string, number> = { merchant: 0, vault: 0, altar: 0 },
         had: Record<string, number> = { merchant: 0, vault: 0, altar: 0 };
@@ -664,7 +664,7 @@ describe('the Seal (M7 step 1)', () => {
       'vigil_nave',
       'vigil_pool',
       'vigil_practice',
-    ]); // (and M7 step 5's Vigil, with step 9's rooms behind its barred ways)
+    ]); // (and the Vigil, with the rooms behind its barred ways)
     for (let s = 0; s < 60; s++)
       for (const [i, f] of GENERATED.entries())
         for (const r of generateFloor(Rng.from('NF' + s, 'floor' + i), f, i).rooms)

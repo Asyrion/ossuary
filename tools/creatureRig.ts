@@ -256,7 +256,7 @@ export function faceForward(doc: Document, deg: number) {
   }
 }
 
-/** A skeleton whose rest pose was lost (2026-10-09: three townspeople came through an FBX converter with every joint's
+/** A skeleton whose rest pose was lost (three townspeople came through an FBX converter with every joint's
     transform zeroed, their inverse bind matrices kept) rebuilt from its bind: each joint's world matrix is the inverse of
     its inverse bind matrix, and its local transform that, seen from its parent. The converter had also turned the mesh a
     quarter round after it was rigged, so the skeleton is turned to the mesh: its left hip (`left`, against `right`) to
@@ -418,7 +418,7 @@ export interface SkinBone {
 
 /** New skin weights for every skinned mesh: each vertex blended over the (up to three) nearest bone segments that may
     reach it, by the inverse fourth power of the distance, so joints bend smoothly and limbs keep to themselves.
-    `override` claims vertices outright (a jaw's lower beak). With no `bones` (a rig whose weights hold: a model the owner's
+    `override` claims vertices outright (a jaw's lower beak). With no `bones` (a rig whose weights hold: a model the
     EDA-ModelWebViewer has named and mended, as the Chameleon Wyvern), each vertex keeps its weights, those on a bone of
     `remap` moved to the bone it names (a head smeared over its jaw's bones given to the skull), and `override` claims its
     own. */

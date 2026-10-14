@@ -1,4 +1,4 @@
-/* The dragonling (the owner's Tripo model, 2026-10-03; docs/creatures.md): a four-legged dragonling about the size of a
+/* The dragonling (a Tripo model; docs/creatures.md): a four-legged dragonling about the size of a
    horse, its long neck carrying a crested, fanged head. Tripo set it facing +x, so the tool turns it to face +z first
    (`face`); in that frame (x left-right, y up, z forward) it stands 0.98 high and 0.82 long. Tripo rigged it with a
    two-legged skeleton (bone_0 to bone_68): the spine runs up from the hips (bone_1) to the skull (bone_7), the forelegs

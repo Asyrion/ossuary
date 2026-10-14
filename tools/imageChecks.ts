@@ -73,7 +73,7 @@ export function transparentBorder(p: Pixels) {
   return clear / total > 0.9;
 }
 
-/** A coin on a plain ground (2026-10-02, the owner's coins: white, or cut out): its circle, found as the width of what
+/** A coin on a plain ground (white, or cut out): its circle, found as the width of what
     differs from the ground (the corners' colour, or see-through), centred that far below its top, so a shadow or a
     piece hanging under it doesn't stretch it; `round` is its height over its width (about 1 for a plain coin). Null when
     nothing stands on the ground. */

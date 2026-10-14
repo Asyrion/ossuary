@@ -1,4 +1,4 @@
-/* The project's milestones on GitHub (the owner's ask, 2026-10-03): every milestone in docs/GDD.md's roadmap is a GitHub
+/* The project's milestones on GitHub: every milestone in docs/GDD.md's roadmap is a GitHub
    milestone of the same title ("M6 RPG growth"), open while it is being built and closed once it is finished (all its
    plan's steps built, its close included). A new milestone is created here when it is added to the roadmap; a finished one
    is closed here in the same commit that marks it built.

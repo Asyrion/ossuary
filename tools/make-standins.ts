@@ -1,4 +1,4 @@
-/* Stand-in assets for the pipeline's tests (M3.5 step 1): made here in code, in place of the owner's first Tripo and
+/* Stand-in assets for the pipeline's tests, made here in code, in place of real Tripo and
    MidJourney files, then sent through the real pipeline (prepare-asset, prepare-texture) into tests/fixtures/assets/
    with a manifest the game loads under ?assets=/tests/fixtures/assets/assets.json. The urn starts off-centre and too
    heavy, so the run shows the script fixing both. They are test fixtures, never shipped.
@@ -119,7 +119,7 @@ await sharp(
   .png()
   .toFile(join(RAW, 'ember_sigil_icon.png'));
 
-// through the pipeline, as the owner's files would go
+// through the pipeline, as real files would go
 const run = (script: string, ...a: string[]) =>
   console.log(
     execFileSync(
