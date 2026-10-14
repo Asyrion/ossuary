@@ -134,7 +134,7 @@ let kaelithBox: HTMLElement,
   shadeBox: HTMLElement,
   townBox: HTMLElement,
   momentBtn: HTMLButtonElement;
-let talkMoment: 'death' | 'won' | 'boss' | null | undefined; // (M7 step 7: the moment the dev menu's talks are at; undefined: the last run's)
+let talkMoment: 'death' | 'won' | 'boss' | null | undefined; // (the moment the dev menu's talks are at; undefined: the last run's)
 const flagBtns: [string, HTMLButtonElement][] = [];
 let wearBtn: HTMLButtonElement, giftBox: HTMLElement, unfoldBox: HTMLElement;
 const kitPartBtns = {} as Record<KitPart, HTMLButtonElement>;
@@ -430,7 +430,7 @@ function build() {
       if (!cleanseAtOnce()) toast(S.noCurse, 2);
     }),
   );
-  // M6: insight and levels (the choice a level brings waits for the level-up screen, step 4)
+  // insight and levels (the choice a level brings waits for the level-up screen)
   const lv = section(pages.mage, S.levels);
   lv.append(
     (levelInfo = el('p', 'dv-info')),
@@ -438,7 +438,7 @@ function build() {
     btn(S.maxLevel, () => setLevel(LEVEL_CAP)),
     btn(S.firstLevel, () => setLevel(1)),
   );
-  for (const a of ATTRS) lv.append(btn(S.plusAttr(STR.attrs[a].name), () => spendPoint(a, true), attrText(a))); // (M6 step 2: a point without a level's)
+  for (const a of ATTRS) lv.append(btn(S.plusAttr(STR.attrs[a].name), () => spendPoint(a, true), attrText(a))); // (a point without a level's)
   lv.append(
     btn(S.offerNow, () => {
       closeDev();
@@ -447,14 +447,14 @@ function build() {
     (autoBtn = btn('', () => {
       DEV.autoLevel = DEV.autoLevel ? false : 'choose';
     })),
-  ); // (M6 step 4)
+  );
   lv.append(
     btn(S.noAttrs, () => {
       G.run.attrs = noAttrs();
       refreshStats(false);
     }),
   );
-  // M6 step 3: boons: take each (its next rank), deal three as a level would, none
+  // boons: take each (its next rank), deal three as a level would, none
   const bn = section(pages.mage, S.boons);
   bn.append(
     (boonInfo = el('p', 'dv-info')),
@@ -498,7 +498,7 @@ function build() {
     res.append(btn(S.give(n, S.names[r]), () => giveResources({ [r]: n })));
   }
   res.append(btn(S.emptyPurse, () => giveResources({ coins: -99, keys: -99, glyphs: -99 })));
-  // soul motes (M4.1): one of each kind straight into the HUD, none, and a floor's end for the hallowed ones
+  // soul motes: one of each kind straight into the HUD, none, and a floor's end for the hallowed ones
   for (const k of SOULS)
     res.append(
       btn(S.giveSoul(S.dropNames[soulItem(k)]), () => {
@@ -527,7 +527,7 @@ function build() {
   );
   drops.append(btn(S.loreAgain, () => G.run.loreSeen.clear(), S.loreAgainTitle)); // their lore cards show again
 
-  // alchemy (M5): each potion into the belt, every potion laid out ahead, what is known identified or forgotten, the belt
+  // alchemy: each potion into the belt, every potion laid out ahead, what is known identified or forgotten, the belt
   // used as R and F use it, and reagents into the pouch
   const alch = section(pages.mage, S.alchemy);
   alch.append(
@@ -573,7 +573,7 @@ function build() {
       closeDev();
       openLab('brew');
     }),
-    // M5 step 7: the jelly serpent's vat in a laboratory: crack its window as a bolt does, let it out, make it restless
+    // the jelly serpent's vat in a laboratory: crack its window as a bolt does, let it out, make it restless
     btn(S.crackVat, () => {
       closeDev();
       if (!crackVat()) toast(S.noVat, 2);
@@ -585,7 +585,7 @@ function build() {
     btn(S.restless, () => {
       G.run.restless = !G.run.restless;
     }),
-    // Dr. Jelly hands something over (2026-10-02): played when the menu closes
+    // Dr. Jelly hands something over: played when the menu closes
     ...(['potion', 'recipe', 'coins'] as const).map((k) =>
       btn(S.jellyGives[k], () => {
         if (!G.room.current.lab) {
@@ -617,7 +617,7 @@ function build() {
 
   // artifacts: every one in the data, marked when held
   artBox = section(pages.mage, S.artifacts);
-  // afflictions (2026-10-01): each one landed on the mage, to see its chip beside the mana bar and its line
+  // afflictions: each one landed on the mage, to see its chip beside the mana bar and its line
   const aff = section(pages.mage, S.afflictions);
   aff.append(
     btn(S.afflictNames.hexed, () => {
@@ -638,14 +638,14 @@ function build() {
       for (const k of [...G.run.hinted]) if (k.startsWith('afflict:')) G.run.hinted.delete(k);
     }),
   );
-  // Fen-Nex (M4.2): bound by its artifact above; grown a stage here, as if a floor had gone by
+  // Fen-Nex: bound by its artifact above; grown a stage here, as if a floor had gone by
   section(pages.mage, S.fennex).append(
     btn(S.growFennex, () => {
       if (fennexInfo()) growFennex();
       else toast(S.noFennex, 2);
     }),
   );
-  // costumes (M4.6): any artifact's piece tried on as if held (a focus held in the casting hand), or all taken off
+  // costumes: any artifact's piece tried on as if held (a focus held in the casting hand), or all taken off
   const cost = section(pages.mage, S.costumes);
   cost.append(
     (costInfo = el('p', 'dv-info')),
@@ -658,7 +658,7 @@ function build() {
       refresh();
     })),
   );
-  // Azyrion's arc (M4.6): a stage forced, or from what is held
+  // Azyrion's arc: a stage forced, or from what is held
   const arcRow = section(pages.mage, S.arc);
   arcRow.append(
     (arcInfo = el('p', 'dv-info')),
@@ -673,7 +673,7 @@ function build() {
     }),
   );
   costBox = section(pages.mage, S.costumesTry);
-  // transformations (M4.6): each formed at once (its banner, lore card, gift and look), or all undone
+  // transformations: each formed at once (its banner, lore card, gift and look), or all undone
   transBox = section(pages.mage, S.transforms);
   transBox.append(
     (transInfo = el('p', 'dv-info')),
@@ -709,7 +709,7 @@ function build() {
     refresh();
   }); // (the socket's button shows the chosen slot's)
   spellBox.parentElement!.insertBefore(slotSel, spellBox);
-  // runes (M6 step 7): carved into the chosen slot's socket; refused with the reason when one doesn't fit
+  // runes: carved into the chosen slot's socket; refused with the reason when one doesn't fit
   const runes = section(pages.magic, S.runes);
   runes.append(
     (runeInfo = el('p', 'dv-info')),
@@ -729,7 +729,7 @@ function build() {
     (socketBtn = btn('', () => setSockets(spellSlot, player.sockets[spellSlot].size > 1 ? 1 : 2))),
     el('p', 'dv-info', S.toPouch),
     ...RUNE_DEFS.map((r) => {
-      // (M6 step 8: into the pouch, as found, its card the first time)
+      // (into the pouch, as found, its card the first time)
       const b = btn(
         r.name,
         () => {
@@ -763,7 +763,7 @@ function build() {
       if (!dropPage(G.room.current, player.x, player.z - 1.5)) toast(S.noPage, 2);
     }),
   );
-  // spell knowledge (M3.7): kept between runs in this browser
+  // spell knowledge: kept between runs in this browser
   const know = section(pages.magic, S.knowledge);
   know.append(
     (knowBox = el('p', 'dv-info')),
@@ -782,7 +782,7 @@ function build() {
     btn(S.forgetReactions, () => {
       forgetReactions();
       refresh();
-    }), // (M4.8: the book's wheel)
+    }), // (the book's wheel)
     btn(S.findWeaves, () => {
       findEveryWeave(WEAVE_IDS);
       refresh();
@@ -791,8 +791,8 @@ function build() {
       forgetWeaves();
       refresh();
     }),
-  ); // (M4.10)
-  // spell marks (M4.11): what the slotted spells and the knowledge show on the mage; attune to a school, show the circle
+  );
+  // spell marks: what the slotted spells and the knowledge show on the mage; attune to a school, show the circle
   const marks = section(pages.magic, S.marks);
   marks.append(
     (marksInfo = el('p', 'dv-info')),
@@ -807,7 +807,7 @@ function build() {
       closeDev();
     }),
   );
-  // every reaction (M4.8), set off on training dummies just ahead
+  // every reaction, set off on training dummies just ahead
   const reacts = section(pages.magic, S.reactionsHere);
   for (const r of REACTION_IDS)
     reacts.append(
@@ -821,7 +821,7 @@ function build() {
         STR.knowledge.reactionText[r],
       ),
     );
-  // every boon that acts on something (M6 steps 5 and 6), taken if need be and set off just ahead
+  // every boon that acts on something, taken if need be and set off just ahead
   const boonsHere = section(pages.magic, S.boonsHere);
   for (const id of BENCH_BOONS) {
     const b = boon(id),
@@ -838,7 +838,7 @@ function build() {
     x.prepend(dot);
     boonsHere.append(x);
   }
-  // every weave and chain (M4.10), set up just ahead (north of the mage) and set off
+  // every weave and chain, set up just ahead (north of the mage) and set off
   const weaves = section(pages.magic, S.weavesHere);
   for (const w of WEAVE_IDS)
     weaves.append(
@@ -877,7 +877,7 @@ function build() {
       makeEnemy(pickFoe(floor.foes, 'H', Math.random, true), q.x, q.z, floorHp(), undefined, { champion: true });
     }),
   );
-  // rooms with a pair (M4.7): each floor's pairs, the two side by side ahead of the mage
+  // rooms with a pair: each floor's pairs, the two side by side ahead of the mage
   const pairList = [...new Set(FLOORS.flatMap((f) => (f.pairs?.list ?? []).map(([a, b]) => `${a}+${b}`)))];
   foes.append(
     el('p', 'dv-info', S.pairs),
@@ -890,14 +890,14 @@ function build() {
       }),
     ),
   );
-  // foes in each other's ground (M4.7): a band of fire, webs and rime between the mage and a wolf pack and a salt golem
+  // foes in each other's ground: a band of fire, webs and rime between the mage and a wolf pack and a salt golem
   foes.append(
     btn(S.lureTest, () => {
       closeDev();
       lureTest(player.x, player.z);
     }),
   );
-  // a champion in each school's mantle (M4.7): the floor's heavy, wearing it
+  // a champion in each school's mantle: the floor's heavy, wearing it
   foes.append(
     el('p', 'dv-info', S.mantles),
     ...MANTLE_IDS.map((id) =>
@@ -911,7 +911,7 @@ function build() {
       }),
     ),
   );
-  // the foes built in code (M4), by floor, from data/foes.json; and one of them in every fight, to test it
+  // the foes built in code, by floor, from data/foes.json; and one of them in every fight, to test it
   for (const floor of [...FLOORS.map((_, i) => i + 1), 0]) {
     // (0: the Wardlings, no floor's own)
     const row = FOE_IDS.filter((id) => FOES[id].floor === floor);
@@ -926,7 +926,7 @@ function build() {
         ),
       );
   }
-  // the drinking ward as a foe's shield (M4.2): round the foe nearest the mage
+  // the drinking ward as a foe's shield: round the foe nearest the mage
   foes.append(
     btn(S.wardFoe, () => {
       const e = nearestFoe();
@@ -954,7 +954,7 @@ function build() {
     }),
   );
 
-  // the rooms' objects (M3.6), put down just ahead of the mage
+  // the rooms' objects, put down just ahead of the mage
   const objs = section(pages.foes, S.objects);
   for (const kind of PROP_KINDS)
     objs.append(
@@ -995,7 +995,7 @@ function build() {
     ['root', 2],
     ['grow', 4],
   ] as [SpellStatus, number][]) {
-    // (M5: Overgrown)
+    // (Overgrown)
     sts.append(
       btn(S.inflictOn(STR.statusNames[kind]), () => {
         for (const e of G.room.enemies) inflict(e, { [kind]: amount });
@@ -1005,14 +1005,14 @@ function build() {
 
   // this floor: its special rooms, and ways through it
   floorBox = section(pages.rooms, S.floor);
-  // the Wandering Merchant (M4.2): rides into this room now, whatever the run's luck
+  // the Wandering Merchant: rides into this room now, whatever the run's luck
   section(pages.rooms, STR.banner.wanderer[0]).append(
     btn(S.wanderer, () => {
       closeDev();
       callWanderer();
     }),
   );
-  // M6 step 9: the waystone (it rises in the boss room once the boss falls; here, ahead of the mage, kindled at once)
+  // the waystone (it rises in the boss room once the boss falls; here, ahead of the mage, kindled at once)
   section(pages.rooms, STR.waystone.title).append(
     btn(S.raiseStone, () => {
       closeDev();
@@ -1028,7 +1028,7 @@ function build() {
       openWaystone('runes');
     }),
   );
-  // M6 step 11: the shrine's bargain (a stone at every shrine's circle; here, ahead of the mage), and its deal on any school
+  // the shrine's bargain (a stone at every shrine's circle; here, ahead of the mage), and its deal on any school
   section(pages.rooms, STR.bargain.title).append(
     btn(S.bargainHere, () => {
       closeDev();
@@ -1045,7 +1045,7 @@ function build() {
       }),
     ),
   );
-  // the gamepads the browser reports: name, layout, and what is held (the owner's Elite pad wasn't heard, 2026-10-02)
+  // the gamepads the browser reports: name, layout, and what is held
   const gp = section(pages.rooms, S.pads);
   gp.append((padInfo = el('div', 'dv-info'))); // (read again whenever a pad comes or goes while the menu is open)
   for (const ev of ['gamepadconnected', 'gamepaddisconnected'])
@@ -1053,7 +1053,7 @@ function build() {
       if (devOpen()) refresh();
     });
 
-  // the pixel look (the game's look, M3.5 step 2): the grid of pixels (texel or fine), outlines, light in bands; kept in this browser
+  // the pixel look (the game's look): the grid of pixels (texel or fine), outlines, light in bands; kept in this browser
   const px = section(pages.look, S.pixel);
   px.append(
     (pxBtn = btn('', () => {
@@ -1063,7 +1063,7 @@ function build() {
     (bandBtn = btn('', () => setPixelLook({ bands: !pixelLook().bands }))),
   );
 
-  // the room kit (M3.5 step 3): each part's kind; the fire objects, the objects and the drops to look at
+  // the room kit: each part's kind; the fire objects, the objects and the drops to look at
   const kit = section(pages.look, S.kit);
   // each part's kind: drawn per room, or one stepped through the floor's list and forced on every room, to compare
   for (const part of KIT_PARTS)
@@ -1101,7 +1101,7 @@ function build() {
     }),
   );
 
-  // the made assets (M3.5): on or off to compare with the placeholders, what loaded, and what a frame costs
+  // the made assets: on or off to compare with the placeholders, what loaded, and what a frame costs
   const assets = section(pages.look, S.assets);
   assets.append(
     (assetBox = el('div', 'dv-info')),
@@ -1208,7 +1208,7 @@ function build() {
     btn(S.takeOptions, () => takeCreatures(G.room.current)),
   );
 
-  // the coin faces (2026-10-02, the owner's coins): every face side by side ahead of the mage, as the room draws them
+  // the coin faces: every face side by side ahead of the mage, as the room draws them
   const coins = section(pages.galleries, S.coinGallery);
   coins.append(
     el('p', 'dv-info', S.coinsNote),
@@ -1219,7 +1219,7 @@ function build() {
     btn(S.takeOptions, () => takeCoins()),
   );
 
-  // Dr. Jelly (2026-10-02, from the owner's pictures: the plague doctor, the owner's choice) ahead of the mage, giving
+  // Dr. Jelly (the plague doctor) ahead of the mage, giving
   const jl = section(pages.galleries, S.jellyLooks);
   jl.append(
     el('p', 'dv-info', S.jellyNote),
@@ -1230,7 +1230,7 @@ function build() {
     btn(S.takeOptions, () => removeModelOptions(G.room.current)),
   );
 
-  // the bosses built in code (M4 onwards): every one ahead of the mage
+  // the bosses built in code: every one ahead of the mage
   const bl = section(pages.galleries, S.bossLooks);
   bl.append(
     el(
@@ -1254,7 +1254,7 @@ function build() {
     }),
     btn(S.takeOptions, () => removeModelOptions(G.room.current)),
   );
-  // M7 step 7: the townspeople's ten figures, for the owner's review: in a row ahead of the mage, gesturing in turn
+  // the townspeople's ten figures: in a row ahead of the mage, gesturing in turn
   const tg = section(pages.galleries, S.townGallery);
   tg.append(
     btn(S.showOptions, () => {
@@ -1263,7 +1263,7 @@ function build() {
     }),
     btn(S.takeOptions, () => takeTownGallery()),
   );
-  // the bestiary (M4.5): looks only for now, in rows by kind, each named with the fight it brings
+  // the bestiary: looks only, in rows by kind, each named with the fight it brings
   const best = section(pages.galleries, S.bestiary);
   best.append(
     el(
@@ -1323,7 +1323,7 @@ function build() {
     variant,
     btn(S.play, () => start({ testTemplate: tpl.value, testVariant: variant.value as RoomVariant })),
   );
-  // themed rooms (M3.6): a test room of each theme, next to the start
+  // themed rooms: a test room of each theme, next to the start
   const themes = section(pages.rooms, S.themes);
   for (const t of THEME_DEFS) {
     const first = TEMPLATE_DEFS.find((d) => d.theme === t.id);
@@ -1334,8 +1334,8 @@ function build() {
   for (const b of BOSS_TYPES)
     bosses.append(
       btn(STR.bosses[b].name, () => start({ testTemplate: b === 'kaelith' ? 'seal_kaelith' : bossRoom(), boss: b })),
-    ); // (M7: Kaelith in its own hall, its ward pillars round it)
-  // M7 step 2: Kaelith's fight: its phase, its wards; to a phase, the wards shut
+    ); // (Kaelith in its own hall, its ward pillars round it)
+  // Kaelith's fight: its phase, its wards; to a phase, the wards shut
   const kae = section(pages.rooms, S.kaelith);
   kae.append(
     (kaelithBox = el('p', 'dv-info')),
@@ -1349,7 +1349,7 @@ function build() {
       if (!shutAllWards()) toast(S.noKaelith, 2);
     }),
   );
-  // M7 step 3: a won run's dawn, from wherever the mage is (the end screen follows it, as after Kaelith)
+  // a won run's dawn, from wherever the mage is (the end screen follows it, as after Kaelith)
   const day = section(pages.rooms, S.daylight);
   day.append(
     (daylightBox = el('p', 'dv-info')),
@@ -1358,7 +1358,7 @@ function build() {
       enterDaylight();
     }),
   );
-  // M7 step 4: the save that carries from run to run (Dust, obols, the runs remembered); wiped or a veteran's, the page
+  // the save that carries from run to run (Dust, obols, the runs remembered); wiped or a veteran's, the page
   // starts again from it
   const saved = section(pages.rooms, S.keeping);
   saved.append(
@@ -1380,7 +1380,7 @@ function build() {
       location.reload();
     }),
   );
-  // M7 step 5: the Vigil as a place: waking there (as after a run, or the first time, dark with its first candle), its
+  // the Vigil as a place: waking there (as after a run, or the first time, dark with its first candle), its
   // lectern's screen, and the Ferryman's boat down to floor 1
   const vig = section(pages.rooms, S.vigil);
   vig.append(
@@ -1410,7 +1410,7 @@ function build() {
       board();
     }),
   );
-  // M7 step 6: chained shades: the floor's (where it lies, its chains), one chained beside the mage, its chains broken, freed
+  // chained shades: the floor's (where it lies, its chains), one chained beside the mage, its chains broken, freed
   // or bound; a shade walking with the mage this run, to see its help at work
   const sh = section(pages.rooms, S.shades);
   sh.append(
@@ -1457,7 +1457,7 @@ function build() {
     );
   }
   sh.parentElement!.append(shRow, walkRow);
-  // M7 step 7: the townspeople: any one talks, at the last run's moment or one chosen; every shade freed or none (the Vigil
+  // the townspeople: any one talks, at the last run's moment or one chosen; every shade freed or none (the Vigil
   // woken again to stand them), the lines forgotten, the flags their choices set
   const tw = section(pages.rooms, S.town);
   const again = () => {
@@ -1489,7 +1489,7 @@ function build() {
       setTownWear(townWear() === 'made' ? 'code' : 'made');
       again();
     })),
-  ); // (2026-10-09: the owner's models, or the figures in code)
+  ); // (the made models, or the figures in code)
   const talkRow = el('div', 'dv-row'),
     flagRow = el('div', 'dv-row');
   for (const id of SPEAKERS)
@@ -1510,7 +1510,7 @@ function build() {
     flagRow.append(b);
   }
   tw.parentElement!.append(talkRow, flagRow);
-  // M7 step 8: gifts, bonds and powers: what a descent begins with; each power owned or not, each bond a step deeper (round
+  // gifts, bonds and powers: what a descent begins with; each power owned or not, each bond a step deeper (round
   // to none), each quest given, done or forgotten
   const gf = section(pages.rooms, S.gifts);
   gf.append((giftBox = el('p', 'dv-info')));
@@ -1544,7 +1544,7 @@ function build() {
     questRow.append(b);
   }
   gf.parentElement!.append(powerRow, bondRow, questRow);
-  // M7 step 9: the unfolding: each barred way opened at once (at the Vigil, there and then), or every way closed again (the
+  // the unfolding: each barred way opened at once (at the Vigil, there and then), or every way closed again (the
   // Vigil woken again); a townsperson's candle lit in the chapel for the next descent; the garden's reagent
   const uf = section(pages.rooms, S.unfold);
   uf.append((unfoldBox = el('p', 'dv-info')));
@@ -1602,7 +1602,7 @@ function build() {
         start({ floor: i, level: levelAtFloor(i) > 1 ? levelAtFloor(i) : undefined }),
       ),
     ),
-  ); // (M6 step 12: at the floor's expected level, its choices waiting)
+  ); // (at the floor's expected level, its choices waiting)
   const keep = el('label', 'dv-check');
   const box = el('input');
   box.type = 'checkbox';
@@ -1866,7 +1866,7 @@ function refresh() {
       S.dials(dials.extra, dials.eliteMul, dials.ordealWaves, names(floorLean()), names(floorWalls())) +
         ' ' +
         S.pledgeInfo(G.run.pledge ? STR.schools[G.run.pledge] : ''),
-    ), // (M4.9: the descent's dials; M6: a boon's pledge)
+    ), // (the descent's dials; a boon's pledge)
     btn(S.warnFloor, () => {
       if (!warnFloor()) toast(S.noWall, 2);
     }),

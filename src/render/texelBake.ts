@@ -1,4 +1,4 @@
-/* A Tripo model's painted texture made pixel art at the size the game draws it (2026-10-05, the owner: Tripo's 2k painted
+/* A Tripo model's painted texture made pixel art at the size the game draws it (Tripo's 2k painted
    textures don't read at the game's pixel size; every model from Tripo gets it), baked once by tools/texel-bake.ts (from
    animate-creature and prepare-asset). Pure (no three.js): how big the texture should be for at least one of its texels
    to a game pixel, the texture shrunk to that by averaging blocks of texels within each UV island (which smooths away

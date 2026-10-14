@@ -1,5 +1,5 @@
-/* Loading the assets data/assets.json names (M3.5, docs/assets.md: Pipeline, step 8): models, a floor look's tile,
-   artifacts' icons and coin faces (2026-10-02), at boot, next to the hero. A model wears its texture as pixel art
+/* Loading the assets data/assets.json names (docs/assets.md: Pipeline, step 8): models, a floor look's tile,
+   artifacts' icons and coin faces, at boot, next to the hero. A model wears its texture as pixel art
    (`texel`, baked by prepare-asset; actors/texturePixel.ts). Each model is loaded once, stood on the
    floor at its height, and every use is a clone sharing its geometry and materials (marked shared, so removing a use
    frees nothing). A file that is missing or broken leaves its placeholder in place, with a warning in the console, never
@@ -185,7 +185,7 @@ function rimOf(img: HTMLImageElement) {
     }
   return n ? (Math.round(sum[0] / n) << 16) | (Math.round(sum[1] / n) << 8) | Math.round(sum[2] / n) : 0x8a6a34; // (sRGB bytes, as a hex colour is)
 }
-/** A coin's face (2026-10-02), or null when it isn't loaded (the obol built in code stays). */
+/** A coin's face, or null when it isn't loaded (the obol built in code stays). */
 export const coinFace = (id: string) => (enabled ? (faces.get(id) ?? null) : null);
 /** A coin's icon (its URL), or null. */
 export const coinIconUrl = (id: string) => (enabled ? (coinIcons.get(id) ?? null) : null);

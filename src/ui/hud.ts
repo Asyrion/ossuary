@@ -14,7 +14,7 @@ import { rune } from '../magic/runeData';
 import { $, clamp } from '../util';
 import { on } from '../events';
 
-/** The two spell slots: the spell's icon, its key and its mana cost (empty slots dimmed); M6 step 7: a pip for each place
+/** The two spell slots: the spell's icon, its key and its mana cost (empty slots dimmed); a pip for each place
     in the slot's socket, in the colour of the rune carved there (hollow while empty), and Vein's half heart, shown while it
     would pay. */
 export function renderSpells() {
@@ -34,7 +34,7 @@ export function renderSpells() {
         (socket?.runes.includes('vein')
           ? `<svg class="blood" viewBox="0 0 24 24" aria-hidden="true"><path d="${HEART_PATH}" fill="#c42c1f" clip-path="url(#halfclip)"/></svg>`
           : '')
-      : `<b>${key}</b>`; // (M6: as its runes make it)
+      : `<b>${key}</b>`; // (as its runes make it)
   });
 }
 let lastMana = -1;
@@ -59,7 +59,7 @@ function updateMagicHud() {
       small = slot.querySelector('small');
     if (small && small.textContent !== String(cost)) small.textContent = String(cost); // the Witch's Knot changes it
     slot.classList.toggle('poor', player.mana < spellCost(def));
-    slot.classList.toggle('vein', payment(i) === 'vein'); // (M6: Vein would pay in blood)
+    slot.classList.toggle('vein', payment(i) === 'vein'); // (Vein would pay in blood)
   });
 }
 /** A refused cast: the slot flashes red, and the mana bar too when mana was short. */
@@ -102,7 +102,7 @@ export function renderHearts() {
   let html = '';
   for (let i = 0; i < player.maxHp / 2; i++) {
     const half = player.maxHp - i * 2 === 1,
-      v = clamp(player.hp - i * 2, 0, half ? 1 : 2); // (M6: Vigor's half container, a half heart's outline)
+      v = clamp(player.hp - i * 2, 0, half ? 1 : 2); // (Vigor's half container, a half heart's outline)
     html +=
       `<svg viewBox="0 0 24 24"${half ? ' class="half"' : ''}><path d="${HEART_PATH}" fill="#2a1210" stroke="#0b0504" stroke-width="1.6"${half ? ' clip-path="url(#halfclip)"' : ''}/>` +
       (v === 2
@@ -112,7 +112,7 @@ export function renderHearts() {
           : '') +
       `<path d="M7 7.2c-1.2.3-2 1.2-2.2 2.4" stroke="rgba(255,220,200,.55)" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>`;
   }
-  for (const kind of player.souls) html += soulSvg(kind); // soul motes after the hearts (M4.1), in the order taken
+  for (const kind of player.souls) html += soulSvg(kind); // soul motes after the hearts, in the order taken
   el.hearts.innerHTML = html;
   el.hearts.setAttribute('aria-label', STR.health(player.hp / 2, player.maxHp / 2, player.souls.length));
 }
@@ -139,7 +139,7 @@ export function artifactIcon(id: string, isFocus: boolean, cleansed = player.cle
     clean = cleansed && !!def.curse;
   const cls = isFocus ? 'focus' : clean ? 'cleansed' : def.kind === 'cursed' ? 'cursed' : '';
   const text = clean ? def.curse!.cleansed : def.text;
-  const url = iconUrl(id) ?? artifactIconUrl(def); // (a painted icon, M3.5, or the room kit's, rendered from its model)
+  const url = iconUrl(id) ?? artifactIconUrl(def); // (a painted icon, or the room kit's, rendered from its model)
   const art = `<image href="${url}" width="24" height="24" style="image-rendering:pixelated"/>`;
   return `<svg viewBox="0 0 24 24" class="${cls}" style="color:${def.color}" role="img" aria-label="${def.name}"><title>${def.name}: ${text}\n\n${def.lore}</title>${art}</svg>`;
 }
@@ -177,7 +177,7 @@ const OWN_MARK = new Set([
   'treasure',
   'ordeal',
 ]);
-/** Whether room `r` is finished (the owner's ask, 2026-10-02): been in, its fight won, and nothing left in it to take (no
+/** Whether room `r` is finished: been in, its fight won, and nothing left in it to take (no
     pickup lying, no coffer or chest unopened, no artifact or page left). The minimap draws it a shade darker with a small
     tick, so the rooms still holding something stand out. */
 export function roomFinished(r: Room) {
@@ -323,7 +323,7 @@ export function renderMinimap() {
       mg.fillRect(cx - 5.5, cy - 2, 11, 8);
     }
     if (r.type === 'shrine') {
-      // a circle of pale gold, dimmed while there's no curse to cleanse and no bargain waiting (M6)
+      // a circle of pale gold, dimmed while there's no curse to cleanse and no bargain waiting
       mg.strokeStyle = mg.fillStyle =
         player.items.some((id) => artifact(id).curse && !player.cleansed.includes(id)) ||
         (r.bargain?.state ?? 'idle') !== 'kept'
@@ -356,7 +356,7 @@ export function renderMinimap() {
       mg.stroke();
     }
     if (r.type === 'laboratory') {
-      // (M5) a round flask of green jelly
+      // a round flask of green jelly
       mg.fillStyle = '#7ae070';
       mg.beginPath();
       mg.arc(cx, cy + 2, 5.5, 0, 7);
@@ -366,7 +366,7 @@ export function renderMinimap() {
       mg.fillRect(cx - 3, cy - 8, 6, 2);
     }
     if (r.type === 'waystone') {
-      // (M6 step 10) a standing stone with a gold rune, dimmed once it has given its rest
+      // a standing stone with a gold rune, dimmed once it has given its rest
       const rested = !!r.waystone?.rested;
       mg.fillStyle = rested ? '#5a5c62' : '#9a9ea8';
       mg.beginPath();
@@ -401,7 +401,7 @@ export function hideBossBar() {
   el.bossbar.classList.remove('on');
   el.bossbar.querySelectorAll('.mark').forEach((m) => m.remove());
 }
-/** Marks on the boss bar at these shares of its health (M7: Kaelith's phases); none for every other boss. */
+/** Marks on the boss bar at these shares of its health (Kaelith's phases); none for every other boss. */
 export function bossBarMarks(at: readonly number[]) {
   const track = el.bossbar.querySelector('.track') as HTMLElement;
   track.querySelectorAll('.mark').forEach((m) => m.remove());
@@ -432,7 +432,7 @@ export function showPrompt(html: string) {
 export function hidePrompt() {
   el.prompt.classList.remove('on');
 }
-/** Whether a page's question is up (M6: the level-up screen waits for it). */
+/** Whether a page's question is up (the level-up screen waits for it). */
 export const promptShowing = () => el.prompt.classList.contains('on');
 export function toast(msg: string, dur = 3) {
   el.toast.textContent = msg;
@@ -441,7 +441,7 @@ export function toast(msg: string, dur = 3) {
 }
 /** Whether a toast is showing now (a first-time line waits for it rather than cut it short). */
 export const toastShowing = () => toastT > 0;
-/** A first-time line (what a mantle, a pair or the ground does, M4.7): shown now, or after the line showing, never cutting
+/** A first-time line (what a mantle, a pair or the ground does): shown now, or after the line showing, never cutting
     it short; several wait their turn. A new run drops any still waiting. */
 const waiting: { msg: string; dur: number }[] = [];
 export function line(msg: string, dur = 3.5) {

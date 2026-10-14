@@ -19,7 +19,7 @@ export const pad = {
 const MENU_BUTTONS = [0, 1, 4, 5, 8, 12, 13, 14, 15];
 
 /** Every connected pad, read together: each stick from the pad pushing it furthest, each button pressed on any. A second,
-    idle device the browser lists first (a wireless adapter, a virtual pad, the same pad seen twice) no longer hides the one
+    idle device the browser lists first (a wireless adapter, a virtual pad, the same pad seen twice) doesn't hide the one
     in hand. */
 const pads = () =>
   [...(navigator.getGamepads ? navigator.getGamepads() : [])].filter((g): g is Gamepad => !!g && g.connected);
@@ -78,7 +78,7 @@ export function pollGamepad(act: InputActions) {
   const glyph = b(6); // left trigger: chalk a blast glyph
   if (glyph && !pad.glyphWas && act.playing()) pressed.glyph = true;
   pad.glyphWas = glyph;
-  const blink = b(7); // right trigger: the Shadowstep's blink (M4.6)
+  const blink = b(7); // right trigger: the Shadowstep's blink
   if (blink && !pad.blinkWas && act.playing()) pressed.blink = true;
   pad.blinkWas = blink;
   for (const i of [0, 1]) {
@@ -87,7 +87,7 @@ export function pollGamepad(act: InputActions) {
     if (on && !pad.spellWas[i] && act.playing()) pressed.spells[i] = true;
     pad.spellWas[i] = on;
   }
-  // M5: the d-pad's up uses the chosen potion (tap to drink, hold to throw), its left and right choose another
+  // the d-pad's up uses the chosen potion (tap to drink, hold to throw), its left and right choose another
   const pot = b(12);
   if (pot && !pad.potionWas && act.playing()) potionHold.since = performance.now();
   if (!pot && pad.potionWas && act.playing()) releasePotion(performance.now(), CFG.alchemy.hold);

@@ -1,4 +1,4 @@
-/* M6 step 5: the dev menu's "Boons here" and `__game.boonHere(id)`: each school boon taken (if it isn't yet) and set off
+/* The dev menu's "Boons here" and `__game.boonHere(id)`: each school boon taken (if it isn't yet) and set off
    just ahead of the mage (north of it), on training dummies or a foe, through the same hooks the game uses, a beat at a
    time on sim-time timers so the game runs between the steps. Its name may rise again (the room forgets it said it). */
 import { G, after, player } from '../state';

@@ -6,7 +6,7 @@ import * as THREE from 'three';
 
 export type V3 = [number, number, number];
 
-/** Each school's light: the rune, crystal, mote and spell colour (M5: Verdant's spring green). */
+/** Each school's light: the rune, crystal, mote and spell colour (Verdant's spring green). */
 export const SCHOOL_LIGHT = {
   ember: 0xff7a2a,
   frost: 0x7fd4ff,
@@ -221,7 +221,7 @@ export function lightningBolt(parent: THREE.Object3D, color: number, n = 8, widt
   };
 }
 /** Many jagged bolts at once, drawn as instances (two draw calls whatever their number, up to `max` segments): crackling
-    electricity round a Stormcharged champion (M4.7). Each flicker: `begin`, a `bolt` per bolt (from a to b in `segs`
+    electricity round a Stormcharged champion. Each flicker: `begin`, a `bolt` per bolt (from a to b in `segs`
     segments, jittered by `rnd`), `end`. */
 export function lightningField(parent: THREE.Object3D, color: number, max = 64, width = 0.024) {
   const geo = box(1, 1, 1),

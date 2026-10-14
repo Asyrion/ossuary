@@ -61,7 +61,7 @@ export function cameraTargetFor(room: Pick<Room, 'bounds' | 'plan'>, px: number,
   return { x: fit(x0, x1, halfW, px), z: fit(z0, z1, halfD, pz) };
 }
 
-/** M4.6: the camera close on the mage, or back to the room's view. */
+/** The camera close on the mage, or back to the room's view. */
 export function setCloseUp(on: boolean) {
   DEV.closeUp = on;
   if (!on && G.room.current) setViewScale(viewScaleFor(G.room.current));
@@ -72,7 +72,7 @@ export function placeCamera() {
   const sx = (Math.random() - 0.5) * s,
     sz = (Math.random() - 0.5) * s;
   if (DEV.closeUp) {
-    // (M4.6: close on the mage, to see what is worn)
+    // (close on the mage, to see what is worn)
     const y = CFG.costume.closeUp.y;
     camera.position.set(player.x, y, player.z).addScaledVector(CAM_DIR, 40);
     camera.lookAt(player.x, y, player.z);
@@ -86,7 +86,7 @@ export function placeCamera() {
   camera.lookAt(camTarget.x + sx, 0, camTarget.z + sz);
 }
 
-/** Draw a frame: the scene, or the scene in the pixel look (M3.5's style test). Draw calls and triangles are counted
+/** Draw a frame: the scene, or the scene in the pixel look (style test). Draw calls and triangles are counted
     per frame, over both passes of the pixel look. */
 export function draw() {
   renderer.info.reset();

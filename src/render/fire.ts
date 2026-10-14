@@ -1,4 +1,4 @@
-/* The room kit's fire (M3.5 step 3; docs/effects.md): the flames of torches, braziers and candles, in the style of the
+/* The room kit's fire (docs/effects.md): the flames of torches, braziers and candles, in the style of the
    spell effects. A flame is a cream-white core in a sheath of its colour with a faint red edge, tongues licking beside
    it and embers rising from it. Everything moves on the GPU from one clock (`tickFire`): the flames lick and flicker,
    each on its own beat, and the embers rise and shrink, so a room full of fire costs nothing per step. Colours are
@@ -181,7 +181,7 @@ export function makeFire(specs: FlameSpec[], pal: FirePalette, embers = 0, rise 
   return g;
 }
 
-/** Turn a fire made by `makeFire` to `pal` where it stands (its geometries are its own): M4.10's brazier taken by darkness
+/** Turn a fire made by `makeFire` to `pal` where it stands (its geometries are its own): brazier taken by darkness
     burns with Blackfire. Each part takes its colour by its material; embers keep their few bright ones. */
 export function recolourFire(fire: THREE.Object3D, pal: FirePalette) {
   const by = new Map<THREE.Material, number>([

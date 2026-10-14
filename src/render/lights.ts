@@ -27,7 +27,7 @@ export const lantern = lit(new THREE.PointLight(0xffc27a, L.lantern, L.lanternDi
 /** Torch brightness factor of the current floor (CFG.lights.torch × this), and how dark the current room is:
     0 normally, 1 in a dark room (torches out, fill and moonlight low, the lantern a little brighter). */
 export const lightState = { torchMul: 1, dark: 0, darkTarget: 0, day: false };
-/** M7 step 3: the dawn's light at the cave mouth (CFG.daylight.light): a warm fill and a low sun, the torches out, the lantern
+/** The dawn's light at the cave mouth (CFG.daylight.light): a warm fill and a low sun, the torches out, the lantern
     turned down; off, the floor's look puts its own colours back (applyFloorLook, on the next floor). */
 export function setDaylight(on: boolean) {
   lightState.day = on;

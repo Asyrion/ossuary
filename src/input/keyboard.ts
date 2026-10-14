@@ -35,9 +35,9 @@ export function initKeyboard(act: InputActions) {
     }
     if (e.code === 'Escape' || e.code === 'KeyP') act.togglePause();
     if (e.code === 'Space' && act.playing()) pressed.glyph = true; // chalk a blast glyph
-    if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && act.playing()) pressed.blink = true; // the Shadowstep's blink (M4.6)
+    if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && act.playing()) pressed.blink = true; // the Shadowstep's blink
     if ((e.code === 'KeyQ' || e.code === 'KeyE') && act.playing()) pressed.spells[e.code === 'KeyQ' ? 0 : 1] = true; // cast a spell
-    if (e.code === 'KeyR' && act.playing()) potionHold.since = performance.now(); // a potion: tap to drink, hold to throw (M5)
+    if (e.code === 'KeyR' && act.playing()) potionHold.since = performance.now(); // a potion: tap to drink, hold to throw
     if (e.code === 'KeyF' && act.playing()) pressed.nextPotion += 1;
     if (e.code === 'Enter' || e.code === 'Space') act.confirm();
     if (e.code === 'KeyM') act.toggleSound();

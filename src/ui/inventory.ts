@@ -1,5 +1,5 @@
-/* The inventory: what the mage carries and knows, in tabs (artifacts, spells, M5's potions, items, the mage's own numbers,
-   and M4.7's foes met), the
+/* The inventory: what the mage carries and knows, in tabs (artifacts, spells, potions, items, the mage's own numbers,
+   and foes met), the
    chosen entry described in a panel beside them: its icon, name and kind, what it does, its numbers and its lore.
    Opened with I or Tab (the gamepad's View button), or from the pause menu; the game waits while it's open.
    Arrows choose, Q and E (LB and RB) change tabs, and I, Tab or Esc (B) close it again. */
@@ -48,7 +48,7 @@ interface Entry {
   dim?: boolean;
   section?: string;
   detail: () => string;
-  /** (M6 step 9: what Enter does, where anything) */ act?: () => void;
+  /** (what Enter does, where anything) */ act?: () => void;
 }
 
 const I = () => STR.inv;
@@ -59,7 +59,7 @@ const halves = (h: number) => (h % 2 ? `${h > 1 ? Math.floor(h / 2) : ''}½` : S
 let open = false,
   tab: Tab = 'artifacts',
   back: 'pause' | 'play' = 'play',
-  beltHeld: number | null = null; // (M6 step 9: a potion picked up to move in the belt)
+  beltHeld: number | null = null; // (a potion picked up to move in the belt)
 const chosen: Record<Tab, number> = { artifacts: 0, spells: 0, potions: 0, items: 0, mage: 0, foes: 0 };
 let actions: { resume(): void } = { resume: () => {} };
 
@@ -159,9 +159,9 @@ function artifactEntries(): Entry[] {
   });
 }
 
-/** The spells tab (M3.7): the two carried slots (M6: each with its socket), the pouch of runes (M6 step 8), then a book by school. A school shows once a spell of it is learned,
+/** The spells tab: the two carried slots (each with its socket), the pouch of runes, then a book by school. A school shows once a spell of it is learned,
     with every spell of it the mage has met (carried ones marked Q or E, given-up ones and ones only seen dimmed) and a
-    sealed entry for each one not met yet; each described as far as the mage knows it (ui/spellPanel.ts). Last, M4.8's
+    sealed entry for each one not met yet; each described as far as the mage knows it (ui/spellPanel.ts). Last, the
     wheel of reactions: one entry for each pair of schools, found or not yet. */
 function spellEntries(): Entry[] {
   const keys = STR.controls.spellsKeys.split(' and '),
@@ -170,11 +170,11 @@ function spellEntries(): Entry[] {
   const sheet = (id: string, note = '') => {
     const at = player.spells.indexOf(id);
     return spellSheet(spell(id), stage(id), note, castsOf(id), at >= 0 ? player.sockets[at].runes : []);
-  }; // (M6: a slotted spell as its runes make it)
+  }; // (a slotted spell as its runes make it)
   const pips = (i: number) => {
     const k = player.sockets[i];
     return '◆'.repeat(k.runes.length) + '◇'.repeat(Math.max(0, k.size - k.runes.length));
-  }; // (M6 step 8: the socket, as the HUD's pips)
+  }; // (the socket, as the HUD's pips)
   const slots: Entry[] = player.spells.map((id, i) =>
     id
       ? {
@@ -236,7 +236,7 @@ function spellEntries(): Entry[] {
       );
     });
   }
-  // the wheel of reactions (M4.8): every pair of the schools, lit as found, once the book is open or one is found
+  // the wheel of reactions: every pair of the schools, lit as found, once the book is open or one is found
   const found = reactionsFound(),
     wheel: Entry[] =
       book.length || found.length
@@ -252,7 +252,6 @@ function spellEntries(): Entry[] {
     weaves: Entry[] =
       book.length || woven.length
         ? WEAVE_IDS.map((id, i) => ({
-            // (M4.10)
             icon: pairIcon(WEAVES[id].schools, woven.includes(id), WEAVES[id].kind === 'weave'),
             label: woven.includes(id) ? STR.weaves[id].name : K.unfound,
             dim: !woven.includes(id),
@@ -260,7 +259,7 @@ function spellEntries(): Entry[] {
             detail: () => weaveSheet(id),
           }))
         : [];
-  // M6 step 8: the pouch of runes, each with what it does, what it fits, and that a waystone carves it
+  // the pouch of runes, each with what it does, what it fits, and that a waystone carves it
   const R = STR.runes,
     ids = [...new Set(player.runes)];
   const pouch: Entry[] = ids.length
@@ -293,7 +292,7 @@ function spellEntries(): Entry[] {
 const SEALED =
   '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M13 7h17l7 7v27H13z" fill="#3a3128" stroke="#7a6a52" stroke-width="2"/><circle cx="25" cy="27" r="6" fill="#6a2a20" stroke="#a8503c" stroke-width="1.5"/><path d="M22 27h6M25 24v6" stroke="#e0b08a" stroke-width="1.4"/></svg>';
 
-/** The Potions tab (M5): the belt's slots (the chosen one marked), the reagents in the pouch, then every potion as known:
+/** The Potions tab: the belt's slots (the chosen one marked), the reagents in the pouch, then every potion as known:
     its bottle this run, what it does drunk and thrown, and how it is known; one not known yet is sealed. */
 function potionEntries(): Entry[] {
   const P = I().potions,
@@ -311,7 +310,7 @@ function potionEntries(): Entry[] {
   const belt: Entry[] = Array.from({ length: beltSlots() }, (_, k) => {
     const id = player.belt[k] as PotionId | undefined,
       section = k === 0 ? P.belt : undefined;
-    const act = () => beltAct(k); // (M6 step 9: Enter picks a potion up, Enter on another slot puts it there)
+    const act = () => beltAct(k); // (Enter picks a potion up, Enter on another slot puts it there)
     if (!id)
       return {
         icon: SEALED_SLOT,
@@ -486,7 +485,7 @@ function mageEntries(): Entry[] {
     Gr = I().growth,
     pts = pointsToSpend();
   const attr = (k: Attr): Entry => ({
-    // (M6: a point's worth each, and how many are spent)
+    // (a point's worth each, and how many are spent)
     icon: '',
     label: A[k].name,
     badge: String(G.run.attrs[k]),
@@ -495,7 +494,7 @@ function mageEntries(): Entry[] {
   const B = STR.boons,
     taken = Object.entries(G.run.boons);
   const boonEntry = ([id, rank]: [string, number], k: number): Entry => {
-    // (M6: each boon taken, its sigil, rank and what it does now)
+    // (each boon taken, its sigil, rank and what it does now)
     const b = boon(id),
       name = rank > 1 ? B.ranked(b.name) : b.name,
       kind = b.school ? B.kindOf(STR.schools[b.school]) : B.kindGeneral,
@@ -527,7 +526,7 @@ function mageEntries(): Entry[] {
       icon: '',
       label: Gr.level,
       badge: String(lv.level),
-      section: Gr.title, // (M6: the level, its insight, the points to spend)
+      section: Gr.title, // (the level, its insight, the points to spend)
       detail: () =>
         head('', Gr.level, String(lv.level)) +
         `<p class="effect">${esc(Gr.levelText(Math.round(G.run.insight), lv.span ? Math.ceil(lv.span - lv.into) : 0, pts))}</p>`,
@@ -559,9 +558,9 @@ const foeIcon = (color: string) =>
   `<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="25" r="17" fill="#1c1820" stroke="${color}" stroke-width="2.5"/><path d="M14 18l6 3M34 18l-6 3" stroke="${color}" stroke-width="2" stroke-linecap="round"/><ellipse cx="18.5" cy="25" rx="3" ry="2" fill="${color}"/><ellipse cx="29.5" cy="25" rx="3" ry="2" fill="${color}"/><path d="M17 33q7 4 14 0" stroke="${color}" stroke-width="1.6" fill="none"/></svg>`;
 const css = (n: number) => '#' + n.toString(16).padStart(6, '0');
 
-/** The Foes tab (M4.7): every foe the mage has met, by floor, then the bosses: its weakness and resistance once found
+/** The Foes tab: every foe the mage has met, by floor, then the bosses: its weakness and resistance once found
     (an elemental drinks its own school), and its counters, found ones described and the rest sealed. Kept between runs
-    (actors/bestiary.ts); M7's bestiary at the Vigil grows from it. */
+    (actors/bestiary.ts); bestiary at the Vigil grows from it. */
 function foeEntries(): Entry[] {
   const book = bestiary(),
     F = I().foes,
@@ -683,7 +682,7 @@ function turn(d: number) {
   beltHeld = null;
   render();
 }
-/** Enter on the chosen entry: what it does, if anything (M6 step 9: the belt's order). */
+/** Enter on the chosen entry: what it does, if anything (the belt's order). */
 function act() {
   const e = entries(tab)[chosen[tab]];
   if (e?.act) {

@@ -1,4 +1,4 @@
-/* M6 step 9: the waystone's screen (docs/archive/M6-plan.md, decision 11), built as the alchemy table's (ui/alchemyTable.ts): it
+/* The waystone's screen (docs/archive/M6-plan.md, decision 11), built as the alchemy table's (ui/alchemyTable.ts): it
    opens when the mage walks up to a kindled waystone or casts into it (world/waystone.ts), and the game waits while it's
    open. The first opening rests the mage. Two tabs:
    - Runes: each slot's sockets (a carved rune lifts back into the pouch for nothing; an empty hollow makes its slot the

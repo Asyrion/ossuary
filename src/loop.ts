@@ -50,7 +50,7 @@ import type { Page } from './types';
 export const STEP = 1 / 60;
 
 /** Where the UI runs in the step and the frame (main.ts fills these; the loop imports nothing from src/ui/). Each is
-    called at the exact point its UI used to be called. */
+    called at the exact point of the step or frame the UI needs. */
 export const uiHooks = {
   /** Mid-step, after the world's effects: the panels over what is near the mage, `page` the grimoire page within reach
       (`live`: playing, no room transition under way; otherwise they hide). */
@@ -99,7 +99,7 @@ export function step(dt: number) {
       updatePickups(dt);
       updatePotions(dt);
       updateThrows(dt);
-      checkLevelUp(dt); // (M6: a level waiting opens its screen once the fight is won)
+      checkLevelUp(dt); // (a level waiting opens its screen once the fight is won)
       // in rooms larger than the view the camera follows the mage, stopping at the walls
       const t = cameraTargetFor(G.room.current, player.x, player.z),
         k = 1 - Math.exp(-8 * dt);
@@ -107,9 +107,9 @@ export function step(dt: number) {
       camTarget.z += (t.z - camTarget.z) * k;
     } else updateEnemies(0);
   }
-  updateDaylight(dt); // (M7 step 3: the cave mouth at dawn, and the shaft's dust before it)
-  if (!G.flow.trans) updateVigil(dt); // (M7 step 5: the Vigil's lectern, boat and barred ways)
-  updateShades(dt); // (M7 step 6: a chained shade comes forth, asks, and goes)
+  updateDaylight(dt); // (the cave mouth at dawn, and the shaft's dust before it)
+  if (!G.flow.trans) updateVigil(dt); // (the Vigil's lectern, boat and barred ways)
+  updateShades(dt); // (a chained shade comes forth, asks, and goes)
   Sfx.listen(player.x, player.z); // effects are heard from just above the mage
   updateParticles(dt);
   updateWorldFx(dt, now);
@@ -130,7 +130,7 @@ function updateWorldFx(dt: number, now: number) {
   const live = G.flow.state === 'play' && !G.flow.trans;
   uiHooks.panels(live ? pageNear() : null, live); // a spell's panel over the page near the mage, and what a ware near it is
   updateFamiliars(dt, now, G.flow.state === 'play' && !G.flow.trans);
-  updateShadeHelp(dt, now, G.flow.state === 'play' && !G.flow.trans); // (M7 step 6: the bound shades walking with the mage)
+  updateShadeHelp(dt, now, G.flow.state === 'play' && !G.flow.trans); // (the bound shades walking with the mage)
   updateShrine(dt, now, G.flow.state === 'play' && !G.flow.trans);
   updateMagic(dt, G.flow.state === 'play' && !G.flow.trans);
   updateStatusFx(dt);
@@ -146,7 +146,7 @@ function updateWorldFx(dt: number, now: number) {
   const tf = 0.92 + Math.sin(now * 13) * 0.05 + Math.sin(now * 23) * 0.04;
   updateTorchLights(G.room.current.torches, player.x, player.z, dt, tf);
   G.fx.shake = Math.max(0, G.fx.shake - dt * 1.4);
-  updateInsight(G.flow.state === 'play' ? dt : 0); // (M6: insight's streaks run to the hand)
+  updateInsight(G.flow.state === 'play' ? dt : 0); // (insight's streaks run to the hand)
   uiHooks.endOfStep(dt);
   updateAudio(); // (the soundscapes and the music: what the game is doing chooses them)
 }

@@ -4,8 +4,8 @@
    drawn in, a roar that is half a bear's growl and half an owl's screech, and the slam of its forepaws. The dragonling's
    (a beast the size of a horse): heavy scaled feet whose claws strike stone, a reptile's hiss from a big chest, the clack
    of its jaw snapping shut, a rasping shriek with a rattle in its throat, and a chitter while it rests. The Chameleon
-   Wyvern's growl, screech and tail slam are files from the owner's EDA-ModelWebViewer, the first played from files
-   (samples.ts), these as their fallbacks. Kaelith's made model (2026-10-09) adds its sword's sweep and its kneel. */
+   Wyvern's growl, screech and tail slam are files from EDA-ModelWebViewer, the first played from files
+   (samples.ts), these as their fallbacks. Kaelith's made model adds its sword's sweep and its kneel. */
 import { Rand, crackleLoop, drum, noiseLoop, play, type Ctx } from './synth';
 import { playSample } from './samples';
 
@@ -366,12 +366,12 @@ export const CREATURE_SOUNDS: Record<string, (s: CreatureCall) => void> = {
   snap: (s) => snap(s),
   shriek: (s) => shriek(s),
   chitter: (s) => chitter(s),
-  // the Chameleon Wyvern's, from the owner's files (2026-10-05): a growl as it crouches, its screech, the club of its tail
+  // the Chameleon Wyvern's, from files: a growl as it crouches, its screech, the club of its tail
   // slammed down (two variants); each falls back to the nearest synthesised sound
   chameleonGrowl: fromFile('chameleonGrowl', (s) => roar(s, 1.2)),
   chameleonScreech: fromFile('chameleonScreech', (s) => shriek(s, 1.2)),
   clubSlam: fromFile('clubSlam', (s) => CREATURE_SOUNDS.slam(s)),
-  // Kaelith's made model (2026-10-09): its sword's sweep, air cut in an arc; its kneel, armour and a knee on stone
+  // Kaelith's made model: its sword's sweep, air cut in an arc; its kneel, armour and a knee on stone
   swing: (s) => {
     noise(s, 'white', 'bandpass', 700, 2600, 2.5, 0, 0.12, 0.22, 0.5);
     noise(s, 'pink', 'bandpass', 300, 900, 1.5, 0.04, 0.1, 0.25, 0.3);

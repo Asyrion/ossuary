@@ -71,7 +71,7 @@ export interface ScreenActions {
 export function initScreens(act: ScreenActions) {
   on('paused', () => {
     showScreen('pause');
-    $('runInfo').textContent = atVigil() ? STR.vigil.runInfo : STR.runInfo(G.run.floor + 1, FLOORS.length, G.run.seed); // (M7 step 5: no floor at the Vigil)
+    $('runInfo').textContent = atVigil() ? STR.vigil.runInfo : STR.runInfo(G.run.floor + 1, FLOORS.length, G.run.seed); // (no floor at the Vigil)
     $('btnResume').focus();
   });
   on('resumed', () => showScreen(null));
@@ -106,7 +106,7 @@ export function initScreens(act: ScreenActions) {
   }
   $('pauseBtn').addEventListener('click', () => act.pauseIfPlaying());
 
-  // M7 step 4: the save to a file and back (the page starts again from what was read, so every module reads it)
+  // the save to a file and back (the page starts again from what was read, so every module reads it)
   $('btnSaveOut').addEventListener('click', () => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([exportSave()], { type: 'application/json' }));

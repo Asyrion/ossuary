@@ -110,7 +110,7 @@ function spot(x: number, z: number) {
   return pan;
 }
 
-/** A school's note (M4.10's weaves): Ember a crackling rise, Frost a high chime, Storm a buzz, Hallow a bright bell,
+/** A school's note (weaves): Ember a crackling rise, Frost a high chime, Storm a buzz, Hallow a bright bell,
     Umbral a low hum. */
 function schoolNote(school: string, delay: number) {
   if (school === 'ember') {
@@ -124,7 +124,7 @@ function schoolNote(school: string, delay: number) {
   else if (school === 'verdant') {
     tone('triangle', 392, 466, 0.35, 0.05, delay);
     hiss(0.25, 0.04, 'bandpass', 900, delay);
-  } // (M5: a reed's breath)
+  } // (a reed's breath)
   else tone('sine', 110, 82, 0.5, 0.08, delay);
 }
 
@@ -156,12 +156,12 @@ const sounds = {
     tone('sine', 660, 660, 0.1, 0.1);
     tone('sine', 990, 990, 0.18, 0.09, 0.09);
   },
-  /** M4.6: a transformation formed: a rising chord with a shimmer over it. */
+  /** A transformation formed: a rising chord with a shimmer over it. */
   transform() {
     [392, 523, 659, 784, 1046, 1318].forEach((f, i) => tone('triangle', f, f * 1.01, 0.5, 0.07, i * 0.07));
     tone('sine', 2093, 1568, 0.6, 0.03, 0.45);
   },
-  /** M4.6's gifts: the Shadowstep's blink (a rush of air, falling), the Runescribe's rune bursting, the Frostborn's touch. */
+  /** Gifts: the Shadowstep's blink (a rush of air, falling), the Runescribe's rune bursting, the Frostborn's touch. */
   blink() {
     hiss(0.18, 0.1, 'highpass', 1800);
     tone('sine', 880, 220, 0.2, 0.06);
@@ -248,7 +248,7 @@ const sounds = {
     tone('square', 180, 140, 0.06, 0.03);
   },
   // urns, wards, coffers and chests
-  // the rooms' objects (M3.6)
+  // the rooms' objects
   bones() {
     [900, 1250, 700, 1500, 1050].forEach((f, i) => tone('square', f, f * 0.8, 0.03, 0.025, i * 0.035));
     hiss(0.15, 0.05, 'bandpass', 2200);
@@ -275,7 +275,7 @@ const sounds = {
     hiss(0.1, 0.07, 'highpass', 2800);
     tone('square', 420, 300, 0.04, 0.02);
   },
-  // mechanisms (M3.6)
+  // mechanisms
   toll() {
     [98, 147, 196, 294].forEach((f, i) => tone('sine', f, f * 0.995, 2.2 - i * 0.3, 0.12 / (i + 1)));
     hiss(0.3, 0.05, 'bandpass', 1200);
@@ -418,7 +418,7 @@ const sounds = {
     tone('sine', 880, 1320, 0.18, 0.05);
     tone('sine', 1320, 1760, 0.22, 0.03, 0.06);
   },
-  // M5: potions and reagents. A bottle taken clinks; a reagent rustles; a draught is gulped; a thrown bottle whistles,
+  // potions and reagents. A bottle taken clinks; a reagent rustles; a draught is gulped; a thrown bottle whistles,
   // shatters and splashes; the belt's choice ticks like glass
   bottle() {
     tone('sine', 1760, 1700, 0.08, 0.05);
@@ -436,9 +436,9 @@ const sounds = {
     hiss(0.22, 0.04, 'bandpass', 1800);
     tone('sine', 700, 1100, 0.18, 0.02);
   },
-  /** M5 step 6: a brew at the alchemy table (bubbling, then a bright note as it settles); a jelly globe bursting (glass and
+  /** A brew at the alchemy table (bubbling, then a bright note as it settles); a jelly globe bursting (glass and
       a wet slap). */
-  /** Dr. Jelly holds out what he gives (2026-10-02): a glassy clink and a glint. */
+  /** Dr. Jelly holds out what he gives: a glassy clink and a glint. */
   jellyGive() {
     tone('sine', 1175, 1175, 0.12, 0.05);
     tone('sine', 1568, 1568, 0.22, 0.04, 0.08);
@@ -449,7 +449,7 @@ const sounds = {
     hiss(0.45, 0.03, 'lowpass', 700);
     tone('triangle', 880, 1320, 0.3, 0.05, 0.38);
   },
-  // the jelly serpent (M5 step 7): its vat window cracking, bursting, its hiss as it rises, a glob of jelly landing
+  // the jelly serpent: its vat window cracking, bursting, its hiss as it rises, a glob of jelly landing
   glassCrack() {
     tone('triangle', 3200, 2400, 0.08, 0.05);
     tone('triangle', 2400, 1900, 0.1, 0.04, 0.05);
@@ -556,7 +556,7 @@ const sounds = {
     hiss(0.5, 0.06, 'bandpass', 1400, 0.05);
     tone('sine', 260, 180, 0.25, 0.03);
   },
-  // M4.8's reactions, each in both its schools' palettes
+  // reactions, each in both its schools' palettes
   searing() {
     hiss(0.5, 0.1, 'bandpass', 900);
     tone('triangle', 784, 1046, 0.4, 0.07);
@@ -576,7 +576,7 @@ const sounds = {
     hiss(0.4, 0.05, 'highpass', 5000, 0.05);
     tone('triangle', 988, 740, 0.3, 0.03, 0.08);
   },
-  // M5, Verdant (wood and breath, reeds and seed pods): its spells
+  // Verdant (wood and breath, reeds and seed pods): its spells
   thornRise() {
     hiss(0.35, 0.06, 'lowpass', 900);
     tone('sawtooth', 90, 160, 0.3, 0.04);
@@ -599,7 +599,7 @@ const sounds = {
     hiss(0.5, 0.07, 'lowpass', 700);
     tone('sine', 160, 70, 0.5, 0.05);
   },
-  // M5, Verdant: its reactions
+  // Verdant: its reactions
   wildfire() {
     hiss(0.5, 0.12, 'bandpass', 1400);
     tone('sawtooth', 180, 90, 0.45, 0.05);
@@ -647,7 +647,7 @@ const sounds = {
     tone('sine', 80, 160, 0.5, 0.08);
     crackles(10, 0.7, 0.05);
   },
-  /** M4.10: a weave or a chain, in both its schools' palettes, one after the other. */
+  /** A weave or a chain, in both its schools' palettes, one after the other. */
   weave(a: string, b: string) {
     for (const [s, d] of [
       [a, 0],
@@ -656,7 +656,7 @@ const sounds = {
       schoolNote(s, d);
     hiss(0.3, 0.05, 'bandpass', 1600, 0.05);
   },
-  /** M4.9: a sluice gate lifts (iron and a rush of water) or drops shut. */
+  /** A sluice gate lifts (iron and a rush of water) or drops shut. */
   sluice(open: boolean) {
     if (open) {
       tone('square', 110, 80, 0.35, 0.04);
@@ -743,7 +743,7 @@ const sounds = {
     [392, 523, 659].forEach((f, i) => tone('sine', f, f * 1.01, 0.4, 0.06, i * 0.12));
     hiss(0.5, 0.03, 'highpass', 4000);
   },
-  /** M6: insight reaching the hand (soft, a glassy chime), and a level reached (a rising stinger in insight's gold). */
+  /** Insight reaching the hand (soft, a glassy chime), and a level reached (a rising stinger in insight's gold). */
   cardTurn() {
     tone('triangle', 520, 560, 0.06, 0.03);
     hiss(0.04, 0.02, 'highpass', 5000);
@@ -760,36 +760,36 @@ const sounds = {
     tone('sine', 1568, 1760, 0.12, 0.025);
     tone('sine', 2349, 2349, 0.16, 0.012, 0.03);
   },
-  /** M6 step 5: a boon at work, in its school's palette, a soft bell over it. */
+  /** A boon at work, in its school's palette, a soft bell over it. */
   boon(school: string) {
     schoolNote(school, 0);
     tone('sine', 1046, 1046, 0.3, 0.03, 0.08);
   },
-  /** A rune at work (M6 step 7): a chisel's tick on stone, then the spell's school. */
+  /** A rune at work: a chisel's tick on stone, then the spell's school. */
   rune(school: string) {
     hiss(0.05, 0.07, 'bandpass', 2200);
     tone('triangle', 330, 290, 0.12, 0.06);
     schoolNote(school, 0.05);
   },
-  /** A rune taken into the pouch (M6 step 8): stone set down on stone, and a low chime as its glyph wakes. */
+  /** A rune taken into the pouch: stone set down on stone, and a low chime as its glyph wakes. */
   runeTake() {
     hiss(0.06, 0.06, 'bandpass', 1800);
     tone('triangle', 247, 233, 0.14, 0.07);
     tone('sine', 740, 760, 0.4, 0.035, 0.06);
     tone('sine', 1109, 1109, 0.3, 0.018, 0.1);
   },
-  /** M6 step 9, the waystone: risen, its runes kindle (a deep stone hum and a rising chime); the rest (mana pouring back, a
+  /** The waystone: risen, its runes kindle (a deep stone hum and a rising chime); the rest (mana pouring back, a
       long soft swell); a rune carved (a chisel's two strikes into stone, then the glyph's chime). */
   snuff() {
     hiss(0.3, 0.04, 'highpass', 1800);
     tone('sine', 300, 180, 0.18, 0.02);
-  }, // (M7 step 9: a candle put out)
+  }, // (a candle put out)
   wayOpens() {
     hiss(1.4, 0.07, 'lowpass', 600);
     tone('sine', 65, 98, 1.6, 0.1);
     tone('triangle', 262, 392, 1.1, 0.04, 0.2);
     tone('sine', 523, 784, 1.2, 0.03, 0.5);
-  }, // (M7 step 9: a barred way at the Vigil opens)
+  }, // (a barred way at the Vigil opens)
   kindle() {
     tone('sine', 98, 110, 1.2, 0.08);
     tone('triangle', 392, 523, 0.6, 0.04, 0.15);
@@ -800,7 +800,7 @@ const sounds = {
     tone('sine', 73, 65, 1.6, 0.09);
     tone('square', 147, 139, 0.5, 0.025, 0.1);
     tone('triangle', 294, 277, 0.9, 0.03, 0.3);
-  }, // (M6 step 11: a low toll, the price)
+  }, // (a low toll, the price)
   bargainKept() {
     [392, 494, 587, 784].forEach((f, i) => tone('triangle', f, f, 0.5, 0.04, i * 0.09));
     tone('sine', 196, 196, 1.2, 0.05);
@@ -843,7 +843,7 @@ const sounds = {
     hiss(1, 0.07, 'lowpass', 400);
     tone('sine', 180, 120, 1, 0.03);
   },
-  // M7 step 2: Kaelith's fight (Umbral's palette: low, breathy, a hollow ring)
+  // Kaelith's fight (Umbral's palette: low, breathy, a hollow ring)
   kaelithSweep() {
     hiss(0.45, 0.1, 'bandpass', 900);
     tone('sawtooth', 220, 70, 0.4, 0.05);
@@ -875,7 +875,7 @@ const sounds = {
   shaft() {
     [523, 659, 784, 1047].forEach((f, i) => tone('sine', f, f * 1.01, 1.6, 0.035, i * 0.09));
     hiss(1.6, 0.03, 'highpass', 3200);
-  }, // (M7 step 3: daylight falling into the Seal)
+  }, // (daylight falling into the Seal)
   dawn() {
     hiss(2.4, 0.07, 'lowpass', 1800);
     [262, 330, 392, 523].forEach((f, i) => tone('triangle', f, f, 2.6, 0.04, 0.15 + i * 0.05));
@@ -885,13 +885,13 @@ const sounds = {
     hiss(0.5, 0.025, 'bandpass', 1400);
     tone('sine', 262, 277, 0.45, 0.025, 0.05);
     tone('sine', 392, 370, 0.35, 0.015, 0.12);
-  }, // (M7 step 7: a townsperson turns to speak, a breath and a murmur)
+  }, // (a townsperson turns to speak, a breath and a murmur)
   boat() {
     hiss(1.6, 0.05, 'lowpass', 600);
     hiss(0.9, 0.03, 'bandpass', 900, 0.5);
     tone('sine', 98, 92, 1.4, 0.05, 0.1);
     tone('triangle', 196, 196, 0.9, 0.02, 0.6);
-  }, // (M7 step 5: the Ferryman's pole in the water, and the boat pushing off)
+  }, // (the Ferryman's pole in the water, and the boat pushing off)
   waken() {
     tone('sine', 196, 196, 2.2, 0.05);
     tone('sine', 294, 294, 2, 0.03, 0.25);
@@ -900,7 +900,7 @@ const sounds = {
   chainRattle() {
     for (let i = 0; i < 5; i++) tone('square', 900 + i * 130, 700 + i * 90, 0.04, 0.015, i * 0.06);
     hiss(0.35, 0.02, 'highpass', 3000);
-  }, // (M7 step 6: a chained shade's chains, as it is seen)
+  }, // (a chained shade's chains, as it is seen)
   shadeLoose() {
     tone('sine', 330, 440, 1.2, 0.05);
     tone('sine', 495, 660, 1, 0.03, 0.15);
@@ -923,12 +923,12 @@ const sounds = {
     hiss(1.8, 0.06, 'lowpass', 280);
     tone('sine', 73, 61, 2, 0.1);
     tone('triangle', 110, 92, 1.5, 0.035, 0.35);
-  }, // (M7: Kaelith's voice from under the stone)
+  }, // (Kaelith's voice from under the stone)
   champion() {
     tone('sawtooth', 80, 60, 0.5, 0.08);
     hiss(0.4, 0.06, 'lowpass', 300);
   },
-  // champion mantles (M4.7): a mantle torn off (a snap and a falling chime), and a Hexbound's curse closing
+  // champion mantles: a mantle torn off (a snap and a falling chime), and a Hexbound's curse closing
   unbound() {
     hiss(0.18, 0.12, 'highpass', 2600);
     tone('triangle', 990, 330, 0.35, 0.06);
@@ -949,7 +949,7 @@ const sounds = {
     tone('sine', 392, 392, 0.8, 0.05);
     tone('triangle', 588, 588, 0.5, 0.03);
   },
-  // the foes built in code (M4): critters squeak and pop rather than groan; each attack's warning and its blow in the
+  // the foes built in code: critters squeak and pop rather than groan; each attack's warning and its blow in the
   // palette of its school (Umbral: low, hollow, breathy)
   critterDie() {
     tone('square', 880, 260, 0.16, 0.05);
@@ -1079,7 +1079,7 @@ const sounds = {
   drakeWings() {
     for (let i = 0; i < 3; i++) hiss(0.12, 0.1, 'lowpass', 500, i * 0.16);
   },
-  // Hallow and Umbral (M4.1): Hallow's bells and choir, Umbral's low drones and swells drawn backwards
+  // Hallow and Umbral: Hallow's bells and choir, Umbral's low drones and swells drawn backwards
   consecrate() {
     [523, 659, 784].forEach((f, i) => tone('sine', f, f, 1.4, 0.045, i * 0.03));
     tone('sine', 1047, 1047, 1.2, 0.02, 0.1);
@@ -1114,7 +1114,7 @@ const sounds = {
   vigilLantern() {
     [784, 1175, 1568].forEach((f, i) => tone('triangle', f, f, 0.5, 0.03, i * 0.06));
     hiss(0.4, 0.02, 'highpass', 3000);
-  }, // (M7 step 8: Lantern of Vigil lit)
+  }, // (Lantern of Vigil lit)
   lanternShot() {
     tone('sine', 1568, 1760, 0.12, 0.025);
   },
@@ -1122,7 +1122,7 @@ const sounds = {
     tone('sine', 110, 82, 1.2, 0.08);
     tone('triangle', 330, 220, 0.8, 0.04, 0.05);
     hiss(0.9, 0.04, 'bandpass', 500);
-  }, // (M7 step 8: every hex reaped at once)
+  }, // (every hex reaped at once)
   ferryToll() {
     tone('sine', 1760, 1760, 0.1, 0.05);
     tone('sine', 147, 139, 1.4, 0.08, 0.05);
@@ -1138,7 +1138,7 @@ const sounds = {
     hiss(0.5, 0.08, 'bandpass', 900);
     crackles(6, 0.4, 0.04);
   },
-  // soul motes and the lodestone shard (M4.1): a pale breath taken and let go, a black one's spill, a hallowed chord;
+  // soul motes and the lodestone shard: a pale breath taken and let go, a black one's spill, a hallowed chord;
   // the shard's click and the hum of the lodestone
   soulTake() {
     tone('sine', 660, 990, 0.35, 0.04);
@@ -1166,7 +1166,7 @@ const sounds = {
     tone('sine', 110, 220, 0.6, 0.07, 0.02);
     tone('sine', 880, 1760, 0.4, 0.03, 0.08);
   },
-  // M4.1's artifacts: the antler's lance, a bolt's echo off stone, the choir's hymn, the last rite, the salt's hiss
+  // artifacts: the antler's lance, a bolt's echo off stone, the choir's hymn, the last rite, the salt's hiss
   antlerLance() {
     tone('triangle', 1568, 1480, 0.35, 0.04);
     tone('sine', 2349, 2300, 0.3, 0.02, 0.03);
@@ -1200,7 +1200,7 @@ const sounds = {
     hiss(0.5, 0.08, 'lowpass', 400);
     [1319, 1568].forEach((f, i) => tone('triangle', f, f * 0.7, 0.4, 0.02, i * 0.06));
   },
-  // floor 4's foes (M4.1): the wickmouse's squeak, the chime bat's bell and its strike, the gargoyle's grinding wake and landing, the fawn's healing
+  // floor 4's foes: the wickmouse's squeak, the chime bat's bell and its strike, the gargoyle's grinding wake and landing, the fawn's healing
   squeak() {
     tone('sine', 1900, 2600, 0.05, 0.03);
     tone('sine', 2200, 2900, 0.05, 0.025, 0.07);
@@ -1228,7 +1228,7 @@ const sounds = {
     [784, 988, 1175, 1568].forEach((f, i) => tone('sine', f, f, 0.45, 0.035, i * 0.07));
     hiss(0.4, 0.02, 'highpass', 5000, 0.1);
   },
-  // floor 5's foes (M4.1): the rootling's digging and rumble, the storm ray's rush, the void mote's gulp and spill, the tortoise's shell
+  // floor 5's foes: the rootling's digging and rumble, the storm ray's rush, the void mote's gulp and spill, the tortoise's shell
   dig() {
     hiss(0.3, 0.08, 'lowpass', 500);
     tone('sine', 140, 80, 0.2, 0.04);
@@ -1253,7 +1253,7 @@ const sounds = {
     tone('square', 260, 180, 0.06, 0.04);
     hiss(0.08, 0.05, 'bandpass', 1200);
   },
-  // the bosses of floors 4 and 5 (M4.1): the hart's bell-voice, drumming hooves and light; the angler's hum, bite and spit
+  // the bosses of floors 4 and 5: the hart's bell-voice, drumming hooves and light; the angler's hum, bite and spit
   hartBellow() {
     tone('sine', 196, 185, 1.1, 0.08);
     tone('triangle', 392, 370, 0.9, 0.04, 0.05);
@@ -1281,7 +1281,7 @@ const sounds = {
     hiss(0.14, 0.08, 'bandpass', 650);
     tone('sine', 280, 110, 0.16, 0.05);
   },
-  // M4.2's bosses: the War-Tiger's roar (stone giving as it wakes), and a plate knocked off it, bronze or stone
+  // bosses: the War-Tiger's roar (stone giving as it wakes), and a plate knocked off it, bronze or stone
   tigerRoar() {
     tone('sawtooth', 110, 70, 0.9, 0.06);
     tone('sine', 165, 98, 1, 0.08);
@@ -1317,7 +1317,7 @@ const sounds = {
     hiss(0.35, 0.1, 'highpass', 3500);
     [2637, 2093].forEach((f, i) => tone('triangle', f, f * 0.7, 0.3, 0.03, i * 0.04));
   },
-  // M4.2's pieces from the lore: a watching statue's gaze settling on the mage and its ray; a hex blinding it; an
+  // pieces from the lore: a watching statue's gaze settling on the mage and its ray; a hex blinding it; an
   // obelisk's ward breaking
   statueMark() {
     tone('sine', 220, 440, 0.7, 0.05);
@@ -1337,7 +1337,7 @@ const sounds = {
     [1568, 1175, 880, 659].forEach((f, i) => tone('triangle', f, f * 0.8, 0.35, 0.035, i * 0.05));
     hiss(0.4, 0.08, 'highpass', 3000);
   },
-  // the drinking ward (M4.2): a spell drunk, the ward bursting; a Wardling swelling and letting its volley go
+  // the drinking ward: a spell drunk, the ward bursting; a Wardling swelling and letting its volley go
   wardDrink() {
     tone('sine', 660, 220, 0.35, 0.06);
     tone('sine', 990, 330, 0.3, 0.03, 0.04);
@@ -1351,7 +1351,7 @@ const sounds = {
   wardlingSwell() {
     tone('sine', 300, 700, 0.5, 0.04);
   },
-  // the Wandering Merchant (M4.2): the bell on the merchant's staff, riding in; the crow
+  // the Wandering Merchant: the bell on the merchant's staff, riding in; the crow
   wandererBell() {
     [1320, 1760, 1480].forEach((f, i) => tone('triangle', f, f * 0.98, 0.5, 0.04, i * 0.18));
   },
@@ -1363,7 +1363,7 @@ const sounds = {
     tone('triangle', 700, 260, 0.15, 0.05);
     hiss(0.1, 0.04, 'bandpass', 1800);
   },
-  // M4.5's bestiary, floor 1. Umbral: a spider's thread and fall, webs; ink; a grimoire's covers and pages
+  // bestiary, floor 1. Umbral: a spider's thread and fall, webs; ink; a grimoire's covers and pages
   spiderTell() {
     hiss(0.5, 0.03, 'highpass', 4500);
     tone('sine', 1800, 2400, 0.45, 0.012);

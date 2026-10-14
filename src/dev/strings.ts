@@ -128,7 +128,7 @@ export const DEV_STR = {
   artifactGallery: "Artifacts (the room kit's: built in code, their icons rendered from them)",
   artifactsNote:
     "Every artifact floating ahead of the mage in rows (foci, passives, cursed), to look at; they can't be taken",
-  /** Dr. Jelly (2026-10-02): the plague doctor (the owner's pick of three) and what he hands over. */
+  /** Dr. Jelly: the plague doctor, and what he hands over. */
   jellyLooks: "Dr. Jelly (the plague doctor, from the owner's pictures)",
   jellyNote: 'He stands ahead of the mage, looping the giving gesture',
   jellyGives: {
@@ -239,7 +239,7 @@ export const DEV_STR = {
   manaOn: 'Endless mana: on',
   manaOff: 'Endless mana: off',
   forget: 'Forget spells',
-  /** M6 step 7: runes carved into the slot chosen above (each fits some shapes: one that doesn't is refused). */
+  /** Runes carved into the slot chosen above (each fits some shapes: one that doesn't is refused). */
   runes: 'Runes (carved into the slot chosen above)',
   toPouch: 'Into the pouch, as if found (M6 step 8):',
   runeAhead: 'A rune ahead (dealt as a drop is)',
@@ -309,7 +309,7 @@ export const DEV_STR = {
   lureTest: 'Lure test: fire, webs and rime between you and wargs and a golem',
   findCounters: 'Find every counter',
   pairs: 'Pairs (M4.7; a fight may roll one, the two made to work together), ahead of you:',
-  /** M5: alchemy (Mage tab): each potion into the belt (its true name; the HUD shows it as the mage knows it), all laid
+  /** Alchemy (Mage tab): each potion into the belt (its true name; the HUD shows it as the mage knows it), all laid
       out ahead, what is known, the belt used. */
   alchemy: 'Alchemy (potions into the belt; R drinks, hold R throws, F chooses)',
   alchemyInfo: (

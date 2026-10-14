@@ -1,4 +1,4 @@
-/* Emblems drawn in strokes (M6): the boons' sigils (progression/boonLooks.ts) and the runes' glyphs (items/runeLooks.ts).
+/* Emblems drawn in strokes: the boons' sigils (progression/boonLooks.ts) and the runes' glyphs (items/runeLooks.ts).
    A stroke is a line, a circle or an arc on a disc of radius 1 (y up); `emblem` builds them as thin glowing pieces facing
    +z, in front of whatever they are carved on. */
 import * as THREE from 'three';

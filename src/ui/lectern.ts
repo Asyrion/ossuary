@@ -1,4 +1,4 @@
-/* M7 step 5: the Vigil's grimoire lectern (docs/M7-plan.md, decision 8), built as the waystone's screen (ui/waystone.ts):
+/* The Vigil's grimoire lectern (docs/M7-plan.md, decision 8), built as the waystone's screen (ui/waystone.ts):
    it opens when the mage walks up to the lectern in the Crypt (vigil/place.ts), and the game waits while it's open. At the
    Vigil the mage's two hands hold any two spells it has learned: the screen lists the two hands, then every spell learned,
    by school; Q or E (LB or RB) puts the chosen spell in that hand, Enter in the free one (or Q's), and Enter on a hand

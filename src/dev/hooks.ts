@@ -182,7 +182,7 @@ export function installHooks() {
     warp,
     descend,
     clearRoom,
-    /** M6: insight and levels: the insight gained, the level, the level choices waiting, insight to the next level; gain
+    /** Insight and levels: the insight gained, the level, the level choices waiting, insight to the next level; gain
         some (it runs to the hand as a fallen foe's does) or set the level. */
     get insight() {
       return insightNow();
@@ -192,13 +192,13 @@ export function installHooks() {
     },
     giveInsight: (n: number) => gainInsight(n),
     setLevel: (n: number) => setLevel(n),
-    /** M6 step 2: the points spent on each attribute and those left to spend; spend one (a level's point, or `free`). */
+    /** The points spent on each attribute and those left to spend; spend one (a level's point, or `free`). */
     get attrs() {
       return { ...G.run.attrs, free: pointsToSpend() };
     },
     spend: (attr: Attr, free = false) => spendPoint(attr, free),
-    /** M6 step 3: the boons taken (each one's rank), the pledge and the casts by school; deal three as a level would; take one. */
-    /** M6 step 7: each slot's socket (its spell, size and runes, and the spell as they make it), the pouch, and which runes
+    /** The boons taken (each one's rank), the pledge and the casts by school; deal three as a level would; take one. */
+    /** Each slot's socket (its spell, size and runes, and the spell as they make it), the pouch, and which runes
         have acted (`acted`, counted) and said their line (`said`). */
     get sockets() {
       return {
@@ -242,10 +242,10 @@ export function installHooks() {
     },
     deal: () => dealNow(),
     giveBoon: (id: string) => takeBoon(id),
-    /** M6 step 5: a school boon taken if need be and set off ahead (the dev menu's "Boons here"); `acted` above counts each
+    /** A school boon taken if need be and set off ahead (the dev menu's "Boons here"); `acted` above counts each
         boon at work this run, `said` the names risen in this room. */
     boonHere: (id: string) => setOffBoon(id),
-    /** M6 step 4: the level-up screen: what it offers (open, phase, the level, its cards); open it now; choose for a level
+    /** The level-up screen: what it offers (open, phase, the level, its cards); open it now; choose for a level
         (card i, then attribute a: the screen's or, closed, as `?autolevel` does); levels choose for themselves. */
     get offer() {
       return offerNow();
@@ -274,7 +274,7 @@ export function installHooks() {
       draw();
       updateVision();
     },
-    /** The made assets (M3.5, data/assets.json): whether they are used, and each one's status; turn them on or off
+    /** The made assets (data/assets.json): whether they are used, and each one's status; turn them on or off
         (this floor is built again to compare). */
     get assets() {
       return { on: assetsOn(), list: assetList().map((a) => ({ ...a })) };
@@ -300,13 +300,13 @@ export function installHooks() {
     takeArtifactGallery: () => removeArtifactGallery(G.room.current),
     /** Take the bosses, the bestiary and Dr. Jelly stood by the galleries below away again. */
     takeModelOptions: () => removeModelOptions(G.room.current),
-    /** M4.5: stand the bestiary's candidates (every one, or those named) ahead of the mage, in rows by kind. */
+    /** Stand the bestiary's candidates (every one, or those named) ahead of the mage, in rows by kind. */
     bestiaryOptions: (ids?: string[]) => showBestiary(G.room.current, player.x, player.z, ids),
-    /** The bosses built in code (the Hollow Warden's looks, M4, and floors 4 and 5's, M4.1): stand them ahead of the mage; the look the Warden wears in its fight, and choosing it. */
+    /** The bosses built in code (the Hollow Warden's looks, and floors 4 and 5's): stand them ahead of the mage; the look the Warden wears in its fight, and choosing it. */
     bossLooks: (ids?: string[]) => showBossLooks(G.room.current, player.x, player.z, ids),
     /** For each fantasy look: the parts its foe's behaviour moves that the look lacks, and whether its parts are known. */
     lookContract: () => lookContract(),
-    /** Dr. Jelly (2026-10-02, the plague doctor): stood ahead of the mage giving, a gift handed over in this laboratory,
+    /** Dr. Jelly (the plague doctor): stood ahead of the mage giving, a gift handed over in this laboratory,
         and what he is giving now. */
     jellyLooks: () => showJellyLooks(G.room.current, player.x, player.z),
     jellyGive: (gift: Gift) => jellyGives(gift),
@@ -319,7 +319,7 @@ export function installHooks() {
     setPixelLook: (change: Partial<PixelLook>) => setPixelLook(change),
     /** Ahead of the mage: a plain and a sealed urn, and an artifact on a pedestal (one with a made model if any). */
     showAssets: () => showAssetsHere(),
-    /** The coin face the obols wear (2026-10-02), every face they can wear, wearing another, and all side by side. */
+    /** The coin face the obols wear, every face they can wear, wearing another, and all side by side. */
     get obolFace() {
       return obolFace();
     },
@@ -399,7 +399,7 @@ export function installHooks() {
         rune: opts.rune,
       });
     },
-    /** The soul motes held, in the order taken (M4.1); give one (false when as many are kept as can be); a floor's end
+    /** The soul motes held, in the order taken; give one (false when as many are kept as can be); a floor's end
         for the hallowed ones (the half hearts they gave back). */
     get souls() {
       return [...player.souls];
@@ -421,13 +421,13 @@ export function installHooks() {
       if (v !== undefined) player.mana = Math.min(player.stats.maxMana, Math.max(0, v));
       return player.mana;
     },
-    /** Spell knowledge (M3.7): every spell's stage; bring one to a stage; forget everything (kept between runs). */
+    /** Spell knowledge: every spell's stage; bring one to a stage; forget everything (kept between runs). */
     get knowledge() {
       return knowledgeNow();
     },
     know: (id: string, stage: Stage) => setStage(id, stage),
     forgetKnowledge: () => forgetKnowledge(),
-    /** The reactions found (M4.8's codex, kept between runs); find them all or forget them; set one off on dummies ahead. */
+    /** The reactions found (codex, kept between runs); find them all or forget them; set one off on dummies ahead. */
     get reactions() {
       return [...reactionsFound()];
     },
@@ -435,7 +435,7 @@ export function installHooks() {
     forgetReactions: () => forgetReactions(),
     reaction: (r: Reaction, x = player.x, z = player.z - 3) =>
       setOffReaction(r, x, z).map((d) => G.room.enemies.indexOf(d)),
-    /** M4.10: the weaves and chains found (kept between runs); find them all or forget them; set one up ahead of the mage. */
+    /** The weaves and chains found (kept between runs); find them all or forget them; set one up ahead of the mage. */
     get weaves() {
       return [...weavesFound()];
     },
@@ -458,7 +458,7 @@ export function installHooks() {
     }, // (a swarm comes whole)
     champion(kind: FoeType, mantle?: MantleId, x = player.x, z = player.z - 2.5) {
       return makeEnemy(kind, x, z, 1, undefined, { champion: true, mantle });
-    }, // (M4.7: a champion, in a mantle if named)
+    }, // (a champion, in a mantle if named)
     layGround(
       kind: 'web' | 'ink' | 'rime' | 'blackice' | 'fire' | 'spark' | 'spores',
       x: number,
@@ -466,24 +466,24 @@ export function installHooks() {
       by?: string,
     ) {
       layDevGround(kind, x, z, by);
-    }, // (M4.7: ground left by a foe of kind `by`)
+    }, // (ground left by a foe of kind `by`)
     foeGround(i: number) {
       const e = G.room.enemies[i];
       return e && { pace: groundPace(e), at: e.inGround, slide: !!e.slide };
-    }, // (M4.7: what the ground under foe i does to it)
-    /** Strike the room's foe `i` for `dmg`, of `school` if given (M4: its weakness and resistance count). */
+    }, // (what the ground under foe i does to it)
+    /** Strike the room's foe `i` for `dmg`, of `school` if given (its weakness and resistance count). */
     hit: (i: number, dmg: number, school?: School, by: 'spell' | 'cantrip' = 'spell', dx = 0, dz = 0) => {
       const e = G.room.enemies[i];
       if (e) damageEnemy(e, dmg, dx, dz, 0, by, school);
       return e?.hp;
     }, // (dx, dz: the way the blow travels)
-    /** What the mage has found of the foes (M4), kept between runs; forget it all. */
+    /** What the mage has found of the foes, kept between runs; forget it all. */
     get bestiary() {
       return bestiary();
     },
     forgetBestiary: () => forgetBestiary(),
-    findCounters: () => findEveryCounter(), // (M4.7: every counter found)
-    /** Patches of ground a salamander has set burning in this room (M4). */
+    findCounters: () => findEveryCounter(), // (every counter found)
+    /** Patches of ground a salamander has set burning in this room. */
     get burningGround() {
       return burningGround();
     },
@@ -492,7 +492,7 @@ export function installHooks() {
     },
     get pollen() {
       return pollenNow();
-    }, // (M5: Pollen Spark's clouds in the room)
+    }, // (Pollen Spark's clouds in the room)
     get steam() {
       return steamCount();
     },
@@ -501,8 +501,8 @@ export function installHooks() {
     },
     inSteam(x: number, z: number) {
       return inSteam(x, z);
-    }, // (Steam's clouds in the room, 2026-10-01)
-    /** M4.5: the webs, ink and rime on the floor of the current room; a glyph's blast at (x, z). */
+    }, // (Steam's clouds in the room)
+    /** The webs, ink and rime on the floor of the current room; a glyph's blast at (x, z). */
     get ground() {
       return {
         web: groundCount('web'),
@@ -532,7 +532,7 @@ export function installHooks() {
     get ward() {
       return wardLeft();
     },
-    /** The Salt Circle lying round the mage (M4.1): where, and how long; null when none. */
+    /** The Salt Circle lying round the mage: where, and how long; null when none. */
     get salt() {
       return saltCircle();
     },
@@ -600,12 +600,12 @@ export function installHooks() {
         black: !!b.prop.black,
         sown: !!b.prop.sown,
       }));
-    }, // (open: M4.9's sluice; black: M4.10's brazier; sown: M6's Seedfall)
-    /** M4.2: whether the mage stands in a sapping obelisk's field (what the cantrip's blows are worth there). */
+    }, // (open: sluice; black: brazier; sown: Seedfall)
+    /** Whether the mage stands in a sapping obelisk's field (what the cantrip's blows are worth there). */
     get sap() {
       return sapMul();
     },
-    /** M4.2: the drinking wards: every vault's on the floor (sealed or not, how full, what it drank most, the vault's
+    /** The drinking wards: every vault's on the floor (sealed or not, how full, what it drank most, the vault's
         warden) and every warded foe's; `wardFoe(i)` wards the i-th foe. */
     get wards() {
       const seals = [...new Set(G.floor.rooms.flatMap((r) => r.doors.map((d) => d.seal)).filter((s) => !!s))];
@@ -626,18 +626,18 @@ export function installHooks() {
       if (e) wardFoe(e);
       return !!e?.ward;
     },
-    /** M4.2: the way the room's water runs (n, s, e, w or none) and how many waterfalls feed it. */
+    /** The way the room's water runs (n, s, e, w or none) and how many waterfalls feed it. */
     get flow() {
       return { dir: G.room.current.flow ?? null, falls: G.room.current.falls?.length ?? 0 };
     },
-    /** M4.2: the Wandering Merchant rides into this room (`callWanderer()`), and whether the merchant is here, the wares out, and what. */
+    /** The Wandering Merchant rides into this room (`callWanderer()`), and whether the merchant is here, the wares out, and what. */
     callWanderer() {
       callWanderer();
     },
     get wanderer() {
       return wandererState();
     },
-    /** M4.2: the Pillar Dragon's pillars, whether it is on one, how high its head is, and whether the pillars it raised are up. */
+    /** The Pillar Dragon's pillars, whether it is on one, how high its head is, and whether the pillars it raised are up. */
     get dragon() {
       return dragonInfo();
     },
@@ -648,11 +648,11 @@ export function installHooks() {
       return kneltAt;
     },
     kaelithToPhase,
-    shutAllWards, // (M7 step 2: Kaelith's fight)
+    shutAllWards, // (Kaelith's fight)
     get daylight() {
       return daylightInfo();
     },
-    daylightNow: () => enterDaylight(), // (M7 step 3: a won run's dawn)
+    daylightNow: () => enterDaylight(), // (a won run's dawn)
     get vigil() {
       return JSON.parse(JSON.stringify(vigil())) as ReturnType<typeof vigil>;
     },
@@ -660,8 +660,8 @@ export function installHooks() {
     wipeSave,
     veteranSave,
     exportSave,
-    importSave, // (M7 step 4: the save)
-    /** M7 step 5: the Vigil as a place: where the mage is in it, the candles, the lectern's screen and hands, the boat; wake
+    importSave, // (the save)
+    /** The Vigil as a place: where the mage is in it, the candles, the lectern's screen and hands, the boat; wake
         there (for the first time: dark, its candle lighting), put a spell in a hand at the lectern, take the boat down. */
     get vigilPlace() {
       return {
@@ -669,7 +669,7 @@ export function installHooks() {
         lectern: { ...('lectern' in vigilInfo() ? (vigilInfo() as { lectern: object }).lectern : {}), ...lecternNow() },
       };
     },
-    /** M7 step 6: chained shades: the floor's (where it lies, its chains, its state); one chained ahead of the mage; its chains
+    /** Chained shades: the floor's (where it lies, its chains, its state); one chained ahead of the mage; its chains
         broken; freed or bound; a shade walking with the mage this run (its help) and what the helps have done. */
     get shade() {
       return shadeInfo();
@@ -685,9 +685,9 @@ export function installHooks() {
     get shadeHelp() {
       return shadeHelpInfo();
     },
-    /** M7 step 7: the townspeople: who stands where (each one's glint), the lines heard and the flags; one talks (at the
+    /** The townspeople: who stands where (each one's glint), the lines heard and the flags; one talks (at the
         last run's moment, or the one given), the panel's state, go on, take a choice, set or clear a flag, forget the lines;
-        the ten in a row for the owner's review. */
+        the ten in a row for review. */
     get town() {
       return townInfo();
     },
@@ -702,7 +702,7 @@ export function installHooks() {
     forgetHeard,
     townGallery: (ids?: string[]) => townGallery(player.x, player.z, ids),
     takeTownGallery,
-    /** M7 step 8: gifts, bonds and powers: each townsperson's bond, power and quest, the powers owned, what a descent begins
+    /** Gifts, bonds and powers: each townsperson's bond, power and quest, the powers owned, what a descent begins
         with, the disciplines open; a power given or taken, a bond set, a quest given or done (or forgotten: null). */
     get gifts() {
       return { ...giftsInfo(), disciplines: disciplinesOpen(vigil().freed) };
@@ -713,7 +713,7 @@ export function installHooks() {
     },
     bondTo,
     questTo,
-    /** M7 step 9: the unfolding: the parts opened, the candle lit, the garden's reagent, what the Cave Mouth holds, the chapel's
+    /** The unfolding: the parts opened, the candle lit, the garden's reagent, what the Cave Mouth holds, the chapel's
         candles and the garden's beds; a way opened at once (at the Vigil, there and then), every way closed (or opened) again,
         a candle lit (or none), the garden's reagent chosen. */
     get unfold() {
@@ -728,7 +728,7 @@ export function installHooks() {
     openLectern,
     closeLectern,
     takeBoat: () => board(),
-    /** M4.2: Fen-Nex (its stage, where it is, whether it hunts), and growing it a stage. */
+    /** Fen-Nex (its stage, where it is, whether it hunts), and growing it a stage. */
     get fennex() {
       return fennexInfo();
     },
@@ -746,7 +746,7 @@ export function installHooks() {
       fireAt(x, z, r);
     },
     /** The costume pieces the mage wears (a hood, from the Pilgrim's Cowl; an artifact's id for one carried at a spot),
-        and the focus held in the casting hand (M4.6); try a piece on as if held, or take all off. */
+        and the focus held in the casting hand; try a piece on as if held, or take all off. */
     get costume() {
       return wornNow();
     },
@@ -759,20 +759,20 @@ export function installHooks() {
     wear: (id: string) => tryOn(id),
     takeAllOff: () => takeAllOff(),
     closeUp: (on = true) => setCloseUp(on),
-    /** The run's transformations (M4.6), the latest last; form one at once, or undo them all; the blink's rest; how far the
+    /** The run's transformations, the latest last; form one at once, or undo them all; the blink's rest; how far the
         robes are tinted. */
     get transforms() {
       return [...G.run.transforms];
     },
     transform: (id: TransformId) => formTransform(id),
     clearTransforms: () => clearTransforms(),
-    /** M4.11 spell marks: what the slotted spells and the knowledge show on the mage; attune to a school (both its spells
+    /** Spell marks: what the slotted spells and the knowledge show on the mage; attune to a school (both its spells
         in the slots). */
     get spellMarks() {
       return marksNow();
     },
     attune: (school: School) => attuneTo(school),
-    // M5: the potion belt (ids, the chosen one), what each potion is (known or not, its bottle), what a drink left on the
+    // the potion belt (ids, the chosen one), what each potion is (known or not, its bottle), what a drink left on the
     // mage, what is in the air; give, use and choose as the keys do
     get belt() {
       return {
@@ -800,10 +800,10 @@ export function installHooks() {
     giveReagent: (id: ReagentId, n = 1) => addReagent(id, n),
     usePotion: (how: 'drink' | 'throw') => usePotion(how),
     choosePotion: (d: number) => choosePotion(d),
-    /** M6 step 9: the waystone in this room (where, how far risen, kindled, rested, its pair, the slot it carves into, and
+    /** The waystone in this room (where, how far risen, kindled, rested, its pair, the slot it carves into, and
         its screen), raised ahead of the mage (`raiseWaystone`, kindled at once), its screen opened or closed, the pair
         taken, a rune carved from the pouch or lifted out, Second Socket's socket opened, the belt reordered. */
-    // M6 step 11: the shrine's bargain: its stone (state, school, runes' colour), its deal opened on a school, a card taken
+    // the shrine's bargain: its stone (state, school, runes' colour), its deal opened on a school, a card taken
     // (the heart paid), or backed out of
     get bargain() {
       return bargainNow();
@@ -846,7 +846,7 @@ export function installHooks() {
     reagentsAlways: (on: boolean) => {
       DEV.reagents = on;
     },
-    /** M6 step 8: a rune wherever one can lie (`DEV.runes`; this floor built again, so a shop restocks), and the chance of
+    /** A rune wherever one can lie (`DEV.runes`; this floor built again, so a shop restocks), and the chance of
         each here (times the floor's `runes`). */
     runesAlways: (on: boolean) => {
       DEV.runes = on;
@@ -860,7 +860,7 @@ export function installHooks() {
         gilded: runeOdds('gilded'),
       };
     },
-    // M5 step 6: Dr. Jelly's laboratory: the table's screen (open, tab, mortar), the room's table and Dr. Jelly, the recipes
+    // Dr. Jelly's laboratory: the table's screen (open, tab, mortar), the room's table and Dr. Jelly, the recipes
     // known; open or close the table, brew two reagents at it, buy a recipe, have Dr. Jelly look at a potion
     get lab() {
       const l = G.room.current.lab;
@@ -875,7 +875,7 @@ export function installHooks() {
     },
     openLab: (t: LabTab = 'brew') => openLab(t),
     closeLab: () => closeLab(),
-    // M5 step 7: the jelly serpent: its state, whether it is under, where, its trap, and the jelly in the room (tiles, frozen);
+    // the jelly serpent: its state, whether it is under, where, its trap, and the jelly in the room (tiles, frozen);
     // the vat's cracks and whether it is broken; crack the vat window as a bolt does, or let the serpent out at once
     get serpent() {
       const l = G.room.current.lab;
@@ -896,7 +896,7 @@ export function installHooks() {
     get trapdoor() {
       return !!G.floor.trapdoor;
     },
-    /** Where the trapdoor lies (world x, z) and the room it is in (M6 step 10: the waystone room's, or the boss room's). */
+    /** Where the trapdoor lies (world x, z) and the room it is in (the waystone room's, or the boss room's). */
     get wayDown() {
       const t = G.floor.trapdoor;
       return (
@@ -915,11 +915,11 @@ export function installHooks() {
     get pads() {
       return padsNow();
     },
-    /** The ware whose panel shows over it (2026-10-02): its name, and whether he would refuse it now. */
+    /** The ware whose panel shows over it: its name, and whether he would refuse it now. */
     get warePanel() {
       return warePanelNow();
     },
-    /** The rooms the minimap marks finished (2026-10-02): been in, the fight won, nothing left to take. */
+    /** The rooms the minimap marks finished: been in, the fight won, nothing left to take. */
     get finished() {
       return G.floor.rooms.filter((r) => roomFinished(r)).map((r) => r.plan.id);
     },
@@ -943,7 +943,7 @@ export function installHooks() {
     get moths() {
       return mothCount();
     },
-    /** Azyrion's arc (M4.6): the stage now, the artifacts that count, the stage reached this run; force a stage (or `undefined`
+    /** Azyrion's arc: the stage now, the artifacts that count, the stage reached this run; force a stage (or `undefined`
         for as held). */
     get arc() {
       return { stage: arcNow(), held: arcHeld(), reached: G.run.arc };

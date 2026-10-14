@@ -1,4 +1,4 @@
-/* The dev menu's "Weaves and chains here" and `__game.weave(id)` (M4.10): each weave or chain set up just ahead of the mage
+/* The dev menu's "Weaves and chains here" and `__game.weave(id)`: each weave or chain set up just ahead of the mage
    (north of it) with the spells, reactions and dummies it needs, then set off, a beat at a time on sim-time timers so the
    game runs between the steps. The spells are cast through `CAST` as the mage would, mana and cooldowns aside. */
 import { G, after, player } from '../state';
