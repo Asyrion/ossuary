@@ -1,4 +1,4 @@
-/* The room kit's doors, gates, niches and pilasters (M3.5 step 3; docs/archive/M3.5-plan.md), built in code in the style of the
+/* The room kit's doors, gates, niches and pilasters (docs/archive/M3.5-plan.md), built in code in the style of the
    spell effects (docs/effects.md), in the stone of the floor's walls (`stoneOf`):
    - a door: jambs of dressed blocks, a threshold of worn stone; through a tall north wall, a lintel and an arch of
      voussoirs crowning it above the wall's line, its keystone carrying what lies beyond (a horned skull for the boss,
@@ -225,7 +225,7 @@ const EMBLEMS: Partial<Record<DoorStyle, (g: THREE.Group, trim: THREE.Material) 
     g.add(gl);
   },
   laboratory(g) {
-    // a round flask of green jelly, glowing, on a copper ring (M5: Dr. Jelly's laboratory)
+    // a round flask of green jelly, glowing, on a copper ring (Dr. Jelly's laboratory)
     mesh(g, new THREE.SphereGeometry(0.12, 10, 8), glowTone(0x7ae070), 0, -0.02, 0.1);
     mesh(g, new THREE.CylinderGeometry(0.035, 0.04, 0.1, 6), tone(0x9ebed8, 0.04, 0.35), 0, 0.13, 0.1);
     mesh(g, GEO.ring, tone(0x8a5a30, 0.06, 0.6), 0, -0.02, 0.02).scale.setScalar(0.75);
@@ -234,7 +234,7 @@ const EMBLEMS: Partial<Record<DoorStyle, (g: THREE.Group, trim: THREE.Material) 
     g.add(gl);
   },
   waystone(g) {
-    // a menhir of grey stone with a pointed top, a rune burning gold down its face (M6 step 10: the waystone room)
+    // a menhir of grey stone with a pointed top, a rune burning gold down its face (the waystone room)
     const s = new THREE.Group();
     s.rotation.x = -0.6;
     s.scale.setScalar(1.35);

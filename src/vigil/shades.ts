@@ -1,4 +1,4 @@
-/* Chained shades in a run (M7 step 6; docs/M7-plan.md, decision 10; the pure rules in shadeData.ts). About one a floor, on
+/* Chained shades in a run (docs/M7-plan.md, decision 10; the pure rules in shadeData.ts). About one a floor, on
    the run's own stream (`'shades' + floor`), so a seed keeps its floors: a shade lies chained in a secret room, a library or a
    vault from the first, and at an ordeal's end or in a boss's keeping once the fight there is won. The mage meeting it
    draws its chains' schools from what it can land then (its spells that reach a spot, the cantrip's statuses, a brazier in
@@ -244,7 +244,7 @@ export function freeIt() {
   s.column = col.group;
   freeShade(s.id);
   G.run.freed = [...G.run.freed, s.id];
-  giftOnFree(s.id); // (M7 step 8: its gift, at once)
+  giftOnFree(s.id); // (its gift, at once)
   Sfx.at(s.x, s.z).shadeFree();
   line(STR.shades.freed(name(s.id)), 5);
   return true;

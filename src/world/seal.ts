@@ -1,4 +1,4 @@
-/* M7 step 1: the Seal (docs/M7-plan.md, decision 2): a level laid by hand below floor 5 (`fixed` in data/floors.json, built
+/* The Seal (docs/M7-plan.md, decision 2): a level laid by hand below floor 5 (`fixed` in data/floors.json, built
    by `fixedPlan` in generate.ts): the Stair, where Kaelith's voice speaks the first time down; the Wardens' Last Hall, one
    fight of two waves drawn from every floor's foes, the horde pressing at the seal; and Kaelith's Hall. */
 import { Sfx } from '../audio/sfx';

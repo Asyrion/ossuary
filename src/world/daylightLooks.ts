@@ -1,4 +1,4 @@
-/* Daylight's looks (M7 step 3; docs/M7-plan.md): the shaft of light where Kaelith's way out opens, and the cave mouth at
+/* Daylight's looks (docs/M7-plan.md): the shaft of light where Kaelith's way out opens, and the cave mouth at
    dawn the mage steps out into, built in code and drawn in the pixel look like everything else.
 
    The view is laid in two parts. The terrace is real ground (its stone from the room kit's paving, in the morning's
@@ -180,7 +180,7 @@ function fallTexture() {
   return t;
 }
 
-/** The cave mouth at dawn, its terrace's edge at the root's origin (the mage walks out to it from +Z). M7 step 9: the
+/** The cave mouth at dawn, its terrace's edge at the root's origin (the mage walks out to it from +Z). The
     Vigil's Cave Mouth looks out on the same valleys from its own floor, without the terrace (`terrace`) or the cave's
     rock framing the view (`cave`). */
 export function buildVista(o: { terrace?: boolean; cave?: boolean } = {}): Vista {

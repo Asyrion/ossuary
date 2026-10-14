@@ -1,6 +1,6 @@
 /* Filling a room's template roles with the floor's foes, on the room's seed (pure, so the tests fill rooms as the game
-   does: M6's curve is measured on it). One elite a room at most, and one pack or nest (M4.5); an ordeal deeper down gains
-   waves (M4.9); some fights roll a pair (M4.7) and the pressure's one foe more (M4.9); a quiet room keeps a few of its
+   does: the curve is measured on it). One elite a room at most, and one pack or nest; an ordeal deeper down gains
+   waves; some fights roll a pair and the pressure's one foe more; a quiet room keeps a few of its
    weak foes. `buildRoom` (rooms.ts) places what this fills; `spawnWave` (flow.ts) sizes the packs and picks the
    champion with the two helpers below. */
 import { CFG } from '../config';
@@ -26,7 +26,7 @@ export interface Fill {
 }
 
 /** Fill `slots` (the template's waves) for `plan` on `floor`; `only` puts that foe in every role (`?foe=`, the dev menu),
-    with no pair and no extra. The order of the draws is the game's since M4.9, so seeds replay their fights. */
+    with no pair and no extra. The order of the draws is fixed, so seeds replay their fights. */
 export function fillRoles(plan: PlannedRoom, slots: Foe[][], floor: FloorConfig, only?: FoeType): Fill {
   const pick = mulberry(plan.seed ^ 0xf0e5),
     table = floor.foes,
@@ -35,7 +35,7 @@ export function fillRoles(plan: PlannedRoom, slots: Foe[][], floor: FloorConfig,
     pack = false;
   const fill = (f: Foe): Filled => {
     const kind: FoeType | 'boss' =
-      f.kind === 'boss' ? 'boss' : (only ?? pickFoe(table, f.kind, pick, elite, pack, P.eliteMul)); // (deeper, elites come more often: M4.9)
+      f.kind === 'boss' ? 'boss' : (only ?? pickFoe(table, f.kind, pick, elite, pack, P.eliteMul)); // (deeper, elites come more often)
     if (kind !== 'boss' && isFoe(kind) && FOES[kind].elite) elite = true;
     if (kind !== 'boss' && comesMany(kind)) pack = true;
     return { kind, role: f.kind, c: f.c, r: f.r };

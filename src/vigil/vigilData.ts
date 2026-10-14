@@ -1,10 +1,10 @@
-/* The keeping (M7 step 4; docs/M7-plan.md, decisions 3 and 17, "What the save keeps"): what carries over from one run to
+/* The keeping (docs/M7-plan.md, decisions 3 and 17, "What the save keeps"): what carries over from one run to
    the next, as one versioned record (`ossuary.vigil`, kept by save.ts). Pure: its shape, a record made whole from whatever
    was stored (`migrate`, which also takes over the five keys kept before it), a record checked (`validate`), and what a
    run brings home: its Arcane Dust from each source (`dustFor`) and its obols (`obolsHome`). */
 
 export const SAVE_VERSION = 1;
-/** The keys kept before the save, which it takes over once (they stay until M7's close, then go). */
+/** The keys kept before the save, which it takes over once (and leaves in place). */
 export const LEGACY_KEYS = {
   knowledge: 'ossuary.knowledge',
   reactions: 'ossuary.reactions',
@@ -15,7 +15,7 @@ export const LEGACY_KEYS = {
 export type SlotKey = keyof typeof LEGACY_KEYS;
 export const SLOT_KEYS = Object.keys(LEGACY_KEYS) as SlotKey[];
 
-/** One run as the save remembers it (the echoes of step 11 stand from these). */
+/** One run as the save remembers it (the echoes stand from these). */
 export interface RunRecord {
   seed: string;
   won: boolean;
@@ -29,7 +29,7 @@ export interface RunRecord {
   level: number;
   dust: number;
   obols: number;
-  /** M7 step 7: the bosses it put to rest (the townspeople speak of them). */ felled: string[];
+  /** The bosses it put to rest (the townspeople speak of them). */ felled: string[];
 }
 export interface VigilSave {
   v: number;
@@ -58,12 +58,10 @@ export interface VigilSave {
   candle: boolean;
   sigils: { owned: string[]; placed: string[] };
   powers: string[];
-  /** M7 step 5: the two spells the mage holds at the Vigil (Q and E), chosen at its lectern. */ slots: (
-    string | null
-  )[];
-  /** M7 step 7: the townspeople's lines heard (a line's id, or `id@subject` for one that tells of something), each with
+  /** The two spells the mage holds at the Vigil (Q and E), chosen at its lectern. */ slots: (string | null)[];
+  /** The townspeople's lines heard (a line's id, or `id@subject` for one that tells of something), each with
       when it was heard (a count: the higher, the later). */ heard: Record<string, number>;
-  /** M7 step 9: the townsperson whose candle burns in the chapel for the next descent (its blessing), and the reagent the
+  /** The townsperson whose candle burns in the chapel for the next descent (its blessing), and the reagent the
       garden of the dead gives every descent (the embalmer's). */ blessing: string | null;
   garden: string | null;
 }

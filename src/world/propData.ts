@@ -1,4 +1,4 @@
-/* The rooms' objects (M3.6: docs/archive/M3.6-plan.md, decision 4): what each is in a template and how it behaves. Pure (no
+/* The rooms' objects (docs/archive/M3.6-plan.md, decision 4): what each is in a template and how it behaves. Pure (no
    three.js): the template parser, the validator, the loot simulation and props.ts (their looks and behaviour) all use it.
 
    Each object blocks in one of three ways:
@@ -27,7 +27,7 @@ export type PropKind =
   | 'globe'
   | 'blossom'
   | MechanismKind;
-/** The mechanisms (M3.6 step 4, world/mechanisms.ts): objects that answer to magic with more than breaking or burning. */
+/** The mechanisms (world/mechanisms.ts): objects that answer to magic with more than breaking or burning. */
 export type MechanismKind =
   | 'brazier'
   | 'candles'
@@ -65,15 +65,15 @@ export const PROPS: Record<PropKind, PropDef> = {
   pew: { char: 'p', class: 'low', hits: 0, blast: false, burns: false },
   desk: { char: 'd', class: 'low', hits: 0, blast: false, burns: true },
   scrolls: { char: 'e', class: 'low', hits: 1, blast: true, burns: true, loot: 'remains' },
-  // M4.1: the Gilded Treasury's heaps of offerings (a blast spills their obols) and the Ferry Landing's moored boats
+  // the Gilded Treasury's heaps of offerings (a blast spills their obols) and the Ferry Landing's moored boats
   hoard: { char: 'h', class: 'low', hits: 0, blast: true, burns: false, loot: 'hoard' },
   boat: { char: 'm', class: 'low', hits: 0, blast: false, burns: true },
-  // M4.2: a rope bridge over a chasm, walked on (a run of them, across or down, is one bridge); fire burns it through
+  // a rope bridge over a chasm, walked on (a run of them, across or down, is one bridge); fire burns it through
   bridge: { char: '+', class: 'soft', hits: 0, blast: false, burns: true },
-  // M5: a glass globe of glowing jelly on a stand, in Dr. Jelly's laboratory: a bolt bursts it, and out spills a jelly or a
+  // a glass globe of glowing jelly on a stand, in Dr. Jelly's laboratory: a bolt bursts it, and out spills a jelly or a
   // reagent (world/laboratory.ts)
   globe: { char: 'J', class: 'tall', hits: 1, blast: true, burns: false },
-  // M5, Verdant: a flowering plant in an overgrown garden: a bolt or a blast bursts it into pollen that overgrows the foes
+  // Verdant: a flowering plant in an overgrown garden: a bolt or a blast bursts it into pollen that overgrows the foes
   // near, and now and then it leaves Bloom Petal (props.ts, `blossomBurst`); fire burns it
   blossom: { char: 'F', class: 'low', hits: 1, blast: true, burns: true },
   // mechanisms (world/mechanisms.ts)
@@ -85,12 +85,12 @@ export const PROPS: Record<PropKind, PropDef> = {
   censer: { char: '*', class: 'hanging', hits: 0, blast: false, burns: false },
   reliquary: { char: 'q', class: 'tall', hits: 0, blast: false, burns: false },
   tree: { char: 'T', class: 'tall', hits: 0, blast: false, burns: true },
-  // M4.2, from the Eda lore: a Warden's statue whose gaze strikes, and an obelisk whose field saps the mage
+  // from the Eda lore: a Warden's statue whose gaze strikes, and an obelisk whose field saps the mage
   statue: { char: 'w', class: 'tall', hits: 0, blast: false, burns: false },
   obelisk: { char: '!', class: 'tall', hits: 0, blast: false, burns: false },
   // a candle stand standing in water: its tile is part of the pool round it
   wetCandles: { char: 'L', class: 'low', hits: 0, blast: true, burns: false },
-  // M4.9: a sluice gate in a water room: a bolt or a blast opens it, and the room's water drains to mud a while
+  // a sluice gate in a water room: a bolt or a blast opens it, and the room's water drains to mud a while
   sluice: { char: 'Z', class: 'tall', hits: 0, blast: false, burns: false },
 };
 export const PROP_KINDS = Object.keys(PROPS) as PropKind[];

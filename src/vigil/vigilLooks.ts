@@ -1,5 +1,5 @@
-/* The Vigil's pieces (M7 step 5; docs/M7-plan.md, decision 9), built in code from the room kit's parts in the warm candlelit
-   crypt the owner chose: the bier the mage wakes on, the candle wall (a candle for each one lit), the wall of skulls, the
+/* The Vigil's pieces (docs/M7-plan.md, decision 9), built in code from the room kit's parts in the warm candlelit
+   crypt: the bier the mage wakes on, the candle wall (a candle for each one lit), the wall of skulls, the
    echoes' plinths, the Great Circle cut in the Nave's floor, the Ferryman standing in his boat, and the six ways barred by
    a school. Each is built facing +z (into the room) from the wall's face or its own middle, and its still body merged
    (`mergeStill`); what moves is kept apart in `userData.parts` (the Ferryman's head and lantern, the veil). */
@@ -130,8 +130,7 @@ export function candleWallLook(look: FloorLook) {
   };
 }
 
-/** The wall of skulls (two tiles along the north wall): a rack of niches, two rows of three, a skull in each, its eyes dark
-    (they watch in step 12). */
+/** The wall of skulls (two tiles along the north wall): a rack of niches, two rows of three, a skull in each, its eyes dark. */
 function skullsLook(look: FloorLook) {
   const g = new THREE.Group(),
     stone = tone(stoneOf(look, 1.05), 0.12),
@@ -152,7 +151,7 @@ function skullsLook(look: FloorLook) {
   return g;
 }
 
-/** An echo's plinth in the Nave: a low drum of stone with a ring of runes cut round it, empty until step 11. */
+/** An echo's plinth in the Nave: a low drum of stone with a ring of runes cut round it, empty. */
 function plinthLook(look: FloorLook) {
   const g = new THREE.Group(),
     stone = tone(stoneOf(look, 1.1), 0.1);
@@ -169,7 +168,7 @@ function plinthLook(look: FloorLook) {
   return g;
 }
 
-/** The Great Circle cut in the Nave's floor: three rings (the vows, the gifts, the omens of step 10), each with its sigils'
+/** The Great Circle cut in the Nave's floor: three rings (the vows, the gifts, the omens), each with its sigils'
     places as small rings, and spokes between them; dark, as cut stone is, until the circle is cast. One mesh. */
 export function circleLook(radius: number) {
   const parts: THREE.BufferGeometry[] = [],
@@ -274,7 +273,7 @@ function boatLook(ferryman = true) {
   mergeStill(g);
   return g;
 }
-/** The Ferryman himself, his pole in hand and its lantern lit (M7 step 7: alone, for the talk panel's icon). */
+/** The Ferryman himself, his pole in hand and its lantern lit (alone, for the talk panel's icon). */
 export function ferrymanLook() {
   const g = new THREE.Group();
   g.add(ferrymanFigure(tone(WOOD, 0.12), MAT.iron).F);
@@ -376,7 +375,7 @@ const VEIL = markShared(
 const RUNE_LIT = markShared(new THREE.MeshBasicMaterial({ color: 0xa8dcff }));
 const WATER = markShared(
   new THREE.MeshStandardMaterial({ color: 0x1e4a5e, emissive: 0x0c2632, roughness: 0.15, metalness: 0.2 }),
-); // (dark water that still reads as water, not a hole: the room inspector, M7 step 9)
+); // (dark water that still reads as water, not a hole: the room inspector)
 /** A doorway's frame of stone `w` wide, standing out from the wall's face: two posts and a lintel; a pointed head for the
     chapel. */
 function frame(g: THREE.Group, w: number, look: FloorLook, pointed = false) {
@@ -391,7 +390,7 @@ function frame(g: THREE.Group, w: number, look: FloorLook, pointed = false) {
     mesh(g, new THREE.ConeGeometry(w / 2, 0.5, 4, 1).rotateY(Math.PI / 4).scale(1, 1, 0.3), stone, 0, 2.04, 0.15);
 }
 
-/** One way barred by a school, `w` tiles along its wall, built from the wall's face facing +z. `open` (M7 step 9): the way
+/** One way barred by a school, `w` tiles along its wall, built from the wall's face facing +z. `open`: the way
     as its school left it, the doorway through it clear: the ice melted off the stair, the cellar's water frozen to walk
     on, the rune door gone with its stones alight, the veil drawn aside, the chapel's candles burning under a gilded sun,
     the root alive in leaf and flower round the arch. */

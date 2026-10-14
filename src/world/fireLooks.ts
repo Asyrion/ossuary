@@ -1,4 +1,4 @@
-/* The room kit's fire objects (M3.5 step 3, the proof; docs/archive/M3.5-plan.md): the wall torch in each floor's style, the
+/* The room kit's fire objects (docs/archive/M3.5-plan.md): the wall torch in each floor's style, the
    brazier and the candle stand, built in code in the style of the spell effects (docs/effects.md), with their fire from
    render/fire.ts. What they do is in rooms.ts and mechanisms.ts. Each returns its parts: what lights up (hidden while
    cold) and its glow. */
@@ -12,7 +12,7 @@ import type { BrazierKind, TorchKind } from './kitData';
 export const RUNE_COLD = 0x2a1d16,
   RUNE_LIT = 0xffa040;
 const CANDLE_FIRE = firePalette(0xffd070, 0xff8428);
-/** Black volcanic glass (M7: the Seal's), painted. */
+/** Black volcanic glass (the Seal's), painted. */
 const OBSIDIAN = paint(0x241e2e);
 
 const GEO = {
@@ -126,7 +126,7 @@ const GEO = {
   ),
   stub: shared(new THREE.CylinderGeometry(0.04, 0.03, 0.16, 5)),
   handle: shared(new THREE.TorusGeometry(0.06, 0.015, 4, 10)),
-  // the Reliquary's (M4.1): a sconce's back plate and drip pan, a candle crown's ring; a chalice's cup; a censer's orb
+  // the Reliquary's: a sconce's back plate and drip pan, a candle crown's ring; a chalice's cup; a censer's orb
   disc: shared(new THREE.CircleGeometry(0.13, 14)),
   pan: shared(new THREE.CylinderGeometry(0.1, 0.06, 0.03, 10)),
   chalice: shared(
@@ -143,7 +143,7 @@ const GEO = {
   ),
   censer: shared(new THREE.SphereGeometry(0.27, 12, 8, 0, Math.PI * 2, Math.PI * 0.28, Math.PI * 0.72)),
   hole: shared(new THREE.SphereGeometry(0.032, 5, 4)),
-  // the Shore's (M4.1): a boatman's crooked pole; flat stones for a cairn; a stone boat's hull; a funeral urn
+  // the Shore's: a boatman's crooked pole; flat stones for a cairn; a stone boat's hull; a funeral urn
   staff: shared(new THREE.CylinderGeometry(0.028, 0.036, 1, 6)),
   flat: shared(new THREE.CylinderGeometry(0.13, 0.15, 0.07, 7)),
   hull: shared(new THREE.SphereGeometry(0.3, 12, 6, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).scale(1.7, 0.75, 1)),
@@ -237,7 +237,7 @@ const TORCHES: Record<TorchKind, TorchBuild> = {
     return at(glow(pal.body, 1.2, 0.75), 0, 1.2, 0.12);
   },
   cluster(holder, lit, pal, t) {
-    // the Vigil's (M7 step 5): a stone corbel on the wall crowded with candles of every height, their
+    // the Vigil's: a stone corbel on the wall crowded with candles of every height, their
     // wax run down over its edge in long drips
     const wax = t.wax ? waxFor(t.wax) : MAT.wax;
     mesh(holder, GEO.plinthTop, MAT.stone, 0, 0.82, 0.1).scale.set(0.62, 1.2, 0.38);
@@ -317,7 +317,7 @@ const TORCHES: Record<TorchKind, TorchBuild> = {
     return at(glow(pal.body, 1.2, 0.75), 0, 1.25, 0.12);
   },
   sconce(holder, lit, pal, t) {
-    // the Reliquary's (M4.1): a gilded sconce, a disc of gold behind a tall candle to throw its light back
+    // the Reliquary's: a gilded sconce, a disc of gold behind a tall candle to throw its light back
     mesh(holder, GEO.plate, MAT.gilt, 0, 0.9, 0.015).scale.set(0.9, 1.2, 1);
     mesh(holder, GEO.plateTop, MAT.gilt, 0, 1.15, 0.015).scale.set(0.9, 1, 1);
     mesh(holder, GEO.disc, MAT.gilt, 0, 1.28, 0.03);
@@ -351,7 +351,7 @@ const TORCHES: Record<TorchKind, TorchBuild> = {
     return at(glow(pal.body, 1.3, 0.8), 0, 1.2, 0.22);
   },
   pole(holder, lit, pal) {
-    // the Shore's (M4.1): a boatman's lamp hung from a crooked pole bracketed to the wall, burning pale
+    // the Shore's: a boatman's lamp hung from a crooked pole bracketed to the wall, burning pale
     mesh(holder, GEO.staff, MAT.wood, 0, 0.95, 0.06).scale.y = 0.9;
     mesh(holder, GEO.ring, MAT.iron, 0, 0.7, 0.06).scale.setScalar(0.8);
     mesh(holder, GEO.ring, MAT.iron, 0, 1.2, 0.06).scale.setScalar(0.8);
@@ -386,7 +386,7 @@ const TORCHES: Record<TorchKind, TorchBuild> = {
     return at(glow(pal.body, 0.8, 0.55), 0, 1.18, 0.12); // (small: the stones under it must still show)
   },
   shard(holder, lit, pal) {
-    // the Seal's (M7): a shard of black volcanic glass set upright in an iron collar on the wall, a Warden's
+    // the Seal's: a shard of black volcanic glass set upright in an iron collar on the wall, a Warden's
     // rune lit on its face, the seal's pale fire burning at its broken tip
     mesh(holder, GEO.plate, MAT.blackIron, 0, 0.78, 0.015).scale.set(0.8, 0.7, 1);
     mesh(holder, GEO.arm, MAT.blackIron, 0, 0.78, 0.06).scale.z = 0.6;
@@ -608,7 +608,7 @@ const BRAZIERS: Record<BrazierKind, BrazierBuild> = {
     return { fire: bigFire(0.58, 1.05, 0.4), glowY: 1.0 };
   },
   chalice(g, runes) {
-    // the Reliquary's (M4.1): a great gilt chalice on a knopped stem and a stone foot, runes round its cup
+    // the Reliquary's: a great gilt chalice on a knopped stem and a stone foot, runes round its cup
     mesh(g, GEO.base, MAT.stone, 0, 0.05, 0).scale.set(0.8, 1, 0.8);
     mesh(g, GEO.pedestal, MAT.gilt, 0, 0.16, 0).scale.set(0.9, 0.25, 0.9);
     mesh(g, GEO.post, MAT.gilt, 0, 0.38, 0).scale.set(1.6, 0.4, 1.6);
@@ -647,7 +647,7 @@ const BRAZIERS: Record<BrazierKind, BrazierBuild> = {
     return { fire: bigFire(0.86, 0.7, 0.22), glowY: 1.1 };
   },
   boat(g, runes) {
-    // the Shore's (M4.1): a small stone boat on a block, its hull full of coals, prow and stern curling up, runes on its side
+    // the Shore's: a small stone boat on a block, its hull full of coals, prow and stern curling up, runes on its side
     mesh(g, GEO.base, MAT.darkStone, 0, 0.12, 0).scale.set(1.3, 2.4, 0.8);
     mesh(g, GEO.hull, MAT.stone, 0, 0.54, 0);
     for (const s of [-1, 1]) {
@@ -680,7 +680,7 @@ const BRAZIERS: Record<BrazierKind, BrazierBuild> = {
     return { fire: bigFire(0.76, 0.72, 0.24), glowY: 1.08 };
   },
   stepped(g, runes) {
-    // the Seal's (M7): a bowl of black volcanic glass on three stepped tiers of dark stone, a Warden's rune on the
+    // the Seal's: a bowl of black volcanic glass on three stepped tiers of dark stone, a Warden's rune on the
     // front of each tier
     mesh(g, GEO.plinth, MAT.darkStone, 0, 0.06, 0).scale.set(1.05, 0.35, 1.05);
     mesh(g, GEO.plinth, MAT.stone, 0, 0.18, 0).scale.set(0.8, 0.35, 0.8); // (pale enough to read on the Seal's dark floor)

@@ -1,5 +1,5 @@
-/* M6 step 9: the waystone (docs/archive/M6-plan.md, decisions 10 and 11; GDD: the rest between floors). A menhir that answers
-   casts. Step 10 gives it a room of its own beside the boss room on floors 1 to 4, holding the way down: the room waits dark
+/* The waystone (docs/archive/M6-plan.md, decisions 10 and 11; GDD: the rest between floors). A menhir that answers
+   casts. It has a room of its own beside the boss room, holding the way down: the room waits dark
    and empty until the mage first walks in after the boss falls, then the stone grinds up near its middle (a little toward
    the door), its runes kindle,
    the room lightens and the trapdoor opens beyond it, away from the door. Where the generator found no cell for the room,
@@ -53,7 +53,7 @@ export function raiseWaystone(room: Room, x: number, z: number) {
   G.fx.shake = Math.max(G.fx.shake, 0.25);
   return room.waystone;
 }
-/** M6 step 10: the mage walks into the waystone room: its banner the first time; once the floor's boss is down (or on a floor
+/** The mage walks into the waystone room: its banner the first time; once the floor's boss is down (or on a floor
     with no boss room, `?room=waystone_plain`), the stone rises near its middle the first time; dark until it has kindled. */
 export function enterWaystone(room: Room, firstVisit: boolean) {
   if (firstVisit) banner(...STR.banner.waystone);
@@ -66,7 +66,7 @@ export function enterWaystone(room: Room, firstVisit: boolean) {
   }
   setDarkness(room.waystone?.lit ? 0 : C().dark);
 }
-/** The floor's waystone room, if the generator found it a cell (floors 1 to 5: floor 5's since M7). */
+/** The floor's waystone room, if the generator found it a cell (floors 1 to 5). */
 export function waystoneRoom() {
   return G.floor.rooms.find((r) => r.type === 'waystone');
 }
@@ -76,7 +76,7 @@ export function pointToStone(boss: Room, stone: Room) {
   if (d) line(STR.waystone.beyond(STR.waystone.sides[d.side]), CFG.afflict.lineShow);
 }
 
-/** Step 10: (x, z) in the boss room moved off the lane to the waystone room's door, so the boss's gifts never stand in the
+/** (x, z) in the boss room moved off the lane to the waystone room's door, so the boss's gifts never stand in the
     way to it (`CFG.waystone.lane`: how far into the room the lane runs, how wide it is either side, how far aside a gift
     goes). */
 export function offLane(boss: Room, stone: Room | undefined, x: number, z: number) {
@@ -94,7 +94,7 @@ export function offLane(boss: Room, stone: Room | undefined, x: number, z: numbe
 /** A floor's boss has fallen where it has no waystone room: on floors 1 to 5 its waystone rises to the side at the back of the room (out of reach of the page and the pedestals) (before the boss's gifts are laid,
     so they keep clear of it). */
 export function waystoneAfterBoss(room: Room) {
-  if (G.run.floor >= FLOORS.length - 1) return; // (the Seal, M7: nothing below to carry runes to)
+  if (G.run.floor >= FLOORS.length - 1) return; // (the Seal: nothing below to carry runes to)
   const p = freeSpotNear(room, room.cx + C().at[0], room.cz + C().at[1]);
   raiseWaystone(room, p.x, p.z);
   line(STR.waystone.risen, CFG.afflict.lineShow);
@@ -135,7 +135,7 @@ function kindle(w: NonNullable<Room['waystone']>) {
     openWayDown(room);
   }
 }
-/** Step 10: the trapdoor opens beyond the stone, on the side away from the room's one door. */
+/** The trapdoor opens beyond the stone, on the side away from the room's one door. */
 function openWayDown(room: Room) {
   if (G.floor.trapdoor) return;
   const [dx, dz] = SIDE_DIR[room.plan.doors[0]?.side ?? 'n'];

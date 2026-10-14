@@ -1,4 +1,4 @@
-/* The room kit's shared parts (M3.5 step 3): the painted materials every piece is built from (`paint` in
+/* The room kit's shared parts: the painted materials every piece is built from (`paint` in
    render/materials.ts: an object's still body draws in one call), placing a mesh, joining geometries into one, and a
    carved rune, tapered tubes (roots, branches, canes), rough stone, and the colours of a floor's stone. fireLooks.ts (the
    fire objects), mechLooks.ts (the other mechanisms) and objectLooks.ts (the objects and piles) build from them. */

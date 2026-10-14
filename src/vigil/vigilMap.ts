@@ -1,7 +1,7 @@
-/* The Vigil's map (M7 step 5; docs/M7-plan.md, decisions 8 and 9): data/vigil.json lays three rooms by hand (the Crypt
+/* The Vigil's map (docs/M7-plan.md, decisions 8 and 9): data/vigil.json lays three rooms by hand (the Crypt
    where the mage wakes, the Nave, the Landing), each from a template marked `fixed` in data/templates/vigil.json, with
    what stands in them (the bier, the candle wall, the skulls, the lectern, the echoes' plinths, the Ferryman's boat), the
-   six ways barred by a school, the Great Circle cut in the Nave's floor and where the mage wakes. Step 9 (the unfolding):
+   six ways barred by a school, the Great Circle cut in the Nave's floor and where the mage wakes. The unfolding:
    six more rooms, each `behind` one barred way and reached only through it (the Cave Mouth, the candle chapel, the scrying
    pool, the echoes' gallery, the garden of the dead, the practice crypt), what fills them (`unfold`), and the doorways
    barred until their school opens them (`barred` on the plan's doors). Pure: its shape, the plan (generate.ts's
@@ -19,14 +19,14 @@ import { REAGENT_IDS } from '../items/alchemyData';
 /** What stands in the Vigil, each its own look (vigilLooks.ts). */
 export type PieceKind = 'bier' | 'candleWall' | 'skulls' | 'lectern' | 'plinth' | 'boat';
 export const PIECE_KINDS: PieceKind[] = ['bier', 'candleWall', 'skulls', 'lectern', 'plinth', 'boat'];
-/** A room of the Vigil; `behind`: the school whose barred way opens it (step 9), reached through that way alone; `kit`:
+/** A room of the Vigil; `behind`: the school whose barred way opens it, reached through that way alone; `kit`:
     the room kit's kinds it draws from, over the Vigil's own. */
 export interface VigilRoom extends FixedRoom {
   name: string;
   behind?: School;
   kit?: Partial<Record<'wall' | 'floor' | 'torch' | 'brazier', Record<string, number>>>;
 }
-/** What one freed shade raises at the Cave Mouth (step 9), in the order they were freed. */
+/** What one freed shade raises at the Cave Mouth, in the order they were freed. */
 export type CaveKind = 'house' | 'terrace' | 'bed' | 'fall';
 export const CAVE_KINDS: CaveKind[] = ['house', 'terrace', 'bed', 'fall'];
 /** A thing on the map: its room (by name), its top-left tile and how many tiles it covers (it blocks them all). */
@@ -38,7 +38,7 @@ interface Placed {
 export interface VigilPiece extends Placed {
   kind: PieceKind;
 }
-/** A way barred by a school: in a doorway's place on the room's outer wall (`side`), leading nowhere until step 9. */
+/** A way barred by a school: in a doorway's place on the room's outer wall (`side`), leading nowhere until its school opens it. */
 export interface VigilBar extends Placed {
   school: School;
   side: Side;
@@ -53,11 +53,11 @@ export interface VigilMap {
     at: [number, number];
     radius: number;
   };
-  /** Where each freed shade stands (M7 step 7): a room and a tile for each shade of data/shades.json. */ town: {
+  /** Where each freed shade stands: a room and a tile for each shade of data/shades.json. */ town: {
     room: string;
     spots: Record<string, [number, number]>;
   };
-  /** Step 9: what fills the rooms behind the barred ways: the Cave Mouth's spots, one raised for each shade freed; the candle
+  /** What fills the rooms behind the barred ways: the Cave Mouth's spots, one raised for each shade freed; the candle
       chapel's altar and a candle for each townsperson; the garden of the dead's bed for each reagent. */
   unfold: {
     cave: { room: string; spots: [number, number, CaveKind][] };
@@ -78,7 +78,7 @@ export const VIGIL_INDEX = -1;
 export const BAR_SCHOOLS: School[] = ['ember', 'frost', 'storm', 'hallow', 'umbral', 'verdant'];
 
 /** The Vigil laid out: its rooms where the data puts them, doors between them; a room behind a barred way reached only
-    through it, its doorway `barred` while its school isn't among the parts `opened` (step 9). */
+    through it, its doorway `barred` while its school isn't among the parts `opened`. */
 export function vigilPlan(
   rng: Rng,
   map: VigilMap = VIGIL,
@@ -220,7 +220,7 @@ export function validateVigil(
     if (r.behind && map.rooms.filter((o) => o.behind === r.behind).length > 1)
       errs.push(`two rooms lie behind the ${r.behind} bar`);
   if (map.rooms[0]?.behind) errs.push("the Vigil's first room is barred");
-  // step 9: what fills the rooms behind the bars stands on their floor, clear of their doorways and of each other
+  // what fills the rooms behind the bars stands on their floor, clear of their doorways and of each other
   const U = map.unfold;
   if (U) {
     U.cave.spots.forEach(([c, r, kind], k) => {

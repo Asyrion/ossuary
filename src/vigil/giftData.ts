@@ -1,7 +1,7 @@
-/* What the townspeople give (M7 step 8; docs/M7-plan.md, decisions 7, 11 and 12), as data (data/townsfolk.json): each
+/* What the townspeople give (docs/M7-plan.md, decisions 7, 11 and 12), as data (data/townsfolk.json): each
    one's gift when freed and its second gift once its bond is deepened in full (obols laid on its eyes, `bonds`: the obols
    for each step), the six powers (each a townsperson's, bought once with Arcane Dust), the three quests, and the six
-   disciplines (loadouts: a starting spell and focus; the Great Circle offers them in step 10). Pure: the shape, what a
+   disciplines (loadouts: a starting spell and focus; the Great Circle offers them). Pure: the shape, what a
    run begins with from all of it (`startOf`), a quest's goal checked on the save (`questMet`), and the checks. */
 import data from '../../data/townsfolk.json';
 
@@ -46,7 +46,7 @@ export interface Discipline {
   focus: string;
   by?: string;
 }
-/** M7 step 9: what a townsperson's candle lit in the chapel gives the one descent it burns for: a small step on the
+/** What a townsperson's candle lit in the chapel gives the one descent it burns for: a small step on the
     mage's numbers (`bonus`, folded in with the attributes', artifacts.ts's `growth`), or what the descent begins with. */
 export interface Blessing {
   bonus?: Partial<Record<BlessKey, number>>;
@@ -163,7 +163,7 @@ export function validateTownsfolk(T: Townsfolk, k: GiftKnown): string[] {
     gift(`${id}'s second gift`, f.second);
   }
   for (const [id, f] of Object.entries(T.folk)) {
-    // (M7 step 9: each one's candle blesses one descent, a little)
+    // (each one's candle blesses one descent, a little)
     const b = f.blessing;
     if (!b || (!b.bonus && !b.start)) {
       errs.push(`${id}: no blessing`);

@@ -1,10 +1,10 @@
-/* Dr. Jelly's laboratory (M5 step 6, docs/archive/M5-plan.md; GDD: Potions and alchemy): a special room on floors 1 and 3. The
+/* Dr. Jelly's laboratory (docs/archive/M5-plan.md; GDD: Potions and alchemy): a special room on floors 1 and 3. The
    alchemy table stands in the middle, facing the way in, and Dr. Jelly behind it; the vat window is on the north wall,
-   the jelly serpent coiled behind its glass (M5 step 7 lets it out). Walking up to the table opens it (ui/alchemyTable.ts:
+   the jelly serpent coiled behind its glass (it can break out of it, below). Walking up to the table opens it (ui/alchemyTable.ts:
    brewing, items/brewing.ts), walking up to Dr. Jelly opens it at the recipes he sells; it opens again only after the
    mage has stepped away. The jelly globes on their stands (`globe`, the template's `J`) burst to a bolt or a blast and
    let out a jelly, or a reagent. Looks in labLooks.ts; tuning `CFG.alchemy.lab`.
-   M5 step 7: the jelly serpent breaks out of its vat once a run at most: when bolts crack its window three times, or by
+   The jelly serpent breaks out of its vat once a run at most: when bolts crack its window three times, or by
    itself after the first brew in a run whose serpent is restless (`G.run.restless`). The glass bursts, jelly floods the
    room (actors/jellySerpent.ts: `pourJelly`), the doors lock and Dr. Jelly ducks behind his table; fallen, it leaves
    Warden's Ash (as every boss does), a rare potion and Dr. Jelly's thanks (a recipe for nothing), and no trapdoor. A
@@ -147,7 +147,7 @@ export function updateLab(now: number) {
   }
 }
 
-/* ---------- the jelly serpent's vat (M5 step 7) ---------- */
+/* ---------- the jelly serpent's vat ---------- */
 
 const V = () => CFG.alchemy.vat;
 /** Where the vat window stands in the world: the middle of its foot, at the wall's face. */

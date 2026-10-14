@@ -1,4 +1,4 @@
-/* M6 step 11: the shrine's bargain (docs/archive/M6-plan.md, decision 12; GDD: Shrine cleansing, the bargain). A stele stands at
+/* The shrine's bargain (docs/archive/M6-plan.md, decision 12; GDD: Shrine cleansing, the bargain). A stele stands at
    the head of the shrine's circle. Walking up to it says how: a spell cast into it (caught, nothing paid) sets the deal's
    school, and its runes run red with the price. The deal is the level-up screen's three cards (two of that school, one
    general: `dealNow(school)`); taking one pays a heart container (never the last) and the runes turn gold, once a shrine.

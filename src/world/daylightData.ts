@@ -1,4 +1,4 @@
-/* Daylight (M7 step 3; docs/M7-plan.md): the pure part of the cave mouth at dawn. Its ridgelines and where the scene is in
+/* Daylight (docs/M7-plan.md): the pure part of the cave mouth at dawn. Its ridgelines and where the scene is in
    its few seconds; daylight.ts builds and runs it, daylightLooks.ts draws it. */
 import { mulberry } from '../rng';
 

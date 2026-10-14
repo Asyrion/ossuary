@@ -50,7 +50,7 @@ export const toWorld = (room: Room, c: number, r: number) => ({
 export const doorsOf = (room: Room) => room.doors;
 const isNS = (side: Side) => side === 'n' || side === 's';
 
-/** Build a planned room of floor `floorIndex` in its floor's look, or in `own` (M7 step 5: the Vigil's, no floor's). */
+/** Build a planned room of floor `floorIndex` in its floor's look, or in `own` (the Vigil's, no floor's). */
 export function buildRoom(plan: PlannedRoom, floorIndex: number, own?: FloorLook) {
   const def = TEMPLATES.get(plan.templateId);
   if (!def) throw new Error(`no template "${plan.templateId}"`);
@@ -149,7 +149,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number, own?: FloorLook
     }),
   );
   for (const run of tombRuns(template)) addTomb(room, run);
-  buildProps(room); // bone piles, casks, roots, briars, cobwebs, glowcaps, pews (M3.6)
+  buildProps(room); // bone piles, casks, roots, briars, cobwebs, glowcaps, pews
   if (theme?.twist === 'rime') chargeRunes(room, 'chill'); // the frozen mausoleum's rune stones hold frost
   dressTheme(room); // a themed room's scatter: candles, pages, moss, bedrolls, daylight...
   drawPits(room);
@@ -163,7 +163,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number, own?: FloorLook
       : fillRoles(plan, template.waves, FLOORS[Math.min(floorIndex, FLOORS.length - 1)], DEV.foe); // (the Vigil: nothing to fight)
   room.waves = filled.waves.map((wv) => wv.map((f) => ({ kind: f.kind, role: f.role, ...toWorld(room, f.c, f.r) })));
   if (filled.pair) {
-    // (M4.7: two foes made to work together, the second set beside the first)
+    // (two foes made to work together, the second set beside the first)
     const wave = room.waves[0],
       [a, b] = filled.pair,
       p = freeSpotNear(room, wave[a].x + CFG.pairs.gap, wave[a].z);
@@ -172,7 +172,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number, own?: FloorLook
     room.pair = [wave[a].kind, wave[b].kind];
   }
   if (filled.extraFrom !== undefined) {
-    // (M4.9's pressure: the one more stands beside the foe it was drawn from)
+    // (the pressure's one more stands beside the foe it was drawn from)
     const wave = room.waves[0],
       f = wave[filled.extraFrom],
       x = wave[wave.length - 1],
@@ -189,7 +189,7 @@ export function buildRoom(plan: PlannedRoom, floorIndex: number, own?: FloorLook
   if (plan.type === 'secret') fillSecret(room);
   if (plan.type === 'shrine') buildShrine(room);
   if (plan.type === 'library') furnishLibrary(room);
-  if (plan.type === 'laboratory') furnishLab(room); // (M5)
+  if (plan.type === 'laboratory') furnishLab(room);
   G.floor.rooms.push(room);
   for (const c of plan.cells) G.floor.roomMap.set(c.gx + ',' + c.gy, room);
   return room;
@@ -265,7 +265,7 @@ function addPillar(room: Room, c: number, r: number) {
 }
 /** How tall a whole pillar stands, to the top of its capital. */
 export const PILLAR_TOP = 1.75;
-/** A whole pillar raised at (x, z) where there was none (M4.2: the Pillar Dragon brings its own when the room has too
+/** A whole pillar raised at (x, z) where there was none (the Pillar Dragon brings its own when the room has too
     few); returns its look, standing at the floor, for the caller to raise out of it. */
 export function raisePillar(room: Room, x: number, z: number) {
   const g = pillarAt(room, x, z, mulberry(Math.round(x * 131 + z * 17) + room.plan.seed), false, 1.3);
@@ -311,7 +311,7 @@ function addTomb(room: Room, run: { c: number; r: number; len: number; across: b
 }
 
 /* Urns: funerary urns in the floor's clay, and rune-sealed ones ringed by a ward (the room kit's, objectLooks.ts). A made
-   urn (data/assets.json, M3.5) takes their place where the asset list has one; sealed, it is the same model in darker,
+   urn (data/assets.json) takes their place where the asset list has one; sealed, it is the same model in darker,
    bluish stone with a ward band round its belly. */
 export const WARD_COLOR = 0x8ab8ff;
 const SEALED_TINT = 0x8090b0,
@@ -425,8 +425,8 @@ export function hitRock(room: Room, rock: RockBox, shatter = false) {
 }
 
 // Pits: a dark hole drawn over the floor. Walkers and the mage can't cross them; bolts and wisps can. Pits side by side
-// are drawn as one (M4.2: a chasm, not a row of holes), their dark joined and soft at its rim (`drawPits`).
-/** A pit on tile (c, r); not `solid`, only its dark (the chasm under a rope bridge, M4.2: it falls when the bridge burns). */
+// are drawn as one (a chasm, not a row of holes), their dark joined and soft at its rim (`drawPits`).
+/** A pit on tile (c, r); not `solid`, only its dark (the chasm under a rope bridge: it falls when the bridge burns). */
 export function addPit(room: Room, c: number, r: number, solid = true) {
   const p = toWorld(room, c, r);
   (room.pitTiles ??= []).push({ c, r });
@@ -511,7 +511,7 @@ function drawPits(room: Room) {
     room.group.add(m);
   }
 }
-/** A bridge burnt through (M4.2): the chasm under tile (c, r) is a pit now (its dark was drawn with the bridge). */
+/** A bridge burnt through: the chasm under tile (c, r) is a pit now (its dark was drawn with the bridge). */
 export function openChasm(room: Room, c: number, r: number) {
   const p = toWorld(room, c, r);
   room.template.tiles[r][c] = 'pit';
@@ -697,7 +697,7 @@ export function buildWallsAndDoors(room: Room) {
   for (const pd of room.plan.doors) {
     const nb = G.floor.rooms.find((r) => r.plan.id === pd.to)!;
     const [dx, dz] = SIDE_DIR[pd.side];
-    const shift = pd.shift ?? 0; // how far the door has moved along its edge (M3.6)
+    const shift = pd.shift ?? 0; // how far the door has moved along its edge
     const x = pd.gx * PX + dx * hx + (dx ? 0 : shift),
       z = pd.gy * PZ + dz * hz + (dz ? 0 : shift); // middle of the doorway on the room's inside edge
     const either = (t: string) => room.type === t || nb.type === t;
@@ -725,7 +725,7 @@ export function buildWallsAndDoors(room: Room) {
                           ? 'laboratory'
                           : 'normal';
     const door = buildDoor(room, pd.side, nb, style, x, z);
-    if (pd.barred) plugDoor(room, door); // (M7 step 9: a way at the Vigil barred by a school, shut until it opens)
+    if (pd.barred) plugDoor(room, door); // (a way at the Vigil barred by a school, shut until it opens)
     room.doors.push(door);
   }
   // the walls: rectangles of wall tiles (walls.ts), with the doorways cut out of them
@@ -755,7 +755,7 @@ export function buildWallsAndDoors(room: Room) {
       mid = Math.floor((run.i0 + run.i1) / 2);
     return run.i1 - run.i0 >= 3 && (ns ? tallAt(mid, run.line) : tallAt(run.line, mid));
   });
-  const falls = fallRuns(room.template); // (M4.2: waterfalls pour from these spans of wall; torches and dressing keep off them)
+  const falls = fallRuns(room.template); // (waterfalls pour from these spans of wall; torches and dressing keep off them)
   for (const run of tallRuns) placeTorches(room, run, (isNS(run.facing) ? minZ : minX) + run.line, falls);
   // pilasters and niches along the tall walls facing south into the room, clear of doors and torches
   for (const run of tallRuns)
@@ -769,14 +769,14 @@ export function buildWallsAndDoors(room: Room) {
         ...falls
           .filter((f) => f.side === 'n')
           .map((f) => ({ x: minX + (f.i0 + f.i1) / 2, room: (f.i1 - f.i0) / 2 + 0.3 })),
-        ...sluices(room).map((b) => ({ x: b.x, room: 0.9 })), // (M4.9: a sluice gate's frame stands against it)
+        ...sluices(room).map((b) => ({ x: b.x, room: 0.9 })), // (a sluice gate's frame stands against it)
         ...(room.keepClear ?? []).filter((k) => k.side === 'n').map((k) => ({ x: k.at, room: k.half + 0.3 })),
-      ]; // (M7: the Vigil's pieces and barred ways)
+      ]; // (the Vigil's pieces and barred ways)
       dressNorthWall(room, face, minX + run.i0, minX + run.i1, avoid);
     }
 }
 
-/** The room's sluice gates (M4.9): torches and the wall's dressing keep clear of them. */
+/** The room's sluice gates: torches and the wall's dressing keep clear of them. */
 const sluices = (room: Room) => (room.props ?? []).filter((b) => b.prop.kind === 'sluice');
 /** Torches along a wall run: on every north wall, and on long east/west walls (tall rooms). */
 function placeTorches(room: Room, run: WallRun, across0: number, falls: ReturnType<typeof fallRuns>) {
@@ -795,14 +795,14 @@ function placeTorches(room: Room, run: WallRun, across0: number, falls: ReturnTy
         ? Array.from({ length: count }, (_, i) => 3 + (i * (len - 6)) / (count - 1))
         : Array.from({ length: count }, (_, i) => ((i + 0.5) * len) / count);
   const inTheWay = [
-    ...room.doors.filter((d) => d.side === run.facing).map((d) => ({ at: ns ? d.x : d.z, half: DH })), // doors, and waterfalls (M4.2)
+    ...room.doors.filter((d) => d.side === run.facing).map((d) => ({ at: ns ? d.x : d.z, half: DH })), // doors, and waterfalls
     ...falls
       .filter((f) => f.side === run.facing)
       .map((f) => ({ at: base + (f.i0 + f.i1) / 2, half: (f.i1 - f.i0) / 2 })),
-    ...(run.facing === 'n' ? sluices(room).map((b) => ({ at: b.x, half: 0.6 })) : []), // (and sluice gates, M4.9)
-    ...(run.facing === 'n' && room.lab ? [{ at: room.cx + room.lab.vat.position.x, half: 1.15 }] : []), // (and a laboratory's vat window, M5)
+    ...(run.facing === 'n' ? sluices(room).map((b) => ({ at: b.x, half: 0.6 })) : []), // (and sluice gates)
+    ...(run.facing === 'n' && room.lab ? [{ at: room.cx + room.lab.vat.position.x, half: 1.15 }] : []), // (and a laboratory's vat window)
     ...(room.keepClear ?? []).filter((k) => k.side === run.facing),
-  ]; // (and what stands against the Vigil's walls, M7)
+  ]; // (and what stands against the Vigil's walls)
   const face = run.facing === 'n' ? across0 + WT : run.facing === 'w' ? across0 + WT : across0; // the wall's inner face
   for (const s of spots) {
     let at = inner0 + s;
@@ -835,7 +835,7 @@ function addTorch(room: Room, x: number, z: number, normal: [number, number], t:
   room.torches.push({ flame: fire, glow: gl, ...at, lit });
 }
 
-/** M7 step 9: a doorway filled with the room's own wall (a way at the Vigil still barred), shut until `unplugDoor`. */
+/** A doorway filled with the room's own wall (a way at the Vigil still barred), shut until `unplugDoor`. */
 function plugDoor(room: Room, d: Door) {
   const [dx, dz] = SIDE_DIR[d.side],
     ns = isNS(d.side),
@@ -850,7 +850,7 @@ function plugDoor(room: Room, d: Door) {
   d.open = false;
   d.bars.visible = false;
 }
-/** M7 step 9: a barred way opens: the wall filling its doorway goes, on both sides. */
+/** A barred way opens: the wall filling its doorway goes, on both sides. */
 export function unplugDoor(d: Door) {
   for (const door of [d, d.link]) {
     if (!door?.plug) continue;

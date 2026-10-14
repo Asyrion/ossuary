@@ -1,4 +1,4 @@
-/* The room kit's mechanisms (M3.5 step 3; docs/archive/M3.5-plan.md): the rune stone, the lodestone, the bell, the hanging censer
+/* The room kit's mechanisms (docs/archive/M3.5-plan.md): the rune stone, the lodestone, the bell, the hanging censer
    and the reliquary, built in code in the style of the spell effects (docs/effects.md). What they do is in mechanisms.ts;
    each keeps the parts mechanisms.ts moves or lights. Every one has a touch of magic that moves: runes orbit a charged
    stone, the lodestone's shard floats and turns, the reliquary's seal of candle-light turns round it (`updateMechLook`). */
@@ -290,7 +290,7 @@ export function reliquaryLook() {
 }
 const GEM = markShared(lit(0xc03848));
 
-/* ---------- M4.2, from the Eda lore ---------- */
+/* ---------- from the Eda lore ---------- */
 
 const STATUE = {
   plinth: shared(new THREE.BoxGeometry(0.72, 0.24, 0.62)),
@@ -322,7 +322,7 @@ const STATUE = {
   hands: shared(new THREE.SphereGeometry(0.07, 7, 5).scale(1.3, 0.8, 0.9)),
 };
 
-/** The watching statue (M4.2): a hooded Warden of Uzulim in stone, hands on a sword point down, on a plinth. Its head
+/** The watching statue: a hooded Warden of Uzulim in stone, hands on a sword point down, on a plinth. Its head
     (`head`) turns to follow the mage; its eyes (`eyes`, their own material) kindle as its gaze charges and go dark when a
     hex blinds it; the gaze itself (`gaze`, a line to the mage, its own geometry) shows while it charges. */
 export function statueLook() {
@@ -402,7 +402,7 @@ const OBELISK = {
 };
 
 /** Each school's sign, floating over an obelisk's point so its ward reads at a glance (Hallow's gold and Storm's yellow
-    are close): a flame, a snowflake, a lightning bolt, a halo, a crescent; M5's Verdant a leaf on its stem. */
+    are close): a flame, a snowflake, a lightning bolt, a halo, a crescent; Verdant a leaf on its stem. */
 const EMBLEM: Record<School, THREE.BufferGeometry> = {
   ember: shared(
     joinAll([
@@ -434,10 +434,10 @@ const EMBLEM: Record<School, THREE.BufferGeometry> = {
   ),
 };
 
-/** The sapping obelisk (M4.2): a black stone needle on a plinth, runes of its ward's school cut down its face (`runes`)
+/** The sapping obelisk: a black stone needle on a plinth, runes of its ward's school cut down its face (`runes`)
     and the school's sign floating over the point (`crystal`), and on the floor the edge of its field (`field`, `reach`
     across). The runes, the sign and the field have their own materials, dulled when the ward breaks. */
-/** A ward's emblem (M7 step 2: a ward pillar of Kaelith's wakes in a school of its own). */
+/** A ward's emblem (a ward pillar of Kaelith's wakes in a school of its own). */
 export const emblemOf = (school: School) => EMBLEM[school];
 export function obeliskLook(school: School, reach: number) {
   const g = new THREE.Group(),
@@ -499,7 +499,7 @@ const SLUICE = {
   fall: shared(new THREE.PlaneGeometry(0.6, 0.56)),
   foam: shared(new THREE.RingGeometry(0.08, 0.42, 16).rotateX(-Math.PI / 2)),
 };
-/** The sluice gate (M4.9): an iron gate (`gate`) in a stone frame, a wheel on the lintel (`wheel`) that turns as it lifts,
+/** The sluice gate: an iron gate (`gate`) in a stone frame, a wheel on the lintel (`wheel`) that turns as it lifts,
     and, while it stands open, water falling through it (`fall`) into foam (`foam`), each with its own material. */
 export function sluiceLook(look?: FloorLook) {
   const g = new THREE.Group(),
@@ -547,7 +547,7 @@ export function sluiceLook(look?: FloorLook) {
   return { group: g, parts: { gate, wheel, fall, foam } };
 }
 
-/* M6 step 9: the waystone (docs/archive/M6-plan.md, decision 11): a tall menhir of the Wardens' grey stone, a hollow cut into its face
+/* The waystone (docs/archive/M6-plan.md, decision 11): a tall menhir of the Wardens' grey stone, a hollow cut into its face
    for each rune socket (two, one above the other), rune strokes down it that kindle to a pale gold once it has risen, a
    glow over its point. Each hollow and the strokes have their own materials (a carved rune shows in its hollow in the
    rune's colour while the stone's screen is open). Its face is turned square to the camera; its stone is a cool grey of its

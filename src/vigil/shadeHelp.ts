@@ -1,4 +1,4 @@
-/* Bound shades at work (M7 step 6; docs/M7-plan.md, decisions 10 and 11): a shade bound in one run walks with the mage
+/* Bound shades at work (docs/M7-plan.md, decisions 10 and 11): a shade bound in one run walks with the mage
    through the next (`G.run.walking`, taken from the save as the run begins), a small wisp of it at the mage's shoulder,
    each helping its own way (data/shades.json's `help`, tuning `CFG.shadeHelp`):
    - storm (the storm caller): now and then a bolt from a storm cloud on the nearest foe, shocking it;

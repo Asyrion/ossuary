@@ -1,15 +1,14 @@
-/* The townspeople's talk as data (M7 step 7; docs/M7-plan.md, decisions 11 and 12): data/dialogue.json holds each
+/* The townspeople's talk as data (docs/M7-plan.md, decisions 11 and 12): data/dialogue.json holds each
    speaker's lines (the ten freed shades and the Ferryman), each for a moment: `first` (met at the Vigil), `death` or `won`
    (after a run that ended so, some only when a given thing struck last), `boss` (after a run in which a given boss fell),
-   `idle` (any other time: what each one knew in life), `reply` (reached only by a choice) and `quest`/`questDone` (kept for
-   step 8). A line holds only `when` its conditions on the save are met (what the mage has found, how deep it has gone,
+   `idle` (any other time: what each one knew in life), `reply` (reached only by a choice) and `quest`/`questDone` (a quest given, a quest met). A line holds only `when` its conditions on the save are met (what the mage has found, how deep it has gone,
    its runs, wins, who is freed, the flags its choices set). An idle line may tell of something (`fill`): a foe's weakness
    the mage has yet to find, what a boss it has met fears, a reaction it has yet to set off, one at a time, each told
    once before any is told again. Pure: the shape, the picking (`pickLine`) and the checks (`validateDialogue`). */
 import data from '../../data/dialogue.json';
 
 export type Moment = 'first' | 'death' | 'won' | 'boss' | 'idle' | 'reply' | 'quest' | 'questDone' | 'gift';
-/** (M7 step 8: `gift`, a line said as a gift is given: obols on the eyes, `<who>.eyes1` and `.eyes2`, its memories; a power
+/** (`gift`, a line said as a gift is given: obols on the eyes, `<who>.eyes1` and `.eyes2`, its memories; a power
     bought, `<who>.power`. Picked by its id, never by `pickLine`.) */
 export const MOMENTS: Moment[] = ['first', 'death', 'won', 'boss', 'idle', 'reply', 'quest', 'questDone', 'gift'];
 /** What an idle line may tell of, one subject at a time. */
@@ -43,7 +42,7 @@ export interface When {
   struck?: string;
   boss?: string;
 }
-/** (`act`: M7 step 8, not in the data: an offer town.ts adds at the end of a talk, obols on the eyes or a power asked for.) */
+/** (`act`: not in the data: an offer town.ts adds at the end of a talk, obols on the eyes or a power asked for.) */
 export interface Choice {
   label: string;
   next?: string;
@@ -93,7 +92,7 @@ export interface TalkContext {
     string,
     string
   >;
-  /** M7 step 8: this speaker's quest: one to give (`offer`), or one whose goal is met (`ready`). */ quest?:
+  /** This speaker's quest: one to give (`offer`), or one whose goal is met (`ready`). */ quest?:
     'offer' | 'ready' | null;
 }
 
@@ -151,7 +150,7 @@ export function pickLine(
   const first = mine.find((l) => l.moment === 'first');
   if (first && heard[first.id] === undefined) return as(first);
   const byAge = (a: Picked, b: Picked) => (heard[a.key] ?? -1) - (heard[b.key] ?? -1);
-  const done = c.quest === 'ready' && mine.find((l) => l.moment === 'questDone'); // (M7 step 8: a quest met is said first)
+  const done = c.quest === 'ready' && mine.find((l) => l.moment === 'questDone'); // (a quest met is said first)
   if (done) return as(done);
   if (c.moment && !c.momentSaid) {
     const now = mine.filter((l) => l.moment === c.moment).sort((a, b) => specific(b) - specific(a));
@@ -185,7 +184,7 @@ export const hasNews = (who: string, c: TalkContext, heard: Record<string, numbe
   const p = pickLine(who, c, heard, lines);
   return !!p && (p.fresh || (p.line.moment !== 'idle' && p.line.moment !== 'first'));
 };
-/** M7 step 8: the lines a gift needs, for the checks: each townsperson's two memories, a power's line, a quest's two. */
+/** The lines a gift needs, for the checks: each townsperson's two memories, a power's line, a quest's two. */
 export interface GiftLines {
   folk: string[];
   powers: string[];

@@ -1,7 +1,7 @@
-/* The save (M7 step 4; docs/M7-plan.md, decision 17): one versioned record in this browser, `ossuary.vigil`, holding what
+/* The save (docs/M7-plan.md, decision 17): one versioned record in this browser, `ossuary.vigil`, holding what
    carries from run to run (vigilData.ts says what). The first time it loads it takes over the five keys kept before it
-   (spell knowledge, the reactions and weaves found, the bestiary, the recipes), which stay until M7's close; the five
-   modules that kept them read and write their part through it now (`readSlot`, `writeSlot`), keeping their own functions.
+   (spell knowledge, the reactions and weaves found, the bestiary, the recipes), which it leaves in place; the five
+   modules that kept them read and write their part through it (`readSlot`, `writeSlot`), keeping their own functions.
    A run ends into it (`recordRun`: the run remembered, its Dust and obols added); it can be exported as a file and
    imported again (the pause menu), wiped, or made a veteran's (the dev menu). The settings keep their own keys. A private
    window or blocked storage keeps it for the session only. */
@@ -99,7 +99,7 @@ export function setVigilSlot(slot: number, id: string | null) {
   persist();
 }
 
-/** M7 step 6: a chained shade freed: it goes up to the Vigil at once, kept even if the run ends in death (and no longer bound). */
+/** A chained shade freed: it goes up to the Vigil at once, kept even if the run ends in death (and no longer bound). */
 export function freeShade(id: string) {
   if (!save.freed.includes(id)) save.freed = [...save.freed, id];
   save.bound = save.bound.filter((b) => b !== id);
@@ -124,12 +124,12 @@ export function giveHome(dust: number, obols: number) {
   save.obols = Math.max(0, save.obols + obols);
   persist();
 }
-/** M7 step 7: a townsperson's line heard (its key: the line's id, or `id@subject`), stamped later than every other. */
+/** A townsperson's line heard (its key: the line's id, or `id@subject`), stamped later than every other. */
 export function hearLine(key: string) {
   save.heard = { ...save.heard, [key]: Math.max(0, ...Object.values(save.heard)) + 1 };
   persist();
 }
-/** M7 step 7: a flag set by a choice in a talk (or the dev menu); `undefined` clears it. */
+/** A flag set by a choice in a talk (or the dev menu); `undefined` clears it. */
 export function setFlag(k: string, v: string | number | boolean | undefined) {
   const f = { ...save.flags };
   if (v === undefined) delete f[k];
@@ -137,7 +137,7 @@ export function setFlag(k: string, v: string | number | boolean | undefined) {
   save.flags = f;
   persist();
 }
-/** M7 step 8: Dust and obols spent at the Vigil (a power, obols on the eyes): false, and nothing spent, when there isn't
+/** Dust and obols spent at the Vigil (a power, obols on the eyes): false, and nothing spent, when there isn't
     enough of either. */
 export function spend(dust: number, obols: number) {
   if (save.dust < dust || save.obols < obols) return false;
@@ -146,7 +146,7 @@ export function spend(dust: number, obols: number) {
   persist();
   return true;
 }
-/** M7 step 8: a townsperson's bond one step deeper (or set, the dev menu); a power owned (or given up, the dev menu). */
+/** A townsperson's bond one step deeper (or set, the dev menu); a power owned (or given up, the dev menu). */
 export function setBond(id: string, n: number) {
   const b = { ...save.bonds };
   if (n > 0) b[id] = n;
@@ -159,7 +159,7 @@ export function setPower(id: string, owned: boolean) {
   persist();
 }
 
-/** M7 step 9: a part of the Vigil opened by its school (or closed again, the dev menu: none, or every one). */
+/** A part of the Vigil opened by its school (or closed again, the dev menu: none, or every one). */
 export function openPart(school: string) {
   if (!save.parts.includes(school)) {
     save.parts = [...save.parts, school];
@@ -170,7 +170,7 @@ export function setParts(schools: string[]) {
   save.parts = [...schools];
   persist();
 }
-/** M7 step 9: a townsperson's candle lit in the chapel (or none): its blessing goes with the next descent. */
+/** A townsperson's candle lit in the chapel (or none): its blessing goes with the next descent. */
 export function setBlessing(id: string | null) {
   save.blessing = id;
   persist();
@@ -184,7 +184,7 @@ export function takeBlessing() {
   }
   return b;
 }
-/** M7 step 9: the reagent the garden of the dead gives every descent (or none). */
+/** The reagent the garden of the dead gives every descent (or none). */
 export function setGarden(id: string | null) {
   save.garden = id;
   persist();
@@ -207,7 +207,7 @@ export function wipeSave() {
   persist();
 }
 /** The dev menu: a veteran's save (every part open, the candle lit, every shade freed, runs behind it and Dust to spend);
-    the sigils and powers come with step 10. What is known stays as it is. */
+    what is known stays as it is. */
 export function veteranSave() {
   Object.assign(save, {
     dust: Math.max(save.dust, 900),

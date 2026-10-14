@@ -1,4 +1,4 @@
-/* The special rooms' pieces in the room kit's style (M3.5 step 3; docs/archive/M3.5-plan.md): the merchant's bound shade, the
+/* The special rooms' pieces in the room kit's style (docs/archive/M3.5-plan.md): the merchant's bound shade, the
    library's lecterns and bookcases, the shrine's offering stones and the padlock on a vault's warded door. Built in code
    as the other objects are (objectLooks.ts): painted pieces merged into one mesh (`mergeStill`), with a touch of magic
    where it fits: the shade's hem fraying into ghost-light and the chains of ward light that bind it to its circle, its
@@ -343,7 +343,7 @@ export function offeringStoneLook(look: FloorLook, turn: number, curse: number) 
   return g;
 }
 
-/** M6 step 11: the bargain stone's runes: dark while it waits, red with the price once cast into, gold once kept. */
+/** The bargain stone's runes: dark while it waits, red with the price once cast into, gold once kept. */
 export const BARGAIN_RUNES = { idle: 0xa8503a, price: 0xd23a2a, kept: 0xffbe3a };
 /** The bargain stone at the circle's head: a tall stele in the floor's stone on a slab, a heart carved into its face and
     runes down it, on one material of their own (`runes`, the colour its state gives). */
@@ -426,7 +426,7 @@ export function padlockLook(ward: number) {
   return g;
 }
 
-/* ---------- M4.2: the Wandering Merchant of Belerial (from the Eda lore) ---------- */
+/* ---------- the Wandering Merchant of Belerial (from the Eda lore) ---------- */
 
 const FUR = 0x7a6a58,
   FUR_DARK = 0x54483c,

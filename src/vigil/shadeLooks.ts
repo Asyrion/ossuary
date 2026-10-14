@@ -1,4 +1,4 @@
-/* The chained shades' looks (M7 step 6), built in code: a shade kneeling, pale and see-through in its own light, its head
+/* The chained shades' looks, built in code: a shade kneeling, pale and see-through in its own light, its head
    bowed under a hood (told apart from the Bound Shade, the merchant, who stands, dark-robed, over his wares), and the chains
    that hold it, each from a manacle or its waist down to a staple in the floor, a lock on it glowing in the school that
    wards it (iron grey for a plain chain). A bound shade walking with the mage is a small wisp of the same, at its shoulder. */
