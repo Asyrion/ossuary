@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { start } from './helpers';
 
-test("foes in code (M4): floor 3's salamander lays burning ground that burns the mage; the imp blinks about and its hex drains mana; the drakeling (one a room) breathes rime, takes to its wings and lands in a ring of frost", async ({
+test("foes in code: floor 3's salamander lays burning ground that burns the mage; the imp blinks about and its hex drains mana; the drakeling (one a room) breathes rime, takes to its wings and lands in a ring of frost", async ({
   page,
 }) => {
   type Foe = {
@@ -141,7 +141,7 @@ test("foes in code (M4): floor 3's salamander lays burning ground that burns the
   expect([...errors, ...e2, ...e3, ...e4]).toEqual([]);
 });
 
-test('the bestiary (M4.5), floor 3: the nest lets out wasps and only fire harms it; the djinn lights braziers and frost snuffs it; the ooze burns the floor, splits and hardens; the phoenix rises once from its ashes unless they are frozen; the basilisk stares (a tall thing blocks it); the salt golem guards and fire slows it; the rubble golem drops stones and breaks to a blast', async ({
+test('the bestiary, floor 3: the nest lets out wasps and only fire harms it; the djinn lights braziers and frost snuffs it; the ooze burns the floor, splits and hardens; the phoenix rises once from its ashes unless they are frozen; the basilisk stares (a tall thing blocks it); the salt golem guards and fire slows it; the rubble golem drops stones and breaks to a blast', async ({
   page,
 }) => {
   type Foe = {

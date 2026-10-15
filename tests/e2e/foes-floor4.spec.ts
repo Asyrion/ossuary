@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { start } from './helpers';
 
-test("foes in code (M4.1): floor 4's wickmouse darts and drops its candle burning; the chime bat marks the ground for a spark; the gargoyle perches as stone and pounces; the fawn heals", async ({
+test("foes in code: floor 4's wickmouse darts and drops its candle burning; the chime bat marks the ground for a spark; the gargoyle perches as stone and pounces; the fawn heals", async ({
   page,
 }) => {
   type Foe = { type: string; state: string; x: number; z: number; hp: number; maxHp: number; tele?: number };
@@ -129,7 +129,7 @@ test("foes in code (M4.1): floor 4's wickmouse darts and drops its candle burnin
   for (const e of [e1, e2, e3, e4]) expect(e).toEqual([]);
 });
 
-test('the bestiary (M4.5), floor 4: the griffin soars out of reach, swoops down a marked line and buffets (a hex grounds it); the eye shut takes half, open fires its ray (a hex shuts it); the harpy screeches glyphs away and dives; the lodestone golem draws the mage, bends bolts and drinks storm; the hearth golem turns blows while lit (frost puts it out); the shadow fox blinks shadow to shadow (holy light holds it); the scarab throws its snowball (fire melts it)', async ({
+test('the bestiary, floor 4: the griffin soars out of reach, swoops down a marked line and buffets (a hex grounds it); the eye shut takes half, open fires its ray (a hex shuts it); the harpy screeches glyphs away and dives; the lodestone golem draws the mage, bends bolts and drinks storm; the hearth golem turns blows while lit (frost puts it out); the shadow fox blinks shadow to shadow (holy light holds it); the scarab throws its snowball (fire melts it)', async ({
   page,
 }) => {
   type Foe = {

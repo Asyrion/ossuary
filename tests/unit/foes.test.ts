@@ -18,7 +18,7 @@ import {
 } from '../../src/actors/foeData';
 import { FLOORS } from '../../src/world/generate';
 
-describe('the foes built in code (M4)', () => {
+describe('the foes built in code', () => {
   it('are all valid, each with the parameters its behaviour needs', () => {
     expect(validateFoes()).toEqual([]);
     for (const id of FOE_IDS) expect(BEHAVIOUR_PARAMS[FOES[id].behaviour], id).toBeDefined();
@@ -57,7 +57,7 @@ describe('the foes built in code (M4)', () => {
     expect(affinityMul(undefined, 'ember')).toBe(1); // (the placeholders have no affinities)
   });
 
-  it('an elemental (M4.5) drinks its own school, blows and statuses, and takes twice from its weakness', () => {
+  it('an elemental drinks its own school, blows and statuses, and takes twice from its weakness', () => {
     const cloud = FOES.thunderhead,
       wave = FOES.puddleElemental;
     expect(cloud.elemental && wave.elemental).toBe(true);

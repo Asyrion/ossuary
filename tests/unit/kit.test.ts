@@ -3,7 +3,7 @@ import { FLOORS } from '../../src/world/generate';
 import { THEME_DEFS, themedLook } from '../../src/world/themeData';
 import { KIT_PARTS, kindsOf, pickKinds, validateKit, type KitWeights } from '../../src/world/kitData';
 
-describe("the room kit's kinds (M3.5 step 3)", () => {
+describe("the room kit's kinds", () => {
   it('every floor offers two or three known kinds of wall, floor, wall light and brazier', () => {
     for (const f of FLOORS) {
       expect(validateKit(f.look.name, f.look.kit)).toEqual([]);

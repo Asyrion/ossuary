@@ -52,14 +52,14 @@ describe('lore', () => {
 describe('artifact data', () => {
   it('is valid', () => expect(validateArtifacts()).toEqual([]));
 
-  it("holds the M1 set, the 13 added after M2 step 4, the 7 economy artifacts, the 10 of M3, the Pilgrim's Cowl, M4.1's 12, M4.2's Rune of Fen-Nex and M5's three of the Alchemist: 60 besides the starting wand", () => {
+  it('holds 60 artifacts besides the starting wand: 50 that are not a focus, 10 foci, 8 cursed', () => {
     expect(ARTIFACT_DEFS.filter((a) => !a.start)).toHaveLength(60);
     expect(ARTIFACT_DEFS.filter((a) => a.kind !== 'focus')).toHaveLength(50);
     expect(ARTIFACT_DEFS.filter((a) => a.kind === 'focus' && !a.start)).toHaveLength(10);
     expect(ARTIFACT_DEFS.filter((a) => a.kind === 'cursed')).toHaveLength(8);
   });
 
-  it('M4.1: the Pendulum swings its bolts, the Lodestar and the rest are effects, and a cleansed Last Rite keeps its gift without its price', () => {
+  it('the Pendulum swings its bolts, the Lodestar and the rest are effects, and a cleansed Last Rite keeps its gift without its price', () => {
     const base = {
       damage: 3.5,
       fireDelay: 0.36,
@@ -93,7 +93,7 @@ describe('artifact data', () => {
     ]);
   });
 
-  it('M3: spell damage and mana from kills combine like the other stats, and a cleansed curse halves them', () => {
+  it('spell damage and mana from kills combine like the other stats, and a cleansed curse halves them', () => {
     const base = {
       damage: 3.5,
       fireDelay: 0.36,
@@ -222,7 +222,7 @@ describe('costumes', () => {
     ).toBe(true);
   });
 
-  it('only what it is logical to wear shows on the mage (the owner, 2026-10-02): a piece, or held in the hand (every focus)', () => {
+  it('only what it is logical to wear shows on the mage: a piece, or held in the hand (every focus)', () => {
     const worn = ARTIFACT_DEFS.filter((a) => isCostume(a.costume ?? ''));
     expect(worn.length).toBeLessThanOrEqual(20);
     expect(worn.some((a) => a.costume === 'back' || a.costume === 'shoulder')).toBe(false); // (nothing carried on the back or perched on a shoulder)

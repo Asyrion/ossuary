@@ -13,7 +13,7 @@ import { FLOORS } from '../../src/world/generate';
 import { STR } from '../../src/strings';
 import { mulberry } from '../../src/rng';
 
-describe('chained shades (M7 step 6)', () => {
+describe('chained shades', () => {
   it('ten townspeople, each found on its floors and helping its own way, every floor with one to find; named and told', () => {
     expect(validateShades()).toEqual([]);
     for (const id of SHADE_IDS) expect(STR.shades.names[id], id).toBeTruthy();

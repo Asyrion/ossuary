@@ -7,7 +7,7 @@ import { Rng } from '../../src/rng';
 
 const D = CFG.vigil.dust;
 
-describe('the keeping (M7 step 4): one save', () => {
+describe('the keeping: one save', () => {
   it('takes over the five keys kept before it, once, when there is no save yet', () => {
     const s = migrate(null, {
       knowledge: { arc: { seen: true, learned: true, casts: 12 } },
@@ -93,7 +93,7 @@ describe('what a run brings home', () => {
     const base = D.vowFloor * D.floor + D.boss;
     expect(deep.total).toBe(base + Math.round(base * D.vow * 2));
   });
-  it("a first run to floor 3 with a shade freed buys a sigil, and a power takes a few runs (the plan's first numbers)", () => {
+  it('a first run to floor 3 with a shade freed buys a sigil, and a power takes a few runs', () => {
     const run = dustFor({ floor: 3, bosses: 2, kaelith: false, firsts: 3, freed: 1, vows: 0, echoes: 0 }, D).total;
     expect(run).toBeGreaterThanOrEqual(20 * 2); // (a sigil costs 20 to 60)
     expect(run * 3).toBeGreaterThanOrEqual(150);
@@ -106,7 +106,7 @@ describe('what a run brings home', () => {
   });
 });
 
-describe('the Vigil as a place (M7 step 5): its map', () => {
+describe('the Vigil as a place: its map', () => {
   const copy = (): VigilMap => JSON.parse(JSON.stringify(VIGIL)) as VigilMap;
   it('passes its checks: three rooms laid by hand, the Crypt first, nothing to fight; six more behind the barred ways', () => {
     expect(validateVigil()).toEqual([]);
@@ -135,7 +135,7 @@ describe('the Vigil as a place (M7 step 5): its map', () => {
       expect.arrayContaining(['bier', 'candleWall', 'skulls', 'lectern', 'plinth', 'boat']),
     );
   });
-  it('bars six ways, one a school, each leading into the room behind it (M7 step 9)', () => {
+  it('bars six ways, one a school, each leading into the room behind it', () => {
     expect(VIGIL.bars.map((b) => b.school).sort()).toEqual([...BAR_SCHOOLS].sort());
     expect(
       VIGIL.rooms
@@ -156,7 +156,7 @@ describe('the Vigil as a place (M7 step 5): its map', () => {
     first.rooms[0] = { ...first.rooms[0], behind: 'ember' };
     expect(validateVigil(first).join()).toMatch(/first room is barred/);
   });
-  it('opens a way when its school is among the parts opened (M7 step 9)', () => {
+  it('opens a way when its school is among the parts opened', () => {
     const shut = vigilPlan(new Rng(7)),
       open = vigilPlan(new Rng(7), VIGIL, undefined, ['ember', 'verdant']);
     const barred = (p: typeof shut) =>

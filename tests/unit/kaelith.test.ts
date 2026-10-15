@@ -8,7 +8,7 @@ const seq = (...v: number[]) => {
   return () => v[i++ % v.length];
 };
 
-describe("Kaelith's fight (M7 step 2)", () => {
+describe("Kaelith's fight", () => {
   it('runs in three phases by its health: the Sentinel, the seal cracking, the last light', () => {
     const M = CFG.enemy.kaelith.phases;
     expect(phaseOf(100, 100, M)).toBe(1);

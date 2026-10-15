@@ -211,7 +211,7 @@ describe('economy', () => {
    shops lay one as an extra ware, half the secret rooms without an artifact keep one, a gilded chest always lets one out
    beside its relic, and the Wandering Merchant (once a run at most, all but sure to come) carries one half the time; none
    on floor 5. With the waystones' four a run finds five or six. */
-describe('runes as things (M6 step 8)', () => {
+describe('runes as things', () => {
   it('a run finds one or two and is offered two or three, none on floor 5', () => {
     const N = 300,
       R = LOOT.runes;
@@ -265,7 +265,7 @@ describe('runes as things (M6 step 8)', () => {
   });
 });
 
-describe('soul motes and the lodestone shard (M4.1)', () => {
+describe('soul motes and the lodestone shard', () => {
   it('each gives what it is', () => {
     expect(dropValue('paleSoul')).toEqual({ soul: 'pale' });
     expect(dropValue('blackSoul')).toEqual({ soul: 'black' });

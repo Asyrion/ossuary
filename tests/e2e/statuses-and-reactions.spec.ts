@@ -404,7 +404,7 @@ test("any build can bring a water foe up: a glyph's blast in its water, fire boi
   expect(errors).toEqual([]);
 });
 
-test("the full wheel (M4.8): Searing opens a shut eye, a Prism splits a bolt in three, Verdict strikes every sanctified foe, Black Ice slides foes (not the mage) and fire melts it, a Void Spark carries hexes and its marked give mana; a shock through burning oil and a hex on holy ground react; the book's wheel fills in", async ({
+test("the full wheel: Searing opens a shut eye, a Prism splits a bolt in three, Verdict strikes every sanctified foe, Black Ice slides foes (not the mage) and fire melts it, a Void Spark carries hexes and its marked give mana; a shock through burning oil and a hex on holy ground react; the book's wheel fills in", async ({
   page,
 }) => {
   type E = Foe & {
@@ -627,7 +627,7 @@ test("the full wheel (M4.8): Searing opens a shut eye, a Prism splits a bolt in 
   expect(errors).toEqual([]);
 });
 
-test("the curve (M4.9): an open sluice drains a water room to mud and keeps its lurker up; a floor that walls off the mage's one school says so and its library leans to a counter; holy light gives back what a hex took", async ({
+test("the curve: an open sluice drains a water room to mud and keeps its lurker up; a floor that walls off the mage's one school says so and its library leans to a counter; holy light gives back what a hex took", async ({
   page,
 }) => {
   type GC = {
@@ -712,7 +712,7 @@ test("the curve (M4.9): an open sluice drains a water room to mud and keeps its 
   expect(errors).toEqual([]);
 });
 
-test('weaves and chains (M4.10): each one set up and struck goes off, its name rises and the book keeps it; the room joins in (a rune stone struck by a second school, a bell rung by a shock, a brazier taken by darkness)', async ({
+test('weaves and chains: each one set up and struck goes off, its name rises and the book keeps it; the room joins in (a rune stone struck by a second school, a bell rung by a shock, a brazier taken by darkness)', async ({
   page,
 }) => {
   type GW = {

@@ -233,7 +233,7 @@ describe('the boons at work', () => {
   });
 });
 
-describe('the general boons (step 6)', () => {
+describe('the general boons', () => {
   it("Afterglow carries half a spell's statuses: stacks rounded up, seconds as they are", () => {
     expect(afterglowOf({ chill: 1 }, 0.5)).toEqual({ chill: 1 });
     expect(afterglowOf({ chill: 2, hex: 3 }, 0.5)).toEqual({ chill: 1, hex: 2 });
@@ -246,7 +246,7 @@ describe('the general boons (step 6)', () => {
     });
     expect(afterglowOf(undefined, 0.5)).toEqual({});
   });
-  it('deals them now, Second Socket too since the waystone (M6 step 9)', () => {
+  it('deals them now, Second Socket too', () => {
     expect([...NOT_YET]).toEqual([]);
     const dealt = new Set(
       deals(state(), 600)

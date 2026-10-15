@@ -65,7 +65,7 @@ test("the Pilgrim's Cowl puts a hood on the mage, hung from the head bone, and i
   expect(errors).toEqual([]);
 });
 
-test('costumes (M4.6): the focus is held in the casting hand, artifacts show on the mage in their slots (their own model at a spot, or a piece built for the body), and a cursed piece changes once cleansed', async ({
+test('costumes: the focus is held in the casting hand, artifacts show on the mage in their slots (their own model at a spot, or a piece built for the body), and a cursed piece changes once cleansed', async ({
   page,
 }) => {
   const errors = await start(page, '?seed=COST01');
@@ -149,7 +149,7 @@ test('costumes (M4.6): the focus is held in the casting hand, artifacts show on 
   expect(errors).toEqual([]);
 });
 
-test('transformations (M4.6): three of a family transform the mage, said in a banner and a lore card, with a look and a gift; the gifts stay as others form', async ({
+test('transformations: three of a family transform the mage, said in a banner and a lore card, with a look and a gift; the gifts stay as others form', async ({
   page,
 }) => {
   const errors = await start(page, '?room=great_hall&variant=quiet&seed=TRANS1');
@@ -382,7 +382,7 @@ test("transformations' other gifts, each on a fresh run: the Frostborn chills wh
   expect(errors).toEqual([]);
 });
 
-test("Azyrion's arc (M4.6): with more artifacts held the chaos mage's pieces arrive, each stage said once in a line, and the dev menu steps through them", async ({
+test("Azyrion's arc: with more artifacts held the chaos mage's pieces arrive, each stage said once in a line, and the dev menu steps through them", async ({
   page,
 }) => {
   const errors = await start(page, '?room=great_hall&variant=quiet&seed=ARC1');

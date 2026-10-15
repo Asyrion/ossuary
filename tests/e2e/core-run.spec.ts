@@ -89,7 +89,7 @@ test('a seeded floor is generated and the trapdoor leads down', async ({ page })
   expect(errors).toEqual([]);
 });
 
-test("a run is five floors and the Seal: the Gilded Reliquary and the Ferryman's Shore below the Scriptorium, the Seal below the Shore (M7), whose boss wins it", async ({
+test("a run is five floors and the Seal: the Gilded Reliquary and the Ferryman's Shore below the Scriptorium, the Seal below the Shore, whose boss wins it", async ({
   page,
 }) => {
   const errors = await start(page, '?seed=DEEP01&floor=3');
@@ -191,7 +191,7 @@ test('the end screen sums up the run, and replays its seed', async ({ page }) =>
   expect(errors).toEqual([]);
 });
 
-test("the setting (M4.2): the title names the Gate of Uzulim and Azyrion; the first floor opens beneath the Wardens' chapel, and the Warden is one of them", async ({
+test("the setting: the title names the Gate of Uzulim and Azyrion; the first floor opens beneath the Wardens' chapel, and the Warden is one of them", async ({
   page,
 }) => {
   await page.addInitScript('window.__manual = true');
@@ -295,7 +295,7 @@ test('every door of a seeded floor leads to its neighbour, onto open floor', asy
   expect(errors).toEqual([]);
 });
 
-test('the keeping (M7 step 4): one save takes over the five keys kept before it; a run ends into it, remembering how it went and what struck last, and brings home its Dust and a tenth of its obols, tallied on the end screen; the save goes out to a file and back; the dev menu gives Dust', async ({
+test('the keeping: one save takes over the five keys kept before it; a run ends into it, remembering how it went and what struck last, and brings home its Dust and a tenth of its obols, tallied on the end screen; the save goes out to a file and back; the dev menu gives Dust', async ({
   page,
 }) => {
   await page.addInitScript(() => {
@@ -383,7 +383,7 @@ test('the keeping (M7 step 4): one save takes over the five keys kept before it;
   expect(errors).toEqual([]);
 });
 
-test("the run around it (M6 step 12): a deeper start begins at its floor's expected level, its choices waiting; levels count toward Azyrion's arc, three to an artifact", async ({
+test("the run around it: a deeper start begins at its floor's expected level, its choices waiting; levels count toward Azyrion's arc, three to an artifact", async ({
   page,
 }) => {
   const errors = await start(page, '?floor=4&level=auto');

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { daylightPhase, ridge } from '../../src/world/daylightData';
 import { CFG } from '../../src/config';
 
-describe('daylight (M7 step 3): the cave mouth at dawn', () => {
+describe('daylight: the cave mouth at dawn', () => {
   it('draws each range of hills the same from its seed, within its height', () => {
     const a = ridge(11, -15, 15, 0.3, 2, 0.75),
       b = ridge(11, -15, 15, 0.3, 2, 0.75),

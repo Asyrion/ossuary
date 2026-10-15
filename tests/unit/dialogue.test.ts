@@ -51,7 +51,7 @@ const L = (id: string, moment: Line['moment'], o: Partial<Line> = {}): Line => (
   ...o,
 });
 
-describe('the townspeople and their talk (M7 step 7)', () => {
+describe('the townspeople and their talk', () => {
   it('passes its checks: every shade and the Ferryman with a first line, every choice leading to a reply of its own', () => {
     expect(validateDialogue(DIALOGUE, known)).toEqual([]);
     expect(SPEAKERS).toEqual(expect.arrayContaining(known.speakers));

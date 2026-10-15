@@ -31,7 +31,7 @@ const known = {
 };
 const none = { freed: [] as string[], bonds: {}, powers: [] as string[], flags: {} };
 
-describe('gifts, bonds and powers (M7 step 8)', () => {
+describe('gifts, bonds and powers', () => {
   it('pass their checks: a gift for each townsperson, six powers from six of them, three quests, a discipline a school', () => {
     expect(validateTownsfolk(TOWNSFOLK, known)).toEqual([]);
     expect(
@@ -99,7 +99,7 @@ describe('gifts, bonds and powers (M7 step 8)', () => {
   });
 });
 
-describe("the candle chapel's blessings (M7 step 9)", () => {
+describe("the candle chapel's blessings", () => {
   it('give each townsperson a blessing for one descent: a small step on the numbers, or what it begins with', () => {
     for (const id of SHADE_IDS) {
       const b = blessingOf(id);

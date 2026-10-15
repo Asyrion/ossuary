@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { start } from './helpers';
 
-test("foes in code (M4): floor 2's toad leaps and breathes cold that chills; the lurker lives in water, rises, spits and dives out of reach, and is trapped when its pool freezes; the jelly drifts close and pulses light", async ({
+test("foes in code: floor 2's toad leaps and breathes cold that chills; the lurker lives in water, rises, spits and dives out of reach, and is trapped when its pool freezes; the jelly drifts close and pulses light", async ({
   page,
 }) => {
   type Foe = {
@@ -130,7 +130,7 @@ test("foes in code (M4): floor 2's toad leaps and breathes cold that chills; the
   expect([...errors, ...e2, ...e3]).toEqual([]);
 });
 
-test('the bestiary (M4.5), floor 2: the snail leaves rime and hides in its shell (fire cracks it); the walking wave pours water, drinks frost and shatters; the newt lunges out of water and chills (a shock shows it); the serpent rises and is trapped by ice; the thunderhead rains sparks and drinks storm; the darter dashes (chilled, it hangs); the puffcap bursts (fire pops it)', async ({
+test('the bestiary, floor 2: the snail leaves rime and hides in its shell (fire cracks it); the walking wave pours water, drinks frost and shatters; the newt lunges out of water and chills (a shock shows it); the serpent rises and is trapped by ice; the thunderhead rains sparks and drinks storm; the darter dashes (chilled, it hangs); the puffcap bursts (fire pops it)', async ({
   page,
 }) => {
   type Foe = {

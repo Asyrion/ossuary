@@ -3,7 +3,7 @@ import { WEAVES, WEAVE_IDS, validateWeaves, weaveOf, weavesOf } from '../../src/
 import { MAGIC } from '../../src/magic/status';
 import { spell } from '../../src/magic/spellData';
 
-describe('weaves and chains (M4.10)', () => {
+describe('weaves and chains', () => {
   it('are ten weaves and seven chains, each a pair of its own, each with its tuning', () => {
     expect(WEAVE_IDS.filter((id) => WEAVES[id].kind === 'weave')).toHaveLength(10);
     expect(WEAVE_IDS.filter((id) => WEAVES[id].kind === 'chain')).toHaveLength(7);

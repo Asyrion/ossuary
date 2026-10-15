@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { type RoomView, type W, start } from './helpers';
 
-test("the Vigil as a place (M7 step 5): the first waking is dark until its candle lights itself; three rooms with nothing to fight; the lectern puts learned spells in hand and keeps them; the six barred ways say what bars them and stir at their own school; no glyphs; the boat goes down to floor 1; a run's end and the title lead back to it", async ({
+test("the Vigil as a place: the first waking is dark until its candle lights itself; three rooms with nothing to fight; the lectern puts learned spells in hand and keeps them; the six barred ways say what bars them and stir at their own school; no glyphs; the boat goes down to floor 1; a run's end and the title lead back to it", async ({
   page,
 }) => {
   const errors = await start(page, '?vigil=first');
@@ -192,7 +192,7 @@ test("the Vigil as a place (M7 step 5): the first waking is dark until its candl
   expect(errors).toEqual([]);
 });
 
-test("chained shades (M7 step 6): one lies in a secret room, chained by schools the mage can land; its chains break to their schools; loose, it asks: Q frees it to the Vigil (a candle more), E binds it; one at an ordeal's end waits until the fight is won; a bound shade walks with the next run and helps", async ({
+test("chained shades: one lies in a secret room, chained by schools the mage can land; its chains break to their schools; loose, it asks: Q frees it to the Vigil (a candle more), E binds it; one at an ordeal's end waits until the fight is won; a bound shade walks with the next run and helps", async ({
   page,
 }) => {
   type SI = {
@@ -350,7 +350,7 @@ test("chained shades (M7 step 6): one lies in a secret room, chained by schools 
   expect(errors).toEqual([]);
 });
 
-test("chained shades (M7 step 6): one at an ordeal's end comes forth only once the fight is won; the dev menu shows the floor's", async ({
+test("chained shades: one at an ordeal's end comes forth only once the fight is won; the dev menu shows the floor's", async ({
   page,
 }) => {
   type SG = {
@@ -380,7 +380,7 @@ test("chained shades (M7 step 6): one at an ordeal's end comes forth only once t
   expect(errors).toEqual([]);
 });
 
-test('townspeople (M7 step 7): the freed stand round the Nave, each with something to say; walking up to one opens its talk, written out a little at a time, the game waiting; a choice sets its flag and leads on; after a death, the line names what struck; the Ferryman speaks at the jetty once; the dev menu makes any one talk', async ({
+test('townspeople: the freed stand round the Nave, each with something to say; walking up to one opens its talk, written out a little at a time, the game waiting; a choice sets its flag and leads on; after a death, the line names what struck; the Ferryman speaks at the jetty once; the dev menu makes any one talk', async ({
   page,
 }) => {
   type Fig = { id: string; x: number; z: number; news: boolean; made: boolean; clip: string | null };
@@ -586,7 +586,7 @@ test('townspeople (M7 step 7): the freed stand round the Nave, each with somethi
   expect(errors).toEqual([]);
 });
 
-test('gifts, bonds and powers (M7 step 8): a talk ends with what can be offered; obols on the eyes deepen a bond (a memory, then the second gift); a power is bought with Dust; a quest is given once the bond has begun; the next descent begins with the gifts; a shade freed says what it gives; the two spells that waited join the libraries', async ({
+test('gifts, bonds and powers: a talk ends with what can be offered; obols on the eyes deepen a bond (a memory, then the second gift); a power is bought with Dust; a quest is given once the bond has begun; the next descent begins with the gifts; a shade freed says what it gives; the two spells that waited join the libraries', async ({
   page,
 }) => {
   type TN = { open: boolean; who?: string; line?: string; text?: string; whole?: boolean; choices?: string[] };
@@ -709,7 +709,7 @@ test('gifts, bonds and powers (M7 step 8): a talk ends with what can be offered;
   expect(errors).toEqual([]);
 });
 
-test('the unfolding (M7 step 9): the six ways stay walled until their school lands on them (another school does nothing); each opens to a room behind it, kept in the save; the Cave Mouth looks out on the valleys and holds what the freed have built; a candle lit in the chapel blesses the next descent alone; the garden gives its reagent; the dev menu opens and closes them', async ({
+test('the unfolding: the six ways stay walled until their school lands on them (another school does nothing); each opens to a room behind it, kept in the save; the Cave Mouth looks out on the valleys and holds what the freed have built; a candle lit in the chapel blesses the next descent alone; the garden gives its reagent; the dev menu opens and closes them', async ({
   page,
 }) => {
   type Bar = { school: string; x: number; z: number; open: boolean };

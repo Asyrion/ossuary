@@ -484,7 +484,7 @@ describe('doors off the middle', () => {
     expect(shifted / doors).toBeLessThan(0.5);
   });
 
-  it('the waystone room leaves the rest of the floor as it was (M6 step 10)', () => {
+  it('the waystone room leaves the rest of the floor as it was', () => {
     const without = (plan: ReturnType<typeof generateFloor>) => {
       const stone = plan.rooms.find((r) => r.type === 'waystone')?.id;
       return plan.rooms
@@ -573,7 +573,7 @@ describe('bosses', () => {
   });
 });
 
-describe('jelly floods (M5 step 7: the jelly serpent)', () => {
+describe('jelly floods (the jelly serpent)', () => {
   // a 13 × 7 room: open floor but for a rock in the middle and a pillar at (2, 1)
   const W = 13,
     H = 7,
@@ -625,7 +625,7 @@ describe('jelly floods (M5 step 7: the jelly serpent)', () => {
   });
 });
 
-describe('the Seal (M7 step 1)', () => {
+describe('the Seal', () => {
   const seal = FLOORS.findIndex((f) => f.fixed),
     cfg = FLOORS[seal];
   it("is the last level, laid by hand: the Stair, the Last Hall and Kaelith's Hall, a door between each", () => {

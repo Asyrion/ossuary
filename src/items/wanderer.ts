@@ -79,7 +79,7 @@ function layOut() {
     for (let k = 1; k < 8 && taken.some((q) => Math.hypot(q.x - at.x, q.z - at.z) < C.spacing * 0.7); k++)
       at = freeSpotNear(room, x + (k % 2 ? k : -k) * C.spacing * 0.5, z + Math.floor(k / 2));
     taken.push(at);
-    return layWare(room, w.ware, w.def, at.x, at.z, P[w.ware]!); // (every ware it lays has its price in data/loot.json: tests/unit/m42rules.test.ts)
+    return layWare(room, w.ware, w.def, at.x, at.z, P[w.ware]!); // (every ware it lays has its price in data/loot.json: tests/unit/currentsAndWanderer.test.ts)
   });
   h.block = { x: h.to.x, z: h.to.z, hx: C.block[0], hz: C.block[1], hp: Infinity, breakable: false };
   room.rocks.push(h.block);

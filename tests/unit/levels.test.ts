@@ -91,7 +91,7 @@ function runOf(seed: string) {
   return steps;
 }
 
-describe('the curve (the M6 plan, measured on 300 seeds)', () => {
+describe('the level curve, measured on 300 seeds', () => {
   const runs = Array.from({ length: 300 }, (_, i) => runOf('CURVE' + i));
   const share = (f: (r: ReturnType<typeof runOf>) => boolean) => runs.filter(f).length / runs.length;
   it('reaches level 2 by the second fight room', () => {
@@ -110,7 +110,7 @@ describe('the curve (the M6 plan, measured on 300 seeds)', () => {
   });
 });
 
-describe('the run around it (M6 step 12)', () => {
+describe('the run around it', () => {
   it('starts a deeper floor at its expected level: 1, 4, 7, 9 and 11', () => {
     expect([0, 1, 2, 3, 4].map((f) => levelAtFloor(f))).toEqual([1, 4, 7, 9, 11]);
   });

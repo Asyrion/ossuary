@@ -243,7 +243,7 @@ test('spells: the lance burns a line, the seal erupts and leaves fire, shards fr
   expect(errors).toEqual([]);
 });
 
-test('Hallow and Umbral (M4.1): holy ground heals and lays foes open, judgement falls on the strongest, wardlight breaks shots, hexes give mana back, hands hold, the toll pays; Eclipse and Blackfire', async ({
+test('Hallow and Umbral: holy ground heals and lays foes open, judgement falls on the strongest, wardlight breaks shots, hexes give mana back, hands hold, the toll pays; Eclipse and Blackfire', async ({
   page,
 }) => {
   const errors = await start(page, '?room=treasure_plain&seed=HAL1');
@@ -435,7 +435,7 @@ test('Hallow and Umbral (M4.1): holy ground heals and lays foes open, judgement 
   expect(errors).toEqual([]);
 });
 
-test('spell marks (M4.11): each slotted spell shows at its hand (ready, cooling, short of mana), both of one school attune the mage, a school known in full rings the wrist, and standing still shows the knowledge circle', async ({
+test('spell marks: each slotted spell shows at its hand (ready, cooling, short of mana), both of one school attune the mage, a school known in full rings the wrist, and standing still shows the knowledge circle', async ({
   page,
 }) => {
   const errors = await start(page, '?room=great_hall&variant=quiet&seed=MARK1');
@@ -524,7 +524,7 @@ test('spell marks (M4.11): each slotted spell shows at its hand (ready, cooling,
   expect(errors).toEqual([]);
 });
 
-test('Verdant (M5 step 9): the Thorn Snare holds and overgrows, the Living Wall rises and burns down, the Pollen Cloud mends; an overgrown foe flowers as it falls (once a room); its five reactions go off', async ({
+test('Verdant: the Thorn Snare holds and overgrows, the Living Wall rises and burns down, the Pollen Cloud mends; an overgrown foe flowers as it falls (once a room); its five reactions go off', async ({
   page,
 }) => {
   const errors = await start(page, '?room=crypt_a&seed=VERD1&spells=thorn_snare,living_wall');

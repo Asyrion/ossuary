@@ -22,7 +22,7 @@ const RIVER = [
   '....~~~......',
 ];
 
-describe('M4.2 currents and waterfalls', () => {
+describe('currents and waterfalls', () => {
   it('a current turns with the grid when a template is mirrored', () => {
     const across = room(
       RIVER.map((r) => r.replace(/~/g, '.')),
@@ -75,7 +75,7 @@ describe('M4.2 currents and waterfalls', () => {
   });
 });
 
-describe("M4.2 the Wandering Merchant's focus", () => {
+describe("the Wandering Merchant's focus", () => {
   it('is a focus the run has not met, from any pool, never the one held nor the starting wand', () => {
     const foci = ARTIFACT_DEFS.filter((a) => a.kind === 'focus' && !a.start);
     const rng = new Rng(7),
@@ -96,7 +96,7 @@ describe("M4.2 the Wandering Merchant's focus", () => {
   });
 });
 
-describe("M4.2 the Wandering Merchant's prices", () => {
+describe("the Wandering Merchant's prices", () => {
   it('every ware the merchant can lay out has its price', () => {
     for (const w of ['artifact', 'map', 'secret', ...Object.keys(LOOT.wanderer.souls)] as const)
       expect(LOOT.wanderer.prices[w as keyof typeof LOOT.wanderer.prices], w).toBeGreaterThan(0);

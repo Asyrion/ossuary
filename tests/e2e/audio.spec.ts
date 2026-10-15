@@ -25,7 +25,7 @@ test('the pause menu sets the volumes, and the browser remembers them; positione
   expect(errors).toEqual([]);
 });
 
-test('soundscapes and music (docs/archive/sound-plan.md): the floor and room choose them, the doors and the hearts the mood; the dev menu forces any; a stretch renders offline', async ({
+test('soundscapes and music: the floor and room choose them, the doors and the hearts the mood; the dev menu forces any; a stretch renders offline', async ({
   page,
 }) => {
   const errors = await start(page, '?seed=SOUND1');
