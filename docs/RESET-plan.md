@@ -187,6 +187,9 @@ fast suite green in under 3 minutes, a week of CI without a flake fix.
    rules): Godot-Tamer's rules adapted to a candle-lit vault seen from above: a palette per floor with hue-shifted
    ramps, closed coloured outlines, the key light, cool shadows, how much of the screen may be dark, how loud the HUD
    is, one size table (mage, foes, bosses, tiles in pixels). Made with the owner from three or four reference pictures.
+   (*Decided 2026-10-15*: from the owner's five pictures; a palette a floor, cool shadows and warm lights, mid tones
+   carrying the room, hard outlines, light from above with a rim on actors, the framed HUD (variant B), chibi
+   humanoids. Code models or sprites is left to the proof.)
 2. **The proof:** Godot-Tamer's tools ported to `tools/art/` (Python: `pixel.py`, `pixelize.py`, the Blender render;
    the Tripo CLI on the owner's machine, as there). One room of floor 1, the mage, one foe and the Warden, drawn both
    ways (Decision 2), side by side. The owner chooses. Budget: one round of four images a picture, one reroll at most.

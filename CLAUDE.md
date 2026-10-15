@@ -20,6 +20,7 @@ systems, only cleaning, the look and the story.
 | `docs/lore/` | The owner's Eda lore, with an index. A name enters the game only once the GDD adopts it. |
 | `docs/playtest-notes.md` | What the owner finds in play, newest first. |
 | `docs/ideas.md` | Idea bank; an idea counts only once it moves into the GDD. |
+| `docs/art-bible.md` | **The look:** palettes per floor, hue shift, light, outlines, the HUD (R3). Wins over the next row on style. |
 | `docs/assets.md`, `docs/creatures.md`, `docs/effects.md` | Asset pipeline and budgets, Tripo creatures, the house style for magic effects. |
 | `docs/M7-plan.md` | The open milestone's plan (steps 10 to 13 move into R4). Finished plans: `docs/archive/`. |
 

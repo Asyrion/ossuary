@@ -32,6 +32,9 @@ and for making a matching asset later.
 
 ## House style
 
+**`docs/art-bible.md` wins** where it differs from this section: its palettes per floor, cool shadows and warm lights,
+hard outlines on actors and objects, and its light (decided 2026-10-15, built in R3).
+
 The GDD's art direction, as rules for images:
 
 - **A candle-lit cutaway diorama in pixel-art 3D** (the GDD's look, decided 2026-09-30). The game draws every model

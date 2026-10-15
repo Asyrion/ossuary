@@ -14,12 +14,12 @@ cleaning, the look and the story.
 | R0 One baseline | Done 2026-10-12 |
 | R1 Docs that tell the truth | Built 2026-10-12; the owner's read next |
 | R2 Code that is kept | **Under way:** steps 1 to 6 done; its done-when check (a week of CI) runs |
-| R3 The look | Waits for R2 |
+| R3 The look | **Under way:** step 1, the art bible (`docs/art-bible.md`), decided 2026-10-15; step 2, the proof, next |
 | R4 The story | Waits for R3's art bible; holds M7 steps 10 to 13 |
 | R5 The vertical slice | Last |
 
-**Next:** R2's done-when check: a week of CI (the full suite on every PR and nightly, the fast one on `main`) without a flake fix.
-Then R3, the look.
+**Next:** R3 step 2, the proof (both routes side by side), while R2's done-when check runs: a week of CI (the full
+suite on every PR and nightly, the fast one on `main`) without a flake fix.
 
 ## What is live
 
