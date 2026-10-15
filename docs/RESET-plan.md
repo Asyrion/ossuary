@@ -193,7 +193,9 @@ fast suite green in under 3 minutes, a week of CI without a flake fix.
 2. **The proof:** Godot-Tamer's tools ported to `tools/art/` (Python: `pixel.py`, `pixelize.py`, the Blender render;
    the Tripo CLI on the owner's machine, as there). One room of floor 1, the mage, one foe and the Warden, drawn both
    ways (Decision 2), side by side. The owner chooses. Budget: one round of four images a picture, one reroll at most.
-3. **The sprite runtime** (if sprites win): a billboard actor in three.js that plays a sheet by direction and clip, with
+   (*Done 2026-10-15*: route A, models at the texel, and the code-drawn rooms recoloured; `docs/art-bible.md` 4.8 and
+   section 7, the tools in `tools/art/`.)
+3. ~~**The sprite runtime** (if sprites win)~~ *Dropped 2026-10-15: models won.* a billboard actor in three.js that plays a sheet by direction and clip, with
    the hit flash, statuses' tints and telegraphs the foes have today; behaviours untouched (they move the actor, the
    sprite only shows it).
 4. **The rooms:** the floors' palettes from the art bible, more light and colour, contrast that reads; tiles and wall

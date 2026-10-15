@@ -20,7 +20,7 @@ Tripo props was dropped (`docs/archive/M3.5-plan.md`).
 | MidJourney | Standard | Concept art for props, creatures and artifacts; the house style reference (`--sref`); seamless floor and wall textures (`--tile`); painted icons; title and loading art | Final 3D; anything with legible text |
 | Tripo3D | Master | Turning a concept image (or several views) into a textured 3D model; texturing and re-texturing; lowering the face count; rigging and animating characters; its own image models for concepts and alternative views | Flames, light, magic and particles (made in code); tiling floor and wall textures |
 | Other image models (Tripo's own, Gemini / Nano Banana and others) | As available | Alternative concepts, front, side and back views of one design for better 3D, edits (clean background, change a pose, fix a detail) | Skipping the style check |
-| Tripo CLI (`@tripo3d/cli`) | The owner's Studio credits | Concept images that Claude makes from the session (Route 2 below): Nano Banana 2 through Tripo, four a round, about 8 credits a round | Image-to-3D, texturing, rigging and export (untested from here: those stay in Tripo Studio with the owner); negative prompts (it has no flag for them) |
+| Tripo CLI (`@tripo3d/cli`) | The owner's Studio credits | Concept images that Claude makes from the session (Route 2 below): Nano Banana 2 through Tripo, four a round, 8 credits a round; image-to-3D, rigging and preset clips (proven in R3's proof, below) | Negative prompts (it has no flag for them); its own textures need the pixel-art bake as any Tripo model's do |
 | Aseprite 1.3.18 | The owner's (Steam) | 2D pixel art drawn rather than built in code, when the owner asks for it: artifact icons (24 px), coin faces (48 px), HUD pieces, a redraw of a generated image. Runs headless on the owner's PC (its path in Aseprite (2D pixel art), below) | 3D; anything the game already builds in code |
 | Code | | Lights, torch flames and flicker, bolts, spell and glyph effects, particles, glows, decals, the cracks, stains, bones and puddles drawn over the floor, the whole UI | |
 
@@ -211,8 +211,9 @@ adapted here; Ossuary has not run it yet.
 | Pick | The owner chooses | Claude makes a numbered contact sheet, checks each image, recommends one and asks with buttons (keep it, take another, or one more round); more rounds until the owner is happy |
 | Login | | The owner runs `tripo auth login` in their own terminal (email and a code; Claude never sees the code); the session lasts about 2 hours (`tripo auth whoami`) |
 
-Either way **image-to-3D, texturing, rigging and export stay with the owner in Tripo Studio** (steps 5 and 6): the
-CLI's model commands are untested here, and the Studio is where the owner checks the model before it leaves Tripo.
+Route 1 keeps **image-to-3D, texturing, rigging and export with the owner in Tripo Studio** (steps 5 and 6), where the
+owner checks the model before it leaves Tripo. In Route 2 the CLI can take them too, when the owner says so (proven on
+the Gloom Weaver in R3's proof, 2026-10-15; below, "From the picked image to clips").
 
 **Prompt rules** (both routes; Tamer's docs 04 §2, measured there):
 - Under **1,000 characters**: Tripo's Image tab cuts the prompt there.
@@ -243,6 +244,23 @@ CLI's model commands are untested here, and the Studio is where the owner checks
    Claude recommends one and shows them all. Another round rewrites the prompt where the last one missed.
 6. **Pick** by buttons. The pick (and any part the owner wants from another image, named as a reference) goes on to
    the style check (step 3), the clean input (step 4) and the owner's Tripo Studio work (step 5).
+
+**From the picked image to clips** (Route 2, the CLI; proven 2026-10-15 on the Gloom Weaver; the owner says yes to
+each paid step):
+1. **Model:** `tripo generate image <pick.png> --face-limit 8000 --visibility private -o <raw.glb>` (25 credits;
+   `--face-limit` to the budget, `--visibility` private, which defaults to public). About three minutes.
+2. **Project id:** the rig and animate commands want the project, not the task: `tripo project list --output-format
+   json` shows it beside the model's task id.
+3. **Rig:** `tripo process rig <project> --check` names the rig type it found (`biped`, `quadruped`, `octopod`, ...);
+   then `tripo process rig <project> --rig-type <type> -o <rig.glb>` (20 credits). Its GLB carried no armature here;
+   the animated one does.
+4. **Clips:** `tripo process animate <project> --rig-type <type> --animations preset:<type>:walk -o <walk.glb>` (10
+   credits a clip). The presets differ by rig: a biped has idle, walk, run, slash, hurt and more; an octopod only walk
+   (`preset:octopod:idle` answers "invalid parameter"). Ossuary's own clips come from `tools/animate-creature.ts`.
+5. **Look at it** with `tools/art/render_glb.py` (Blender) in the game's camera before anything else; the Weaver came
+   facing +x (`--front +X`).
+In PowerShell the CLI's progress on stderr shows as an error with exit code 255 while the download succeeded: check the
+file and the balance (`tripo account balance`), not the exit code.
 
 `asset-previews/` is ignored by git, so the rounds and contact sheets are never committed; only an image the game's
 asset actually came from is kept, in the asset log's record of what made it (the rest stays in the owner's Tripo
@@ -537,3 +555,4 @@ asset is accepted.
 | Chameleon Wyvern (`creatures/chameleon.glb`) | creature, boss budget | nothing yet (the owner's third creature, 2026-10-05: a feathered wyvern the size of a pony, 1.4 tiles; looks only; `docs/creatures.md`) | Tripo3D (model, rig), the owner's EDA-ModelWebViewer (bones named, weights mended, kept here); code (turned to face +z, its jaw carved from the head, wings laid by direction, clips; `tools/creatures/chameleon.ts`) | | in the dev menu 2026-10-05 (Galleries, Animated creatures); 14,549 triangles (from 19,531), 1,024 px, its texture as pixel art (256 px). |
 | Chameleon Wyvern's sounds (`sounds/chameleon/growl_1.ogg`, `screech_1.ogg`, `slam_1.ogg`, `slam_2.ogg`) | effects, mono | the synthesised `roar`, `shriek` and `slam` (kept as their fallbacks) | The owner's EDA-ModelWebViewer (`web/js/sounds.js`: its growl 2, roar 1, hit 1 and hit 2 for this model), made in code there; ours | | in the game 2026-10-05 through `prepare-sound`: first at the viewer's 22,050 Hz, then made again from its recipe at 48 kHz (the owner's ask; the same seed, so the same sounds; `npm run viewer-sounds`): 17, 17, 12 and 12 KB, peaks at -1 dB, played at `gain` 1, 0.85 and 0.8 (`data/sounds.json`) |
 | The townspeople, the Ferryman, Dr. Jelly and Kaelith (`creatures/<id>.glb`: stormcaller, wizard, forager, scribe, sexton, chorister, bellringer, novice, embalmer, pilgrim, ferryman, jelly, kaelith) | people, enemy budget (Kaelith boss) | the code-built figures of `townLooks.ts` and the Ferryman in `vigilLooks.ts` (kept as the fallback and the dev menu's code look) | Tripo3D (model from the prompts in `docs/tripo-prompts.md`, edited by the owner; Mixamo rig); code (rests rebuilt for three, turned, clips; `tools/creatures/townsfolk.ts`) | | in the game 2026-10-09: the ten and the Ferryman at the Vigil (idle, talk), Dr. Jelly and Kaelith in the Galleries only; 8,000 triangles each (the wizard and Dr. Jelly 10,000), their texture as pixel art; the ten and the Ferryman taller since (1.2 to 1.5 tiles) and on the fine layer, their pixel art 256 to 512 px |
+| Gloom Weaver (R3 proof; Tripo project `51744b52-1ea8-47e3-b07c-e5ce02b28b80`) | creature, enemy budget | nothing yet (floor 1's Crypt Spider is drawn in code, `gloomWeaver` in `fantasyFloor1.ts`) | Nano Banana 2 through the Tripo CLI (lock: round 1, image 1 of 4, `docs/art/proof/weaver-design-lock.png`); Tripo3D through the CLI (model 7,770 triangles, octopod rig, its walk) | | proof only 2026-10-15 (`docs/art-bible.md` section 7); the GLBs stay in the owner's Tripo account and `asset-previews/`. For the foe: brighter eyes and rune (the rune came as a letter), legs spread wider |

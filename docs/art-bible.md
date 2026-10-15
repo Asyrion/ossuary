@@ -154,10 +154,16 @@ icons are built in R3 step 5.
 The humanoids (the mage, townsfolk, human foes) follow the ranger's proportions (reference 2): chibi, a little over three
 heads tall, a large head and readable hands.
 
-### 4.8 Still open: code models or sprites
+### 4.8 Models at the texel, rooms from the code kit (the owner, 2026-10-15, from the proof)
 
-Whether actors stay models drawn at the texel or become sprites baked from 3D (Godot-Tamer's route; reference 1 speaks
-for it) is decided together in R3, from the proof in step 2.
+**Actors stay models drawn at the texel (route A)**, not sprites baked from 3D. Drawn through the same ramps and outline,
+both routes look nearly the same at play size (section 7); baked sprites are a little calmer, but models keep what the
+game has: eight directions and smooth turning, torch and spell light on the actors, costume pieces on the bones (M4.6)
+without new sheets, and no sprite runtime. What route A needs is a pass in the pixel look: each actor's pixels on its
+materials' ramps, the closed outline from its silhouette, the rim light (4.5).
+
+**Rooms stay the code-drawn kit**, recoloured to their floor's palette. Generator tiles may replace a piece where they
+clearly win (the proof's wall faces were good; its floor tiles repeated, their joints forming a grid).
 
 ## 5. The reference pictures
 
@@ -200,3 +206,36 @@ Taken from Godot-Tamer:
    section 2, taken on the room's floor, not over the whole frame.
 5. **The owner sees it first:** an enlarged preview, and the game beside it, before anything replaces an old look. The
    look that loses is deleted in the same step (CLAUDE.md).
+
+## 7. The proof (R3 step 2, 2026-10-15)
+
+The mage (`hero_default.glb`), the Gloom Weaver (a new Tripo model: `docs/assets.md`, asset log) and the Hollow Warden
+(`creatures/owlbear.glb`) drawn both ways, and `chapel_nave` both ways; the pictures are in `docs/art/proof/`, the tools
+and the commands in `tools/art/README.md`. The owner's page: https://claude.ai/artifact/5wAZAKsgyuzLZHzfAgsYpm
+
+**How each route was drawn.** Both from the same GLB, the game's camera (45 degrees, 48 game pixels a unit), four
+facings and the light of 4.5. Route B: Blender, rendered twice as large, box-filtered, its colours smoothed by a
+majority vote. Route A: three.js at the game pixel, each pixel mapped alone (what a shader can do). Then the same
+mapping for both (`tools/art/pixelize.py`): colour families clustered from the texture, a ramp a family turned 25 to 50
+degrees toward floor 1's shadow and 8 to 16 toward its highlight, the step from how lit the pixel is, a closed outline.
+
+**Actors** (outline closed in every frame; the darkest colour OKLab L 0.2, not black):
+
+| Subject | Colours | Shadow to light hue (OKLab, the ramps) | Notes |
+| --- | --- | --- | --- |
+| The mage | 60 | B 328° to 54°, A 322° to 30° | Already chibi (4.7). Route B's face reads a little better. |
+| The Gloom Weaver | 48 (A 45) | B 289° to 310°, A 292° to 326° | Seen from above, the legs hide under the body; the outline carries it. For the foe: brighter eyes and rune, legs spread wider. |
+| The Hollow Warden | 42 | 299° to 330° | Its texture is nearly white (pale bodies wash out, section 1): both routes wore the same darker recolouring; its blotches come from the texture. |
+
+In motion route A flickers a little more (each frame mapped alone); the game's texel-baked textures will calm it.
+
+**The room** (on the walkable floor, as in section 2; the targets of 4.3: 30 to 40 %, at most 8 % near black):
+
+| `chapel_nave` | Mean lightness | Near black | Shadow to light hue |
+| --- | --- | --- | --- |
+| Today | 15.1 % | 37.3 % | 17° to 26° |
+| The code kit, recoloured to floor 1 by lightness | 32.4 % | 0.0 % | 249° to 28° |
+| Generator tiles (one round of floor, one of wall), lit in steps | 41.0 % | 0.0 % | 249° to 27° |
+
+Cost: 69 Studio credits (the Weaver's lock 8, model 25, rig 20; floor and wall tiles 16), no rerolls; its walk (10)
+was not yet booked when the balance was read.

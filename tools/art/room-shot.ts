@@ -20,12 +20,16 @@ const browser = await chromium.launch({
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 2 });
 await page.addInitScript('window.__manual = true;');
 await page.goto(`${BASE}?room=${id}&seed=${seed}&autolevel=skip`);
-await page.waitForFunction(() => String((window as unknown as { __game?: G }).__game?.hero?.info ?? '').includes('rigged'), null, {
-  timeout: 90_000,
-});
+await page.waitForFunction(
+  () => String((window as unknown as { __game?: G }).__game?.hero?.info ?? '').includes('rigged'),
+  null,
+  {
+    timeout: 90_000,
+  },
+);
 await page.click('#btnStart');
 // (a string: tsx would wrap the named helper in one of its own, missing in the page)
-const info = (await page.evaluate(`(() => {
+const info = await page.evaluate<object>(`(() => {
   const g = window.__game;
   g.warp(1);
   g.clearRoom();
@@ -42,8 +46,10 @@ const info = (await page.evaluate(`(() => {
   const b = g.current.bounds;
   return { bounds: b, tiles: g.current.template.tiles, origin: at(b.minX, b.minZ), unitX: at(b.minX + 1, b.minZ),
     unitZ: at(b.minX, b.minZ + 1), centre: at(g.current.cx, g.current.cz) };
-})()`)) as object;
-await page.addStyleTag({ content: 'body * { visibility: hidden !important; } canvas#game { visibility: visible !important; }' });
+})()`);
+await page.addStyleTag({
+  content: 'body * { visibility: hidden !important; } canvas#game { visibility: visible !important; }',
+});
 await page.evaluate(() => (window as unknown as { __game: G }).__game.draw());
 await page.screenshot({ path: join(out, `${id}.png`) });
 writeFileSync(join(out, `${id}.json`), JSON.stringify(info, null, 1));
