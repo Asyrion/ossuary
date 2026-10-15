@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { type Foe, type RoomView, type GameHooks, type W, start, type G5 } from './helpers';
 
-test('the bestiary (M4.5): thirty-five looks in rows by kind, each named with the fight it brings, apart from each other inside a great hall', async ({
+test('the bestiary: thirty-five looks in rows by kind, each named with the fight it brings, apart from each other inside a great hall', async ({
   page,
 }) => {
   const errors = await start(page, '?room=great_hall&variant=quiet');
@@ -36,7 +36,7 @@ test('the bestiary (M4.5): thirty-five looks in rows by kind, each named with th
   expect(errors).toEqual([]);
 });
 
-test("the drinking ward (M4.2): a vault's ward drinks the spells cast near it and bursts into a Wardling of what it drank most; a warded foe drinks spells, keeps statuses off, and breaks into a Wardling", async ({
+test("the drinking ward: a vault's ward drinks the spells cast near it and bursts into a Wardling of what it drank most; a warded foe drinks spells, keeps statuses off, and breaks into a Wardling", async ({
   page,
 }) => {
   type Wards = {
@@ -196,7 +196,7 @@ test("a pack's size comes from the room's seed: a replayed seed brings the same 
   expect([...a.errors, ...b.errors]).toEqual([]);
 });
 
-test('champion mantles (M4.7): each does its own, keeps its own school off, and the school that strips it unbinds it, stunned and open', async ({
+test('champion mantles: each does its own, keeps its own school off, and the school that strips it unbinds it, stunned and open', async ({
   page,
 }) => {
   const errors = await start(page, '?room=great_hall&floor=2');
@@ -322,7 +322,7 @@ test('champion mantles (M4.7): each does its own, keeps its own school off, and 
   expect(errors).toEqual([]);
 });
 
-test("foes in each other's ground (M4.7): webs and ink hold a walker, rime trips it, fire and sparks burn it, spores sting it; its own kind's and its own school's spare it; a golem goes round", async ({
+test("foes in each other's ground: webs and ink hold a walker, rime trips it, fire and sparks burn it, spores sting it; its own kind's and its own school's spare it; a golem goes round", async ({
   page,
 }) => {
   const errors = await start(page, '?room=great_hall&floor=3');
@@ -425,7 +425,7 @@ test("foes in each other's ground (M4.7): webs and ink hold a walker, rime trips
   expect(errors).toEqual([]);
 });
 
-test("counters found (M4.7): a hex grounds a griffin, its word rises, the bestiary keeps it, and the inventory's Foes tab opens its line", async ({
+test("counters found: a hex grounds a griffin, its word rises, the bestiary keeps it, and the inventory's Foes tab opens its line", async ({
   page,
 }) => {
   const errors = await start(page, '?room=great_hall&floor=4');
@@ -469,7 +469,7 @@ test("counters found (M4.7): a hex grounds a griffin, its word rises, the bestia
   expect(errors).toEqual([]);
 });
 
-test('rooms with a pair (M4.7): some fights roll two foes made to work together, set side by side, and the first time in a run a line says what they do', async ({
+test('rooms with a pair: some fights roll two foes made to work together, set side by side, and the first time in a run a line says what they do', async ({
   page,
 }) => {
   const errors = await start(page, '?floor=3');
@@ -508,7 +508,7 @@ test('rooms with a pair (M4.7): some fights roll two foes made to work together,
   expect(errors).toEqual([]);
 });
 
-test("fantasy foes (M4.12): every look keeps the parts its foe's behaviour moves, and every foe in its look fights a while without an error", async ({
+test("fantasy foes: every look keeps the parts its foe's behaviour moves, and every foe in its look fights a while without an error", async ({
   page,
 }) => {
   type GL = {
@@ -547,7 +547,7 @@ test("fantasy foes (M4.12): every look keeps the parts its foe's behaviour moves
   expect(errors).toEqual([]);
 });
 
-test('a creature made in Tripo and animated in code (docs/creatures.md): it stands, walks its lap, roars at the mage, its clips are baked in, and it wears its texture as pixel art', async ({
+test('a creature made in Tripo and animated in code: it stands, walks its lap, roars at the mage, its clips are baked in, and it wears its texture as pixel art', async ({
   page,
 }) => {
   const errors = await start(page, '?seed=OWLB1&room=great_hall&variant=quiet');

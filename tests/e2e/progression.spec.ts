@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { start } from './helpers';
 
-test("insight and levels (M6 step 1): a foe put to rest pays its purse as a streak to the hand, a fight's first clear and a boss pay theirs, levels rise and wait, the HUD shows them, a potion and the Grave Draught pay, ?level starts higher and the end screen says it", async ({
+test("insight and levels: a foe put to rest pays its purse as a streak to the hand, a fight's first clear and a boss pay theirs, levels rise and wait, the HUD shows them, a potion and the Grave Draught pay, ?level starts higher and the end screen says it", async ({
   page,
 }) => {
   type GI = {
@@ -110,7 +110,7 @@ test("insight and levels (M6 step 1): a foe put to rest pays its purse as a stre
   expect(errors).toEqual([]);
 });
 
-test("attributes (M6 step 2): a level's point spent on Vigor, Will, Arcana or Swiftness changes the numbers and says so; two in Vigor draw a half container; points are only the levels'; a shock's leap carries the spell's multiplier once", async ({
+test("attributes: a level's point spent on Vigor, Will, Arcana or Swiftness changes the numbers and says so; two in Vigor draw a half container; points are only the levels'; a shock's leap carries the spell's multiplier once", async ({
   page,
 }) => {
   type GA = {
@@ -202,7 +202,7 @@ test("attributes (M6 step 2): a level's point spent on Vigor, Will, Arcana or Sw
   expect(errors).toEqual([]);
 });
 
-test('boons (M6 step 3): a deal of three leans to the build, a school boon taken before its spells pledges the next library (which keeps it), Tempered gives points, casts count', async ({
+test('boons: a deal of three leans to the build, a school boon taken before its spells pledges the next library (which keeps it), Tempered gives points, casts count', async ({
   page,
 }) => {
   type GB = {
@@ -261,7 +261,7 @@ test('boons (M6 step 3): a deal of three leans to the build, a school boon taken
   expect(errors).toEqual([]);
 });
 
-test("the level-up screen (M6 step 4): a level waits for the fight to be won, then the game pauses for three boons and a point; a key held from the fight can't choose, Esc doesn't close it, each level waiting comes in turn", async ({
+test("the level-up screen: a level waits for the fight to be won, then the game pauses for three boons and a point; a key held from the fight can't choose, Esc doesn't close it, each level waiting comes in turn", async ({
   page,
 }) => {
   type GL = {
@@ -352,7 +352,7 @@ test("the level-up screen (M6 step 4): a level waits for the fight to be won, th
   expect(errors).toEqual([]);
 });
 
-test("Tempered and the boons taken (M6): a level's screen spends every point it owes, Tempered's three too, and the inventory's mage tab lists the boons", async ({
+test("Tempered and the boons taken: a level's screen spends every point it owes, Tempered's three too, and the inventory's mage tab lists the boons", async ({
   page,
 }) => {
   const errors = await start(page, '?seed=TEMP&level=2&autolevel=0&boons=tempered,deepWinter');
@@ -394,7 +394,7 @@ test("Tempered and the boons taken (M6): a level's screen spends every point it 
   expect(errors).toEqual([]);
 });
 
-test("the general boons (M6 step 6): Keen Nose knows a potion by smell, Scavenger takes a reagent from a foe struck by its weakness, Brewer's Breath breathes the throw out sparing the mage, Afterglow carries a spell into the cantrip", async ({
+test("the general boons: Keen Nose knows a potion by smell, Scavenger takes a reagent from a foe struck by its weakness, Brewer's Breath breathes the throw out sparing the mage, Afterglow carries a spell into the cantrip", async ({
   page,
 }) => {
   const errors = await start(page, '?seed=BOON6');
@@ -438,7 +438,7 @@ test("the general boons (M6 step 6): Keen Nose knows a potion by smell, Scavenge
   expect(errors).toEqual([]);
 });
 
-test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks and holds longer at II, Banked Coals burns longer, Gathering Dark gathers deeper, Perennial roots, Forking Arc forks', async ({
+test('the school boons that tune: Deep Winter freezes on two stacks and holds longer at II, Banked Coals burns longer, Gathering Dark gathers deeper, Perennial roots, Forking Arc forks', async ({
   page,
 }) => {
   const errors = await start(page, '?seed=BOON5A&boons=deepWinter');
@@ -511,7 +511,7 @@ test('the school boons that tune (M6 step 5): Deep Winter freezes on two stacks 
   expect(errors).toEqual([]);
 });
 
-test("the school boons that mend and lay bare (M6 step 5): Votive Heart's containers and its mend, Thirsting Hex mends from hex spent, both within a room's budget, Laid Bare strips a guard", async ({
+test("the school boons that mend and lay bare: Votive Heart's containers and its mend, Thirsting Hex mends from hex spent, both within a room's budget, Laid Bare strips a guard", async ({
   page,
 }) => {
   const errors = await start(page, '?seed=BOON5C');
@@ -560,7 +560,7 @@ test("the school boons that mend and lay bare (M6 step 5): Votive Heart's contai
   expect(errors).toEqual([]);
 });
 
-test('the school boons that leave things behind (M6 step 5): Flamekeeper draws mana from flames near, Cold Snap breathes once, Spark Wake lays sparks that sting foes and never the mage, Seedfall sows a plant that holds no reagent', async ({
+test('the school boons that leave things behind: Flamekeeper draws mana from flames near, Cold Snap breathes once, Spark Wake lays sparks that sting foes and never the mage, Seedfall sows a plant that holds no reagent', async ({
   page,
 }) => {
   const errors = await start(page, '?seed=BOON5D');

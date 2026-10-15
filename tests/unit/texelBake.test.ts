@@ -73,7 +73,7 @@ describe('liftShadows', () => {
   });
 });
 
-describe('every Tripo model wears its texture as pixel art (the owner, 2026-10-05)', () => {
+describe('every Tripo model wears its texture as pixel art', () => {
   // (animate-creature and prepare-asset bake it; a model named without its files is one that skipped the bake)
   const has = (f: string) => existsSync(resolve(import.meta.dirname, '../../public', f));
   it('every animated creature names its baked files, and they are there', () => {

@@ -355,7 +355,7 @@ test("themed rooms: sleepers wake when the mage comes close, the ossuary's bones
   expect(errors).toEqual([]);
 });
 
-test("themed rooms (M4.1): the treasury's guardians stand as statues until their gold is taken, a blast spills a heap's obols; the drowned climb out of the landing's river until it freezes", async ({
+test("themed rooms: the treasury's guardians stand as statues until their gold is taken, a blast spills a heap's obols; the drowned climb out of the landing's river until it freezes", async ({
   page,
 }) => {
   type E = { x: number; z: number; dead?: boolean; asleep?: boolean; statue?: boolean; type: string };
@@ -689,7 +689,7 @@ test('mechanisms: a lit brazier sets bolts alight, runes take a school, bells st
   expect(errors).toEqual([]);
 });
 
-test('watching statues and sapping obelisks (M4.2): a statue in sight charges, marks the mage and strikes; a pillar breaks its gaze, a hex blinds it; an obelisk saps the cantrip and mana until its school breaks its ward', async ({
+test('watching statues and sapping obelisks: a statue in sight charges, marks the mage and strikes; a pillar breaks its gaze, a hex blinds it; an obelisk saps the cantrip and mana until its school breaks its ward', async ({
   page,
 }) => {
   type P = {
@@ -833,7 +833,7 @@ test('watching statues and sapping obelisks (M4.2): a statue in sight charges, m
   expect(errors).toEqual([]);
 });
 
-test('rope bridges, currents and candles in water (M4.2): a bridge carries the mage over a chasm until fire burns it through; a current carries the mage and what lies in it, and stops when frozen; stands in water light it and go out to a shock', async ({
+test('rope bridges, currents and candles in water: a bridge carries the mage over a chasm until fire burns it through; a current carries the mage and what lies in it, and stops when frozen; stands in water light it and go out to a shock', async ({
   page,
 }) => {
   type P = { kind: string; x: number; z: number; lit: boolean; burning: number };

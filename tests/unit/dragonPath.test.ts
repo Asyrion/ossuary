@@ -4,7 +4,7 @@ import { arc, heap, lay, neck, spiral, spiralStart, trim, type P3 } from '../../
 const COIL = { radius: 0.6, turns: 1.25, drop: 1.2 };
 const dist = (a: P3, b: P3) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 
-describe("the Pillar Dragon's path (M4.2)", () => {
+describe("the Pillar Dragon's path", () => {
   it('coils round a pillar at its radius, climbing to just above its top, from the side it came from', () => {
     const s = spiral(2, 3, 1.75, Math.PI / 2, COIL);
     for (const p of s) expect(Math.hypot(p[0] - 2, p[2] - 3)).toBeCloseTo(0.6);

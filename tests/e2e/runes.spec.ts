@@ -15,7 +15,7 @@ test('?runes carves two runes into a slot (a + in the address reaches the page a
   expect(errors).toEqual([]);
 });
 
-test('runes on the cast (M6 step 7): Quicken sooner and dearer on the HUD and in the cast, Lasting holds longer, Wide reaches further, Vein bleeds but never the last half heart, a spell given up sends its runes to the pouch, a runed spell still comes to be known well', async ({
+test('runes on the cast: Quicken sooner and dearer on the HUD and in the cast, Lasting holds longer, Wide reaches further, Vein bleeds but never the last half heart, a spell given up sends its runes to the pouch, a runed spell still comes to be known well', async ({
   page,
 }) => {
   type Def = { mana: number; cooldown: number; damage: number; params: Record<string, number> };
@@ -166,7 +166,7 @@ test('runes on the cast (M6 step 7): Quicken sooner and dearer on the HUD and in
   expect(errors).toEqual([]);
 });
 
-test('runes on the bolts and the second cast (M6 step 7): Thrice fires three (fifteen shards), only the middle carrying statuses; Seeking bends a bolt into a foe off the line and lets the hands reach further; Reprise strikes again, its holy ground mends nothing, its toll marks a second foe, two lances show at once', async ({
+test('runes on the bolts and the second cast: Thrice fires three (fifteen shards), only the middle carrying statuses; Seeking bends a bolt into a foe off the line and lets the hands reach further; Reprise strikes again, its holy ground mends nothing, its toll marks a second foe, two lances show at once', async ({
   page,
 }) => {
   type Foe = { type: string; x: number; z: number; dead?: boolean; toll?: unknown; status?: Record<string, number> };
@@ -309,7 +309,7 @@ test('runes on the bolts and the second cast (M6 step 7): Thrice fires three (fi
    (Written as strings: the page's own JavaScript, `window.__game` untyped. Eight dummies stand in a 4 × 2 block, each
    within a leap of another.) */
 
-test('runes as things (M6 step 8): a rune walked over goes to the pouch with its card, the merchant sells one at 10 obols as an extra ware, a runed spell given up for a page sends its rune to the pouch, the inventory shows the sockets and the pouch', async ({
+test('runes as things: a rune walked over goes to the pouch with its card, the merchant sells one at 10 obols as an extra ware, a runed spell given up for a page sends its rune to the pouch, the inventory shows the sockets and the pouch', async ({
   page,
 }) => {
   type Ware = { ware: string; x: number; z: number; price: number; sold: boolean; rune?: string };

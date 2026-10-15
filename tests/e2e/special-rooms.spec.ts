@@ -251,7 +251,7 @@ test('the Wandering Merchant lays its wares on open floor, never over a chasm, a
   for (const e of errors) expect(e).toEqual([]);
 });
 
-test("the Wandering Merchant (M4.2): rides into a cleared room, lays out a focus from far off, a soul mote and the crow's wares; the crow sells the map and the secret; the merchant is gone when the mage leaves", async ({
+test("the Wandering Merchant: rides into a cleared room, lays out a focus from far off, a soul mote and the crow's wares; the crow sells the map and the secret; the merchant is gone when the mage leaves", async ({
   page,
 }) => {
   type Room = { type: string; known: boolean; visited: boolean; plan: { id: number } };
@@ -563,7 +563,7 @@ test('the library: a page learned burns the others, a full hand is asked, given-
   expect(errors2).toEqual([]);
 });
 
-test('the waystone (M6 step 9; where a floor has no waystone room, as under ?room=): it rises where the boss fell and kindles; walking up opens it and rests the mage; one of its pair taken, the other crumbles; a rune carved from the pouch and lifted out; a spell cast into it costs nothing and opens on that spell; Second Socket opens a second socket; the belt reordered here and in the inventory; none at the Seal', async ({
+test('the waystone (where a floor has no waystone room, as under ?room=): it rises where the boss fell and kindles; walking up opens it and rests the mage; one of its pair taken, the other crumbles; a rune carved from the pouch and lifted out; a spell cast into it costs nothing and opens on that spell; Second Socket opens a second socket; the belt reordered here and in the inventory; none at the Seal', async ({
   page,
 }) => {
   type WS = {
@@ -723,7 +723,7 @@ test('the waystone (M6 step 9; where a floor has no waystone room, as under ?roo
   expect(errors5).toEqual([]);
 });
 
-test('the waystone room (M6 step 10): beside the boss room, empty and dark until the boss falls; then the boss room points to it, the stone rises as the mage walks in, kindles and lights the room, the trapdoor opens beyond it away from the door, and it leads down', async ({
+test('the waystone room: beside the boss room, empty and dark until the boss falls; then the boss room points to it, the stone rises as the mage walks in, kindles and lights the room, the trapdoor opens beyond it away from the door, and it leads down', async ({
   page,
 }) => {
   const errors = await start(page, '?seed=WAY10&boss=warden&spells=cinder_lance');
@@ -770,7 +770,7 @@ test('the waystone room (M6 step 10): beside the boss room, empty and dark until
   expect(errors).toEqual([]);
 });
 
-test("the shrine's bargain (M6 step 11): a stone at the circle's head; walking up says how; a spell cast into it costs nothing and deals two boons of its school and one general; Esc pays nothing; a boon taken costs a heart container and keeps it, once; the last heart is refused", async ({
+test("the shrine's bargain: a stone at the circle's head; walking up says how; a spell cast into it costs nothing and deals two boons of its school and one general; Esc pays nothing; a boon taken costs a heart container and keeps it, once; the last heart is refused", async ({
   page,
 }) => {
   const errors = await start(page, '?room=shrine_henge&spells=cinder_lance,rime_shards');
@@ -832,7 +832,7 @@ test("the shrine's bargain (M6 step 11): a stone at the circle's head; walking u
   expect(errors2).toEqual([]);
 });
 
-test("a merchant's ware shows a small panel when the mage comes near (2026-10-02): what it is, its price, and why he would refuse it now", async ({
+test("a merchant's ware shows a small panel when the mage comes near: what it is, its price, and why he would refuse it now", async ({
   page,
 }) => {
   type GS = {

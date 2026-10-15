@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { start } from './helpers';
 
-test('foes in code (M4): the Sporeling fills the fights, hops, swells and puffs spores that sting and dim the sight, takes half again from Ember and half from Frost, and the bestiary keeps what was found', async ({
+test('foes in code: the Sporeling fills the fights, hops, swells and puffs spores that sting and dim the sight, takes half again from Ember and half from Frost, and the bestiary keeps what was found', async ({
   page,
 }) => {
   type Foe = { type: string; state: string; tele?: number; hp: number; mats: unknown[]; contact: number };
@@ -81,7 +81,7 @@ test('foes in code (M4): the Sporeling fills the fights, hops, swells and puffs 
   expect(errors).toEqual([]);
 });
 
-test("foes in code (M4): floor 1's moth loops, scatters light and is lured by a lit brazier; the beetle charges, is stunned against a wall and throws a spark; the mimic waits among the urns, wakes, spits embers and shuts", async ({
+test("foes in code: floor 1's moth loops, scatters light and is lured by a lit brazier; the beetle charges, is stunned against a wall and throws a spark; the mimic waits among the urns, wakes, spits embers and shuts", async ({
   page,
 }) => {
   type Foe = {
@@ -219,7 +219,7 @@ test("foes in code (M4): floor 1's moth loops, scatters light and is lured by a 
   expect([...errors, ...e2, ...e3]).toEqual([]);
 });
 
-test('the bestiary (M4.5), floor 1: the spider drops from out of reach and spits webs that slow (fire burns them); the octopus splits, or cracks when chilled; the grimoire lies shut; the swarm comes whole; the lark hastens; the mantis parries from the front; the crab hides and is flipped', async ({
+test('the bestiary, floor 1: the spider drops from out of reach and spits webs that slow (fire burns them); the octopus splits, or cracks when chilled; the grimoire lies shut; the swarm comes whole; the lark hastens; the mantis parries from the front; the crab hides and is flipped', async ({
   page,
 }) => {
   type Foe = {

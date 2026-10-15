@@ -168,7 +168,7 @@ test('new artifacts: the censer fans three bolts, the moth stings foes, and the 
   expect(errors).toEqual([]);
 });
 
-test("soul motes (M4.1): they take hits before the hearts, a black one hexes the room, a hallowed one goes last and mends at a floor's end, a spell short of mana burns one, a hexed foe leaves one; the lodestone shard ends cooldowns", async ({
+test("soul motes: they take hits before the hearts, a black one hexes the room, a hallowed one goes last and mends at a floor's end, a spell short of mana burns one, a hexed foe leaves one; the lodestone shard ends cooldowns", async ({
   page,
 }) => {
   const errors = await start(page, '?room=treasure_plain&seed=SOUL1&spells=arc');
@@ -286,7 +286,7 @@ test("soul motes (M4.1): they take hits before the hearts, a black one hexes the
   expect(errors).toEqual([]);
 });
 
-test("M4.1's artifacts: the pendulum swings, the lodestar hangs stars, the echo stone, the halo, the antler's lance, the candles, the blood moon, the salt circle, the choir, the lantern, the contract and the last rite", async ({
+test("artifacts that bend bolts and fights: the pendulum swings, the lodestar hangs stars, the echo stone, the halo, the antler's lance, the candles, the blood moon, the salt circle, the choir, the lantern, the contract and the last rite", async ({
   page,
 }) => {
   const errors = await start(page, '?room=treasure_plain&seed=ART41');
@@ -389,7 +389,7 @@ test("M4.1's artifacts: the pendulum swings, the lodestar hangs stars, the echo 
   expect(errors).toEqual([]);
 });
 
-test('M3 artifacts: burning and chilling bolts, homing bolts, the pendant, the thurible, the knot, the crown, the tome, the lantern, the candle', async ({
+test('artifacts on the bolts and the mage: burning and chilling bolts, homing bolts, the pendant, the thurible, the knot, the crown, the tome, the lantern, the candle', async ({
   page,
 }) => {
   const errors = await start(page, '?room=crypt_a&seed=ART3&spells=arc');

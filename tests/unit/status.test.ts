@@ -117,7 +117,7 @@ describe('reactions', () => {
   });
 });
 
-describe('Hallow and Umbral (M4.1)', () => {
+describe('Hallow and Umbral', () => {
   it('sanctified: a foe takes more from everything for a while, and nothing heals it', () => {
     const s = newStatus();
     applyStatus(s, 'sanct', 2, false);
@@ -212,7 +212,7 @@ describe('Hallow and Umbral (M4.1)', () => {
   });
 });
 
-describe('the full wheel (M4.8): every pair of the five schools reacts', () => {
+describe('the full wheel: every pair of the five schools reacts', () => {
   it('Searing: fire on holy light (or holy light on fire) burns the guard away a while', () => {
     let s = newStatus();
     applyStatus(s, 'sanct', 3, false);
@@ -263,7 +263,7 @@ describe('the full wheel (M4.8): every pair of the five schools reacts', () => {
     applyStatus(s, 'shock', 1, false);
     expect(applyStatus(s, 'hex', 1, false).reaction).toBe('voidspark');
   });
-  it("every pair of statuses of two schools reacts, one way or the other (M5: of six, with Verdant's Overgrown)", async () => {
+  it("every pair of statuses of two schools reacts, one way or the other (of six, with Verdant's Overgrown)", async () => {
     const { REACTIONS } = await import('../../src/magic/status');
     const kinds = ['burn', 'chill', 'shock', 'sanct', 'hex', 'grow'] as const;
     for (const a of kinds)
@@ -283,7 +283,7 @@ describe('the full wheel (M4.8): every pair of the five schools reacts', () => {
         expect(REACTIONS[r!].slice().sort(), `${a} then ${b}`).toEqual([a, b].sort());
       }
   });
-  it('holy light on a prism keeps it one without setting it off again (M4.8 review)', () => {
+  it('holy light on a prism keeps it one without setting it off again', () => {
     const s = newStatus();
     for (let k = 0; k < MAGIC.chill.freezeAt; k++) applyStatus(s, 'chill', 1, false);
     expect(applyStatus(s, 'sanct', 3, false)).toEqual({ reaction: 'prism' });
@@ -292,7 +292,7 @@ describe('the full wheel (M4.8): every pair of the five schools reacts', () => {
   });
 });
 
-describe('Verdant (M5): Overgrown and its five reactions', () => {
+describe('Verdant: Overgrown and its five reactions', () => {
   it('vines slow a foe a little at once and more the longer they hold, a boss half as much, and wither', () => {
     const s = newStatus();
     expect(applyStatus(s, 'grow', 3, false)).toEqual({});

@@ -25,7 +25,7 @@ describe('spell data', () => {
     expect(validateSpells([{ ...s, params: {} }] as never[]).join('; ')).toMatch(/needs param/);
   });
 
-  it("has M3's six spells (an attack and a utility in each of Ember, Frost and Storm), M4.1's six and M5's three of Verdant; every shape used, Verdant's on shapes that were there", () => {
+  it("has two spells in each of Ember, Frost and Storm (an attack and a utility) and three of Verdant; every shape used, Verdant's on shapes that were there", () => {
     const bySchool = (school: string) => SPELL_DEFS.filter((s) => s.school === school).length;
     expect([bySchool('ember'), bySchool('frost'), bySchool('storm'), bySchool('verdant')]).toEqual([2, 2, 2, 3]);
     expect([...new Set(SPELL_DEFS.map((s) => s.shape))].sort()).toEqual([...SHAPES].sort());

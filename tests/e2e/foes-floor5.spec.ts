@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { start } from './helpers';
 
-test("foes in code (M4.1): floor 5's rootling burrows and bursts up (fire keeps it up); the storm ray lays sparks; the void mote swallows bolts and spills them; the tortoise hides, spins and lies dizzy", async ({
+test("foes in code: floor 5's rootling burrows and bursts up (fire keeps it up); the storm ray lays sparks; the void mote swallows bolts and spills them; the tortoise hides, spins and lies dizzy", async ({
   page,
 }) => {
   type Foe = { type: string; state: string; x: number; z: number; hp: number; hidden?: boolean };
@@ -123,7 +123,7 @@ test("foes in code (M4.1): floor 5's rootling burrows and bursts up (fire keeps 
   for (const e of [e1, e2, e3, e4]) expect(e).toEqual([]);
 });
 
-test('the bestiary (M4.5), floor 5: the glacier golem turns blows from the front, stomps ice spikes, freezes and shatters; the hydra loses heads that grow back as two unless burned; the raven darkens the sight and flees light; the wolves come as a pack, howl and scatter from fire; the pangolin rolls (bolts glance off) and is dazed; the jackalope bounds away stamping rime; the manticore volleys and pounces (holy light stills its tail)', async ({
+test('the bestiary, floor 5: the glacier golem turns blows from the front, stomps ice spikes, freezes and shatters; the hydra loses heads that grow back as two unless burned; the raven darkens the sight and flees light; the wolves come as a pack, howl and scatter from fire; the pangolin rolls (bolts glance off) and is dazed; the jackalope bounds away stamping rime; the manticore volleys and pounces (holy light stills its tail)', async ({
   page,
 }) => {
   type Foe = {

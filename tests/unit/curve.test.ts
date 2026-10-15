@@ -20,7 +20,7 @@ const mulberry = (a: number) => () => {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
 }; // (util.ts's, which needs a window)
 
-describe('the curve (M4.9): pressure dials', () => {
+describe('the curve: pressure dials', () => {
   it("rise from floor to floor: foes added, elites, an ordeal's waves, champions and pairs", () => {
     const dial = (f: (typeof floors)[number]) => {
       const v = f.variants as Record<string, number>,
@@ -79,7 +79,7 @@ describe('the curve (M4.9): pressure dials', () => {
   });
 });
 
-describe('the curve (M4.9): the floor teaches its counter', () => {
+describe('the curve: the floor teaches its counter', () => {
   it("works out what each floor's foes are weak to, resist and drink, from its rolls", () => {
     const w = floors.map((f) => floorWeakness(f.foes as unknown as RoleTable));
     expect(leanSchools(w[0])).toEqual(expect.arrayContaining(['ember', 'frost']));

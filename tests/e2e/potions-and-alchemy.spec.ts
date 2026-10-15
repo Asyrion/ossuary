@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { type W, start, type GP } from './helpers';
 
-test('the potion belt (M5): potions start unknown in their bottles; R tapped drinks and held throws, F chooses; drinking or throwing one identifies it; a full belt leaves a potion where it lies; the inventory has a Potions tab', async ({
+test('the potion belt: potions start unknown in their bottles; R tapped drinks and held throws, F chooses; drinking or throwing one identifies it; a full belt leaves a potion where it lies; the inventory has a Potions tab', async ({
   page,
 }) => {
   const errors = await start(page, '?seed=BELT1&variant=quiet&potions=healing,liquidEmber,hexBrew&spells=cinder_lance');
@@ -105,7 +105,7 @@ test('the potion belt (M5): potions start unknown in their bottles; R tapped dri
   expect(errors).toEqual([]);
 });
 
-test("potions drunk and thrown (M5): each drink does its own and shows a chip while it lasts (the cantrip burns, spells are free, one echoes, a giant, unseen, reversed, a curse's price lifted); each throw lands its splash through the magic hooks", async ({
+test("potions drunk and thrown: each drink does its own and shows a chip while it lasts (the cantrip burns, spells are free, one echoes, a giant, unseen, reversed, a curse's price lifted); each throw lands its splash through the magic hooks", async ({
   page,
 }) => {
   const errors = await start(page, '?seed=BELT2&variant=quiet&spells=cinder_lance,arc&give=gravemongers_contract');
@@ -213,7 +213,7 @@ test("potions drunk and thrown (M5): each drink does its own and shows a chip wh
   expect(errors).toEqual([]);
 });
 
-test("reagents (M5): a fallen foe leaves its own kind's, else its school's, Ember Salt if it died burning; a boss always leaves Warden's Ash; walked over, they go into the pouch, each one's card the first time", async ({
+test("reagents: a fallen foe leaves its own kind's, else its school's, Ember Salt if it died burning; a boss always leaves Warden's Ash; walked over, they go into the pouch, each one's card the first time", async ({
   page,
 }) => {
   const errors = await start(page, '?seed=REAG2&variant=quiet&boss=warden');
@@ -265,7 +265,7 @@ test("reagents (M5): a fallen foe leaves its own kind's, else its school's, Embe
   expect(errors).toEqual([]);
 });
 
-test("Dr. Jelly's laboratory (M5): the table opens when walked up to; two reagents in the mortar brew a potion that is known from then on and its recipe kept; Dr. Jelly looks at one potion a visit and sells recipes; a jelly globe bursts", async ({
+test("Dr. Jelly's laboratory: the table opens when walked up to; two reagents in the mortar brew a potion that is known from then on and its recipe kept; Dr. Jelly looks at one potion a visit and sells recipes; a jelly globe bursts", async ({
   page,
 }) => {
   const errors = await start(page, '?seed=LAB2&room=lab_plain&potions=mana&loot=coins:10');
@@ -389,7 +389,7 @@ test("Dr. Jelly's laboratory (M5): the table opens when walked up to; two reagen
   expect(errors).toEqual([]);
 });
 
-test('Dr. Jelly redone (2026-10-02): the plague doctor, a figure that turns to the mage; he hands over what he gives once the table shuts (a brewed potion, a recipe), reaching, holding, tossing it to the mage', async ({
+test('Dr. Jelly as the plague doctor, a figure that turns to the mage; he hands over what he gives once the table shuts (a brewed potion, a recipe), reaching, holding, tossing it to the mage', async ({
   page,
 }) => {
   type GJ = {
@@ -458,7 +458,7 @@ test('Dr. Jelly redone (2026-10-02): the plague doctor, a figure that turns to t
   expect(errors).toEqual([]);
 });
 
-test("the jelly serpent (M5): three bolts crack the vat window and it breaks out, flooding the room with jelly and locking the doors; under the jelly no bolt reaches it; a shock through its jelly or a freeze traps it at the surface; fallen, it leaves Warden's Ash, a rare potion and a free recipe, and no trapdoor; a restless one breaks out after a brew; as a floor's boss it pours its own jelly", async ({
+test("the jelly serpent: three bolts crack the vat window and it breaks out, flooding the room with jelly and locking the doors; under the jelly no bolt reaches it; a shock through its jelly or a freeze traps it at the surface; fallen, it leaves Warden's Ash, a rare potion and a free recipe, and no trapdoor; a restless one breaks out after a brew; as a floor's boss it pours its own jelly", async ({
   page,
 }) => {
   const errors = await start(page, '?seed=SERP1&room=lab_plain');
@@ -585,7 +585,7 @@ test("the jelly serpent (M5): three bolts crack the vat window and it breaks out
   expect(errors).toEqual([]);
 });
 
-test("the jelly serpent as a floor's boss (M5: ?boss=serpent) pours its own jelly round it, and falls as bosses do, its way down past the waystone (M6 step 10)", async ({
+test("the jelly serpent as a floor's boss (?boss=serpent) pours its own jelly round it, and falls as bosses do, its way down past the waystone", async ({
   page,
 }) => {
   const errors = await start(page, '?seed=SERPB&boss=serpent');
@@ -632,7 +632,7 @@ test("the jelly serpent as a floor's boss (M5: ?boss=serpent) pours its own jell
   expect(errors).toEqual([]);
 });
 
-test("the Alchemist (M5 step 8): the Satchel adds a belt slot, the Taster's Spoon knows every potion carried, the Cracked Retort's wider splash cuts; three of the family transform the mage (a bandolier and an apron) and a thrown potion splits in two", async ({
+test("the Alchemist: the Satchel adds a belt slot, the Taster's Spoon knows every potion carried, the Cracked Retort's wider splash cuts; three of the family transform the mage (a bandolier and an apron) and a thrown potion splits in two", async ({
   page,
 }) => {
   const errors = await start(page, '?room=crypt_a&seed=ALCH8&potions=healing,liquidEmber');
@@ -692,7 +692,7 @@ test("the Alchemist (M5 step 8): the Satchel adds a belt slot, the Taster's Spoo
   expect(errors).toEqual([]);
 });
 
-test('the overgrown garden (M5 step 9): a flowering plant struck bursts into pollen that overgrows the foes near, longer in the garden, its word rising once; it leaves Bloom Petal, as an overgrown foe does; fire burns it', async ({
+test('the overgrown garden: a flowering plant struck bursts into pollen that overgrows the foes near, longer in the garden, its word rising once; it leaves Bloom Petal, as an overgrown foe does; fire burns it', async ({
   page,
 }) => {
   const errors = await start(page, '?room=garden_beds&seed=GARD1');

@@ -122,7 +122,7 @@ test('made assets: missing and broken files, and ?assets=off, leave the placehol
   expect(off).toEqual([]);
 });
 
-test("coin faces: the obols wear the owner's coin, drawn on the fine layer, in the room, the HUD and the card; the dev menu changes it", async ({
+test('coin faces: the obols wear a coin face, drawn on the fine layer, in the room, the HUD and the card; the dev menu changes it', async ({
   page,
 }) => {
   type O = {

@@ -537,7 +537,7 @@ test("the Hollow Warden wears the Owlbear, its shots in Hallow's light, and can 
   expect(errors).toEqual([]);
 });
 
-test("the Seal (M7 step 1): floor 5 has its waystone room and leads down to the Seal, a level of three rooms; Kaelith speaks on arrival; the Last Hall's two waves come from every floor; its boss's fall opens the way out, and taking it wins the run", async ({
+test("the Seal: floor 5 has its waystone room and leads down to the Seal, a level of three rooms; Kaelith speaks on arrival; the Last Hall's two waves come from every floor; its boss's fall opens the way out, and taking it wins the run", async ({
   page,
 }) => {
   const errors = await start(page, '?floor=5&seed=SEAL1');
@@ -595,7 +595,7 @@ test("the Seal (M7 step 1): floor 5 has its waystone room and leads down to the 
   expect(errors).toEqual([]);
 });
 
-test('Kaelith (M7 step 2): the Sentinel stalks, sweeps, fires and steps through shadow; at two thirds the seal cracks, four wards wake in the schools the mage holds and the horde comes out, and with all four shut it reels open; at a third the last light falls and the black sun draws the mage in, but not beside a lit candle; it kneels, and the way out wins the run', async ({
+test('Kaelith: the Sentinel stalks, sweeps, fires and steps through shadow; at two thirds the seal cracks, four wards wake in the schools the mage holds and the horde comes out, and with all four shut it reels open; at a third the last light falls and the black sun draws the mage in, but not beside a lit candle; it kneels, and the way out wins the run', async ({
   page,
 }) => {
   const errors = await start(page, '?floor=6&seed=KAE1&spells=cinder_lance,arc');
@@ -676,7 +676,7 @@ test('Kaelith (M7 step 2): the Sentinel stalks, sweeps, fires and steps through 
   expect(errors).toEqual([]);
 });
 
-test("daylight (M7 step 3): Kaelith's way out is a shaft of light; stepping into it, the mage walks out of the cave onto a terrace over the valleys at dawn as the rock opens, the HUD away, the end screen laid over it with the won text, and a new run takes it away; the dev menu steps into it from anywhere", async ({
+test("daylight: Kaelith's way out is a shaft of light; stepping into it, the mage walks out of the cave onto a terrace over the valleys at dawn as the rock opens, the HUD away, the end screen laid over it with the won text, and a new run takes it away; the dev menu steps into it from anywhere", async ({
   page,
 }) => {
   const errors = await start(page, '?floor=6&seed=DAWN1');

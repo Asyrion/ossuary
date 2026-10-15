@@ -10,7 +10,7 @@ import {
 import { MAGIC } from '../../src/magic/status';
 import floors from '../../data/floors.json';
 
-describe('champion mantles (M4.7)', () => {
+describe('champion mantles', () => {
   it("are five, one a school, and the tuning and every floor's weights check out", () => {
     expect(MANTLE_IDS).toEqual(['kindled', 'rimebound', 'stormcharged', 'hallowed', 'hexbound']);
     expect(MANTLE_IDS.map((id) => mantleSchool(id))).toEqual(['ember', 'frost', 'storm', 'hallow', 'umbral']);
@@ -58,7 +58,7 @@ describe('champion mantles (M4.7)', () => {
   });
 });
 
-describe('counters (M4.7)', () => {
+describe('counters', () => {
   it("each foe's counters have a word, and name foes that exist", async () => {
     const { validateCounters, countersOf } = await import('../../src/actors/counterData');
     expect(validateCounters()).toEqual([]);
@@ -68,7 +68,7 @@ describe('counters (M4.7)', () => {
   });
 });
 
-describe('rooms with a pair (M4.7)', () => {
+describe('rooms with a pair', () => {
   it("every floor's pairs name foes, and a pair takes the first two slots, keeping one elite and one pack a room, on hundreds of seeds", async () => {
     const { FOES, isFoe, pairRoom, validatePairs } = await import('../../src/actors/foeData');
     const mulberry = (a: number) => () => {

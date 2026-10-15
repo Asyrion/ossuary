@@ -186,7 +186,7 @@ test('the dev menu opens on its key, pauses the game, and hands out what it list
   expect(errors).toEqual([]);
 });
 
-test("gamepads (the owner's Elite pad, 2026-10-02): every pad connected is read, so an idle one listed first hides none; a pad heard says so by name; A begins from the title, the left stick moves, LB casts, A takes on the level-up screen", async ({
+test('gamepads: every pad connected is read, so an idle one listed first hides none; a pad heard says so by name; A begins from the title, the left stick moves, LB casts, A takes on the level-up screen', async ({
   page,
 }) => {
   type GP = {
@@ -282,7 +282,7 @@ test("gamepads (the owner's Elite pad, 2026-10-02): every pad connected is read,
   expect(errors).toEqual([]);
 });
 
-test('the minimap marks finished rooms (2026-10-02): been in, the fight won, nothing left to take; an obol left lying unmarks it until it is taken', async ({
+test('the minimap marks finished rooms: been in, the fight won, nothing left to take; an obol left lying unmarks it until it is taken', async ({
   page,
 }) => {
   type GM = {

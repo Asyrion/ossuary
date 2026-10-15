@@ -14,7 +14,7 @@ import {
 } from '../../src/magic/knowledge';
 import { SPELL_DEFS } from '../../src/magic/spellData';
 
-describe('spell knowledge (M3.7)', () => {
+describe('spell knowledge', () => {
   it('goes from unknown to seen, learned and used as pages are approached, taken and the spell cast', () => {
     const kn: Knowledge = {};
     expect(stageOf(kn.arc, 10)).toBe('unknown');

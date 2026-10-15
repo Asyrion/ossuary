@@ -22,7 +22,7 @@ describe('runes', () => {
     expect(RUNE_DEFS).toHaveLength(7);
     for (const s of SPELL_DEFS) expect(runesFor(s).length).toBeGreaterThanOrEqual(3);
   });
-  it("take the plan's counts by shape", () => {
+  it('take three to six by shape', () => {
     const takes = (shape: Shape) => runesFor({ shape }).length;
     for (const s of ['beam', 'chain', 'self'] as Shape[]) expect(takes(s)).toBe(3);
     for (const s of ['wall', 'orbit', 'smite', 'mark'] as Shape[]) expect(takes(s)).toBe(4);

@@ -3,7 +3,7 @@ import { WARDLING, drink, fullness, mostDrunk, newDrink } from '../../src/magic/
 import { SCHOOLS } from '../../src/magic/spellData';
 import { FOES, isFoe, validateFoes } from '../../src/actors/foeData';
 
-describe('the drinking ward (M4.2)', () => {
+describe('the drinking ward', () => {
   it('fills with what it drinks, and says when it is full', () => {
     const d = newDrink(60);
     expect(drink(d, 'ember', 25)).toBe(false);

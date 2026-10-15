@@ -155,7 +155,7 @@ describe('the asset manifest', () => {
     ])
       expect(errs).toContain(bit);
   });
-  it('coin faces: each names a face and an icon, and the obols wear one of them (2026-10-02)', () => {
+  it('coin faces: each names a face and an icon, and the obols wear one of them', () => {
     expect(MANIFEST.obol && MANIFEST.coins?.[MANIFEST.obol]).toBeTruthy();
     expect(IMAGES.coin.size).toBe(CFG.pickups.coinPixels * CFG.pixelLook.fineLayer); // (a face pixel for every pixel of the fine layer)
     const errs = validateManifest(
