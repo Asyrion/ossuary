@@ -1,0 +1,89 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Route A frames</title></head>
+<body style="margin:0;background:#000"><canvas id="c"></canvas>
+<script type="module">
+/* Route A of the R3 proof: a GLB drawn in real time by three.js the way the pixel look draws it, straight into a target
+   one game pixel a pixel (48 a unit on the picture plane, CFG.roomKit.texel), no smoothing, textures sampled nearest.
+   Same camera, light and facings as tools/art/render_glb.py (route B), so only the way of drawing differs. Driven by
+   tools/art/route-a.ts; each frame comes back lit and unlit (the unlit pass picks the colour families). */
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+const q = new URLSearchParams(location.search);
+const PPU = 48, canvas = +(q.get('canvas') ?? 96), margin = +(q.get('margin') ?? 8), units = +q.get('units');
+const FRONT_TURN = { '-Y': 0, '+X': -90, '+Y': 180, '-X': 90 }, FACING = { S: 0, E: 90, N: 180, W: -90 };
+const turn = FRONT_TURN[q.get('front') ?? '-Y'];
+
+const cv = document.getElementById('c');
+const r = new THREE.WebGLRenderer({ canvas: cv, antialias: false, alpha: true, preserveDrawingBuffer: true });
+r.setPixelRatio(1); r.setSize(canvas, canvas, false); r.outputColorSpace = THREE.SRGBColorSpace; r.setClearColor(0, 0);
+const scene = new THREE.Scene();
+const half = canvas / PPU / 2;
+const cam = new THREE.OrthographicCamera(-half, half, (canvas - margin) / PPU, -margin / PPU, 0.1, 100);
+cam.position.set(0, 20 * Math.SQRT1_2, 20 * Math.SQRT1_2); cam.lookAt(0, 0, 0);
+// art bible 4.5, as in render_glb.py (Blender's x, y, z are three's x, -z, y)
+const amb = new THREE.AmbientLight(0x2b3047, 3.0); scene.add(amb);
+const sun = (c, i, x, y, z) => { const l = new THREE.DirectionalLight(c, i); l.position.set(x, y, z); scene.add(l); return l; };
+const lights = [sun(0xfff2dc, 3.2, -0.35, 1, 0.3), sun(0x9eb3ff, 0.5, 0.7, 0.35, 0.8), sun(0xffeccc, 4.0, -0.7, 0.55, -0.9)];
+
+const g = await new GLTFLoader().loadAsync(new URL(q.get('glb'), location.origin + '/').href); // (a path from the server's root)
+const model = g.scene, root = new THREE.Group();
+root.add(model); scene.add(root);
+const lit = [], flat = [];
+model.traverse((o) => {
+  if (!o.isMesh) return;
+  if (!o.isSkinnedMesh && g.scene.getObjectByProperty('isSkinnedMesh', true)) { o.visible = false; return; } // Tripo's helper mesh
+  const m = o.material, map = m.map;
+  if (map) { map.magFilter = map.minFilter = THREE.NearestFilter; map.generateMipmaps = false; map.needsUpdate = true; }
+  const a = new THREE.MeshLambertMaterial({ map, color: m.color, emissiveMap: m.emissiveMap, emissive: m.emissive });
+  const b = new THREE.MeshBasicMaterial({ map, color: m.color });
+  lit.push([o, a]); flat.push([o, b]); o.material = a; o.frustumCulled = false;
+});
+const mixer = new THREE.AnimationMixer(model);
+const clips = Object.fromEntries(g.animations.map((c) => [c.name.split(':').pop(), c]));
+const pin = q.get('pin') ? model.getObjectByName(q.get('pin').replace(/:/g, '')) ?? model.getObjectByName(q.get('pin')) : null;
+let action = null;
+function pose(name, t) {
+  const c = clips[name];
+  if (!c) return;
+  if (action?.getClip() !== c) { mixer.stopAllAction(); action = mixer.clipAction(c); action.play(); }
+  mixer.setTime(t);
+  model.updateMatrixWorld(true);
+}
+// scale and place on the rest pose: feet on the origin, centred
+const rest = q.get('rest') ?? Object.keys(clips)[0];
+root.rotation.y = THREE.MathUtils.degToRad(turn);
+pose(rest, 0); root.updateMatrixWorld(true);
+let box = new THREE.Box3().setFromObject(root, true);
+const s = units / (box.max.y - box.min.y);
+root.scale.setScalar(s); root.updateMatrixWorld(true);
+box = new THREE.Box3().setFromObject(root, true);
+const c0 = box.getCenter(new THREE.Vector3());
+const base = new THREE.Vector3(-c0.x, -box.min.y, -c0.z);
+const wp = new THREE.Vector3();
+
+function place(facing) {
+  const y = THREE.MathUtils.degToRad(FACING[facing]);
+  root.rotation.y = THREE.MathUtils.degToRad(turn + FACING[facing]);
+  root.position.set(base.x * Math.cos(y) + base.z * Math.sin(y), base.y, -base.x * Math.sin(y) + base.z * Math.cos(y));
+  root.updateMatrixWorld(true);
+}
+function shot(materials) {
+  for (const [o, m] of materials) o.material = m;
+  amb.visible = materials === lit; for (const l of lights) l.visible = materials === lit;
+  r.render(scene, cam);
+  return cv.toDataURL('image/png');
+}
+window.routeA = {
+  clips: Object.fromEntries(Object.entries(clips).map(([k, c]) => [k, c.duration])),
+  frame(facing, name, t) {
+    place(facing);
+    if (pin) { pose(rest, 0); pin.getWorldPosition(wp); }
+    const hold = wp.clone();
+    pose(name, t);
+    if (pin) { pin.getWorldPosition(wp); root.position.x += hold.x - wp.x; root.position.z += hold.z - wp.z; root.updateMatrixWorld(true); }
+    return { lit: shot(lit), flat: shot(flat) };
+  },
+};
+window.ready = true;
+</script></body></html>

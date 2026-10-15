@@ -1,0 +1,10 @@
+{
+  "_comment": "The floors' starting ramps from docs/art-bible.md 4.1: shadow, dark, mid, light, highlight, then the accent. tools/art reads them; the art bible is the source.",
+  "1": ["#2b3047", "#4a3f45", "#7a6250", "#b8956a", "#f2d49a", "#5fa38a"],
+  "2": ["#1b2440", "#23434c", "#3f6f63", "#7fb39a", "#d6f0e0", "#b8f070"],
+  "3": ["#2d1f3d", "#4a2a2e", "#8a3b2a", "#d9732e", "#ffd27a", "#f0e070"],
+  "4": ["#1f2546", "#3a3352", "#8a7a5c", "#d4b469", "#fff1c4", "#b8402e"],
+  "5": ["#141f33", "#26364a", "#57707e", "#a8bcc0", "#e8f2f4", "#e8a84a"],
+  "seal": ["#1a1433", "#2e2350", "#5a4a8a", "#8ab8ff", "#e6f0ff", "#ffd878"],
+  "vigil": ["#2a2a48", "#3d4a3a", "#6f8a4f", "#c9b27a", "#ffe2a8", "#f08a3c"]
+}
