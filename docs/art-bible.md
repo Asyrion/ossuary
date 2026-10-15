@@ -113,9 +113,30 @@ Each one is taken with the owner, from the reference pictures (section 5) and si
 Three or four pictures the owner chooses, each with what to take from it (colour, light, outline, mood). Once they are
 here, they are measured as in section 2.
 
-| Picture | Taken for | Measured |
-| --- | --- | --- |
-| | | |
+The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta
+keying background left out:
+- **Mean light:** the mean lightness of all pixels.
+- **Near black:** the share of pixels with lightness under 8 %, as in section 2.
+- **Shadow → light hue:** the shadow hue and the light hue, as in section 2. The thresholds differ a little here:
+  dark pixels count from 8 to 25 % lightness, light pixels from 55 %.
+
+| Picture | Taken for (the owner) | Mean light | Near black | Shadow → light hue |
+| --- | --- | --- | --- | --- |
+| `1-cat-spellsheet` | The sprite sheet and the animation made from it in Godot-Tamer | 46 % | 0 % | 192° → 83° |
+| `2-ranger` | Colour and the drawing; its proportions for the game's humanoids | 38 % | 1 % | 36° → 25° |
+| `3-cave` | Light and shadow, a good palette and contrast | 34 % | 6 % | 201° → 119° |
+| `4-meadow-path` | Overall quality; many colours and contrasts among similar objects | 47 % | 1 % | 122° → 54° |
+| `5-meadow-wild` | As 4 | 49 % | 1 % | 123° → 66° |
+
+The same measure over the whole frame of two of today's rooms, the void around the room included: the chapel nave
+has a mean light of 10 % and 60 % near black, the ossuary 8 % and 68 %.
+
+Owner's direction (2026-10-15):
+- **Outlines:** hard, as in Godot-Tamer.
+- **Light and dark:** balanced, in the manner of Hades, Moonlighter and Sea of Stars.
+- **The key light:** from above.
+
+The recommendations on the rest are on the decision page the owner was given. They are written here once decided.
 
 ## 6. Working method
 
