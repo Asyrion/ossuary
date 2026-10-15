@@ -1,29 +1,31 @@
 import { expect, test } from '@playwright/test';
 import { type GameHooks, type W, start, type G9 } from './helpers';
 
-test('the pause menu sets the volumes, and the browser remembers them; positioned effects play without errors', async ({
-  page,
-}) => {
-  const errors = await start(page, '?room=crypt_a&seed=VOL1&spells=arc');
-  // a fight: hits, deaths and a spell, all panned to where they happen
-  await page.evaluate(() => {
-    const w = window as unknown as W,
-      g = w.__game as unknown as G9;
-    g.warp(1);
-    g.cast(0, { x: 0, z: -1 });
-    w.__fight(30);
-  });
-  await page.keyboard.press('Escape');
-  await expect(page.locator('#scrPause')).toBeVisible();
-  await page.locator('#volEffects').fill('40');
-  await page.locator('#volInterface').fill('70');
-  await page.reload();
-  await page.waitForFunction(() => !!(window as unknown as W).__game, null, { timeout: 30_000 });
-  expect(await page.locator('#volEffects').inputValue()).toBe('40');
-  expect(await page.locator('#volInterface').inputValue()).toBe('70');
-  expect(await page.locator('#volMaster').inputValue()).toBe('100');
-  expect(errors).toEqual([]);
-});
+test(
+  'the pause menu sets the volumes, and the browser remembers them; positioned effects play without errors',
+  { tag: '@fast' },
+  async ({ page }) => {
+    const errors = await start(page, '?room=crypt_a&seed=VOL1&spells=arc');
+    // a fight: hits, deaths and a spell, all panned to where they happen
+    await page.evaluate(() => {
+      const w = window as unknown as W,
+        g = w.__game as unknown as G9;
+      g.warp(1);
+      g.cast(0, { x: 0, z: -1 });
+      w.__fight(30);
+    });
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#scrPause')).toBeVisible();
+    await page.locator('#volEffects').fill('40');
+    await page.locator('#volInterface').fill('70');
+    await page.reload();
+    await page.waitForFunction(() => !!(window as unknown as W).__game, null, { timeout: 30_000 });
+    expect(await page.locator('#volEffects').inputValue()).toBe('40');
+    expect(await page.locator('#volInterface').inputValue()).toBe('70');
+    expect(await page.locator('#volMaster').inputValue()).toBe('100');
+    expect(errors).toEqual([]);
+  },
+);
 
 test('soundscapes and music: the floor and room choose them, the doors and the hearts the mood; the dev menu forces any; a stretch renders offline', async ({
   page,

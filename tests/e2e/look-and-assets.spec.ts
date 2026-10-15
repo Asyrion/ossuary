@@ -94,33 +94,35 @@ test('made assets: the stand-ins load through the manifest and replace their pla
   expect(errors).toEqual([]);
 });
 
-test('made assets: missing and broken files, and ?assets=off, leave the placeholders with a warning, never an error', async ({
-  page,
-}) => {
-  type GA = {
-    sim(sec: number, draw?: boolean): void;
-    assets: { on: boolean; list: { where: string; status: string }[] };
-    showAssets(): void;
-  };
-  const warnings: string[] = [];
-  page.on('console', (m) => {
-    if (m.type() === 'warning') warnings.push(m.text());
-  });
-  const errors = await start(page, '?seed=K3F9QX&give=ember_sigil&assets=/tests/fixtures/assets/broken.json');
-  const broken = await page.evaluate(() => {
-    const g = (window as unknown as { __game: GA }).__game;
-    g.showAssets();
-    g.sim(0.1);
-    return g.assets;
-  }); // (the placeholders are built; no frame needed)
-  expect(broken.on).toBe(false);
-  expect(broken.list.map((a) => a.status)).toEqual(['missing', 'failed', 'missing', 'missing']);
-  expect(warnings.filter((w) => w.startsWith('asset ')).length).toBe(4);
-  const off = await start(page, '?seed=K3F9QX&assets=off');
-  expect(await page.evaluate(() => (window as unknown as { __game: GA }).__game.assets.on)).toBe(false);
-  expect(errors).toEqual([]);
-  expect(off).toEqual([]);
-});
+test(
+  'made assets: missing and broken files, and ?assets=off, leave the placeholders with a warning, never an error',
+  { tag: '@fast' },
+  async ({ page }) => {
+    type GA = {
+      sim(sec: number, draw?: boolean): void;
+      assets: { on: boolean; list: { where: string; status: string }[] };
+      showAssets(): void;
+    };
+    const warnings: string[] = [];
+    page.on('console', (m) => {
+      if (m.type() === 'warning') warnings.push(m.text());
+    });
+    const errors = await start(page, '?seed=K3F9QX&give=ember_sigil&assets=/tests/fixtures/assets/broken.json');
+    const broken = await page.evaluate(() => {
+      const g = (window as unknown as { __game: GA }).__game;
+      g.showAssets();
+      g.sim(0.1);
+      return g.assets;
+    }); // (the placeholders are built; no frame needed)
+    expect(broken.on).toBe(false);
+    expect(broken.list.map((a) => a.status)).toEqual(['missing', 'failed', 'missing', 'missing']);
+    expect(warnings.filter((w) => w.startsWith('asset ')).length).toBe(4);
+    const off = await start(page, '?seed=K3F9QX&assets=off');
+    expect(await page.evaluate(() => (window as unknown as { __game: GA }).__game.assets.on)).toBe(false);
+    expect(errors).toEqual([]);
+    expect(off).toEqual([]);
+  },
+);
 
 test('coin faces: the obols wear a coin face, drawn on the fine layer, in the room, the HUD and the card; the dev menu changes it', async ({
   page,

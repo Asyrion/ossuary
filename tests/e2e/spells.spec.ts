@@ -1,78 +1,82 @@
 import { expect, test } from '@playwright/test';
 import { type GameHooks, type W, start, type G9, type G11, type G11h, type GP } from './helpers';
 
-test('spells: Arc strikes and leaps for mana, a cooldown holds it back, and the dead give mana back', async ({
-  page,
-}) => {
-  const errors = await start(page, '?room=crypt_a&seed=MAG1&spells=arc');
-  await expect(page.locator('#scrTitle .controls')).toContainText('Q and E');
-  const arc = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as unknown as G9,
-      P = g.player;
-    g.warp(1);
-    g.sim(1);
-    const hp = g.enemies.reduce((s, e) => s + e.hp, 0),
-      mana = P.mana;
-    const cast = g.cast(0, { x: 0, z: -1 }),
-      struck = g.enemies.filter((e) => e.lastHit === 'spell').length;
-    const again = g.cast(0); // still cooling down
-    return {
-      spells: P.spells,
-      cast,
-      again,
-      spent: mana - P.mana,
-      struck,
-      damage: hp - g.enemies.reduce((s, e) => s + e.hp, 0),
-      cd: P.spellCd[0],
-    };
-  });
-  expect(arc).toMatchObject({ spells: ['arc', null], cast: true, again: false });
-  expect(arc.spent).toBeCloseTo(15, 0);
-  expect(arc.struck).toBeGreaterThanOrEqual(2); // it leaps
-  expect(arc.damage).toBeGreaterThan(9);
-  expect(arc.cd).toBeGreaterThan(0.9);
-  // the cantrip's kills give mana back; a cast with too little mana is refused
-  const back = await page.evaluate(() => {
-    const w = window as unknown as W,
-      g = w.__game as unknown as G9,
-      P = g.player;
-    g.mana(10);
-    const refused = !g.cast(0);
-    g.mana(40);
-    w.__fight(40);
-    return { refused, mana: P.mana, left: g.enemies.length };
-  });
-  expect(back).toMatchObject({ refused: true, left: 0 });
-  expect(back.mana).toBeGreaterThan(40 + 3); // at least one kill's worth, beyond regeneration in the fight
-  // a mana vial is left lying at full mana, and taken when mana is short
-  const vial = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as unknown as G9 & { pickups: { kind: string; x: number; z: number }[] },
-      P = g.player;
-    g.mana(999);
-    const full = P.mana; // as full as it goes
-    g.drop('mana', g.player.x, g.player.z + 0.3);
-    g.sim(1);
-    const lying = g.pickups.filter((q) => q.kind === 'mana').length;
-    const q = g.pickups.find((x) => x.kind === 'mana')!; // nudged away while refused: step onto it
-    g.mana(20);
-    P.x = q.x;
-    P.z = q.z;
-    g.sim(0.3);
-    return {
-      full,
-      max: P.stats.maxMana,
-      lying,
-      after: P.mana,
-      left: g.pickups.filter((q) => q.kind === 'mana').length,
-    };
-  });
-  expect(vial).toMatchObject({ lying: 1, left: 0 });
-  expect(vial.full).toBe(vial.max);
-  expect(vial.after).toBeGreaterThanOrEqual(45);
-  await page.evaluate(() => (window as unknown as W).__game.sim(0.1, true));
-  await page.screenshot({ path: 'test-results/smoke-spells.png' });
-  expect(errors).toEqual([]);
-});
+test(
+  'spells: Arc strikes and leaps for mana, a cooldown holds it back, and the dead give mana back',
+  { tag: '@fast' },
+  async ({ page }) => {
+    const errors = await start(page, '?room=crypt_a&seed=MAG1&spells=arc');
+    await expect(page.locator('#scrTitle .controls')).toContainText('Q and E');
+    const arc = await page.evaluate(() => {
+      const g = (window as unknown as W).__game as unknown as G9,
+        P = g.player;
+      g.warp(1);
+      g.sim(1);
+      const hp = g.enemies.reduce((s, e) => s + e.hp, 0),
+        mana = P.mana;
+      const cast = g.cast(0, { x: 0, z: -1 }),
+        struck = g.enemies.filter((e) => e.lastHit === 'spell').length;
+      const again = g.cast(0); // still cooling down
+      return {
+        spells: P.spells,
+        cast,
+        again,
+        spent: mana - P.mana,
+        struck,
+        damage: hp - g.enemies.reduce((s, e) => s + e.hp, 0),
+        cd: P.spellCd[0],
+      };
+    });
+    expect(arc).toMatchObject({ spells: ['arc', null], cast: true, again: false });
+    expect(arc.spent).toBeCloseTo(15, 0);
+    expect(arc.struck).toBeGreaterThanOrEqual(2); // it leaps
+    expect(arc.damage).toBeGreaterThan(9);
+    expect(arc.cd).toBeGreaterThan(0.9);
+    // the cantrip's kills give mana back; a cast with too little mana is refused
+    const back = await page.evaluate(() => {
+      const w = window as unknown as W,
+        g = w.__game as unknown as G9,
+        P = g.player;
+      g.mana(10);
+      const refused = !g.cast(0);
+      g.mana(40);
+      w.__fight(40);
+      return { refused, mana: P.mana, left: g.enemies.length };
+    });
+    expect(back).toMatchObject({ refused: true, left: 0 });
+    expect(back.mana).toBeGreaterThan(40 + 3); // at least one kill's worth, beyond regeneration in the fight
+    // a mana vial is left lying at full mana, and taken when mana is short
+    const vial = await page.evaluate(() => {
+      const g = (window as unknown as W).__game as unknown as G9 & {
+          pickups: { kind: string; x: number; z: number }[];
+        },
+        P = g.player;
+      g.mana(999);
+      const full = P.mana; // as full as it goes
+      g.drop('mana', g.player.x, g.player.z + 0.3);
+      g.sim(1);
+      const lying = g.pickups.filter((q) => q.kind === 'mana').length;
+      const q = g.pickups.find((x) => x.kind === 'mana')!; // nudged away while refused: step onto it
+      g.mana(20);
+      P.x = q.x;
+      P.z = q.z;
+      g.sim(0.3);
+      return {
+        full,
+        max: P.stats.maxMana,
+        lying,
+        after: P.mana,
+        left: g.pickups.filter((q) => q.kind === 'mana').length,
+      };
+    });
+    expect(vial).toMatchObject({ lying: 1, left: 0 });
+    expect(vial.full).toBe(vial.max);
+    expect(vial.after).toBeGreaterThanOrEqual(45);
+    await page.evaluate(() => (window as unknown as W).__game.sim(0.1, true));
+    await page.screenshot({ path: 'test-results/smoke-spells.png' });
+    expect(errors).toEqual([]);
+  },
+);
 
 test('spells: the lance burns a line, the seal erupts and leaves fire, shards freeze, ice walls hold, the mantle throws foes back', async ({
   page,

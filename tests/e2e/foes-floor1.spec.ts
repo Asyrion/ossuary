@@ -1,85 +1,87 @@
 import { expect, test } from '@playwright/test';
 import { start } from './helpers';
 
-test('foes in code: the Sporeling fills the fights, hops, swells and puffs spores that sting and dim the sight, takes half again from Ember and half from Frost, and the bestiary keeps what was found', async ({
-  page,
-}) => {
-  type Foe = { type: string; state: string; tele?: number; hp: number; mats: unknown[]; contact: number };
-  type GS = {
-    sim(sec: number, draw?: boolean): void;
-    warp(id: number): void;
-    renderInfo(): { calls: number };
-    forgetBestiary(): void;
-    hit(i: number, dmg: number, school?: string): number;
-    bestiary: Record<string, { met: boolean; weak: boolean; resist: boolean }>;
-    player: { x: number; z: number; hp: number; maxHp: number; invuln: number; dim: number };
-    enemies: Foe[];
-    current: { spores?: { x: number; z: number; sting?: number }[] };
-  };
-  const errors = await start(page, '?seed=K3F9QX&room=corridor_tombs&variant=quiet&foe=sporeling');
-  const r = await page.evaluate(() => {
-    const g = (window as unknown as { __game: GS }).__game;
-    g.forgetBestiary();
-    g.player.maxHp = g.player.hp = 60; // (the test stands among them)
-    g.warp(1);
-    g.sim(0.8, true);
-    const kinds = [...new Set(g.enemies.map((e) => e.type))],
-      calls = g.renderInfo().calls,
-      n = g.enemies.length;
-    let swelled = false,
-      puffed = false;
-    for (let i = 0; i < 100 && !puffed; i++) {
-      g.sim(0.1);
-      swelled ||= g.enemies.some((e) => e.state === 'swell' && (e.tele ?? 0) > 0);
-      puffed = (g.current.spores ?? []).some((s) => s.sting);
-    }
-    const cloud = (g.current.spores ?? []).find((s) => s.sting)!;
-    // (a sting lands only on a mage not reeling from another blow: the Sporeling that puffed it stands in its cloud, and
-    // its touch would come first, so the foes touch no one while the mage steps in)
-    for (const f of g.enemies) f.contact = 0;
-    g.player.x = cloud.x;
-    g.player.z = cloud.z;
-    g.player.invuln = 0;
-    g.sim(0.1);
-    const dim = g.player.dim,
-      e = g.enemies[0];
-    const before = e.hp;
-    g.hit(0, 2, 'ember');
-    const weak = before - e.hp;
-    const mid = e.hp;
-    g.hit(0, 2, 'frost');
-    const resist = mid - e.hp;
-    const last = e.hp;
-    g.hit(0, 2);
-    const plain = last - e.hp;
-    return {
-      kinds,
-      calls,
-      n,
-      swelled,
-      puffed,
-      dim,
-      weak,
-      resist,
-      plain,
-      book: g.bestiary.sporeling,
-      mats: e.mats.length,
+test(
+  'foes in code: the Sporeling fills the fights, hops, swells and puffs spores that sting and dim the sight, takes half again from Ember and half from Frost, and the bestiary keeps what was found',
+  { tag: '@fast' },
+  async ({ page }) => {
+    type Foe = { type: string; state: string; tele?: number; hp: number; mats: unknown[]; contact: number };
+    type GS = {
+      sim(sec: number, draw?: boolean): void;
+      warp(id: number): void;
+      renderInfo(): { calls: number };
+      forgetBestiary(): void;
+      hit(i: number, dmg: number, school?: string): number;
+      bestiary: Record<string, { met: boolean; weak: boolean; resist: boolean }>;
+      player: { x: number; z: number; hp: number; maxHp: number; invuln: number; dim: number };
+      enemies: Foe[];
+      current: { spores?: { x: number; z: number; sting?: number }[] };
     };
-  });
-  expect(r.kinds).toEqual(['sporeling']);
-  expect(r.n).toBeGreaterThan(0);
-  expect(r.calls).toBeLessThan(90 + r.n * 20); // (each foe's still parts merged: about a dozen calls, not fifty)
-  expect(r.swelled).toBe(true);
-  expect(r.puffed).toBe(true);
-  expect(r.dim).toBeGreaterThan(1);
-  expect(r.weak).toBeCloseTo(3);
-  expect(r.resist).toBeCloseTo(1);
-  expect(r.plain).toBeCloseTo(2);
-  expect(r.book).toMatchObject({ met: true, weak: true, resist: true }); // (and the counters found)
-  expect(r.mats).toBeGreaterThan(0); // (its merged surfaces flash when hit)
-  await page.screenshot({ path: 'test-results/foes-sporeling.png' });
-  expect(errors).toEqual([]);
-});
+    const errors = await start(page, '?seed=K3F9QX&room=corridor_tombs&variant=quiet&foe=sporeling');
+    const r = await page.evaluate(() => {
+      const g = (window as unknown as { __game: GS }).__game;
+      g.forgetBestiary();
+      g.player.maxHp = g.player.hp = 60; // (the test stands among them)
+      g.warp(1);
+      g.sim(0.8, true);
+      const kinds = [...new Set(g.enemies.map((e) => e.type))],
+        calls = g.renderInfo().calls,
+        n = g.enemies.length;
+      let swelled = false,
+        puffed = false;
+      for (let i = 0; i < 100 && !puffed; i++) {
+        g.sim(0.1);
+        swelled ||= g.enemies.some((e) => e.state === 'swell' && (e.tele ?? 0) > 0);
+        puffed = (g.current.spores ?? []).some((s) => s.sting);
+      }
+      const cloud = (g.current.spores ?? []).find((s) => s.sting)!;
+      // (a sting lands only on a mage not reeling from another blow: the Sporeling that puffed it stands in its cloud, and
+      // its touch would come first, so the foes touch no one while the mage steps in)
+      for (const f of g.enemies) f.contact = 0;
+      g.player.x = cloud.x;
+      g.player.z = cloud.z;
+      g.player.invuln = 0;
+      g.sim(0.1);
+      const dim = g.player.dim,
+        e = g.enemies[0];
+      const before = e.hp;
+      g.hit(0, 2, 'ember');
+      const weak = before - e.hp;
+      const mid = e.hp;
+      g.hit(0, 2, 'frost');
+      const resist = mid - e.hp;
+      const last = e.hp;
+      g.hit(0, 2);
+      const plain = last - e.hp;
+      return {
+        kinds,
+        calls,
+        n,
+        swelled,
+        puffed,
+        dim,
+        weak,
+        resist,
+        plain,
+        book: g.bestiary.sporeling,
+        mats: e.mats.length,
+      };
+    });
+    expect(r.kinds).toEqual(['sporeling']);
+    expect(r.n).toBeGreaterThan(0);
+    expect(r.calls).toBeLessThan(90 + r.n * 20); // (each foe's still parts merged: about a dozen calls, not fifty)
+    expect(r.swelled).toBe(true);
+    expect(r.puffed).toBe(true);
+    expect(r.dim).toBeGreaterThan(1);
+    expect(r.weak).toBeCloseTo(3);
+    expect(r.resist).toBeCloseTo(1);
+    expect(r.plain).toBeCloseTo(2);
+    expect(r.book).toMatchObject({ met: true, weak: true, resist: true }); // (and the counters found)
+    expect(r.mats).toBeGreaterThan(0); // (its merged surfaces flash when hit)
+    await page.screenshot({ path: 'test-results/foes-sporeling.png' });
+    expect(errors).toEqual([]);
+  },
+);
 
 test("foes in code: floor 1's moth loops, scatters light and is lured by a lit brazier; the beetle charges, is stunned against a wall and throws a spark; the mimic waits among the urns, wakes, spits embers and shuts", async ({
   page,

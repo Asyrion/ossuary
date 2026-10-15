@@ -261,96 +261,98 @@ test('boons: a deal of three leans to the build, a school boon taken before its 
   expect(errors).toEqual([]);
 });
 
-test("the level-up screen: a level waits for the fight to be won, then the game pauses for three boons and a point; a key held from the fight can't choose, Esc doesn't close it, each level waiting comes in turn", async ({
-  page,
-}) => {
-  type GL = {
-    sim(s: number, draw?: boolean): void;
-    warp(id: number): void;
-    clearRoom(): void;
-    state: string;
-    rooms(): { type: string; cleared: boolean; plan: { id: number } }[];
-    offer: {
-      open: boolean;
-      phase: string;
-      level: number;
-      pending: number;
-      chosen: number;
-      cards: { id: string; rank: number; lean: boolean }[];
+test(
+  "the level-up screen: a level waits for the fight to be won, then the game pauses for three boons and a point; a key held from the fight can't choose, Esc doesn't close it, each level waiting comes in turn",
+  { tag: '@fast' },
+  async ({ page }) => {
+    type GL = {
+      sim(s: number, draw?: boolean): void;
+      warp(id: number): void;
+      clearRoom(): void;
+      state: string;
+      rooms(): { type: string; cleared: boolean; plan: { id: number } }[];
+      offer: {
+        open: boolean;
+        phase: string;
+        level: number;
+        pending: number;
+        chosen: number;
+        cards: { id: string; rank: number; lean: boolean }[];
+      };
+      boons: { taken: Record<string, number> };
+      attrs: Record<string, number>;
+      giveInsight(n: number): void;
+      insight: { next: number; pending: number };
+      player: { invuln: number };
     };
-    boons: { taken: Record<string, number> };
-    attrs: Record<string, number>;
-    giveInsight(n: number): void;
-    insight: { next: number; pending: number };
-    player: { invuln: number };
-  };
-  const errors = await start(page, '?seed=LVUP&level=3&autolevel=0');
-  const g = () => page.evaluate(() => (window as unknown as { __game: GL }).__game.offer);
-  const locked = await page.evaluate(() => {
-    // (opened, and Enter at once, as a key mashed from the fight would: locked, it takes nothing)
-    const w = (window as unknown as { __game: GL }).__game;
-    w.player.invuln = 999;
-    for (let k = 0; k < 200 && !w.offer.open; k++) w.sim(1 / 60);
-    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter' }));
-    return w.offer.phase;
-  });
-  expect(locked).toBe('boon');
-  const first = await g();
-  expect(first).toMatchObject({ open: true, phase: 'boon', level: 2, pending: 2 });
-  expect(first.cards).toHaveLength(3);
-  expect(await page.evaluate(() => (window as unknown as { __game: GL }).__game.state)).toBe('pause');
-  expect(await page.locator('#scrLevel').isVisible()).toBe(true);
-  await page.waitForTimeout(450);
-  await page.keyboard.press('Escape');
-  expect((await g()).open).toBe(true);
-  await page.keyboard.press('ArrowRight');
-  expect((await g()).chosen).toBe(1);
-  await page.keyboard.press('Enter');
-  const taken = await page.evaluate(() => (window as unknown as { __game: GL }).__game.boons.taken);
-  expect(Object.keys(taken)).toContain(first.cards[1].id);
-  expect((await g()).phase).toBe('point');
-  await page.waitForTimeout(450);
-  await page.keyboard.press('ArrowRight');
-  await page.keyboard.press('ArrowRight');
-  await page.keyboard.press('Enter'); // (Will)
-  const second = await g();
-  expect(second).toMatchObject({ open: true, phase: 'boon', level: 3, pending: 1 });
-  await page.waitForTimeout(450);
-  await page.click('#lvCards .lvCard[data-i="0"]');
-  await page.waitForTimeout(450);
-  await page.keyboard.press('Enter'); // (Vigor)
-  const after = await page.evaluate(() => {
-    const w = (window as unknown as { __game: GL }).__game;
-    return { offer: w.offer, state: w.state, attrs: w.attrs, badge: document.getElementById('level')?.className };
-  });
-  expect(after.offer).toMatchObject({ open: false, pending: 0 });
-  expect(after.state).toBe('play');
-  expect(after.attrs).toMatchObject({ will: 1, vigor: 1, free: 0 });
-  expect(after.badge).not.toContain('waits');
-  // a level reached in a fight waits for its end, its badge glowing and a line saying so the first time
-  const fight = await page.evaluate(() => {
-    const w = (window as unknown as { __game: GL }).__game,
-      room = w.rooms().find((r) => r.type === 'normal' && !r.cleared)!;
-    w.warp(room.plan.id);
-    w.sim(0.6);
-    w.giveInsight(w.insight.next + 1);
-    w.sim(1.5);
-    const during = {
-      open: w.offer.open,
-      pending: w.insight.pending,
-      badge: document.getElementById('level')?.className,
-      said: (w as unknown as { run: { hinted: Set<string> } }).run.hinted.has('levelWaits'),
-    };
-    w.clearRoom();
-    w.sim(1.2);
-    return { during, open: w.offer.open };
-  });
-  expect(fight.during).toMatchObject({ open: false, pending: 1 });
-  expect(fight.during.badge).toContain('waits');
-  expect(fight.during.said).toBe(true); // (its line raised: it shows after the line before it)
-  expect(fight.open).toBe(true);
-  expect(errors).toEqual([]);
-});
+    const errors = await start(page, '?seed=LVUP&level=3&autolevel=0');
+    const g = () => page.evaluate(() => (window as unknown as { __game: GL }).__game.offer);
+    const locked = await page.evaluate(() => {
+      // (opened, and Enter at once, as a key mashed from the fight would: locked, it takes nothing)
+      const w = (window as unknown as { __game: GL }).__game;
+      w.player.invuln = 999;
+      for (let k = 0; k < 200 && !w.offer.open; k++) w.sim(1 / 60);
+      window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Enter' }));
+      return w.offer.phase;
+    });
+    expect(locked).toBe('boon');
+    const first = await g();
+    expect(first).toMatchObject({ open: true, phase: 'boon', level: 2, pending: 2 });
+    expect(first.cards).toHaveLength(3);
+    expect(await page.evaluate(() => (window as unknown as { __game: GL }).__game.state)).toBe('pause');
+    expect(await page.locator('#scrLevel').isVisible()).toBe(true);
+    await page.waitForTimeout(450);
+    await page.keyboard.press('Escape');
+    expect((await g()).open).toBe(true);
+    await page.keyboard.press('ArrowRight');
+    expect((await g()).chosen).toBe(1);
+    await page.keyboard.press('Enter');
+    const taken = await page.evaluate(() => (window as unknown as { __game: GL }).__game.boons.taken);
+    expect(Object.keys(taken)).toContain(first.cards[1].id);
+    expect((await g()).phase).toBe('point');
+    await page.waitForTimeout(450);
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Enter'); // (Will)
+    const second = await g();
+    expect(second).toMatchObject({ open: true, phase: 'boon', level: 3, pending: 1 });
+    await page.waitForTimeout(450);
+    await page.click('#lvCards .lvCard[data-i="0"]');
+    await page.waitForTimeout(450);
+    await page.keyboard.press('Enter'); // (Vigor)
+    const after = await page.evaluate(() => {
+      const w = (window as unknown as { __game: GL }).__game;
+      return { offer: w.offer, state: w.state, attrs: w.attrs, badge: document.getElementById('level')?.className };
+    });
+    expect(after.offer).toMatchObject({ open: false, pending: 0 });
+    expect(after.state).toBe('play');
+    expect(after.attrs).toMatchObject({ will: 1, vigor: 1, free: 0 });
+    expect(after.badge).not.toContain('waits');
+    // a level reached in a fight waits for its end, its badge glowing and a line saying so the first time
+    const fight = await page.evaluate(() => {
+      const w = (window as unknown as { __game: GL }).__game,
+        room = w.rooms().find((r) => r.type === 'normal' && !r.cleared)!;
+      w.warp(room.plan.id);
+      w.sim(0.6);
+      w.giveInsight(w.insight.next + 1);
+      w.sim(1.5);
+      const during = {
+        open: w.offer.open,
+        pending: w.insight.pending,
+        badge: document.getElementById('level')?.className,
+        said: (w as unknown as { run: { hinted: Set<string> } }).run.hinted.has('levelWaits'),
+      };
+      w.clearRoom();
+      w.sim(1.2);
+      return { during, open: w.offer.open };
+    });
+    expect(fight.during).toMatchObject({ open: false, pending: 1 });
+    expect(fight.during.badge).toContain('waits');
+    expect(fight.during.said).toBe(true); // (its line raised: it shows after the line before it)
+    expect(fight.open).toBe(true);
+    expect(errors).toEqual([]);
+  },
+);
 
 test("Tempered and the boons taken: a level's screen spends every point it owes, Tempered's three too, and the inventory's mage tab lists the boons", async ({
   page,

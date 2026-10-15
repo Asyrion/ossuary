@@ -66,70 +66,72 @@ test('a great hall packed with every object stays within its draw calls (their s
   expect(errors).toEqual([]);
 });
 
-test("the room kit: torches, braziers and candle stands built in code, the crypt's floor and walls in pixel art", async ({
-  page,
-}) => {
-  type Mat = { map?: { magFilter: number }; transparent?: boolean };
-  type O = {
-    userData: Record<string, unknown>;
-    visible: boolean;
-    traverse(f: (o: O & { material?: Mat | Mat[] }) => void): void;
-  };
-  type Box = {
-    x: number;
-    z: number;
-    prop: { kind: string; lit?: boolean; parts?: Record<string, O & { material?: { color: { getHex(): number } } }> };
-  };
-  type GR = {
-    sim(sec: number, draw?: boolean): void;
-    prop(kind: string, x: number, z: number): boolean;
-    burn(x: number, z: number, r?: number): void;
-    renderInfo(): { calls: number };
-    current: { group: O; torches: { flame: O; lit: boolean }[]; props?: Box[] };
-    player: { x: number; z: number };
-  };
-  const errors = await start(page, '?seed=K3F9QX');
-  const look = () =>
-    page.evaluate(() => {
-      const g = (window as unknown as { __game: GR }).__game,
-        p = g.player,
-        room = g.current as unknown as { cx: number; cz: number };
-      p.x = room.cx;
-      p.z = room.cz + 0.6; // (the room's middle: built again, the mage stands at a door)
-      g.prop('brazier', p.x - 1.5, p.z - 1.8);
-      g.prop('candles', p.x + 1.5, p.z - 1.8);
-      for (const b of g.current.props ?? []) g.burn(b.x, b.z, 0.3);
-      g.sim(0.6, true);
-      let nearest = 0;
-      g.current.group.traverse((o) => {
-        if ([o.material ?? []].flat().some((m) => m.map?.magFilter === 1003 && !m.transparent)) nearest++;
-      }); // (NearestFilter: the pixel floor and walls; not the stepped glows and shadows)
-      const brazier = g.current.props!.find((b) => b.prop.kind === 'brazier')!,
-        stand = g.current.props!.find((b) => b.prop.kind === 'candles')!;
-      return {
-        nearest,
-        torches: g.current.torches.length,
-        fire: g.current.torches.every((t) => !!t.flame.userData.fire),
-        brazier: {
-          lit: !!brazier.prop.lit,
-          fire: !!brazier.prop.parts?.flame.userData.fire,
-          runes: brazier.prop.parts?.runes?.material?.color.getHex() ?? null,
-        },
-        stand: { lit: !!stand.prop.lit, shown: !!stand.prop.parts?.flames.visible },
-        calls: g.renderInfo().calls,
-      };
+test(
+  "the room kit: torches, braziers and candle stands built in code, the crypt's floor and walls in pixel art",
+  { tag: '@fast' },
+  async ({ page }) => {
+    type Mat = { map?: { magFilter: number }; transparent?: boolean };
+    type O = {
+      userData: Record<string, unknown>;
+      visible: boolean;
+      traverse(f: (o: O & { material?: Mat | Mat[] }) => void): void;
+    };
+    type Box = {
+      x: number;
+      z: number;
+      prop: { kind: string; lit?: boolean; parts?: Record<string, O & { material?: { color: { getHex(): number } } }> };
+    };
+    type GR = {
+      sim(sec: number, draw?: boolean): void;
+      prop(kind: string, x: number, z: number): boolean;
+      burn(x: number, z: number, r?: number): void;
+      renderInfo(): { calls: number };
+      current: { group: O; torches: { flame: O; lit: boolean }[]; props?: Box[] };
+      player: { x: number; z: number };
+    };
+    const errors = await start(page, '?seed=K3F9QX');
+    const look = () =>
+      page.evaluate(() => {
+        const g = (window as unknown as { __game: GR }).__game,
+          p = g.player,
+          room = g.current as unknown as { cx: number; cz: number };
+        p.x = room.cx;
+        p.z = room.cz + 0.6; // (the room's middle: built again, the mage stands at a door)
+        g.prop('brazier', p.x - 1.5, p.z - 1.8);
+        g.prop('candles', p.x + 1.5, p.z - 1.8);
+        for (const b of g.current.props ?? []) g.burn(b.x, b.z, 0.3);
+        g.sim(0.6, true);
+        let nearest = 0;
+        g.current.group.traverse((o) => {
+          if ([o.material ?? []].flat().some((m) => m.map?.magFilter === 1003 && !m.transparent)) nearest++;
+        }); // (NearestFilter: the pixel floor and walls; not the stepped glows and shadows)
+        const brazier = g.current.props!.find((b) => b.prop.kind === 'brazier')!,
+          stand = g.current.props!.find((b) => b.prop.kind === 'candles')!;
+        return {
+          nearest,
+          torches: g.current.torches.length,
+          fire: g.current.torches.every((t) => !!t.flame.userData.fire),
+          brazier: {
+            lit: !!brazier.prop.lit,
+            fire: !!brazier.prop.parts?.flame.userData.fire,
+            runes: brazier.prop.parts?.runes?.material?.color.getHex() ?? null,
+          },
+          stand: { lit: !!stand.prop.lit, shown: !!stand.prop.parts?.flames.visible },
+          calls: g.renderInfo().calls,
+        };
+      });
+    const kit = await look();
+    expect(kit).toMatchObject({
+      fire: true,
+      brazier: { lit: true, fire: true, runes: 0xffa040 },
+      stand: { lit: true, shown: true },
     });
-  const kit = await look();
-  expect(kit).toMatchObject({
-    fire: true,
-    brazier: { lit: true, fire: true, runes: 0xffa040 },
-    stand: { lit: true, shown: true },
-  });
-  expect(kit.torches).toBeGreaterThan(0);
-  expect(kit.nearest).toBeGreaterThanOrEqual(2); // (the floor, and the walls)
-  await page.screenshot({ path: 'test-results/room-kit.png' });
-  expect(errors).toEqual([]);
-});
+    expect(kit.torches).toBeGreaterThan(0);
+    expect(kit.nearest).toBeGreaterThanOrEqual(2); // (the floor, and the walls)
+    await page.screenshot({ path: 'test-results/room-kit.png' });
+    expect(errors).toEqual([]);
+  },
+);
 
 // (a test a floor: each floor's rooms are built several times over, too long for one test on a CI runner)
 for (const floor of [1, 2, 3, 4, 5])

@@ -2,39 +2,41 @@ import { expect, test } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { type Foe, type RoomView, type GameHooks, type W, start, type G5 } from './helpers';
 
-test('the bestiary: thirty-five looks in rows by kind, each named with the fight it brings, apart from each other inside a great hall', async ({
-  page,
-}) => {
-  const errors = await start(page, '?room=great_hall&variant=quiet&seed=FOEC1');
-  type GB = GameHooks & {
-    clearRoom(): void;
-    bestiaryOptions(ids?: string[]): { id: string; x: number; z: number }[];
-    takeModelOptions(): void;
-    current: RoomView & { bounds: { minX: number; maxX: number; minZ: number; maxZ: number } };
-  };
-  const shown = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as GB;
-    g.warp(1);
-    g.sim(0.3);
-    g.clearRoom();
-    g.sim(0.3);
-    const b = g.current.bounds;
-    g.player.x = (b.minX + b.maxX) / 2;
-    g.player.z = b.maxZ - 0.8;
-    const all = g.bestiaryOptions();
-    g.sim(0.5, true);
-    const inside =
-      all.every((o) => o.x > b.minX && o.x < b.maxX && o.z > b.minZ && o.z < b.maxZ) &&
-      all.every((o, i) => all.every((q, j) => i === j || Math.hypot(o.x - q.x, o.z - q.z) >= 1.5)); // (and none on another)
-    g.takeModelOptions();
-    const some = g.bestiaryOptions(['cryptSpider', 'cinderDjinn']);
-    g.sim(0.2, true);
-    g.takeModelOptions();
-    return { n: all.length, ids: new Set(all.map((o) => o.id)).size, inside, some: some.map((o) => o.id) };
-  });
-  expect(shown).toEqual({ n: 35, ids: 35, inside: true, some: ['cryptSpider', 'cinderDjinn'] });
-  expect(errors).toEqual([]);
-});
+test(
+  'the bestiary: thirty-five looks in rows by kind, each named with the fight it brings, apart from each other inside a great hall',
+  { tag: '@fast' },
+  async ({ page }) => {
+    const errors = await start(page, '?room=great_hall&variant=quiet&seed=FOEC1');
+    type GB = GameHooks & {
+      clearRoom(): void;
+      bestiaryOptions(ids?: string[]): { id: string; x: number; z: number }[];
+      takeModelOptions(): void;
+      current: RoomView & { bounds: { minX: number; maxX: number; minZ: number; maxZ: number } };
+    };
+    const shown = await page.evaluate(() => {
+      const g = (window as unknown as W).__game as GB;
+      g.warp(1);
+      g.sim(0.3);
+      g.clearRoom();
+      g.sim(0.3);
+      const b = g.current.bounds;
+      g.player.x = (b.minX + b.maxX) / 2;
+      g.player.z = b.maxZ - 0.8;
+      const all = g.bestiaryOptions();
+      g.sim(0.5, true);
+      const inside =
+        all.every((o) => o.x > b.minX && o.x < b.maxX && o.z > b.minZ && o.z < b.maxZ) &&
+        all.every((o, i) => all.every((q, j) => i === j || Math.hypot(o.x - q.x, o.z - q.z) >= 1.5)); // (and none on another)
+      g.takeModelOptions();
+      const some = g.bestiaryOptions(['cryptSpider', 'cinderDjinn']);
+      g.sim(0.2, true);
+      g.takeModelOptions();
+      return { n: all.length, ids: new Set(all.map((o) => o.id)).size, inside, some: some.map((o) => o.id) };
+    });
+    expect(shown).toEqual({ n: 35, ids: 35, inside: true, some: ['cryptSpider', 'cinderDjinn'] });
+    expect(errors).toEqual([]);
+  },
+);
 
 test("the drinking ward: a vault's ward drinks the spells cast near it and bursts into a Wardling of what it drank most; a warded foe drinks spells, keeps statuses off, and breaks into a Wardling", async ({
   page,

@@ -1,109 +1,114 @@
 import { expect, test } from '@playwright/test';
 import { type W, start, type GP } from './helpers';
 
-test('the potion belt: potions start unknown in their bottles; R tapped drinks and held throws, F chooses; drinking or throwing one identifies it; a full belt leaves a potion where it lies; the inventory has a Potions tab', async ({
-  page,
-}) => {
-  const errors = await start(page, '?seed=BELT1&variant=quiet&potions=healing,liquidEmber,hexBrew&spells=cinder_lance');
-  await page.evaluate(() => {
-    const g = (window as unknown as W).__game as GP;
-    g.forgetPotions();
-    g.sim(6);
-    g.player.hp = 2;
-  });
-  const first = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as GP;
-    return { belt: g.belt, bottles: g.bottles };
-  });
-  expect(first.belt).toMatchObject({
-    ids: ['healing', 'liquidEmber', 'hexBrew'],
-    at: 0,
-    slots: 3,
-    known: [false, false, false],
-  });
-  expect(await page.locator('#belt .bslot img.px').count()).toBe(3);
-  expect(await page.locator('#belt .bslot i').count()).toBe(3); // (each marked unknown)
-  expect(new Set(Object.values(first.bottles).map((b) => b.liquid)).size).toBe(12); // (every potion its own colour)
-  const icon = await page
-    .locator('#belt .bslot img')
-    .first()
-    .evaluate((i) => [(i as HTMLImageElement).naturalWidth, getComputedStyle(i).imageRendering]);
-  expect(icon).toEqual([24, 'pixelated']);
-  // a tap of R drinks the chosen potion (the Healing Draught): healed, known
-  await page.keyboard.down('KeyR');
-  await page.keyboard.up('KeyR');
-  const drunk = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as GP;
-    g.sim(0.1);
-    return {
-      hp: g.player.hp,
-      belt: g.belt.ids,
-      line: document.querySelector('#toast')?.textContent,
-      lore: document.querySelector('#lore')?.textContent,
-    };
-  });
-  expect(drunk.hp).toBe(4);
-  expect(drunk.belt).toEqual(['liquidEmber', 'hexBrew']);
-  expect(drunk.line).toContain('Healing Draught');
-  expect(drunk.lore).toContain('Healing Draught');
-  // F chooses the next; held, R throws it where the mage aims (a ring shows where), and the splash hexes the foe there
-  await page.keyboard.down('KeyF');
-  await page.keyboard.up('KeyF');
-  await page.evaluate(() => {
-    const g = (window as unknown as W).__game as GP;
-    g.sim(0.05);
-    g.spawn('dummy');
-    g.sim(0.6);
-    g.player.aim = { x: 0, z: -1 };
-    const e = g.enemies[0];
-    e.x = g.player.x;
-    e.z = g.player.z - 4.4;
-  });
-  expect(await page.evaluate(() => ((window as unknown as W).__game as GP).belt.at)).toBe(1);
-  await page.keyboard.down('KeyR');
-  await page.evaluate(() => {
-    const t = performance.now();
-    while (performance.now() - t < 350) {
-      /* held past the throw's moment */
-    }
-  });
-  await page.keyboard.up('KeyR');
-  const thrown = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as GP;
-    g.sim(0.05);
-    const flying = g.throws.flying;
-    g.sim(0.6);
-    return { flying, hex: g.enemies[0].status?.hex ?? 0, belt: g.belt.ids, known: g.belt.known };
-  });
-  expect(thrown.flying).toBe(1);
-  expect(thrown.hex).toBeGreaterThanOrEqual(3);
-  expect(thrown.belt).toEqual(['liquidEmber']);
-  expect(thrown.known).toEqual([false]);
-  // a full belt leaves a potion lying, and says so once
-  const full = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as GP;
-    g.sim(5);
-    g.givePotion('mana');
-    g.givePotion('frostbrew');
-    g.drop('potion', g.player.x, g.player.z, { potion: 'healing' });
-    g.sim(0.8);
-    return {
-      belt: g.belt.ids.length,
-      lying: g.pickups.filter((p) => p.kind === 'potion').length,
-      line: document.querySelector('#toast')?.textContent,
-    };
-  });
-  expect(full).toMatchObject({ belt: 3, lying: 1 });
-  expect(full.line).toContain('belt is full');
-  // the inventory's Potions tab: the belt, then every potion, those known by name
-  await page.keyboard.press('KeyI');
-  await page.locator('#invTabs button', { hasText: 'Potions' }).click();
-  await expect(page.locator('#invList .sec', { hasText: 'Belt' })).toBeVisible();
-  await expect(page.locator('#invList .tile[title="Healing Draught"]')).toHaveCount(1); // (known now: in the book of potions)
-  await page.screenshot({ path: 'test-results/potions-tab.png' });
-  await page.keyboard.press('KeyI');
-  expect(errors).toEqual([]);
-});
+test(
+  'the potion belt: potions start unknown in their bottles; R tapped drinks and held throws, F chooses; drinking or throwing one identifies it; a full belt leaves a potion where it lies; the inventory has a Potions tab',
+  { tag: '@fast' },
+  async ({ page }) => {
+    const errors = await start(
+      page,
+      '?seed=BELT1&variant=quiet&potions=healing,liquidEmber,hexBrew&spells=cinder_lance',
+    );
+    await page.evaluate(() => {
+      const g = (window as unknown as W).__game as GP;
+      g.forgetPotions();
+      g.sim(6);
+      g.player.hp = 2;
+    });
+    const first = await page.evaluate(() => {
+      const g = (window as unknown as W).__game as GP;
+      return { belt: g.belt, bottles: g.bottles };
+    });
+    expect(first.belt).toMatchObject({
+      ids: ['healing', 'liquidEmber', 'hexBrew'],
+      at: 0,
+      slots: 3,
+      known: [false, false, false],
+    });
+    expect(await page.locator('#belt .bslot img.px').count()).toBe(3);
+    expect(await page.locator('#belt .bslot i').count()).toBe(3); // (each marked unknown)
+    expect(new Set(Object.values(first.bottles).map((b) => b.liquid)).size).toBe(12); // (every potion its own colour)
+    const icon = await page
+      .locator('#belt .bslot img')
+      .first()
+      .evaluate((i) => [(i as HTMLImageElement).naturalWidth, getComputedStyle(i).imageRendering]);
+    expect(icon).toEqual([24, 'pixelated']);
+    // a tap of R drinks the chosen potion (the Healing Draught): healed, known
+    await page.keyboard.down('KeyR');
+    await page.keyboard.up('KeyR');
+    const drunk = await page.evaluate(() => {
+      const g = (window as unknown as W).__game as GP;
+      g.sim(0.1);
+      return {
+        hp: g.player.hp,
+        belt: g.belt.ids,
+        line: document.querySelector('#toast')?.textContent,
+        lore: document.querySelector('#lore')?.textContent,
+      };
+    });
+    expect(drunk.hp).toBe(4);
+    expect(drunk.belt).toEqual(['liquidEmber', 'hexBrew']);
+    expect(drunk.line).toContain('Healing Draught');
+    expect(drunk.lore).toContain('Healing Draught');
+    // F chooses the next; held, R throws it where the mage aims (a ring shows where), and the splash hexes the foe there
+    await page.keyboard.down('KeyF');
+    await page.keyboard.up('KeyF');
+    await page.evaluate(() => {
+      const g = (window as unknown as W).__game as GP;
+      g.sim(0.05);
+      g.spawn('dummy');
+      g.sim(0.6);
+      g.player.aim = { x: 0, z: -1 };
+      const e = g.enemies[0];
+      e.x = g.player.x;
+      e.z = g.player.z - 4.4;
+    });
+    expect(await page.evaluate(() => ((window as unknown as W).__game as GP).belt.at)).toBe(1);
+    await page.keyboard.down('KeyR');
+    await page.evaluate(() => {
+      const t = performance.now();
+      while (performance.now() - t < 350) {
+        /* held past the throw's moment */
+      }
+    });
+    await page.keyboard.up('KeyR');
+    const thrown = await page.evaluate(() => {
+      const g = (window as unknown as W).__game as GP;
+      g.sim(0.05);
+      const flying = g.throws.flying;
+      g.sim(0.6);
+      return { flying, hex: g.enemies[0].status?.hex ?? 0, belt: g.belt.ids, known: g.belt.known };
+    });
+    expect(thrown.flying).toBe(1);
+    expect(thrown.hex).toBeGreaterThanOrEqual(3);
+    expect(thrown.belt).toEqual(['liquidEmber']);
+    expect(thrown.known).toEqual([false]);
+    // a full belt leaves a potion lying, and says so once
+    const full = await page.evaluate(() => {
+      const g = (window as unknown as W).__game as GP;
+      g.sim(5);
+      g.givePotion('mana');
+      g.givePotion('frostbrew');
+      g.drop('potion', g.player.x, g.player.z, { potion: 'healing' });
+      g.sim(0.8);
+      return {
+        belt: g.belt.ids.length,
+        lying: g.pickups.filter((p) => p.kind === 'potion').length,
+        line: document.querySelector('#toast')?.textContent,
+      };
+    });
+    expect(full).toMatchObject({ belt: 3, lying: 1 });
+    expect(full.line).toContain('belt is full');
+    // the inventory's Potions tab: the belt, then every potion, those known by name
+    await page.keyboard.press('KeyI');
+    await page.locator('#invTabs button', { hasText: 'Potions' }).click();
+    await expect(page.locator('#invList .sec', { hasText: 'Belt' })).toBeVisible();
+    await expect(page.locator('#invList .tile[title="Healing Draught"]')).toHaveCount(1); // (known now: in the book of potions)
+    await page.screenshot({ path: 'test-results/potions-tab.png' });
+    await page.keyboard.press('KeyI');
+    expect(errors).toEqual([]);
+  },
+);
 
 test("potions drunk and thrown: each drink does its own and shows a chip while it lasts (the cantrip burns, spells are free, one echoes, a giant, unseen, reversed, a curse's price lifted); each throw lands its splash through the magic hooks", async ({
   page,
