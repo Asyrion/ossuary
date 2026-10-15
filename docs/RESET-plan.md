@@ -173,8 +173,8 @@ Small steps, each one green in CI, none changing how the game plays.
    `m42rules.test.ts` is `currentsAndWanderer.test.ts`). Every browser test is deterministic: `start()` seeds
    `Math.random`, every test names its seed, the foe, Seal and Vigil tests find their rooms by template, and two dev hooks
    force a chance a test means to check (`dropsAlways`, `pairsAlways`); the full suite passed twice with the same
-   results. The fast suite is 22 tests tagged `@fast`, about 1.5 minutes with two workers; CI runs it on every push, the
-   full suite on pull requests and nightly on `main`, where a red night opens an issue. `bestiaryFoes.ts` (3,592 lines
+   results. The fast suite is 22 tests tagged `@fast`, about 1.5 minutes with two workers; CI runs it on every push to
+   `main`, the full suite on pull requests and nightly on `main`, where a red night opens an issue. `bestiaryFoes.ts` (3,592 lines
    by then) is `bestiaryFloor1.ts` to `bestiaryFloor5.ts` and a 229-line index; the bundle differs only in the bundler
    inlining behaviour objects into their floor's map.)
 

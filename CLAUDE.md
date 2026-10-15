@@ -34,9 +34,9 @@ systems, only cleaning, the look and the story.
   `npm run inspect`, `foe-sheet` and `balance` (those three need the dev server running).
 - Browser tests are deterministic: `start()` seeds `Math.random`, every test names its `?seed=`, rooms are found by what
   they are (docs/architecture.md, Testing).
-- CI (`.github/workflows/deploy.yml`): every push runs `build` (typecheck, unit tests, build), `lint` and the fast suite;
-  a PR runs the full suite in three `e2e` shards; `nightly.yml` runs it on `main` each night and opens an issue when it
-  fails. On `main` the Pages deploy waits for `build` only. A PR takes about 7 minutes, a merge is live 2 minutes later.
+- CI (`.github/workflows/deploy.yml`): a PR runs `build` (typecheck, unit tests, build), `lint` and the full suite in
+  three `e2e` shards; a push to `main` runs `build`, `lint` and the fast suite; `nightly.yml` runs the full suite on
+  `main` each night and opens an issue when it fails. On `main` the Pages deploy waits for `build` only. A PR takes about 7 minutes, a merge is live 2 minutes later.
 - Other tools: `npm run` lists them; `docs/architecture.md`, Tools, says what each is for.
 
 ## Code map

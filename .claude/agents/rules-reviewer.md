@@ -44,7 +44,7 @@ Don't run the browser suite unless asked; it takes minutes.
    is never removed.
 7. **Desktop first:** no new touch UI; the 0.3 touch controls stay frozen.
 8. **Tests:** new pure rules get unit tests (Vitest, `tests/unit/`); new behaviour in the browser gets a
-   Playwright test in `tests/e2e/smoke.spec.ts` or a reason why not. Tests don't depend on luck (a random pick
+   Playwright test in the system's file in `tests/e2e/` or a reason why not. Tests don't depend on luck (a random pick
    that can fail one time in eight is a bug, as the bone altar test once was).
 9. **Docs:** `docs/architecture.md` says where new things are (files, hooks, URL options); the GDD holds the design;
    the plan in force (`docs/RESET-plan.md`, or a milestone's `docs/M*-plan.md`) marks what is built, and

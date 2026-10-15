@@ -883,8 +883,8 @@ deploy waits for `build` only.
   `runesAlways`, `reagentsAlways`) instead of hoping for it. A test that passes by luck is a bug in the test.
 - The fast suite: about 20 light tests tagged `@fast` (`test(title, { tag: '@fast' }, ...)`), one or two a system;
   `npm run test:fast` runs them, about a minute and a half with two workers. Keep it under 3 minutes.
-- Cadence (CI): every push to any branch runs `build`, `lint` and the fast suite (`e2e-fast`); a pull request runs the
-  full suite in three shards (`e2e`); `nightly.yml` runs the full suite on `main` every night and opens the issue
+- Cadence (CI): a pull request runs `build`, `lint` and the full suite in three shards (`e2e`); a push to `main` runs
+  `build`, `lint` and the fast suite (`e2e-fast`); `nightly.yml` runs the full suite on `main` every night and opens the issue
   "Nightly e2e failed" (or comments on the open one) when it goes red. The Pages deploy waits for `build` only.
 - Fixtures: `tests/fixtures/assets/` (`?assets=/tests/fixtures/assets/assets.json`).
 - Verify a change in the browser before calling it done (Playwright screenshots are fine).
