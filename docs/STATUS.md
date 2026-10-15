@@ -14,12 +14,13 @@ cleaning, the look and the story.
 | R0 One baseline | Done 2026-10-12 |
 | R1 Docs that tell the truth | Built 2026-10-12; the owner's read next |
 | R2 Code that is kept | **Under way:** steps 1 to 6 done; its done-when check (a week of CI) runs |
-| R3 The look | **Under way:** step 1, the art bible (`docs/art-bible.md`), decided 2026-10-15; step 2, the proof, next |
+| R3 The look | **Under way:** step 1, the art bible (`docs/art-bible.md`), decided 2026-10-15; step 2, the proof, done 2026-10-15 (models at the texel, the code kit recoloured; step 3 dropped); step 4, the rooms, next |
 | R4 The story | Waits for R3's art bible; holds M7 steps 10 to 13 |
 | R5 The vertical slice | Last |
 
-**Next:** R3 step 2, the proof (both routes side by side), while R2's done-when check runs: a week of CI (the full
-suite on every PR and nightly, the fast one on `main`) without a flake fix.
+**Next:** R3 step 4, the rooms: the floors' palettes in the room kit and the actors' ramps, outline and rim light as a
+pass in the pixel look (art bible 4.8), while R2's done-when check runs: a week of CI (the full suite on every PR and
+nightly, the fast one on `main`) without a flake fix.
 
 ## What is live
 
@@ -28,8 +29,8 @@ townspeople (M7 steps 1 to 9).
 
 ## Waiting on the owner
 
-- R3 step 2, the proof: run by the owner in a local session (Tripo CLI, Blender) from `docs/HANDOFF-R3-proof.md` on the
-  branch `r3-art-bible`. The art bible and the proof go to `main` together.
+- The branch `r3-art-bible` (the art bible and the proof, `docs/art/proof/`, `tools/art/`) goes to `main` when the owner
+  says so.
 
 ## Known issues carried into the reset
 

@@ -842,6 +842,7 @@ when the browser first reports a pad (`STR.pad`). Dev: `__game.pads`, the dev me
 | `inspect` | `inspect-rooms.ts`: shoots rooms; flags errors, hidden mage, dark rooms. |
 | `render-audio`, `review-checks`, `milestone` | Offline audio; diff checks; GitHub milestones. |
 | `devboard`, `devboard:selftest` | The content dev board (`tools/devboard/`). |
+| (none; Python and `npx tsx`) | `tools/art/`: R3's art tools, the bake, pixelize to a floor's ramps, rooms at the game pixel (`tools/art/README.md`). |
 
 Dev board: `npm run devboard` serves http://127.0.0.1:8770, a local page to browse, create, edit and delete the
 content in `data/`, validated by the game's own validators after every save. A new kind of content in `data/` gets
