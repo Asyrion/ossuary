@@ -1,8 +1,9 @@
 name: Test and deploy to GitHub Pages
 
+# a push (to any branch) runs the fast browser suite, a pull request the full one in shards; the full suite also runs
+# nightly on main (nightly.yml)
 on:
   push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -57,8 +58,40 @@ jobs:
       - name: Lint
         run: npm run lint
 
-  # the browser tests in three shards side by side; on main they still run beside the deploy, as a watch on what goes live
+  # the browser tests tagged @fast (npm run test:fast), on every push: a quick watch on each step, beside the build
+  e2e-fast:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - id: pw
+        run: echo "version=$(npx playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v6
+        id: browsers
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+      - if: steps.browsers.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+      - if: steps.browsers.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+      - name: Fast browser tests
+        run: npm run test:fast
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: test-results-fast
+          path: test-results/
+
+  # the whole browser suite in three shards side by side, on a pull request (and a run started by hand); the deploy never
+  # waits for it
   e2e:
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
