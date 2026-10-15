@@ -168,6 +168,15 @@ Small steps, each one green in CI, none changing how the game plays.
 6. **Tests that hold:** `smoke.spec.ts` split by system into files; a fast suite (about 20 tests, under 3 minutes) on
    every push and the full suite nightly; tests find rooms by what they hold, never by a seed's layout; the big files
    (`bestiaryFoes.ts` 1,498 lines) split by floor as the looks already are.
+   (*Built 2026-10-15*: `smoke.spec.ts` (12,861 lines) is 23 files by system and `helpers.ts`, moved by a script, the
+   same 148 tests; titles say what they test (77 browser and 48 unit titles lost their milestones, dates and doc paths;
+   `m42rules.test.ts` is `currentsAndWanderer.test.ts`). Every browser test is deterministic: `start()` seeds
+   `Math.random`, every test names its seed, the foe, Seal and Vigil tests find their rooms by template, and two dev hooks
+   force a chance a test means to check (`dropsAlways`, `pairsAlways`); the full suite passed twice with the same
+   results. The fast suite is 22 tests tagged `@fast`, about 1.5 minutes with two workers; CI runs it on every push, the
+   full suite on pull requests and nightly on `main`, where a red night opens an issue. `bestiaryFoes.ts` (3,592 lines
+   by then) is `bestiaryFloor1.ts` to `bestiaryFloor5.ts` and a 229-line index; the bundle differs only in the bundler
+   inlining behaviour objects into their floor's map.)
 
 *Done when:* lint and typecheck clean, no import from game code into `src/dev/` or from simulation into `ui/`, the
 fast suite green in under 3 minutes, a week of CI without a flake fix.

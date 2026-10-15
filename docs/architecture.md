@@ -244,7 +244,9 @@ colours. Pure `src/actors/foeData.ts` reads it (`validateFoes`, `BEHAVIOUR_PARAM
 - `foes.ts`: `buildFoe` (model merged by `mergeRig`, about 15 draw calls), `updateFoe` (runs the behaviour from
   `BEHAVIOURS`), `poseFoe` (telegraph swell and glow in its school's light, hit squash), `hazardAt`, `laySpark`.
   `foeKit.ts`: what behaviours are written against (`Behaviour` hooks `struck`, `blasted`, `afflicted`, `die`,
-  `driven`; `rush`, `brake`, `ramp`). `bestiaryFoes.ts`: the bestiary behaviours, spread into `BEHAVIOURS`.
+  `driven`; `rush`, `brake`, `ramp`). The bestiary behaviours, a file a floor: `bestiaryFloor1.ts`,
+  `bestiaryFloor2.ts`, `bestiaryFloor3.ts`, `bestiaryFloor4.ts`, `bestiaryFloor5.ts`; `bestiaryFoes.ts` keeps the helpers more than one floor uses and merges them into `BESTIARY_BEHAVIOURS`, spread
+  into `BEHAVIOURS`.
   `bestiaryGround.ts`: what foes leave and throw (webs, ink, rime, `lob`, `spikeAt`, `fallOn`, `layBlackFire`).
   `acting.ts`: `actAs`, `actor()` record whose ground and shots they are.
 - Looks: `fennexLook.ts` (Fen-Nex), `dev/modelGallery.ts` (the Galleries tab's bosses, bestiary and Dr. Jelly), `bestiaryLooks.ts` with `bestiaryBeasts.ts`, `bestiaryCreatures.ts`, `bestiaryElementals.ts`,
@@ -325,7 +327,7 @@ colours. Pure `src/actors/foeData.ts` reads it (`validateFoes`, `BEHAVIOUR_PARAM
 `rotling` is a plain test foe (`CFG.enemy`); `CFG.enemy.dummy` (the training dummy) never falls.
 
 To add a foe: an entry in `data/foes.json` and in its floor's `foes` weights, a look, a name in `STR.options` or
-`STR.bestiary`, a behaviour in `BEHAVIOURS` (or `bestiaryFoes.ts`) if new, a counter line in
+`STR.bestiary`, a behaviour in `BEHAVIOURS` (or its floor's `bestiaryFloorN.ts`) if new, a counter line in
 `STR.foes.counterLines` and a `counter(e, kind)` call where the counter happens. The dev menu lists it from data.
 
 - Champions: a foe may wear a school's mantle. Pure `mantleData.ts` (`pickMantle`, `stripsMantle`, `mantleImmune`);
@@ -831,7 +833,7 @@ when the browser first reports a pad (`STR.pad`). Dev: `__game.pads`, the dev me
 
 | Script | Purpose (code in `tools/`) |
 | --- | --- |
-| `dev`, `build`, `typecheck`, `test`, `test:unit`, `test:e2e` | Vite server; build; Vitest and Playwright. |
+| `dev`, `build`, `typecheck`, `test`, `test:unit`, `test:e2e`, `test:fast` | Vite server; build; Vitest and Playwright (`test:fast`: the browser tests tagged `@fast`). |
 | `lint`, `lint:install`, `format`, `format:check` | ESLint (type-checked rules); its own install; Prettier. |
 | `prepare-asset`, `prepare-texture`, `prepare-sound` | Prepare GLBs, tiles, icons, coin faces, WAVs. |
 | `animate-creature`, `texel-bake` | Rig and clips for a Tripo creature; pixel-art texture. |
@@ -863,9 +865,27 @@ deploy waits for `build` only.
 - Unit: `npm run test:unit` (Vitest, `tests/unit/*.test.ts`): generator rules on hundreds of seeds, every template
   and data file validated, pure rules for statuses, weaves, runes, boons, loot, dialogue, the save, texel bake.
   Anything pure gets a unit test.
-- Browser: `npm run test:e2e` (Playwright, `tests/e2e/*.spec.ts`, one file a system, `helpers.ts` shared; `fullyParallel`). Software WebGL; set
-  `PW_CHROMIUM` to a Chromium binary where Playwright's is not installed. Tests drive the game through
-  `window.__game` and `window.__manual` and add `?autolevel=skip`.
+- Browser: `npm run test:e2e` (Playwright, `tests/e2e/`, `fullyParallel`; 148 tests). Software WebGL; set `PW_CHROMIUM`
+  to a Chromium binary where Playwright's is not installed. Tests drive the game through `window.__game` and
+  `window.__manual`.
+- The browser files, one a system: `core-run`, `pickups-and-loot`, `spells`, `statuses-and-reactions`, `runes`,
+  `artifacts`, `mage-look`, `potions-and-alchemy`, `foes-floor1` to `foes-floor5`, `foes-common`, `bosses`, `rooms`,
+  `special-rooms`, `progression`, `vigil`, `ui-and-input`, `audio`, `room-kit`, `look-and-assets` (each `.spec.ts`).
+  A new test goes in its system's file; a title says what is tested, never a milestone, a date or a doc.
+- `tests/e2e/helpers.ts`: `start(page, query)` (collects console errors, sets `__manual` and the seeded `Math.random`,
+  adds `?autolevel=skip`, waits for the title and the rigged hero, presses Start, installs the auto-player `__fight`),
+  `SEEDED_RANDOM`, the views of `__game` the tests read (`GameHooks`, `RoomView`, `Foe`, `W`) and the hook types several
+  files share (`G5` to `G14`, `GP`, ...).
+- Deterministic: `start()` replaces `Math.random` in the test browser with a fixed stream before the page loads (the
+  game keeps it unseeded for combat and visual jitter), and every test names its `?seed=`, so a test plays out the same on
+  every run. A test finds a room by what it is (`?room=<template>`, a room's `type`, its `plan.templateId`), never by a
+  seed's layout. Where a test checks what a chance does, it forces the chance (`dropsAlways`, `pairsAlways`,
+  `runesAlways`, `reagentsAlways`) instead of hoping for it. A test that passes by luck is a bug in the test.
+- The fast suite: about 20 light tests tagged `@fast` (`test(title, { tag: '@fast' }, ...)`), one or two a system;
+  `npm run test:fast` runs them, about a minute and a half with two workers. Keep it under 3 minutes.
+- Cadence (CI): every push to any branch runs `build`, `lint` and the fast suite (`e2e-fast`); a pull request runs the
+  full suite in three shards (`e2e`); `nightly.yml` runs the full suite on `main` every night and opens the issue
+  "Nightly e2e failed" (or comments on the open one) when it goes red. The Pages deploy waits for `build` only.
 - Fixtures: `tests/fixtures/assets/` (`?assets=/tests/fixtures/assets/assets.json`).
 - Verify a change in the browser before calling it done (Playwright screenshots are fine).
 
