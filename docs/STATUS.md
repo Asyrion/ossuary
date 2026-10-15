@@ -28,7 +28,8 @@ townspeople (M7 steps 1 to 9).
 
 ## Waiting on the owner
 
-- Nothing blocking. Open design questions are gathered in the reset plan's phases as they come up.
+- R3 step 2, the proof: run by the owner in a local session (Tripo CLI, Blender) from `docs/HANDOFF-R3-proof.md` on the
+  branch `r3-art-bible`. The art bible and the proof go to `main` together.
 
 ## Known issues carried into the reset
 
