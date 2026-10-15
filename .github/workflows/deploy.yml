@@ -1,9 +1,10 @@
 name: Test and deploy to GitHub Pages
 
-# a push (to any branch) runs the fast browser suite, a pull request the full one in shards; the full suite also runs
-# nightly on main (nightly.yml)
+# a push to main runs the fast browser suite, a pull request the full one in shards; the full suite also runs nightly
+# on main (nightly.yml). Other branches are tested by their pull request, so a push there doesn't run everything twice
 on:
   push:
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -58,7 +59,8 @@ jobs:
       - name: Lint
         run: npm run lint
 
-  # the browser tests tagged @fast (npm run test:fast), on every push: a quick watch on each step, beside the build
+  # the browser tests tagged @fast (npm run test:fast), on a push to main: a quick watch on what goes live, beside the
+  # build
   e2e-fast:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest

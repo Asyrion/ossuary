@@ -18,7 +18,7 @@ cleaning, the look and the story.
 | R4 The story | Waits for R3's art bible; holds M7 steps 10 to 13 |
 | R5 The vertical slice | Last |
 
-**Next:** R2's done-when check: a week of CI (the fast suite on every push, the full one nightly) without a flake fix.
+**Next:** R2's done-when check: a week of CI (the full suite on every PR and nightly, the fast one on `main`) without a flake fix.
 Then R3, the look.
 
 ## What is live
