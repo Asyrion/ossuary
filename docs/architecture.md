@@ -881,7 +881,7 @@ deploy waits for `build` only.
   every run. A test finds a room by what it is (`?room=<template>`, a room's `type`, its `plan.templateId`), never by a
   seed's layout. Where a test checks what a chance does, it forces the chance (`dropsAlways`, `pairsAlways`,
   `runesAlways`, `reagentsAlways`) instead of hoping for it. A test that passes by luck is a bug in the test.
-- The fast suite: about 20 light tests tagged `@fast` (`test(title, { tag: '@fast' }, ...)`), one or two a system;
+- The fast suite: 22 light tests tagged `@fast` (`test(title, { tag: '@fast' }, ...)`), one or two a system;
   `npm run test:fast` runs them, about a minute and a half with two workers. Keep it under 3 minutes.
 - Cadence (CI): a pull request runs `build`, `lint` and the full suite in three shards (`e2e`); a push to `main` runs
   `build`, `lint` and the fast suite (`e2e-fast`); `nightly.yml` runs the full suite on `main` every night and opens the issue

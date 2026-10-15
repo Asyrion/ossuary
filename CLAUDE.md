@@ -32,11 +32,9 @@ systems, only cleaning, the look and the story.
   system, fully parallel, about 11 minutes), `npm run test:fast` (the 22 tagged `@fast`, under 2 minutes), `npm test`
   unit and e2e. In a cloud session set `PW_CHROMIUM=/opt/pw-browsers/chromium` for every Playwright run and for
   `npm run inspect`, `foe-sheet` and `balance` (those three need the dev server running).
-- Browser tests are deterministic: `start()` seeds `Math.random`, every test names its `?seed=`, rooms are found by what
-  they are (docs/architecture.md, Testing).
 - CI (`.github/workflows/deploy.yml`): a PR runs `build` (typecheck, unit tests, build), `lint` and the full suite in
-  three `e2e` shards; a push to `main` runs `build`, `lint` and the fast suite; `nightly.yml` runs the full suite on
-  `main` each night and opens an issue when it fails. On `main` the Pages deploy waits for `build` only. A PR takes about 7 minutes, a merge is live 2 minutes later.
+  three `e2e` shards (about 7 minutes); a push to `main` runs those two and the fast suite, and the Pages deploy waits
+  for `build` only (live 2 minutes later); `nightly.yml` runs the full suite on `main` and opens an issue if it fails.
 - Other tools: `npm run` lists them; `docs/architecture.md`, Tools, says what each is for.
 
 ## Code map
@@ -113,7 +111,8 @@ These were found by testing real Tripo exports; keep their behaviour (`src/actor
 - Under `window.__manual` (the browser tests) the camera moves only when a frame is drawn: call `__game.sim(t, true)` before
   projecting to the screen. `start(page, query)` in the tests adds `autolevel=skip`.
 - Browser tests find rooms by what they hold, never by a seed's layout, and never depend on a random roll (a test that
-  passes by luck is a bug in the test). Never skip or quarantine a test to get green.
+  passes by luck is a bug in the test); `start()` seeds `Math.random` and every test names its `?seed=`. Never skip or
+  quarantine a test to get green.
 - A one-line object literal can't hold a `//` comment; use `/* */`.
 - What reads at play distance under the 45° camera: dark bodies with bright emissive features; shapes that stick out
   sideways. Pale bodies wash out, and detail on a forward face is lost.

@@ -166,7 +166,7 @@ Small steps, each one green in CI, none changing how the game plays.
    (*Built 2026-10-14*: in `src/`, `tools/`, `tests/`, the data's `_comment` fields, `index.html` and `style.css`;
    every file prints the same code with its comments stripped. Test titles change with step 6.)
 6. **Tests that hold:** `smoke.spec.ts` split by system into files; a fast suite (about 20 tests, under 3 minutes) on
-   every push and the full suite nightly; tests find rooms by what they hold, never by a seed's layout; the big files
+   every push (as built: pushes to `main`) and the full suite nightly; tests find rooms by what they hold, never by a seed's layout; the big files
    (`bestiaryFoes.ts` 1,498 lines) split by floor as the looks already are.
    (*Built 2026-10-15*: `smoke.spec.ts` (12,861 lines) is 23 files by system and `helpers.ts`, moved by a script, the
    same 148 tests; titles say what they test (77 browser and 48 unit titles lost their milestones, dates and doc paths;

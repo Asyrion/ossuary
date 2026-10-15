@@ -867,7 +867,8 @@ export function installHooks() {
         };
       else Reflect.deleteProperty(drops, 'chance'); // (the stream's own again)
     },
-    /** Every fight of this floor that can roll a pair rolls one (the floor's pair chance at 1; this floor built again). */
+    /** Every fight of this floor that can roll a pair rolls one (the floor's pair chance at 1; this floor built again).
+     *  It changes the shared FLOORS table until turned off, so a test that turns it on turns it off or ends its page. */
     pairsAlways: (on: boolean) => {
       const table = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].pairs;
       if (!table) return;
