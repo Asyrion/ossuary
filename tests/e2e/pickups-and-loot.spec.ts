@@ -35,7 +35,7 @@ test('obols, bone keys and glyph stones are picked up, and obols drift to the ma
 });
 
 test('a blast glyph flares, hurts foes and the mage, breaks rocks, and bolts set glyphs off', async ({ page }) => {
-  const errors = await start(page, '?room=crypt_a&loot=glyphs:4');
+  const errors = await start(page, '?room=crypt_a&loot=glyphs:4&seed=PICK1');
   type Rock = { x: number; z: number; breakable: boolean };
   type G3 = GameHooks & {
     player: GameHooks['player'] & { glyphs: number; invuln: number; vx: number; vz: number };
@@ -240,7 +240,7 @@ test('urns break to bolts, sealed urns only to a blast; coffers open, warded che
 test('mana vials: loot gives an obol instead while the mage knows no spell; a vial or heart left lying at full says why, once', async ({
   page,
 }) => {
-  const errors = await start(page, '?room=treasure_plain');
+  const errors = await start(page, '?room=treasure_plain&seed=PICK2');
   type G7 = {
     warp(id: number): void;
     sim(sec: number): void;

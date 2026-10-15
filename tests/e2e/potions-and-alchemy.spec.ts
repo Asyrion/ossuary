@@ -153,7 +153,7 @@ test("potions drunk and thrown: each drink does its own and shows a chip while i
       (g as unknown as { souls: string[] }).souls.length,
       (g as unknown as { insight: { insight: number } }).insight.insight - ins,
     ];
-    g.warp(1);
+    g.warp(g.rooms().find((q) => q.plan.id !== g.current.plan.id)!.plan.id); // (any other room: the Giant's Brew wears off in the next)
     g.sim(0.6);
     out.shrunk = g.potionFx.scale;
     return out;

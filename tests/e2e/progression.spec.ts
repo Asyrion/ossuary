@@ -88,7 +88,7 @@ test("insight and levels: a foe put to rest pays its purse as a streak to the ha
   expect(got.badge).toBe(String(got.after.level));
   expect(got.strip).toMatch(/scaleX\(0\.0/);
   // a potion's first use and the Grave Draught's sip; the end screen says the level reached
-  errors.push(...(await start(page, '?room=library_plain&potions=graveDraught,healing&level=5')));
+  errors.push(...(await start(page, '?room=library_plain&potions=graveDraught,healing&level=5&seed=PROG1')));
   const potions = await page.evaluate(() => {
     const g = (window as unknown as { __game: GI }).__game;
     g.sim(0.3);

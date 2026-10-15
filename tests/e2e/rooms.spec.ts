@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { type RoomView, type GameHooks, type W, start, type G5 } from './helpers';
 
 test('an ordeal is fought wave by wave and rewards an artifact', async ({ page }) => {
-  const errors = await start(page, '?room=ordeal_pillars');
+  const errors = await start(page, '?room=ordeal_pillars&seed=ROOM1');
   const result = await page.evaluate(() => {
     const w = window as unknown as W;
     const g = w.__game as GameHooks & { current: RoomView & { waves: unknown[]; wave: number; spots: unknown[] } };
@@ -74,7 +74,7 @@ test('a cracked wall rings hollow to a bolt, a glyph breaks it open, and the sec
 });
 
 test("carved rooms: x tiles inside the shape are wall the mage can't walk into", async ({ page }) => {
-  const errors = await start(page, '?room=octagon_crypt');
+  const errors = await start(page, '?room=octagon_crypt&seed=ROOM2');
   const result = await page.evaluate(() => {
     const g = (window as unknown as W).__game as unknown as {
       warp(id: number): void;
@@ -117,7 +117,7 @@ test("carved rooms: x tiles inside the shape are wall the mage can't walk into",
 test('objects: bolts break piles and casks (oil spills), pews stop walking not bolts, fire burns roots, webs slow, briars sting, spores flash, blasts clear rubble', async ({
   page,
 }) => {
-  const errors = await start(page, '?room=treasure_plain&loot=glyphs:3');
+  const errors = await start(page, '?room=treasure_plain&loot=glyphs:3&seed=ROOM3');
   type P = { kind: string; x: number; z: number; burning: number; hits: number };
   type G5 = {
     warp(id: number): void;
@@ -273,7 +273,7 @@ test("themed rooms: sleepers wake when the mage comes close, the ossuary's bones
     current: { cx: number; cz: number; theme?: { id: string }; bounds: { minX: number; minZ: number } };
     player: { x: number; z: number; invuln: number; hp: number; maxHp: number };
   };
-  let errors = await start(page, '?room=pilgrims_rest');
+  let errors = await start(page, '?room=pilgrims_rest&seed=ROOM4');
   const sleepers = await page.evaluate(() => {
     const g = (window as unknown as { __game: G6 }).__game;
     g.warp(1);
@@ -297,7 +297,7 @@ test("themed rooms: sleepers wake when the mage comes close, the ossuary's bones
   expect(sleepers.count).toBeGreaterThan(1);
   expect(errors).toEqual([]);
 
-  errors = await start(page, '?room=ossuary_niches');
+  errors = await start(page, '?room=ossuary_niches&seed=ROOM5');
   const risen = await page.evaluate(() => {
     const g = (window as unknown as { __game: G6 }).__game;
     g.warp(1);
@@ -332,7 +332,7 @@ test("themed rooms: sleepers wake when the mage comes close, the ossuary's bones
   expect(eyes).toEqual({ before: '000000', cast: true, after: '9fd8ff' });
   expect(errors).toEqual([]);
 
-  errors = await start(page, '?room=collapsed_crypt&loot=glyphs:3');
+  errors = await start(page, '?room=collapsed_crypt&loot=glyphs:3&seed=ROOM6');
   await page.evaluate(() => {
     const g = (window as unknown as { __game: G6 }).__game;
     g.warp(1);
@@ -454,7 +454,7 @@ test("themed rooms: the treasury's guardians stand as statues until their gold i
 });
 
 test('room variants: ambush, champion, dark and quiet', async ({ page }) => {
-  const errors = await start(page, '?room=crypt_b&variant=ambush');
+  const errors = await start(page, '?room=crypt_b&variant=ambush&seed=ROOM7');
   const result = await page.evaluate(() => {
     type E = { champion?: boolean; mantle?: string; type: string; maxHp: number; x: number; z: number };
     type Rm = { locked: boolean; ambush?: string; torches: { lit: boolean }[]; waves: { role: string }[][] };
@@ -481,18 +481,18 @@ test('room variants: ambush, champion, dark and quiet', async ({ page }) => {
       nearest: Math.min(...g.enemies.map((e) => Math.hypot(e.x - g.player.x, e.z - g.player.z))),
     };
     // champion: one enemy with double health
-    g.startGame({ testTemplate: 'crypt_b', testVariant: 'champion' });
+    g.startGame({ seed: 'ROOM7B', testTemplate: 'crypt_b', testVariant: 'champion' });
     g.warp(1);
     g.sim(0.2);
     const champ = g.enemies.filter((e) => e.champion),
       peer = g.enemies.find((e) => !e.champion && e.type === champ[0]?.type);
     // dark: torches out, the fill light low
-    g.startGame({ testTemplate: 'crypt_b', testVariant: 'dark' });
+    g.startGame({ seed: 'ROOM7C', testTemplate: 'crypt_b', testVariant: 'dark' });
     g.warp(1);
     g.sim(2);
     const light = g.lightLevels();
     // quiet: at most two weak enemies
-    g.startGame({ testTemplate: 'crypt_c', testVariant: 'quiet' });
+    g.startGame({ seed: 'ROOM7D', testTemplate: 'crypt_c', testVariant: 'quiet' });
     g.warp(1);
     g.sim(0.2);
     return {
@@ -548,7 +548,7 @@ test('mechanisms: a lit brazier sets bolts alight, runes take a school, bells st
     pools: { kind: string; state: string }[];
     player: { x: number; z: number; vx: number; vz: number; hp: number; maxHp: number; invuln: number };
   };
-  let errors = await start(page, '?room=treasure_plain');
+  let errors = await start(page, '?room=treasure_plain&seed=ROOM8');
   const result = await page.evaluate(() => {
     const g = (window as unknown as { __game: G7 }).__game;
     const at = (c: number, r: number) => ({ x: g.current.bounds.minX + c + 0.5, z: g.current.bounds.minZ + r + 0.5 });
@@ -667,7 +667,7 @@ test('mechanisms: a lit brazier sets bolts alight, runes take a school, bells st
   expect(errors).toEqual([]);
 
   // a charged rune stone pulses its school on the foes round it while the fight lasts
-  errors = await start(page, '?room=rune_circle');
+  errors = await start(page, '?room=rune_circle&seed=ROOM9');
   const pulse = await page.evaluate(() => {
     const g = (window as unknown as { __game: G7 }).__game;
     g.warp(1);
@@ -994,7 +994,7 @@ test("candle stands: all lit, a reliquary opens with its hoard and a chapel bles
       stats: { speed: number };
     };
   };
-  let errors = await start(page, '?room=reliquary_gallery&variant=dark');
+  let errors = await start(page, '?room=reliquary_gallery&variant=dark&seed=ROOM10');
   const reliquary = await page.evaluate(() => {
     const g = (window as unknown as { __game: G8 & { lightLevels(): { hemi: number } } }).__game;
     g.warp(1);
@@ -1030,7 +1030,7 @@ test("candle stands: all lit, a reliquary opens with its hoard and a chapel bles
   expect(errors).toEqual([]);
 
   // a glyph's blast knocks the one dark stand over in burning wax; the others are lit, so the reliquary opens
-  errors = await start(page, '?room=reliquary_gallery&loot=glyphs:1');
+  errors = await start(page, '?room=reliquary_gallery&loot=glyphs:1&seed=ROOM11');
   await page.evaluate(() => {
     const g = (window as unknown as { __game: G8 }).__game;
     g.warp(1);
@@ -1058,7 +1058,7 @@ test("candle stands: all lit, a reliquary opens with its hoard and a chapel bles
   expect(errors).toEqual([]);
 
   // with every stand knocked over, nothing holds the seal: the reliquary breaks open (and nothing else happens)
-  errors = await start(page, '?room=reliquary_gallery&variant=dark&loot=glyphs:4');
+  errors = await start(page, '?room=reliquary_gallery&variant=dark&loot=glyphs:4&seed=ROOM12');
   const spots = await page.evaluate(() => {
     const g = (window as unknown as { __game: G8 }).__game;
     g.warp(1);
@@ -1097,7 +1097,7 @@ test("candle stands: all lit, a reliquary opens with its hoard and a chapel bles
   expect(bare).toEqual({ stands: 0, opened: true, lit: false });
   expect(errors).toEqual([]);
 
-  errors = await start(page, '?room=chapel_nave');
+  errors = await start(page, '?room=chapel_nave&seed=ROOM13');
   const blessing = await page.evaluate(() => {
     const g = (window as unknown as { __game: G8 }).__game;
     g.warp(1);
@@ -1120,7 +1120,7 @@ test("candle stands: all lit, a reliquary opens with its hoard and a chapel bles
   expect(blessing).toEqual({ blessed: 6, toast: 'The candles bless your next 6 casts', after: 5 });
   expect(errors).toEqual([]);
 
-  errors = await start(page, '?room=mausoleum_tombs');
+  errors = await start(page, '?room=mausoleum_tombs&seed=ROOM14');
   const rime = await page.evaluate(() => {
     const g = (window as unknown as { __game: G8 }).__game;
     g.warp(1);
@@ -1171,7 +1171,7 @@ test("candle stands: all lit, a reliquary opens with its hoard and a chapel bles
   expect(errors).toEqual([]);
 
   // its water is ice, until fire finds it
-  errors = await start(page, '?room=mausoleum_hall');
+  errors = await start(page, '?room=mausoleum_hall&seed=ROOM15');
   const ice = await page.evaluate(() => {
     const g = (
       window as unknown as {

@@ -16,7 +16,7 @@ test('foes in code: the Sporeling fills the fights, hops, swells and puffs spore
     enemies: Foe[];
     current: { spores?: { x: number; z: number; sting?: number }[] };
   };
-  const errors = await start(page, '?seed=K3F9QX&foe=sporeling');
+  const errors = await start(page, '?seed=K3F9QX&room=corridor_tombs&variant=quiet&foe=sporeling');
   const r = await page.evaluate(() => {
     const g = (window as unknown as { __game: GS }).__game;
     g.forgetBestiary();
@@ -108,7 +108,7 @@ test("foes in code: floor 1's moth loops, scatters light and is lured by a lit b
     current: { cx: number; cz: number; rocks: { x: number; z: number; urn?: string }[] };
   };
   // the moth
-  const errors = await start(page, '?seed=K3F9QX&foe=vesperMoth');
+  const errors = await start(page, '?seed=K3F9QX&room=corridor_tombs&variant=quiet&foe=vesperMoth');
   const moth = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 60;
@@ -154,7 +154,7 @@ test("foes in code: floor 1's moth loops, scatters light and is lured by a lit b
   expect(moth.near).toBeGreaterThan(0);
   expect(moth.burned).toBe(true);
   // the beetle
-  const e2 = await start(page, '?seed=K3F9QX&foe=runeBeetle');
+  const e2 = await start(page, '?seed=K3F9QX&room=corridor_tombs&variant=quiet&foe=runeBeetle');
   const beetle = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 60;
@@ -252,7 +252,7 @@ test('the bestiary, floor 1: the spider drops from out of reach and spits webs t
     shots: unknown[];
   };
   // the spider: out of reach while it hangs, then down, webbing the floor; fire burns the webs
-  const e1 = await start(page, '?seed=K3F9QX&floor=1&foe=cryptSpider');
+  const e1 = await start(page, '?seed=K3F9QX&room=corridor_tombs&variant=quiet&floor=1&foe=cryptSpider');
   const spider = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 99;
@@ -280,7 +280,7 @@ test('the bestiary, floor 1: the spider drops from out of reach and spits webs t
   expect(spider.webs).toBeGreaterThan(0);
   expect(spider.burnt).toBe(0);
   // the octopus: struck to half it splits in two smaller ones; chilled, it cracks instead
-  const e2 = await start(page, '?seed=K3F9QX&floor=1&foe=inkOctopus');
+  const e2 = await start(page, '?seed=K3F9QX&room=corridor_tombs&variant=quiet&floor=1&foe=inkOctopus');
   const octo = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.warp(1);
@@ -310,7 +310,7 @@ test('the bestiary, floor 1: the spider drops from out of reach and spits webs t
   expect(octo.ink).toBeGreaterThan(0);
   expect(octo.chilled).toBe(1);
   // the grimoire lies shut, turning half a blow; near it, it wakes and flies; the swarm comes whole, one blow each
-  const e3 = await start(page, '?seed=K3F9QX&floor=1');
+  const e3 = await start(page, '?seed=K3F9QX&room=corridor_tombs&variant=quiet&floor=1');
   const more = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 99;
@@ -347,7 +347,7 @@ test('the bestiary, floor 1: the spider drops from out of reach and spits webs t
   expect(more.after).toBe(more.n - 1);
   // the lark sings to the foes round it (not while hexed); the mantis parries a bolt at its front, not one from behind
   // nor while chilled; the crab hides as rubble, then a blast flips it
-  const e4 = await start(page, '?seed=K3F9QX&floor=1');
+  const e4 = await start(page, '?seed=K3F9QX&room=corridor_tombs&variant=quiet&floor=1');
   const last = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 99;

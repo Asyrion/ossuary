@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { type W, start, type G5, type G9, type G12 } from './helpers';
+import { type W, start, SEEDED_RANDOM, type G5, type G9, type G12 } from './helpers';
 
 test('the inventory lists what the mage carries and knows, in tabs, and describes the chosen entry', async ({
   page,
@@ -208,6 +208,7 @@ test('gamepads: every pad connected is read, so an idle one listed first hides n
     const mk = (index, id) => ({ index, id, connected: true, mapping: 'standard', timestamp: 0, axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, touched: false, value: 0 })) });
     window.__pads = [mk(0, 'Virtual pad'), mk(1, 'Xbox Elite Series 2 (STANDARD GAMEPAD Vendor: 045e Product: 0b00)')];
     Object.defineProperty(Navigator.prototype, 'getGamepads', { value: () => window.__pads, configurable: true });`);
+  await page.addInitScript(SEEDED_RANDOM);
   await page.goto('/?seed=PADS&level=2&autolevel=0&spells=static_mantle');
   await page.waitForFunction(() => !!(window as unknown as PW).__game, null, { timeout: 30_000 });
   const title = await page.evaluate(() => {

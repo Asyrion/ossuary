@@ -24,7 +24,7 @@ test("foes in code: floor 2's toad leaps and breathes cold that chills; the lurk
     current: { pools?: { kind: string; state: string }[] };
   };
   // the toad
-  const errors = await start(page, '?seed=K3F9QX&floor=2&foe=mireToad');
+  const errors = await start(page, '?seed=K3F9QX&room=garth_tree&variant=dark&floor=2&foe=mireToad');
   const toad = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 60;
@@ -65,7 +65,7 @@ test("foes in code: floor 2's toad leaps and breathes cold that chills; the lurk
   expect(toad.cold).toBeGreaterThanOrEqual(3);
   expect(toad.chilled).toBe(true);
   // the lurker
-  const e2 = await start(page, '?seed=K3F9QX&floor=2&foe=cisternLurker');
+  const e2 = await start(page, '?seed=K3F9QX&room=garth_tree&variant=dark&floor=2&foe=cisternLurker');
   const lurker = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 60;
@@ -105,7 +105,7 @@ test("foes in code: floor 2's toad leaps and breathes cold that chills; the lurk
   expect(lurker.trapped).toBe('trapped');
   expect(lurker.trappedHidden).toBe(false);
   // the jelly
-  const e3 = await start(page, '?seed=K3F9QX&floor=2&foe=lanternJelly');
+  const e3 = await start(page, '?seed=K3F9QX&room=garth_tree&variant=dark&floor=2&foe=lanternJelly');
   const jelly = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 60;

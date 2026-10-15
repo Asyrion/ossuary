@@ -17,7 +17,7 @@ export interface RoomView {
   locked: boolean;
   cx: number;
   cz: number;
-  plan: { id: number; shape: string };
+  plan: { id: number; shape: string; templateId: string };
   doors: { open: boolean }[];
 }
 
@@ -40,7 +40,12 @@ export interface GameHooks {
 
 export type W = { __game: GameHooks; __manual: boolean; __fight(limit: number, step?: number): number };
 
-/** Collect console errors, open the game and press Descend. */
+/** Math.random from a seed, started again by `window.__reseed()` (as `npm run inspect` does). The game keeps
+    Math.random unseeded for combat and visual jitter (src/rng.ts); the browser tests swap it before the page loads, so a
+    test plays out the same on every run and a pass never rests on a lucky roll. */
+export const SEEDED_RANDOM = `(() => { let s = 1; Math.random = () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; window.__reseed = () => { s = 1; }; })();`;
+
+/** Collect console errors, open the game with Math.random seeded and press Descend. */
 export async function start(page: Page, query: string) {
   const errors: string[] = [];
   page.on('console', (m) => {
@@ -50,6 +55,7 @@ export async function start(page: Page, query: string) {
   // the tests step the game themselves: no frames drawn in real time from the moment the page loads (with software
   // WebGL on a two-core runner, the title screen drawing flat out slowed every start down)
   await page.addInitScript('window.__manual = true');
+  await page.addInitScript(SEEDED_RANDOM);
   // (levels pass with nothing taken, so a fight cleared changes none of the mage's numbers, unless a test asks otherwise)
   await page.goto(
     '/' + query + (query.includes('autolevel') ? '' : (query.includes('?') ? '&' : '?') + 'autolevel=skip'),
@@ -184,10 +190,6 @@ export type G6 = G5 & {
   player: G5['player'] & { cleansed: string[]; stats: { damage: number; speed: number; effects: Set<string> } };
   current: G5['current'] & { shrine: { stones: { id: string; x: number; z: number }[] } };
 };
-
-/** Math.random from a seed, started again by `window.__reseed()` (as `npm run inspect` does): for a test whose outcome
-    hangs on the game's unseeded randomness, such as where the shrine's wisp flies. */
-export const SEEDED_RANDOM = `(() => { let s = 1; Math.random = () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; window.__reseed = () => { s = 1; }; })();`;
 
 /* Magic. */
 export type G9 = Omit<GameHooks, 'enemies'> & {

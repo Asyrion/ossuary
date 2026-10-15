@@ -4,7 +4,7 @@ import { type RoomView, type W, start } from './helpers';
 test("the Vigil as a place: the first waking is dark until its candle lights itself; three rooms with nothing to fight; the lectern puts learned spells in hand and keeps them; the six barred ways say what bars them and stir at their own school; no glyphs; the boat goes down to floor 1; a run's end and the title lead back to it", async ({
   page,
 }) => {
-  const errors = await start(page, '?vigil=first');
+  const errors = await start(page, '?vigil=first&seed=VIGL1');
   type VP = {
     here: boolean;
     room: string | null;
@@ -86,7 +86,7 @@ test("the Vigil as a place: the first waking is dark until its candle lights its
   // a barred way: walked up to, it says what bars it; struck by another school, it stirs and holds (its own opens it)
   const bar = await page.evaluate(() => {
     const g = (window as unknown as { __game: VG }).__game;
-    g.warp(1);
+    g.warp(g.rooms().find((r) => r.plan.templateId === 'vigil_nave')!.plan.id);
     g.sim(0.6);
     const b = g.vigilPlace.bars.find((x) => x.school === 'storm')!;
     g.player.x = b.x;
@@ -109,7 +109,7 @@ test("the Vigil as a place: the first waking is dark until its candle lights its
   // the boat: stepped into from the jetty, down to floor 1, empty-handed
   const down = await page.evaluate(() => {
     const g = (window as unknown as { __game: VG }).__game;
-    g.warp(2);
+    g.warp(g.rooms().find((r) => r.plan.templateId === 'vigil_landing')!.plan.id);
     g.sim(0.6);
     const b = g.vigilPlace.boat;
     g.player.x = b.x;
@@ -174,7 +174,7 @@ test("the Vigil as a place: the first waking is dark until its candle lights its
   });
   expect(back).toEqual({ here: true, room: 'crypt', first: false, candles: 1, spells: ['rime_shards', 'arc'] });
   // the title leads there, once a run has been played
-  await page.goto('/?autolevel=skip');
+  await page.goto('/?seed=VIGTTL&autolevel=skip');
   await page.waitForFunction(() => !!(window as unknown as W).__game, null, { timeout: 30_000 });
   expect(await page.textContent('#btnStart')).toBe('Wake at the Vigil');
   await page.click('#btnStart');
@@ -394,6 +394,7 @@ test('townspeople: the freed stand round the Nave, each with something to say; w
     choices?: string[];
   };
   type TG = {
+    rooms(): RoomView[];
     veteranSave(): void;
     toVigil(first?: boolean): void;
     sim(s: number, d?: boolean): void;
@@ -413,7 +414,7 @@ test('townspeople: the freed stand round the Nave, each with something to say; w
     closeTalk(): void;
     importSave(t: string): string[];
   };
-  const errors = await start(page, '?vigil=1');
+  const errors = await start(page, '?vigil=1&seed=VIGL2');
   const stood = await page.evaluate(() => {
     const g = (window as unknown as { __game: TG }).__game;
     g.veteranSave();
@@ -450,7 +451,7 @@ test('townspeople: the freed stand round the Nave, each with something to say; w
   // walking up to the scribe opens its talk, the line written out a little at a time while the game waits
   const met = await page.evaluate(() => {
     const g = (window as unknown as { __game: TG }).__game;
-    g.warp(1);
+    g.warp(g.rooms().find((r) => r.plan.templateId === 'vigil_nave')!.plan.id);
     g.sim(0.6);
     const f = g.town.figures.find((x) => x.id === 'scribe')!;
     g.player.x = f.x;
@@ -556,7 +557,7 @@ test('townspeople: the freed stand round the Nave, each with something to say; w
   // the Ferryman says his first line as the mage comes to the jetty, once
   const ferry = await page.evaluate(() => {
     const g = (window as unknown as { __game: TG }).__game;
-    g.warp(2);
+    g.warp(g.rooms().find((r) => r.plan.templateId === 'vigil_landing')!.plan.id);
     g.sim(0.6);
     const f = g.town.ferry!;
     g.player.x = f.x - 1.5;
@@ -618,7 +619,7 @@ test('gifts, bonds and powers: a talk ends with what can be offered; obols on th
     player: { stats: { maxMana: number }; mana: number; reagents: Record<string, number>; coins: number };
     current: { type: string };
   };
-  const errors = await start(page, '?vigil=1');
+  const errors = await start(page, '?vigil=1&seed=VIGL3');
   const talk = await page.evaluate(() => {
     const g = (window as unknown as { __game: GG }).__game;
     g.veteranSave();
@@ -714,6 +715,7 @@ test('the unfolding: the six ways stay walled until their school lands on them (
 }) => {
   type Bar = { school: string; x: number; z: number; open: boolean };
   type UG = {
+    rooms(): RoomView[];
     veteranSave(): void;
     setParts(s: string[]): void;
     toVigil(first?: boolean): void;
@@ -740,7 +742,7 @@ test('the unfolding: the six ways stay walled until their school lands on them (
     takeBoat(): void;
     run: { blessing: string | null };
   };
-  const errors = await start(page, '?vigil=1');
+  const errors = await start(page, '?vigil=1&seed=VIGL4');
   // every way walled: walking north into the frozen stair, the mage stays in the Nave
   const walled = await page.evaluate(() => {
     const g = (window as unknown as { __game: UG }).__game;
@@ -748,7 +750,7 @@ test('the unfolding: the six ways stay walled until their school lands on them (
     g.setParts([]);
     g.toVigil(false);
     g.sim(1);
-    g.warp(1);
+    g.warp(g.rooms().find((r) => r.plan.templateId === 'vigil_nave')!.plan.id);
     g.sim(0.6);
     const ember = g.vigilPlace.bars.find((b) => b.school === 'ember')!;
     g.player.x = ember.x;
@@ -785,7 +787,7 @@ test('the unfolding: the six ways stay walled until their school lands on them (
   // a spell of its school opens another: Rime Shards cast at the cellar stair under black water
   const frost = await page.evaluate(() => {
     const g = (window as unknown as { __game: UG }).__game;
-    g.warp(2);
+    g.warp(g.rooms().find((r) => r.plan.templateId === 'vigil_landing')!.plan.id);
     g.sim(0.6);
     const bar = g.vigilPlace.bars.find((b) => b.school === 'frost')!;
     g.learn('rime_shards', 0);
@@ -813,7 +815,7 @@ test('the unfolding: the six ways stay walled until their school lands on them (
   const chapel = await page.evaluate(() => {
     const g = (window as unknown as { __game: UG & { openPart(s: string): void } }).__game;
     g.openPart('hallow');
-    g.warp(4);
+    g.warp(g.rooms().find((r) => r.plan.templateId === 'vigil_chapel')!.plan.id);
     g.sim(0.6);
     const at = (id: string) => g.unfold.candles!.find((c) => c.id === id)!;
     const walkTo = (id: string) => {
@@ -844,7 +846,7 @@ test('the unfolding: the six ways stay walled until their school lands on them (
   const garden = await page.evaluate(() => {
     const g = (window as unknown as { __game: UG & { openPart(s: string): void } }).__game;
     g.openPart('verdant');
-    g.warp(7);
+    g.warp(g.rooms().find((r) => r.plan.templateId === 'vigil_garden')!.plan.id);
     g.sim(0.6);
     const b = g.unfold.beds!.find((x) => x.id === 'emberSalt')!;
     g.player.x = b.x;
