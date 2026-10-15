@@ -3,53 +3,57 @@ import { readFileSync } from 'node:fs';
 import { type Foe, type RoomView, type GameHooks, type W, start } from './helpers';
 
 for (const boss of ['abbess', 'pyre'])
-  test(`the ${boss} boss, built in code, dives or leaps out of reach and can be beaten`, async ({ page }) => {
-    const errors = await start(page, `?room=boss_open&boss=${boss}&seed=BOSS1`);
-    const result = await page.evaluate(() => {
-      const w = window as unknown as W,
-        g = w.__game;
-      g.warp(1);
-      const foe = g.enemies.find((e) => e.isBoss) as Foe & {
-        type: string;
-        state: string;
-        hidden?: boolean;
-        bossSchool?: string;
-        bossAff?: { weak: string; resist: string };
-        parts?: Record<string, unknown>;
-      };
-      const look = { school: foe.bossSchool, aff: foe.bossAff, parts: Object.keys(foe.parts ?? {}).length > 5 };
-      const states = new Set<string>();
-      let hidden = false,
-        seconds = 0;
-      for (; seconds < 240 && g.enemies.length; seconds += 0.25) {
-        w.__fight(0.25);
-        states.add(foe.state);
-        hidden ||= !!foe.hidden;
-      }
-      g.sim(0.5);
-      const spots = (g.current as RoomView & { spots: unknown[] }).spots;
-      return {
-        type: foe.type,
-        look,
-        seconds,
-        states: [...states],
-        hidden,
-        left: g.enemies.length,
-        cleared: g.current.cleared,
-        choice: spots.length,
-      };
-    });
-    console.log(
-      `${boss} beaten in ${result.seconds.toFixed(1)} s of game time; states seen: ${result.states.join(', ')}`,
-    );
-    expect(result).toMatchObject({ type: boss, hidden: true, left: 0, cleared: true, choice: 2 });
-    expect(result.look).toEqual(
-      boss === 'abbess'
-        ? { school: 'frost', aff: { weak: 'storm', resist: 'frost' }, parts: true }
-        : { school: 'ember', aff: { weak: 'frost', resist: 'ember' }, parts: true },
-    );
-    expect(errors).toEqual([]);
-  });
+  test(
+    `the ${boss} boss, built in code, dives or leaps out of reach and can be beaten`,
+    { tag: boss === 'abbess' ? ['@fast'] : [] },
+    async ({ page }) => {
+      const errors = await start(page, `?room=boss_open&boss=${boss}&seed=BOSS1`);
+      const result = await page.evaluate(() => {
+        const w = window as unknown as W,
+          g = w.__game;
+        g.warp(1);
+        const foe = g.enemies.find((e) => e.isBoss) as Foe & {
+          type: string;
+          state: string;
+          hidden?: boolean;
+          bossSchool?: string;
+          bossAff?: { weak: string; resist: string };
+          parts?: Record<string, unknown>;
+        };
+        const look = { school: foe.bossSchool, aff: foe.bossAff, parts: Object.keys(foe.parts ?? {}).length > 5 };
+        const states = new Set<string>();
+        let hidden = false,
+          seconds = 0;
+        for (; seconds < 240 && g.enemies.length; seconds += 0.25) {
+          w.__fight(0.25);
+          states.add(foe.state);
+          hidden ||= !!foe.hidden;
+        }
+        g.sim(0.5);
+        const spots = (g.current as RoomView & { spots: unknown[] }).spots;
+        return {
+          type: foe.type,
+          look,
+          seconds,
+          states: [...states],
+          hidden,
+          left: g.enemies.length,
+          cleared: g.current.cleared,
+          choice: spots.length,
+        };
+      });
+      console.log(
+        `${boss} beaten in ${result.seconds.toFixed(1)} s of game time; states seen: ${result.states.join(', ')}`,
+      );
+      expect(result).toMatchObject({ type: boss, hidden: true, left: 0, cleared: true, choice: 2 });
+      expect(result.look).toEqual(
+        boss === 'abbess'
+          ? { school: 'frost', aff: { weak: 'storm', resist: 'frost' }, parts: true }
+          : { school: 'ember', aff: { weak: 'frost', resist: 'ember' }, parts: true },
+      );
+      expect(errors).toEqual([]);
+    },
+  );
 
 for (const boss of ['hart', 'angler'])
   test(`the ${boss === 'hart' ? 'Hallowed Hart' : 'Deep Angler'}, built in code, fights as it should and can be beaten`, async ({
@@ -537,27 +541,28 @@ test("the Hollow Warden wears the Owlbear, its shots in Hallow's light, and can 
   expect(errors).toEqual([]);
 });
 
-test("the Seal: floor 5 has its waystone room and leads down to the Seal, a level of three rooms; Kaelith speaks on arrival; the Last Hall's two waves come from every floor; its boss's fall opens the way out, and taking it wins the run", async ({
-  page,
-}) => {
-  const errors = await start(page, '?floor=5&seed=SEAL1');
-  const five = await page.evaluate<{ floor: number; stone: boolean }>(
-    `(() => { const g = window.__game; return { floor: g.floor, stone: g.rooms().some(r => r.type === 'waystone') }; })()`,
-  );
-  expect(five).toEqual({ floor: 4, stone: true }); // (floor 5's boss has a waystone room before the way down)
-  const r = await page.evaluate<{
-    arrive: { floor: number; banner: string; rooms: string[]; said: string; look: string };
-    hall: string;
-    kinds: string[];
-    waves: string;
-    cleared: boolean;
-    boss: string;
-    out: string;
-    kind: string;
-    stepped: string;
-    state: string;
-    end: string;
-  }>(`(() => {
+test(
+  "the Seal: floor 5 has its waystone room and leads down to the Seal, a level of three rooms; Kaelith speaks on arrival; the Last Hall's two waves come from every floor; its boss's fall opens the way out, and taking it wins the run",
+  { tag: '@fast' },
+  async ({ page }) => {
+    const errors = await start(page, '?floor=5&seed=SEAL1');
+    const five = await page.evaluate<{ floor: number; stone: boolean }>(
+      `(() => { const g = window.__game; return { floor: g.floor, stone: g.rooms().some(r => r.type === 'waystone') }; })()`,
+    );
+    expect(five).toEqual({ floor: 4, stone: true }); // (floor 5's boss has a waystone room before the way down)
+    const r = await page.evaluate<{
+      arrive: { floor: number; banner: string; rooms: string[]; said: string; look: string };
+      hall: string;
+      kinds: string[];
+      waves: string;
+      cleared: boolean;
+      boss: string;
+      out: string;
+      kind: string;
+      stepped: string;
+      state: string;
+      end: string;
+    }>(`(() => {
     const g = window.__game, P = g.player; P.invuln = 999; g.descend(); g.sim(.1);
     const said = new Set(); for (let t = 0; t < 30; t++) { said.add(document.getElementById('toast').textContent); g.sim(.25); }
     const arrive = { floor: g.floor, banner: document.querySelector('#banner .t').textContent, rooms: g.rooms().map(r => r.type + ':' + r.plan.shape), map: g.map(), said: [...said].join(' | '), look: g.current.look?.name };
@@ -577,23 +582,24 @@ test("the Seal: floor 5 has its waystone room and leads down to the Seal, a leve
     g.sim(7);
     return { arrive, hall: [...hall].join(' | '), kinds: [...kinds], waves, cleared, boss, out: out.room, kind: out.kind, stepped, state: g.state, end: document.getElementById('endTitle').textContent };
   })()`);
-  expect(r.arrive).toMatchObject({
-    floor: 5,
-    banner: 'The Seal',
-    rooms: ['start:standard', 'ordeal:great', 'boss:great'],
-    look: 'seal',
-  });
-  expect(r.arrive.said).toContain('Kaelith: "Go back up, mage.');
-  expect(r.hall).toContain('The horde presses against the seal');
-  expect(r.waves).toBe('2:2');
-  expect(r.cleared).toBe(true);
-  const FOES = JSON.parse(readFileSync('data/foes.json', 'utf8')) as Record<string, { floor: number }>;
-  expect(new Set(r.kinds.map((k) => FOES[k]?.floor)).size).toBeGreaterThanOrEqual(2); // (the horde from every floor)
-  expect(r.boss).toBe('kaelith');
-  expect(r.out).toBe('boss'); // (Kaelith, the Seal's boss)
-  expect(r).toMatchObject({ kind: 'shaft', stepped: 'daylight', state: 'end', end: 'Into the daylight' }); // (its way out is daylight, then the run is won)
-  expect(errors).toEqual([]);
-});
+    expect(r.arrive).toMatchObject({
+      floor: 5,
+      banner: 'The Seal',
+      rooms: ['start:standard', 'ordeal:great', 'boss:great'],
+      look: 'seal',
+    });
+    expect(r.arrive.said).toContain('Kaelith: "Go back up, mage.');
+    expect(r.hall).toContain('The horde presses against the seal');
+    expect(r.waves).toBe('2:2');
+    expect(r.cleared).toBe(true);
+    const FOES = JSON.parse(readFileSync('data/foes.json', 'utf8')) as Record<string, { floor: number }>;
+    expect(new Set(r.kinds.map((k) => FOES[k]?.floor)).size).toBeGreaterThanOrEqual(2); // (the horde from every floor)
+    expect(r.boss).toBe('kaelith');
+    expect(r.out).toBe('boss'); // (Kaelith, the Seal's boss)
+    expect(r).toMatchObject({ kind: 'shaft', stepped: 'daylight', state: 'end', end: 'Into the daylight' }); // (its way out is daylight, then the run is won)
+    expect(errors).toEqual([]);
+  },
+);
 
 test('Kaelith: the Sentinel stalks, sweeps, fires and steps through shadow; at two thirds the seal cracks, four wards wake in the schools the mage holds and the horde comes out, and with all four shut it reels open; at a third the last light falls and the black sun draws the mage in, but not beside a lit candle; it kneels, and the way out wins the run', async ({
   page,

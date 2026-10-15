@@ -1,78 +1,80 @@
 import { expect, test } from '@playwright/test';
 import { type Foe, type GameHooks, type W, start, type G10, type G13 } from './helpers';
 
-test('statuses: chill freezes and stops a foe, Shatter and Overload go off, bosses never freeze, the dummy never falls', async ({
-  page,
-}) => {
-  const errors = await start(page, '?room=treasure_plain&seed=STAT1&spells=arc');
-  const frozen = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as unknown as G10,
-      P = g.player;
-    g.warp(1);
-    g.sim(0.3);
-    const foe = g.spawn('rotling', P.x, P.z - 3);
-    g.sim(0.8);
-    for (let i = 0; i < 3; i++) g.inflict({ chill: 1 });
-    const at = { x: foe.x, z: foe.z },
-      hp = P.hp;
-    g.sim(1);
-    return { frozen: (foe.status?.frozen ?? 0) > 0, moved: Math.hypot(foe.x - at.x, foe.z - at.z), hurt: hp - P.hp };
-  });
-  expect(frozen).toEqual({ frozen: true, moved: 0, hurt: 0 });
-  // Shatter: Arc's shock on the frozen foe
-  const shatter = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as unknown as G10,
-      foe = g.enemies[0],
-      hp = foe.hp;
-    g.cast(0, { x: 0, z: -1 });
-    g.sim(0.05);
-    return { frozen: (foe.status?.frozen ?? 0) > 0, damage: hp - Math.max(0, foe.hp), dead: !!foe.dead };
-  });
-  expect(shatter.frozen).toBe(false);
-  expect(shatter.damage >= 9 || shatter.dead).toBe(true); // Arc (cracked ice: ×1.5) and the shatter's own blow
-  // Overload: a burning foe shocked
-  const overload = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as unknown as G10,
-      P = g.player;
-    g.sim(0.5);
-    const foe = g.spawn('rotling', P.x + 2, P.z - 3);
-    g.sim(0.8);
-    foe.hp = 40;
-    g.inflict({ burn: 4 });
-    const burning = foe.status!.burn;
-    g.inflict({ shock: 2 });
-    return { burning, burn: foe.status!.burn, shock: foe.status!.shock, damage: 40 - foe.hp };
-  });
-  expect(overload).toMatchObject({ burning: 4, burn: 0, shock: 0 });
-  expect(overload.damage).toBeGreaterThanOrEqual(10);
-  // a boss is slowed but never frozen; the training dummy never falls and lists its statuses
-  const boss = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as unknown as G10,
-      P = g.player;
-    g.sim(1);
-    const warden = g.spawn('warden', P.x - 3, P.z - 3),
-      dummy = g.spawn('dummy', P.x + 3, P.z - 3);
-    g.sim(0.8);
-    for (let i = 0; i < 4; i++) g.inflict({ chill: 1 });
-    const wardenFrozen = (warden.status?.frozen ?? 0) > 0,
-      wardenChill = warden.status?.chill;
-    for (let k = 0; k < 70; k++) {
-      (P as unknown as { invuln: number }).invuln = 9;
+test(
+  'statuses: chill freezes and stops a foe, Shatter and Overload go off, bosses never freeze, the dummy never falls',
+  { tag: '@fast' },
+  async ({ page }) => {
+    const errors = await start(page, '?room=treasure_plain&seed=STAT1&spells=arc');
+    const frozen = await page.evaluate(() => {
+      const g = (window as unknown as W).__game as unknown as G10,
+        P = g.player;
+      g.warp(1);
+      g.sim(0.3);
+      const foe = g.spawn('rotling', P.x, P.z - 3);
+      g.sim(0.8);
+      for (let i = 0; i < 3; i++) g.inflict({ chill: 1 });
+      const at = { x: foe.x, z: foe.z },
+        hp = P.hp;
+      g.sim(1);
+      return { frozen: (foe.status?.frozen ?? 0) > 0, moved: Math.hypot(foe.x - at.x, foe.z - at.z), hurt: hp - P.hp };
+    });
+    expect(frozen).toEqual({ frozen: true, moved: 0, hurt: 0 });
+    // Shatter: Arc's shock on the frozen foe
+    const shatter = await page.evaluate(() => {
+      const g = (window as unknown as W).__game as unknown as G10,
+        foe = g.enemies[0],
+        hp = foe.hp;
+      g.cast(0, { x: 0, z: -1 });
       g.sim(0.05);
-    } // (the cold thaws: fire now is a burn, not Steam)
-    g.inflict({ burn: 2 });
-    dummy.hp = 1;
-    g.sim(0.6);
-    const d = g.enemies.find((e) => e.type === 'dummy')!;
-    return { wardenFrozen, wardenChill, dummyHp: d.hp, dummyMax: d.maxHp, label: d.label?.userData.text };
-  });
-  expect(boss).toMatchObject({ wardenFrozen: false, wardenChill: 2 });
-  expect(boss.dummyHp).toBe(boss.dummyMax);
-  expect(boss.label).toMatch(/Burn/);
-  await page.evaluate(() => (window as unknown as W).__game.sim(0.05, true));
-  await page.screenshot({ path: 'test-results/smoke-statuses.png' });
-  expect(errors).toEqual([]);
-});
+      return { frozen: (foe.status?.frozen ?? 0) > 0, damage: hp - Math.max(0, foe.hp), dead: !!foe.dead };
+    });
+    expect(shatter.frozen).toBe(false);
+    expect(shatter.damage >= 9 || shatter.dead).toBe(true); // Arc (cracked ice: ×1.5) and the shatter's own blow
+    // Overload: a burning foe shocked
+    const overload = await page.evaluate(() => {
+      const g = (window as unknown as W).__game as unknown as G10,
+        P = g.player;
+      g.sim(0.5);
+      const foe = g.spawn('rotling', P.x + 2, P.z - 3);
+      g.sim(0.8);
+      foe.hp = 40;
+      g.inflict({ burn: 4 });
+      const burning = foe.status!.burn;
+      g.inflict({ shock: 2 });
+      return { burning, burn: foe.status!.burn, shock: foe.status!.shock, damage: 40 - foe.hp };
+    });
+    expect(overload).toMatchObject({ burning: 4, burn: 0, shock: 0 });
+    expect(overload.damage).toBeGreaterThanOrEqual(10);
+    // a boss is slowed but never frozen; the training dummy never falls and lists its statuses
+    const boss = await page.evaluate(() => {
+      const g = (window as unknown as W).__game as unknown as G10,
+        P = g.player;
+      g.sim(1);
+      const warden = g.spawn('warden', P.x - 3, P.z - 3),
+        dummy = g.spawn('dummy', P.x + 3, P.z - 3);
+      g.sim(0.8);
+      for (let i = 0; i < 4; i++) g.inflict({ chill: 1 });
+      const wardenFrozen = (warden.status?.frozen ?? 0) > 0,
+        wardenChill = warden.status?.chill;
+      for (let k = 0; k < 70; k++) {
+        (P as unknown as { invuln: number }).invuln = 9;
+        g.sim(0.05);
+      } // (the cold thaws: fire now is a burn, not Steam)
+      g.inflict({ burn: 2 });
+      dummy.hp = 1;
+      g.sim(0.6);
+      const d = g.enemies.find((e) => e.type === 'dummy')!;
+      return { wardenFrozen, wardenChill, dummyHp: d.hp, dummyMax: d.maxHp, label: d.label?.userData.text };
+    });
+    expect(boss).toMatchObject({ wardenFrozen: false, wardenChill: 2 });
+    expect(boss.dummyHp).toBe(boss.dummyMax);
+    expect(boss.label).toMatch(/Burn/);
+    await page.evaluate(() => (window as unknown as W).__game.sim(0.05, true));
+    await page.screenshot({ path: 'test-results/smoke-statuses.png' });
+    expect(errors).toEqual([]);
+  },
+);
 
 test('water and oil: the lance lights oil that burns foes and the mage; shock runs through water; frost freezes it; wading is slow', async ({
   page,

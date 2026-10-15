@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { type Foe, type RoomView, type GameHooks, type W, start, type G5, type GS, type G14, type G7 } from './helpers';
 
-test('an artifact is taken from its pedestal and changes the mage', async ({ page }) => {
+test('an artifact is taken from its pedestal and changes the mage', { tag: '@fast' }, async ({ page }) => {
   const errors = await start(page, '?room=treasure_plain&seed=SMOKE2');
   const result = await page.evaluate(() => {
     const g = (window as unknown as W).__game as GameHooks & {

@@ -1,19 +1,23 @@
 import { expect, test } from '@playwright/test';
 import { start } from './helpers';
 
-test('?runes carves two runes into a slot (a + in the address reaches the page as a space)', async ({ page }) => {
-  const errors = await start(page, '?seed=RUNES3&spells=arc,cinder_lance&runes=q:quicken+vein,e:reprise+quicken');
-  const got = await page.evaluate(() =>
-    (
-      window as unknown as { __game: { sockets: { slots: { size: number; runes: string[] }[] } } }
-    ).__game.sockets.slots.map((s) => ({ size: s.size, runes: s.runes })),
-  );
-  expect(got).toEqual([
-    { size: 2, runes: ['quicken', 'vein'] },
-    { size: 2, runes: ['reprise', 'quicken'] },
-  ]);
-  expect(errors).toEqual([]);
-});
+test(
+  '?runes carves two runes into a slot (a + in the address reaches the page as a space)',
+  { tag: '@fast' },
+  async ({ page }) => {
+    const errors = await start(page, '?seed=RUNES3&spells=arc,cinder_lance&runes=q:quicken+vein,e:reprise+quicken');
+    const got = await page.evaluate(() =>
+      (
+        window as unknown as { __game: { sockets: { slots: { size: number; runes: string[] }[] } } }
+      ).__game.sockets.slots.map((s) => ({ size: s.size, runes: s.runes })),
+    );
+    expect(got).toEqual([
+      { size: 2, runes: ['quicken', 'vein'] },
+      { size: 2, runes: ['reprise', 'quicken'] },
+    ]);
+    expect(errors).toEqual([]);
+  },
+);
 
 test('runes on the cast: Quicken sooner and dearer on the HUD and in the cast, Lasting holds longer, Wide reaches further, Vein bleeds but never the last half heart, a spell given up sends its runes to the pouch, a runed spell still comes to be known well', async ({
   page,

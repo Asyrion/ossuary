@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { type RoomView, type GameHooks, type W, start, SEEDED_RANDOM } from './helpers';
 
-test('clear a room without console errors', async ({ page }) => {
+test('clear a room without console errors', { tag: '@fast' }, async ({ page }) => {
   const errors = await start(page, '?room=crypt_a&seed=CORE1');
   const result = await page.evaluate(() => {
     const w = window as unknown as W,
@@ -191,45 +191,47 @@ test('the end screen sums up the run, and replays its seed', async ({ page }) =>
   expect(errors).toEqual([]);
 });
 
-test("the setting: the title names the Gate of Uzulim and Azyrion; the first floor opens beneath the Wardens' chapel, and the Warden is one of them", async ({
-  page,
-}) => {
-  await page.addInitScript('window.__manual = true');
-  await page.addInitScript(SEEDED_RANDOM);
-  await page.goto('/?seed=GATE01&autolevel=skip');
-  await page.waitForFunction(() => !!(window as unknown as W).__game, null, { timeout: 30_000 });
-  const title = await page.evaluate(() => ({
-    heading: document.querySelector('#scrTitle h1')!.textContent,
-    place: document.querySelector('#scrTitle .place')!.textContent,
-    intro: document.querySelector('#scrTitle .place + p')!.textContent,
-  }));
-  expect(title).toEqual({
-    heading: 'Ossuary',
-    place: 'Beneath the Gate of Uzulim',
-    intro: expect.stringMatching(/^Azyrion's first descent into the Wardens' vault/),
-  });
-  await page.screenshot({ path: 'test-results/smoke-title.png' });
-  await page.click('#btnStart');
-  const banner = await page.evaluate(() => [
-    document.querySelector('#banner .t')!.textContent,
-    document.querySelector('#banner .s')!.textContent,
-  ]);
-  expect(banner).toEqual(['The Ossuary', "Beneath the Wardens' chapel, below the Gate of Uzulim"]);
-  // the floor-1 boss's banner names what it was
-  const errors = await start(page, '?seed=GATE01&boss=warden');
-  const warden = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as unknown as {
-      rooms(): { type: string; plan: { id: number } }[];
-      warp(id: number): void;
-      sim(s: number): void;
-    };
-    g.warp(g.rooms().find((r) => r.type === 'boss')!.plan.id);
-    g.sim(0.3);
-    return [document.querySelector('#banner .t')!.textContent, document.querySelector('#banner .s')!.textContent];
-  });
-  expect(warden).toEqual(['The Hollow Warden', 'A Warden of Uzulim who never came back up']);
-  expect(errors).toEqual([]);
-});
+test(
+  "the setting: the title names the Gate of Uzulim and Azyrion; the first floor opens beneath the Wardens' chapel, and the Warden is one of them",
+  { tag: '@fast' },
+  async ({ page }) => {
+    await page.addInitScript('window.__manual = true');
+    await page.addInitScript(SEEDED_RANDOM);
+    await page.goto('/?seed=GATE01&autolevel=skip');
+    await page.waitForFunction(() => !!(window as unknown as W).__game, null, { timeout: 30_000 });
+    const title = await page.evaluate(() => ({
+      heading: document.querySelector('#scrTitle h1')!.textContent,
+      place: document.querySelector('#scrTitle .place')!.textContent,
+      intro: document.querySelector('#scrTitle .place + p')!.textContent,
+    }));
+    expect(title).toEqual({
+      heading: 'Ossuary',
+      place: 'Beneath the Gate of Uzulim',
+      intro: expect.stringMatching(/^Azyrion's first descent into the Wardens' vault/),
+    });
+    await page.screenshot({ path: 'test-results/smoke-title.png' });
+    await page.click('#btnStart');
+    const banner = await page.evaluate(() => [
+      document.querySelector('#banner .t')!.textContent,
+      document.querySelector('#banner .s')!.textContent,
+    ]);
+    expect(banner).toEqual(['The Ossuary', "Beneath the Wardens' chapel, below the Gate of Uzulim"]);
+    // the floor-1 boss's banner names what it was
+    const errors = await start(page, '?seed=GATE01&boss=warden');
+    const warden = await page.evaluate(() => {
+      const g = (window as unknown as W).__game as unknown as {
+        rooms(): { type: string; plan: { id: number } }[];
+        warp(id: number): void;
+        sim(s: number): void;
+      };
+      g.warp(g.rooms().find((r) => r.type === 'boss')!.plan.id);
+      g.sim(0.3);
+      return [document.querySelector('#banner .t')!.textContent, document.querySelector('#banner .s')!.textContent];
+    });
+    expect(warden).toEqual(['The Hollow Warden', 'A Warden of Uzulim who never came back up']);
+    expect(errors).toEqual([]);
+  },
+);
 
 test('every door of a seeded floor leads to its neighbour, onto open floor', async ({ page }) => {
   const errors = await start(page, '?seed=DOORS1&floor=2&loot=keys:9'); // keys unbind a vault's ward on the way
@@ -296,42 +298,43 @@ test('every door of a seeded floor leads to its neighbour, onto open floor', asy
   expect(errors).toEqual([]);
 });
 
-test('the keeping: one save takes over the five keys kept before it; a run ends into it, remembering how it went and what struck last, and brings home its Dust and a tenth of its obols, tallied on the end screen; the save goes out to a file and back; the dev menu gives Dust', async ({
-  page,
-}) => {
-  await page.addInitScript(() => {
-    if (!localStorage.getItem('ossuary.vigil')) {
-      localStorage.setItem('ossuary.reactions', JSON.stringify(['steam']));
-      localStorage.setItem('ossuary.recipes', JSON.stringify({ pairs: {}, potions: ['healing'] }));
-    }
-  });
-  const errors = await start(page, '?seed=KEEP1&loot=coins:57');
-  type V = {
-    dust: number;
-    obols: number;
-    runs: number;
-    wins: number;
-    deepest: number;
-    reactions: string[];
-    recipes: { potions: string[] };
-    echoes: {
-      seed: string;
-      won: boolean;
-      floor: number;
-      room: string;
-      struck: string | null;
-      carried: string[];
-      obols: number;
+test(
+  'the keeping: one save takes over the five keys kept before it; a run ends into it, remembering how it went and what struck last, and brings home its Dust and a tenth of its obols, tallied on the end screen; the save goes out to a file and back; the dev menu gives Dust',
+  { tag: '@fast' },
+  async ({ page }) => {
+    await page.addInitScript(() => {
+      if (!localStorage.getItem('ossuary.vigil')) {
+        localStorage.setItem('ossuary.reactions', JSON.stringify(['steam']));
+        localStorage.setItem('ossuary.recipes', JSON.stringify({ pairs: {}, potions: ['healing'] }));
+      }
+    });
+    const errors = await start(page, '?seed=KEEP1&loot=coins:57');
+    type V = {
       dust: number;
-    }[];
-  };
-  const r = await page.evaluate<{
-    took: { vigil: V; stored: boolean; reactions: string[] };
-    state: string;
-    vigil: V;
-    home: string;
-    hidden: boolean;
-  }>(`(() => {
+      obols: number;
+      runs: number;
+      wins: number;
+      deepest: number;
+      reactions: string[];
+      recipes: { potions: string[] };
+      echoes: {
+        seed: string;
+        won: boolean;
+        floor: number;
+        room: string;
+        struck: string | null;
+        carried: string[];
+        obols: number;
+        dust: number;
+      }[];
+    };
+    const r = await page.evaluate<{
+      took: { vigil: V; stored: boolean; reactions: string[] };
+      state: string;
+      vigil: V;
+      home: string;
+      hidden: boolean;
+    }>(`(() => {
     const g = window.__game, P = g.player, took = { vigil: g.vigil, stored: !!localStorage.getItem('ossuary.vigil'), reactions: [...g.reactions] };
     // fall to a foe in the first fight
     g.warp(g.rooms().find(r => r.type === 'normal' && !r.cleared).plan.id); g.sim(.3);
@@ -341,48 +344,49 @@ test('the keeping: one save takes over the five keys kept before it; a run ends 
     const home = document.getElementById('endHome');
     return { took, state: g.state, vigil: g.vigil, home: home.textContent, hidden: home.hidden };
   })()`);
-  expect(r.took.stored).toBe(true);
-  expect(r.took.vigil.reactions).toEqual(['steam']);
-  expect(r.took.vigil.recipes.potions).toEqual(['healing']);
-  expect(r.took.reactions).toContain('steam');
-  expect(r.state).toBe('end');
-  expect(r.vigil).toMatchObject({ runs: 1, wins: 0, deepest: 1, obols: 5 }); // (a tenth of 57, after a death)
-  expect(r.vigil.dust).toBeGreaterThanOrEqual(10); // (floor 1 reached, and any first finds)
-  expect(r.vigil.echoes[0]).toMatchObject({ seed: 'KEEP1', won: false, floor: 1, struck: 'sporeling', obols: 5 });
-  expect(r.vigil.echoes[0].carried.length).toBeGreaterThan(0);
-  expect(r.hidden).toBe(false);
-  expect(r.home).toContain('Carried home');
-  expect(r.home).toContain('Floor 1 reached');
-  expect(r.home).toContain('Arcane Dust');
-  expect(r.home).toContain('a tenth of 57');
-  expect(r.home).toContain('Struck down by');
-  await page.screenshot({ path: 'test-results/keeping-end.png' });
-  // out to a file and back; what is not a save is refused
-  const io = await page.evaluate<{
-    wiped: number;
-    refused: number;
-    taken: number;
-    same: boolean;
-    out: string;
-    in: string;
-  }>(`(() => {
+    expect(r.took.stored).toBe(true);
+    expect(r.took.vigil.reactions).toEqual(['steam']);
+    expect(r.took.vigil.recipes.potions).toEqual(['healing']);
+    expect(r.took.reactions).toContain('steam');
+    expect(r.state).toBe('end');
+    expect(r.vigil).toMatchObject({ runs: 1, wins: 0, deepest: 1, obols: 5 }); // (a tenth of 57, after a death)
+    expect(r.vigil.dust).toBeGreaterThanOrEqual(10); // (floor 1 reached, and any first finds)
+    expect(r.vigil.echoes[0]).toMatchObject({ seed: 'KEEP1', won: false, floor: 1, struck: 'sporeling', obols: 5 });
+    expect(r.vigil.echoes[0].carried.length).toBeGreaterThan(0);
+    expect(r.hidden).toBe(false);
+    expect(r.home).toContain('Carried home');
+    expect(r.home).toContain('Floor 1 reached');
+    expect(r.home).toContain('Arcane Dust');
+    expect(r.home).toContain('a tenth of 57');
+    expect(r.home).toContain('Struck down by');
+    await page.screenshot({ path: 'test-results/keeping-end.png' });
+    // out to a file and back; what is not a save is refused
+    const io = await page.evaluate<{
+      wiped: number;
+      refused: number;
+      taken: number;
+      same: boolean;
+      out: string;
+      in: string;
+    }>(`(() => {
     const g = window.__game, text = g.exportSave(), before = g.vigil;
     g.wipeSave(); const wiped = g.vigil.runs;
     const refused = g.importSave('{"hello":1}'), taken = g.importSave(text);
     return { wiped, refused: refused.length, taken: taken.length, same: JSON.stringify(g.vigil) === JSON.stringify(before), out: document.getElementById('btnSaveOut').textContent, in: document.getElementById('btnSaveIn').textContent };
   })()`);
-  expect(io).toEqual({ wiped: 0, refused: 1, taken: 0, same: true, out: 'Export the Vigil', in: 'Import the Vigil' });
-  // the dev menu gives Dust (from a run)
-  await page.click('#btnAgain');
-  const before = await page.evaluate(() => ((window as unknown as W).__game as unknown as { vigil: V }).vigil.dust);
-  await page.keyboard.press('F2');
-  await page.locator('#dev .dv-tab', { hasText: 'Rooms' }).click();
-  await page.locator('#dev .dv-page:not([hidden]) button', { hasText: '+100 Arcane Dust' }).click();
-  expect(await page.evaluate(() => ((window as unknown as W).__game as unknown as { vigil: V }).vigil.dust)).toBe(
-    before + 100,
-  );
-  expect(errors).toEqual([]);
-});
+    expect(io).toEqual({ wiped: 0, refused: 1, taken: 0, same: true, out: 'Export the Vigil', in: 'Import the Vigil' });
+    // the dev menu gives Dust (from a run)
+    await page.click('#btnAgain');
+    const before = await page.evaluate(() => ((window as unknown as W).__game as unknown as { vigil: V }).vigil.dust);
+    await page.keyboard.press('F2');
+    await page.locator('#dev .dv-tab', { hasText: 'Rooms' }).click();
+    await page.locator('#dev .dv-page:not([hidden]) button', { hasText: '+100 Arcane Dust' }).click();
+    expect(await page.evaluate(() => ((window as unknown as W).__game as unknown as { vigil: V }).vigil.dust)).toBe(
+      before + 100,
+    );
+    expect(errors).toEqual([]);
+  },
+);
 
 test("the run around it: a deeper start begins at its floor's expected level, its choices waiting; levels count toward Azyrion's arc, three to an artifact", async ({
   page,

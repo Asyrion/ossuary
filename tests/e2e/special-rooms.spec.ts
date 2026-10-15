@@ -11,75 +11,77 @@ import {
   type G12,
 } from './helpers';
 
-test('the merchant sells for obols and refuses what the mage cannot pay or use; his shop is warded', async ({
-  page,
-}) => {
-  const errors = await start(page, '?room=merchant_plain&seed=SHOP01&loot=coins:18');
-  const shop = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as unknown as G5,
-      P = g.player;
-    g.warp(1);
-    g.sim(0.5);
-    const walkInto = (w: Ware) => {
-      P.x = w.x;
-      P.z = w.z + 1.6;
-      P.vx = P.vz = 0;
-      g.keys.add('KeyW');
-      g.sim(0.6);
-      g.keys.delete('KeyW');
-      g.sim(0.2);
-      P.z += 1.6;
+test(
+  'the merchant sells for obols and refuses what the mage cannot pay or use; his shop is warded',
+  { tag: '@fast' },
+  async ({ page }) => {
+    const errors = await start(page, '?room=merchant_plain&seed=SHOP01&loot=coins:18');
+    const shop = await page.evaluate(() => {
+      const g = (window as unknown as W).__game as unknown as G5,
+        P = g.player;
+      g.warp(1);
+      g.sim(0.5);
+      const walkInto = (w: Ware) => {
+        P.x = w.x;
+        P.z = w.z + 1.6;
+        P.vx = P.vz = 0;
+        g.keys.add('KeyW');
+        g.sim(0.6);
+        g.keys.delete('KeyW');
+        g.sim(0.2);
+        P.z += 1.6;
+        g.sim(0.1);
+      };
+      const wares = g.current.wares!,
+        art = wares.find((w) => w.ware === 'artifact')!,
+        heart = wares.find((w) => w.ware === 'heart');
+      const coins = P.coins,
+        items = P.items.length + (P.focus !== 'apprentice_wand' ? 1 : 0);
+      walkInto(art);
+      const bought = {
+        spent: coins - P.coins,
+        sold: art.sold || art.price === 0,
+        gained: P.items.length + (P.focus !== 'apprentice_wand' ? 1 : 0) - items,
+      };
+      let refused = null;
+      if (heart) {
+        const c = P.coins;
+        walkInto(heart);
+        refused = { spent: c - P.coins, sold: heart.sold, toast: document.getElementById('toast')!.textContent };
+      }
+      // bolts fizzle just after leaving the mage
+      P.x = g.current.cx - 4;
+      P.z = g.current.cz + 2.5;
+      let far = 0;
+      g.keys.add('ArrowRight');
+      g.arrowOrder.push('ArrowRight');
+      for (let t = 0; t < 1; t += 0.05) {
+        g.sim(0.05);
+        far = Math.max(far, ...g.bolts.map((b) => b.dist));
+      }
+      g.keys.delete('ArrowRight');
+      g.arrowOrder.length = 0;
+      g.sim(0.3);
+      return { count: wares.length, first: wares[0].ware, price: art.price, bought, refused, far, glyphs: P.glyphs };
+    });
+    expect(shop.count).toBeGreaterThanOrEqual(3);
+    expect(shop.first).toBe('artifact'); // the budget reaches the merchant in a test room
+    expect(shop.bought).toEqual({ spent: 15, sold: true, gained: 1 });
+    if (shop.refused)
+      expect(shop.refused).toMatchObject({ spent: 0, sold: false, toast: expect.stringMatching(/whole/) }); // a heart at full health
+    expect(shop.far).toBeLessThan(1);
+    await page.keyboard.press('Space'); // the chalk won't take in the shop, and no glyph is spent
+    const glyph = await page.evaluate(() => {
+      const g = (window as unknown as W).__game as unknown as G5;
       g.sim(0.1);
-    };
-    const wares = g.current.wares!,
-      art = wares.find((w) => w.ware === 'artifact')!,
-      heart = wares.find((w) => w.ware === 'heart');
-    const coins = P.coins,
-      items = P.items.length + (P.focus !== 'apprentice_wand' ? 1 : 0);
-    walkInto(art);
-    const bought = {
-      spent: coins - P.coins,
-      sold: art.sold || art.price === 0,
-      gained: P.items.length + (P.focus !== 'apprentice_wand' ? 1 : 0) - items,
-    };
-    let refused = null;
-    if (heart) {
-      const c = P.coins;
-      walkInto(heart);
-      refused = { spent: c - P.coins, sold: heart.sold, toast: document.getElementById('toast')!.textContent };
-    }
-    // bolts fizzle just after leaving the mage
-    P.x = g.current.cx - 4;
-    P.z = g.current.cz + 2.5;
-    let far = 0;
-    g.keys.add('ArrowRight');
-    g.arrowOrder.push('ArrowRight');
-    for (let t = 0; t < 1; t += 0.05) {
-      g.sim(0.05);
-      far = Math.max(far, ...g.bolts.map((b) => b.dist));
-    }
-    g.keys.delete('ArrowRight');
-    g.arrowOrder.length = 0;
-    g.sim(0.3);
-    return { count: wares.length, first: wares[0].ware, price: art.price, bought, refused, far, glyphs: P.glyphs };
-  });
-  expect(shop.count).toBeGreaterThanOrEqual(3);
-  expect(shop.first).toBe('artifact'); // the budget reaches the merchant in a test room
-  expect(shop.bought).toEqual({ spent: 15, sold: true, gained: 1 });
-  if (shop.refused)
-    expect(shop.refused).toMatchObject({ spent: 0, sold: false, toast: expect.stringMatching(/whole/) }); // a heart at full health
-  expect(shop.far).toBeLessThan(1);
-  await page.keyboard.press('Space'); // the chalk won't take in the shop, and no glyph is spent
-  const glyph = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as unknown as G5;
-    g.sim(0.1);
-    return { glyphs: g.player.glyphs, onFloor: g.glyphs.length };
-  });
-  expect(glyph).toEqual({ glyphs: shop.glyphs, onFloor: 0 });
-  await page.evaluate(() => (window as unknown as W).__game.sim(0.1, true));
-  await page.screenshot({ path: 'test-results/smoke-merchant.png' });
-  expect(errors).toEqual([]);
-});
+      return { glyphs: g.player.glyphs, onFloor: g.glyphs.length };
+    });
+    expect(glyph).toEqual({ glyphs: shop.glyphs, onFloor: 0 });
+    await page.evaluate(() => (window as unknown as W).__game.sim(0.1, true));
+    await page.screenshot({ path: 'test-results/smoke-merchant.png' });
+    expect(errors).toEqual([]);
+  },
+);
 
 test('a gilded reliquary shrugs off a blast, and a bone key finds a relic beyond the budget', async ({ page }) => {
   const errors = await start(page, '?room=crypt_c&seed=GILD01&loot=keys:1,glyphs:1');
@@ -135,7 +137,7 @@ const walkToVault = () => {
   return { sealed: d.seal!.sealed, open: d.open, keys: P.keys, toast: document.getElementById('toast')!.textContent };
 };
 
-test('a locked vault stays shut without a key, and a bone key unbinds it', async ({ page }) => {
+test('a locked vault stays shut without a key, and a bone key unbinds it', { tag: '@fast' }, async ({ page }) => {
   const errors = await start(page, '?room=vault_urns&seed=VAULT1');
   const shut = await page.evaluate(walkToVault);
   expect(shut).toMatchObject({ sealed: true, open: false, keys: 0, toast: expect.stringMatching(/bone key/) });
@@ -724,23 +726,24 @@ test('the waystone (where a floor has no waystone room, as under ?room=): it ris
   expect(errors5).toEqual([]);
 });
 
-test('the waystone room: beside the boss room, empty and dark until the boss falls; then the boss room points to it, the stone rises as the mage walks in, kindles and lights the room, the trapdoor opens beyond it away from the door, and it leads down', async ({
-  page,
-}) => {
-  const errors = await start(page, '?seed=WAY10&boss=warden&spells=cinder_lance');
-  const r = await page.evaluate<{
-    doorShift: number;
-    early: { stone: unknown; wayDown: unknown };
-    fell: { wayDown: unknown; stone: unknown; sub: string; line: string };
-    rising: { lit: boolean; wayDown: unknown };
-    lit: boolean;
-    toward: number;
-    down: string;
-    away: number;
-    rested: boolean;
-    floor: number;
-    state: string;
-  }>(`(() => {
+test(
+  'the waystone room: beside the boss room, empty and dark until the boss falls; then the boss room points to it, the stone rises as the mage walks in, kindles and lights the room, the trapdoor opens beyond it away from the door, and it leads down',
+  { tag: '@fast' },
+  async ({ page }) => {
+    const errors = await start(page, '?seed=WAY10&boss=warden&spells=cinder_lance');
+    const r = await page.evaluate<{
+      doorShift: number;
+      early: { stone: unknown; wayDown: unknown };
+      fell: { wayDown: unknown; stone: unknown; sub: string; line: string };
+      rising: { lit: boolean; wayDown: unknown };
+      lit: boolean;
+      toward: number;
+      down: string;
+      away: number;
+      rested: boolean;
+      floor: number;
+      state: string;
+    }>(`(() => {
     const g = window.__game, P = g.player; P.invuln = 999;
     const stone = g.rooms().find(r => r.type === 'waystone'), boss = g.rooms().find(r => r.type === 'boss');
     const door = boss.plan.doors.find(d => d.to === stone.plan.id), side = stone.plan.doors[0].side;
@@ -757,19 +760,20 @@ test('the waystone room: beside the boss room, empty and dark until the boss fal
     P.x = down.x; P.z = down.z; g.sim(.3, true);
     return { doorShift: door.shift, early, fell, rising, lit: w.lit, toward: (w.x - cx) * dir[0] + (w.z - cz) * dir[1], down: down.room, away, rested, floor: g.floor, state: g.state };
   })()`);
-  expect(r.doorShift).toBe(0);
-  expect(r.early).toEqual({ stone: null, wayDown: null }); // (dev warp before the boss: nothing rises yet)
-  expect(r.fell).toMatchObject({ wayDown: null, stone: null, sub: 'The way down lies past the waystone' });
-  expect(r.fell.line).toMatch(/Beyond the (north|south|east|west) door, a stone stirs/);
-  expect(r.rising).toEqual({ lit: false, wayDown: null });
-  expect(r.lit).toBe(true);
-  expect(r.toward).toBeGreaterThan(0.5); // (the stone a little toward the door, the way down beyond it)
-  expect(r.down).toBe('waystone');
-  expect(r.away).toBeLessThan(-1.5);
-  expect(r.rested).toBe(true);
-  expect(r).toMatchObject({ floor: 1, state: 'play' });
-  expect(errors).toEqual([]);
-});
+    expect(r.doorShift).toBe(0);
+    expect(r.early).toEqual({ stone: null, wayDown: null }); // (dev warp before the boss: nothing rises yet)
+    expect(r.fell).toMatchObject({ wayDown: null, stone: null, sub: 'The way down lies past the waystone' });
+    expect(r.fell.line).toMatch(/Beyond the (north|south|east|west) door, a stone stirs/);
+    expect(r.rising).toEqual({ lit: false, wayDown: null });
+    expect(r.lit).toBe(true);
+    expect(r.toward).toBeGreaterThan(0.5); // (the stone a little toward the door, the way down beyond it)
+    expect(r.down).toBe('waystone');
+    expect(r.away).toBeLessThan(-1.5);
+    expect(r.rested).toBe(true);
+    expect(r).toMatchObject({ floor: 1, state: 'play' });
+    expect(errors).toEqual([]);
+  },
+);
 
 test("the shrine's bargain: a stone at the circle's head; walking up says how; a spell cast into it costs nothing and deals two boons of its school and one general; Esc pays nothing; a boon taken costs a heart container and keeps it, once; the last heart is refused", async ({
   page,
