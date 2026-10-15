@@ -863,7 +863,7 @@ deploy waits for `build` only.
 - Unit: `npm run test:unit` (Vitest, `tests/unit/*.test.ts`): generator rules on hundreds of seeds, every template
   and data file validated, pure rules for statuses, weaves, runes, boons, loot, dialogue, the save, texel bake.
   Anything pure gets a unit test.
-- Browser: `npm run test:e2e` (Playwright, `tests/e2e/smoke.spec.ts`; `fullyParallel`). Software WebGL; set
+- Browser: `npm run test:e2e` (Playwright, `tests/e2e/*.spec.ts`, one file a system, `helpers.ts` shared; `fullyParallel`). Software WebGL; set
   `PW_CHROMIUM` to a Chromium binary where Playwright's is not installed. Tests drive the game through
   `window.__game` and `window.__manual` and add `?autolevel=skip`.
 - Fixtures: `tests/fixtures/assets/` (`?assets=/tests/fixtures/assets/assets.json`).
