@@ -49,6 +49,9 @@ own looks are in `src/magic/spellFx.ts`.
 
 ## The schools' light
 
+The schools keep these colours; how they sit in a room (pools of light over the floor's cool ambient) follows
+`docs/art-bible.md`, section 4.
+
 | School | Light (`SCHOOL_LIGHT`) | The look |
 | --- | --- | --- |
 | Arcane (the cantrip) | The bolt's colour (artifacts change it) | A white-hot crystal, a rune ring turning round it, runes trailing |

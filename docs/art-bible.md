@@ -1,11 +1,10 @@
 # Art bible
 
-**Draft, R3 step 1** (`docs/RESET-plan.md`, Phase 3). The rules every picture in Ossuary follows: rooms, foes, the mage,
-effects, the HUD. Made with the owner from three or four reference pictures. Until the owner approves it, the house style
-in `docs/assets.md` and the colour rules in `docs/effects.md` still hold. Once it is approved, this file replaces them,
-and they point here.
+**R3 step 1** (`docs/RESET-plan.md`, Phase 3). The rules every picture in Ossuary follows: rooms, foes, the mage,
+effects, the HUD. Made with the owner from five reference pictures (section 5). The owner took the decisions in section 4
+on 2026-10-15. Where `docs/assets.md` (House style) or `docs/effects.md` (colour) say otherwise, this file wins.
 
-Sections marked **Open** wait on the owner's choice. The rest is fixed by the game as it is, or measured.
+The looks it describes are built in R3's later steps: the game shows today's look until then (section 2).
 
 ## 1. What is fixed
 
@@ -85,30 +84,82 @@ Its rules, measured on its reference pictures. They are a starting point for us,
 - **No soft alpha** on sprites: fades are dithers, slides or clips.
 - **Readability first:** where texture and readability conflict, readability wins.
 
-## 4. Open: the decisions
+## 4. The decisions (the owner, 2026-10-15)
 
-Each one is taken with the owner, from the reference pictures (section 5) and side-by-side shots.
+### 4.1 A palette per floor
 
-1. **Palette per floor.** For each floor, its base ramp, its accent and the hue its shadows lean to:
-   - floor 1, the crypt: chapel, ossuary, scriptorium, pilgrims;
-   - floor 2, the drowned floor: cistern, grotto, mausoleum;
-   - floor 3, the burning floor: embalmers, ossuary, bells;
-   - floor 4, the reliquary: treasury, reliquary, chapel;
-   - floor 5, the shore: landing, cistern;
-   - the Seal and Kaelith;
-   - the Vigil.
-2. **Hue shift.** Whether the torchlit warm-to-black ramp gives way to warm lights over cool shadows (Godot-Tamer's rule),
-   and how far.
-3. **Darkness.** How much of a room may be near black, and how dark a dark room may get (today: up to 43 %).
-4. **Outlines.** Today the renderer draws one dark outline where a near surface stands before a far one. The choices: a
-   closed outline tinted per material on actors, objects outlined or not, terrain left without.
-5. **The key light.** Where it comes from (today: torches on the walls and the mage's own light), and whether a fixed
-   key from one side is added.
-6. **How loud the HUD is.** Framed panels, pixel-art icons, and how much of the screen they take (R3 step 5).
-7. **The route for actors.** Code-drawn and Tripo models at the texel (today), or sprites baked from 3D (Godot-Tamer's
-   pixelize route). R3 step 2 decides this from the proof.
+Each floor has its own family of colours, so the player knows at a glance where they are (as each region of Hades, each
+dungeon of Moonlighter and each place of Sea of Stars does):
+- **a base ramp** of 5 or 6 colours, from shadow to highlight;
+- **a shadow hue** the ramp leans to;
+- **one accent** that stands against it.
 
-## 5. Open: the reference pictures
+The room themes stay, coloured into their floor's palette: a chapel on floor 4 is gilded, on floor 2 mossy. **Foes and
+the mage never wear their floor's base colour**, so they stand out from it.
+
+The starting ramps, shadow to highlight, then the accent. They are refined when each floor is built (R3 step 6):
+
+| Floor (GDD) | Mood | Shadow | Dark | Mid | Light | Highlight | Accent |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 The crypt | Sandstone by candlelight; verdigris for the undead | `#2b3047` | `#4a3f45` | `#7a6250` | `#b8956a` | `#f2d49a` | `#5fa38a` |
+| 2 The drowned | Flooded stone, moss and rime; a glow like the cave's fungi | `#1b2440` | `#23434c` | `#3f6f63` | `#7fb39a` | `#d6f0e0` | `#b8f070` |
+| 3 The burning crypt | Ember and charcoal; violet shadows, brimstone | `#2d1f3d` | `#4a2a2e` | `#8a3b2a` | `#d9732e` | `#ffd27a` | `#f0e070` |
+| 4 The Gilded Reliquary | Ivory and gold over deep blue; rust red for menace | `#1f2546` | `#3a3352` | `#8a7a5c` | `#d4b469` | `#fff1c4` | `#b8402e` |
+| 5 The Ferryman's Shore | Mist, frost and dark water; a lantern's amber | `#141f33` | `#26364a` | `#57707e` | `#a8bcc0` | `#e8f2f4` | `#e8a84a` |
+| The Seal and Kaelith | Deep violet, the seals' ward blue, gold for daylight | `#1a1433` | `#2e2350` | `#5a4a8a` | `#8ab8ff` | `#e6f0ff` | `#ffd878` |
+| The Vigil | A garden at dusk; lantern orange | `#2a2a48` | `#3d4a3a` | `#6f8a4f` | `#c9b27a` | `#ffe2a8` | `#f08a3c` |
+
+### 4.2 Hue shift: cool shadows, warm lights
+
+Every ramp shifts its hue: shadows turn about 40 to 60° toward blue and violet, lights 10 to 20° toward amber. A dark
+orange reads as dirt; a dark blue reads as shadow. Torches stay warm: they make warm pools in a cool room instead of
+colouring the whole room orange. Black appears only in outlines and in the void outside the room.
+
+### 4.3 Light and dark: balanced
+
+Mid tones carry the room; the dark sits at its edges and outside it (Hades is gloomy, never black where the fight is).
+The owner's references have a mean lightness of 34 to 49 %; two rooms measured today (chapel nave and ossuary) have 8 to 10 %.
+- **The walkable floor:** mean lightness 30 to 40 %, at most 8 % near black (lightness under 8 %).
+- **A room meant to be dark:** at most 15 % near black, and never so dark a foe disappears.
+
+### 4.4 Outlines: hard
+
+As in Godot-Tamer:
+- **Who gets one:** the mage, foes, bosses, townsfolk and every discrete object (props, pickups, artifacts).
+- **What it looks like:** a closed outline one game pixel wide, near black, tinted only slightly toward the material's
+  hue. It is unbroken all round the silhouette, also on the lit side.
+- **Who gets none:** terrain (floors, water, the outer faces of walls). It gets a dark edge on its shadow side instead.
+
+### 4.5 The key light: from above, a little from the left
+
+At the 45° camera it lights heads, shoulders and the tops of things; south faces lie in cool shadow. Three layers:
+- **Ambient:** cool, from above, in the floor's shadow hue. It makes the room readable on its own.
+- **Torches and magic:** warm pools, or pools in a school's colour, brighter at the core and falling off sooner than
+  today.
+- **A rim light on actors:** a bright edge at the top left of the mage and the foes, as Hades uses it. It lifts dark foes
+  off a dark floor; today the Gloom Raven, the Mandrake, the Hex Imps and the Deep Angler are lost there.
+
+### 4.6 The HUD: framed (variant B)
+
+Small pixel-art panels with brass and stone frames, matching the diorama and the vault's materials (as in Moonlighter):
+- **Top left:** the hearts and the mana bar.
+- **Top right:** obols, keys and glyph stones.
+- **Bottom centre:** the spells.
+
+Panels stay small and appear only where something stands. Icons are pixel art with the hard outline. The panels and
+icons are built in R3 step 5.
+
+### 4.7 Humanoid proportions
+
+The humanoids (the mage, townsfolk, human foes) follow the ranger's proportions (reference 2): chibi, a little over three
+heads tall, a large head and readable hands.
+
+### 4.8 Still open: code models or sprites
+
+Whether actors stay models drawn at the texel or become sprites baked from 3D (Godot-Tamer's route; reference 1 speaks
+for it) is decided together in R3, from the proof in step 2.
+
+## 5. The reference pictures
 
 Three or four pictures the owner chooses, each with what to take from it (colour, light, outline, mood). Once they are
 here, they are measured as in section 2.
@@ -136,11 +187,16 @@ Owner's direction (2026-10-15):
 - **Light and dark:** balanced, in the manner of Hades, Moonlighter and Sea of Stars.
 - **The key light:** from above.
 
-The recommendations on the rest are on the decision page the owner was given. They are written here once decided.
+The decisions taken from them are in section 4.
 
 ## 6. Working method
 
-Filled in once the decisions in section 4 are taken. Godot-Tamer's method is the model:
-- ramps taken from the reference palettes;
-- checks against the tables (hue shift present, darkest colour not black, texture in range, outlines closed);
-- the owner sees an enlarged preview before anything goes into the game.
+Taken from Godot-Tamer:
+1. **Ramps:** a new piece takes its ramps from its floor's palette (4.1), or extends them with the same hue shift (4.2).
+2. **Drawing:** draw or reduce at the texel; generator art is reduced by majority colour a block, with no blending.
+3. **Checks before the owner sees it:** shadows cooler than lights, the darkest colour not black (outlines aside),
+   outlines closed where 4.4 asks for them.
+4. **Rooms:** a room is checked at play size against 4.3 (mean lightness, the share near black). Use the measure from
+   section 2, taken on the room's floor, not over the whole frame.
+5. **The owner sees it first:** an enlarged preview, and the game beside it, before anything replaces an old look. The
+   look that loses is deleted in the same step (CLAUDE.md).
