@@ -4,7 +4,7 @@ import { type Foe, type RoomView, type GameHooks, type W, start } from './helper
 
 for (const boss of ['abbess', 'pyre'])
   test(`the ${boss} boss, built in code, dives or leaps out of reach and can be beaten`, async ({ page }) => {
-    const errors = await start(page, `?room=boss_open&boss=${boss}`);
+    const errors = await start(page, `?room=boss_open&boss=${boss}&seed=BOSS1`);
     const result = await page.evaluate(() => {
       const w = window as unknown as W,
         g = w.__game;
@@ -55,7 +55,7 @@ for (const boss of ['hart', 'angler'])
   test(`the ${boss === 'hart' ? 'Hallowed Hart' : 'Deep Angler'}, built in code, fights as it should and can be beaten`, async ({
     page,
   }) => {
-    const errors = await start(page, `?room=boss_open&boss=${boss}&floor=${boss === 'hart' ? 4 : 5}`);
+    const errors = await start(page, `?room=boss_open&boss=${boss}&floor=${boss === 'hart' ? 4 : 5}&seed=BOSS2`);
     type Boss = Foe & {
       type: string;
       state: string;
@@ -138,7 +138,7 @@ for (const boss of ['hart', 'angler'])
 test('the War-Tiger stands as a statue until the mage comes near, loses its plates to a glyph, a Shatter and blows, and can be beaten', async ({
   page,
 }) => {
-  const errors = await start(page, '?room=boss_open&boss=tiger&floor=4');
+  const errors = await start(page, '?room=boss_open&boss=tiger&floor=4&seed=BOSS3');
   type Boss = Foe & {
     type: string;
     state: string;
@@ -267,7 +267,7 @@ test("the Pillar Dragon coils round the pillars (raising its own where too few),
     dragon: { state: string; pillars: number; on: boolean; headY: number; risen: boolean };
     props: { kind: string; x: number; z: number; cd?: number }[];
   };
-  const errors = [await start(page, '?room=boss_open&boss=dragon&floor=5')];
+  const errors = [await start(page, '?room=boss_open&boss=dragon&floor=5&seed=BOSS4')];
   const first = await page.evaluate(() => {
     const g = (window as unknown as W).__game as G2,
       seen = new Set<string>();
@@ -323,7 +323,7 @@ test("the Pillar Dragon coils round the pillars (raising its own where too few),
   expect(knocked).toMatchObject({ fell: 'fall', down: { state: 'down', contact: 2, low: true }, back: true });
   expect(knocked.open).toBeCloseTo(6);
   // in the belfry, a bell rung knocks it down too; then the fight to the end
-  errors.push(await start(page, '?room=boss_belfry&boss=dragon&floor=5'));
+  errors.push(await start(page, '?room=boss_belfry&boss=dragon&floor=5&seed=BOSS5'));
   const belfry = await page.evaluate(() => {
     const w = window as unknown as W,
       g = w.__game as G2;
@@ -365,7 +365,7 @@ test("the Pillar Dragon coils round the pillars (raising its own where too few),
 test('the Twin Guardians wake together; one strikes while the other shields it, bolts glancing off; they trade the shield; when one falls the other rages; one reward for both', async ({
   page,
 }) => {
-  const errors = await start(page, '?room=boss_open&boss=twins&floor=4');
+  const errors = await start(page, '?room=boss_open&boss=twins&floor=4&seed=BOSS6');
   type Twin = Foe & {
     type: string;
     state: string;
@@ -484,7 +484,7 @@ test("the Hollow Warden wears the Owlbear, its shots in Hallow's light, and can 
     model: { traverse(f: (o: { isMesh?: boolean; isSprite?: boolean; isPoints?: boolean }) => void): void };
   };
   type G2 = GameHooks & { bossLooks(): { id: string }[]; shots: { color: number }[] };
-  const errors = await start(page, '?room=boss_open&boss=warden');
+  const errors = await start(page, '?room=boss_open&boss=warden&seed=BOSS7');
   const seen = await page.evaluate(() => {
     const g = (window as unknown as W).__game as G2;
     g.warp(1);
@@ -561,7 +561,7 @@ test("the Seal: floor 5 has its waystone room and leads down to the Seal, a leve
     const g = window.__game, P = g.player; P.invuln = 999; g.descend(); g.sim(.1);
     const said = new Set(); for (let t = 0; t < 30; t++) { said.add(document.getElementById('toast').textContent); g.sim(.25); }
     const arrive = { floor: g.floor, banner: document.querySelector('#banner .t').textContent, rooms: g.rooms().map(r => r.type + ':' + r.plan.shape), map: g.map(), said: [...said].join(' | '), look: g.current.look?.name };
-    g.warp(1); g.sim(.2); const hall = new Set(); for (let t = 0; t < 12; t++) { hall.add(document.getElementById('toast').textContent); g.sim(.25); }
+    g.warp(g.rooms().find(r => r.plan.templateId === 'seal_last_hall').plan.id); g.sim(.2); const hall = new Set(); for (let t = 0; t < 12; t++) { hall.add(document.getElementById('toast').textContent); g.sim(.25); }
     const kinds = new Set(), seen = new Set(), total = g.current.waves.length;
     // (each wave is struck down through the game's own hook rather than fought: a foe hiding or still rising takes no blow, so
     // a fight could stall on one; the wave is read after the steps too, as the last can come and fall within one pass)
@@ -572,7 +572,7 @@ test("the Seal: floor 5 has its waystone room and leads down to the Seal, a leve
     }
     const waves = seen.size + ':' + total;
     const cleared = g.current.cleared;
-    g.warp(2); g.sim(.3); const boss = g.enemies.find(e => e.isBoss)?.type; g.clearRoom(); g.sim(.5);
+    g.warp(g.rooms().find(r => r.plan.templateId === 'seal_kaelith').plan.id); g.sim(.3); const boss = g.enemies.find(e => e.isBoss)?.type; g.clearRoom(); g.sim(.5);
     const out = g.wayDown; P.x = out.x; P.z = out.z; g.sim(.5); const stepped = g.state;
     g.sim(7);
     return { arrive, hall: [...hall].join(' | '), kinds: [...kinds], waves, cleared, boss, out: out.room, kind: out.kind, stepped, state: g.state, end: document.getElementById('endTitle').textContent };
@@ -627,7 +627,7 @@ test('Kaelith: the Sentinel stalks, sweeps, fires and steps through shadow; at t
     state: string;
   }>(`(() => {
     const g = window.__game, P = g.player; P.invuln = 999;
-    g.warp(2); P.x = g.current.cx; P.z = g.current.cz + 3.5; g.sim(1, true);
+    g.warp(g.rooms().find(r => r.plan.templateId === 'seal_kaelith').plan.id); P.x = g.current.cx; P.z = g.current.cz + 3.5; g.sim(1, true);
     const bar = document.querySelectorAll('#bossbar .mark').length, banner1 = document.querySelector('#banner .t').textContent;
     const states = new Set(); for (let t = 0; t < 60; t++) { P.hp = P.maxHp; g.sim(.25); states.add(g.kaelith.state); }
     if (!states.has('sink')) { const k = g.enemies.find(e => e.isBoss); k.state = 'sink'; k.st = .5; for (let t = 0; t < 12; t++) { P.hp = P.maxHp; g.sim(.25); states.add(g.kaelith.state); } } // (its step waits on where its circling leaves it standing dark; if none came, it steps now)
@@ -698,7 +698,7 @@ test("daylight: Kaelith's way out is a shaft of light; stepping into it, the mag
     out: D;
   }>(`(() => {
     const g = window.__game, P = g.player; P.invuln = 999;
-    g.warp(2); g.sim(.5); g.clearRoom(); g.sim(1);
+    g.warp(g.rooms().find(r => r.plan.templateId === 'seal_kaelith').plan.id); g.sim(.5); g.clearRoom(); g.sim(1);
     const way = g.wayDown, said = new Set();
     for (let t = 0; t < 60; t++) { said.add(document.getElementById('toast').textContent); g.sim(.25); }
     P.x = way.x; P.z = way.z + .3; g.sim(.2);

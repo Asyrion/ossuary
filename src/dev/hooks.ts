@@ -78,7 +78,7 @@ import { boonsActed, boonsSaid } from '../progression/boonHooks';
 import { setOffBoon } from './boonTest';
 import type { Attr } from '../progression/attributes';
 import { STEP, step } from '../loop';
-import { planToText } from '../world/generate';
+import { FLOORS, planToText } from '../world/generate';
 import { CFG } from '../config';
 import { damageEnemy } from '../combat/damage';
 import { DROPS, type Drop, type Resource, type Soul } from '../items/loot';
@@ -147,6 +147,10 @@ import { creaturesNow, roarNow, showCreature, takeCreatures } from './creatureGa
 import { freeSpotNear } from '../world/rooms';
 import { renderAudio, type RenderAsk } from '../audio/render';
 import { SOUND_FILES, preloadSamples } from '../audio/samples';
+import type { PairTable } from '../actors/foeData';
+
+/** Each floor's pair chance as the data has it, kept while `pairsAlways` raises it. */
+const pairChance = new Map<PairTable, number>();
 
 /** Dev and test hooks. Kept in production builds so the deployed site can be tested too. */
 export function installHooks() {
@@ -850,6 +854,25 @@ export function installHooks() {
         each here (times the floor's `runes`). */
     runesAlways: (on: boolean) => {
       DEV.runes = on;
+      rebuildFloor();
+    },
+    /** Every chance the run's drop stream rolls comes up (`G.run.drops`, until a new run makes a new one), the stream
+        still drawn as it would be: for a test of what a drop is, not of how often it falls. */
+    dropsAlways: (on: boolean) => {
+      const drops = G.run.drops;
+      if (on)
+        drops.chance = (p: number) => {
+          drops.next();
+          return p > 0;
+        };
+      else Reflect.deleteProperty(drops, 'chance'); // (the stream's own again)
+    },
+    /** Every fight of this floor that can roll a pair rolls one (the floor's pair chance at 1; this floor built again). */
+    pairsAlways: (on: boolean) => {
+      const table = FLOORS[Math.min(G.run.floor, FLOORS.length - 1)].pairs;
+      if (!table) return;
+      pairChance.set(table, pairChance.get(table) ?? table.chance);
+      table.chance = on ? 1 : pairChance.get(table)!;
       rebuildFloor();
     },
     get runeOdds() {

@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { type RoomView, type GameHooks, type W, start } from './helpers';
+import { type RoomView, type GameHooks, type W, start, SEEDED_RANDOM } from './helpers';
 
 test('clear a room without console errors', async ({ page }) => {
-  const errors = await start(page, '?room=crypt_a');
+  const errors = await start(page, '?room=crypt_a&seed=CORE1');
   const result = await page.evaluate(() => {
     const w = window as unknown as W,
       g = w.__game;
@@ -195,6 +195,7 @@ test("the setting: the title names the Gate of Uzulim and Azyrion; the first flo
   page,
 }) => {
   await page.addInitScript('window.__manual = true');
+  await page.addInitScript(SEEDED_RANDOM);
   await page.goto('/?seed=GATE01&autolevel=skip');
   await page.waitForFunction(() => !!(window as unknown as W).__game, null, { timeout: 30_000 });
   const title = await page.evaluate(() => ({
@@ -386,7 +387,7 @@ test('the keeping: one save takes over the five keys kept before it; a run ends 
 test("the run around it: a deeper start begins at its floor's expected level, its choices waiting; levels count toward Azyrion's arc, three to an artifact", async ({
   page,
 }) => {
-  const errors = await start(page, '?floor=4&level=auto');
+  const errors = await start(page, '?floor=4&level=auto&seed=CORE2');
   const r = await page.evaluate<{
     start: { level: number; floor: number };
     arc0: { stage: number; held: number };

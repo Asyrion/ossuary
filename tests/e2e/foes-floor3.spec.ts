@@ -22,7 +22,7 @@ test("foes in code: floor 3's salamander lays burning ground that burns the mage
     shots: { chill?: number; hex?: number }[];
   };
   // the salamander
-  const errors = await start(page, '?seed=K3F9QX&floor=3&foe=cinderSalamander');
+  const errors = await start(page, '?seed=K3F9QX&room=flooded_crypt&variant=champion&floor=3&foe=cinderSalamander');
   const sala = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 60;
@@ -48,7 +48,10 @@ test("foes in code: floor 3's salamander lays burning ground that burns the mage
   expect(sala.ground).toBeGreaterThan(3);
   expect(sala.burned).toBeGreaterThan(0);
   // the imp
-  const e2 = await start(page, '?seed=K3F9QX&floor=3&foe=hexImp&spells=cinder_lance');
+  const e2 = await start(
+    page,
+    '?seed=K3F9QX&room=flooded_crypt&variant=champion&floor=3&foe=hexImp&spells=cinder_lance',
+  );
   const imp = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 60;
@@ -100,7 +103,7 @@ test("foes in code: floor 3's salamander lays burning ground that burns the mage
     return g.enemies.filter((e) => e.type === 'rimeDrakeling').length;
   });
   expect(count).toBeLessThanOrEqual(1);
-  const e4 = await start(page, '?seed=K3F9QX&floor=3&foe=rimeDrakeling');
+  const e4 = await start(page, '?seed=K3F9QX&room=flooded_crypt&variant=champion&floor=3&foe=rimeDrakeling');
   const drake = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 90;

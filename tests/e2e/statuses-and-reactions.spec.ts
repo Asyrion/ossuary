@@ -646,7 +646,7 @@ test("the curve: an open sluice drains a water room to mud and keeps its lurker 
     shoot(x: number, z: number, dx: number, dz: number, o?: { hex?: number }): void;
     startGame(o: object): void;
   };
-  const errors = await start(page, '?room=flooded_hall&floor=2&variant=quiet');
+  const errors = await start(page, '?room=flooded_hall&floor=2&variant=quiet&seed=STAT1');
   const sl = await page.evaluate(() => {
     const g = (window as unknown as { __game: GC }).__game,
       P = g.player;
@@ -681,7 +681,7 @@ test("the curve: an open sluice drains a water room to mud and keeps its lurker 
   expect(sl).toMatchObject({ hid: true, up: true, mud: true, stillUp: true, shut: 0, water: true });
   expect(sl.open).toBeGreaterThan(5);
   // floor 3 with only Ember spells: its banner's line says the heat feeds on fire, and its library offers a Frost page
-  errors.push(...(await start(page, '?floor=3&spells=cinder_lance,pyre_seal&room=library_plain')));
+  errors.push(...(await start(page, '?floor=3&spells=cinder_lance,pyre_seal&room=library_plain&seed=STAT2')));
   const lib = await page.evaluate(() => {
     const g = (window as unknown as { __game: GC }).__game;
     g.sim(1);
@@ -731,7 +731,7 @@ test('weaves and chains: each one set up and struck goes off, its name rises and
     element(kind: string, x: number, z: number): void;
     sparkGround: number;
   };
-  const errors = await start(page, '?room=great_hall&variant=quiet');
+  const errors = await start(page, '?room=great_hall&variant=quiet&seed=STAT3');
   const ids = [
     'steamCurtain',
     'conductor',

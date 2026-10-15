@@ -30,7 +30,7 @@ test('an artifact is taken from its pedestal and changes the mage', async ({ pag
 });
 
 test('a bone altar takes a heart container for its artifact', async ({ page }) => {
-  const errors = await start(page, '?room=altar_bones');
+  const errors = await start(page, '?room=altar_bones&seed=ARTF1');
   const result = await page.evaluate(() => {
     const g = (window as unknown as W).__game as GameHooks & {
       current: RoomView & {
@@ -266,17 +266,20 @@ test("soul motes: they take hits before the hearts, a black one hexes the room, 
   expect(shard.after.cd).toBe(0);
   expect(shard.after.mana).toBeGreaterThanOrEqual(35);
   expect(shard.lying).toBe(1);
-  // a foe that falls deep in a hex leaves a black mote now and then (about one in two)
+  // a foe that falls deep in a hex leaves a black mote now and then (about one in two; here every roll comes up, so the
+  // test checks the mote, not the odds)
   const hexed = await page.evaluate(() => {
-    const g = (window as unknown as W).__game as unknown as GS,
+    const g = (window as unknown as W).__game as unknown as GS & { dropsAlways(on: boolean): void },
       P = g.player;
     g.clearRoom();
     g.sim(0.3);
+    g.dropsAlways(true);
     for (let i = 0; i < 8; i++) g.spawn('rotling', P.x - 3 + (i % 4) * 1.6, P.z - 2.5 + Math.floor(i / 4) * 1.2);
     g.sim(0.8);
     g.inflict({ hex: 4 });
     for (let i = g.enemies.length - 1; i >= 0; i--) g.hit(i, 999, undefined, 'spell');
     g.sim(1);
+    g.dropsAlways(false);
     return g.pickups.filter((q) => q.kind === 'blackSoul').length;
   });
   expect(hexed).toBeGreaterThanOrEqual(1);
@@ -368,12 +371,12 @@ test("artifacts that bend bolts and fights: the pendulum swings, the lodestar ha
     g.inflict({ hex: 2 }); P.spells[0] = 'arc'; g.mana(10); g.hit(g.enemies.indexOf(d), 1, undefined, 'cantrip'); return P.mana;
   })()`);
   expect(lantern).toBeCloseTo(14.5, 0);
-  // the Gravemonger's Contract: the dead pay (about one in two), fights won leave no hearts
+  // the Gravemonger's Contract: the dead pay (about one in two; here every roll comes up), fights won leave no hearts
   const grave = await page.evaluate(`(() => {
     const g = window.__game, P = g.player; g.clearRoom(); g.sim(.3); g.give('gravemongers_contract');
     const coins = g.pickups.filter(q => q.kind === 'coin').length;
     for (let i = 0; i < 12; i++) g.spawn('rotling', P.x - 4 + (i % 6) * 1.4, P.z - 2.5 + Math.floor(i / 6) * 1.2);
-    g.sim(.8); for (let i = g.enemies.length - 1; i >= 0; i--) g.hit(i, 999); g.sim(.5);
+    g.sim(.8); g.dropsAlways(true); for (let i = g.enemies.length - 1; i >= 0; i--) g.hit(i, 999); g.sim(.5); g.dropsAlways(false);
     return g.pickups.filter(q => q.kind === 'coin').length - coins;
   })()`);
   expect(grave).toBeGreaterThanOrEqual(3);

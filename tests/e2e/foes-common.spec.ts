@@ -5,7 +5,7 @@ import { type Foe, type RoomView, type GameHooks, type W, start, type G5 } from 
 test('the bestiary: thirty-five looks in rows by kind, each named with the fight it brings, apart from each other inside a great hall', async ({
   page,
 }) => {
-  const errors = await start(page, '?room=great_hall&variant=quiet');
+  const errors = await start(page, '?room=great_hall&variant=quiet&seed=FOEC1');
   type GB = GameHooks & {
     clearRoom(): void;
     bestiaryOptions(ids?: string[]): { id: string; x: number; z: number }[];
@@ -199,7 +199,7 @@ test("a pack's size comes from the room's seed: a replayed seed brings the same 
 test('champion mantles: each does its own, keeps its own school off, and the school that strips it unbinds it, stunned and open', async ({
   page,
 }) => {
-  const errors = await start(page, '?room=great_hall&floor=2');
+  const errors = await start(page, '?room=great_hall&floor=2&seed=FOEC2');
   const r = await page.evaluate(() => {
     type Ch = Foe & {
       mantle?: string;
@@ -325,7 +325,7 @@ test('champion mantles: each does its own, keeps its own school off, and the sch
 test("foes in each other's ground: webs and ink hold a walker, rime trips it, fire and sparks burn it, spores sting it; its own kind's and its own school's spare it; a golem goes round", async ({
   page,
 }) => {
-  const errors = await start(page, '?room=great_hall&floor=3');
+  const errors = await start(page, '?room=great_hall&floor=3&seed=FOEC3');
   const r = await page.evaluate(() => {
     type F = Foe & { hp: number; maxHp: number; status?: { burn: number; shock: number }; vx: number; vz: number };
     type G2 = GameHooks & {
@@ -428,7 +428,7 @@ test("foes in each other's ground: webs and ink hold a walker, rime trips it, fi
 test("counters found: a hex grounds a griffin, its word rises, the bestiary keeps it, and the inventory's Foes tab opens its line", async ({
   page,
 }) => {
-  const errors = await start(page, '?room=great_hall&floor=4');
+  const errors = await start(page, '?room=great_hall&floor=4&seed=FOEC4');
   const r = await page.evaluate(() => {
     type G2 = GameHooks & {
       forgetBestiary(): void;
@@ -472,35 +472,31 @@ test("counters found: a hex grounds a griffin, its word rises, the bestiary keep
 test('rooms with a pair: some fights roll two foes made to work together, set side by side, and the first time in a run a line says what they do', async ({
   page,
 }) => {
-  const errors = await start(page, '?floor=3');
+  const errors = await start(page, '?floor=3&seed=FOEC5');
   const r = await page.evaluate(() => {
     type Rm = { plan: { id: number }; pair?: [string, string] };
     type G2 = Omit<GameHooks, 'rooms' | 'enemies'> & {
-      startGame(o: object): void;
+      pairsAlways(on: boolean): void;
       rooms(): Rm[];
       enemies: (Foe & { foe?: { id: string } })[];
       player: GameHooks['player'] & { invuln: number };
     };
     const g = (window as unknown as W).__game as unknown as G2;
-    for (let s = 0; s < 40; s++) {
-      // (a floor 3 rolls a pair in about one fight in five: a few seeds find one)
-      g.startGame({ seed: 'PAIR' + s, floor: 2 });
-      const room = g.rooms().find((x) => x.pair);
-      if (!room) continue;
-      g.warp(room.plan.id);
-      g.player.invuln = 99;
-      g.sim(1.2);
-      const [a, b] = room.pair!,
-        A = g.enemies.find((e) => e.foe?.id === a),
-        B = g.enemies.find((e) => e.foe?.id === b && e !== A);
-      return {
-        seed: s,
-        pair: room.pair,
-        near: !!A && !!B && Math.hypot(A.x - B.x, A.z - B.z) < 2.6,
-        toast: document.getElementById('toast')?.textContent ?? '',
-      };
-    }
-    return null;
+    // (a floor 3 rolls a pair in about one fight in five: here every fight that can hold one does)
+    g.pairsAlways(true);
+    const room = g.rooms().find((x) => x.pair);
+    if (!room) return null;
+    g.warp(room.plan.id);
+    g.player.invuln = 99;
+    g.sim(1.2);
+    const [a, b] = room.pair!,
+      A = g.enemies.find((e) => e.foe?.id === a),
+      B = g.enemies.find((e) => e.foe?.id === b && e !== A);
+    return {
+      pair: room.pair,
+      near: !!A && !!B && Math.hypot(A.x - B.x, A.z - B.z) < 2.6,
+      toast: document.getElementById('toast')?.textContent ?? '',
+    };
   });
   expect(r).not.toBeNull();
   expect(r!.near).toBe(true);

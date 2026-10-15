@@ -905,6 +905,9 @@ the previous room's foes.
   `cleanse()`, `giveBoon`, `giveInsight`, `setLevel`, `givePotion`, `giveHome`.
 - Foes and world: `spawn('dummy')`, `hit(i, dmg, school, by, dx, dz)`, `inflict({ chill: 1 })`, `shoot`, `champion`,
   `prop(kind)`, `props`, `burn`, `element`, `pool`, `pools`, `steam`, `ground`, `blast`, `wards`, `callWanderer()`.
+- Forcing a chance, for a test of what it does rather than how often: `dropsAlways(on)` (every roll of the run's drop
+  stream comes up, the stream still drawn), `pairsAlways(on)` (every fight of the floor that can hold a pair rolls one;
+  the floor built again), beside `runesAlways(on)` and `reagentsAlways(on)`.
 - Systems: `reaction(r)`, `weave(id)`, `know(id, stage)`, `attune`, `socket`, `transform(id)`, `setArc(n)`,
   `toVigil`, `shade`, `talkTo`, `openLab`, `openWaystone`, `openLevelUp()`, `audioOn()`, `forceAudio`.
 - Rendering and assets: `renderInfo()`, `pixelLook`, `setPixelLook`, `assets`, `useAssets`, `showCreature`,

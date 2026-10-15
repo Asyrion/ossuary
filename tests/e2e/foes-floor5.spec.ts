@@ -16,7 +16,7 @@ test("foes in code: floor 5's rootling burrows and bursts up (fire keeps it up);
     shots: { chill?: number }[];
   };
   // the rootling
-  const e1 = await start(page, '?seed=K3F9QX&floor=5&foe=rootling');
+  const e1 = await start(page, '?seed=K3F9QX&room=crypt_b&floor=5&foe=rootling');
   const root = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 60;
@@ -44,7 +44,7 @@ test("foes in code: floor 5's rootling burrows and bursts up (fire keeps it up);
   expect(root.hid).toBe(true);
   expect(root.dug).toBe(false);
   // the storm ray
-  const e2 = await start(page, '?seed=K3F9QX&floor=5&foe=stormRay');
+  const e2 = await start(page, '?seed=K3F9QX&room=crypt_b&floor=5&foe=stormRay');
   const ray = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 60;
@@ -62,7 +62,7 @@ test("foes in code: floor 5's rootling burrows and bursts up (fire keeps it up);
   expect(ray.passed).toBe(true);
   expect(ray.sparks).toBeGreaterThan(2);
   // the void mote: the cantrip's bolts are swallowed, five spill back, then it is open to them
-  const e3 = await start(page, '?seed=K3F9QX&floor=5&foe=voidMote');
+  const e3 = await start(page, '?seed=K3F9QX&room=crypt_b&floor=5&foe=voidMote');
   const mote = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 60;
@@ -92,7 +92,7 @@ test("foes in code: floor 5's rootling burrows and bursts up (fire keeps it up);
   expect(mote.open).toBeCloseTo(3);
   expect(mote.spell).toBeCloseTo(2);
   // the tortoise
-  const e4 = await start(page, '?seed=K3F9QX&floor=5&foe=lanternTortoise');
+  const e4 = await start(page, '?seed=K3F9QX&room=crypt_b&floor=5&foe=lanternTortoise');
   const tort = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 90;

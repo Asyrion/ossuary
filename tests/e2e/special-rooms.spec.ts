@@ -8,7 +8,6 @@ import {
   type Seal,
   type G5,
   type G6,
-  SEEDED_RANDOM,
   type G12,
 } from './helpers';
 
@@ -226,7 +225,7 @@ test('the Wandering Merchant lays its wares on open floor, never over a chasm, a
   };
   const errors: string[][] = [];
   for (const room of ['rope_chasm', 'obelisk_pair']) {
-    errors.push(await start(page, `?room=${room}`));
+    errors.push(await start(page, `?room=${room}&seed=SPEC1`));
     const spots = await page.evaluate(() => {
       const g = (window as unknown as W).__game as GW;
       g.warp(1);
@@ -292,6 +291,7 @@ test("the Wandering Merchant: rides into a cleared room, lays out a focus from f
       unknown = g.rooms().filter((x) => x.type !== 'secret' && !x.known).length;
     const map = buy('map'),
       mapped = g.rooms().filter((x) => x.type !== 'secret' && !x.known).length;
+    const hidden = g.rooms().some((x) => x.type === 'secret'); // (a floor with its secret room still to find: the crow sells it)
     const secret = laid.wares.includes('secret') ? buy('secret') : null,
       secretKnown = g.rooms().find((x) => x.type === 'secret')?.known ?? null;
     const spent = coins - P.coins;
@@ -308,6 +308,7 @@ test("the Wandering Merchant: rides into a cleared room, lays out a focus from f
       unknown,
       map,
       mapped,
+      hidden,
       secret,
       secretKnown,
       spent,
@@ -322,17 +323,17 @@ test("the Wandering Merchant: rides into a cleared room, lays out a focus from f
   expect(r.laid.wares.slice(0, 3)).toEqual(['artifact', expect.stringMatching(/Soul$/), 'map']);
   expect(r.unknown).toBeGreaterThan(0);
   expect(r).toMatchObject({ map: true, mapped: 0, met: true, away: { here: false }, back: { here: false, wares: [] } });
-  if (r.secret !== null) expect(r).toMatchObject({ secret: true, secretKnown: true });
-  expect(r.spent).toBe(r.secret ? 13 : 5);
+  expect(r.hidden).toBe(true);
+  expect(r).toMatchObject({ secret: true, secretKnown: true });
+  expect(r.spent).toBe(13);
   expect(errors).toEqual([]);
 });
 
 test('the shrine cleanses a curse put down inside its circle, refuses the poor, and lets a curse escape in time', async ({
   page,
 }) => {
-  // (where the wisp flies is random; seeded, the bot's chase goes the same way every run instead of now and then
-  // running out of the rite's ten seconds)
-  await page.addInitScript(SEEDED_RANDOM);
+  // (where the wisp flies is random; seeded by start(), the bot's chase goes the same way every run instead of now and
+  // then running out of the rite's ten seconds)
   const errors = await start(
     page,
     '?room=shrine_henge&seed=SHRN01&give=mask_of_the_drowned,chain_of_the_penitent&loot=coins:14',
@@ -773,7 +774,7 @@ test('the waystone room: beside the boss room, empty and dark until the boss fal
 test("the shrine's bargain: a stone at the circle's head; walking up says how; a spell cast into it costs nothing and deals two boons of its school and one general; Esc pays nothing; a boon taken costs a heart container and keeps it, once; the last heart is refused", async ({
   page,
 }) => {
-  const errors = await start(page, '?room=shrine_henge&spells=cinder_lance,rime_shards');
+  const errors = await start(page, '?room=shrine_henge&spells=cinder_lance,rime_shards&seed=SPEC2');
   const r = await page.evaluate<{
     at: number[];
     said: string;
@@ -821,7 +822,7 @@ test("the shrine's bargain: a stone at the circle's head; walking up says how; a
   expect(r.plain.state).toBe('kept'); // (a kept stone lets a cast go on as a cast)
   expect(errors).toEqual([]);
   // the last heart: refused
-  const errors2 = await start(page, '?room=shrine_henge&spells=cinder_lance');
+  const errors2 = await start(page, '?room=shrine_henge&spells=cinder_lance&seed=SPEC3');
   const last = await page.evaluate<{ maxHp: number; state: string; open: boolean; mana: number }>(`(() => {
     const g = window.__game, P = g.player; P.invuln = 999; g.warp(1); g.sim(.5);
     g.heartsPaid = P.maxHp / 2 - 1; const b = g.bargain; P.x = b.x; P.z = b.z + 1.1; g.sim(.1);

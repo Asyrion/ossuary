@@ -17,7 +17,7 @@ test("foes in code: floor 4's wickmouse darts and drops its candle burning; the 
     shots: { chill?: number }[];
   };
   // the wickmouse
-  const e1 = await start(page, '?seed=K3F9QX&floor=4&foe=wickmouse');
+  const e1 = await start(page, '?seed=K3F9QX&room=bells_long&floor=4&foe=wickmouse');
   const mouse = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 60;
@@ -49,7 +49,7 @@ test("foes in code: floor 4's wickmouse darts and drops its candle burning; the 
   expect(mouse.seen).toEqual(expect.arrayContaining(['dart', 'hide', 'peep']));
   expect(mouse).toMatchObject({ cold: false, lit: true });
   // the chime bat: stand still, and the spark finds the mark
-  const e2 = await start(page, '?seed=K3F9QX&floor=4&foe=chimeBat');
+  const e2 = await start(page, '?seed=K3F9QX&room=bells_long&floor=4&foe=chimeBat');
   const bat = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 60;
@@ -70,7 +70,7 @@ test("foes in code: floor 4's wickmouse darts and drops its candle burning; the 
   expect(bat.struck).toBeGreaterThan(0);
   expect(bat.hurt).toBeGreaterThan(0);
   // the gargoyle: stone turns most of a blow; awake, it pounces and lands in frost
-  const e3 = await start(page, '?seed=K3F9QX&floor=4&foe=gargoyleWhelp');
+  const e3 = await start(page, '?seed=K3F9QX&room=bells_long&floor=4&foe=gargoyleWhelp');
   const garg = await page.evaluate(() => {
     const g = (window as unknown as { __game: GF }).__game;
     g.player.maxHp = g.player.hp = 90;
