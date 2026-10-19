@@ -29,6 +29,7 @@ import {
 import { sealVaults } from './world/vault';
 import { clearRite, enterShrine } from './world/shrine';
 import { FLOORS, generateFloor, pickBoss, testPlan, type RoomVariant } from './world/generate';
+import { applyKitColours } from './world/kitColours';
 import { DH } from './world/dims';
 import { SIDE_DIR } from './world/shapes';
 import { clearEnemies, makeEnemy, spawnFoe } from './actors/enemies';
@@ -201,6 +202,7 @@ export function buildFloor(index: number) {
   // generator gave an artifact (GDD: Artifacts); room-clear drops take what is left
   resetBudget(plan.rooms.filter((r) => r.artifact && r.type !== 'secret').length); // the secret room's is beyond it
   applyFloorLook(FLOORS[index].look);
+  applyKitColours(FLOORS[index].look);
   for (const p of plan.rooms) buildRoom(p, index);
   for (const r of G.floor.rooms) buildWallsAndDoors(r);
   linkDoors(G.floor.rooms);
@@ -426,6 +428,7 @@ function buildVigil(first: boolean) {
   const plan = vigilPlan(Rng.from('the Vigil', 'rooms'), VIGIL, undefined, vigil().parts); // (its own seed: the Vigil looks the same every waking; the ways not yet opened barred)
   G.run.plan = plan;
   applyFloorLook(VIGIL.look);
+  applyKitColours(VIGIL.look);
   plan.rooms.forEach((p, i) => {
     const k = VIGIL.rooms[i].kit;
     buildRoom(p, VIGIL_INDEX, k ? { ...VIGIL.look, kit: { ...VIGIL.look.kit, ...k } } : VIGIL.look);
