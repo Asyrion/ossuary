@@ -165,16 +165,20 @@ export const DEV_STR = {
   outlinesOff: 'Outlines: off',
   bandsOn: 'Light in bands: on',
   bandsOff: 'Light in bands: off',
-  /** The floor's grade, fill light and kit colours (data/floors.json: `grade`, `light.fill`, `materials`). */
+  /** The floor's grade, fill light and kit colours (data/floors.json: `grade`, `light.fill`, `materials`), and this
+      room's kind of wall, made (data/assets.json `walls`) or drawn. */
   gradeInfo: (
     g: { shadow: string; amount: number; lift: number; ink: number; gap: number },
     fill: number,
     colours: number,
+    wall: string,
+    made: boolean,
   ) =>
     (g.amount || g.lift || g.ink
       ? `Grade: shadows toward ${g.shadow} by ${g.amount}, black lifted ${g.lift}, outlines inked ${g.ink} from ${g.gap}`
       : `Grade: none`) +
-    ` · fill light ×${fill} · ${colours ? `${colours} kit colours its own` : "the kit's own colours"}`,
+    ` · fill light ×${fill} · ${colours ? `${colours} kit colours its own` : "the kit's own colours"}` +
+    ` · walls: ${wall}, ${made ? 'a made face' : 'drawn'}`,
   /** The on-screen readout: frame rate, and what the last frame drew. */
   frameInfo: (fps: number, calls: number, tris: number) =>
     `${fps} fps · ${calls} draw calls · ${tris.toLocaleString('en')} triangles`,

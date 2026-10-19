@@ -690,8 +690,8 @@ function wallBox(
     the floor built, since a door's look depends on the room behind it. */
 export function buildWallsAndDoors(room: Room) {
   const { minX, minZ } = room.bounds,
-    mats = wallMaterials(room.look.wall, room.look.kinds.wall),
-    capped = cappedWallMaterials(room.look.wall, room.look.kinds.wall);
+    mats = wallMaterials(room.look, room.look.kinds.wall),
+    capped = cappedWallMaterials(room.look, room.look.kinds.wall);
   const { hx, hz } = cellHalfExtents(room.plan.shape);
   // doors first: where they are decides where the walls have gaps
   for (const pd of room.plan.doors) {
@@ -842,7 +842,7 @@ function plugDoor(room: Room, d: Door) {
     h = d.side === 's' ? H_LOW : H_TALL;
   const plug = new THREE.Mesh(
     ns ? boxUV(DH * 2, h, WT) : boxUV(WT, h, DH * 2),
-    wallMaterials(room.look.wall, room.look.kinds.wall),
+    wallMaterials(room.look, room.look.kinds.wall),
   );
   plug.position.set(d.x + (dx * WT) / 2 - room.cx, h / 2, d.z + (dz * WT) / 2 - room.cz);
   room.group.add(plug);

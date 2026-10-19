@@ -349,7 +349,15 @@ account).
 
 Then a screenshot with the game's own stains, bones and puddles drawn over it. A floor look's tile goes in
 `data/assets.json` (`floors`); the game lays it on every floor tile, and the procedural floor stays as the
-fallback. Walls go through `--kind wall` the same way, but the game doesn't use them yet.
+fallback.
+
+**Wall faces** (R3, floor 1 step D) are made at the room kit's texel instead: a front view from Tripo Studio's
+image tab (flat, evenly lit, no moss or cracks: the game lays its stains on it), checked with `--kind wall --out
+<scratch dir>` for seams and light, then `python tools/art/walltile.py <image> --floor <n> --units <across> --out
+public/assets/textures/<look>/<kind>.png` cuts it where it repeats, reduces it to the texel by a majority colour a
+block and moves its colours into the floor's wall colours. It goes in `data/assets.json` under `walls.<look>.<kind>`
+(a kind of the room kit's walls, `src/world/kitData.ts`); the kinds a look leaves out stay drawn in code. The
+pictures it was made from are kept in `docs/art/walls/`.
 
 **Icons** also follow them without 3D: one object, centred, a strong silhouette on a dark or plain
 background, cropped square, background removed, 256 px kept and 128 px shipped.

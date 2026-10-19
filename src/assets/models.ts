@@ -1,4 +1,5 @@
 /* Loading the assets data/assets.json names (docs/assets.md: Pipeline, step 8): models, a floor look's tile,
+   a floor look's wall faces,
    artifacts' icons and coin faces, at boot, next to the hero. A model wears its texture as pixel art
    (`texel`, baked by prepare-asset; actors/texturePixel.ts). Each model is loaded once, stood on the
    floor at its height, and every use is a clone sharing its geometry and materials (marked shared, so removing a use
@@ -24,6 +25,7 @@ type Group = 'props' | 'artifacts';
 const loader = new GLTFLoader();
 const models = new Map<string, THREE.Object3D>(),
   floors = new Map<string, HTMLImageElement>(),
+  walls = new Map<string, HTMLImageElement>(),
   icons = new Map<string, string>();
 /** A coin's face as loaded: the image, and the colour round its edge (the coin's rim, for its edge in the room). */
 export interface CoinFace {
@@ -95,6 +97,8 @@ export async function loadAssets(search = location.search) {
           return (await fetchFile(url)) ? failed(f, 'not an image') : missing(f);
         }
         if (group === 'floors') floors.set(id, img);
+        else if (group === 'walls')
+          walls.set(f.where.slice(6), img); // (look.kind)
         else if (group === 'coins') {
           if (f.where.endsWith('.face')) faces.set(id, { img, rim: rimOf(img) });
           else coinIcons.set(id, url);
@@ -157,6 +161,8 @@ export function modelFor(group: Group, id: string): THREE.Object3D | null {
 
 /** A floor look's painted tile, or null for the procedural floor. */
 export const floorTile = (look: string) => (enabled ? (floors.get(look) ?? null) : null);
+/** A floor look's made face for a kind of wall, or null for the one the room kit draws. */
+export const wallTile = (look: string, kind: string) => (enabled ? (walls.get(`${look}.${kind}`) ?? null) : null);
 /** An artifact's painted icon (its URL), or null for the one rendered from its model (items/artifactIcons.ts). */
 export const iconUrl = (id: string) => (enabled ? (icons.get(id) ?? null) : null);
 

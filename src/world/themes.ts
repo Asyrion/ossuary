@@ -170,7 +170,7 @@ const ropeMat = markShared(new THREE.MeshStandardMaterial({ color: 0x6a5238, rou
 let ropeFade: THREE.Material | null = null; // a rope fading into the dark above
 
 /** A piece of a theme's dressing, in the room's `look` (its candles burn in the floor's light). */
-type Dress = (R: () => number, look: FloorLook) => THREE.Object3D;
+type Dress = (R: () => number, look: FloorLook, used: Set<string>) => THREE.Object3D; // (used: the room's relics so far)
 const DRESS: Record<ScatterKind, Dress> = {
   candles(R, look) {
     // candles in the floor's wax, burning in its light, drips down them
@@ -264,8 +264,11 @@ const DRESS: Record<ScatterKind, Dress> = {
   },
   /** A relic of the vault (made models, data/assets.json: a grave marker, a coffin lid, a fallen candelabrum, an angel's
       head, a pile of skulls, a broken urn); those with a face turn it to the camera. None while the models aren't in. */
-  relics(R) {
-    return relicLook(RELICS[Math.floor(R() * RELICS.length)], R);
+  relics(R, _look, used) {
+    const left = RELICS.filter((id) => !used.has(id)),
+      id = (left.length ? left : RELICS)[Math.floor(R() * (left.length || RELICS.length))];
+    used.add(id); // (two in one room are two different relics)
+    return relicLook(id, R);
   },
   /** A cobweb hung on the north wall, up out of the way and smaller than the floor's that slow (OBJECT_LOOKS.web). */
   webs(R) {
@@ -454,7 +457,8 @@ export function dressTheme(room: Room) {
   };
   const R = mulberry(room.plan.seed ^ 0x7e3e),
     t = room.template,
-    free: { c: number; r: number }[] = [];
+    free: { c: number; r: number }[] = [],
+    used = new Set<string>();
   for (let r = 0; r < t.h; r++)
     for (let c = 0; c < t.w; c++)
       if (
@@ -463,6 +467,9 @@ export function dressTheme(room: Room) {
         !(plain && kept(c, r))
       )
         free.push({ c, r });
+  // a tile's eight neighbours among the free ones (a relic keeps them to itself)
+  const around = (q: { c: number; r: number }) =>
+    free.filter((n) => n !== q && Math.abs(n.c - q.c) <= 1 && Math.abs(n.r - q.r) <= 1);
   const scale = Math.max(1, ((t.w * t.h) / (13 * 7)) * 0.7); // larger rooms get more of it
   // where daylight may fall: at least three tiles from any wall (the grid's edge, or carved and missing corners), near
   // the middle of the room's own floor (an L's middle is its missing corner)
@@ -481,14 +488,17 @@ export function dressTheme(room: Room) {
       kind === 'daylight' ? n : Math.round(n * scale * (plain ? C.plainSpread[0] + R() * C.plainSpread[1] : 1));
     for (let i = 0; i < count && free.length; i++) {
       // daylight falls near the middle, clear of the walls; bedrolls keep off them; the rest anywhere
+      if (kind === 'relics' && room.type === 'start') break; // (the start's floor holds its first steps' glyphs)
       const need = kind === 'daylight' ? C.daylightClear : kind === 'bedrolls' ? C.bedrollClear : 0; // tiles from any wall
       // cobwebs hang on the north wall (the one the camera sees), up off the floor and its webs that slow
       const open =
           kind === 'webs'
             ? free.filter((q) => q.r === 0 || t.tiles[q.r - 1][q.c] === 'void')
-            : need
-              ? free.filter((q) => clear(q.c, q.r) >= need)
-              : free,
+            : kind === 'relics'
+              ? free.filter((q) => around(q).length === 8) // (a coffin lid is a tile long and lies any way)
+              : need
+                ? free.filter((q) => clear(q.c, q.r) >= need)
+                : free,
         from = open.length ? open : free;
       const pick =
         kind === 'daylight'
@@ -496,8 +506,10 @@ export function dressTheme(room: Room) {
               Math.floor(R() * Math.min(6, from.length))
             ]
           : from[Math.floor(R() * from.length)];
+      if (kind === 'relics' && open !== from) continue; // (no room for one: none, rather than one on a rock)
+      for (const q of kind === 'relics' ? around(pick) : []) free.splice(free.indexOf(q), 1);
       free.splice(free.indexOf(pick), 1);
-      const o = DRESS[kind](R, room.look);
+      const o = DRESS[kind](R, room.look, used);
       o.position.x += room.bounds.minX + pick.c + 0.5 + (R() - 0.5) * 0.3 - room.cx;
       o.position.z += room.bounds.minZ + pick.r + 0.5 + (R() - 0.5) * 0.3 - room.cz;
       (STILL.has(kind) ? still : room.group).add(o);

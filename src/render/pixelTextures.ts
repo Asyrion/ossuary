@@ -807,15 +807,29 @@ function stainWall(px: Px, stains: FloorLook['wall']['stains']) {
   }
 }
 
+/** A made wall face read into texels. */
+function madeWall(img: HTMLImageElement, TX: number): WallArt {
+  const c = document.createElement('canvas');
+  c.width = img.naturalWidth;
+  c.height = img.naturalHeight;
+  const g = c.getContext('2d', { willReadFrequently: true })!;
+  g.drawImage(img, 0, 0);
+  const px = new Px(c.width, c.height, true);
+  px.d.set(g.getImageData(0, 0, c.width, c.height).data);
+  return { px, units: c.width / TX };
+}
+
 const wallCache = new Map<string, { map: THREE.CanvasTexture; glow?: THREE.CanvasTexture }>();
 /** A wall of `kind` in a floor's colours, with the look's stains; its glow (ember seams) where the kind has one. Two units
-    across, repeating down every few courses; kept per look and kind. The wall's UVs run a unit to 1. */
-export function pixelWallTexture(wall: FloorLook['wall'], kind: WallKind = 'bricks') {
-  const key = JSON.stringify(wall) + kind,
+    across, repeating down every few courses; kept per look and kind. The wall's UVs run a unit to 1. `made`, the
+    floor's own face for the kind (data/assets.json `walls`, already at the texel and in its colours), takes the place
+    of the drawn one, as many units across as it is texels over the texel a unit. */
+export function pixelWallTexture(wall: FloorLook['wall'], kind: WallKind = 'bricks', made?: HTMLImageElement | null) {
+  const key = JSON.stringify(wall) + kind + (made?.src ?? ''),
     hit = wallCache.get(key);
   if (hit) return hit;
   const [TX, TY] = CFG.roomKit.texel,
-    art = WALLS[kind](wall, TX * 2);
+    art = made ? madeWall(made, TX) : WALLS[kind](wall, TX * 2);
   stainWall(art.px, wall.stains);
   const tile = (p: Px, srgb: boolean) => {
     const t = texture(p.canvas(), srgb);
