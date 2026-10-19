@@ -163,6 +163,8 @@ export const DEV_STR = {
         : `Pixels: half a texel each${drawn ? ` (${drawn} rows here)` : ''}`,
   outlinesOn: 'Outlines: on',
   outlinesOff: 'Outlines: off',
+  actorsOn: "Actors' outline and rim: on",
+  actorsOff: "Actors' outline and rim: off",
   bandsOn: 'Light in bands: on',
   bandsOff: 'Light in bands: off',
   /** The floor's grade, fill light and kit colours (data/floors.json: `grade`, `light.fill`, `materials`), and this

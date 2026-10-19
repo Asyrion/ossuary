@@ -787,6 +787,9 @@ export const CFG = {
     glowSteps: 5,
     shadowSteps: 3,
     fineLayer: 2,
+    // the actors (the mage, the foes, the bosses: art bible 4.4 and 4.5): a closed outline round each, and a rim of warm
+    // light on its top and left edge (the colour as written, and how much of it)
+    actors: { rim: '#ffd9a6', rimAmount: 0.4 },
   },
   // alchemy (items/potions.ts and potionThrow.ts; docs/archive/M5-plan.md): the belt's slots, a bottle's and a reagent's size as built, the
   // chance a fallen foe or a broken object leaves its reagent (items/reagents.ts; the Alchemist's Satchel's more), what Dr.

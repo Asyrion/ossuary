@@ -6,6 +6,7 @@ import { CFG } from '../config';
 import { STR } from '../strings';
 import { G, player } from '../state';
 import { scene } from '../render/renderer';
+import { markActor } from '../render/pixelLook';
 import { lantern } from '../render/lights';
 import { M, blob } from '../render/materials';
 import { shootDir } from '../input';
@@ -38,6 +39,7 @@ hero.root.add(hero.yaw);
 hero.yaw.add(hero.lean);
 hero.root.add(blob(0.95));
 scene.add(hero.root);
+markActor(hero.root); // (its outline and rim in the pixel look)
 const loader = new GLTFLoader();
 
 interface PreparedHero {
