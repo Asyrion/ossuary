@@ -14,13 +14,14 @@ cleaning, the look and the story.
 | R0 One baseline | Done 2026-10-12 |
 | R1 Docs that tell the truth | Built 2026-10-12; the owner's read next |
 | R2 Code that is kept | **Under way:** steps 1 to 6 done; its done-when check (a week of CI) runs |
-| R3 The look | **Under way:** step 1, the art bible (`docs/art-bible.md`), decided 2026-10-15; step 2, the proof, done 2026-10-15 (models at the texel, the code kit recoloured; step 3 dropped); step 4, the rooms, next |
-| R4 The story | Waits for R3's art bible; holds M7 steps 10 to 13 |
+| R3 The look | **Under way:** step 1, the art bible (`docs/art-bible.md`), decided 2026-10-15; step 2, the proof, done 2026-10-15 (models at the texel, the code kit recoloured); floor 1 next, room by room |
+| R4 The story | Waits for R3 (its art bible is decided); holds M7 steps 10 to 13 |
 | R5 The vertical slice | Last |
 
-**Next:** R3 step 4, the rooms: the floors' palettes in the room kit and the actors' ramps, outline and rim light as a
-pass in the pixel look (art bible 4.8), while R2's done-when check runs: a week of CI (the full suite on every PR and
-nightly, the fast one on `main`) without a flake fix.
+**Next:** floor 1 in the new look, in the owner's order (2026-10-19): its rooms first (step 4: the floor's palette in
+the light and the materials, with a light touch in the pixel look's shading for cool shadows), then its foes and the
+Warden (step 3, the actors' pass), its spells, and its items, item effects and artifacts. R2's done-when check runs
+beside it: a week of CI (the full suite on every PR and nightly, the fast one on `main`) without a flake fix.
 
 ## What is live
 
@@ -29,8 +30,7 @@ townspeople (M7 steps 1 to 9).
 
 ## Waiting on the owner
 
-- The branch `r3-art-bible` (the art bible and the proof, `docs/art/proof/`, `tools/art/`) goes to `main` when the owner
-  says so.
+- Nothing blocking. Open design questions are gathered in the reset plan's phases as they come up.
 
 ## Known issues carried into the reset
 
