@@ -285,9 +285,11 @@ test("transformations' other gifts, each on a fresh run: the Frostborn chills wh
       },
       out: Record<string, unknown> = {};
     const pinned: [Foe, number, number][] = [];
+    // one frame drawn a step, not one a slice: every frame drawn queues work in the browser's software GPU, which on a CI
+    // runner was still drawing this test's frames when the next test on the worker opened its context, and timed it out
     const step = (t: number) => {
       for (let k = 0; k < Math.round(t / 0.05); k++) {
-        g.sim(0.05, true);
+        g.sim(0.05, k === Math.round(t / 0.05) - 1);
         for (const [e, x, z] of pinned) {
           e.x = x;
           e.z = z;
