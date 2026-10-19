@@ -165,6 +165,15 @@ materials' ramps, the closed outline from its silhouette, the rim light (4.5).
 **Rooms stay the code-drawn kit**, recoloured to their floor's palette. Generator tiles may replace a piece where they
 clearly win (the proof's wall faces were good; its floor tiles repeated, their joints forming a grid).
 
+### 4.9 Floor 1 in the game, step A (built 2026-10-19)
+
+Floor 1's colours and its fill light are in its look (data/floors.json: `floor`, `wall`, `torch`, `urn`, `light`
+with `fill` 1.45), and its `grade` (shadow `#273352`, amount 0.5, lift 0.09) leans the pixel look's darks toward slate
+blue (docs/architecture.md, Pixel look). Measured in the middle of each room: mean lightness 29 to 42 % (8 to 20 %
+before), near black 1 to 6 % in most rooms, shadows at about 230 to 260 degrees and lights at about 20 to 25. **The owner
+accepted it as it stands (2026-10-19)**, to be tuned again after the asset rounds; dark rooms stay as they are for now
+(35 % near black, above 4.3's 15 %).
+
 ## 5. The reference pictures
 
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta
