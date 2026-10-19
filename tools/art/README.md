@@ -19,7 +19,7 @@ their floor's ramps (art bible 4.8). `render_glb.py` (route B's bake) goes in th
 | `room.py` | A room at the game pixel: `code` recolours the kit's shot to floor 1's ramp, `tiles` cuts generator tiles to the tile's pixels, `compose` builds a 13 x 7 room from them lit in steps, `stand` puts sprites in, `measure` takes the art bible's measures on the walkable floor (4.3). |
 | `compare.py`, `sheet.py`, `compose_gif.py` | Route A beside route B at play size and enlarged; a review sheet of a clip; a clip as a GIF in a room. |
 | `remesh.py`, `bake.py`, `turn.py`, `look4.py` | A Tripo model (some 2 million triangles) made into a prop: `remesh.py` a closed voxel hull collapsed to the budget (no holes, nothing inside out), `bake.py` the original's colour baked onto it (new UVs; bake at 2048 px, or the many small islands come out black), `turn.py` its face to the camera, `look4.py` four views from the game's camera. Blender's `bpy` module (`pip install bpy==5.2.2`, Python 3.13; Cycles on the CPU, no display needed): run them with its Python, e.g. `python tools/art/remesh.py in.glb low.glb 2000 120`. |
-| `darken.mjs` | A pale model's textures darker and a little more contrasted before `prepare-asset` (pale stone and bone wash out under the game's camera): `node tools/art/darken.mjs in.glb out.glb 0.7`. |
+| `darken.ts` | A pale model's textures darker and a little more contrasted before `prepare-asset` (pale stone and bone wash out under the game's camera): `npx tsx tools/art/darken.ts in.glb out.glb 0.7`. |
 | `tripo_get.py` | Downloads a Tripo image task's pictures (the CLI's "no image URLs" bug). |
 
 ## The proof's commands (2026-10-15)
