@@ -26,6 +26,7 @@ import { FLOORS } from './generate';
 import { addProp, removeProp } from './props';
 import type { ScatterKind } from './themeData';
 import { OBJECT_LOOKS, candleFire, put } from './objectLooks';
+import { modelFor } from '../assets/models';
 import { PX, PZ } from './dims';
 import { SIDE_DIR, cellHalfExtents } from './shapes';
 import { mesh, tone } from './kitParts';
@@ -260,6 +261,11 @@ const DRESS: Record<ScatterKind, Dress> = {
       g.add(m);
     }
     return g;
+  },
+  /** A relic of the vault (made models, data/assets.json: a grave marker, a coffin lid, a fallen candelabrum, an angel's
+      head, a pile of skulls, a broken urn); those with a face turn it to the camera. None while the models aren't in. */
+  relics(R) {
+    return relicLook(RELICS[Math.floor(R() * RELICS.length)], R);
   },
   /** A cobweb hung on the north wall, up out of the way and smaller than the floor's that slow (OBJECT_LOOKS.web). */
   webs(R) {
@@ -502,6 +508,14 @@ export function dressTheme(room: Room) {
   mergeStill(still);
   room.group.add(still);
 }
+export const RELICS = ['grave_marker', 'coffin_lid', 'fallen_candelabrum', 'angel_head', 'skull_pile', 'broken_urn'];
+const FACING = new Set(['grave_marker', 'angel_head', 'skull_pile']);
+/** A relic's made model, turned (those with a face toward the camera); an empty group while the models aren't in. */
+export function relicLook(id: string, R: () => number) {
+  const o = modelFor('props', id) ?? new THREE.Group();
+  o.rotation.y = FACING.has(id) ? (R() - 0.5) * 0.5 : R() * Math.PI * 2;
+  return o;
+}
 /** The scatter kinds with nothing moving in them (merged into one mesh a material); candles, embers, lamps, ropes and
     the like keep their own, for their flames and sway. */
 const STILL = new Set<ScatterKind>([
@@ -516,6 +530,7 @@ const STILL = new Set<ScatterKind>([
   'rime',
   'coins',
   'flowers',
+  'relics',
 ]);
 
 /** What a room's scatter put down, by kind (the dev menu's readout, tests). */

@@ -97,6 +97,7 @@ export const DEV_STR = {
           .join(', ')}`
       : 'Scattered here: nothing',
   dropsHere: 'Drops here (every pickup, coffer and chest)',
+  relicsHere: 'Relics here (the made models floor 1 strews)',
   kitPart: (part: string, kind: string, forced: boolean) =>
     `${({ wall: 'Walls', floor: 'Floor', torch: 'Wall lights', brazier: 'Braziers' } as Record<string, string>)[part]}: ${kind}${forced ? ' (every room)' : ' (this room drew)'}`,
   kitKinds: {

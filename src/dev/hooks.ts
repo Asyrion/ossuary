@@ -28,6 +28,7 @@ import { carve, clearRunes, liftRune, runeOdds, setSockets } from '../magic/rune
 import { slotDef } from '../magic/cost';
 import {
   dropsHere,
+  relicsHere,
   forceKinds,
   objectsHere,
   rebuildFloor,
@@ -349,6 +350,8 @@ export function installHooks() {
       return scatterOf(G.room.current);
     },
     dropsHere: () => dropsHere(),
+    /** One of each relic of the vault ahead of the mage (the made models floor 1 strews). */
+    relicsHere: () => relicsHere(),
     /** The soundscapes and the music (docs/archive/sound-plan.md): what plays; turned on (the browser tests start with it off);
         forced to a floor's soundscape, a room's, a piece and mood; a stretch of any rendered offline, as a base64 WAV. */
     get audio() {
