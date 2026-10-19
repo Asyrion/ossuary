@@ -167,9 +167,6 @@ clearly win (the proof's wall faces were good; its floor tiles repeated, their j
 
 ## 5. The reference pictures
 
-Three or four pictures the owner chooses, each with what to take from it (colour, light, outline, mood). Once they are
-here, they are measured as in section 2.
-
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta
 keying background left out:
 - **Mean light:** the mean lightness of all pixels.

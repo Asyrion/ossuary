@@ -6,11 +6,12 @@ or with `"urls": null`, or return while the task is still running).
 Polls `tripo image get <id> --output-format json` until its status is `success` (or fails), then downloads every url
 to <out dir>/<prefix><i>.png. Run it on the owner's machine, where the CLI is logged in (`tripo auth whoami`).
 """
-import argparse, json, pathlib, subprocess, sys, time, urllib.request
+import argparse, json, os, pathlib, subprocess, sys, time, urllib.request
 
 
 def get(task):
-    r = subprocess.run(f"tripo image get {task} --output-format json", shell=True, capture_output=True, text=True)
+    r = subprocess.run(["tripo", "image", "get", task, "--output-format", "json"], capture_output=True, text=True,
+                       shell=os.name == "nt")  # (on Windows the npm shim is a .cmd, which only a shell runs)
     text = r.stdout.strip()
     start = text.find("{")
     if start < 0:

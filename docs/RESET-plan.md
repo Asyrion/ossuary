@@ -195,9 +195,8 @@ fast suite green in under 3 minutes, a week of CI without a flake fix.
    ways (Decision 2), side by side. The owner chooses. Budget: one round of four images a picture, one reroll at most.
    (*Done 2026-10-15*: route A, models at the texel, and the code-drawn rooms recoloured; `docs/art-bible.md` 4.8 and
    section 7, the tools in `tools/art/`.)
-3. ~~**The sprite runtime** (if sprites win)~~ *Dropped 2026-10-15: models won.* a billboard actor in three.js that plays a sheet by direction and clip, with
-   the hit flash, statuses' tints and telegraphs the foes have today; behaviours untouched (they move the actor, the
-   sprite only shows it).
+3. **The actors' pass** (route A, art bible 4.8): each actor's pixels on its materials' ramps, the closed outline from
+   its silhouette, the rim light (4.5). (It replaces the sprite runtime, dropped 2026-10-15 when models won.)
 4. **The rooms:** the floors' palettes from the art bible, more light and colour, contrast that reads; tiles and wall
    pieces from the 2D route where they beat the code-drawn ones; rooms dressed less empty.
 5. **The HUD and screens:** framed panels, pixel-art icons, the title, level-up, inventory and end screens in one style.
