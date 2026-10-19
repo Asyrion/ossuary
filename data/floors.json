@@ -32,7 +32,7 @@
       "light": {"sky": "#a6aac2", "ground": "#343448", "moon": "#b8c4e8", "fill": 1.45},
       "grade": {"shadow": "#273352", "amount": 0.5, "lift": 0.03, "ink": 1, "gap": 0.08},
       "materials": {"wood": "#6e4830", "oak": "#7c5434", "oakDark": "#523424", "iron": "#4e5064", "blackIron": "#2e3042", "bronze": "#ba8a4a", "darkBronze": "#7c5a30", "bone": "#e4d6b6", "boneOld": "#c4b294", "skull": "#b8a888", "stone": "#8a7c72", "darkStone": "#4c4452", "verdigris": "#5fa38a", "burlap": "#a68a5e", "rope": "#d8be8a"},
-      "scatter": {"bones": 3, "pebbles": 4, "candles": 1, "verdigris": 4, "webs": 2, "stains": 1}
+      "scatter": {"bones": 3, "pebbles": 4, "verdigris": 4, "webs": 2, "stains": 1}
     }
   },
   {

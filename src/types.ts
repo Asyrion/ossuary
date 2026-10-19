@@ -275,6 +275,8 @@ export interface Room {
   w: number;
   h: number;
   mask: boolean[][];
+  /** What its scatter put down, by kind (world/themes.ts `dressTheme`). */
+  strewn?: Partial<Record<import('./world/themeData').ScatterKind, number>>;
   group: THREE.Group;
   doors: Door[];
   walls: Box[];

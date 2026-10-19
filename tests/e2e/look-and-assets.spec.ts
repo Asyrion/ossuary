@@ -340,7 +340,7 @@ test("a plain room's scatter: on floor 1 a fight's room is strewn from the floor
   page,
 }) => {
   type GS = { scatterHere: Record<string, number> };
-  const kinds = ['bones', 'pebbles', 'candles', 'verdigris', 'webs', 'stains'];
+  const kinds = ['bones', 'pebbles', 'verdigris', 'webs', 'stains'];
   const one = await start(page, '?room=crypt_a&seed=SCATTER1');
   const s1 = await page.evaluate(() => {
     const g = (window as unknown as { __game: GS & { warp(i: number): void } }).__game;
