@@ -637,6 +637,8 @@ export const CFG = {
     // a plain room's scatter (the floor's `scatter`): each kind's count times at least [0] and up to [0] + [1], so
     // rooms of one floor differ
     plainSpread: [0.4, 1.2] as [number, number],
+    // and keeps this far (units) from a doorway's middle, and from the start room's middle (where the mage first stands)
+    plainClear: { door: 1.8, start: 2.4 },
     // the drowned climb out of the landing's river this long into a fight, then this often, at most this many
     drownAfter: 5,
     drownEvery: 7,

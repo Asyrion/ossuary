@@ -26,6 +26,8 @@ import { FLOORS } from './generate';
 import { addProp, removeProp } from './props';
 import type { ScatterKind } from './themeData';
 import { OBJECT_LOOKS, candleFire, put } from './objectLooks';
+import { PX, PZ } from './dims';
+import { SIDE_DIR, cellHalfExtents } from './shapes';
 import { mesh, tone } from './kitParts';
 import { waxFor } from './fireLooks';
 
@@ -247,16 +249,23 @@ const DRESS: Record<ScatterKind, Dress> = {
   },
   /** Verdigris: the floor 1 accent (art bible 4.1), a patch of green-blue copper bloom and damp moss. */
   verdigris(R) {
-    const m = new THREE.Mesh(GEO.patch, patchMat(0x2e5c4e, false, 0.6));
-    m.scale.setScalar(0.4 + R() * 0.55);
-    m.position.y = 0.004;
-    m.rotation.y = R() * 6;
-    return m;
+    // a speckle of small blooms, not one pool (one would read as water, the drowned floor's)
+    const g = new THREE.Group(),
+      mat = patchMat(0x2e5c4e, false, 0.65);
+    for (let i = 0, n = 4 + Math.floor(R() * 4); i < n; i++) {
+      const m = new THREE.Mesh(GEO.patch, mat);
+      m.scale.setScalar(0.12 + R() * 0.16);
+      m.position.set((R() - 0.5) * 0.7, 0.004 + i * 0.0005, (R() - 0.5) * 0.7);
+      m.rotation.y = R() * 6;
+      g.add(m);
+    }
+    return g;
   },
-  /** A cobweb by the wall, smaller than the template's (OBJECT_LOOKS.web). */
+  /** A cobweb hung on the north wall, up out of the way and smaller than the floor's that slow (OBJECT_LOOKS.web). */
   webs(R) {
     const o = OBJECT_LOOKS.web();
-    o.scale.setScalar(0.55 + R() * 0.25);
+    o.scale.setScalar(0.45 + R() * 0.2);
+    o.position.set(0, 0.55, -0.45);
     return o;
   },
   moss(R) {
@@ -423,12 +432,31 @@ export function dressTheme(room: Room) {
   const scatter = theme?.scatter ?? (plain ? room.look.scatter : undefined);
   if (!scatter) return;
   const still = new THREE.Group();
+  // a plain room's scatter keeps clear of its doorways and of where the mage stands at the start (its first steps' glyphs)
+  const { hx, hz } = cellHalfExtents(room.plan.shape);
+  const doors = room.plan.doors.map((d) => {
+    const [dx, dz] = SIDE_DIR[d.side];
+    return { x: d.gx * PX + dx * hx + (dx ? 0 : (d.shift ?? 0)), z: d.gy * PZ + dz * hz + (dz ? 0 : (d.shift ?? 0)) };
+  });
+  const kept = (c: number, r: number) => {
+    const x = room.bounds.minX + c + 0.5,
+      z = room.bounds.minZ + r + 0.5;
+    return (
+      doors.some((d) => Math.hypot(d.x - x, d.z - z) < C.plainClear.door) ||
+      (room.type === 'start' && Math.hypot(room.cx - x, room.cz - z) < C.plainClear.start)
+    );
+  };
   const R = mulberry(room.plan.seed ^ 0x7e3e),
     t = room.template,
     free: { c: number; r: number }[] = [];
   for (let r = 0; r < t.h; r++)
     for (let c = 0; c < t.w; c++)
-      if (t.tiles[r][c] === 'floor' && !room.template.foes.some((f) => f.c === c && f.r === r)) free.push({ c, r });
+      if (
+        t.tiles[r][c] === 'floor' &&
+        !room.template.foes.some((f) => f.c === c && f.r === r) &&
+        !(plain && kept(c, r))
+      )
+        free.push({ c, r });
   const scale = Math.max(1, ((t.w * t.h) / (13 * 7)) * 0.7); // larger rooms get more of it
   // where daylight may fall: at least three tiles from any wall (the grid's edge, or carved and missing corners), near
   // the middle of the room's own floor (an L's middle is its missing corner)
@@ -448,10 +476,10 @@ export function dressTheme(room: Room) {
     for (let i = 0; i < count && free.length; i++) {
       // daylight falls near the middle, clear of the walls; bedrolls keep off them; the rest anywhere
       const need = kind === 'daylight' ? C.daylightClear : kind === 'bedrolls' ? C.bedrollClear : 0; // tiles from any wall
-      // cobwebs hang by a wall
+      // cobwebs hang on the north wall (the one the camera sees), up off the floor and its webs that slow
       const open =
           kind === 'webs'
-            ? free.filter((q) => clear(q.c, q.r) === 1)
+            ? free.filter((q) => q.r === 0 || t.tiles[q.r - 1][q.c] === 'void')
             : need
               ? free.filter((q) => clear(q.c, q.r) >= need)
               : free,
