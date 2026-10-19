@@ -1731,7 +1731,11 @@ function refresh() {
   bandBtn.textContent = look.bands ? S.bandsOn : S.bandsOff;
   bandBtn.classList.toggle('on', look.bands);
   bandBtn.disabled = !look.lines;
-  gradeInfo.textContent = S.gradeInfo(gradeNow(), lightLevels().fill);
+  gradeInfo.textContent = S.gradeInfo(
+    gradeNow(),
+    lightLevels().fill,
+    Object.keys(FLOORS[G.run.floor]?.look.materials ?? {}).length,
+  );
   reagentBtn.textContent = DEV.reagents ? S.reagentsOn : S.reagentsOff;
   reagentBtn.classList.toggle('on', DEV.reagents);
   alchInfo.textContent = S.alchemyInfo(

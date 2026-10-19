@@ -157,11 +157,16 @@ export const DEV_STR = {
   outlinesOff: 'Outlines: off',
   bandsOn: 'Light in bands: on',
   bandsOff: 'Light in bands: off',
-  /** The floor's grade and fill light (data/floors.json: `grade`, `light.fill`). */
-  gradeInfo: (g: { shadow: string; amount: number; lift: number }, fill: number) =>
-    g.amount || g.lift
-      ? `Grade: shadows toward ${g.shadow} by ${g.amount}, black lifted ${g.lift} · fill light ×${fill}`
-      : `Grade: none · fill light ×${fill}`,
+  /** The floor's grade, fill light and kit colours (data/floors.json: `grade`, `light.fill`, `materials`). */
+  gradeInfo: (
+    g: { shadow: string; amount: number; lift: number; ink: number; gap: number },
+    fill: number,
+    colours: number,
+  ) =>
+    (g.amount || g.lift || g.ink
+      ? `Grade: shadows toward ${g.shadow} by ${g.amount}, black lifted ${g.lift}, outlines inked ${g.ink} from ${g.gap}`
+      : `Grade: none`) +
+    ` · fill light ×${fill} · ${colours ? `${colours} kit colours its own` : "the kit's own colours"}`,
   /** The on-screen readout: frame rate, and what the last frame drew. */
   frameInfo: (fps: number, calls: number, tris: number) =>
     `${fps} fps · ${calls} draw calls · ${tris.toLocaleString('en')} triangles`,
