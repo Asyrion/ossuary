@@ -182,6 +182,14 @@ materials (`materials` in its look, docs/architecture.md, Pixel look). Step C: p
 middle; the walls carry moss and more niches. The six relics are Tripo models (docs/assets.md, asset log), cut to under
 3,500 triangles as closed hulls with their colour baked (`tools/art/`). **The owner accepted B and C (2026-10-19).**
 
+### 4.11 Floor 1 in the game, step D: made wall faces (built 2026-10-19)
+
+Floor 1's three kinds of wall (bricks, ashlar, bones) are faces made from Tripo Studio pictures, reduced to the kit's
+texel by a majority colour a block and moved into the floor's wall colours (`tools/art/walltile.py`; docs/assets.md,
+Wall faces; the pictures in `docs/art/walls/`). The code still draws its stains, moss, niches and pillars over them.
+**The owner chose the made faces for all three (2026-10-19).** The other floors keep the kit's drawn walls until their
+own pass. Floor tiles stay drawn (4.8).
+
 ## 5. The reference pictures
 
 The owner's five pictures (2026-10-15), in `docs/art/reference/`. They are measured over the whole picture, the magenta
