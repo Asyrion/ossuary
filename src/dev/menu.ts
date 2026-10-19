@@ -165,6 +165,7 @@ let panel: HTMLElement | null = null,
   assetBox: HTMLElement,
   pxBtn: HTMLButtonElement,
   lineBtn: HTMLButtonElement,
+  actorBtn: HTMLButtonElement,
   bandBtn: HTMLButtonElement,
   gradeInfo: HTMLElement,
   scatterInfo: HTMLElement;
@@ -1076,6 +1077,7 @@ function build() {
       setPixelLook({ lines: LINES[(LINES.indexOf(pixelLook().lines) + 1) % LINES.length] });
     })),
     (lineBtn = btn('', () => setPixelLook({ outline: !pixelLook().outline }))),
+    (actorBtn = btn('', () => setPixelLook({ actors: !pixelLook().actors }))), // (the actors' outline and rim, to compare)
     (bandBtn = btn('', () => setPixelLook({ bands: !pixelLook().bands }))),
     (gradeInfo = el('div', 'dv-info')), // (the floor's grade and fill, art bible 4.2 and 4.3)
   );
@@ -1747,6 +1749,9 @@ function refresh() {
   lineBtn.textContent = look.outline ? S.outlinesOn : S.outlinesOff;
   lineBtn.classList.toggle('on', look.outline);
   lineBtn.disabled = !look.lines;
+  actorBtn.textContent = look.actors ? S.actorsOn : S.actorsOff;
+  actorBtn.classList.toggle('on', look.actors);
+  actorBtn.disabled = !look.lines;
   bandBtn.textContent = look.bands ? S.bandsOn : S.bandsOff;
   bandBtn.classList.toggle('on', look.bands);
   bandBtn.disabled = !look.lines;

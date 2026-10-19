@@ -27,6 +27,7 @@ export interface PixelLook {
   /** the grid: 'texel', 'fine', or 0 for off */ lines: Lines;
   outline: boolean;
   bands: boolean;
+  /** the actors' outline and rim (the dev menu compares them, art bible 4.4) */ actors: boolean;
 }
 const P = CFG.pixelLook,
   KEY = 'ossuary.look',
@@ -35,6 +36,15 @@ const P = CFG.pixelLook,
     there; with the pixel look off, with everything else. */
 export const FINE = 1;
 const fineObjects = new Set<THREE.Object3D>();
+/** The actors (`markActor`: the mage, the foes, the bosses): their solid meshes stamp the stencil where they are drawn in
+    the grid's pass (`stamp`), a pass over the grid turns the stamp into a mask (`drawActors`), and the shading gives
+    every pixel of an actor seen a closed outline round it and a rim of light on its top and left (art bible 4.4 and 4.5).
+    Their glows, auras and shadows (translucent, or writing no depth) stamp nothing. */
+const actorRoots = new Set<THREE.Object3D>();
+/** Mark `o` as an actor, for the outline and the rim; it is forgotten once it has left the scene. */
+export function markActor(o: THREE.Object3D) {
+  actorRoots.add(o);
+}
 /** Mark `o` as holding what is on the fine layer (pickupLooks.ts does, for every coin it builds), so the fine pass runs
     while it is shown; it is forgotten once it has left the scene. */
 export function markFine(o: THREE.Object3D) {
@@ -110,12 +120,17 @@ function fineShown(scene: THREE.Scene, camera: THREE.Camera, gw: number, gh: num
 /** Every grid the dev menu offers, the texel first. */
 export const LINES: readonly Lines[] = ['texel', 'fine'];
 const offered = (l: unknown): l is Lines => LINES.includes(l as Lines);
-let look: PixelLook = { lines: P.start, outline: true, bands: false };
+let look: PixelLook = { lines: P.start, outline: true, bands: false, actors: true };
 try {
   // (a choice is kept with the default it was made against: when the default changes, the new one shows once)
   const v = JSON.parse(localStorage.getItem(KEY) ?? 'null') as (Partial<PixelLook> & { start?: Lines }) | null;
   if (v && v.start === P.start)
-    look = { lines: offered(v.lines) ? v.lines : P.start, outline: v.outline !== false, bands: !!v.bands };
+    look = {
+      lines: offered(v.lines) ? v.lines : P.start,
+      outline: v.outline !== false,
+      bands: !!v.bands,
+      actors: v.actors !== false,
+    };
 } catch {
   /* no storage: the default */
 }
@@ -166,7 +181,8 @@ export function setPixelLook(change: Partial<PixelLook>) {
 let target: THREE.WebGLRenderTarget | null = null,
   shaded: THREE.WebGLRenderTarget | null = null;
 let fine: THREE.WebGLRenderTarget | null = null,
-  over: THREE.WebGLRenderTarget | null = null;
+  over: THREE.WebGLRenderTarget | null = null,
+  mask: THREE.WebGLRenderTarget | null = null;
 const GROW = 64,
   MARGIN = 2;
 const buffer = new THREE.Vector2(),
@@ -219,6 +235,10 @@ const shade = new THREE.ShaderMaterial({
   uniforms: {
     tColor: { value: null },
     tDepth: { value: null },
+    tMask: { value: null },
+    actors: { value: 0 },
+    rimColor: { value: new THREE.Color().setHex(parseInt(P.actors.rim.slice(1), 16), THREE.LinearSRGBColorSpace) },
+    rim: { value: P.actors.rimAmount },
     grid: { value: new THREE.Vector2() },
     outline: { value: 0 },
     bands: { value: 0 },
@@ -230,17 +250,26 @@ const shade = new THREE.ShaderMaterial({
   },
   vertexShader: 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
   fragmentShader: /* glsl */ `
-    uniform sampler2D tColor; uniform sampler2D tDepth; uniform vec2 grid;
+    uniform sampler2D tColor; uniform sampler2D tDepth; uniform sampler2D tMask; uniform vec2 grid;
     uniform float outline; uniform float bands; uniform float gap; uniform float dark; uniform float steps; uniform float range;
+    uniform float actors; uniform vec3 rimColor; uniform float rim;
     ${GRADE_GLSL}
-    float depthAt(ivec2 p) { return texelFetch(tDepth, clamp(p, ivec2(0), ivec2(grid) - 1), 0).r * range; }
+    ivec2 at(ivec2 p) { return clamp(p, ivec2(0), ivec2(grid) - 1); }
+    float depthAt(ivec2 p) { return texelFetch(tDepth, at(p), 0).r * range; }
+    // an actor seen there (its stamp, turned into the mask)
+    bool actorAt(ivec2 p) { return actors > 0.5 && texelFetch(tMask, at(p), 0).r > 0.5; }
     void main() {
       ivec2 p = ivec2(gl_FragCoord.xy);
       vec3 col = texelFetch(tColor, p, 0).rgb;
+      bool me = actorAt(p);
+      ivec2 n[4] = ivec2[4](p - ivec2(1, 0), p + ivec2(0, 1), p + ivec2(1, 0), p - ivec2(0, 1));
       if (outline > 0.5) { // the nearer side of an edge: a neighbour lies more than gap units farther away
-        float d = depthAt(p);
-        float farther = max(max(depthAt(p + ivec2(1, 0)), depthAt(p - ivec2(1, 0))), max(depthAt(p + ivec2(0, 1)), depthAt(p - ivec2(0, 1)))) - d;
+        float d = depthAt(p), farther = 0.0;
+        // (an actor's own edge is left to its outline outside it, so that stays one pixel wide)
+        for (int i = 0; i < 4; i++) if (!me || actorAt(n[i])) farther = max(farther, depthAt(n[i]) - d);
         if (farther > gap) col = ink(col * pow(1.0 - dark, 1.0 / 2.2)); // (as dark as 1 - dark in linear light)
+        // the actor's closed outline, outside it all round: a pixel beside one, whatever lies there, in its colour darkened
+        if (!me) for (int i = 0; i < 4; i++) if (actorAt(n[i])) { col = ink(texelFetch(tColor, at(n[i]), 0).rgb * pow(1.0 - dark, 1.0 / 2.2)); break; }
       }
       gl_FragColor = vec4(grade(col), 1.0); // (tone-mapped and encoded already, by the scene's own shaders)
       if (bands > 0.5) { // light in a few steps, the hue kept: steps even to the eye (finer in the dark), never black
@@ -248,6 +277,9 @@ const shade = new THREE.ShaderMaterial({
         float q = max(floor(s * steps + 0.5), 1.0) / steps;
         gl_FragColor.rgb *= min(q * q / max(l, 1e-4), 4.0);
       }
+      // the rim: an actor's top and left edge caught in a warm light from above and the left (where it is three pixels
+      // thick or more: a leg or a horn stays its own colour inside its outline)
+      if (me && ((!actorAt(n[1]) && actorAt(n[3]) && actorAt(p - ivec2(0, 2))) || (!actorAt(n[0]) && actorAt(n[2]) && actorAt(p + ivec2(2, 0))))) gl_FragColor.rgb = mix(gl_FragColor.rgb, max(gl_FragColor.rgb, rimColor), rim);
     }`,
 });
 const blit = new THREE.ShaderMaterial({
@@ -366,15 +398,20 @@ function ensure(w: number, h: number) {
   fine?.depthTexture?.dispose();
   fine?.dispose();
   over?.dispose();
+  mask?.dispose(); // (its depth is the grid's, gone above)
+  mask = null;
   target = new THREE.WebGLRenderTarget(W, H, {
     type: THREE.UnsignedByteType,
     colorSpace: THREE.SRGBColorSpace,
     minFilter: THREE.NearestFilter,
     magFilter: THREE.NearestFilter,
     depthBuffer: true,
+    stencilBuffer: true,
     samples: 0,
   });
-  target.depthTexture = new THREE.DepthTexture(W, H);
+  // (depth and stencil together: the actors stamp the stencil, read back through the mask)
+  target.depthTexture = new THREE.DepthTexture(W, H, THREE.UnsignedInt248Type);
+  target.depthTexture.format = THREE.DepthStencilFormat;
   // Blend as the canvas does. three tone-maps and encodes to sRGB in each material's shader only when it draws to the
   // screen (or an XR target); into any other target it writes linear light, blended as such, and faint translucent
   // light (a daylight shaft, rime, a torch's halo) came out far brighter and harder-edged than on the canvas. Flagged
@@ -423,6 +460,98 @@ function ensureFine() {
   over.texture.internalFormat = 'RGBA8';
   over.scissorTest = true;
   return fine;
+}
+
+/** The mask of the actors seen (`mask`, the grid's size), sharing the grid's depth and stencil, made the first time an
+    actor is shown. */
+function ensureMask() {
+  if (mask) return mask;
+  mask = new THREE.WebGLRenderTarget(target!.width, target!.height, {
+    type: THREE.UnsignedByteType,
+    minFilter: THREE.NearestFilter,
+    magFilter: THREE.NearestFilter,
+    depthBuffer: true,
+    stencilBuffer: true,
+    samples: 0,
+  });
+  mask.depthTexture = target!.depthTexture; // (the grid's stamp read through its stencil)
+  mask.scissorTest = true;
+  return mask;
+}
+const solid = (m: THREE.Material) => !m.transparent && m.depthWrite && m.visible;
+/** While the grid is drawn, an actor's solid meshes stamp 1 into the stencil where they pass the depth test (as the
+    frontmost so far: what is drawn nearer after them is rare, three drawing the solid front to back). */
+let stamping = false;
+function stamp(this: THREE.Object3D, ...[, , , , mat]: Parameters<THREE.Object3D['onBeforeRender']>) {
+  if (!stamping || !this.userData.actor || !solid(mat)) return;
+  mat.stencilWrite = true;
+  mat.stencilRef = 1;
+  mat.stencilFunc = THREE.AlwaysStencilFunc;
+  mat.stencilZPass = THREE.ReplaceStencilOp;
+}
+function unstamp(this: THREE.Object3D, ...[, , , , mat]: Parameters<THREE.Object3D['onAfterRender']>) {
+  if (!mat.stencilWrite || !stamping) return;
+  mat.stencilWrite = false;
+  mat.stencilZPass = THREE.KeepStencilOp;
+}
+/** The actors' meshes made to stamp (once each), forgetting the actors that have left the scene. Whether any is shown. */
+function tagActors(scene: THREE.Scene) {
+  let any = false;
+  for (const o of actorRoots) {
+    let p = o,
+      seen = o.visible;
+    while (p.parent) {
+      p = p.parent;
+      seen &&= p.visible;
+    }
+    if (p !== scene) {
+      actorRoots.delete(o);
+      continue;
+    }
+    if (!seen) continue;
+    any = true;
+    o.traverse((c) => {
+      if (!(c as THREE.Mesh).isMesh || c.userData.actor) return;
+      c.userData.actor = true;
+      const before = c.onBeforeRender.bind(c),
+        after = c.onAfterRender.bind(c);
+      c.onBeforeRender = (...a) => {
+        stamp.apply(c, a);
+        before(...a);
+      };
+      c.onAfterRender = (...a) => {
+        unstamp.apply(c, a);
+        after(...a);
+      };
+    });
+  }
+  return any;
+}
+const maskFill = new THREE.ShaderMaterial({
+  depthTest: false,
+  depthWrite: false,
+  stencilWrite: true, // (three tests the stencil only for a material that writes it; this one writes nothing to it)
+  stencilWriteMask: 0,
+  stencilRef: 1,
+  stencilFunc: THREE.EqualStencilFunc,
+  vertexShader: 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
+  fragmentShader: 'void main() { gl_FragColor = vec4(1.0); }',
+});
+/** The actors' stamp turned into `mask` (the grid's `gw` × `gh`): white where an actor is seen, black elsewhere. */
+function drawActors(renderer: THREE.WebGLRenderer, gw: number, gh: number) {
+  const m = ensureMask(),
+    auto = renderer.autoClear;
+  m.viewport.set(0, 0, gw, gh);
+  m.scissor.set(0, 0, gw, gh);
+  renderer.getClearColor(clear);
+  const alpha = renderer.getClearAlpha();
+  renderer.setRenderTarget(m);
+  renderer.setClearColor(0x000000, 1);
+  renderer.clear(true, false, false); // (the colour only: the depth and the stamp are the grid's)
+  renderer.autoClear = false;
+  pass(renderer, maskFill, m);
+  renderer.autoClear = auto;
+  renderer.setClearColor(clear, alpha);
 }
 
 /** Whether the fine layer drew anything in the last frame. */
@@ -496,8 +625,12 @@ export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   camera.top = (gh * py * camera.zoom) / 2;
   camera.bottom = -camera.top;
   camera.updateProjectionMatrix();
+  const actorsDrawn = look.actors && tagActors(scene);
+  stamping = actorsDrawn;
   renderer.setRenderTarget(target);
   renderer.render(scene, camera);
+  stamping = false;
+  if (actorsDrawn) drawActors(renderer, gw, gh);
   fineDrawn = drawFine(renderer, scene, camera, gw, gh);
   camera.left = l;
   camera.right = r;
@@ -506,6 +639,8 @@ export function drawPixelLook(renderer: THREE.WebGLRenderer, scene: THREE.Scene,
   camera.updateProjectionMatrix();
   s.tColor.value = target!.texture;
   s.tDepth.value = target!.depthTexture;
+  s.tMask.value = actorsDrawn ? mask!.texture : target!.texture;
+  s.actors.value = actorsDrawn ? 1 : 0;
   (s.grid.value as THREE.Vector2).set(gw, gh);
   s.outline.value = look.outline ? 1 : 0;
   s.bands.value = look.bands ? 1 : 0;

@@ -7,6 +7,7 @@ import { bumpFoe, buildFoe, clearFoeHazards, poseFoe, teleColor, updateFoe, upda
 import type { Enemy } from '../types';
 import { G, player } from '../state';
 import { scene } from '../render/renderer';
+import { markActor } from '../render/pixelLook';
 import { blob, disposeTree, glow } from '../render/materials';
 import { blockers, collide } from '../world/collision';
 import type { BossConfig } from '../world/generate';
@@ -136,6 +137,7 @@ export function makeEnemy(
   e.group.position.set(e.x, 0, e.z);
   e.group.scale.setScalar(0.01);
   scene.add(e.group);
+  markActor(e.group); // (its outline and rim in the pixel look)
   G.room.enemies.push(e);
   return e;
 }
