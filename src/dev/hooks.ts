@@ -106,6 +106,7 @@ import { marksNow } from '../actors/spellMarks';
 import type { TransformId } from '../items/transformData';
 import { placeProp } from '../world/props';
 import { assetList, assetsOn } from '../assets/models';
+import { scatterOf } from '../world/themes';
 import { drawnRows, gradeNow, pixelLook, setPixelLook, type PixelLook, fineLayerDrawn } from '../render/pixelLook';
 import { removeModelOptions, showBestiary, showBossLooks, showJellyLooks } from './modelGallery';
 import { removeEffectOptions, showEffectOptions } from './effectOptions';
@@ -343,6 +344,10 @@ export function installHooks() {
     },
     /** Every object and pile, and two urns, in rows ahead of the mage (the dev menu's "Objects here"). */
     objectsHere: () => objectsHere(),
+    /** What the room's scatter put down, by kind (a theme's, or a plain room's from its floor's `scatter`). */
+    get scatterHere() {
+      return scatterOf(G.room.current);
+    },
     dropsHere: () => dropsHere(),
     /** The soundscapes and the music (docs/archive/sound-plan.md): what plays; turned on (the browser tests start with it off);
         forced to a floor's soundscape, a room's, a piece and mood; a stretch of any rendered offline, as a base64 WAV. */

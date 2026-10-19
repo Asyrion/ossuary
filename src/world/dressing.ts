@@ -37,7 +37,7 @@ export function dressNorthWall(room: Room, face: number, x0: number, x1: number,
       if (clear(x, 0.25)) add(pilasterLook(room.look), x);
       return;
     }
-    if (!total || !clear(x, 0.32) || R() < 0.35) return;
+    if (!total || !clear(x, 0.32) || R() < 1 - (dress.fill ?? 0.65)) return;
     let pick = R() * total,
       kind: NicheKind = niches[0][0];
     for (const [k, w] of niches) {

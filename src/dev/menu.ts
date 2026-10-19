@@ -69,6 +69,7 @@ import { assetList, assetsOn, setAssetsOn } from '../assets/models';
 import { setCloseUp } from '../render/renderer';
 import { LINES, drawnRows, gradeNow, pixelLook, setPixelLook } from '../render/pixelLook';
 import { lightLevels } from '../render/lights';
+import { scatterOf } from '../world/themes';
 import { removeModelOptions, showBestiary, showBossLooks, showJellyLooks } from './modelGallery';
 import { BESTIARY_OPTIONS } from '../actors/bestiaryLooks';
 import { EFFECT_OPTIONS, removeEffectOptions, showEffectOptions } from './effectOptions';
@@ -165,7 +166,8 @@ let panel: HTMLElement | null = null,
   pxBtn: HTMLButtonElement,
   lineBtn: HTMLButtonElement,
   bandBtn: HTMLButtonElement,
-  gradeInfo: HTMLElement;
+  gradeInfo: HTMLElement,
+  scatterInfo: HTMLElement;
 let levelInfo: HTMLElement,
   padInfo: HTMLElement,
   runeInfo: HTMLElement,
@@ -1098,6 +1100,7 @@ function build() {
       closeDev();
       objectsHere();
     }),
+    (scatterInfo = el('div', 'dv-info')), // (what the room's scatter put down)
     btn(S.dropsHere, () => {
       closeDev();
       dropsHere();
@@ -1731,6 +1734,7 @@ function refresh() {
   bandBtn.textContent = look.bands ? S.bandsOn : S.bandsOff;
   bandBtn.classList.toggle('on', look.bands);
   bandBtn.disabled = !look.lines;
+  scatterInfo.textContent = S.scatterInfo(scatterOf(G.room.current));
   gradeInfo.textContent = S.gradeInfo(
     gradeNow(),
     lightLevels().fill,

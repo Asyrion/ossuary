@@ -335,3 +335,27 @@ test("a floor's grade (the art bible's cool shadows): floor 1 leans its darks to
   expect(f2.fill).toBe(1);
   expect(two).toEqual([]);
 });
+
+test("a plain room's scatter: on floor 1 a fight's room is strewn from the floor's own scatter (bones, pebbles, verdigris, cobwebs by the walls), only kinds it names; a floor without one leaves its plain rooms bare", async ({
+  page,
+}) => {
+  type GS = { scatterHere: Record<string, number> };
+  const kinds = ['bones', 'pebbles', 'candles', 'verdigris', 'webs', 'stains'];
+  const one = await start(page, '?room=crypt_a&seed=SCATTER1');
+  const s1 = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GS & { warp(i: number): void } }).__game;
+    g.warp(1);
+    return g.scatterHere;
+  });
+  expect(Object.values(s1).reduce((a, b) => a + b, 0)).toBeGreaterThan(4);
+  for (const k of Object.keys(s1)) expect(kinds).toContain(k);
+  expect(one).toEqual([]);
+  const two = await start(page, '?room=crypt_a&seed=SCATTER1&floor=2');
+  const s2 = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GS & { warp(i: number): void } }).__game;
+    g.warp(1);
+    return g.scatterHere;
+  });
+  expect(s2).toEqual({});
+  expect(two).toEqual([]);
+});

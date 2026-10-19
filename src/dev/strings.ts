@@ -89,6 +89,13 @@ export const DEV_STR = {
     "Wall lights, braziers, the mechanisms and the rooms' objects built in code, and every floor's floors and walls in pixel art; each room draws its kinds, and the buttons below force one on every room of this floor",
   fireHere: 'Fire objects here (cold and lit)',
   objectsHere: 'Objects here (every pile and object, two urns)',
+  /** What the room's scatter put down (a theme's, or the floor's in a plain room). */
+  scatterInfo: (s: Record<string, number>) =>
+    Object.keys(s).length
+      ? `Scattered here: ${Object.entries(s)
+          .map(([k, n]) => `${k} ${n}`)
+          .join(', ')}`
+      : 'Scattered here: nothing',
   dropsHere: 'Drops here (every pickup, coffer and chest)',
   kitPart: (part: string, kind: string, forced: boolean) =>
     `${({ wall: 'Walls', floor: 'Floor', torch: 'Wall lights', brazier: 'Braziers' } as Record<string, string>)[part]}: ${kind}${forced ? ' (every room)' : ' (this room drew)'}`,

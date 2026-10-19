@@ -634,6 +634,9 @@ export const CFG = {
     caveDamage: 8,
     daylightClear: 3,
     bedrollClear: 2,
+    // a plain room's scatter (the floor's `scatter`): each kind's count times at least [0] and up to [0] + [1], so
+    // rooms of one floor differ
+    plainSpread: [0.4, 1.2] as [number, number],
     // the drowned climb out of the landing's river this long into a fight, then this often, at most this many
     drownAfter: 5,
     drownEvery: 7,
