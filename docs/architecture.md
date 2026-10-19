@@ -658,7 +658,10 @@ stays free of it (software renderers pay for every shader line).
 The floor's grade (`grade` in a floor's look, data/floors.json; `setGrade`, called by `applyFloorLook`): the shade
 pass and the fine layer lean the darks toward the floor's shadow colour and lift black toward it (art bible 4.2). A
 floor without one is drawn as it is; the dawn outside clears it. The floor's `light.fill` scales the fill and the
-moonlight (`lightState.fill`). Dev: `__game.grade`, `lightLevels().fill`; the Look tab's readout under the pixel look.
+moonlight (`lightState.fill`). The grade's `ink` draws the outlines toward a near black tinted by the shadow colour,
+and its `gap` sets how far a nearer surface must stand before a farther one to be outlined (art bible 4.4). A floor's
+`materials` recolours the room kit's shared materials (`MAT`) and the objects' colours (`C`) by name, before its rooms
+are built (`applyKitColours`, world/kitColours.ts). Dev: `__game.grade`, `lightLevels().fill`; the Look tab's readout under the pixel look.
 
 Everything else stays pixel art by: the mage's texture baked into vertex colours (`actors/heroPixel.ts`, cut to
 `CFG.heroPixel.colours` by pure `render/palette.ts`), stepped glows and shadows (`glowTex`, `shadowTex`), and 24 px

@@ -184,9 +184,12 @@ const GRADE = {
   gradeShadow: { value: new THREE.Color(0, 0, 0) },
   gradeAmount: { value: 0 },
   gradeLift: { value: 0 },
+  gradeInk: { value: 0 },
 };
 const GRADE_GLSL = /* glsl */ `
-    uniform vec3 gradeShadow; uniform float gradeAmount; uniform float gradeLift;
+    uniform vec3 gradeShadow; uniform float gradeAmount; uniform float gradeLift; uniform float gradeInk;
+    // the outline's colour (art bible 4.4): toward a near black tinted by the floor's shadow and a little by what it outlines
+    vec3 ink(vec3 c) { return mix(c, gradeShadow * 0.35 + c * 0.12, gradeInk); }
     vec3 grade(vec3 c) {
       float l = dot(c, vec3(0.299, 0.587, 0.114));
       vec3 cool = gradeShadow * (l / max(dot(gradeShadow, vec3(0.299, 0.587, 0.114)), 1e-3));
@@ -198,13 +201,17 @@ export const gradeNow = () => ({
   shadow: '#' + GRADE.gradeShadow.value.getHexString(THREE.LinearSRGBColorSpace),
   amount: GRADE.gradeAmount.value,
   lift: GRADE.gradeLift.value,
+  ink: GRADE.gradeInk.value,
+  gap: shade.uniforms.gap.value as number,
 });
 /** Grade the pixel look for a floor (its `grade`, types.ts FloorLook); none, colours as they are. */
-export function setGrade(g?: { shadow: string; amount: number; lift: number }) {
+export function setGrade(g?: { shadow: string; amount: number; lift: number; ink?: number; gap?: number }) {
   // (the pass works on encoded colours, so the hex goes in as it is written, not converted to linear light)
   GRADE.gradeShadow.value.setHex(parseInt((g?.shadow ?? '#000000').slice(1), 16), THREE.LinearSRGBColorSpace);
   GRADE.gradeAmount.value = g?.amount ?? 0;
   GRADE.gradeLift.value = g?.lift ?? 0;
+  GRADE.gradeInk.value = g?.ink ?? 0;
+  shade.uniforms.gap.value = g?.gap ?? P.outlineGap;
 }
 const shade = new THREE.ShaderMaterial({
   depthTest: false,
@@ -233,7 +240,7 @@ const shade = new THREE.ShaderMaterial({
       if (outline > 0.5) { // the nearer side of an edge: a neighbour lies more than gap units farther away
         float d = depthAt(p);
         float farther = max(max(depthAt(p + ivec2(1, 0)), depthAt(p - ivec2(1, 0))), max(depthAt(p + ivec2(0, 1)), depthAt(p - ivec2(0, 1)))) - d;
-        if (farther > gap) col *= pow(1.0 - dark, 1.0 / 2.2); // (as dark as 1 - dark in linear light)
+        if (farther > gap) col = ink(col * pow(1.0 - dark, 1.0 / 2.2)); // (as dark as 1 - dark in linear light)
       }
       gl_FragColor = vec4(grade(col), 1.0); // (tone-mapped and encoded already, by the scene's own shaders)
       if (bands > 0.5) { // light in a few steps, the hue kept: steps even to the eye (finer in the dark), never black
