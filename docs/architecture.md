@@ -211,7 +211,9 @@ Pure `src/world/themeData.ts` (`themedLook`, `validateThemes`). A template's `th
 A floor's look may carry its own `scatter` (floor 1: bones, pebbles, verdigris, cobwebs, stains): a plain
 fight or the start is strewn with it, each kind's count varied a room (`CFG.themes.plainSpread`); never on other room
 types. Cobwebs (`webs`) keep to a wall. The kinds with nothing moving in them are merged into one mesh a material (`STILL`); the room's counts are `room.strewn`. A floor's `wall.dress.fill` is the chance a spot between pilasters holds a
-niche. Dev: `__game.scatterHere`; the Look tab's readout under Objects here.
+niche. The `relics` kind strews made models (data/assets.json `props`, ids in `PROP_SLOTS`: a grave marker, a coffin
+lid, a fallen candelabrum, an angel's head, a skull pile, a broken urn; `relicLook`); none while assets are off. Dev:
+`__game.scatterHere`, `relicsHere()`; the Look tab's readout under Objects here, and Relics here.
 
 Twists: sleepers (`asleep` foes wake when hit or approached); rising bones; scroll heaps break to pages; cave-in on
 a blast (`caveIn`); the chapel's blessing; the mausoleum's rime (entombs foes, freezes water, charges rune stones,

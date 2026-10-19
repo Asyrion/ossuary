@@ -52,7 +52,8 @@ export type ScatterKind =
   | 'lamps'
   | 'flowers'
   | 'verdigris'
-  | 'webs';
+  | 'webs'
+  | 'relics';
 export const SCATTER_KINDS: ScatterKind[] = [
   'candles',
   'pages',
@@ -72,6 +73,7 @@ export const SCATTER_KINDS: ScatterKind[] = [
   'flowers',
   'verdigris',
   'webs',
+  'relics',
 ];
 
 type LookPatch = { [K in keyof FloorLook]?: Partial<FloorLook[K]> };

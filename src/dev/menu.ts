@@ -69,7 +69,7 @@ import { assetList, assetsOn, setAssetsOn } from '../assets/models';
 import { setCloseUp } from '../render/renderer';
 import { LINES, drawnRows, gradeNow, pixelLook, setPixelLook } from '../render/pixelLook';
 import { lightLevels } from '../render/lights';
-import { scatterOf } from '../world/themes';
+import { RELICS, relicLook, scatterOf } from '../world/themes';
 import { removeModelOptions, showBestiary, showBossLooks, showJellyLooks } from './modelGallery';
 import { BESTIARY_OPTIONS } from '../actors/bestiaryLooks';
 import { EFFECT_OPTIONS, removeEffectOptions, showEffectOptions } from './effectOptions';
@@ -348,6 +348,17 @@ export function objectsHere() {
     const q = freeSpotNear(room, player.x + dx, player.z - 1.8 - Math.ceil(kinds.length / 9) * 1.4);
     placeUrn(q.x, q.z, sealed);
   }
+}
+
+/** Ahead of the mage, in a row: one of each relic of the vault (the made models floor 1 strews), to look at them. */
+export function relicsHere() {
+  const room = G.room.current;
+  RELICS.forEach((id, i) => {
+    const q = freeSpotNear(room, player.x + (i - 2.5) * 1.2, player.z - 1.6),
+      o = relicLook(id, () => 0.5);
+    o.position.set(q.x - room.cx, 0, q.z - room.cz);
+    room.group.add(o);
+  });
 }
 
 /** Ahead of the mage, in a row: one of every drop and a gilded chest, to look at the room kit's pickups and containers in
@@ -1104,6 +1115,10 @@ function build() {
     btn(S.dropsHere, () => {
       closeDev();
       dropsHere();
+    }),
+    btn(S.relicsHere, () => {
+      closeDev();
+      relicsHere();
     }),
   );
 

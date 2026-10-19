@@ -56,7 +56,17 @@ export interface Manifest {
 export const BUDGETS = raw.budgets as Record<ModelKind, Budget>;
 export const IMAGES = raw.images as Record<ImageKind, ImageSpec>;
 /** The placeholders a prop model can take the place of, and the kind each is. */
-export const PROP_SLOTS: Record<string, ModelKind> = { urn: 'prop', pedestal: 'prop' };
+export const PROP_SLOTS: Record<string, ModelKind> = {
+  urn: 'prop',
+  pedestal: 'prop',
+  // the relics strewn over floor 1 (a floor's `scatter` of `relics`, world/themes.ts): made models only, no placeholder
+  grave_marker: 'prop',
+  coffin_lid: 'prop',
+  fallen_candelabrum: 'prop',
+  angel_head: 'large-prop',
+  skull_pile: 'large-prop',
+  broken_urn: 'large-prop',
+};
 export const MANIFEST: Manifest = {
   props: raw.props,
   artifacts: raw.artifacts,
