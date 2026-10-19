@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { CFG } from '../config';
 import type { FloorLook, Torch } from '../types';
 import { scene } from './renderer';
-import { FINE } from './pixelLook';
+import { FINE, setGrade } from './pixelLook';
 
 // Soft fill + cold moon + a pool of four torch lights on the torches nearest the mage + the hero's lantern.
 // The number of lights never changes, so shaders are never rebuilt when rooms change. Every light is on the fine layer
@@ -26,12 +26,13 @@ export const lantern = lit(new THREE.PointLight(0xffc27a, L.lantern, L.lanternDi
 
 /** Torch brightness factor of the current floor (CFG.lights.torch × this), and how dark the current room is:
     0 normally, 1 in a dark room (torches out, fill and moonlight low, the lantern a little brighter). */
-export const lightState = { torchMul: 1, dark: 0, darkTarget: 0, day: false };
+export const lightState = { torchMul: 1, fill: 1, dark: 0, darkTarget: 0, day: false };
 /** The dawn's light at the cave mouth (CFG.daylight.light): a warm fill and a low sun, the torches out, the lantern
     turned down; off, the floor's look puts its own colours back (applyFloorLook, on the next floor). */
 export function setDaylight(on: boolean) {
   lightState.day = on;
   if (!on) return;
+  setGrade(); // (the dawn outside is no floor's: its colours stay as they are drawn)
   const D = CFG.daylight.light;
   hemi.color.set(D.sky);
   hemi.groundColor.set(D.ground);
@@ -44,16 +45,19 @@ export function setDarkness(target: number, instant = false) {
 }
 /** Current light levels, for tests. */
 export const lightLevels = () => ({
+  fill: lightState.fill,
   hemi: hemi.intensity,
   moon: moon.intensity,
   lantern: lantern.intensity,
   torches: torchLights.map((l) => l.intensity),
 });
-/** Tint the fill light, moonlight and torch lights for a floor's look. */
+/** Tint the fill light, moonlight and torch lights for a floor's look, and grade the pixel look by it. */
 export function applyFloorLook(look: FloorLook) {
   hemi.color.set(look.light.sky);
   hemi.groundColor.set(look.light.ground);
   moon.color.set(look.light.moon);
+  lightState.fill = look.light.fill ?? 1;
+  setGrade(look.grade);
   for (const l of torchLights) l.color.set(look.torch.light);
   lightState.torchMul = look.torch.intensity;
 }
@@ -90,8 +94,8 @@ export function resetTorchLights(torches: Torch[], x: number, z: number) {
 export function updateTorchLights(torches: Torch[], x: number, z: number, dt: number, flicker: number) {
   const ls = lightState,
     dark = (ls.dark += (ls.darkTarget - ls.dark) * (1 - Math.exp(-5 * dt)));
-  hemi.intensity = L.hemi * (1 - 0.8 * dark);
-  moon.intensity = L.moon * (1 - 0.85 * dark);
+  hemi.intensity = L.hemi * ls.fill * (1 - 0.8 * dark);
+  moon.intensity = L.moon * ls.fill * (1 - 0.85 * dark);
   lantern.intensity = L.lantern * (1 + 0.35 * dark);
   if (ls.day) {
     const D = CFG.daylight.light;

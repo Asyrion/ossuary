@@ -67,7 +67,8 @@ import { SHADE_IDS } from '../vigil/shadeData';
 import { openLectern } from '../ui/lectern';
 import { assetList, assetsOn, setAssetsOn } from '../assets/models';
 import { setCloseUp } from '../render/renderer';
-import { LINES, drawnRows, pixelLook, setPixelLook } from '../render/pixelLook';
+import { LINES, drawnRows, gradeNow, pixelLook, setPixelLook } from '../render/pixelLook';
+import { lightLevels } from '../render/lights';
 import { removeModelOptions, showBestiary, showBossLooks, showJellyLooks } from './modelGallery';
 import { BESTIARY_OPTIONS } from '../actors/bestiaryLooks';
 import { EFFECT_OPTIONS, removeEffectOptions, showEffectOptions } from './effectOptions';
@@ -163,7 +164,8 @@ let panel: HTMLElement | null = null,
   assetBox: HTMLElement,
   pxBtn: HTMLButtonElement,
   lineBtn: HTMLButtonElement,
-  bandBtn: HTMLButtonElement;
+  bandBtn: HTMLButtonElement,
+  gradeInfo: HTMLElement;
 let levelInfo: HTMLElement,
   padInfo: HTMLElement,
   runeInfo: HTMLElement,
@@ -1061,6 +1063,7 @@ function build() {
     })),
     (lineBtn = btn('', () => setPixelLook({ outline: !pixelLook().outline }))),
     (bandBtn = btn('', () => setPixelLook({ bands: !pixelLook().bands }))),
+    (gradeInfo = el('div', 'dv-info')), // (the floor's grade and fill, art bible 4.2 and 4.3)
   );
 
   // the room kit: each part's kind; the fire objects, the objects and the drops to look at
@@ -1728,6 +1731,7 @@ function refresh() {
   bandBtn.textContent = look.bands ? S.bandsOn : S.bandsOff;
   bandBtn.classList.toggle('on', look.bands);
   bandBtn.disabled = !look.lines;
+  gradeInfo.textContent = S.gradeInfo(gradeNow(), lightLevels().fill);
   reagentBtn.textContent = DEV.reagents ? S.reagentsOn : S.reagentsOff;
   reagentBtn.classList.toggle('on', DEV.reagents);
   alchInfo.textContent = S.alchemyInfo(

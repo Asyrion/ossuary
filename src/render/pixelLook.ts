@@ -177,6 +177,35 @@ const buffer = new THREE.Vector2(),
   clear = new THREE.Color();
 const passScene = new THREE.Scene(),
   passCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+// The floor's grade (docs/art-bible.md 4.2: cool shadows, no black where the room is): the darks lean toward the
+// floor's shadow colour at their own lightness, most in the darkest, and black is lifted toward that colour. Shared by
+// the grid and the fine layer, so coins are graded as the room round them is; amount and lift 0 leave colours as they are.
+const GRADE = {
+  gradeShadow: { value: new THREE.Color(0, 0, 0) },
+  gradeAmount: { value: 0 },
+  gradeLift: { value: 0 },
+};
+const GRADE_GLSL = /* glsl */ `
+    uniform vec3 gradeShadow; uniform float gradeAmount; uniform float gradeLift;
+    vec3 grade(vec3 c) {
+      float l = dot(c, vec3(0.299, 0.587, 0.114));
+      vec3 cool = gradeShadow * (l / max(dot(gradeShadow, vec3(0.299, 0.587, 0.114)), 1e-3));
+      c = mix(c, cool, gradeAmount * (1.0 - smoothstep(0.0, 0.45, l)));
+      return mix(gradeShadow, vec3(1.0), c) * gradeLift + c * (1.0 - gradeLift);
+    }`;
+/** The grade in force (the dev menu's readout, tests): the shadow colour as written, the amount and the lift. */
+export const gradeNow = () => ({
+  shadow: '#' + GRADE.gradeShadow.value.getHexString(THREE.LinearSRGBColorSpace),
+  amount: GRADE.gradeAmount.value,
+  lift: GRADE.gradeLift.value,
+});
+/** Grade the pixel look for a floor (its `grade`, types.ts FloorLook); none, colours as they are. */
+export function setGrade(g?: { shadow: string; amount: number; lift: number }) {
+  // (the pass works on encoded colours, so the hex goes in as it is written, not converted to linear light)
+  GRADE.gradeShadow.value.setHex(parseInt((g?.shadow ?? '#000000').slice(1), 16), THREE.LinearSRGBColorSpace);
+  GRADE.gradeAmount.value = g?.amount ?? 0;
+  GRADE.gradeLift.value = g?.lift ?? 0;
+}
 const shade = new THREE.ShaderMaterial({
   depthTest: false,
   depthWrite: false, // (three writes it as GLSL 3 under WebGL 2, texelFetch included)
@@ -190,11 +219,13 @@ const shade = new THREE.ShaderMaterial({
     dark: { value: P.outlineDark },
     steps: { value: P.bands },
     range: { value: 1 },
+    ...GRADE,
   },
   vertexShader: 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
   fragmentShader: /* glsl */ `
     uniform sampler2D tColor; uniform sampler2D tDepth; uniform vec2 grid;
     uniform float outline; uniform float bands; uniform float gap; uniform float dark; uniform float steps; uniform float range;
+    ${GRADE_GLSL}
     float depthAt(ivec2 p) { return texelFetch(tDepth, clamp(p, ivec2(0), ivec2(grid) - 1), 0).r * range; }
     void main() {
       ivec2 p = ivec2(gl_FragCoord.xy);
@@ -204,7 +235,7 @@ const shade = new THREE.ShaderMaterial({
         float farther = max(max(depthAt(p + ivec2(1, 0)), depthAt(p - ivec2(1, 0))), max(depthAt(p + ivec2(0, 1)), depthAt(p - ivec2(0, 1)))) - d;
         if (farther > gap) col *= pow(1.0 - dark, 1.0 / 2.2); // (as dark as 1 - dark in linear light)
       }
-      gl_FragColor = vec4(col, 1.0); // (tone-mapped and encoded already, by the scene's own shaders)
+      gl_FragColor = vec4(grade(col), 1.0); // (tone-mapped and encoded already, by the scene's own shaders)
       if (bands > 0.5) { // light in a few steps, the hue kept: steps even to the eye (finer in the dark), never black
         float l = dot(gl_FragColor.rgb, vec3(0.299, 0.587, 0.114)), s = sqrt(l);
         float q = max(floor(s * steps + 0.5), 1.0) / steps;
@@ -249,9 +280,11 @@ const fineShade = new THREE.ShaderMaterial({
     dark: { value: P.outlineDark },
     bands: { value: 0 },
     steps: { value: P.bands },
+    ...GRADE,
   },
   vertexShader: 'void main() { gl_Position = vec4(position.xy, 0.0, 1.0); }',
   fragmentShader: /* glsl */ `
+    ${GRADE_GLSL}
     uniform sampler2D tFine; uniform sampler2D tFineDepth; uniform sampler2D tDepth; uniform vec4 fineBox; uniform float outline; uniform float dark;
     uniform float bands; uniform float steps;
     const int K = ${K};
@@ -270,7 +303,7 @@ const fineShade = new THREE.ShaderMaterial({
     }
     void main() {
       ivec2 q = ivec2(gl_FragCoord.xy);
-      if (seen(q)) { gl_FragColor = vec4(band(texelFetch(tFine, q, 0).rgb), 1.0); return; }
+      if (seen(q)) { gl_FragColor = vec4(band(grade(texelFetch(tFine, q, 0).rgb)), 1.0); return; }
       gl_FragColor = vec4(0.0);
       // within a game pixel of a coin, its outline (as thick as the grid's, and as dark)
       if (outline > 0.5) for (int d = 1; d <= K; d++)

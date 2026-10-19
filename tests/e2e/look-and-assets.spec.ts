@@ -311,3 +311,27 @@ test('the pixel look: at the texel from the start, the fine grid from the URL, d
   expect(off).toEqual({ lines: 0, rows: 0 });
   expect(offErrors).toEqual([]);
 });
+
+test("a floor's grade (the art bible's cool shadows): floor 1 leans its darks toward its shadow colour, lifts black and fills more light; a floor without one is drawn as it is", async ({
+  page,
+}) => {
+  type GG = { grade: { shadow: string; amount: number; lift: number }; lightLevels(): { fill: number } };
+  const one = await start(page, '?seed=GRADE1');
+  const f1 = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GG }).__game;
+    return { grade: g.grade, fill: g.lightLevels().fill };
+  });
+  expect(f1.grade.amount).toBeGreaterThan(0);
+  expect(f1.grade.lift).toBeGreaterThan(0);
+  expect(f1.grade.shadow).toMatch(/^#[0-9a-f]{6}$/);
+  expect(f1.fill).toBeGreaterThan(1);
+  expect(one).toEqual([]);
+  const two = await start(page, '?seed=GRADE1&floor=2');
+  const f2 = await page.evaluate(() => {
+    const g = (window as unknown as { __game: GG }).__game;
+    return { grade: g.grade, fill: g.lightLevels().fill };
+  });
+  expect(f2.grade).toMatchObject({ amount: 0, lift: 0 });
+  expect(f2.fill).toBe(1);
+  expect(two).toEqual([]);
+});

@@ -106,7 +106,7 @@ import { marksNow } from '../actors/spellMarks';
 import type { TransformId } from '../items/transformData';
 import { placeProp } from '../world/props';
 import { assetList, assetsOn } from '../assets/models';
-import { drawnRows, pixelLook, setPixelLook, type PixelLook, fineLayerDrawn } from '../render/pixelLook';
+import { drawnRows, gradeNow, pixelLook, setPixelLook, type PixelLook, fineLayerDrawn } from '../render/pixelLook';
 import { removeModelOptions, showBestiary, showBossLooks, showJellyLooks } from './modelGallery';
 import { removeEffectOptions, showEffectOptions } from './effectOptions';
 import { elementDev, sapMul } from '../world/mechanisms';
@@ -293,6 +293,10 @@ export function installHooks() {
     /** The pixel look: its grid ('texel', rows of pixels, or 0 for off), outlines, light in bands; set any of them. */
     get pixelLook() {
       return { ...pixelLook() };
+    },
+    /** The pixel look's grade in force (the floor's `grade` in data/floors.json): shadow colour, amount and lift. */
+    get grade() {
+      return gradeNow();
     },
     /** The rows of game pixels the pixel look drew in the last frame (at the texel: the view's height in texels). */
     get pixelRows() {
