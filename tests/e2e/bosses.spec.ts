@@ -714,7 +714,17 @@ test("daylight: Kaelith's way out is a shaft of light; stepping into it, the mag
     g.sim(2, true); const out = g.daylight;
     return { way, said: [...said].join(' | '), hud, start, mid, out };
   })()`);
-  // the frame as drawn (a screenshot, read on a plain canvas): the sky above bright and warm, where the Seal was dark
+  // the frame as drawn (a screenshot, read on a plain canvas): the sky above bright and warm, where the Seal was dark.
+  // The white of stepping out and the floor's fade from black are CSS transitions in real time, not the game's: the shot
+  // waits until both are gone (or it reads them, not the sky), then has a frame drawn to read
+  await expect
+    .poll(() =>
+      page.evaluate(() => ['dawn', 'fade'].map((id) => +getComputedStyle(document.getElementById(id)!).opacity)),
+    )
+    .toEqual([0, 0]);
+  await page.evaluate(() =>
+    (window as unknown as { __game: { sim(t: number, draw: boolean): void } }).__game.sim(0.02, true),
+  );
   const shot = (await page.screenshot()).toString('base64');
   const sky = await page.evaluate(async (b64) => {
     const im = new Image();

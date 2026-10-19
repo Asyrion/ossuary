@@ -100,11 +100,14 @@ export function step(dt: number) {
       updatePotions(dt);
       updateThrows(dt);
       checkLevelUp(dt); // (a level waiting opens its screen once the fight is won)
-      // in rooms larger than the view the camera follows the mage, stopping at the walls
-      const t = cameraTargetFor(G.room.current, player.x, player.z),
-        k = 1 - Math.exp(-8 * dt);
-      camTarget.x += (t.x - camTarget.x) * k;
-      camTarget.z += (t.z - camTarget.z) * k;
+      // in rooms larger than the view the camera follows the mage, stopping at the walls; not once the mage stepped out
+      // of the room this step (into Kaelith's daylight, which aims the camera at the dawn itself)
+      if (G.flow.state === 'play') {
+        const t = cameraTargetFor(G.room.current, player.x, player.z),
+          k = 1 - Math.exp(-8 * dt);
+        camTarget.x += (t.x - camTarget.x) * k;
+        camTarget.z += (t.z - camTarget.z) * k;
+      }
     } else updateEnemies(0);
   }
   updateDaylight(dt); // (the cave mouth at dawn, and the shaft's dust before it)
