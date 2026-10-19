@@ -142,6 +142,10 @@ describe('the asset manifest', () => {
       artifacts: { nothing: { file: '../x.glb', height: 0.4 } },
       floors: { moon: { floor: 'textures/moon/floor.gif' } },
       icons: { ember_sigil: { file: 'https://example.com/i.png' } },
+      walls: {
+        moon: { bricks: 'textures/moon/bricks.png' },
+        crypt: { lattice: 'textures/crypt/l.png', bones: 'b.jpg' },
+      },
     };
     const errs = validateManifest(bad, known).join('\n');
     for (const bit of [
@@ -152,6 +156,9 @@ describe('the asset manifest', () => {
       'floors.moon: no such floor look',
       'floors.moon.floor',
       'icons.ember_sigil',
+      'walls.moon: no such floor look',
+      'walls.crypt.lattice: no such kind of wall',
+      'walls.crypt.bones: b.jpg',
     ])
       expect(errs).toContain(bit);
   });

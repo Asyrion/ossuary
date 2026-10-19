@@ -90,7 +90,7 @@ export function buildCrackedWall(room: Room, side: Side, nb: Room, x: number, z:
   plug.position.set(wx - room.cx, 0, wz - room.cz);
   const wall = new THREE.Mesh(
     ns ? boxUV(DH * 2, h, WT) : boxUV(WT, h, DH * 2),
-    wallMaterials(room.look.wall, room.look.kinds.wall),
+    wallMaterials(room.look, room.look.kinds.wall),
   );
   wall.position.y = h / 2; // (in the bricks of the walls round it)
   const [TX, TY] = CFG.roomKit.texel; // (the crack in whole texels, as the bricks)

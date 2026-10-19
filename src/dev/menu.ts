@@ -65,7 +65,7 @@ import { bindIt, breakAllChains, freeIt, layShade, shadeInfo } from '../vigil/sh
 import { walkWith } from '../vigil/shadeHelp';
 import { SHADE_IDS } from '../vigil/shadeData';
 import { openLectern } from '../ui/lectern';
-import { assetList, assetsOn, setAssetsOn } from '../assets/models';
+import { assetList, assetsOn, setAssetsOn, wallTile } from '../assets/models';
 import { setCloseUp } from '../render/renderer';
 import { LINES, drawnRows, gradeNow, pixelLook, setPixelLook } from '../render/pixelLook';
 import { lightLevels } from '../render/lights';
@@ -1754,6 +1754,8 @@ function refresh() {
     gradeNow(),
     lightLevels().fill,
     Object.keys(FLOORS[G.run.floor]?.look.materials ?? {}).length,
+    G.room.current.look.kinds.wall,
+    !!wallTile(G.room.current.look.name, G.room.current.look.kinds.wall),
   );
   reagentBtn.textContent = DEV.reagents ? S.reagentsOn : S.reagentsOff;
   reagentBtn.classList.toggle('on', DEV.reagents);

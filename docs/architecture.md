@@ -679,7 +679,10 @@ artifact icons (`toIcon`). Dev: `__game.pixelLook`, `setPixelLook({ lines, outli
 
 Everything in a room is drawn in code in the floor's colours.
 - `render/pixelTextures.ts`: floors (`PAVING`) and walls (`WALLS`) drawn texel by texel (`CFG.roomKit.texel`), in the
-  kinds the room drew; a made floor tile (data/assets.json) paints the floor instead (`floorTexture` in `textures.ts`).
+  kinds the room drew; a made floor tile (data/assets.json) paints the floor instead (`floorTexture` in `textures.ts`),
+  and a look's made wall face for a kind (`walls.<look>.<kind>`, `wallTile` in `assets/models.ts`, made by
+  `tools/art/walltile.py` at the texel in the floor's colours) takes the place of the drawn one (`wallMaterials` in
+  `materials.ts`, `pixelWallTexture`); the look's stains are laid on either.
   `textures.ts`: special rooms' marks (`drawMarks`) and stepped glows.
 - Variety: each floor's `look.kit` lists weighted kinds of wall, floor, torch and brazier; each room draws one of
   each on its seed (`pickKinds` in pure `world/kitData.ts`, into `room.look.kinds`); a theme may pin some. Dev:
@@ -705,8 +708,8 @@ round bases; `tools/prepare-asset.ts` shares them. Clips: `standing_relax`, `run
 ### Made assets and Tripo creatures
 
 - Made assets: `data/assets.json` holds budgets per kind and which file replaces which placeholder (props,
-  artifacts, floor tiles, icons, coins, models); pure `assets/assetData.ts`; `assets/models.ts` loads them at boot
-  (hooks `modelFor`, `floorTile`, `iconUrl`); a missing file leaves the placeholder. `tools/make-standins.ts` makes
+  artifacts, floor tiles, wall faces, icons, coins, models); pure `assets/assetData.ts`; `assets/models.ts` loads them at boot
+  (hooks `modelFor`, `floorTile`, `wallTile`, `iconUrl`); a missing file leaves the placeholder. `tools/make-standins.ts` makes
   the test stand-ins. `docs/assets.md` has the house style, budgets and log. `?assets=off` keeps placeholders.
   Dev: Made assets section; `__game.assets`, `useAssets(false)`, `showAssets()`.
 - Tripo creatures animated in code (guide: `docs/creatures.md`): `tools/animate-creature.ts` simplifies the mesh to

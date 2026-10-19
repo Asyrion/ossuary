@@ -2,6 +2,7 @@
    game, and the budgets each kind of asset has to fit. Pure: data/assets.json read and checked here; the game loads
    the files in assets/models.ts, and tools/prepare-asset.ts and tools/prepare-texture.ts use the same budgets. */
 import raw from '../../data/assets.json';
+import { WALL_KINDS } from '../world/kitData';
 
 export type ModelKind = 'hero' | 'enemy' | 'boss' | 'prop' | 'large-prop' | 'artifact';
 export type ImageKind = 'floor' | 'wall' | 'icon' | 'coin';
@@ -40,10 +41,10 @@ export interface ModelEntry {
 export interface Manifest {
   /** Placeholders a model replaces (PROP_SLOTS). */ props: Record<string, ModelEntry>;
   /** An artifact's floating model, by artifact id. */ artifacts: Record<string, ModelEntry>;
-  /** A floor look's painted floor tile, by look name (data/floors.json); walls stay procedural. */ floors: Record<
-    string,
-    { floor: string }
-  >;
+  /** A floor look's painted floor tile, by look name (data/floors.json). */ floors: Record<string, { floor: string }>;
+  /** A floor look's made wall faces, by look name and the room kit's kind of wall (tools/art/walltile.py): a PNG at the
+      kit's texel in the floor's colours, as many units across as it is texels over 48; the kinds left out are drawn in
+      code. */ walls?: Record<string, Record<string, string>>;
   /** An artifact's painted icon, by artifact id. */ icons: Record<string, { file: string }>;
   /** Coin faces, by a name of their own: the face drawn on a coin in the room, at
       the game's pixel (`images.coin.size` across), and its icon for the HUD and the lore card. */ coins?: Record<
@@ -71,6 +72,7 @@ export const MANIFEST: Manifest = {
   props: raw.props,
   artifacts: raw.artifacts,
   floors: raw.floors,
+  walls: raw.walls,
   icons: raw.icons,
   coins: raw.coins,
   obol: raw.obol,
@@ -118,6 +120,14 @@ export function validateManifest(m: Manifest, known: Known): string[] {
     if (!known.looks.has(look)) errs.push(`floors.${look}: no such floor look (${[...known.looks].join(', ')})`);
     file(`floors.${look}.floor`, e?.floor, /\.(jpg|png)$/);
   }
+  for (const [look, kinds] of Object.entries(m.walls ?? {})) {
+    if (!known.looks.has(look)) errs.push(`walls.${look}: no such floor look (${[...known.looks].join(', ')})`);
+    for (const [kind, f] of Object.entries(kinds ?? {})) {
+      if (!(WALL_KINDS as readonly string[]).includes(kind))
+        errs.push(`walls.${look}.${kind}: no such kind of wall (${WALL_KINDS.join(', ')})`);
+      file(`walls.${look}.${kind}`, f, /\.png$/);
+    }
+  }
   for (const [id, e] of Object.entries(m.icons ?? {})) {
     if (!known.artifacts.has(id)) errs.push(`icons.${id}: no such artifact`);
     file(`icons.${id}`, e?.file, /\.png$/);
@@ -139,6 +149,9 @@ export function manifestFiles(m: Manifest): { where: string; file: string }[] {
     ...Object.entries(m.props ?? {}).map(([id, e]) => ({ where: `props.${id}`, file: e.file })),
     ...Object.entries(m.artifacts ?? {}).map(([id, e]) => ({ where: `artifacts.${id}`, file: e.file })),
     ...Object.entries(m.floors ?? {}).map(([look, e]) => ({ where: `floors.${look}.floor`, file: e.floor })),
+    ...Object.entries(m.walls ?? {}).flatMap(([look, kinds]) =>
+      Object.entries(kinds).map(([kind, file]) => ({ where: `walls.${look}.${kind}`, file })),
+    ),
     ...Object.entries(m.icons ?? {}).map(([id, e]) => ({ where: `icons.${id}`, file: e.file })),
     ...Object.entries(m.coins ?? {}).flatMap(([id, e]) => [
       { where: `coins.${id}.face`, file: e.face },

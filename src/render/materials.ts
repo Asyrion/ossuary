@@ -4,6 +4,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { FloorLook } from '../types';
 import { glowTex, shadowTex } from './textures';
 import { pixelWallTexture } from './pixelTextures';
+import { wallTile } from '../assets/models';
 import type { WallKind } from '../world/kitData';
 
 /** Box whose UVs are scaled by face size, so the brick texture tiles at 1 repeat per unit. */
@@ -44,11 +45,12 @@ for (const m of Object.values(M)) markShared(m);
 const wallCache = new Map<string, THREE.Material[]>();
 /** Box materials for walls in a floor's look and the room kit's `kind` of wall: its pixel bricks on the sides (glowing
     where the kind has embers in it), dark tops; shared by every room of that look and kind. */
-export function wallMaterials(wall: FloorLook['wall'], kind: WallKind) {
-  const key = JSON.stringify(wall) + kind;
+export function wallMaterials(look: Pick<FloorLook, 'name' | 'wall'>, kind: WallKind) {
+  const made = wallTile(look.name, kind), // (the floor's own made face for the kind, data/assets.json, else the kit's)
+    key = JSON.stringify(look.wall) + kind + (made?.src ?? '');
   let mats = wallCache.get(key);
   if (!mats) {
-    const art = pixelWallTexture(wall, kind);
+    const art = pixelWallTexture(look.wall, kind, made);
     const brick = markShared(
       new THREE.MeshStandardMaterial({
         map: art.map,
@@ -65,12 +67,12 @@ export function wallMaterials(wall: FloorLook['wall'], kind: WallKind) {
 const cappedCache = new Map<string, THREE.Material[]>();
 /** Walls carved inside a room (a partition, a pier, a cut corner): brick sides under a cap of dressed stone, so a
     low one reads as masonry rather than a hole in the floor. */
-export function cappedWallMaterials(wall: FloorLook['wall'], kind: WallKind) {
-  const key = JSON.stringify(wall) + kind;
+export function cappedWallMaterials(look: Pick<FloorLook, 'name' | 'wall'>, kind: WallKind) {
+  const key = JSON.stringify(look.wall) + kind + (wallTile(look.name, kind)?.src ?? '');
   let mats = cappedCache.get(key);
   if (!mats) {
-    const [brick] = wallMaterials(wall, kind),
-      [r, g, b] = wall.brick.map((v) => Math.min(255, Math.round(v * 0.6)));
+    const [brick] = wallMaterials(look, kind),
+      [r, g, b] = look.wall.brick.map((v) => Math.min(255, Math.round(v * 0.6)));
     const cap = markShared(
       new THREE.MeshStandardMaterial({ color: new THREE.Color(`rgb(${r},${g},${b})`), roughness: 0.9 }),
     );
