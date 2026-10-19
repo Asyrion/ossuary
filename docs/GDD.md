@@ -1367,7 +1367,10 @@ Ferryman's Shore) and then the Seal. Each floor is generated fresh, so no two ru
 **Room templates are data:** a character grid in the size of the room's shape (rock, pit, pillar, stone tomb, enemy
 spawn, empty; urns and rune-sealed urns) plus a difficulty value and the room types it suits, stored as JSON so new
 rooms need no code. Pillars and tombs block walking and bolts like rocks but never break; tomb tiles side by side make
-one longer tomb. Larger halls are furnished with them so they don't feel empty. Ordeal templates list two or three
+one longer tomb. Larger halls are furnished with them so they don't feel empty. On floor 1 a plain room may also hold a relic of the
+vault (the owner, 2026-10-19): a grave marker, an angel's head, a skull pile or a broken urn stands in the way like a rock
+and breaks like one, to a glyph's blast or Mason's Chisel, with nothing inside; a coffin lid or a fallen candelabrum lies
+flat and is walked over. A relic never stands where it would cut a room in two. Ordeal templates list two or three
 waves. There are at least two templates per shape and 50 or more in total.
 
 ## Pickups and room types

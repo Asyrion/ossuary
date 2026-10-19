@@ -639,6 +639,10 @@ export const CFG = {
     plainSpread: [0.4, 1.2] as [number, number],
     // and keeps this far (units) from a doorway's middle, and from the start room's middle (where the mage first stands)
     plainClear: { door: 1.8, start: 2.4 },
+    // the relics that stand in the way like a rock (and break like one, to a glyph's blast or Mason's Chisel); the others
+    // lie flat and are walked over. Their collider is this much of the model's footprint.
+    relicBlock: ['grave_marker', 'angel_head', 'skull_pile', 'broken_urn'],
+    relicFit: 0.8,
     // the drowned climb out of the landing's river this long into a fight, then this often, at most this many
     drownAfter: 5,
     drownEvery: 7,
