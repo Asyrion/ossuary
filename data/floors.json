@@ -26,12 +26,13 @@
       "name": "crypt",
       "kit": {"wall": {"bricks": 3, "ashlar": 2, "bones": 1}, "floor": {"flags": 3, "cobbles": 2, "graves": 1}, "torch": {"bracket": 3, "candelabra": 2, "skull": 1}, "brazier": {"tripod": 2, "font": 1, "basket": 1}},
       "floor": {"base": [126, 100, 74], "mortar": "#2a2430", "stain": "58,104,88", "decor": "bones", "bones": 5},
-      "wall": {"brick": [106, 90, 82], "mortar": "#28222e", "stains": "none", "dress": {"pilaster": 3, "niches": {"skull": 3, "candle": 3, "bones": 2, "urn": 1, "empty": 1}}},
+      "wall": {"brick": [106, 90, 82], "mortar": "#28222e", "stains": "moss", "dress": {"pilaster": 3, "fill": 0.9, "niches": {"skull": 3, "candle": 3, "bones": 2, "urn": 1, "empty": 1}}},
       "torch": {"flame": "#ffd27a", "light": "#ffa04a", "intensity": 1.0, "wax": "#f2e2c0"},
       "urn": {"clay": "#9a6440", "band": "#33384d"},
       "light": {"sky": "#a6aac2", "ground": "#343448", "moon": "#b8c4e8", "fill": 1.45},
       "grade": {"shadow": "#273352", "amount": 0.5, "lift": 0.03, "ink": 1, "gap": 0.08},
-      "materials": {"wood": "#6e4830", "oak": "#7c5434", "oakDark": "#523424", "iron": "#4e5064", "blackIron": "#2e3042", "bronze": "#ba8a4a", "darkBronze": "#7c5a30", "bone": "#e4d6b6", "boneOld": "#c4b294", "skull": "#b8a888", "stone": "#8a7c72", "darkStone": "#4c4452", "verdigris": "#5fa38a", "burlap": "#a68a5e", "rope": "#d8be8a"}
+      "materials": {"wood": "#6e4830", "oak": "#7c5434", "oakDark": "#523424", "iron": "#4e5064", "blackIron": "#2e3042", "bronze": "#ba8a4a", "darkBronze": "#7c5a30", "bone": "#e4d6b6", "boneOld": "#c4b294", "skull": "#b8a888", "stone": "#8a7c72", "darkStone": "#4c4452", "verdigris": "#5fa38a", "burlap": "#a68a5e", "rope": "#d8be8a"},
+      "scatter": {"bones": 3, "pebbles": 4, "candles": 1, "verdigris": 4, "webs": 2, "stains": 1}
     }
   },
   {

@@ -25,7 +25,7 @@ import { mulberry } from '../util';
 import { FLOORS } from './generate';
 import { addProp, removeProp } from './props';
 import type { ScatterKind } from './themeData';
-import { candleFire, put } from './objectLooks';
+import { OBJECT_LOOKS, candleFire, put } from './objectLooks';
 import { mesh, tone } from './kitParts';
 import { waxFor } from './fireLooks';
 
@@ -245,6 +245,20 @@ const DRESS: Record<ScatterKind, Dress> = {
     g.add(gl);
     return g;
   },
+  /** Verdigris: the floor 1 accent (art bible 4.1), a patch of green-blue copper bloom and damp moss. */
+  verdigris(R) {
+    const m = new THREE.Mesh(GEO.patch, patchMat(0x2e5c4e, false, 0.6));
+    m.scale.setScalar(0.4 + R() * 0.55);
+    m.position.y = 0.004;
+    m.rotation.y = R() * 6;
+    return m;
+  },
+  /** A cobweb by the wall, smaller than the template's (OBJECT_LOOKS.web). */
+  webs(R) {
+    const o = OBJECT_LOOKS.web();
+    o.scale.setScalar(0.55 + R() * 0.25);
+    return o;
+  },
   moss(R) {
     const m = new THREE.Mesh(GEO.patch, patchMat(0x1e2c16, false, 0.7));
     m.scale.setScalar(0.6 + R() * 0.6);
@@ -403,8 +417,11 @@ const DRESS: Record<ScatterKind, Dress> = {
 
 /** Scatter a themed room's dressing over its free floor (seeded, so a room looks the same every time). */
 export function dressTheme(room: Room) {
-  const theme = room.theme;
-  if (!theme) return;
+  // a themed room's own scatter; a plain fight or the start in the floor's, each kind a little more or less a room
+  const theme = room.theme,
+    plain = !theme && (room.type === 'normal' || room.type === 'start') && room.look.scatter;
+  const scatter = theme?.scatter ?? (plain ? room.look.scatter : undefined);
+  if (!scatter) return;
   const R = mulberry(room.plan.seed ^ 0x7e3e),
     t = room.template,
     free: { c: number; r: number }[] = [];
@@ -424,12 +441,19 @@ export function dressTheme(room: Room) {
     c: inside.reduce((s, q) => s + q.c, 0) / inside.length,
     r: inside.reduce((s, q) => s + q.r, 0) / inside.length,
   };
-  for (const [kind, n] of Object.entries(theme.scatter) as [ScatterKind, number][]) {
-    const count = kind === 'daylight' ? n : Math.round(n * scale);
+  for (const [kind, n] of Object.entries(scatter) as [ScatterKind, number][]) {
+    const count =
+      kind === 'daylight' ? n : Math.round(n * scale * (plain ? C.plainSpread[0] + R() * C.plainSpread[1] : 1));
     for (let i = 0; i < count && free.length; i++) {
       // daylight falls near the middle, clear of the walls; bedrolls keep off them; the rest anywhere
       const need = kind === 'daylight' ? C.daylightClear : kind === 'bedrolls' ? C.bedrollClear : 0; // tiles from any wall
-      const open = need ? free.filter((q) => clear(q.c, q.r) >= need) : free,
+      // cobwebs hang by a wall
+      const open =
+          kind === 'webs'
+            ? free.filter((q) => clear(q.c, q.r) === 1)
+            : need
+              ? free.filter((q) => clear(q.c, q.r) >= need)
+              : free,
         from = open.length ? open : free;
       const pick =
         kind === 'daylight'
@@ -439,11 +463,22 @@ export function dressTheme(room: Room) {
           : from[Math.floor(R() * from.length)];
       free.splice(free.indexOf(pick), 1);
       const o = DRESS[kind](R, room.look);
+      o.userData.scatter = kind;
       o.position.x += room.bounds.minX + pick.c + 0.5 + (R() - 0.5) * 0.3 - room.cx;
       o.position.z += room.bounds.minZ + pick.r + 0.5 + (R() - 0.5) * 0.3 - room.cz;
       room.group.add(o);
     }
   }
+}
+
+/** What a room's scatter put down, by kind (the dev menu's readout, tests). */
+export function scatterOf(room: Room) {
+  const out: Partial<Record<ScatterKind, number>> = {};
+  for (const o of room.group.children) {
+    const k = o.userData.scatter as ScatterKind | undefined;
+    if (k) out[k] = (out[k] ?? 0) + 1;
+  }
+  return out;
 }
 
 /* ---------- twists ---------- */

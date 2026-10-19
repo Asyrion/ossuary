@@ -67,6 +67,8 @@ export type NicheKind = 'skull' | 'candle' | 'urn' | 'bones' | 'bell' | 'empty';
 /** How a floor dresses its tall walls: a pilaster every `pilaster` tiles (0: none), and what niches hold, by weight. */
 export interface WallDress {
   pilaster: number;
+  /** The chance a spot between pilasters holds a niche (0.65 when absent). */
+  fill?: number;
   niches: Partial<Record<NicheKind, number>>;
 }
 export interface FloorLook {
@@ -92,6 +94,9 @@ export interface FloorLook {
       black lifted to it by `lift`, and the outlines drawn toward a near black tinted by it by `ink` (4.4), wherever a nearer surface stands `gap` units or more before a farther one (CFG.pixelLook.outlineGap
       when absent). None, no grade. */
   grade?: { shadow: string; amount: number; lift: number; ink?: number; gap?: number };
+  /** What a plain fight or the start scatter over their floor (the themes' kinds, world/themes.ts), each kind's count
+      varied a room. */
+  scatter?: Partial<Record<import('./world/themeData').ScatterKind, number>>;
   /** The floor's own colours for the room kit's materials and objects, by name (world/kitColours.ts): '#rrggbb'. */
   materials?: Record<string, string>;
   /** The floor's pottery: an urn's clay and its painted bands (the room kit's urns). */
